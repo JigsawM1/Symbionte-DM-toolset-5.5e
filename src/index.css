@@ -1,0 +1,233 @@
+/* Sistema de Diseño Brutalista Tecnológico Premium - VISUAL_DENSITY: 10 */
+/* TOTALMENTE LIBRE DE TRANSICIONES Y ANIMACIONES PARA EVITAR LAG EN TALESPIRE */
+
+:root {
+  /* Fondos Premium (Fondo negro azulado profundo HSL) */
+  --color-fondo-profundo: hsl(222, 25%, 6%);
+  --color-fondo-panel: hsl(222, 20%, 10%);
+  --color-fondo-tarjeta: hsl(222, 18%, 14%);
+  --color-fondo-tarjeta-foco: hsl(222, 18%, 18%);
+
+  /* Bordes Brutalistas Refinados */
+  --color-borde-brutal: hsl(222, 15%, 18%);
+  --color-borde-neon: hsl(265, 80%, 55%);
+  --color-borde-cian: hsl(172, 90%, 48%);
+  --color-borde-alerta: hsl(325, 90%, 55%);
+
+  /* Texto y Contraste de Lectura Ultra-Legible */
+  --color-texto-principal: hsl(210, 30%, 95%);
+  --color-texto-secundario: hsl(215, 18%, 68%);
+  --color-texto-apagado: hsl(222, 20%, 40%);
+
+  /* Colores de Acento y Estado */
+  --color-primario: hsl(265, 80%, 60%);
+  --color-primario-brillante: hsl(265, 90%, 65%);
+  --color-exito: hsl(150, 80%, 42%);
+  --color-peligro: hsl(355, 80%, 50%);
+  --color-advertencia: hsl(40, 95%, 55%);
+
+  /* Tipografía Profesional de Google Fonts */
+  --fuente-principal: 'Inter', system-ui, -apple-system, sans-serif;
+  --fuente-titulo: 'Outfit', system-ui, -apple-system, sans-serif;
+  --fuente-codigo: 'JetBrains Mono', 'Fira Code', monospace;
+
+  background-color: var(--color-fondo-profundo);
+  color: var(--color-texto-principal);
+  font-family: var(--fuente-principal);
+  font-size: 14px;
+  line-height: 1.3;
+  box-sizing: border-box;
+}
+
+/* Inyección de variables nativas de TaleSpire adaptadas si están disponibles */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-fondo-profundo: var(--ts-background-color, hsl(222, 25%, 6%));
+    --color-texto-principal: var(--ts-foreground-color, hsl(210, 30%, 95%));
+    --color-primario: var(--ts-brand-color, hsl(265, 80%, 60%));
+    --color-borde-brutal: var(--ts-border-color, hsl(222, 15%, 18%));
+  }
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: inherit;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  margin: 0;
+  padding: 2px;
+  background-color: var(--color-fondo-profundo);
+  overflow-x: hidden;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Contenedor Principal */
+#root {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+}
+
+/* Scrollbars Brutalistas Ultra-delgadas y Planas (Sin transiciones) */
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-fondo-profundo);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-borde-brutal);
+  border-radius: 0;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-primario);
+}
+
+/* Tipografías y Encabezados Compactos */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--fuente-titulo);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  text-transform: uppercase;
+}
+
+/* Elementos de Formulario Brutalistas */
+input,
+select,
+textarea {
+  background-color: var(--color-fondo-panel);
+  border: 1px solid var(--color-borde-brutal);
+  color: var(--color-texto-principal);
+  font-family: inherit;
+  font-size: 13px;
+  padding: 3px 6px;
+  border-radius: 2px;
+  outline: none;
+  /* TRANSICIONES ELIMINADAS ABSOLUTAMENTE PARA EVITAR LAG */
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--color-borde-cian);
+  background-color: var(--color-fondo-tarjeta-foco);
+}
+
+/* Botones Brutalistas */
+button {
+  background-color: var(--color-fondo-panel);
+  border: 1px solid var(--color-borde-brutal);
+  color: var(--color-texto-principal);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  padding: 6px 12px;
+  cursor: pointer;
+  border-radius: 2px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  /* TRANSICIONES ELIMINADAS ABSOLUTAMENTE PARA EVITAR LAG */
+}
+
+button:hover {
+  background-color: var(--color-primario);
+  border-color: var(--color-borde-cian);
+  color: #ffffff;
+}
+
+button:active {
+  background-color: var(--color-primario-brillante);
+  /* transform: translateY(1px) ELIMINADO para evitar reflows de diseño */
+}
+
+button.activo {
+  background-color: var(--color-primario-brillante);
+  border-color: var(--color-borde-cian);
+  color: #ffffff;
+}
+
+/* Clases de Utilidad de Cuadrículas CSS de Alta Densidad */
+.cuadricula-dm {
+  display: grid;
+  gap: 4px;
+  padding: 2px;
+}
+
+.tarjeta-brutal {
+  background-color: var(--color-fondo-panel);
+  border: 1px solid var(--color-borde-brutal);
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  border-radius: 2px;
+}
+
+.tarjeta-brutal-destacada {
+  background-color: var(--color-fondo-tarjeta);
+  border: 1px solid var(--color-borde-neon);
+  padding: 6px;
+  border-radius: 2px;
+}
+
+/* Números y Datos Monospaciados */
+.dato-numerico {
+  font-family: var(--fuente-codigo);
+  font-weight: 700;
+}
+
+/* Flexbox utilidades */
+.flex-fila {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 4px;
+}
+
+.flex-columna {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* Indicadores de Estado */
+.texto-exito {
+  color: var(--color-exito);
+}
+
+.texto-peligro {
+  color: var(--color-peligro);
+}
+
+.texto-advertencia {
+  color: var(--color-advertencia);
+}
+
+.texto-apagado {
+  color: var(--color-texto-apagado);
+}
+
+/* .activo-pulso Y ANIMACIONES KEYFRAMES ELIMINADAS COMPLETAMENTE */
+.activo-indicador-estatico {
+  border-color: var(--color-borde-cian) !important;
+  box-shadow: 0 0 0 1px var(--color-borde-cian);
+}

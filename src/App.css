@@ -1,0 +1,25 @@
+/* Estilos de App - Optimizados para Symbiote de TaleSpire. Animaciones y transiciones eliminadas. */
+
+#root {
+  max-width: 100%;
+  margin: 0;
+  padding: 0;
+  text-align: left;
+}
+
+.logo {
+  height: 4em;
+  padding: 0.5em;
+}
+
+.logo:hover {
+  filter: drop-shadow(0 0 1em var(--color-cyan));
+}
+
+.card {
+  padding: 1em;
+}
+
+.read-the-docs {
+  color: var(--text-muted);
+}

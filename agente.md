@@ -234,5 +234,22 @@ Hacer la importación completamente **atómica e incremental**:
 > ⚠️ Al realizar modificaciones múltiples e independientes de diferentes colecciones dentro de una sola función en stores de Zustand, **nunca uses copias del estado (`get()`) rancios en llamadas a persistencia secuenciales**.
 > Acumula todos los cambios en variables locales e implementa una única actualización atómica final. Esto garantiza que todos los hilos asíncronos y escrituras físicas a disco/blobs reciban un estado completamente integrado y actualizado.
 
+---
+
+## [2026-05-25] Mejoras Visuales, Diseño Continuo de Fichas e Interactividad de Combate Integrada
+
+**Mejoras implementadas:**
+1. **Tooltips de Condiciones (5.5e):** Se importó y enlazó `CONDICIONES_2024` en el visualizador de iniciativa. Al hacer hover sobre el chip de condición aplicado a cualquier criatura, se muestra un tooltip nativo detallado con el nombre oficial y todos los efectos mecánicos de las reglas D&D 5.5e de forma instantánea.
+2. **Convertidor de Divisas Integrado:** Se diseñó y construyó un convertidor de monedas atómico en las Tablas DM, permitiendo al DM ingresar cualquier cantidad y tipo de moneda (PC, PP, PE, PO, PPT) y ver de forma inmediata el cambio equivalente en las otras divisas usando ratios estándares de D&D 5e con colores temáticos HSL.
+3. **Dados en el Compendio de Hechizos:** Se integró la API `lanzarDadosTaleSpire` al compendio de hechizos de forma visualmente atractiva, permitiendo al DM presionar un botón de dados (`🎲 Tirar`) directamente en los dados de daño principal y nivel superior de los conjuros detallados.
+4. **Layout Continuo y Compacto de Estadísticas:**
+   - Se eliminó el botón obsoleto `DESVINCULAR FICHA` del header.
+   - Se rediseñó el layout de la ficha para que fluya en **una sola columna vertical continua** (`seccionesFichaLayout: flex column`) en lugar de dos columnas asimétricas, eliminando por completo espacios muertos de aire cuando el contenido a la derecha era muy denso.
+   - Se crearon secciones independientes y personalizadas para **Acciones**, **Reacciones** y **Acciones Legendarias** con estilos a juego, soportando el lanzado interactivo 3D.
+
+**Lección aprendida:**
+> 📐 Evita layouts asimétricos fijos de múltiples columnas en interfaces compactas o embebidas (como WebViews de juegos) si el contenido de una columna puede crecer dinámicamente mucho más que el otro. Un flujo vertical limpio y estructurado por secciones es infinitamente más responsivo, elegante y previene espacios de aire desiertos.
+
+
 
 

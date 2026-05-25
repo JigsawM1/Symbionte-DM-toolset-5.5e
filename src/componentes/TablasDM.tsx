@@ -8,7 +8,8 @@ import {
   HelpCircle,
   Compass,
   ArrowUp,
-  MessageSquare
+  MessageSquare,
+  Coins
 } from "lucide-react";
 
 export const TablasDM: React.FC = () => {
@@ -22,6 +23,31 @@ export const TablasDM: React.FC = () => {
   // Estados para Calculadora de Salto
   const [puntuacionFuerza, setPuntuacionFuerza] = useState(10);
   const [conCarrera, setConCarrera] = useState(true);
+
+  // Estados para Calculadora de Cambio de Divisas
+  const [cantidadDivisa, setCantidadDivisa] = useState<number>(100);
+  const [monedaOrigen, setMonedaOrigen] = useState<"PC" | "PP" | "PE" | "PO" | "PPT">("PO");
+
+  const calcularCambioDivisas = () => {
+    let totalCobre = cantidadDivisa;
+    if (monedaOrigen === "PP") totalCobre = cantidadDivisa * 10;
+    else if (monedaOrigen === "PE") totalCobre = cantidadDivisa * 50;
+    else if (monedaOrigen === "PO") totalCobre = cantidadDivisa * 100;
+    else if (monedaOrigen === "PPT") totalCobre = cantidadDivisa * 1000;
+
+    const formatear = (valor: number) => {
+      if (Number.isInteger(valor)) return valor.toLocaleString("es-ES");
+      return valor.toLocaleString("es-ES", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    };
+
+    return {
+      PC: formatear(totalCobre),
+      PP: formatear(totalCobre / 10),
+      PE: formatear(totalCobre / 50),
+      PO: formatear(totalCobre / 100),
+      PPT: formatear(totalCobre / 1000),
+    };
+  };
 
   // Estados para Consola de Críticos
   const [tipoCombate, setTipoCombate] = useState<"melee" | "distancia" | "magico">("melee");
@@ -327,6 +353,101 @@ export const TablasDM: React.FC = () => {
                   <div style={estilos.resultadoCalculoEfecto}>
                     Nota: El salto consume movimiento de tu turno corriente en pies de forma equivalente a la distancia.
                   </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Convertidor de Divisas */}
+            <div style={estilos.tarjetaCalculadora}>
+              <div style={estilos.tituloCalculadora}>
+                <Coins size={12} style={{ color: "#f9e2af" }} />
+                <span>Conversor de Divisas (Cambio de Monedas D&D 5e)</span>
+              </div>
+
+              <div style={estilos.cuerpoCalculadora}>
+                <div style={estilos.filaFormulario}>
+                  <label style={estilos.labelForm}>Cantidad a cambiar:</label>
+                  <input
+                    type="number"
+                    value={cantidadDivisa}
+                    onChange={(e) => setCantidadDivisa(Math.max(0, parseFloat(e.target.value) || 0))}
+                    style={estilos.inputForm}
+                    min={0}
+                  />
+                </div>
+
+                <div style={estilos.filaFormulario}>
+                  <label style={estilos.labelForm}>Moneda Origen:</label>
+                  <select
+                    value={monedaOrigen}
+                    onChange={(e) => setMonedaOrigen(e.target.value as any)}
+                    style={estilos.selectForm}
+                  >
+                    <option value="PC">Cobre (PC)</option>
+                    <option value="PP">Plata (PP)</option>
+                    <option value="PE">Electro (PE)</option>
+                    <option value="PO">Oro (PO)</option>
+                    <option value="PPT">Platino (PPT)</option>
+                  </select>
+                </div>
+
+                <div style={{
+                  display: "flex", 
+                  flexDirection: "column", 
+                  gap: "6px", 
+                  marginTop: "12px", 
+                  backgroundColor: "rgba(30, 30, 46, 0.4)",
+                  padding: "8px",
+                  borderRadius: "6px",
+                  border: "1px solid rgba(255,255,255,0.03)"
+                }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px solid rgba(255,255,255,0.05)", paddingBottom: "4px", fontSize: "10px", color: "var(--color-texto-secundario)" }}>
+                    <span>MONEDA EQUIVALENTE</span>
+                    <span>VALOR</span>
+                  </div>
+
+                  {(() => {
+                    const cambios = calcularCambioDivisas();
+                    const monedas = [
+                      { clave: "PPT", nombre: "Platino (PPT)", color: "#cdd6f4", desc: "1 PPT = 10 PO" },
+                      { clave: "PO", nombre: "Oro (PO)", color: "#f9e2af", desc: "1 PO = 10 PP" },
+                      { clave: "PE", nombre: "Electro (PE)", color: "#a6e3a1", desc: "1 PE = 5 PP" },
+                      { clave: "PP", nombre: "Plata (PP)", color: "#bac2de", desc: "1 PP = 10 PC" },
+                      { clave: "PC", nombre: "Cobre (PC)", color: "#fab387", desc: "Moneda Base" }
+                    ];
+
+                    return monedas.map((m) => {
+                      const esOrigen = m.clave === monedaOrigen;
+                      return (
+                        <div key={m.clave} style={{ 
+                          display: "flex", 
+                          justifyContent: "space-between", 
+                          alignItems: "center",
+                          padding: "4px 2px",
+                          opacity: esOrigen ? 1 : 0.85,
+                          backgroundColor: esOrigen ? "rgba(255,255,255,0.03)" : "transparent",
+                          borderRadius: "4px"
+                        }}>
+                          <div style={{ display: "flex", flexDirection: "column" }}>
+                            <span style={{ fontSize: "11px", fontWeight: "bold", color: m.color }}>
+                              {m.nombre} {esOrigen && "⭐"}
+                            </span>
+                            <span style={{ fontSize: "8px", color: "var(--color-texto-secundario)" }}>
+                              {m.desc}
+                            </span>
+                          </div>
+                          <span style={{ 
+                            fontSize: "12px", 
+                            fontWeight: "bold", 
+                            fontFamily: "monospace",
+                            color: esOrigen ? "var(--color-borde-cian)" : "var(--color-texto-primario)"
+                          }}>
+                            {cambios[m.clave as keyof typeof cambios]}
+                          </span>
+                        </div>
+                      );
+                    });
+                  })()}
                 </div>
               </div>
             </div>

@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from "react";
 import { usarAlmacenDM } from "../almacen/usarAlmacenDM";
 import { Search, Clock, MapPin, Layers, Info, X } from "lucide-react";
+import { lanzarDadosTaleSpire } from "../utiles/lanzadorDados";
 
 export const ListaHechizos: React.FC = () => {
   const { baseDatosHechizos } = usarAlmacenDM();
@@ -234,15 +235,53 @@ export const ListaHechizos: React.FC = () => {
                     </div>
                   )}
                   {hechizoSeleccionado.dadosDaño && (
-                    <div style={{ fontSize: "11px" }}>
+                    <div style={{ fontSize: "11px", display: "inline-flex", alignItems: "center", gap: "6px" }}>
                       <span style={{ color: "var(--color-texto-secundario)" }}>Daño: </span>
                       <strong style={{ color: "#ff7675" }}>{hechizoSeleccionado.dadosDaño} {hechizoSeleccionado.tipoDaño && hechizoSeleccionado.tipoDaño !== "N/A" ? `(${hechizoSeleccionado.tipoDaño})` : ""}</strong>
+                      <button
+                        onClick={() => lanzarDadosTaleSpire(hechizoSeleccionado.dadosDaño || "1d6", `Conjuro: ${hechizoSeleccionado.nombre}`)}
+                        style={{
+                          backgroundColor: "rgba(255, 118, 117, 0.15)",
+                          border: "1px solid #ff7675",
+                          color: "#ff7675",
+                          borderRadius: "4px",
+                          padding: "2px 6px",
+                          fontSize: "10px",
+                          cursor: "pointer",
+                          fontWeight: "bold",
+                          lineHeight: "1",
+                          display: "inline-flex",
+                          alignItems: "center"
+                        }}
+                        title="Lanzar dados de daño en TaleSpire"
+                      >
+                        🎲 Tirar
+                      </button>
                     </div>
                   )}
                   {hechizoSeleccionado.dadosDañoNivelSuperior && (
-                    <div style={{ fontSize: "11px" }}>
-                      <span style={{ color: "var(--color-texto-secundario)" }}>Daño Niv. Superior: </span>
+                    <div style={{ fontSize: "11px", display: "inline-flex", alignItems: "center", gap: "6px" }}>
+                      <span style={{ color: "var(--color-texto-secundario)" }}>Niv. Superior: </span>
                       <strong style={{ color: "#74b9ff" }}>+{hechizoSeleccionado.dadosDañoNivelSuperior}</strong>
+                      <button
+                        onClick={() => lanzarDadosTaleSpire(hechizoSeleccionado.dadosDañoNivelSuperior || "1d6", `Niv. Sup: ${hechizoSeleccionado.nombre}`)}
+                        style={{
+                          backgroundColor: "rgba(116, 185, 255, 0.15)",
+                          border: "1px solid #74b9ff",
+                          color: "#74b9ff",
+                          borderRadius: "4px",
+                          padding: "2px 6px",
+                          fontSize: "10px",
+                          cursor: "pointer",
+                          fontWeight: "bold",
+                          lineHeight: "1",
+                          display: "inline-flex",
+                          alignItems: "center"
+                        }}
+                        title="Lanzar dados adicionales en TaleSpire"
+                      >
+                        🎲 Tirar
+                      </button>
                     </div>
                   )}
                 </div>

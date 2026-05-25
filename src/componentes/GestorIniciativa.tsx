@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { usarAlmacenDM, CriaturaIniciativa } from "../almacen/usarAlmacenDM";
-import { MonstruoBase } from "../utiles/datosIniciales";
+import { MonstruoBase, CONDICIONES_2024 } from "../utiles/datosIniciales";
 import { lanzarDadosTaleSpire, renderizarTextoConDadosInteractivos, sanitizarEtiqueta } from "../utiles/lanzadorDados";
 import {
   Skull,
@@ -302,6 +302,12 @@ export const GestorIniciativa: React.FC = () => {
                         {criatura.condiciones.length > 0 ? (
                           criatura.condiciones.map((cond) => {
                             const esAlerta = ["muerto", "inconsciente", "aturdido", "paralizado"].includes(cond.toLowerCase());
+                            const condObj = CONDICIONES_2024.find(
+                              (c) => c.nombre.toLowerCase().includes(cond.toLowerCase()) || cond.toLowerCase().includes(c.nombre.split(" ")[0].toLowerCase())
+                            );
+                            const tooltipTexto = condObj 
+                              ? `${condObj.nombre}\n\n${condObj.efectos.map(e => `• ${e}`).join("\n")}`
+                              : cond;
                             return (
                               <div 
                                 key={cond} 
@@ -311,6 +317,7 @@ export const GestorIniciativa: React.FC = () => {
                                   borderColor: esAlerta ? "var(--color-peligro)" : "var(--color-borde-cian)",
                                   color: esAlerta ? "var(--color-peligro)" : "var(--color-borde-cian)"
                                 }}
+                                title={tooltipTexto}
                               >
                                 <span>{cond}</span>
                                 <button
@@ -527,118 +534,139 @@ export const GestorIniciativa: React.FC = () => {
                 ) : (
                   /* VISTA PREMIUM DE FICHA COMPLETA CON DADOS INTERACTIVOS EN TEXTO */
                   <div style={estilos.cajaFichaEstadisticasDnd}>
-                    <div style={estilos.cajaDesvincularFicha}>
-                      <button
-                        onClick={() => asociarPlantillaACriatura(criaturaSeleccionadaDetalle.id, "")}
-                        style={estilos.botonDesvincularManual}
-                      >
-                        <Link size={10} />
-                        <span>DESVINCULAR FICHA</span>
-                      </button>
-                    </div>
-
                     <div style={estilos.seccionesFichaLayout}>
-                      {/* Columna Izquierda: Atributos y Defensas */}
-                      <div style={estilos.columnaFichaBasicos}>
-                        <div style={estilos.tituloCabeceraDetalle}>
-                          <span style={estilos.nombreMonstruoFicha}>{plantillaDeDetalle.nombre.toUpperCase()}</span>
-                          <span style={estilos.tipoMonstruoFicha}>
-                            {plantillaDeDetalle.tipo} | CR: <strong style={{ color: "var(--color-advertencia)" }}>{plantillaDeDetalle.desafio}</strong> | PP: <strong style={{ color: "var(--color-borde-cian)" }}>{obtenerPercepcionPasiva(plantillaDeDetalle)}</strong>
-                          </span>
-                        </div>
+                      {/* Cabecera del Monstruo */}
+                      <div style={estilos.tituloCabeceraDetalle}>
+                        <span style={estilos.nombreMonstruoFicha}>{plantillaDeDetalle.nombre.toUpperCase()}</span>
+                        <span style={estilos.tipoMonstruoFicha}>
+                          {plantillaDeDetalle.tipo} | CR: <strong style={{ color: "var(--color-advertencia)" }}>{plantillaDeDetalle.desafio}</strong> | PP: <strong style={{ color: "var(--color-borde-cian)" }}>{obtenerPercepcionPasiva(plantillaDeDetalle)}</strong>
+                        </span>
+                      </div>
 
-                        {/* Rejilla de Características */}
-                        <div style={estilos.cajaAtributosGrid}>
-                          {Object.entries(plantillaDeDetalle.caracteristicas).map(([clave, valor]) => {
-                            const modStr = calcularModificador(valor);
-                            const etiqueta = clave.substring(0, 3).toUpperCase();
+                      {/* Rejilla de Características */}
+                      <div style={estilos.cajaAtributosGrid}>
+                        {Object.entries(plantillaDeDetalle.caracteristicas).map(([clave, valor]) => {
+                          const modStr = calcularModificador(valor);
+                          const etiqueta = clave.substring(0, 3).toUpperCase();
+                          return (
+                            <div
+                              key={clave}
+                              onClick={() => lanzarTiradaD20Interactiva(criaturaSeleccionadaDetalle.nombre, etiqueta, parseInt(modStr, 10))}
+                              style={estilos.cajaAtributoPurple}
+                              title={`Tirar tirada 3D de salvación/prueba de ${clave.toUpperCase()}`}
+                            >
+                              <span style={estilos.atributoEtiquetaName}>{etiqueta}</span>
+                              <span style={estilos.atributoValorNum}>{valor}</span>
+                              <span style={estilos.atributoModSign}>{modStr}</span>
+                            </div>
+                          );
+                        })}
+                      </div>
+
+                      {/* Datos Básicos y Defensas */}
+                      <div style={estilos.cajaMetadatosFichaExtra}>
+                        <div style={estilos.lineaMetaFicha}>
+                          <strong style={{ color: "var(--color-texto-secundario)" }}>ARMADURA (CA):</strong> <strong style={{ color: "var(--color-borde-cian)" }}>{plantillaDeDetalle.ca}</strong> {plantillaDeDetalle.caNotas ? `(${plantillaDeDetalle.caNotas})` : ""}
+                        </div>
+                        <div style={estilos.lineaMetaFicha}>
+                          <strong style={{ color: "var(--color-texto-secundario)" }}>VELOCIDAD:</strong> {plantillaDeDetalle.velocidad}
+                        </div>
+                        {plantillaDeDetalle.sentidos && (
+                          <div style={estilos.lineaMetaFicha}>
+                            <strong style={{ color: "var(--color-texto-secundario)" }}>SENTIDOS:</strong> {plantillaDeDetalle.sentidos}
+                          </div>
+                        )}
+                        {plantillaDeDetalle.idiomas && (
+                          <div style={estilos.lineaMetaFicha}>
+                            <strong style={{ color: "var(--color-texto-secundario)" }}>IDIOMAS:</strong> {plantillaDeDetalle.idiomas}
+                          </div>
+                        )}
+                        {plantillaDeDetalle.resistencias && String(plantillaDeDetalle.resistencias).trim() !== "" && (
+                          <div style={estilos.lineaMetaFicha}>
+                            <strong style={{ color: "var(--color-exito)" }}>RESISTENCIAS:</strong> {plantillaDeDetalle.resistencias}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Rasgos Pasivos */}
+                      {plantillaDeDetalle.rasgos && plantillaDeDetalle.rasgos.length > 0 && (
+                        <div style={estilos.cajaListaRasgosFicha}>
+                          <div style={estilos.subtituloFichaSection}>RASGOS PASIVOS</div>
+                          {plantillaDeDetalle.rasgos.map((rasgo, i) => (
+                            <div key={i} style={estilos.itemRasgoFichaTexto}>
+                              <strong style={{ color: "#ffcc00" }}>{rasgo.nombre}:</strong> {renderizarTextoConDadosInteractivos(rasgo.descripcion, `${criaturaSeleccionadaDetalle.nombre} - ${rasgo.nombre}`)}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* Acciones */}
+                      {plantillaDeDetalle.acciones && plantillaDeDetalle.acciones.length > 0 && (
+                        <div style={estilos.cajaListaAccionesFicha}>
+                          <div style={estilos.subtituloFichaSection}>ACCIONES</div>
+                          {plantillaDeDetalle.acciones.map((acc, i) => {
+                            const esAtaque = acc.bonificadorAtaque !== undefined && acc.daño !== undefined;
                             return (
-                              <div
-                                key={clave}
-                                onClick={() => lanzarTiradaD20Interactiva(criaturaSeleccionadaDetalle.nombre, etiqueta, parseInt(modStr, 10))}
-                                style={estilos.cajaAtributoPurple}
-                                title={`Tirar tirada 3D de salvación/prueba de ${clave.toUpperCase()}`}
-                              >
-                                <span style={estilos.atributoEtiquetaName}>{etiqueta}</span>
-                                <span style={estilos.atributoValorNum}>{valor}</span>
-                                <span style={estilos.atributoModSign}>{modStr}</span>
+                              <div key={i} style={estilos.tarjetaAccionPurple}>
+                                <div style={estilos.cabeceraAccionTarjeta}>
+                                  <span style={estilos.nombreAccionTarjeta}>{acc.nombre.toUpperCase()}</span>
+                                  {esAtaque && (
+                                    <button
+                                      onClick={() => lanzarAtaqueRapido(criaturaSeleccionadaDetalle.nombre, acc.nombre, `${(acc.bonificadorAtaque ?? 0) >= 0 ? "+" : ""}${acc.bonificadorAtaque ?? 0}`, acc.daño || "1d6", "físico")}
+                                      style={estilos.botonAccionAtaqueLanzar}
+                                    >
+                                      <Swords size={10} />
+                                      <span>TIRAR 3D</span>
+                                    </button>
+                                  )}
+                                </div>
+                                <div style={estilos.descAccionTarjeta}>
+                                  {renderizarTextoConDadosInteractivos(acc.descripcion, `${criaturaSeleccionadaDetalle.nombre} - ${acc.nombre}`)}
+                                  {esAtaque && (
+                                    <span style={estilos.detallesAtaqueMetaInline}>
+                                      [ +{acc.bonificadorAtaque} Al Impacto | Daño: {acc.daño} ]
+                                    </span>
+                                  )}
+                                </div>
                               </div>
                             );
                           })}
                         </div>
+                      )}
 
-                        {/* Defensas */}
-                        <div style={estilos.cajaMetadatosFichaExtra}>
-                          <div style={estilos.lineaMetaFicha}>
-                            <strong style={{ color: "var(--color-texto-secundario)" }}>ARMADURA (CA):</strong> <strong style={{ color: "var(--color-borde-cian)" }}>{plantillaDeDetalle.ca}</strong> {plantillaDeDetalle.caNotas ? `(${plantillaDeDetalle.caNotas})` : ""}
-                          </div>
-                          <div style={estilos.lineaMetaFicha}>
-                            <strong style={{ color: "var(--color-texto-secundario)" }}>VELOCIDAD:</strong> {plantillaDeDetalle.velocidad}
-                          </div>
-                          {plantillaDeDetalle.sentidos && (
-                            <div style={estilos.lineaMetaFicha}>
-                              <strong style={{ color: "var(--color-texto-secundario)" }}>SENTIDOS:</strong> {plantillaDeDetalle.sentidos}
-                            </div>
-                          )}
-                          {plantillaDeDetalle.idiomas && (
-                            <div style={estilos.lineaMetaFicha}>
-                              <strong style={{ color: "var(--color-texto-secundario)" }}>IDIOMAS:</strong> {plantillaDeDetalle.idiomas}
-                            </div>
-                          )}
-                          {plantillaDeDetalle.resistencias && String(plantillaDeDetalle.resistencias).trim() !== "" && (
-                            <div style={estilos.lineaMetaFicha}>
-                              <strong style={{ color: "var(--color-exito)" }}>RESISTENCIAS:</strong> {plantillaDeDetalle.resistencias}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* Columna Derecha: Acciones y Habilidades */}
-                      <div style={estilos.columnaFichaRasgosAcciones}>
-                        {plantillaDeDetalle.rasgos && plantillaDeDetalle.rasgos.length > 0 && (
-                          <div style={estilos.cajaListaRasgosFicha}>
-                            <div style={estilos.subtituloFichaSection}>RASGOS PASIVOS</div>
-                            {plantillaDeDetalle.rasgos.map((rasgo, i) => (
-                              <div key={i} style={estilos.itemRasgoFichaTexto}>
-                                <strong style={{ color: "#ffcc00" }}>{rasgo.nombre}:</strong> {renderizarTextoConDadosInteractivos(rasgo.descripcion, `${criaturaSeleccionadaDetalle.nombre} - ${rasgo.nombre}`)}
+                      {/* Reacciones */}
+                      {plantillaDeDetalle.reacciones && plantillaDeDetalle.reacciones.length > 0 && (
+                        <div style={estilos.cajaListaAccionesFicha}>
+                          <div style={{ ...estilos.subtituloFichaSection, color: "#a6e3a1", borderColor: "rgba(166, 227, 161, 0.3)" }}>REACCIONES</div>
+                          {plantillaDeDetalle.reacciones.map((reac, i) => (
+                            <div key={i} style={estilos.tarjetaAccionPurple}>
+                              <div style={estilos.cabeceraAccionTarjeta}>
+                                <span style={{ ...estilos.nombreAccionTarjeta, color: "#a6e3a1" }}>{reac.nombre.toUpperCase()}</span>
                               </div>
-                            ))}
-                          </div>
-                        )}
+                              <div style={estilos.descAccionTarjeta}>
+                                {renderizarTextoConDadosInteractivos(reac.descripcion, `${criaturaSeleccionadaDetalle.nombre} - ${reac.nombre}`)}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
 
-                        {plantillaDeDetalle.acciones && plantillaDeDetalle.acciones.length > 0 && (
-                          <div style={estilos.cajaListaAccionesFicha}>
-                            <div style={estilos.subtituloFichaSection}>ACCIONES</div>
-                            {plantillaDeDetalle.acciones.map((acc, i) => {
-                              const esAtaque = acc.bonificadorAtaque !== undefined && acc.daño !== undefined;
-                              return (
-                                <div key={i} style={estilos.tarjetaAccionPurple}>
-                                  <div style={estilos.cabeceraAccionTarjeta}>
-                                    <span style={estilos.nombreAccionTarjeta}>{acc.nombre.toUpperCase()}</span>
-                                    {esAtaque && (
-                                      <button
-                                        onClick={() => lanzarAtaqueRapido(criaturaSeleccionadaDetalle.nombre, acc.nombre, `${(acc.bonificadorAtaque ?? 0) >= 0 ? "+" : ""}${acc.bonificadorAtaque ?? 0}`, acc.daño || "1d6", "físico")}
-                                        style={estilos.botonAccionAtaqueLanzar}
-                                      >
-                                        <Swords size={10} />
-                                        <span>TIRAR 3D</span>
-                                      </button>
-                                    )}
-                                  </div>
-                                  <div style={estilos.descAccionTarjeta}>
-                                    {renderizarTextoConDadosInteractivos(acc.descripcion, `${criaturaSeleccionadaDetalle.nombre} - ${acc.nombre}`)}
-                                    {esAtaque && (
-                                      <span style={estilos.detallesAtaqueMetaInline}>
-                                        [ +{acc.bonificadorAtaque} Al Impacto | Daño: {acc.daño} ]
-                                      </span>
-                                    )}
-                                  </div>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        )}
-                      </div>
+                      {/* Acciones Legendarias */}
+                      {plantillaDeDetalle.accionesLegendarias && plantillaDeDetalle.accionesLegendarias.length > 0 && (
+                        <div style={estilos.cajaListaAccionesFicha}>
+                          <div style={{ ...estilos.subtituloFichaSection, color: "#f38ba8", borderColor: "rgba(243, 139, 168, 0.3)" }}>ACCIONES LEGENDARIAS</div>
+                          {plantillaDeDetalle.accionesLegendarias.map((leg, i) => (
+                            <div key={i} style={estilos.tarjetaAccionPurple}>
+                              <div style={estilos.cabeceraAccionTarjeta}>
+                                <span style={{ ...estilos.nombreAccionTarjeta, color: "#f38ba8" }}>{leg.nombre.toUpperCase()}</span>
+                              </div>
+                              <div style={estilos.descAccionTarjeta}>
+                                {renderizarTextoConDadosInteractivos(leg.descripcion, `${criaturaSeleccionadaDetalle.nombre} - ${leg.nombre}`)}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   </div>
                 )}
@@ -1200,9 +1228,9 @@ const estilos: { [key: string]: React.CSSProperties } = {
     transition: "none"
   },
   seccionesFichaLayout: {
-    display: "grid",
-    gridTemplateColumns: "1.1fr 1fr",
-    gap: "10px"
+    display: "flex",
+    flexDirection: "column",
+    gap: "12px"
   },
   columnaFichaBasicos: {
     display: "flex",

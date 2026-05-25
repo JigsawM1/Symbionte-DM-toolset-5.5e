@@ -93,18 +93,19 @@ export function inicializarSimulador(): void {
           name: c.name,
           kind: c.kind
         }));
+      },
+      onInitiativeEvent: {
+        subscribe: (callback: SuscriptorFn) => {
+          return canalEventos.suscribir("cambioIniciativa", callback);
+        }
       }
     },
-    // Eventos de Iniciativa
-    onInitiativeEvent: {
-      subscribe: (callback: SuscriptorFn) => {
-        return canalEventos.suscribir("cambioIniciativa", callback);
-      }
-    },
-    // Eventos del Simbionte
-    onStateChangeEvent: {
-      subscribe: (callback: SuscriptorFn) => {
-        return canalEventos.suscribir("cambioEstadoSimbionte", callback);
+    // API de Symbiote y sus Eventos
+    symbiote: {
+      onStateChangeEvent: {
+        subscribe: (callback: SuscriptorFn) => {
+          return canalEventos.suscribir("cambioEstadoSimbionte", callback);
+        }
       }
     },
     // API de Criaturas y Selección
@@ -119,17 +120,27 @@ export function inicializarSimulador(): void {
             maxHp: c.maxHp,
             ca: c.ca
           }));
-      }
-    },
-    // Eventos de criaturas
-    onCreatureStateChange: {
-      subscribe: (callback: SuscriptorFn) => {
-        return canalEventos.suscribir("cambioEstadoCriatura", callback);
-      }
-    },
-    onCreatureSelectionChange: {
-      subscribe: (callback: SuscriptorFn) => {
-        return canalEventos.suscribir("cambioSeleccionCriatura", callback);
+      },
+      getSelectedCreatures: async () => {
+        return colaIniciativaSimulada
+          .filter((c) => criaturasSeleccionadasSimuladas.includes(c.id))
+          .map((c) => ({
+            id: c.id,
+            name: c.name,
+            hp: c.hp,
+            maxHp: c.maxHp,
+            ca: c.ca
+          }));
+      },
+      onCreatureStateChange: {
+        subscribe: (callback: SuscriptorFn) => {
+          return canalEventos.suscribir("cambioEstadoCriatura", callback);
+        }
+      },
+      onCreatureSelectionChange: {
+        subscribe: (callback: SuscriptorFn) => {
+          return canalEventos.suscribir("cambioSeleccionCriatura", callback);
+        }
       }
     },
     // API de Chat
@@ -277,12 +288,11 @@ export function inicializarSimulador(): void {
         }, 1000);
         
         return mockRollId;
-      }
-    },
-    // Evento de resultados de dados
-    onRollResults: {
-      subscribe: (callback: SuscriptorFn) => {
-        return canalEventos.suscribir("resultadosDados", callback);
+      },
+      onRollResults: {
+        subscribe: (callback: SuscriptorFn) => {
+          return canalEventos.suscribir("resultadosDados", callback);
+        }
       }
     }
   };

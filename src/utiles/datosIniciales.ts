@@ -218,6 +218,13 @@ export const HECHIZOS_INICIALES: HechizoBase[] = [
     tiempoLanzamiento: "1 acción",
     alcance: "120 pies",
     componentes: "V, S",
+    duracion: "Instantáneo",
+    dadosDaño: "1d4+1",
+    tipoDaño: "Fuerza",
+    dadosDañoNivelSuperior: "1d4+1",
+    ataqueCd: "Auto impacto",
+    descNivelSuperior: "Creas un dardo adicional (1d4+1) por cada nivel de ranura superior a 1.",
+    clases: ["Mago", "Hechicero"],
     descripcion: "Creas tres dardos brillantes de fuerza mágica. Cada dardo impacta automáticamente en una criatura de tu elección que puedas ver dentro del alcance. Cada dardo inflige 1d4 + 1 de daño de fuerza. Si se lanza a niveles superiores, creas un dardo adicional por cada nivel por encima de 1."
   },
   {
@@ -228,6 +235,13 @@ export const HECHIZOS_INICIALES: HechizoBase[] = [
     tiempoLanzamiento: "1 acción",
     alcance: "Toque",
     componentes: "V, S",
+    duracion: "Instantáneo",
+    dadosDaño: "2d8",
+    tipoDaño: "Curación",
+    dadosDañoNivelSuperior: "2d8",
+    ataqueCd: "Toque",
+    descNivelSuperior: "La curación aumenta en 2d8 adicionales por cada nivel de ranura por encima de 1.",
+    clases: ["Clérigo", "Bardo", "Paladín", "Explorador", "Druida"],
     descripcion: "Una criatura que toques recupera una cantidad de puntos de golpe igual a 2d8 + tu modificador por característica para lanzar conjuros. (En las reglas de 2024, Curar Heridas ahora cura 2d8 en nivel 1 en lugar de 1d8). Si se lanza a niveles superiores, cura 2d8 adicionales por nivel por encima de 1."
   },
   {
@@ -238,6 +252,13 @@ export const HECHIZOS_INICIALES: HechizoBase[] = [
     tiempoLanzamiento: "1 acción",
     alcance: "150 pies",
     componentes: "V, S, M (una bolita de guano de murciélago y azufre)",
+    duracion: "Instantáneo",
+    dadosDaño: "8d6",
+    tipoDaño: "Fuego",
+    dadosDañoNivelSuperior: "1d6",
+    cdSalvacion: "Destreza",
+    descNivelSuperior: "El daño aumenta en 1d6 por cada nivel de ranura por encima de 3.",
+    clases: ["Mago", "Hechicero", "Bardo"],
     descripcion: "Un haz brillante surge de tu dedo índice y estalla con un estruendo sordo en una esfera de 20 pies de radio en el punto elegido. Cada criatura en la esfera debe realizar una salvación de Destreza. Si falla, sufre 8d6 de daño por fuego, o la mitad si tiene éxito. El fuego se extiende a las esquinas e inflama objetos inflamables que no estén bajo posesión."
   },
   {
@@ -248,6 +269,9 @@ export const HECHIZOS_INICIALES: HechizoBase[] = [
     tiempoLanzamiento: "1 reacción (al ser golpeado por un ataque o por proyectil mágico)",
     alcance: "Personal",
     componentes: "V, S",
+    duracion: "1 ronda",
+    ataqueCd: "+5 CA",
+    clases: ["Mago", "Hechicero"],
     descripcion: "Un barrera invisible de fuerza mágica aparece para protegerte. Hasta el inicio de tu siguiente turno, obtienes un bonificador de +5 a tu CA (incluyendo contra el ataque desencadenante) y no sufres daño de Proyectil Mágico."
   },
   {
@@ -258,6 +282,9 @@ export const HECHIZOS_INICIALES: HechizoBase[] = [
     tiempoLanzamiento: "1 reacción (cuando ves a una criatura dentro de 60 pies lanzando un conjuro)",
     alcance: "60 pies",
     componentes: "S",
+    duracion: "Instantáneo",
+    cdSalvacion: "Carisma",
+    clases: ["Mago", "Hechicero", "Bardo"],
     descripcion: "Intentas interrumpir el proceso de lanzamiento de conjuros de una criatura. (En las reglas de 2024, el objetivo ahora debe realizar una tirada de salvación de Carisma. Si la falla, el conjuro falla y se consume la acción, pero no el espacio de conjuro si era de nivel alto, o se desvanece por completo)."
   }
 ];

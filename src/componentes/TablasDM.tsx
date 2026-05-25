@@ -61,16 +61,6 @@ export const TablasDM: React.FC = () => {
 
   // Generadores aleatorios para la consola táctica de críticos/pifias
   const lanzarDadosConsola = async (tipoDado: "d20" | "d4") => {
-    // Integración nativa de dados 3D en la mesa física de TaleSpire
-    if ((window as any).TS?.dice) {
-      try {
-        const descriptors = await (window as any).TS.dice.makeRollDescriptors(`1${tipoDado}`);
-        await (window as any).TS.dice.putDiceInTray(descriptors);
-      } catch (err) {
-        console.error("Error al colocar dados en bandeja de consola de críticos:", err);
-      }
-    }
-
     const caras = tipoDado === "d20" ? 20 : 4;
     const resultadoDado = Math.floor(Math.random() * caras) + 1;
     
@@ -106,25 +96,45 @@ export const TablasDM: React.FC = () => {
       resultado: efectoStr,
       titulo: tituloEfecto
     });
+
+    // Inyección automática al chat nativo de TaleSpire
+    const mensajeFormateado = efectoStr;
+
+    const ts = (window as any).TS;
+    if (ts && ts.chat && typeof ts.chat.send === "function") {
+      try {
+        await ts.chat.send(mensajeFormateado, "board");
+        console.log("[TaleSpire Chat] Mensaje de consola enviado con éxito automáticamente al tirar.");
+      } catch (error) {
+        console.error("[TaleSpire Chat] Error al enviar mensaje automático al tirar:", error);
+      }
+    } else {
+      console.log("[Simulador Chat] Enviando consola (Automático):", mensajeFormateado);
+    }
   };
 
-  const enviarConsolaAlChat = () => {
+  const detenerPropagacion = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+  };
+
+  const enviarConsolaAlChat = async (e?: React.MouseEvent) => {
+    if (e) {
+      e.stopPropagation();
+      e.preventDefault();
+    }
     if (!resultadoConsola) return;
     
-    const icono = sentidoTirada === "critico" ? "🔥" : "⚠️";
-    const header = sentidoTirada === "critico"
-      ? `<b><color=#00f5d4>[${resultadoConsola.titulo.toUpperCase()}]</color></b>`
-      : `<b><color=#f25c54>[${resultadoConsola.titulo.toUpperCase()}]</color></b>`;
-    
-    const combatIcon = tipoCombate === "melee" ? "⚔️" : tipoCombate === "distancia" ? "🏹" : "✨";
-    const combatName = tipoCombate === "melee" ? "Cuerpo a Cuerpo" : tipoCombate === "distancia" ? "A Distancia" : "Mágico";
-    
-    const mensajeFormateado = `${icono} **Tirada Táctica (${combatIcon} ${combatName})**:\n` +
-      `${header}\n` +
-      `• **Efecto**: ${resultadoConsola.resultado}`;
+    const mensajeFormateado = resultadoConsola.resultado;
 
-    if ((window as any).TS) {
-      (window as any).TS.chat.send(mensajeFormateado);
+    const ts = (window as any).TS;
+    if (ts && ts.chat && typeof ts.chat.send === "function") {
+      try {
+        await ts.chat.send(mensajeFormateado, "board");
+        console.log("[TaleSpire Chat] Mensaje de consola enviado con éxito.");
+      } catch (error) {
+        console.error("[TaleSpire Chat] Error al enviar mensaje nativo:", error);
+      }
     } else {
       console.log("[Simulador Chat] Enviando consola:", mensajeFormateado);
       alert(`[Simulado Chat]: ${resultadoConsola.resultado}`);
@@ -545,7 +555,12 @@ export const TablasDM: React.FC = () => {
                 {/* Botones de Tirada */}
                 <div style={estilos.filaAccionesDados}>
                   <button
-                    onClick={() => lanzarDadosConsola("d20")}
+                    onMouseDown={detenerPropagacion}
+                    onMouseUp={detenerPropagacion}
+                    onClick={(e) => {
+                      detenerPropagacion(e);
+                      lanzarDadosConsola("d20");
+                    }}
                     style={{
                       ...estilos.botonLanzarDadoCustom,
                       backgroundColor: sentidoTirada === "critico" ? "rgba(0, 245, 212, 0.1)" : "rgba(242, 92, 84, 0.1)",
@@ -556,7 +571,12 @@ export const TablasDM: React.FC = () => {
                     🎲 Tirar d20 (Estándar)
                   </button>
                   <button
-                    onClick={() => lanzarDadosConsola("d4")}
+                    onMouseDown={detenerPropagacion}
+                    onMouseUp={detenerPropagacion}
+                    onClick={(e) => {
+                      detenerPropagacion(e);
+                      lanzarDadosConsola("d4");
+                    }}
                     style={{
                       ...estilos.botonLanzarDadoCustom,
                       backgroundColor: sentidoTirada === "critico" ? "rgba(255, 204, 0, 0.1)" : "rgba(123, 44, 191, 0.1)",
@@ -589,6 +609,8 @@ export const TablasDM: React.FC = () => {
                     {resultadoConsola.resultado}
                   </div>
                   <button
+                    onMouseDown={detenerPropagacion}
+                    onMouseUp={detenerPropagacion}
                     onClick={enviarConsolaAlChat}
                     style={estilos.botonEnviarConsolaChat}
                   >

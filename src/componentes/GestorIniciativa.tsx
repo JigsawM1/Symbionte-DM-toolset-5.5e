@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { usarAlmacenDM, CriaturaIniciativa } from "../almacen/usarAlmacenDM";
 import { MonstruoBase, CONDICIONES_2024 } from "../utiles/datosIniciales";
 import { lanzarDadosTaleSpire, renderizarTextoConDadosInteractivos, sanitizarEtiqueta } from "../utiles/lanzadorDados";
+import { ModalDetalleHechizo } from "./ModalDetalleHechizo";
 import {
   Skull,
   Shield,
@@ -21,12 +22,14 @@ export const GestorIniciativa: React.FC = () => {
     colaIniciativa,
     indiceTurnoActivo,
     baseDatosMonstruos,
+    baseDatosHechizos,
     criaturasSeleccionadas,
     quitarCriaturaDeIniciativa,
     modificarVidaCriaturaIniciativa,
     actualizarVidaTemporal,
     asociarPlantillaACriatura,
     quitarCondicionDeCriatura,
+    agregarCondicionACriatura,
     agregarCriaturasSeleccionadasAIniciativa
   } = usarAlmacenDM();
 
@@ -35,6 +38,107 @@ export const GestorIniciativa: React.FC = () => {
   const [filtroBuscadorVinculo, setFiltroBuscadorVinculo] = useState("");
   const [mostrarListaVinculos, setMostrarListaVinculos] = useState(false);
   const [valoresInputHP, setValoresInputHP] = useState<Record<string, string>>({});
+  const [hechizoFlotanteDetalle, setHechizoFlotanteDetalle] = useState<any | null>(null);
+
+  // Helper recursivo ultra-avanzado para renderizar texto mezclando dados 3D y enlaces clickables a hechizos del compendio
+  const renderizarTextoConHechizosYDados = (texto: string, etiquetaTirada: string, alHacerClicHechizo: (h: any) => void) => {
+    // 1. Primero procesamos los dados
+    const nodosConDados = renderizarTextoConDadosInteractivos(texto, etiquetaTirada);
+    
+    // 2. Si no hay hechizos en la DB, devolvemos directo
+    if (!baseDatosHechizos || baseDatosHechizos.length === 0) return nodosConDados;
+
+    // Ordenar hechizos por longitud de nombre de mayor a menor para evitar colisiones (ej. "Bola" vs "Bola de Fuego")
+    const hechizosOrdenados = [...baseDatosHechizos].sort((a, b) => b.nombre.length - a.nombre.length);
+
+    // Procesamos cada nodo de texto
+    const nodosFinales: React.ReactNode[] = [];
+
+    nodosConDados.forEach((nodo) => {
+      if (typeof nodo !== "string") {
+        nodosFinales.push(nodo); // Preservamos los botones de dados ya procesados
+        return;
+      }
+
+      // Procesamos el texto plano buscando hechizos
+      let textosAIterar = [{ texto: nodo, id: 0 }];
+      let keyCounter = 0;
+
+      for (const hechizo of hechizosOrdenados) {
+        const nombreHechizo = hechizo.nombre.toLowerCase().trim();
+        if (nombreHechizo.length < 3) continue; // Ignorar nombres ridículamente cortos
+
+        const nuevosTextos: typeof textosAIterar = [];
+
+        for (const item of textosAIterar) {
+          if (typeof item === "object" && (item as any).componente) {
+            nuevosTextos.push(item);
+            continue;
+          }
+
+          const textoOriginal = item.texto;
+          
+          // Regex segura para buscar el nombre del hechizo respetando límites lógicos
+          const nombreEscapado = nombreHechizo.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+          const regexHechizo = new RegExp(`\\b${nombreEscapado}\\b`, "i");
+          const match = textoOriginal.match(regexHechizo);
+
+          if (match && match.index !== undefined) {
+            const indice = match.index;
+            const antes = textoOriginal.substring(0, indice);
+            const coincidenciaOriginal = textoOriginal.substring(indice, indice + nombreHechizo.length);
+            const despues = textoOriginal.substring(indice + nombreHechizo.length);
+
+            if (antes) nuevosTextos.push({ texto: antes, id: ++keyCounter });
+            
+            // Creamos el componente de enlace
+            const enlaceReact = React.createElement(
+              "span",
+              {
+                key: `hechizo-link-${hechizo.id}-${keyCounter}`,
+                onClick: (e: React.MouseEvent) => {
+                  e.stopPropagation();
+                  alHacerClicHechizo(hechizo);
+                },
+                style: {
+                  color: "var(--color-borde-cian)",
+                  textDecoration: "underline dashed var(--color-borde-cian)",
+                  cursor: "pointer",
+                  fontWeight: "bold",
+                  padding: "0 4px",
+                  backgroundColor: "rgba(0, 245, 212, 0.06)",
+                  borderRadius: "3px",
+                  display: "inline-block",
+                  transition: "all 0.15s ease"
+                },
+                title: `Ver conjuro "${hechizo.nombre}"`
+              },
+              `📖 ${coincidenciaOriginal}`
+            );
+
+            nuevosTextos.push({ componente: enlaceReact } as any);
+
+            if (despues) nuevosTextos.push({ texto: despues, id: ++keyCounter });
+          } else {
+            nuevosTextos.push(item);
+          }
+        }
+
+        textosAIterar = nuevosTextos;
+      }
+
+      // Convertimos todo de vuelta a nodos de React
+      textosAIterar.forEach((item) => {
+        if ((item as any).componente) {
+          nodosFinales.push((item as any).componente);
+        } else {
+          nodosFinales.push(item.texto);
+        }
+      });
+    });
+
+    return nodosFinales;
+  };
 
   // Buscar plantilla de estadísticas para una criatura
   const obtenerPlantillaAsociada = (criatura: CriaturaIniciativa): MonstruoBase | null => {
@@ -298,7 +402,7 @@ export const GestorIniciativa: React.FC = () => {
                       </div>
 
                       {/* Chips de Condiciones */}
-                      <div style={estilos.filaCondicionesChips}>
+                      <div style={{ ...estilos.filaCondicionesChips, flexWrap: "wrap", alignItems: "center", gap: "4px" }}>
                         {criatura.condiciones.length > 0 ? (
                           criatura.condiciones.map((cond) => {
                             const esAlerta = ["muerto", "inconsciente", "aturdido", "paralizado"].includes(cond.toLowerCase());
@@ -311,15 +415,18 @@ export const GestorIniciativa: React.FC = () => {
                             return (
                               <div 
                                 key={cond} 
+                                className="chip-condicion-chico-tooltip"
                                 style={{
                                   ...estilos.chipCondicionChico,
                                   backgroundColor: esAlerta ? "rgba(242, 92, 84, 0.08)" : "rgba(0, 245, 212, 0.05)",
                                   borderColor: esAlerta ? "var(--color-peligro)" : "var(--color-borde-cian)",
-                                  color: esAlerta ? "var(--color-peligro)" : "var(--color-borde-cian)"
+                                  color: esAlerta ? "var(--color-peligro)" : "var(--color-borde-cian)",
+                                  display: "inline-flex",
+                                  alignItems: "center"
                                 }}
-                                title={tooltipTexto}
                               >
                                 <span>{cond}</span>
+                                <span className="tooltip-contenido">{tooltipTexto}</span>
                                 <button
                                   onClick={() => quitarCondicionDeCriatura(criatura.id, cond)}
                                   style={{
@@ -335,6 +442,40 @@ export const GestorIniciativa: React.FC = () => {
                         ) : (
                           <span style={estilos.textoCondicionesVacias}>Sin condiciones activas</span>
                         )}
+
+                        {/* Mini Selector Directo para añadir condiciones a ESTA criatura específica */}
+                        <select
+                          value=""
+                          onChange={(e) => {
+                            const condVal = e.target.value;
+                            if (condVal) {
+                              agregarCondicionACriatura(criatura.id, condVal);
+                            }
+                          }}
+                          style={{
+                            height: "18px",
+                            backgroundColor: "var(--color-fondo-profundo)",
+                            border: "1px solid var(--color-borde-brutal)",
+                            color: "var(--color-texto-secundario)",
+                            fontSize: "9px",
+                            borderRadius: "2px",
+                            padding: "0 4px",
+                            cursor: "pointer",
+                            width: "auto",
+                            maxWidth: "90px"
+                          }}
+                          title="Agregar condición a esta criatura"
+                        >
+                          <option value="">+ Condición</option>
+                          {CONDICIONES_2024.map((c) => {
+                            const nombreLimpio = c.nombre.split(" (")[0];
+                            return (
+                              <option key={c.nombre} value={nombreLimpio}>
+                                {nombreLimpio}
+                              </option>
+                            );
+                          })}
+                        </select>
                       </div>
                     </div>
 
@@ -594,7 +735,7 @@ export const GestorIniciativa: React.FC = () => {
                           <div style={estilos.subtituloFichaSection}>RASGOS PASIVOS</div>
                           {plantillaDeDetalle.rasgos.map((rasgo, i) => (
                             <div key={i} style={estilos.itemRasgoFichaTexto}>
-                              <strong style={{ color: "#ffcc00" }}>{rasgo.nombre}:</strong> {renderizarTextoConDadosInteractivos(rasgo.descripcion, `${criaturaSeleccionadaDetalle.nombre} - ${rasgo.nombre}`)}
+                              <strong style={{ color: "#ffcc00" }}>{rasgo.nombre}:</strong> {renderizarTextoConHechizosYDados(rasgo.descripcion, `${criaturaSeleccionadaDetalle.nombre} - ${rasgo.nombre}`, setHechizoFlotanteDetalle)}
                             </div>
                           ))}
                         </div>
@@ -621,7 +762,7 @@ export const GestorIniciativa: React.FC = () => {
                                   )}
                                 </div>
                                 <div style={estilos.descAccionTarjeta}>
-                                  {renderizarTextoConDadosInteractivos(acc.descripcion, `${criaturaSeleccionadaDetalle.nombre} - ${acc.nombre}`)}
+                                  {renderizarTextoConHechizosYDados(acc.descripcion, `${criaturaSeleccionadaDetalle.nombre} - ${acc.nombre}`, setHechizoFlotanteDetalle)}
                                   {esAtaque && (
                                     <span style={estilos.detallesAtaqueMetaInline}>
                                       [ +{acc.bonificadorAtaque} Al Impacto | Daño: {acc.daño} ]
@@ -644,7 +785,7 @@ export const GestorIniciativa: React.FC = () => {
                                 <span style={{ ...estilos.nombreAccionTarjeta, color: "#a6e3a1" }}>{reac.nombre.toUpperCase()}</span>
                               </div>
                               <div style={estilos.descAccionTarjeta}>
-                                {renderizarTextoConDadosInteractivos(reac.descripcion, `${criaturaSeleccionadaDetalle.nombre} - ${reac.nombre}`)}
+                                {renderizarTextoConHechizosYDados(reac.descripcion, `${criaturaSeleccionadaDetalle.nombre} - ${reac.nombre}`, setHechizoFlotanteDetalle)}
                               </div>
                             </div>
                           ))}
@@ -661,7 +802,7 @@ export const GestorIniciativa: React.FC = () => {
                                 <span style={{ ...estilos.nombreAccionTarjeta, color: "#f38ba8" }}>{leg.nombre.toUpperCase()}</span>
                               </div>
                               <div style={estilos.descAccionTarjeta}>
-                                {renderizarTextoConDadosInteractivos(leg.descripcion, `${criaturaSeleccionadaDetalle.nombre} - ${leg.nombre}`)}
+                                {renderizarTextoConHechizosYDados(leg.descripcion, `${criaturaSeleccionadaDetalle.nombre} - ${leg.nombre}`, setHechizoFlotanteDetalle)}
                               </div>
                             </div>
                           ))}
@@ -674,6 +815,14 @@ export const GestorIniciativa: React.FC = () => {
             </div>
           )}
         </div>
+      )}
+
+      {/* Modal flotante e independiente con el detalle del hechizo seleccionado desde la ficha */}
+      {hechizoFlotanteDetalle && (
+        <ModalDetalleHechizo
+          hechizo={hechizoFlotanteDetalle}
+          onClose={() => setHechizoFlotanteDetalle(null)}
+        />
       )}
     </div>
   );
@@ -782,7 +931,7 @@ const estilos: { [key: string]: React.CSSProperties } = {
     borderRadius: "4px",
     boxShadow: "0 1px 3px rgba(0, 0, 0, 0.2)",
     position: "relative",
-    overflow: "hidden"
+    overflow: "visible"
   },
   barraLateralRol: {
     position: "absolute",
@@ -790,7 +939,9 @@ const estilos: { [key: string]: React.CSSProperties } = {
     top: 0,
     bottom: 0,
     width: "3px",
-    flexShrink: 0
+    flexShrink: 0,
+    borderTopLeftRadius: "4px",
+    borderBottomLeftRadius: "4px"
   },
   bloqueIniciativaIzquierda: {
     display: "flex",

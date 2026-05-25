@@ -2,6 +2,7 @@ import React, { useState, useMemo } from "react";
 import { usarAlmacenDM } from "../almacen/usarAlmacenDM";
 import { Search, Clock, MapPin, Layers, Info, X } from "lucide-react";
 import { lanzarDadosTaleSpire } from "../utiles/lanzadorDados";
+import { calcularFormulaEscalada } from "../utiles/utilesConjuros";
 
 export const ListaHechizos: React.FC = () => {
   const { baseDatosHechizos } = usarAlmacenDM();
@@ -10,6 +11,7 @@ export const ListaHechizos: React.FC = () => {
   const [nivelFiltro, setNivelFiltro] = useState<number | "todos">("todos");
   const [escuelaFiltro, setEscuelaFiltro] = useState<string | "todas">("todas");
   const [idHechizoDetalle, setIdHechizoDetalle] = useState<string | null>(null);
+  const [nivelUpcastSeleccionado, setNivelUpcastSeleccionado] = useState<number>(1);
 
   // Obtener escuelas de magia únicas para el filtro
   const escuelasDisponibles = useMemo(() => {
@@ -41,6 +43,27 @@ export const ListaHechizos: React.FC = () => {
   const hechizoSeleccionado = useMemo(() => {
     return baseDatosHechizos.find((h) => h.id === idHechizoDetalle) || null;
   }, [baseDatosHechizos, idHechizoDetalle]);
+
+  // Variables calculadas dinámicamente para Upcasting
+  const esEscalable = !!(
+    hechizoSeleccionado &&
+    hechizoSeleccionado.nivel > 0 &&
+    hechizoSeleccionado.dadosDañoNivelSuperior &&
+    hechizoSeleccionado.dadosDañoNivelSuperior !== "N/A"
+  );
+  const dadosBaseValidos =
+    hechizoSeleccionado && hechizoSeleccionado.dadosDaño && hechizoSeleccionado.dadosDaño !== "N/A"
+      ? hechizoSeleccionado.dadosDaño
+      : "1d6";
+  const formulaEscalada =
+    esEscalable && hechizoSeleccionado
+      ? calcularFormulaEscalada(
+          dadosBaseValidos,
+          hechizoSeleccionado.dadosDañoNivelSuperior || "1d6",
+          hechizoSeleccionado.nivel,
+          nivelUpcastSeleccionado
+        )
+      : { formula: dadosBaseValidos, adicionalText: "" };
 
   return (
     <div style={estilos.contenedor}>
@@ -117,7 +140,10 @@ export const ListaHechizos: React.FC = () => {
               >
                 {/* Cabecera del conjuro clickeable */}
                 <div
-                  onClick={() => setIdHechizoDetalle(hechizo.id)}
+                  onClick={() => {
+                    setIdHechizoDetalle(hechizo.id);
+                    setNivelUpcastSeleccionado(hechizo.nivel > 0 ? hechizo.nivel : 1);
+                  }}
                   style={estilos.cabeceraConjuro}
                 >
                   <span style={estilos.hechizoNivel}>
@@ -206,25 +232,27 @@ export const ListaHechizos: React.FC = () => {
                 </div>
               </div>
             )}
-
             {/* MECÁNICAS DE COMBATE (Si tiene ataque, CD o daño) */}
             {((hechizoSeleccionado.ataqueCd && hechizoSeleccionado.ataqueCd !== "N/A") || 
-              (hechizoSeleccionado.dadosDaño) || 
+              (hechizoSeleccionado.dadosDaño && hechizoSeleccionado.dadosDaño !== "N/A") || 
               (hechizoSeleccionado.cdSalvacion && hechizoSeleccionado.cdSalvacion !== "N/A")) && (
               <div style={{
-                backgroundColor: "rgba(0, 245, 212, 0.05)",
+                backgroundColor: "rgba(0, 245, 212, 0.04)",
                 border: "1.5px solid var(--color-borde-cian)",
                 padding: "8px",
                 borderRadius: "4px",
-                marginTop: "6px"
+                marginTop: "6px",
+                display: "flex",
+                flexDirection: "column",
+                gap: "8px"
               }}>
-                <div style={{ fontSize: "10px", fontWeight: "bold", color: "var(--color-borde-cian)", marginBottom: "6px", textTransform: "uppercase" }}>
-                  Mecánicas de Combate Integradas (D&D 5.5e)
+                <div style={{ fontSize: "10px", fontWeight: "bold", color: "var(--color-borde-cian)", textTransform: "uppercase", letterSpacing: "0.04em" }}>
+                  Mecánicas de Combate Integradas
                 </div>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "6px" }}>
                   {hechizoSeleccionado.ataqueCd && hechizoSeleccionado.ataqueCd !== "N/A" && (
                     <div style={{ fontSize: "11px" }}>
-                      <span style={{ color: "var(--color-texto-secundario)" }}>Ataque/Efecto: </span>
+                      <span style={{ color: "var(--color-texto-secundario)" }}>Efecto/Ataque: </span>
                       <strong style={{ color: "var(--color-activo)" }}>{hechizoSeleccionado.ataqueCd}</strong>
                     </div>
                   )}
@@ -234,57 +262,95 @@ export const ListaHechizos: React.FC = () => {
                       <strong style={{ color: "#ffcc00" }}>CD {hechizoSeleccionado.cdSalvacion}</strong>
                     </div>
                   )}
-                  {hechizoSeleccionado.dadosDaño && (
-                    <div style={{ fontSize: "11px", display: "inline-flex", alignItems: "center", gap: "6px" }}>
-                      <span style={{ color: "var(--color-texto-secundario)" }}>Daño: </span>
-                      <strong style={{ color: "#ff7675" }}>{hechizoSeleccionado.dadosDaño} {hechizoSeleccionado.tipoDaño && hechizoSeleccionado.tipoDaño !== "N/A" ? `(${hechizoSeleccionado.tipoDaño})` : ""}</strong>
-                      <button
-                        onClick={() => lanzarDadosTaleSpire(hechizoSeleccionado.dadosDaño || "1d6", `Conjuro: ${hechizoSeleccionado.nombre}`)}
-                        style={{
-                          backgroundColor: "rgba(255, 118, 117, 0.15)",
-                          border: "1px solid #ff7675",
-                          color: "#ff7675",
-                          borderRadius: "4px",
-                          padding: "2px 6px",
-                          fontSize: "10px",
-                          cursor: "pointer",
-                          fontWeight: "bold",
-                          lineHeight: "1",
-                          display: "inline-flex",
-                          alignItems: "center"
-                        }}
-                        title="Lanzar dados de daño en TaleSpire"
-                      >
-                        🎲 Tirar
-                      </button>
-                    </div>
-                  )}
-                  {hechizoSeleccionado.dadosDañoNivelSuperior && (
-                    <div style={{ fontSize: "11px", display: "inline-flex", alignItems: "center", gap: "6px" }}>
-                      <span style={{ color: "var(--color-texto-secundario)" }}>Niv. Superior: </span>
-                      <strong style={{ color: "#74b9ff" }}>+{hechizoSeleccionado.dadosDañoNivelSuperior}</strong>
-                      <button
-                        onClick={() => lanzarDadosTaleSpire(hechizoSeleccionado.dadosDañoNivelSuperior || "1d6", `Niv. Sup: ${hechizoSeleccionado.nombre}`)}
-                        style={{
-                          backgroundColor: "rgba(116, 185, 255, 0.15)",
-                          border: "1px solid #74b9ff",
-                          color: "#74b9ff",
-                          borderRadius: "4px",
-                          padding: "2px 6px",
-                          fontSize: "10px",
-                          cursor: "pointer",
-                          fontWeight: "bold",
-                          lineHeight: "1",
-                          display: "inline-flex",
-                          alignItems: "center"
-                        }}
-                        title="Lanzar dados adicionales en TaleSpire"
-                      >
-                        🎲 Tirar
-                      </button>
+                  {hechizoSeleccionado.dadosDaño && hechizoSeleccionado.dadosDaño !== "N/A" && (
+                    <div style={{ fontSize: "11px", gridColumn: esEscalable ? "1 / -1" : "auto" }}>
+                      <span style={{ color: "var(--color-texto-secundario)" }}>Daño Base: </span>
+                      <strong style={{ color: "#ff7675" }}>
+                        {hechizoSeleccionado.dadosDaño} 
+                        {hechizoSeleccionado.tipoDaño && hechizoSeleccionado.tipoDaño !== "N/A" ? ` (${hechizoSeleccionado.tipoDaño})` : ""}
+                      </strong>
                     </div>
                   )}
                 </div>
+
+                {/* Panel de Upcasting Interactivo */}
+                {esEscalable && (
+                  <div style={{
+                    borderTop: "1px dashed rgba(0, 245, 212, 0.15)",
+                    paddingTop: "6px",
+                    marginTop: "2px",
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "4px"
+                  }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "8px" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+                        <span style={{ fontSize: "10px", color: "var(--color-texto-secundario)" }}>Lanzar con Ranura:</span>
+                        <select
+                          value={nivelUpcastSeleccionado}
+                          onChange={(e) => setNivelUpcastSeleccionado(Number(e.target.value))}
+                          style={{
+                            height: "20px",
+                            backgroundColor: "var(--color-fondo-profundo)",
+                            border: "1px solid var(--color-borde-brutal)",
+                            color: "var(--color-texto-principal)",
+                            fontSize: "10px",
+                            borderRadius: "2px",
+                            padding: "0 4px",
+                            cursor: "pointer"
+                          }}
+                        >
+                          {Array.from({ length: 10 - hechizoSeleccionado.nivel }, (_, i) => hechizoSeleccionado.nivel + i).map((lvl) => (
+                            <option key={lvl} value={lvl}>
+                              Nivel {lvl} {lvl === hechizoSeleccionado.nivel ? "(Base)" : ""}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      {nivelUpcastSeleccionado > hechizoSeleccionado.nivel && (
+                        <div style={{ textAlign: "right", display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "1px" }}>
+                          <span style={{ fontSize: "12px", fontWeight: "bold", color: "#ff7675" }}>{formulaEscalada.formula}</span>
+                          <span style={{ fontSize: "9px", color: "#74b9ff" }}>{formulaEscalada.adicionalText}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Botón de Tirada Física Unificado */}
+                {hechizoSeleccionado.dadosDaño && hechizoSeleccionado.dadosDaño !== "N/A" && (
+                  <button
+                    onClick={() => {
+                      const tipoDanoText = hechizoSeleccionado.tipoDaño && hechizoSeleccionado.tipoDaño !== "N/A"
+                        ? ` (${hechizoSeleccionado.tipoDaño})`
+                        : "";
+                      const formulaTirar = nivelUpcastSeleccionado > hechizoSeleccionado.nivel && esEscalable
+                        ? formulaEscalada.formula
+                        : dadosBaseValidos;
+                      const etiquetaTirar = nivelUpcastSeleccionado > hechizoSeleccionado.nivel && esEscalable
+                        ? `Conjuro: ${hechizoSeleccionado.nombre} [Niv ${nivelUpcastSeleccionado}]${tipoDanoText}`
+                        : `Conjuro: ${hechizoSeleccionado.nombre}${tipoDanoText}`;
+                      
+                      lanzarDadosTaleSpire(formulaTirar, etiquetaTirar);
+                    }}
+                    style={{
+                      height: "24px",
+                      backgroundColor: nivelUpcastSeleccionado > hechizoSeleccionado.nivel && esEscalable ? "rgba(116, 185, 255, 0.15)" : "rgba(255, 118, 117, 0.15)",
+                      border: nivelUpcastSeleccionado > hechizoSeleccionado.nivel && esEscalable ? "1px solid #74b9ff" : "1px solid #ff7675",
+                      color: nivelUpcastSeleccionado > hechizoSeleccionado.nivel && esEscalable ? "#74b9ff" : "#ff7675",
+                      borderRadius: "4px",
+                      fontSize: "11px",
+                      cursor: "pointer",
+                      fontWeight: "bold",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      marginTop: "2px"
+                    }}
+                  >
+                    🎲 Tirar Daño en TaleSpire {nivelUpcastSeleccionado > hechizoSeleccionado.nivel && esEscalable ? `(Nivel ${nivelUpcastSeleccionado})` : ""}
+                  </button>
+                )}
               </div>
             )}
 

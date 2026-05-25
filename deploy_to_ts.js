@@ -24,34 +24,43 @@ switch (os.platform()) {
         process.exit(1);
 }
 
-// Function to clean a directory's contents recursively without deleting the root directory itself
-const cleanDirContents = (dir) => {
-    if (fs.existsSync(dir)) {
-        fs.readdirSync(dir).forEach((file) => {
-            const curPath = path.join(dir, file);
-            if (fs.lstatSync(curPath).isDirectory()) {
-                cleanDirContents(curPath);
-                try {
-                    fs.rmdirSync(curPath);
-                } catch (e) {
-                    console.warn(`Warning: Could not remove directory ${curPath}: ${e.message}`);
+// Function to safely delete build-specific files/directories without touching game cache or persistence
+const deleteBuildElement = (itemPath) => {
+    if (fs.existsSync(itemPath)) {
+        const stat = fs.lstatSync(itemPath);
+        if (stat.isDirectory()) {
+            fs.readdirSync(itemPath).forEach((file) => {
+                const curPath = path.join(itemPath, file);
+                if (!fs.lstatSync(curPath).isDirectory()) {
+                    try {
+                        fs.unlinkSync(curPath);
+                    } catch (e) {
+                        // Ignore if locked by the active WebView
+                    }
                 }
-            } else {
-                try {
-                    fs.unlinkSync(curPath);
-                } catch (e) {
-                    console.warn(`Warning: Could not remove file ${curPath}: ${e.message}`);
-                }
+            });
+            try {
+                fs.rmdirSync(itemPath);
+            } catch (e) {
+                // Ignore
             }
-        });
+        } else {
+            try {
+                fs.unlinkSync(itemPath);
+            } catch (e) {
+                // Ignore
+            }
+        }
     }
 };
 
-// Ensure the target directory exists and is clean of old assets
+// Ensure target directory exists and selectively clean old build files
 if (!fs.existsSync(targetDir)) {
     fs.mkdirSync(targetDir, { recursive: true });
 } else {
-    cleanDirContents(targetDir);
+    deleteBuildElement(path.join(targetDir, 'assets'));
+    deleteBuildElement(path.join(targetDir, 'index.html'));
+    deleteBuildElement(path.join(targetDir, 'manifest.json'));
 }
 
 // Function to copy files recursively

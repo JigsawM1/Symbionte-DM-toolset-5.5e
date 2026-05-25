@@ -128,8 +128,8 @@ export function calcularVidaPorDados(
     return promedioEstandar;
   }
 
-  // Sanitizar fórmula (quitar espacios y minúsculas)
-  const saneada = formula.replace(/\s+/g, "").toLowerCase();
+  // Sanitizar fórmula (quitar espacios, paréntesis y pasar a minúsculas)
+  const saneada = formula.replace(/[\s()]+/g, "").toLowerCase();
 
   // Expresión regular para parsear: opcionalmente número de dados 'x', 'd', número de caras 'y', y modificador opcional '+z' o '-z'
   // Por ejemplo: 2d8+6, 2d6, 17d10+85, 1d12-1
@@ -1241,15 +1241,17 @@ export const usarAlmacenDM = create<EstadoDM>((set, get) => ({
           if (h.duration || h.duracion) {
             extras.push(`**Duración:** ${aplanarValor(h.duration || h.duracion)}`);
           }
-          if (h.material) {
-            extras.push(`**Materiales:** ${aplanarValor(h.material)}`);
+          if (h.material || h.materiales) {
+            extras.push(`**Materiales:** ${aplanarValor(h.material || h.materiales)}`);
           }
           if (clasesArray.length > 0) {
             extras.push(`**Clases:** ${clasesArray.join(", ")}`);
           }
-          if (h.damage_dice) {
-            let mech = `**Daño:** ${aplanarValor(h.damage_dice)}`;
-            if (h.damage_type_01) mech += ` (${aplanarValor(h.damage_type_01)})`;
+          const dmgDiceRaw = h.damage_dice || h.dadosDaño || h.dadosDano;
+          if (dmgDiceRaw) {
+            let mech = `**Daño:** ${aplanarValor(dmgDiceRaw)}`;
+            const dmgTypeRaw = h.damage_type_01 || h.tipoDaño || h.tipoDano;
+            if (dmgTypeRaw) mech += ` (${aplanarValor(dmgTypeRaw)})`;
             if (h.spell_save_dc_type) mech += ` | CD Salvación: ${String(h.spell_save_dc_type).toUpperCase()}`;
             extras.push(mech);
           }
@@ -1258,8 +1260,9 @@ export const usarAlmacenDM = create<EstadoDM>((set, get) => ({
             desc += "\n\n" + extras.join("\n");
           }
 
-          if (h.higher_level) {
-            desc += `\n\n**A niveles superiores:** ${aplanarValor(h.higher_level)}`;
+          const hLvlRaw = h.higher_level || h.descNivelSuperior;
+          if (hLvlRaw) {
+            desc += `\n\n**A niveles superiores:** ${aplanarValor(hLvlRaw)}`;
           }
 
           // CD de salvación mapeado
@@ -1275,7 +1278,7 @@ export const usarAlmacenDM = create<EstadoDM>((set, get) => ({
           }
 
           return {
-            id: h.id || `h_importado_${Date.now()}_${idx}`,
+            id: h.id || h.Id || `h_importado_${Date.now()}_${idx}`,
             nombre: aplanarValor(h.nombre || h.name || "Hechizo Desconocido"),
             nivel: nivelNum,
             escuela: aplanarValor(h.escuela || h.school || "Universal"),
@@ -1287,17 +1290,17 @@ export const usarAlmacenDM = create<EstadoDM>((set, get) => ({
             ritual: ritualVal,
             
             // Campos enriquecidos estructurados
-            descNivelSuperior: h.higher_level ? aplanarValor(h.higher_level) : undefined,
-            materiales: h.material ? aplanarValor(h.material) : undefined,
+            descNivelSuperior: h.descNivelSuperior || h.higher_level ? aplanarValor(h.descNivelSuperior || h.higher_level) : undefined,
+            materiales: h.materiales || h.material ? aplanarValor(h.materiales || h.material) : undefined,
             componentesSeleccionados,
-            duracion: h.duration || h.duracion ? aplanarValor(h.duration || h.duracion) : undefined,
+            duracion: h.duracion || h.duration ? aplanarValor(h.duracion || h.duration) : undefined,
             clases: clasesArray.length > 0 ? clasesArray : undefined,
-            ataqueCd: h.spell_save_dc_type ? "CD DE SALVACIÓN" : (h.damage_dice ? "TIRADA DE ATAQUE" : "N/A"),
-            dadosDaño: h.damage_dice ? aplanarValor(h.damage_dice) : undefined,
-            dadosDañoNivelSuperior: h.higher_level_damage ? aplanarValor(h.higher_level_damage) : undefined,
-            cdSalvacion: cdSalv || undefined,
-            agregarModificadorHabilidad: h.add_ability_modifier === "yes" || h.add_ability_modifier === true || undefined,
-            tipoDaño: h.damage_type_01 ? aplanarValor(h.damage_type_01).toLowerCase() : undefined
+            ataqueCd: h.ataqueCd ? aplanarValor(h.ataqueCd) : (h.spell_save_dc_type ? "CD DE SALVACIÓN" : (h.damage_dice || h.dadosDaño || h.dadosDano ? "TIRADA DE ATAQUE" : "N/A")),
+            dadosDaño: h.dadosDaño || h.dadosDano || h.damage_dice ? aplanarValor(h.dadosDaño || h.dadosDano || h.damage_dice) : undefined,
+            dadosDañoNivelSuperior: h.dadosDañoNivelSuperior || h.dadosDanoNivelSuperior || h.damage_dice_upcast || h.higher_level_damage ? aplanarValor(h.dadosDañoNivelSuperior || h.dadosDanoNivelSuperior || h.damage_dice_upcast || h.higher_level_damage) : undefined,
+            cdSalvacion: h.cdSalvacion || h.toHitOrDC || cdSalv || undefined,
+            agregarModificadorHabilidad: h.agregarModificadorHabilidad !== undefined ? !!h.agregarModificadorHabilidad : (h.ability_modifier === "yes" || h.ability_modifier === true || h.add_ability_modifier === "yes" || h.add_ability_modifier === true || undefined),
+            tipoDaño: h.tipoDaño || h.tipoDano || h.damage_type_01 ? aplanarValor(h.tipoDaño || h.tipoDano || h.damage_type_01).toLowerCase() : undefined
           };
         });
 

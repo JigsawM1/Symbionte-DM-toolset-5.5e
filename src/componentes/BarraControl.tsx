@@ -6,7 +6,6 @@ import {
   FolderOpen,
   Plus,
   AlertTriangle,
-  RotateCw,
   ChevronLeft,
   ChevronRight,
   User,
@@ -31,8 +30,7 @@ export const BarraControl: React.FC = () => {
     agregarCondicionACriatura,
     guardarEncuentroActual,
     cargarEncuentro,
-    eliminarEncuentroGuardado,
-    actualizarSeleccionCriaturas
+    eliminarEncuentroGuardado
   } = usarAlmacenDM();
 
   const [nombreJugadorRapido, setNombreJugadorRapido] = useState("");
@@ -136,49 +134,6 @@ export const BarraControl: React.FC = () => {
     if (colaIniciativa.length === 0) return;
     const criaturaActiva = colaIniciativa[indiceTurnoActivo];
     agregarCondicionACriatura(criaturaActiva.id, condicionSeleccionada);
-  };
-
-  // Sincronizar / Refrescar estadísticas del jugador
-  const manejarRefrescarEstadisticasJugador = async () => {
-    if ((window as any).TS) {
-      (window as any).TS.debug.log("Sincronizando y refrescando datos del tablero con TaleSpire...");
-      
-      // Invocamos la API de criaturas seleccionadas nativas para refrescar localmente
-      try {
-        const seleccionadasTS = await (window as any).TS.creatures.getSelectedCreatures();
-        if (seleccionadasTS && seleccionadasTS.length > 0) {
-          actualizarSeleccionCriaturas(seleccionadasTS);
-          
-          // Actualizamos la vida y CA de la criatura homónima en nuestra iniciativa local
-          seleccionadasTS.forEach((cTS: any) => {
-            const almacen = usarAlmacenDM.getState();
-            const nuevaCola = almacen.colaIniciativa.map((c) => {
-              if (c.id === cTS.id || c.nombre.toLowerCase() === cTS.name.toLowerCase()) {
-                return {
-                  ...c,
-                  id: cTS.id, // Sincronizamos ID nativo
-                  vidaActual: cTS.hp !== undefined ? cTS.hp : c.vidaActual,
-                  vidaMaxima: cTS.maxHp !== undefined ? cTS.maxHp : c.vidaMaxima,
-                  ca: cTS.ca !== undefined ? cTS.ca : c.ca
-                };
-              }
-              return c;
-            });
-            usarAlmacenDM.setState({ colaIniciativa: nuevaCola });
-          });
-        }
-      } catch (e) {
-        console.error("Error al refrescar estadísticas desde TaleSpire:", e);
-      }
-    } else {
-      console.log("[Simulador] Refrescando estadísticas locales de jugadores...");
-      // En simulación local, disparamos una simulación de refresco
-      const windowAlias = window as any;
-      if (windowAlias.simuladorTS) {
-        const estadoSim = windowAlias.simuladorTS.obtenerEstado();
-        actualizarSeleccionCriaturas(estadoSim.colaIniciativa.slice(0, 1));
-      }
-    }
   };
 
   const manejarGuardarEncuentro = () => {
@@ -364,11 +319,6 @@ export const BarraControl: React.FC = () => {
         
         <button onClick={avanzarTurno} style={estilos.botonNavegacionTurno} title="Siguiente Turno">
           <ChevronRight size={16} />
-        </button>
-
-        <button onClick={manejarRefrescarEstadisticasJugador} style={estilos.botonAccionPrincipal} title="Refrescar estadísticas con TaleSpire">
-          <RotateCw size={13} />
-          Refrescar
         </button>
       </div>
       {/* 3. Selector de Ventaja / Desventaja */}

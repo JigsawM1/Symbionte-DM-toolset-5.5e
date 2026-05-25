@@ -42,8 +42,15 @@ class CanalEventosSimulado {
 
 export const canalEventos = new CanalEventosSimulado();
 
-// Variables de estado del simulador
-let colaIniciativaSimulada: any[] = [];
+// Variables de estado del simulador de alta fidelidad
+let indiceTurnoActivoSimulado = 0;
+let rondaSimulada = 1;
+let colaIniciativaSimulada: any[] = [
+  { id: "c_jugador_1", name: "Valeros el Guerrero", kind: "creature", iniciativa: 18, hp: 45, maxHp: 45, ca: 18 },
+  { id: "c_sim_mon_1", name: "Orco Asaltante", kind: "creature", iniciativa: 14, hp: 15, maxHp: 15, ca: 13 },
+  { id: "c_jugador_2", name: "Elysia la Maga", kind: "creature", iniciativa: 11, hp: 28, maxHp: 28, ca: 12 },
+  { id: "c_sim_mon_2", name: "Yuan-ti Infiltrator", kind: "creature", iniciativa: 9, hp: 40, maxHp: 40, ca: 14 }
+];
 
 let criaturasSeleccionadasSimuladas: string[] = [];
 
@@ -85,14 +92,61 @@ export function inicializarSimulador(): void {
         };
       }
     },
-    // API de Iniciativa
+    // API de Iniciativa nativa alineada con activeItemIndex e items de TaleSpire
     initiative: {
       getQueue: async () => {
-        return colaIniciativaSimulada.map((c) => ({
-          id: c.id,
-          name: c.name,
-          kind: c.kind
-        }));
+        return {
+          activeItemIndex: indiceTurnoActivoSimulado,
+          round: rondaSimulada,
+          items: colaIniciativaSimulada.map((c) => ({
+            id: c.id,
+            name: c.name,
+            kind: c.kind || "creature",
+            initiative: c.iniciativa !== undefined ? c.iniciativa : 10
+          }))
+        };
+      },
+      nextTurn: async () => {
+        if (colaIniciativaSimulada.length === 0) return;
+        indiceTurnoActivoSimulado++;
+        if (indiceTurnoActivoSimulado >= colaIniciativaSimulada.length) {
+          indiceTurnoActivoSimulado = 0;
+          rondaSimulada++;
+        }
+        console.log("[Simulador TS] Turno nativo avanzado (nextTurn). Turno activo index:", indiceTurnoActivoSimulado);
+        
+        const queueData = {
+          activeItemIndex: indiceTurnoActivoSimulado,
+          round: rondaSimulada,
+          items: colaIniciativaSimulada.map((c) => ({
+            id: c.id,
+            name: c.name,
+            kind: c.kind || "creature",
+            initiative: c.iniciativa !== undefined ? c.iniciativa : 10
+          }))
+        };
+        canalEventos.disparar("cambioIniciativa", queueData);
+      },
+      prevTurn: async () => {
+        if (colaIniciativaSimulada.length === 0) return;
+        indiceTurnoActivoSimulado--;
+        if (indiceTurnoActivoSimulado < 0) {
+          indiceTurnoActivoSimulado = colaIniciativaSimulada.length - 1;
+          rondaSimulada = Math.max(1, rondaSimulada - 1);
+        }
+        console.log("[Simulador TS] Turno nativo retrocedido (prevTurn). Turno activo index:", indiceTurnoActivoSimulado);
+        
+        const queueData = {
+          activeItemIndex: indiceTurnoActivoSimulado,
+          round: rondaSimulada,
+          items: colaIniciativaSimulada.map((c) => ({
+            id: c.id,
+            name: c.name,
+            kind: c.kind || "creature",
+            initiative: c.iniciativa !== undefined ? c.iniciativa : 10
+          }))
+        };
+        canalEventos.disparar("cambioIniciativa", queueData);
       },
       onInitiativeEvent: {
         subscribe: (callback: SuscriptorFn) => {

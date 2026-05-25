@@ -209,7 +209,8 @@ export interface EstadoDM {
   establecerMetodoVidaMonstruo: (metodo: "estandar" | "maximo" | "azar") => void;
 
   // Iniciativa Híbrida
-  actualizarColaIniciativaDesdeTaleSpire: (colaTS: any[]) => void;
+  actualizarColaIniciativaDesdeTaleSpire: (colaTS: any) => void;
+  importarIniciativaTaleSpire: () => Promise<void>;
   agregarCriaturaAIniciativa: (nombre: string, iniciativa: number, vidaMax: number, ca: number, esMonstruo: boolean, velocidad: string, bonifInic: number) => void;
   quitarCriaturaDeIniciativa: (id: string) => void;
   modificarVidaCriaturaIniciativa: (id: string, nuevaVida: number) => void;
@@ -289,7 +290,7 @@ export const usarAlmacenDM = create<EstadoDM>((set, get) => ({
   indiceTurnoActivo: 0,
   criaturasSeleccionadas: [],
   tipoTirada: "plano",
-  metodoVidaMonstruo: "estandar",
+  metodoVidaMonstruo: "azar",
   cargando: false,
   campañaNombre: "Cargando campaña de TaleSpire...",
   esGM: true,
@@ -333,6 +334,15 @@ export const usarAlmacenDM = create<EstadoDM>((set, get) => ({
       nuevoIndice = 0;
       nuevaRonda = state.rondaActual + 1;
     }
+
+    // Invocar asíncronamente a la API nativa de TaleSpire para avanzar el turno físico
+    const ts = (window as any).TS;
+    if (ts && ts.initiative && typeof ts.initiative.nextTurn === "function") {
+      ts.initiative.nextTurn().catch((e: any) => {
+        console.error("[Combat Tracker] Error al avanzar turno nativo en TaleSpire:", e);
+      });
+    }
+
     const nuevoEstado = { ...state, indiceTurnoActivo: nuevoIndice, rondaActual: nuevaRonda };
     persistirEstadoCompleto(nuevoEstado as EstadoDM);
     return { indiceTurnoActivo: nuevoIndice, rondaActual: nuevaRonda };
@@ -346,6 +356,15 @@ export const usarAlmacenDM = create<EstadoDM>((set, get) => ({
       nuevoIndice = state.colaIniciativa.length - 1;
       nuevaRonda = Math.max(1, state.rondaActual - 1);
     }
+
+    // Invocar asíncronamente a la API nativa de TaleSpire para retroceder el turno físico
+    const ts = (window as any).TS;
+    if (ts && ts.initiative && typeof ts.initiative.prevTurn === "function") {
+      ts.initiative.prevTurn().catch((e: any) => {
+        console.error("[Combat Tracker] Error al retroceder turno nativo en TaleSpire:", e);
+      });
+    }
+
     const nuevoEstado = { ...state, indiceTurnoActivo: nuevoIndice, rondaActual: nuevaRonda };
     persistirEstadoCompleto(nuevoEstado as EstadoDM);
     return { indiceTurnoActivo: nuevoIndice, rondaActual: nuevaRonda };
@@ -399,7 +418,12 @@ export const usarAlmacenDM = create<EstadoDM>((set, get) => ({
       const existente = state.colaIniciativa.find((c) => c.id === cTS.id);
       
       if (existente) {
-        return existente; // Preservamos vida y condiciones
+        // Preservamos vida y condiciones, actualizando iniciativa si viene de TaleSpire
+        const iniciativaFisica = cTS.initiative !== undefined ? cTS.initiative : existente.iniciativa;
+        return {
+          ...existente,
+          iniciativa: iniciativaFisica
+        };
       }
 
       // Si no existe, buscamos por nombre en la base de datos de monstruos del DM usando emparejamiento inteligente
@@ -434,7 +458,7 @@ export const usarAlmacenDM = create<EstadoDM>((set, get) => ({
       return {
         id: cTS.id,
         nombre: cTS.name,
-        iniciativa: 10, // Iniciativa neutra inicial
+        iniciativa: cTS.initiative !== undefined ? cTS.initiative : 1,
         vidaMaxima: vidaMaxCalculada,
         vidaActual: vidaActCalculada,
         ca: plantillaMonstruo ? plantillaMonstruo.ca : 10,
@@ -450,9 +474,94 @@ export const usarAlmacenDM = create<EstadoDM>((set, get) => ({
     // 3. Fusionamos ambas listas (virtuales locales y nativas físicas de TaleSpire)
     const colaCombinada = [...criaturasLocales, ...nuevasCriaturasNativas];
     colaCombinada.sort((a, b) => b.iniciativa - a.iniciativa);
-    persistirEstadoCompleto({ ...state, colaIniciativa: colaCombinada } as EstadoDM);
-    return { colaIniciativa: colaCombinada };
+
+    // 4. Sincronizar el turno activo y la ronda si vienen de la cola nativa estructurada
+    let nuevoIndice = state.indiceTurnoActivo;
+    let nuevaRonda = state.rondaActual;
+
+    if (colaTS && typeof colaTS === "object" && !Array.isArray(colaTS)) {
+      let activeTurnId: string | null = null;
+
+      // Intentar leer utilizando la propiedad oficial "activeItemIndex" o el fallback "activeTurn"
+      const indiceActivoNativo = colaTS.activeItemIndex !== undefined ? colaTS.activeItemIndex : colaTS.activeTurn;
+
+      console.log("[TaleSpire Sincronismo] Leyendo turno activo nativo:", indiceActivoNativo, "de la cola:", colaFiltradaTS);
+
+      if (typeof indiceActivoNativo === "number") {
+        // En TaleSpire el activeItemIndex es el índice base cero de la criatura activa en la cola de combatientes
+        const criaturaActivaTS = colaFiltradaTS[indiceActivoNativo];
+        if (criaturaActivaTS) {
+          activeTurnId = criaturaActivaTS.id;
+        }
+      } else if (typeof indiceActivoNativo === "string") {
+        // Si es un string, podría ser el UUID de la criatura o un string que representa un número ("0", "1", etc.)
+        const esIndiceNumerico = /^\d+$/.test(indiceActivoNativo);
+        if (esIndiceNumerico) {
+          const idx = parseInt(indiceActivoNativo, 10);
+          const criaturaActivaTS = colaFiltradaTS[idx];
+          if (criaturaActivaTS) {
+            activeTurnId = criaturaActivaTS.id;
+          }
+        } else {
+          activeTurnId = indiceActivoNativo;
+        }
+      }
+
+      if (activeTurnId) {
+        // Buscar la criatura activa (tanto por ID nativo como por nombre de forma hiper-defensiva)
+        let indiceEncontrado = colaCombinada.findIndex((c) => c.id === activeTurnId);
+        
+        // Fallback por si la lista local tiene criaturas mapeadas de otra forma, buscamos por nombre exacto
+        if (indiceEncontrado === -1) {
+          const criaturaActivaTS = colaFiltradaTS.find((c) => c.id === activeTurnId);
+          if (criaturaActivaTS) {
+            indiceEncontrado = colaCombinada.findIndex(
+              (c) => c.nombre.toLowerCase().trim() === criaturaActivaTS.name.toLowerCase().trim()
+            );
+          }
+        }
+
+        if (indiceEncontrado !== -1) {
+          console.log("[TaleSpire Sincronismo] Encontrado índice de turno activo en la cola combinada local:", indiceEncontrado);
+          nuevoIndice = indiceEncontrado;
+        } else {
+          console.warn("[TaleSpire Sincronismo] No se encontró la criatura activa con ID/nombre en la cola local:", activeTurnId);
+        }
+      }
+
+      if (colaTS.round !== undefined && typeof colaTS.round === "number" && colaTS.round > 0) {
+        nuevaRonda = colaTS.round;
+      }
+    }
+
+    persistirEstadoCompleto({
+      ...state,
+      colaIniciativa: colaCombinada,
+      indiceTurnoActivo: nuevoIndice,
+      rondaActual: nuevaRonda
+    } as EstadoDM);
+
+    return {
+      colaIniciativa: colaCombinada,
+      indiceTurnoActivo: nuevoIndice,
+      rondaActual: nuevaRonda
+    };
   }),
+
+  importarIniciativaTaleSpire: async () => {
+    const ts = (window as any).TS;
+    if (ts && ts.initiative && typeof ts.initiative.getQueue === "function") {
+      try {
+        console.log("[Combat Tracker] Importando cola de iniciativa nativa desde TaleSpire...");
+        const queue = await ts.initiative.getQueue();
+        get().actualizarColaIniciativaDesdeTaleSpire(queue);
+      } catch (error) {
+        console.error("[Combat Tracker] Error al importar iniciativa nativa:", error);
+      }
+    } else {
+      console.warn("[Combat Tracker] API de iniciativa nativa de TaleSpire no disponible.");
+    }
+  },
 
   agregarCriaturaAIniciativa: (nombre, iniciativa, vidaMax, ca, esMonstruo, velocidad, bonifInic) => set((state) => {
     const nuevaCriatura: CriaturaIniciativa = {

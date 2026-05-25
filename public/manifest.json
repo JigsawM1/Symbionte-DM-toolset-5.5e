@@ -30,7 +30,7 @@
         "onCreatureSelectionChange": "manejarCambioSeleccionCriatura"
       },
       "initiative": {
-        "onInitiativeEvent": "manejarEventoIniciativa"
+        "onInitiativeEvent": "initiativeUpdated"
       },
       "dice": {
         "onRollResults": "manejarResultadosDados"

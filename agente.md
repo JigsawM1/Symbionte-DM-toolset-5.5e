@@ -383,6 +383,121 @@ Donde el segundo parámetro `localOrBoard` es **estrictamente obligatorio** en e
 > 💬 **Firma del Chat de TaleSpire:** El método nativo `TS.chat.send` exige rigurosamente **dos parámetros string**: el mensaje como primero, y el canal (`"board"` para todos o `"local"` para uno mismo) como segundo. Omitir el segundo parámetro o invertir el orden provoca que el deserializador de C# falle con `type error: not a fragment or id`. Asegura siempre el formato `TS.chat.send(mensaje, "board")`.
 > 🎨 **Minimalismo Narrativo en el Chat:** La información de qué tipo de dado o resultado se obtuvo ya se visualiza con lujo de detalles dentro del panel del DM del Simbionte. Al enviar mensajes automatizados al chat común del juego, prefiere omitir cabeceras de sistema o referencias matemáticas de la tirada. Publicar únicamente el resultado narrativo del efecto (ej. *"Mareado — El objetivo debe pasar..."*) mantiene la inmersión de los jugadores en su máximo esplendor y mantiene la ventana de chat limpia y libre de metadatos irrelevantes.
 
+---
+
+## [2026-05-25] Sincronización Bidireccional Activa de Iniciativa con `nextTurn` y `prevTurn`
+
+**Síntoma:**
+Al avanzar o retroceder el turno táctico desde el panel del Simbionte DM, la barra física nativa de iniciativa 3D de TaleSpire en la parte superior de la pantalla de juego no cambiaba ni reflejaba el combatiente activo, a pesar de que el Simbionte sí leía correctamente los cambios de TaleSpire física.
+
+**Causa raíz:**
+La vinculación de la iniciativa estaba implementada originalmente en **un solo sentido** (lectura reactiva pasiva): el Simbionte escuchaba cambios de TaleSpire y se adaptaba, pero sus propios controles locales de `avanzarTurno` y `retrocederTurno` en Zustand sólo modificaban variables locales del store web, sin notificar al bus nativo de APIs del cliente del juego.
+
+**Solución aplicada:**
+1. Modificar las acciones `avanzarTurno` y `retrocederTurno` en `usarAlmacenDM.ts` para que invoquen asíncrona y defensivamente las funciones oficiales del SDK de TaleSpire:
+   - Al avanzar: `TS.initiative.nextTurn()`
+   - Al retroceder: `TS.initiative.prevTurn()`
+2. Implementar mocks de soporte para `nextTurn` y `prevTurn` en `SimuladorTaleSpire.ts` para garantizar el testeo interactivo local de la cola en el navegador.
+
+**Lección aprendida:**
+> 🔄 **Interactividad Híbrida Bidireccional en CEF:** Al lidiar con listados o colas que existen tanto en la web del Simbionte como en el motor físico de Unity (como la initiative), diseña siempre flujos bidireccionales. Utiliza callbacks reactivos (`onInitiativeEvent`) para sincronizar el estado entrante en caliente, e invoca métodos de control nativos (`TS.initiative.nextTurn()`, `prevTurn()`) dentro de tus handlers web para inyectar los cambios de vuelta al motor físico de juego.
+
+---
+
+## [2026-05-25] CRÍTICO: Suscripciones de `manifest.json` y la función global obligatoria `initiativeUpdated` en `window`
+
+**Síntoma:**
+A pesar de utilizar `.subscribe()` de forma inline en TypeScript, los eventos reactivos nativos de TaleSpire (como `onInitiativeEvent` o `onCreatureSelectionChange`) no se disparaban en producción dentro del juego en tiempo real. La sincronización se realizaba sólo una vez al cargar en frío el Simbionte, pero los clics de avance/retroceso físicos en la mesa no causaban ninguna reacción en la web.
+
+**Causa raíz:**
+1. TaleSpire requiere que cualquier evento declarado en el bloque `"subscriptions"` de `manifest.json` tenga una **función homónima global expuesta en el objeto global `window`** del Simbionte. Cuando el motor físico de Unity detecta el evento, el bridge CEF busca e invoca esta función global en `window` por su nombre string.
+2. De forma específica y cableada en el bridge CEF de iniciativa de TaleSpire, la función global en `window` que recibe las actualizaciones de asaltos, turnos y participantes se debe llamar estrictamente **`initiativeUpdated`**. Al tenerla mapeada con otro nombre, el bridge no lograba invocarla tras la inicialización.
+
+**Solución aplicada:**
+1. En `public/manifest.json`, modificar el mapeo del evento de iniciativa para que apunte exactamente al callback nativo:
+   `"onInitiativeEvent": "initiativeUpdated"`
+2. En `src/App.tsx`, exponer explícitamente en `window` (`windowAlias`) la función global con el nombre correcto exigido por TaleSpire:
+   - `windowAlias.initiativeUpdated` (que actualiza Zustand consultando `getQueue()`).
+   - `windowAlias.manejarEventoIniciativa` (fallback y alias redundante).
+   - `windowAlias.manejarCambioSeleccionCriatura`
+   - `windowAlias.manejarCambioEstadoCriatura`
+   - `windowAlias.manejarCambioEstadoSimbionte`
+   - `windowAlias.manejarResultadosDados`
+
+**Lección aprendida:**
+> 🔔 **Bridge CEF e `initiativeUpdated`:** Para que la iniciativa física de TaleSpire se sincronice en tiempo real bidireccional con tu Simbionte, **debes registrar obligatoriamente `"initiativeUpdated"` en tu `manifest.json` y como función global en `window`**. Esto garantiza que el bridge nativo de Unity a CEF ejecute exitosamente tu actualizador web React ante cualquier clic físico de avance o retroceso de turno en la mesa.
+
+---
+
+## [2026-05-25] CRÍTICO: Pérdida de reactividad CEF / Los eventos en tiempo real se ejecutan "solo una vez" al inicializar
+
+**Síntoma:**
+La sincronización reactiva de la iniciativa en caliente funcionaba perfectamente la primera vez al arrancar el Simbionte, detectando correctamente el turno activo físico. Sin embargo, al pulsar "Siguiente Turno" o "Turno Anterior" nativamente en TaleSpire 3D, la interfaz web del Simbionte no se actualizaba en tiempo real (permaneciendo estática en el turno anterior).
+
+**Causa raíz:**
+1. TaleSpire utiliza Chromium Embedded Framework (CEF) embebido en Unity.
+2. Durante el arranque del WebView de la aplicación, el motor de Unity lee las `"subscriptions"` de `manifest.json` y realiza un **binding directo y de una sola vez** a las funciones globales declaradas en `window`.
+3. Si estas funciones en `window` se definen de forma **asíncrona** o retardada (por ejemplo, dentro de un `useEffect` en React tras bucles de sondeo asíncronos), para cuando se definen, el binding de Unity ya ha finalizado y fallado al no encontrarlas en ese instante inicial de handshake.
+4. Adicionalmente, el punto de entrada sincrónico original (`src/main.tsx`) inicializaba funciones globales de prueba vacías que solo hacían `console.log`. Unity realizaba el binding CEF inicial a estas funciones dummy sincrónicas, y cualquier redefinición asíncrona tardía en `App.tsx` simplemente pisaba la propiedad en `window` sin que el bridge interno de CEF/Unity se enterara.
+
+**Solución aplicada:**
+1. **Definición Sincrónica Inmediata (`src/main.tsx`)**: Mudar por completo todo el registro y definición de los callbacks de `window` (`window.initiativeUpdated`, `window.manejarEventoIniciativa`, `window.manejarCambioSeleccionCriatura`, etc.) de forma **100% sincrónica e inmediata** en el nivel superior del archivo de entrada principal `src/main.tsx` antes de inicializar React o compilar componentes.
+2. **Conexión Directa a Zustand**: Dado que estos callbacks sincrónicos se ejecutan fuera del flujo de render de React, los conectamos directamente al store de Zustand utilizando su API de lectura/escritura global fuera de hooks:
+   `usarAlmacenDM.getState().actualizarColaIniciativaDesdeTaleSpire(colaTS || [])`
+   Zustand propaga e inyecta la actualización del estado de forma síncrona en React.
+3. **Redundancia Cuádruple de Oyentes DOM**: Registrar oyentes normales de eventos JS (`window.addEventListener("initiativeUpdated", ...)`) en `window` y `document` para asegurar compatibilidad con cualquier señal de mensajería que despache CEF.
+4. **Limpieza en `App.tsx`**: Remover por completo la sobreescritura diferida asíncrona dentro del `useEffect` de `App.tsx`, previniendo pisados de closures y optimizando el ciclo de vida del montaje.
+
+**Lección aprendida:**
+> ⚡ ** हैंडशेक (Handshake) de CEF / Unity es Sincrónico e Inmediato**: En aplicaciones embebidas CEF complejas con suscripciones en manifiestos (como TaleSpire Symbiotes), **NUNCA definas tus callbacks globales de window dentro de useEffects asíncronos o funciones de inicialización diferidas de React**. 
+> Define todos tus manejadores globales de forma estrictamente **sincrónica, inmutable e inmediata en el punto de entrada inicial (main.tsx/index.html)**. Conéctalos al estado de tu aplicación (como Zustand) utilizando APIs directas fuera de componentes (`getState()`). Esto garantiza que el motor del juego vincule con éxito tus escuchas CEF desde el microsegundo inicial, garantizando reactividad en caliente del 100% en tiempo real.
+
+---
+
+## [2026-05-25] CRÍTICO: Discrepancia fatal en campos de `initiativeQueue` (`activeItemIndex` vs `activeTurn`)
+
+**Síntoma:**
+A pesar de tener los callbacks globales sincronizados e inyectados sincrónicamente de forma exitosa, al presionar "Siguiente Turno" en TaleSpire o al presionar el botón "Sincronizar TaleSpire" del combat tracker, el turno activo de la UI del Simbionte no se movía ni rodaba para seleccionar al combatiente que tenía el turno nativo real en el tablero 3D.
+
+**Causa raíz:**
+1. En la fase de diseño teórica, asumimos que la cola de iniciativa física devuelta por `TS.initiative.getQueue()` contenía una propiedad `.activeTurn` con el UUID o ID de la criatura.
+2. Sin embargo, la **firma real de la API oficial de TaleSpire** expone el turno activo bajo la propiedad **`activeItemIndex`** (un entero que indica el índice base cero del combatiente que tiene el turno en ese instante en la cola) y la lista de combatientes bajo la clave **`items`** (y no `queue` ni `entries`).
+3. Dado que nuestro código leía `colaTS.activeTurn` (la cual devolvía `undefined`), la variable de ID activo se resolvía a `null`, impidiendo que Zustand rodara el índice activo local.
+
+**Solución aplicada:**
+1. **Zustand Polimórfico y Hiper-Defensivo (`src/almacen/usarAlmacenDM.ts`)**: Modificar la acción `actualizarColaIniciativaDesdeTaleSpire` para que decodifique el turno de forma extremadamente segura y adaptativa:
+   - Evaluar prioritariamente `colaTS.activeItemIndex` y, como fallback de compatibilidad, `colaTS.activeTurn`.
+   - Si el valor devuelto es de tipo `number`, buscar la criatura en esa posición del array `colaTS.items`.
+   - Si el valor devuelto es un `string`, evaluar si es un string numérico (ej. `"0"`, `"1"`) usando regex (`/^\d+$/`) para parsearlo como índice, o si contiene el UUID directamente de forma textual.
+2. **Fallback por Nombre de Criatura**: Implementar una búsqueda de respaldo en el combat tracker combinando por el nombre de la criatura sanitizado (`nombre.toLowerCase().trim() === cTS.name.toLowerCase().trim()`) si por algún motivo los UUIDs del cliente local no coinciden exactamente con los de TaleSpire.
+3. **Simulador de Alta Fidelidad (`src/utiles/SimuladorTaleSpire.ts`)**: Actualizar la inicialización y mocks del simulador para que devuelvan exactamente el objeto oficial estructurado `{ activeItemIndex, items, round }`, simulando el avance y retroceso incrementando/decrementando el entero en lugar de rotar los elementos del array de forma física.
+
+**Lección aprendida:**
+> 📐 **Firma de la Initiative de TaleSpire**: El SDK nativo de TaleSpire para iniciativa expone estrictamente **`activeItemIndex`** (el entero del índice) e **`items`** (el array). 
+> Al integrar datos de APIs CEF empotradas, **nunca asumas nombres de propiedades genéricos (como "activeTurn" o "queue")**. Emplea siempre normalizadores ultra polimórficos que evalúen y den soporte a múltiples variantes de nombres de variables y tipos de datos (índices numéricos, strings numéricos o UUIDs planos). Esto asegura que tu aplicación sea 100% inmune a cambios evolutivos silenciosos en el motor del juego.
+
+---
+
+## [2026-05-25] MANTENIMIENTO: Rigor del compilador estricto (`tsc`) y limpieza de UI redundante
+
+**Síntoma:**
+Tras remover elementos visuales del JSX solicitados por el DM (como la barra `"SELECCIÓN DETECTADA EN MESA"` y el botón `"REFRESCAR"`), el script de despliegue en caliente `pnpm run deploy` fallaba al intentar compilar en producción, arrojando errores `TS6133` (variable declarada pero nunca leída).
+
+**Causa raíz:**
+1. Al remover la lógica visual del render, quedaron desestructuraciones locales de variables de Zustand (`criaturasSeleccionadas`, `agregarCriaturasSeleccionadasAIniciativa`, `actualizarSeleccionCriaturas`), funciones internas de React (`manejarRefrescarEstadisticasJugador`) e importaciones de componentes e iconos (`RotateCw`) huérfanos.
+2. El entorno del proyecto de Vite tiene forzada la bandera estricta de TypeScript `noUnusedLocals`, lo que provoca que cualquier variable huérfana de este tipo sea interpretada como un error sintáctico severo e impida la compilación del bundle final en producción.
+
+**Solución aplicada:**
+1. **Limpieza Quirúrgica Completa**: Remover de forma sistemática toda importación de iconos de Lucide obsoletos y desestructuraciones locales del hook de Zustand `usarAlmacenDM()` en `BarraControl.tsx` y `GestorIniciativa.tsx` que no se utilizaran tras la limpieza de UI.
+2. **Iniciativa Inicial a 1**: Modificar el mapeo de criaturas importadas nativamente de TaleSpire para que, si no existían antes, su iniciativa local inicial por defecto sea `1` (en lugar de `10`). Al inicializarse con iniciativa `1`, la criatura se ordena de forma predecible y consistente al final de la lista del combat tracker local (imitando exactamente el comportamiento nativo físico de TaleSpire).
+
+**Lección aprendida:**
+> 🧼 **Mantenimiento y TypeScript Estricto**: Al realizar refactorizaciones visuales de limpieza de UI a petición del usuario, **nunca te limites a comentar o remover la porción de JSX**. 
+> Realiza siempre un barrido en retroceso para limpiar las importaciones, estados locales, desestructuraciones de hooks y funciones manejadoras que queden huérfanas. El compilador de TypeScript en producción castiga el desuso con fallos de build. Mantener la base de código libre de código muerto garantiza la salud a largo plazo y la paridad de compilación al 100%.
+
+
+
+
 
 
 

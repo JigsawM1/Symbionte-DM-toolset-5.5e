@@ -23,14 +23,13 @@ export const GestorIniciativa: React.FC = () => {
     indiceTurnoActivo,
     baseDatosMonstruos,
     baseDatosHechizos,
-    criaturasSeleccionadas,
     quitarCriaturaDeIniciativa,
     modificarVidaCriaturaIniciativa,
     actualizarVidaTemporal,
     asociarPlantillaACriatura,
     quitarCondicionDeCriatura,
     agregarCondicionACriatura,
-    agregarCriaturasSeleccionadasAIniciativa
+    importarIniciativaTaleSpire
   } = usarAlmacenDM();
 
   // Estados locales
@@ -245,25 +244,6 @@ export const GestorIniciativa: React.FC = () => {
 
   return (
     <div style={estilos.contenedorGestor}>
-      {/* SECCIÓN 0: IMPORTACIÓN NATIVA DE TALESPIRE DETECTADA */}
-      {criaturasSeleccionadas && criaturasSeleccionadas.length > 0 && (
-        <div style={estilos.cajaImportacionTaleSpire}>
-          <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-            <Activity size={14} style={{ color: "var(--color-borde-cian)" }} />
-            <span style={estilos.textoImportacionTaleSpire}>
-              SELECCIÓN DETECTADA EN MESA: <strong>{criaturasSeleccionadas.length}</strong> {criaturasSeleccionadas.length === 1 ? "CRIATURA" : "CRIATURAS"}
-            </span>
-          </div>
-          <button
-            onClick={agregarCriaturasSeleccionadasAIniciativa}
-            style={estilos.botonImportarSeleccionados}
-            title="Importar las criaturas seleccionadas en TaleSpire al combat tracker con HP por dados e iniciativa al azar"
-          >
-            📥 AÑADIR A LA INICIATIVA
-          </button>
-        </div>
-      )}
-
       {colaIniciativa.length === 0 ? (
         <div style={estilos.estadoVacio}>
           <div style={estilos.cajaVacia}>
@@ -272,12 +252,73 @@ export const GestorIniciativa: React.FC = () => {
             <span style={estilos.textoVacioSub}>
               Selecciona criaturas físicas en la mesa de TaleSpire y pulsa "Añadir a la Iniciativa" o búscalas arriba.
             </span>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                importarIniciativaTaleSpire();
+              }}
+              style={{
+                ...estilos.botonImportarSeleccionados,
+                marginTop: "12px",
+                width: "auto",
+                padding: "6px 12px",
+                backgroundColor: "rgba(0, 245, 212, 0.15)",
+                border: "1px solid var(--color-borde-cian)",
+                color: "var(--color-borde-cian)"
+              }}
+              title="Importar todos los tokens que se encuentren en la lista de iniciativa nativa física de TaleSpire al combat tracker del Simbionte"
+            >
+              <Activity size={12} style={{ marginRight: "4px" }} />
+              CARGAR INICIATIVA DE TALESPIRE
+            </button>
           </div>
         </div>
       ) : (
         <div style={estilos.panelIniciativaDividido}>
           {/* SECCIÓN SUPERIOR: COMBAT TRACKER */}
           <div style={estilos.seccionTrackerScroll}>
+            {/* Fila de Herramientas Tácticas Superiores */}
+            <div style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              padding: "4px 6px",
+              backgroundColor: "var(--color-fondo-panel)",
+              borderBottom: "1px solid var(--color-borde-brutal)",
+              marginBottom: "6px",
+              borderRadius: "4px"
+            }}>
+              <span style={{ fontSize: "11px", color: "var(--color-texto-apagado)", fontWeight: "bold", textTransform: "uppercase" }}>
+                Combatientes Activos: {colaIniciativa.length}
+              </span>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  e.preventDefault();
+                  importarIniciativaTaleSpire();
+                }}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "4px",
+                  backgroundColor: "rgba(0, 245, 212, 0.08)",
+                  border: "1px solid var(--color-borde-cian)",
+                  color: "var(--color-borde-cian)",
+                  fontSize: "10.5px",
+                  fontWeight: "bold",
+                  padding: "3px 8px",
+                  cursor: "pointer",
+                  borderRadius: "3px",
+                  transition: "none"
+                }}
+                title="Sincronizar e importar la iniciativa nativa de TaleSpire en caliente"
+              >
+                <Activity size={10} />
+                SINCRONIZAR TALESPIRE
+              </button>
+            </div>
+
             <div style={estilos.listaTarjetasIniciativa}>
               {colaIniciativa.map((criatura, indice) => {
                 const esTurnoActivo = indice === indiceTurnoActivo;

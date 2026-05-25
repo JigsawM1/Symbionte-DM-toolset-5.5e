@@ -34,23 +34,21 @@ const AppContenido: React.FC = () => {
       console.log("[TaleSpire Simbionte] Conectando escuchas y suscripciones de eventos de mesa...");
       
       try {
-        // Suscribirse a cambios en la selección activa de tokens
         const apiCreatures = windowAlias.TS.creatures;
+        const apiInitiative = windowAlias.TS.initiative;
+
+        // Conservar las suscripciones inline activas tanto para compatibilidad del simulador local como para redundancia
         if (apiCreatures?.onCreatureSelectionChange) {
           suscripcionSeleccion = apiCreatures.onCreatureSelectionChange.subscribe((seleccion: any) => {
             if (activo) actualizarSeleccionCriaturas(seleccion || []);
           });
         }
 
-        // Suscribirse a cambios en la cola de iniciativa física del juego
-        const apiInitiative = windowAlias.TS.initiative;
         if (apiInitiative?.onInitiativeEvent) {
           suscripcionIniciativa = apiInitiative.onInitiativeEvent.subscribe(() => {
-            apiInitiative.getQueue().then((colaTS: any) => {
-              if (activo) actualizarColaIniciativaDesdeTaleSpire(colaTS || []);
-            }).catch((e: any) => {
-              console.warn("[TaleSpire Simbionte] Error al obtener cola de iniciativa en evento:", e);
-            });
+            if (activo && typeof windowAlias.manejarEventoIniciativa === "function") {
+              windowAlias.manejarEventoIniciativa();
+            }
           });
         }
 

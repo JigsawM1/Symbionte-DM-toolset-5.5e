@@ -37,6 +37,9 @@ export const BarraControl: React.FC = () => {
   const [condicionSeleccionada, setCondicionSeleccionada] = useState(CONDICIONES_2024[0].nombre);
   const [mostrarMenuCargar, setMostrarMenuCargar] = useState(false);
   const [nombreEncuentroNuevo, setNombreEncuentroNuevo] = useState("");
+  const [mostrarMenuGuardar, setMostrarMenuGuardar] = useState(false);
+  const [errorGuardar, setErrorGuardar] = useState("");
+  const [exitoGuardar, setExitoGuardar] = useState("");
 
   const [busquedaMonstruo, setBusquedaMonstruo] = useState("");
   const [mostrarSugerencias, setMostrarSugerencias] = useState(false);
@@ -136,16 +139,22 @@ export const BarraControl: React.FC = () => {
     agregarCondicionACriatura(criaturaActiva.id, condicionSeleccionada);
   };
 
-  const manejarGuardarEncuentro = () => {
-    const nombre = window.prompt("Introduce un nombre para este encuentro:", nombreEncuentroNuevo || "Encuentro en la Mazmorra");
-    if (nombre) {
-      const exito = guardarEncuentroActual(nombre);
-      if (exito) {
+  const ejecutarGuardarEncuentro = () => {
+    if (!nombreEncuentroNuevo.trim()) {
+      setErrorGuardar("El nombre es requerido.");
+      return;
+    }
+    const exito = guardarEncuentroActual(nombreEncuentroNuevo);
+    if (exito) {
+      setExitoGuardar("Encuentro guardado!");
+      setErrorGuardar("");
+      setTimeout(() => {
+        setMostrarMenuGuardar(false);
         setNombreEncuentroNuevo("");
-        alert(`Encuentro "${nombre}" guardado con éxito.`);
-      } else {
-        alert("No se pudo guardar el encuentro. Asegúrate de tener criaturas en la iniciativa.");
-      }
+        setExitoGuardar("");
+      }, 1000);
+    } else {
+      setErrorGuardar("No se pudo guardar el encuentro.");
     }
   };
 
@@ -261,10 +270,84 @@ export const BarraControl: React.FC = () => {
 
       {/* 2. Guardar y Cargar Encuentros */}
       <div style={estilos.grupoGuardar}>
-        <button onClick={manejarGuardarEncuentro} style={estilos.botonIcono} title="Guardar Encuentro">
-          <Save size={14} />
-          <span>Guardar</span>
-        </button>
+        <div style={{ position: "relative" }}>
+          <button 
+            onClick={() => {
+              setMostrarMenuGuardar(!mostrarMenuGuardar);
+              setMostrarMenuCargar(false);
+              setErrorGuardar("");
+              setExitoGuardar("");
+              const fecha = new Date();
+              const fechaStr = `${fecha.getDate().toString().padStart(2, '0')}/${(fecha.getMonth() + 1).toString().padStart(2, '0')}/${fecha.getFullYear()}`;
+              const horaStr = `${fecha.getHours().toString().padStart(2, '0')}:${fecha.getMinutes().toString().padStart(2, '0')}`;
+              setNombreEncuentroNuevo(`Encuentro ${fechaStr} - ${horaStr}`);
+            }} 
+            style={{
+              ...estilos.botonIcono,
+              ...(mostrarMenuGuardar ? estilos.botonActivo : {})
+            }}
+            title="Guardar Encuentro"
+          >
+            <Save size={14} />
+            <span>Guardar</span>
+          </button>
+
+          {mostrarMenuGuardar && (
+            <div style={{ ...estilos.menuDesplegable, width: "230px", left: 0 }}>
+              <div style={estilos.cabeceraDesplegable}>GUARDAR ENCUENTRO ACTUAL</div>
+              {colaIniciativa.length === 0 ? (
+                <div style={{ ...estilos.itemVacio, color: "var(--color-daño)" }}>
+                  La iniciativa está vacía. Añade criaturas antes de guardar.
+                </div>
+              ) : (
+                <div style={{ padding: "8px", display: "flex", flexDirection: "column", gap: "6px" }}>
+                  <input
+                    type="text"
+                    value={nombreEncuentroNuevo}
+                    onChange={(e) => {
+                      setNombreEncuentroNuevo(e.target.value);
+                      setErrorGuardar("");
+                      setExitoGuardar("");
+                    }}
+                    placeholder="Nombre del encuentro..."
+                    style={{ 
+                      ...estilos.inputBrutal, 
+                      width: "100%", 
+                      boxSizing: "border-box",
+                      height: "26px",
+                      fontSize: "11px",
+                      padding: "2px 6px"
+                    }}
+                    onKeyDown={(e) => e.key === "Enter" && ejecutarGuardarEncuentro()}
+                  />
+                  {errorGuardar && (
+                    <div style={{ fontSize: "10px", color: "var(--color-daño)", padding: "0 2px" }}>{errorGuardar}</div>
+                  )}
+                  {exitoGuardar && (
+                    <div style={{ fontSize: "10px", color: "var(--color-exito)", padding: "0 2px" }}>{exitoGuardar}</div>
+                  )}
+                  <button
+                    onClick={ejecutarGuardarEncuentro}
+                    style={{
+                      ...estilos.botonAñadir,
+                      width: "100%",
+                      justifyContent: "center",
+                      backgroundColor: "var(--color-borde-cian)",
+                      color: "#111424",
+                      border: "none",
+                      height: "26px",
+                      fontSize: "11px",
+                      fontWeight: "bold",
+                      cursor: "pointer"
+                    }}
+                  >
+                    Confirmar Guardar
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
 
         <div style={{ position: "relative" }}>
           <button

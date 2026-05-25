@@ -119,6 +119,54 @@ export function sanearObjetoHomebrew(o: any): ObjetoHomebrew {
   };
 }
 
+export function sanearHechizoCD(h: HechizoBase): HechizoBase {
+  if (!h) return h;
+
+  let cdSalv: string | undefined = undefined;
+
+  // Si ya tiene un valor de cdSalvacion, intentamos normalizarlo primero si no es genérico
+  const valorOriginal = h.cdSalvacion ? String(h.cdSalvacion).toUpperCase().trim() : "";
+
+  if (valorOriginal && valorOriginal !== "CD DC" && valorOriginal !== "DC" && valorOriginal !== "CD" && valorOriginal !== "N/A") {
+    // Si contiene el nombre de una característica, la normalizamos en español
+    if (valorOriginal === "FUE" || valorOriginal.includes("STR") || valorOriginal.includes("FUE")) cdSalv = "Fuerza";
+    else if (valorOriginal === "DES" || valorOriginal.includes("DEX") || valorOriginal.includes("DES")) cdSalv = "Destreza";
+    else if (valorOriginal === "CON") cdSalv = "Constitución";
+    else if (valorOriginal === "INT") cdSalv = "Inteligencia";
+    else if (valorOriginal === "SAB" || valorOriginal.includes("WIS") || valorOriginal.includes("SAB")) cdSalv = "Sabiduría";
+    else if (valorOriginal === "CAR" || valorOriginal.includes("CHA") || valorOriginal.includes("CAR")) cdSalv = "Carisma";
+    else {
+      // Si no coincide con las siglas típicas pero tiene otro valor no genérico, lo dejamos aplanado
+      cdSalv = aplanarValor(h.cdSalvacion);
+    }
+  }
+
+  // Si no se resolvió arriba (es genérico o está vacío), intentamos deducir de la descripción
+  if (!cdSalv) {
+    const descLower = (h.descripcion || "").toLowerCase();
+    if (descLower.includes("salvación de destreza") || descLower.includes("tirada de salvación de destreza") || descLower.includes("salvación: dex") || descLower.includes("salvación: des") || descLower.includes("salvacion de destreza")) {
+      cdSalv = "Destreza";
+    } else if (descLower.includes("salvación de sabiduría") || descLower.includes("tirada de salvación de sabiduría") || descLower.includes("salvación: sab") || descLower.includes("salvación: wis") || descLower.includes("salvacion de sabiduria") || descLower.includes("salvación de sabidur")) {
+      cdSalv = "Sabiduría";
+    } else if (descLower.includes("salvación de constitución") || descLower.includes("tirada de salvación de constitución") || descLower.includes("salvación: con") || descLower.includes("salvacion de constitucion")) {
+      cdSalv = "Constitución";
+    } else if (descLower.includes("salvación de inteligencia") || descLower.includes("tirada de salvación de inteligencia") || descLower.includes("salvación: int") || descLower.includes("salvacion de inteligencia")) {
+      cdSalv = "Inteligencia";
+    } else if (descLower.includes("salvación de fuerza") || descLower.includes("tirada de salvación de fuerza") || descLower.includes("salvación: fue") || descLower.includes("salvación: str") || descLower.includes("salvacion de fuerza")) {
+      cdSalv = "Fuerza";
+    } else if (descLower.includes("salvación de carisma") || descLower.includes("tirada de salvación de carisma") || descLower.includes("salvación: car") || descLower.includes("salvación: cha") || descLower.includes("salvacion de carisma")) {
+      cdSalv = "Carisma";
+    }
+  }
+
+  // Devolver el hechizo modificado con la salvación saneada (o undefined si no aplica)
+  return {
+    ...h,
+    cdSalvacion: cdSalv && cdSalv !== "N/A" ? cdSalv : undefined
+  };
+}
+
+
 export function calcularVidaPorDados(
   formula: string,
   promedioEstandar: number,
@@ -129,7 +177,10 @@ export function calcularVidaPorDados(
   }
 
   // Sanitizar fórmula (quitar espacios, paréntesis y pasar a minúsculas)
-  const saneada = formula.replace(/[\s()]+/g, "").toLowerCase();
+  const saneada = formula
+    .replace(/[\s()]+/g, "")
+    .replace(/[–—−]+/g, "-") // Reemplaza en-dash, em-dash y minus sign unicode por el '-' regular
+    .toLowerCase();
 
   // Expresión regular para parsear: opcionalmente número de dados 'x', 'd', número de caras 'y', y modificador opcional '+z' o '-z'
   // Por ejemplo: 2d8+6, 2d6, 17d10+85, 1d12-1
@@ -417,16 +468,7 @@ export const usarAlmacenDM = create<EstadoDM>((set, get) => ({
     const nuevasCriaturasNativas = colaFiltradaTS.map((cTS) => {
       const existente = state.colaIniciativa.find((c) => c.id === cTS.id);
       
-      if (existente) {
-        // Preservamos vida y condiciones, actualizando iniciativa si viene de TaleSpire
-        const iniciativaFisica = cTS.initiative !== undefined ? cTS.initiative : existente.iniciativa;
-        return {
-          ...existente,
-          iniciativa: iniciativaFisica
-        };
-      }
-
-      // Si no existe, buscamos por nombre en la base de datos de monstruos del DM usando emparejamiento inteligente
+      // Buscar plantilla por nombre para emparejamiento inteligente de ficha
       const nombreTS = cTS.name.toLowerCase().trim();
       const nombreTSBase = nombreTS
         .replace(/\s+\d+$/g, "") // "Orco 1" -> "orco"
@@ -444,14 +486,34 @@ export const usarAlmacenDM = create<EstadoDM>((set, get) => ({
         );
       });
 
+      if (existente) {
+        const iniciativaFisica = cTS.initiative !== undefined ? cTS.initiative : existente.iniciativa;
+        return {
+          ...existente,
+          iniciativa: iniciativaFisica,
+          idPlantillaAsociada: existente.idPlantillaAsociada || (plantillaMonstruo ? plantillaMonstruo.id : undefined)
+        };
+      }
+
+      // Si no existe (es una criatura totalmente nueva importada)
       let vidaMaxCalculada = 10;
       let vidaActCalculada = 10;
 
-      if (cTS.maxHp !== undefined && cTS.maxHp > 0) {
+      if (plantillaMonstruo && state.metodoVidaMonstruo !== "estandar") {
+        // Si hay una ficha vinculada y el método de vida es azar/máximo, tiramos los dados dinámicamente
+        vidaMaxCalculada = calcularVidaPorDados(
+          plantillaMonstruo.vidaNotas || "",
+          plantillaMonstruo.vidaMaxima,
+          state.metodoVidaMonstruo
+        );
+        vidaActCalculada = vidaMaxCalculada;
+      } else if (cTS.maxHp !== undefined && cTS.maxHp > 0) {
+        // Fallback al HP de TaleSpire si no hay método especial o no hay ficha
         vidaMaxCalculada = cTS.maxHp;
         vidaActCalculada = cTS.hp !== undefined ? cTS.hp : cTS.maxHp;
       } else if (plantillaMonstruo) {
-        vidaMaxCalculada = calcularVidaPorDados(plantillaMonstruo.vidaNotas || "", plantillaMonstruo.vidaMaxima, state.metodoVidaMonstruo);
+        // Fallback a vida estática del manual de monstruos
+        vidaMaxCalculada = plantillaMonstruo.vidaMaxima;
         vidaActCalculada = vidaMaxCalculada;
       }
 
@@ -526,6 +588,21 @@ export const usarAlmacenDM = create<EstadoDM>((set, get) => ({
           nuevoIndice = indiceEncontrado;
         } else {
           console.warn("[TaleSpire Sincronismo] No se encontró la criatura activa con ID/nombre en la cola local:", activeTurnId);
+        }
+      }
+
+      // 5. Autodetección del avance de rondas por cambio de turno físico en TaleSpire
+      if (state.colaIniciativa.length > 1) {
+        const ultimoIndice = state.colaIniciativa.length - 1;
+        
+        if (state.indiceTurnoActivo === ultimoIndice && nuevoIndice === 0) {
+          // Se dio la vuelta completa hacia adelante (el turno volvió al principio) -> Avanzar ronda
+          nuevaRonda = state.rondaActual + 1;
+          console.log("[TaleSpire Rondas] Vuelta completa hacia adelante detectada en el bridge CEF. Avanzando ronda a:", nuevaRonda);
+        } else if (state.indiceTurnoActivo === 0 && nuevoIndice === ultimoIndice) {
+          // Se dio la vuelta completa hacia atrás (el turno retrocedió al final) -> Retroceder ronda
+          nuevaRonda = Math.max(1, state.rondaActual - 1);
+          console.log("[TaleSpire Rondas] Vuelta completa hacia atrás detectada en el bridge CEF. Retrocediendo ronda a:", nuevaRonda);
         }
       }
 
@@ -628,9 +705,27 @@ export const usarAlmacenDM = create<EstadoDM>((set, get) => ({
   }),
 
   asociarPlantillaACriatura: (idCriatura, idPlantilla) => set((state) => {
+    const plantilla = state.baseDatosMonstruos.find((m) => m.id === idPlantilla);
     const nuevaCola = state.colaIniciativa.map((c) => {
       if (c.id === idCriatura) {
-        return { ...c, idPlantillaAsociada: idPlantilla };
+        let vidaMaxCalculada = c.vidaMaxima;
+        let vidaActualCalculada = c.vidaActual;
+
+        if (plantilla) {
+          vidaMaxCalculada = calcularVidaPorDados(
+            plantilla.vidaNotas || "",
+            plantilla.vidaMaxima,
+            state.metodoVidaMonstruo
+          );
+          vidaActualCalculada = vidaMaxCalculada;
+        }
+
+        return { 
+          ...c, 
+          idPlantillaAsociada: idPlantilla,
+          vidaMaxima: vidaMaxCalculada,
+          vidaActual: vidaActualCalculada
+        };
       }
       return c;
     });
@@ -909,7 +1004,7 @@ export const usarAlmacenDM = create<EstadoDM>((set, get) => ({
           set(() => ({ baseDatosMonstruos: [...MONSTRUOS_INICIALES, ...monstruosHomebrew] }));
         }
         if (hechizosHomebrew && hechizosHomebrew.length > 0) {
-          set(() => ({ baseDatosHechizos: [...HECHIZOS_INICIALES, ...hechizosHomebrew] }));
+          set(() => ({ baseDatosHechizos: [...HECHIZOS_INICIALES, ...hechizosHomebrew.map(sanearHechizoCD)] }));
         }
         if (objetosHomebrew && objetosHomebrew.length > 0) {
           set({ objetosHomebrew: objetosHomebrew.map(sanearObjetoHomebrew) });
@@ -954,7 +1049,7 @@ export const usarAlmacenDM = create<EstadoDM>((set, get) => ({
 
       const hechizosLS = obtenerDatoFragmentado<HechizoBase[]>("dm_hechizos_homebrew");
       if (hechizosLS && hechizosLS.length > 0) {
-        estadoNuevo.baseDatosHechizos = [...HECHIZOS_INICIALES, ...hechizosLS];
+        estadoNuevo.baseDatosHechizos = [...HECHIZOS_INICIALES, ...hechizosLS.map(sanearHechizoCD)];
         migradoAlgo = true;
       }
 
@@ -1345,17 +1440,8 @@ export const usarAlmacenDM = create<EstadoDM>((set, get) => ({
 
           let desc = h.descripcion || h.desc || "";
           
-          // Preservar compatibilidad rústica concatenando en la descripción si se requiere
+          // Preservar compatibilidad rústica concatenando en la descripción si se requiere (solo mecánicas complejas como daño o CD)
           let extras: string[] = [];
-          if (h.duration || h.duracion) {
-            extras.push(`**Duración:** ${aplanarValor(h.duration || h.duracion)}`);
-          }
-          if (h.material || h.materiales) {
-            extras.push(`**Materiales:** ${aplanarValor(h.material || h.materiales)}`);
-          }
-          if (clasesArray.length > 0) {
-            extras.push(`**Clases:** ${clasesArray.join(", ")}`);
-          }
           const dmgDiceRaw = h.damage_dice || h.dadosDaño || h.dadosDano;
           if (dmgDiceRaw) {
             let mech = `**Daño:** ${aplanarValor(dmgDiceRaw)}`;
@@ -1378,12 +1464,30 @@ export const usarAlmacenDM = create<EstadoDM>((set, get) => ({
           let cdSalv = "";
           if (h.spell_save_dc_type) {
             const dcType = String(h.spell_save_dc_type).toUpperCase().trim();
-            if (dcType.includes("STR") || dcType.includes("FUE")) cdSalv = "FUE";
-            else if (dcType.includes("DEX") || dcType.includes("DES")) cdSalv = "DES";
-            else if (dcType.includes("CON")) cdSalv = "CON";
-            else if (dcType.includes("INT")) cdSalv = "INT";
-            else if (dcType.includes("WIS") || dcType.includes("SAB")) cdSalv = "SAB";
-            else if (dcType.includes("CHA") || dcType.includes("CAR")) cdSalv = "CAR";
+            if (dcType.includes("STR") || dcType.includes("FUE")) cdSalv = "Fuerza";
+            else if (dcType.includes("DEX") || dcType.includes("DES")) cdSalv = "Destreza";
+            else if (dcType.includes("CON")) cdSalv = "Constitución";
+            else if (dcType.includes("INT")) cdSalv = "Inteligencia";
+            else if (dcType.includes("WIS") || dcType.includes("SAB")) cdSalv = "Sabiduría";
+            else if (dcType.includes("CHA") || dcType.includes("CAR")) cdSalv = "Carisma";
+          }
+
+          if (!cdSalv) {
+            // Escanear descripción para deducir la característica de salvación
+            const descLower = desc.toLowerCase();
+            if (descLower.includes("salvación de destreza") || descLower.includes("tirada de salvación de destreza") || descLower.includes("salvación: dex") || descLower.includes("salvación: des") || descLower.includes("salvacion de destreza")) {
+              cdSalv = "Destreza";
+            } else if (descLower.includes("salvación de sabiduría") || descLower.includes("tirada de salvación de sabiduría") || descLower.includes("salvación: sab") || descLower.includes("salvación: wis") || descLower.includes("salvacion de sabiduria") || descLower.includes("salvación de sabidur")) {
+              cdSalv = "Sabiduría";
+            } else if (descLower.includes("salvación de constitución") || descLower.includes("tirada de salvación de constitución") || descLower.includes("salvación: con") || descLower.includes("salvacion de constitucion")) {
+              cdSalv = "Constitución";
+            } else if (descLower.includes("salvación de inteligencia") || descLower.includes("tirada de salvación de inteligencia") || descLower.includes("salvación: int") || descLower.includes("salvacion de inteligencia")) {
+              cdSalv = "Inteligencia";
+            } else if (descLower.includes("salvación de fuerza") || descLower.includes("tirada de salvación de fuerza") || descLower.includes("salvación: fue") || descLower.includes("salvación: str") || descLower.includes("salvacion de fuerza")) {
+              cdSalv = "Fuerza";
+            } else if (descLower.includes("salvación de carisma") || descLower.includes("tirada de salvación de carisma") || descLower.includes("salvación: car") || descLower.includes("salvación: cha") || descLower.includes("salvacion de carisma")) {
+              cdSalv = "Carisma";
+            }
           }
 
           return {
@@ -1407,11 +1511,11 @@ export const usarAlmacenDM = create<EstadoDM>((set, get) => ({
             ataqueCd: h.ataqueCd ? aplanarValor(h.ataqueCd) : (h.spell_save_dc_type ? "CD DE SALVACIÓN" : (h.damage_dice || h.dadosDaño || h.dadosDano ? "TIRADA DE ATAQUE" : "N/A")),
             dadosDaño: h.dadosDaño || h.dadosDano || h.damage_dice ? aplanarValor(h.dadosDaño || h.dadosDano || h.damage_dice) : undefined,
             dadosDañoNivelSuperior: h.dadosDañoNivelSuperior || h.dadosDanoNivelSuperior || h.damage_dice_upcast || h.higher_level_damage ? aplanarValor(h.dadosDañoNivelSuperior || h.dadosDanoNivelSuperior || h.damage_dice_upcast || h.higher_level_damage) : undefined,
-            cdSalvacion: h.cdSalvacion || h.toHitOrDC || cdSalv || undefined,
+            cdSalvacion: cdSalv || (h.cdSalvacion && String(h.cdSalvacion).toUpperCase().trim() !== "CD DC" && String(h.cdSalvacion).toUpperCase().trim() !== "DC" ? aplanarValor(h.cdSalvacion) : (h.toHitOrDC && String(h.toHitOrDC).toUpperCase().trim() !== "CD DC" && String(h.toHitOrDC).toUpperCase().trim() !== "DC" ? aplanarValor(h.toHitOrDC) : undefined)),
             agregarModificadorHabilidad: h.agregarModificadorHabilidad !== undefined ? !!h.agregarModificadorHabilidad : (h.ability_modifier === "yes" || h.ability_modifier === true || h.add_ability_modifier === "yes" || h.add_ability_modifier === true || undefined),
             tipoDaño: h.tipoDaño || h.tipoDano || h.damage_type_01 ? aplanarValor(h.tipoDaño || h.tipoDano || h.damage_type_01).toLowerCase() : undefined
           };
-        });
+        }).map(sanearHechizoCD);
 
         const hechizosFiltrados = state.baseDatosHechizos.filter(
           (hExistente) => !nuevosHechizosFormateados.some((hNuevo) => hNuevo.nombre.toLowerCase().trim() === hExistente.nombre.toLowerCase().trim())

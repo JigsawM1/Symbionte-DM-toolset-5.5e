@@ -495,9 +495,93 @@ Tras remover elementos visuales del JSX solicitados por el DM (como la barra `"S
 > 🧼 **Mantenimiento y TypeScript Estricto**: Al realizar refactorizaciones visuales de limpieza de UI a petición del usuario, **nunca te limites a comentar o remover la porción de JSX**. 
 > Realiza siempre un barrido en retroceso para limpiar las importaciones, estados locales, desestructuraciones de hooks y funciones manejadoras que queden huérfanas. El compilador de TypeScript en producción castiga el desuso con fallos de build. Mantener la base de código libre de código muerto garantiza la salud a largo plazo y la paridad de compilación al 100%.
 
+---
 
+## [2026-05-25] CRÍTICO: Fallo en parsing de fórmulas de dados por caracteres especiales "menos" Unicode (Kobold HP Bug)
 
+**Síntoma:**
+Al activar la preferencia de vida al azar o vida máxima en el combat tracker, a criaturas específicas importadas como el "Kobold Warrior" no se les aplicaba el recálculo dinámico por dados, cayendo siempre de forma fija en su promedio matemático estático estricto (7 HP), a pesar de estar correctamente vinculadas a su plantilla en `Monster_Manual-es-2024.json`.
 
+**Causa raíz:**
+1. En el compendio oficial traducido al español (`Monster_Manual-es-2024.json`), la fórmula de dados para el HP del Kobold Warrior se define en la clave `"Notes"` como `"(3d6 − 3)"`.
+2. El carácter empleado en el signo de resta no es el guión clásico `"-"` (U+002D, `HYPHEN-MINUS`), sino el **signo menos matemático nativo de Unicode `"−"` (U+2212)**.
+3. La sanitización de la función `calcularVidaPorDados` en `src/almacen/usarAlmacenDM.ts` sólo eliminaba espacios y paréntesis: `formula.replace(/[\s()]+/g, "")`. Esto dejaba la cadena como `3d6−3`.
+4. El posterior validador por expresión regular: `match(/^(\d+)d(\d+)([+-]\d+)?$/)` fallaba silenciosamente en procesar la fórmula al no coincidir el signo menos de unicode con el guión clásico `[-]`. Al fallar, la función devolvía inmediatamente el promedio estático estricto.
+
+**Solución aplicada:**
+Modificar la sanitización de fórmulas en `calcularVidaPorDados` en `usarAlmacenDM.ts` para normalizar y unificar cualquier variante de guión largo o signo menos matemático de Unicode al guión clásico de teclado:
+```typescript
+const saneada = formula
+  .replace(/[\s()]+/g, "")
+  .replace(/[–—−]+/g, "-") // Normaliza en-dash, em-dash y minus sign de unicode al guión clásico '-'
+  .toLowerCase();
+```
+Esto garantiza que la cadena resultante sea `3d6-3`, la cual es parseada a la perfección por la expresión regular del motor de dados de Zustand, calculando la vida máxima (15 HP) o vida al azar (tirando dados `3d6 - 3` dando entre 1 y 15 HP) con absoluta precisión.
+
+**Lección aprendida:**
+> 📐 **Sanitización de Caracteres en Expresiones Regulares**: Cuando parsees fórmulas de dados o expresiones matemáticas provenientes de fuentes externas (como archivos JSON traducidos, PDFs o manuales oficiales extraídos), **nunca confíes en que los caracteres de resta serán guiones-menos de teclado estándar (`-`)**.
+> Los manuales formateados tipográficamente suelen usar signos matemáticos reales de Unicode (`−`) o guiones largos (`–`, `—`). Emplea siempre una sanitización polimórfica que reemplace activamente `/[–—−]+/g` por `"-"` antes de evaluar mediante expresiones regulares para garantizar un parsing 100% inmune y robusto.
+
+---
+
+## [2026-05-25] CRÍTICO: Bloqueo de Diálogos Nativos en Entornos CEF/WebView2 (Bug en Guardado de Encuentros)
+
+**Síntoma:**
+Al pulsar el botón "Guardar" de la barra superior para guardar el encuentro de iniciativa actual, la aplicación fallaba de manera silenciosa o congelaba la interacción sin que ocurriera nada en la pantalla.
+
+**Causa raíz:**
+1. El código original utilizaba llamadas modales síncronas del navegador: `const nombre = window.prompt(...)` y `alert(...)`.
+2. TaleSpire ejecuta los simbiontes dentro de un Chromium Embedded Framework (CEF) / WebView2 integrado en Unity. Por motivos de rendimiento e integridad del hilo de renderizado del videojuego, los diálogos nativos del sistema de ventanas (`window.prompt`, `window.alert`, `window.confirm`) están completamente deshabilitados o bloqueados. Al invocarse, la llamada se queda suspendida indefinidamente o falla sin reportar excepciones.
+
+**Solución aplicada:**
+Erradicar por completo `window.prompt` y `alert` del combat tracker. Diseñamos un menú desplegable de React (`mostrarMenuGuardar`) 100% interactivo y estilizado, embebido directamente bajo el botón "Guardar". Este menú valida síncronamente que la iniciativa no esté vacía, solicita el nombre del encuentro en un campo de texto input de alta gama HSL, y reporta el éxito o error de forma puramente digital en la interfaz web de React mediante notificaciones visuales automáticas auto-temporizadas.
+
+**Lección aprendida:**
+> 🛡️ **CEF es Libre de Modales de Navegador**: En simbiontes de TaleSpire o entornos WebView integrados en videojuegos, **NUNCA utilices funciones modales del navegador como `alert`, `prompt` o `confirm`**. 
+> Estas llamadas congelarán o fallarán de forma invisible en la aplicación. Diseña siempre tus flujos para capturar datos, nombres o confirmaciones a través de formularios, cuadros de texto y modales React puramente integrados en tu UI web.
+
+---
+
+## [2026-05-25] MANTENIMIENTO: Type-Safety de Colecciones Opcionales de Plantillas en Formularios de Edición React
+
+**Síntoma:**
+Al compilar la aplicación tras implementar el flujo de edición en caliente de listas dinámicas, el compilador estricto de TypeScript (`tsc`) arrojaba errores del tipo `TS18048: 'monstruoForm.reacciones' is possibly 'undefined'`.
+
+**Causa raíz:**
+Las propiedades como `reacciones`, `accionesLegendarias` y `accionesRapidas` están declaradas como opcionales (`?`) en la interfaz `MonstruoBase` del modelo de datos. Al intentar mapearlas directamente mediante índices (ej. `const r = monstruoForm.reacciones[idx]`) dentro de las funciones de carga en los inputs para edición (`iniciarEditarReaccion`), TypeScript bloqueaba la compilación al no estar garantizado que la propiedad no fuera `undefined`.
+
+**Solución aplicada:**
+Introducir de forma sistemática el operador de encadenamiento opcional `?.` en el acceso de índice en todas las 5 funciones inicializadoras de edición:
+`const r = monstruoForm.reacciones?.[idx];`
+`const l = monstruoForm.accionesLegendarias?.[idx];`
+`const qa = monstruoForm.accionesRapidas?.[idx];`
+Si la colección es `undefined`, el valor resultante se evalúa de manera segura como `undefined` (haciendo que el posterior control `if (!r) return;` aborte la función defensivamente) en lugar de provocar fallos sintácticos de compilación.
+
+**Lección aprendida:**
+> 🛡️ **Acceso Seguro a Colecciones en React Forms**: Al programar flujos interactivos de edición e inyección sobre arreglos opcionales o dinámicos en React, **nunca asumas que la colección existirá síncronamente en el estado de tu formulario**.
+> Utiliza siempre el operador de encadenamiento opcional `?.` antes de indexar arreglos (`?.[idx]`) para garantizar la total paridad y robustez frente a directivas de TypeScript estricto, previniendo excepciones en tiempo de ejecución.
+
+## [2026-05-25] UI/UX: Normalización de Atributos de Salvación en Hechizos (CD de Salvación 'CD DC')
+
+**Síntoma:**
+En el compendio y modal de Hechizos, bajo "Mecánicas de Combate Integradas", el campo de CD Salvación mostraba de forma genérica `"CD Salvación: CD DC"`, en lugar de indicar la característica táctica real (ej. `"CD Destreza"`, `"CD Sabiduría"`).
+
+**Causa raíz:**
+1. Los compendios JSON importados a menudo contienen la cadena genérica `"CD DC"`, `"DC"` o `"CD"` en campos como `cdSalvacion` o `toHitOrDC`. Al cargarse o migrarse, esta cadena rancia se guardaba en el almacén de base de datos sin sanearse de forma retrospectiva.
+2. En el Creador Homebrew (`CreadorHomebrew.tsx`), el select de características guardaba siglas cortas (como `"DES"`, `"SAB"`, `"FUE"`), lo que provocaba inconsistencia visual (`"CD DES"` vs `"CD Destreza"`) y no se autoseleccionaban correctamente al editar los hechizos importados en la interfaz gráfica.
+
+**Solución aplicada:**
+1. **Helper de Saneamiento `sanearHechizoCD` (`usarAlmacenDM.ts`)**: Se implementó una función centralizada de normalización que limpia cadenas rancias (como `"CD DC"`, `"DC"`, `"CD"`) y las traduce a nombres completos en español (`"Fuerza"`, `"Destreza"`, `"Constitución"`, `"Inteligencia"`, `"Sabiduría"`, `"Carisma"`). Si la cadena está vacía o es genérica, escanea inteligentemente el texto de descripción en español buscando tiradas de salvación tácticas para deducir de forma precisa la característica del conjuro.
+2. **Saneamiento Retroactivo Caliente y al Importar**:
+   - Se inyectó `sanearHechizoCD` en el cargador oficial del blob global de TaleSpire (`cargarDatosPersistidos`) y en la migración de LocalStorage, asegurando que todos los hechizos de sesiones previas se limpien retroactivamente al arrancar la app.
+   - Se integró la función en la importación de JSON (`importarBaseDatosJSONCompleta`) para sanear en caliente todos los conjuros cargados de manuales externos.
+3. **Homogeneización del Creador Homebrew (`CreadorHomebrew.tsx`)**: Se modificaron las opciones del select de salvación del creador Homebrew para almacenar directamente los valores completos en español (ej. `value="Destreza"`), logrando una paridad absoluta del 100% y autoselección correcta al editar conjuros importados.
+
+**Lección aprendida:**
+> 🛡️ **Normalización en Caliente de Compendios**: En bases de datos tácticas, nunca asumas que los archivos importados o persistidos por el usuario vendrán saneados y listos.
+> Emplea siempre un normalizador polimórfico en el cargador y en el importador que unifique los términos rancios a valores en español bien estructurados y deduzca los campos faltantes a través de búsquedas por regex en la descripción textual.
+
+---
 
 
 

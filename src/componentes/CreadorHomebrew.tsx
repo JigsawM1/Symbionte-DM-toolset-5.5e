@@ -117,6 +117,28 @@ export const CreadorHomebrew: React.FC = () => {
     setOBonoAtaque("");
     setOBonoDaño("");
     setOBonosMagicos([]);
+    setRasgoEdicionIdx(null);
+    setAccionEdicionIdx(null);
+    setReaccionEdicionIdx(null);
+    setLegendariaEdicionIdx(null);
+    setQuickActionEdicionIdx(null);
+    setTRasgoNombre("");
+    setTRasgoDesc("");
+    setTRasgoUso("");
+    setTAccionNombre("");
+    setTAccionDesc("");
+    setTAccionBono("");
+    setTAccionDaño("");
+    setTAccionUso("");
+    setTReaccionNombre("");
+    setTReaccionDesc("");
+    setTReaccionUso("");
+    setTLegendariaNombre("");
+    setTLegendariaDesc("");
+    setTLegendariaUso("");
+    setTQNombre("");
+    setTQBono("+0");
+    setTQDados("1d6");
     establecerModoHomebrew("lista");
   };
 
@@ -262,6 +284,13 @@ export const CreadorHomebrew: React.FC = () => {
   const [tQDados, setTQDados] = useState("1d6");
   const [tQTipo, setTQTipo] = useState("fuerza");
 
+  // --- Estados de Índices para Edición de Items Dinámicos ---
+  const [rasgoEdicionIdx, setRasgoEdicionIdx] = useState<number | null>(null);
+  const [accionEdicionIdx, setAccionEdicionIdx] = useState<number | null>(null);
+  const [reaccionEdicionIdx, setReaccionEdicionIdx] = useState<number | null>(null);
+  const [legendariaEdicionIdx, setLegendariaEdicionIdx] = useState<number | null>(null);
+  const [quickActionEdicionIdx, setQuickActionEdicionIdx] = useState<number | null>(null);
+
   // --- Estados de Formulario de Hechizos ---
   const [hNombre, setHNombre] = useState("");
   const [hNivel, setHNivel] = useState(1);
@@ -364,16 +393,46 @@ export const CreadorHomebrew: React.FC = () => {
     });
   };
 
-  // --- Agregar Elementos Dinámicos ---
+  // --- Agregar y Editar Elementos Dinámicos ---
   const agregarRasgo = () => {
     if (!tRasgoNombre.trim() || !tRasgoDesc.trim()) return;
-    setMonstruoForm((prev) => ({
-      ...prev,
-      rasgos: [...(prev.rasgos || []), { nombre: tRasgoNombre.trim(), descripcion: tRasgoDesc.trim(), uso: tRasgoUso.trim() || undefined }]
-    }));
+    
+    if (rasgoEdicionIdx !== null) {
+      setMonstruoForm((prev) => {
+        const nuevosRasgos = [...(prev.rasgos || [])];
+        nuevosRasgos[rasgoEdicionIdx] = {
+          nombre: tRasgoNombre.trim(),
+          descripcion: tRasgoDesc.trim(),
+          uso: tRasgoUso.trim() || undefined
+        };
+        return { ...prev, rasgos: nuevosRasgos };
+      });
+      setRasgoEdicionIdx(null);
+    } else {
+      setMonstruoForm((prev) => ({
+        ...prev,
+        rasgos: [...(prev.rasgos || []), { nombre: tRasgoNombre.trim(), descripcion: tRasgoDesc.trim(), uso: tRasgoUso.trim() || undefined }]
+      }));
+    }
     setTRasgoNombre("");
     setTRasgoDesc("");
     setTRasgoUso("");
+  };
+
+  const iniciarEditarRasgo = (idx: number) => {
+    const r = monstruoForm.rasgos?.[idx];
+    if (!r) return;
+    setTRasgoNombre(r.nombre);
+    setTRasgoDesc(r.descripcion);
+    setTRasgoUso(r.uso || "");
+    setRasgoEdicionIdx(idx);
+  };
+
+  const cancelarEditarRasgo = () => {
+    setTRasgoNombre("");
+    setTRasgoDesc("");
+    setTRasgoUso("");
+    setRasgoEdicionIdx(null);
   };
 
   const eliminarRasgoIdx = (idx: number) => {
@@ -381,20 +440,41 @@ export const CreadorHomebrew: React.FC = () => {
       ...prev,
       rasgos: prev.rasgos.filter((_, i) => i !== idx)
     }));
+    if (rasgoEdicionIdx === idx) {
+      cancelarEditarRasgo();
+    } else if (rasgoEdicionIdx !== null && rasgoEdicionIdx > idx) {
+      setRasgoEdicionIdx(rasgoEdicionIdx - 1);
+    }
   };
 
   const agregarAccion = () => {
     if (!tAccionNombre.trim() || !tAccionDesc.trim()) return;
-    setMonstruoForm((prev) => ({
-      ...prev,
-      acciones: [...(prev.acciones || []), {
-        nombre: tAccionNombre.trim(),
-        descripcion: tAccionDesc.trim(),
-        bonificadorAtaque: tAccionBono ? parseInt(tAccionBono, 10) : undefined,
-        daño: tAccionDaño.trim() || undefined,
-        uso: tAccionUso.trim() || undefined
-      }]
-    }));
+    
+    if (accionEdicionIdx !== null) {
+      setMonstruoForm((prev) => {
+        const nuevasAcciones = [...(prev.acciones || [])];
+        nuevasAcciones[accionEdicionIdx] = {
+          nombre: tAccionNombre.trim(),
+          descripcion: tAccionDesc.trim(),
+          bonificadorAtaque: tAccionBono ? parseInt(tAccionBono, 10) : undefined,
+          daño: tAccionDaño.trim() || undefined,
+          uso: tAccionUso.trim() || undefined
+        };
+        return { ...prev, acciones: nuevasAcciones };
+      });
+      setAccionEdicionIdx(null);
+    } else {
+      setMonstruoForm((prev) => ({
+        ...prev,
+        acciones: [...(prev.acciones || []), {
+          nombre: tAccionNombre.trim(),
+          descripcion: tAccionDesc.trim(),
+          bonificadorAtaque: tAccionBono ? parseInt(tAccionBono, 10) : undefined,
+          daño: tAccionDaño.trim() || undefined,
+          uso: tAccionUso.trim() || undefined
+        }]
+      }));
+    }
     setTAccionNombre("");
     setTAccionDesc("");
     setTAccionBono("");
@@ -402,22 +482,77 @@ export const CreadorHomebrew: React.FC = () => {
     setTAccionUso("");
   };
 
+  const iniciarEditarAccion = (idx: number) => {
+    const a = monstruoForm.acciones?.[idx];
+    if (!a) return;
+    setTAccionNombre(a.nombre);
+    setTAccionDesc(a.descripcion);
+    setTAccionBono(a.bonificadorAtaque ? String(a.bonificadorAtaque) : "");
+    setTAccionDaño(a.daño || "");
+    setTAccionUso(a.uso || "");
+    setAccionEdicionIdx(idx);
+  };
+
+  const cancelarEditarAccion = () => {
+    setTAccionNombre("");
+    setTAccionDesc("");
+    setTAccionBono("");
+    setTAccionDaño("");
+    setTAccionUso("");
+    setAccionEdicionIdx(null);
+  };
+
   const eliminarAccionIdx = (idx: number) => {
     setMonstruoForm((prev) => ({
       ...prev,
       acciones: prev.acciones.filter((_, i) => i !== idx)
     }));
+    if (accionEdicionIdx === idx) {
+      cancelarEditarAccion();
+    } else if (accionEdicionIdx !== null && accionEdicionIdx > idx) {
+      setAccionEdicionIdx(accionEdicionIdx - 1);
+    }
   };
 
   const agregarReaccion = () => {
     if (!tReaccionNombre.trim() || !tReaccionDesc.trim()) return;
-    setMonstruoForm((prev) => ({
-      ...prev,
-      reacciones: [...(prev.reacciones || []), { nombre: tReaccionNombre.trim(), descripcion: tReaccionDesc.trim(), uso: tReaccionUso.trim() || undefined }]
-    }));
+    
+    if (reaccionEdicionIdx !== null) {
+      setMonstruoForm((prev) => {
+        const nuevasReacciones = [...(prev.reacciones || [])];
+        nuevasReacciones[reaccionEdicionIdx] = {
+          nombre: tReaccionNombre.trim(),
+          descripcion: tReaccionDesc.trim(),
+          uso: tReaccionUso.trim() || undefined
+        };
+        return { ...prev, reacciones: nuevasReacciones };
+      });
+      setReaccionEdicionIdx(null);
+    } else {
+      setMonstruoForm((prev) => ({
+        ...prev,
+        reacciones: [...(prev.reacciones || []), { nombre: tReaccionNombre.trim(), descripcion: tReaccionDesc.trim(), uso: tReaccionUso.trim() || undefined }]
+      }));
+    }
     setTReaccionNombre("");
     setTReaccionDesc("");
     setTReaccionUso("");
+  };
+
+  const iniciarEditarReaccion = (idx: number) => {
+    const r = monstruoForm.reacciones?.[idx];
+    if (!r) return;
+    setTReaccionNombre(r.nombre);
+    setTReaccionDesc(r.descripcion);
+    setTReaccionUso(r.uso || "");
+    setReaccionEdicionIdx(idx);
+  };
+
+  const cancelarEditarReaccion = () => {
+    setTReaccionNombre("");
+    setTReaccionDesc("");
+    setTReaccionUso("");
+    setReaccionEdicionIdx(null);
   };
 
   const eliminarReaccionIdx = (idx: number) => {
@@ -425,17 +560,52 @@ export const CreadorHomebrew: React.FC = () => {
       ...prev,
       reacciones: (prev.reacciones || []).filter((_, i) => i !== idx)
     }));
+    if (reaccionEdicionIdx === idx) {
+      cancelarEditarReaccion();
+    } else if (reaccionEdicionIdx !== null && reaccionEdicionIdx > idx) {
+      setReaccionEdicionIdx(reaccionEdicionIdx - 1);
+    }
   };
 
   const agregarLegendaria = () => {
     if (!tLegendariaNombre.trim() || !tLegendariaDesc.trim()) return;
-    setMonstruoForm((prev) => ({
-      ...prev,
-      accionesLegendarias: [...(prev.accionesLegendarias || []), { nombre: tLegendariaNombre.trim(), descripcion: tLegendariaDesc.trim(), uso: tLegendariaUso.trim() || undefined }]
-    }));
+    
+    if (legendariaEdicionIdx !== null) {
+      setMonstruoForm((prev) => {
+        const nuevasLeg = [...(prev.accionesLegendarias || [])];
+        nuevasLeg[legendariaEdicionIdx] = {
+          nombre: tLegendariaNombre.trim(),
+          descripcion: tLegendariaDesc.trim(),
+          uso: tLegendariaUso.trim() || undefined
+        };
+        return { ...prev, accionesLegendarias: nuevasLeg };
+      });
+      setLegendariaEdicionIdx(null);
+    } else {
+      setMonstruoForm((prev) => ({
+        ...prev,
+        accionesLegendarias: [...(prev.accionesLegendarias || []), { nombre: tLegendariaNombre.trim(), descripcion: tLegendariaDesc.trim(), uso: tLegendariaUso.trim() || undefined }]
+      }));
+    }
     setTLegendariaNombre("");
     setTLegendariaDesc("");
     setTLegendariaUso("");
+  };
+
+  const iniciarEditarLegendaria = (idx: number) => {
+    const l = monstruoForm.accionesLegendarias?.[idx];
+    if (!l) return;
+    setTLegendariaNombre(l.nombre);
+    setTLegendariaDesc(l.descripcion);
+    setTLegendariaUso(l.uso || "");
+    setLegendariaEdicionIdx(idx);
+  };
+
+  const cancelarEditarLegendaria = () => {
+    setTLegendariaNombre("");
+    setTLegendariaDesc("");
+    setTLegendariaUso("");
+    setLegendariaEdicionIdx(null);
   };
 
   const eliminarLegendariaIdx = (idx: number) => {
@@ -443,22 +613,59 @@ export const CreadorHomebrew: React.FC = () => {
       ...prev,
       accionesLegendarias: (prev.accionesLegendarias || []).filter((_, i) => i !== idx)
     }));
+    if (legendariaEdicionIdx === idx) {
+      cancelarEditarLegendaria();
+    } else if (legendariaEdicionIdx !== null && legendariaEdicionIdx > idx) {
+      setLegendariaEdicionIdx(legendariaEdicionIdx - 1);
+    }
   };
 
   const agregarQuickAction = () => {
     if (!tQNombre.trim()) return;
-    setMonstruoForm((prev) => ({
-      ...prev,
-      accionesRapidas: [...(prev.accionesRapidas || []), {
-        nombre: tQNombre.trim(),
-        bonificadorAtaque: tQBono,
-        dadosDaño: tQDados,
-        tipoDaño: tQTipo
-      }]
-    }));
+    
+    if (quickActionEdicionIdx !== null) {
+      setMonstruoForm((prev) => {
+        const nuevasQA = [...(prev.accionesRapidas || [])];
+        nuevasQA[quickActionEdicionIdx] = {
+          nombre: tQNombre.trim(),
+          bonificadorAtaque: tQBono,
+          dadosDaño: tQDados,
+          tipoDaño: tQTipo
+        };
+        return { ...prev, accionesRapidas: nuevasQA };
+      });
+      setQuickActionEdicionIdx(null);
+    } else {
+      setMonstruoForm((prev) => ({
+        ...prev,
+        accionesRapidas: [...(prev.accionesRapidas || []), {
+          nombre: tQNombre.trim(),
+          bonificadorAtaque: tQBono,
+          dadosDaño: tQDados,
+          tipoDaño: tQTipo
+        }]
+      }));
+    }
     setTQNombre("");
     setTQBono("+0");
     setTQDados("1d6");
+  };
+
+  const iniciarEditarQuickAction = (idx: number) => {
+    const qa = monstruoForm.accionesRapidas?.[idx];
+    if (!qa) return;
+    setTQNombre(qa.nombre);
+    setTQBono(qa.bonificadorAtaque || "+0");
+    setTQDados(qa.dadosDaño || "1d6");
+    setTQTipo(qa.tipoDaño || "cortante");
+    setQuickActionEdicionIdx(idx);
+  };
+
+  const cancelarEditarQuickAction = () => {
+    setTQNombre("");
+    setTQBono("+0");
+    setTQDados("1d6");
+    setQuickActionEdicionIdx(null);
   };
 
   const eliminarQuickActionIdx = (idx: number) => {
@@ -1078,7 +1285,9 @@ export const CreadorHomebrew: React.FC = () => {
                   
                   {/* ACCIONES RÁPIDAS (1-click attacks) */}
                   <div style={estilos.bloqueDinamicoForm}>
-                    <div style={estilos.tituloBloqueDinamico}>ATAQUES RÁPIDOS DE 1 CLIC ({monstruoForm.accionesRapidas?.length || 0})</div>
+                    <div style={estilos.tituloBloqueDinamico}>
+                      {quickActionEdicionIdx !== null ? "EDITANDO ATAQUE RÁPIDO" : `ATAQUES RÁPIDOS DE 1 CLIC (${monstruoForm.accionesRapidas?.length || 0})`}
+                    </div>
                     <div style={estilos.filaAgregarRapido}>
                       <input
                         type="text"
@@ -1110,9 +1319,30 @@ export const CreadorHomebrew: React.FC = () => {
                           <option key={`qa_daño_${d}`} value={d}>{d}</option>
                         ))}
                       </select>
-                      <button type="button" onClick={agregarQuickAction} style={estilos.botonAgregarDinamico}>
-                        +
+                      <button 
+                        type="button" 
+                        onClick={agregarQuickAction} 
+                        style={{
+                          ...estilos.botonAgregarDinamico,
+                          backgroundColor: quickActionEdicionIdx !== null ? "var(--color-exito)" : undefined
+                        }}
+                        title={quickActionEdicionIdx !== null ? "Guardar Cambios" : "Agregar Ataque"}
+                      >
+                        {quickActionEdicionIdx !== null ? "✓" : "+"}
                       </button>
+                      {quickActionEdicionIdx !== null && (
+                        <button 
+                          type="button" 
+                          onClick={cancelarEditarQuickAction} 
+                          style={{
+                            ...estilos.botonAgregarDinamico,
+                            backgroundColor: "var(--color-daño)"
+                          }}
+                          title="Cancelar Edición"
+                        >
+                          ✕
+                        </button>
+                      )}
                     </div>
                     {/* Lista previsualizada */}
                     {monstruoForm.accionesRapidas && monstruoForm.accionesRapidas.length > 0 && (
@@ -1120,9 +1350,24 @@ export const CreadorHomebrew: React.FC = () => {
                         {monstruoForm.accionesRapidas.map((qa, idx) => (
                           <div key={`qa_v_${idx}`} style={estilos.itemDinamicoVisual}>
                             <span><strong>{qa.nombre}</strong>: {qa.bonificadorAtaque} | {qa.dadosDaño} ({qa.tipoDaño})</span>
-                            <button type="button" onClick={() => eliminarQuickActionIdx(idx)} style={estilos.botonEliminarDinamico}>
-                              <Trash2 size={12} />
-                            </button>
+                            <div style={{ display: "flex", gap: "6px" }}>
+                              <button 
+                                type="button" 
+                                onClick={() => iniciarEditarQuickAction(idx)} 
+                                style={{ ...estilos.botonEliminarDinamico, color: "var(--color-borde-cian)" }}
+                                title="Editar Ataque Rápido"
+                              >
+                                <Edit2 size={12} />
+                              </button>
+                              <button 
+                                type="button" 
+                                onClick={() => eliminarQuickActionIdx(idx)} 
+                                style={estilos.botonEliminarDinamico}
+                                title="Eliminar Ataque Rápido"
+                              >
+                                <Trash2 size={12} />
+                              </button>
+                            </div>
                           </div>
                         ))}
                       </div>
@@ -1131,7 +1376,9 @@ export const CreadorHomebrew: React.FC = () => {
 
                   {/* RASGOS PASIVOS */}
                   <div style={estilos.bloqueDinamicoForm}>
-                    <div style={estilos.tituloBloqueDinamico}>RASGOS Y HABILIDADES PASIVAS ({monstruoForm.rasgos?.length || 0})</div>
+                    <div style={estilos.tituloBloqueDinamico}>
+                      {rasgoEdicionIdx !== null ? "EDITANDO RASGO PASIVO" : `RASGOS Y HABILIDADES PASIVAS (${monstruoForm.rasgos?.length || 0})`}
+                    </div>
                     <div style={estilos.camposDinamicosGrupo}>
                       <input
                         type="text"
@@ -1154,22 +1401,60 @@ export const CreadorHomebrew: React.FC = () => {
                         style={estilos.textareaDinamico}
                         rows={2}
                       />
-                      <button type="button" onClick={agregarRasgo} style={estilos.botonAgregarCompleto}>
-                        Agregar Rasgo
-                      </button>
+                      <div style={{ display: "flex", gap: "8px" }}>
+                        <button 
+                          type="button" 
+                          onClick={agregarRasgo} 
+                          style={{
+                            ...estilos.botonAgregarCompleto,
+                            flex: 1,
+                            backgroundColor: rasgoEdicionIdx !== null ? "var(--color-exito)" : undefined
+                          }}
+                        >
+                          {rasgoEdicionIdx !== null ? "Guardar Cambios del Rasgo" : "Agregar Rasgo"}
+                        </button>
+                        {rasgoEdicionIdx !== null && (
+                          <button 
+                            type="button" 
+                            onClick={cancelarEditarRasgo} 
+                            style={{
+                              ...estilos.botonAgregarCompleto,
+                              width: "100px",
+                              backgroundColor: "var(--color-daño)"
+                            }}
+                          >
+                            Cancelar
+                          </button>
+                        )}
+                      </div>
                     </div>
                     {/* Lista pasivos */}
                     {monstruoForm.rasgos && monstruoForm.rasgos.length > 0 && (
                       <div style={estilos.listaDinamicaVisual}>
                         {monstruoForm.rasgos.map((r, idx) => (
                           <div key={`r_v_${idx}`} style={estilos.itemDinamicoVisual}>
-                            <div>
+                            <div style={{ flex: 1, marginRight: "10px" }}>
                               <strong>{r.nombre} {r.uso ? `(${r.uso})` : ""}</strong>:
-                              <div style={{ fontSize: "11px", color: "var(--color-texto-secundario)" }}>{r.descripcion}</div>
+                              <div style={{ fontSize: "11px", color: "var(--color-texto-secundario)", whiteSpace: "pre-wrap" }}>{r.descripcion}</div>
                             </div>
-                            <button type="button" onClick={() => eliminarRasgoIdx(idx)} style={estilos.botonEliminarDinamico}>
-                              <Trash2 size={12} />
-                            </button>
+                            <div style={{ display: "flex", gap: "6px" }}>
+                              <button 
+                                type="button" 
+                                onClick={() => iniciarEditarRasgo(idx)} 
+                                style={{ ...estilos.botonEliminarDinamico, color: "var(--color-borde-cian)" }}
+                                title="Editar Rasgo"
+                              >
+                                <Edit2 size={12} />
+                              </button>
+                              <button 
+                                type="button" 
+                                onClick={() => eliminarRasgoIdx(idx)} 
+                                style={estilos.botonEliminarDinamico}
+                                title="Eliminar Rasgo"
+                              >
+                                <Trash2 size={12} />
+                              </button>
+                            </div>
                           </div>
                         ))}
                       </div>
@@ -1178,7 +1463,9 @@ export const CreadorHomebrew: React.FC = () => {
 
                   {/* ACCIONES Y ATAQUES */}
                   <div style={estilos.bloqueDinamicoForm}>
-                    <div style={estilos.tituloBloqueDinamico}>ACCIONES Y ATAQUES PRINCIPALES ({monstruoForm.acciones?.length || 0})</div>
+                    <div style={estilos.tituloBloqueDinamico}>
+                      {accionEdicionIdx !== null ? "EDITANDO ACCIÓN PRINCIPAL" : `ACCIONES Y ATAQUES PRINCIPALES (${monstruoForm.acciones?.length || 0})`}
+                    </div>
                     <div style={estilos.camposDinamicosGrupo}>
                       <div style={estilos.filaCamposAlineados}>
                         <input
@@ -1217,25 +1504,63 @@ export const CreadorHomebrew: React.FC = () => {
                         style={estilos.textareaDinamico}
                         rows={2}
                       />
-                      <button type="button" onClick={agregarAccion} style={estilos.botonAgregarCompleto}>
-                        Agregar Acción
-                      </button>
+                      <div style={{ display: "flex", gap: "8px" }}>
+                        <button 
+                          type="button" 
+                          onClick={agregarAccion} 
+                          style={{
+                            ...estilos.botonAgregarCompleto,
+                            flex: 1,
+                            backgroundColor: accionEdicionIdx !== null ? "var(--color-exito)" : undefined
+                          }}
+                        >
+                          {accionEdicionIdx !== null ? "Guardar Cambios de la Acción" : "Agregar Acción"}
+                        </button>
+                        {accionEdicionIdx !== null && (
+                          <button 
+                            type="button" 
+                            onClick={cancelarEditarAccion} 
+                            style={{
+                              ...estilos.botonAgregarCompleto,
+                              width: "100px",
+                              backgroundColor: "var(--color-daño)"
+                            }}
+                          >
+                            Cancelar
+                          </button>
+                        )}
+                      </div>
                     </div>
                     {/* Lista acciones */}
                     {monstruoForm.acciones && monstruoForm.acciones.length > 0 && (
                       <div style={estilos.listaDinamicaVisual}>
                         {monstruoForm.acciones.map((a, idx) => (
                           <div key={`a_v_${idx}`} style={estilos.itemDinamicoVisual}>
-                            <div>
+                            <div style={{ flex: 1, marginRight: "10px" }}>
                               <strong>{a.nombre} {a.uso ? `(${a.uso})` : ""}</strong>:
                               <span style={{ fontSize: "11px", marginLeft: "5px", color: "var(--color-borde-cian)" }}>
                                 {a.bonificadorAtaque ? `+${a.bonificadorAtaque}` : ""} {a.daño ? `| ${a.daño}` : ""}
                               </span>
-                              <div style={{ fontSize: "11px", color: "var(--color-texto-secundario)" }}>{a.descripcion}</div>
+                              <div style={{ fontSize: "11px", color: "var(--color-texto-secundario)", whiteSpace: "pre-wrap" }}>{a.descripcion}</div>
                             </div>
-                            <button type="button" onClick={() => eliminarAccionIdx(idx)} style={estilos.botonEliminarDinamico}>
-                              <Trash2 size={12} />
-                            </button>
+                            <div style={{ display: "flex", gap: "6px" }}>
+                              <button 
+                                type="button" 
+                                onClick={() => iniciarEditarAccion(idx)} 
+                                style={{ ...estilos.botonEliminarDinamico, color: "var(--color-borde-cian)" }}
+                                title="Editar Acción"
+                              >
+                                <Edit2 size={12} />
+                              </button>
+                              <button 
+                                type="button" 
+                                onClick={() => eliminarAccionIdx(idx)} 
+                                style={estilos.botonEliminarDinamico}
+                                title="Eliminar Acción"
+                              >
+                                <Trash2 size={12} />
+                              </button>
+                            </div>
                           </div>
                         ))}
                       </div>
@@ -1244,7 +1569,9 @@ export const CreadorHomebrew: React.FC = () => {
 
                   {/* REACCIONES */}
                   <div style={estilos.bloqueDinamicoForm}>
-                    <div style={estilos.tituloBloqueDinamico}>REACCIONES ({monstruoForm.reacciones?.length || 0})</div>
+                    <div style={estilos.tituloBloqueDinamico}>
+                      {reaccionEdicionIdx !== null ? "EDITANDO REACCIÓN" : `REACCIONES (${monstruoForm.reacciones?.length || 0})`}
+                    </div>
                     <div style={estilos.camposDinamicosGrupo}>
                       <input
                         type="text"
@@ -1267,22 +1594,60 @@ export const CreadorHomebrew: React.FC = () => {
                         style={estilos.textareaDinamico}
                         rows={2}
                       />
-                      <button type="button" onClick={agregarReaccion} style={estilos.botonAgregarCompleto}>
-                        Agregar Reacción
-                      </button>
+                      <div style={{ display: "flex", gap: "8px" }}>
+                        <button 
+                          type="button" 
+                          onClick={agregarReaccion} 
+                          style={{
+                            ...estilos.botonAgregarCompleto,
+                            flex: 1,
+                            backgroundColor: reaccionEdicionIdx !== null ? "var(--color-exito)" : undefined
+                          }}
+                        >
+                          {reaccionEdicionIdx !== null ? "Guardar Cambios de la Reacción" : "Agregar Reacción"}
+                        </button>
+                        {reaccionEdicionIdx !== null && (
+                          <button 
+                            type="button" 
+                            onClick={cancelarEditarReaccion} 
+                            style={{
+                              ...estilos.botonAgregarCompleto,
+                              width: "100px",
+                              backgroundColor: "var(--color-daño)"
+                            }}
+                          >
+                            Cancelar
+                          </button>
+                        )}
+                      </div>
                     </div>
                     {/* Lista reacciones */}
                     {monstruoForm.reacciones && monstruoForm.reacciones.length > 0 && (
                       <div style={estilos.listaDinamicaVisual}>
                         {monstruoForm.reacciones.map((r, idx) => (
                           <div key={`rec_v_${idx}`} style={estilos.itemDinamicoVisual}>
-                            <div>
+                            <div style={{ flex: 1, marginRight: "10px" }}>
                               <strong>{r.nombre} {r.uso ? `(${r.uso})` : ""}</strong>:
-                              <div style={{ fontSize: "11px", color: "var(--color-texto-secundario)" }}>{r.descripcion}</div>
+                              <div style={{ fontSize: "11px", color: "var(--color-texto-secundario)", whiteSpace: "pre-wrap" }}>{r.descripcion}</div>
                             </div>
-                            <button type="button" onClick={() => eliminarReaccionIdx(idx)} style={estilos.botonEliminarDinamico}>
-                              <Trash2 size={12} />
-                            </button>
+                            <div style={{ display: "flex", gap: "6px" }}>
+                              <button 
+                                type="button" 
+                                onClick={() => iniciarEditarReaccion(idx)} 
+                                style={{ ...estilos.botonEliminarDinamico, color: "var(--color-borde-cian)" }}
+                                title="Editar Reacción"
+                              >
+                                <Edit2 size={12} />
+                              </button>
+                              <button 
+                                type="button" 
+                                onClick={() => eliminarReaccionIdx(idx)} 
+                                style={estilos.botonEliminarDinamico}
+                                title="Eliminar Reacción"
+                              >
+                                <Trash2 size={12} />
+                              </button>
+                            </div>
                           </div>
                         ))}
                       </div>
@@ -1291,7 +1656,9 @@ export const CreadorHomebrew: React.FC = () => {
 
                   {/* ACCIONES LEGENDARIAS */}
                   <div style={estilos.bloqueDinamicoForm}>
-                    <div style={estilos.tituloBloqueDinamico}>ACCIONES LEGENDARIAS ({monstruoForm.accionesLegendarias?.length || 0})</div>
+                    <div style={estilos.tituloBloqueDinamico}>
+                      {legendariaEdicionIdx !== null ? "EDITANDO ACCIÓN LEGENDARIA" : `ACCIONES LEGENDARIAS (${monstruoForm.accionesLegendarias?.length || 0})`}
+                    </div>
                     <div style={estilos.camposDinamicosGrupo}>
                       <input
                         type="text"
@@ -1314,22 +1681,60 @@ export const CreadorHomebrew: React.FC = () => {
                         style={estilos.textareaDinamico}
                         rows={2}
                       />
-                      <button type="button" onClick={agregarLegendaria} style={estilos.botonAgregarCompleto}>
-                        Agregar Acción Legendaria
-                      </button>
+                      <div style={{ display: "flex", gap: "8px" }}>
+                        <button 
+                          type="button" 
+                          onClick={agregarLegendaria} 
+                          style={{
+                            ...estilos.botonAgregarCompleto,
+                            flex: 1,
+                            backgroundColor: legendariaEdicionIdx !== null ? "var(--color-exito)" : undefined
+                          }}
+                        >
+                          {legendariaEdicionIdx !== null ? "Guardar Cambios Legendaria" : "Agregar Acción Legendaria"}
+                        </button>
+                        {legendariaEdicionIdx !== null && (
+                          <button 
+                            type="button" 
+                            onClick={cancelarEditarLegendaria} 
+                            style={{
+                              ...estilos.botonAgregarCompleto,
+                              width: "100px",
+                              backgroundColor: "var(--color-daño)"
+                            }}
+                          >
+                            Cancelar
+                          </button>
+                        )}
+                      </div>
                     </div>
                     {/* Lista legendarias */}
                     {monstruoForm.accionesLegendarias && monstruoForm.accionesLegendarias.length > 0 && (
                       <div style={estilos.listaDinamicaVisual}>
                         {monstruoForm.accionesLegendarias.map((l, idx) => (
                           <div key={`leg_v_${idx}`} style={estilos.itemDinamicoVisual}>
-                            <div>
+                            <div style={{ flex: 1, marginRight: "10px" }}>
                               <strong>{l.nombre} {l.uso ? `(${l.uso})` : ""}</strong>:
-                              <div style={{ fontSize: "11px", color: "var(--color-texto-secundario)" }}>{l.descripcion}</div>
+                              <div style={{ fontSize: "11px", color: "var(--color-texto-secundario)", whiteSpace: "pre-wrap" }}>{l.descripcion}</div>
                             </div>
-                            <button type="button" onClick={() => eliminarLegendariaIdx(idx)} style={estilos.botonEliminarDinamico}>
-                              <Trash2 size={12} />
-                            </button>
+                            <div style={{ display: "flex", gap: "6px" }}>
+                              <button 
+                                type="button" 
+                                onClick={() => iniciarEditarLegendaria(idx)} 
+                                style={{ ...estilos.botonEliminarDinamico, color: "var(--color-borde-cian)" }}
+                                title="Editar Acción Legendaria"
+                              >
+                                <Edit2 size={12} />
+                              </button>
+                              <button 
+                                type="button" 
+                                onClick={() => eliminarLegendariaIdx(idx)} 
+                                style={estilos.botonEliminarDinamico}
+                                title="Eliminar Acción Legendaria"
+                              >
+                                <Trash2 size={12} />
+                              </button>
+                            </div>
                           </div>
                         ))}
                       </div>
@@ -1552,12 +1957,12 @@ export const CreadorHomebrew: React.FC = () => {
                       style={estilos.selectForm}
                     >
                       <option value="N/A">N/A</option>
-                      <option value="FUE">Fuerza (FUE)</option>
-                      <option value="DES">Destreza (DES)</option>
-                      <option value="CON">Constitución (CON)</option>
-                      <option value="INT">Inteligencia (INT)</option>
-                      <option value="SAB">Sabiduría (SAB)</option>
-                      <option value="CAR">Carisma (CAR)</option>
+                      <option value="Fuerza">Fuerza (FUE)</option>
+                      <option value="Destreza">Destreza (DES)</option>
+                      <option value="Constitución">Constitución (CON)</option>
+                      <option value="Inteligencia">Inteligencia (INT)</option>
+                      <option value="Sabiduría">Sabiduría (SAB)</option>
+                      <option value="Carisma">Carisma (CAR)</option>
                     </select>
                   </div>
                 </div>

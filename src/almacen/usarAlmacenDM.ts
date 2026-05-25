@@ -6,10 +6,13 @@ import {
   HechizoBase
 } from "../utiles/datosIniciales";
 import {
-  guardarDatoFragmentado,
-  obtenerDatoFragmentado,
-  eliminarDatoFragmentado
+  obtenerDatoFragmentado
 } from "../utiles/almacenamientoFragmentos";
+import {
+  guardarBlobGlobal,
+  leerBlobGlobal,
+  limpiarBlobGlobal
+} from "../utiles/almacenamientoTaleSpire";
 
 // Función auxiliar robusta para aplanar de forma segura cualquier estructura a string (previene error #31 de React)
 export function aplanarValor(val: any): string {
@@ -251,10 +254,31 @@ export interface EstadoDM {
   restablecerDatosDeFabrica: () => void;
 }
 
-const guardarEstadoCombateLocal = (cola: CriaturaIniciativa[], ronda: number, turno: number) => {
-  guardarDatoFragmentado("dm_cola_iniciativa", cola);
-  localStorage.setItem("dm_ronda_actual", String(ronda));
-  localStorage.setItem("dm_indice_turno_activo", String(turno));
+/**
+ * Persiste el estado completo del DM en un único blob JSON usando la API
+ * oficial de TaleSpire (TS.localStorage.global). Esta es la ÚNICA forma
+ * garantizada de sobrevivir entre sesiones del juego.
+ */
+const persistirEstadoCompleto = (estado: EstadoDM) => {
+  const idsInicialesM = new Set(MONSTRUOS_INICIALES.map((m) => m.id));
+  const idsInicialesH = new Set(HECHIZOS_INICIALES.map((h) => h.id));
+
+  const blob = {
+    monstruos_homebrew:  estado.baseDatosMonstruos.filter((m) => !idsInicialesM.has(m.id)),
+    hechizos_homebrew:   estado.baseDatosHechizos.filter((h) => !idsInicialesH.has(h.id)),
+    objetos_homebrew:    estado.objetosHomebrew,
+    pendientes:          estado.listaPendientes,
+    notas:               estado.notasDM,
+    encuentros:          estado.encuentrosGuardados,
+    cola_iniciativa:     estado.colaIniciativa,
+    ronda_actual:        estado.rondaActual,
+    indice_turno_activo: estado.indiceTurnoActivo,
+    metodo_vida:         estado.metodoVidaMonstruo,
+  };
+
+  guardarBlobGlobal(blob).catch((e) => {
+    console.error("[TS Storage] Error al persistir estado completo:", e);
+  });
 };
 
 export const usarAlmacenDM = create<EstadoDM>((set, get) => ({
@@ -284,18 +308,20 @@ export const usarAlmacenDM = create<EstadoDM>((set, get) => ({
   establecerPestaña: (pestaña) => set({ pestañaActiva: pestaña }),
   establecerModoHomebrew: (modo) => set({ modoHomebrew: modo }),
   establecerMetodoVidaMonstruo: (metodo) => {
-    localStorage.setItem("dm_metodo_vida_monstruo", metodo);
     set({ metodoVidaMonstruo: metodo });
+    persistirEstadoCompleto(get());
   },
 
   avanzarRonda: () => set((state) => {
     const nuevaRonda = state.rondaActual + 1;
-    guardarEstadoCombateLocal(state.colaIniciativa, nuevaRonda, state.indiceTurnoActivo);
+    const nuevoEstado = { ...state, rondaActual: nuevaRonda };
+    persistirEstadoCompleto(nuevoEstado as EstadoDM);
     return { rondaActual: nuevaRonda };
   }),
   retrocederRonda: () => set((state) => {
     const nuevaRonda = Math.max(1, state.rondaActual - 1);
-    guardarEstadoCombateLocal(state.colaIniciativa, nuevaRonda, state.indiceTurnoActivo);
+    const nuevoEstado = { ...state, rondaActual: nuevaRonda };
+    persistirEstadoCompleto(nuevoEstado as EstadoDM);
     return { rondaActual: nuevaRonda };
   }),
 
@@ -303,12 +329,12 @@ export const usarAlmacenDM = create<EstadoDM>((set, get) => ({
     if (state.colaIniciativa.length === 0) return {};
     let nuevoIndice = state.indiceTurnoActivo + 1;
     let nuevaRonda = state.rondaActual;
-    
     if (nuevoIndice >= state.colaIniciativa.length) {
       nuevoIndice = 0;
       nuevaRonda = state.rondaActual + 1;
     }
-    guardarEstadoCombateLocal(state.colaIniciativa, nuevaRonda, nuevoIndice);
+    const nuevoEstado = { ...state, indiceTurnoActivo: nuevoIndice, rondaActual: nuevaRonda };
+    persistirEstadoCompleto(nuevoEstado as EstadoDM);
     return { indiceTurnoActivo: nuevoIndice, rondaActual: nuevaRonda };
   }),
 
@@ -316,12 +342,12 @@ export const usarAlmacenDM = create<EstadoDM>((set, get) => ({
     if (state.colaIniciativa.length === 0) return {};
     let nuevoIndice = state.indiceTurnoActivo - 1;
     let nuevaRonda = state.rondaActual;
-
     if (nuevoIndice < 0) {
       nuevoIndice = state.colaIniciativa.length - 1;
       nuevaRonda = Math.max(1, state.rondaActual - 1);
     }
-    guardarEstadoCombateLocal(state.colaIniciativa, nuevaRonda, nuevoIndice);
+    const nuevoEstado = { ...state, indiceTurnoActivo: nuevoIndice, rondaActual: nuevaRonda };
+    persistirEstadoCompleto(nuevoEstado as EstadoDM);
     return { indiceTurnoActivo: nuevoIndice, rondaActual: nuevaRonda };
   }),
 
@@ -329,11 +355,47 @@ export const usarAlmacenDM = create<EstadoDM>((set, get) => ({
 
   // Sincronización híbrida de la iniciativa con TaleSpire
   actualizarColaIniciativaDesdeTaleSpire: (colaTS) => set((state) => {
+    // Helper defensivo para normalizar cualquier estructura que devuelva la API de TaleSpire
+    const normalizarColaTaleSpire = (datosCola: any): any[] => {
+      if (!datosCola) return [];
+      if (Array.isArray(datosCola)) return datosCola;
+      
+      console.log("[TaleSpire Simbionte] Normalizando cola recibida:", typeof datosCola, datosCola);
+      
+      // Buscar arrays en propiedades comunes
+      const llavesCandidatas = ["queue", "entries", "items", "data", "list"];
+      for (const llave of llavesCandidatas) {
+        if (Array.isArray(datosCola[llave])) {
+          return datosCola[llave];
+        }
+      }
+      
+      // Intentar convertir si es iterable
+      if (typeof datosCola[Symbol.iterator] === "function") {
+        try {
+          return Array.from(datosCola);
+        } catch (e) {
+          console.error("[TaleSpire Simbionte] Error al iterar cola:", e);
+        }
+      }
+      
+      // Buscar cualquier propiedad array de forma dinámica
+      for (const llave in datosCola) {
+        if (Object.prototype.hasOwnProperty.call(datosCola, llave) && Array.isArray(datosCola[llave])) {
+          return datosCola[llave];
+        }
+      }
+      
+      return [];
+    };
+
+    const colaFiltradaTS = normalizarColaTaleSpire(colaTS);
+
     // 1. Extraemos las criaturas locales creadas virtualmente por el DM en el Simbionte
     const criaturasLocales = state.colaIniciativa.filter((c) => c.id.startsWith("c_local_"));
 
     // 2. Procesamos y actualizamos las criaturas físicas leídas desde TaleSpire
-    const nuevasCriaturasNativas = colaTS.map((cTS) => {
+    const nuevasCriaturasNativas = colaFiltradaTS.map((cTS) => {
       const existente = state.colaIniciativa.find((c) => c.id === cTS.id);
       
       if (existente) {
@@ -387,15 +449,9 @@ export const usarAlmacenDM = create<EstadoDM>((set, get) => ({
 
     // 3. Fusionamos ambas listas (virtuales locales y nativas físicas de TaleSpire)
     const colaCombinada = [...criaturasLocales, ...nuevasCriaturasNativas];
-
-    // 4. Ordenamos por iniciativa de mayor a menor
     colaCombinada.sort((a, b) => b.iniciativa - a.iniciativa);
-
-    guardarEstadoCombateLocal(colaCombinada, state.rondaActual, state.indiceTurnoActivo);
-
-    return {
-      colaIniciativa: colaCombinada
-    };
+    persistirEstadoCompleto({ ...state, colaIniciativa: colaCombinada } as EstadoDM);
+    return { colaIniciativa: colaCombinada };
   }),
 
   agregarCriaturaAIniciativa: (nombre, iniciativa, vidaMax, ca, esMonstruo, velocidad, bonifInic) => set((state) => {
@@ -414,7 +470,7 @@ export const usarAlmacenDM = create<EstadoDM>((set, get) => ({
     };
     const nuevaCola = [...state.colaIniciativa, nuevaCriatura];
     nuevaCola.sort((a, b) => b.iniciativa - a.iniciativa);
-    guardarEstadoCombateLocal(nuevaCola, state.rondaActual, state.indiceTurnoActivo);
+    persistirEstadoCompleto({ ...state, colaIniciativa: nuevaCola } as EstadoDM);
     return { colaIniciativa: nuevaCola };
   }),
 
@@ -425,7 +481,7 @@ export const usarAlmacenDM = create<EstadoDM>((set, get) => ({
     if (nuevoIndice >= nuevaCola.length && nuevaCola.length > 0) {
       nuevoIndice = nuevaCola.length - 1;
     }
-    guardarEstadoCombateLocal(nuevaCola, state.rondaActual, nuevoIndice);
+    persistirEstadoCompleto({ ...state, colaIniciativa: nuevaCola, indiceTurnoActivo: nuevoIndice } as EstadoDM);
     return { colaIniciativa: nuevaCola, indiceTurnoActivo: nuevoIndice };
   }),
 
@@ -436,7 +492,7 @@ export const usarAlmacenDM = create<EstadoDM>((set, get) => ({
       }
       return c;
     });
-    guardarEstadoCombateLocal(nuevaCola, state.rondaActual, state.indiceTurnoActivo);
+    persistirEstadoCompleto({ ...state, colaIniciativa: nuevaCola } as EstadoDM);
     return { colaIniciativa: nuevaCola };
   }),
 
@@ -447,7 +503,7 @@ export const usarAlmacenDM = create<EstadoDM>((set, get) => ({
       }
       return c;
     });
-    guardarEstadoCombateLocal(nuevaCola, state.rondaActual, state.indiceTurnoActivo);
+    persistirEstadoCompleto({ ...state, colaIniciativa: nuevaCola } as EstadoDM);
     return { colaIniciativa: nuevaCola };
   }),
 
@@ -458,7 +514,7 @@ export const usarAlmacenDM = create<EstadoDM>((set, get) => ({
       }
       return c;
     });
-    guardarEstadoCombateLocal(nuevaCola, state.rondaActual, state.indiceTurnoActivo);
+    persistirEstadoCompleto({ ...state, colaIniciativa: nuevaCola } as EstadoDM);
     return { colaIniciativa: nuevaCola };
   }),
 
@@ -469,7 +525,7 @@ export const usarAlmacenDM = create<EstadoDM>((set, get) => ({
       }
       return c;
     });
-    guardarEstadoCombateLocal(nuevaCola, state.rondaActual, state.indiceTurnoActivo);
+    persistirEstadoCompleto({ ...state, colaIniciativa: nuevaCola } as EstadoDM);
     return { colaIniciativa: nuevaCola };
   }),
 
@@ -480,19 +536,20 @@ export const usarAlmacenDM = create<EstadoDM>((set, get) => ({
       }
       return c;
     });
-    guardarEstadoCombateLocal(nuevaCola, state.rondaActual, state.indiceTurnoActivo);
+    persistirEstadoCompleto({ ...state, colaIniciativa: nuevaCola } as EstadoDM);
     return { colaIniciativa: nuevaCola };
   }),
 
   limpiarIniciativa: () => {
-    guardarEstadoCombateLocal([], 1, 0);
+    const s = get();
+    persistirEstadoCompleto({ ...s, colaIniciativa: [], indiceTurnoActivo: 0, rondaActual: 1 } as EstadoDM);
     set({ colaIniciativa: [], indiceTurnoActivo: 0, rondaActual: 1 });
   },
 
   ordenarIniciativa: () => set((state) => {
     const nuevaCola = [...state.colaIniciativa];
     nuevaCola.sort((a, b) => b.iniciativa - a.iniciativa);
-    guardarEstadoCombateLocal(nuevaCola, state.rondaActual, 0);
+    persistirEstadoCompleto({ ...state, colaIniciativa: nuevaCola, indiceTurnoActivo: 0 } as EstadoDM);
     return { colaIniciativa: nuevaCola, indiceTurnoActivo: 0 };
   }),
 
@@ -559,12 +616,8 @@ export const usarAlmacenDM = create<EstadoDM>((set, get) => ({
 
     const colaCombinada = [...state.colaIniciativa, ...nuevasCriaturas];
     colaCombinada.sort((a, b) => b.iniciativa - a.iniciativa);
-
-    guardarEstadoCombateLocal(colaCombinada, state.rondaActual, state.indiceTurnoActivo);
-
-    return {
-      colaIniciativa: colaCombinada
-    };
+    persistirEstadoCompleto({ ...state, colaIniciativa: colaCombinada } as EstadoDM);
+    return { colaIniciativa: colaCombinada };
   }),
 
   // ================= HOMEBREW CRUD PERSISTIDO =================
@@ -575,12 +628,7 @@ export const usarAlmacenDM = create<EstadoDM>((set, get) => ({
       id: `m_homebrew_${Date.now()}`
     };
     const nuevosMonstruos = [...state.baseDatosMonstruos, nuevoMonstruo];
-    
-    // Filtramos los de por vida e iniciales y guardamos el Homebrew neto
-    const idsIniciales = new Set(MONSTRUOS_INICIALES.map((m) => m.id));
-    const homebrewNeto = nuevosMonstruos.filter((m) => !idsIniciales.has(m.id));
-    guardarDatoFragmentado("dm_monstruos_homebrew", homebrewNeto);
-
+    persistirEstadoCompleto({ ...state, baseDatosMonstruos: nuevosMonstruos } as EstadoDM);
     return { baseDatosMonstruos: nuevosMonstruos };
   }),
 
@@ -590,11 +638,7 @@ export const usarAlmacenDM = create<EstadoDM>((set, get) => ({
       id: `h_homebrew_${Date.now()}`
     };
     const nuevosHechizos = [...state.baseDatosHechizos, nuevoHechizo];
-
-    const idsIniciales = new Set(HECHIZOS_INICIALES.map((h) => h.id));
-    const homebrewNeto = nuevosHechizos.filter((h) => !idsIniciales.has(h.id));
-    guardarDatoFragmentado("dm_hechizos_homebrew", homebrewNeto);
-
+    persistirEstadoCompleto({ ...state, baseDatosHechizos: nuevosHechizos } as EstadoDM);
     return { baseDatosHechizos: nuevosHechizos };
   }),
 
@@ -604,8 +648,7 @@ export const usarAlmacenDM = create<EstadoDM>((set, get) => ({
       id: `o_homebrew_${Date.now()}`
     };
     const nuevosObjetos = [...state.objetosHomebrew, nuevoObjeto];
-    guardarDatoFragmentado("dm_objetos_homebrew", nuevosObjetos);
-
+    persistirEstadoCompleto({ ...state, objetosHomebrew: nuevosObjetos } as EstadoDM);
     return { objetosHomebrew: nuevosObjetos };
   }),
 
@@ -613,9 +656,7 @@ export const usarAlmacenDM = create<EstadoDM>((set, get) => ({
     const nuevosMonstruos = state.baseDatosMonstruos.map((m) =>
       m.id === id ? { ...m, ...monstruo, id } : m
     );
-    const idsIniciales = new Set(MONSTRUOS_INICIALES.map((m) => m.id));
-    const homebrewNeto = nuevosMonstruos.filter((m) => !idsIniciales.has(m.id));
-    guardarDatoFragmentado("dm_monstruos_homebrew", homebrewNeto);
+    persistirEstadoCompleto({ ...state, baseDatosMonstruos: nuevosMonstruos } as EstadoDM);
     return { baseDatosMonstruos: nuevosMonstruos };
   }),
 
@@ -623,9 +664,7 @@ export const usarAlmacenDM = create<EstadoDM>((set, get) => ({
     const nuevosHechizos = state.baseDatosHechizos.map((h) =>
       h.id === id ? { ...h, ...hechizo, id } : h
     );
-    const idsIniciales = new Set(HECHIZOS_INICIALES.map((h) => h.id));
-    const homebrewNeto = nuevosHechizos.filter((h) => !idsIniciales.has(h.id));
-    guardarDatoFragmentado("dm_hechizos_homebrew", homebrewNeto);
+    persistirEstadoCompleto({ ...state, baseDatosHechizos: nuevosHechizos } as EstadoDM);
     return { baseDatosHechizos: nuevosHechizos };
   }),
 
@@ -633,63 +672,53 @@ export const usarAlmacenDM = create<EstadoDM>((set, get) => ({
     const nuevosObjetos = state.objetosHomebrew.map((o) =>
       o.id === id ? { ...o, ...objeto, id } : o
     );
-    guardarDatoFragmentado("dm_objetos_homebrew", nuevosObjetos);
+    persistirEstadoCompleto({ ...state, objetosHomebrew: nuevosObjetos } as EstadoDM);
     return { objetosHomebrew: nuevosObjetos };
   }),
 
   eliminarMonstruoHomebrew: (id) => set((state) => {
     const nuevosMonstruos = state.baseDatosMonstruos.filter((m) => m.id !== id);
-    const idsIniciales = new Set(MONSTRUOS_INICIALES.map((m) => m.id));
-    const homebrewNeto = nuevosMonstruos.filter((m) => !idsIniciales.has(m.id));
-    guardarDatoFragmentado("dm_monstruos_homebrew", homebrewNeto);
+    persistirEstadoCompleto({ ...state, baseDatosMonstruos: nuevosMonstruos } as EstadoDM);
     return { baseDatosMonstruos: nuevosMonstruos };
   }),
 
   eliminarHechizoHomebrew: (id) => set((state) => {
     const nuevosHechizos = state.baseDatosHechizos.filter((h) => h.id !== id);
-    const idsIniciales = new Set(HECHIZOS_INICIALES.map((h) => h.id));
-    const homebrewNeto = nuevosHechizos.filter((h) => !idsIniciales.has(h.id));
-    guardarDatoFragmentado("dm_hechizos_homebrew", homebrewNeto);
+    persistirEstadoCompleto({ ...state, baseDatosHechizos: nuevosHechizos } as EstadoDM);
     return { baseDatosHechizos: nuevosHechizos };
   }),
 
   eliminarObjetoHomebrew: (id) => set((state) => {
     const nuevosObjetos = state.objetosHomebrew.filter((o) => o.id !== id);
-    guardarDatoFragmentado("dm_objetos_homebrew", nuevosObjetos);
+    persistirEstadoCompleto({ ...state, objetosHomebrew: nuevosObjetos } as EstadoDM);
     return { objetosHomebrew: nuevosObjetos };
   }),
 
   // ================= PENDIENTES PERSISTIDOS =================
 
   agregarPendiente: (texto) => set((state) => {
-    const nuevo: ElementoPendiente = {
-      id: `p_local_${Date.now()}`,
-      texto,
-      completado: false
-    };
+    const nuevo: ElementoPendiente = { id: `p_local_${Date.now()}`, texto, completado: false };
     const nuevaLista = [...state.listaPendientes, nuevo];
-    guardarDatoFragmentado("dm_pendientes", nuevaLista);
+    persistirEstadoCompleto({ ...state, listaPendientes: nuevaLista } as EstadoDM);
     return { listaPendientes: nuevaLista };
   }),
 
   alternarPendiente: (id) => set((state) => {
-    const nuevaLista = state.listaPendientes.map((p) =>
-      p.id === id ? { ...p, completado: !p.completado } : p
-    );
-    guardarDatoFragmentado("dm_pendientes", nuevaLista);
+    const nuevaLista = state.listaPendientes.map((p) => p.id === id ? { ...p, completado: !p.completado } : p);
+    persistirEstadoCompleto({ ...state, listaPendientes: nuevaLista } as EstadoDM);
     return { listaPendientes: nuevaLista };
   }),
 
   eliminarPendiente: (id) => set((state) => {
     const nuevaLista = state.listaPendientes.filter((p) => p.id !== id);
-    guardarDatoFragmentado("dm_pendientes", nuevaLista);
+    persistirEstadoCompleto({ ...state, listaPendientes: nuevaLista } as EstadoDM);
     return { listaPendientes: nuevaLista };
   }),
 
   // ================= NOTAS DM =================
 
-  guardarNotasDM: (notas) => set(() => {
-    localStorage.setItem("dm_notas", notas);
+  guardarNotasDM: (notas) => set((state) => {
+    persistirEstadoCompleto({ ...state, notasDM: notas } as EstadoDM);
     return { notasDM: notas };
   }),
 
@@ -698,109 +727,205 @@ export const usarAlmacenDM = create<EstadoDM>((set, get) => ({
   guardarEncuentroActual: (nombre) => {
     const state = get();
     if (!nombre.trim() || state.colaIniciativa.length === 0) return false;
-
     const nuevoEncuentro: EncuentroGuardado = {
       nombre: nombre.trim(),
       ronda: state.rondaActual,
       cola: state.colaIniciativa,
       fecha: new Date().toLocaleString("es-ES")
     };
-
-    // Quitamos previos con el mismo nombre si existen
     const encuentrosLimpios = state.encuentrosGuardados.filter(
       (e) => e.nombre.toLowerCase() !== nombre.trim().toLowerCase()
     );
-
     const nuevosEncuentros = [...encuentrosLimpios, nuevoEncuentro];
     set({ encuentrosGuardados: nuevosEncuentros });
-    guardarDatoFragmentado("dm_encuentros_guardados", nuevosEncuentros);
+    persistirEstadoCompleto({ ...state, encuentrosGuardados: nuevosEncuentros } as EstadoDM);
     return true;
   },
 
   cargarEncuentro: (nombre) => {
     const state = get();
-    const encuentro = state.encuentrosGuardados.find(
-      (e) => e.nombre.toLowerCase() === nombre.toLowerCase()
-    );
-
+    const encuentro = state.encuentrosGuardados.find((e) => e.nombre.toLowerCase() === nombre.toLowerCase());
     if (!encuentro) return false;
-
-    set({
-      colaIniciativa: encuentro.cola,
-      rondaActual: encuentro.ronda,
-      indiceTurnoActivo: 0
-    });
+    set({ colaIniciativa: encuentro.cola, rondaActual: encuentro.ronda, indiceTurnoActivo: 0 });
     return true;
   },
 
   eliminarEncuentroGuardado: (nombre) => set((state) => {
     const nuevosEncuentros = state.encuentrosGuardados.filter((e) => e.nombre !== nombre);
-    guardarDatoFragmentado("dm_encuentros_guardados", nuevosEncuentros);
+    persistirEstadoCompleto({ ...state, encuentrosGuardados: nuevosEncuentros } as EstadoDM);
     return { encuentrosGuardados: nuevosEncuentros };
   }),
+
 
   // ================= CARGAR DATOS GENERALES AL INICIAR =================
 
   cargarDatosPersistidos: () => {
-    // 1. Cargar Monstruos Homebrew
-    const monstruosHomebrew = obtenerDatoFragmentado<MonstruoBase[]>("dm_monstruos_homebrew");
-    if (monstruosHomebrew && monstruosHomebrew.length > 0) {
-      set(() => ({
-        baseDatosMonstruos: [...MONSTRUOS_INICIALES, ...monstruosHomebrew]
-      }));
-    }
+    /**
+     * ESTRATEGIA DE PERSISTENCIA (TS.localStorage.global primero):
+     * -------------------------------------------------------------
+     * 1. Leer el blob oficial de TaleSpire (TS.localStorage.global.getBlob).
+     *    Este escribe directamente en disco → sobrevive a cierres del juego.
+     * 2. Si el blob tiene datos → cargar y listo. No tocar LocalStorage.
+     * 3. Si el blob está vacío → intentar migrar desde LocalStorage fragmentado
+     *    (datos de sesiones previas antes de esta nueva arquitectura).
+     * 4. Guardar esos datos en el blob TS para las próximas sesiones.
+     *
+     * ¿Por qué no IndexedDB/LocalStorage?
+     * TaleSpire borra TODO el almacenamiento del WebView (LocalStorage, IndexedDB,
+     * SessionStorage, Cookies) al cerrar el juego, ya que usa WebView2 sin
+     * persistencia de UserData configurada.
+     * TS.localStorage.global es la ÚNICA API que persiste entre sesiones.
+     */
+    const ejecutarCarga = async () => {
+      console.log("[TS Storage] Iniciando carga de datos persistidos...");
 
-    // 2. Cargar Hechizos Homebrew
-    const hechizosHomebrew = obtenerDatoFragmentado<HechizoBase[]>("dm_hechizos_homebrew");
-    if (hechizosHomebrew && hechizosHomebrew.length > 0) {
-      set(() => ({
-        baseDatosHechizos: [...HECHIZOS_INICIALES, ...hechizosHomebrew]
-      }));
-    }
+      // ── PASO 1: Leer el blob oficial de TaleSpire ──────────────────────────────
+      const blob = await leerBlobGlobal();
 
-    // 3. Cargar Objetos Homebrew
-    const objetosHomebrew = obtenerDatoFragmentado<any[]>("dm_objetos_homebrew");
-    if (objetosHomebrew) {
-      const objetosSaneados = objetosHomebrew.map(sanearObjetoHomebrew);
-      set({ objetosHomebrew: objetosSaneados });
-      guardarDatoFragmentado("dm_objetos_homebrew", objetosSaneados);
-    }
+      if (blob && Object.keys(blob).length > 0) {
+        console.log("[TS Storage] ✅ Blob encontrado. Cargando datos desde TS.localStorage.global...");
 
-    // 4. Cargar Pendientes
-    const pendientes = obtenerDatoFragmentado<ElementoPendiente[]>("dm_pendientes");
-    if (pendientes) {
-      set({ listaPendientes: pendientes });
-    }
+        const monstruosHomebrew = blob.monstruos_homebrew as MonstruoBase[] | undefined;
+        const hechizosHomebrew  = blob.hechizos_homebrew  as HechizoBase[]  | undefined;
+        const objetosHomebrew   = blob.objetos_homebrew   as any[]          | undefined;
+        const pendientes        = blob.pendientes         as ElementoPendiente[] | undefined;
+        const notas             = blob.notas              as string          | undefined;
+        const encuentros        = blob.encuentros         as EncuentroGuardado[] | undefined;
+        const cola              = blob.cola_iniciativa    as CriaturaIniciativa[] | undefined;
+        const ronda             = blob.ronda_actual       as number          | undefined;
+        const turno             = blob.indice_turno_activo as number         | undefined;
+        const metodo            = blob.metodo_vida        as "estandar" | "maximo" | "azar" | undefined;
 
-    // 5. Cargar Notas
-    const notas = localStorage.getItem("dm_notas");
-    if (notas !== null) {
-      set({ notasDM: notas });
-    }
+        if (monstruosHomebrew && monstruosHomebrew.length > 0) {
+          set(() => ({ baseDatosMonstruos: [...MONSTRUOS_INICIALES, ...monstruosHomebrew] }));
+        }
+        if (hechizosHomebrew && hechizosHomebrew.length > 0) {
+          set(() => ({ baseDatosHechizos: [...HECHIZOS_INICIALES, ...hechizosHomebrew] }));
+        }
+        if (objetosHomebrew && objetosHomebrew.length > 0) {
+          set({ objetosHomebrew: objetosHomebrew.map(sanearObjetoHomebrew) });
+        }
+        if (pendientes && pendientes.length > 0) {
+          set({ listaPendientes: pendientes });
+        }
+        if (notas !== undefined && notas !== null) {
+          set({ notasDM: notas });
+        }
+        if (encuentros && encuentros.length > 0) {
+          set({ encuentrosGuardados: encuentros });
+        }
+        if (cola && cola.length > 0) {
+          set({ colaIniciativa: cola });
+        }
+        if (ronda !== undefined && ronda !== null) {
+          set({ rondaActual: ronda });
+        }
+        if (turno !== undefined && turno !== null) {
+          set({ indiceTurnoActivo: turno });
+        }
+        if (metodo) {
+          set({ metodoVidaMonstruo: metodo });
+        }
 
-    // 6. Cargar Encuentros
-    const encuentros = obtenerDatoFragmentado<EncuentroGuardado[]>("dm_encuentros_guardados");
-    if (encuentros) {
-      set({ encuentrosGuardados: encuentros });
-    }
+        console.log("[TS Storage] Carga completa desde blob oficial de TaleSpire.");
+        return; // ← Salimos aquí. NO tocamos LocalStorage.
+      }
 
-    // 7. Cargar Combate Activo
-    const combateCola = obtenerDatoFragmentado<CriaturaIniciativa[]>("dm_cola_iniciativa");
-    if (combateCola) {
-      set({ colaIniciativa: combateCola });
-    }
-    const rondaGuardada = localStorage.getItem("dm_ronda_actual");
-    if (rondaGuardada) {
-      set({ rondaActual: Number(rondaGuardada) || 1 });
-    }
-    const turnoGuardado = localStorage.getItem("dm_indice_turno_activo");
-    if (turnoGuardado) {
-      set({ indiceTurnoActivo: Number(turnoGuardado) || 0 });
-    }
-    const metodoGuardado = localStorage.getItem("dm_metodo_vida_monstruo") as "estandar" | "maximo" | "azar" | null;
-    if (metodoGuardado) {
-      set({ metodoVidaMonstruo: metodoGuardado });
-    }
+      // ── PASO 2: Blob vacío → intentar migrar desde LocalStorage fragmentado ───
+      console.log("[TS Storage] Blob vacío. Buscando datos en LocalStorage para migrar...");
+
+      let migradoAlgo = false;
+      const estadoNuevo: Partial<EstadoDM> = {};
+
+      const monstruosLS = obtenerDatoFragmentado<MonstruoBase[]>("dm_monstruos_homebrew");
+      if (monstruosLS && monstruosLS.length > 0) {
+        estadoNuevo.baseDatosMonstruos = [...MONSTRUOS_INICIALES, ...monstruosLS];
+        migradoAlgo = true;
+      }
+
+      const hechizosLS = obtenerDatoFragmentado<HechizoBase[]>("dm_hechizos_homebrew");
+      if (hechizosLS && hechizosLS.length > 0) {
+        estadoNuevo.baseDatosHechizos = [...HECHIZOS_INICIALES, ...hechizosLS];
+        migradoAlgo = true;
+      }
+
+      const objetosLS = obtenerDatoFragmentado<any[]>("dm_objetos_homebrew");
+      if (objetosLS && objetosLS.length > 0) {
+        estadoNuevo.objetosHomebrew = objetosLS.map(sanearObjetoHomebrew);
+        migradoAlgo = true;
+      }
+
+      const pendientesLS = obtenerDatoFragmentado<ElementoPendiente[]>("dm_pendientes");
+      if (pendientesLS && pendientesLS.length > 0) {
+        estadoNuevo.listaPendientes = pendientesLS;
+        migradoAlgo = true;
+      }
+
+      const notasLS = localStorage.getItem("dm_notas");
+      if (notasLS !== null) {
+        estadoNuevo.notasDM = notasLS;
+        migradoAlgo = true;
+      }
+
+      const encuentrosLS = obtenerDatoFragmentado<EncuentroGuardado[]>("dm_encuentros_guardados");
+      if (encuentrosLS && encuentrosLS.length > 0) {
+        estadoNuevo.encuentrosGuardados = encuentrosLS;
+        migradoAlgo = true;
+      }
+
+      const colaLS = obtenerDatoFragmentado<CriaturaIniciativa[]>("dm_cola_iniciativa");
+      if (colaLS && colaLS.length > 0) {
+        estadoNuevo.colaIniciativa = colaLS;
+        migradoAlgo = true;
+      }
+
+      const metodoLS = localStorage.getItem("dm_metodo_vida_monstruo") as "estandar" | "maximo" | "azar" | null;
+      if (metodoLS) estadoNuevo.metodoVidaMonstruo = metodoLS;
+
+      const rondaLS = localStorage.getItem("dm_ronda_actual");
+      if (rondaLS) estadoNuevo.rondaActual = Number(rondaLS) || 1;
+
+      const turnoLS = localStorage.getItem("dm_indice_turno_activo");
+      if (turnoLS) estadoNuevo.indiceTurnoActivo = Number(turnoLS) || 0;
+
+      if (Object.keys(estadoNuevo).length > 0) {
+        set(estadoNuevo);
+      }
+
+      // Guardar inmediatamente en el blob oficial para la próxima sesión
+      const estadoFinal = { ...get(), ...estadoNuevo } as EstadoDM;
+      await guardarBlobGlobal({
+        monstruos_homebrew:  (estadoFinal.baseDatosMonstruos || []).filter(m => !MONSTRUOS_INICIALES.some(i => i.id === m.id)),
+        hechizos_homebrew:   (estadoFinal.baseDatosHechizos || []).filter(h => !HECHIZOS_INICIALES.some(i => i.id === h.id)),
+        objetos_homebrew:    estadoFinal.objetosHomebrew    || [],
+        pendientes:          estadoFinal.listaPendientes    || [],
+        notas:               estadoFinal.notasDM            || "",
+        encuentros:          estadoFinal.encuentrosGuardados || [],
+        cola_iniciativa:     estadoFinal.colaIniciativa     || [],
+        ronda_actual:        estadoFinal.rondaActual        || 1,
+        indice_turno_activo: estadoFinal.indiceTurnoActivo  || 0,
+        metodo_vida:         estadoFinal.metodoVidaMonstruo || "estandar",
+      });
+
+      if (migradoAlgo) {
+        console.log("[TS Storage] ✅ Migración desde LocalStorage completada y guardada en blob TS.");
+      } else {
+        console.log("[TS Storage] Primera sesión limpia. Comenzando desde cero.");
+      }
+    };
+
+    ejecutarCarga().catch((error) => {
+      console.error("[TS Storage] Error crítico al cargar datos:", error);
+      // Fallback de emergencia: LocalStorage fragmentado
+      const monstruosLS = obtenerDatoFragmentado<MonstruoBase[]>("dm_monstruos_homebrew");
+      if (monstruosLS && monstruosLS.length > 0) {
+        set(() => ({ baseDatosMonstruos: [...MONSTRUOS_INICIALES, ...monstruosLS] }));
+      }
+      const pendientesLS = obtenerDatoFragmentado<ElementoPendiente[]>("dm_pendientes");
+      if (pendientesLS) set({ listaPendientes: pendientesLS });
+      const notasLS = localStorage.getItem("dm_notas");
+      if (notasLS !== null) set({ notasDM: notasLS });
+    });
   },
 
   // ================= IMPORTADOR DINÁMICO DE JSON =================
@@ -809,6 +934,10 @@ export const usarAlmacenDM = create<EstadoDM>((set, get) => ({
     try {
       let modificado = false;
       const state = get();
+      
+      let monstruosFinales = state.baseDatosMonstruos;
+      let hechizosFinales = state.baseDatosHechizos;
+      let objetosFinales = state.objetosHomebrew;
 
       let monstruosCandidatos: any[] = [];
       let hechizosCandidatos: any[] = [];
@@ -1054,12 +1183,7 @@ export const usarAlmacenDM = create<EstadoDM>((set, get) => ({
           (mExistente) => !nuevosMonstruosFormateados.some((mNuevo) => mNuevo.nombre.toLowerCase() === mExistente.nombre.toLowerCase())
         );
 
-        const combinados = [...monstruosFiltrados, ...nuevosMonstruosFormateados];
-        set({ baseDatosMonstruos: combinados });
-
-        const idsIniciales = new Set(MONSTRUOS_INICIALES.map((m) => m.id));
-        const homebrewNeto = combinados.filter((m) => !idsIniciales.has(m.id));
-        guardarDatoFragmentado("dm_monstruos_homebrew", homebrewNeto);
+        monstruosFinales = [...monstruosFiltrados, ...nuevosMonstruosFormateados];
         modificado = true;
       }
 
@@ -1181,12 +1305,7 @@ export const usarAlmacenDM = create<EstadoDM>((set, get) => ({
           (hExistente) => !nuevosHechizosFormateados.some((hNuevo) => hNuevo.nombre.toLowerCase().trim() === hExistente.nombre.toLowerCase().trim())
         );
 
-        const combinados = [...hechizosFiltrados, ...nuevosHechizosFormateados];
-        set({ baseDatosHechizos: combinados });
-
-        const idsIniciales = new Set(HECHIZOS_INICIALES.map((h) => h.id));
-        const homebrewNeto = combinados.filter((h) => !idsIniciales.has(h.id));
-        guardarDatoFragmentado("dm_hechizos_homebrew", homebrewNeto);
+        hechizosFinales = [...hechizosFiltrados, ...nuevosHechizosFormateados];
         modificado = true;
       }
 
@@ -1379,11 +1498,22 @@ export const usarAlmacenDM = create<EstadoDM>((set, get) => ({
             (oExistente) => !nuevosObjetosFormateados.some((oNuevo) => oNuevo.nombre.toLowerCase().trim() === oExistente.nombre.toLowerCase().trim())
           );
 
-        const combinados = [...objetosFiltrados, ...nuevosObjetosFormateados];
-
-        set({ objetosHomebrew: combinados });
-        guardarDatoFragmentado("dm_objetos_homebrew", combinados);
+        objetosFinales = [...objetosFiltrados, ...nuevosObjetosFormateados];
         modificado = true;
+      }
+
+      if (modificado) {
+        set({
+          baseDatosMonstruos: monstruosFinales,
+          baseDatosHechizos: hechizosFinales,
+          objetosHomebrew: objetosFinales
+        });
+        persistirEstadoCompleto({
+          ...state,
+          baseDatosMonstruos: monstruosFinales,
+          baseDatosHechizos: hechizosFinales,
+          objetosHomebrew: objetosFinales
+        } as EstadoDM);
       }
 
       return modificado;
@@ -1394,16 +1524,21 @@ export const usarAlmacenDM = create<EstadoDM>((set, get) => ({
   },
 
   restablecerDatosDeFabrica: () => {
-    eliminarDatoFragmentado("dm_monstruos_homebrew");
-    eliminarDatoFragmentado("dm_hechizos_homebrew");
-    eliminarDatoFragmentado("dm_objetos_homebrew");
-    eliminarDatoFragmentado("dm_pendientes");
-    eliminarDatoFragmentado("dm_encuentros_guardados");
-    eliminarDatoFragmentado("dm_cola_iniciativa");
-    localStorage.removeItem("dm_notas");
-    localStorage.removeItem("dm_ronda_actual");
-    localStorage.removeItem("dm_indice_turno_activo");
-    
+    // Limpiar el blob oficial de TaleSpire
+    limpiarBlobGlobal().then(() => {
+      console.log("[TS Storage] Blob oficial limpiado durante restablecimiento de fábrica.");
+    }).catch((e) => {
+      console.error("[TS Storage] Error al limpiar el blob oficial:", e);
+    });
+
+    // Limpiar LocalStorage como precaución adicional
+    try {
+      localStorage.removeItem("dm_notas");
+      localStorage.removeItem("dm_ronda_actual");
+      localStorage.removeItem("dm_indice_turno_activo");
+      localStorage.removeItem("dm_metodo_vida_monstruo");
+    } catch (_) { /* ignorar errores de LS */ }
+
     set({
       baseDatosMonstruos: MONSTRUOS_INICIALES,
       baseDatosHechizos: HECHIZOS_INICIALES,

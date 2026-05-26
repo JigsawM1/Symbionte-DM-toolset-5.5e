@@ -34,8 +34,17 @@ export const BarraControl: React.FC = () => {
   } = usarAlmacenDM();
 
   const [nombreJugadorRapido, setNombreJugadorRapido] = useState("");
-  const [condicionSeleccionada, setCondicionSeleccionada] = useState(CONDICIONES_2024[0].nombre);
+  const [busquedaCondicion, setBusquedaCondicion] = useState("");
+  const [mostrarSugerenciasCond, setMostrarSugerenciasCond] = useState(false);
+  const [destinatarioId, setDestinatarioId] = useState("");
   const [mostrarMenuCargar, setMostrarMenuCargar] = useState(false);
+  const [dropdownDestinatarioAbierto, setDropdownDestinatarioAbierto] = useState(false);
+
+  const condicionesFiltradas = CONDICIONES_2024.filter(
+    (c) =>
+      c.nombre.toLowerCase().includes(busquedaCondicion.toLowerCase()) ||
+      c.nombre.split(" (")[0].toLowerCase().includes(busquedaCondicion.toLowerCase())
+  );
   const [nombreEncuentroNuevo, setNombreEncuentroNuevo] = useState("");
   const [mostrarMenuGuardar, setMostrarMenuGuardar] = useState(false);
   const [errorGuardar, setErrorGuardar] = useState("");
@@ -132,11 +141,14 @@ export const BarraControl: React.FC = () => {
     }
   };
 
-  // Añadir condición a la criatura activa de la iniciativa
-  const manejarAñadirCondicionASeleccionada = () => {
-    if (colaIniciativa.length === 0) return;
-    const criaturaActiva = colaIniciativa[indiceTurnoActivo];
-    agregarCondicionACriatura(criaturaActiva.id, condicionSeleccionada);
+  // Añadir condición a una criatura de la iniciativa
+  const manejarAñadirCondicionASeleccionada = (nombreCond: string) => {
+    if (colaIniciativa.length === 0 || !nombreCond) return;
+    const idDestino = destinatarioId || (colaIniciativa[indiceTurnoActivo] && colaIniciativa[indiceTurnoActivo].id);
+    if (!idDestino) return;
+    agregarCondicionACriatura(idDestino, nombreCond);
+    setBusquedaCondicion("");
+    setMostrarSugerenciasCond(false);
   };
 
   const ejecutarGuardarEncuentro = () => {
@@ -435,21 +447,233 @@ export const BarraControl: React.FC = () => {
         </button>
       </div>
 
-      {/* 5. Selector de Condiciones */}
-      <div style={estilos.bloqueCondiciones}>
-        <select
-          value={condicionSeleccionada}
-          onChange={(e) => setCondicionSeleccionada(e.target.value)}
-          style={estilos.selectCondicion}
+      {/* 5. Selector de Condiciones con Barra de Búsqueda Inteligente */}
+      <div style={{ ...estilos.bloqueCondiciones, position: "relative", width: "270px", overflow: "visible" }}>
+        {/* Selector de Destinatario */}
+        <div style={{ position: "relative", display: "inline-block", alignSelf: "center" }}>
+          <button
+            onClick={() => setDropdownDestinatarioAbierto(!dropdownDestinatarioAbierto)}
+            style={{
+              height: "22px",
+              backgroundColor: "var(--color-fondo-panel)",
+              border: "1px solid var(--color-borde-brutal)",
+              color: "var(--color-texto-principal)",
+              fontSize: "10px",
+              borderRadius: "3px",
+              padding: "0 6px",
+              cursor: "pointer",
+              width: "90px",
+              outline: "none",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              fontFamily: "var(--fuente-codigo)",
+              textAlign: "left",
+              textTransform: "uppercase"
+            }}
+            title="Destinatario de la condición"
+          >
+            <span>
+              {destinatarioId
+                ? `👤 ${
+                    colaIniciativa.find((c) => c.id === destinatarioId)?.nombre.substring(0, 8) || "Alguien"
+                  }...`
+                : "👤 [ACTIVO]"}
+            </span>
+            <span style={{ fontSize: "8px", marginLeft: "2px" }}>▼</span>
+          </button>
+
+          {dropdownDestinatarioAbierto && (
+            <div
+              style={{
+                position: "absolute",
+                top: "24px",
+                left: 0,
+                backgroundColor: "hsl(222, 25%, 5%)",
+                border: "1px solid var(--color-borde-cian)",
+                borderRadius: "4px",
+                zIndex: 9999,
+                maxHeight: "160px",
+                overflowY: "auto",
+                width: "140px",
+                boxShadow: "0 6px 16px rgba(0, 0, 0, 0.6)"
+              }}
+            >
+              <div
+                onClick={() => {
+                  setDestinatarioId("");
+                  setDropdownDestinatarioAbierto(false);
+                }}
+                style={{
+                  padding: "5px 8px",
+                  fontSize: "9.5px",
+                  fontWeight: "bold",
+                  color: "var(--color-borde-cian)",
+                  cursor: "pointer",
+                  borderBottom: "1px dashed rgba(255,255,255,0.08)",
+                  fontFamily: "var(--fuente-codigo)",
+                  textTransform: "uppercase",
+                  backgroundColor: "transparent"
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = "rgba(0, 245, 212, 0.08)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = "transparent";
+                }}
+              >
+                👤 [ACTIVO] (TURNO CORRIENTE)
+              </div>
+              {colaIniciativa.map((cri) => (
+                <div
+                  key={cri.id}
+                  onClick={() => {
+                    setDestinatarioId(cri.id);
+                    setDropdownDestinatarioAbierto(false);
+                  }}
+                  style={{
+                    padding: "5px 8px",
+                    fontSize: "9.5px",
+                    fontWeight: "bold",
+                    color: cri.esMonstruo ? "#d8b4fe" : "var(--color-texto-principal)",
+                    cursor: "pointer",
+                    borderBottom: "1px solid rgba(255,255,255,0.02)",
+                    fontFamily: "var(--fuente-codigo)",
+                    textTransform: "uppercase",
+                    backgroundColor: "transparent",
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center"
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = cri.esMonstruo ? "rgba(157, 78, 221, 0.08)" : "rgba(0, 245, 212, 0.08)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = "transparent";
+                  }}
+                >
+                  <span>{cri.nombre.length > 12 ? cri.nombre.substring(0, 12) + "..." : cri.nombre}</span>
+                  <span style={{ fontSize: "8px", opacity: 0.6 }}>
+                    {cri.esMonstruo ? "MON" : "PJ"}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Input de Búsqueda de Condición */}
+        <div style={{ position: "relative", flexGrow: 1, display: "flex", flexDirection: "column", alignSelf: "center" }}>
+          <input
+            type="text"
+            value={busquedaCondicion}
+            onChange={(e) => {
+              setBusquedaCondicion(e.target.value);
+              setMostrarSugerenciasCond(true);
+            }}
+            onFocus={() => setMostrarSugerenciasCond(true)}
+            onBlur={() => setTimeout(() => setMostrarSugerenciasCond(false), 250)}
+            placeholder="🔍 CONDICIÓN..."
+            style={{
+              height: "22px",
+              backgroundColor: "var(--color-fondo-profundo)",
+              border: "1px solid var(--color-borde-brutal)",
+              color: "var(--color-texto-principal)",
+              fontSize: "10px",
+              borderRadius: "3px",
+              padding: "0 6px",
+              width: "100%",
+              outline: "none",
+              textTransform: "uppercase"
+            }}
+          />
+
+          {/* Lista de Sugerencias Flotantes */}
+          {mostrarSugerenciasCond && busquedaCondicion.trim() !== "" && (
+            <div
+              style={{
+                position: "absolute",
+                top: "26px",
+                left: 0,
+                right: 0,
+                backgroundColor: "hsl(222, 25%, 5%)",
+                border: "1px solid var(--color-borde-cian)",
+                borderRadius: "4px",
+                zIndex: 9999,
+                maxHeight: "160px",
+                overflowY: "auto",
+                boxShadow: "0 6px 16px rgba(0, 0, 0, 0.6)"
+              }}
+            >
+              {condicionesFiltradas.length > 0 ? (
+                condicionesFiltradas.map((cond) => {
+                  const nombreLimpio = cond.nombre.split(" (")[0];
+                  return (
+                    <div
+                      key={cond.nombre}
+                      onMouseDown={(e) => {
+                        e.preventDefault(); // Evita que pierda el focus antes del click
+                      }}
+                      onClick={() => {
+                        manejarAñadirCondicionASeleccionada(nombreLimpio);
+                      }}
+                      style={{
+                        padding: "5px 8px",
+                        fontSize: "9.5px",
+                        fontWeight: "bold",
+                        fontFamily: "monospace",
+                        color: "hsl(172, 100%, 85%)",
+                        cursor: "pointer",
+                        borderBottom: "1px solid rgba(255,255,255,0.03)",
+                        textTransform: "uppercase",
+                        backgroundColor: "transparent"
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = "rgba(0, 245, 212, 0.08)";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = "transparent";
+                      }}
+                    >
+                      {nombreLimpio}
+                    </div>
+                  );
+                })
+              ) : (
+                <div style={{ padding: "5px 8px", fontSize: "9.5px", color: "var(--color-texto-secundario)", fontStyle: "italic" }}>
+                  Sin coincidencias.
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Botón Añadir */}
+        <button
+          onClick={() => {
+            if (busquedaCondicion.trim() !== "") {
+              const primeraCoincidencia = condicionesFiltradas[0];
+              const condElegida = primeraCoincidencia ? primeraCoincidencia.nombre.split(" (")[0] : busquedaCondicion;
+              manejarAñadirCondicionASeleccionada(condElegida);
+            }
+          }}
+          style={{
+            border: "1px solid var(--color-borde-cian)",
+            background: "rgba(0, 245, 212, 0.1)",
+            color: "var(--color-borde-cian)",
+            fontSize: "11px",
+            fontWeight: "bold",
+            padding: "0 8px",
+            cursor: "pointer",
+            height: "22px",
+            borderRadius: "3px",
+            display: "flex",
+            alignItems: "center",
+            alignSelf: "center"
+          }}
+          title="Añadir condición"
         >
-          {CONDICIONES_2024.map((c) => (
-            <option key={c.nombre} value={c.nombre}>
-              {c.nombre.replace(" (Grappled)", "").replace(" (Blinded)", "").replace(" (Charmed)", "").replace(" (Deafened)", "").replace(" (Incapacitated)", "").replace(" (Invisible)", "").replace(" (Paralyzed)", "").replace(" (Prone)", "").replace(" (Restrained)", "").replace(" (Poisoned)", "").replace(" (Stunned)", "").replace(" (Unconscious)", "")}
-            </option>
-          ))}
-        </select>
-        <button onClick={manejarAñadirCondicionASeleccionada} style={estilos.botonCondicion}>
-          Añadir Condición
+          +
         </button>
       </div>
 

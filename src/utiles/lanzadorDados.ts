@@ -669,7 +669,10 @@ export function renderizarTextoConDadosInteractivos(
 ): React.ReactNode[] {
   if (!texto) return [];
 
-  const regexDadosYModificadores = /(\b(?:[1-9]\d*)?d(?:4|6|8|10|12|20|100)(?:\s*[+-]\s*\d+)?\b)|([+-]\s*\d+)\b/gi;
+  // Solo detectamos expresiones de dados reales (ej. 1d6, 2d8+3, d20-1)
+  // Eliminamos el grupo de modificadores sueltos ([+-]\d+) que causaba falsos positivos
+  // en texto como "CD 12", "2/día", "+5 al golpear cuando se compara con" etc.
+  const regexDadosYModificadores = /\b(?:[1-9]\d*)?d(?:4|6|8|10|12|20|100)(?:\s*[+-]\s*\d+)?\b/gi;
 
   const partes: React.ReactNode[] = [];
   let ultimoIndice = 0;
@@ -678,7 +681,6 @@ export function renderizarTextoConDadosInteractivos(
   while ((match = regexDadosYModificadores.exec(texto)) !== null) {
     const indiceCoincidencia = match.index;
     const textoCoincidente = match[0];
-    const esDado = match[1] !== undefined;
 
     if (indiceCoincidencia > ultimoIndice) {
       partes.push(texto.substring(ultimoIndice, indiceCoincidencia));
@@ -696,40 +698,33 @@ export function renderizarTextoConDadosInteractivos(
             const matchNombreLimpio = etiquetaTirada.match(/^([^(]+)/);
             const nombreLimpio = matchNombreLimpio ? matchNombreLimpio[1].trim() : etiquetaTirada;
             
-            if (esDado) {
-              const esD20 = textoCoincidente.toLowerCase().includes("d20");
-              if (esD20) {
-                formulaConEtiqueta = `!${nombreLimpio}:${textoCoincidente}`;
-              } else {
-                const tipoDañoEncontrado = detectarTipoDaño(texto, "Daño");
-                const etiquetaDaño = tipoDañoEncontrado === "Daño" ? "Daño" : `Daño ${tipoDañoEncontrado}`;
-                formulaConEtiqueta = `!${etiquetaDaño}:${textoCoincidente}`;
-              }
+            // Ahora todo lo que coincide es un dado real (ej. 1d6, 2d8+3, d20)
+            const esD20 = textoCoincidente.toLowerCase().includes("d20");
+            if (esD20) {
+              formulaConEtiqueta = `!${nombreLimpio}:${textoCoincidente}`;
             } else {
-              const formulaDados = `1d20${textoCoincidente.replace(/\s/g, "")}`;
-              formulaConEtiqueta = `!Ataque ${nombreLimpio}:${formulaDados}`;
+              const tipoDañoEncontrado = detectarTipoDaño(texto, "Daño");
+              const etiquetaDaño = tipoDañoEncontrado === "Daño" ? "Daño" : `Daño ${tipoDañoEncontrado}`;
+              formulaConEtiqueta = `!${etiquetaDaño}:${textoCoincidente}`;
             }
             
             lanzarDadosTaleSpire(formulaConEtiqueta, etiquetaTirada);
           },
           style: {
-            color: esDado ? "#ff7675" : "#ffcc00",
+            color: "#ff7675",
             cursor: "pointer",
             textDecoration: "underline dashed",
             fontWeight: "bold",
             padding: "0 4px",
-            backgroundColor: esDado ? "rgba(255, 118, 117, 0.1)" : "rgba(255, 204, 0, 0.1)",
+            backgroundColor: "rgba(255, 118, 117, 0.1)",
             borderRadius: "4px",
-            transition: "all 0.15s ease",
             display: "inline-block",
             fontFamily: "monospace"
           },
-          title: esDado 
-            ? `Hacer tirada de d20 para ${textoCoincidente} en TaleSpire` 
-            : `Tirar ataque d20${textoCoincidente.replace(/\s/g, "")} en TaleSpire`,
+          title: `🎲 Tirar ${textoCoincidente} en TaleSpire`,
           className: "dado-interactivo-inline"
         },
-        esDado ? `🎲 ${textoCoincidente}` : `⚔️ ${textoCoincidente}`
+        `🎲 ${textoCoincidente}`
       )
     );
 

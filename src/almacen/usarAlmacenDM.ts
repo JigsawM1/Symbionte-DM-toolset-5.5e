@@ -38,6 +38,12 @@ export function aplanarValor(val: any): string {
 }
 
 // Tipos fuertemente tipados en español
+export interface EfectoActivo {
+  id: string;
+  nombre: string;
+  duracion: number; // en rondas
+}
+
 export interface CriaturaIniciativa {
   id: string; // ID único (de TaleSpire o local)
   nombre: string;
@@ -46,6 +52,7 @@ export interface CriaturaIniciativa {
   vidaActual: number;
   ca: number;
   condiciones: string[];
+  efectos?: EfectoActivo[];
   bonificadorIniciativa: number;
   esMonstruo: boolean;
   velocidad: string;
@@ -267,6 +274,8 @@ export interface EstadoDM {
   modificarVidaCriaturaIniciativa: (id: string, nuevaVida: number) => void;
   agregarCondicionACriatura: (id: string, condicion: string) => void;
   quitarCondicionDeCriatura: (id: string, condicion: string) => void;
+  agregarEfectoACriatura: (idCriatura: string, nombreEfecto: string, duracion: number) => void;
+  quitarEfectoDeCriatura: (idCriatura: string, idEfecto: string) => void;
   asociarPlantillaACriatura: (idCriatura: string, idPlantilla: string) => void;
   actualizarVidaTemporal: (idCriatura: string, vidaTemp: number) => void;
   limpiarIniciativa: () => void;
@@ -386,6 +395,17 @@ export const usarAlmacenDM = create<EstadoDM>((set, get) => ({
       nuevaRonda = state.rondaActual + 1;
     }
 
+    // Decrementar duración de los efectos activos para la criatura que recibe el turno activo
+    const nuevaCola = state.colaIniciativa.map((c, idx) => {
+      if (idx === nuevoIndice && c.efectos && c.efectos.length > 0) {
+        const efectosActualizados = c.efectos
+          .map((ef) => ({ ...ef, duracion: ef.duracion - 1 }))
+          .filter((ef) => ef.duracion > 0);
+        return { ...c, efectos: efectosActualizados };
+      }
+      return c;
+    });
+
     // Invocar asíncronamente a la API nativa de TaleSpire para avanzar el turno físico
     const ts = (window as any).TS;
     if (ts && ts.initiative && typeof ts.initiative.nextTurn === "function") {
@@ -394,9 +414,9 @@ export const usarAlmacenDM = create<EstadoDM>((set, get) => ({
       });
     }
 
-    const nuevoEstado = { ...state, indiceTurnoActivo: nuevoIndice, rondaActual: nuevaRonda };
+    const nuevoEstado = { ...state, colaIniciativa: nuevaCola, indiceTurnoActivo: nuevoIndice, rondaActual: nuevaRonda };
     persistirEstadoCompleto(nuevoEstado as EstadoDM);
-    return { indiceTurnoActivo: nuevoIndice, rondaActual: nuevaRonda };
+    return { colaIniciativa: nuevaCola, indiceTurnoActivo: nuevoIndice, rondaActual: nuevaRonda };
   }),
 
   retrocederTurno: () => set((state) => {
@@ -649,6 +669,7 @@ export const usarAlmacenDM = create<EstadoDM>((set, get) => ({
       vidaActual: vidaMax,
       ca,
       condiciones: [],
+      efectos: [],
       bonificadorIniciativa: bonifInic,
       esMonstruo,
       velocidad,
@@ -684,8 +705,31 @@ export const usarAlmacenDM = create<EstadoDM>((set, get) => ({
 
   agregarCondicionACriatura: (id, condicion) => set((state) => {
     const nuevaCola = state.colaIniciativa.map((c) => {
-      if (c.id === id && !c.condiciones.includes(condicion)) {
-        return { ...c, condiciones: [...c.condiciones, condicion] };
+      if (c.id === id) {
+        // Lógica especial para Cansancio 2024 acumulativo
+        if (condicion.toLowerCase().includes("cansado") || condicion.toLowerCase().includes("exhausted")) {
+          const condicionCansadoExistente = c.condiciones.find(
+            (cond) => cond.toLowerCase().startsWith("cansado")
+          );
+
+          if (condicionCansadoExistente) {
+            const matches = condicionCansadoExistente.match(/\d+/);
+            const nivelActual = matches ? parseInt(matches[0], 10) : 1;
+            const nuevoNivel = Math.min(6, nivelActual + 1);
+            
+            const condicionesFiltradas = c.condiciones.filter(
+              (cond) => !cond.toLowerCase().startsWith("cansado")
+            );
+            return { ...c, condiciones: [...condicionesFiltradas, `Cansado (Niv. ${nuevoNivel})`] };
+          } else {
+            return { ...c, condiciones: [...c.condiciones, "Cansado (Niv. 1)"] };
+          }
+        }
+
+        // Agregar condición estándar si no existe
+        if (!c.condiciones.includes(condicion)) {
+          return { ...c, condiciones: [...c.condiciones, condicion] };
+        }
       }
       return c;
     });
@@ -697,6 +741,35 @@ export const usarAlmacenDM = create<EstadoDM>((set, get) => ({
     const nuevaCola = state.colaIniciativa.map((c) => {
       if (c.id === id) {
         return { ...c, condiciones: c.condiciones.filter((cond) => cond !== condicion) };
+      }
+      return c;
+    });
+    persistirEstadoCompleto({ ...state, colaIniciativa: nuevaCola } as EstadoDM);
+    return { colaIniciativa: nuevaCola };
+  }),
+
+  agregarEfectoACriatura: (idCriatura, nombreEfecto, duracion) => set((state) => {
+    const nuevaCola = state.colaIniciativa.map((c) => {
+      if (c.id === idCriatura) {
+        const nuevosEfectos = c.efectos ? [...c.efectos] : [];
+        const nuevoEfecto = {
+          id: `${nombreEfecto.toLowerCase().replace(/[^a-z0-9]/g, "_")}_${Date.now()}_${Math.random().toString(36).substring(2, 5)}`,
+          nombre: nombreEfecto,
+          duracion: duracion
+        };
+        return { ...c, efectos: [...nuevosEfectos, nuevoEfecto] };
+      }
+      return c;
+    });
+    persistirEstadoCompleto({ ...state, colaIniciativa: nuevaCola } as EstadoDM);
+    return { colaIniciativa: nuevaCola };
+  }),
+
+  quitarEfectoDeCriatura: (idCriatura, idEfecto) => set((state) => {
+    const nuevaCola = state.colaIniciativa.map((c) => {
+      if (c.id === idCriatura) {
+        const nuevosEfectos = c.efectos ? c.efectos.filter((e) => e.id !== idEfecto) : [];
+        return { ...c, efectos: nuevosEfectos };
       }
       return c;
     });

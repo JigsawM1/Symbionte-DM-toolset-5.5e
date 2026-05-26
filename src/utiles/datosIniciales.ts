@@ -363,7 +363,7 @@ export const CONDICIONES_2024: CondicionDnd[] = [
     ]
   },
   {
-    nombre: "RESTRINGIDO (Restrained)",
+    nombre: "APRESADO (Restrained)",
     descripcion: "Reglas D&D 2024 (5.5e)",
     efectos: [
       "La velocidad de la criatura pasa a ser 0 y no puede beneficiarse de ningún bonificador a su velocidad.",
@@ -398,6 +398,36 @@ export const CONDICIONES_2024: CondicionDnd[] = [
       "Las tiradas de ataque contra la criatura tienen ventaja.",
       "Cualquier ataque que golpee a la criatura es un impacto crítico si el atacante está a 5 pies o menos de ella."
     ]
+  },
+  {
+    nombre: "ASUSTADO (Frightened)",
+    descripcion: "Reglas D&D 2024 (5.5e)",
+    efectos: [
+      "La criatura asustada tiene desventaja en las pruebas de característica y tiradas de ataque mientras la fuente de su miedo esté dentro de su línea de visión.",
+      "La criatura no puede acercarse voluntariamente a la fuente de su miedo."
+    ]
+  },
+  {
+    nombre: "PETRIFICADO (Petrified)",
+    descripcion: "Reglas D&D 2024 (5.5e)",
+    efectos: [
+      "La criatura petrificada es transformada, junto con todos sus objetos no mágicos que viste o lleva, en una sustancia sólida e inerte (generalmente piedra). Su peso se multiplica por diez y cesa de envejecer.",
+      "La criatura está Incapacitada, no puede moverse ni hablar, y no es consciente de su entorno.",
+      "Las tiradas de ataque contra la criatura tienen ventaja.",
+      "La criatura falla automáticamente las tiradas de salvación de Fuerza y Destreza.",
+      "La criatura tiene resistencia a todos los tipos de daño.",
+      "La criatura es inmune al veneno y a la condición de Envenenado (si ya estaba envenenada, el efecto se suspende pero no se neutraliza)."
+    ]
+  },
+  {
+    nombre: "CANSADO (Exhausted)",
+    descripcion: "Reglas D&D 2024 (5.5e)",
+    efectos: [
+      "Esta condición es acumulativa y tiene 6 niveles. Si alcanzas el nivel 6, mueres de inmediato.",
+      "Tiradas d20: Restas 2 veces tu nivel de cansancio a todas tus tiradas de d20 (ataques, salvaciones y pruebas).",
+      "Velocidad: Tu velocidad se reduce en 5 pies por cada nivel de cansancio.",
+      "Un descanso largo reduce tu nivel de cansancio en 1, siempre que consumas comida y bebida."
+    ]
   }
 ];
 
@@ -421,4 +451,28 @@ export const CRITICOS_ALEATORIOS: string[] = [
   "¡Rotura de Guardia! El ataque destruye momentáneamente la postura defensiva del enemigo. Hasta el inicio de tu siguiente turno, todos los ataques de tus aliados contra esta criatura tienen Ventaja.",
   "¡Ataque Inspirador! Tu golpe crítico es tan espectacular que tú o uno de tus aliados que pueda verte obtiene un Dado de Inspiración (Ventaja para usar en cualquier tirada dentro de los próximos 10 minutos).",
   "¡Golpe Incapacitante! Golpeas un tendón o articulación clave. La velocidad de la criatura se reduce a la mitad y no puede realizar reacciones durante 1 ronda completa."
+];
+
+export interface EfectoPredefinido {
+  nombre: string;
+  descripcion: string;
+  duracionEstandar: number; // en rondas
+}
+
+export const EFECTOS_PREDEFINIDOS: EfectoPredefinido[] = [
+  { nombre: "Bendecir (Bless)", descripcion: "Añade 1d4 a las tiradas de ataque y salvaciones.", duracionEstandar: 10 },
+  { nombre: "Furia (Rage)", descripcion: "Ventaja en tiradas de Fuerza, daño extra en ataques de Fuerza, resistencia a daño contundente, perforante y cortante.", duracionEstandar: 10 },
+  { nombre: "Auxilio (Aid)", descripcion: "Aumenta los puntos de golpe máximos y actuales en 5 por nivel de espacio.", duracionEstandar: 800 },
+  { nombre: "Concentración", descripcion: "La criatura se está concentrando en mantener un conjuro activo.", duracionEstandar: 100 },
+  { nombre: "Escudo (Shield)", descripcion: "+5 a la CA y no sufre daño de Proyectil Mágico.", duracionEstandar: 1 },
+  { nombre: "Heroísmo (Heroism)", descripcion: "Inmune al miedo y recibe puntos de golpe temporales al inicio de cada turno.", duracionEstandar: 10 },
+  { nombre: "Inspirado (Inspiración Bárdica)", descripcion: "Puede añadir un dado de inspiración (d6/d8/d10/d12) a una tirada de d20.", duracionEstandar: 100 },
+  { nombre: "Maldición (Bestow Curse)", descripcion: "El objetivo sufre desventaja en pruebas y salvaciones de una característica, o daño extra.", duracionEstandar: 10 },
+  { nombre: "Maleficio (Hex)", descripcion: "Daño extra al golpear al objetivo y desventaja en pruebas de una característica.", duracionEstandar: 100 },
+  { nombre: "Perdición (Bane)", descripcion: "Resta 1d4 a las tiradas de ataque y salvaciones del objetivo.", duracionEstandar: 10 },
+  { nombre: "Prisa (Haste)", descripcion: "CA +2, ventaja en salvaciones de Destreza, acción adicional en cada turno. Al terminar, no puede moverse ni actuar durante 1 turno.", duracionEstandar: 10 },
+  { nombre: "Recargando (Recharging)", descripcion: "La habilidad especial o aliento está recargando para poder usarse nuevamente.", duracionEstandar: 1 },
+  { nombre: "Ralentizar (Slow)", descripcion: "Velocidad a la mitad, CA -2, -2 a salvaciones de Destreza, no puede realizar reacciones.", duracionEstandar: 10 },
+  { nombre: "Santuario (Sanctuary)", descripcion: "Cualquier criatura que intente atacar al objetivo debe superar una salvación de Sabiduría.", duracionEstandar: 10 },
+  { nombre: "Hechicería Innata", descripcion: "Regla 2024: Como acción adicional, obtienes ventaja en tiradas de ataque de conjuro y tu CD de salvación aumenta en 1.", duracionEstandar: 10 }
 ];

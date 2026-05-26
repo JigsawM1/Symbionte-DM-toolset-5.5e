@@ -583,6 +583,213 @@ En el compendio y modal de Hechizos, bajo "Mecánicas de Combate Integradas", el
 
 ---
 
+## [2026-05-26] UI/UX: Rediseño Profundo del CreadorHomebrew (Formularios)
+
+**Síntoma reportado:**
+El usuario reportó que los formularios de crear/editar monstruo, hechizo y objeto eran visualmente muy toscos: mucha información apilada, inputs pequeños, labels difíciles de leer, sin jerarquía visual clara y sin retroalimentación de interacción (focus, hover).
+
+**Estrategia de mejora adoptada:**
+
+La mejora fue puramente de estilos (sin cambiar la lógica): se modificó el objeto `estilos` y se añadió un bloque `<style>` inyectado en el JSX.
+
+**Cambios clave implementados:**
+
+1. **Inputs/selects/textareas**: 
+   - Padding aumentado (`5px 8px` → `7px 10px`)
+   - Font-size incrementado (`12.5px` → `13px`)
+   - Bordes con radius (`0px` → `5px`)  
+   - Borde más notorio (`1px` → `1.5px solid`)
+   - Transiciones suaves de `border-color` y `box-shadow` para el focus
+
+2. **Labels de formulario**:
+   - Font-size mayor (`11px` → `12px`)
+   - `font-weight: 600` (antes sin peso definido)
+   - Labels mini de atributos ahora en color cian (`--color-borde-cian`) en vez de apagado
+
+3. **Botones de navegación y pestañas**:
+   - `borderRadius: "6px"` (antes cuadrados/`2px`)
+   - Peso de fuente explícito `600`
+   - `letterSpacing` para mejor legibilidad
+   - `transition: "all 0.15s ease"` y `boxShadow` en activo
+
+4. **Paneles y contenedores**:
+   - `padding` aumentado de `8px` → `14px` en `panelFormulario`
+   - `borderRadius: "8px"` en paneles principales
+   - `gap` de secciones aumentado de `6px` → `10-12px`
+
+5. **Cards de items dinámicos (rasgos, acciones)**:
+   - `borderRadius: "4-7px"` 
+   - `padding` mejorado  
+   - `transition` para hover suave
+   - `border: "1px solid transparent"` para efecto hover con clase CSS
+
+6. **Botón de enviar**:
+   - Cambió de `backgroundColor` plano a gradiente: `linear-gradient(135deg, var(--color-primario-brillante) 0%, var(--color-primario) 100%)`
+   - `boxShadow: "0 3px 12px rgba(0,245,212,0.2)"` para efecto glow cian
+
+7. **CSS inyectado** (`<style>` en el JSX):
+   - Clases `.hb-btn-nav:hover`, `.hb-btn-tab:hover`, `.hb-btn-add:hover`, `.hb-item-card:hover`
+   - Placeholders con estilo italic y reducción de opacidad
+   - Efectos de focus con `box-shadow: 0 0 0 2px rgba(0, 245, 212, 0.18)`
+
+**Técnica de verificación:**
+`pnpm run build` (TypeScript + Vite) → ✅ compiló sin errores en 5.79s
+
+**Lección aprendida:**
+> 🎨 **UX en Formularios Complejos**: Los formularios de múltiples campos se pueden mejorar drásticamente SIN cambiar la lógica funcional:
+> 1. Aumentar padding de inputs `>= 7px` vertical
+> 2. `border-radius` mínimo de `4-5px` en inputs, `6px` en botones
+> 3. Labels con `font-weight: 600` y tamaño >= `12px` 
+> 4. Añadir CSS de focus/hover en un `<style>` inyectado en el JSX del componente (técnica efectiva cuando el objeto de estilos inline no soporta pseudoelementos)
+> 5. `box-shadow` en botones primarios activos da percepción de profundidad premium
+> 6. Gradientes en botones CTA vs color plano = diferencia visual enorme
+
+---
+
+## [2026-05-26] Mecánicas: Condiciones D&D 2024 (Cansancio, Asustado, Petrificado) y Sistema de Efectos Activos
+
+**Síntoma / Requerimiento:**
+Añadir soporte oficial de D&D 2024 (5.5e) para Cansancio interactivo, cambiar Restringido a Apresado, añadir Asustado y Petrificado, y crear un sistema dinámico de "Efectos Activos" temporales (Bendecir, Furia, Auxilio, etc.) que se decrementen ronda a ronda al avanzar turnos y desaparezcan al expirar.
+
+**Estrategia e Implementación:**
+
+1. **Condiciones D&D 2024**:
+   - Se renombró `"RESTRINGIDO (Restrained)"` a `"APRESADO (Restrained)"` en `datosIniciales.ts` para equipararse a la nomenclatura 2024.
+   - Se agregaron `"ASUSTADO (Frightened)"`, `"PETRIFICADO (Petrified)"` y `"CANSADO (Exhausted)"` a `CONDICIONES_2024`.
+   - **Cansancio Dinámico**: Al añadir "Cansado", un flujo interactivo ágil (`window.prompt`) solicita el nivel del 1 al 6. Se guarda como `"Cansado (Niv. X)"`. En el renderizado de chips, un parsing por Regex extrae el nivel numérico y calcula dinámicamente el tooltip 5.5e oficial: `-2 * nivel` a tiradas de d20 y `-5 * nivel` pies de velocidad (Nivel 6 denota muerte instantánea).
+
+2. **Sistema de Efectos Activos**:
+   - Se definió la interfaz `EfectoActivo` en `usarAlmacenDM.ts` y la propiedad `efectos?: EfectoActivo[]` en `CriaturaIniciativa`.
+   - Se crearon las acciones `agregarEfectoACriatura` y `quitarEfectoDeCriatura` con IDs únicos generados por timestamp + random hashes.
+   - Se integraron 15 efectos clásicos en `EFECTOS_PREDEFINIDOS` (Bendecir, Furia, Auxilio, Concentración, Escudo, Heroísmo, Inspiración, Maldición, Maleficio, Perdición, Prisa, Recargando, Ralentizar, Santuario, Hechicería Innata) con sus duraciones oficiales en rondas.
+   - **Decremento Determinista de Turnos**: La reducción del temporizador se inyectó de forma defensiva estrictamente dentro de la acción `avanzarTurno` de Zustand. Esto garantiza que la duración se reduzca exactamente una vez por turno de combate y evita cualquier tipo de duplicado o carrera de hilos asíncrona debido al tráfico de red repetitivo de TaleSpire.
+
+3. **Condición "Desangrándose" Automática**:
+   - En lugar de persistir un estado redundante susceptible a bugs de desincronización, se evalúa en tiempo real en la UI si `vidaActual > 0 && vidaActual < vidaMaxima / 2`. Si es verdadero, renderiza automáticamente el chip `"Desangrándose (<50%)"` en color rojo sangre premium y con tooltip descriptivo. Desaparece en tiempo real al curar a la criatura por encima del 50%.
+
+4. **UI/UX Morado Premium**:
+   - Los Efectos Activos usan un color violeta translúcido (`rgba(157, 78, 221, 0.08)`) y borde/texto violeta para destacar visualmente de inmediato y no mezclarse con las condiciones de estado nocivas del combate.
+
+**Técnica de verificación:**
+`pnpm run build` (Vite + TypeScript) → Compilado exitosamente en 4.04s.
+
+**Lección aprendida:**
+> 🛡️ **Estados Derivados en Tiempo Real vs Estados Persistidos**: Al diseñar estados tácticos complejos (como el efecto de Desangrándose al estar por debajo del 50% de HP), **evita a toda costa almacenar banderas de estado redundantes**. Calcularlo en tiempo real en el renderizado elimina por completo el riesgo de desincronización si el DM cambia el HP manualmente, simplifica el código y mejora la velocidad de ejecución.
+> 🛡️ **Decremento en APIs Híbridas**: Al interactuar con motores de juego en red (como TaleSpire), el decremento de condiciones no debe ligarse a flujos de sincronización pasivos o reactivos, sino estrictamente a llamadas controladas de avance de turno explícito (`avanzarTurno`) para evitar que rebotes de red reduzcan los contadores de forma accidental y desmedida.
+
+5. **Integración del Diccionario de Efectos en el Compendio del DM (`TablasDM.tsx`)**:
+   - Se añadió una subnavegación interactiva de pestañas en el panel de condiciones del DM (`📜 Condiciones (5.5e)` vs `✨ Efectos Activos`).
+   - Al seleccionar la pestaña de Efectos Activos, se despliega el menú lateral con `EFECTOS_PREDEFINIDOS` (morado premium) y, al hacer clic, se muestra su duración estándar y reglas de aplicación detalladas en el panel derecho de forma congruente con el diccionario de condiciones.
+
+> 🛡️ **Modularidad y Consistencia de Vistas**: Cuando agregues nuevas colecciones semánticamente hermanas a una existente (como Efectos Activos al lado de Condiciones de Estado), no satures el flujo con pestañas de primer nivel si puedes integrar una **subnavegación interna y contextual**. Esto mantiene la alta densidad de información sin saturar el espacio horizontal de navegación principal en simbiotes embebidos.
+
+---
+
+## [2026-05-26] UI/UX Premium: Auditoría de Efectos Activos, Desangrándose y Cansancio Dinámico 2024 en GestorIniciativa y TablasDM
+
+**Acciones Realizadas:**
+
+1. **Cansancio Dinámico D&D 2024 (Exhaustion)**:
+   - Se implementó un renderizado adaptativo del chip de cansancio según su gravedad (Nivel 1 a 6) en `GestorIniciativa.tsx`.
+   - Nivel 1-2 (Ámbar suave HSL: `hsla(38, 95%, 10%, 0.6)`): Representa fatiga ligera.
+   - Nivel 3-4 (Naranja intenso HSL: `hsla(24, 95%, 10%, 0.65)`): Representa penalizadores notables.
+   - Nivel 5 (Rojo severo HSL: `hsla(4, 90%, 11%, 0.75)`): Representa peligro inminente.
+   - Nivel 6 (Muerte instantánea: `linear-gradient` negro y rojo sangre profundo con icono `💀` y borde brillante neón).
+   - Esto permite que el DM identifique visualmente de inmediato la gravedad del combatiente sin tener que leer tooltips.
+
+2. **Diseño Amatista Premium para Efectos Activos**:
+   - Rediseño de los chips de efectos activos temporales (`✨`) usando una paleta Amatista translúcida de alta gama:
+     - Fondo: `hsla(271, 76%, 12%, 0.55)`
+     - Borde: `hsla(271, 76%, 50%, 0.45)`
+     - Texto: `hsla(271, 85%, 85%, 1)`
+   - Se replicó esta paleta en las Tablas del DM (`TablasDM.tsx`) para la pestaña activa de Efectos Activos y botones asociados.
+
+3. **Estado Desangrándose Escarlata Profundo**:
+   - Refinamiento visual del chip dinámico de `🩸 Desangrándose` (vida < 50%) para usar una paleta escarlata translúcida distintiva y de alto contraste:
+     - Fondo: `hsla(355, 85%, 10%, 0.65)`
+     - Borde: `hsla(355, 85%, 45%, 0.8)`
+     - Texto: `hsla(355, 95%, 80%, 1)`
+     - BoxShadow interna de 3px para darle profundidad visual táctica.
+
+4. **Selectores Tácticos Temáticos**:
+   - Se rediseñaron los selectores de condiciones y efectos activos en las filas de combatientes. En lugar del gris genérico de navegador, ahora usan:
+     - Fondo: `hsl(222, 25%, 5%)` (Pizarra ultra profundo)
+     - Bordes coloreados translúcidos temáticos (`hsla(172, 90%, 40%, 0.35)` en cian para condiciones y `hsla(271, 76%, 45%, 0.35)` en violeta para efectos).
+     - Color de texto a juego con los acentos (`#00f5d4` y `#d8b4fe`) y tipografía `bold` en `9.5px`.
+
+5. **Subnavegación Premium Ultra-Compacta**:
+   - En las Tablas del DM (`TablasDM.tsx`), la barra de subnavegación general se estilizó para asemejarse a interfaces de consolas oscuras premium:
+     - Fondo: `hsl(222, 18%, 8%)`
+     - Bordes de separación súper finos y botones de pestañas (`subBotonNav`) con esquinas redondeadas elegantes y HSL active Glow (`hsla(172, 90%, 10%, 0.8)`, borde cian y glow interno).
+     - Idéntico trato para los botones internos (`miniBotonTab`), garantizando consistencia.
+
+**REGLA CRÍTICA CUMPLIDA:**
+- Se eliminó CUALQUIER tipo de animación CSS, transición de tiempo (`transition: all 0.15s ease`, etc.) o JS. Todos los cambios de hover y estado activo ocurren de forma síncrona e instantánea (0ms) en la interfaz del Simbionte, asegurando que TaleSpire no sufra de lag al renderizar la app en su CEF WebView2.
+
+**Lección aprendida:**
+> ⚡ **Visualización por Gravedad (Color Coding)**: En interfaces compactas con alta densidad de datos (como el Combat Tracker lateral de un simbionte), codificar la gravedad de una condición por color en lugar de usar un color uniforme para todas las condiciones acelera la toma de decisiones del DM.
+> 💎 **Aislamiento de Tonos Temáticos**: El uso de cian/morado translúcido es una combinación sublime en temas oscuros, pero debe reservarse el cian para estados/condiciones y el morado amatista exclusivamente para buffs y efectos mágicos positivos para evitar saturar la vista.
+
+---
+
+## [2026-05-26] UI/UX: Refinamiento Ultra-Premium de Chips HSL, Subnavegación y Densidad de Información
+
+**Síntoma:**
+Los chips de condiciones y efectos, así como los selectores asociados y subnavegaciones en `GestorIniciativa.tsx` y `TablasDM.tsx`, requerían un salto de calidad estética y consistencia visual táctica, maximizando la densidad de información en pantallas de panel lateral estrecho sin introducir transiciones lentas.
+
+**Causas raíz:**
+1. Los selectores y botones de pestañas tenían estilos que no sacaban provecho completo de las variables HSL premium del tema oscuro esmerilado de alta gama.
+2. Los textos mezclaban mayúsculas y minúsculas de forma inconsistente, reduciendo el aire de consola brutalista militar refinada del simbionte.
+3. Las viñetas de listas de efectos en las Tablas del DM utilizaban elementos HTML clásicos toscos en lugar de micro-símbolos e iconos balanceados integrados de alto contraste.
+
+**Soluciones aplicadas:**
+1. **Homogeneización Brutalista y Compacta de Chips**:
+   - Ajustar el tamaño a `fontSize: "9px"` y `fontWeight: "800"` con tipografía mono (`JetBrains Mono`) y `textTransform: "uppercase"` de forma unificada en `GestorIniciativa.tsx`. Esto eleva drásticamente la densidad visual y legibilidad en áreas estrechas.
+   - Refinamiento cromático de las paletas HSL translúcidas con bordes ultranítidos de 1px:
+     - *Condiciones estándar* (Cian HSL 172): `hsla(172, 90%, 7%, 0.75)` / borde `hsla(172, 90%, 45%, 0.7)` / texto `hsl(172, 100%, 85%)`.
+     - *Efectos activos mágicos* (Morado HSL 265): `hsla(265, 80%, 12%, 0.75)` / borde `hsla(265, 80%, 60%, 0.7)` / texto `hsl(265, 95%, 90%)`.
+     - *Cansancio 2024* (Niveles del 1 al 6): Escalamiento cromático táctico (Amarillo, Naranja, Rojo y gradiente oscuro de la muerte para el Nvl 6 con resplandor difuminado).
+     - *Desangrándose* (Rojo Sangre HSL 0): `hsla(0, 80%, 9%, 0.75)` / borde `hsla(0, 80%, 50%, 0.7)` / texto `hsl(0, 100%, 85%)` con sombra interior sutil.
+2. **Selectores Temáticos Refinados**:
+   - Rediseño de los menús desplegables directos a una altura de `18px`, fuente de `9px` en mayúsculas, y bordes específicos HSL de color translúcido (cian para condiciones y violeta para efectos).
+3. **Subnavegación y Listas del DM**:
+   - En `TablasDM.tsx`, se transformó el menú superior y pestañas internas a rellenos compactos, fuentes `Outfit/Inter` y bordes de realce plano de 1px (evitando sombras dinámicas de render lento).
+   - Reemplazo de viñetas genéricas en el panel de detalle por un indicador premium en formato de símbolo `›` de color cian, logrando una estética moderna y estilizada.
+
+**Lección aprendida:**
+> 📐 **Diseño de Micro-componentes en Interfaces HUD**: Al diseñar interfaces estilo "Head-Up Display" (HUD) o paneles embebidos angostos para juegos como TaleSpire, la uniformidad de texto en mayúsculas (`uppercase`), el uso de tipografía monospaciada en etiquetas pequeñas y el espaciado interno ultra-compacto (`padding: 1px 5px`) otorgan un aspecto "militar tecnológico" sumamente premium que resiste el desbordamiento de texto de manera impecable.
+
+## [2026-05-26] UI/UX Táctico: Barra de Búsqueda y Selector de Destinatario en Barra Superior
+
+**Acción Realizada:**
+- Se rediseñó el selector de condiciones estático de la barra superior (`BarraControl.tsx`).
+- Se transformó en una **Barra de Búsqueda de Condiciones inteligente y de alta velocidad** con desplegable de autocompletado flotante (`position: "relative"`, `zIndex: 9999`) que filtra en caliente según `CONDICIONES_2024` de forma instantánea.
+- Se inyectó un **Selector de Destinatario** al lado de la búsqueda que lista en tiempo real los miembros del combat tracker (`colaIniciativa`), permitiendo al DM direccionar de forma quirúrgica la condición a cualquier criatura de la iniciativa (o dejar el valor predeterminado `👤 [Activo]`).
+
+**Lección aprendida:**
+> 🛡️ **Centralización de Comandos Rápidos**: Proporcionar búsquedas inteligentes de autocompletado con selectores de destino en cabeceras de control evita que el DM tenga que desplazarse verticalmente o interactuar individualmente con filas de combatientes. La combinación de selectores con autocompletados flotantes y cierres al perder foco (`onBlur` con `setTimeout` de 250ms) ofrece una velocidad táctica inigualable durante combates de rol masivos.
+
+---
+
+## [2026-05-26] CRÍTICO: Menús desplegables nativos (`<select>`) rotos en TaleSpire CEF (Solución por Divs Flotantes React)
+
+**Síntoma:**
+Al abrir el selector de condiciones o efectos de cualquier criatura en TaleSpire, el menú se despliega como una lista tosca de color blanco puro, borde gris oscuro y fuente negra, con el hover azul de Windows. Esto rompe por completo el estilo visual premium de consola cyberpunk HSL del Simbionte y da un aspecto no profesional.
+
+**Causa raíz:**
+TaleSpire ejecuta el Simbionte dentro de un Chromium Embedded Framework (CEF) personalizado en Windows. Los elementos HTML `<select>` nativos y sus `<option>` correspondientes son delegados por Chromium al motor de renderizado de ventanas nativo del sistema operativo (Win32). Debido a esto, los estilos CSS aplicados al `<select>` (como color de fondo, color de fuente o bordes en las opciones) son completamente ignorados al desplegarse el menú, mostrando siempre el menú blanco por defecto del sistema operativo Windows.
+
+**Solución aplicada:**
+1. **Erradicar `<select>` de Combate:** Sustituir de forma definitiva y absoluta todos los selectores nativos HTML `<select>` del combat tracker (`GestorIniciativa.tsx`) y de la barra superior de control (`BarraControl.tsx`) por **botones interactivos React**.
+2. **Emulación por Divs Absolutos:** Crear menús desplegables basados en `div` con posicionamiento absoluto (`position: "absolute"`):
+   - Al hacer clic en el botón React (`+ CONDICIÓN ▾`, `+ EFECTO ▾` o `👤 [ACTIVO] ▾`), se activa un estado de React (`dropdownAbierto` o `dropdownDestinatarioAbierto`).
+   - Si el estado es verdadero, se renderiza un contenedor `div` absoluto con un fondo pizarra oscuro (`hsl(222, 25%, 5%)`), borde neón temático de 1px (`var(--color-borde-cian)` o morado amatista `rgba(157, 78, 221, 0.6)`) y sombra difusa premium (`boxShadow`).
+   - Las opciones internas son simples `div` interactivos con estilos HSL a juego, hovers inmediatos y `onClick` que ejecutan la lógica de inyección de Zustand y cierran el dropdown síncronamente.
+3. **Cero Latencia en TaleSpire:** Todos los hovers, aperturas de dropdowns y selecciones se ejecutan a **0ms** (sin transiciones de tiempo CSS) para evitar cualquier tipo de lag en el WebView del juego.
+
+**Lección aprendida:**
+> ⚠️ **CEF ignora los estilos en `<select>` nativos:** En WebViews de videojuegos o Chromium Embedded Framework (CEF) de escritorio, **nunca uses elementos `<select>` nativos** para elementos visibles en combate o paneles principales. Los navegadores embebidos delegan el menú desplegable al sistema operativo, ignorando tus estilos CSS y mostrando listas blancas sumamente toscas.
+> Emula siempre los menús desplegables utilizando componentes de React con estados (`useState`) y **contenedores `div` flotantes de posicionamiento absoluto (`position: "absolute"`)**. Esto te garantiza el 100% de control sobre los colores HSL, bordes neón, sombras y tipografías premium, manteniendo la inmersión visual en su máximo nivel.
 
 
 

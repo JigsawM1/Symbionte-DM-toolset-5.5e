@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { usarAlmacenDM, CriaturaIniciativa } from "../almacen/usarAlmacenDM";
-import { MonstruoBase, CONDICIONES_2024 } from "../utiles/datosIniciales";
+import { MonstruoBase, CONDICIONES_2024, EFECTOS_PREDEFINIDOS } from "../utiles/datosIniciales";
 import { lanzarDadosTaleSpire, renderizarTextoConDadosInteractivos, sanitizarEtiqueta } from "../utiles/lanzadorDados";
 import { ModalDetalleHechizo } from "./ModalDetalleHechizo";
 import {
@@ -29,6 +29,8 @@ export const GestorIniciativa: React.FC = () => {
     asociarPlantillaACriatura,
     quitarCondicionDeCriatura,
     agregarCondicionACriatura,
+    agregarEfectoACriatura,
+    quitarEfectoDeCriatura,
     importarIniciativaTaleSpire
   } = usarAlmacenDM();
 
@@ -38,6 +40,7 @@ export const GestorIniciativa: React.FC = () => {
   const [mostrarListaVinculos, setMostrarListaVinculos] = useState(false);
   const [valoresInputHP, setValoresInputHP] = useState<Record<string, string>>({});
   const [hechizoFlotanteDetalle, setHechizoFlotanteDetalle] = useState<any | null>(null);
+  const [dropdownAbierto, setDropdownAbierto] = useState<{ idCriatura: string, tipo: "condicion" | "efecto" } | null>(null);
 
   // Helper recursivo ultra-avanzado para renderizar texto mezclando dados 3D y enlaces clickables a hechizos del compendio
   const renderizarTextoConHechizosYDados = (texto: string, etiquetaTirada: string, alHacerClicHechizo: (h: any) => void) => {
@@ -444,79 +447,369 @@ export const GestorIniciativa: React.FC = () => {
 
                       {/* Chips de Condiciones */}
                       <div style={{ ...estilos.filaCondicionesChips, flexWrap: "wrap", alignItems: "center", gap: "4px" }}>
-                        {criatura.condiciones.length > 0 ? (
-                          criatura.condiciones.map((cond) => {
-                            const esAlerta = ["muerto", "inconsciente", "aturdido", "paralizado"].includes(cond.toLowerCase());
-                            const condObj = CONDICIONES_2024.find(
-                              (c) => c.nombre.toLowerCase().includes(cond.toLowerCase()) || cond.toLowerCase().includes(c.nombre.split(" ")[0].toLowerCase())
-                            );
-                            const tooltipTexto = condObj 
-                              ? `${condObj.nombre}\n\n${condObj.efectos.map(e => `• ${e}`).join("\n")}`
-                              : cond;
-                            return (
+                        {criatura.condiciones.length > 0 || (criatura.vidaActual > 0 && criatura.vidaActual < (criatura.vidaMaxima / 2)) ? (
+                          <>
+                            {criatura.condiciones.map((cond) => {
+                              const esAlerta = ["muerto", "inconsciente", "aturdido", "paralizado"].includes(cond.toLowerCase());
+                              const condObj = CONDICIONES_2024.find(
+                                (c) => c.nombre.toLowerCase().includes(cond.toLowerCase()) || cond.toLowerCase().includes(c.nombre.split(" ")[0].toLowerCase())
+                              );
+                              
+                              let tooltipTexto = condObj 
+                                ? `${condObj.nombre}\n\n${condObj.efectos.map(e => `• ${e}`).join("\n")}`
+                                : cond;
+
+                              // Detalle dinámico para Cansancio 2024 (Exhaustion)
+                              const esCansado = cond.toLowerCase().startsWith("cansado") || cond.toLowerCase().includes("cansancio");
+                              let cansadoEstilos: React.CSSProperties = {};
+                              let textoMostrar = cond;
+
+                              if (esCansado) {
+                                const matches = cond.match(/\d+/);
+                                const nivel = matches ? parseInt(matches[0], 10) : 1;
+                                textoMostrar = `💤 CANSADO NVL ${nivel}`;
+                                if (nivel <= 2) {
+                                  cansadoEstilos = {
+                                    backgroundColor: "hsla(45, 80%, 8%, 0.75)",
+                                    borderColor: "hsla(45, 80%, 50%, 0.7)",
+                                    color: "hsl(45, 100%, 85%)"
+                                  };
+                                } else if (nivel <= 4) {
+                                  cansadoEstilos = {
+                                    backgroundColor: "hsla(25, 80%, 9%, 0.75)",
+                                    borderColor: "hsla(25, 80%, 52%, 0.7)",
+                                    color: "hsl(25, 100%, 85%)"
+                                  };
+                                } else if (nivel === 5) {
+                                  cansadoEstilos = {
+                                    backgroundColor: "hsla(5, 80%, 10%, 0.78)",
+                                    borderColor: "hsla(5, 80%, 55%, 0.75)",
+                                    color: "hsl(5, 100%, 85%)"
+                                  };
+                                } else {
+                                  // Nivel 6 o superior: Muerte
+                                  textoMostrar = `💀 MUERTE (CANSADO 6)`;
+                                  cansadoEstilos = {
+                                    background: "linear-gradient(135deg, hsl(0, 100%, 4%) 0%, hsl(340, 100%, 12%) 100%)",
+                                    borderColor: "hsl(340, 100%, 55%)",
+                                    color: "#ffffff",
+                                    fontWeight: "800",
+                                    boxShadow: "0 0 5px rgba(255, 0, 85, 0.4)"
+                                  };
+                                }
+                                tooltipTexto = `CANSADO (Nivel ${nivel}) - Reglas 5.5e (2024)\n\n• Tiradas de d20: Restas -${nivel * 2} a todas tus tiradas de d20 (ataques, salvaciones, pruebas de habilidad).\n• Velocidad: Tu velocidad se reduce en -${nivel * 5} pies.\n${nivel === 6 ? "• MUERTE: ¡El nivel 6 causa la muerte instantánea!" : ""}`;
+                              }
+
+                              const estilosBase = esCansado
+                                ? cansadoEstilos
+                                : esAlerta
+                                  ? {
+                                      backgroundColor: "hsla(355, 80%, 10%, 0.75)",
+                                      borderColor: "hsla(355, 80%, 55%, 0.7)",
+                                      color: "hsl(355, 100%, 85%)"
+                                    }
+                                  : {
+                                      backgroundColor: "hsla(172, 90%, 7%, 0.75)",
+                                      borderColor: "hsla(172, 90%, 45%, 0.7)",
+                                      color: "hsl(172, 100%, 85%)"
+                                    };
+
+                              return (
+                                <div 
+                                  key={cond} 
+                                  className="chip-condicion-chico-tooltip"
+                                  style={{
+                                    ...estilos.chipCondicionChico,
+                                    ...estilosBase,
+                                    display: "inline-flex",
+                                    alignItems: "center"
+                                  }}
+                                >
+                                  <span>{textoMostrar}</span>
+                                  <span className="tooltip-contenido">{tooltipTexto}</span>
+                                  <button
+                                    onClick={() => quitarCondicionDeCriatura(criatura.id, cond)}
+                                    style={{
+                                      ...estilos.botonQuitarCondicionChico,
+                                      color: estilosBase.color || "var(--color-borde-cian)",
+                                      marginLeft: "3px"
+                                    }}
+                                  >
+                                    <X size={8} />
+                                  </button>
+                                </div>
+                              );
+                            })}
+
+                            {/* Condición Automática: Desangrándose (<50%) */}
+                            {criatura.vidaActual > 0 && criatura.vidaActual < (criatura.vidaMaxima / 2) && (
                               <div 
-                                key={cond} 
                                 className="chip-condicion-chico-tooltip"
                                 style={{
                                   ...estilos.chipCondicionChico,
-                                  backgroundColor: esAlerta ? "rgba(242, 92, 84, 0.08)" : "rgba(0, 245, 212, 0.05)",
-                                  borderColor: esAlerta ? "var(--color-peligro)" : "var(--color-borde-cian)",
-                                  color: esAlerta ? "var(--color-peligro)" : "var(--color-borde-cian)",
+                                  backgroundColor: "hsla(0, 80%, 9%, 0.75)",
+                                  borderColor: "hsla(0, 80%, 50%, 0.7)",
+                                  color: "hsl(0, 100%, 85%)",
                                   display: "inline-flex",
-                                  alignItems: "center"
+                                  alignItems: "center",
+                                  boxShadow: "inset 0 0 3px rgba(255, 0, 0, 0.2)"
                                 }}
                               >
-                                <span>{cond}</span>
-                                <span className="tooltip-contenido">{tooltipTexto}</span>
-                                <button
-                                  onClick={() => quitarCondicionDeCriatura(criatura.id, cond)}
-                                  style={{
-                                    ...estilos.botonQuitarCondicionChico,
-                                    color: esAlerta ? "var(--color-peligro)" : "var(--color-borde-cian)"
-                                  }}
-                                >
-                                  <X size={9} />
-                                </button>
+                                <span>🩸 DESANGRÁNDOSE</span>
+                                <span className="tooltip-contenido">
+                                  {`DESANGRÁNDOSE (<50% de Vida)\n\n• Esta criatura está por debajo del 50% de sus puntos de golpe máximos.\n• Se aplica automáticamente y desaparecerá cuando recupere la salud por encima de la mitad.`}
+                                </span>
                               </div>
-                            );
-                          })
+                            )}
+                          </>
                         ) : (
                           <span style={estilos.textoCondicionesVacias}>Sin condiciones activas</span>
                         )}
 
                         {/* Mini Selector Directo para añadir condiciones a ESTA criatura específica */}
-                        <select
-                          value=""
-                          onChange={(e) => {
-                            const condVal = e.target.value;
-                            if (condVal) {
-                              agregarCondicionACriatura(criatura.id, condVal);
-                            }
-                          }}
-                          style={{
-                            height: "18px",
-                            backgroundColor: "var(--color-fondo-profundo)",
-                            border: "1px solid var(--color-borde-brutal)",
-                            color: "var(--color-texto-secundario)",
-                            fontSize: "9px",
-                            borderRadius: "2px",
-                            padding: "0 4px",
-                            cursor: "pointer",
-                            width: "auto",
-                            maxWidth: "90px"
-                          }}
-                          title="Agregar condición a esta criatura"
-                        >
-                          <option value="">+ Condición</option>
-                          {CONDICIONES_2024.map((c) => {
-                            const nombreLimpio = c.nombre.split(" (")[0];
-                            return (
-                              <option key={c.nombre} value={nombreLimpio}>
-                                {nombreLimpio}
-                              </option>
+                        <div style={{ position: "relative", display: "inline-block" }}>
+                          <button
+                            onClick={() => setDropdownAbierto(
+                              dropdownAbierto && dropdownAbierto.idCriatura === criatura.id && dropdownAbierto.tipo === "condicion"
+                                ? null
+                                : { idCriatura: criatura.id, tipo: "condicion" }
+                            )}
+                            style={{
+                              height: "18px",
+                              backgroundColor: "hsl(222, 25%, 5%)",
+                              border: "1px solid hsla(172, 90%, 45%, 0.4)",
+                              color: "var(--color-borde-cian)",
+                              fontSize: "9px",
+                              fontWeight: "800",
+                              borderRadius: "3px",
+                              padding: "0 6px",
+                              cursor: "pointer",
+                              display: "inline-flex",
+                              alignItems: "center",
+                              gap: "2px",
+                              fontFamily: "var(--fuente-codigo)",
+                              textTransform: "uppercase",
+                              outline: "none"
+                            }}
+                            title="Agregar condición a esta criatura"
+                          >
+                            + CONDICIÓN ▾
+                          </button>
+
+                          {/* Dropdown flotante de condiciones */}
+                          {dropdownAbierto && dropdownAbierto.idCriatura === criatura.id && dropdownAbierto.tipo === "condicion" && (
+                            <div
+                              style={{
+                                position: "absolute",
+                                top: "20px",
+                                left: 0,
+                                backgroundColor: "hsl(222, 25%, 5%)",
+                                border: "1px solid var(--color-borde-cian)",
+                                borderRadius: "4px",
+                                zIndex: 9999,
+                                maxHeight: "180px",
+                                overflowY: "auto",
+                                minWidth: "120px",
+                                boxShadow: "0 6px 16px rgba(0, 0, 0, 0.6)"
+                              }}
+                            >
+                              {CONDICIONES_2024.map((c) => {
+                                const nombreLimpio = c.nombre.split(" (")[0];
+                                return (
+                                  <div
+                                    key={c.nombre}
+                                    onClick={() => {
+                                      agregarCondicionACriatura(criatura.id, nombreLimpio);
+                                      setDropdownAbierto(null);
+                                    }}
+                                    style={{
+                                      padding: "5px 8px",
+                                      fontSize: "9px",
+                                      fontWeight: "bold",
+                                      color: "hsl(172, 100%, 85%)",
+                                      cursor: "pointer",
+                                      borderBottom: "1px solid rgba(255,255,255,0.02)",
+                                      textTransform: "uppercase",
+                                      fontFamily: "var(--fuente-codigo)",
+                                      backgroundColor: "transparent"
+                                    }}
+                                    onMouseEnter={(e) => {
+                                      e.currentTarget.style.backgroundColor = "rgba(0, 245, 212, 0.08)";
+                                    }}
+                                    onMouseLeave={(e) => {
+                                      e.currentTarget.style.backgroundColor = "transparent";
+                                    }}
+                                  >
+                                    {nombreLimpio}
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Chips de Efectos Activos y Selector de Efectos */}
+                      <div style={{ ...estilos.filaCondicionesChips, flexWrap: "wrap", alignItems: "center", gap: "4px", marginTop: "4px" }}>
+                        {criatura.efectos && criatura.efectos.length > 0 ? (
+                          criatura.efectos.map((ef) => {
+                            const efPredef = EFECTOS_PREDEFINIDOS.find(
+                              (ep) => ep.nombre.toLowerCase().includes(ef.nombre.toLowerCase()) || ef.nombre.toLowerCase().includes(ep.nombre.toLowerCase().split(" ")[0])
                             );
-                          })}
-                        </select>
+                            const tooltipEfecto = efPredef
+                              ? `${efPredef.nombre} (${ef.duracion} r. restantes)\n\n${efPredef.descripcion}`
+                              : `${ef.nombre} (${ef.duracion} r. restantes)\n\nEfecto activo temporal aplicado a esta criatura.`;
+                            return (
+                              <div
+                                key={ef.id}
+                                className="chip-condicion-chico-tooltip"
+                                style={{
+                                  ...estilos.chipCondicionChico,
+                                  backgroundColor: "hsla(265, 80%, 12%, 0.75)",
+                                  borderColor: "hsla(265, 80%, 60%, 0.7)",
+                                  color: "hsl(265, 95%, 90%)",
+                                  display: "inline-flex",
+                                  alignItems: "center"
+                                }}
+                              >
+                                <span>✨ {ef.nombre.toUpperCase()} ({ef.duracion}R)</span>
+                                <span className="tooltip-contenido">{tooltipEfecto}</span>
+                                <button
+                                  onClick={() => quitarEfectoDeCriatura(criatura.id, ef.id)}
+                                  style={{
+                                    ...estilos.botonQuitarCondicionChico,
+                                    color: "hsl(265, 95%, 90%)",
+                                    marginLeft: "3px"
+                                  }}
+                                  title="Quitar efecto"
+                                >
+                                  <X size={8} />
+                                </button>
+                              </div>
+                            );
+                          })
+                        ) : null}
+
+                        {/* Mini Selector Directo para añadir efectos a ESTA criatura específica */}
+                        <div style={{ position: "relative", display: "inline-block" }}>
+                          <button
+                            onClick={() => setDropdownAbierto(
+                              dropdownAbierto && dropdownAbierto.idCriatura === criatura.id && dropdownAbierto.tipo === "efecto"
+                                ? null
+                                : { idCriatura: criatura.id, tipo: "efecto" }
+                            )}
+                            style={{
+                              height: "18px",
+                              backgroundColor: "hsl(222, 25%, 5%)",
+                              border: "1px solid hsla(271, 76%, 50%, 0.4)",
+                              color: "#d8b4fe",
+                              fontSize: "9px",
+                              fontWeight: "800",
+                              borderRadius: "3px",
+                              padding: "0 6px",
+                              cursor: "pointer",
+                              display: "inline-flex",
+                              alignItems: "center",
+                              gap: "2px",
+                              fontFamily: "var(--fuente-codigo)",
+                              textTransform: "uppercase",
+                              outline: "none"
+                            }}
+                            title="Agregar efecto activo a esta criatura"
+                          >
+                            + EFECTO ▾
+                          </button>
+
+                          {/* Dropdown flotante de efectos */}
+                          {dropdownAbierto && dropdownAbierto.idCriatura === criatura.id && dropdownAbierto.tipo === "efecto" && (
+                            <div
+                              style={{
+                                position: "absolute",
+                                top: "20px",
+                                left: 0,
+                                backgroundColor: "hsl(222, 25%, 5%)",
+                                border: "1px solid rgba(157, 78, 221, 0.6)",
+                                borderRadius: "4px",
+                                zIndex: 9999,
+                                maxHeight: "180px",
+                                overflowY: "auto",
+                                minWidth: "140px",
+                                boxShadow: "0 6px 16px rgba(0, 0, 0, 0.6)"
+                              }}
+                            >
+                              {EFECTOS_PREDEFINIDOS.map((ep) => {
+                                const nombreLimpio = ep.nombre.split(" (")[0];
+                                return (
+                                  <div
+                                    key={ep.nombre}
+                                    onClick={() => {
+                                      agregarEfectoACriatura(criatura.id, nombreLimpio, ep.duracionEstandar);
+                                      setDropdownAbierto(null);
+                                    }}
+                                    style={{
+                                      padding: "5px 8px",
+                                      fontSize: "9px",
+                                      fontWeight: "bold",
+                                      color: "#d8b4fe",
+                                      cursor: "pointer",
+                                      borderBottom: "1px solid rgba(255,255,255,0.02)",
+                                      textTransform: "uppercase",
+                                      fontFamily: "var(--fuente-codigo)",
+                                      backgroundColor: "transparent"
+                                    }}
+                                    onMouseEnter={(e) => {
+                                      e.currentTarget.style.backgroundColor = "rgba(157, 78, 221, 0.08)";
+                                    }}
+                                    onMouseLeave={(e) => {
+                                      e.currentTarget.style.backgroundColor = "transparent";
+                                    }}
+                                  >
+                                    {nombreLimpio} ({ep.duracionEstandar}r)
+                                  </div>
+                                );
+                              })}
+                              
+                              {/* Opción Personalizada */}
+                              <div
+                                onClick={() => {
+                                  setDropdownAbierto(null);
+                                  // Retardar un poco para que no colisione con el focus del clic
+                                  setTimeout(() => {
+                                    const nombre = window.prompt("Nombre del efecto personalizado:");
+                                    if (!nombre) return;
+                                    const durStr = window.prompt("Duración en rondas:", "10");
+                                    if (!durStr) return;
+                                    const dur = parseInt(durStr, 10);
+                                    if (!isNaN(dur) && dur > 0) {
+                                      agregarEfectoACriatura(criatura.id, nombre, dur);
+                                    } else {
+                                      alert("La duración debe ser un número entero mayor a 0.");
+                                    }
+                                  }, 100);
+                                }}
+                                style={{
+                                  padding: "5px 8px",
+                                  fontSize: "9px",
+                                  fontWeight: "bold",
+                                  color: "var(--color-borde-cian)",
+                                  cursor: "pointer",
+                                  borderTop: "1px dashed rgba(255,255,255,0.1)",
+                                  textTransform: "uppercase",
+                                  fontFamily: "var(--fuente-codigo)",
+                                  backgroundColor: "transparent"
+                                }}
+                                onMouseEnter={(e) => {
+                                  e.currentTarget.style.backgroundColor = "rgba(0, 245, 212, 0.08)";
+                                }}
+                                onMouseLeave={(e) => {
+                                  e.currentTarget.style.backgroundColor = "transparent";
+                                }}
+                              >
+                                + Personalizado...
+                              </div>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </div>
 
@@ -1074,15 +1367,17 @@ const estilos: { [key: string]: React.CSSProperties } = {
     fontStyle: "italic"
   },
   chipCondicionChico: {
-    display: "flex",
+    display: "inline-flex",
     flexDirection: "row",
     alignItems: "center",
     gap: "3px",
-    fontSize: "11px",
-    fontWeight: "700",
-    padding: "2px 4px",
-    borderRadius: "2px",
-    textTransform: "capitalize",
+    fontSize: "9px",
+    fontWeight: "800",
+    padding: "1px 5px",
+    borderRadius: "3px",
+    textTransform: "uppercase",
+    fontFamily: "var(--fuente-codigo)",
+    letterSpacing: "0.02em",
     border: "1px solid"
   },
   botonQuitarCondicionChico: {

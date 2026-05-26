@@ -49,6 +49,15 @@ const CARACTERISTICAS_CLAVES = [
   { clave: "sabiduria", etiqueta: "SAB" },
   { clave: "carisma", etiqueta: "CAR" }
 ];
+
+/** Calcula el número de filas necesarias para mostrar todo el texto sin scroll */
+const calcFilas = (valor: string, minFilas = 2, maxFilas = 20): number => {
+  if (!valor) return minFilas;
+  const lineas = valor.split("\n").length;
+  const porLongitud = Math.ceil(valor.length / 80);
+  return Math.min(maxFilas, Math.max(minFilas, lineas, porLongitud));
+};
+
 export const CreadorHomebrew: React.FC = () => {
   const {
     baseDatosMonstruos,
@@ -836,6 +845,41 @@ export const CreadorHomebrew: React.FC = () => {
 
   return (
     <div style={estilos.contenedorHomebrew}>
+      <style>{`
+        .hb-input:focus, .hb-select:focus, .hb-textarea:focus {
+          border-color: var(--color-borde-cian) !important;
+          box-shadow: 0 0 0 2px rgba(0, 245, 212, 0.18) !important;
+          outline: none !important;
+        }
+        .hb-input::placeholder, .hb-textarea::placeholder {
+          color: var(--color-texto-apagado);
+          opacity: 0.6;
+          font-style: italic;
+        }
+        .hb-btn-nav:hover {
+          background-color: rgba(0, 245, 212, 0.12) !important;
+          border-color: var(--color-borde-cian) !important;
+          color: var(--color-borde-cian) !important;
+        }
+        .hb-btn-tab:hover {
+          background-color: rgba(0, 245, 212, 0.08) !important;
+          color: var(--color-borde-cian) !important;
+        }
+        .hb-btn-add:hover {
+          filter: brightness(1.15);
+          transform: translateY(-1px);
+          box-shadow: 0 3px 10px rgba(0, 245, 212, 0.25);
+        }
+        .hb-btn-add { transition: all 0.15s ease; }
+        .hb-btn-sub:hover { background-color: rgba(0, 245, 212, 0.15) !important; border-color: var(--color-borde-cian) !important; }
+        .hb-check-pill input[type='checkbox'] { display: none; }
+        .hb-check-pill input[type='checkbox']:checked + span {
+          background-color: rgba(0, 245, 212, 0.25) !important;
+          border-color: var(--color-borde-cian) !important;
+          color: var(--color-borde-cian) !important;
+        }
+        .hb-item-card:hover { border-color: rgba(0,245,212,0.4) !important; background-color: rgba(0,245,212,0.04) !important; }
+      `}</style>
       {/* Selector de sub-sección homebrew principal */}
       <div style={estilos.subNavegacion}>
         <button
@@ -1143,7 +1187,7 @@ export const CreadorHomebrew: React.FC = () => {
                       </div>
                     ))}
                   </div>
-                  <div style={{ fontSize: "11px", color: "var(--color-texto-apagado)", marginTop: "3px", fontStyle: "italic" }}>
+                  <div style={estilos.notaAyuda}>
                     * Deja en blanco las salvaciones si la criatura no tiene un bonificador especial de salvación.
                   </div>
                 </div>
@@ -1167,7 +1211,7 @@ export const CreadorHomebrew: React.FC = () => {
                       </div>
                     ))}
                   </div>
-                  <div style={{ fontSize: "11px", color: "var(--color-texto-apagado)", marginTop: "4px", fontStyle: "italic" }}>
+                  <div style={estilos.notaAyuda}>
                     * Rellena únicamente las habilidades en las que el monstruo esté entrenado o posea bonificadores.
                   </div>
                 </div>
@@ -1399,7 +1443,7 @@ export const CreadorHomebrew: React.FC = () => {
                         onChange={(e) => setTRasgoDesc(e.target.value)}
                         placeholder="Descripción detallada del rasgo..."
                         style={estilos.textareaDinamico}
-                        rows={2}
+                        rows={calcFilas(tRasgoDesc, 3)}
                       />
                       <div style={{ display: "flex", gap: "8px" }}>
                         <button 
@@ -1502,7 +1546,7 @@ export const CreadorHomebrew: React.FC = () => {
                         onChange={(e) => setTAccionDesc(e.target.value)}
                         placeholder="Descripción detallada de la acción o ataque..."
                         style={estilos.textareaDinamico}
-                        rows={2}
+                        rows={calcFilas(tAccionDesc, 3)}
                       />
                       <div style={{ display: "flex", gap: "8px" }}>
                         <button 
@@ -1592,7 +1636,7 @@ export const CreadorHomebrew: React.FC = () => {
                         onChange={(e) => setTReaccionDesc(e.target.value)}
                         placeholder="Descripción detallada de la reacción..."
                         style={estilos.textareaDinamico}
-                        rows={2}
+                        rows={calcFilas(tReaccionDesc, 3)}
                       />
                       <div style={{ display: "flex", gap: "8px" }}>
                         <button 
@@ -1679,7 +1723,7 @@ export const CreadorHomebrew: React.FC = () => {
                         onChange={(e) => setTLegendariaDesc(e.target.value)}
                         placeholder="Descripción detallada de la acción legendaria..."
                         style={estilos.textareaDinamico}
-                        rows={2}
+                        rows={calcFilas(tLegendariaDesc, 3)}
                       />
                       <div style={{ display: "flex", gap: "8px" }}>
                         <button 
@@ -1864,32 +1908,35 @@ export const CreadorHomebrew: React.FC = () => {
               </div>
 
               {/* COMPONENTES DE CONJURO */}
-              <div style={{ ...estilos.bloqueDinamicoForm, padding: "10px", margin: "10px 0" }}>
+              <div style={estilos.bloqueDinamicoForm}>
                 <div style={estilos.tituloBloqueDinamico}>COMPONENTES DE CONJURO</div>
-                <div style={{ display: "flex", gap: "20px", flexWrap: "wrap", marginBottom: "8px" }}>
-                  <label style={{ display: "flex", alignItems: "center", gap: "6px", cursor: "pointer", fontSize: "12px" }}>
+                <div style={estilos.filaCheckboxes}>
+                  <label style={estilos.labelCheckbox}>
                     <input
                       type="checkbox"
                       checked={hCompVerbal}
                       onChange={(e) => setHCompVerbal(e.target.checked)}
+                      style={estilos.checkMini}
                     />
-                    Verbal (V)
+                    <span>Verbal (V)</span>
                   </label>
-                  <label style={{ display: "flex", alignItems: "center", gap: "6px", cursor: "pointer", fontSize: "12px" }}>
+                  <label style={estilos.labelCheckbox}>
                     <input
                       type="checkbox"
                       checked={hCompSomatico}
                       onChange={(e) => setHCompSomatico(e.target.checked)}
+                      style={estilos.checkMini}
                     />
-                    Somático (S)
+                    <span>Somático (S)</span>
                   </label>
-                  <label style={{ display: "flex", alignItems: "center", gap: "6px", cursor: "pointer", fontSize: "12px" }}>
+                  <label style={estilos.labelCheckbox}>
                     <input
                       type="checkbox"
                       checked={hCompMaterial}
                       onChange={(e) => setHCompMaterial(e.target.checked)}
+                      style={estilos.checkMini}
                     />
-                    Material (M)
+                    <span>Material (M)</span>
                   </label>
                 </div>
                 {hCompMaterial && (
@@ -1907,13 +1954,13 @@ export const CreadorHomebrew: React.FC = () => {
               </div>
 
               {/* CLASES QUE LO APRENDEN */}
-              <div style={{ ...estilos.bloqueDinamicoForm, padding: "10px", margin: "10px 0" }}>
+              <div style={estilos.bloqueDinamicoForm}>
                 <div style={estilos.tituloBloqueDinamico}>CLASES DISPONIBLES</div>
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "8px" }}>
+                <div style={estilos.gridClasesDnd}>
                   {CLASES_DND.map((clase) => {
                     const estaSeleccionada = hClases.includes(clase);
                     return (
-                      <label key={clase} style={{ display: "flex", alignItems: "center", gap: "6px", cursor: "pointer", fontSize: "12px" }}>
+                      <label key={clase} style={estilos.labelCheckbox}>
                         <input
                           type="checkbox"
                           checked={estaSeleccionada}
@@ -1924,8 +1971,9 @@ export const CreadorHomebrew: React.FC = () => {
                               setHClases((prev) => prev.filter((c) => c !== clase));
                             }
                           }}
+                          style={estilos.checkMini}
                         />
-                        {clase}
+                        <span>{clase}</span>
                       </label>
                     );
                   })}
@@ -1933,8 +1981,8 @@ export const CreadorHomebrew: React.FC = () => {
               </div>
 
               {/* MECÁNICAS DE COMBATE */}
-              <div style={{ ...estilos.bloqueDinamicoForm, padding: "12px", border: "1px solid var(--color-borde-brutal)", margin: "12px 0", borderRadius: "4px" }}>
-                <div style={{ ...estilos.tituloBloqueDinamico, color: "var(--color-activo)" }}>MECÁNICAS DE COMBATE (D&D 5.5e / 2024)</div>
+              <div style={{ ...estilos.bloqueDinamicoForm, borderColor: "rgba(0,245,212,0.25)" }}>
+                <div style={{ ...estilos.tituloBloqueDinamico, color: "var(--color-borde-cian)" }}>MECÁNICAS DE COMBATE (D&D 5.5e / 2024)</div>
                 
                 <div style={estilos.filaDobleForm}>
                   <div style={estilos.campoForm}>
@@ -2025,7 +2073,7 @@ export const CreadorHomebrew: React.FC = () => {
                   onChange={(e) => setHDescripcion(e.target.value)}
                   placeholder="Escribe la descripción del conjuro..."
                   style={estilos.textareaBrutal}
-                  rows={6}
+                  rows={calcFilas(hDescripcion, 5, 25)}
                   required
                 />
               </div>
@@ -2037,7 +2085,7 @@ export const CreadorHomebrew: React.FC = () => {
                   onChange={(e) => setHDescNivelSuperior(e.target.value)}
                   placeholder="Ej. Cuando lanzas este hechizo usando un espacio de conjuro de nivel 4 o superior, el daño aumenta en 1d6 por cada nivel..."
                   style={estilos.textareaBrutal}
-                  rows={3}
+                  rows={calcFilas(hDescNivelSuperior, 3, 12)}
                 />
               </div>
 
@@ -2104,18 +2152,18 @@ export const CreadorHomebrew: React.FC = () => {
                 </div>
                 <div style={estilos.campoForm}>
                   <label style={estilos.labelForm}>Costo:</label>
-                  <div style={{ display: "flex", gap: "4px" }}>
+                  <div style={{ display: "flex", gap: "6px" }}>
                     <input
                       type="number"
                       value={oCostoValor}
                       onChange={(e) => setOCostoValor(parseFloat(e.target.value) || 0)}
                       placeholder="0"
-                      style={{ ...estilos.inputForm, width: "70%" }}
+                      style={{ ...estilos.inputForm, width: "65%" }}
                     />
                     <select
                       value={oCostoUnidad}
                       onChange={(e) => setOCostoUnidad(e.target.value)}
-                      style={{ ...estilos.selectForm, width: "30%", padding: "4px 2px" }}
+                      style={{ ...estilos.selectForm, width: "35%" }}
                     >
                       <option value="PC">PC</option>
                       <option value="PP">PP</option>
@@ -2139,8 +2187,8 @@ export const CreadorHomebrew: React.FC = () => {
 
               {/* DETALLES DE ARMA (SÓLO SI CATEGORÍA ES ARMA) */}
               {oCategoria === "ARMA" && (
-                <div style={{ ...estilos.bloqueDinamicoForm, padding: "12px", border: "1px solid var(--color-activo)", margin: "12px 0", borderRadius: "4px" }}>
-                  <div style={{ ...estilos.tituloBloqueDinamico, color: "var(--color-activo)" }}>PROPIEDADES TÁCTICAS DEL ARMA</div>
+                <div style={{ ...estilos.bloqueDinamicoForm, borderColor: "rgba(255,165,0,0.3)" }}>
+                  <div style={{ ...estilos.tituloBloqueDinamico, color: "var(--color-advertencia)" }}>PROPIEDADES TÁCTICAS DEL ARMA</div>
                   
                   <div style={estilos.filaTripleForm}>
                     <div style={estilos.campoForm}>
@@ -2229,16 +2277,16 @@ export const CreadorHomebrew: React.FC = () => {
                   </div>
 
                   {/* CHECKBOXES PROPIEDADES DE ARMAS */}
-                  <div style={{ marginTop: "10px" }}>
-                    <div style={{ ...estilos.labelForm, marginBottom: "6px" }}>Propiedades del Arma:</div>
-                    <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "6px" }}>
+                  <div style={{ marginTop: "6px" }}>
+                    <div style={{ ...estilos.labelForm, marginBottom: "8px" }}>Propiedades del Arma:</div>
+                    <div style={estilos.gridClasesDnd}>
                       {[
                         "Sutil", "Versátil", "Pesado", "Ligero", "Carga", "Alcance", "Arrojadiza", 
                         "A dos manos", "Plateado", "Especial", "Munición", "Improvisada", "Sintonización", "Tiene Cargas"
                       ].map((prop) => {
                         const estaChecked = oPropiedadesArma.includes(prop);
                         return (
-                          <label key={prop} style={{ display: "flex", alignItems: "center", gap: "6px", cursor: "pointer", fontSize: "11px" }}>
+                          <label key={prop} style={estilos.labelCheckbox}>
                             <input
                               type="checkbox"
                               checked={estaChecked}
@@ -2249,8 +2297,9 @@ export const CreadorHomebrew: React.FC = () => {
                                   setOPropiedadesArma((prev) => prev.filter((p) => p !== prop));
                                 }
                               }}
+                              style={estilos.checkMini}
                             />
-                            {prop}
+                            <span>{prop}</span>
                           </label>
                         );
                       })}
@@ -2260,10 +2309,10 @@ export const CreadorHomebrew: React.FC = () => {
               )}
 
               {/* SECCIÓN DE BONOS MÁGICOS DINÁMICOS */}
-              <div style={{ ...estilos.bloqueDinamicoForm, padding: "10px", margin: "12px 0", border: "1px solid var(--color-borde-brutal)" }}>
+              <div style={estilos.bloqueDinamicoForm}>
                 <div style={estilos.tituloBloqueDinamico}>BONOS MÁGICOS DINÁMICOS AL PERSONAJE</div>
                 
-                <div style={{ display: "flex", gap: "8px", alignItems: "flex-end", flexWrap: "wrap", marginBottom: "8px" }}>
+                <div style={{ display: "flex", gap: "8px", alignItems: "flex-end", flexWrap: "wrap" }}>
                   <div style={{ flex: "1 1 30%" }}>
                     <label style={estilos.labelForm}>Categoría del Bono:</label>
                     <select
@@ -2288,7 +2337,7 @@ export const CreadorHomebrew: React.FC = () => {
                       style={estilos.inputForm}
                     />
                   </div>
-                  <div style={{ flex: "1 1 20%" }}>
+                  <div style={{ flex: "1 1 15%" }}>
                     <label style={estilos.labelForm}>Valor:</label>
                     <input
                       type="number"
@@ -2300,7 +2349,7 @@ export const CreadorHomebrew: React.FC = () => {
                   <button
                     type="button"
                     onClick={agregarBonoMagico}
-                    style={{ ...estilos.botonAgregarDinamico, height: "30px", flex: "1 1 10%" }}
+                    style={{ ...estilos.botonAgregarDinamico, alignSelf: "flex-end" }}
                   >
                     + Agregar
                   </button>
@@ -2308,11 +2357,11 @@ export const CreadorHomebrew: React.FC = () => {
 
                 {/* LISTA DE BONOS MÁGICOS APLICADOS */}
                 {oBonosMagicos.length > 0 && (
-                  <div style={{ ...estilos.listaDinamicaVisual, marginTop: "8px" }}>
+                  <div style={estilos.listaDinamicaVisual}>
                     {oBonosMagicos.map((bono, idx) => (
                       <div key={`bono_${idx}`} style={estilos.itemDinamicoVisual}>
-                        <div style={{ fontSize: "12px" }}>
-                          <span style={{ color: "var(--color-activo)", fontWeight: "bold" }}>[{bono.categoria}]</span> {bono.bono}: <strong>{bono.valor >= 0 ? `+${bono.valor}` : bono.valor}</strong>
+                        <div style={{ fontSize: "12.5px" }}>
+                          <span style={{ color: "var(--color-advertencia)", fontWeight: "bold" }}>[{bono.categoria}]</span> {bono.bono}: <strong>{bono.valor >= 0 ? `+${bono.valor}` : bono.valor}</strong>
                         </div>
                         <button
                           type="button"
@@ -2334,7 +2383,7 @@ export const CreadorHomebrew: React.FC = () => {
                   onChange={(e) => setODescripcion(e.target.value)}
                   placeholder="Escribe la historia o efectos mágicos detallados..."
                   style={estilos.textareaBrutal}
-                  rows={6}
+                  rows={calcFilas(oDescripcion, 5, 25)}
                   required
                 />
               </div>
@@ -2862,7 +2911,7 @@ const estilos: { [key: string]: React.CSSProperties } = {
     flexGrow: 1,
     width: "100%",
     backgroundColor: "var(--color-fondo-profundo)",
-    padding: "4px",
+    padding: "6px",
     overflowY: "auto",
     position: "relative"
   },
@@ -2871,25 +2920,29 @@ const estilos: { [key: string]: React.CSSProperties } = {
     flexDirection: "row",
     gap: "6px",
     backgroundColor: "var(--color-fondo-panel)",
-    borderBottom: "1px solid var(--color-borde-brutal)",
-    padding: "4px",
+    borderBottom: "2px solid var(--color-borde-brutal)",
+    padding: "8px",
     flexShrink: 0
   },
   subBotonNav: {
     backgroundColor: "var(--color-fondo-tarjeta)",
     border: "1px solid var(--color-borde-brutal)",
     color: "var(--color-texto-secundario)",
-    fontSize: "12px",
-    padding: "5px 10px",
+    fontSize: "12.5px",
+    fontWeight: "600",
+    padding: "7px 14px",
     display: "flex",
     alignItems: "center",
-    gap: "5px",
-    cursor: "pointer"
+    gap: "6px",
+    cursor: "pointer",
+    borderRadius: "6px",
+    transition: "all 0.15s ease"
   },
   subBotonNavActivo: {
     backgroundColor: "var(--color-primario-brillante)",
     borderColor: "var(--color-borde-cian)",
-    color: "#ffffff"
+    color: "#ffffff",
+    boxShadow: "0 2px 8px rgba(0,245,212,0.3)"
   },
   pestanasModoHomebrew: {
     display: "flex",
@@ -2897,7 +2950,7 @@ const estilos: { [key: string]: React.CSSProperties } = {
     gap: "6px",
     backgroundColor: "var(--color-fondo-panel)",
     borderBottom: "1px solid var(--color-borde-brutal)",
-    padding: "4px",
+    padding: "6px 8px",
     flexShrink: 0
   },
   botonModoHomebrew: {
@@ -2905,216 +2958,250 @@ const estilos: { [key: string]: React.CSSProperties } = {
     backgroundColor: "var(--color-fondo-tarjeta)",
     border: "1px solid var(--color-borde-brutal)",
     color: "var(--color-texto-secundario)",
-    fontSize: "12px",
-    padding: "6px",
+    fontSize: "12.5px",
+    padding: "7px 10px",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    gap: "5px",
+    gap: "6px",
     cursor: "pointer",
-    fontFamily: "var(--fuente-codigo)",
-    fontWeight: "bold",
-    textTransform: "uppercase"
+    fontWeight: "600",
+    textTransform: "uppercase",
+    letterSpacing: "0.04em",
+    borderRadius: "5px",
+    transition: "all 0.15s ease"
   },
   botonModoHomebrewActivo: {
     backgroundColor: "var(--color-primario-brillante)",
     borderColor: "var(--color-borde-cian)",
-    color: "#ffffff"
+    color: "#ffffff",
+    boxShadow: "0 2px 8px rgba(0,245,212,0.25)"
   },
   cuerpoSeccion: {
     display: "flex",
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: "8px",
+    gap: "10px",
     flexGrow: 1,
-    padding: "4px",
+    padding: "8px",
     overflowY: "auto"
   },
   panelFormulario: {
-    flex: "1 1 350px",
+    flex: "1 1 360px",
     backgroundColor: "var(--color-fondo-panel)",
     border: "1px solid var(--color-borde-brutal)",
-    padding: "8px",
+    borderRadius: "8px",
+    padding: "14px",
     display: "flex",
     flexDirection: "column",
-    gap: "6px",
+    gap: "10px",
     maxHeight: "calc(100vh - 120px)",
     overflowY: "auto"
   },
   cabeceraPanel: {
-    fontSize: "13px",
-    fontWeight: "bold",
-    color: "var(--color-texto-apagado)",
-    borderBottom: "1px solid var(--color-borde-brutal)",
-    paddingBottom: "5px",
+    fontSize: "11px",
+    fontWeight: "700",
+    color: "var(--color-borde-cian)",
+    borderBottom: "2px solid var(--color-borde-cian)",
+    paddingBottom: "8px",
     textTransform: "uppercase",
-    marginBottom: "6px"
+    letterSpacing: "0.1em",
+    marginBottom: "4px",
+    display: "flex",
+    alignItems: "center",
+    gap: "6px"
   },
   formularioBrutal: {
     display: "flex",
     flexDirection: "column",
-    gap: "8px"
+    gap: "12px"
   },
   subPestanasCriatura: {
     display: "flex",
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: "4px",
-    borderBottom: "1px solid var(--color-borde-brutal)",
-    paddingBottom: "6px",
-    marginBottom: "6px"
+    gap: "5px",
+    borderBottom: "2px solid var(--color-borde-brutal)",
+    paddingBottom: "8px",
+    marginBottom: "8px"
   },
   subPestanaCriaturaBoton: {
     backgroundColor: "var(--color-fondo-tarjeta)",
     border: "1px solid var(--color-borde-brutal)",
     color: "var(--color-texto-secundario)",
-    fontSize: "11px",
-    padding: "4px 8px",
+    fontSize: "11.5px",
+    fontWeight: "600",
+    padding: "5px 11px",
     cursor: "pointer",
-    textTransform: "uppercase"
+    textTransform: "uppercase",
+    borderRadius: "4px",
+    letterSpacing: "0.04em",
+    transition: "all 0.12s ease"
   },
   subPestanaCriaturaBotonActiva: {
     backgroundColor: "var(--color-primario)",
     color: "#ffffff",
-    borderColor: "var(--color-borde-cian)"
+    borderColor: "var(--color-borde-cian)",
+    boxShadow: "0 2px 6px rgba(0,245,212,0.2)"
   },
   seccionContenido: {
     display: "flex",
     flexDirection: "column",
-    gap: "8px",
+    gap: "12px",
     padding: "4px 0"
   },
   seccionContenidoListas: {
     display: "flex",
     flexDirection: "column",
-    gap: "8px",
-    maxHeight: "420px",
+    gap: "12px",
+    maxHeight: "440px",
     overflowY: "auto",
-    paddingRight: "4px"
+    paddingRight: "6px"
   },
   filaDobleForm: {
     display: "flex",
     flexDirection: "row",
-    gap: "6px"
+    gap: "10px"
   },
   filaTripleForm: {
     display: "flex",
     flexDirection: "row",
-    gap: "6px"
+    gap: "10px"
   },
   filaSeisForm: {
     display: "flex",
     flexDirection: "row",
-    gap: "3px",
+    gap: "4px",
     justifyContent: "space-between",
     backgroundColor: "var(--color-fondo-tarjeta)",
-    padding: "5px 4px",
-    border: "1px solid var(--color-borde-brutal)"
+    padding: "10px 8px",
+    border: "1px solid var(--color-borde-brutal)",
+    borderRadius: "6px"
   },
   campoForm: {
     display: "flex",
     flexDirection: "column",
     flexGrow: 1,
-    gap: "3px"
+    gap: "5px"
   },
   campoMiniForm: {
     display: "flex",
     flexDirection: "column",
     width: "16%",
-    alignItems: "center"
-  },
-  labelForm: {
-    fontSize: "11px",
-    color: "var(--color-texto-secundario)",
-    display: "flex",
     alignItems: "center",
     gap: "4px"
   },
+  labelForm: {
+    fontSize: "12px",
+    fontWeight: "600",
+    color: "var(--color-texto-secundario)",
+    display: "flex",
+    alignItems: "center",
+    gap: "4px",
+    letterSpacing: "0.01em"
+  },
   labelMiniForm: {
-    fontSize: "10.5px",
-    fontWeight: "bold",
-    color: "var(--color-texto-apagado)",
-    fontFamily: "var(--fuente-codigo)"
+    fontSize: "11px",
+    fontWeight: "700",
+    color: "var(--color-borde-cian)",
+    fontFamily: "var(--fuente-codigo)",
+    letterSpacing: "0.05em"
   },
   inputForm: {
-    fontSize: "12.5px",
-    padding: "5px 8px",
+    fontSize: "13px",
+    padding: "7px 10px",
     width: "100%",
     backgroundColor: "var(--color-fondo-tarjeta)",
-    border: "1px solid var(--color-borde-brutal)",
+    border: "1.5px solid var(--color-borde-brutal)",
+    borderRadius: "5px",
     color: "var(--color-texto-principal)",
-    outline: "none"
+    outline: "none",
+    transition: "border-color 0.15s ease, box-shadow 0.15s ease"
   },
   inputMiniForm: {
-    fontSize: "12.5px",
-    padding: "4px 2px",
-    width: "42px",
+    fontSize: "13px",
+    padding: "5px 3px",
+    width: "46px",
     textAlign: "center",
     backgroundColor: "var(--color-fondo-profundo)",
-    border: "1px solid var(--color-borde-brutal)",
+    border: "1.5px solid var(--color-borde-brutal)",
+    borderRadius: "4px",
     color: "var(--color-texto-principal)",
     outline: "none"
   },
   modificadorPrevisualizado: {
-    fontSize: "11px",
-    fontWeight: "bold",
-    color: "var(--color-borde-cian)",
-    marginTop: "2px"
-  },
-  selectForm: {
-    fontSize: "12.5px",
-    padding: "2px 6px",
-    height: "28px",
-    width: "100%",
-    backgroundColor: "var(--color-fondo-tarjeta)",
-    border: "1px solid var(--color-borde-brutal)",
-    color: "var(--color-texto-principal)",
-    outline: "none"
-  },
-  textareaBrutal: {
-    backgroundColor: "var(--color-fondo-panel)",
-    border: "1px solid var(--color-borde-brutal)",
-    color: "var(--color-texto-principal)",
-    fontSize: "12.5px",
-    padding: "6px 8px",
-    width: "100%",
-    outline: "none",
-    fontFamily: "inherit",
-    borderRadius: 0
-  },
-  cabeceraMiniSeccion: {
     fontSize: "12px",
     fontWeight: "bold",
     color: "var(--color-borde-cian)",
-    letterSpacing: "0.05em",
-    marginTop: "6px",
-    marginBottom: "3px"
+    marginTop: "1px"
+  },
+  selectForm: {
+    fontSize: "13px",
+    padding: "6px 10px",
+    height: "34px",
+    width: "100%",
+    backgroundColor: "var(--color-fondo-tarjeta)",
+    border: "1.5px solid var(--color-borde-brutal)",
+    borderRadius: "5px",
+    color: "var(--color-texto-principal)",
+    outline: "none",
+    cursor: "pointer",
+    transition: "border-color 0.15s ease"
+  },
+  textareaBrutal: {
+    backgroundColor: "var(--color-fondo-panel)",
+    border: "1.5px solid var(--color-borde-brutal)",
+    borderRadius: "5px",
+    color: "var(--color-texto-principal)",
+    fontSize: "13px",
+    padding: "8px 10px",
+    width: "100%",
+    outline: "none",
+    fontFamily: "inherit",
+    lineHeight: "1.5",
+    resize: "vertical"
+  },
+  cabeceraMiniSeccion: {
+    fontSize: "11.5px",
+    fontWeight: "700",
+    color: "var(--color-borde-cian)",
+    letterSpacing: "0.08em",
+    marginTop: "8px",
+    marginBottom: "6px",
+    textTransform: "uppercase",
+    display: "flex",
+    alignItems: "center",
+    gap: "6px"
   },
   gridHabilidades: {
     display: "grid",
     gridTemplateColumns: "1fr 1fr",
-    gap: "4px 8px",
+    gap: "6px 12px",
     backgroundColor: "var(--color-fondo-tarjeta)",
-    padding: "6px",
-    border: "1px solid var(--color-borde-brutal)"
+    padding: "10px",
+    border: "1px solid var(--color-borde-brutal)",
+    borderRadius: "6px"
   },
   itemHabilidadFila: {
     display: "flex",
     flexDirection: "row",
     justifyContent: "space-between",
-    alignItems: "center"
+    alignItems: "center",
+    padding: "2px 0"
   },
   habilidadNombreEtiqueta: {
-    fontSize: "12px",
-    color: "var(--color-texto-secundario)"
+    fontSize: "12.5px",
+    color: "var(--color-texto-secundario)",
+    fontWeight: "500"
   },
   inputHabilidad: {
-    fontSize: "12px",
-    padding: "3px 1px",
-    width: "40px",
+    fontSize: "13px",
+    padding: "4px 3px",
+    width: "46px",
     textAlign: "center",
     backgroundColor: "var(--color-fondo-profundo)",
-    border: "1px solid var(--color-borde-brutal)",
+    border: "1.5px solid var(--color-borde-brutal)",
+    borderRadius: "4px",
     color: "var(--color-texto-principal)",
     outline: "none"
   },
@@ -3122,109 +3209,124 @@ const estilos: { [key: string]: React.CSSProperties } = {
     display: "flex",
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: "3px",
+    gap: "5px",
     borderBottom: "1px solid var(--color-borde-brutal)",
-    paddingBottom: "4px",
-    marginBottom: "6px"
+    paddingBottom: "8px",
+    marginBottom: "8px"
   },
   subDefBoton: {
-    fontSize: "11px",
+    fontSize: "11.5px",
+    fontWeight: "600",
     backgroundColor: "var(--color-fondo-tarjeta)",
     border: "1px solid var(--color-borde-brutal)",
     color: "var(--color-texto-secundario)",
-    padding: "4px 8px",
-    cursor: "pointer"
+    padding: "5px 10px",
+    cursor: "pointer",
+    borderRadius: "4px",
+    transition: "all 0.12s ease"
   },
   subDefBotonActivo: {
     backgroundColor: "var(--color-primario-brillante)",
     color: "#ffffff",
-    borderColor: "var(--color-borde-cian)"
+    borderColor: "var(--color-borde-cian)",
+    boxShadow: "0 2px 6px rgba(0,245,212,0.2)"
   },
   contenedorChecksDefensas: {
     backgroundColor: "var(--color-fondo-tarjeta)",
     border: "1px solid var(--color-borde-brutal)",
-    padding: "6px",
-    maxHeight: "180px",
+    borderRadius: "5px",
+    padding: "10px",
+    maxHeight: "200px",
     overflowY: "auto"
   },
   gridCheckboxMini: {
     display: "grid",
     gridTemplateColumns: "1fr 1fr 1fr",
-    gap: "4px 2px"
+    gap: "6px 4px"
   },
   labelCheckMini: {
     display: "flex",
     flexDirection: "row",
     alignItems: "center",
-    gap: "4px",
-    fontSize: "11px",
+    gap: "5px",
+    fontSize: "12px",
     color: "var(--color-texto-secundario)",
     whiteSpace: "nowrap",
     overflow: "hidden",
     textOverflow: "ellipsis",
-    cursor: "pointer"
+    cursor: "pointer",
+    padding: "2px 0"
   },
   checkMini: {
     margin: 0,
-    width: "12px",
-    height: "12px",
-    cursor: "pointer"
+    width: "13px",
+    height: "13px",
+    cursor: "pointer",
+    accentColor: "var(--color-borde-cian)"
   },
   bloqueDinamicoForm: {
     display: "flex",
     flexDirection: "column",
     backgroundColor: "var(--color-fondo-tarjeta)",
     border: "1px solid var(--color-borde-brutal)",
-    padding: "6px",
-    gap: "5px"
+    borderRadius: "7px",
+    padding: "12px",
+    gap: "8px"
   },
   tituloBloqueDinamico: {
-    fontSize: "12px",
-    fontWeight: "bold",
+    fontSize: "11px",
+    fontWeight: "700",
     color: "var(--color-borde-cian)",
     borderBottom: "1px solid var(--color-borde-brutal)",
-    paddingBottom: "3px"
+    paddingBottom: "6px",
+    textTransform: "uppercase",
+    letterSpacing: "0.07em"
   },
   filaAgregarRapido: {
     display: "flex",
     flexDirection: "row",
-    gap: "4px",
-    alignItems: "center"
+    gap: "6px",
+    alignItems: "center",
+    flexWrap: "wrap"
   },
   inputDinamicoMini: {
-    fontSize: "12px",
-    padding: "4px 6px",
-    width: "60px",
+    fontSize: "13px",
+    padding: "6px 7px",
+    width: "68px",
     backgroundColor: "var(--color-fondo-profundo)",
-    border: "1px solid var(--color-borde-brutal)",
+    border: "1.5px solid var(--color-borde-brutal)",
+    borderRadius: "4px",
     color: "var(--color-texto-principal)",
     outline: "none"
   },
   inputDinamicoMediano: {
-    fontSize: "12px",
-    padding: "4px 6px",
-    width: "110px",
+    fontSize: "13px",
+    padding: "6px 8px",
+    width: "130px",
     backgroundColor: "var(--color-fondo-profundo)",
-    border: "1px solid var(--color-borde-brutal)",
+    border: "1.5px solid var(--color-borde-brutal)",
+    borderRadius: "4px",
     color: "var(--color-texto-principal)",
     outline: "none"
   },
   inputDinamicoLargo: {
-    fontSize: "12px",
-    padding: "4px 6px",
+    fontSize: "13px",
+    padding: "6px 9px",
     width: "100%",
     backgroundColor: "var(--color-fondo-profundo)",
-    border: "1px solid var(--color-borde-brutal)",
+    border: "1.5px solid var(--color-borde-brutal)",
+    borderRadius: "4px",
     color: "var(--color-texto-principal)",
     outline: "none"
   },
   selectDinamicoMini: {
-    fontSize: "12px",
-    padding: "0px 4px",
-    height: "24px",
-    width: "75px",
+    fontSize: "12.5px",
+    padding: "0px 6px",
+    height: "30px",
+    width: "85px",
     backgroundColor: "var(--color-fondo-profundo)",
-    border: "1px solid var(--color-borde-brutal)",
+    border: "1.5px solid var(--color-borde-brutal)",
+    borderRadius: "4px",
     color: "var(--color-texto-principal)",
     outline: "none"
   },
@@ -3232,89 +3334,101 @@ const estilos: { [key: string]: React.CSSProperties } = {
     backgroundColor: "var(--color-primario)",
     border: "1px solid var(--color-borde-cian)",
     color: "#ffffff",
-    padding: "4px 8px",
-    fontSize: "12px",
+    padding: "5px 10px",
+    fontSize: "13px",
     fontWeight: "bold",
-    cursor: "pointer"
+    cursor: "pointer",
+    borderRadius: "4px"
   },
   camposDinamicosGrupo: {
     display: "flex",
     flexDirection: "column",
-    gap: "4px"
+    gap: "7px"
   },
   filaCamposAlineados: {
     display: "flex",
     flexDirection: "row",
-    gap: "4px",
+    gap: "7px",
     width: "100%"
   },
   textareaDinamico: {
-    fontSize: "11px",
-    padding: "5px",
+    fontSize: "12.5px",
+    padding: "7px 9px",
     width: "100%",
     backgroundColor: "var(--color-fondo-profundo)",
-    border: "1px solid var(--color-borde-brutal)",
+    border: "1.5px solid var(--color-borde-brutal)",
+    borderRadius: "4px",
     color: "var(--color-texto-principal)",
     outline: "none",
     fontFamily: "inherit",
-    borderRadius: 0
+    lineHeight: "1.45",
+    resize: "vertical"
   },
   botonAgregarCompleto: {
     backgroundColor: "var(--color-primario)",
     border: "1px solid var(--color-borde-cian)",
     color: "#ffffff",
-    padding: "4px 8px",
-    fontSize: "11.5px",
+    padding: "6px 12px",
+    fontSize: "12px",
     fontWeight: "bold",
     cursor: "pointer",
-    alignSelf: "flex-end"
+    alignSelf: "flex-end",
+    borderRadius: "4px"
   },
   listaDinamicaVisual: {
     display: "flex",
     flexDirection: "column",
-    gap: "2px",
+    gap: "4px",
     backgroundColor: "var(--color-fondo-profundo)",
-    padding: "4px",
-    maxHeight: "140px",
+    padding: "6px",
+    maxHeight: "170px",
     overflowY: "auto",
-    border: "1px solid var(--color-borde-brutal)"
+    border: "1px solid var(--color-borde-brutal)",
+    borderRadius: "5px"
   },
   itemDinamicoVisual: {
     display: "flex",
     flexDirection: "row",
     justifyContent: "space-between",
-    alignItems: "center",
+    alignItems: "flex-start",
     backgroundColor: "var(--color-fondo-tarjeta)",
-    padding: "4px 6px",
-    fontSize: "11px"
+    padding: "6px 9px",
+    fontSize: "12px",
+    borderRadius: "4px",
+    border: "1px solid transparent",
+    transition: "all 0.12s ease"
   },
   botonEliminarDinamico: {
     background: "none",
     border: "none",
     color: "var(--color-peligro)",
     cursor: "pointer",
-    padding: 0
+    padding: "2px"
   },
   botonEnviarBrutal: {
-    backgroundColor: "var(--color-primario-brillante)",
+    background: "linear-gradient(135deg, var(--color-primario-brillante) 0%, var(--color-primario) 100%)",
     border: "1px solid var(--color-borde-cian)",
     color: "#ffffff",
-    padding: "8px",
-    fontSize: "13px",
-    fontWeight: "bold",
-    marginTop: "8px",
+    padding: "11px",
+    fontSize: "13.5px",
+    fontWeight: "700",
+    marginTop: "10px",
     width: "100%",
     cursor: "pointer",
-    textTransform: "uppercase"
+    textTransform: "uppercase",
+    letterSpacing: "0.06em",
+    borderRadius: "6px",
+    boxShadow: "0 3px 12px rgba(0,245,212,0.2)"
   },
   panelLista: {
     flex: "1 1 250px",
     backgroundColor: "var(--color-fondo-panel)",
     border: "1px solid var(--color-borde-brutal)",
-    padding: "8px",
+    borderRadius: "8px",
+    padding: "12px",
     display: "flex",
     flexDirection: "column",
-    gap: "6px",
+    gap: "8px",
     maxHeight: "calc(100vh - 120px)",
     height: "100%",
     overflowY: "auto"
@@ -3324,14 +3438,15 @@ const estilos: { [key: string]: React.CSSProperties } = {
     flexDirection: "column",
     overflowY: "auto",
     flexGrow: 1,
-    gap: "4px"
+    gap: "6px"
   },
   textoListaVacia: {
     fontSize: "13px",
     color: "var(--color-texto-apagado)",
     textAlign: "center",
-    padding: "30px",
-    fontStyle: "italic"
+    padding: "40px 20px",
+    fontStyle: "italic",
+    lineHeight: "1.6"
   },
   itemListaBrutal: {
     display: "flex",
@@ -3340,7 +3455,9 @@ const estilos: { [key: string]: React.CSSProperties } = {
     alignItems: "center",
     backgroundColor: "var(--color-fondo-tarjeta)",
     border: "1px solid var(--color-borde-brutal)",
-    padding: "6px 10px"
+    borderRadius: "6px",
+    padding: "9px 12px",
+    transition: "all 0.12s ease"
   },
   itemInfoLista: {
     display: "flex",
@@ -3348,12 +3465,12 @@ const estilos: { [key: string]: React.CSSProperties } = {
     gap: "3px"
   },
   itemNombre: {
-    fontSize: "13px",
-    fontWeight: "bold",
+    fontSize: "13.5px",
+    fontWeight: "700",
     color: "var(--color-texto-principal)"
   },
   itemSub: {
-    fontSize: "11px",
+    fontSize: "11.5px",
     color: "var(--color-texto-secundario)"
   },
   botonEliminarItem: {
@@ -3361,18 +3478,20 @@ const estilos: { [key: string]: React.CSSProperties } = {
     border: "none",
     color: "var(--color-peligro)",
     cursor: "pointer",
-    padding: "4px",
+    padding: "5px",
     display: "flex",
-    alignItems: "center"
+    alignItems: "center",
+    borderRadius: "4px"
   },
   botonEditarItem: {
     background: "none",
     border: "none",
     color: "var(--color-borde-cian)",
     cursor: "pointer",
-    padding: "4px",
+    padding: "5px",
     display: "flex",
-    alignItems: "center"
+    alignItems: "center",
+    borderRadius: "4px"
   },
   grupoBotonesItem: {
     display: "flex",
@@ -3383,43 +3502,47 @@ const estilos: { [key: string]: React.CSSProperties } = {
   grupoBotonesAccion: {
     display: "flex",
     flexDirection: "column",
-    gap: "6px",
-    marginTop: "8px",
+    gap: "8px",
+    marginTop: "12px",
     width: "100%"
   },
   botonCancelarBrutal: {
     backgroundColor: "var(--color-fondo-tarjeta)",
     border: "1px solid var(--color-borde-brutal)",
     color: "var(--color-texto-secundario)",
-    padding: "8px",
-    fontSize: "12px",
-    fontWeight: "bold",
+    padding: "9px",
+    fontSize: "12.5px",
+    fontWeight: "600",
     width: "100%",
     cursor: "pointer",
     textTransform: "uppercase",
-    textAlign: "center"
+    textAlign: "center",
+    borderRadius: "6px",
+    letterSpacing: "0.04em"
   },
   cajaBuscadorHomebrew: {
     display: "flex",
     flexDirection: "row",
-    gap: "4px",
+    gap: "6px",
     width: "100%",
-    marginBottom: "4px"
+    marginBottom: "6px"
   },
   inputBuscadorHomebrew: {
     flexGrow: 1,
-    fontSize: "12px",
-    padding: "4px 8px",
+    fontSize: "13px",
+    padding: "7px 10px",
     backgroundColor: "var(--color-fondo-profundo)",
-    border: "1px solid var(--color-borde-brutal)",
+    border: "1.5px solid var(--color-borde-brutal)",
+    borderRadius: "5px",
     color: "var(--color-texto-principal)",
     outline: "none"
   },
   botonLimpiarBusquedaHomebrew: {
-    fontSize: "11px",
-    padding: "4px 8px",
+    fontSize: "12px",
+    padding: "7px 10px",
     backgroundColor: "var(--color-fondo-tarjeta)",
     border: "1px solid var(--color-borde-brutal)",
+    borderRadius: "5px",
     color: "var(--color-texto-secundario)",
     cursor: "pointer"
   },
@@ -3563,5 +3686,37 @@ const estilos: { [key: string]: React.CSSProperties } = {
   },
   iconoDetalle: {
     color: "var(--color-borde-cian)"
+  },
+
+  /* ---- Nuevos tokens para unificación completa ---- */
+  notaAyuda: {
+    fontSize: "11.5px",
+    color: "var(--color-texto-apagado)",
+    marginTop: "4px",
+    fontStyle: "italic",
+    lineHeight: "1.4"
+  },
+  filaCheckboxes: {
+    display: "flex",
+    flexDirection: "row",
+    gap: "18px",
+    flexWrap: "wrap",
+    padding: "4px 0"
+  },
+  labelCheckbox: {
+    display: "flex",
+    flexDirection: "row",
+    alignItems: "center",
+    gap: "7px",
+    cursor: "pointer",
+    fontSize: "13px",
+    color: "var(--color-texto-secundario)",
+    fontWeight: "500",
+    userSelect: "none"
+  },
+  gridClasesDnd: {
+    display: "grid",
+    gridTemplateColumns: "repeat(3, 1fr)",
+    gap: "6px 10px"
   }
-};
+} as { [key: string]: React.CSSProperties };

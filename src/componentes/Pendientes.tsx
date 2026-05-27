@@ -4,12 +4,10 @@ import { Plus, Trash2, CheckSquare, Square } from "lucide-react";
 import estilos from "./Pendientes.module.css";
 
 export const Pendientes: React.FC = () => {
-  const {
-    listaPendientes,
-    agregarPendiente,
-    alternarPendiente,
-    eliminarPendiente
-  } = usarAlmacenDM();
+  const listaPendientes = usarAlmacenDM((s) => s.listaPendientes);
+  const agregarPendiente = usarAlmacenDM((s) => s.agregarPendiente);
+  const alternarPendiente = usarAlmacenDM((s) => s.alternarPendiente);
+  const eliminarPendiente = usarAlmacenDM((s) => s.eliminarPendiente);
 
   const [nuevoTexto, setNuevoTexto] = useState("");
 

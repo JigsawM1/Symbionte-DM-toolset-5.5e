@@ -111,7 +111,7 @@ export function limpiarYNormalizarDadosSimples(formulaSimple: string): string {
  * Construye descriptores de dados manualmente a partir de una fórmula
  * en caso de que la API de TaleSpire no exponga la función makeRollDescriptors.
  */
-export function crearDescriptoresManualmente(formula: string): any[] {
+export function crearDescriptoresManualmente(formula: string): unknown[] {
   if (!formula) return [{ name: "Tirada", roll: "1d20" }];
   
   // Limpiamos los prefijos '!' obsoletos
@@ -129,7 +129,7 @@ export function crearDescriptoresManualmente(formula: string): any[] {
     
     // Si tiene ':' pero no '/', intentamos separar usando regex para no romper modificadores
     const regexGrupo = /([^:+]+):([0-9d+\-*/()]+)/g;
-    const desc: any[] = [];
+    const desc: unknown[] = [];
     let match;
     while ((match = regexGrupo.exec(formulaLimpia)) !== null) {
       desc.push({
@@ -272,7 +272,7 @@ export async function lanzarDadosTaleSpire(
       // Convertimos el string en los descriptores físicos requeridos por TaleSpire
       console.log(`[Lanzador Dados] Generando descriptores de tirada para "${formulaLimpia}"`);
       
-      let descriptores: any[] = [];
+      let descriptores: unknown[] = [];
       if (typeof diceApi.makeRollDescriptors === "function") {
         descriptores = await diceApi.makeRollDescriptors(formulaLimpia);
       } else {
@@ -321,7 +321,7 @@ export async function lanzarDadosTaleSpire(
   } else {
     // 2. Fallback de desarrollo en navegador local (sin simulación pesada, solo log y consola)
     console.warn("[Lanzador Dados] API de TaleSpire no disponible. Ejecutando tirada matemática de desarrollo.");
-    ejecutarTiradaFallbackLocal(formulaLimpia, nombreEtiqueta, tiradaEspecial);
+    ejecutarTiradaFallbackLocal(formulaLimpia, nombreEtiqueta);
   }
 }
 
@@ -334,19 +334,29 @@ export async function lanzarDadosTaleSpire(
  * @param evento El evento rollResults nativo de TaleSpire.
  * @returns Promesa que se resuelve a true si el evento fue procesado por nosotros, o false si no nos corresponde.
  */
-export async function procesarResultadosDadosTaleSpire(evento: any): Promise<boolean> {
-  if (!evento || evento.kind !== "rollResults" || !evento.payload) {
+interface ResultadosDadosEvento {
+  kind: string;
+  payload?: {
+    rollId: string;
+    resultsGroups: unknown[];
+  };
+}
+
+export async function procesarResultadosDadosTaleSpire(evento: unknown): Promise<boolean> {
+  if (!evento || typeof evento !== "object") return false;
+  const ev = evento as ResultadosDadosEvento;
+  if (ev.kind !== "rollResults" || !ev.payload) {
     return false;
   }
   
-  const rollId = evento.payload.rollId;
+  const rollId = ev.payload.rollId;
   const infoIniciativaPlana = tiradasIniciativaActivas[rollId];
   const infoTirada = tiradasEspecialesActivas[rollId];
   
   // Caso 1: Tirada de iniciativa plana nativa (sin ventaja ni desventaja)
   if (!infoTirada && infoIniciativaPlana) {
     console.log(`[Lanzador Dados] Procesando resultado de iniciativa plana para rollId: ${rollId}`);
-    const resultGroups = evento.payload.resultsGroups;
+    const resultGroups = ev.payload.resultsGroups;
     if (resultGroups && Array.isArray(resultGroups) && resultGroups.length > 0) {
       try {
         const diceApi = window.TS?.dice;
@@ -381,7 +391,7 @@ export async function procesarResultadosDadosTaleSpire(evento: any): Promise<boo
   }
   
   console.log(`[Lanzador Dados] Interceptada tirada especial ${rollId} de tipo ${infoTirada.tipo}`);
-  const resultGroups = evento.payload.resultsGroups;
+  const resultGroups = ev.payload.resultsGroups;
   
   if (!resultGroups || !Array.isArray(resultGroups)) {
     delete tiradasEspecialesActivas[rollId];
@@ -392,8 +402,14 @@ export async function procesarResultadosDadosTaleSpire(evento: any): Promise<boo
     const diceApi = window.TS?.dice;
     
     // Buscar los grupos A y B
-    const grupoA = resultGroups.find((g: any) => g.name === infoTirada.grupoAName);
-    const grupoB = resultGroups.find((g: any) => g.name === infoTirada.grupoBName);
+    const grupoA = resultGroups.find((g) => {
+      const gObj = g as Record<string, unknown>;
+      return gObj.name === infoTirada.grupoAName;
+    });
+    const grupoB = resultGroups.find((g) => {
+      const gObj = g as Record<string, unknown>;
+      return gObj.name === infoTirada.grupoBName;
+    });
     
     if (!grupoA || !grupoB) {
       console.warn("[Lanzador Dados] No se encontraron los grupos A o B en los resultados de la tirada.");
@@ -420,7 +436,7 @@ export async function procesarResultadosDadosTaleSpire(evento: any): Promise<boo
     const esVentaja = infoTirada.tipo === "ventaja";
     const elegirA = esVentaja ? (totalA >= totalB) : (totalA <= totalB);
     
-    const grupoElegido = elegirA ? grupoA : grupoB;
+    const grupoElegido = (elegirA ? grupoA : grupoB) as Record<string, unknown>;
     const totalElegido = elegirA ? totalA : totalB;
     const totalDescartado = elegirA ? totalB : totalA;
     
@@ -431,16 +447,22 @@ export async function procesarResultadosDadosTaleSpire(evento: any): Promise<boo
     const grupoGanadorSaneado = {
       ...grupoElegido,
       name: `${infoTirada.nombreGrupoOriginal}${sufijoChat}`,
-      description: grupoElegido.description || `${esVentaja ? "Mayor" : "Menor"} de [${totalA}, ${totalB}]`
+      description: (grupoElegido.description as string) || `${esVentaja ? "Mayor" : "Menor"} de [${totalA}, ${totalB}]`
     };
     
     // Construir la lista final de grupos a mostrar en el chat
     const gruposParaChat = resultGroups
-      .filter((g: any) => g.name !== infoTirada.grupoAName && g.name !== infoTirada.grupoBName)
-      .map((g: any) => ({
-        ...g,
-        description: g.description || ""
-      }));
+      .filter((g) => {
+        const gObj = g as Record<string, unknown>;
+        return gObj.name !== infoTirada.grupoAName && gObj.name !== infoTirada.grupoBName;
+      })
+      .map((g) => {
+        const gObj = g as Record<string, unknown>;
+        return {
+          ...gObj,
+          description: gObj.description || ""
+        };
+      });
       
     // Colocamos el d20 ganador en primera posición
     gruposParaChat.unshift(grupoGanadorSaneado);
@@ -481,31 +503,41 @@ export async function procesarResultadosDadosTaleSpire(evento: any): Promise<boo
 /**
  * Función fallback para obtener el total de un grupo de resultados si la API nativa de evaluación no está disponible.
  */
-function obtenerTotalGrupoFallback(grupo: any): number {
-  if (!grupo || !grupo.result) return 0;
-  if (typeof grupo.result.total === "number") {
-    return grupo.result.total;
+function obtenerTotalGrupoFallback(grupo: unknown): number {
+  if (!grupo || typeof grupo !== "object") return 0;
+  const grupoObj = grupo as Record<string, unknown>;
+  if (!grupoObj.result || typeof grupoObj.result !== "object") return 0;
+  const resultObj = grupoObj.result as Record<string, unknown>;
+  if (typeof resultObj.total === "number") {
+    return resultObj.total;
   }
   
-  function evaluarNodo(nodo: any): number {
-    if (!nodo) return 0;
-    if (typeof nodo.value === "number") return nodo.value;
-    if (Array.isArray(nodo.results)) {
-      return nodo.results.reduce((sum: number, r: any) => sum + (typeof r === "number" ? r : (r.value || 0)), 0);
+  function evaluarNodo(nodo: unknown): number {
+    if (!nodo || typeof nodo !== "object") return 0;
+    const nodoObj = nodo as Record<string, unknown>;
+    if (typeof nodoObj.value === "number") return nodoObj.value;
+    if (Array.isArray(nodoObj.results)) {
+      return nodoObj.results.reduce((sum: number, r) => {
+        if (typeof r === "number") return sum + r;
+        if (r && typeof r === "object") {
+          return sum + (Number((r as Record<string, unknown>).value) || 0);
+        }
+        return sum;
+      }, 0);
     }
-    if (nodo.operator === "+" && Array.isArray(nodo.operands)) {
-      return nodo.operands.reduce((sum: number, op: any) => sum + evaluarNodo(op), 0);
+    if (nodoObj.operator === "+" && Array.isArray(nodoObj.operands)) {
+      return nodoObj.operands.reduce((sum: number, op) => sum + evaluarNodo(op), 0);
     }
-    if (nodo.operator === "-" && Array.isArray(nodo.operands)) {
-      if (nodo.operands.length === 0) return 0;
-      const primerOp = evaluarNodo(nodo.operands[0]);
-      const restOp = nodo.operands.slice(1).reduce((sum: number, op: any) => sum + evaluarNodo(op), 0);
+    if (nodoObj.operator === "-" && Array.isArray(nodoObj.operands)) {
+      if (nodoObj.operands.length === 0) return 0;
+      const primerOp = evaluarNodo(nodoObj.operands[0]);
+      const restOp = nodoObj.operands.slice(1).reduce((sum: number, op) => sum + evaluarNodo(op), 0);
       return primerOp - restOp;
     }
     return 0;
   }
   
-  return evaluarNodo(grupo.result);
+  return evaluarNodo(grupoObj.result);
 }
 
 /**
@@ -513,8 +545,7 @@ function obtenerTotalGrupoFallback(grupo: any): number {
  */
 function ejecutarTiradaFallbackLocal(
   formula: string,
-  etiquetaGlobal: string,
-  _tiradaEspecial: MetadataTiradaEspecial | null = null
+  etiquetaGlobal: string
 ): void {
   try {
     const grupos = formula.split("/");

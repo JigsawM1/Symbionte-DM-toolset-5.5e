@@ -30,7 +30,7 @@ export const estadoInicialCriatura = {
 };
 
 export function usarFormularioCriatura(idEnEdicion: string | null, alGuardarExitoso: () => void) {
-  const { agregarMonstruoHomebrew, actualizarMonstruoHomebrew } = usarAlmacenDM();
+  const { agregarMonstruoHomebrew, actualizarMonstruoHomebrew, agregarNotificacion } = usarAlmacenDM();
 
   const [monstruoForm, setMonstruoForm] = useState<Omit<MonstruoBase, "id" | "vidaActual">>(estadoInicialCriatura);
   const [subPestanaCriatura, setSubPestanaCriatura] = useState<"general" | "atributos" | "pericias" | "defensas" | "listas">("general");
@@ -126,7 +126,7 @@ export function usarFormularioCriatura(idEnEdicion: string | null, alGuardarExit
     setSubDefensas("inmunidades");
   };
 
-  const actualizarGeneral = (campo: string, valor: any) => {
+  const actualizarGeneral = (campo: string, valor: unknown) => {
     setMonstruoForm((prev) => ({ ...prev, [campo]: valor }));
   };
 
@@ -458,19 +458,19 @@ export function usarFormularioCriatura(idEnEdicion: string | null, alGuardarExit
   const manejarGuardarCriatura = (e: React.FormEvent) => {
     e.preventDefault();
     if (!monstruoForm.nombre.trim()) {
-      alert("El nombre de la criatura es requerido");
+      agregarNotificacion("El nombre de la criatura es requerido", "advertencia");
       return;
     }
 
     if (idEnEdicion) {
       actualizarMonstruoHomebrew(idEnEdicion, monstruoForm);
-      alert("¡Criatura Homebrew actualizada con éxito!");
+      agregarNotificacion("¡Criatura Homebrew actualizada con éxito!", "exito");
     } else {
       agregarMonstruoHomebrew({
         ...monstruoForm,
         vidaActual: monstruoForm.vidaMaxima
       });
-      alert("¡Criatura Homebrew guardada con éxito!");
+      agregarNotificacion("¡Criatura Homebrew guardada con éxito!", "exito");
     }
 
     limpiarFormulario();

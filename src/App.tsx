@@ -12,6 +12,7 @@ import { NotasDM } from "./componentes/NotasDM";
 import { CreadorHomebrew } from "./componentes/CreadorHomebrew";
 import { ConfiguracionDM } from "./componentes/ConfiguracionDM";
 import { PanelDados } from "./componentes/PanelDados";
+import { NotificacionesContenedor } from "./componentes/NotificacionesContenedor";
 import estilos from "./App.module.css";
 
 const AppContenido: React.FC = () => {
@@ -57,6 +58,9 @@ const AppContenido: React.FC = () => {
 
       {/* Panel flotante premium de dados */}
       <PanelDados />
+
+      {/* Contenedor global de notificaciones/toasts */}
+      <NotificacionesContenedor />
     </div>
   );
 };

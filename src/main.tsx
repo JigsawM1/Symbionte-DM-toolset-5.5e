@@ -43,7 +43,7 @@ window.manejarCambioEstadoCriatura = (evento) => {
 
 window.manejarCambioSeleccionCriatura = (evento) => {
   console.log("[TaleSpire Callback] Evento de selección de criaturas:", evento);
-  usarAlmacenDM.getState().actualizarSeleccionCriaturas(evento || []);
+  usarAlmacenDM.getState().actualizarSeleccionCriaturas((evento as import("./almacen/slices/sliceIniciativa").CriaturaSeleccionadaTS[]) || []);
 };
 
 window.manejarResultadosDados = async (resultados) => {

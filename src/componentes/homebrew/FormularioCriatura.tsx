@@ -29,7 +29,7 @@ export const FormularioCriatura: React.FC<Props> = ({
   alGuardarExitoso,
   cancelarEdicion
 }) => {
-  const { baseDatosMonstruos } = usarAlmacenDM();
+  const baseDatosMonstruos = usarAlmacenDM((s) => s.baseDatosMonstruos);
 
   const {
     monstruoForm,

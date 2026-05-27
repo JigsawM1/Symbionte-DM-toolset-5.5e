@@ -50,7 +50,7 @@ export const ConversorDivisas: React.FC = () => {
           <label className={estilosClases.labelForm}>Moneda Origen:</label>
           <select
             value={monedaOrigen}
-            onChange={(e) => setMonedaOrigen(e.target.value as any)}
+            onChange={(e) => setMonedaOrigen(e.target.value as "PC" | "PP" | "PE" | "PO" | "PPT")}
             className={estilosClases.selectForm}
           >
             <option value="PC">Cobre (PC)</option>

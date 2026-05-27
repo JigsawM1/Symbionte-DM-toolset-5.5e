@@ -1,5 +1,12 @@
 import React from "react";
 import { renderizarTextoConDadosInteractivos } from "../../utiles/lanzadorDados";
+import { HechizoBase } from "../../tipos";
+
+interface SegmentoTexto {
+  texto?: string;
+  id?: number;
+  componente?: React.ReactNode;
+}
 
 /**
  * Utilidad de procesamiento de texto interactivo para la ficha de D&D.
@@ -9,8 +16,8 @@ import { renderizarTextoConDadosInteractivos } from "../../utiles/lanzadorDados"
 export const procesarTextoFicha = (
   texto: string,
   etiquetaTirada: string,
-  baseDatosHechizos: any[],
-  alHacerClicHechizo: (hechizo: any) => void
+  baseDatosHechizos: HechizoBase[],
+  alHacerClicHechizo: (hechizo: HechizoBase) => void
 ): React.ReactNode[] => {
   // 1. Primero procesamos los dados
   const nodosConDados = renderizarTextoConDadosInteractivos(texto, etiquetaTirada);
@@ -31,22 +38,22 @@ export const procesarTextoFicha = (
     }
 
     // Procesamos el texto plano buscando hechizos
-    let textosAIterar = [{ texto: nodo, id: 0 }];
+    let textosAIterar: SegmentoTexto[] = [{ texto: nodo, id: 0 }];
     let keyCounter = 0;
 
     for (const hechizo of hechizosOrdenados) {
       const nombreHechizo = hechizo.nombre.toLowerCase().trim();
       if (nombreHechizo.length < 3) continue; // Ignorar nombres ridículamente cortos
 
-      const nuevosTextos: typeof textosAIterar = [];
+      const nuevosTextos: SegmentoTexto[] = [];
 
       for (const item of textosAIterar) {
-        if (typeof item === "object" && (item as any).componente) {
+        if (item.componente) {
           nuevosTextos.push(item);
           continue;
         }
 
-        const textoOriginal = item.texto;
+        const textoOriginal = item.texto || "";
         
         // Regex segura para buscar el nombre del hechizo respetando límites lógicos
         const nombreEscapado = nombreHechizo.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
@@ -86,7 +93,7 @@ export const procesarTextoFicha = (
             `📖 ${coincidenciaOriginal}`
           );
 
-          nuevosTextos.push({ componente: enlaceReact } as any);
+          nuevosTextos.push({ componente: enlaceReact });
 
           if (despues) nuevosTextos.push({ texto: despues, id: ++keyCounter });
         } else {
@@ -99,13 +106,14 @@ export const procesarTextoFicha = (
 
     // Convertimos todo de vuelta a nodos de React
     textosAIterar.forEach((item) => {
-      if ((item as any).componente) {
-        nodosFinales.push((item as any).componente);
+      if (item.componente) {
+        nodosFinales.push(item.componente);
       } else {
-        nodosFinales.push(item.texto);
+        nodosFinales.push(item.texto || "");
       }
     });
   });
 
   return nodosFinales;
 };
+

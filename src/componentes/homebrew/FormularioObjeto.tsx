@@ -24,7 +24,7 @@ export const FormularioObjeto: React.FC<Props> = ({
   alGuardarExitoso,
   cancelarEdicion
 }) => {
-  const { objetosHomebrew } = usarAlmacenDM();
+  const objetosHomebrew = usarAlmacenDM((s) => s.objetosHomebrew);
 
   const {
     oNombre,

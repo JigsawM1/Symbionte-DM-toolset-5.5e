@@ -42,10 +42,20 @@ class CanalEventosSimulado {
 
 export const canalEventos = new CanalEventosSimulado();
 
-// Variables de estado del simulador de alta fidelidad
 let indiceTurnoActivoSimulado = 0;
 let rondaSimulada = 1;
-let colaIniciativaSimulada: any[] = [
+
+interface CriaturaSimulada {
+  id: string;
+  name: string;
+  kind?: string;
+  iniciativa: number;
+  hp: number;
+  maxHp: number;
+  ca: number;
+}
+
+let colaIniciativaSimulada: CriaturaSimulada[] = [
   { id: "c_jugador_1", name: "Valeros el Guerrero", kind: "creature", iniciativa: 18, hp: 45, maxHp: 45, ca: 18 },
   { id: "c_sim_mon_1", name: "Orco Asaltante", kind: "creature", iniciativa: 14, hp: 15, maxHp: 15, ca: 13 },
   { id: "c_jugador_2", name: "Elysia la Maga", kind: "creature", iniciativa: 11, hp: 28, maxHp: 28, ca: 12 },
@@ -229,7 +239,7 @@ export function inicializarSimulador(): void {
         const limpia = str.replace(/\s+/g, "").toLowerCase();
         return /^[+-]?(\d+)?d\d+([+-]\d+)*$/.test(limpia) || /^[+-]?\d+$/.test(limpia);
       },
-      makeRollDescriptors: async (rollStr: string): Promise<any[]> => {
+      makeRollDescriptors: async (rollStr: string): Promise<unknown[]> => {
         // En TaleSpire, makeRollDescriptors divide por "/" los subgrupos
         const grupos = rollStr.split("/");
         return grupos.map((g) => {
@@ -240,22 +250,25 @@ export function inicializarSimulador(): void {
           return { name: "Tirada", roll: g.trim() };
         });
       },
-      parseRollString: async (rollStr: string): Promise<any[]> => {
+      parseRollString: async (rollStr: string): Promise<unknown[]> => {
         return [{ caras: 20, formula: rollStr }];
       },
-      evaluateDiceResultsGroup: async (group: any): Promise<number> => {
-        if (!group || !group.result) return 0;
-        return typeof group.result.total === "number" ? group.result.total : 0;
+      evaluateDiceResultsGroup: async (group: unknown): Promise<number> => {
+        if (!group || typeof group !== "object") return 0;
+        const gObj = group as Record<string, { total?: number }>;
+        if (!gObj.result) return 0;
+        return typeof gObj.result.total === "number" ? gObj.result.total : 0;
       },
-      sendDiceResult: async (groups: any[], rollId: string): Promise<void> => {
+      sendDiceResult: async (groups: unknown[], rollId: string): Promise<void> => {
         console.log(
           `%c🎲 [TS Chat Dice Card - ${rollId}] %cENVIADO AL CHAT:`,
           "background: #1e1e2e; color: #a6e3a1; font-weight: bold; padding: 4px; border-radius: 4px;",
           "color: #cdd6f4; font-weight: bold;"
         );
-        groups.forEach((g: any) => {
+        groups.forEach((g) => {
+          const gObj = g as Record<string, { total?: number } & { name?: string; description?: string }>;
           console.log(
-            `  %c↳ %c${g.name}: %c${g.result.total} %c(${g.description || "Tirada"})`,
+            `  %c↳ %c${gObj.name}: %c${gObj.result?.total} %c(${gObj.description || "Tirada"})`,
             "color: #a6e3a1; font-weight: bold;",
             "color: #cdd6f4; font-weight: bold;",
             "color: #f9e2af; font-weight: bold; font-size: 1.1em;",
@@ -263,7 +276,7 @@ export function inicializarSimulador(): void {
           );
         });
       },
-      putDiceInTray: async (descriptors: any[], silenceDefaultChatCard: boolean = false): Promise<string> => {
+      putDiceInTray: async (descriptors: unknown[], silenceDefaultChatCard: boolean = false): Promise<string> => {
         const mockRollId = `roll_mock_${Date.now()}`;
         console.log(
           `%c[Simulador TS Dice] Dados colocados en bandeja (MOCK). RollId: ${mockRollId} (Silenciar Chat: ${silenceDefaultChatCard})`,
@@ -276,9 +289,10 @@ export function inicializarSimulador(): void {
           console.log(`%c[Simulador TS Dice] Dados se detuvieron. Generando resultados Groups...`, "color: #fab387;");
           
           // Construir grupos de resultados realistas a partir de los descriptores
-          const resultsGroups = descriptors.map((desc: any) => {
-            const name = desc.name;
-            const formula = desc.roll;
+          const resultsGroups = descriptors.map((desc) => {
+            const descObj = desc as Record<string, string>;
+            const name = descObj.name;
+            const formula = descObj.roll;
             
             let total = 0;
             let faces = 20;
@@ -323,9 +337,9 @@ export function inicializarSimulador(): void {
           canalEventos.disparar("resultadosDados", rollEvent);
           
           // Llamar directamente al callback global de main.tsx si existe
-          const windowAlias = window as any;
+          const windowAlias = window as unknown as Record<string, unknown>;
           if (typeof windowAlias.manejarResultadosDados === "function") {
-            windowAlias.manejarResultadosDados(rollEvent);
+            (windowAlias.manejarResultadosDados as (ev: unknown) => void)(rollEvent);
           }
           
           // Si no está silenciada, simulamos que TaleSpire publica de forma nativa la tarjeta
@@ -335,8 +349,9 @@ export function inicializarSimulador(): void {
               "background: #1e1e2e; color: #89b4fa; font-weight: bold; padding: 4px; border-radius: 4px;",
               "color: #cdd6f4;"
             );
-            resultsGroups.forEach((g: any) => {
-              console.log(`  %c↳ %c${g.name}: %c${g.result.total}`, "color: #89b4fa; font-weight: bold;", "color: #cdd6f4;", "color: #f9e2af; font-weight: bold;");
+            resultsGroups.forEach((g) => {
+              const gObj = g as Record<string, { total?: number } & { name?: string }>;
+              console.log(`  %c↳ %c${gObj.name}: %c${gObj.result?.total}`, "color: #89b4fa; font-weight: bold;", "color: #cdd6f4;", "color: #f9e2af; font-weight: bold;");
             });
           }
         }, 1000);

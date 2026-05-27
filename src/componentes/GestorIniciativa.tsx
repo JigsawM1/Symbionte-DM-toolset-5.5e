@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { usarAlmacenDM, CriaturaIniciativa } from "../almacen/usarAlmacenDM";
+import { usarAlmacenDM, CriaturaIniciativa, HechizoBase } from "../almacen/usarAlmacenDM";
 import { MonstruoBase } from "../utiles/datosIniciales";
 import { lanzarDadosTaleSpire, sanitizarEtiqueta } from "../utiles/lanzadorDados";
 import { ModalDetalleHechizo } from "./ModalDetalleHechizo";
@@ -10,25 +10,23 @@ import { Activity, FileText, X } from "lucide-react";
 import estilosClases from "./GestorIniciativa.module.css";
 
 export const GestorIniciativa: React.FC = () => {
-  const {
-    colaIniciativa,
-    indiceTurnoActivo,
-    baseDatosMonstruos,
-    baseDatosHechizos,
-    quitarCriaturaDeIniciativa,
-    modificarVidaCriaturaIniciativa,
-    actualizarVidaTemporal,
-    asociarPlantillaACriatura,
-    quitarCondicionDeCriatura,
-    agregarCondicionACriatura,
-    agregarEfectoACriatura,
-    quitarEfectoDeCriatura,
-    importarIniciativaTaleSpire
-  } = usarAlmacenDM();
+  const colaIniciativa = usarAlmacenDM((s) => s.colaIniciativa);
+  const indiceTurnoActivo = usarAlmacenDM((s) => s.indiceTurnoActivo);
+  const baseDatosMonstruos = usarAlmacenDM((s) => s.baseDatosMonstruos);
+  const baseDatosHechizos = usarAlmacenDM((s) => s.baseDatosHechizos);
+  const quitarCriaturaDeIniciativa = usarAlmacenDM((s) => s.quitarCriaturaDeIniciativa);
+  const modificarVidaCriaturaIniciativa = usarAlmacenDM((s) => s.modificarVidaCriaturaIniciativa);
+  const actualizarVidaTemporal = usarAlmacenDM((s) => s.actualizarVidaTemporal);
+  const asociarPlantillaACriatura = usarAlmacenDM((s) => s.asociarPlantillaACriatura);
+  const quitarCondicionDeCriatura = usarAlmacenDM((s) => s.quitarCondicionDeCriatura);
+  const agregarCondicionACriatura = usarAlmacenDM((s) => s.agregarCondicionACriatura);
+  const agregarEfectoACriatura = usarAlmacenDM((s) => s.agregarEfectoACriatura);
+  const quitarEfectoDeCriatura = usarAlmacenDM((s) => s.quitarEfectoDeCriatura);
+  const importarIniciativaTaleSpire = usarAlmacenDM((s) => s.importarIniciativaTaleSpire);
 
   // Estados locales
   const [idCriaturaDetalle, setIdCriaturaDetalle] = useState<string | null>(null);
-  const [hechizoFlotanteDetalle, setHechizoFlotanteDetalle] = useState<any | null>(null);
+  const [hechizoFlotanteDetalle, setHechizoFlotanteDetalle] = useState<HechizoBase | null>(null);
 
   // Buscar plantilla de estadísticas para una criatura
   const obtenerPlantillaAsociada = (criatura: CriaturaIniciativa): MonstruoBase | null => {
@@ -76,8 +74,8 @@ export const GestorIniciativa: React.FC = () => {
   const aplicarCuracion = (id: string, actual: number, maximo: number, valor: number) => {
     const nuevaVida = Math.min(maximo, actual + valor);
     modificarVidaCriaturaIniciativa(id, nuevaVida);
-    if ((window as any).TS) {
-      (window as any).TS.debug.log(`[Combat Tracker] Curación aplicada a la criatura ${id}: ${actual} -> ${nuevaVida}`);
+    if (window.TS) {
+      window.TS.debug?.log(`[Combat Tracker] Curación aplicada a la criatura ${id}: ${actual} -> ${nuevaVida}`);
     }
   };
 

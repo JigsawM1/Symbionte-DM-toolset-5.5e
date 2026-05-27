@@ -53,7 +53,7 @@ export const ConsolaCriticosPifias: React.FC = () => {
     // Inyección automática al chat nativo de TaleSpire
     const mensajeFormateado = efectoStr;
 
-    const ts = (window as any).TS;
+    const ts = window.TS;
     if (ts && ts.chat && typeof ts.chat.send === "function") {
       try {
         await ts.chat.send(mensajeFormateado, "board");
@@ -80,7 +80,7 @@ export const ConsolaCriticosPifias: React.FC = () => {
     
     const mensajeFormateado = resultadoConsola.resultado;
 
-    const ts = (window as any).TS;
+    const ts = window.TS;
     if (ts && ts.chat && typeof ts.chat.send === "function") {
       try {
         await ts.chat.send(mensajeFormateado, "board");

@@ -14,7 +14,11 @@ import {
 import estilosClases from "./BarraSuperior.module.css";
 
 export const BarraSuperior: React.FC = () => {
-  const { pestañaActiva, establecerPestaña, campañaNombre, modoHomebrew, establecerModoHomebrew } = usarAlmacenDM();
+  const pestañaActiva = usarAlmacenDM((s) => s.pestañaActiva);
+  const establecerPestaña = usarAlmacenDM((s) => s.establecerPestaña);
+  const campañaNombre = usarAlmacenDM((s) => s.campañaNombre);
+  const modoHomebrew = usarAlmacenDM((s) => s.modoHomebrew);
+  const establecerModoHomebrew = usarAlmacenDM((s) => s.establecerModoHomebrew);
   const [mostrarMenuHomebrew, setMostrarMenuHomebrew] = useState(false);
 
   return (

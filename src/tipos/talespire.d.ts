@@ -7,9 +7,9 @@ export interface Suscribible<T> {
 }
 
 export interface TSLocalStorageBlob {
-  setBlob: (data: string) => Promise<any>;
-  getBlob: () => Promise<any>;
-  deleteBlob?: () => Promise<any>;
+  setBlob: (data: string) => Promise<unknown>;
+  getBlob: () => Promise<unknown>;
+  deleteBlob?: () => Promise<unknown>;
 }
 
 export interface TSLocalStorage {
@@ -20,10 +20,10 @@ export interface TSLocalStorage {
 export interface TaleSpireAPI {
   dice: {
     isValidRollString: (rollStr: string) => boolean;
-    makeRollDescriptors: (rollStr: string) => Promise<any[]>;
-    putDiceInTray: (descriptors: any[], silenceDefaultChatCard?: boolean) => Promise<string>;
-    evaluateDiceResultsGroup: (group: any) => Promise<number>;
-    sendDiceResult: (groups: any[], rollId: string) => Promise<void>;
+    makeRollDescriptors: (rollStr: string) => Promise<unknown[]>;
+    putDiceInTray: (descriptors: unknown[], silenceDefaultChatCard?: boolean) => Promise<string>;
+    evaluateDiceResultsGroup: (group: unknown) => Promise<number>;
+    sendDiceResult: (groups: unknown[], rollId: string) => Promise<void>;
   };
   chat?: {
     send: (message: string, target?: string) => Promise<boolean>;
@@ -32,14 +32,14 @@ export interface TaleSpireAPI {
     log: (msg: string) => void;
   };
   creatures?: {
-    onCreatureSelectionChange?: Suscribible<any[]>;
-    getSelectedCreatures?: () => Promise<any[]>;
+    onCreatureSelectionChange?: Suscribible<unknown[]>;
+    getSelectedCreatures?: () => Promise<unknown[]>;
   };
   initiative?: {
     onInitiativeEvent?: Suscribible<void>;
-    getQueue?: () => Promise<any>;
-    nextTurn?: () => Promise<any>;
-    prevTurn?: () => Promise<any>;
+    getQueue?: () => Promise<unknown>;
+    nextTurn?: () => Promise<unknown>;
+    prevTurn?: () => Promise<unknown>;
   };
   campaigns?: {
     whereAmI?: () => Promise<{
@@ -54,11 +54,11 @@ export interface TaleSpireAPI {
 declare global {
   interface Window {
     TS?: TaleSpireAPI;
-    manejarCambioEstadoSimbionte?: (evento: any) => void;
+    manejarCambioEstadoSimbionte?: (evento: unknown) => void;
     initiativeUpdated?: () => void;
     manejarEventoIniciativa?: () => void;
-    manejarCambioEstadoCriatura?: (evento: any) => void;
-    manejarCambioSeleccionCriatura?: (evento: any) => void;
-    manejarResultadosDados?: (resultados: any) => Promise<void>;
+    manejarCambioEstadoCriatura?: (evento: unknown) => void;
+    manejarCambioSeleccionCriatura?: (evento: unknown) => void;
+    manejarResultadosDados?: (resultados: unknown) => Promise<void>;
   }
 }

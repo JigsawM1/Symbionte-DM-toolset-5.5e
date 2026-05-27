@@ -2,7 +2,7 @@ import { useState } from "react";
 import { usarAlmacenDM, ObjetoHomebrew } from "../almacen/usarAlmacenDM";
 
 export function usarFormularioObjeto(idEnEdicion: string | null, alGuardarExitoso: () => void) {
-  const { agregarObjetoHomebrew, actualizarObjetoHomebrew } = usarAlmacenDM();
+  const { agregarObjetoHomebrew, actualizarObjetoHomebrew, agregarNotificacion } = usarAlmacenDM();
 
   const [oNombre, setONombre] = useState("");
   const [oRareza, setORareza] = useState("Común");
@@ -87,7 +87,7 @@ export function usarFormularioObjeto(idEnEdicion: string | null, alGuardarExitos
   const manejarGuardarObjeto = (e: React.FormEvent) => {
     e.preventDefault();
     if (!oNombre.trim()) {
-      alert("El nombre del objeto es requerido");
+      agregarNotificacion("El nombre del objeto es requerido", "advertencia");
       return;
     }
 
@@ -128,10 +128,10 @@ export function usarFormularioObjeto(idEnEdicion: string | null, alGuardarExitos
 
     if (idEnEdicion) {
       actualizarObjetoHomebrew(idEnEdicion, payload);
-      alert("¡Objeto Homebrew actualizado con éxito!");
+      agregarNotificacion("¡Objeto Homebrew actualizado con éxito!", "exito");
     } else {
       agregarObjetoHomebrew(payload);
-      alert("¡Objeto Homebrew guardado con éxito!");
+      agregarNotificacion("¡Objeto Homebrew guardado con éxito!", "exito");
     }
 
     limpiarFormulario();

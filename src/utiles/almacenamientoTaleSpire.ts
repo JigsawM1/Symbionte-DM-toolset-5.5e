@@ -104,7 +104,7 @@ export async function leerBlobGlobal(): Promise<Record<string, unknown> | null> 
     }
 
     // 2. Si es un objeto que contiene .data (firma documentada teórica) o .result
-    const obj = resultado as any;
+    const obj = resultado as Record<string, unknown>;
     if (obj.result === "ok" && typeof obj.data === "string") {
       try {
         return JSON.parse(obj.data) as Record<string, unknown>;

@@ -1,14 +1,14 @@
 import React from "react";
 import { Swords } from "lucide-react";
-import { MonstruoBase } from "../../utiles/datosIniciales";
+import { MonstruoBase, HechizoBase } from "../../tipos";
 import { procesarTextoFicha } from "./procesadorTexto";
 import estilosClases from "./PanelFichaDnD.module.css";
 
 interface PanelFichaDnDProps {
   criaturaNombre: string;
   plantilla: MonstruoBase;
-  baseDatosHechizos: any[];
-  alHacerClicHechizo: (hechizo: any) => void;
+  baseDatosHechizos: HechizoBase[];
+  alHacerClicHechizo: (hechizo: HechizoBase) => void;
   lanzarAtaqueRapido: (
     criaturaNombre: string,
     ataqueNombre: string,

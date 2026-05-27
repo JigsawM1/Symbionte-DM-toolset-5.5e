@@ -1,7 +1,6 @@
 import { StateCreator } from 'zustand';
 import { CriaturaIniciativa, EfectoActivo } from '../usarAlmacenDM';
 import { calcularVidaPorDados } from '../sanitizacion';
-import { persistirEstadoCompleto } from '../persistencia';
 import type { EstadoDM } from '../usarAlmacenDM';
 
 export interface CriaturaSeleccionadaTS {
@@ -75,15 +74,11 @@ export const crearSliceIniciativa: StateCreator<
 
   avanzarRonda: () => set((state) => {
     const nuevaRonda = state.rondaActual + 1;
-    const nuevoEstado = { ...state, rondaActual: nuevaRonda };
-    persistirEstadoCompleto(nuevoEstado);
     return { rondaActual: nuevaRonda };
   }),
   
   retrocederRonda: () => set((state) => {
     const nuevaRonda = Math.max(1, state.rondaActual - 1);
-    const nuevoEstado = { ...state, rondaActual: nuevaRonda };
-    persistirEstadoCompleto(nuevoEstado);
     return { rondaActual: nuevaRonda };
   }),
 
@@ -115,8 +110,6 @@ export const crearSliceIniciativa: StateCreator<
       });
     }
 
-    const nuevoEstado = { ...state, colaIniciativa: nuevaCola, indiceTurnoActivo: nuevoIndice, rondaActual: nuevaRonda };
-    persistirEstadoCompleto(nuevoEstado);
     return { colaIniciativa: nuevaCola, indiceTurnoActivo: nuevoIndice, rondaActual: nuevaRonda };
   }),
 
@@ -137,36 +130,35 @@ export const crearSliceIniciativa: StateCreator<
       });
     }
 
-    const nuevoEstado = { ...state, indiceTurnoActivo: nuevoIndice, rondaActual: nuevaRonda };
-    persistirEstadoCompleto(nuevoEstado);
     return { indiceTurnoActivo: nuevoIndice, rondaActual: nuevaRonda };
   }),
 
   actualizarColaIniciativaDesdeTaleSpire: (colaTS: unknown) => set((state) => {
-    const normalizarColaTaleSpire = (datosCola: any): CriaturaNativaTS[] => {
+    const normalizarColaTaleSpire = (datosCola: unknown): CriaturaNativaTS[] => {
       if (!datosCola) return [];
-      if (Array.isArray(datosCola)) return datosCola;
+      if (Array.isArray(datosCola)) return datosCola as CriaturaNativaTS[];
       
       console.log("[TaleSpire Simbionte] Normalizando cola recibida:", typeof datosCola, datosCola);
       
+      const datosColaObj = datosCola as Record<string, unknown>;
       const llavesCandidatas = ["queue", "entries", "items", "data", "list"];
       for (const llave of llavesCandidatas) {
-        if (Array.isArray(datosCola[llave])) {
-          return datosCola[llave];
+        if (Array.isArray(datosColaObj[llave])) {
+          return datosColaObj[llave] as CriaturaNativaTS[];
         }
       }
       
-      if (typeof datosCola[Symbol.iterator] === "function") {
+      if (typeof (datosCola as Record<symbol, unknown>)[Symbol.iterator] === "function") {
         try {
-          return Array.from(datosCola);
+          return Array.from(datosCola as Iterable<CriaturaNativaTS>);
         } catch (e) {
           console.error("[TaleSpire Simbionte] Error al iterar cola:", e);
         }
       }
       
-      for (const llave in datosCola) {
-        if (Object.prototype.hasOwnProperty.call(datosCola, llave) && Array.isArray(datosCola[llave])) {
-          return datosCola[llave];
+      for (const llave in datosColaObj) {
+        if (Object.prototype.hasOwnProperty.call(datosColaObj, llave) && Array.isArray(datosColaObj[llave])) {
+          return datosColaObj[llave] as CriaturaNativaTS[];
         }
       }
       
@@ -246,7 +238,7 @@ export const crearSliceIniciativa: StateCreator<
 
     if (colaTS && typeof colaTS === "object" && !Array.isArray(colaTS)) {
       let activeTurnId: string | null = null;
-      const colaTSObj = colaTS as Record<string, any>;
+      const colaTSObj = colaTS as Record<string, unknown>;
       const indiceActivoNativo = colaTSObj.activeItemIndex !== undefined ? colaTSObj.activeItemIndex : colaTSObj.activeTurn;
 
       console.log("[TaleSpire Sincronismo] Leyendo turno activo nativo:", indiceActivoNativo, "de la cola:", colaFiltradaTS);
@@ -300,14 +292,6 @@ export const crearSliceIniciativa: StateCreator<
       }
     }
 
-    const nuevoEstado = {
-      ...state,
-      colaIniciativa: colaCombinada,
-      indiceTurnoActivo: nuevoIndice,
-      rondaActual: nuevaRonda
-    };
-    persistirEstadoCompleto(nuevoEstado);
-
     return {
       colaIniciativa: colaCombinada,
       indiceTurnoActivo: nuevoIndice,
@@ -347,7 +331,6 @@ export const crearSliceIniciativa: StateCreator<
     };
     const nuevaCola = [...state.colaIniciativa, nuevaCriatura];
     nuevaCola.sort((a, b) => b.iniciativa - a.iniciativa);
-    persistirEstadoCompleto({ ...state, colaIniciativa: nuevaCola });
     return { colaIniciativa: nuevaCola };
   }),
 
@@ -357,7 +340,6 @@ export const crearSliceIniciativa: StateCreator<
     if (nuevoIndice >= nuevaCola.length && nuevaCola.length > 0) {
       nuevoIndice = nuevaCola.length - 1;
     }
-    persistirEstadoCompleto({ ...state, colaIniciativa: nuevaCola, indiceTurnoActivo: nuevoIndice });
     return { colaIniciativa: nuevaCola, indiceTurnoActivo: nuevoIndice };
   }),
 
@@ -368,7 +350,6 @@ export const crearSliceIniciativa: StateCreator<
       }
       return c;
     });
-    persistirEstadoCompleto({ ...state, colaIniciativa: nuevaCola });
     return { colaIniciativa: nuevaCola };
   }),
 
@@ -400,7 +381,6 @@ export const crearSliceIniciativa: StateCreator<
       }
       return c;
     });
-    persistirEstadoCompleto({ ...state, colaIniciativa: nuevaCola });
     return { colaIniciativa: nuevaCola };
   }),
 
@@ -411,7 +391,6 @@ export const crearSliceIniciativa: StateCreator<
       }
       return c;
     });
-    persistirEstadoCompleto({ ...state, colaIniciativa: nuevaCola });
     return { colaIniciativa: nuevaCola };
   }),
 
@@ -428,7 +407,6 @@ export const crearSliceIniciativa: StateCreator<
       }
       return c;
     });
-    persistirEstadoCompleto({ ...state, colaIniciativa: nuevaCola });
     return { colaIniciativa: nuevaCola };
   }),
 
@@ -440,7 +418,6 @@ export const crearSliceIniciativa: StateCreator<
       }
       return c;
     });
-    persistirEstadoCompleto({ ...state, colaIniciativa: nuevaCola });
     return { colaIniciativa: nuevaCola };
   }),
 
@@ -469,7 +446,6 @@ export const crearSliceIniciativa: StateCreator<
       }
       return c;
     });
-    persistirEstadoCompleto({ ...state, colaIniciativa: nuevaCola });
     return { colaIniciativa: nuevaCola };
   }),
 
@@ -480,20 +456,16 @@ export const crearSliceIniciativa: StateCreator<
       }
       return c;
     });
-    persistirEstadoCompleto({ ...state, colaIniciativa: nuevaCola });
     return { colaIniciativa: nuevaCola };
   }),
 
   limpiarIniciativa: () => {
-    const s = get();
-    persistirEstadoCompleto({ ...s, colaIniciativa: [], indiceTurnoActivo: 0, rondaActual: 1 });
     set({ colaIniciativa: [], indiceTurnoActivo: 0, rondaActual: 1 });
   },
 
   ordenarIniciativa: () => set((state) => {
     const nuevaCola = [...state.colaIniciativa];
     nuevaCola.sort((a, b) => b.iniciativa - a.iniciativa);
-    persistirEstadoCompleto({ ...state, colaIniciativa: nuevaCola, indiceTurnoActivo: 0 });
     return { colaIniciativa: nuevaCola, indiceTurnoActivo: 0 };
   }),
 
@@ -507,7 +479,6 @@ export const crearSliceIniciativa: StateCreator<
       return c;
     });
     nuevaCola.sort((a, b) => b.iniciativa - a.iniciativa);
-    persistirEstadoCompleto({ ...state, colaIniciativa: nuevaCola, indiceTurnoActivo: 0 });
     return { colaIniciativa: nuevaCola, indiceTurnoActivo: 0 };
   }),
 
@@ -572,7 +543,7 @@ export const crearSliceIniciativa: StateCreator<
 
     const colaCombinada = [...state.colaIniciativa, ...nuevasCriaturas];
     colaCombinada.sort((a, b) => b.iniciativa - a.iniciativa);
-    persistirEstadoCompleto({ ...state, colaIniciativa: colaCombinada });
     return { colaIniciativa: colaCombinada };
   })
 });
+

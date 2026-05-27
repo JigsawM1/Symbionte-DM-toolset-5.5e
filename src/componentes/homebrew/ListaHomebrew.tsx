@@ -32,14 +32,12 @@ export const ListaHomebrew: React.FC<Props> = ({
   cancelarEdicion,
   idEnEdicion
 }) => {
-  const {
-    baseDatosMonstruos,
-    baseDatosHechizos,
-    objetosHomebrew,
-    eliminarMonstruoHomebrew,
-    eliminarHechizoHomebrew,
-    eliminarObjetoHomebrew
-  } = usarAlmacenDM();
+  const baseDatosMonstruos = usarAlmacenDM((s) => s.baseDatosMonstruos);
+  const baseDatosHechizos = usarAlmacenDM((s) => s.baseDatosHechizos);
+  const objetosHomebrew = usarAlmacenDM((s) => s.objetosHomebrew);
+  const eliminarMonstruoHomebrew = usarAlmacenDM((s) => s.eliminarMonstruoHomebrew);
+  const eliminarHechizoHomebrew = usarAlmacenDM((s) => s.eliminarHechizoHomebrew);
+  const eliminarObjetoHomebrew = usarAlmacenDM((s) => s.eliminarObjetoHomebrew);
 
   const [filtroBusqueda, setFiltroBusqueda] = useState("");
   const [idHechizoDetalleCreador, setIdHechizoDetalleCreador] = useState<string | null>(null);
@@ -518,7 +516,7 @@ export const ListaHomebrew: React.FC<Props> = ({
                 <div className={estilos.seccionDescripcionFichaMargenGrande}>
                   <div className={estilos.descripcionTituloFicha}>BONOS MÁGICOS Y MEJORAS ACTIVAS</div>
                   <div className={estilos.listaBonosMagicos}>
-                    {objeto.bonosMagicos.map((bono: any, idx: number) => (
+                    {objeto.bonosMagicos.map((bono, idx: number) => (
                       <div key={idx} className={estilos.cajaBonoMagico}>
                         <span className={estilos.textoEtiquetaMecanica}>
                           {bono.categoria} {bono.bono ? `(${bono.bono})` : ""}

@@ -1,4 +1,4 @@
-import { create } from "zustand";
+import { create, StateCreator } from "zustand";
 import { crearSliceIniciativa, SliceIniciativa } from "./slices/sliceIniciativa";
 import { crearSliceHomebrew, SliceHomebrew } from "./slices/sliceHomebrew";
 import { crearSliceConfiguracion, SliceConfiguracion } from "./slices/sliceConfiguracion";
@@ -45,11 +45,62 @@ export interface EncuentroGuardado {
   fecha: string;
 }
 
+export interface NotificacionUI {
+  id: string;
+  mensaje: string;
+  tipo: "exito" | "error" | "info" | "advertencia";
+}
+
+import { persistirEstadoCompleto } from "./persistencia";
+
 // Interfaz del Estado combinando todos los Slices para TypeScript estricto
 export interface EstadoDM extends SliceIniciativa, SliceHomebrew, SliceConfiguracion {}
 
-export const usarAlmacenDM = create<EstadoDM>()((...a) => ({
-  ...crearSliceIniciativa(...a),
-  ...crearSliceHomebrew(...a),
-  ...crearSliceConfiguracion(...a)
-}));
+const CLAVES_PERSISTIBLES: (keyof EstadoDM)[] = [
+  "colaIniciativa",
+  "indiceTurnoActivo",
+  "rondaActual",
+  "baseDatosMonstruos",
+  "baseDatosHechizos",
+  "objetosHomebrew",
+  "metodoVidaMonstruo",
+  "listaPendientes",
+  "notasDM",
+  "encuentrosGuardados"
+];
+
+type PersistenciaMiddleware = (
+  configuradorStore: StateCreator<EstadoDM, [], []>
+) => StateCreator<EstadoDM, [], []>;
+
+const persistenciaMiddleware: PersistenciaMiddleware = (configuradorStore) => (set, get, api) => {
+  const nuevoSet: typeof set = (...args) => {
+    const estadoPrevio = { ...get() };
+    set(...args);
+    const estadoNuevo = get();
+
+    // Si está cargando datos persistidos o restableciendo de fábrica, ignoramos la persistencia instantánea para evitar I/O redundante
+    if (estadoNuevo.cargandoDatos) {
+      return;
+    }
+
+    const haCambiado = CLAVES_PERSISTIBLES.some(
+      (clave) => estadoPrevio[clave] !== estadoNuevo[clave]
+    );
+
+    if (haCambiado) {
+      persistirEstadoCompleto(estadoNuevo);
+    }
+  };
+
+  return configuradorStore(nuevoSet, get, api);
+};
+
+export const usarAlmacenDM = create<EstadoDM>()(
+  persistenciaMiddleware((set, get, api) => ({
+    ...crearSliceIniciativa(set, get, api),
+    ...crearSliceHomebrew(set, get, api),
+    ...crearSliceConfiguracion(set, get, api)
+  }))
+);
+

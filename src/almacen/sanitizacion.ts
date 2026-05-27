@@ -1,7 +1,7 @@
 import { HechizoBase, ObjetoHomebrew } from '../tipos';
 
 // Función auxiliar robusta para aplanar de forma segura cualquier estructura a string (previene error #31 de React)
-export function aplanarValor(val: any): string {
+export function aplanarValor(val: unknown): string {
   if (val === null || val === undefined) return "";
   if (typeof val === "string") return val.trim();
   if (typeof val === "number" || typeof val === "boolean") return String(val);
@@ -9,59 +9,65 @@ export function aplanarValor(val: any): string {
     if (Array.isArray(val)) {
       return val.map(aplanarValor).filter(Boolean).join("\n");
     }
-    if (val.nombre !== undefined) return aplanarValor(val.nombre);
-    if (val.name !== undefined) return aplanarValor(val.name);
-    if (val.index !== undefined) return aplanarValor(val.index);
-    const keys = Object.keys(val);
+    const valObj = val as Record<string, unknown>;
+    if (valObj.nombre !== undefined) return aplanarValor(valObj.nombre);
+    if (valObj.name !== undefined) return aplanarValor(valObj.name);
+    if (valObj.index !== undefined) return aplanarValor(valObj.index);
+    const keys = Object.keys(valObj);
     if (keys.length > 0) {
       for (const k of keys) {
-        if (typeof val[k] === "string") return val[k].trim();
+        if (typeof valObj[k] === "string") return (valObj[k] as string).trim();
       }
-      return aplanarValor(val[keys[0]]);
+      return aplanarValor(valObj[keys[0]]);
     }
   }
   return "";
 }
 
-export function sanearObjetoHomebrew(o: any): ObjetoHomebrew {
-  if (!o) {
+export function sanearObjetoHomebrew(o: unknown): ObjetoHomebrew {
+  if (!o || typeof o !== "object") {
     return { id: "", nombre: "Objeto Desconocido", rareza: "Común", propiedades: "Ninguna", descripcion: "Sin descripción." };
   }
   
+  const obj = o as Record<string, unknown>;
+  
   // Saneamiento de propiedades complejas opcionales para evitar React error #31
-  let bonosMagicosSaneados: any[] | undefined = undefined;
-  if (Array.isArray(o.bonosMagicos)) {
-    bonosMagicosSaneados = o.bonosMagicos.map((b: any) => ({
-      categoria: aplanarValor(b.categoria || b.category || "OTRO"),
-      bono: aplanarValor(b.bono || b.bonus || ""),
-      valor: Number(b.valor || b.value) || 0
-    }));
+  let bonosMagicosSaneados: { categoria: string; bono: string; valor: number }[] | undefined = undefined;
+  if (Array.isArray(obj.bonosMagicos)) {
+    bonosMagicosSaneados = obj.bonosMagicos.map((b) => {
+      const bObj = (b && typeof b === "object" ? b : {}) as Record<string, unknown>;
+      return {
+        categoria: aplanarValor(bObj.categoria || bObj.category || "OTRO"),
+        bono: aplanarValor(bObj.bono || bObj.bonus || ""),
+        valor: Number(bObj.valor || bObj.value) || 0
+      };
+    });
   }
 
   let propiedadesArmaSaneadas: string[] | undefined = undefined;
-  if (Array.isArray(o.propiedadesArma)) {
-    propiedadesArmaSaneadas = o.propiedadesArma.map(aplanarValor);
+  if (Array.isArray(obj.propiedadesArma)) {
+    propiedadesArmaSaneadas = obj.propiedadesArma.map(aplanarValor);
   }
 
   return {
-    id: aplanarValor(o.id || o.index || `o_${Date.now()}_${Math.random()}`).trim(),
-    nombre: aplanarValor(o.nombre || o.name || "Objeto Desconocido"),
-    rareza: aplanarValor(o.rareza || o.rarity || "Común"),
-    propiedades: aplanarValor(o.propiedades || "Ninguna"),
-    descripcion: aplanarValor(o.descripcion || o.desc || o.description || "Sin descripción disponible."),
+    id: aplanarValor(obj.id || obj.index || `o_${Date.now()}_${Math.random()}`).trim(),
+    nombre: aplanarValor(obj.nombre || obj.name || "Objeto Desconocido"),
+    rareza: aplanarValor(obj.rareza || obj.rarity || "Común"),
+    propiedades: aplanarValor(obj.propiedades || "Ninguna"),
+    descripcion: aplanarValor(obj.descripcion || obj.desc || obj.description || "Sin descripción disponible."),
     
-    categoria: o.categoria ? aplanarValor(o.categoria) : undefined,
-    costoValor: o.costoValor !== undefined ? (Number(o.costoValor) || 0) : undefined,
-    costoUnidad: o.costoUnidad ? aplanarValor(o.costoUnidad) : undefined,
-    peso: o.peso ? aplanarValor(o.peso) : undefined,
-    tipoArma: o.tipoArma ? aplanarValor(o.tipoArma) : undefined,
-    estiloAtaque: o.estiloAtaque ? aplanarValor(o.estiloAtaque) : undefined,
-    alcance: o.alcance ? aplanarValor(o.alcance) : undefined,
+    categoria: obj.categoria ? aplanarValor(obj.categoria) : undefined,
+    costoValor: obj.costoValor !== undefined ? (Number(obj.costoValor) || 0) : undefined,
+    costoUnidad: obj.costoUnidad ? aplanarValor(obj.costoUnidad) : undefined,
+    peso: obj.peso ? aplanarValor(obj.peso) : undefined,
+    tipoArma: obj.tipoArma ? aplanarValor(obj.tipoArma) : undefined,
+    estiloAtaque: obj.estiloAtaque ? aplanarValor(obj.estiloAtaque) : undefined,
+    alcance: obj.alcance ? aplanarValor(obj.alcance) : undefined,
     propiedadesArma: propiedadesArmaSaneadas,
-    dadosDaño: o.dadosDaño ? aplanarValor(o.dadosDaño) : undefined,
-    tipoDaño: o.tipoDaño ? aplanarValor(o.tipoDaño) : undefined,
-    bonoAtaque: o.bonoAtaque ? aplanarValor(o.bonoAtaque) : undefined,
-    bonoDaño: o.bonoDaño ? aplanarValor(o.bonoDaño) : undefined,
+    dadosDaño: obj.dadosDaño ? aplanarValor(obj.dadosDaño) : undefined,
+    tipoDaño: obj.tipoDaño ? aplanarValor(obj.tipoDaño) : undefined,
+    bonoAtaque: obj.bonoAtaque ? aplanarValor(obj.bonoAtaque) : undefined,
+    bonoDaño: obj.bonoDaño ? aplanarValor(obj.bonoDaño) : undefined,
     bonosMagicos: bonosMagicosSaneados
   };
 }

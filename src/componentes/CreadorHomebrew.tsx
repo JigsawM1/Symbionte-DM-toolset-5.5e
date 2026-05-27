@@ -10,13 +10,11 @@ import { ListaHomebrew } from "./homebrew/ListaHomebrew";
 import estilos from "./CreadorHomebrew.module.css";
 
 export const CreadorHomebrew: React.FC = () => {
-  const {
-    baseDatosMonstruos,
-    baseDatosHechizos,
-    objetosHomebrew,
-    modoHomebrew,
-    establecerModoHomebrew
-  } = usarAlmacenDM();
+  const baseDatosMonstruos = usarAlmacenDM((s) => s.baseDatosMonstruos);
+  const baseDatosHechizos = usarAlmacenDM((s) => s.baseDatosHechizos);
+  const objetosHomebrew = usarAlmacenDM((s) => s.objetosHomebrew);
+  const modoHomebrew = usarAlmacenDM((s) => s.modoHomebrew);
+  const establecerModoHomebrew = usarAlmacenDM((s) => s.establecerModoHomebrew);
 
   const [tipoHomebrew, setTipoHomebrew] = useState<"criatura" | "hechizo" | "objeto">("criatura");
   const [idEnEdicion, setIdEnEdicion] = useState<string | null>(null);

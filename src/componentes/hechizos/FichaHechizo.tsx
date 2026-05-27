@@ -10,7 +10,7 @@ interface FichaHechizoProps {
   onClose: () => void;
 }
 
-export const FichaHechizo: React.FC<FichaHechizoProps> = ({ hechizo, onClose }) => {
+export const FichaHechizo: React.FC<FichaHechizoProps> = React.memo(({ hechizo, onClose }) => {
   // Inicializar nivel de Upcast con el nivel base del conjuro
   const nivelBase = hechizo.nivel;
   const [nivelLanzamiento, setNivelLanzamiento] = useState<number>(nivelBase > 0 ? nivelBase : 1);
@@ -218,4 +218,4 @@ export const FichaHechizo: React.FC<FichaHechizoProps> = ({ hechizo, onClose }) 
       </div>
     </div>
   );
-};
+});

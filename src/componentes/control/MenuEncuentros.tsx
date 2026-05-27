@@ -4,13 +4,11 @@ import { Save, FolderOpen } from "lucide-react";
 import estilosClases from "./MenuEncuentros.module.css";
 
 export const MenuEncuentros: React.FC = () => {
-  const {
-    colaIniciativa,
-    encuentrosGuardados,
-    guardarEncuentroActual,
-    cargarEncuentro,
-    eliminarEncuentroGuardado
-  } = usarAlmacenDM();
+  const colaIniciativa = usarAlmacenDM((s) => s.colaIniciativa);
+  const encuentrosGuardados = usarAlmacenDM((s) => s.encuentrosGuardados);
+  const guardarEncuentroActual = usarAlmacenDM((s) => s.guardarEncuentroActual);
+  const cargarEncuentro = usarAlmacenDM((s) => s.cargarEncuentro);
+  const eliminarEncuentroGuardado = usarAlmacenDM((s) => s.eliminarEncuentroGuardado);
 
   const [nombreEncuentroNuevo, setNombreEncuentroNuevo] = useState("");
   const [mostrarMenuGuardar, setMostrarMenuGuardar] = useState(false);

@@ -3,7 +3,7 @@ import { usarAlmacenDM } from "../almacen/usarAlmacenDM";
 import { HechizoBase } from "../tipos";
 
 export function usarFormularioHechizo(idEnEdicion: string | null, alGuardarExitoso: () => void) {
-  const { agregarHechizoHomebrew, actualizarHechizoHomebrew } = usarAlmacenDM();
+  const { agregarHechizoHomebrew, actualizarHechizoHomebrew, agregarNotificacion } = usarAlmacenDM();
 
   const [hNombre, setHNombre] = useState("");
   const [hNivel, setHNivel] = useState(1);
@@ -78,7 +78,7 @@ export function usarFormularioHechizo(idEnEdicion: string | null, alGuardarExito
   const manejarGuardarHechizo = (e: React.FormEvent) => {
     e.preventDefault();
     if (!hNombre.trim()) {
-      alert("El nombre del hechizo es requerido");
+      agregarNotificacion("El nombre del hechizo es requerido", "advertencia");
       return;
     }
 
@@ -123,10 +123,10 @@ export function usarFormularioHechizo(idEnEdicion: string | null, alGuardarExito
 
     if (idEnEdicion) {
       actualizarHechizoHomebrew(idEnEdicion, payload);
-      alert("¡Hechizo Homebrew actualizado con éxito!");
+      agregarNotificacion("¡Hechizo Homebrew actualizado con éxito!", "exito");
     } else {
       agregarHechizoHomebrew(payload);
-      alert("¡Hechizo Homebrew guardado con éxito!");
+      agregarNotificacion("¡Hechizo Homebrew guardado con éxito!", "exito");
     }
 
     limpiarFormulario();

@@ -5,15 +5,13 @@ import { MONSTRUOS_INICIALES, HECHIZOS_INICIALES } from "../utiles/datosIniciale
 import estilosClases from "./ConfiguracionDM.module.css";
 
 export const ConfiguracionDM: React.FC = () => {
-  const {
-    baseDatosMonstruos,
-    baseDatosHechizos,
-    objetosHomebrew,
-    importarBaseDatosJSONCompleta,
-    restablecerDatosDeFabrica,
-    metodoVidaMonstruo,
-    establecerMetodoVidaMonstruo
-  } = usarAlmacenDM();
+  const baseDatosMonstruos = usarAlmacenDM((s) => s.baseDatosMonstruos);
+  const baseDatosHechizos = usarAlmacenDM((s) => s.baseDatosHechizos);
+  const objetosHomebrew = usarAlmacenDM((s) => s.objetosHomebrew);
+  const importarBaseDatosJSONCompleta = usarAlmacenDM((s) => s.importarBaseDatosJSONCompleta);
+  const restablecerDatosDeFabrica = usarAlmacenDM((s) => s.restablecerDatosDeFabrica);
+  const metodoVidaMonstruo = usarAlmacenDM((s) => s.metodoVidaMonstruo);
+  const establecerMetodoVidaMonstruo = usarAlmacenDM((s) => s.establecerMetodoVidaMonstruo);
 
   const [estadoImportacion, setEstadoImportacion] = useState<"inactivo" | "exito" | "error">("inactivo");
   const [mensajeError, setMensajeError] = useState("");
@@ -64,9 +62,9 @@ export const ConfiguracionDM: React.FC = () => {
         } else {
           throw new Error("El importador no detectó cambios nuevos o falló el formato interno.");
         }
-      } catch (err: any) {
+      } catch (err: unknown) {
         setEstadoImportacion("error");
-        setMensajeError(err.message || "Error al decodificar y validar el archivo JSON.");
+        setMensajeError(err instanceof Error ? err.message : "Error al decodificar y validar el archivo JSON.");
       }
     };
     lector.readAsText(archivo);

@@ -35,7 +35,7 @@ export const CalculadoraViaje: React.FC = () => {
           <label className={estilosClases.labelForm}>Paso del Viaje:</label>
           <select
             value={pasoViaje}
-            onChange={(e) => setPasoViaje(e.target.value as any)}
+            onChange={(e) => setPasoViaje(e.target.value as "lento" | "normal" | "rapido")}
             className={estilosClases.selectForm}
           >
             <option value="lento">Lento (2 millas/hora)</option>

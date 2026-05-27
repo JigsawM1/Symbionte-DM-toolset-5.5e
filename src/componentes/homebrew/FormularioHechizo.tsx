@@ -24,7 +24,7 @@ export const FormularioHechizo: React.FC<Props> = ({
   alGuardarExitoso,
   cancelarEdicion
 }) => {
-  const { baseDatosHechizos } = usarAlmacenDM();
+  const baseDatosHechizos = usarAlmacenDM((s) => s.baseDatosHechizos);
 
   const {
     hNombre,

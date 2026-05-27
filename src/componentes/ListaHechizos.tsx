@@ -5,7 +5,7 @@ import { FichaHechizo } from "./hechizos/FichaHechizo";
 import estilosClases from "./ListaHechizos.module.css";
 
 export const ListaHechizos: React.FC = () => {
-  const { baseDatosHechizos } = usarAlmacenDM();
+  const baseDatosHechizos = usarAlmacenDM((s) => s.baseDatosHechizos);
 
   const [busqueda, setBusqueda] = useState("");
   const [nivelFiltro, setNivelFiltro] = useState<number | "todos">("todos");

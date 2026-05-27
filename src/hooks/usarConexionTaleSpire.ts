@@ -27,7 +27,7 @@ export function usarConexionTaleSpire() {
         // Conservar las suscripciones inline activas tanto para compatibilidad del simulador local como para redundancia
         if (apiCreatures?.onCreatureSelectionChange) {
           suscripcionSeleccion = apiCreatures.onCreatureSelectionChange.subscribe((seleccion) => {
-            if (activo) actualizarSeleccionCriaturas(seleccion || []);
+            if (activo) actualizarSeleccionCriaturas((seleccion || []) as import("../almacen/slices/sliceIniciativa").CriaturaSeleccionadaTS[]);
           });
         }
 
@@ -53,7 +53,7 @@ export function usarConexionTaleSpire() {
           if (apiCreatures?.getSelectedCreatures) {
             apiCreatures.getSelectedCreatures()
               .then((seleccionInicial) => {
-                if (activo) actualizarSeleccionCriaturas(seleccionInicial || []);
+                if (activo) actualizarSeleccionCriaturas((seleccionInicial || []) as import("../almacen/slices/sliceIniciativa").CriaturaSeleccionadaTS[]);
               })
               .catch((e: unknown) => {
                 console.warn("[TaleSpire Simbionte] Error al obtener selección inicial:", e);

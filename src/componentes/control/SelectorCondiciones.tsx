@@ -4,11 +4,9 @@ import { CONDICIONES_2024 } from "../../utiles/datosIniciales";
 import estilosClases from "./SelectorCondiciones.module.css";
 
 export const SelectorCondiciones: React.FC = () => {
-  const {
-    colaIniciativa,
-    indiceTurnoActivo,
-    agregarCondicionACriatura
-  } = usarAlmacenDM();
+  const colaIniciativa = usarAlmacenDM((s) => s.colaIniciativa);
+  const indiceTurnoActivo = usarAlmacenDM((s) => s.indiceTurnoActivo);
+  const agregarCondicionACriatura = usarAlmacenDM((s) => s.agregarCondicionACriatura);
 
   const [busquedaCondicion, setBusquedaCondicion] = useState("");
   const [mostrarSugerenciasCond, setMostrarSugerenciasCond] = useState(false);

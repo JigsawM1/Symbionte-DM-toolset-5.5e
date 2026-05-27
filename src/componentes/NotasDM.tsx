@@ -4,7 +4,8 @@ import { Save, Trash2, Check, AlertTriangle } from "lucide-react";
 import estilos from "./NotasDM.module.css";
 
 export const NotasDM: React.FC = () => {
-  const { notasDM, guardarNotasDM } = usarAlmacenDM();
+  const notasDM = usarAlmacenDM((s) => s.notasDM);
+  const guardarNotasDM = usarAlmacenDM((s) => s.guardarNotasDM);
   const [textoLocal, setTextoLocal] = useState(notasDM);
   const [estadoGuardado, setEstadoGuardado] = useState<"guardado" | "modificado" | "guardando">("guardado");
   

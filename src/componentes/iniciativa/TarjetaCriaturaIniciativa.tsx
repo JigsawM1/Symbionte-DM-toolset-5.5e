@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Skull, Shield, Trash2, Heart, Swords, X } from "lucide-react";
-import { CriaturaIniciativa } from "../../almacen/usarAlmacenDM";
+import { usarAlmacenDM, CriaturaIniciativa } from "../../almacen/usarAlmacenDM";
 import { MonstruoBase, CONDICIONES_2024, EFECTOS_PREDEFINIDOS } from "../../utiles/datosIniciales";
 import estilosClases from "./TarjetaCriaturaIniciativa.module.css";
 
@@ -22,7 +22,7 @@ interface TarjetaCriaturaIniciativaProps {
   obtenerPercepcionPasiva: (plantilla: MonstruoBase | null) => number;
 }
 
-export const TarjetaCriaturaIniciativa: React.FC<TarjetaCriaturaIniciativaProps> = ({
+export const TarjetaCriaturaIniciativa: React.FC<TarjetaCriaturaIniciativaProps> = React.memo(({
   criatura,
   esTurnoActivo,
   plantilla,
@@ -358,7 +358,7 @@ export const TarjetaCriaturaIniciativa: React.FC<TarjetaCriaturaIniciativaProps>
                       if (!isNaN(dur) && dur > 0) {
                         onAñadirEfecto(nombre, dur);
                       } else {
-                        alert("La duración debe ser un número entero mayor a 0.");
+                        usarAlmacenDM.getState().agregarNotificacion("La duración debe ser un número entero mayor a 0.", "error");
                       }
                     }, 100);
                   }}
@@ -465,4 +465,4 @@ export const TarjetaCriaturaIniciativa: React.FC<TarjetaCriaturaIniciativaProps>
       </button>
     </div>
   );
-};
+});

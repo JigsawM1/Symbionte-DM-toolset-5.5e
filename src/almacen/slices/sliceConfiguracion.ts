@@ -1,11 +1,10 @@
 import { StateCreator } from 'zustand';
-import { ElementoPendiente, EncuentroGuardado, CriaturaIniciativa } from '../usarAlmacenDM';
+import { ElementoPendiente, EncuentroGuardado, CriaturaIniciativa, NotificacionUI } from '../usarAlmacenDM';
 import { MonstruoBase, HechizoBase, ObjetoHomebrew } from '../../tipos';
 import { MONSTRUOS_INICIALES, HECHIZOS_INICIALES } from '../../utiles/datosIniciales';
 import { obtenerDatoFragmentado } from '../../utiles/almacenamientoFragmentos';
 import { leerBlobGlobal, guardarBlobGlobal, limpiarBlobGlobal } from '../../utiles/almacenamientoTaleSpire';
 import { sanearObjetoHomebrew, sanearHechizoCD } from '../sanitizacion';
-import { persistirEstadoCompleto } from '../persistencia';
 import { importarDesdeJSON } from '../importadorJSON';
 import type { EstadoDM } from '../usarAlmacenDM';
 
@@ -18,6 +17,11 @@ export interface SliceConfiguracion {
   listaPendientes: ElementoPendiente[];
   notasDM: string;
   encuentrosGuardados: EncuentroGuardado[];
+  notificaciones: NotificacionUI[];
+  cargandoDatos: boolean;
+
+  agregarNotificacion: (mensaje: string, tipo?: "exito" | "error" | "info" | "advertencia") => void;
+  eliminarNotificacion: (id: string) => void;
 
   establecerPestaña: (pestaña: string) => void;
   establecerModoHomebrew: (modo: "crear" | "lista") => void;
@@ -57,38 +61,50 @@ export const crearSliceConfiguracion: StateCreator<
   ],
   notasDM: "Escribe aquí las notas de tu sesión de D&D 5.5e...",
   encuentrosGuardados: [],
+  notificaciones: [],
+  cargandoDatos: false,
 
   establecerPestaña: (pestaña: string) => set({ pestañaActiva: pestaña }),
   establecerModoHomebrew: (modo: "crear" | "lista") => set({ modoHomebrew: modo }),
   establecerMetodoVidaMonstruo: (metodo: "estandar" | "maximo" | "azar") => {
     set({ metodoVidaMonstruo: metodo });
-    persistirEstadoCompleto(get());
   },
   establecerDatosCampaña: (nombre: string, esGM: boolean) => set({ campañaNombre: nombre, esGM }),
+
+  agregarNotificacion: (mensaje, tipo = "info") => set((state) => {
+    const id = `notif_${Date.now()}_${Math.random().toString(36).substring(2, 5)}`;
+    const nueva: NotificacionUI = { id, mensaje, tipo };
+    
+    // Auto-eliminar después de 4 segundos
+    setTimeout(() => {
+      get().eliminarNotificacion(id);
+    }, 4000);
+    
+    return { notificaciones: [...state.notificaciones, nueva] };
+  }),
+
+  eliminarNotificacion: (id) => set((state) => ({
+    notificaciones: state.notificaciones.filter((n) => n.id !== id)
+  })),
 
   agregarPendiente: (texto: string) => set((state) => {
     const nuevo: ElementoPendiente = { id: `p_local_${Date.now()}`, texto, completado: false };
     const nuevaLista = [...state.listaPendientes, nuevo];
-    persistirEstadoCompleto({ ...state, listaPendientes: nuevaLista });
     return { listaPendientes: nuevaLista };
   }),
 
   alternarPendiente: (id: string) => set((state) => {
     const nuevaLista = state.listaPendientes.map((p) => p.id === id ? { ...p, completado: !p.completado } : p);
-    persistirEstadoCompleto({ ...state, listaPendientes: nuevaLista });
     return { listaPendientes: nuevaLista };
   }),
 
   eliminarPendiente: (id: string) => set((state) => {
     const nuevaLista = state.listaPendientes.filter((p) => p.id !== id);
-    persistirEstadoCompleto({ ...state, listaPendientes: nuevaLista });
     return { listaPendientes: nuevaLista };
   }),
 
-  guardarNotasDM: (notas: string) => set((state) => {
-    persistirEstadoCompleto({ ...state, notasDM: notas });
-    return { notasDM: notas };
-  }),
+  guardarNotasDM: (notas: string) => set({ notasDM: notas }),
+
 
   guardarEncuentroActual: (nombre: string) => {
     const state = get();
@@ -104,7 +120,6 @@ export const crearSliceConfiguracion: StateCreator<
     );
     const nuevosEncuentros = [...encuentrosLimpios, nuevoEncuentro];
     set({ encuentrosGuardados: nuevosEncuentros });
-    persistirEstadoCompleto({ ...state, encuentrosGuardados: nuevosEncuentros });
     return true;
   },
 
@@ -118,14 +133,17 @@ export const crearSliceConfiguracion: StateCreator<
 
   eliminarEncuentroGuardado: (nombre: string) => set((state) => {
     const nuevosEncuentros = state.encuentrosGuardados.filter((e) => e.nombre !== nombre);
-    persistirEstadoCompleto({ ...state, encuentrosGuardados: nuevosEncuentros });
     return { encuentrosGuardados: nuevosEncuentros };
   }),
+
 
   cargarDatosPersistidos: () => {
     const ejecutarCarga = async () => {
       console.log("[TS Storage] Iniciando carga de datos persistidos...");
       const blob = await leerBlobGlobal();
+
+      // Indicamos que estamos cargando datos para que el middleware ignore estos set() intermedios
+      set({ cargandoDatos: true });
 
       if (blob && Object.keys(blob).length > 0) {
         console.log("[TS Storage] ✅ Blob encontrado. Cargando datos desde TS.localStorage.global...");
@@ -173,6 +191,7 @@ export const crearSliceConfiguracion: StateCreator<
         }
 
         console.log("[TS Storage] Carga completa desde blob oficial de TaleSpire.");
+        set({ cargandoDatos: false });
         return;
       }
 
@@ -255,10 +274,13 @@ export const crearSliceConfiguracion: StateCreator<
       } else {
         console.log("[TS Storage] Primera sesión limpia. Comenzando desde cero.");
       }
+      
+      set({ cargandoDatos: false });
     };
 
     ejecutarCarga().catch((error) => {
       console.error("[TS Storage] Error crítico al cargar datos:", error);
+      set({ cargandoDatos: true });
       const monstruosLS = obtenerDatoFragmentado<MonstruoBase[]>("dm_monstruos_homebrew");
       if (monstruosLS && monstruosLS.length > 0) {
         set(() => ({ baseDatosMonstruos: [...MONSTRUOS_INICIALES, ...monstruosLS] }));
@@ -267,6 +289,7 @@ export const crearSliceConfiguracion: StateCreator<
       if (pendientesLS) set({ listaPendientes: pendientesLS });
       const notasLS = localStorage.getItem("dm_notes") || localStorage.getItem("dm_notas");
       if (notasLS !== null) set({ notasDM: notasLS });
+      set({ cargandoDatos: false });
     });
   },
 
@@ -280,12 +303,6 @@ export const crearSliceConfiguracion: StateCreator<
 
     if (result.modificado) {
       set({
-        baseDatosMonstruos: result.baseDatosMonstruos,
-        baseDatosHechizos: result.baseDatosHechizos,
-        objetosHomebrew: result.objetosHomebrew
-      });
-      persistirEstadoCompleto({
-        ...estado,
         baseDatosMonstruos: result.baseDatosMonstruos,
         baseDatosHechizos: result.baseDatosHechizos,
         objetosHomebrew: result.objetosHomebrew
@@ -308,7 +325,9 @@ export const crearSliceConfiguracion: StateCreator<
       localStorage.removeItem("dm_ronda_actual");
       localStorage.removeItem("dm_indice_turno_activo");
       localStorage.removeItem("dm_metodo_vida_monstruo");
-    } catch (_) { /* ignorar errores de LS */ }
+    } catch { /* ignorar errores de LS */ }
+
+    set({ cargandoDatos: true });
 
     set({
       colaIniciativa: [],
@@ -323,23 +342,9 @@ export const crearSliceConfiguracion: StateCreator<
         { id: "p_3", texto: "Hacer tiradas de rumores en la taberna", completado: false }
       ],
       notasDM: "Escribe aquí las notas de tu sesión de D&D 5.5e...",
-      encuentrosGuardados: []
-    });
-
-    persistirEstadoCompleto({
-      colaIniciativa: [],
-      rondaActual: 1,
-      indiceTurnoActivo: 0,
-      baseDatosMonstruos: MONSTRUOS_INICIALES,
-      baseDatosHechizos: HECHIZOS_INICIALES,
-      objetosHomebrew: [],
-      listaPendientes: [
-        { id: "p_1", texto: "Revisar hojas de personaje de los jugadores", completado: false },
-        { id: "p_2", texto: "Preparar encuentro en el puente levadizo", completado: false },
-        { id: "p_3", texto: "Hacer tiradas de rumores en la taberna", completado: false }
-      ],
-      notasDM: "Escribe aquí las notas de tu sesión de D&D 5.5e...",
-      encuentrosGuardados: []
+      encuentrosGuardados: [],
+      cargandoDatos: false
     });
   }
 });
+

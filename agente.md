@@ -972,8 +972,51 @@ Omisión o desatención durante la fase intermedia de refactorización de subcom
 **Lección aprendida:**
 > 🔍 **Auditoría Sistemática Obligatoria (QA):** Nunca des por sentado que una fase de migración a CSS Modules está completa sólo porque los archivos CSS individuales fueron creados. Ejecuta siempre búsquedas automatizadas (`grep`) sobre patrones de estilos (`style={estilos.`) en la fase de QA final para detectar discrepancias u omisiones y asegurar una cobertura de desacoplamiento del 100%.
 
+---
 
+## [2026-05-27] ARQUITECTURA Y FLUJO DE DATOS: Automatización del Flujo con Zustand Middleware y Debounce de Persistencia Asíncrona (Pilar 2 al 100%)
 
+**Síntomas:**
+1. Más de 25 llamadas repetitivas e idénticas a `persistirEstadoCompleto(get())` distribuidas en todos los slices de Zustand, acoplando severamente los slices a la capa de I/O a disco física y dificultando el mantenimiento.
+2. Escrituras repetidas y excesivas de I/O en disco durante la inicialización sincrónica asíncrona de datos desde el blob de TaleSpire.
+3. Renders duplicados en cascada en todos los componentes del compendio al editar notas en vivo (`NotasDM`) o tareas pendientes (`Pendientes`), debido a la desestructuración ciega del store (`const { ... } = usarAlmacenDM()`).
 
+**Causa raíz:**
+1. Falta de un mecanismo centralizado e interceptor de mutaciones en Zustand para la persistencia física (sin una capa de abstracción middleware).
+2. Los slices realizaban mutaciones locales de propiedades persistibles y debían recordar llamar manualmente a la función de guardado a disco en cada acción.
+3. Al no usar selectores de Zustand en el 100% de los componentes visuales de React, cualquier cambio parcial en una sola clave (ej. `notasDM`) forzaba la actualización completa del árbol del DOM en todo el compendio.
 
+**Solución aplicada:**
+1. **Middleware de Persistencia Atómica (`persistenciaMiddleware`):** Diseñado un middleware de Zustand personalizado en `usarAlmacenDM.ts` que intercepta cada llamada a `set()`. Compara por referencia las claves del estado con una lista blanca de propiedades persistibles (`CLAVES_PERSISTIBLES`). Si detecta cambios reales, dispara la persistencia automáticamente de forma transparente para las acciones.
+2. **Desacoplamiento Absoluto:** Purgadas de forma sistemática todas las importaciones y llamadas manuales a `persistirEstadoCompleto(...)` de todos los slices (`sliceIniciativa.ts`, `sliceConfiguracion.ts` y `sliceHomebrew.ts`), simplificándolos a mutadores de estado puros y type-safe.
+3. **Debounce Asíncrono de Persistencia (250ms):** Integrado un temporizador debounce en `persistencia.ts` sobre `guardarBlobGlobal(...)` para agrupar ráfagas rápidas de escritura en disco (mitigando latencia en WebView2 de TaleSpire) y agrupando escrituras parciales.
+4. **Control de Carga Atómica (`cargandoDatos`):** Introducida la bandera temporal `cargandoDatos` para pausar la persistencia automática del middleware durante la lectura sincrónica/asincrónica de datos en frío desde TaleSpire y al hacer restablecimiento de fábrica, evitando llamadas I/O redundantes al disco.
+5. **Selectores Granulares en el 100% de la UI:** Refactorizados los 15 componentes y subcomponentes visuales de React para reemplazar la desestructuración de Zustand por llamadas granulares: `const notasDM = usarAlmacenDM(s => s.notasDM)`.
+
+**Lecciones aprendidas:**
+> 🔄 **Zustand Middleware para Persistencia:** Cuando tengas múltiples colecciones persistibles mutadas por acciones en slices organizados, evita a toda costa invocar el guardado manual de persistencia en cada acción. Diseña un middleware selectivo que filtre y compare las claves modificadas por referencia. Esto limpia drásticamente las mutaciones y las hace reutilizables.
+> ⏱️ **Debounce en bridges CEF de Juegos:** Escribir en almacenamiento persistente dentro de WebViews incrustados de motores gráficos 3D (como Unity/TaleSpire WebView2) tiene un coste de CPU e I/O en micro-pausas notable. Agrega siempre un debounce (~200-300ms) a tu persistencia física global para agrupar entradas masivas de teclado o actualizaciones de frames rápidos en un solo guardado.
+> 🧱 **Rigor en Selectores:** Nunca desestructures el store completo en componentes pesados o en cascada. El uso estricto de selectores `usarAlmacenDM(s => s.campo)` es la única garantía real de que React solo actualice los fragmentos correspondientes del DOM en pantalla, logrando una eficiencia sublime.
+
+---
+
+## [2026-05-27] INTEGRACIÓN Y TIPADO ESTRICTO: Configuración de ESLint con TypeScript Parser y Activación de la Regla `no-explicit-any` como Error
+
+**Síntoma:**
+La configuración original `.eslintrc.cjs` carecía de parser y plugin de TypeScript (`@typescript-eslint/parser`, `@typescript-eslint/eslint-plugin`). Esto permitía que cualquier desarrollador o agente inyectara castings laxos `(window as any)` o declaraciones locales `any` sin que el linter del proyecto disparara advertencias o detuviera la integración continua de la aplicación.
+
+**Causa raíz:**
+Configuración obsoleta o incompleta de ESLint heredada de scaffolds de Javascript clásicos sin las dependencias de desarrollo y plugins adecuados para el ecosistema TypeScript moderno.
+
+**Solución aplicada:**
+1. **Instalación de Dependencias:** Agregados los paquetes de desarrollo `@typescript-eslint/parser` y `@typescript-eslint/eslint-plugin` usando `pnpm` (el gestor oficial del proyecto).
+2. **Actualización de `.eslintrc.cjs`:**
+   - Declarado `@typescript-eslint/parser` como el analizador de sintaxis principal.
+   - Añadido el plugin `@typescript-eslint` a la lista de plugins activos.
+   - Extendido el conjunto de reglas recomendadas de `'plugin:@typescript-eslint/recommended'`.
+   - Habilitada la regla `'@typescript-eslint/no-explicit-any': 'error'` para prohibir estrictamente la introducción de tipos implícitos o explícitos `any` en cualquier parte del código fuente de React/TypeScript.
+3. **Validación:** Confirmada la compilación exitosa sin errores sintácticos mediante `pnpm build`.
+
+**Lecciones aprendidas:**
+> 🛡️ **Prevención a nivel de Linter:** Nunca confíes únicamente en la disciplina manual de codificación para evitar el uso del "comodín" `any`. Configura siempre de forma estricta tu linter (`eslint` con `no-explicit-any` como `'error'`) desde las primeras fases del proyecto. Esto obliga a estructurar tipos de interop asíncronos y modelar interfaces fuertemente tipadas de TaleSpire sin evadir el type-checker, garantizando la salud estructural a largo plazo.
 

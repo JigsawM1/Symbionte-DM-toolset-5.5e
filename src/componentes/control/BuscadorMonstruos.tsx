@@ -1,14 +1,12 @@
 import React, { useState } from "react";
-import { usarAlmacenDM, calcularVidaPorDados } from "../../almacen/usarAlmacenDM";
+import { usarAlmacenDM, calcularVidaPorDados, MonstruoBase } from "../../almacen/usarAlmacenDM";
 import { Skull, Plus } from "lucide-react";
 import estilosClases from "./BuscadorMonstruos.module.css";
 
 export const BuscadorMonstruos: React.FC = () => {
-  const {
-    baseDatosMonstruos,
-    metodoVidaMonstruo,
-    agregarCriaturaAIniciativa
-  } = usarAlmacenDM();
+  const baseDatosMonstruos = usarAlmacenDM((s) => s.baseDatosMonstruos);
+  const metodoVidaMonstruo = usarAlmacenDM((s) => s.metodoVidaMonstruo);
+  const agregarCriaturaAIniciativa = usarAlmacenDM((s) => s.agregarCriaturaAIniciativa);
 
   const [busquedaMonstruo, setBusquedaMonstruo] = useState("");
   const [mostrarSugerencias, setMostrarSugerencias] = useState(false);
@@ -21,7 +19,7 @@ export const BuscadorMonstruos: React.FC = () => {
       );
 
   // Añadir un monstruo de la base de datos a la iniciativa activa
-  const manejarAñadirMonstruoPorPlantilla = (plantilla: any, limpiarBuscador = true) => {
+  const manejarAñadirMonstruoPorPlantilla = (plantilla: MonstruoBase, limpiarBuscador = true) => {
     const tiradaInic = Math.floor(Math.random() * 20) + 1;
     const totalInic = tiradaInic + plantilla.iniciativaBonificador;
 
@@ -48,8 +46,8 @@ export const BuscadorMonstruos: React.FC = () => {
       almacen.asociarPlantillaACriatura(ultimaCriat.id, plantilla.id);
     }
 
-    if ((window as any).TS) {
-      (window as any).TS.debug.log(`Añadido monstruo ${plantilla.nombre} a la iniciativa local. Tirada: ${tiradaInic} + ${plantilla.iniciativaBonificador} = ${totalInic}`);
+    if (window.TS) {
+      window.TS.debug?.log(`Añadido monstruo ${plantilla.nombre} a la iniciativa local. Tirada: ${tiradaInic} + ${plantilla.iniciativaBonificador} = ${totalInic}`);
     }
 
     if (limpiarBuscador) {

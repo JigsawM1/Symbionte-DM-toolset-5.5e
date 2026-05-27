@@ -65,10 +65,10 @@ export const FichaHechizo: React.FC<FichaHechizoProps> = ({ hechizo, onClose }) 
       <div className={estilosClases.cuerpo}>
         {/* Fila de Propiedades Visuales */}
         <div className={estilosClases.filaChips}>
-          {(hechizo.concentracion === true || hechizo.concentracion === "Sí" || hechizo.concentracion === "Si") && (
+          {hechizo.concentracion && (
             <span className={estilosClases.chipConcentracion}>CONCENTRACIÓN</span>
           )}
-          {(hechizo.ritual === true || hechizo.ritual === "Sí" || hechizo.ritual === "Si") && (
+          {hechizo.ritual && (
             <span className={estilosClases.chipRitual}>RITUAL</span>
           )}
           <span className={estilosClases.chipEscuela}>{hechizo.escuela.toUpperCase()}</span>

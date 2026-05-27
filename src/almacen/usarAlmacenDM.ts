@@ -48,12 +48,8 @@ export interface EncuentroGuardado {
 // Interfaz del Estado combinando todos los Slices para TypeScript estricto
 export interface EstadoDM extends SliceIniciativa, SliceHomebrew, SliceConfiguracion {}
 
-/**
- * Store global de Zustand que administra toda la lógica reactiva del Simbionte.
- * Compuesto modularmente de slices especializados para facilidad de mantenimiento.
- */
-export const usarAlmacenDM = create<EstadoDM>((set, get) => ({
-  ...crearSliceIniciativa(set, get),
-  ...crearSliceHomebrew(set, get),
-  ...crearSliceConfiguracion(set, get)
+export const usarAlmacenDM = create<EstadoDM>()((...a) => ({
+  ...crearSliceIniciativa(...a),
+  ...crearSliceHomebrew(...a),
+  ...crearSliceConfiguracion(...a)
 }));

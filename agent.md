@@ -50,3 +50,41 @@ Este archivo sirve como bitácora de aprendizaje técnico y memoria permanente p
     *   Los paddings y gaps de las tarjetas de iniciativa deben ser generosos (`padding: 8px 12px` y `gap: 10px`) para evitar la sensación de aglomeración visual ("que no esté todo tan pegado").
 *   **Rendimiento Táctico**:
     *   Mantener la regla de **0 animaciones o transiciones suaves** (`transition: none`). Los cambios deben ser inmediatos y fluidos para evitar el cuello de botella gráfico del motor de TaleSpire.
+
+---
+
+## 🔍 5. Auditoría Técnica — Hallazgos Permanentes (Mayo 2026)
+
+*   **Stack Real**: Vite 5.3 + React 18.3 + Zustand 4.5 + CSS Modules (NO Next.js, NO Tailwind, NO TanStack Query).
+*   **Tipado**: El proyecto tiene 100+ usos de `any` y 27+ de `as any`. Los slices de Zustand usan `(set: any, get: any)` lo cual anula la type-safety. Se debe crear un tipo `TaleSpireAPI` en `src/tipos/` para tipar `window.TS`.
+*   **Rendimiento React**: 0 `React.memo`, 0 `useCallback`, 0 `React.lazy/Suspense`. Solo `ListaHechizos.tsx` usa `useMemo`. Cualquier nuevo componente DEBE considerar memoización.
+*   **Componentes Monolíticos**: `FormularioCriatura.tsx` (41KB), `ListaHomebrew.tsx` (23KB) y `TarjetaCriaturaIniciativa.tsx` (19KB) necesitan descomposición en subcomponentes.
+*   **Console.log**: 50+ logs de debug en producción. Se debe crear un logger centralizado con niveles (debug/info/warn/error) que se desactive en producción.
+*   **ESLint**: El `.eslintrc.cjs` no usa `@typescript-eslint/parser`, por lo que reglas de TypeScript como `no-explicit-any` NO se aplican.
+
+---
+
+## 🛠️ 6. Fase 2 de Refactorización — Logros y Soluciones Aplicadas (Mayo 2026)
+
+*   **Resolución de Dependencias Circulares de Zustand**:
+    *   *Error potencial*: Los slices importan `EstadoDM` desde el orquestador `usarAlmacenDM.ts`, el cual a su vez importa los slices y sus creadores. Esto puede derivar en un bloqueo circular en compiladores de bundler a nivel de ejecución.
+    *   *Solución*: Se usó la sintaxis estricta de importación exclusiva de tipo: `import type { EstadoDM } from '../usarAlmacenDM'`. Al ser exclusivo de tipo, el transpilador elimina la importación por completo a nivel de JavaScript en runtime, erradicando al 100% el acoplamiento circular.
+*   **Declaración de Tipos de Window Global y TaleSpire API**:
+    *   *Error previo*: Para evitar que TypeScript fallara indicando que la propiedad `TS` no existía dentro del objeto estandarizado `window`, se abusaba del casteo `(window as any).TS` o se usaba un alias `windowAlias`.
+    *   *Solución*: Se creó una declaración global en `src/tipos/talespire.d.ts` que extiende la interfaz de `Window` y añade `TS` con la firma formal `TaleSpireAPI`. Gracias a esto, todo el código accede directamente a `window.TS` con autocompletado y validación de tipos nativa.
+*   **Normalización de Tipos Booleanos del Dominio**:
+    *   *Error*: Campos clave en D&D 5.5e como `concentracion` y `ritual` estaban tipados de manera ambigua (`string | boolean`). Esto causaba que los hooks y componentes tuvieran que hacer comparaciones manuales de texto contra `"Sí"`, `"Si"` o `"true"`, lanzando advertencias fatales del compilador.
+    *   *Solución*: Se unificó a un tipo estricto `boolean | undefined`. Todos los componentes redujeron sus condicionales de renderizado a evaluaciones de verdad simples `{hechizo.concentracion && ...}`.
+*   **Bypass de Acciones de Estado**:
+    *   *Error*: Componentes y oyentes de red CEF hacían llamadas directas a `usarAlmacenDM.setState` para mutar la iniciativa de monstruos (`BarraControl.tsx`) o la información de la campaña (`usarConexionTaleSpire.ts`), rompiendo el flujo unidireccional y la persistencia de datos.
+    *   *Solución*: Se crearon las acciones formales e integradas `autoLanzarIniciativaMonstruos` (en `sliceIniciativa.ts`) y `establecerDatosCampaña` (en `sliceConfiguracion.ts`), encapsulando la lógica de mutación y ordenamiento dentro del propio store y persistiendo el estado automáticamente en el blob de TaleSpire.
+*   **Desactivación Absoluta de Animaciones**:
+    *   *Error*: Las transiciones CSS generaban picos gráficos (reflows) de lag dentro del contenedor Chromium WebView2 integrado en TaleSpire.
+    *   *Solución*: Se introdujo un reset general drástico en `src/index.css`:
+        ```css
+        *, *::before, *::after {
+          transition: none !important;
+          animation: none !important;
+        }
+        ```
+        Esto garantiza un consumo de GPU del 0% en transiciones, resultando en respuestas tácticas inmediatas en la mesa virtual de juego.

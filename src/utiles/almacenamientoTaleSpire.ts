@@ -16,25 +16,6 @@
  * Programado 100% en español.
  */
 
-interface TSLocalStorageBlob {
-  setBlob: (data: string) => Promise<any>;
-  getBlob: () => Promise<any>;
-}
-
-interface TSLocalStorage {
-  global: TSLocalStorageBlob;
-  campaign: TSLocalStorageBlob;
-}
-
-interface TSWindow extends Window {
-  TS?: {
-    localStorage?: TSLocalStorage;
-    [key: string]: any;
-  };
-}
-
-const windowAlias = window as unknown as TSWindow;
-
 /** Clave interna para el único blob global del Simbionte DM */
 const CLAVE_BLOB_GLOBAL = "__dm_pantalla_datos__";
 
@@ -43,9 +24,9 @@ const CLAVE_BLOB_GLOBAL = "__dm_pantalla_datos__";
  */
 function apiTSDisponible(): boolean {
   return !!(
-    windowAlias.TS &&
-    windowAlias.TS.localStorage &&
-    typeof windowAlias.TS.localStorage.global?.setBlob === "function"
+    window.TS &&
+    window.TS.localStorage &&
+    typeof window.TS.localStorage.global?.setBlob === "function"
   );
 }
 
@@ -71,7 +52,7 @@ export async function guardarBlobGlobal(datos: Record<string, unknown>): Promise
   try {
     const jsonStr = JSON.stringify(datos);
     // Llamar a la API oficial de TaleSpire
-    const resultado = await windowAlias.TS!.localStorage!.global.setBlob(jsonStr);
+    const resultado = await window.TS!.localStorage!.global.setBlob(jsonStr);
     
     // getBlob/setBlob de TaleSpire a veces devuelve string/void en lugar del formato de objeto.
     // Manejamos esto de forma 100% segura.
@@ -103,7 +84,7 @@ export async function leerBlobGlobal(): Promise<Record<string, unknown> | null> 
   }
 
   try {
-    const resultado = await windowAlias.TS!.localStorage!.global.getBlob();
+    const resultado = await window.TS!.localStorage!.global.getBlob();
     console.log("[TS Storage] Lectura de getBlob finalizada. Tipo de respuesta:", typeof resultado, resultado);
 
     if (!resultado) {
@@ -163,7 +144,7 @@ export async function limpiarBlobGlobal(): Promise<boolean> {
   }
 
   try {
-    const globalStorage = windowAlias.TS!.localStorage!.global as any;
+    const globalStorage = window.TS!.localStorage!.global;
     // Si la API deleteBlob existe, la preferimos
     if (typeof globalStorage.deleteBlob === "function") {
       await globalStorage.deleteBlob();
@@ -178,4 +159,3 @@ export async function limpiarBlobGlobal(): Promise<boolean> {
     return false;
   }
 }
-

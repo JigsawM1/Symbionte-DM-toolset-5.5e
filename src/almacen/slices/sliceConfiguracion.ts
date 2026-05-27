@@ -1,17 +1,18 @@
-import { ElementoPendiente, EncuentroGuardado, EstadoDM } from '../usarAlmacenDM';
-import { MonstruoBase, HechizoBase } from '../../tipos';
+import { StateCreator } from 'zustand';
+import { ElementoPendiente, EncuentroGuardado, CriaturaIniciativa } from '../usarAlmacenDM';
+import { MonstruoBase, HechizoBase, ObjetoHomebrew } from '../../tipos';
 import { MONSTRUOS_INICIALES, HECHIZOS_INICIALES } from '../../utiles/datosIniciales';
 import { obtenerDatoFragmentado } from '../../utiles/almacenamientoFragmentos';
 import { leerBlobGlobal, guardarBlobGlobal, limpiarBlobGlobal } from '../../utiles/almacenamientoTaleSpire';
 import { sanearObjetoHomebrew, sanearHechizoCD } from '../sanitizacion';
 import { persistirEstadoCompleto } from '../persistencia';
 import { importarDesdeJSON } from '../importadorJSON';
+import type { EstadoDM } from '../usarAlmacenDM';
 
 export interface SliceConfiguracion {
   pestañaActiva: string;
   modoHomebrew: "crear" | "lista";
   metodoVidaMonstruo: "estandar" | "maximo" | "azar";
-  cargando: boolean;
   campañaNombre: string;
   esGM: boolean;
   listaPendientes: ElementoPendiente[];
@@ -21,6 +22,7 @@ export interface SliceConfiguracion {
   establecerPestaña: (pestaña: string) => void;
   establecerModoHomebrew: (modo: "crear" | "lista") => void;
   establecerMetodoVidaMonstruo: (metodo: "estandar" | "maximo" | "azar") => void;
+  establecerDatosCampaña: (nombre: string, esGM: boolean) => void;
 
   agregarPendiente: (texto: string) => void;
   alternarPendiente: (id: string) => void;
@@ -33,15 +35,19 @@ export interface SliceConfiguracion {
   eliminarEncuentroGuardado: (nombre: string) => void;
 
   cargarDatosPersistidos: () => void;
-  importarBaseDatosJSONCompleta: (datosJSON: any) => boolean;
+  importarBaseDatosJSONCompleta: (datosJSON: unknown) => boolean;
   restablecerDatosDeFabrica: () => void;
 }
 
-export const crearSliceConfiguracion = (set: any, get: any) => ({
+export const crearSliceConfiguracion: StateCreator<
+  EstadoDM,
+  [],
+  [],
+  SliceConfiguracion
+> = (set, get) => ({
   pestañaActiva: "iniciativa",
   modoHomebrew: "crear" as const,
   metodoVidaMonstruo: "azar" as const,
-  cargando: false,
   campañaNombre: "Cargando campaña de TaleSpire...",
   esGM: true,
   listaPendientes: [
@@ -58,27 +64,28 @@ export const crearSliceConfiguracion = (set: any, get: any) => ({
     set({ metodoVidaMonstruo: metodo });
     persistirEstadoCompleto(get());
   },
+  establecerDatosCampaña: (nombre: string, esGM: boolean) => set({ campañaNombre: nombre, esGM }),
 
-  agregarPendiente: (texto: string) => set((state: any) => {
+  agregarPendiente: (texto: string) => set((state) => {
     const nuevo: ElementoPendiente = { id: `p_local_${Date.now()}`, texto, completado: false };
     const nuevaLista = [...state.listaPendientes, nuevo];
     persistirEstadoCompleto({ ...state, listaPendientes: nuevaLista });
     return { listaPendientes: nuevaLista };
   }),
 
-  alternarPendiente: (id: string) => set((state: any) => {
-    const nuevaLista = state.listaPendientes.map((p: any) => p.id === id ? { ...p, completado: !p.completado } : p);
+  alternarPendiente: (id: string) => set((state) => {
+    const nuevaLista = state.listaPendientes.map((p) => p.id === id ? { ...p, completado: !p.completado } : p);
     persistirEstadoCompleto({ ...state, listaPendientes: nuevaLista });
     return { listaPendientes: nuevaLista };
   }),
 
-  eliminarPendiente: (id: string) => set((state: any) => {
-    const nuevaLista = state.listaPendientes.filter((p: any) => p.id !== id);
+  eliminarPendiente: (id: string) => set((state) => {
+    const nuevaLista = state.listaPendientes.filter((p) => p.id !== id);
     persistirEstadoCompleto({ ...state, listaPendientes: nuevaLista });
     return { listaPendientes: nuevaLista };
   }),
 
-  guardarNotasDM: (notas: string) => set((state: any) => {
+  guardarNotasDM: (notas: string) => set((state) => {
     persistirEstadoCompleto({ ...state, notasDM: notas });
     return { notasDM: notas };
   }),
@@ -93,7 +100,7 @@ export const crearSliceConfiguracion = (set: any, get: any) => ({
       fecha: new Date().toLocaleString("es-ES")
     };
     const encuentrosLimpios = state.encuentrosGuardados.filter(
-      (e: any) => e.nombre.toLowerCase() !== nombre.trim().toLowerCase()
+      (e) => e.nombre.toLowerCase() !== nombre.trim().toLowerCase()
     );
     const nuevosEncuentros = [...encuentrosLimpios, nuevoEncuentro];
     set({ encuentrosGuardados: nuevosEncuentros });
@@ -103,14 +110,14 @@ export const crearSliceConfiguracion = (set: any, get: any) => ({
 
   cargarEncuentro: (nombre: string) => {
     const state = get();
-    const encuentro = state.encuentrosGuardados.find((e: any) => e.nombre.toLowerCase() === nombre.toLowerCase());
+    const encuentro = state.encuentrosGuardados.find((e) => e.nombre.toLowerCase() === nombre.toLowerCase());
     if (!encuentro) return false;
     set({ colaIniciativa: encuentro.cola, rondaActual: encuentro.ronda, indiceTurnoActivo: 0 });
     return true;
   },
 
-  eliminarEncuentroGuardado: (nombre: string) => set((state: any) => {
-    const nuevosEncuentros = state.encuentrosGuardados.filter((e: any) => e.nombre !== nombre);
+  eliminarEncuentroGuardado: (nombre: string) => set((state) => {
+    const nuevosEncuentros = state.encuentrosGuardados.filter((e) => e.nombre !== nombre);
     persistirEstadoCompleto({ ...state, encuentrosGuardados: nuevosEncuentros });
     return { encuentrosGuardados: nuevosEncuentros };
   }),
@@ -125,11 +132,11 @@ export const crearSliceConfiguracion = (set: any, get: any) => ({
 
         const monstruosHomebrew = blob.monstruos_homebrew as MonstruoBase[] | undefined;
         const hechizosHomebrew  = blob.hechizos_homebrew  as HechizoBase[]  | undefined;
-        const objetosHomebrew   = blob.objetos_homebrew   as any[]          | undefined;
+        const objetosHomebrew   = blob.objetos_homebrew   as ObjetoHomebrew[] | undefined;
         const pendientes        = blob.pendientes         as ElementoPendiente[] | undefined;
         const notas             = blob.notas              as string          | undefined;
         const encuentros        = blob.encuentros         as EncuentroGuardado[] | undefined;
-        const cola              = blob.cola_iniciativa    as any[]          | undefined;
+        const cola              = blob.cola_iniciativa    as CriaturaIniciativa[] | undefined;
         const ronda             = blob.ronda_actual       as number          | undefined;
         const turno             = blob.indice_turno_activo as number         | undefined;
         const metodo            = blob.metodo_vida        as "estandar" | "maximo" | "azar" | undefined;
@@ -185,7 +192,7 @@ export const crearSliceConfiguracion = (set: any, get: any) => ({
         migradoAlgo = true;
       }
 
-      const objetosLS = obtenerDatoFragmentado<any[]>("dm_objetos_homebrew");
+      const objetosLS = obtenerDatoFragmentado<ObjetoHomebrew[]>("dm_objetos_homebrew");
       if (objetosLS && objetosLS.length > 0) {
         estadoNuevo.objetosHomebrew = objetosLS.map(sanearObjetoHomebrew);
         migradoAlgo = true;
@@ -209,7 +216,7 @@ export const crearSliceConfiguracion = (set: any, get: any) => ({
         migradoAlgo = true;
       }
 
-      const colaLS = obtenerDatoFragmentado<any[]>("dm_cola_iniciativa");
+      const colaLS = obtenerDatoFragmentado<CriaturaIniciativa[]>("dm_cola_iniciativa");
       if (colaLS && colaLS.length > 0) {
         estadoNuevo.colaIniciativa = colaLS;
         migradoAlgo = true;
@@ -263,7 +270,7 @@ export const crearSliceConfiguracion = (set: any, get: any) => ({
     });
   },
 
-  importarBaseDatosJSONCompleta: (datosJSON: any) => {
+  importarBaseDatosJSONCompleta: (datosJSON) => {
     const estado = get();
     const result = importarDesdeJSON(datosJSON, {
       baseDatosMonstruos: estado.baseDatosMonstruos,

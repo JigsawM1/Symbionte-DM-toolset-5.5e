@@ -10,26 +10,7 @@ import { usarAlmacenDM } from "../almacen/usarAlmacenDM";
  * Programado 100% en español con alto nivel de tolerancia a fallos.
  */
 
-// Interfaz para el entorno global con soporte para TaleSpire
-interface TSWindow extends Window {
-  TS?: {
-    dice: {
-      isValidRollString: (rollStr: string) => boolean;
-      makeRollDescriptors: (rollStr: string) => Promise<any[]>;
-      putDiceInTray: (descriptors: any[], silenceDefaultChatCard?: boolean) => Promise<string>;
-      evaluateDiceResultsGroup: (group: any) => Promise<number>;
-      sendDiceResult: (groups: any[], rollId: string) => Promise<void>;
-    };
-    chat?: {
-      send: (message: string, target?: string) => Promise<boolean>;
-    };
-    debug?: {
-      log: (msg: string) => void;
-    };
-  };
-}
-
-const windowAlias = window as unknown as TSWindow;
+// Nota: La API global de window.TS está tipada formalmente en src/tipos/talespire.d.ts
 
 export interface MetadataTiradaEspecial {
   tipo: "ventaja" | "desventaja";
@@ -180,13 +161,13 @@ export function crearDescriptoresManualmente(formula: string): any[] {
  * de TaleSpire. Es sumamente estable, nativa de fábrica y funciona en cualquier versión.
  */
 export async function lanzarDadosPorChatTaleSpire(formula: string): Promise<void> {
-  if (windowAlias.TS && windowAlias.TS.chat && typeof windowAlias.TS.chat.send === "function") {
+  if (window.TS && window.TS.chat && typeof window.TS.chat.send === "function") {
     // TaleSpire requiere que los comandos de dados comiencen con el carácter exclamación '!'
     // Eliminamos cualquier '!' intermedio que pueda romper el parser del chat de TaleSpire
     const formulaLimpia = formula.replace(/!/g, "");
     const comandoChat = `!${formulaLimpia}`;
     console.log(`[Lanzador Dados (Chat)] Enviando comando de tirada física al chat: "${comandoChat}"`);
-    await windowAlias.TS.chat.send(comandoChat);
+    await window.TS.chat.send(comandoChat);
   } else {
     throw new Error("La API de chat de TaleSpire tampoco está disponible.");
   }
@@ -274,9 +255,9 @@ export async function lanzarDadosTaleSpire(
   console.log(`[Lanzador Dados] Preparando tirada: "${nombreEtiqueta}" con fórmula: "${formulaLimpia}" (Tipo original: ${tipoTirada})`);
 
   // 1. Validamos si la API nativa de TaleSpire y su módulo de dados están disponibles
-  if (windowAlias.TS && windowAlias.TS.dice) {
+  if (window.TS && window.TS.dice) {
     try {
-      const diceApi = windowAlias.TS.dice;
+      const diceApi = window.TS.dice;
 
       // Intentamos validar la cadena si el motor lo soporta
       let esValido = true;
@@ -325,8 +306,8 @@ export async function lanzarDadosTaleSpire(
         await lanzarDadosPorChatTaleSpire(formulaProcesada);
       }
 
-      if (windowAlias.TS.debug && typeof windowAlias.TS.debug.log === "function") {
-        windowAlias.TS.debug.log(`Tirando dados en bandeja física: ${nombreEtiqueta} (${formulaLimpia})`);
+      if (window.TS.debug && typeof window.TS.debug.log === "function") {
+        window.TS.debug.log(`Tirando dados en bandeja física: ${nombreEtiqueta} (${formulaLimpia})`);
       }
     } catch (error) {
       console.error("[Lanzador Dados] Fallo de API directa de dados. Recurriendo al canal de chat de TaleSpire...", error);
@@ -368,7 +349,7 @@ export async function procesarResultadosDadosTaleSpire(evento: any): Promise<boo
     const resultGroups = evento.payload.resultsGroups;
     if (resultGroups && Array.isArray(resultGroups) && resultGroups.length > 0) {
       try {
-        const diceApi = windowAlias.TS?.dice;
+        const diceApi = window.TS?.dice;
         const grupoInic = resultGroups[0];
         let total = 0;
         if (diceApi && typeof diceApi.evaluateDiceResultsGroup === "function") {
@@ -408,7 +389,7 @@ export async function procesarResultadosDadosTaleSpire(evento: any): Promise<boo
   }
   
   try {
-    const diceApi = windowAlias.TS?.dice;
+    const diceApi = window.TS?.dice;
     
     // Buscar los grupos A y B
     const grupoA = resultGroups.find((g: any) => g.name === infoTirada.grupoAName);

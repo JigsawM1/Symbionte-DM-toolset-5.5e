@@ -6,35 +6,35 @@ export function usarConexionTaleSpire() {
   const {
     cargarDatosPersistidos,
     actualizarSeleccionCriaturas,
-    actualizarColaIniciativaDesdeTaleSpire
+    actualizarColaIniciativaDesdeTaleSpire,
+    establecerDatosCampaña
   } = usarAlmacenDM();
 
   useEffect(() => {
-    const windowAlias = window as any;
     let suscripcionSeleccion: { desuscribir: () => void } | null = null;
     let suscripcionIniciativa: { desuscribir: () => void } | null = null;
     let activo = true;
 
     const suscribirAPIs = () => {
-      if (!windowAlias.TS) return false;
+      if (!window.TS) return false;
 
       console.log("[TaleSpire Simbionte] Conectando escuchas y suscripciones de eventos de mesa...");
       
       try {
-        const apiCreatures = windowAlias.TS.creatures;
-        const apiInitiative = windowAlias.TS.initiative;
+        const apiCreatures = window.TS.creatures;
+        const apiInitiative = window.TS.initiative;
 
         // Conservar las suscripciones inline activas tanto para compatibilidad del simulador local como para redundancia
         if (apiCreatures?.onCreatureSelectionChange) {
-          suscripcionSeleccion = apiCreatures.onCreatureSelectionChange.subscribe((seleccion: any) => {
+          suscripcionSeleccion = apiCreatures.onCreatureSelectionChange.subscribe((seleccion) => {
             if (activo) actualizarSeleccionCriaturas(seleccion || []);
           });
         }
 
         if (apiInitiative?.onInitiativeEvent) {
           suscripcionIniciativa = apiInitiative.onInitiativeEvent.subscribe(() => {
-            if (activo && typeof windowAlias.manejarEventoIniciativa === "function") {
-              windowAlias.manejarEventoIniciativa();
+            if (activo && typeof window.manejarEventoIniciativa === "function") {
+              window.manejarEventoIniciativa();
             }
           });
         }
@@ -52,10 +52,10 @@ export function usarConexionTaleSpire() {
           // Obtener la selección inicial física del tablero
           if (apiCreatures?.getSelectedCreatures) {
             apiCreatures.getSelectedCreatures()
-              .then((seleccionInicial: any) => {
+              .then((seleccionInicial) => {
                 if (activo) actualizarSeleccionCriaturas(seleccionInicial || []);
               })
-              .catch((e: any) => {
+              .catch((e: unknown) => {
                 console.warn("[TaleSpire Simbionte] Error al obtener selección inicial:", e);
               });
           }
@@ -63,26 +63,26 @@ export function usarConexionTaleSpire() {
           // Obtener la cola inicial física del tablero
           if (apiInitiative?.getQueue) {
             apiInitiative.getQueue()
-              .then((colaInicial: any) => {
+              .then((colaInicial) => {
                 if (activo) actualizarColaIniciativaDesdeTaleSpire(colaInicial || []);
               })
-              .catch((e: any) => {
+              .catch((e: unknown) => {
                 console.warn("[TaleSpire Simbionte] Error al obtener cola de iniciativa inicial:", e);
               });
           }
 
           // Obtener el nombre de la campaña y rol de GM en caliente
-          if (windowAlias.TS.campaigns?.whereAmI) {
-            windowAlias.TS.campaigns.whereAmI()
-              .then((campaña: any) => {
+          if (window.TS?.campaigns?.whereAmI) {
+            window.TS.campaigns.whereAmI()
+              .then((campaña) => {
                 if (activo && campaña && campaña.name) {
-                  usarAlmacenDM.setState({
-                    campañaNombre: campaña.name,
-                    esGM: campaña.playerRole === "GM" || campaña.isGm
-                  });
+                  establecerDatosCampaña(
+                    campaña.name,
+                    campaña.playerRole === "GM" || !!campaña.isGm
+                  );
                 }
               })
-              .catch((e: any) => {
+              .catch((e: unknown) => {
                 console.warn("[TaleSpire Simbionte] Error al obtener datos de campaña:", e);
               });
           }
@@ -132,5 +132,5 @@ export function usarConexionTaleSpire() {
       if (suscripcionSeleccion) suscripcionSeleccion.desuscribir();
       if (suscripcionIniciativa) suscripcionIniciativa.desuscribir();
     };
-  }, [cargarDatosPersistidos, actualizarSeleccionCriaturas, actualizarColaIniciativaDesdeTaleSpire]);
+  }, [cargarDatosPersistidos, actualizarSeleccionCriaturas, actualizarColaIniciativaDesdeTaleSpire, establecerDatosCampaña]);
 }

@@ -949,6 +949,30 @@ Las variables importadas de los CSS Modules (`estilosClases`) resuelven a **hash
 > ⚠️ **Clases de CSS Modules son Strings, NO Objetos:** En bundlers modernos (Vite/Webpack), las propiedades expuestas por un archivo de estilos `.module.css` importado resuelven a hashes tipo `string` únicos y scoped en tiempo de compilación. **Nunca uses el spread operator (`...`)** con variables de CSS Modules en el prop `style` de React. Pasa las clases modularizadas directamente al prop `className` e interpolelas mediante template literals si compartes estilos con clases globales.
 > ⚡ **Mantenimiento impecable de la Bitácora CEF:** Compilar en verde en cada paso de refactorización y auditar rigurosamente que las hojas de estilos modularizadas estén 100% libres de propiedades `transition` o `animation` es vital para el bridge nativo del Simbionte en TaleSpire.
 
+---
+
+## [2026-05-27] INTEGRACIÓN Y QA: Culminación Absoluta de la Fase 5, Auditoría de Estilos Inline Residuales (100% de Cobertura)
+
+**Síntoma:**
+A pesar de haber completado la Fase 4 de migración, la auditoría final de variables de la Fase 5 reveló que `App.tsx` y dos subcomponentes de tablas de cálculo (`CalculadoraSalto.tsx` y `DiccionarioCondiciones.tsx`) todavía utilizaban objetos de estilos JS locales (`const estilos`) y el prop `style={estilos.algo}`.
+
+**Causa raíz:**
+Omisión o desatención durante la fase intermedia de refactorización de subcomponentes de tablas del DM, donde los módulos CSS correspondientes ya habían sido creados físicamente por los agentes, pero los archivos `.tsx` de React no habían sido actualizados para importarlos ni consumirlos.
+
+**Solución aplicada:**
+1. **Refactorización Definitiva:**
+   - **`App.tsx`**: Creado `App.module.css` e importado para desacoplar el contenedor general y el área de contenido principal.
+   - **`CalculadoraSalto.tsx`** y **`DiccionarioCondiciones.tsx`**: Vinculados a sus correspondientes archivos `.module.css` scoped existentes.
+   - Eliminados todos los objetos `const estilos` de estos tres componentes.
+2. **Auditoría de Erradicación Total:**
+   - Ejecutamos un `grep` sistemático en todo `src/` buscando `style={estilos.` para confirmar que no queden remanentes de constantes de estilos inline.
+   - **Resultado:** 0 coincidencias en todo el codebase.
+3. **Build en Verde:** Verificado el build de Vite y TS compilando con éxito absoluto.
+
+**Lección aprendida:**
+> 🔍 **Auditoría Sistemática Obligatoria (QA):** Nunca des por sentado que una fase de migración a CSS Modules está completa sólo porque los archivos CSS individuales fueron creados. Ejecuta siempre búsquedas automatizadas (`grep`) sobre patrones de estilos (`style={estilos.`) en la fase de QA final para detectar discrepancias u omisiones y asegurar una cobertura de desacoplamiento del 100%.
+
+
 
 
 

@@ -1,6 +1,8 @@
+import { StateCreator } from 'zustand';
 import { MonstruoBase, HechizoBase, ObjetoHomebrew } from '../../tipos';
 import { MONSTRUOS_INICIALES, HECHIZOS_INICIALES } from '../../utiles/datosIniciales';
 import { persistirEstadoCompleto } from '../persistencia';
+import type { EstadoDM } from '../usarAlmacenDM';
 
 export interface SliceHomebrew {
   baseDatosMonstruos: MonstruoBase[];
@@ -18,12 +20,17 @@ export interface SliceHomebrew {
   eliminarObjetoHomebrew: (id: string) => void;
 }
 
-export const crearSliceHomebrew = (set: any, _get: any) => ({
+export const crearSliceHomebrew: StateCreator<
+  EstadoDM,
+  [],
+  [],
+  SliceHomebrew
+> = (set, _get) => ({
   baseDatosMonstruos: MONSTRUOS_INICIALES,
   baseDatosHechizos: HECHIZOS_INICIALES,
   objetosHomebrew: [],
 
-  agregarMonstruoHomebrew: (monstruo: any) => set((state: any) => {
+  agregarMonstruoHomebrew: (monstruo) => set((state) => {
     const nuevoMonstruo: MonstruoBase = {
       ...monstruo,
       id: `m_homebrew_${Date.now()}`
@@ -33,7 +40,7 @@ export const crearSliceHomebrew = (set: any, _get: any) => ({
     return { baseDatosMonstruos: nuevosMonstruos };
   }),
 
-  agregarHechizoHomebrew: (hechizo: any) => set((state: any) => {
+  agregarHechizoHomebrew: (hechizo) => set((state) => {
     const nuevoHechizo: HechizoBase = {
       ...hechizo,
       id: `h_homebrew_${Date.now()}`
@@ -43,7 +50,7 @@ export const crearSliceHomebrew = (set: any, _get: any) => ({
     return { baseDatosHechizos: nuevosHechizos };
   }),
 
-  agregarObjetoHomebrew: (objeto: any) => set((state: any) => {
+  agregarObjetoHomebrew: (objeto) => set((state) => {
     const nuevoObjeto: ObjetoHomebrew = {
       ...objeto,
       id: `o_homebrew_${Date.now()}`
@@ -53,44 +60,44 @@ export const crearSliceHomebrew = (set: any, _get: any) => ({
     return { objetosHomebrew: nuevosObjetos };
   }),
 
-  actualizarMonstruoHomebrew: (id: string, monstruo: any) => set((state: any) => {
-    const nuevosMonstruos = state.baseDatosMonstruos.map((m: any) =>
-      m.id === id ? { ...m, ...monstruo, id } : m
+  actualizarMonstruoHomebrew: (id, monstruo) => set((state) => {
+    const nuevosMonstruos = state.baseDatosMonstruos.map((m) =>
+      m.id === id ? { ...m, ...monstruo, id } as MonstruoBase : m
     );
     persistirEstadoCompleto({ ...state, baseDatosMonstruos: nuevosMonstruos });
     return { baseDatosMonstruos: nuevosMonstruos };
   }),
 
-  actualizarHechizoHomebrew: (id: string, hechizo: any) => set((state: any) => {
-    const nuevosHechizos = state.baseDatosHechizos.map((h: any) =>
-      h.id === id ? { ...h, ...hechizo, id } : h
+  actualizarHechizoHomebrew: (id, hechizo) => set((state) => {
+    const nuevosHechizos = state.baseDatosHechizos.map((h) =>
+      h.id === id ? { ...h, ...hechizo, id } as HechizoBase : h
     );
     persistirEstadoCompleto({ ...state, baseDatosHechizos: nuevosHechizos });
     return { baseDatosHechizos: nuevosHechizos };
   }),
 
-  actualizarObjetoHomebrew: (id: string, objeto: any) => set((state: any) => {
-    const nuevosObjetos = state.objetosHomebrew.map((o: any) =>
-      o.id === id ? { ...o, ...objeto, id } : o
+  actualizarObjetoHomebrew: (id, objeto) => set((state) => {
+    const nuevosObjetos = state.objetosHomebrew.map((o) =>
+      o.id === id ? { ...o, ...objeto, id } as ObjetoHomebrew : o
     );
     persistirEstadoCompleto({ ...state, objetosHomebrew: nuevosObjetos });
     return { objetosHomebrew: nuevosObjetos };
   }),
 
-  eliminarMonstruoHomebrew: (id: string) => set((state: any) => {
-    const nuevosMonstruos = state.baseDatosMonstruos.filter((m: any) => m.id !== id);
+  eliminarMonstruoHomebrew: (id) => set((state) => {
+    const nuevosMonstruos = state.baseDatosMonstruos.filter((m) => m.id !== id);
     persistirEstadoCompleto({ ...state, baseDatosMonstruos: nuevosMonstruos });
     return { baseDatosMonstruos: nuevosMonstruos };
   }),
 
-  eliminarHechizoHomebrew: (id: string) => set((state: any) => {
-    const nuevosHechizos = state.baseDatosHechizos.filter((h: any) => h.id !== id);
+  eliminarHechizoHomebrew: (id) => set((state) => {
+    const nuevosHechizos = state.baseDatosHechizos.filter((h) => h.id !== id);
     persistirEstadoCompleto({ ...state, baseDatosHechizos: nuevosHechizos });
     return { baseDatosHechizos: nuevosHechizos };
   }),
 
-  eliminarObjetoHomebrew: (id: string) => set((state: any) => {
-    const nuevosObjetos = state.objetosHomebrew.filter((o: any) => o.id !== id);
+  eliminarObjetoHomebrew: (id) => set((state) => {
+    const nuevosObjetos = state.objetosHomebrew.filter((o) => o.id !== id);
     persistirEstadoCompleto({ ...state, objetosHomebrew: nuevosObjetos });
     return { objetosHomebrew: nuevosObjetos };
   })

@@ -4,53 +4,49 @@ import App from './App.tsx';
 import './index.css';
 
 import { procesarResultadosDadosTaleSpire } from './utiles/lanzadorDados';
-
 import { usarAlmacenDM } from './almacen/usarAlmacenDM.ts';
 
 // Helper para leer la cola de iniciativa física y sincronizarla en caliente
 const sincronizarColaIniciativaFisica = () => {
-  const windowAlias = window as any;
-  const ts = windowAlias.TS;
+  const ts = window.TS;
   if (ts && ts.initiative && typeof ts.initiative.getQueue === "function") {
     ts.initiative.getQueue()
-      .then((colaTS: any) => {
+      .then((colaTS) => {
         console.log("[TaleSpire Callback] Cola física leída con éxito:", colaTS);
         usarAlmacenDM.getState().actualizarColaIniciativaDesdeTaleSpire(colaTS || []);
       })
-      .catch((e: any) => {
+      .catch((e: unknown) => {
         console.warn("[TaleSpire Callback] Error al leer la cola física de iniciativa:", e);
       });
   }
 };
 
 // Registrar manejadores globales sincrónicos e inmediatos en window
-const windowAlias = window as any;
-
-windowAlias.manejarCambioEstadoSimbionte = (evento: any) => {
+window.manejarCambioEstadoSimbionte = (evento) => {
   console.log("[TaleSpire Callback] Evento de estado de simbionte:", evento);
 };
 
-windowAlias.initiativeUpdated = () => {
+window.initiativeUpdated = () => {
   console.log("[TaleSpire Callback] initiativeUpdated recibido en window.");
   sincronizarColaIniciativaFisica();
 };
 
-windowAlias.manejarEventoIniciativa = () => {
+window.manejarEventoIniciativa = () => {
   console.log("[TaleSpire Callback] manejarEventoIniciativa recibido en window.");
   sincronizarColaIniciativaFisica();
 };
 
-windowAlias.manejarCambioEstadoCriatura = (evento: any) => {
+window.manejarCambioEstadoCriatura = (evento) => {
   console.log("[TaleSpire Callback] Evento de estado de criatura:", evento);
   sincronizarColaIniciativaFisica();
 };
 
-windowAlias.manejarCambioSeleccionCriatura = (evento: any) => {
+window.manejarCambioSeleccionCriatura = (evento) => {
   console.log("[TaleSpire Callback] Evento de selección de criaturas:", evento);
   usarAlmacenDM.getState().actualizarSeleccionCriaturas(evento || []);
 };
 
-windowAlias.manejarResultadosDados = async (resultados: any) => {
+window.manejarResultadosDados = async (resultados) => {
   console.log("[TaleSpire Callback] Resultados de dados recibidos:", resultados);
   await procesarResultadosDadosTaleSpire(resultados);
 };

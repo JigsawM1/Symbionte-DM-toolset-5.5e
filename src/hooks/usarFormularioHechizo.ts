@@ -63,15 +63,15 @@ export function usarFormularioHechizo(idEnEdicion: string | null, alGuardarExito
     setHCompVerbal(h.componentesSeleccionados?.verbal ?? true);
     setHCompSomatico(h.componentesSeleccionados?.somatico ?? true);
     setHCompMaterial(h.componentesSeleccionados?.material ?? false);
-    setHRitual(h.ritual === true || h.ritual === "Sí" || h.ritual === "Si" ? "Sí" : "No");
+    setHRitual(h.ritual ? "Sí" : "No");
     setHDuracion(h.duracion || "INSTANTÁNEO");
-    setHConcentracion(h.concentracion === true || h.concentracion === "Sí" || h.concentracion === "Si" ? "Sí" : "No");
+    setHConcentracion(h.concentracion ? "Sí" : "No");
     setHClases(h.clases || []);
     setHAtaqueCd(h.ataqueCd || "N/A");
     setHDadosDaño(h.dadosDaño || "");
     setHDadosDañoNivelSuperior(h.dadosDañoNivelSuperior || "");
     setHCdSalvacion(h.cdSalvacion || "N/A");
-    setHAgregarModificador(h.agregarModificadorHabilidad === true || h.agregarModificadorHabilidad as any === "Sí" || h.agregarModificadorHabilidad as any === "Si" ? "Sí" : "No");
+    setHAgregarModificador(h.agregarModificadorHabilidad ? "Sí" : "No");
     setHTipoDaño(h.tipoDaño || "N/A");
   };
 

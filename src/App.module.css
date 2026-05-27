@@ -1,0 +1,21 @@
+.contenedorGeneral {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100vh;
+  max-height: 100vh;
+  background-color: var(--color-fondo-profundo);
+  overflow: hidden;
+  box-sizing: border-box;
+  padding: 0;
+}
+
+.areaContenido {
+  flex: 1;
+  width: 100%;
+  min-height: 0;
+  padding: 4px;
+  box-sizing: border-box;
+  background-color: var(--color-fondo-profundo);
+  overflow: hidden;
+}

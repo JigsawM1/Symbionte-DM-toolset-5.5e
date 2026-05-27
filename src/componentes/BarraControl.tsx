@@ -13,17 +13,16 @@ import {
 import estilosClases from "./BarraControl.module.css";
 
 export const BarraControl: React.FC = () => {
-  const {
-    colaIniciativa,
-    rondaActual,
-    tipoTirada,
-    avanzarTurno,
-    retrocederTurno,
-    avanzarRonda,
-    retrocederRonda,
-    establecerTipoTirada,
-    agregarCriaturaAIniciativa
-  } = usarAlmacenDM();
+  const colaIniciativa = usarAlmacenDM((s) => s.colaIniciativa);
+  const rondaActual = usarAlmacenDM((s) => s.rondaActual);
+  const tipoTirada = usarAlmacenDM((s) => s.tipoTirada);
+  const avanzarTurno = usarAlmacenDM((s) => s.avanzarTurno);
+  const retrocederTurno = usarAlmacenDM((s) => s.retrocederTurno);
+  const avanzarRonda = usarAlmacenDM((s) => s.avanzarRonda);
+  const retrocederRonda = usarAlmacenDM((s) => s.retrocederRonda);
+  const establecerTipoTirada = usarAlmacenDM((s) => s.establecerTipoTirada);
+  const agregarCriaturaAIniciativa = usarAlmacenDM((s) => s.agregarCriaturaAIniciativa);
+  const autoLanzarIniciativaMonstruos = usarAlmacenDM((s) => s.autoLanzarIniciativaMonstruos);
 
   const [nombreJugadorRapido, setNombreJugadorRapido] = useState("");
 
@@ -53,26 +52,10 @@ export const BarraControl: React.FC = () => {
     const monstruos = colaIniciativa.filter((c) => c.esMonstruo);
     if (monstruos.length === 0) return;
 
-    monstruos.forEach((monstruo) => {
-      const tirada = Math.floor(Math.random() * 20) + 1;
-      const total = tirada + monstruo.bonificadorIniciativa;
-      
-      // Actualizamos su iniciativa en la cola
-      const almacen = usarAlmacenDM.getState();
-      const nuevaCola = almacen.colaIniciativa.map((c) => {
-        if (c.id === monstruo.id) {
-          return { ...c, iniciativa: total };
-        }
-        return c;
-      });
-      usarAlmacenDM.setState({ colaIniciativa: nuevaCola });
-    });
-
-    // Re-ordenamos la cola por iniciativa
-    usarAlmacenDM.getState().ordenarIniciativa();
+    autoLanzarIniciativaMonstruos();
     
-    if ((window as any).TS) {
-      (window as any).TS.debug.log("Auto Roll completado de forma masiva para todos los monstruos de la cola.");
+    if (window.TS) {
+      window.TS.debug?.log("Auto Roll completado de forma masiva para todos los monstruos de la cola.");
     }
   };
 

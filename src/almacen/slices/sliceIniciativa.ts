@@ -1,13 +1,30 @@
-import { CriaturaIniciativa } from '../usarAlmacenDM'; // Importar tipos e interfaces desde el orquestador
+import { StateCreator } from 'zustand';
+import { CriaturaIniciativa, EfectoActivo } from '../usarAlmacenDM';
 import { calcularVidaPorDados } from '../sanitizacion';
 import { persistirEstadoCompleto } from '../persistencia';
+import type { EstadoDM } from '../usarAlmacenDM';
+
+export interface CriaturaSeleccionadaTS {
+  id: string;
+  name: string;
+  maxHp?: number;
+  hp?: number;
+}
+
+export interface CriaturaNativaTS {
+  id: string;
+  name: string;
+  initiative?: number;
+  maxHp?: number;
+  hp?: number;
+}
 
 export interface SliceIniciativa {
   colaIniciativa: CriaturaIniciativa[];
   indiceTurnoActivo: number;
   rondaActual: number;
   tipoTirada: "desventaja" | "plano" | "ventaja";
-  criaturasSeleccionadas: any[];
+  criaturasSeleccionadas: CriaturaSeleccionadaTS[];
 
   avanzarRonda: () => void;
   retrocederRonda: () => void;
@@ -15,7 +32,7 @@ export interface SliceIniciativa {
   retrocederTurno: () => void;
   establecerTipoTirada: (tipo: "desventaja" | "plano" | "ventaja") => void;
 
-  actualizarColaIniciativaDesdeTaleSpire: (colaTS: any) => void;
+  actualizarColaIniciativaDesdeTaleSpire: (colaTS: unknown) => void;
   importarIniciativaTaleSpire: () => Promise<void>;
   agregarCriaturaAIniciativa: (
     nombre: string,
@@ -36,35 +53,41 @@ export interface SliceIniciativa {
   actualizarVidaTemporal: (idCriatura: string, vidaTemp: number) => void;
   limpiarIniciativa: () => void;
   ordenarIniciativa: () => void;
+  autoLanzarIniciativaMonstruos: () => void;
 
-  actualizarSeleccionCriaturas: (seleccionadas: any[]) => void;
+  actualizarSeleccionCriaturas: (seleccionadas: CriaturaSeleccionadaTS[]) => void;
   agregarCriaturasSeleccionadasAIniciativa: () => void;
 }
 
-export const crearSliceIniciativa = (set: any, get: any) => ({
+export const crearSliceIniciativa: StateCreator<
+  EstadoDM,
+  [],
+  [],
+  SliceIniciativa
+> = (set, get) => ({
   colaIniciativa: [],
   indiceTurnoActivo: 0,
   rondaActual: 1,
   tipoTirada: "plano" as const,
   criaturasSeleccionadas: [],
 
-  establecerTipoTirada: (tipo: "desventaja" | "plano" | "ventaja") => set({ tipoTirada: tipo }),
+  establecerTipoTirada: (tipo) => set({ tipoTirada: tipo }),
 
-  avanzarRonda: () => set((state: any) => {
+  avanzarRonda: () => set((state) => {
     const nuevaRonda = state.rondaActual + 1;
     const nuevoEstado = { ...state, rondaActual: nuevaRonda };
     persistirEstadoCompleto(nuevoEstado);
     return { rondaActual: nuevaRonda };
   }),
   
-  retrocederRonda: () => set((state: any) => {
+  retrocederRonda: () => set((state) => {
     const nuevaRonda = Math.max(1, state.rondaActual - 1);
     const nuevoEstado = { ...state, rondaActual: nuevaRonda };
     persistirEstadoCompleto(nuevoEstado);
     return { rondaActual: nuevaRonda };
   }),
 
-  avanzarTurno: () => set((state: any) => {
+  avanzarTurno: () => set((state) => {
     if (state.colaIniciativa.length === 0) return {};
     let nuevoIndice = state.indiceTurnoActivo + 1;
     let nuevaRonda = state.rondaActual;
@@ -74,20 +97,20 @@ export const crearSliceIniciativa = (set: any, get: any) => ({
     }
 
     // Decrementar duración de los efectos activos para la criatura que recibe el turno activo
-    const nuevaCola = state.colaIniciativa.map((c: any, idx: number) => {
+    const nuevaCola = state.colaIniciativa.map((c, idx) => {
       if (idx === nuevoIndice && c.efectos && c.efectos.length > 0) {
         const efectosActualizados = c.efectos
-          .map((ef: any) => ({ ...ef, duracion: ef.duracion - 1 }))
-          .filter((ef: any) => ef.duracion > 0);
+          .map((ef) => ({ ...ef, duracion: ef.duracion - 1 }))
+          .filter((ef) => ef.duracion > 0);
         return { ...c, efectos: efectosActualizados };
       }
       return c;
     });
 
     // Invocar asíncronamente a la API nativa de TaleSpire para avanzar el turno físico
-    const ts = (window as any).TS;
+    const ts = window.TS;
     if (ts && ts.initiative && typeof ts.initiative.nextTurn === "function") {
-      ts.initiative.nextTurn().catch((e: any) => {
+      ts.initiative.nextTurn().catch((e: unknown) => {
         console.error("[Combat Tracker] Error al avanzar turno nativo en TaleSpire:", e);
       });
     }
@@ -97,7 +120,7 @@ export const crearSliceIniciativa = (set: any, get: any) => ({
     return { colaIniciativa: nuevaCola, indiceTurnoActivo: nuevoIndice, rondaActual: nuevaRonda };
   }),
 
-  retrocederTurno: () => set((state: any) => {
+  retrocederTurno: () => set((state) => {
     if (state.colaIniciativa.length === 0) return {};
     let nuevoIndice = state.indiceTurnoActivo - 1;
     let nuevaRonda = state.rondaActual;
@@ -107,9 +130,9 @@ export const crearSliceIniciativa = (set: any, get: any) => ({
     }
 
     // Invocar asíncronamente a la API nativa de TaleSpire para retroceder el turno físico
-    const ts = (window as any).TS;
+    const ts = window.TS;
     if (ts && ts.initiative && typeof ts.initiative.prevTurn === "function") {
-      ts.initiative.prevTurn().catch((e: any) => {
+      ts.initiative.prevTurn().catch((e: unknown) => {
         console.error("[Combat Tracker] Error al retroceder turno nativo en TaleSpire:", e);
       });
     }
@@ -119,8 +142,8 @@ export const crearSliceIniciativa = (set: any, get: any) => ({
     return { indiceTurnoActivo: nuevoIndice, rondaActual: nuevaRonda };
   }),
 
-  actualizarColaIniciativaDesdeTaleSpire: (colaTS: any) => set((state: any) => {
-    const normalizarColaTaleSpire = (datosCola: any): any[] => {
+  actualizarColaIniciativaDesdeTaleSpire: (colaTS: unknown) => set((state) => {
+    const normalizarColaTaleSpire = (datosCola: any): CriaturaNativaTS[] => {
       if (!datosCola) return [];
       if (Array.isArray(datosCola)) return datosCola;
       
@@ -151,10 +174,10 @@ export const crearSliceIniciativa = (set: any, get: any) => ({
     };
 
     const colaFiltradaTS = normalizarColaTaleSpire(colaTS);
-    const criaturasLocales = state.colaIniciativa.filter((c: any) => c.id.startsWith("c_local_"));
+    const criaturasLocales = state.colaIniciativa.filter((c) => c.id.startsWith("c_local_"));
 
     const nuevasCriaturasNativas = colaFiltradaTS.map((cTS) => {
-      const existente = state.colaIniciativa.find((c: any) => c.id === cTS.id);
+      const existente = state.colaIniciativa.find((c) => c.id === cTS.id);
       const nombreTS = cTS.name.toLowerCase().trim();
       const nombreTSBase = nombreTS
         .replace(/\s+\d+$/g, "")
@@ -162,7 +185,7 @@ export const crearSliceIniciativa = (set: any, get: any) => ({
         .replace(/\s+[a-zA-Z]$/g, "")
         .trim();
 
-      const plantillaMonstruo = state.baseDatosMonstruos.find((m: any) => {
+      const plantillaMonstruo = state.baseDatosMonstruos.find((m) => {
         const nombrePlantilla = m.nombre.toLowerCase().trim();
         return (
           nombreTS === nombrePlantilla ||
@@ -212,7 +235,7 @@ export const crearSliceIniciativa = (set: any, get: any) => ({
         velocidad: plantillaMonstruo ? plantillaMonstruo.velocidad : "30 pies",
         vidaTemporal: 0,
         idPlantillaAsociada: plantillaMonstruo ? plantillaMonstruo.id : undefined
-      };
+      } as CriaturaIniciativa;
     });
 
     const colaCombinada = [...criaturasLocales, ...nuevasCriaturasNativas];
@@ -223,7 +246,8 @@ export const crearSliceIniciativa = (set: any, get: any) => ({
 
     if (colaTS && typeof colaTS === "object" && !Array.isArray(colaTS)) {
       let activeTurnId: string | null = null;
-      const indiceActivoNativo = colaTS.activeItemIndex !== undefined ? colaTS.activeItemIndex : colaTS.activeTurn;
+      const colaTSObj = colaTS as Record<string, any>;
+      const indiceActivoNativo = colaTSObj.activeItemIndex !== undefined ? colaTSObj.activeItemIndex : colaTSObj.activeTurn;
 
       console.log("[TaleSpire Sincronismo] Leyendo turno activo nativo:", indiceActivoNativo, "de la cola:", colaFiltradaTS);
 
@@ -271,8 +295,8 @@ export const crearSliceIniciativa = (set: any, get: any) => ({
         }
       }
 
-      if (colaTS.round !== undefined && typeof colaTS.round === "number" && colaTS.round > 0) {
-        nuevaRonda = colaTS.round;
+      if (colaTSObj.round !== undefined && typeof colaTSObj.round === "number" && colaTSObj.round > 0) {
+        nuevaRonda = colaTSObj.round;
       }
     }
 
@@ -292,7 +316,7 @@ export const crearSliceIniciativa = (set: any, get: any) => ({
   }),
 
   importarIniciativaTaleSpire: async () => {
-    const ts = (window as any).TS;
+    const ts = window.TS;
     if (ts && ts.initiative && typeof ts.initiative.getQueue === "function") {
       try {
         console.log("[Combat Tracker] Importando cola de iniciativa nativa desde TaleSpire...");
@@ -306,7 +330,7 @@ export const crearSliceIniciativa = (set: any, get: any) => ({
     }
   },
 
-  agregarCriaturaAIniciativa: (nombre: string, iniciativa: number, vidaMax: number, ca: number, esMonstruo: boolean, velocidad: string, bonifInic: number) => set((state: any) => {
+  agregarCriaturaAIniciativa: (nombre, iniciativa, vidaMax, ca, esMonstruo, velocidad, bonifInic) => set((state) => {
     const nuevaCriatura: CriaturaIniciativa = {
       id: `c_local_${Date.now()}_${Math.floor(Math.random() * 1000)}`,
       nombre,
@@ -327,8 +351,8 @@ export const crearSliceIniciativa = (set: any, get: any) => ({
     return { colaIniciativa: nuevaCola };
   }),
 
-  quitarCriaturaDeIniciativa: (id: string) => set((state: any) => {
-    const nuevaCola = state.colaIniciativa.filter((c: any) => c.id !== id);
+  quitarCriaturaDeIniciativa: (id) => set((state) => {
+    const nuevaCola = state.colaIniciativa.filter((c) => c.id !== id);
     let nuevoIndice = state.indiceTurnoActivo;
     if (nuevoIndice >= nuevaCola.length && nuevaCola.length > 0) {
       nuevoIndice = nuevaCola.length - 1;
@@ -337,8 +361,8 @@ export const crearSliceIniciativa = (set: any, get: any) => ({
     return { colaIniciativa: nuevaCola, indiceTurnoActivo: nuevoIndice };
   }),
 
-  modificarVidaCriaturaIniciativa: (id: string, nuevaVida: number) => set((state: any) => {
-    const nuevaCola = state.colaIniciativa.map((c: any) => {
+  modificarVidaCriaturaIniciativa: (id, nuevaVida) => set((state) => {
+    const nuevaCola = state.colaIniciativa.map((c) => {
       if (c.id === id) {
         return { ...c, vidaActual: Math.max(0, Math.min(c.vidaMaxima, nuevaVida)) };
       }
@@ -348,12 +372,12 @@ export const crearSliceIniciativa = (set: any, get: any) => ({
     return { colaIniciativa: nuevaCola };
   }),
 
-  agregarCondicionACriatura: (id: string, condicion: string) => set((state: any) => {
-    const nuevaCola = state.colaIniciativa.map((c: any) => {
+  agregarCondicionACriatura: (id, condicion) => set((state) => {
+    const nuevaCola = state.colaIniciativa.map((c) => {
       if (c.id === id) {
         if (condicion.toLowerCase().includes("cansado") || condicion.toLowerCase().includes("exhausted")) {
           const condicionCansadoExistente = c.condiciones.find(
-            (cond: string) => cond.toLowerCase().startsWith("cansado")
+            (cond) => cond.toLowerCase().startsWith("cansado")
           );
 
           if (condicionCansadoExistente) {
@@ -362,7 +386,7 @@ export const crearSliceIniciativa = (set: any, get: any) => ({
             const nuevoNivel = Math.min(6, nivelActual + 1);
             
             const condicionesFiltradas = c.condiciones.filter(
-              (cond: string) => !cond.toLowerCase().startsWith("cansado")
+              (cond) => !cond.toLowerCase().startsWith("cansado")
             );
             return { ...c, condiciones: [...condicionesFiltradas, `Cansado (Niv. ${nuevoNivel})`] };
           } else {
@@ -380,10 +404,10 @@ export const crearSliceIniciativa = (set: any, get: any) => ({
     return { colaIniciativa: nuevaCola };
   }),
 
-  quitarCondicionDeCriatura: (id: string, condicion: string) => set((state: any) => {
-    const nuevaCola = state.colaIniciativa.map((c: any) => {
+  quitarCondicionDeCriatura: (id, condicion) => set((state) => {
+    const nuevaCola = state.colaIniciativa.map((c) => {
       if (c.id === id) {
-        return { ...c, condiciones: c.condiciones.filter((cond: string) => cond !== condicion) };
+        return { ...c, condiciones: c.condiciones.filter((cond) => cond !== condicion) };
       }
       return c;
     });
@@ -391,11 +415,11 @@ export const crearSliceIniciativa = (set: any, get: any) => ({
     return { colaIniciativa: nuevaCola };
   }),
 
-  agregarEfectoACriatura: (idCriatura: string, nombreEfecto: string, duracion: number) => set((state: any) => {
-    const nuevaCola = state.colaIniciativa.map((c: any) => {
+  agregarEfectoACriatura: (idCriatura, nombreEfecto, duracion) => set((state) => {
+    const nuevaCola = state.colaIniciativa.map((c) => {
       if (c.id === idCriatura) {
         const nuevosEfectos = c.efectos ? [...c.efectos] : [];
-        const nuevoEfecto = {
+        const nuevoEfecto: EfectoActivo = {
           id: `${nombreEfecto.toLowerCase().replace(/[^a-z0-9]/g, "_")}_${Date.now()}_${Math.random().toString(36).substring(2, 5)}`,
           nombre: nombreEfecto,
           duracion: duracion
@@ -408,10 +432,10 @@ export const crearSliceIniciativa = (set: any, get: any) => ({
     return { colaIniciativa: nuevaCola };
   }),
 
-  quitarEfectoDeCriatura: (idCriatura: string, idEfecto: string) => set((state: any) => {
-    const nuevaCola = state.colaIniciativa.map((c: any) => {
+  quitarEfectoDeCriatura: (idCriatura, idEfecto) => set((state) => {
+    const nuevaCola = state.colaIniciativa.map((c) => {
       if (c.id === idCriatura) {
-        const nuevosEfectos = c.efectos ? c.efectos.filter((e: any) => e.id !== idEfecto) : [];
+        const nuevosEfectos = c.efectos ? c.efectos.filter((e) => e.id !== idEfecto) : [];
         return { ...c, efectos: nuevosEfectos };
       }
       return c;
@@ -420,9 +444,9 @@ export const crearSliceIniciativa = (set: any, get: any) => ({
     return { colaIniciativa: nuevaCola };
   }),
 
-  asociarPlantillaACriatura: (idCriatura: string, idPlantilla: string) => set((state: any) => {
-    const plantilla = state.baseDatosMonstruos.find((m: any) => m.id === idPlantilla);
-    const nuevaCola = state.colaIniciativa.map((c: any) => {
+  asociarPlantillaACriatura: (idCriatura, idPlantilla) => set((state) => {
+    const plantilla = state.baseDatosMonstruos.find((m) => m.id === idPlantilla);
+    const nuevaCola = state.colaIniciativa.map((c) => {
       if (c.id === idCriatura) {
         let vidaMaxCalculada = c.vidaMaxima;
         let vidaActualCalculada = c.vidaActual;
@@ -449,8 +473,8 @@ export const crearSliceIniciativa = (set: any, get: any) => ({
     return { colaIniciativa: nuevaCola };
   }),
 
-  actualizarVidaTemporal: (idCriatura: string, vidaTemp: number) => set((state: any) => {
-    const nuevaCola = state.colaIniciativa.map((c: any) => {
+  actualizarVidaTemporal: (idCriatura, vidaTemp) => set((state) => {
+    const nuevaCola = state.colaIniciativa.map((c) => {
       if (c.id === idCriatura) {
         return { ...c, vidaTemporal: Math.max(0, vidaTemp) };
       }
@@ -466,22 +490,36 @@ export const crearSliceIniciativa = (set: any, get: any) => ({
     set({ colaIniciativa: [], indiceTurnoActivo: 0, rondaActual: 1 });
   },
 
-  ordenarIniciativa: () => set((state: any) => {
+  ordenarIniciativa: () => set((state) => {
     const nuevaCola = [...state.colaIniciativa];
     nuevaCola.sort((a, b) => b.iniciativa - a.iniciativa);
     persistirEstadoCompleto({ ...state, colaIniciativa: nuevaCola, indiceTurnoActivo: 0 });
     return { colaIniciativa: nuevaCola, indiceTurnoActivo: 0 };
   }),
 
-  actualizarSeleccionCriaturas: (seleccionadas: any[]) => set({ criaturasSeleccionadas: seleccionadas }),
+  autoLanzarIniciativaMonstruos: () => set((state) => {
+    const nuevaCola = state.colaIniciativa.map((c) => {
+      if (c.esMonstruo) {
+        const tirada = Math.floor(Math.random() * 20) + 1;
+        const total = tirada + c.bonificadorIniciativa;
+        return { ...c, iniciativa: total };
+      }
+      return c;
+    });
+    nuevaCola.sort((a, b) => b.iniciativa - a.iniciativa);
+    persistirEstadoCompleto({ ...state, colaIniciativa: nuevaCola, indiceTurnoActivo: 0 });
+    return { colaIniciativa: nuevaCola, indiceTurnoActivo: 0 };
+  }),
 
-  agregarCriaturasSeleccionadasAIniciativa: () => set((state: any) => {
+  actualizarSeleccionCriaturas: (seleccionadas) => set({ criaturasSeleccionadas: seleccionadas }),
+
+  agregarCriaturasSeleccionadasAIniciativa: () => set((state) => {
     if (!state.criaturasSeleccionadas || state.criaturasSeleccionadas.length === 0) return {};
 
     const nuevasCriaturas: CriaturaIniciativa[] = [];
 
-    state.criaturasSeleccionadas.forEach((cTS: any) => {
-      if (state.colaIniciativa.some((c: any) => c.id === cTS.id)) return;
+    state.criaturasSeleccionadas.forEach((cTS) => {
+      if (state.colaIniciativa.some((c) => c.id === cTS.id)) return;
 
       const nombreTS = cTS.name.toLowerCase().trim();
       const nombreTSBase = nombreTS
@@ -490,7 +528,7 @@ export const crearSliceIniciativa = (set: any, get: any) => ({
         .replace(/\s+[a-zA-Z]$/g, "")
         .trim();
 
-      const plantillaMonstruo = state.baseDatosMonstruos.find((m: any) => {
+      const plantillaMonstruo = state.baseDatosMonstruos.find((m) => {
         const nombrePlantilla = m.nombre.toLowerCase().trim();
         return (
           nombreTS === nombrePlantilla ||

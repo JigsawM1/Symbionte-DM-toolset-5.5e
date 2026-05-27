@@ -279,14 +279,10 @@ export const ListaHomebrew: React.FC<Props> = ({
 
               {/* Fila de propiedades visuales adicionales */}
               <div className={estilos.filaPropiedadesEspeciales}>
-                {(hechizo.concentracion === true ||
-                  hechizo.concentracion === "Sí" ||
-                  hechizo.concentracion === "Si") && (
+                {hechizo.concentracion && (
                   <span className={estilos.chipConcentracion}>CONCENTRACIÓN</span>
                 )}
-                {(hechizo.ritual === true ||
-                  hechizo.ritual === "Sí" ||
-                  hechizo.ritual === "Si") && <span className={estilos.chipRitual}>RITUAL</span>}
+                {hechizo.ritual && <span className={estilos.chipRitual}>RITUAL</span>}
                 <span className={estilos.chipEscuela}>{hechizo.escuela}</span>
               </div>
 

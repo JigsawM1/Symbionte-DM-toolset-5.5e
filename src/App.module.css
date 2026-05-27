@@ -19,3 +19,28 @@
   background-color: var(--color-fondo-profundo);
   overflow: hidden;
 }
+
+.cargadorPestana {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  color: var(--color-primario);
+  font-family: var(--fuente-inter), sans-serif;
+  font-size: 14px;
+  letter-spacing: 1px;
+  background-color: rgba(10, 10, 10, 0.4);
+  border: 1px dashed var(--color-primario-trans);
+  border-radius: 6px;
+  box-sizing: border-box;
+}
+
+.cargadorBarra {
+  width: 120px;
+  height: 2px;
+  background-color: var(--color-primario);
+  margin-top: 8px;
+}
+

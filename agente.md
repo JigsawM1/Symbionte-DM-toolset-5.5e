@@ -1020,3 +1020,36 @@ Configuración obsoleta o incompleta de ESLint heredada de scaffolds de Javascri
 **Lecciones aprendidas:**
 > 🛡️ **Prevención a nivel de Linter:** Nunca confíes únicamente en la disciplina manual de codificación para evitar el uso del "comodín" `any`. Configura siempre de forma estricta tu linter (`eslint` con `no-explicit-any` como `'error'`) desde las primeras fases del proyecto. Esto obliga a estructurar tipos de interop asíncronos y modelar interfaces fuertemente tipadas de TaleSpire sin evadir el type-checker, garantizando la salud estructural a largo plazo.
 
+---
+
+## [2026-05-27] RENDIMIENTO Y ARQUITECTURA: Carga Diferida con Named Exports en Vite, Hook CRUD Genérico (`usarListaDinamica`) y Modularización de Formularios Masivos (Pilar 3 Completo)
+
+**Síntomas:**
+1. El arranque en frío de la app tardaba en WebView2 debido a que Vite empaquetaba de forma monolítica todas las pestañas de administración del DM en el bundle inicial (`index.js`).
+2. Al intentar aplicar `React.lazy` directamente en `App.tsx`, el compilador arrojaba el error `TS2322: Type 'Promise<typeof import("...")>' is not assignable to type 'Promise<{ default: ComponentType<any>; }>'.`
+3. El hook de criatura `usarFormularioCriatura.ts` acumulaba más de 50 variables de estado y cinco colecciones idénticas de lógicas CRUD (rasgos, acciones, reacciones, legendarias, quickActions) con micro-renders ineficientes y funciones re-creadas en cada render.
+4. Descomponer el componente masivo `FormularioCriatura.tsx` (~41.5 KB) en subcomponentes por secciones provocaba advertencias de asignación de tipos al mapear propiedades especializadas (como `habilidades` o `salvaciones`) con mapeos JS laxos (`Record<string, number>`).
+
+**Causas raíz:**
+1. Falta de división de código (code-splitting) a nivel de enrutador/pestañas.
+2. `React.lazy` espera estrictamente que la promesa devuelva un módulo con un **default export** (`default`). Los componentes de la app estaban exportados como **named exports** (`export const TablasDM = ...`), rompiendo la firma requerida.
+3. Repetición de lógicas CRUD locales sin una abstracción reusable, y carencia absoluta de envolturas `useCallback` en manejadores de cambio de UI.
+4. Tipados inconsistentes en las props de los subcomponentes creados que diferían de las firmas estrictas definidas en las interfaces del núcleo (`Habilidades`, `Salvaciones`).
+
+**Soluciones aplicadas:**
+1. **Mapeo polimórfico en `React.lazy` para Named Exports:** Se implementó un mapeo síncrono inline sumamente elegante que convierte promesas de named exports en la firma default que `React.lazy` exige, sin tener que refactorizar todo el codebase:
+   ```typescript
+   const TablasDM = React.lazy(() => import("./componentes/TablasDM").then((m) => ({ default: m.TablasDM })));
+   ```
+2. **Carga perezosa con Suspense Premium:** En App.tsx se envolvió la resolución condicional con `<Suspense>` y un cargador minimalista cian neón sin animaciones costosas para WebView2, delegando la descarga de pestañas pesadas a demanda y reduciendo el bundle de entrada inicial.
+3. **Abstracción Genérica con `usarListaDinamica.ts`:** Se diseñó el hook genérico reusable `usarListaDinamica<T extends ItemConNombre>` con `useCallback` que gestiona de manera transparente cualquier CRUD en memoria de listas. Se integró en `usarFormularioCriatura.ts` para las 5 listas, purgando más de 250 líneas repetitivas de código del hook.
+4. **Envoltura en `useCallback` de todos los Formularios:** Se refactorizaron síncronamente `usarFormularioCriatura.ts`, `usarFormularioHechizo.ts` y `usarFormularioObjeto.ts` para que el 100% de sus funciones mutadoras e inicializadoras queden cacheadas con `useCallback`.
+5. **Modularización Atómica Pixel-Perfect:** Se dividió `FormularioCriatura.tsx` de 1,035 líneas a apenas 220 líneas orquestadoras, delegando a 5 subcomponentes independientes por pestañas (`SeccionGeneral`, `SeccionAtributos`, `SeccionHabilidades`, `SeccionDefensas`, `SeccionListasAtaques`).
+6. **Consistencia de Tipos en Props:** Se alinearon los props de los subcomponentes para que consuman estrictamente las interfaces oficiales del núcleo (`Habilidades` y `Salvaciones` de `src/tipos/index.ts`) en lugar de `Record<string, number>`, resolviendo el error del compilador `tsc`.
+
+**Lecciones aprendidas:**
+> ⚡ **Named Exports y Code Splitting en Vite:** No es necesario reescribir tus componentes a exportaciones default para usar `React.lazy`. Usar un mapeo de promesa `.then(m => ({ default: m.NamedExport }))` es un patrón idóneo, seguro y compatible con TypeScript que te ahorra horas de refactorización innecesaria.
+> 📦 **Hook CRUD Genérico para Formularios Dinámicos:** Cuando gestiones múltiples listas locales del mismo tipo (ej. rasgos y reacciones) en un formulario gigante, prefiere siempre aislar la lógica en un hook genérico (`usarListaDinamica`). Reduce la fatiga mental, evita bugs y te da la garantía de que el linter audite la firma atómica de forma unificada.
+> 🏛️ **Coherencia y Tipado de Props en Subcomponentes:** Al descomponer componentes visuales masivos, define siempre los props heredando directamente de tus tipos core (`MonstruoBase`, `Habilidades`, `Salvaciones`) en lugar de usar comodines laxos (`Record`). Esto te asegura que cualquier cambio futuro en los modelos de datos se propague de manera automática por el compilador de TypeScript sin parches ciegos.
+
+

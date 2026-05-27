@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { usarAlmacenDM } from "../almacen/usarAlmacenDM";
 import { HechizoBase } from "../tipos";
 
@@ -27,7 +27,7 @@ export function usarFormularioHechizo(idEnEdicion: string | null, alGuardarExito
   const [hAgregarModificador, setHAgregarModificador] = useState("No");
   const [hTipoDaño, setHTipoDaño] = useState("N/A");
 
-  const limpiarFormulario = () => {
+  const limpiarFormulario = useCallback(() => {
     setHNombre("");
     setHNivel(1);
     setHEscuela("Evocación");
@@ -49,9 +49,9 @@ export function usarFormularioHechizo(idEnEdicion: string | null, alGuardarExito
     setHCdSalvacion("N/A");
     setHAgregarModificador("No");
     setHTipoDaño("N/A");
-  };
+  }, []);
 
-  const cargarHechizo = (h: HechizoBase) => {
+  const cargarHechizo = useCallback((h: HechizoBase) => {
     setHNombre(h.nombre);
     setHNivel(h.nivel);
     setHEscuela(h.escuela);
@@ -73,9 +73,9 @@ export function usarFormularioHechizo(idEnEdicion: string | null, alGuardarExito
     setHCdSalvacion(h.cdSalvacion || "N/A");
     setHAgregarModificador(h.agregarModificadorHabilidad ? "Sí" : "No");
     setHTipoDaño(h.tipoDaño || "N/A");
-  };
+  }, []);
 
-  const manejarGuardarHechizo = (e: React.FormEvent) => {
+  const manejarGuardarHechizo = useCallback((e: React.FormEvent) => {
     e.preventDefault();
     if (!hNombre.trim()) {
       agregarNotificacion("El nombre del hechizo es requerido", "advertencia");
@@ -131,7 +131,13 @@ export function usarFormularioHechizo(idEnEdicion: string | null, alGuardarExito
 
     limpiarFormulario();
     alGuardarExitoso();
-  };
+  }, [
+    hNombre, hNivel, hEscuela, hTiempo, hAlcance, hDescripcion, hDescNivelSuperior, hMateriales,
+    hCompVerbal, hCompSomatico, hCompMaterial, hRitual, hDuracion, hConcentracion, hClases,
+    hAtaqueCd, hDadosDaño, hDadosDañoNivelSuperior, hCdSalvacion, hAgregarModificador, hTipoDaño,
+    idEnEdicion, agregarHechizoHomebrew, actualizarHechizoHomebrew, agregarNotificacion,
+    limpiarFormulario, alGuardarExitoso
+  ]);
 
   return {
     hNombre, setHNombre,

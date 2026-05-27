@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { usarAlmacenDM } from "../almacen/usarAlmacenDM";
-import { MonstruoBase } from "../tipos";
+import { MonstruoBase, RasgoBase, AccionMonstruo, AccionRapida } from "../tipos";
+import { usarListaDinamica } from "./usarListaDinamica";
 
 export const estadoInicialCriatura = {
   nombre: "",
@@ -29,6 +30,23 @@ export const estadoInicialCriatura = {
   accionesLegendarias: []
 };
 
+const rasgoInicial: RasgoBase = { nombre: "", descripcion: "", uso: "" };
+const accionInicial: Omit<AccionMonstruo, "bonificadorAtaque"> & { bonificadorAtaque: string } = {
+  nombre: "",
+  descripcion: "",
+  bonificadorAtaque: "",
+  daño: "",
+  uso: ""
+};
+const reaccionInicial: RasgoBase = { nombre: "", descripcion: "", uso: "" };
+const legendariaInicial: RasgoBase = { nombre: "", descripcion: "", uso: "" };
+const quickActionInicial: AccionRapida = {
+  nombre: "",
+  bonificadorAtaque: "+0",
+  dadosDaño: "1d6",
+  tipoDaño: "fuerza"
+};
+
 export function usarFormularioCriatura(idEnEdicion: string | null, alGuardarExitoso: () => void) {
   const { agregarMonstruoHomebrew, actualizarMonstruoHomebrew, agregarNotificacion } = usarAlmacenDM();
 
@@ -36,66 +54,63 @@ export function usarFormularioCriatura(idEnEdicion: string | null, alGuardarExit
   const [subPestanaCriatura, setSubPestanaCriatura] = useState<"general" | "atributos" | "pericias" | "defensas" | "listas">("general");
   const [subDefensas, setSubDefensas] = useState<"inmunidades" | "resistencias" | "vulnerabilidades" | "condiciones">("inmunidades");
 
-  // --- Estados para items dinámicos locales ---
-  const [tRasgoNombre, setTRasgoNombre] = useState("");
-  const [tRasgoDesc, setTRasgoDesc] = useState("");
-  const [tRasgoUso, setTRasgoUso] = useState("");
+  // --- Helpers para actualizar las listas en el monstruoForm ---
+  const setRasgosForm = useCallback((nuevosRasgos: RasgoBase[]) => {
+    setMonstruoForm((prev) => ({ ...prev, rasgos: nuevosRasgos }));
+  }, []);
 
-  const [tAccionNombre, setTAccionNombre] = useState("");
-  const [tAccionDesc, setTAccionDesc] = useState("");
-  const [tAccionBono, setTAccionBono] = useState("");
-  const [tAccionDaño, setTAccionDaño] = useState("");
-  const [tAccionUso, setTAccionUso] = useState("");
+  const setAccionesForm = useCallback((nuevasAccionesRaw: Array<Omit<AccionMonstruo, "bonificadorAtaque"> & { bonificadorAtaque: string }>) => {
+    const accionesSaneadas = nuevasAccionesRaw.map((a) => ({
+      nombre: a.nombre,
+      descripcion: a.descripcion,
+      bonificadorAtaque: a.bonificadorAtaque ? parseInt(a.bonificadorAtaque, 10) : undefined,
+      daño: a.daño || undefined,
+      uso: a.uso || undefined
+    }));
+    setMonstruoForm((prev) => ({ ...prev, acciones: accionesSaneadas }));
+  }, []);
 
-  const [tReaccionNombre, setTReaccionNombre] = useState("");
-  const [tReaccionDesc, setTReaccionDesc] = useState("");
-  const [tReaccionUso, setTReaccionUso] = useState("");
+  const setReaccionesForm = useCallback((nuevasReacciones: RasgoBase[]) => {
+    setMonstruoForm((prev) => ({ ...prev, reacciones: nuevasReacciones }));
+  }, []);
 
-  const [tLegendariaNombre, setTLegendariaNombre] = useState("");
-  const [tLegendariaDesc, setTLegendariaDesc] = useState("");
-  const [tLegendariaUso, setTLegendariaUso] = useState("");
+  const setLegendariasForm = useCallback((nuevasLeg: RasgoBase[]) => {
+    setMonstruoForm((prev) => ({ ...prev, accionesLegendarias: nuevasLeg }));
+  }, []);
 
-  const [tQNombre, setTQNombre] = useState("");
-  const [tQBono, setTQBono] = useState("+0");
-  const [tQDados, setTQDados] = useState("1d6");
-  const [tQTipo, setTQTipo] = useState("fuerza");
+  const setQuickActionsForm = useCallback((nuevasQA: AccionRapida[]) => {
+    setMonstruoForm((prev) => ({ ...prev, accionesRapidas: nuevasQA }));
+  }, []);
 
-  // --- Estados de Índices para Edición de Items Dinámicos ---
-  const [rasgoEdicionIdx, setRasgoEdicionIdx] = useState<number | null>(null);
-  const [accionEdicionIdx, setAccionEdicionIdx] = useState<number | null>(null);
-  const [reaccionEdicionIdx, setReaccionEdicionIdx] = useState<number | null>(null);
-  const [legendariaEdicionIdx, setLegendariaEdicionIdx] = useState<number | null>(null);
-  const [quickActionEdicionIdx, setQuickActionEdicionIdx] = useState<number | null>(null);
+  // --- Listas dinámicas con hook genérico ---
+  const listaRasgos = usarListaDinamica(rasgoInicial, setRasgosForm, monstruoForm.rasgos || []);
+  
+  // Para acciones convertimos temporalmente bonificadorAtaque a string en el estado del subformulario
+  const accionesRaw = (monstruoForm.acciones || []).map((a) => ({
+    nombre: a.nombre,
+    descripcion: a.descripcion,
+    bonificadorAtaque: a.bonificadorAtaque !== undefined ? String(a.bonificadorAtaque) : "",
+    daño: a.daño || "",
+    uso: a.uso || ""
+  }));
+  const listaAcciones = usarListaDinamica(accionInicial, setAccionesForm, accionesRaw);
 
-  const limpiarFormulario = () => {
+  const listaReacciones = usarListaDinamica(reaccionInicial, setReaccionesForm, monstruoForm.reacciones || []);
+  const listaLegendarias = usarListaDinamica(legendariaInicial, setLegendariasForm, monstruoForm.accionesLegendarias || []);
+  const listaQuickActions = usarListaDinamica(quickActionInicial, setQuickActionsForm, monstruoForm.accionesRapidas || []);
+
+  const limpiarFormulario = useCallback(() => {
     setMonstruoForm(estadoInicialCriatura);
     setSubPestanaCriatura("general");
     setSubDefensas("inmunidades");
-    setTRasgoNombre("");
-    setTRasgoDesc("");
-    setTRasgoUso("");
-    setTAccionNombre("");
-    setTAccionDesc("");
-    setTAccionBono("");
-    setTAccionDaño("");
-    setTAccionUso("");
-    setTReaccionNombre("");
-    setTReaccionDesc("");
-    setTReaccionUso("");
-    setTLegendariaNombre("");
-    setTLegendariaDesc("");
-    setTLegendariaUso("");
-    setTQNombre("");
-    setTQBono("+0");
-    setTQDados("1d6");
-    setRasgoEdicionIdx(null);
-    setAccionEdicionIdx(null);
-    setReaccionEdicionIdx(null);
-    setLegendariaEdicionIdx(null);
-    setQuickActionEdicionIdx(null);
-  };
+    listaRasgos.limpiarItemForm();
+    listaAcciones.limpiarItemForm();
+    listaReacciones.limpiarItemForm();
+    listaLegendarias.limpiarItemForm();
+    listaQuickActions.limpiarItemForm();
+  }, [listaRasgos, listaAcciones, listaReacciones, listaLegendarias, listaQuickActions]);
 
-  const cargarCriatura = (m: MonstruoBase) => {
+  const cargarCriatura = useCallback((m: MonstruoBase) => {
     setMonstruoForm({
       nombre: m.nombre,
       tipo: m.tipo || "Humanoide",
@@ -124,20 +139,20 @@ export function usarFormularioCriatura(idEnEdicion: string | null, alGuardarExit
     });
     setSubPestanaCriatura("general");
     setSubDefensas("inmunidades");
-  };
+  }, []);
 
-  const actualizarGeneral = (campo: string, valor: unknown) => {
+  const actualizarGeneral = useCallback((campo: string, valor: unknown) => {
     setMonstruoForm((prev) => ({ ...prev, [campo]: valor }));
-  };
+  }, []);
 
-  const actualizarCaracteristica = (caract: string, valor: number) => {
+  const actualizarCaracteristica = useCallback((caract: string, valor: number) => {
     setMonstruoForm((prev) => ({
       ...prev,
       caracteristicas: { ...prev.caracteristicas, [caract]: valor }
     }));
-  };
+  }, []);
 
-  const actualizarSalvacion = (caract: string, valor: string) => {
+  const actualizarSalvacion = useCallback((caract: string, valor: string) => {
     const num = valor === "" ? undefined : parseInt(valor, 10);
     setMonstruoForm((prev) => {
       const nuevasSalv = { ...prev.salvaciones };
@@ -148,9 +163,9 @@ export function usarFormularioCriatura(idEnEdicion: string | null, alGuardarExit
       }
       return { ...prev, salvaciones: nuevasSalv };
     });
-  };
+  }, []);
 
-  const actualizarHabilidad = (hab: string, valor: string) => {
+  const actualizarHabilidad = useCallback((hab: string, valor: string) => {
     const num = valor === "" ? undefined : parseInt(valor, 10);
     setMonstruoForm((prev) => {
       const nuevasHab = { ...prev.habilidades };
@@ -161,9 +176,9 @@ export function usarFormularioCriatura(idEnEdicion: string | null, alGuardarExit
       }
       return { ...prev, habilidades: nuevasHab };
     });
-  };
+  }, []);
 
-  const alternarCheckArray = (campo: "vulnerabilidades" | "resistencias" | "inmunidadesDaño" | "inmunidadesCondicion", valor: string) => {
+  const alternarCheckArray = useCallback((campo: "vulnerabilidades" | "resistencias" | "inmunidadesDaño" | "inmunidadesCondicion", valor: string) => {
     setMonstruoForm((prev) => {
       const arr = prev[campo] || [];
       const nuevoArr = arr.includes(valor)
@@ -171,291 +186,9 @@ export function usarFormularioCriatura(idEnEdicion: string | null, alGuardarExit
         : [...arr, valor];
       return { ...prev, [campo]: nuevoArr };
     });
-  };
+  }, []);
 
-  // --- Métodos de agregación de items dinámicos ---
-  const agregarRasgo = () => {
-    if (!tRasgoNombre.trim() || !tRasgoDesc.trim()) return;
-    
-    if (rasgoEdicionIdx !== null) {
-      setMonstruoForm((prev) => {
-        const nuevosRasgos = [...(prev.rasgos || [])];
-        nuevosRasgos[rasgoEdicionIdx] = {
-          nombre: tRasgoNombre.trim(),
-          descripcion: tRasgoDesc.trim(),
-          uso: tRasgoUso.trim() || undefined
-        };
-        return { ...prev, rasgos: nuevosRasgos };
-      });
-      setRasgoEdicionIdx(null);
-    } else {
-      setMonstruoForm((prev) => ({
-        ...prev,
-        rasgos: [...(prev.rasgos || []), { nombre: tRasgoNombre.trim(), descripcion: tRasgoDesc.trim(), uso: tRasgoUso.trim() || undefined }]
-      }));
-    }
-    setTRasgoNombre("");
-    setTRasgoDesc("");
-    setTRasgoUso("");
-  };
-
-  const iniciarEditarRasgo = (idx: number) => {
-    const r = monstruoForm.rasgos?.[idx];
-    if (!r) return;
-    setTRasgoNombre(r.nombre);
-    setTRasgoDesc(r.descripcion);
-    setTRasgoUso(r.uso || "");
-    setRasgoEdicionIdx(idx);
-  };
-
-  const cancelarEditarRasgo = () => {
-    setTRasgoNombre("");
-    setTRasgoDesc("");
-    setTRasgoUso("");
-    setRasgoEdicionIdx(null);
-  };
-
-  const eliminarRasgoIdx = (idx: number) => {
-    setMonstruoForm((prev) => ({
-      ...prev,
-      rasgos: prev.rasgos.filter((_, i) => i !== idx)
-    }));
-    if (rasgoEdicionIdx === idx) {
-      cancelarEditarRasgo();
-    } else if (rasgoEdicionIdx !== null && rasgoEdicionIdx > idx) {
-      setRasgoEdicionIdx(rasgoEdicionIdx - 1);
-    }
-  };
-
-  const agregarAccion = () => {
-    if (!tAccionNombre.trim() || !tAccionDesc.trim()) return;
-    
-    if (accionEdicionIdx !== null) {
-      setMonstruoForm((prev) => {
-        const nuevasAcciones = [...(prev.acciones || [])];
-        nuevasAcciones[accionEdicionIdx] = {
-          nombre: tAccionNombre.trim(),
-          descripcion: tAccionDesc.trim(),
-          bonificadorAtaque: tAccionBono ? parseInt(tAccionBono, 10) : undefined,
-          daño: tAccionDaño.trim() || undefined,
-          uso: tAccionUso.trim() || undefined
-        };
-        return { ...prev, acciones: nuevasAcciones };
-      });
-      setAccionEdicionIdx(null);
-    } else {
-      setMonstruoForm((prev) => ({
-        ...prev,
-        acciones: [...(prev.acciones || []), {
-          nombre: tAccionNombre.trim(),
-          descripcion: tAccionDesc.trim(),
-          bonificadorAtaque: tAccionBono ? parseInt(tAccionBono, 10) : undefined,
-          daño: tAccionDaño.trim() || undefined,
-          uso: tAccionUso.trim() || undefined
-        }]
-      }));
-    }
-    setTAccionNombre("");
-    setTAccionDesc("");
-    setTAccionBono("");
-    setTAccionDaño("");
-    setTAccionUso("");
-  };
-
-  const iniciarEditarAccion = (idx: number) => {
-    const a = monstruoForm.acciones?.[idx];
-    if (!a) return;
-    setTAccionNombre(a.nombre);
-    setTAccionDesc(a.descripcion);
-    setTAccionBono(a.bonificadorAtaque ? String(a.bonificadorAtaque) : "");
-    setTAccionDaño(a.daño || "");
-    setTAccionUso(a.uso || "");
-    setAccionEdicionIdx(idx);
-  };
-
-  const cancelarEditarAccion = () => {
-    setTAccionNombre("");
-    setTAccionDesc("");
-    setTAccionBono("");
-    setTAccionDaño("");
-    setTAccionUso("");
-    setAccionEdicionIdx(null);
-  };
-
-  const eliminarAccionIdx = (idx: number) => {
-    setMonstruoForm((prev) => ({
-      ...prev,
-      acciones: prev.acciones.filter((_, i) => i !== idx)
-    }));
-    if (accionEdicionIdx === idx) {
-      cancelarEditarAccion();
-    } else if (accionEdicionIdx !== null && accionEdicionIdx > idx) {
-      setAccionEdicionIdx(accionEdicionIdx - 1);
-    }
-  };
-
-  const agregarReaccion = () => {
-    if (!tReaccionNombre.trim() || !tReaccionDesc.trim()) return;
-    
-    if (reaccionEdicionIdx !== null) {
-      setMonstruoForm((prev) => {
-        const nuevasReacciones = [...(prev.reacciones || [])];
-        nuevasReacciones[reaccionEdicionIdx] = {
-          nombre: tReaccionNombre.trim(),
-          descripcion: tReaccionDesc.trim(),
-          uso: tReaccionUso.trim() || undefined
-        };
-        return { ...prev, reacciones: nuevasReacciones };
-      });
-      setReaccionEdicionIdx(null);
-    } else {
-      setMonstruoForm((prev) => ({
-        ...prev,
-        reacciones: [...(prev.reacciones || []), { nombre: tReaccionNombre.trim(), descripcion: tReaccionDesc.trim(), uso: tReaccionUso.trim() || undefined }]
-      }));
-    }
-    setTReaccionNombre("");
-    setTReaccionDesc("");
-    setTReaccionUso("");
-  };
-
-  const iniciarEditarReaccion = (idx: number) => {
-    const r = monstruoForm.reacciones?.[idx];
-    if (!r) return;
-    setTReaccionNombre(r.nombre);
-    setTReaccionDesc(r.descripcion);
-    setTReaccionUso(r.uso || "");
-    setReaccionEdicionIdx(idx);
-  };
-
-  const cancelarEditarReaccion = () => {
-    setTReaccionNombre("");
-    setTReaccionDesc("");
-    setTReaccionUso("");
-    setReaccionEdicionIdx(null);
-  };
-
-  const eliminarReaccionIdx = (idx: number) => {
-    setMonstruoForm((prev) => ({
-      ...prev,
-      reacciones: (prev.reacciones || []).filter((_, i) => i !== idx)
-    }));
-    if (reaccionEdicionIdx === idx) {
-      cancelarEditarReaccion();
-    } else if (reaccionEdicionIdx !== null && reaccionEdicionIdx > idx) {
-      setReaccionEdicionIdx(reaccionEdicionIdx - 1);
-    }
-  };
-
-  const agregarLegendaria = () => {
-    if (!tLegendariaNombre.trim() || !tLegendariaDesc.trim()) return;
-    
-    if (legendariaEdicionIdx !== null) {
-      setMonstruoForm((prev) => {
-        const nuevasLeg = [...(prev.accionesLegendarias || [])];
-        nuevasLeg[legendariaEdicionIdx] = {
-          nombre: tLegendariaNombre.trim(),
-          descripcion: tLegendariaDesc.trim(),
-          uso: tLegendariaUso.trim() || undefined
-        };
-        return { ...prev, accionesLegendarias: nuevasLeg };
-      });
-      setLegendariaEdicionIdx(null);
-    } else {
-      setMonstruoForm((prev) => ({
-        ...prev,
-        accionesLegendarias: [...(prev.accionesLegendarias || []), { nombre: tLegendariaNombre.trim(), descripcion: tLegendariaDesc.trim(), uso: tLegendariaUso.trim() || undefined }]
-      }));
-    }
-    setTLegendariaNombre("");
-    setTLegendariaDesc("");
-    setTLegendariaUso("");
-  };
-
-  const iniciarEditarLegendaria = (idx: number) => {
-    const l = monstruoForm.accionesLegendarias?.[idx];
-    if (!l) return;
-    setTLegendariaNombre(l.nombre);
-    setTLegendariaDesc(l.descripcion);
-    setTLegendariaUso(l.uso || "");
-    setLegendariaEdicionIdx(idx);
-  };
-
-  const cancelarEditarLegendaria = () => {
-    setTLegendariaNombre("");
-    setTLegendariaDesc("");
-    setTLegendariaUso("");
-    setLegendariaEdicionIdx(null);
-  };
-
-  const eliminarLegendariaIdx = (idx: number) => {
-    setMonstruoForm((prev) => ({
-      ...prev,
-      accionesLegendarias: (prev.accionesLegendarias || []).filter((_, i) => i !== idx)
-    }));
-    if (legendariaEdicionIdx === idx) {
-      cancelarEditarLegendaria();
-    } else if (legendariaEdicionIdx !== null && legendariaEdicionIdx > idx) {
-      setLegendariaEdicionIdx(legendariaEdicionIdx - 1);
-    }
-  };
-
-  const agregarQuickAction = () => {
-    if (!tQNombre.trim()) return;
-    
-    if (quickActionEdicionIdx !== null) {
-      setMonstruoForm((prev) => {
-        const nuevasQA = [...(prev.accionesRapidas || [])];
-        nuevasQA[quickActionEdicionIdx] = {
-          nombre: tQNombre.trim(),
-          bonificadorAtaque: tQBono,
-          dadosDaño: tQDados,
-          tipoDaño: tQTipo
-        };
-        return { ...prev, accionesRapidas: nuevasQA };
-      });
-      setQuickActionEdicionIdx(null);
-    } else {
-      setMonstruoForm((prev) => ({
-        ...prev,
-        accionesRapidas: [...(prev.accionesRapidas || []), {
-          nombre: tQNombre.trim(),
-          bonificadorAtaque: tQBono,
-          dadosDaño: tQDados,
-          tipoDaño: tQTipo
-        }]
-      }));
-    }
-    setTQNombre("");
-    setTQBono("+0");
-    setTQDados("1d6");
-  };
-
-  const iniciarEditarQuickAction = (idx: number) => {
-    const qa = monstruoForm.accionesRapidas?.[idx];
-    if (!qa) return;
-    setTQNombre(qa.nombre);
-    setTQBono(qa.bonificadorAtaque || "+0");
-    setTQDados(qa.dadosDaño || "1d6");
-    setTQTipo(qa.tipoDaño || "cortante");
-    setQuickActionEdicionIdx(idx);
-  };
-
-  const cancelarEditarQuickAction = () => {
-    setTQNombre("");
-    setTQBono("+0");
-    setTQDados("1d6");
-    setQuickActionEdicionIdx(null);
-  };
-
-  const eliminarQuickActionIdx = (idx: number) => {
-    setMonstruoForm((prev) => ({
-      ...prev,
-      accionesRapidas: (prev.accionesRapidas || []).filter((_, i) => i !== idx)
-    }));
-  };
-
-  const manejarGuardarCriatura = (e: React.FormEvent) => {
+  const manejarGuardarCriatura = useCallback((e: React.FormEvent) => {
     e.preventDefault();
     if (!monstruoForm.nombre.trim()) {
       agregarNotificacion("El nombre de la criatura es requerido", "advertencia");
@@ -475,60 +208,67 @@ export function usarFormularioCriatura(idEnEdicion: string | null, alGuardarExit
 
     limpiarFormulario();
     alGuardarExitoso();
-  };
+  }, [monstruoForm, idEnEdicion, agregarMonstruoHomebrew, actualizarMonstruoHomebrew, agregarNotificacion, limpiarFormulario, alGuardarExitoso]);
 
   return {
     monstruoForm,
     subPestanaCriatura, setSubPestanaCriatura,
     subDefensas, setSubDefensas,
-    tRasgoNombre, setTRasgoNombre,
-    tRasgoDesc, setTRasgoDesc,
-    tRasgoUso, setTRasgoUso,
-    tAccionNombre, setTAccionNombre,
-    tAccionDesc, setTAccionDesc,
-    tAccionBono, setTAccionBono,
-    tAccionDaño, setTAccionDaño,
-    tAccionUso, setTAccionUso,
-    tReaccionNombre, setTReaccionNombre,
-    tReaccionDesc, setTReaccionDesc,
-    tReaccionUso, setTReaccionUso,
-    tLegendariaNombre, setTLegendariaNombre,
-    tLegendariaDesc, setTLegendariaDesc,
-    tLegendariaUso, setTLegendariaUso,
-    tQNombre, setTQNombre,
-    tQBono, setTQBono,
-    tQDados, setTQDados,
-    tQTipo, setTQTipo,
-    rasgoEdicionIdx,
-    accionEdicionIdx,
-    reaccionEdicionIdx,
-    legendariaEdicionIdx,
-    quickActionEdicionIdx,
+    
+    // Mapeo adaptativo compatible con props antiguas para no romper la UI en caliente
+    tRasgoNombre: listaRasgos.itemForm.nombre, setTRasgoNombre: (v: string) => listaRasgos.actualizarCampoItem("nombre", v),
+    tRasgoDesc: listaRasgos.itemForm.descripcion || "", setTRasgoDesc: (v: string) => listaRasgos.actualizarCampoItem("descripcion", v),
+    tRasgoUso: listaRasgos.itemForm.uso || "", setTRasgoUso: (v: string) => listaRasgos.actualizarCampoItem("uso", v),
+    rasgoEdicionIdx: listaRasgos.edicionIdx,
+    agregarRasgo: listaRasgos.agregarItem,
+    iniciarEditarRasgo: listaRasgos.iniciarEdicion,
+    cancelarEditarRasgo: listaRasgos.cancelarEdicion,
+    eliminarRasgoIdx: listaRasgos.eliminarItem,
+
+    tAccionNombre: listaAcciones.itemForm.nombre, setTAccionNombre: (v: string) => listaAcciones.actualizarCampoItem("nombre", v),
+    tAccionDesc: listaAcciones.itemForm.descripcion || "", setTAccionDesc: (v: string) => listaAcciones.actualizarCampoItem("descripcion", v),
+    tAccionBono: listaAcciones.itemForm.bonificadorAtaque, setTAccionBono: (v: string) => listaAcciones.actualizarCampoItem("bonificadorAtaque", v),
+    tAccionDaño: listaAcciones.itemForm.daño || "", setTAccionDaño: (v: string) => listaAcciones.actualizarCampoItem("daño", v),
+    tAccionUso: listaAcciones.itemForm.uso || "", setTAccionUso: (v: string) => listaAcciones.actualizarCampoItem("uso", v),
+    accionEdicionIdx: listaAcciones.edicionIdx,
+    agregarAccion: listaAcciones.agregarItem,
+    iniciarEditarAccion: listaAcciones.iniciarEdicion,
+    cancelarEditarAccion: listaAcciones.cancelarEdicion,
+    eliminarAccionIdx: listaAcciones.eliminarItem,
+
+    tReaccionNombre: listaReacciones.itemForm.nombre, setTReaccionNombre: (v: string) => listaReacciones.actualizarCampoItem("nombre", v),
+    tReaccionDesc: listaReacciones.itemForm.descripcion || "", setTReaccionDesc: (v: string) => listaReacciones.actualizarCampoItem("descripcion", v),
+    tReaccionUso: listaReacciones.itemForm.uso || "", setTReaccionUso: (v: string) => listaReacciones.actualizarCampoItem("uso", v),
+    reaccionEdicionIdx: listaReacciones.edicionIdx,
+    agregarReaccion: listaReacciones.agregarItem,
+    iniciarEditarReaccion: listaReacciones.iniciarEdicion,
+    cancelarEditarReaccion: listaReacciones.cancelarEdicion,
+    eliminarReaccionIdx: listaReacciones.eliminarItem,
+
+    tLegendariaNombre: listaLegendarias.itemForm.nombre, setTLegendariaNombre: (v: string) => listaLegendarias.actualizarCampoItem("nombre", v),
+    tLegendariaDesc: listaLegendarias.itemForm.descripcion || "", setTLegendariaDesc: (v: string) => listaLegendarias.actualizarCampoItem("descripcion", v),
+    tLegendariaUso: listaLegendarias.itemForm.uso || "", setTLegendariaUso: (v: string) => listaLegendarias.actualizarCampoItem("uso", v),
+    legendariaEdicionIdx: listaLegendarias.edicionIdx,
+    agregarLegendaria: listaLegendarias.agregarItem,
+    iniciarEditarLegendaria: listaLegendarias.iniciarEdicion,
+    cancelarEditarLegendaria: listaLegendarias.cancelarEdicion,
+    eliminarLegendariaIdx: listaLegendarias.eliminarItem,
+
+    tQNombre: listaQuickActions.itemForm.nombre, setTQNombre: (v: string) => listaQuickActions.actualizarCampoItem("nombre", v),
+    tQBono: listaQuickActions.itemForm.bonificadorAtaque || "+0", setTQBono: (v: string) => listaQuickActions.actualizarCampoItem("bonificadorAtaque", v),
+    tQDados: listaQuickActions.itemForm.dadosDaño || "1d6", setTQDados: (v: string) => listaQuickActions.actualizarCampoItem("dadosDaño", v),
+    tQTipo: listaQuickActions.itemForm.tipoDaño || "fuerza", setTQTipo: (v: string) => listaQuickActions.actualizarCampoItem("tipoDaño", v),
+    quickActionEdicionIdx: listaQuickActions.edicionIdx,
+    agregarQuickAction: listaQuickActions.agregarItem,
+    iniciarEditarQuickAction: listaQuickActions.iniciarEdicion,
+    cancelarEditarQuickAction: listaQuickActions.cancelarEdicion,
+    eliminarQuickActionIdx: listaQuickActions.eliminarItem,
+
     actualizarGeneral,
     actualizarCaracteristica,
     actualizarSalvacion,
     actualizarHabilidad,
     alternarCheckArray,
-    agregarRasgo,
-    iniciarEditarRasgo,
-    cancelarEditarRasgo,
-    eliminarRasgoIdx,
-    agregarAccion,
-    iniciarEditarAccion,
-    cancelarEditarAccion,
-    eliminarAccionIdx,
-    agregarReaccion,
-    iniciarEditarReaccion,
-    cancelarEditarReaccion,
-    eliminarReaccionIdx,
-    agregarLegendaria,
-    iniciarEditarLegendaria,
-    cancelarEditarLegendaria,
-    eliminarLegendariaIdx,
-    agregarQuickAction,
-    iniciarEditarQuickAction,
-    cancelarEditarQuickAction,
-    eliminarQuickActionIdx,
     limpiarFormulario,
     cargarCriatura,
     manejarGuardarCriatura

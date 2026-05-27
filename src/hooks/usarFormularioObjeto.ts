@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { usarAlmacenDM, ObjetoHomebrew } from "../almacen/usarAlmacenDM";
 
 export function usarFormularioObjeto(idEnEdicion: string | null, alGuardarExitoso: () => void) {
@@ -27,7 +27,7 @@ export function usarFormularioObjeto(idEnEdicion: string | null, alGuardarExitos
   const [oNuevoBonoBono, setONuevoBonoBono] = useState("CA");
   const [oNuevoBonoValor, setONuevoBonoValor] = useState(0);
 
-  const limpiarFormulario = () => {
+  const limpiarFormulario = useCallback(() => {
     setONombre("");
     setORareza("Común");
     setOPropiedades("");
@@ -45,9 +45,9 @@ export function usarFormularioObjeto(idEnEdicion: string | null, alGuardarExitos
     setOBonoAtaque("");
     setOBonoDaño("");
     setOBonosMagicos([]);
-  };
+  }, []);
 
-  const cargarObjeto = (o: ObjetoHomebrew) => {
+  const cargarObjeto = useCallback((o: ObjetoHomebrew) => {
     setONombre(o.nombre);
     setORareza(o.rareza);
     setOPropiedades(o.propiedades);
@@ -65,9 +65,9 @@ export function usarFormularioObjeto(idEnEdicion: string | null, alGuardarExitos
     setOBonoAtaque(o.bonoAtaque || "");
     setOBonoDaño(o.bonoDaño || "");
     setOBonosMagicos(o.bonosMagicos || []);
-  };
+  }, []);
 
-  const agregarBonoMagico = () => {
+  const agregarBonoMagico = useCallback(() => {
     if (!oNuevoBonoBono.trim()) return;
     setOBonosMagicos((prev) => [
       ...prev,
@@ -78,13 +78,13 @@ export function usarFormularioObjeto(idEnEdicion: string | null, alGuardarExitos
       }
     ]);
     setONuevoBonoValor(0);
-  };
+  }, [oNuevoBonoBono, oNuevoBonoCategoria, oNuevoBonoValor]);
 
-  const eliminarBonoMagicoIdx = (idx: number) => {
+  const eliminarBonoMagicoIdx = useCallback((idx: number) => {
     setOBonosMagicos((prev) => prev.filter((_, i) => i !== idx));
-  };
+  }, []);
 
-  const manejarGuardarObjeto = (e: React.FormEvent) => {
+  const manejarGuardarObjeto = useCallback((e: React.FormEvent) => {
     e.preventDefault();
     if (!oNombre.trim()) {
       agregarNotificacion("El nombre del objeto es requerido", "advertencia");
@@ -136,7 +136,12 @@ export function usarFormularioObjeto(idEnEdicion: string | null, alGuardarExitos
 
     limpiarFormulario();
     alGuardarExitoso();
-  };
+  }, [
+    oNombre, oRareza, oPropiedades, oDescripcion, oCategoria, oCostoValor, oCostoUnidad, oPeso,
+    oTipoArma, oEstiloAtaque, oAlcance, oPropiedadesArma, oDadosDaño, oTipoDaño, oBonoAtaque,
+    oBonoDaño, oBonosMagicos, idEnEdicion, agregarObjetoHomebrew, actualizarObjetoHomebrew,
+    agregarNotificacion, limpiarFormulario, alGuardarExitoso
+  ]);
 
   return {
     oNombre, setONombre,

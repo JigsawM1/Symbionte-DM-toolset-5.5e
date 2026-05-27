@@ -1,0 +1,72 @@
+.seccionReglasBasicasGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  width: 100%;
+  height: 100%;
+}
+
+.tarjetaReglaBrutal {
+  background-color: var(--color-fondo-panel);
+  border: 1px solid var(--color-borde-brutal);
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  height: fit-content;
+}
+
+.cabeceraReglaBrutal {
+  font-size: 12px;
+  font-weight: bold;
+  color: var(--color-borde-cian);
+  border-bottom: 1px solid var(--color-borde-brutal);
+  padding-bottom: 2px;
+  text-transform: uppercase;
+}
+
+.tablaRegla {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.tablaRegla th {
+  padding: 4px;
+}
+
+.tablaRegla td {
+  padding: 4px;
+}
+
+.filaTablaReglaHead {
+  border-bottom: 1px solid var(--color-borde-brutal);
+  color: var(--color-texto-apagado);
+  text-align: left;
+}
+
+.filaTablaRegla {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.filaTablaRegla:hover {
+  background-color: rgba(255, 255, 255, 0.01);
+}
+
+.listaCobertura {
+  list-style-type: square;
+  padding-left: 12px;
+  font-size: 12px;
+  line-height: 1.3;
+  color: var(--color-texto-principal);
+}
+
+.itemCobertura {
+  margin-bottom: 4px;
+}
+
+.textoCuerpoRegla {
+  font-size: 12px;
+  line-height: 1.3;
+  color: var(--color-texto-principal);
+}

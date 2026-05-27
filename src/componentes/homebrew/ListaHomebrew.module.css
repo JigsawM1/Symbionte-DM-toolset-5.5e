@@ -1,0 +1,479 @@
+.panelLista {
+  flex: 1 1 250px;
+  background-color: var(--color-fondo-panel);
+  border: 1px solid var(--color-borde-brutal);
+  border-radius: 8px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: calc(100vh - 120px);
+  height: 100%;
+  overflow-y: auto;
+}
+
+.cabeceraPanel {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--color-borde-cian);
+  border-bottom: 2px solid var(--color-borde-cian);
+  padding-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.cajaBuscadorHomebrew {
+  display: flex;
+  flex-direction: row;
+  gap: 6px;
+  width: 100%;
+  margin-bottom: 6px;
+}
+
+.inputBuscadorHomebrew {
+  flex-grow: 1;
+  font-size: 13px;
+  padding: 7px 10px;
+  background-color: var(--color-fondo-profundo);
+  border: 1.5px solid var(--color-borde-brutal);
+  border-radius: 5px;
+  color: var(--color-texto-principal);
+  outline: none;
+}
+
+.inputBuscadorHomebrew:focus {
+  border-color: var(--color-borde-cian);
+  box-shadow: 0 0 0 2px rgba(0, 245, 212, 0.18);
+}
+
+.botonLimpiarBusquedaHomebrew {
+  font-size: 12px;
+  padding: 7px 10px;
+  background-color: var(--color-fondo-tarjeta);
+  border: 1px solid var(--color-borde-brutal);
+  border-radius: 5px;
+  color: var(--color-texto-secundario);
+  cursor: pointer;
+}
+
+.botonLimpiarBusquedaHomebrew:hover {
+  background-color: rgba(0, 245, 212, 0.12);
+  border-color: var(--color-borde-cian);
+  color: var(--color-borde-cian);
+}
+
+.contenedorScrollLista {
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  flex-grow: 1;
+  gap: 6px;
+}
+
+.textoListaVacia {
+  font-size: 13px;
+  color: var(--color-texto-apagado);
+  text-align: center;
+  padding: 40px 20px;
+  font-style: italic;
+  line-height: 1.6;
+}
+
+.itemListaBrutal {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  background-color: var(--color-fondo-tarjeta);
+  border: 1px solid var(--color-borde-brutal);
+  border-radius: 6px;
+  padding: 9px 12px;
+}
+
+.itemListaBrutal:hover {
+  border-color: rgba(0, 245, 212, 0.4);
+  background-color: rgba(0, 245, 212, 0.04);
+}
+
+.itemInfoLista {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.itemInfoListaClickable {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  cursor: pointer;
+}
+
+.itemNombre {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--color-texto-principal);
+}
+
+.itemSub {
+  font-size: 11.5px;
+  color: var(--color-texto-secundario);
+}
+
+.grupoBotonesItem {
+  display: flex;
+  flex-direction: row;
+  gap: 4px;
+  align-items: center;
+}
+
+.botonEditarItem {
+  background: none;
+  border: none;
+  color: var(--color-borde-cian);
+  cursor: pointer;
+  padding: 5px;
+  display: flex;
+  align-items: center;
+  border-radius: 4px;
+}
+
+.botonEditarItem:hover {
+  background-color: rgba(0, 245, 212, 0.12);
+}
+
+.botonEliminarItem {
+  background: none;
+  border: none;
+  color: var(--color-peligro);
+  cursor: pointer;
+  padding: 5px;
+  display: flex;
+  align-items: center;
+  border-radius: 4px;
+}
+
+.botonEliminarItem:hover {
+  background-color: rgba(255, 118, 117, 0.12);
+}
+
+.panelDetalleOverlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 85%;
+  z-index: 100;
+  border-top: 3px solid var(--color-borde-brutal);
+  border-left: 3px solid var(--color-borde-brutal);
+  border-right: 3px solid var(--color-borde-brutal);
+  background-color: var(--color-fondo-profundo);
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 -10px 25px rgba(0, 0, 0, 0.6);
+  border-top-left-radius: 12px;
+  border-top-right-radius: 12px;
+}
+
+.cabeceraDetalle {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  background-color: var(--color-fondo-tarjeta);
+  border-bottom: 1px solid var(--color-borde-brutal);
+  padding: 6px 12px;
+  height: 28px;
+}
+
+.cabeceraDetalleIzquierda {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+}
+
+.hechizoNivelOverlay {
+  font-size: 9px;
+  font-weight: bold;
+  color: #ffcc00;
+  border: 1px solid #ffcc00;
+  padding: 0 4px;
+  font-family: var(--fuente-codigo);
+}
+
+.objetoNivelOverlay {
+  font-size: 9px;
+  font-weight: bold;
+  background-color: rgba(255, 118, 117, 0.1);
+  border: 1px solid #ff7675;
+  color: #ff7675;
+  padding: 0 4px;
+  font-family: var(--fuente-codigo);
+}
+
+.nombreHechizoOverlay {
+  font-size: 13px;
+  font-weight: bold;
+  color: var(--color-texto-principal);
+}
+
+.botonCerrarDetalle {
+  background: none;
+  border: none;
+  color: var(--color-texto-secundario);
+  cursor: pointer;
+  padding: 2px;
+  display: flex;
+  align-items: center;
+}
+
+.cuerpoDetalle {
+  flex-grow: 1;
+  overflow-y: auto;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.gridMetadatos {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  background-color: var(--color-fondo-tarjeta);
+  border: 1.5px solid var(--color-borde-brutal);
+  padding: 8px;
+}
+
+.metaItem {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+}
+
+.iconoDetalle {
+  color: var(--color-borde-cian);
+}
+
+.metaLabel {
+  font-size: 8px;
+  color: var(--color-texto-apagado);
+  font-weight: bold;
+}
+
+.metaValor {
+  font-size: 11px;
+  color: var(--color-texto-principal);
+  font-weight: bold;
+}
+
+.filaPropiedadesEspeciales {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.chipConcentracion {
+  font-size: 9px;
+  background-color: rgba(255, 204, 0, 0.15);
+  border: 1px solid #ffcc00;
+  color: #ffcc00;
+  padding: 1px 6px;
+  font-weight: bold;
+}
+
+.chipRitual {
+  font-size: 9px;
+  background-color: rgba(0, 245, 212, 0.15);
+  border: 1px solid var(--color-borde-cian);
+  color: var(--color-borde-cian);
+  padding: 1px 6px;
+  font-weight: bold;
+}
+
+.chipEscuela {
+  font-size: 9px;
+  background-color: rgba(95, 93, 187, 0.15);
+  border: 1px solid rgba(95, 93, 187, 0.4);
+  color: #a29bfe;
+  padding: 1px 6px;
+  text-transform: uppercase;
+  font-weight: bold;
+}
+
+.seccionDescripcionFicha {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.seccionDescripcionFichaMargen {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+.seccionDescripcionFichaMargenGrande {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 8px;
+}
+
+.descripcionTituloFicha {
+  font-size: 10px;
+  font-weight: bold;
+  color: var(--color-borde-cian);
+  letter-spacing: 0.05em;
+  border-bottom: 1.5px solid var(--color-borde-brutal);
+  padding-bottom: 2px;
+}
+
+.descripcionTituloFichaActivo {
+  font-size: 10px;
+  font-weight: bold;
+  color: var(--color-activo);
+  letter-spacing: 0.05em;
+  border-bottom: 1.5px solid var(--color-borde-brutal);
+  padding-bottom: 2px;
+}
+
+.descripcionCuerpoFicha {
+  font-size: 11.5px;
+  color: var(--color-texto-principal);
+  line-height: 1.45;
+  white-space: pre-line;
+  text-align: justify;
+}
+
+.descripcionCuerpoFichaSecundario {
+  font-size: 11.5px;
+  color: var(--color-texto-secundario);
+  line-height: 1.45;
+  white-space: pre-line;
+  text-align: justify;
+}
+
+.descripcionCuerpoMateriales {
+  font-size: 11px;
+  color: var(--color-texto-secundario);
+  font-style: italic;
+  line-height: 1.45;
+  white-space: pre-line;
+  text-align: justify;
+}
+
+.cajaMecanicasCombate {
+  background-color: rgba(0, 245, 212, 0.05);
+  border: 1.5px solid var(--color-borde-cian);
+  padding: 8px;
+  border-radius: 4px;
+  margin-top: 6px;
+}
+
+.cajaMecanicasCombateObjeto {
+  background-color: rgba(255, 118, 117, 0.05);
+  border: 1.5px solid #ff7675;
+  padding: 8px;
+  border-radius: 4px;
+  margin-top: 6px;
+}
+
+.tituloMecanicas {
+  font-size: 10px;
+  font-weight: bold;
+  color: var(--color-borde-cian);
+  margin-bottom: 6px;
+  text-transform: uppercase;
+}
+
+.tituloMecanicasObjeto {
+  font-size: 10px;
+  font-weight: bold;
+  color: #ff7675;
+  margin-bottom: 6px;
+  text-transform: uppercase;
+}
+
+.gridMecanicas {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+.itemMecanica {
+  font-size: 11px;
+}
+
+.textoEtiquetaMecanica {
+  color: var(--color-texto-secundario);
+}
+
+.valorMecanicaAtaque {
+  color: var(--color-activo);
+  font-weight: bold;
+}
+
+.valorMecanicaCd {
+  color: #ffcc00;
+  font-weight: bold;
+}
+
+.valorMecanicaDano {
+  color: #ff7675;
+  font-weight: bold;
+}
+
+.valorMecanicaSuperior {
+  color: #74b9ff;
+  font-weight: bold;
+}
+
+.listaBadgesClases {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+
+.badgeClase {
+  font-size: 9px;
+  background-color: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--color-borde-brutal);
+  color: var(--color-texto-principal);
+  padding: 1px 5px;
+  border-radius: 2px;
+}
+
+.badgeClaseObjeto {
+  font-size: 9px;
+  background-color: rgba(255, 118, 117, 0.1);
+  border: 1px solid rgba(255, 118, 117, 0.3);
+  color: #ff7675;
+  padding: 1px 5px;
+  border-radius: 2px;
+}
+
+.cajaBonoMagico {
+  font-size: 11px;
+  display: flex;
+  justify-content: space-between;
+  padding: 4px 8px;
+  background-color: rgba(0, 245, 212, 0.05);
+  border: 1px solid var(--color-borde-cian);
+  border-radius: 3px;
+}
+
+.listaBonosMagicos {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 4px;
+}

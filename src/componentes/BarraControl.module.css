@@ -1,0 +1,176 @@
+.barraControles {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  justify-content: space-around;
+  background-color: var(--color-fondo-panel);
+  border-bottom: 1px solid var(--color-borde-brutal);
+  padding: 6px 8px;
+  width: 100%;
+  z-index: 10;
+  flex-shrink: 0;
+}
+
+.bloqueBusqueda {
+  display: flex;
+  flex-direction: row;
+  gap: 6px;
+}
+
+.campoBusqueda {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 4px;
+  border: 1px solid var(--color-borde-brutal);
+  padding: 3px 6px;
+  background-color: var(--color-fondo-tarjeta);
+  height: 30px;
+}
+
+.inputBrutal {
+  border: none;
+  background: none;
+  font-size: 12px;
+  padding: 0;
+  width: 160px;
+  color: var(--color-texto-principal);
+}
+
+.inputBrutal:focus {
+  outline: none;
+}
+
+.botonAñadir {
+  border: none;
+  background: none;
+  color: var(--color-texto-secundario);
+  padding: 0 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+}
+
+.botonAñadir:hover {
+  color: var(--color-borde-cian);
+}
+
+.grupoAcciones {
+  display: flex;
+  flex-direction: row;
+  gap: 4px;
+}
+
+.botonAccionPrincipal {
+  height: 30px;
+  font-size: 12px;
+  padding: 4px 8px;
+  display: flex;
+  align-items: center;
+  background-color: var(--color-fondo-tarjeta);
+  border: 1px solid var(--color-borde-brutal);
+  color: var(--color-texto-principal);
+  cursor: pointer;
+  border-radius: 2px;
+}
+
+.botonAccionPrincipal:hover {
+  background-color: var(--color-fondo-profundo);
+  border-color: var(--color-borde-cian);
+}
+
+.botonNavegacionTurno {
+  height: 30px;
+  width: 28px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--color-fondo-tarjeta);
+  border: 1px solid var(--color-borde-brutal);
+  color: var(--color-texto-principal);
+  cursor: pointer;
+  border-radius: 2px;
+}
+
+.botonNavegacionTurno:hover {
+  background-color: var(--color-fondo-profundo);
+  border-color: var(--color-borde-cian);
+}
+
+.grupoVentaja {
+  display: flex;
+  flex-direction: row;
+  border: 1px solid var(--color-borde-brutal);
+  padding: 2px;
+  background-color: var(--color-fondo-tarjeta);
+}
+
+.botonTirada {
+  height: 24px;
+  font-size: 11px;
+  padding: 2px 8px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: var(--color-texto-secundario);
+  border-radius: 2px;
+}
+
+.botonTirada:hover {
+  color: var(--color-texto-principal);
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.botonDesventajaActivo {
+  background-color: rgba(242, 92, 84, 0.2) !important;
+  color: var(--color-peligro) !important;
+  font-weight: bold;
+}
+
+.botonPlanoActivo {
+  background-color: var(--color-primario) !important;
+  color: #ffffff !important;
+  font-weight: bold;
+}
+
+.botonVentajaActivo {
+  background-color: rgba(0, 245, 212, 0.2) !important;
+  color: var(--color-exito) !important;
+  font-weight: bold;
+}
+
+.indicadorRonda {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--color-borde-brutal);
+  background-color: var(--color-fondo-tarjeta);
+  padding: 3px 6px;
+  height: 30px;
+  margin-left: auto;
+}
+
+.botonRondaPaso {
+  border: none;
+  background: none;
+  color: var(--color-texto-secundario);
+  font-weight: bold;
+  cursor: pointer;
+  padding: 0 6px;
+  font-size: 14px;
+}
+
+.botonRondaPaso:hover {
+  color: var(--color-borde-cian);
+}
+
+.rondaTexto {
+  font-size: 12px;
+  font-weight: bold;
+  white-space: nowrap;
+  color: var(--color-texto-principal);
+}

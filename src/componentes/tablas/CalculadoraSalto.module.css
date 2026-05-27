@@ -1,0 +1,105 @@
+.tarjetaCalculadora {
+  background-color: var(--color-fondo-panel);
+  border: 1px solid var(--color-borde-brutal);
+  padding: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  height: fit-content;
+}
+
+.tituloCalculadora {
+  font-size: 13px;
+  font-weight: bold;
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--color-borde-brutal);
+  padding-bottom: 2px;
+  display: flex;
+  align-items: center;
+}
+
+.cuerpoCalculadora {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.filaFormulario {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.labelForm {
+  font-size: 13px;
+  color: var(--color-texto-secundario);
+}
+
+.selectForm {
+  font-size: 12px;
+  height: 24px;
+  padding: 1px 2px;
+  width: 200px;
+  background-color: var(--color-fondo-profundo);
+  color: var(--color-texto-principal);
+  border: 1px solid var(--color-borde-brutal);
+}
+
+.selectForm:focus {
+  outline: none;
+  border-color: var(--color-borde-cian);
+}
+
+.inputForm {
+  font-size: 12px;
+  height: 24px;
+  padding: 1px 2px;
+  width: 200px;
+  text-align: center;
+  background-color: var(--color-fondo-profundo);
+  color: var(--color-texto-principal);
+  border: 1px solid var(--color-borde-brutal);
+}
+
+.inputForm:focus {
+  outline: none;
+  border-color: var(--color-borde-cian);
+}
+
+.resultadoCalculoBox {
+  background-color: var(--color-fondo-tarjeta);
+  border: 1px solid var(--color-borde-brutal);
+  padding: 5px;
+  margin-top: 5px;
+  display: flex;
+  flex-direction: column;
+  text-align: center;
+  gap: 6px;
+}
+
+.resultadoCalculoTexto {
+  font-size: 12px;
+  color: var(--color-texto-apagado);
+  text-transform: uppercase;
+}
+
+.resultadoCalculoValor {
+  font-size: 18px;
+  color: var(--color-borde-cian);
+  font-family: var(--fuente-codigo);
+  font-weight: bold;
+}
+
+.resultadoCalculoValorAdvertencia {
+  color: var(--color-advertencia) !important;
+}
+
+.resultadoCalculoEfecto {
+  font-size: 12px;
+  color: var(--color-texto-secundario);
+  font-style: italic;
+  line-height: 1.2;
+  margin-top: 2px;
+}

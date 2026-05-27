@@ -1,0 +1,427 @@
+.contenedor {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px;
+  background-color: var(--color-fondo-panel);
+  border: 1px solid var(--color-borde-brutal);
+  height: 100%;
+  width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.titulo {
+  font-size: 12px;
+  font-weight: bold;
+  color: var(--color-texto-principal);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 2px solid var(--color-borde-brutal);
+  padding-bottom: 6px;
+  margin: 0;
+  font-family: var(--fuente-titulo);
+}
+
+.tituloTextoPrincipal {
+  letter-spacing: 0.03em;
+}
+
+.diagnostico {
+  font-family: var(--fuente-codigo);
+  color: var(--color-exito);
+  font-size: 9.5px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  border: 1px solid rgba(0, 245, 212, 0.25);
+  padding: 2px 6px;
+  background-color: rgba(0, 245, 212, 0.03);
+  border-radius: 2px;
+}
+
+.gridConfig {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 10px;
+  overflow-y: auto;
+  padding-right: 2px;
+}
+
+.seccion {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background-color: var(--color-fondo-tarjeta);
+  border: 1px solid var(--color-borde-brutal);
+  padding: 8px;
+  height: fit-content;
+}
+
+.cabeceraSeccion {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 2px;
+}
+
+.barraDecorativaCian {
+  width: 3px;
+  height: 12px;
+  background-color: var(--color-borde-cian);
+  flex-shrink: 0;
+}
+
+.barraDecorativaPurple {
+  width: 3px;
+  height: 12px;
+  background-color: #7b2cbf;
+  flex-shrink: 0;
+}
+
+.subtitulo {
+  font-size: 11px;
+  font-weight: bold;
+  color: var(--color-texto-principal);
+  letter-spacing: 0.04em;
+  margin: 0;
+  font-family: var(--fuente-codigo);
+}
+
+.zonaDrop {
+  border: 1px dashed var(--color-borde-brutal);
+  padding: 16px 8px;
+  text-align: center;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  user-select: none;
+  background-color: hsl(222, 25%, 5%);
+}
+
+.zonaDrop:hover {
+  background-color: rgba(255, 255, 255, 0.02);
+  border-color: var(--color-borde-cian);
+}
+
+.zonaDropArrastrando {
+  border-color: var(--color-borde-cian) !important;
+  background-color: hsl(222, 25%, 12%) !important;
+}
+
+.cajaIconoUpload {
+  background-color: hsl(222, 18%, 8%);
+  border: 1px solid var(--color-borde-brutal);
+  width: 36px;
+  height: 36px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.textoDrop {
+  font-size: 11px;
+  color: var(--color-texto-principal);
+  margin: 0;
+  line-height: 1.3;
+}
+
+.ayudaDrop {
+  font-size: 9.5px;
+  color: var(--color-texto-apagado);
+  margin: 0;
+  line-height: 1.2;
+}
+
+.alertaExito {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px;
+  background-color: rgba(0, 245, 212, 0.08);
+  border: 1px solid var(--color-exito);
+  color: var(--color-exito);
+  font-size: 11px;
+  line-height: 1.3;
+}
+
+.alertaError {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px;
+  background-color: rgba(242, 92, 84, 0.08);
+  border: 1px solid var(--color-peligro);
+  color: var(--color-peligro);
+  font-size: 11px;
+  line-height: 1.3;
+}
+
+.estructuraAyuda {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.tituloAyuda {
+  font-size: 9.5px;
+  font-weight: bold;
+  color: var(--color-texto-secundario);
+  margin: 4px 0 0 0;
+  letter-spacing: 0.02em;
+}
+
+.codigoEjemplo {
+  font-family: var(--fuente-codigo);
+  font-size: 9.5px;
+  background-color: hsl(222, 25%, 4%);
+  border: 1px solid var(--color-borde-brutal);
+  padding: 6px;
+  color: var(--color-texto-secundario);
+  margin: 0;
+  overflow-x: auto;
+  line-height: 1.3;
+  border-radius: 2px;
+}
+
+.tarjetaConfigHP {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background-color: hsl(222, 18%, 7%);
+  border: 1px solid var(--color-borde-brutal);
+  padding: 8px;
+  border-radius: 4px;
+}
+
+.tituloConfigHP {
+  font-size: 10.5px;
+  font-weight: 800;
+  color: var(--color-texto-principal);
+  letter-spacing: 0.02em;
+  font-family: var(--fuente-codigo);
+}
+
+.descripcionConfigHP {
+  font-size: 10px;
+  color: var(--color-texto-secundario);
+  margin: 0;
+  line-height: 1.3;
+}
+
+.selectorHPGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+  margin-top: 4px;
+}
+
+.botonHPBrutal {
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 9.5px;
+  cursor: pointer;
+  border: 1px solid;
+  transition: none;
+  border-radius: 2px;
+  font-family: var(--fuente-codigo);
+  background-color: var(--color-fondo-profundo);
+  color: var(--color-texto-secundario);
+  border-color: var(--color-borde-brutal);
+}
+
+.botonHPBrutal:hover {
+  background-color: hsl(222, 12%, 12%);
+  color: var(--color-texto-principal);
+}
+
+.botonHPBrutalActivo {
+  background-color: var(--color-primario) !important;
+  border-color: var(--color-borde-neon) !important;
+  color: #ffffff !important;
+  font-weight: 800 !important;
+}
+
+.tarjetaEstadisticas {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background-color: hsl(222, 25%, 5%);
+  border: 1px solid var(--color-borde-brutal);
+  padding: 8px;
+  border-radius: 4px;
+}
+
+.filaEstadistica {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 11px;
+  color: var(--color-texto-secundario);
+  border-bottom: 1px dashed hsl(222, 12%, 12%);
+  padding-bottom: 3px;
+}
+
+.labelEstadistica {
+  font-weight: 500;
+}
+
+.numero {
+  font-family: var(--fuente-codigo);
+  color: var(--color-borde-cian);
+  font-size: 12px;
+}
+
+.accionesConfig {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.botonDescargar {
+  width: 100%;
+  height: 26px;
+  background-color: var(--color-primario);
+  color: #ffffff;
+  border: 1px solid var(--color-borde-neon);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  font-size: 10.5px;
+  font-weight: bold;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+}
+
+.botonDescargar:hover {
+  background-color: var(--color-activo);
+  box-shadow: 0 0 10px rgba(0, 245, 212, 0.4);
+}
+
+.separador {
+  height: 1px;
+  background-color: var(--color-borde-brutal);
+  margin: 2px 0;
+}
+
+.cajaZonaPeligro {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  border: 1px solid rgba(242, 92, 84, 0.2);
+  background-color: rgba(242, 92, 84, 0.02);
+  padding: 8px;
+  border-radius: 4px;
+}
+
+.cabeceraPeligro {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 4px;
+  font-size: 10.5px;
+  font-weight: bold;
+  color: var(--color-peligro);
+  font-family: var(--fuente-codigo);
+  letter-spacing: 0.02em;
+}
+
+.botonRestablecer {
+  width: 100%;
+  height: 26px;
+  background-color: rgba(242, 92, 84, 0.08);
+  border: 1px solid rgba(242, 92, 84, 0.3);
+  color: var(--color-peligro);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  font-size: 10.5px;
+  font-weight: bold;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+}
+
+.botonRestablecer:hover {
+  background-color: rgba(242, 92, 84, 0.2);
+  box-shadow: 0 0 10px rgba(242, 92, 84, 0.3);
+}
+
+.avisoPeligro {
+  font-size: 9.5px;
+  color: var(--color-texto-apagado);
+  text-align: justify;
+  margin: 0;
+  line-height: 1.3;
+}
+
+.contenedorConfirmacion {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px;
+  background-color: rgba(242, 92, 84, 0.1);
+  border: 1px solid var(--color-peligro);
+  border-radius: 4px;
+}
+
+.textoConfirmacion {
+  font-size: 10px;
+  color: var(--color-peligro);
+  margin: 0;
+  font-weight: bold;
+  line-height: 1.35;
+  text-align: justify;
+}
+
+.botonesConfirmacion {
+  display: flex;
+  gap: 4px;
+}
+
+.botonConfirmarReset {
+  flex: 1;
+  height: 24px;
+  background-color: var(--color-peligro);
+  color: #ffffff;
+  border: 1px solid var(--color-peligro);
+  font-size: 10px;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.botonConfirmarReset:hover {
+  background-color: #ff3333;
+}
+
+.botonCancelarReset {
+  flex: 1;
+  height: 24px;
+  background-color: hsl(222, 25%, 5%);
+  color: var(--color-texto-principal);
+  border: 1px solid var(--color-borde-brutal);
+  font-size: 10px;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.botonCancelarReset:hover {
+  background-color: hsl(222, 12%, 12%);
+  color: #ffffff;
+}

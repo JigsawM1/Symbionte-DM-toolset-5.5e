@@ -1,0 +1,117 @@
+.tarjetaCalculadora {
+  background-color: var(--color-fondo-panel);
+  border: 1px solid var(--color-borde-brutal);
+  padding: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  height: fit-content;
+}
+
+.tituloCalculadora {
+  font-size: 13px;
+  font-weight: bold;
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--color-borde-brutal);
+  padding-bottom: 2px;
+  display: flex;
+  align-items: center;
+}
+
+.cuerpoCalculadora {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.filaFormulario {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.labelForm {
+  font-size: 13px;
+  color: var(--color-texto-secundario);
+}
+
+.selectForm {
+  font-size: 12px;
+  height: 24px;
+  padding: 1px 2px;
+  width: 200px;
+  background-color: var(--color-fondo-profundo);
+  color: var(--color-texto-principal);
+  border: 1px solid var(--color-borde-brutal);
+}
+
+.selectForm:focus {
+  outline: none;
+  border-color: var(--color-borde-cian);
+}
+
+.inputForm {
+  font-size: 12px;
+  height: 24px;
+  padding: 1px 2px;
+  width: 200px;
+  text-align: center;
+  background-color: var(--color-fondo-profundo);
+  color: var(--color-texto-principal);
+  border: 1px solid var(--color-borde-brutal);
+}
+
+.inputForm:focus {
+  outline: none;
+  border-color: var(--color-borde-cian);
+}
+
+.contenedorCambios {
+  display: flex; 
+  flex-direction: column; 
+  gap: 6px; 
+  margin-top: 12px; 
+  background-color: rgba(30, 30, 46, 0.4);
+  padding: 8px;
+  border-radius: 6px;
+  border: 1px solid rgba(255,255,255,0.03);
+}
+
+.tablaEncabezado {
+  display: flex; 
+  justify-content: space-between; 
+  border-bottom: 1px solid rgba(255,255,255,0.05); 
+  padding-bottom: 4px; 
+  font-size: 10px; 
+  color: var(--color-texto-secundario);
+}
+
+.filaCambio {
+  display: flex; 
+  justify-content: space-between; 
+  align-items: center;
+  padding: 4px 2px;
+  border-radius: 4px;
+  opacity: 0.85;
+}
+
+.filaCambio:hover {
+  background-color: rgba(255, 255, 255, 0.02);
+}
+
+.filaCambioOrigen {
+  background-color: rgba(255, 255, 255, 0.03) !important;
+  opacity: 1 !important;
+}
+
+.cambioValor {
+  font-size: 12px; 
+  font-weight: bold; 
+  font-family: monospace;
+}
+
+.cambioValorOrigen {
+  color: var(--color-borde-cian) !important;
+}

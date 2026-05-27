@@ -1,0 +1,112 @@
+.campoBusqueda {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 4px;
+  border: 1px solid var(--color-borde-brutal);
+  padding: 3px 6px;
+  background-color: var(--color-fondo-tarjeta);
+  height: 30px;
+}
+
+.inputBrutal {
+  border: none;
+  background: none;
+  font-size: 12px;
+  padding: 0;
+  width: 160px;
+  color: var(--color-texto-principal);
+}
+
+.inputBrutal:focus {
+  outline: none;
+}
+
+.botonLimpiarBusqueda {
+  border: none;
+  background: none;
+  color: var(--color-texto-secundario);
+  font-size: 11px;
+  cursor: pointer;
+  padding: 0 4px;
+  display: flex;
+  align-items: center;
+}
+
+.botonLimpiarBusqueda:hover {
+  color: var(--color-peligro);
+}
+
+.sugerenciasContenedor {
+  position: absolute;
+  top: 32px;
+  left: 0;
+  width: 240px;
+  background-color: var(--color-fondo-tarjeta);
+  border: 1px solid var(--color-borde-neon);
+  z-index: 9999;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.5);
+  max-height: 260px;
+  overflow-y: auto;
+}
+
+.sugerenciaItem {
+  padding: 6px 8px;
+  cursor: pointer;
+  border-bottom: 1px solid var(--color-borde-brutal);
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  gap: 2px;
+  text-align: left;
+}
+
+.sugerenciaItem:hover {
+  background-color: rgba(255, 255, 255, 0.03);
+}
+
+.sugerenciaDetalles {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+}
+
+.sugerenciaNombre {
+  font-size: 12px;
+  font-weight: bold;
+  color: var(--color-texto-principal);
+}
+
+.sugerenciaSub {
+  font-size: 10px;
+  color: var(--color-texto-secundario);
+}
+
+.sugerenciaMas {
+  padding: 4px 8px;
+  font-size: 9px;
+  color: var(--color-texto-apagado);
+  text-align: center;
+  background-color: rgba(255, 255, 255, 0.02);
+}
+
+.botonSugerenciaAñadirMasivo {
+  border: 1px solid var(--color-borde-neon);
+  background: rgba(0, 242, 254, 0.15);
+  color: var(--color-texto-cyan);
+  border-radius: 2px;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+}
+
+.botonSugerenciaAñadirMasivo:hover {
+  background: rgba(0, 242, 254, 0.3);
+  color: #ffffff;
+}

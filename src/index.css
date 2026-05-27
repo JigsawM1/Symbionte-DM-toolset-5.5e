@@ -26,6 +26,42 @@
   --color-peligro: hsl(355, 80%, 50%);
   --color-advertencia: hsl(40, 95%, 55%);
 
+  /* === Colores de Acento Semánticos DnD (Nuevos) === */
+  --color-arcano: #7b2cbf;          /* Púrpura — magia/arcano */
+  --color-info: #74b9ff;            /* Azul — información */
+  
+  /* === Colores de Moneda D&D === */
+  --color-cobre: #cd7f32;
+  --color-plata: #cdd6f4;
+  --color-electrum: #89b4fa;
+  --color-oro: #f9e2af;
+  --color-platino: #bac2de;
+
+  /* === Superficies Adicionales === */
+  --superficie-tarjeta: rgba(30, 30, 46, 0.95);
+  --superficie-hover: rgba(255, 204, 0, 0.08);
+  --superficie-seleccion: rgba(255, 204, 0, 0.15);
+  --superficie-overlay: rgba(0, 0, 0, 0.75);
+
+  /* === Espaciado === */
+  --espaciado-xs: 4px;
+  --espaciado-sm: 8px;
+  --espaciado-md: 12px;
+  --espaciado-lg: 16px;
+  --espaciado-xl: 24px;
+
+  /* === Bordes y Radios === */
+  --borde-sutil: 1px solid rgba(255, 255, 255, 0.06);
+  --borde-enfasis: 1px solid var(--color-primario);
+  --radio-sm: 2px;
+  --radio-md: 4px;
+  --radio-lg: 8px;
+
+  /* === Sombras Brutalistas (Sin animaciones) === */
+  --sombra-tarjeta: 0 2px 8px rgba(0, 0, 0, 0.3);
+  --sombra-elevada: 0 8px 32px rgba(0, 0, 0, 0.5);
+  --sombra-overlay: 0 0 40px rgba(0, 0, 0, 0.8);
+
   /* Tipografía Profesional de Google Fonts */
   --fuente-principal: 'Inter', system-ui, -apple-system, sans-serif;
   --fuente-titulo: 'Outfit', system-ui, -apple-system, sans-serif;

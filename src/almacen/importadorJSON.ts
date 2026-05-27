@@ -1,0 +1,616 @@
+import { MonstruoBase, HechizoBase, ObjetoHomebrew } from '../tipos';
+import { aplanarValor, sanearObjetoHomebrew, sanearHechizoCD } from './sanitizacion';
+
+export interface ResultadoImportacion {
+  modificado: boolean;
+  baseDatosMonstruos: MonstruoBase[];
+  baseDatosHechizos: HechizoBase[];
+  objetosHomebrew: ObjetoHomebrew[];
+}
+
+export function importarDesdeJSON(
+  datosJSON: any,
+  estadoActual: {
+    baseDatosMonstruos: MonstruoBase[];
+    baseDatosHechizos: HechizoBase[];
+    objetosHomebrew: ObjetoHomebrew[];
+  }
+): ResultadoImportacion {
+  try {
+    let modificado = false;
+    
+    let monstruosFinales = estadoActual.baseDatosMonstruos;
+    let hechizosFinales = estadoActual.baseDatosHechizos;
+    let objetosFinales = estadoActual.objetosHomebrew;
+
+    let monstruosCandidatos: any[] = [];
+    let hechizosCandidatos: any[] = [];
+    let objetosCandidatos: any[] = [];
+
+    // 1. Si viene con el formato de backup o estructura agrupada o global.json
+    if (datosJSON.monstruos) {
+      monstruosCandidatos = Array.isArray(datosJSON.monstruos) ? datosJSON.monstruos : Object.values(datosJSON.monstruos);
+    }
+    if (datosJSON["Custom Monsters"]) {
+      monstruosCandidatos = Array.isArray(datosJSON["Custom Monsters"]) ? datosJSON["Custom Monsters"] : Object.values(datosJSON["Custom Monsters"]);
+    }
+
+    if (datosJSON.hechizos) {
+      hechizosCandidatos = Array.isArray(datosJSON.hechizos) ? datosJSON.hechizos : Object.values(datosJSON.hechizos);
+    }
+    if (datosJSON["Custom Spells"]) {
+      hechizosCandidatos = Array.isArray(datosJSON["Custom Spells"]) ? datosJSON["Custom Spells"] : Object.values(datosJSON["Custom Spells"]);
+    }
+
+    if (datosJSON.objetos) {
+      objetosCandidatos = Array.isArray(datosJSON.objetos) ? datosJSON.objetos : Object.values(datosJSON.objetos);
+    }
+    if (datosJSON["Custom Equipment"]) {
+      objetosCandidatos = Array.isArray(datosJSON["Custom Equipment"]) ? datosJSON["Custom Equipment"] : Object.values(datosJSON["Custom Equipment"]);
+    }
+
+    // 2. Si el archivo JSON es en sí mismo una lista o diccionario plano
+    if (monstruosCandidatos.length === 0 && hechizosCandidatos.length === 0 && objetosCandidatos.length === 0) {
+      const listaElementos = Array.isArray(datosJSON) ? datosJSON : Object.values(datosJSON);
+      
+      if (listaElementos.length > 0) {
+        const primerElem = listaElementos[0] as any;
+        if (primerElem && (primerElem.equipment_category !== undefined || primerElem.weapon_category !== undefined || primerElem.armor_category !== undefined || primerElem.tool_category !== undefined || primerElem.cost !== undefined)) {
+          objetosCandidatos = listaElementos;
+        } else if (primerElem && (primerElem.HP !== undefined || primerElem.AC !== undefined || primerElem.vidaMaxima !== undefined || primerElem.vidaActual !== undefined)) {
+          monstruosCandidatos = listaElementos;
+        } else if (primerElem && (primerElem.school !== undefined || primerElem.level !== undefined || primerElem.escuela !== undefined || primerElem.casting_time !== undefined)) {
+          hechizosCandidatos = listaElementos;
+        } else if (primerElem && (primerElem.rareza !== undefined || primerElem.rare !== undefined || primerElem.propiedades !== undefined)) {
+          objetosCandidatos = listaElementos;
+        }
+      }
+    }
+
+    // Procesar Monstruos importados
+    if (monstruosCandidatos.length > 0) {
+      const nuevosMonstruosFormateados: MonstruoBase[] = monstruosCandidatos.map((m, idx) => {
+        // Extraer HP
+        let vidaMax = 10;
+        let vidaNotas = "";
+        if (m.vidaMaxima !== undefined) {
+          vidaMax = Number(m.vidaMaxima);
+        } else if (m.HP !== undefined) {
+          if (typeof m.HP === "object") {
+            vidaMax = Number(m.HP.Value) || 10;
+            vidaNotas = m.HP.Notes || "";
+          } else {
+            vidaMax = Number(m.HP) || 10;
+          }
+        }
+
+        // Extraer AC
+        let caVal = 10;
+        let caNotas = "";
+        if (m.ca !== undefined) {
+          caVal = Number(m.ca);
+        } else if (m.AC !== undefined) {
+          if (typeof m.AC === "object") {
+            caVal = Number(m.AC.Value) || 10;
+            caNotas = m.AC.Notes || "";
+          } else {
+            caVal = Number(m.AC) || 10;
+          }
+        }
+
+        // Extraer Habilidades (Características)
+        const caracteristicasFormateadas = {
+          fuerza: 10,
+          destreza: 10,
+          constitucion: 10,
+          inteligencia: 10,
+          sabiduria: 10,
+          carisma: 10
+        };
+        if (m.caracteristicas) {
+          caracteristicasFormateadas.fuerza = Number(m.caracteristicas.fuerza) || 10;
+          caracteristicasFormateadas.destreza = Number(m.caracteristicas.destreza) || 10;
+          caracteristicasFormateadas.constitucion = Number(m.caracteristicas.constitucion) || 10;
+          caracteristicasFormateadas.inteligencia = Number(m.caracteristicas.inteligencia) || 10;
+          caracteristicasFormateadas.sabiduria = Number(m.caracteristicas.sabiduria) || 10;
+          caracteristicasFormateadas.carisma = Number(m.caracteristicas.carisma) || 10;
+        } else if (m.Abilities) {
+          caracteristicasFormateadas.fuerza = Number(m.Abilities.Fue || m.Abilities.STR || m.Abilities.Str) || 10;
+          caracteristicasFormateadas.destreza = Number(m.Abilities.Des || m.Abilities.DEX || m.Abilities.Dex) || 10;
+          caracteristicasFormateadas.constitucion = Number(m.Abilities.Con || m.Abilities.CON || m.Abilities.Con) || 10;
+          caracteristicasFormateadas.inteligencia = Number(m.Abilities.Int || m.Abilities.INT || m.Abilities.Int) || 10;
+          caracteristicasFormateadas.sabiduria = Number(m.Abilities.Sab || m.Abilities.WIS || m.Abilities.Wis) || 10;
+          caracteristicasFormateadas.carisma = Number(m.Abilities.Car || m.Abilities.CHA || m.Abilities.Cha) || 10;
+        }
+
+        // Extraer Velocidad
+        let velocidadStr = "30 pies";
+        if (typeof m.velocidad === "string") {
+          velocidadStr = m.velocidad;
+        } else if (Array.isArray(m.Speed)) {
+          velocidadStr = m.Speed.join(", ");
+        } else if (m.Speed) {
+          velocidadStr = String(m.Speed);
+        }
+
+        // Extraer iniciativa bonificador
+        let inicBonif = 0;
+        if (m.iniciativaBonificador !== undefined) {
+          inicBonif = Number(m.iniciativaBonificador);
+        } else if (m.InitiativeModifier !== undefined) {
+          inicBonif = Number(m.InitiativeModifier);
+        }
+
+        // Mapear rasgos y acciones
+        const rasgosFormateados = Array.isArray(m.rasgos) 
+          ? m.rasgos.map((r: any) => ({ nombre: r.nombre || r.Name || "", descripcion: r.descripcion || r.Content || "", uso: r.uso || r.Usage || "" }))
+          : (Array.isArray(m.Traits) ? m.Traits.map((r: any) => ({ nombre: r.Name || "", descripcion: r.Content || "", uso: r.Usage || "" })) : []);
+
+        const accionesFormateadas = Array.isArray(m.acciones)
+          ? m.acciones.map((a: any) => ({ nombre: a.nombre || a.Name || "", descripcion: a.descripcion || a.Content || "", uso: a.uso || a.Usage || "" }))
+          : (Array.isArray(m.Actions) ? m.Actions.map((a: any) => ({ nombre: a.Name || "", descripcion: a.Content || "", uso: a.Usage || "" })) : []);
+
+        const reaccionesFormateadas = Array.isArray(m.reacciones)
+          ? m.reacciones.map((r: any) => ({ nombre: r.nombre || r.Name || "", descripcion: r.descripcion || r.Content || "", uso: r.uso || r.Usage || "" }))
+          : (Array.isArray(m.Reactions) ? m.Reactions.map((r: any) => ({ nombre: r.Name || "", descripcion: r.Content || "", uso: r.Usage || "" })) : []);
+
+        const legendariasFormateadas = Array.isArray(m.accionesLegendarias)
+          ? m.accionesLegendarias.map((l: any) => ({ nombre: l.nombre || l.Name || "", descripcion: l.descripcion || l.Content || "", uso: l.uso || l.Usage || "" }))
+          : (Array.isArray(m.LegendaryActions) ? m.LegendaryActions.map((l: any) => ({ nombre: l.Name || "", descripcion: l.Content || "", uso: l.Usage || "" })) : []);
+
+        // Mapear salvaciones
+        const salvacionesMap: any = {};
+        if (Array.isArray(m.Saves)) {
+          m.Saves.forEach((s: any) => {
+            const nameLower = String(s.Name).toLowerCase();
+            if (nameLower.includes("fue") || nameLower.includes("str")) salvacionesMap.fuerza = Number(s.Modifier);
+            if (nameLower.includes("des") || nameLower.includes("dex")) salvacionesMap.destreza = Number(s.Modifier);
+            if (nameLower.includes("con")) salvacionesMap.constitucion = Number(s.Modifier);
+            if (nameLower.includes("int")) salvacionesMap.inteligencia = Number(s.Modifier);
+            if (nameLower.includes("sab") || nameLower.includes("wis")) salvacionesMap.sabiduria = Number(s.Modifier);
+            if (nameLower.includes("car") || nameLower.includes("cha")) salvacionesMap.carisma = Number(s.Modifier);
+          });
+        }
+
+        // Mapear habilidades (skills)
+        const habilidadesMap: any = {};
+        if (Array.isArray(m.Skills)) {
+          m.Skills.forEach((s: any) => {
+            const nameLower = String(s.Name).toLowerCase();
+            if (nameLower.includes("acrobacias") || nameLower.includes("acrobatics")) habilidadesMap.acrobacias = Number(s.Modifier);
+            if (nameLower.includes("manejo") || nameLower.includes("animal")) habilidadesMap.manejoAnimales = Number(s.Modifier);
+            if (nameLower.includes("arcana") || nameLower.includes("arcanos")) habilidadesMap.arcanos = Number(s.Modifier);
+            if (nameLower.includes("atletismo") || nameLower.includes("athletics")) habilidadesMap.atletismo = Number(s.Modifier);
+            if (nameLower.includes("engaño") || nameLower.includes("deception")) habilidadesMap.engaño = Number(s.Modifier);
+            if (nameLower.includes("historia") || nameLower.includes("history")) habilidadesMap.historia = Number(s.Modifier);
+            if (nameLower.includes("perspicacia") || nameLower.includes("insight")) habilidadesMap.perspicacia = Number(s.Modifier);
+            if (nameLower.includes("intimidación") || nameLower.includes("intimidation")) habilidadesMap.intimidacion = Number(s.Modifier);
+            if (nameLower.includes("investigación") || nameLower.includes("investigation")) habilidadesMap.investigacion = Number(s.Modifier);
+            if (nameLower.includes("medicina") || nameLower.includes("medicine")) habilidadesMap.medicina = Number(s.Modifier);
+            if (nameLower.includes("naturaleza") || nameLower.includes("nature")) habilidadesMap.naturaleza = Number(s.Modifier);
+            if (nameLower.includes("percepción") || nameLower.includes("perception")) habilidadesMap.percepcion = Number(s.Modifier);
+            if (nameLower.includes("interpretación") || nameLower.includes("performance")) habilidadesMap.interpretacion = Number(s.Modifier);
+            if (nameLower.includes("persuasión") || nameLower.includes("persuasion")) habilidadesMap.persuasion = Number(s.Modifier);
+            if (nameLower.includes("religión") || nameLower.includes("religion")) habilidadesMap.religion = Number(s.Modifier);
+            if (nameLower.includes("juego") || nameLower.includes("sleight")) habilidadesMap.juegoManos = Number(s.Modifier);
+            if (nameLower.includes("sigilo") || nameLower.includes("stealth")) habilidadesMap.sigilo = Number(s.Modifier);
+            if (nameLower.includes("supervivencia") || nameLower.includes("survival")) habilidadesMap.supervivencia = Number(s.Modifier);
+          });
+        }
+
+        // Acciones rápidas (Quick actions)
+        let accionesRapidasFormateadas: any[] = [];
+        if (Array.isArray(m.QuickAction)) {
+          accionesRapidasFormateadas = m.QuickAction.map((qa: any) => ({
+            nombre: qa.Name || "Ataque",
+            bonificadorAtaque: qa.ToHit || "+0",
+            dadosDaño: qa.Damage || "1d6",
+            tipoDaño: qa.DamageType || "físico"
+          }));
+        }
+
+        return {
+          id: m.Id || m.id || `m_importado_${Date.now()}_${idx}`,
+          nombre: aplanarValor(m.Name || m.nombre || "Monstruo Desconocido"),
+          tipo: aplanarValor(m.Type || m.tipo || "Desconocido"),
+          ca: caVal,
+          caNotas: aplanarValor(caNotas),
+          vidaMaxima: vidaMax,
+          vidaActual: vidaMax,
+          vidaNotas: aplanarValor(vidaNotas),
+          iniciativaBonificador: inicBonif,
+          velocidad: aplanarValor(velocidadStr),
+          sentidos: aplanarValor(m.Senses),
+          idiomas: aplanarValor(m.Languages),
+          desafio: aplanarValor(m.Challenge || m.desafio || m.CR || "0"),
+          fuente: aplanarValor(m.Source || m.fuente || "Manual de Monstruos"),
+          caracteristicas: caracteristicasFormateadas,
+          salvaciones: salvacionesMap,
+          habilidades: habilidadesMap,
+          vulnerabilidades: Array.isArray(m.DamageVulnerabilities) ? m.DamageVulnerabilities.map(aplanarValor) : [],
+          resistencias: Array.isArray(m.DamageResistances) ? m.DamageResistances.map(aplanarValor) : [],
+          inmunidadesDaño: Array.isArray(m.DamageImmunities) ? m.DamageImmunities.map(aplanarValor) : [],
+          inmunidadesCondicion: Array.isArray(m.ConditionImmunities) ? m.ConditionImmunities.map(aplanarValor) : [],
+          accionesRapidas: accionesRapidasFormateadas.map((qa: any) => ({
+            nombre: aplanarValor(qa.nombre),
+            bonificadorAtaque: aplanarValor(qa.bonificadorAtaque),
+            dadosDaño: aplanarValor(qa.dadosDaño),
+            tipoDaño: aplanarValor(qa.tipoDaño)
+          })),
+          rasgos: rasgosFormateados.map((r: any) => ({
+            nombre: aplanarValor(r.nombre),
+            descripcion: aplanarValor(r.descripcion),
+            uso: aplanarValor(r.uso)
+          })),
+          acciones: accionesFormateadas.map((a: any) => ({
+            nombre: aplanarValor(a.nombre),
+            descripcion: aplanarValor(a.descripcion),
+            bonificadorAtaque: a.bonificadorAtaque,
+            daño: aplanarValor(a.daño),
+            uso: aplanarValor(a.uso)
+          })),
+          reacciones: reaccionesFormateadas.map((r: any) => ({
+            nombre: aplanarValor(r.nombre),
+            descripcion: aplanarValor(r.descripcion),
+            uso: aplanarValor(r.uso)
+          })),
+          accionesLegendarias: legendariasFormateadas.map((l: any) => ({
+            nombre: aplanarValor(l.nombre),
+            descripcion: aplanarValor(l.descripcion),
+            uso: aplanarValor(l.uso)
+          }))
+        };
+      });
+
+      // Combinar, evitando duplicidad por nombre
+      const monstruosFiltrados = estadoActual.baseDatosMonstruos.filter(
+        (mExistente) => !nuevosMonstruosFormateados.some((mNuevo) => mNuevo.nombre.toLowerCase() === mExistente.nombre.toLowerCase())
+      );
+
+      monstruosFinales = [...monstruosFiltrados, ...nuevosMonstruosFormateados];
+      modificado = true;
+    }
+
+    // Procesar Hechizos importados
+    if (hechizosCandidatos.length > 0) {
+      const nuevosHechizosFormateados: HechizoBase[] = hechizosCandidatos.map((h, idx) => {
+        let nivelNum = 0;
+        if (h.nivel !== undefined) {
+          nivelNum = Number(h.nivel);
+        } else if (h.level !== undefined) {
+          const lvlStr = String(h.level).toLowerCase();
+          if (lvlStr.includes("cantrip") || lvlStr.includes("truco")) {
+            nivelNum = 0;
+          } else {
+            const matches = lvlStr.match(/\d+/);
+            nivelNum = matches ? Number(matches[0]) : 1;
+          }
+        }
+
+        let concentracionVal = false;
+        if (h.concentration !== undefined) {
+          const cStr = String(h.concentration).toLowerCase();
+          concentracionVal = cStr === "yes" || cStr === "true" || cStr === "sí" || cStr === "si";
+        } else if (h.concentracion !== undefined) {
+          concentracionVal = !!h.concentracion;
+        }
+
+        let ritualVal = false;
+        if (h.ritual !== undefined) {
+          const rStr = String(h.ritual).toLowerCase().trim();
+          ritualVal = rStr.length > 0 && rStr !== "no" && rStr !== "false";
+        }
+
+        // Deducir componentes seleccionados en base a componentes string (ej: "V, S, M")
+        const compStr = aplanarValor(h.componentes || h.components || "V, S").toUpperCase();
+        const componentesSeleccionados = {
+          verbal: compStr.includes("V") || compStr.includes("VERBAL"),
+          somatico: compStr.includes("S") || compStr.includes("SOMÁTICO") || compStr.includes("SOMATICO"),
+          material: compStr.includes("M") || compStr.includes("MATERIAL")
+        };
+
+        // Extraer lista de clases de hechizos
+        let clasesArray: string[] = [];
+        const claseRaw = h.class || h.clases || h.clase;
+        if (Array.isArray(claseRaw)) {
+          clasesArray = claseRaw.map(aplanarValor);
+        } else if (typeof claseRaw === "string" && claseRaw.trim()) {
+          clasesArray = claseRaw.split(",").map((c: string) => c.trim()).filter(Boolean);
+        }
+
+        let desc = h.descripcion || h.desc || "";
+        
+        // Preservar compatibilidad rústica concatenando en la descripción si se requiere (solo mecánicas complejas como daño o CD)
+        let extras: string[] = [];
+        const dmgDiceRaw = h.damage_dice || h.dadosDaño || h.dadosDano;
+        if (dmgDiceRaw) {
+          let mech = `**Daño:** ${aplanarValor(dmgDiceRaw)}`;
+          const dmgTypeRaw = h.damage_type_01 || h.tipoDaño || h.tipoDano;
+          if (dmgTypeRaw) mech += ` (${aplanarValor(dmgTypeRaw)})`;
+          if (h.spell_save_dc_type) mech += ` | CD Salvación: ${String(h.spell_save_dc_type).toUpperCase()}`;
+          extras.push(mech);
+        }
+
+        if (extras.length > 0) {
+          desc += "\n\n" + extras.join("\n");
+        }
+
+        const hLvlRaw = h.higher_level || h.descNivelSuperior;
+        if (hLvlRaw) {
+          desc += `\n\n**A niveles superiores:** ${aplanarValor(hLvlRaw)}`;
+        }
+
+        // CD de salvación mapeado
+        let cdSalv = "";
+        if (h.spell_save_dc_type) {
+          const dcType = String(h.spell_save_dc_type).toUpperCase().trim();
+          if (dcType.includes("STR") || dcType.includes("FUE")) cdSalv = "Fuerza";
+          else if (dcType.includes("DEX") || dcType.includes("DES")) cdSalv = "Destreza";
+          else if (dcType.includes("CON")) cdSalv = "Constitución";
+          else if (dcType.includes("INT")) cdSalv = "Inteligencia";
+          else if (dcType.includes("WIS") || dcType.includes("SAB")) cdSalv = "Sabiduría";
+          else if (dcType.includes("CHA") || dcType.includes("CAR")) cdSalv = "Carisma";
+        }
+
+        if (!cdSalv) {
+          // Escanear descripción para deducir la característica de salvación
+          const descLower = desc.toLowerCase();
+          if (descLower.includes("salvación de destreza") || descLower.includes("tirada de salvación de destreza") || descLower.includes("salvación: dex") || descLower.includes("salvación: des") || descLower.includes("salvacion de destreza")) {
+            cdSalv = "Destreza";
+          } else if (descLower.includes("salvación de sabiduría") || descLower.includes("tirada de salvación de sabiduría") || descLower.includes("salvación: sab") || descLower.includes("salvación: wis") || descLower.includes("salvacion de sabiduria") || descLower.includes("salvación de sabidur")) {
+            cdSalv = "Sabiduría";
+          } else if (descLower.includes("salvación de constitución") || descLower.includes("tirada de salvación de constitución") || descLower.includes("salvación: con") || descLower.includes("salvacion de constitucion")) {
+            cdSalv = "Constitución";
+          } else if (descLower.includes("salvación de inteligencia") || descLower.includes("tirada de salvación de inteligencia") || descLower.includes("salvación: int") || descLower.includes("salvacion de inteligencia")) {
+            cdSalv = "Inteligencia";
+          } else if (descLower.includes("salvación de fuerza") || descLower.includes("tirada de salvación de fuerza") || descLower.includes("salvación: fue") || descLower.includes("salvación: str") || descLower.includes("salvacion de fuerza")) {
+            cdSalv = "Fuerza";
+          } else if (descLower.includes("salvación de carisma") || descLower.includes("tirada de salvación de carisma") || descLower.includes("salvación: car") || descLower.includes("salvación: cha") || descLower.includes("salvacion de carisma")) {
+            cdSalv = "Carisma";
+          }
+        }
+
+        return {
+          id: h.id || h.Id || `h_importado_${Date.now()}_${idx}`,
+          nombre: aplanarValor(h.nombre || h.name || "Hechizo Desconocido"),
+          nivel: nivelNum,
+          escuela: aplanarValor(h.escuela || h.school || "Universal"),
+          tiempoLanzamiento: aplanarValor(h.tiempoLanzamiento || h.casting_time || "1 acción"),
+          alcance: aplanarValor(h.alcance || h.range || "Personal"),
+          componentes: aplanarValor(h.componentes || h.components || "V, S"),
+          descripcion: aplanarValor(desc),
+          concentracion: concentracionVal,
+          ritual: ritualVal,
+          
+          // Campos enriquecidos estructurados
+          descNivelSuperior: h.descNivelSuperior || h.higher_level ? aplanarValor(h.descNivelSuperior || h.higher_level) : undefined,
+          materiales: h.materiales || h.material ? aplanarValor(h.materiales || h.material) : undefined,
+          componentesSeleccionados,
+          duracion: h.duracion || h.duration ? aplanarValor(h.duracion || h.duration) : undefined,
+          clases: clasesArray.length > 0 ? clasesArray : undefined,
+          ataqueCd: h.ataqueCd ? aplanarValor(h.ataqueCd) : (h.spell_save_dc_type ? "CD DE SALVACIÓN" : (h.damage_dice || h.dadosDaño || h.dadosDano ? "TIRADA DE ATAQUE" : "N/A")),
+          dadosDaño: h.dadosDaño || h.dadosDano || h.damage_dice ? aplanarValor(h.dadosDaño || h.dadosDano || h.damage_dice) : undefined,
+          dadosDañoNivelSuperior: h.dadosDañoNivelSuperior || h.dadosDanoNivelSuperior || h.damage_dice_upcast || h.higher_level_damage ? aplanarValor(h.dadosDañoNivelSuperior || h.dadosDanoNivelSuperior || h.damage_dice_upcast || h.higher_level_damage) : undefined,
+          cdSalvacion: cdSalv || (h.cdSalvacion && String(h.cdSalvacion).toUpperCase().trim() !== "CD DC" && String(h.cdSalvacion).toUpperCase().trim() !== "DC" ? aplanarValor(h.cdSalvacion) : (h.toHitOrDC && String(h.toHitOrDC).toUpperCase().trim() !== "CD DC" && String(h.toHitOrDC).toUpperCase().trim() !== "DC" ? aplanarValor(h.toHitOrDC) : undefined)),
+          agregarModificadorHabilidad: h.agregarModificadorHabilidad !== undefined ? !!h.agregarModificadorHabilidad : (h.ability_modifier === "yes" || h.ability_modifier === true || h.add_ability_modifier === "yes" || h.add_ability_modifier === true || undefined),
+          tipoDaño: h.tipoDaño || h.tipoDano || h.damage_type_01 ? aplanarValor(h.tipoDaño || h.tipoDano || h.damage_type_01).toLowerCase() : undefined
+        };
+      }).map(sanearHechizoCD);
+
+      const hechizosFiltrados = estadoActual.baseDatosHechizos.filter(
+        (hExistente) => !nuevosHechizosFormateados.some((hNuevo) => hNuevo.nombre.toLowerCase().trim() === hExistente.nombre.toLowerCase().trim())
+      );
+
+      hechizosFinales = [...hechizosFiltrados, ...nuevosHechizosFormateados];
+      modificado = true;
+    }
+
+    // Procesar Objetos importados (incluyendo equipamiento de equipment-es.json)
+    if (objetosCandidatos.length > 0) {
+      const nuevosObjetosFormateados: ObjetoHomebrew[] = objetosCandidatos.map((o, idx) => {
+        let nombre = aplanarValor(o.nombre || o.name || "Objeto Desconocido");
+        let rareza = aplanarValor(o.rareza || o.rarity || (o.magic_item ? "Mágico" : "Común"));
+        
+        let propiedadesArr: string[] = [];
+        
+        // Categoría de equipamiento
+        let categoriaStr = "OTRO";
+        if (o.equipment_category) {
+          categoriaStr = aplanarValor(typeof o.equipment_category === 'object' ? o.equipment_category.name : o.equipment_category);
+        } else if (o.magic_item) {
+          categoriaStr = "OBJETO MÁGICO";
+        } else if (o.weapon_category) {
+          categoriaStr = "ARMA";
+        } else if (o.armor_category) {
+          categoriaStr = "ARMADURA";
+        }
+        if (categoriaStr) propiedadesArr.push(categoriaStr);
+
+        if (o.weapon_category) propiedadesArr.push(`Arma ${aplanarValor(o.weapon_category)}`);
+        if (o.armor_category) propiedadesArr.push(`Armadura ${aplanarValor(o.armor_category)}`);
+        
+        // Costo y unidad traducida en español
+        let cVal = 0;
+        let cUni = "PO";
+        if (o.cost) {
+          if (typeof o.cost === 'object') {
+            cVal = Number(o.cost.quantity) || 0;
+            const unitRaw = String(o.cost.unit || "gp").toLowerCase().trim();
+            if (unitRaw === "cp") cUni = "PC";
+            else if (unitRaw === "sp") cUni = "PP";
+            else if (unitRaw === "ep") cUni = "PE";
+            else if (unitRaw === "gp") cUni = "PO";
+            else if (unitRaw === "pp") cUni = "PPT";
+            propiedadesArr.push(`Coste: ${cVal} ${cUni}`);
+          } else {
+            const costStr = String(o.cost).trim();
+            const matches = costStr.match(/(\d+)\s*([a-zA-Z]+)/);
+            if (matches) {
+              cVal = Number(matches[1]) || 0;
+              const unitRaw = matches[2].toLowerCase();
+              if (unitRaw === "cp") cUni = "PC";
+              else if (unitRaw === "sp") cUni = "PP";
+              else if (unitRaw === "ep") cUni = "PE";
+              else if (unitRaw === "gp") cUni = "PO";
+              else if (unitRaw === "pp") cUni = "PPT";
+            } else {
+              cVal = Number(costStr) || 0;
+            }
+            propiedadesArr.push(`Coste: ${cVal} ${cUni}`);
+          }
+        }
+        
+        // Peso
+        let pesoStr = "";
+        if (o.weight !== undefined && o.weight !== null) {
+          pesoStr = `${aplanarValor(o.weight)} lb`;
+          propiedadesArr.push(`Peso: ${pesoStr}`);
+        }
+        
+        // Daño (para armas)
+        let dmgDice = "";
+        let dmgType = "";
+        if (o.damage) {
+          if (typeof o.damage === 'object') {
+            dmgDice = aplanarValor(o.damage.damage_dice || "");
+            const dmgTypeName = o.damage.damage_type ? (typeof o.damage.damage_type === 'object' ? o.damage.damage_type.name : o.damage.damage_type) : "";
+            dmgType = aplanarValor(dmgTypeName).toLowerCase();
+            if (dmgDice) {
+              propiedadesArr.push(`Daño: ${dmgDice}${dmgType ? ` (${dmgType})` : ""}`);
+            }
+          } else {
+            dmgDice = String(o.damage);
+            propiedadesArr.push(`Daño: ${dmgDice}`);
+          }
+        }
+
+        // Bonificación mágica
+        let bonoAtkStr = "";
+        let bonoDmgStr = "";
+        if (o.toHitBonus) {
+          bonoAtkStr = String(o.toHitBonus);
+          propiedadesArr.push(`Bono Ataque: +${bonoAtkStr}`);
+        }
+        if (o.damageBonus) {
+          bonoDmgStr = String(o.damageBonus);
+          propiedadesArr.push(`Bono Daño: +${bonoDmgStr}`);
+        }
+        
+        // Cargas / Sintonización
+        let propArmaArr: string[] = [];
+        if (o.hasCharges || o.tieneCargas) {
+          propArmaArr.push("Tiene cargas");
+          let cargasStr = "Tiene Cargas";
+          if (o.chargesOptions && typeof o.chargesOptions === 'object') {
+            const maxC = o.chargesOptions.max || o.chargesOptions.cantidadMax;
+            if (maxC) cargasStr = `Cargas: ${aplanarValor(maxC)} máx`;
+          }
+          propiedadesArr.push(cargasStr);
+        }
+
+        // Deducir propiedades de armas desde el array original 'properties'
+        if (Array.isArray(o.properties)) {
+          o.properties.forEach((p: any) => {
+            const propName = aplanarValor(typeof p === 'object' ? p.name : p).toLowerCase().trim();
+            if (propName.includes("finesse") || propName.includes("sutil")) propArmaArr.push("Sutil");
+            else if (propName.includes("versatile") || propName.includes("versátil")) propArmaArr.push("Versátil");
+            else if (propName.includes("heavy") || propName.includes("pesado")) propArmaArr.push("Pesado");
+            else if (propName.includes("light") || propName.includes("ligero")) propArmaArr.push("Ligero");
+            else if (propName.includes("loading") || propName.includes("carga")) propArmaArr.push("Carga");
+            else if (propName.includes("reach") || propName.includes("alcance")) propArmaArr.push("Alcance");
+            else if (propName.includes("thrown") || propName.includes("arrojadiza")) propArmaArr.push("Arrojadiza");
+            else if (propName.includes("two-handed") || propName.includes("a dos manos")) propArmaArr.push("A dos manos");
+            else if (propName.includes("silvered") || propName.includes("plateado")) propArmaArr.push("Plateado");
+            else if (propName.includes("special") || propName.includes("especial")) propArmaArr.push("Especial");
+            else if (propName.includes("ammunition") || propName.includes("munición")) propArmaArr.push("Munición");
+            else if (propName.includes("sintonización") || propName.includes("attunement") || propName.includes("sintonizacion")) propArmaArr.push("Sintonización");
+          });
+        }
+
+        // Bonos adicionales
+        let bonosMagicosLista: any[] = [];
+        if (Array.isArray(o.bonus) && o.bonus.length > 0) {
+          bonosMagicosLista = o.bonus.map((b: any) => {
+            if (typeof b === 'object') {
+              return {
+                categoria: aplanarValor(b.category || b.categoria || "OTRO"),
+                bono: aplanarValor(b.bonus || b.bono || ""),
+                valor: Number(b.value || b.valor) || 0
+              };
+            }
+            return { categoria: "OTRO", bono: aplanarValor(b), valor: 0 };
+          });
+
+          const bonosStr = bonosMagicosLista.map(b => `${b.categoria} ${b.bono}: +${b.valor}`).join(', ');
+          if (bonosStr) propiedadesArr.push(`Bonos: ${bonosStr}`);
+        }
+        
+        if (Array.isArray(o.properties)) {
+          const props = o.properties.map((p: any) => aplanarValor(typeof p === 'object' ? p.name : p)).filter(Boolean).join(', ');
+          if (props) propiedadesArr.push(`Propiedades: ${props}`);
+        } else if (typeof o.properties === 'string' && o.properties.trim()) {
+          propiedadesArr.push(aplanarValor(o.properties));
+        }
+        
+        let propiedadesFinal = propiedadesArr.join(" | ");
+        if (!propiedadesFinal) propiedadesFinal = aplanarValor(o.propiedades || "Ninguna");
+        
+        // Descripción
+        let descRaw = o.desc || o.descripcion || o.description || "";
+        let descripcion = aplanarValor(descRaw);
+        
+        // Si no tiene descripción pero tiene otras claves (como armor_class, speed, etc.)
+        if (!descripcion && o.armor_class) {
+          descripcion = `Clase de Armadura (CA): ${o.armor_class.base}` + (o.armor_class.dex_bonus ? ` + Des (Máx ${o.armor_class.max_bonus || "ilimitado"})` : "") + (o.str_minimum ? ` | Requisito Fuerza: ${o.str_minimum}` : "") + (o.stealth_disadvantage ? " | Desventaja en Sigilo" : "");
+        }
+        
+        return sanearObjetoHomebrew({
+          id: o.index || o.id || `o_importado_${Date.now()}_${idx}`,
+          nombre,
+          rareza,
+          propiedades: propiedadesFinal,
+          descripcion: descripcion || "Sin descripción disponible.",
+          
+          // Metadatos enriquecidos
+          categoria: categoriaStr,
+          costoValor: cVal,
+          costoUnidad: cUni,
+          peso: pesoStr,
+          tipoArma: o.weapon_category ? String(o.weapon_category).toUpperCase() : "N/A",
+          estiloAtaque: o.weapon_range ? String(o.weapon_range).toUpperCase() : "N/A",
+          alcance: o.range ? aplanarValor(typeof o.range === "object" ? o.range.normal : o.range) : undefined,
+          propiedadesArma: propArmaArr,
+          dadosDaño: dmgDice || undefined,
+          tipoDaño: dmgType || undefined,
+          bonoAtaque: bonoAtkStr || undefined,
+          bonoDaño: bonoDmgStr || undefined,
+          bonosMagicos: bonosMagicosLista.length > 0 ? bonosMagicosLista : undefined
+        });
+      });
+
+      const objetosFiltrados = estadoActual.objetosHomebrew
+        .map(sanearObjetoHomebrew)
+        .filter(
+          (oExistente) => !nuevosObjetosFormateados.some((oNuevo) => oNuevo.nombre.toLowerCase().trim() === oExistente.nombre.toLowerCase().trim())
+        );
+
+      objetosFinales = [...objetosFiltrados, ...nuevosObjetosFormateados];
+      modificado = true;
+    }
+
+    return {
+      modificado,
+      baseDatosMonstruos: monstruosFinales,
+      baseDatosHechizos: hechizosFinales,
+      objetosHomebrew: objetosFinales
+    };
+  } catch (e) {
+    console.error("[Importador] Falló la importación del JSON:", e);
+    return {
+      modificado: false,
+      baseDatosMonstruos: estadoActual.baseDatosMonstruos,
+      baseDatosHechizos: estadoActual.baseDatosHechizos,
+      objetosHomebrew: estadoActual.objetosHomebrew
+    };
+  }
+}

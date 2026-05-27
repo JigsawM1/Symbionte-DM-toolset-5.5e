@@ -1,0 +1,173 @@
+.pestañasInternas {
+  display: flex; 
+  justify-content: space-around; 
+  gap: 4px; 
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05); 
+  padding-bottom: 4px;
+}
+
+.miniBotonTab {
+  background-color: hsl(222, 18%, 9%);
+  border: 1px solid hsla(222, 18%, 14%, 1);
+  color: var(--color-texto-secundario);
+  font-size: 9.5px;
+  padding: 3px 8px;
+  border-radius: 3px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  font-weight: 800;
+  font-family: var(--fuente-titulo);
+  letter-spacing: 0.01em;
+  user-select: none;
+  transition: none;
+}
+
+.miniBotonTab:hover {
+  background-color: hsl(222, 18%, 14%);
+  color: var(--color-texto-principal);
+}
+
+.miniBotonTabActivo {
+  background-color: hsla(172, 90%, 8%, 0.85) !important;
+  border-color: var(--color-borde-cian) !important;
+  color: var(--color-borde-cian) !important;
+  box-shadow: 0 0 0 1px var(--color-borde-cian) !important;
+}
+
+.miniBotonTabEfectosActivo {
+  background-color: hsla(265, 80%, 10%, 0.85) !important;
+  border-color: hsla(265, 80%, 60%, 0.85) !important;
+  color: hsl(265, 95%, 85%) !important;
+  box-shadow: 0 0 0 1px hsla(265, 80%, 60%, 0.85) !important;
+}
+
+.seccionCondiciones {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  gap: 6px;
+  height: 100%;
+}
+
+.listaCondicionesLateral {
+  width: 115px;
+  background-color: hsl(222, 22%, 7%);
+  border: 1px solid var(--color-borde-brutal);
+  border-radius: 3px;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  flex-shrink: 0;
+}
+
+.itemCondicionLista {
+  padding: 5px 6px;
+  font-size: 9.5px;
+  font-weight: 800;
+  font-family: var(--fuente-codigo);
+  border-bottom: 1px solid hsl(222, 20%, 11%);
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 0.01em;
+  border-left: 3px solid transparent;
+  color: var(--color-texto-secundario);
+  transition: none;
+}
+
+.itemCondicionLista:hover {
+  background-color: rgba(255, 255, 255, 0.02);
+  color: var(--color-texto-principal);
+}
+
+.itemCondicionActivo {
+  background-color: hsla(172, 90%, 7%, 0.8) !important;
+  color: var(--color-borde-cian) !important;
+  border-left: 3px solid var(--color-borde-cian) !important;
+  border-color: hsla(172, 90%, 45%, 0.8) !important;
+}
+
+.itemCondicionEfectosActivo {
+  background-color: hsla(265, 80%, 10%, 0.85) !important;
+  border-color: hsla(265, 80%, 60%, 0.85) !important;
+  color: hsl(265, 95%, 85%) !important;
+  border-left: 3px solid hsla(265, 80%, 60%, 0.85) !important;
+}
+
+.detalleCondicionPanel {
+  flex-grow: 1;
+  background-color: hsl(222, 20%, 8%);
+  border: 1px solid var(--color-borde-brutal);
+  border-radius: 3px;
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+
+.tituloCondicion {
+  font-size: 13px;
+  font-weight: 800;
+  font-family: var(--fuente-titulo);
+  letter-spacing: 0.02em;
+  color: var(--color-borde-cian);
+  text-transform: uppercase;
+  margin-bottom: 2px;
+}
+
+.tituloCondicionEfecto {
+  color: #d8b4fe !important;
+}
+
+.origenCondicion {
+  font-size: 9.5px;
+  color: var(--color-texto-apagado);
+  font-family: var(--fuente-codigo);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+  display: block;
+}
+
+.bloqueEfectosCondicion {
+  background-color: hsl(222, 25%, 5%);
+  border: 1px solid var(--color-borde-brutal);
+  border-radius: 3px;
+  padding: 8px;
+  margin-top: 4px;
+}
+
+.bloqueEfectosEfecto {
+  border-color: rgba(157, 78, 221, 0.3) !important;
+}
+
+.cabeceraBloqueEfectos {
+  font-size: 9px;
+  font-weight: 800;
+  font-family: var(--fuente-codigo);
+  color: var(--color-texto-secundario);
+  margin-bottom: 6px;
+  border-bottom: 1px dashed hsl(222, 18%, 15%);
+  padding-bottom: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.cabeceraBloqueEfectosEfecto {
+  color: #d8b4fe !important;
+}
+
+.listaEfectos {
+  list-style-type: none;
+  padding: 0;
+}
+
+.itemEfectoLista {
+  font-size: 11px;
+  line-height: 1.45;
+  color: var(--color-texto-principal);
+  margin-bottom: 5px;
+  display: flex;
+  align-items: flex-start;
+  gap: 4px;
+}

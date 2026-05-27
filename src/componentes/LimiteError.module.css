@@ -1,0 +1,120 @@
+.contenedor {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100vw;
+  height: 100vh;
+  background-color: #0d0e12;
+  padding: 20px;
+  box-sizing: border-box;
+  font-family: var(--fuente-principal, sans-serif);
+  color: #e2e8f0;
+}
+
+.tarjeta {
+  background-color: #14161f;
+  border: 2px solid #f25c54;
+  padding: 16px;
+  max-width: 500px;
+  width: 100%;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.icono {
+  color: #f25c54;
+  align-self: center;
+}
+
+.titulo {
+  font-size: 13px;
+  font-weight: bold;
+  text-align: center;
+  color: #f25c54;
+  margin: 0;
+  letter-spacing: 0.05em;
+}
+
+.descripcion {
+  font-size: 10.5px;
+  line-height: 1.35;
+  color: #94a3b8;
+  text-align: justify;
+  margin: 0;
+}
+
+.detalles {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  font-size: 9px;
+}
+
+.codigo {
+  font-family: var(--fuente-codigo, monospace);
+  font-size: 8.5px;
+  background-color: #0d0e12;
+  border: 1px solid #2d3142;
+  padding: 6px;
+  margin: 2px 0 6px 0;
+  overflow: auto;
+  max-height: 120px;
+  white-space: pre-wrap;
+  word-break: break-all;
+  color: #ffb703;
+}
+
+.acciones {
+  display: flex;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.botonRecargar {
+  flex: 1;
+  height: 26px;
+  background-color: #5f5dbb;
+  border: 1px solid #7b2cbf;
+  color: #ffffff;
+  font-weight: bold;
+  text-transform: uppercase;
+  font-size: 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.botonRecargar:hover {
+  filter: brightness(1.15);
+}
+
+.botonReiniciar {
+  flex: 1;
+  height: 26px;
+  background-color: rgba(242, 92, 84, 0.1);
+  border: 1px solid #f25c54;
+  color: #f25c54;
+  font-weight: bold;
+  text-transform: uppercase;
+  font-size: 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.botonReiniciar:hover {
+  background-color: rgba(242, 92, 84, 0.2);
+}
+
+.advertencia {
+  font-size: 8.5px;
+  color: #475569;
+  text-align: center;
+  margin: 0;
+  font-style: italic;
+}

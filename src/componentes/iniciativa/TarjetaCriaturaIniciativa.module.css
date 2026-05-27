@@ -1,0 +1,445 @@
+.tarjetaCriaturaBrutal {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: 4px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  position: relative;
+  overflow: visible;
+}
+
+.barraLateralRol {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  flex-shrink: 0;
+  border-top-left-radius: 4px;
+  border-bottom-left-radius: 4px;
+}
+
+.bloqueIniciativaIzquierda {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--color-borde-brutal);
+  border-radius: 4px;
+  width: 38px;
+  height: 38px;
+  flex-shrink: 0;
+  margin-left: 2px;
+}
+
+.etiquetaInicMini {
+  font-size: 9px;
+  font-weight: bold;
+  color: var(--color-texto-apagado);
+  letter-spacing: 0.02em;
+  line-height: 1;
+}
+
+.valorInicGigante {
+  font-size: 18px;
+  font-weight: 800;
+  font-family: var(--fuente-codigo);
+  line-height: 1.1;
+}
+
+.cuerpoTarjetaCentral {
+  display: flex;
+  flex-direction: column;
+  flex: 2;
+  gap: 2px;
+  min-width: 120px;
+}
+
+.cabeceraFilaInfo {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 5px;
+}
+
+.avatarRedondeado {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 1px solid;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.cajaNombres {
+  display: flex;
+  flex-direction: column;
+}
+
+.nombreCriaturaLink {
+  font-size: 13px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.tagTurnoActivo {
+  font-size: 9.5px;
+  background-color: rgba(0, 245, 212, 0.12);
+  border: 1px solid var(--color-borde-cian);
+  color: var(--color-borde-cian);
+  padding: 1px 4px;
+  border-radius: 2px;
+  text-transform: uppercase;
+  font-weight: 800;
+  font-family: var(--fuente-codigo);
+  letter-spacing: 0.02em;
+}
+
+.subtituloCriatura {
+  font-size: 12px;
+  color: var(--color-texto-secundario);
+  line-height: 1.1;
+}
+
+.filaCondicionesChips {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 2px;
+  align-items: center;
+  margin-top: 1px;
+}
+
+.textoCondicionesVacias {
+  font-size: 12px;
+  color: var(--color-texto-apagado);
+  font-style: italic;
+}
+
+.chipCondicionChico {
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 3px;
+  font-size: 9px;
+  font-weight: 800;
+  padding: 1px 5px;
+  border-radius: 3px;
+  text-transform: uppercase;
+  font-family: var(--fuente-codigo);
+  letter-spacing: 0.02em;
+  border: 1px solid;
+}
+
+.chipDesangrado {
+  background-color: hsla(0, 80%, 9%, 0.75) !important;
+  border-color: hsla(0, 80%, 50%, 0.7) !important;
+  color: hsl(0, 100%, 85%) !important;
+  box-shadow: inset 0 0 3px rgba(255, 0, 0, 0.2) !important;
+}
+
+.chipEfectoPredefinido {
+  background-color: hsla(265, 80%, 12%, 0.75) !important;
+  border-color: hsla(265, 80%, 60%, 0.7) !important;
+  color: hsl(265, 95%, 90%) !important;
+}
+
+.botonQuitarCondicionChico {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+}
+
+.miniBotonAdd {
+  height: 18px;
+  background-color: hsl(222, 25%, 5%);
+  border: 1px solid hsla(172, 90%, 45%, 0.4);
+  color: var(--color-borde-cian);
+  font-size: 9px;
+  font-weight: 800;
+  border-radius: 3px;
+  padding: 0 6px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-family: var(--fuente-codigo);
+  text-transform: uppercase;
+  outline: none;
+}
+
+.miniBotonAdd:hover {
+  border-color: var(--color-borde-cian);
+  background-color: rgba(0, 245, 212, 0.05);
+}
+
+.miniBotonAddEfectos {
+  border-color: hsla(271, 76%, 50%, 0.4) !important;
+  color: #d8b4fe !important;
+}
+
+.miniBotonAddEfectos:hover {
+  border-color: #d8b4fe !important;
+  background-color: rgba(157, 78, 221, 0.05);
+}
+
+.dropdownFlotante {
+  position: absolute;
+  top: 20px;
+  left: 0;
+  background-color: hsl(222, 25%, 5%);
+  border: 1px solid var(--color-borde-cian);
+  border-radius: 4px;
+  z-index: 9999;
+  max-height: 180px;
+  overflow-y: auto;
+  min-width: 120px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.6);
+}
+
+.dropdownFlotanteEfectos {
+  border-color: rgba(157, 78, 221, 0.6) !important;
+}
+
+.dropdownItem {
+  padding: 5px 8px;
+  font-size: 9px;
+  font-weight: bold;
+  color: hsl(172, 100%, 85%);
+  cursor: pointer;
+  border-bottom: 1px solid rgba(255,255,255,0.02);
+  text-transform: uppercase;
+  font-family: var(--fuente-codigo);
+  background-color: transparent;
+}
+
+.dropdownItem:hover {
+  background-color: rgba(0, 245, 212, 0.08);
+  color: #ffffff;
+}
+
+.dropdownItemEfecto {
+  color: #d8b4fe !important;
+}
+
+.dropdownItemEfecto:hover {
+  background-color: rgba(157, 78, 221, 0.08) !important;
+}
+
+.dropdownItemPersonalizado {
+  color: var(--color-borde-cian) !important;
+  border-top: 1px dashed rgba(255, 255, 255, 0.1) !important;
+}
+
+.dropdownItemPersonalizado:hover {
+  background-color: rgba(0, 245, 212, 0.08) !important;
+}
+
+.cajaAccionesRapidasColumn {
+  display: flex;
+  flex-direction: column;
+  flex: 1.5;
+  min-width: 120px;
+  justify-content: center;
+}
+
+.contenedorAccionesRapidasBotones {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 2px;
+}
+
+.botonAccionRapidaMedieval {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  padding: 4px 8px;
+  background-color: hsl(222, 18%, 12%);
+  border: 1px solid var(--color-borde-brutal);
+  color: var(--color-texto-principal);
+  font-weight: 700;
+  cursor: pointer;
+  border-radius: 2px;
+  transition: none;
+}
+
+.botonAccionRapidaMedieval:hover {
+  background-color: hsl(222, 18%, 16%);
+  border-color: var(--color-borde-cian);
+}
+
+.sinAccionesAviso {
+  font-size: 12px;
+  color: var(--color-texto-apagado);
+  font-style: italic;
+}
+
+.cajaControlesSaludTarjetas {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  width: 140px;
+  flex-shrink: 0;
+}
+
+.filaHPArea {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 3px;
+}
+
+.hpGiganteTexto {
+  font-size: 15px;
+  font-weight: bold;
+  color: var(--color-texto-principal);
+  font-family: var(--fuente-codigo);
+}
+
+.tagHPTemporal {
+  font-size: 11px;
+  background-color: rgba(0, 245, 212, 0.1);
+  border: 1px solid var(--color-borde-cian);
+  color: var(--color-borde-cian);
+  padding: 1px 4px;
+  border-radius: 2px;
+  font-weight: bold;
+}
+
+.inputsSaludFila {
+  display: flex;
+  flex-direction: row;
+  gap: 4px;
+}
+
+.controlHPVertical {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--color-borde-brutal);
+  border-radius: 4px;
+  overflow: hidden;
+  background-color: var(--color-fondo-profundo);
+  width: 56px;
+}
+
+.botonCurarVertical {
+  height: 18px;
+  font-size: 9px;
+  font-weight: bold;
+  background-color: rgba(0, 245, 212, 0.15);
+  border: none;
+  border-bottom: 1px solid var(--color-borde-brutal);
+  color: var(--color-borde-cian);
+  cursor: pointer;
+  text-align: center;
+  padding: 0;
+  transition: none;
+  user-select: none;
+}
+
+.botonCurarVertical:hover {
+  background-color: rgba(0, 245, 212, 0.3);
+  color: #ffffff;
+}
+
+.inputHPVertical {
+  height: 22px;
+  font-size: 12px;
+  text-align: center;
+  background-color: transparent;
+  border: none;
+  color: #ffffff;
+  outline: none;
+  font-family: var(--fuente-codigo);
+  width: 100%;
+  padding: 0;
+}
+
+.botonDañoVertical {
+  height: 18px;
+  font-size: 9px;
+  font-weight: bold;
+  background-color: rgba(242, 92, 84, 0.15);
+  border: none;
+  border-top: 1px solid var(--color-borde-brutal);
+  color: var(--color-peligro);
+  cursor: pointer;
+  text-align: center;
+  padding: 0;
+  transition: none;
+  user-select: none;
+}
+
+.botonDañoVertical:hover {
+  background-color: rgba(242, 92, 84, 0.3);
+  color: #ffffff;
+}
+
+.cajaTempVertical {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--color-borde-brutal);
+  border-radius: 4px;
+  background-color: var(--color-fondo-profundo);
+  width: 48px;
+  height: 58px;
+}
+
+.etiquetaTempVertical {
+  font-size: 8.5px;
+  font-weight: bold;
+  color: var(--color-borde-cian);
+  border-bottom: 1px solid var(--color-borde-brutal);
+  width: 100%;
+  text-align: center;
+  padding: 1px 0;
+  background-color: rgba(0, 245, 212, 0.03);
+}
+
+.inputTempVertical {
+  flex-grow: 1;
+  width: 100%;
+  font-size: 12px;
+  text-align: center;
+  background-color: transparent;
+  border: none;
+  color: var(--color-borde-cian);
+  outline: none;
+  font-family: var(--fuente-codigo);
+  padding: 0;
+}
+
+.inputTempVertical:focus {
+  background-color: rgba(255,255,255,0.02);
+}
+
+.botonEliminarDeCola {
+  background: none;
+  border: none;
+  color: rgba(242, 92, 84, 0.55);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 2px;
+  display: flex;
+  align-items: center;
+}
+
+.botonEliminarDeCola:hover {
+  color: var(--color-peligro);
+  background-color: rgba(242, 92, 84, 0.1);
+}

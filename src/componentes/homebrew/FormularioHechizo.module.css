@@ -1,0 +1,191 @@
+.formularioBrutal {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.filaDobleForm {
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+}
+
+.filaTripleForm {
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+}
+
+.campoForm {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  gap: 5px;
+}
+
+.labelForm {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-texto-secundario);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  letter-spacing: 0.01em;
+}
+
+.inputForm {
+  font-size: 13px;
+  padding: 7px 10px;
+  width: 100%;
+  background-color: var(--color-fondo-tarjeta);
+  border: 1.5px solid var(--color-borde-brutal);
+  border-radius: 5px;
+  color: var(--color-texto-principal);
+  outline: none;
+}
+
+.inputForm:focus {
+  border-color: var(--color-borde-cian);
+  box-shadow: 0 0 0 2px rgba(0, 245, 212, 0.18);
+}
+
+.selectForm {
+  font-size: 13px;
+  padding: 6px 10px;
+  height: 34px;
+  width: 100%;
+  background-color: var(--color-fondo-tarjeta);
+  border: 1.5px solid var(--color-borde-brutal);
+  border-radius: 5px;
+  color: var(--color-texto-principal);
+  outline: none;
+  cursor: pointer;
+}
+
+.selectForm:focus {
+  border-color: var(--color-borde-cian);
+  box-shadow: 0 0 0 2px rgba(0, 245, 212, 0.18);
+}
+
+.bloqueDinamicoForm {
+  display: flex;
+  flex-direction: column;
+  background-color: var(--color-fondo-tarjeta);
+  border: 1px solid var(--color-borde-brutal);
+  border-radius: 7px;
+  padding: 12px;
+  gap: 8px;
+}
+
+.tituloBloqueDinamico {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--color-borde-cian);
+  border-bottom: 1px solid var(--color-borde-brutal);
+  padding-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+}
+
+.filaCheckboxes {
+  display: flex;
+  flex-direction: row;
+  gap: 18px;
+  flex-wrap: wrap;
+  padding: 4px 0;
+}
+
+.labelCheckbox {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 7px;
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--color-texto-secundario);
+  font-weight: 500;
+  user-select: none;
+}
+
+.checkMini {
+  margin: 0;
+  width: 13px;
+  height: 13px;
+  cursor: pointer;
+  accent-color: var(--color-borde-cian);
+}
+
+.gridClasesDnd {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px 10px;
+}
+
+.textareaBrutal {
+  background-color: var(--color-fondo-panel);
+  border: 1.5px solid var(--color-borde-brutal);
+  border-radius: 5px;
+  color: var(--color-texto-principal);
+  font-size: 13px;
+  padding: 8px 10px;
+  width: 100%;
+  outline: none;
+  font-family: inherit;
+  line-height: 1.5;
+  resize: vertical;
+}
+
+.textareaBrutal:focus {
+  border-color: var(--color-borde-cian);
+  box-shadow: 0 0 0 2px rgba(0, 245, 212, 0.18);
+}
+
+.grupoBotonesAccion {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 12px;
+  width: 100%;
+}
+
+.botonEnviarBrutal {
+  background: linear-gradient(135deg, var(--color-primario-brillante) 0%, var(--color-primario) 100%);
+  border: 1px solid var(--color-borde-cian);
+  color: #ffffff;
+  padding: 11px;
+  font-size: 13.5px;
+  font-weight: 700;
+  margin-top: 10px;
+  width: 100%;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  border-radius: 6px;
+  box-shadow: 0 3px 12px rgba(0,245,212,0.2);
+}
+
+.botonEnviarBrutal:hover {
+  filter: brightness(1.15);
+  box-shadow: 0 3px 10px rgba(0, 245, 212, 0.25);
+}
+
+.botonCancelarBrutal {
+  background-color: var(--color-fondo-tarjeta);
+  border: 1px solid var(--color-borde-brutal);
+  color: var(--color-texto-secundario);
+  padding: 9px;
+  font-size: 12.5px;
+  font-weight: 600;
+  width: 100%;
+  cursor: pointer;
+  text-transform: uppercase;
+  text-align: center;
+  border-radius: 6px;
+  letter-spacing: 0.04em;
+}
+
+.botonCancelarBrutal:hover {
+  background-color: rgba(0, 245, 212, 0.12);
+  border-color: var(--color-borde-cian);
+  color: var(--color-borde-cian);
+}

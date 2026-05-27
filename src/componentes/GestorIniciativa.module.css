@@ -1,0 +1,195 @@
+.contenedorGestor {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  height: 100%;
+  width: 100%;
+  background-color: var(--color-fondo-profundo);
+  overflow: hidden;
+}
+
+.estadoVacio {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-grow: 1;
+  padding: 20px;
+}
+
+.cajaVacia {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  max-width: 340px;
+  text-align: center;
+  border: 1px dashed var(--color-borde-brutal);
+  padding: 16px;
+  background-color: var(--color-fondo-panel);
+  border-radius: 4px;
+}
+
+.textoVacioTitulo {
+  font-size: 11px;
+  font-weight: bold;
+  color: var(--color-texto-principal);
+  letter-spacing: 0.1em;
+  margin-bottom: 4px;
+  font-family: var(--fuente-codigo);
+}
+
+.textoVacioSub {
+  font-size: 10px;
+  color: var(--color-texto-secundario);
+  line-height: 1.3;
+}
+
+.botonImportarGrande {
+  margin-top: 12px;
+  width: auto;
+  padding: 6px 12px;
+  background-color: rgba(0, 245, 212, 0.15);
+  border: 1px solid var(--color-borde-cian);
+  color: var(--color-borde-cian);
+  font-size: 9.5px;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  transition: none;
+}
+
+.botonImportarGrande:hover {
+  background-color: rgba(0, 245, 212, 0.25);
+  color: #ffffff;
+}
+
+.panelIniciativaDividido {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  position: relative;
+  flex-grow: 1;
+  min-height: 0;
+}
+
+.seccionTrackerScroll {
+  flex-grow: 1;
+  overflow-y: auto;
+  padding: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.barraHerramientasTracker {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 6px;
+  background-color: var(--color-fondo-panel);
+  border: 1px solid var(--color-borde-brutal);
+  margin-bottom: 6px;
+  border-radius: 4px;
+}
+
+.contadorCombatientes {
+  font-size: 11px;
+  color: var(--color-texto-apagado);
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.botonSincronizarTS {
+  display: flex;
+  align-items: center;
+  background-color: rgba(0, 245, 212, 0.08);
+  border: 1px solid var(--color-borde-cian);
+  color: var(--color-borde-cian);
+  font-size: 10.5px;
+  font-weight: bold;
+  padding: 3px 8px;
+  cursor: pointer;
+  border-radius: 3px;
+  transition: none;
+}
+
+.botonSincronizarTS:hover {
+  background-color: rgba(0, 245, 212, 0.2);
+  color: #ffffff;
+}
+
+.listaTarjetasIniciativa {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.panelDetalleInferior {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 82%;
+  z-index: 100;
+  border-top: 2px solid var(--color-borde-brutal);
+  background-color: var(--color-fondo-profundo);
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 -8px 20px rgba(0, 0, 0, 0.55);
+  border-top-left-radius: 6px;
+  border-top-right-radius: 6px;
+}
+
+.cabeceraDetalleFicha {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  background-color: hsl(222, 18%, 10%);
+  border-bottom: 1.5px solid var(--color-borde-brutal);
+  padding: 4px 8px;
+  height: 26px;
+  flex-shrink: 0;
+}
+
+.tituloFichaIzquierda {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.nombreFichaCabecera {
+  font-size: 13px;
+  font-weight: bold;
+  color: var(--color-texto-principal);
+  letter-spacing: 0.03em;
+  font-family: var(--fuente-titulo);
+}
+
+.subFichaAsociada {
+  font-size: 11px;
+  color: var(--color-borde-cian);
+  margin-left: 6px;
+  font-family: var(--fuente-codigo);
+}
+
+.botonCerrarDetalle {
+  background: none;
+  border: none;
+  color: var(--color-texto-secundario);
+  cursor: pointer;
+  padding: 2px;
+  display: flex;
+  align-items: center;
+}
+
+.botonCerrarDetalle:hover {
+  color: var(--color-peligro);
+}
+
+.cuerpoDetalleScroll {
+  flex-grow: 1;
+  overflow-y: auto;
+  padding: 8px;
+}

@@ -1,0 +1,123 @@
+.cajaVinculacionManual {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 16px 20px;
+  text-align: center;
+}
+
+.alertaVinculoInfo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  max-width: 400px;
+  margin-bottom: 8px;
+}
+
+.iconoEnlace {
+  color: var(--color-borde-cian);
+  margin-bottom: 4px;
+}
+
+.tituloAlertaVinculo {
+  font-size: 13px;
+  font-weight: bold;
+  color: var(--color-texto-principal);
+  margin-bottom: 4px;
+}
+
+.descAlertaVinculo {
+  font-size: 12px;
+  color: var(--color-texto-secundario);
+  line-height: 1.35;
+}
+
+.buscadorVincularArea {
+  position: relative;
+  width: 100%;
+  max-width: 320px;
+}
+
+.barraBuscadoraVinc {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  background-color: var(--color-fondo-panel);
+  border: 1px solid var(--color-borde-brutal);
+  border-radius: 2px;
+  height: 26px;
+  width: 100%;
+}
+
+.iconoBuscador {
+  color: var(--color-texto-secundario);
+  margin-left: 8px;
+}
+
+.inputBuscadorVinculo {
+  flex-grow: 1;
+  background: none;
+  border: none;
+  font-size: 12px;
+  color: var(--color-texto-principal);
+  outline: none;
+  padding: 0 4px;
+}
+
+.botonLimpiarVinculo {
+  background: none;
+  border: none;
+  color: var(--color-texto-secundario);
+  cursor: pointer;
+  margin-right: 4px;
+}
+
+.listaFlotanteVinculos {
+  position: absolute;
+  top: 28px;
+  left: 0;
+  width: 100%;
+  max-height: 120px;
+  overflow-y: auto;
+  background-color: var(--color-fondo-tarjeta);
+  border: 1.5px solid var(--color-borde-brutal);
+  z-index: 999;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.5);
+}
+
+.itemVinculoOpcion {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--color-borde-brutal);
+  cursor: pointer;
+  font-size: 12px;
+  text-align: left;
+}
+
+.itemVinculoOpcion:hover {
+  background-color: var(--color-borde-brutal);
+}
+
+.itemNombreMonstruo {
+  color: var(--color-texto-principal);
+}
+
+.itemMetaMonstruo {
+  font-size: 9.5px;
+  color: var(--color-texto-secundario);
+  margin-left: 6px;
+}
+
+.iconoCheck {
+  color: var(--color-borde-cian);
+}
+
+.itemVinculoVacio {
+  padding: 8px;
+  color: var(--color-texto-apagado);
+  font-size: 12px;
+}

@@ -1,0 +1,360 @@
+.contenedorFicha {
+  width: 100%;
+  height: 100%;
+  background-color: transparent;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.cabecera {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 14px;
+  border-bottom: 1px solid rgba(0, 245, 212, 0.2);
+  background-color: rgba(0, 245, 212, 0.06);
+  flex-shrink: 0;
+}
+
+.cabeceraIzquierda {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.metaNivel {
+  font-size: 9px;
+  font-weight: bold;
+  letter-spacing: 0.08em;
+  color: var(--color-borde-cian);
+  font-family: var(--fuente-codigo);
+}
+
+.titulo {
+  font-size: 16px;
+  font-weight: 800;
+  color: #ffffff;
+  font-family: var(--fuente-principal);
+  letter-spacing: 0.02em;
+}
+
+.botonCerrar {
+  background-color: transparent;
+  border: none;
+  color: var(--color-texto-secundario);
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: none;
+}
+
+.botonCerrar:hover {
+  color: #ffffff;
+}
+
+.cuerpo {
+  padding: 14px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  flex: 1;
+}
+
+.filaChips {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.chipConcentracion {
+  font-size: 8px;
+  font-weight: bold;
+  background-color: rgba(239, 71, 111, 0.15);
+  border: 1px solid #ef476f;
+  color: #ef476f;
+  padding: 2px 6px;
+  border-radius: 2px;
+  font-family: var(--fuente-codigo);
+  letter-spacing: 0.05em;
+}
+
+.chipRitual {
+  font-size: 8px;
+  font-weight: bold;
+  background-color: rgba(114, 9, 183, 0.15);
+  border: 1px solid #7209b7;
+  color: #b5179e;
+  padding: 2px 6px;
+  border-radius: 2px;
+  font-family: var(--fuente-codigo);
+  letter-spacing: 0.05em;
+}
+
+.chipEscuela {
+  font-size: 8px;
+  font-weight: bold;
+  background-color: rgba(0, 245, 212, 0.05);
+  border: 1px solid rgba(0, 245, 212, 0.2);
+  color: var(--color-borde-cian);
+  padding: 2px 6px;
+  border-radius: 2px;
+  font-family: var(--fuente-codigo);
+  letter-spacing: 0.05em;
+}
+
+.gridMetadatos {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  background-color: rgba(0, 245, 212, 0.02);
+  border: 1px solid rgba(0, 245, 212, 0.1);
+  padding: 10px;
+  border-radius: 4px;
+}
+
+.metaItem {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.iconoMeta {
+  color: var(--color-borde-cian);
+  margin-top: 2px;
+}
+
+.metaLabel {
+  font-size: 8px;
+  font-weight: bold;
+  color: var(--color-texto-apagado);
+  letter-spacing: 0.05em;
+}
+
+.metaValor {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-texto-principal);
+}
+
+.seccionFicha {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.seccionTitulo {
+  font-size: 9px;
+  font-weight: 800;
+  color: var(--color-borde-cian);
+  letter-spacing: 0.08em;
+  border-bottom: 1px solid rgba(0, 245, 212, 0.15);
+  padding-bottom: 4px;
+  text-transform: uppercase;
+  font-family: var(--fuente-codigo);
+}
+
+.textoMateriales {
+  font-size: 10px;
+  font-style: italic;
+  color: var(--color-texto-secundario);
+  padding-left: 4px;
+  border-left: 2px solid rgba(255, 255, 255, 0.15);
+}
+
+.textoDescripcion {
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--color-texto-secundario);
+  white-space: pre-wrap;
+}
+
+.cajaCombate {
+  background-color: rgba(0, 245, 212, 0.04);
+  border: 1px solid rgba(0, 245, 212, 0.3);
+  box-shadow: 0 0 10px rgba(0, 245, 212, 0.1);
+  border-radius: 4px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.tituloCombate {
+  font-size: 9px;
+  font-weight: bold;
+  color: var(--color-borde-cian);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-family: var(--fuente-codigo);
+}
+
+.gridCombate {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.combateItem {
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.combateLabel {
+  color: var(--color-texto-secundario);
+}
+
+.seccionUpcast {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.lineaDivisoria {
+  height: 1px;
+  background-color: rgba(0, 245, 212, 0.2);
+  width: 100%;
+}
+
+.upcastControlFila {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.upcastSelectContenedor {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+}
+
+.upcastLabel {
+  font-size: 10px;
+  color: var(--color-texto-secundario);
+  white-space: nowrap;
+}
+
+.upcastSelect {
+  height: 24px;
+  background-color: var(--color-fondo-profundo);
+  border: 1px solid rgba(0, 245, 212, 0.3);
+  color: var(--color-texto-principal);
+  font-size: 10px;
+  border-radius: 2px;
+  padding: 0 6px;
+  cursor: pointer;
+  flex: 1;
+  font-family: var(--fuente-codigo);
+}
+
+.upcastSelect:focus {
+  outline: none;
+  border-color: var(--color-borde-cian);
+}
+
+.formulasVista {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 1px;
+}
+
+.formulaTotal {
+  font-size: 13px;
+  font-weight: bold;
+  color: #ff7675;
+  font-family: var(--fuente-codigo);
+}
+
+.formulaDetalle {
+  font-size: 9px;
+  color: #74b9ff;
+  font-family: var(--fuente-codigo);
+}
+
+.botonTirarCombate {
+  height: 28px;
+  background-color: rgba(255, 118, 117, 0.15);
+  border: 1px solid #ff7675;
+  color: #ff7675;
+  font-weight: bold;
+  border-radius: 2px;
+  cursor: pointer;
+  font-size: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--fuente-codigo);
+  letter-spacing: 0.02em;
+  transition: none;
+}
+
+.botonTirarCombate:hover {
+  background-color: rgba(255, 118, 117, 0.25);
+  box-shadow: 0 0 8px rgba(255, 118, 117, 0.2);
+}
+
+.botonTirarUpcast {
+  height: 28px;
+  background-color: rgba(116, 185, 255, 0.15);
+  border: 1px solid #74b9ff;
+  color: #74b9ff;
+  font-weight: bold;
+  border-radius: 2px;
+  cursor: pointer;
+  font-size: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--fuente-codigo);
+  letter-spacing: 0.02em;
+  transition: none;
+}
+
+.botonTirarUpcast:hover {
+  background-color: rgba(116, 185, 255, 0.25);
+  box-shadow: 0 0 8px rgba(116, 185, 255, 0.2);
+}
+
+.filaClases {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+
+.chipClase {
+  font-size: 9px;
+  background-color: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--color-borde-brutal);
+  color: var(--color-texto-principal);
+  padding: 1px 5px;
+  border-radius: 2px;
+}
+
+.colorActivo {
+  color: var(--color-activo);
+}
+
+.colorAlerta {
+  color: #ffcc00;
+}
+
+.colorDano {
+  color: #ff7675;
+}
+
+.textoUpcast {
+  font-style: italic;
+  color: var(--color-texto-secundario);
+}

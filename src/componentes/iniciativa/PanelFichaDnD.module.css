@@ -1,0 +1,219 @@
+.cajaFichaEstadisticasDnd {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.seccionesFichaLayout {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.tituloCabeceraDetalle {
+  display: flex;
+  flex-direction: column;
+  border-bottom: 1px solid var(--color-borde-brutal);
+  padding-bottom: 3px;
+}
+
+.nombreMonstruoFicha {
+  font-size: 15px;
+  font-weight: 800;
+  color: #ffcc00;
+  font-family: var(--fuente-codigo);
+  letter-spacing: 0.02em;
+}
+
+.tipoMonstruoFicha {
+  font-size: 12px;
+  color: var(--color-texto-secundario);
+  text-transform: uppercase;
+}
+
+.cajaAtributosGrid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 3px;
+}
+
+.cajaAtributoPurple {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: hsl(222, 18%, 12%);
+  border: 1.5px solid var(--color-borde-brutal);
+  border-radius: 4px;
+  padding: 3px 1px;
+  cursor: pointer;
+  transition: none;
+}
+
+.cajaAtributoPurple:hover {
+  background-color: hsl(222, 18%, 16%);
+  border-color: var(--color-borde-cian);
+}
+
+.cajaAtributoSalvacionEntrenada {
+  border-color: var(--color-borde-cian) !important;
+  background-color: rgba(0, 245, 212, 0.04) !important;
+}
+
+.atributoEtiquetaName {
+  font-size: 11px;
+  font-weight: bold;
+  color: #a29bfe;
+  letter-spacing: 0.01em;
+}
+
+.atributoEtiquetaSalvacionEntrenada {
+  color: var(--color-borde-cian) !important;
+}
+
+.atributoValorNum {
+  font-size: 14px;
+  font-weight: bold;
+  color: var(--color-texto-principal);
+}
+
+.atributoModSign {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--color-borde-cian);
+}
+
+.atributoModSalvacionEntrenada {
+  color: var(--color-borde-cian) !important;
+}
+
+.cajaMetadatosFichaExtra {
+  background-color: hsl(222, 18%, 12%);
+  border: 1px solid var(--color-borde-brutal);
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  border-radius: 4px;
+}
+
+.lineaMetaFicha {
+  font-size: 12px;
+  color: var(--color-texto-principal);
+  border-bottom: 1px dashed hsl(222, 15%, 15%);
+  padding-bottom: 4px;
+}
+
+.subtituloFichaSection {
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--color-borde-cian);
+  letter-spacing: 0.04em;
+  border-bottom: 1px solid var(--color-borde-brutal);
+  padding-bottom: 3px;
+  margin-top: 6px;
+  text-transform: uppercase;
+}
+
+.subtituloPruebas {
+  color: #a29bfe !important;
+  border-color: rgba(162, 155, 254, 0.2) !important;
+}
+
+.subtituloSalvaciones {
+  color: var(--color-borde-cian) !important;
+  border-color: rgba(0, 245, 212, 0.25) !important;
+}
+
+.subtituloReacciones {
+  color: #a6e3a1 !important;
+  border-color: rgba(166, 227, 161, 0.3) !important;
+}
+
+.subtituloLegendarias {
+  color: #f38ba8 !important;
+  border-color: rgba(243, 139, 168, 0.3) !important;
+}
+
+.cajaListaRasgosFicha {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.itemRasgoFichaTexto {
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--color-texto-secundario);
+  padding: 2px 0;
+}
+
+.cajaListaAccionesFicha {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.tarjetaAccionPurple {
+  background-color: rgba(123, 44, 191, 0.03);
+  border: 1px solid rgba(123, 44, 191, 0.25);
+  padding: 4px 6px;
+  border-radius: 4px;
+}
+
+.cabeceraAccionTarjeta {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.nombreAccionTarjeta {
+  font-size: 13px;
+  font-weight: bold;
+  color: #ffcc00;
+  font-family: var(--fuente-codigo);
+}
+
+.nombreAccionReacion {
+  color: #a6e3a1 !important;
+}
+
+.nombreAccionLegendaria {
+  color: #f38ba8 !important;
+}
+
+.botonAccionAtaqueLanzar {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 3px;
+  font-size: 12px;
+  padding: 4px 8px;
+  background-color: rgba(123, 44, 191, 0.15);
+  border: 1px solid #7b2cbf;
+  color: #a29bfe;
+  font-weight: bold;
+  cursor: pointer;
+  border-radius: 2px;
+  transition: none;
+}
+
+.botonAccionAtaqueLanzar:hover {
+  background-color: rgba(123, 44, 191, 0.25);
+  color: #ffffff;
+}
+
+.descAccionTarjeta {
+  font-size: 12px;
+  color: var(--color-texto-secundario);
+  line-height: 1.4;
+  margin-top: 3px;
+}
+
+.detallesAtaqueMetaInline {
+  display: block;
+  font-size: 12px;
+  color: var(--color-borde-cian);
+  margin-top: 4px;
+  font-weight: bold;
+}

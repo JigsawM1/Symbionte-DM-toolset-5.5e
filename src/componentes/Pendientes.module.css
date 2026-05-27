@@ -1,0 +1,151 @@
+.contenedor {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 6px;
+  background-color: var(--color-fondo-panel);
+  border: 1px solid var(--color-borde-brutal);
+  height: 100%;
+  width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.titulo {
+  font-size: 11px;
+  font-weight: bold;
+  color: var(--color-texto-principal);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--color-borde-brutal);
+  padding-bottom: 3px;
+  margin: 0;
+}
+
+.contador {
+  font-family: var(--fuente-codigo);
+  color: var(--color-exito);
+}
+
+.barraProgresoContenedor {
+  height: 4px;
+  background-color: var(--color-fondo-profundo);
+  border: 1px solid var(--color-borde-brutal);
+  width: 100%;
+  overflow: hidden;
+}
+
+.barraProgreso {
+  height: 100%;
+  background-color: var(--color-primario);
+}
+
+.formulario {
+  display: flex;
+  gap: 4px;
+  width: 100%;
+}
+
+.entrada {
+  flex: 1;
+  height: 22px;
+  background-color: var(--color-fondo-profundo);
+  border: 1px solid var(--color-borde-brutal);
+  color: var(--color-texto-principal);
+  padding: 2px 6px;
+  font-size: 10.5px;
+}
+
+.entrada:focus {
+  border-color: var(--color-borde-cian);
+  outline: none;
+}
+
+.botonAgregar {
+  height: 22px;
+  padding: 0 8px;
+  background-color: var(--color-primario);
+  color: #ffffff;
+  border: 1px solid var(--color-borde-neon);
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  cursor: pointer;
+}
+
+.botonAgregar:hover {
+  filter: brightness(1.15);
+}
+
+.listaContenedor {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding-right: 2px;
+}
+
+.vacioTexto {
+  font-size: 10px;
+  color: var(--color-texto-apagado);
+  text-align: center;
+  padding: 20px 10px;
+  border: 1px dashed var(--color-borde-brutal);
+}
+
+.elemento {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 6px;
+  background-color: var(--color-fondo-tarjeta);
+  border: 1px solid var(--color-borde-brutal);
+}
+
+.elementoCompletado {
+  border-color: var(--color-borde-brutal);
+  opacity: 0.65;
+}
+
+.botonAlternar {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.texto {
+  flex: 1;
+  font-size: 10.5px;
+  color: var(--color-texto-principal);
+  cursor: pointer;
+  user-select: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.textoCompletado {
+  text-decoration: line-through;
+  color: var(--color-texto-apagado);
+}
+
+.botonEliminar {
+  background: none;
+  border: none;
+  color: var(--color-texto-secundario);
+  cursor: pointer;
+  padding: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.botonEliminar:hover {
+  color: var(--color-peligro);
+}

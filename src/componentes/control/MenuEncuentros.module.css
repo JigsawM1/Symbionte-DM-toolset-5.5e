@@ -1,0 +1,174 @@
+.grupoGuardar {
+  display: flex;
+  flex-direction: row;
+  gap: 4px;
+}
+
+.botonIcono {
+  height: 30px;
+  font-size: 12px;
+  padding: 4px 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background-color: var(--color-fondo-tarjeta);
+  border: 1px solid var(--color-borde-brutal);
+  color: var(--color-texto-principal);
+  cursor: pointer;
+  border-radius: 2px;
+}
+
+.botonIcono:hover {
+  background-color: var(--color-fondo-profundo);
+  border-color: var(--color-borde-cian);
+}
+
+.botonActivo {
+  background-color: var(--color-primario) !important;
+  border-color: var(--color-borde-neon) !important;
+  color: #ffffff !important;
+}
+
+.menuDesplegable {
+  position: absolute;
+  top: 32px;
+  left: 0;
+  background-color: var(--color-fondo-tarjeta);
+  border: 1px solid var(--color-borde-neon);
+  padding: 4px;
+  width: 220px;
+  z-index: 9999;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.5);
+}
+
+.cabeceraDesplegable {
+  font-size: 11px;
+  font-weight: bold;
+  color: var(--color-texto-apagado);
+  border-bottom: 1px solid var(--color-borde-brutal);
+  padding-bottom: 4px;
+  margin-bottom: 4px;
+}
+
+.itemVacio {
+  font-size: 12px;
+  color: var(--color-texto-apagado);
+  text-align: center;
+  padding: 6px;
+}
+
+.itemVacioAlerta {
+  font-size: 12px;
+  color: var(--color-peligro);
+  text-align: center;
+  padding: 6px;
+}
+
+.inputBrutal {
+  border: none;
+  background: none;
+  font-size: 12px;
+  padding: 0;
+  color: var(--color-texto-principal);
+}
+
+.inputBrutal:focus {
+  outline: none;
+}
+
+.inputMenuGuardar {
+  border: 1px solid var(--color-borde-brutal);
+  background-color: var(--color-fondo-profundo);
+  width: 100%;
+  box-sizing: border-box;
+  height: 26px;
+  font-size: 11px;
+  padding: 2px 6px;
+  color: var(--color-texto-principal);
+}
+
+.inputMenuGuardar:focus {
+  outline: none;
+  border-color: var(--color-borde-cian);
+}
+
+.botonAñadir {
+  border: none;
+  background: none;
+  color: var(--color-texto-secundario);
+  padding: 0 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+}
+
+.botonConfirmarGuardar {
+  width: 100%;
+  justify-content: center;
+  background-color: var(--color-borde-cian);
+  color: #111424;
+  border: none;
+  height: 26px;
+  font-size: 11px;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+}
+
+.botonConfirmarGuardar:hover {
+  background-color: var(--color-activo);
+  color: #ffffff;
+}
+
+.textoError {
+  font-size: 10px;
+  color: var(--color-peligro);
+  padding: 0 2px;
+}
+
+.textoExito {
+  font-size: 10px;
+  color: var(--color-exito);
+  padding: 0 2px;
+}
+
+.itemDesplegable {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 6px;
+  font-size: 12px;
+  border-bottom: 1px solid var(--color-borde-brutal);
+}
+
+.itemDesplegable:hover {
+  background-color: rgba(255, 255, 255, 0.02);
+}
+
+.textoItemDesplegable {
+  cursor: pointer;
+  flex-grow: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--color-texto-principal);
+}
+
+.textoItemDesplegable:hover {
+  color: var(--color-borde-cian);
+}
+
+.botonEliminarItem {
+  background: none;
+  border: none;
+  color: var(--color-peligro);
+  font-size: 11px;
+  cursor: pointer;
+  padding: 0 4px;
+}
+
+.botonEliminarItem:hover {
+  color: #ff3333;
+}

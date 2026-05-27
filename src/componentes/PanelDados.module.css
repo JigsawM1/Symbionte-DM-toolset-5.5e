@@ -1,0 +1,245 @@
+.botonFlotante {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background-color: hsl(240, 10%, 15%);
+  border: 2px solid hsl(43, 96%, 56%);
+  color: #fff;
+  font-size: 1.5rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4), inset 0 0 10px rgba(255, 255, 255, 0.05);
+  z-index: 9999;
+}
+
+.contenedorPanel {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: 320px;
+  border-radius: 16px;
+  background-color: rgba(18, 18, 22, 0.95);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
+  color: #cdd6f4;
+  font-family: 'Outfit', 'Inter', sans-serif;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  z-index: 9999;
+}
+
+.cabecera {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 16px;
+  background-color: rgba(30, 30, 38, 0.5);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.titulo {
+  font-weight: 600;
+  font-size: 1rem;
+  letter-spacing: 0.5px;
+  color: #fff;
+}
+
+.botonMinimizar {
+  background: none;
+  border: none;
+  color: hsl(240, 5%, 65%);
+  font-size: 0.9rem;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+}
+
+.cuerpo {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.campoEntrada {
+  width: 100%;
+}
+
+.inputEtiqueta {
+  width: 100%;
+  background-color: hsl(240, 6%, 10%);
+  border: 1px solid hsl(240, 5%, 22%);
+  border-radius: 8px;
+  padding: 8px 12px;
+  color: #fff;
+  font-size: 0.85rem;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.grillaDados {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.tarjetaDado {
+  position: relative;
+  aspect-ratio: 1/1;
+  border-radius: 10px;
+  background-color: hsl(240, 6%, 13%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  outline: none;
+}
+
+.contadorDado {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: bold;
+  border-radius: 10px;
+  min-width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 4px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+  box-sizing: border-box;
+}
+
+.nombreDado {
+  font-size: 0.9rem;
+  font-weight: bold;
+  letter-spacing: 0.5px;
+}
+
+.contenedorModificador {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: hsl(240, 6%, 12%);
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.labelMod {
+  font-size: 0.85rem;
+  color: hsl(240, 5%, 70%);
+}
+
+.controlesMod {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btnModControl {
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  background-color: hsl(240, 5%, 20%);
+  border: none;
+  color: #fff;
+  font-size: 0.9rem;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.inputMod {
+  width: 36px;
+  text-align: center;
+  background-color: transparent;
+  border: none;
+  color: #fff;
+  font-size: 0.9rem;
+  font-weight: bold;
+  outline: none;
+}
+
+.contenedorFormula {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.labelFormula {
+  font-size: 0.8rem;
+  color: hsl(240, 5%, 60%);
+}
+
+.formulaValor {
+  min-height: 36px;
+  background-color: hsl(240, 6%, 8%);
+  border: 1px solid hsl(240, 5%, 16%);
+  border-radius: 8px;
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+}
+
+.formulaTextoActivo {
+  color: hsl(43, 96%, 56%);
+  font-weight: bold;
+  font-size: 0.95rem;
+  font-family: monospace;
+}
+
+.formulaTextoVacio {
+  color: hsl(240, 5%, 45%);
+  font-size: 0.8rem;
+  font-style: italic;
+}
+
+.contenedorAcciones {
+  display: flex;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.botonLimpiar {
+  flex: 1;
+  padding: 10px;
+  background-color: hsl(240, 5%, 18%);
+  border: none;
+  color: hsl(240, 5%, 80%);
+  font-size: 0.85rem;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.botonLanzar {
+  flex: 2;
+  padding: 10px;
+  background-color: hsl(43, 96%, 45%);
+  background-image: linear-gradient(135deg, hsl(43, 96%, 52%), hsl(32, 95%, 48%));
+  border: none;
+  color: #000;
+  font-size: 0.85rem;
+  font-weight: bold;
+  border-radius: 8px;
+}

@@ -448,7 +448,7 @@ export const BarraControl: React.FC = () => {
       </div>
 
       {/* 5. Selector de Condiciones con Barra de Búsqueda Inteligente */}
-      <div style={{ ...estilos.bloqueCondiciones, position: "relative", width: "270px", overflow: "visible" }}>
+      <div style={{ ...estilos.bloqueCondiciones, position: "relative", width: "370px", overflow: "visible" }}>
         {/* Selector de Destinatario */}
         <div style={{ position: "relative", display: "inline-block", alignSelf: "center" }}>
           <button
@@ -462,7 +462,7 @@ export const BarraControl: React.FC = () => {
               borderRadius: "3px",
               padding: "0 6px",
               cursor: "pointer",
-              width: "90px",
+              width: "190px",
               outline: "none",
               display: "flex",
               alignItems: "center",
@@ -475,10 +475,10 @@ export const BarraControl: React.FC = () => {
           >
             <span>
               {destinatarioId
-                ? `👤 ${
-                    colaIniciativa.find((c) => c.id === destinatarioId)?.nombre.substring(0, 8) || "Alguien"
+                ? ` ${
+                    colaIniciativa.find((c) => c.id === destinatarioId)?.nombre.substring(0, 18) || "Alguien"
                   }...`
-                : "👤 [ACTIVO]"}
+                : " [ACTIVO]"}
             </span>
             <span style={{ fontSize: "8px", marginLeft: "2px" }}>▼</span>
           </button>

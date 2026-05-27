@@ -791,5 +791,26 @@ TaleSpire ejecuta el Simbionte dentro de un Chromium Embedded Framework (CEF) pe
 > ⚠️ **CEF ignora los estilos en `<select>` nativos:** En WebViews de videojuegos o Chromium Embedded Framework (CEF) de escritorio, **nunca uses elementos `<select>` nativos** para elementos visibles en combate o paneles principales. Los navegadores embebidos delegan el menú desplegable al sistema operativo, ignorando tus estilos CSS y mostrando listas blancas sumamente toscas.
 > Emula siempre los menús desplegables utilizando componentes de React con estados (`useState`) y **contenedores `div` flotantes de posicionamiento absoluto (`position: "absolute"`)**. Esto te garantiza el 100% de control sobre los colores HSL, bordes neón, sombras y tipografías premium, manteniendo la inmersión visual en su máximo nivel.
 
+---
+
+## [2026-05-27] UI/UX Táctico: Separación de Pruebas de Característica vs Tiradas de Salvación (D&D 5.5e)
+
+**Síntoma:**
+El bloque de estadísticas del combat tracker del DM (`GestorIniciativa.tsx`) solo listaba las características básicas (FUE, DES, CON, INT, SAB, CAR) permitiendo lanzar únicamente pruebas de característica. Esto obligaba al DM a calcular a mano si el monstruo tenía salvaciones especiales/entrenadas (que otorgan modificadores más altos según su ficha) o a buscarlas en el texto narrativo, ralentizando el combate ante conjuros y trampas.
+
+**Solución aplicada:**
+1. **Separación Mecánica Clara:** Dividir la sección de atributos de la ficha en dos rejillas horizontales paralelas e independientes:
+   - **Fila Superior:** Pruebas de Característica (Ability Checks), renderizadas en color morado suave y modificado por el valor de atributo nativo clásico.
+   - **Fila Inferior:** Tiradas de Salvación (Saving Throws), renderizadas con acento cian neón y modificador de salvación calculado.
+2. **Cómputo Adaptativo de Salvaciones:** Implementar en `GestorIniciativa.tsx` una lógica que lee síncronamente el objeto opcional `salvaciones` del monstruo:
+   - Si el monstruo tiene una salvación explícita (entrenada) en el manual, se inyecta su valor final y el botón se destaca con un borde cian brillante neón, fondo cian translúcido y una estrella dorada `★` en el centro del HUD para denotar el entrenamiento al DM.
+   - Si no está entrenada, calcula y muestra síncronamente el modificador básico de la característica `Math.floor((valor - 10) / 2)` para mantener la paridad.
+3. **Integración con Dados 3D:** Vincular ambos conjuntos de rejillas a `lanzarTiradaD20Interactiva` con etiquetas diferenciadas (ej. *"Prueba de FUE"* vs *"Salvación de FUE"*), publicando el dado físico en TaleSpire con un solo clic.
+
+**Lección aprendida:**
+> 📐 **Pruebas vs Salvaciones en la UX de Rol:** En sistemas de rol d20 complejos como D&D, las salvaciones y las pruebas de características son dos mecánicas diferentes que no deben solaparse. 
+> Visualizar las salvaciones en una rejilla paralela dedicada, calculando de forma adaptativa si están entrenadas y resaltándolas visualmente en cian con indicadores claros (como estrellas `★`), mejora exponencialmente la usabilidad del DM y ahorra segundos críticos durante los asaltos de combate.
+
+
 
 

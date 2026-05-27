@@ -234,7 +234,7 @@ export const TablasDM: React.FC = () => {
         {subCategoria === "condiciones" && (
           <div style={{ display: "flex", flexDirection: "column", width: "100%", height: "100%", gap: "6px" }}>
             {/* Pestañas internas de navegación */}
-            <div style={{ display: "flex", gap: "4px", borderBottom: "1px solid rgba(255, 255, 255, 0.05)", paddingBottom: "4px" }}>
+            <div style={{ display: "flex", justifyContent: "space-around", gap: "4px", borderBottom: "1px solid rgba(255, 255, 255, 0.05)", paddingBottom: "4px" }}>
               <button
                 onClick={() => setTipoDiccionario("condiciones")}
                 style={{
@@ -242,7 +242,7 @@ export const TablasDM: React.FC = () => {
                   ...(tipoDiccionario === "condiciones" ? estilos.miniBotonTabActivo : {})
                 }}
               >
-                📜 CONDICIONES (5.5e)
+                📜 CONDICIONES
               </button>
               <button
                 onClick={() => setTipoDiccionario("efectos")}
@@ -256,7 +256,7 @@ export const TablasDM: React.FC = () => {
                   } : {})
                 }}
               >
-                ✨ EFECTOS ACTIVOS
+                EFECTOS ACTIVOS
               </button>
             </div>
 
@@ -345,7 +345,7 @@ export const TablasDM: React.FC = () => {
             <div style={estilos.tarjetaCalculadora}>
               <div style={estilos.tituloCalculadora}>
                 <Compass size={12} style={{ color: "var(--color-borde-cian)" }} />
-                <span>Calculadora de Viaje (Manual 2024)</span>
+                <span>Calculadora de Viaje</span>
               </div>
               
               <div style={estilos.cuerpoCalculadora}>
@@ -392,7 +392,7 @@ export const TablasDM: React.FC = () => {
             <div style={estilos.tarjetaCalculadora}>
               <div style={estilos.tituloCalculadora}>
                 <ArrowUp size={12} style={{ color: "var(--color-advertencia)" }} />
-                <span>Calculadora de Salto (Manual 2024)</span>
+                <span>Calculadora de Salto</span>
               </div>
 
               <div style={estilos.cuerpoCalculadora}>

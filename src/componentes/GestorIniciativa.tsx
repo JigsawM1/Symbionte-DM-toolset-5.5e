@@ -366,7 +366,7 @@ export const GestorIniciativa: React.FC = () => {
                         backgroundColor: esTurnoActivo ? "rgba(0, 245, 212, 0.05)" : "hsl(222, 25%, 5%)",
                         cursor: "pointer"
                       }}
-                      title="Lanzar iniciativa física en TaleSpire (1d20 + bono)"
+                      title="Lanzar iniciativa"
                     >
                       <span style={estilos.etiquetaInicMini}>INIC</span>
                       <span style={{
@@ -405,7 +405,7 @@ export const GestorIniciativa: React.FC = () => {
                               textDecoration: estaMuerto ? "line-through" : "none",
                               fontWeight: esTurnoActivo ? "800" : "700"
                             }}
-                            title="Ver bloque de estadísticas de 5.5e"
+                            title="Ver bloque de estadísticas"
                           >
                             {criatura.nombre}
                             {esTurnoActivo && <span style={estilos.tagTurnoActivo}>ACTIVO</span>}
@@ -413,34 +413,8 @@ export const GestorIniciativa: React.FC = () => {
                           <span style={estilos.subtituloCriatura}>
                             CA: <strong style={{ color: "var(--color-borde-cian)", fontFamily: "var(--fuente-codigo)" }}>{criatura.ca}</strong> | Vel: {criatura.velocidad}
                             {plantilla && (
-                              <> | PP: <strong style={{ color: "#ffcc00", fontFamily: "var(--fuente-codigo)" }}>{obtenerPercepcionPasiva(plantilla)}</strong></>
+                              <> | &nbsp; &nbsp; PP: <strong style={{ color: "#ffcc00", fontFamily: "var(--fuente-codigo)" }}>{obtenerPercepcionPasiva(plantilla)}</strong></>
                             )}
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                lanzarTiradaD20Interactiva(criatura.nombre, "Tirada d20", criatura.bonificadorIniciativa || 0);
-                              }}
-                              style={{
-                                marginLeft: "8px",
-                                padding: "0 4px",
-                                height: "16px",
-                                backgroundColor: "hsl(222, 18%, 15%)",
-                                border: "1px solid var(--color-borde-brutal)",
-                                color: "#ff7675",
-                                fontSize: "9px",
-                                fontWeight: "bold",
-                                cursor: "pointer",
-                                borderRadius: "2px",
-                                display: "inline-flex",
-                                alignItems: "center",
-                                gap: "2px",
-                                fontFamily: "var(--fuente-codigo)",
-                                transition: "none"
-                              }}
-                              title="Tirar d20 físico + Modificador de Iniciativa en TaleSpire"
-                            >
-                              🎲 d20
-                            </button>
                           </span>
                         </div>
                       </div>
@@ -822,7 +796,7 @@ export const GestorIniciativa: React.FC = () => {
                               key={index}
                               onClick={() => lanzarAtaqueRapido(criatura.nombre, acc.nombre, acc.bonificadorAtaque, acc.dadosDaño, acc.tipoDaño)}
                               style={estilos.botonAccionRapidaMedieval}
-                              title={`Tirar ataque 3D: d20${acc.bonificadorAtaque} | Daño: ${acc.dadosDaño}`}
+                              title={`Tirar ataque: d20${acc.bonificadorAtaque} | Daño: ${acc.dadosDaño}`}
                             >
                               <Swords size={10} style={{ color: "var(--color-peligro)" }} />
                               <span>{acc.nombre} ({acc.bonificadorAtaque})</span>
@@ -916,15 +890,16 @@ export const GestorIniciativa: React.FC = () => {
             </div>
           </div>
 
-          {/* SECCIÓN INFERIOR: BLOQUE DE ESTADÍSTICAS PREMIUM */}
+          {/* SECCIÓN INFERIOR: BLOQUE DE ESTADÍSTICAS */}
           {criaturaSeleccionadaDetalle && (
             <div style={estilos.panelDetalleInferior}>
               <div style={estilos.cabeceraDetalleFicha}>
                 <div style={estilos.tituloFichaIzquierda}>
                   <FileText size={13} style={{ color: "var(--color-borde-cian)" }} />
                   <span style={estilos.nombreFichaCabecera}>
-                    BLOQUE DE REFERENCIA: {criaturaSeleccionadaDetalle.nombre.toUpperCase()}
+                    {criaturaSeleccionadaDetalle.nombre.toUpperCase()}
                   </span>
+
                   {plantillaDeDetalle && (
                     <span style={estilos.subFichaAsociada}>
                       [ {plantillaDeDetalle.nombre.toUpperCase()} ]
@@ -1019,6 +994,9 @@ export const GestorIniciativa: React.FC = () => {
                       </div>
 
                       {/* Rejilla de Características */}
+                      <div style={{ ...estilos.subtituloFichaSection, marginTop: "4px", color: "#a29bfe", borderColor: "rgba(162, 155, 254, 0.2)" }}>
+                        PRUEBAS DE CARACTERÍSTICA
+                      </div>
                       <div style={estilos.cajaAtributosGrid}>
                         {Object.entries(plantillaDeDetalle.caracteristicas).map(([clave, valor]) => {
                           const modStr = calcularModificador(valor);
@@ -1026,13 +1004,57 @@ export const GestorIniciativa: React.FC = () => {
                           return (
                             <div
                               key={clave}
-                              onClick={() => lanzarTiradaD20Interactiva(criaturaSeleccionadaDetalle.nombre, etiqueta, parseInt(modStr, 10))}
+                              onClick={() => lanzarTiradaD20Interactiva(criaturaSeleccionadaDetalle.nombre, `Prueba de ${etiqueta}`, parseInt(modStr, 10))}
                               style={estilos.cajaAtributoPurple}
-                              title={`Tirar tirada 3D de salvación/prueba de ${clave.toUpperCase()}`}
+                              title={`Tirar tirada 3D de prueba de habilidad de ${clave.toUpperCase()}`}
                             >
                               <span style={estilos.atributoEtiquetaName}>{etiqueta}</span>
                               <span style={estilos.atributoValorNum}>{valor}</span>
                               <span style={estilos.atributoModSign}>{modStr}</span>
+                            </div>
+                          );
+                        })}
+                      </div>
+
+                      {/* Rejilla de Tiradas de Salvación */}
+                      <div style={{ ...estilos.subtituloFichaSection, marginTop: "4px", color: "var(--color-borde-cian)", borderColor: "rgba(0, 245, 212, 0.25)" }}>
+                        TIRADAS DE SALVACIÓN
+                      </div>
+                      <div style={estilos.cajaAtributosGrid}>
+                        {Object.entries(plantillaDeDetalle.caracteristicas).map(([clave, valor]) => {
+                          const modBasico = Math.floor((valor - 10) / 2);
+                          
+                          // Verificar si hay salvación explícita
+                          const tieneSalvacionEspecial = !!(plantillaDeDetalle.salvaciones && 
+                            plantillaDeDetalle.salvaciones[clave as keyof typeof plantillaDeDetalle.salvaciones] !== undefined);
+                          
+                          const modSalvacion = tieneSalvacionEspecial
+                            ? (plantillaDeDetalle.salvaciones![clave as keyof typeof plantillaDeDetalle.salvaciones] ?? modBasico)
+                            : modBasico;
+                          
+                          const modSalvacionStr = `${modSalvacion >= 0 ? "+" : ""}${modSalvacion}`;
+                          const etiqueta = clave.substring(0, 3).toUpperCase();
+                          
+                          return (
+                            <div
+                              key={`salv-${clave}`}
+                              onClick={() => lanzarTiradaD20Interactiva(criaturaSeleccionadaDetalle.nombre, `Salvación de ${etiqueta}`, modSalvacion)}
+                              style={{
+                                ...estilos.cajaAtributoPurple,
+                                borderColor: tieneSalvacionEspecial ? "var(--color-borde-cian)" : "var(--color-borde-brutal)",
+                                backgroundColor: tieneSalvacionEspecial ? "rgba(0, 245, 212, 0.04)" : "hsl(222, 18%, 12%)"
+                              }}
+                              title={`Tirar tirada 3D de salvación de ${clave.toUpperCase()}${tieneSalvacionEspecial ? " (Entrenada)" : ""}`}
+                            >
+                              <span style={{
+                                ...estilos.atributoEtiquetaName,
+                                color: tieneSalvacionEspecial ? "var(--color-borde-cian)" : "#a29bfe"
+                              }}>{etiqueta}</span>
+                              <span style={estilos.atributoValorNum}>{tieneSalvacionEspecial ? "★" : " "}</span>
+                              <span style={{
+                                ...estilos.atributoModSign,
+                                color: tieneSalvacionEspecial ? "var(--color-borde-cian)" : "var(--color-texto-principal)"
+                              }}>{modSalvacionStr}</span>
                             </div>
                           );
                         })}

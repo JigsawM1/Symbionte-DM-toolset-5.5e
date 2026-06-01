@@ -48,10 +48,10 @@ export const crearSliceHomebrew: StateCreator<
   }),
 
   agregarObjetoHomebrew: (objeto) => set((state) => {
-    const nuevoObjeto: ObjetoHomebrew = {
+    const nuevoObjeto = {
       ...objeto,
       id: `o_homebrew_${Date.now()}`
-    };
+    } as ObjetoHomebrew;
     const nuevosObjetos = [...state.objetosHomebrew, nuevoObjeto];
     return { objetosHomebrew: nuevosObjetos };
   }),

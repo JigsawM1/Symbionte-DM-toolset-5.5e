@@ -61,7 +61,12 @@ export function importarDesdeJSON(
           objetosCandidatos = listaElementos;
         } else if (primerElem && (primerElem.HP !== undefined || primerElem.AC !== undefined || primerElem.vidaMaxima !== undefined || primerElem.vidaActual !== undefined)) {
           monstruosCandidatos = listaElementos;
-        } else if (primerElem && (primerElem.school !== undefined || primerElem.level !== undefined || primerElem.escuela !== undefined || primerElem.casting_time !== undefined)) {
+        } else if (primerElem && (
+          primerElem.school !== undefined || primerElem.level !== undefined ||
+          primerElem.escuela !== undefined || primerElem.casting_time !== undefined ||
+          primerElem.tiempo_de_lanzamiento !== undefined || primerElem.tirada_de_salvacion !== undefined ||
+          primerElem.requiere_ataque !== undefined
+        )) {
           hechizosCandidatos = listaElementos;
         } else if (primerElem && (primerElem.rareza !== undefined || primerElem.rare !== undefined || primerElem.propiedades !== undefined)) {
           objetosCandidatos = listaElementos;
@@ -338,11 +343,11 @@ export function importarDesdeJSON(
         }
 
         let concentracionVal = false;
-        if (h.concentration !== undefined) {
+        if (h.concentracion !== undefined) {
+          concentracionVal = !!h.concentracion;
+        } else if (h.concentration !== undefined) {
           const cStr = String(h.concentration).toLowerCase();
           concentracionVal = cStr === "yes" || cStr === "true" || cStr === "sí" || cStr === "si";
-        } else if (h.concentracion !== undefined) {
-          concentracionVal = !!h.concentracion;
         }
 
         let ritualVal = false;
@@ -351,53 +356,80 @@ export function importarDesdeJSON(
           ritualVal = rStr.length > 0 && rStr !== "no" && rStr !== "false";
         }
 
-        // Deducir componentes seleccionados en base a componentes string (ej: "V, S, M")
-        const compStr = aplanarValor(h.componentes || h.components || "V, S").toUpperCase();
+        // Componentes: admite array ["V","S","M"] (nuevo formato) o string "V, S, M" (formato clásico)
+        let compStr: string;
+        const compRaw = h.componentes || h.components;
+        if (Array.isArray(compRaw)) {
+          compStr = compRaw.map(aplanarValor).join(", ").toUpperCase();
+        } else {
+          compStr = aplanarValor(compRaw || "V, S").toUpperCase();
+        }
         const componentesSeleccionados = {
-          verbal: compStr.includes("V") || compStr.includes("VERBAL"),
-          somatico: compStr.includes("S") || compStr.includes("SOMÁTICO") || compStr.includes("SOMATICO"),
-          material: compStr.includes("M") || compStr.includes("MATERIAL")
+          verbal: compStr.includes("V"),
+          somatico: compStr.includes("S"),
+          material: compStr.includes("M")
         };
 
-        // Extraer lista de clases de hechizos
+        // Clases de hechizos (array o string separado por comas)
         let clasesArray: string[] = [];
-        const claseRaw = h.class || h.clases || h.clase;
+        const claseRaw = h.clases || h.class || h.clase;
         if (Array.isArray(claseRaw)) {
           clasesArray = claseRaw.map(aplanarValor);
         } else if (typeof claseRaw === "string" && claseRaw.trim()) {
           clasesArray = claseRaw.split(",").map((c: string) => c.trim()).filter(Boolean);
         }
 
-        let desc = aplanarValor(h.descripcion || h.desc || "");
+        // Alcance: nuevo formato puede ser array ["60 pies", "18 m"] → usar versión métrica (última)
+        let alcanceStr: string;
+        if (Array.isArray(h.alcance)) {
+          const arr = (h.alcance as unknown[]).map(aplanarValor).filter(Boolean);
+          alcanceStr = arr[arr.length - 1] || "Personal"; // último elemento = métrico
+        } else {
+          alcanceStr = aplanarValor(h.alcance || h.range || "Personal");
+        }
+
+        // Descripción: nuevo formato puede ser array [imperial, métrico] → usar métrico (último elemento)
+        // Si es string, usarlo directamente.
+        let desc: string;
+        if (Array.isArray(h.descripcion)) {
+          const arr = (h.descripcion as unknown[]).map(aplanarValor).filter(Boolean);
+          desc = arr[arr.length - 1] || ""; // último = versión métrica
+        } else {
+          desc = aplanarValor(h.descripcion || h.desc || "");
+        }
         
-        // Preservar compatibilidad rústica concatenando en la descripción si se requiere (solo mecánicas complejas como daño o CD)
-        const extras: string[] = [];
-        const dmgDiceRaw = h.damage_dice || h.dadosDaño || h.dadosDano;
-        if (dmgDiceRaw) {
-          let mech = `**Daño:** ${aplanarValor(dmgDiceRaw)}`;
-          const dmgTypeRaw = h.damage_type_01 || h.tipoDaño || h.tipoDano;
-          if (dmgTypeRaw) mech += ` (${aplanarValor(dmgTypeRaw)})`;
-          if (h.spell_save_dc_type) mech += ` | CD Salvación: ${String(h.spell_save_dc_type).toUpperCase()}`;
-          extras.push(mech);
+        // Preservar compatibilidad rústica: solo agregar extras a la descripción si es formato
+        // clásico (tiene damage_dice / dadosDaño como campo separado) Y no tiene tirada_de_salvacion
+        // explícita (nuevo formato ya tiene toda la info en el texto de descripcion).
+        // NUNCA concatenar el 'A Niveles Superiores' a la descripción — va en su campo propio.
+        const esFormatoNuevo = h.tirada_de_salvacion !== undefined || h.requiere_ataque !== undefined || h.tiempo_de_lanzamiento !== undefined;
+        if (!esFormatoNuevo) {
+          const extras: string[] = [];
+          const dmgDiceRaw = h.damage_dice || h.dadosDaño || h.dadosDano;
+          if (dmgDiceRaw) {
+            let mech = `**Daño:** ${aplanarValor(dmgDiceRaw)}`;
+            const dmgTypeRaw = h.damage_type_01 || h.tipoDaño || h.tipoDano;
+            if (dmgTypeRaw) mech += ` (${aplanarValor(dmgTypeRaw)})`;
+            if (h.spell_save_dc_type) mech += ` | CD Salvación: ${String(h.spell_save_dc_type).toUpperCase()}`;
+            extras.push(mech);
+          }
+          if (extras.length > 0) {
+            desc += "\n\n" + extras.join("\n");
+          }
         }
 
-        if (extras.length > 0) {
-          desc += "\n\n" + extras.join("\n");
-        }
+        // tirada_de_salvacion (nuevo formato) → cdSalvacion
+        // Mapear tanto el nuevo campo tirada_de_salvacion como el clásico spell_save_dc_type
+        const tiradaSalv = h.tirada_de_salvacion || h.spell_save_dc_type;
 
-        const hLvlRaw = h.higher_level || h.descNivelSuperior;
-        if (hLvlRaw) {
-          desc += `\n\n**A niveles superiores:** ${aplanarValor(hLvlRaw)}`;
-        }
-
-        // CD de salvación mapeado
+        // CD de salvación mapeado (nuevo: tirada_de_salvacion | clásico: spell_save_dc_type)
         let cdSalv = "";
-        if (h.spell_save_dc_type) {
-          const dcType = String(h.spell_save_dc_type).toUpperCase().trim();
-          if (dcType.includes("STR") || dcType.includes("FUE")) cdSalv = "Fuerza";
-          else if (dcType.includes("DEX") || dcType.includes("DES")) cdSalv = "Destreza";
-          else if (dcType.includes("CON")) cdSalv = "Constitución";
-          else if (dcType.includes("INT")) cdSalv = "Inteligencia";
+        if (tiradaSalv) {
+          const dcType = String(tiradaSalv).toUpperCase().trim();
+          if (dcType.includes("STR") || dcType.includes("FUE") || dcType.includes("FUERZA")) cdSalv = "Fuerza";
+          else if (dcType.includes("DEX") || dcType.includes("DES") || dcType.includes("DESTREZA")) cdSalv = "Destreza";
+          else if (dcType.includes("CON") || dcType.includes("CONSTITUCIÓN") || dcType.includes("CONSTITUCION")) cdSalv = "Constitución";
+          else if (dcType.includes("INT") || dcType.includes("INTELIGENCIA")) cdSalv = "Inteligencia";
           else if (dcType.includes("WIS") || dcType.includes("SAB")) cdSalv = "Sabiduría";
           else if (dcType.includes("CHA") || dcType.includes("CAR")) cdSalv = "Carisma";
         }
@@ -420,25 +452,37 @@ export function importarDesdeJSON(
           }
         }
 
+        // Tiempo de lanzamiento: nuevo campo tiempo_de_lanzamiento | clásico: tiempoLanzamiento | inglés: casting_time
+        const tiempoLanzamiento = aplanarValor(
+          h.tiempo_de_lanzamiento || h.tiempoLanzamiento || h.casting_time || "1 acción"
+        );
+
+        // Duración: nuevo campo duracion | clásico: duracion | inglés: duration
+        const duracion = aplanarValor(h.duracion || h.duration || "");
+
         return {
           id: aplanarValor(h.id || h.Id || `h_importado_${Date.now()}_${idx}`),
           nombre: aplanarValor(h.nombre || h.name || "Hechizo Desconocido"),
           nivel: nivelNum,
           escuela: aplanarValor(h.escuela || h.school || "Universal"),
-          tiempoLanzamiento: aplanarValor(h.tiempoLanzamiento || h.casting_time || "1 acción"),
-          alcance: aplanarValor(h.alcance || h.range || "Personal"),
-          componentes: aplanarValor(h.componentes || h.components || "V, S"),
+          tiempoLanzamiento,
+          alcance: alcanceStr,
+          componentes: compStr,
           descripcion: aplanarValor(desc),
           concentracion: concentracionVal,
           ritual: ritualVal,
           
           // Campos enriquecidos estructurados
           descNivelSuperior: h.descNivelSuperior || h.higher_level ? aplanarValor(h.descNivelSuperior || h.higher_level) : undefined,
-          materiales: h.materiales || h.material ? aplanarValor(h.materiales || h.material) : undefined,
+          materiales: (h.materiales !== null && h.materiales !== undefined) ? aplanarValor(h.materiales) : (h.material ? aplanarValor(h.material) : undefined),
           componentesSeleccionados,
-          duracion: h.duracion || h.duration ? aplanarValor(h.duracion || h.duration) : undefined,
+          duracion: duracion || undefined,
           clases: clasesArray.length > 0 ? clasesArray : undefined,
-          ataqueCd: h.ataqueCd ? aplanarValor(h.ataqueCd) : (h.spell_save_dc_type ? "CD DE SALVACIÓN" : (h.damage_dice || h.dadosDaño || h.dadosDano ? "TIRADA DE ATAQUE" : "N/A")),
+          // requiere_ataque (nuevo) o deducir de campos clásicos
+          ataqueCd: h.ataqueCd ? aplanarValor(h.ataqueCd)
+            : (h.requiere_ataque === true ? "TIRADA DE ATAQUE"
+            : (tiradaSalv ? "CD DE SALVACIÓN"
+            : (h.damage_dice || h.dadosDaño || h.dadosDano ? "TIRADA DE ATAQUE" : "N/A"))),
           dadosDaño: h.dadosDaño || h.dadosDano || h.damage_dice ? aplanarValor(h.dadosDaño || h.dadosDano || h.damage_dice) : undefined,
           dadosDañoNivelSuperior: h.dadosDañoNivelSuperior || h.dadosDanoNivelSuperior || h.damage_dice_upcast || h.higher_level_damage ? aplanarValor(h.dadosDañoNivelSuperior || h.dadosDanoNivelSuperior || h.damage_dice_upcast || h.higher_level_damage) : undefined,
           cdSalvacion: cdSalv || (h.cdSalvacion && String(h.cdSalvacion).toUpperCase().trim() !== "CD DC" && String(h.cdSalvacion).toUpperCase().trim() !== "DC" ? aplanarValor(h.cdSalvacion) : (h.toHitOrDC && String(h.toHitOrDC).toUpperCase().trim() !== "CD DC" && String(h.toHitOrDC).toUpperCase().trim() !== "DC" ? aplanarValor(h.toHitOrDC) : undefined)),
@@ -622,10 +666,13 @@ export function importarDesdeJSON(
         }
         
         return sanearObjetoHomebrew({
+          ...o, // Conservar todas las propiedades originales clásicas para que sanearObjetoHomebrew las mapee con total precisión (armor_class, armor_category, str_minimum, etc.)
           id: o.index || o.id || `o_importado_${Date.now()}_${idx}`,
           nombre,
           rareza,
-          propiedades: propiedadesFinal,
+          // IMPORTANTE: NO sobreescribir 'propiedades' aquí — sanearObjetoHomebrew lee 'o.properties' (array original)
+          // para armas. Usar '_propiedadesTexto' como metadato de display sin pisar el array fuente.
+          _propiedadesTexto: propiedadesFinal,
           descripcion: descripcion || "Sin descripción disponible.",
           
           // Metadatos enriquecidos

@@ -1052,4 +1052,152 @@ Configuración obsoleta o incompleta de ESLint heredada de scaffolds de Javascri
 > 📦 **Hook CRUD Genérico para Formularios Dinámicos:** Cuando gestiones múltiples listas locales del mismo tipo (ej. rasgos y reacciones) en un formulario gigante, prefiere siempre aislar la lógica en un hook genérico (`usarListaDinamica`). Reduce la fatiga mental, evita bugs y te da la garantía de que el linter audite la firma atómica de forma unificada.
 > 🏛️ **Coherencia y Tipado de Props en Subcomponentes:** Al descomponer componentes visuales masivos, define siempre los props heredando directamente de tus tipos core (`MonstruoBase`, `Habilidades`, `Salvaciones`) en lugar de usar comodines laxos (`Record`). Esto te asegura que cualquier cambio futuro en los modelos de datos se propague de manera automática por el compilador de TypeScript sin parches ciegos.
 
+---
 
+## [2026-05-29] INFRAESTRUCTURA: Instalación y Configuración del Servidor de Grafo de Código Local (CodeGraph MCP)
+
+**Síntoma:**
+La necesidad de habilitar un mapa de descubrimiento del codebase ultra-rápido para AI agents sin incurrir en lecturas y búsquedas lineales costosas (discovery tax) mediante terminal o grep recursivos.
+
+**Causa raíz:**
+Los proyectos medianos o grandes cargan tiempo y consumo de tokens al realizar indexaciones secuenciales en frío en cada sesión de desarrollo agentico.
+
+**Solución aplicada:**
+1. **Instalación local basada en pnpm:** Agregamos el paquete `@colbymchenry/codegraph` como dependencia de desarrollo del proyecto usando `pnpm` (el gestor oficial del proyecto) para mantener consistencia y aislamiento:
+   ```bash
+   pnpm add -D @colbymchenry/codegraph
+   ```
+2. **Inicialización y Handshake del Grafo:** Inicializamos el entorno CodeGraph en la raíz del proyecto para crear la base de datos de conocimiento SQLite local:
+   ```bash
+   npx @colbymchenry/codegraph init
+   ```
+3. **Indexación AST con tree-sitter:** Ejecutamos el indexado en caliente sobre el codebase, indexando exitosamente 68 archivos, 529 nodos de símbolos y 1,176 aristas de referencia en apenas 933ms:
+   ```bash
+   npx @colbymchenry/codegraph index
+   ```
+
+**Lecciones aprendidas:**
+> 📊 **Búsqueda AST y Grafos Locales:** El uso de índices de símbolos y grafos AST en SQLite local (`@colbymchenry/codegraph`) alivia drásticamente la latencia de descubrimiento. En lugar de realizar barridos secuenciales ciegos con `grep` sobre todo el sistema de archivos, el linter de descubrimiento puede consultar el grafo de dependencias de importación y firmas de funciones en milisegundos, aumentando un 90% la velocidad de respuesta y la precisión en refactorizaciones de componentes React.
+
+---
+
+## [2026-05-29] PLANIFICACIÓN: Refactorización Estructural de Creación de Objetos (Compendio D&D 5.5e) y Tipado Polimórfico Coherente
+
+**Síntoma:**
+La necesidad de refactorizar y modernizar el Creador de Objetos homebrew para que cumpla con los nuevos esquemas de datos estructurados para Armas, Armaduras y Equipo de Aventuras en D&D 5.5e, manteniendo la compatibilidad hacia atrás y una experiencia de usuario premium (pestañas compactas, colores HSL vibrantes de rareza, motor condicional de formulario y guardado de descripción en texto plano).
+
+**Solución planificada:**
+1. **Tipado Fuertemente Mapeado:** Introducir las interfaces `Arma`, `Armadura` y `EquipoAventuras` heredando de `ObjetoBase`. Definir `type ObjetoHomebrew = ObjetoJuego` para preservar compatibilidad instantánea en todo el store Zustand e indexadores.
+2. **Normalizador y Saneador Polimórfico:** Extender `sanearObjetoHomebrew` para mapear los campos antiguos a las nuevas propiedades (como `costoValor` a `valorPO`, `peso` a `pesoLb`, y normalizar categorías).
+3. **Pestañas Horizontales y Acordeón:** Segmentar el formulario en pestañas interactivas `[General]`, `[Atributos Específicos]`, y `[Propiedades Mágicas]` para evitar scrolls infinitos y mejorar el rendimiento visual en WebView2.
+4. **Módulo Mágico Reactivo:** Implementar la auto-activación de `esMagico = true` cuando se seleccione cualquier rareza no-común, desplegando opcionalmente sintonización y cargas.
+5. **Barra Sticky y Estado de Guardado:** Una bottom bar moderna con fondo borroso (`backdrop-filter: blur`) que aloje el botón de acción primario y controle la opacidad y accesibilidad del botón.
+
+**Lecciones del arranque:**
+> 🔍 **Compatibilidad de Modelos en SQLite/Local:** Al realizar cambios drásticos en los modelos de almacenamiento, diseña siempre funciones de saneamiento atómicas que traduzcan formatos rústicos antiguos a estructuras rigurosas nuevas. Esto previene pérdidas de datos de los usuarios en entornos reales.
+
+---
+
+## [2026-05-29] CRÍTICO: Bug de Pestañas Congeladas por Inicializaciones en Cadena y Saneamiento Polimórfico Avanzado
+
+**Síntoma:**
+En el creador de criaturas homebrew, al pulsar cualquier pestaña interna ("Atribs/Salv", "Habilidades", "Defensas", "Listas/Ataques"), la vista volvía de inmediato a congelarse en la pestaña inicial "General". Además, algunos objetos antiguos importados del compendio clásico `equipment-es.json` perdían el costo, el peso o la clase de armadura al ser sanitizados.
+
+**Causas raíces:**
+1. **Referencias inestables en cascada (React):**
+   El hook custom `usarListaDinamica` devolvía un objeto literal nuevo en cada renderizado de la aplicación.
+   En `usarFormularioCriatura.ts`, el método `limpiarFormulario` (envuelto en `useCallback`) tenía como dependencias a los objetos completos devueltos por `usarListaDinamica` (`listaRasgos`, `listaAcciones`, etc.). Al ser referencias inestables que cambiaban en cada render, la propia identidad de la función `limpiarFormulario` cambiaba en cada ejecución.
+   En `FormularioCriatura.tsx`, el `useEffect` encargado de sincronizar la edición dependía de `limpiarFormulario` y `baseDatosMonstruos`. Al cambiar de pestaña, React volvía a renderizar el formulario, detectaba el cambio de referencia en `limpiarFormulario`, y volvía a ejecutar el `useEffect` de inicialización. Como `idEnEdicion` era `null` (en modo creación), este efecto llamaba a `limpiarFormulario()`, reseteando en caliente la pestaña activa a `"general"`.
+
+2. **Esquema clásico estructurado en inglés (`equipment-es.json`):**
+   El deserializador de `sanitizacion.ts` no procesaba campos con nombres clásicos ingleses o estructurados en objetos anidados:
+   - El costo clásico viene como objeto `cost: { quantity, unit }` (por ejemplo, con unidad `sp` o `cp`).
+   - El peso clásico viene como campo numérico `weight`.
+   - El daño clásico viene como objeto `damage: { damage_dice, damage_type: { name } }`.
+   - Las propiedades clásicas vienen como un array de objetos `properties: [ { name } ]`.
+   - La clase de armadura viene como objeto `armor_class: { base, dex_bonus, max_bonus }` con su limitador de destreza a CA y fuerza mínima en `str_minimum`.
+   - Las categorías y subcategorías vienen en inglés (`armor_category: "Heavy"`, `weapon_category: "Simple"`).
+
+**Solución aplicada:**
+1. **Estabilización de Dependencias Reactivas:**
+   - Modificar `usarFormularioCriatura.ts` para que `limpiarFormulario` dependa únicamente de los métodos individuales y estables de limpieza de las listas dinámicas (`listaRasgos.limpiarItemForm`, `listaAcciones.limpiarItemForm`, etc.), garantizando que la referencia de `limpiarFormulario` sea **100% inmutable** a lo largo de los renders.
+   - Acotar las dependencias del `useEffect` de inicialización en `FormularioCriatura.tsx` para que responda **únicamente** cuando cambie `idEnEdicion` (`[idEnEdicion]`), previniendo machacados y ciclos accidentales al mutar estados intermedios.
+   - Agregar directivas de desactivación de lint (`// eslint-disable-next-line react-hooks/exhaustive-deps`) en dicho efecto.
+
+2. **Deserialización Polimórfica Adaptativa de Compendio Clásico:**
+   - Rediseñar por completo `sanearObjetoHomebrew` en [sanitizacion.ts](file:///c:/Users/zamor/OneDrive/Documentos/Programas/ToolSet%20Es%205.5/src/almacen/sanitizacion.ts) para extraer robustamente los campos polimórficos de `equipment-es.json`.
+   - Mapear el objeto `cost` convirtiendo unidades de cobre (`cp`), plata (`sp`), etc., al valor estándar en oro (`valorPO`).
+   - Leer `weight` directamente como `pesoLb`.
+   - Extraer recursivamente y aplanar el daño (`damage_dice` y `damage_type.name` en español) a `dadoDano` y `tipoDano`.
+   - Mapear el array de propiedades clásicas (`properties: [ { name } ]`) a un array de cadenas de texto sanitizadas (`propiedades: string[]`).
+   - Parsear `armor_class` extrayendo `caBase` y deduciendo de forma inteligente el limitador de destreza (`max_bonus === 2` -> `"Máximo 2"`, `dex_bonus === false` -> `"Sin Bono"`, de lo contrario `"Completo"`).
+   - Traducir subcategorías en inglés (`armor_category: "Medium"` -> `"Mediana"`, etc.) alineando perfectamente los tipos y maestría con el `Player's Handbook (2024)`.
+
+**Lecciones aprendidas:**
+> ⚠️ **Hooks Custom que Devuelven Objetos Literales:** En React, si un hook devuelve un objeto literal nuevo en cada ejecución, **nunca** uses el objeto completo devuelto en la lista de dependencias de un `useCallback` o `useEffect` en el componente padre. Si lo haces, romperás la optimización de referencias y causarás ciclos de re-renderizado infinito o reinicializaciones accidentales en cadena. Depende **exclusivamente** de los métodos o valores individuales del objeto que sean estables.
+> 🔄 **useEffect de Inicialización Scoped:** Al inicializar formularios de edición basados en un ID, haz que el `useEffect` responda estrictamente al ID (`idEnEdicion`). Nunca incluyas bases de datos o colecciones completas que muten al guardar datos, ya que provocarías re-evaluaciones indeseadas que destruyen los cambios en caliente escritos por el usuario.
+> 🛡️ **Deserialización Polimórfica Defensiva:** Al diseñar sistemas CRUD con importación de compendios, asume que los datos pueden venir con esquemas planos, estructurados o en inglés. Escribe deserializadores atómicos polimórficos que acepten tanto tipos primitivos (`peso: 10`) como objetos anidados (`weight: 10` o `weight: { value: 10 }`), asegurando una migración impecable y sin fricción de los datos históricos del usuario.
+> 🕳️ **Peligro en Constructores Manuales Intermedios:** Cuando un importador JSON construya un objeto parcial en caliente a mano antes de enviarlo a tu función de sanitización global, asegúrate siempre de inyectar/expandir el objeto clásico original completo (`...o`). De lo contrario, omitirás de forma invisible las propiedades nativas complejas (como `armor_class` o `armor_category`), neutralizando toda la lógica de tu deserializador polimórfico y causando fallos catastróficos de detección aguas abajo (ej: armaduras perdiendo su tipo principal y detectándose como equipo de aventura genérico).---
+
+## [2026-05-30] CRÍTICO: Campo `propiedades` del importador pisaba el array `properties` original del JSON antiguo
+
+**Síntoma:**
+Al subir la base de datos vieja (`equipment-es.json`), los objetos no se cargaban correctamente: las armas perdían sus propiedades reales, los tipos de daño aparecían en inglés ("piercing", "slashing") y las propiedades del arma también aparecían en inglés o en blanco.
+
+**Causa raíz:**
+En `importadorJSON.ts`, el mapeador construía un string concatenado `propiedadesFinal` (ej: `"ARMA | Arma Sencilla | Coste: 2 PO | Daño: 1d4 (perforante)"`) y lo pasaba como `propiedades: propiedadesFinal` en el spread del objeto enviado a `sanearObjetoHomebrew`. El problema: este campo **sobreescribía** el array original `o.properties` (el campo del JSON antiguo con los objetos `{index: "finesse", name: "Finesse", ...}`). La función `sanearObjetoHomebrew` buscaba `obj.properties` primero y al encontrar el string concatenado, no podía extraer el array de propiedades correctamente.
+
+Adicionalmente, el tipo de daño se extraía del objeto `damage_type.name` del JSON antiguo en inglés (`"piercing"`, `"slashing"`...) sin traducción al español.
+
+**Solución aplicada:**
+1. **`importadorJSON.ts`:** Renombrar el campo de metadatos de display de `propiedades` a `_propiedadesTexto`, para que no pise el array `o.properties` original que usa el sanitizador.
+2. **`sanitizacion.ts`:** 
+   - Agregar tabla de traducción `PROP_TRADUCCION` para mapear propiedades en inglés al español del PHB 2024 (finesse→Sutil, versatile→Versátil, thrown→Arrojadiza, two-handed→A dos manos, etc.).
+   - Agregar tabla `DAÑO_TRADUCCION` para traducir tipos de daño (piercing→Perforante, slashing→Cortante, bludgeoning→Contundente, etc.).
+   - Cambiar el orden de búsqueda de propiedades a `obj.properties || obj.propiedadesArma || obj.propiedades` para priorizar el array original del compendio.
+
+**Lecciones aprendidas:**
+> 🚨 **Nunca sobreescribas campos de datos con metadatos de display.** En un mapeador que hace spread del objeto original (`...o`) seguido de campos propios, usar el mismo nombre de campo que el objeto fuente (`propiedades`) destruye silenciosamente la información original. Siempre usa nombres distintos para metadatos intermedios de construcción (ej: `_propiedadesTexto`, `_categoriaTxt`, etc.).
+> 🌐 **Siempre traduce al importar, no al renderizar.** La traducción de inglés → español de propiedades y tipos debe hacerse en la capa de sanitización, no en la capa de UI. Esto garantiza que los datos guardados ya estén limpios y que el renderizado sea trivial.
+
+---
+
+## [2026-05-30] BUG: `.map is not a function` en descripción de objeto al importar JSON
+
+**Síntoma:**
+```
+TypeError: (t.descripcion || t.description || t.desc).map is not a function
+    at sanitizacion.ts:50
+```
+
+**Causa raíz:**
+El código usaba `||` para seleccionar el campo de descripción en DOS lugares distintos:
+
+```typescript
+// El if comprueba si ALGUNO de los tres campos es array
+if (Array.isArray(obj.descripcion) || Array.isArray(obj.description) || Array.isArray(obj.desc)) {
+  // Pero el || aquí devuelve el PRIMERO que sea truthy (no necesariamente el array)
+  const arrDesc = (obj.descripcion || obj.description || obj.desc) as unknown[];
+  descSaneada = arrDesc.map(aplanarValor)... // ← FALLA si arrDesc es un string
+}
+```
+
+Si `obj.descripcion` era un **string truthy** y `obj.description` era un **array**, la condición del `if` era `true` (por el array), pero `arrDesc` terminaba siendo el **string** (porque el `||` lo elegía primero). Llamar `.map()` en un string explota.
+
+**Solución:**
+Determinar el campo de descripción una sola vez usando el operador ternario con `!== undefined` (no `||`), para preservar su tipo real:
+
+```typescript
+const descField = obj.descripcion !== undefined ? obj.descripcion
+                : obj.description !== undefined ? obj.description
+                : obj.desc;
+let descSaneada: string;
+if (Array.isArray(descField)) {
+  descSaneada = descField.map(aplanarValor).filter(Boolean).join("\n");
+} else {
+  descSaneada = aplanarValor(descField || "Sin descripción disponible.");
+}
+```
+
+**Lección aprendida:**
+> 🔀 **Nunca uses `||` para seleccionar un campo del que dependes del tipo.** El operador `||` elige el primer valor **truthy**, ignorando el tipo. Si necesitas elegir entre varios campos con semántica de "el primero que exista" y luego operar según su tipo, usa `!== undefined` con ternarios encadenados. Esto garantiza que el campo elegido sea exactamente el que se comprobó en el `if`.

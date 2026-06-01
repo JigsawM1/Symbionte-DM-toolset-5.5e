@@ -108,7 +108,13 @@ export function usarFormularioCriatura(idEnEdicion: string | null, alGuardarExit
     listaReacciones.limpiarItemForm();
     listaLegendarias.limpiarItemForm();
     listaQuickActions.limpiarItemForm();
-  }, [listaRasgos, listaAcciones, listaReacciones, listaLegendarias, listaQuickActions]);
+  }, [
+    listaRasgos.limpiarItemForm,
+    listaAcciones.limpiarItemForm,
+    listaReacciones.limpiarItemForm,
+    listaLegendarias.limpiarItemForm,
+    listaQuickActions.limpiarItemForm
+  ]);
 
   const cargarCriatura = useCallback((m: MonstruoBase) => {
     setMonstruoForm({

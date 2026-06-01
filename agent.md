@@ -88,3 +88,16 @@ Este archivo sirve como bitácora de aprendizaje técnico y memoria permanente p
         }
         ```
         Esto garantiza un consumo de GPU del 0% en transiciones, resultando en respuestas tácticas inmediatas en la mesa virtual de juego.
+
+---
+
+## ⚔️ 7. Propiedades de Arma y Tooltips (Mayo 2026)
+
+*   **Propiedades Oficiales del PHB 2024 (D&D 5.5e)**:
+    *   Las propiedades de arma válidas son: Ammunition, Finesse, Heavy, Light, Loading, Reach, Thrown, Two-Handed, Versatile, y Special.
+    *   **"Silvered/Plateada" NO es una propiedad de arma** según el PHB 2024. Es una modificación del equipo (cuesta 100 PO extra). Se eliminó de la lista de propiedades del formulario.
+    *   Las **Maestrías** oficiales son: Cleave, Graze, Nick, Push, Sap, Slow, Topple, Vex. Solo se pueden usar con una feature que las desbloquee (como Weapon Mastery).
+*   **Tooltips con CSS puro**:
+    *   Se usa un patrón `.tooltipContenedor:hover > .tooltipFlotante { display: flex }` para mostrar tooltips al hover.
+    *   Dado que el reset global de `index.css` desactiva animaciones (`animation: none !important`), los tooltips NO tendrán fade-in pero SÍ aparecerán instantáneamente, lo cual es consistente con la política de 0 animaciones del proyecto.
+    *   El tooltip de maestrías se muestra DEBAJO del select (clase `.tooltipMaestria`), mientras que los de propiedades se muestran ENCIMA de la píldora.

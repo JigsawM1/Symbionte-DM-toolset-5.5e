@@ -425,3 +425,142 @@
   background-color: hsl(222, 12%, 12%);
   color: #ffffff;
 }
+
+/* Estado éxito del botón exportar */
+.botonDescargarExito {
+  background-color: var(--color-exito) !important;
+  border-color: var(--color-exito) !important;
+  color: #0a1628 !important;
+}
+
+/* MODAL DE EXPORTACIÓN */
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(4px);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.modalExport {
+  background: var(--color-fondo-panel, #0d1526);
+  border: 1px solid var(--color-borde-cian, #00f5d4);
+  border-radius: 8px;
+  width: 100%;
+  max-width: 600px;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  box-shadow: 0 0 40px rgba(0, 245, 212, 0.15);
+  overflow: hidden;
+}
+
+.modalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 14px;
+  background: rgba(0, 245, 212, 0.06);
+  border-bottom: 1px solid rgba(0, 245, 212, 0.2);
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--color-borde-cian, #00f5d4);
+  letter-spacing: 0.04em;
+  font-family: var(--fuente-codigo, monospace);
+}
+
+.botonCerrarModal {
+  background: transparent;
+  border: none;
+  color: var(--color-texto-secundario, #888);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  padding: 2px;
+}
+
+.botonCerrarModal:hover {
+  color: var(--color-texto-principal, #fff);
+}
+
+.modalAyuda {
+  font-size: 10.5px;
+  color: var(--color-texto-secundario, #888);
+  margin: 0;
+  padding: 8px 14px 4px;
+  line-height: 1.4;
+}
+
+.modalAyuda code {
+  color: var(--color-borde-cian, #00f5d4);
+  font-family: var(--fuente-codigo, monospace);
+  font-size: 10px;
+}
+
+.modalTextarea {
+  flex: 1;
+  min-height: 200px;
+  max-height: 45vh;
+  resize: none;
+  font-family: var(--fuente-codigo, monospace);
+  font-size: 10px;
+  line-height: 1.4;
+  background: hsl(222, 25%, 4%);
+  color: var(--color-texto-principal, #e0e0e0);
+  border: none;
+  border-top: 1px solid var(--color-borde-brutal, #1e2d45);
+  border-bottom: 1px solid var(--color-borde-brutal, #1e2d45);
+  padding: 10px 14px;
+  outline: none;
+}
+
+.modalAcciones {
+  display: flex;
+  gap: 8px;
+  padding: 10px 14px;
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.botonCopiarModal {
+  flex: 1;
+  height: 30px;
+  background: var(--color-primario, #0d4f8c);
+  border: 1px solid var(--color-borde-cian, #00f5d4);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  border-radius: 4px;
+  letter-spacing: 0.02em;
+  transition: background 0.15s;
+}
+
+.botonCopiarModal:hover {
+  background: var(--color-activo, #0d6ebd);
+}
+
+.botonCerrarModalPie {
+  height: 30px;
+  padding: 0 16px;
+  background: transparent;
+  border: 1px solid var(--color-borde-brutal, #1e2d45);
+  color: var(--color-texto-secundario, #888);
+  font-size: 11px;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.15s;
+}
+
+.botonCerrarModalPie:hover {
+  border-color: var(--color-texto-secundario, #888);
+  color: var(--color-texto-principal, #fff);
+}

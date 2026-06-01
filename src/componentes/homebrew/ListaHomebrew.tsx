@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { usarAlmacenDM } from "../../almacen/usarAlmacenDM";
-import { MonstruoBase, HechizoBase, ObjetoHomebrew } from "../../tipos";
+import { MonstruoBase, HechizoBase, ObjetoHomebrew, ObjetoJuego } from "../../tipos";
 import { MONSTRUOS_INICIALES, HECHIZOS_INICIALES } from "../../utiles/datosIniciales";
 import {
   Edit2,
@@ -385,15 +385,27 @@ export const ListaHomebrew: React.FC<Props> = ({
       })()}
 
       {/* Overlay Detalle Objeto en Creador */}
+      {/* Overlay Detalle Objeto en Creador */}
       {idObjetoDetalle && (() => {
-        const objeto = objetosHomebrew.find((o) => o.id === idObjetoDetalle);
-        if (!objeto) return null;
+        const oRaw = objetosHomebrew.find((o) => o.id === idObjetoDetalle);
+        if (!oRaw) return null;
+        const objeto = oRaw as ObjetoJuego;
+        
+        const coloresRareza: Record<string, string> = {
+          "Común": "hsl(0, 0%, 75%)",
+          "Poco Común": "hsl(120, 60%, 45%)",
+          "Raro": "hsl(210, 85%, 50%)",
+          "Muy Raro": "hsl(280, 75%, 60%)",
+          "Legendario": "hsl(32, 95%, 50%)",
+          "Artefacto": "hsl(0, 75%, 40%)"
+        };
+
         return (
           <div className={estilos.panelDetalleOverlay}>
             <div className={estilos.cabeceraDetalle}>
               <div className={estilos.cabeceraDetalleIzquierda}>
                 <span className={estilos.objetoNivelOverlay}>
-                  {objeto.categoria || "OBJETO"}
+                  {objeto.tipoPrincipal} {objeto.subcategoria ? `| ${objeto.subcategoria}` : ""}
                 </span>
                 <span className={estilos.nombreHechizoOverlay}>{objeto.nombre}</span>
               </div>
@@ -412,35 +424,39 @@ export const ListaHomebrew: React.FC<Props> = ({
                   <Sparkles size={12} className={estilos.iconoDetalle} />
                   <div>
                     <div className={estilos.metaLabel}>RAREZA</div>
-                    <div className={estilos.metaValor}>{objeto.rareza || "Común"}</div>
+                    <div className={estilos.metaValor} style={{ color: coloresRareza[objeto.rareza] || "var(--color-texto-principal)", fontWeight: "bold" }}>
+                      {objeto.rareza || "Común"}
+                    </div>
                   </div>
                 </div>
-                {objeto.costoValor !== undefined && objeto.costoValor > 0 && (
+                {objeto.valorPO !== undefined && objeto.valorPO > 0 && (
                   <div className={estilos.metaItem}>
                     <Coins size={12} className={estilos.iconoDetalle} />
                     <div>
                       <div className={estilos.metaLabel}>VALOR / COSTE</div>
                       <div className={estilos.metaValor}>
-                        {objeto.costoValor} {objeto.costoUnidad || "PO"}
+                        {objeto.valorPO} PO
                       </div>
                     </div>
                   </div>
                 )}
-                {objeto.peso && (
+                {objeto.pesoLb !== undefined && (
                   <div className={estilos.metaItem}>
                     <Scale size={12} className={estilos.iconoDetalle} />
                     <div>
                       <div className={estilos.metaLabel}>PESO</div>
-                      <div className={estilos.metaValor}>{objeto.peso}</div>
+                      <div className={estilos.metaValor}>{objeto.pesoLb} lb</div>
                     </div>
                   </div>
                 )}
-                {objeto.alcance && (
+                {objeto.tipoPrincipal === "Arma" && objeto.alcanceNormal && (
                   <div className={estilos.metaItem}>
                     <MapPin size={12} className={estilos.iconoDetalle} />
                     <div>
                       <div className={estilos.metaLabel}>ALCANCE</div>
-                      <div className={estilos.metaValor}>{objeto.alcance}</div>
+                      <div className={estilos.metaValor}>
+                        {objeto.alcanceNormal}/{objeto.alcanceLargo || objeto.alcanceNormal} pies
+                      </div>
                     </div>
                   </div>
                 )}
@@ -448,49 +464,90 @@ export const ListaHomebrew: React.FC<Props> = ({
 
               {/* Fila de propiedades visuales adicionales */}
               <div className={estilos.filaPropiedadesEspeciales}>
-                {objeto.tipoArma && objeto.tipoArma !== "N/A" && (
-                  <span className={estilos.chipConcentracion}>ARMA {objeto.tipoArma}</span>
+                {objeto.esMagico && (
+                  <span className={estilos.chipConcentracion} style={{ backgroundColor: "rgba(0, 245, 212, 0.12)", color: "var(--color-borde-cian)", border: "1px solid var(--color-borde-cian)" }}>
+                    ✨ MÁGICO
+                  </span>
                 )}
-                {objeto.estiloAtaque && objeto.estiloAtaque !== "N/A" && (
-                  <span className={estilos.chipRitual}>{objeto.estiloAtaque}</span>
+                {objeto.tipoPrincipal === "Arma" && (
+                  <span className={estilos.chipRitual}>Arma {objeto.tipoAtaque}</span>
                 )}
-                {objeto.propiedades && (
-                  <span className={estilos.chipEscuela}>{objeto.propiedades}</span>
+                {objeto.tipoPrincipal === "Armadura" && (
+                  <span className={estilos.chipRitual}>{objeto.bonoDestreza}</span>
                 )}
               </div>
 
-              {/* MECÁNICAS DE COMBATE DE ARMA (Si es arma y tiene daño o bonos) */}
-              {(objeto.dadosDaño || objeto.bonoAtaque || objeto.bonoDaño) && (
+              {/* MECÁNICAS DE COMBATE DE ARMA */}
+              {objeto.tipoPrincipal === "Arma" && (
                 <div className={estilos.cajaMecanicasCombateObjeto}>
                   <div className={estilos.tituloMecanicasObjeto}>
                     Propiedades de Combate del Arma (D&D 5.5e)
                   </div>
                   <div className={estilos.gridMecanicas}>
-                    {objeto.dadosDaño && (
+                    {objeto.dadoDano && (
                       <div className={estilos.itemMecanica}>
                         <span className={estilos.textoEtiquetaMecanica}>Daño base: </span>
                         <strong className={estilos.valorMecanicaDano}>
-                          {objeto.dadosDaño}{" "}
-                          {objeto.tipoDaño && objeto.tipoDaño !== "N/A"
-                            ? `(${objeto.tipoDaño})`
-                            : ""}
+                          {objeto.dadoDano} ({objeto.tipoDano})
                         </strong>
                       </div>
                     )}
-                    {objeto.bonoAtaque && (
+                    {objeto.maestria && (
                       <div className={estilos.itemMecanica}>
-                        <span className={estilos.textoEtiquetaMecanica}>
-                          Bono Ataque Mágico:{" "}
-                        </span>
-                        <strong className={estilos.valorMecanicaCd}>+{objeto.bonoAtaque}</strong>
+                        <span className={estilos.textoEtiquetaMecanica}>Maestría: </span>
+                        <strong className={estilos.valorMecanicaCd} style={{ color: "var(--color-advertencia)" }}>
+                          {objeto.maestria}
+                        </strong>
                       </div>
                     )}
-                    {objeto.bonoDaño && (
+                  </div>
+                </div>
+              )}
+
+              {/* MECÁNICAS DE ARMADURA */}
+              {objeto.tipoPrincipal === "Armadura" && (
+                <div className={estilos.cajaMecanicasCombateObjeto} style={{ borderColor: "rgba(255, 165, 0, 0.25)" }}>
+                  <div className={estilos.tituloMecanicasObjeto} style={{ color: "var(--color-advertencia)" }}>
+                    Protección y Sigilo (D&D 5e)
+                  </div>
+                  <div className={estilos.gridMecanicas}>
+                    <div className={estilos.itemMecanica}>
+                      <span className={estilos.textoEtiquetaMecanica}>CA Base: </span>
+                      <strong className={estilos.valorMecanicaDano}>{objeto.caBase}</strong>
+                    </div>
+                    {objeto.requisitoFuerza && (
                       <div className={estilos.itemMecanica}>
-                        <span className={estilos.textoEtiquetaMecanica}>
-                          Bono Daño Mágico:{" "}
-                        </span>
-                        <strong className={estilos.valorMecanicaDano}>+{objeto.bonoDaño}</strong>
+                        <span className={estilos.textoEtiquetaMecanica}>FUE Requerida: </span>
+                        <strong className={estilos.valorMecanicaCd}>FUE {objeto.requisitoFuerza}</strong>
+                      </div>
+                    )}
+                    <div className={estilos.itemMecanica}>
+                      <span className={estilos.textoEtiquetaMecanica}>Desv. Sigilo: </span>
+                      <strong className={objeto.desventajaSigilo ? estilos.valorMecanicaSuperior : estilos.valorMecanicaCd} style={{ color: objeto.desventajaSigilo ? "var(--color-peligro)" : "var(--color-exito)" }}>
+                        {objeto.desventajaSigilo ? "Sí" : "No"}
+                      </strong>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* ATRIBUTOS DE EQUIPO DE AVENTURAS */}
+              {objeto.tipoPrincipal === "Equipo de Aventuras" && (objeto.cargas || objeto.sintonizacionRequerida) && (
+                <div className={estilos.cajaMecanicasCombateObjeto} style={{ borderColor: "rgba(255, 99, 71, 0.25)" }}>
+                  <div className={estilos.tituloMecanicasObjeto} style={{ color: "var(--color-peligro)" }}>
+                    Propiedades de Aventura
+                  </div>
+                  <div className={estilos.gridMecanicas}>
+                    {objeto.cargas && (
+                      <div className={estilos.itemMecanica}>
+                        <span className={estilos.textoEtiquetaMecanica}>Cargas Máximas: </span>
+                        <strong className={estilos.valorMecanicaDano}>{objeto.cargas}</strong>
+                      </div>
+                    )}
+                    {objeto.sintonizacionRequerida && (
+                      <div className={estilos.itemMecanica}>
+                        <span className={estilos.textoEtiquetaMecanica}>Sintonización: </span>
+                        <strong className={estilos.valorMecanicaCd}>Requerida</strong>
                       </div>
                     )}
                   </div>
@@ -498,11 +555,11 @@ export const ListaHomebrew: React.FC<Props> = ({
               )}
 
               {/* Propiedades del arma en badges */}
-              {objeto.propiedadesArma && objeto.propiedadesArma.length > 0 && (
+              {objeto.tipoPrincipal === "Arma" && objeto.propiedades && objeto.propiedades.length > 0 && (
                 <div className={estilos.seccionDescripcionFichaMargenGrande}>
                   <div className={estilos.descripcionTituloFicha}>PROPIEDADES TÁCTICAS DEL ARMA</div>
                   <div className={estilos.listaBadgesClases}>
-                    {objeto.propiedadesArma.map((prop: string) => (
+                    {objeto.propiedades.map((prop: string) => (
                       <span key={prop} className={estilos.badgeClaseObjeto}>
                         {prop}
                       </span>
@@ -516,7 +573,7 @@ export const ListaHomebrew: React.FC<Props> = ({
                 <div className={estilos.seccionDescripcionFichaMargenGrande}>
                   <div className={estilos.descripcionTituloFicha}>BONOS MÁGICOS Y MEJORAS ACTIVAS</div>
                   <div className={estilos.listaBonosMagicos}>
-                    {objeto.bonosMagicos.map((bono, idx: number) => (
+                    {objeto.bonosMagicos.map((bono: { categoria: string; bono?: string; valor: number }, idx: number) => (
                       <div key={idx} className={estilos.cajaBonoMagico}>
                         <span className={estilos.textoEtiquetaMecanica}>
                           {bono.categoria} {bono.bono ? `(${bono.bono})` : ""}

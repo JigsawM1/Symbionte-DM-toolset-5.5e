@@ -86,8 +86,18 @@ export const FormularioHechizo: React.FC<Props> = ({
     }
   }, [idEnEdicion, baseDatosHechizos]);
 
+  // Detener clics accidentales al lienzo 3D de TaleSpire
+  const detenerPropagacion = (e: React.MouseEvent) => {
+    e.stopPropagation();
+  };
+
   return (
-    <form onSubmit={manejarGuardarHechizo} className={estilos.formularioBrutal}>
+    <form 
+      onSubmit={manejarGuardarHechizo} 
+      className={estilos.formularioBrutal}
+      onMouseDown={detenerPropagacion}
+      onMouseUp={detenerPropagacion}
+    >
       <div className={estilos.filaDobleForm}>
         <div className={estilos.campoForm}>
           <label className={estilos.labelForm}>Nombre del Conjuro:</label>
@@ -375,16 +385,29 @@ export const FormularioHechizo: React.FC<Props> = ({
         />
       </div>
 
-      <div className={estilos.grupoBotonesAccion}>
-        <button type="submit" className={estilos.botonEnviarBrutal}>
-          <Plus size={15} />
-          {idEnEdicion ? "Guardar Cambios en el Hechizo" : "Guardar Hechizo Homebrew"}
-        </button>
+      {/* STICKY BOTTOM BAR (Barra de Acción Flotante) */}
+      <div 
+        className={estilos.stickyBottomBar}
+        onMouseDown={detenerPropagacion}
+        onMouseUp={detenerPropagacion}
+      >
         {idEnEdicion && (
-          <button type="button" onClick={cancelarEdicion} className={estilos.botonCancelarBrutal}>
-            Cancelar Edición
+          <button 
+            type="button" 
+            onClick={cancelarEdicion} 
+            className={estilos.botonStickyCancelar}
+          >
+            Cancelar
           </button>
         )}
+        <button 
+          type="submit" 
+          className={estilos.botonStickyGuardar}
+          disabled={!hNombre.trim()}
+        >
+          <Plus size={14} />
+          {idEnEdicion ? "Guardar Cambios" : "Guardar en Compendio"}
+        </button>
       </div>
     </form>
   );

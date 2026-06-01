@@ -1,6 +1,6 @@
 import React, { useState, useRef } from "react";
 import { usarAlmacenDM } from "../almacen/usarAlmacenDM";
-import { Upload, Download, Trash2, ShieldAlert, CheckCircle, Database, Heart } from "lucide-react";
+import { Upload, Download, Trash2, ShieldAlert, CheckCircle, Database, Heart, Copy, X } from "lucide-react";
 import { MONSTRUOS_INICIALES, HECHIZOS_INICIALES } from "../utiles/datosIniciales";
 import estilosClases from "./ConfiguracionDM.module.css";
 
@@ -16,6 +16,8 @@ export const ConfiguracionDM: React.FC = () => {
   const [estadoImportacion, setEstadoImportacion] = useState<"inactivo" | "exito" | "error">("inactivo");
   const [mensajeError, setMensajeError] = useState("");
   const [confirmarReset, setConfirmarReset] = useState(false);
+  const [modalExport, setModalExport] = useState<string | null>(null); // JSON string para mostrar en modal
+  const [copiado, setCopiado] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Calcular estadísticas de homebrew
@@ -84,27 +86,71 @@ export const ConfiguracionDM: React.FC = () => {
     }
   };
 
-  const descargarBackup = () => {
+  const exportarDatos = async () => {
     const backupData = {
       tipo: "talespire_dm_screen_backup",
+      version: "5.5",
       fecha: new Date().toISOString(),
       monstruos: monstruosHomebrew,
       hechizos: hechizosHomebrew,
       objetos: objetosHomebrew
     };
 
-    const stringData = JSON.stringify(backupData, null, 2);
-    const blob = new Blob([stringData], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    
-    const enlace = document.createElement("a");
-    enlace.href = url;
-    enlace.download = `backup_dm_homebrew_${new Date().toISOString().slice(0, 10)}.json`;
-    document.body.appendChild(enlace);
-    enlace.click();
-    document.body.removeChild(enlace);
-    URL.revokeObjectURL(url);
+    const jsonStr = JSON.stringify(backupData, null, 2);
+
+    // Intento 1: API nativa de clipboard de TaleSpire
+    try {
+      if (window.TS && window.TS.clipboard && typeof window.TS.clipboard.copyText === "function") {
+        await window.TS.clipboard.copyText(jsonStr);
+        setCopiado(true);
+        setTimeout(() => setCopiado(false), 3000);
+        return;
+      }
+    } catch { /* continuar con siguiente método */ }
+
+    // Intento 2: API estándar del navegador
+    try {
+      await navigator.clipboard.writeText(jsonStr);
+      setCopiado(true);
+      setTimeout(() => setCopiado(false), 3000);
+      return;
+    } catch { /* continuar con siguiente método */ }
+
+    // Intento 3: Crear un elemento <a> para descarga (funciona fuera de TaleSpire)
+    try {
+      const blob = new Blob([jsonStr], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const enlace = document.createElement("a");
+      enlace.href = url;
+      enlace.download = `backup_dm_homebrew_${new Date().toISOString().slice(0, 10)}.json`;
+      document.body.appendChild(enlace);
+      enlace.click();
+      document.body.removeChild(enlace);
+      URL.revokeObjectURL(url);
+      setCopiado(true);
+      setTimeout(() => setCopiado(false), 3000);
+      return;
+    } catch { /* continuar con siguiente método */ }
+
+    // Fallback final: mostrar modal con el JSON para copiar manualmente
+    setModalExport(jsonStr);
   };
+
+  const copiarDelModal = async () => {
+    if (!modalExport) return;
+    try {
+      if (window.TS && window.TS.clipboard && typeof window.TS.clipboard.copyText === "function") {
+        await window.TS.clipboard.copyText(modalExport);
+      } else {
+        await navigator.clipboard.writeText(modalExport);
+      }
+      setCopiado(true);
+      setTimeout(() => setCopiado(false), 3000);
+    } catch {
+      // Si todo falla, el textarea ya permite seleccionar y copiar manualmente
+    }
+  };
+
 
   const ejecutarRestablecerFabrica = () => {
     restablecerDatosDeFabrica();
@@ -251,9 +297,13 @@ export const ConfiguracionDM: React.FC = () => {
           </div>
 
           <div className={estilosClases.accionesConfig}>
-            <button onClick={descargarBackup} className={estilosClases.botonDescargar} title="Exportar Backup JSON">
-              <Download size={14} />
-              <span>EXPORTAR COPIA DE SEGURIDAD (.JSON)</span>
+            <button
+              onClick={exportarDatos}
+              className={`${estilosClases.botonDescargar} ${copiado ? estilosClases.botonDescargarExito : ""}`}
+              title="Exportar JSON al portapapeles o descarga"
+            >
+              {copiado ? <CheckCircle size={14} /> : <Download size={14} />}
+              <span>{copiado ? "¡COPIADO AL PORTAPAPELES!" : "EXPORTAR COPIA DE SEGURIDAD (.JSON)"}</span>
             </button>
 
             <div className={estilosClases.separador} />
@@ -302,6 +352,38 @@ export const ConfiguracionDM: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* MODAL DE EXPORTACIÓN — cuando los métodos automáticos fallan */}
+      {modalExport && (
+        <div className={estilosClases.modalOverlay} onClick={() => setModalExport(null)}>
+          <div className={estilosClases.modalExport} onClick={(e) => e.stopPropagation()}>
+            <div className={estilosClases.modalHeader}>
+              <span>📋 EXPORTAR DATOS — Copia el JSON manualmente</span>
+              <button onClick={() => setModalExport(null)} className={estilosClases.botonCerrarModal}>
+                <X size={16} />
+              </button>
+            </div>
+            <p className={estilosClases.modalAyuda}>
+              Selecciona todo el texto (Ctrl+A) y cópialo (Ctrl+C), luego pégalo en un archivo <code>.json</code> en tu PC.
+            </p>
+            <textarea
+              readOnly
+              value={modalExport}
+              className={estilosClases.modalTextarea}
+              onClick={(e) => (e.target as HTMLTextAreaElement).select()}
+            />
+            <div className={estilosClases.modalAcciones}>
+              <button onClick={copiarDelModal} className={estilosClases.botonCopiarModal}>
+                <Copy size={14} />
+                {copiado ? "¡Copiado!" : "Copiar al Portapapeles"}
+              </button>
+              <button onClick={() => setModalExport(null)} className={estilosClases.botonCerrarModalPie}>
+                Cerrar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

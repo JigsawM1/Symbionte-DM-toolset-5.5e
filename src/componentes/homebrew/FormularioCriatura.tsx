@@ -101,10 +101,19 @@ export const FormularioCriatura: React.FC<Props> = ({
     } else {
       limpiarFormulario();
     }
-  }, [idEnEdicion, baseDatosMonstruos, cargarCriatura, limpiarFormulario]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [idEnEdicion])  // Detener clics accidentales al lienzo 3D de TaleSpire
+  const detenerPropagacion = (e: React.MouseEvent) => {
+    e.stopPropagation();
+  };
 
   return (
-    <form onSubmit={manejarGuardarCriatura} className={estilos.formularioBrutal}>
+    <form 
+      onSubmit={manejarGuardarCriatura} 
+      className={estilos.formularioBrutal}
+      onMouseDown={detenerPropagacion}
+      onMouseUp={detenerPropagacion}
+    >
       {/* Pestañas internas del creador de Criaturas */}
       <div className={estilos.subPestanasCriatura}>
         <button
@@ -230,17 +239,27 @@ export const FormularioCriatura: React.FC<Props> = ({
         />
       )}
 
-      {/* Botón de Enviar General */}
-      <div className={estilos.filaBotonesAccionForm}>
-        <button type="submit" className={estilos.botonEnviarFormulario}>
-          {idEnEdicion ? "Guardar Cambios de la Criatura" : "Crear Criatura Homebrew"}
-        </button>
-        <button
-          type="button"
-          onClick={cancelarEdicion}
-          className={estilos.botonCancelarFormulario}
+      {/* STICKY BOTTOM BAR (Barra de Acción Flotante Consistente) */}
+      <div 
+        className={estilos.stickyBottomBar}
+        onMouseDown={detenerPropagacion}
+        onMouseUp={detenerPropagacion}
+      >
+        {idEnEdicion && (
+          <button 
+            type="button" 
+            onClick={cancelarEdicion} 
+            className={estilos.botonStickyCancelar}
+          >
+            Cancelar
+          </button>
+        )}
+        <button 
+          type="submit" 
+          className={estilos.botonStickyGuardar}
+          disabled={!monstruoForm.nombre?.trim()}
         >
-          Cancelar
+          {idEnEdicion ? "Guardar Cambios" : "Guardar en Compendio"}
         </button>
       </div>
     </form>

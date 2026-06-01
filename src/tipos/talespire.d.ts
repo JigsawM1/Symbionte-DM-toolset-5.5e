@@ -49,6 +49,10 @@ export interface TaleSpireAPI {
     }>;
   };
   localStorage?: TSLocalStorage;
+  /** API de portapapeles nativa de TaleSpire (disponible en algunas versiones) */
+  clipboard?: {
+    copyText: (text: string) => Promise<void>;
+  };
 }
 
 declare global {

@@ -2,6 +2,40 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
+  padding-bottom: 70px; /* Espacio para que la Sticky Bottom Bar no tape el contenido al hacer scroll */
+}
+
+/* PESTAÑAS DE NAVEGACIÓN COMPACTAS */
+.pestanasForm {
+  display: flex;
+  border-bottom: 1.5px solid var(--color-borde-brutal);
+  margin-bottom: 8px;
+  gap: 4px;
+}
+
+.pestanaBoton {
+  background: none;
+  border: none;
+  color: var(--color-texto-secundario);
+  padding: 8px 14px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  border-bottom: 2.5px solid transparent;
+  transition: all 0.15s ease;
+}
+
+.pestanaBoton:hover {
+  color: var(--color-texto-principal);
+  background-color: rgba(255, 255, 255, 0.03);
+}
+
+.pestanaBotonActivo {
+  color: var(--color-borde-cian) !important;
+  border-bottom-color: var(--color-borde-cian);
+  background-color: rgba(0, 245, 212, 0.04);
 }
 
 .filaDobleForm {
@@ -67,6 +101,28 @@
   box-shadow: 0 0 0 2px rgba(0, 245, 212, 0.18);
 }
 
+/* SELECTOR DE RAREZA CON COLOR HSL */
+.rarezaSelectWrapper {
+  position: relative;
+  width: 100%;
+}
+
+.selectRarezaHSL {
+  padding-left: 28px !important;
+}
+
+.indicadorRarezaColor {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  pointer-events: none;
+}
+
 .cajaCosto {
   display: flex;
   gap: 6px;
@@ -125,6 +181,16 @@
   padding-bottom: 6px;
   text-transform: uppercase;
   letter-spacing: 0.07em;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.subtituloInformacion {
+  font-size: 9.5px;
+  color: var(--color-texto-secundario);
+  text-transform: none;
+  font-weight: normal;
 }
 
 .gridClasesDnd {
@@ -254,52 +320,171 @@
   box-shadow: 0 0 0 2px rgba(0, 245, 212, 0.18);
 }
 
-.grupoBotonesAccion {
+/* STICKY BOTTOM BAR PREMIUM */
+.stickyBottomBar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(18, 24, 38, 0.72);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 12px 20px;
   display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-top: 12px;
-  width: 100%;
+  gap: 12px;
+  justify-content: flex-end;
+  align-items: center;
+  z-index: 1000;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.4);
 }
 
-.botonEnviarBrutal {
+/* Ajuste de botones en la Sticky Bottom Bar */
+.botonStickyGuardar {
   background: linear-gradient(135deg, var(--color-primario-brillante) 0%, var(--color-primario) 100%);
   border: 1px solid var(--color-borde-cian);
   color: #ffffff;
-  padding: 11px;
-  font-size: 13.5px;
+  padding: 8px 20px;
+  font-size: 12.5px;
   font-weight: 700;
-  margin-top: 10px;
-  width: 100%;
   cursor: pointer;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
-  border-radius: 6px;
-  box-shadow: 0 3px 12px rgba(0,245,212,0.2);
+  letter-spacing: 0.05em;
+  border-radius: 5px;
+  box-shadow: 0 2px 10px rgba(0, 245, 212, 0.15);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 36px;
+  transition: all 0.1s ease;
 }
 
-.botonEnviarBrutal:hover {
-  filter: brightness(1.15);
-  box-shadow: 0 3px 10px rgba(0, 245, 212, 0.25);
+.botonStickyGuardar:hover:not(:disabled) {
+  filter: brightness(1.1);
+  box-shadow: 0 2px 12px rgba(0, 245, 212, 0.25);
+  transform: translateY(-1px);
 }
 
-.botonCancelarBrutal {
-  background-color: var(--color-fondo-tarjeta);
+.botonStickyGuardar:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+.botonStickyCancelar {
+  background-color: transparent;
   border: 1px solid var(--color-borde-brutal);
   color: var(--color-texto-secundario);
-  padding: 9px;
-  font-size: 12.5px;
+  padding: 8px 16px;
+  font-size: 11.5px;
   font-weight: 600;
-  width: 100%;
   cursor: pointer;
   text-transform: uppercase;
   text-align: center;
-  border-radius: 6px;
+  border-radius: 5px;
   letter-spacing: 0.04em;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.1s ease;
 }
 
-.botonCancelarBrutal:hover {
-  background-color: rgba(0, 245, 212, 0.12);
-  border-color: var(--color-borde-cian);
+.botonStickyCancelar:hover {
+  background-color: rgba(255, 255, 255, 0.04);
+  color: var(--color-texto-principal);
+  border-color: var(--color-texto-secundario);
+}
+
+/* TOOLTIP FLOTANTE PREMIUM PARA PROPIEDADES Y MAESTRÍAS */
+.tooltipContenedor {
+  position: relative;
+  display: inline-flex;
+  flex-direction: column;
+}
+
+.tooltipFlotante {
+  display: none;
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  min-width: 220px;
+  max-width: 300px;
+  padding: 10px 12px;
+  background: rgba(12, 17, 28, 0.95);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(0, 245, 212, 0.3);
+  border-radius: 8px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.55), 0 0 12px rgba(0, 245, 212, 0.08);
+  z-index: 9999;
+  pointer-events: none;
+  animation: tooltipFadeIn 0.15s ease-out;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* Flecha inferior del tooltip */
+.tooltipFlotante::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 6px;
+  border-style: solid;
+  border-color: rgba(0, 245, 212, 0.3) transparent transparent transparent;
+}
+
+.tooltipContenedor:hover > .tooltipFlotante {
+  display: flex;
+}
+
+.tooltipTitulo {
+  font-size: 11px;
+  font-weight: 700;
   color: var(--color-borde-cian);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding-bottom: 4px;
+  margin-bottom: 2px;
+}
+
+.tooltipTexto {
+  font-size: 11.5px;
+  line-height: 1.45;
+  color: rgba(255, 255, 255, 0.85);
+  font-weight: 400;
+}
+
+/* Variante para maestría: aparece debajo del select */
+.tooltipMaestria {
+  bottom: auto;
+  top: calc(100% + 8px);
+}
+
+.tooltipMaestria::after {
+  top: auto;
+  bottom: 100%;
+  border-color: transparent transparent rgba(0, 245, 212, 0.3) transparent;
+}
+
+@keyframes tooltipFadeIn {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+.textoListaVacia {
+  font-size: 12.5px;
+  color: var(--color-texto-secundario);
+  text-align: center;
 }

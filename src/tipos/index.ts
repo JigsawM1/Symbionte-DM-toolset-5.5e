@@ -145,57 +145,56 @@ export interface HechizoBase {
   tipoDaño?: string;
 }
 
-export type RarezaObjeto =
-  | "Común"
-  | "Poco Común"
-  | "Raro"
-  | "Muy Raro"
-  | "Legendario"
-  | "Artefacto"
-  | string;
+export type Rareza = 'Común' | 'Poco Común' | 'Raro' | 'Muy Raro' | 'Legendario' | 'Artefacto';
 
-export type CategoriaObjeto =
-  | "Arma"
-  | "Armadura"
-  | "Poción"
-  | "Anillo"
-  | "Bastón"
-  | "Cetro"
-  | "Varita"
-  | "Pergamino"
-  | "Objeto Maravilloso"
-  | string;
-
-export type UnidadCosto =
-  | "PC"
-  | "PP"
-  | "PE"
-  | "PO"
-  | "PPT"
-  | string;
-
-export interface ObjetoHomebrew {
+export interface ObjetoBase {
   id: string;
   nombre: string;
-  rareza: RarezaObjeto;
-  propiedades: string;
   descripcion: string;
-  
-  // Nuevos campos estructurados
-  categoria?: CategoriaObjeto;
-  costoValor?: number;
-  costoUnidad?: UnidadCosto;
-  peso?: string;
-  tipoArma?: string;
-  estiloAtaque?: string;
-  alcance?: string;
-  propiedadesArma?: string[]; // Sutil, Versátil, etc.
-  dadosDaño?: string;
-  tipoDaño?: string;
-  bonoAtaque?: string;
-  bonoDaño?: string;
-  bonosMagicos?: { categoria: string; bono: string; valor: number }[];
+  pesoLb: number;
+  valorPO: number;
+  rareza: Rareza;
+  esMagico: boolean; 
+  bonosMagicos?: { categoria: string; bono: string; valor: number }[]; // Mantener compatibilidad con bonos dinámicos
+  propiedades?: string | string[]; // Cambiado a string | string[] para compatibilidad de herencia con Arma
 }
+
+// --- 1. ARMAS ---
+export interface Arma extends ObjetoBase {
+  tipoPrincipal: 'Arma';
+  subcategoria: 'Sencilla' | 'Marcial' | 'De Fuego';
+  tipoAtaque: 'Cuerpo a Cuerpo' | 'A Distancia';
+  dadoDano: string;
+  tipoDano: string;
+  propiedades: string[]; // Propiedades como array (pills/chips)
+  maestria: string;
+  alcanceNormal?: number;
+  alcanceLargo?: number;
+}
+
+// --- 2. ARMADURAS ---
+export type TipoBonoDestreza = 'Completo' | 'Máximo 2' | 'Sin Bono';
+export interface Armadura extends ObjetoBase {
+  tipoPrincipal: 'Armadura';
+  subcategoria: 'Ligera' | 'Mediana' | 'Pesada' | 'Escudo';
+  caBase: number;
+  requisitoFuerza?: number;
+  desventajaSigilo: boolean;
+  bonoDestreza: TipoBonoDestreza;
+}
+
+// --- 3. EQUIPO DE AVENTURAS ---
+export type SubcategoriaEquipo = 'Consumible' | 'Munición' | 'Herramienta' | 'Instrumento' | 'Paquete' | 'Maravilloso'; 
+export interface EquipoAventuras extends ObjetoBase {
+  tipoPrincipal: 'Equipo de Aventuras';
+  subcategoria: SubcategoriaEquipo;
+  cantidad?: number;
+  sintonizacionRequerida?: boolean;
+  cargas?: number;
+}
+
+export type ObjetoJuego = Arma | Armadura | EquipoAventuras;
+export type ObjetoHomebrew = ObjetoJuego;
 
 export interface CondicionDnd {
   nombre: string;

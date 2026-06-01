@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { TABLAS_CRITICOS_55E } from "../../utiles/tablasCriticos";
 import { MessageSquare } from "lucide-react";
+import { ts } from "../../utiles/TaleSpireAdapter";
 import estilosClases from "./ConsolaCriticosPifias.module.css";
 
 export const ConsolaCriticosPifias: React.FC = () => {
@@ -53,8 +54,7 @@ export const ConsolaCriticosPifias: React.FC = () => {
     // Inyección automática al chat nativo de TaleSpire
     const mensajeFormateado = efectoStr;
 
-    const ts = window.TS;
-    if (ts && ts.chat && typeof ts.chat.send === "function") {
+    if (ts.estaDisponible) {
       try {
         await ts.chat.send(mensajeFormateado);
         console.log("[TaleSpire Chat] Mensaje de consola enviado con éxito automáticamente al tirar.");
@@ -80,8 +80,7 @@ export const ConsolaCriticosPifias: React.FC = () => {
     
     const mensajeFormateado = resultadoConsola.resultado;
 
-    const ts = window.TS;
-    if (ts && ts.chat && typeof ts.chat.send === "function") {
+    if (ts.estaDisponible) {
       try {
         await ts.chat.send(mensajeFormateado);
         console.log("[TaleSpire Chat] Mensaje de consola enviado con éxito.");

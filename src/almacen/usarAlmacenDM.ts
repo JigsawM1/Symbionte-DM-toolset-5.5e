@@ -12,7 +12,9 @@ export * from "./persistencia";
 export interface EfectoActivo {
   id: string;
   nombre: string;
-  duracion: number; // en rondas
+  expiraRonda?: number;   // Ronda en que el efecto expira automáticamente
+  concentracion?: boolean; // Si es un efecto de concentración
+  duracion?: number;      // Para compatibilidad con efectos antiguos
 }
 
 export interface CriaturaIniciativa {
@@ -60,6 +62,7 @@ const CLAVES_PERSISTIBLES: (keyof EstadoDM)[] = [
   "colaIniciativa",
   "indiceTurnoActivo",
   "rondaActual",
+  "asociacionesFichas",
   "baseDatosMonstruos",
   "baseDatosHechizos",
   "objetosHomebrew",

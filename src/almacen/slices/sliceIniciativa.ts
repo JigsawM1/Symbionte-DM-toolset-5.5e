@@ -1,7 +1,8 @@
 import { StateCreator } from 'zustand';
-import { CriaturaIniciativa, EfectoActivo } from '../usarAlmacenDM';
+import { CriaturaIniciativa, EfectoActivo, MonstruoBase } from '../usarAlmacenDM';
 import { calcularVidaPorDados } from '../sanitizacion';
 import type { EstadoDM } from '../usarAlmacenDM';
+import { ts } from '../../utiles/TaleSpireAdapter';
 
 export interface CriaturaSeleccionadaTS {
   id: string;
@@ -24,6 +25,7 @@ export interface SliceIniciativa {
   rondaActual: number;
   tipoTirada: "desventaja" | "plano" | "ventaja";
   criaturasSeleccionadas: CriaturaSeleccionadaTS[];
+  asociacionesFichas: Record<string, string>;
 
   avanzarRonda: () => void;
   retrocederRonda: () => void;
@@ -46,7 +48,7 @@ export interface SliceIniciativa {
   modificarVidaCriaturaIniciativa: (id: string, nuevaVida: number) => void;
   agregarCondicionACriatura: (id: string, condicion: string) => void;
   quitarCondicionDeCriatura: (id: string, condicion: string) => void;
-  agregarEfectoACriatura: (idCriatura: string, nombreEfecto: string, duracion: number) => void;
+  agregarEfectoACriatura: (idCriatura: string, nombreEfecto: string, duracion: number, opciones?: { concentracion?: boolean }) => void;
   quitarEfectoDeCriatura: (idCriatura: string, idEfecto: string) => void;
   asociarPlantillaACriatura: (idCriatura: string, idPlantilla: string) => void;
   actualizarVidaTemporal: (idCriatura: string, vidaTemp: number) => void;
@@ -69,12 +71,22 @@ export const crearSliceIniciativa: StateCreator<
   rondaActual: 1,
   tipoTirada: "plano" as const,
   criaturasSeleccionadas: [],
+  asociacionesFichas: {},
 
   establecerTipoTirada: (tipo) => set({ tipoTirada: tipo }),
 
   avanzarRonda: () => set((state) => {
     const nuevaRonda = state.rondaActual + 1;
-    return { rondaActual: nuevaRonda };
+    const nuevaCola = state.colaIniciativa.map((c) => {
+      if (!c.efectos || c.efectos.length === 0) return c;
+      const efectosActualizados = c.efectos.filter((ef) => {
+        if (ef.duracion !== undefined && ef.expiraRonda === undefined) return false;
+        if (ef.expiraRonda !== undefined && nuevaRonda >= ef.expiraRonda) return false;
+        return true;
+      });
+      return { ...c, efectos: efectosActualizados };
+    });
+    return { rondaActual: nuevaRonda, colaIniciativa: nuevaCola };
   }),
   
   retrocederRonda: () => set((state) => {
@@ -91,22 +103,16 @@ export const crearSliceIniciativa: StateCreator<
       nuevaRonda = state.rondaActual + 1;
     }
 
-    // Decrementar duración de los efectos activos para la criatura que recibe el turno activo
-    const nuevaCola = state.colaIniciativa.map((c, idx) => {
-      if (idx === nuevoIndice && c.efectos && c.efectos.length > 0) {
-        const efectosActualizados = c.efectos
-          .map((ef) => ({ ...ef, duracion: ef.duracion - 1 }))
-          .filter((ef) => ef.duracion > 0);
+    let nuevaCola = state.colaIniciativa;
+    if (nuevaRonda > state.rondaActual) {
+      nuevaCola = state.colaIniciativa.map((c) => {
+        if (!c.efectos || c.efectos.length === 0) return c;
+        const efectosActualizados = c.efectos.filter((ef) => {
+          if (ef.duracion !== undefined && ef.expiraRonda === undefined) return false;
+          if (ef.expiraRonda !== undefined && nuevaRonda >= ef.expiraRonda) return false;
+          return true;
+        });
         return { ...c, efectos: efectosActualizados };
-      }
-      return c;
-    });
-
-    // Invocar asíncronamente a la API nativa de TaleSpire para avanzar el turno físico
-    const ts = window.TS;
-    if (ts && ts.initiative && typeof ts.initiative.nextTurn === "function") {
-      ts.initiative.nextTurn().catch((e: unknown) => {
-        console.error("[Combat Tracker] Error al avanzar turno nativo en TaleSpire:", e);
       });
     }
 
@@ -120,14 +126,6 @@ export const crearSliceIniciativa: StateCreator<
     if (nuevoIndice < 0) {
       nuevoIndice = state.colaIniciativa.length - 1;
       nuevaRonda = Math.max(1, state.rondaActual - 1);
-    }
-
-    // Invocar asíncronamente a la API nativa de TaleSpire para retroceder el turno físico
-    const ts = window.TS;
-    if (ts && ts.initiative && typeof ts.initiative.prevTurn === "function") {
-      ts.initiative.prevTurn().catch((e: unknown) => {
-        console.error("[Combat Tracker] Error al retroceder turno nativo en TaleSpire:", e);
-      });
     }
 
     return { indiceTurnoActivo: nuevoIndice, rondaActual: nuevaRonda };
@@ -168,32 +166,88 @@ export const crearSliceIniciativa: StateCreator<
     const colaFiltradaTS = normalizarColaTaleSpire(colaTS);
     const criaturasLocales = state.colaIniciativa.filter((c) => c.id.startsWith("c_local_"));
 
+    const mapaPlantillas = new Map<string, MonstruoBase>();
+    state.baseDatosMonstruos.forEach((m) => {
+      mapaPlantillas.set(m.nombre.toLowerCase().trim(), m);
+    });
+
     const nuevasCriaturasNativas = colaFiltradaTS.map((cTS) => {
       const existente = state.colaIniciativa.find((c) => c.id === cTS.id);
-      const nombreTS = cTS.name.toLowerCase().trim();
-      const nombreTSBase = nombreTS
-        .replace(/\s+\d+$/g, "")
-        .replace(/\s+#[a-zA-Z0-9]+$/g, "")
-        .replace(/\s+[a-zA-Z]$/g, "")
-        .trim();
-
-      const plantillaMonstruo = state.baseDatosMonstruos.find((m) => {
-        const nombrePlantilla = m.nombre.toLowerCase().trim();
-        return (
-          nombreTS === nombrePlantilla ||
-          nombreTSBase === nombrePlantilla ||
-          nombreTS.startsWith(nombrePlantilla) ||
-          nombreTSBase.startsWith(nombrePlantilla)
-        );
-      });
+      const iniciativaFisica = cTS.initiative !== undefined ? cTS.initiative : (existente ? existente.iniciativa : 1);
 
       if (existente) {
-        const iniciativaFisica = cTS.initiative !== undefined ? cTS.initiative : existente.iniciativa;
+        // 1. Priorizar siempre idPlantillaAsociada (evita búsquedas redundantes)
+        if (existente.idPlantillaAsociada) {
+          return {
+            ...existente,
+            iniciativa: iniciativaFisica
+          };
+        }
+
+        // 1.b. Buscar en la caché de asociaciones persistentes
+        const idPlantillaCached = state.asociacionesFichas[cTS.id];
+        let plantillaMonstruo = idPlantillaCached 
+          ? state.baseDatosMonstruos.find((m) => m.id === idPlantillaCached)
+          : undefined;
+
+        if (plantillaMonstruo) {
+          return {
+            ...existente,
+            iniciativa: iniciativaFisica,
+            idPlantillaAsociada: plantillaMonstruo.id
+          };
+        }
+
+        // 2. Fallback temporal por nombre si no tiene idPlantillaAsociada ni en caché
+        const nombreTS = cTS.name.toLowerCase().trim();
+        const nombreTSBase = nombreTS
+          .replace(/\s+\d+$/g, "")
+          .replace(/\s+#[a-zA-Z0-9]+$/g, "")
+          .replace(/\s+[a-zA-Z]$/g, "")
+          .trim();
+
+        plantillaMonstruo = mapaPlantillas.get(nombreTS) || mapaPlantillas.get(nombreTSBase);
+        if (!plantillaMonstruo) {
+          plantillaMonstruo = state.baseDatosMonstruos.find((m) => {
+            const nombrePlantilla = m.nombre.toLowerCase().trim();
+            return (
+              nombreTS.startsWith(nombrePlantilla) ||
+              nombreTSBase.startsWith(nombrePlantilla)
+            );
+          });
+        }
+
         return {
           ...existente,
           iniciativa: iniciativaFisica,
-          idPlantillaAsociada: existente.idPlantillaAsociada || (plantillaMonstruo ? plantillaMonstruo.id : undefined)
+          idPlantillaAsociada: plantillaMonstruo ? plantillaMonstruo.id : undefined
         };
+      }
+
+      // Criatura nueva que viene de TaleSpire
+      const idPlantillaCached = state.asociacionesFichas[cTS.id];
+      let plantillaMonstruo = idPlantillaCached 
+        ? state.baseDatosMonstruos.find((m) => m.id === idPlantillaCached)
+        : undefined;
+
+      if (!plantillaMonstruo) {
+        const nombreTS = cTS.name.toLowerCase().trim();
+        const nombreTSBase = nombreTS
+          .replace(/\s+\d+$/g, "")
+          .replace(/\s+#[a-zA-Z0-9]+$/g, "")
+          .replace(/\s+[a-zA-Z]$/g, "")
+          .trim();
+
+        plantillaMonstruo = mapaPlantillas.get(nombreTS) || mapaPlantillas.get(nombreTSBase);
+        if (!plantillaMonstruo) {
+          plantillaMonstruo = state.baseDatosMonstruos.find((m) => {
+            const nombrePlantilla = m.nombre.toLowerCase().trim();
+            return (
+              nombreTS.startsWith(nombrePlantilla) ||
+              nombreTSBase.startsWith(nombrePlantilla)
+            );
+          });
+        }
       }
 
       let vidaMaxCalculada = 10;
@@ -217,7 +271,7 @@ export const crearSliceIniciativa: StateCreator<
       return {
         id: cTS.id,
         nombre: cTS.name,
-        iniciativa: cTS.initiative !== undefined ? cTS.initiative : 1,
+        iniciativa: iniciativaFisica,
         vidaMaxima: vidaMaxCalculada,
         vidaActual: vidaActCalculada,
         ca: plantillaMonstruo ? plantillaMonstruo.ca : 10,
@@ -230,7 +284,7 @@ export const crearSliceIniciativa: StateCreator<
       } as CriaturaIniciativa;
     });
 
-    const colaCombinada = [...criaturasLocales, ...nuevasCriaturasNativas];
+    let colaCombinada = [...criaturasLocales, ...nuevasCriaturasNativas];
     colaCombinada.sort((a, b) => b.iniciativa - a.iniciativa);
 
     let nuevoIndice = state.indiceTurnoActivo;
@@ -292,6 +346,18 @@ export const crearSliceIniciativa: StateCreator<
       }
     }
 
+    if (nuevaRonda > state.rondaActual) {
+      colaCombinada = colaCombinada.map((c) => {
+        if (!c.efectos || c.efectos.length === 0) return c;
+        const efectosActualizados = c.efectos.filter((ef) => {
+          if (ef.duracion !== undefined && ef.expiraRonda === undefined) return false;
+          if (ef.expiraRonda !== undefined && nuevaRonda >= ef.expiraRonda) return false;
+          return true;
+        });
+        return { ...c, efectos: efectosActualizados };
+      });
+    }
+
     return {
       colaIniciativa: colaCombinada,
       indiceTurnoActivo: nuevoIndice,
@@ -300,8 +366,7 @@ export const crearSliceIniciativa: StateCreator<
   }),
 
   importarIniciativaTaleSpire: async () => {
-    const ts = window.TS;
-    if (ts && ts.initiative && typeof ts.initiative.getQueue === "function") {
+    if (ts.estaDisponible) {
       try {
         console.log("[Combat Tracker] Importando cola de iniciativa nativa desde TaleSpire...");
         const queue = await ts.initiative.getQueue();
@@ -394,14 +459,18 @@ export const crearSliceIniciativa: StateCreator<
     return { colaIniciativa: nuevaCola };
   }),
 
-  agregarEfectoACriatura: (idCriatura, nombreEfecto, duracion) => set((state) => {
+  agregarEfectoACriatura: (idCriatura, nombreEfecto, duracion, opciones) => set((state) => {
     const nuevaCola = state.colaIniciativa.map((c) => {
       if (c.id === idCriatura) {
         const nuevosEfectos = c.efectos ? [...c.efectos] : [];
+        const esConcentracion = opciones?.concentracion || 
+                               nombreEfecto.toLowerCase().trim() === "concentración" || 
+                               nombreEfecto.toLowerCase().trim() === "concentracion";
         const nuevoEfecto: EfectoActivo = {
           id: `${nombreEfecto.toLowerCase().replace(/[^a-z0-9]/g, "_")}_${Date.now()}_${Math.random().toString(36).substring(2, 5)}`,
           nombre: nombreEfecto,
-          duracion: duracion
+          expiraRonda: esConcentracion ? undefined : state.rondaActual + duracion,
+          concentracion: esConcentracion || undefined
         };
         return { ...c, efectos: [...nuevosEfectos, nuevoEfecto] };
       }
@@ -446,7 +515,16 @@ export const crearSliceIniciativa: StateCreator<
       }
       return c;
     });
-    return { colaIniciativa: nuevaCola };
+
+    const nuevasAsociaciones = {
+      ...state.asociacionesFichas,
+      [idCriatura]: idPlantilla
+    };
+
+    return { 
+      colaIniciativa: nuevaCola,
+      asociacionesFichas: nuevasAsociaciones
+    };
   }),
 
   actualizarVidaTemporal: (idCriatura, vidaTemp) => set((state) => {
@@ -489,6 +567,11 @@ export const crearSliceIniciativa: StateCreator<
 
     const nuevasCriaturas: CriaturaIniciativa[] = [];
 
+    const mapaPlantillas = new Map<string, MonstruoBase>();
+    state.baseDatosMonstruos.forEach((m) => {
+      mapaPlantillas.set(m.nombre.toLowerCase().trim(), m);
+    });
+
     state.criaturasSeleccionadas.forEach((cTS) => {
       if (state.colaIniciativa.some((c) => c.id === cTS.id)) return;
 
@@ -499,15 +582,24 @@ export const crearSliceIniciativa: StateCreator<
         .replace(/\s+[a-zA-Z]$/g, "")
         .trim();
 
-      const plantillaMonstruo = state.baseDatosMonstruos.find((m) => {
-        const nombrePlantilla = m.nombre.toLowerCase().trim();
-        return (
-          nombreTS === nombrePlantilla ||
-          nombreTSBase === nombrePlantilla ||
-          nombreTS.startsWith(nombrePlantilla) ||
-          nombreTSBase.startsWith(nombrePlantilla)
-        );
-      });
+      const idPlantillaCached = state.asociacionesFichas[cTS.id];
+      let plantillaMonstruo = idPlantillaCached 
+        ? state.baseDatosMonstruos.find((m) => m.id === idPlantillaCached)
+        : undefined;
+
+      if (!plantillaMonstruo) {
+        let plantillaPorNombre = mapaPlantillas.get(nombreTS) || mapaPlantillas.get(nombreTSBase);
+        if (!plantillaPorNombre) {
+          plantillaPorNombre = state.baseDatosMonstruos.find((m) => {
+            const nombrePlantilla = m.nombre.toLowerCase().trim();
+            return (
+              nombreTS.startsWith(nombrePlantilla) ||
+              nombreTSBase.startsWith(nombrePlantilla)
+            );
+          });
+        }
+        plantillaMonstruo = plantillaPorNombre;
+      }
 
       let vidaMaxCalculada = 10;
       let vidaActCalculada = 10;

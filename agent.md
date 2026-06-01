@@ -112,11 +112,55 @@ Este archivo sirve como bitácora de aprendizaje técnico y memoria permanente p
 *   **API clients y roles**:
     *   Para saber si el usuario actual es GM se debe invocar a `clients.whoAmI()` el cual indica `isGm` y `playerRole`.
 *   **API chat**:
-    *   El método nativo `chat.send(mensaje)` NO acepta un segundo parámetro `target`.
+    *   ⚠️ **CRÍTICO**: Aunque la API v0.1 documenta `chat.send(mensaje)` con un solo parámetro, la versión real de TaleSpire **REQUIERE** un segundo parámetro `"board"` para que el mensaje se muestre en el chat: `chat.send(mensaje, "board")`. Sin este segundo parámetro, el mensaje se envía pero **NO se representa visualmente** en el chat.
     *   Para enviar a targets específicos se usa `chat.multiSend(mensaje, targets[])`.
 *   **API System Clipboard**:
     *   TaleSpire expone el portapapeles oficialmente en `window.TS.system.clipboard.setText(text)` en lugar de `clipboard.copyText(text)`.
 *   **API localStorage**:
-    *   Aunque en la práctica `localStorage.global.setBlob(string)` funciona por debajo, la firma oficial requiere dos argumentos `(key, data)`. Adoptamos el patrón de usar una clave para respetar la interfaz documentada ante futuros parches estrictos.
+    *   ⚠️ **CRÍTICO**: La firma REAL de `localStorage.global` es **SIN clave**:
+        *   `setBlob(data: string)` — UN solo parámetro (el data string)
+        *   `getBlob()` — SIN parámetros
+        *   `deleteBlob()` — SIN parámetros
+    *   **NO pasar una clave como primer argumento**. TaleSpire usa un blob único por simbionte. El paso de clave rompe la persistencia silenciosamente.
+    *   La API v0.1 documentada sugiere `(key, data)` pero la implementación real NO lo soporta. **Siempre confiar en la firma probada en producción, no en la documentación teórica.**
 *   **API initiative**:
     *   `nextTurn` y `prevTurn` **NO figuran documentados oficialmente** en la API v0.1, aunque están presentes en algunas versiones. Se mantienen protegidas por `typeof === "function"`.
+
+---
+
+## 🔄 9. Ciclo de Refactorización: Efectos, Caché y Adapter (Junio 2026)
+
+### Sistema de Expiración por Ronda
+*   **Cambio fundamental**: Los efectos ya NO decrementan duración por turno. Ahora usan `expiraRonda?: number` como entero absoluto.
+*   Se calcula al agregar: `expiraRonda = rondaActual + duracionEnRondas`.
+*   Expira cuando `rondaActual >= expiraRonda`.
+*   **Ventaja**: Funciona independientemente del orden de iniciativa y no requiere decrementos manuales.
+
+### Migración de Datos Persistidos
+*   **Error potencial**: Al cambiar `EfectoActivo` (de `duracion: number` a `expiraRonda?: number`), los datos ya en localStorage carecen del nuevo campo.
+*   **Solución adoptada**: Los efectos antiguos sin `expiraRonda` se filtran (expiran) inmediatamente en el siguiente `avanzarTurno`.
+*   **Lección**: Siempre considerar la migración de datos al modificar interfaces de estado persistido.
+
+### Caché de Plantillas con Mapas O(1)
+*   `cachePlantillas.ts` pre-indexa la base de monstruos con Mapas `porId` y `porNombre` (normalizado).
+*   Las búsquedas pasan de `O(N)` a `O(1)`.
+*   **Priorización de ID y Fallback Temporal (Fase 3)**:
+    *   Al sincronizar con TaleSpire (`actualizarColaIniciativaDesdeTaleSpire`), si la criatura ya tiene `idPlantillaAsociada`, se prioriza y **se evita por completo la búsqueda textual de plantilla**.
+    *   Si no tiene `idPlantillaAsociada`, se usa la coincidencia de nombre (fallback) solo la primera vez, y se guarda la ID resultante permanentemente en la criatura para futuras actualizaciones.
+    *   Esto elimina por completo las costosas búsquedas O(N) textuales repetitivas en cada ciclo de sincronización nativo.
+
+### TaleSpireAdapter como Capa de Abstracción
+*   Todos los accesos a `window.TS` centralizados en `src/utiles/TaleSpireAdapter.ts`.
+*   Incluye debounce de 100ms para `initiative.getQueue()` (compartir la misma Promise evita race conditions).
+*   Contiene guardas de nulidad para desarrollo local (fuera de TaleSpire).
+*   **Regla**: **Nunca** acceder a `window.TS` directamente fuera del adapter.
+
+### Errores de Build Comunes
+*   **`const` vs `let`**: Declarar con `const` una variable que se reasigna después (ej.: `colaCombinada`). TypeScript lo detecta en build.
+*   **Imports rotos tras renombrar tipos**: Siempre hacer `grep` global del nombre antiguo antes de confirmar la migración.
+*   **Checklist Pre-Build**:
+    1.  Buscar `window.TS` fuera de `TaleSpireAdapter.ts` → Debería dar 0 resultados.
+    2.  Buscar tipos renombrados/eliminados con `grep`.
+    3.  Verificar `const` vs `let` en variables reasignadas.
+    4.  `pnpm run build` sin errores.
+    5.  `node deploy_to_ts.js` exitoso.

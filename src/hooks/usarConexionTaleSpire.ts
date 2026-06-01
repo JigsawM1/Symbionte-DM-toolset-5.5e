@@ -1,6 +1,19 @@
+/**
+ * usarConexionTaleSpire.ts
+ * -------------------------
+ * Hook de React para gestionar la conexión del Simbiote con TaleSpire.
+ *
+ * Utiliza el TaleSpireAdapter centralizado para suscribirse de forma segura
+ * a los eventos físicos del tablero (selección de minis, cola de iniciativa)
+ * y cargar datos de campaña y rol de DM de forma síncrona/segura.
+ *
+ * Programado 100% en español.
+ */
+
 import { useEffect } from "react";
 import { usarAlmacenDM } from "../almacen/usarAlmacenDM";
 import { inicializarSimulador } from "../utiles/SimuladorTaleSpire";
+import { ts } from "../utiles/TaleSpireAdapter";
 
 export function usarConexionTaleSpire() {
   const {
@@ -16,28 +29,24 @@ export function usarConexionTaleSpire() {
     let activo = true;
 
     const suscribirAPIs = () => {
-      if (!window.TS) return false;
+      if (!ts.estaDisponible) return false;
 
       console.log("[TaleSpire Simbionte] Conectando escuchas y suscripciones de eventos de mesa...");
       
       try {
-        const apiCreatures = window.TS.creatures;
-        const apiInitiative = window.TS.initiative;
+        // Suscribirse a la selección de criaturas
+        suscripcionSeleccion = ts.creatures.suscribirASeleccion((seleccion) => {
+          if (activo) {
+            actualizarSeleccionCriaturas((seleccion || []) as import("../almacen/slices/sliceIniciativa").CriaturaSeleccionadaTS[]);
+          }
+        });
 
-        // Conservar las suscripciones inline activas tanto para compatibilidad del simulador local como para redundancia
-        if (apiCreatures?.onCreatureSelectionChange) {
-          suscripcionSeleccion = apiCreatures.onCreatureSelectionChange.subscribe((seleccion) => {
-            if (activo) actualizarSeleccionCriaturas((seleccion || []) as import("../almacen/slices/sliceIniciativa").CriaturaSeleccionadaTS[]);
-          });
-        }
-
-        if (apiInitiative?.onInitiativeEvent) {
-          suscripcionIniciativa = apiInitiative.onInitiativeEvent.subscribe(() => {
-            if (activo && typeof window.manejarEventoIniciativa === "function") {
-              window.manejarEventoIniciativa();
-            }
-          });
-        }
+        // Suscribirse al evento de iniciativa nativo
+        suscripcionIniciativa = ts.initiative.suscribirAEvento(() => {
+          if (activo && typeof window.manejarEventoIniciativa === "function") {
+            window.manejarEventoIniciativa();
+          }
+        });
 
         // ⚠️ IMPORTANTE: Las llamadas "get" iniciales y la carga del blob nativo se retardan 500ms para que el canal
         // de mensajería del Simbionte quede completamente registrado antes de enviar mensajes.
@@ -50,52 +59,47 @@ export function usarConexionTaleSpire() {
           cargarDatosPersistidos();
 
           // Obtener la selección inicial física del tablero
-          if (apiCreatures?.getSelectedCreatures) {
-            apiCreatures.getSelectedCreatures()
-              .then((seleccionInicial) => {
-                if (activo) actualizarSeleccionCriaturas((seleccionInicial || []) as import("../almacen/slices/sliceIniciativa").CriaturaSeleccionadaTS[]);
-              })
-              .catch((e: unknown) => {
-                console.warn("[TaleSpire Simbionte] Error al obtener selección inicial:", e);
-              });
-          }
+          ts.creatures.getSelectedCreatures()
+            .then((seleccionInicial) => {
+              if (activo) {
+                actualizarSeleccionCriaturas((seleccionInicial || []) as import("../almacen/slices/sliceIniciativa").CriaturaSeleccionadaTS[]);
+              }
+            })
+            .catch((e: unknown) => {
+              console.warn("[TaleSpire Simbionte] Error al obtener selección inicial:", e);
+            });
 
-          // Obtener la cola inicial física del tablero
-          if (apiInitiative?.getQueue) {
-            apiInitiative.getQueue()
-              .then((colaInicial) => {
-                if (activo) actualizarColaIniciativaDesdeTaleSpire(colaInicial || []);
-              })
-              .catch((e: unknown) => {
-                console.warn("[TaleSpire Simbionte] Error al obtener cola de iniciativa inicial:", e);
-              });
-          }
+          // Obtener la cola inicial física del tablero (Deduplicada por el Adaptador)
+          ts.initiative.getQueue()
+            .then((colaInicial) => {
+              if (activo) {
+                actualizarColaIniciativaDesdeTaleSpire(colaInicial || []);
+              }
+            })
+            .catch((e: unknown) => {
+              console.warn("[TaleSpire Simbionte] Error al obtener cola de iniciativa inicial:", e);
+            });
 
-          // Obtener la campaña y si es DM (nuevo endpoint para rol)
-          if (window.TS?.campaigns?.getMoreInfoAboutCurrentCampaign) {
-            window.TS.campaigns.getMoreInfoAboutCurrentCampaign()
-              .then((campaignInfo) => {
-                const nombreCampaña = campaignInfo?.name || "Campaña Desconocida";
-                
-                // Revisar el rol del cliente (si es DM o no)
-                if (window.TS?.clients?.whoAmI) {
-                   window.TS.clients.whoAmI().then((yo: any) => {
-                       const soyGm = !!yo?.isGm || yo?.playerRole === "GM";
-                       if (activo) {
-                          establecerDatosCampaña(nombreCampaña, soyGm);
-                       }
-                   }).catch((e: unknown) => {
-                       console.warn("[TaleSpire Simbionte] Error al obtener info del cliente (DM):", e);
-                       if (activo) establecerDatosCampaña(nombreCampaña, false);
-                   });
-                } else {
-                   if (activo) establecerDatosCampaña(nombreCampaña, false);
-                }
-              })
-              .catch((e: unknown) => {
-                console.warn("[TaleSpire Simbionte] Error al obtener datos de campaña:", e);
-              });
-          }
+          // Obtener la campaña y si es DM
+          ts.campaigns.getMoreInfoAboutCurrentCampaign()
+            .then((campaignInfo) => {
+              const nombreCampaña = campaignInfo?.name || "Campaña Desconocida";
+              
+              // Revisar el rol del cliente (si es DM o no)
+              ts.clients.esGM()
+                .then((soyGm) => {
+                  if (activo) {
+                    establecerDatosCampaña(nombreCampaña, soyGm);
+                  }
+                })
+                .catch((e: unknown) => {
+                  console.warn("[TaleSpire Simbionte] Error al obtener info del cliente (DM):", e);
+                  if (activo) establecerDatosCampaña(nombreCampaña, false);
+                });
+            })
+            .catch((e: unknown) => {
+              console.warn("[TaleSpire Simbionte] Error al obtener datos de campaña:", e);
+            });
         }, 500);
 
         return true;

@@ -1201,3 +1201,58 @@ if (Array.isArray(descField)) {
 
 **Lección aprendida:**
 > 🔀 **Nunca uses `||` para seleccionar un campo del que dependes del tipo.** El operador `||` elige el primer valor **truthy**, ignorando el tipo. Si necesitas elegir entre varios campos con semántica de "el primero que exista" y luego operar según su tipo, usa `!== undefined` con ternarios encadenados. Esto garantiza que el campo elegido sea exactamente el que se comprobó en el `if`.
+
+---
+
+## [2026-06-01] CRÍTICO: Firma real de la API de Persistencia de TaleSpire y Unificación de Mensajes del Chat
+
+**Síntomas:**
+1. Tras una refactorización mayor, el simbionte dejó de persistir por completo sus datos de homebrew, combates y notas, reiniciando la base de datos a vacío en cada recarga.
+2. La tirada de pifias y críticos de la consola táctica de las Tablas del DM ya no aparecía en el chat general de TaleSpire de producción.
+
+**Causas raíces:**
+1. **Firma de LocalStorage de TaleSpire en producción vs Documentación:**
+   Aunque la especificación teórica e interfaces de TypeScript de la API `v0.1` de TaleSpire documentan que la llamada a persistir un blob recibe una clave y un valor, ej: `setBlob(key: string, data: string)` y `getBlob(key: string)`, **en la práctica en el cliente nativo de TaleSpire la API no acepta claves**. La firma nativa de C# en el motor de Unity es **`setBlob(data: string)`** y **`getBlob()`** (sin argumentos). Dado que cada simbionte tiene asignado su propio e único archivo de datos aislado en el juego, TaleSpire maneja un único blob implícito en el backend. Intentar pasar la clave como primer argumento a `setBlob` o `getBlob` provocaba que la llamada fallara silenciosamente o corrompiera los datos, haciendo que la persistencia se rompiera.
+2. **Exigencia estricta de canal de chat en `TS.chat.send`:**
+   En la versión original, para tiradas físicas nativas (que inician con `!`, ej. `!1d20+5`), el parser de dados de TaleSpire interceptaba el comando de forma nativa a nivel del motor en C# antes de requerir un canal. Sin embargo, para mensajes de texto plano del simbionte (como el resultado táctico de críticos/pifias), la API de TaleSpire exige estrictamente **dos parámetros de tipo string**: el mensaje como primero, y el canal como segundo (usualmente `"board"`). Omitir el canal o pasar un único parámetro hacía que el puente CEF con C# fallara con una excepción de tipos `type error: not a fragment or id` e invalidara el envío al chat en producción.
+
+**Soluciones aplicadas:**
+1. **Corrección de Persistencia Adaptativa en `TaleSpireAdapter.ts`:**
+   Reescribir el adaptador para alinearlo con la firma real del motor de TaleSpire:
+   - Guardar Blob: `window.TS.localStorage.global.setBlob(datos)` (sin parámetro de clave).
+   - Leer Blob: `window.TS.localStorage.global.getBlob()` (sin argumentos).
+   - Eliminar Blob: `window.TS.localStorage.global.deleteBlob()` (sin argumentos).
+   - Se preservó el fallback de navegador web usando `window.localStorage.setItem(clave, datos)` para desarrollo local cómodo.
+   - Ajustar la interfaz de TypeScript en `src/tipos/talespire.d.ts` para reflejar estas firmas exactas del motor físico.
+2. **Unificación y Blindado de `ts.chat.send` con Canal por Defecto:**
+   - En `TaleSpireAdapter.ts`, blindamos el método `ts.chat.send(message: string)` para inyectar automáticamente `"board"` como segundo parámetro en la llamada RPC subyacente.
+   - Esto soluciona ambos mundos de forma transparente: tanto los textos enriquecidos de críticos/pifias de la consola del DM como las tiradas físicas con el prefijo `!` ahora se publican sin errores de deserialización y con absoluta estabilidad en el canal principal.
+
+**Lecciones aprendidas:**
+> ⚠️ **La documentación oficial de TaleSpire puede diferir del comportamiento de C# nativo:** Escribe siempre envoltorios polimórficos de API y pruébalos contrastándolos contra el comportamiento real del motor de ejecución. Para la persistencia nativa con `global.setBlob`, **nunca pases una clave**; utiliza solo el argumento del blob.
+> 💬 **Fuerza siempre el canal en mensajería de simbiontes:** Para que cualquier texto enviado por tu simbionte aparezca de forma fiable y consistente en el chat, asegúrate de suministrar el canal `"board"` a través del adaptador unificado en lugar de llamarlo directamente sin argumentos desde los componentes.
+
+---
+
+## [2026-06-01] MEJORA: Caché Persistente y Robusta de Asociaciones Manuales de Plantillas (Fase 7)
+
+**Síntoma:**
+Al sincronizar la cola de iniciativa desde TaleSpire o al añadir criaturas seleccionadas físicamente en la mesa de juego, si una miniatura no tenía un nombre que coincidiera directamente con el manual de monstruos, el DM debía asociar manualmente su bloque de estadísticas cada vez. Al limpiar el combate, cambiar de asalto o reiniciar el simbionte, esa asociación se perdía por completo, requiriendo repetir el proceso de vinculación de forma repetitiva.
+
+**Causa raíz:**
+Las criaturas físicas de TaleSpire se identifican por una ID única (UUID de miniatura). Al sincronizar, el combat tracker busca plantillas por nombre normalizado (fallback). Si no encuentra coincidencia y el DM le asocia una manualmente, la relación se guardaba únicamente a nivel de memoria RAM en la propiedad temporal `idPlantillaAsociada` del combatiente activo dentro de la cola. Al reconstruirse o limpiarse la cola local de iniciativa, esta propiedad desaparecía. No existía ninguna caché persistente global a nivel de aplicación que recordara la relación `idCriaturaTaleSpire` -> `idPlantillaMonstruo` entre sesiones o limpiezas de combate.
+
+**Solución aplicada:**
+1. **Definir Caché Global de Asociaciones (`asociacionesFichas`):**
+   Añadir un diccionario `asociacionesFichas: Record<string, string>` en el estado de iniciativa de `sliceIniciativa.ts`.
+2. **Registro Manual de Asociaciones:**
+   Modificar `asociarPlantillaACriatura` para que cada vez que el DM asocie manualmente un bloque de estadísticas a un combatiente (UUID de TaleSpire), guarde esa relación de forma persistente en `asociacionesFichas[idCriatura] = idPlantilla`.
+3. **Optimización con Prioridad de Caché:**
+   Refactorizar los métodos de carga masiva `actualizarColaIniciativaDesdeTaleSpire` y `agregarCriaturasSeleccionadasAIniciativa` para que, antes de recurrir al fallback tradicional de búsqueda y coincidencia de nombres normalizados, verifiquen si la ID física de la miniatura de TaleSpire ya cuenta con una plantilla guardada en la caché `asociacionesFichas`. Si existe, se vincula y carga su bloque de estadísticas de forma instantánea.
+4. **Persistencia Total del Estado:**
+   - Añadir `"asociacionesFichas"` al array `CLAVES_PERSISTIBLES` en `usarAlmacenDM.ts`.
+   - Modificar `persistirEstadoCompleto` en `persistencia.ts` para inyectar `asociaciones_fichas` en el blob oficial de TaleSpire.
+   - Actualizar `cargarDatosPersistidos` y `restablecerDatosDeFabrica` en `sliceConfiguracion.ts` para restaurar o limpiar respectivamente la caché, asegurando que sobreviva al cierre del juego.
+
+**Lección aprendida:**
+> 💾 **Cachés de puente de red basadas en UUIDs:** Al construir integraciones con motores de juego que exponen objetos físicos en pantalla con IDs únicos persistentes (como TaleSpire), nunca te limites a guardar relaciones manuales dentro de las entidades temporales de la interfaz de usuario. Diseña cachés globales persistentes mapeando `UUID_EntidadFisica -> ID_PlantillaDeDatos`. Esto reduce drásticamente la fricción del usuario, evita búsquedas de coincidencia textual de strings pesados y provee una experiencia de usuario sumamente pulida y profesional.

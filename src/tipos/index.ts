@@ -206,4 +206,5 @@ export interface EfectoPredefinido {
   nombre: string;
   descripcion: string;
   duracionEstandar: number; // en rondas
+  esConcentracion?: boolean; // indica si es un efecto de concentración
 }

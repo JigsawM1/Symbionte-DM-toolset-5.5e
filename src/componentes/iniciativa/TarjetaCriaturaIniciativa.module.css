@@ -443,3 +443,28 @@
   color: var(--color-peligro);
   background-color: rgba(242, 92, 84, 0.1);
 }
+
+.chipEfectoConcentracion {
+  background-color: hsla(45, 80%, 10%, 0.75) !important;
+  border-color: hsl(45, 90%, 50%) !important;
+  color: hsl(45, 100%, 75%) !important;
+  box-shadow: inset 0 0 4px rgba(212, 175, 55, 0.25) !important;
+}
+
+.chipEfectoPermanente {
+  background-color: hsla(0, 0%, 15%, 0.75) !important;
+  border-color: hsla(0, 0%, 50%, 0.7) !important;
+  color: hsl(0, 0%, 85%) !important;
+}
+
+.badgeExpiracion {
+  background-color: rgba(0, 0, 0, 0.4);
+  padding: 0 4px;
+  border-radius: 2px;
+  font-size: 8.5px;
+  font-family: var(--fuente-codigo);
+  font-weight: normal;
+  margin-left: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: hsla(0, 0%, 100%, 0.85);
+}

@@ -7,9 +7,9 @@ export interface Suscribible<T> {
 }
 
 export interface TSLocalStorageBlob {
-  setBlob: (key: string, data: string) => Promise<unknown>;
-  getBlob: (key: string) => Promise<unknown>;
-  deleteBlob?: (key: string) => Promise<unknown>;
+  setBlob: (data: string) => Promise<unknown>;
+  getBlob: () => Promise<unknown>;
+  deleteBlob?: () => Promise<unknown>;
 }
 
 export interface TSLocalStorage {

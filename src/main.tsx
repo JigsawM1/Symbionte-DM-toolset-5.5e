@@ -6,10 +6,11 @@ import './index.css';
 import { procesarResultadosDadosTaleSpire } from './utiles/lanzadorDados';
 import { usarAlmacenDM } from './almacen/usarAlmacenDM.ts';
 
-// Helper para leer la cola de iniciativa física y sincronizarla en caliente
+import { ts } from './utiles/TaleSpireAdapter';
+
+// Helper para leer la cola de iniciativa física y sincronizarla en caliente (Deduplicada mediante el Adapter)
 const sincronizarColaIniciativaFisica = () => {
-  const ts = window.TS;
-  if (ts && ts.initiative && typeof ts.initiative.getQueue === "function") {
+  if (ts.estaDisponible) {
     ts.initiative.getQueue()
       .then((colaTS) => {
         console.log("[TaleSpire Callback] Cola física leída con éxito:", colaTS);

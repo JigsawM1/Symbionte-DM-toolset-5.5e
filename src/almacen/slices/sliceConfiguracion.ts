@@ -158,6 +158,7 @@ export const crearSliceConfiguracion: StateCreator<
         const ronda             = blob.ronda_actual       as number          | undefined;
         const turno             = blob.indice_turno_activo as number         | undefined;
         const metodo            = blob.metodo_vida        as "estandar" | "maximo" | "azar" | undefined;
+        const asociaciones      = blob.asociaciones_fichas as Record<string, string> | undefined;
 
         if (monstruosHomebrew && monstruosHomebrew.length > 0) {
           set(() => ({ baseDatosMonstruos: [...MONSTRUOS_INICIALES, ...monstruosHomebrew] }));
@@ -188,6 +189,9 @@ export const crearSliceConfiguracion: StateCreator<
         }
         if (metodo) {
           set({ metodoVidaMonstruo: metodo });
+        }
+        if (asociaciones) {
+          set({ asociacionesFichas: asociaciones });
         }
 
         console.log("[TS Storage] Carga completa desde blob oficial de TaleSpire.");
@@ -241,6 +245,12 @@ export const crearSliceConfiguracion: StateCreator<
         migradoAlgo = true;
       }
 
+      const asociacionesLS = obtenerDatoFragmentado<Record<string, string>>("dm_asociaciones_fichas");
+      if (asociacionesLS && Object.keys(asociacionesLS).length > 0) {
+        estadoNuevo.asociacionesFichas = asociacionesLS;
+        migradoAlgo = true;
+      }
+
       const metodoLS = localStorage.getItem("dm_metodo_vida_monstruo") as "estandar" | "maximo" | "azar" | null;
       if (metodoLS) estadoNuevo.metodoVidaMonstruo = metodoLS;
 
@@ -267,6 +277,7 @@ export const crearSliceConfiguracion: StateCreator<
         ronda_actual:        estadoFinal.rondaActual        || 1,
         indice_turno_activo: estadoFinal.indiceTurnoActivo  || 0,
         metodo_vida:         estadoFinal.metodoVidaMonstruo || "estandar",
+        asociaciones_fichas: estadoFinal.asociacionesFichas || {},
       });
 
       if (migradoAlgo) {
@@ -325,6 +336,7 @@ export const crearSliceConfiguracion: StateCreator<
       localStorage.removeItem("dm_ronda_actual");
       localStorage.removeItem("dm_indice_turno_activo");
       localStorage.removeItem("dm_metodo_vida_monstruo");
+      localStorage.removeItem("dm_asociaciones_fichas");
     } catch { /* ignorar errores de LS */ }
 
     set({ cargandoDatos: true });
@@ -333,6 +345,7 @@ export const crearSliceConfiguracion: StateCreator<
       colaIniciativa: [],
       rondaActual: 1,
       indiceTurnoActivo: 0,
+      asociacionesFichas: {},
       baseDatosMonstruos: MONSTRUOS_INICIALES,
       baseDatosHechizos: HECHIZOS_INICIALES,
       objetosHomebrew: [],

@@ -352,7 +352,7 @@ export const EFECTOS_PREDEFINIDOS: EfectoPredefinido[] = [
   { nombre: "Bendecir (Bless)", descripcion: "Añade 1d4 a las tiradas de ataque y salvaciones.", duracionEstandar: 10 },
   { nombre: "Furia (Rage)", descripcion: "Ventaja en tiradas de Fuerza, daño extra en ataques de Fuerza, resistencia a daño contundente, perforante y cortante.", duracionEstandar: 10 },
   { nombre: "Auxilio (Aid)", descripcion: "Aumenta los puntos de golpe máximos y actuales en 5 por nivel de espacio.", duracionEstandar: 800 },
-  { nombre: "Concentración", descripcion: "La criatura se está concentrando en mantener un conjuro activo.", duracionEstandar: 100 },
+  { nombre: "Concentración", descripcion: "La criatura se está concentrando en mantener un conjuro activo.", duracionEstandar: 100, esConcentracion: true },
   { nombre: "Escudo (Shield)", descripcion: "+5 a la CA y no sufre daño de Proyectil Mágico.", duracionEstandar: 1 },
   { nombre: "Heroísmo (Heroism)", descripcion: "Inmune al miedo y recibe puntos de golpe temporales al inicio de cada turno.", duracionEstandar: 10 },
   { nombre: "Inspirado (Inspiración Bárdica)", descripcion: "Puede añadir un dado de inspiración (d6/d8/d10/d12) a una tirada de d20.", duracionEstandar: 100 },

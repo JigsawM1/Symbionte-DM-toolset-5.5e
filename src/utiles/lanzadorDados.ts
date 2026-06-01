@@ -1,5 +1,6 @@
 import React from "react";
 import { usarAlmacenDM } from "../almacen/usarAlmacenDM";
+import { ts } from "./TaleSpireAdapter";
 
 /**
  * Módulo de Lanzamiento de Dados para TaleSpire (window.TS.dice)
@@ -161,13 +162,13 @@ export function crearDescriptoresManualmente(formula: string): unknown[] {
  * de TaleSpire. Es sumamente estable, nativa de fábrica y funciona en cualquier versión.
  */
 export async function lanzarDadosPorChatTaleSpire(formula: string): Promise<void> {
-  if (window.TS && window.TS.chat && typeof window.TS.chat.send === "function") {
+  if (ts.estaDisponible) {
     // TaleSpire requiere que los comandos de dados comiencen con el carácter exclamación '!'
     // Eliminamos cualquier '!' intermedio que pueda romper el parser del chat de TaleSpire
     const formulaLimpia = formula.replace(/!/g, "");
     const comandoChat = `!${formulaLimpia}`;
     console.log(`[Lanzador Dados (Chat)] Enviando comando de tirada física al chat: "${comandoChat}"`);
-    await window.TS.chat.send(comandoChat);
+    await ts.chat.send(comandoChat);
   } else {
     throw new Error("La API de chat de TaleSpire tampoco está disponible.");
   }
@@ -255,15 +256,10 @@ export async function lanzarDadosTaleSpire(
   console.log(`[Lanzador Dados] Preparando tirada: "${nombreEtiqueta}" con fórmula: "${formulaLimpia}" (Tipo original: ${tipoTirada})`);
 
   // 1. Validamos si la API nativa de TaleSpire y su módulo de dados están disponibles
-  if (window.TS && window.TS.dice) {
+  if (ts.estaDisponible) {
     try {
-      const diceApi = window.TS.dice;
-
       // Intentamos validar la cadena si el motor lo soporta
-      let esValido = true;
-      if (typeof diceApi.isValidRollString === "function") {
-        esValido = diceApi.isValidRollString(formulaLimpia);
-      }
+      const esValido = ts.dice.isValidRollString(formulaLimpia);
 
       if (!esValido) {
         console.warn(`[Lanzador Dados] La fórmula "${formulaLimpia}" no es válida según TaleSpire. Intentando de todos modos...`);
@@ -271,14 +267,7 @@ export async function lanzarDadosTaleSpire(
 
       // Convertimos el string en los descriptores físicos requeridos por TaleSpire
       console.log(`[Lanzador Dados] Generando descriptores de tirada para "${formulaLimpia}"`);
-      
-      let descriptores: unknown[] = [];
-      if (typeof diceApi.makeRollDescriptors === "function") {
-        descriptores = await diceApi.makeRollDescriptors(formulaLimpia);
-      } else {
-        console.warn("[Lanzador Dados] TS.dice.makeRollDescriptors no es una función en este cliente. Construyendo descriptores manualmente...");
-        descriptores = crearDescriptoresManualmente(formulaProcesada);
-      }
+      const descriptores = await ts.dice.makeRollDescriptors(formulaLimpia);
       
       if (!descriptores || descriptores.length === 0) {
         throw new Error("No se generaron descriptores de dados para la fórmula provista.");
@@ -287,28 +276,20 @@ export async function lanzarDadosTaleSpire(
       // Colocamos los dados físicos en la bandeja 3D de TaleSpire de forma segura
       console.log(`[Lanzador Dados] Enviando dados a la bandeja 3D. Descriptores:`, descriptores);
       
-      let rollId = "";
-      if (typeof diceApi.putDiceInTray === "function") {
-        const silenceChat = tiradaEspecial !== null;
-        rollId = await diceApi.putDiceInTray(descriptores, silenceChat);
-        
-        if (tiradaEspecial && rollId) {
-          tiradasEspecialesActivas[rollId] = tiradaEspecial;
-          console.log(`[Lanzador Dados] Registrada tirada especial con rollId: ${rollId}`, tiradaEspecial);
-        }
-
-        if (metaIniciativa && rollId) {
-          tiradasIniciativaActivas[rollId] = metaIniciativa;
-          console.log(`[Lanzador Dados] Registrada tirada de iniciativa nativa con rollId: ${rollId}`, metaIniciativa);
-        }
-      } else {
-        console.warn("[Lanzador Dados] diceApi.putDiceInTray no es una función en este cliente. Intentando canal de chat físico...");
-        await lanzarDadosPorChatTaleSpire(formulaProcesada);
+      const silenceChat = tiradaEspecial !== null;
+      const rollId = await ts.dice.putDiceInTray(descriptores, silenceChat);
+      
+      if (tiradaEspecial && rollId) {
+        tiradasEspecialesActivas[rollId] = tiradaEspecial;
+        console.log(`[Lanzador Dados] Registrada tirada especial con rollId: ${rollId}`, tiradaEspecial);
       }
 
-      if (window.TS.debug && typeof window.TS.debug.log === "function") {
-        window.TS.debug.log(`Tirando dados en bandeja física: ${nombreEtiqueta} (${formulaLimpia})`);
+      if (metaIniciativa && rollId) {
+        tiradasIniciativaActivas[rollId] = metaIniciativa;
+        console.log(`[Lanzador Dados] Registrada tirada de iniciativa nativa con rollId: ${rollId}`, metaIniciativa);
       }
+
+      ts.debug.log(`Tirando dados en bandeja física: ${nombreEtiqueta} (${formulaLimpia})`);
     } catch (error) {
       console.error("[Lanzador Dados] Fallo de API directa de dados. Recurriendo al canal de chat de TaleSpire...", error);
       try {
@@ -359,14 +340,8 @@ export async function procesarResultadosDadosTaleSpire(evento: unknown): Promise
     const resultGroups = ev.payload.resultsGroups;
     if (resultGroups && Array.isArray(resultGroups) && resultGroups.length > 0) {
       try {
-        const diceApi = window.TS?.dice;
         const grupoInic = resultGroups[0];
-        let total = 0;
-        if (diceApi && typeof diceApi.evaluateDiceResultsGroup === "function") {
-          total = await diceApi.evaluateDiceResultsGroup(grupoInic);
-        } else {
-          total = obtenerTotalGrupoFallback(grupoInic);
-        }
+        const total = await ts.dice.evaluateDiceResultsGroup(grupoInic);
         console.log(`[Lanzador Dados] Iniciativa plana obtenida: ${total} para la criatura ${infoIniciativaPlana.criaturaId}`);
         // Usar la acción de actualizar en combat tracker si existiera
         const state = usarAlmacenDM.getState();
@@ -399,8 +374,6 @@ export async function procesarResultadosDadosTaleSpire(evento: unknown): Promise
   }
   
   try {
-    const diceApi = window.TS?.dice;
-    
     // Buscar los grupos A y B
     const grupoA = resultGroups.find((g) => {
       const gObj = g as Record<string, unknown>;
@@ -418,17 +391,8 @@ export async function procesarResultadosDadosTaleSpire(evento: unknown): Promise
     }
     
     // Evaluar los totales de los d20 de forma asíncrona
-    let totalA = 0;
-    let totalB = 0;
-    
-    if (diceApi && typeof diceApi.evaluateDiceResultsGroup === "function") {
-      totalA = await diceApi.evaluateDiceResultsGroup(grupoA);
-      totalB = await diceApi.evaluateDiceResultsGroup(grupoB);
-    } else {
-      // Fallback robusto para desarrollo o en caso de fallo de API
-      totalA = obtenerTotalGrupoFallback(grupoA);
-      totalB = obtenerTotalGrupoFallback(grupoB);
-    }
+    const totalA = await ts.dice.evaluateDiceResultsGroup(grupoA);
+    const totalB = await ts.dice.evaluateDiceResultsGroup(grupoB);
     
     console.log(`[Lanzador Dados] Evaluación: ${infoTirada.grupoAName} = ${totalA} | ${infoTirada.grupoBName} = ${totalB}`);
     
@@ -469,11 +433,7 @@ export async function procesarResultadosDadosTaleSpire(evento: unknown): Promise
     
     console.log("[Lanzador Dados] Enviando resultado filtrado al chat de TaleSpire:", gruposParaChat);
     
-    if (diceApi && typeof diceApi.sendDiceResult === "function") {
-      await diceApi.sendDiceResult(gruposParaChat, rollId);
-    } else {
-      console.log(`%c[MOCK CHAT RESULT] ${infoTirada.etiquetaOriginal} - ${grupoGanadorSaneado.name}: ${totalElegido}`, "color: #a6e3a1; font-weight: bold;");
-    }
+    await ts.dice.sendDiceResult(gruposParaChat, rollId);
     
     // Si esta tirada especial también era para iniciativa, actualizamos la criatura
     const infoIniciativaEspecial = tiradasIniciativaActivas[rollId];
@@ -500,45 +460,7 @@ export async function procesarResultadosDadosTaleSpire(evento: unknown): Promise
   }
 }
 
-/**
- * Función fallback para obtener el total de un grupo de resultados si la API nativa de evaluación no está disponible.
- */
-function obtenerTotalGrupoFallback(grupo: unknown): number {
-  if (!grupo || typeof grupo !== "object") return 0;
-  const grupoObj = grupo as Record<string, unknown>;
-  if (!grupoObj.result || typeof grupoObj.result !== "object") return 0;
-  const resultObj = grupoObj.result as Record<string, unknown>;
-  if (typeof resultObj.total === "number") {
-    return resultObj.total;
-  }
-  
-  function evaluarNodo(nodo: unknown): number {
-    if (!nodo || typeof nodo !== "object") return 0;
-    const nodoObj = nodo as Record<string, unknown>;
-    if (typeof nodoObj.value === "number") return nodoObj.value;
-    if (Array.isArray(nodoObj.results)) {
-      return nodoObj.results.reduce((sum: number, r) => {
-        if (typeof r === "number") return sum + r;
-        if (r && typeof r === "object") {
-          return sum + (Number((r as Record<string, unknown>).value) || 0);
-        }
-        return sum;
-      }, 0);
-    }
-    if (nodoObj.operator === "+" && Array.isArray(nodoObj.operands)) {
-      return nodoObj.operands.reduce((sum: number, op) => sum + evaluarNodo(op), 0);
-    }
-    if (nodoObj.operator === "-" && Array.isArray(nodoObj.operands)) {
-      if (nodoObj.operands.length === 0) return 0;
-      const primerOp = evaluarNodo(nodoObj.operands[0]);
-      const restOp = nodoObj.operands.slice(1).reduce((sum: number, op) => sum + evaluarNodo(op), 0);
-      return primerOp - restOp;
-    }
-    return 0;
-  }
-  
-  return evaluarNodo(grupoObj.result);
-}
+
 
 /**
  * Realiza un cálculo matemático rápido en Javascript para propósitos de prueba en navegador

@@ -2,6 +2,7 @@ import React, { useState, useRef } from "react";
 import { usarAlmacenDM } from "../almacen/usarAlmacenDM";
 import { Upload, Download, Trash2, ShieldAlert, CheckCircle, Database, Heart, Copy, X } from "lucide-react";
 import { MONSTRUOS_INICIALES, HECHIZOS_INICIALES } from "../utiles/datosIniciales";
+import { ts } from "../utiles/TaleSpireAdapter";
 import estilosClases from "./ConfiguracionDM.module.css";
 
 export const ConfiguracionDM: React.FC = () => {
@@ -98,25 +99,15 @@ export const ConfiguracionDM: React.FC = () => {
 
     const jsonStr = JSON.stringify(backupData, null, 2);
 
-    // Intento 1: API nativa de clipboard de TaleSpire
-    try {
-      if (window.TS && window.TS.system && window.TS.system.clipboard && typeof window.TS.system.clipboard.setText === "function") {
-        await window.TS.system.clipboard.setText(jsonStr);
-        setCopiado(true);
-        setTimeout(() => setCopiado(false), 3000);
-        return;
-      }
-    } catch { /* continuar con siguiente método */ }
-
-    // Intento 2: API estándar del navegador
-    try {
-      await navigator.clipboard.writeText(jsonStr);
+    // Intento 1: Copiar usando el adaptador TaleSpireAdapter (maneja nativo y portapapeles web)
+    const exito = await ts.system.clipboard.setText(jsonStr);
+    if (exito) {
       setCopiado(true);
       setTimeout(() => setCopiado(false), 3000);
       return;
-    } catch { /* continuar con siguiente método */ }
+    }
 
-    // Intento 3: Crear un elemento <a> para descarga (funciona fuera de TaleSpire)
+    // Intento 2: Crear un elemento <a> para descarga (funciona fuera de TaleSpire si el portapapeles falla)
     try {
       const blob = new Blob([jsonStr], { type: "application/json" });
       const url = URL.createObjectURL(blob);
@@ -138,16 +129,10 @@ export const ConfiguracionDM: React.FC = () => {
 
   const copiarDelModal = async () => {
     if (!modalExport) return;
-    try {
-      if (window.TS && window.TS.system && window.TS.system.clipboard && typeof window.TS.system.clipboard.setText === "function") {
-        await window.TS.system.clipboard.setText(modalExport);
-      } else {
-        await navigator.clipboard.writeText(modalExport);
-      }
+    const exito = await ts.system.clipboard.setText(modalExport);
+    if (exito) {
       setCopiado(true);
       setTimeout(() => setCopiado(false), 3000);
-    } catch {
-      // Si todo falla, el textarea ya permite seleccionar y copiar manualmente
     }
   };
 

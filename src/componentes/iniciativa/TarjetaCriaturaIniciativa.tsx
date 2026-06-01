@@ -15,7 +15,7 @@ interface TarjetaCriaturaIniciativaProps {
   onCambiarTempHP: (cantidad: number) => void;
   onAñadirCondicion: (condicion: string) => void;
   onQuitarCondicion: (condicion: string) => void;
-  onAñadirEfecto: (nombre: string, duracion: number) => void;
+  onAñadirEfecto: (nombre: string, duracion: number, opciones?: { concentracion?: boolean }) => void;
   onQuitarEfecto: (efectoId: string) => void;
   onLanzarIniciativa: () => void;
   onLanzarAtaqueRapido: (ataqueNombre: string, bonoAtaque: string, dadosDaño: string, tipoDaño: string) => void;
@@ -291,18 +291,55 @@ export const TarjetaCriaturaIniciativa: React.FC<TarjetaCriaturaIniciativaProps>
               const efPredef = EFECTOS_PREDEFINIDOS.find(
                 (ep) => ep.nombre.toLowerCase().includes(ef.nombre.toLowerCase()) || ef.nombre.toLowerCase().includes(ep.nombre.toLowerCase().split(" ")[0])
               );
+              
+              const esConcentracion = ef.concentracion === true;
+              const tieneExpiracion = ef.expiraRonda !== undefined;
+              
+              let claseChipEfecto = estilosClases.chipEfectoPredefinido;
+              let colorQuitar = "hsl(265, 95%, 90%)";
+              if (esConcentracion) {
+                claseChipEfecto = estilosClases.chipEfectoConcentracion;
+                colorQuitar = "hsl(45, 100%, 75%)";
+              } else if (!tieneExpiracion) {
+                claseChipEfecto = estilosClases.chipEfectoPermanente;
+                colorQuitar = "hsl(0, 0%, 85%)";
+              }
+
+              let textoExpiracion = "";
+              let textoTooltipExpiracion = "Efecto activo permanente.";
+              if (esConcentracion) {
+                textoExpiracion = "";
+                textoTooltipExpiracion = "Manteniendo concentración.";
+              } else if (tieneExpiracion) {
+                textoExpiracion = `R.${ef.expiraRonda}`;
+                textoTooltipExpiracion = `Expira automáticamente en la ronda ${ef.expiraRonda}.`;
+              } else {
+                textoExpiracion = "∞";
+              }
+
+              const prefijoLabel = esConcentracion ? "[CON] " : "✨ ";
+              const labelEfecto = `${prefijoLabel}${ef.nombre.toUpperCase()}`;
+
               const tooltipEfecto = efPredef
-                ? `${efPredef.nombre} (${ef.duracion} r. restantes)\n\n${efPredef.descripcion}`
-                : `${ef.nombre} (${ef.duracion} r. restantes)\n\nEfecto activo temporal aplicado a esta criatura.`;
+                ? `${efPredef.nombre} (${textoTooltipExpiracion})\n\n${efPredef.descripcion}`
+                : `${ef.nombre} (${textoTooltipExpiracion})\n\nEfecto activo aplicado a esta criatura.`;
+
               return (
-                <div key={ef.id} className={`chip-condicion-chico-tooltip ${estilosClases.chipCondicionChico} ${estilosClases.chipEfectoPredefinido}`}>
-                  <span>✨ {ef.nombre.toUpperCase()} ({ef.duracion}R)</span>
+                <div key={ef.id} className={`chip-condicion-chico-tooltip ${estilosClases.chipCondicionChico} ${claseChipEfecto}`}>
+                  <span>
+                    {labelEfecto}
+                    {textoExpiracion && (
+                      <span className={estilosClases.badgeExpiracion}>
+                        {tieneExpiracion ? "⏳ " : ""}{textoExpiracion}
+                      </span>
+                    )}
+                  </span>
                   <span className="tooltip-contenido">{tooltipEfecto}</span>
                   <button
                     onClick={() => onQuitarEfecto(ef.id)}
                     className={estilosClases.botonQuitarCondicionChico}
                     style={{
-                      color: "hsl(265, 95%, 90%)",
+                      color: colorQuitar,
                       marginLeft: "3px"
                     }}
                     title="Quitar efecto"
@@ -335,7 +372,7 @@ export const TarjetaCriaturaIniciativa: React.FC<TarjetaCriaturaIniciativaProps>
                     <div
                       key={ep.nombre}
                       onClick={() => {
-                        onAñadirEfecto(nombreLimpio, ep.duracionEstandar);
+                        onAñadirEfecto(nombreLimpio, ep.duracionEstandar, { concentracion: ep.esConcentracion });
                         setDropdownAbierto(null);
                       }}
                       className={`${estilosClases.dropdownItem} ${estilosClases.dropdownItemEfecto}`}

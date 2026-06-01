@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { usarAlmacenDM, CriaturaIniciativa, HechizoBase } from "../almacen/usarAlmacenDM";
+import { usarIndicePlantillas } from "../almacen/cachePlantillas";
 import { MonstruoBase } from "../utiles/datosIniciales";
 import { lanzarDadosTaleSpire, sanitizarEtiqueta } from "../utiles/lanzadorDados";
 import { ModalDetalleHechizo } from "./ModalDetalleHechizo";
@@ -24,16 +25,19 @@ export const GestorIniciativa: React.FC = () => {
   const quitarEfectoDeCriatura = usarAlmacenDM((s) => s.quitarEfectoDeCriatura);
   const importarIniciativaTaleSpire = usarAlmacenDM((s) => s.importarIniciativaTaleSpire);
 
+  // Obtener índices optimizados de plantillas
+  const indicesPlantillas = usarIndicePlantillas();
+
   // Estados locales
   const [idCriaturaDetalle, setIdCriaturaDetalle] = useState<string | null>(null);
   const [hechizoFlotanteDetalle, setHechizoFlotanteDetalle] = useState<HechizoBase | null>(null);
 
-  // Buscar plantilla de estadísticas para una criatura
+  // Buscar plantilla de estadísticas para una criatura (Optimizado O(1))
   const obtenerPlantillaAsociada = (criatura: CriaturaIniciativa): MonstruoBase | null => {
     if (criatura.idPlantillaAsociada) {
-      return baseDatosMonstruos.find((m) => m.id === criatura.idPlantillaAsociada) || null;
+      return indicesPlantillas.porId.get(criatura.idPlantillaAsociada) || null;
     }
-    return baseDatosMonstruos.find((m) => m.nombre.toLowerCase() === criatura.nombre.toLowerCase()) || null;
+    return indicesPlantillas.porNombre.get(criatura.nombre.toLowerCase().trim()) || null;
   };
 
   // Cómputo de Percepción Pasiva
@@ -167,7 +171,7 @@ export const GestorIniciativa: React.FC = () => {
                     onCambiarTempHP={(cant) => actualizarVidaTemporal(criatura.id, cant)}
                     onAñadirCondicion={(cond) => agregarCondicionACriatura(criatura.id, cond)}
                     onQuitarCondicion={(cond) => quitarCondicionDeCriatura(criatura.id, cond)}
-                    onAñadirEfecto={(nom, dur) => agregarEfectoACriatura(criatura.id, nom, dur)}
+                    onAñadirEfecto={(nom, dur, opciones) => agregarEfectoACriatura(criatura.id, nom, dur, opciones)}
                     onQuitarEfecto={(efId) => quitarEfectoDeCriatura(criatura.id, efId)}
                     onLanzarIniciativa={() => lanzarDadosTaleSpire(
                       `!Iniciativa:1d20${(criatura.bonificadorIniciativa ?? 0) >= 0 ? "+" : ""}${criatura.bonificadorIniciativa ?? 0}`, 

@@ -26,7 +26,8 @@ function apiTSDisponible(): boolean {
   return !!(
     window.TS &&
     window.TS.localStorage &&
-    typeof window.TS.localStorage.global?.setBlob === "function"
+    window.TS.localStorage.global &&
+    typeof window.TS.localStorage.global.setBlob === "function"
   );
 }
 
@@ -51,8 +52,8 @@ export async function guardarBlobGlobal(datos: Record<string, unknown>): Promise
 
   try {
     const jsonStr = JSON.stringify(datos);
-    // Llamar a la API oficial de TaleSpire
-    const resultado = await window.TS!.localStorage!.global.setBlob(jsonStr);
+    // Llamar a la API oficial de TaleSpire (requiere una clave, usamos la misma del local storage)
+    const resultado = await window.TS!.localStorage!.global.setBlob(CLAVE_BLOB_GLOBAL, jsonStr);
     
     // getBlob/setBlob de TaleSpire a veces devuelve string/void en lugar del formato de objeto.
     // Manejamos esto de forma 100% segura.
@@ -84,7 +85,7 @@ export async function leerBlobGlobal(): Promise<Record<string, unknown> | null> 
   }
 
   try {
-    const resultado = await window.TS!.localStorage!.global.getBlob();
+    const resultado = await window.TS!.localStorage!.global.getBlob(CLAVE_BLOB_GLOBAL);
     console.log("[TS Storage] Lectura de getBlob finalizada. Tipo de respuesta:", typeof resultado, resultado);
 
     if (!resultado) {
@@ -147,12 +148,12 @@ export async function limpiarBlobGlobal(): Promise<boolean> {
     const globalStorage = window.TS!.localStorage!.global;
     // Si la API deleteBlob existe, la preferimos
     if (typeof globalStorage.deleteBlob === "function") {
-      await globalStorage.deleteBlob();
+      await globalStorage.deleteBlob(CLAVE_BLOB_GLOBAL);
       console.log("[TS Storage] Blob global eliminado mediante deleteBlob()");
       return true;
     }
     
-    await globalStorage.setBlob("{}");
+    await globalStorage.setBlob(CLAVE_BLOB_GLOBAL, "{}");
     return true;
   } catch (error) {
     console.error("[TS Storage] Excepción al limpiar blob global:", error);

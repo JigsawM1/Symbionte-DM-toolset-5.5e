@@ -71,15 +71,25 @@ export function usarConexionTaleSpire() {
               });
           }
 
-          // Obtener el nombre de la campaña y rol de GM en caliente
-          if (window.TS?.campaigns?.whereAmI) {
-            window.TS.campaigns.whereAmI()
-              .then((campaña) => {
-                if (activo && campaña && campaña.name) {
-                  establecerDatosCampaña(
-                    campaña.name,
-                    campaña.playerRole === "GM" || !!campaña.isGm
-                  );
+          // Obtener la campaña y si es DM (nuevo endpoint para rol)
+          if (window.TS?.campaigns?.getMoreInfoAboutCurrentCampaign) {
+            window.TS.campaigns.getMoreInfoAboutCurrentCampaign()
+              .then((campaignInfo) => {
+                const nombreCampaña = campaignInfo?.name || "Campaña Desconocida";
+                
+                // Revisar el rol del cliente (si es DM o no)
+                if (window.TS?.clients?.whoAmI) {
+                   window.TS.clients.whoAmI().then((yo: any) => {
+                       const soyGm = !!yo?.isGm || yo?.playerRole === "GM";
+                       if (activo) {
+                          establecerDatosCampaña(nombreCampaña, soyGm);
+                       }
+                   }).catch((e: unknown) => {
+                       console.warn("[TaleSpire Simbionte] Error al obtener info del cliente (DM):", e);
+                       if (activo) establecerDatosCampaña(nombreCampaña, false);
+                   });
+                } else {
+                   if (activo) establecerDatosCampaña(nombreCampaña, false);
                 }
               })
               .catch((e: unknown) => {

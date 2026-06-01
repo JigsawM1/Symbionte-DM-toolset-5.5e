@@ -101,3 +101,22 @@ Este archivo sirve como bitácora de aprendizaje técnico y memoria permanente p
     *   Se usa un patrón `.tooltipContenedor:hover > .tooltipFlotante { display: flex }` para mostrar tooltips al hover.
     *   Dado que el reset global de `index.css` desactiva animaciones (`animation: none !important`), los tooltips NO tendrán fade-in pero SÍ aparecerán instantáneamente, lo cual es consistente con la política de 0 animaciones del proyecto.
     *   El tooltip de maestrías se muestra DEBAJO del select (clase `.tooltipMaestria`), mientras que los de propiedades se muestran ENCIMA de la píldora.
+
+---
+
+## 📡 8. Actualización API TaleSpire v0.1 (Junio 2026)
+
+*   **API campaigns**:
+    *   `campaigns.whereAmI()` **no** devuelve detalles de campaña ni el rol, solo devuelve un `campaignFragment` con una ID.
+    *   Para obtener el nombre se debe invocar a `campaigns.getMoreInfoAboutCurrentCampaign()`.
+*   **API clients y roles**:
+    *   Para saber si el usuario actual es GM se debe invocar a `clients.whoAmI()` el cual indica `isGm` y `playerRole`.
+*   **API chat**:
+    *   El método nativo `chat.send(mensaje)` NO acepta un segundo parámetro `target`.
+    *   Para enviar a targets específicos se usa `chat.multiSend(mensaje, targets[])`.
+*   **API System Clipboard**:
+    *   TaleSpire expone el portapapeles oficialmente en `window.TS.system.clipboard.setText(text)` en lugar de `clipboard.copyText(text)`.
+*   **API localStorage**:
+    *   Aunque en la práctica `localStorage.global.setBlob(string)` funciona por debajo, la firma oficial requiere dos argumentos `(key, data)`. Adoptamos el patrón de usar una clave para respetar la interfaz documentada ante futuros parches estrictos.
+*   **API initiative**:
+    *   `nextTurn` y `prevTurn` **NO figuran documentados oficialmente** en la API v0.1, aunque están presentes en algunas versiones. Se mantienen protegidas por `typeof === "function"`.

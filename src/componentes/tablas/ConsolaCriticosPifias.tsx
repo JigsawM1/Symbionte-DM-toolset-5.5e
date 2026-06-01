@@ -56,7 +56,7 @@ export const ConsolaCriticosPifias: React.FC = () => {
     const ts = window.TS;
     if (ts && ts.chat && typeof ts.chat.send === "function") {
       try {
-        await ts.chat.send(mensajeFormateado, "board");
+        await ts.chat.send(mensajeFormateado);
         console.log("[TaleSpire Chat] Mensaje de consola enviado con éxito automáticamente al tirar.");
       } catch (error) {
         console.error("[TaleSpire Chat] Error al enviar mensaje automático al tirar:", error);
@@ -83,7 +83,7 @@ export const ConsolaCriticosPifias: React.FC = () => {
     const ts = window.TS;
     if (ts && ts.chat && typeof ts.chat.send === "function") {
       try {
-        await ts.chat.send(mensajeFormateado, "board");
+        await ts.chat.send(mensajeFormateado);
         console.log("[TaleSpire Chat] Mensaje de consola enviado con éxito.");
       } catch (error) {
         console.error("[TaleSpire Chat] Error al enviar mensaje nativo:", error);

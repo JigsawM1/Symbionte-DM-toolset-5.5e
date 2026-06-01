@@ -100,8 +100,8 @@ export const ConfiguracionDM: React.FC = () => {
 
     // Intento 1: API nativa de clipboard de TaleSpire
     try {
-      if (window.TS && window.TS.clipboard && typeof window.TS.clipboard.copyText === "function") {
-        await window.TS.clipboard.copyText(jsonStr);
+      if (window.TS && window.TS.system && window.TS.system.clipboard && typeof window.TS.system.clipboard.setText === "function") {
+        await window.TS.system.clipboard.setText(jsonStr);
         setCopiado(true);
         setTimeout(() => setCopiado(false), 3000);
         return;
@@ -139,8 +139,8 @@ export const ConfiguracionDM: React.FC = () => {
   const copiarDelModal = async () => {
     if (!modalExport) return;
     try {
-      if (window.TS && window.TS.clipboard && typeof window.TS.clipboard.copyText === "function") {
-        await window.TS.clipboard.copyText(modalExport);
+      if (window.TS && window.TS.system && window.TS.system.clipboard && typeof window.TS.system.clipboard.setText === "function") {
+        await window.TS.system.clipboard.setText(modalExport);
       } else {
         await navigator.clipboard.writeText(modalExport);
       }

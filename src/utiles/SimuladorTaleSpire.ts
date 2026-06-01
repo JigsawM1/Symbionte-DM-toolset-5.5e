@@ -93,13 +93,26 @@ export function inicializarSimulador(): void {
     // API de Campañas
     campaigns: {
       whereAmI: async () => {
-        // Simulamos que el cliente es el Dungeon Master de la campaña
+        return {
+          id: "campaña_simulada_123"
+        };
+      },
+      getMoreInfoAboutCurrentCampaign: async () => {
+        // Simulamos la info detallada
         return {
           id: "campaña_simulada_123",
-          name: "La Tumba de la Aniquilación (MOCK)",
-          isGm: true, // Confirmamos rol de DM
-          playerRole: "GM"
+          name: "La Tumba de la Aniquilación (MOCK)"
         };
+      }
+    },
+    // API de Clientes
+    clients: {
+      whoAmI: async () => {
+        return {
+          id: "cliente_yo",
+          isGm: true,
+          playerRole: "GM"
+        }
       }
     },
     // API de Iniciativa nativa alineada con activeItemIndex e items de TaleSpire
@@ -209,21 +222,41 @@ export function inicializarSimulador(): void {
     },
     // API de Chat
     chat: {
-      send: async (mensaje: string, target: string = "board") => {
+      send: async (mensaje: string) => {
         console.log(
-          `%c[TS Chat] Enviado a [${target}]: %c${mensaje}`,
+          `%c[TS Chat] Enviado a board: %c${mensaje}`,
           "color: #cba6f7; font-weight: bold;",
           "color: #cdd6f4;"
         );
-        // Disparamos un evento simulando que el chat lo procesó
-        canalEventos.disparar("mensajeEnviado", { mensaje, target });
+        canalEventos.disparar("mensajeEnviado", { mensaje, target: "board" });
         return true;
       },
-      multiSendAsCreature: async (mensaje: string, criaturaId: string, target: string = "board") => {
+      multiSend: async (mensaje: string, targets: string[]) => {
+        console.log(
+          `%c[TS Chat] Enviado a [${targets.join(", ")}]: %c${mensaje}`,
+          "color: #cba6f7; font-weight: bold;",
+          "color: #cdd6f4;"
+        );
+        canalEventos.disparar("mensajeEnviado", { mensaje, targets });
+        return true;
+      },
+      sendAsCreature: async (criaturaId: string, mensaje: string) => {
         const criatura = colaIniciativaSimulada.find((c) => c.id === criaturaId);
         const nombreCriatura = criatura ? criatura.name : "Desconocido";
         console.log(
-          `%c[TS Chat] %c${nombreCriatura} %cen [${target}]: %c${mensaje}`,
+          `%c[TS Chat] %c${nombreCriatura} %cdice: %c${mensaje}`,
+          "color: #cba6f7; font-weight: bold;",
+          "color: #a6e3a1; font-weight: bold;",
+          "color: #cba6f7;",
+          "color: #cdd6f4;"
+        );
+        return true;
+      },
+      multiSendAsCreature: async (criaturaId: string, mensaje: string, targets: string[]) => {
+        const criatura = colaIniciativaSimulada.find((c) => c.id === criaturaId);
+        const nombreCriatura = criatura ? criatura.name : "Desconocido";
+        console.log(
+          `%c[TS Chat] %c${nombreCriatura} %cen [${targets.join(", ")}]: %c${mensaje}`,
           "color: #cba6f7; font-weight: bold;",
           "color: #a6e3a1; font-weight: bold;",
           "color: #cba6f7;",
@@ -231,6 +264,14 @@ export function inicializarSimulador(): void {
         );
         return true;
       }
+    },
+    // API de System
+    system: {
+       clipboard: {
+           setText: async (texto: string) => {
+               console.log(`%c[TS Clipboard] Texto copiado: %c${texto.substring(0, 50)}...`, "color: #f38ba8", "color: #cdd6f4");
+           }
+       }
     },
     // API de dados nativa simulada
     dice: {

@@ -16,16 +16,20 @@ import { inicializarSimulador } from "../utiles/SimuladorTaleSpire";
 import { ts } from "../utiles/TaleSpireAdapter";
 
 export function usarConexionTaleSpire() {
+  // Extraemos las acciones del store Zustand mediante .getState() ya que son funciones
+  // inmutables. Esto evita que este hook se vuelva a evaluar y suscriba al render-tree
+  // ante cambios ajenos del estado (como la ronda de combate, notas o tareas pendientes).
   const {
     cargarDatosPersistidos,
     actualizarSeleccionCriaturas,
     actualizarColaIniciativaDesdeTaleSpire,
     establecerDatosCampaña
-  } = usarAlmacenDM();
+  } = usarAlmacenDM.getState();
 
   useEffect(() => {
     let suscripcionSeleccion: { desuscribir: () => void } | null = null;
     let suscripcionIniciativa: { desuscribir: () => void } | null = null;
+    let timerInicializacion: ReturnType<typeof setTimeout> | null = null;
     let activo = true;
 
     const suscribirAPIs = () => {
@@ -48,10 +52,10 @@ export function usarConexionTaleSpire() {
           }
         });
 
-        // ⚠️ IMPORTANTE: Las llamadas "get" iniciales y la carga del blob nativo se retardan 500ms para que el canal
+        //  IMPORTANTE: Las llamadas "get" iniciales y la carga del blob nativo se retardan 500ms para que el canal
         // de mensajería del Simbionte quede completamente registrado antes de enviar mensajes.
         // Enviarlos de forma inmediata causa el error "outOfOrderMessage" de TaleSpire.
-        setTimeout(() => {
+        timerInicializacion = setTimeout(() => {
           if (!activo) return;
 
           // Cargar datos persistidos ahora que la API window.TS (real o simulador) está activa y el canal es estable
@@ -113,6 +117,7 @@ export function usarConexionTaleSpire() {
     if (suscribirAPIs()) {
       return () => {
         activo = false;
+        if (timerInicializacion) clearTimeout(timerInicializacion);
         if (suscripcionSeleccion) suscripcionSeleccion.desuscribir();
         if (suscripcionIniciativa) suscripcionIniciativa.desuscribir();
       };
@@ -143,8 +148,9 @@ export function usarConexionTaleSpire() {
     return () => {
       activo = false;
       clearInterval(intervalo);
+      if (timerInicializacion) clearTimeout(timerInicializacion);
       if (suscripcionSeleccion) suscripcionSeleccion.desuscribir();
       if (suscripcionIniciativa) suscripcionIniciativa.desuscribir();
     };
-  }, [cargarDatosPersistidos, actualizarSeleccionCriaturas, actualizarColaIniciativaDesdeTaleSpire, establecerDatosCampaña]);
+  }, []);
 }

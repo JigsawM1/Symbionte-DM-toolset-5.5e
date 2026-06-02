@@ -166,8 +166,10 @@ export const crearSliceIniciativa: StateCreator<
     const colaFiltradaTS = normalizarColaTaleSpire(colaTS);
     const criaturasLocales = state.colaIniciativa.filter((c) => c.id.startsWith("c_local_"));
 
+    const mapaPlantillasPorId = new Map<string, MonstruoBase>();
     const mapaPlantillas = new Map<string, MonstruoBase>();
     state.baseDatosMonstruos.forEach((m) => {
+      mapaPlantillasPorId.set(m.id, m);
       mapaPlantillas.set(m.nombre.toLowerCase().trim(), m);
     });
 
@@ -185,9 +187,18 @@ export const crearSliceIniciativa: StateCreator<
         }
 
         // 1.b. Buscar en la caché de asociaciones persistentes
-        const idPlantillaCached = state.asociacionesFichas[cTS.id];
+        const nombreTS = cTS.name.toLowerCase().trim();
+        const nombreTSBase = nombreTS
+          .replace(/\s+\d+$/g, "")
+          .replace(/\s+#[a-zA-Z0-9]+$/g, "")
+          .replace(/\s+[a-zA-Z]$/g, "")
+          .trim();
+
+        const idPlantillaCached = state.asociacionesFichas[cTS.id] || 
+                                 state.asociacionesFichas[`nombre_base:${nombreTS}`] || 
+                                 state.asociacionesFichas[`nombre_base:${nombreTSBase}`];
         let plantillaMonstruo = idPlantillaCached 
-          ? state.baseDatosMonstruos.find((m) => m.id === idPlantillaCached)
+          ? mapaPlantillasPorId.get(idPlantillaCached)
           : undefined;
 
         if (plantillaMonstruo) {
@@ -199,13 +210,6 @@ export const crearSliceIniciativa: StateCreator<
         }
 
         // 2. Fallback temporal por nombre si no tiene idPlantillaAsociada ni en caché
-        const nombreTS = cTS.name.toLowerCase().trim();
-        const nombreTSBase = nombreTS
-          .replace(/\s+\d+$/g, "")
-          .replace(/\s+#[a-zA-Z0-9]+$/g, "")
-          .replace(/\s+[a-zA-Z]$/g, "")
-          .trim();
-
         plantillaMonstruo = mapaPlantillas.get(nombreTS) || mapaPlantillas.get(nombreTSBase);
         if (!plantillaMonstruo) {
           plantillaMonstruo = state.baseDatosMonstruos.find((m) => {
@@ -225,19 +229,21 @@ export const crearSliceIniciativa: StateCreator<
       }
 
       // Criatura nueva que viene de TaleSpire
-      const idPlantillaCached = state.asociacionesFichas[cTS.id];
+      const nombreTS = cTS.name.toLowerCase().trim();
+      const nombreTSBase = nombreTS
+        .replace(/\s+\d+$/g, "")
+        .replace(/\s+#[a-zA-Z0-9]+$/g, "")
+        .replace(/\s+[a-zA-Z]$/g, "")
+        .trim();
+
+      const idPlantillaCached = state.asociacionesFichas[cTS.id] || 
+                               state.asociacionesFichas[`nombre_base:${nombreTS}`] || 
+                               state.asociacionesFichas[`nombre_base:${nombreTSBase}`];
       let plantillaMonstruo = idPlantillaCached 
-        ? state.baseDatosMonstruos.find((m) => m.id === idPlantillaCached)
+        ? mapaPlantillasPorId.get(idPlantillaCached)
         : undefined;
 
       if (!plantillaMonstruo) {
-        const nombreTS = cTS.name.toLowerCase().trim();
-        const nombreTSBase = nombreTS
-          .replace(/\s+\d+$/g, "")
-          .replace(/\s+#[a-zA-Z0-9]+$/g, "")
-          .replace(/\s+[a-zA-Z]$/g, "")
-          .trim();
-
         plantillaMonstruo = mapaPlantillas.get(nombreTS) || mapaPlantillas.get(nombreTSBase);
         if (!plantillaMonstruo) {
           plantillaMonstruo = state.baseDatosMonstruos.find((m) => {
@@ -492,8 +498,32 @@ export const crearSliceIniciativa: StateCreator<
 
   asociarPlantillaACriatura: (idCriatura, idPlantilla) => set((state) => {
     const plantilla = state.baseDatosMonstruos.find((m) => m.id === idPlantilla);
+    
+    // 1. Encontrar la criatura de referencia para obtener su nombre
+    const criaturaReferencia = state.colaIniciativa.find((c) => c.id === idCriatura);
+    if (!criaturaReferencia) return {};
+
+    const nombreRef = criaturaReferencia.nombre.toLowerCase().trim();
+    const nombreRefBase = nombreRef
+      .replace(/\s+\d+$/g, "")
+      .replace(/\s+#[a-zA-Z0-9]+$/g, "")
+      .replace(/\s+[a-zA-Z]$/g, "")
+      .trim();
+
+    // 2. Asociar en caliente a cualquier criatura de la cola activa que comparta nombre o nombre base
     const nuevaCola = state.colaIniciativa.map((c) => {
-      if (c.id === idCriatura) {
+      const nombreC = c.nombre.toLowerCase().trim();
+      const nombreCBase = nombreC
+        .replace(/\s+\d+$/g, "")
+        .replace(/\s+#[a-zA-Z0-9]+$/g, "")
+        .replace(/\s+[a-zA-Z]$/g, "")
+        .trim();
+
+      const coincideNombre = c.id === idCriatura || 
+                            nombreC === nombreRef || 
+                            nombreCBase === nombreRefBase;
+
+      if (coincideNombre) {
         let vidaMaxCalculada = c.vidaMaxima;
         let vidaActualCalculada = c.vidaActual;
 
@@ -516,9 +546,12 @@ export const crearSliceIniciativa: StateCreator<
       return c;
     });
 
+    // 3. Registrar en la caché persistente la asociación por UUID y por nombres normalizados
     const nuevasAsociaciones = {
       ...state.asociacionesFichas,
-      [idCriatura]: idPlantilla
+      [idCriatura]: idPlantilla,
+      [`nombre_base:${nombreRef}`]: idPlantilla,
+      [`nombre_base:${nombreRefBase}`]: idPlantilla
     };
 
     return { 
@@ -567,8 +600,10 @@ export const crearSliceIniciativa: StateCreator<
 
     const nuevasCriaturas: CriaturaIniciativa[] = [];
 
+    const mapaPlantillasPorId = new Map<string, MonstruoBase>();
     const mapaPlantillas = new Map<string, MonstruoBase>();
     state.baseDatosMonstruos.forEach((m) => {
+      mapaPlantillasPorId.set(m.id, m);
       mapaPlantillas.set(m.nombre.toLowerCase().trim(), m);
     });
 
@@ -582,9 +617,11 @@ export const crearSliceIniciativa: StateCreator<
         .replace(/\s+[a-zA-Z]$/g, "")
         .trim();
 
-      const idPlantillaCached = state.asociacionesFichas[cTS.id];
+      const idPlantillaCached = state.asociacionesFichas[cTS.id] || 
+                               state.asociacionesFichas[`nombre_base:${nombreTS}`] || 
+                               state.asociacionesFichas[`nombre_base:${nombreTSBase}`];
       let plantillaMonstruo = idPlantillaCached 
-        ? state.baseDatosMonstruos.find((m) => m.id === idPlantillaCached)
+        ? mapaPlantillasPorId.get(idPlantillaCached)
         : undefined;
 
       if (!plantillaMonstruo) {

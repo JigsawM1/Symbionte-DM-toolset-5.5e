@@ -8,6 +8,27 @@ export interface ResultadoImportacion {
   objetosHomebrew: ObjetoHomebrew[];
 }
 
+function limpiarTipoCriatura(tipoRaw: unknown): string {
+  if (!tipoRaw) return "Humanoide";
+  const t = String(tipoRaw).toLowerCase();
+  if (t.includes("aberración") || t.includes("aberracion") || t.includes("aberration")) return "Aberración";
+  if (t.includes("bestia") || t.includes("beast")) return "Bestia";
+  if (t.includes("celestial")) return "Celestial";
+  if (t.includes("constructo") || t.includes("construct")) return "Constructo";
+  if (t.includes("dragón") || t.includes("dragon")) return "Dragón";
+  if (t.includes("elemental")) return "Elemental";
+  if (t.includes("hada") || t.includes("fata") || t.includes("fey")) return "Hada";
+  if (t.includes("gigante") || t.includes("giant")) return "Gigante";
+  if (t.includes("humanoide") || t.includes("humanoid")) return "Humanoide";
+  if (t.includes("monstruosidad") || t.includes("monstrosity")) return "Monstruosidad";
+  if (t.includes("no muerto") || t.includes("no-muerto") || t.includes("undead")) return "No Muerto";
+  if (t.includes("planta") || t.includes("plant")) return "Planta";
+  if (t.includes("cieno") || t.includes("limo") || t.includes("ocete") || t.includes("ooze") || t.includes("slime")) return "Limo";
+  if (t.includes("fiando") || t.includes("demonio") || t.includes("diablo") || t.includes("fiend") || t.includes("infiando") || t.includes("devil") || t.includes("demon")) return "Infiando";
+  
+  return "Humanoide";
+}
+
 export function importarDesdeJSON(
   datosJSON: unknown,
   estadoActual: {
@@ -82,30 +103,28 @@ export function importarDesdeJSON(
         // Extraer HP
         let vidaMax = 10;
         let vidaNotas = "";
-        if (m.vidaMaxima !== undefined) {
-          vidaMax = Number(m.vidaMaxima);
-        } else if (m.HP !== undefined) {
-          if (typeof m.HP === "object" && m.HP !== null) {
-            const hpObj = m.HP as Record<string, unknown>;
+        const hpRaw = m.vidaMaxima !== undefined ? m.vidaMaxima : m.HP;
+        if (hpRaw !== undefined) {
+          if (typeof hpRaw === "object" && hpRaw !== null) {
+            const hpObj = hpRaw as Record<string, unknown>;
             vidaMax = Number(hpObj.Value) || 10;
             vidaNotas = aplanarValor(hpObj.Notes || "");
           } else {
-            vidaMax = Number(m.HP) || 10;
+            vidaMax = Number(hpRaw) || 10;
           }
         }
 
         // Extraer AC
         let caVal = 10;
         let caNotas = "";
-        if (m.ca !== undefined) {
-          caVal = Number(m.ca);
-        } else if (m.AC !== undefined) {
-          if (typeof m.AC === "object" && m.AC !== null) {
-            const acObj = m.AC as Record<string, unknown>;
+        const caRaw = m.ca !== undefined ? m.ca : m.AC;
+        if (caRaw !== undefined) {
+          if (typeof caRaw === "object" && caRaw !== null) {
+            const acObj = caRaw as Record<string, unknown>;
             caVal = Number(acObj.Value) || 10;
             caNotas = aplanarValor(acObj.Notes || "");
           } else {
-            caVal = Number(m.AC) || 10;
+            caVal = Number(caRaw) || 10;
           }
         }
 
@@ -138,12 +157,11 @@ export function importarDesdeJSON(
 
         // Extraer Velocidad
         let velocidadStr = "30 pies";
-        if (typeof m.velocidad === "string") {
-          velocidadStr = m.velocidad;
-        } else if (Array.isArray(m.Speed)) {
-          velocidadStr = m.Speed.join(", ");
-        } else if (m.Speed) {
-          velocidadStr = String(m.Speed);
+        const velRaw = m.velocidad !== undefined ? m.velocidad : m.Speed;
+        if (Array.isArray(velRaw)) {
+          velocidadStr = velRaw.join(", ");
+        } else if (velRaw !== undefined && velRaw !== null) {
+          velocidadStr = String(velRaw);
         }
 
         // Extraer iniciativa bonificador
@@ -219,6 +237,14 @@ export function importarDesdeJSON(
             if (nameLower.includes("sab") || nameLower.includes("wis")) salvacionesMap.sabiduria = Number(sObj.Modifier);
             if (nameLower.includes("car") || nameLower.includes("cha")) salvacionesMap.carisma = Number(sObj.Modifier);
           });
+        } else if (m.salvaciones && typeof m.salvaciones === "object") {
+          const sObj = m.salvaciones as Record<string, unknown>;
+          if (sObj.fuerza !== undefined) salvacionesMap.fuerza = Number(sObj.fuerza);
+          if (sObj.destreza !== undefined) salvacionesMap.destreza = Number(sObj.destreza);
+          if (sObj.constitucion !== undefined) salvacionesMap.constitucion = Number(sObj.constitucion);
+          if (sObj.inteligencia !== undefined) salvacionesMap.inteligencia = Number(sObj.inteligencia);
+          if (sObj.sabiduria !== undefined) salvacionesMap.sabiduria = Number(sObj.sabiduria);
+          if (sObj.carisma !== undefined) salvacionesMap.carisma = Number(sObj.carisma);
         }
 
         // Mapear habilidades (skills)
@@ -246,18 +272,39 @@ export function importarDesdeJSON(
             if (nameLower.includes("sigilo") || nameLower.includes("stealth")) habilidadesMap.sigilo = Number(sObj.Modifier);
             if (nameLower.includes("supervivencia") || nameLower.includes("survival")) habilidadesMap.supervivencia = Number(sObj.Modifier);
           });
+        } else if (m.habilidades && typeof m.habilidades === "object") {
+          const hObj = m.habilidades as Record<string, unknown>;
+          if (hObj.acrobacias !== undefined) habilidadesMap.acrobacias = Number(hObj.acrobacias);
+          if (hObj.manejoAnimales !== undefined) habilidadesMap.manejoAnimales = Number(hObj.manejoAnimales);
+          if (hObj.arcanos !== undefined) habilidadesMap.arcanos = Number(hObj.arcanos);
+          if (hObj.atletismo !== undefined) habilidadesMap.atletismo = Number(hObj.atletismo);
+          if (hObj.engaño !== undefined) habilidadesMap.engaño = Number(hObj.engaño);
+          if (hObj.historia !== undefined) habilidadesMap.historia = Number(hObj.historia);
+          if (hObj.perspicacia !== undefined) habilidadesMap.perspicacia = Number(hObj.perspicacia);
+          if (hObj.intimidacion !== undefined || hObj.intimidación !== undefined) habilidadesMap.intimidacion = Number(hObj.intimidacion ?? hObj.intimidación);
+          if (hObj.investigacion !== undefined || hObj.investigación !== undefined) habilidadesMap.investigacion = Number(hObj.investigacion ?? hObj.investigación);
+          if (hObj.medicina !== undefined) habilidadesMap.medicina = Number(hObj.medicina);
+          if (hObj.naturaleza !== undefined) habilidadesMap.naturaleza = Number(hObj.naturaleza);
+          if (hObj.percepcion !== undefined || hObj.percepción !== undefined) habilidadesMap.percepcion = Number(hObj.percepcion ?? hObj.percepción);
+          if (hObj.interpretacion !== undefined || hObj.interpretación !== undefined) habilidadesMap.interpretacion = Number(hObj.interpretacion ?? hObj.interpretación);
+          if (hObj.persuasion !== undefined || hObj.persuasión !== undefined) habilidadesMap.persuasion = Number(hObj.persuasion ?? hObj.persuasión);
+          if (hObj.religion !== undefined || hObj.religión !== undefined) habilidadesMap.religion = Number(hObj.religion ?? hObj.religión);
+          if (hObj.juegoManos !== undefined) habilidadesMap.juegoManos = Number(hObj.juegoManos);
+          if (hObj.sigilo !== undefined) habilidadesMap.sigilo = Number(hObj.sigilo);
+          if (hObj.supervivencia !== undefined) habilidadesMap.supervivencia = Number(hObj.supervivencia);
         }
 
         // Acciones rápidas (Quick actions)
         let accionesRapidasFormateadas: { nombre: string; bonificadorAtaque: string; dadosDaño: string; tipoDaño: string }[] = [];
-        if (Array.isArray(m.QuickAction)) {
-          accionesRapidasFormateadas = m.QuickAction.map((qaRaw) => {
+        const qaRawList = Array.isArray(m.accionesRapidas) ? m.accionesRapidas : (Array.isArray(m.QuickAction) ? m.QuickAction : []);
+        if (qaRawList.length > 0) {
+          accionesRapidasFormateadas = qaRawList.map((qaRaw) => {
             const qa = (qaRaw && typeof qaRaw === "object" ? qaRaw : {}) as Record<string, unknown>;
             return {
-              nombre: aplanarValor(qa.Name || "Ataque"),
-              bonificadorAtaque: aplanarValor(qa.ToHit || "+0"),
-              dadosDaño: aplanarValor(qa.Damage || "1d6"),
-              tipoDaño: aplanarValor(qa.DamageType || "físico")
+              nombre: aplanarValor(qa.nombre || qa.Name || "Ataque"),
+              bonificadorAtaque: aplanarValor(qa.bonificadorAtaque || qa.ToHit || "+0"),
+              dadosDaño: aplanarValor(qa.dadosDaño || qa.Damage || "1d6"),
+              tipoDaño: aplanarValor(qa.tipoDaño || qa.DamageType || "físico")
             };
           });
         }
@@ -265,7 +312,7 @@ export function importarDesdeJSON(
         return {
           id: aplanarValor(m.Id || m.id || `m_importado_${Date.now()}_${idx}`),
           nombre: aplanarValor(m.Name || m.nombre || "Monstruo Desconocido"),
-          tipo: aplanarValor(m.Type || m.tipo || "Desconocido"),
+          tipo: limpiarTipoCriatura(m.Type || m.tipo || "Humanoide"),
           ca: caVal,
           caNotas: aplanarValor(caNotas),
           vidaMaxima: vidaMax,
@@ -273,17 +320,17 @@ export function importarDesdeJSON(
           vidaNotas: aplanarValor(vidaNotas),
           iniciativaBonificador: inicBonif,
           velocidad: aplanarValor(velocidadStr),
-          sentidos: aplanarValor(m.Senses),
-          idiomas: aplanarValor(m.Languages),
+          sentidos: aplanarValor(m.sentidos || m.Senses),
+          idiomas: aplanarValor(m.idiomas || m.Languages),
           desafio: aplanarValor(m.Challenge || m.desafio || m.CR || "0"),
           fuente: aplanarValor(m.Source || m.fuente || "Manual de Monstruos"),
           caracteristicas: caracteristicasFormateadas,
           salvaciones: salvacionesMap,
           habilidades: habilidadesMap,
-          vulnerabilidades: Array.isArray(m.DamageVulnerabilities) ? m.DamageVulnerabilities.map(aplanarValor) : [],
-          resistencias: Array.isArray(m.DamageResistances) ? m.DamageResistances.map(aplanarValor) : [],
-          inmunidadesDaño: Array.isArray(m.DamageImmunities) ? m.DamageImmunities.map(aplanarValor) : [],
-          inmunidadesCondicion: Array.isArray(m.ConditionImmunities) ? m.ConditionImmunities.map(aplanarValor) : [],
+          vulnerabilidades: Array.isArray(m.vulnerabilidades) ? m.vulnerabilidades.map(aplanarValor) : (Array.isArray(m.DamageVulnerabilities) ? m.DamageVulnerabilities.map(aplanarValor) : []),
+          resistencias: Array.isArray(m.resistencias) ? m.resistencias.map(aplanarValor) : (Array.isArray(m.DamageResistances) ? m.DamageResistances.map(aplanarValor) : []),
+          inmunidadesDaño: Array.isArray(m.inmunidadesDaño) ? m.inmunidadesDaño.map(aplanarValor) : (Array.isArray(m.DamageImmunities) ? m.DamageImmunities.map(aplanarValor) : []),
+          inmunidadesCondicion: Array.isArray(m.inmunidadesCondicion) ? m.inmunidadesCondicion.map(aplanarValor) : (Array.isArray(m.ConditionImmunities) ? m.ConditionImmunities.map(aplanarValor) : []),
           accionesRapidas: accionesRapidasFormateadas.map((qa) => ({
             nombre: aplanarValor(qa.nombre),
             bonificadorAtaque: aplanarValor(qa.bonificadorAtaque),

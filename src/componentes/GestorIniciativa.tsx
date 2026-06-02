@@ -100,6 +100,7 @@ export const GestorIniciativa: React.FC = () => {
   };
 
   const criaturaSeleccionadaDetalle = colaIniciativa.find((c) => c.id === idCriaturaDetalle);
+  
   const plantillaDeDetalle = criaturaSeleccionadaDetalle ? obtenerPlantillaAsociada(criaturaSeleccionadaDetalle) : null;
 
   return (

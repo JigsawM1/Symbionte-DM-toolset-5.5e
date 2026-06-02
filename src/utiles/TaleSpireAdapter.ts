@@ -142,17 +142,14 @@ class TaleSpireAdapter {
 
       if (window.TS?.initiative && typeof window.TS.initiative.getQueue === "function") {
         this.getQueuePromise = window.TS.initiative.getQueue();
-        
-        // Limpiar la promesa después de 100ms
-        setTimeout(() => {
-          this.getQueuePromise = null;
-        }, 100);
 
         try {
           return await this.getQueuePromise;
         } catch (error) {
-          this.getQueuePromise = null;
           throw error;
+        } finally {
+          // Garantizar la limpieza de la promesa de caché únicamente al finalizar la misma
+          this.getQueuePromise = null;
         }
       }
       return null;
@@ -365,10 +362,13 @@ class TaleSpireAdapter {
         }
         // Nav web clipboard fallback
         try {
-          await navigator.clipboard.writeText(texto);
-          return true;
+          if (navigator.clipboard && typeof navigator.clipboard.writeText === "function") {
+            await navigator.clipboard.writeText(texto);
+            return true;
+          }
+          return false;
         } catch (e) {
-          console.error("[TS Adapter] Fallback navigator.clipboard falló:", e);
+          console.warn("[TS Adapter] Fallback navigator.clipboard falló o carece de permisos de foco:", e);
           return false;
         }
       }

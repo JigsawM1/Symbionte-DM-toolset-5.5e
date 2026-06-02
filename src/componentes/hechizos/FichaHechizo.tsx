@@ -189,16 +189,21 @@ export const FichaHechizo: React.FC<FichaHechizoProps> = React.memo(({ hechizo, 
         {/* Descripción */}
         <div className={estilosClases.seccionFicha}>
           <div className={estilosClases.seccionTitulo}>DESCRIPCIÓN DEL CONJURO</div>
-          <div className={estilosClases.textoDescripcion}>{hechizo.descripcion}</div>
+          <div 
+            className={estilosClases.textoDescripcion} 
+            dangerouslySetInnerHTML={{ __html: hechizo.descripcion }} 
+          />
         </div>
 
         {/* Niveles superiores estático informativo si existe */}
         {hechizo.descNivelSuperior && (
           <div className={estilosClases.seccionFicha}>
             <div className={estilosClases.seccionTitulo}>EFECTO A NIVELES SUPERIORES</div>
-            <div className={estilosClases.textoDescripcion} style={{ fontStyle: "italic" }}>
-              {hechizo.descNivelSuperior}
-            </div>
+            <div 
+              className={estilosClases.textoDescripcion} 
+              style={{ fontStyle: "italic" }}
+              dangerouslySetInnerHTML={{ __html: hechizo.descNivelSuperior }}
+            />
           </div>
         )}
 

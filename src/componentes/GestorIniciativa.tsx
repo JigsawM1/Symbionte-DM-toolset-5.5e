@@ -44,13 +44,20 @@ export const GestorIniciativa: React.FC = () => {
   const obtenerPercepcionPasiva = (plantilla: MonstruoBase | null): number => {
     if (!plantilla) return 10;
 
-    if (plantilla.sentidos) {
-      const match = String(plantilla.sentidos).match(/percepci[oó]n\s+pasiva\s*[:\s]\s*(\d+)/i);
+    // 1. Si sentidos es un objeto estructurado, usar su Percepción Pasiva directamente
+    if (plantilla.sentidos && typeof plantilla.sentidos === "object" && "percepcionPasiva" in plantilla.sentidos) {
+      return (plantilla.sentidos as any).percepcionPasiva ?? 10;
+    }
+
+    // 2. Si sentidos es una cadena de texto, intentar extraer con Regex
+    if (typeof plantilla.sentidos === "string" && plantilla.sentidos) {
+      const match = plantilla.sentidos.match(/percepci[oó]n\s+pasiva\s*[:\s]\s*(\d+)/i);
       if (match) {
         return parseInt(match[1], 10);
       }
     }
 
+    // 3. Fallback: Cálculo matemático basado en Sabiduría y habilidad de Percepción
     const sab = plantilla.caracteristicas?.sabiduria ?? 10;
     const modSab = Math.floor((sab - 10) / 2);
     

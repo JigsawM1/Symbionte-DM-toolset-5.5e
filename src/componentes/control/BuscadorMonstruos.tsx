@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { usarAlmacenDM, calcularVidaPorDados, MonstruoBase } from "../../almacen/usarAlmacenDM";
+import { usarAlmacenDM, calcularVidaPorDados, MonstruoBase, formatearVelocidad } from "../../almacen/usarAlmacenDM";
 import { Skull, Plus } from "lucide-react";
 import estilosClases from "./BuscadorMonstruos.module.css";
 
@@ -35,7 +35,7 @@ export const BuscadorMonstruos: React.FC = () => {
       vidaCalculada,
       plantilla.ca,
       true, // esMonstruo
-      plantilla.velocidad,
+      formatearVelocidad(plantilla.velocidad),
       plantilla.iniciativaBonificador
     );
 

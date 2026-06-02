@@ -1,5 +1,5 @@
-import { MonstruoBase, HechizoBase, ObjetoHomebrew } from '../tipos';
-import { aplanarValor, sanearObjetoHomebrew, sanearHechizoCD } from './sanitizacion';
+import { MonstruoBase, HechizoBase, ObjetoHomebrew, EsquemaMonstruoBase, EsquemaHechizoBase, EsquemaObjetoJuego } from '../tipos';
+import { aplanarValor, sanearObjetoHomebrew, sanearHechizoCD, parsearVelocidad, parsearSentidos } from './sanitizacion';
 
 export interface ResultadoImportacion {
   modificado: boolean;
@@ -17,14 +17,14 @@ function limpiarTipoCriatura(tipoRaw: unknown): string {
   if (t.includes("constructo") || t.includes("construct")) return "Constructo";
   if (t.includes("dragón") || t.includes("dragon")) return "Dragón";
   if (t.includes("elemental")) return "Elemental";
-  if (t.includes("hada") || t.includes("fata") || t.includes("fey")) return "Hada";
+  if (t.includes("hada") || t.includes("fata") || t.includes("fey") || t.includes("feérico") || t.includes("feerico")) return "Feérico";
   if (t.includes("gigante") || t.includes("giant")) return "Gigante";
   if (t.includes("humanoide") || t.includes("humanoid")) return "Humanoide";
   if (t.includes("monstruosidad") || t.includes("monstrosity")) return "Monstruosidad";
   if (t.includes("no muerto") || t.includes("no-muerto") || t.includes("undead")) return "No Muerto";
   if (t.includes("planta") || t.includes("plant")) return "Planta";
-  if (t.includes("cieno") || t.includes("limo") || t.includes("ocete") || t.includes("ooze") || t.includes("slime")) return "Limo";
-  if (t.includes("fiando") || t.includes("demonio") || t.includes("diablo") || t.includes("fiend") || t.includes("infiando") || t.includes("devil") || t.includes("demon")) return "Infiando";
+  if (t.includes("cieno") || t.includes("limo") || t.includes("ooze") || t.includes("slime")) return "Cieno";
+  if (t.includes("fiando") || t.includes("demonio") || t.includes("diablo") || t.includes("fiend") || t.includes("infiando") || t.includes("devil") || t.includes("demon") || t.includes("infernal")) return "Infernal";
   
   return "Humanoide";
 }
@@ -309,7 +309,7 @@ export function importarDesdeJSON(
           });
         }
 
-        return {
+        const monstruoSaneado = {
           id: aplanarValor(m.Id || m.id || `m_importado_${Date.now()}_${idx}`),
           nombre: aplanarValor(m.Name || m.nombre || "Monstruo Desconocido"),
           tipo: limpiarTipoCriatura(m.Type || m.tipo || "Humanoide"),
@@ -319,8 +319,12 @@ export function importarDesdeJSON(
           vidaActual: vidaMax,
           vidaNotas: aplanarValor(vidaNotas),
           iniciativaBonificador: inicBonif,
-          velocidad: aplanarValor(velocidadStr),
-          sentidos: aplanarValor(m.sentidos || m.Senses),
+          velocidad: (velRaw && typeof velRaw === "object" && !Array.isArray(velRaw))
+            ? (velRaw as any)
+            : parsearVelocidad(velocidadStr),
+          sentidos: (m.sentidos && typeof m.sentidos === "object")
+            ? (m.sentidos as any)
+            : parsearSentidos(aplanarValor(m.sentidos || m.Senses)),
           idiomas: aplanarValor(m.idiomas || m.Languages),
           desafio: aplanarValor(m.Challenge || m.desafio || m.CR || "0"),
           fuente: aplanarValor(m.Source || m.fuente || "Manual de Monstruos"),
@@ -360,7 +364,15 @@ export function importarDesdeJSON(
             uso: aplanarValor(l.uso)
           }))
         };
-      });
+
+        const val = EsquemaMonstruoBase.safeParse(monstruoSaneado);
+        if (val.success) {
+          return val.data;
+        } else {
+          console.warn("[Importador] Monstruo omitido por inconsistencias en el esquema:", monstruoSaneado.nombre, val.error.format());
+          return null;
+        }
+      }).filter((m): m is MonstruoBase => m !== null);
 
       // Combinar, evitando duplicidad por nombre
       const monstruosFiltrados = estadoActual.baseDatosMonstruos.filter(
@@ -426,23 +438,101 @@ export function importarDesdeJSON(
           clasesArray = claseRaw.split(",").map((c: string) => c.trim()).filter(Boolean);
         }
 
-        // Alcance: nuevo formato puede ser array ["60 pies", "18 m"] → usar versión métrica (última)
+        // Alcance: nuevo formato puede ser array ["60 pies", "18 m"] → usar versión imperial/pies (primera)
         let alcanceStr: string;
         if (Array.isArray(h.alcance)) {
           const arr = (h.alcance as unknown[]).map(aplanarValor).filter(Boolean);
-          alcanceStr = arr[arr.length - 1] || "Personal"; // último elemento = métrico
+          alcanceStr = arr[0] || "Personal"; // primer elemento = imperial/pies
         } else {
           alcanceStr = aplanarValor(h.alcance || h.range || "Personal");
         }
 
-        // Descripción: nuevo formato puede ser array [imperial, métrico] → usar métrico (último elemento)
+        // Descripción: nuevo formato puede ser array [imperial, métrico] → usar imperial/pies (primer elemento)
         // Si es string, usarlo directamente.
         let desc: string;
         if (Array.isArray(h.descripcion)) {
           const arr = (h.descripcion as unknown[]).map(aplanarValor).filter(Boolean);
-          desc = arr[arr.length - 1] || ""; // último = versión métrica
+          desc = arr[0] || ""; // primer elemento = versión imperial/pies
         } else {
           desc = aplanarValor(h.descripcion || h.desc || "");
+        }
+
+        // Sanitizar el texto de descripción corrigiendo las corrupciones del JSON original
+        const descClean = desc
+          .replace(/(\d+)d26\s*pies[áa]s/gi, "$1d8 más")
+          .replace(/(\d+)d40\s*pies[áa]s/gi, "$1d12 más")
+          .replace(/(\d+)d13\s*piesenos/gi, "$1d4 menos")
+          .replace(/pies[áa]s/gi, "más")
+          .replace(/piesenos/gi, "menos");
+
+        // Extraer "a niveles superiores" y su daño de upcast
+        let descNivelSuperior = h.descNivelSuperior || h.higher_level 
+          ? aplanarValor(h.descNivelSuperior || h.higher_level).replace(/^(?:\s*<\/?[a-z0-9]+>)+/gi, '').trim() 
+          : undefined;
+        let dadosDanoNivelSuperior = h.dadosDañoNivelSuperior || h.dadosDanoNivelSuperior || h.damage_dice_upcast || h.higher_level_damage ? aplanarValor(h.dadosDañoNivelSuperior || h.dadosDanoNivelSuperior || h.damage_dice_upcast || h.higher_level_damage) : undefined;
+
+        if (!descNivelSuperior) {
+          const upcastRegex = /(?:con un espacio de conjuro de nivel superior|a niveles superiores|al lanzarse a un nivel superior|lanzado con un espacio de nivel superior).*?[\.:]\s*(.*)/i;
+          const upcastMatch = descClean.match(upcastRegex);
+          if (upcastMatch) {
+            descNivelSuperior = upcastMatch[1].replace(/^(?:\s*<\/?[a-z0-9]+>)+/gi, '').trim();
+          }
+        }
+
+        // Extraer dados de daño base si no vienen definidos
+        let dadosDano = h.dadosDaño || h.dadosDano || h.damage_dice ? aplanarValor(h.dadosDaño || h.dadosDano || h.damage_dice) : undefined;
+        if (!dadosDano) {
+          let descSencilla = descClean;
+          const upcastIndex = descClean.search(/(?:con un espacio de conjuro de nivel superior|a niveles superiores|al lanzarse a un nivel superior|lanzado con un espacio de nivel superior)/i);
+          if (upcastIndex !== -1) {
+            descSencilla = descClean.substring(0, upcastIndex);
+          }
+          const diceMatch = descSencilla.match(/(\d+d\d+(?:\s*[\+\-]\s*\d+)?)/);
+          if (diceMatch) {
+            dadosDano = diceMatch[1].replace(/\s+/g, "");
+          }
+        }
+
+        // Extraer dados de daño de nivel superior
+        if (descNivelSuperior && !dadosDanoNivelSuperior) {
+          const upcastDiceMatch = descNivelSuperior.match(/(\d+d\d+(?:\s*[\+\-]\s*\d+)?)/);
+          if (upcastDiceMatch) {
+            dadosDanoNivelSuperior = upcastDiceMatch[1].replace(/\s+/g, "");
+          } else if (dadosDano) {
+            const descNivelSuperiorLower = descNivelSuperior.toLowerCase();
+            if (
+              descNivelSuperiorLower.includes("dardo adicional") ||
+              descNivelSuperiorLower.includes("rayo adicional") ||
+              descNivelSuperiorLower.includes("proyectil adicional") ||
+              descNivelSuperiorLower.includes("flecha adicional") ||
+              descNivelSuperiorLower.includes("un dardo más") ||
+              descNivelSuperiorLower.includes("un rayo más") ||
+              descNivelSuperiorLower.includes("un proyectil más")
+            ) {
+              dadosDanoNivelSuperior = dadosDano;
+            } else {
+              const matchBaseDice = dadosDano.match(/\d+d(\d+)/);
+              if (matchBaseDice) {
+                const caras = matchBaseDice[1];
+                if (descNivelSuperiorLower.includes("daño") || descNivelSuperiorLower.includes("dano") || descNivelSuperiorLower.includes("aumenta")) {
+                  dadosDanoNivelSuperior = `1d${caras}`;
+                }
+              }
+            }
+          }
+        }
+
+        // Extraer/inferir tipo de daño
+        let tipoDano = h.tipoDaño || h.tipoDano || h.damage_type_01 ? aplanarValor(h.tipoDaño || h.tipoDano || h.damage_type_01).toLowerCase() : undefined;
+        if (!tipoDano && dadosDano) {
+          const danoTypes = ["ácido", "frío", "fuego", "relámpago", "veneno", "psíquico", "radiante", "cortante", "contundente", "perforante", "fuerza", "trueno", "necrótico", "curación"];
+          const descLower = descClean.toLowerCase();
+          for (const t of danoTypes) {
+            if (descLower.includes(t)) {
+              tipoDano = t;
+              break;
+            }
+          }
         }
         
         // Preservar compatibilidad rústica: solo agregar extras a la descripción si es formato
@@ -483,7 +573,7 @@ export function importarDesdeJSON(
 
         if (!cdSalv) {
           // Escanear descripción para deducir la característica de salvación
-          const descLower = desc.toLowerCase();
+          const descLower = descClean.toLowerCase();
           if (descLower.includes("salvación de destreza") || descLower.includes("tirada de salvación de destreza") || descLower.includes("salvación: dex") || descLower.includes("salvación: des") || descLower.includes("salvacion de destreza")) {
             cdSalv = "Destreza";
           } else if (descLower.includes("salvación de sabiduría") || descLower.includes("tirada de salvación de sabiduría") || descLower.includes("salvación: sab") || descLower.includes("salvación: wis") || descLower.includes("salvacion de sabiduria") || descLower.includes("salvación de sabidur")) {
@@ -507,7 +597,7 @@ export function importarDesdeJSON(
         // Duración: nuevo campo duracion | clásico: duracion | inglés: duration
         const duracion = aplanarValor(h.duracion || h.duration || "");
 
-        return {
+        const hechizoMapeado = {
           id: aplanarValor(h.id || h.Id || `h_importado_${Date.now()}_${idx}`),
           nombre: aplanarValor(h.nombre || h.name || "Hechizo Desconocido"),
           nivel: nivelNum,
@@ -515,28 +605,35 @@ export function importarDesdeJSON(
           tiempoLanzamiento,
           alcance: alcanceStr,
           componentes: compStr,
-          descripcion: aplanarValor(desc),
+          descripcion: aplanarValor(descClean),
           concentracion: concentracionVal,
           ritual: ritualVal,
           
-          // Campos enriquecidos estructurados
-          descNivelSuperior: h.descNivelSuperior || h.higher_level ? aplanarValor(h.descNivelSuperior || h.higher_level) : undefined,
+          descNivelSuperior: descNivelSuperior || undefined,
           materiales: (h.materiales !== null && h.materiales !== undefined) ? aplanarValor(h.materiales) : (h.material ? aplanarValor(h.material) : undefined),
           componentesSeleccionados,
           duracion: duracion || undefined,
           clases: clasesArray.length > 0 ? clasesArray : undefined,
-          // requiere_ataque (nuevo) o deducir de campos clásicos
           ataqueCd: h.ataqueCd ? aplanarValor(h.ataqueCd)
             : (h.requiere_ataque === true ? "TIRADA DE ATAQUE"
             : (tiradaSalv ? "CD DE SALVACIÓN"
-            : (h.damage_dice || h.dadosDaño || h.dadosDano ? "TIRADA DE ATAQUE" : "N/A"))),
-          dadosDaño: h.dadosDaño || h.dadosDano || h.damage_dice ? aplanarValor(h.dadosDaño || h.dadosDano || h.damage_dice) : undefined,
-          dadosDañoNivelSuperior: h.dadosDañoNivelSuperior || h.dadosDanoNivelSuperior || h.damage_dice_upcast || h.higher_level_damage ? aplanarValor(h.dadosDañoNivelSuperior || h.dadosDanoNivelSuperior || h.damage_dice_upcast || h.higher_level_damage) : undefined,
+            : (dadosDano ? "TIRADA DE ATAQUE" : "N/A"))),
+          dadosDaño: dadosDano || undefined,
+          dadosDañoNivelSuperior: dadosDanoNivelSuperior || undefined,
           cdSalvacion: cdSalv || (h.cdSalvacion && String(h.cdSalvacion).toUpperCase().trim() !== "CD DC" && String(h.cdSalvacion).toUpperCase().trim() !== "DC" ? aplanarValor(h.cdSalvacion) : (h.toHitOrDC && String(h.toHitOrDC).toUpperCase().trim() !== "CD DC" && String(h.toHitOrDC).toUpperCase().trim() !== "DC" ? aplanarValor(h.toHitOrDC) : undefined)),
           agregarModificadorHabilidad: h.agregarModificadorHabilidad !== undefined ? !!h.agregarModificadorHabilidad : (h.ability_modifier === "yes" || h.ability_modifier === true || h.add_ability_modifier === "yes" || h.add_ability_modifier === true || undefined),
-          tipoDaño: h.tipoDaño || h.tipoDano || h.damage_type_01 ? aplanarValor(h.tipoDaño || h.tipoDano || h.damage_type_01).toLowerCase() : undefined
+          tipoDaño: tipoDano || undefined
         };
-      }).map(sanearHechizoCD);
+
+        const saneado = sanearHechizoCD(hechizoMapeado);
+        const val = EsquemaHechizoBase.safeParse(saneado);
+        if (val.success) {
+          return val.data;
+        } else {
+          console.warn("[Importador] Hechizo omitido por inconsistencias en el esquema:", saneado.nombre, val.error.format());
+          return null;
+        }
+      }).filter((h): h is HechizoBase => h !== null);
 
       const hechizosFiltrados = estadoActual.baseDatosHechizos.filter(
         (hExistente) => !nuevosHechizosFormateados.some((hNuevo) => hNuevo.nombre.toLowerCase().trim() === hExistente.nombre.toLowerCase().trim())
@@ -712,7 +809,7 @@ export function importarDesdeJSON(
           descripcion = `Clase de Armadura (CA): ${acObj.base}` + (acObj.dex_bonus ? ` + Des (Máx ${acObj.max_bonus || "ilimitado"})` : "") + (o.str_minimum ? ` | Requisito Fuerza: ${o.str_minimum}` : "") + (o.stealth_disadvantage ? " | Desventaja en Sigilo" : "");
         }
         
-        return sanearObjetoHomebrew({
+        const objetoMapeado = sanearObjetoHomebrew({
           ...o, // Conservar todas las propiedades originales clásicas para que sanearObjetoHomebrew las mapee con total precisión (armor_class, armor_category, str_minimum, etc.)
           id: o.index || o.id || `o_importado_${Date.now()}_${idx}`,
           nombre,
@@ -737,7 +834,15 @@ export function importarDesdeJSON(
           bonoDaño: bonoDmgStr || undefined,
           bonosMagicos: bonosMagicosLista.length > 0 ? bonosMagicosLista : undefined
         });
-      });
+
+        const val = EsquemaObjetoJuego.safeParse(objetoMapeado);
+        if (val.success) {
+          return val.data as ObjetoHomebrew;
+        } else {
+          console.warn("[Importador] Objeto omitido por inconsistencias en el esquema Zod:", objetoMapeado.nombre, val.error.format());
+          return null;
+        }
+      }).filter((o): o is ObjetoHomebrew => o !== null);
 
       const objetosFiltrados = estadoActual.objetosHomebrew
         .map(sanearObjetoHomebrew)

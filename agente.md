@@ -1294,3 +1294,79 @@ Al importar criaturas con ciertos formatos específicos de D&D (como el Aboleth 
 > 🔍 **Flexibilidad y polimorfismo en importación de diccionarios externos:** Cuando diseñes importadores de datos JSON para compendios que puedan provenir de múltiples herramientas de D&D o traducciones comunitarias, **nunca asumas tipos primitivos rígidos o nomenclaturas de una sola lengua**. 
 > Diseña siempre normalizadores adaptativos que toleren tanto propiedades en español como en inglés, y que evalúen la naturaleza del dato (arrays, objetos estructurados `{ Value, Notes }` o strings) antes de procesarlos. Asimismo, si la interfaz requiere valores limpios delimitados para selectores, implementa funciones de mapeo inteligente (`cleaners`) que extraigan la categoría principal del string detallado del usuario para evitar desajustes silenciosos en el renderizado de la UI. De igual forma, da compatibilidad tanto a los formatos relacionales de tipo Array de origen externo como a tus propios diccionarios de objetos exportados nativos para lograr una compatibilidad del 100% de ida y vuelta.
 
+---
+
+## [2026-06-02] ARQUITECTURA: Diseño de Tipado Estricto Zod y Adaptación de Compendio D&D 2024 (5.5e)
+
+**Situación:**
+El compendio del usuario requiere integrar datos del formato de `5e-bits/5e-database` (en inglés) mapeando y traduciendo los datos a español sin perder tipado estricto ni comprometer la persistencia en TaleSpire (que está limitada a un blob consolidado de 5MB por simbionte).
+
+**Lección de Arquitectura Aprendida:**
+1. **Patrón Adaptador (Data Adapter Pattern) para Localización:** Para evitar contaminar el dominio en español (`AppLocal`) con nombres de propiedades o formatos de datos en inglés, se debe implementar una capa de transformación bidireccional usando esquemas Zod independientes para cada entorno:
+   - `Esquema5eBitsIngles` (Validador en origen del JSON crudo de 5e-bits).
+   - `EsquemaAppLocalEspañol` (Validador en destino para el dominio de negocio).
+   - Un adaptador (`traducirYAdaptar5eBits`) que centralice el parseo y mapeo (ej. traducir escuelas de magia, tipos de monstruo, mapear arrays de `proficiencies` a salvaciones/habilidades locales).
+2. **Escalabilidad de Almacenamiento (Separación del Compendio vs Homebrew/Usuario):**
+   - El compendio estático (las reglas base D&D 2024 oficiales) no debe residir en el estado mutable persistente del usuario (el blob de TaleSpire tiene un límite estricto de 5MB).
+   - El compendio estático debe estar alojado en la carpeta `public/` en JSONs leídos bajo demanda (lazy-loading) o en un mapa estático en memoria en el cliente.
+   - Solo los monstruos y hechizos *Homebrew* (personalizados) creados por el DM se guardan en el almacenamiento persistente (`TS.localStorage.global.setBlob`), asegurando que el tamaño del blob no supere los 5MB incluso tras años de uso del simbionte.
+3. **Normalización vs Desnormalización:**
+   - Para el guardado persistente del homebrew, se prefiere un formato normalizado donde las relaciones (como hechizos preparados en un monstruo) se guarden como IDs y no como objetos anidados completos.
+   - Para búsquedas, es eficiente indexar por ID (`Record<string, T>`) o por iniciales, manteniendo una experiencia fluida e interactiva en TaleSpire.
+
+---
+
+## [2026-06-02] COMPILACIÓN: Resolución de Tipos Zod y Coherencia en Formulario de Criaturas
+
+**Síntomas:**
+El proyecto fallaba al compilar (`tsc` con código 1) debido a tres causas principales:
+1. **Miembros Faltantes en el Compendio de Tipos:** `TipoBonoDestreza` y `SubcategoriaEquipo` fueron referenciados en `sanitizacion.ts` y formularios de objetos, pero se omitieron en las exportaciones de `src/tipos/index.ts`.
+2. **Incompatibilidad de Velocidad/Sentidos en Formularios:** El formulario `FormularioCriatura.tsx` pasaba el estado `monstruoForm` a `SeccionGeneralProps`, el cual requería estrictamente que `velocidad` y `sentidos` fuesen cadenas `string | undefined`. Sin embargo, con el nuevo tipado Zod estructurado, estas propiedades pasaron a ser la unión `string | VelocidadEstructurada` / `string | SentidosEstructurados`.
+3. **Discrepancia en Tipos de Literales en Datos Iniciales:** `MONSTRUOS_INICIALES` en `datosIniciales.ts` contenía objetos literales que omitían campos predeterminados en el esquema de Zod (como `caNotas`, `vulnerabilidades`, `resistencias`, etc.). Dado que `z.infer` infiere campos con valores por defecto como requeridos en la firma de salida del tipo TypeScript, el compilador los detectaba como faltantes.
+
+**Solución aplicada:**
+1. **Re-exportación y Mapeo en index.ts:** Definimos formalmente `EsquemaTipoBonoDestreza` / `TipoBonoDestreza` y `EsquemaSubcategoriaEquipo` / `SubcategoriaEquipo` en `src/tipos/index.ts`, vinculándolos a las firmas de armaduras y equipos de aventuras respectivamente.
+2. **Normalización de Props de Formulario:** Modificamos la interfaz `SeccionGeneralProps` en `SeccionGeneral.tsx` para aceptar tipos estructurados para velocidad y sentidos. En la interfaz gráfica del input, aplicamos de forma transparente las utilidades de formateo `formatearVelocidad(monstruoForm.velocidad)` y `formatearSentidos(monstruoForm.sentidos)` para asegurar que el valor visual siempre sea un string plano.
+3. **Validación Dinámica en Datos Iniciales:** Cambiamos la declaración de `MONSTRUOS_INICIALES` y `HECHIZOS_INICIALES` en `datosIniciales.ts` para que se inicialicen a partir de arrays crudos mapeados en tiempo de ejecución a través de `EsquemaMonstruoBase.parse(m)` y `EsquemaHechizoBase.parse(h)`. Esto inyecta dinámicamente los valores por defecto definidos en Zod sin verbosidad redundante en los archivos de mock data.
+4. **Limpieza de Opciones Obsoletas:** Corregimos las opciones de tipos de monstruo en `SeccionGeneral.tsx` eliminando términos redundantes como "Fata" o "Infiando", adaptando el selector para reflejar exclusivamente el listado oficial y validado por Zod ("Feérico", "Infernal", "Cieno", etc.).
+
+**Lección aprendida:**
+> 🛡️ **Zod Defaults y Tipado de Salida en TypeScript (`z.infer`):** Ten en cuenta que al usar `.default(...)` en esquemas Zod, el tipo inferido de salida (usando `z.infer<T>`) marcará esa propiedad como **requerida** en TypeScript. Al declarar objetos literales de ese tipo directamente en código (como archivos mock de configuración inicial), causará errores de compilación por campos faltantes. Para solucionar esto sin redundar en literales masivos, define la estructura como un array crudo intermedio y procésalo al inicio mediante `.parse()` de Zod; esto no solo mantendrá el tipado consistente, sino que poblará dinámicamente todos los arrays e inicializadores vacíos a nivel de ejecución de forma segura.
+
+5. **Optimización en Consulta de Percepción Pasiva:**
+   * **Problema:** En [GestorIniciativa.tsx](file:///c:/Users/zamor/OneDrive/Documentos/Programas/ToolSet%20Es%205.5/src/componentes/GestorIniciativa.tsx), el método `obtenerPercepcionPasiva` ejecutaba siempre una búsqueda por expresión regular (`match`) asumiendo que `sentidos` era una cadena. Al cambiar a datos estructurados, `plantilla.sentidos` es un objeto, lo que hacía que `String(plantilla.sentidos)` devolviese `"[object Object]"` y fallase la coincidencia, cayendo en el cálculo manual de sabiduría.
+   * **Solución:** Se actualizó `obtenerPercepcionPasiva` para evaluar primero si `sentidos` es de tipo `object` y extraer directamente `percepcionPasiva` en O(1), dejando el regex de string y el cómputo manual de sabiduría únicamente como fallbacks para datos legacy.
+6. **Carga Estática de Compendios Base como Datos Iniciales:**
+   * **Objetivo:** Hacer que `prueba base/Mounstros.2024-es.json` y `prueba base/all.json` sean los datos iniciales por defecto cargados en el store del Simbionte.
+   * **Implementación:** Se importaron los JSONs directamente usando la directiva de resolución de módulos JSON de Vite en `src/utiles/datosIniciales.ts` y se ejecutó la utilidad `importarDesdeJSON` pasándoles arrays de estado vacíos. Esto aprovecha el flujo y parser unificado del importador para sanitizar, mapear claves/formatos y validar con Zod de forma 100% automatizada al arrancar la app.
+   * **Persistencia Inteligente:** El middleware de persistencia en Zustand (`sliceConfiguracion.ts`) filtra los compendios iniciales al persistir el estado (`baseDatosMonstruos.filter(m => !MONSTRUOS_INICIALES.some(i => i.id === m.id))`), lo que garantiza que estos 1.6 MB de datos base NUNCA consuman el límite físico de 5MB del blob global de TaleSpire.
+7. **Preferencia de Unidades Imperiales (Pies) en Hechizos:**
+   * **Problema:** En el archivo `all.json`, las propiedades `alcance` y `descripcion` vienen estructuradas como arrays `[imperial/pies, metrica/metros]`. Originalmente, [importadorJSON.ts](file:///c:/Users/zamor/OneDrive/Documentos/Programas/ToolSet%20Es%205.5/src/almacen/importadorJSON.ts) tomaba el último elemento (`arr[arr.length - 1]`), forzando el formateo a unidades métricas (metros).
+   * **Solución:** Se modificó la indexación en el importador para que acceda al primer elemento (`arr[0]`), el cual corresponde a la configuración de pies oficiales para D&D 5e/2024 (e.g. `"60 pies"` en lugar de `"18 m"`).
+
+
+
+---
+
+## [2026-06-02] BUGFIX: Renderizado de HTML en Descripciones e Inferencia Inteligente de Upcast de Conjuros
+
+**Síntomas:**
+1. **Visualización corrupta de descripciones:** Las etiquetas HTML como <br>, <b>, e <i> en las descripciones de los conjuros y objetos mágicos se mostraban como texto plano en lugar de interpretarse, arruinando el formato visual de la ficha.
+2. **Pérdida de la sección informativa de niveles superiores:** Las etiquetas HTML huérfanas de cierre como </i></b> quedaban al principio del fragmento de texto descNivelSuperior debido a cortes incorrectos del regex del importador, lo que corrompía la estructura del DOM en el navegador.
+3. **Pérdida del selector interactivo de Upcasting:** Conjuros de daño que escalan a niveles superiores agregando proyectiles/rayos/dardos de daño idénticos a los de la base (como *Proyectil mágico* o *Rayo abrasador*) no mostraban el selector interactivo de ranura superior de conjuros (Upcast roller) ni el botón para tirar dados escalados. Esto ocurría porque no hay dados explictos XdY dentro del texto de nivel superior ("crea un dardo adicional..."), lo que causaba que dadosDañoNivelSuperior se cargara como undefined.
+
+**Causa raíz:**
+1. **Renderizado de texto plano:** En FichaHechizo.tsx y ListaHomebrew.tsx, las propiedades de descripción se renderizaban mediante llaves comunes de React {hechizo.descripcion} en lugar de usar inyección HTML.
+2. **Corte rígido de regex en etiquetas inline:** El regex upcastRegex cortaba tras la frase de upcast Con un espacio de conjuro de nivel superior. que estaba dentro de etiquetas inline <b><i>...</i></b>, dejando la etiqueta de cierre al inicio del texto capturado.
+3. **Falta de heurísticas de inferencia de daño:** El selector de Upcasting en la UI requiere que dadosDañoNivelSuperior contenga un valor de dado no-vacío. Si no se especificaban dados del tipo XdY en la descripción del upcast, el importador no sabía que el hechizo era escalable con dados de daño y desactivaba el selector interactivo de combate.
+
+**Solución aplicada:**
+1. **Inyección segura de HTML en React:** Se reemplazó la interpolación de texto plano en FichaHechizo.tsx y ListaHomebrew.tsx por bloques dangerouslySetInnerHTML={{ __html: ... }} para descripciones de conjuros, upcasts y objetos.
+2. **Sanitización de HTML huérfano:** Se inyectó una regla regex en importadorJSON.ts (.replace(/^(?:\s*<\/?[a-z0-9]+>)+/gi, '')) que remueve cualquier etiqueta HTML (abierta o cerrada) huérfana al inicio de la cadena descNivelSuperior tras la extracción.
+3. **Inferencia de dados de Upcast por contexto de combate:** Se implementó una heurística de inferencia en el importador: si un hechizo escala a nivel superior pero no define dados explícitos, y en su descripción se mencionan frases como "dardo adicional", "rayo adicional", "proyectil adicional", etc., se asume dinámicamente que la escala es idéntica a su daño base (dadosDaño). Para otros casos de escalamiento donde se mencione la palabra "daño" o "aumenta", se infiere 1 dado del tipo base (ej. 1d6 si la base es 3d6).
+
+**Lección aprendida:**
+> 🛠️ **Inyección de HTML y Heurísticas de Enriquecimiento en Importadores:** Al diseñar importadores de compendios semiestructurados (donde la descripción contiene toda la lógica de combate mezclada con HTML y prosa), siempre es necesario:
+> 1. Limpiar proactivamente cualquier fragmento HTML capturado que pueda haber quedado "roto" o con etiquetas huérfanas en los bordes del regex.
+> 2. Implementar heurísticas basadas en el vocabulario oficial del juego (como "proyectil adicional" o "rayo adicional" de D&D) para inferir dinámicamente los campos estructurales requeridos por los simuladores de combate de la UI. Esto recupera funcionalidades ricas que se perderían si nos limitamos a parsear expresiones regulares rígidas.
+> 3. Usar dangerouslySetInnerHTML en React cuando los datos de base de datos contienen marcas HTML embebidas legítimas para saltos de línea e inclinaciones tipográficas.

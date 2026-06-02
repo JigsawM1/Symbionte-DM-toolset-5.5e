@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Skull, Shield, Trash2, Heart, Swords, X } from "lucide-react";
 import { usarAlmacenDM, CriaturaIniciativa } from "../../almacen/usarAlmacenDM";
 import { MonstruoBase, CONDICIONES_2024, EFECTOS_PREDEFINIDOS } from "../../utiles/datosIniciales";
+import { formatearVelocidad } from "../../almacen/sanitizacion";
 import estilosClases from "./TarjetaCriaturaIniciativa.module.css";
 
 interface TarjetaCriaturaIniciativaProps {
@@ -135,7 +136,7 @@ export const TarjetaCriaturaIniciativa: React.FC<TarjetaCriaturaIniciativaProps>
               {esTurnoActivo && <span className={estilosClases.tagTurnoActivo}>ACTIVO</span>}
             </span>
             <span className={estilosClases.subtituloCriatura}>
-              CA: <strong style={{ color: "var(--color-borde-cian)", fontFamily: "var(--fuente-codigo)" }}>{criatura.ca}</strong> | Vel: {criatura.velocidad}
+              CA: <strong style={{ color: "var(--color-borde-cian)", fontFamily: "var(--fuente-codigo)" }}>{criatura.ca}</strong> | Vel: {formatearVelocidad(criatura.velocidad)}
               {plantilla && (
                 <> | &nbsp; &nbsp; PP: <strong style={{ color: "#ffcc00", fontFamily: "var(--fuente-codigo)" }}>{obtenerPercepcionPasiva(plantilla)}</strong></>
               )}

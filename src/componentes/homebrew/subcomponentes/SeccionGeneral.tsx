@@ -1,6 +1,8 @@
 import React from "react";
 import { Shield, Heart } from "lucide-react";
 import estilos from "../FormularioCriatura.module.css";
+import { VelocidadEstructurada, SentidosEstructurados } from "../../../tipos";
+import { formatearVelocidad, formatearSentidos } from "../../../almacen/sanitizacion";
 
 interface SeccionGeneralProps {
   monstruoForm: {
@@ -11,10 +13,10 @@ interface SeccionGeneralProps {
     vidaMaxima: number;
     vidaNotas?: string;
     iniciativaBonificador?: number;
-    velocidad?: string;
+    velocidad?: string | VelocidadEstructurada;
     desafio?: string;
     fuente?: string;
-    sentidos?: string;
+    sentidos?: string | SentidosEstructurados;
     idiomas?: string;
   };
   actualizarGeneral: (campo: string, valor: unknown) => void;
@@ -52,14 +54,14 @@ export const SeccionGeneral: React.FC<SeccionGeneralProps> = ({
             <option value="Bestia">Bestia</option>
             <option value="Constructo">Constructo</option>
             <option value="Elemental">Elemental</option>
-            <option value="Hada">Hada</option>
-            <option value="Fata">Fata</option>
+            <option value="Feérico">Feérico</option>
+            <option value="Infernal">Infernal</option>
             <option value="Gigante">Gigante</option>
             <option value="Aberración">Aberración</option>
             <option value="Celestial">Celestial</option>
-            <option value="Infiando">Infiando</option>
+            <option value="Abominación">Abominación</option>
             <option value="Planta">Planta</option>
-            <option value="Limo">Limo</option>
+            <option value="Cieno">Cieno</option>
           </select>
         </div>
       </div>
@@ -125,7 +127,7 @@ export const SeccionGeneral: React.FC<SeccionGeneralProps> = ({
           <label className={estilos.labelForm}>Velocidad:</label>
           <input
             type="text"
-            value={monstruoForm.velocidad || ""}
+            value={formatearVelocidad(monstruoForm.velocidad)}
             onChange={(e) => actualizarGeneral("velocidad", e.target.value)}
             placeholder="ej. 30 pies, volar 60"
             className={estilos.inputForm}
@@ -160,7 +162,7 @@ export const SeccionGeneral: React.FC<SeccionGeneralProps> = ({
         <label className={estilos.labelForm}>Sentidos:</label>
         <input
           type="text"
-          value={monstruoForm.sentidos || ""}
+          value={formatearSentidos(monstruoForm.sentidos)}
           onChange={(e) => actualizarGeneral("sentidos", e.target.value)}
           placeholder="Ej. visión en la oscuridad 60 pies, Percepción pasiva 12"
           className={estilos.inputForm}

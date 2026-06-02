@@ -1,6 +1,7 @@
 import { useState, useCallback } from "react";
 import { usarAlmacenDM } from "../almacen/usarAlmacenDM";
 import { MonstruoBase, RasgoBase, AccionMonstruo, AccionRapida } from "../tipos";
+import { parsearVelocidad, parsearSentidos, formatearVelocidad, formatearSentidos } from "../almacen/sanitizacion";
 import { usarListaDinamica } from "./usarListaDinamica";
 
 export const estadoInicialCriatura = {
@@ -125,8 +126,8 @@ export function usarFormularioCriatura(idEnEdicion: string | null, alGuardarExit
       vidaMaxima: m.vidaMaxima,
       vidaNotas: m.vidaNotas || "",
       iniciativaBonificador: m.iniciativaBonificador || 0,
-      velocidad: m.velocidad || "30 pies",
-      sentidos: m.sentidos || "",
+      velocidad: m.velocidad ? formatearVelocidad(m.velocidad) : "30 pies",
+      sentidos: m.sentidos ? formatearSentidos(m.sentidos) : "",
       idiomas: m.idiomas || "",
       desafio: m.desafio || "1",
       fuente: m.fuente || "Manual de Monstruos",
@@ -201,14 +202,28 @@ export function usarFormularioCriatura(idEnEdicion: string | null, alGuardarExit
       return;
     }
 
+    const velocidadEstructurada = typeof monstruoForm.velocidad === "string"
+      ? parsearVelocidad(monstruoForm.velocidad)
+      : monstruoForm.velocidad;
+
+    const sentidosEstructurados = typeof monstruoForm.sentidos === "string"
+      ? parsearSentidos(monstruoForm.sentidos)
+      : monstruoForm.sentidos;
+
+    const monstruoParaGuardar = {
+      ...monstruoForm,
+      velocidad: velocidadEstructurada,
+      sentidos: sentidosEstructurados
+    };
+
     if (idEnEdicion) {
-      actualizarMonstruoHomebrew(idEnEdicion, monstruoForm);
+      actualizarMonstruoHomebrew(idEnEdicion, monstruoParaGuardar as any);
       agregarNotificacion("¡Criatura Homebrew actualizada con éxito!", "exito");
     } else {
       agregarMonstruoHomebrew({
-        ...monstruoForm,
+        ...monstruoParaGuardar,
         vidaActual: monstruoForm.vidaMaxima
-      });
+      } as any);
       agregarNotificacion("¡Criatura Homebrew guardada con éxito!", "exito");
     }
 

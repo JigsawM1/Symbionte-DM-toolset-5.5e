@@ -1,6 +1,6 @@
 import { StateCreator } from 'zustand';
 import { CriaturaIniciativa, EfectoActivo, MonstruoBase } from '../usarAlmacenDM';
-import { calcularVidaPorDados } from '../sanitizacion';
+import { calcularVidaPorDados, formatearVelocidad } from '../sanitizacion';
 import type { EstadoDM } from '../usarAlmacenDM';
 import { ts } from '../../utiles/TaleSpireAdapter';
 
@@ -284,7 +284,7 @@ export const crearSliceIniciativa: StateCreator<
         condiciones: [],
         bonificadorIniciativa: plantillaMonstruo ? plantillaMonstruo.iniciativaBonificador : 0,
         esMonstruo: !cTS.id.startsWith("c_jugador"),
-        velocidad: plantillaMonstruo ? plantillaMonstruo.velocidad : "30 pies",
+        velocidad: plantillaMonstruo ? formatearVelocidad(plantillaMonstruo.velocidad) : "30 pies",
         vidaTemporal: 0,
         idPlantillaAsociada: plantillaMonstruo ? plantillaMonstruo.id : undefined
       } as CriaturaIniciativa;
@@ -662,7 +662,7 @@ export const crearSliceIniciativa: StateCreator<
         condiciones: [],
         bonificadorIniciativa: plantillaMonstruo ? plantillaMonstruo.iniciativaBonificador : 0,
         esMonstruo: !cTS.id.startsWith("c_jugador"),
-        velocidad: plantillaMonstruo ? plantillaMonstruo.velocidad : "30 pies",
+        velocidad: plantillaMonstruo ? formatearVelocidad(plantillaMonstruo.velocidad) : "30 pies",
         vidaTemporal: 0,
         idPlantillaAsociada: plantillaMonstruo ? plantillaMonstruo.id : undefined
       });

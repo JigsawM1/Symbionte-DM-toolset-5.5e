@@ -1,4 +1,4 @@
-import { HechizoBase, ObjetoHomebrew, Rareza, Arma, Armadura, EquipoAventuras, TipoBonoDestreza, SubcategoriaEquipo } from '../tipos';
+import { HechizoBase, ObjetoHomebrew, Rareza, Arma, Armadura, EquipoAventuras, TipoBonoDestreza, SubcategoriaEquipo, VelocidadEstructurada, SentidosEstructurados } from '../tipos';
 
 // Función auxiliar robusta para aplanar de forma segura cualquier estructura a string (previene error #31 de React)
 export function aplanarValor(val: unknown): string {
@@ -517,3 +517,86 @@ export function calcularVidaPorDados(
 
   return promedioEstandar;
 }
+
+export function parsearVelocidad(velStr: string): VelocidadEstructurada {
+  const result: VelocidadEstructurada = { caminar: 0, planea: false };
+  if (!velStr) return result;
+
+  const partes = velStr.toLowerCase().split(",");
+  for (const parte of partes) {
+    const numMatch = parte.match(/(\d+)\s*pies?/);
+    const valor = numMatch ? parseInt(numMatch[1], 10) : 30;
+    
+    if (parte.includes("nadar") || parte.includes("swim")) {
+      result.nadar = valor;
+    } else if (parte.includes("volar") || parte.includes("fly")) {
+      result.volar = valor;
+      if (parte.includes("suspenderse") || parte.includes("hover")) {
+        result.planea = true;
+      }
+    } else if (parte.includes("trepar") || parte.includes("climb")) {
+      result.escalar = valor;
+    } else if (parte.includes("excavar") || parte.includes("burrow")) {
+      result.excavar = valor;
+    } else {
+      result.caminar = valor;
+    }
+  }
+  return result;
+}
+
+export function parsearSentidos(sentidosStr: string): SentidosEstructurados {
+  const result: SentidosEstructurados = { percepcionPasiva: 10 };
+  if (!sentidosStr) return result;
+
+  const partes = sentidosStr.toLowerCase().split(",");
+  for (const parte of partes) {
+    const numMatch = parte.match(/(\d+)\s*pies?/);
+    const valor = numMatch ? parseInt(numMatch[1], 10) : 60;
+    
+    if (parte.includes("oscuridad") || parte.includes("darkvision")) {
+      result.visionOscuridad = valor;
+    } else if (parte.includes("ciega") || parte.includes("blindsight")) {
+      result.visionCiega = valor;
+    } else if (parte.includes("sísmico") || parte.includes("sismico") || parte.includes("tremorsense")) {
+      result.sentidoSismico = valor;
+    } else if (parte.includes("pasiva") || parte.includes("passive")) {
+      const pasivaMatch = parte.match(/(\d+)/);
+      if (pasivaMatch) {
+        result.percepcionPasiva = parseInt(pasivaMatch[1], 10);
+      }
+    }
+  }
+  return result;
+}
+
+export function formatearVelocidad(vel: VelocidadEstructurada | string | undefined): string {
+  if (!vel) return "0 pies";
+  if (typeof vel === "string") return vel;
+  
+  const partes: string[] = [];
+  if (vel.caminar) partes.push(`${vel.caminar} pies`);
+  if (vel.nadar) partes.push(`Nadar ${vel.nadar} pies`);
+  if (vel.volar) {
+    partes.push(`Volar ${vel.volar} pies${vel.planea ? " (suspenderse)" : ""}`);
+  }
+  if (vel.escalar) partes.push(`Trepar ${vel.escalar} pies`);
+  if (vel.excavar) partes.push(`Excavar ${vel.excavar} pies`);
+  
+  return partes.length > 0 ? partes.join(", ") : "0 pies";
+}
+
+export function formatearSentidos(sentidos: SentidosEstructurados | string | undefined): string {
+  if (!sentidos) return "";
+  if (typeof sentidos === "string") return sentidos;
+  
+  const partes: string[] = [];
+  if (sentidos.visionOscuridad) partes.push(`Visión en la oscuridad ${sentidos.visionOscuridad} pies`);
+  if (sentidos.visionCiega) partes.push(`Visión ciega ${sentidos.visionCiega} pies`);
+  if (sentidos.sentidoSismico) partes.push(`Sentido sísmico ${sentidos.sentidoSismico} pies`);
+  partes.push(`Percepción pasiva ${sentidos.percepcionPasiva}`);
+  
+  return partes.join(", ");
+}
+
+

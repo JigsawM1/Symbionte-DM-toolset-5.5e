@@ -349,7 +349,10 @@ export const ListaHomebrew: React.FC<Props> = ({
               {/* Descripción Completa */}
               <div className={estilos.seccionDescripcionFicha}>
                 <div className={estilos.descripcionTituloFicha}>DESCRIPCIÓN DEL CONJURO</div>
-                <div className={estilos.descripcionCuerpoFicha}>{hechizo.descripcion}</div>
+                <div 
+                  className={estilos.descripcionCuerpoFicha}
+                  dangerouslySetInnerHTML={{ __html: hechizo.descripcion }}
+                />
               </div>
 
               {/* A niveles superiores si existe */}
@@ -358,9 +361,10 @@ export const ListaHomebrew: React.FC<Props> = ({
                   <div className={estilos.descripcionTituloFichaActivo}>
                     A NIVELES SUPERIORES
                   </div>
-                  <div className={estilos.descripcionCuerpoFichaSecundario}>
-                    {hechizo.descNivelSuperior}
-                  </div>
+                  <div 
+                    className={estilos.descripcionCuerpoFichaSecundario}
+                    dangerouslySetInnerHTML={{ __html: hechizo.descNivelSuperior }}
+                  />
                 </div>
               )}
 
@@ -590,7 +594,10 @@ export const ListaHomebrew: React.FC<Props> = ({
                 <div className={estilos.descripcionTituloFicha}>
                   DESCRIPCIÓN DEL OBJETO MÁGICO
                 </div>
-                <div className={estilos.descripcionCuerpoFicha}>{objeto.descripcion}</div>
+                <div 
+                  className={estilos.descripcionCuerpoFicha}
+                  dangerouslySetInnerHTML={{ __html: objeto.descripcion }}
+                />
               </div>
             </div>
           </div>

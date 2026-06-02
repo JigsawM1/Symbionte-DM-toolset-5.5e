@@ -20,6 +20,9 @@ importers:
       zip-a-folder:
         specifier: ^3.1.7
         version: 3.1.9
+      zod:
+        specifier: ^4.4.3
+        version: 4.4.3
       zustand:
         specifier: ^4.5.2
         version: 4.5.7(@types/react@18.3.29)(react@18.3.1)

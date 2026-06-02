@@ -1,188 +1,24 @@
 export * from '../tipos';
 import { MonstruoBase, HechizoBase, CondicionDnd, EfectoPredefinido } from '../tipos';
+import MONSTRUOS_JSON from "../../prueba base/Mounstros.2024-es.json";
+import HECHIZOS_JSON from "../../prueba base/all.json";
+import { importarDesdeJSON } from "../almacen/importadorJSON";
 
+// Importar y sanitizar automáticamente los compendios base en español
+const importacionMonstruos = importarDesdeJSON(MONSTRUOS_JSON, {
+  baseDatosMonstruos: [],
+  baseDatosHechizos: [],
+  objetosHomebrew: []
+});
 
-export const MONSTRUOS_INICIALES: MonstruoBase[] = [
-  {
-    id: "m_orco",
-    nombre: "Orco",
-    tipo: "Humanoide",
-    ca: 13,
-    vidaMaxima: 15,
-    vidaActual: 15,
-    vidaNotas: "2d8+6",
-    iniciativaBonificador: 1,
-    velocidad: "30 pies",
-    caracteristicas: { fuerza: 16, destreza: 12, constitucion: 16, inteligencia: 7, sabiduria: 11, carisma: 10 },
-    rasgos: [
-      { nombre: "Furia Agresiva", descripcion: "Como acción adicional, el orco puede moverse hasta su velocidad hacia una criatura enemiga que pueda ver." }
-    ],
-    acciones: [
-      { nombre: "Gran Hacha", descripcion: "Ataque con arma cuerpo a cuerpo: +5 a impactar, alcance 5 pies. Daño: 9 (1d12 + 3) de daño cortante.", bonificadorAtaque: 5, daño: "1d12+3" },
-      { nombre: "Jabalina", descripcion: "Ataque con arma cuerpo a cuerpo o a distancia: +5 a impactar, alcance 5 pies o distancia 30/120 pies. Daño: 6 (1d6 + 3) de daño perforante.", bonificadorAtaque: 5, daño: "1d6+3" }
-    ]
-  },
-  {
-    id: "m_trasgo",
-    nombre: "Trasgo (Goblin)",
-    tipo: "Humanoide",
-    ca: 15,
-    vidaMaxima: 7,
-    vidaActual: 7,
-    vidaNotas: "2d6",
-    iniciativaBonificador: 2,
-    velocidad: "30 pies",
-    caracteristicas: { fuerza: 8, destreza: 14, constitucion: 10, inteligencia: 10, sabiduria: 8, carisma: 8 },
-    rasgos: [
-      { nombre: "Escape Ágil", descripcion: "El trasgo puede realizar las acciones de Destrabarse o Esconderse como acción adicional en cada uno de sus turnos." }
-    ],
-    acciones: [
-      { nombre: "Cimitarra", descripcion: "Ataque con arma cuerpo a cuerpo: +4 a impactar, alcance 5 pies. Daño: 5 (1d6 + 2) de daño cortante.", bonificadorAtaque: 4, daño: "1d6+2" },
-      { nombre: "Arco Corto", descripcion: "Ataque con arma a distancia: +4 a impactar, distancia 80/320 pies. Daño: 5 (1d6 + 2) de daño perforante.", bonificadorAtaque: 4, daño: "1d6+2" }
-    ]
-  },
-  {
-    id: "m_dragon_rojo_joven",
-    nombre: "Dragón Rojo Joven",
-    tipo: "Dragón",
-    ca: 18,
-    vidaMaxima: 178,
-    vidaActual: 178,
-    vidaNotas: "17d10+85",
-    iniciativaBonificador: 0,
-    velocidad: "40 pies, volar 80 pies",
-    caracteristicas: { fuerza: 22, destreza: 10, constitucion: 21, inteligencia: 14, sabiduria: 11, carisma: 19 },
-    rasgos: [
-      { nombre: "Inmunidad al Fuego", descripcion: "El dragón es inmune al daño por fuego." }
-    ],
-    acciones: [
-      { nombre: "Multiataque", descripcion: "El dragón realiza tres ataques: uno con su mordisco y dos con sus garras." },
-      { nombre: "Mordisco", descripcion: "Ataque con arma cuerpo a cuerpo: +10 a impactar, alcance 10 pies. Daño: 17 (2d10 + 6) de daño perforante más 3 (1d6) de daño por fuego.", bonificadorAtaque: 10, daño: "2d10+6+1d6" },
-      { nombre: "Garra", descripcion: "Ataque con arma cuerpo a cuerpo: +10 a impactar, alcance 5 pies. Daño: 13 (2d6 + 6) de daño cortante.", bonificadorAtaque: 10, daño: "2d6+6" },
-      { nombre: "Aliento de Fuego (Recarga 5-6)", descripcion: "El dragón exhala fuego en un cono de 30 pies. Cada criatura en ese área debe realizar una tirada de salvación de Destreza CD 17, sufriendo 56 (16d6) de daño por fuego si falla, o la mitad si lo supera.", bonificadorAtaque: 0, daño: "16d6" }
-    ]
-  },
-  {
-    id: "m_esqueleto",
-    nombre: "Esqueleto",
-    tipo: "No Muerto",
-    ca: 13,
-    vidaMaxima: 13,
-    vidaActual: 13,
-    vidaNotas: "2d8+4",
-    iniciativaBonificador: 2,
-    velocidad: "30 pies",
-    caracteristicas: { fuerza: 10, destreza: 14, constitucion: 15, inteligencia: 6, sabiduria: 8, carisma: 5 },
-    rasgos: [
-      { nombre: "Vulnerabilidad Contundente", descripcion: "El esqueleto sufre el doble de daño de ataques contundentes." },
-      { nombre: "Inmunidad al Veneno", descripcion: "El esqueleto es inmune al daño por veneno y a la condición de Envenenado." }
-    ],
-    acciones: [
-      { nombre: "Espada Corta", descripcion: "Ataque con arma cuerpo a cuerpo: +4 a impactar, alcance 5 pies. Daño: 5 (1d6 + 2) de daño perforante.", bonificadorAtaque: 4, daño: "1d6+2" },
-      { nombre: "Arco Corto", descripcion: "Ataque con arma a distancia: +4 a impactar, distancia 80/320 pies. Daño: 5 (1d6 + 2) de daño perforante.", bonificadorAtaque: 4, daño: "1d6+2" }
-    ]
-  },
-  {
-    id: "m_mimico",
-    nombre: "Mímico",
-    tipo: "Monstruosidad",
-    ca: 12,
-    vidaMaxima: 58,
-    vidaActual: 58,
-    vidaNotas: "9d8+18",
-    iniciativaBonificador: 1,
-    velocidad: "15 pies",
-    caracteristicas: { fuerza: 17, destreza: 12, constitucion: 15, inteligencia: 5, sabiduria: 13, carisma: 8 },
-    rasgos: [
-      { nombre: "Falsa Apariencia", descripcion: "Mientras permanezca inmóvil, el mímico es indistinguible de un objeto ordinario (como un cofre, puerta, etc.)." },
-      { nombre: "Adhesivo", descripcion: "El mímico se adhiere a cualquier criatura u objeto que toque. Una criatura adherida queda Agarrada por el mímico (CD 13 para escapar)." }
-    ],
-    acciones: [
-      { nombre: "Seudópodo", descripcion: "Ataque con arma cuerpo a cuerpo: +5 a impactar, alcance 5 pies. Daño: 7 (1d8 + 3) de daño contundente. El objetivo queda adherido al mímico.", bonificadorAtaque: 5, daño: "1d8+3" },
-      { nombre: "Mordisco", descripcion: "Ataque con arma cuerpo a cuerpo: +5 a impactar, alcance 5 pies. Daño: 7 (1d8 + 3) de daño perforante más 4 (1d8) de daño por ácido.", bonificadorAtaque: 5, daño: "1d8+3+1d8" }
-    ]
-  }
-];
+const importacionHechizos = importarDesdeJSON(HECHIZOS_JSON, {
+  baseDatosMonstruos: [],
+  baseDatosHechizos: [],
+  objetosHomebrew: []
+});
 
-export const HECHIZOS_INICIALES: HechizoBase[] = [
-  {
-    id: "h_proyectil_magico",
-    nombre: "Proyectil Mágico",
-    nivel: 1,
-    escuela: "Evocación",
-    tiempoLanzamiento: "1 acción",
-    alcance: "120 pies",
-    componentes: "V, S",
-    duracion: "Instantáneo",
-    dadosDaño: "1d4+1",
-    tipoDaño: "Fuerza",
-    dadosDañoNivelSuperior: "1d4+1",
-    ataqueCd: "Auto impacto",
-    descNivelSuperior: "Creas un dardo adicional (1d4+1) por cada nivel de ranura superior a 1.",
-    clases: ["Mago", "Hechicero"],
-    descripcion: "Creas tres dardos brillantes de fuerza mágica. Cada dardo impacta automáticamente en una criatura de tu elección que puedas ver dentro del alcance. Cada dardo inflige 1d4 + 1 de daño de fuerza. Si se lanza a niveles superiores, creas un dardo adicional por cada nivel por encima de 1."
-  },
-  {
-    id: "h_curar_heridas",
-    nombre: "Curar Heridas (2024)",
-    nivel: 1,
-    escuela: "Abjuración",
-    tiempoLanzamiento: "1 acción",
-    alcance: "Toque",
-    componentes: "V, S",
-    duracion: "Instantáneo",
-    dadosDaño: "2d8",
-    tipoDaño: "Curación",
-    dadosDañoNivelSuperior: "2d8",
-    ataqueCd: "Toque",
-    descNivelSuperior: "La curación aumenta en 2d8 adicionales por cada nivel de ranura por encima de 1.",
-    clases: ["Clérigo", "Bardo", "Paladín", "Explorador", "Druida"],
-    descripcion: "Una criatura que toques recupera una cantidad de puntos de golpe igual a 2d8 + tu modificador por característica para lanzar conjuros. (En las reglas de 2024, Curar Heridas ahora cura 2d8 en nivel 1 en lugar de 1d8). Si se lanza a niveles superiores, cura 2d8 adicionales por nivel por encima de 1."
-  },
-  {
-    id: "h_bola_fuego",
-    nombre: "Bola de Fuego",
-    nivel: 3,
-    escuela: "Evocación",
-    tiempoLanzamiento: "1 acción",
-    alcance: "150 pies",
-    componentes: "V, S, M (una bolita de guano de murciélago y azufre)",
-    duracion: "Instantáneo",
-    dadosDaño: "8d6",
-    tipoDaño: "Fuego",
-    dadosDañoNivelSuperior: "1d6",
-    cdSalvacion: "Destreza",
-    descNivelSuperior: "El daño aumenta en 1d6 por cada nivel de ranura por encima de 3.",
-    clases: ["Mago", "Hechicero", "Bardo"],
-    descripcion: "Un haz brillante surge de tu dedo índice y estalla con un estruendo sordo en una esfera de 20 pies de radio en el punto elegido. Cada criatura en la esfera debe realizar una salvación de Destreza. Si falla, sufre 8d6 de daño por fuego, o la mitad si tiene éxito. El fuego se extiende a las esquinas e inflama objetos inflamables que no estén bajo posesión."
-  },
-  {
-    id: "h_escudo",
-    nombre: "Escudo",
-    nivel: 1,
-    escuela: "Abjuración",
-    tiempoLanzamiento: "1 reacción (al ser golpeado por un ataque o por proyectil mágico)",
-    alcance: "Personal",
-    componentes: "V, S",
-    duracion: "1 ronda",
-    ataqueCd: "+5 CA",
-    clases: ["Mago", "Hechicero"],
-    descripcion: "Un barrera invisible de fuerza mágica aparece para protegerte. Hasta el inicio de tu siguiente turno, obtienes un bonificador de +5 a tu CA (incluyendo contra el ataque desencadenante) y no sufres daño de Proyectil Mágico."
-  },
-  {
-    id: "h_contraconjuro",
-    nombre: "Contraconjuro (2024)",
-    nivel: 3,
-    escuela: "Abjuración",
-    tiempoLanzamiento: "1 reacción (cuando ves a una criatura dentro de 60 pies lanzando un conjuro)",
-    alcance: "60 pies",
-    componentes: "S",
-    duracion: "Instantáneo",
-    cdSalvacion: "Carisma",
-    clases: ["Mago", "Hechicero", "Bardo"],
-    descripcion: "Intentas interrumpir el proceso de lanzamiento de conjuros de una criatura. (En las reglas de 2024, el objetivo ahora debe realizar una tirada de salvación de Carisma. Si la falla, el conjuro falla y se consume la acción, pero no el espacio de conjuro si era de nivel alto, o se desvanece por completo)."
-  }
-];
+export const MONSTRUOS_INICIALES: MonstruoBase[] = importacionMonstruos.baseDatosMonstruos;
+export const HECHIZOS_INICIALES: HechizoBase[] = importacionHechizos.baseDatosHechizos;
 
 export const CONDICIONES_2024: CondicionDnd[] = [
   {

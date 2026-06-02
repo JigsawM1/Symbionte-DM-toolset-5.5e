@@ -1,6 +1,7 @@
 import React from "react";
 import { Swords } from "lucide-react";
 import { MonstruoBase, HechizoBase } from "../../tipos";
+import { formatearVelocidad, formatearSentidos } from "../../almacen/sanitizacion";
 import { procesarTextoFicha } from "./procesadorTexto";
 import estilosClases from "./PanelFichaDnD.module.css";
 
@@ -122,11 +123,11 @@ export const PanelFichaDnD: React.FC<PanelFichaDnDProps> = ({
             <strong style={{ color: "var(--color-texto-secundario)" }}>ARMADURA (CA):</strong> <strong style={{ color: "var(--color-borde-cian)" }}>{plantilla.ca}</strong> {plantilla.caNotas ? `(${plantilla.caNotas})` : ""}
           </div>
           <div className={estilosClases.lineaMetaFicha}>
-            <strong style={{ color: "var(--color-texto-secundario)" }}>VELOCIDAD:</strong> {plantilla.velocidad}
+            <strong style={{ color: "var(--color-texto-secundario)" }}>VELOCIDAD:</strong> {formatearVelocidad(plantilla.velocidad)}
           </div>
           {plantilla.sentidos && (
             <div className={estilosClases.lineaMetaFicha}>
-              <strong style={{ color: "var(--color-texto-secundario)" }}>SENTIDOS:</strong> {plantilla.sentidos}
+              <strong style={{ color: "var(--color-texto-secundario)" }}>SENTIDOS:</strong> {formatearSentidos(plantilla.sentidos)}
             </div>
           )}
           {plantilla.idiomas && (

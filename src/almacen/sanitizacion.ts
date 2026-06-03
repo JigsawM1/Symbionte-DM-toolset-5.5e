@@ -1,4 +1,4 @@
-import { HechizoBase, ObjetoHomebrew, Rareza, Arma, Armadura, EquipoAventuras, TipoBonoDestreza, SubcategoriaEquipo, VelocidadEstructurada, SentidosEstructurados } from '../tipos';
+import { HechizoBase, ObjetoHomebrew, Rareza, Arma, Armadura, EquipoAventuras, TipoBonoDestreza, SubcategoriaEquipo, VelocidadEstructurada, SentidosEstructurados, MonstruoBase } from '../tipos';
 
 // Función auxiliar robusta para aplanar de forma segura cualquier estructura a string (previene error #31 de React)
 export function aplanarValor(val: unknown): string {
@@ -558,6 +558,8 @@ export function parsearSentidos(sentidosStr: string): SentidosEstructurados {
       result.visionOscuridad = valor;
     } else if (parte.includes("ciega") || parte.includes("blindsight")) {
       result.visionCiega = valor;
+    } else if (parte.includes("verdadera") || parte.includes("truesight")) {
+      result.visionVerdadera = valor;
     } else if (parte.includes("sísmico") || parte.includes("sismico") || parte.includes("tremorsense")) {
       result.sentidoSismico = valor;
     } else if (parte.includes("pasiva") || parte.includes("passive")) {
@@ -593,10 +595,33 @@ export function formatearSentidos(sentidos: SentidosEstructurados | string | und
   const partes: string[] = [];
   if (sentidos.visionOscuridad) partes.push(`Visión en la oscuridad ${sentidos.visionOscuridad} pies`);
   if (sentidos.visionCiega) partes.push(`Visión ciega ${sentidos.visionCiega} pies`);
+  if (sentidos.visionVerdadera) partes.push(`Visión verdadera ${sentidos.visionVerdadera} pies`);
   if (sentidos.sentidoSismico) partes.push(`Sentido sísmico ${sentidos.sentidoSismico} pies`);
   partes.push(`Percepción pasiva ${sentidos.percepcionPasiva}`);
   
   return partes.join(", ");
 }
 
+export function sanearMonstruoSentidosYPasiva(m: MonstruoBase): MonstruoBase {
+  let sentidosObj: SentidosEstructurados;
+  if (m.sentidos && typeof m.sentidos === "object" && !Array.isArray(m.sentidos)) {
+    sentidosObj = { ...(m.sentidos as any) };
+  } else {
+    sentidosObj = parsearSentidos(typeof m.sentidos === "string" ? m.sentidos : "");
+  }
 
+  if (sentidosObj.percepcionPasiva === 10) {
+    const sab = m.caracteristicas?.sabiduria ?? 10;
+    const modSab = Math.floor((sab - 10) / 2);
+    const percBono = m.habilidades?.percepcion;
+    const valorCalculado = 10 + (percBono !== undefined ? percBono : modSab);
+    if (valorCalculado !== 10) {
+      sentidosObj.percepcionPasiva = valorCalculado;
+    }
+  }
+
+  return {
+    ...m,
+    sentidos: sentidosObj
+  };
+}

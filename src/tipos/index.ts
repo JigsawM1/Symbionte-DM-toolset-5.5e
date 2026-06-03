@@ -111,6 +111,7 @@ export type VelocidadEstructurada = z.infer<typeof EsquemaVelocidad>;
 export const EsquemaSentidos = z.object({
   visionOscuridad: z.number().optional(), // pies
   visionCiega: z.number().optional(),
+  visionVerdadera: z.number().optional(),
   sentidoSismico: z.number().optional(),
   percepcionPasiva: z.number().default(10)
 });

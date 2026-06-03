@@ -42,7 +42,8 @@ export interface SliceIniciativa {
     ca: number,
     esMonstruo: boolean,
     velocidad: string,
-    bonifInic: number
+    bonifInic: number,
+    idPlantillaAsociada?: string
   ) => void;
   quitarCriaturaDeIniciativa: (id: string) => void;
   modificarVidaCriaturaIniciativa: (id: string, nuevaVida: number) => void;
@@ -385,9 +386,10 @@ export const crearSliceIniciativa: StateCreator<
     }
   },
 
-  agregarCriaturaAIniciativa: (nombre, iniciativa, vidaMax, ca, esMonstruo, velocidad, bonifInic) => set((state) => {
+  agregarCriaturaAIniciativa: (nombre, iniciativa, vidaMax, ca, esMonstruo, velocidad, bonifInic, idPlantillaAsociada) => set((state) => {
+    const idCriatura = `c_local_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
     const nuevaCriatura: CriaturaIniciativa = {
-      id: `c_local_${Date.now()}_${Math.floor(Math.random() * 1000)}`,
+      id: idCriatura,
       nombre,
       iniciativa,
       vidaMaxima: vidaMax,
@@ -398,11 +400,32 @@ export const crearSliceIniciativa: StateCreator<
       bonificadorIniciativa: bonifInic,
       esMonstruo,
       velocidad,
-      vidaTemporal: 0
+      vidaTemporal: 0,
+      idPlantillaAsociada
     };
+
+    let nuevasAsociaciones = state.asociacionesFichas;
+    if (idPlantillaAsociada) {
+      const nombreRef = nombre.toLowerCase().trim();
+      const nombreRefBase = nombreRef
+        .replace(/\s+\d+$/g, "")
+        .replace(/\s+#[a-zA-Z0-9]+$/g, "")
+        .replace(/\s+[a-zA-Z]$/g, "")
+        .trim();
+      nuevasAsociaciones = {
+        ...state.asociacionesFichas,
+        [idCriatura]: idPlantillaAsociada,
+        [`nombre_base:${nombreRef}`]: idPlantillaAsociada,
+        [`nombre_base:${nombreRefBase}`]: idPlantillaAsociada
+      };
+    }
+
     const nuevaCola = [...state.colaIniciativa, nuevaCriatura];
     nuevaCola.sort((a, b) => b.iniciativa - a.iniciativa);
-    return { colaIniciativa: nuevaCola };
+    return { 
+      colaIniciativa: nuevaCola,
+      asociacionesFichas: nuevasAsociaciones
+    };
   }),
 
   quitarCriaturaDeIniciativa: (id) => set((state) => {

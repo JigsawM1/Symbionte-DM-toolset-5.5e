@@ -4,7 +4,7 @@ import { MonstruoBase, HechizoBase, ObjetoHomebrew } from '../../tipos';
 import { MONSTRUOS_INICIALES, HECHIZOS_INICIALES } from '../../utiles/datosIniciales';
 import { obtenerDatoFragmentado } from '../../utiles/almacenamientoFragmentos';
 import { leerBlobGlobal, guardarBlobGlobal, limpiarBlobGlobal } from '../../utiles/almacenamientoTaleSpire';
-import { sanearObjetoHomebrew, sanearHechizoCD } from '../sanitizacion';
+import { sanearObjetoHomebrew, sanearHechizoCD, sanearMonstruoSentidosYPasiva } from '../sanitizacion';
 import { importarDesdeJSON } from '../importadorJSON';
 import type { EstadoDM } from '../usarAlmacenDM';
 
@@ -161,7 +161,7 @@ export const crearSliceConfiguracion: StateCreator<
         const asociaciones      = blob.asociaciones_fichas as Record<string, string> | undefined;
 
         if (monstruosHomebrew && monstruosHomebrew.length > 0) {
-          set(() => ({ baseDatosMonstruos: [...MONSTRUOS_INICIALES, ...monstruosHomebrew] }));
+          set(() => ({ baseDatosMonstruos: [...MONSTRUOS_INICIALES, ...monstruosHomebrew.map(sanearMonstruoSentidosYPasiva)] }));
         }
         if (hechizosHomebrew && hechizosHomebrew.length > 0) {
           set(() => ({ baseDatosHechizos: [...HECHIZOS_INICIALES, ...hechizosHomebrew.map(sanearHechizoCD)] }));
@@ -205,7 +205,7 @@ export const crearSliceConfiguracion: StateCreator<
 
       const monstruosLS = obtenerDatoFragmentado<MonstruoBase[]>("dm_monstruos_homebrew");
       if (monstruosLS && monstruosLS.length > 0) {
-        estadoNuevo.baseDatosMonstruos = [...MONSTRUOS_INICIALES, ...monstruosLS];
+        estadoNuevo.baseDatosMonstruos = [...MONSTRUOS_INICIALES, ...monstruosLS.map(sanearMonstruoSentidosYPasiva)];
         migradoAlgo = true;
       }
 

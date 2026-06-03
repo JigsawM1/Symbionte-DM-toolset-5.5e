@@ -1,5 +1,5 @@
 import { MonstruoBase, HechizoBase, ObjetoHomebrew, EsquemaMonstruoBase, EsquemaHechizoBase, EsquemaObjetoJuego } from '../tipos';
-import { aplanarValor, sanearObjetoHomebrew, sanearHechizoCD, parsearVelocidad, parsearSentidos } from './sanitizacion';
+import { aplanarValor, sanearObjetoHomebrew, sanearHechizoCD, parsearVelocidad, parsearSentidos, sanearMonstruoSentidosYPasiva } from './sanitizacion';
 
 export interface ResultadoImportacion {
   modificado: boolean;
@@ -365,7 +365,8 @@ export function importarDesdeJSON(
           }))
         };
 
-        const val = EsquemaMonstruoBase.safeParse(monstruoSaneado);
+        const monstruoSaneadoConPasiva = sanearMonstruoSentidosYPasiva(monstruoSaneado as any);
+        const val = EsquemaMonstruoBase.safeParse(monstruoSaneadoConPasiva);
         if (val.success) {
           return val.data;
         } else {

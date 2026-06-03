@@ -1,7 +1,7 @@
 import { useState, useCallback } from "react";
 import { usarAlmacenDM } from "../almacen/usarAlmacenDM";
 import { MonstruoBase, RasgoBase, AccionMonstruo, AccionRapida } from "../tipos";
-import { parsearVelocidad, parsearSentidos, formatearVelocidad, formatearSentidos } from "../almacen/sanitizacion";
+import { parsearVelocidad, parsearSentidos, formatearVelocidad, formatearSentidos, sanearMonstruoSentidosYPasiva } from "../almacen/sanitizacion";
 import { usarListaDinamica } from "./usarListaDinamica";
 
 export const estadoInicialCriatura = {
@@ -210,11 +210,12 @@ export function usarFormularioCriatura(idEnEdicion: string | null, alGuardarExit
       ? parsearSentidos(monstruoForm.sentidos)
       : monstruoForm.sentidos;
 
-    const monstruoParaGuardar = {
+    const monstruoParaGuardar = sanearMonstruoSentidosYPasiva({
       ...monstruoForm,
+      id: idEnEdicion || "",
       velocidad: velocidadEstructurada,
       sentidos: sentidosEstructurados
-    };
+    } as any);
 
     if (idEnEdicion) {
       actualizarMonstruoHomebrew(idEnEdicion, monstruoParaGuardar as any);

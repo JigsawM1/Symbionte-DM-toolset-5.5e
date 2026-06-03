@@ -32,41 +32,40 @@ export const GestorIniciativa: React.FC = () => {
   const [idCriaturaDetalle, setIdCriaturaDetalle] = useState<string | null>(null);
   const [hechizoFlotanteDetalle, setHechizoFlotanteDetalle] = useState<HechizoBase | null>(null);
 
-  // Buscar plantilla de estadísticas para una criatura (Optimizado O(1))
+  // Buscar plantilla de estadísticas para una criatura (Optimizado O(1) con limpieza dinámica de sufijos)
   const obtenerPlantillaAsociada = (criatura: CriaturaIniciativa): MonstruoBase | null => {
     if (criatura.idPlantillaAsociada) {
       return indicesPlantillas.porId.get(criatura.idPlantillaAsociada) || null;
     }
-    return indicesPlantillas.porNombre.get(criatura.nombre.toLowerCase().trim()) || null;
+    
+    const nombreNormal = criatura.nombre.toLowerCase().trim();
+    let plantilla = indicesPlantillas.porNombre.get(nombreNormal);
+    if (plantilla) return plantilla;
+
+    // Si no se encuentra coincidencia exacta, limpiar sufijos de clon/copia comunes
+    let nombreLimpio = nombreNormal;
+    let anterior = "";
+    while (nombreLimpio !== anterior) {
+      anterior = nombreLimpio;
+      nombreLimpio = nombreLimpio
+        .replace(/\s+\d+$/, "") // Quita números al final (ej: "orco 1" -> "orco")
+        .replace(/\s+#[a-zA-Z0-9]+$/, "") // Quita hashtags (ej: "esqueleto #2" -> "esqueleto")
+        .replace(/\s+[a-zA-Z]$/, "") // Quita letras sueltas al final (ej: "aboleth a" -> "aboleth")
+        .trim();
+    }
+
+    return indicesPlantillas.porNombre.get(nombreLimpio) || null;
   };
 
-  // Cómputo de Percepción Pasiva
+  // Cómputo de Percepción Pasiva (Lectura directa O(1) ya que los datos están saneados en la base de datos)
   const obtenerPercepcionPasiva = (plantilla: MonstruoBase | null): number => {
     if (!plantilla) return 10;
 
-    // 1. Si sentidos es un objeto estructurado, usar su Percepción Pasiva directamente
     if (plantilla.sentidos && typeof plantilla.sentidos === "object" && "percepcionPasiva" in plantilla.sentidos) {
       return (plantilla.sentidos as any).percepcionPasiva ?? 10;
     }
 
-    // 2. Si sentidos es una cadena de texto, intentar extraer con Regex
-    if (typeof plantilla.sentidos === "string" && plantilla.sentidos) {
-      const match = plantilla.sentidos.match(/percepci[oó]n\s+pasiva\s*[:\s]\s*(\d+)/i);
-      if (match) {
-        return parseInt(match[1], 10);
-      }
-    }
-
-    // 3. Fallback: Cálculo matemático basado en Sabiduría y habilidad de Percepción
-    const sab = plantilla.caracteristicas?.sabiduria ?? 10;
-    const modSab = Math.floor((sab - 10) / 2);
-    
-    const percBono = plantilla.habilidades?.percepcion;
-    if (percBono !== undefined) {
-      return 10 + percBono;
-    }
-
-    return 10 + modSab;
+    return 10;
   };
 
   // Lanzar Ataques y Habilidades en TaleSpire 3D

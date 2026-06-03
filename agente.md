@@ -1370,3 +1370,79 @@ El proyecto fallaba al compilar (`tsc` con código 1) debido a tres causas princ
 > 1. Limpiar proactivamente cualquier fragmento HTML capturado que pueda haber quedado "roto" o con etiquetas huérfanas en los bordes del regex.
 > 2. Implementar heurísticas basadas en el vocabulario oficial del juego (como "proyectil adicional" o "rayo adicional" de D&D) para inferir dinámicamente los campos estructurales requeridos por los simuladores de combate de la UI. Esto recupera funcionalidades ricas que se perderían si nos limitamos a parsear expresiones regulares rígidas.
 > 3. Usar dangerouslySetInnerHTML en React cuando los datos de base de datos contienen marcas HTML embebidas legítimas para saltos de línea e inclinaciones tipográficas.
+
+---
+
+## [2026-06-02] BUGFIX: Condición de carrera e inconsistencia en la asociación de plantillas al agregar monstruos en rápida sucesión
+
+**Síntomas:**
+Al añadir 2 o más monstruos en rápida sucesión desde el buscador del panel de control, a veces no se asignaba la plantilla correcta a uno de ellos y se le asignaba la del otro monstruo añadido.
+
+**Causa raíz:**
+En `BuscadorMonstruos.tsx`, al añadir un monstruo a la iniciativa, la lógica realizaba dos pasos desacoplados sobre el store:
+1. Llamaba a `agregarCriaturaAIniciativa(...)` para instanciar la criatura localmente.
+2. Inmediatamente después, leía síncronamente el estado actual de la cola con `usarAlmacenDM.getState()` y tomaba el último elemento (`colaIniciativa[colaIniciativa.length - 1]`) para asociarle la plantilla llamando a `asociarPlantillaACriatura`.
+
+Esto causaba condiciones de carrera graves debido a:
+1. **Ordenación automática:** La acción `agregarCriaturaAIniciativa` ordena la cola por iniciativa en cuanto se inserta (`sort((a, b) => b.iniciativa - a.iniciativa)`). El nuevo monstruo no necesariamente acababa al final de la cola, por lo que se le terminaba asociando la plantilla al monstruo de menor iniciativa (que podía ser otro).
+2. **Asincronía de Zustand/React:** Al ejecutar ambas acciones de forma muy rápida, la lectura del estado con `getState()` podía devolver un estado rancio donde la nueva criatura aún no se había insertado, o donde la criatura del monstruo A (ya añadido) se interpretaba erróneamente como la última criatura para asociarle la plantilla del monstruo B.
+
+**Solución aplicada:**
+1. **Paso de plantilla atómico:** Modificar la firma de `agregarCriaturaAIniciativa` en `sliceIniciativa.ts` para aceptar opcionalmente el `idPlantillaAsociada` directamente durante la creación.
+2. **Registro de asociaciones al crear:** La misma acción se encarga ahora de asignar `idPlantillaAsociada` al objeto de la criatura creada y actualizar la caché persistente `asociacionesFichas` de manera atómica, eliminando la necesidad de leer y modificar el estado en dos pasos desacoplados.
+3. **Limpieza del componente:** En `BuscadorMonstruos.tsx`, remover la consulta de `getState().colaIniciativa` y la llamada posterior a `asociarPlantillaACriatura`, pasando el `plantilla.id` como octavo argumento en la llamada a `agregarCriaturaAIniciativa`.
+
+**Lección aprendida:**
+> ⚡ **Evita lecturas post-hoc inmediatas de colecciones que se ordenan dinámicamente:** Cuando crees elementos en un store de estado global y dependas de su ID único para realizar operaciones subsecuentes (como vincular relaciones), **nunca** asumas que el nuevo elemento estará al final de la lista, ni intentes buscarlo usando índices temporales. 
+> Diseña las acciones de creación para que sean **atómicas**, recibiendo todos los parámetros de relaciones (IDs asociados) desde la llamada inicial. Esto garantiza robustez ante ordenamientos, filtros y retrasos de actualización en hilos rápidos de ejecución.
+
+---
+
+## [2026-06-03] BUGFIX: Resolución de plantilla asociada y visualización de Percepción Pasiva en criaturas con sufijos
+
+**Síntomas:**
+En la cola de iniciativa, algunas criaturas (especialmente clones o miniaturas añadidas por TaleSpire como "Esqueleto 1", "Aboleth A", etc.) no mostraban su percepción pasiva correcta o el bloque de estadísticas en el panel inferior, y mostraban en su lugar el botón de vincular plantilla ("VinculadorPlantilla") de forma incorrecta.
+
+**Causa raíz:**
+En `GestorIniciativa.tsx`, el método `obtenerPlantillaAsociada` busca plantillas de estadísticas usando el mapa optimizado `indicesPlantillas.porNombre.get(criatura.nombre.toLowerCase().trim())`.
+Si una criatura en la cola se llama "Esqueleto 1" o "Aboleth A" y no tiene una asociación de ID persistente (`idPlantillaAsociada` es undefined), la búsqueda falla porque no existen plantillas llamadas exactamente "esqueleto 1" o "aboleth a" (las plantillas base en el compendio se llaman "esqueleto" y "aboleth").
+Al no resolver la plantilla, el sistema caía en fallback o no renderizaba la percepción pasiva en la tarjeta.
+
+**Solución aplicada:**
+**Solución aplicada:**
+1. **Normalización y limpieza en el tracker**: Se modificó `obtenerPlantillaAsociada` en `GestorIniciativa.tsx` para realizar una limpieza recursiva de sufijos si la búsqueda exacta por nombre falla (ej. "Zombie A 1" -> "Zombie A" -> "Zombie").
+2. **Capa Común de Saneamiento en el Dominio**: Creamos la función `sanearMonstruoSentidosYPasiva` en `src/almacen/sanitizacion.ts` que centraliza la lógica de normalización. Si un monstruo no tiene percepción pasiva explícita (o es `10` por el default de Zod) pero sus estadísticas de Sabiduría y Percepción indican otra cosa, calcula el valor oficial (`10 + (bonoPercepción ?? modSabiduría)`) e inyecta la PP correcta de forma directa y permanente en su objeto de sentidos.
+3. **Saneamiento en Carga y Edición de Datos**:
+   * **Importador JSON (`importadorJSON.ts`)**: Se pasa cada criatura por `sanearMonstruoSentidosYPasiva` durante la importación.
+   * **Cargador Persistente (`sliceConfiguracion.ts`)**: Al recuperar monstruos Homebrew del almacenamiento persistente de TaleSpire o de LocalStorage antiguo, se les aplica el saneamiento de sentidos sobre la marcha.
+   * **Store de Homebrew (`sliceHomebrew.ts`)**: Las acciones `agregarMonstruoHomebrew` y `actualizarMonstruoHomebrew` aplican el saneamiento de forma atómica al guardar o modificar.
+   * **Formulario de Criaturas (`usarFormularioCriatura.ts`)**: Se sanea el monstruo al construirse desde la UI del creador.
+4. **Lectura Ultra Eficiente en Caliente (O(1))**: Al estar garantizado que el 100% de la base de datos de monstruos en memoria tiene el valor real correcto de percepción pasiva inyectado, se redujo `obtenerPercepcionPasiva` en [GestorIniciativa.tsx](file:///c:/Users/zamor/OneDrive/Documentos/Programas/ToolSet%20Es%205.5/src/componentes/GestorIniciativa.tsx) a una simple lectura directa O(1) del objeto `sentidos`, eliminando cómputos matemáticos y comparaciones de cadenas redundantes durante los renders de la cola.
+
+**Lección aprendida:**
+> 🔍 **Normalización tolerante en búsquedas por nombre:** Al interactuar con motores 3D o plataformas VTT como TaleSpire, los usuarios tienden a añadir números, letras o etiquetas de copia a las miniaturas.
+> Al resolver plantillas de estadísticas basadas puramente en cadenas de texto, siempre implementa una normalización robusta e iterativa que despoje los patrones numéricos y alfabéticos comunes de duplicación al final del nombre, manteniendo las plantillas base indexadas sin contaminar el flujo de datos.
+>
+> 💾 **Arquitectura orientada a Datos Saneados en Origen (en lugar de lógica en caliente):** Siempre es preferible procesar y sanitizar los datos de negocio en el momento en que se importan, se cargan de persistencia o se crean en los formularios. Esto mantiene el almacén de estado (Zustand/Base de Datos) como una fuente única de verdad limpia y permite que los componentes de la interfaz de usuario permanezcan desacoplados, rápidos y ligeros, utilizando lecturas O(1) directas en lugar de repetir algoritmos y cálculos redundantes en cada ciclo de renderizado de la UI.
+
+---
+
+## [2026-06-03] BUGFIX: Omisión de Visión Verdadera (Truesight) en el Esquema de Sentidos de Criaturas
+
+**Síntomas:**
+Al importar o ver criaturas que poseen visión verdadera (ej. Celestiales, Diablos de alto rango), este tipo de visión no se parseaba ni se mostraba en la interfaz de usuario, omitiéndose por completo a pesar de estar escrita en los textos originales de la base de datos de monstruos.
+
+**Causa raíz:**
+1. **Esquema de datos incompleto**: El objeto `EsquemaSentidos` en Zod (`src/tipos/index.ts`) no definía la propiedad `visionVerdadera`, por lo que era eliminada durante el proceso de validación (`safeParse`).
+2. **Falta de soporte en el analizador**: La función `parsearSentidos` en `sanitizacion.ts` no tenía una condición regex para buscar o mapear las palabras `"verdadera"` o `"truesight"`.
+3. **Falta de formateador**: La función `formatearSentidos` en `sanitizacion.ts` no incluía la propiedad `visionVerdadera` al reconstruir la cadena legible en la UI.
+
+**Solución aplicada:**
+1. **Esquema Zod**: Se agregó `visionVerdadera: z.number().optional()` a `EsquemaSentidos` en `src/tipos/index.ts`.
+2. **Parser de Cadenas**: Se modificó `parsearSentidos` en `src/almacen/sanitizacion.ts` para detectar `verdadera` o `truesight` y capturar su valor numérico en pies (ej. "visión verdadera 120 pies").
+3. **Formateador de UI**: Se actualizó `formatearSentidos` en `src/almacen/sanitizacion.ts` para renderizar de forma fluida `"Visión verdadera X pies"` en el orden correcto dentro del chip de sentidos del tracker e informes de fichas.
+
+**Lección aprendida:**
+> 👁️ **Mapeo exhaustivo de sistemas de sentidos y visiones:** Al estructurar esquemas de datos de juegos de rol como D&D, asegúrate de modelar la totalidad de visiones especiales oficiales (Oscuridad, Ciega, Verdadera y Sentido Sísmico) en todos los niveles del ciclo de datos: validación de esquemas (Zod), serializadores (parsers) y renderizadores (formateadores de UI). Dejar fuera una de ellas causará silenciosamente la pérdida de datos del compendio al validar el esquema de entrada.
+
+

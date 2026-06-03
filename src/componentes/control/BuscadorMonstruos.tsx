@@ -36,15 +36,9 @@ export const BuscadorMonstruos: React.FC = () => {
       plantilla.ca,
       true, // esMonstruo
       formatearVelocidad(plantilla.velocidad),
-      plantilla.iniciativaBonificador
+      plantilla.iniciativaBonificador,
+      plantilla.id
     );
-
-    // Intentamos asociar el ID de plantilla recién añadido a la criatura de initiative si es posible
-    const almacen = usarAlmacenDM.getState();
-    const ultimaCriat = almacen.colaIniciativa[almacen.colaIniciativa.length - 1];
-    if (ultimaCriat) {
-      almacen.asociarPlantillaACriatura(ultimaCriat.id, plantilla.id);
-    }
 
     if (window.TS) {
       window.TS.debug?.log(`Añadido monstruo ${plantilla.nombre} a la iniciativa local. Tirada: ${tiradaInic} + ${plantilla.iniciativaBonificador} = ${totalInic}`);

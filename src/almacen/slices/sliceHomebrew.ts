@@ -1,6 +1,7 @@
 import { StateCreator } from 'zustand';
 import { MonstruoBase, HechizoBase, ObjetoHomebrew } from '../../tipos';
 import { MONSTRUOS_INICIALES, HECHIZOS_INICIALES } from '../../utiles/datosIniciales';
+import { sanearMonstruoSentidosYPasiva } from '../sanitizacion';
 import type { EstadoDM } from '../usarAlmacenDM';
 
 export interface SliceHomebrew {
@@ -30,10 +31,10 @@ export const crearSliceHomebrew: StateCreator<
   objetosHomebrew: [],
 
   agregarMonstruoHomebrew: (monstruo) => set((state) => {
-    const nuevoMonstruo: MonstruoBase = {
+    const nuevoMonstruo: MonstruoBase = sanearMonstruoSentidosYPasiva({
       ...monstruo,
       id: `m_homebrew_${Date.now()}`
-    };
+    });
     const nuevosMonstruos = [...state.baseDatosMonstruos, nuevoMonstruo];
     return { baseDatosMonstruos: nuevosMonstruos };
   }),
@@ -58,7 +59,7 @@ export const crearSliceHomebrew: StateCreator<
 
   actualizarMonstruoHomebrew: (id, monstruo) => set((state) => {
     const nuevosMonstruos = state.baseDatosMonstruos.map((m) =>
-      m.id === id ? { ...m, ...monstruo, id } as MonstruoBase : m
+      m.id === id ? sanearMonstruoSentidosYPasiva({ ...m, ...monstruo, id } as MonstruoBase) : m
     );
     return { baseDatosMonstruos: nuevosMonstruos };
   }),

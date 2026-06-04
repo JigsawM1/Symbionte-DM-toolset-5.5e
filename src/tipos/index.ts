@@ -148,6 +148,7 @@ export type AccionMonstruo = z.infer<typeof EsquemaAccionMonstruo>;
 export const EsquemaMonstruoBase = z.object({
   id: z.string(),
   nombre: z.string(),
+  nombreNormalizado: z.string().optional(),
   tipo: EsquemaTipoMonstruo.or(z.string()), // Aceptar otros tipos en Homebrew
   ca: z.number(),
   caNotas: z.string().optional().default(""),
@@ -178,6 +179,9 @@ export type MonstruoBase = z.infer<typeof EsquemaMonstruoBase>;
 export const EsquemaHechizoBase = z.object({
   id: z.string(),
   nombre: z.string(),
+  nombreNormalizado: z.string().optional(),
+  descripcionNormalizada: z.string().optional(),
+  escuelaNormalizada: z.string().optional(),
   nivel: z.number().int().min(0).max(9),
   escuela: EsquemaEscuelaHechizo.or(z.string()),
   tiempoLanzamiento: z.string(),
@@ -213,6 +217,7 @@ export type HechizoBase = z.infer<typeof EsquemaHechizoBase>;
 export const EsquemaObjetoBase = z.object({
   id: z.string(),
   nombre: z.string(),
+  nombreNormalizado: z.string().optional(),
   descripcion: z.string(),
   pesoLb: z.number().default(0),
   valorPO: z.number().default(0),

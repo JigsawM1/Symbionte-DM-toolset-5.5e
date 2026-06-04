@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { usarAlmacenDM } from "../../almacen/usarAlmacenDM";
+import { usarAlmacenDM, normalizarTexto } from "../../almacen/usarAlmacenDM";
 import { CONDICIONES_2024 } from "../../utiles/datosIniciales";
 import estilosClases from "./SelectorCondiciones.module.css";
 
@@ -13,10 +13,11 @@ export const SelectorCondiciones: React.FC = () => {
   const [destinatarioId, setDestinatarioId] = useState("");
   const [dropdownDestinatarioAbierto, setDropdownDestinatarioAbierto] = useState(false);
 
+  const queryNormalizada = normalizarTexto(busquedaCondicion);
   const condicionesFiltradas = CONDICIONES_2024.filter(
     (c) =>
-      c.nombre.toLowerCase().includes(busquedaCondicion.toLowerCase()) ||
-      c.nombre.split(" (")[0].toLowerCase().includes(busquedaCondicion.toLowerCase())
+      normalizarTexto(c.nombre).includes(queryNormalizada) ||
+      normalizarTexto(c.nombre.split(" (")[0]).includes(queryNormalizada)
   );
 
   const manejarAñadirCondicionASeleccionada = (nombreCond: string) => {

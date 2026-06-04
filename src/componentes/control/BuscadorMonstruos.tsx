@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { usarAlmacenDM, calcularVidaPorDados, MonstruoBase, formatearVelocidad } from "../../almacen/usarAlmacenDM";
+import { usarAlmacenDM, calcularVidaPorDados, MonstruoBase, formatearVelocidad, normalizarTexto } from "../../almacen/usarAlmacenDM";
 import { Skull, Plus } from "lucide-react";
 import estilosClases from "./BuscadorMonstruos.module.css";
 
@@ -11,11 +11,12 @@ export const BuscadorMonstruos: React.FC = () => {
   const [busquedaMonstruo, setBusquedaMonstruo] = useState("");
   const [mostrarSugerencias, setMostrarSugerencias] = useState(false);
 
-  // Filtrar monstruos por la búsqueda
-  const monstruosFiltrados = busquedaMonstruo.trim() === ""
+  // Filtrar monstruos por la búsqueda usando normalización de acentos precalculada
+  const queryNormalizada = normalizarTexto(busquedaMonstruo);
+  const monstruosFiltrados = queryNormalizada === ""
     ? baseDatosMonstruos
     : baseDatosMonstruos.filter((m) =>
-        m.nombre.toLowerCase().includes(busquedaMonstruo.toLowerCase())
+        (m.nombreNormalizado || normalizarTexto(m.nombre)).includes(queryNormalizada)
       );
 
   // Añadir un monstruo de la base de datos a la iniciativa activa

@@ -1,5 +1,14 @@
 import { HechizoBase, ObjetoHomebrew, Rareza, Arma, Armadura, EquipoAventuras, TipoBonoDestreza, SubcategoriaEquipo, VelocidadEstructurada, SentidosEstructurados, MonstruoBase } from '../tipos';
 
+// Normaliza el texto eliminando acentos y convirtiendo a minúsculas
+export function normalizarTexto(texto: string): string {
+  if (!texto) return "";
+  return texto
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+}
+
 // Función auxiliar robusta para aplanar de forma segura cualquier estructura a string (previene error #31 de React)
 export function aplanarValor(val: unknown): string {
   if (val === null || val === undefined) return "";
@@ -285,6 +294,7 @@ export function sanearObjetoHomebrew(o: unknown): ObjetoHomebrew {
     return {
       id: idSaneado,
       nombre: nombreSaneado,
+      nombreNormalizado: normalizarTexto(nombreSaneado),
       descripcion: descSaneada,
       pesoLb: pesoSaneado,
       valorPO: valorSaneado,
@@ -360,6 +370,7 @@ export function sanearObjetoHomebrew(o: unknown): ObjetoHomebrew {
     return {
       id: idSaneado,
       nombre: nombreSaneado,
+      nombreNormalizado: normalizarTexto(nombreSaneado),
       descripcion: descSaneada,
       pesoLb: pesoSaneado,
       valorPO: valorSaneado,
@@ -392,6 +403,7 @@ export function sanearObjetoHomebrew(o: unknown): ObjetoHomebrew {
     return {
       id: idSaneado,
       nombre: nombreSaneado,
+      nombreNormalizado: normalizarTexto(nombreSaneado),
       descripcion: descSaneada,
       pesoLb: pesoSaneado,
       valorPO: valorSaneado,
@@ -467,6 +479,9 @@ export function sanearHechizoCD(h: HechizoBase): HechizoBase {
   // Devolver el hechizo modificado con la salvación saneada (o undefined si no aplica)
   return {
     ...h,
+    nombreNormalizado: normalizarTexto(h.nombre),
+    descripcionNormalizada: normalizarTexto(h.descripcion),
+    escuelaNormalizada: normalizarTexto(h.escuela || ""),
     cdSalvacion: cdSalv && cdSalv !== "N/A" ? cdSalv : undefined
   };
 }
@@ -622,6 +637,7 @@ export function sanearMonstruoSentidosYPasiva(m: MonstruoBase): MonstruoBase {
 
   return {
     ...m,
+    nombreNormalizado: normalizarTexto(m.nombre),
     sentidos: sentidosObj
   };
 }

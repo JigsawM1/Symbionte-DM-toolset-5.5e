@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from "react";
-import { usarAlmacenDM } from "../almacen/usarAlmacenDM";
+import { usarAlmacenDM, normalizarTexto } from "../almacen/usarAlmacenDM";
 import { Search, Info } from "lucide-react";
 import { FichaHechizo } from "./hechizos/FichaHechizo";
 import estilosClases from "./ListaHechizos.module.css";
@@ -23,11 +23,13 @@ export const ListaHechizos: React.FC = () => {
 
   // Filtrar hechizos
   const hechizosFiltrados = useMemo(() => {
+    const queryNormalizada = normalizarTexto(busqueda);
     return baseDatosHechizos.filter((hechizo) => {
       const coincideTexto =
-        hechizo.nombre.toLowerCase().includes(busqueda.toLowerCase()) ||
-        hechizo.descripcion.toLowerCase().includes(busqueda.toLowerCase()) ||
-        hechizo.escuela.toLowerCase().includes(busqueda.toLowerCase());
+        queryNormalizada === "" ||
+        (hechizo.nombreNormalizado || normalizarTexto(hechizo.nombre)).includes(queryNormalizada) ||
+        (hechizo.descripcionNormalizada || normalizarTexto(hechizo.descripcion)).includes(queryNormalizada) ||
+        (hechizo.escuelaNormalizada || normalizarTexto(hechizo.escuela)).includes(queryNormalizada);
 
       const coincideNivel =
         nivelFiltro === "todos" ? true : hechizo.nivel === nivelFiltro;

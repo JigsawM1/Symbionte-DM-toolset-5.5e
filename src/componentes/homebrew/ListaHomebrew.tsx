@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { usarAlmacenDM } from "../../almacen/usarAlmacenDM";
+import { usarAlmacenDM, normalizarTexto } from "../../almacen/usarAlmacenDM";
 import { MonstruoBase, HechizoBase, ObjetoHomebrew, ObjetoJuego } from "../../tipos";
 import { MONSTRUOS_INICIALES, HECHIZOS_INICIALES } from "../../utiles/datosIniciales";
 import {
@@ -49,14 +49,15 @@ export const ListaHomebrew: React.FC<Props> = ({
   const monstruosHomebrewSinFiltro = baseDatosMonstruos.filter((m) => !idsInicialesMonstruos.has(m.id));
   const hechizosHomebrewSinFiltro = baseDatosHechizos.filter((h) => !idsInicialesHechizos.has(h.id));
 
+  const queryNormalizada = normalizarTexto(filtroBusqueda);
   const monstruosHomebrew = monstruosHomebrewSinFiltro.filter((m) =>
-    m.nombre.toLowerCase().includes(filtroBusqueda.toLowerCase())
+    (m.nombreNormalizado || normalizarTexto(m.nombre)).includes(queryNormalizada)
   );
   const hechizosHomebrew = hechizosHomebrewSinFiltro.filter((h) =>
-    h.nombre.toLowerCase().includes(filtroBusqueda.toLowerCase())
+    (h.nombreNormalizado || normalizarTexto(h.nombre)).includes(queryNormalizada)
   );
   const objetosHomebrewFiltrados = objetosHomebrew.filter((o) =>
-    o.nombre.toLowerCase().includes(filtroBusqueda.toLowerCase())
+    (o.nombreNormalizado || normalizarTexto(o.nombre)).includes(queryNormalizada)
   );
 
   const cantExistentes =

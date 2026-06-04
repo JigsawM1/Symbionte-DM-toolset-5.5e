@@ -1445,4 +1445,54 @@ Al importar o ver criaturas que poseen visión verdadera (ej. Celestiales, Diabl
 **Lección aprendida:**
 > 👁️ **Mapeo exhaustivo de sistemas de sentidos y visiones:** Al estructurar esquemas de datos de juegos de rol como D&D, asegúrate de modelar la totalidad de visiones especiales oficiales (Oscuridad, Ciega, Verdadera y Sentido Sísmico) en todos los niveles del ciclo de datos: validación de esquemas (Zod), serializadores (parsers) y renderizadores (formateadores de UI). Dejar fuera una de ellas causará silenciosamente la pérdida de datos del compendio al validar el esquema de entrada.
 
+---
+
+## [2026-06-03] UI/UX: Buscador adaptativo insensibilizado a acentos y visualización de defensas con formato (Vulnerabilidades, Resistencias e Inmunidades)
+
+**Síntomas:**
+1. Al realizar búsquedas en el compendio de monstruos, conjuros, o condiciones, el buscador era estricto con los acentos (ej. buscar "acolito" no devolvía "acólito"), entorpeciendo la usabilidad durante las partidas.
+2. En la ficha detallada de D&D de la criatura (`PanelFichaDnD`), no se renderizaban las inmunidades a daño (`inmunidadesDaño`) ni inmunidades a estados (`inmunidadesCondicion`).
+3. Además, las resistencias al daño (`resistencias`) se mostraban concatenadas directamente sin espacios ni comas (ej. "fríorelámpagocontundente"), haciendo que la lectura fuera muy difícil.
+
+**Causa raíz:**
+1. Las funciones de filtrado realizaban un simple `.toLowerCase().includes(...)` sin normalizar los caracteres diacríticos españoles.
+2. `PanelFichaDnD` carecía de código JSX para evaluar e imprimir las propiedades `inmunidadesDaño` e `inmunidadesCondicion` de la plantilla de criatura.
+3. El JSX de `PanelFichaDnD` pintaba el array de resistencias directamente como `{plantilla.resistencias}` sin aplicar un `.join(", ")` ni formatearlo de forma segura.
+
+**Solución aplicada:**
+1. **Normalizador de Texto**: Creamos la función `normalizarTexto(texto)` en `src/almacen/sanitizacion.ts` que convierte el texto a minúsculas y elimina marcas de acentuación usando `.normalize("NFD").replace(/[\u0300-\u036f]/g, "")`.
+2. **Buscadores Inteligentes**:
+   - Integramos `normalizarTexto` en `BuscadorMonstruos.tsx` (buscador general de criaturas).
+   - Integramos `normalizarTexto` en `ListaHechizos.tsx` (buscador general de conjuros).
+   - Integramos `normalizarTexto` en `ListaHomebrew.tsx` (buscador de creaciones homebrew).
+   - Integramos `normalizarTexto` en `SelectorCondiciones.tsx` (buscador rápido de condiciones/estados).
+3. **Formateador de Defensas en Ficha (`PanelFichaDnD.tsx`)**:
+   - Diseñamos la función helper interna `renderizarDefensa(etiqueta, valor)` que detecta de forma polimórfica si el valor es un array o string, filtra elementos vacíos, y los une utilizando `", "` como separador.
+   - Enlazamos y renderizamos las cuatro categorías de defensas bajo su color de éxito oficial: `Vulnerabilidades`, `Resistencias`, `Inmunidades al daño` e `Inmunidades a estados`.
+
+**Lecciones aprendidas:**
+> 🔍 **Normalización diacrítica obligatoria en español:** Para buscadores de cara al usuario en español, nunca uses comparaciones simples de subcadenas sin normalizar. Normaliza siempre ambos lados usando normalización NFD Unicode para eliminar acentos.
+>
+> 📋 **Renderizado adaptativo de arrays en React:** Si inyectas un array de strings directo en JSX de React (ej. `{array}`), se renderizarán los textos unidos sin espacios. Procesa siempre con un formateador o `.join(", ")` robusto.
+>
+> 🛡️ **Preservación estricta de imports en reemplazos:** Al realizar ediciones con herramientas de edición automatizada, ten cuidado al reemplazar los bloques de cabecera de los archivos de no eliminar inadvertidamente las directivas de React como `useState` o la importación del propio React, ya que causará fallos inmediatos de compilación en el build del bundle de producción.
+
+---
+
+## [2026-06-03] OPTIMIZACIÓN: Rendimiento de Búsquedas en Caliente mediante Pre-normalización de Datos en Memoria
+
+**Síntomas:**
+El compendio de monstruos y hechizos (con cientos de elementos) realizaba filtrados de texto libre ejecutando la función Unicode `normalizarTexto` (remoción de acentos mediante regex y normalización NFD) en caliente para cada propiedad (`nombre`, `descripcion`, `escuela`) en cada tecla presionada (`onChange`). Esto introducía un coste computacional $O(N \times L)$ elevado en hilos CEF de TaleSpire.
+
+**Solución aplicada:**
+1. **Modelado Opcional en Zod:** Extender `EsquemaMonstruoBase`, `EsquemaHechizoBase` y `EsquemaObjetoBase` en [index.ts](file:///c:/Users/zamor/OneDrive/Documentos/Programas/ToolSet%20Es%205.5/src/tipos/index.ts) para dar soporte opcional a propiedades precalculadas (`nombreNormalizado`, `descripcionNormalizada`, `escuelaNormalizada`).
+2. **Pre-saneamiento en Carga y Creación:** Modificar los saneadores en [sanitizacion.ts](file:///c:/Users/zamor/OneDrive/Documentos/Programas/ToolSet%20Es%205.5/src/almacen/sanitizacion.ts) para inyectar estos valores al vuelo usando `normalizarTexto`.
+3. **Mapeo del Compendio Inicial:** En [sliceHomebrew.ts](file:///c:/Users/zamor/OneDrive/Documentos/Programas/ToolSet%20Es%205.5/src/almacen/slices/sliceHomebrew.ts), mapear `MONSTRUOS_INICIALES` y `HECHIZOS_INICIALES` con sus saneadores al levantar la store. Así, los compendios base se pre-normalizan una única vez al arrancar.
+4. **Filtros Directos en UI:** Modificar los buscadores ([BuscadorMonstruos.tsx](file:///c:/Users/zamor/OneDrive/Documentos/Programas/ToolSet%20Es%205.5/src/componentes/control/BuscadorMonstruos.tsx), [ListaHechizos.tsx](file:///c:/Users/zamor/OneDrive/Documentos/Programas/ToolSet%20Es%205.5/src/componentes/ListaHechizos.tsx) y [ListaHomebrew.tsx](file:///c:/Users/zamor/OneDrive/Documentos/Programas/ToolSet%20Es%205.5/src/componentes/homebrew/ListaHomebrew.tsx)) para realizar los filtros sobre estas propiedades pre-calculadas en lugar de ejecutar la función diacrítica costosa en caliente.
+
+**Lección aprendida:**
+> ⚡ **Precalcula la normalización de cadenas de búsqueda:** Cuando tengas compendios locales extensos en memoria y necesites búsquedas insensibilizadas a acentos/diacríticos en caliente, **NUNCA ejecutes normalizaciones y expresiones regulares en el bucle de render o en el filtro del input de React**.
+> Pre-normaliza los textos en el ciclo de carga/creación de datos y guárdalos como propiedades de solo lectura en memoria. Esto reduce la complejidad computacional en caliente a una simple comparación de subcadenas (`includes`), garantizando una entrada de texto ultra fluida y con cero tirones de frames.
+
+
 

@@ -30,6 +30,18 @@ export const PanelFichaDnD: React.FC<PanelFichaDnDProps> = ({
   lanzarTiradaD20Interactiva,
   obtenerPercepcionPasiva
 }) => {
+  const renderizarDefensa = (etiqueta: string, valor: string[] | string | undefined) => {
+    if (!valor) return null;
+    const items = Array.isArray(valor) ? valor : [valor];
+    const filtrados = items.map(x => String(x).trim()).filter(Boolean);
+    if (filtrados.length === 0) return null;
+    return (
+      <div className={estilosClases.lineaMetaFicha}>
+        <strong style={{ color: "var(--color-exito)" }}>{etiqueta.toUpperCase()}:</strong> {filtrados.join(", ")}
+      </div>
+    );
+  };
+
   const calcularModificador = (valor: number): string => {
     const mod = Math.floor((valor - 10) / 2);
     return `${mod >= 0 ? "+" : ""}${mod}`;
@@ -45,7 +57,7 @@ export const PanelFichaDnD: React.FC<PanelFichaDnDProps> = ({
             {plantilla.tipo} | CR: <strong style={{ color: "var(--color-advertencia)" }}>{plantilla.desafio}</strong> | PP: <strong style={{ color: "var(--color-borde-cian)" }}>{obtenerPercepcionPasiva(plantilla)}</strong>
           </span>
         </div>
-
+        
         {/* Rejilla de Características */}
         <div className={`${estilosClases.subtituloFichaSection} ${estilosClases.subtituloPruebas}`} style={{ marginTop: "4px" }}>
           PRUEBAS DE CARACTERÍSTICA
@@ -135,11 +147,10 @@ export const PanelFichaDnD: React.FC<PanelFichaDnDProps> = ({
               <strong style={{ color: "var(--color-texto-secundario)" }}>IDIOMAS:</strong> {plantilla.idiomas}
             </div>
           )}
-          {plantilla.resistencias && String(plantilla.resistencias).trim() !== "" && (
-            <div className={estilosClases.lineaMetaFicha}>
-              <strong style={{ color: "var(--color-exito)" }}>RESISTENCIAS:</strong> {plantilla.resistencias}
-            </div>
-          )}
+          {renderizarDefensa("Vulnerabilidades", plantilla.vulnerabilidades)}
+          {renderizarDefensa("Resistencias", plantilla.resistencias)}
+          {renderizarDefensa("Inmunidades al daño", plantilla.inmunidadesDaño)}
+          {renderizarDefensa("Inmunidades a estados", plantilla.inmunidadesCondicion)}
         </div>
 
         {/* Rasgos Pasivos */}

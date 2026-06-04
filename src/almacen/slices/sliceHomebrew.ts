@@ -1,7 +1,7 @@
 import { StateCreator } from 'zustand';
 import { MonstruoBase, HechizoBase, ObjetoHomebrew } from '../../tipos';
 import { MONSTRUOS_INICIALES, HECHIZOS_INICIALES } from '../../utiles/datosIniciales';
-import { sanearMonstruoSentidosYPasiva } from '../sanitizacion';
+import { sanearMonstruoSentidosYPasiva, sanearHechizoCD, sanearObjetoHomebrew } from '../sanitizacion';
 import type { EstadoDM } from '../usarAlmacenDM';
 
 export interface SliceHomebrew {
@@ -26,8 +26,8 @@ export const crearSliceHomebrew: StateCreator<
   [],
   SliceHomebrew
 > = (set) => ({
-  baseDatosMonstruos: MONSTRUOS_INICIALES,
-  baseDatosHechizos: HECHIZOS_INICIALES,
+  baseDatosMonstruos: MONSTRUOS_INICIALES.map(sanearMonstruoSentidosYPasiva),
+  baseDatosHechizos: HECHIZOS_INICIALES.map(sanearHechizoCD),
   objetosHomebrew: [],
 
   agregarMonstruoHomebrew: (monstruo) => set((state) => {
@@ -40,19 +40,19 @@ export const crearSliceHomebrew: StateCreator<
   }),
 
   agregarHechizoHomebrew: (hechizo) => set((state) => {
-    const nuevoHechizo: HechizoBase = {
+    const nuevoHechizo: HechizoBase = sanearHechizoCD({
       ...hechizo,
       id: `h_homebrew_${Date.now()}`
-    };
+    } as HechizoBase);
     const nuevosHechizos = [...state.baseDatosHechizos, nuevoHechizo];
     return { baseDatosHechizos: nuevosHechizos };
   }),
 
   agregarObjetoHomebrew: (objeto) => set((state) => {
-    const nuevoObjeto = {
+    const nuevoObjeto = sanearObjetoHomebrew({
       ...objeto,
       id: `o_homebrew_${Date.now()}`
-    } as ObjetoHomebrew;
+    });
     const nuevosObjetos = [...state.objetosHomebrew, nuevoObjeto];
     return { objetosHomebrew: nuevosObjetos };
   }),
@@ -66,14 +66,14 @@ export const crearSliceHomebrew: StateCreator<
 
   actualizarHechizoHomebrew: (id, hechizo) => set((state) => {
     const nuevosHechizos = state.baseDatosHechizos.map((h) =>
-      h.id === id ? { ...h, ...hechizo, id } as HechizoBase : h
+      h.id === id ? sanearHechizoCD({ ...h, ...hechizo, id } as HechizoBase) : h
     );
     return { baseDatosHechizos: nuevosHechizos };
   }),
 
   actualizarObjetoHomebrew: (id, objeto) => set((state) => {
     const nuevosObjetos = state.objetosHomebrew.map((o) =>
-      o.id === id ? { ...o, ...objeto, id } as ObjetoHomebrew : o
+      o.id === id ? sanearObjetoHomebrew({ ...o, ...objeto, id }) : o
     );
     return { objetosHomebrew: nuevosObjetos };
   }),

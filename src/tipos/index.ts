@@ -228,7 +228,18 @@ export const EsquemaObjetoBase = z.object({
     bono: z.string(),
     valor: z.number()
   })).optional(),
-  propiedades: z.union([z.string(), z.array(z.string())]).optional()
+  propiedades: z.union([z.string(), z.array(z.string())]).optional(),
+  
+  // Nuevos campos para costo estructurado, venenos, y equipable
+  costoOriginal: z.object({
+    cantidad: z.number().default(0),
+    unidad: z.enum(["PC", "PP", "PE", "PO", "PPT"]).default("PO")
+  }).optional(),
+  esVeneno: z.boolean().optional(),
+  tipoVeneno: z.enum(["Contacto", "Ingerido", "Inhalado", "Lesión"]).optional(),
+  cdSalvacionVeneno: z.number().optional(),
+  efectoVeneno: z.string().optional(),
+  equipable: z.boolean().default(false)
 });
 export type ObjetoBase = z.infer<typeof EsquemaObjetoBase>;
 

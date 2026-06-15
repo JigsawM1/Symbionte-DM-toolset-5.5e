@@ -21,6 +21,32 @@ const COLORES_RAREZA_HSL: Record<Rareza, string> = {
   "Artefacto": "hsl(0, 75%, 40%)"
 };
 
+const OPCIONES_ATRIBUTOS: Record<string, string[]> = {
+  "CA": ["CA"],
+  "CARACTERÍSTICA": ["Fuerza", "Destreza", "Constitución", "Inteligencia", "Sabiduría", "Carisma"],
+  "SALVACIÓN": ["Fuerza", "Destreza", "Constitución", "Inteligencia", "Sabiduría", "Carisma"],
+  "HABILIDAD": [
+    "Acrobacias",
+    "Atletismo",
+    "Arcana",
+    "Engaño",
+    "Historia",
+    "Perspicacia",
+    "Intimidación",
+    "Investigación",
+    "Medicina",
+    "Naturaleza",
+    "Percepción",
+    "Interpretación",
+    "Persuasión",
+    "Religión",
+    "Juego de Manos",
+    "Sigilo",
+    "Supervivencia",
+    "Trato con Animales"
+  ]
+};
+
 // Maestrias oficiales de D&D 5.5e
 const MAESTRIAS_DND_55 = [
   "Ninguna",
@@ -87,7 +113,8 @@ export const FormularioObjeto: React.FC<Props> = ({
     oPropiedades, setOPropiedades,
     oDescripcion, setODescripcion,
     oPesoLb, setOPesoLb,
-    oValorPO, setOValorPO,
+    oCostoCantidad, setOCostoCantidad,
+    oCostoUnidad, setOCostoUnidad,
     oEsMagico, setOEsMagico,
     oBonosMagicos,
     oTipoPrincipal, setOTipoPrincipal,
@@ -111,6 +138,12 @@ export const FormularioObjeto: React.FC<Props> = ({
     oCantidad, setOCantidad,
     oSintonizacionRequerida, setOSintonizacionRequerida,
     oCargas, setOCargas,
+
+    oEsVeneno, setOEsVeneno,
+    oTipoVeneno, setOTipoVeneno,
+    oCdSalvacionVeneno, setOCdSalvacionVeneno,
+    oEfectoVeneno, setOEfectoVeneno,
+    oEquipable, setOEquipable,
 
     oNuevoBonoCategoria, setONuevoBonoCategoria,
     oNuevoBonoBono, setONuevoBonoBono,
@@ -292,16 +325,48 @@ export const FormularioObjeto: React.FC<Props> = ({
 
             <div className={estilos.campoForm}>
               <label className={estilos.labelForm}>
-                <Coins size={12} /> Valor / Costo (PO):
+                <Coins size={12} /> Valor / Costo:
               </label>
-              <input
-                type="number"
-                value={oValorPO}
-                onChange={(e) => setOValorPO(parseInt(e.target.value) || 0)}
-                placeholder="0 PO"
-                className={estilos.inputForm}
-              />
+              <div style={{ display: "flex", gap: "6px", width: "100%" }}>
+                <input
+                  type="number"
+                  min="0"
+                  value={oCostoCantidad}
+                  onChange={(e) => setOCostoCantidad(Math.max(0, parseFloat(e.target.value) || 0))}
+                  placeholder="0"
+                  className={estilos.inputForm}
+                  style={{ flex: 1 }}
+                />
+                <select
+                  value={oCostoUnidad}
+                  onChange={(e) => setOCostoUnidad(e.target.value as any)}
+                  className={estilos.selectForm}
+                  style={{ width: "95px", fontWeight: "bold" }}
+                >
+                  <option value="PC" style={{ color: "#b87333", background: "var(--color-fondo-panel)" }}>PC (Cobre)</option>
+                  <option value="PP" style={{ color: "#aaa9ad", background: "var(--color-fondo-panel)" }}>PP (Plata)</option>
+                  <option value="PE" style={{ color: "#e5e4e2", background: "var(--color-fondo-panel)" }}>PE (Electro)</option>
+                  <option value="PO" style={{ color: "#ffd700", background: "var(--color-fondo-panel)" }}>PO (Oro)</option>
+                  <option value="PPT" style={{ color: "#e5e4e2", background: "var(--color-fondo-panel)" }}>PPT (Platino)</option>
+                </select>
+              </div>
             </div>
+          </div>
+
+          <div className={estilos.campoForm} style={{ padding: "4px 0", marginTop: "4px" }}>
+            <label className={estilos.labelCheckbox}>
+              <input
+                type="checkbox"
+                checked={oTipoPrincipal === "Arma" || oTipoPrincipal === "Armadura" ? true : oEquipable}
+                onChange={(e) => setOEquipable(e.target.checked)}
+                disabled={oTipoPrincipal === "Arma" || oTipoPrincipal === "Armadura"}
+                className={estilos.checkMini}
+              />
+              <span style={{ fontSize: "12px" }}>
+                🎒 ¿Equipable en Ranura Activa?
+                {(oTipoPrincipal === "Arma" || oTipoPrincipal === "Armadura") && " (Auto para Armas/Armaduras)"}
+              </span>
+            </label>
           </div>
 
           {/* DESCRIPCIÓN EN PESTAÑA GENERAL */}
@@ -479,6 +544,75 @@ export const FormularioObjeto: React.FC<Props> = ({
                     );
                   })}
                 </div>
+
+                {/* Propiedades Personalizadas (Custom) */}
+                <div style={{ marginTop: "12px", borderTop: "1px dashed rgba(255, 255, 255, 0.05)", paddingTop: "12px" }}>
+                  <div className={estilos.labelForm} style={{ marginBottom: "6px" }}>Propiedades Personalizadas:</div>
+                  <div style={{ display: "flex", gap: "6px", marginBottom: "8px" }}>
+                    <input
+                      type="text"
+                      id="input-propiedad-custom"
+                      placeholder="Ej. Recarga 6, Fuego Rápido..."
+                      className={estilos.inputForm}
+                      style={{ flex: 1, fontSize: "12px" }}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          const val = (e.target as HTMLInputElement).value.trim();
+                          if (val && !oPropiedadesArma.includes(val)) {
+                            setOPropiedadesArma((prev) => [...prev, val]);
+                            (e.target as HTMLInputElement).value = "";
+                          }
+                        }
+                      }}
+                    />
+                    <button
+                      type="button"
+                      className={estilos.botonAgregarDinamico}
+                      style={{ padding: "4px 10px", fontSize: "11px", height: "auto" }}
+                      onClick={() => {
+                        const input = document.getElementById("input-propiedad-custom") as HTMLInputElement;
+                        const val = input?.value.trim();
+                        if (val && !oPropiedadesArma.includes(val)) {
+                          setOPropiedadesArma((prev) => [...prev, val]);
+                          input.value = "";
+                        }
+                      }}
+                    >
+                      + Añadir
+                    </button>
+                  </div>
+
+                  {/* Renderizar Badges de propiedades personalizadas añadidas */}
+                  {oPropiedadesArma.filter(p => !PROPIEDADES_ARMAS_DND.includes(p)).length > 0 && (
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
+                      {oPropiedadesArma.filter(p => !PROPIEDADES_ARMAS_DND.includes(p)).map((prop) => (
+                        <span 
+                          key={prop} 
+                          style={{ 
+                            display: "inline-flex", 
+                            alignItems: "center", 
+                            gap: "6px", 
+                            background: "rgba(168, 85, 247, 0.15)", 
+                            border: "1px solid hsl(270, 70%, 60%)", 
+                            color: "hsl(270, 100%, 85%)",
+                            padding: "3px 8px",
+                            borderRadius: "4px",
+                            fontSize: "11px",
+                            fontWeight: "500"
+                          }}
+                        >
+                          {prop}
+                          <X 
+                            size={12} 
+                            style={{ cursor: "pointer", color: "var(--color-borde-cian)" }} 
+                            onClick={() => setOPropiedadesArma((prev) => prev.filter((p) => p !== prop))} 
+                          />
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           )}
@@ -591,6 +725,76 @@ export const FormularioObjeto: React.FC<Props> = ({
                   />
                 </div>
               </div>
+
+              {/* Módulo de Veneno Condicional */}
+              {oSubcategoriaEquipo === "Consumible" && (
+                <div style={{ marginTop: "12px", borderTop: "1px dashed rgba(255, 99, 71, 0.2)", paddingTop: "12px" }}>
+                  <label className={estilos.labelCheckbox} style={{ marginBottom: "8px" }}>
+                    <input
+                      type="checkbox"
+                      checked={oEsVeneno}
+                      onChange={(e) => setOEsVeneno(e.target.checked)}
+                      className={estilos.checkMini}
+                    />
+                    <span style={{ color: "hsl(120, 100%, 40%)", fontWeight: "bold", textShadow: "0 0 5px rgba(0,255,0,0.15)" }}>
+                      🧪 ¿Es un Veneno (Poison)?
+                    </span>
+                  </label>
+
+                  {oEsVeneno && (
+                    <div 
+                      style={{ 
+                        border: "1px solid hsl(120, 80%, 40%)", 
+                        boxShadow: "inset 0 0 10px rgba(0, 255, 0, 0.05), 0 0 10px rgba(0, 255, 0, 0.1)",
+                        borderRadius: "6px",
+                        padding: "12px",
+                        marginTop: "8px",
+                        backgroundColor: "rgba(0, 40, 0, 0.15)",
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: "10px"
+                      }}
+                    >
+                      <div className={estilos.filaDobleForm}>
+                        <div className={estilos.campoForm}>
+                          <label className={estilos.labelForm}>Tipo de Veneno:</label>
+                          <select
+                            value={oTipoVeneno}
+                            onChange={(e) => setOTipoVeneno(e.target.value as any)}
+                            className={estilos.selectForm}
+                          >
+                            <option value="Contacto">Contacto (Contact)</option>
+                            <option value="Ingerido">Ingerido (Ingested)</option>
+                            <option value="Inhalado">Inhalado (Inhaled)</option>
+                            <option value="Lesión">Lesión (Injury)</option>
+                          </select>
+                        </div>
+                        <div className={estilos.campoForm}>
+                          <label className={estilos.labelForm}>CD Salvación (Cons.):</label>
+                          <input
+                            type="number"
+                            min="0"
+                            value={oCdSalvacionVeneno}
+                            onChange={(e) => setOCdSalvacionVeneno(e.target.value === "" ? "" : parseInt(e.target.value) || "")}
+                            placeholder="Ej. 13"
+                            className={estilos.inputForm}
+                          />
+                        </div>
+                      </div>
+                      <div className={estilos.campoForm}>
+                        <label className={estilos.labelForm}>Efecto Táctico del Veneno:</label>
+                        <textarea
+                          value={oEfectoVeneno}
+                          onChange={(e) => setOEfectoVeneno(e.target.value)}
+                          placeholder="Describe el daño de veneno y condiciones mecánicas..."
+                          className={estilos.textareaBrutal}
+                          rows={3}
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -660,7 +864,15 @@ export const FormularioObjeto: React.FC<Props> = ({
                     <label className={estilos.labelForm}>Categoría del Bono:</label>
                     <select
                       value={oNuevoBonoCategoria}
-                      onChange={(e) => setONuevoBonoCategoria(e.target.value)}
+                      onChange={(e) => {
+                        const cat = e.target.value;
+                        setONuevoBonoCategoria(cat);
+                        if (OPCIONES_ATRIBUTOS[cat]) {
+                          setONuevoBonoBono(OPCIONES_ATRIBUTOS[cat][0]);
+                        } else {
+                          setONuevoBonoBono("");
+                        }
+                      }}
                       className={estilos.selectForm}
                     >
                       <option value="CA">Clase de Armadura (CA)</option>
@@ -672,13 +884,25 @@ export const FormularioObjeto: React.FC<Props> = ({
                   </div>
                   <div className={estilos.campoBonoNombre}>
                     <label className={estilos.labelForm}>Nombre / Atributo:</label>
-                    <input
-                      type="text"
-                      value={oNuevoBonoBono}
-                      onChange={(e) => setONuevoBonoBono(e.target.value)}
-                      placeholder="Ej. Fuerza, Sigilo, CA"
-                      className={estilos.inputForm}
-                    />
+                    {OPCIONES_ATRIBUTOS[oNuevoBonoCategoria] ? (
+                      <select
+                        value={oNuevoBonoBono}
+                        onChange={(e) => setONuevoBonoBono(e.target.value)}
+                        className={estilos.selectForm}
+                      >
+                        {OPCIONES_ATRIBUTOS[oNuevoBonoCategoria].map((op) => (
+                          <option key={op} value={op}>{op}</option>
+                        ))}
+                      </select>
+                    ) : (
+                      <input
+                        type="text"
+                        value={oNuevoBonoBono}
+                        onChange={(e) => setONuevoBonoBono(e.target.value)}
+                        placeholder="Ej. Iniciativa, Velocidad..."
+                        className={estilos.inputForm}
+                      />
+                    )}
                   </div>
                   <div className={estilos.campoBonoValor}>
                     <label className={estilos.labelForm}>Valor:</label>

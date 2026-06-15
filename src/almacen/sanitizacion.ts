@@ -44,7 +44,8 @@ export function sanearObjetoHomebrew(o: unknown): ObjetoHomebrew {
       rareza: "Común",
       esMagico: false,
       tipoPrincipal: "Equipo de Aventuras",
-      subcategoria: "Maravilloso"
+      subcategoria: "Maravilloso",
+      equipable: false
     };
   }
   
@@ -52,9 +53,7 @@ export function sanearObjetoHomebrew(o: unknown): ObjetoHomebrew {
   const idSaneado = aplanarValor(obj.id || obj.index || `o_${Date.now()}_${Math.random()}`).trim();
   const nombreSaneado = aplanarValor(obj.nombre || obj.name || "Objeto Desconocido");
   
-  // Procesar descripción — puede ser string o array de strings (como en adamantine-chain-mail)
-  // IMPORTANTE: usar el primer campo que exista (con su tipo real), no un || que puede elegir
-  // un string aunque haya un array en otro campo.
+  // Procesar descripción — puede ser string o array de strings
   const descField = obj.descripcion !== undefined ? obj.descripcion
                   : obj.description !== undefined ? obj.description
                   : obj.desc;
@@ -65,7 +64,7 @@ export function sanearObjetoHomebrew(o: unknown): ObjetoHomebrew {
     descSaneada = aplanarValor(descField || "Sin descripción disponible.");
   }
   
-  // Extraer Rareza limpia (procesando objeto rarity si existe)
+  // Extraer Rareza limpia
   let rarezaSaneada: Rareza = "Común";
   let rarezaTxt = "";
   if (obj.rarity && typeof obj.rarity === "object") {
@@ -99,7 +98,7 @@ export function sanearObjetoHomebrew(o: unknown): ObjetoHomebrew {
   // Auto-esMágico si rareza !== 'Común'
   const esMagicoSaneado = rarezaSaneada !== "Común" ? true : !!(obj.esMagico || obj.isMagic);
 
-  // Parsear Peso (Lb) - admitiendo obj.weight
+  // Parsear Peso (Lb)
   let pesoSaneado = 0;
   if (obj.pesoLb !== undefined) {
     pesoSaneado = Number(obj.pesoLb) || 0;
@@ -111,31 +110,76 @@ export function sanearObjetoHomebrew(o: unknown): ObjetoHomebrew {
     pesoSaneado = MatchNum ? parseFloat(MatchNum[1]) : 0;
   }
 
-  // Parsear Costo/Valor (PO) - procesando el objeto cost: { quantity, unit } de equipment-es.json
+  // Costo estructurado y conversión automática
+  let costoOriginalSaneado: { cantidad: number; unidad: "PC" | "PP" | "PE" | "PO" | "PPT" } | undefined = undefined;
+  if (obj.costoOriginal && typeof obj.costoOriginal === "object") {
+    const co = obj.costoOriginal as Record<string, unknown>;
+    costoOriginalSaneado = {
+      cantidad: Number(co.cantidad) || 0,
+      unidad: (co.unidad as any) || "PO"
+    };
+  }
+
+  // Parsear Costo/Valor (PO)
   let valorSaneado = 0;
-  if (obj.valorPO !== undefined) {
-    valorSaneado = Number(obj.valorPO) || 0;
+  if (costoOriginalSaneado) {
+    const cant = costoOriginalSaneado.cantidad;
+    const unit = costoOriginalSaneado.unidad;
+    if (unit === "PC") valorSaneado = cant / 100;
+    else if (unit === "PP") valorSaneado = cant / 10;
+    else if (unit === "PE") valorSaneado = cant / 2;
+    else if (unit === "PO") valorSaneado = cant;
+    else if (unit === "PPT") valorSaneado = cant * 10;
   } else if (obj.cost && typeof obj.cost === "object" && obj.cost !== null) {
     const costObj = obj.cost as Record<string, unknown>;
     const cantidad = Number(costObj.quantity) || 0;
-    const unidad = aplanarValor(costObj.unit || "gp").toLowerCase().trim();
-    if (unidad === "cp" || unidad === "pc") valorSaneado = cantidad / 100;
-    else if (unidad === "sp" || unidad === "pp") valorSaneado = cantidad / 10;
-    else if (unidad === "ep" || unidad === "pe") valorSaneado = cantidad / 2;
-    else if (unidad === "gp" || unidad === "po") valorSaneado = cantidad;
-    else if (unidad === "pp" || unidad === "ppt") valorSaneado = cantidad * 10;
-    else valorSaneado = cantidad;
+    const unidadIngles = aplanarValor(costObj.unit || "gp").toLowerCase().trim();
+    let unidadEsp: "PC" | "PP" | "PE" | "PO" | "PPT" = "PO";
+    
+    if (unidadIngles === "cp") {
+      valorSaneado = cantidad / 100;
+      unidadEsp = "PC";
+    } else if (unidadIngles === "sp") {
+      valorSaneado = cantidad / 10;
+      unidadEsp = "PP";
+    } else if (unidadIngles === "ep") {
+      valorSaneado = cantidad / 2;
+      unidadEsp = "PE";
+    } else if (unidadIngles === "gp") {
+      valorSaneado = cantidad;
+      unidadEsp = "PO";
+    } else if (unidadIngles === "pp" || unidadIngles === "plat") {
+      valorSaneado = cantidad * 10;
+      unidadEsp = "PPT";
+    } else {
+      valorSaneado = cantidad;
+    }
+    
+    costoOriginalSaneado = { cantidad, unidad: unidadEsp };
+  } else if (obj.valorPO !== undefined) {
+    valorSaneado = Number(obj.valorPO) || 0;
+    costoOriginalSaneado = { cantidad: valorSaneado, unidad: "PO" };
   } else if (obj.costoValor !== undefined) {
     valorSaneado = Number(obj.costoValor) || 0;
-    // Si la unidad era de cobre, plata, etc., normalizar a PO
     const costoUnidad = aplanarValor(obj.costoUnidad || "PO").toUpperCase();
-    if (costoUnidad === "PC") valorSaneado = valorSaneado / 100;
-    else if (costoUnidad === "PP") valorSaneado = valorSaneado / 10;
-    else if (costoUnidad === "PE") valorSaneado = valorSaneado / 2;
-    else if (costoUnidad === "PPT") valorSaneado = valorSaneado * 10;
+    let unidadEsp: "PC" | "PP" | "PE" | "PO" | "PPT" = "PO";
+    if (costoUnidad === "PC") {
+      valorSaneado = valorSaneado / 100;
+      unidadEsp = "PC";
+    } else if (costoUnidad === "PP") {
+      valorSaneado = valorSaneado / 10;
+      unidadEsp = "PP";
+    } else if (costoUnidad === "PE") {
+      valorSaneado = valorSaneado / 2;
+      unidadEsp = "PE";
+    } else if (costoUnidad === "PPT") {
+      valorSaneado = valorSaneado * 10;
+      unidadEsp = "PPT";
+    }
+    costoOriginalSaneado = { cantidad: Number(obj.costoValor) || 0, unidad: unidadEsp };
   }
 
-  // Extraer bonos mágicos dinámicos antiguos si existen
+  // Extraer bonos mágicos
   let bonosMagicosSaneados: { categoria: string; bono: string; valor: number }[] | undefined = undefined;
   if (Array.isArray(obj.bonosMagicos)) {
     bonosMagicosSaneados = obj.bonosMagicos.map((b) => {
@@ -148,7 +192,7 @@ export function sanearObjetoHomebrew(o: unknown): ObjetoHomebrew {
     });
   }
 
-  // Determinar tipoPrincipal (admitiendo obj.equipment_category)
+  // Determinar tipoPrincipal
   let tipoPrincipalSaneado: "Arma" | "Armadura" | "Equipo de Aventuras" = "Equipo de Aventuras";
   let catTxt = "";
   if (obj.equipment_category && typeof obj.equipment_category === "object") {
@@ -164,27 +208,52 @@ export function sanearObjetoHomebrew(o: unknown): ObjetoHomebrew {
     tipoPrincipalSaneado = "Armadura";
   }
 
-  // Conservar propiedades de string para renderizado retrocompatible
+  // Conservar propiedades de string
   const propiedadesSaneadas = obj.propiedades && typeof obj.propiedades === "string" ? aplanarValor(obj.propiedades) : undefined;
+
+  // Nuevos campos específicos: equipable y venenos
+  const equipableSaneado = obj.equipable !== undefined
+    ? !!obj.equipable
+    : (tipoPrincipalSaneado === "Arma" || tipoPrincipalSaneado === "Armadura");
+
+  const esVenenoSaneado = obj.esVeneno !== undefined ? !!obj.esVeneno : undefined;
+  const tipoVenenoSaneado = obj.tipoVeneno ? (aplanarValor(obj.tipoVeneno) as "Contacto" | "Ingerido" | "Inhalado" | "Lesión") : undefined;
+  const cdSalvacionVenenoSaneado = obj.cdSalvacionVeneno !== undefined && obj.cdSalvacionVeneno !== "" ? (Number(obj.cdSalvacionVeneno) || undefined) : undefined;
+  const efectoVenenoSaneado = obj.efectoVeneno !== undefined ? aplanarValor(obj.efectoVeneno) : undefined;
+
+  // Estructura base común
+  const baseObjeto = {
+    id: idSaneado,
+    nombre: nombreSaneado,
+    nombreNormalizado: normalizarTexto(nombreSaneado),
+    descripcion: descSaneada,
+    pesoLb: pesoSaneado,
+    valorPO: valorSaneado,
+    rareza: rarezaSaneada,
+    esMagico: esMagicoSaneado,
+    bonosMagicos: bonosMagicosSaneados,
+    costoOriginal: costoOriginalSaneado,
+    esVeneno: esVenenoSaneado,
+    tipoVeneno: tipoVenenoSaneado,
+    cdSalvacionVeneno: cdSalvacionVenenoSaneado,
+    efectoVeneno: efectoVenenoSaneado,
+    equipable: equipableSaneado
+  };
 
   // Saneamiento específico por tipo
   if (tipoPrincipalSaneado === "Arma") {
-    // Subcategoría de Arma
     let subArma: "Sencilla" | "Marcial" | "De Fuego" = "Sencilla";
     const subTxt = aplanarValor(obj.subcategoria || obj.weapon_category || obj.tipoArma || "Sencilla").toUpperCase();
     if (subTxt.includes("MARCIAL") || subTxt.includes("MARTIAL")) subArma = "Marcial";
     else if (subTxt.includes("FUEGO") || subTxt.includes("FIRE")) subArma = "De Fuego";
 
-    // Tipo de Ataque
     let estiloAtq: "Cuerpo a Cuerpo" | "A Distancia" = "Cuerpo a Cuerpo";
     const estiloTxt = aplanarValor(obj.tipoAtaque || obj.weapon_range || obj.estiloAtaque || "Cuerpo a Cuerpo").toUpperCase();
     if (estiloTxt.includes("DISTANCIA") || estiloTxt.includes("RANGED") || estiloTxt === "RANGED") estiloAtq = "A Distancia";
 
-    // Dado de Daño estructurado (de obj.damage de equipment-es.json)
     let dadoDanoSaneado = "1d4";
     let tipoDanoSaneado = "Cortante";
     
-    // Mapa de traducción de tipos de daño inglés → español
     const DAÑO_TRADUCCION: Record<string, string> = {
       "piercing": "Perforante", "slashing": "Cortante", "bludgeoning": "Contundente",
       "fire": "Fuego", "cold": "Frío", "lightning": "Relámpago",
@@ -207,11 +276,9 @@ export function sanearObjetoHomebrew(o: unknown): ObjetoHomebrew {
       tipoDanoSaneado = DAÑO_TRADUCCION[rawTipo] || aplanarValor(obj.tipoDano || obj.tipoDaño || "Cortante");
     }
 
-    // Propiedades de Arma (admitiendo properties array o propiedadesArma ya traducidas)
     let propsArma: string[] = [];
     const rawProps = obj.properties || obj.propiedadesArma || obj.propiedades;
     
-    // Mapa de traducción inglés → español (PHB 2024)
     const PROP_TRADUCCION: Record<string, string> = {
       "finesse": "Sutil", "sutil": "Sutil",
       "versatile": "Versátil", "versátil": "Versátil",
@@ -255,10 +322,8 @@ export function sanearObjetoHomebrew(o: unknown): ObjetoHomebrew {
       }).filter(Boolean);
     }
 
-    // Maestría de Arma
     const maestriaSaneada = aplanarValor(obj.maestria || "Ninguna");
 
-    // Alcance Normal y Largo (admitiendo throw_range y range estructurados de equipment-es.json)
     let alcNormal: number | undefined = undefined;
     let alcLargo: number | undefined = undefined;
     
@@ -292,16 +357,7 @@ export function sanearObjetoHomebrew(o: unknown): ObjetoHomebrew {
     }
 
     return {
-      id: idSaneado,
-      nombre: nombreSaneado,
-      nombreNormalizado: normalizarTexto(nombreSaneado),
-      descripcion: descSaneada,
-      pesoLb: pesoSaneado,
-      valorPO: valorSaneado,
-      rareza: rarezaSaneada,
-      esMagico: esMagicoSaneado,
-      bonosMagicos: bonosMagicosSaneados,
-      
+      ...baseObjeto,
       tipoPrincipal: "Arma",
       subcategoria: subArma,
       tipoAtaque: estiloAtq,
@@ -313,14 +369,12 @@ export function sanearObjetoHomebrew(o: unknown): ObjetoHomebrew {
       alcanceLargo: alcLargo
     } as Arma;
   } else if (tipoPrincipalSaneado === "Armadura") {
-    // Subcategoría de Armadura
     let subArmor: "Ligera" | "Mediana" | "Pesada" | "Escudo" = "Ligera";
     const subTxt = aplanarValor(obj.subcategoria || obj.armor_category || "Ligera").toUpperCase();
     if (subTxt.includes("MEDIANA") || subTxt.includes("MEDIUM")) subArmor = "Mediana";
     else if (subTxt.includes("PESADA") || subTxt.includes("HEAVY")) subArmor = "Pesada";
     else if (subTxt.includes("ESCUDO") || subTxt.includes("SHIELD")) subArmor = "Escudo";
 
-    // CA Base (admitiendo obj.armor_class estructurado)
     let caBaseSaneada = 10;
     let dexBonus = true;
     let maxBonus: number | undefined = undefined;
@@ -334,7 +388,6 @@ export function sanearObjetoHomebrew(o: unknown): ObjetoHomebrew {
       caBaseSaneada = Number(obj.caBase || obj.ca || 10) || 10;
     }
 
-    // Requisito de Fuerza (admitiendo str_minimum)
     let reqFuerza = obj.str_minimum !== undefined ? (Number(obj.str_minimum) || undefined) : undefined;
     if (reqFuerza === undefined) {
       reqFuerza = obj.requisitoFuerza !== undefined ? (Number(obj.requisitoFuerza) || undefined) : undefined;
@@ -343,10 +396,8 @@ export function sanearObjetoHomebrew(o: unknown): ObjetoHomebrew {
       reqFuerza = undefined;
     }
 
-    // Desventaja Sigilo (admitiendo stealth_disadvantage)
     const desSigilo = !!(obj.stealth_disadvantage !== undefined ? obj.stealth_disadvantage : (obj.desventajaSigilo || obj.desvSigilo));
 
-    // Bono Destreza
     let bonoDest: TipoBonoDestreza = "Completo";
     if (obj.armor_class && typeof obj.armor_class === "object") {
       if (!dexBonus) {
@@ -362,23 +413,13 @@ export function sanearObjetoHomebrew(o: unknown): ObjetoHomebrew {
         bonoDest = bdTxt as TipoBonoDestreza;
       }
     } else {
-      // Deducir por defecto de D&D
       if (subArmor === "Mediana") bonoDest = "Máximo 2";
       else if (subArmor === "Pesada") bonoDest = "Sin Bono";
     }
 
     return {
-      id: idSaneado,
-      nombre: nombreSaneado,
-      nombreNormalizado: normalizarTexto(nombreSaneado),
-      descripcion: descSaneada,
-      pesoLb: pesoSaneado,
-      valorPO: valorSaneado,
-      rareza: rarezaSaneada,
-      esMagico: esMagicoSaneado,
-      bonosMagicos: bonosMagicosSaneados,
+      ...baseObjeto,
       propiedades: propiedadesSaneadas,
-
       tipoPrincipal: "Armadura",
       subcategoria: subArmor,
       caBase: caBaseSaneada,
@@ -387,7 +428,6 @@ export function sanearObjetoHomebrew(o: unknown): ObjetoHomebrew {
       bonoDestreza: bonoDest
     } as Armadura;
   } else {
-    // Equipo de Aventuras
     let subEquipo: SubcategoriaEquipo = "Maravilloso";
     const subTxt = aplanarValor(obj.subcategoria || obj.equipment_category || "Maravilloso").toUpperCase();
     if (subTxt.includes("CONSUMIBLE")) subEquipo = "Consumible";
@@ -401,17 +441,8 @@ export function sanearObjetoHomebrew(o: unknown): ObjetoHomebrew {
     const cg = obj.cargas !== undefined ? (Number(obj.cargas) || undefined) : undefined;
 
     return {
-      id: idSaneado,
-      nombre: nombreSaneado,
-      nombreNormalizado: normalizarTexto(nombreSaneado),
-      descripcion: descSaneada,
-      pesoLb: pesoSaneado,
-      valorPO: valorSaneado,
-      rareza: rarezaSaneada,
-      esMagico: esMagicoSaneado,
-      bonosMagicos: bonosMagicosSaneados,
+      ...baseObjeto,
       propiedades: propiedadesSaneadas,
-
       tipoPrincipal: "Equipo de Aventuras",
       subcategoria: subEquipo,
       cantidad: cant,

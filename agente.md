@@ -1494,5 +1494,57 @@ El compendio de monstruos y hechizos (con cientos de elementos) realizaba filtra
 > ⚡ **Precalcula la normalización de cadenas de búsqueda:** Cuando tengas compendios locales extensos en memoria y necesites búsquedas insensibilizadas a acentos/diacríticos en caliente, **NUNCA ejecutes normalizaciones y expresiones regulares en el bucle de render o en el filtro del input de React**.
 > Pre-normaliza los textos en el ciclo de carga/creación de datos y guárdalos como propiedades de solo lectura en memoria. Esto reduce la complejidad computacional en caliente a una simple comparación de subcadenas (`includes`), garantizando una entrada de texto ultra fluida y con cero tirones de frames.
 
+---
+
+## [2026-06-05] UI/UX: Pérdida de saltos de línea en descripciones de rasgos y acciones de monstruos en la ficha D&D
+
+**Síntomas:**
+Al ingresar o pegar textos con saltos de línea (`\n`) en el creador homebrew para la descripción de acciones o rasgos pasivos de una criatura, estos saltos de línea no se respetaban en la tarjeta de visualización final (`PanelFichaDnD`), mostrándose todo el texto pegado en un solo bloque continuo.
+
+**Causa raíz:**
+Las clases CSS `.itemRasgoFichaTexto` (usada en rasgos pasivos) y `.descAccionTarjeta` (usada en acciones, reacciones y legendarias) en el archivo de estilos `PanelFichaDnD.module.css` carecían de la propiedad CSS `white-space: pre-wrap;`. Por defecto, los navegadores colapsan los caracteres de salto de línea en un solo espacio a menos que se configure explícitamente el comportamiento de espacios en blanco.
+
+**Solución aplicada:**
+Se añadió la propiedad `white-space: pre-wrap;` a ambas clases CSS dentro de `src/componentes/iniciativa/PanelFichaDnD.module.css`. Esto obliga al navegador a renderizar fielmente todos los saltos de línea ingresados por el usuario sin alterar el diseño responsivo ni desbordar los contenedores.
+
+**Lección aprendida:**
+> 📐 **Preserva siempre los saltos de línea del usuario en bloques de texto plano:** Cuando renderices descripciones extensas, bloques narrativos u hojas de estadísticas de personajes donde el usuario pueda ingresar párrafos estructurados o listas manuales en texto plano, asegúrate de aplicar `white-space: pre-wrap;` (o `white-space: pre-line;`) en las clases CSS de sus contenedores. Esto garantiza una legibilidad premium instantánea sin necesidad de implementar editores enriquecidos o parsers HTML complejos para cada campo.
+
+---
+
+## [2026-06-06] COMPILACIÓN: Error `TS6133` por variables locales declaradas pero no usadas en desestructuración de hooks
+
+**Síntomas:**
+El build de producción (`pnpm run build` ejecutando `tsc && vite build`) fallaba con el siguiente error en el archivo `FormularioObjeto.tsx`:
+```
+src/componentes/homebrew/FormularioObjeto.tsx(116,5): error TS6133: 'oValorPO' is declared but its value is never read.
+src/componentes/homebrew/FormularioObjeto.tsx(116,15): error TS6133: 'setOValorPO' is declared but its value is never read.
+```
+
+**Causa raíz:**
+Al refactorizar el formulario de creación de equipamiento para sustituir el campo simple de costo en PO (`oValorPO`) por el nuevo sistema multi-moneda (`oCostoCantidad` y `oCostoUnidad`), las variables obsoletas seguían desestructurándose en la llamada al custom hook `usarFormularioObjeto` en la interfaz visual. Bajo la configuración estricta de TypeScript del proyecto (`noUnusedLocals: true`), declarar variables locales en la desestructuración de objetos sin darles uso efectivo se considera un error crítico de tipado que aborta el build de producción.
+
+**Solución aplicada:**
+Se removieron `oValorPO` y `setOValorPO` del bloque de desestructuración en el archivo `src/componentes/homebrew/FormularioObjeto.tsx`, dejando únicamente los nuevos estados y las funciones necesarias para interactuar con el formulario.
+
+**Lección aprendida:**
+> ⚠️ **Limpia variables obsoletas en desestructuraciones tras refactorizaciones:** Al reescribir la lógica de estado de un componente (especialmente al migrar o enriquecer campos en hooks compartidos), no basta con desconectar los inputs de la interfaz. Asegúrate de eliminar las referencias y declaraciones no utilizadas en los destructores del componente cliente. En proyectos de TypeScript configurados para producción estricta, la presencia de variables "muertas" pero declaradas provocará fallos en el proceso de compilación continua (`tsc`), impidiendo el despliegue del software.
+
+---
+
+## [2026-06-06] REFACTORIZACIÓN: Error de lógica (bloque inalcanzable) al aplicar reemplazo multi-chunk incorrecto
+
+**Síntomas:**
+El flujo de sanitización de objetos Homebrew en `src/almacen/sanitizacion.ts` devolvía siempre el objeto por defecto "Objeto Desconocido" para cualquier entrada, haciendo inoperable el creador de objetos.
+
+**Causa raíz:**
+Al realizar un reemplazo en múltiples trozos (`multi_replace_file_content`) para remover la propiedad `disponibilidadTienda` de `src/almacen/sanitizacion.ts`, el bloque target especificado incluía accidentalmente la cláusula condicional `if (!o || typeof o !== "object") {` y su cierre `}` en la sección a sustituir, pero el contenido de reemplazo solo contenía el `return` del bloque interno. Esto causó que la condición del `if` se eliminara, resultando en que la función ejecutara el `return` por defecto incondicionalmente al inicio del método, dejando el resto de la lógica de sanitización inalcanzable.
+
+**Solución aplicada:**
+Se restauró la sentencia de control condicional `if (!o || typeof o !== "object") { ... }` envolviendo adecuadamente el objeto de retorno de fallback.
+
+**Lección aprendida:**
+> 🔍 **Presta extrema atención a las estructuras de control durante reemplazos automatizados:** Cuando utilices herramientas de edición de archivos basadas en coincidencia de subcadenas (`replace_file_content` o `multi_replace_file_content`), asegúrate de que el bloque objetivo (`TargetContent`) y el bloque de reemplazo (`ReplacementContent`) preserven íntegras las llaves de apertura/cierre y las sentencias condicionales de control (`if`, `try/catch`, `switch`). Un corte o corchete mal estructurado puede desconfigurar la sintaxis del lenguaje o reescribir flujos lógicos, creando callejones sin salida en tiempo de ejecución.
+
 
 

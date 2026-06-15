@@ -11,8 +11,19 @@ export function usarFormularioObjeto(idEnEdicion: string | null, alGuardarExitos
   const [oDescripcion, setODescripcion] = useState("");
   const [oPesoLb, setOPesoLb] = useState<number>(0);
   const [oValorPO, setOValorPO] = useState<number>(0);
+  const [oCostoCantidad, setOCostoCantidad] = useState<number>(0);
+  const [oCostoUnidad, setOCostoUnidad] = useState<"PC" | "PP" | "PE" | "PO" | "PPT">("PO");
   const [oEsMagico, setOEsMagico] = useState(false);
   const [oBonosMagicos, setOBonosMagicos] = useState<{ categoria: string; bono: string; valor: number }[]>([]);
+
+  // --- ESTADOS DE VENENO ---
+  const [oEsVeneno, setOEsVeneno] = useState(false);
+  const [oTipoVeneno, setOTipoVeneno] = useState<"Contacto" | "Ingerido" | "Inhalado" | "Lesión">("Contacto");
+  const [oCdSalvacionVeneno, setOCdSalvacionVeneno] = useState<number | "">("");
+  const [oEfectoVeneno, setOEfectoVeneno] = useState("");
+
+  // --- ESTADOS DE TIENDA Y EQUIPABILIDAD ---
+  const [oEquipable, setOEquipable] = useState(false);
 
   // Tipo Principal de Objeto
   const [oTipoPrincipal, setOTipoPrincipal] = useState<"Arma" | "Armadura" | "Equipo de Aventuras">("Arma");
@@ -68,6 +79,8 @@ export function usarFormularioObjeto(idEnEdicion: string | null, alGuardarExitos
     setODescripcion("");
     setOPesoLb(0);
     setOValorPO(0);
+    setOCostoCantidad(0);
+    setOCostoUnidad("PO");
     setOEsMagico(false);
     setOBonosMagicos([]);
     setOTipoPrincipal("Arma");
@@ -92,6 +105,12 @@ export function usarFormularioObjeto(idEnEdicion: string | null, alGuardarExitos
     setOSintonizacionRequerida(false);
     setOCargas("");
 
+    setOEsVeneno(false);
+    setOTipoVeneno("Contacto");
+    setOCdSalvacionVeneno("");
+    setOEfectoVeneno("");
+    setOEquipable(false);
+
     setONuevoBonoCategoria("CA");
     setONuevoBonoBono("CA");
     setONuevoBonoValor(0);
@@ -104,9 +123,24 @@ export function usarFormularioObjeto(idEnEdicion: string | null, alGuardarExitos
     setODescripcion(o.descripcion);
     setOPesoLb(o.pesoLb || 0);
     setOValorPO(o.valorPO || 0);
+    
+    if (o.costoOriginal) {
+      setOCostoCantidad(o.costoOriginal.cantidad);
+      setOCostoUnidad(o.costoOriginal.unidad);
+    } else {
+      setOCostoCantidad(o.valorPO || 0);
+      setOCostoUnidad("PO");
+    }
+
     setOEsMagico(o.esMagico);
     setOBonosMagicos(o.bonosMagicos || []);
     setOTipoPrincipal(o.tipoPrincipal);
+
+    setOEsVeneno(o.esVeneno || false);
+    setOTipoVeneno(o.tipoVeneno || "Contacto");
+    setOCdSalvacionVeneno(o.cdSalvacionVeneno !== undefined ? o.cdSalvacionVeneno : "");
+    setOEfectoVeneno(o.efectoVeneno || "");
+    setOEquipable(o.equipable || false);
 
     if (o.tipoPrincipal === "Arma") {
       setOSubcategoriaArma(o.subcategoria || "Sencilla");
@@ -117,12 +151,14 @@ export function usarFormularioObjeto(idEnEdicion: string | null, alGuardarExitos
       setOMaestria(o.maestria || "Ninguna");
       setOAlcanceNormal(o.alcanceNormal !== undefined ? o.alcanceNormal : "");
       setOAlcanceLargo(o.alcanceLargo !== undefined ? o.alcanceLargo : "");
+      setOEquipable(true);
     } else if (o.tipoPrincipal === "Armadura") {
       setOSubcategoriaArmadura(o.subcategoria || "Ligera");
       setOCaBase(o.caBase || 10);
       setORequisitoFuerza(o.requisitoFuerza !== undefined ? o.requisitoFuerza : "");
       setODesventajaSigilo(o.desventajaSigilo || false);
       setOBonoDestreza(o.bonoDestreza || "Completo");
+      setOEquipable(true);
     } else if (o.tipoPrincipal === "Equipo de Aventuras") {
       setOSubcategoriaEquipo(o.subcategoria || "Maravilloso");
       setOCantidad(o.cantidad !== undefined ? o.cantidad : "");
@@ -174,6 +210,13 @@ export function usarFormularioObjeto(idEnEdicion: string | null, alGuardarExitos
       propTxt = parts.join(", ");
     }
 
+    // Calcular automáticamente el valor normalizado en PO
+    let calculadoValorPO = Number(oCostoCantidad) || 0;
+    if (oCostoUnidad === "PC") calculadoValorPO = calculadoValorPO / 100;
+    else if (oCostoUnidad === "PP") calculadoValorPO = calculadoValorPO / 10;
+    else if (oCostoUnidad === "PE") calculadoValorPO = calculadoValorPO / 2;
+    else if (oCostoUnidad === "PPT") calculadoValorPO = calculadoValorPO * 10;
+
     let payload: Omit<ObjetoJuego, "id">;
 
     const basePayload = {
@@ -182,9 +225,14 @@ export function usarFormularioObjeto(idEnEdicion: string | null, alGuardarExitos
       propiedades: propTxt,
       descripcion: oDescripcion.trim(),
       pesoLb: Number(oPesoLb) || 0,
-      valorPO: Number(oValorPO) || 0,
+      valorPO: calculadoValorPO,
+      costoOriginal: {
+        cantidad: Number(oCostoCantidad) || 0,
+        unidad: oCostoUnidad
+      },
       esMagico: oEsMagico,
-      bonosMagicos: oBonosMagicos
+      bonosMagicos: oBonosMagicos,
+      equipable: oTipoPrincipal === "Arma" || oTipoPrincipal === "Armadura" ? true : oEquipable
     };
 
     if (oTipoPrincipal === "Arma") {
@@ -217,7 +265,15 @@ export function usarFormularioObjeto(idEnEdicion: string | null, alGuardarExitos
         subcategoria: oSubcategoriaEquipo,
         cantidad: oCantidad !== "" ? Number(oCantidad) : undefined,
         sintonizacionRequerida: oSintonizacionRequerida,
-        cargas: oCargas !== "" ? Number(oCargas) : undefined
+        cargas: oCargas !== "" ? Number(oCargas) : undefined,
+        ...(oSubcategoriaEquipo === "Consumible" && oEsVeneno ? {
+          esVeneno: true,
+          tipoVeneno: oTipoVeneno,
+          cdSalvacionVeneno: oCdSalvacionVeneno !== "" ? Number(oCdSalvacionVeneno) : undefined,
+          efectoVeneno: oEfectoVeneno.trim()
+        } : {
+          esVeneno: false
+        })
       } as Omit<EquipoAventuras, "id">;
     }
 
@@ -237,7 +293,8 @@ export function usarFormularioObjeto(idEnEdicion: string | null, alGuardarExitos
     oMaestria, oAlcanceNormal, oAlcanceLargo, oSubcategoriaArmadura, oCaBase, oRequisitoFuerza,
     oDesventajaSigilo, oBonoDestreza, oSubcategoriaEquipo, oCantidad, oSintonizacionRequerida,
     oCargas, idEnEdicion, agregarObjetoHomebrew, actualizarObjetoHomebrew, agregarNotificacion,
-    limpiarFormulario, alGuardarExitoso
+    limpiarFormulario, alGuardarExitoso, oCostoCantidad, oCostoUnidad, oEsVeneno, oTipoVeneno,
+    oCdSalvacionVeneno, oEfectoVeneno, oEquipable
   ]);
 
   return {
@@ -247,6 +304,8 @@ export function usarFormularioObjeto(idEnEdicion: string | null, alGuardarExitos
     oDescripcion, setODescripcion,
     oPesoLb, setOPesoLb,
     oValorPO, setOValorPO,
+    oCostoCantidad, setOCostoCantidad,
+    oCostoUnidad, setOCostoUnidad,
     oEsMagico, setOEsMagico,
     oBonosMagicos, setOBonosMagicos,
     oTipoPrincipal, setOTipoPrincipal,
@@ -270,6 +329,12 @@ export function usarFormularioObjeto(idEnEdicion: string | null, alGuardarExitos
     oCantidad, setOCantidad,
     oSintonizacionRequerida, setOSintonizacionRequerida,
     oCargas, setOCargas,
+
+    oEsVeneno, setOEsVeneno,
+    oTipoVeneno, setOTipoVeneno,
+    oCdSalvacionVeneno, setOCdSalvacionVeneno,
+    oEfectoVeneno, setOEfectoVeneno,
+    oEquipable, setOEquipable,
 
     oNuevoBonoCategoria, setONuevoBonoCategoria,
     oNuevoBonoBono, setONuevoBonoBono,

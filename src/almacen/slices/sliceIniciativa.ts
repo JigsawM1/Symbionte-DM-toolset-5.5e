@@ -1,8 +1,15 @@
 import { StateCreator } from 'zustand';
-import { CriaturaIniciativa, EfectoActivo, MonstruoBase } from '../usarAlmacenDM';
-import { calcularVidaPorDados, formatearVelocidad } from '../sanitizacion';
+import { CriaturaIniciativa, EfectoActivo } from '../usarAlmacenDM';
+import { formatearVelocidad } from '../sanitizacion';
 import type { EstadoDM } from '../usarAlmacenDM';
 import { ts } from '../../utiles/TaleSpireAdapter';
+import type { ColaIniciativaTS } from '../../tipos/talespire';
+import {
+  normalizarNombreTaleSpire,
+  resolverPlantillaPorCriatura,
+  calcularVidaInicial
+} from '../../servicios/resolutorCriaturas';
+import { crearIndiceMonstruos } from '../../servicios/indiceMonstruos';
 
 export interface CriaturaSeleccionadaTS {
   id: string;
@@ -33,7 +40,7 @@ export interface SliceIniciativa {
   retrocederTurno: () => void;
   establecerTipoTirada: (tipo: "desventaja" | "plano" | "ventaja") => void;
 
-  actualizarColaIniciativaDesdeTaleSpire: (colaTS: unknown) => void;
+  actualizarColaIniciativaDesdeTaleSpire: (colaTS: ColaIniciativaTS | null) => void;
   importarIniciativaTaleSpire: () => Promise<void>;
   agregarCriaturaAIniciativa: (
     nombre: string,
@@ -132,96 +139,28 @@ export const crearSliceIniciativa: StateCreator<
     return { indiceTurnoActivo: nuevoIndice, rondaActual: nuevaRonda };
   }),
 
-  actualizarColaIniciativaDesdeTaleSpire: (colaTS: unknown) => set((state) => {
-    const normalizarColaTaleSpire = (datosCola: unknown): CriaturaNativaTS[] => {
-      if (!datosCola) return [];
-      if (Array.isArray(datosCola)) return datosCola as CriaturaNativaTS[];
-      
-      console.log("[TaleSpire Simbionte] Normalizando cola recibida:", typeof datosCola, datosCola);
-      
-      const datosColaObj = datosCola as Record<string, unknown>;
-      const llavesCandidatas = ["queue", "entries", "items", "data", "list"];
-      for (const llave of llavesCandidatas) {
-        if (Array.isArray(datosColaObj[llave])) {
-          return datosColaObj[llave] as CriaturaNativaTS[];
-        }
-      }
-      
-      if (typeof (datosCola as Record<symbol, unknown>)[Symbol.iterator] === "function") {
-        try {
-          return Array.from(datosCola as Iterable<CriaturaNativaTS>);
-        } catch (e) {
-          console.error("[TaleSpire Simbionte] Error al iterar cola:", e);
-        }
-      }
-      
-      for (const llave in datosColaObj) {
-        if (Object.prototype.hasOwnProperty.call(datosColaObj, llave) && Array.isArray(datosColaObj[llave])) {
-          return datosColaObj[llave] as CriaturaNativaTS[];
-        }
-      }
-      
-      return [];
-    };
+  actualizarColaIniciativaDesdeTaleSpire: (colaTS: ColaIniciativaTS | null) => set((state) => {
+    if (!colaTS) return {};
 
-    const colaFiltradaTS = normalizarColaTaleSpire(colaTS);
+    const colaTSItems = colaTS.items || [];
     const criaturasLocales = state.colaIniciativa.filter((c) => c.id.startsWith("c_local_"));
+    const indiceMonstruos = crearIndiceMonstruos(state.baseDatosMonstruos);
 
-    const mapaPlantillasPorId = new Map<string, MonstruoBase>();
-    const mapaPlantillas = new Map<string, MonstruoBase>();
-    state.baseDatosMonstruos.forEach((m) => {
-      mapaPlantillasPorId.set(m.id, m);
-      mapaPlantillas.set(m.nombre.toLowerCase().trim(), m);
-    });
-
-    const nuevasCriaturasNativas = colaFiltradaTS.map((cTS) => {
+    const nuevasCriaturasNativas = colaTSItems.map((cTS, index) => {
       const existente = state.colaIniciativa.find((c) => c.id === cTS.id);
-      const iniciativaFisica = cTS.initiative !== undefined ? cTS.initiative : (existente ? existente.iniciativa : 1);
+      const cTSAny = cTS as any;
+      const iniciativaFisica = cTSAny.initiative !== undefined
+        ? cTSAny.initiative
+        : (existente ? existente.iniciativa : (colaTSItems.length - index));
+
+      const plantillaMonstruo = resolverPlantillaPorCriatura(
+        cTS.id,
+        cTS.name,
+        state.asociacionesFichas,
+        indiceMonstruos
+      );
 
       if (existente) {
-        // 1. Priorizar siempre idPlantillaAsociada (evita búsquedas redundantes)
-        if (existente.idPlantillaAsociada) {
-          return {
-            ...existente,
-            iniciativa: iniciativaFisica
-          };
-        }
-
-        // 1.b. Buscar en la caché de asociaciones persistentes
-        const nombreTS = cTS.name.toLowerCase().trim();
-        const nombreTSBase = nombreTS
-          .replace(/\s+\d+$/g, "")
-          .replace(/\s+#[a-zA-Z0-9]+$/g, "")
-          .replace(/\s+[a-zA-Z]$/g, "")
-          .trim();
-
-        const idPlantillaCached = state.asociacionesFichas[cTS.id] || 
-                                 state.asociacionesFichas[`nombre_base:${nombreTS}`] || 
-                                 state.asociacionesFichas[`nombre_base:${nombreTSBase}`];
-        let plantillaMonstruo = idPlantillaCached 
-          ? mapaPlantillasPorId.get(idPlantillaCached)
-          : undefined;
-
-        if (plantillaMonstruo) {
-          return {
-            ...existente,
-            iniciativa: iniciativaFisica,
-            idPlantillaAsociada: plantillaMonstruo.id
-          };
-        }
-
-        // 2. Fallback temporal por nombre si no tiene idPlantillaAsociada ni en caché
-        plantillaMonstruo = mapaPlantillas.get(nombreTS) || mapaPlantillas.get(nombreTSBase);
-        if (!plantillaMonstruo) {
-          plantillaMonstruo = state.baseDatosMonstruos.find((m) => {
-            const nombrePlantilla = m.nombre.toLowerCase().trim();
-            return (
-              nombreTS.startsWith(nombrePlantilla) ||
-              nombreTSBase.startsWith(nombrePlantilla)
-            );
-          });
-        }
-
         return {
           ...existente,
           iniciativa: iniciativaFisica,
@@ -230,50 +169,12 @@ export const crearSliceIniciativa: StateCreator<
       }
 
       // Criatura nueva que viene de TaleSpire
-      const nombreTS = cTS.name.toLowerCase().trim();
-      const nombreTSBase = nombreTS
-        .replace(/\s+\d+$/g, "")
-        .replace(/\s+#[a-zA-Z0-9]+$/g, "")
-        .replace(/\s+[a-zA-Z]$/g, "")
-        .trim();
-
-      const idPlantillaCached = state.asociacionesFichas[cTS.id] || 
-                               state.asociacionesFichas[`nombre_base:${nombreTS}`] || 
-                               state.asociacionesFichas[`nombre_base:${nombreTSBase}`];
-      let plantillaMonstruo = idPlantillaCached 
-        ? mapaPlantillasPorId.get(idPlantillaCached)
-        : undefined;
-
-      if (!plantillaMonstruo) {
-        plantillaMonstruo = mapaPlantillas.get(nombreTS) || mapaPlantillas.get(nombreTSBase);
-        if (!plantillaMonstruo) {
-          plantillaMonstruo = state.baseDatosMonstruos.find((m) => {
-            const nombrePlantilla = m.nombre.toLowerCase().trim();
-            return (
-              nombreTS.startsWith(nombrePlantilla) ||
-              nombreTSBase.startsWith(nombrePlantilla)
-            );
-          });
-        }
-      }
-
-      let vidaMaxCalculada = 10;
-      let vidaActCalculada = 10;
-
-      if (plantillaMonstruo && state.metodoVidaMonstruo !== "estandar") {
-        vidaMaxCalculada = calcularVidaPorDados(
-          plantillaMonstruo.vidaNotas || "",
-          plantillaMonstruo.vidaMaxima,
-          state.metodoVidaMonstruo
-        );
-        vidaActCalculada = vidaMaxCalculada;
-      } else if (cTS.maxHp !== undefined && cTS.maxHp > 0) {
-        vidaMaxCalculada = cTS.maxHp;
-        vidaActCalculada = cTS.hp !== undefined ? cTS.hp : cTS.maxHp;
-      } else if (plantillaMonstruo) {
-        vidaMaxCalculada = plantillaMonstruo.vidaMaxima;
-        vidaActCalculada = vidaMaxCalculada;
-      }
+      const { vidaMaxima: vidaMaxCalculada, vidaActual: vidaActCalculada } = calcularVidaInicial(
+        plantillaMonstruo,
+        state.metodoVidaMonstruo,
+        cTSAny.maxHp,
+        cTSAny.hp
+      );
 
       return {
         id: cTS.id,
@@ -297,40 +198,18 @@ export const crearSliceIniciativa: StateCreator<
     let nuevoIndice = state.indiceTurnoActivo;
     let nuevaRonda = state.rondaActual;
 
-    if (colaTS && typeof colaTS === "object" && !Array.isArray(colaTS)) {
-      let activeTurnId: string | null = null;
-      const colaTSObj = colaTS as Record<string, unknown>;
-      const indiceActivoNativo = colaTSObj.activeItemIndex !== undefined ? colaTSObj.activeItemIndex : colaTSObj.activeTurn;
+    const nativeActiveIndex = colaTS.activeItemIndex;
+    console.log("[TaleSpire Sincronismo] Leyendo turno activo nativo:", nativeActiveIndex, "de la cola:", colaTSItems);
 
-      console.log("[TaleSpire Sincronismo] Leyendo turno activo nativo:", indiceActivoNativo, "de la cola:", colaFiltradaTS);
-
-      if (typeof indiceActivoNativo === "number") {
-        const criaturaActivaTS = colaFiltradaTS[indiceActivoNativo];
-        if (criaturaActivaTS) {
-          activeTurnId = criaturaActivaTS.id;
-        }
-      } else if (typeof indiceActivoNativo === "string") {
-        const esIndiceNumerico = /^\d+$/.test(indiceActivoNativo);
-        if (esIndiceNumerico) {
-          const idx = parseInt(indiceActivoNativo, 10);
-          const criaturaActivaTS = colaFiltradaTS[idx];
-          if (criaturaActivaTS) {
-            activeTurnId = criaturaActivaTS.id;
-          }
-        } else {
-          activeTurnId = indiceActivoNativo;
-        }
-      }
-
-      if (activeTurnId) {
+    if (typeof nativeActiveIndex === "number") {
+      const criaturaActivaTS = colaTSItems[nativeActiveIndex];
+      if (criaturaActivaTS) {
+        const activeTurnId = criaturaActivaTS.id;
         let indiceEncontrado = colaCombinada.findIndex((c) => c.id === activeTurnId);
         if (indiceEncontrado === -1) {
-          const criaturaActivaTS = colaFiltradaTS.find((c) => c.id === activeTurnId);
-          if (criaturaActivaTS) {
-            indiceEncontrado = colaCombinada.findIndex(
-              (c) => c.nombre.toLowerCase().trim() === criaturaActivaTS.name.toLowerCase().trim()
-            );
-          }
+          indiceEncontrado = colaCombinada.findIndex(
+            (c) => c.nombre.toLowerCase().trim() === criaturaActivaTS.name.toLowerCase().trim()
+          );
         }
 
         if (indiceEncontrado !== -1) {
@@ -338,19 +217,20 @@ export const crearSliceIniciativa: StateCreator<
           nuevoIndice = indiceEncontrado;
         }
       }
+    }
 
-      if (state.colaIniciativa.length > 1) {
-        const ultimoIndice = state.colaIniciativa.length - 1;
-        if (state.indiceTurnoActivo === ultimoIndice && nuevoIndice === 0) {
-          nuevaRonda = state.rondaActual + 1;
-        } else if (state.indiceTurnoActivo === 0 && nuevoIndice === ultimoIndice) {
-          nuevaRonda = Math.max(1, state.rondaActual - 1);
-        }
+    if (state.colaIniciativa.length > 1) {
+      const ultimoIndice = state.colaIniciativa.length - 1;
+      if (state.indiceTurnoActivo === ultimoIndice && nuevoIndice === 0) {
+        nuevaRonda = state.rondaActual + 1;
+      } else if (state.indiceTurnoActivo === 0 && nuevoIndice === ultimoIndice) {
+        nuevaRonda = Math.max(1, state.rondaActual - 1);
       }
+    }
 
-      if (colaTSObj.round !== undefined && typeof colaTSObj.round === "number" && colaTSObj.round > 0) {
-        nuevaRonda = colaTSObj.round;
-      }
+    const colaTSAny = colaTS as any;
+    if (colaTSAny && colaTSAny.round !== undefined && typeof colaTSAny.round === "number" && colaTSAny.round > 0) {
+      nuevaRonda = colaTSAny.round;
     }
 
     if (nuevaRonda > state.rondaActual) {
@@ -406,12 +286,7 @@ export const crearSliceIniciativa: StateCreator<
 
     let nuevasAsociaciones = state.asociacionesFichas;
     if (idPlantillaAsociada) {
-      const nombreRef = nombre.toLowerCase().trim();
-      const nombreRefBase = nombreRef
-        .replace(/\s+\d+$/g, "")
-        .replace(/\s+#[a-zA-Z0-9]+$/g, "")
-        .replace(/\s+[a-zA-Z]$/g, "")
-        .trim();
+      const { completo: nombreRef, base: nombreRefBase } = normalizarNombreTaleSpire(nombre);
       nuevasAsociaciones = {
         ...state.asociacionesFichas,
         [idCriatura]: idPlantillaAsociada,
@@ -526,21 +401,11 @@ export const crearSliceIniciativa: StateCreator<
     const criaturaReferencia = state.colaIniciativa.find((c) => c.id === idCriatura);
     if (!criaturaReferencia) return {};
 
-    const nombreRef = criaturaReferencia.nombre.toLowerCase().trim();
-    const nombreRefBase = nombreRef
-      .replace(/\s+\d+$/g, "")
-      .replace(/\s+#[a-zA-Z0-9]+$/g, "")
-      .replace(/\s+[a-zA-Z]$/g, "")
-      .trim();
+    const { completo: nombreRef, base: nombreRefBase } = normalizarNombreTaleSpire(criaturaReferencia.nombre);
 
     // 2. Asociar en caliente a cualquier criatura de la cola activa que comparta nombre o nombre base
     const nuevaCola = state.colaIniciativa.map((c) => {
-      const nombreC = c.nombre.toLowerCase().trim();
-      const nombreCBase = nombreC
-        .replace(/\s+\d+$/g, "")
-        .replace(/\s+#[a-zA-Z0-9]+$/g, "")
-        .replace(/\s+[a-zA-Z]$/g, "")
-        .trim();
+      const { completo: nombreC, base: nombreCBase } = normalizarNombreTaleSpire(c.nombre);
 
       const coincideNombre = c.id === idCriatura || 
                             nombreC === nombreRef || 
@@ -551,12 +416,9 @@ export const crearSliceIniciativa: StateCreator<
         let vidaActualCalculada = c.vidaActual;
 
         if (plantilla) {
-          vidaMaxCalculada = calcularVidaPorDados(
-            plantilla.vidaNotas || "",
-            plantilla.vidaMaxima,
-            state.metodoVidaMonstruo
-          );
-          vidaActualCalculada = vidaMaxCalculada;
+          const { vidaMaxima, vidaActual } = calcularVidaInicial(plantilla, state.metodoVidaMonstruo);
+          vidaMaxCalculada = vidaMaxima;
+          vidaActualCalculada = vidaActual;
         }
 
         return { 
@@ -622,55 +484,24 @@ export const crearSliceIniciativa: StateCreator<
     if (!state.criaturasSeleccionadas || state.criaturasSeleccionadas.length === 0) return {};
 
     const nuevasCriaturas: CriaturaIniciativa[] = [];
-
-    const mapaPlantillasPorId = new Map<string, MonstruoBase>();
-    const mapaPlantillas = new Map<string, MonstruoBase>();
-    state.baseDatosMonstruos.forEach((m) => {
-      mapaPlantillasPorId.set(m.id, m);
-      mapaPlantillas.set(m.nombre.toLowerCase().trim(), m);
-    });
+    const indiceMonstruos = crearIndiceMonstruos(state.baseDatosMonstruos);
 
     state.criaturasSeleccionadas.forEach((cTS) => {
       if (state.colaIniciativa.some((c) => c.id === cTS.id)) return;
 
-      const nombreTS = cTS.name.toLowerCase().trim();
-      const nombreTSBase = nombreTS
-        .replace(/\s+\d+$/g, "")
-        .replace(/\s+#[a-zA-Z0-9]+$/g, "")
-        .replace(/\s+[a-zA-Z]$/g, "")
-        .trim();
+      const plantillaMonstruo = resolverPlantillaPorCriatura(
+        cTS.id,
+        cTS.name,
+        state.asociacionesFichas,
+        indiceMonstruos
+      );
 
-      const idPlantillaCached = state.asociacionesFichas[cTS.id] || 
-                               state.asociacionesFichas[`nombre_base:${nombreTS}`] || 
-                               state.asociacionesFichas[`nombre_base:${nombreTSBase}`];
-      let plantillaMonstruo = idPlantillaCached 
-        ? mapaPlantillasPorId.get(idPlantillaCached)
-        : undefined;
-
-      if (!plantillaMonstruo) {
-        let plantillaPorNombre = mapaPlantillas.get(nombreTS) || mapaPlantillas.get(nombreTSBase);
-        if (!plantillaPorNombre) {
-          plantillaPorNombre = state.baseDatosMonstruos.find((m) => {
-            const nombrePlantilla = m.nombre.toLowerCase().trim();
-            return (
-              nombreTS.startsWith(nombrePlantilla) ||
-              nombreTSBase.startsWith(nombrePlantilla)
-            );
-          });
-        }
-        plantillaMonstruo = plantillaPorNombre;
-      }
-
-      let vidaMaxCalculada = 10;
-      let vidaActCalculada = 10;
-
-      if (cTS.maxHp !== undefined && cTS.maxHp > 0) {
-        vidaMaxCalculada = cTS.maxHp;
-        vidaActCalculada = cTS.hp !== undefined ? cTS.hp : cTS.maxHp;
-      } else if (plantillaMonstruo) {
-        vidaMaxCalculada = calcularVidaPorDados(plantillaMonstruo.vidaNotas || "", plantillaMonstruo.vidaMaxima, state.metodoVidaMonstruo);
-        vidaActCalculada = vidaMaxCalculada;
-      }
+      const { vidaMaxima: vidaMaxCalculada, vidaActual: vidaActCalculada } = calcularVidaInicial(
+        plantillaMonstruo,
+        state.metodoVidaMonstruo,
+        cTS.maxHp,
+        cTS.hp
+      );
 
       const tiradaInic = Math.floor(Math.random() * 20) + 1;
       const totalInic = tiradaInic + (plantillaMonstruo ? plantillaMonstruo.iniciativaBonificador : 0);

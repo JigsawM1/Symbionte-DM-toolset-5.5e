@@ -14,7 +14,7 @@ const sincronizarColaIniciativaFisica = () => {
     ts.initiative.getQueue()
       .then((colaTS) => {
         console.log("[TaleSpire Callback] Cola física leída con éxito:", colaTS);
-        usarAlmacenDM.getState().actualizarColaIniciativaDesdeTaleSpire(colaTS || []);
+        usarAlmacenDM.getState().actualizarColaIniciativaDesdeTaleSpire(colaTS);
       })
       .catch((e: unknown) => {
         console.warn("[TaleSpire Callback] Error al leer la cola física de iniciativa:", e);
@@ -42,9 +42,27 @@ window.manejarCambioEstadoCriatura = (evento) => {
   sincronizarColaIniciativaFisica();
 };
 
-window.manejarCambioSeleccionCriatura = (evento) => {
+window.manejarCambioSeleccionCriatura = async (evento) => {
   console.log("[TaleSpire Callback] Evento de selección de criaturas:", evento);
-  usarAlmacenDM.getState().actualizarSeleccionCriaturas((evento as import("./almacen/slices/sliceIniciativa").CriaturaSeleccionadaTS[]) || []);
+  const fragments = evento?.creatures || [];
+  const ids = fragments.map((f: any) => f.id);
+  if (ids.length === 0) {
+    usarAlmacenDM.getState().actualizarSeleccionCriaturas([]);
+    return;
+  }
+  try {
+    const info = await ts.creatures.getMoreInfo(ids);
+    const seleccionadas: import("./almacen/slices/sliceIniciativa").CriaturaSeleccionadaTS[] = info.map((c) => ({
+      id: c.id,
+      name: c.name,
+      hp: c.hp?.value,
+      maxHp: c.hp?.max
+    }));
+    usarAlmacenDM.getState().actualizarSeleccionCriaturas(seleccionadas);
+  } catch (e) {
+    console.warn("[TaleSpire Callback] Error al enriquecer selección:", e);
+    usarAlmacenDM.getState().actualizarSeleccionCriaturas(ids.map((id: string) => ({ id, name: "Criatura Seleccionada" })));
+  }
 };
 
 window.manejarResultadosDados = async (resultados) => {

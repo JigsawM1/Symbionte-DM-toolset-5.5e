@@ -12,10 +12,20 @@
  * Programado 100% en español.
  */
 
-import type { CampaignInfo } from "../tipos/talespire.d.ts";
+import type {
+  InfoCampania,
+  ColaIniciativaTS,
+  FragmentoCriatura,
+  SeleccionCriaturas,
+  DescriptorTirada,
+  GrupoResultadosTirada,
+  FragmentoOId,
+  InfoCriatura,
+  EventoIniciativaActualizada
+} from "../tipos/talespire.d.ts";
 
 class TaleSpireAdapter {
-  private getQueuePromise: Promise<unknown> | null = null;
+  private getQueuePromise: Promise<ColaIniciativaTS> | null = null;
 
   /**
    * Indica si la API global de TaleSpire está activa e inicializada.
@@ -43,7 +53,7 @@ class TaleSpireAdapter {
     /**
      * Convierte un string de tirada física en descriptores nativos 3D.
      */
-    makeRollDescriptors: async (rollStr: string): Promise<unknown[]> => {
+    makeRollDescriptors: async (rollStr: string): Promise<DescriptorTirada[]> => {
       if (window.TS?.dice && typeof window.TS.dice.makeRollDescriptors === "function") {
         try {
           return await window.TS.dice.makeRollDescriptors(rollStr);
@@ -58,7 +68,7 @@ class TaleSpireAdapter {
     /**
      * Lanza los dados físicamente en la mesa 3D.
      */
-    putDiceInTray: async (descriptors: unknown[], silenceDefaultChatCard = false): Promise<string> => {
+    putDiceInTray: async (descriptors: DescriptorTirada[], silenceDefaultChatCard = false): Promise<string> => {
       if (window.TS?.dice && typeof window.TS.dice.putDiceInTray === "function") {
         return await window.TS.dice.putDiceInTray(descriptors, silenceDefaultChatCard);
       }
@@ -69,7 +79,7 @@ class TaleSpireAdapter {
     /**
      * Evalúa el total numérico de un grupo de resultados de dados.
      */
-    evaluateDiceResultsGroup: async (group: unknown): Promise<number> => {
+    evaluateDiceResultsGroup: async (group: any): Promise<number> => {
       if (window.TS?.dice && typeof window.TS.dice.evaluateDiceResultsGroup === "function") {
         try {
           return await window.TS.dice.evaluateDiceResultsGroup(group);
@@ -83,7 +93,7 @@ class TaleSpireAdapter {
     /**
      * Envía de forma elegante un resultado filtrado al chat del juego.
      */
-    sendDiceResult: async (groups: unknown[], rollId: string): Promise<void> => {
+    sendDiceResult: async (groups: any[], rollId: string): Promise<void> => {
       if (window.TS?.dice && typeof window.TS.dice.sendDiceResult === "function") {
         await window.TS.dice.sendDiceResult(groups, rollId);
       } else {
@@ -102,9 +112,8 @@ class TaleSpireAdapter {
      */
     send: async (message: string): Promise<boolean> => {
       if (window.TS?.chat && typeof window.TS.chat.send === "function") {
-        // La API v0.1 documenta send(message), pero versiones reales de TaleSpire
-        // requieren un segundo parámetro "board" para que el mensaje aparezca en el chat.
-        return await (window.TS.chat.send as (...args: unknown[]) => Promise<boolean>)(message, "board");
+        // La API v0.1 requiere un segundo parámetro "board" para representar visualmente el chat.
+        return await window.TS.chat.send(message, "board");
       }
       console.log(`%c[TS Adapter Chat] ${message}`, "color: #b4befe; font-style: italic;");
       return true;
@@ -119,11 +128,31 @@ class TaleSpireAdapter {
           return await window.TS.chat.multiSend(message, targets);
         } else if (typeof window.TS.chat.send === "function") {
           // Fallback a send plano si multiSend no existe
-          return await window.TS.chat.send(message);
+          return await window.TS.chat.send(message, "board");
         }
       }
       console.log(`%c[TS Adapter Chat MultiTo ${targets.join(",")}] ${message}`, "color: #b4befe;");
       return true;
+    },
+
+    /**
+     * Envía un mensaje como una criatura específica.
+     */
+    sendAsCreature: async (creatureId: FragmentoOId, message: string): Promise<boolean> => {
+      if (window.TS?.chat && typeof window.TS.chat.sendAsCreature === "function") {
+        return await window.TS.chat.sendAsCreature(creatureId, message);
+      }
+      return false;
+    },
+
+    /**
+     * Envía un mensaje como una criatura a destinatarios específicos.
+     */
+    multiSendAsCreature: async (creatureId: FragmentoOId, message: string, targets: string[]): Promise<boolean> => {
+      if (window.TS?.chat && typeof window.TS.chat.multiSendAsCreature === "function") {
+        return await window.TS.chat.multiSendAsCreature(creatureId, message, targets);
+      }
+      return false;
     }
   };
 
@@ -135,7 +164,7 @@ class TaleSpireAdapter {
     /**
      * Obtiene la cola de iniciativa nativa. Deduplica llamadas concurrentes (debounce 100ms).
      */
-    getQueue: async (): Promise<unknown> => {
+    getQueue: async (): Promise<ColaIniciativaTS | null> => {
       if (this.getQueuePromise) {
         return this.getQueuePromise;
       }
@@ -158,10 +187,10 @@ class TaleSpireAdapter {
     /**
      * Suscribe un callback para eventos de cambio en la iniciativa.
      */
-    suscribirAEvento: (callback: () => void): { desuscribir: () => void } => {
+    suscribirAEvento: (callback: (evento?: EventoIniciativaActualizada) => void): { desuscribir: () => void } => {
       if (window.TS?.initiative?.onInitiativeEvent && typeof window.TS.initiative.onInitiativeEvent.subscribe === "function") {
-        const sub = window.TS.initiative.onInitiativeEvent.subscribe(() => {
-          callback();
+        const sub = window.TS.initiative.onInitiativeEvent.subscribe((datos) => {
+          callback(datos);
         });
         return { desuscribir: () => sub.desuscribir() };
       }
@@ -177,7 +206,7 @@ class TaleSpireAdapter {
     /**
      * Obtiene el listado de miniaturas seleccionadas en la mesa por el DM.
      */
-    getSelectedCreatures: async (): Promise<unknown[]> => {
+    getSelectedCreatures: async (): Promise<FragmentoCriatura[]> => {
       if (window.TS?.creatures && typeof window.TS.creatures.getSelectedCreatures === "function") {
         return await window.TS.creatures.getSelectedCreatures();
       }
@@ -187,7 +216,7 @@ class TaleSpireAdapter {
     /**
      * Suscribe un callback para cambios en la selección física de miniaturas.
      */
-    suscribirASeleccion: (callback: (datos: unknown[]) => void): { desuscribir: () => void } => {
+    suscribirASeleccion: (callback: (datos: SeleccionCriaturas) => void): { desuscribir: () => void } => {
       if (window.TS?.creatures?.onCreatureSelectionChange && typeof window.TS.creatures.onCreatureSelectionChange.subscribe === "function") {
         const sub = window.TS.creatures.onCreatureSelectionChange.subscribe((datos) => {
           callback(datos);
@@ -195,6 +224,16 @@ class TaleSpireAdapter {
         return { desuscribir: () => sub.desuscribir() };
       }
       return { desuscribir: () => {} };
+    },
+
+    /**
+     * Obtiene información extendida sobre un listado de criaturas.
+     */
+    getMoreInfo: async (creatureFragmentOrIds: FragmentoOId[]): Promise<InfoCriatura[]> => {
+      if (window.TS?.creatures && typeof window.TS.creatures.getMoreInfo === "function") {
+        return await window.TS.creatures.getMoreInfo(creatureFragmentOrIds);
+      }
+      return [];
     }
   };
 
@@ -206,7 +245,7 @@ class TaleSpireAdapter {
     /**
      * Obtiene detalles extendidos de la campaña actual (id, nombre, etc).
      */
-    getMoreInfoAboutCurrentCampaign: async (): Promise<CampaignInfo | null> => {
+    getMoreInfoAboutCurrentCampaign: async (): Promise<InfoCampania | null> => {
       if (window.TS?.campaigns && typeof window.TS.campaigns.getMoreInfoAboutCurrentCampaign === "function") {
         return await window.TS.campaigns.getMoreInfoAboutCurrentCampaign();
       }
@@ -225,8 +264,18 @@ class TaleSpireAdapter {
     esGM: async (): Promise<boolean> => {
       if (window.TS?.clients && typeof window.TS.clients.whoAmI === "function") {
         try {
-          const yo = (await window.TS.clients.whoAmI()) as Record<string, unknown> | null;
-          return yo?.isGm === true || yo?.playerRole === "gm";
+          const yo = await window.TS.clients.whoAmI();
+          // Por compatibilidad de campos nativos (legacy y oficiales)
+          const yoObj = yo as unknown as { isGm?: boolean; playerRole?: string; id?: string };
+          if (yoObj.isGm === true || yoObj.playerRole === "gm") {
+            return true;
+          }
+          if (yoObj.id && typeof window.TS.clients.getMoreInfo === "function") {
+            const info = await window.TS.clients.getMoreInfo([yoObj.id]);
+            if (info && info[0]) {
+              return info[0].clientMode === "gm";
+            }
+          }
         } catch (e) {
           console.error("[TS Adapter] Error al comprobar rol GM:", e);
         }
@@ -241,8 +290,8 @@ class TaleSpireAdapter {
     obtenerPlayerId: async (): Promise<string | null> => {
       if (window.TS?.clients && typeof window.TS.clients.whoAmI === "function") {
         try {
-          const yo = (await window.TS.clients.whoAmI()) as Record<string, unknown> | null;
-          return (yo?.playerId as string) || null;
+          const yo = await window.TS.clients.whoAmI();
+          return yo.player?.id || (yo as unknown as { playerId?: string }).playerId || null;
         } catch (e) {
           console.error("[TS Adapter] Error obteniendo ID de jugador:", e);
         }
@@ -286,7 +335,7 @@ class TaleSpireAdapter {
      * Lee un Blob de texto persistente de TaleSpire.
      * NOTA: La API real de TaleSpire getBlob usa firma () sin parámetros.
      */
-    leerBlob: async (clave: string): Promise<unknown> => {
+    leerBlob: async (clave: string): Promise<string | null> => {
       if (window.TS?.localStorage?.global && typeof window.TS.localStorage.global.getBlob === "function") {
         try {
           // API real de TaleSpire: getBlob() — sin clave
@@ -399,17 +448,17 @@ class TaleSpireAdapter {
   /**
    * Crea descriptores de dados manualmente a partir de una fórmula de texto.
    */
-  private crearDescriptoresManualmente(formula: string): unknown[] {
+  private crearDescriptoresManualmente(formula: string): DescriptorTirada[] {
     if (!formula) return [{ name: "Tirada", roll: "1d20" }];
     const formulaLimpia = formula.replace(/!/g, "");
     const partes = formulaLimpia.split("/");
-    
+
     if (partes.length === 1) {
       if (!formulaLimpia.includes(":")) {
         return [{ name: "Tirada", roll: formulaLimpia }];
       }
       const regexGrupo = /([^:+]+):([0-9d+\-*/()]+)/g;
-      const desc: unknown[] = [];
+      const desc: DescriptorTirada[] = [];
       let match;
       while ((match = regexGrupo.exec(formulaLimpia)) !== null) {
         desc.push({
@@ -420,7 +469,7 @@ class TaleSpireAdapter {
       if (desc.length > 0) return desc;
       return [{ name: "Tirada", roll: formulaLimpia }];
     }
-    
+
     return partes.map((p) => {
       const match = p.trim().match(/^([^:]+):(.*)$/);
       if (match) {
@@ -439,41 +488,38 @@ class TaleSpireAdapter {
   /**
    * Suma manualmente los valores resultantes de dados de un grupo si evaluate nativa falla.
    */
-  private obtenerTotalGrupoFallback(grupo: unknown): number {
+  private obtenerTotalGrupoFallback(grupo: GrupoResultadosTirada): number {
     if (!grupo || typeof grupo !== "object") return 0;
-    const grupoObj = grupo as Record<string, unknown>;
-    if (!grupoObj.result || typeof grupoObj.result !== "object") return 0;
-    const resultObj = grupoObj.result as Record<string, unknown>;
-    if (typeof resultObj.total === "number") {
+    const resultObj = grupo.result as any;
+    if (resultObj && typeof resultObj.total === "number") {
       return resultObj.total;
     }
-    
-    const evaluarNodo = (nodo: unknown): number => {
+
+    const evaluarNodo = (nodo: any): number => {
       if (!nodo || typeof nodo !== "object") return 0;
-      const nodoObj = nodo as Record<string, unknown>;
-      if (typeof nodoObj.value === "number") return nodoObj.value;
-      if (Array.isArray(nodoObj.results)) {
-        return nodoObj.results.reduce((sum: number, r) => {
+      if (typeof nodo.value === "number") return nodo.value;
+      if (Array.isArray(nodo.results)) {
+        return nodo.results.reduce((sum: number, r: any) => {
           if (typeof r === "number") return sum + r;
           if (r && typeof r === "object") {
-            return sum + (Number((r as Record<string, unknown>).value) || 0);
+            return sum + (Number(r.value) || 0);
           }
           return sum;
         }, 0);
       }
-      if (nodoObj.operator === "+" && Array.isArray(nodoObj.operands)) {
-        return nodoObj.operands.reduce((sum: number, op) => sum + evaluarNodo(op), 0);
+      if (nodo.operator === "+" && Array.isArray(nodo.operands)) {
+        return nodo.operands.reduce((sum: number, op: any) => sum + evaluarNodo(op), 0);
       }
-      if (nodoObj.operator === "-" && Array.isArray(nodoObj.operands)) {
-        if (nodoObj.operands.length === 0) return 0;
-        const primerOp = evaluarNodo(nodoObj.operands[0]);
-        const restOp = nodoObj.operands.slice(1).reduce((sum: number, op) => sum + evaluarNodo(op), 0);
+      if (nodo.operator === "-" && Array.isArray(nodo.operands)) {
+        if (nodo.operands.length === 0) return 0;
+        const primerOp = evaluarNodo(nodo.operands[0]);
+        const restOp = nodo.operands.slice(1).reduce((sum: number, op: any) => sum + evaluarNodo(op), 0);
         return primerOp - restOp;
       }
       return 0;
     };
-    
-    return evaluarNodo(grupoObj.result);
+
+    return evaluarNodo(grupo.result);
   }
 }
 

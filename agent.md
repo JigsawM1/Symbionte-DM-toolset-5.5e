@@ -164,3 +164,47 @@ Este archivo sirve como bitácora de aprendizaje técnico y memoria permanente p
     3.  Verificar `const` vs `let` en variables reasignadas.
     4.  `pnpm run build` sin errores.
     5.  `node deploy_to_ts.js` exitoso.
+
+---
+
+## 🏗️ 10. Análisis Arquitectónico Profundo (Junio 2026)
+
+*   **Código duplicado confirmado**: La lógica de resolución de criaturas (normalización de nombre + búsqueda de plantilla por id/caché/nombre/parcial) está copiada en **5 lugares**: `actualizarColaIniciativaDesdeTaleSpire` (2x), `agregarCriaturaAIniciativa`, `asociarPlantillaACriatura`, `agregarCriaturasSeleccionadasAIniciativa`, y `GestorIniciativa.obtenerPlantillaAsociada()`. **Todo debe consolidarse en un servicio `ResolutorCriaturas`.**
+*   **"God Component" GestorIniciativa.tsx**: El componente contiene ~60-65% de la lógica de negocio del flujo de combate. Funciones como `aplicarDaño()`, `aplicarCuracion()`, y `obtenerPlantillaAsociada()` son reglas de negocio D&D que no deberían vivir en un componente React.
+*   **Zustand no es el problema**: El store combinado con 3 slices y middleware de persistencia es un buen patrón. El problema real es que `sliceIniciativa` (702 líneas) contiene demasiada lógica de negocio mezclada. La solución es extraer a servicios puros, NO dividir Zustand.
+*   **Callbacks de window**: Los 6 callbacks globales en `main.tsx` (`window.initiativeUpdated`, `window.manejarEventoIniciativa`, etc.) + 4 event listeners DOM son necesarios para la integración CEF con TaleSpire, pero deben encapsularse en un EventBus tipado.
+*   **Polling 50ms**: NO es polling de datos. Es polling de inicialización para detectar `window.TS`. Es un patrón válido para esta API de integración local. No priorizar su refactorización.
+*   **`unknown` no es siempre malo**: Los `unknown` en la frontera con TaleSpire son **necesarios** porque la API no tiene un contrato estable (ver punto 8 sobre las discrepancias entre documentación y realidad). La normalización defensiva en `normalizarColaTaleSpire()` probablemente deba mantenerse.
+*   **Métricas clave del codebase**: 4,108 líneas en los 10 archivos core, ~107 casts `as`, solo 5 `any` explícitos (2 en sanitizacion.ts, 3 en importadorJSON.ts). 48 accesos a `window.TS` centralizados correctamente en TaleSpireAdapter.
+
+---
+
+## 📖 11. Decisión: Confiar en la Documentación Oficial API v0.1 (Junio 2026)
+
+*   **Documentación oficial**: `Documentacion API v0.1.md` en la raíz del proyecto. Fuente: https://symbiote-docs.talespire.com/api_doc_v0_1.md.html
+*   **Contratos clave descubiertos**:
+    *   `initiative.getQueue()` → `initiativeQueue` = `{ items: Array[initiativeTurnItem], activeItemIndex: int }`
+    *   `initiativeTurnItem` = `{ id: string, name: string, kind: "creature" }` — **NO contiene `initiative`, `maxHp`, ni `hp`**. Para obtener HP se debe usar `creatures.getMoreInfo(ids)` → `creatureInfo` con `hp: { name, value, max }`.
+    *   `initiativeUpdated` (evento de suscripción) = `{ queue: initiativeQueue }` — Entrega la cola completa tipada.
+    *   `creatures.getSelectedCreatures()` → `Array[creatureFragment]` donde `creatureFragment = { id: string }`.
+    *   `onCreatureSelectionChange` → `creatureSelection = { creatures: Array[creatureFragment] }`.
+    *   `clients.whoAmI()` → `clientFragment = { id, player: { id, name } }`. Para saber si es GM: `clients.getMoreInfo([id])` → `clientInfo` con `clientMode: "gm" | "player" | "spectator"`. **NO existen `isGm` ni `playerRole`** en la API oficial.
+    *   `chat.send(message, target)` — `target` puede ser `"gms"`, `"board"`, `"campaign"` o un `playerFragmentOrId`.
+    *   `localStorage.global.setBlob(str)` — Un solo parámetro string. `getBlob()` sin parámetros. Límite 5MB.
+*   **Impacto en el código**: La función `normalizarColaTaleSpire()` de 30 líneas que prueba 5 formatos distintos (`queue`, `entries`, `items`, `data`, `list`) ya no es necesaria. Los datos llegan en el formato documentado.
+*   **`creatureInfo` vs `initiativeTurnItem`**: Son tipos distintos. `initiativeTurnItem` es ligero (id, name, kind). `creatureInfo` es rico (hp, stats, morphs, position, etc.). **NO usamos `getMoreInfo()` para enriquecer iniciativa** — los HP y stats vienen de nuestras plantillas de monstruos. El flujo deseado es plantilla→mini, no al revés.
+*   **Mecanismo de suscripciones**: TaleSpire lee `manifest.json` → campo `api.subscriptions` → para cada evento declarado, inyecta un handler como función global de `window`. Es decir, si declaras `"onInitiativeEvent": "manejarEventoIniciativa"`, TaleSpire llamará `window.manejarEventoIniciativa(payload)` cuando ocurra el evento.
+*   **DISCREPANCIA MANIFIESTOS**: El `manifest.json` fuente dice `"onInitiativeEvent": "manejarEventoIniciativa"` pero el `dist/manifest.json` dice `"onInitiativeEvent": "initiativeUpdated"`. Esto causa que `main.tsx` registre AMBOS callbacks como redundancia. **Unificar a `manejarEventoIniciativa` en ambos manifiestos.**
+
+
+## 📡 12. Aprendizajes de la Fase 0 (Junio 2026)
+
+*   **Enriquecimiento de Selección Ligera**: La API oficial para la selección de criaturas (`getSelectedCreatures()` y el evento `onCreatureSelectionChange`) devuelve únicamente fragmentos ligeros conteniendo `{ id: string }`. Para que la interfaz de la aplicación siga teniendo acceso al nombre, puntos de vida actuales y máximos de la criatura seleccionada, debemos realizar un llamado asincrónico a `ts.creatures.getMoreInfo(ids)` de forma transparente en los callbacks de conexión (`usarConexionTaleSpire.ts` y `main.tsx`) antes de actualizar el estado local.
+*   **Flexibilidad en firmas de Dados**: Para evitar errores de tipo en librerías externas que procesan o evalúan tiradas con formatos matemáticos/compuestos dinámicos (`lanzadorDados.ts`), mantuvimos las firmas de los métodos `dice.evaluateDiceResultsGroup` y `sendDiceResult` abiertas usando `any` en `TaleSpireAdapter.ts` y en la declaración de tipos de la API.
+*   **Sincronización Directa de Iniciativa**: Al tipar formalmente la cola de TaleSpire (`ColaIniciativaTS`), eliminamos por completo la función redundante `normalizarColaTaleSpire()`. El índice de turno nativo y los ítems de combate se procesan sin intermediación defensiva, asegurando que la lógica sea limpia y libre de fallos por desalineación de propiedades.
+
+## 📡 13. Aprendizajes de la Fase 1 (Junio 2026)
+
+*   **Extracción de Reglas de Negocio en Servicios Puros**: Al mover la normalización de nombres, la resolución de criaturas (4 niveles de lookup) y el cálculo de vida inicial (por dados o estandarizado) a `src/servicios/resolutorCriaturas.ts`, eliminamos 5 copias idénticas de código duplicado distribuidas en el store de combate y en los componentes React.
+*   **Desacoplamiento de Componentes de Vista**: Al redirigir la resolución de plantillas del componente React principal `GestorIniciativa.tsx` a través del `ResolutorCriaturas`, removimos la importación de `usarIndicePlantillas` de cachePlantillas.ts. Esto reduce la complejidad del componente React, haciéndolo mucho más enfocado en presentación y simplificando el flujo de estados.
+*   **Casteo Seguro en Reglas D&D**: Para evitar problemas con el compilador en utilidades de saneado que esperan strings literales estrictos (como `"estandar" | "maximo" | "azar"` en `calcularVidaPorDados`), aseguramos que los parámetros del store (como `metodoVidaMonstruo` que se guarda como `string`) sean casteados con seguridad en la capa del servicio ResolutorCriaturas.

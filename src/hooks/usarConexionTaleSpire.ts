@@ -39,9 +39,27 @@ export function usarConexionTaleSpire() {
       
       try {
         // Suscribirse a la selección de criaturas
-        suscripcionSeleccion = ts.creatures.suscribirASeleccion((seleccion) => {
+        suscripcionSeleccion = ts.creatures.suscribirASeleccion(async (seleccion) => {
           if (activo) {
-            actualizarSeleccionCriaturas((seleccion || []) as import("../almacen/slices/sliceIniciativa").CriaturaSeleccionadaTS[]);
+            const fragments = seleccion?.creatures || [];
+            const ids = fragments.map((f) => f.id);
+            if (ids.length === 0) {
+              actualizarSeleccionCriaturas([]);
+              return;
+            }
+            try {
+              const info = await ts.creatures.getMoreInfo(ids);
+              const seleccionadas: import("../almacen/slices/sliceIniciativa").CriaturaSeleccionadaTS[] = info.map((c) => ({
+                id: c.id,
+                name: c.name,
+                hp: c.hp?.value,
+                maxHp: c.hp?.max
+              }));
+              actualizarSeleccionCriaturas(seleccionadas);
+            } catch (e) {
+              console.warn("[TaleSpire Simbionte] Error al enriquecer selección de criaturas:", e);
+              actualizarSeleccionCriaturas(ids.map((id) => ({ id, name: "Criatura Seleccionada" })));
+            }
           }
         });
 
@@ -64,9 +82,25 @@ export function usarConexionTaleSpire() {
 
           // Obtener la selección inicial física del tablero
           ts.creatures.getSelectedCreatures()
-            .then((seleccionInicial) => {
+            .then(async (seleccionInicial) => {
               if (activo) {
-                actualizarSeleccionCriaturas((seleccionInicial || []) as import("../almacen/slices/sliceIniciativa").CriaturaSeleccionadaTS[]);
+                const ids = (seleccionInicial || []).map((f) => f.id);
+                if (ids.length === 0) {
+                  actualizarSeleccionCriaturas([]);
+                  return;
+                }
+                try {
+                  const info = await ts.creatures.getMoreInfo(ids);
+                  const seleccionadas: import("../almacen/slices/sliceIniciativa").CriaturaSeleccionadaTS[] = info.map((c) => ({
+                    id: c.id,
+                    name: c.name,
+                    hp: c.hp?.value,
+                    maxHp: c.hp?.max
+                  }));
+                  actualizarSeleccionCriaturas(seleccionadas);
+                } catch (e) {
+                  actualizarSeleccionCriaturas(ids.map((id) => ({ id, name: "Criatura Seleccionada" })));
+                }
               }
             })
             .catch((e: unknown) => {
@@ -77,7 +111,7 @@ export function usarConexionTaleSpire() {
           ts.initiative.getQueue()
             .then((colaInicial) => {
               if (activo) {
-                actualizarColaIniciativaDesdeTaleSpire(colaInicial || []);
+                actualizarColaIniciativaDesdeTaleSpire(colaInicial);
               }
             })
             .catch((e: unknown) => {

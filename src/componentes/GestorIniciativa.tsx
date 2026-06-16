@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { usarAlmacenDM, CriaturaIniciativa, HechizoBase } from "../almacen/usarAlmacenDM";
-import { usarIndicePlantillas } from "../almacen/cachePlantillas";
+import { resolverPlantillaPorCriatura } from "../servicios/resolutorCriaturas";
+import { usarIndiceMonstruos } from "../servicios/indiceMonstruos";
 import { MonstruoBase } from "../utiles/datosIniciales";
 import { lanzarDadosTaleSpire, sanitizarEtiqueta } from "../utiles/lanzadorDados";
 import { ModalDetalleHechizo } from "./ModalDetalleHechizo";
@@ -15,6 +16,7 @@ export const GestorIniciativa: React.FC = () => {
   const indiceTurnoActivo = usarAlmacenDM((s) => s.indiceTurnoActivo);
   const baseDatosMonstruos = usarAlmacenDM((s) => s.baseDatosMonstruos);
   const baseDatosHechizos = usarAlmacenDM((s) => s.baseDatosHechizos);
+  const asociacionesFichas = usarAlmacenDM((s) => s.asociacionesFichas);
   const quitarCriaturaDeIniciativa = usarAlmacenDM((s) => s.quitarCriaturaDeIniciativa);
   const modificarVidaCriaturaIniciativa = usarAlmacenDM((s) => s.modificarVidaCriaturaIniciativa);
   const actualizarVidaTemporal = usarAlmacenDM((s) => s.actualizarVidaTemporal);
@@ -25,36 +27,20 @@ export const GestorIniciativa: React.FC = () => {
   const quitarEfectoDeCriatura = usarAlmacenDM((s) => s.quitarEfectoDeCriatura);
   const importarIniciativaTaleSpire = usarAlmacenDM((s) => s.importarIniciativaTaleSpire);
 
-  // Obtener índices optimizados de plantillas
-  const indicesPlantillas = usarIndicePlantillas();
+  const indiceMonstruos = usarIndiceMonstruos();
 
   // Estados locales
   const [idCriaturaDetalle, setIdCriaturaDetalle] = useState<string | null>(null);
   const [hechizoFlotanteDetalle, setHechizoFlotanteDetalle] = useState<HechizoBase | null>(null);
 
-  // Buscar plantilla de estadísticas para una criatura (Optimizado O(1) con limpieza dinámica de sufijos)
+  // Buscar plantilla de estadísticas para una criatura mediante el ResolutorCriaturas
   const obtenerPlantillaAsociada = (criatura: CriaturaIniciativa): MonstruoBase | null => {
-    if (criatura.idPlantillaAsociada) {
-      return indicesPlantillas.porId.get(criatura.idPlantillaAsociada) || null;
-    }
-    
-    const nombreNormal = criatura.nombre.toLowerCase().trim();
-    let plantilla = indicesPlantillas.porNombre.get(nombreNormal);
-    if (plantilla) return plantilla;
-
-    // Si no se encuentra coincidencia exacta, limpiar sufijos de clon/copia comunes
-    let nombreLimpio = nombreNormal;
-    let anterior = "";
-    while (nombreLimpio !== anterior) {
-      anterior = nombreLimpio;
-      nombreLimpio = nombreLimpio
-        .replace(/\s+\d+$/, "") // Quita números al final (ej: "orco 1" -> "orco")
-        .replace(/\s+#[a-zA-Z0-9]+$/, "") // Quita hashtags (ej: "esqueleto #2" -> "esqueleto")
-        .replace(/\s+[a-zA-Z]$/, "") // Quita letras sueltas al final (ej: "aboleth a" -> "aboleth")
-        .trim();
-    }
-
-    return indicesPlantillas.porNombre.get(nombreLimpio) || null;
+    return resolverPlantillaPorCriatura(
+      criatura.id,
+      criatura.nombre,
+      asociacionesFichas,
+      indiceMonstruos
+    ) || null;
   };
 
   // Cómputo de Percepción Pasiva (Lectura directa O(1) ya que los datos están saneados en la base de datos)

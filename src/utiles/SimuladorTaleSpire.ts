@@ -7,9 +7,23 @@
  * Programado 100% en español.
  */
 
+import type {
+  TaleSpireAPI,
+  ColaIniciativaTS,
+  FragmentoCriatura,
+  SeleccionCriaturas,
+  ResultadosTirada,
+  DescriptorTirada,
+  GrupoResultadosTirada,
+  FragmentoCliente,
+  InfoCliente,
+  FragmentoJugador,
+  FragmentoOId,
+  InfoCriatura
+} from "../tipos/talespire.d.ts";
 
 // Interfaz para definir la estructura de los callbacks/observables
-type SuscriptorFn = (...args: unknown[]) => void;
+type SuscriptorFn = (...args: any[]) => void;
 
 class CanalEventosSimulado {
   private suscriptores: Map<string, Set<SuscriptorFn>> = new Map();
@@ -26,7 +40,7 @@ class CanalEventosSimulado {
     };
   }
 
-  disparar(evento: string, ...datos: unknown[]) {
+  disparar(evento: string, ...datos: any[]) {
     const callbacks = this.suscriptores.get(evento);
     if (callbacks) {
       callbacks.forEach((cb) => {
@@ -48,7 +62,7 @@ let rondaSimulada = 1;
 interface CriaturaSimulada {
   id: string;
   name: string;
-  kind?: string;
+  kind?: "creature";
   iniciativa: number;
   hp: number;
   maxHp: number;
@@ -71,7 +85,7 @@ export function inicializarSimulador(): void {
   // Verificamos si ya existe la API de TaleSpire
   if (
     typeof window !== "undefined" &&
-    ((window as unknown as { TS?: unknown }).TS || (window as unknown as { com?: { bouncyrock?: { talespire?: unknown } } }).com?.bouncyrock?.talespire)
+    ((window as any).TS || (window as any).com?.bouncyrock?.talespire)
   ) {
     console.log("[TaleSpire] Detectada API nativa en caliente. Simulador omitido.");
     return;
@@ -83,7 +97,7 @@ export function inicializarSimulador(): void {
   );
 
   // Definimos las estructuras de mock de la API
-  const apiSimulada = {
+  const apiSimulada: TaleSpireAPI = {
     // API de depuración nativa
     debug: {
       log: (mensaje: string) => {
@@ -98,7 +112,6 @@ export function inicializarSimulador(): void {
         };
       },
       getMoreInfoAboutCurrentCampaign: async () => {
-        // Simulamos la info detallada
         return {
           id: "campaña_simulada_123",
           name: "La Tumba de la Aniquilación (MOCK)"
@@ -107,69 +120,90 @@ export function inicializarSimulador(): void {
     },
     // API de Clientes
     clients: {
-      whoAmI: async () => {
+      whoAmI: async (): Promise<FragmentoCliente> => {
         return {
           id: "cliente_yo",
-          isGm: true,
-          playerRole: "GM"
-        }
+          player: {
+            id: "jugador_yo",
+            name: "DM Simulador"
+          }
+        };
+      },
+      getMoreInfo: async (clientFragmentsOrIds: FragmentoOId[]): Promise<InfoCliente[]> => {
+        return clientFragmentsOrIds.map((c) => {
+          const id = typeof c === "string" ? c : c.id;
+          return {
+            id,
+            clientMode: "gm",
+            player: {
+              id: "jugador_yo",
+              name: "DM Simulador"
+            }
+          };
+        });
+      }
+    },
+    // API de Jugadores
+    players: {
+      whoAmI: async (): Promise<FragmentoJugador> => {
+        return { id: "jugador_yo", name: "DM Simulador" };
+      },
+      isMe: async (playerFragmentOrId: FragmentoOId): Promise<boolean> => {
+        const id = typeof playerFragmentOrId === "string" ? playerFragmentOrId : playerFragmentOrId.id;
+        return id === "jugador_yo";
       }
     },
     // API de Iniciativa nativa alineada con activeItemIndex e items de TaleSpire
     initiative: {
-      getQueue: async () => {
+      getQueue: async (): Promise<ColaIniciativaTS> => {
         return {
           activeItemIndex: indiceTurnoActivoSimulado,
-          round: rondaSimulada,
           items: colaIniciativaSimulada.map((c) => ({
             id: c.id,
             name: c.name,
-            kind: c.kind || "creature",
-            initiative: c.iniciativa !== undefined ? c.iniciativa : 10
+            kind: "creature"
           }))
         };
       },
       nextTurn: async () => {
-        if (colaIniciativaSimulada.length === 0) return;
+        if (colaIniciativaSimulada.length === 0) return {};
         indiceTurnoActivoSimulado++;
         if (indiceTurnoActivoSimulado >= colaIniciativaSimulada.length) {
           indiceTurnoActivoSimulado = 0;
           rondaSimulada++;
         }
         console.log("[Simulador TS] Turno nativo avanzado (nextTurn). Turno activo index:", indiceTurnoActivoSimulado);
-        
-        const queueData = {
+
+        const queue: ColaIniciativaTS = {
           activeItemIndex: indiceTurnoActivoSimulado,
-          round: rondaSimulada,
           items: colaIniciativaSimulada.map((c) => ({
             id: c.id,
             name: c.name,
-            kind: c.kind || "creature",
-            initiative: c.iniciativa !== undefined ? c.iniciativa : 10
+            kind: "creature"
           }))
         };
-        canalEventos.disparar("cambioIniciativa", queueData);
+        canalEventos.disparar("cambioIniciativa", { queue });
+        return {};
       },
       prevTurn: async () => {
-        if (colaIniciativaSimulada.length === 0) return;
+        if (colaIniciativaSimulada.length === 0) return {};
         indiceTurnoActivoSimulado--;
         if (indiceTurnoActivoSimulado < 0) {
           indiceTurnoActivoSimulado = colaIniciativaSimulada.length - 1;
           rondaSimulada = Math.max(1, rondaSimulada - 1);
         }
         console.log("[Simulador TS] Turno nativo retrocedido (prevTurn). Turno activo index:", indiceTurnoActivoSimulado);
-        
-        const queueData = {
+
+        const queue: ColaIniciativaTS = {
           activeItemIndex: indiceTurnoActivoSimulado,
-          round: rondaSimulada,
           items: colaIniciativaSimulada.map((c) => ({
             id: c.id,
             name: c.name,
-            kind: c.kind || "creature",
-            initiative: c.iniciativa !== undefined ? c.iniciativa : 10
+            kind: "creature"
           }))
         };
-        canalEventos.disparar("cambioIniciativa", queueData);
+        canalEventos.disparar("cambioIniciativa", { queue });
+        return {};
       },
       onInitiativeEvent: {
         subscribe: (callback: SuscriptorFn) => {
@@ -177,42 +211,41 @@ export function inicializarSimulador(): void {
         }
       }
     },
-    // API de Symbiote y sus Eventos
-    symbiote: {
-      onStateChangeEvent: {
-        subscribe: (callback: SuscriptorFn) => {
-          return canalEventos.suscribir("cambioEstadoSimbionte", callback);
-        }
-      }
-    },
     // API de Criaturas y Selección
     creatures: {
-      getSelected: async () => {
+      getSelectedCreatures: async (): Promise<FragmentoCriatura[]> => {
         return colaIniciativaSimulada
           .filter((c) => criaturasSeleccionadasSimuladas.includes(c.id))
           .map((c) => ({
-            id: c.id,
-            name: c.name,
-            hp: c.hp,
-            maxHp: c.maxHp,
-            ca: c.ca
+            id: c.id
           }));
       },
-      getSelectedCreatures: async () => {
+      getMoreInfo: async (creatureFragmentOrIds: FragmentoOId[]): Promise<InfoCriatura[]> => {
+        const idList = creatureFragmentOrIds.map(id => typeof id === "string" ? id : id.id);
         return colaIniciativaSimulada
-          .filter((c) => criaturasSeleccionadasSimuladas.includes(c.id))
+          .filter((c) => idList.includes(c.id))
           .map((c) => ({
             id: c.id,
+            isUnique: true,
             name: c.name,
-            hp: c.hp,
-            maxHp: c.maxHp,
-            ca: c.ca
+            nameSet: true,
+            link: "",
+            position: { locId: 0, x: 0, y: 0, z: 0 },
+            rotation: { x: 0, y: 0, z: 0 },
+            boardId: "board_123",
+            morphs: [],
+            activeMorphIndex: 0,
+            hp: { name: "HP", value: c.hp, max: c.maxHp },
+            stats: [
+              { name: "HP", value: c.hp, max: c.maxHp },
+              { name: "AC", value: c.ca, max: c.ca }
+            ],
+            torchIsOn: false,
+            isExplicitlyHidden: false,
+            isFlying: false,
+            idsOfActivePersistentEmotes: [],
+            ownerIds: ["jugador_yo"]
           }));
-      },
-      onCreatureStateChange: {
-        subscribe: (callback: SuscriptorFn) => {
-          return canalEventos.suscribir("cambioEstadoCriatura", callback);
-        }
       },
       onCreatureSelectionChange: {
         subscribe: (callback: SuscriptorFn) => {
@@ -240,8 +273,9 @@ export function inicializarSimulador(): void {
         canalEventos.disparar("mensajeEnviado", { mensaje, targets });
         return true;
       },
-      sendAsCreature: async (criaturaId: string, mensaje: string) => {
-        const criatura = colaIniciativaSimulada.find((c) => c.id === criaturaId);
+      sendAsCreature: async (creatureFragmentOrId: FragmentoOId, mensaje: string) => {
+        const id = typeof creatureFragmentOrId === "string" ? creatureFragmentOrId : creatureFragmentOrId.id;
+        const criatura = colaIniciativaSimulada.find((c) => c.id === id);
         const nombreCriatura = criatura ? criatura.name : "Desconocido";
         console.log(
           `%c[TS Chat] %c${nombreCriatura} %cdice: %c${mensaje}`,
@@ -252,8 +286,9 @@ export function inicializarSimulador(): void {
         );
         return true;
       },
-      multiSendAsCreature: async (criaturaId: string, mensaje: string, targets: string[]) => {
-        const criatura = colaIniciativaSimulada.find((c) => c.id === criaturaId);
+      multiSendAsCreature: async (creatureFragmentOrId: FragmentoOId, mensaje: string, targets: string[]) => {
+        const id = typeof creatureFragmentOrId === "string" ? creatureFragmentOrId : creatureFragmentOrId.id;
+        const criatura = colaIniciativaSimulada.find((c) => c.id === id);
         const nombreCriatura = criatura ? criatura.name : "Desconocido";
         console.log(
           `%c[TS Chat] %c${nombreCriatura} %cen [${targets.join(", ")}]: %c${mensaje}`,
@@ -265,13 +300,44 @@ export function inicializarSimulador(): void {
         return true;
       }
     },
+    // API de LocalStorage
+    localStorage: {
+      global: {
+        setBlob: async (data: string) => {
+          window.localStorage.setItem("ts_global_blob", data);
+        },
+        getBlob: async () => {
+          return window.localStorage.getItem("ts_global_blob") || "{}";
+        },
+        deleteBlob: async () => {
+          window.localStorage.removeItem("ts_global_blob");
+        }
+      },
+      campaign: {
+        setBlob: async (data: string) => {
+          window.localStorage.setItem("ts_campaign_blob", data);
+        },
+        getBlob: async () => {
+          return window.localStorage.getItem("ts_campaign_blob") || "{}";
+        },
+        deleteBlob: async () => {
+          window.localStorage.removeItem("ts_campaign_blob");
+        }
+      }
+    },
     // API de System
     system: {
-       clipboard: {
-           setText: async (texto: string) => {
-               console.log(`%c[TS Clipboard] Texto copiado: %c${texto.substring(0, 50)}...`, "color: #f38ba8", "color: #cdd6f4");
-           }
-       }
+      clipboard: {
+        setText: async (texto: string) => {
+          console.log(`%c[TS Clipboard] Texto copiado: %c${texto.substring(0, 50)}...`, "color: #f38ba8", "color: #cdd6f4");
+        }
+      }
+    },
+    // API legacy de portapapeles
+    clipboard: {
+      copyText: async (texto: string) => {
+        console.log(`%c[TS Legacy Clipboard] Texto copiado: %c${texto.substring(0, 50)}...`, "color: #f38ba8", "color: #cdd6f4");
+      }
     },
     // API de dados nativa simulada
     dice: {
@@ -280,8 +346,7 @@ export function inicializarSimulador(): void {
         const limpia = str.replace(/\s+/g, "").toLowerCase();
         return /^[+-]?(\d+)?d\d+([+-]\d+)*$/.test(limpia) || /^[+-]?\d+$/.test(limpia);
       },
-      makeRollDescriptors: async (rollStr: string): Promise<unknown[]> => {
-        // En TaleSpire, makeRollDescriptors divide por "/" los subgrupos
+      makeRollDescriptors: async (rollStr: string): Promise<DescriptorTirada[]> => {
         const grupos = rollStr.split("/");
         return grupos.map((g) => {
           const matchEtiqueta = g.match(/^!?([^:]+):(.*)$/);
@@ -291,62 +356,34 @@ export function inicializarSimulador(): void {
           return { name: "Tirada", roll: g.trim() };
         });
       },
-      parseRollString: async (rollStr: string): Promise<unknown[]> => {
-        return [{ caras: 20, formula: rollStr }];
-      },
-      evaluateDiceResultsGroup: async (group: unknown): Promise<number> => {
-        if (!group || typeof group !== "object") return 0;
-        const gObj = group as Record<string, { total?: number }>;
-        if (!gObj.result) return 0;
-        return typeof gObj.result.total === "number" ? gObj.result.total : 0;
-      },
-      sendDiceResult: async (groups: unknown[], rollId: string): Promise<void> => {
-        console.log(
-          `%c🎲 [TS Chat Dice Card - ${rollId}] %cENVIADO AL CHAT:`,
-          "background: #1e1e2e; color: #a6e3a1; font-weight: bold; padding: 4px; border-radius: 4px;",
-          "color: #cdd6f4; font-weight: bold;"
-        );
-        groups.forEach((g) => {
-          const gObj = g as Record<string, { total?: number } & { name?: string; description?: string }>;
-          console.log(
-            `  %c↳ %c${gObj.name}: %c${gObj.result?.total} %c(${gObj.description || "Tirada"})`,
-            "color: #a6e3a1; font-weight: bold;",
-            "color: #cdd6f4; font-weight: bold;",
-            "color: #f9e2af; font-weight: bold; font-size: 1.1em;",
-            "color: #a6adc8;"
-          );
-        });
-      },
-      putDiceInTray: async (descriptors: unknown[], silenceDefaultChatCard: boolean = false): Promise<string> => {
+      putDiceInTray: async (descriptors: DescriptorTirada[], silenceDefaultChatCard: boolean = false): Promise<string> => {
         const mockRollId = `roll_mock_${Date.now()}`;
         console.log(
           `%c[Simulador TS Dice] Dados colocados en bandeja (MOCK). RollId: ${mockRollId} (Silenciar Chat: ${silenceDefaultChatCard})`,
           "color: #fab387; font-weight: bold;",
           descriptors
         );
-        
+
         // Simular que el usuario lanza físicamente los dados en 3D
         setTimeout(() => {
           console.log(`%c[Simulador TS Dice] Dados se detuvieron. Generando resultados Groups...`, "color: #fab387;");
-          
-          // Construir grupos de resultados realistas a partir de los descriptores
+
           const resultsGroups = descriptors.map((desc) => {
-            const descObj = desc as Record<string, string>;
-            const name = descObj.name;
-            const formula = descObj.roll;
-            
+            const name = desc.name;
+            const formula = desc.roll;
+
             let total = 0;
             let faces = 20;
             let qty = 1;
             let mod = 0;
-            
+
             const match = formula.replace(/\s+/g, "").match(/^(\d+)d(\d+)(?:([+-])(\d+))?$/i);
             if (match) {
               qty = parseInt(match[1], 10);
               faces = parseInt(match[2], 10);
               const sign = match[3] || "+";
               mod = match[4] ? parseInt(match[4], 10) : 0;
-              
+
               let diceSum = 0;
               for (let i = 0; i < qty; i++) {
                 diceSum += Math.floor(Math.random() * faces) + 1;
@@ -355,34 +392,32 @@ export function inicializarSimulador(): void {
             } else {
               total = Math.floor(Math.random() * 20) + 1;
             }
-            
+
             return {
               name,
-              description: "",
               result: {
-                total,
                 value: total
               }
             };
           });
-          
-          const rollEvent = {
-            kind: "rollResults",
-            payload: {
-              rollId: mockRollId,
-              resultsGroups
-            }
+
+          const rollEvent: ResultadosTirada = {
+            rollId: mockRollId,
+            clientId: "cliente_yo",
+            resultsGroups,
+            gmOnly: false,
+            quiet: silenceDefaultChatCard
           };
-          
+
           // Disparamos en canal de eventos del simulador
           canalEventos.disparar("resultadosDados", rollEvent);
-          
+
           // Llamar directamente al callback global de main.tsx si existe
-          const windowAlias = window as unknown as Record<string, unknown>;
+          const windowAlias = window as any;
           if (typeof windowAlias.manejarResultadosDados === "function") {
-            (windowAlias.manejarResultadosDados as (ev: unknown) => void)(rollEvent);
+            windowAlias.manejarResultadosDados(rollEvent);
           }
-          
+
           // Si no está silenciada, simulamos que TaleSpire publica de forma nativa la tarjeta
           if (!silenceDefaultChatCard) {
             console.log(
@@ -391,13 +426,37 @@ export function inicializarSimulador(): void {
               "color: #cdd6f4;"
             );
             resultsGroups.forEach((g) => {
-              const gObj = g as Record<string, { total?: number } & { name?: string }>;
-              console.log(`  %c↳ %c${gObj.name}: %c${gObj.result?.total}`, "color: #89b4fa; font-weight: bold;", "color: #cdd6f4;", "color: #f9e2af; font-weight: bold;");
+              const gObj = g as any;
+              console.log(`  %c↳ %c${gObj.name}: %c${gObj.result?.value}`, "color: #89b4fa; font-weight: bold;", "color: #cdd6f4;", "color: #f9e2af; font-weight: bold;");
             });
           }
         }, 1000);
-        
+
         return mockRollId;
+      },
+      evaluateDiceResultsGroup: async (group: GrupoResultadosTirada): Promise<number> => {
+        if (!group || typeof group !== "object") return 0;
+        const gObj = group as any;
+        if (!gObj.result) return 0;
+        if (typeof gObj.result.value === "number") return gObj.result.value;
+        if (typeof gObj.result.total === "number") return gObj.result.total;
+        return 0;
+      },
+      sendDiceResult: async (groups: GrupoResultadosTirada[], rollId: string): Promise<void> => {
+        console.log(
+          `%c🎲 [TS Chat Dice Card - ${rollId}] %cENVIADO AL CHAT:`,
+          "background: #1e1e2e; color: #a6e3a1; font-weight: bold; padding: 4px; border-radius: 4px;",
+          "color: #cdd6f4; font-weight: bold;"
+        );
+        groups.forEach((g) => {
+          const gObj = g as any;
+          console.log(
+            `  %c↳ %c${gObj.name}: %c${gObj.result?.value || gObj.result?.total}`,
+            "color: #a6e3a1; font-weight: bold;",
+            "color: #cdd6f4; font-weight: bold;",
+            "color: #f9e2af; font-weight: bold; font-size: 1.1em;"
+          );
+        });
       },
       onRollResults: {
         subscribe: (callback: SuscriptorFn) => {
@@ -408,11 +467,7 @@ export function inicializarSimulador(): void {
   };
 
   // Asignamos la API al entorno de ventana global
-  const windowAlias = window as unknown as {
-    TS?: typeof apiSimulada;
-    com?: { bouncyrock?: { talespire?: typeof apiSimulada } };
-  };
-  
+  const windowAlias = window as any;
   windowAlias.TS = apiSimulada;
   windowAlias.com = {
     bouncyrock: {
@@ -421,14 +476,23 @@ export function inicializarSimulador(): void {
   };
 
   // Proveemos utilidades globales del simulador para simular interacciones de mesa desde la consola del navegador
-  (window as unknown as { simuladorTS?: unknown }).simuladorTS = {
+  (window as any).simuladorTS = {
     // Permite al desarrollador simular que se avanza turno en TaleSpire
     siguienteTurno: () => {
       if (colaIniciativaSimulada.length === 0) return;
       const primerElemento = colaIniciativaSimulada.shift()!;
       colaIniciativaSimulada.push(primerElemento);
       console.log("[Simulador TS] Avanzando turno de iniciativa.");
-      canalEventos.disparar("cambioIniciativa", { tipo: "cambioTurno", cola: colaIniciativaSimulada });
+      
+      const queue: ColaIniciativaTS = {
+        activeItemIndex: indiceTurnoActivoSimulado,
+        items: colaIniciativaSimulada.map((c) => ({
+          id: c.id,
+          name: c.name,
+          kind: "creature"
+        }))
+      };
+      canalEventos.disparar("cambioIniciativa", { queue });
     },
     // Permite añadir una criatura a la iniciativa desde la consola
     agregarCriaturaIniciativa: (nombre: string, iniciativa: number, hp: number, ca: number) => {
@@ -445,7 +509,16 @@ export function inicializarSimulador(): void {
       // Ordenamos la iniciativa descendentemente
       colaIniciativaSimulada.sort((a, b) => b.iniciativa - a.iniciativa);
       console.log(`[Simulador TS] Criatura "${nombre}" añadida a la iniciativa.`);
-      canalEventos.disparar("cambioIniciativa", { tipo: "actualizarCola", cola: colaIniciativaSimulada });
+      
+      const queue: ColaIniciativaTS = {
+        activeItemIndex: indiceTurnoActivoSimulado,
+        items: colaIniciativaSimulada.map((c) => ({
+          id: c.id,
+          name: c.name,
+          kind: "creature"
+        }))
+      };
+      canalEventos.disparar("cambioIniciativa", { queue });
     },
     // Permite simular que el DM selecciona una criatura en el tablero de TaleSpire
     seleccionarCriatura: (id: string) => {
@@ -456,27 +529,34 @@ export function inicializarSimulador(): void {
         criaturasSeleccionadasSimuladas.push(id);
         console.log(`[Simulador TS] Criatura con ID "${id}" seleccionada.`);
       }
-      
-      const fragmentosSeleccionados = colaIniciativaSimulada
-        .filter((c) => criaturasSeleccionadasSimuladas.includes(c.id))
-        .map((c) => ({
-          id: c.id,
-          name: c.name,
-          hp: c.hp,
-          maxHp: c.maxHp,
-          ca: c.ca
-        }));
-        
-      canalEventos.disparar("cambioSeleccionCriatura", fragmentosSeleccionados);
+
+      const seleccion: SeleccionCriaturas = {
+        creatures: criaturasSeleccionadasSimuladas.map((cid) => ({ id: cid }))
+      };
+
+      // Disparar en el canal interno
+      canalEventos.disparar("cambioSeleccionCriatura", seleccion);
+
+      // Llamar directamente al callback global de main.tsx si existe
+      const windowAlias = window as any;
+      if (typeof windowAlias.manejarCambioSeleccionCriatura === "function") {
+        windowAlias.manejarCambioSeleccionCriatura(seleccion);
+      }
     },
     // Simula una tirada de dados virtuales desde TaleSpire
     lanzarDados: (resultado: number, etiqueta: string = "Ataque") => {
       console.log(`[Simulador TS] Disparando resultado de dados: ${resultado} para "${etiqueta}"`);
-      canalEventos.disparar("resultadosDados", {
-        etiqueta,
-        resultadoTotal: resultado,
-        dados: [{ caras: 20, valor: resultado }]
-      });
+      const rollEvent: ResultadosTirada = {
+        rollId: `roll_mock_${Date.now()}`,
+        clientId: "cliente_yo",
+        resultsGroups: [{
+          name: etiqueta,
+          result: { value: resultado }
+        }],
+        gmOnly: false,
+        quiet: false
+      };
+      canalEventos.disparar("resultadosDados", rollEvent);
     },
     // Obtener estado actual simulado
     obtenerEstado: () => {
@@ -490,7 +570,7 @@ export function inicializarSimulador(): void {
       colaIniciativaSimulada = colaIniciativaSimulada.map((c) => {
         if (c.id === id) {
           const modificado = { ...c, hp: Math.max(0, Math.min(c.maxHp, nuevaVida)) };
-          // Disparamos evento de estado modificado de criatura
+          // Disparamos evento de estado modificado de criatura (evento genérico)
           canalEventos.disparar("cambioEstadoCriatura", {
             id,
             name: c.name,
@@ -510,5 +590,5 @@ export function inicializarSimulador(): void {
  * Helper para verificar si estamos corriendo en el entorno simulado.
  */
 export function esEntornoSimulado(): boolean {
-  return typeof (window as unknown as { simuladorTS?: unknown }).simuladorTS !== "undefined";
+  return typeof (window as any).simuladorTS !== "undefined";
 }

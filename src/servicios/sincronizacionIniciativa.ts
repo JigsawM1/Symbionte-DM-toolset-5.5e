@@ -65,14 +65,21 @@ export function sincronizarConEstadoLocal(opciones: OpcionesSincronizacion): Res
   } = opciones;
 
   const colaTSItems = colaTS.items || [];
+  
+  // 1. Filtrar criaturas puramente locales (O(M))
   const criaturasLocales = colaLocal.filter((c) => c.id.startsWith("c_local_"));
 
+  // 2. OPTIMIZACIÓN: Indexar toda la colaLocal en un Map para búsquedas instantáneas
+  const mapaLocal = new Map(colaLocal.map(c => [c.id, c]));
+
+  // 3. Procesar ítems de TaleSpire (O(N) gracias al Map)
   const nuevasCriaturasNativas = colaTSItems.map((cTS, index) => {
-    const existente = colaLocal.find((c) => c.id === cTS.id);
+    // Reemplaza el .find() lento por una lectura directa
+    const existente = mapaLocal.get(cTS.id);
     const cTSAny = cTS as any;
-    const iniciativaFisica = cTSAny.initiative !== undefined
-      ? cTSAny.initiative
-      : (existente ? existente.iniciativa : (colaTSItems.length - index));
+    
+    // Simplificado usando Nullish Coalescing (??)
+    const iniciativaFisica = cTSAny.initiative ?? (existente ? existente.iniciativa : (colaTSItems.length - index));
 
     const plantillaMonstruo = resolverPlantillaPorCriatura(
       cTS.id,
@@ -113,6 +120,7 @@ export function sincronizarConEstadoLocal(opciones: OpcionesSincronizacion): Res
     } as CriaturaIniciativa;
   });
 
+  // Combinar y ordenar
   let colaCombinada = [...criaturasLocales, ...nuevasCriaturasNativas];
   colaCombinada.sort((a, b) => b.iniciativa - a.iniciativa);
 
@@ -126,10 +134,13 @@ export function sincronizarConEstadoLocal(opciones: OpcionesSincronizacion): Res
     const criaturaActivaTS = colaTSItems[nativeActiveIndex];
     if (criaturaActivaTS) {
       const activeTurnId = criaturaActivaTS.id;
+      
+      // OPTIMIZACIÓN: Buscamos el índice en la cola ya ordenada
       let indiceEncontrado = colaCombinada.findIndex((c) => c.id === activeTurnId);
       if (indiceEncontrado === -1) {
+        const nombreBuscado = criaturaActivaTS.name.toLowerCase().trim();
         indiceEncontrado = colaCombinada.findIndex(
-          (c) => c.nombre.toLowerCase().trim() === criaturaActivaTS.name.toLowerCase().trim()
+          (c) => c.nombre.toLowerCase().trim() === nombreBuscado
         );
       }
 
@@ -140,9 +151,11 @@ export function sincronizarConEstadoLocal(opciones: OpcionesSincronizacion): Res
     }
   }
 
-  // Detectar wrap-around de ronda (si pasamos del último al primer combatiente o viceversa)
-  if (colaLocal.length > 1) {
-    const ultimoIndice = colaLocal.length - 1;
+  // 4. DETECCIÓN DE BUG DE RONDA: 
+  // Antes comparabas colaLocal.length para ver el "ultimoIndice". 
+  // Sin embargo, la lista activa ahora es 'colaCombinada'. Debes usar su longitud.
+  if (colaCombinada.length > 1) {
+    const ultimoIndice = colaCombinada.length - 1;
     if (indiceTurnoActivo === ultimoIndice && nuevoIndice === 0) {
       nuevaRonda = rondaActual + 1;
     } else if (indiceTurnoActivo === 0 && nuevoIndice === ultimoIndice) {

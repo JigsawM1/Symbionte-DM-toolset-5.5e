@@ -1546,5 +1546,21 @@ Se restauró la sentencia de control condicional `if (!o || typeof o !== "object
 **Lección aprendida:**
 > 🔍 **Presta extrema atención a las estructuras de control durante reemplazos automatizados:** Cuando utilices herramientas de edición de archivos basadas en coincidencia de subcadenas (`replace_file_content` o `multi_replace_file_content`), asegúrate de que el bloque objetivo (`TargetContent`) y el bloque de reemplazo (`ReplacementContent`) preserven íntegras las llaves de apertura/cierre y las sentencias condicionales de control (`if`, `try/catch`, `switch`). Un corte o corchete mal estructurado puede desconfigurar la sintaxis del lenguaje o reescribir flujos lógicos, creando callejones sin salida en tiempo de ejecución.
 
+---
+
+## [2026-06-16] INVESTIGACIÓN: Compatibilidad con la Skill "Ponytail" (YAGNI/Minimalismo)
+
+**Contexto:**
+Se consultó sobre la compatibilidad de la skill `ponytail` (repositorio `DietrichGebert/ponytail`). Esta skill define la filosofía de un "lazy senior developer" que busca reducir la sobreingeniería forzando soluciones nativas, librerías estándar y eliminando código innecesario.
+
+**Compatibilidad:**
+1. **Estructura idéntica:** La skill de Ponytail se distribuye con un archivo `skills/ponytail/SKILL.md` que contiene un Frontmatter YAML (`name`, `description`) y directrices Markdown estructuradas. Este formato es 100% compatible con el parser y cargador de skills del agente en el entorno de desarrollo local.
+2. **Carga en el Workspace:** Se puede habilitar ubicándola en `.agents/skills/ponytail/SKILL.md` en el espacio de trabajo activo.
+3. **Impacto en el comportamiento:** Al activar esta skill, el agente adopta "la escalera de minimalismo" (1. YAGNI -> 2. Stdlib -> 3. API Nativa -> 4. Dependencia instalada -> 5. Una línea -> 6. Mínimo código posible).
+
+**Lección aprendida:**
+> ✂️ **Evita la sobreingeniería (filosofía Ponytail):** En lugar de proponer componentes complejos, wrappers y librerías externas a la primera de cambio, siempre evalúa de forma jerárquica si el problema puede resolverse no haciendo nada (YAGNI), usando la librería estándar o usando capacidades HTML5/CSS nativas (como `<input type="date">` o `white-space: pre-wrap;`). Escribir menos código es más rápido, más barato de mantener y menos propenso a errores a largo plazo.
+
+
 
 

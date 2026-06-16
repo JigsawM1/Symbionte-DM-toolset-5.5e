@@ -252,3 +252,11 @@ Este archivo sirve como bitácora de aprendizaje técnico y memoria permanente p
 
 *   **Campos Legados en clients.whoAmI()**: Identificamos que la implementación anterior buscaba propiedades como `isGm` y `playerRole` directamente en el objeto devuelto por `clients.whoAmI()`. Estas propiedades no existen en la API oficial de TaleSpire v0.1.
     *   **Solución oficial**: Refactorizamos el adaptador en `TaleSpireAdapter.ts` para seguir estrictamente el contrato documentado: llamar a `clients.whoAmI()` para resolver la ID del cliente, pasar esta ID en un array a `clients.getMoreInfo([yo.id])` y leer `clientMode === "gm"` del primer elemento.
+
+## ⚡ 21. Aprendizajes: Sincronización Optimizada y Corrección de Wrap-Around (Junio 2026)
+
+*   **Optimización de Búsqueda Secuencial a O(1)**: En `sincronizarConEstadoLocal`, la búsqueda de elementos duplicados o existentes entre TaleSpire y el estado local se realizaba con `.find()` secuenciales en arrays planos ($O(M \cdot N)$).
+    *   **Solución**: Indexamos la cola local en un `Map` nativo de JavaScript (`mapaLocal`) antes de la iteración, reduciendo las búsquedas a llamadas `.get()` instantáneas ($O(M + N)$).
+*   **Corrección del Bug del Wrap-Around de Ronda**:
+    *   *El Problema*: La lógica de detección del final de la ronda comparaba el turno activo contra `colaLocal.length` (la longitud del estado *anterior*). Si en la sincronización actual se agregaban nuevas criaturas, el límite del wrap-around se calculaba con un tamaño incorrecto, lo que causaba incrementos de ronda fuera de tiempo o la omisión del avance de ronda cuando correspondía.
+    *   *Solución*: Rectificamos la comparación para evaluar contra `colaCombinada.length` (la longitud real de la nueva iniciativa resultante), estabilizando al 100% el contador de ronda D&D.

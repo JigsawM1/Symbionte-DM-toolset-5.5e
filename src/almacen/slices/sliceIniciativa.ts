@@ -10,6 +10,10 @@ import {
   calcularVidaInicial
 } from '../../servicios/resolutorCriaturas';
 import { crearIndiceMonstruos } from '../../servicios/indiceMonstruos';
+import {
+  sincronizarConEstadoLocal,
+  filtrarEfectosExpirados
+} from '../../servicios/sincronizacionIniciativa';
 
 export interface CriaturaSeleccionadaTS {
   id: string;
@@ -85,15 +89,7 @@ export const crearSliceIniciativa: StateCreator<
 
   avanzarRonda: () => set((state) => {
     const nuevaRonda = state.rondaActual + 1;
-    const nuevaCola = state.colaIniciativa.map((c) => {
-      if (!c.efectos || c.efectos.length === 0) return c;
-      const efectosActualizados = c.efectos.filter((ef) => {
-        if (ef.duracion !== undefined && ef.expiraRonda === undefined) return false;
-        if (ef.expiraRonda !== undefined && nuevaRonda >= ef.expiraRonda) return false;
-        return true;
-      });
-      return { ...c, efectos: efectosActualizados };
-    });
+    const nuevaCola = filtrarEfectosExpirados(state.colaIniciativa, nuevaRonda);
     return { rondaActual: nuevaRonda, colaIniciativa: nuevaCola };
   }),
   
@@ -113,15 +109,7 @@ export const crearSliceIniciativa: StateCreator<
 
     let nuevaCola = state.colaIniciativa;
     if (nuevaRonda > state.rondaActual) {
-      nuevaCola = state.colaIniciativa.map((c) => {
-        if (!c.efectos || c.efectos.length === 0) return c;
-        const efectosActualizados = c.efectos.filter((ef) => {
-          if (ef.duracion !== undefined && ef.expiraRonda === undefined) return false;
-          if (ef.expiraRonda !== undefined && nuevaRonda >= ef.expiraRonda) return false;
-          return true;
-        });
-        return { ...c, efectos: efectosActualizados };
-      });
+      nuevaCola = filtrarEfectosExpirados(state.colaIniciativa, nuevaRonda);
     }
 
     return { colaIniciativa: nuevaCola, indiceTurnoActivo: nuevoIndice, rondaActual: nuevaRonda };
@@ -142,114 +130,18 @@ export const crearSliceIniciativa: StateCreator<
   actualizarColaIniciativaDesdeTaleSpire: (colaTS: ColaIniciativaTS | null) => set((state) => {
     if (!colaTS) return {};
 
-    const colaTSItems = colaTS.items || [];
-    const criaturasLocales = state.colaIniciativa.filter((c) => c.id.startsWith("c_local_"));
     const indiceMonstruos = crearIndiceMonstruos(state.baseDatosMonstruos);
-
-    const nuevasCriaturasNativas = colaTSItems.map((cTS, index) => {
-      const existente = state.colaIniciativa.find((c) => c.id === cTS.id);
-      const cTSAny = cTS as any;
-      const iniciativaFisica = cTSAny.initiative !== undefined
-        ? cTSAny.initiative
-        : (existente ? existente.iniciativa : (colaTSItems.length - index));
-
-      const plantillaMonstruo = resolverPlantillaPorCriatura(
-        cTS.id,
-        cTS.name,
-        state.asociacionesFichas,
-        indiceMonstruos
-      );
-
-      if (existente) {
-        return {
-          ...existente,
-          iniciativa: iniciativaFisica,
-          idPlantillaAsociada: plantillaMonstruo ? plantillaMonstruo.id : undefined
-        };
-      }
-
-      // Criatura nueva que viene de TaleSpire
-      const { vidaMaxima: vidaMaxCalculada, vidaActual: vidaActCalculada } = calcularVidaInicial(
-        plantillaMonstruo,
-        state.metodoVidaMonstruo,
-        cTSAny.maxHp,
-        cTSAny.hp
-      );
-
-      return {
-        id: cTS.id,
-        nombre: cTS.name,
-        iniciativa: iniciativaFisica,
-        vidaMaxima: vidaMaxCalculada,
-        vidaActual: vidaActCalculada,
-        ca: plantillaMonstruo ? plantillaMonstruo.ca : 10,
-        condiciones: [],
-        bonificadorIniciativa: plantillaMonstruo ? plantillaMonstruo.iniciativaBonificador : 0,
-        esMonstruo: !cTS.id.startsWith("c_jugador"),
-        velocidad: plantillaMonstruo ? formatearVelocidad(plantillaMonstruo.velocidad) : "30 pies",
-        vidaTemporal: 0,
-        idPlantillaAsociada: plantillaMonstruo ? plantillaMonstruo.id : undefined
-      } as CriaturaIniciativa;
+    const resultado = sincronizarConEstadoLocal({
+      colaTS,
+      colaLocal: state.colaIniciativa,
+      asociacionesFichas: state.asociacionesFichas,
+      indiceMonstruos,
+      metodoVidaMonstruo: state.metodoVidaMonstruo,
+      indiceTurnoActivo: state.indiceTurnoActivo,
+      rondaActual: state.rondaActual
     });
 
-    let colaCombinada = [...criaturasLocales, ...nuevasCriaturasNativas];
-    colaCombinada.sort((a, b) => b.iniciativa - a.iniciativa);
-
-    let nuevoIndice = state.indiceTurnoActivo;
-    let nuevaRonda = state.rondaActual;
-
-    const nativeActiveIndex = colaTS.activeItemIndex;
-    console.log("[TaleSpire Sincronismo] Leyendo turno activo nativo:", nativeActiveIndex, "de la cola:", colaTSItems);
-
-    if (typeof nativeActiveIndex === "number") {
-      const criaturaActivaTS = colaTSItems[nativeActiveIndex];
-      if (criaturaActivaTS) {
-        const activeTurnId = criaturaActivaTS.id;
-        let indiceEncontrado = colaCombinada.findIndex((c) => c.id === activeTurnId);
-        if (indiceEncontrado === -1) {
-          indiceEncontrado = colaCombinada.findIndex(
-            (c) => c.nombre.toLowerCase().trim() === criaturaActivaTS.name.toLowerCase().trim()
-          );
-        }
-
-        if (indiceEncontrado !== -1) {
-          console.log("[TaleSpire Sincronismo] Encontrado índice de turno activo en la cola combinada local:", indiceEncontrado);
-          nuevoIndice = indiceEncontrado;
-        }
-      }
-    }
-
-    if (state.colaIniciativa.length > 1) {
-      const ultimoIndice = state.colaIniciativa.length - 1;
-      if (state.indiceTurnoActivo === ultimoIndice && nuevoIndice === 0) {
-        nuevaRonda = state.rondaActual + 1;
-      } else if (state.indiceTurnoActivo === 0 && nuevoIndice === ultimoIndice) {
-        nuevaRonda = Math.max(1, state.rondaActual - 1);
-      }
-    }
-
-    const colaTSAny = colaTS as any;
-    if (colaTSAny && colaTSAny.round !== undefined && typeof colaTSAny.round === "number" && colaTSAny.round > 0) {
-      nuevaRonda = colaTSAny.round;
-    }
-
-    if (nuevaRonda > state.rondaActual) {
-      colaCombinada = colaCombinada.map((c) => {
-        if (!c.efectos || c.efectos.length === 0) return c;
-        const efectosActualizados = c.efectos.filter((ef) => {
-          if (ef.duracion !== undefined && ef.expiraRonda === undefined) return false;
-          if (ef.expiraRonda !== undefined && nuevaRonda >= ef.expiraRonda) return false;
-          return true;
-        });
-        return { ...c, efectos: efectosActualizados };
-      });
-    }
-
-    return {
-      colaIniciativa: colaCombinada,
-      indiceTurnoActivo: nuevoIndice,
-      rondaActual: nuevaRonda
-    };
+    return resultado;
   }),
 
   importarIniciativaTaleSpire: async () => {

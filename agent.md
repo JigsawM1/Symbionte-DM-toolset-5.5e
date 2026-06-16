@@ -208,3 +208,47 @@ Este archivo sirve como bitácora de aprendizaje técnico y memoria permanente p
 *   **Extracción de Reglas de Negocio en Servicios Puros**: Al mover la normalización de nombres, la resolución de criaturas (4 niveles de lookup) y el cálculo de vida inicial (por dados o estandarizado) a `src/servicios/resolutorCriaturas.ts`, eliminamos 5 copias idénticas de código duplicado distribuidas en el store de combate y en los componentes React.
 *   **Desacoplamiento de Componentes de Vista**: Al redirigir la resolución de plantillas del componente React principal `GestorIniciativa.tsx` a través del `ResolutorCriaturas`, removimos la importación de `usarIndicePlantillas` de cachePlantillas.ts. Esto reduce la complejidad del componente React, haciéndolo mucho más enfocado en presentación y simplificando el flujo de estados.
 *   **Casteo Seguro en Reglas D&D**: Para evitar problemas con el compilador en utilidades de saneado que esperan strings literales estrictos (como `"estandar" | "maximo" | "azar"` en `calcularVidaPorDados`), aseguramos que los parámetros del store (como `metodoVidaMonstruo` que se guarda como `string`) sean casteados con seguridad en la capa del servicio ResolutorCriaturas.
+
+## 📡 14. Aprendizajes de la Fase 2 (Junio 2026)
+
+*   **Evitar Múltiples Fuentes de Verdad en Cachés**: En lugar de usar servicios con estado (clases singleton con caches internas) que corren el riesgo de desincronizarse cuando la base de datos de monstruos cambia (por importación homebrew), usar funciones puras e indexadores reactivos con `useMemo` en React o creados bajo demanda al inicio de las acciones en Zustand. Esto garantiza que la caché siempre se lea del estado más actualizado.
+*   **Búsquedas O(1) en Colecciones**: Al implementar `IndiceMonstruos` mapeando IDs y nombres normalizados de forma previa en `Map` nativos, aceleramos la resolución de plantillas durante sincronizaciones masivas de TaleSpire. La complejidad bajó de `O(N)` a `O(1)` en el 99% de las resoluciones.
+
+## 📡 15. Aprendizajes de la Fase 3 (Junio 2026)
+
+*   **Reducción Drástica de Complejidad Accidental**: Al extraer la sincronización con TaleSpire y la expiración de efectos a `sincronizacionIniciativa.ts`, demostramos que delegar cálculos lógicos de rondas, turnos y vida nativa a funciones puras testeables permite reducir el tamaño de las acciones de Zustand (por ejemplo, `actualizarColaIniciativaDesdeTaleSpire` pasó de ~240 líneas a solo 15 líneas de código limpio).
+*   **Separación de Efectos por Expiración**: Al aislar `filtrarEfectosExpirados` en una función pura separada, permitimos que tanto el avance manual de rondas, turnos y la sincronización automática de TaleSpire consuman la misma regla de negocio exacta, erradicando discrepancias de comportamiento temporales en el DM Screen.
+
+## 📡 16. Resolución de Bug: Vida al Azar e Importador (Junio 2026)
+
+*   **Pérdida de `vidaNotas` en Importación**: Descubrimos que la base de datos de monstruos (`Mounstros.2024-es.json`) define el campo `vidaNotas` en la raíz de cada criatura (ej. `"vidaNotas": "3d6"`). Sin embargo, el módulo `importadorJSON.ts` solo leía la nota de dados si la vida máxima era un objeto estructurado (`HP.Notes`). Si era un número simple, omitía `vidaNotas` por completo, dejándolo vacío en memoria. Esto hacía que `calcularVidaPorDados` siempre devolviera la vida estándar fija al agregar monstruos de la base de datos.
+*   **Resolución**: Corregimos el importador en `importadorJSON.ts` añadiendo una comprobación explícita para el campo `m.vidaNotas` del nivel raíz. Tras compilar y que el DM pulse **Restablecer datos de fábrica** (o reimporte el compendio), los dados de vida se indexan correctamente y el selector de "Dados al azar" e "HP Máximo" vuelve a operar con total normalidad.
+
+## 📡 17. Resolución de Bug: Renderizado e Interacción de Habilidades (Junio 2026)
+
+*   **Omisión en el Renderizado de Ficha**: Identificamos que las habilidades entrenadas (como `sigilo`, `atletismo`, `percepcion`, etc.) asociadas a la plantilla del monstruo e importadas correctamente en la base de datos local no se renderizaban en ningún lado en el componente de detalle de ficha [PanelFichaDnD.tsx](file:///c:/Users/zamor/OneDrive/Documentos/Programas/ToolSet%20Es%205.5/src/componentes/iniciativa/PanelFichaDnD.tsx).
+*   **Diseño de Solución**:
+    *   Definimos una constante `NOMBRES_HABILIDADES` para mapear las claves internas en camelCase a los nombres correspondientes de D&D en español.
+    *   Filtramos e iteramos sobre `plantilla.habilidades` para extraer las entrenadas.
+    *   Las renderizamos como chips compactos en una nueva sección "HABILIDADES" bajo las Tiradas de Salvación.
+    *   Vinculamos cada chip con el handler interactivo de dados 3D: al hacer clic en un chip de habilidad, se ejecuta `lanzarTiradaD20Interactiva(criaturaNombre, "Prueba de " + nombreHabilidad, bonificadorHabilidad)`, lo que lanza los dados físicos correspondientes dentro del cliente de TaleSpire.
+
+## 🧪 18. Aprendizajes de la Fase 4: Pruebas Unitarias y Vitest (Junio 2026)
+
+*   **Compatibilidad de Vitest con Vite 5**: Al configurar el entorno de pruebas, descubrimos que la versión por defecto de Vitest (4.x) requiere API de Vite 6+ y arroja un error fatal `ERR_PACKAGE_PATH_NOT_EXPORTED` in Node.js al buscar `./module-runner` en Vite.
+    *   **Solución**: Se instaló la versión retrocompatible `vitest@1.6.0` la cual está optimizada de forma nativa para Vite 5.x y Node, levantando instantáneamente.
+*   **Valor de las Pruebas Unitarias — Bug de Prefijos Descubierto**:
+    *   *El Problema*: La escritura del test unitario de `resolverPlantillaPorCriatura` expuso un bug lógico crítico. Al buscar un prefijo parcial como `"Lobo Ártico Extra 5"`, el `.find(...)` secuencial retornaba la plantilla `"Lobo"` en lugar de `"Lobo Ártico"` si `"Lobo"` aparecía primero en la lista, debido a que `"Lobo"` también es un prefijo válido de la búsqueda.
+    *   *Solución*: Refactorizamos el fallback de resolución secuencial en `resolutorCriaturas.ts` para que recorra la lista completa y seleccione **la coincidencia de prefijo más larga** (`longitudMaxima`). Esto previene falsos positivos en nombres que comparten raíces lingüísticas.
+
+## 📡 19. Aprendizajes de la Fase 5: EventBus PuenteTaleSpire (Junio 2026)
+
+*   **Desacoplamiento de Callbacks CEF en Window**: Anteriormente, `main.tsx` registraba callbacks de window directamente e interactuaba con el store. Esto generaba acoplamiento estructural y código inflado (~50 líneas) en el punto de entrada de la aplicación.
+    *   **Solución**: Implementamos `PuenteTaleSpire` (EventBus tipado). Este singleton registra los callbacks globales de window en su constructor y los expone como eventos limpios (`iniciativaActualizada`, `seleccionCriaturas`, `resultadosDados`).
+*   **Gestión Limpia de Ciclo de Vida**: Al mover las suscripciones al EventBus en `usarConexionTaleSpire.ts`, el hook React ahora puede retornar funciones de cancelación en el desmontaje (ej: `desuscribirSeleccion()`). Esto previene fugas de memoria y race conditions con actualizaciones de estado duplicadas al desmontarse e inicializarse componentes en caliente.
+*   **Redundancia de Tipos de Retorno CEF**: Descubrimos que las firmas de CEF de TaleSpire en `talespire.d.ts` a veces declaran retornos como `Promise<void>` (ej: `manejarResultadosDados`). Para evitar fallos estrictos del compilador TypeScript (`TS2322`), los handlers asignados deben coincidir declarándose como asíncronos (`async (resultados) => {}`).
+
+## 🛡️ 20. Aprendizajes de la Fase 6: Detección GM Estricta API v0.1 (Junio 2026)
+
+*   **Campos Legados en clients.whoAmI()**: Identificamos que la implementación anterior buscaba propiedades como `isGm` y `playerRole` directamente en el objeto devuelto por `clients.whoAmI()`. Estas propiedades no existen en la API oficial de TaleSpire v0.1.
+    *   **Solución oficial**: Refactorizamos el adaptador en `TaleSpireAdapter.ts` para seguir estrictamente el contrato documentado: llamar a `clients.whoAmI()` para resolver la ID del cliente, pasar esta ID en un array a `clients.getMoreInfo([yo.id])` y leer `clientMode === "gm"` del primer elemento.

@@ -265,19 +265,14 @@ class TaleSpireAdapter {
       if (window.TS?.clients && typeof window.TS.clients.whoAmI === "function") {
         try {
           const yo = await window.TS.clients.whoAmI();
-          // Por compatibilidad de campos nativos (legacy y oficiales)
-          const yoObj = yo as unknown as { isGm?: boolean; playerRole?: string; id?: string };
-          if (yoObj.isGm === true || yoObj.playerRole === "gm") {
-            return true;
-          }
-          if (yoObj.id && typeof window.TS.clients.getMoreInfo === "function") {
-            const info = await window.TS.clients.getMoreInfo([yoObj.id]);
+          if (yo.id && typeof window.TS.clients.getMoreInfo === "function") {
+            const info = await window.TS.clients.getMoreInfo([yo.id]);
             if (info && info[0]) {
               return info[0].clientMode === "gm";
             }
           }
         } catch (e) {
-          console.error("[TS Adapter] Error al comprobar rol GM:", e);
+          console.error("[TS Adapter] Error al comprobar rol GM oficial:", e);
         }
       }
       // Valor por defecto en navegador local es true para desarrollo cómodo

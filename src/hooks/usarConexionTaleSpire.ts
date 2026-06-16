@@ -14,6 +14,7 @@ import { useEffect } from "react";
 import { usarAlmacenDM } from "../almacen/usarAlmacenDM";
 import { inicializarSimulador } from "../utiles/SimuladorTaleSpire";
 import { ts } from "../utiles/TaleSpireAdapter";
+import { puenteTaleSpire } from "../servicios/puenteTaleSpire";
 
 export function usarConexionTaleSpire() {
   // Extraemos las acciones del store Zustand mediante .getState() ya que son funciones
@@ -27,19 +28,19 @@ export function usarConexionTaleSpire() {
   } = usarAlmacenDM.getState();
 
   useEffect(() => {
-    let suscripcionSeleccion: { desuscribir: () => void } | null = null;
-    let suscripcionIniciativa: { desuscribir: () => void } | null = null;
+    let desuscribirSeleccion: (() => void) | null = null;
+    let desuscribirIniciativa: (() => void) | null = null;
     let timerInicializacion: ReturnType<typeof setTimeout> | null = null;
     let activo = true;
 
     const suscribirAPIs = () => {
       if (!ts.estaDisponible) return false;
 
-      console.log("[TaleSpire Simbionte] Conectando escuchas y suscripciones de eventos de mesa...");
+      console.log("[TaleSpire Simbionte] Conectando escuchas y suscripciones del EventBus...");
       
       try {
-        // Suscribirse a la selección de criaturas
-        suscripcionSeleccion = ts.creatures.suscribirASeleccion(async (seleccion) => {
+        // Suscribirse a la selección de criaturas a través del puente EventBus
+        desuscribirSeleccion = puenteTaleSpire.on("seleccionCriaturas", async (seleccion) => {
           if (activo) {
             const fragments = seleccion?.creatures || [];
             const ids = fragments.map((f) => f.id);
@@ -63,10 +64,20 @@ export function usarConexionTaleSpire() {
           }
         });
 
-        // Suscribirse al evento de iniciativa nativo
-        suscripcionIniciativa = ts.initiative.suscribirAEvento(() => {
-          if (activo && typeof window.manejarEventoIniciativa === "function") {
-            window.manejarEventoIniciativa();
+        // Suscribirse a los cambios en la cola de iniciativa a través del puente EventBus
+        desuscribirIniciativa = puenteTaleSpire.on("iniciativaActualizada", (payload) => {
+          if (activo) {
+            if (payload && payload.queue) {
+              actualizarColaIniciativaDesdeTaleSpire(payload.queue);
+            } else {
+              ts.initiative.getQueue()
+                .then((colaTS) => {
+                  actualizarColaIniciativaDesdeTaleSpire(colaTS);
+                })
+                .catch((e: unknown) => {
+                  console.warn("[TaleSpire Simbionte] Error al leer la cola física tras evento:", e);
+                });
+            }
           }
         });
 
@@ -142,7 +153,7 @@ export function usarConexionTaleSpire() {
 
         return true;
       } catch (err) {
-        console.error("[TaleSpire Simbionte] Error al suscribirse a las APIs nativas de TaleSpire:", err);
+        console.error("[TaleSpire Simbionte] Error al suscribirse al puente de eventos de TaleSpire:", err);
         return false;
       }
     };
@@ -152,8 +163,8 @@ export function usarConexionTaleSpire() {
       return () => {
         activo = false;
         if (timerInicializacion) clearTimeout(timerInicializacion);
-        if (suscripcionSeleccion) suscripcionSeleccion.desuscribir();
-        if (suscripcionIniciativa) suscripcionIniciativa.desuscribir();
+        if (desuscribirSeleccion) desuscribirSeleccion();
+        if (desuscribirIniciativa) desuscribirIniciativa();
       };
     }
 
@@ -183,8 +194,8 @@ export function usarConexionTaleSpire() {
       activo = false;
       clearInterval(intervalo);
       if (timerInicializacion) clearTimeout(timerInicializacion);
-      if (suscripcionSeleccion) suscripcionSeleccion.desuscribir();
-      if (suscripcionIniciativa) suscripcionIniciativa.desuscribir();
+      if (desuscribirSeleccion) desuscribirSeleccion();
+      if (desuscribirIniciativa) desuscribirIniciativa();
     };
   }, []);
 }

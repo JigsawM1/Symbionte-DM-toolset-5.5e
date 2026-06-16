@@ -113,6 +113,9 @@ export function importarDesdeJSON(
             vidaMax = Number(hpRaw) || 10;
           }
         }
+        if (m.vidaNotas !== undefined && !vidaNotas) {
+          vidaNotas = aplanarValor(m.vidaNotas);
+        }
 
         // Extraer AC
         let caVal = 10;

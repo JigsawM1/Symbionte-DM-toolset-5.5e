@@ -219,3 +219,38 @@
   margin-top: 4px;
   font-weight: bold;
 }
+
+.cajaHabilidadesGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 2px;
+}
+
+.chipHabilidadInteractiva {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background-color: hsl(222, 18%, 12%);
+  border: 1px solid var(--color-borde-brutal);
+  border-radius: 4px;
+  padding: 3px 6px;
+  cursor: pointer;
+  font-size: 11px;
+}
+
+.chipHabilidadInteractiva:hover {
+  background-color: hsl(222, 18%, 16%);
+  border-color: var(--color-borde-cian);
+}
+
+.habilidadNombre {
+  color: var(--color-texto-secundario);
+  font-weight: bold;
+}
+
+.habilidadBono {
+  color: var(--color-borde-cian);
+  font-weight: 800;
+  font-family: var(--fuente-codigo);
+}

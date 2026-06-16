@@ -21,6 +21,27 @@ interface PanelFichaDnDProps {
   obtenerPercepcionPasiva: (plantilla: MonstruoBase | null) => number;
 }
 
+const NOMBRES_HABILIDADES: Record<string, string> = {
+  acrobacias: "Acrobacias",
+  manejoAnimales: "Manejo de Animales",
+  arcanos: "Arcanos",
+  atletismo: "Atletismo",
+  engaño: "Engaño",
+  historia: "Historia",
+  perspicacia: "Perspicacia",
+  intimidacion: "Intimidación",
+  investigacion: "Investigación",
+  medicina: "Medicina",
+  naturaleza: "Naturaleza",
+  percepcion: "Percepción",
+  interpretacion: "Interpretación",
+  persuasion: "Persuasión",
+  religion: "Religión",
+  juegoManos: "Juego de Manos",
+  sigilo: "Sigilo",
+  supervivencia: "Supervivencia"
+};
+
 export const PanelFichaDnD: React.FC<PanelFichaDnDProps> = ({
   criaturaNombre,
   plantilla,
@@ -128,6 +149,37 @@ export const PanelFichaDnD: React.FC<PanelFichaDnDProps> = ({
             );
           })}
         </div>
+
+        {/* Habilidades */}
+        {(() => {
+          const habilidadesFiltradas = Object.entries(plantilla.habilidades || {})
+            .filter(([_, valor]) => valor !== undefined) as [string, number][];
+          if (habilidadesFiltradas.length === 0) return null;
+          return (
+            <>
+              <div className={estilosClases.subtituloFichaSection} style={{ marginTop: "4px" }}>
+                HABILIDADES
+              </div>
+              <div className={estilosClases.cajaHabilidadesGrid}>
+                {habilidadesFiltradas.map(([clave, valor]) => {
+                  const nombreLegible = NOMBRES_HABILIDADES[clave] || clave;
+                  const bonifStr = `${valor >= 0 ? "+" : ""}${valor}`;
+                  return (
+                    <div
+                      key={clave}
+                      onClick={() => lanzarTiradaD20Interactiva(criaturaNombre, `Prueba de ${nombreLegible}`, valor)}
+                      className={estilosClases.chipHabilidadInteractiva}
+                      title={`Tirar tirada 3D de habilidad de ${nombreLegible}`}
+                    >
+                      <span className={estilosClases.habilidadNombre}>{nombreLegible}</span>
+                      <span className={estilosClases.habilidadBono}>{bonifStr}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </>
+          );
+        })()}
 
         {/* Datos Básicos y Defensas */}
         <div className={estilosClases.cajaMetadatosFichaExtra}>

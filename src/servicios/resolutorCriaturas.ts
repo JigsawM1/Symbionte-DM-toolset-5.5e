@@ -61,12 +61,21 @@ export function resolverPlantillaPorCriatura(
   const plantillaExacta = indice.porNombre.get(completo) || indice.porNombre.get(base);
   if (plantillaExacta) return plantillaExacta;
 
-  // 4. Fallback parcial: Buscar coincidencia parcial que comience igual (secuencial O(N))
-  const plantillaParcial = indice.listaCompleta.find((m) => {
+  // 4. Fallback parcial: Buscar coincidencia parcial de prefijo más larga (secuencial O(N))
+  let plantillaGanadora: MonstruoBase | undefined = undefined;
+  let longitudMaxima = 0;
+
+  for (const m of indice.listaCompleta) {
     const nombrePlantilla = m.nombre.toLowerCase().trim();
-    return completo.startsWith(nombrePlantilla) || base.startsWith(nombrePlantilla);
-  });
-  return plantillaParcial;
+    if (completo.startsWith(nombrePlantilla) || base.startsWith(nombrePlantilla)) {
+      if (nombrePlantilla.length > longitudMaxima) {
+        longitudMaxima = nombrePlantilla.length;
+        plantillaGanadora = m;
+      }
+    }
+  }
+
+  return plantillaGanadora;
 }
 
 /**

@@ -28,3 +28,8 @@ dist-ssr
 # TaleSpire Symbiote Stuff
 mod-io-build
 *.zip
+
+agent.md
+agente.md
+Documentacion API v0.1.md
+*.test.ts

@@ -12,6 +12,14 @@ import { calcularVidaPorDados } from '../almacen/sanitizacion';
 import type { IndiceMonstruos } from './indiceMonstruos';
 
 /**
+ * Determina si un nombre está vacío, tiene solo espacios, o es un punto simple (o secuencia de puntos/espacios).
+ */
+export function esNombreVacioODot(nombre: string): boolean {
+  const limpio = (nombre || "").trim();
+  return limpio === "" || limpio === "." || limpio.replace(/[.\s]/g, "") === "";
+}
+
+/**
  * Normaliza un nombre proveniente de TaleSpire convirtiéndolo a minúsculas
  * y quitando sufijos numéricos (#123, 2, A, etc) para obtener el nombre base.
  */
@@ -35,14 +43,19 @@ export function resolverPlantillaPorCriatura(
   asociaciones: Record<string, string>,
   indice: IndiceMonstruos
 ): MonstruoBase | undefined {
-  const { completo, base } = normalizarNombreTaleSpire(nombre);
-
   // 1. Buscar por asociación directa (ID de miniatura física)
   const idAsociada = asociaciones[id];
   if (idAsociada) {
     const plantilla = indice.porId.get(idAsociada);
     if (plantilla) return plantilla;
   }
+
+  // Si el nombre está vacío o es un punto, no asociar automáticamente por nombre
+  if (esNombreVacioODot(nombre)) {
+    return undefined;
+  }
+
+  const { completo, base } = normalizarNombreTaleSpire(nombre);
 
   // 2. Buscar por asociación persistente por nombre
   const idPorNombreCompleto = asociaciones[`nombre_base:${completo}`];

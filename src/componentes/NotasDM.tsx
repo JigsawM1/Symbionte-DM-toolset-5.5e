@@ -2,12 +2,18 @@ import React, { useState, useEffect, useRef } from "react";
 import { usarAlmacenDM } from "../almacen/usarAlmacenDM";
 import { Save, Trash2, Check, AlertTriangle } from "lucide-react";
 import estilos from "./NotasDM.module.css";
+import { ConfirmDialog } from "./ConfirmDialog";
 
 export const NotasDM: React.FC = () => {
   const notasDM = usarAlmacenDM((s) => s.notasDM);
   const guardarNotasDM = usarAlmacenDM((s) => s.guardarNotasDM);
   const [textoLocal, setTextoLocal] = useState(notasDM);
   const [estadoGuardado, setEstadoGuardado] = useState<"guardado" | "modificado" | "guardando">("guardado");
+  const [confirmarAccion, setConfirmarAccion] = useState<{
+    titulo: string;
+    mensaje: string;
+    onConfirmar: () => void;
+  } | null>(null);
   
   // Sincronizar estado local si cambia externamente (ej: al cargar datos de persistencia)
   useEffect(() => {
@@ -53,14 +59,18 @@ export const NotasDM: React.FC = () => {
   };
 
   const alLimpiarNotas = () => {
-    if (window.confirm("¿Estás seguro de que deseas borrar todas tus notas? Esta acción no se puede deshacer.")) {
-      if (timerAutoGuardado.current) {
-        clearTimeout(timerAutoGuardado.current);
+    setConfirmarAccion({
+      titulo: "Limpiar Notas",
+      mensaje: "¿Estás seguro de que deseas borrar todas tus notas? Esta acción no se puede deshacer.",
+      onConfirmar: () => {
+        if (timerAutoGuardado.current) {
+          clearTimeout(timerAutoGuardado.current);
+        }
+        setTextoLocal("");
+        guardarNotasDM("");
+        setEstadoGuardado("guardado");
       }
-      setTextoLocal("");
-      guardarNotasDM("");
-      setEstadoGuardado("guardado");
-    }
+    });
   };
 
   const palabras = textoLocal.trim() === "" ? 0 : textoLocal.trim().split(/\s+/).length;
@@ -136,6 +146,19 @@ export const NotasDM: React.FC = () => {
           * Datos persistidos de forma segura en almacenamiento cifrado del Simbionte.
         </span>
       </div>
+      {/* Modal de confirmación personalizado de alta calidad */}
+      <ConfirmDialog
+        abierto={confirmarAccion !== null}
+        titulo={confirmarAccion?.titulo || ""}
+        mensaje={confirmarAccion?.mensaje || ""}
+        onConfirmar={() => {
+          if (confirmarAccion) {
+            confirmarAccion.onConfirmar();
+            setConfirmarAccion(null);
+          }
+        }}
+        onCancelar={() => setConfirmarAccion(null)}
+      />
     </div>
   );
 };

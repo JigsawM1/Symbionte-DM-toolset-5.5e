@@ -92,7 +92,10 @@ export function sincronizarConEstadoLocal(opciones: OpcionesSincronizacion): Res
       return {
         ...existente,
         iniciativa: iniciativaFisica,
-        idPlantillaAsociada: plantillaMonstruo ? plantillaMonstruo.id : undefined
+        idPlantillaAsociada: plantillaMonstruo ? plantillaMonstruo.id : undefined,
+        ca: plantillaMonstruo ? plantillaMonstruo.ca : existente.ca,
+        velocidad: plantillaMonstruo ? formatearVelocidad(plantillaMonstruo.velocidad) : existente.velocidad,
+        bonificadorIniciativa: plantillaMonstruo ? plantillaMonstruo.iniciativaBonificador : existente.bonificadorIniciativa
       };
     }
 

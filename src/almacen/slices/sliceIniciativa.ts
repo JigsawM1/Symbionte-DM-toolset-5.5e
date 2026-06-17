@@ -7,7 +7,8 @@ import type { ColaIniciativaTS } from '../../tipos/talespire';
 import {
   normalizarNombreTaleSpire,
   resolverPlantillaPorCriatura,
-  calcularVidaInicial
+  calcularVidaInicial,
+  esNombreVacioODot
 } from '../../servicios/resolutorCriaturas';
 import { crearIndiceMonstruos } from '../../servicios/indiceMonstruos';
 import {
@@ -63,6 +64,7 @@ export interface SliceIniciativa {
   agregarEfectoACriatura: (idCriatura: string, nombreEfecto: string, duracion: number, opciones?: { concentracion?: boolean }) => void;
   quitarEfectoDeCriatura: (idCriatura: string, idEfecto: string) => void;
   asociarPlantillaACriatura: (idCriatura: string, idPlantilla: string) => void;
+  desvincularPlantillaDeCriatura: (idCriatura: string) => void;
   actualizarVidaTemporal: (idCriatura: string, vidaTemp: number) => void;
   limpiarIniciativa: () => void;
   ordenarIniciativa: () => void;
@@ -178,13 +180,15 @@ export const crearSliceIniciativa: StateCreator<
 
     let nuevasAsociaciones = state.asociacionesFichas;
     if (idPlantillaAsociada) {
-      const { completo: nombreRef, base: nombreRefBase } = normalizarNombreTaleSpire(nombre);
       nuevasAsociaciones = {
         ...state.asociacionesFichas,
-        [idCriatura]: idPlantillaAsociada,
-        [`nombre_base:${nombreRef}`]: idPlantillaAsociada,
-        [`nombre_base:${nombreRefBase}`]: idPlantillaAsociada
+        [idCriatura]: idPlantillaAsociada
       };
+      if (!esNombreVacioODot(nombre)) {
+        const { completo: nombreRef, base: nombreRefBase } = normalizarNombreTaleSpire(nombre);
+        nuevasAsociaciones[`nombre_base:${nombreRef}`] = idPlantillaAsociada;
+        nuevasAsociaciones[`nombre_base:${nombreRefBase}`] = idPlantillaAsociada;
+      }
     }
 
     const nuevaCola = [...state.colaIniciativa, nuevaCriatura];
@@ -294,30 +298,39 @@ export const crearSliceIniciativa: StateCreator<
     if (!criaturaReferencia) return {};
 
     const { completo: nombreRef, base: nombreRefBase } = normalizarNombreTaleSpire(criaturaReferencia.nombre);
+    const esNombreInvalido = esNombreVacioODot(criaturaReferencia.nombre);
 
     // 2. Asociar en caliente a cualquier criatura de la cola activa que comparta nombre o nombre base
     const nuevaCola = state.colaIniciativa.map((c) => {
       const { completo: nombreC, base: nombreCBase } = normalizarNombreTaleSpire(c.nombre);
 
       const coincideNombre = c.id === idCriatura || 
-                            nombreC === nombreRef || 
-                            nombreCBase === nombreRefBase;
+                            (!esNombreInvalido && (nombreC === nombreRef || nombreCBase === nombreRefBase));
 
       if (coincideNombre) {
         let vidaMaxCalculada = c.vidaMaxima;
         let vidaActualCalculada = c.vidaActual;
+        let caCalculada = c.ca;
+        let velocidadCalculada = c.velocidad;
+        let bonificadorIniciativaCalculado = c.bonificadorIniciativa;
 
         if (plantilla) {
           const { vidaMaxima, vidaActual } = calcularVidaInicial(plantilla, state.metodoVidaMonstruo);
           vidaMaxCalculada = vidaMaxima;
           vidaActualCalculada = vidaActual;
+          caCalculada = plantilla.ca;
+          velocidadCalculada = formatearVelocidad(plantilla.velocidad);
+          bonificadorIniciativaCalculado = plantilla.iniciativaBonificador;
         }
 
         return { 
           ...c, 
           idPlantillaAsociada: idPlantilla,
           vidaMaxima: vidaMaxCalculada,
-          vidaActual: vidaActualCalculada
+          vidaActual: vidaActualCalculada,
+          ca: caCalculada,
+          velocidad: velocidadCalculada,
+          bonificadorIniciativa: bonificadorIniciativaCalculado
         };
       }
       return c;
@@ -326,10 +339,46 @@ export const crearSliceIniciativa: StateCreator<
     // 3. Registrar en la caché persistente la asociación por UUID y por nombres normalizados
     const nuevasAsociaciones = {
       ...state.asociacionesFichas,
-      [idCriatura]: idPlantilla,
-      [`nombre_base:${nombreRef}`]: idPlantilla,
-      [`nombre_base:${nombreRefBase}`]: idPlantilla
+      [idCriatura]: idPlantilla
     };
+
+    if (!esNombreInvalido) {
+      nuevasAsociaciones[`nombre_base:${nombreRef}`] = idPlantilla;
+      nuevasAsociaciones[`nombre_base:${nombreRefBase}`] = idPlantilla;
+    }
+
+    return { 
+      colaIniciativa: nuevaCola,
+      asociacionesFichas: nuevasAsociaciones
+    };
+  }),
+
+  desvincularPlantillaDeCriatura: (idCriatura) => set((state) => {
+    const criaturaReferencia = state.colaIniciativa.find((c) => c.id === idCriatura);
+    if (!criaturaReferencia) return {};
+
+    const { completo: nombreRef, base: nombreRefBase } = normalizarNombreTaleSpire(criaturaReferencia.nombre);
+
+    const nuevasAsociaciones = { ...state.asociacionesFichas };
+    delete nuevasAsociaciones[idCriatura];
+    
+    if (!esNombreVacioODot(criaturaReferencia.nombre)) {
+      delete nuevasAsociaciones[`nombre_base:${nombreRef}`];
+      delete nuevasAsociaciones[`nombre_base:${nombreRefBase}`];
+    }
+
+    const nuevaCola = state.colaIniciativa.map((c) => {
+      if (c.id === idCriatura) {
+        return { 
+          ...c, 
+          idPlantillaAsociada: undefined,
+          ca: 10,
+          velocidad: "30 pies",
+          bonificadorIniciativa: 0
+        };
+      }
+      return c;
+    });
 
     return { 
       colaIniciativa: nuevaCola,

@@ -1,16 +1,17 @@
 import React, { useState } from "react";
 import { usarAlmacenDM, CriaturaIniciativa, HechizoBase } from "../almacen/usarAlmacenDM";
-import { resolverPlantillaPorCriatura } from "../servicios/resolutorCriaturas";
+import { resolverPlantillaPorCriatura, esNombreVacioODot } from "../servicios/resolutorCriaturas";
 import { usarIndiceMonstruos } from "../servicios/indiceMonstruos";
 import { MonstruoBase } from "../utiles/datosIniciales";
 import { lanzarDadosTaleSpire, sanitizarEtiqueta } from "../utiles/lanzadorDados";
-import { ModalDetalleHechizo } from "./ModalDetalleHechizo";
+import { FichaHechizo } from "./hechizos/FichaHechizo";
 import { TarjetaCriaturaIniciativa } from "./iniciativa/TarjetaCriaturaIniciativa";
 import { PanelFichaDnD } from "./iniciativa/PanelFichaDnD";
 import { VinculadorPlantilla } from "./iniciativa/VinculadorPlantilla";
 import { Activity, FileText, X } from "lucide-react";
 import estilosClases from "./GestorIniciativa.module.css";
-
+import { ConfirmDialog } from "./ConfirmDialog";
+ 
 export const GestorIniciativa: React.FC = () => {
   const colaIniciativa = usarAlmacenDM((s) => s.colaIniciativa);
   const indiceTurnoActivo = usarAlmacenDM((s) => s.indiceTurnoActivo);
@@ -21,6 +22,7 @@ export const GestorIniciativa: React.FC = () => {
   const modificarVidaCriaturaIniciativa = usarAlmacenDM((s) => s.modificarVidaCriaturaIniciativa);
   const actualizarVidaTemporal = usarAlmacenDM((s) => s.actualizarVidaTemporal);
   const asociarPlantillaACriatura = usarAlmacenDM((s) => s.asociarPlantillaACriatura);
+  const desvincularPlantillaDeCriatura = usarAlmacenDM((s) => s.desvincularPlantillaDeCriatura);
   const quitarCondicionDeCriatura = usarAlmacenDM((s) => s.quitarCondicionDeCriatura);
   const agregarCondicionACriatura = usarAlmacenDM((s) => s.agregarCondicionACriatura);
   const agregarEfectoACriatura = usarAlmacenDM((s) => s.agregarEfectoACriatura);
@@ -32,6 +34,11 @@ export const GestorIniciativa: React.FC = () => {
   // Estados locales
   const [idCriaturaDetalle, setIdCriaturaDetalle] = useState<string | null>(null);
   const [hechizoFlotanteDetalle, setHechizoFlotanteDetalle] = useState<HechizoBase | null>(null);
+  const [confirmarAccion, setConfirmarAccion] = useState<{
+    titulo: string;
+    mensaje: string;
+    onConfirmar: () => void;
+  } | null>(null);
 
   // Buscar plantilla de estadísticas para una criatura mediante el ResolutorCriaturas
   const obtenerPlantillaAsociada = (criatura: CriaturaIniciativa): MonstruoBase | null => {
@@ -188,12 +195,32 @@ export const GestorIniciativa: React.FC = () => {
                 <div className={estilosClases.tituloFichaIzquierda}>
                   <FileText size={13} style={{ color: "var(--color-borde-cian)", marginRight: "5px" }} />
                   <span className={estilosClases.nombreFichaCabecera}>
-                    {criaturaSeleccionadaDetalle.nombre.toUpperCase()}
+                    {esNombreVacioODot(criaturaSeleccionadaDetalle.nombre) 
+                      ? `[MINI SIN NOMBRE: ${criaturaSeleccionadaDetalle.id.slice(-4).toUpperCase()}]`
+                      : criaturaSeleccionadaDetalle.nombre.toUpperCase()}
                   </span>
                   {plantillaDeDetalle && (
-                    <span className={estilosClases.subFichaAsociada}>
-                      [ {plantillaDeDetalle.nombre.toUpperCase()} ]
-                    </span>
+                    <div style={{ display: "flex", alignItems: "center", gap: "2px", marginLeft: "4px" }}>
+                      <span className={estilosClases.subFichaAsociada}>
+                        [ {plantillaDeDetalle.nombre.toUpperCase()} ]
+                      </span>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          e.preventDefault();
+                          setConfirmarAccion({
+                            titulo: "Desvincular Plantilla",
+                            mensaje: `¿Estás seguro de que deseas desvincular la plantilla "${plantillaDeDetalle.nombre}" de la criatura "${criaturaSeleccionadaDetalle.nombre}"?`,
+                            onConfirmar: () => desvincularPlantillaDeCriatura(criaturaSeleccionadaDetalle.id)
+                          });
+                        }}
+                        className={estilosClases.botonDesvincularMini}
+                        title="Desvincular plantilla"
+                        style={{ display: "inline-flex" }}
+                      >
+                        <X size={10} />
+                      </button>
+                    </div>
                   )}
                 </div>
                 <button
@@ -230,11 +257,29 @@ export const GestorIniciativa: React.FC = () => {
 
       {/* Modal flotante e independiente con el detalle del hechizo seleccionado */}
       {hechizoFlotanteDetalle && (
-        <ModalDetalleHechizo
-          hechizo={hechizoFlotanteDetalle}
-          onClose={() => setHechizoFlotanteDetalle(null)}
-        />
+        <div className={estilosClases.overlayFlotante} onClick={() => setHechizoFlotanteDetalle(null)}>
+          <div className={estilosClases.modalContenedor} onClick={(e) => e.stopPropagation()}>
+            <FichaHechizo
+              hechizo={hechizoFlotanteDetalle}
+              onClose={() => setHechizoFlotanteDetalle(null)}
+            />
+          </div>
+        </div>
       )}
+
+      {/* Modal de confirmación personalizado de alta calidad */}
+      <ConfirmDialog
+        abierto={confirmarAccion !== null}
+        titulo={confirmarAccion?.titulo || ""}
+        mensaje={confirmarAccion?.mensaje || ""}
+        onConfirmar={() => {
+          if (confirmarAccion) {
+            confirmarAccion.onConfirmar();
+            setConfirmarAccion(null);
+          }
+        }}
+        onCancelar={() => setConfirmarAccion(null)}
+      />
     </div>
   );
 };

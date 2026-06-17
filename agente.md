@@ -1561,6 +1561,39 @@ Se consultó sobre la compatibilidad de la skill `ponytail` (repositorio `Dietri
 **Lección aprendida:**
 > ✂️ **Evita la sobreingeniería (filosofía Ponytail):** En lugar de proponer componentes complejos, wrappers y librerías externas a la primera de cambio, siempre evalúa de forma jerárquica si el problema puede resolverse no haciendo nada (YAGNI), usando la librería estándar o usando capacidades HTML5/CSS nativas (como `<input type="date">` o `white-space: pre-wrap;`). Escribir menos código es más rápido, más barato de mantener y menos propenso a errores a largo plazo.
 
+---
+
+## [2026-06-16] BUGFIX: Propagación de CA en Caliente, Desvinculación de Fichas y Tratamiento de Miniaturas sin Nombre
+
+**Síntomas:**
+1. Al asociar una plantilla a una miniatura física de la cola de iniciativa, su Clase de Armadura (CA) permanecía en `10` en la tarjeta de combate. Solo tras recargar la página o forzar una sincronización nativa se actualizaba al valor de la plantilla.
+2. Había miniaturas añadidas con nombres vacíos o simples puntos `.`, lo cual provocaba que el sistema las asociara en masa a la misma plantilla (debido a colisiones de nombres normalizados). Además, estas miniaturas eran extremadamente difíciles de seleccionar e interactuar en el combat tracker debido a la ausencia de texto clicable.
+3. No existía una opción síncrona ni botón para desvincular una plantilla de una miniatura en la cola.
+
+**Causas raíz:**
+1. **Propagación incompleta en store:** La acción `asociarPlantillaACriatura` de Zustand modificaba únicamente `idPlantillaAsociada`, `vidaMaxima` y `vidaActual`. Las propiedades de `ca`, `velocidad` y `bonificadorIniciativa` de la criatura quedaban con sus valores obsoletos (p. ej., `10` y `"30 pies"`) hasta que un recargado completo obligaba a reevaluar todo con `resolverPlantillaPorCriatura`.
+2. **Colisiones por nombres inválidos en el resolutor:** Las miniaturas sin nombre o con nombres como `.` compartían la misma cadena base de normalización `""` o `"."`. El resolutor intentaba buscar coincidencias basadas en el nombre completo/base en el mapa global, y las asociaba de manera cruzada e incorrecta. Asimismo, en el JSX se renderizaba directamente `criatura.nombre`, resultando en un texto vacío o imperceptible de 1px de ancho.
+3. **Ausencia del flujo de desasociación:** No se había declarado ninguna acción en el store para limpiar la referencia de plantillas del UUID de la criatura, ni se había diseñado ningún botón interactivo en la cabecera del panel de estadísticas.
+
+**Soluciones aplicadas:**
+1. **Propagación integral en caliente:** Se actualizaron `asociarPlantillaACriatura` (en `sliceIniciativa.ts`) y `sincronizarConEstadoLocal` (en `sincronizacionIniciativa.ts`) para propagar inmediatamente `ca`, `velocidad` y `bonificadorIniciativa` de la plantilla al objeto de la criatura.
+2. **Protección contra nombres vacíos/puntos:**
+   - Se implementó `esNombreVacioODot(nombre)` en `resolutorCriaturas.ts` para capturar estos casos y evitar que se resuelvan plantillas automáticamente por coincidencia de nombre o prefijo, permitiendo únicamente asociaciones directas por UUID.
+   - Se restringió a `asociarPlantillaACriatura` y `agregarCriaturaAIniciativa` para que no guarden asociaciones de tipo `nombre_base:...` cuando el nombre de la mini sea inválido.
+   - En la UI (`TarjetaCriaturaIniciativa.tsx` y `GestorIniciativa.tsx`), si se detecta un nombre vacío o un punto, se renderiza un marcador visual itálico y atenuado del tipo `[Mini sin nombre: {id.slice(-4)}]`, haciéndolo legible y clickeable de forma instantánea.
+3. **Flujo de desvinculación seguro:**
+   - Se implementó `desvincularPlantillaDeCriatura(idCriatura)` en `sliceIniciativa.ts` que restablece las estadísticas a los valores por defecto (CA = 10, velocidad = "30 pies", bonificador de iniciativa = 0), limpia `idPlantillaAsociada` y elimina las asociaciones guardadas por UUID y por nombre base en el mapa `asociacionesFichas`.
+   - Se colocó un botón de desvinculación interactivo `(X)` junto al nombre de la plantilla en el cabecero de la ficha, protegido por una confirmación obligatoria `window.confirm` para evitar clics accidentales.
+
+**Lección aprendida:**
+> 📐 **Consistencia de Estado Reactivo y Preservación de Clickabilidad:** Al programar simbiontes o extensiones web, recuerda:
+> 1. Cualquier cambio relacional en caliente (como vincular una plantilla a una mini) debe actualizar **la totalidad** de los datos que consume la interfaz de usuario en ese instante (CA, velocidad, bonificador, HP). No dejes campos a la espera de un refresco o recarga de página.
+> 2. Protege siempre los resolvedores basados en nombres contra colisiones de textos vacíos, espacios o puntos simples.
+> 3. En interfaces compactas de juego, diseña siempre marcadores de posición legibles para elementos que carezcan de nombre. Esto asegura la "clickabilidad" y manipulación de la interfaz, previniendo que los elementos se vuelvan invisibles o inaccesibles.
+> 4. Las acciones que alteren o desvinculen datos persistidos del usuario deben poseer confirmaciones previas y restablecer el estado inicial a valores por defecto consistentes.
+> 5. **Refactorización a Componentes Reusables (Override de YAGNI):** Cuando una misma interacción crítica (como confirmaciones de borrado/desvinculación) se duplica en varias vistas independientes, es beneficioso extraerla a un componente puro común (`ConfirmDialog.tsx`). Esto simplifica el JSX en los componentes cliente, reduce la duplicación de CSS/HTML inline, y centraliza el mantenimiento de estilos y accesibilidad de diálogos interactivos en WebViews CEF de TaleSpire.
+
+
 
 
 

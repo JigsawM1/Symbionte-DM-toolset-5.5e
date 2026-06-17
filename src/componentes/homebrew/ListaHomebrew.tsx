@@ -14,6 +14,7 @@ import {
   Scale
 } from "lucide-react";
 import estilos from "./ListaHomebrew.module.css";
+import { ConfirmDialog } from "../ConfirmDialog";
 
 interface Props {
   tipoHomebrew: "criatura" | "hechizo" | "objeto";
@@ -42,6 +43,11 @@ export const ListaHomebrew: React.FC<Props> = ({
   const [filtroBusqueda, setFiltroBusqueda] = useState("");
   const [idHechizoDetalleCreador, setIdHechizoDetalleCreador] = useState<string | null>(null);
   const [idObjetoDetalle, setIdObjetoDetalle] = useState<string | null>(null);
+  const [confirmarAccion, setConfirmarAccion] = useState<{
+    titulo: string;
+    mensaje: string;
+    onConfirmar: () => void;
+  } | null>(null);
 
   // Filtrar creaciones homebrew por exclusión de datos por defecto de fábrica
   const idsInicialesMonstruos = new Set(MONSTRUOS_INICIALES.map((m) => m.id));
@@ -124,8 +130,14 @@ export const ListaHomebrew: React.FC<Props> = ({
                   </button>
                   <button
                     onClick={() => {
-                      if (idEnEdicion === m.id) cancelarEdicion();
-                      eliminarMonstruoHomebrew(m.id);
+                      setConfirmarAccion({
+                        titulo: "Borrar Monstruo",
+                        mensaje: `¿Estás seguro de que deseas borrar el monstruo "${m.nombre}" del homebrew? Esta acción no se puede deshacer.`,
+                        onConfirmar: () => {
+                          if (idEnEdicion === m.id) cancelarEdicion();
+                          eliminarMonstruoHomebrew(m.id);
+                        }
+                      });
                     }}
                     className={estilos.botonEliminarItem}
                     title="Eliminar de la base de datos"
@@ -166,8 +178,14 @@ export const ListaHomebrew: React.FC<Props> = ({
                   </button>
                   <button
                     onClick={() => {
-                      if (idEnEdicion === h.id) cancelarEdicion();
-                      eliminarHechizoHomebrew(h.id);
+                      setConfirmarAccion({
+                        titulo: "Borrar Hechizo",
+                        mensaje: `¿Estás seguro de que deseas borrar el hechizo "${h.nombre}" del homebrew? Esta acción no se puede deshacer.`,
+                        onConfirmar: () => {
+                          if (idEnEdicion === h.id) cancelarEdicion();
+                          eliminarHechizoHomebrew(h.id);
+                        }
+                      });
                     }}
                     className={estilos.botonEliminarItem}
                     title="Eliminar de la base de datos"
@@ -207,8 +225,14 @@ export const ListaHomebrew: React.FC<Props> = ({
                   </button>
                   <button
                     onClick={() => {
-                      if (idEnEdicion === o.id) cancelarEdicion();
-                      eliminarObjetoHomebrew(o.id);
+                      setConfirmarAccion({
+                        titulo: "Borrar Objeto",
+                        mensaje: `¿Estás seguro de que deseas borrar el objeto "${o.nombre}" del homebrew? Esta acción no se puede deshacer.`,
+                        onConfirmar: () => {
+                          if (idEnEdicion === o.id) cancelarEdicion();
+                          eliminarObjetoHomebrew(o.id);
+                        }
+                      });
                     }}
                     className={estilos.botonEliminarItem}
                     title="Eliminar de la base de datos"
@@ -604,6 +628,19 @@ export const ListaHomebrew: React.FC<Props> = ({
           </div>
         );
       })()}
+      {/* Modal de confirmación personalizado de alta calidad */}
+      <ConfirmDialog
+        abierto={confirmarAccion !== null}
+        titulo={confirmarAccion?.titulo || ""}
+        mensaje={confirmarAccion?.mensaje || ""}
+        onConfirmar={() => {
+          if (confirmarAccion) {
+            confirmarAccion.onConfirmar();
+            setConfirmarAccion(null);
+          }
+        }}
+        onCancelar={() => setConfirmarAccion(null)}
+      />
     </div>
   );
 };

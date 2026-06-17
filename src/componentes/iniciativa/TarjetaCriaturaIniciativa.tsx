@@ -3,6 +3,7 @@ import { Skull, Shield, Trash2, Heart, Swords, X } from "lucide-react";
 import { usarAlmacenDM, CriaturaIniciativa } from "../../almacen/usarAlmacenDM";
 import { MonstruoBase, CONDICIONES_2024, EFECTOS_PREDEFINIDOS } from "../../utiles/datosIniciales";
 import { formatearVelocidad } from "../../almacen/sanitizacion";
+import { esNombreVacioODot } from "../../servicios/resolutorCriaturas";
 import estilosClases from "./TarjetaCriaturaIniciativa.module.css";
 
 interface TarjetaCriaturaIniciativaProps {
@@ -132,7 +133,13 @@ export const TarjetaCriaturaIniciativa: React.FC<TarjetaCriaturaIniciativaProps>
               }}
               title="Ver bloque de estadísticas"
             >
-              {criatura.nombre}
+              {esNombreVacioODot(criatura.nombre) ? (
+                <span style={{ fontStyle: "italic", opacity: 0.65 }}>
+                  [Mini sin nombre: {criatura.id.slice(-4)}]
+                </span>
+              ) : (
+                criatura.nombre
+              )}
               {esTurnoActivo && <span className={estilosClases.tagTurnoActivo}>ACTIVO</span>}
             </span>
             <span className={estilosClases.subtituloCriatura}>

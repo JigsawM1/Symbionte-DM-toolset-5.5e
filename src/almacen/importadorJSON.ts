@@ -775,21 +775,33 @@ export function importarDesdeJSON(
         }
 
         // Bonos adicionales
-        let bonosMagicosLista: { categoria: string; bono: string; valor: number }[] = [];
+        let efectosPasivosLista: { tipo: string; bono: string; valor: number }[] = [];
+        let modAtkDmg: number | undefined = undefined;
+
         if (Array.isArray(o.bonus) && o.bonus.length > 0) {
-          bonosMagicosLista = o.bonus.map((b) => {
+          efectosPasivosLista = o.bonus.map((b) => {
             if (b && typeof b === 'object') {
               const bObj = b as Record<string, unknown>;
+              const tipo = aplanarValor(bObj.category || bObj.categoria || "Otro");
+              const bono = aplanarValor(bObj.bonus || bObj.bono || "");
+              const valor = Number(bObj.value || bObj.valor) || 0;
+
+              if (tipo.toLowerCase().includes("weapon") || tipo.toLowerCase().includes("armor") || tipo.toLowerCase().includes("attack") || tipo.toLowerCase().includes("damage")) {
+                if (valor > 0 && modAtkDmg === undefined) {
+                  modAtkDmg = valor;
+                }
+              }
+
               return {
-                categoria: aplanarValor(bObj.category || bObj.categoria || "OTRO"),
-                bono: aplanarValor(bObj.bonus || bObj.bono || ""),
-                valor: Number(bObj.value || bObj.valor) || 0
+                tipo,
+                bono,
+                valor
               };
             }
-            return { categoria: "OTRO", bono: aplanarValor(b), valor: 0 };
+            return { tipo: "Otro", bono: aplanarValor(b), valor: 0 };
           });
 
-          const bonosStr = bonosMagicosLista.map(b => `${b.categoria} ${b.bono}: +${b.valor}`).join(', ');
+          const bonosStr = efectosPasivosLista.map(b => `${b.tipo} ${b.bono}: +${b.valor}`).join(', ');
           if (bonosStr) propiedadesArr.push(`Bonos: ${bonosStr}`);
         }
         
@@ -836,7 +848,8 @@ export function importarDesdeJSON(
           tipoDaño: dmgType || undefined,
           bonoAtaque: bonoAtkStr || undefined,
           bonoDaño: bonoDmgStr || undefined,
-          bonosMagicos: bonosMagicosLista.length > 0 ? bonosMagicosLista : undefined
+          efectosPasivos: efectosPasivosLista.length > 0 ? efectosPasivosLista : undefined,
+          modificadorAtaqueDano: modAtkDmg
         });
 
         const val = EsquemaObjetoJuego.safeParse(objetoMapeado);

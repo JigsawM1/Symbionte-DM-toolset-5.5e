@@ -1,5 +1,15 @@
 import { useState, useCallback } from "react";
-import { usarAlmacenDM, ObjetoHomebrew, ObjetoJuego, Rareza, TipoBonoDestreza, SubcategoriaEquipo, Arma, Armadura, EquipoAventuras } from "../almacen/usarAlmacenDM";
+import { usarAlmacenDM } from "../almacen/usarAlmacenDM";
+import { 
+  ObjetoHomebrew, 
+  ObjetoJuego, 
+  Rareza, 
+  TipoBonoDestreza, 
+  SubcategoriaEquipo, 
+  Arma, 
+  Armadura, 
+  EquipoAventuras 
+} from "../tipos";
 
 export function usarFormularioObjeto(idEnEdicion: string | null, alGuardarExitoso: () => void) {
   const { agregarObjetoHomebrew, actualizarObjetoHomebrew, agregarNotificacion } = usarAlmacenDM();
@@ -14,7 +24,22 @@ export function usarFormularioObjeto(idEnEdicion: string | null, alGuardarExitos
   const [oCostoCantidad, setOCostoCantidad] = useState<number>(0);
   const [oCostoUnidad, setOCostoUnidad] = useState<"PC" | "PP" | "PE" | "PO" | "PPT">("PO");
   const [oEsMagico, setOEsMagico] = useState(false);
-  const [oBonosMagicos, setOBonosMagicos] = useState<{ categoria: string; bono: string; valor: number }[]>([]);
+  const [oEfectosPasivos, setOEfectosPasivos] = useState<{ tipo: string; bono: string; valor?: number | string; descripcion?: string }[]>([]);
+
+  // --- NUEVOS ESTADOS COMUNES (Mágicas y Narrativas) ---
+  const [oSintonizacionRequerida, setOSintonizacionRequerida] = useState(false);
+  const [oCargas, setOCargas] = useState<number | "">("");
+  const [oCondicionSintonizacion, setOCondicionSintonizacion] = useState("");
+  const [oFormulaRecarga, setOFormulaRecarga] = useState("");
+  const [oEstaMaldito, setOEstaMaldito] = useState(false);
+  const [oEsConsciente, setOEsConsciente] = useState(false);
+  const [oModificadorAtaqueDano, setOModificadorAtaqueDano] = useState<number | "">("");
+  const [oHechizosVinculados, setOHechizosVinculados] = useState<{ nombre: string; cd?: number | ""; bonoAtaque?: number | ""; costeCargas?: number | "" }[]>([]);
+
+  // --- ESTADOS DE ARTESANÍA ---
+  const [oArtesaniaTaller, setOArtesaniaTaller] = useState("");
+  const [oArtesaniaComponentes, setOArtesaniaComponentes] = useState<string[]>([]);
+  const [oNuevoComponente, setONuevoComponente] = useState("");
 
   // --- ESTADOS DE VENENO ---
   const [oEsVeneno, setOEsVeneno] = useState(false);
@@ -37,6 +62,8 @@ export function usarFormularioObjeto(idEnEdicion: string | null, alGuardarExitos
   const [oMaestria, setOMaestria] = useState("Ninguna");
   const [oAlcanceNormal, setOAlcanceNormal] = useState<number | "">("");
   const [oAlcanceLargo, setOAlcanceLargo] = useState<number | "">("");
+  const [oDanoVersatil, setODanoVersatil] = useState("");
+  const [oMunicionRequerida, setOMunicionRequerida] = useState(false);
 
   // --- ESTADOS ESPECÍFICOS DE ARMADURA ---
   const [oSubcategoriaArmadura, setOSubcategoriaArmadura] = useState<"Ligera" | "Mediana" | "Pesada" | "Escudo">("Ligera");
@@ -44,17 +71,23 @@ export function usarFormularioObjeto(idEnEdicion: string | null, alGuardarExitos
   const [oRequisitoFuerza, setORequisitoFuerza] = useState<number | "">("");
   const [oDesventajaSigilo, setODesventajaSigilo] = useState(false);
   const [oBonoDestreza, setOBonoDestreza] = useState<TipoBonoDestreza>("Completo");
+  const [oTiempoEquipar, setOTiempoEquipar] = useState<string | number>("");
 
   // --- ESTADOS ESPECÍFICOS DE EQUIPO DE AVENTURAS ---
   const [oSubcategoriaEquipo, setOSubcategoriaEquipo] = useState<SubcategoriaEquipo>("Maravilloso");
   const [oCantidad, setOCantidad] = useState<number | "">("");
-  const [oSintonizacionRequerida, setOSintonizacionRequerida] = useState(false);
-  const [oCargas, setOCargas] = useState<number | "">("");
 
-  // --- ESTADOS DEL EDITOR DE BONOS DINÁMICOS LOCAL ---
+  // --- ESTADOS DEL EDITOR DE EFECTOS PASIVOS LOCAL ---
   const [oNuevoBonoCategoria, setONuevoBonoCategoria] = useState("CA");
   const [oNuevoBonoBono, setONuevoBonoBono] = useState("CA");
-  const [oNuevoBonoValor, setONuevoBonoValor] = useState(0);
+  const [oNuevoBonoValor, setONuevoBonoValor] = useState<string | number>("");
+  const [oNuevoBonoDesc, setONuevoBonoDesc] = useState("");
+
+  // --- ESTADOS DEL EDITOR DE HECHIZOS VINCULADOS LOCAL ---
+  const [oNuevoHechizoNombre, setONuevoHechizoNombre] = useState("");
+  const [oNuevoHechizoCd, setONuevoHechizoCd] = useState<number | "">("");
+  const [oNuevoHechizoBonoAtaque, setONuevoHechizoBonoAtaque] = useState<number | "">("");
+  const [oNuevoHechizoCosteCargas, setONuevoHechizoCosteCargas] = useState<number | "">("");
 
   // Manejar el cambio reactivo de rareza
   const alCambiarRareza = useCallback((rareza: Rareza) => {
@@ -82,7 +115,23 @@ export function usarFormularioObjeto(idEnEdicion: string | null, alGuardarExitos
     setOCostoCantidad(0);
     setOCostoUnidad("PO");
     setOEsMagico(false);
-    setOBonosMagicos([]);
+    setOEfectosPasivos([]);
+
+    // Reset nuevos campos comunes
+    setOSintonizacionRequerida(false);
+    setOCargas("");
+    setOCondicionSintonizacion("");
+    setOFormulaRecarga("");
+    setOEstaMaldito(false);
+    setOEsConsciente(false);
+    setOModificadorAtaqueDano("");
+    setOHechizosVinculados([]);
+
+    // Reset artesania
+    setOArtesaniaTaller("");
+    setOArtesaniaComponentes([]);
+    setONuevoComponente("");
+
     setOTipoPrincipal("Arma");
 
     setOSubcategoriaArma("Sencilla");
@@ -93,17 +142,18 @@ export function usarFormularioObjeto(idEnEdicion: string | null, alGuardarExitos
     setOMaestria("Ninguna");
     setOAlcanceNormal("");
     setOAlcanceLargo("");
+    setODanoVersatil("");
+    setOMunicionRequerida(false);
 
     setOSubcategoriaArmadura("Ligera");
     setOCaBase(10);
     setORequisitoFuerza("");
     setODesventajaSigilo(false);
     setOBonoDestreza("Completo");
+    setOTiempoEquipar("");
 
     setOSubcategoriaEquipo("Maravilloso");
     setOCantidad("");
-    setOSintonizacionRequerida(false);
-    setOCargas("");
 
     setOEsVeneno(false);
     setOTipoVeneno("Contacto");
@@ -113,7 +163,13 @@ export function usarFormularioObjeto(idEnEdicion: string | null, alGuardarExitos
 
     setONuevoBonoCategoria("CA");
     setONuevoBonoBono("CA");
-    setONuevoBonoValor(0);
+    setONuevoBonoValor("");
+    setONuevoBonoDesc("");
+
+    setONuevoHechizoNombre("");
+    setONuevoHechizoCd("");
+    setONuevoHechizoBonoAtaque("");
+    setONuevoHechizoCosteCargas("");
   }, []);
 
   const cargarObjeto = useCallback((o: ObjetoHomebrew) => {
@@ -133,7 +189,46 @@ export function usarFormularioObjeto(idEnEdicion: string | null, alGuardarExitos
     }
 
     setOEsMagico(o.esMagico);
-    setOBonosMagicos(o.bonosMagicos || []);
+    
+    // Carga de efectosPasivos con fallback a bonosMagicos
+    if (o.efectosPasivos) {
+      setOEfectosPasivos(o.efectosPasivos);
+    } else if ((o as any).bonosMagicos) {
+      const legacyBonos = (o as any).bonosMagicos as { categoria: string; bono: string; valor: number }[];
+      setOEfectosPasivos(legacyBonos.map(b => ({
+        tipo: b.categoria,
+        bono: b.bono,
+        valor: b.valor
+      })));
+    } else {
+      setOEfectosPasivos([]);
+    }
+
+    // Carga de nuevos campos comunes (mágicos y narrativos)
+    setOSintonizacionRequerida(o.sintonizacionRequerida || false);
+    setOCargas(o.cargas !== undefined ? o.cargas : "");
+    setOCondicionSintonizacion(o.condicionSintonizacion || "");
+    setOFormulaRecarga(o.formulaRecarga || "");
+    setOEstaMaldito(o.estaMaldito || false);
+    setOEsConsciente(o.esConsciente || false);
+    setOModificadorAtaqueDano(o.modificadorAtaqueDano !== undefined ? o.modificadorAtaqueDano : "");
+    
+    setOHechizosVinculados(o.hechizosVinculados ? o.hechizosVinculados.map(h => ({
+      nombre: h.nombre,
+      cd: h.cd !== undefined ? h.cd : "",
+      bonoAtaque: h.bonoAtaque !== undefined ? h.bonoAtaque : "",
+      costeCargas: h.costeCargas !== undefined ? h.costeCargas : ""
+    })) : []);
+
+    // Carga de artesanía
+    if (o.artesania) {
+      setOArtesaniaTaller(o.artesania.tallerRequerido || "");
+      setOArtesaniaComponentes(o.artesania.componentes || []);
+    } else {
+      setOArtesaniaTaller("");
+      setOArtesaniaComponentes([]);
+    }
+
     setOTipoPrincipal(o.tipoPrincipal);
 
     setOEsVeneno(o.esVeneno || false);
@@ -143,45 +238,82 @@ export function usarFormularioObjeto(idEnEdicion: string | null, alGuardarExitos
     setOEquipable(o.equipable || false);
 
     if (o.tipoPrincipal === "Arma") {
-      setOSubcategoriaArma(o.subcategoria || "Sencilla");
-      setOTipoAtaque(o.tipoAtaque || "Cuerpo a Cuerpo");
-      setODadoDano(o.dadoDano || "1d6");
-      setOTipoDano(o.tipoDano || "Fuerza");
-      setOPropiedadesArma(o.propiedades || []);
-      setOMaestria(o.maestria || "Ninguna");
-      setOAlcanceNormal(o.alcanceNormal !== undefined ? o.alcanceNormal : "");
-      setOAlcanceLargo(o.alcanceLargo !== undefined ? o.alcanceLargo : "");
+      const arma = o as Arma;
+      setOSubcategoriaArma(arma.subcategoria || "Sencilla");
+      setOTipoAtaque(arma.tipoAtaque || "Cuerpo a Cuerpo");
+      setODadoDano(arma.dadoDano || "1d6");
+      setOTipoDano(arma.tipoDano || "Fuerza");
+      setOPropiedadesArma(arma.propiedades || []);
+      setOMaestria(arma.maestria || "Ninguna");
+      setOAlcanceNormal(arma.alcanceNormal !== undefined ? arma.alcanceNormal : "");
+      setOAlcanceLargo(arma.alcanceLargo !== undefined ? arma.alcanceLargo : "");
+      setODanoVersatil(arma.danoVersatil || "");
+      setOMunicionRequerida(arma.municionRequerida || false);
       setOEquipable(true);
     } else if (o.tipoPrincipal === "Armadura") {
-      setOSubcategoriaArmadura(o.subcategoria || "Ligera");
-      setOCaBase(o.caBase || 10);
-      setORequisitoFuerza(o.requisitoFuerza !== undefined ? o.requisitoFuerza : "");
-      setODesventajaSigilo(o.desventajaSigilo || false);
-      setOBonoDestreza(o.bonoDestreza || "Completo");
+      const armadura = o as Armadura;
+      setOSubcategoriaArmadura(armadura.subcategoria || "Ligera");
+      setOCaBase(armadura.caBase || 10);
+      setORequisitoFuerza(armadura.requisitoFuerza !== undefined ? armadura.requisitoFuerza : "");
+      setODesventajaSigilo(armadura.desventajaSigilo || false);
+      setOBonoDestreza(armadura.bonoDestreza || "Completo");
+      setOTiempoEquipar(armadura.tiempoEquipar !== undefined ? armadura.tiempoEquipar : "");
       setOEquipable(true);
     } else if (o.tipoPrincipal === "Equipo de Aventuras") {
-      setOSubcategoriaEquipo(o.subcategoria || "Maravilloso");
-      setOCantidad(o.cantidad !== undefined ? o.cantidad : "");
-      setOSintonizacionRequerida(o.sintonizacionRequerida || false);
-      setOCargas(o.cargas !== undefined ? o.cargas : "");
+      const equipo = o as EquipoAventuras;
+      setOSubcategoriaEquipo(equipo.subcategoria || "Maravilloso");
+      setOCantidad(equipo.cantidad !== undefined ? equipo.cantidad : "");
     }
   }, []);
 
-  const agregarBonoMagico = useCallback(() => {
-    if (!oNuevoBonoBono.trim()) return;
-    setOBonosMagicos((prev) => [
+  const agregarEfectoPasivo = useCallback(() => {
+    if (!oNuevoBonoBono.trim() && !oNuevoBonoDesc.trim()) return;
+    setOEfectosPasivos((prev) => [
       ...prev,
       {
-        categoria: oNuevoBonoCategoria,
+        tipo: oNuevoBonoCategoria,
         bono: oNuevoBonoBono.trim(),
-        valor: oNuevoBonoValor
+        valor: oNuevoBonoValor !== "" ? (isNaN(Number(oNuevoBonoValor)) ? String(oNuevoBonoValor) : Number(oNuevoBonoValor)) : undefined,
+        descripcion: oNuevoBonoDesc.trim() || undefined
       }
     ]);
-    setONuevoBonoValor(0);
-  }, [oNuevoBonoBono, oNuevoBonoCategoria, oNuevoBonoValor]);
+    setONuevoBonoValor("");
+    setONuevoBonoDesc("");
+  }, [oNuevoBonoBono, oNuevoBonoCategoria, oNuevoBonoValor, oNuevoBonoDesc]);
 
-  const eliminarBonoMagicoIdx = useCallback((idx: number) => {
-    setOBonosMagicos((prev) => prev.filter((_, i) => i !== idx));
+  const eliminarEfectoPasivoIdx = useCallback((idx: number) => {
+    setOEfectosPasivos((prev) => prev.filter((_, i) => i !== idx));
+  }, []);
+
+  const agregarHechizoVinculado = useCallback(() => {
+    if (!oNuevoHechizoNombre.trim()) return;
+    setOHechizosVinculados((prev) => [
+      ...prev,
+      {
+        nombre: oNuevoHechizoNombre.trim(),
+        cd: oNuevoHechizoCd !== "" ? Number(oNuevoHechizoCd) : undefined,
+        bonoAtaque: oNuevoHechizoBonoAtaque !== "" ? Number(oNuevoHechizoBonoAtaque) : undefined,
+        costeCargas: oNuevoHechizoCosteCargas !== "" ? Number(oNuevoHechizoCosteCargas) : undefined
+      }
+    ]);
+    setONuevoHechizoNombre("");
+    setONuevoHechizoCd("");
+    setONuevoHechizoBonoAtaque("");
+    setONuevoHechizoCosteCargas("");
+  }, [oNuevoHechizoNombre, oNuevoHechizoCd, oNuevoHechizoBonoAtaque, oNuevoHechizoCosteCargas]);
+
+  const eliminarHechizoVinculadoIdx = useCallback((idx: number) => {
+    setOHechizosVinculados((prev) => prev.filter((_, i) => i !== idx));
+  }, []);
+
+  const agregarComponenteArtesania = useCallback(() => {
+    if (!oNuevoComponente.trim()) return;
+    setOArtesaniaComponentes((prev) => [...prev, oNuevoComponente.trim()]);
+    setONuevoComponente("");
+  }, [oNuevoComponente]);
+
+  const eliminarComponenteArtesaniaIdx = useCallback((idx: number) => {
+    setOArtesaniaComponentes((prev) => prev.filter((_, i) => i !== idx));
   }, []);
 
   const manejarGuardarObjeto = useCallback((e: React.FormEvent) => {
@@ -219,6 +351,20 @@ export function usarFormularioObjeto(idEnEdicion: string | null, alGuardarExitos
 
     let payload: Omit<ObjetoJuego, "id">;
 
+    // Estructurar artesanía si tiene datos
+    const artesaniaPayload = oArtesaniaTaller.trim() || oArtesaniaComponentes.length > 0 ? {
+      tallerRequerido: oArtesaniaTaller.trim(),
+      componentes: oArtesaniaComponentes
+    } : undefined;
+
+    // Estructurar hechizos vinculados
+    const hechizosPayload = oHechizosVinculados.length > 0 ? oHechizosVinculados.map(h => ({
+      nombre: h.nombre,
+      cd: h.cd !== "" ? Number(h.cd) : undefined,
+      bonoAtaque: h.bonoAtaque !== "" ? Number(h.bonoAtaque) : undefined,
+      costeCargas: h.costeCargas !== "" ? Number(h.costeCargas) : undefined
+    })) : undefined;
+
     const basePayload = {
       nombre: oNombre.trim(),
       rareza: oRareza,
@@ -231,8 +377,19 @@ export function usarFormularioObjeto(idEnEdicion: string | null, alGuardarExitos
         unidad: oCostoUnidad
       },
       esMagico: oEsMagico,
-      bonosMagicos: oBonosMagicos,
-      equipable: oTipoPrincipal === "Arma" || oTipoPrincipal === "Armadura" ? true : oEquipable
+      efectosPasivos: oEfectosPasivos.length > 0 ? oEfectosPasivos : undefined,
+      equipable: oTipoPrincipal === "Arma" || oTipoPrincipal === "Armadura" ? true : oEquipable,
+      
+      // Nuevos campos mágicos/narrativos comunes
+      sintonizacionRequerida: oSintonizacionRequerida,
+      cargas: oCargas !== "" ? Number(oCargas) : undefined,
+      condicionSintonizacion: oCondicionSintonizacion.trim() || undefined,
+      formulaRecarga: oFormulaRecarga.trim() || undefined,
+      estaMaldito: oEstaMaldito,
+      esConsciente: oEsConsciente,
+      modificadorAtaqueDano: oModificadorAtaqueDano !== "" ? Number(oModificadorAtaqueDano) : undefined,
+      hechizosVinculados: hechizosPayload,
+      artesania: artesaniaPayload
     };
 
     if (oTipoPrincipal === "Arma") {
@@ -246,9 +403,12 @@ export function usarFormularioObjeto(idEnEdicion: string | null, alGuardarExitos
         propiedades: oPropiedadesArma,
         maestria: oMaestria,
         alcanceNormal: oAlcanceNormal !== "" ? Number(oAlcanceNormal) : undefined,
-        alcanceLargo: oAlcanceLargo !== "" ? Number(oAlcanceLargo) : undefined
+        alcanceLargo: oAlcanceLargo !== "" ? Number(oAlcanceLargo) : undefined,
+        danoVersatil: oDanoVersatil.trim() || undefined,
+        municionRequerida: oMunicionRequerida
       } as Omit<Arma, "id">;
     } else if (oTipoPrincipal === "Armadura") {
+      const tiempoVal = oTiempoEquipar !== "" ? (isNaN(Number(oTiempoEquipar)) ? String(oTiempoEquipar).trim() : Number(oTiempoEquipar)) : undefined;
       payload = {
         ...basePayload,
         tipoPrincipal: "Armadura",
@@ -256,7 +416,8 @@ export function usarFormularioObjeto(idEnEdicion: string | null, alGuardarExitos
         caBase: Number(oCaBase) || 10,
         requisitoFuerza: oRequisitoFuerza !== "" ? Number(oRequisitoFuerza) : undefined,
         desventajaSigilo: oDesventajaSigilo,
-        bonoDestreza: oBonoDestreza
+        bonoDestreza: oBonoDestreza,
+        tiempoEquipar: tiempoVal
       } as Omit<Armadura, "id">;
     } else {
       payload = {
@@ -264,8 +425,6 @@ export function usarFormularioObjeto(idEnEdicion: string | null, alGuardarExitos
         tipoPrincipal: "Equipo de Aventuras",
         subcategoria: oSubcategoriaEquipo,
         cantidad: oCantidad !== "" ? Number(oCantidad) : undefined,
-        sintonizacionRequerida: oSintonizacionRequerida,
-        cargas: oCargas !== "" ? Number(oCargas) : undefined,
         ...(oSubcategoriaEquipo === "Consumible" && oEsVeneno ? {
           esVeneno: true,
           tipoVeneno: oTipoVeneno,
@@ -288,13 +447,15 @@ export function usarFormularioObjeto(idEnEdicion: string | null, alGuardarExitos
     limpiarFormulario();
     alGuardarExitoso();
   }, [
-    oNombre, oRareza, oPropiedades, oDescripcion, oPesoLb, oValorPO, oEsMagico, oBonosMagicos,
+    oNombre, oRareza, oPropiedades, oDescripcion, oPesoLb, oValorPO, oEsMagico, oEfectosPasivos,
     oTipoPrincipal, oSubcategoriaArma, oTipoAtaque, oDadoDano, oTipoDano, oPropiedadesArma,
-    oMaestria, oAlcanceNormal, oAlcanceLargo, oSubcategoriaArmadura, oCaBase, oRequisitoFuerza,
-    oDesventajaSigilo, oBonoDestreza, oSubcategoriaEquipo, oCantidad, oSintonizacionRequerida,
-    oCargas, idEnEdicion, agregarObjetoHomebrew, actualizarObjetoHomebrew, agregarNotificacion,
-    limpiarFormulario, alGuardarExitoso, oCostoCantidad, oCostoUnidad, oEsVeneno, oTipoVeneno,
-    oCdSalvacionVeneno, oEfectoVeneno, oEquipable
+    oMaestria, oAlcanceNormal, oAlcanceLargo, oDanoVersatil, oMunicionRequerida, 
+    oSubcategoriaArmadura, oCaBase, oRequisitoFuerza, oDesventajaSigilo, oBonoDestreza, oTiempoEquipar,
+    oSubcategoriaEquipo, oCantidad, oSintonizacionRequerida, oCargas, oCondicionSintonizacion, 
+    oFormulaRecarga, oEstaMaldito, oEsConsciente, oModificadorAtaqueDano, oHechizosVinculados,
+    oArtesaniaTaller, oArtesaniaComponentes, idEnEdicion, agregarObjetoHomebrew, actualizarObjetoHomebrew, 
+    agregarNotificacion, limpiarFormulario, alGuardarExitoso, oCostoCantidad, oCostoUnidad, oEsVeneno, 
+    oTipoVeneno, oCdSalvacionVeneno, oEfectoVeneno, oEquipable
   ]);
 
   return {
@@ -307,7 +468,7 @@ export function usarFormularioObjeto(idEnEdicion: string | null, alGuardarExitos
     oCostoCantidad, setOCostoCantidad,
     oCostoUnidad, setOCostoUnidad,
     oEsMagico, setOEsMagico,
-    oBonosMagicos, setOBonosMagicos,
+    oEfectosPasivos, setOEfectosPasivos,
     oTipoPrincipal, setOTipoPrincipal,
 
     oSubcategoriaArma, setOSubcategoriaArma,
@@ -318,12 +479,15 @@ export function usarFormularioObjeto(idEnEdicion: string | null, alGuardarExitos
     oMaestria, setOMaestria,
     oAlcanceNormal, setOAlcanceNormal,
     oAlcanceLargo, setOAlcanceLargo,
+    oDanoVersatil, setODanoVersatil,
+    oMunicionRequerida, setOMunicionRequerida,
 
     oSubcategoriaArmadura, alCambiarSubcategoriaArmadura,
     oCaBase, setOCaBase,
     oRequisitoFuerza, setORequisitoFuerza,
     oDesventajaSigilo, setODesventajaSigilo,
     oBonoDestreza, setOBonoDestreza,
+    oTiempoEquipar, setOTiempoEquipar,
 
     oSubcategoriaEquipo, setOSubcategoriaEquipo,
     oCantidad, setOCantidad,
@@ -336,14 +500,35 @@ export function usarFormularioObjeto(idEnEdicion: string | null, alGuardarExitos
     oEfectoVeneno, setOEfectoVeneno,
     oEquipable, setOEquipable,
 
+    // Nuevos estados mágicos/narrativos y artesanía
+    oCondicionSintonizacion, setOCondicionSintonizacion,
+    oFormulaRecarga, setOFormulaRecarga,
+    oEstaMaldito, setOEstaMaldito,
+    oEsConsciente, setOEsConsciente,
+    oModificadorAtaqueDano, setOModificadorAtaqueDano,
+    oHechizosVinculados, setOHechizosVinculados,
+    oArtesaniaTaller, setOArtesaniaTaller,
+    oArtesaniaComponentes, setOArtesaniaComponentes,
+    oNuevoComponente, setONuevoComponente,
+
+    // Nuevos estados del editor de efectos/hechizos
     oNuevoBonoCategoria, setONuevoBonoCategoria,
     oNuevoBonoBono, setONuevoBonoBono,
     oNuevoBonoValor, setONuevoBonoValor,
+    oNuevoBonoDesc, setONuevoBonoDesc,
+    oNuevoHechizoNombre, setONuevoHechizoNombre,
+    oNuevoHechizoCd, setONuevoHechizoCd,
+    oNuevoHechizoBonoAtaque, setONuevoHechizoBonoAtaque,
+    oNuevoHechizoCosteCargas, setONuevoHechizoCosteCargas,
 
     limpiarFormulario,
     cargarObjeto,
-    agregarBonoMagico,
-    eliminarBonoMagicoIdx,
+    agregarEfectoPasivo,
+    eliminarEfectoPasivoIdx,
+    agregarHechizoVinculado,
+    eliminarHechizoVinculadoIdx,
+    agregarComponenteArtesania,
+    eliminarComponenteArtesaniaIdx,
     manejarGuardarObjeto
   };
 }

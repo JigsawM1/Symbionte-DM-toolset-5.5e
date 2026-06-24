@@ -116,7 +116,7 @@ export const FormularioObjeto: React.FC<Props> = ({
     oCostoCantidad, setOCostoCantidad,
     oCostoUnidad, setOCostoUnidad,
     oEsMagico, setOEsMagico,
-    oBonosMagicos,
+    oEfectosPasivos,
     oTipoPrincipal, setOTipoPrincipal,
 
     oSubcategoriaArma, setOSubcategoriaArma,
@@ -127,12 +127,15 @@ export const FormularioObjeto: React.FC<Props> = ({
     oMaestria, setOMaestria,
     oAlcanceNormal, setOAlcanceNormal,
     oAlcanceLargo, setOAlcanceLargo,
+    oDanoVersatil, setODanoVersatil,
+    oMunicionRequerida, setOMunicionRequerida,
 
     oSubcategoriaArmadura, alCambiarSubcategoriaArmadura,
     oCaBase, setOCaBase,
     oRequisitoFuerza, setORequisitoFuerza,
     oDesventajaSigilo, setODesventajaSigilo,
     oBonoDestreza, setOBonoDestreza,
+    oTiempoEquipar, setOTiempoEquipar,
 
     oSubcategoriaEquipo, setOSubcategoriaEquipo,
     oCantidad, setOCantidad,
@@ -145,16 +148,37 @@ export const FormularioObjeto: React.FC<Props> = ({
     oEfectoVeneno, setOEfectoVeneno,
     oEquipable, setOEquipable,
 
+    oCondicionSintonizacion, setOCondicionSintonizacion,
+    oFormulaRecarga, setOFormulaRecarga,
+    oEstaMaldito, setOEstaMaldito,
+    oEsConsciente, setOEsConsciente,
+    oModificadorAtaqueDano, setOModificadorAtaqueDano,
+    oHechizosVinculados,
+    oArtesaniaTaller, setOArtesaniaTaller,
+    oArtesaniaComponentes,
+    oNuevoComponente, setONuevoComponente,
+
     oNuevoBonoCategoria, setONuevoBonoCategoria,
     oNuevoBonoBono, setONuevoBonoBono,
     oNuevoBonoValor, setONuevoBonoValor,
+    oNuevoBonoDesc, setONuevoBonoDesc,
+    oNuevoHechizoNombre, setONuevoHechizoNombre,
+    oNuevoHechizoCd, setONuevoHechizoCd,
+    oNuevoHechizoBonoAtaque, setONuevoHechizoBonoAtaque,
+    oNuevoHechizoCosteCargas, setONuevoHechizoCosteCargas,
 
     cargarObjeto,
     limpiarFormulario,
-    agregarBonoMagico,
-    eliminarBonoMagicoIdx,
+    agregarEfectoPasivo,
+    eliminarEfectoPasivoIdx,
+    agregarHechizoVinculado,
+    eliminarHechizoVinculadoIdx,
+    agregarComponenteArtesania,
+    eliminarComponenteArtesaniaIdx,
     manejarGuardarObjeto
   } = usarFormularioObjeto(idEnEdicion, alGuardarExitoso);
+
+  const tieneDatosMagicos = oEsMagico || oRareza !== "Común" || oEfectosPasivos.length > 0 || oSintonizacionRequerida || oCargas !== "";
 
   // Pestaña activa del formulario
   const [pestanaActiva, setPestanaActiva] = useState<"general" | "atributos" | "magia">("general");
@@ -171,9 +195,6 @@ export const FormularioObjeto: React.FC<Props> = ({
     }
     setPestanaActiva("general");
   }, [idEnEdicion, objetosHomebrew, cargarObjeto, limpiarFormulario]);
-
-  // Si la rareza cambia, verificar si es mágicos para activar pestaña de magia
-  const tieneDatosMagicos = oEsMagico || oRareza !== "Común" || oBonosMagicos.length > 0;
 
   // Detener clics accidentales al lienzo 3D de TaleSpire
   const detenerPropagacion = useCallback((e: React.MouseEvent) => {
@@ -391,6 +412,81 @@ export const FormularioObjeto: React.FC<Props> = ({
               placeholder="Ej. Espada Larga, Raro. Deja en blanco para autogenerar."
               className={estilos.inputForm}
             />
+          </div>
+
+          {/* MÓDULO DE CRAFTEO / ARTESANÍA */}
+          <div className={estilos.bloqueDinamicoForm} style={{ borderColor: "rgba(168, 85, 247, 0.25)", marginTop: "8px" }}>
+            <div className={estilos.tituloBloqueDinamico}>
+              <span>RECETA DE CRAFTEO / ARTESANÍA (OPCIONAL)</span>
+            </div>
+            
+            <div className={estilos.campoForm} style={{ marginBottom: "10px" }}>
+              <label className={estilos.labelForm}>Taller Requerido:</label>
+              <input
+                type="text"
+                value={oArtesaniaTaller}
+                onChange={(e) => setOArtesaniaTaller(e.target.value)}
+                placeholder="Ej. Forja del Herrero, Mesa de Alquimia..."
+                className={estilos.inputForm}
+              />
+            </div>
+
+            <div className={estilos.campoForm}>
+              <label className={estilos.labelForm}>Componentes y Materiales Requeridos:</label>
+              <div style={{ display: "flex", gap: "6px", marginBottom: "8px" }}>
+                <input
+                  type="text"
+                  value={oNuevoComponente}
+                  onChange={(e) => setONuevoComponente(e.target.value)}
+                  placeholder="Ej. 1x Lingote de Hierro, 2x Colmillo de Lobo..."
+                  className={estilos.inputForm}
+                  style={{ flex: 1 }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      agregarComponenteArtesania();
+                    }
+                  }}
+                />
+                <button
+                  type="button"
+                  onClick={agregarComponenteArtesania}
+                  className={estilos.botonAgregarDinamico}
+                  style={{ padding: "4px 12px", height: "auto" }}
+                >
+                  + Añadir
+                </button>
+              </div>
+
+              {oArtesaniaComponentes.length > 0 && (
+                <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", marginTop: "4px" }}>
+                  {oArtesaniaComponentes.map((comp, idx) => (
+                    <span
+                      key={idx}
+                      style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: "6px",
+                        background: "rgba(168, 85, 247, 0.15)",
+                        border: "1px solid hsl(270, 70%, 60%)",
+                        color: "hsl(270, 100%, 85%)",
+                        padding: "3px 8px",
+                        borderRadius: "4px",
+                        fontSize: "11px",
+                        fontWeight: "500"
+                      }}
+                    >
+                      {comp}
+                      <X
+                        size={12}
+                        style={{ cursor: "pointer", color: "var(--color-borde-cian)" }}
+                        onClick={() => eliminarComponenteArtesaniaIdx(idx)}
+                      />
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       )}
@@ -614,6 +710,33 @@ export const FormularioObjeto: React.FC<Props> = ({
                   )}
                 </div>
               </div>
+
+              {/* Nuevos campos de Arma: Daño Versátil y Munición Requerida */}
+              <div style={{ marginTop: "12px", borderTop: "1px dashed rgba(0, 245, 212, 0.1)", paddingTop: "12px" }}>
+                <div className={estilos.filaDobleForm}>
+                  <div className={estilos.campoForm}>
+                    <label className={estilos.labelForm}>Daño Versátil (A dos manos):</label>
+                    <input
+                      type="text"
+                      value={oDanoVersatil}
+                      onChange={(e) => setODanoVersatil(e.target.value)}
+                      placeholder="Ej. 1d10, 1d12... (Opcional)"
+                      className={estilos.inputForm}
+                    />
+                  </div>
+                  <div className={estilos.campoForm} style={{ justifyContent: "center" }}>
+                    <label className={estilos.labelCheckbox} style={{ marginTop: "16px" }}>
+                      <input
+                        type="checkbox"
+                        checked={oMunicionRequerida}
+                        onChange={(e) => setOMunicionRequerida(e.target.checked)}
+                        className={estilos.checkMini}
+                      />
+                      <span>¿Requiere Munición (Flechas/Virotes)?</span>
+                    </label>
+                  </div>
+                </div>
+              </div>
             </div>
           )}
 
@@ -676,6 +799,20 @@ export const FormularioObjeto: React.FC<Props> = ({
                   </label>
                 </div>
               </div>
+
+              {/* Nuevo campo de Armadura: Tiempo para Equipar */}
+              <div style={{ marginTop: "12px", borderTop: "1px dashed rgba(255, 165, 0, 0.1)", paddingTop: "12px" }}>
+                <div className={estilos.campoForm}>
+                  <label className={estilos.labelForm}>Tiempo para Equipar (Don/Doff):</label>
+                  <input
+                    type="text"
+                    value={oTiempoEquipar}
+                    onChange={(e) => setOTiempoEquipar(e.target.value)}
+                    placeholder="Ej. 1 acción, 1 minuto, 10 minutos (Opcional)"
+                    className={estilos.inputForm}
+                  />
+                </div>
+              </div>
             </div>
           )}
 
@@ -699,30 +836,7 @@ export const FormularioObjeto: React.FC<Props> = ({
                   />
                 </div>
 
-                <div className={estilos.campoForm} style={{ justifyContent: "center" }}>
-                  {/* Se mantiene sintonización y cargas aquí para objetos de inventario generales */}
-                  <label className={estilos.labelCheckbox} style={{ marginTop: "16px" }}>
-                    <input
-                      type="checkbox"
-                      checked={oSintonizacionRequerida}
-                      onChange={(e) => setOSintonizacionRequerida(e.target.checked)}
-                      className={estilos.checkMini}
-                    />
-                    <span>Sintonización Requerida</span>
-                  </label>
-                </div>
-              </div>
-
-              <div className={estilos.filaDobleForm}>
                 <div className={estilos.campoForm}>
-                  <label className={estilos.labelForm}>Cargas Máximas (Opcional):</label>
-                  <input
-                    type="number"
-                    value={oCargas}
-                    onChange={(e) => setOCargas(e.target.value === "" ? "" : parseInt(e.target.value))}
-                    placeholder="Ninguna"
-                    className={estilos.inputForm}
-                  />
                 </div>
               </div>
 
@@ -823,45 +937,108 @@ export const FormularioObjeto: React.FC<Props> = ({
           {/* ATRIBUTOS MÁGICOS ADICIONALES (Sólo si es mágico) */}
           {oEsMagico && (
             <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-              {/* Toggles de Sintonización y Cargas (para Armas/Armaduras, ya que equipo de aventuras lo tiene embebido) */}
-              {oTipoPrincipal !== "Equipo de Aventuras" && (
-                <div className={estilos.bloqueDinamicoForm}>
-                  <div className={estilos.filaDobleForm}>
-                    <div className={estilos.campoForm} style={{ justifyContent: "center" }}>
-                      <label className={estilos.labelCheckbox}>
-                        <input
-                          type="checkbox"
-                          checked={oSintonizacionRequerida}
-                          onChange={(e) => setOSintonizacionRequerida(e.target.checked)}
-                          className={estilos.checkMini}
-                        />
-                        <span>Requiere Sintonización</span>
-                      </label>
-                    </div>
-
-                    <div className={estilos.campoForm}>
-                      <label className={estilos.labelForm}>Cargas Máximas:</label>
+              {/* Toggles de Sintonización, Cargas y Propiedades Narrativas Comunes */}
+              <div className={estilos.bloqueDinamicoForm}>
+                <div className={estilos.filaDobleForm}>
+                  <div className={estilos.campoForm} style={{ justifyContent: "center" }}>
+                    <label className={estilos.labelCheckbox}>
                       <input
-                        type="number"
-                        value={oCargas}
-                        onChange={(e) => setOCargas(e.target.value === "" ? "" : parseInt(e.target.value))}
-                        placeholder="Ej. 7"
-                        className={estilos.inputForm}
+                        type="checkbox"
+                        checked={oSintonizacionRequerida}
+                        onChange={(e) => setOSintonizacionRequerida(e.target.checked)}
+                        className={estilos.checkMini}
                       />
-                    </div>
+                      <span>Requiere Sintonización</span>
+                    </label>
+                  </div>
+
+                  <div className={estilos.campoForm}>
+                    <label className={estilos.labelForm}>Cargas Máximas:</label>
+                    <input
+                      type="number"
+                      value={oCargas}
+                      onChange={(e) => setOCargas(e.target.value === "" ? "" : parseInt(e.target.value))}
+                      placeholder="Ej. 7 (Opcional)"
+                      className={estilos.inputForm}
+                    />
                   </div>
                 </div>
-              )}
 
-              {/* MÓDULO DE BONOS MÁGICOS DINÁMICOS AL PERSONAJE */}
+                {oSintonizacionRequerida && (
+                  <div className={estilos.campoForm} style={{ marginTop: "10px" }}>
+                    <label className={estilos.labelForm}>Condición de Sintonización:</label>
+                    <input
+                      type="text"
+                      value={oCondicionSintonizacion}
+                      onChange={(e) => setOCondicionSintonizacion(e.target.value)}
+                      placeholder="Ej. por un Mago o Elfo, alineamiento bueno..."
+                      className={estilos.inputForm}
+                    />
+                  </div>
+                )}
+
+                {oCargas !== "" && oCargas > 0 && (
+                  <div className={estilos.campoForm} style={{ marginTop: "10px" }}>
+                    <label className={estilos.labelForm}>Fórmula de Recarga de Cargas:</label>
+                    <input
+                      type="text"
+                      value={oFormulaRecarga}
+                      onChange={(e) => setOFormulaRecarga(e.target.value)}
+                      placeholder="Ej. 1d6+1 al amanecer..."
+                      className={estilos.inputForm}
+                    />
+                  </div>
+                )}
+
+                <div className={estilos.filaDobleForm} style={{ marginTop: "10px", borderTop: "1px dashed rgba(255,255,255,0.05)", paddingTop: "10px" }}>
+                  <div className={estilos.campoForm} style={{ justifyContent: "center" }}>
+                    <label className={estilos.labelCheckbox}>
+                      <input
+                        type="checkbox"
+                        checked={oEstaMaldito}
+                        onChange={(e) => setOEstaMaldito(e.target.checked)}
+                        className={estilos.checkMini}
+                      />
+                      <span style={{ color: "var(--color-peligro)", fontWeight: "bold" }}>💀 Objeto Maldito (Curse)</span>
+                    </label>
+                  </div>
+
+                  <div className={estilos.campoForm} style={{ justifyContent: "center" }}>
+                    <label className={estilos.labelCheckbox}>
+                      <input
+                        type="checkbox"
+                        checked={oEsConsciente}
+                        onChange={(e) => setOEsConsciente(e.target.checked)}
+                        className={estilos.checkMini}
+                      />
+                      <span style={{ color: "var(--color-borde-cian)" }}>🧠 Objeto Consciente (Sentient)</span>
+                    </label>
+                  </div>
+                </div>
+
+                <div className={estilos.campoForm} style={{ marginTop: "10px", borderTop: "1px dashed rgba(255,255,255,0.05)", paddingTop: "10px" }}>
+                  <label className={estilos.labelForm}>Modificador Mágico Directo (Ataque, Daño o Defensa):</label>
+                  <input
+                    type="number"
+                    value={oModificadorAtaqueDano}
+                    onChange={(e) => setOModificadorAtaqueDano(e.target.value === "" ? "" : parseInt(e.target.value))}
+                    placeholder="Ej. 1 para un objeto +1..."
+                    className={estilos.inputForm}
+                    min={-5}
+                    max={10}
+                  />
+                </div>
+              </div>
+
+              {/* MÓDULO DE EFECTOS PASIVOS / BONOS */}
               <div className={estilos.bloqueDinamicoForm}>
                 <div className={estilos.tituloBloqueDinamico}>
-                  <span>EFECTOS DINÁMICOS Y MEJORAS AL PORTADOR</span>
+                  <span>EFECTOS PASIVOS Y BONOS AUTOMÁTICOS</span>
                 </div>
 
                 <div className={estilos.filaAgregarBono}>
                   <div className={estilos.campoBonoCategoria}>
-                    <label className={estilos.labelForm}>Categoría del Bono:</label>
+                    <label className={estilos.labelForm}>Tipo de Efecto:</label>
                     <select
                       value={oNuevoBonoCategoria}
                       onChange={(e) => {
@@ -875,15 +1052,18 @@ export const FormularioObjeto: React.FC<Props> = ({
                       }}
                       className={estilos.selectForm}
                     >
+                      <option value="Resistencia">Resistencia</option>
+                      <option value="Inmunidad">Inmunidad</option>
+                      <option value="Foco Arcano">Foco Arcano</option>
                       <option value="CA">Clase de Armadura (CA)</option>
                       <option value="CARACTERÍSTICA">Característica / Atributo</option>
                       <option value="SALVACIÓN">Salvación</option>
                       <option value="HABILIDAD">Pericia / Habilidad</option>
-                      <option value="OTRO">Otro Bono</option>
+                      <option value="Otro">Otro Efecto</option>
                     </select>
                   </div>
                   <div className={estilos.campoBonoNombre}>
-                    <label className={estilos.labelForm}>Nombre / Atributo:</label>
+                    <label className={estilos.labelForm}>Detalle / Nombre:</label>
                     {OPCIONES_ATRIBUTOS[oNuevoBonoCategoria] ? (
                       <select
                         value={oNuevoBonoBono}
@@ -899,43 +1079,147 @@ export const FormularioObjeto: React.FC<Props> = ({
                         type="text"
                         value={oNuevoBonoBono}
                         onChange={(e) => setONuevoBonoBono(e.target.value)}
-                        placeholder="Ej. Iniciativa, Velocidad..."
+                        placeholder="Ej. Daño de Fuego, Sigilo..."
                         className={estilos.inputForm}
                       />
                     )}
                   </div>
                   <div className={estilos.campoBonoValor}>
-                    <label className={estilos.labelForm}>Valor:</label>
+                    <label className={estilos.labelForm}>Valor (Opc.):</label>
                     <input
-                      type="number"
+                      type="text"
                       value={oNuevoBonoValor}
-                      onChange={(e) => setONuevoBonoValor(parseInt(e.target.value) || 0)}
+                      onChange={(e) => setONuevoBonoValor(e.target.value)}
+                      placeholder="Ej. +1 o Ventaja"
                       className={estilos.inputForm}
                     />
                   </div>
-                  <button
-                    type="button"
-                    onClick={agregarBonoMagico}
-                    className={estilos.botonAgregarDinamico}
-                  >
-                    + Agregar
-                  </button>
                 </div>
 
-                {/* LISTA DE BONOS MÁGICOS APLICADOS */}
-                {oBonosMagicos.length > 0 && (
-                  <div className={estilos.listaDinamicaVisual}>
-                    {oBonosMagicos.map((bono, idx) => (
-                      <div key={`bono_${idx}`} className={estilos.itemDinamicoVisual}>
+                <div className={estilos.campoForm} style={{ marginTop: "10px" }}>
+                  <label className={estilos.labelForm}>Descripción del Efecto (Opcional):</label>
+                  <div style={{ display: "flex", gap: "6px" }}>
+                    <input
+                      type="text"
+                      value={oNuevoBonoDesc}
+                      onChange={(e) => setONuevoBonoDesc(e.target.value)}
+                      placeholder="Ej. El portador gana resistencia al daño de fuego..."
+                      className={estilos.inputForm}
+                      style={{ flex: 1 }}
+                    />
+                    <button
+                      type="button"
+                      onClick={agregarEfectoPasivo}
+                      className={estilos.botonAgregarDinamico}
+                    >
+                      + Agregar
+                    </button>
+                  </div>
+                </div>
+
+                {/* LISTA DE EFECTOS PASIVOS APLICADOS */}
+                {oEfectosPasivos.length > 0 && (
+                  <div className={estilos.listaDinamicaVisual} style={{ marginTop: "10px" }}>
+                    {oEfectosPasivos.map((efecto, idx) => (
+                      <div key={`efecto_${idx}`} className={estilos.itemDinamicoVisual}>
                         <div className={estilos.bonoTextoInfo}>
                           <span className={estilos.bonoTagCategoria}>
-                            [{bono.categoria}]
+                            [{efecto.tipo}]
                           </span>{" "}
-                          {bono.bono}: <strong>{bono.valor >= 0 ? `+${bono.valor}` : bono.valor}</strong>
+                          <strong>{efecto.bono}</strong>
+                          {efecto.valor !== undefined && efecto.valor !== "" && ` (${isNaN(Number(efecto.valor)) ? efecto.valor : (Number(efecto.valor) >= 0 ? `+${efecto.valor}` : efecto.valor)})`}
+                          {efecto.descripcion && `: ${efecto.descripcion}`}
                         </div>
                         <button
                           type="button"
-                          onClick={() => eliminarBonoMagicoIdx(idx)}
+                          onClick={() => eliminarEfectoPasivoIdx(idx)}
+                          className={estilos.botonEliminarDinamico}
+                        >
+                          <X size={12} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* MÓDULO DE HECHIZOS VINCULADOS */}
+              <div className={estilos.bloqueDinamicoForm}>
+                <div className={estilos.tituloBloqueDinamico}>
+                  <span>HECHIZOS VINCULADOS AL OBJETO</span>
+                </div>
+
+                <div className={estilos.filaAgregarBono}>
+                  <div className={estilos.campoBonoNombre} style={{ flex: 2 }}>
+                    <label className={estilos.labelForm}>Nombre del Hechizo:</label>
+                    <input
+                      type="text"
+                      value={oNuevoHechizoNombre}
+                      onChange={(e) => setONuevoHechizoNombre(e.target.value)}
+                      placeholder="Ej. Bola de Fuego, Curar Heridas..."
+                      className={estilos.inputForm}
+                    />
+                  </div>
+                  <div className={estilos.campoBonoValor} style={{ flex: 1 }}>
+                    <label className={estilos.labelForm}>CD CD (Opc.):</label>
+                    <input
+                      type="number"
+                      value={oNuevoHechizoCd}
+                      onChange={(e) => setONuevoHechizoCd(e.target.value === "" ? "" : parseInt(e.target.value))}
+                      placeholder="Ej. 15"
+                      className={estilos.inputForm}
+                    />
+                  </div>
+                </div>
+
+                <div className={estilos.filaTripleForm} style={{ marginTop: "10px" }}>
+                  <div className={estilos.campoForm}>
+                    <label className={estilos.labelForm}>Bono Ataque (Opc.):</label>
+                    <input
+                      type="number"
+                      value={oNuevoHechizoBonoAtaque}
+                      onChange={(e) => setONuevoHechizoBonoAtaque(e.target.value === "" ? "" : parseInt(e.target.value))}
+                      placeholder="Ej. +7"
+                      className={estilos.inputForm}
+                    />
+                  </div>
+                  <div className={estilos.campoForm}>
+                    <label className={estilos.labelForm}>Coste Cargas (Opc.):</label>
+                    <input
+                      type="number"
+                      value={oNuevoHechizoCosteCargas}
+                      onChange={(e) => setONuevoHechizoCosteCargas(e.target.value === "" ? "" : parseInt(e.target.value))}
+                      placeholder="Ej. 1"
+                      className={estilos.inputForm}
+                    />
+                  </div>
+                  <div className={estilos.campoForm} style={{ justifyContent: "flex-end" }}>
+                    <button
+                      type="button"
+                      onClick={agregarHechizoVinculado}
+                      className={estilos.botonAgregarDinamico}
+                      style={{ width: "100%", height: "36px", marginTop: "16px" }}
+                    >
+                      + Añadir Hechizo
+                    </button>
+                  </div>
+                </div>
+
+                {/* LISTA DE HECHIZOS VINCULADOS APLICADOS */}
+                {oHechizosVinculados.length > 0 && (
+                  <div className={estilos.listaDinamicaVisual} style={{ marginTop: "10px" }}>
+                    {oHechizosVinculados.map((hechizo, idx) => (
+                      <div key={`hechizo_${idx}`} className={estilos.itemDinamicoVisual}>
+                        <div className={estilos.bonoTextoInfo}>
+                          <span className={estilos.bonoTagCategoria}>✨ HECHIZO</span>{" "}
+                          <strong>{hechizo.nombre}</strong>
+                          {hechizo.cd !== undefined && hechizo.cd !== "" && ` | CD ${hechizo.cd}`}
+                          {hechizo.bonoAtaque !== undefined && hechizo.bonoAtaque !== "" && ` | Bono Ataque: +${hechizo.bonoAtaque}`}
+                          {hechizo.costeCargas !== undefined && hechizo.costeCargas !== "" && ` | Coste: ${hechizo.costeCargas} c.`}
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => eliminarHechizoVinculadoIdx(idx)}
                           className={estilos.botonEliminarDinamico}
                         >
                           <X size={12} />

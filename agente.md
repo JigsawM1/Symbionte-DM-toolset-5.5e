@@ -1593,6 +1593,33 @@ Se consultó sobre la compatibilidad de la skill `ponytail` (repositorio `Dietri
 > 4. Las acciones que alteren o desvinculen datos persistidos del usuario deben poseer confirmaciones previas y restablecer el estado inicial a valores por defecto consistentes.
 > 5. **Refactorización a Componentes Reusables (Override de YAGNI):** Cuando una misma interacción crítica (como confirmaciones de borrado/desvinculación) se duplica en varias vistas independientes, es beneficioso extraerla a un componente puro común (`ConfirmDialog.tsx`). Esto simplifica el JSX en los componentes cliente, reduce la duplicación de CSS/HTML inline, y centraliza el mantenimiento de estilos y accesibilidad de diálogos interactivos en WebViews CEF de TaleSpire.
 
+---
+
+## [2026-06-24] BUGFIX/REFACTOR: Enriquecimiento de Esquemas Homebrew, Integración JSX y Resolución de Prioridad de Coincidencia de Categoría de Objeto
+
+**Sintomas:**
+1. Compilación fallida debido a etiquetas JSX desbalanceadas e instrucciones redundantes de `tieneDatosMagicos` en `FormularioObjeto.tsx`.
+2. Mapeo erróneo de la categoría `ARMADURA` a `Arma` en `sanearObjetoHomebrew`, resultando en datos vacíos para CA o tipos incorrectos en tiempo de ejecución.
+3. Valores numéricos negativos representados con un formato redundante `+-2` en la visualización de efectos pasivos.
+
+**Causas raíz:**
+1. Un bloque de código dinámico insertado de forma incorrecta para el daño versátil de Armas dejó de cerrar el contenedor principal `bloqueDinamicoForm` del Arma en `FormularioObjeto.tsx`. Además, una versión vieja y duplicada de la variable `tieneDatosMagicos` referenciaba la propiedad eliminada `oBonosMagicos.length` en la línea 200.
+2. La función `sanearObjetoHomebrew` evaluaba el tipo de objeto en base a `catTxt.includes("ARMA")`. Como `"ARMADURA"` contiene `"ARMA"`, la condición siempre evaluaba a `true` antes de verificar si era armadura, provocando que todas las armaduras se sanitizaran como armas.
+3. La lógica de presentación visual formateaba los valores de efectos pasivos agregando un prefijo `+` si el valor no era nulo (`+${efecto.valor}`), sin evaluar si ya contenía un signo menos para valores negativos.
+
+**Soluciones aplicadas:**
+1. Se cerró de manera correcta el div contenedor del Arma antes de la expresión `)}` y se eliminó la definición duplicada de `tieneDatosMagicos` en `FormularioObjeto.tsx`.
+2. Se reordenaron las condiciones en `sanearObjetoHomebrew` para evaluar `"ARMADURA"` / `"ARMOR"` prioritariamente antes de `"ARMA"` / `"WEAPON"`.
+3. Se diseñó una expresión condicional combinando `isNaN(Number(val))` para admitir textos ("Ventaja") y números con signos correctos (por ejemplo, `+1`, `-2`) sin signos redundantes.
+4. Se añadió una suite de pruebas unitarias exhaustiva `sanitizacion.test.ts` para verificar la sanitización, migración de `bonosMagicos` legados y el parseo de todas las propiedades mágicas, armas y armaduras.
+
+**Lección aprendida:**
+> 🔍 **Precedencia en Coincidencias de Cadenas y Equilibrio en Estructuras Dinámicas:**
+> 1. Al realizar coincidencias o mapeos basados en subcadenas (`String.prototype.includes`), evalúa siempre primero el término más largo o específico (`ARMADURA` / `ARMOR` antes de `ARMA` / `WEAPON`). De lo contrario, los términos cortos actuarán como capturadores codiciosos e invalidarán las ramas subsecuentes.
+> 2. Mantén la integridad del flujo JSX validando que cada bloque renderizado condicionalmente posea una estructura de árbol HTML/React perfectamente balanceada. Un solo `div` mal cerrado puede desconfigurar toda la estructura a ojos del compilador.
+> 3. En interfaces visuales con formatos condicionales (como añadir un signo `+` a modificadores numéricos), utiliza conversores y validadores numéricos deterministas (`isNaN` y `Number()`) para evitar comportamientos no deseados o formatos inválidos como `+-2`.
+> 4. Escribir pruebas unitarias (`.test.ts`) específicas para flujos de parseo y normalización de datos críticos es la mejor forma de detectar errores sutiles de lógica antes de que causen problemas difíciles de diagnosticar en la interfaz de usuario.
+
 
 
 

@@ -209,10 +209,30 @@ export const EsquemaHechizoBase = z.object({
   tipoDaño: z.string().optional()
 });
 export type HechizoBase = z.infer<typeof EsquemaHechizoBase>;
-
-// ==========================================
 // 5. EQUIPO Y OBJETOS MÁGICOS
 // ==========================================
+
+export const EsquemaEfectoPasivo = z.object({
+  tipo: z.string(), // "Resistencia", "Inmunidad", "Foco Arcano", "Otro"
+  bono: z.string(), // ej. "Fuego", "Constitución"
+  valor: z.union([z.number(), z.string()]).optional(),
+  descripcion: z.string().optional()
+});
+export type EfectoPasivo = z.infer<typeof EsquemaEfectoPasivo>;
+
+export const EsquemaHechizoVinculado = z.object({
+  nombre: z.string(),
+  cd: z.number().optional(),
+  bonoAtaque: z.number().optional(),
+  costeCargas: z.number().optional()
+});
+export type HechizoVinculado = z.infer<typeof EsquemaHechizoVinculado>;
+
+export const EsquemaArtesania = z.object({
+  tallerRequerido: z.string(),
+  componentes: z.array(z.string())
+});
+export type Artesania = z.infer<typeof EsquemaArtesania>;
 
 export const EsquemaObjetoBase = z.object({
   id: z.string(),
@@ -223,11 +243,6 @@ export const EsquemaObjetoBase = z.object({
   valorPO: z.number().default(0),
   rareza: EsquemaRareza,
   esMagico: z.boolean().default(false),
-  bonosMagicos: z.array(z.object({
-    categoria: z.string(),
-    bono: z.string(),
-    valor: z.number()
-  })).optional(),
   propiedades: z.union([z.string(), z.array(z.string())]).optional(),
   
   // Nuevos campos para costo estructurado, venenos, y equipable
@@ -239,7 +254,21 @@ export const EsquemaObjetoBase = z.object({
   tipoVeneno: z.enum(["Contacto", "Ingerido", "Inhalado", "Lesión"]).optional(),
   cdSalvacionVeneno: z.number().optional(),
   efectoVeneno: z.string().optional(),
-  equipable: z.boolean().default(false)
+  equipable: z.boolean().default(false),
+
+  // Bloque de Propiedades Mágicas y Narrativas comunes
+  sintonizacionRequerida: z.boolean().optional(),
+  cargas: z.number().optional(),
+  condicionSintonizacion: z.string().optional(),
+  formulaRecarga: z.string().optional(),
+  estaMaldito: z.boolean().optional(),
+  esConsciente: z.boolean().optional(),
+  modificadorAtaqueDano: z.number().optional(),
+  efectosPasivos: z.array(EsquemaEfectoPasivo).optional(),
+  hechizosVinculados: z.array(EsquemaHechizoVinculado).optional(),
+
+  // Crafteo / Homebrew
+  artesania: EsquemaArtesania.optional()
 });
 export type ObjetoBase = z.infer<typeof EsquemaObjetoBase>;
 
@@ -252,7 +281,9 @@ export const EsquemaArma = EsquemaObjetoBase.extend({
   propiedades: z.array(z.string()),
   maestria: z.string(),
   alcanceNormal: z.number().optional(),
-  alcanceLargo: z.number().optional()
+  alcanceLargo: z.number().optional(),
+  danoVersatil: z.string().optional(),
+  municionRequerida: z.boolean().optional()
 });
 export type Arma = z.infer<typeof EsquemaArma>;
 
@@ -262,16 +293,15 @@ export const EsquemaArmadura = EsquemaObjetoBase.extend({
   caBase: z.number(),
   requisitoFuerza: z.number().optional(),
   desventajaSigilo: z.boolean().default(false),
-  bonoDestreza: EsquemaTipoBonoDestreza
+  bonoDestreza: EsquemaTipoBonoDestreza,
+  tiempoEquipar: z.union([z.number(), z.string()]).optional()
 });
 export type Armadura = z.infer<typeof EsquemaArmadura>;
 
 export const EsquemaEquipoAventuras = EsquemaObjetoBase.extend({
   tipoPrincipal: z.literal("Equipo de Aventuras"),
   subcategoria: EsquemaSubcategoriaEquipo,
-  cantidad: z.number().optional(),
-  sintonizacionRequerida: z.boolean().optional(),
-  cargas: z.number().optional()
+  cantidad: z.number().optional()
 });
 export type EquipoAventuras = z.infer<typeof EsquemaEquipoAventuras>;
 

@@ -529,6 +529,18 @@ export const ListaHomebrew: React.FC<Props> = ({
                         </strong>
                       </div>
                     )}
+                    {objeto.danoVersatil && (
+                      <div className={estilos.itemMecanica}>
+                        <span className={estilos.textoEtiquetaMecanica}>A dos manos: </span>
+                        <strong className={estilos.valorMecanicaDano}>{objeto.danoVersatil}</strong>
+                      </div>
+                    )}
+                    {objeto.municionRequerida !== undefined && (
+                      <div className={estilos.itemMecanica}>
+                        <span className={estilos.textoEtiquetaMecanica}>Usa Munición: </span>
+                        <strong className={estilos.valorMecanicaCd}>{objeto.municionRequerida ? "Sí" : "No"}</strong>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
@@ -556,27 +568,62 @@ export const ListaHomebrew: React.FC<Props> = ({
                         {objeto.desventajaSigilo ? "Sí" : "No"}
                       </strong>
                     </div>
+                    {objeto.tiempoEquipar && (
+                      <div className={estilos.itemMecanica}>
+                        <span className={estilos.textoEtiquetaMecanica}>Tiempo Equipar: </span>
+                        <strong className={estilos.valorMecanicaCd}>{objeto.tiempoEquipar}</strong>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
 
-              {/* ATRIBUTOS DE EQUIPO DE AVENTURAS */}
-              {objeto.tipoPrincipal === "Equipo de Aventuras" && (objeto.cargas || objeto.sintonizacionRequerida) && (
-                <div className={estilos.cajaMecanicasCombateObjeto} style={{ borderColor: "rgba(255, 99, 71, 0.25)" }}>
-                  <div className={estilos.tituloMecanicasObjeto} style={{ color: "var(--color-peligro)" }}>
-                    Propiedades de Aventura
+              {/* PROPIEDADES MÁGICAS Y NARRATIVAS COMUNES */}
+              {(objeto.cargas || objeto.sintonizacionRequerida || objeto.estaMaldito || objeto.esConsciente || (objeto.modificadorAtaqueDano !== undefined && objeto.modificadorAtaqueDano !== null)) && (
+                <div className={estilos.cajaMecanicasCombateObjeto} style={{ borderColor: "var(--color-borde-cian)" }}>
+                  <div className={estilos.tituloMecanicasObjeto} style={{ color: "var(--color-borde-cian)" }}>
+                    Propiedades Mágicas y Narrativas
                   </div>
+                  
+                  {/* Toggles narrativos llamativos */}
+                  {(objeto.estaMaldito || objeto.esConsciente) && (
+                    <div style={{ display: "flex", gap: "8px", marginBottom: "8px", flexWrap: "wrap" }}>
+                      {objeto.estaMaldito && (
+                        <span style={{ fontSize: "11px", fontWeight: "bold", background: "rgba(239, 68, 68, 0.15)", border: "1px solid var(--color-peligro)", color: "var(--color-peligro)", padding: "2px 6px", borderRadius: "4px" }}>
+                          💀 OBJETO MALDITO
+                        </span>
+                      )}
+                      {objeto.esConsciente && (
+                        <span style={{ fontSize: "11px", fontWeight: "bold", background: "rgba(6, 182, 212, 0.15)", border: "1px solid var(--color-borde-cian)", color: "var(--color-borde-cian)", padding: "2px 6px", borderRadius: "4px" }}>
+                          🧠 OBJETO CONSCIENTE
+                        </span>
+                      )}
+                    </div>
+                  )}
+
                   <div className={estilos.gridMecanicas}>
                     {objeto.cargas && (
                       <div className={estilos.itemMecanica}>
                         <span className={estilos.textoEtiquetaMecanica}>Cargas Máximas: </span>
-                        <strong className={estilos.valorMecanicaDano}>{objeto.cargas}</strong>
+                        <strong className={estilos.valorMecanicaDano}>
+                          {objeto.cargas}
+                          {objeto.formulaRecarga && ` (${objeto.formulaRecarga})`}
+                        </strong>
                       </div>
                     )}
                     {objeto.sintonizacionRequerida && (
                       <div className={estilos.itemMecanica}>
                         <span className={estilos.textoEtiquetaMecanica}>Sintonización: </span>
-                        <strong className={estilos.valorMecanicaCd}>Requerida</strong>
+                        <strong className={estilos.valorMecanicaCd} style={{ color: "var(--color-borde-cian)" }}>
+                          Requerida
+                          {objeto.condicionSintonizacion && ` (${objeto.condicionSintonizacion})`}
+                        </strong>
+                      </div>
+                    )}
+                    {objeto.modificadorAtaqueDano !== undefined && objeto.modificadorAtaqueDano !== null && (
+                      <div className={estilos.itemMecanica}>
+                        <span className={estilos.textoEtiquetaMecanica}>Bono Mágico Directo: </span>
+                        <strong className={estilos.valorMecanicaAtaque}>+{objeto.modificadorAtaqueDano}</strong>
                       </div>
                     )}
                   </div>
@@ -597,19 +644,82 @@ export const ListaHomebrew: React.FC<Props> = ({
                 </div>
               )}
 
-              {/* Bonificaciones Mágicas Dinámicas */}
-              {objeto.bonosMagicos && objeto.bonosMagicos.length > 0 && (
+              {/* Efectos Pasivos Aplicados */}
+              {objeto.efectosPasivos && objeto.efectosPasivos.length > 0 && (
                 <div className={estilos.seccionDescripcionFichaMargenGrande}>
-                  <div className={estilos.descripcionTituloFicha}>BONOS MÁGICOS Y MEJORAS ACTIVAS</div>
-                  <div className={estilos.listaBonosMagicos}>
-                    {objeto.bonosMagicos.map((bono: { categoria: string; bono?: string; valor: number }, idx: number) => (
-                      <div key={idx} className={estilos.cajaBonoMagico}>
-                        <span className={estilos.textoEtiquetaMecanica}>
-                          {bono.categoria} {bono.bono ? `(${bono.bono})` : ""}
-                        </span>
-                        <strong className={estilos.valorMecanicaAtaque}>+{bono.valor}</strong>
+                  <div className={estilos.descripcionTituloFicha}>EFECTOS PASIVOS Y BONOS AUTOMÁTICOS</div>
+                  <div className={estilos.listaBonosMagicos} style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                    {objeto.efectosPasivos.map((efecto: { tipo: string; bono: string; valor?: number | string; descripcion?: string }, idx: number) => (
+                      <div key={idx} className={estilos.cajaBonoMagico} style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", gap: "2px", padding: "8px 12px" }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", width: "100%" }}>
+                          <span className={estilos.textoEtiquetaMecanica} style={{ color: "var(--color-borde-cian)" }}>
+                            [{efecto.tipo}] <strong>{efecto.bono}</strong>
+                          </span>
+                          {efecto.valor !== undefined && efecto.valor !== "" && (
+                            <strong className={estilos.valorMecanicaAtaque}>
+                              {isNaN(Number(efecto.valor)) ? efecto.valor : (Number(efecto.valor) >= 0 ? `+${efecto.valor}` : efecto.valor)}
+                            </strong>
+                          )}
+                        </div>
+                        {efecto.descripcion && (
+                          <span style={{ fontSize: "11px", color: "var(--color-texto-secundario)", marginTop: "2px" }}>
+                            {efecto.descripcion}
+                          </span>
+                        )}
                       </div>
                     ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Hechizos Vinculados */}
+              {objeto.hechizosVinculados && objeto.hechizosVinculados.length > 0 && (
+                <div className={estilos.seccionDescripcionFichaMargenGrande}>
+                  <div className={estilos.descripcionTituloFicha}>HECHIZOS VINCULADOS AL OBJETO</div>
+                  <div className={estilos.listaBonosMagicos} style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                    {objeto.hechizosVinculados.map((hechizo: { nombre: string; cd?: number; bonoAtaque?: number; costeCargas?: number }, idx: number) => (
+                      <div key={idx} className={estilos.cajaBonoMagico} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 12px" }}>
+                        <div>
+                          <strong style={{ color: "var(--color-texto-principal)" }}>{hechizo.nombre}</strong>
+                          <div style={{ display: "flex", gap: "8px", fontSize: "10px", color: "var(--color-texto-secundario)", marginTop: "2px" }}>
+                            {hechizo.cd !== undefined && <span>CD {hechizo.cd}</span>}
+                            {hechizo.bonoAtaque !== undefined && <span>Ataque: +{hechizo.bonoAtaque}</span>}
+                          </div>
+                        </div>
+                        {hechizo.costeCargas !== undefined && (
+                          <span style={{ fontSize: "11px", fontWeight: "bold", background: "rgba(0,0,0,0.2)", padding: "2px 6px", borderRadius: "4px", color: "var(--color-advertencia)" }}>
+                            Coste: {hechizo.costeCargas} carga{hechizo.costeCargas > 1 ? "s" : ""}
+                          </span>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Receta de Artesanía */}
+              {objeto.artesania && (objeto.artesania.tallerRequerido || (objeto.artesania.componentes && objeto.artesania.componentes.length > 0)) && (
+                <div className={estilos.seccionDescripcionFichaMargenGrande}>
+                  <div className={estilos.descripcionTituloFicha}>RECETA DE ARTESANÍA Y CRAFTEO</div>
+                  <div className={estilos.cajaMecanicasCombateObjeto} style={{ borderColor: "rgba(168, 85, 247, 0.25)", margin: 0 }}>
+                    {objeto.artesania.tallerRequerido && (
+                      <div style={{ marginBottom: "8px" }}>
+                        <span className={estilos.textoEtiquetaMecanica}>Taller de Trabajo: </span>
+                        <strong style={{ color: "var(--color-texto-principal)" }}>{objeto.artesania.tallerRequerido}</strong>
+                      </div>
+                    )}
+                    {objeto.artesania.componentes && objeto.artesania.componentes.length > 0 && (
+                      <div>
+                        <span className={estilos.textoEtiquetaMecanica} style={{ display: "block", marginBottom: "4px" }}>Materiales y Componentes:</span>
+                        <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
+                          {objeto.artesania.componentes.map((comp: string, idx: number) => (
+                            <span key={idx} style={{ fontSize: "11px", background: "rgba(168, 85, 247, 0.15)", border: "1px solid hsl(270, 70%, 50%)", color: "hsl(270, 100%, 85%)", padding: "2px 6px", borderRadius: "4px" }}>
+                              {comp}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}

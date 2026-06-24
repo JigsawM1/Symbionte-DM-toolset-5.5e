@@ -179,17 +179,69 @@ export function sanearObjetoHomebrew(o: unknown): ObjetoHomebrew {
     costoOriginalSaneado = { cantidad: Number(obj.costoValor) || 0, unidad: unidadEsp };
   }
 
-  // Extraer bonos mágicos
-  let bonosMagicosSaneados: { categoria: string; bono: string; valor: number }[] | undefined = undefined;
-  if (Array.isArray(obj.bonosMagicos)) {
-    bonosMagicosSaneados = obj.bonosMagicos.map((b) => {
+  // Extraer efectos pasivos (reemplazando bonosMagicos) y migrar bonosMagicos si es necesario
+  let efectosPasivosSaneados: { tipo: string; bono: string; valor?: number | string; descripcion?: string }[] | undefined = undefined;
+  if (Array.isArray(obj.efectosPasivos)) {
+    efectosPasivosSaneados = obj.efectosPasivos.map((e) => {
+      const eObj = (e && typeof e === "object" ? e : {}) as Record<string, unknown>;
+      return {
+        tipo: aplanarValor(eObj.tipo || eObj.categoria || "Otro"),
+        bono: aplanarValor(eObj.bono || ""),
+        valor: eObj.valor !== undefined && eObj.valor !== "" ? (typeof eObj.valor === "number" ? eObj.valor : aplanarValor(eObj.valor)) : undefined,
+        descripcion: eObj.descripcion !== undefined ? aplanarValor(eObj.descripcion) : undefined
+      };
+    });
+  } else if (Array.isArray(obj.bonosMagicos)) {
+    // Migración de compatibilidad
+    efectosPasivosSaneados = obj.bonosMagicos.map((b) => {
       const bObj = (b && typeof b === "object" ? b : {}) as Record<string, unknown>;
       return {
-        categoria: aplanarValor(bObj.categoria || bObj.category || "OTRO"),
+        tipo: aplanarValor(bObj.categoria || bObj.category || "Otro"),
         bono: aplanarValor(bObj.bono || bObj.bonus || ""),
         valor: Number(bObj.valor || bObj.value) || 0
       };
     });
+  }
+
+  // Extraer sintonizacionRequerida y cargas (ahora en la base)
+  const sintonizacionRequeridaSaneada = obj.sintonizacionRequerida !== undefined
+    ? !!obj.sintonizacionRequerida
+    : (obj.attunement !== undefined ? !!obj.attunement : undefined);
+  const cargasSaneadas = obj.cargas !== undefined && obj.cargas !== ""
+    ? (Number(obj.cargas) || undefined)
+    : (obj.charges !== undefined && obj.charges !== "" ? (Number(obj.charges) || undefined) : undefined);
+
+  // Propiedades mágicas y narrativas comunes
+  const condicionSintonizacionSaneada = obj.condicionSintonizacion !== undefined ? aplanarValor(obj.condicionSintonizacion) : undefined;
+  const formulaRecargaSaneada = obj.formulaRecarga !== undefined ? aplanarValor(obj.formulaRecarga) : undefined;
+  const estaMalditoSaneado = obj.estaMaldito !== undefined ? !!obj.estaMaldito : undefined;
+  const esConscienteSaneado = obj.esConsciente !== undefined ? !!obj.esConsciente : undefined;
+  const modificadorAtaqueDanoSaneado = obj.modificadorAtaqueDano !== undefined && obj.modificadorAtaqueDano !== ""
+    ? (Number(obj.modificadorAtaqueDano) || undefined)
+    : undefined;
+
+  // Hechizos vinculados
+  let hechizosVinculadosSaneados: { nombre: string; cd?: number; bonoAtaque?: number; costeCargas?: number }[] | undefined = undefined;
+  if (Array.isArray(obj.hechizosVinculados)) {
+    hechizosVinculadosSaneados = obj.hechizosVinculados.map((h) => {
+      const hObj = (h && typeof h === "object" ? h : {}) as Record<string, unknown>;
+      return {
+        nombre: aplanarValor(hObj.nombre || "Hechizo"),
+        cd: hObj.cd !== undefined && hObj.cd !== "" ? Number(hObj.cd) || undefined : undefined,
+        bonoAtaque: hObj.bonoAtaque !== undefined && hObj.bonoAtaque !== "" ? Number(hObj.bonoAtaque) || undefined : undefined,
+        costeCargas: hObj.costeCargas !== undefined && hObj.costeCargas !== "" ? Number(hObj.costeCargas) || undefined : undefined
+      };
+    });
+  }
+
+  // Artesanía
+  let artesaniaSaneada: { tallerRequerido: string; componentes: string[] } | undefined = undefined;
+  if (obj.artesania && typeof obj.artesania === "object") {
+    const artObj = obj.artesania as Record<string, unknown>;
+    artesaniaSaneada = {
+      tallerRequerido: aplanarValor(artObj.tallerRequerido || ""),
+      componentes: Array.isArray(artObj.componentes) ? artObj.componentes.map(aplanarValor).filter(Boolean) : []
+    };
   }
 
   // Determinar tipoPrincipal
@@ -202,10 +254,10 @@ export function sanearObjetoHomebrew(o: unknown): ObjetoHomebrew {
     catTxt = aplanarValor(obj.tipoPrincipal || obj.categoria || "Equipo de Aventuras").toUpperCase();
   }
 
-  if (catTxt === "ARMA" || catTxt === "WEAPON" || catTxt.includes("WEAPON") || catTxt.includes("ARMA")) {
-    tipoPrincipalSaneado = "Arma";
-  } else if (catTxt === "ARMADURA" || catTxt === "ARMOR" || catTxt.includes("ARMOR") || catTxt.includes("ARMADURA")) {
+  if (catTxt === "ARMADURA" || catTxt === "ARMOR" || catTxt.includes("ARMOR") || catTxt.includes("ARMADURA")) {
     tipoPrincipalSaneado = "Armadura";
+  } else if (catTxt === "ARMA" || catTxt === "WEAPON" || catTxt.includes("WEAPON") || catTxt.includes("ARMA")) {
+    tipoPrincipalSaneado = "Arma";
   }
 
   // Conservar propiedades de string
@@ -231,13 +283,22 @@ export function sanearObjetoHomebrew(o: unknown): ObjetoHomebrew {
     valorPO: valorSaneado,
     rareza: rarezaSaneada,
     esMagico: esMagicoSaneado,
-    bonosMagicos: bonosMagicosSaneados,
     costoOriginal: costoOriginalSaneado,
     esVeneno: esVenenoSaneado,
     tipoVeneno: tipoVenenoSaneado,
     cdSalvacionVeneno: cdSalvacionVenenoSaneado,
     efectoVeneno: efectoVenenoSaneado,
-    equipable: equipableSaneado
+    equipable: equipableSaneado,
+    sintonizacionRequerida: sintonizacionRequeridaSaneada,
+    cargas: cargasSaneadas,
+    condicionSintonizacion: condicionSintonizacionSaneada,
+    formulaRecarga: formulaRecargaSaneada,
+    estaMaldito: estaMalditoSaneado,
+    esConsciente: esConscienteSaneado,
+    modificadorAtaqueDano: modificadorAtaqueDanoSaneado,
+    efectosPasivos: efectosPasivosSaneados,
+    hechizosVinculados: hechizosVinculadosSaneados,
+    artesania: artesaniaSaneada
   };
 
   // Saneamiento específico por tipo
@@ -356,6 +417,9 @@ export function sanearObjetoHomebrew(o: unknown): ObjetoHomebrew {
       }
     }
 
+    const danoVersatilSaneado = obj.danoVersatil !== undefined ? aplanarValor(obj.danoVersatil) : undefined;
+    const municionRequeridaSaneada = obj.municionRequerida !== undefined ? !!obj.municionRequerida : undefined;
+
     return {
       ...baseObjeto,
       tipoPrincipal: "Arma",
@@ -366,7 +430,9 @@ export function sanearObjetoHomebrew(o: unknown): ObjetoHomebrew {
       propiedades: propsArma,
       maestria: maestriaSaneada,
       alcanceNormal: alcNormal,
-      alcanceLargo: alcLargo
+      alcanceLargo: alcLargo,
+      danoVersatil: danoVersatilSaneado,
+      municionRequerida: municionRequeridaSaneada
     } as Arma;
   } else if (tipoPrincipalSaneado === "Armadura") {
     let subArmor: "Ligera" | "Mediana" | "Pesada" | "Escudo" = "Ligera";
@@ -417,6 +483,10 @@ export function sanearObjetoHomebrew(o: unknown): ObjetoHomebrew {
       else if (subArmor === "Pesada") bonoDest = "Sin Bono";
     }
 
+    const tiempoEquiparSaneado = obj.tiempoEquipar !== undefined
+      ? (typeof obj.tiempoEquipar === "number" ? obj.tiempoEquipar : aplanarValor(obj.tiempoEquipar))
+      : undefined;
+
     return {
       ...baseObjeto,
       propiedades: propiedadesSaneadas,
@@ -425,7 +495,8 @@ export function sanearObjetoHomebrew(o: unknown): ObjetoHomebrew {
       caBase: caBaseSaneada,
       requisitoFuerza: reqFuerza,
       desventajaSigilo: desSigilo,
-      bonoDestreza: bonoDest
+      bonoDestreza: bonoDest,
+      tiempoEquipar: tiempoEquiparSaneado
     } as Armadura;
   } else {
     let subEquipo: SubcategoriaEquipo = "Maravilloso";
@@ -437,17 +508,13 @@ export function sanearObjetoHomebrew(o: unknown): ObjetoHomebrew {
     else if (subTxt.includes("PAQUETE") || subTxt.includes("PACK") || subTxt.includes("GEAR") || subTxt.includes("STANDARD-GEAR")) subEquipo = "Paquete";
 
     const cant = obj.cantidad !== undefined ? (Number(obj.cantidad) || undefined) : undefined;
-    const sint = obj.sintonizacionRequerida !== undefined ? !!obj.sintonizacionRequerida : undefined;
-    const cg = obj.cargas !== undefined ? (Number(obj.cargas) || undefined) : undefined;
 
     return {
       ...baseObjeto,
       propiedades: propiedadesSaneadas,
       tipoPrincipal: "Equipo de Aventuras",
       subcategoria: subEquipo,
-      cantidad: cant,
-      sintonizacionRequerida: sint,
-      cargas: cg
+      cantidad: cant
     } as EquipoAventuras;
   }
 }

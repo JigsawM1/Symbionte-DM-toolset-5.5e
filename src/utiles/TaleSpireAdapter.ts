@@ -46,8 +46,7 @@ class TaleSpireAdapter {
       if (window.TS?.dice && typeof window.TS.dice.isValidRollString === "function") {
         return window.TS.dice.isValidRollString(rollStr);
       }
-      // Validación básica por regex en desarrollo local
-      return /^[0-9d+\-*/() :!]+$/i.test(rollStr);
+      return false;
     },
 
     /**
@@ -61,8 +60,8 @@ class TaleSpireAdapter {
           console.error("[TS Adapter] Error en makeRollDescriptors nativo:", error);
         }
       }
-      // Fallback local: parseador manual
-      return this.crearDescriptoresManualmente(rollStr);
+      console.error("[TS Adapter] dice.makeRollDescriptors no disponible. Retornando vacío.");
+      return [];
     },
 
     /**
@@ -72,8 +71,8 @@ class TaleSpireAdapter {
       if (window.TS?.dice && typeof window.TS.dice.putDiceInTray === "function") {
         return await window.TS.dice.putDiceInTray(descriptors, silenceDefaultChatCard);
       }
-      console.warn("[TS Adapter] dice.putDiceInTray no disponible. Simulación simulada.");
-      return `mock_roll_${Date.now()}`;
+      console.error("[TS Adapter] dice.putDiceInTray no disponible.");
+      return "";
     },
 
     /**
@@ -97,7 +96,7 @@ class TaleSpireAdapter {
       if (window.TS?.dice && typeof window.TS.dice.sendDiceResult === "function") {
         await window.TS.dice.sendDiceResult(groups, rollId);
       } else {
-        console.log("[TS Adapter MOCK CHAT RESULT] rollId:", rollId, "groups:", groups);
+        console.warn("[TS Adapter] dice.sendDiceResult no disponible.");
       }
     }
   };
@@ -115,8 +114,8 @@ class TaleSpireAdapter {
         // La API v0.1 requiere un segundo parámetro "board" para representar visualmente el chat.
         return await window.TS.chat.send(message, "board");
       }
-      console.log(`%c[TS Adapter Chat] ${message}`, "color: #b4befe; font-style: italic;");
-      return true;
+      console.warn("[TS Adapter] chat.send no disponible.");
+      return false;
     },
 
     /**
@@ -131,8 +130,8 @@ class TaleSpireAdapter {
           return await window.TS.chat.send(message, "board");
         }
       }
-      console.log(`%c[TS Adapter Chat MultiTo ${targets.join(",")}] ${message}`, "color: #b4befe;");
-      return true;
+      console.warn("[TS Adapter] chat.multiSend no disponible.");
+      return false;
     },
 
     /**
@@ -275,8 +274,7 @@ class TaleSpireAdapter {
           console.error("[TS Adapter] Error al comprobar rol GM oficial:", e);
         }
       }
-      // Valor por defecto en navegador local es true para desarrollo cómodo
-      return true;
+      return false;
     },
 
     /**
@@ -291,7 +289,7 @@ class TaleSpireAdapter {
           console.error("[TS Adapter] Error obteniendo ID de jugador:", e);
         }
       }
-      return "local_player";
+      return null;
     }
   };
 
@@ -305,7 +303,7 @@ class TaleSpireAdapter {
      * NOTA: La API real de TaleSpire setBlob usa firma (data) sin clave.
      * La clave se mantiene en la interfaz para el fallback de navegador.
      */
-    guardarBlob: async (clave: string, datos: string): Promise<boolean> => {
+    guardarBlob: async (_clave: string, datos: string): Promise<boolean> => {
       if (window.TS?.localStorage?.global && typeof window.TS.localStorage.global.setBlob === "function") {
         try {
           // API real de TaleSpire: setBlob(data) — sin clave
@@ -316,21 +314,15 @@ class TaleSpireAdapter {
           return false;
         }
       }
-      // Fallback localstorage navegador
-      try {
-        window.localStorage.setItem(clave, datos);
-        return true;
-      } catch (e) {
-        console.error("[TS Adapter] Fallback setItem falló:", e);
-        return false;
-      }
+      console.warn("[TS Adapter] localStorage.guardarBlob no disponible.");
+      return false;
     },
 
     /**
      * Lee un Blob de texto persistente de TaleSpire.
      * NOTA: La API real de TaleSpire getBlob usa firma () sin parámetros.
      */
-    leerBlob: async (clave: string): Promise<string | null> => {
+    leerBlob: async (_clave: string): Promise<string | null> => {
       if (window.TS?.localStorage?.global && typeof window.TS.localStorage.global.getBlob === "function") {
         try {
           // API real de TaleSpire: getBlob() — sin clave
@@ -340,19 +332,14 @@ class TaleSpireAdapter {
           return null;
         }
       }
-      // Fallback localstorage
-      try {
-        return window.localStorage.getItem(clave);
-      } catch (e) {
-        console.error("[TS Adapter] Fallback getItem falló:", e);
-        return null;
-      }
+      console.warn("[TS Adapter] localStorage.leerBlob no disponible.");
+      return null;
     },
 
     /**
      * Elimina el blob de TaleSpire.
      */
-    eliminarBlob: async (clave: string): Promise<boolean> => {
+    eliminarBlob: async (_clave: string): Promise<boolean> => {
       if (window.TS?.localStorage?.global) {
         const globalStorage = window.TS.localStorage.global;
         try {
@@ -369,13 +356,8 @@ class TaleSpireAdapter {
           return false;
         }
       }
-      // Fallback localstorage
-      try {
-        window.localStorage.removeItem(clave);
-        return true;
-      } catch (e) {
-        return false;
-      }
+      console.warn("[TS Adapter] localStorage.eliminarBlob no disponible.");
+      return false;
     }
   };
 
@@ -431,7 +413,7 @@ class TaleSpireAdapter {
       if (window.TS?.debug && typeof window.TS.debug.log === "function") {
         window.TS.debug.log(mensaje);
       } else {
-        console.log(`[TaleSpire Debug MOCK] ${mensaje}`);
+        console.log(`[TS Debug] ${mensaje}`);
       }
     }
   };
@@ -439,46 +421,6 @@ class TaleSpireAdapter {
   // ==========================================
   // --- HELPERS INTERNOS ---
   // ==========================================
-
-  /**
-   * Crea descriptores de dados manualmente a partir de una fórmula de texto.
-   */
-  private crearDescriptoresManualmente(formula: string): DescriptorTirada[] {
-    if (!formula) return [{ name: "Tirada", roll: "1d20" }];
-    const formulaLimpia = formula.replace(/!/g, "");
-    const partes = formulaLimpia.split("/");
-
-    if (partes.length === 1) {
-      if (!formulaLimpia.includes(":")) {
-        return [{ name: "Tirada", roll: formulaLimpia }];
-      }
-      const regexGrupo = /([^:+]+):([0-9d+\-*/()]+)/g;
-      const desc: DescriptorTirada[] = [];
-      let match;
-      while ((match = regexGrupo.exec(formulaLimpia)) !== null) {
-        desc.push({
-          name: match[1].trim(),
-          roll: match[2].trim()
-        });
-      }
-      if (desc.length > 0) return desc;
-      return [{ name: "Tirada", roll: formulaLimpia }];
-    }
-
-    return partes.map((p) => {
-      const match = p.trim().match(/^([^:]+):(.*)$/);
-      if (match) {
-        return {
-          name: match[1].trim(),
-          roll: match[2].trim()
-        };
-      }
-      return {
-        name: "Tirada",
-        roll: p.trim()
-      };
-    });
-  }
 
   /**
    * Suma manualmente los valores resultantes de dados de un grupo si evaluate nativa falla.

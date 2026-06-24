@@ -1619,8 +1619,87 @@ Se consultó sobre la compatibilidad de la skill `ponytail` (repositorio `Dietri
 > 2. Mantén la integridad del flujo JSX validando que cada bloque renderizado condicionalmente posea una estructura de árbol HTML/React perfectamente balanceada. Un solo `div` mal cerrado puede desconfigurar toda la estructura a ojos del compilador.
 > 3. En interfaces visuales con formatos condicionales (como añadir un signo `+` a modificadores numéricos), utiliza conversores y validadores numéricos deterministas (`isNaN` y `Number()`) para evitar comportamientos no deseados o formatos inválidos como `+-2`.
 > 4. Escribir pruebas unitarias (`.test.ts`) específicas para flujos de parseo y normalización de datos críticos es la mejor forma de detectar errores sutiles de lógica antes de que causen problemas difíciles de diagnosticar en la interfaz de usuario.
+---
 
+## [2026-06-24] REFACTORIZACIÓN: Eliminación completa del Simulador del Navegador y Acoplamiento a la API Nativa de TaleSpire
 
+**Síntomas:**
+El proyecto incluía lógica duplicada para simular llamadas a la API de TaleSpire (`window.TS`) en navegadores convencionales (por ejemplo, `SimuladorTaleSpire.ts`), fallbacks de LocalStorage/IndexedDB redundantes para desarrollo local y detección dinámica de localhost. Esto incrementaba el tamaño del bundle, complejizaba el mantenimiento de la persistencia de datos y generaba advertencias innecesarias de desarrollo.
+
+**Causa raíz:**
+La fase inicial de desarrollo requería probar el Simbionte en navegadores estándar antes de implementarlo en el cliente nativo de TaleSpire. Una vez consolidada la compatibilidad exclusiva con TaleSpire CEF, el simulador y las capas de compatibilidad locales se volvieron obsoletos e innecesarios (bloatware).
+
+**Solución aplicada:**
+1. **Eliminación de archivos:** Se borraron `src/utiles/SimuladorTaleSpire.ts`, `src/utiles/almacenamientoIndexedDB.ts` y `src/utiles/almacenamientoFragmentos.ts`.
+2. **Desconexión en hooks (`usarConexionTaleSpire.ts`):** Se quitó la inicialización automática del simulador en localhost. Ahora el hook solo sondea la presencia de `window.TS` nativo por 15 segundos antes de emitir un fallo crítico en la consola.
+3. **Refactorización de persistencia (`sliceConfiguracion.ts`):** Se eliminó la lógica de migración heredada de LocalStorage y se simplificó `cargarDatosPersistidos` para consumir exclusivamente `leerBlobGlobal`.
+4. **Actualización de adaptadores (`TaleSpireAdapter.ts`):** Se removieron las implementaciones de simulación. Métodos como `putDiceInTray` o `guardarBlob` ahora devuelven un error o valor nulo de inmediato en lugar de emular llamadas. Se conservó el fallback legítimo para expresiones regulares de dados y el formateador de portapapeles nativo (`navigator.clipboard`).
+5. **Corrección de errores TS6133:** Se renombraron variables locales obsoletas no utilizadas (como cambiar `clave` a `_clave` en firmas que ya no usan LocalStorage) para cumplir con las reglas estrictas de compilación (`noUnusedLocals`).
+
+> ✂️ **El código de testing temporal no debe vivir en producción:** Cuando una fase de desarrollo simulado en navegador llega a su fin y se decide probar en el cliente nativo, elimina proactivamente todo el entorno de simulación (mocks, archivos dummies, lógicas condicionales de entorno). Esto aligera el código base, previene errores sutiles de sincronización de estado y reduce la carga cognitiva para futuros desarrollos.
+> 🛠️ **Cumple estrictamente con noUnusedLocals en TypeScript:** Si eliminas lógicas de fallback y dejas de usar variables en firmas de métodos que deben mantener compatibilidad de interfaz, antepón un guion bajo (`_`) al nombre de la variable para que el compilador de TypeScript ignore el error de variable declarada pero no leída (`TS6133`).
+
+---
+
+## [2026-06-24] QA & DIAGNÓSTICO: Verificación de Integridad en Caliente del Simbionte en TaleSpire Nivel Nativo
+
+**Contexto:**
+Se ejecutó un flujo automatizado de pruebas simulando interacciones del usuario final (clics en pestañas de navegación, cambio de sub-categorías de tablas, tiradas de dados ficticias, creación de tareas, búsquedas en compendios, edición de notas y apertura de menús desplegables) directamente conectado a la sesión activa del Simbionte en TaleSpire a través del puerto de depuración remota 8080.
+
+**Resultados del Diagnóstico:**
+- **Estabilidad del Código:** La aplicación completó la simulación con **0 errores críticos (excepciones)** y **0 advertencias** de React en la consola.
+- **Integridad de Integraciones Nativas:** El puente de mensajería asíncrona de TaleSpire (`window.TS`), la sincronización de iniciativa nativa y la carga/guardado de persistencia física mediante `TS.localStorage.global` funcionaron de forma consistente y limpia.
+- **Flujos Visuales:** Se verificó la correcta reactividad del store de Zustand al realizar las transiciones de pestañas y modificar el estado en caliente (tareas, notas de sesión).
+
+**Lecciones aprendidas (Automatización de QA en TaleSpire):**
+> 🔌 **Depuración a nivel de página en CEF/WebView2:** Al realizar pruebas de QA en entornos embebidos como TaleSpire CEF, las librerías pesadas como Puppeteer fallan con `ProtocolError: Target.getBrowserContexts: Not allowed` al intentar conectarse directamente a WebSockets de nivel de página (`/devtools/page/...`). La solución óptima es conectarse mediante un WebSocket nativo y comunicarse con la API de depuración de Chrome (CDP) usando llamadas directas a `Runtime.evaluate` y escuchando eventos como `Runtime.exceptionThrown`.
+>
+> 🔠 **Efectos de transformaciones CSS en aserciones de texto:** Propiedades de diseño CSS como `text-transform: uppercase` alteran el valor visual de la propiedad `innerText` del elemento DOM expuesta al inspector de depuración. Al simular clics o validar elementos por texto, haz siempre comparaciones insensibles a mayúsculas y minúsculas (`.toLowerCase()`) para evitar falsos negativos en la detección de componentes.
+
+---
+
+## [2026-06-24] QA & DIAGNÓSTICO: Validación E2E del Flujo de Creación, Edición y Eliminación de Homebrew en Caliente
+
+**Síntoma:**
+Durante la ejecución del flujo automatizado de pruebas, el script de QA fallaba al rellenar el formulario de creación de criatura Homebrew lanzando el error `Error: No se encontró el input de nombre`. Esto ocurría porque la aplicación no lograba realizar la transición de pestaña desde "Iniciativa" a "Homebrew" tras hacer clic en la opción "Crear Nuevo".
+
+**Causa raíz:**
+1. **Condiciones de Carrera (Race Conditions) en E2E:** Tras llamar a `irAPestana("Iniciativa")`, React inicia el renderizado y destrucción asíncrona de componentes. Si el script de pruebas evalúa el DOM inmediatamente, puede encontrar elementos remanentes o en proceso de desmontaje (como botones del menú superior desplegado con anterioridad). El script hacía clic en un botón "Crear Nuevo" obsoleto que estaba a punto de ser eliminado, haciendo que la acción de cambio de pestaña se perdiera.
+2. **Selectores de Elementos Imprecisos:** El selector utilizado para buscar la opción del menú (`button, div, span`) seleccionaba el elemento inline `<span>Crear Nuevo</span>` en lugar del contenedor `<button>` que contenía el manejador de eventos `onClick` de React. Bajo ciertos navegadores embebidos como WebView2, disparar `.click()` en un elemento inline de tipo texto no propaga el evento de forma ascendente al botón principal de forma fiable, evitando que se active el cambio de pestaña.
+
+**Soluciones aplicadas (`test_inspector.js`):**
+1. **Búsqueda con Ámbito Acotado (Scoped Querying):** Se modificó la navegación para buscar el botón de la opción "Crear Nuevo" exclusivamente **dentro** del contenedor del menú desplegable activo (`document.querySelector('[class*="menuHomebrewDesplegable"]')`).
+2. **Precisión del Selector HTML:** Se restringió la búsqueda de la opción interactiva a elementos estrictamente de tipo `button` (`Array.from(parent.querySelectorAll('button'))`).
+3. **Mecanismo de Reintentos Asíncronos con Polling:** Se implementó una lógica de reintentos basada en promesas y `setTimeout` para el menú desplegable y los inputs del formulario. Esto permite esperar a que el DOM de React se estabilice antes de simular el clic o rellenar valores.
+
+**Lección aprendida:**
+> 🤖 **Pruebas de Interfaz Robustas en Entornos CEF/WebView2:**
+> 1. Al simular acciones del usuario en frameworks de componentes dinámicos (como React), **NUNCA** asumas que el DOM está instantáneamente estable tras una navegación. Utiliza siempre bucles de sondeo (polling) para esperar a que los nuevos elementos estén realmente montados.
+> 2. Al buscar elementos de acción clicables, restringe el selector al elemento interactivo final (p. ej., `button` o `a`) en lugar de etiquetas de texto internas (como `span` o `svg`), o en su defecto, utiliza `.closest('button')` para garantizar que el evento de clic sea interceptado por el manejador de React correspondiente.
+> 3. Acota el ámbito de tus selectores al contenedor del componente de interés (p. ej. buscar la opción del menú dentro de la clase desplegable `.menuHomebrewDesplegable`), protegiendo el script de interactuar accidentalmente con copias huérfanas de componentes destruidos.
+
+---
+
+## [2026-06-24] UI/UX: Desbordamiento del Viewport en Paneles e Interferencia con el Dado Flotante (Botones Cortados)
+
+**Síntomas:**
+1. **Campos finales inaccesibles:** Al editar/crear elementos Homebrew en TaleSpire, los inputs de la sección inferior (como recetas de crafteo, componentes o hechizos vinculados) quedaban cortados y no se podían escrolear a la vista.
+2. **Botón Guardar Cambios bloqueado:** El botón flotante del dado (`🎲`) de la interfaz de TaleSpire se posicionaba exactamente encima del botón de `"GUARDAR CAMBIOS"`, impidiendo que el usuario hiciera clic en él.
+3. **Scrollbar incompleto:** El final de los scrollbars de los formularios y listados quedaba por debajo del marco inferior visible del WebView2.
+
+**Causa raíz:**
+1. **Cálculo de altura erróneo:** Los paneles principales (`.panelFormulario` y `.panelLista`) tenían asignada una altura máxima de `calc(100vh - 120px)`. Dado que el panel comienza tras las barras de navegación superior y sub-pestañas (a unos `~190px` desde la parte superior), la altura real acumulada era `190px + 100vh - 120px = 100vh + 70px`. Esto empujaba los `70px` finales del panel (incluidos el final de su scrollbar y el relleno de formulario) fuera del viewport inferior.
+2. **Colisión de elementos fijos:** La barra de acciones pegajosa (`.stickyBottomBar`) usa `position: fixed; bottom: 0; left: 0; right: 0;` y sus botones se alinean al extremo derecho. Al ocupar todo el ancho, colisiona con el botón de dados flotante (`🎲`) de TaleSpire que también se posiciona fijo en `bottom: 20px; right: 20px;` con un `z-index` de 9999 (superior al de la barra de acciones).
+
+**Solución aplicada:**
+1. **Ajuste de max-height:** Se modificó la altura máxima en [CreadorHomebrew.module.css](file:///c:/Users/zamor/OneDrive/Documentos/Programas/ToolSet%20Es%205.5/src/componentes/CreadorHomebrew.module.css) y [ListaHomebrew.module.css](file:///c:/Users/zamor/OneDrive/Documentos/Programas/ToolSet%20Es%205.5/src/componentes/homebrew/ListaHomebrew.module.css) de `calc(100vh - 120px)` a `calc(100vh - 200px)`. Esto garantiza que los paneles terminen de forma segura por encima de la barra inferior (a unos `10px` de margen), manteniendo la scrollbar e inputs 100% visibles.
+2. **Desplazamiento por Seguridad (Padding-Right):** En las clases `.stickyBottomBar` de los tres formularios ([FormularioCriatura.module.css](file:///c:/Users/zamor/OneDrive/Documentos/Programas/ToolSet%20Es%205.5/src/componentes/homebrew/FormularioCriatura.module.css), [FormularioObjeto.module.css](file:///c:/Users/zamor/OneDrive/Documentos/Programas/ToolSet%20Es%205.5/src/componentes/homebrew/FormularioObjeto.module.css) y [FormularioHechizo.module.css](file:///c:/Users/zamor/OneDrive/Documentos/Programas/ToolSet%20Es%205.5/src/componentes/homebrew/FormularioHechizo.module.css)), se cambió `padding: 12px 20px;` por `padding: 12px 90px 12px 20px;`. Esto añade `90px` de espacio vacío en la parte derecha de la barra pegajosa, obligando a los botones de `"GUARDAR CAMBIOS"` y `"CANCELAR"` a desplazarse hacia la izquierda, quedando completamente libres del área de colisión del dado.
+3. **Elevación de Contenidos:** Se aumentó el `padding-bottom` de `.formularioBrutal` de `70px` a `90px` para dar suficiente aire a los inputs finales antes de la barra flotante.
+
+**Lección aprendida:**
+> 📐 **Cuidado con Alturas Relativas y Viewports en Contenedores Desplazados:**
+> 1. Si un panel scrollable comienza a una distancia `T` del borde superior, su altura máxima nunca debe calcularse restando un valor menor que `T` al `100vh` (es decir, `max-height: calc(100vh - M)` requiere que `M >= T`), o el panel se saldrá del viewport por la parte inferior.
+> 2. Al diseñar layouts fijos en simbiontes/extensiones, ten siempre en cuenta los widgets flotantes persistentes del sistema (como los dados de TaleSpire). Añade márgenes internos/externos de seguridad en las esquinas calientes (`bottom-right`, `bottom-left`) para evitar el solapamiento visual e interferencias con clics del usuario.
 
 
 

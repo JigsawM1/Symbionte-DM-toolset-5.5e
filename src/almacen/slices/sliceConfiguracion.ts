@@ -2,8 +2,7 @@ import { StateCreator } from 'zustand';
 import { ElementoPendiente, EncuentroGuardado, CriaturaIniciativa, NotificacionUI } from '../usarAlmacenDM';
 import { MonstruoBase, HechizoBase, ObjetoHomebrew } from '../../tipos';
 import { MONSTRUOS_INICIALES, HECHIZOS_INICIALES } from '../../utiles/datosIniciales';
-import { obtenerDatoFragmentado } from '../../utiles/almacenamientoFragmentos';
-import { leerBlobGlobal, guardarBlobGlobal, limpiarBlobGlobal } from '../../utiles/almacenamientoTaleSpire';
+import { leerBlobGlobal, limpiarBlobGlobal } from '../../utiles/almacenamientoTaleSpire';
 import { sanearObjetoHomebrew, sanearHechizoCD, sanearMonstruoSentidosYPasiva } from '../sanitizacion';
 import { importarDesdeJSON } from '../importadorJSON';
 import type { EstadoDM } from '../usarAlmacenDM';
@@ -153,6 +152,7 @@ export const crearSliceConfiguracion: StateCreator<
         const objetosHomebrew   = blob.objetos_homebrew   as ObjetoHomebrew[] | undefined;
         const pendientes        = blob.pendientes         as ElementoPendiente[] | undefined;
         const notas             = blob.notas              as string          | undefined;
+        const notes             = blob.notes              as string          | undefined;
         const encuentros        = blob.encuentros         as EncuentroGuardado[] | undefined;
         const cola              = blob.cola_iniciativa    as CriaturaIniciativa[] | undefined;
         const ronda             = blob.ronda_actual       as number          | undefined;
@@ -172,7 +172,9 @@ export const crearSliceConfiguracion: StateCreator<
         if (pendientes && pendientes.length > 0) {
           set({ listaPendientes: pendientes });
         }
-        if (notas !== undefined && notas !== null) {
+        if (notes !== undefined && notes !== null) {
+          set({ notasDM: notes });
+        } else if (notas !== undefined && notas !== null) {
           set({ notasDM: notas });
         }
         if (encuentros && encuentros.length > 0) {
@@ -199,107 +201,12 @@ export const crearSliceConfiguracion: StateCreator<
         return;
       }
 
-      console.log("[TS Storage] Blob vacío. Buscando datos en LocalStorage para migrar...");
-      let migradoAlgo = false;
-      const estadoNuevo: Partial<EstadoDM> = {};
-
-      const monstruosLS = obtenerDatoFragmentado<MonstruoBase[]>("dm_monstruos_homebrew");
-      if (monstruosLS && monstruosLS.length > 0) {
-        estadoNuevo.baseDatosMonstruos = [...MONSTRUOS_INICIALES, ...monstruosLS.map(sanearMonstruoSentidosYPasiva)];
-        migradoAlgo = true;
-      }
-
-      const hechizosLS = obtenerDatoFragmentado<HechizoBase[]>("dm_hechizos_homebrew");
-      if (hechizosLS && hechizosLS.length > 0) {
-        estadoNuevo.baseDatosHechizos = [...HECHIZOS_INICIALES, ...hechizosLS.map(sanearHechizoCD)];
-        migradoAlgo = true;
-      }
-
-      const objetosLS = obtenerDatoFragmentado<ObjetoHomebrew[]>("dm_objetos_homebrew");
-      if (objetosLS && objetosLS.length > 0) {
-        estadoNuevo.objetosHomebrew = objetosLS.map(sanearObjetoHomebrew);
-        migradoAlgo = true;
-      }
-
-      const pendientesLS = obtenerDatoFragmentado<ElementoPendiente[]>("dm_pendientes");
-      if (pendientesLS && pendientesLS.length > 0) {
-        estadoNuevo.listaPendientes = pendientesLS;
-        migradoAlgo = true;
-      }
-
-      const notasLS = localStorage.getItem("dm_notes") || localStorage.getItem("dm_notas");
-      if (notasLS !== null) {
-        estadoNuevo.notasDM = notasLS;
-        migradoAlgo = true;
-      }
-
-      const encuentrosLS = obtenerDatoFragmentado<EncuentroGuardado[]>("dm_encuentros_guardados");
-      if (encuentrosLS && encuentrosLS.length > 0) {
-        estadoNuevo.encuentrosGuardados = encuentrosLS;
-        migradoAlgo = true;
-      }
-
-      const colaLS = obtenerDatoFragmentado<CriaturaIniciativa[]>("dm_cola_iniciativa");
-      if (colaLS && colaLS.length > 0) {
-        estadoNuevo.colaIniciativa = colaLS;
-        migradoAlgo = true;
-      }
-
-      const asociacionesLS = obtenerDatoFragmentado<Record<string, string>>("dm_asociaciones_fichas");
-      if (asociacionesLS && Object.keys(asociacionesLS).length > 0) {
-        estadoNuevo.asociacionesFichas = asociacionesLS;
-        migradoAlgo = true;
-      }
-
-      const metodoLS = localStorage.getItem("dm_metodo_vida_monstruo") as "estandar" | "maximo" | "azar" | null;
-      if (metodoLS) estadoNuevo.metodoVidaMonstruo = metodoLS;
-
-      const rondaLS = localStorage.getItem("dm_ronda_actual");
-      if (rondaLS) estadoNuevo.rondaActual = Number(rondaLS) || 1;
-
-      const turnoLS = localStorage.getItem("dm_indice_turno_activo");
-      if (turnoLS) estadoNuevo.indiceTurnoActivo = Number(turnoLS) || 0;
-
-      if (Object.keys(estadoNuevo).length > 0) {
-        set(estadoNuevo);
-      }
-
-      const estadoFinal = { ...get(), ...estadoNuevo } as EstadoDM;
-      await guardarBlobGlobal({
-        monstruos_homebrew:  (estadoFinal.baseDatosMonstruos || []).filter(m => !MONSTRUOS_INICIALES.some(i => i.id === m.id)),
-        hechizos_homebrew:   (estadoFinal.baseDatosHechizos || []).filter(h => !HECHIZOS_INICIALES.some(i => i.id === h.id)),
-        objetos_homebrew:    estadoFinal.objetosHomebrew    || [],
-        pendientes:          estadoFinal.listaPendientes    || [],
-        notes:               estadoFinal.notasDM            || "",
-        notas:               estadoFinal.notasDM            || "",
-        encuentros:          estadoFinal.encuentrosGuardados || [],
-        cola_iniciativa:     estadoFinal.colaIniciativa     || [],
-        ronda_actual:        estadoFinal.rondaActual        || 1,
-        indice_turno_activo: estadoFinal.indiceTurnoActivo  || 0,
-        metodo_vida:         estadoFinal.metodoVidaMonstruo || "estandar",
-        asociaciones_fichas: estadoFinal.asociacionesFichas || {},
-      });
-
-      if (migradoAlgo) {
-        console.log("[TS Storage] ✅ Migración desde LocalStorage completada y guardada en blob TS.");
-      } else {
-        console.log("[TS Storage] Primera sesión limpia. Comenzando desde cero.");
-      }
-      
+      console.log("[TS Storage] Primera sesión limpia. Comenzando desde cero.");
       set({ cargandoDatos: false });
     };
 
     ejecutarCarga().catch((error) => {
       console.error("[TS Storage] Error crítico al cargar datos:", error);
-      set({ cargandoDatos: true });
-      const monstruosLS = obtenerDatoFragmentado<MonstruoBase[]>("dm_monstruos_homebrew");
-      if (monstruosLS && monstruosLS.length > 0) {
-        set(() => ({ baseDatosMonstruos: [...MONSTRUOS_INICIALES, ...monstruosLS] }));
-      }
-      const pendientesLS = obtenerDatoFragmentado<ElementoPendiente[]>("dm_pendientes");
-      if (pendientesLS) set({ listaPendientes: pendientesLS });
-      const notasLS = localStorage.getItem("dm_notes") || localStorage.getItem("dm_notas");
-      if (notasLS !== null) set({ notasDM: notasLS });
       set({ cargandoDatos: false });
     });
   },
@@ -329,15 +236,6 @@ export const crearSliceConfiguracion: StateCreator<
     }).catch((e) => {
       console.error("[TS Storage] Error al limpiar el blob oficial:", e);
     });
-
-    try {
-      localStorage.removeItem("dm_notas");
-      localStorage.removeItem("dm_notes");
-      localStorage.removeItem("dm_ronda_actual");
-      localStorage.removeItem("dm_indice_turno_activo");
-      localStorage.removeItem("dm_metodo_vida_monstruo");
-      localStorage.removeItem("dm_asociaciones_fichas");
-    } catch { /* ignorar errores de LS */ }
 
     set({ cargandoDatos: true });
 

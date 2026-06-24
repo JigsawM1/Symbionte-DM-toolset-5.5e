@@ -2,7 +2,7 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
-  padding-bottom: 70px; /* Espacio para que la Sticky Bottom Bar no tape el contenido al hacer scroll */
+  padding-bottom: 90px; /* Espacio para que la Sticky Bottom Bar no tape el contenido al hacer scroll */
 }
 
 .subPestanasCriatura {
@@ -552,7 +552,7 @@
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
   border-top: 1px solid rgba(255, 255, 255, 0.08);
-  padding: 12px 20px;
+  padding: 12px 90px 12px 20px; /* Añadido 90px de padding derecho de seguridad para no colisionar con el dado 🎲 */
   display: flex;
   gap: 12px;
   justify-content: flex-end;

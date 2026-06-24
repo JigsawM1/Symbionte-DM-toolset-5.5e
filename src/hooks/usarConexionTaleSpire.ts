@@ -12,7 +12,6 @@
 
 import { useEffect } from "react";
 import { usarAlmacenDM } from "../almacen/usarAlmacenDM";
-import { inicializarSimulador } from "../utiles/SimuladorTaleSpire";
 import { ts } from "../utiles/TaleSpireAdapter";
 import { puenteTaleSpire } from "../servicios/puenteTaleSpire";
 
@@ -170,7 +169,6 @@ export function usarConexionTaleSpire() {
 
     // Si no está listo, sondeamos periódicamente de forma inteligente.
     let intentos = 0;
-    const esDesarrolloLocal = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
     // Aumentamos los intentos a 300 (15 segundos) tanto para local como para producción.
     const maxIntentos = 300; 
     
@@ -180,13 +178,7 @@ export function usarConexionTaleSpire() {
         clearInterval(intervalo);
       } else if (intentos >= maxIntentos) {
         clearInterval(intervalo);
-        if (esDesarrolloLocal) {
-          console.warn("[TaleSpire Simbionte] API window.TS no detectada en desarrollo local. Inicializando simulador...");
-          inicializarSimulador();
-          suscribirAPIs();
-        } else {
-          console.error("[TaleSpire Simbionte] CRÍTICO: La API nativa de TaleSpire no apareció tras 15 segundos. Verifica tu instalación del juego.");
-        }
+        console.error("[TaleSpire Simbionte] CRÍTICO: La API nativa de TaleSpire no apareció tras 15 segundos. Verifica tu instalación del juego.");
       }
     }, 50);
 

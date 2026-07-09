@@ -1,0 +1,6735 @@
+[
+  {
+    "index": "acid",
+    "name": "Ácido",
+    "equipment_categories": [
+      {
+        "index": "adventuring-gear",
+        "name": "Equipo de Aventurero"
+      }
+    ],
+    "cost": {
+      "quantity": 25,
+      "unit": "po"
+    },
+    "weight": 1,
+    "description": "Cuando realizas la acción de Atacar, puedes reemplazar uno de tus ataques lanzando un vial de Ácido. Elige como objetivo a una criatura u objeto que puedas ver a 20 pies o menos de ti. El objetivo debe tener éxito en una tirada de salvación de Destreza (CD 8 más tu modificador de Destreza y Bonificador de Competencia) o recibe 2d6 de daño por Ácido."
+  },
+  {
+    "index": "alchemists-fire",
+    "name": "Fuego de Alquimista",
+    "equipment_categories": [
+      {
+        "index": "adventuring-gear",
+        "name": "Equipo de Aventurero"
+      }
+    ],
+    "cost": {
+      "quantity": 25,
+      "unit": "po"
+    },
+    "weight": 1,
+    "description": "Cuando realizas la acción de Atacar, puedes reemplazar uno de tus ataques lanzando un frasco de Fuego de Alquimista. Elige como objetivo a una criatura u objeto que puedas ver a 20 pies o menos de ti. El objetivo debe tener éxito en una tirada de salvación de Destreza (CD 8 más tu modificador de Destreza y Bonificador de Competencia) o recibe 1d4 de daño por Fuego y comienza a arder (consulta el \"Glosario de Reglas\")."
+  },
+  {
+    "index": "alchemists-supplies",
+    "name": "Suministros de Alquimista",
+    "equipment_categories": [
+      {
+        "index": "artisans-tools",
+        "name": "Herramientas de Artesano"
+      },
+      {
+        "index": "tools",
+        "name": "Herramientas"
+      }
+    ],
+    "ability": {
+      "index": "int",
+      "name": "INT"
+    },
+    "craft": [
+      {
+        "index": "acid",
+        "name": "Ácido"
+      },
+      {
+        "index": "alchemists-fire",
+        "name": "Fuego de Alquimista"
+      },
+      {
+        "index": "component-pouch",
+        "name": "Bolsa de Componentes"
+      },
+      {
+        "index": "oil",
+        "name": "Aceite"
+      },
+      {
+        "index": "paper",
+        "name": "Papel"
+      },
+      {
+        "index": "perfume",
+        "name": "Perfume"
+      }
+    ],
+    "cost": {
+      "quantity": 50,
+      "unit": "po"
+    },
+    "utilize": [
+      {
+        "name": "Identificar una sustancia",
+        "dc": {
+          "dc_type": {
+            "index": "int",
+            "name": "INT"
+          },
+          "dc_value": 15,
+          "success_type": "none"
+        }
+      },
+      {
+        "name": "Iniciar un fuego",
+        "dc": {
+          "dc_type": {
+            "index": "int",
+            "name": "INT"
+          },
+          "dc_value": 15,
+          "success_type": "none"
+        }
+      }
+    ],
+    "weight": 8,
+    "description": "Una herramienta te ayuda a realizar pruebas de característica especializadas, crear ciertos objetos, o ambas cosas."
+  },
+  {
+    "index": "amulet",
+    "name": "Amuleto",
+    "equipment_categories": [
+      {
+        "index": "adventuring-gear",
+        "name": "Equipo de Aventurero"
+      },
+      {
+        "index": "holy-symbols",
+        "name": "Símbolos Sagrados"
+      }
+    ],
+    "cost": {
+      "quantity": 5,
+      "unit": "po"
+    },
+    "description": "Un Símbolo Sagrado adopta una de las formas de la tabla de Símbolos Sagrados y está adornado con joyas o pintado para canalizar magia divina. Un Clérigo o Paladín puede usar un Símbolo Sagrado como Foco de Lanzamiento de Conjuros.\nLa tabla indica si un Símbolo Sagrado necesita ser sostenido, vestido, o llevado en una tela (como un tabardo o estandarte) o en un Escudo.",
+    "weight": 1
+  },
+  {
+    "index": "antitoxin",
+    "name": "Antitoxina",
+    "equipment_categories": [
+      {
+        "index": "adventuring-gear",
+        "name": "Equipo de Aventurero"
+      }
+    ],
+    "cost": {
+      "quantity": 50,
+      "unit": "po"
+    },
+    "weight": 1,
+    "description": "Como Acción Adicional, puedes beber un vial de Antitoxina para obtener Ventaja en las tiradas de salvación para evitar o terminar la condición de Envenenado durante 1 hora."
+  },
+  {
+    "index": "arrows",
+    "name": "Flechas",
+    "equipment_categories": [
+      {
+        "index": "ammunition",
+        "name": "Munición"
+      }
+    ],
+    "cost": {
+      "quantity": 1,
+      "unit": "po"
+    },
+    "quantity": 20,
+    "storage": {
+      "index": "quiver",
+      "name": "Carcaj"
+    },
+    "weight": 1,
+    "description": "La munición es requerida por un arma que tenga la propiedad de Munición (Ammunition). Solo puedes usar un arma que posea esta propiedad para realizar un ataque a distancia si tienes munición para dispararla. Cada ataque gasta una pieza de munición. Sacar la munición es parte del ataque (necesitas una mano libre para cargar un arma de una sola mano). Después de un combate, puedes dedicar 1 minuto a recuperar la mitad de la munición (redondeando hacia abajo) que usaste en la pelea; el resto se pierde."
+  },
+  {
+    "index": "backpack",
+    "name": "Mochila",
+    "equipment_categories": [
+      {
+        "index": "adventuring-gear",
+        "name": "Equipo de Aventurero"
+      }
+    ],
+    "cost": {
+      "quantity": 2,
+      "unit": "po"
+    },
+    "description": "Una Mochila contiene hasta 30 libras dentro de 1 pie cúbico. También puede servir como alforja.",
+    "weight": 5
+  },
+  {
+    "index": "bagpipes",
+    "name": "Gaitas",
+    "equipment_categories": [
+      {
+        "index": "musical-instruments",
+        "name": "Instrumentos Musicales"
+      },
+      {
+        "index": "tools",
+        "name": "Herramientas"
+      }
+    ],
+    "ability": {
+      "index": "cha",
+      "name": "CAR"
+    },
+    "cost": {
+      "quantity": 30,
+      "unit": "po"
+    },
+    "utilize": [
+      {
+        "name": "Tocar una melodía conocida",
+        "dc": {
+          "dc_type": {
+            "index": "cha",
+            "name": "CAR"
+          },
+          "dc_value": 10,
+          "success_type": "none"
+        }
+      },
+      {
+        "name": "Improvisar una canción",
+        "dc": {
+          "dc_type": {
+            "index": "cha",
+            "name": "CAR"
+          },
+          "dc_value": 15,
+          "success_type": "none"
+        }
+      }
+    ],
+    "weight": 6,
+    "description": "Una herramienta te ayuda a realizar pruebas de característica especializadas, crear ciertos objetos, o ambas cosas."
+  },
+  {
+    "index": "ball-bearings",
+    "name": "Rodamientos de Bolas",
+    "equipment_categories": [
+      {
+        "index": "adventuring-gear",
+        "name": "Equipo de Aventurero"
+      }
+    ],
+    "cost": {
+      "quantity": 1,
+      "unit": "po"
+    },
+    "weight": 2,
+    "description": "Como acción de Utilizar, puedes derramar Rodamientos de Bolas de su bolsa. Se esparcen para cubrir un área nivelada de 10 pies cuadrados a menos de 10 pies de ti. Una criatura que entra en esta área por primera vez en un turno debe tener éxito en una tirada de salvación de Destreza CD 10 o quedar con la condición de Derribado. Toma 10 minutos recuperar los Rodamientos de Bolas.",
+    "image": "/api/images/equipment/ball-bearings-bag-of-1000.png"
+  },
+  {
+    "index": "barrel",
+    "name": "Barril",
+    "equipment_categories": [
+      {
+        "index": "adventuring-gear",
+        "name": "Equipo de Aventurero"
+      }
+    ],
+    "cost": {
+      "quantity": 2,
+      "unit": "po"
+    },
+    "weight": 70,
+    "description": "Un Barril contiene hasta 40 galones de líquido o hasta 4 pies cúbicos de bienes secos."
+  },
+  {
+    "index": "basket",
+    "name": "Cesta",
+    "equipment_categories": [
+      {
+        "index": "adventuring-gear",
+        "name": "Equipo de Aventurero"
+      }
+    ],
+    "cost": {
+      "quantity": 2,
+      "unit": "po"
+    },
+    "weight": 2,
+    "description": "Una Cesta contiene hasta 40 libras dentro de 2 pies cúbicos."
+  },
+  {
+    "index": "battleaxe",
+    "name": "Hacha de Batalla",
+    "equipment_categories": [
+      {
+        "index": "martial-melee-weapons",
+        "name": "Armas Marciales Cuerpo a Cuerpo"
+      },
+      {
+        "index": "martial-weapons",
+        "name": "Armas Marciales"
+      },
+      {
+        "index": "melee-weapons",
+        "name": "Armas Cuerpo a Cuerpo"
+      },
+      {
+        "index": "weapons",
+        "name": "Armas"
+      }
+    ],
+    "cost": {
+      "quantity": 10,
+      "unit": "po"
+    },
+    "damage": {
+      "damage_dice": "1d8",
+      "damage_type": {
+        "index": "slashing",
+        "name": "Cortante"
+      }
+    },
+    "range": {
+      "normal": 5
+    },
+    "weight": 4,
+    "properties": [
+      {
+        "index": "versatile",
+        "name": "Versátil"
+      }
+    ],
+    "mastery": {
+      "index": "topple",
+      "name": "Derribar"
+    },
+    "two_handed_damage": {
+      "damage_dice": "1d10",
+      "damage_type": {
+        "index": "slashing",
+        "name": "Cortante"
+      }
+    },
+    "description": "Un arma Cuerpo a Cuerpo se usa para atacar a un objetivo a 5 pies de distancia. Un arma Versátil puede ser usada con una o dos manos."
+  },
+  {
+    "index": "bedroll",
+    "name": "Saco de Dormir",
+    "equipment_categories": [
+      {
+        "index": "adventuring-gear",
+        "name": "Equipo de Aventurero"
+      }
+    ],
+    "cost": {
+      "quantity": 2,
+      "unit": "po"
+    },
+    "weight": 25,
+    "description": "Un Saco de Dormir acomoda a una criatura Pequeña o Mediana. Mientras estás en un Saco de Dormir, tienes éxito automáticamente en las tiradas de salvación contra el frío extremo (consulta \"Caja de Herramientas de Juego\")."
+  },
+  {
+    "index": "bell",
+    "name": "Campana",
+    "equipment_categories": [
+      {
+        "index": "adventuring-gear",
+        "name": "Equipo de Aventurero"
+      }
+    ],
+    "cost": {
+      "quantity": 1,
+      "unit": "po"
+    },
+    "weight": 1,
+    "description": "Cuando suena como una acción de Utilizar, una Campana produce un sonido que puede ser escuchado hasta a 60 pies de distancia."
+  },
+  {
+    "index": "blanket",
+    "name": "Manta",
+    "equipment_categories": [
+      {
+        "index": "adventuring-gear",
+        "name": "Equipo de Aventurero"
+      }
+    ],
+    "cost": {
+      "quantity": 5,
+      "unit": "po"
+    },
+    "weight": 3,
+    "description": "Mientras estás envuelto en una manta, tienes Ventaja en las tiradas de salvación contra el frío extremo (consulta \"Caja de Herramientas de Juego\")."
+  },
+  {
+    "index": "block-and-tackle",
+    "name": "Aparejo",
+    "equipment_categories": [
+      {
+        "index": "adventuring-gear",
+        "name": "Equipo de Aventurero"
+      }
+    ],
+    "cost": {
+      "quantity": 1,
+      "unit": "po"
+    },
+    "weight": 5,
+    "description": "Un Aparejo te permite izar hasta cuatro veces el peso que normalmente puedes levantar."
+  },
+  {
+    "index": "blowgun",
+    "name": "Cerbatana",
+    "equipment_categories": [
+      {
+        "index": "martial-weapons",
+        "name": "Armas Marciales"
+      },
+      {
+        "index": "martial-ranged-weapons",
+        "name": "Armas Marciales a Distancia"
+      },
+      {
+        "index": "ranged-weapons",
+        "name": "Armas a Distancia"
+      },
+      {
+        "index": "weapons",
+        "name": "Armas"
+      }
+    ],
+    "ammunition": {
+      "index": "needles",
+      "name": "Agujas"
+    },
+    "cost": {
+      "quantity": 10,
+      "unit": "po"
+    },
+    "damage": {
+      "damage_dice": "1",
+      "damage_type": {
+        "index": "piercing",
+        "name": "Perforante"
+      }
+    },
+    "range": {
+      "normal": 25,
+      "long": 100
+    },
+    "weight": 1,
+    "properties": [
+      {
+        "index": "ammunition",
+        "name": "Munición"
+      },
+      {
+        "index": "loading",
+        "name": "Carga"
+      }
+    ],
+    "mastery": {
+      "index": "vex",
+      "name": "Vejar"
+    },
+    "description": "Un arma a Distancia se usa para atacar a una mayor distancia. La munición es requerida por un arma que tenga la propiedad de Munición. Puedes disparar solo una pieza de munición de un arma con la propiedad Carga cuando usas una acción, una Acción Adicional o una Reacción para dispararla, sin importar el número de ataques que normalmente puedas hacer."
+  },
+  {
+    "index": "book",
+    "name": "Libro",
+    "equipment_categories": [
+      {
+        "index": "adventuring-gear",
+        "name": "Equipo de Aventurero"
+      }
+    ],
+    "cost": {
+      "quantity": 25,
+      "unit": "po"
+    },
+    "description": "Un Libro contiene ficción o no ficción. Si consultas un Libro de no ficción preciso sobre su tema, obtienes un bonificador de +5 a las pruebas de Inteligencia (Arcanos, Historia, Naturaleza o Religión) que hagas sobre ese tema.",
+    "weight": 5
+  },
+  {
+    "index": "bolts",
+    "name": "Virotes",
+    "equipment_categories": [
+      {
+        "index": "ammunition",
+        "name": "Munición"
+      }
+    ],
+    "cost": {
+      "quantity": 1,
+      "unit": "po"
+    },
+    "quantity": 20,
+    "storage": {
+      "index": "case-crossbow-bolt",
+      "name": "Caja de Virotes de Ballesta"
+    },
+    "weight": 1.5,
+    "description": "La munición es requerida por un arma que tenga la propiedad de Munición (Ammunition). Cada ataque gasta una pieza de munición. Después de un combate, puedes dedicar 1 minuto a recuperar la mitad de la munición (redondeando hacia abajo) que usaste en la pelea; el resto se pierde."
+  },
+  {
+    "index": "bottle-glass",
+    "name": "Botella, Vidrio",
+    "equipment_categories": [
+      {
+        "index": "adventuring-gear",
+        "name": "Equipo de Aventurero"
+      }
+    ],
+    "cost": {
+      "quantity": 2,
+      "unit": "po"
+    },
+    "weight": 2,
+    "description": "Una Botella de Vidrio contiene hasta 1 pinta y media."
+  },
+  {
+    "index": "breastplate",
+    "name": "Coraza",
+    "equipment_categories": [
+      {
+        "index": "armor",
+        "name": "Armadura"
+      },
+      {
+        "index": "medium-armor",
+        "name": "Armadura Media"
+      }
+    ],
+    "armor_class": {
+      "base": 14,
+      "dex_bonus": true,
+      "max_bonus": 2
+    },
+    "cost": {
+      "quantity": 400,
+      "unit": "po"
+    },
+    "don_time": "5 minutos",
+    "doff_time": "1 minuto",
+    "stealth_disadvantage": false,
+    "str_minimum": 0,
+    "weight": 20,
+    "description": "Si vistes armadura Ligera, Media o Pesada y careces de entrenamiento con ella, tienes Desventaja en cualquier Prueba de d20 que involucre Fuerza o Destreza, y no puedes lanzar conjuros."
+  },
+  {
+    "index": "brewers-supplies",
+    "name": "Suministros de Cervecero",
+    "equipment_categories": [
+      {
+        "index": "artisans-tools",
+        "name": "Herramientas de Artesano"
+      },
+      {
+        "index": "tools",
+        "name": "Herramientas"
+      }
+    ],
+    "ability": {
+      "index": "int",
+      "name": "INT"
+    },
+    "craft": [
+      {
+        "index": "antitoxin",
+        "name": "Antitoxina"
+      }
+    ],
+    "cost": {
+      "quantity": 20,
+      "unit": "po"
+    },
+    "utilize": [
+      {
+        "name": "Detectar bebida envenenada",
+        "dc": {
+          "dc_type": {
+            "index": "int",
+            "name": "INT"
+          },
+          "dc_value": 10,
+          "success_type": "none"
+        }
+      },
+      {
+        "name": "Identificar alcohol",
+        "dc": {
+          "dc_type": {
+            "index": "int",
+            "name": "INT"
+          },
+          "dc_value": 10,
+          "success_type": "none"
+        }
+      }
+    ],
+    "weight": 9,
+    "description": "Una herramienta te ayuda a realizar pruebas de característica especializadas, crear ciertos objetos, o ambas cosas."
+  },
+  {
+    "index": "bucket",
+    "name": "Cubo",
+    "equipment_categories": [
+      {
+        "index": "adventuring-gear",
+        "name": "Equipo de Aventurero"
+      }
+    ],
+    "cost": {
+      "quantity": 5,
+      "unit": "pc"
+    },
+    "weight": 2,
+    "description": "Un Cubo contiene hasta medio pie cúbico de contenido."
+  },
+  {
+    "index": "bullets-firearm",
+    "name": "Balas, Arma de Fuego",
+    "equipment_categories": [
+      {
+        "index": "ammunition",
+        "name": "Munición"
+      }
+    ],
+    "cost": {
+      "quantity": 3,
+      "unit": "po"
+    },
+    "quantity": 10,
+    "storage": {
+      "index": "pouch",
+      "name": "Bolsita"
+    },
+    "weight": 2,
+    "description": "La munición es requerida por un arma que tenga la propiedad de Munición (Ammunition). Cada ataque gasta una pieza de munición. Después de un combate, puedes dedicar 1 minuto a recuperar la mitad de la munición (redondeando hacia abajo) que usaste en la pelea; el resto se pierde."
+  },
+  {
+    "index": "bullets-sling",
+    "name": "Balas, Honda",
+    "equipment_categories": [
+      {
+        "index": "ammunition",
+        "name": "Munición"
+      }
+    ],
+    "cost": {
+      "quantity": 4,
+      "unit": "pc"
+    },
+    "quantity": 20,
+    "storage": {
+      "index": "pouch",
+      "name": "Bolsita"
+    },
+    "weight": 1.5,
+    "description": "La munición es requerida por un arma que tenga la propiedad de Munición (Ammunition). Cada ataque gasta una pieza de munición. Después de un combate, puedes dedicar 1 minuto a recuperar la mitad de la munición (redondeando hacia abajo) que usaste en la pelea; el resto se pierde."
+  },
+  {
+    "index": "burglars-pack",
+    "name": "Paquete de Ladrón",
+    "equipment_categories": [
+      {
+        "index": "adventuring-gear",
+        "name": "Equipo de Aventurero"
+      },
+      {
+        "index": "equipment-packs",
+        "name": "Paquetes de Equipo"
+      }
+    ],
+    "cost": {
+      "quantity": 16,
+      "unit": "po"
+    },
+    "contents": [
+      {
+        "item": {
+          "index": "backpack",
+          "name": "Mochila"
+        },
+        "quantity": 1
+      },
+      {
+        "item": {
+          "index": "ball-bearings",
+          "name": "Rodamientos de Bolas"
+        },
+        "quantity": 1
+      },
+      {
+        "item": {
+          "index": "bell",
+          "name": "Campana"
+        },
+        "quantity": 1
+      },
+      {
+        "item": {
+          "index": "candle",
+          "name": "Vela"
+        },
+        "quantity": 10
+      },
+      {
+        "item": {
+          "index": "crowbar",
+          "name": "Palanca"
+        },
+        "quantity": 1
+      },
+      {
+        "item": {
+          "index": "lantern-hooded",
+          "name": "Linterna Sorda"
+        },
+        "quantity": 1
+      },
+      {
+        "item": {
+          "index": "flask",
+          "name": "Frasco"
+        },
+        "quantity": 7
+      },
+      {
+        "item": {
+          "index": "oil",
+          "name": "Aceite"
+        },
+        "quantity": 7
+      },
+      {
+        "item": {
+          "index": "rations",
+          "name": "Raciones"
+        },
+        "quantity": 5
+      },
+      {
+        "item": {
+          "index": "rope",
+          "name": "Cuerda"
+        },
+        "quantity": 1
+      },
+      {
+        "item": {
+          "index": "tinderbox",
+          "name": "Yesquero"
+        },
+        "quantity": 1
+      },
+      {
+        "item": {
+          "index": "waterskin",
+          "name": "Odre"
+        },
+        "quantity": 1
+      }
+    ],
+    "description": "Un Paquete de Ladrón contiene los siguientes artículos: Mochila, Rodamientos de Bolas, Campana, 10 Velas, Palanca, Linterna Sorda, 7 frascos de Aceite, 5 días de Raciones, Cuerda, Yesquero y Odre.",
+    "weight": 20
+  },
+  {
+    "index": "calligraphers-supplies",
+    "name": "Suministros de Calígrafo",
+    "equipment_categories": [
+      {
+        "index": "artisans-tools",
+        "name": "Herramientas de Artesano"
+      },
+      {
+        "index": "tools",
+        "name": "Herramientas"
+      }
+    ],
+    "ability": {
+      "index": "dex",
+      "name": "DES"
+    },
+    "craft": [
+      {
+        "index": "ink",
+        "name": "Tinta"
+      },
+      {
+        "index": "spell-scroll-cantrip",
+        "name": "Pergamino de Conjuro, Truco"
+      },
+      {
+        "index": "spell-scroll-level-1",
+        "name": "Pergamino de Conjuro, Nivel 1"
+      }
+    ],
+    "cost": {
+      "quantity": 10,
+      "unit": "po"
+    },
+    "utilize": [
+      {
+        "name": "Escribir texto con florituras impresionantes que protegen contra la falsificación",
+        "dc": {
+          "dc_type": {
+            "index": "dex",
+            "name": "DES"
+          },
+          "dc_value": 15,
+          "success_type": "none"
+        }
+      }
+    ],
+    "weight": 5,
+    "description": "Una herramienta te ayuda a realizar pruebas de característica especializadas, crear ciertos objetos, o ambas cosas."
+  },
+  {
+    "index": "caltrops",
+    "name": "Abrojos",
+    "equipment_categories": [
+      {
+        "index": "adventuring-gear",
+        "name": "Equipo de Aventurero"
+      }
+    ],
+    "cost": {
+      "quantity": 2,
+      "unit": "po"
+    },
+    "weight": 2,
+    "description": "Como acción de Utilizar, puedes esparcir Abrojos de su bolsa para cubrir un área de 5 pies cuadrados a menos de 5 pies de ti. Una criatura que entra en esta área por primera vez en un turno debe tener éxito en una tirada de salvación de Destreza CD 15 o recibir 1 de daño Perforante y su Velocidad se reduce a 0 hasta el inicio de su siguiente turno. Toma 10 minutos recuperar los Abrojos."
+  },
+  {
+    "index": "candle",
+    "name": "Vela",
+    "equipment_categories": [
+      {
+        "index": "adventuring-gear",
+        "name": "Equipo de Aventurero"
+      }
+    ],
+    "cost": {
+      "quantity": 1,
+      "unit": "pc"
+    },
+    "weight": 0,
+    "description": "Durante 1 hora, una Vela encendida emite Luz Brillante en un radio de 5 pies y Luz Tenue por 5 pies adicionales."
+  },
+  {
+    "index": "carpenters-tools",
+    "name": "Herramientas de Carpintero",
+    "equipment_categories": [
+      {
+        "index": "artisans-tools",
+        "name": "Herramientas de Artesano"
+      },
+      {
+        "index": "tools",
+        "name": "Herramientas"
+      }
+    ],
+    "ability": {
+      "index": "str",
+      "name": "FUE"
+    },
+    "craft": [
+      {
+        "index": "club",
+        "name": "Garrote"
+      },
+      {
+        "index": "greatclub",
+        "name": "Gran Garrote"
+      },
+      {
+        "index": "quarterstaff",
+        "name": "Bastón"
+      },
+      {
+        "index": "barrel",
+        "name": "Barril"
+      },
+      {
+        "index": "chest",
+        "name": "Cofre"
+      },
+      {
+        "index": "ladder",
+        "name": "Escalera"
+      },
+      {
+        "index": "pole",
+        "name": "Pértiga"
+      },
+      {
+        "index": "ram-portable",
+        "name": "Ariete Portátil"
+      },
+      {
+        "index": "torch",
+        "name": "Antorcha"
+      }
+    ],
+    "cost": {
+      "quantity": 8,
+      "unit": "po"
+    },
+    "utilize": [
+      {
+        "name": "Sellar o forzar la apertura de una puerta o contenedor",
+        "dc": {
+          "dc_type": {
+            "index": "str",
+            "name": "FUE"
+          },
+          "dc_value": 20,
+          "success_type": "none"
+        }
+      }
+    ],
+    "weight": 6,
+    "description": "Una herramienta te ayuda a realizar pruebas de característica especializadas, crear ciertos objetos, o ambas cosas."
+  },
+  {
+    "index": "cartographer-tools",
+    "name": "Herramientas de Cartógrafo",
+    "equipment_categories": [
+      {
+        "index": "artisans-tools",
+        "name": "Herramientas de Artesano"
+      },
+      {
+        "index": "tools",
+        "name": "Herramientas"
+      }
+    ],
+    "ability": {
+      "index": "wis",
+      "name": "SAB"
+    },
+    "craft": [
+      {
+        "index": "map",
+        "name": "Mapa"
+      }
+    ],
+    "cost": {
+      "quantity": 15,
+      "unit": "po"
+    },
+    "utilize": [
+      {
+        "name": "Dibujar un mapa de un área pequeña",
+        "dc": {
+          "dc_type": {
+            "index": "wis",
+            "name": "SAB"
+          },
+          "dc_value": 15,
+          "success_type": "none"
+        }
+      }
+    ],
+    "weight": 6,
+    "description": "Una herramienta te ayuda a realizar pruebas de característica especializadas, crear ciertos objetos, o ambas cosas."
+  },
+  {
+    "index": "case-crossbow-bolt",
+    "name": "Caja de Virotes de Ballesta",
+    "description": "Una Caja de Virotes de Ballesta contiene hasta 20 Virotes.",
+    "equipment_categories": [
+      {
+        "index": "adventuring-gear",
+        "name": "Equipo de Aventurero"
+      }
+    ],
+    "cost": {
+      "quantity": 1,
+      "unit": "po"
+    },
+    "weight": 1
+  },
+  {
+    "index": "case-map-or-scroll",
+    "name": "Caja, Mapa o Pergamino",
+    "equipment_categories": [
+      {
+        "index": "adventuring-gear",
+        "name": "Equipo de Aventurero"
+      }
+    ],
+    "cost": {
+      "quantity": 1,
+      "unit": "po"
+    },
+    "weight": 1,
+    "description": "Una Caja de Mapa o Pergamino contiene hasta 10 hojas de papel o 5 hojas de pergamino."
+  },
+  {
+    "index": "chain",
+    "name": "Cadena",
+    "equipment_categories": [
+      {
+        "index": "adventuring-gear",
+        "name": "Equipo de Aventurero"
+      }
+    ],
+    "cost": {
+      "quantity": 5,
+      "unit": "po"
+    },
+    "weight": 6,
+    "description": "Como acción de Utilizar, puedes envolver una Cadena alrededor de una criatura involuntaria a 5 pies o menos de ti que tenga la condición de Agarrado, Incapacitado o Apresado si tienes éxito en una prueba de Fuerza (Atletismo) CD 13. Si las piernas de la criatura están atadas, la criatura tiene la condición de Apresado hasta que escape. Escapar de la Cadena requiere que la criatura realice una prueba exitosa de Destreza (Acrobacias) CD 18 como acción. Romper la Cadena requiere una prueba exitosa de Fuerza (Atletismo) CD 20 como acción."
+  },
+  {
+    "index": "chain-mail",
+    "name": "Cota de Mallas",
+    "equipment_categories": [
+      {
+        "index": "armor",
+        "name": "Armadura"
+      },
+      {
+        "index": "heavy-armor",
+        "name": "Armadura Pesada"
+      }
+    ],
+    "armor_class": {
+      "base": 16,
+      "dex_bonus": false,
+      "max_bonus": 0
+    },
+    "cost": {
+      "quantity": 75,
+      "unit": "po"
+    },
+    "don_time": "10 minutos",
+    "doff_time": "5 minutos",
+    "stealth_disadvantage": true,
+    "str_minimum": 13,
+    "weight": 55,
+    "description": "Si vistes armadura Ligera, Media o Pesada y careces de entrenamiento con ella, tienes Desventaja en cualquier Prueba de d20 que involucre Fuerza o Destreza, y no puedes lanzar conjuros."
+  },
+  {
+    "index": "chain-shirt",
+    "name": "Camisa de Mallas",
+    "equipment_categories": [
+      {
+        "index": "armor",
+        "name": "Armadura"
+      },
+      {
+        "index": "medium-armor",
+        "name": "Armadura Media"
+      }
+    ],
+    "armor_class": {
+      "base": 13,
+      "dex_bonus": true,
+      "max_bonus": 2
+    },
+    "cost": {
+      "quantity": 50,
+      "unit": "po"
+    },
+    "don_time": "5 minutos",
+    "doff_time": "1 minuto",
+    "stealth_disadvantage": false,
+    "str_minimum": 0,
+    "weight": 14,
+    "description": "Si vistes armadura Ligera, Media o Pesada y careces de entrenamiento con ella, tienes Desventaja en cualquier Prueba de d20 que involucre Fuerza o Destreza, y no puedes lanzar conjuros."
+  },
+  {
+    "index": "chest",
+    "name": "Cofre",
+    "equipment_categories": [
+      {
+        "index": "adventuring-gear",
+        "name": "Equipo de Aventurero"
+      }
+    ],
+    "cost": {
+      "quantity": 50,
+      "unit": "po"
+    },
+    "weight": 20,
+    "description": "Un Cofre contiene hasta 12 pies cúbicos de contenido."
+  },
+  {
+    "index": "climbers-kit",
+    "name": "Kit de Escalador",
+    "equipment_categories": [
+      {
+        "index": "adventuring-gear",
+        "name": "Equipo de Aventurero"
+      }
+    ],
+    "cost": {
+      "quantity": 25,
+      "unit": "po"
+    },
+    "weight": 8,
+    "description": "Un Kit de Escalador incluye puntas para botas, guantes, pitones y un arnés. Como acción de Utilizar, puedes usar el Kit de Escalador para anclarte; cuando lo haces, no puedes caer más de 25 pies desde el punto de anclaje, y no puedes moverte a más de 25 pies de allí sin deshacer el anclaje como una Acción Adicional."
+  },
+  {
+    "index": "clothes-fine",
+    "name": "Ropa, Fina",
+    "equipment_categories": [
+      {
+        "index": "adventuring-gear",
+        "name": "Equipo de Aventurero"
+      }
+    ],
+    "cost": {
+      "quantity": 15,
+      "unit": "po"
+    },
+    "weight": 3,
+    "description": "La Ropa Fina está hecha de telas costosas y adornada con detalles elaborados por expertos. Algunos eventos y lugares solo admiten a personas que visten esta ropa."
+  },
+  {
+    "index": "clothes-travelers",
+    "name": "Ropa, de Viajero",
+    "equipment_categories": [
+      {
+        "index": "adventuring-gear",
+        "name": "Equipo de Aventurero"
+      }
+    ],
+    "cost": {
+      "quantity": 5,
+      "unit": "po"
+    },
+    "weight": 4,
+    "description": "La Ropa de Viajero son prendas resistentes diseñadas para viajar en varios entornos."
+  },
+  {
+    "index": "club",
+    "name": "Garrote",
+    "equipment_categories": [
+      {
+        "index": "melee-weapons",
+        "name": "Armas Cuerpo a Cuerpo"
+      },
+      {
+        "index": "simple-melee-weapons",
+        "name": "Armas Simples Cuerpo a Cuerpo"
+      },
+      {
+        "index": "simple-weapons",
+        "name": "Armas Simples"
+      },
+      {
+        "index": "weapons",
+        "name": "Armas"
+      }
+    ],
+    "cost": {
+      "quantity": 1,
+      "unit": "pp"
+    },
+    "damage": {
+      "damage_dice": "1d4",
+      "damage_type": {
+        "index": "bludgeoning",
+        "name": "Contundente"
+      }
+    },
+    "range": {
+      "normal": 5
+    },
+    "properties": [
+      {
+        "index": "light",
+        "name": "Ligera"
+      }
+    ],
+    "mastery": {
+      "index": "slow",
+      "name": "Lento"
+    },
+    "weight": 2,
+    "description": "Un arma Cuerpo a Cuerpo se usa para atacar a un objetivo a 5 pies de distancia. Cuando realizas la acción de Atacar en tu turno y atacas con un arma Ligera, puedes hacer un ataque adicional como una Acción Adicional más tarde en el mismo turno."
+  },
+  {
+    "index": "cobblers-tools",
+    "name": "Herramientas de Zapatero",
+    "equipment_categories": [
+      {
+        "index": "artisans-tools",
+        "name": "Herramientas de Artesano"
+      },
+      {
+        "index": "tools",
+        "name": "Herramientas"
+      }
+    ],
+    "ability": {
+      "index": "dex",
+      "name": "DES"
+    },
+    "cost": {
+      "quantity": 5,
+      "unit": "po"
+    },
+    "craft": [
+      {
+        "index": "climbers-kit",
+        "name": "Kit de Escalador"
+      }
+    ],
+    "utilize": [
+      {
+        "name": "Modificar el calzado para dar Ventaja en la siguiente prueba de Destreza (Acrobacias) del usuario",
+        "dc": {
+          "dc_type": {
+            "index": "dex",
+            "name": "DES"
+          },
+          "dc_value": 10,
+          "success_type": "none"
+        }
+      }
+    ],
+    "weight": 5,
+    "description": "Una herramienta te ayuda a realizar pruebas de característica especializadas, crear ciertos objetos, o ambas cosas."
+  },
+  {
+    "index": "component-pouch",
+    "name": "Bolsa de Componentes",
+    "equipment_categories": [
+      {
+        "index": "adventuring-gear",
+        "name": "Equipo de Aventurero"
+      }
+    ],
+    "cost": {
+      "quantity": 2,
+      "unit": "po"
+    },
+    "description": "Una Bolsa de Componentes es estanca y está llena de compartimentos que contienen todos los componentes Materiales gratuitos de tus conjuros.",
+    "weight": 1
+  },
+  {
+    "index": "cooks-utensils",
+    "name": "Utensilios de Cocinero",
+    "equipment_categories": [
+      {
+        "index": "artisans-tools",
+        "name": "Herramientas de Artesano"
+      },
+      {
+        "index": "tools",
+        "name": "Herramientas"
+      }
+    ],
+    "ability": {
+      "index": "wis",
+      "name": "SAB"
+    },
+    "cost": {
+      "quantity": 1,
+      "unit": "po"
+    },
+    "craft": [
+      {
+        "index": "rations",
+        "name": "Raciones"
+      }
+    ],
+    "utilize": [
+      {
+        "name": "Mejorar el sabor de la comida",
+        "dc": {
+          "dc_type": {
+            "index": "wis",
+            "name": "SAB"
+          },
+          "dc_value": 10,
+          "success_type": "none"
+        }
+      },
+      {
+        "name": "Detectar comida en mal estado o envenenada",
+        "dc": {
+          "dc_type": {
+            "index": "wis",
+            "name": "SAB"
+          },
+          "dc_value": 15,
+          "success_type": "none"
+        }
+      }
+    ],
+    "weight": 8,
+    "description": "Una herramienta te ayuda a realizar pruebas de característica especializadas, crear ciertos objetos, o ambas cosas."
+  },
+  {
+    "index": "costume",
+    "name": "Disfraz",
+    "equipment_categories": [
+      {
+        "index": "adventuring-gear",
+        "name": "Equipo de Aventurero"
+      }
+    ],
+    "cost": {
+      "quantity": 5,
+      "unit": "po"
+    },
+    "weight": 4,
+    "description": "Mientras vistes un Disfraz, tienes Ventaja en cualquier prueba de característica que realices para hacerte pasar por la persona o tipo de persona que representa."
+  },
+  {
+    "index": "crowbar",
+    "name": "Palanca",
+    "equipment_categories": [
+      {
+        "index": "adventuring-gear",
+        "name": "Equipo de Aventurero"
+      }
+    ],
+    "cost": {
+      "quantity": 2,
+      "unit": "po"
+    },
+    "weight": 5,
+    "description": "Usar una Palanca te otorga Ventaja en las pruebas de Fuerza donde se pueda aplicar el apalancamiento de la Palanca."
+  },
+  {
+    "index": "crystal",
+    "name": "Cristal",
+    "equipment_categories": [
+      {
+        "index": "arcane-foci",
+        "name": "Focos Arcanos"
+      },
+      {
+        "index": "adventuring-gear",
+        "name": "Equipo de Aventurero"
+      }
+    ],
+    "cost": {
+      "quantity": 10,
+      "unit": "po"
+    },
+    "weight": 1,
+    "description": "Un Foco Arcano adopta una de las formas de la tabla de Focos Arcanos y está adornado con joyas o tallado para canalizar la magia arcana. Un Hechicero, Brujo o Mago puede usar dicho objeto como Foco de Lanzamiento de Conjuros."
+  },
+  {
+    "index": "dagger",
+    "name": "Daga",
+    "equipment_categories": [
+      {
+        "index": "melee-weapons",
+        "name": "Armas Cuerpo a Cuerpo"
+      },
+      {
+        "index": "simple-melee-weapons",
+        "name": "Armas Simples Cuerpo a Cuerpo"
+      },
+      {
+        "index": "simple-weapons",
+        "name": "Armas Simples"
+      },
+      {
+        "index": "weapons",
+        "name": "Armas"
+      }
+    ],
+    "cost": {
+      "quantity": 2,
+      "unit": "po"
+    },
+    "damage": {
+      "damage_dice": "1d4",
+      "damage_type": {
+        "index": "piercing",
+        "name": "Perforante"
+      }
+    },
+    "mastery": {
+      "index": "nick",
+      "name": "Muesca"
+    },
+    "properties": [
+      {
+        "index": "finesse",
+        "name": "Sutil"
+      },
+      {
+        "index": "light",
+        "name": "Ligera"
+      },
+      {
+        "index": "thrown",
+        "name": "Arrojadiza"
+      }
+    ],
+    "range": {
+      "normal": 5
+    },
+    "throw_range": {
+      "normal": 20,
+      "long": 60
+    },
+    "weight": 1,
+    "description": "Un arma Cuerpo a Cuerpo se usa para atacar a un objetivo a 5 pies de distancia. Al hacer un ataque con un arma Sutil, usas tu elección de tu modificador de Fuerza o Destreza para las tiradas de ataque y daño. Cuando realizas la acción de Atacar en tu turno y atacas con un arma Ligera, puedes hacer un ataque adicional como una Acción Adicional más tarde en el mismo turno. Si un arma tiene la propiedad Arrojadiza, puedes lanzar el arma para realizar un ataque a distancia."
+  },
+  {
+    "index": "dart",
+    "name": "Dardo",
+    "equipment_categories": [
+      {
+        "index": "ranged-weapons",
+        "name": "Armas a Distancia"
+      },
+      {
+        "index": "simple-ranged-weapons",
+        "name": "Armas Simples a Distancia"
+      },
+      {
+        "index": "simple-weapons",
+        "name": "Armas Simples"
+      },
+      {
+        "index": "weapons",
+        "name": "Armas"
+      }
+    ],
+    "cost": {
+      "quantity": 5,
+      "unit": "po"
+    },
+    "damage": {
+      "damage_dice": "1d4",
+      "damage_type": {
+        "index": "piercing",
+        "name": "Perforante"
+      }
+    },
+    "range": {
+      "normal": 20,
+      "long": 60
+    },
+    "weight": 0.25,
+    "properties": [
+      {
+        "index": "finesse",
+        "name": "Sutil"
+      },
+      {
+        "index": "thrown",
+        "name": "Arrojadiza"
+      }
+    ],
+    "mastery": {
+      "index": "vex",
+      "name": "Vejar"
+    },
+    "throw_range": {
+      "normal": 20,
+      "long": 60
+    },
+    "description": "Un arma a Distancia se usa para atacar a una mayor distancia. Al hacer un ataque con un arma Sutil, usas tu elección de tu modificador de Fuerza o Destreza para las tiradas de ataque y daño. Si un arma tiene la propiedad Arrojadiza, puedes lanzar el arma para realizar un ataque a distancia."
+  },
+  {
+    "index": "dice",
+    "name": "Dados",
+    "equipment_categories": [
+      {
+        "index": "gaming-sets",
+        "name": "Sets de Juego"
+      },
+      {
+        "index": "tools",
+        "name": "Herramientas"
+      }
+    ],
+    "ability": {
+      "index": "wis",
+      "name": "SAB"
+    },
+    "cost": {
+      "quantity": 1,
+      "unit": "pp"
+    },
+    "utilize": [
+      {
+        "name": "Discernir si alguien está haciendo trampa",
+        "dc": {
+          "dc_type": {
+            "index": "wis",
+            "name": "SAB"
+          },
+          "dc_value": 10,
+          "success_type": "none"
+        }
+      },
+      {
+        "name": "Ganar el juego",
+        "dc": {
+          "dc_type": {
+            "index": "wis",
+            "name": "SAB"
+          },
+          "dc_value": 20,
+          "success_type": "none"
+        }
+      }
+    ],
+    "weight": 0,
+    "description": "Una herramienta te ayuda a realizar pruebas de característica especializadas, crear ciertos objetos, o ambas cosas."
+  },
+  {
+    "index": "diplomat-pack",
+    "name": "Paquete de Diplomático",
+    "equipment_categories": [
+      {
+        "index": "adventuring-gear",
+        "name": "Equipo de Aventurero"
+      },
+      {
+        "index": "equipment-packs",
+        "name": "Paquetes de Equipo"
+      }
+    ],
+    "cost": {
+      "quantity": 39,
+      "unit": "po"
+    },
+    "contents": [
+      {
+        "item": {
+          "index": "chest",
+          "name": "Cofre"
+        },
+        "quantity": 1
+      },
+      {
+        "item": {
+          "index": "clothes-fine",
+          "name": "Ropa, Fina"
+        },
+        "quantity": 1
+      },
+      {
+        "item": {
+          "index": "ink",
+          "name": "Tinta"
+        },
+        "quantity": 1
+      },
+      {
+        "item": {
+          "index": "ink-pen",
+          "name": "Pluma para Tinta"
+        },
+        "quantity": 5
+      },
+      {
+        "item": {
+          "index": "lamp",
+          "name": "Lámpara"
+        },
+        "quantity": 1
+      },
+      {
+        "item": {
+          "index": "case-map-or-scroll",
+          "name": "Caja, Mapa o Pergamino"
+        },
+        "quantity": 2
+      },
+      {
+        "item": {
+          "index": "flask",
+          "name": "Frasco"
+        },
+        "quantity": 4
+      },
+      {
+        "item": {
+          "index": "oil",
+          "name": "Aceite"
+        },
+        "quantity": 4
+      },
+      {
+        "item": {
+          "index": "paper",
+          "name": "Papel"
+        },
+        "quantity": 5
+      },
+      {
+        "item": {
+          "index": "parchment",
+          "name": "Pergamino"
+        },
+        "quantity": 5
+      },
+      {
+        "item": {
+          "index": "perfume",
+          "name": "Perfume"
+        },
+        "quantity": 1
+      },
+      {
+        "item": {
+          "index": "tinderbox",
+          "name": "Yesquero"
+        },
+        "quantity": 1
+      }
+    ],
+    "description": "Un Paquete de Diplomático contiene los siguientes artículos: Cofre, Ropa Fina, Tinta, 5 Plumas para Tinta, Lámpara, 2 Cajas de Mapa o Pergamino, 4 frascos de Aceite, 5 hojas de Papel, 5 hojas de Pergamino, Perfume y Yesquero.",
+    "weight": 20
+  },
+  {
+    "index": "disguise-kit",
+    "name": "Kit de Disfraz",
+    "equipment_categories": [
+      {
+        "index": "adventuring-gear",
+        "name": "Equipo de Aventurero"
+      },
+      {
+        "index": "other-tools",
+        "name": "Otras Herramientas"
+      }
+    ],
+    "ability": {
+      "index": "cha",
+      "name": "CAR"
+    },
+    "cost": {
+      "quantity": 25,
+      "unit": "po"
+    },
+    "craft": [
+      {
+        "index": "costume",
+        "name": "Disfraz"
+      }
+    ],
+    "utilize": [
+      {
+        "name": "Aplicar maquillaje",
+        "dc": {
+          "dc_type": {
+            "index": "cha",
+            "name": "CAR"
+          },
+          "dc_value": 10,
+          "success_type": "none"
+        }
+      }
+    ],
+    "weight": 3,
+    "description": "Una herramienta te ayuda a realizar pruebas de característica especializadas, crear ciertos objetos, o ambas cosas."
+  },
+  {
+    "index": "dragonchess",
+    "name": "Ajedrez del Dragón",
+    "equipment_categories": [
+      {
+        "index": "gaming-sets",
+        "name": "Sets de Juego"
+      },
+      {
+        "index": "tools",
+        "name": "Herramientas"
+      }
+    ],
+    "ability": {
+      "index": "wis",
+      "name": "SAB"
+    },
+    "cost": {
+      "quantity": 1,
+      "unit": "po"
+    },
+    "utilize": [
+      {
+        "name": "Discernir si alguien está haciendo trampa",
+        "dc": {
+          "dc_type": {
+            "index": "wis",
+            "name": "SAB"
+          },
+          "dc_value": 10,
+          "success_type": "none"
+        }
+      },
+      {
+        "name": "Ganar el juego",
+        "dc": {
+          "dc_type": {
+            "index": "wis",
+            "name": "SAB"
+          },
+          "dc_value": 20,
+          "success_type": "none"
+        }
+      }
+    ],
+    "weight": 0,
+    "description": "Una herramienta te ayuda a realizar pruebas de característica especializadas, crear ciertos objetos, o ambas cosas."
+  },
+  {
+    "index": "drum",
+    "name": "Tambor",
+    "equipment_categories": [
+      {
+        "index": "musical-instruments",
+        "name": "Instrumentos Musicales"
+      },
+      {
+        "index": "tools",
+        "name": "Herramientas"
+      }
+    ],
+    "ability": {
+      "index": "cha",
+      "name": "CAR"
+    },
+    "cost": {
+      "quantity": 6,
+      "unit": "po"
+    },
+    "utilize": [
+      {
+        "name": "Tocar una melodía conocida",
+        "dc": {
+          "dc_type": {
+            "index": "cha",
+            "name": "CAR"
+          },
+          "dc_value": 10,
+          "success_type": "none"
+        }
+      },
+      {
+        "name": "Improvisar una canción",
+        "dc": {
+          "dc_type": {
+            "index": "cha",
+            "name": "CAR"
+          },
+          "dc_value": 15,
+          "success_type": "none"
+        }
+      }
+    ],
+    "weight": 3,
+    "description": "Una herramienta te ayuda a realizar pruebas de característica especializadas, crear ciertos objetos, o ambas cosas."
+  },
+  {
+    "index": "dulcimer",
+    "name": "Dulcémel",
+    "equipment_categories": [
+      {
+        "index": "musical-instruments",
+        "name": "Instrumentos Musicales"
+      },
+      {
+        "index": "tools",
+        "name": "Herramientas"
+      }
+    ],
+    "ability": {
+      "index": "cha",
+      "name": "CAR"
+    },
+    "cost": {
+      "quantity": 25,
+      "unit": "po"
+    },
+    "utilize": [
+      {
+        "name": "Tocar una melodía conocida",
+        "dc": {
+          "dc_type": {
+            "index": "cha",
+            "name": "CAR"
+          },
+          "dc_value": 10,
+          "success_type": "none"
+        }
+      },
+      {
+        "name": "Improvisar una canción",
+        "dc": {
+          "dc_type": {
+            "index": "cha",
+            "name": "CAR"
+          },
+          "dc_value": 15,
+          "success_type": "none"
+        }
+      }
+    ],
+    "weight": 10,
+    "description": "Una herramienta te ayuda a realizar pruebas de característica especializadas, crear ciertos objetos, o ambas cosas."
+  },
+  {
+    "index": "dungeoneer-pack",
+    "name": "Paquete de Explorador de Mazmorras",
+    "equipment_categories": [
+      {
+        "index": "adventuring-gear",
+        "name": "Equipo de Aventurero"
+      },
+      {
+        "index": "equipment-packs",
+        "name": "Paquetes de Equipo"
+      }
+    ],
+    "cost": {
+      "quantity": 12,
+      "unit": "po"
+    },
+    "contents": [
+      {
+        "item": {
+          "index": "backpack",
+          "name": "Mochila"
+        },
+        "quantity": 1
+      },
+      {
+        "item": {
+          "index": "caltrops",
+          "name": "Abrojos"
+        },
+        "quantity": 10
+      },
+      {
+        "item": {
+          "index": "crowbar",
+          "name": "Palanca"
+        },
+        "quantity": 1
+      },
+      {
+        "item": {
+          "index": "flask",
+          "name": "Frasco"
+        },
+        "quantity": 2
+      },
+      {
+        "item": {
+          "index": "oil",
+          "name": "Aceite"
+        },
+        "quantity": 2
+      },
+      {
+        "item": {
+          "index": "rations",
+          "name": "Raciones"
+        },
+        "quantity": 10
+      },
+      {
+        "item": {
+          "index": "rope",
+          "name": "Cuerda"
+        },
+        "quantity": 1
+      },
+      {
+        "item": {
+          "index": "tinderbox",
+          "name": "Yesquero"
+        },
+        "quantity": 1
+      },
+      {
+        "item": {
+          "index": "torch",
+          "name": "Antorcha"
+        },
+        "quantity": 10
+      },
+      {
+        "item": {
+          "index": "waterskin",
+          "name": "Odre"
+        },
+        "quantity": 1
+      }
+    ],
+    "description": "Un Paquete de Explorador de Mazmorras contiene los siguientes artículos: Mochila, 10 Abrojos, Palanca, 2 frascos de Aceite, 10 días de Raciones, Cuerda, Yesquero, 10 Antorchas y Odre.",
+    "weight": 55
+  },
+  {
+    "index": "emblem",
+    "name": "Emblema",
+    "equipment_categories": [
+      {
+        "index": "adventuring-gear",
+        "name": "Equipo de Aventurero"
+      },
+      {
+        "index": "holy-symbols",
+        "name": "Símbolos Sagrados"
+      }
+    ],
+    "cost": {
+      "quantity": 5,
+      "unit": "po"
+    },
+    "description": "Un Símbolo Sagrado adopta una de las formas de la tabla de Símbolos Sagrados y está adornado con joyas o pintado para canalizar magia divina. Un Clérigo o Paladín puede usar un Símbolo Sagrado como Foco de Lanzamiento de Conjuros.\nLa tabla indica si un Símbolo Sagrado necesita ser sostenido, vestido, o llevado en una tela (como un tabardo o estandarte) o en un Escudo.",
+    "weight": 0
+  },
+  {
+    "index": "entertainers-pack",
+    "name": "Paquete de Animador",
+    "equipment_categories": [
+      {
+        "index": "adventuring-gear",
+        "name": "Equipo de Aventurero"
+      }
+    ],
+    "cost": {
+      "quantity": 40,
+      "unit": "po"
+    },
+    "contents": [
+      {
+        "item": {
+          "index": "backpack",
+          "name": "Mochila"
+        },
+        "quantity": 1
+      },
+      {
+        "item": {
+          "index": "bedroll",
+          "name": "Saco de Dormir"
+        },
+        "quantity": 1
+      },
+      {
+        "item": {
+          "index": "costume",
+          "name": "Disfraz"
+        },
+        "quantity": 2
+      },
+      {
+        "item": {
+          "index": "candle",
+          "name": "Vela"
+        },
+        "quantity": 5
+      },
+      {
+        "item": {
+          "index": "rations",
+          "name": "Raciones"
+        },
+        "quantity": 5
+      },
+      {
+        "item": {
+          "index": "waterskin",
+          "name": "Odre"
+        },
+        "quantity": 1
+      },
+      {
+        "item": {
+          "index": "disguise-kit",
+          "name": "Kit de Disfraz"
+        },
+        "quantity": 1
+      }
+    ],
+    "description": "Un Paquete de Animador contiene los siguientes artículos: Mochila, Saco de Dormir, Campana, Linterna Ojo de Buey, 3 Disfraces, Espejo, 8 frascos de Aceite, 9 días de Raciones, Yesquero y Odre."
+  },
+  {
+    "index": "explorers-pack",
+    "name": "Paquete de Explorador",
+    "equipment_categories": [
+      {
+        "index": "adventuring-gear",
+        "name": "Equipo de Aventurero"
+      }
+    ],
+    "contents": [
+      {
+        "item": {
+          "index": "backpack",
+          "name": "Mochila"
+        },
+        "quantity": 1
+      },
+      {
+        "item": {
+          "index": "bedroll",
+          "name": "Saco de Dormir"
+        },
+        "quantity": 1
+      },
+      {
+        "item": {
+          "index": "oil",
+          "name": "Aceite"
+        },
+        "quantity": 2
+      },
+      {
+        "item": {
+          "index": "rations",
+          "name": "Raciones"
+        },
+        "quantity": 10
+      },
+      {
+        "item": {
+          "index": "rope",
+          "name": "Cuerda"
+        },
+        "quantity": 1
+      },
+      {
+        "item": {
+          "index": "tinderbox",
+          "name": "Yesquero"
+        },
+        "quantity": 1
+      },
+      {
+        "item": {
+          "index": "torch",
+          "name": "Antorcha"
+        },
+        "quantity": 10
+      },
+      {
+        "item": {
+          "index": "waterskin",
+          "name": "Odre"
+        },
+        "quantity": 1
+      }
+    ],
+    "cost": {
+      "quantity": 10,
+      "unit": "po"
+    },
+    "description": "Un Paquete de Explorador contiene los siguientes artículos: Mochila, Saco de Dormir, 2 frascos de Aceite, 10 días de Raciones, Cuerda, Yesquero, 10 Antorchas y Odre.",
+    "weight": 55
+  },
+  {
+    "index": "flail",
+    "name": "Mayal",
+    "equipment_categories": [
+      {
+        "index": "martial-melee-weapons",
+        "name": "Armas Marciales Cuerpo a Cuerpo"
+      },
+      {
+        "index": "martial-weapons",
+        "name": "Armas Marciales"
+      },
+      {
+        "index": "melee-weapons",
+        "name": "Armas Cuerpo a Cuerpo"
+      },
+      {
+        "index": "weapons",
+        "name": "Armas"
+      }
+    ],
+    "cost": {
+      "quantity": 10,
+      "unit": "po"
+    },
+    "damage": {
+      "damage_dice": "1d8",
+      "damage_type": {
+        "index": "bludgeoning",
+        "name": "Contundente"
+      }
+    },
+    "range": {
+      "normal": 5
+    },
+    "weight": 2,
+    "properties": [],
+    "mastery": {
+      "index": "sap",
+      "name": "Debilitar"
+    },
+    "description": "Un arma Cuerpo a Cuerpo se usa para atacar a un objetivo a 5 pies de distancia."
+  },
+  {
+    "index": "flask",
+    "name": "Frasco",
+    "equipment_categories": [
+      {
+        "index": "adventuring-gear",
+        "name": "Equipo de Aventurero"
+      }
+    ],
+    "cost": {
+      "quantity": 2,
+      "unit": "pc"
+    },
+    "description": "Un Frasco contiene hasta 1 pinta.",
+    "weight": 1
+  },
+  {
+    "index": "flute",
+    "name": "Flauta",
+    "equipment_categories": [
+      {
+        "index": "musical-instruments",
+        "name": "Instrumentos Musicales"
+      },
+      {
+        "index": "tools",
+        "name": "Herramientas"
+      }
+    ],
+    "ability": {
+      "index": "cha",
+      "name": "CAR"
+    },
+    "cost": {
+      "quantity": 2,
+      "unit": "po"
+    },
+    "utilize": [
+      {
+        "name": "Tocar una melodía conocida",
+        "dc": {
+          "dc_type": {
+            "index": "cha",
+            "name": "CAR"
+          },
+          "dc_value": 10,
+          "success_type": "none"
+        }
+      },
+      {
+        "name": "Improvisar una canción",
+        "dc": {
+          "dc_type": {
+            "index": "cha",
+            "name": "CAR"
+          },
+          "dc_value": 15,
+          "success_type": "none"
+        }
+      }
+    ],
+    "weight": 1,
+    "description": "Una herramienta te ayuda a realizar pruebas de característica especializadas, crear ciertos objetos, o ambas cosas."
+  },
+  {
+    "index": "forgery-kit",
+    "name": "Kit de Falsificación",
+    "equipment_categories": [
+      {
+        "index": "other-tools",
+        "name": "Otras Herramientas"
+      },
+      {
+        "index": "tools",
+        "name": "Herramientas"
+      }
+    ],
+    "ability": {
+      "index": "dex",
+      "name": "DES"
+    },
+    "cost": {
+      "quantity": 15,
+      "unit": "po"
+    },
+    "utilize": [
+      {
+        "name": "Imitar 10 o menos palabras de la escritura de otra persona",
+        "dc": {
+          "dc_type": {
+            "index": "dex",
+            "name": "DES"
+          },
+          "dc_value": 15,
+          "success_type": "none"
+        }
+      },
+      {
+        "name": "Duplicar un sello de cera",
+        "dc": {
+          "dc_type": {
+            "index": "dex",
+            "name": "DES"
+          },
+          "dc_value": 20,
+          "success_type": "none"
+        }
+      }
+    ],
+    "weight": 5,
+    "description": "Una herramienta te ayuda a realizar pruebas de característica especializadas, crear ciertos objetos, o ambas cosas."
+  },
+  {
+    "index": "glaive",
+    "name": "Guja",
+    "equipment_categories": [
+      {
+        "index": "martial-melee-weapons",
+        "name": "Armas Marciales Cuerpo a Cuerpo"
+      },
+      {
+        "index": "martial-weapons",
+        "name": "Armas Marciales"
+      },
+      {
+        "index": "melee-weapons",
+        "name": "Armas Cuerpo a Cuerpo"
+      },
+      {
+        "index": "weapons",
+        "name": "Armas"
+      }
+    ],
+    "cost": {
+      "quantity": 20,
+      "unit": "po"
+    },
+    "damage": {
+      "damage_dice": "1d10",
+      "damage_type": {
+        "index": "slashing",
+        "name": "Cortante"
+      }
+    },
+    "range": {
+      "normal": 5
+    },
+    "weight": 6,
+    "properties": [
+      {
+        "index": "heavy",
+        "name": "Pesada"
+      },
+      {
+        "index": "reach",
+        "name": "Alcance"
+      },
+      {
+        "index": "two-handed",
+        "name": "A Dos Manos"
+      }
+    ],
+    "mastery": {
+      "index": "graze",
+      "name": "Rozar"
+    },
+    "description": "Un arma Cuerpo a Cuerpo se usa para atacar a un objetivo a 5 pies de distancia. Tienes Desventaja en las tiradas de ataque con un arma Pesada si es un arma Cuerpo a Cuerpo y tu puntuación de Fuerza no es al menos 13. Un arma de Alcance añade 5 pies a tu alcance cuando atacas con ella, así como al determinar tu alcance para Ataques de Oportunidad con ella. Un arma a Dos Manos requiere dos manos cuando atacas con ella."
+  },
+  {
+    "index": "glassblowers-tools",
+    "name": "Herramientas de Soplador de Vidrio",
+    "equipment_categories": [
+      {
+        "index": "artisans-tools",
+        "name": "Herramientas de Artesano"
+      },
+      {
+        "index": "tools",
+        "name": "Herramientas"
+      }
+    ],
+    "ability": {
+      "index": "int",
+      "name": "INT"
+    },
+    "cost": {
+      "quantity": 30,
+      "unit": "po"
+    },
+    "craft": [
+      {
+        "index": "bottle-glass",
+        "name": "Botella, Vidrio"
+      },
+      {
+        "index": "magnifying-glass",
+        "name": "Lupa"
+      },
+      {
+        "index": "spyglass",
+        "name": "Catalejo"
+      },
+      {
+        "index": "vial",
+        "name": "Vial"
+      }
+    ],
+    "weight": 5,
+    "description": "Una herramienta te ayuda a realizar pruebas de característica especializadas, crear ciertos objetos, o ambas cosas."
+  },
+  {
+    "index": "grappling-hook",
+    "name": "Garfio",
+    "equipment_categories": [
+      {
+        "index": "adventuring-gear",
+        "name": "Equipo de Aventurero"
+      }
+    ],
+    "cost": {
+      "quantity": 2,
+      "unit": "po"
+    },
+    "weight": 4,
+    "description": "Como acción de Utilizar, puedes lanzar el Garfio a una barandilla, una cornisa u otro enganche a 50 pies o menos de ti, y el gancho se engancha si tienes éxito en una prueba de Destreza (Acrobacias) CD 13. Si ataste una Cuerda al gancho, puedes entonces escalarla."
+  },
+  {
+    "index": "greataxe",
+    "name": "Gran Hacha",
+    "equipment_categories": [
+      {
+        "index": "martial-melee-weapons",
+        "name": "Armas Marciales Cuerpo a Cuerpo"
+      },
+      {
+        "index": "martial-weapons",
+        "name": "Armas Marciales"
+      },
+      {
+        "index": "melee-weapons",
+        "name": "Armas Cuerpo a Cuerpo"
+      },
+      {
+        "index": "weapons",
+        "name": "Armas"
+      }
+    ],
+    "cost": {
+      "quantity": 30,
+      "unit": "po"
+    },
+    "damage": {
+      "damage_dice": "1d12",
+      "damage_type": {
+        "index": "slashing",
+        "name": "Cortante"
+      }
+    },
+    "range": {
+      "normal": 5
+    },
+    "weight": 7,
+    "properties": [
+      {
+        "index": "heavy",
+        "name": "Pesada"
+      },
+      {
+        "index": "two-handed",
+        "name": "A Dos Manos"
+      }
+    ],
+    "mastery": {
+      "index": "cleave",
+      "name": "Hender"
+    },
+    "description": "Un arma Cuerpo a Cuerpo se usa para atacar a un objetivo a 5 pies de distancia. Tienes Desventaja en las tiradas de ataque con un arma Pesada si es un arma Cuerpo a Cuerpo y tu puntuación de Fuerza no es al menos 13. Un arma a Dos Manos requiere dos manos cuando atacas con ella."
+  },
+  {
+    "index": "greatclub",
+    "name": "Gran Garrote",
+    "equipment_categories": [
+      {
+        "index": "melee-weapons",
+        "name": "Armas Cuerpo a Cuerpo"
+      },
+      {
+        "index": "simple-melee-weapons",
+        "name": "Armas Simples Cuerpo a Cuerpo"
+      },
+      {
+        "index": "simple-weapons",
+        "name": "Armas Simples"
+      },
+      {
+        "index": "weapons",
+        "name": "Armas"
+      }
+    ],
+    "cost": {
+      "quantity": 2,
+      "unit": "pc"
+    },
+    "damage": {
+      "damage_dice": "1d8",
+      "damage_type": {
+        "index": "bludgeoning",
+        "name": "Contundente"
+      }
+    },
+    "range": {
+      "normal": 5
+    },
+    "weight": 10,
+    "properties": [
+      {
+        "index": "two-handed",
+        "name": "A Dos Manos"
+      }
+    ],
+    "mastery": {
+      "index": "push",
+      "name": "Empujar"
+    },
+    "description": "Un arma Cuerpo a Cuerpo se usa para atacar a un objetivo a 5 pies de distancia. Un arma a Dos Manos requiere dos manos cuando atacas con ella."
+  },
+  {
+    "index": "greatsword",
+    "name": "Espadón",
+    "equipment_categories": [
+      {
+        "index": "martial-melee-weapons",
+        "name": "Armas Marciales Cuerpo a Cuerpo"
+      },
+      {
+        "index": "martial-weapons",
+        "name": "Armas Marciales"
+      },
+      {
+        "index": "melee-weapons",
+        "name": "Armas Cuerpo a Cuerpo"
+      },
+      {
+        "index": "weapons",
+        "name": "Armas"
+      }
+    ],
+    "cost": {
+      "quantity": 50,
+      "unit": "po"
+    },
+    "damage": {
+      "damage_dice": "2d6",
+      "damage_type": {
+        "index": "slashing",
+        "name": "Cortante"
+      }
+    },
+    "range": {
+      "normal": 5
+    },
+    "weight": 6,
+    "properties": [
+      {
+        "index": "heavy",
+        "name": "Pesada"
+      },
+      {
+        "index": "two-handed",
+        "name": "A Dos Manos"
+      }
+    ],
+    "mastery": {
+      "index": "graze",
+      "name": "Rozar"
+    },
+    "description": "Un arma Cuerpo a Cuerpo se usa para atacar a un objetivo a 5 pies de distancia. Tienes Desventaja en las tiradas de ataque con un arma Pesada si es un arma Cuerpo a Cuerpo y tu puntuación de Fuerza no es al menos 13. Un arma a Dos Manos requiere dos manos cuando atacas con ella."
+  },
+  {
+    "index": "halberd",
+    "name": "Alabarda",
+    "equipment_categories": [
+      {
+        "index": "martial-melee-weapons",
+        "name": "Armas Marciales Cuerpo a Cuerpo"
+      },
+      {
+        "index": "martial-weapons",
+        "name": "Armas Marciales"
+      },
+      {
+        "index": "melee-weapons",
+        "name": "Armas Cuerpo a Cuerpo"
+      },
+      {
+        "index": "weapons",
+        "name": "Armas"
+      }
+    ],
+    "cost": {
+      "quantity": 20,
+      "unit": "po"
+    },
+    "damage": {
+      "damage_dice": "1d10",
+      "damage_type": {
+        "index": "slashing",
+        "name": "Cortante"
+      }
+    },
+    "range": {
+      "normal": 5
+    },
+    "weight": 6,
+    "properties": [
+      {
+        "index": "heavy",
+        "name": "Pesada"
+      },
+      {
+        "index": "reach",
+        "name": "Alcance"
+      },
+      {
+        "index": "two-handed",
+        "name": "A Dos Manos"
+      }
+    ],
+    "mastery": {
+      "index": "cleave",
+      "name": "Hender"
+    },
+    "description": "Un arma Cuerpo a Cuerpo se usa para atacar a un objetivo a 5 pies de distancia. Tienes Desventaja en las tiradas de ataque con un arma Pesada si es un arma Cuerpo a Cuerpo y tu puntuación de Fuerza no es al menos 13. Un arma de Alcance añade 5 pies a tu alcance cuando atacas con ella, así como al determinar tu alcance para Ataques de Oportunidad con ella. Un arma a Dos Manos requiere dos manos cuando atacas con ella."
+  },
+  {
+    "index": "half-plate-armor",
+    "name": "Media Armadura",
+    "equipment_categories": [
+      {
+        "index": "armor",
+        "name": "Armadura"
+      },
+      {
+        "index": "medium-armor",
+        "name": "Armadura Media"
+      }
+    ],
+    "armor_class": {
+      "base": 15,
+      "dex_bonus": true,
+      "max_bonus": 2
+    },
+    "cost": {
+      "quantity": 750,
+      "unit": "po"
+    },
+    "don_time": "5 minutes",
+    "doff_time": "1 minute",
+    "stealth_disadvantage": true,
+    "str_minimum": 0,
+    "weight": 40,
+    "description": "Si vistes armadura Ligera, Media o Pesada y careces de entrenamiento con ella, tienes Desventaja en cualquier Prueba de d20 que involucre Fuerza o Destreza, y no puedes lanzar conjuros."
+  },
+  {
+    "index": "hand-crossbow",
+    "name": "Ballesta de Mano",
+    "equipment_categories": [
+      {
+        "index": "martial-ranged-weapons",
+        "name": "Armas Marciales a Distancia"
+      },
+      {
+        "index": "martial-weapons",
+        "name": "Armas Marciales"
+      },
+      {
+        "index": "ranged-weapons",
+        "name": "Armas a Distancia"
+      },
+      {
+        "index": "weapons",
+        "name": "Armas"
+      }
+    ],
+    "cost": {
+      "quantity": 25,
+      "unit": "po"
+    },
+    "damage": {
+      "damage_dice": "1d6",
+      "damage_type": {
+        "index": "piercing",
+        "name": "Perforante"
+      }
+    },
+    "range": {
+      "normal": 30,
+      "long": 120
+    },
+    "weight": 2,
+    "properties": [
+      {
+        "index": "ammunition",
+        "name": "Munición"
+      },
+      {
+        "index": "light",
+        "name": "Ligera"
+      },
+      {
+        "index": "loading",
+        "name": "Carga"
+      }
+    ],
+    "ammunition": {
+      "index": "bolts",
+      "name": "Virotes"
+    },
+    "mastery": {
+      "index": "vex",
+      "name": "Vejar"
+    },
+    "description": "Un arma a Distancia se usa para atacar a una mayor distancia. Puedes usar un arma que tenga la propiedad Munición para hacer un ataque a distancia solo si tienes munición para dispararla. Cuando realizas la acción de Atacar en tu turno y atacas con un arma Ligera, puedes hacer un ataque adicional como una Acción Adicional más tarde en el mismo turno. Puedes disparar solo una pieza de munición de un arma con la propiedad de Carga cuando usas una acción, una Acción Adicional o una Reacción para dispararla, sin importar el número de ataques que normalmente puedas hacer."
+  },
+  {
+    "index": "handaxe",
+    "name": "Hacha de Mano",
+    "equipment_categories": [
+      {
+        "index": "melee-weapons",
+        "name": "Armas Cuerpo a Cuerpo"
+      },
+      {
+        "index": "simple-melee-weapons",
+        "name": "Armas Simples Cuerpo a Cuerpo"
+      },
+      {
+        "index": "simple-weapons",
+        "name": "Armas Simples"
+      },
+      {
+        "index": "weapons",
+        "name": "Armas"
+      }
+    ],
+    "cost": {
+      "quantity": 5,
+      "unit": "po"
+    },
+    "damage": {
+      "damage_dice": "1d6",
+      "damage_type": {
+        "index": "slashing",
+        "name": "Cortante"
+      }
+    },
+    "range": {
+      "normal": 5
+    },
+    "weight": 2,
+    "properties": [
+      {
+        "index": "light",
+        "name": "Ligera"
+      },
+      {
+        "index": "thrown",
+        "name": "Arrojadiza"
+      }
+    ],
+    "mastery": {
+      "index": "vex",
+      "name": "Vejar"
+    },
+    "throw_range": {
+      "normal": 20,
+      "long": 60
+    },
+    "description": "Un arma Cuerpo a Cuerpo se usa para atacar a un objetivo a 5 pies de distancia. Cuando realizas la acción de Atacar en tu turno y atacas con un arma Ligera, puedes hacer un ataque adicional como una Acción Adicional más tarde en el mismo turno. Si un arma tiene la propiedad Arrojadiza, puedes lanzar el arma para realizar un ataque a distancia."
+  },
+  {
+    "index": "healers-kit",
+    "name": "Kit de Sanador",
+    "equipment_categories": [
+      {
+        "index": "adventuring-gear",
+        "name": "Equipo de Aventurero"
+      }
+    ],
+    "cost": {
+      "quantity": 5,
+      "unit": "po"
+    },
+    "description": "Un Kit de Sanador tiene diez usos. Como acción de Utilizar, puedes gastar uno de sus usos para estabilizar a una criatura Inconsciente que tenga 0 Puntos de Golpe sin necesidad de hacer una prueba de Sabiduría (Medicina).",
+    "weight": 3
+  },
+  {
+    "index": "heavy-crossbow",
+    "name": "Ballesta Pesada",
+    "equipment_categories": [
+      {
+        "index": "martial-ranged-weapons",
+        "name": "Armas Marciales a Distancia"
+      },
+      {
+        "index": "martial-weapons",
+        "name": "Armas Marciales"
+      },
+      {
+        "index": "ranged-weapons",
+        "name": "Armas a Distancia"
+      },
+      {
+        "index": "weapons",
+        "name": "Armas"
+      }
+    ],
+    "cost": {
+      "quantity": 50,
+      "unit": "po"
+    },
+    "damage": {
+      "damage_dice": "1d10",
+      "damage_type": {
+        "index": "piercing",
+        "name": "Perforante"
+      }
+    },
+    "range": {
+      "normal": 100,
+      "long": 400
+    },
+    "weight": 18,
+    "properties": [
+      {
+        "index": "ammunition",
+        "name": "Munición"
+      },
+      {
+        "index": "heavy",
+        "name": "Pesada"
+      },
+      {
+        "index": "loading",
+        "name": "Carga"
+      },
+      {
+        "index": "two-handed",
+        "name": "A Dos Manos"
+      }
+    ],
+    "ammunition": {
+      "index": "bolts",
+      "name": "Virotes"
+    },
+    "mastery": {
+      "index": "push",
+      "name": "Empujar"
+    },
+    "image": "/api/images/equipment/crossbow-heavy.png",
+    "description": "Un arma a Distancia se usa para atacar a una mayor distancia. Puedes usar un arma que tenga la propiedad Munición para hacer un ataque a distancia solo si tienes munición para dispararla. Tienes Desventaja en las tiradas de ataque con un arma Pesada si es un arma a Distancia y tu puntuación de Destreza no es al menos 13. Puedes disparar solo una pieza de munición de un arma con la propiedad de Carga cuando usas una acción, una Acción Adicional o una Reacción para dispararla, sin importar el número de ataques que normalmente puedas hacer. Un arma a Dos Manos requiere dos manos cuando atacas con ella."
+  },
+  {
+    "index": "herbalism-kit",
+    "name": "Kit de Herboristería",
+    "equipment_categories": [
+      {
+        "index": "other-tools",
+        "name": "Otras Herramientas"
+      },
+      {
+        "index": "tools",
+        "name": "Herramientas"
+      }
+    ],
+    "ability": {
+      "index": "int",
+      "name": "INT"
+    },
+    "cost": {
+      "quantity": 5,
+      "unit": "po"
+    },
+    "craft": [
+      {
+        "index": "antitoxin",
+        "name": "Antitoxina"
+      },
+      {
+        "index": "candle",
+        "name": "Vela"
+      },
+      {
+        "index": "healers-kit",
+        "name": "Kit de Sanador"
+      },
+      {
+        "index": "potion-of-healing",
+        "name": "Poción de Curación"
+      }
+    ],
+    "utilize": [
+      {
+        "name": "Identificar una planta",
+        "dc": {
+          "dc_type": {
+            "index": "int",
+            "name": "INT"
+          },
+          "dc_value": 10,
+          "success_type": "none"
+        }
+      }
+    ],
+    "weight": 3,
+    "description": "Una herramienta te ayuda a realizar pruebas de característica especializadas, crear ciertos objetos, o ambas cosas."
+  },
+  {
+    "index": "hide-armor",
+    "name": "Armadura de Pieles",
+    "equipment_categories": [
+      {
+        "index": "armor",
+        "name": "Armadura"
+      },
+      {
+        "index": "medium-armor",
+        "name": "Armadura Media"
+      }
+    ],
+    "armor_class": {
+      "base": 12,
+      "dex_bonus": true,
+      "max_bonus": 2
+    },
+    "cost": {
+      "quantity": 10,
+      "unit": "po"
+    },
+    "don_time": "5 minutos",
+    "doff_time": "1 minuto",
+    "stealth_disadvantage": false,
+    "str_minimum": 0,
+    "weight": 12,
+    "description": "Si vistes armadura Ligera, Media o Pesada y careces de entrenamiento con ella, tienes Desventaja en cualquier Prueba de d20 que involucre Fuerza o Destreza, y no puedes lanzar conjuros."
+  },
+  {
+    "index": "holy-water",
+    "name": "Agua Bendita",
+    "equipment_categories": [
+      {
+        "index": "adventuring-gear",
+        "name": "Equipo de Aventurero"
+      }
+    ],
+    "cost": {
+      "quantity": 25,
+      "unit": "po"
+    },
+    "description": "Cuando realizas la acción de Atacar, puedes reemplazar uno de tus ataques lanzando un frasco de Agua Bendita. Elige como objetivo a una criatura que puedas ver a 20 pies o menos de ti. El objetivo debe tener éxito en una tirada de salvación de Destreza (CD 8 más tu modificador de Destreza y Bonificador de Competencia) o recibe 2d8 de daño Radiante si es un Infernal o un Muerto Viviente.",
+    "weight": 1
+  },
+  {
+    "index": "horn",
+    "name": "Cuerno",
+    "equipment_categories": [
+      {
+        "index": "musical-instruments",
+        "name": "Instrumentos Musicales"
+      },
+      {
+        "index": "tools",
+        "name": "Herramientas"
+      }
+    ],
+    "ability": {
+      "index": "cha",
+      "name": "CAR"
+    },
+    "cost": {
+      "quantity": 3,
+      "unit": "po"
+    },
+    "utilize": [
+      {
+        "name": "Tocar una melodía conocida",
+        "dc": {
+          "dc_type": {
+            "index": "cha",
+            "name": "CAR"
+          },
+          "dc_value": 10,
+          "success_type": "none"
+        }
+      },
+      {
+        "name": "Improvisar una canción",
+        "dc": {
+          "dc_type": {
+            "index": "cha",
+            "name": "CAR"
+          },
+          "dc_value": 15,
+          "success_type": "none"
+        }
+      }
+    ],
+    "weight": 2,
+    "description": "Una herramienta te ayuda a realizar pruebas de característica especializadas, crear ciertos objetos, o ambas cosas."
+  },
+  {
+    "index": "hunting-trap",
+    "name": "Trampa de Caza",
+    "equipment_categories": [
+      {
+        "index": "adventuring-gear",
+        "name": "Equipo de Aventurero"
+      }
+    ],
+    "cost": {
+      "quantity": 5,
+      "unit": "po"
+    },
+    "description": "Como acción de Utilizar, puedes colocar una Trampa de Caza, que es un anillo de acero dentado que se cierra de golpe cuando una criatura pisa una placa de presión en el centro. La trampa se fija mediante una cadena pesada a un objeto inmóvil, como un árbol o un clavo clavado en el suelo. Una criatura que pise la placa debe tener éxito en una tirada de salvación de Destreza CD 13 o recibir 1d4 de daño Perforante y su Velocidad se reduce a 0 hasta el inicio de su siguiente turno. A partir de entonces, hasta que la criatura se libere de la trampa, su movimiento está limitado por la longitud de la cadena (típicamente 3 pies). Una criatura puede usar su acción para realizar una prueba de Fuerza (Atletismo) CD 13, liberándose a sí misma o a otra criatura a su alcance en caso de éxito. Cada prueba fallida inflige 1 de daño Perforante a la criatura atrapada.",
+    "weight": 25
+  },
+  {
+    "index": "ink",
+    "name": "Tinta",
+    "equipment_categories": [
+      {
+        "index": "adventuring-gear",
+        "name": "Equipo de Aventurero"
+      }
+    ],
+    "cost": {
+      "quantity": 10,
+      "unit": "po"
+    },
+    "description": "La tinta viene en una botella de 1 onza, que proporciona suficiente tinta para escribir unas 500 páginas.",
+    "weight": 0
+  },
+  {
+    "index": "ink-pen",
+    "name": "Pluma para Tinta",
+    "equipment_categories": [
+      {
+        "index": "adventuring-gear",
+        "name": "Equipo de Aventurero"
+      }
+    ],
+    "cost": {
+      "quantity": 2,
+      "unit": "pc"
+    },
+    "description": "Usando Tinta, una Pluma para Tinta se usa para escribir o dibujar.",
+    "weight": 0
+  },
+  {
+    "index": "javelin",
+    "name": "Jabalina",
+    "equipment_categories": [
+      {
+        "index": "melee-weapons",
+        "name": "Armas Cuerpo a Cuerpo"
+      },
+      {
+        "index": "simple-melee-weapons",
+        "name": "Armas Simples Cuerpo a Cuerpo"
+      },
+      {
+        "index": "simple-weapons",
+        "name": "Armas Simples"
+      },
+      {
+        "index": "weapons",
+        "name": "Armas"
+      }
+    ],
+    "cost": {
+      "quantity": 5,
+      "unit": "po"
+    },
+    "damage": {
+      "damage_dice": "1d6",
+      "damage_type": {
+        "index": "piercing",
+        "name": "Perforante"
+      }
+    },
+    "range": {
+      "normal": 5
+    },
+    "weight": 2,
+    "properties": [
+      {
+        "index": "thrown",
+        "name": "Arrojadiza"
+      }
+    ],
+    "mastery": {
+      "index": "slow",
+      "name": "Lento"
+    },
+    "throw_range": {
+      "normal": 30,
+      "long": 120
+    },
+    "description": "Un arma Cuerpo a Cuerpo se usa para atacar a un objetivo a 5 pies de distancia. Si un arma tiene la propiedad Arrojadiza, puedes lanzar el arma para realizar un ataque a distancia."
+  },
+  {
+    "index": "jewelers-tools",
+    "name": "Herramientas de Joyero",
+    "equipment_categories": [
+      {
+        "index": "artisans-tools",
+        "name": "Herramientas de Artesano"
+      },
+      {
+        "index": "tools",
+        "name": "Herramientas"
+      }
+    ],
+    "ability": {
+      "index": "int",
+      "name": "INT"
+    },
+    "cost": {
+      "quantity": 25,
+      "unit": "po"
+    },
+    "craft": [
+      {
+        "index": "crystal",
+        "name": "Cristal"
+      },
+      {
+        "index": "orb",
+        "name": "Orbe"
+      },
+      {
+        "index": "quarterstaff",
+        "name": "Bastón"
+      },
+      {
+        "index": "rod",
+        "name": "Vara"
+      },
+      {
+        "index": "staff",
+        "name": "Bastón"
+      },
+      {
+        "index": "wand",
+        "name": "Varita"
+      },
+      {
+        "index": "amulet",
+        "name": "Amuleto"
+      },
+      {
+        "index": "emblem",
+        "name": "Emblema"
+      },
+      {
+        "index": "reliquary",
+        "name": "Relicario"
+      }
+    ],
+    "utilize": [
+      {
+        "name": "Discernir el valor de una gema",
+        "dc": {
+          "dc_type": {
+            "index": "int",
+            "name": "INT"
+          },
+          "dc_value": 15,
+          "success_type": "none"
+        }
+      }
+    ],
+    "weight": 2,
+    "description": "Una herramienta te ayuda a realizar pruebas de característica especializadas, crear ciertos objetos, o ambas cosas."
+  },
+  {
+    "index": "jug",
+    "name": "Jarra",
+    "equipment_categories": [
+      {
+        "index": "adventuring-gear",
+        "name": "Equipo de Aventurero"
+      }
+    ],
+    "cost": {
+      "quantity": 2,
+      "unit": "pc"
+    },
+    "description": "Una Jarra contiene hasta 1 galón.",
+    "weight": 4
+  },
+  {
+    "index": "ladder",
+    "name": "Escalera",
+    "equipment_categories": [
+      {
+        "index": "adventuring-gear",
+        "name": "Equipo de Aventurero"
+      }
+    ],
+    "cost": {
+      "quantity": 1,
+      "unit": "pp"
+    },
+    "description": "Una Escalera mide 10 pies de alto. Debes escalar para moverte hacia arriba o hacia abajo en ella.",
+    "weight": 25
+  },
+  {
+    "index": "lamp",
+    "name": "Lámpara",
+    "equipment_categories": [
+      {
+        "index": "adventuring-gear",
+        "name": "Equipo de Aventurero"
+      }
+    ],
+    "cost": {
+      "quantity": 5,
+      "unit": "pp"
+    },
+    "description": "Una Lámpara quema Aceite como combustible para emitir Luz Brillante en un radio de 15 pies y Luz Tenue por 30 pies adicionales.",
+    "weight": 1
+  },
+  {
+    "index": "lance",
+    "name": "Lanza de Caballería",
+    "equipment_categories": [
+      {
+        "index": "martial-melee-weapons",
+        "name": "Armas Marciales Cuerpo a Cuerpo"
+      },
+      {
+        "index": "martial-weapons",
+        "name": "Armas Marciales"
+      },
+      {
+        "index": "melee-weapons",
+        "name": "Armas Cuerpo a Cuerpo"
+      },
+      {
+        "index": "weapons",
+        "name": "Armas"
+      }
+    ],
+    "cost": {
+      "quantity": 10,
+      "unit": "po"
+    },
+    "damage": {
+      "damage_dice": "1d10",
+      "damage_type": {
+        "index": "piercing",
+        "name": "Perforante"
+      }
+    },
+    "notes": [
+      "A dos manos a menos que estés montado"
+    ],
+    "range": {
+      "normal": 5
+    },
+    "weight": 6,
+    "properties": [
+      {
+        "index": "heavy",
+        "name": "Pesada"
+      },
+      {
+        "index": "reach",
+        "name": "Alcance"
+      },
+      {
+        "index": "two-handed",
+        "name": "A Dos Manos"
+      }
+    ],
+    "mastery": {
+      "index": "topple",
+      "name": "Derribar"
+    },
+    "description": "Un arma Cuerpo a Cuerpo se usa para atacar a un objetivo a 5 pies de distancia. Tienes Desventaja en las tiradas de ataque con un arma Pesada si es un arma Cuerpo a Cuerpo y tu puntuación de Fuerza no es al menos 13. Un arma de Alcance añade 5 pies a tu alcance cuando atacas con ella, así como al determinar tu alcance para Ataques de Oportunidad con ella. Un arma a Dos Manos requiere dos manos cuando atacas con ella."
+  },
+  {
+    "index": "lantern-bullseye",
+    "name": "Linterna Ojo de Buey",
+    "equipment_categories": [
+      {
+        "index": "adventuring-gear",
+        "name": "Equipo de Aventurero"
+      }
+    ],
+    "cost": {
+      "quantity": 10,
+      "unit": "po"
+    },
+    "description": "Una Linterna Ojo de Buey quema Aceite como combustible para emitir Luz Brillante en un Cono de 60 pies y Luz Tenue por 60 pies adicionales.",
+    "weight": 2
+  },
+  {
+    "index": "lantern-hooded",
+    "name": "Linterna Sorda",
+    "equipment_categories": [
+      {
+        "index": "adventuring-gear",
+        "name": "Equipo de Aventurero"
+      }
+    ],
+    "cost": {
+      "quantity": 5,
+      "unit": "po"
+    },
+    "description": "Una Linterna Sorda quema Aceite como combustible para emitir Luz Brillante en un radio de 30 pies y Luz Tenue por 30 pies adicionales. Como Acción Adicional, puedes bajar la cubierta, reduciendo la luz a Luz Tenue en un radio de 5 pies, o levantarla de nuevo.",
+    "weight": 2
+  },
+  {
+    "index": "leather-armor",
+    "name": "Armadura de Cuero",
+    "equipment_categories": [
+      {
+        "index": "armor",
+        "name": "Armadura"
+      },
+      {
+        "index": "light-armor",
+        "name": "Armadura Ligera"
+      }
+    ],
+    "armor_class": {
+      "base": 11,
+      "dex_bonus": true
+    },
+    "cost": {
+      "quantity": 10,
+      "unit": "po"
+    },
+    "don_time": "1 minuto",
+    "doff_time": "1 minuto",
+    "stealth_disadvantage": false,
+    "str_minimum": 0,
+    "weight": 10,
+    "description": "Si vistes armadura Ligera, Media o Pesada y careces de entrenamiento con ella, tienes Desventaja en cualquier Prueba de d20 que involucre Fuerza o Destreza, y no puedes lanzar conjuros."
+  },
+  {
+    "index": "leatherworkers-tools",
+    "name": "Herramientas de Peletero",
+    "equipment_categories": [
+      {
+        "index": "artisans-tools",
+        "name": "Herramientas de Artesano"
+      },
+      {
+        "index": "tools",
+        "name": "Herramientas"
+      }
+    ],
+    "ability": {
+      "index": "dex",
+      "name": "DES"
+    },
+    "cost": {
+      "quantity": 5,
+      "unit": "po"
+    },
+    "craft": [
+      {
+        "index": "sling",
+        "name": "Honda"
+      },
+      {
+        "index": "whip",
+        "name": "Látigo"
+      },
+      {
+        "index": "hide-armor",
+        "name": "Armadura de Pieles"
+      },
+      {
+        "index": "leather-armor",
+        "name": "Armadura de Cuero"
+      },
+      {
+        "index": "studded-leather-armor",
+        "name": "Armadura de Cuero Tachonado"
+      },
+      {
+        "index": "backpack",
+        "name": "Mochila"
+      },
+      {
+        "index": "case-crossbow-bolt",
+        "name": "Caja de Virotes de Ballesta"
+      },
+      {
+        "index": "case-map-or-scroll",
+        "name": "Caja, Mapa o Pergamino"
+      },
+      {
+        "index": "parchment",
+        "name": "Pergamino"
+      },
+      {
+        "index": "pouch",
+        "name": "Bolsita"
+      },
+      {
+        "index": "quiver",
+        "name": "Carcaj"
+      },
+      {
+        "index": "waterskin",
+        "name": "Odre"
+      }
+    ],
+    "utilize": [
+      {
+        "name": "Añadir un diseño a un objeto de cuero",
+        "dc": {
+          "dc_type": {
+            "index": "dex",
+            "name": "DES"
+          },
+          "dc_value": 10,
+          "success_type": "none"
+        }
+      }
+    ],
+    "weight": 5,
+    "description": "Una herramienta te ayuda a realizar pruebas de característica especializadas, crear ciertos objetos, o ambas cosas."
+  },
+  {
+    "index": "light-crossbow",
+    "name": "Ballesta Ligera",
+    "equipment_categories": [
+      {
+        "index": "ranged-weapons",
+        "name": "Armas a Distancia"
+      },
+      {
+        "index": "simple-ranged-weapons",
+        "name": "Armas Simples a Distancia"
+      },
+      {
+        "index": "simple-weapons",
+        "name": "Armas Simples"
+      },
+      {
+        "index": "weapons",
+        "name": "Armas"
+      }
+    ],
+    "cost": {
+      "quantity": 25,
+      "unit": "po"
+    },
+    "damage": {
+      "damage_dice": "1d8",
+      "damage_type": {
+        "index": "piercing",
+        "name": "Perforante"
+      }
+    },
+    "range": {
+      "normal": 80,
+      "long": 320
+    },
+    "weight": 5,
+    "properties": [
+      {
+        "index": "ammunition",
+        "name": "Munición"
+      },
+      {
+        "index": "loading",
+        "name": "Carga"
+      },
+      {
+        "index": "two-handed",
+        "name": "A Dos Manos"
+      }
+    ],
+    "ammunition": {
+      "index": "bolts",
+      "name": "Virotes"
+    },
+    "mastery": {
+      "index": "slow",
+      "name": "Lento"
+    },
+    "description": "Un arma a Distancia se usa para atacar a una mayor distancia. Puedes usar un arma que tenga la propiedad Munición para hacer un ataque a distancia solo si tienes munición para dispararla. Puedes disparar solo una pieza de munición de un arma con la propiedad de Carga cuando usas una acción, una Acción Adicional o una Reacción para dispararla, sin importar el número de ataques que normalmente puedas hacer. Un arma a Dos Manos requiere dos manos cuando atacas con ella."
+  },
+  {
+    "index": "light-hammer",
+    "name": "Martillo Ligero",
+    "equipment_categories": [
+      {
+        "index": "melee-weapons",
+        "name": "Armas Cuerpo a Cuerpo"
+      },
+      {
+        "index": "simple-melee-weapons",
+        "name": "Armas Simples Cuerpo a Cuerpo"
+      },
+      {
+        "index": "simple-weapons",
+        "name": "Armas Simples"
+      },
+      {
+        "index": "weapons",
+        "name": "Armas"
+      }
+    ],
+    "cost": {
+      "quantity": 2,
+      "unit": "po"
+    },
+    "damage": {
+      "damage_dice": "1d4",
+      "damage_type": {
+        "index": "bludgeoning",
+        "name": "Contundente"
+      }
+    },
+    "range": {
+      "normal": 5
+    },
+    "weight": 2,
+    "properties": [
+      {
+        "index": "light",
+        "name": "Ligera"
+      },
+      {
+        "index": "thrown",
+        "name": "Arrojadiza"
+      }
+    ],
+    "mastery": {
+      "index": "nick",
+      "name": "Muesca"
+    },
+    "throw_range": {
+      "normal": 20,
+      "long": 60
+    },
+    "description": "Un arma Cuerpo a Cuerpo se usa para atacar a un objetivo a 5 pies de distancia. Cuando realizas la acción de Atacar en tu turno y atacas con un arma Ligera, puedes hacer un ataque adicional como una Acción Adicional más tarde en el mismo turno. Si un arma tiene la propiedad Arrojadiza, puedes lanzar el arma para realizar un ataque a distancia."
+  },
+  {
+    "index": "lock",
+    "name": "Cerradura",
+    "equipment_categories": [
+      {
+        "index": "adventuring-gear",
+        "name": "Equipo de Aventurero"
+      }
+    ],
+    "cost": {
+      "quantity": 10,
+      "unit": "po"
+    },
+    "description": "Una Cerradura viene con una llave. Sin la llave, una criatura puede usar Herramientas de Ladrón para forzar esta Cerradura con una prueba exitosa de Destreza (Juego de Manos) CD 15.",
+    "weight": 1
+  },
+  {
+    "index": "longbow",
+    "name": "Arco Largo",
+    "equipment_categories": [
+      {
+        "index": "martial-ranged-weapons",
+        "name": "Armas Marciales a Distancia"
+      },
+      {
+        "index": "martial-weapons",
+        "name": "Armas Marciales"
+      },
+      {
+        "index": "ranged-weapons",
+        "name": "Armas a Distancia"
+      },
+      {
+        "index": "weapons",
+        "name": "Armas"
+      }
+    ],
+    "cost": {
+      "quantity": 5,
+      "unit": "po"
+    },
+    "damage": {
+      "damage_dice": "1d8",
+      "damage_type": {
+        "index": "piercing",
+        "name": "Perforante"
+      }
+    },
+    "range": {
+      "normal": 150,
+      "long": 600
+    },
+    "weight": 2,
+    "properties": [
+      {
+        "index": "ammunition",
+        "name": "Munición"
+      },
+      {
+        "index": "heavy",
+        "name": "Pesada"
+      },
+      {
+        "index": "two-handed",
+        "name": "A Dos Manos"
+      }
+    ],
+    "ammunition": {
+      "index": "arrows",
+      "name": "Flechas"
+    },
+    "mastery": {
+      "index": "slow",
+      "name": "Lento"
+    },
+    "description": "Un arma a Distancia se usa para atacar a una mayor distancia. Puedes usar un arma que tenga la propiedad Munición para hacer un ataque a distancia solo si tienes munición para dispararla. Tienes Desventaja en las tiradas de ataque con un arma Pesada si es un arma a Distancia y tu puntuación de Destreza no es al menos 13. Un arma a Dos Manos requiere dos manos cuando atacas con ella."
+  },
+  {
+    "index": "longsword",
+    "name": "Espada Larga",
+    "equipment_categories": [
+      {
+        "index": "martial-melee-weapons",
+        "name": "Armas Marciales Cuerpo a Cuerpo"
+      },
+      {
+        "index": "martial-weapons",
+        "name": "Armas Marciales"
+      },
+      {
+        "index": "melee-weapons",
+        "name": "Armas Cuerpo a Cuerpo"
+      },
+      {
+        "index": "weapons",
+        "name": "Armas"
+      }
+    ],
+    "cost": {
+      "quantity": 15,
+      "unit": "po"
+    },
+    "damage": {
+      "damage_dice": "1d8",
+      "damage_type": {
+        "index": "slashing",
+        "name": "Cortante"
+      }
+    },
+    "range": {
+      "normal": 5
+    },
+    "weight": 3,
+    "properties": [
+      {
+        "index": "versatile",
+        "name": "Versátil"
+      }
+    ],
+    "mastery": {
+      "index": "sap",
+      "name": "Debilitar"
+    },
+    "two_handed_damage": {
+      "damage_dice": "1d10",
+      "damage_type": {
+        "index": "slashing",
+        "name": "Cortante"
+      }
+    },
+    "description": "Un arma Cuerpo a Cuerpo se usa para atacar a un objetivo a 5 pies de distancia. Un arma Versátil puede ser usada con una o dos manos."
+  },
+  {
+    "index": "lute",
+    "name": "Laúd",
+    "equipment_categories": [
+      {
+        "index": "musical-instruments",
+        "name": "Instrumentos Musicales"
+      },
+      {
+        "index": "tools",
+        "name": "Herramientas"
+      }
+    ],
+    "ability": {
+      "index": "cha",
+      "name": "CAR"
+    },
+    "cost": {
+      "quantity": 35,
+      "unit": "po"
+    },
+    "utilize": [
+      {
+        "name": "Tocar una melodía conocida",
+        "dc": {
+          "dc_type": {
+            "index": "cha",
+            "name": "CAR"
+          },
+          "dc_value": 10,
+          "success_type": "none"
+        }
+      },
+      {
+        "name": "Improvisar una canción",
+        "dc": {
+          "dc_type": {
+            "index": "cha",
+            "name": "CAR"
+          },
+          "dc_value": 15,
+          "success_type": "none"
+        }
+      }
+    ],
+    "weight": 2,
+    "description": "Una herramienta te ayuda a realizar pruebas de característica especializadas, crear ciertos objetos, o ambas cosas."
+  },
+  {
+    "index": "lyre",
+    "name": "Lira",
+    "equipment_categories": [
+      {
+        "index": "musical-instruments",
+        "name": "Instrumentos Musicales"
+      },
+      {
+        "index": "tools",
+        "name": "Herramientas"
+      }
+    ],
+    "ability": {
+      "index": "cha",
+      "name": "CAR"
+    },
+    "cost": {
+      "quantity": 30,
+      "unit": "po"
+    },
+    "utilize": [
+      {
+        "name": "Tocar una melodía conocida",
+        "dc": {
+          "dc_type": {
+            "index": "cha",
+            "name": "CAR"
+          },
+          "dc_value": 10,
+          "success_type": "none"
+        }
+      },
+      {
+        "name": "Improvisar una canción",
+        "dc": {
+          "dc_type": {
+            "index": "cha",
+            "name": "CAR"
+          },
+          "dc_value": 15,
+          "success_type": "none"
+        }
+      }
+    ],
+    "weight": 2,
+    "description": "Una herramienta te ayuda a realizar pruebas de característica especializadas, crear ciertos objetos, o ambas cosas."
+  },
+  {
+    "index": "mace",
+    "name": "Maza",
+    "equipment_categories": [
+      {
+        "index": "melee-weapons",
+        "name": "Armas Cuerpo a Cuerpo"
+      },
+      {
+        "index": "simple-melee-weapons",
+        "name": "Armas Simples Cuerpo a Cuerpo"
+      },
+      {
+        "index": "simple-weapons",
+        "name": "Armas Simples"
+      },
+      {
+        "index": "weapons",
+        "name": "Armas"
+      }
+    ],
+    "cost": {
+      "quantity": 5,
+      "unit": "po"
+    },
+    "damage": {
+      "damage_dice": "1d6",
+      "damage_type": {
+        "index": "bludgeoning",
+        "name": "Contundente"
+      }
+    },
+    "range": {
+      "normal": 5
+    },
+    "weight": 2,
+    "properties": [],
+    "mastery": {
+      "index": "sap",
+      "name": "Debilitar"
+    },
+    "description": "Un arma Cuerpo a Cuerpo se usa para atacar a un objetivo a 5 pies de distancia."
+  },
+  {
+    "index": "magnifying-glass",
+    "name": "Lupa",
+    "equipment_categories": [
+      {
+        "index": "adventuring-gear",
+        "name": "Equipo de Aventurero"
+      }
+    ],
+    "cost": {
+      "quantity": 100,
+      "unit": "po"
+    },
+    "description": "Una Lupa otorga Ventaja en cualquier prueba de característica realizada para tasar o inspeccionar un objeto muy detallado. Encender un fuego con una Lupa requiere luz tan brillante como la luz del sol para enfocar, yesca para encender y alrededor de 5 minutos para que el fuego se encienda.",
+    "weight": 0
+  },
+  {
+    "index": "manacles",
+    "name": "Grilletes",
+    "equipment_categories": [
+      {
+        "index": "adventuring-gear",
+        "name": "Equipo de Aventurero"
+      }
+    ],
+    "cost": {
+      "quantity": 2,
+      "unit": "po"
+    },
+    "description": "Como acción de Utilizar, puedes usar Grilletes para atar a una criatura Pequeña o Mediana involuntaria a 5 pies o menos de ti que tenga la condición de Agarrado, Incapacitado o Apresado si tienes éxito en una prueba de Destreza (Juego de Manos) CD 13. Mientras está atada, una criatura tiene Desventaja en las tiradas de ataque, y la criatura está Apresada si los Grilletes están unidos a una cadena o gancho fijado en su lugar. Escapar de los Grilletes requiere una prueba exitosa de Destreza (Juego de Manos) CD 20 como acción. Romperlos requiere una prueba exitosa de Fuerza (Atletismo) CD 25 como acción.\nCada par de Grilletes viene con una llave. Sin la llave, una criatura puede usar Herramientas de Ladrón para forzar la cerradura de los Grilletes con una prueba exitosa de Destreza (Juego de Manos) CD 15.",
+    "weight": 6
+  },
+  {
+    "index": "masons-tools",
+    "name": "Herramientas de Albañil",
+    "equipment_categories": [
+      {
+        "index": "artisans-tools",
+        "name": "Herramientas de Artesano"
+      },
+      {
+        "index": "tools",
+        "name": "Herramientas"
+      }
+    ],
+    "ability": {
+      "index": "str",
+      "name": "FUE"
+    },
+    "cost": {
+      "quantity": 10,
+      "unit": "po"
+    },
+    "craft": [
+      {
+        "index": "block-and-tackle",
+        "name": "Aparejo"
+      }
+    ],
+    "utilize": [
+      {
+        "name": "Cincelar un símbolo o agujero en piedra",
+        "dc": {
+          "dc_type": {
+            "index": "str",
+            "name": "FUE"
+          },
+          "dc_value": 10,
+          "success_type": "none"
+        }
+      }
+    ],
+    "weight": 8,
+    "description": "Una herramienta te ayuda a realizar pruebas de característica especializadas, crear ciertos objetos, o ambas cosas."
+  },
+  {
+    "index": "map",
+    "name": "Mapa",
+    "equipment_categories": [
+      {
+        "index": "adventuring-gear",
+        "name": "Equipo de Aventurero"
+      }
+    ],
+    "cost": {
+      "quantity": 1,
+      "unit": "po"
+    },
+    "description": "Si consultas un Mapa preciso, obtienes un bonificador de +5 a las pruebas de Sabiduría (Supervivencia) que hagas para encontrar tu camino en el lugar representado en él.",
+    "weight": 0
+  },
+  {
+    "index": "mirror",
+    "name": "Espejo",
+    "equipment_categories": [
+      {
+        "index": "adventuring-gear",
+        "name": "Equipo de Aventurero"
+      }
+    ],
+    "cost": {
+      "quantity": 5,
+      "unit": "po"
+    },
+    "description": "Un Espejo de acero de mano es útil para la cosmética personal, pero también para asomarse por las esquinas y reflejar la luz como señal.",
+    "weight": 0.5
+  },
+  {
+    "index": "maul",
+    "name": "Mazo",
+    "equipment_categories": [
+      {
+        "index": "martial-melee-weapons",
+        "name": "Armas Marciales Cuerpo a Cuerpo"
+      },
+      {
+        "index": "martial-weapons",
+        "name": "Armas Marciales"
+      },
+      {
+        "index": "melee-weapons",
+        "name": "Armas Cuerpo a Cuerpo"
+      },
+      {
+        "index": "weapons",
+        "name": "Armas"
+      }
+    ],
+    "cost": {
+      "quantity": 10,
+      "unit": "po"
+    },
+    "damage": {
+      "damage_dice": "2d6",
+      "damage_type": {
+        "index": "bludgeoning",
+        "name": "Contundente"
+      }
+    },
+    "range": {
+      "normal": 5
+    },
+    "weight": 10,
+    "properties": [
+      {
+        "index": "heavy",
+        "name": "Pesada"
+      },
+      {
+        "index": "two-handed",
+        "name": "A Dos Manos"
+      }
+    ],
+    "mastery": {
+      "index": "topple",
+      "name": "Derribar"
+    },
+    "description": "Un arma Cuerpo a Cuerpo se usa para atacar a un objetivo a 5 pies de distancia. Tienes Desventaja en las tiradas de ataque con un arma Pesada si es un arma Cuerpo a Cuerpo y tu puntuación de Fuerza no es al menos 13. Un arma a Dos Manos requiere dos manos cuando atacas con ella."
+  },
+  {
+    "index": "morningstar",
+    "name": "Lucero del Alba",
+    "equipment_categories": [
+      {
+        "index": "martial-melee-weapons",
+        "name": "Armas Marciales Cuerpo a Cuerpo"
+      },
+      {
+        "index": "martial-weapons",
+        "name": "Armas Marciales"
+      },
+      {
+        "index": "melee-weapons",
+        "name": "Armas Cuerpo a Cuerpo"
+      },
+      {
+        "index": "weapons",
+        "name": "Armas"
+      }
+    ],
+    "cost": {
+      "quantity": 15,
+      "unit": "po"
+    },
+    "damage": {
+      "damage_dice": "1d8",
+      "damage_type": {
+        "index": "piercing",
+        "name": "Perforante"
+      }
+    },
+    "weight": 4,
+    "properties": [],
+    "mastery": {
+      "index": "sap",
+      "name": "Debilitar"
+    },
+    "description": "Un arma Cuerpo a Cuerpo se usa para atacar a un objetivo a 5 pies de distancia."
+  },
+  {
+    "index": "musket",
+    "name": "Mosquete",
+    "equipment_categories": [
+      {
+        "index": "martial-ranged-weapons",
+        "name": "Armas Marciales a Distancia"
+      },
+      {
+        "index": "martial-weapons",
+        "name": "Armas Marciales"
+      },
+      {
+        "index": "ranged-weapons",
+        "name": "Armas a Distancia"
+      },
+      {
+        "index": "weapons",
+        "name": "Armas"
+      }
+    ],
+    "cost": {
+      "quantity": 500,
+      "unit": "po"
+    },
+    "damage": {
+      "damage_dice": "1d12",
+      "damage_type": {
+        "index": "piercing",
+        "name": "Perforante"
+      }
+    },
+    "range": {
+      "normal": 40,
+      "long": 120
+    },
+    "weight": 10,
+    "properties": [
+      {
+        "index": "ammunition",
+        "name": "Munición"
+      },
+      {
+        "index": "loading",
+        "name": "Carga"
+      },
+      {
+        "index": "two-handed",
+        "name": "A Dos Manos"
+      }
+    ],
+    "ammunition": {
+      "index": "bullets-firearm",
+      "name": "Balas, Arma de Fuego"
+    },
+    "mastery": {
+      "index": "slow",
+      "name": "Lento"
+    },
+    "description": "Un arma a Distancia se usa para atacar a una mayor distancia. Puedes usar un arma que tenga la propiedad Munición para hacer un ataque a distancia solo si tienes munición para dispararla. Puedes disparar solo una pieza de munición de un arma con la propiedad de Carga cuando usas una acción, una Acción Adicional o una Reacción para dispararla, sin importar el número de ataques que normalmente puedas hacer. Un arma a Dos Manos requiere dos manos cuando atacas con ella."
+  },
+  {
+    "index": "navigators-tools",
+    "name": "Herramientas de Navegante",
+    "equipment_categories": [
+      {
+        "index": "other-tools",
+        "name": "Otras Herramientas"
+      },
+      {
+        "index": "tools",
+        "name": "Herramientas"
+      }
+    ],
+    "ability": {
+      "index": "wis",
+      "name": "SAB"
+    },
+    "cost": {
+      "quantity": 25,
+      "unit": "po"
+    },
+    "utilize": [
+      {
+        "name": "Trazar un rumbo",
+        "dc": {
+          "dc_type": {
+            "index": "wis",
+            "name": "SAB"
+          },
+          "dc_value": 10,
+          "success_type": "none"
+        }
+      },
+      {
+        "name": "Determinar la posición observando las estrellas",
+        "dc": {
+          "dc_type": {
+            "index": "wis",
+            "name": "SAB"
+          },
+          "dc_value": 15,
+          "success_type": "none"
+        }
+      }
+    ],
+    "weight": 2,
+    "description": "Una herramienta te ayuda a realizar pruebas de característica especializadas, crear ciertos objetos, o ambas cosas."
+  },
+  {
+    "index": "needles",
+    "name": "Agujas",
+    "equipment_categories": [
+      {
+        "index": "ammunition",
+        "name": "Munición"
+      }
+    ],
+    "cost": {
+      "quantity": 1,
+      "unit": "po"
+    },
+    "quantity": 50,
+    "storage": {
+      "index": "pouch",
+      "name": "Bolsita"
+    },
+    "weight": 1,
+    "description": "La munición es requerida por un arma que tenga la propiedad de Munición (Ammunition). Cada ataque gasta una pieza de munición. Después de un combate, puedes dedicar 1 minuto a recuperar la mitad de la munición (redondeando hacia abajo) que usaste en la pelea; el resto se pierde."
+  },
+  {
+    "index": "net",
+    "name": "Red",
+    "equipment_categories": [
+      {
+        "index": "adventuring-gear",
+        "name": "Equipo de Aventurero"
+      }
+    ],
+    "cost": {
+      "quantity": 1,
+      "unit": "po"
+    },
+    "description": "Cuando realizas la acción de Atacar, puedes reemplazar uno de tus ataques lanzando una Red. Elige como objetivo a una criatura que puedas ver a 15 pies o menos de ti. El objetivo debe tener éxito en una tirada de salvación de Destreza (CD 8 más tu modificador de Destreza y Bonificador de Competencia) o tendrá la condición de Apresado hasta que escape. El objetivo tiene éxito automáticamente si es Enorme o más grande.\nPara escapar, el objetivo o una criatura a 5 pies o menos de él debe usar una acción para realizar una prueba de Fuerza (Atletismo) CD 10, liberando a la criatura Apresada en caso de éxito. Destruir la Red (CA 10; 5 PG; Inmunidad al daño Contundente, Veneno y Psíquico) también libera al objetivo, terminando el efecto.",
+    "weight": 3
+  },
+  {
+    "index": "oil",
+    "name": "Aceite",
+    "equipment_categories": [
+      {
+        "index": "adventuring-gear",
+        "name": "Equipo de Aventurero"
+      }
+    ],
+    "cost": {
+      "quantity": 1,
+      "unit": "pp"
+    },
+    "description": "Puedes empapar a una criatura, objeto o espacio con Aceite o usarlo como combustible, como se detalla a continuación.\n**Empapar a una Criatura o un Objeto.** Cuando realizas la acción de Atacar, puedes reemplazar uno de tus ataques lanzando un frasco de Aceite. Elige como objetivo a una criatura u objeto a 20 pies o menos de ti. El objetivo debe tener éxito en una tirada de salvación de Destreza (CD 8 más tu modificador de Destreza y Bonificador de Competencia) o quedará cubierto de aceite. Si el objetivo recibe daño por Fuego antes de que el aceite se seque (después de 1 minuto), recibe 5 de daño por Fuego adicional del aceite ardiendo.\n**Empapar un Espacio.** Puedes realizar la acción de Utilizar para derramar un frasco de Aceite en un suelo nivelado para cubrir un área de 5 pies cuadrados a menos de 5 pies de ti. Si se enciende, el aceite arde hasta el final del turno 2 asaltos después de ser encendido (o 12 segundos) y causa 5 de daño por Fuego a cualquier criatura que entre al área o termine su turno allí. Una criatura puede recibir este daño solo una vez por turno.\n**Combustible.** El Aceite sirve como combustible para Lámparas y Linternas. Una vez encendido, un frasco de Aceite arde durante 6 horas en una Lámpara o Linterna. Esa duración no necesita ser consecutiva; puedes apagar el Aceite ardiendo (como una acción de Utilizar) y volver a encenderlo hasta que haya ardido por un total de 6 horas.",
+    "weight": 1
+  },
+  {
+    "index": "orb",
+    "name": "Orbe",
+    "equipment_categories": [
+      {
+        "index": "arcane-foci",
+        "name": "Focos Arcanos"
+      },
+      {
+        "index": "adventuring-gear",
+        "name": "Equipo de Aventurero"
+      }
+    ],
+    "cost": {
+      "quantity": 20,
+      "unit": "po"
+    },
+    "weight": 3,
+    "description": "Un Foco Arcano adopta una de las formas de la tabla de Focos Arcanos y está adornado con joyas o tallado para canalizar la magia arcana. Un Hechicero, Brujo o Mago puede usar dicho objeto como Foco de Lanzamiento de Conjuros."
+  },
+  {
+    "index": "padded-armor",
+    "name": "Armadura Acolchada",
+    "equipment_categories": [
+      {
+        "index": "armor",
+        "name": "Armadura"
+      },
+      {
+        "index": "light-armor",
+        "name": "Armadura Ligera"
+      }
+    ],
+    "armor_class": {
+      "base": 11,
+      "dex_bonus": true
+    },
+    "cost": {
+      "quantity": 5,
+      "unit": "po"
+    },
+    "don_time": "1 minuto",
+    "doff_time": "1 minuto",
+    "stealth_disadvantage": true,
+    "str_minimum": 0,
+    "weight": 8,
+    "description": "Si vistes armadura Ligera, Media o Pesada y careces de entrenamiento con ella, tienes Desventaja en cualquier Prueba de d20 que involucre Fuerza o Destreza, y no puedes lanzar conjuros."
+  },
+  {
+    "index": "painters-supplies",
+    "name": "Suministros de Pintor",
+    "equipment_categories": [
+      {
+        "index": "artisans-tools",
+        "name": "Herramientas de Artesano"
+      },
+      {
+        "index": "tools",
+        "name": "Herramientas"
+      }
+    ],
+    "ability": {
+      "index": "wis",
+      "name": "SAB"
+    },
+    "cost": {
+      "quantity": 10,
+      "unit": "po"
+    },
+    "craft": [
+      {
+        "index": "quarterstaff",
+        "name": "Bastón"
+      },
+      {
+        "index": "sprig-of-mistletoe",
+        "name": "Ramita de Muérdago"
+      },
+      {
+        "index": "staff",
+        "name": "Bastón Mágico"
+      },
+      {
+        "index": "yew-wand",
+        "name": "Varita de Tejo"
+      },
+      {
+        "index": "amulet",
+        "name": "Amuleto"
+      },
+      {
+        "index": "emblem",
+        "name": "Emblema"
+      },
+      {
+        "index": "reliquary",
+        "name": "Relicario"
+      }
+    ],
+    "utilize": [
+      {
+        "name": "Pintar una imagen reconocible de algo que hayas visto",
+        "dc": {
+          "dc_type": {
+            "index": "wis",
+            "name": "SAB"
+          },
+          "dc_value": 10,
+          "success_type": "none"
+        }
+      }
+    ],
+    "weight": 5,
+    "description": "Una herramienta te ayuda a realizar pruebas de característica especializadas, crear ciertos objetos, o ambas cosas."
+  },
+  {
+    "index": "pan-flute",
+    "name": "Flauta de Pan",
+    "equipment_categories": [
+      {
+        "index": "musical-instruments",
+        "name": "Instrumentos Musicales"
+      },
+      {
+        "index": "tools",
+        "name": "Herramientas"
+      }
+    ],
+    "ability": {
+      "index": "cha",
+      "name": "CAR"
+    },
+    "cost": {
+      "quantity": 12,
+      "unit": "po"
+    },
+    "utilize": [
+      {
+        "name": "Tocar una melodía conocida",
+        "dc": {
+          "dc_type": {
+            "index": "cha",
+            "name": "CAR"
+          },
+          "dc_value": 10,
+          "success_type": "none"
+        }
+      },
+      {
+        "name": "Improvisar una canción",
+        "dc": {
+          "dc_type": {
+            "index": "cha",
+            "name": "CAR"
+          },
+          "dc_value": 15,
+          "success_type": "none"
+        }
+      }
+    ],
+    "weight": 2,
+    "description": "Una herramienta te ayuda a realizar pruebas de característica especializadas, crear ciertos objetos, o ambas cosas."
+  },
+  {
+    "index": "paper",
+    "name": "Papel",
+    "equipment_categories": [
+      {
+        "index": "adventuring-gear",
+        "name": "Equipo de Aventurero"
+      }
+    ],
+    "cost": {
+      "quantity": 2,
+      "unit": "pp"
+    },
+    "description": "Una hoja de Papel puede contener unas 250 palabras escritas a mano.",
+    "weight": 0
+  },
+  {
+    "index": "parchment",
+    "name": "Pergamino",
+    "equipment_categories": [
+      {
+        "index": "adventuring-gear",
+        "name": "Equipo de Aventurero"
+      }
+    ],
+    "cost": {
+      "quantity": 3,
+      "unit": "po"
+    },
+    "description": "Una hoja de Pergamino puede contener unas 250 palabras escritas a mano.",
+    "weight": 0
+  },
+  {
+    "index": "perfume",
+    "name": "Perfume",
+    "equipment_categories": [
+      {
+        "index": "adventuring-gear",
+        "name": "Equipo de Aventurero"
+      }
+    ],
+    "cost": {
+      "quantity": 5,
+      "unit": "po"
+    },
+    "description": "El Perfume viene en un vial de 4 onzas. Durante 1 hora después de aplicarte Perfume, tienes Ventaja en las pruebas de Carisma (Persuasión) que realices para influir en un Humanoide Indiferente a 5 pies o menos de ti.",
+    "weight": 0
+  },
+  {
+    "index": "pike",
+    "name": "Pica",
+    "equipment_categories": [
+      {
+        "index": "martial-melee-weapons",
+        "name": "Armas Marciales Cuerpo a Cuerpo"
+      },
+      {
+        "index": "martial-weapons",
+        "name": "Armas Marciales"
+      },
+      {
+        "index": "melee-weapons",
+        "name": "Armas Cuerpo a Cuerpo"
+      },
+      {
+        "index": "weapons",
+        "name": "Armas"
+      }
+    ],
+    "cost": {
+      "quantity": 5,
+      "unit": "po"
+    },
+    "damage": {
+      "damage_dice": "1d10",
+      "damage_type": {
+        "index": "piercing",
+        "name": "Perforante"
+      }
+    },
+    "range": {
+      "normal": 5
+    },
+    "weight": 6,
+    "properties": [
+      {
+        "index": "heavy",
+        "name": "Pesada"
+      },
+      {
+        "index": "reach",
+        "name": "Alcance"
+      },
+      {
+        "index": "two-handed",
+        "name": "A Dos Manos"
+      }
+    ],
+    "mastery": {
+      "index": "push",
+      "name": "Empujar"
+    },
+    "description": "Un arma Cuerpo a Cuerpo se usa para atacar a un objetivo a 5 pies de distancia. Tienes Desventaja en las tiradas de ataque con un arma Pesada si es un arma Cuerpo a Cuerpo y tu puntuación de Fuerza no es al menos 13. Un arma de Alcance añade 5 pies a tu alcance cuando atacas con ella, así como al determinar tu alcance para Ataques de Oportunidad con ella. Un arma a Dos Manos requiere dos manos cuando atacas con ella."
+  },
+  {
+    "index": "pistol",
+    "name": "Pistola",
+    "equipment_categories": [
+      {
+        "index": "martial-ranged-weapons",
+        "name": "Armas Marciales a Distancia"
+      },
+      {
+        "index": "martial-weapons",
+        "name": "Armas Marciales"
+      },
+      {
+        "index": "ranged-weapons",
+        "name": "Armas a Distancia"
+      },
+      {
+        "index": "weapons",
+        "name": "Armas"
+      }
+    ],
+    "cost": {
+      "quantity": 250,
+      "unit": "po"
+    },
+    "damage": {
+      "damage_dice": "1d10",
+      "damage_type": {
+        "index": "piercing",
+        "name": "Perforante"
+      }
+    },
+    "range": {
+      "normal": 30,
+      "long": 90
+    },
+    "weight": 3,
+    "properties": [
+      {
+        "index": "ammunition",
+        "name": "Munición"
+      },
+      {
+        "index": "loading",
+        "name": "Carga"
+      }
+    ],
+    "ammunition": {
+      "index": "bullets-firearm",
+      "name": "Balas, Arma de Fuego"
+    },
+    "mastery": {
+      "index": "vex",
+      "name": "Vejar"
+    },
+    "description": "Un arma a Distancia se usa para atacar a una mayor distancia. Puedes usar un arma que tenga la propiedad Munición para hacer un ataque a distancia solo si tienes munición para dispararla. Puedes disparar solo una pieza de munición de un arma con la propiedad de Carga cuando usas una acción, una Acción Adicional o una Reacción para dispararla, sin importar el número de ataques que normalmente puedas hacer."
+  },
+  {
+    "index": "poisoners-kit",
+    "name": "Kit de Envenenador",
+    "equipment_categories": [
+      {
+        "index": "other-tools",
+        "name": "Otras Herramientas"
+      },
+      {
+        "index": "tools",
+        "name": "Herramientas"
+      }
+    ],
+    "ability": {
+      "index": "int",
+      "name": "INT"
+    },
+    "cost": {
+      "quantity": 5,
+      "unit": "po"
+    },
+    "craft": [
+      {
+        "index": "poison-basic",
+        "name": "Veneno Básico"
+      }
+    ],
+    "utilize": [
+      {
+        "name": "Detectar un objeto envenenado",
+        "dc": {
+          "dc_type": {
+            "index": "int",
+            "name": "INT"
+          },
+          "dc_value": 10,
+          "success_type": "none"
+        }
+      }
+    ],
+    "weight": 2,
+    "description": "Una herramienta te ayuda a realizar pruebas de característica especializadas, crear ciertos objetos, o ambas cosas."
+  },
+  {
+    "index": "plate-armor",
+    "name": "Armadura de Placas",
+    "equipment_categories": [
+      {
+        "index": "armor",
+        "name": "Armadura"
+      },
+      {
+        "index": "heavy-armor",
+        "name": "Armadura Pesada"
+      }
+    ],
+    "armor_class": {
+      "base": 18,
+      "dex_bonus": false,
+      "max_bonus": 0
+    },
+    "cost": {
+      "quantity": 1500,
+      "unit": "po"
+    },
+    "don_time": "10 minutos",
+    "doff_time": "5 minutos",
+    "stealth_disadvantage": true,
+    "str_minimum": 15,
+    "weight": 65,
+    "description": "Si vistes armadura Ligera, Media o Pesada y careces de entrenamiento con ella, tienes Desventaja en cualquier Prueba de d20 que involucre Fuerza o Destreza, y no puedes lanzar conjuros."
+  },
+  {
+    "index": "playing-cards",
+    "name": "Cartas de Juego",
+    "equipment_categories": [
+      {
+        "index": "gaming-sets",
+        "name": "Sets de Juego"
+      },
+      {
+        "index": "tools",
+        "name": "Herramientas"
+      }
+    ],
+    "ability": {
+      "index": "wis",
+      "name": "SAB"
+    },
+    "cost": {
+      "quantity": 5,
+      "unit": "pc"
+    },
+    "utilize": [
+      {
+        "name": "Discernir si alguien está haciendo trampa",
+        "dc": {
+          "dc_type": {
+            "index": "wis",
+            "name": "SAB"
+          },
+          "dc_value": 10,
+          "success_type": "none"
+        }
+      },
+      {
+        "name": "Ganar el juego",
+        "dc": {
+          "dc_type": {
+            "index": "wis",
+            "name": "SAB"
+          },
+          "dc_value": 20,
+          "success_type": "none"
+        }
+      }
+    ],
+    "weight": 0,
+    "description": "Una herramienta te ayuda a realizar pruebas de característica especializadas, crear ciertos objetos, o ambas cosas."
+  },
+  {
+    "index": "poison-basic",
+    "name": "Veneno Básico",
+    "equipment_categories": [
+      {
+        "index": "adventuring-gear",
+        "name": "Equipo de Aventurero"
+      }
+    ],
+    "cost": {
+      "quantity": 100,
+      "unit": "po"
+    },
+    "description": "Como Acción Adicional, puedes usar un vial de Veneno Básico para cubrir un arma o hasta tres piezas de munición. Una criatura que recibe daño Perforante o Cortante del arma o munición envenenada recibe 1d4 de daño por Veneno adicional. Una vez aplicado, el veneno conserva su potencia durante 1 minuto o hasta que se inflige su daño, lo que ocurra primero.",
+    "weight": 0
+  },
+  {
+    "index": "pole",
+    "name": "Pértiga",
+    "equipment_categories": [
+      {
+        "index": "adventuring-gear",
+        "name": "Equipo de Aventurero"
+      }
+    ],
+    "cost": {
+      "quantity": 5,
+      "unit": "pc"
+    },
+    "description": "Una Pértiga mide 10 pies de largo. Puedes usarla para tocar algo a una distancia de hasta 10 pies. Si debes realizar una prueba de Fuerza (Atletismo) como parte de un Salto de Altura o Longitud, puedes usar la Pértiga para impulsarte, dándote Ventaja en la prueba.",
+    "weight": 7
+  },
+  {
+    "index": "pot-iron",
+    "name": "Olla de Hierro",
+    "equipment_categories": [
+      {
+        "index": "adventuring-gear",
+        "name": "Equipo de Aventurero"
+      }
+    ],
+    "cost": {
+      "quantity": 2,
+      "unit": "po"
+    },
+    "description": "Una Olla de Hierro contiene hasta 1 galón.",
+    "weight": 10
+  },
+  {
+    "index": "potion-of-healing",
+    "name": "Poción de Curación",
+    "equipment_categories": [
+      {
+        "index": "adventuring-gear",
+        "name": "Equipo de Aventurero"
+      }
+    ],
+    "cost": {
+      "quantity": 50,
+      "unit": "po"
+    },
+    "description": "Esta poción es un objeto mágico. Como Acción Adicional, puedes beberla o administrarla a otra criatura a 5 pies o menos de ti. La criatura que bebe el fluido mágico rojo de este vial recupera 2d4 + 2 Puntos de Golpe.",
+    "weight": 0.5
+  },
+  {
+    "index": "potters-tools",
+    "name": "Herramientas de Alfarero",
+    "equipment_categories": [
+      {
+        "index": "artisans-tools",
+        "name": "Herramientas de Artesano"
+      },
+      {
+        "index": "tools",
+        "name": "Herramientas"
+      }
+    ],
+    "ability": {
+      "index": "int",
+      "name": "INT"
+    },
+    "cost": {
+      "quantity": 10,
+      "unit": "po"
+    },
+    "craft": [
+      {
+        "index": "jug",
+        "name": "Jarra"
+      },
+      {
+        "index": "lamp",
+        "name": "Lámpara"
+      }
+    ],
+    "utilize": [
+      {
+        "name": "Discernir qué contuvo un objeto de cerámica en las últimas 24 horas",
+        "dc": {
+          "dc_type": {
+            "index": "int",
+            "name": "INT"
+          },
+          "dc_value": 15,
+          "success_type": "none"
+        }
+      }
+    ],
+    "weight": 3,
+    "description": "Una herramienta te ayuda a realizar pruebas de característica especializadas, crear ciertos objetos, o ambas cosas."
+  },
+  {
+    "index": "pouch",
+    "name": "Bolsita",
+    "description": "Una Bolsita contiene hasta 6 libras dentro de un quinto de pie cúbico.",
+    "equipment_categories": [
+      {
+        "index": "adventuring-gear",
+        "name": "Equipo de Aventurero"
+      }
+    ],
+    "cost": {
+      "quantity": 5,
+      "unit": "pp"
+    },
+    "weight": 1
+  },
+  {
+    "index": "priests-pack",
+    "name": "Paquete de Sacerdote",
+    "equipment_categories": [
+      {
+        "index": "adventuring-gear",
+        "name": "Equipo de Aventurero"
+      },
+      {
+        "index": "equipment-packs",
+        "name": "Paquetes de Equipo"
+      }
+    ],
+    "contents": [
+      {
+        "item": {
+          "index": "backpack",
+          "name": "Mochila"
+        },
+        "quantity": 1
+      },
+      {
+        "item": {
+          "index": "blanket",
+          "name": "Manta"
+        },
+        "quantity": 1
+      },
+      {
+        "item": {
+          "index": "holy-water",
+          "name": "Agua Bendita"
+        },
+        "quantity": 1
+      },
+      {
+        "item": {
+          "index": "lamp",
+          "name": "Lámpara"
+        },
+        "quantity": 1
+      },
+      {
+        "item": {
+          "index": "rations",
+          "name": "Raciones"
+        },
+        "quantity": 7
+      },
+      {
+        "item": {
+          "index": "robe",
+          "name": "Túnica"
+        },
+        "quantity": 1
+      },
+      {
+        "item": {
+          "index": "tinderbox",
+          "name": "Yesquero"
+        },
+        "quantity": 1
+      }
+    ],
+    "cost": {
+      "quantity": 33,
+      "unit": "po"
+    },
+    "description": "Un Paquete de Sacerdote contiene los siguientes artículos: Mochila, Manta, Agua Bendita, Lámpara, 7 días de Raciones, Túnica y Yesquero.",
+    "weight": 29
+  },
+  {
+    "index": "quarterstaff",
+    "name": "Bastón",
+    "equipment_categories": [
+      {
+        "index": "arcane-foci",
+        "name": "Focos Arcanos"
+      },
+      {
+        "index": "druidic-foci",
+        "name": "Focos Druídicos"
+      },
+      {
+        "index": "melee-weapons",
+        "name": "Armas Cuerpo a Cuerpo"
+      },
+      {
+        "index": "simple-melee-weapons",
+        "name": "Armas Simples Cuerpo a Cuerpo"
+      },
+      {
+        "index": "simple-weapons",
+        "name": "Armas Simples"
+      },
+      {
+        "index": "weapons",
+        "name": "Armas"
+      }
+    ],
+    "cost": {
+      "quantity": 2,
+      "unit": "pp"
+    },
+    "damage": {
+      "damage_dice": "1d6",
+      "damage_type": {
+        "index": "bludgeoning",
+        "name": "Contundente"
+      }
+    },
+    "range": {
+      "normal": 5
+    },
+    "weight": 4,
+    "properties": [
+      {
+        "index": "versatile",
+        "name": "Versátil"
+      }
+    ],
+    "mastery": {
+      "index": "topple",
+      "name": "Derribar"
+    },
+    "two_handed_damage": {
+      "damage_dice": "1d8",
+      "damage_type": {
+        "index": "bludgeoning",
+        "name": "Contundente"
+      }
+    },
+    "description": "Un arma Cuerpo a Cuerpo se usa para atacar a un objetivo a 5 pies de distancia. Un arma Versátil puede ser usada con una o dos manos."
+  },
+  {
+    "index": "quiver",
+    "name": "Carcaj",
+    "description": "Un Carcaj contiene hasta 20 Flechas.",
+    "equipment_categories": [
+      {
+        "index": "adventuring-gear",
+        "name": "Equipo de Aventurero"
+      }
+    ],
+    "cost": {
+      "quantity": 1,
+      "unit": "po"
+    },
+    "weight": 1
+  },
+  {
+    "index": "ram-portable",
+    "name": "Ariete Portátil",
+    "equipment_categories": [
+      {
+        "index": "adventuring-gear",
+        "name": "Equipo de Aventurero"
+      }
+    ],
+    "cost": {
+      "quantity": 4,
+      "unit": "po"
+    },
+    "description": "Puedes usar un Ariete Portátil para derribar puertas. Al hacerlo, obtienes un bonificador de +4 a la prueba de Fuerza. Otro personaje puede ayudarte a usar el ariete, otorgándote Ventaja en esta prueba.",
+    "weight": 35
+  },
+  {
+    "index": "rapier",
+    "name": "Estoque",
+    "equipment_categories": [
+      {
+        "index": "martial-melee-weapons",
+        "name": "Armas Marciales Cuerpo a Cuerpo"
+      },
+      {
+        "index": "martial-weapons",
+        "name": "Armas Marciales"
+      },
+      {
+        "index": "melee-weapons",
+        "name": "Armas Cuerpo a Cuerpo"
+      },
+      {
+        "index": "weapons",
+        "name": "Armas"
+      }
+    ],
+    "cost": {
+      "quantity": 25,
+      "unit": "po"
+    },
+    "damage": {
+      "damage_dice": "1d8",
+      "damage_type": {
+        "index": "piercing",
+        "name": "Perforante"
+      }
+    },
+    "range": {
+      "normal": 5
+    },
+    "weight": 2,
+    "properties": [
+      {
+        "index": "finesse",
+        "name": "Sutil"
+      }
+    ],
+    "mastery": {
+      "index": "vex",
+      "name": "Vejar"
+    },
+    "description": "Un arma Cuerpo a Cuerpo se usa para atacar a un objetivo a 5 pies de distancia. Al hacer un ataque con un arma Sutil, usas tu elección de tu modificador de Fuerza o Destreza para las tiradas de ataque y daño."
+  },
+  {
+    "index": "rations",
+    "name": "Raciones",
+    "equipment_categories": [
+      {
+        "index": "adventuring-gear",
+        "name": "Equipo de Aventurero"
+      }
+    ],
+    "cost": {
+      "quantity": 5,
+      "unit": "pp"
+    },
+    "description": "Las Raciones consisten en comida lista para viajar, incluyendo carne seca, fruta seca, galletas y nueces. Consulta \"Desnutrición\" en el \"Glosario de Reglas\" para los riesgos de no comer.",
+    "weight": 2
+  },
+  {
+    "index": "reliquary",
+    "name": "Relicario",
+    "equipment_categories": [
+      {
+        "index": "adventuring-gear",
+        "name": "Equipo de Aventurero"
+      },
+      {
+        "index": "holy-symbols",
+        "name": "Símbolos Sagrados"
+      }
+    ],
+    "cost": {
+      "quantity": 5,
+      "unit": "po"
+    },
+    "description": "Un Símbolo Sagrado adopta una de las formas de la tabla de Símbolos Sagrados y está adornado con joyas o pintado para canalizar magia divina. Un Clérigo o Paladín puede usar un Símbolo Sagrado como Foco de Lanzamiento de Conjuros.\nLa tabla indica si un Símbolo Sagrado necesita ser sostenido, vestido, o llevado en una tela (como un tabardo o estandarte) o en un Escudo.",
+    "weight": 2
+  },
+  {
+    "index": "ring-mail",
+    "name": "Cota de Anillas",
+    "equipment_categories": [
+      {
+        "index": "armor",
+        "name": "Armadura"
+      },
+      {
+        "index": "heavy-armor",
+        "name": "Armadura Pesada"
+      }
+    ],
+    "armor_class": {
+      "base": 14,
+      "dex_bonus": false,
+      "max_bonus": 0
+    },
+    "cost": {
+      "quantity": 30,
+      "unit": "po"
+    },
+    "don_time": "10 minutos",
+    "doff_time": "5 minutos",
+    "stealth_disadvantage": true,
+    "str_minimum": 0,
+    "weight": 40,
+    "description": "Si vistes armadura Ligera, Media o Pesada y careces de entrenamiento con ella, tienes Desventaja en cualquier Prueba de d20 que involucre Fuerza o Destreza, y no puedes lanzar conjuros."
+  },
+  {
+    "index": "robe",
+    "name": "Túnica",
+    "equipment_categories": [
+      {
+        "index": "adventuring-gear",
+        "name": "Equipo de Aventurero"
+      }
+    ],
+    "cost": {
+      "quantity": 1,
+      "unit": "po"
+    },
+    "description": "Una Túnica tiene un significado vocacional o ceremonial. Algunos eventos y lugares solo admiten a personas que visten una Túnica con ciertos colores o símbolos.",
+    "weight": 1
+  },
+  {
+    "index": "rod",
+    "name": "Vara",
+    "equipment_categories": [
+      {
+        "index": "arcane-foci",
+        "name": "Focos Arcanos"
+      },
+      {
+        "index": "adventuring-gear",
+        "name": "Equipo de Aventurero"
+      }
+    ],
+    "cost": {
+      "quantity": 10,
+      "unit": "po"
+    },
+    "weight": 2,
+    "description": "Un Foco Arcano adopta una de las formas de la tabla de Focos Arcanos y está adornado con joyas o tallado para canalizar la magia arcana. Un Hechicero, Brujo o Mago puede usar dicho objeto como Foco de Lanzamiento de Conjuros."
+  },
+  {
+    "index": "rope",
+    "name": "Cuerda",
+    "equipment_categories": [
+      {
+        "index": "adventuring-gear",
+        "name": "Equipo de Aventurero"
+      }
+    ],
+    "cost": {
+      "quantity": 1,
+      "unit": "po"
+    },
+    "description": "Como acción de Utilizar, puedes atar un nudo con la Cuerda si tienes éxito en una prueba de Destreza (Juego de Manos) CD 10. La Cuerda se puede romper con una prueba exitosa de Fuerza (Atletismo) CD 20.\nSolo puedes atar a una criatura involuntaria con la Cuerda si la criatura tiene la condición de Agarrado, Incapacitado o Apresado. Si las piernas de la criatura están atadas, la criatura tiene la condición de Apresado hasta que escape. Escapar de la Cuerda requiere que la criatura realice una prueba exitosa de Destreza (Acrobacias) CD 15 como acción.",
+    "weight": 5
+  },
+  {
+    "index": "sack",
+    "name": "Saco",
+    "equipment_categories": [
+      {
+        "index": "adventuring-gear",
+        "name": "Equipo de Aventurero"
+      }
+    ],
+    "cost": {
+      "quantity": 1,
+      "unit": "pc"
+    },
+    "description": "Un Saco contiene hasta 30 libras dentro de 1 pie cúbico.",
+    "weight": 1
+  },
+  {
+    "index": "scale-mail",
+    "name": "Cota de Escamas",
+    "equipment_categories": [
+      {
+        "index": "armor",
+        "name": "Armadura"
+      },
+      {
+        "index": "medium-armor",
+        "name": "Armadura Media"
+      }
+    ],
+    "armor_class": {
+      "base": 14,
+      "dex_bonus": true,
+      "max_bonus": 2
+    },
+    "cost": {
+      "quantity": 50,
+      "unit": "po"
+    },
+    "don_time": "5 minutos",
+    "doff_time": "1 minuto",
+    "stealth_disadvantage": true,
+    "str_minimum": 0,
+    "weight": 45,
+    "description": "Si vistes armadura Ligera, Media o Pesada y careces de entrenamiento con ella, tienes Desventaja en cualquier Prueba de d20 que involucre Fuerza o Destreza, y no puedes lanzar conjuros."
+  },
+  {
+    "index": "scholars-pack",
+    "name": "Paquete de Erudito",
+    "equipment_categories": [
+      {
+        "index": "adventuring-gear",
+        "name": "Equipo de Aventurero"
+      },
+      {
+        "index": "equipment-packs",
+        "name": "Paquetes de Equipo"
+      }
+    ],
+    "contents": [
+      {
+        "item": {
+          "index": "backpack",
+          "name": "Mochila"
+        },
+        "quantity": 1
+      },
+      {
+        "item": {
+          "index": "blanket",
+          "name": "Manta"
+        },
+        "quantity": 1
+      },
+      {
+        "item": {
+          "index": "book",
+          "name": "Libro"
+        },
+        "quantity": 1
+      },
+      {
+        "item": {
+          "index": "ink",
+          "name": "Tinta"
+        },
+        "quantity": 1
+      },
+      {
+        "item": {
+          "index": "ink-pen",
+          "name": "Pluma para Tinta"
+        },
+        "quantity": 1
+      },
+      {
+        "item": {
+          "index": "lamp",
+          "name": "Lámpara"
+        },
+        "quantity": 1
+      },
+      {
+        "item": {
+          "index": "oil",
+          "name": "Aceite"
+        },
+        "quantity": 10
+      },
+      {
+        "item": {
+          "index": "parchment",
+          "name": "Pergamino"
+        },
+        "quantity": 10
+      },
+      {
+        "item": {
+          "index": "tinderbox",
+          "name": "Yesquero"
+        },
+        "quantity": 1
+      }
+    ],
+    "cost": {
+      "quantity": 40,
+      "unit": "po"
+    },
+    "description": "Un Paquete de Erudito contiene los siguientes artículos: Mochila, Manta, Libro, Tinta, Pluma para Tinta, Lámpara, 10 frascos de Aceite, 10 hojas de Pergamino y Yesquero.",
+    "weight": 22
+  },
+  {
+    "index": "scimitar",
+    "name": "Cimitarra",
+    "equipment_categories": [
+      {
+        "index": "martial-melee-weapons",
+        "name": "Armas Marciales Cuerpo a Cuerpo"
+      },
+      {
+        "index": "martial-weapons",
+        "name": "Armas Marciales"
+      },
+      {
+        "index": "melee-weapons",
+        "name": "Armas Cuerpo a Cuerpo"
+      },
+      {
+        "index": "weapons",
+        "name": "Armas"
+      }
+    ],
+    "cost": {
+      "quantity": 25,
+      "unit": "po"
+    },
+    "damage": {
+      "damage_dice": "1d6",
+      "damage_type": {
+        "index": "slashing",
+        "name": "Cortante"
+      }
+    },
+    "range": {
+      "normal": 5
+    },
+    "weight": 3,
+    "properties": [
+      {
+        "index": "finesse",
+        "name": "Sutil"
+      },
+      {
+        "index": "light",
+        "name": "Ligera"
+      }
+    ],
+    "mastery": {
+      "index": "nick",
+      "name": "Muesca"
+    },
+    "description": "Un arma Cuerpo a Cuerpo se usa para atacar a un objetivo a 5 pies de distancia. Al hacer un ataque con un arma Sutil, usas tu elección de tu modificador de Fuerza o Destreza para las tiradas de ataque y daño. Cuando realizas la acción de Atacar en tu turno y atacas con un arma Ligera, puedes hacer un ataque adicional como una Acción Adicional más tarde en el mismo turno."
+  },
+  {
+    "index": "shawm",
+    "name": "Chirimía",
+    "equipment_categories": [
+      {
+        "index": "musical-instruments",
+        "name": "Instrumentos Musicales"
+      },
+      {
+        "index": "tools",
+        "name": "Herramientas"
+      }
+    ],
+    "ability": {
+      "index": "cha",
+      "name": "CAR"
+    },
+    "cost": {
+      "quantity": 2,
+      "unit": "po"
+    },
+    "utilize": [
+      {
+        "name": "Tocar una melodía conocida",
+        "dc": {
+          "dc_type": {
+            "index": "cha",
+            "name": "CAR"
+          },
+          "dc_value": 10,
+          "success_type": "none"
+        }
+      },
+      {
+        "name": "Improvisar una canción",
+        "dc": {
+          "dc_type": {
+            "index": "cha",
+            "name": "CAR"
+          },
+          "dc_value": 15,
+          "success_type": "none"
+        }
+      }
+    ],
+    "weight": 1,
+    "description": "Una herramienta te ayuda a realizar pruebas de característica especializadas, crear ciertos objetos, o ambas cosas."
+  },
+  {
+    "index": "shield",
+    "name": "Escudo",
+    "equipment_categories": [
+      {
+        "index": "armor",
+        "name": "Armadura"
+      },
+      {
+        "index": "shields",
+        "name": "Escudos"
+      }
+    ],
+    "armor_class": {
+      "base": 2,
+      "dex_bonus": false
+    },
+    "cost": {
+      "quantity": 10,
+      "unit": "po"
+    },
+    "stealth_disadvantage": false,
+    "str_minimum": 0,
+    "weight": 6,
+    "description": "Obtienes el beneficio de la Clase de Armadura de un Escudo solo si tienes entrenamiento con él."
+  },
+  {
+    "index": "shortbow",
+    "name": "Arco Corto",
+    "equipment_categories": [
+      {
+        "index": "ranged-weapons",
+        "name": "Armas a Distancia"
+      },
+      {
+        "index": "simple-ranged-weapons",
+        "name": "Armas Simples a Distancia"
+      },
+      {
+        "index": "simple-weapons",
+        "name": "Armas Simples"
+      },
+      {
+        "index": "weapons",
+        "name": "Armas"
+      }
+    ],
+    "ammunition": {
+      "index": "arrows",
+      "name": "Flechas"
+    },
+    "cost": {
+      "quantity": 25,
+      "unit": "po"
+    },
+    "damage": {
+      "damage_dice": "1d6",
+      "damage_type": {
+        "index": "piercing",
+        "name": "Perforante"
+      }
+    },
+    "range": {
+      "normal": 80,
+      "long": 320
+    },
+    "properties": [
+      {
+        "index": "ammunition",
+        "name": "Munición"
+      },
+      {
+        "index": "two-handed",
+        "name": "A Dos Manos"
+      }
+    ],
+    "mastery": {
+      "index": "vex",
+      "name": "Vejar"
+    },
+    "weight": 2,
+    "description": "Un arma a Distancia se usa para atacar a una mayor distancia. Puedes usar un arma que tenga la propiedad Munición para hacer un ataque a distancia solo si tienes munición para dispararla. Un arma a Dos Manos requiere dos manos cuando atacas con ella."
+  },
+  {
+    "index": "shortsword",
+    "name": "Espada Corta",
+    "equipment_categories": [
+      {
+        "index": "martial-melee-weapons",
+        "name": "Armas Marciales Cuerpo a Cuerpo"
+      },
+      {
+        "index": "martial-weapons",
+        "name": "Armas Marciales"
+      },
+      {
+        "index": "melee-weapons",
+        "name": "Armas Cuerpo a Cuerpo"
+      },
+      {
+        "index": "weapons",
+        "name": "Armas"
+      }
+    ],
+    "cost": {
+      "quantity": 10,
+      "unit": "po"
+    },
+    "damage": {
+      "damage_dice": "1d6",
+      "damage_type": {
+        "index": "piercing",
+        "name": "Perforante"
+      }
+    },
+    "range": {
+      "normal": 5
+    },
+    "weight": 2,
+    "properties": [
+      {
+        "index": "finesse",
+        "name": "Sutil"
+      },
+      {
+        "index": "light",
+        "name": "Ligera"
+      }
+    ],
+    "mastery": {
+      "index": "vex",
+      "name": "Vejar"
+    },
+    "description": "Un arma Cuerpo a Cuerpo se usa para atacar a un objetivo a 5 pies de distancia. Al hacer un ataque con un arma Sutil, usas tu elección de tu modificador de Fuerza o Destreza para las tiradas de ataque y daño. Cuando realizas la acción de Atacar en tu turno y atacas con un arma Ligera, puedes hacer un ataque adicional como una Acción Adicional más tarde en el mismo turno."
+  },
+  {
+    "index": "shovel",
+    "name": "Pala",
+    "equipment_categories": [
+      {
+        "index": "adventuring-gear",
+        "name": "Equipo de Aventurero"
+      }
+    ],
+    "cost": {
+      "quantity": 2,
+      "unit": "po"
+    },
+    "description": "Trabajando durante 1 hora, puedes usar una Pala para cavar un hoyo de 5 pies de lado en tierra o un material similar.",
+    "weight": 5
+  },
+  {
+    "index": "sickle",
+    "name": "Hoz",
+    "equipment_categories": [
+      {
+        "index": "melee-weapons",
+        "name": "Armas Cuerpo a Cuerpo"
+      },
+      {
+        "index": "simple-melee-weapons",
+        "name": "Armas Simples Cuerpo a Cuerpo"
+      },
+      {
+        "index": "simple-weapons",
+        "name": "Armas Simples"
+      },
+      {
+        "index": "weapons",
+        "name": "Armas"
+      }
+    ],
+    "cost": {
+      "quantity": 1,
+      "unit": "po"
+    },
+    "damage": {
+      "damage_dice": "1d4",
+      "damage_type": {
+        "index": "slashing",
+        "name": "Cortante"
+      }
+    },
+    "range": {
+      "normal": 5
+    },
+    "weight": 2,
+    "properties": [
+      {
+        "index": "light",
+        "name": "Ligera"
+      }
+    ],
+    "mastery": {
+      "index": "nick",
+      "name": "Muesca"
+    },
+    "description": "Un arma Cuerpo a Cuerpo se usa para atacar a un objetivo a 5 pies de distancia. Cuando realizas la acción de Atacar en tu turno y atacas con un arma Ligera, puedes hacer un ataque adicional como una Acción Adicional más tarde en el mismo turno."
+  },
+  {
+    "index": "signal-whistle",
+    "name": "Silbato de Señales",
+    "equipment_categories": [
+      {
+        "index": "adventuring-gear",
+        "name": "Equipo de Aventurero"
+      }
+    ],
+    "cost": {
+      "quantity": 5,
+      "unit": "pc"
+    },
+    "description": "Cuando se sopla como una acción de Utilizar, un Silbato de Señales produce un sonido que puede escucharse a una distancia de hasta 600 pies.",
+    "weight": 0
+  },
+  {
+    "index": "sling",
+    "name": "Honda",
+    "equipment_categories": [
+      {
+        "index": "ranged-weapons",
+        "name": "Armas a Distancia"
+      },
+      {
+        "index": "simple-ranged-weapons",
+        "name": "Armas Simples a Distancia"
+      },
+      {
+        "index": "simple-weapons",
+        "name": "Armas Simples"
+      },
+      {
+        "index": "weapons",
+        "name": "Armas"
+      }
+    ],
+    "ammunition": {
+      "index": "bullets-sling",
+      "name": "Balas, Honda"
+    },
+    "cost": {
+      "quantity": 1,
+      "unit": "pp"
+    },
+    "damage": {
+      "damage_dice": "1d4",
+      "damage_type": {
+        "index": "piercing",
+        "name": "Perforante"
+      }
+    },
+    "range": {
+      "normal": 30,
+      "long": 120
+    },
+    "weight": 0,
+    "properties": [
+      {
+        "index": "ammunition",
+        "name": "Munición"
+      }
+    ],
+    "mastery": {
+      "index": "slow",
+      "name": "Lento"
+    },
+    "description": "Un arma a Distancia se usa para atacar a una mayor distancia. Puedes usar un arma que tenga la propiedad Munición para hacer un ataque a distancia solo si tienes munición para dispararla."
+  },
+  {
+    "index": "smiths-tools",
+    "name": "Herramientas de Herrero",
+    "equipment_categories": [
+      {
+        "index": "artisans-tools",
+        "name": "Herramientas de Artesano"
+      },
+      {
+        "index": "tools",
+        "name": "Herramientas"
+      }
+    ],
+    "ability": {
+      "index": "str",
+      "name": "FUE"
+    },
+    "cost": {
+      "quantity": 20,
+      "unit": "po"
+    },
+    "craft": [
+      {
+        "index": "battleaxe",
+        "name": "Hacha de Batalla"
+      },
+      {
+        "index": "dagger",
+        "name": "Daga"
+      },
+      {
+        "index": "flail",
+        "name": "Mayal"
+      },
+      {
+        "index": "glaive",
+        "name": "Guja"
+      },
+      {
+        "index": "greataxe",
+        "name": "Gran Hacha"
+      },
+      {
+        "index": "greatsword",
+        "name": "Espadón"
+      },
+      {
+        "index": "halberd",
+        "name": "Alabarda"
+      },
+      {
+        "index": "handaxe",
+        "name": "Hacha de Mano"
+      },
+      {
+        "index": "javelin",
+        "name": "Jabalina"
+      },
+      {
+        "index": "lance",
+        "name": "Lanza de Caballería"
+      },
+      {
+        "index": "light-hammer",
+        "name": "Martillo Ligero"
+      },
+      {
+        "index": "longsword",
+        "name": "Espada Larga"
+      },
+      {
+        "index": "mace",
+        "name": "Maza"
+      },
+      {
+        "index": "maul",
+        "name": "Mazo"
+      },
+      {
+        "index": "sickle",
+        "name": "Hoz"
+      },
+      {
+        "index": "spear",
+        "name": "Lanza"
+      },
+      {
+        "index": "trident",
+        "name": "Tridente"
+      },
+      {
+        "index": "warhammer",
+        "name": "Martillo de Guerra"
+      },
+      {
+        "index": "war-pick",
+        "name": "Pico de Guerra"
+      },
+      {
+        "index": "breastplate",
+        "name": "Coraza"
+      },
+      {
+        "index": "chain-shirt",
+        "name": "Camisa de Mallas"
+      },
+      {
+        "index": "half-plate-armor",
+        "name": "Media Armadura"
+      },
+      {
+        "index": "scale-mail",
+        "name": "Cota de Escamas"
+      },
+      {
+        "index": "chain-mail",
+        "name": "Cota de Mallas"
+      },
+      {
+        "index": "plate-armor",
+        "name": "Armadura de Placas"
+      },
+      {
+        "index": "ring-mail",
+        "name": "Cota de Anillas"
+      },
+      {
+        "index": "splint-armor",
+        "name": "Armadura de Bandas"
+      },
+      {
+        "index": "ball-bearings",
+        "name": "Rodamientos de Bolas"
+      },
+      {
+        "index": "bucket",
+        "name": "Cubo"
+      },
+      {
+        "index": "caltrops",
+        "name": "Abrojos"
+      },
+      {
+        "index": "chain",
+        "name": "Cadena"
+      },
+      {
+        "index": "crowbar",
+        "name": "Palanca"
+      },
+      {
+        "index": "bullets-firearm",
+        "name": "Balas, Arma de Fuego"
+      },
+      {
+        "index": "grappling-hook",
+        "name": "Garfio"
+      },
+      {
+        "index": "pot-iron",
+        "name": "Olla de Hierro"
+      },
+      {
+        "index": "spikes-iron",
+        "name": "Clavos de Hierro"
+      },
+      {
+        "index": "bullets-sling",
+        "name": "Balas, Honda"
+      }
+    ],
+    "utilize": [
+      {
+        "name": "Forzar la apertura de una puerta o contenedor",
+        "dc": {
+          "dc_type": {
+            "index": "str",
+            "name": "FUE"
+          },
+          "dc_value": 20,
+          "success_type": "none"
+        }
+      }
+    ],
+    "weight": 8,
+    "description": "Una herramienta te ayuda a realizar pruebas de característica especializadas, crear ciertos objetos, o ambas cosas."
+  },
+  {
+    "index": "spear",
+    "name": "Lanza",
+    "equipment_categories": [
+      {
+        "index": "melee-weapons",
+        "name": "Armas Cuerpo a Cuerpo"
+      },
+      {
+        "index": "simple-melee-weapons",
+        "name": "Armas Simples Cuerpo a Cuerpo"
+      },
+      {
+        "index": "simple-weapons",
+        "name": "Armas Simples"
+      },
+      {
+        "index": "weapons",
+        "name": "Armas"
+      }
+    ],
+    "cost": {
+      "quantity": 5,
+      "unit": "po"
+    },
+    "damage": {
+      "damage_dice": "1d6",
+      "damage_type": {
+        "index": "piercing",
+        "name": "Perforante"
+      }
+    },
+    "range": {
+      "normal": 5
+    },
+    "weight": 2,
+    "properties": [
+      {
+        "index": "thrown",
+        "name": "Arrojadiza"
+      },
+      {
+        "index": "versatile",
+        "name": "Versátil"
+      }
+    ],
+    "mastery": {
+      "index": "sap",
+      "name": "Debilitar"
+    },
+    "throw_range": {
+      "normal": 20,
+      "long": 60
+    },
+    "two_handed_damage": {
+      "damage_dice": "1d8",
+      "damage_type": {
+        "index": "piercing",
+        "name": "Perforante"
+      }
+    },
+    "description": "Un arma Cuerpo a Cuerpo se usa para atacar a un objetivo a 5 pies de distancia. Si un arma tiene la propiedad Arrojadiza, puedes lanzar el arma para realizar un ataque a distancia. Un arma Versátil puede ser usada con una o dos manos."
+  },
+  {
+    "index": "spellbook",
+    "name": "Libro de Conjuros",
+    "equipment_categories": [
+      {
+        "index": "adventuring-gear",
+        "name": "Equipo de Aventurero"
+      }
+    ],
+    "cost": {
+      "quantity": 50,
+      "unit": "po"
+    },
+    "weight": 3,
+    "description": "Esencial para los magos, un libro de conjuros es un tomo encuadernado en cuero con 100 páginas de vitela en blanco adecuadas para registrar conjuros."
+  },
+  {
+    "index": "spell-scroll-cantrip",
+    "name": "Pergamino de Conjuro, Truco",
+    "equipment_categories": [
+      {
+        "index": "adventuring-gear",
+        "name": "Equipo de Aventurero"
+      }
+    ],
+    "cost": {
+      "quantity": 30,
+      "unit": "po"
+    },
+    "description": "Un Pergamino de Conjuro (Truco) o Pergamino de Conjuro (Nivel 1) es un objeto mágico que lleva las palabras de un truco o conjuro de nivel 1, respectivamente, determinado por el creador del pergamino. Si el conjuro está en la lista de conjuros de tu clase, puedes leer el pergamino y lanzar el conjuro usando su tiempo de lanzamiento normal y sin proporcionar ningún componente Material.\nSi el conjuro requiere una tirada de salvación o una tirada de ataque, la CD de salvación del conjuro es 13, y el bonificador de ataque es +5. El pergamino se desintegra cuando se completa el lanzamiento.",
+    "weight": 0
+  },
+  {
+    "index": "spell-scroll-level-1",
+    "name": "Pergamino de Conjuro, Nivel 1",
+    "equipment_categories": [
+      {
+        "index": "adventuring-gear",
+        "name": "Equipo de Aventurero"
+      }
+    ],
+    "cost": {
+      "quantity": 50,
+      "unit": "po"
+    },
+    "description": "Un Pergamino de Conjuro (Truco) o Pergamino de Conjuro (Nivel 1) es un objeto mágico que lleva las palabras de un truco o conjuro de nivel 1, respectivamente, determinado por el creador del pergamino. Si el conjuro está en la lista de conjuros de tu clase, puedes leer el pergamino y lanzar el conjuro usando su tiempo de lanzamiento normal y sin proporcionar ningún componente Material.\nSi el conjuro requiere una tirada de salvación o una tirada de ataque, la CD de salvación del conjuro es 13, y el bonificador de ataque es +5. El pergamino se desintegra cuando se completa el lanzamiento.",
+    "weight": 0
+  },
+  {
+    "index": "spikes-iron",
+    "name": "Clavos de Hierro",
+    "equipment_categories": [
+      {
+        "index": "adventuring-gear",
+        "name": "Equipo de Aventurero"
+      }
+    ],
+    "cost": {
+      "quantity": 1,
+      "unit": "po"
+    },
+    "description": "Los Clavos de Hierro vienen en paquetes de diez. Como acción de Utilizar, puedes usar un objeto contundente, como un Martillo Ligero, para martillar un clavo en madera, tierra o un material similar. Puedes hacerlo para bloquear una puerta y mantenerla cerrada o para luego atar una Cuerda o Cadena al clavo.",
+    "weight": 2
+  },
+  {
+    "index": "splint-armor",
+    "name": "Armadura de Bandas",
+    "equipment_categories": [
+      {
+        "index": "armor",
+        "name": "Armadura"
+      },
+      {
+        "index": "heavy-armor",
+        "name": "Armadura Pesada"
+      }
+    ],
+    "armor_class": {
+      "base": 17,
+      "dex_bonus": false,
+      "max_bonus": 0
+    },
+    "cost": {
+      "quantity": 200,
+      "unit": "po"
+    },
+    "don_time": "10 minutos",
+    "doff_time": "5 minutos",
+    "stealth_disadvantage": true,
+    "str_minimum": 15,
+    "weight": 60,
+    "description": "Si vistes armadura Ligera, Media o Pesada y careces de entrenamiento con ella, tienes Desventaja en cualquier Prueba de d20 que involucre Fuerza o Destreza, y no puedes lanzar conjuros."
+  },
+  {
+    "index": "sprig-of-mistletoe",
+    "name": "Ramita de Muérdago",
+    "equipment_categories": [
+      {
+        "index": "druidic-foci",
+        "name": "Focos Druídicos"
+      },
+      {
+        "index": "adventuring-gear",
+        "name": "Equipo de Aventurero"
+      }
+    ],
+    "cost": {
+      "quantity": 1,
+      "unit": "po"
+    },
+    "weight": 0,
+    "description": "Un Foco Druídico adopta una de las formas de la tabla de Focos Druídicos y está tallado, atado con una cinta o pintado para canalizar magia primordial. Un Druida o Guardabosques puede usar tal objeto como Foco de Lanzamiento de Conjuros."
+  },
+  {
+    "index": "spyglass",
+    "name": "Catalejo",
+    "equipment_categories": [
+      {
+        "index": "adventuring-gear",
+        "name": "Equipo de Aventurero"
+      }
+    ],
+    "cost": {
+      "quantity": 1000,
+      "unit": "po"
+    },
+    "description": "Los objetos vistos a través de un Catalejo se amplían al doble de su tamaño.",
+    "weight": 1
+  },
+  {
+    "index": "staff",
+    "name": "Bastón Mágico",
+    "equipment_categories": [
+      {
+        "index": "arcane-foci",
+        "name": "Focos Arcanos"
+      },
+      {
+        "index": "adventuring-gear",
+        "name": "Equipo de Aventurero"
+      },
+      {
+        "index": "druidic-foci",
+        "name": "Focos Druídicos"
+      }
+    ],
+    "cost": {
+      "quantity": 5,
+      "unit": "po"
+    },
+    "weight": 4,
+    "description": "Un Foco Arcano adopta una de las formas de la tabla de Focos Arcanos y está adornado con joyas o tallado para canalizar la magia arcana. Un Hechicero, Brujo o Mago puede usar dicho objeto como Foco de Lanzamiento de Conjuros. Un Foco Druídico adopta una de las formas de la tabla de Focos Druídicos y está tallado, atado con una cinta o pintado para canalizar magia primordial. Un Druida o Guardabosques puede usar tal objeto como Foco de Lanzamiento de Conjuros."
+  },
+  {
+    "index": "string",
+    "name": "Cordel",
+    "equipment_categories": [
+      {
+        "index": "adventuring-gear",
+        "name": "Equipo de Aventurero"
+      }
+    ],
+    "cost": {
+      "quantity": 1,
+      "unit": "pp"
+    },
+    "description": "El Cordel mide 10 pies de largo. Puedes atar un nudo en él como una acción de Utilizar.",
+    "weight": 0
+  },
+  {
+    "index": "studded-leather-armor",
+    "name": "Armadura de Cuero Tachonado",
+    "equipment_categories": [
+      {
+        "index": "armor",
+        "name": "Armadura"
+      },
+      {
+        "index": "light-armor",
+        "name": "Armadura Ligera"
+      }
+    ],
+    "armor_class": {
+      "base": 12,
+      "dex_bonus": true
+    },
+    "cost": {
+      "quantity": 45,
+      "unit": "po"
+    },
+    "don_time": "1 minuto",
+    "doff_time": "1 minuto",
+    "stealth_disadvantage": false,
+    "str_minimum": 0,
+    "weight": 13,
+    "description": "Si vistes armadura Ligera, Media o Pesada y careces de entrenamiento con ella, tienes Desventaja en cualquier Prueba de d20 que involucre Fuerza o Destreza, y no puedes lanzar conjuros."
+  },
+  {
+    "index": "tent",
+    "name": "Tienda de Campaña",
+    "equipment_categories": [
+      {
+        "index": "adventuring-gear",
+        "name": "Equipo de Aventurero"
+      }
+    ],
+    "cost": {
+      "quantity": 2,
+      "unit": "po"
+    },
+    "description": "Una Tienda de Campaña acomoda a hasta dos criaturas Pequeñas o Medianas para dormir.",
+    "weight": 20
+  },
+  {
+    "index": "thieves-tools",
+    "name": "Herramientas de Ladrón",
+    "equipment_categories": [
+      {
+        "index": "other-tools",
+        "name": "Otras Herramientas"
+      },
+      {
+        "index": "tools",
+        "name": "Herramientas"
+      }
+    ],
+    "ability": {
+      "index": "dex",
+      "name": "DES"
+    },
+    "cost": {
+      "quantity": 25,
+      "unit": "po"
+    },
+    "utilize": [
+      {
+        "name": "Forzar una cerradura",
+        "dc": {
+          "dc_type": {
+            "index": "dex",
+            "name": "DES"
+          },
+          "dc_value": 15,
+          "success_type": "none"
+        }
+      },
+      {
+        "name": "Desarmar una trampa",
+        "dc": {
+          "dc_type": {
+            "index": "dex",
+            "name": "DES"
+          },
+          "dc_value": 15,
+          "success_type": "none"
+        }
+      }
+    ],
+    "weight": 1,
+    "description": "Una herramienta te ayuda a realizar pruebas de característica especializadas, crear ciertos objetos, o ambas cosas."
+  },
+  {
+    "index": "three-dragon-ante",
+    "name": "Apuesta de los Tres Dragones",
+    "equipment_categories": [
+      {
+        "index": "gaming-sets",
+        "name": "Sets de Juego"
+      },
+      {
+        "index": "tools",
+        "name": "Herramientas"
+      }
+    ],
+    "ability": {
+      "index": "wis",
+      "name": "SAB"
+    },
+    "cost": {
+      "quantity": 1,
+      "unit": "po"
+    },
+    "utilize": [
+      {
+        "name": "Discernir si alguien está haciendo trampa",
+        "dc": {
+          "dc_type": {
+            "index": "wis",
+            "name": "SAB"
+          },
+          "dc_value": 10,
+          "success_type": "none"
+        }
+      },
+      {
+        "name": "Ganar el juego",
+        "dc": {
+          "dc_type": {
+            "index": "wis",
+            "name": "SAB"
+          },
+          "dc_value": 20,
+          "success_type": "none"
+        }
+      }
+    ],
+    "weight": 0,
+    "description": "Una herramienta te ayuda a realizar pruebas de característica especializadas, crear ciertos objetos, o ambas cosas."
+  },
+  {
+    "index": "tinderbox",
+    "name": "Yesquero",
+    "equipment_categories": [
+      {
+        "index": "adventuring-gear",
+        "name": "Equipo de Aventurero"
+      }
+    ],
+    "cost": {
+      "quantity": 5,
+      "unit": "pp"
+    },
+    "description": "Un Yesquero es un pequeño contenedor que alberga pedernal, eslabón y yesca (usualmente tela seca empapada en aceite ligero) utilizado para encender un fuego. Usarlo para encender una Vela, Lámpara, Linterna o Antorcha—o cualquier otra cosa con combustible expuesto—requiere una Acción Adicional. Encender cualquier otro fuego toma 1 minuto.",
+    "weight": 1
+  },
+  {
+    "index": "tinkers-tools",
+    "name": "Herramientas de Hojalatero",
+    "equipment_categories": [
+      {
+        "index": "artisans-tools",
+        "name": "Herramientas de Artesano"
+      },
+      {
+        "index": "tools",
+        "name": "Herramientas"
+      }
+    ],
+    "ability": {
+      "index": "dex",
+      "name": "DES"
+    },
+    "cost": {
+      "quantity": 50,
+      "unit": "po"
+    },
+    "craft": [
+      {
+        "index": "musket",
+        "name": "Mosquete"
+      },
+      {
+        "index": "pistol",
+        "name": "Pistola"
+      },
+      {
+        "index": "bell",
+        "name": "Campana"
+      },
+      {
+        "index": "lantern-bullseye",
+        "name": "Linterna Ojo de Buey"
+      },
+      {
+        "index": "flask",
+        "name": "Frasco"
+      },
+      {
+        "index": "lantern-hooded",
+        "name": "Linterna Sorda"
+      },
+      {
+        "index": "hunting-trap",
+        "name": "Trampa de Caza"
+      },
+      {
+        "index": "lock",
+        "name": "Cerradura"
+      },
+      {
+        "index": "manacles",
+        "name": "Grilletes"
+      },
+      {
+        "index": "mirror",
+        "name": "Espejo"
+      },
+      {
+        "index": "shovel",
+        "name": "Pala"
+      },
+      {
+        "index": "signal-whistle",
+        "name": "Silbato de Señales"
+      },
+      {
+        "index": "tinderbox",
+        "name": "Yesquero"
+      }
+    ],
+    "utilize": [
+      {
+        "name": "Ensamblar un objeto Diminuto compuesto de chatarra, el cual se desarma en 1 minuto",
+        "dc": {
+          "dc_type": {
+            "index": "dex",
+            "name": "DES"
+          },
+          "dc_value": 10,
+          "success_type": "none"
+        }
+      }
+    ],
+    "weight": 10,
+    "description": "Una herramienta te ayuda a realizar pruebas de característica especializadas, crear ciertos objetos, o ambas cosas."
+  },
+  {
+    "index": "torch",
+    "name": "Antorcha",
+    "equipment_categories": [
+      {
+        "index": "adventuring-gear",
+        "name": "Equipo de Aventurero"
+      }
+    ],
+    "cost": {
+      "quantity": 1,
+      "unit": "pc"
+    },
+    "description": "Una Antorcha arde durante 1 hora, emitiendo Luz Brillante en un radio de 20 pies y Luz Tenue por 20 pies adicionales. Cuando realizas la acción de Atacar, puedes atacar con la Antorcha, usándola como un arma Simple Cuerpo a Cuerpo. Al impactar, el objetivo recibe 1 de daño por Fuego.",
+    "weight": 1
+  },
+  {
+    "index": "trident",
+    "name": "Tridente",
+    "equipment_categories": [
+      {
+        "index": "martial-melee-weapons",
+        "name": "Armas Marciales Cuerpo a Cuerpo"
+      },
+      {
+        "index": "martial-weapons",
+        "name": "Armas Marciales"
+      },
+      {
+        "index": "melee-weapons",
+        "name": "Armas Cuerpo a Cuerpo"
+      },
+      {
+        "index": "weapons",
+        "name": "Armas"
+      }
+    ],
+    "cost": {
+      "quantity": 5,
+      "unit": "po"
+    },
+    "damage": {
+      "damage_dice": "1d6",
+      "damage_type": {
+        "index": "piercing",
+        "name": "Perforante"
+      }
+    },
+    "range": {
+      "normal": 5
+    },
+    "weight": 4,
+    "properties": [
+      {
+        "index": "thrown",
+        "name": "Arrojadiza"
+      },
+      {
+        "index": "versatile",
+        "name": "Versátil"
+      }
+    ],
+    "mastery": {
+      "index": "topple",
+      "name": "Derribar"
+    },
+    "throw_range": {
+      "normal": 20,
+      "long": 60
+    },
+    "two_handed_damage": {
+      "damage_dice": "1d8",
+      "damage_type": {
+        "index": "piercing",
+        "name": "Perforante"
+      }
+    },
+    "description": "Un arma Cuerpo a Cuerpo se usa para atacar a un objetivo a 5 pies de distancia. Si un arma tiene la propiedad Arrojadiza, puedes lanzar el arma para realizar un ataque a distancia. Un arma Versátil puede ser usada con una o dos manos."
+  },
+  {
+    "index": "vial",
+    "name": "Vial",
+    "equipment_categories": [
+      {
+        "index": "adventuring-gear",
+        "name": "Equipo de Aventurero"
+      }
+    ],
+    "cost": {
+      "quantity": 1,
+      "unit": "po"
+    },
+    "description": "Un Vial contiene hasta 4 onzas.",
+    "weight": 0
+  },
+  {
+    "index": "viol",
+    "name": "Viola",
+    "equipment_categories": [
+      {
+        "index": "musical-instruments",
+        "name": "Instrumentos Musicales"
+      },
+      {
+        "index": "tools",
+        "name": "Herramientas"
+      }
+    ],
+    "ability": {
+      "index": "cha",
+      "name": "CAR"
+    },
+    "cost": {
+      "quantity": 30,
+      "unit": "po"
+    },
+    "utilize": [
+      {
+        "name": "Tocar una melodía conocida",
+        "dc": {
+          "dc_type": {
+            "index": "cha",
+            "name": "CAR"
+          },
+          "dc_value": 10,
+          "success_type": "none"
+        }
+      },
+      {
+        "name": "Improvisar una canción",
+        "dc": {
+          "dc_type": {
+            "index": "cha",
+            "name": "CAR"
+          },
+          "dc_value": 15,
+          "success_type": "none"
+        }
+      }
+    ],
+    "weight": 2,
+    "description": "Una herramienta te ayuda a realizar pruebas de característica especializadas, crear ciertos objetos, o ambas cosas."
+  },
+  {
+    "index": "wand",
+    "name": "Varita",
+    "equipment_categories": [
+      {
+        "index": "arcane-foci",
+        "name": "Focos Arcanos"
+      },
+      {
+        "index": "adventuring-gear",
+        "name": "Equipo de Aventurero"
+      }
+    ],
+    "cost": {
+      "quantity": 10,
+      "unit": "po"
+    },
+    "weight": 1,
+    "description": "Un Foco Arcano adopta una de las formas de la tabla de Focos Arcanos y está adornado con joyas o tallado para canalizar la magia arcana. Un Hechicero, Brujo o Mago puede usar dicho objeto como Foco de Lanzamiento de Conjuros."
+  },
+  {
+    "index": "warhammer",
+    "name": "Martillo de Guerra",
+    "equipment_categories": [
+      {
+        "index": "martial-melee-weapons",
+        "name": "Armas Marciales Cuerpo a Cuerpo"
+      },
+      {
+        "index": "martial-weapons",
+        "name": "Armas Marciales"
+      },
+      {
+        "index": "melee-weapons",
+        "name": "Armas Cuerpo a Cuerpo"
+      },
+      {
+        "index": "weapons",
+        "name": "Armas"
+      }
+    ],
+    "cost": {
+      "quantity": 15,
+      "unit": "po"
+    },
+    "damage": {
+      "damage_dice": "1d8",
+      "damage_type": {
+        "index": "bludgeoning",
+        "name": "Contundente"
+      }
+    },
+    "range": {
+      "normal": 5
+    },
+    "weight": 5,
+    "properties": [
+      {
+        "index": "versatile",
+        "name": "Versátil"
+      }
+    ],
+    "mastery": {
+      "index": "push",
+      "name": "Empujar"
+    },
+    "two_handed_damage": {
+      "damage_dice": "1d10",
+      "damage_type": {
+        "index": "bludgeoning",
+        "name": "Contundente"
+      }
+    },
+    "description": "Un arma Cuerpo a Cuerpo se usa para atacar a un objetivo a 5 pies de distancia. Un arma Versátil puede ser usada con una o dos manos."
+  },
+  {
+    "index": "war-pick",
+    "name": "Pico de Guerra",
+    "equipment_categories": [
+      {
+        "index": "martial-melee-weapons",
+        "name": "Armas Marciales Cuerpo a Cuerpo"
+      },
+      {
+        "index": "martial-weapons",
+        "name": "Armas Marciales"
+      },
+      {
+        "index": "melee-weapons",
+        "name": "Armas Cuerpo a Cuerpo"
+      },
+      {
+        "index": "weapons",
+        "name": "Armas"
+      }
+    ],
+    "cost": {
+      "quantity": 5,
+      "unit": "po"
+    },
+    "damage": {
+      "damage_dice": "1d8",
+      "damage_type": {
+        "index": "piercing",
+        "name": "Perforante"
+      }
+    },
+    "range": {
+      "normal": 5
+    },
+    "weight": 2,
+    "properties": [
+      {
+        "index": "versatile",
+        "name": "Versátil"
+      }
+    ],
+    "mastery": {
+      "index": "sap",
+      "name": "Debilitar"
+    },
+    "two_handed_damage": {
+      "damage_dice": "1d10",
+      "damage_type": {
+        "index": "piercing",
+        "name": "Perforante"
+      }
+    },
+    "description": "Un arma Cuerpo a Cuerpo se usa para atacar a un objetivo a 5 pies de distancia. Un arma Versátil puede ser usada con una o dos manos."
+  },
+  {
+    "index": "waterskin",
+    "name": "Odre",
+    "equipment_categories": [
+      {
+        "index": "adventuring-gear",
+        "name": "Equipo de Aventurero"
+      }
+    ],
+    "cost": {
+      "quantity": 2,
+      "unit": "pp"
+    },
+    "description": "Un Odre contiene hasta 4 pintas. Si no bebes suficiente agua, te arriesgas a la deshidratación (consulta el \"Glosario de Reglas\").",
+    "weight": 5
+  },
+  {
+    "index": "weavers-tools",
+    "name": "Herramientas de Tejedor",
+    "equipment_categories": [
+      {
+        "index": "artisans-tools",
+        "name": "Herramientas de Artesano"
+      },
+      {
+        "index": "tools",
+        "name": "Herramientas"
+      }
+    ],
+    "ability": {
+      "index": "dex",
+      "name": "DES"
+    },
+    "cost": {
+      "quantity": 1,
+      "unit": "po"
+    },
+    "craft": [
+      {
+        "index": "padded-armor",
+        "name": "Armadura Acolchada"
+      },
+      {
+        "index": "basket",
+        "name": "Cesta"
+      },
+      {
+        "index": "bedroll",
+        "name": "Saco de Dormir"
+      },
+      {
+        "index": "blanket",
+        "name": "Manta"
+      },
+      {
+        "index": "clothes-fine",
+        "name": "Ropa, Fina"
+      },
+      {
+        "index": "net",
+        "name": "Red"
+      },
+      {
+        "index": "robe",
+        "name": "Túnica"
+      },
+      {
+        "index": "rope",
+        "name": "Cuerda"
+      },
+      {
+        "index": "sack",
+        "name": "Saco"
+      },
+      {
+        "index": "string",
+        "name": "Cordel"
+      },
+      {
+        "index": "tent",
+        "name": "Tienda de Campaña"
+      },
+      {
+        "index": "clothes-travelers",
+        "name": "Ropa, de Viajero"
+      }
+    ],
+    "utilize": [
+      {
+        "name": "Remendar un desgarro en la ropa",
+        "dc": {
+          "dc_type": {
+            "index": "dex",
+            "name": "DES"
+          },
+          "dc_value": 10,
+          "success_type": "none"
+        }
+      },
+      {
+        "name": "Coser un diseño Diminuto",
+        "dc": {
+          "dc_type": {
+            "index": "dex",
+            "name": "DES"
+          },
+          "dc_value": 10,
+          "success_type": "none"
+        }
+      }
+    ],
+    "weight": 5,
+    "description": "Una herramienta te ayuda a realizar pruebas de característica especializadas, crear ciertos objetos, o ambas cosas."
+  },
+  {
+    "index": "whip",
+    "name": "Látigo",
+    "equipment_categories": [
+      {
+        "index": "martial-melee-weapons",
+        "name": "Armas Marciales Cuerpo a Cuerpo"
+      },
+      {
+        "index": "martial-weapons",
+        "name": "Armas Marciales"
+      },
+      {
+        "index": "melee-weapons",
+        "name": "Armas Cuerpo a Cuerpo"
+      },
+      {
+        "index": "weapons",
+        "name": "Armas"
+      }
+    ],
+    "cost": {
+      "quantity": 2,
+      "unit": "po"
+    },
+    "damage": {
+      "damage_dice": "1d4",
+      "damage_type": {
+        "index": "slashing",
+        "name": "Cortante"
+      }
+    },
+    "range": {
+      "normal": 5
+    },
+    "weight": 3,
+    "properties": [
+      {
+        "index": "finesse",
+        "name": "Sutil"
+      },
+      {
+        "index": "reach",
+        "name": "Alcance"
+      }
+    ],
+    "mastery": {
+      "index": "slow",
+      "name": "Lento"
+    },
+    "description": "Un arma Cuerpo a Cuerpo se usa para atacar a un objetivo a 5 pies de distancia. Al hacer un ataque con un arma Sutil, usas tu elección de tu modificador de Fuerza o Destreza para las tiradas de ataque y daño. Un arma de Alcance añade 5 pies a tu alcance cuando atacas con ella, así como al determinar tu alcance para Ataques de Oportunidad con ella."
+  },
+  {
+    "index": "woodcarvers-tools",
+    "name": "Herramientas de Tallador de Madera",
+    "equipment_categories": [
+      {
+        "index": "artisans-tools",
+        "name": "Herramientas de Artesano"
+      },
+      {
+        "index": "tools",
+        "name": "Herramientas"
+      }
+    ],
+    "ability": {
+      "index": "dex",
+      "name": "DES"
+    },
+    "cost": {
+      "quantity": 1,
+      "unit": "po"
+    },
+    "craft": [
+      {
+        "index": "club",
+        "name": "Garrote"
+      },
+      {
+        "index": "greatclub",
+        "name": "Gran Garrote"
+      },
+      {
+        "index": "quarterstaff",
+        "name": "Bastón"
+      },
+      {
+        "index": "blowgun",
+        "name": "Cerbatana"
+      },
+      {
+        "index": "dart",
+        "name": "Dardo"
+      },
+      {
+        "index": "hand-crossbow",
+        "name": "Ballesta de Mano"
+      },
+      {
+        "index": "heavy-crossbow",
+        "name": "Ballesta Pesada"
+      },
+      {
+        "index": "light-crossbow",
+        "name": "Ballesta Ligera"
+      },
+      {
+        "index": "longbow",
+        "name": "Arco Largo"
+      },
+      {
+        "index": "shortbow",
+        "name": "Arco Corto"
+      },
+      {
+        "index": "crystal",
+        "name": "Cristal"
+      },
+      {
+        "index": "orb",
+        "name": "Orbe"
+      },
+      {
+        "index": "quarterstaff",
+        "name": "Bastón"
+      },
+      {
+        "index": "rod",
+        "name": "Vara"
+      },
+      {
+        "index": "staff",
+        "name": "Bastón Mágico"
+      },
+      {
+        "index": "wand",
+        "name": "Varita"
+      },
+      {
+        "index": "arrows",
+        "name": "Flechas"
+      },
+      {
+        "index": "bolts",
+        "name": "Virotes"
+      },
+      {
+        "index": "sprig-of-mistletoe",
+        "name": "Ramita de Muérdago"
+      },
+      {
+        "index": "staff",
+        "name": "Bastón Mágico"
+      },
+      {
+        "index": "yew-wand",
+        "name": "Varita de Tejo"
+      },
+      {
+        "index": "ink-pen",
+        "name": "Pluma para Tinta"
+      },
+      {
+        "index": "needles",
+        "name": "Agujas"
+      }
+    ],
+    "utilize": [
+      {
+        "name": "Tallar un patrón en madera",
+        "dc": {
+          "dc_type": {
+            "index": "dex",
+            "name": "DES"
+          },
+          "dc_value": 10,
+          "success_type": "none"
+        }
+      }
+    ],
+    "weight": 5,
+    "description": "Una herramienta te ayuda a realizar pruebas de característica especializadas, crear ciertos objetos, o ambas cosas."
+  },
+  {
+    "index": "yew-wand",
+    "name": "Varita de Tejo",
+    "equipment_categories": [
+      {
+        "index": "druidic-foci",
+        "name": "Focos Druídicos"
+      },
+      {
+        "index": "adventuring-gear",
+        "name": "Equipo de Aventurero"
+      }
+    ],
+    "cost": {
+      "quantity": 10,
+      "unit": "po"
+    },
+    "weight": 1,
+    "description": "Un Foco Druídico adopta una de las formas de la tabla de Focos Druídicos y está tallado, atado con una cinta o pintado para canalizar magia primordial. Un Druida o Guardabosques puede usar tal objeto como Foco de Lanzamiento de Conjuros."
+  }
+]

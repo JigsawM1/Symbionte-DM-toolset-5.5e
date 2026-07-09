@@ -167,6 +167,14 @@ export const FormularioObjeto: React.FC<Props> = ({
     oNuevoHechizoBonoAtaque, setONuevoHechizoBonoAtaque,
     oNuevoHechizoCosteCargas, setONuevoHechizoCosteCargas,
 
+    // Nuevos campos relacionales
+    oAmmunitionIndex, setOAmmunitionIndex,
+    setOAmmunitionName,
+    oStorageIndex, setOStorageIndex,
+    setOStorageName,
+    oContents, setOContents,
+    oCraft, setOCraft,
+
     cargarObjeto,
     limpiarFormulario,
     agregarEfectoPasivo,
@@ -182,6 +190,23 @@ export const FormularioObjeto: React.FC<Props> = ({
 
   // Pestaña activa del formulario
   const [pestanaActiva, setPestanaActiva] = useState<"general" | "atributos" | "magia">("general");
+
+  // --- ESTADOS LOCALES DE ENTRADA PARA RELACIONES ---
+  const [nuevoContenidoIndex, setNuevoContenidoIndex] = useState("");
+  const [nuevoContenidoName, setNuevoContenidoName] = useState("");
+  const [nuevoContenidoQty, setNuevoContenidoQty] = useState<number>(1);
+
+  const [nuevoCraftIndex, setNuevoCraftIndex] = useState("");
+  const [nuevoCraftName, setNuevoCraftName] = useState("");
+
+  const [busquedaContenidoQuery, setBusquedaContenidoQuery] = useState("");
+  const [busquedaCraftQuery, setBusquedaCraftQuery] = useState("");
+
+  // Sincronizar automáticamente oMunicionRequerida con la propiedad "Munición (Ammunition)"
+  const tienePropMunicion = oPropiedadesArma.includes("Munición (Ammunition)");
+  useEffect(() => {
+    setOMunicionRequerida(tienePropMunicion);
+  }, [tienePropMunicion, setOMunicionRequerida]);
 
   // Sincronizar edición con la base de datos si cambia idEnEdicion
   useEffect(() => {
@@ -200,6 +225,21 @@ export const FormularioObjeto: React.FC<Props> = ({
   const detenerPropagacion = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
   }, []);
+
+  // Listas prefiltradas para los selectores relacionales
+  const listaTodosObjetos = [...objetosHomebrew].sort((a, b) => a.nombre.localeCompare(b.nombre));
+
+  const resultadosContenido = busquedaContenidoQuery.trim()
+    ? listaTodosObjetos.filter((o) =>
+        o.nombre.toLowerCase().includes(busquedaContenidoQuery.toLowerCase())
+      ).slice(0, 5)
+    : [];
+
+  const resultadosCraft = busquedaCraftQuery.trim()
+    ? listaTodosObjetos.filter((o) =>
+        o.nombre.toLowerCase().includes(busquedaCraftQuery.toLowerCase())
+      ).slice(0, 5)
+    : [];
 
   return (
     <form 
@@ -712,30 +752,64 @@ export const FormularioObjeto: React.FC<Props> = ({
               </div>
 
               {/* Nuevos campos de Arma: Daño Versátil y Munición Requerida */}
+
               <div style={{ marginTop: "12px", borderTop: "1px dashed rgba(0, 245, 212, 0.1)", paddingTop: "12px" }}>
-                <div className={estilos.filaDobleForm}>
-                  <div className={estilos.campoForm}>
-                    <label className={estilos.labelForm}>Daño Versátil (A dos manos):</label>
-                    <input
-                      type="text"
-                      value={oDanoVersatil}
-                      onChange={(e) => setODanoVersatil(e.target.value)}
-                      placeholder="Ej. 1d10, 1d12... (Opcional)"
-                      className={estilos.inputForm}
-                    />
-                  </div>
-                  <div className={estilos.campoForm} style={{ justifyContent: "center" }}>
-                    <label className={estilos.labelCheckbox} style={{ marginTop: "16px" }}>
-                      <input
-                        type="checkbox"
-                        checked={oMunicionRequerida}
-                        onChange={(e) => setOMunicionRequerida(e.target.checked)}
-                        className={estilos.checkMini}
-                      />
-                      <span>¿Requiere Munición (Flechas/Virotes)?</span>
-                    </label>
-                  </div>
+                <div className={estilos.campoForm}>
+                  <label className={estilos.labelForm}>Daño Versátil (A dos manos):</label>
+                  <input
+                    type="text"
+                    value={oDanoVersatil}
+                    onChange={(e) => setODanoVersatil(e.target.value)}
+                    placeholder="Ej. 1d10, 1d12... (Opcional)"
+                    className={estilos.inputForm}
+                  />
                 </div>
+                
+                {oMunicionRequerida && (
+                  <div className={estilos.campoForm} style={{ marginTop: "10px", backgroundColor: "rgba(0, 245, 212, 0.03)", padding: "10px", borderRadius: "5px", border: "1px dashed rgba(0, 245, 212, 0.15)" }}>
+                    <label className={estilos.labelForm} style={{ marginBottom: "8px" }}>Seleccionar Munición Vinculada (D&D 5.5e):</label>
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))", gap: "8px" }}>
+                      {[
+                        { id: "arrows", label: "Flechas" },
+                        { id: "bolts", label: "Virotes" },
+                        { id: "bullets-sling", label: "Balas de Honda" },
+                        { id: "bullets-firearm", label: "Balas de Arma de Fuego" },
+                        { id: "needles", label: "Agujas de Cerbatana" }
+                      ].map((item) => {
+                        const estaSeleccionado = oAmmunitionIndex === item.id;
+                        return (
+                          <button
+                            key={item.id}
+                            type="button"
+                            onClick={() => {
+                              if (estaSeleccionado) {
+                                setOAmmunitionIndex("");
+                                setOAmmunitionName("");
+                              } else {
+                                setOAmmunitionIndex(item.id);
+                                setOAmmunitionName(item.label);
+                              }
+                            }}
+                            className={estilos.botonAlternadorProp}
+                            style={{
+                              padding: "6px 8px",
+                              fontSize: "11px",
+                              textAlign: "center",
+                              border: estaSeleccionado ? "1.5px solid var(--color-borde-cian)" : "1px solid var(--color-borde-brutal)",
+                              background: estaSeleccionado ? "rgba(0, 245, 212, 0.12)" : "transparent",
+                              color: estaSeleccionado ? "var(--color-texto-principal)" : "var(--color-texto-secundario)",
+                              borderRadius: "4px",
+                              cursor: "pointer",
+                              transition: "all 0.1s ease"
+                            }}
+                          >
+                            {item.label}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           )}
@@ -905,6 +979,262 @@ export const FormularioObjeto: React.FC<Props> = ({
                           rows={3}
                         />
                       </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Módulo de Almacenamiento para Municiones */}
+              {oSubcategoriaEquipo === "Munición" && (
+                <div style={{ marginTop: "12px", borderTop: "1px dashed rgba(255, 99, 71, 0.2)", paddingTop: "12px" }}>
+                  <div className={estilos.tituloBloqueDinamico} style={{ fontSize: "12px", marginBottom: "8px" }}>
+                    <span>ALMACENAMIENTO RECOMENDADO</span>
+                  </div>
+                  <div className={estilos.campoForm}>
+                    <label className={estilos.labelForm} style={{ marginBottom: "6px" }}>¿Dónde se almacena esta munición?:</label>
+                    <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                      {[
+                        { id: "quiver", label: "Carcaj" },
+                        { id: "case-crossbow-bolt", label: "Caja de Virotes" },
+                        { id: "pouch", label: "Bolsita" }
+                      ].map((item) => {
+                        const estaSeleccionado = oStorageIndex === item.id;
+                        return (
+                          <button
+                            key={item.id}
+                            type="button"
+                            onClick={() => {
+                              if (estaSeleccionado) {
+                                setOStorageIndex("");
+                                setOStorageName("");
+                              } else {
+                                setOStorageIndex(item.id);
+                                setOStorageName(item.label);
+                              }
+                            }}
+                            className={estilos.botonAlternadorProp}
+                            style={{
+                              flex: 1,
+                              minWidth: "100px",
+                              padding: "6px 10px",
+                              fontSize: "11px",
+                              textAlign: "center",
+                              border: estaSeleccionado ? "1.5px solid var(--color-borde-naranja)" : "1px solid var(--color-borde-brutal)",
+                              background: estaSeleccionado ? "rgba(255, 165, 0, 0.15)" : "transparent",
+                              color: estaSeleccionado ? "var(--color-texto-principal)" : "var(--color-texto-secundario)",
+                              borderRadius: "4px",
+                              cursor: "pointer",
+                              transition: "all 0.1s ease"
+                            }}
+                          >
+                            {item.label}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Módulo de Contenidos para Paquetes */}
+              {oSubcategoriaEquipo === "Paquete" && (
+                <div style={{ marginTop: "12px", borderTop: "1px dashed rgba(255, 99, 71, 0.2)", paddingTop: "12px" }}>
+                  <div className={estilos.tituloBloqueDinamico} style={{ fontSize: "12px", marginBottom: "8px" }}>
+                    <span>CONTENIDO DEL PAQUETE / CONTENEDOR</span>
+                  </div>
+                  
+                  <div style={{ display: "flex", gap: "6px", marginBottom: "10px", alignItems: "center", position: "relative" }}>
+                    <div style={{ flex: 3, position: "relative" }}>
+                      <input
+                        type="text"
+                        placeholder="🔍 Buscar objeto en el compendio..."
+                        value={busquedaContenidoQuery}
+                        onChange={(e) => setBusquedaContenidoQuery(e.target.value)}
+                        className={estilos.inputForm}
+                        style={{ fontSize: "11px", width: "100%" }}
+                      />
+                      {resultadosContenido.length > 0 && (
+                        <div style={{
+                          position: "absolute",
+                          top: "100%",
+                          left: 0,
+                          right: 0,
+                          backgroundColor: "var(--color-fondo-panel)",
+                          border: "1.5px solid var(--color-borde-brutal)",
+                          borderRadius: "4px",
+                          zIndex: 50,
+                          maxHeight: "180px",
+                          overflowY: "auto",
+                          boxShadow: "0 4px 12px rgba(0,0,0,0.5)",
+                          marginTop: "2px"
+                        }}>
+                          {resultadosContenido.map((o) => (
+                            <div
+                              key={o.id}
+                              onClick={() => {
+                                setNuevoContenidoIndex(o.id);
+                                setNuevoContenidoName(o.nombre);
+                                setBusquedaContenidoQuery(o.nombre);
+                              }}
+                              style={{
+                                padding: "6px 10px",
+                                fontSize: "11px",
+                                cursor: "pointer",
+                                borderBottom: "1px solid rgba(255,255,255,0.03)",
+                                transition: "background 0.1s ease",
+                                color: nuevoContenidoIndex === o.id ? "var(--color-activo)" : "var(--color-texto-principal)"
+                              }}
+                              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.05)"}
+                              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "transparent"}
+                            >
+                              {o.nombre} <span style={{ color: "var(--color-texto-secundario)", fontSize: "9px" }}>({o.id})</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                    <input
+                      type="number"
+                      min="1"
+                      placeholder="Cant"
+                      value={nuevoContenidoQty}
+                      onChange={(e) => setNuevoContenidoQty(parseInt(e.target.value) || 1)}
+                      className={estilos.inputForm}
+                      style={{ width: "65px", fontSize: "11px" }}
+                    />
+                    <button
+                      type="button"
+                      className={estilos.botonAgregarDinamico}
+                      style={{ fontSize: "11px", padding: "4px 10px" }}
+                      onClick={() => {
+                        if (nuevoContenidoIndex.trim() && nuevoContenidoName.trim()) {
+                          setOContents((prev) => [
+                            ...prev,
+                            {
+                              item: { index: nuevoContenidoIndex.trim(), name: nuevoContenidoName.trim() },
+                              quantity: nuevoContenidoQty
+                            }
+                          ]);
+                          setNuevoContenidoIndex("");
+                          setNuevoContenidoName("");
+                          setNuevoContenidoQty(1);
+                          setBusquedaContenidoQuery("");
+                        }
+                      }}
+                    >
+                      + Añadir
+                    </button>
+                  </div>
+
+                  {oContents.length > 0 && (
+                    <div style={{ display: "flex", flexDirection: "column", gap: "4px", backgroundColor: "rgba(0,0,0,0.15)", padding: "8px", borderRadius: "5px" }}>
+                      {oContents.map((c, idx) => (
+                        <div key={idx} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "11px", borderBottom: "1px solid rgba(255,255,255,0.03)", paddingBottom: "2px" }}>
+                          <span>{c.quantity}x {c.item.name} <span style={{ color: "var(--color-texto-secundario)", fontSize: "9px" }}>({c.item.index})</span></span>
+                          <X
+                            size={12}
+                            style={{ cursor: "pointer", color: "var(--color-peligro)" }}
+                            onClick={() => setOContents((prev) => prev.filter((_, i) => i !== idx))}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Módulo de Elaboración (Craft) para Herramientas */}
+              {oSubcategoriaEquipo === "Herramienta" && (
+                <div style={{ marginTop: "12px", borderTop: "1px dashed rgba(255, 99, 71, 0.2)", paddingTop: "12px" }}>
+                  <div className={estilos.tituloBloqueDinamico} style={{ fontSize: "12px", marginBottom: "8px" }}>
+                    <span>OBJETOS QUE PUEDE ELABORAR (RECETAS)</span>
+                  </div>
+                  
+                  <div style={{ display: "flex", gap: "6px", marginBottom: "10px", alignItems: "center", position: "relative" }}>
+                    <div style={{ flex: 3, position: "relative" }}>
+                      <input
+                        type="text"
+                        placeholder="🔍 Buscar receta elaborable..."
+                        value={busquedaCraftQuery}
+                        onChange={(e) => setBusquedaCraftQuery(e.target.value)}
+                        className={estilos.inputForm}
+                        style={{ fontSize: "11px", width: "100%" }}
+                      />
+                      {resultadosCraft.length > 0 && (
+                        <div style={{
+                          position: "absolute",
+                          top: "100%",
+                          left: 0,
+                          right: 0,
+                          backgroundColor: "var(--color-fondo-panel)",
+                          border: "1.5px solid var(--color-borde-brutal)",
+                          borderRadius: "4px",
+                          zIndex: 50,
+                          maxHeight: "180px",
+                          overflowY: "auto",
+                          boxShadow: "0 4px 12px rgba(0,0,0,0.5)",
+                          marginTop: "2px"
+                        }}>
+                          {resultadosCraft.map((o) => (
+                            <div
+                              key={o.id}
+                              onClick={() => {
+                                setNuevoCraftIndex(o.id);
+                                setNuevoCraftName(o.nombre);
+                                setBusquedaCraftQuery(o.nombre);
+                              }}
+                              style={{
+                                padding: "6px 10px",
+                                fontSize: "11px",
+                                cursor: "pointer",
+                                borderBottom: "1px solid rgba(255,255,255,0.03)",
+                                transition: "background 0.1s ease",
+                                color: nuevoCraftIndex === o.id ? "var(--color-activo)" : "var(--color-texto-principal)"
+                              }}
+                              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.05)"}
+                              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "transparent"}
+                            >
+                              {o.nombre} <span style={{ color: "var(--color-texto-secundario)", fontSize: "9px" }}>({o.id})</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                    <button
+                      type="button"
+                      className={estilos.botonAgregarDinamico}
+                      style={{ fontSize: "11px", padding: "4px 10px" }}
+                      onClick={() => {
+                        if (nuevoCraftIndex.trim() && nuevoCraftName.trim()) {
+                          setOCraft((prev) => [
+                            ...prev,
+                            {
+                              index: nuevoCraftIndex.trim(),
+                              name: nuevoCraftName.trim()
+                            }
+                          ]);
+                          setNuevoCraftIndex("");
+                          setNuevoCraftName("");
+                          setBusquedaCraftQuery("");
+                        }
+                      }}
+                    >
+                      + Añadir
+                    </button>
+                  </div>
+
+                  {oCraft.length > 0 && (
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
+                      {oCraft.map((c, idx) => (
+                        <span key={idx} style={{ display: "inline-flex", alignItems: "center", gap: "6px", background: "rgba(168, 85, 247, 0.15)", border: "1px solid hsl(270, 70%, 60%)", color: "hsl(270, 100%, 85%)", padding: "3px 8px", borderRadius: "4px", fontSize: "11px" }}>
+                          🔨 {c.name}
+                          <X
+                            size={12}
+                            style={{ cursor: "pointer", color: "var(--color-borde-cian)" }}
+                            onClick={() => setOCraft((prev) => prev.filter((_, i) => i !== idx))}
+                          />
+                        </span>
+                      ))}
                     </div>
                   )}
                 </div>

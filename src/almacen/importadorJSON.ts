@@ -78,7 +78,7 @@ export function importarDesdeJSON(
       
       if (listaElementos.length > 0) {
         const primerElem = listaElementos[0] as Record<string, unknown> | undefined;
-        if (primerElem && (primerElem.equipment_category !== undefined || primerElem.weapon_category !== undefined || primerElem.armor_category !== undefined || primerElem.tool_category !== undefined || primerElem.cost !== undefined)) {
+        if (primerElem && (primerElem.equipment_category !== undefined || primerElem.equipment_categories !== undefined || primerElem.weapon_category !== undefined || primerElem.armor_category !== undefined || primerElem.tool_category !== undefined || primerElem.cost !== undefined)) {
           objetosCandidatos = listaElementos;
         } else if (primerElem && (primerElem.HP !== undefined || primerElem.AC !== undefined || primerElem.vidaMaxima !== undefined || primerElem.vidaActual !== undefined)) {
           monstruosCandidatos = listaElementos;
@@ -661,6 +661,9 @@ export function importarDesdeJSON(
         let categoriaStr = "OTRO";
         if (o.equipment_category) {
           categoriaStr = aplanarValor(typeof o.equipment_category === 'object' && o.equipment_category !== null ? (o.equipment_category as Record<string, unknown>).name : o.equipment_category);
+        } else if (Array.isArray(o.equipment_categories) && o.equipment_categories.length > 0) {
+          const firstCat = o.equipment_categories[0];
+          categoriaStr = aplanarValor(typeof firstCat === 'object' && firstCat !== null ? (firstCat as Record<string, unknown>).name : firstCat);
         } else if (o.magic_item) {
           categoriaStr = "OBJETO MÁGICO";
         } else if (o.weapon_category) {
@@ -681,11 +684,11 @@ export function importarDesdeJSON(
             const costObj = o.cost as Record<string, unknown>;
             cVal = Number(costObj.quantity) || 0;
             const unitRaw = String(costObj.unit || "gp").toLowerCase().trim();
-            if (unitRaw === "cp") cUni = "PC";
-            else if (unitRaw === "sp") cUni = "PP";
-            else if (unitRaw === "ep") cUni = "PE";
-            else if (unitRaw === "gp") cUni = "PO";
-            else if (unitRaw === "pp") cUni = "PPT";
+            if (unitRaw === "cp" || unitRaw === "pc") cUni = "PC";
+            else if (unitRaw === "sp" || unitRaw === "pp") cUni = "PP";
+            else if (unitRaw === "ep" || unitRaw === "pe") cUni = "PE";
+            else if (unitRaw === "gp" || unitRaw === "po") cUni = "PO";
+            else if (unitRaw === "plat" || unitRaw === "ppt" || unitRaw === "pt") cUni = "PPT";
             propiedadesArr.push(`Coste: ${cVal} ${cUni}`);
           } else {
             const costStr = String(o.cost).trim();
@@ -693,11 +696,11 @@ export function importarDesdeJSON(
             if (matches) {
               cVal = Number(matches[1]) || 0;
               const unitRaw = matches[2].toLowerCase();
-              if (unitRaw === "cp") cUni = "PC";
-              else if (unitRaw === "sp") cUni = "PP";
-              else if (unitRaw === "ep") cUni = "PE";
-              else if (unitRaw === "gp") cUni = "PO";
-              else if (unitRaw === "pp") cUni = "PPT";
+              if (unitRaw === "cp" || unitRaw === "pc") cUni = "PC";
+              else if (unitRaw === "sp" || unitRaw === "pp") cUni = "PP";
+              else if (unitRaw === "ep" || unitRaw === "pe") cUni = "PE";
+              else if (unitRaw === "gp" || unitRaw === "po") cUni = "PO";
+              else if (unitRaw === "plat" || unitRaw === "ppt" || unitRaw === "pt") cUni = "PPT";
             } else {
               cVal = Number(costStr) || 0;
             }

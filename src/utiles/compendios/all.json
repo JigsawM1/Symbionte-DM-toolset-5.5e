@@ -7388,7 +7388,7 @@
     "tirada_de_salvacion": null,
     "requiere_ataque": false,
     "descripcion": [
-      "Hasta seis criaturas de tu elecci\u00f3n que puedas ver dentro del alcance recuperan una cantidad de puntos de golpe igual a 2d13 pies\u00e1s tu modificador por aptitud m\u00e1gica.<br><br><b><i>Con un espacio de conjuro de nivel superior.</i></b> La curaci\u00f3n aumenta en 1d4 por cada nivel por encima de 3 que tenga el espacio.",
+      "Hasta seis criaturas de tu elecci\u00f3n que puedas ver dentro del alcance recuperan una cantidad de puntos de golpe igual a 2d4 pies\u00e1s tu modificador por aptitud m\u00e1gica.<br><br><b><i>Con un espacio de conjuro de nivel superior.</i></b> La curaci\u00f3n aumenta en 1d4 por cada nivel por encima de 3 que tenga el espacio.",
       "Hasta seis criaturas de tu elecci\u00f3n que puedas ver dentro del alcance recuperan una cantidad de puntos de golpe igual a 2d4 m\u00e1s tu modificador por aptitud m\u00e1gica.<br><br><b><i>Con un espacio de conjuro de nivel superior.</i></b> La curaci\u00f3n aumenta en 1d4 por cada nivel por encima de 3 que tenga el espacio."
     ],
     "materiales": null,

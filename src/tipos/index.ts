@@ -91,7 +91,7 @@ export type Rareza = z.infer<typeof EsquemaRareza>;
 export const EsquemaTipoBonoDestreza = z.enum(["Completo", "Máximo 2", "Sin Bono"]);
 export type TipoBonoDestreza = z.infer<typeof EsquemaTipoBonoDestreza>;
 
-export const EsquemaSubcategoriaEquipo = z.enum(["Consumible", "Munición", "Herramienta", "Instrumento", "Paquete", "Maravilloso"]);
+export const EsquemaSubcategoriaEquipo = z.enum(["Consumible", "Munición", "Herramienta", "Instrumento", "Paquete", "Maravilloso", "Equipo"]);
 export type SubcategoriaEquipo = z.infer<typeof EsquemaSubcategoriaEquipo>;
 
 // ==========================================
@@ -268,7 +268,20 @@ export const EsquemaObjetoBase = z.object({
   hechizosVinculados: z.array(EsquemaHechizoVinculado).optional(),
 
   // Crafteo / Homebrew
-  artesania: EsquemaArtesania.optional()
+  artesania: EsquemaArtesania.optional(),
+
+  // Campos relacionales y estructurados adicionales para compendio
+  ammunition: z.object({ index: z.string(), name: z.string() }).optional(),
+  storage: z.object({ index: z.string(), name: z.string() }).optional(),
+  contents: z.array(z.object({
+    item: z.object({ index: z.string(), name: z.string() }),
+    quantity: z.number()
+  })).optional(),
+  craft: z.array(z.object({ index: z.string(), name: z.string() })).optional(),
+
+  // Preservar datos crudos de compendio para re-sanitización dinámica
+  mastery: z.any().optional(),
+  equipment_categories: z.any().optional()
 });
 export type ObjetoBase = z.infer<typeof EsquemaObjetoBase>;
 

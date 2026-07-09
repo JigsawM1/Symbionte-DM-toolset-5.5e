@@ -1,5 +1,6 @@
 import { useState, useCallback } from "react";
 import { usarAlmacenDM } from "../almacen/usarAlmacenDM";
+import { sanearObjetoHomebrew } from "../almacen/sanitizacion";
 import { 
   ObjetoHomebrew, 
   ObjetoJuego, 
@@ -25,6 +26,14 @@ export function usarFormularioObjeto(idEnEdicion: string | null, alGuardarExitos
   const [oCostoUnidad, setOCostoUnidad] = useState<"PC" | "PP" | "PE" | "PO" | "PPT">("PO");
   const [oEsMagico, setOEsMagico] = useState(false);
   const [oEfectosPasivos, setOEfectosPasivos] = useState<{ tipo: string; bono: string; valor?: number | string; descripcion?: string }[]>([]);
+
+  // --- NUEVOS ESTADOS RELACIONALES ---
+  const [oAmmunitionIndex, setOAmmunitionIndex] = useState("");
+  const [oAmmunitionName, setOAmmunitionName] = useState("");
+  const [oStorageIndex, setOStorageIndex] = useState("");
+  const [oStorageName, setOStorageName] = useState("");
+  const [oContents, setOContents] = useState<{ item: { index: string; name: string }; quantity: number }[]>([]);
+  const [oCraft, setOCraft] = useState<{ index: string; name: string }[]>([]);
 
   // --- NUEVOS ESTADOS COMUNES (Mágicas y Narrativas) ---
   const [oSintonizacionRequerida, setOSintonizacionRequerida] = useState(false);
@@ -161,6 +170,14 @@ export function usarFormularioObjeto(idEnEdicion: string | null, alGuardarExitos
     setOEfectoVeneno("");
     setOEquipable(false);
 
+    // Reset nuevos campos relacionales
+    setOAmmunitionIndex("");
+    setOAmmunitionName("");
+    setOStorageIndex("");
+    setOStorageName("");
+    setOContents([]);
+    setOCraft([]);
+
     setONuevoBonoCategoria("CA");
     setONuevoBonoBono("CA");
     setONuevoBonoValor("");
@@ -229,6 +246,20 @@ export function usarFormularioObjeto(idEnEdicion: string | null, alGuardarExitos
       setOArtesaniaComponentes([]);
     }
 
+    // Carga de campos relacionales adicionales
+    setOAmmunitionIndex(o.ammunition?.index || "");
+    setOAmmunitionName(o.ammunition?.name || "");
+    setOStorageIndex(o.storage?.index || "");
+    setOStorageName(o.storage?.name || "");
+    setOContents(o.contents ? o.contents.map(c => ({
+      item: { index: c.item.index, name: c.item.name },
+      quantity: c.quantity
+    })) : []);
+    setOCraft(o.craft ? o.craft.map(cr => ({
+      index: cr.index,
+      name: cr.name
+    })) : []);
+
     setOTipoPrincipal(o.tipoPrincipal);
 
     setOEsVeneno(o.esVeneno || false);
@@ -239,16 +270,18 @@ export function usarFormularioObjeto(idEnEdicion: string | null, alGuardarExitos
 
     if (o.tipoPrincipal === "Arma") {
       const arma = o as Arma;
-      setOSubcategoriaArma(arma.subcategoria || "Sencilla");
-      setOTipoAtaque(arma.tipoAtaque || "Cuerpo a Cuerpo");
-      setODadoDano(arma.dadoDano || "1d6");
-      setOTipoDano(arma.tipoDano || "Fuerza");
-      setOPropiedadesArma(arma.propiedades || []);
-      setOMaestria(arma.maestria || "Ninguna");
-      setOAlcanceNormal(arma.alcanceNormal !== undefined ? arma.alcanceNormal : "");
-      setOAlcanceLargo(arma.alcanceLargo !== undefined ? arma.alcanceLargo : "");
-      setODanoVersatil(arma.danoVersatil || "");
-      setOMunicionRequerida(arma.municionRequerida || false);
+      // Re-sanitizar para que tipoAtaque y maestria se infieran siempre desde la fuente original
+      const reSaneado = sanearObjetoHomebrew(arma) as Arma;
+      setOSubcategoriaArma(reSaneado.subcategoria || "Sencilla");
+      setOTipoAtaque(reSaneado.tipoAtaque || "Cuerpo a Cuerpo");
+      setODadoDano(reSaneado.dadoDano || "1d6");
+      setOTipoDano((reSaneado.tipoDano || "fuerza").toLowerCase());
+      setOPropiedadesArma(reSaneado.propiedades || []);
+      setOMaestria(reSaneado.maestria || "Ninguna");
+      setOAlcanceNormal(reSaneado.alcanceNormal !== undefined ? reSaneado.alcanceNormal : "");
+      setOAlcanceLargo(reSaneado.alcanceLargo !== undefined ? reSaneado.alcanceLargo : "");
+      setODanoVersatil(reSaneado.danoVersatil || "");
+      setOMunicionRequerida(reSaneado.municionRequerida || false);
       setOEquipable(true);
     } else if (o.tipoPrincipal === "Armadura") {
       const armadura = o as Armadura;
@@ -389,7 +422,19 @@ export function usarFormularioObjeto(idEnEdicion: string | null, alGuardarExitos
       esConsciente: oEsConsciente,
       modificadorAtaqueDano: oModificadorAtaqueDano !== "" ? Number(oModificadorAtaqueDano) : undefined,
       hechizosVinculados: hechizosPayload,
-      artesania: artesaniaPayload
+      artesania: artesaniaPayload,
+
+      // Nuevos campos relacionales para compendios
+      ammunition: oAmmunitionIndex.trim() && oAmmunitionName.trim() ? {
+        index: oAmmunitionIndex.trim(),
+        name: oAmmunitionName.trim()
+      } : undefined,
+      storage: oStorageIndex.trim() && oStorageName.trim() ? {
+        index: oStorageIndex.trim(),
+        name: oStorageName.trim()
+      } : undefined,
+      contents: oContents.length > 0 ? oContents : undefined,
+      craft: oCraft.length > 0 ? oCraft : undefined
     };
 
     if (oTipoPrincipal === "Arma") {
@@ -455,7 +500,8 @@ export function usarFormularioObjeto(idEnEdicion: string | null, alGuardarExitos
     oFormulaRecarga, oEstaMaldito, oEsConsciente, oModificadorAtaqueDano, oHechizosVinculados,
     oArtesaniaTaller, oArtesaniaComponentes, idEnEdicion, agregarObjetoHomebrew, actualizarObjetoHomebrew, 
     agregarNotificacion, limpiarFormulario, alGuardarExitoso, oCostoCantidad, oCostoUnidad, oEsVeneno, 
-    oTipoVeneno, oCdSalvacionVeneno, oEfectoVeneno, oEquipable
+    oTipoVeneno, oCdSalvacionVeneno, oEfectoVeneno, oEquipable, oAmmunitionIndex, oAmmunitionName, 
+    oStorageIndex, oStorageName, oContents, oCraft
   ]);
 
   return {
@@ -520,6 +566,14 @@ export function usarFormularioObjeto(idEnEdicion: string | null, alGuardarExitos
     oNuevoHechizoCd, setONuevoHechizoCd,
     oNuevoHechizoBonoAtaque, setONuevoHechizoBonoAtaque,
     oNuevoHechizoCosteCargas, setONuevoHechizoCosteCargas,
+
+    // Nuevos campos relacionales
+    oAmmunitionIndex, setOAmmunitionIndex,
+    oAmmunitionName, setOAmmunitionName,
+    oStorageIndex, setOStorageIndex,
+    oStorageName, setOStorageName,
+    oContents, setOContents,
+    oCraft, setOCraft,
 
     limpiarFormulario,
     cargarObjeto,

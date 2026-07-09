@@ -63,6 +63,42 @@ export function sanearObjetoHomebrew(o: unknown): ObjetoHomebrew {
   } else {
     descSaneada = aplanarValor(descField || "Sin descripción disponible.");
   }
+
+  // Tratamiento de ability y utilize -> Añadir al final de la descripción como texto plano limpio
+  let infoAdicionalTexto = "";
+  if (obj.ability && typeof obj.ability === "object") {
+    const abObj = obj.ability as Record<string, unknown>;
+    infoAdicionalTexto += `\n\nCaracterística asociada: ${aplanarValor(abObj.name || abObj.index).toUpperCase()}`;
+  }
+  if (Array.isArray(obj.utilize) && obj.utilize.length > 0) {
+    infoAdicionalTexto += `\n\nAcción de Utilizar:`;
+    obj.utilize.forEach((u: any) => {
+      if (u && typeof u === "object") {
+        const uName = aplanarValor(u.name);
+        let dcText = "";
+        if (u.dc && typeof u.dc === "object") {
+          const dcObj = u.dc as Record<string, unknown>;
+          const dcTypeObj = dcObj.dc_type as Record<string, unknown> | undefined;
+          const dcTypeName = dcTypeObj ? aplanarValor(dcTypeObj.name || dcTypeObj.index).toUpperCase() : "";
+          const dcVal = dcObj.dc_value !== undefined ? String(dcObj.dc_value) : "";
+          if (dcTypeName && dcVal) {
+            dcText = ` (CD ${dcVal} ${dcTypeName})`;
+          } else if (dcVal) {
+            dcText = ` (CD ${dcVal})`;
+          }
+        }
+        infoAdicionalTexto += `\n- ${uName}${dcText}`;
+      }
+    });
+  }
+  
+  if (infoAdicionalTexto) {
+    if (descSaneada === "Sin descripción disponible.") {
+      descSaneada = infoAdicionalTexto.trim();
+    } else {
+      descSaneada += infoAdicionalTexto;
+    }
+  }
   
   // Extraer Rareza limpia
   let rarezaSaneada: Rareza = "Común";
@@ -136,19 +172,19 @@ export function sanearObjetoHomebrew(o: unknown): ObjetoHomebrew {
     const unidadIngles = aplanarValor(costObj.unit || "gp").toLowerCase().trim();
     let unidadEsp: "PC" | "PP" | "PE" | "PO" | "PPT" = "PO";
     
-    if (unidadIngles === "cp") {
+    if (unidadIngles === "cp" || unidadIngles === "pc") {
       valorSaneado = cantidad / 100;
       unidadEsp = "PC";
-    } else if (unidadIngles === "sp") {
+    } else if (unidadIngles === "sp" || unidadIngles === "pp") {
       valorSaneado = cantidad / 10;
       unidadEsp = "PP";
-    } else if (unidadIngles === "ep") {
+    } else if (unidadIngles === "ep" || unidadIngles === "pe") {
       valorSaneado = cantidad / 2;
       unidadEsp = "PE";
-    } else if (unidadIngles === "gp") {
+    } else if (unidadIngles === "gp" || unidadIngles === "po") {
       valorSaneado = cantidad;
       unidadEsp = "PO";
-    } else if (unidadIngles === "pp" || unidadIngles === "plat") {
+    } else if (unidadIngles === "plat" || unidadIngles === "ppt" || unidadIngles === "pt") {
       valorSaneado = cantidad * 10;
       unidadEsp = "PPT";
     } else {
@@ -247,7 +283,29 @@ export function sanearObjetoHomebrew(o: unknown): ObjetoHomebrew {
   // Determinar tipoPrincipal
   let tipoPrincipalSaneado: "Arma" | "Armadura" | "Equipo de Aventuras" = "Equipo de Aventuras";
   let catTxt = "";
-  if (obj.equipment_category && typeof obj.equipment_category === "object") {
+  if (Array.isArray(obj.equipment_categories) && obj.equipment_categories.length > 0) {
+    // Buscar en todas las categorías
+    const cats = obj.equipment_categories.map((c: any) => {
+      if (c && typeof c === "object") {
+        return aplanarValor(c.index || c.name || "").toUpperCase();
+      }
+      return aplanarValor(c).toUpperCase();
+    });
+    
+    if (cats.some(c => c.includes("ARMOR") || c.includes("ARMADURA"))) {
+      tipoPrincipalSaneado = "Armadura";
+    } else if (cats.some(c => c.includes("WEAPON") || c.includes("ARMA"))) {
+      tipoPrincipalSaneado = "Arma";
+    }
+    
+    // Asignar el primer index/name como catTxt para la subcategoría
+    const firstCat = obj.equipment_categories[0];
+    if (firstCat && typeof firstCat === "object") {
+      catTxt = aplanarValor(firstCat.index || firstCat.name || "").toUpperCase();
+    } else {
+      catTxt = aplanarValor(firstCat).toUpperCase();
+    }
+  } else if (obj.equipment_category && typeof obj.equipment_category === "object") {
     const ecObj = obj.equipment_category as Record<string, unknown>;
     catTxt = aplanarValor(ecObj.index || ecObj.name || "").toUpperCase();
   } else {
@@ -272,6 +330,61 @@ export function sanearObjetoHomebrew(o: unknown): ObjetoHomebrew {
   const tipoVenenoSaneado = obj.tipoVeneno ? (aplanarValor(obj.tipoVeneno) as "Contacto" | "Ingerido" | "Inhalado" | "Lesión") : undefined;
   const cdSalvacionVenenoSaneado = obj.cdSalvacionVeneno !== undefined && obj.cdSalvacionVeneno !== "" ? (Number(obj.cdSalvacionVeneno) || undefined) : undefined;
   const efectoVenenoSaneado = obj.efectoVeneno !== undefined ? aplanarValor(obj.efectoVeneno) : undefined;
+
+  // Extraer ammunition relacional
+  let ammunitionSaneada: { index: string; name: string } | undefined = undefined;
+  if (obj.ammunition && typeof obj.ammunition === "object") {
+    const ammoObj = obj.ammunition as Record<string, unknown>;
+    ammunitionSaneada = {
+      index: aplanarValor(ammoObj.index || ammoObj.id || ""),
+      name: aplanarValor(ammoObj.name || "")
+    };
+  }
+  
+  // Extraer storage relacional
+  let storageSaneado: { index: string; name: string } | undefined = undefined;
+  if (obj.storage && typeof obj.storage === "object") {
+    const storeObj = obj.storage as Record<string, unknown>;
+    storageSaneado = {
+      index: aplanarValor(storeObj.index || storeObj.id || ""),
+      name: aplanarValor(storeObj.name || "")
+    };
+  }
+  
+  // Extraer contents relacional
+  let contentsSaneado: { item: { index: string; name: string }; quantity: number }[] | undefined = undefined;
+  if (Array.isArray(obj.contents)) {
+    contentsSaneado = obj.contents.map((c: any) => {
+      if (c && typeof c === "object") {
+        const itemObj = c.item as Record<string, unknown> | undefined;
+        return {
+          item: {
+            index: aplanarValor(itemObj?.index || itemObj?.id || ""),
+            name: aplanarValor(itemObj?.name || "")
+          },
+          quantity: Number(c.quantity) || 1
+        };
+      }
+      return null;
+    }).filter((c): c is { item: { index: string; name: string }; quantity: number } => c !== null && c.item.index !== "" && c.item.name !== "");
+  }
+
+  // Extraer craft relacional
+  let craftSaneado: { index: string; name: string }[] | undefined = undefined;
+  if (Array.isArray(obj.craft)) {
+    craftSaneado = obj.craft.map((c: any) => {
+      if (c && typeof c === "object") {
+        return {
+          index: aplanarValor(c.index || c.id || ""),
+          name: aplanarValor(c.name || "")
+        };
+      }
+      return {
+        index: normalizarTexto(aplanarValor(c)),
+        name: aplanarValor(c)
+      };
+    }).filter((c: any) => c.index && c.name);
+  }
 
   // Estructura base común
   const baseObjeto = {
@@ -298,29 +411,71 @@ export function sanearObjetoHomebrew(o: unknown): ObjetoHomebrew {
     modificadorAtaqueDano: modificadorAtaqueDanoSaneado,
     efectosPasivos: efectosPasivosSaneados,
     hechizosVinculados: hechizosVinculadosSaneados,
-    artesania: artesaniaSaneada
+    artesania: artesaniaSaneada,
+    ammunition: ammunitionSaneada,
+    storage: storageSaneado,
+    contents: contentsSaneado,
+    craft: craftSaneado,
+    mastery: obj.mastery,
+    equipment_categories: obj.equipment_categories
   };
 
   // Saneamiento específico por tipo
   if (tipoPrincipalSaneado === "Arma") {
     let subArma: "Sencilla" | "Marcial" | "De Fuego" = "Sencilla";
-    const subTxt = aplanarValor(obj.subcategoria || obj.weapon_category || obj.tipoArma || "Sencilla").toUpperCase();
+    let subTxt = aplanarValor(obj.subcategoria || obj.weapon_category || obj.tipoArma || "").toUpperCase();
+    
+    if (!subTxt && Array.isArray(obj.equipment_categories)) {
+      subTxt = obj.equipment_categories.map((c: any) => {
+        if (c && typeof c === "object") return aplanarValor(c.index || c.name || "").toUpperCase();
+        return aplanarValor(c).toUpperCase();
+      }).join(" | ");
+    }
+    
     if (subTxt.includes("MARCIAL") || subTxt.includes("MARTIAL")) subArma = "Marcial";
     else if (subTxt.includes("FUEGO") || subTxt.includes("FIRE")) subArma = "De Fuego";
 
     let estiloAtq: "Cuerpo a Cuerpo" | "A Distancia" = "Cuerpo a Cuerpo";
-    const estiloTxt = aplanarValor(obj.tipoAtaque || obj.weapon_range || obj.estiloAtaque || "Cuerpo a Cuerpo").toUpperCase();
-    if (estiloTxt.includes("DISTANCIA") || estiloTxt.includes("RANGED") || estiloTxt === "RANGED") estiloAtq = "A Distancia";
+    // Siempre inferir desde equipment_categories primero (fuente más confiable)
+    let estiloInferido = false;
+    if (Array.isArray(obj.equipment_categories)) {
+      const catTxt = obj.equipment_categories.map((c: any) => {
+        if (c && typeof c === "object") return aplanarValor(c.index || c.name || "").toUpperCase();
+        return aplanarValor(c).toUpperCase();
+      }).join(" | ");
+      if (catTxt.includes("DISTANCIA") || catTxt.includes("RANGED")) {
+        estiloAtq = "A Distancia";
+        estiloInferido = true;
+      } else if (catTxt.includes("MELEE") || catTxt.includes("CUERPO")) {
+        estiloAtq = "Cuerpo a Cuerpo";
+        estiloInferido = true;
+      }
+    }
+    // Solo usar el campo almacenado si no se pudo inferir desde categorías
+    if (!estiloInferido) {
+      const estiloTxt = aplanarValor(obj.tipoAtaque || obj.weapon_range || obj.estiloAtaque || "").toUpperCase();
+      if (estiloTxt.includes("DISTANCIA") || estiloTxt.includes("RANGED")) {
+        estiloAtq = "A Distancia";
+      }
+    }
 
     let dadoDanoSaneado = "1d4";
     let tipoDanoSaneado = "Cortante";
     
     const DAÑO_TRADUCCION: Record<string, string> = {
-      "piercing": "Perforante", "slashing": "Cortante", "bludgeoning": "Contundente",
-      "fire": "Fuego", "cold": "Frío", "lightning": "Relámpago",
-      "acid": "Ácido", "poison": "Veneno", "necrotic": "Necrótico",
-      "radiant": "Radiante", "thunder": "Trueno", "force": "Fuerza",
-      "psychic": "Psíquico"
+      "piercing": "perforante", "perforante": "perforante",
+      "slashing": "cortante", "cortante": "cortante",
+      "bludgeoning": "contundente", "contundente": "contundente",
+      "fire": "fuego", "fuego": "fuego",
+      "cold": "frío", "frío": "frío", "frio": "frío",
+      "lightning": "relámpago", "relámpago": "relámpago", "relampago": "relámpago",
+      "acid": "ácido", "ácido": "ácido", "acido": "ácido",
+      "poison": "veneno", "veneno": "veneno",
+      "necrotic": "necrótico", "necrótico": "necrótico", "necrotico": "necrótico",
+      "radiant": "radiante", "radiante": "radiante",
+      "thunder": "trueno", "trueno": "trueno",
+      "force": "fuerza", "fuerza": "fuerza",
+      "psychic": "psíquico", "psíquico": "psíquico", "psiquico": "psíquico"
     };
     
     if (obj.damage && typeof obj.damage === "object") {
@@ -341,17 +496,17 @@ export function sanearObjetoHomebrew(o: unknown): ObjetoHomebrew {
     const rawProps = obj.properties || obj.propiedadesArma || obj.propiedades;
     
     const PROP_TRADUCCION: Record<string, string> = {
-      "finesse": "Sutil", "sutil": "Sutil",
-      "versatile": "Versátil", "versátil": "Versátil",
-      "heavy": "Pesado", "pesado": "Pesado",
-      "light": "Ligero", "ligero": "Ligero",
-      "loading": "Carga", "carga": "Carga",
-      "reach": "Alcance", "alcance": "Alcance",
-      "thrown": "Arrojadiza", "arrojadiza": "Arrojadiza",
-      "two-handed": "A dos manos", "a dos manos": "A dos manos",
-      "silvered": "Plateado", "plateado": "Plateado",
-      "special": "Especial", "especial": "Especial",
-      "ammunition": "Munición", "munición": "Munición",
+      "finesse": "Sutil (Finesse)", "sutil": "Sutil (Finesse)",
+      "versatile": "Versátil (Versatile)", "versátil": "Versátil (Versatile)",
+      "heavy": "Pesada (Heavy)", "pesado": "Pesada (Heavy)", "pesada": "Pesada (Heavy)",
+      "light": "Ligera (Light)", "ligero": "Ligera (Light)", "ligera": "Ligera (Light)",
+      "loading": "Carga (Loading)", "carga": "Carga (Loading)",
+      "reach": "Alcance (Reach)", "alcance": "Alcance (Reach)",
+      "thrown": "Arrojadiza (Thrown)", "arrojadiza": "Arrojadiza (Thrown)",
+      "two-handed": "A dos manos (Two-Handed)", "a dos manos": "A dos manos (Two-Handed)",
+      "silvered": "Plateada (Silvered)", "plateado": "Plateada (Silvered)", "plateada": "Plateada (Silvered)",
+      "special": "Especial (Special)", "especial": "Especial (Special)",
+      "ammunition": "Munición (Ammunition)", "munición": "Munición (Ammunition)",
       "attunement": "Sintonización", "sintonización": "Sintonización", "sintonizacion": "Sintonización",
       "nick": "Golpe Rápido", "golpe rápido": "Golpe Rápido",
       "push": "Empuje", "empuje": "Empuje",
@@ -383,7 +538,24 @@ export function sanearObjetoHomebrew(o: unknown): ObjetoHomebrew {
       }).filter(Boolean);
     }
 
-    const maestriaSaneada = aplanarValor(obj.maestria || "Ninguna");
+    const rawMaestria = aplanarValor(
+      (obj.mastery && typeof obj.mastery === "object"
+        ? (obj.mastery as Record<string,unknown>).name || (obj.mastery as Record<string,unknown>).index
+        : obj.mastery) || obj.maestria || ""
+    ).toLowerCase().trim();
+    
+    const MAESTRIA_MAP: Record<string, string> = {
+      "cleave": "Cleave (Tajo)", "tajo": "Cleave (Tajo)", "hender": "Cleave (Tajo)",
+      "graze": "Graze (Rozar)", "rozar": "Graze (Rozar)", "roce": "Graze (Rozar)",
+      "nick": "Nick (Corte)", "corte": "Nick (Corte)", "golpe rápido": "Nick (Corte)", "muesca": "Nick (Corte)",
+      "push": "Push (Empujar)", "empujar": "Push (Empujar)", "empuje": "Push (Empujar)",
+      "sap": "Sap (Debilitar)", "debilitar": "Sap (Debilitar)", "menoscabo": "Sap (Debilitar)",
+      "slow": "Slow (Ralentizar)", "ralentizar": "Slow (Ralentizar)", "lentitud": "Slow (Ralentizar)", "lento": "Slow (Ralentizar)",
+      "topple": "Topple (Derribar)", "derribar": "Topple (Derribar)", "derribo": "Topple (Derribar)",
+      "vex": "Vex (Irritar)", "irritar": "Vex (Irritar)", "acoso": "Vex (Irritar)", "vejar": "Vex (Irritar)"
+    };
+    
+    const maestriaSaneada = MAESTRIA_MAP[rawMaestria] || "Ninguna";
 
     let alcNormal: number | undefined = undefined;
     let alcLargo: number | undefined = undefined;
@@ -417,8 +589,21 @@ export function sanearObjetoHomebrew(o: unknown): ObjetoHomebrew {
       }
     }
 
-    const danoVersatilSaneado = obj.danoVersatil !== undefined ? aplanarValor(obj.danoVersatil) : undefined;
-    const municionRequeridaSaneada = obj.municionRequerida !== undefined ? !!obj.municionRequerida : undefined;
+    let danoVersatilSaneado = obj.danoVersatil !== undefined ? aplanarValor(obj.danoVersatil) : undefined;
+    if (!danoVersatilSaneado && obj.two_handed_damage && typeof obj.two_handed_damage === "object") {
+      const thObj = obj.two_handed_damage as Record<string, unknown>;
+      const thDice = aplanarValor(thObj.damage_dice || "");
+      let thType = "";
+      if (thObj.damage_type && typeof thObj.damage_type === "object") {
+        const thtObj = thObj.damage_type as Record<string, unknown>;
+        const rawType = aplanarValor(thtObj.name || thtObj.index || "").toLowerCase();
+        thType = DAÑO_TRADUCCION[rawType] || aplanarValor(thtObj.name || thtObj.index || "");
+      }
+      if (thDice) {
+        danoVersatilSaneado = `${thDice}${thType ? ` (${thType})` : ""}`;
+      }
+    }
+    const municionRequeridaSaneada = propsArma.some(p => p.toLowerCase().includes("munición") || p.toLowerCase().includes("ammunition"));
 
     return {
       ...baseObjeto,
@@ -436,7 +621,15 @@ export function sanearObjetoHomebrew(o: unknown): ObjetoHomebrew {
     } as Arma;
   } else if (tipoPrincipalSaneado === "Armadura") {
     let subArmor: "Ligera" | "Mediana" | "Pesada" | "Escudo" = "Ligera";
-    const subTxt = aplanarValor(obj.subcategoria || obj.armor_category || "Ligera").toUpperCase();
+    let subTxt = aplanarValor(obj.subcategoria || obj.armor_category || "").toUpperCase();
+    
+    if (!subTxt && Array.isArray(obj.equipment_categories)) {
+      subTxt = obj.equipment_categories.map((c: any) => {
+        if (c && typeof c === "object") return aplanarValor(c.index || c.name || "").toUpperCase();
+        return aplanarValor(c).toUpperCase();
+      }).join(" | ");
+    }
+    
     if (subTxt.includes("MEDIANA") || subTxt.includes("MEDIUM")) subArmor = "Mediana";
     else if (subTxt.includes("PESADA") || subTxt.includes("HEAVY")) subArmor = "Pesada";
     else if (subTxt.includes("ESCUDO") || subTxt.includes("SHIELD")) subArmor = "Escudo";
@@ -483,9 +676,15 @@ export function sanearObjetoHomebrew(o: unknown): ObjetoHomebrew {
       else if (subArmor === "Pesada") bonoDest = "Sin Bono";
     }
 
-    const tiempoEquiparSaneado = obj.tiempoEquipar !== undefined
+    let tiempoEquiparSaneado = obj.tiempoEquipar !== undefined
       ? (typeof obj.tiempoEquipar === "number" ? obj.tiempoEquipar : aplanarValor(obj.tiempoEquipar))
       : undefined;
+    if (!tiempoEquiparSaneado && obj.don_time) {
+      tiempoEquiparSaneado = aplanarValor(obj.don_time);
+      if (obj.doff_time) {
+        tiempoEquiparSaneado += ` (Quitar: ${aplanarValor(obj.doff_time)})`;
+      }
+    }
 
     return {
       ...baseObjeto,
@@ -499,13 +698,22 @@ export function sanearObjetoHomebrew(o: unknown): ObjetoHomebrew {
       tiempoEquipar: tiempoEquiparSaneado
     } as Armadura;
   } else {
-    let subEquipo: SubcategoriaEquipo = "Maravilloso";
-    const subTxt = aplanarValor(obj.subcategoria || obj.equipment_category || "Maravilloso").toUpperCase();
-    if (subTxt.includes("CONSUMIBLE")) subEquipo = "Consumible";
+    let subEquipo: SubcategoriaEquipo = "Equipo";
+    let subTxt = aplanarValor(obj.subcategoria || obj.equipment_category || "").toUpperCase();
+    
+    if (!subTxt && Array.isArray(obj.equipment_categories)) {
+      subTxt = obj.equipment_categories.map((c: any) => {
+        if (c && typeof c === "object") return aplanarValor(c.index || c.name || "").toUpperCase();
+        return aplanarValor(c).toUpperCase();
+      }).join(" | ");
+    }
+    
+    if (subTxt.includes("CONSUMIBLE") || subTxt.includes("CONSUMABLE")) subEquipo = "Consumible";
     else if (subTxt.includes("MUNICIÓN") || subTxt.includes("MUNITION") || subTxt.includes("AMMUNITION")) subEquipo = "Munición";
     else if (subTxt.includes("HERRAMIENTA") || subTxt.includes("TOOL")) subEquipo = "Herramienta";
     else if (subTxt.includes("INSTRUMENTO") || subTxt.includes("INSTRUMENT")) subEquipo = "Instrumento";
     else if (subTxt.includes("PAQUETE") || subTxt.includes("PACK") || subTxt.includes("GEAR") || subTxt.includes("STANDARD-GEAR")) subEquipo = "Paquete";
+    else if (subTxt.includes("MARAVILLOSO") || subTxt.includes("WONDROUS")) subEquipo = "Maravilloso";
 
     const cant = obj.cantidad !== undefined ? (Number(obj.cantidad) || undefined) : undefined;
 

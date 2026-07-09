@@ -1,7 +1,7 @@
 import { StateCreator } from 'zustand';
 import { ElementoPendiente, EncuentroGuardado, CriaturaIniciativa, NotificacionUI } from '../usarAlmacenDM';
 import { MonstruoBase, HechizoBase, ObjetoHomebrew } from '../../tipos';
-import { MONSTRUOS_INICIALES, HECHIZOS_INICIALES } from '../../utiles/datosIniciales';
+import { MONSTRUOS_INICIALES, HECHIZOS_INICIALES, OBJETOS_INICIALES } from '../../utiles/datosIniciales';
 import { leerBlobGlobal, limpiarBlobGlobal } from '../../utiles/almacenamientoTaleSpire';
 import { sanearObjetoHomebrew, sanearHechizoCD, sanearMonstruoSentidosYPasiva } from '../sanitizacion';
 import { importarDesdeJSON } from '../importadorJSON';
@@ -246,7 +246,7 @@ export const crearSliceConfiguracion: StateCreator<
       asociacionesFichas: {},
       baseDatosMonstruos: MONSTRUOS_INICIALES,
       baseDatosHechizos: HECHIZOS_INICIALES,
-      objetosHomebrew: [],
+      objetosHomebrew: OBJETOS_INICIALES.map(sanearObjetoHomebrew),
       listaPendientes: [
         { id: "p_1", texto: "Revisar hojas de personaje de los jugadores", completado: false },
         { id: "p_2", texto: "Preparar encuentro en el puente levadizo", completado: false },

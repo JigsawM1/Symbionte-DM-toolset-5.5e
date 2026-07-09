@@ -1,7 +1,8 @@
 export * from '../tipos';
 import { MonstruoBase, HechizoBase, CondicionDnd, EfectoPredefinido } from '../tipos';
-import MONSTRUOS_JSON from "../../prueba base/Mounstros.2024-es.json";
-import HECHIZOS_JSON from "../../prueba base/all.json";
+import MONSTRUOS_JSON from "./compendios/Mounstros.2024-es.json";
+import HECHIZOS_JSON from "./compendios/all.json";
+import EQUIPO_JSON from "./compendios/Equipo es.json";
 import { importarDesdeJSON } from "../almacen/importadorJSON";
 
 // Importar y sanitizar automáticamente los compendios base en español
@@ -17,8 +18,15 @@ const importacionHechizos = importarDesdeJSON(HECHIZOS_JSON, {
   objetosHomebrew: []
 });
 
+const importacionEquipo = importarDesdeJSON(EQUIPO_JSON, {
+  baseDatosMonstruos: [],
+  baseDatosHechizos: [],
+  objetosHomebrew: []
+});
+
 export const MONSTRUOS_INICIALES: MonstruoBase[] = importacionMonstruos.baseDatosMonstruos;
 export const HECHIZOS_INICIALES: HechizoBase[] = importacionHechizos.baseDatosHechizos;
+export const OBJETOS_INICIALES = importacionEquipo.objetosHomebrew;
 
 export const CONDICIONES_2024: CondicionDnd[] = [
   {

@@ -43,6 +43,25 @@ export const ListaHomebrew: React.FC<Props> = ({
   const [filtroBusqueda, setFiltroBusqueda] = useState("");
   const [idHechizoDetalleCreador, setIdHechizoDetalleCreador] = useState<string | null>(null);
   const [idObjetoDetalle, setIdObjetoDetalle] = useState<string | null>(null);
+  const [historialDetalle, setHistorialDetalle] = useState<string[]>([]);
+  
+  const navegarAObjeto = (idDestino: string) => {
+    if (idObjetoDetalle) {
+      setHistorialDetalle((prev) => [...prev, idObjetoDetalle]);
+    }
+    setIdObjetoDetalle(idDestino);
+  };
+
+  const navegarAtras = () => {
+    if (historialDetalle.length > 0) {
+      const nuevoHistorial = [...historialDetalle];
+      const anteriorId = nuevoHistorial.pop();
+      setHistorialDetalle(nuevoHistorial);
+      if (anteriorId) {
+        setIdObjetoDetalle(anteriorId);
+      }
+    }
+  };
   const [confirmarAccion, setConfirmarAccion] = useState<{
     titulo: string;
     mensaje: string;
@@ -206,7 +225,10 @@ export const ListaHomebrew: React.FC<Props> = ({
               <div key={o.id} className={estilos.itemListaBrutal}>
                 <div
                   className={estilos.itemInfoListaClickable}
-                  onClick={() => setIdObjetoDetalle(o.id)}
+                  onClick={() => {
+                    setHistorialDetalle([]);
+                    setIdObjetoDetalle(o.id);
+                  }}
                   title="Ver detalles del objeto mágico"
                 >
                   <span className={estilos.itemNombre}>{o.nombre}</span>
@@ -432,14 +454,40 @@ export const ListaHomebrew: React.FC<Props> = ({
         return (
           <div className={estilos.panelDetalleOverlay}>
             <div className={estilos.cabeceraDetalle}>
-              <div className={estilos.cabeceraDetalleIzquierda}>
-                <span className={estilos.objetoNivelOverlay}>
-                  {objeto.tipoPrincipal} {objeto.subcategoria ? `| ${objeto.subcategoria}` : ""}
-                </span>
-                <span className={estilos.nombreHechizoOverlay}>{objeto.nombre}</span>
+              <div className={estilos.cabeceraDetalleIzquierda} style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                {historialDetalle.length > 0 && (
+                  <button
+                    onClick={navegarAtras}
+                    style={{
+                      background: "rgba(255,255,255,0.08)",
+                      border: "1px solid rgba(255,255,255,0.15)",
+                      color: "var(--color-texto-principal)",
+                      cursor: "pointer",
+                      padding: "4px 10px",
+                      borderRadius: "6px",
+                      display: "flex",
+                      alignItems: "center",
+                      fontSize: "12px",
+                      fontWeight: "bold",
+                      gap: "4px"
+                    }}
+                    type="button"
+                  >
+                    ⬅ Atrás
+                  </button>
+                )}
+                <div style={{ display: "flex", flexDirection: "column" }}>
+                  <span className={estilos.objetoNivelOverlay}>
+                    {objeto.tipoPrincipal} {objeto.subcategoria ? `| ${objeto.subcategoria}` : ""}
+                  </span>
+                  <span className={estilos.nombreHechizoOverlay}>{objeto.nombre}</span>
+                </div>
               </div>
               <button
-                onClick={() => setIdObjetoDetalle(null)}
+                onClick={() => {
+                  setIdObjetoDetalle(null);
+                  setHistorialDetalle([]);
+                }}
                 className={estilos.botonCerrarDetalle}
                 type="button"
               >
@@ -517,7 +565,7 @@ export const ListaHomebrew: React.FC<Props> = ({
                       <div className={estilos.itemMecanica}>
                         <span className={estilos.textoEtiquetaMecanica}>Daño base: </span>
                         <strong className={estilos.valorMecanicaDano}>
-                          {objeto.dadoDano} ({objeto.tipoDano})
+                          {objeto.dadoDano} ({objeto.tipoDano.charAt(0).toUpperCase() + objeto.tipoDano.slice(1)})
                         </strong>
                       </div>
                     )}
@@ -539,6 +587,29 @@ export const ListaHomebrew: React.FC<Props> = ({
                       <div className={estilos.itemMecanica}>
                         <span className={estilos.textoEtiquetaMecanica}>Usa Munición: </span>
                         <strong className={estilos.valorMecanicaCd}>{objeto.municionRequerida ? "Sí" : "No"}</strong>
+                      </div>
+                    )}
+                    {objeto.ammunition && (
+                      <div className={estilos.itemMecanica}>
+                        <span className={estilos.textoEtiquetaMecanica}>Munición: </span>
+                        {(() => {
+                          const idDestino = objeto.ammunition.index;
+                          const existeDestino = objetosHomebrew.some(o => o.id === idDestino || normalizarTexto(o.nombre) === normalizarTexto(objeto.ammunition!.name));
+                          if (existeDestino) {
+                            return (
+                              <strong
+                                onClick={() => {
+                                  const found = objetosHomebrew.find(o => o.id === idDestino || normalizarTexto(o.nombre) === normalizarTexto(objeto.ammunition!.name));
+                                  if (found) navegarAObjeto(found.id);
+                                }}
+                                style={{ color: "var(--color-borde-cian)", cursor: "pointer", textDecoration: "underline" }}
+                              >
+                                {objeto.ammunition.name}
+                              </strong>
+                            );
+                          }
+                          return <strong className={estilos.valorMecanicaCd}>{objeto.ammunition.name}</strong>;
+                        })()}
                       </div>
                     )}
                   </div>
@@ -630,6 +701,51 @@ export const ListaHomebrew: React.FC<Props> = ({
                 </div>
               )}
 
+              {/* MECÁNICAS DE MUNICIÓN O ALMACENAMIENTO */}
+              {(() => {
+                const cantidadItem = "cantidad" in objeto ? (objeto as any).cantidad as number | undefined : undefined;
+                if (!objeto.storage && cantidadItem === undefined) return null;
+                
+                return (
+                  <div className={estilos.cajaMecanicasCombateObjeto} style={{ borderColor: "rgba(0, 245, 212, 0.25)" }}>
+                    <div className={estilos.tituloMecanicasObjeto} style={{ color: "var(--color-borde-cian)" }}>
+                      Propiedades de Munición y Almacenamiento
+                    </div>
+                    <div className={estilos.gridMecanicas}>
+                      {cantidadItem !== undefined && (
+                        <div className={estilos.itemMecanica}>
+                          <span className={estilos.textoEtiquetaMecanica}>Cantidad: </span>
+                          <strong className={estilos.valorMecanicaDano}>{cantidadItem}</strong>
+                        </div>
+                      )}
+                    {objeto.storage && (
+                      <div className={estilos.itemMecanica}>
+                        <span className={estilos.textoEtiquetaMecanica}>Almacenamiento: </span>
+                        {(() => {
+                          const idDestino = objeto.storage.index;
+                          const existeDestino = objetosHomebrew.some(o => o.id === idDestino || normalizarTexto(o.nombre) === normalizarTexto(objeto.storage!.name));
+                          if (existeDestino) {
+                            return (
+                              <strong
+                                onClick={() => {
+                                  const found = objetosHomebrew.find(o => o.id === idDestino || normalizarTexto(o.nombre) === normalizarTexto(objeto.storage!.name));
+                                  if (found) navegarAObjeto(found.id);
+                                }}
+                                style={{ color: "var(--color-borde-cian)", cursor: "pointer", textDecoration: "underline" }}
+                              >
+                                {objeto.storage.name}
+                              </strong>
+                            );
+                          }
+                          return <strong className={estilos.valorMecanicaCd}>{objeto.storage.name}</strong>;
+                        })()}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )
+            })()}
+
               {/* Propiedades del arma en badges */}
               {objeto.tipoPrincipal === "Arma" && objeto.propiedades && objeto.propiedades.length > 0 && (
                 <div className={estilos.seccionDescripcionFichaMargenGrande}>
@@ -720,6 +836,109 @@ export const ListaHomebrew: React.FC<Props> = ({
                         </div>
                       </div>
                     )}
+                  </div>
+                </div>
+              )}
+
+              {/* Contenido del Paquete */}
+              {objeto.contents && objeto.contents.length > 0 && (
+                <div className={estilos.seccionDescripcionFichaMargenGrande}>
+                  <div className={estilos.descripcionTituloFicha}>CONTENIDO DEL PAQUETE</div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                    {objeto.contents.map((c: any, idx: number) => {
+                      const idDestino = c.item.index;
+                      const existeDestino = objetosHomebrew.some(o => o.id === idDestino || normalizarTexto(o.nombre) === normalizarTexto(c.item.name));
+                      
+                      return (
+                        <div key={idx} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 12px", background: "rgba(255,255,255,0.04)", borderRadius: "6px", border: "1px solid rgba(255,255,255,0.06)" }}>
+                          <span style={{ fontSize: "12px", color: "var(--color-texto-principal)" }}>
+                            {c.quantity}x {c.item.name}
+                          </span>
+                          {existeDestino ? (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const found = objetosHomebrew.find(o => o.id === idDestino || normalizarTexto(o.nombre) === normalizarTexto(c.item.name));
+                                if (found) navegarAObjeto(found.id);
+                              }}
+                              style={{
+                                background: "rgba(0, 245, 212, 0.12)",
+                                border: "1px solid var(--color-borde-cian)",
+                                color: "var(--color-borde-cian)",
+                                padding: "2px 8px",
+                                borderRadius: "4px",
+                                fontSize: "10px",
+                                cursor: "pointer",
+                                fontWeight: "bold"
+                              }}
+                            >
+                              Ver Objeto 🔍
+                            </button>
+                          ) : (
+                            <span style={{ fontSize: "10px", color: "var(--color-texto-secundario)", fontStyle: "italic" }}>
+                              No disponible
+                            </span>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* Objetos Elaborables (Craft) */}
+              {objeto.craft && objeto.craft.length > 0 && (
+                <div className={estilos.seccionDescripcionFichaMargenGrande}>
+                  <div className={estilos.descripcionTituloFicha}>OBJETOS QUE PUEDE ELABORAR</div>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
+                    {objeto.craft.map((c: any, idx: number) => {
+                      const idDestino = c.index;
+                      const existeDestino = objetosHomebrew.some(o => o.id === idDestino || normalizarTexto(o.nombre) === normalizarTexto(c.name));
+                      
+                      if (existeDestino) {
+                        return (
+                          <button
+                            key={idx}
+                            type="button"
+                            onClick={() => {
+                              const found = objetosHomebrew.find(o => o.id === idDestino || normalizarTexto(o.nombre) === normalizarTexto(c.name));
+                              if (found) navegarAObjeto(found.id);
+                            }}
+                            style={{
+                              fontSize: "11px",
+                              background: "rgba(168, 85, 247, 0.15)",
+                              border: "1px solid hsl(270, 70%, 50%)",
+                              color: "hsl(270, 100%, 85%)",
+                              padding: "4px 8px",
+                              borderRadius: "4px",
+                              cursor: "pointer",
+                              fontWeight: "bold",
+                              display: "flex",
+                              alignItems: "center",
+                              gap: "4px"
+                            }}
+                          >
+                            🔨 {c.name}
+                          </button>
+                        );
+                      }
+                      
+                      return (
+                        <span
+                          key={idx}
+                          style={{
+                            fontSize: "11px",
+                            background: "rgba(255,255,255,0.05)",
+                            border: "1px solid rgba(255,255,255,0.1)",
+                            color: "var(--color-texto-secundario)",
+                            padding: "4px 8px",
+                            borderRadius: "4px"
+                          }}
+                        >
+                          {c.name}
+                        </span>
+                      );
+                    })}
                   </div>
                 </div>
               )}

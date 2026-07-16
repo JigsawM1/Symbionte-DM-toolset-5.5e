@@ -1,5 +1,5 @@
 .panelLista {
-  flex: 1 1 250px;
+  flex: 1 1 0%;
   background-color: var(--color-fondo-panel);
   border: 1px solid var(--color-borde-brutal);
   border-radius: 8px;
@@ -7,9 +7,10 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
-  max-height: calc(100vh - 200px);
   height: 100%;
-  overflow-y: auto;
+  min-height: 0;
+  position: relative;
+  overflow: hidden;
 }
 
 .cabeceraPanel {
@@ -162,20 +163,18 @@
 
 .panelDetalleOverlay {
   position: absolute;
+  top: 0;
   bottom: 0;
   left: 0;
   width: 100%;
-  height: 85%;
+  height: 100%;
   z-index: 100;
-  border-top: 3px solid var(--color-borde-brutal);
-  border-left: 3px solid var(--color-borde-brutal);
-  border-right: 3px solid var(--color-borde-brutal);
+  border: 1px solid var(--color-borde-brutal);
   background-color: var(--color-fondo-profundo);
   display: flex;
   flex-direction: column;
-  box-shadow: 0 -10px 25px rgba(0, 0, 0, 0.6);
-  border-top-left-radius: 12px;
-  border-top-right-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
+  border-radius: 8px;
 }
 
 .cabeceraDetalle {

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Clock, MapPin, Layers, X } from "lucide-react";
+import { Clock, MapPin, Layers, X, Edit2 } from "lucide-react";
 import { lanzarDadosTaleSpire } from "../../utiles/lanzadorDados";
 import { calcularFormulaEscalada } from "../../utiles/utilesConjuros";
 import { HechizoBase } from "../../tipos";
@@ -8,9 +8,11 @@ import estilosClases from "./FichaHechizo.module.css";
 interface FichaHechizoProps {
   hechizo: HechizoBase;
   onClose: () => void;
+  onEditar?: () => void;
+  onAtras?: () => void;
 }
 
-export const FichaHechizo: React.FC<FichaHechizoProps> = React.memo(({ hechizo, onClose }) => {
+export const FichaHechizo: React.FC<FichaHechizoProps> = React.memo(({ hechizo, onClose, onEditar, onAtras }) => {
   // Inicializar nivel de Upcast con el nivel base del conjuro
   const nivelBase = hechizo.nivel;
   const [nivelLanzamiento, setNivelLanzamiento] = useState<number>(nivelBase > 0 ? nivelBase : 1);
@@ -51,14 +53,42 @@ export const FichaHechizo: React.FC<FichaHechizoProps> = React.memo(({ hechizo, 
       {/* Cabecera de la Ficha */}
       <div className={estilosClases.cabecera}>
         <div className={estilosClases.cabeceraIzquierda}>
+          {onAtras && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onAtras();
+              }}
+              className={estilosClases.botonAtras}
+              title="Volver atrás"
+              type="button"
+            >
+              ⬅
+            </button>
+          )}
           <span className={estilosClases.metaNivel}>
-            NIVEL {hechizo.nivel === 0 ? "TRUCO" : hechizo.nivel}
+            NIV {hechizo.nivel === 0 ? "TRUCO" : hechizo.nivel}
           </span>
           <span className={estilosClases.titulo}>{hechizo.nombre}</span>
         </div>
-        <button onClick={onClose} className={estilosClases.botonCerrar} title="Cerrar detalles">
-          <X size={16} />
-        </button>
+        <div className={estilosClases.cabeceraDerecha}>
+          {onEditar && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onEditar();
+              }}
+              className={estilosClases.botonEditar}
+              title="Editar conjuro"
+              type="button"
+            >
+              <Edit2 size={13} />
+            </button>
+          )}
+          <button onClick={onClose} className={estilosClases.botonCerrar} title="Cerrar detalles" type="button">
+            <X size={16} />
+          </button>
+        </div>
       </div>
 
       {/* Cuerpo de la Ficha */}

@@ -122,12 +122,12 @@ export const SeccionListasAtaques: React.FC<SeccionListasAtaquesProps> = ({
 }) => {
   return (
     <div className={estilos.seccionContenido}>
-      {/* ATAQUES RÁPIDOS 3D */}
+      {/* ATAQUES RÁPIDOS*/}
       <div className={estilos.bloqueDinamicoForm}>
         <div className={estilos.tituloBloqueDinamico}>
           {quickActionEdicionIdx !== null
-            ? "EDITANDO ATAQUE RÁPIDO 3D"
-            : `ATAQUES RÁPIDOS INTERACTIVOS (3D) (${monstruoForm.accionesRapidas?.length || 0})`}
+            ? "EDITANDO ATAQUE RÁPIDO"
+            : `ATAQUES RÁPIDOS (${monstruoForm.accionesRapidas?.length || 0})`}
         </div>
         <div className={estilos.camposDinamicosGrupo}>
           <div className={estilos.filaCamposAlineados}>
@@ -157,25 +157,22 @@ export const SeccionListasAtaques: React.FC<SeccionListasAtaquesProps> = ({
               onChange={(e) => setTQTipo(e.target.value)}
               className={estilos.selectDinamicoMini}
             >
-              <option value="fuerza">Fuerza</option>
-              <option value="destreza">Destreza</option>
-              <option value="constitucion">Const</option>
-              <option value="inteligencia">Int</option>
-              <option value="sabiduria">Sab</option>
-              <option value="carisma">Car</option>
               <option value="ácido">Ácido</option>
               <option value="fuego">Fuego</option>
               <option value="frío">Frío</option>
               <option value="relámpago">Relámpago</option>
               <option value="trueno">Trueno</option>
               <option value="veneno">Veneno</option>
-              <option value="fuerza_daño">Fza Daño</option>
+              <option value="fuerza_daño">Fuerza</option>
               <option value="radiante">Radiante</option>
               <option value="necrótico">Necrótico</option>
               <option value="psíquico">Psíquico</option>
               <option value="perforante">Perforante</option>
+              <option value="perforante mágico">Perforante Mágico</option>
               <option value="cortante">Cortante</option>
+              <option value="cortante mágico">Cortante Mágico</option>
               <option value="contundente">Contundente</option>
+              <option value="contundente mágico">Contundente Mágico</option>
             </select>
             <button
               type="button"

@@ -6,15 +6,14 @@ import {
   Edit2,
   Trash2,
   X,
-  Clock,
   MapPin,
-  Layers,
   Sparkles,
   Coins,
   Scale
 } from "lucide-react";
 import estilos from "./ListaHomebrew.module.css";
 import { ConfirmDialog } from "../ConfirmDialog";
+import { FichaHechizo } from "../hechizos/FichaHechizo";
 
 interface Props {
   tipoHomebrew: "criatura" | "hechizo" | "objeto";
@@ -274,168 +273,18 @@ export const ListaHomebrew: React.FC<Props> = ({
         if (!hechizo) return null;
         return (
           <div className={estilos.panelDetalleOverlay}>
-            <div className={estilos.cabeceraDetalle}>
-              <div className={estilos.cabeceraDetalleIzquierda}>
-                <span className={estilos.hechizoNivelOverlay}>
-                  NIVEL {hechizo.nivel === 0 ? "TRUCO" : hechizo.nivel}
-                </span>
-                <span className={estilos.nombreHechizoOverlay}>{hechizo.nombre}</span>
-              </div>
-              <button
-                onClick={() => setIdHechizoDetalleCreador(null)}
-                className={estilos.botonCerrarDetalle}
-                type="button"
-              >
-                <X size={15} />
-              </button>
-            </div>
-            <div className={estilos.cuerpoDetalle}>
-              {/* Grid Metadatos */}
-              <div className={estilos.gridMetadatos}>
-                <div className={estilos.metaItem}>
-                  <Clock size={12} className={estilos.iconoDetalle} />
-                  <div>
-                    <div className={estilos.metaLabel}>TIEMPO DE LANZAMIENTO</div>
-                    <div className={estilos.metaValor}>{hechizo.tiempoLanzamiento}</div>
-                  </div>
-                </div>
-                <div className={estilos.metaItem}>
-                  <MapPin size={12} className={estilos.iconoDetalle} />
-                  <div>
-                    <div className={estilos.metaLabel}>ALCANCE / RANGO</div>
-                    <div className={estilos.metaValor}>{hechizo.alcance}</div>
-                  </div>
-                </div>
-                <div className={estilos.metaItem}>
-                  <Layers size={12} className={estilos.iconoDetalle} />
-                  <div>
-                    <div className={estilos.metaLabel}>COMPONENTES</div>
-                    <div className={estilos.metaValor}>{hechizo.componentes}</div>
-                  </div>
-                </div>
-                <div className={estilos.metaItem}>
-                  <Clock size={12} className={estilos.iconoDetalle} />
-                  <div>
-                    <div className={estilos.metaLabel}>DURACIÓN</div>
-                    <div className={estilos.metaValor}>{hechizo.duracion || "Instantáneo"}</div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Fila de propiedades visuales adicionales */}
-              <div className={estilos.filaPropiedadesEspeciales}>
-                {hechizo.concentracion && (
-                  <span className={estilos.chipConcentracion}>CONCENTRACIÓN</span>
-                )}
-                {hechizo.ritual && <span className={estilos.chipRitual}>RITUAL</span>}
-                <span className={estilos.chipEscuela}>{hechizo.escuela}</span>
-              </div>
-
-              {/* Mostrar materiales detallados si existen */}
-              {hechizo.materiales && (
-                <div className={estilos.seccionDescripcionFichaMargen}>
-                  <div className={estilos.descripcionTituloFicha}>MATERIALES DE LANZAMIENTO</div>
-                  <div className={estilos.descripcionCuerpoMateriales}>
-                    {hechizo.materiales}
-                  </div>
-                </div>
-              )}
-
-              {/* MECÁNICAS DE COMBATE (Si tiene ataque, CD o daño) */}
-              {((hechizo.ataqueCd && hechizo.ataqueCd !== "N/A") ||
-                hechizo.dadosDaño ||
-                (hechizo.cdSalvacion && hechizo.cdSalvacion !== "N/A")) && (
-                <div className={estilos.cajaMecanicasCombate}>
-                  <div className={estilos.tituloMecanicas}>
-                    Mecánicas de Combate Integradas (D&D 5.5e)
-                  </div>
-                  <div className={estilos.gridMecanicas}>
-                    {hechizo.ataqueCd && hechizo.ataqueCd !== "N/A" && (
-                      <div className={estilos.itemMecanica}>
-                        <span className={estilos.textoEtiquetaMecanica}>
-                          Ataque/Efecto:{" "}
-                        </span>
-                        <strong className={estilos.valorMecanicaAtaque}>
-                          {hechizo.ataqueCd}
-                        </strong>
-                      </div>
-                    )}
-                    {hechizo.cdSalvacion && hechizo.cdSalvacion !== "N/A" && (
-                      <div className={estilos.itemMecanica}>
-                        <span className={estilos.textoEtiquetaMecanica}>
-                          CD Salvación:{" "}
-                        </span>
-                        <strong className={estilos.valorMecanicaCd}>CD {hechizo.cdSalvacion}</strong>
-                      </div>
-                    )}
-                    {hechizo.dadosDaño && (
-                      <div className={estilos.itemMecanica}>
-                        <span className={estilos.textoEtiquetaMecanica}>Daño: </span>
-                        <strong className={estilos.valorMecanicaDano}>
-                          {hechizo.dadosDaño}{" "}
-                          {hechizo.tipoDaño && hechizo.tipoDaño !== "N/A"
-                            ? `(${hechizo.tipoDaño})`
-                            : ""}
-                        </strong>
-                      </div>
-                    )}
-                    {hechizo.dadosDañoNivelSuperior && (
-                      <div className={estilos.itemMecanica}>
-                        <span className={estilos.textoEtiquetaMecanica}>
-                          Daño Niv. Superior:{" "}
-                        </span>
-                        <strong className={estilos.valorMecanicaSuperior}>
-                          +{hechizo.dadosDañoNivelSuperior}
-                        </strong>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {/* Descripción Completa */}
-              <div className={estilos.seccionDescripcionFicha}>
-                <div className={estilos.descripcionTituloFicha}>DESCRIPCIÓN DEL CONJURO</div>
-                <div 
-                  className={estilos.descripcionCuerpoFicha}
-                  dangerouslySetInnerHTML={{ __html: hechizo.descripcion }}
-                />
-              </div>
-
-              {/* A niveles superiores si existe */}
-              {hechizo.descNivelSuperior && (
-                <div className={estilos.seccionDescripcionFicha}>
-                  <div className={estilos.descripcionTituloFichaActivo}>
-                    A NIVELES SUPERIORES
-                  </div>
-                  <div 
-                    className={estilos.descripcionCuerpoFichaSecundario}
-                    dangerouslySetInnerHTML={{ __html: hechizo.descNivelSuperior }}
-                  />
-                </div>
-              )}
-
-              {/* Clases disponibles si existen */}
-              {hechizo.clases && hechizo.clases.length > 0 && (
-                <div className={estilos.seccionDescripcionFichaMargenGrande}>
-                  <div className={estilos.descripcionTituloFicha}>
-                    CLASES QUE PUEDEN UTILIZAR ESTE CONJURO
-                  </div>
-                  <div className={estilos.listaBadgesClases}>
-                    {hechizo.clases.map((clase) => (
-                      <span key={clase} className={estilos.badgeClase}>
-                        {clase}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
+            <FichaHechizo
+              hechizo={hechizo}
+              onClose={() => setIdHechizoDetalleCreador(null)}
+              onEditar={() => {
+                iniciarEdicionHechizo(hechizo);
+                setIdHechizoDetalleCreador(null);
+              }}
+            />
           </div>
         );
       })()}
 
-      {/* Overlay Detalle Objeto en Creador */}
       {/* Overlay Detalle Objeto en Creador */}
       {idObjetoDetalle && (() => {
         const oRaw = objetosHomebrew.find((o) => o.id === idObjetoDetalle);
@@ -454,7 +303,7 @@ export const ListaHomebrew: React.FC<Props> = ({
         return (
           <div className={estilos.panelDetalleOverlay}>
             <div className={estilos.cabeceraDetalle}>
-              <div className={estilos.cabeceraDetalleIzquierda} style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+              <div className={estilos.cabeceraDetalleIzquierda} style={{ display: "flex", alignItems: "center", gap: "12px" }}>
                 {historialDetalle.length > 0 && (
                   <button
                     onClick={navegarAtras}
@@ -476,7 +325,7 @@ export const ListaHomebrew: React.FC<Props> = ({
                     ⬅ Atrás
                   </button>
                 )}
-                <div style={{ display: "flex", flexDirection: "column" }}>
+                <div style={{ display: "flex", flexDirection: "row", gap: "4px" }}>
                   <span className={estilos.objetoNivelOverlay}>
                     {objeto.tipoPrincipal} {objeto.subcategoria ? `| ${objeto.subcategoria}` : ""}
                   </span>
@@ -543,7 +392,7 @@ export const ListaHomebrew: React.FC<Props> = ({
               <div className={estilos.filaPropiedadesEspeciales}>
                 {objeto.esMagico && (
                   <span className={estilos.chipConcentracion} style={{ backgroundColor: "rgba(0, 245, 212, 0.12)", color: "var(--color-borde-cian)", border: "1px solid var(--color-borde-cian)" }}>
-                    ✨ MÁGICO
+                     MÁGICO
                   </span>
                 )}
                 {objeto.tipoPrincipal === "Arma" && (
@@ -661,12 +510,12 @@ export const ListaHomebrew: React.FC<Props> = ({
                     <div style={{ display: "flex", gap: "8px", marginBottom: "8px", flexWrap: "wrap" }}>
                       {objeto.estaMaldito && (
                         <span style={{ fontSize: "11px", fontWeight: "bold", background: "rgba(239, 68, 68, 0.15)", border: "1px solid var(--color-peligro)", color: "var(--color-peligro)", padding: "2px 6px", borderRadius: "4px" }}>
-                          💀 OBJETO MALDITO
+                           OBJETO MALDITO
                         </span>
                       )}
                       {objeto.esConsciente && (
                         <span style={{ fontSize: "11px", fontWeight: "bold", background: "rgba(6, 182, 212, 0.15)", border: "1px solid var(--color-borde-cian)", color: "var(--color-borde-cian)", padding: "2px 6px", borderRadius: "4px" }}>
-                          🧠 OBJETO CONSCIENTE
+                           OBJETO CONSCIENTE
                         </span>
                       )}
                     </div>
@@ -872,7 +721,7 @@ export const ListaHomebrew: React.FC<Props> = ({
                                 fontWeight: "bold"
                               }}
                             >
-                              Ver Objeto 🔍
+                              Ver Objeto 
                             </button>
                           ) : (
                             <span style={{ fontSize: "10px", color: "var(--color-texto-secundario)", fontStyle: "italic" }}>
@@ -918,7 +767,7 @@ export const ListaHomebrew: React.FC<Props> = ({
                               gap: "4px"
                             }}
                           >
-                            🔨 {c.name}
+                             {c.name}
                           </button>
                         );
                       }

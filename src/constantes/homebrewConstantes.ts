@@ -1,7 +1,7 @@
 export const TIPOS_DAÑO_DND = [
-  "ácido", "adamantina", "contundente", "contundente no mágico",
-  "cortante", "cortante no mágico", "fuerza", "frío", "fuego",
-  "mágico", "necrótico", "perforante", "perforante no mágico",
+  "ácido", "adamantina", "contundente", "contundente mágico",
+  "cortante", "cortante mágico", "fuego", "frío", "fuerza",
+  "necrótico", "perforante", "perforante mágico",
   "plata", "psíquico", "radiante", "relámpago", "trueno", "veneno"
 ];
 
@@ -44,4 +44,33 @@ export const CARACTERISTICAS_CLAVES = [
   { clave: "inteligencia", etiqueta: "INT" },
   { clave: "sabiduria", etiqueta: "SAB" },
   { clave: "carisma", etiqueta: "CAR" }
+];
+
+export const Escuelas_Magia = [
+  { clave: "Abjuracion", etiqueta:"Abjuración"},
+  { clave: "Adivinacion", etiqueta:"Adivinación"},
+  { clave: "Conjuracion", etiqueta:"Conjuración"},
+  { clave: "Encantamiento", etiqueta:"Encantamiento"},
+  { clave: "Evocacion", etiqueta:"Evocación"},
+  { clave: "Ilusion", etiqueta:"Ilusión"},
+  { clave: "Nigromancia", etiqueta:"Nigromancia"},
+  { clave: "Transmutacion", etiqueta:"Transmutación"},  
+];
+
+export const Criatura_Tipos = [
+  { clave: "Aberración", etiqueta: "Aberración" },
+  { clave: "Abominación", etiqueta: "Abominación" },
+  { clave: "Bestia", etiqueta: "Bestia" },
+  { clave: "Celestial", etiqueta: "Celestial" },
+  { clave: "Cieno", etiqueta: "Cieno" },  
+  { clave: "Constructo", etiqueta: "Constructo" },
+  { clave: "Dragón", etiqueta: "Dragón" },
+  { clave: "Elemental", etiqueta: "Elemental" },
+  { clave: "Feérico", etiqueta: "Feérico" },
+  { clave: "Gigante", etiqueta: "Gigante" },
+  { clave: "Humanoide", etiqueta: "Humanoide" },
+  { clave: "Infernal", etiqueta: "Infernal" },
+  { clave: "Monstruosidad", etiqueta: "Monstruosidad" },
+  { clave: "No Muerto", etiqueta: "No Muerto" },
+  { clave: "Planta", etiqueta: "Planta" },
 ];

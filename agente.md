@@ -1701,5 +1701,86 @@ Durante la ejecución del flujo automatizado de pruebas, el script de QA fallaba
 > 1. Si un panel scrollable comienza a una distancia `T` del borde superior, su altura máxima nunca debe calcularse restando un valor menor que `T` al `100vh` (es decir, `max-height: calc(100vh - M)` requiere que `M >= T`), o el panel se saldrá del viewport por la parte inferior.
 > 2. Al diseñar layouts fijos en simbiontes/extensiones, ten siempre en cuenta los widgets flotantes persistentes del sistema (como los dados de TaleSpire). Añade márgenes internos/externos de seguridad en las esquinas calientes (`bottom-right`, `bottom-left`) para evitar el solapamiento visual e interferencias con clics del usuario.
 
+---
+
+## [2026-07-16] UI/UX: Pérdida de nitidez (blur/borrosidad) en textos y bordes dentro del Symbionte
+
+**Síntomas:**
+El symbionte se renderizaba correctamente en un navegador estándar (Vite Dev Server), pero al visualizarlo dentro de TaleSpire (CEF empotrado), los bordes de 1px, iconos y fuentes pequeñas de 11px-13px se apreciaban ligeramente borrosos, con menor contraste y definición visual general.
+
+**Causa raíz:**
+TaleSpire no dibuja el iframe de CEF directamente en la pantalla de Windows. En su lugar, CEF renderiza a una textura fuera de pantalla (off-screen texture buffer), la cual es proyectada por Unity en un objeto UI 3D. Durante este proceso, Unity aplica filtros bilineales y la textura pierde el rendering a nivel de subpíxel del sistema operativo, suavizando bordes y degradando la definición fina de textos e interfaces brutalistas de alta densidad.
+
+**Solución aplicada:**
+Se añadieron propiedades específicas de rasterización en el CSS para contrarrestar el suavizado de la textura de Unity:
+1. En [index.css](file:///c:/Users/zamor/OneDrive/Documentos/Programas/ToolSet%20Es%205.5/src/index.css) en la sección `:root`:
+   - `-webkit-font-smoothing: antialiased` y `-moz-osx-font-smoothing: grayscale` para desactivar el suavizado por subpíxel inútil en texturas 3D y forzar escala de grises limpia.
+   - `text-rendering: optimizeLegibility` para asegurar una mejor definición en fuentes vectoriales de Google Fonts.
+   - `backface-visibility: hidden` para prevenir cálculo flotante fraccionario en capas del renderizador.
+2. En [App.module.css](file:///c:/Users/zamor/OneDrive/Documentos/Programas/ToolSet%20Es%205.5/src/App.module.css) en `.contenedorGeneral`:
+   - `transform: translate3d(0, 0, 0)` y `-webkit-backface-visibility: hidden` para forzar aceleración por hardware en GPU de forma limpia, estabilizando la composición de píxeles sin artefactos de escalado CEF.
+
+**Lección aprendida:**
+> 🖥️ **Nitidez en Navegadores Embebidos en Motores 3D:**
+> 1. Al integrar layouts HTML de alta densidad en motores como Unity o Unreal mediante CEF/WebView2, la interpolación de texturas suaviza y difumina elementos vectoriales finos.
+> 2. Desactivar el suavizado de subpíxeles de fuente nativo (`-webkit-font-smoothing: antialiased`) y forzar la rasterización aislada por hardware 3D (`transform: translate3d`) e invisibilidad trasera previene que Chromium genere píxeles interpolados intermedios, maximizando el contraste y la nitidez final dentro del juego.
+
+---
+
+## [2026-07-16] UI/UX & REFACTORIZACIÓN: Mejoras Visuales, Altura de Paneles, Scroll de Listas y Unificación de FichaHechizo
+
+**Síntomas:**
+1. **Espacio vacío vertical:** El panel de condiciones y efectos no se estiraba verticalmente, dejando un área vacía innecesaria abajo.
+2. **Resultados de pifias/críticos cortados:** No se podían scrolear todas las filas de la tabla de críticos/pifias.
+3. **Tarjeta de hechizos ineficiente:** El nivel del hechizo se renderizaba sobre el nombre, los chips de clases eran demasiado pequeños y algunos colores tenían bajo contraste sobre fondo oscuro.
+4. **Duplicación de código:** El compendio de hechizos y el editor homebrew usaban layouts y estilos separados para mostrar el detalle de un hechizo.
+
+**Causas raíz:**
+1. **Flexbox incompleto:** `.cuerpoVisualizador` y `.seccionCondiciones` no usaban flex-shrink o min-height correctos para propagar la altura en CEF.
+2. **Overflow-y inactivo:** La consola de pifias/críticos tenía `overflow: hidden` en el contenedor padre pero no definía un límite vertical funcional en sus listas.
+3. **Textos y Badges:** Mal contraste debido a valores de luminosidad bajos en texto secundario (`68%`) y apagado (`40%`). Los chips tenían un padding y tamaño demasiado pequeños para interfaces de alta densidad.
+4. **Acoplamiento de interfaz:** La tarjeta de detalle de hechizo en homebrew estaba codificada inline directamente en `ListaHomebrew.tsx` duplicando ~160 líneas de HTML/CSS.
+
+**Solución aplicada:**
+1. **Ajuste de Alturas ([TablasDM.module.css](file:///c:/Users/zamor/OneDrive/Documentos/Programas/ToolSet%20Es%205.5/src/componentes/TablasDM.module.css) y [DiccionarioCondiciones.module.css](file:///c:/Users/zamor/OneDrive/Documentos/Programas/ToolSet%20Es%205.5/src/componentes/tablas/DiccionarioCondiciones.module.css)):** Cambiar a `flex: 1; min-height: 0;` para estirar la sección de condiciones y efectos lateral y el detalle a toda la altura de la UI.
+2. **Scroll Fijo ([ConsolaCriticosPifias.module.css](file:///c:/Users/zamor/OneDrive/Documentos/Programas/ToolSet%20Es%205.5/src/componentes/tablas/ConsolaCriticosPifias.module.css)):** Forzar `.seccionPifiasConsola` y `.diccionarioConsultadorCard` a `height: 100%; min-height: 0;` y agregar `min-height: 0` al contenedor de scroll para activar la scrollbar de Chromium en pifias.
+3. **Contraste y Badges ([index.css](file:///c:/Users/zamor/OneDrive/Documentos/Programas/ToolSet%20Es%205.5/src/index.css)):** Aumentar luminosidad de variables `--color-texto-secundario` (`68%` → `78%`) y `--color-texto-apagado` (`40%` → `50%`) de manera global. En `.chipClase`, cambiar tamaño de letra (`9px` → `11px`) y padding.
+4. **Refactorización de Tarjeta de Hechizo ([FichaHechizo.tsx](file:///c:/Users/zamor/OneDrive/Documentos/Programas/ToolSet%20Es%205.5/src/componentes/hechizos/FichaHechizo.tsx)):** 
+   - Alinear el nivel inline al lado del nombre mediante flex row.
+   - Añadir soporte para botones opcionales de navegación (`onAtras`) y edición (`onEditar`).
+   - Reemplazar toda la visualización de hechizo en [ListaHomebrew.tsx](file:///c:/Users/zamor/OneDrive/Documentos/Programas/ToolSet%20Es%205.5/src/componentes/homebrew/ListaHomebrew.tsx) por la importación de `<FichaHechizo />` unificada.
+   - Limpiar imports de iconos obsoletos y remover estilos redundantes en `.module.css`.
+
+**Lección aprendida:**
+> 🧩 **Reutilización de Componentes Ficha/Detalle:**
+> 1. En aplicaciones reactivas densas, si una vista de detalle (como una ficha de hechizo) se usa en múltiples contextos (compendio de consulta y creador homebrew), encapsúlala en un único componente parametrizado.
+> 2. Permite que el componente extienda su comportamiento opcionalmente mediante propiedades bien definidas (como `onAtras` y `onEditar`) en lugar de clonar el markup HTML. Esto reduce significativamente la propensión a bugs visuales de sincronización y mantiene el CSS limpio y centralizado.
+> 3. Al reestructurar elementos en flex containers con scrolls internos en Chrome/CEF, recuerda aplicar `min-height: 0` a todos los contenedores intermedios del árbol para evitar que el viewport se expanda infinitamente y rompa las barras de scroll nativas.
+
+---
+
+## [2026-07-16] CORRECCIÓN: Solución de Scrolls Internos y Restauración de Estilos de Tarjeta de Objetos en Homebrew
+
+**Síntomas:**
+1. **Scrolls inactivos persistentes (Condiciones y Pifias):** El panel de condiciones y la tabla de pifias/críticos seguían sin permitir scroll vertical interno.
+2. **Tarjeta de objetos mágicos rota:** El título de "Objetos que puede elaborar", "Descripción del objeto mágico" y sus contenedores perdieron su tipografía, espaciado y estilos visuales en el creador homebrew.
+
+**Causas raíz:**
+1. **Desbordamiento en el contenedor raíz:** El selector `.contenedorTablas` en `TablasDM.module.css` tenía `overflow-y: auto`. Como el contenedor principal del tab se auto-escroleaba, los contenedores internos flexibles crecían infinitamente y nunca disparaban su propiedad `overflow-y: auto` local.
+2. **Estilos eliminados codiciosamente:** Al remover el CSS redundante de hechizos en `ListaHomebrew.module.css`, se borraron accidentalmente clases genéricas compartidas (`.seccionDescripcionFicha`, `.seccionDescripcionFichaMargenGrande`, `.descripcionTituloFicha`, `.descripcionCuerpoFicha`, `.listaBadgesClases`) que eran requeridas por la ficha de objetos en el overlay del homebrew.
+
+**Solución aplicada:**
+1. **Restricción de Scroll en Raíz ([TablasDM.module.css](file:///c:/Users/zamor/OneDrive/Documentos/Programas/ToolSet%20Es%205.5/src/componentes/TablasDM.module.css)):** Modificar `.contenedorTablas` con `overflow: hidden; flex: 1; min-height: 0;` de forma que sea un contenedor fijo, delegando el scroll 100% a sus hijos.
+2. **Scroll Local de Apoyo ([TablasDM.module.css](file:///c:/Users/zamor/OneDrive/Documentos/Programas/ToolSet%20Es%205.5/src/componentes/TablasDM.module.css) y [ReglasBasicas.module.css](file:///c:/Users/zamor/OneDrive/Documentos/Programas/ToolSet%20Es%205.5/src/componentes/tablas/ReglasBasicas.module.css)):** Añadir `overflow-y: auto` local a `.seccionCalculadoras` y a `.seccionReglasBasicasGrid` para que esas sub-pestañas puedan desplazarse cuando el contenido exceda la pantalla.
+3. **Restauración de Clases CSS ([ListaHomebrew.module.css](file:///c:/Users/zamor/OneDrive/Documentos/Programas/ToolSet%20Es%205.5/src/componentes/homebrew/ListaHomebrew.module.css)):** Re-introducir las definiciones de estilos para visualización de descripciones, títulos estilizados y listas de insignias necesarias para la ficha de objetos mágicos homebrew.
+
+**Lección aprendida:**
+> ⚠️ **Scrolls anidados y Limpieza de CSS Defensiva:**
+> 1. Para que el scroll interno de los elementos hijos funcione en interfaces densas tipo Popup en CEF, el contenedor raíz **NUNCA** debe tener scroll vertical propio (`overflow-y: auto`). Debe ser `overflow: hidden` para actuar como delimitador estricto.
+> 2. Antes de limpiar selectores CSS aparentemente huérfanos tras una refactorización de plantillas, asegúrate con búsquedas de texto plano (grep) que dichos selectores no estén siendo compartidos por otras vistas similares (como la tarjeta de objetos) en el mismo componente.
+
+
+
+
 
 

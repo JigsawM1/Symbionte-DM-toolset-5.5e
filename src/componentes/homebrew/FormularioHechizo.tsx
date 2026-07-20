@@ -2,7 +2,7 @@ import React, { useEffect } from "react";
 import { usarFormularioHechizo } from "../../hooks/usarFormularioHechizo";
 import { usarAlmacenDM } from "../../almacen/usarAlmacenDM";
 import { Plus } from "lucide-react";
-import { CLASES_DND, TIPOS_DAÑO_DND } from "../../constantes/homebrewConstantes";
+import { CLASES_DND, Escuelas_Magia, TIPOS_DAÑO_DND } from "../../constantes/homebrewConstantes";
 import estilos from "./FormularioHechizo.module.css";
 
 interface Props {
@@ -134,13 +134,17 @@ export const FormularioHechizo: React.FC<Props> = ({
       <div className={estilos.filaTripleForm}>
         <div className={estilos.campoForm}>
           <label className={estilos.labelForm}>Escuela:</label>
-          <input
-            type="text"
+          <select
             value={hEscuela}
             onChange={(e) => setHEscuela(e.target.value)}
-            placeholder="Evocación"
-            className={estilos.inputForm}
-          />
+            className={estilos.selectForm}
+          >
+            {Escuelas_Magia.map((escuela) => (
+              <option key={escuela.clave} value={escuela.clave} >
+                {escuela.etiqueta}
+              </option>
+            ))}
+          </select>
         </div>
         <div className={estilos.campoForm}>
           <label className={estilos.labelForm}>Tiempo Lanzamiento:</label>

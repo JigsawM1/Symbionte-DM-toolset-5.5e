@@ -184,7 +184,7 @@
   align-items: center;
   background-color: var(--color-fondo-tarjeta);
   border-bottom: 1px solid var(--color-borde-brutal);
-  padding: 6px 12px;
+  padding: 22px 12px;
   height: 28px;
 }
 
@@ -195,22 +195,13 @@
   gap: 8px;
 }
 
-.hechizoNivelOverlay {
-  font-size: 9px;
-  font-weight: bold;
-  color: #ffcc00;
-  border: 1px solid #ffcc00;
-  padding: 0 4px;
-  font-family: var(--fuente-codigo);
-}
-
 .objetoNivelOverlay {
-  font-size: 9px;
+  font-size: 12px;
   font-weight: bold;
   background-color: rgba(255, 118, 117, 0.1);
   border: 1px solid #ff7675;
   color: #ff7675;
-  padding: 0 4px;
+  padding: 0 6px;
   font-family: var(--fuente-codigo);
 }
 
@@ -245,7 +236,7 @@
   gap: 8px;
   background-color: var(--color-fondo-tarjeta);
   border: 1.5px solid var(--color-borde-brutal);
-  padding: 8px;
+  padding: 10px;
 }
 
 .metaItem {
@@ -260,13 +251,13 @@
 }
 
 .metaLabel {
-  font-size: 8px;
+  font-size: 10px;
   color: var(--color-texto-apagado);
   font-weight: bold;
 }
 
 .metaValor {
-  font-size: 11px;
+  font-size: 13px;
   color: var(--color-texto-principal);
   font-weight: bold;
 }
@@ -287,96 +278,6 @@
   font-weight: bold;
 }
 
-.chipRitual {
-  font-size: 9px;
-  background-color: rgba(0, 245, 212, 0.15);
-  border: 1px solid var(--color-borde-cian);
-  color: var(--color-borde-cian);
-  padding: 1px 6px;
-  font-weight: bold;
-}
-
-.chipEscuela {
-  font-size: 9px;
-  background-color: rgba(95, 93, 187, 0.15);
-  border: 1px solid rgba(95, 93, 187, 0.4);
-  color: #a29bfe;
-  padding: 1px 6px;
-  text-transform: uppercase;
-  font-weight: bold;
-}
-
-.seccionDescripcionFicha {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.seccionDescripcionFichaMargen {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  margin-top: 4px;
-}
-
-.seccionDescripcionFichaMargenGrande {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  margin-top: 8px;
-}
-
-.descripcionTituloFicha {
-  font-size: 10px;
-  font-weight: bold;
-  color: var(--color-borde-cian);
-  letter-spacing: 0.05em;
-  border-bottom: 1.5px solid var(--color-borde-brutal);
-  padding-bottom: 2px;
-}
-
-.descripcionTituloFichaActivo {
-  font-size: 10px;
-  font-weight: bold;
-  color: var(--color-activo);
-  letter-spacing: 0.05em;
-  border-bottom: 1.5px solid var(--color-borde-brutal);
-  padding-bottom: 2px;
-}
-
-.descripcionCuerpoFicha {
-  font-size: 11.5px;
-  color: var(--color-texto-principal);
-  line-height: 1.45;
-  white-space: pre-line;
-  text-align: justify;
-}
-
-.descripcionCuerpoFichaSecundario {
-  font-size: 11.5px;
-  color: var(--color-texto-secundario);
-  line-height: 1.45;
-  white-space: pre-line;
-  text-align: justify;
-}
-
-.descripcionCuerpoMateriales {
-  font-size: 11px;
-  color: var(--color-texto-secundario);
-  font-style: italic;
-  line-height: 1.45;
-  white-space: pre-line;
-  text-align: justify;
-}
-
-.cajaMecanicasCombate {
-  background-color: rgba(0, 245, 212, 0.05);
-  border: 1.5px solid var(--color-borde-cian);
-  padding: 8px;
-  border-radius: 4px;
-  margin-top: 6px;
-}
-
 .cajaMecanicasCombateObjeto {
   background-color: rgba(255, 118, 117, 0.05);
   border: 1.5px solid #ff7675;
@@ -385,70 +286,12 @@
   margin-top: 6px;
 }
 
-.tituloMecanicas {
-  font-size: 10px;
-  font-weight: bold;
-  color: var(--color-borde-cian);
-  margin-bottom: 6px;
-  text-transform: uppercase;
-}
-
 .tituloMecanicasObjeto {
   font-size: 10px;
   font-weight: bold;
   color: #ff7675;
   margin-bottom: 6px;
   text-transform: uppercase;
-}
-
-.gridMecanicas {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 6px;
-}
-
-.itemMecanica {
-  font-size: 11px;
-}
-
-.textoEtiquetaMecanica {
-  color: var(--color-texto-secundario);
-}
-
-.valorMecanicaAtaque {
-  color: var(--color-activo);
-  font-weight: bold;
-}
-
-.valorMecanicaCd {
-  color: #ffcc00;
-  font-weight: bold;
-}
-
-.valorMecanicaDano {
-  color: #ff7675;
-  font-weight: bold;
-}
-
-.valorMecanicaSuperior {
-  color: #74b9ff;
-  font-weight: bold;
-}
-
-.listaBadgesClases {
-  display: flex;
-  gap: 5px;
-  flex-wrap: wrap;
-  margin-top: 4px;
-}
-
-.badgeClase {
-  font-size: 9px;
-  background-color: rgba(255, 255, 255, 0.05);
-  border: 1px solid var(--color-borde-brutal);
-  color: var(--color-texto-principal);
-  padding: 1px 5px;
-  border-radius: 2px;
 }
 
 .badgeClaseObjeto {
@@ -476,3 +319,41 @@
   gap: 4px;
   margin-top: 4px;
 }
+
+.seccionDescripcionFicha {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.seccionDescripcionFichaMargenGrande {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 8px;
+}
+
+.descripcionTituloFicha {
+  font-size: 12px;
+  font-weight: bold;
+  color: var(--color-borde-cian);
+  letter-spacing: 0.05em;
+  border-bottom: 1.5px solid var(--color-borde-brutal);
+  padding-bottom: 2px;
+}
+
+.descripcionCuerpoFicha {
+  font-size: 14px;
+  color: var(--color-texto-principal);
+  line-height: 1.45;
+  white-space: pre-line;
+  text-align: justify;
+}
+
+.listaBadgesClases {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+

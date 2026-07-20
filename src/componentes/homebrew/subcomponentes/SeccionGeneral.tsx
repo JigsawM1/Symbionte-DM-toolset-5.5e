@@ -3,6 +3,7 @@ import { Shield, Heart } from "lucide-react";
 import estilos from "../FormularioCriatura.module.css";
 import { VelocidadEstructurada, SentidosEstructurados } from "../../../tipos";
 import { formatearVelocidad, formatearSentidos } from "../../../almacen/sanitizacion";
+import { Criatura_Tipos } from "../../../constantes/homebrewConstantes";
 
 interface SeccionGeneralProps {
   monstruoForm: {
@@ -47,21 +48,11 @@ export const SeccionGeneral: React.FC<SeccionGeneralProps> = ({
             onChange={(e) => actualizarGeneral("tipo", e.target.value)}
             className={estilos.selectForm}
           >
-            <option value="Humanoide">Humanoide</option>
-            <option value="Monstruosidad">Monstruosidad</option>
-            <option value="No Muerto">No Muerto</option>
-            <option value="Dragón">Dragón</option>
-            <option value="Bestia">Bestia</option>
-            <option value="Constructo">Constructo</option>
-            <option value="Elemental">Elemental</option>
-            <option value="Feérico">Feérico</option>
-            <option value="Infernal">Infernal</option>
-            <option value="Gigante">Gigante</option>
-            <option value="Aberración">Aberración</option>
-            <option value="Celestial">Celestial</option>
-            <option value="Abominación">Abominación</option>
-            <option value="Planta">Planta</option>
-            <option value="Cieno">Cieno</option>
+            {Criatura_Tipos.map((tipo) => (
+              <option key={tipo.clave} value={tipo.clave}>
+                {tipo.etiqueta}
+              </option>
+            ))}
           </select>
         </div>
       </div>

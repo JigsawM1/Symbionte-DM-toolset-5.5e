@@ -1,11 +1,12 @@
 .contenedorTablas {
   display: flex;
   flex-direction: column;
-  flex-grow: 1;
+  flex: 1;
+  min-height: 0;
   width: 100%;
   background-color: var(--color-fondo-profundo);
   padding: 2px;
-  overflow-y: auto;
+  overflow: hidden;
 }
 
 .subNavegacion {
@@ -51,9 +52,9 @@
 
 .cuerpoVisualizador {
   display: flex;
-  flex-grow: 1;
+  flex: 1;
+  min-height: 0;
   padding: 2px;
-  overflow-y: auto;
 }
 
 .seccionCalculadoras {
@@ -62,4 +63,7 @@
   width: 100%;
   gap: 8px;
   padding-right: 2px;
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
 }

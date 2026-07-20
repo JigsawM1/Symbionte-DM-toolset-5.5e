@@ -12,29 +12,73 @@
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
-  padding: 12px 14px;
-  border-bottom: 1px solid rgba(0, 245, 212, 0.2);
+  padding: 8px 12px;
+  border-bottom: 1.5px solid rgba(0, 245, 212, 0.25);
   background-color: rgba(0, 245, 212, 0.06);
   flex-shrink: 0;
+  height: 38px;
 }
 
 .cabeceraIzquierda {
   display: flex;
-  flex-direction: column;
-  gap: 2px;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+}
+
+.cabeceraDerecha {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 6px;
+}
+
+.botonAtras {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: var(--color-texto-principal);
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  font-size: 11px;
+  font-weight: bold;
+}
+
+.botonAtras:hover {
+  background-color: rgba(255, 255, 255, 0.15);
+}
+
+.botonEditar {
+  background: none;
+  border: none;
+  color: var(--color-borde-cian);
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  border-radius: 4px;
+}
+
+.botonEditar:hover {
+  background-color: rgba(0, 245, 212, 0.12);
 }
 
 .metaNivel {
   font-size: 9px;
   font-weight: bold;
-  letter-spacing: 0.08em;
-  color: var(--color-borde-cian);
+  letter-spacing: 0.05em;
+  color: #ffcc00;
+  border: 1px solid #ffcc00;
+  padding: 1px 4px;
   font-family: var(--fuente-codigo);
+  border-radius: 2px;
 }
 
 .titulo {
-  font-size: 16px;
-  font-weight: 800;
+  font-size: 13.5px;
+  font-weight: bold;
   color: #ffffff;
   font-family: var(--fuente-principal);
   letter-spacing: 0.02em;
@@ -171,7 +215,7 @@
 .textoDescripcion {
   font-size: 12px;
   line-height: 1.45;
-  color: var(--color-texto-secundario);
+  color: var(--color-texto-principal);
   white-space: pre-wrap;
 }
 
@@ -334,12 +378,13 @@
 }
 
 .chipClase {
-  font-size: 9px;
+  font-size: 11px;
   background-color: rgba(255, 255, 255, 0.05);
   border: 1px solid var(--color-borde-brutal);
   color: var(--color-texto-principal);
-  padding: 1px 5px;
-  border-radius: 2px;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-weight: 500;
 }
 
 .colorActivo {

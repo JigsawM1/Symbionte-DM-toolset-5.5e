@@ -8,6 +8,9 @@
   overflow: hidden;
   box-sizing: border-box;
   padding: 0;
+  transform: translate3d(0, 0, 0);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
 }
 
 .areaContenido {

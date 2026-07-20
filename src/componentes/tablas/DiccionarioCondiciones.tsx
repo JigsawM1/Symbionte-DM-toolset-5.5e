@@ -8,7 +8,7 @@ export const DiccionarioCondiciones: React.FC = () => {
   const [efectoSeleccionado, setEfectoSeleccionado] = useState(EFECTOS_PREDEFINIDOS[0]);
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", width: "100%", height: "100%", gap: "6px" }}>
+    <div className={estilos.contenedorPrincipal}>
       {/* Pestañas internas de navegación */}
       <div className={estilos.pestañasInternas}>
         <button

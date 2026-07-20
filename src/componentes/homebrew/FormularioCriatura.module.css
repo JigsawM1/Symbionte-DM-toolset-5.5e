@@ -327,7 +327,7 @@
 .inputDinamicoMini {
   font-size: 13px;
   padding: 6px 7px;
-  width: 68px;
+  width: 78px;
   background-color: var(--color-fondo-profundo);
   border: 1.5px solid var(--color-borde-brutal);
   border-radius: 4px;
@@ -342,7 +342,7 @@
 .inputDinamicoMediano {
   font-size: 13px;
   padding: 6px 8px;
-  width: 130px;
+  width: 170px;
   background-color: var(--color-fondo-profundo);
   border: 1.5px solid var(--color-borde-brutal);
   border-radius: 4px;

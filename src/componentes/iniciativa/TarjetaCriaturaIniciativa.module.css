@@ -28,10 +28,11 @@
   justify-content: center;
   border: 1px solid var(--color-borde-brutal);
   border-radius: 4px;
-  width: 38px;
-  height: 38px;
+  width: 46px;
+  height: 64px;
   flex-shrink: 0;
   margin-left: 2px;
+  position: relative;
 }
 
 .etiquetaInicMini {
@@ -47,6 +48,57 @@
   font-weight: 800;
   font-family: var(--fuente-codigo);
   line-height: 1.1;
+}
+
+.botonDadoIniciativa {
+  position: absolute;
+  top: 1px;
+  right: 1px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 2px;
+  color: var(--color-texto-principal);
+  cursor: pointer;
+  padding: 1px 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  opacity: 0.5;
+  transition: opacity 0.15s, color 0.15s;
+}
+
+.botonDadoIniciativa:hover {
+  opacity: 1;
+  color: var(--color-borde-cian);
+  background: rgba(0, 245, 212, 0.1);
+  border-color: rgba(0, 245, 212, 0.3);
+}
+
+.inputIniciativaEditable {
+  width: 30px;
+  font-size: 16px;
+  font-weight: 800;
+  font-family: var(--fuente-codigo);
+  line-height: 1.1;
+  text-align: center;
+  background-color: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 204, 0, 0.5);
+  border-radius: 2px;
+  outline: none;
+  padding: 0;
+  -moz-appearance: textfield;
+}
+
+.inputIniciativaEditable::-webkit-outer-spin-button,
+.inputIniciativaEditable::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.inputIniciativaEditable:focus {
+  border-color: #ffcc00;
+  box-shadow: 0 0 4px rgba(255, 204, 0, 0.35);
 }
 
 .cuerpoTarjetaCentral {
@@ -93,6 +145,19 @@
   background-color: rgba(0, 245, 212, 0.12);
   border: 1px solid var(--color-borde-cian);
   color: var(--color-borde-cian);
+  padding: 1px 4px;
+  border-radius: 2px;
+  text-transform: uppercase;
+  font-weight: 800;
+  font-family: var(--fuente-codigo);
+  letter-spacing: 0.02em;
+}
+
+.tagSeleccionTS {
+  font-size: 9.5px;
+  background-color: rgba(224, 169, 109, 0.15);
+  border: 1px solid var(--color-advertencia);
+  color: var(--color-advertencia);
   padding: 1px 4px;
   border-radius: 2px;
   text-transform: uppercase;

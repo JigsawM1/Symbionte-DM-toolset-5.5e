@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import { usarAlmacenDM, CriaturaIniciativa, HechizoBase } from "../almacen/usarAlmacenDM";
 import { resolverPlantillaPorCriatura, esNombreVacioODot } from "../servicios/resolutorCriaturas";
 import { usarIndiceMonstruos } from "../servicios/indiceMonstruos";
@@ -15,6 +15,7 @@ import { ConfirmDialog } from "./ConfirmDialog";
 export const GestorIniciativa: React.FC = () => {
   const colaIniciativa = usarAlmacenDM((s) => s.colaIniciativa);
   const indiceTurnoActivo = usarAlmacenDM((s) => s.indiceTurnoActivo);
+  const criaturasSeleccionadas = usarAlmacenDM((s) => s.criaturasSeleccionadas);
   const baseDatosMonstruos = usarAlmacenDM((s) => s.baseDatosMonstruos);
   const baseDatosHechizos = usarAlmacenDM((s) => s.baseDatosHechizos);
   const asociacionesFichas = usarAlmacenDM((s) => s.asociacionesFichas);
@@ -28,6 +29,7 @@ export const GestorIniciativa: React.FC = () => {
   const agregarEfectoACriatura = usarAlmacenDM((s) => s.agregarEfectoACriatura);
   const quitarEfectoDeCriatura = usarAlmacenDM((s) => s.quitarEfectoDeCriatura);
   const importarIniciativaTaleSpire = usarAlmacenDM((s) => s.importarIniciativaTaleSpire);
+  const establecerIniciativaCriatura = usarAlmacenDM((s) => s.establecerIniciativaCriatura);
 
   const indiceMonstruos = usarIndiceMonstruos();
 
@@ -39,6 +41,26 @@ export const GestorIniciativa: React.FC = () => {
     mensaje: string;
     onConfirmar: () => void;
   } | null>(null);
+
+  // Ref para auto-scroll al turno activo
+  const refContenedorScroll = useRef<HTMLDivElement>(null);
+
+  // Callback ref para la tarjeta activa — hace scrollIntoView al montarse/cambiar
+  const refTarjetaActiva = useCallback((nodo: HTMLDivElement | null) => {
+    if (nodo) {
+      nodo.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
+  }, []);
+
+  // Auto-scroll cada vez que cambia el turno activo
+  useEffect(() => {
+    if (refContenedorScroll.current) {
+      const elementoActivo = refContenedorScroll.current.querySelector('[data-turno-activo="true"]');
+      if (elementoActivo) {
+        elementoActivo.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      }
+    }
+  }, [indiceTurnoActivo]);
 
   // Buscar plantilla de estadísticas para una criatura mediante el ResolutorCriaturas
   const obtenerPlantillaAsociada = (criatura: CriaturaIniciativa): MonstruoBase | null => {
@@ -147,15 +169,21 @@ export const GestorIniciativa: React.FC = () => {
               </button>
             </div>
 
-            <div className={estilosClases.listaTarjetasIniciativa}>
+            <div className={estilosClases.listaTarjetasIniciativa} ref={refContenedorScroll}>
               {colaIniciativa.map((criatura, indice) => {
                 const esTurnoActivo = indice === indiceTurnoActivo;
+                const estaSeleccionadaEnTS = (criaturasSeleccionadas || []).some((s) => s.id === criatura.id);
                 const plantilla = obtenerPlantillaAsociada(criatura);
                 return (
-                  <TarjetaCriaturaIniciativa
+                  <div
                     key={criatura.id}
+                    ref={esTurnoActivo ? refTarjetaActiva : undefined}
+                    data-turno-activo={esTurnoActivo ? "true" : undefined}
+                  >
+                  <TarjetaCriaturaIniciativa
                     criatura={criatura}
                     esTurnoActivo={esTurnoActivo}
+                    estaSeleccionadaEnTS={estaSeleccionadaEnTS}
                     plantilla={plantilla}
                     onEliminar={() => {
                       if (idCriaturaDetalle === criatura.id) {
@@ -182,7 +210,9 @@ export const GestorIniciativa: React.FC = () => {
                       lanzarAtaqueRapido(criatura.nombre, accNom, accBono, accDados, accTipo)
                     }
                     obtenerPercepcionPasiva={obtenerPercepcionPasiva}
+                    onEstablecerIniciativa={(nuevaInic) => establecerIniciativaCriatura(criatura.id, nuevaInic)}
                   />
+                  </div>
                 );
               })}
             </div>

@@ -41,12 +41,72 @@ export const CONDICIONES_2024: CondicionDnd[] = [
     ]
   },
   {
+    nombre: "APRESADO (Restrained)",
+    descripcion: "Reglas D&D 2024 (5.5e)",
+    efectos: [
+      "La velocidad de la criatura pasa a ser 0 y no puede beneficiarse de ningún bonificador a su velocidad.",
+      "Las tiradas de ataque contra la criatura tienen ventaja.",
+      "Las tiradas de ataque de la criatura tienen desventaja.",
+      "La criatura tiene desventaja en las tiradas de salvación de Destreza."
+    ]
+  },
+  {
+    nombre: "ASUSTADO (Frightened)",
+    descripcion: "Reglas D&D 2024 (5.5e)",
+    efectos: [
+      "La criatura asustada tiene desventaja en las pruebas de característica y tiradas de ataque mientras la fuente de su miedo esté dentro de su línea de visión.",
+      "La criatura no puede acercarse voluntariamente a la fuente de su miedo."
+    ]
+  },
+  {
+    nombre: "ATURDIDO (Stunned)",
+    descripcion: "Reglas D&D 2024 (5.5e)",
+    efectos: [
+      "La criatura aturdida está Incapacitada, no puede moverse y sólo puede hablar balbuceando.",
+      "La criatura falla automáticamente las tiradas de salvación de Fuerza y Destreza.",
+      "Las tiradas de ataque contra la criatura tienen ventaja."
+    ]
+  },
+  {
+    nombre: "CANSADO (Exhausted)",
+    descripcion: "Reglas D&D 2024 (5.5e)",
+    efectos: [
+      "Esta condición es acumulativa y tiene 6 niveles. Si alcanzas el nivel 6, mueres de inmediato.",
+      "Tiradas d20: Restas 2 veces tu nivel de cansancio a todas tus tiradas de d20 (ataques, salvaciones y pruebas).",
+      "Velocidad: Tu velocidad se reduce en 5 pies por cada nivel de cansancio.",
+      "Un descanso largo reduce tu nivel de cansancio en 1, siempre que consumas comida y bebida."
+    ]
+  },
+  {
     nombre: "CEGADO (Blinded)",
     descripcion: "Reglas D&D 2024 (5.5e)",
     efectos: [
       "La criatura ciega no puede ver y falla automáticamente cualquier prueba de característica que requiera la vista.",
       "Las tiradas de ataque contra la criatura tienen ventaja.",
       "Las tiradas de ataque de la criatura tienen desventaja."
+    ]
+  },
+  {
+    nombre: "DERRIBADO (Prone)",
+    descripcion: "Reglas D&D 2024 (5.5e)",
+    efectos: [
+      "La única opción de movimiento de la criatura es arrastrarse, a menos que se levante gastando la mitad de su velocidad.",
+      "La criatura tiene desventaja en las tiradas de ataque.",
+      "Una tirada de ataque contra la criatura tiene ventaja si el atacante está a 5 pies o menos de ella. De lo contrario, la tirada de ataque tiene desventaja."
+    ]
+  },
+  {
+    nombre: "ENSORDECIDO (Deafened)",
+    descripcion: "Reglas D&D 2024 (5.5e)",
+    efectos: [
+      "La criatura ensordecida no puede oír y falla automáticamente cualquier prueba de característica que requiera el oído."
+    ]
+  },
+  {
+    nombre: "ENVENENADO (Poisoned)",
+    descripcion: "Reglas D&D 2024 (5.5e)",
+    efectos: [
+      "La criatura envenenada tiene desventaja en las tiradas de ataque y en las pruebas de característica."
     ]
   },
   {
@@ -58,19 +118,23 @@ export const CONDICIONES_2024: CondicionDnd[] = [
     ]
   },
   {
-    nombre: "ENSORDECIDO (Deafened)",
-    descripcion: "Reglas D&D 2024 (5.5e)",
-    efectos: [
-      "La criatura ensordecida no puede oír y falla automáticamente cualquier prueba de característica que requiera el oído."
-    ]
-  },
-  {
     nombre: "INCAPACITADO (Incapacitated)",
     descripcion: "Reglas D&D 2024 (5.5e)",
     efectos: [
       "La criatura no puede realizar acciones ni reacciones.",
       "Si la criatura está incapacitada, pierde la concentración en cualquier conjuro activo de forma automática.",
       "Su velocidad de iniciativa no se ve alterada directamente, pero no puede actuar en su turno."
+    ]
+  },
+  {
+    nombre: "INCONSCIENTE (Unconscious)",
+    descripcion: "Reglas D&D 2024 (5.5e)",
+    efectos: [
+      "La criatura inconsciente está Incapacitada, no puede moverse ni hablar y no es consciente de su entorno.",
+      "La criatura deja caer lo que esté sosteniendo y queda Derribada.",
+      "La criatura falla automáticamente las tiradas de salvación de Fuerza y Destreza.",
+      "Las tiradas de ataque contra la criatura tienen ventaja.",
+      "Cualquier ataque que golpee a la criatura es un impacto crítico si el atacante está a 5 pies o menos de ella."
     ]
   },
   {
@@ -93,60 +157,6 @@ export const CONDICIONES_2024: CondicionDnd[] = [
     ]
   },
   {
-    nombre: "DERRIBADO (Prone)",
-    descripcion: "Reglas D&D 2024 (5.5e)",
-    efectos: [
-      "La única opción de movimiento de la criatura es arrastrarse, a menos que se levante gastando la mitad de su velocidad.",
-      "La criatura tiene desventaja en las tiradas de ataque.",
-      "Una tirada de ataque contra la criatura tiene ventaja si el atacante está a 5 pies o menos de ella. De lo contrario, la tirada de ataque tiene desventaja."
-    ]
-  },
-  {
-    nombre: "APRESADO (Restrained)",
-    descripcion: "Reglas D&D 2024 (5.5e)",
-    efectos: [
-      "La velocidad de la criatura pasa a ser 0 y no puede beneficiarse de ningún bonificador a su velocidad.",
-      "Las tiradas de ataque contra la criatura tienen ventaja.",
-      "Las tiradas de ataque de la criatura tienen desventaja.",
-      "La criatura tiene desventaja en las tiradas de salvación de Destreza."
-    ]
-  },
-  {
-    nombre: "ENVENENADO (Poisoned)",
-    descripcion: "Reglas D&D 2024 (5.5e)",
-    efectos: [
-      "La criatura envenenada tiene desventaja en las tiradas de ataque y en las pruebas de característica."
-    ]
-  },
-  {
-    nombre: "ATURDIDO (Stunned)",
-    descripcion: "Reglas D&D 2024 (5.5e)",
-    efectos: [
-      "La criatura aturdida está Incapacitada, no puede moverse y sólo puede hablar balbuceando.",
-      "La criatura falla automáticamente las tiradas de salvación de Fuerza y Destreza.",
-      "Las tiradas de ataque contra la criatura tienen ventaja."
-    ]
-  },
-  {
-    nombre: "INCONSCIENTE (Unconscious)",
-    descripcion: "Reglas D&D 2024 (5.5e)",
-    efectos: [
-      "La criatura inconsciente está Incapacitada, no puede moverse ni hablar y no es consciente de su entorno.",
-      "La criatura deja caer lo que esté sosteniendo y queda Derribada.",
-      "La criatura falla automáticamente las tiradas de salvación de Fuerza y Destreza.",
-      "Las tiradas de ataque contra la criatura tienen ventaja.",
-      "Cualquier ataque que golpee a la criatura es un impacto crítico si el atacante está a 5 pies o menos de ella."
-    ]
-  },
-  {
-    nombre: "ASUSTADO (Frightened)",
-    descripcion: "Reglas D&D 2024 (5.5e)",
-    efectos: [
-      "La criatura asustada tiene desventaja en las pruebas de característica y tiradas de ataque mientras la fuente de su miedo esté dentro de su línea de visión.",
-      "La criatura no puede acercarse voluntariamente a la fuente de su miedo."
-    ]
-  },
-  {
     nombre: "PETRIFICADO (Petrified)",
     descripcion: "Reglas D&D 2024 (5.5e)",
     efectos: [
@@ -156,16 +166,6 @@ export const CONDICIONES_2024: CondicionDnd[] = [
       "La criatura falla automáticamente las tiradas de salvación de Fuerza y Destreza.",
       "La criatura tiene resistencia a todos los tipos de daño.",
       "La criatura es inmune al veneno y a la condición de Envenenado (si ya estaba envenenada, el efecto se suspende pero no se neutraliza)."
-    ]
-  },
-  {
-    nombre: "CANSADO (Exhausted)",
-    descripcion: "Reglas D&D 2024 (5.5e)",
-    efectos: [
-      "Esta condición es acumulativa y tiene 6 niveles. Si alcanzas el nivel 6, mueres de inmediato.",
-      "Tiradas d20: Restas 2 veces tu nivel de cansancio a todas tus tiradas de d20 (ataques, salvaciones y pruebas).",
-      "Velocidad: Tu velocidad se reduce en 5 pies por cada nivel de cansancio.",
-      "Un descanso largo reduce tu nivel de cansancio en 1, siempre que consumas comida y bebida."
     ]
   }
 ];

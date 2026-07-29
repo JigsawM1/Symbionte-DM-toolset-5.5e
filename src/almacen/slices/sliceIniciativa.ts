@@ -66,12 +66,16 @@ export interface SliceIniciativa {
   asociarPlantillaACriatura: (idCriatura: string, idPlantilla: string) => void;
   desvincularPlantillaDeCriatura: (idCriatura: string) => void;
   actualizarVidaTemporal: (idCriatura: string, vidaTemp: number) => void;
+  establecerIniciativaCriatura: (idCriatura: string, nuevaIniciativa: number) => void;
   limpiarIniciativa: () => void;
   ordenarIniciativa: () => void;
   autoLanzarIniciativaMonstruos: () => void;
 
   actualizarSeleccionCriaturas: (seleccionadas: CriaturaSeleccionadaTS[]) => void;
   agregarCriaturasSeleccionadasAIniciativa: () => void;
+  aplicarDañoEnArea: (cantidad: number, idsObjetivo?: string[]) => void;
+  aplicarCondicionEnArea: (condicion: string, idsObjetivo?: string[]) => void;
+  aplicarEfectoEnArea: (nombreEfecto: string, duracion: number, opciones?: { concentracion?: boolean }, idsObjetivo?: string[]) => void;
 }
 
 export const crearSliceIniciativa: StateCreator<
@@ -196,6 +200,25 @@ export const crearSliceIniciativa: StateCreator<
     return { 
       colaIniciativa: nuevaCola,
       asociacionesFichas: nuevasAsociaciones
+    };
+  }),
+
+  establecerIniciativaCriatura: (idCriatura, nuevaIniciativa) => set((state) => {
+    const nuevaCola = state.colaIniciativa.map((c) => {
+      if (c.id === idCriatura) {
+        return { ...c, iniciativa: nuevaIniciativa };
+      }
+      return c;
+    });
+    nuevaCola.sort((a, b) => b.iniciativa - a.iniciativa);
+    // Recalcular el índice del turno activo para que apunte a la misma criatura
+    const criaturaActivaId = state.colaIniciativa[state.indiceTurnoActivo]?.id;
+    const nuevoIndice = criaturaActivaId
+      ? nuevaCola.findIndex((c) => c.id === criaturaActivaId)
+      : state.indiceTurnoActivo;
+    return {
+      colaIniciativa: nuevaCola,
+      indiceTurnoActivo: nuevoIndice >= 0 ? nuevoIndice : 0
     };
   }),
 
@@ -468,6 +491,144 @@ export const crearSliceIniciativa: StateCreator<
     const colaCombinada = [...state.colaIniciativa, ...nuevasCriaturas];
     colaCombinada.sort((a, b) => b.iniciativa - a.iniciativa);
     return { colaIniciativa: colaCombinada };
+  }),
+
+  aplicarDañoEnArea: (cantidad, idsObjetivo) => set((state) => {
+    if (state.colaIniciativa.length === 0 || cantidad === 0) return {};
+    const targets = obtenerIdsObjetivoMasivo(
+      state.colaIniciativa,
+      state.indiceTurnoActivo,
+      state.criaturasSeleccionadas,
+      idsObjetivo
+    );
+    if (targets.size === 0) return {};
+
+    const nuevaCola = state.colaIniciativa.map((c) => {
+      if (!targets.has(c.id)) return c;
+
+      if (cantidad > 0) {
+        // Daño: Absorbe vida temporal primero
+        let dañoRestante = cantidad;
+        let vidaTemp = c.vidaTemporal || 0;
+        let vidaAct = c.vidaActual;
+
+        if (vidaTemp > 0) {
+          if (vidaTemp >= dañoRestante) {
+            vidaTemp -= dañoRestante;
+            dañoRestante = 0;
+          } else {
+            dañoRestante -= vidaTemp;
+            vidaTemp = 0;
+          }
+        }
+
+        if (dañoRestante > 0) {
+          vidaAct = Math.max(0, vidaAct - dañoRestante);
+        }
+
+        return { ...c, vidaTemporal: vidaTemp, vidaActual: vidaAct };
+      } else {
+        // Curación (cantidad negativa)
+        const curacion = Math.abs(cantidad);
+        const nuevaVidaAct = Math.min(c.vidaMaxima, c.vidaActual + curacion);
+        return { ...c, vidaActual: nuevaVidaAct };
+      }
+    });
+
+    return { colaIniciativa: nuevaCola };
+  }),
+
+  aplicarCondicionEnArea: (condicion, idsObjetivo) => set((state) => {
+    if (state.colaIniciativa.length === 0 || !condicion.trim()) return {};
+    const targets = obtenerIdsObjetivoMasivo(
+      state.colaIniciativa,
+      state.indiceTurnoActivo,
+      state.criaturasSeleccionadas,
+      idsObjetivo
+    );
+    if (targets.size === 0) return {};
+
+    const nuevaCola = state.colaIniciativa.map((c) => {
+      if (!targets.has(c.id)) return c;
+
+      const condTrimmed = condicion.trim();
+      if (condTrimmed.toLowerCase().includes("cansado") || condTrimmed.toLowerCase().includes("exhausted")) {
+        const condicionCansadoExistente = c.condiciones.find(
+          (cond) => cond.toLowerCase().startsWith("cansado")
+        );
+
+        if (condicionCansadoExistente) {
+          const matches = condicionCansadoExistente.match(/\d+/);
+          const nivelActual = matches ? parseInt(matches[0], 10) : 1;
+          const nuevoNivel = Math.min(6, nivelActual + 1);
+          const condicionesFiltradas = c.condiciones.filter(
+            (cond) => !cond.toLowerCase().startsWith("cansado")
+          );
+          return { ...c, condiciones: [...condicionesFiltradas, `Cansado (Niv. ${nuevoNivel})`] };
+        } else {
+          return { ...c, condiciones: [...c.condiciones, "Cansado (Niv. 1)"] };
+        }
+      }
+
+      if (!c.condiciones.includes(condTrimmed)) {
+        return { ...c, condiciones: [...c.condiciones, condTrimmed] };
+      }
+
+      return c;
+    });
+
+    return { colaIniciativa: nuevaCola };
+  }),
+
+  aplicarEfectoEnArea: (nombreEfecto, duracion, opciones, idsObjetivo) => set((state) => {
+    if (state.colaIniciativa.length === 0 || !nombreEfecto.trim()) return {};
+    const targets = obtenerIdsObjetivoMasivo(
+      state.colaIniciativa,
+      state.indiceTurnoActivo,
+      state.criaturasSeleccionadas,
+      idsObjetivo
+    );
+    if (targets.size === 0) return {};
+
+    const nuevaCola = state.colaIniciativa.map((c) => {
+      if (!targets.has(c.id)) return c;
+
+      const nuevosEfectos = c.efectos ? [...c.efectos] : [];
+      const esConcentracion = opciones?.concentracion || 
+                             nombreEfecto.toLowerCase().trim() === "concentración" || 
+                             nombreEfecto.toLowerCase().trim() === "concentracion";
+      const nuevoEfecto: EfectoActivo = {
+        id: `${nombreEfecto.toLowerCase().replace(/[^a-z0-9]/g, "_")}_${Date.now()}_${Math.random().toString(36).substring(2, 5)}`,
+        nombre: nombreEfecto,
+        expiraRonda: esConcentracion ? undefined : state.rondaActual + duracion,
+        concentracion: esConcentracion || undefined
+      };
+
+      return { ...c, efectos: [...nuevosEfectos, nuevoEfecto] };
+    });
+
+    return { colaIniciativa: nuevaCola };
   })
 });
+
+function obtenerIdsObjetivoMasivo(
+  colaIniciativa: CriaturaIniciativa[],
+  indiceTurnoActivo: number,
+  criaturasSeleccionadas: CriaturaSeleccionadaTS[],
+  idsManuales?: string[]
+): Set<string> {
+  if (idsManuales && idsManuales.length > 0) {
+    return new Set(idsManuales);
+  }
+  const idsSeleccionadosEnCola = (criaturasSeleccionadas || [])
+    .map((s) => s.id)
+    .filter((id) => colaIniciativa.some((c) => c.id === id));
+
+  if (idsSeleccionadosEnCola.length > 0) {
+    return new Set(idsSeleccionadosEnCola);
+  }
+
+  const idActiva = colaIniciativa[indiceTurnoActivo]?.id;
+  return idActiva ? new Set([idActiva]) : new Set();
+}
 

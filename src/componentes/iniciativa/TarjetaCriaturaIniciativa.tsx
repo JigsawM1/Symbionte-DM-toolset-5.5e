@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { Skull, Shield, Trash2, Heart, Swords, X } from "lucide-react";
+import React, { useState, useRef, useEffect } from "react";
+import { Trash2, Heart, Swords, X, Dices } from "lucide-react";
 import { usarAlmacenDM, CriaturaIniciativa } from "../../almacen/usarAlmacenDM";
 import { MonstruoBase, CONDICIONES_2024, EFECTOS_PREDEFINIDOS } from "../../utiles/datosIniciales";
 import { formatearVelocidad } from "../../almacen/sanitizacion";
@@ -9,6 +9,7 @@ import estilosClases from "./TarjetaCriaturaIniciativa.module.css";
 interface TarjetaCriaturaIniciativaProps {
   criatura: CriaturaIniciativa;
   esTurnoActivo: boolean;
+  estaSeleccionadaEnTS?: boolean;
   plantilla: MonstruoBase | null;
   onEliminar: () => void;
   onSeleccionar: () => void;
@@ -20,6 +21,7 @@ interface TarjetaCriaturaIniciativaProps {
   onAñadirEfecto: (nombre: string, duracion: number, opciones?: { concentracion?: boolean }) => void;
   onQuitarEfecto: (efectoId: string) => void;
   onLanzarIniciativa: () => void;
+  onEstablecerIniciativa: (nuevaIniciativa: number) => void;
   onLanzarAtaqueRapido: (ataqueNombre: string, bonoAtaque: string, dadosDaño: string, tipoDaño: string) => void;
   obtenerPercepcionPasiva: (plantilla: MonstruoBase | null) => number;
 }
@@ -27,6 +29,7 @@ interface TarjetaCriaturaIniciativaProps {
 export const TarjetaCriaturaIniciativa: React.FC<TarjetaCriaturaIniciativaProps> = React.memo(({
   criatura,
   esTurnoActivo,
+  estaSeleccionadaEnTS = false,
   plantilla,
   onEliminar,
   onSeleccionar,
@@ -38,15 +41,33 @@ export const TarjetaCriaturaIniciativa: React.FC<TarjetaCriaturaIniciativaProps>
   onAñadirEfecto,
   onQuitarEfecto,
   onLanzarIniciativa,
+  onEstablecerIniciativa,
   onLanzarAtaqueRapido,
   obtenerPercepcionPasiva
 }) => {
   const [hpInput, setHpInput] = useState("");
   const [dropdownAbierto, setDropdownAbierto] = useState<"condicion" | "efecto" | null>(null);
+  const [editandoIniciativa, setEditandoIniciativa] = useState(false);
+  const [valorIniciativaTemp, setValorIniciativaTemp] = useState("");
+  const refInputIniciativa = useRef<HTMLInputElement>(null);
 
   const estaMuerto = criatura.vidaActual === 0;
   const colorNombre = esTurnoActivo ? "var(--color-borde-cian)" : "var(--color-texto-principal)";
-  const colorBorde = esTurnoActivo ? "1px solid var(--color-borde-cian)" : "1px solid var(--color-borde-brutal)";
+  
+  const colorBorde = (esTurnoActivo && estaSeleccionadaEnTS)
+    ? "2px solid #ffcc00"
+    : estaSeleccionadaEnTS
+    ? "2px solid var(--color-advertencia)"
+    : esTurnoActivo
+    ? "1px solid var(--color-borde-cian)"
+    : "1px solid var(--color-borde-brutal)";
+
+  const sombraTarjeta = estaSeleccionadaEnTS
+    ? "0 0 10px rgba(224, 169, 109, 0.45)"
+    : esTurnoActivo
+    ? "0 0 8px rgba(0, 245, 212, 0.2)"
+    : "0 1px 3px rgba(0, 0, 0, 0.2)";
+
   const fondoTarjeta = esTurnoActivo 
     ? "linear-gradient(90deg, hsl(172, 90%, 4%) 0%, hsl(222, 18%, 11%) 100%)" 
     : "var(--color-fondo-tarjeta)";
@@ -65,11 +86,36 @@ export const TarjetaCriaturaIniciativa: React.FC<TarjetaCriaturaIniciativaProps>
     setHpInput("");
   };
 
+  // Confirmar edición manual de iniciativa
+  const confirmarIniciativaManual = () => {
+    const valor = parseInt(valorIniciativaTemp, 10);
+    if (!isNaN(valor)) {
+      onEstablecerIniciativa(valor);
+    }
+    setEditandoIniciativa(false);
+    setValorIniciativaTemp("");
+  };
+
+  // Activar modo edición de iniciativa
+  const activarEdicionIniciativa = () => {
+    setValorIniciativaTemp(String(criatura.iniciativa));
+    setEditandoIniciativa(true);
+  };
+
+  // Focus automático al activar edición
+  useEffect(() => {
+    if (editandoIniciativa && refInputIniciativa.current) {
+      refInputIniciativa.current.focus();
+      refInputIniciativa.current.select();
+    }
+  }, [editandoIniciativa]);
+
   return (
     <div
       className={estilosClases.tarjetaCriaturaBrutal}
       style={{
         border: colorBorde,
+        boxShadow: sombraTarjeta,
         background: fondoTarjeta,
         opacity: estaMuerto ? 0.55 : 1
       }}
@@ -83,45 +129,64 @@ export const TarjetaCriaturaIniciativa: React.FC<TarjetaCriaturaIniciativaProps>
         title={criatura.esMonstruo ? "Monstruo / Enemigo" : "Jugador / Aliado"}
       />
 
-      {/* Caja de Iniciativa */}
+      {/* Caja de Iniciativa — Editable al clic + botón de dado separado */}
       <div 
-        onClick={onLanzarIniciativa}
         className={estilosClases.bloqueIniciativaIzquierda}
         style={{
           borderColor: esTurnoActivo ? "var(--color-borde-cian)" : "var(--color-borde-brutal)",
-          backgroundColor: esTurnoActivo ? "rgba(0, 245, 212, 0.05)" : "hsl(222, 25%, 5%)",
-          cursor: "pointer"
+          backgroundColor: esTurnoActivo ? "rgba(0, 245, 212, 0.05)" : "hsl(222, 25%, 5%)"
         }}
-        title="Lanzar iniciativa"
       >
-        <span className={estilosClases.etiquetaInicMini}>INIC</span>
-        <span
-          className={estilosClases.valorInicGigante}
-          style={{
-            color: esTurnoActivo ? "var(--color-borde-cian)" : "#ffcc00"
+        {/* Botón de dado en la parte superior */}
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onLanzarIniciativa();
           }}
+          className={estilosClases.botonDadoIniciativa}
+          title="Lanzar dado de iniciativa en TaleSpire"
         >
-          {criatura.iniciativa}
-        </span>
+          <Dices size={12} />
+        </button>
+
+        {/* Valor de iniciativa — clic para editar */}
+        {editandoIniciativa ? (
+          <input
+            ref={refInputIniciativa}
+            type="number"
+            value={valorIniciativaTemp}
+            onChange={(e) => setValorIniciativaTemp(e.target.value)}
+            onBlur={confirmarIniciativaManual}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") confirmarIniciativaManual();
+              if (e.key === "Escape") {
+                setEditandoIniciativa(false);
+                setValorIniciativaTemp("");
+              }
+            }}
+            className={estilosClases.inputIniciativaEditable}
+            style={{
+              color: esTurnoActivo ? "var(--color-borde-cian)" : "#ffcc00"
+            }}
+          />
+        ) : (
+          <span
+            onClick={activarEdicionIniciativa}
+            className={estilosClases.valorInicGigante}
+            style={{
+              color: esTurnoActivo ? "var(--color-borde-cian)" : "#ffcc00",
+              cursor: "text"
+            }}
+            title="Clic para editar iniciativa manualmente"
+          >
+            {criatura.iniciativa}
+          </span>
+        )}
       </div>
 
       {/* Cuerpo central */}
       <div className={estilosClases.cuerpoTarjetaCentral}>
         <div className={estilosClases.cabeceraFilaInfo}>
-          <div
-            className={estilosClases.avatarRedondeado}
-            style={{
-              backgroundColor: criatura.esMonstruo ? "rgba(123, 44, 191, 0.15)" : "rgba(0, 245, 212, 0.1)",
-              borderColor: criatura.esMonstruo ? "#7b2cbf" : "var(--color-borde-cian)"
-            }}
-          >
-            {criatura.esMonstruo ? (
-              <Skull size={13} style={{ color: "#a29bfe" }} />
-            ) : (
-              <Shield size={13} style={{ color: "var(--color-borde-cian)" }} />
-            )}
-          </div>
-
           <div className={estilosClases.cajaNombres}>
             <span
               onClick={onSeleccionar}
@@ -141,11 +206,12 @@ export const TarjetaCriaturaIniciativa: React.FC<TarjetaCriaturaIniciativaProps>
                 criatura.nombre
               )}
               {esTurnoActivo && <span className={estilosClases.tagTurnoActivo}>ACTIVO</span>}
+              {estaSeleccionadaEnTS && <span className={estilosClases.tagSeleccionTS}>SEL</span>}
             </span>
             <span className={estilosClases.subtituloCriatura}>
-              CA: <strong style={{ color: "var(--color-borde-cian)", fontFamily: "var(--fuente-codigo)" }}>{criatura.ca}</strong> | Vel: {formatearVelocidad(criatura.velocidad)}
+              CA: <strong style={{ color: "var(--color-borde-cian)", fontFamily: "var(--fuente-codigo)" }}>{criatura.ca}</strong> <br/> Vel: {formatearVelocidad(criatura.velocidad)}
               {plantilla && (
-                <> | &nbsp; &nbsp; PP: <strong style={{ color: "#ffcc00", fontFamily: "var(--fuente-codigo)" }}>{obtenerPercepcionPasiva(plantilla)}</strong></>
+                <> <br/> PP: <strong style={{ color: "#ffcc00", fontFamily: "var(--fuente-codigo)" }}>{obtenerPercepcionPasiva(plantilla)}</strong></>
               )}
             </span>
           </div>
@@ -246,7 +312,7 @@ export const TarjetaCriaturaIniciativa: React.FC<TarjetaCriaturaIniciativaProps>
 
               {criatura.vidaActual > 0 && criatura.vidaActual < (criatura.vidaMaxima / 2) && (
                 <div className={`chip-condicion-chico-tooltip ${estilosClases.chipCondicionChico} ${estilosClases.chipDesangrado}`}>
-                  <span>🩸 DESANGRÁNDOSE</span>
+                  <span> DESANGRÁNDOSE</span>
                   <span className="tooltip-contenido">
                     {`DESANGRÁNDOSE (<50% de Vida)\n\n• Esta criatura está por debajo del 50% de sus puntos de golpe máximos.\n• Se aplica automáticamente y desaparecerá cuando recupere la salud por encima de la mitad.`}
                   </span>
@@ -325,7 +391,7 @@ export const TarjetaCriaturaIniciativa: React.FC<TarjetaCriaturaIniciativaProps>
                 textoExpiracion = "∞";
               }
 
-              const prefijoLabel = esConcentracion ? "[CON] " : "✨ ";
+              const prefijoLabel = esConcentracion ? "[CON] " : "";
               const labelEfecto = `${prefijoLabel}${ef.nombre.toUpperCase()}`;
 
               const tooltipEfecto = efPredef

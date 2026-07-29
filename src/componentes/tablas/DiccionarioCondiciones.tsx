@@ -15,7 +15,7 @@ export const DiccionarioCondiciones: React.FC = () => {
           onClick={() => setTipoDiccionario("condiciones")}
           className={`${estilos.miniBotonTab} ${tipoDiccionario === "condiciones" ? estilos.miniBotonTabActivo : ""}`}
         >
-          📜 CONDICIONES
+          CONDICIONES
         </button>
         <button
           onClick={() => setTipoDiccionario("efectos")}

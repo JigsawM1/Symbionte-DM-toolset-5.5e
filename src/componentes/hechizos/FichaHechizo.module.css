@@ -66,7 +66,7 @@
 }
 
 .metaNivel {
-  font-size: 9px;
+  font-size: 12px;
   font-weight: bold;
   letter-spacing: 0.05em;
   color: #ffcc00;
@@ -111,13 +111,13 @@
 
 .filaChips {
   display: flex;
-  gap: 6px;
+  gap: 8px;
   flex-wrap: wrap;
   align-items: center;
 }
 
 .chipConcentracion {
-  font-size: 8px;
+  font-size: 10px;
   font-weight: bold;
   background-color: rgba(239, 71, 111, 0.15);
   border: 1px solid #ef476f;
@@ -129,7 +129,7 @@
 }
 
 .chipRitual {
-  font-size: 8px;
+  font-size: 10px;
   font-weight: bold;
   background-color: rgba(114, 9, 183, 0.15);
   border: 1px solid #7209b7;
@@ -141,7 +141,7 @@
 }
 
 .chipEscuela {
-  font-size: 8px;
+  font-size: 10px;
   font-weight: bold;
   background-color: rgba(0, 245, 212, 0.05);
   border: 1px solid rgba(0, 245, 212, 0.2);
@@ -155,7 +155,7 @@
 .gridMetadatos {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 8px;
+  gap: 12px;
   background-color: rgba(0, 245, 212, 0.02);
   border: 1px solid rgba(0, 245, 212, 0.1);
   padding: 10px;
@@ -165,17 +165,16 @@
 .metaItem {
   display: flex;
   flex-direction: row;
-  align-items: flex-start;
-  gap: 8px;
+  align-items: center;
+  gap: 12px;
 }
 
 .iconoMeta {
   color: var(--color-borde-cian);
-  margin-top: 2px;
 }
 
 .metaLabel {
-  font-size: 8px;
+  font-size: 10px;
   font-weight: bold;
   color: var(--color-texto-apagado);
   letter-spacing: 0.05em;
@@ -194,18 +193,18 @@
 }
 
 .seccionTitulo {
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 800;
   color: var(--color-borde-cian);
   letter-spacing: 0.08em;
   border-bottom: 1px solid rgba(0, 245, 212, 0.15);
-  padding-bottom: 4px;
+  padding-bottom: 12px;
   text-transform: uppercase;
   font-family: var(--fuente-codigo);
 }
 
 .textoMateriales {
-  font-size: 10px;
+  font-size: 12px;
   font-style: italic;
   color: var(--color-texto-secundario);
   padding-left: 4px;
@@ -373,16 +372,17 @@
 .filaClases {
   display: flex;
   gap: 5px;
+  justify-content: space-around;
   flex-wrap: wrap;
-  margin-top: 4px;
+  margin-top: 6px;
 }
 
 .chipClase {
-  font-size: 11px;
+  font-size: 16px;
   background-color: rgba(255, 255, 255, 0.05);
   border: 1px solid var(--color-borde-brutal);
   color: var(--color-texto-principal);
-  padding: 3px 8px;
+  padding: 4px 18px;
   border-radius: 4px;
   font-weight: 500;
 }

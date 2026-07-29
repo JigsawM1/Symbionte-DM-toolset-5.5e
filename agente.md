@@ -5,6 +5,22 @@ Se actualiza automáticamente después de cada corrección importante.
 
 ---
 
+## [2026-07-29] Funcionalidad: Daño, Condiciones y Efectos en Área Masivos & Corrección de Selección CEF
+
+**Causa Raíz de Selección Fallida:**
+- En WebView2 / CEF, los callbacks inyectados por TaleSpire pasan a veces el payload como una cadena **JSON serializada** `"{ \"creatures\": [...] }"`, o como arreglos planos de IDs. Intentar leer `seleccion?.creatures` directamente sin deserializar resultaba en `undefined` y vaciaba la selección local (`actualizarSeleccionCriaturas([])`).
+
+**Solución Aplicada:**
+- **`puenteTaleSpire.ts`**: Implementado el helper `deserializarPayload` que parsea automáticamente strings JSON en todos los eventos entrantes.
+- **`usarConexionTaleSpire.ts`**: Creada la función `procesarSeleccionRaw` capaz de extraer IDs de arreglos directos, objetos `{ creatures: [] }` o `{ payload: { creatures: [] } }`.
+- **Suscripción Redundante**: Se activó la escucha doble tanto al EventBus del manifiesto CEF como a la API directa JS del Adaptador `ts.creatures.suscribirASeleccion`.
+- **Indicador Visual de Selección en el Combat Tracker**:
+  - Cada tarjeta de criatura en `GestorIniciativa.tsx` recibe la propiedad `estaSeleccionadaEnTS`.
+  - Las criaturas seleccionadas en TaleSpire mediante el lasso o la selección física muestran un **borde amarillo resplandeciente** (`2px solid var(--color-advertencia)`), sombra de elevación amarilla (`boxShadow: 0 0 10px rgba(224, 169, 109, 0.45)`) y una insignia `SEL`.
+
+---
+
+
 ## [2026-05-24] CRÍTICO: IndexedDB y LocalStorage NO persisten entre sesiones de TaleSpire
 
 **Síntoma:**
@@ -1782,5 +1798,17 @@ Se añadieron propiedades específicas de rasterización en el CSS para contrarr
 
 
 
+## [2026-07-29] Iniciativa manual editable + Auto-scroll al turno activo
+
+### Cambios realizados:
+
+1. **Iniciativa manual editable**: El valor numérico de iniciativa en la tarjeta de criatura ahora es clickeable para edición inline. Al hacer clic, se transforma en un `<input type="number">` con auto-focus y auto-select. Confirma con Enter/blur, cancela con Escape. Se añadió `establecerIniciativaCriatura()` al `sliceIniciativa` que actualiza el valor, reordena la cola y recalcula `indiceTurnoActivo` para que apunte a la misma criatura.
+
+2. **Botón de dado separado**: El lanzamiento de dados de TaleSpire se movió a un botón con icono `Dices` posicionado en la esquina superior derecha de la caja de iniciativa (`position: absolute`). Requirió añadir `position: relative` al contenedor padre.
+
+3. **Auto-scroll al turno activo**: Se usa un `useEffect` que observa `indiceTurnoActivo` y hace `scrollIntoView({ behavior: "smooth", block: "nearest" })` en el elemento con `data-turno-activo="true"`. También se usa un callback ref (`refTarjetaActiva`) como respaldo al montar.
+
+### Patrón aprendido:
+> Al reordenar la cola de iniciativa (por cambio de valor), es necesario recalcular el índice del turno activo buscando el ID de la criatura que tenía el turno, no conservar el índice numérico.
 
 

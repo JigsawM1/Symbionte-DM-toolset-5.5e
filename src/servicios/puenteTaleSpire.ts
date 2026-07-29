@@ -57,6 +57,17 @@ class PuenteTaleSpireClass {
     });
   }
 
+  private deserializarPayload(payload: any): any {
+    if (typeof payload === "string") {
+      try {
+        return JSON.parse(payload);
+      } catch (e) {
+        return payload;
+      }
+    }
+    return payload;
+  }
+
   /**
    * Registra los callbacks globales en window que inyecta/llama TaleSpire
    * según las suscripciones declaradas en el manifiesto.
@@ -68,32 +79,32 @@ class PuenteTaleSpireClass {
 
     window.manejarCambioEstadoSimbionte = (evento) => {
       console.log("[Puente TaleSpire] Callback manejarCambioEstadoSimbionte:", evento);
-      this.emit("estadoSimbionte", evento);
+      this.emit("estadoSimbionte", this.deserializarPayload(evento));
     };
 
     window.initiativeUpdated = (payload) => {
       console.log("[Puente TaleSpire] Callback initiativeUpdated:", payload);
-      this.emit("iniciativaActualizada", payload);
+      this.emit("iniciativaActualizada", this.deserializarPayload(payload));
     };
 
     window.manejarEventoIniciativa = (payload) => {
       console.log("[Puente TaleSpire] Callback manejarEventoIniciativa:", payload);
-      this.emit("iniciativaActualizada", payload);
+      this.emit("iniciativaActualizada", this.deserializarPayload(payload));
     };
 
     window.manejarCambioEstadoCriatura = (evento) => {
       console.log("[Puente TaleSpire] Callback manejarCambioEstadoCriatura:", evento);
-      this.emit("estadoCriatura", evento);
+      this.emit("estadoCriatura", this.deserializarPayload(evento));
     };
 
     window.manejarCambioSeleccionCriatura = (evento) => {
       console.log("[Puente TaleSpire] Callback manejarCambioSeleccionCriatura:", evento);
-      this.emit("seleccionCriaturas", evento);
+      this.emit("seleccionCriaturas", this.deserializarPayload(evento));
     };
 
     window.manejarResultadosDados = async (resultados) => {
       console.log("[Puente TaleSpire] Callback manejarResultadosDados:", resultados);
-      this.emit("resultadosDados", resultados);
+      this.emit("resultadosDados", this.deserializarPayload(resultados));
     };
 
     // Registrar oyentes de eventos DOM estándar en window y document para redundancia CEF

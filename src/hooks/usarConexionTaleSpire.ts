@@ -38,30 +38,66 @@ export function usarConexionTaleSpire() {
       console.log("[TaleSpire Simbionte] Conectando escuchas y suscripciones del EventBus...");
       
       try {
-        // Suscribirse a la selección de criaturas a través del puente EventBus
-        desuscribirSeleccion = puenteTaleSpire.on("seleccionCriaturas", async (seleccion) => {
-          if (activo) {
-            const fragments = seleccion?.creatures || [];
-            const ids = fragments.map((f) => f.id);
-            if (ids.length === 0) {
-              actualizarSeleccionCriaturas([]);
-              return;
-            }
+        const procesarSeleccionRaw = async (seleccion: any) => {
+          if (!activo) return;
+          let data = seleccion;
+          if (typeof seleccion === "string") {
             try {
-              const info = await ts.creatures.getMoreInfo(ids);
-              const seleccionadas: import("../almacen/slices/sliceIniciativa").CriaturaSeleccionadaTS[] = info.map((c) => ({
-                id: c.id,
-                name: c.name,
-                hp: c.hp?.value,
-                maxHp: c.hp?.max
-              }));
-              actualizarSeleccionCriaturas(seleccionadas);
-            } catch (e) {
-              console.warn("[TaleSpire Simbionte] Error al enriquecer selección de criaturas:", e);
-              actualizarSeleccionCriaturas(ids.map((id) => ({ id, name: "Criatura Seleccionada" })));
+              data = JSON.parse(seleccion);
+            } catch {
+              data = seleccion;
             }
           }
+
+          let fragments: Array<any> = [];
+          if (Array.isArray(data)) {
+            fragments = data;
+          } else if (Array.isArray(data?.creatures)) {
+            fragments = data.creatures;
+          } else if (Array.isArray(data?.payload?.creatures)) {
+            fragments = data.payload.creatures;
+          } else if (Array.isArray(data?.items)) {
+            fragments = data.items;
+          }
+
+          const ids: string[] = fragments
+            .map((f) => (typeof f === "string" ? f : f?.id))
+            .filter((id): id is string => typeof id === "string" && id.length > 0);
+
+          if (ids.length === 0) {
+            actualizarSeleccionCriaturas([]);
+            return;
+          }
+
+          try {
+            const info = await ts.creatures.getMoreInfo(ids);
+            const seleccionadas: import("../almacen/slices/sliceIniciativa").CriaturaSeleccionadaTS[] = info.map((c) => ({
+              id: c.id,
+              name: c.name,
+              hp: c.hp?.value,
+              maxHp: c.hp?.max
+            }));
+            actualizarSeleccionCriaturas(seleccionadas.length > 0 ? seleccionadas : ids.map((id) => ({ id, name: "Criatura Seleccionada" })));
+          } catch (e) {
+            console.warn("[TaleSpire Simbionte] Error al enriquecer selección de criaturas:", e);
+            actualizarSeleccionCriaturas(ids.map((id) => ({ id, name: "Criatura Seleccionada" })));
+          }
+        };
+
+        // Suscribirse a la selección a través del EventBus global CEF
+        const subPuente = puenteTaleSpire.on("seleccionCriaturas", (seleccion) => {
+          procesarSeleccionRaw(seleccion);
         });
+
+        // Suscribirse también mediante la API directa JS del Adaptador
+        const subNativa = ts.creatures.suscribirASeleccion((datos) => {
+          procesarSeleccionRaw(datos);
+        });
+
+        desuscribirSeleccion = () => {
+          subPuente();
+          subNativa.desuscribir();
+        };
 
         // Suscribirse a los cambios en la cola de iniciativa a través del puente EventBus
         desuscribirIniciativa = puenteTaleSpire.on("iniciativaActualizada", (payload) => {

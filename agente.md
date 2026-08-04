@@ -1,7 +1,48 @@
 # agente.md — Aprendizaje Autónomo del Simbionte DM
 
 Este archivo registra errores encontrados, sus causas raíz y las soluciones aplicadas.
-Se actualiza automáticamente después de cada corrección importante.
+
+## [2026-08-04] Investigación de API TaleSpire v0.1: Control de Cámara en Simbiontes
+**Análisis y Capacidades:**
+- **No existe API directa de control de cámara** tipo `camera.setPosition()`, `camera.followCreature()` o similar en la versión actual (v0.1) de la API de Symbiote.
+- **Bookmarks (Marcapáginas)**: La única forma provista por la API para mover la vista/cámara del cliente es mediante `bookmarks.gotoBookmark(bookmarkId)` o `bookmarks.sendToBookmark(bookmarkId, clientIds)` / `urls.submit("talespire://goto/bookmark/...")`.
+  - *Restricción clave*: `gotoBookmark` exige **exclusivamente** un `bookmarkId` (un identificador GUID de marcapáginas creado manualmente en TaleSpire). **No acepta coordenadas `(x, y, z)`** ni tampoco existe un método `createBookmark({x,y,z})` en la API para crear marcapáginas dinámicamente desde el personaje.
+- **Posición de Criaturas**: Es posible obtener la ubicación 3D exacta de cualquier criatura mediante `creatures.getMoreInfo()` (retorna `position: { x, y, z, locId }`) y escuchar cambios en tiempo real con `onCreatureStateChange` (`creatureLocationChanged`), pero no hay método en la API para forzar la cámara a ir a coordenadas `(x, y, z)` arbitrarias sin un bookmark preexistente.
+- **Diferencia entre Symbiote y Mods C# (BepInEx)**: Mover o centrar la cámara sobre un personaje haciendo clic en un botón requiere interactuar con el motor Unity de TaleSpire a bajo nivel, lo cual solo se puede lograr mediante plugins de BepInEx (como `CameraToolsPlugin`), ya que la API JS de Symbiotes está deliberadamente aislada.
+
+---
+
+## [2026-07-29] Patron Arquitectónico UI: Botones Desplegables Custom en lugar de `<select>` Nativos
+
+**Causa Raíz de Estilos Inconsistentes:**
+- En WebView2 / CEF, las etiquetas nativas `<select>` imponen los estilos del motor del navegador Chromium/OS (`appearance: auto`), ignorando la jerarquía de CSS Modules e impidiendo que se apliquen colores o bordes personalizados de manera consistente.
+
+**Solución Aplicada:**
+- **Reemplazo por Botones Desplegables Custom**: Se migraron los desplegables de Característica y Mitigación en `SelectorCondiciones.tsx` al mismo patrón técnico usado en `botonDestinatario`.
+- Usan `<button className={estilosClases.botonCustomSelectCarac}>` y un overlay flotante `<div className={estilosClases.dropdownCustomMenu}>` con `z-index: 9999`.
+- Esto garantiza control CSS absoluto del 100% sobre colores (`#ffcc00`, `#e0a96d`), bordes, tipografías y efectos hover en cualquier motor de renderizado.
+
+---
+
+## [2026-07-29] Funcionalidad: Bonificador DEX en Iniciativa & Tiradas de Salvación en Área
+
+**Decisión Arquitectónica y Optimización:**
+- **Iniciativa con Destreza**: Tanto para `Auto Roll` en `sliceIniciativa.ts` como para la tirada manual individual de dado en `GestorIniciativa.tsx`, se consulta el bonificador de iniciativa existente (`criatura.bonificadorIniciativa` / `plantilla.iniciativaBonificador`) y, en su defecto, el modificador de Destreza `Math.floor((destreza - 10) / 2)` para asegurar que las tiradas siempre incluyan el bono correspondiente.
+- **Tiradas de Salvación en Área (`ejecutarSalvacionEnArea`)**:
+  - Implementada acción masiva en `sliceIniciativa.ts` que resuelve automáticamente los bonificadores de salvación desde `plantilla.salvaciones[caracteristica]` o el modificador base `Math.floor((score - 10) / 2)`.
+  - Genera tiradas d20 individuales por criatura contra la CD de dificultad especificada (`FUE`, `DES`, `CON`, `INT`, `SAB`, `CAR`).
+  - **Mitigación de Daño y Resistencia**: Si hay daño ingresado, aplica mitad de daño a los Éxitos y daño completo a los Fallos. Si hay condición/efecto seleccionado, la aplica únicamente a las criaturas que **fallaron** la salvación.
+  - Retorna un informe estructurado que se despliega en un resumen emergente flotante en `SelectorCondiciones.tsx`.
+
+## [2026-07-29] Ajustes: Bonificador de Iniciativa Directo, Selección en Dropdown, Mitigación (1/2 vs 0) y Visualización de Inic
+
+**Mejoras y Correcciones Aplicadas:**
+1. **Iniciativa Directa**: Tanto `autoLanzarIniciativaMonstruos` como la tirada manual de dado consultan estrictamente `criatura.bonificadorIniciativa` / `plantilla.iniciativaBonificador` directamente sin re-calcular bonificadores por característica de Destreza.
+2. **Selección en Dropdown**: Al hacer clic en un ítem del menú desplegable de sugerencias de condiciones/efectos en `SelectorCondiciones.tsx`, únicamente se rellena el campo de texto y se cierra el desplegable (evitando auto-aplicación indeseada). El usuario decide si aplicar directamente con `+` o pasar a tirada de salvación con `SALVACIÓN`.
+3. **Regla de Mitigación de Daño (`1/2 DAÑO` vs `0 DAÑO`)**: Añadido selector de regla en `SelectorCondiciones.tsx` y parametrizado en `ejecutarSalvacionEnArea`. Si se selecciona `0 DAÑO`, las criaturas que superen la CD quedan libres de daño.
+4. **Visualización de Bonificador de Iniciativa**:
+   - En la ficha de monstruo (`PanelFichaDnD.tsx`): añadido `INIC: +X` en la línea de metadatos de cabecera.
+   - En la tarjeta del tracker (`TarjetaCriaturaIniciativa.tsx`): añadido `Inic: +X` visible junto a la CA y velocidad.
 
 ---
 
@@ -1810,5 +1851,23 @@ Se añadieron propiedades específicas de rasterización en el CSS para contrarr
 
 ### Patrón aprendido:
 > Al reordenar la cola de iniciativa (por cambio de valor), es necesario recalcular el índice del turno activo buscando el ID de la criatura que tenía el turno, no conservar el índice numérico.
+
+---
+
+## [2026-08-04] Edición en Caliente (Tiempo Real) de Iniciativa en Tarjetas de Criatura
+
+**Demanda:**
+- Actualización en tiempo real ("en caliente") del valor de iniciativa al escribir en el campo de entrada dentro de la tarjeta de criatura (`TarjetaCriaturaIniciativa.tsx`).
+
+**Solución Aplicada:**
+1. **Actualización Instantánea (`onChange`)**:
+   - Se capturan las pulsaciones mediante `manejarCambioIniciativa` en el `<input type="number">`.
+   - Se convierte la entrada con `parseInt(valStr, 10)` y, si es un número válido (`!isNaN`), emite inmediatamente `onEstablecerIniciativa(valNum)`.
+   - El estado global de Zustand (`sliceIniciativa.ts`) recibe la nueva iniciativa, reordena la cola y recalcula el `indiceTurnoActivo`.
+   - Gracias a que React mantiene `key={criatura.id}`, la instancia del input no pierde el foco durante el reordenamiento.
+2. **Restauración y Cancelación (`iniciativaOriginalRef` y `Escape`)**:
+   - Al activar la edición se guarda `iniciativaOriginalRef.current = criatura.iniciativa`.
+   - Si se presiona `Escape` o si se pierde el foco (`onBlur`) habiendo dejado el input en blanco/inválido, se restaura la iniciativa original previa a la edición.
+
 
 

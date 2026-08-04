@@ -75,7 +75,7 @@ export const PanelFichaDnD: React.FC<PanelFichaDnDProps> = ({
         <div className={estilosClases.tituloCabeceraDetalle}>
           <span className={estilosClases.nombreMonstruoFicha}>{plantilla.nombre.toUpperCase()}</span>
           <span className={estilosClases.tipoMonstruoFicha}>
-            {plantilla.tipo} | CR: <strong style={{ color: "var(--color-advertencia)" }}>{plantilla.desafio}</strong> | PP: <strong style={{ color: "var(--color-borde-cian)" }}>{obtenerPercepcionPasiva(plantilla)}</strong>
+            {plantilla.tipo} | CR: <strong style={{ color: "var(--color-advertencia)" }}>{plantilla.desafio}</strong> | INIC: <strong style={{ color: "#ffcc00" }}>{(plantilla.iniciativaBonificador ?? 0) >= 0 ? `+${plantilla.iniciativaBonificador ?? 0}` : plantilla.iniciativaBonificador}</strong> | PP: <strong style={{ color: "var(--color-borde-cian)" }}>{obtenerPercepcionPasiva(plantilla)}</strong>
           </span>
         </div>
         

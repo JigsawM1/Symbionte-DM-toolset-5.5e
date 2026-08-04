@@ -201,11 +201,21 @@ export const GestorIniciativa: React.FC = () => {
                     onQuitarCondicion={(cond) => quitarCondicionDeCriatura(criatura.id, cond)}
                     onAñadirEfecto={(nom, dur, opciones) => agregarEfectoACriatura(criatura.id, nom, dur, opciones)}
                     onQuitarEfecto={(efId) => quitarEfectoDeCriatura(criatura.id, efId)}
-                    onLanzarIniciativa={() => lanzarDadosTaleSpire(
-                      `!Iniciativa:1d20${(criatura.bonificadorIniciativa ?? 0) >= 0 ? "+" : ""}${criatura.bonificadorIniciativa ?? 0}`, 
-                      `Iniciativa (${criatura.nombre})`,
-                      { tipo: "iniciativa", criaturaId: criatura.id }
-                    )}
+                    onLanzarIniciativa={() => {
+                      let bonoInic = criatura.bonificadorIniciativa || 0;
+                      if (bonoInic === 0 && plantilla) {
+                        if (plantilla.iniciativaBonificador !== undefined && plantilla.iniciativaBonificador !== 0) {
+                          bonoInic = plantilla.iniciativaBonificador;
+                        } else if (plantilla.caracteristicas?.destreza !== undefined) {
+                          bonoInic = Math.floor((plantilla.caracteristicas.destreza - 10) / 2);
+                        }
+                      }
+                      lanzarDadosTaleSpire(
+                        `!Iniciativa:1d20${bonoInic >= 0 ? "+" : ""}${bonoInic}`, 
+                        `Iniciativa (${criatura.nombre})`,
+                        { tipo: "iniciativa", criaturaId: criatura.id }
+                      );
+                    }}
                     onLanzarAtaqueRapido={(accNom, accBono, accDados, accTipo) => 
                       lanzarAtaqueRapido(criatura.nombre, accNom, accBono, accDados, accTipo)
                     }

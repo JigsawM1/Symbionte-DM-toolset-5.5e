@@ -50,6 +50,7 @@ export const TarjetaCriaturaIniciativa: React.FC<TarjetaCriaturaIniciativaProps>
   const [editandoIniciativa, setEditandoIniciativa] = useState(false);
   const [valorIniciativaTemp, setValorIniciativaTemp] = useState("");
   const refInputIniciativa = useRef<HTMLInputElement>(null);
+  const iniciativaOriginalRef = useRef<number>(criatura.iniciativa);
 
   const estaMuerto = criatura.vidaActual === 0;
   const colorNombre = esTurnoActivo ? "var(--color-borde-cian)" : "var(--color-texto-principal)";
@@ -86,18 +87,36 @@ export const TarjetaCriaturaIniciativa: React.FC<TarjetaCriaturaIniciativaProps>
     setHpInput("");
   };
 
-  // Confirmar edición manual de iniciativa
-  const confirmarIniciativaManual = () => {
-    const valor = parseInt(valorIniciativaTemp, 10);
-    if (!isNaN(valor)) {
-      onEstablecerIniciativa(valor);
+  // Manejo de cambio de iniciativa en caliente (tiempo real)
+  const manejarCambioIniciativa = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const valStr = e.target.value;
+    setValorIniciativaTemp(valStr);
+    const valNum = parseInt(valStr, 10);
+    if (!isNaN(valNum)) {
+      onEstablecerIniciativa(valNum);
     }
+  };
+
+  // Finalizar edición manual de iniciativa
+  const finalizarEdicionIniciativa = () => {
+    const valor = parseInt(valorIniciativaTemp, 10);
+    if (isNaN(valor)) {
+      onEstablecerIniciativa(iniciativaOriginalRef.current);
+    }
+    setEditandoIniciativa(false);
+    setValorIniciativaTemp("");
+  };
+
+  // Cancelar edición manual de iniciativa y restaurar valor inicial
+  const cancelarEdicionIniciativa = () => {
+    onEstablecerIniciativa(iniciativaOriginalRef.current);
     setEditandoIniciativa(false);
     setValorIniciativaTemp("");
   };
 
   // Activar modo edición de iniciativa
   const activarEdicionIniciativa = () => {
+    iniciativaOriginalRef.current = criatura.iniciativa;
     setValorIniciativaTemp(String(criatura.iniciativa));
     setEditandoIniciativa(true);
   };
@@ -149,20 +168,17 @@ export const TarjetaCriaturaIniciativa: React.FC<TarjetaCriaturaIniciativaProps>
           <Dices size={12} />
         </button>
 
-        {/* Valor de iniciativa — clic para editar */}
+        {/* Valor de iniciativa — clic para editar en caliente */}
         {editandoIniciativa ? (
           <input
             ref={refInputIniciativa}
             type="number"
             value={valorIniciativaTemp}
-            onChange={(e) => setValorIniciativaTemp(e.target.value)}
-            onBlur={confirmarIniciativaManual}
+            onChange={manejarCambioIniciativa}
+            onBlur={finalizarEdicionIniciativa}
             onKeyDown={(e) => {
-              if (e.key === "Enter") confirmarIniciativaManual();
-              if (e.key === "Escape") {
-                setEditandoIniciativa(false);
-                setValorIniciativaTemp("");
-              }
+              if (e.key === "Enter") finalizarEdicionIniciativa();
+              if (e.key === "Escape") cancelarEdicionIniciativa();
             }}
             className={estilosClases.inputIniciativaEditable}
             style={{
@@ -209,9 +225,11 @@ export const TarjetaCriaturaIniciativa: React.FC<TarjetaCriaturaIniciativaProps>
               {estaSeleccionadaEnTS && <span className={estilosClases.tagSeleccionTS}>SEL</span>}
             </span>
             <span className={estilosClases.subtituloCriatura}>
-              CA: <strong style={{ color: "var(--color-borde-cian)", fontFamily: "var(--fuente-codigo)" }}>{criatura.ca}</strong> <br/> Vel: {formatearVelocidad(criatura.velocidad)}
+              CA: <strong style={{ color: "var(--color-borde-cian)", fontFamily: "var(--fuente-codigo)" }}>{criatura.ca}</strong> | Inic: <strong style={{ color: "#ffcc00", fontFamily: "var(--fuente-codigo)" }}>{(criatura.bonificadorIniciativa ?? 0) >= 0 ? `+${criatura.bonificadorIniciativa ?? 0}` : criatura.bonificadorIniciativa}</strong> <br/> Vel: {formatearVelocidad(criatura.velocidad)}
               {plantilla && (
-                <> <br/> PP: <strong style={{ color: "#ffcc00", fontFamily: "var(--fuente-codigo)" }}>{obtenerPercepcionPasiva(plantilla)}</strong></>
+                <>
+                <br/>  PP: <strong style={{ color: "var(--color-borde-cian)", fontFamily: "var(--fuente-codigo)" }}>{obtenerPercepcionPasiva(plantilla)}</strong>
+                </>
               )}
             </span>
           </div>

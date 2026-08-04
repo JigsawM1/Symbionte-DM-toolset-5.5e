@@ -2,6 +2,7 @@ import { StateCreator } from 'zustand';
 import { CriaturaIniciativa, EfectoActivo } from '../usarAlmacenDM';
 import { formatearVelocidad } from '../sanitizacion';
 import type { EstadoDM } from '../usarAlmacenDM';
+import type { Caracteristica } from '../../tipos';
 import { ts } from '../../utiles/TaleSpireAdapter';
 import type { ColaIniciativaTS } from '../../tipos/talespire';
 import {
@@ -15,6 +16,23 @@ import {
   sincronizarConEstadoLocal,
   filtrarEfectosExpirados
 } from '../../servicios/sincronizacionIniciativa';
+
+export interface ResultadoSalvacionCriatura {
+  id: string;
+  nombre: string;
+  bono: number;
+  d20: number;
+  total: number;
+  exito: boolean;
+  dañoSufrido?: number;
+  condicionAplicada?: boolean;
+}
+
+export interface ResultadoSalvacionArea {
+  caracteristica: Caracteristica;
+  cd: number;
+  resultados: ResultadoSalvacionCriatura[];
+}
 
 export interface CriaturaSeleccionadaTS {
   id: string;
@@ -76,6 +94,14 @@ export interface SliceIniciativa {
   aplicarDañoEnArea: (cantidad: number, idsObjetivo?: string[]) => void;
   aplicarCondicionEnArea: (condicion: string, idsObjetivo?: string[]) => void;
   aplicarEfectoEnArea: (nombreEfecto: string, duracion: number, opciones?: { concentracion?: boolean }, idsObjetivo?: string[]) => void;
+  ejecutarSalvacionEnArea: (
+    caracteristica: Caracteristica,
+    cd: number,
+    dañoBruto?: number,
+    condicionOEfecto?: { nombre: string; tipo: "condicion" | "efecto"; duracion?: number; esConcentracion?: boolean },
+    mitigacion?: "mitad" | "nada",
+    idsObjetivo?: string[]
+  ) => ResultadoSalvacionArea | null;
 }
 
 export const crearSliceIniciativa: StateCreator<
@@ -430,17 +456,146 @@ export const crearSliceIniciativa: StateCreator<
   }),
 
   autoLanzarIniciativaMonstruos: () => set((state) => {
+    const indiceMonstruos = crearIndiceMonstruos(state.baseDatosMonstruos);
     const nuevaCola = state.colaIniciativa.map((c) => {
       if (c.esMonstruo) {
+        let bonoInic = c.bonificadorIniciativa || 0;
+        if (bonoInic === 0) {
+          const plantilla = resolverPlantillaPorCriatura(c.id, c.nombre, state.asociacionesFichas, indiceMonstruos);
+          if (plantilla && plantilla.iniciativaBonificador !== undefined) {
+            bonoInic = plantilla.iniciativaBonificador;
+          }
+        }
         const tirada = Math.floor(Math.random() * 20) + 1;
-        const total = tirada + c.bonificadorIniciativa;
-        return { ...c, iniciativa: total };
+        const total = tirada + bonoInic;
+        return { ...c, iniciativa: total, bonificadorIniciativa: bonoInic };
       }
       return c;
     });
     nuevaCola.sort((a, b) => b.iniciativa - a.iniciativa);
     return { colaIniciativa: nuevaCola, indiceTurnoActivo: 0 };
   }),
+
+  ejecutarSalvacionEnArea: (caracteristica, cd, dañoBruto, condicionOEfecto, mitigacion = "mitad", idsObjetivo) => {
+    const state = get();
+    if (state.colaIniciativa.length === 0 || cd <= 0) return null;
+
+    const targets = obtenerIdsObjetivoMasivo(
+      state.colaIniciativa,
+      state.indiceTurnoActivo,
+      state.criaturasSeleccionadas,
+      idsObjetivo
+    );
+    if (targets.size === 0) return null;
+
+    const indiceMonstruos = crearIndiceMonstruos(state.baseDatosMonstruos);
+    const resultadosLog: ResultadoSalvacionCriatura[] = [];
+    const colaModificada = state.colaIniciativa.map((c) => {
+      if (!targets.has(c.id)) return c;
+
+      const plantilla = resolverPlantillaPorCriatura(c.id, c.nombre, state.asociacionesFichas, indiceMonstruos);
+      
+      let bonoSalvacion = 0;
+      if (plantilla) {
+        const salvacionEspecifica = plantilla.salvaciones?.[caracteristica];
+        if (salvacionEspecifica !== undefined && !isNaN(salvacionEspecifica)) {
+          bonoSalvacion = salvacionEspecifica;
+        } else if (plantilla.caracteristicas?.[caracteristica] !== undefined) {
+          bonoSalvacion = Math.floor((plantilla.caracteristicas[caracteristica] - 10) / 2);
+        }
+      }
+
+      const d20 = Math.floor(Math.random() * 20) + 1;
+      const total = d20 + bonoSalvacion;
+      const exito = total >= cd;
+
+      let criaturaActualizada = { ...c };
+      let dañoAplicado: number | undefined = undefined;
+      let condicionAplicada: boolean | undefined = undefined;
+
+      if (dañoBruto !== undefined && dañoBruto > 0) {
+        dañoAplicado = exito ? (mitigacion === "nada" ? 0 : Math.floor(dañoBruto / 2)) : dañoBruto;
+        
+        let dañoRestante = dañoAplicado;
+        let vidaTemp = criaturaActualizada.vidaTemporal || 0;
+        let vidaAct = criaturaActualizada.vidaActual;
+
+        if (vidaTemp > 0) {
+          if (vidaTemp >= dañoRestante) {
+            vidaTemp -= dañoRestante;
+            dañoRestante = 0;
+          } else {
+            dañoRestante -= vidaTemp;
+            vidaTemp = 0;
+          }
+        }
+
+        if (dañoRestante > 0) {
+          vidaAct = Math.max(0, vidaAct - dañoRestante);
+        }
+
+        criaturaActualizada = { ...criaturaActualizada, vidaTemporal: vidaTemp, vidaActual: vidaAct };
+      }
+
+      if (condicionOEfecto && !exito) {
+        condicionAplicada = true;
+        if (condicionOEfecto.tipo === "condicion") {
+          const condTrimmed = condicionOEfecto.nombre.trim();
+          if (condTrimmed.toLowerCase().includes("cansado") || condTrimmed.toLowerCase().includes("exhausted")) {
+            const condicionCansadoExistente = criaturaActualizada.condiciones.find(
+              (cond) => cond.toLowerCase().startsWith("cansado")
+            );
+            if (condicionCansadoExistente) {
+              const matches = condicionCansadoExistente.match(/\d+/);
+              const nivelActual = matches ? parseInt(matches[0], 10) : 1;
+              const nuevoNivel = Math.min(6, nivelActual + 1);
+              const condicionesFiltradas = criaturaActualizada.condiciones.filter(
+                (cond) => !cond.toLowerCase().startsWith("cansado")
+              );
+              criaturaActualizada.condiciones = [...condicionesFiltradas, `Cansado (Niv. ${nuevoNivel})`];
+            } else {
+              criaturaActualizada.condiciones = [...criaturaActualizada.condiciones, "Cansado (Niv. 1)"];
+            }
+          } else if (!criaturaActualizada.condiciones.includes(condTrimmed)) {
+            criaturaActualizada.condiciones = [...criaturaActualizada.condiciones, condTrimmed];
+          }
+        } else {
+          const nuevosEfectos = criaturaActualizada.efectos ? [...criaturaActualizada.efectos] : [];
+          const esConcentracion = condicionOEfecto.esConcentracion || 
+                                 condicionOEfecto.nombre.toLowerCase().trim() === "concentración" || 
+                                 condicionOEfecto.nombre.toLowerCase().trim() === "concentracion";
+          const nuevoEfecto: EfectoActivo = {
+            id: `${condicionOEfecto.nombre.toLowerCase().replace(/[^a-z0-9]/g, "_")}_${Date.now()}_${Math.random().toString(36).substring(2, 5)}`,
+            nombre: condicionOEfecto.nombre,
+            expiraRonda: esConcentracion ? undefined : state.rondaActual + (condicionOEfecto.duracion || 10),
+            concentracion: esConcentracion || undefined
+          };
+          criaturaActualizada.efectos = [...nuevosEfectos, nuevoEfecto];
+        }
+      }
+
+      resultadosLog.push({
+        id: c.id,
+        nombre: c.nombre,
+        bono: bonoSalvacion,
+        d20,
+        total,
+        exito,
+        dañoSufrido: dañoAplicado,
+        condicionAplicada
+      });
+
+      return criaturaActualizada;
+    });
+
+    set({ colaIniciativa: colaModificada });
+
+    return {
+      caracteristica,
+      cd,
+      resultados: resultadosLog
+    };
+  },
 
   actualizarSeleccionCriaturas: (seleccionadas) => set({ criaturasSeleccionadas: seleccionadas }),
 

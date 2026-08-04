@@ -2,12 +2,16 @@
   display: flex;
   flex-direction: row;
   align-items: center;
-  gap: 4px;
+  flex-wrap: wrap;
+  gap: 6px;
   border: 1px solid var(--color-borde-brutal);
-  padding: 3px 6px;
+  padding: 4px 8px;
   background-color: var(--color-fondo-tarjeta);
-  height: 30px;
+  min-height: 30px;
+  height: auto;
   box-sizing: border-box;
+  position: relative;
+  border-radius: 4px;
 }
 
 .contenedorTarget {
@@ -17,11 +21,12 @@
 }
 
 .botonDestinatario {
-  height: 22px;
-  background-color: var(--color-fondo-panel);
+  height: 24px;
+  background-color: var(--color-fondo-profundo);
   border: 1px solid var(--color-borde-brutal);
   color: var(--color-texto-principal);
   font-size: 10px;
+  font-weight: bold;
   border-radius: 3px;
   padding: 0 6px;
   cursor: pointer;
@@ -37,18 +42,19 @@
 
 .botonDestinatario:hover {
   border-color: var(--color-borde-cian);
-  background-color: var(--color-fondo-profundo);
+  background-color: var(--color-fondo-panel);
 }
 
 .botonDestinatarioSeleccion {
   border-color: var(--color-borde-cian);
   color: var(--color-borde-cian);
   font-weight: bold;
+  background-color: rgba(0, 245, 212, 0.08);
 }
 
 .dropdownDestinatarios {
   position: absolute;
-  top: 24px;
+  top: 26px;
   left: 0;
   background-color: hsl(222, 25%, 5%);
   border: 1px solid var(--color-borde-cian);
@@ -56,12 +62,12 @@
   z-index: 9999;
   max-height: 180px;
   overflow-y: auto;
-  width: 160px;
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.6);
+  width: 170px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.7);
 }
 
 .dropdownItemActivo {
-  padding: 5px 8px;
+  padding: 6px 8px;
   font-size: 9.5px;
   font-weight: bold;
   color: var(--color-texto-principal);
@@ -72,11 +78,11 @@
 }
 
 .dropdownItemActivo:hover {
-  background-color: rgba(255, 255, 255, 0.08);
+  background-color: rgba(255, 255, 255, 0.12);
 }
 
 .dropdownItemSeleccion {
-  padding: 5px 8px;
+  padding: 6px 8px;
   font-size: 9.5px;
   font-weight: bold;
   color: var(--color-borde-cian);
@@ -84,19 +90,19 @@
   border-bottom: 1px dashed var(--color-borde-cian);
   font-family: var(--fuente-codigo);
   text-transform: uppercase;
-  background-color: rgba(0, 245, 212, 0.05);
+  background-color: rgba(0, 245, 212, 0.08);
 }
 
 .dropdownItemSeleccion:hover {
-  background-color: rgba(0, 245, 212, 0.15);
+  background-color: rgba(0, 245, 212, 0.2);
 }
 
 .dropdownItemCriatura {
-  padding: 5px 8px;
+  padding: 6px 8px;
   font-size: 9.5px;
   font-weight: bold;
   cursor: pointer;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.02);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
   font-family: var(--fuente-codigo);
   text-transform: uppercase;
   display: flex;
@@ -109,7 +115,7 @@
 }
 
 .dropdownItemCriaturaMonstruo:hover {
-  background-color: rgba(157, 78, 221, 0.12) !important;
+  background-color: rgba(157, 78, 221, 0.15) !important;
 }
 
 .dropdownItemCriaturaPJ {
@@ -117,7 +123,7 @@
 }
 
 .dropdownItemCriaturaPJ:hover {
-  background-color: rgba(0, 245, 212, 0.08) !important;
+  background-color: rgba(0, 245, 212, 0.1) !important;
 }
 
 /* Sección de Daño */
@@ -128,8 +134,8 @@
 }
 
 .inputDaño {
-  height: 22px;
-  width: 46px;
+  height: 24px;
+  width: 48px;
   background-color: var(--color-fondo-profundo);
   border: 1px solid var(--color-borde-brutal);
   color: #ff6b6b;
@@ -147,40 +153,40 @@
 }
 
 .botonDaño {
-  height: 22px;
-  background-color: rgba(255, 75, 75, 0.12);
+  height: 24px;
+  background-color: rgba(255, 75, 75, 0.15);
   border: 1px solid #ff4b4b;
   color: #ff6b6b;
   font-size: 9.5px;
   font-weight: bold;
   font-family: var(--fuente-codigo);
-  padding: 0 5px;
+  padding: 0 6px;
   border-radius: 3px;
   cursor: pointer;
   white-space: nowrap;
 }
 
 .botonDaño:hover {
-  background-color: rgba(255, 75, 75, 0.25);
+  background-color: rgba(255, 75, 75, 0.3);
   color: #ffffff;
 }
 
 .botonCurar {
-  height: 22px;
-  background-color: rgba(0, 245, 212, 0.1);
+  height: 24px;
+  background-color: rgba(0, 245, 212, 0.12);
   border: 1px solid var(--color-borde-cian);
   color: var(--color-borde-cian);
   font-size: 9.5px;
   font-weight: bold;
   font-family: var(--fuente-codigo);
-  padding: 0 5px;
+  padding: 0 6px;
   border-radius: 3px;
   cursor: pointer;
   white-space: nowrap;
 }
 
 .botonCurar:hover {
-  background-color: rgba(0, 245, 212, 0.22);
+  background-color: rgba(0, 245, 212, 0.25);
   color: #ffffff;
 }
 
@@ -190,11 +196,12 @@
   display: flex;
   align-items: center;
   gap: 3px;
+  min-width: 150px;
   flex-grow: 1;
 }
 
 .inputBrutal {
-  height: 22px;
+  height: 24px;
   background-color: var(--color-fondo-profundo);
   border: 1px solid var(--color-borde-brutal);
   color: var(--color-texto-principal);
@@ -213,7 +220,7 @@
 
 .sugerenciasContenedor {
   position: absolute;
-  top: 26px;
+  top: 28px;
   left: 0;
   right: 0;
   background-color: hsl(222, 25%, 5%);
@@ -222,11 +229,11 @@
   z-index: 9999;
   max-height: 180px;
   overflow-y: auto;
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.6);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.7);
 }
 
 .sugerenciaItem {
-  padding: 5px 8px;
+  padding: 6px 8px;
   font-size: 9.5px;
   font-weight: bold;
   font-family: var(--fuente-codigo);
@@ -240,7 +247,7 @@
 }
 
 .sugerenciaItem:hover {
-  background-color: rgba(0, 245, 212, 0.08);
+  background-color: rgba(0, 245, 212, 0.12);
   color: #ffffff;
 }
 
@@ -262,17 +269,17 @@
 .badgeCondicion {
   border: 1px solid #e0a96d;
   color: #e0a96d;
-  background: rgba(224, 169, 109, 0.1);
+  background: rgba(224, 169, 109, 0.12);
 }
 
 .badgeEfecto {
   border: 1px solid var(--color-borde-cian);
   color: var(--color-borde-cian);
-  background: rgba(0, 245, 212, 0.1);
+  background: rgba(0, 245, 212, 0.12);
 }
 
 .sugerenciaVacio {
-  padding: 5px 8px;
+  padding: 6px 8px;
   font-size: 9.5px;
   color: var(--color-texto-secundario);
   font-style: italic;
@@ -280,13 +287,13 @@
 
 .botonAñadirEstado {
   border: 1px solid var(--color-borde-cian);
-  background: rgba(0, 245, 212, 0.1);
+  background: rgba(0, 245, 212, 0.12);
   color: var(--color-borde-cian);
   font-size: 11px;
   font-weight: bold;
   padding: 0 8px;
   cursor: pointer;
-  height: 22px;
+  height: 24px;
   border-radius: 3px;
   display: flex;
   align-items: center;
@@ -294,6 +301,225 @@
 }
 
 .botonAñadirEstado:hover {
-  background: rgba(0, 245, 212, 0.2);
+  background: rgba(0, 245, 212, 0.25);
   color: #ffffff;
+}
+
+/* Sección de Tirada de Salvación */
+.seccionSalvacion {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.contenedorDropdownCustom {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.botonCustomSelectCarac {
+  height: 24px;
+  background-color: var(--color-fondo-profundo);
+  border: 1px solid var(--color-borde-brutal);
+  color: #ffcc00;
+  font-size: 10px;
+  font-weight: bold;
+  font-family: var(--fuente-codigo);
+  border-radius: 3px;
+  padding: 0 6px;
+  outline: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.botonCustomSelectCarac:hover {
+  border-color: #ffcc00;
+  background-color: rgba(255, 204, 0, 0.08);
+}
+
+.botonCustomSelectMitig {
+  height: 24px;
+  background-color: var(--color-fondo-profundo);
+  border: 1px solid var(--color-borde-brutal);
+  color: #e0a96d;
+  font-size: 9px;
+  font-weight: bold;
+  font-family: var(--fuente-codigo);
+  border-radius: 3px;
+  padding: 0 6px;
+  outline: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.botonCustomSelectMitig:hover {
+  border-color: #e0a96d;
+  background-color: rgba(224, 169, 109, 0.08);
+}
+
+.dropdownCustomMenu {
+  position: absolute;
+  top: 26px;
+  left: 0;
+  background-color: hsl(222, 25%, 5%);
+  border: 1px solid var(--color-borde-brutal);
+  border-radius: 4px;
+  z-index: 9999;
+  max-height: 180px;
+  overflow-y: auto;
+  width: 90px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.8);
+}
+
+.dropdownCustomItem {
+  padding: 6px 8px;
+  font-size: 9.5px;
+  font-weight: bold;
+  color: var(--color-texto-principal);
+  cursor: pointer;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+  font-family: var(--fuente-codigo);
+  text-transform: uppercase;
+}
+
+.dropdownCustomItem:hover {
+  background-color: rgba(255, 255, 255, 0.12);
+}
+
+.dropdownCustomItemActivo {
+  color: var(--color-borde-cian);
+  background-color: rgba(0, 245, 212, 0.08);
+}
+
+.inputCD {
+  height: 24px;
+  width: 40px;
+  background-color: var(--color-fondo-profundo);
+  border: 1px solid var(--color-borde-brutal);
+  color: #ffcc00;
+  font-size: 10px;
+  font-weight: bold;
+  border-radius: 3px;
+  padding: 0 4px;
+  outline: none;
+  font-family: var(--fuente-codigo);
+  text-align: center;
+}
+
+.inputCD:focus {
+  border-color: #ffcc00;
+}
+
+.botonSalvacion {
+  height: 24px;
+  background-color: rgba(255, 204, 0, 0.15);
+  border: 1px solid #ffcc00;
+  color: #ffcc00;
+  font-size: 9.5px;
+  font-weight: bold;
+  font-family: var(--fuente-codigo);
+  padding: 0 8px;
+  border-radius: 3px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+}
+
+.botonSalvacion:hover {
+  background-color: rgba(255, 204, 0, 0.3);
+  color: #ffffff;
+}
+
+/* Panel Flotante Resumen Salvación */
+.resumenSalvacionFlotante {
+  position: absolute;
+  top: 34px;
+  right: 0;
+  width: 320px;
+  background-color: hsl(222, 25%, 5%);
+  border: 1px solid #ffcc00;
+  border-radius: 4px;
+  z-index: 9999;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.8);
+  padding: 8px 10px;
+}
+
+.cabeceraResumen {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 10px;
+  font-family: var(--fuente-codigo);
+  color: #ffcc00;
+  border-bottom: 1px solid rgba(255, 204, 0, 0.2);
+  padding-bottom: 4px;
+  margin-bottom: 6px;
+}
+
+.botonCerrarResumen {
+  background: none;
+  border: none;
+  color: var(--color-texto-secundario);
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+}
+
+.botonCerrarResumen:hover {
+  color: #ffffff;
+}
+
+.listaResultadosSalvacion {
+  max-height: 150px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.filaResultadoSalvacion {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 9.5px;
+  padding: 3px 6px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 3px;
+  gap: 4px;
+}
+
+.nombreResumen {
+  font-weight: bold;
+  color: var(--color-texto-principal);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 95px;
+}
+
+.badgeExito {
+  font-size: 8px;
+  font-weight: bold;
+  color: var(--color-borde-cian);
+  background: rgba(0, 245, 212, 0.15);
+  border: 1px solid var(--color-borde-cian);
+  padding: 1px 4px;
+  border-radius: 2px;
+}
+
+.badgeFallo {
+  font-size: 8px;
+  font-weight: bold;
+  color: #ff4b4b;
+  background: rgba(255, 75, 75, 0.15);
+  border: 1px solid #ff4b4b;
+  padding: 1px 4px;
+  border-radius: 2px;
 }

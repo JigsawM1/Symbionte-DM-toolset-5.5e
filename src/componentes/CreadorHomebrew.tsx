@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { usarAlmacenDM } from "../almacen/usarAlmacenDM";
 import { MonstruoBase, HechizoBase, ObjetoHomebrew } from "../tipos";
-import { MONSTRUOS_INICIALES, HECHIZOS_INICIALES } from "../utiles/datosIniciales";
+import { MONSTRUOS_INICIALES, HECHIZOS_INICIALES, OBJETOS_INICIALES } from "../utiles/datosIniciales";
 import { Plus, Sparkles, BookOpen, Swords, Edit2 } from "lucide-react";
 import { FormularioCriatura } from "./homebrew/FormularioCriatura";
 import { FormularioHechizo } from "./homebrew/FormularioHechizo";
@@ -52,8 +52,11 @@ export const CreadorHomebrew: React.FC = () => {
   // Filtrar creaciones homebrew por exclusión de datos por defecto de fábrica para el contador
   const idsInicialesMonstruos = new Set(MONSTRUOS_INICIALES.map((m) => m.id));
   const idsInicialesHechizos = new Set(HECHIZOS_INICIALES.map((h) => h.id));
+  const idsInicialesObjetos = new Set(OBJETOS_INICIALES.map((o) => o.id));
+
   const monstruosHomebrew = baseDatosMonstruos.filter((m) => !idsInicialesMonstruos.has(m.id));
   const hechizosHomebrew = baseDatosHechizos.filter((h) => !idsInicialesHechizos.has(h.id));
+  const objetosHomebrewSolo = objetosHomebrew.filter((o) => !idsInicialesObjetos.has(o.id));
 
   return (
     <div className={estilos.contenedorHomebrew}>
@@ -83,7 +86,7 @@ export const CreadorHomebrew: React.FC = () => {
           type="button"
         >
           <Sparkles size={14} />
-          Objetos Mágicos ({objetosHomebrew.length})
+          Objetos Mágicos ({objetosHomebrewSolo.length})
         </button>
       </div>
 
@@ -109,7 +112,7 @@ export const CreadorHomebrew: React.FC = () => {
               ? monstruosHomebrew.length
               : tipoHomebrew === "hechizo"
               ? hechizosHomebrew.length
-              : objetosHomebrew.length}
+              : objetosHomebrewSolo.length}
             )
           </span>
         </button>

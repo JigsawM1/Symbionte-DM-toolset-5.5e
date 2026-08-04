@@ -1,4 +1,4 @@
-import { MONSTRUOS_INICIALES, HECHIZOS_INICIALES } from '../utiles/datosIniciales';
+import { MONSTRUOS_INICIALES, HECHIZOS_INICIALES, OBJETOS_INICIALES } from '../utiles/datosIniciales';
 import { guardarBlobGlobal } from '../utiles/almacenamientoTaleSpire';
 import type { EstadoDM } from './usarAlmacenDM';
 
@@ -14,14 +14,16 @@ export const persistirEstadoCompleto = (estado: Partial<EstadoDM>) => {
   timeoutPersistencia = setTimeout(() => {
     const idsInicialesM = new Set(MONSTRUOS_INICIALES.map((m) => m.id));
     const idsInicialesH = new Set(HECHIZOS_INICIALES.map((h) => h.id));
+    const idsInicialesO = new Set(OBJETOS_INICIALES.map((o) => o.id));
 
     const baseMonstruos = estado.baseDatosMonstruos || [];
     const baseHechizos = estado.baseDatosHechizos || [];
+    const baseObjetos = estado.objetosHomebrew || [];
 
     const blob = {
       monstruos_homebrew:  baseMonstruos.filter((m) => m && m.id && !idsInicialesM.has(m.id)),
       hechizos_homebrew:   baseHechizos.filter((h) => h && h.id && !idsInicialesH.has(h.id)),
-      objetos_homebrew:    estado.objetosHomebrew || [],
+      objetos_homebrew:    baseObjetos.filter((o) => o && o.id && !idsInicialesO.has(o.id)),
       pendientes:          estado.listaPendientes || [],
       notas:               estado.notasDM || "",
       encuentros:          estado.encuentrosGuardados || [],

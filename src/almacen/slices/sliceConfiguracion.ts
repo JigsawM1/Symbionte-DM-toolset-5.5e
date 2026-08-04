@@ -167,7 +167,9 @@ export const crearSliceConfiguracion: StateCreator<
           set(() => ({ baseDatosHechizos: [...HECHIZOS_INICIALES, ...hechizosHomebrew.map(sanearHechizoCD)] }));
         }
         if (objetosHomebrew && objetosHomebrew.length > 0) {
-          set({ objetosHomebrew: objetosHomebrew.map(sanearObjetoHomebrew) });
+          const idsHomebrew = new Set(objetosHomebrew.map((o) => o.id));
+          const baseObjetosFiltrados = OBJETOS_INICIALES.filter((o) => !idsHomebrew.has(o.id)).map(sanearObjetoHomebrew);
+          set(() => ({ objetosHomebrew: [...baseObjetosFiltrados, ...objetosHomebrew.map(sanearObjetoHomebrew)] }));
         }
         if (pendientes && pendientes.length > 0) {
           set({ listaPendientes: pendientes });

@@ -1,7 +1,7 @@
 import React, { useState, useRef } from "react";
 import { usarAlmacenDM } from "../almacen/usarAlmacenDM";
 import { Upload, Download, Trash2, ShieldAlert, CheckCircle, Database, Heart, Copy, X } from "lucide-react";
-import { MONSTRUOS_INICIALES, HECHIZOS_INICIALES } from "../utiles/datosIniciales";
+import { MONSTRUOS_INICIALES, HECHIZOS_INICIALES, OBJETOS_INICIALES } from "../utiles/datosIniciales";
 import { ts } from "../utiles/TaleSpireAdapter";
 import estilosClases from "./ConfiguracionDM.module.css";
 
@@ -24,6 +24,7 @@ export const ConfiguracionDM: React.FC = () => {
   // Calcular estadísticas de homebrew
   const idsInicialesMonstruos = new Set(MONSTRUOS_INICIALES.map((m) => m.id));
   const idsInicialesHechizos = new Set(HECHIZOS_INICIALES.map((h) => h.id));
+  const idsInicialesObjetos = new Set(OBJETOS_INICIALES.map((o) => o.id));
 
   const monstruosHomebrew = baseDatosMonstruos.filter(
     (m) => !idsInicialesMonstruos.has(m.id)
@@ -31,7 +32,10 @@ export const ConfiguracionDM: React.FC = () => {
   const hechizosHomebrew = baseDatosHechizos.filter(
     (h) => !idsInicialesHechizos.has(h.id)
   );
-  const objetosHomebrewCont = objetosHomebrew.length;
+  const objetosHomebrewSolo = objetosHomebrew.filter(
+    (o) => !idsInicialesObjetos.has(o.id)
+  );
+  const objetosHomebrewCont = objetosHomebrewSolo.length;
 
   // Manejar arrastrar y soltar archivos JSON
   const [arrastrando, setArrastrando] = useState(false);
@@ -268,7 +272,7 @@ export const ConfiguracionDM: React.FC = () => {
               <strong className={estilosClases.numero}>{hechizosHomebrew.length}</strong>
             </div>
             <div className={estilosClases.filaEstadistica}>
-              <span className={estilosClases.labelEstadistica}>Objetos Mágicos en Inventario:</span>
+              <span className={estilosClases.labelEstadistica}>Objetos Mágicos Homebrew Creados:</span>
               <strong className={estilosClases.numero}>{objetosHomebrewCont}</strong>
             </div>
             <div className={estilosClases.filaEstadistica}>
@@ -278,6 +282,10 @@ export const ConfiguracionDM: React.FC = () => {
             <div className={estilosClases.filaEstadistica}>
               <span className={estilosClases.labelEstadistica}>Total Conjuros en Sistema:</span>
               <strong className={estilosClases.numero} style={{ color: "var(--color-texto-principal)" }}>{baseDatosHechizos.length}</strong>
+            </div>
+            <div className={estilosClases.filaEstadistica}>
+              <span className={estilosClases.labelEstadistica}>Total Objetos en Sistema:</span>
+              <strong className={estilosClases.numero} style={{ color: "var(--color-texto-principal)" }}>{objetosHomebrew.length}</strong>
             </div>
           </div>
 

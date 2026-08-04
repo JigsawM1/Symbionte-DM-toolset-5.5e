@@ -2,6 +2,18 @@
 
 Este archivo registra errores encontrados, sus causas raíz y las soluciones aplicadas.
 
+## [2026-08-04] Arquitectura: Fusión e Integración del Compendio de Objetos / Equipo Base
+**Causa Raíz:**
+- A diferencia de las criaturas y los hechizos, la lista de objetos `objetosHomebrew` en Zustand almacenaba la totalidad de los datos sin excluir los ítems base por defecto (`OBJETOS_INICIALES` de `Equipo es.json`) durante la persistencia en TaleSpire / localStorage (`persistencia.ts`).
+- Al re-cargar los datos de la sesión (`cargarDatosPersistidos`), si existía un blob guardado, sobreescribía la propiedad con lo guardado en vez de realizar un merge dinámico con `OBJETOS_INICIALES`. Además, los contadores de creaciones homebrew mostraban el total en lugar del recuento filtrado del usuario.
+
+**Solución Aplicada:**
+1. **`persistencia.ts`**: Filtrado activo mediante `idsInicialesObjetos = new Set(OBJETOS_INICIALES.map(o => o.id))` para guardar en `objetos_homebrew` del blob de TaleSpire ÚNICAMENTE los elementos homebrew o modificados por el usuario.
+2. **`sliceConfiguracion.ts` (`cargarDatosPersistidos`)**: Merge inteligente entre el compendio base `OBJETOS_INICIALES` y los objetos persistidos del blob, garantizando que todo ítem nuevo u homologado se fusione sin sobreescribir el compendio global.
+3. **`CreadorHomebrew.tsx` & `ListaHomebrew.tsx` & `ConfiguracionDM.tsx`**: Homologación del filtrado UI y contadores estadísticos ("Objetos Mágicos Homebrew Creados" vs "Total Objetos en Sistema"), manteniendo simetría completa con los compendios de Criaturas y Conjuros.
+
+---
+
 ## [2026-08-04] Investigación de API TaleSpire v0.1: Control de Cámara en Simbiontes
 **Análisis y Capacidades:**
 - **No existe API directa de control de cámara** tipo `camera.setPosition()`, `camera.followCreature()` o similar en la versión actual (v0.1) de la API de Symbiote.

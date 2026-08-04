@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { usarAlmacenDM, normalizarTexto } from "../../almacen/usarAlmacenDM";
 import { MonstruoBase, HechizoBase, ObjetoHomebrew, ObjetoJuego } from "../../tipos";
-import { MONSTRUOS_INICIALES, HECHIZOS_INICIALES } from "../../utiles/datosIniciales";
+import { MONSTRUOS_INICIALES, HECHIZOS_INICIALES, OBJETOS_INICIALES } from "../../utiles/datosIniciales";
 import {
   Edit2,
   Trash2,
@@ -70,8 +70,11 @@ export const ListaHomebrew: React.FC<Props> = ({
   // Filtrar creaciones homebrew por exclusión de datos por defecto de fábrica
   const idsInicialesMonstruos = new Set(MONSTRUOS_INICIALES.map((m) => m.id));
   const idsInicialesHechizos = new Set(HECHIZOS_INICIALES.map((h) => h.id));
+  const idsInicialesObjetos = new Set(OBJETOS_INICIALES.map((o) => o.id));
+
   const monstruosHomebrewSinFiltro = baseDatosMonstruos.filter((m) => !idsInicialesMonstruos.has(m.id));
   const hechizosHomebrewSinFiltro = baseDatosHechizos.filter((h) => !idsInicialesHechizos.has(h.id));
+  const objetosHomebrewSinFiltro = objetosHomebrew.filter((o) => !idsInicialesObjetos.has(o.id));
 
   const queryNormalizada = normalizarTexto(filtroBusqueda);
   const monstruosHomebrew = monstruosHomebrewSinFiltro.filter((m) =>
@@ -80,7 +83,7 @@ export const ListaHomebrew: React.FC<Props> = ({
   const hechizosHomebrew = hechizosHomebrewSinFiltro.filter((h) =>
     (h.nombreNormalizado || normalizarTexto(h.nombre)).includes(queryNormalizada)
   );
-  const objetosHomebrewFiltrados = objetosHomebrew.filter((o) =>
+  const objetosHomebrewFiltrados = objetosHomebrewSinFiltro.filter((o) =>
     (o.nombreNormalizado || normalizarTexto(o.nombre)).includes(queryNormalizada)
   );
 

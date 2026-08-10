@@ -12,7 +12,7 @@ import estilos from "./App.module.css";
 // Carga diferida de pestañas pesadas o inactivas al inicio con soporte para named exports
 const TablasDM = React.lazy(() => import("./componentes/TablasDM").then((m) => ({ default: m.TablasDM })));
 const Pendientes = React.lazy(() => import("./componentes/Pendientes").then((m) => ({ default: m.Pendientes })));
-const ListaHechizos = React.lazy(() => import("./componentes/ListaHechizos").then((m) => ({ default: m.ListaHechizos })));
+const Compendio = React.lazy(() => import("./componentes/Compendio").then((m) => ({ default: m.Compendio })));
 const NotasDM = React.lazy(() => import("./componentes/NotasDM").then((m) => ({ default: m.NotasDM })));
 const CreadorHomebrew = React.lazy(() => import("./componentes/CreadorHomebrew").then((m) => ({ default: m.CreadorHomebrew })));
 const ConfiguracionDM = React.lazy(() => import("./componentes/ConfiguracionDM").then((m) => ({ default: m.ConfiguracionDM })));
@@ -32,8 +32,9 @@ const AppContenido: React.FC = () => {
         return <TablasDM />;
       case "pendientes":
         return <Pendientes />;
+      case "compendio":
       case "hechizos":
-        return <ListaHechizos />;
+        return <Compendio />;
       case "notas":
         return <NotasDM />;
       case "homebrew":

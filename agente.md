@@ -2,6 +2,24 @@
 
 Este archivo registra errores encontrados, sus causas raíz y las soluciones aplicadas.
 
+## [2026-08-04] Arquitectura: Pestaña "Compendio" Unificada, Ordenamiento A-Z/CR & Paginación Incremental
+**Requerimiento y Diseño:**
+- Reemplazo de la pestaña individual de "Hechizos" por un módulo unificado **"Compendio"** con 3 sub-pestañas:
+  1. **Conjuros (Spells)**: Mantiene la vista especializada `<ListaHechizos />`.
+  2. **Bestiario (Criaturas)**: Visor de criaturas reusando `<ListaHomebrew tipoHomebrew="criatura" soloLectura />`.
+  3. **Equipo y Objetos**: Visor de equipo reusando `<ListaHomebrew tipoHomebrew="objeto" soloLectura />`.
+
+**Decisiones de Ordenamiento y Optimización:**
+1. **Ordenamiento por Defecto (Nombre A-Z)**: Todas las listas del compendio y homebrew se ordenan alfabéticamente A-Z por defecto (`localeCompare`).
+2. **Criterios de Ordenamiento Configurables**:
+   - Selector interactivo en la barra de búsqueda de `ListaHomebrew.tsx`.
+   - **Criaturas**: Soporta ordenamiento por **Nombre (A-Z / Z-A)** y por **Desafío / CR (Menor a Mayor / Mayor a Menor)** resolviendo valores fraccionarios mediante el helper `parsearCR` ("1/8" -> 0.125, "1/4" -> 0.25, "1/2" -> 0.5).
+   - **Hechizos y Objetos**: Soporta ordenamiento por **Nombre (A-Z / Z-A)**.
+3. **Reutilización DRY**: Se añadió la prop `soloLectura?: boolean` a `ListaHomebrew.tsx`.
+4. **Paginación Incremental "Mostrar más"**: `limiteVista` (pasos de 60 ítems con `.slice(0, limiteVista)`) y botón "Mostrar más..." al final de las listas.
+
+---
+
 ## [2026-08-04] Arquitectura: Fusión e Integración del Compendio de Objetos / Equipo Base
 **Causa Raíz:**
 - A diferencia de las criaturas y los hechizos, la lista de objetos `objetosHomebrew` en Zustand almacenaba la totalidad de los datos sin excluir los ítems base por defecto (`OBJETOS_INICIALES` de `Equipo es.json`) durante la persistencia en TaleSpire / localStorage (`persistencia.ts`).

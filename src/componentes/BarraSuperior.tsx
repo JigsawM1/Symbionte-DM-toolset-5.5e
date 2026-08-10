@@ -131,15 +131,15 @@ export const BarraSuperior: React.FC = () => {
         </button>
 
         <button
-          onClick={() => establecerPestaña("hechizos")}
+          onClick={() => establecerPestaña("compendio")}
           className={`${estilosClases.pestanaBoton} ${
-            pestañaActiva === "hechizos" ? estilosClases.pestanaActiva : ""
+            pestañaActiva === "compendio" || pestañaActiva === "hechizos" ? estilosClases.pestanaActiva : ""
           }`}
-          title="Lista de Hechizos en Español"
+          title="Compendio de D&D 5.5e (Conjuros, Bestiario, Equipo)"
           type="button"
         >
           <BookOpen size={13} />
-          <span className={estilosClases.pestanaTexto}>Hechizos</span>
+          <span className={estilosClases.pestanaTexto}>Compendio</span>
         </button>
 
         <button

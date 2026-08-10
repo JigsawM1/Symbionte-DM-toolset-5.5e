@@ -10,6 +10,7 @@ import type { EstadoDM } from '../usarAlmacenDM';
 export interface SliceConfiguracion {
   pestañaActiva: string;
   modoHomebrew: "crear" | "lista";
+  tipoHomebrewActivo: "criatura" | "hechizo" | "objeto";
   metodoVidaMonstruo: "estandar" | "maximo" | "azar";
   campañaNombre: string;
   esGM: boolean;
@@ -24,6 +25,7 @@ export interface SliceConfiguracion {
 
   establecerPestaña: (pestaña: string) => void;
   establecerModoHomebrew: (modo: "crear" | "lista") => void;
+  establecerTipoHomebrew: (tipo: "criatura" | "hechizo" | "objeto") => void;
   establecerMetodoVidaMonstruo: (metodo: "estandar" | "maximo" | "azar") => void;
   establecerDatosCampaña: (nombre: string, esGM: boolean) => void;
 
@@ -50,6 +52,7 @@ export const crearSliceConfiguracion: StateCreator<
 > = (set, get) => ({
   pestañaActiva: "iniciativa",
   modoHomebrew: "crear" as const,
+  tipoHomebrewActivo: "criatura" as const,
   metodoVidaMonstruo: "azar" as const,
   campañaNombre: "Cargando campaña de TaleSpire...",
   esGM: true,
@@ -65,6 +68,7 @@ export const crearSliceConfiguracion: StateCreator<
 
   establecerPestaña: (pestaña: string) => set({ pestañaActiva: pestaña }),
   establecerModoHomebrew: (modo: "crear" | "lista") => set({ modoHomebrew: modo }),
+  establecerTipoHomebrew: (tipo: "criatura" | "hechizo" | "objeto") => set({ tipoHomebrewActivo: tipo }),
   establecerMetodoVidaMonstruo: (metodo: "estandar" | "maximo" | "azar") => {
     set({ metodoVidaMonstruo: metodo });
   },

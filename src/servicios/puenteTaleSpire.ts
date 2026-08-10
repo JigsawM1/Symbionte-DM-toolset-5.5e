@@ -27,6 +27,7 @@ class PuenteTaleSpireClass {
   on<T>(evento: "resultadosDados", callback: CallbackEvento<ResultadosTirada>): () => void;
   on<T>(evento: "estadoSimbionte", callback: CallbackEvento<any>): () => void;
   on<T>(evento: "estadoCriatura", callback: CallbackEvento<any>): () => void;
+  on<T>(evento: "eventoCliente", callback: CallbackEvento<any>): () => void;
   on<T>(evento: string, callback: CallbackEvento<T>): () => void {
     if (!this.oyentes[evento]) {
       this.oyentes[evento] = [];
@@ -105,6 +106,11 @@ class PuenteTaleSpireClass {
     window.manejarResultadosDados = async (resultados) => {
       console.log("[Puente TaleSpire] Callback manejarResultadosDados:", resultados);
       this.emit("resultadosDados", this.deserializarPayload(resultados));
+    };
+
+    window.manejarEventoCliente = (evento) => {
+      console.log("[Puente TaleSpire] Callback manejarEventoCliente:", evento);
+      this.emit("eventoCliente", this.deserializarPayload(evento));
     };
 
     // Registrar oyentes de eventos DOM estándar en window y document para redundancia CEF

@@ -82,14 +82,29 @@ export interface InfoCriatura {
 }
 
 // Jugadores y Clientes
+export interface DerechosJugador {
+  isOwner: boolean;
+  canPlay: boolean;
+  canGm: boolean;
+}
+
 export interface FragmentoJugador {
   id: string;
   name: string;
+  playerRights?: DerechosJugador;
+}
+
+export interface InfoJugador {
+  id: string;
+  name: string;
+  rights?: DerechosJugador;
+  playerRights?: DerechosJugador;
 }
 
 export interface FragmentoCliente {
   id: string;
   player: FragmentoJugador;
+  playerRights?: DerechosJugador;
 }
 
 export type ModoCliente = "spectator" | "player" | "gm";
@@ -98,6 +113,15 @@ export interface InfoCliente {
   id: string;
   clientMode: ModoCliente;
   player: FragmentoJugador;
+  playerRights?: DerechosJugador;
+  rights?: DerechosJugador;
+}
+
+export interface EventoClienteTS {
+  kind: "clientJoinedBoard" | "clientLeftBoard" | "clientModeChanged";
+  client?: FragmentoCliente;
+  clientId?: string;
+  clientMode?: ModoCliente;
 }
 
 export type FragmentoOId = string | { id: string };
@@ -190,10 +214,16 @@ export interface TaleSpireAPI {
   players?: {
     whoAmI?: () => Promise<FragmentoJugador>;
     isMe?: (playerFragmentOrId: FragmentoOId) => Promise<boolean>;
+    getMoreInfo?: (playerFragmentsOrIds: FragmentoOId[]) => Promise<InfoJugador[]>;
   };
   clients?: {
     whoAmI?: () => Promise<FragmentoCliente>;
     getMoreInfo?: (clientFragmentsOrIds: FragmentoOId[]) => Promise<InfoCliente[]>;
+    onClientEvent?: Suscribible<EventoClienteTS>;
+  };
+  boards?: {
+    whereAmI?: () => Promise<unknown>;
+    getBoardsInThisCampaign?: () => Promise<unknown[]>;
   };
   localStorage?: TSLocalStorage;
   system?: {
@@ -216,5 +246,6 @@ declare global {
     manejarCambioEstadoCriatura?: (evento: unknown) => void;
     manejarCambioSeleccionCriatura?: (evento: SeleccionCriaturas) => void;
     manejarResultadosDados?: (resultados: ResultadosTirada) => Promise<void>;
+    manejarEventoCliente?: (evento: unknown) => void;
   }
 }

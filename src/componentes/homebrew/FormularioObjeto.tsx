@@ -1,12 +1,14 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useRef } from "react";
 import { usarFormularioObjeto } from "../../hooks/usarFormularioObjeto";
 import { usarAlmacenDM, Rareza, TipoBonoDestreza, SubcategoriaEquipo } from "../../almacen/usarAlmacenDM";
-import { Save, X, Sparkles, Scale, Coins, Swords, Shield, Backpack } from "lucide-react";
+import { ObjetoHomebrew } from "../../tipos";
+import { Save, X, Sparkles, Scale, Coins, Swords, Shield, Backpack, Copy } from "lucide-react";
 import { TIPOS_DAÑO_DND } from "../../constantes/homebrewConstantes";
 import estilos from "./FormularioObjeto.module.css";
 
 interface Props {
   idEnEdicion: string | null;
+  objetoPlantilla?: ObjetoHomebrew | null;
   alGuardarExitoso: () => void;
   cancelarEdicion: () => void;
 }
@@ -102,6 +104,7 @@ const EXPLICACIONES_MAESTRIAS: Record<string, string> = {
 
 export const FormularioObjeto: React.FC<Props> = ({
   idEnEdicion,
+  objetoPlantilla,
   alGuardarExitoso,
   cancelarEdicion
 }) => {
@@ -208,18 +211,49 @@ export const FormularioObjeto: React.FC<Props> = ({
     setOMunicionRequerida(tienePropMunicion);
   }, [tienePropMunicion, setOMunicionRequerida]);
 
-  // Sincronizar edición con la base de datos si cambia idEnEdicion
+  const agregarNotificacion = usarAlmacenDM((s) => s.agregarNotificacion);
+  const objetoPlantillaSeleccionado = usarAlmacenDM((s) => s.objetoPlantillaSeleccionado);
+  const limpiarObjetoPlantilla = usarAlmacenDM((s) => s.limpiarObjetoPlantilla);
+
+  const idPlantillaCargadaRef = useRef<string | null>(null);
+
+  // Sincronizar edición o plantilla con el formulario
   useEffect(() => {
     if (idEnEdicion) {
+      idPlantillaCargadaRef.current = idEnEdicion;
       const objeto = objetosHomebrew.find((o) => o.id === idEnEdicion);
       if (objeto) {
         cargarObjeto(objeto);
       }
-    } else {
+    } else if (objetoPlantillaSeleccionado && idPlantillaCargadaRef.current !== objetoPlantillaSeleccionado.id) {
+      idPlantillaCargadaRef.current = objetoPlantillaSeleccionado.id;
+      cargarObjeto(objetoPlantillaSeleccionado);
+      agregarNotificacion(
+        `Plantilla "${objetoPlantillaSeleccionado.nombre}" cargada. Puedes modificar el nombre y guardarlo como un objeto nuevo.`,
+        "info"
+      );
+      limpiarObjetoPlantilla();
+    } else if (objetoPlantilla && idPlantillaCargadaRef.current !== objetoPlantilla.id) {
+      idPlantillaCargadaRef.current = objetoPlantilla.id;
+      cargarObjeto(objetoPlantilla);
+    } else if (!idEnEdicion && !objetoPlantillaSeleccionado && !objetoPlantilla && idPlantillaCargadaRef.current === null) {
       limpiarFormulario();
     }
     setPestanaActiva("general");
-  }, [idEnEdicion, objetosHomebrew, cargarObjeto, limpiarFormulario]);
+  }, [idEnEdicion, objetoPlantilla, objetoPlantillaSeleccionado, objetosHomebrew, cargarObjeto, limpiarFormulario, limpiarObjetoPlantilla, agregarNotificacion]);
+
+  const alSeleccionarPlantilla = (idObjeto: string) => {
+    if (!idObjeto) return;
+    const objBase = objetosHomebrew.find((o) => o.id === idObjeto);
+    if (objBase) {
+      idPlantillaCargadaRef.current = objBase.id;
+      cargarObjeto(objBase);
+      agregarNotificacion(
+        `Plantilla "${objBase.nombre}" cargada. Puedes modificar el nombre y guardarlo como un objeto nuevo.`,
+        "info"
+      );
+    }
+  };
 
   // Detener clics accidentales al lienzo 3D de TaleSpire
   const detenerPropagacion = useCallback((e: React.MouseEvent) => {
@@ -248,6 +282,30 @@ export const FormularioObjeto: React.FC<Props> = ({
       onMouseDown={detenerPropagacion}
       onMouseUp={detenerPropagacion}
     >
+      {/* SECTOR SUPERIOR: CARGAR DESDE PLANTILLA BASE */}
+      {!idEnEdicion && (
+        <div className={estilos.contenedorPlantillaBase}>
+          <label className={estilos.labelPlantillaBase}>
+            <Copy size={13} />
+            Usar objeto base como plantilla:
+          </label>
+          <select
+            className={estilos.selectPlantillaBase}
+            value=""
+            onChange={(e) => alSeleccionarPlantilla(e.target.value)}
+          >
+            <option value="" disabled>
+              -- Seleccionar objeto base (ej. Cimatarra, Escudo, Poción) --
+            </option>
+            {listaTodosObjetos.map((obj) => (
+              <option key={obj.id} value={obj.id}>
+                {obj.nombre} ({obj.tipoPrincipal} - {obj.rareza})
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
+
       {/* PESTAÑAS HORIZONTALES COMPACTAS */}
       <div className={estilos.pestanasForm}>
         <button

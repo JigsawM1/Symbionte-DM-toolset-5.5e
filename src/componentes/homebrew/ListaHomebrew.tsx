@@ -9,7 +9,8 @@ import {
   MapPin,
   Sparkles,
   Coins,
-  Scale
+  Scale,
+  Copy
 } from "lucide-react";
 import estilos from "./ListaHomebrew.module.css";
 import { ConfirmDialog } from "../ConfirmDialog";
@@ -31,6 +32,7 @@ interface Props {
   iniciarEdicionCriatura?: (m: MonstruoBase) => void;
   iniciarEdicionHechizo?: (h: HechizoBase) => void;
   iniciarEdicionObjeto?: (o: ObjetoHomebrew) => void;
+  iniciarPlantillaObjeto?: (o: ObjetoHomebrew) => void;
   cancelarEdicion?: () => void;
   idEnEdicion?: string | null;
   soloLectura?: boolean;
@@ -41,6 +43,7 @@ export const ListaHomebrew: React.FC<Props> = ({
   iniciarEdicionCriatura,
   iniciarEdicionHechizo,
   iniciarEdicionObjeto,
+  iniciarPlantillaObjeto,
   cancelarEdicion,
   idEnEdicion,
   soloLectura = false
@@ -51,6 +54,9 @@ export const ListaHomebrew: React.FC<Props> = ({
   const eliminarMonstruoHomebrew = usarAlmacenDM((s) => s.eliminarMonstruoHomebrew);
   const eliminarHechizoHomebrew = usarAlmacenDM((s) => s.eliminarHechizoHomebrew);
   const eliminarObjetoHomebrew = usarAlmacenDM((s) => s.eliminarObjetoHomebrew);
+  const usarObjetoComoPlantillaGlobal = usarAlmacenDM((s) => s.usarObjetoComoPlantilla);
+
+  const funcionPlantilla = iniciarPlantillaObjeto || usarObjetoComoPlantillaGlobal;
 
   const [filtroBusqueda, setFiltroBusqueda] = useState("");
   const [criterioOrden, setCriterioOrden] = useState<"nombre-asc" | "nombre-desc" | "cr-asc" | "cr-desc">("nombre-asc");
@@ -374,37 +380,50 @@ export const ListaHomebrew: React.FC<Props> = ({
                       Rareza: {o.rareza} {o.propiedades ? `| Prop.: ${o.propiedades}` : ""}
                     </span>
                   </div>
-                  {!soloLectura && (
-                    <div className={estilos.grupoBotonesItem}>
-                      {iniciarEdicionObjeto && (
+                  <div className={estilos.grupoBotonesItem}>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        funcionPlantilla(o);
+                      }}
+                      className={estilos.botonEditarItem}
+                      title="Usar como plantilla para un nuevo objeto"
+                      type="button"
+                    >
+                      <Copy size={14} />
+                    </button>
+                    {!soloLectura && (
+                      <>
+                        {iniciarEdicionObjeto && (
+                          <button
+                            onClick={() => iniciarEdicionObjeto(o)}
+                            className={estilos.botonEditarItem}
+                            title="Editar creación"
+                            type="button"
+                          >
+                            <Edit2 size={14} />
+                          </button>
+                        )}
                         <button
-                          onClick={() => iniciarEdicionObjeto(o)}
-                          className={estilos.botonEditarItem}
-                          title="Editar creación"
+                          onClick={() => {
+                            setConfirmarAccion({
+                              titulo: "Borrar Objeto",
+                              mensaje: `¿Estás seguro de que deseas borrar el objeto "${o.nombre}" del homebrew? Esta acción no se puede deshacer.`,
+                              onConfirmar: () => {
+                                if (idEnEdicion === o.id && cancelarEdicion) cancelarEdicion();
+                                eliminarObjetoHomebrew(o.id);
+                              }
+                            });
+                          }}
+                          className={estilos.botonEliminarItem}
+                          title="Eliminar de la base de datos"
                           type="button"
                         >
-                          <Edit2 size={14} />
+                          <Trash2 size={14} />
                         </button>
-                      )}
-                      <button
-                        onClick={() => {
-                          setConfirmarAccion({
-                            titulo: "Borrar Objeto",
-                            mensaje: `¿Estás seguro de que deseas borrar el objeto "${o.nombre}" del homebrew? Esta acción no se puede deshacer.`,
-                            onConfirmar: () => {
-                              if (idEnEdicion === o.id && cancelarEdicion) cancelarEdicion();
-                              eliminarObjetoHomebrew(o.id);
-                            }
-                          });
-                        }}
-                        className={estilos.botonEliminarItem}
-                        title="Eliminar de la base de datos"
-                        type="button"
-                      >
-                        <Trash2 size={14} />
-                      </button>
-                    </div>
-                  )}
+                      </>
+                    )}
+                  </div>
                 </div>
               ))}
               {objetosHomebrewFiltrados.length > limiteVista && (
@@ -532,16 +551,44 @@ export const ListaHomebrew: React.FC<Props> = ({
                   <span className={estilos.nombreHechizoOverlay}>{objeto.nombre}</span>
                 </div>
               </div>
-              <button
-                onClick={() => {
-                  setIdObjetoDetalle(null);
-                  setHistorialDetalle([]);
-                }}
-                className={estilos.botonCerrarDetalle}
-                type="button"
-              >
-                <X size={15} />
-              </button>
+              <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                <button
+                  onClick={() => {
+                    const targetObj = oRaw;
+                    setIdObjetoDetalle(null);
+                    setHistorialDetalle([]);
+                    funcionPlantilla(targetObj);
+                  }}
+                  style={{
+                    background: "rgba(0, 245, 212, 0.08)",
+                    border: "1px solid var(--color-borde-cian)",
+                    color: "var(--color-borde-cian)",
+                    cursor: "pointer",
+                    padding: "4px 10px",
+                    borderRadius: "6px",
+                    display: "flex",
+                    alignItems: "center",
+                    fontSize: "12px",
+                    fontWeight: "bold",
+                    gap: "6px"
+                  }}
+                  type="button"
+                  title="Usar como plantilla para crear un nuevo objeto"
+                >
+                  <Copy size={13} />
+                  Usar como plantilla
+                </button>
+                <button
+                  onClick={() => {
+                    setIdObjetoDetalle(null);
+                    setHistorialDetalle([]);
+                  }}
+                  className={estilos.botonCerrarDetalle}
+                  type="button"
+                >
+                  <X size={15} />
+                </button>
+              </div>
             </div>
             <div className={estilos.cuerpoDetalle}>
               {/* Grid Metadatos */}

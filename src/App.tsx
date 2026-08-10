@@ -16,15 +16,23 @@ const Compendio = React.lazy(() => import("./componentes/Compendio").then((m) =>
 const NotasDM = React.lazy(() => import("./componentes/NotasDM").then((m) => ({ default: m.NotasDM })));
 const CreadorHomebrew = React.lazy(() => import("./componentes/CreadorHomebrew").then((m) => ({ default: m.CreadorHomebrew })));
 const ConfiguracionDM = React.lazy(() => import("./componentes/ConfiguracionDM").then((m) => ({ default: m.ConfiguracionDM })));
+const VistaJugadores = React.lazy(() => import("./componentes/VistaJugadores").then((m) => ({ default: m.VistaJugadores })));
 
 const AppContenido: React.FC = () => {
   const pestañaActiva = usarAlmacenDM((s) => s.pestañaActiva);
+  const esGM = usarAlmacenDM((s) => s.esGM);
 
   // Sincronización híbrida mediante hook modular
   usarConexionTaleSpire();
 
-  // Renderizado condicional basado en la pestaña activa
+  // Renderizado condicional basado en el rol nativo detectado
   const renderContenidoPestaña = () => {
+    if (!esGM) {
+      if (pestañaActiva === "configuracion") return <ConfiguracionDM />;
+      if (pestañaActiva === "compendio" || pestañaActiva === "hechizos") return <Compendio />;
+      return <VistaJugadores />;
+    }
+
     switch (pestañaActiva) {
       case "iniciativa":
         return <GestorIniciativa />;
@@ -52,8 +60,8 @@ const AppContenido: React.FC = () => {
       {/* Barra de título y navegación superior */}
       <BarraSuperior />
 
-      {/* Controles del DM */}
-      {pestañaActiva === "iniciativa" && <BarraControl />}
+      {/* Controles del DM (Solo visibles si esGM es true) */}
+      {esGM && pestañaActiva === "iniciativa" && <BarraControl />}
 
       {/* Panel de Contenido Principal Reactivo de Alta Densidad */}
       <main className={estilos.areaContenido}>

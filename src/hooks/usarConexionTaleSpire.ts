@@ -29,6 +29,7 @@ export function usarConexionTaleSpire() {
   useEffect(() => {
     let desuscribirSeleccion: (() => void) | null = null;
     let desuscribirIniciativa: (() => void) | null = null;
+    let desuscribirCliente: (() => void) | null = null;
     let timerInicializacion: ReturnType<typeof setTimeout> | null = null;
     let activo = true;
 
@@ -116,6 +117,35 @@ export function usarConexionTaleSpire() {
           }
         });
 
+        // Suscribirse a eventos de cambios de rol del cliente en tiempo real
+        const procesarEventoCliente = (payload: any) => {
+          if (!activo) return;
+          console.log("[TaleSpire Simbionte] Evento de cliente inyectado por CEF:", payload);
+          const modo = typeof payload === "string" ? payload : (payload?.clientMode || payload?.kind);
+          if (modo === "gm") {
+            usarAlmacenDM.setState({ esGM: true });
+          } else if (modo === "player" || modo === "spectator") {
+            usarAlmacenDM.setState({ esGM: false });
+          } else {
+            ts.clients.esGM().then((soyGm) => {
+              if (activo) usarAlmacenDM.setState({ esGM: soyGm });
+            });
+          }
+        };
+
+        const subPuenteCliente = puenteTaleSpire.on("eventoCliente", procesarEventoCliente);
+        const subNativaCliente = ts.clients.suscribirACambioModoCliente((modo) => {
+          if (activo) {
+            console.log("[TaleSpire Simbionte] Cambio de modo nativo detectado:", modo);
+            usarAlmacenDM.setState({ esGM: modo === "gm" });
+          }
+        });
+
+        desuscribirCliente = () => {
+          subPuenteCliente();
+          subNativaCliente.desuscribir();
+        };
+
         //  IMPORTANTE: Las llamadas "get" iniciales y la carga del blob nativo se retardan 500ms para que el canal
         // de mensajería del Simbionte quede completamente registrado antes de enviar mensajes.
         // Enviarlos de forma inmediata causa el error "outOfOrderMessage" de TaleSpire.
@@ -125,6 +155,18 @@ export function usarConexionTaleSpire() {
           // Cargar datos persistidos ahora que la API window.TS (real o simulador) está activa y el canal es estable
           console.log("[TaleSpire Simbionte] Canal de comunicación establecido. Iniciando carga de datos persistidos...");
           cargarDatosPersistidos();
+
+          // Detección automática del rol nativo inicial
+          ts.clients.esGM()
+            .then((soyGm) => {
+              if (activo) {
+                console.log(`[TaleSpire Simbionte] Rol cliente detectado al iniciar: ${soyGm ? "Dungeon Master (GM)" : "Jugador"}`);
+                usarAlmacenDM.setState({ esGM: soyGm });
+              }
+            })
+            .catch((e: unknown) => {
+              console.warn("[TaleSpire Simbionte] Error al consultar rol inicial esGM:", e);
+            });
 
           // Obtener la selección inicial física del tablero
           ts.creatures.getSelectedCreatures()
@@ -200,12 +242,12 @@ export function usarConexionTaleSpire() {
         if (timerInicializacion) clearTimeout(timerInicializacion);
         if (desuscribirSeleccion) desuscribirSeleccion();
         if (desuscribirIniciativa) desuscribirIniciativa();
+        if (desuscribirCliente) desuscribirCliente();
       };
     }
 
     // Si no está listo, sondeamos periódicamente de forma inteligente.
     let intentos = 0;
-    // Aumentamos los intentos a 300 (15 segundos) tanto para local como para producción.
     const maxIntentos = 300; 
     
     const intervalo = setInterval(() => {
@@ -224,6 +266,7 @@ export function usarConexionTaleSpire() {
       if (timerInicializacion) clearTimeout(timerInicializacion);
       if (desuscribirSeleccion) desuscribirSeleccion();
       if (desuscribirIniciativa) desuscribirIniciativa();
+      if (desuscribirCliente) desuscribirCliente();
     };
   }, []);
 }

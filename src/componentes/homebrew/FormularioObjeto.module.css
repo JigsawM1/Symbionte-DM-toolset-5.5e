@@ -488,3 +488,45 @@
   color: var(--color-texto-secundario);
   text-align: center;
 }
+
+/* SECTOR DE PLANTILLA BASE */
+.contenedorPlantillaBase {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 12px;
+  background-color: rgba(0, 245, 212, 0.04);
+  border: 1.5px dashed var(--color-borde-cian);
+  border-radius: 6px;
+  margin-bottom: 6px;
+}
+
+.labelPlantillaBase {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--color-borde-cian);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.selectPlantillaBase {
+  font-size: 12.5px;
+  padding: 6px 10px;
+  height: 34px;
+  width: 100%;
+  background-color: var(--color-fondo-tarjeta);
+  border: 1.5px solid var(--color-borde-brutal);
+  border-radius: 5px;
+  color: var(--color-texto-principal);
+  outline: none;
+  cursor: pointer;
+}
+
+.selectPlantillaBase:focus {
+  border-color: var(--color-borde-cian);
+  box-shadow: 0 0 0 2px rgba(0, 245, 212, 0.18);
+}
+

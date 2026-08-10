@@ -9,7 +9,8 @@ import {
   FileText,
   Settings,
   Plus,
-  Edit2
+  Edit2,
+  Gamepad2
 } from "lucide-react";
 import estilosClases from "./BarraSuperior.module.css";
 
@@ -17,6 +18,7 @@ export const BarraSuperior: React.FC = () => {
   const pestañaActiva = usarAlmacenDM((s) => s.pestañaActiva);
   const establecerPestaña = usarAlmacenDM((s) => s.establecerPestaña);
   const campañaNombre = usarAlmacenDM((s) => s.campañaNombre);
+  const esGM = usarAlmacenDM((s) => s.esGM);
   const modoHomebrew = usarAlmacenDM((s) => s.modoHomebrew);
   const establecerModoHomebrew = usarAlmacenDM((s) => s.establecerModoHomebrew);
   const [mostrarMenuHomebrew, setMostrarMenuHomebrew] = useState(false);
@@ -72,7 +74,9 @@ export const BarraSuperior: React.FC = () => {
               </div>
             )}
           </div>
-          <span className={estilosClases.tituloTexto}>DM SCREEN</span>
+          <span className={estilosClases.tituloTexto}>
+            {!esGM ? "PLAYER SHEET" : "DM SCREEN"}
+          </span>
         </div>
 
         <div className={estilosClases.zonaDerecha}>
@@ -92,67 +96,97 @@ export const BarraSuperior: React.FC = () => {
         </div>
       </div>
 
-      {/* Fila Inferior: Pestañas Brutalistas en un solo renglón autoajustable */}
+      {/* Fila Inferior: Pestañas adaptadas automáticamente al rol detectado */}
       <nav className={estilosClases.navPestañas}>
-        <button
-          onClick={() => establecerPestaña("iniciativa")}
-          className={`${estilosClases.pestanaBoton} ${
-            pestañaActiva === "iniciativa" ? estilosClases.pestanaActiva : ""
-          }`}
-          title="Gestor de Iniciativa"
-          type="button"
-        >
-          <Play size={13} fill={pestañaActiva === "iniciativa" ? "currentColor" : "none"} />
-          <span className={estilosClases.pestanaTexto}>Iniciativa</span>
-        </button>
+        {!esGM ? (
+          <>
+            <button
+              onClick={() => establecerPestaña("jugadores")}
+              className={`${estilosClases.pestanaBoton} ${
+                pestañaActiva !== "compendio" && pestañaActiva !== "configuracion" ? estilosClases.pestanaActiva : ""
+              }`}
+              title="Panel de Jugadores"
+              type="button"
+            >
+              <Gamepad2 size={13} />
+              <span className={estilosClases.pestanaTexto}>Vista Jugador</span>
+            </button>
 
-        <button
-          onClick={() => establecerPestaña("tablas")}
-          className={`${estilosClases.pestanaBoton} ${
-            pestañaActiva === "tablas" ? estilosClases.pestanaActiva : ""
-          }`}
-          title="Tablas del DM"
-          type="button"
-        >
-          <Table size={13} />
-          <span className={estilosClases.pestanaTexto}>Tablas DM</span>
-        </button>
+            <button
+              onClick={() => establecerPestaña("compendio")}
+              className={`${estilosClases.pestanaBoton} ${
+                pestañaActiva === "compendio" || pestañaActiva === "hechizos" ? estilosClases.pestanaActiva : ""
+              }`}
+              title="Compendio de Hechizos y Criaturas"
+              type="button"
+            >
+              <BookOpen size={13} />
+              <span className={estilosClases.pestanaTexto}>Compendio</span>
+            </button>
+          </>
+        ) : (
+          <>
+            <button
+              onClick={() => establecerPestaña("iniciativa")}
+              className={`${estilosClases.pestanaBoton} ${
+                pestañaActiva === "iniciativa" ? estilosClases.pestanaActiva : ""
+              }`}
+              title="Gestor de Iniciativa"
+              type="button"
+            >
+              <Play size={13} fill={pestañaActiva === "iniciativa" ? "currentColor" : "none"} />
+              <span className={estilosClases.pestanaTexto}>Iniciativa</span>
+            </button>
 
-        <button
-          onClick={() => establecerPestaña("pendientes")}
-          className={`${estilosClases.pestanaBoton} ${
-            pestañaActiva === "pendientes" ? estilosClases.pestanaActiva : ""
-          }`}
-          title="Lista de Tareas Pendientes"
-          type="button"
-        >
-          <ListTodo size={13} />
-          <span className={estilosClases.pestanaTexto}>Pendientes</span>
-        </button>
+            <button
+              onClick={() => establecerPestaña("tablas")}
+              className={`${estilosClases.pestanaBoton} ${
+                pestañaActiva === "tablas" ? estilosClases.pestanaActiva : ""
+              }`}
+              title="Tablas del DM"
+              type="button"
+            >
+              <Table size={13} />
+              <span className={estilosClases.pestanaTexto}>Tablas DM</span>
+            </button>
 
-        <button
-          onClick={() => establecerPestaña("compendio")}
-          className={`${estilosClases.pestanaBoton} ${
-            pestañaActiva === "compendio" || pestañaActiva === "hechizos" ? estilosClases.pestanaActiva : ""
-          }`}
-          title="Compendio de D&D 5.5e (Conjuros, Bestiario, Equipo)"
-          type="button"
-        >
-          <BookOpen size={13} />
-          <span className={estilosClases.pestanaTexto}>Compendio</span>
-        </button>
+            <button
+              onClick={() => establecerPestaña("pendientes")}
+              className={`${estilosClases.pestanaBoton} ${
+                pestañaActiva === "pendientes" ? estilosClases.pestanaActiva : ""
+              }`}
+              title="Lista de Tareas Pendientes"
+              type="button"
+            >
+              <ListTodo size={13} />
+              <span className={estilosClases.pestanaTexto}>Pendientes</span>
+            </button>
 
-        <button
-          onClick={() => establecerPestaña("notas")}
-          className={`${estilosClases.pestanaBoton} ${
-            pestañaActiva === "notas" ? estilosClases.pestanaActiva : ""
-          }`}
-          title="Notas del DM"
-          type="button"
-        >
-          <FileText size={13} />
-          <span className={estilosClases.pestanaTexto}>Notas</span>
-        </button>
+            <button
+              onClick={() => establecerPestaña("compendio")}
+              className={`${estilosClases.pestanaBoton} ${
+                pestañaActiva === "compendio" || pestañaActiva === "hechizos" ? estilosClases.pestanaActiva : ""
+              }`}
+              title="Compendio de Reglas"
+              type="button"
+            >
+              <BookOpen size={13} />
+              <span className={estilosClases.pestanaTexto}>Compendio</span>
+            </button>
+
+            <button
+              onClick={() => establecerPestaña("notas")}
+              className={`${estilosClases.pestanaBoton} ${
+                pestañaActiva === "notas" ? estilosClases.pestanaActiva : ""
+              }`}
+              title="Notas del DM"
+              type="button"
+            >
+              <FileText size={13} />
+              <span className={estilosClases.pestanaTexto}>Notas</span>
+            </button>
+          </>
+        )}
       </nav>
     </header>
   );

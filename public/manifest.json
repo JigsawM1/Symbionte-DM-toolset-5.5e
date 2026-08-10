@@ -5,7 +5,7 @@
   "entryPoint": "/index.html",
   "about": {
     "authors": [
-      "Antigravity"
+      "JigsawM1"
     ],
     "description": "Pantalla de DM asimétrica y densa optimizada para TaleSpire y D&D 5.5e (2024)",
     "website": "https://github.com/PanoramicPanda/vite-react-symbiote"
@@ -30,10 +30,13 @@
         "onCreatureSelectionChange": "manejarCambioSeleccionCriatura"
       },
       "initiative": {
-        "onInitiativeEvent": "initiativeUpdated"
+        "onInitiativeEvent": "manejarEventoIniciativa"
       },
       "dice": {
         "onRollResults": "manejarResultadosDados"
+      },
+      "clients": {
+        "onClientEvent": "manejarEventoCliente"
       }
     }
   }

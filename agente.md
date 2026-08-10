@@ -2,6 +2,45 @@
 
 Este archivo registra errores encontrados, sus causas raíz y las soluciones aplicadas.
 
+## [2026-08-10] Limpieza de Código y Eliminación de Módulos Redundantes
+**Acciones de Purga Aplicadas:**
+1. **Eliminación de Archivos Redundantes:** Eliminados los archivos de entrada alternativa `jugadores.html` y `src/mainJugador.tsx`.
+2. **Restauración de `vite.config.ts`:** Se revirtió la configuración de compilación a la estructura SPA nativa minimalista.
+3. **Limpieza del Almacén Zustand:** Eliminadas las variables de conmutación manual (`modoRol`, `establecerModoRol`) de `sliceConfiguracion.ts`.
+4. **Simplificación de la UI:** Eliminado el botón conmutable manual de `BarraSuperior.tsx`. La aplicación ahora depende 100% de la detección nativa `esGM` derivada de la API de TaleSpire (`clientMode`).
+
+---
+
+## [2026-08-10] Arquitectura: Análisis del Ciclo de Vida de la API de TaleSpire y Enrutamiento (MPA vs SPA)
+**Comportamiento de la API de TaleSpire al Cambiar de Ruta:**
+- **Navegación entre archivos HTML (`index.html` ➡️ `jugadores.html`):**
+  - Destruye la ventana CEF del Simbionte y reinicia las suscripciones de eventos (`ts.creatures.suscribirASeleccion`, `ts.initiative`).
+  - Requiere re-ejecutar la lógica de [`usarConexionTaleSpire.ts`](file:///c:/Users/zamor/OneDrive/Documentos/Programas/ToolSet%20Es%205.5/src/hooks/usarConexionTaleSpire.ts) con su retardo de seguridad de **500ms** para evitar el error `outOfOrderMessage`.
+  - **Ideal cuando:** El DM y los Jugadores abren el Simbionte desde sus propias PC al inicio del juego (arranque en frío).
+- **Enrutamiento por Estado/Hash en SPA (`index.html#jugador` o `ts.clients.esGM()`):**
+  - **Ventaja Crítica:** Mantiene la conexión con la API nativa de TaleSpire viva y continua sin interrupciones ni parpadeos (0ms de retraso).
+  - Permite cambiar de rol en caliente sin perder la sincronización del EventBus ni reacondicionar el WebSocket de TaleSpire.
+
+---
+
+## [2026-08-10] Funcionalidad: Sistema de Plantillas para Creación de Objetos Homebrew
+**Requerimiento:**
+- Permitir crear nuevos objetos tomando otro objeto base (ejemplo: Cimatarra) como plantilla para facilitar al usuario la creación de variaciones personalizadas (ejemplo: Chuchumaru).
+
+**Diseño e Implementación:**
+1. **`FormularioObjeto.tsx` & `FormularioObjeto.module.css`**:
+   - Añadido un contenedor selector de plantilla en la parte superior del formulario (`.contenedorPlantillaBase`).
+   - Muestra un desplegable interactivo con todos los objetos base e ítems homebrew disponibles.
+   - Al seleccionar cualquier objeto, la función `alSeleccionarPlantilla` invoca `cargarObjeto(objBase)` para autocompletar instantáneamente todos los atributos, dados de daño, propiedades, costo, peso y efectos pasivos.
+   - Mantiene `idEnEdicion = null`, asegurando que al guardar se genere un nuevo objeto único en la base de datos sin sobreescribir el objeto plantilla original.
+   - Soporta la prop opcional `objetoPlantilla?: ObjetoHomebrew | null` para recibir plantillas de forma externa.
+2. **`CreadorHomebrew.tsx`, `Compendio.tsx`, `ListaHomebrew.tsx` & `FormularioObjeto.tsx`**:
+   - **Causa Raíz de Formulario Vacío al Cargar Plantilla**: Al invocar `usarObjetoComoPlantilla`, se cargaba la plantilla y síncronamente se ejecutaba `limpiarObjetoPlantilla()`. Esto provocaba un re-render inmediato por cambio en la dependencia `objetoPlantillaSeleccionado`, haciendo que `useEffect` entrara por la rama `else { limpiarFormulario(); }` y vaciara todos los inputs recién rellenados.
+   - **Solución Aplicada**: Se implementó una referencia implícita `idPlantillaCargadaRef` (`useRef`) en `FormularioObjeto.tsx`. Esto evita re-ejecuciones que reseteen el formulario cuando `objetoPlantillaSeleccionado` pasa a ser nulo tras haber cargado la plantilla exitosamente.
+   - Se activaron botones de acción de plantilla (icono `Copy` de Lucide) en todos los elementos del **Compendio (Equipo y Objetos)**, en el listado Homebrew y dentro del modal flotante de inspección de objetos (`panelDetalleOverlay`).
+
+---
+
 ## [2026-08-04] Arquitectura: Pestaña "Compendio" Unificada, Ordenamiento A-Z/CR & Paginación Incremental
 **Requerimiento y Diseño:**
 - Reemplazo de la pestaña individual de "Hechizos" por un módulo unificado **"Compendio"** con 3 sub-pestañas:
@@ -1898,6 +1937,59 @@ Se añadieron propiedades específicas de rasterización en el CSS para contrarr
 2. **Restauración y Cancelación (`iniciativaOriginalRef` y `Escape`)**:
    - Al activar la edición se guarda `iniciativaOriginalRef.current = criatura.iniciativa`.
    - Si se presiona `Escape` o si se pierde el foco (`onBlur`) habiendo dejado el input en blanco/inválido, se restaura la iniciativa original previa a la edición.
+
+---
+
+## [2026-08-10] Arquitectura y Planificación: Módulo de Hoja de Personajes (D&D 5.5e / 2024)
+**Análisis y Diseño de Datos:**
+- Integración completa con el esquema SRD 2024 provisto en la carpeta `ejemplos de tipos`.
+- **Estructura del Modelo `Personaje` (Zod + TypeScript strict)**:
+  1. **Datos Biográficos & Base**: Nombre, Jugador, Especie (`5e-SRD-Species.json`), Subespecie (`5e-SRD-Subspecies.json`), Trasfondo (`5e-SRD-Backgrounds.json`), Clase (`5e-SRD-Classes.json`), Subclase (`5e-SRD-Subclasses.json`), Nivel (1-20), Experiencia, Alineamiento, Miniatura/CreatureID TaleSpire.
+  2. **Atributos y Modificadores**: Fuerza, Destreza, Constitución, Inteligencia, Sabiduría, Carisma. (Cálculo dinámico de modificadores `(valor - 10) / 2`).
+  3. **Estadísticas de Combate Derivadas**:
+     - Puntos de Vida (Máximos, Actuales, Temporales) + Dados de Golpe por Nivel/Clase (`hit_die`).
+     - Clase de Armadura (CA Base + Mod Destreza / Armadura Equipada / Reglas Sin Armadura).
+     - Iniciativa (Mod Destreza + Bonificadores por Dote/Rasgo).
+     - Velocidad (Caminar, Volar, Nadar, etc., derivadas de la Especie y Rasgos de Clase).
+     - Bonificador de Competencia (+2 a +6 según Nivel Total desde `5e-SRD-Levels.json`).
+  4. **Salvaciones y Habilidades (Skills)**:
+     - Estado de Competencia (No Competente, Competente, Pericia/Expertise, Medio Competente).
+     - Mapeo exacto con `5e-SRD-Proficiencies.json` y `5e-SRD-Skills.json`.
+  5. **Rasgos, Dotes y Capacidades**:
+     - Dote de Origen (`5e-SRD-Feats.json`) del Trasfondo + Dotes Generales elegidas en incrementos de característica (Nivel 4, 8, 12, 16, 19).
+     - Rasgos de Especie (`5e-SRD-Traits.json`) y Rasgos de Clase/Nivel (`5e-SRD-Features.json`).
+     - Gestor de Usos por Descanso (Corto / Largo).
+  6. **Sistema de Conjuros (Spellcasting)**:
+     - Característica de Lanzamiento, CD de Salvación, Bonificador de Ataque de Conjuro.
+     - Gestor de Espacios de Conjuro por Nivel (1 al 9) y Conjuros Preparados / Conocidos.
+  7. **Inventario, Equipo y Monedas**:
+     - Armas, Armaduras, Herramientas, Consumibles (`5e-SRD-Equipment-Categories.json`).
+     - Desglose de Monedas (PC, PP, PE, PO, PPT) y Capacidad de Carga (`FUE * 15 lb`).
+
+**Estrategia de Traducción y Aplanamiento de Bundles SRD 2024:**
+- **Innecesario**: Eliminar metadatos de API REST como URLs (`url: "/api/2024/..."`) y estructuras hiper-anidadas de la API SRD (`option_set_type`, `counted_reference`).
+- **Necesario**: Conservar identificadores clave estables (`index`/`id`), datos mecánicos (`hit_die`, `speed`, `choose`, `size`) y aplanar las opciones a arreglos directos.
+- **Traducción**: Traducir nombres de clases, habilidades, salvaciones, rasgos y trasfondos al español oficial de D&D 2024/5.5e en un esquema de datos limpio en `src/datos/`.
+- **Mapeo y Creación Completa de los 12 Archivos de Datos (`src/datos/`)**:
+  1. [`habilidades.json`](file:///c:/Users/zamor/OneDrive/Documentos/Programas/ToolSet%20Es%205.5/src/datos/habilidades.json) (de `5e-SRD-Skills.json`): 100% completo (18 habilidades).
+  2. [`trasfondos.json`](file:///c:/Users/zamor/OneDrive/Documentos/Programas/ToolSet%20Es%205.5/src/datos/trasfondos.json) (de `5e-SRD-Backgrounds.json`): 100% completo (14 trasfondos D&D 2024).
+  3. [`especies.json`](file:///c:/Users/zamor/OneDrive/Documentos/Programas/ToolSet%20Es%205.5/src/datos/especies.json) (de `5e-SRD-Species.json`): 100% completo (10 especies principales D&D 2024).
+  4. [`clases.json`](file:///c:/Users/zamor/OneDrive/Documentos/Programas/ToolSet%20Es%205.5/src/datos/clases.json) (de `5e-SRD-Classes.json`): 100% completo (Las 12 clases oficiales D&D 2024 con sus opciones A y B de `equipoInicial`).
+
+  5. [`dotes.json`](file:///c:/Users/zamor/OneDrive/Documentos/Programas/ToolSet%20Es%205.5/src/datos/dotes.json) (de `5e-SRD-Feats.json`): 100% completo (Dotes de Origen D&D 2024).
+  6. [`subespecies.json`](file:///c:/Users/zamor/OneDrive/Documentos/Programas/ToolSet%20Es%205.5/src/datos/subespecies.json) (de `5e-SRD-Subspecies.json`): Linajes y Subespecies.
+  7. [`subclases.json`](file:///c:/Users/zamor/OneDrive/Documentos/Programas/ToolSet%20Es%205.5/src/datos/subclases.json) (de `5e-SRD-Subclasses.json`): Subclases por nivel 3.
+  8. [`progresionNiveles.json`](file:///c:/Users/zamor/OneDrive/Documentos/Programas/ToolSet%20Es%205.5/src/datos/progresionNiveles.json) (de `5e-SRD-Levels.json`): Progresión 1-20 con PB y slots.
+  9. [`competencias.json`](file:///c:/Users/zamor/OneDrive/Documentos/Programas/ToolSet%20Es%205.5/src/datos/competencias.json) (de `5e-SRD-Proficiencies.json`): Armaduras, armas, herramientas e idiomas.
+  10. [`rasgosClase.json`](file:///c:/Users/zamor/OneDrive/Documentos/Programas/ToolSet%20Es%205.5/src/datos/rasgosClase.json) (de `5e-SRD-Features.json`): Rasgos mecánicos de clase y nivel.
+  11. [`rasgosEspecie.json`](file:///c:/Users/zamor/OneDrive/Documentos/Programas/ToolSet%20Es%205.5/src/datos/rasgosEspecie.json) (de `5e-SRD-Traits.json`): Rasgos raciales.
+  12. [`categoriasEquipo.json`](file:///c:/Users/zamor/OneDrive/Documentos/Programas/ToolSet%20Es%205.5/src/datos/categoriasEquipo.json) (de `5e-SRD-Equipment-Categories.json`): Categorías de equipamiento.
+
+
+
+
+
+
 
 
 

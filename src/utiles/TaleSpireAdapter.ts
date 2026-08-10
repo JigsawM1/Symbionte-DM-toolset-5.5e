@@ -259,22 +259,104 @@ class TaleSpireAdapter {
   clients = {
     /**
      * Comprueba si el usuario actual tiene rol de Dungeon Master (GM).
+     * Consulta players.getMoreInfo ([playerInfo.rights]), clients.getMoreInfo o prueba permisos.
      */
     esGM: async (): Promise<boolean> => {
+      // 0. Si no existe window.TS (desarrollo local fuera de TaleSpire), por defecto es DM para pruebas
+      if (!window.TS) return true;
+
+      console.log("[TS Adapter esGM] Evaluando modo de vista cliente en TaleSpire...");
+
+      // 1. Consultar a través de window.TS.clients.whoAmI() y window.TS.clients.getMoreInfo()
       if (window.TS?.clients && typeof window.TS.clients.whoAmI === "function") {
         try {
-          const yo = await window.TS.clients.whoAmI();
-          if (yo.id && typeof window.TS.clients.getMoreInfo === "function") {
-            const info = await window.TS.clients.getMoreInfo([yo.id]);
-            if (info && info[0]) {
-              return info[0].clientMode === "gm";
+          const yoCliente = await window.TS.clients.whoAmI() as any;
+          const clientId = typeof yoCliente === "string" ? yoCliente : yoCliente?.id;
+
+          if (yoCliente?.clientMode) {
+            console.log("[TS Adapter esGM] Modo cliente directo 'clientMode':", yoCliente.clientMode);
+            return yoCliente.clientMode === "gm";
+          }
+
+          if (clientId && typeof window.TS.clients.getMoreInfo === "function") {
+            const infoClientes = await window.TS.clients.getMoreInfo([clientId]);
+            if (infoClientes && infoClientes[0]) {
+              const clientInfo = infoClientes[0] as any;
+              if (clientInfo.clientMode) {
+                console.log("[TS Adapter esGM] clientInfo.clientMode:", clientInfo.clientMode);
+                return clientInfo.clientMode === "gm";
+              }
+              const derechos = clientInfo.rights || clientInfo.playerRights || clientInfo.permissions;
+              if (derechos?.canGm !== undefined) {
+                return Boolean(derechos.canGm);
+              }
             }
           }
         } catch (e) {
-          console.error("[TS Adapter] Error al comprobar rol GM oficial:", e);
+          console.warn("[TS Adapter esGM] Error al consultar clients.whoAmI / getMoreInfo:", e);
         }
       }
+
+      // 2. Consultar a través de window.TS.players.whoAmI() y window.TS.players.getMoreInfo()
+      if (window.TS?.players && typeof window.TS.players.whoAmI === "function") {
+        try {
+          const yoJugador = await window.TS.players.whoAmI() as any;
+          const playerId = typeof yoJugador === "string" ? yoJugador : yoJugador?.id;
+
+          if (playerId && typeof window.TS.players.getMoreInfo === "function") {
+            const infoJugadores = await window.TS.players.getMoreInfo([playerId]);
+            if (infoJugadores && infoJugadores[0]) {
+              const jugadorInfo = infoJugadores[0] as any;
+              const derechos = jugadorInfo.rights || jugadorInfo.playerRights || jugadorInfo.permissions;
+              if (derechos?.canGm !== undefined) {
+                return Boolean(derechos.canGm);
+              }
+            }
+          }
+        } catch (e) {
+          console.warn("[TS Adapter esGM] Error al consultar players.getMoreInfo:", e);
+        }
+      }
+
+      // 3. Probar llamada con restricción de permisos de TaleSpire (boards.getBoardsInThisCampaign)
+      if (window.TS?.boards && typeof window.TS.boards.getBoardsInThisCampaign === "function") {
+        try {
+          await window.TS.boards.getBoardsInThisCampaign();
+          console.log("[TS Adapter esGM] Permiso de campaña otorgado -> esGM: true");
+          return true;
+        } catch (err: any) {
+          console.warn("[TS Adapter esGM] Permiso denegado en getBoardsInThisCampaign -> esGM: false", err);
+          return false;
+        }
+      }
+
+      // Fallback seguro dentro de TaleSpire: si no se confirmó rol GM, asume Jugador (false)
+      console.warn("[TS Adapter esGM] No se pudo confirmar modo GM en TaleSpire. Asumiendo rol Jugador (false).");
       return false;
+    },
+
+    /**
+     * Escucha el evento 'clientModeChanged' de TaleSpire en tiempo real cuando un usuario cambia de rol (DM <-> Jugador).
+     */
+    suscribirACambioModoCliente: (callback: (modo: import("../tipos/talespire").ModoCliente) => void): { desuscribir: () => void } => {
+      const listener = (evento: any) => {
+        if (evento?.kind === "clientModeChanged" && evento?.clientMode) {
+          callback(evento.clientMode);
+        }
+      };
+
+      const onClientEvent = window.TS?.clients?.onClientEvent as any;
+      if (onClientEvent) {
+        if (typeof onClientEvent.subscribe === "function") {
+          const sub = onClientEvent.subscribe(listener);
+          return { desuscribir: () => sub?.desuscribir?.() };
+        }
+        if (typeof onClientEvent === "function") {
+          const unsub = onClientEvent(listener);
+          return { desuscribir: () => (typeof unsub === "function" ? unsub() : undefined) };
+        }
+      }
+      return { desuscribir: () => {} };
     },
 
     /**

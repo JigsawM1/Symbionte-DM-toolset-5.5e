@@ -16,36 +16,50 @@ export const CreadorHomebrew: React.FC = () => {
   const modoHomebrew = usarAlmacenDM((s) => s.modoHomebrew);
   const establecerModoHomebrew = usarAlmacenDM((s) => s.establecerModoHomebrew);
 
-  const [tipoHomebrew, setTipoHomebrew] = useState<"criatura" | "hechizo" | "objeto">("criatura");
+  const tipoHomebrew = usarAlmacenDM((s) => s.tipoHomebrewActivo);
+  const establecerTipoHomebrew = usarAlmacenDM((s) => s.establecerTipoHomebrew);
   const [idEnEdicion, setIdEnEdicion] = useState<string | null>(null);
+  const [objetoPlantilla, setObjetoPlantilla] = useState<ObjetoHomebrew | null>(null);
 
   const cancelarEdicion = () => {
     setIdEnEdicion(null);
+    setObjetoPlantilla(null);
     establecerModoHomebrew("lista");
   };
 
   const cambiarTipoHomebrew = (tipo: "criatura" | "hechizo" | "objeto") => {
-    setTipoHomebrew(tipo);
+    establecerTipoHomebrew(tipo);
     cancelarEdicion();
   };
 
   const alGuardarExitoso = () => {
     setIdEnEdicion(null);
+    setObjetoPlantilla(null);
     establecerModoHomebrew("lista");
   };
 
   const iniciarEdicionCriatura = (m: MonstruoBase) => {
     setIdEnEdicion(m.id);
+    setObjetoPlantilla(null);
     establecerModoHomebrew("crear");
   };
 
   const iniciarEdicionHechizo = (h: HechizoBase) => {
     setIdEnEdicion(h.id);
+    setObjetoPlantilla(null);
     establecerModoHomebrew("crear");
   };
 
   const iniciarEdicionObjeto = (o: ObjetoHomebrew) => {
     setIdEnEdicion(o.id);
+    setObjetoPlantilla(null);
+    establecerModoHomebrew("crear");
+  };
+
+  const iniciarPlantillaObjeto = (o: ObjetoHomebrew) => {
+    setIdEnEdicion(null);
+    setObjetoPlantilla(o);
+    establecerTipoHomebrew("objeto");
     establecerModoHomebrew("crear");
   };
 
@@ -146,6 +160,7 @@ export const CreadorHomebrew: React.FC = () => {
             {tipoHomebrew === "objeto" && (
               <FormularioObjeto
                 idEnEdicion={idEnEdicion}
+                objetoPlantilla={objetoPlantilla}
                 alGuardarExitoso={alGuardarExitoso}
                 cancelarEdicion={cancelarEdicion}
               />
@@ -160,6 +175,7 @@ export const CreadorHomebrew: React.FC = () => {
             iniciarEdicionCriatura={iniciarEdicionCriatura}
             iniciarEdicionHechizo={iniciarEdicionHechizo}
             iniciarEdicionObjeto={iniciarEdicionObjeto}
+            iniciarPlantillaObjeto={iniciarPlantillaObjeto}
             cancelarEdicion={cancelarEdicion}
             idEnEdicion={idEnEdicion}
           />

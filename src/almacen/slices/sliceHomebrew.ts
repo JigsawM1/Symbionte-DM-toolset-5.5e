@@ -8,6 +8,7 @@ export interface SliceHomebrew {
   baseDatosMonstruos: MonstruoBase[];
   baseDatosHechizos: HechizoBase[];
   objetosHomebrew: ObjetoHomebrew[];
+  objetoPlantillaSeleccionado: ObjetoHomebrew | null;
 
   agregarMonstruoHomebrew: (monstruo: Omit<MonstruoBase, "id">) => void;
   agregarHechizoHomebrew: (hechizo: Omit<HechizoBase, "id">) => void;
@@ -18,6 +19,8 @@ export interface SliceHomebrew {
   eliminarMonstruoHomebrew: (id: string) => void;
   eliminarHechizoHomebrew: (id: string) => void;
   eliminarObjetoHomebrew: (id: string) => void;
+  usarObjetoComoPlantilla: (objeto: ObjetoHomebrew) => void;
+  limpiarObjetoPlantilla: () => void;
 }
 
 export const crearSliceHomebrew: StateCreator<
@@ -29,6 +32,18 @@ export const crearSliceHomebrew: StateCreator<
   baseDatosMonstruos: MONSTRUOS_INICIALES.map(sanearMonstruoSentidosYPasiva),
   baseDatosHechizos: HECHIZOS_INICIALES.map(sanearHechizoCD),
   objetosHomebrew: OBJETOS_INICIALES.map(sanearObjetoHomebrew),
+  objetoPlantillaSeleccionado: null,
+
+  usarObjetoComoPlantilla: (objeto) => set({
+    objetoPlantillaSeleccionado: objeto,
+    pestañaActiva: "homebrew",
+    modoHomebrew: "crear",
+    tipoHomebrewActivo: "objeto"
+  }),
+
+  limpiarObjetoPlantilla: () => set({
+    objetoPlantillaSeleccionado: null
+  }),
 
   agregarMonstruoHomebrew: (monstruo) => set((state) => {
     const nuevoMonstruo: MonstruoBase = sanearMonstruoSentidosYPasiva({

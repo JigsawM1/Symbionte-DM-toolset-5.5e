@@ -6,15 +6,13 @@ import {
   Gamepad2,
   Dices,
   Shield,
-  User,
-  Users
+  User
 } from "lucide-react";
 import estilos from "./VistaJugadores.module.css";
 
 export const VistaJugadores: React.FC = () => {
   const esGM = usarAlmacenDM((s) => s.esGM);
   const criaturasSeleccionadas = usarAlmacenDM((s) => s.criaturasSeleccionadas);
-  const colaIniciativa = usarAlmacenDM((s) => s.colaIniciativa);
   const agregarNotificacion = usarAlmacenDM((s) => s.agregarNotificacion);
 
   // Función para realizar tiradas rápidas de dados para el jugador
@@ -57,27 +55,25 @@ export const VistaJugadores: React.FC = () => {
         <div className={estilos.panelSeccion}>
           <div className={estilos.cabeceraPanel}>
             <Shield size={16} />
-            <span>Mi Personaje / Selección en Tablero</span>
+            <span>Miniatura Seleccionada</span>
           </div>
 
-          <div className={estilos.listaCriaturas}>
-            {criaturasSeleccionadas.length > 0 ? (
-              criaturasSeleccionadas.map((c: CriaturaSeleccionadaTS) => (
-                <div key={c.id} className={estilos.tarjetaCriatura}>
-                  <span className={estilos.nombreCriatura}>{c.name}</span>
+          {criaturasSeleccionadas.length > 0 ? (
+            <div className={estilos.listaSeleccionadas}>
+              {criaturasSeleccionadas.map((c: CriaturaSeleccionadaTS) => (
+                <div key={c.id} className={estilos.tarjetaMiniatura}>
+                  <span className={estilos.nombreMiniatura}>{c.name || "Criatura Desconocida"}</span>
                   {c.hp !== undefined && (
-                    <span className={estilos.vidaCriatura}>
-                      HP: {c.hp} / {c.maxHp ?? "?"}
+                    <span className={estilos.hpMiniatura}>
+                      HP: {c.hp} / {c.maxHp || c.hp}
                     </span>
                   )}
                 </div>
-              ))
-            ) : (
-              <span className={estilos.textoVacio}>
-                Selecciona tu miniatura en TaleSpire para ver sus datos.
-              </span>
-            )}
-          </div>
+              ))}
+            </div>
+          ) : (
+            <span className={estilos.textoVacio}>Selecciona tu figura en TaleSpire para ver sus datos aquí.</span>
+          )}
         </div>
 
         {/* Panel 2: Lanzador Rápido de Dados */}
@@ -106,29 +102,6 @@ export const VistaJugadores: React.FC = () => {
             <button onClick={() => realizarTirada("1d12", "Dado d12")} className={estilos.botonDado} type="button">
               1d12
             </button>
-          </div>
-        </div>
-
-        {/* Panel 3: Iniciativa Pública */}
-        <div className={estilos.panelSeccion}>
-          <div className={estilos.cabeceraPanel}>
-            <Users size={16} />
-            <span>Orden de Iniciativa Pública</span>
-          </div>
-
-          <div className={estilos.listaCriaturas}>
-            {colaIniciativa.length > 0 ? (
-              colaIniciativa.map((item, index) => (
-                <div key={item.id} className={estilos.tarjetaCriatura}>
-                  <span className={estilos.nombreCriatura}>
-                    #{index + 1} - {item.nombre}
-                  </span>
-                  <span className={estilos.vidaCriatura}>Init: {item.iniciativa}</span>
-                </div>
-              ))
-            ) : (
-              <span className={estilos.textoVacio}>No hay combate activo en la cola de iniciativa.</span>
-            )}
           </div>
         </div>
       </div>

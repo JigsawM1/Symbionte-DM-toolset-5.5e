@@ -103,9 +103,9 @@ export const BarraSuperior: React.FC = () => {
             <button
               onClick={() => establecerPestaña("jugadores")}
               className={`${estilosClases.pestanaBoton} ${
-                pestañaActiva !== "compendio" && pestañaActiva !== "configuracion" ? estilosClases.pestanaActiva : ""
+                pestañaActiva === "jugadores" || (pestañaActiva !== "compendio" && pestañaActiva !== "tablas" && pestañaActiva !== "notas" && pestañaActiva !== "iniciativa" && pestañaActiva !== "configuracion" && pestañaActiva !== "homebrew") ? estilosClases.pestanaActiva : ""
               }`}
-              title="Panel de Jugadores"
+              title="Panel Principal del Jugador"
               type="button"
             >
               <Gamepad2 size={13} />
@@ -117,11 +117,47 @@ export const BarraSuperior: React.FC = () => {
               className={`${estilosClases.pestanaBoton} ${
                 pestañaActiva === "compendio" || pestañaActiva === "hechizos" ? estilosClases.pestanaActiva : ""
               }`}
-              title="Compendio de Hechizos y Criaturas"
+              title="Compendio de Hechizos, Objetos y Equipo"
               type="button"
             >
               <BookOpen size={13} />
               <span className={estilosClases.pestanaTexto}>Compendio</span>
+            </button>
+
+            <button
+              onClick={() => establecerPestaña("tablas")}
+              className={`${estilosClases.pestanaBoton} ${
+                pestañaActiva === "tablas" ? estilosClases.pestanaActiva : ""
+              }`}
+              title="Tablas de Referencia (Condiciones, Críticos, Reglas)"
+              type="button"
+            >
+              <Table size={13} />
+              <span className={estilosClases.pestanaTexto}>Tablas</span>
+            </button>
+
+            <button
+              onClick={() => establecerPestaña("notas")}
+              className={`${estilosClases.pestanaBoton} ${
+                pestañaActiva === "notas" ? estilosClases.pestanaActiva : ""
+              }`}
+              title="Notas Personales del Jugador"
+              type="button"
+            >
+              <FileText size={13} />
+              <span className={estilosClases.pestanaTexto}>Notas</span>
+            </button>
+
+            <button
+              onClick={() => establecerPestaña("iniciativa")}
+              className={`${estilosClases.pestanaBoton} ${
+                pestañaActiva === "iniciativa" ? estilosClases.pestanaActiva : ""
+              }`}
+              title="Tracker de Iniciativa y Combate"
+              type="button"
+            >
+              <Play size={13} fill={pestañaActiva === "iniciativa" ? "currentColor" : "none"} />
+              <span className={estilosClases.pestanaTexto}>Iniciativa</span>
             </button>
           </>
         ) : (

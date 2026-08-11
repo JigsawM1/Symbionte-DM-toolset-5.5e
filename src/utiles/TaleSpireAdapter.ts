@@ -24,6 +24,12 @@ import type {
   EventoIniciativaActualizada
 } from "../tipos/talespire.d.ts";
 
+let cacheEsGM: boolean | null = null;
+
+export const establecerCacheEsGM = (esGm: boolean) => {
+  cacheEsGM = esGm;
+};
+
 class TaleSpireAdapter {
   private getQueuePromise: Promise<ColaIniciativaTS> | null = null;
 
@@ -260,10 +266,16 @@ class TaleSpireAdapter {
     /**
      * Comprueba si el usuario actual tiene rol de Dungeon Master (GM).
      * Consulta players.getMoreInfo ([playerInfo.rights]), clients.getMoreInfo o prueba permisos.
+     * Utiliza un caché en memoria para evitar llamadas redundantes a la API de TaleSpire.
      */
-    esGM: async (): Promise<boolean> => {
+    esGM: async (forzarRefresco = false): Promise<boolean> => {
       // 0. Si no existe window.TS (desarrollo local fuera de TaleSpire), por defecto es DM para pruebas
       if (!window.TS) return true;
+
+      // Si ya tenemos el rol en caché y no pedimos refresco forzado, retornarlo de inmediato
+      if (cacheEsGM !== null && !forzarRefresco) {
+        return cacheEsGM;
+      }
 
       console.log("[TS Adapter esGM] Evaluando modo de vista cliente en TaleSpire...");
 
@@ -275,7 +287,9 @@ class TaleSpireAdapter {
 
           if (yoCliente?.clientMode) {
             console.log("[TS Adapter esGM] Modo cliente directo 'clientMode':", yoCliente.clientMode);
-            return yoCliente.clientMode === "gm";
+            const esGm = yoCliente.clientMode === "gm";
+            cacheEsGM = esGm;
+            return esGm;
           }
 
           if (clientId && typeof window.TS.clients.getMoreInfo === "function") {
@@ -284,11 +298,15 @@ class TaleSpireAdapter {
               const clientInfo = infoClientes[0] as any;
               if (clientInfo.clientMode) {
                 console.log("[TS Adapter esGM] clientInfo.clientMode:", clientInfo.clientMode);
-                return clientInfo.clientMode === "gm";
+                const esGm = clientInfo.clientMode === "gm";
+                cacheEsGM = esGm;
+                return esGm;
               }
               const derechos = clientInfo.rights || clientInfo.playerRights || clientInfo.permissions;
               if (derechos?.canGm !== undefined) {
-                return Boolean(derechos.canGm);
+                const esGm = Boolean(derechos.canGm);
+                cacheEsGM = esGm;
+                return esGm;
               }
             }
           }
@@ -309,7 +327,9 @@ class TaleSpireAdapter {
               const jugadorInfo = infoJugadores[0] as any;
               const derechos = jugadorInfo.rights || jugadorInfo.playerRights || jugadorInfo.permissions;
               if (derechos?.canGm !== undefined) {
-                return Boolean(derechos.canGm);
+                const esGm = Boolean(derechos.canGm);
+                cacheEsGM = esGm;
+                return esGm;
               }
             }
           }
@@ -323,15 +343,18 @@ class TaleSpireAdapter {
         try {
           await window.TS.boards.getBoardsInThisCampaign();
           console.log("[TS Adapter esGM] Permiso de campaña otorgado -> esGM: true");
+          cacheEsGM = true;
           return true;
         } catch (err: any) {
           console.warn("[TS Adapter esGM] Permiso denegado en getBoardsInThisCampaign -> esGM: false", err);
+          cacheEsGM = false;
           return false;
         }
       }
 
       // Fallback seguro dentro de TaleSpire: si no se confirmó rol GM, asume Jugador (false)
       console.warn("[TS Adapter esGM] No se pudo confirmar modo GM en TaleSpire. Asumiendo rol Jugador (false).");
+      cacheEsGM = false;
       return false;
     },
 
@@ -340,8 +363,10 @@ class TaleSpireAdapter {
      */
     suscribirACambioModoCliente: (callback: (modo: import("../tipos/talespire").ModoCliente) => void): { desuscribir: () => void } => {
       const listener = (evento: any) => {
-        if (evento?.kind === "clientModeChanged" && evento?.clientMode) {
-          callback(evento.clientMode);
+        const modo = typeof evento === "string" ? evento : (evento?.clientMode || evento?.payload?.clientMode);
+        if (modo === "gm" || modo === "player" || modo === "spectator") {
+          cacheEsGM = modo === "gm";
+          callback(modo);
         }
       };
 

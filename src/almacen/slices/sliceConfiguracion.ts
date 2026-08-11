@@ -14,6 +14,7 @@ export interface SliceConfiguracion {
   metodoVidaMonstruo: "estandar" | "maximo" | "azar";
   campañaNombre: string;
   esGM: boolean;
+  mostrarPorcentajeVidaAJugadores: boolean;
   listaPendientes: ElementoPendiente[];
   notasDM: string;
   encuentrosGuardados: EncuentroGuardado[];
@@ -28,6 +29,7 @@ export interface SliceConfiguracion {
   establecerTipoHomebrew: (tipo: "criatura" | "hechizo" | "objeto") => void;
   establecerMetodoVidaMonstruo: (metodo: "estandar" | "maximo" | "azar") => void;
   establecerDatosCampaña: (nombre: string, esGM: boolean) => void;
+  establecerMostrarPorcentajeVidaAJugadores: (permitir: boolean) => void;
 
   agregarPendiente: (texto: string) => void;
   alternarPendiente: (id: string) => void;
@@ -56,6 +58,7 @@ export const crearSliceConfiguracion: StateCreator<
   metodoVidaMonstruo: "azar" as const,
   campañaNombre: "Cargando campaña de TaleSpire...",
   esGM: true,
+  mostrarPorcentajeVidaAJugadores: typeof localStorage !== "undefined" ? localStorage.getItem("ts_mostrar_porcentaje_vida") !== "false" : true,
   listaPendientes: [
     { id: "p_1", texto: "Revisar hojas de personaje de los jugadores", completado: false },
     { id: "p_2", texto: "Preparar encuentro en el puente levadizo", completado: false },
@@ -73,6 +76,12 @@ export const crearSliceConfiguracion: StateCreator<
     set({ metodoVidaMonstruo: metodo });
   },
   establecerDatosCampaña: (nombre: string, esGM: boolean) => set({ campañaNombre: nombre, esGM }),
+  establecerMostrarPorcentajeVidaAJugadores: (permitir: boolean) => {
+    if (typeof localStorage !== "undefined") {
+      localStorage.setItem("ts_mostrar_porcentaje_vida", String(permitir));
+    }
+    set({ mostrarPorcentajeVidaAJugadores: permitir });
+  },
 
   agregarNotificacion: (mensaje, tipo = "info") => set((state) => {
     const id = `notif_${Date.now()}_${Math.random().toString(36).substring(2, 5)}`;

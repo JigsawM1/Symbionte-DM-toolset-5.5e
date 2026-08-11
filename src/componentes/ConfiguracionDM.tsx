@@ -1,6 +1,6 @@
 import React, { useState, useRef } from "react";
 import { usarAlmacenDM } from "../almacen/usarAlmacenDM";
-import { Upload, Download, Trash2, ShieldAlert, CheckCircle, Database, Heart, Copy, X } from "lucide-react";
+import { Upload, Download, Trash2, ShieldAlert, CheckCircle, Database, Heart, Copy, X, Eye, Settings } from "lucide-react";
 import { MONSTRUOS_INICIALES, HECHIZOS_INICIALES, OBJETOS_INICIALES } from "../utiles/datosIniciales";
 import { ts } from "../utiles/TaleSpireAdapter";
 import estilosClases from "./ConfiguracionDM.module.css";
@@ -13,31 +13,25 @@ export const ConfiguracionDM: React.FC = () => {
   const restablecerDatosDeFabrica = usarAlmacenDM((s) => s.restablecerDatosDeFabrica);
   const metodoVidaMonstruo = usarAlmacenDM((s) => s.metodoVidaMonstruo);
   const establecerMetodoVidaMonstruo = usarAlmacenDM((s) => s.establecerMetodoVidaMonstruo);
+  const mostrarPorcentajeVidaAJugadores = usarAlmacenDM((s) => s.mostrarPorcentajeVidaAJugadores);
+  const establecerMostrarPorcentajeVidaAJugadores = usarAlmacenDM((s) => s.establecerMostrarPorcentajeVidaAJugadores);
 
   const [estadoImportacion, setEstadoImportacion] = useState<"inactivo" | "exito" | "error">("inactivo");
   const [mensajeError, setMensajeError] = useState("");
   const [confirmarReset, setConfirmarReset] = useState(false);
-  const [modalExport, setModalExport] = useState<string | null>(null); // JSON string para mostrar en modal
+  const [modalExport, setModalExport] = useState<string | null>(null);
   const [copiado, setCopiado] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Calcular estadísticas de homebrew
   const idsInicialesMonstruos = new Set(MONSTRUOS_INICIALES.map((m) => m.id));
   const idsInicialesHechizos = new Set(HECHIZOS_INICIALES.map((h) => h.id));
   const idsInicialesObjetos = new Set(OBJETOS_INICIALES.map((o) => o.id));
 
-  const monstruosHomebrew = baseDatosMonstruos.filter(
-    (m) => !idsInicialesMonstruos.has(m.id)
-  );
-  const hechizosHomebrew = baseDatosHechizos.filter(
-    (h) => !idsInicialesHechizos.has(h.id)
-  );
-  const objetosHomebrewSolo = objetosHomebrew.filter(
-    (o) => !idsInicialesObjetos.has(o.id)
-  );
+  const monstruosHomebrew = baseDatosMonstruos.filter((m) => !idsInicialesMonstruos.has(m.id));
+  const hechizosHomebrew = baseDatosHechizos.filter((h) => !idsInicialesHechizos.has(h.id));
+  const objetosHomebrewSolo = objetosHomebrew.filter((o) => !idsInicialesObjetos.has(o.id));
   const objetosHomebrewCont = objetosHomebrewSolo.length;
 
-  // Manejar arrastrar y soltar archivos JSON
   const [arrastrando, setArrastrando] = useState(false);
 
   const alArrastrarSobre = (e: React.DragEvent) => {
@@ -60,18 +54,22 @@ export const ConfiguracionDM: React.FC = () => {
     lector.onload = (evento) => {
       try {
         const contenido = evento.target?.result as string;
-        const datos = JSON.parse(contenido);
+        const datosParseados = JSON.parse(contenido);
 
-        const exito = importarBaseDatosJSONCompleta(datos);
-        if (exito) {
+        const resultado = importarBaseDatosJSONCompleta(datosParseados);
+
+        if (resultado) {
           setEstadoImportacion("exito");
+          setMensajeError("");
           setTimeout(() => setEstadoImportacion("inactivo"), 4000);
         } else {
-          throw new Error("El importador no detectó cambios nuevos o falló el formato interno.");
+          setEstadoImportacion("error");
+          setMensajeError("El archivo JSON no tiene una estructura compatible con el Simbionte.");
         }
-      } catch (err: unknown) {
+      } catch (e) {
+        console.error("Error al parsear archivo JSON:", e);
         setEstadoImportacion("error");
-        setMensajeError(err instanceof Error ? err.message : "Error al decodificar y validar el archivo JSON.");
+        setMensajeError("El archivo JSON contiene errores de sintaxis.");
       }
     };
     lector.readAsText(archivo);
@@ -80,38 +78,29 @@ export const ConfiguracionDM: React.FC = () => {
   const alSoltarArchivo = (e: React.DragEvent) => {
     e.preventDefault();
     setArrastrando(false);
+
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
       procesarArchivoJSON(e.dataTransfer.files[0]);
     }
   };
 
-  const alSeleccionarArchivo = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const alSeleccionarArchivoManual = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       procesarArchivoJSON(e.target.files[0]);
     }
   };
 
-  const exportarDatos = async () => {
-    const backupData = {
-      tipo: "talespire_dm_screen_backup",
+  const exportarBaseDatosCompletaJSON = async () => {
+    const datosExportacion = {
       version: "5.5",
-      fecha: new Date().toISOString(),
-      monstruos: monstruosHomebrew,
-      hechizos: hechizosHomebrew,
-      objetos: objetosHomebrew
+      fechaExportacion: new Date().toISOString(),
+      baseDatosMonstruos,
+      baseDatosHechizos,
+      objetosHomebrew
     };
 
-    const jsonStr = JSON.stringify(backupData, null, 2);
+    const jsonStr = JSON.stringify(datosExportacion, null, 2);
 
-    // Intento 1: Copiar usando el adaptador TaleSpireAdapter (maneja nativo y portapapeles web)
-    const exito = await ts.system.clipboard.setText(jsonStr);
-    if (exito) {
-      setCopiado(true);
-      setTimeout(() => setCopiado(false), 3000);
-      return;
-    }
-
-    // Intento 2: Crear un elemento <a> para descarga (funciona fuera de TaleSpire si el portapapeles falla)
     try {
       const blob = new Blob([jsonStr], { type: "application/json" });
       const url = URL.createObjectURL(blob);
@@ -124,11 +113,9 @@ export const ConfiguracionDM: React.FC = () => {
       URL.revokeObjectURL(url);
       setCopiado(true);
       setTimeout(() => setCopiado(false), 3000);
-      return;
-    } catch { /* continuar con siguiente método */ }
-
-    // Fallback final: mostrar modal con el JSON para copiar manualmente
-    setModalExport(jsonStr);
+    } catch {
+      setModalExport(jsonStr);
+    }
   };
 
   const copiarDelModal = async () => {
@@ -140,7 +127,6 @@ export const ConfiguracionDM: React.FC = () => {
     }
   };
 
-
   const ejecutarRestablecerFabrica = () => {
     restablecerDatosDeFabrica();
     setConfirmarReset(false);
@@ -149,7 +135,10 @@ export const ConfiguracionDM: React.FC = () => {
   return (
     <div className={estilosClases.contenedor}>
       <h3 className={estilosClases.titulo}>
-        <span className={estilosClases.tituloTextoPrincipal}>🛠️ CONFIGURACIÓN Y MANTENIMIENTO DEL COMPENDIO</span>
+        <span className={estilosClases.tituloTextoPrincipal}>
+          <Settings size={16} style={{ color: "var(--color-borde-cian)", marginRight: "6px", verticalAlign: "middle" }} />
+          CONFIGURACIÓN Y MANTENIMIENTO DEL COMPENDIO
+        </span>
         <span className={estilosClases.diagnostico}>
           <Database size={12} style={{ color: "var(--color-exito)" }} />
           <span>SISTEMA PERSISTENTE ACTIVO</span>
@@ -157,7 +146,6 @@ export const ConfiguracionDM: React.FC = () => {
       </h3>
 
       <div className={estilosClases.gridConfig}>
-        {/* Columna Izquierda: Importación Adaptativa */}
         <div className={estilosClases.seccion}>
           <div className={estilosClases.cabeceraSeccion}>
             <div className={estilosClases.barraDecorativaCian} />
@@ -184,7 +172,7 @@ export const ConfiguracionDM: React.FC = () => {
             <input
               type="file"
               ref={fileInputRef}
-              onChange={alSeleccionarArchivo}
+              onChange={alSeleccionarArchivoManual}
               accept=".json"
               style={{ display: "none" }}
             />
@@ -261,6 +249,37 @@ export const ConfiguracionDM: React.FC = () => {
             </div>
           </div>
 
+          {/* NUEVO PANEL: MOSTRAR PORCENTAJE DE VIDA A JUGADORES */}
+          <div className={estilosClases.tarjetaConfigHP} style={{ marginTop: "12px" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "4px" }}>
+              <Eye size={14} style={{ color: "#818cf8" }} />
+              <span className={estilosClases.tituloConfigHP}>BARRA DE SALUD EN VISTA JUGADOR (%)</span>
+            </div>
+            <p className={estilosClases.descripcionConfigHP}>
+              Controla si los jugadores ven el porcentaje (%) de vida restante de las criaturas en combate.
+            </p>
+            <div className={estilosClases.selectorHPGrid}>
+              <button
+                onClick={() => establecerMostrarPorcentajeVidaAJugadores(true)}
+                className={`${estilosClases.botonHPBrutal} ${
+                  mostrarPorcentajeVidaAJugadores ? estilosClases.botonHPBrutalActivo : ""
+                }`}
+                type="button"
+              >
+                MOSTRAR % DE VIDA
+              </button>
+              <button
+                onClick={() => establecerMostrarPorcentajeVidaAJugadores(false)}
+                className={`${estilosClases.botonHPBrutal} ${
+                  !mostrarPorcentajeVidaAJugadores ? estilosClases.botonHPBrutalActivo : ""
+                }`}
+                type="button"
+              >
+                OCULTAR % DE VIDA
+              </button>
+            </div>
+          </div>
+
           {/* Panel Holográfico de Estadísticas */}
           <div className={estilosClases.tarjetaEstadisticas}>
             <div className={estilosClases.filaEstadistica}>
@@ -291,7 +310,7 @@ export const ConfiguracionDM: React.FC = () => {
 
           <div className={estilosClases.accionesConfig}>
             <button
-              onClick={exportarDatos}
+              onClick={exportarBaseDatosCompletaJSON}
               className={`${estilosClases.botonDescargar} ${copiado ? estilosClases.botonDescargarExito : ""}`}
               title="Exportar JSON al portapapeles o descarga"
             >

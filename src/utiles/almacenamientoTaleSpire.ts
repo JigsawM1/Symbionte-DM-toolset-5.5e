@@ -28,7 +28,7 @@ export async function guardarBlobGlobal(datos: Record<string, unknown>): Promise
 export async function leerBlobGlobal(): Promise<Record<string, unknown> | null> {
   try {
     const resultado = await ts.localStorage.leerBlob(CLAVE_BLOB_GLOBAL);
-    console.log("[TS Storage] Lectura finalizada. Tipo de respuesta:", typeof resultado, resultado);
+    console.log("[TS Storage] Lectura finalizada.");
 
     if (!resultado) {
       console.log("[TS Storage] Blob vacío o sin inicializar.");

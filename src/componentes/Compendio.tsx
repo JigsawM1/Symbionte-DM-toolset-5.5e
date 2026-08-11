@@ -2,9 +2,11 @@ import React, { useState } from "react";
 import { BookOpen, Swords, Sparkles } from "lucide-react";
 import { ListaHechizos } from "./ListaHechizos";
 import { ListaHomebrew } from "./homebrew/ListaHomebrew";
+import { usarAlmacenDM } from "../almacen/usarAlmacenDM";
 import estilos from "./Compendio.module.css";
 
 export const Compendio: React.FC = () => {
+  const esGM = usarAlmacenDM((s) => s.esGM);
   const [subPestaña, setSubPestaña] = useState<"conjuros" | "bestiario" | "equipo">("conjuros");
 
   return (
@@ -22,16 +24,19 @@ export const Compendio: React.FC = () => {
           Conjuros (Spells)
         </button>
 
-        <button
-          onClick={() => setSubPestaña("bestiario")}
-          className={`${estilos.subBotonNav} ${
-            subPestaña === "bestiario" ? estilos.subBotonNavActivo : ""
-          }`}
-          type="button"
-        >
-          <Swords size={14} />
-          Bestiario (Criaturas)
-        </button>
+        {/* El Bestiario solo es visible para el Dungeon Master */}
+        {esGM && (
+          <button
+            onClick={() => setSubPestaña("bestiario")}
+            className={`${estilos.subBotonNav} ${
+              subPestaña === "bestiario" ? estilos.subBotonNavActivo : ""
+            }`}
+            type="button"
+          >
+            <Swords size={14} />
+            Bestiario (Criaturas)
+          </button>
+        )}
 
         <button
           onClick={() => setSubPestaña("equipo")}

@@ -17,6 +17,7 @@ const NotasDM = React.lazy(() => import("./componentes/NotasDM").then((m) => ({ 
 const CreadorHomebrew = React.lazy(() => import("./componentes/CreadorHomebrew").then((m) => ({ default: m.CreadorHomebrew })));
 const ConfiguracionDM = React.lazy(() => import("./componentes/ConfiguracionDM").then((m) => ({ default: m.ConfiguracionDM })));
 const VistaJugadores = React.lazy(() => import("./componentes/VistaJugadores").then((m) => ({ default: m.VistaJugadores })));
+const IniciativaJugador = React.lazy(() => import("./componentes/IniciativaJugador").then((m) => ({ default: m.IniciativaJugador })));
 
 const AppContenido: React.FC = () => {
   const pestañaActiva = usarAlmacenDM((s) => s.pestañaActiva);
@@ -28,9 +29,23 @@ const AppContenido: React.FC = () => {
   // Renderizado condicional basado en el rol nativo detectado
   const renderContenidoPestaña = () => {
     if (!esGM) {
-      if (pestañaActiva === "configuracion") return <ConfiguracionDM />;
-      if (pestañaActiva === "compendio" || pestañaActiva === "hechizos") return <Compendio />;
-      return <VistaJugadores />;
+      switch (pestañaActiva) {
+        case "iniciativa":
+          return <IniciativaJugador />;
+        case "compendio":
+        case "hechizos":
+          return <Compendio />;
+        case "tablas":
+          return <TablasDM />;
+        case "notas":
+          return <NotasDM />;
+        case "homebrew":
+          return <CreadorHomebrew />;
+        case "configuracion":
+          return <ConfiguracionDM />;
+        default:
+          return <VistaJugadores />;
+      }
     }
 
     switch (pestañaActiva) {

@@ -12,7 +12,7 @@
 
 import { useEffect } from "react";
 import { usarAlmacenDM } from "../almacen/usarAlmacenDM";
-import { ts } from "../utiles/TaleSpireAdapter";
+import { ts, establecerCacheEsGM } from "../utiles/TaleSpireAdapter";
 import { puenteTaleSpire } from "../servicios/puenteTaleSpire";
 
 export function usarConexionTaleSpire() {
@@ -121,13 +121,20 @@ export function usarConexionTaleSpire() {
         const procesarEventoCliente = (payload: any) => {
           if (!activo) return;
           console.log("[TaleSpire Simbionte] Evento de cliente inyectado por CEF:", payload);
-          const modo = typeof payload === "string" ? payload : (payload?.clientMode || payload?.kind);
+          const modo = typeof payload === "string" 
+            ? payload 
+            : (payload?.clientMode || payload?.payload?.clientMode || (payload?.kind !== "clientModeChanged" ? payload?.kind : undefined));
+            
+          console.log("[TaleSpire Simbionte] Modo detectado en evento de cliente:", modo);
+          
           if (modo === "gm") {
+            establecerCacheEsGM(true);
             usarAlmacenDM.setState({ esGM: true });
           } else if (modo === "player" || modo === "spectator") {
+            establecerCacheEsGM(false);
             usarAlmacenDM.setState({ esGM: false });
           } else {
-            ts.clients.esGM().then((soyGm) => {
+            ts.clients.esGM(true).then((soyGm) => {
               if (activo) usarAlmacenDM.setState({ esGM: soyGm });
             });
           }
@@ -137,7 +144,9 @@ export function usarConexionTaleSpire() {
         const subNativaCliente = ts.clients.suscribirACambioModoCliente((modo) => {
           if (activo) {
             console.log("[TaleSpire Simbionte] Cambio de modo nativo detectado:", modo);
-            usarAlmacenDM.setState({ esGM: modo === "gm" });
+            const esGm = modo === "gm";
+            establecerCacheEsGM(esGm);
+            usarAlmacenDM.setState({ esGM: esGm });
           }
         });
 

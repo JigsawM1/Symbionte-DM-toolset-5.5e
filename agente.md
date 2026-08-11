@@ -2,12 +2,14 @@
 
 Este archivo registra errores encontrados, sus causas raíz y las soluciones aplicadas.
 
-## [2026-08-10] Limpieza de Código y Eliminación de Módulos Redundantes
-**Acciones de Purga Aplicadas:**
-1. **Eliminación de Archivos Redundantes:** Eliminados los archivos de entrada alternativa `jugadores.html` y `src/mainJugador.tsx`.
-2. **Restauración de `vite.config.ts`:** Se revirtió la configuración de compilación a la estructura SPA nativa minimalista.
-3. **Limpieza del Almacén Zustand:** Eliminadas las variables de conmutación manual (`modoRol`, `establecerModoRol`) de `sliceConfiguracion.ts`.
-4. **Simplificación de la UI:** Eliminado el botón conmutable manual de `BarraSuperior.tsx`. La aplicación ahora depende 100% de la detección nativa `esGM` derivada de la API de TaleSpire (`clientMode`).
+## [2026-08-10] Corrección en Estructura de Evento de Cambio de Rol (`clientModeChanged`)
+**Causa Raíz por la que no se detectaba el cambio de rol en tiempo real:**
+- Al cambiar de rol en TaleSpire (DM ↔ Jugador), la envolvente del puente CEF inyecta el evento con una propiedad anidada: `{ kind: "clientModeChanged", payload: { client: {...}, clientMode: "player" } }`.
+- El código buscaba la propiedad en el primer nivel (`payload.clientMode`), que resultaba `undefined`, provocando que el evento cayera en el fallback y no conmutara las vistas en tiempo real.
+
+**Solución Aplicada:**
+- Se actualizó la extracción a `payload?.clientMode || payload?.payload?.clientMode` en [`usarConexionTaleSpire.ts`](file:///c:/Users/zamor/OneDrive/Documentos/Programas/ToolSet%20Es%205.5/src/hooks/usarConexionTaleSpire.ts) y [`TaleSpireAdapter.ts`](file:///c:/Users/zamor/OneDrive/Documentos/Programas/ToolSet%20Es%205.5/src/utiles/TaleSpireAdapter.ts).
+- Al detectar `"player"` o `"gm"`, se actualiza `cacheEsGM` y el estado global `esGM`, conmutando la interfaz inmediatamente.
 
 ---
 

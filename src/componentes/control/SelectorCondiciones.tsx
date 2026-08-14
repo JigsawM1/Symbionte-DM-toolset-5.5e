@@ -1,5 +1,9 @@
 import React, { useState } from "react";
-import { usarAlmacenDM, normalizarTexto } from "../../almacen/usarAlmacenDM";
+import { normalizarTexto } from "../../almacen/usarAlmacenDM";
+import {
+  usarEstadoIniciativa,
+  usarAccionesIniciativa,
+} from "@/almacen/selectores";
 import { CONDICIONES_2024, EFECTOS_PREDEFINIDOS } from "../../utiles/datosIniciales";
 import type { Caracteristica } from "../../tipos";
 import type { ResultadoSalvacionArea } from "../../almacen/slices/sliceIniciativa";
@@ -23,14 +27,13 @@ const LISTA_CARACTERISTICAS: { clave: Caracteristica; etiqueta: string }[] = [
 ];
 
 export const SelectorCondiciones: React.FC = () => {
-  const colaIniciativa = usarAlmacenDM((s) => s.colaIniciativa);
-  const indiceTurnoActivo = usarAlmacenDM((s) => s.indiceTurnoActivo);
-  const criaturasSeleccionadas = usarAlmacenDM((s) => s.criaturasSeleccionadas);
-
-  const aplicarDañoEnArea = usarAlmacenDM((s) => s.aplicarDañoEnArea);
-  const aplicarCondicionEnArea = usarAlmacenDM((s) => s.aplicarCondicionEnArea);
-  const aplicarEfectoEnArea = usarAlmacenDM((s) => s.aplicarEfectoEnArea);
-  const ejecutarSalvacionEnArea = usarAlmacenDM((s) => s.ejecutarSalvacionEnArea);
+  const { colaIniciativa, indiceTurnoActivo, criaturasSeleccionadas } = usarEstadoIniciativa();
+  const {
+    aplicarDañoEnArea,
+    aplicarCondicionEnArea,
+    aplicarEfectoEnArea,
+    ejecutarSalvacionEnArea,
+  } = usarAccionesIniciativa();
 
   const [cantidadDaño, setCantidadDaño] = useState("");
   const [busquedaEstado, setBusquedaEstado] = useState("");

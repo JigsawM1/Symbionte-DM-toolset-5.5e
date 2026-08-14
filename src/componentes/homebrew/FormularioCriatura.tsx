@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import { usarFormularioCriatura } from "../../hooks/usarFormularioCriatura";
-import { usarAlmacenDM } from "../../almacen/usarAlmacenDM";
+import { usarEstadoHomebrew } from "@/almacen/selectores";
 import { SeccionGeneral } from "./subcomponentes/SeccionGeneral";
 import { SeccionAtributos } from "./subcomponentes/SeccionAtributos";
 import { SeccionHabilidades } from "./subcomponentes/SeccionHabilidades";
@@ -19,7 +19,7 @@ export const FormularioCriatura: React.FC<Props> = ({
   alGuardarExitoso,
   cancelarEdicion
 }) => {
-  const baseDatosMonstruos = usarAlmacenDM((s) => s.baseDatosMonstruos);
+  const { baseDatosMonstruos } = usarEstadoHomebrew();
 
   const {
     monstruoForm,

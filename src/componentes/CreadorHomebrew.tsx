@@ -1,5 +1,8 @@
 import React, { useState } from "react";
-import { usarAlmacenDM } from "../almacen/usarAlmacenDM";
+import {
+  usarEstadoHomebrew,
+  usarAccionesHomebrew,
+} from "@/almacen/selectores";
 import { MonstruoBase, HechizoBase, ObjetoHomebrew } from "../tipos";
 import { IDS_INICIALES_MONSTRUOS, IDS_INICIALES_HECHIZOS, IDS_INICIALES_OBJETOS } from "@/utiles/datosIniciales";
 import { Plus, Sparkles, BookOpen, Swords, Edit2 } from "lucide-react";
@@ -10,14 +13,17 @@ import { ListaHomebrew } from "./homebrew/ListaHomebrew";
 import estilos from "./CreadorHomebrew.module.css";
 
 export const CreadorHomebrew: React.FC = () => {
-  const baseDatosMonstruos = usarAlmacenDM((s) => s.baseDatosMonstruos);
-  const baseDatosHechizos = usarAlmacenDM((s) => s.baseDatosHechizos);
-  const objetosHomebrew = usarAlmacenDM((s) => s.objetosHomebrew);
-  const modoHomebrew = usarAlmacenDM((s) => s.modoHomebrew);
-  const establecerModoHomebrew = usarAlmacenDM((s) => s.establecerModoHomebrew);
-
-  const tipoHomebrew = usarAlmacenDM((s) => s.tipoHomebrewActivo);
-  const establecerTipoHomebrew = usarAlmacenDM((s) => s.establecerTipoHomebrew);
+  const {
+    baseDatosMonstruos,
+    baseDatosHechizos,
+    objetosHomebrew,
+    modoHomebrew,
+    tipoHomebrewActivo: tipoHomebrew,
+  } = usarEstadoHomebrew();
+  const {
+    establecerModoHomebrew,
+    establecerTipoHomebrew,
+  } = usarAccionesHomebrew();
   const [idEnEdicion, setIdEnEdicion] = useState<string | null>(null);
   const [objetoPlantilla, setObjetoPlantilla] = useState<ObjetoHomebrew | null>(null);
 

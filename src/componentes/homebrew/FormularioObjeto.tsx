@@ -1,6 +1,11 @@
 import React, { useEffect, useState, useCallback, useRef } from "react";
 import { usarFormularioObjeto } from "../../hooks/usarFormularioObjeto";
-import { usarAlmacenDM, Rareza, TipoBonoDestreza, SubcategoriaEquipo } from "../../almacen/usarAlmacenDM";
+import { Rareza, TipoBonoDestreza, SubcategoriaEquipo } from "../../almacen/usarAlmacenDM";
+import {
+  usarEstadoHomebrew,
+  usarAccionesHomebrew,
+  usarAccionesConfiguracion,
+} from "@/almacen/selectores";
 import { ObjetoHomebrew } from "../../tipos";
 import { Save, X, Sparkles, Scale, Coins, Swords, Shield, Backpack, Copy } from "lucide-react";
 import { TIPOS_DAÑO_DND } from "../../constantes/homebrewConstantes";
@@ -108,7 +113,9 @@ export const FormularioObjeto: React.FC<Props> = ({
   alGuardarExitoso,
   cancelarEdicion
 }) => {
-  const objetosHomebrew = usarAlmacenDM((s) => s.objetosHomebrew);
+  const { objetosHomebrew, objetoPlantillaSeleccionado } = usarEstadoHomebrew();
+  const { limpiarObjetoPlantilla } = usarAccionesHomebrew();
+  const { agregarNotificacion } = usarAccionesConfiguracion();
 
   const {
     oNombre, setONombre,
@@ -211,9 +218,7 @@ export const FormularioObjeto: React.FC<Props> = ({
     setOMunicionRequerida(tienePropMunicion);
   }, [tienePropMunicion, setOMunicionRequerida]);
 
-  const agregarNotificacion = usarAlmacenDM((s) => s.agregarNotificacion);
-  const objetoPlantillaSeleccionado = usarAlmacenDM((s) => s.objetoPlantillaSeleccionado);
-  const limpiarObjetoPlantilla = usarAlmacenDM((s) => s.limpiarObjetoPlantilla);
+
 
   const idPlantillaCargadaRef = useRef<string | null>(null);
 

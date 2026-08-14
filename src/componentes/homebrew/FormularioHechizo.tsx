@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import { usarFormularioHechizo } from "../../hooks/usarFormularioHechizo";
-import { usarAlmacenDM } from "../../almacen/usarAlmacenDM";
+import { usarEstadoHomebrew } from "@/almacen/selectores";
 import { Plus } from "lucide-react";
 import { CLASES_DND, Escuelas_Magia, TIPOS_DAÑO_DND } from "../../constantes/homebrewConstantes";
 import estilos from "./FormularioHechizo.module.css";
@@ -24,7 +24,7 @@ export const FormularioHechizo: React.FC<Props> = ({
   alGuardarExitoso,
   cancelarEdicion
 }) => {
-  const baseDatosHechizos = usarAlmacenDM((s) => s.baseDatosHechizos);
+  const { baseDatosHechizos } = usarEstadoHomebrew();
 
   const {
     hNombre,

@@ -1,5 +1,10 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
-import { usarAlmacenDM, CriaturaIniciativa, HechizoBase } from "../almacen/usarAlmacenDM";
+import { CriaturaIniciativa, HechizoBase } from "../almacen/usarAlmacenDM";
+import {
+  usarEstadoIniciativa,
+  usarAccionesIniciativa,
+  usarEstadoHomebrew,
+} from "@/almacen/selectores";
 import { resolverPlantillaPorCriatura, esNombreVacioODot } from "../servicios/resolutorCriaturas";
 import { usarIndiceMonstruos } from "../servicios/indiceMonstruos";
 import { MonstruoBase } from "../utiles/datosIniciales";
@@ -13,23 +18,21 @@ import estilosClases from "./GestorIniciativa.module.css";
 import { ConfirmDialog } from "./ConfirmDialog";
  
 export const GestorIniciativa: React.FC = () => {
-  const colaIniciativa = usarAlmacenDM((s) => s.colaIniciativa);
-  const indiceTurnoActivo = usarAlmacenDM((s) => s.indiceTurnoActivo);
-  const criaturasSeleccionadas = usarAlmacenDM((s) => s.criaturasSeleccionadas);
-  const baseDatosMonstruos = usarAlmacenDM((s) => s.baseDatosMonstruos);
-  const baseDatosHechizos = usarAlmacenDM((s) => s.baseDatosHechizos);
-  const asociacionesFichas = usarAlmacenDM((s) => s.asociacionesFichas);
-  const quitarCriaturaDeIniciativa = usarAlmacenDM((s) => s.quitarCriaturaDeIniciativa);
-  const modificarVidaCriaturaIniciativa = usarAlmacenDM((s) => s.modificarVidaCriaturaIniciativa);
-  const actualizarVidaTemporal = usarAlmacenDM((s) => s.actualizarVidaTemporal);
-  const asociarPlantillaACriatura = usarAlmacenDM((s) => s.asociarPlantillaACriatura);
-  const desvincularPlantillaDeCriatura = usarAlmacenDM((s) => s.desvincularPlantillaDeCriatura);
-  const quitarCondicionDeCriatura = usarAlmacenDM((s) => s.quitarCondicionDeCriatura);
-  const agregarCondicionACriatura = usarAlmacenDM((s) => s.agregarCondicionACriatura);
-  const agregarEfectoACriatura = usarAlmacenDM((s) => s.agregarEfectoACriatura);
-  const quitarEfectoDeCriatura = usarAlmacenDM((s) => s.quitarEfectoDeCriatura);
-  const importarIniciativaTaleSpire = usarAlmacenDM((s) => s.importarIniciativaTaleSpire);
-  const establecerIniciativaCriatura = usarAlmacenDM((s) => s.establecerIniciativaCriatura);
+  const { colaIniciativa, indiceTurnoActivo, criaturasSeleccionadas, asociacionesFichas } = usarEstadoIniciativa();
+  const {
+    quitarCriaturaDeIniciativa,
+    modificarVidaCriaturaIniciativa,
+    actualizarVidaTemporal,
+    asociarPlantillaACriatura,
+    desvincularPlantillaDeCriatura,
+    quitarCondicionDeCriatura,
+    agregarCondicionACriatura,
+    agregarEfectoACriatura,
+    quitarEfectoDeCriatura,
+    importarIniciativaTaleSpire,
+    establecerIniciativaCriatura,
+  } = usarAccionesIniciativa();
+  const { baseDatosMonstruos, baseDatosHechizos } = usarEstadoHomebrew();
 
   const indiceMonstruos = usarIndiceMonstruos();
 

@@ -1,5 +1,9 @@
 import React from "react";
-import { usarAlmacenDM } from "../almacen/usarAlmacenDM";
+import {
+  usarEstadoConfiguracion,
+  usarAccionesConfiguracion,
+  usarEstadoIniciativa,
+} from "@/almacen/selectores";
 import { ts } from "../utiles/TaleSpireAdapter";
 import { logger } from '@/utiles/logger';
 import type { CriaturaSeleccionadaTS } from "../almacen/slices/sliceIniciativa";
@@ -12,9 +16,9 @@ import {
 import estilos from "./VistaJugadores.module.css";
 
 export const VistaJugadores: React.FC = () => {
-  const esGM = usarAlmacenDM((s) => s.esGM);
-  const criaturasSeleccionadas = usarAlmacenDM((s) => s.criaturasSeleccionadas);
-  const agregarNotificacion = usarAlmacenDM((s) => s.agregarNotificacion);
+  const { esGM } = usarEstadoConfiguracion();
+  const { agregarNotificacion } = usarAccionesConfiguracion();
+  const { criaturasSeleccionadas } = usarEstadoIniciativa();
 
   // Función para realizar tiradas rápidas de dados para el jugador
   const realizarTirada = async (formula: string, nombreAccion: string) => {

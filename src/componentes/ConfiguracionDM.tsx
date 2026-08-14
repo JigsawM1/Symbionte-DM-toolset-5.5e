@@ -1,5 +1,10 @@
 import React, { useState, useRef } from "react";
-import { usarAlmacenDM } from "../almacen/usarAlmacenDM";
+import {
+  usarEstadoHomebrew,
+  usarAccionesHomebrew,
+  usarEstadoConfiguracion,
+  usarAccionesConfiguracion,
+} from "@/almacen/selectores";
 import { Upload, Download, Trash2, ShieldAlert, CheckCircle, Database, Heart, Copy, X, Eye, Settings } from "lucide-react";
 import { IDS_INICIALES_MONSTRUOS, IDS_INICIALES_HECHIZOS, IDS_INICIALES_OBJETOS } from "@/utiles/datosIniciales";
 import { logger } from '@/utiles/logger';
@@ -7,15 +12,14 @@ import { ts } from "../utiles/TaleSpireAdapter";
 import estilosClases from "./ConfiguracionDM.module.css";
 
 export const ConfiguracionDM: React.FC = () => {
-  const baseDatosMonstruos = usarAlmacenDM((s) => s.baseDatosMonstruos);
-  const baseDatosHechizos = usarAlmacenDM((s) => s.baseDatosHechizos);
-  const objetosHomebrew = usarAlmacenDM((s) => s.objetosHomebrew);
-  const importarBaseDatosJSONCompleta = usarAlmacenDM((s) => s.importarBaseDatosJSONCompleta);
-  const restablecerDatosDeFabrica = usarAlmacenDM((s) => s.restablecerDatosDeFabrica);
-  const metodoVidaMonstruo = usarAlmacenDM((s) => s.metodoVidaMonstruo);
-  const establecerMetodoVidaMonstruo = usarAlmacenDM((s) => s.establecerMetodoVidaMonstruo);
-  const mostrarPorcentajeVidaAJugadores = usarAlmacenDM((s) => s.mostrarPorcentajeVidaAJugadores);
-  const establecerMostrarPorcentajeVidaAJugadores = usarAlmacenDM((s) => s.establecerMostrarPorcentajeVidaAJugadores);
+  const { baseDatosMonstruos, baseDatosHechizos, objetosHomebrew } = usarEstadoHomebrew();
+  const { importarBaseDatosJSONCompleta } = usarAccionesHomebrew();
+  const { metodoVidaMonstruo, mostrarPorcentajeVidaAJugadores } = usarEstadoConfiguracion();
+  const {
+    restablecerDatosDeFabrica,
+    establecerMetodoVidaMonstruo,
+    establecerMostrarPorcentajeVidaAJugadores,
+  } = usarAccionesConfiguracion();
 
   const [estadoImportacion, setEstadoImportacion] = useState<"inactivo" | "exito" | "error">("inactivo");
   const [mensajeError, setMensajeError] = useState("");

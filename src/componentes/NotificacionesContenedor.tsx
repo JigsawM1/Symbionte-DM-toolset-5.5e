@@ -1,11 +1,11 @@
 import React from "react";
-import { usarAlmacenDM } from "../almacen/usarAlmacenDM";
+import { usarEstadoConfiguracion, usarAccionesConfiguracion } from "@/almacen/selectores";
 import { X } from "lucide-react";
 import estilos from "./NotificacionesContenedor.module.css";
 
 export const NotificacionesContenedor: React.FC = () => {
-  const notificaciones = usarAlmacenDM((s) => s.notificaciones);
-  const eliminarNotificacion = usarAlmacenDM((s) => s.eliminarNotificacion);
+  const { notificaciones } = usarEstadoConfiguracion();
+  const { eliminarNotificacion } = usarAccionesConfiguracion();
 
   if (notificaciones.length === 0) return null;
 

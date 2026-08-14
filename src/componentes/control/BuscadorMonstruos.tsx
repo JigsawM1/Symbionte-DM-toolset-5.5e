@@ -1,12 +1,17 @@
 import React, { useState } from "react";
-import { usarAlmacenDM, calcularVidaPorDados, MonstruoBase, formatearVelocidad, normalizarTexto } from "../../almacen/usarAlmacenDM";
+import { calcularVidaPorDados, MonstruoBase, formatearVelocidad, normalizarTexto } from "../../almacen/usarAlmacenDM";
+import {
+  usarEstadoHomebrew,
+  usarEstadoConfiguracion,
+  usarAccionesIniciativa,
+} from "@/almacen/selectores";
 import { Skull, Plus } from "lucide-react";
 import estilosClases from "./BuscadorMonstruos.module.css";
 
 export const BuscadorMonstruos: React.FC = () => {
-  const baseDatosMonstruos = usarAlmacenDM((s) => s.baseDatosMonstruos);
-  const metodoVidaMonstruo = usarAlmacenDM((s) => s.metodoVidaMonstruo);
-  const agregarCriaturaAIniciativa = usarAlmacenDM((s) => s.agregarCriaturaAIniciativa);
+  const { baseDatosMonstruos } = usarEstadoHomebrew();
+  const { metodoVidaMonstruo } = usarEstadoConfiguracion();
+  const { agregarCriaturaAIniciativa } = usarAccionesIniciativa();
 
   const [busquedaMonstruo, setBusquedaMonstruo] = useState("");
   const [mostrarSugerencias, setMostrarSugerencias] = useState(false);

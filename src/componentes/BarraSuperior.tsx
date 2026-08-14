@@ -1,5 +1,10 @@
 import React, { useState } from "react";
-import { usarAlmacenDM } from "../almacen/usarAlmacenDM";
+import {
+  usarEstadoConfiguracion,
+  usarAccionesConfiguracion,
+  usarEstadoHomebrew,
+  usarAccionesHomebrew,
+} from "@/almacen/selectores";
 import {
   Menu,
   Play,
@@ -15,12 +20,10 @@ import {
 import estilosClases from "./BarraSuperior.module.css";
 
 export const BarraSuperior: React.FC = () => {
-  const pestañaActiva = usarAlmacenDM((s) => s.pestañaActiva);
-  const establecerPestaña = usarAlmacenDM((s) => s.establecerPestaña);
-  const campañaNombre = usarAlmacenDM((s) => s.campañaNombre);
-  const esGM = usarAlmacenDM((s) => s.esGM);
-  const modoHomebrew = usarAlmacenDM((s) => s.modoHomebrew);
-  const establecerModoHomebrew = usarAlmacenDM((s) => s.establecerModoHomebrew);
+  const { pestañaActiva, campañaNombre, esGM } = usarEstadoConfiguracion();
+  const { establecerPestaña } = usarAccionesConfiguracion();
+  const { modoHomebrew } = usarEstadoHomebrew();
+  const { establecerModoHomebrew } = usarAccionesHomebrew();
   const [mostrarMenuHomebrew, setMostrarMenuHomebrew] = useState(false);
 
   return (

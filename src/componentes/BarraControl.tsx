@@ -1,5 +1,10 @@
 import React, { useState } from "react";
-import { usarAlmacenDM } from "../almacen/usarAlmacenDM";
+import {
+  usarEstadoIniciativa,
+  usarAccionesIniciativa,
+  usarEstadoConfiguracion,
+  usarAccionesConfiguracion,
+} from "@/almacen/selectores";
 import { BuscadorMonstruos } from "./control/BuscadorMonstruos";
 import { MenuEncuentros } from "./control/MenuEncuentros";
 import { SelectorCondiciones } from "./control/SelectorCondiciones";
@@ -13,16 +18,17 @@ import {
 import estilosClases from "./BarraControl.module.css";
 
 export const BarraControl: React.FC = () => {
-  const colaIniciativa = usarAlmacenDM((s) => s.colaIniciativa);
-  const rondaActual = usarAlmacenDM((s) => s.rondaActual);
-  const tipoTirada = usarAlmacenDM((s) => s.tipoTirada);
-  const avanzarTurno = usarAlmacenDM((s) => s.avanzarTurno);
-  const retrocederTurno = usarAlmacenDM((s) => s.retrocederTurno);
-  const avanzarRonda = usarAlmacenDM((s) => s.avanzarRonda);
-  const retrocederRonda = usarAlmacenDM((s) => s.retrocederRonda);
-  const establecerTipoTirada = usarAlmacenDM((s) => s.establecerTipoTirada);
-  const agregarCriaturaAIniciativa = usarAlmacenDM((s) => s.agregarCriaturaAIniciativa);
-  const autoLanzarIniciativaMonstruos = usarAlmacenDM((s) => s.autoLanzarIniciativaMonstruos);
+  const { colaIniciativa, rondaActual } = usarEstadoIniciativa();
+  const {
+    avanzarTurno,
+    retrocederTurno,
+    avanzarRonda,
+    retrocederRonda,
+    agregarCriaturaAIniciativa,
+    autoLanzarIniciativaMonstruos,
+  } = usarAccionesIniciativa();
+  const { tipoTirada } = usarEstadoConfiguracion();
+  const { establecerTipoTirada } = usarAccionesConfiguracion();
 
   const [nombreJugadorRapido, setNombreJugadorRapido] = useState("");
 

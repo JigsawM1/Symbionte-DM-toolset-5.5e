@@ -2,6 +2,33 @@
 
 Este archivo registra errores encontrados, sus causas raíz y las soluciones aplicadas.
 
+## [2026-08-14] Arquitectura: Selectores Facade Zustand con `useShallow` (R6)
+**Problema:**
+- Componentes como `GestorIniciativa.tsx` y `BarraControl.tsx` acumulaban entre 10 y 18 llamadas atómicas `usarAlmacenDM((s) => s.prop)`.
+- Cada llamada generaba una suscripción individual reactiva al store de Zustand, multiplicando los ciclos de verificación y re-renders ante cambios de estado globales.
+
+**Solución Aplicada (`src/almacen/selectores/`):**
+1. Se construyeron 4 módulos Facade divididos por dominio funcional:
+   - `usarEstadoIniciativa` / `usarAccionesIniciativa`: Combat tracker, turnos, cola y acciones masivas.
+   - `usarEstadoHomebrew` / `usarAccionesHomebrew`: Bases de datos y CRUD de monstruos, hechizos y objetos.
+   - `usarEstadoConfiguracion` / `usarAccionesConfiguracion`: Modo GM, pestaña activa, configuración de vida y notificaciones.
+   - `usarEstadoUtiles` / `usarAccionesUtiles`: Notas del DM, lista de tareas pendientes y encuentros guardados.
+2. Uso estricto de `useShallow` de `zustand/react/shallow` para garantizar comparación superficial por referencia y reducir re-renders en el motor CEF.
+3. Se migraron todos los componentes del proyecto (12 archivos), eliminando el 100% de los selectores directos dispersos.
+
+---
+
+## [2026-08-14] Tipado Estricto: EventBus CEF Alineado con TaleSpire API v0.1 (R5)
+**Problema:**
+- `puenteTaleSpire.ts` utilizaba tipos `any` en su contrato de eventos, callbacks y payloads entrantes desde el Chromium Embedded Framework de TaleSpire.
+
+**Solución Aplicada (`src/servicios/puenteTaleSpire.ts` & `src/tipos/talespire.d.ts`):**
+1. Creación de la interfaz `MapaEventosPuente` que mapea cada evento oficial de TaleSpire (`iniciativaActualizada`, `seleccionCriaturas`, `resultadosDados`, `estadoSimbionte`, `estadoCriatura`, `eventoCliente`) a su tipo estricto.
+2. Implementación de unión discriminada (`EventoCriaturaTS`) para los 15 tipos de eventos de criaturas.
+3. Eliminación completa de `any` en los métodos públicos `on`, `off` y `emit`.
+
+---
+
 ## [2026-08-10] Corrección en Estructura de Evento de Cambio de Rol (`clientModeChanged`)
 **Causa Raíz por la que no se detectaba el cambio de rol en tiempo real:**
 - Al cambiar de rol en TaleSpire (DM ↔ Jugador), la envolvente del puente CEF inyecta el evento con una propiedad anidada: `{ kind: "clientModeChanged", payload: { client: {...}, clientMode: "player" } }`.

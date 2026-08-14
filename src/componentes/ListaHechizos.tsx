@@ -1,11 +1,12 @@
 import React, { useState, useMemo } from "react";
-import { usarAlmacenDM, normalizarTexto } from "../almacen/usarAlmacenDM";
+import { normalizarTexto } from "../almacen/usarAlmacenDM";
+import { usarEstadoHomebrew } from "@/almacen/selectores";
 import { Search, Info } from "lucide-react";
 import { FichaHechizo } from "./hechizos/FichaHechizo";
 import estilosClases from "./ListaHechizos.module.css";
 
 export const ListaHechizos: React.FC = () => {
-  const baseDatosHechizos = usarAlmacenDM((s) => s.baseDatosHechizos);
+  const { baseDatosHechizos } = usarEstadoHomebrew();
 
   const [busqueda, setBusqueda] = useState("");
   const [nivelFiltro, setNivelFiltro] = useState<number | "todos">("todos");

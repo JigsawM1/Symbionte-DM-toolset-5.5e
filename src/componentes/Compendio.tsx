@@ -2,11 +2,11 @@ import React, { useState } from "react";
 import { BookOpen, Swords, Sparkles } from "lucide-react";
 import { ListaHechizos } from "./ListaHechizos";
 import { ListaHomebrew } from "./homebrew/ListaHomebrew";
-import { usarAlmacenDM } from "../almacen/usarAlmacenDM";
+import { usarEstadoConfiguracion } from "@/almacen/selectores";
 import estilos from "./Compendio.module.css";
 
 export const Compendio: React.FC = () => {
-  const esGM = usarAlmacenDM((s) => s.esGM);
+  const { esGM } = usarEstadoConfiguracion();
   const [subPestaña, setSubPestaña] = useState<"conjuros" | "bestiario" | "equipo">("conjuros");
 
   return (

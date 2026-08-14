@@ -1,5 +1,5 @@
 import React, { Suspense } from "react";
-import { usarAlmacenDM } from "./almacen/usarAlmacenDM";
+import { usarEstadoConfiguracion } from "@/almacen/selectores";
 import { usarConexionTaleSpire } from "./hooks/usarConexionTaleSpire";
 import { LimiteError } from "./componentes/LimiteError";
 import { BarraSuperior } from "./componentes/BarraSuperior";
@@ -20,8 +20,7 @@ const VistaJugadores = React.lazy(() => import("./componentes/VistaJugadores").t
 const IniciativaJugador = React.lazy(() => import("./componentes/IniciativaJugador").then((m) => ({ default: m.IniciativaJugador })));
 
 const AppContenido: React.FC = () => {
-  const pestañaActiva = usarAlmacenDM((s) => s.pestañaActiva);
-  const esGM = usarAlmacenDM((s) => s.esGM);
+  const { pestañaActiva, esGM } = usarEstadoConfiguracion();
 
   // Sincronización híbrida mediante hook modular
   usarConexionTaleSpire();

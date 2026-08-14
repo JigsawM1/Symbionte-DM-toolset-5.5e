@@ -1,14 +1,12 @@
 import React, { useEffect, useRef } from "react";
-import { usarAlmacenDM } from "../almacen/usarAlmacenDM";
+import { usarEstadoIniciativa, usarEstadoConfiguracion } from "@/almacen/selectores";
 import { obtenerDetalleCondicion } from "../servicios/resolutorCondiciones";
 import { Users, Swords, ShieldAlert, Heart } from "lucide-react";
 import estilos from "./IniciativaJugador.module.css";
 
 export const IniciativaJugador: React.FC = () => {
-  const colaIniciativa = usarAlmacenDM((s) => s.colaIniciativa);
-  const indiceTurnoActivo = usarAlmacenDM((s) => s.indiceTurnoActivo);
-  const rondaActual = usarAlmacenDM((s) => s.rondaActual);
-  const mostrarPorcentajeVidaAJugadores = usarAlmacenDM((s) => s.mostrarPorcentajeVidaAJugadores);
+  const { colaIniciativa, indiceTurnoActivo, rondaActual } = usarEstadoIniciativa();
+  const { mostrarPorcentajeVidaAJugadores } = usarEstadoConfiguracion();
 
   const refContenedorScroll = useRef<HTMLDivElement>(null);
 

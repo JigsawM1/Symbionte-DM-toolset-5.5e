@@ -1,5 +1,9 @@
 import React, { useState, useEffect } from "react";
-import { usarAlmacenDM, normalizarTexto } from "../../almacen/usarAlmacenDM";
+import { normalizarTexto } from "../../almacen/usarAlmacenDM";
+import {
+  usarEstadoHomebrew,
+  usarAccionesHomebrew,
+} from "@/almacen/selectores";
 import { MonstruoBase, HechizoBase, ObjetoHomebrew, ObjetoJuego } from "../../tipos";
 import { IDS_INICIALES_MONSTRUOS, IDS_INICIALES_HECHIZOS, IDS_INICIALES_OBJETOS } from "@/utiles/datosIniciales";
 import {
@@ -49,13 +53,13 @@ export const ListaHomebrew: React.FC<Props> = ({
   idEnEdicion,
   soloLectura = false
 }) => {
-  const baseDatosMonstruos = usarAlmacenDM((s) => s.baseDatosMonstruos);
-  const baseDatosHechizos = usarAlmacenDM((s) => s.baseDatosHechizos);
-  const objetosHomebrew = usarAlmacenDM((s) => s.objetosHomebrew);
-  const eliminarMonstruoHomebrew = usarAlmacenDM((s) => s.eliminarMonstruoHomebrew);
-  const eliminarHechizoHomebrew = usarAlmacenDM((s) => s.eliminarHechizoHomebrew);
-  const eliminarObjetoHomebrew = usarAlmacenDM((s) => s.eliminarObjetoHomebrew);
-  const usarObjetoComoPlantillaGlobal = usarAlmacenDM((s) => s.usarObjetoComoPlantilla);
+  const { baseDatosMonstruos, baseDatosHechizos, objetosHomebrew } = usarEstadoHomebrew();
+  const {
+    eliminarMonstruoHomebrew,
+    eliminarHechizoHomebrew,
+    eliminarObjetoHomebrew,
+    usarObjetoComoPlantilla: usarObjetoComoPlantillaGlobal,
+  } = usarAccionesHomebrew();
 
   const funcionPlantilla = iniciarPlantillaObjeto || usarObjetoComoPlantillaGlobal;
 

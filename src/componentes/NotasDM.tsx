@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useRef } from "react";
-import { usarAlmacenDM } from "../almacen/usarAlmacenDM";
+import { usarEstadoUtiles, usarAccionesUtiles } from "@/almacen/selectores";
 import { Save, Trash2, Check, AlertTriangle } from "lucide-react";
 import estilos from "./NotasDM.module.css";
 import { ConfirmDialog } from "./ConfirmDialog";
 
 export const NotasDM: React.FC = () => {
-  const notasDM = usarAlmacenDM((s) => s.notasDM);
-  const guardarNotasDM = usarAlmacenDM((s) => s.guardarNotasDM);
+  const { notasDM } = usarEstadoUtiles();
+  const { guardarNotasDM } = usarAccionesUtiles();
   const [textoLocal, setTextoLocal] = useState(notasDM);
   const [estadoGuardado, setEstadoGuardado] = useState<"guardado" | "modificado" | "guardando">("guardado");
   const [confirmarAccion, setConfirmarAccion] = useState<{

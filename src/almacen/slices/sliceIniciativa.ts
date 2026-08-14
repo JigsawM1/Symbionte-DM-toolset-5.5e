@@ -650,124 +650,78 @@ export const crearSliceIniciativa: StateCreator<
     return { colaIniciativa: colaCombinada };
   }),
 
+  // --- Funciones EnArea (daño, condición, efecto) ---
+  // Todas comparten el mismo boilerplate de resolución de objetivos.
+  // aplicarTransformacionEnArea encapsula ese boilerplate (Strategy Pattern):
+  // cada función sólo define su "estrategia" de transformación por criatura.
+
   aplicarDañoEnArea: (cantidad, idsObjetivo) => set((state) => {
     if (state.colaIniciativa.length === 0 || cantidad === 0) return {};
-    const targets = obtenerIdsObjetivoMasivo(
-      state.colaIniciativa,
-      state.indiceTurnoActivo,
-      state.criaturasSeleccionadas,
-      idsObjetivo
-    );
-    if (targets.size === 0) return {};
-
-    const nuevaCola = state.colaIniciativa.map((c) => {
-      if (!targets.has(c.id)) return c;
-
+    return aplicarTransformacionEnArea(state, idsObjetivo, (c) => {
       if (cantidad > 0) {
         // Daño: Absorbe vida temporal primero
         let dañoRestante = cantidad;
         let vidaTemp = c.vidaTemporal || 0;
         let vidaAct = c.vidaActual;
-
-        if (vidaTemp > 0) {
-          if (vidaTemp >= dañoRestante) {
-            vidaTemp -= dañoRestante;
-            dañoRestante = 0;
-          } else {
-            dañoRestante -= vidaTemp;
-            vidaTemp = 0;
-          }
+        if (vidaTemp >= dañoRestante) {
+          vidaTemp -= dañoRestante;
+          dañoRestante = 0;
+        } else {
+          dañoRestante -= vidaTemp;
+          vidaTemp = 0;
         }
-
         if (dañoRestante > 0) {
           vidaAct = Math.max(0, vidaAct - dañoRestante);
         }
-
         return { ...c, vidaTemporal: vidaTemp, vidaActual: vidaAct };
       } else {
         // Curación (cantidad negativa)
         const curacion = Math.abs(cantidad);
-        const nuevaVidaAct = Math.min(c.vidaMaxima, c.vidaActual + curacion);
-        return { ...c, vidaActual: nuevaVidaAct };
+        return { ...c, vidaActual: Math.min(c.vidaMaxima, c.vidaActual + curacion) };
       }
     });
-
-    return { colaIniciativa: nuevaCola };
   }),
 
   aplicarCondicionEnArea: (condicion, idsObjetivo) => set((state) => {
     if (state.colaIniciativa.length === 0 || !condicion.trim()) return {};
-    const targets = obtenerIdsObjetivoMasivo(
-      state.colaIniciativa,
-      state.indiceTurnoActivo,
-      state.criaturasSeleccionadas,
-      idsObjetivo
-    );
-    if (targets.size === 0) return {};
-
-    const nuevaCola = state.colaIniciativa.map((c) => {
-      if (!targets.has(c.id)) return c;
-
-      const condTrimmed = condicion.trim();
+    const condTrimmed = condicion.trim();
+    return aplicarTransformacionEnArea(state, idsObjetivo, (c) => {
       if (condTrimmed.toLowerCase().includes("cansado") || condTrimmed.toLowerCase().includes("exhausted")) {
-        const condicionCansadoExistente = c.condiciones.find(
-          (cond) => cond.toLowerCase().startsWith("cansado")
-        );
-
-        if (condicionCansadoExistente) {
-          const matches = condicionCansadoExistente.match(/\d+/);
+        const existente = c.condiciones.find((cd) => cd.toLowerCase().startsWith("cansado"));
+        if (existente) {
+          const matches = existente.match(/\d+/);
           const nivelActual = matches ? parseInt(matches[0], 10) : 1;
           const nuevoNivel = Math.min(6, nivelActual + 1);
-          const condicionesFiltradas = c.condiciones.filter(
-            (cond) => !cond.toLowerCase().startsWith("cansado")
-          );
-          return { ...c, condiciones: [...condicionesFiltradas, `Cansado (Niv. ${nuevoNivel})`] };
-        } else {
-          return { ...c, condiciones: [...c.condiciones, "Cansado (Niv. 1)"] };
+          return { ...c, condiciones: [...c.condiciones.filter((cd) => !cd.toLowerCase().startsWith("cansado")), `Cansado (Niv. ${nuevoNivel})`] };
         }
+        return { ...c, condiciones: [...c.condiciones, "Cansado (Niv. 1)"] };
       }
-
-      if (!c.condiciones.includes(condTrimmed)) {
-        return { ...c, condiciones: [...c.condiciones, condTrimmed] };
-      }
-
-      return c;
+      if (c.condiciones.includes(condTrimmed)) return c;
+      return { ...c, condiciones: [...c.condiciones, condTrimmed] };
     });
-
-    return { colaIniciativa: nuevaCola };
   }),
 
   aplicarEfectoEnArea: (nombreEfecto, duracion, opciones, idsObjetivo) => set((state) => {
     if (state.colaIniciativa.length === 0 || !nombreEfecto.trim()) return {};
-    const targets = obtenerIdsObjetivoMasivo(
-      state.colaIniciativa,
-      state.indiceTurnoActivo,
-      state.criaturasSeleccionadas,
-      idsObjetivo
-    );
-    if (targets.size === 0) return {};
-
-    const nuevaCola = state.colaIniciativa.map((c) => {
-      if (!targets.has(c.id)) return c;
-
-      const nuevosEfectos = c.efectos ? [...c.efectos] : [];
-      const esConcentracion = opciones?.concentracion || 
-                             nombreEfecto.toLowerCase().trim() === "concentración" || 
-                             nombreEfecto.toLowerCase().trim() === "concentracion";
+    const esConcentracion = opciones?.concentracion ||
+      nombreEfecto.toLowerCase().trim() === "concentración" ||
+      nombreEfecto.toLowerCase().trim() === "concentracion";
+    return aplicarTransformacionEnArea(state, idsObjetivo, (c) => {
       const nuevoEfecto: EfectoActivo = {
         id: generarId(nombreEfecto.toLowerCase().replace(/[^a-z0-9]/g, '_').substring(0, 20)),
         nombre: nombreEfecto,
         expiraRonda: esConcentracion ? undefined : state.rondaActual + duracion,
         concentracion: esConcentracion || undefined
       };
-
-      return { ...c, efectos: [...nuevosEfectos, nuevoEfecto] };
+      return { ...c, efectos: [...(c.efectos ?? []), nuevoEfecto] };
     });
-
-    return { colaIniciativa: nuevaCola };
   })
 });
 
+/**
+ * Resuelve el conjunto de IDs objetivo para las operaciones masivas.
+ * Prioridad: IDs manuales > criaturas seleccionadas en la cola > criatura con el turno activo.
+ */
 function obtenerIdsObjetivoMasivo(
   colaIniciativa: CriaturaIniciativa[],
   indiceTurnoActivo: number,
@@ -789,3 +743,24 @@ function obtenerIdsObjetivoMasivo(
   return idActiva ? new Set([idActiva]) : new Set();
 }
 
+/**
+ * Encapsula el boilerplate compartido por las 3 acciones "EnArea" (Strategy Pattern).
+ * Resuelve targets, aplica la transformación pura `transformar` solo a las criaturas objetivo
+ * y devuelve el patch de estado para Zustand.
+ */
+function aplicarTransformacionEnArea(
+  state: { colaIniciativa: CriaturaIniciativa[]; indiceTurnoActivo: number; criaturasSeleccionadas: CriaturaSeleccionadaTS[] },
+  idsManuales: string[] | undefined,
+  transformar: (c: CriaturaIniciativa) => CriaturaIniciativa
+): { colaIniciativa: CriaturaIniciativa[] } | Record<string, never> {
+  const targets = obtenerIdsObjetivoMasivo(
+    state.colaIniciativa,
+    state.indiceTurnoActivo,
+    state.criaturasSeleccionadas,
+    idsManuales
+  );
+  if (targets.size === 0) return {};
+  return {
+    colaIniciativa: state.colaIniciativa.map((c) => targets.has(c.id) ? transformar(c) : c)
+  };
+}

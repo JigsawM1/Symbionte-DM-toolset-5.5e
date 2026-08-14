@@ -122,7 +122,38 @@ export interface EventoClienteTS {
   client?: FragmentoCliente;
   clientId?: string;
   clientMode?: ModoCliente;
+  /** payload directo de clientModeChanged según API v0.1 */
+  payload?: { clientMode?: ModoCliente };
 }
+
+/**
+ * Payload del event source symbiote.onStateChangeEvent
+ * Eventos: hasInitialized | willEnterBackground | hasEnteredForeground | willShutdown
+ */
+export interface EventoEstadoSimbionte {
+  kind: "hasInitialized" | "willEnterBackground" | "hasEnteredForeground" | "willShutdown";
+}
+
+/**
+ * Union type de todos los payloads de creatures.onCreatureStateChange
+ * Agrupa los eventos individuales de criatura bajo un tipo discriminado por `kind`.
+ */
+export type EventoCriaturaTS =
+  | { kind: "creatureAdded";                  id: string }
+  | { kind: "creatureRemoved";                id: string }
+  | { kind: "creatureIsUniqueChanged";        id: string; isUnique: boolean }
+  | { kind: "creatureNameChanged";            id: string; name: string; nameSet: boolean }
+  | { kind: "creatureLinkChanged";            id: string; link: string }
+  | { kind: "creatureLocationChanged";        id: string; boardId: string; position: PosicionTS; rotation: RotacionEulerTS }
+  | { kind: "creatureMorphsChanged";          id: string; morphs: MorfoCriatura[] }
+  | { kind: "creatureActiveMorphChanged";     id: string; activeMorphIndex: number }
+  | { kind: "creatureHpChanged";             id: string; hp: EstadisticaCriatura }
+  | { kind: "creatureStatsChanged";           id: string; stats: EstadisticaCriatura[] }
+  | { kind: "creatureTorchStateChanged";      id: string; torchIsOn: boolean }
+  | { kind: "creatureExplicitlyHiddenStateChanged"; id: string; isExplicitlyHidden: boolean }
+  | { kind: "creatureFlyingStateChanged";     id: string; isFlying: boolean }
+  | { kind: "creatureActivePersistentEmotesChanged"; id: string; idsOfActivePersistentEmotes: string[] }
+  | { kind: "creatureOwnersChanged";          id: string; ownerIds: string[] };
 
 export type FragmentoOId = string | { id: string };
 

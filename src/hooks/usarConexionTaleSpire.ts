@@ -14,6 +14,7 @@ import { useEffect } from "react";
 import { usarAlmacenDM } from "../almacen/usarAlmacenDM";
 import { ts, establecerCacheEsGM } from "../utiles/TaleSpireAdapter";
 import { puenteTaleSpire } from "../servicios/puenteTaleSpire";
+import type { EventoClienteTS } from "../tipos/talespire";
 import { logger } from '@/utiles/logger';
 
 export function usarConexionTaleSpire() {
@@ -119,13 +120,11 @@ export function usarConexionTaleSpire() {
         });
 
         // Suscribirse a eventos de cambios de rol del cliente en tiempo real
-        const procesarEventoCliente = (payload: any) => {
+        const procesarEventoCliente = (payload: EventoClienteTS) => {
           if (!activo) return;
           logger.debug("[TaleSpire Simbionte] Evento de cliente inyectado por CEF:", payload);
-          const modo = typeof payload === "string" 
-            ? payload 
-            : (payload?.clientMode || payload?.payload?.clientMode || (payload?.kind !== "clientModeChanged" ? payload?.kind : undefined));
-            
+          // Narrowing por kind: solo clientModeChanged contiene clientMode
+          const modo = payload.kind === "clientModeChanged" ? payload.clientMode : undefined;
           logger.debug("[TaleSpire Simbionte] Modo detectado en evento de cliente:", modo);
           
           if (modo === "gm") {

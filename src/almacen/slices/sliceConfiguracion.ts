@@ -7,6 +7,7 @@ import { sanearObjetoHomebrew, sanearHechizoCD, sanearMonstruoSentidosYPasiva } 
 import { importarDesdeJSON } from '../importadorJSON';
 import type { EstadoDM } from '../usarAlmacenDM';
 import { generarId } from '@/utiles/generarId';
+import { logger } from '@/utiles/logger';
 
 export interface SliceConfiguracion {
   pestañaActiva: string;
@@ -152,14 +153,14 @@ export const crearSliceConfiguracion: StateCreator<
 
   cargarDatosPersistidos: () => {
     const ejecutarCarga = async () => {
-      console.log("[TS Storage] Iniciando carga de datos persistidos...");
+      logger.info("[TS Storage] Iniciando carga de datos persistidos...");
       const blob = await leerBlobGlobal();
 
       // Indicamos que estamos cargando datos para que el middleware ignore estos set() intermedios
       set({ cargandoDatos: true });
 
       if (blob && Object.keys(blob).length > 0) {
-        console.log("[TS Storage] ✅ Blob encontrado. Cargando datos desde TS.localStorage.global...");
+        logger.info("[TS Storage] ✅ Blob encontrado. Cargando datos desde TS.localStorage.global...");
 
         const monstruosHomebrew = blob.monstruos_homebrew as MonstruoBase[] | undefined;
         const hechizosHomebrew  = blob.hechizos_homebrew  as HechizoBase[]  | undefined;
@@ -212,17 +213,17 @@ export const crearSliceConfiguracion: StateCreator<
           set({ asociacionesFichas: asociaciones });
         }
 
-        console.log("[TS Storage] Carga completa desde blob oficial de TaleSpire.");
+        logger.info("[TS Storage] Carga completa desde blob oficial de TaleSpire.");
         set({ cargandoDatos: false });
         return;
       }
 
-      console.log("[TS Storage] Primera sesión limpia. Comenzando desde cero.");
+      logger.info("[TS Storage] Primera sesión limpia. Comenzando desde cero.");
       set({ cargandoDatos: false });
     };
 
     ejecutarCarga().catch((error) => {
-      console.error("[TS Storage] Error crítico al cargar datos:", error);
+      logger.error("[TS Storage] Error crítico al cargar datos:", error);
       set({ cargandoDatos: false });
     });
   },
@@ -248,9 +249,9 @@ export const crearSliceConfiguracion: StateCreator<
 
   restablecerDatosDeFabrica: () => {
     limpiarBlobGlobal().then(() => {
-      console.log("[TS Storage] Blob oficial limpiado durante restablecimiento de fábrica.");
+      logger.info("[TS Storage] Blob oficial limpiado durante restablecimiento de fábrica.");
     }).catch((e) => {
-      console.error("[TS Storage] Error al limpiar el blob oficial:", e);
+      logger.error("[TS Storage] Error al limpiar el blob oficial:", e);
     });
 
     set({ cargandoDatos: true });

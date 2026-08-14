@@ -8,6 +8,7 @@
  */
 
 import type { ColaIniciativaTS, SeleccionCriaturas, ResultadosTirada } from "../tipos/talespire";
+import { logger } from '@/utiles/logger';
 
 type CallbackEvento<T> = (data: T) => void | Promise<void>;
 
@@ -53,7 +54,7 @@ class PuenteTaleSpireClass {
       try {
         cb(data);
       } catch (e) {
-        console.error(`[Puente TaleSpire] Error en callback del evento "${evento}":`, e);
+        logger.error(`[Puente TaleSpire] Error en callback del evento "${evento}":`, e);
       }
     });
   }
@@ -76,46 +77,46 @@ class PuenteTaleSpireClass {
   private registrarCallbacksGlobales() {
     if (typeof window === "undefined") return;
 
-    console.log("[Puente TaleSpire] Inicializando callbacks globales en window...");
+    logger.info("[Puente TaleSpire] Inicializando callbacks globales en window...");
 
     window.manejarCambioEstadoSimbionte = (evento) => {
-      console.log("[Puente TaleSpire] Callback manejarCambioEstadoSimbionte:", evento);
+      logger.debug("[Puente TaleSpire] Callback manejarCambioEstadoSimbionte:", evento);
       this.emit("estadoSimbionte", this.deserializarPayload(evento));
     };
 
     window.initiativeUpdated = (payload) => {
-      console.log("[Puente TaleSpire] Callback initiativeUpdated:", payload);
+      logger.debug("[Puente TaleSpire] Callback initiativeUpdated:", payload);
       this.emit("iniciativaActualizada", this.deserializarPayload(payload));
     };
 
     window.manejarEventoIniciativa = (payload) => {
-      console.log("[Puente TaleSpire] Callback manejarEventoIniciativa:", payload);
+      logger.debug("[Puente TaleSpire] Callback manejarEventoIniciativa:", payload);
       this.emit("iniciativaActualizada", this.deserializarPayload(payload));
     };
 
     window.manejarCambioEstadoCriatura = (evento) => {
-      console.log("[Puente TaleSpire] Callback manejarCambioEstadoCriatura:", evento);
+      logger.debug("[Puente TaleSpire] Callback manejarCambioEstadoCriatura:", evento);
       this.emit("estadoCriatura", this.deserializarPayload(evento));
     };
 
     window.manejarCambioSeleccionCriatura = (evento) => {
-      console.log("[Puente TaleSpire] Callback manejarCambioSeleccionCriatura:", evento);
+      logger.debug("[Puente TaleSpire] Callback manejarCambioSeleccionCriatura:", evento);
       this.emit("seleccionCriaturas", this.deserializarPayload(evento));
     };
 
     window.manejarResultadosDados = async (resultados) => {
-      console.log("[Puente TaleSpire] Callback manejarResultadosDados:", resultados);
+      logger.debug("[Puente TaleSpire] Callback manejarResultadosDados:", resultados);
       this.emit("resultadosDados", this.deserializarPayload(resultados));
     };
 
     window.manejarEventoCliente = (evento) => {
-      console.log("[Puente TaleSpire] Callback manejarEventoCliente:", evento);
+      logger.debug("[Puente TaleSpire] Callback manejarEventoCliente:", evento);
       this.emit("eventoCliente", this.deserializarPayload(evento));
     };
 
     // Registrar oyentes de eventos DOM estándar en window y document para redundancia CEF
     const manejarEventoIniciativaDOM = (e: Event) => {
-      console.log("[Puente TaleSpire DOM] Capturado evento de iniciativa en el DOM:", e.type);
+      logger.debug("[Puente TaleSpire DOM] Capturado evento de iniciativa en el DOM:", e.type);
       // Los eventos DOM inyectados por CEF no suelen traer el payload completo en details
       this.emit("iniciativaActualizada", undefined);
     };

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { usarAlmacenDM, normalizarTexto } from "../../almacen/usarAlmacenDM";
 import { MonstruoBase, HechizoBase, ObjetoHomebrew, ObjetoJuego } from "../../tipos";
-import { MONSTRUOS_INICIALES, HECHIZOS_INICIALES, OBJETOS_INICIALES } from "../../utiles/datosIniciales";
+import { IDS_INICIALES_MONSTRUOS, IDS_INICIALES_HECHIZOS, IDS_INICIALES_OBJETOS } from "@/utiles/datosIniciales";
 import {
   Edit2,
   Trash2,
@@ -98,19 +98,16 @@ export const ListaHomebrew: React.FC<Props> = ({
   } | null>(null);
 
   // Filtrar creaciones homebrew por exclusión de datos por defecto de fábrica salvo si estamos en soloLectura
-  const idsInicialesMonstruos = new Set(MONSTRUOS_INICIALES.map((m) => m.id));
-  const idsInicialesHechizos = new Set(HECHIZOS_INICIALES.map((h) => h.id));
-  const idsInicialesObjetos = new Set(OBJETOS_INICIALES.map((o) => o.id));
 
   const monstruosHomebrewSinFiltro = soloLectura
     ? baseDatosMonstruos
-    : baseDatosMonstruos.filter((m) => !idsInicialesMonstruos.has(m.id));
+    : baseDatosMonstruos.filter((m) => !IDS_INICIALES_MONSTRUOS.has(m.id));
   const hechizosHomebrewSinFiltro = soloLectura
     ? baseDatosHechizos
-    : baseDatosHechizos.filter((h) => !idsInicialesHechizos.has(h.id));
+    : baseDatosHechizos.filter((h) => !IDS_INICIALES_HECHIZOS.has(h.id));
   const objetosHomebrewSinFiltro = soloLectura
     ? objetosHomebrew
-    : objetosHomebrew.filter((o) => !idsInicialesObjetos.has(o.id));
+    : objetosHomebrew.filter((o) => !IDS_INICIALES_OBJETOS.has(o.id));
 
   const queryNormalizada = normalizarTexto(filtroBusqueda);
   const monstruosHomebrew = monstruosHomebrewSinFiltro.filter((m) =>

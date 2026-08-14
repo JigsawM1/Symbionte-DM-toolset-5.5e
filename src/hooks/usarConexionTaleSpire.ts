@@ -14,6 +14,7 @@ import { useEffect } from "react";
 import { usarAlmacenDM } from "../almacen/usarAlmacenDM";
 import { ts, establecerCacheEsGM } from "../utiles/TaleSpireAdapter";
 import { puenteTaleSpire } from "../servicios/puenteTaleSpire";
+import { logger } from '@/utiles/logger';
 
 export function usarConexionTaleSpire() {
   // Extraemos las acciones del store Zustand mediante .getState() ya que son funciones
@@ -36,7 +37,7 @@ export function usarConexionTaleSpire() {
     const suscribirAPIs = () => {
       if (!ts.estaDisponible) return false;
 
-      console.log("[TaleSpire Simbionte] Conectando escuchas y suscripciones del EventBus...");
+      logger.info("[TaleSpire Simbionte] Conectando escuchas y suscripciones del EventBus...");
       
       try {
         const procesarSeleccionRaw = async (seleccion: any) => {
@@ -80,7 +81,7 @@ export function usarConexionTaleSpire() {
             }));
             actualizarSeleccionCriaturas(seleccionadas.length > 0 ? seleccionadas : ids.map((id) => ({ id, name: "Criatura Seleccionada" })));
           } catch (e) {
-            console.warn("[TaleSpire Simbionte] Error al enriquecer selección de criaturas:", e);
+            logger.warn("[TaleSpire Simbionte] Error al enriquecer selección de criaturas:", e);
             actualizarSeleccionCriaturas(ids.map((id) => ({ id, name: "Criatura Seleccionada" })));
           }
         };
@@ -111,7 +112,7 @@ export function usarConexionTaleSpire() {
                   actualizarColaIniciativaDesdeTaleSpire(colaTS);
                 })
                 .catch((e: unknown) => {
-                  console.warn("[TaleSpire Simbionte] Error al leer la cola física tras evento:", e);
+                  logger.warn("[TaleSpire Simbionte] Error al leer la cola física tras evento:", e);
                 });
             }
           }
@@ -120,12 +121,12 @@ export function usarConexionTaleSpire() {
         // Suscribirse a eventos de cambios de rol del cliente en tiempo real
         const procesarEventoCliente = (payload: any) => {
           if (!activo) return;
-          console.log("[TaleSpire Simbionte] Evento de cliente inyectado por CEF:", payload);
+          logger.debug("[TaleSpire Simbionte] Evento de cliente inyectado por CEF:", payload);
           const modo = typeof payload === "string" 
             ? payload 
             : (payload?.clientMode || payload?.payload?.clientMode || (payload?.kind !== "clientModeChanged" ? payload?.kind : undefined));
             
-          console.log("[TaleSpire Simbionte] Modo detectado en evento de cliente:", modo);
+          logger.debug("[TaleSpire Simbionte] Modo detectado en evento de cliente:", modo);
           
           if (modo === "gm") {
             establecerCacheEsGM(true);
@@ -143,7 +144,7 @@ export function usarConexionTaleSpire() {
         const subPuenteCliente = puenteTaleSpire.on("eventoCliente", procesarEventoCliente);
         const subNativaCliente = ts.clients.suscribirACambioModoCliente((modo) => {
           if (activo) {
-            console.log("[TaleSpire Simbionte] Cambio de modo nativo detectado:", modo);
+            logger.debug("[TaleSpire Simbionte] Cambio de modo nativo detectado:", modo);
             const esGm = modo === "gm";
             establecerCacheEsGM(esGm);
             usarAlmacenDM.setState({ esGM: esGm });
@@ -162,19 +163,19 @@ export function usarConexionTaleSpire() {
           if (!activo) return;
 
           // Cargar datos persistidos ahora que la API window.TS (real o simulador) está activa y el canal es estable
-          console.log("[TaleSpire Simbionte] Canal de comunicación establecido. Iniciando carga de datos persistidos...");
+          logger.info("[TaleSpire Simbionte] Canal de comunicación establecido. Iniciando carga de datos persistidos...");
           cargarDatosPersistidos();
 
           // Detección automática del rol nativo inicial
           ts.clients.esGM()
             .then((soyGm) => {
               if (activo) {
-                console.log(`[TaleSpire Simbionte] Rol cliente detectado al iniciar: ${soyGm ? "Dungeon Master (GM)" : "Jugador"}`);
+                logger.info(`[TaleSpire Simbionte] Rol cliente detectado al iniciar: ${soyGm ? "Dungeon Master (GM)" : "Jugador"}`);
                 usarAlmacenDM.setState({ esGM: soyGm });
               }
             })
             .catch((e: unknown) => {
-              console.warn("[TaleSpire Simbionte] Error al consultar rol inicial esGM:", e);
+              logger.warn("[TaleSpire Simbionte] Error al consultar rol inicial esGM:", e);
             });
 
           // Obtener la selección inicial física del tablero
@@ -201,7 +202,7 @@ export function usarConexionTaleSpire() {
               }
             })
             .catch((e: unknown) => {
-              console.warn("[TaleSpire Simbionte] Error al obtener selección inicial:", e);
+              logger.warn("[TaleSpire Simbionte] Error al obtener selección inicial:", e);
             });
 
           // Obtener la cola inicial física del tablero (Deduplicada por el Adaptador)
@@ -212,7 +213,7 @@ export function usarConexionTaleSpire() {
               }
             })
             .catch((e: unknown) => {
-              console.warn("[TaleSpire Simbionte] Error al obtener cola de iniciativa inicial:", e);
+              logger.warn("[TaleSpire Simbionte] Error al obtener cola de iniciativa inicial:", e);
             });
 
           // Obtener la campaña y si es DM
@@ -228,18 +229,18 @@ export function usarConexionTaleSpire() {
                   }
                 })
                 .catch((e: unknown) => {
-                  console.warn("[TaleSpire Simbionte] Error al obtener info del cliente (DM):", e);
+                  logger.warn("[TaleSpire Simbionte] Error al obtener info del cliente (DM):", e);
                   if (activo) establecerDatosCampaña(nombreCampaña, false);
                 });
             })
             .catch((e: unknown) => {
-              console.warn("[TaleSpire Simbionte] Error al obtener datos de campaña:", e);
+              logger.warn("[TaleSpire Simbionte] Error al obtener datos de campaña:", e);
             });
         }, 500);
 
         return true;
       } catch (err) {
-        console.error("[TaleSpire Simbionte] Error al suscribirse al puente de eventos de TaleSpire:", err);
+        logger.error("[TaleSpire Simbionte] Error al suscribirse al puente de eventos de TaleSpire:", err);
         return false;
       }
     };
@@ -265,7 +266,7 @@ export function usarConexionTaleSpire() {
         clearInterval(intervalo);
       } else if (intentos >= maxIntentos) {
         clearInterval(intervalo);
-        console.error("[TaleSpire Simbionte] CRÍTICO: La API nativa de TaleSpire no apareció tras 15 segundos. Verifica tu instalación del juego.");
+        logger.error("[TaleSpire Simbionte] CRÍTICO: La API nativa de TaleSpire no apareció tras 15 segundos. Verifica tu instalación del juego.");
       }
     }, 50);
 

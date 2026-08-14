@@ -12,6 +12,7 @@ import type { CriaturaIniciativa } from "../almacen/usarAlmacenDM";
 import { formatearVelocidad } from "../almacen/sanitizacion";
 import { resolverPlantillaPorCriatura, calcularVidaInicial } from "./resolutorCriaturas";
 import type { IndiceMonstruos } from "./indiceMonstruos";
+import { logger } from '@/utiles/logger';
 
 export interface ResultadoSincronizacion {
   colaIniciativa: CriaturaIniciativa[];
@@ -131,7 +132,7 @@ export function sincronizarConEstadoLocal(opciones: OpcionesSincronizacion): Res
   let nuevaRonda = rondaActual;
 
   const nativeActiveIndex = colaTS.activeItemIndex;
-  console.log("[TaleSpire Sincronismo] Leyendo turno activo nativo:", nativeActiveIndex, "de la cola:", colaTSItems);
+  logger.debug("[TaleSpire Sincronismo] Leyendo turno activo nativo:", nativeActiveIndex, "de la cola:", colaTSItems);
 
   if (typeof nativeActiveIndex === "number") {
     const criaturaActivaTS = colaTSItems[nativeActiveIndex];
@@ -148,7 +149,7 @@ export function sincronizarConEstadoLocal(opciones: OpcionesSincronizacion): Res
       }
 
       if (indiceEncontrado !== -1) {
-        console.log("[TaleSpire Sincronismo] Encontrado índice de turno activo en la cola combinada local:", indiceEncontrado);
+        logger.debug("[TaleSpire Sincronismo] Encontrado índice de turno activo en la cola combinada local:", indiceEncontrado);
         nuevoIndice = indiceEncontrado;
       }
     }

@@ -17,6 +17,7 @@ import {
   filtrarEfectosExpirados
 } from '../../servicios/sincronizacionIniciativa';
 import { generarId } from '@/utiles/generarId';
+import { logger } from '@/utiles/logger';
 
 export interface ResultadoSalvacionCriatura {
   id: string;
@@ -180,14 +181,14 @@ export const crearSliceIniciativa: StateCreator<
   importarIniciativaTaleSpire: async () => {
     if (ts.estaDisponible) {
       try {
-        console.log("[Combat Tracker] Importando cola de iniciativa nativa desde TaleSpire...");
+        logger.info("[Combat Tracker] Importando cola de iniciativa nativa desde TaleSpire...");
         const queue = await ts.initiative.getQueue();
         get().actualizarColaIniciativaDesdeTaleSpire(queue);
       } catch (error) {
-        console.error("[Combat Tracker] Error al importar iniciativa nativa:", error);
+        logger.error("[Combat Tracker] Error al importar iniciativa nativa:", error);
       }
     } else {
-      console.warn("[Combat Tracker] API de iniciativa nativa de TaleSpire no disponible.");
+      logger.warn("[Combat Tracker] API de iniciativa nativa de TaleSpire no disponible.");
     }
   },
 

@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { TABLAS_CRITICOS_55E } from "../../utiles/tablasCriticos";
 import { MessageSquare } from "lucide-react";
 import { ts } from "../../utiles/TaleSpireAdapter";
+import { logger } from '@/utiles/logger';
 import estilosClases from "./ConsolaCriticosPifias.module.css";
 
 export const ConsolaCriticosPifias: React.FC = () => {
@@ -57,12 +58,12 @@ export const ConsolaCriticosPifias: React.FC = () => {
     if (ts.estaDisponible) {
       try {
         await ts.chat.send(mensajeFormateado);
-        console.log("[TaleSpire Chat] Mensaje de consola enviado con éxito automáticamente al tirar.");
+        logger.debug("[TaleSpire Chat] Mensaje de consola enviado con éxito automáticamente al tirar.");
       } catch (error) {
-        console.error("[TaleSpire Chat] Error al enviar mensaje automático al tirar:", error);
+        logger.error("[TaleSpire Chat] Error al enviar mensaje automático al tirar:", error);
       }
     } else {
-      console.log("[Simulador Chat] Enviando consola (Automático):", mensajeFormateado);
+      logger.debug("[Simulador Chat] Enviando consola (Automático):", mensajeFormateado);
     }
   };
 
@@ -83,12 +84,12 @@ export const ConsolaCriticosPifias: React.FC = () => {
     if (ts.estaDisponible) {
       try {
         await ts.chat.send(mensajeFormateado);
-        console.log("[TaleSpire Chat] Mensaje de consola enviado con éxito.");
+        logger.debug("[TaleSpire Chat] Mensaje de consola enviado con éxito.");
       } catch (error) {
-        console.error("[TaleSpire Chat] Error al enviar mensaje nativo:", error);
+        logger.error("[TaleSpire Chat] Error al enviar mensaje nativo:", error);
       }
     } else {
-      console.log("[Simulador Chat] Enviando consola:", mensajeFormateado);
+      logger.debug("[Simulador Chat] Enviando consola:", mensajeFormateado);
     }
   };
 

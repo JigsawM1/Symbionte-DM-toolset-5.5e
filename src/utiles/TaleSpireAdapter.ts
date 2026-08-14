@@ -23,6 +23,7 @@ import type {
   InfoCriatura,
   EventoIniciativaActualizada
 } from "../tipos/talespire.d.ts";
+import { logger } from '@/utiles/logger';
 
 let cacheEsGM: boolean | null = null;
 
@@ -63,10 +64,10 @@ class TaleSpireAdapter {
         try {
           return await window.TS.dice.makeRollDescriptors(rollStr);
         } catch (error) {
-          console.error("[TS Adapter] Error en makeRollDescriptors nativo:", error);
+          logger.error("[TS Adapter] Error en makeRollDescriptors nativo:", error);
         }
       }
-      console.error("[TS Adapter] dice.makeRollDescriptors no disponible. Retornando vacío.");
+      logger.error("[TS Adapter] dice.makeRollDescriptors no disponible. Retornando vacío.");
       return [];
     },
 
@@ -77,7 +78,7 @@ class TaleSpireAdapter {
       if (window.TS?.dice && typeof window.TS.dice.putDiceInTray === "function") {
         return await window.TS.dice.putDiceInTray(descriptors, silenceDefaultChatCard);
       }
-      console.error("[TS Adapter] dice.putDiceInTray no disponible.");
+      logger.error("[TS Adapter] dice.putDiceInTray no disponible.");
       return "";
     },
 
@@ -89,7 +90,7 @@ class TaleSpireAdapter {
         try {
           return await window.TS.dice.evaluateDiceResultsGroup(group);
         } catch (e) {
-          console.error("[TS Adapter] Error evaluando grupo con API nativa:", e);
+          logger.error("[TS Adapter] Error evaluando grupo con API nativa:", e);
         }
       }
       return this.obtenerTotalGrupoFallback(group);
@@ -102,7 +103,7 @@ class TaleSpireAdapter {
       if (window.TS?.dice && typeof window.TS.dice.sendDiceResult === "function") {
         await window.TS.dice.sendDiceResult(groups, rollId);
       } else {
-        console.warn("[TS Adapter] dice.sendDiceResult no disponible.");
+        logger.warn("[TS Adapter] dice.sendDiceResult no disponible.");
       }
     }
   };
@@ -120,7 +121,7 @@ class TaleSpireAdapter {
         // La API v0.1 requiere un segundo parámetro "board" para representar visualmente el chat.
         return await window.TS.chat.send(message, "board");
       }
-      console.warn("[TS Adapter] chat.send no disponible.");
+      logger.warn("[TS Adapter] chat.send no disponible.");
       return false;
     },
 
@@ -136,7 +137,7 @@ class TaleSpireAdapter {
           return await window.TS.chat.send(message, "board");
         }
       }
-      console.warn("[TS Adapter] chat.multiSend no disponible.");
+      logger.warn("[TS Adapter] chat.multiSend no disponible.");
       return false;
     },
 
@@ -277,7 +278,7 @@ class TaleSpireAdapter {
         return cacheEsGM;
       }
 
-      console.log("[TS Adapter esGM] Evaluando modo de vista cliente en TaleSpire...");
+      logger.debug("[TS Adapter esGM] Evaluando modo de vista cliente en TaleSpire...");
 
       // 1. Consultar a través de window.TS.clients.whoAmI() y window.TS.clients.getMoreInfo()
       if (window.TS?.clients && typeof window.TS.clients.whoAmI === "function") {
@@ -286,7 +287,7 @@ class TaleSpireAdapter {
           const clientId = typeof yoCliente === "string" ? yoCliente : yoCliente?.id;
 
           if (yoCliente?.clientMode) {
-            console.log("[TS Adapter esGM] Modo cliente directo 'clientMode':", yoCliente.clientMode);
+            logger.debug("[TS Adapter esGM] Modo cliente directo 'clientMode':", yoCliente.clientMode);
             const esGm = yoCliente.clientMode === "gm";
             cacheEsGM = esGm;
             return esGm;
@@ -297,7 +298,7 @@ class TaleSpireAdapter {
             if (infoClientes && infoClientes[0]) {
               const clientInfo = infoClientes[0] as any;
               if (clientInfo.clientMode) {
-                console.log("[TS Adapter esGM] clientInfo.clientMode:", clientInfo.clientMode);
+                logger.debug("[TS Adapter esGM] clientInfo.clientMode:", clientInfo.clientMode);
                 const esGm = clientInfo.clientMode === "gm";
                 cacheEsGM = esGm;
                 return esGm;
@@ -311,7 +312,7 @@ class TaleSpireAdapter {
             }
           }
         } catch (e) {
-          console.warn("[TS Adapter esGM] Error al consultar clients.whoAmI / getMoreInfo:", e);
+          logger.warn("[TS Adapter esGM] Error al consultar clients.whoAmI / getMoreInfo:", e);
         }
       }
 
@@ -334,7 +335,7 @@ class TaleSpireAdapter {
             }
           }
         } catch (e) {
-          console.warn("[TS Adapter esGM] Error al consultar players.getMoreInfo:", e);
+          logger.warn("[TS Adapter esGM] Error al consultar players.getMoreInfo:", e);
         }
       }
 
@@ -342,18 +343,18 @@ class TaleSpireAdapter {
       if (window.TS?.boards && typeof window.TS.boards.getBoardsInThisCampaign === "function") {
         try {
           await window.TS.boards.getBoardsInThisCampaign();
-          console.log("[TS Adapter esGM] Permiso de campaña otorgado -> esGM: true");
+          logger.debug("[TS Adapter esGM] Permiso de campaña otorgado -> esGM: true");
           cacheEsGM = true;
           return true;
         } catch (err: any) {
-          console.warn("[TS Adapter esGM] Permiso denegado en getBoardsInThisCampaign -> esGM: false", err);
+          logger.warn("[TS Adapter esGM] Permiso denegado en getBoardsInThisCampaign -> esGM: false", err);
           cacheEsGM = false;
           return false;
         }
       }
 
       // Fallback seguro dentro de TaleSpire: si no se confirmó rol GM, asume Jugador (false)
-      console.warn("[TS Adapter esGM] No se pudo confirmar modo GM en TaleSpire. Asumiendo rol Jugador (false).");
+      logger.warn("[TS Adapter esGM] No se pudo confirmar modo GM en TaleSpire. Asumiendo rol Jugador (false).");
       cacheEsGM = false;
       return false;
     },
@@ -393,7 +394,7 @@ class TaleSpireAdapter {
           const yo = await window.TS.clients.whoAmI();
           return yo.player?.id || (yo as unknown as { playerId?: string }).playerId || null;
         } catch (e) {
-          console.error("[TS Adapter] Error obteniendo ID de jugador:", e);
+          logger.error("[TS Adapter] Error obteniendo ID de jugador:", e);
         }
       }
       return null;
@@ -417,11 +418,11 @@ class TaleSpireAdapter {
           await window.TS.localStorage.global.setBlob(datos);
           return true;
         } catch (error) {
-          console.error("[TS Adapter] Excepción en setBlob nativo:", error);
+          logger.error("[TS Adapter] Excepción en setBlob nativo:", error);
           return false;
         }
       }
-      console.warn("[TS Adapter] localStorage.guardarBlob no disponible.");
+      logger.warn("[TS Adapter] localStorage.guardarBlob no disponible.");
       return false;
     },
 
@@ -435,11 +436,11 @@ class TaleSpireAdapter {
           // API real de TaleSpire: getBlob() — sin clave
           return await window.TS.localStorage.global.getBlob();
         } catch (error) {
-          console.error("[TS Adapter] Excepción en getBlob nativo:", error);
+          logger.error("[TS Adapter] Excepción en getBlob nativo:", error);
           return null;
         }
       }
-      console.warn("[TS Adapter] localStorage.leerBlob no disponible.");
+      logger.warn("[TS Adapter] localStorage.leerBlob no disponible.");
       return null;
     },
 
@@ -459,11 +460,11 @@ class TaleSpireAdapter {
           await globalStorage.setBlob("{}");
           return true;
         } catch (error) {
-          console.error("[TS Adapter] Excepción en deleteBlob nativo:", error);
+          logger.error("[TS Adapter] Excepción en deleteBlob nativo:", error);
           return false;
         }
       }
-      console.warn("[TS Adapter] localStorage.eliminarBlob no disponible.");
+      logger.warn("[TS Adapter] localStorage.eliminarBlob no disponible.");
       return false;
     }
   };
@@ -483,7 +484,7 @@ class TaleSpireAdapter {
             await window.TS.system.clipboard.setText(texto);
             return true;
           } catch (e) {
-            console.error("[TS Adapter] Error escribiendo portapapeles nativo:", e);
+            logger.error("[TS Adapter] Error escribiendo portapapeles nativo:", e);
           }
         }
         // Legacy copyText fallback
@@ -501,7 +502,7 @@ class TaleSpireAdapter {
           }
           return false;
         } catch (e) {
-          console.warn("[TS Adapter] Fallback navigator.clipboard falló o carece de permisos de foco:", e);
+          logger.warn("[TS Adapter] Fallback navigator.clipboard falló o carece de permisos de foco:", e);
           return false;
         }
       }
@@ -520,7 +521,7 @@ class TaleSpireAdapter {
       if (window.TS?.debug && typeof window.TS.debug.log === "function") {
         window.TS.debug.log(mensaje);
       } else {
-        console.log(`[TS Debug] ${mensaje}`);
+        logger.debug(`[TS Debug] ${mensaje}`);
       }
     }
   };

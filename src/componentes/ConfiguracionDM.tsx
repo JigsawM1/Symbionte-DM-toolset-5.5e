@@ -1,7 +1,8 @@
 import React, { useState, useRef } from "react";
 import { usarAlmacenDM } from "../almacen/usarAlmacenDM";
 import { Upload, Download, Trash2, ShieldAlert, CheckCircle, Database, Heart, Copy, X, Eye, Settings } from "lucide-react";
-import { MONSTRUOS_INICIALES, HECHIZOS_INICIALES, OBJETOS_INICIALES } from "../utiles/datosIniciales";
+import { IDS_INICIALES_MONSTRUOS, IDS_INICIALES_HECHIZOS, IDS_INICIALES_OBJETOS } from "@/utiles/datosIniciales";
+import { logger } from '@/utiles/logger';
 import { ts } from "../utiles/TaleSpireAdapter";
 import estilosClases from "./ConfiguracionDM.module.css";
 
@@ -23,13 +24,10 @@ export const ConfiguracionDM: React.FC = () => {
   const [copiado, setCopiado] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const idsInicialesMonstruos = new Set(MONSTRUOS_INICIALES.map((m) => m.id));
-  const idsInicialesHechizos = new Set(HECHIZOS_INICIALES.map((h) => h.id));
-  const idsInicialesObjetos = new Set(OBJETOS_INICIALES.map((o) => o.id));
 
-  const monstruosHomebrew = baseDatosMonstruos.filter((m) => !idsInicialesMonstruos.has(m.id));
-  const hechizosHomebrew = baseDatosHechizos.filter((h) => !idsInicialesHechizos.has(h.id));
-  const objetosHomebrewSolo = objetosHomebrew.filter((o) => !idsInicialesObjetos.has(o.id));
+  const monstruosHomebrew = baseDatosMonstruos.filter((m) => !IDS_INICIALES_MONSTRUOS.has(m.id));
+  const hechizosHomebrew = baseDatosHechizos.filter((h) => !IDS_INICIALES_HECHIZOS.has(h.id));
+  const objetosHomebrewSolo = objetosHomebrew.filter((o) => !IDS_INICIALES_OBJETOS.has(o.id));
   const objetosHomebrewCont = objetosHomebrewSolo.length;
 
   const [arrastrando, setArrastrando] = useState(false);
@@ -67,7 +65,7 @@ export const ConfiguracionDM: React.FC = () => {
           setMensajeError("El archivo JSON no tiene una estructura compatible con el Simbionte.");
         }
       } catch (e) {
-        console.error("Error al parsear archivo JSON:", e);
+        logger.error("Error al parsear archivo JSON:", e);
         setEstadoImportacion("error");
         setMensajeError("El archivo JSON contiene errores de sintaxis.");
       }

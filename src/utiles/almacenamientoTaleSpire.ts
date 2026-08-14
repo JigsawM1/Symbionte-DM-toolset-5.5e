@@ -10,6 +10,7 @@
  */
 
 import { ts } from "./TaleSpireAdapter";
+import { logger } from '@/utiles/logger';
 
 /** Clave interna para el único blob global del Simbionte DM */
 const CLAVE_BLOB_GLOBAL = "__dm_pantalla_datos__";
@@ -28,10 +29,10 @@ export async function guardarBlobGlobal(datos: Record<string, unknown>): Promise
 export async function leerBlobGlobal(): Promise<Record<string, unknown> | null> {
   try {
     const resultado = await ts.localStorage.leerBlob(CLAVE_BLOB_GLOBAL);
-    console.log("[TS Storage] Lectura finalizada.");
+    logger.debug("[TS Storage] Lectura finalizada.");
 
     if (!resultado) {
-      console.log("[TS Storage] Blob vacío o sin inicializar.");
+      logger.debug("[TS Storage] Blob vacío o sin inicializar.");
       return null;
     }
 
@@ -41,7 +42,7 @@ export async function leerBlobGlobal(): Promise<Record<string, unknown> | null> 
       try {
         return JSON.parse(resultado) as Record<string, unknown>;
       } catch (e) {
-        console.error("[TS Storage] Error al parsear JSON directo:", e);
+        logger.error("[TS Storage] Error al parsear JSON directo:", e);
         return null;
       }
     }
@@ -52,24 +53,24 @@ export async function leerBlobGlobal(): Promise<Record<string, unknown> | null> 
       try {
         return JSON.parse(obj.data) as Record<string, unknown>;
       } catch (e) {
-        console.error("[TS Storage] Error al parsear JSON desde obj.data:", e);
+        logger.error("[TS Storage] Error al parsear JSON desde obj.data:", e);
         return null;
       }
     } else if (obj.result === "noData") {
-      console.log("[TS Storage] No hay datos guardados todavía (primera sesión).");
+      logger.debug("[TS Storage] No hay datos guardados todavía (primera sesión).");
       return null;
     } else if (typeof obj.data === "string") {
       try {
         return JSON.parse(obj.data) as Record<string, unknown>;
       } catch (e) {
-        console.error("[TS Storage] Error al parsear JSON desde obj.data secundario:", e);
+        logger.error("[TS Storage] Error al parsear JSON desde obj.data secundario:", e);
         return null;
       }
     }
 
     return null;
   } catch (error) {
-    console.error("[TS Storage] Excepción al leer blob global:", error);
+    logger.error("[TS Storage] Excepción al leer blob global:", error);
     return null;
   }
 }

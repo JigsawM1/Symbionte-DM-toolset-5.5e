@@ -1,6 +1,7 @@
 import { Component, ErrorInfo, ReactNode } from "react";
 import { AlertOctagon, RotateCcw } from "lucide-react";
 import estilos from "./LimiteError.module.css";
+import { logger } from '@/utiles/logger';
 
 interface Props {
   children?: ReactNode;
@@ -22,7 +23,7 @@ export class LimiteError extends Component<Props, State> {
   }
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error("Error no capturado por el Simbionte:", error, errorInfo);
+    logger.error("Error no capturado por el Simbionte:", error, errorInfo);
   }
 
   private alReiniciar = () => {

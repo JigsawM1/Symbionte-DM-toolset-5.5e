@@ -1,6 +1,7 @@
 import { MonstruoBase, HechizoBase, ObjetoHomebrew, EsquemaMonstruoBase, EsquemaHechizoBase, EsquemaObjetoJuego } from '../tipos';
 import { aplanarValor, sanearObjetoHomebrew, sanearHechizoCD, parsearVelocidad, parsearSentidos, sanearMonstruoSentidosYPasiva } from './sanitizacion';
 import { generarId } from '@/utiles/generarId';
+import { logger } from '@/utiles/logger';
 
 export interface ResultadoImportacion {
   modificado: boolean;
@@ -374,7 +375,7 @@ export function importarDesdeJSON(
         if (val.success) {
           return val.data;
         } else {
-          console.warn("[Importador] Monstruo omitido por inconsistencias en el esquema:", monstruoSaneado.nombre, val.error.format());
+          logger.warn("[Importador] Monstruo omitido por inconsistencias en el esquema:", monstruoSaneado.nombre, val.error.format());
           return null;
         }
       }).filter((m): m is MonstruoBase => m !== null);
@@ -635,7 +636,7 @@ export function importarDesdeJSON(
         if (val.success) {
           return val.data;
         } else {
-          console.warn("[Importador] Hechizo omitido por inconsistencias en el esquema:", saneado.nombre, val.error.format());
+          logger.warn("[Importador] Hechizo omitido por inconsistencias en el esquema:", saneado.nombre, val.error.format());
           return null;
         }
       }).filter((h): h is HechizoBase => h !== null);
@@ -860,7 +861,7 @@ export function importarDesdeJSON(
         if (val.success) {
           return val.data as ObjetoHomebrew;
         } else {
-          console.warn("[Importador] Objeto omitido por inconsistencias en el esquema Zod:", objetoMapeado.nombre, val.error.format());
+          logger.warn("[Importador] Objeto omitido por inconsistencias en el esquema Zod:", objetoMapeado.nombre, val.error.format());
           return null;
         }
       }).filter((o): o is ObjetoHomebrew => o !== null);
@@ -882,7 +883,7 @@ export function importarDesdeJSON(
       objetosHomebrew: objetosFinales
     };
   } catch (e) {
-    console.error("[Importador] Falló la importación del JSON:", e);
+    logger.error("[Importador] Falló la importación del JSON:", e);
     return {
       modificado: false,
       baseDatosMonstruos: estadoActual.baseDatosMonstruos,

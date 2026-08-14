@@ -1,6 +1,7 @@
 import React from "react";
 import { usarAlmacenDM } from "../almacen/usarAlmacenDM";
 import { ts } from "./TaleSpireAdapter";
+import { logger } from '@/utiles/logger';
 
 /**
  * Módulo de Lanzamiento de Dados para TaleSpire (window.TS.dice)
@@ -167,7 +168,7 @@ export async function lanzarDadosPorChatTaleSpire(formula: string): Promise<void
     // Eliminamos cualquier '!' intermedio que pueda romper el parser del chat de TaleSpire
     const formulaLimpia = formula.replace(/!/g, "");
     const comandoChat = `!${formulaLimpia}`;
-    console.log(`[Lanzador Dados (Chat)] Enviando comando de tirada física al chat: "${comandoChat}"`);
+    logger.debug(`[Lanzador Dados (Chat)] Enviando comando de tirada física al chat: "${comandoChat}"`);
     await ts.chat.send(comandoChat);
   } else {
     throw new Error("La API de chat de TaleSpire tampoco está disponible.");
@@ -253,7 +254,7 @@ export async function lanzarDadosTaleSpire(
   const formulaLimpia = normalizarFormulaDados(formulaProcesada);
   const nombreEtiqueta = sanitizarEtiqueta(etiqueta.trim() || "Tirada");
 
-  console.log(`[Lanzador Dados] Preparando tirada: "${nombreEtiqueta}" con fórmula: "${formulaLimpia}" (Tipo original: ${tipoTirada})`);
+  logger.debug(`[Lanzador Dados] Preparando tirada: "${nombreEtiqueta}" con fórmula: "${formulaLimpia}" (Tipo original: ${tipoTirada})`);
 
   // 1. Validamos si la API nativa de TaleSpire y su módulo de dados están disponibles
   if (ts.estaDisponible) {
@@ -262,11 +263,11 @@ export async function lanzarDadosTaleSpire(
       const esValido = ts.dice.isValidRollString(formulaLimpia);
 
       if (!esValido) {
-        console.warn(`[Lanzador Dados] La fórmula "${formulaLimpia}" no es válida según TaleSpire. Intentando de todos modos...`);
+        logger.warn(`[Lanzador Dados] La fórmula "${formulaLimpia}" no es válida según TaleSpire. Intentando de todos modos...`);
       }
 
       // Convertimos el string en los descriptores físicos requeridos por TaleSpire
-      console.log(`[Lanzador Dados] Generando descriptores de tirada para "${formulaLimpia}"`);
+      logger.debug(`[Lanzador Dados] Generando descriptores de tirada para "${formulaLimpia}"`);
       const descriptores = await ts.dice.makeRollDescriptors(formulaLimpia);
       
       if (!descriptores || descriptores.length === 0) {
@@ -274,34 +275,34 @@ export async function lanzarDadosTaleSpire(
       }
 
       // Colocamos los dados físicos en la bandeja 3D de TaleSpire de forma segura
-      console.log(`[Lanzador Dados] Enviando dados a la bandeja 3D. Descriptores:`, descriptores);
+      logger.debug(`[Lanzador Dados] Enviando dados a la bandeja 3D. Descriptores:`, descriptores);
       
       const silenceChat = tiradaEspecial !== null;
       const rollId = await ts.dice.putDiceInTray(descriptores, silenceChat);
       
       if (tiradaEspecial && rollId) {
         tiradasEspecialesActivas[rollId] = tiradaEspecial;
-        console.log(`[Lanzador Dados] Registrada tirada especial con rollId: ${rollId}`, tiradaEspecial);
+        logger.debug(`[Lanzador Dados] Registrada tirada especial con rollId: ${rollId}`, tiradaEspecial);
       }
 
       if (metaIniciativa && rollId) {
         tiradasIniciativaActivas[rollId] = metaIniciativa;
-        console.log(`[Lanzador Dados] Registrada tirada de iniciativa nativa con rollId: ${rollId}`, metaIniciativa);
+        logger.debug(`[Lanzador Dados] Registrada tirada de iniciativa nativa con rollId: ${rollId}`, metaIniciativa);
       }
 
       ts.debug.log(`Tirando dados en bandeja física: ${nombreEtiqueta} (${formulaLimpia})`);
     } catch (error) {
-      console.error("[Lanzador Dados] Fallo de API directa de dados. Recurriendo al canal de chat de TaleSpire...", error);
+      logger.error("[Lanzador Dados] Fallo de API directa de dados. Recurriendo al canal de chat de TaleSpire...", error);
       try {
         await lanzarDadosPorChatTaleSpire(formulaProcesada);
       } catch (errChat) {
-        console.error("[Lanzador Dados] Falló también el canal de chat. Ejecutando fallback local matemático...", errChat);
+        logger.error("[Lanzador Dados] Falló también el canal de chat. Ejecutando fallback local matemático...", errChat);
         ejecutarTiradaFallbackLocal(formulaLimpia, nombreEtiqueta);
       }
     }
   } else {
     // 2. Fallback de desarrollo en navegador local (sin simulación pesada, solo log y consola)
-    console.warn("[Lanzador Dados] API de TaleSpire no disponible. Ejecutando tirada matemática de desarrollo.");
+    logger.warn("[Lanzador Dados] API de TaleSpire no disponible. Ejecutando tirada matemática de desarrollo.");
     ejecutarTiradaFallbackLocal(formulaLimpia, nombreEtiqueta);
   }
 }
@@ -336,13 +337,13 @@ export async function procesarResultadosDadosTaleSpire(evento: unknown): Promise
   
   // Caso 1: Tirada de iniciativa plana nativa (sin ventaja ni desventaja)
   if (!infoTirada && infoIniciativaPlana) {
-    console.log(`[Lanzador Dados] Procesando resultado de iniciativa plana para rollId: ${rollId}`);
+    logger.debug(`[Lanzador Dados] Procesando resultado de iniciativa plana para rollId: ${rollId}`);
     const resultGroups = ev.payload.resultsGroups;
     if (resultGroups && Array.isArray(resultGroups) && resultGroups.length > 0) {
       try {
         const grupoInic = resultGroups[0];
         const total = await ts.dice.evaluateDiceResultsGroup(grupoInic);
-        console.log(`[Lanzador Dados] Iniciativa plana obtenida: ${total} para la criatura ${infoIniciativaPlana.criaturaId}`);
+        logger.debug(`[Lanzador Dados] Iniciativa plana obtenida: ${total} para la criatura ${infoIniciativaPlana.criaturaId}`);
         // Usar la acción de actualizar en combat tracker si existiera
         const state = usarAlmacenDM.getState();
         const nuevaCola = state.colaIniciativa.map((c) => {
@@ -354,7 +355,7 @@ export async function procesarResultadosDadosTaleSpire(evento: unknown): Promise
         nuevaCola.sort((a, b) => b.iniciativa - a.iniciativa);
         usarAlmacenDM.setState({ colaIniciativa: nuevaCola });
       } catch (error) {
-        console.error("[Lanzador Dados] Error al evaluar iniciativa plana:", error);
+        logger.error("[Lanzador Dados] Error al evaluar iniciativa plana:", error);
       }
     }
     delete tiradasIniciativaActivas[rollId];
@@ -365,7 +366,7 @@ export async function procesarResultadosDadosTaleSpire(evento: unknown): Promise
     return false;
   }
   
-  console.log(`[Lanzador Dados] Interceptada tirada especial ${rollId} de tipo ${infoTirada.tipo}`);
+  logger.debug(`[Lanzador Dados] Interceptada tirada especial ${rollId} de tipo ${infoTirada.tipo}`);
   const resultGroups = ev.payload.resultsGroups;
   
   if (!resultGroups || !Array.isArray(resultGroups)) {
@@ -385,7 +386,7 @@ export async function procesarResultadosDadosTaleSpire(evento: unknown): Promise
     });
     
     if (!grupoA || !grupoB) {
-      console.warn("[Lanzador Dados] No se encontraron los grupos A o B en los resultados de la tirada.");
+      logger.warn("[Lanzador Dados] No se encontraron los grupos A o B en los resultados de la tirada.");
       delete tiradasEspecialesActivas[rollId];
       return false;
     }
@@ -394,7 +395,7 @@ export async function procesarResultadosDadosTaleSpire(evento: unknown): Promise
     const totalA = await ts.dice.evaluateDiceResultsGroup(grupoA);
     const totalB = await ts.dice.evaluateDiceResultsGroup(grupoB);
     
-    console.log(`[Lanzador Dados] Evaluación: ${infoTirada.grupoAName} = ${totalA} | ${infoTirada.grupoBName} = ${totalB}`);
+    logger.debug(`[Lanzador Dados] Evaluación: ${infoTirada.grupoAName} = ${totalA} | ${infoTirada.grupoBName} = ${totalB}`);
     
     // Determinar cuál d20 elegir
     const esVentaja = infoTirada.tipo === "ventaja";
@@ -404,7 +405,7 @@ export async function procesarResultadosDadosTaleSpire(evento: unknown): Promise
     const totalElegido = elegirA ? totalA : totalB;
     const totalDescartado = elegirA ? totalB : totalA;
     
-    console.log(`[Lanzador Dados] Elegido ${grupoElegido.name} (${totalElegido}) - Descartado (${totalDescartado})`);
+    logger.debug(`[Lanzador Dados] Elegido ${grupoElegido.name} (${totalElegido}) - Descartado (${totalDescartado})`);
     
     // Crear el grupo d20 final clonando el elegido pero con un nombre limpio y descriptivo
     const sufijoChat = esVentaja ? " (Ventaja)" : " (Desventaja)";
@@ -431,14 +432,14 @@ export async function procesarResultadosDadosTaleSpire(evento: unknown): Promise
     // Colocamos el d20 ganador en primera posición
     gruposParaChat.unshift(grupoGanadorSaneado);
     
-    console.log("[Lanzador Dados] Enviando resultado filtrado al chat de TaleSpire:", gruposParaChat);
+    logger.debug("[Lanzador Dados] Enviando resultado filtrado al chat de TaleSpire:", gruposParaChat);
     
     await ts.dice.sendDiceResult(gruposParaChat, rollId);
     
     // Si esta tirada especial también era para iniciativa, actualizamos la criatura
     const infoIniciativaEspecial = tiradasIniciativaActivas[rollId];
     if (infoIniciativaEspecial) {
-      console.log(`[Lanzador Dados] Iniciativa especial obtenida: ${totalElegido} para la criatura ${infoIniciativaEspecial.criaturaId}`);
+      logger.debug(`[Lanzador Dados] Iniciativa especial obtenida: ${totalElegido} para la criatura ${infoIniciativaEspecial.criaturaId}`);
       const state = usarAlmacenDM.getState();
       const nuevaCola = state.colaIniciativa.map((c) => {
         if (c.id === infoIniciativaEspecial.criaturaId) {
@@ -454,7 +455,7 @@ export async function procesarResultadosDadosTaleSpire(evento: unknown): Promise
     delete tiradasEspecialesActivas[rollId];
     return true;
   } catch (error) {
-    console.error("[Lanzador Dados] Error al procesar tirada especial:", error);
+    logger.error("[Lanzador Dados] Error al procesar tirada especial:", error);
     delete tiradasEspecialesActivas[rollId];
     return false;
   }
@@ -472,11 +473,7 @@ function ejecutarTiradaFallbackLocal(
   try {
     const grupos = formula.split("/");
     
-    console.log(
-      `%c🎲 [TIRADA LOCAL MOCK] %c${etiquetaGlobal.toUpperCase()}`,
-      "background: #1e1e2e; color: #89b4fa; font-weight: bold; padding: 4px; border-radius: 4px;",
-      "color: #cdd6f4; font-weight: bold;"
-    );
+    logger.debug(`🎲 [TIRADA LOCAL MOCK] ${etiquetaGlobal.toUpperCase()}`);
 
     grupos.forEach((grupo, idx) => {
       let formulaDados = grupo;
@@ -533,24 +530,13 @@ function ejecutarTiradaFallbackLocal(
           desglose = `[${tiradas.join(" + ")}]${modificador !== 0 ? ` ${signo} ${modificador}` : ""}`;
         }
         
-        console.log(
-          `  %c↳ %c${etiquetaGrupo}: %c${total} %c(${desglose})`,
-          "color: #89b4fa; font-weight: bold;",
-          "color: #cdd6f4; font-weight: bold;",
-          "color: #a6e3a1; font-weight: bold; font-size: 1.05em;",
-          "color: #a6adc8;"
-        );
+        logger.debug(`  ↳ ${etiquetaGrupo}: ${total} (${desglose})`);
       } else {
-        console.log(
-          `  %c↳ %c${etiquetaGrupo}: %cTirada simulada (Fórmula: ${formulaDados})`,
-          "color: #89b4fa; font-weight: bold;",
-          "color: #cdd6f4; font-weight: bold;",
-          "color: #f9e2af;"
-        );
+        logger.debug(`  ↳ ${etiquetaGrupo}: Tirada simulada (Fórmula: ${formulaDados})`);
       }
     });
   } catch (err) {
-    console.error("[Lanzador Dados] Fallo al calcular tirada local:", err);
+    logger.error("[Lanzador Dados] Fallo al calcular tirada local:", err);
   }
 }
 

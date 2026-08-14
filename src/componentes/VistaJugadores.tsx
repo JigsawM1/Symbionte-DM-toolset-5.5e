@@ -1,6 +1,7 @@
 import React from "react";
 import { usarAlmacenDM } from "../almacen/usarAlmacenDM";
 import { ts } from "../utiles/TaleSpireAdapter";
+import { logger } from '@/utiles/logger';
 import type { CriaturaSeleccionadaTS } from "../almacen/slices/sliceIniciativa";
 import {
   Gamepad2,
@@ -28,7 +29,7 @@ export const VistaJugadores: React.FC = () => {
         agregarNotificacion(`[Simulador] ${nombreAccion}: d20 = ${res}`, "info");
       }
     } catch (err) {
-      console.error("[Vista Jugadores] Error en tirada de dados:", err);
+      logger.error("[Vista Jugadores] Error en tirada de dados:", err);
       agregarNotificacion("Error al procesar tirada de dados", "error");
     }
   };

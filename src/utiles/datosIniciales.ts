@@ -28,6 +28,12 @@ export const MONSTRUOS_INICIALES: MonstruoBase[] = importacionMonstruos.baseDato
 export const HECHIZOS_INICIALES: HechizoBase[] = importacionHechizos.baseDatosHechizos;
 export const OBJETOS_INICIALES = importacionEquipo.objetosHomebrew;
 
+// Sets pre-computados una sola vez al cargar el módulo (Singleton Pattern).
+// Evitan la re-creación O(N) en cada render de componentes y en cada ciclo de persistencia (debounce 250ms).
+export const IDS_INICIALES_MONSTRUOS: ReadonlySet<string> = new Set(MONSTRUOS_INICIALES.map((m) => m.id));
+export const IDS_INICIALES_HECHIZOS: ReadonlySet<string>  = new Set(HECHIZOS_INICIALES.map((h) => h.id));
+export const IDS_INICIALES_OBJETOS: ReadonlySet<string>   = new Set(OBJETOS_INICIALES.map((o) => o.id));
+
 export const CONDICIONES_2024: CondicionDnd[] = [
   {
     nombre: "AGARRADO (Grappled)",

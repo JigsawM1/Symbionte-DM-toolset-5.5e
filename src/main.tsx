@@ -8,9 +8,10 @@ import { procesarResultadosDadosTaleSpire } from './utiles/lanzadorDados';
 
 // Registrar oyentes de eventos de TaleSpire a través del EventBus centralizado
 import { puenteTaleSpire } from './servicios/puenteTaleSpire';
+import { logger } from '@/utiles/logger';
 
 puenteTaleSpire.on('resultadosDados', async (resultados) => {
-  console.log("[TaleSpire Main] Resultados de dados recibidos en el EventBus:", resultados);
+  logger.debug("[TaleSpire Main] Resultados de dados recibidos en el EventBus:", resultados);
   await procesarResultadosDadosTaleSpire(resultados);
 });
 

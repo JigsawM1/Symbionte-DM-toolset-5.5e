@@ -1,0 +1,114 @@
+{
+  "assassins-blood": {
+    "nombre": "Sangre de Asesino (Assassin's Blood)",
+    "subcategoria": "Consumible",
+    "costo": 150,
+    "tipo": "Ingerido",
+    "cd": 10,
+    "descripcion": "Una criatura expuesta a este veneno debe realizar una salvación de Constitución CD 10. Si falla, recibe 6 (1d12) de daño de Veneno y sufre la condición de Envenenado durante 24 horas. Si tiene éxito, recibe la mitad del daño únicamente y no sufre la condición."
+  },
+  "burnt-othur-fumes": {
+    "nombre": "Vapores de Othur Quemado (Burnt Othur Fumes)",
+    "subcategoria": "Consumible",
+    "costo": 500,
+    "tipo": "Inhalado",
+    "cd": 13,
+    "descripcion": "Una criatura expuesta debe superar una salvación de Constitución CD 13 o recibirá 10 (3d6) de daño de Veneno y deberá repetir la salvación al inicio de cada uno de sus turnos. En cada fallo sucesivo recibe 3 (1d6) de daño de Veneno. El efecto termina tras tres salvaciones exitosas."
+  },
+  "crawler-mucus": {
+    "nombre": "Mucosidad de Carroñero (Crawler Mucus)",
+    "subcategoria": "Consumible",
+    "costo": 200,
+    "tipo": "Contacto",
+    "cd": 13,
+    "descripcion": "Una criatura expuesta debe superar una salvación de Constitución CD 13 o sufrirá la condición de Envenenado durante 1 minuto. La criatura también estará Paralizada mientras esté Envenenada de esta forma. Repite la salvación al final de cada uno de sus turnos para terminar el efecto."
+  },
+  "essence-of-ether": {
+    "nombre": "Esencia de Éter (Essence of Ether)",
+    "subcategoria": "Consumible",
+    "costo": 300,
+    "tipo": "Inhalado",
+    "cd": 15,
+    "descripcion": "Una criatura expuesta debe superar una salvación de Constitución CD 15 o sufrirá la condición de Envenenado durante 8 horas. Estará Inconsciente mientras esté Envenenada de esta forma. Despierta si recibe daño o si otra criatura usa una acción para sacudirla."
+  },
+  "malice": {
+    "nombre": "Malicia (Malice)",
+    "subcategoria": "Consumible",
+    "costo": 250,
+    "tipo": "Inhalado",
+    "cd": 15,
+    "descripcion": "Una criatura expuesta debe superar una salvación de Constitución CD 15 o sufrirá la condición de Envenenado durante 1 hora. Estará Cegada mientras esté Envenenada de esta forma."
+  },
+  "midnight-tears": {
+    "nombre": "Lágrimas de Medianoche (Midnight Tears)",
+    "subcategoria": "Consumible",
+    "costo": 1500,
+    "tipo": "Ingerido",
+    "cd": 17,
+    "descripcion": "Una criatura que ingiera este veneno no sufre ningún efecto inmediato. Si el veneno no ha sido neutralizado antes de la medianoche, la criatura debe superar una salvación de Constitución CD 17, recibiendo 31 (9d6) de daño de Veneno si falla, o la mitad si tiene éxito."
+  },
+  "oil-of-taggit": {
+    "nombre": "Aceite de Taggit (Oil of Taggit)",
+    "subcategoria": "Consumible",
+    "costo": 400,
+    "tipo": "Contacto",
+    "cd": 13,
+    "descripcion": "Una criatura expuesta debe superar una salvación de Constitución CD 13 o sufrirá la condición de Envenenado durante 24 horas. También estará Inconsciente mientras esté Envenenada de esta forma. Despierta inmediatamente si recibe daño."
+  },
+  "pale-tincture": {
+    "nombre": "Tintura Pálida (Pale Tincture)",
+    "subcategoria": "Consumible",
+    "costo": 250,
+    "tipo": "Ingerido",
+    "cd": 16,
+    "descripcion": "Una criatura expuesta debe superar una salvación de Constitución CD 16 o recibirá 3 (1d6) de daño de Veneno y sufrirá la condición de Envenenado. Repite la salvación cada 24 horas, recibiendo 3 (1d6) de daño con cada fallo. Este daño no se puede curar por ningún medio mientras siga Envenenada. Termina tras siete salvaciones exitosas consecutivas."
+  },
+  "purple-worm-poison": {
+    "nombre": "Veneno de Gusano Púrpura (Purple Worm Poison)",
+    "subcategoria": "Consumible",
+    "costo": 2000,
+    "tipo": "Lesión",
+    "cd": 21,
+    "descripcion": "Una criatura expuesta debe realizar una salvación de Constitución CD 21, recibiendo 35 (10d6) de daño de Veneno si falla, o la mitad si tiene éxito."
+  },
+  "serpent-venom": {
+    "nombre": "Veneno de Serpiente (Serpent Venom)",
+    "subcategoria": "Consumible",
+    "costo": 200,
+    "tipo": "Lesión",
+    "cd": 11,
+    "descripcion": "Una criatura expuesta debe realizar una salvación de Constitución CD 11, recibiendo 10 (3d6) de daño de Veneno si falla, o la mitad si tiene éxito."
+  },
+  "spiders-sting": {
+    "nombre": "Picadura de Araña (Spider's Sting)",
+    "subcategoria": "Consumible",
+    "costo": 200,
+    "tipo": "Lesión",
+    "cd": 13,
+    "descripcion": "Una criatura expuesta debe superar una salvación de Constitución CD 13 o sufrirá la condición de Envenenado por 1 hora. Si falla la salvación por 5 o más puntos, también estará Inconsciente mientras esté Envenenada. Despierta si recibe daño o si la sacuden."
+  },
+  "torpor": {
+    "nombre": "Apatía (Torpor)",
+    "subcategoria": "Consumible",
+    "costo": 600,
+    "tipo": "Ingerido",
+    "cd": 15,
+    "descripcion": "Una criatura expuesta debe superar una salvación de Constitución CD 15 o sufrirá la condición de Envenenado durante 4d6 horas. Su velocidad se reduce a la mitad mientras esté Envenenada de esta forma."
+  },
+  "truth-serum": {
+    "nombre": "Suero de la Verdad (Truth Serum)",
+    "subcategoria": "Consumible",
+    "costo": 150,
+    "tipo": "Ingerido",
+    "cd": 11,
+    "descripcion": "Una criatura expuesta debe superar una salvación de Constitución CD 11 o sufrirá la condición de Envenenado durante 1 hora. La criatura envenenada de esta manera no puede decir una mentira a sabiendas."
+  },
+  "wyvern-poison": {
+    "nombre": "Veneno de Wyvern (Wyvern Poison)",
+    "subcategoria": "Consumible",
+    "costo": 1200,
+    "tipo": "Lesión",
+    "cd": 14,
+    "descripcion": "Una criatura expuesta debe realizar una salvación de Constitución CD 14, recibiendo 24 (7d6) de daño de Veneno si falla, o la mitad si tiene éxito."
+  }
+}

@@ -1,4 +1,5 @@
 import { HechizoBase, ObjetoHomebrew, Rareza, Arma, Armadura, EquipoAventuras, TipoBonoDestreza, SubcategoriaEquipo, VelocidadEstructurada, SentidosEstructurados, MonstruoBase } from '../tipos';
+import { generarId } from '@/utiles/generarId';
 
 // Normaliza el texto eliminando acentos y convirtiendo a minúsculas
 export function normalizarTexto(texto: string): string {
@@ -36,7 +37,7 @@ export function aplanarValor(val: unknown): string {
 export function sanearObjetoHomebrew(o: unknown): ObjetoHomebrew {
   if (!o || typeof o !== "object") {
     return {
-      id: `o_${Date.now()}_${Math.random()}`,
+      id: generarId('o'),
       nombre: "Objeto Desconocido",
       descripcion: "Sin descripción disponible.",
       pesoLb: 0,
@@ -50,7 +51,7 @@ export function sanearObjetoHomebrew(o: unknown): ObjetoHomebrew {
   }
   
   const obj = o as Record<string, unknown>;
-  const idSaneado = aplanarValor(obj.id || obj.index || `o_${Date.now()}_${Math.random()}`).trim();
+  const idSaneado = aplanarValor(obj.id || obj.index || generarId('o')).trim();
   const nombreSaneado = aplanarValor(obj.nombre || obj.name || "Objeto Desconocido");
   
   // Procesar descripción — puede ser string o array de strings
@@ -708,7 +709,7 @@ export function sanearObjetoHomebrew(o: unknown): ObjetoHomebrew {
       }).join(" | ");
     }
     
-    if (subTxt.includes("CONSUMIBLE") || subTxt.includes("CONSUMABLE")) subEquipo = "Consumible";
+    if (subTxt.includes("CONSUMIBLE") || subTxt.includes("CONSUMABLE") || subTxt.includes("VENENO") || subTxt.includes("POISON") || obj.esVeneno) subEquipo = "Consumible";
     else if (subTxt.includes("MUNICIÓN") || subTxt.includes("MUNITION") || subTxt.includes("AMMUNITION")) subEquipo = "Munición";
     else if (subTxt.includes("HERRAMIENTA") || subTxt.includes("TOOL")) subEquipo = "Herramienta";
     else if (subTxt.includes("INSTRUMENTO") || subTxt.includes("INSTRUMENT")) subEquipo = "Instrumento";

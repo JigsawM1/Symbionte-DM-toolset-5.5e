@@ -16,6 +16,7 @@ import estilos from "./ListaHomebrew.module.css";
 import { ConfirmDialog } from "../ConfirmDialog";
 import { FichaHechizo } from "../hechizos/FichaHechizo";
 import { PanelFichaDnD } from "../iniciativa/PanelFichaDnD";
+import { lanzarDadosTaleSpire, sanitizarEtiqueta } from "../../utiles/lanzadorDados";
 
 function parsearCR(desafioRaw: string | number | undefined): number {
   if (desafioRaw === undefined || desafioRaw === null || desafioRaw === "") return -1;
@@ -375,7 +376,24 @@ export const ListaHomebrew: React.FC<Props> = ({
                     }}
                     title="Ver detalles del objeto mágico"
                   >
-                    <span className={estilos.itemNombre}>{o.nombre}</span>
+                    <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
+                      <span className={estilos.itemNombre}>{o.nombre}</span>
+                      {(o.esVeneno || o.tipoVeneno || o.cdSalvacionVeneno !== undefined) && (
+                        <span
+                          style={{
+                            fontSize: "10px",
+                            fontWeight: "bold",
+                            padding: "1px 6px",
+                            borderRadius: "4px",
+                            background: "rgba(168, 85, 247, 0.18)",
+                            border: "1px solid rgba(168, 85, 247, 0.4)",
+                            color: "hsl(270, 95%, 80%)"
+                          }}
+                        >
+                          ☠️ VENENO {o.cdSalvacionVeneno !== undefined ? `(CD ${o.cdSalvacionVeneno})` : ""}
+                        </span>
+                      )}
+                    </div>
                     <span className={estilos.itemSub}>
                       Rareza: {o.rareza} {o.propiedades ? `| Prop.: ${o.propiedades}` : ""}
                     </span>
@@ -622,6 +640,28 @@ export const ListaHomebrew: React.FC<Props> = ({
                     </div>
                   </div>
                 )}
+                {objeto.tipoVeneno && (
+                  <div className={estilos.metaItem}>
+                    <Sparkles size={12} className={estilos.iconoDetalle} style={{ color: "hsl(270, 95%, 75%)" }} />
+                    <div>
+                      <div className={estilos.metaLabel}>EXPOSICIÓN</div>
+                      <div className={estilos.metaValor} style={{ color: "hsl(270, 95%, 80%)", fontWeight: "bold" }}>
+                        {objeto.tipoVeneno}
+                      </div>
+                    </div>
+                  </div>
+                )}
+                {objeto.cdSalvacionVeneno !== undefined && (
+                  <div className={estilos.metaItem}>
+                    <Sparkles size={12} className={estilos.iconoDetalle} style={{ color: "var(--color-advertencia)" }} />
+                    <div>
+                      <div className={estilos.metaLabel}>SALVACIÓN</div>
+                      <div className={estilos.metaValor} style={{ color: "var(--color-advertencia)", fontWeight: "bold" }}>
+                        CON CD {objeto.cdSalvacionVeneno}
+                      </div>
+                    </div>
+                  </div>
+                )}
                 {objeto.tipoPrincipal === "Arma" && objeto.alcanceNormal && (
                   <div className={estilos.metaItem}>
                     <MapPin size={12} className={estilos.iconoDetalle} />
@@ -640,6 +680,11 @@ export const ListaHomebrew: React.FC<Props> = ({
                 {objeto.esMagico && (
                   <span className={estilos.chipConcentracion} style={{ backgroundColor: "rgba(0, 245, 212, 0.12)", color: "var(--color-borde-cian)", border: "1px solid var(--color-borde-cian)" }}>
                      MÁGICO
+                  </span>
+                )}
+                {(objeto.esVeneno || objeto.tipoVeneno || objeto.cdSalvacionVeneno !== undefined) && (
+                  <span className={estilos.chipConcentracion} style={{ backgroundColor: "rgba(168, 85, 247, 0.18)", color: "hsl(270, 95%, 85%)", border: "1px solid rgba(168, 85, 247, 0.5)" }}>
+                     VENENO {objeto.tipoVeneno ? `(${objeto.tipoVeneno.toUpperCase()})` : ""}
                   </span>
                 )}
                 {objeto.tipoPrincipal === "Arma" && (
@@ -739,6 +784,102 @@ export const ListaHomebrew: React.FC<Props> = ({
                       <div className={estilos.itemMecanica}>
                         <span className={estilos.textoEtiquetaMecanica}>Tiempo Equipar: </span>
                         <strong className={estilos.valorMecanicaCd}>{objeto.tiempoEquipar}</strong>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* MECÁNICAS Y EFECTOS DEL VENENO */}
+              {(objeto.esVeneno || objeto.tipoVeneno || objeto.cdSalvacionVeneno !== undefined || objeto.efectoVeneno) && (
+                <div className={estilos.cajaMecanicasCombateObjeto} style={{ borderColor: "rgba(168, 85, 247, 0.4)", background: "rgba(168, 85, 247, 0.05)" }}>
+                  <div className={estilos.tituloMecanicasObjeto} style={{ color: "hsl(270, 95%, 80%)", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "8px" }}>
+                    <span>☠️ Propiedades y Mecánicas del Veneno</span>
+                    <div style={{ display: "flex", gap: "6px", alignItems: "center" }}>
+                      {objeto.cdSalvacionVeneno !== undefined && (
+                        <button
+                          onClick={() => {
+                            const label = sanitizarEtiqueta(`Salvacion CON CD ${objeto.cdSalvacionVeneno} - ${objeto.nombre}`);
+                            lanzarDadosTaleSpire("1d20", label);
+                          }}
+                          style={{
+                            background: "rgba(168, 85, 247, 0.22)",
+                            border: "1px solid rgba(168, 85, 247, 0.55)",
+                            color: "hsl(270, 95%, 88%)",
+                            borderRadius: "4px",
+                            padding: "3px 9px",
+                            fontSize: "11px",
+                            fontWeight: "bold",
+                            cursor: "pointer",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "4px"
+                          }}
+                          type="button"
+                          title="Lanzar tirada de salvación de Constitución (d20) en TaleSpire"
+                        >
+                          🎲 Salvación CON (CD {objeto.cdSalvacionVeneno})
+                        </button>
+                      )}
+                      {(() => {
+                        const textoCompleto = `${objeto.descripcion || ""} ${objeto.efectoVeneno || ""}`;
+                        const matchDado = textoCompleto.match(/(\d+d\d+(?:\s*[+-]\s*\d+)?)/i);
+                        if (matchDado) {
+                          const formulaDado = matchDado[1].replace(/\s+/g, "");
+                          return (
+                            <button
+                              onClick={() => {
+                                const label = sanitizarEtiqueta(`Dano Veneno (${formulaDado}) - ${objeto.nombre}`);
+                                lanzarDadosTaleSpire(formulaDado, label);
+                              }}
+                              style={{
+                                background: "rgba(239, 68, 68, 0.2)",
+                                border: "1px solid rgba(239, 68, 68, 0.55)",
+                                color: "#fca5a5",
+                                borderRadius: "4px",
+                                padding: "3px 9px",
+                                fontSize: "11px",
+                                fontWeight: "bold",
+                                cursor: "pointer",
+                                display: "flex",
+                                alignItems: "center",
+                                gap: "4px"
+                              }}
+                              type="button"
+                              title={`Lanzar daño de veneno (${formulaDado}) en TaleSpire`}
+                            >
+                              🎲 Daño Veneno ({formulaDado})
+                            </button>
+                          );
+                        }
+                        return null;
+                      })()}
+                    </div>
+                  </div>
+
+                  <div className={estilos.gridMecanicas}>
+                    {objeto.tipoVeneno && (
+                      <div className={estilos.itemMecanica}>
+                        <span className={estilos.textoEtiquetaMecanica}>Tipo de Exposición: </span>
+                        <strong className={estilos.valorMecanicaDano} style={{ color: "hsl(270, 95%, 78%)" }}>
+                          {objeto.tipoVeneno}
+                        </strong>
+                      </div>
+                    )}
+                    {objeto.cdSalvacionVeneno !== undefined && (
+                      <div className={estilos.itemMecanica}>
+                        <span className={estilos.textoEtiquetaMecanica}>Dificultad de Salvación: </span>
+                        <strong className={estilos.valorMecanicaCd} style={{ color: "var(--color-advertencia)" }}>
+                          Constitución CD {objeto.cdSalvacionVeneno}
+                        </strong>
+                      </div>
+                    )}
+                    {objeto.efectoVeneno && (
+                      <div className={estilos.itemMecanica} style={{ gridColumn: "1 / -1" }}>
+                        <span className={estilos.textoEtiquetaMecanica}>Efecto Adicional: </span>
+                        <strong className={estilos.valorMecanicaCd} style={{ color: "var(--color-texto-principal)" }}>
+                          {objeto.efectoVeneno}
+                        </strong>
                       </div>
                     )}
                   </div>

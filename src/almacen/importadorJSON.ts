@@ -1,5 +1,6 @@
 import { MonstruoBase, HechizoBase, ObjetoHomebrew, EsquemaMonstruoBase, EsquemaHechizoBase, EsquemaObjetoJuego } from '../tipos';
 import { aplanarValor, sanearObjetoHomebrew, sanearHechizoCD, parsearVelocidad, parsearSentidos, sanearMonstruoSentidosYPasiva } from './sanitizacion';
+import { generarId } from '@/utiles/generarId';
 
 export interface ResultadoImportacion {
   modificado: boolean;
@@ -97,7 +98,7 @@ export function importarDesdeJSON(
 
     // Procesar Monstruos importados
     if (monstruosCandidatos.length > 0) {
-      const nuevosMonstruosFormateados: MonstruoBase[] = monstruosCandidatos.map((item, idx) => {
+      const nuevosMonstruosFormateados: MonstruoBase[] = monstruosCandidatos.map((item) => {
         const m = (item && typeof item === "object" ? item : {}) as Record<string, unknown>;
 
         // Extraer HP
@@ -313,7 +314,7 @@ export function importarDesdeJSON(
         }
 
         const monstruoSaneado = {
-          id: aplanarValor(m.Id || m.id || `m_importado_${Date.now()}_${idx}`),
+          id: aplanarValor(m.Id || m.id || generarId('m_importado')),
           nombre: aplanarValor(m.Name || m.nombre || "Monstruo Desconocido"),
           tipo: limpiarTipoCriatura(m.Type || m.tipo || "Humanoide"),
           ca: caVal,
@@ -389,7 +390,7 @@ export function importarDesdeJSON(
 
     // Procesar Hechizos importados
     if (hechizosCandidatos.length > 0) {
-      const nuevosHechizosFormateados: HechizoBase[] = hechizosCandidatos.map((item, idx) => {
+      const nuevosHechizosFormateados: HechizoBase[] = hechizosCandidatos.map((item) => {
         const h = (item && typeof item === "object" ? item : {}) as Record<string, unknown>;
         
         let nivelNum = 0;
@@ -602,7 +603,7 @@ export function importarDesdeJSON(
         const duracion = aplanarValor(h.duracion || h.duration || "");
 
         const hechizoMapeado = {
-          id: aplanarValor(h.id || h.Id || `h_importado_${Date.now()}_${idx}`),
+          id: aplanarValor(h.id || h.Id || generarId('h_importado')),
           nombre: aplanarValor(h.nombre || h.name || "Hechizo Desconocido"),
           nivel: nivelNum,
           escuela: aplanarValor(h.escuela || h.school || "Universal"),
@@ -649,7 +650,7 @@ export function importarDesdeJSON(
 
     // Procesar Objetos importados (incluyendo equipamiento de equipment-es.json)
     if (objetosCandidatos.length > 0) {
-      const nuevosObjetosFormateados: ObjetoHomebrew[] = objetosCandidatos.map((item, idx) => {
+      const nuevosObjetosFormateados: ObjetoHomebrew[] = objetosCandidatos.map((item) => {
         const o = (item && typeof item === "object" ? item : {}) as Record<string, unknown>;
 
         const nombre = aplanarValor(o.nombre || o.name || "Objeto Desconocido");
@@ -830,7 +831,7 @@ export function importarDesdeJSON(
         
         const objetoMapeado = sanearObjetoHomebrew({
           ...o, // Conservar todas las propiedades originales clásicas para que sanearObjetoHomebrew las mapee con total precisión (armor_class, armor_category, str_minimum, etc.)
-          id: o.index || o.id || `o_importado_${Date.now()}_${idx}`,
+          id: o.index || o.id || generarId('o_importado'),
           nombre,
           rareza,
           // IMPORTANTE: NO sobreescribir 'propiedades' aquí — sanearObjetoHomebrew lee 'o.properties' (array original)

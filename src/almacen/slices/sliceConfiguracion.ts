@@ -6,6 +6,7 @@ import { leerBlobGlobal, limpiarBlobGlobal } from '../../utiles/almacenamientoTa
 import { sanearObjetoHomebrew, sanearHechizoCD, sanearMonstruoSentidosYPasiva } from '../sanitizacion';
 import { importarDesdeJSON } from '../importadorJSON';
 import type { EstadoDM } from '../usarAlmacenDM';
+import { generarId } from '@/utiles/generarId';
 
 export interface SliceConfiguracion {
   pestañaActiva: string;
@@ -84,7 +85,7 @@ export const crearSliceConfiguracion: StateCreator<
   },
 
   agregarNotificacion: (mensaje, tipo = "info") => set((state) => {
-    const id = `notif_${Date.now()}_${Math.random().toString(36).substring(2, 5)}`;
+    const id = generarId('notif');
     const nueva: NotificacionUI = { id, mensaje, tipo };
     
     // Auto-eliminar después de 4 segundos
@@ -100,7 +101,7 @@ export const crearSliceConfiguracion: StateCreator<
   })),
 
   agregarPendiente: (texto: string) => set((state) => {
-    const nuevo: ElementoPendiente = { id: `p_local_${Date.now()}`, texto, completado: false };
+    const nuevo: ElementoPendiente = { id: generarId('p_local'), texto, completado: false };
     const nuevaLista = [...state.listaPendientes, nuevo];
     return { listaPendientes: nuevaLista };
   }),

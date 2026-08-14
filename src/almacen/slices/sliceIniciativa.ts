@@ -16,6 +16,7 @@ import {
   sincronizarConEstadoLocal,
   filtrarEfectosExpirados
 } from '../../servicios/sincronizacionIniciativa';
+import { generarId } from '@/utiles/generarId';
 
 export interface ResultadoSalvacionCriatura {
   id: string;
@@ -191,7 +192,7 @@ export const crearSliceIniciativa: StateCreator<
   },
 
   agregarCriaturaAIniciativa: (nombre, iniciativa, vidaMax, ca, esMonstruo, velocidad, bonifInic, idPlantillaAsociada) => set((state) => {
-    const idCriatura = `c_local_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
+    const idCriatura = generarId('c_local');
     const nuevaCriatura: CriaturaIniciativa = {
       id: idCriatura,
       nombre,
@@ -316,7 +317,7 @@ export const crearSliceIniciativa: StateCreator<
                                nombreEfecto.toLowerCase().trim() === "concentración" || 
                                nombreEfecto.toLowerCase().trim() === "concentracion";
         const nuevoEfecto: EfectoActivo = {
-          id: `${nombreEfecto.toLowerCase().replace(/[^a-z0-9]/g, "_")}_${Date.now()}_${Math.random().toString(36).substring(2, 5)}`,
+          id: generarId(nombreEfecto.toLowerCase().replace(/[^a-z0-9]/g, '_').substring(0, 20)),
           nombre: nombreEfecto,
           expiraRonda: esConcentracion ? undefined : state.rondaActual + duracion,
           concentracion: esConcentracion || undefined
@@ -565,7 +566,7 @@ export const crearSliceIniciativa: StateCreator<
                                  condicionOEfecto.nombre.toLowerCase().trim() === "concentración" || 
                                  condicionOEfecto.nombre.toLowerCase().trim() === "concentracion";
           const nuevoEfecto: EfectoActivo = {
-            id: `${condicionOEfecto.nombre.toLowerCase().replace(/[^a-z0-9]/g, "_")}_${Date.now()}_${Math.random().toString(36).substring(2, 5)}`,
+            id: generarId(condicionOEfecto.nombre.toLowerCase().replace(/[^a-z0-9]/g, '_').substring(0, 20)),
             nombre: condicionOEfecto.nombre,
             expiraRonda: esConcentracion ? undefined : state.rondaActual + (condicionOEfecto.duracion || 10),
             concentracion: esConcentracion || undefined
@@ -753,7 +754,7 @@ export const crearSliceIniciativa: StateCreator<
                              nombreEfecto.toLowerCase().trim() === "concentración" || 
                              nombreEfecto.toLowerCase().trim() === "concentracion";
       const nuevoEfecto: EfectoActivo = {
-        id: `${nombreEfecto.toLowerCase().replace(/[^a-z0-9]/g, "_")}_${Date.now()}_${Math.random().toString(36).substring(2, 5)}`,
+        id: generarId(nombreEfecto.toLowerCase().replace(/[^a-z0-9]/g, '_').substring(0, 20)),
         nombre: nombreEfecto,
         expiraRonda: esConcentracion ? undefined : state.rondaActual + duracion,
         concentracion: esConcentracion || undefined

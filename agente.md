@@ -1987,11 +1987,21 @@ Se añadieron propiedades específicas de rasterización en el CSS para contrarr
   11. [`rasgosEspecie.json`](file:///c:/Users/zamor/OneDrive/Documentos/Programas/ToolSet%20Es%205.5/src/datos/rasgosEspecie.json) (de `5e-SRD-Traits.json`): Rasgos raciales.
   12. [`categoriasEquipo.json`](file:///c:/Users/zamor/OneDrive/Documentos/Programas/ToolSet%20Es%205.5/src/datos/categoriasEquipo.json) (de `5e-SRD-Equipment-Categories.json`): Categorías de equipamiento.
 
+---
 
+## [2026-08-11] Integración: Compendio de Venenos (`venenos.json`) en `Equipo es.json`
+**Requerimiento:**
+- Integrar todos los venenos definidos en `venenos.json` directamente en el compendio global de equipo `Equipo es.json`.
 
-
-
-
-
-
-
+**Acciones y Solución Aplicada:**
+1. **Normalización de `venenos.json`**: Se corrigió la sintaxis del archivo `venenos.json` convirtiéndolo a JSON estricto válido con claves entre comillas dobles.
+2. **Integración Estructurada en `Equipo es.json`**:
+   - Se agregaron los 14 venenos (`Sangre de Asesino`, `Vapores de Othur Quemado`, `Mucosidad de Carroñero`, `Esencia de Éter`, `Malicia`, `Lágrimas de Medianoche`, `Aceite de Taggit`, `Tintura Pálida`, `Veneno de Gusano Púrpura`, `Veneno de Serpiente`, `Picadura de Araña`, `Apatía`, `Suero de la Verdad`, `Veneno de Wyvern`).
+   - Cada veneno cuenta con `subcategoria: "Consumible"`, `esVeneno: true`, `tipoVeneno` (`"Contacto" | "Ingerido" | "Inhalado" | "Lesión"`), `cdSalvacionVeneno`, `description`, `cost` y `weight: 0`.
+   - Se actualizó la función `sanearObjetoHomebrew` en `sanitizacion.ts` para que cualquier objeto marcado como veneno o detectado como veneno asigne automáticamente la subcategoría `"Consumible"`.
+   - Se actualizó el objeto base `poison-basic` (Veneno Básico) para marcar `subcategoria: "Consumible"`, `esVeneno: true`, `tipoVeneno: "Lesión"` y `cdSalvacionVeneno: 10`.
+   - Se añadieron los venenos al listado `craft` de la herramienta `poisoners-kit` (Kit de Envenenador).
+3. **Visualización en Tarjetas y Modal de Inspección (`ListaHomebrew.tsx`)**:
+   - **Insignia en Tarjeta**: Muestra un badge resplandeciente `☠️ VENENO (CD X)` en la vista de lista de objetos.
+   - **Metadatos y Chips**: Muestra los chips de `EXPOSICIÓN` y `SALVACIÓN` en la cabecera del panel modal de inspección.
+   - **Mecánicas del Veneno**: Se creó el bloque `☠️ Propiedades y Mecánicas del Veneno` con botones interactivos de dados 3D para lanzar tiradas de salvación de Constitución (`🎲 Salvación CON (CD X)`) y tiradas de daño por veneno (`🎲 Daño Veneno (10d6)`) directamente a la bandeja de TaleSpire.

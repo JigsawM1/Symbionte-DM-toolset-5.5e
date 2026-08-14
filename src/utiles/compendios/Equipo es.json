@@ -4425,6 +4425,62 @@
       {
         "index": "poison-basic",
         "name": "Veneno Básico"
+      },
+      {
+        "index": "assassins-blood",
+        "name": "Sangre de Asesino (Assassin's Blood)"
+      },
+      {
+        "index": "burnt-othur-fumes",
+        "name": "Vapores de Othur Quemado (Burnt Othur Fumes)"
+      },
+      {
+        "index": "crawler-mucus",
+        "name": "Mucosidad de Carroñero (Crawler Mucus)"
+      },
+      {
+        "index": "essence-of-ether",
+        "name": "Esencia de Éter (Essence of Ether)"
+      },
+      {
+        "index": "malice",
+        "name": "Malicia (Malice)"
+      },
+      {
+        "index": "midnight-tears",
+        "name": "Lágrimas de Medianoche (Midnight Tears)"
+      },
+      {
+        "index": "oil-of-taggit",
+        "name": "Aceite de Taggit (Oil of Taggit)"
+      },
+      {
+        "index": "pale-tincture",
+        "name": "Tintura Pálida (Pale Tincture)"
+      },
+      {
+        "index": "purple-worm-poison",
+        "name": "Veneno de Gusano Púrpura (Purple Worm Poison)"
+      },
+      {
+        "index": "serpent-venom",
+        "name": "Veneno de Serpiente (Serpent Venom)"
+      },
+      {
+        "index": "spiders-sting",
+        "name": "Picadura de Araña (Spider's Sting)"
+      },
+      {
+        "index": "torpor",
+        "name": "Apatía (Torpor)"
+      },
+      {
+        "index": "truth-serum",
+        "name": "Suero de la Verdad (Truth Serum)"
+      },
+      {
+        "index": "wyvern-poison",
+        "name": "Veneno de Wyvern (Wyvern Poison)"
       }
     ],
     "utilize": [
@@ -4523,6 +4579,7 @@
   {
     "index": "poison-basic",
     "name": "Veneno Básico",
+    "subcategoria": "Consumible",
     "equipment_categories": [
       {
         "index": "adventuring-gear",
@@ -4534,7 +4591,290 @@
       "unit": "po"
     },
     "description": "Como Acción Adicional, puedes usar un vial de Veneno Básico para cubrir un arma o hasta tres piezas de munición. Una criatura que recibe daño Perforante o Cortante del arma o munición envenenada recibe 1d4 de daño por Veneno adicional. Una vez aplicado, el veneno conserva su potencia durante 1 minuto o hasta que se inflige su daño, lo que ocurra primero.",
-    "weight": 0
+    "weight": 0,
+    "esVeneno": true,
+    "tipoVeneno": "Lesión",
+    "cdSalvacionVeneno": 10
+  },
+  {
+    "index": "assassins-blood",
+    "name": "Sangre de Asesino (Assassin's Blood)",
+    "subcategoria": "Consumible",
+    "equipment_categories": [
+      {
+        "index": "adventuring-gear",
+        "name": "Equipo de Aventurero"
+      }
+    ],
+    "cost": {
+      "quantity": 150,
+      "unit": "po"
+    },
+    "description": "Una criatura expuesta a este veneno debe realizar una salvación de Constitución CD 10. Si falla, recibe 6 (1d12) de daño de Veneno y sufre la condición de Envenenado durante 24 horas. Si tiene éxito, recibe la mitad del daño únicamente y no sufre la condición.",
+    "weight": 0,
+    "esVeneno": true,
+    "tipoVeneno": "Ingerido",
+    "cdSalvacionVeneno": 10
+  },
+  {
+    "index": "burnt-othur-fumes",
+    "name": "Vapores de Othur Quemado (Burnt Othur Fumes)",
+    "subcategoria": "Consumible",
+    "equipment_categories": [
+      {
+        "index": "adventuring-gear",
+        "name": "Equipo de Aventurero"
+      }
+    ],
+    "cost": {
+      "quantity": 500,
+      "unit": "po"
+    },
+    "description": "Una criatura expuesta debe superar una salvación de Constitución CD 13 o recibirá 10 (3d6) de daño de Veneno y deberá repetir la salvación al inicio de cada uno de sus turnos. En cada fallo sucesivo recibe 3 (1d6) de daño de Veneno. El efecto termina tras tres salvaciones exitosas.",
+    "weight": 0,
+    "esVeneno": true,
+    "tipoVeneno": "Inhalado",
+    "cdSalvacionVeneno": 13
+  },
+  {
+    "index": "crawler-mucus",
+    "name": "Mucosidad de Carroñero (Crawler Mucus)",
+    "subcategoria": "Consumible",
+    "equipment_categories": [
+      {
+        "index": "adventuring-gear",
+        "name": "Equipo de Aventurero"
+      }
+    ],
+    "cost": {
+      "quantity": 200,
+      "unit": "po"
+    },
+    "description": "Una criatura expuesta debe superar una salvación de Constitución CD 13 o sufrirá la condición de Envenenado durante 1 minuto. La criatura también estará Paralizada mientras esté Envenenada de esta forma. Repite la salvación al final de cada uno de sus turnos para terminar el efecto.",
+    "weight": 0,
+    "esVeneno": true,
+    "tipoVeneno": "Contacto",
+    "cdSalvacionVeneno": 13
+  },
+  {
+    "index": "essence-of-ether",
+    "name": "Esencia de Éter (Essence of Ether)",
+    "subcategoria": "Consumible",
+    "equipment_categories": [
+      {
+        "index": "adventuring-gear",
+        "name": "Equipo de Aventurero"
+      }
+    ],
+    "cost": {
+      "quantity": 300,
+      "unit": "po"
+    },
+    "description": "Una criatura expuesta debe superar una salvación de Constitución CD 15 o sufrirá la condición de Envenenado durante 8 horas. Estará Inconsciente mientras esté Envenenada de esta forma. Despierta si recibe daño o si otra criatura usa una acción para sacudirla.",
+    "weight": 0,
+    "esVeneno": true,
+    "tipoVeneno": "Inhalado",
+    "cdSalvacionVeneno": 15
+  },
+  {
+    "index": "malice",
+    "name": "Malicia (Malice)",
+    "subcategoria": "Consumible",
+    "equipment_categories": [
+      {
+        "index": "adventuring-gear",
+        "name": "Equipo de Aventurero"
+      }
+    ],
+    "cost": {
+      "quantity": 250,
+      "unit": "po"
+    },
+    "description": "Una criatura expuesta debe superar una salvación de Constitución CD 15 o sufrirá la condición de Envenenado durante 1 hora. Estará Cegada mientras esté Envenenada de esta forma.",
+    "weight": 0,
+    "esVeneno": true,
+    "tipoVeneno": "Inhalado",
+    "cdSalvacionVeneno": 15
+  },
+  {
+    "index": "midnight-tears",
+    "name": "Lágrimas de Medianoche (Midnight Tears)",
+    "subcategoria": "Consumible",
+    "equipment_categories": [
+      {
+        "index": "adventuring-gear",
+        "name": "Equipo de Aventurero"
+      }
+    ],
+    "cost": {
+      "quantity": 1500,
+      "unit": "po"
+    },
+    "description": "Una criatura que ingiera este veneno no sufre ningún efecto inmediato. Si el veneno no ha sido neutralizado antes de la medianoche, la criatura debe superar una salvación de Constitución CD 17, recibiendo 31 (9d6) de daño de Veneno si falla, o la mitad si tiene éxito.",
+    "weight": 0,
+    "esVeneno": true,
+    "tipoVeneno": "Ingerido",
+    "cdSalvacionVeneno": 17
+  },
+  {
+    "index": "oil-of-taggit",
+    "name": "Aceite de Taggit (Oil of Taggit)",
+    "subcategoria": "Consumible",
+    "equipment_categories": [
+      {
+        "index": "adventuring-gear",
+        "name": "Equipo de Aventurero"
+      }
+    ],
+    "cost": {
+      "quantity": 400,
+      "unit": "po"
+    },
+    "description": "Una criatura expuesta debe superar una salvación de Constitución CD 13 o sufrirá la condición de Envenenado durante 24 horas. También estará Inconsciente mientras esté Envenenada de esta forma. Despierta inmediatamente si recibe daño.",
+    "weight": 0,
+    "esVeneno": true,
+    "tipoVeneno": "Contacto",
+    "cdSalvacionVeneno": 13
+  },
+  {
+    "index": "pale-tincture",
+    "name": "Tintura Pálida (Pale Tincture)",
+    "subcategoria": "Consumible",
+    "equipment_categories": [
+      {
+        "index": "adventuring-gear",
+        "name": "Equipo de Aventurero"
+      }
+    ],
+    "cost": {
+      "quantity": 250,
+      "unit": "po"
+    },
+    "description": "Una criatura expuesta debe superar una salvación de Constitución CD 16 o recibirá 3 (1d6) de daño de Veneno y sufrirá la condición de Envenenado. Repite la salvación cada 24 horas, recibiendo 3 (1d6) de daño con cada fallo. Este daño no se puede curar por ningún medio mientras siga Envenenada. Termina tras siete salvaciones exitosas consecutivas.",
+    "weight": 0,
+    "esVeneno": true,
+    "tipoVeneno": "Ingerido",
+    "cdSalvacionVeneno": 16
+  },
+  {
+    "index": "purple-worm-poison",
+    "name": "Veneno de Gusano Púrpura (Purple Worm Poison)",
+    "subcategoria": "Consumible",
+    "equipment_categories": [
+      {
+        "index": "adventuring-gear",
+        "name": "Equipo de Aventurero"
+      }
+    ],
+    "cost": {
+      "quantity": 2000,
+      "unit": "po"
+    },
+    "description": "Una criatura expuesta debe realizar una salvación de Constitución CD 21, recibiendo 35 (10d6) de daño de Veneno si falla, o la mitad si tiene éxito.",
+    "weight": 0,
+    "esVeneno": true,
+    "tipoVeneno": "Lesión",
+    "cdSalvacionVeneno": 21
+  },
+  {
+    "index": "serpent-venom",
+    "name": "Veneno de Serpiente (Serpent Venom)",
+    "subcategoria": "Consumible",
+    "equipment_categories": [
+      {
+        "index": "adventuring-gear",
+        "name": "Equipo de Aventurero"
+      }
+    ],
+    "cost": {
+      "quantity": 200,
+      "unit": "po"
+    },
+    "description": "Una criatura expuesta debe realizar una salvación de Constitución CD 11, recibiendo 10 (3d6) de daño de Veneno si falla, o la mitad si tiene éxito.",
+    "weight": 0,
+    "esVeneno": true,
+    "tipoVeneno": "Lesión",
+    "cdSalvacionVeneno": 11
+  },
+  {
+    "index": "spiders-sting",
+    "name": "Picadura de Araña (Spider's Sting)",
+    "subcategoria": "Consumible",
+    "equipment_categories": [
+      {
+        "index": "adventuring-gear",
+        "name": "Equipo de Aventurero"
+      }
+    ],
+    "cost": {
+      "quantity": 200,
+      "unit": "po"
+    },
+    "description": "Una criatura expuesta debe superar una salvación de Constitución CD 13 o sufrirá la condición de Envenenado por 1 hora. Si falla la salvación por 5 o más puntos, también estará Inconsciente mientras esté Envenenada. Despierta si recibe daño o si la sacuden.",
+    "weight": 0,
+    "esVeneno": true,
+    "tipoVeneno": "Lesión",
+    "cdSalvacionVeneno": 13
+  },
+  {
+    "index": "torpor",
+    "name": "Apatía (Torpor)",
+    "subcategoria": "Consumible",
+    "equipment_categories": [
+      {
+        "index": "adventuring-gear",
+        "name": "Equipo de Aventurero"
+      }
+    ],
+    "cost": {
+      "quantity": 600,
+      "unit": "po"
+    },
+    "description": "Una criatura expuesta debe superar una salvación de Constitución CD 15 o sufrirá la condición de Envenenado durante 4d6 horas. Su velocidad se reduce a la mitad mientras esté Envenenada de esta forma.",
+    "weight": 0,
+    "esVeneno": true,
+    "tipoVeneno": "Ingerido",
+    "cdSalvacionVeneno": 15
+  },
+  {
+    "index": "truth-serum",
+    "name": "Suero de la Verdad (Truth Serum)",
+    "subcategoria": "Consumible",
+    "equipment_categories": [
+      {
+        "index": "adventuring-gear",
+        "name": "Equipo de Aventurero"
+      }
+    ],
+    "cost": {
+      "quantity": 150,
+      "unit": "po"
+    },
+    "description": "Una criatura expuesta debe superar una salvación de Constitución CD 11 o sufrirá la condición de Envenenado durante 1 hora. La criatura envenenada de esta manera no puede decir una mentira a sabiendas.",
+    "weight": 0,
+    "esVeneno": true,
+    "tipoVeneno": "Ingerido",
+    "cdSalvacionVeneno": 11
+  },
+  {
+    "index": "wyvern-poison",
+    "name": "Veneno de Wyvern (Wyvern Poison)",
+    "subcategoria": "Consumible",
+    "equipment_categories": [
+      {
+        "index": "adventuring-gear",
+        "name": "Equipo de Aventurero"
+      }
+    ],
+    "cost": {
+      "quantity": 1200,
+      "unit": "po"
+    },
+    "description": "Una criatura expuesta debe realizar una salvación de Constitución CD 14, recibiendo 24 (7d6) de daño de Veneno si falla, o la mitad si tiene éxito.",
+    "weight": 0,
+    "esVeneno": true,
+    "tipoVeneno": "Lesión",
+    "cdSalvacionVeneno": 14
   },
   {
     "index": "pole",

@@ -94,6 +94,8 @@ export type TipoBonoDestreza = z.infer<typeof EsquemaTipoBonoDestreza>;
 export const EsquemaSubcategoriaEquipo = z.enum(["Consumible", "Munición", "Herramienta", "Instrumento", "Paquete", "Maravilloso", "Equipo"]);
 export type SubcategoriaEquipo = z.infer<typeof EsquemaSubcategoriaEquipo>;
 
+export type TipoMoneda = "PC" | "PP" | "PE" | "PO" | "PPT";
+
 // ==========================================
 // 3. SUBESTRUCTURAS RICAS DE COMBATE Y MONSTRUOS
 // ==========================================

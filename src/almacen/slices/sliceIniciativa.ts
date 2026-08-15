@@ -1,21 +1,22 @@
 import { StateCreator } from 'zustand';
-import { CriaturaIniciativa, EfectoActivo } from '../usarAlmacenDM';
-import { formatearVelocidad } from '../sanitizacion';
-import type { EstadoDM } from '../usarAlmacenDM';
-import type { Caracteristica } from '../../tipos';
-import { ts } from '../../utiles/TaleSpireAdapter';
-import type { ColaIniciativaTS } from '../../tipos/talespire';
+import { CriaturaIniciativa, EfectoActivo } from '@/almacen/usarAlmacenDM';
+import { formatearVelocidad } from '@/almacen/sanitizacion';
+import type { EstadoDM } from '@/almacen/usarAlmacenDM';
+import type { Caracteristica } from '@/tipos';
+import { ts } from '@/utiles/TaleSpireAdapter';
+import type { ColaIniciativaTS } from '@/tipos/talespire';
 import {
   normalizarNombreTaleSpire,
   resolverPlantillaPorCriatura,
   calcularVidaInicial,
   esNombreVacioODot
-} from '../../servicios/resolutorCriaturas';
-import { crearIndiceMonstruos } from '../../servicios/indiceMonstruos';
+} from '@/servicios/resolutorCriaturas';
+import { crearIndiceMonstruos } from '@/servicios/indiceMonstruos';
 import {
   sincronizarConEstadoLocal,
   filtrarEfectosExpirados
-} from '../../servicios/sincronizacionIniciativa';
+} from '@/servicios/sincronizacionIniciativa';
+import { aplicarCondicion, quitarCondicion } from '@/servicios/procesadorCondiciones';
 import { generarId } from '@/utiles/generarId';
 import { logger } from '@/utiles/logger';
 
@@ -272,28 +273,7 @@ export const crearSliceIniciativa: StateCreator<
   agregarCondicionACriatura: (id, condicion) => set((state) => {
     const nuevaCola = state.colaIniciativa.map((c) => {
       if (c.id === id) {
-        if (condicion.toLowerCase().includes("cansado") || condicion.toLowerCase().includes("exhausted")) {
-          const condicionCansadoExistente = c.condiciones.find(
-            (cond) => cond.toLowerCase().startsWith("cansado")
-          );
-
-          if (condicionCansadoExistente) {
-            const matches = condicionCansadoExistente.match(/\d+/);
-            const nivelActual = matches ? parseInt(matches[0], 10) : 1;
-            const nuevoNivel = Math.min(6, nivelActual + 1);
-            
-            const condicionesFiltradas = c.condiciones.filter(
-              (cond) => !cond.toLowerCase().startsWith("cansado")
-            );
-            return { ...c, condiciones: [...condicionesFiltradas, `Cansado (Niv. ${nuevoNivel})`] };
-          } else {
-            return { ...c, condiciones: [...c.condiciones, "Cansado (Niv. 1)"] };
-          }
-        }
-
-        if (!c.condiciones.includes(condicion)) {
-          return { ...c, condiciones: [...c.condiciones, condicion] };
-        }
+        return { ...c, condiciones: aplicarCondicion(c.condiciones, condicion) };
       }
       return c;
     });
@@ -303,7 +283,7 @@ export const crearSliceIniciativa: StateCreator<
   quitarCondicionDeCriatura: (id, condicion) => set((state) => {
     const nuevaCola = state.colaIniciativa.map((c) => {
       if (c.id === id) {
-        return { ...c, condiciones: c.condiciones.filter((cond) => cond !== condicion) };
+        return { ...c, condiciones: quitarCondicion(c.condiciones, condicion) };
       }
       return c;
     });
@@ -542,25 +522,10 @@ export const crearSliceIniciativa: StateCreator<
       if (condicionOEfecto && !exito) {
         condicionAplicada = true;
         if (condicionOEfecto.tipo === "condicion") {
-          const condTrimmed = condicionOEfecto.nombre.trim();
-          if (condTrimmed.toLowerCase().includes("cansado") || condTrimmed.toLowerCase().includes("exhausted")) {
-            const condicionCansadoExistente = criaturaActualizada.condiciones.find(
-              (cond) => cond.toLowerCase().startsWith("cansado")
-            );
-            if (condicionCansadoExistente) {
-              const matches = condicionCansadoExistente.match(/\d+/);
-              const nivelActual = matches ? parseInt(matches[0], 10) : 1;
-              const nuevoNivel = Math.min(6, nivelActual + 1);
-              const condicionesFiltradas = criaturaActualizada.condiciones.filter(
-                (cond) => !cond.toLowerCase().startsWith("cansado")
-              );
-              criaturaActualizada.condiciones = [...condicionesFiltradas, `Cansado (Niv. ${nuevoNivel})`];
-            } else {
-              criaturaActualizada.condiciones = [...criaturaActualizada.condiciones, "Cansado (Niv. 1)"];
-            }
-          } else if (!criaturaActualizada.condiciones.includes(condTrimmed)) {
-            criaturaActualizada.condiciones = [...criaturaActualizada.condiciones, condTrimmed];
-          }
+          criaturaActualizada.condiciones = aplicarCondicion(
+            criaturaActualizada.condiciones,
+            condicionOEfecto.nombre
+          );
         } else {
           const nuevosEfectos = criaturaActualizada.efectos ? [...criaturaActualizada.efectos] : [];
           const esConcentracion = condicionOEfecto.esConcentracion || 
@@ -685,20 +650,10 @@ export const crearSliceIniciativa: StateCreator<
   aplicarCondicionEnArea: (condicion, idsObjetivo) => set((state) => {
     if (state.colaIniciativa.length === 0 || !condicion.trim()) return {};
     const condTrimmed = condicion.trim();
-    return aplicarTransformacionEnArea(state, idsObjetivo, (c) => {
-      if (condTrimmed.toLowerCase().includes("cansado") || condTrimmed.toLowerCase().includes("exhausted")) {
-        const existente = c.condiciones.find((cd) => cd.toLowerCase().startsWith("cansado"));
-        if (existente) {
-          const matches = existente.match(/\d+/);
-          const nivelActual = matches ? parseInt(matches[0], 10) : 1;
-          const nuevoNivel = Math.min(6, nivelActual + 1);
-          return { ...c, condiciones: [...c.condiciones.filter((cd) => !cd.toLowerCase().startsWith("cansado")), `Cansado (Niv. ${nuevoNivel})`] };
-        }
-        return { ...c, condiciones: [...c.condiciones, "Cansado (Niv. 1)"] };
-      }
-      if (c.condiciones.includes(condTrimmed)) return c;
-      return { ...c, condiciones: [...c.condiciones, condTrimmed] };
-    });
+    return aplicarTransformacionEnArea(state, idsObjetivo, (c) => ({
+      ...c,
+      condiciones: aplicarCondicion(c.condiciones, condTrimmed)
+    }));
   }),
 
   aplicarEfectoEnArea: (nombreEfecto, duracion, opciones, idsObjetivo) => set((state) => {

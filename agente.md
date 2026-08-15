@@ -2,6 +2,48 @@
 
 Este archivo registra errores encontrados, sus causas raíz y las soluciones aplicadas.
 
+## [2026-08-14] Arquitectura: Strategy Pattern para Condiciones D&D 5.5e y DRY en Iniciativa (R1)
+**Problema:**
+- La lógica de resolución y apilamiento para la condición *"Cansado (Exhaustion D&D 5.5e, Niv. 1-6)"* se encontraba duplicada idénticamente en 3 métodos de `src/almacen/slices/sliceIniciativa.ts` (`agregarCondicionACriatura`, `ejecutarSalvacionEnArea`, `aplicarCondicionEnArea`), dificultando el mantenimiento y violando los principios DRY y SRP.
+
+**Solución Aplicada (`src/servicios/procesadorCondiciones.ts`):**
+1. Se construyó el servicio puro `procesadorCondiciones.ts` aplicando el patrón **Strategy**:
+   - `EstrategiaCondicion` (interfaz base).
+   - `EstrategiaCansancio`: Extrae el nivel actual con regex, incrementa con techo estricto en 6 y normaliza a `"Cansado (Niv. X)"`.
+   - `EstrategiaCondicionSimple`: Inserción normalizada e idempotente para condiciones estándar.
+2. Funciones públicas puras e inmutables: `aplicarCondicion`, `quitarCondicion`, `reducirNivelCansancio`.
+3. Se refactorizó `sliceIniciativa.ts`, eliminando más de 50 líneas de código duplicado en las 4 operaciones de manipulación de condiciones.
+4. Cobertura de pruebas completa con 15 nuevos casos de prueba en `src/servicios/procesadorCondiciones.test.ts`.
+
+---
+
+## [2026-08-14] Pruebas de Integración y Sanitización de Maestrías D&D 5.5e (R7)
+**Problema:**
+- `MAESTRIA_MAP` en `src/almacen/sanitizacion.ts` solo contenía palabras individuales (`"vex"`, `"cleave"`, `"hender"`). Al recibir el nombre canónico completo formateado con traducción (`"Vex (Irritar)"`), la función `.toLowerCase().trim()` generaba `"vex (irritar)"`, la cual no coincidía en el mapa y caía al valor por defecto `"Ninguna"`.
+
+**Solución:**
+- Se ampliaron las claves del diccionario `MAESTRIA_MAP` para incluir tanto los nombres cortos como los canónicos completos en minúsculas (`"vex (irritar)"`, `"cleave (tajo)"`, `"nick (corte)"`, etc.), garantizando idempotencia en la sanitización.
+- Se agregaron pruebas de integración automatizadas en `src/hooks/usarFormularioObjeto.test.ts`.
+
+---
+
+## [2026-08-14] Arquitectura: Descomposición Modular de FormularioObjeto.tsx (R7)
+**Problema:**
+- `FormularioObjeto.tsx` contenía 1663 líneas ("God Component") mezclando lógica de armas, armaduras, paquetes/contenedores, venenos, crafteo, efectos pasivos mágicos y diccionarios de reglas D&D 5.5e directamente en el cuerpo del archivo.
+
+**Solución Aplicada (`src/componentes/homebrew/subcomponentesObjeto/` & `src/constantes/objetoConstantes.ts`):**
+1. Se extrajeron todas las reglas y tablas D&D 5.5e (PHB 2024) a `src/constantes/objetoConstantes.ts` (`COLORES_RAREZA_HSL`, `OPCIONES_ATRIBUTOS`, `MAESTRIAS_DND_55`, `PROPIEDADES_ARMAS_DND`, `EXPLICACIONES_PROPIEDADES`, `EXPLICACIONES_MAESTRIAS`).
+2. Se crearon 6 subcomponentes atómicos con responsabilidad única:
+   - `SeccionSelectorPlantilla.tsx`: Selector de plantillas base de compendio.
+   - `SeccionDatosGenerales.tsx`: Nombre, rareza, categoría, costo, peso, lore y crafteo.
+   - `SeccionArma.tsx`: Tipo de ataque, dados/tipos de daño, alcance, propiedades, maestrías 5.5e y munición.
+   - `SeccionArmadura.tsx`: CA, fuerza requerida, sigilo, bonificador de destreza y tiempo de equipar.
+   - `SeccionEquipoContenedor.tsx`: Consumibles, venenos tácticos, munición y contenidos de paquetes.
+   - `SeccionEfectosPasivos.tsx`: Sintonización, cargas, maldiciones, modificadores pasivos y hechizos vinculados.
+3. `FormularioObjeto.tsx` se redujo drásticamente a un orquestador delgado con renderizado condicional limpio por pestaña y tipo de objeto.
+
+---
+
 ## [2026-08-14] Arquitectura: Selectores Facade Zustand con `useShallow` (R6)
 **Problema:**
 - Componentes como `GestorIniciativa.tsx` y `BarraControl.tsx` acumulaban entre 10 y 18 llamadas atómicas `usarAlmacenDM((s) => s.prop)`.

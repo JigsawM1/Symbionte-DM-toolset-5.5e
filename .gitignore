@@ -34,3 +34,5 @@ agente.md
 Documentacion API v0.1.md
 *.test.ts
 datos
+/.codegraph
+skills-lock.json

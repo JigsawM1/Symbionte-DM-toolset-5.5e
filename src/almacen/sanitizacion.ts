@@ -546,14 +546,14 @@ export function sanearObjetoHomebrew(o: unknown): ObjetoHomebrew {
     ).toLowerCase().trim();
     
     const MAESTRIA_MAP: Record<string, string> = {
-      "cleave": "Cleave (Tajo)", "tajo": "Cleave (Tajo)", "hender": "Cleave (Tajo)",
-      "graze": "Graze (Rozar)", "rozar": "Graze (Rozar)", "roce": "Graze (Rozar)",
-      "nick": "Nick (Corte)", "corte": "Nick (Corte)", "golpe rápido": "Nick (Corte)", "muesca": "Nick (Corte)",
-      "push": "Push (Empujar)", "empujar": "Push (Empujar)", "empuje": "Push (Empujar)",
-      "sap": "Sap (Debilitar)", "debilitar": "Sap (Debilitar)", "menoscabo": "Sap (Debilitar)",
-      "slow": "Slow (Ralentizar)", "ralentizar": "Slow (Ralentizar)", "lentitud": "Slow (Ralentizar)", "lento": "Slow (Ralentizar)",
-      "topple": "Topple (Derribar)", "derribar": "Topple (Derribar)", "derribo": "Topple (Derribar)",
-      "vex": "Vex (Irritar)", "irritar": "Vex (Irritar)", "acoso": "Vex (Irritar)", "vejar": "Vex (Irritar)"
+      "cleave": "Cleave (Tajo)", "tajo": "Cleave (Tajo)", "hender": "Cleave (Tajo)", "cleave (tajo)": "Cleave (Tajo)",
+      "graze": "Graze (Rozar)", "rozar": "Graze (Rozar)", "roce": "Graze (Rozar)", "graze (rozar)": "Graze (Rozar)",
+      "nick": "Nick (Corte)", "corte": "Nick (Corte)", "golpe rápido": "Nick (Corte)", "muesca": "Nick (Corte)", "nick (corte)": "Nick (Corte)",
+      "push": "Push (Empujar)", "empujar": "Push (Empujar)", "empuje": "Push (Empujar)", "push (empujar)": "Push (Empujar)",
+      "sap": "Sap (Debilitar)", "debilitar": "Sap (Debilitar)", "menoscabo": "Sap (Debilitar)", "sap (debilitar)": "Sap (Debilitar)",
+      "slow": "Slow (Ralentizar)", "ralentizar": "Slow (Ralentizar)", "lentitud": "Slow (Ralentizar)", "lento": "Slow (Ralentizar)", "slow (ralentizar)": "Slow (Ralentizar)",
+      "topple": "Topple (Derribar)", "derribar": "Topple (Derribar)", "derribo": "Topple (Derribar)", "topple (derribar)": "Topple (Derribar)",
+      "vex": "Vex (Irritar)", "irritar": "Vex (Irritar)", "acoso": "Vex (Irritar)", "vejar": "Vex (Irritar)", "vex (irritar)": "Vex (Irritar)"
     };
     
     const maestriaSaneada = MAESTRIA_MAP[rawMaestria] || "Ninguna";

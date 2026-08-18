@@ -1,7 +1,7 @@
 import { useState, useCallback } from "react";
-import { usarAlmacenDM } from "../almacen/usarAlmacenDM";
-import { MonstruoBase, RasgoBase, AccionMonstruo, AccionRapida } from "../tipos";
-import { parsearVelocidad, parsearSentidos, formatearVelocidad, formatearSentidos, sanearMonstruoSentidosYPasiva } from "../almacen/sanitizacion";
+import { usarAlmacenDM } from "@/almacen/usarAlmacenDM";
+import { MonstruoBase, RasgoBase, AccionMonstruo, AccionRapida } from "@/tipos";
+import { parsearVelocidad, parsearSentidos, formatearVelocidad, formatearSentidos, sanearMonstruoSentidosYPasiva } from "@/almacen/sanitizacion";
 import { usarListaDinamica } from "./usarListaDinamica";
 
 export const estadoInicialCriatura = {

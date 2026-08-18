@@ -7,9 +7,9 @@
  * Programado 100% en español.
  */
 
-import type { MonstruoBase } from '../almacen/usarAlmacenDM';
-import { calcularVidaPorDados } from '../almacen/sanitizacion';
-import type { IndiceMonstruos } from './indiceMonstruos';
+import type { MonstruoBase } from "@/almacen/usarAlmacenDM";
+import { calcularVidaPorDados } from "@/almacen/sanitizacion";
+import type { IndiceMonstruos } from "./indiceMonstruos";
 
 /**
  * Determina si un nombre está vacío, tiene solo espacios, o es un punto simple (o secuencia de puntos/espacios).

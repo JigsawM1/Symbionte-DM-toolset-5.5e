@@ -22,8 +22,8 @@ import type {
   EventoClienteTS,
   EventoCriaturaTS,
   EventoEstadoSimbionte
-} from "../tipos/talespire";
-import { logger } from '@/utiles/logger';
+} from "@/tipos/talespire";
+import { logger } from "@/utiles/logger";
 
 /**
  * Contrato exhaustivo evento → tipo de payload, alineado con la API oficial v0.1.

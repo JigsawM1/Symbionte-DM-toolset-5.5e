@@ -11,11 +11,11 @@
  */
 
 import { useEffect } from "react";
-import { usarAlmacenDM } from "../almacen/usarAlmacenDM";
-import { ts, establecerCacheEsGM } from "../utiles/TaleSpireAdapter";
-import { puenteTaleSpire } from "../servicios/puenteTaleSpire";
-import type { EventoClienteTS } from "../tipos/talespire";
-import { logger } from '@/utiles/logger';
+import { usarAlmacenDM } from "@/almacen/usarAlmacenDM";
+import { ts, establecerCacheEsGM } from "@/utiles/TaleSpireAdapter";
+import { puenteTaleSpire } from "@/servicios/puenteTaleSpire";
+import type { EventoClienteTS } from "@/tipos/talespire";
+import { logger } from "@/utiles/logger";
 
 export function usarConexionTaleSpire() {
   // Extraemos las acciones del store Zustand mediante .getState() ya que son funciones

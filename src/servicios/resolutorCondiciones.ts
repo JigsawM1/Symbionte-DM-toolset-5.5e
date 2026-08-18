@@ -1,4 +1,4 @@
-import { CONDICIONES_2024, EFECTOS_PREDEFINIDOS } from "../utiles/datosIniciales";
+import { CONDICIONES_2024, EFECTOS_PREDEFINIDOS } from "@/utiles/datosIniciales";
 
 export interface DetalleCondicionOEfecto {
   titulo: string;

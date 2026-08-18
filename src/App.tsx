@@ -1,23 +1,20 @@
 import React, { Suspense } from "react";
 import { usarEstadoConfiguracion } from "@/almacen/selectores";
 import { usarConexionTaleSpire } from "./hooks/usarConexionTaleSpire";
-import { LimiteError } from "./componentes/LimiteError";
-import { BarraSuperior } from "./componentes/BarraSuperior";
-import { BarraControl } from "./componentes/BarraControl";
-import { GestorIniciativa } from "./componentes/GestorIniciativa";
-import { PanelDados } from "./componentes/PanelDados";
-import { NotificacionesContenedor } from "./componentes/NotificacionesContenedor";
+import { LimiteError, NotificacionesContenedor } from "@/componentes/comunes";
+import { BarraSuperior, BarraControl, PanelDados } from "@/componentes/layout";
+import { GestorIniciativa } from "@/componentes/caracteristicas/iniciativa";
 import estilos from "./App.module.css";
 
 // Carga diferida de pestañas pesadas o inactivas al inicio con soporte para named exports
-const TablasDM = React.lazy(() => import("./componentes/TablasDM").then((m) => ({ default: m.TablasDM })));
-const Pendientes = React.lazy(() => import("./componentes/Pendientes").then((m) => ({ default: m.Pendientes })));
-const Compendio = React.lazy(() => import("./componentes/Compendio").then((m) => ({ default: m.Compendio })));
-const NotasDM = React.lazy(() => import("./componentes/NotasDM").then((m) => ({ default: m.NotasDM })));
-const CreadorHomebrew = React.lazy(() => import("./componentes/CreadorHomebrew").then((m) => ({ default: m.CreadorHomebrew })));
-const ConfiguracionDM = React.lazy(() => import("./componentes/ConfiguracionDM").then((m) => ({ default: m.ConfiguracionDM })));
-const VistaJugadores = React.lazy(() => import("./componentes/VistaJugadores").then((m) => ({ default: m.VistaJugadores })));
-const IniciativaJugador = React.lazy(() => import("./componentes/IniciativaJugador").then((m) => ({ default: m.IniciativaJugador })));
+const TablasDM = React.lazy(() => import("@/componentes/caracteristicas/tablas").then((m) => ({ default: m.TablasDM })));
+const Pendientes = React.lazy(() => import("@/componentes/caracteristicas/pendientes").then((m) => ({ default: m.Pendientes })));
+const Compendio = React.lazy(() => import("@/componentes/caracteristicas/compendio").then((m) => ({ default: m.Compendio })));
+const NotasDM = React.lazy(() => import("@/componentes/caracteristicas/notas").then((m) => ({ default: m.NotasDM })));
+const CreadorHomebrew = React.lazy(() => import("@/componentes/caracteristicas/homebrew").then((m) => ({ default: m.CreadorHomebrew })));
+const ConfiguracionDM = React.lazy(() => import("@/componentes/caracteristicas/configuracion").then((m) => ({ default: m.ConfiguracionDM })));
+const VistaJugadores = React.lazy(() => import("@/componentes/caracteristicas/iniciativa").then((m) => ({ default: m.VistaJugadores })));
+const IniciativaJugador = React.lazy(() => import("@/componentes/caracteristicas/iniciativa").then((m) => ({ default: m.IniciativaJugador })));
 
 const AppContenido: React.FC = () => {
   const { pestañaActiva, esGM } = usarEstadoConfiguracion();

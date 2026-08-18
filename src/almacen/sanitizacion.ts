@@ -1,4 +1,4 @@
-import { HechizoBase, ObjetoHomebrew, Rareza, Arma, Armadura, EquipoAventuras, TipoBonoDestreza, SubcategoriaEquipo, VelocidadEstructurada, SentidosEstructurados, MonstruoBase } from '../tipos';
+import { HechizoBase, ObjetoHomebrew, Rareza, Arma, Armadura, EquipoAventuras, TipoBonoDestreza, SubcategoriaEquipo, VelocidadEstructurada, SentidosEstructurados, MonstruoBase } from '@/tipos';
 import { generarId } from '@/utiles/generarId';
 
 // Normaliza el texto eliminando acentos y convirtiendo a minúsculas

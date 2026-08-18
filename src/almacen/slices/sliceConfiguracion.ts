@@ -1,11 +1,11 @@
 import { StateCreator } from 'zustand';
-import { ElementoPendiente, EncuentroGuardado, CriaturaIniciativa, NotificacionUI } from '../usarAlmacenDM';
-import { MonstruoBase, HechizoBase, ObjetoHomebrew } from '../../tipos';
-import { MONSTRUOS_INICIALES, HECHIZOS_INICIALES, OBJETOS_INICIALES } from '../../utiles/datosIniciales';
-import { leerBlobGlobal, limpiarBlobGlobal } from '../../utiles/almacenamientoTaleSpire';
-import { sanearObjetoHomebrew, sanearHechizoCD, sanearMonstruoSentidosYPasiva } from '../sanitizacion';
-import { importarDesdeJSON } from '../importadorJSON';
-import type { EstadoDM } from '../usarAlmacenDM';
+import { ElementoPendiente, EncuentroGuardado, CriaturaIniciativa, NotificacionUI } from '@/almacen/usarAlmacenDM';
+import { MonstruoBase, HechizoBase, ObjetoHomebrew } from '@/tipos';
+import { MONSTRUOS_INICIALES, HECHIZOS_INICIALES, OBJETOS_INICIALES } from '@/utiles/datosIniciales';
+import { leerBlobGlobal, limpiarBlobGlobal } from '@/utiles/almacenamientoTaleSpire';
+import { sanearObjetoHomebrew, sanearHechizoCD, sanearMonstruoSentidosYPasiva } from '@/almacen/sanitizacion';
+import { importarDesdeJSON } from '@/almacen/importadorJSON';
+import type { EstadoDM } from '@/almacen/usarAlmacenDM';
 import { generarId } from '@/utiles/generarId';
 import { logger } from '@/utiles/logger';
 

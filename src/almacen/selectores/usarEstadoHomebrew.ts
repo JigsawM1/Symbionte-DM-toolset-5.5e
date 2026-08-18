@@ -8,7 +8,7 @@
  */
 
 import { useShallow } from 'zustand/react/shallow';
-import { usarAlmacenDM } from '../usarAlmacenDM';
+import { usarAlmacenDM } from '@/almacen/usarAlmacenDM';
 
 /** Estado de lectura de la base de datos Homebrew. */
 export function usarEstadoHomebrew() {

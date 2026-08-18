@@ -22,8 +22,8 @@ import type {
   FragmentoOId,
   InfoCriatura,
   EventoIniciativaActualizada
-} from "../tipos/talespire.d.ts";
-import { logger } from '@/utiles/logger';
+} from "@/tipos/talespire";
+import { logger } from "@/utiles/logger";
 
 let cacheEsGM: boolean | null = null;
 

@@ -9,7 +9,7 @@
  */
 
 import { useShallow } from 'zustand/react/shallow';
-import { usarAlmacenDM } from '../usarAlmacenDM';
+import { usarAlmacenDM } from '@/almacen/usarAlmacenDM';
 
 /** Estado de lectura de la configuración y sesión. */
 export function usarEstadoConfiguracion() {

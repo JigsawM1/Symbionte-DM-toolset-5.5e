@@ -7,12 +7,12 @@
  * Programado 100% en español.
  */
 
-import type { ColaIniciativaTS } from "../tipos/talespire";
-import type { CriaturaIniciativa } from "../almacen/usarAlmacenDM";
-import { formatearVelocidad } from "../almacen/sanitizacion";
+import type { ColaIniciativaTS } from "@/tipos/talespire";
+import type { CriaturaIniciativa } from "@/almacen/usarAlmacenDM";
+import { formatearVelocidad } from "@/almacen/sanitizacion";
 import { resolverPlantillaPorCriatura, calcularVidaInicial } from "./resolutorCriaturas";
 import type { IndiceMonstruos } from "./indiceMonstruos";
-import { logger } from '@/utiles/logger';
+import { logger } from "@/utiles/logger";
 
 export interface ResultadoSincronizacion {
   colaIniciativa: CriaturaIniciativa[];

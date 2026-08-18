@@ -12,7 +12,7 @@
  */
 
 import { useShallow } from 'zustand/react/shallow';
-import { usarAlmacenDM } from '../usarAlmacenDM';
+import { usarAlmacenDM } from '@/almacen/usarAlmacenDM';
 
 /** Estado de lectura del Combat Tracker. */
 export function usarEstadoIniciativa() {

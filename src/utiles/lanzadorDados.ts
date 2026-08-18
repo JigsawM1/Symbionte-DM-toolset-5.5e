@@ -1,5 +1,5 @@
 import React from "react";
-import { usarAlmacenDM } from "../almacen/usarAlmacenDM";
+import { usarAlmacenDM } from "@/almacen/usarAlmacenDM";
 import { ts } from "./TaleSpireAdapter";
 import { logger } from '@/utiles/logger';
 

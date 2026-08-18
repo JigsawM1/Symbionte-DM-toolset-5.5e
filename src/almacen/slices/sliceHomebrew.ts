@@ -1,9 +1,9 @@
 import { StateCreator } from 'zustand';
-import { MonstruoBase, HechizoBase, ObjetoHomebrew } from '../../tipos';
-import { MONSTRUOS_INICIALES, HECHIZOS_INICIALES, OBJETOS_INICIALES } from '../../utiles/datosIniciales';
-import { sanearMonstruoSentidosYPasiva, sanearHechizoCD, sanearObjetoHomebrew } from '../sanitizacion';
+import { MonstruoBase, HechizoBase, ObjetoHomebrew } from '@/tipos';
+import { MONSTRUOS_INICIALES, HECHIZOS_INICIALES, OBJETOS_INICIALES } from '@/utiles/datosIniciales';
+import { sanearMonstruoSentidosYPasiva, sanearHechizoCD, sanearObjetoHomebrew } from '@/almacen/sanitizacion';
 import { generarId } from '@/utiles/generarId';
-import type { EstadoDM } from '../usarAlmacenDM';
+import type { EstadoDM } from '@/almacen/usarAlmacenDM';
 
 export interface SliceHomebrew {
   baseDatosMonstruos: MonstruoBase[];

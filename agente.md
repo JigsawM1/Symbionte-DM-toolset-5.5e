@@ -2,6 +2,43 @@
 
 Este archivo registra errores encontrados, sus causas raíz y las soluciones aplicadas.
 
+## [2026-08-17] Arquitectura: Estandarización Modular Global de Capas (`src/`)
+**Problema:**
+- Existía disparidad en la organización entre carpetas: mientras `componentes` y `selectores` contaban con barriles de exportación y alias `@/`, las capas de `hooks/`, `servicios/`, `constantes/`, `utiles/` y `almacen/` mantenían rutas relativas frágiles (`../../..`) y carecían de puntos de entrada unificados (`index.ts`).
+
+**Solución Aplicada:**
+1. **Barriles de Exportación Creados:**
+   - `src/hooks/index.ts`: Centraliza todos los hooks de formulario, sincronización con TaleSpire y utilidades reactivas.
+   - `src/servicios/index.ts`: Centraliza el EventBus `puenteTaleSpire`, sincronizadores de iniciativa, resolutor de criaturas/condiciones y el índice O(1) de monstruos.
+   - `src/constantes/index.ts`: Centraliza diccionarios de reglas D&D 5.5e y configuraciones.
+   - `src/utiles/index.ts`: Centraliza adaptadores CEF, lanzadores de dados 3D, logger y utilidades de conjuros.
+   - `src/almacen/slices/index.ts` y `src/almacen/index.ts`: Unifica acceso al store global Zustand y sus utilidades.
+2. **Estandarización de Alias Canónicos (`@/`):**
+   - Se eliminaron el 100% de las rutas relativas multidireccionales en archivos TypeScript en todo el código base.
+3. **Verificación Automatizada:**
+   - `pnpm exec tsc --noEmit` completado con 0 errores.
+   - `pnpm test` (vitest): 58 pruebas pasando en verde.
+   - `pnpm build`: empaquetado de producción exitoso.
+
+---
+
+## [2026-08-17] Arquitectura: Reorganización Modular de Componentes (Feature-Driven + UI Layers)
+**Problema:**
+- La carpeta `src/componentes/` acumulaba más de 30 archivos en su nivel raíz mezclando vistas de pestañas completas (`GestorIniciativa`, `CreadorHomebrew`, `TablasDM`, `NotasDM`), componentes de esqueleto (`BarraSuperior`, `BarraControl`, `PanelDados`) y componentes de feedback transversal (`LimiteError`, `ConfirmDialog`, `NotificacionesContenedor`), con dependencias jerárquicas inconsistentes y carpetas auxiliares desarticuladas (`control/`, `hechizos/`).
+
+**Solución Aplicada:**
+1. **Separación en 3 Capas Funcionales:**
+   - `src/componentes/comunes/`: Feedback, límites de error y modales transversales (`LimiteError`, `ConfirmDialog`, `NotificacionesContenedor`).
+   - `src/componentes/layout/`: Elementos del cascarón de la aplicación (`BarraSuperior`, `BarraControl`, `PanelDados`).
+   - `src/componentes/caracteristicas/`: Módulos agrupados por dominio de negocio de D&D 5.5e y TaleSpire (`iniciativa`, `homebrew`, `compendio`, `tablas`, `notas`, `pendientes`, `configuracion`).
+2. **Barriles Locales de Exportación (`index.ts`):**
+   - Cada subcarpeta encapsula sus componentes internos y expone su API pública a través de su propio `index.ts`.
+3. **Estandarización de Alias `@/`:**
+   - Se erradicaron las rutas relativas profundas (`../../..`) en todos los componentes en favor de importaciones canónicas con `@/`, facilitando el refactorizado continuo.
+4. **Verificación:** Compilación limpia con `tsc --noEmit`, empaquetado de producción con `vite build` y 58 pruebas unitarias pasando en verde con `vitest`.
+
+---
+
 ## [2026-08-14] Arquitectura: Strategy Pattern para Condiciones D&D 5.5e y DRY en Iniciativa (R1)
 **Problema:**
 - La lógica de resolución y apilamiento para la condición *"Cansado (Exhaustion D&D 5.5e, Niv. 1-6)"* se encontraba duplicada idénticamente en 3 métodos de `src/almacen/slices/sliceIniciativa.ts` (`agregarCondicionACriatura`, `ejecutarSalvacionEnArea`, `aplicarCondicionEnArea`), dificultando el mantenimiento y violando los principios DRY y SRP.

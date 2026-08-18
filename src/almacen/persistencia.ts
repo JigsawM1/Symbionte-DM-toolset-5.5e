@@ -1,6 +1,6 @@
 import { IDS_INICIALES_MONSTRUOS, IDS_INICIALES_HECHIZOS, IDS_INICIALES_OBJETOS } from '@/utiles/datosIniciales';
-import { guardarBlobGlobal } from '../utiles/almacenamientoTaleSpire';
-import type { EstadoDM } from './usarAlmacenDM';
+import { guardarBlobGlobal } from '@/utiles/almacenamientoTaleSpire';
+import type { EstadoDM } from '@/almacen/usarAlmacenDM';
 import { logger } from '@/utiles/logger';
 
 let timeoutPersistencia: ReturnType<typeof setTimeout> | null = null;

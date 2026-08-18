@@ -4,7 +4,7 @@ import { crearSliceHomebrew, SliceHomebrew } from "./slices/sliceHomebrew";
 import { crearSliceConfiguracion, SliceConfiguracion } from "./slices/sliceConfiguracion";
 
 // Re-exportar tipos para mantener compatibilidad hacia atrás
-export * from "../tipos";
+export * from "@/tipos";
 export * from "./sanitizacion";
 export * from "./persistencia";
 

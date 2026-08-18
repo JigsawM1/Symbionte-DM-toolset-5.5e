@@ -7,7 +7,7 @@
  */
 
 import { useShallow } from 'zustand/react/shallow';
-import { usarAlmacenDM } from '../usarAlmacenDM';
+import { usarAlmacenDM } from '@/almacen/usarAlmacenDM';
 
 /** Estado de lectura de notas, pendientes y encuentros. */
 export function usarEstadoUtiles() {

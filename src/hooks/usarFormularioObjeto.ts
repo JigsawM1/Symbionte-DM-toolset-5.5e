@@ -1,6 +1,6 @@
 import { useState, useCallback } from "react";
-import { usarAlmacenDM } from "../almacen/usarAlmacenDM";
-import { sanearObjetoHomebrew } from "../almacen/sanitizacion";
+import { usarAlmacenDM } from "@/almacen/usarAlmacenDM";
+import { sanearObjetoHomebrew } from "@/almacen/sanitizacion";
 import { 
   ObjetoHomebrew, 
   ObjetoJuego, 
@@ -10,7 +10,7 @@ import {
   Arma, 
   Armadura, 
   EquipoAventuras 
-} from "../tipos";
+} from "@/tipos";
 
 export function usarFormularioObjeto(idEnEdicion: string | null, alGuardarExitoso: () => void) {
   const { agregarObjetoHomebrew, actualizarObjetoHomebrew, agregarNotificacion } = usarAlmacenDM();

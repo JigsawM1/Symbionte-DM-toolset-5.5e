@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { lanzarDadosTaleSpire } from "../utiles/lanzadorDados";
+import { lanzarDadosTaleSpire } from "@/utiles/lanzadorDados";
 
 export interface DadosBandeja {
   d4: number;

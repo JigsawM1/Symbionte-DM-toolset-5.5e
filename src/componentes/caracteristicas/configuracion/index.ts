@@ -1,0 +1,1 @@
+export { ConfiguracionDM } from "./ConfiguracionDM";

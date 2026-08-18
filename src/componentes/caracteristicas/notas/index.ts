@@ -1,0 +1,1 @@
+export { NotasDM } from "./NotasDM";

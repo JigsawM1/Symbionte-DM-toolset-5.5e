@@ -7,7 +7,7 @@
  * Programado 100% en español.
  */
 
-import { Rareza } from "../almacen/usarAlmacenDM";
+import { Rareza } from "@/almacen/usarAlmacenDM";
 
 // Colores HSL para D&D Rareza
 export const COLORES_RAREZA_HSL: Record<Rareza, string> = {

@@ -1,9 +1,9 @@
-export * from '../tipos';
-import { MonstruoBase, HechizoBase, CondicionDnd, EfectoPredefinido } from '../tipos';
+export * from "@/tipos";
+import { MonstruoBase, HechizoBase, CondicionDnd, EfectoPredefinido } from "@/tipos";
 import MONSTRUOS_JSON from "./compendios/Mounstros.2024-es.json";
 import HECHIZOS_JSON from "./compendios/all.json";
 import EQUIPO_JSON from "./compendios/Equipo es.json";
-import { importarDesdeJSON } from "../almacen/importadorJSON";
+import { importarDesdeJSON } from "@/almacen/importadorJSON";
 
 // Importar y sanitizar automáticamente los compendios base en español
 const importacionMonstruos = importarDesdeJSON(MONSTRUOS_JSON, {

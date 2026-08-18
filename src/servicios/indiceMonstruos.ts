@@ -8,8 +8,8 @@
  */
 
 import { useMemo } from "react";
-import { usarAlmacenDM } from "../almacen/usarAlmacenDM";
-import type { MonstruoBase } from "../almacen/usarAlmacenDM";
+import { usarAlmacenDM } from "@/almacen/usarAlmacenDM";
+import type { MonstruoBase } from "@/almacen/usarAlmacenDM";
 
 export interface IndiceMonstruos {
   porId: Map<string, MonstruoBase>;

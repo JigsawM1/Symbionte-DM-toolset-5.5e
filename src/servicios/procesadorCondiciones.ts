@@ -5,7 +5,6 @@
  * aplicando el Strategy Pattern para diferenciar condiciones apilables (Cansado/Exhaustion)
  * de condiciones simples e idempotentes.
  *
- * Programado 100% en español.
  */
 
 export const NIVEL_MAXIMO_CANSANCIO = 6;

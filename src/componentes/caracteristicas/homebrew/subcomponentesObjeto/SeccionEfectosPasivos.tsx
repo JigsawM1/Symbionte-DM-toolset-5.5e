@@ -174,7 +174,7 @@ export const SeccionEfectosPasivos: React.FC<Props> = ({
                     onChange={(e) => setOEstaMaldito(e.target.checked)}
                     className={estilos.checkMini}
                   />
-                  <span style={{ color: "var(--color-peligro)", fontWeight: "bold" }}>💀 Objeto Maldito (Curse)</span>
+                  <span style={{ color: "var(--color-peligro)", fontWeight: "bold" }}>Objeto Maldito (Curse)</span>
                 </label>
               </div>
 
@@ -186,7 +186,7 @@ export const SeccionEfectosPasivos: React.FC<Props> = ({
                     onChange={(e) => setOEsConsciente(e.target.checked)}
                     className={estilos.checkMini}
                   />
-                  <span style={{ color: "var(--color-borde-cian)" }}>🧠 Objeto Consciente (Sentient)</span>
+                  <span style={{ color: "var(--color-borde-cian)" }}>Objeto Consciente (Sentient)</span>
                 </label>
               </div>
             </div>
@@ -336,7 +336,7 @@ export const SeccionEfectosPasivos: React.FC<Props> = ({
                 />
               </div>
               <div className={estilos.campoBonoValor} style={{ flex: 1 }}>
-                <label className={estilos.labelForm}>CD CD (Opc.):</label>
+                <label className={estilos.labelForm}>CD (Opc.):</label>
                 <input
                   type="number"
                   value={oNuevoHechizoCd}
@@ -386,7 +386,7 @@ export const SeccionEfectosPasivos: React.FC<Props> = ({
                 {oHechizosVinculados.map((hechizo, idx) => (
                   <div key={`hechizo_${idx}`} className={estilos.itemDinamicoVisual}>
                     <div className={estilos.bonoTextoInfo}>
-                      <span className={estilos.bonoTagCategoria}>✨ HECHIZO</span>{" "}
+                      <span className={estilos.bonoTagCategoria}>HECHIZO</span>{" "}
                       <strong>{hechizo.nombre}</strong>
                       {hechizo.cd !== undefined && hechizo.cd !== "" && ` | CD ${hechizo.cd}`}
                       {hechizo.bonoAtaque !== undefined && hechizo.bonoAtaque !== "" && ` | Bono Ataque: +${hechizo.bonoAtaque}`}
@@ -409,7 +409,7 @@ export const SeccionEfectosPasivos: React.FC<Props> = ({
 
       {!oEsMagico && (
         <div className={estilos.textoListaVacia} style={{ padding: "20px", border: "1px dashed rgba(255,255,255,0.05)" }}>
-          Este objeto está configurado como no mágico. Selecciona una rareza superior a "Común" para habilitar las propiedades mágicas de D&D.
+          Este objeto está configurado como no mágico. Selecciona una rareza superior a "Común" para habilitar las propiedades mágicas.
         </div>
       )}
     </div>

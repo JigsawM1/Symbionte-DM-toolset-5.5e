@@ -4,7 +4,6 @@
  * Servicio centralizado para la indexación y búsqueda rápida O(1) de plantillas
  * de monstruos en base a su ID o su nombre normalizado.
  *
- * Programado 100% en español.
  */
 
 import { useMemo } from "react";

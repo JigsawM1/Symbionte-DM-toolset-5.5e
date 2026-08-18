@@ -79,7 +79,7 @@ export const NotasDM: React.FC = () => {
   return (
     <div className={estilos.contenedor}>
       <div className={estilos.cabecera}>
-        <h3 className={estilos.titulo}>Bloc de Notas del DM</h3>
+        <h3 className={estilos.titulo}>Notas</h3>
         
         <div className={estilos.acciones}>
           {/* Indicador de estado */}
@@ -87,7 +87,7 @@ export const NotasDM: React.FC = () => {
             {estadoGuardado === "guardado" && (
               <span className={estilos.indicadorGuardado}>
                 <Check size={11} />
-                Auto-guardado en vivo
+                Auto-guardado
               </span>
             )}
             {estadoGuardado === "modificado" && (
@@ -99,7 +99,7 @@ export const NotasDM: React.FC = () => {
             {estadoGuardado === "guardando" && (
               <span className={estilos.indicadorGuardando}>
                 <span className={`activo-pulso ${estilos.puntoPulso}`} />
-                Guardando en LocalStorage...
+                Guardando...
               </span>
             )}
           </div>
@@ -129,7 +129,7 @@ export const NotasDM: React.FC = () => {
         <textarea
           value={textoLocal}
           onChange={alCambiarTexto}
-          placeholder="Escribe tus notas de campaña, ideas, facciones, detalles de la sesión aquí... Se autoguardan en tiempo real."
+          placeholder="Escribe tus notas de campaña, ideas, facciones, detalles de la sesión aquí..."
           className={estilos.textarea}
         />
       </div>
@@ -141,9 +141,6 @@ export const NotasDM: React.FC = () => {
         </span>
         <span className={estilos.estadisticaItem}>
           Caracteres: <strong className={estilos.numero}>{caracteres}</strong>
-        </span>
-        <span className={estilos.avisoGuardado}>
-          * Datos persistidos de forma segura en almacenamiento cifrado del Simbionte.
         </span>
       </div>
       {/* Modal de confirmación personalizado de alta calidad */}

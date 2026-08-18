@@ -5,7 +5,6 @@
  * relacionados con la configuración de sesión DM (modo GM, pestaña, campaña,
  * método de vida, notificaciones, etc.).
  *
- * Programado 100% en español.
  */
 
 import { useShallow } from 'zustand/react/shallow';

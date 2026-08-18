@@ -6,7 +6,6 @@
  * Utiliza el TaleSpireAdapter centralizado para persistir los datos tácticos
  * del Combat Tracker de forma segura y duradera.
  *
- * Programado 100% en español.
  */
 
 import { ts } from "./TaleSpireAdapter";

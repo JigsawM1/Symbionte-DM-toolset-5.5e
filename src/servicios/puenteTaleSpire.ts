@@ -12,7 +12,6 @@
  *   - estadoCriatura       → creatures.onCreatureStateChange → EventoCriaturaTS (union)
  *   - eventoCliente        → clients.onClientEvent → EventoClienteTS
  *
- * Programado 100% en español.
  */
 
 import type {

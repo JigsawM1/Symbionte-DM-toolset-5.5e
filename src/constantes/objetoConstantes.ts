@@ -4,7 +4,6 @@
  * Constantes, diccionarios de reglas D&D 5.5e (PHB 2024) y configuraciones
  * visuales para el creador y visor de objetos homebrew.
  *
- * Programado 100% en español.
  */
 
 import { Rareza } from "@/almacen/usarAlmacenDM";

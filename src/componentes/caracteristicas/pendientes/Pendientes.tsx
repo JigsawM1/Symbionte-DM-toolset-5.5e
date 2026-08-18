@@ -23,7 +23,7 @@ export const Pendientes: React.FC = () => {
   return (
     <div className={estilos.contenedor}>
       <h3 className={estilos.titulo}>
-        <span>Tareas Pendientes del DM</span>
+        <span>Tareas Pendientes</span>
         <span className={estilos.contador}>
           {completados}/{total} ({porcentaje}%)
         </span>
@@ -44,7 +44,7 @@ export const Pendientes: React.FC = () => {
           type="text"
           value={nuevoTexto}
           onChange={(e) => setNuevoTexto(e.target.value)}
-          placeholder="Agregar nueva tarea del DM (Ej: 'Preparar tesoro de la mantícora')..."
+          placeholder="Agregar nueva tarea..."
           className={estilos.entrada}
         />
         <button type="submit" className={estilos.botonAgregar} title="Agregar Tarea">

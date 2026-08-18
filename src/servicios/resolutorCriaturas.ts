@@ -4,7 +4,6 @@
  * Servicio centralizado para la normalización de nombres de miniaturas y la
  * resolución de plantillas de monstruos (D&D 5.5e) en base a asociaciones.
  *
- * Programado 100% en español.
  */
 
 import type { MonstruoBase } from "@/almacen/usarAlmacenDM";

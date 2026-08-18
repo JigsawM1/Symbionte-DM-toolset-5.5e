@@ -354,7 +354,7 @@
 .cajaControlesSaludTarjetas {
   display: flex;
   flex-direction: column;
-  align-items: flex-end;
+  align-items: center;
   gap: 4px;
   width: 140px;
   flex-shrink: 0;
@@ -370,6 +370,7 @@
 .hpGiganteTexto {
   font-size: 15px;
   font-weight: bold;
+  margin-right: 6px;
   color: var(--color-texto-principal);
   font-family: var(--fuente-codigo);
 }

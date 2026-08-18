@@ -1,7 +1,6 @@
 /**
  * Utilidades para el manejo de fórmulas de dados y escalado de conjuros (D&D 5.5e).
  * 
- * Programado con diseño modular, tolerante a fallos y limpio para mantenimiento futuro.
  */
 
 interface ResultadoEscalado {

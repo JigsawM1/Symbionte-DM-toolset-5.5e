@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
-import { Trash2, Heart, Swords, X, Dices } from "lucide-react";
-import { usarAlmacenDM, CriaturaIniciativa } from "@/almacen/usarAlmacenDM";
+import { Trash2, Heart, Swords, X, Dices, } from "lucide-react";
+import { CriaturaIniciativa } from "@/almacen/usarAlmacenDM";
 import { MonstruoBase, CONDICIONES_2024, EFECTOS_PREDEFINIDOS } from "@/utiles/datosIniciales";
 import { formatearVelocidad } from "@/almacen/sanitizacion";
 import { esNombreVacioODot } from "@/servicios/resolutorCriaturas";
@@ -54,23 +54,23 @@ export const TarjetaCriaturaIniciativa: React.FC<TarjetaCriaturaIniciativaProps>
 
   const estaMuerto = criatura.vidaActual === 0;
   const colorNombre = esTurnoActivo ? "var(--color-borde-cian)" : "var(--color-texto-principal)";
-  
+
   const colorBorde = (esTurnoActivo && estaSeleccionadaEnTS)
     ? "2px solid #ffcc00"
     : estaSeleccionadaEnTS
-    ? "2px solid var(--color-advertencia)"
-    : esTurnoActivo
-    ? "1px solid var(--color-borde-cian)"
-    : "1px solid var(--color-borde-brutal)";
+      ? "2px solid var(--color-advertencia)"
+      : esTurnoActivo
+        ? "1px solid var(--color-borde-cian)"
+        : "1px solid var(--color-borde-brutal)";
 
   const sombraTarjeta = estaSeleccionadaEnTS
     ? "0 0 10px rgba(224, 169, 109, 0.45)"
     : esTurnoActivo
-    ? "0 0 8px rgba(0, 245, 212, 0.2)"
-    : "0 1px 3px rgba(0, 0, 0, 0.2)";
+      ? "0 0 8px rgba(0, 245, 212, 0.2)"
+      : "0 1px 3px rgba(0, 0, 0, 0.2)";
 
-  const fondoTarjeta = esTurnoActivo 
-    ? "linear-gradient(90deg, hsl(172, 90%, 4%) 0%, hsl(222, 18%, 11%) 100%)" 
+  const fondoTarjeta = esTurnoActivo
+    ? "linear-gradient(90deg, hsl(172, 90%, 4%) 0%, hsl(222, 18%, 11%) 100%)"
     : "var(--color-fondo-tarjeta)";
 
   const ejecutarCuracion = () => {
@@ -149,7 +149,7 @@ export const TarjetaCriaturaIniciativa: React.FC<TarjetaCriaturaIniciativaProps>
       />
 
       {/* Caja de Iniciativa — Editable al clic + botón de dado separado */}
-      <div 
+      <div
         className={estilosClases.bloqueIniciativaIzquierda}
         style={{
           borderColor: esTurnoActivo ? "var(--color-borde-cian)" : "var(--color-borde-brutal)",
@@ -225,10 +225,10 @@ export const TarjetaCriaturaIniciativa: React.FC<TarjetaCriaturaIniciativaProps>
               {estaSeleccionadaEnTS && <span className={estilosClases.tagSeleccionTS}>SEL</span>}
             </span>
             <span className={estilosClases.subtituloCriatura}>
-              CA: <strong style={{ color: "var(--color-borde-cian)", fontFamily: "var(--fuente-codigo)" }}>{criatura.ca}</strong> | Inic: <strong style={{ color: "#ffcc00", fontFamily: "var(--fuente-codigo)" }}>{(criatura.bonificadorIniciativa ?? 0) >= 0 ? `+${criatura.bonificadorIniciativa ?? 0}` : criatura.bonificadorIniciativa}</strong> <br/> Vel: {formatearVelocidad(criatura.velocidad)}
+              CA: <strong style={{ color: "var(--color-borde-cian)", fontFamily: "var(--fuente-codigo)" }}>{criatura.ca}</strong> | Inic: <strong style={{ color: "#ffcc00", fontFamily: "var(--fuente-codigo)" }}>{(criatura.bonificadorIniciativa ?? 0) >= 0 ? `+${criatura.bonificadorIniciativa ?? 0}` : criatura.bonificadorIniciativa}</strong> <br /> Vel: {formatearVelocidad(criatura.velocidad)}
               {plantilla && (
                 <>
-                <br/>  PP: <strong style={{ color: "var(--color-borde-cian)", fontFamily: "var(--fuente-codigo)" }}>{obtenerPercepcionPasiva(plantilla)}</strong>
+                  <br />  PP: <strong style={{ color: "var(--color-borde-cian)", fontFamily: "var(--fuente-codigo)" }}>{obtenerPercepcionPasiva(plantilla)}</strong>
                 </>
               )}
             </span>
@@ -237,108 +237,102 @@ export const TarjetaCriaturaIniciativa: React.FC<TarjetaCriaturaIniciativaProps>
 
         {/* Chips de Condiciones */}
         <div className={estilosClases.filaCondicionesChips}>
-          {criatura.condiciones.length > 0 || (criatura.vidaActual > 0 && criatura.vidaActual < (criatura.vidaMaxima / 2)) ? (
-            <>
-              {criatura.condiciones.map((cond) => {
-                const esAlerta = ["muerto", "inconsciente", "aturdido", "paralizado"].includes(cond.toLowerCase());
-                const condObj = CONDICIONES_2024.find(
-                  (c) => c.nombre.toLowerCase().includes(cond.toLowerCase()) || cond.toLowerCase().includes(c.nombre.split(" ")[0].toLowerCase())
-                );
-                
-                let tooltipTexto = condObj 
-                  ? `${condObj.nombre}\n\n${condObj.efectos.map(e => `• ${e}`).join("\n")}`
-                  : cond;
+          {criatura.condiciones.map((cond) => {
+            const esAlerta = ["muerto", "inconsciente", "aturdido", "paralizado"].includes(cond.toLowerCase());
+            const condObj = CONDICIONES_2024.find(
+              (c) => c.nombre.toLowerCase().includes(cond.toLowerCase()) || cond.toLowerCase().includes(c.nombre.split(" ")[0].toLowerCase())
+            );
 
-                const esCansado = cond.toLowerCase().startsWith("cansado") || cond.toLowerCase().includes("cansancio");
-                let cansadoEstilos: React.CSSProperties = {};
-                let textoMostrar = cond;
+            let tooltipTexto = condObj
+              ? `${condObj.nombre}\n\n${condObj.efectos.map(e => `• ${e}`).join("\n")}`
+              : cond;
 
-                if (esCansado) {
-                  const matches = cond.match(/\d+/);
-                  const nivel = matches ? parseInt(matches[0], 10) : 1;
-                  textoMostrar = `💤 CANSADO NVEL ${nivel}`;
-                  if (nivel <= 2) {
-                    cansadoEstilos = {
-                      backgroundColor: "hsla(45, 80%, 8%, 0.75)",
-                      borderColor: "hsla(45, 80%, 50%, 0.7)",
-                      color: "hsl(45, 100%, 85%)"
-                    };
-                  } else if (nivel <= 4) {
-                    cansadoEstilos = {
-                      backgroundColor: "hsla(25, 80%, 9%, 0.75)",
-                      borderColor: "hsla(25, 80%, 52%, 0.7)",
-                      color: "hsl(25, 100%, 85%)"
-                    };
-                  } else if (nivel === 5) {
-                    cansadoEstilos = {
-                      backgroundColor: "hsla(5, 80%, 10%, 0.78)",
-                      borderColor: "hsla(5, 80%, 55%, 0.75)",
-                      color: "hsl(5, 100%, 85%)"
-                    };
-                  } else {
-                    textoMostrar = `💀 MUERTE (CANSADO 6)`;
-                    cansadoEstilos = {
-                      background: "linear-gradient(135deg, hsl(0, 100%, 4%) 0%, hsl(340, 100%, 12%) 100%)",
-                      borderColor: "hsl(340, 100%, 55%)",
-                      color: "#ffffff",
-                      fontWeight: "800",
-                      boxShadow: "0 0 5px rgba(255, 0, 85, 0.4)"
-                    };
-                  }
-                  tooltipTexto = `CANSADO (Nivel ${nivel}) - Reglas 5.5e (2024)\n\n• Tiradas de d20: Restas -${nivel * 2} a todas tus tiradas de d20 (ataques, salvaciones, pruebas de habilidad).\n• Velocidad: Tu velocidad se reduce en -${nivel * 5} pies.\n${nivel === 6 ? "• MUERTE: ¡El nivel 6 causa la muerte instantánea!" : ""}`;
+            const esCansado = cond.toLowerCase().startsWith("cansado") || cond.toLowerCase().includes("cansancio");
+            let cansadoEstilos: React.CSSProperties = {};
+            let textoMostrar = cond;
+
+            if (esCansado) {
+              const matches = cond.match(/\d+/);
+              const nivel = matches ? parseInt(matches[0], 10) : 1;
+              textoMostrar = `CANSADO NVEL ${nivel}`;
+              if (nivel <= 2) {
+                cansadoEstilos = {
+                  backgroundColor: "hsla(45, 80%, 8%, 0.75)",
+                  borderColor: "hsla(45, 80%, 50%, 0.7)",
+                  color: "hsl(45, 100%, 85%)"
+                };
+              } else if (nivel <= 4) {
+                cansadoEstilos = {
+                  backgroundColor: "hsla(25, 80%, 9%, 0.75)",
+                  borderColor: "hsla(25, 80%, 52%, 0.7)",
+                  color: "hsl(25, 100%, 85%)"
+                };
+              } else if (nivel === 5) {
+                cansadoEstilos = {
+                  backgroundColor: "hsla(5, 80%, 10%, 0.78)",
+                  borderColor: "hsla(5, 80%, 55%, 0.75)",
+                  color: "hsl(5, 100%, 85%)"
+                };
+              } else {
+                textoMostrar = "MUERTE (CANSADO 6)";
+                cansadoEstilos = {
+                  background: "linear-gradient(135deg, hsl(0, 100%, 4%) 0%, hsl(340, 100%, 12%) 100%)",
+                  borderColor: "hsl(340, 100%, 55%)",
+                  color: "#ffffff",
+                  fontWeight: "800",
+                  boxShadow: "0 0 5px rgba(255, 0, 85, 0.4)"
+                };
+              }
+              tooltipTexto = `CANSADO (Nivel ${nivel})\n\n• Tiradas de d20: Restas -${nivel * 2} a todas tus tiradas de d20 (ataques, salvaciones, pruebas de habilidad).\n• Velocidad: Tu velocidad se reduce en -${nivel * 5} pies.\n${nivel === 6 ? "• MUERTE: ¡El nivel 6 causa la muerte instantánea!" : ""}`;
+            }
+
+            const estilosBase = esCansado
+              ? cansadoEstilos
+              : esAlerta
+                ? {
+                  backgroundColor: "hsla(355, 80%, 10%, 0.75)",
+                  borderColor: "hsla(355, 80%, 55%, 0.7)",
+                  color: "hsl(355, 100%, 85%)"
                 }
+                : {
+                  backgroundColor: "hsla(172, 90%, 7%, 0.75)",
+                  borderColor: "hsla(172, 90%, 45%, 0.7)",
+                  color: "hsl(172, 100%, 85%)"
+                };
 
-                const estilosBase = esCansado
-                  ? cansadoEstilos
-                  : esAlerta
-                    ? {
-                        backgroundColor: "hsla(355, 80%, 10%, 0.75)",
-                        borderColor: "hsla(355, 80%, 55%, 0.7)",
-                        color: "hsl(355, 100%, 85%)"
-                      }
-                    : {
-                        backgroundColor: "hsla(172, 90%, 7%, 0.75)",
-                        borderColor: "hsla(172, 90%, 45%, 0.7)",
-                        color: "hsl(172, 100%, 85%)"
-                      };
+            return (
+              <div
+                key={cond}
+                className={`chip-condicion-chico-tooltip ${estilosClases.chipCondicionChico}`}
+                style={{
+                  ...estilosBase,
+                  display: "inline-flex",
+                  alignItems: "center"
+                }}
+              >
+                <span>{textoMostrar}</span>
+                <span className="tooltip-contenido">{tooltipTexto}</span>
+                <button
+                  onClick={() => onQuitarCondicion(cond)}
+                  className={estilosClases.botonQuitarCondicionChico}
+                  style={{
+                    color: estilosBase.color || "var(--color-borde-cian)",
+                    marginLeft: "3px"
+                  }}
+                >
+                  <X size={8} />
+                </button>
+              </div>
+            );
+          })}
 
-                return (
-                  <div 
-                    key={cond} 
-                    className={`chip-condicion-chico-tooltip ${estilosClases.chipCondicionChico}`}
-                    style={{
-                      ...estilosBase,
-                      display: "inline-flex",
-                      alignItems: "center"
-                    }}
-                  >
-                    <span>{textoMostrar}</span>
-                    <span className="tooltip-contenido">{tooltipTexto}</span>
-                    <button
-                      onClick={() => onQuitarCondicion(cond)}
-                      className={estilosClases.botonQuitarCondicionChico}
-                      style={{
-                        color: estilosBase.color || "var(--color-borde-cian)",
-                        marginLeft: "3px"
-                      }}
-                    >
-                      <X size={8} />
-                    </button>
-                  </div>
-                );
-              })}
-
-              {criatura.vidaActual > 0 && criatura.vidaActual < (criatura.vidaMaxima / 2) && (
-                <div className={`chip-condicion-chico-tooltip ${estilosClases.chipCondicionChico} ${estilosClases.chipDesangrado}`}>
-                  <span> DESANGRÁNDOSE</span>
-                  <span className="tooltip-contenido">
-                    {`DESANGRÁNDOSE (<50% de Vida)\n\n• Esta criatura está por debajo del 50% de sus puntos de golpe máximos.\n• Se aplica automáticamente y desaparecerá cuando recupere la salud por encima de la mitad.`}
-                  </span>
-                </div>
-              )}
-            </>
-          ) : (
-            <span className={estilosClases.textoCondicionesVacias}>Sin condiciones activas</span>
+          {criatura.vidaActual > 0 && criatura.vidaActual < (criatura.vidaMaxima / 2) && (
+            <div className={`chip-condicion-chico-tooltip ${estilosClases.chipCondicionChico} ${estilosClases.chipDesangrado}`}>
+              <span> DESANGRÁNDOSE</span>
+              <span className="tooltip-contenido">
+                {`DESANGRÁNDOSE (<50% de Vida)\n\n• Esta criatura está por debajo del 50% de sus puntos de golpe máximos.\n• Se aplica automáticamente y desaparecerá cuando recupere la salud por encima de la mitad.`}
+              </span>
+            </div>
           )}
 
           {/* Mini Selector Directo para añadir condiciones */}
@@ -383,10 +377,10 @@ export const TarjetaCriaturaIniciativa: React.FC<TarjetaCriaturaIniciativaProps>
               const efPredef = EFECTOS_PREDEFINIDOS.find(
                 (ep) => ep.nombre.toLowerCase().includes(ef.nombre.toLowerCase()) || ef.nombre.toLowerCase().includes(ep.nombre.toLowerCase().split(" ")[0])
               );
-              
+
               const esConcentracion = ef.concentracion === true;
               const tieneExpiracion = ef.expiraRonda !== undefined;
-              
+
               let claseChipEfecto = estilosClases.chipEfectoPredefinido;
               let colorQuitar = "hsl(265, 95%, 90%)";
               if (esConcentracion) {
@@ -422,7 +416,7 @@ export const TarjetaCriaturaIniciativa: React.FC<TarjetaCriaturaIniciativaProps>
                     {labelEfecto}
                     {textoExpiracion && (
                       <span className={estilosClases.badgeExpiracion}>
-                        {tieneExpiracion ? "⏳ " : ""}{textoExpiracion}
+                        {textoExpiracion}
                       </span>
                     )}
                   </span>
@@ -473,28 +467,6 @@ export const TarjetaCriaturaIniciativa: React.FC<TarjetaCriaturaIniciativaProps>
                     </div>
                   );
                 })}
-                
-                {/* Opción Personalizada */}
-                <div
-                  onClick={() => {
-                    setDropdownAbierto(null);
-                    setTimeout(() => {
-                      const nombre = window.prompt("Nombre del efecto personalizado:");
-                      if (!nombre) return;
-                      const durStr = window.prompt("Duración en rondas:", "10");
-                      if (!durStr) return;
-                      const dur = parseInt(durStr, 10);
-                      if (!isNaN(dur) && dur > 0) {
-                        onAñadirEfecto(nombre, dur);
-                      } else {
-                        usarAlmacenDM.getState().agregarNotificacion("La duración debe ser un número entero mayor a 0.", "error");
-                      }
-                    }, 100);
-                  }}
-                  className={`${estilosClases.dropdownItem} ${estilosClases.dropdownItemPersonalizado}`}
-                >
-                  + Personalizado...
-                </div>
               </div>
             )}
           </div>
@@ -513,7 +485,7 @@ export const TarjetaCriaturaIniciativa: React.FC<TarjetaCriaturaIniciativaProps>
                 title={`Tirar ataque: d20${acc.bonificadorAtaque} | Daño: ${acc.dadosDaño}`}
               >
                 <Swords size={10} style={{ color: "var(--color-peligro)" }} />
-                <span>{acc.nombre} ({acc.bonificadorAtaque})</span>
+                <span>{acc.nombre}</span>
               </button>
             ))}
           </div>

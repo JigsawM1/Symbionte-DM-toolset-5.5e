@@ -7,7 +7,7 @@
  * a los eventos físicos del tablero (selección de minis, cola de iniciativa)
  * y cargar datos de campaña y rol de DM de forma síncrona/segura.
  *
- * Programado 100% en español.
+
  */
 
 import { useEffect } from "react";

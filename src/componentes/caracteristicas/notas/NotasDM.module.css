@@ -166,8 +166,3 @@
   color: var(--color-primario-brillante);
 }
 
-.avisoGuardado {
-  font-size: 8.5px;
-  color: var(--color-texto-apagado);
-  font-style: italic;
-}

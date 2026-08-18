@@ -95,9 +95,9 @@ export const SeccionDatosGenerales: React.FC<Props> = ({
             onChange={(e) => setOTipoPrincipal(e.target.value as "Arma" | "Armadura" | "Equipo de Aventuras")}
             className={estilos.selectForm}
           >
-            <option value="Arma">⚔️ Arma</option>
-            <option value="Armadura">🛡️ Armadura</option>
-            <option value="Equipo de Aventuras">🎒 Equipo de Aventuras</option>
+            <option value="Arma">Arma</option>
+            <option value="Armadura">Armadura</option>
+            <option value="Equipo de Aventuras">Equipo de Aventuras</option>
           </select>
         </div>
       </div>
@@ -231,7 +231,7 @@ export const SeccionDatosGenerales: React.FC<Props> = ({
 
       {/* DESCRIPCIÓN */}
       <div className={estilos.campoForm}>
-        <label className={estilos.labelForm}>Descripción Detallada (Guarda texto limpio):</label>
+        <label className={estilos.labelForm}>Descripción Detallada:</label>
         <textarea
           value={oDescripcion}
           onChange={(e) => setODescripcion(e.target.value)}

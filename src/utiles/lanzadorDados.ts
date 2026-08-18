@@ -9,7 +9,7 @@ import { logger } from '@/utiles/logger';
  * Proporciona una interfaz unificada y robusta para enviar tiradas
  * de dados 3D nativas a la bandeja física de TaleSpire.
  *
- * Programado 100% en español con alto nivel de tolerancia a fallos.
+ * en español con alto nivel de tolerancia a fallos.
  */
 
 // Nota: La API global de window.TS está tipada formalmente en src/tipos/talespire.d.ts

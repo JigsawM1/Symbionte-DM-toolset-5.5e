@@ -40,7 +40,7 @@ export const ReglasBasicas: React.FC = () => {
       </div>
 
       <div className={estilosClases.tarjetaReglaBrutal}>
-        <div className={estilosClases.cabeceraReglaBrutal}>VISIBILIDAD Y SIGILO (Manual 2024)</div>
+        <div className={estilosClases.cabeceraReglaBrutal}>VISIBILIDAD Y SIGILO (5.5e)</div>
         <div className={estilosClases.textoCuerpoRegla}>
           • <strong>Acción Esconderse:</strong> Superar prueba de <strong>Destreza (Sigilo) CD 15</strong>. Con éxito, ganas la condición <strong>Invisible</strong> (ventaja en ataques, enemigos tienen desventaja en golpearte, etc.) hasta que hagas ruido, ataques o te vean.
           <br /><br />
@@ -58,7 +58,7 @@ export const ReglasBasicas: React.FC = () => {
       </div>
 
       <div className={estilosClases.tarjetaReglaBrutal}>
-        <div className={estilosClases.cabeceraReglaBrutal}>REGLAS DE ASFIXIA (Manual 2024)</div>
+        <div className={estilosClases.cabeceraReglaBrutal}>REGLAS DE ASFIXIA (5.5e)</div>
         <div className={estilosClases.textoCuerpoRegla}>
           Una criatura puede aguantar la respiración una cantidad de minutos igual a <strong>1 + su modificador de Constitución</strong> (mínimo 30 segundos).
           <br /><br />

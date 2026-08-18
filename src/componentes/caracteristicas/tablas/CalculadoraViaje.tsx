@@ -15,12 +15,12 @@ export const CalculadoraViaje: React.FC = () => {
 
   const obtenerEfectoPasoViaje = () => {
     if (pasoViaje === "lento") {
-      return "Paso Lento: Permite viajar con Sigilo Activo (pueden moverse sigilosamente a ritmo normal bajo el manual 2024).";
+      return "Paso Lento: Permite viajar con Sigilo Activo.";
     }
     if (pasoViaje === "rapido") {
       return "Paso Rápido: Penalizador de -5 a la Percepción Pasiva para detectar emboscadas y trampas.";
     }
-    return "Paso Normal: Viaje estándar sin bonificaciones ni penalizadores tácticos.";
+    return "Paso Normal: Viaje estándar sin bonificaciones ni penalizadores.";
   };
 
   return (

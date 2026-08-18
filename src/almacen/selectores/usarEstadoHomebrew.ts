@@ -4,7 +4,6 @@
  * Hook Facade que agrupa en una sola suscripción todos los selectores
  * relacionados con la base de datos Homebrew (monstruos, hechizos, objetos).
  *
- * Programado 100% en español.
  */
 
 import { useShallow } from 'zustand/react/shallow';

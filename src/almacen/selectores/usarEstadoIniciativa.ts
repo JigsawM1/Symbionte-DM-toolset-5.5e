@@ -8,7 +8,6 @@
  * de las propiedades referenciadas cambia (comparación shallow), no en cada
  * actualización del store completo.
  *
- * Programado 100% en español.
  */
 
 import { useShallow } from 'zustand/react/shallow';

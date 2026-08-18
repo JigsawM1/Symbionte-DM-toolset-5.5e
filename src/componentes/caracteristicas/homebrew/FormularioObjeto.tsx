@@ -4,7 +4,6 @@
  * Orquestador principal del formulario de creación y edición de objetos homebrew.
  * Modularizado mediante subcomponentes atómicos por sección (SRP).
  *
- * Programado 100% en español.
  */
 
 import React, { useEffect, useState, useCallback, useRef } from "react";

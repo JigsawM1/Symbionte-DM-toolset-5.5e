@@ -5,7 +5,7 @@
  * Reemplaza el patrón frágil `Date.now() + Math.random()` que puede colisionar
  * si dos entidades se crean en el mismo milisegundo.
  *
- * Programado 100% en español.
+
  */
 
 /**

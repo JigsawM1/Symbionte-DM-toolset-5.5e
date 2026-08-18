@@ -147,7 +147,7 @@ export const ConfiguracionDM: React.FC = () => {
         <div className={estilosClases.seccion}>
           <div className={estilosClases.cabeceraSeccion}>
             <div className={estilosClases.barraDecorativaCian} />
-            <h4 className={estilosClases.subtitulo}>IMPORTADOR DE COMPENDIOS ADAPTATIVO</h4>
+            <h4 className={estilosClases.subtitulo}>IMPORTADOR DE COMPENDIOS</h4>
           </div>
           
           <div
@@ -165,7 +165,7 @@ export const ConfiguracionDM: React.FC = () => {
             <p className={estilosClases.textoDrop}>
               Arrastra tu archivo <strong style={{ color: "var(--color-borde-cian)", fontFamily: "var(--fuente-codigo)" }}>.json</strong> aquí o haz clic para examinar
             </p>
-            <span className={estilosClases.ayudaDrop}>Soporta colecciones de monstruos, hechizos y objetos mágicos del DM</span>
+            <span className={estilosClases.ayudaDrop}>Soporta colecciones de monstruos, hechizos y objetos</span>
             
             <input
               type="file"
@@ -337,7 +337,7 @@ export const ConfiguracionDM: React.FC = () => {
               ) : (
                 <div className={estilosClases.contenedorConfirmacion}>
                   <p className={estilosClases.textoConfirmacion}>
-                    ⚠️ ¿RESTABLECER TODO EL SISTEMA? Esta acción irreversible eliminará permanentemente todo tu homebrew, notas, combate activo y tareas pendientes del DM.
+                     ¿RESTABLECER TODO EL SISTEMA? Esta acción irreversible eliminará permanentemente todo tu homebrew, notas, combate activo y tareas pendientes.
                   </p>
                   <div className={estilosClases.botonesConfirmacion}>
                     <button
@@ -356,7 +356,7 @@ export const ConfiguracionDM: React.FC = () => {
                 </div>
               )}
               <p className={estilosClases.avisoPeligro}>
-                Esta opción purgará la base de datos local y volverá a cargar las plantillas de referencia del manual base de D&D 5.5e (2024).
+                Esta opción purgará la base de datos local y volverá a cargar las plantillas de referencia del manual base de D&D 5.5e.
               </p>
             </div>
           </div>
@@ -368,7 +368,7 @@ export const ConfiguracionDM: React.FC = () => {
         <div className={estilosClases.modalOverlay} onClick={() => setModalExport(null)}>
           <div className={estilosClases.modalExport} onClick={(e) => e.stopPropagation()}>
             <div className={estilosClases.modalHeader}>
-              <span>📋 EXPORTAR DATOS — Copia el JSON manualmente</span>
+              <span> EXPORTAR DATOS — Copia el JSON manualmente</span>
               <button onClick={() => setModalExport(null)} className={estilosClases.botonCerrarModal}>
                 <X size={16} />
               </button>

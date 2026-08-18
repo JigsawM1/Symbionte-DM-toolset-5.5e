@@ -2,7 +2,6 @@
  * Base de Datos estática de Tablas de Pifias y Críticos para D&D 5.5e (2024).
  * Extraído directamente del archivo del usuario: "tabla criticos.md".
  *
- * Programado 100% en español.
  */
 
 export interface EfectoCritico {

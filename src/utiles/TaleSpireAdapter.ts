@@ -9,7 +9,6 @@
  * 3. Deduplicación de llamadas: Une peticiones concurrentes a getQueue() para reducir I/O.
  * 4. Tipado estricto: Emplea la interfaz TaleSpireAPI de talespire.d.ts.
  *
- * Programado 100% en español.
  */
 
 import type {

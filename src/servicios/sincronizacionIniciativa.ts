@@ -4,7 +4,6 @@
  * Servicio centralizado para la sincronización de la iniciativa local con TaleSpire
  * y el filtrado por expiración de ronda de efectos temporales de criaturas.
  *
- * Programado 100% en español.
  */
 
 import type { ColaIniciativaTS } from "@/tipos/talespire";

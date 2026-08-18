@@ -6,7 +6,7 @@ import {
   EXPLICACIONES_PROPIEDADES,
   EXPLICACIONES_MAESTRIAS
 } from "@/constantes/objetoConstantes";
-import { Swords, X } from "lucide-react";
+import { X } from "lucide-react";
 
 interface Props {
   oTipoAtaque: "Cuerpo a Cuerpo" | "A Distancia";
@@ -58,10 +58,7 @@ export const SeccionArma: React.FC<Props> = ({
   return (
     <div className={estilos.bloqueDinamicoForm} style={{ borderColor: "rgba(0, 245, 212, 0.25)" }}>
       <div className={estilos.tituloBloqueDinamico}>
-        <span>PROPIEDADES TÁCTICAS DEL ARMA</span>
-        <span className={estilos.subtituloInformacion}>
-          <Swords size={12} style={{ display: "inline", marginRight: "2px" }} /> Armamento Condicional
-        </span>
+        <span>PROPIEDADES DEL ARMA</span>
       </div>
 
       <div className={estilos.filaDobleForm}>
@@ -72,8 +69,8 @@ export const SeccionArma: React.FC<Props> = ({
             onChange={(e) => setOTipoAtaque(e.target.value as "Cuerpo a Cuerpo" | "A Distancia")}
             className={estilos.selectForm}
           >
-            <option value="Cuerpo a Cuerpo">⚔️ Cuerpo a Cuerpo</option>
-            <option value="A Distancia">🏹 A Distancia</option>
+            <option value="Cuerpo a Cuerpo">Cuerpo a Cuerpo</option>
+            <option value="A Distancia">A Distancia</option>
           </select>
         </div>
 

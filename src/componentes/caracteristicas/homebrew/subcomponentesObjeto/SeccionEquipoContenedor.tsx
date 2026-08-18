@@ -159,7 +159,7 @@ export const SeccionEquipoContenedor: React.FC<Props> = ({
                 </div>
               </div>
               <div className={estilos.campoForm}>
-                <label className={estilos.labelForm}>Efecto Táctico del Veneno:</label>
+                <label className={estilos.labelForm}>Efecto del Veneno:</label>
                 <textarea
                   value={oEfectoVeneno}
                   onChange={(e) => setOEfectoVeneno(e.target.value)}

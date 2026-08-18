@@ -3,7 +3,6 @@
  * -------------------
  * Hook Facade para estado transversal: notas DM, pendientes y encuentros guardados.
  *
- * Programado 100% en español.
  */
 
 import { useShallow } from 'zustand/react/shallow';

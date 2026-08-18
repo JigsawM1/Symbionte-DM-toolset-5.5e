@@ -28,19 +28,6 @@
   letter-spacing: 0.03em;
 }
 
-.diagnostico {
-  font-family: var(--fuente-codigo);
-  color: var(--color-exito);
-  font-size: 9.5px;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  border: 1px solid rgba(0, 245, 212, 0.25);
-  padding: 2px 6px;
-  background-color: rgba(0, 245, 212, 0.03);
-  border-radius: 2px;
-}
-
 .gridConfig {
   flex: 1;
   display: grid;

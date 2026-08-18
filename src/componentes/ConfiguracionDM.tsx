@@ -5,7 +5,7 @@ import {
   usarEstadoConfiguracion,
   usarAccionesConfiguracion,
 } from "@/almacen/selectores";
-import { Upload, Download, Trash2, ShieldAlert, CheckCircle, Database, Heart, Copy, X, Eye, Settings } from "lucide-react";
+import { Upload, Download, Trash2, ShieldAlert, CheckCircle, Heart, Copy, X, Eye, Settings } from "lucide-react";
 import { IDS_INICIALES_MONSTRUOS, IDS_INICIALES_HECHIZOS, IDS_INICIALES_OBJETOS } from "@/utiles/datosIniciales";
 import { logger } from '@/utiles/logger';
 import { ts } from "../utiles/TaleSpireAdapter";
@@ -140,10 +140,6 @@ export const ConfiguracionDM: React.FC = () => {
         <span className={estilosClases.tituloTextoPrincipal}>
           <Settings size={16} style={{ color: "var(--color-borde-cian)", marginRight: "6px", verticalAlign: "middle" }} />
           CONFIGURACIÓN Y MANTENIMIENTO DEL COMPENDIO
-        </span>
-        <span className={estilosClases.diagnostico}>
-          <Database size={12} style={{ color: "var(--color-exito)" }} />
-          <span>SISTEMA PERSISTENTE ACTIVO</span>
         </span>
       </h3>
 

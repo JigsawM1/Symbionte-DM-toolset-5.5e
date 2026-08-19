@@ -2,6 +2,37 @@
 
 Este archivo registra errores encontrados, sus causas raíz y las soluciones aplicadas.
 
+## [2026-08-18] Arquitectura: Soporte D&D 5.5e para Monstruos (Tamaño, Alineamiento, Acciones Adicionales y Costos de Acciones Legendarias)
+**Problema:**
+- El esquema y visores de monstruos carecían de los campos actualizados de las cartas de estadísticas del Manual de Monstruos D&D 5.5e (2024): tamaño y alineamiento en el subtítulo oficial (*"Humanoide Mediano o Pequeño, neutral malvado"*), bloque de acciones adicionales (bonus actions), total de usos de acciones legendarias por ronda y visualización explícita del costo por acción legendaria (en lugar de la etiqueta ambigua de uso).
+
+**Solución Aplicada:**
+1. **Esquema de Tipos y Constantes (`src/tipos/index.ts` & `src/constantes/homebrewConstantes.ts`):**
+   - Agregados `tamaño?: string`, `alineacion?: string`, `accionesAdicionales?: AccionMonstruo[]` y `accionesLegendariasTotal?: number` al esquema de Zod `EsquemaMonstruoBase` y al tipo `MonstruoBase`.
+   - Creadas listas de referencia `TAMAÑOS_CRIATURA` (`["Diminuto", "Pequeño", "Mediano", "Grande", "Enorme", "Gargantuesco"]`) y `ALINEAMIENTOS_DND` con soporte para `"-"` (sin alineamiento).
+2. **Sanitización e Importación Flexible (`src/almacen/sanitizacion.ts` & `src/almacen/importadorJSON.ts`):**
+   - Creada función pura `formatearSubtituloCriatura(tipo?: string, tamaño?: string, alineacion?: string): string` que genera dinámicamente el formato *`[Tipo] [Tamaño], [Alineamiento]`*, omitiendo el guion `"-"` si no aplica alineamiento.
+   - Saneamiento e importación tolerante para `accionesAdicionales`, `bonusActions`, `tamaño`/`size`, `alineacion`/`alignment` y `accionesLegendariasTotal`.
+3. **Visores y Ficha D&D (`PanelFichaDnD.tsx`, `PanelFichaDnD.module.css` & `ListaHomebrew.tsx`):**
+   - Cabecera: Subtítulo estilizado en cursiva con `formatearSubtituloCriatura`.
+   - Renderizado del bloque de **ACCIONES ADICIONALES** con soporte interactivo para tiradas de dados 3D (`lanzarAtaqueRapido`) y enlaces a hechizos (`procesarTextoFicha`).
+   - Bloque de **ACCIONES LEGENDARIAS**: Cabecera con `ACCIONES LEGENDARIAS (X/RONDA)` y badges/etiquetas de `[COSTO: X]` manteniendo el campo de datos `uso`.
+4. **Formulario Homebrew y Compatibilidad CEF (`SelectorSugerencias.tsx`, `SelectorDesplegable.tsx`, `index.css`):**
+   - **Limitación TaleSpire CEF (Datalist y Selects)**:
+     - En el entorno Chromium CEF / OSR (Off-Screen Rendering) de TaleSpire, los elementos nativos `<datalist>` del SO no despliegan su ventana emergente, y los elementos `<select>` nativos pintan un menú clásico de Windows ignorando las clases CSS y variables del tema oscuro.
+     - **Solución Datalist**: Se creó el componente reutilizable `SelectorSugerencias.tsx` (`src/componentes/comunes/`) que renderiza un menú desplegable interactivo flotante 100% dentro del DOM de React, con filtrado en tiempo real por búsqueda, cierre al hacer clic fuera y soporte para entradas de texto libre compuestas.
+     - **Solución Dropdown Único Universal**: Se construyó el componente `SelectorDesplegable.tsx` (`src/componentes/comunes/`) para estandarizar **todos** los selectores de la aplicación (filtros de compendio, upcasting de ranuras, ordenación homebrew, tipo de daño rápido, formularios de hechizos y objetos mágicos, calculadora de salto/viaje y conversor de divisas) mediante un dropdown renderizado 100% en el DOM (compatible con arrays de strings o de objetos con etiqueta/color/icono, soporte para variantes de tamaño, halo cian, check icon y chevron animado).
+     - **Tipografía y Capitalización Natural**: Se configuró explícitamente `text-transform: none !important` y `font-weight: 400` en gatillos, opciones y selectores para neutralizar la herencia global de `button { text-transform: uppercase; font-weight: 600; }`, permitiendo que las opciones se muestren de forma legible y natural (con solo la inicial en mayúscula, ej. *"Humanoide"*, *"Legal bueno"*, *"Sin alineamiento (-)"*).
+     - **Dimensionamiento y Alineación en Formularios Flex**: En contenedores flex con `justify-content: space-between` (como las filas de formulario en `tablas/`), `SelectorDesplegable` debe envolverse en un contenedor con ancho explícito (ej. `width: 200px`) para coincidir con los campos de entrada numéricos y evitar que se expanda horizontalmente ocupando todo el ancho.
+   - Lista dinámica reactiva para agregar/editar/eliminar acciones adicionales.
+   - Control para el total de acciones legendarias por ronda y placeholders con indicación de "Costo".
+5. **Verificación Automatizada:**
+   - 0 errores en `tsc --noEmit`.
+   - 0 elementos `<select>` nativos restantes en `src/componentes`.
+   - 60 pruebas unitarias e integradas pasando al 100% en `vitest`.
+
+---
+
 ## [2026-08-17] Arquitectura: Estandarización Modular Global de Capas (`src/`)
 **Problema:**
 - Existía disparidad en la organización entre carpetas: mientras `componentes` y `selectores` contaban con barriles de exportación y alias `@/`, las capas de `hooks/`, `servicios/`, `constantes/`, `utiles/` y `almacen/` mantenían rutas relativas frágiles (`../../..`) y carecían de puntos de entrada unificados (`index.ts`).

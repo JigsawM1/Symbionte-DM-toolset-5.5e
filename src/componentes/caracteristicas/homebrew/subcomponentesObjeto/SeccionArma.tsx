@@ -6,7 +6,20 @@ import {
   EXPLICACIONES_PROPIEDADES,
   EXPLICACIONES_MAESTRIAS
 } from "@/constantes/objetoConstantes";
+import { SelectorDesplegable } from "@/componentes/comunes";
 import { X } from "lucide-react";
+
+const OPCIONES_TIPO_ATAQUE = [
+  { valor: "Cuerpo a Cuerpo", etiqueta: "Cuerpo a Cuerpo" },
+  { valor: "A Distancia", etiqueta: "A Distancia" }
+];
+
+const OPCIONES_MAESTRIAS = MAESTRIAS_DND_55.map((m) => ({ valor: m, etiqueta: m }));
+
+const OPCIONES_TIPO_DANO_ARMA = TIPOS_DAÑO_DND.map((t) => ({
+  valor: t,
+  etiqueta: t.charAt(0).toUpperCase() + t.slice(1)
+}));
 
 interface Props {
   oTipoAtaque: "Cuerpo a Cuerpo" | "A Distancia";
@@ -64,29 +77,22 @@ export const SeccionArma: React.FC<Props> = ({
       <div className={estilos.filaDobleForm}>
         <div className={estilos.campoForm}>
           <label className={estilos.labelForm}>Tipo de Ataque:</label>
-          <select
-            value={oTipoAtaque}
-            onChange={(e) => setOTipoAtaque(e.target.value as "Cuerpo a Cuerpo" | "A Distancia")}
-            className={estilos.selectForm}
-          >
-            <option value="Cuerpo a Cuerpo">Cuerpo a Cuerpo</option>
-            <option value="A Distancia">A Distancia</option>
-          </select>
+          <SelectorDesplegable
+            valor={oTipoAtaque}
+            alCambiar={(val) => setOTipoAtaque(val as "Cuerpo a Cuerpo" | "A Distancia")}
+            opciones={OPCIONES_TIPO_ATAQUE}
+          />
         </div>
 
         <div className={estilos.campoForm}>
           <label className={estilos.labelForm}>Maestría de Arma (D&D 5.5e):</label>
           <div className={estilos.tooltipContenedor} style={{ width: "100%" }}>
-            <select
-              value={oMaestria}
-              onChange={(e) => setOMaestria(e.target.value)}
-              className={estilos.selectForm}
-              required
-            >
-              {MAESTRIAS_DND_55.map((m) => (
-                <option key={m} value={m}>{m}</option>
-              ))}
-            </select>
+            <SelectorDesplegable
+              valor={oMaestria}
+              alCambiar={(val) => setOMaestria(val)}
+              opciones={OPCIONES_MAESTRIAS}
+              placeholder="Seleccionar maestría..."
+            />
             {oMaestria && EXPLICACIONES_MAESTRIAS[oMaestria] && (
               <div className={`${estilos.tooltipFlotante} ${estilos.tooltipMaestria}`}>
                 <span className={estilos.tooltipTitulo}>{oMaestria}</span>
@@ -111,17 +117,11 @@ export const SeccionArma: React.FC<Props> = ({
 
         <div className={estilos.campoForm}>
           <label className={estilos.labelForm}>Tipo de Daño:</label>
-          <select
-            value={oTipoDano}
-            onChange={(e) => setOTipoDano(e.target.value)}
-            className={estilos.selectForm}
-          >
-            {TIPOS_DAÑO_DND.map((t) => (
-              <option key={t} value={t}>
-                {t.charAt(0).toUpperCase() + t.slice(1)}
-              </option>
-            ))}
-          </select>
+          <SelectorDesplegable
+            valor={oTipoDano}
+            alCambiar={(val) => setOTipoDano(val)}
+            opciones={OPCIONES_TIPO_DANO_ARMA}
+          />
         </div>
       </div>
 

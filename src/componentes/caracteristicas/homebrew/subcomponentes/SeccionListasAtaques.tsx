@@ -1,16 +1,39 @@
 import React from "react";
 import { Plus, Trash2, Edit2 } from "lucide-react";
 import { RasgoBase, AccionMonstruo, AccionRapida } from "@/tipos";
+import { SelectorDesplegable } from "@/componentes/comunes";
 import estilos from "../FormularioCriatura.module.css";
+
+const OPCIONES_TIPOS_DANO_RAPIDO = [
+  { valor: "ácido", etiqueta: "Ácido" },
+  { valor: "fuego", etiqueta: "Fuego" },
+  { valor: "frío", etiqueta: "Frío" },
+  { valor: "relámpago", etiqueta: "Relámpago" },
+  { valor: "trueno", etiqueta: "Trueno" },
+  { valor: "veneno", etiqueta: "Veneno" },
+  { valor: "fuerza_daño", etiqueta: "Fuerza" },
+  { valor: "radiante", etiqueta: "Radiante" },
+  { valor: "necrótico", etiqueta: "Necrótico" },
+  { valor: "psíquico", etiqueta: "Psíquico" },
+  { valor: "perforante", etiqueta: "Perforante" },
+  { valor: "perforante mágico", etiqueta: "Perforante Mágico" },
+  { valor: "cortante", etiqueta: "Cortante" },
+  { valor: "cortante mágico", etiqueta: "Cortante Mágico" },
+  { valor: "contundente", etiqueta: "Contundente" },
+  { valor: "contundente mágico", etiqueta: "Contundente Mágico" }
+];
 
 interface SeccionListasAtaquesProps {
   monstruoForm: {
     accionesRapidas?: AccionRapida[];
     rasgos?: RasgoBase[];
     acciones?: AccionMonstruo[];
+    accionesAdicionales?: AccionMonstruo[];
     reacciones?: RasgoBase[];
+    accionesLegendariasTotal?: number;
     accionesLegendarias?: RasgoBase[];
   };
+  actualizarGeneral?: (campo: string, valor: unknown) => void;
   
   // Ataques Rápidos
   tQNombre: string; setTQNombre: (v: string) => void;
@@ -45,6 +68,18 @@ interface SeccionListasAtaquesProps {
   cancelarEditarAccion: () => void;
   eliminarAccionIdx: (idx: number) => void;
 
+  // Acciones Adicionales (Bonus Actions)
+  tAccionAdicionalNombre: string; setTAccionAdicionalNombre: (v: string) => void;
+  tAccionAdicionalDesc: string; setTAccionAdicionalDesc: (v: string) => void;
+  tAccionAdicionalBono: string; setTAccionAdicionalBono: (v: string) => void;
+  tAccionAdicionalDaño: string; setTAccionAdicionalDaño: (v: string) => void;
+  tAccionAdicionalUso: string; setTAccionAdicionalUso: (v: string) => void;
+  accionAdicionalEdicionIdx: number | null;
+  agregarAccionAdicional: () => void;
+  iniciarEditarAccionAdicional: (idx: number) => void;
+  cancelarEditarAccionAdicional: () => void;
+  eliminarAccionAdicionalIdx: (idx: number) => void;
+
   // Reacciones
   tReaccionNombre: string; setTReaccionNombre: (v: string) => void;
   tReaccionDesc: string; setTReaccionDesc: (v: string) => void;
@@ -76,6 +111,7 @@ const calcFilas = (valor: string, minFilas = 2, maxFilas = 20): number => {
 
 export const SeccionListasAtaques: React.FC<SeccionListasAtaquesProps> = ({
   monstruoForm,
+  actualizarGeneral,
   tQNombre, setTQNombre,
   tQBono, setTQBono,
   tQDados, setTQDados,
@@ -103,6 +139,16 @@ export const SeccionListasAtaques: React.FC<SeccionListasAtaquesProps> = ({
   iniciarEditarAccion,
   cancelarEditarAccion,
   eliminarAccionIdx,
+  tAccionAdicionalNombre, setTAccionAdicionalNombre,
+  tAccionAdicionalDesc, setTAccionAdicionalDesc,
+  tAccionAdicionalBono, setTAccionAdicionalBono,
+  tAccionAdicionalDaño, setTAccionAdicionalDaño,
+  tAccionAdicionalUso, setTAccionAdicionalUso,
+  accionAdicionalEdicionIdx,
+  agregarAccionAdicional,
+  iniciarEditarAccionAdicional,
+  cancelarEditarAccionAdicional,
+  eliminarAccionAdicionalIdx,
   tReaccionNombre, setTReaccionNombre,
   tReaccionDesc, setTReaccionDesc,
   tReaccionUso, setTReaccionUso,
@@ -152,28 +198,14 @@ export const SeccionListasAtaques: React.FC<SeccionListasAtaquesProps> = ({
               placeholder="Dados (2d6+3)"
               className={estilos.inputDinamicoMini}
             />
-            <select
-              value={tQTipo}
-              onChange={(e) => setTQTipo(e.target.value)}
-              className={estilos.selectDinamicoMini}
-            >
-              <option value="ácido">Ácido</option>
-              <option value="fuego">Fuego</option>
-              <option value="frío">Frío</option>
-              <option value="relámpago">Relámpago</option>
-              <option value="trueno">Trueno</option>
-              <option value="veneno">Veneno</option>
-              <option value="fuerza_daño">Fuerza</option>
-              <option value="radiante">Radiante</option>
-              <option value="necrótico">Necrótico</option>
-              <option value="psíquico">Psíquico</option>
-              <option value="perforante">Perforante</option>
-              <option value="perforante mágico">Perforante Mágico</option>
-              <option value="cortante">Cortante</option>
-              <option value="cortante mágico">Cortante Mágico</option>
-              <option value="contundente">Contundente</option>
-              <option value="contundente mágico">Contundente Mágico</option>
-            </select>
+            <div style={{ minWidth: "125px" }}>
+              <SelectorDesplegable
+                valor={tQTipo}
+                alCambiar={setTQTipo}
+                opciones={OPCIONES_TIPOS_DANO_RAPIDO}
+                tamano="compacto"
+              />
+            </div>
             <button
               type="button"
               onClick={agregarQuickAction}
@@ -334,7 +366,7 @@ export const SeccionListasAtaques: React.FC<SeccionListasAtaquesProps> = ({
         )}
       </div>
 
-      {/* ACCIONES Y ATAQUES */}
+      {/* ACCIONES Y ATAQUES PRINCIPALES */}
       <div className={estilos.bloqueDinamicoForm}>
         <div className={estilos.tituloBloqueDinamico}>
           {accionEdicionIdx !== null
@@ -454,6 +486,126 @@ export const SeccionListasAtaques: React.FC<SeccionListasAtaquesProps> = ({
         )}
       </div>
 
+      {/* ACCIONES ADICIONALES (BONUS ACTIONS) */}
+      <div className={estilos.bloqueDinamicoForm}>
+        <div className={estilos.tituloBloqueDinamico}>
+          {accionAdicionalEdicionIdx !== null
+            ? "EDITANDO ACCIÓN ADICIONAL"
+            : `ACCIONES ADICIONALES (${monstruoForm.accionesAdicionales?.length || 0})`}
+        </div>
+        <div className={estilos.camposDinamicosGrupo}>
+          <div className={estilos.filaCamposAlineados}>
+            <input
+              type="text"
+              value={tAccionAdicionalNombre}
+              onChange={(e) => setTAccionAdicionalNombre(e.target.value)}
+              placeholder="Nombre de la acción adicional"
+              className={estilos.inputDinamicoMediano}
+            />
+            <input
+              type="text"
+              value={tAccionAdicionalBono}
+              onChange={(e) => setTAccionAdicionalBono(e.target.value)}
+              placeholder="Bono (+5)"
+              className={estilos.inputDinamicoMini}
+            />
+            <input
+              type="text"
+              value={tAccionAdicionalDaño}
+              onChange={(e) => setTAccionAdicionalDaño(e.target.value)}
+              placeholder="Daño (1d6+2)"
+              className={estilos.inputDinamicoMini}
+            />
+            <input
+              type="text"
+              value={tAccionAdicionalUso}
+              onChange={(e) => setTAccionAdicionalUso(e.target.value)}
+              placeholder="Recarga/Uso"
+              className={estilos.inputDinamicoMini}
+            />
+          </div>
+          <textarea
+            value={tAccionAdicionalDesc}
+            onChange={(e) => setTAccionAdicionalDesc(e.target.value)}
+            placeholder="Descripción detallada de la acción adicional..."
+            className={estilos.textareaDinamico}
+            rows={calcFilas(tAccionAdicionalDesc, 3)}
+          />
+          <div style={{ display: "flex", gap: "8px" }}>
+            <button
+              type="button"
+              onClick={agregarAccionAdicional}
+              className={estilos.botonAgregarCompleto}
+              style={{
+                flex: 1,
+                backgroundColor: accionAdicionalEdicionIdx !== null ? "var(--color-exito)" : undefined
+              }}
+            >
+              {accionAdicionalEdicionIdx !== null ? "Guardar Cambios Acción Adicional" : "Agregar Acción Adicional"}
+            </button>
+            {accionAdicionalEdicionIdx !== null && (
+              <button
+                type="button"
+                onClick={cancelarEditarAccionAdicional}
+                className={estilos.botonAgregarCompleto}
+                style={{
+                  width: "100px",
+                  backgroundColor: "var(--color-daño)"
+                }}
+              >
+                Cancelar
+              </button>
+            )}
+          </div>
+        </div>
+        {/* Lista acciones adicionales */}
+        {monstruoForm.accionesAdicionales && monstruoForm.accionesAdicionales.length > 0 && (
+          <div className={estilos.listaDinamicaVisual}>
+            {monstruoForm.accionesAdicionales.map((a, idx) => (
+              <div key={`aa_v_${idx}`} className={estilos.itemDinamicoVisual}>
+                <div style={{ flex: 1, marginRight: "10px" }}>
+                  <strong>
+                    {a.nombre} {a.uso ? `(${a.uso})` : ""}
+                  </strong>
+                  :
+                  <span style={{ fontSize: "11px", marginLeft: "5px", color: "var(--color-borde-cian)" }}>
+                    {a.bonificadorAtaque ? `+${a.bonificadorAtaque}` : ""} {a.daño ? `| ${a.daño}` : ""}
+                  </span>
+                  <div
+                    style={{
+                      fontSize: "11px",
+                      color: "var(--color-texto-secundario)",
+                      whiteSpace: "pre-wrap"
+                    }}
+                  >
+                    {a.descripcion}
+                  </div>
+                </div>
+                <div style={{ display: "flex", gap: "6px" }}>
+                  <button
+                    type="button"
+                    onClick={() => iniciarEditarAccionAdicional(idx)}
+                    className={estilos.botonEliminarDinamico}
+                    style={{ color: "var(--color-borde-cian)" }}
+                    title="Editar Acción Adicional"
+                  >
+                    <Edit2 size={12} />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => eliminarAccionAdicionalIdx(idx)}
+                    className={estilos.botonEliminarDinamico}
+                    title="Eliminar Acción Adicional"
+                  >
+                    <Trash2 size={12} />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
       {/* REACCIONES */}
       <div className={estilos.bloqueDinamicoForm}>
         <div className={estilos.tituloBloqueDinamico}>
@@ -561,6 +713,22 @@ export const SeccionListasAtaques: React.FC<SeccionListasAtaquesProps> = ({
             : `ACCIONES LEGENDARIAS (${monstruoForm.accionesLegendarias?.length || 0})`}
         </div>
         <div className={estilos.camposDinamicosGrupo}>
+          {/* Input para el total de acciones legendarias por ronda */}
+          <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "4px" }}>
+            <label className={estilos.labelForm} style={{ margin: 0, fontSize: "11.5px" }}>
+              Total de Acciones Legendarias (por ronda):
+            </label>
+            <input
+              type="number"
+              min={1}
+              max={10}
+              value={monstruoForm.accionesLegendariasTotal ?? 3}
+              onChange={(e) => actualizarGeneral && actualizarGeneral("accionesLegendariasTotal", parseInt(e.target.value, 10) || 3)}
+              className={estilos.inputDinamicoMini}
+              style={{ width: "55px", textAlign: "center" }}
+            />
+          </div>
+
           <input
             type="text"
             value={tLegendariaNombre}
@@ -572,7 +740,7 @@ export const SeccionListasAtaques: React.FC<SeccionListasAtaquesProps> = ({
             type="text"
             value={tLegendariaUso}
             onChange={(e) => setTLegendariaUso(e.target.value)}
-            placeholder="Costo en acciones (ej. consume 2 acciones)"
+            placeholder="Costo (ej. 1 acción o 2 acciones)"
             className={estilos.inputDinamicoMediano}
           />
           <textarea
@@ -616,7 +784,7 @@ export const SeccionListasAtaques: React.FC<SeccionListasAtaquesProps> = ({
               <div key={`leg_v_${idx}`} className={estilos.itemDinamicoVisual}>
                 <div style={{ flex: 1, marginRight: "10px" }}>
                   <strong>
-                    {l.nombre} {l.uso ? `(${l.uso})` : ""}
+                    {l.nombre} {l.uso ? `(Costo: ${l.uso})` : ""}
                   </strong>
                   :
                   <div

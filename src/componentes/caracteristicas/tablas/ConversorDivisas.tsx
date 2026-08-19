@@ -1,6 +1,15 @@
 import React, { useState } from "react";
 import { Coins } from "lucide-react";
+import { SelectorDesplegable } from "@/componentes/comunes";
 import estilosClases from "./ConversorDivisas.module.css";
+
+const OPCIONES_MONEDA_ORIGEN = [
+  { valor: "PC", etiqueta: "Cobre (PC)", color: "#b87333" },
+  { valor: "PP", etiqueta: "Plata (PP)", color: "#aaa9ad" },
+  { valor: "PE", etiqueta: "Electro (PE)", color: "#e5e4e2" },
+  { valor: "PO", etiqueta: "Oro (PO)", color: "#ffd700" },
+  { valor: "PPT", etiqueta: "Platino (PPT)", color: "#e5e4e2" }
+];
 
 export const ConversorDivisas: React.FC = () => {
   const [cantidadDivisa, setCantidadDivisa] = useState<number>(100);
@@ -30,13 +39,13 @@ export const ConversorDivisas: React.FC = () => {
   return (
     <div className={estilosClases.tarjetaCalculadora}>
       <div className={estilosClases.tituloCalculadora}>
-        <Coins size={12} style={{ color: "#f9e2af", marginRight: "4px" }} />
-        <span>Conversor de Divisas (Cambio de Monedas D&D 5e)</span>
+        <Coins size={12} style={{ color: "var(--color-oro)", marginRight: "4px" }} />
+        <span>Conversor de Divisas</span>
       </div>
 
       <div className={estilosClases.cuerpoCalculadora}>
         <div className={estilosClases.filaFormulario}>
-          <label className={estilosClases.labelForm}>Cantidad a cambiar:</label>
+          <label className={estilosClases.labelForm}>Cantidad a Convertir:</label>
           <input
             type="number"
             value={cantidadDivisa}
@@ -48,17 +57,14 @@ export const ConversorDivisas: React.FC = () => {
 
         <div className={estilosClases.filaFormulario}>
           <label className={estilosClases.labelForm}>Moneda Origen:</label>
-          <select
-            value={monedaOrigen}
-            onChange={(e) => setMonedaOrigen(e.target.value as "PC" | "PP" | "PE" | "PO" | "PPT")}
-            className={estilosClases.selectForm}
-          >
-            <option value="PC">Cobre (PC)</option>
-            <option value="PP">Plata (PP)</option>
-            <option value="PE">Electro (PE)</option>
-            <option value="PO">Oro (PO)</option>
-            <option value="PPT">Platino (PPT)</option>
-          </select>
+          <div style={{ width: "200px" }}>
+            <SelectorDesplegable
+              valor={monedaOrigen}
+              alCambiar={(val) => setMonedaOrigen(val as "PC" | "PP" | "PE" | "PO" | "PPT")}
+              opciones={OPCIONES_MONEDA_ORIGEN}
+              tamano="compacto"
+            />
+          </div>
         </div>
 
         <div className={estilosClases.contenedorCambios}>

@@ -154,7 +154,7 @@
 
 .selectForm {
   font-size: 13px;
-  padding: 6px 10px;
+  padding: 6px 28px 6px 10px;
   height: 34px;
   width: 100%;
   background-color: var(--color-fondo-tarjeta);
@@ -163,6 +163,9 @@
   color: var(--color-texto-principal);
   outline: none;
   cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
 }
 
 .selectForm:focus {
@@ -371,18 +374,23 @@
 
 .selectDinamicoMini {
   font-size: 12.5px;
-  padding: 0px 6px;
+  padding: 0px 22px 0px 6px;
   height: 30px;
-  width: 85px;
+  width: 95px;
   background-color: var(--color-fondo-profundo);
   border: 1.5px solid var(--color-borde-brutal);
   border-radius: 4px;
   color: var(--color-texto-principal);
   outline: none;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
 }
 
 .selectDinamicoMini:focus {
   border-color: var(--color-borde-cian);
+  box-shadow: 0 0 0 2px rgba(0, 245, 212, 0.18);
 }
 
 .botonAgregarDinamico {

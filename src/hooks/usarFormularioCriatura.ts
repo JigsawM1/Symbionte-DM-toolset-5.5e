@@ -14,6 +14,8 @@ export const estadoInicialCriatura = {
   iniciativaBonificador: 0,
   velocidad: "30 pies",
   sentidos: "",
+  tamaño: "",
+  alineacion: "",
   idiomas: "",
   desafio: "1",
   fuente: "Manual de Monstruos",
@@ -27,12 +29,21 @@ export const estadoInicialCriatura = {
   accionesRapidas: [],
   rasgos: [],
   acciones: [],
+  accionesAdicionales: [],
   reacciones: [],
+  accionesLegendariasTotal: 3,
   accionesLegendarias: []
 };
 
 const rasgoInicial: RasgoBase = { nombre: "", descripcion: "", uso: "" };
 const accionInicial: Omit<AccionMonstruo, "bonificadorAtaque"> & { bonificadorAtaque: string } = {
+  nombre: "",
+  descripcion: "",
+  bonificadorAtaque: "",
+  daño: "",
+  uso: ""
+};
+const accionAdicionalInicial: Omit<AccionMonstruo, "bonificadorAtaque"> & { bonificadorAtaque: string } = {
   nombre: "",
   descripcion: "",
   bonificadorAtaque: "",
@@ -71,6 +82,17 @@ export function usarFormularioCriatura(idEnEdicion: string | null, alGuardarExit
     setMonstruoForm((prev) => ({ ...prev, acciones: accionesSaneadas }));
   }, []);
 
+  const setAccionesAdicionalesForm = useCallback((nuevasAccionesRaw: Array<Omit<AccionMonstruo, "bonificadorAtaque"> & { bonificadorAtaque: string }>) => {
+    const accionesSaneadas = nuevasAccionesRaw.map((a) => ({
+      nombre: a.nombre,
+      descripcion: a.descripcion,
+      bonificadorAtaque: a.bonificadorAtaque ? parseInt(a.bonificadorAtaque, 10) : undefined,
+      daño: a.daño || undefined,
+      uso: a.uso || undefined
+    }));
+    setMonstruoForm((prev) => ({ ...prev, accionesAdicionales: accionesSaneadas }));
+  }, []);
+
   const setReaccionesForm = useCallback((nuevasReacciones: RasgoBase[]) => {
     setMonstruoForm((prev) => ({ ...prev, reacciones: nuevasReacciones }));
   }, []);
@@ -96,6 +118,15 @@ export function usarFormularioCriatura(idEnEdicion: string | null, alGuardarExit
   }));
   const listaAcciones = usarListaDinamica(accionInicial, setAccionesForm, accionesRaw);
 
+  const accionesAdicionalesRaw = (monstruoForm.accionesAdicionales || []).map((a) => ({
+    nombre: a.nombre,
+    descripcion: a.descripcion,
+    bonificadorAtaque: a.bonificadorAtaque !== undefined ? String(a.bonificadorAtaque) : "",
+    daño: a.daño || "",
+    uso: a.uso || ""
+  }));
+  const listaAccionesAdicionales = usarListaDinamica(accionAdicionalInicial, setAccionesAdicionalesForm, accionesAdicionalesRaw);
+
   const listaReacciones = usarListaDinamica(reaccionInicial, setReaccionesForm, monstruoForm.reacciones || []);
   const listaLegendarias = usarListaDinamica(legendariaInicial, setLegendariasForm, monstruoForm.accionesLegendarias || []);
   const listaQuickActions = usarListaDinamica(quickActionInicial, setQuickActionsForm, monstruoForm.accionesRapidas || []);
@@ -106,12 +137,14 @@ export function usarFormularioCriatura(idEnEdicion: string | null, alGuardarExit
     setSubDefensas("inmunidades");
     listaRasgos.limpiarItemForm();
     listaAcciones.limpiarItemForm();
+    listaAccionesAdicionales.limpiarItemForm();
     listaReacciones.limpiarItemForm();
     listaLegendarias.limpiarItemForm();
     listaQuickActions.limpiarItemForm();
   }, [
     listaRasgos.limpiarItemForm,
     listaAcciones.limpiarItemForm,
+    listaAccionesAdicionales.limpiarItemForm,
     listaReacciones.limpiarItemForm,
     listaLegendarias.limpiarItemForm,
     listaQuickActions.limpiarItemForm
@@ -128,6 +161,8 @@ export function usarFormularioCriatura(idEnEdicion: string | null, alGuardarExit
       iniciativaBonificador: m.iniciativaBonificador || 0,
       velocidad: m.velocidad ? formatearVelocidad(m.velocidad) : "30 pies",
       sentidos: m.sentidos ? formatearSentidos(m.sentidos) : "",
+      tamaño: m.tamaño || "",
+      alineacion: m.alineacion || "",
       idiomas: m.idiomas || "",
       desafio: m.desafio || "1",
       fuente: m.fuente || "Manual de Monstruos",
@@ -141,7 +176,9 @@ export function usarFormularioCriatura(idEnEdicion: string | null, alGuardarExit
       accionesRapidas: m.accionesRapidas || [],
       rasgos: m.rasgos || [],
       acciones: m.acciones || [],
+      accionesAdicionales: m.accionesAdicionales || [],
       reacciones: m.reacciones || [],
+      accionesLegendariasTotal: typeof m.accionesLegendariasTotal === "number" ? m.accionesLegendariasTotal : (Number(m.accionesLegendariasTotal) || 3),
       accionesLegendarias: m.accionesLegendarias || []
     });
     setSubPestanaCriatura("general");
@@ -257,6 +294,17 @@ export function usarFormularioCriatura(idEnEdicion: string | null, alGuardarExit
     iniciarEditarAccion: listaAcciones.iniciarEdicion,
     cancelarEditarAccion: listaAcciones.cancelarEdicion,
     eliminarAccionIdx: listaAcciones.eliminarItem,
+
+    tAccionAdicionalNombre: listaAccionesAdicionales.itemForm.nombre, setTAccionAdicionalNombre: (v: string) => listaAccionesAdicionales.actualizarCampoItem("nombre", v),
+    tAccionAdicionalDesc: listaAccionesAdicionales.itemForm.descripcion || "", setTAccionAdicionalDesc: (v: string) => listaAccionesAdicionales.actualizarCampoItem("descripcion", v),
+    tAccionAdicionalBono: listaAccionesAdicionales.itemForm.bonificadorAtaque, setTAccionAdicionalBono: (v: string) => listaAccionesAdicionales.actualizarCampoItem("bonificadorAtaque", v),
+    tAccionAdicionalDaño: listaAccionesAdicionales.itemForm.daño || "", setTAccionAdicionalDaño: (v: string) => listaAccionesAdicionales.actualizarCampoItem("daño", v),
+    tAccionAdicionalUso: listaAccionesAdicionales.itemForm.uso || "", setTAccionAdicionalUso: (v: string) => listaAccionesAdicionales.actualizarCampoItem("uso", v),
+    accionAdicionalEdicionIdx: listaAccionesAdicionales.edicionIdx,
+    agregarAccionAdicional: listaAccionesAdicionales.agregarItem,
+    iniciarEditarAccionAdicional: listaAccionesAdicionales.iniciarEdicion,
+    cancelarEditarAccionAdicional: listaAccionesAdicionales.cancelarEdicion,
+    eliminarAccionAdicionalIdx: listaAccionesAdicionales.eliminarItem,
 
     tReaccionNombre: listaReacciones.itemForm.nombre, setTReaccionNombre: (v: string) => listaReacciones.actualizarCampoItem("nombre", v),
     tReaccionDesc: listaReacciones.itemForm.descripcion || "", setTReaccionDesc: (v: string) => listaReacciones.actualizarCampoItem("descripcion", v),

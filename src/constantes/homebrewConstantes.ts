@@ -74,3 +74,25 @@ export const Criatura_Tipos = [
   { clave: "No Muerto", etiqueta: "No Muerto" },
   { clave: "Planta", etiqueta: "Planta" },
 ];
+
+export const TAMAÑOS_CRIATURA = [
+  "Diminuto",
+  "Pequeño",
+  "Mediano",
+  "Grande",
+  "Enorme",
+  "Gargantuesco"
+];
+
+export const ALINEAMIENTOS_DND = [
+  "Legal bueno",
+  "Neutral bueno",
+  "Caótico bueno",
+  "Legal neutral",
+  "Neutral",
+  "Caótico neutral",
+  "Legal malvado",
+  "Neutral malvado",
+  "Caótico malvado",
+  "-"
+];

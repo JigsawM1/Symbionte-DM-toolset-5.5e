@@ -1,7 +1,15 @@
 import React from "react";
 import { SubcategoriaEquipo } from "@/almacen/usarAlmacenDM";
 import { ObjetoHomebrew } from "@/tipos";
+import { SelectorDesplegable } from "@/componentes/comunes";
 import { Backpack, X } from "lucide-react";
+
+const OPCIONES_TIPO_VENENO = [
+  { valor: "Contacto", etiqueta: "Contacto (Contact)" },
+  { valor: "Ingerido", etiqueta: "Ingerido (Ingested)" },
+  { valor: "Inhalado", etiqueta: "Inhalado (Inhaled)" },
+  { valor: "Lesión", etiqueta: "Lesión (Injury)" }
+];
 
 interface Props {
   oCantidad: number | "";
@@ -135,16 +143,11 @@ export const SeccionEquipoContenedor: React.FC<Props> = ({
               <div className={estilos.filaDobleForm}>
                 <div className={estilos.campoForm}>
                   <label className={estilos.labelForm}>Tipo de Veneno:</label>
-                  <select
-                    value={oTipoVeneno}
-                    onChange={(e) => setOTipoVeneno(e.target.value as "Contacto" | "Ingerido" | "Inhalado" | "Lesión")}
-                    className={estilos.selectForm}
-                  >
-                    <option value="Contacto">Contacto (Contact)</option>
-                    <option value="Ingerido">Ingerido (Ingested)</option>
-                    <option value="Inhalado">Inhalado (Inhaled)</option>
-                    <option value="Lesión">Lesión (Injury)</option>
-                  </select>
+                  <SelectorDesplegable
+                    valor={oTipoVeneno}
+                    alCambiar={(val) => setOTipoVeneno(val as "Contacto" | "Ingerido" | "Inhalado" | "Lesión")}
+                    opciones={OPCIONES_TIPO_VENENO}
+                  />
                 </div>
                 <div className={estilos.campoForm}>
                   <label className={estilos.labelForm}>CD Salvación (Cons.):</label>

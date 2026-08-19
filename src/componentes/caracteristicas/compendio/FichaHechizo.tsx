@@ -3,6 +3,7 @@ import { Clock, MapPin, Layers, X, Edit2 } from "lucide-react";
 import { lanzarDadosTaleSpire } from "@/utiles/lanzadorDados";
 import { calcularFormulaEscalada } from "@/utiles/utilesConjuros";
 import { HechizoBase } from "@/tipos";
+import { SelectorDesplegable } from "@/componentes/comunes";
 import estilosClases from "./FichaHechizo.module.css";
 
 interface FichaHechizoProps {
@@ -179,20 +180,19 @@ export const FichaHechizo: React.FC<FichaHechizoProps> = React.memo(({ hechizo, 
             {esEscalable && (
               <div className={estilosClases.seccionUpcast}>
                 <div className={estilosClases.lineaDivisoria}></div>
-                <div className={estilosClases.upcastControlFila}>
                   <div className={estilosClases.upcastSelectContenedor}>
                     <span className={estilosClases.upcastLabel}>Lanzar con Ranura:</span>
-                    <select
-                      value={nivelLanzamiento}
-                      onChange={(e) => setNivelLanzamiento(Number(e.target.value))}
-                      className={estilosClases.upcastSelect}
-                    >
-                      {Array.from({ length: 10 - nivelBase }, (_, i) => nivelBase + i).map((lvl) => (
-                        <option key={lvl} value={lvl}>
-                          Nivel {lvl} {lvl === nivelBase ? "(Base)" : ""}
-                        </option>
-                      ))}
-                    </select>
+                    <div style={{ minWidth: "130px" }}>
+                      <SelectorDesplegable
+                        valor={String(nivelLanzamiento)}
+                        alCambiar={(val) => setNivelLanzamiento(Number(val))}
+                        opciones={Array.from({ length: 10 - nivelBase }, (_, i) => nivelBase + i).map((lvl) => ({
+                          valor: String(lvl),
+                          etiqueta: `Nivel ${lvl} ${lvl === nivelBase ? "(Base)" : ""}`
+                        }))}
+                        tamano="compacto"
+                      />
+                    </div>
                   </div>
                   {nivelLanzamiento > nivelBase && (
                     <div className={estilosClases.formulasVista}>
@@ -201,8 +201,7 @@ export const FichaHechizo: React.FC<FichaHechizoProps> = React.memo(({ hechizo, 
                     </div>
                   )}
                 </div>
-              </div>
-            )}
+              )}
 
             {/* Botón de Lanzamiento de Dados */}
             {hechizo.dadosDaño && hechizo.dadosDaño !== "N/A" && (

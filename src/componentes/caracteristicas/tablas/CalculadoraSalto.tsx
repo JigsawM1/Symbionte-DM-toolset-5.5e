@@ -1,6 +1,12 @@
 import React, { useState } from "react";
 import { ArrowUp } from "lucide-react";
+import { SelectorDesplegable } from "@/componentes/comunes";
 import estilos from "./CalculadoraSalto.module.css";
+
+const OPCIONES_CARRERA = [
+  { valor: "si", etiqueta: "Sí (Carrera de 10 pies)" },
+  { valor: "no", etiqueta: "No (Salto estático)" }
+];
 
 export const CalculadoraSalto: React.FC = () => {
   const [puntuacionFuerza, setPuntuacionFuerza] = useState(10);
@@ -39,14 +45,14 @@ export const CalculadoraSalto: React.FC = () => {
 
         <div className={estilos.filaFormulario}>
           <label className={estilos.labelForm}>¿Carrera previa (10+ pies)?:</label>
-          <select
-            value={conCarrera ? "si" : "no"}
-            onChange={(e) => setConCarrera(e.target.value === "si")}
-            className={estilos.selectForm}
-          >
-            <option value="si">Sí (Carrera de 10 pies)</option>
-            <option value="no">No (Salto estático)</option>
-          </select>
+          <div style={{ width: "200px" }}>
+            <SelectorDesplegable
+              valor={conCarrera ? "si" : "no"}
+              alCambiar={(val) => setConCarrera(val === "si")}
+              opciones={OPCIONES_CARRERA}
+              tamano="compacto"
+            />
+          </div>
         </div>
 
         <div className={estilos.resultadoCalculoBox}>

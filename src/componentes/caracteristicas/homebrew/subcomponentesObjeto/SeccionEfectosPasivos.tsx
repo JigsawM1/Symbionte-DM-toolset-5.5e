@@ -2,7 +2,19 @@ import React from "react";
 import { Rareza } from "@/almacen/usarAlmacenDM";
 import { EfectoPasivo } from "@/tipos";
 import { OPCIONES_ATRIBUTOS } from "@/constantes/objetoConstantes";
+import { SelectorDesplegable } from "@/componentes/comunes";
 import { Sparkles, X } from "lucide-react";
+
+const OPCIONES_CATEGORIA_BONO = [
+  { valor: "Resistencia", etiqueta: "Resistencia" },
+  { valor: "Inmunidad", etiqueta: "Inmunidad" },
+  { valor: "Foco Arcano", etiqueta: "Foco Arcano" },
+  { valor: "CA", etiqueta: "Clase de Armadura (CA)" },
+  { valor: "CARACTERÍSTICA", etiqueta: "Característica / Atributo" },
+  { valor: "SALVACIÓN", etiqueta: "Salvación" },
+  { valor: "HABILIDAD", etiqueta: "Pericia / Habilidad" },
+  { valor: "Otro", etiqueta: "Otro Efecto" }
+];
 
 interface Props {
   oEsMagico: boolean;
@@ -214,10 +226,9 @@ export const SeccionEfectosPasivos: React.FC<Props> = ({
             <div className={estilos.filaAgregarBono}>
               <div className={estilos.campoBonoCategoria}>
                 <label className={estilos.labelForm}>Tipo de Efecto:</label>
-                <select
-                  value={oNuevoBonoCategoria}
-                  onChange={(e) => {
-                    const cat = e.target.value;
+                <SelectorDesplegable
+                  valor={oNuevoBonoCategoria}
+                  alCambiar={(cat) => {
                     setONuevoBonoCategoria(cat);
                     if (OPCIONES_ATRIBUTOS[cat]) {
                       setONuevoBonoBono(OPCIONES_ATRIBUTOS[cat][0]);
@@ -225,30 +236,17 @@ export const SeccionEfectosPasivos: React.FC<Props> = ({
                       setONuevoBonoBono("");
                     }
                   }}
-                  className={estilos.selectForm}
-                >
-                  <option value="Resistencia">Resistencia</option>
-                  <option value="Inmunidad">Inmunidad</option>
-                  <option value="Foco Arcano">Foco Arcano</option>
-                  <option value="CA">Clase de Armadura (CA)</option>
-                  <option value="CARACTERÍSTICA">Característica / Atributo</option>
-                  <option value="SALVACIÓN">Salvación</option>
-                  <option value="HABILIDAD">Pericia / Habilidad</option>
-                  <option value="Otro">Otro Efecto</option>
-                </select>
+                  opciones={OPCIONES_CATEGORIA_BONO}
+                />
               </div>
               <div className={estilos.campoBonoNombre}>
                 <label className={estilos.labelForm}>Detalle / Nombre:</label>
                 {OPCIONES_ATRIBUTOS[oNuevoBonoCategoria] ? (
-                  <select
-                    value={oNuevoBonoBono}
-                    onChange={(e) => setONuevoBonoBono(e.target.value)}
-                    className={estilos.selectForm}
-                  >
-                    {OPCIONES_ATRIBUTOS[oNuevoBonoCategoria].map((op) => (
-                      <option key={op} value={op}>{op}</option>
-                    ))}
-                  </select>
+                  <SelectorDesplegable
+                    valor={oNuevoBonoBono}
+                    alCambiar={(val) => setONuevoBonoBono(val)}
+                    opciones={OPCIONES_ATRIBUTOS[oNuevoBonoCategoria].map((op) => ({ valor: op, etiqueta: op }))}
+                  />
                 ) : (
                   <input
                     type="text"

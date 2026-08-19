@@ -2,7 +2,50 @@ import React from "react";
 import { Rareza, SubcategoriaEquipo } from "@/almacen/usarAlmacenDM";
 import { TipoMoneda } from "@/tipos";
 import { COLORES_RAREZA_HSL } from "@/constantes/objetoConstantes";
+import { SelectorDesplegable } from "@/componentes/comunes";
 import { Scale, Coins, X } from "lucide-react";
+
+const OPCIONES_TIPO_PRINCIPAL = [
+  { valor: "Arma", etiqueta: "Arma" },
+  { valor: "Armadura", etiqueta: "Armadura" },
+  { valor: "Equipo de Aventuras", etiqueta: "Equipo de Aventuras" }
+];
+
+const OPCIONES_SUBCAT_ARMA = [
+  { valor: "Sencilla", etiqueta: "Sencilla" },
+  { valor: "Marcial", etiqueta: "Marcial" },
+  { valor: "De Fuego", etiqueta: "De Fuego" }
+];
+
+const OPCIONES_SUBCAT_ARMADURA = [
+  { valor: "Ligera", etiqueta: "Ligera" },
+  { valor: "Mediana", etiqueta: "Mediana" },
+  { valor: "Pesada", etiqueta: "Pesada" },
+  { valor: "Escudo", etiqueta: "Escudo" }
+];
+
+const OPCIONES_SUBCAT_EQUIPO = [
+  { valor: "Maravilloso", etiqueta: "Objeto Maravilloso" },
+  { valor: "Consumible", etiqueta: "Consumible / Poción" },
+  { valor: "Munición", etiqueta: "Munición" },
+  { valor: "Herramienta", etiqueta: "Herramienta" },
+  { valor: "Instrumento", etiqueta: "Instrumento" },
+  { valor: "Paquete", etiqueta: "Paquete / Contenedor" }
+];
+
+const OPCIONES_RAREZA = (["Común", "Poco Común", "Raro", "Muy Raro", "Legendario", "Artefacto"] as Rareza[]).map((r) => ({
+  valor: r,
+  etiqueta: r,
+  color: COLORES_RAREZA_HSL[r]
+}));
+
+const OPCIONES_MONEDA: { valor: TipoMoneda; etiqueta: string; color: string }[] = [
+  { valor: "PC", etiqueta: "PC (Cobre)", color: "#b87333" },
+  { valor: "PP", etiqueta: "PP (Plata)", color: "#aaa9ad" },
+  { valor: "PE", etiqueta: "PE (Electro)", color: "#e5e4e2" },
+  { valor: "PO", etiqueta: "PO (Oro)", color: "#ffd700" },
+  { valor: "PPT", etiqueta: "PPT (Platino)", color: "#e5e4e2" }
+];
 
 interface Props {
   oNombre: string;
@@ -90,15 +133,11 @@ export const SeccionDatosGenerales: React.FC<Props> = ({
         
         <div className={estilos.campoForm}>
           <label className={estilos.labelForm}>Categoría Principal:</label>
-          <select
-            value={oTipoPrincipal}
-            onChange={(e) => setOTipoPrincipal(e.target.value as "Arma" | "Armadura" | "Equipo de Aventuras")}
-            className={estilos.selectForm}
-          >
-            <option value="Arma">Arma</option>
-            <option value="Armadura">Armadura</option>
-            <option value="Equipo de Aventuras">Equipo de Aventuras</option>
-          </select>
+          <SelectorDesplegable
+            valor={oTipoPrincipal}
+            alCambiar={(val) => setOTipoPrincipal(val as "Arma" | "Armadura" | "Equipo de Aventuras")}
+            opciones={OPCIONES_TIPO_PRINCIPAL}
+          />
         </div>
       </div>
 
@@ -106,65 +145,35 @@ export const SeccionDatosGenerales: React.FC<Props> = ({
         <div className={estilos.campoForm}>
           <label className={estilos.labelForm}>Subcategoría:</label>
           {oTipoPrincipal === "Arma" && (
-            <select
-              value={oSubcategoriaArma}
-              onChange={(e) => setOSubcategoriaArma(e.target.value as "Sencilla" | "Marcial" | "De Fuego")}
-              className={estilos.selectForm}
-            >
-              <option value="Sencilla">Sencilla</option>
-              <option value="Marcial">Marcial</option>
-              <option value="De Fuego">De Fuego</option>
-            </select>
+            <SelectorDesplegable
+              valor={oSubcategoriaArma}
+              alCambiar={(val) => setOSubcategoriaArma(val as "Sencilla" | "Marcial" | "De Fuego")}
+              opciones={OPCIONES_SUBCAT_ARMA}
+            />
           )}
           {oTipoPrincipal === "Armadura" && (
-            <select
-              value={oSubcategoriaArmadura}
-              onChange={(e) => alCambiarSubcategoriaArmadura(e.target.value as "Ligera" | "Mediana" | "Pesada" | "Escudo")}
-              className={estilos.selectForm}
-            >
-              <option value="Ligera">Ligera</option>
-              <option value="Mediana">Mediana</option>
-              <option value="Pesada">Pesada</option>
-              <option value="Escudo">Escudo</option>
-            </select>
+            <SelectorDesplegable
+              valor={oSubcategoriaArmadura}
+              alCambiar={(val) => alCambiarSubcategoriaArmadura(val as "Ligera" | "Mediana" | "Pesada" | "Escudo")}
+              opciones={OPCIONES_SUBCAT_ARMADURA}
+            />
           )}
           {oTipoPrincipal === "Equipo de Aventuras" && (
-            <select
-              value={oSubcategoriaEquipo}
-              onChange={(e) => setOSubcategoriaEquipo(e.target.value as SubcategoriaEquipo)}
-              className={estilos.selectForm}
-            >
-              <option value="Maravilloso">Objeto Maravilloso</option>
-              <option value="Consumible">Consumible / Poción</option>
-              <option value="Munición">Munición</option>
-              <option value="Herramienta">Herramienta</option>
-              <option value="Instrumento">Instrumento</option>
-              <option value="Paquete">Paquete / Contenedor</option>
-            </select>
+            <SelectorDesplegable
+              valor={oSubcategoriaEquipo}
+              alCambiar={(val) => setOSubcategoriaEquipo(val as SubcategoriaEquipo)}
+              opciones={OPCIONES_SUBCAT_EQUIPO}
+            />
           )}
         </div>
 
         <div className={estilos.campoForm}>
           <label className={estilos.labelForm}>Rareza:</label>
-          <div className={estilos.rarezaSelectWrapper}>
-            <select
-              value={oRareza}
-              onChange={(e) => alCambiarRareza(e.target.value as Rareza)}
-              className={`${estilos.selectForm} ${estilos.selectRarezaHSL}`}
-              style={{ color: COLORES_RAREZA_HSL[oRareza], fontWeight: "bold" }}
-            >
-              <option value="Común" style={{ color: COLORES_RAREZA_HSL["Común"], background: "var(--color-fondo-panel)" }}>Común</option>
-              <option value="Poco Común" style={{ color: COLORES_RAREZA_HSL["Poco Común"], background: "var(--color-fondo-panel)" }}>Poco Común</option>
-              <option value="Raro" style={{ color: COLORES_RAREZA_HSL["Raro"], background: "var(--color-fondo-panel)" }}>Raro</option>
-              <option value="Muy Raro" style={{ color: COLORES_RAREZA_HSL["Muy Raro"], background: "var(--color-fondo-panel)" }}>Muy Raro</option>
-              <option value="Legendario" style={{ color: COLORES_RAREZA_HSL["Legendario"], background: "var(--color-fondo-panel)" }}>Legendario</option>
-              <option value="Artefacto" style={{ color: COLORES_RAREZA_HSL["Artefacto"], background: "var(--color-fondo-panel)" }}>Artefacto</option>
-            </select>
-            <div 
-              className={estilos.indicadorRarezaColor} 
-              style={{ backgroundColor: COLORES_RAREZA_HSL[oRareza] }} 
-            />
-          </div>
+          <SelectorDesplegable
+            valor={oRareza}
+            alCambiar={(val) => alCambiarRareza(val as Rareza)}
+            opciones={OPCIONES_RAREZA}
+          />
         </div>
       </div>
 
@@ -197,18 +206,14 @@ export const SeccionDatosGenerales: React.FC<Props> = ({
               className={estilos.inputForm}
               style={{ flex: 1 }}
             />
-            <select
-              value={oCostoUnidad}
-              onChange={(e) => setOCostoUnidad(e.target.value as TipoMoneda)}
-              className={estilos.selectForm}
-              style={{ width: "95px", fontWeight: "bold" }}
-            >
-              <option value="PC" style={{ color: "#b87333", background: "var(--color-fondo-panel)" }}>PC (Cobre)</option>
-              <option value="PP" style={{ color: "#aaa9ad", background: "var(--color-fondo-panel)" }}>PP (Plata)</option>
-              <option value="PE" style={{ color: "#e5e4e2", background: "var(--color-fondo-panel)" }}>PE (Electro)</option>
-              <option value="PO" style={{ color: "#ffd700", background: "var(--color-fondo-panel)" }}>PO (Oro)</option>
-              <option value="PPT" style={{ color: "#e5e4e2", background: "var(--color-fondo-panel)" }}>PPT (Platino)</option>
-            </select>
+            <div style={{ width: "115px" }}>
+              <SelectorDesplegable
+                valor={oCostoUnidad}
+                alCambiar={(val) => setOCostoUnidad(val as TipoMoneda)}
+                opciones={OPCIONES_MONEDA}
+                tamano="compacto"
+              />
+            </div>
           </div>
         </div>
       </div>

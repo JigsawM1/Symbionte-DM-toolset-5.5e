@@ -3,7 +3,50 @@ import { usarFormularioHechizo } from "@/hooks/usarFormularioHechizo";
 import { usarEstadoHomebrew } from "@/almacen/selectores";
 import { Plus } from "lucide-react";
 import { CLASES_DND, Escuelas_Magia, TIPOS_DAÑO_DND } from "@/constantes/homebrewConstantes";
+import { SelectorDesplegable } from "@/componentes/comunes";
 import estilos from "./FormularioHechizo.module.css";
+
+const OPCIONES_NIVEL_HECHIZO = [
+  { valor: "0", etiqueta: "Truco (Cantrip)" },
+  { valor: "1", etiqueta: "Nivel 1" },
+  { valor: "2", etiqueta: "Nivel 2" },
+  { valor: "3", etiqueta: "Nivel 3" },
+  { valor: "4", etiqueta: "Nivel 4" },
+  { valor: "5", etiqueta: "Nivel 5" },
+  { valor: "6", etiqueta: "Nivel 6" },
+  { valor: "7", etiqueta: "Nivel 7" },
+  { valor: "8", etiqueta: "Nivel 8" },
+  { valor: "9", etiqueta: "Nivel 9" }
+];
+
+const OPCIONES_SI_NO = [
+  { valor: "No", etiqueta: "No" },
+  { valor: "Sí", etiqueta: "Sí" }
+];
+
+const OPCIONES_ATAQUE_CD = [
+  { valor: "N/A", etiqueta: "N/A" },
+  { valor: "ATAQUE", etiqueta: "Ataque" },
+  { valor: "CD", etiqueta: "CD (Dificultad)" }
+];
+
+const OPCIONES_SALVACION_ATTR = [
+  { valor: "N/A", etiqueta: "N/A" },
+  { valor: "Fuerza", etiqueta: "Fuerza (FUE)" },
+  { valor: "Destreza", etiqueta: "Destreza (DES)" },
+  { valor: "Constitución", etiqueta: "Constitución (CON)" },
+  { valor: "Inteligencia", etiqueta: "Inteligencia (INT)" },
+  { valor: "Sabiduría", etiqueta: "Sabiduría (SAB)" },
+  { valor: "Carisma", etiqueta: "Carisma (CAR)" }
+];
+
+const OPCIONES_TIPO_DANO_HECHIZO = [
+  { valor: "N/A", etiqueta: "N/A" },
+  ...TIPOS_DAÑO_DND.map((t) => ({
+    valor: t,
+    etiqueta: t.charAt(0).toUpperCase() + t.slice(1)
+  }))
+];
 
 interface Props {
   idEnEdicion: string | null;
@@ -112,39 +155,24 @@ export const FormularioHechizo: React.FC<Props> = ({
         </div>
         <div className={estilos.campoForm}>
           <label className={estilos.labelForm}>Nivel del Hechizo:</label>
-          <select
-            value={hNivel}
-            onChange={(e) => setHNivel(parseInt(e.target.value, 10) || 0)}
-            className={estilos.selectForm}
-          >
-            <option value={0}>Truco (Cantrip)</option>
-            <option value={1}>Nivel 1</option>
-            <option value={2}>Nivel 2</option>
-            <option value={3}>Nivel 3</option>
-            <option value={4}>Nivel 4</option>
-            <option value={5}>Nivel 5</option>
-            <option value={6}>Nivel 6</option>
-            <option value={7}>Nivel 7</option>
-            <option value={8}>Nivel 8</option>
-            <option value={9}>Nivel 9</option>
-          </select>
+          <SelectorDesplegable
+            valor={String(hNivel)}
+            alCambiar={(val) => setHNivel(parseInt(val, 10) || 0)}
+            opciones={OPCIONES_NIVEL_HECHIZO}
+            placeholder="Seleccionar nivel..."
+          />
         </div>
       </div>
 
       <div className={estilos.filaTripleForm}>
         <div className={estilos.campoForm}>
           <label className={estilos.labelForm}>Escuela:</label>
-          <select
-            value={hEscuela}
-            onChange={(e) => setHEscuela(e.target.value)}
-            className={estilos.selectForm}
-          >
-            {Escuelas_Magia.map((escuela) => (
-              <option key={escuela.clave} value={escuela.clave} >
-                {escuela.etiqueta}
-              </option>
-            ))}
-          </select>
+          <SelectorDesplegable
+            valor={hEscuela}
+            alCambiar={(val) => setHEscuela(val)}
+            opciones={Escuelas_Magia}
+            placeholder="Seleccionar escuela..."
+          />
         </div>
         <div className={estilos.campoForm}>
           <label className={estilos.labelForm}>Tiempo Lanzamiento:</label>
@@ -181,25 +209,19 @@ export const FormularioHechizo: React.FC<Props> = ({
         </div>
         <div className={estilos.campoForm}>
           <label className={estilos.labelForm}>Concentración:</label>
-          <select
-            value={hConcentracion}
-            onChange={(e) => setHConcentracion(e.target.value)}
-            className={estilos.selectForm}
-          >
-            <option value="No">No</option>
-            <option value="Sí">Sí</option>
-          </select>
+          <SelectorDesplegable
+            valor={hConcentracion}
+            alCambiar={(val) => setHConcentracion(val)}
+            opciones={OPCIONES_SI_NO}
+          />
         </div>
         <div className={estilos.campoForm}>
           <label className={estilos.labelForm}>Ritual:</label>
-          <select
-            value={hRitual}
-            onChange={(e) => setHRitual(e.target.value)}
-            className={estilos.selectForm}
-          >
-            <option value="No">No</option>
-            <option value="Sí">Sí</option>
-          </select>
+          <SelectorDesplegable
+            valor={hRitual}
+            alCambiar={(val) => setHRitual(val)}
+            opciones={OPCIONES_SI_NO}
+          />
         </div>
       </div>
 
@@ -285,31 +307,19 @@ export const FormularioHechizo: React.FC<Props> = ({
         <div className={estilos.filaDobleForm}>
           <div className={estilos.campoForm}>
             <label className={estilos.labelForm}>Ataque o CD:</label>
-            <select
-              value={hAtaqueCd}
-              onChange={(e) => setHAtaqueCd(e.target.value)}
-              className={estilos.selectForm}
-            >
-              <option value="N/A">N/A</option>
-              <option value="ATAQUE">Ataque</option>
-              <option value="CD">CD (Dificultad)</option>
-            </select>
+            <SelectorDesplegable
+              valor={hAtaqueCd}
+              alCambiar={(val) => setHAtaqueCd(val)}
+              opciones={OPCIONES_ATAQUE_CD}
+            />
           </div>
           <div className={estilos.campoForm}>
             <label className={estilos.labelForm}>CD de Salvación (Atributo):</label>
-            <select
-              value={hCdSalvacion}
-              onChange={(e) => setHCdSalvacion(e.target.value)}
-              className={estilos.selectForm}
-            >
-              <option value="N/A">N/A</option>
-              <option value="Fuerza">Fuerza (FUE)</option>
-              <option value="Destreza">Destreza (DES)</option>
-              <option value="Constitución">Constitución (CON)</option>
-              <option value="Inteligencia">Inteligencia (INT)</option>
-              <option value="Sabiduría">Sabiduría (SAB)</option>
-              <option value="Carisma">Carisma (CAR)</option>
-            </select>
+            <SelectorDesplegable
+              valor={hCdSalvacion}
+              alCambiar={(val) => setHCdSalvacion(val)}
+              opciones={OPCIONES_SALVACION_ATTR}
+            />
           </div>
         </div>
 
@@ -339,29 +349,19 @@ export const FormularioHechizo: React.FC<Props> = ({
         <div className={estilos.filaDobleForm}>
           <div className={estilos.campoForm}>
             <label className={estilos.labelForm}>Tipo de Daño:</label>
-            <select
-              value={hTipoDaño}
-              onChange={(e) => setHTipoDaño(e.target.value)}
-              className={estilos.selectForm}
-            >
-              <option value="N/A">N/A</option>
-              {TIPOS_DAÑO_DND.map((t) => (
-                <option key={t} value={t}>
-                  {t.charAt(0).toUpperCase() + t.slice(1)}
-                </option>
-              ))}
-            </select>
+            <SelectorDesplegable
+              valor={hTipoDaño}
+              alCambiar={(val) => setHTipoDaño(val)}
+              opciones={OPCIONES_TIPO_DANO_HECHIZO}
+            />
           </div>
           <div className={estilos.campoForm}>
             <label className={estilos.labelForm}>Sumar Mod. Habilidad al Daño:</label>
-            <select
-              value={hAgregarModificador}
-              onChange={(e) => setHAgregarModificador(e.target.value)}
-              className={estilos.selectForm}
-            >
-              <option value="No">No</option>
-              <option value="Sí">Sí</option>
-            </select>
+            <SelectorDesplegable
+              valor={hAgregarModificador}
+              alCambiar={(val) => setHAgregarModificador(val)}
+              opciones={OPCIONES_SI_NO}
+            />
           </div>
         </div>
       </div>

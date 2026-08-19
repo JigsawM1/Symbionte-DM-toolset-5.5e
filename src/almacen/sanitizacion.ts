@@ -924,6 +924,35 @@ export function formatearSentidos(sentidos: SentidosEstructurados | string | und
   return partes.join(", ");
 }
 
+/**
+ * Formatea el subtítulo estándar de una criatura (ej. "Humanoide Mediano, neutral malvado" o "Dragón Gargantuesco, Caótico malvado").
+ */
+export function formatearSubtituloCriatura(tipo?: string, tamaño?: string, alineacion?: string): string {
+  const tipoLimpio = (tipo || "").trim();
+  const tamañoLimpio = (tamaño || "").trim();
+  const alineacionLimpia = (alineacion || "").trim();
+
+  let primeraParte = "";
+  if (tipoLimpio && tamañoLimpio) {
+    primeraParte = `${tipoLimpio} ${tamañoLimpio}`;
+  } else if (tipoLimpio) {
+    primeraParte = tipoLimpio;
+  } else if (tamañoLimpio) {
+    primeraParte = tamañoLimpio;
+  }
+
+  if (primeraParte && alineacionLimpia && alineacionLimpia !== "-") {
+    return `${primeraParte}, ${alineacionLimpia}`;
+  }
+  if (primeraParte) {
+    return primeraParte;
+  }
+  if (alineacionLimpia && alineacionLimpia !== "-") {
+    return alineacionLimpia;
+  }
+  return "Criatura";
+}
+
 export function sanearMonstruoSentidosYPasiva(m: MonstruoBase): MonstruoBase {
   let sentidosObj: SentidosEstructurados;
   if (m.sentidos && typeof m.sentidos === "object" && !Array.isArray(m.sentidos)) {
@@ -944,7 +973,12 @@ export function sanearMonstruoSentidosYPasiva(m: MonstruoBase): MonstruoBase {
 
   return {
     ...m,
+    tamaño: typeof m.tamaño === "string" ? m.tamaño.trim() : "",
+    alineacion: typeof m.alineacion === "string" ? m.alineacion.trim() : "",
+    accionesAdicionales: Array.isArray(m.accionesAdicionales) ? m.accionesAdicionales : [],
+    accionesLegendariasTotal: typeof m.accionesLegendariasTotal === "number" ? m.accionesLegendariasTotal : (Number(m.accionesLegendariasTotal) || 3),
     nombreNormalizado: normalizarTexto(m.nombre),
     sentidos: sentidosObj
   };
 }
+

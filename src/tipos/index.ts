@@ -160,6 +160,8 @@ export const EsquemaMonstruoBase = z.object({
   iniciativaBonificador: z.number().default(0),
   velocidad: z.union([z.string(), EsquemaVelocidad]).default("30 pies"), // Soporte híbrido para retrocompatibilidad en UI
   sentidos: z.union([z.string(), EsquemaSentidos]).default(""), // Soporte híbrido para retrocompatibilidad en UI
+  tamaño: z.string().optional().default(""),
+  alineacion: z.string().optional().default(""),
   idiomas: z.string().optional().default(""),
   desafio: z.string().optional().default("0"),
   fuente: z.string().optional().default("SRD 2024"),
@@ -173,7 +175,9 @@ export const EsquemaMonstruoBase = z.object({
   accionesRapidas: z.array(EsquemaAccionRapida).optional().default([]),
   rasgos: z.array(EsquemaRasgoBase).default([]),
   acciones: z.array(EsquemaAccionMonstruo).default([]),
+  accionesAdicionales: z.array(EsquemaAccionMonstruo).optional().default([]),
   reacciones: z.array(EsquemaRasgoBase).optional().default([]),
+  accionesLegendariasTotal: z.number().optional().default(3),
   accionesLegendarias: z.array(EsquemaRasgoBase).optional().default([])
 });
 export type MonstruoBase = z.infer<typeof EsquemaMonstruoBase>;

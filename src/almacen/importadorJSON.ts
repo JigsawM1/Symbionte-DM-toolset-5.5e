@@ -209,6 +209,22 @@ export function importarDesdeJSON(
           };
         });
 
+        const accionesAdicionalesRaw = Array.isArray(m.accionesAdicionales)
+          ? m.accionesAdicionales
+          : (Array.isArray(m.bonusActions) ? m.bonusActions : (Array.isArray(m.BonusActions) ? m.BonusActions : []));
+        const accionesAdicionalesFormateadas = accionesAdicionalesRaw.map((aRaw) => {
+          const a = (aRaw && typeof aRaw === "object" ? aRaw : {}) as Record<string, unknown>;
+          return {
+            nombre: aplanarValor(a.nombre || a.Name || ""),
+            descripcion: aplanarValor(a.descripcion || a.Content || ""),
+            bonificadorAtaque: typeof a.bonificadorAtaque === "number"
+              ? a.bonificadorAtaque
+              : (a.bonificadorAtaque || a.Bonus ? Number(a.bonificadorAtaque || a.Bonus) : undefined),
+            daño: aplanarValor(a.daño || a.Damage || ""),
+            uso: aplanarValor(a.uso || a.Usage || a.costo || a.Cost || "")
+          };
+        });
+
         const reaccionesRaw = Array.isArray(m.reacciones) ? m.reacciones : (Array.isArray(m.Reactions) ? m.Reactions : []);
         const reaccionesFormateadas = reaccionesRaw.map((rRaw) => {
           const r = (rRaw && typeof rRaw === "object" ? rRaw : {}) as Record<string, unknown>;
@@ -225,7 +241,7 @@ export function importarDesdeJSON(
           return {
             nombre: aplanarValor(l.nombre || l.Name || ""),
             descripcion: aplanarValor(l.descripcion || l.Content || ""),
-            uso: aplanarValor(l.uso || l.Usage || "")
+            uso: aplanarValor(l.uso || l.Usage || l.costo || l.Cost || "")
           };
         });
 
@@ -330,6 +346,8 @@ export function importarDesdeJSON(
           sentidos: (m.sentidos && typeof m.sentidos === "object")
             ? (m.sentidos as any)
             : parsearSentidos(aplanarValor(m.sentidos || m.Senses)),
+          tamaño: aplanarValor(m.tamaño || m.tamano || m.Size || m.size || ""),
+          alineacion: aplanarValor(m.alineacion || m.alineamiento || m.Alignment || m.alignment || ""),
           idiomas: aplanarValor(m.idiomas || m.Languages),
           desafio: aplanarValor(m.Challenge || m.desafio || m.CR || "0"),
           fuente: aplanarValor(m.Source || m.fuente || "Manual de Monstruos"),
@@ -358,11 +376,21 @@ export function importarDesdeJSON(
             daño: aplanarValor(a.daño),
             uso: aplanarValor(a.uso)
           })),
+          accionesAdicionales: accionesAdicionalesFormateadas.map((a) => ({
+            nombre: aplanarValor(a.nombre),
+            descripcion: aplanarValor(a.descripcion),
+            bonificadorAtaque: a.bonificadorAtaque,
+            daño: aplanarValor(a.daño),
+            uso: aplanarValor(a.uso)
+          })),
           reacciones: reaccionesFormateadas.map((r) => ({
             nombre: aplanarValor(r.nombre),
             descripcion: aplanarValor(r.descripcion),
             uso: aplanarValor(r.uso)
           })),
+          accionesLegendariasTotal: typeof m.accionesLegendariasTotal === "number"
+            ? m.accionesLegendariasTotal
+            : (m.accionesLegendariasTotal || m.legendaryActionsCount ? Number(m.accionesLegendariasTotal || m.legendaryActionsCount) : (legendariasFormateadas.length > 0 ? 3 : undefined)),
           accionesLegendarias: legendariasFormateadas.map((l) => ({
             nombre: aplanarValor(l.nombre),
             descripcion: aplanarValor(l.descripcion),

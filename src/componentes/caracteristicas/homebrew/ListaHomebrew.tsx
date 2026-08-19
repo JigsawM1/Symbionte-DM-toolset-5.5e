@@ -17,10 +17,11 @@ import {
   Copy
 } from "lucide-react";
 import estilos from "./ListaHomebrew.module.css";
-import { ConfirmDialog } from "@/componentes/comunes";
+import { ConfirmDialog, SelectorDesplegable } from "@/componentes/comunes";
 import { FichaHechizo } from "@/componentes/caracteristicas/compendio";
 import { PanelFichaDnD } from "@/componentes/caracteristicas/iniciativa";
 import { lanzarDadosTaleSpire, sanitizarEtiqueta } from "@/utiles/lanzadorDados";
+import { formatearSubtituloCriatura } from "@/almacen/sanitizacion";
 
 function parsearCR(desafioRaw: string | number | undefined): number {
   if (desafioRaw === undefined || desafioRaw === null || desafioRaw === "") return -1;
@@ -204,29 +205,24 @@ export const ListaHomebrew: React.FC<Props> = ({
             Limpiar
           </button>
         )}
-        <select
-          value={criterioOrden}
-          onChange={(e) => setCriterioOrden(e.target.value as any)}
-          title="Ordenar por"
-          style={{
-            backgroundColor: "var(--color-fondo-tarjeta)",
-            color: "var(--color-texto-principal)",
-            border: "1px solid var(--color-borde-brutal)",
-            borderRadius: "4px",
-            fontSize: "11.5px",
-            padding: "5px 8px",
-            cursor: "pointer"
-          }}
-        >
-          <option value="nombre-asc">Nombre (A - Z)</option>
-          <option value="nombre-desc">Nombre (Z - A)</option>
-          {tipoHomebrew === "criatura" && (
-            <>
-              <option value="cr-asc">CR (Menor a Mayor)</option>
-              <option value="cr-desc">CR (Mayor a Menor)</option>
-            </>
-          )}
-        </select>
+        <div style={{ minWidth: "165px" }}>
+          <SelectorDesplegable
+            valor={criterioOrden}
+            alCambiar={(val) => setCriterioOrden(val as any)}
+            opciones={[
+              { valor: "nombre-asc", etiqueta: "Nombre (A - Z)" },
+              { valor: "nombre-desc", etiqueta: "Nombre (Z - A)" },
+              ...(tipoHomebrew === "criatura"
+                ? [
+                    { valor: "cr-asc", etiqueta: "CR (Menor a Mayor)" },
+                    { valor: "cr-desc", etiqueta: "CR (Mayor a Menor)" }
+                  ]
+                : [])
+            ]}
+            tamano="compacto"
+            titulo="Ordenar por"
+          />
+        </div>
       </div>
 
       <div className={estilos.contenedorScrollLista}>
@@ -244,7 +240,7 @@ export const ListaHomebrew: React.FC<Props> = ({
                   >
                     <span className={estilos.itemNombre}>{m.nombre}</span>
                     <span className={estilos.itemSub}>
-                      {m.tipo} | CA: <span className="dato-numerico">{m.ca}</span> | HP:{" "}
+                      {formatearSubtituloCriatura(m.tipo, m.tamaño, m.alineacion)} | CA: <span className="dato-numerico">{m.ca}</span> | HP:{" "}
                       <span className="dato-numerico">{m.vidaMaxima}</span> | CR: {m.desafio || "—"}
                     </span>
                   </div>
@@ -470,7 +466,7 @@ export const ListaHomebrew: React.FC<Props> = ({
             <div className={estilos.cabeceraDetalle}>
               <div className={estilos.cabeceraDetalleIzquierda}>
                 <span className={estilos.objetoNivelOverlay}>
-                  {m.tipo} | CA {m.ca} | HP {m.vidaMaxima} | CR {m.desafio || "—"}
+                  {formatearSubtituloCriatura(m.tipo, m.tamaño, m.alineacion)} | CA {m.ca} | HP {m.vidaMaxima} | CR {m.desafio || "—"}
                 </span>
                 <span className={estilos.nombreHechizoOverlay}>{m.nombre}</span>
               </div>

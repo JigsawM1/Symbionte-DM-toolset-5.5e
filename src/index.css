@@ -154,7 +154,6 @@ h6 {
 
 /* Elementos de Formulario Brutalistas */
 input,
-select,
 textarea {
   background-color: var(--color-fondo-panel);
   border: 1px solid var(--color-borde-brutal);
@@ -168,10 +167,60 @@ textarea {
 }
 
 input:focus,
-select:focus,
 textarea:focus {
   border-color: var(--color-borde-cian);
   background-color: var(--color-fondo-tarjeta-foco);
+}
+
+/* Desplegables Select y Options Optimizados para TaleSpire CEF */
+select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-color: var(--color-fondo-tarjeta);
+  border: 1.5px solid var(--color-borde-brutal);
+  color: var(--color-texto-principal);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 400;
+  text-transform: none !important;
+  padding: 5px 28px 5px 8px;
+  border-radius: 4px;
+  outline: none;
+  cursor: pointer;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%2300f5d4' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  background-size: 13px;
+}
+
+select:focus {
+  border-color: var(--color-borde-cian);
+  box-shadow: 0 0 0 2px rgba(0, 245, 212, 0.18);
+  background-color: var(--color-fondo-tarjeta-foco);
+}
+
+select:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+select option,
+select optgroup {
+  background-color: #141824 !important;
+  color: #f0f3f6 !important;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 400;
+  text-transform: none !important;
+  padding: 6px 8px;
+}
+
+select option:hover,
+select option:focus,
+select option:checked {
+  background-color: #222a3d !important;
+  color: #00f5d4 !important;
 }
 
 /* Botones Brutalistas */

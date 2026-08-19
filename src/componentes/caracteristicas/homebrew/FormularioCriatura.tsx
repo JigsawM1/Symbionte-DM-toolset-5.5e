@@ -61,6 +61,18 @@ export const FormularioCriatura: React.FC<Props> = ({
     cancelarEditarAccion,
     eliminarAccionIdx,
 
+    // Acciones Adicionales
+    tAccionAdicionalNombre, setTAccionAdicionalNombre,
+    tAccionAdicionalDesc, setTAccionAdicionalDesc,
+    tAccionAdicionalBono, setTAccionAdicionalBono,
+    tAccionAdicionalDaño, setTAccionAdicionalDaño,
+    tAccionAdicionalUso, setTAccionAdicionalUso,
+    accionAdicionalEdicionIdx,
+    agregarAccionAdicional,
+    iniciarEditarAccionAdicional,
+    cancelarEditarAccionAdicional,
+    eliminarAccionAdicionalIdx,
+
     // Reacciones
     tReaccionNombre, setTReaccionNombre,
     tReaccionDesc, setTReaccionDesc,
@@ -102,7 +114,9 @@ export const FormularioCriatura: React.FC<Props> = ({
       limpiarFormulario();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [idEnEdicion])  // Detener clics accidentales al lienzo 3D de TaleSpire
+  }, [idEnEdicion]);
+
+  // Detener clics accidentales al lienzo 3D de TaleSpire
   const detenerPropagacion = (e: React.MouseEvent) => {
     e.stopPropagation();
   };
@@ -188,6 +202,7 @@ export const FormularioCriatura: React.FC<Props> = ({
       {subPestanaCriatura === "listas" && (
         <SeccionListasAtaques
           monstruoForm={monstruoForm}
+          actualizarGeneral={actualizarGeneral}
           
           tQNombre={tQNombre} setTQNombre={setTQNombre}
           tQBono={tQBono} setTQBono={setTQBono}
@@ -218,6 +233,17 @@ export const FormularioCriatura: React.FC<Props> = ({
           iniciarEditarAccion={iniciarEditarAccion}
           cancelarEditarAccion={cancelarEditarAccion}
           eliminarAccionIdx={eliminarAccionIdx}
+
+          tAccionAdicionalNombre={tAccionAdicionalNombre} setTAccionAdicionalNombre={setTAccionAdicionalNombre}
+          tAccionAdicionalDesc={tAccionAdicionalDesc} setTAccionAdicionalDesc={setTAccionAdicionalDesc}
+          tAccionAdicionalBono={tAccionAdicionalBono} setTAccionAdicionalBono={setTAccionAdicionalBono}
+          tAccionAdicionalDaño={tAccionAdicionalDaño} setTAccionAdicionalDaño={setTAccionAdicionalDaño}
+          tAccionAdicionalUso={tAccionAdicionalUso} setTAccionAdicionalUso={setTAccionAdicionalUso}
+          accionAdicionalEdicionIdx={accionAdicionalEdicionIdx}
+          agregarAccionAdicional={agregarAccionAdicional}
+          iniciarEditarAccionAdicional={iniciarEditarAccionAdicional}
+          cancelarEditarAccionAdicional={cancelarEditarAccionAdicional}
+          eliminarAccionAdicionalIdx={eliminarAccionAdicionalIdx}
 
           tReaccionNombre={tReaccionNombre} setTReaccionNombre={setTReaccionNombre}
           tReaccionDesc={tReaccionDesc} setTReaccionDesc={setTReaccionDesc}

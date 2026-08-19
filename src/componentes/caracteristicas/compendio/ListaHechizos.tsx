@@ -3,7 +3,22 @@ import { normalizarTexto } from "@/almacen/usarAlmacenDM";
 import { usarEstadoHomebrew } from "@/almacen/selectores";
 import { Search, Info } from "lucide-react";
 import { FichaHechizo } from "./FichaHechizo";
+import { SelectorDesplegable } from "@/componentes/comunes";
 import estilosClases from "./ListaHechizos.module.css";
+
+const OPCIONES_NIVEL_FILTRO = [
+  { valor: "todos", etiqueta: "Todos los Niveles" },
+  { valor: "0", etiqueta: "Nivel 0 (Truco)" },
+  { valor: "1", etiqueta: "Nivel 1" },
+  { valor: "2", etiqueta: "Nivel 2" },
+  { valor: "3", etiqueta: "Nivel 3" },
+  { valor: "4", etiqueta: "Nivel 4" },
+  { valor: "5", etiqueta: "Nivel 5" },
+  { valor: "6", etiqueta: "Nivel 6" },
+  { valor: "7", etiqueta: "Nivel 7" },
+  { valor: "8", etiqueta: "Nivel 8" },
+  { valor: "9", etiqueta: "Nivel 9" }
+];
 
 export const ListaHechizos: React.FC = () => {
   const { baseDatosHechizos } = usarEstadoHomebrew();
@@ -21,6 +36,13 @@ export const ListaHechizos: React.FC = () => {
     });
     return Array.from(escuelas).sort();
   }, [baseDatosHechizos]);
+
+  const opcionesEscuelaFiltro = useMemo(() => {
+    return [
+      { valor: "todas", etiqueta: "Todas las Escuelas" },
+      ...escuelasDisponibles.map((e) => ({ valor: e, etiqueta: e }))
+    ];
+  }, [escuelasDisponibles]);
 
   // Filtrar hechizos
   const hechizosFiltrados = useMemo(() => {
@@ -68,39 +90,23 @@ export const ListaHechizos: React.FC = () => {
           />
         </div>
 
-        <select
-          value={nivelFiltro}
-          onChange={(e) => {
-            const val = e.target.value;
-            setNivelFiltro(val === "todos" ? "todos" : Number(val));
-          }}
-          className={estilosClases.selectorFiltro}
-        >
-          <option value="todos">Todos los Niveles</option>
-          <option value="0">Nivel 0 (Truco)</option>
-          <option value="1">Nivel 1</option>
-          <option value="2">Nivel 2</option>
-          <option value="3">Nivel 3</option>
-          <option value="4">Nivel 4</option>
-          <option value="5">Nivel 5</option>
-          <option value="6">Nivel 6</option>
-          <option value="7">Nivel 7</option>
-          <option value="8">Nivel 8</option>
-          <option value="9">Nivel 9</option>
-        </select>
+        <div style={{ minWidth: "140px", flex: 1 }}>
+          <SelectorDesplegable
+            valor={String(nivelFiltro)}
+            alCambiar={(val) => setNivelFiltro(val === "todos" ? "todos" : Number(val))}
+            opciones={OPCIONES_NIVEL_FILTRO}
+            tamano="compacto"
+          />
+        </div>
 
-        <select
-          value={escuelaFiltro}
-          onChange={(e) => setEscuelaFiltro(e.target.value)}
-          className={estilosClases.selectorFiltro}
-        >
-          <option value="todas">Todas las Escuelas</option>
-          {escuelasDisponibles.map((escuela) => (
-            <option key={escuela} value={escuela}>
-              {escuela}
-            </option>
-          ))}
-        </select>
+        <div style={{ minWidth: "150px", flex: 1 }}>
+          <SelectorDesplegable
+            valor={escuelaFiltro}
+            alCambiar={(val) => setEscuelaFiltro(val)}
+            opciones={opcionesEscuelaFiltro}
+            tamano="compacto"
+          />
+        </div>
       </div>
 
       {/* Contenido Principal con lista densa */}

@@ -1,6 +1,13 @@
 import React from "react";
 import { TipoBonoDestreza } from "@/almacen/usarAlmacenDM";
+import { SelectorDesplegable } from "@/componentes/comunes";
 import { Shield } from "lucide-react";
+
+const OPCIONES_BONO_DESTREZA = [
+  { valor: "Completo", etiqueta: "Completamente Reactiva (Sin límite)" },
+  { valor: "Máximo 2", etiqueta: "Máximo +2 Destreza (Mediana)" },
+  { valor: "Sin Bono", etiqueta: "Sin bonificador de Destreza (Pesada)" }
+];
 
 interface Props {
   oCaBase: number;
@@ -66,15 +73,11 @@ export const SeccionArmadura: React.FC<Props> = ({
       <div className={estilos.filaDobleForm}>
         <div className={estilos.campoForm}>
           <label className={estilos.labelForm}>Bono de Destreza a la CA:</label>
-          <select
-            value={oBonoDestreza}
-            onChange={(e) => setOBonoDestreza(e.target.value as TipoBonoDestreza)}
-            className={estilos.selectForm}
-          >
-            <option value="Completo">Completamente Reactiva (Sin límite)</option>
-            <option value="Máximo 2">Máximo +2 Destreza (Mediana)</option>
-            <option value="Sin Bono">Sin bonificador de Destreza (Pesada)</option>
-          </select>
+          <SelectorDesplegable
+            valor={oBonoDestreza}
+            alCambiar={(val) => setOBonoDestreza(val as TipoBonoDestreza)}
+            opciones={OPCIONES_BONO_DESTREZA}
+          />
         </div>
 
         <div className={estilos.campoForm} style={{ justifyContent: "center" }}>

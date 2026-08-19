@@ -3,12 +3,15 @@ import { Shield, Heart } from "lucide-react";
 import estilos from "../FormularioCriatura.module.css";
 import { VelocidadEstructurada, SentidosEstructurados } from "@/tipos";
 import { formatearVelocidad, formatearSentidos } from "@/almacen/sanitizacion";
-import { Criatura_Tipos } from "@/constantes/homebrewConstantes";
+import { Criatura_Tipos, TAMAÑOS_CRIATURA, ALINEAMIENTOS_DND } from "@/constantes/homebrewConstantes";
+import { SelectorSugerencias, SelectorDesplegable } from "@/componentes/comunes";
 
 interface SeccionGeneralProps {
   monstruoForm: {
     nombre: string;
     tipo: string;
+    tamaño?: string;
+    alineacion?: string;
     ca: number;
     caNotas?: string;
     vidaMaxima: number;
@@ -36,24 +39,43 @@ export const SeccionGeneral: React.FC<SeccionGeneralProps> = ({
             type="text"
             value={monstruoForm.nombre}
             onChange={(e) => actualizarGeneral("nombre", e.target.value)}
-            placeholder="Ej. Dragón de Hielo"
+            placeholder="Ej. Siervo de Vampiro"
             className={estilos.inputForm}
             required
           />
         </div>
         <div className={estilos.campoForm}>
           <label className={estilos.labelForm}>Tipo de Criatura:</label>
-          <select
-            value={monstruoForm.tipo}
-            onChange={(e) => actualizarGeneral("tipo", e.target.value)}
-            className={estilos.selectForm}
-          >
-            {Criatura_Tipos.map((tipo) => (
-              <option key={tipo.clave} value={tipo.clave}>
-                {tipo.etiqueta}
-              </option>
-            ))}
-          </select>
+          <SelectorDesplegable
+            valor={monstruoForm.tipo}
+            alCambiar={(val) => actualizarGeneral("tipo", val)}
+            opciones={Criatura_Tipos}
+            placeholder="Seleccionar tipo..."
+          />
+        </div>
+      </div>
+
+      <div className={estilos.filaDobleForm}>
+        <div className={estilos.campoForm}>
+          <label className={estilos.labelForm}>Tamaño:</label>
+          <SelectorSugerencias
+            valor={monstruoForm.tamaño || ""}
+            alCambiar={(val) => actualizarGeneral("tamaño", val)}
+            opciones={TAMAÑOS_CRIATURA}
+            placeholder="Ej. Mediano, Mediano o Pequeño"
+          />
+        </div>
+        <div className={estilos.campoForm}>
+          <label className={estilos.labelForm}>Alineamiento / Alineación:</label>
+          <SelectorDesplegable
+            valor={monstruoForm.alineacion || "-"}
+            alCambiar={(val) => actualizarGeneral("alineacion", val)}
+            opciones={ALINEAMIENTOS_DND.map((al) => ({
+              valor: al,
+              etiqueta: al === "-" ? "Sin alineamiento (-)" : al
+            }))}
+            placeholder="Seleccionar alineamiento..."
+          />
         </div>
       </div>
 

@@ -1,6 +1,13 @@
 import React, { useState } from "react";
 import { Compass } from "lucide-react";
+import { SelectorDesplegable } from "@/componentes/comunes";
 import estilosClases from "./CalculadoraViaje.module.css";
+
+const OPCIONES_PASO_VIAJE = [
+  { valor: "lento", etiqueta: "Lento (2 millas/hora)" },
+  { valor: "normal", etiqueta: "Normal (3 millas/hora)" },
+  { valor: "rapido", etiqueta: "Rápido (4 millas/hora)" }
+];
 
 export const CalculadoraViaje: React.FC = () => {
   const [pasoViaje, setPasoViaje] = useState<"lento" | "normal" | "rapido">("normal");
@@ -33,15 +40,14 @@ export const CalculadoraViaje: React.FC = () => {
       <div className={estilosClases.cuerpoCalculadora}>
         <div className={estilosClases.filaFormulario}>
           <label className={estilosClases.labelForm}>Paso del Viaje:</label>
-          <select
-            value={pasoViaje}
-            onChange={(e) => setPasoViaje(e.target.value as "lento" | "normal" | "rapido")}
-            className={estilosClases.selectForm}
-          >
-            <option value="lento">Lento (2 millas/hora)</option>
-            <option value="normal">Normal (3 millas/hora)</option>
-            <option value="rapido">Rápido (4 millas/hora)</option>
-          </select>
+          <div style={{ width: "200px" }}>
+            <SelectorDesplegable
+              valor={pasoViaje}
+              alCambiar={(val) => setPasoViaje(val as "lento" | "normal" | "rapido")}
+              opciones={OPCIONES_PASO_VIAJE}
+              tamano="compacto"
+            />
+          </div>
         </div>
 
         <div className={estilosClases.filaFormulario}>

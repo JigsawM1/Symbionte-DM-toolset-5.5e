@@ -1,7 +1,7 @@
 import React from "react";
 import { Swords } from "lucide-react";
 import { MonstruoBase, HechizoBase } from "@/tipos";
-import { formatearVelocidad, formatearSentidos } from "@/almacen/sanitizacion";
+import { formatearVelocidad, formatearSentidos, formatearSubtituloCriatura } from "@/almacen/sanitizacion";
 import { procesarTextoFicha } from "./procesadorTexto";
 import estilosClases from "./PanelFichaDnD.module.css";
 
@@ -74,8 +74,11 @@ export const PanelFichaDnD: React.FC<PanelFichaDnDProps> = ({
         {/* Cabecera del Monstruo */}
         <div className={estilosClases.tituloCabeceraDetalle}>
           <span className={estilosClases.nombreMonstruoFicha}>{plantilla.nombre.toUpperCase()}</span>
+          <span className={estilosClases.subtituloTipoFicha}>
+            {formatearSubtituloCriatura(plantilla.tipo, plantilla.tamaño, plantilla.alineacion)}
+          </span>
           <span className={estilosClases.tipoMonstruoFicha}>
-            {plantilla.tipo} | CR: <strong style={{ color: "var(--color-advertencia)" }}>{plantilla.desafio}</strong> | INIC: <strong style={{ color: "#ffcc00" }}>{(plantilla.iniciativaBonificador ?? 0) >= 0 ? `+${plantilla.iniciativaBonificador ?? 0}` : plantilla.iniciativaBonificador}</strong> | PP: <strong style={{ color: "var(--color-borde-cian)" }}>{obtenerPercepcionPasiva(plantilla)}</strong>
+            CR: <strong style={{ color: "var(--color-advertencia)" }}>{plantilla.desafio}</strong> | INIC: <strong style={{ color: "#ffcc00" }}>{(plantilla.iniciativaBonificador ?? 0) >= 0 ? `+${plantilla.iniciativaBonificador ?? 0}` : plantilla.iniciativaBonificador}</strong> | PP: <strong style={{ color: "var(--color-borde-cian)" }}>{obtenerPercepcionPasiva(plantilla)}</strong>
           </span>
         </div>
         
@@ -251,6 +254,44 @@ export const PanelFichaDnD: React.FC<PanelFichaDnDProps> = ({
           </div>
         )}
 
+        {/* Acciones Adicionales */}
+        {plantilla.accionesAdicionales && plantilla.accionesAdicionales.length > 0 && (
+          <div className={estilosClases.cajaListaAccionesFicha}>
+            <div className={`${estilosClases.subtituloFichaSection} ${estilosClases.subtituloAccionesAdicionales}`}>
+              ACCIONES ADICIONALES
+            </div>
+            {plantilla.accionesAdicionales.map((acc, i) => {
+              const esAtaque = acc.bonificadorAtaque !== undefined && acc.daño !== undefined;
+              return (
+                <div key={i} className={estilosClases.tarjetaAccionPurple}>
+                  <div className={estilosClases.cabeceraAccionTarjeta}>
+                    <span className={`${estilosClases.nombreAccionTarjeta} ${estilosClases.nombreAccionAdicional}`}>
+                      {acc.nombre.toUpperCase()}
+                    </span>
+                    {esAtaque && (
+                      <button
+                        onClick={() => lanzarAtaqueRapido(criaturaNombre, acc.nombre, `${(acc.bonificadorAtaque ?? 0) >= 0 ? "+" : ""}${acc.bonificadorAtaque ?? 0}`, acc.daño || "1d6", "físico")}
+                        className={estilosClases.botonAccionAtaqueLanzar}
+                      >
+                        <Swords size={10} />
+                        <span>TIRAR 3D</span>
+                      </button>
+                    )}
+                  </div>
+                  <div className={estilosClases.descAccionTarjeta}>
+                    {procesarTextoFicha(acc.descripcion, `${criaturaNombre} - ${acc.nombre}`, baseDatosHechizos, alHacerClicHechizo)}
+                    {esAtaque && (
+                      <span className={estilosClases.detallesAtaqueMetaInline}>
+                        [ +{acc.bonificadorAtaque} Al Impacto | Daño: {acc.daño} ]
+                      </span>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
         {/* Reacciones */}
         {plantilla.reacciones && plantilla.reacciones.length > 0 && (
           <div className={estilosClases.cajaListaAccionesFicha}>
@@ -271,11 +312,16 @@ export const PanelFichaDnD: React.FC<PanelFichaDnDProps> = ({
         {/* Acciones Legendarias */}
         {plantilla.accionesLegendarias && plantilla.accionesLegendarias.length > 0 && (
           <div className={estilosClases.cajaListaAccionesFicha}>
-            <div className={`${estilosClases.subtituloFichaSection} ${estilosClases.subtituloLegendarias}`}>ACCIONES LEGENDARIAS</div>
+            <div className={`${estilosClases.subtituloFichaSection} ${estilosClases.subtituloLegendarias}`}>
+              ACCIONES LEGENDARIAS ({plantilla.accionesLegendariasTotal ?? 3}/RONDA)
+            </div>
             {plantilla.accionesLegendarias.map((leg, i) => (
               <div key={i} className={estilosClases.tarjetaAccionPurple}>
                 <div className={estilosClases.cabeceraAccionTarjeta}>
-                  <span className={`${estilosClases.nombreAccionTarjeta} ${estilosClases.nombreAccionLegendaria}`}>{leg.nombre.toUpperCase()}</span>
+                  <span className={`${estilosClases.nombreAccionTarjeta} ${estilosClases.nombreAccionLegendaria}`}>
+                    {leg.nombre.toUpperCase()}
+                    {leg.uso ? <span className={estilosClases.costoAccionLegendaria}> [COSTO: {leg.uso.toUpperCase()}]</span> : null}
+                  </span>
                 </div>
                 <div className={estilosClases.descAccionTarjeta}>
                   {procesarTextoFicha(leg.descripcion, `${criaturaNombre} - ${leg.nombre}`, baseDatosHechizos, alHacerClicHechizo)}

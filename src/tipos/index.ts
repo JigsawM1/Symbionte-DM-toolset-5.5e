@@ -123,14 +123,17 @@ export const EsquemaAccionRapida = z.object({
   nombre: z.string(),
   bonificadorAtaque: z.string(), // ej. "+9"
   dadosDaño: z.string(), // ej. "2d6+5"
-  tipoDaño: z.string() // ej. "contundente"
+  tipoDaño: z.string(), // ej. "contundente"
+  recarga: z.string().optional(),
+  uso: z.string().optional()
 });
 export type AccionRapida = z.infer<typeof EsquemaAccionRapida>;
 
 export const EsquemaRasgoBase = z.object({
   nombre: z.string(),
   descripcion: z.string(),
-  uso: z.string().optional()
+  uso: z.string().optional(),
+  recarga: z.string().optional()
 });
 export type RasgoBase = z.infer<typeof EsquemaRasgoBase>;
 
@@ -139,7 +142,8 @@ export const EsquemaAccionMonstruo = z.object({
   descripcion: z.string(),
   bonificadorAtaque: z.number().optional(),
   daño: z.string().optional(),
-  uso: z.string().optional()
+  uso: z.string().optional(),
+  recarga: z.string().optional()
 });
 export type AccionMonstruo = z.infer<typeof EsquemaAccionMonstruo>;
 
@@ -177,8 +181,10 @@ export const EsquemaMonstruoBase = z.object({
   acciones: z.array(EsquemaAccionMonstruo).default([]),
   accionesAdicionales: z.array(EsquemaAccionMonstruo).optional().default([]),
   reacciones: z.array(EsquemaRasgoBase).optional().default([]),
-  accionesLegendariasTotal: z.number().optional().default(3),
-  accionesLegendarias: z.array(EsquemaRasgoBase).optional().default([])
+  accionesLegendariasTotal: z.union([z.string(), z.number()]).pipe(z.coerce.string()).optional().default("3"),
+  accionesLegendarias: z.array(EsquemaRasgoBase).optional().default([]),
+  equipo: z.string().optional().default(""),
+  tesoros: z.string().optional().default("")
 });
 export type MonstruoBase = z.infer<typeof EsquemaMonstruoBase>;
 

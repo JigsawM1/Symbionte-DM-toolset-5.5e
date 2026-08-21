@@ -953,6 +953,40 @@ export function formatearSubtituloCriatura(tipo?: string, tamaño?: string, alin
   return "Criatura";
 }
 
+/**
+ * Formatea el texto de recarga o uso de una habilidad/ataque (ej. "5-6" -> "Recarga 5-6", "6" -> "Recarga 6", "1/Día" -> "1/Día").
+ */
+export function formatearRecargaTexto(recarga?: string, uso?: string): string {
+  const texto = (recarga || uso || "").trim();
+  if (!texto) return "";
+
+  // Si es un patrón de rango tipo "5-6", "5—6", "4-6"
+  const matchRango = texto.match(/^(\d)\s*[-—–]\s*(\d)$/);
+  if (matchRango) {
+    return `Recarga ${matchRango[1]}-${matchRango[2]}`;
+  }
+
+  // Si es solo un dígito único de recarga ("5" o "6")
+  const matchUnico = texto.match(/^(\d)$/);
+  if (matchUnico) {
+    const num = parseInt(matchUnico[1], 10);
+    if (num >= 4 && num <= 6) {
+      return `Recarga ${num}`;
+    }
+    return texto;
+  }
+
+  // Si ya empieza con recarga o recharge
+  if (/^recarga\s+/i.test(texto)) {
+    return texto.charAt(0).toUpperCase() + texto.slice(1);
+  }
+  if (/^recharge\s+/i.test(texto)) {
+    return texto.replace(/^recharge\s+/i, "Recarga ");
+  }
+
+  return texto;
+}
+
 export function sanearMonstruoSentidosYPasiva(m: MonstruoBase): MonstruoBase {
   let sentidosObj: SentidosEstructurados;
   if (m.sentidos && typeof m.sentidos === "object" && !Array.isArray(m.sentidos)) {
@@ -975,8 +1009,41 @@ export function sanearMonstruoSentidosYPasiva(m: MonstruoBase): MonstruoBase {
     ...m,
     tamaño: typeof m.tamaño === "string" ? m.tamaño.trim() : "",
     alineacion: typeof m.alineacion === "string" ? m.alineacion.trim() : "",
-    accionesAdicionales: Array.isArray(m.accionesAdicionales) ? m.accionesAdicionales : [],
-    accionesLegendariasTotal: typeof m.accionesLegendariasTotal === "number" ? m.accionesLegendariasTotal : (Number(m.accionesLegendariasTotal) || 3),
+    acciones: Array.isArray(m.acciones) ? m.acciones.map((a) => ({
+      ...a,
+      recarga: typeof a.recarga === "string" ? a.recarga.trim() : (typeof a.uso === "string" ? a.uso.trim() : ""),
+      uso: typeof a.uso === "string" ? a.uso.trim() : ""
+    })) : [],
+    accionesAdicionales: Array.isArray(m.accionesAdicionales) ? m.accionesAdicionales.map((a) => ({
+      ...a,
+      recarga: typeof a.recarga === "string" ? a.recarga.trim() : (typeof a.uso === "string" ? a.uso.trim() : ""),
+      uso: typeof a.uso === "string" ? a.uso.trim() : ""
+    })) : [],
+    reacciones: Array.isArray(m.reacciones) ? m.reacciones.map((r) => ({
+      ...r,
+      recarga: typeof r.recarga === "string" ? r.recarga.trim() : (typeof r.uso === "string" ? r.uso.trim() : ""),
+      uso: typeof r.uso === "string" ? r.uso.trim() : ""
+    })) : [],
+    rasgos: Array.isArray(m.rasgos) ? m.rasgos.map((r) => ({
+      ...r,
+      recarga: typeof r.recarga === "string" ? r.recarga.trim() : (typeof r.uso === "string" ? r.uso.trim() : ""),
+      uso: typeof r.uso === "string" ? r.uso.trim() : ""
+    })) : [],
+    accionesLegendarias: Array.isArray(m.accionesLegendarias) ? m.accionesLegendarias.map((l) => ({
+      ...l,
+      recarga: typeof l.recarga === "string" ? l.recarga.trim() : (typeof l.uso === "string" ? l.uso.trim() : ""),
+      uso: typeof l.uso === "string" ? l.uso.trim() : ""
+    })) : [],
+    accionesRapidas: Array.isArray(m.accionesRapidas) ? m.accionesRapidas.map((q) => ({
+      ...q,
+      recarga: typeof q.recarga === "string" ? q.recarga.trim() : (typeof q.uso === "string" ? q.uso.trim() : ""),
+      uso: typeof q.uso === "string" ? q.uso.trim() : ""
+    })) : [],
+    accionesLegendariasTotal: m.accionesLegendariasTotal !== undefined && m.accionesLegendariasTotal !== null
+      ? String(m.accionesLegendariasTotal).trim()
+      : "3",
+    equipo: typeof m.equipo === "string" ? m.equipo.trim() : (m.equipo ? aplanarValor(m.equipo) : ""),
+    tesoros: typeof m.tesoros === "string" ? m.tesoros.trim() : (m.tesoros ? aplanarValor(m.tesoros) : ""),
     nombreNormalizado: normalizarTexto(m.nombre),
     sentidos: sentidosObj
   };

@@ -209,6 +209,14 @@
   letter-spacing: 0.02em;
 }
 
+.etiquetaRecargaAccion {
+  font-size: 11px;
+  font-weight: 700;
+  color: #ffcc00;
+  opacity: 0.9;
+  letter-spacing: 0.02em;
+}
+
 .botonAccionAtaqueLanzar {
   display: flex;
   flex-direction: row;

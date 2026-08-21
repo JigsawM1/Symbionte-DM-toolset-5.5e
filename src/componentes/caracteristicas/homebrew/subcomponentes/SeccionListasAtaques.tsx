@@ -2,6 +2,8 @@ import React from "react";
 import { Plus, Trash2, Edit2 } from "lucide-react";
 import { RasgoBase, AccionMonstruo, AccionRapida } from "@/tipos";
 import { SelectorDesplegable } from "@/componentes/comunes";
+import { desglosarAtaqueRapido, ComponenteDano } from "@/utiles/procesadorAtaques";
+import { formatearRecargaTexto } from "@/almacen/sanitizacion";
 import estilos from "../FormularioCriatura.module.css";
 
 const OPCIONES_TIPOS_DANO_RAPIDO = [
@@ -30,7 +32,7 @@ interface SeccionListasAtaquesProps {
     acciones?: AccionMonstruo[];
     accionesAdicionales?: AccionMonstruo[];
     reacciones?: RasgoBase[];
-    accionesLegendariasTotal?: number;
+    accionesLegendariasTotal?: string | number;
     accionesLegendarias?: RasgoBase[];
   };
   actualizarGeneral?: (campo: string, valor: unknown) => void;
@@ -40,6 +42,10 @@ interface SeccionListasAtaquesProps {
   tQBono: string; setTQBono: (v: string) => void;
   tQDados: string; setTQDados: (v: string) => void;
   tQTipo: string; setTQTipo: (v: string) => void;
+  danyosExtraQA?: ComponenteDano[];
+  agregarDanoExtraQA?: () => void;
+  actualizarDanoExtraQA?: (index: number, campo: keyof ComponenteDano, valor: string) => void;
+  eliminarDanoExtraQA?: (index: number) => void;
   quickActionEdicionIdx: number | null;
   agregarQuickAction: () => void;
   iniciarEditarQuickAction: (idx: number) => void;
@@ -116,6 +122,10 @@ export const SeccionListasAtaques: React.FC<SeccionListasAtaquesProps> = ({
   tQBono, setTQBono,
   tQDados, setTQDados,
   tQTipo, setTQTipo,
+  danyosExtraQA = [],
+  agregarDanoExtraQA,
+  actualizarDanoExtraQA,
+  eliminarDanoExtraQA,
   quickActionEdicionIdx,
   agregarQuickAction,
   iniciarEditarQuickAction,
@@ -176,6 +186,7 @@ export const SeccionListasAtaques: React.FC<SeccionListasAtaquesProps> = ({
             : `ATAQUES RÁPIDOS (${monstruoForm.accionesRapidas?.length || 0})`}
         </div>
         <div className={estilos.camposDinamicosGrupo}>
+          {/* Fila principal del Ataque Rápido */}
           <div className={estilos.filaCamposAlineados}>
             <input
               type="text"
@@ -195,7 +206,7 @@ export const SeccionListasAtaques: React.FC<SeccionListasAtaquesProps> = ({
               type="text"
               value={tQDados}
               onChange={(e) => setTQDados(e.target.value)}
-              placeholder="Dados (2d6+3)"
+              placeholder="Dados (1d6+3)"
               className={estilos.inputDinamicoMini}
             />
             <div style={{ minWidth: "125px" }}>
@@ -231,35 +242,116 @@ export const SeccionListasAtaques: React.FC<SeccionListasAtaquesProps> = ({
               </button>
             )}
           </div>
+
+          {/* Filas de daños adicionales */}
+          {danyosExtraQA && danyosExtraQA.length > 0 && (
+            <div style={{ display: "flex", flexDirection: "column", gap: "6px", marginTop: "4px" }}>
+              {danyosExtraQA.map((dExtra, dIdx) => (
+                <div
+                  key={`d_extra_${dIdx}`}
+                  className={estilos.filaCamposAlineados}
+                  style={{
+                    paddingLeft: "10px",
+                    borderLeft: "2px solid var(--color-borde-cian)",
+                    background: "rgba(0, 245, 212, 0.02)",
+                    borderRadius: "0 4px 4px 0",
+                    paddingTop: "2px",
+                    paddingBottom: "2px"
+                  }}
+                >
+                  <span style={{ fontSize: "11px", color: "var(--color-borde-cian)", fontWeight: "600", minWidth: "80px" }}>
+                    + Daño #{dIdx + 2}:
+                  </span>
+                  <input
+                    type="text"
+                    value={dExtra.dados}
+                    onChange={(e) => actualizarDanoExtraQA?.(dIdx, "dados", e.target.value)}
+                    placeholder="Dados (ej. 2d4)"
+                    className={estilos.inputDinamicoMini}
+                  />
+                  <div style={{ minWidth: "125px" }}>
+                    <SelectorDesplegable
+                      valor={dExtra.tipo}
+                      alCambiar={(v) => actualizarDanoExtraQA?.(dIdx, "tipo", v)}
+                      opciones={OPCIONES_TIPOS_DANO_RAPIDO}
+                      tamano="compacto"
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => eliminarDanoExtraQA?.(dIdx)}
+                    className={estilos.botonEliminarDinamico}
+                    title="Eliminar este daño adicional"
+                  >
+                    <Trash2 size={12} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Botón para añadir más dados de daño */}
+          <div style={{ marginTop: "6px", display: "flex", alignItems: "center" }}>
+            <button
+              type="button"
+              onClick={agregarDanoExtraQA}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "5px",
+                fontSize: "11px",
+                fontWeight: "600",
+                background: "rgba(0, 245, 212, 0.08)",
+                color: "var(--color-borde-cian)",
+                border: "1px dashed var(--color-borde-cian)",
+                padding: "4px 10px",
+                borderRadius: "4px",
+                cursor: "pointer",
+                transition: "all 0.15s ease"
+              }}
+              title="Añadir más dados de daño (ej. 2d4 de fuego)"
+            >
+              <Plus size={12} />
+              <span>Añadir más dados de daño</span>
+            </button>
+          </div>
+
           {/* Lista previsualizada */}
           {monstruoForm.accionesRapidas && monstruoForm.accionesRapidas.length > 0 && (
             <div className={estilos.listaDinamicaVisual}>
-              {monstruoForm.accionesRapidas.map((qa, idx) => (
-                <div key={`qa_v_${idx}`} className={estilos.itemDinamicoVisual}>
-                  <span>
-                    <strong>{qa.nombre}</strong>: {qa.bonificadorAtaque} | {qa.dadosDaño} ({qa.tipoDaño})
-                  </span>
-                  <div style={{ display: "flex", gap: "6px" }}>
-                    <button
-                      type="button"
-                      onClick={() => iniciarEditarQuickAction(idx)}
-                      className={estilos.botonEliminarDinamico}
-                      style={{ color: "var(--color-borde-cian)" }}
-                      title="Editar Ataque Rápido"
-                    >
-                      <Edit2 size={12} />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => eliminarQuickActionIdx(idx)}
-                      className={estilos.botonEliminarDinamico}
-                      title="Eliminar Ataque Rápido"
-                    >
-                      <Trash2 size={12} />
-                    </button>
+              {monstruoForm.accionesRapidas.map((qa, idx) => {
+                const componentes = desglosarAtaqueRapido(qa.dadosDaño, qa.tipoDaño);
+                const desgloseTexto = componentes
+                  .map((c) => `${c.dados} (${c.tipo})`)
+                  .join(" + ");
+
+                return (
+                  <div key={`qa_v_${idx}`} className={estilos.itemDinamicoVisual}>
+                    <span>
+                      <strong>{qa.nombre}</strong>: {qa.bonificadorAtaque} | {desgloseTexto}
+                    </span>
+                    <div style={{ display: "flex", gap: "6px" }}>
+                      <button
+                        type="button"
+                        onClick={() => iniciarEditarQuickAction(idx)}
+                        className={estilos.botonEliminarDinamico}
+                        style={{ color: "var(--color-borde-cian)" }}
+                        title="Editar Ataque Rápido"
+                      >
+                        <Edit2 size={12} />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => eliminarQuickActionIdx(idx)}
+                        className={estilos.botonEliminarDinamico}
+                        title="Eliminar Ataque Rápido"
+                      >
+                        <Trash2 size={12} />
+                      </button>
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
@@ -328,7 +420,7 @@ export const SeccionListasAtaques: React.FC<SeccionListasAtaquesProps> = ({
               <div key={`r_v_${idx}`} className={estilos.itemDinamicoVisual}>
                 <div style={{ flex: 1, marginRight: "10px" }}>
                   <strong>
-                    {r.nombre} {r.uso ? `(${r.uso})` : ""}
+                    {r.nombre} {(r.recarga || r.uso) ? `(${formatearRecargaTexto(r.recarga, r.uso)})` : ""}
                   </strong>
                   :
                   <div
@@ -445,7 +537,7 @@ export const SeccionListasAtaques: React.FC<SeccionListasAtaquesProps> = ({
               <div key={`a_v_${idx}`} className={estilos.itemDinamicoVisual}>
                 <div style={{ flex: 1, marginRight: "10px" }}>
                   <strong>
-                    {a.nombre} {a.uso ? `(${a.uso})` : ""}
+                    {a.nombre} {(a.recarga || a.uso) ? `(${formatearRecargaTexto(a.recarga, a.uso)})` : ""}
                   </strong>
                   :
                   <span style={{ fontSize: "11px", marginLeft: "5px", color: "var(--color-borde-cian)" }}>
@@ -565,7 +657,7 @@ export const SeccionListasAtaques: React.FC<SeccionListasAtaquesProps> = ({
               <div key={`aa_v_${idx}`} className={estilos.itemDinamicoVisual}>
                 <div style={{ flex: 1, marginRight: "10px" }}>
                   <strong>
-                    {a.nombre} {a.uso ? `(${a.uso})` : ""}
+                    {a.nombre} {(a.recarga || a.uso) ? `(${formatearRecargaTexto(a.recarga, a.uso)})` : ""}
                   </strong>
                   :
                   <span style={{ fontSize: "11px", marginLeft: "5px", color: "var(--color-borde-cian)" }}>
@@ -667,7 +759,7 @@ export const SeccionListasAtaques: React.FC<SeccionListasAtaquesProps> = ({
               <div key={`rec_v_${idx}`} className={estilos.itemDinamicoVisual}>
                 <div style={{ flex: 1, marginRight: "10px" }}>
                   <strong>
-                    {r.nombre} {r.uso ? `(${r.uso})` : ""}
+                    {r.nombre} {(r.recarga || r.uso) ? `(${formatearRecargaTexto(r.recarga, r.uso)})` : ""}
                   </strong>
                   :
                   <div
@@ -719,13 +811,12 @@ export const SeccionListasAtaques: React.FC<SeccionListasAtaquesProps> = ({
               Total de Acciones Legendarias (por ronda):
             </label>
             <input
-              type="number"
-              min={1}
-              max={10}
-              value={monstruoForm.accionesLegendariasTotal ?? 3}
-              onChange={(e) => actualizarGeneral && actualizarGeneral("accionesLegendariasTotal", parseInt(e.target.value, 10) || 3)}
-              className={estilos.inputDinamicoMini}
-              style={{ width: "55px", textAlign: "center" }}
+              type="text"
+              value={monstruoForm.accionesLegendariasTotal ?? "3"}
+              onChange={(e) => actualizarGeneral && actualizarGeneral("accionesLegendariasTotal", e.target.value)}
+              placeholder="Ej. 3 o 3 (4 en guarida)"
+              className={estilos.inputDinamicoMediano}
+              style={{ maxWidth: "160px" }}
             />
           </div>
 
@@ -784,7 +875,7 @@ export const SeccionListasAtaques: React.FC<SeccionListasAtaquesProps> = ({
               <div key={`leg_v_${idx}`} className={estilos.itemDinamicoVisual}>
                 <div style={{ flex: 1, marginRight: "10px" }}>
                   <strong>
-                    {l.nombre} {l.uso ? `(Costo: ${l.uso})` : ""}
+                    {l.nombre} {(l.recarga || l.uso) ? `(Costo: ${formatearRecargaTexto(l.recarga, l.uso)})` : ""}
                   </strong>
                   :
                   <div

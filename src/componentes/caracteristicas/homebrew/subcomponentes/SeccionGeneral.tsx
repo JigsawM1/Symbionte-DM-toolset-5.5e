@@ -22,6 +22,8 @@ interface SeccionGeneralProps {
     fuente?: string;
     sentidos?: string | SentidosEstructurados;
     idiomas?: string;
+    equipo?: string;
+    tesoros?: string;
   };
   actualizarGeneral: (campo: string, valor: unknown) => void;
 }
@@ -191,6 +193,29 @@ export const SeccionGeneral: React.FC<SeccionGeneralProps> = ({
           placeholder="Ej. Común, Dracónico"
           className={estilos.inputForm}
         />
+      </div>
+
+      <div className={estilos.filaDobleForm}>
+        <div className={estilos.campoForm}>
+          <label className={estilos.labelForm}>Equipo:</label>
+          <input
+            type="text"
+            value={monstruoForm.equipo || ""}
+            onChange={(e) => actualizarGeneral("equipo", e.target.value)}
+            placeholder="Ej. Armadura de cuero, arco corto..."
+            className={estilos.inputForm}
+          />
+        </div>
+        <div className={estilos.campoForm}>
+          <label className={estilos.labelForm}>Tesoros:</label>
+          <input
+            type="text"
+            value={monstruoForm.tesoros || ""}
+            onChange={(e) => actualizarGeneral("tesoros", e.target.value)}
+            placeholder="Ej. Reliquias, armamento, personal..."
+            className={estilos.inputForm}
+          />
+        </div>
       </div>
     </div>
   );

@@ -1,7 +1,8 @@
 import React from "react";
 import { Swords } from "lucide-react";
 import { MonstruoBase, HechizoBase } from "@/tipos";
-import { formatearVelocidad, formatearSentidos, formatearSubtituloCriatura } from "@/almacen/sanitizacion";
+import { formatearVelocidad, formatearSentidos, formatearSubtituloCriatura, formatearRecargaTexto } from "@/almacen/sanitizacion";
+import { detectarTipoDaño } from "@/utiles/lanzadorDados";
 import { procesarTextoFicha } from "./procesadorTexto";
 import estilosClases from "./PanelFichaDnD.module.css";
 
@@ -202,6 +203,16 @@ export const PanelFichaDnD: React.FC<PanelFichaDnDProps> = ({
               <strong style={{ color: "var(--color-texto-secundario)" }}>IDIOMAS:</strong> {plantilla.idiomas}
             </div>
           )}
+          {plantilla.equipo && (
+            <div className={estilosClases.lineaMetaFicha}>
+              <strong style={{ color: "var(--color-texto-secundario)" }}>EQUIPO:</strong> {plantilla.equipo}
+            </div>
+          )}
+          {plantilla.tesoros && (
+            <div className={estilosClases.lineaMetaFicha}>
+              <strong style={{ color: "var(--color-texto-secundario)" }}>TESOROS:</strong> {plantilla.tesoros}
+            </div>
+          )}
           {renderizarDefensa("Vulnerabilidades", plantilla.vulnerabilidades)}
           {renderizarDefensa("Resistencias", plantilla.resistencias)}
           {renderizarDefensa("Inmunidades al daño", plantilla.inmunidadesDaño)}
@@ -212,11 +223,18 @@ export const PanelFichaDnD: React.FC<PanelFichaDnDProps> = ({
         {plantilla.rasgos && plantilla.rasgos.length > 0 && (
           <div className={estilosClases.cajaListaRasgosFicha}>
             <div className={estilosClases.subtituloFichaSection}>RASGOS PASIVOS</div>
-            {plantilla.rasgos.map((rasgo, i) => (
-              <div key={i} className={estilosClases.itemRasgoFichaTexto}>
-                <strong style={{ color: "#ffcc00" }}>{rasgo.nombre}:</strong> {procesarTextoFicha(rasgo.descripcion, `${criaturaNombre} - ${rasgo.nombre}`, baseDatosHechizos, alHacerClicHechizo)}
-              </div>
-            ))}
+            {plantilla.rasgos.map((rasgo, i) => {
+              const recargaTexto = formatearRecargaTexto(rasgo.recarga, rasgo.uso);
+              return (
+                <div key={i} className={estilosClases.itemRasgoFichaTexto}>
+                  <strong style={{ color: "#ffcc00" }}>
+                    {rasgo.nombre}
+                    {recargaTexto ? ` (${recargaTexto})` : ""}:
+                  </strong>{" "}
+                  {procesarTextoFicha(rasgo.descripcion, `${criaturaNombre} - ${rasgo.nombre}`, baseDatosHechizos, alHacerClicHechizo)}
+                </div>
+              );
+            })}
           </div>
         )}
 
@@ -226,13 +244,35 @@ export const PanelFichaDnD: React.FC<PanelFichaDnDProps> = ({
             <div className={estilosClases.subtituloFichaSection}>ACCIONES</div>
             {plantilla.acciones.map((acc, i) => {
               const esAtaque = acc.bonificadorAtaque !== undefined && acc.daño !== undefined;
+              const qaCorrespondiente = (plantilla.accionesRapidas || []).find(
+                (q) => q.nombre.toLowerCase().trim() === acc.nombre.toLowerCase().trim()
+              );
+              const dadosLanzar = qaCorrespondiente ? qaCorrespondiente.dadosDaño : (acc.daño || "1d6");
+              const tipoLanzar = qaCorrespondiente ? qaCorrespondiente.tipoDaño : detectarTipoDaño(acc.descripcion, "físico");
+              const recargaTexto = formatearRecargaTexto(acc.recarga, acc.uso);
+
               return (
                 <div key={i} className={estilosClases.tarjetaAccionPurple}>
                   <div className={estilosClases.cabeceraAccionTarjeta}>
-                    <span className={estilosClases.nombreAccionTarjeta}>{acc.nombre.toUpperCase()}</span>
+                    <span className={estilosClases.nombreAccionTarjeta}>
+                      {acc.nombre.toUpperCase()}
+                      {recargaTexto && (
+                        <span className={estilosClases.etiquetaRecargaAccion}>
+                          {" "}({recargaTexto})
+                        </span>
+                      )}
+                    </span>
                     {esAtaque && (
                       <button
-                        onClick={() => lanzarAtaqueRapido(criaturaNombre, acc.nombre, `${(acc.bonificadorAtaque ?? 0) >= 0 ? "+" : ""}${acc.bonificadorAtaque ?? 0}`, acc.daño || "1d6", "físico")}
+                        onClick={() =>
+                          lanzarAtaqueRapido(
+                            criaturaNombre,
+                            acc.nombre,
+                            `${(acc.bonificadorAtaque ?? 0) >= 0 ? "+" : ""}${acc.bonificadorAtaque ?? 0}`,
+                            dadosLanzar,
+                            tipoLanzar
+                          )
+                        }
                         className={estilosClases.botonAccionAtaqueLanzar}
                       >
                         <Swords size={10} />
@@ -244,7 +284,7 @@ export const PanelFichaDnD: React.FC<PanelFichaDnDProps> = ({
                     {procesarTextoFicha(acc.descripcion, `${criaturaNombre} - ${acc.nombre}`, baseDatosHechizos, alHacerClicHechizo)}
                     {esAtaque && (
                       <span className={estilosClases.detallesAtaqueMetaInline}>
-                        [ +{acc.bonificadorAtaque} Al Impacto | Daño: {acc.daño} ]
+                        [ +{acc.bonificadorAtaque} Al Impacto | Daño: {dadosLanzar} ]
                       </span>
                     )}
                   </div>
@@ -262,15 +302,35 @@ export const PanelFichaDnD: React.FC<PanelFichaDnDProps> = ({
             </div>
             {plantilla.accionesAdicionales.map((acc, i) => {
               const esAtaque = acc.bonificadorAtaque !== undefined && acc.daño !== undefined;
+              const qaCorrespondiente = (plantilla.accionesRapidas || []).find(
+                (q) => q.nombre.toLowerCase().trim() === acc.nombre.toLowerCase().trim()
+              );
+              const dadosLanzar = qaCorrespondiente ? qaCorrespondiente.dadosDaño : (acc.daño || "1d6");
+              const tipoLanzar = qaCorrespondiente ? qaCorrespondiente.tipoDaño : detectarTipoDaño(acc.descripcion, "físico");
+              const recargaTexto = formatearRecargaTexto(acc.recarga, acc.uso);
+
               return (
                 <div key={i} className={estilosClases.tarjetaAccionPurple}>
                   <div className={estilosClases.cabeceraAccionTarjeta}>
                     <span className={`${estilosClases.nombreAccionTarjeta} ${estilosClases.nombreAccionAdicional}`}>
                       {acc.nombre.toUpperCase()}
+                      {recargaTexto && (
+                        <span className={estilosClases.etiquetaRecargaAccion}>
+                          {" "}({recargaTexto})
+                        </span>
+                      )}
                     </span>
                     {esAtaque && (
                       <button
-                        onClick={() => lanzarAtaqueRapido(criaturaNombre, acc.nombre, `${(acc.bonificadorAtaque ?? 0) >= 0 ? "+" : ""}${acc.bonificadorAtaque ?? 0}`, acc.daño || "1d6", "físico")}
+                        onClick={() =>
+                          lanzarAtaqueRapido(
+                            criaturaNombre,
+                            acc.nombre,
+                            `${(acc.bonificadorAtaque ?? 0) >= 0 ? "+" : ""}${acc.bonificadorAtaque ?? 0}`,
+                            dadosLanzar,
+                            tipoLanzar
+                          )
+                        }
                         className={estilosClases.botonAccionAtaqueLanzar}
                       >
                         <Swords size={10} />
@@ -282,7 +342,7 @@ export const PanelFichaDnD: React.FC<PanelFichaDnDProps> = ({
                     {procesarTextoFicha(acc.descripcion, `${criaturaNombre} - ${acc.nombre}`, baseDatosHechizos, alHacerClicHechizo)}
                     {esAtaque && (
                       <span className={estilosClases.detallesAtaqueMetaInline}>
-                        [ +{acc.bonificadorAtaque} Al Impacto | Daño: {acc.daño} ]
+                        [ +{acc.bonificadorAtaque} Al Impacto | Daño: {dadosLanzar} ]
                       </span>
                     )}
                   </div>
@@ -296,16 +356,26 @@ export const PanelFichaDnD: React.FC<PanelFichaDnDProps> = ({
         {plantilla.reacciones && plantilla.reacciones.length > 0 && (
           <div className={estilosClases.cajaListaAccionesFicha}>
             <div className={`${estilosClases.subtituloFichaSection} ${estilosClases.subtituloReacciones}`}>REACCIONES</div>
-            {plantilla.reacciones.map((reac, i) => (
-              <div key={i} className={estilosClases.tarjetaAccionPurple}>
-                <div className={estilosClases.cabeceraAccionTarjeta}>
-                  <span className={`${estilosClases.nombreAccionTarjeta} ${estilosClases.nombreAccionReacion}`}>{reac.nombre.toUpperCase()}</span>
+            {plantilla.reacciones.map((reac, i) => {
+              const recargaTexto = formatearRecargaTexto(reac.recarga, reac.uso);
+              return (
+                <div key={i} className={estilosClases.tarjetaAccionPurple}>
+                  <div className={estilosClases.cabeceraAccionTarjeta}>
+                    <span className={`${estilosClases.nombreAccionTarjeta} ${estilosClases.nombreAccionReacion}`}>
+                      {reac.nombre.toUpperCase()}
+                      {recargaTexto && (
+                        <span className={estilosClases.etiquetaRecargaAccion}>
+                          {" "}({recargaTexto})
+                        </span>
+                      )}
+                    </span>
+                  </div>
+                  <div className={estilosClases.descAccionTarjeta}>
+                    {procesarTextoFicha(reac.descripcion, `${criaturaNombre} - ${reac.nombre}`, baseDatosHechizos, alHacerClicHechizo)}
+                  </div>
                 </div>
-                <div className={estilosClases.descAccionTarjeta}>
-                  {procesarTextoFicha(reac.descripcion, `${criaturaNombre} - ${reac.nombre}`, baseDatosHechizos, alHacerClicHechizo)}
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
 
@@ -313,21 +383,24 @@ export const PanelFichaDnD: React.FC<PanelFichaDnDProps> = ({
         {plantilla.accionesLegendarias && plantilla.accionesLegendarias.length > 0 && (
           <div className={estilosClases.cajaListaAccionesFicha}>
             <div className={`${estilosClases.subtituloFichaSection} ${estilosClases.subtituloLegendarias}`}>
-              ACCIONES LEGENDARIAS ({plantilla.accionesLegendariasTotal ?? 3}/RONDA)
+              ACCIONES LEGENDARIAS ({plantilla.accionesLegendariasTotal || "3"}/RONDA)
             </div>
-            {plantilla.accionesLegendarias.map((leg, i) => (
-              <div key={i} className={estilosClases.tarjetaAccionPurple}>
-                <div className={estilosClases.cabeceraAccionTarjeta}>
-                  <span className={`${estilosClases.nombreAccionTarjeta} ${estilosClases.nombreAccionLegendaria}`}>
-                    {leg.nombre.toUpperCase()}
-                    {leg.uso ? <span className={estilosClases.costoAccionLegendaria}> [COSTO: {leg.uso.toUpperCase()}]</span> : null}
-                  </span>
+            {plantilla.accionesLegendarias.map((leg, i) => {
+              const costoORecarga = leg.uso || leg.recarga;
+              return (
+                <div key={i} className={estilosClases.tarjetaAccionPurple}>
+                  <div className={estilosClases.cabeceraAccionTarjeta}>
+                    <span className={`${estilosClases.nombreAccionTarjeta} ${estilosClases.nombreAccionLegendaria}`}>
+                      {leg.nombre.toUpperCase()}
+                      {costoORecarga ? <span className={estilosClases.costoAccionLegendaria}> [COSTO: {costoORecarga.toUpperCase()}]</span> : null}
+                    </span>
+                  </div>
+                  <div className={estilosClases.descAccionTarjeta}>
+                    {procesarTextoFicha(leg.descripcion, `${criaturaNombre} - ${leg.nombre}`, baseDatosHechizos, alHacerClicHechizo)}
+                  </div>
                 </div>
-                <div className={estilosClases.descAccionTarjeta}>
-                  {procesarTextoFicha(leg.descripcion, `${criaturaNombre} - ${leg.nombre}`, baseDatosHechizos, alHacerClicHechizo)}
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>

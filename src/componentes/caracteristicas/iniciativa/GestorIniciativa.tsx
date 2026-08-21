@@ -9,6 +9,7 @@ import { resolverPlantillaPorCriatura, esNombreVacioODot } from "@/servicios/res
 import { usarIndiceMonstruos } from "@/servicios/indiceMonstruos";
 import { MonstruoBase } from "@/utiles/datosIniciales";
 import { lanzarDadosTaleSpire, sanitizarEtiqueta } from "@/utiles/lanzadorDados";
+import { construirFormulaAtaqueRapido } from "@/utiles/procesadorAtaques";
 import { FichaHechizo } from "@/componentes/caracteristicas/compendio";
 import { TarjetaCriaturaIniciativa } from "./TarjetaCriaturaIniciativa";
 import { PanelFichaDnD } from "./PanelFichaDnD";
@@ -88,8 +89,7 @@ export const GestorIniciativa: React.FC = () => {
 
   // Lanzar Ataques y Habilidades en TaleSpire 3D
   const lanzarAtaqueRapido = (criaturaNombre: string, ataqueNombre: string, bonoAtaqueStr: string, dadosDaño: string, tipoDaño: string) => {
-    const bono = parseInt(bonoAtaqueStr.replace(/[^\d-]/g, ""), 10) || 0;
-    const formulaDados = `!Ataque ${sanitizarEtiqueta(ataqueNombre)}:1d20${bono >= 0 ? "+" : ""}${bono}/Daño ${sanitizarEtiqueta(tipoDaño)}:${dadosDaño.replace(/\s+/g, "")}`;
+    const formulaDados = construirFormulaAtaqueRapido(ataqueNombre, bonoAtaqueStr, dadosDaño, tipoDaño);
     lanzarDadosTaleSpire(formulaDados, `${criaturaNombre} - ${ataqueNombre}`);
   };
 

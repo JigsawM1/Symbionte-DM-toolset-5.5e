@@ -2,6 +2,61 @@
 
 Este archivo registra errores encontrados, sus causas raíz y las soluciones aplicadas.
 
+## [2026-08-20] Arquitectura y Esquema: Soporte D&D 5.5e para Monstruos (Equipo, Tesoros y Acciones Legendarias Dinámicas)
+**Problema:**
+- En la base de datos de monstruos se añadieron los campos `equipo` y `tesoros`, así como valores compuestos en `accionesLegendariasTotal` en formato texto (ej. `"3 (4 en guarida)"`).
+- Anteriormente, `EsquemaMonstruoBase` y `sanearMonstruoSentidosYPasiva` forzaban `accionesLegendariasTotal` como tipo estrictamente numérico (`z.number()`), provocando que monstruos con valores compuestos recibieran `NaN` y fueran omitidos durante la importación y carga con advertencias del esquema Zod.
+- Faltaban las interfaces y controles de edición para `equipo` y `tesoros` en el formulario y su correspondiente visualización en la ficha D&D 5.5e (`PanelFichaDnD`).
+
+**Solución Aplicada:**
+1. **Modelos y Esquema Zod (`src/tipos/index.ts`):**
+   - Agregados `equipo: z.string().optional().default("")` y `tesoros: z.string().optional().default("")` a `EsquemaMonstruoBase`.
+   - Modificado `accionesLegendariasTotal: z.union([z.string(), z.number()]).pipe(z.coerce.string()).optional().default("3")` para permitir tanto números directos como cadenas compuestas (`"3 (4 en guarida)"`) coercidas limpiamente a `string`.
+2. **Sanitización e Importador Tolerante (`src/almacen/sanitizacion.ts` & `src/almacen/importadorJSON.ts`):**
+   - Saneamiento y mapeo seguro de `equipo` (con alias `Equipment`, `gear`, `Gear`) y `tesoros` (con alias `Treasure`, `treasure`, `treasures`, `Treasures`).
+   - Saneamiento tolerante de `accionesLegendariasTotal` como string preservando notas de guarida o conteos numéricos.
+3. **Formulario Homebrew de Criaturas (`usarFormularioCriatura.ts`, `SeccionGeneral.tsx` & `SeccionListasAtaques.tsx`):**
+   - Agregados campos de entrada de texto reactivos para `Equipo` y `Tesoros` en la pestaña **General**.
+   - Actualizado el campo de `Total de Acciones Legendarias (por ronda)` a entrada de texto con placeholder *"Ej. 3 o 3 (4 en guarida)"*.
+4. **Visor de Ficha D&D 5.5e (`PanelFichaDnD.tsx`):**
+   - Incorporada la visualización estilizada de `EQUIPO:` y `TESOROS:` en la caja de metadatos básicos y defensas de la criatura.
+   - Actualizado el encabezado de acciones legendarias para reflejar el total dinámico: `ACCIONES LEGENDARIAS ({plantilla.accionesLegendariasTotal || "3"}/RONDA)`.
+5. **Soporte Completo de Recarga en Ataques y Acciones:**
+   - Añadido `recarga: z.string().optional()` y `uso: z.string().optional()` a `EsquemaAccionMonstruo`, `EsquemaRasgoBase` y `EsquemaAccionRapida`.
+   - Creado helper puro `formatearRecargaTexto` que normaliza entradas libres (ej. `"5-6"` -> `"Recarga 5-6"`, `"6"` -> `"Recarga 6"`, `"recharge 5-6"` -> `"Recarga 5-6"`, `"1/Día"`).
+   - Integrada la visualización estilizada de recargas en todas las cabeceras de acciones, acciones adicionales, reacciones y rasgos de la ficha D&D 5.5e y en los listados del creador homebrew.
+6. **Verificación Automatizada:**
+   - 71 pruebas pasando al 100% en `vitest`.
+   - 0 errores en `tsc --noEmit`.
+   - Compilación y despliegue exitoso (`pnpm run deploy`).
+
+---
+
+## [2026-08-18] Funcionalidad y Arquitectura: Soporte para Múltiples Dados y Tipos de Daño en Ataques Rápidos (TaleSpire 3D)
+**Problema:**
+- Los ataques de criaturas (ej. dragones con *Desgarrar* infligiendo cortante + fuego, o armas con veneno/relámpago) requerían múltiples tipos de daño.
+- En la interfaz de TaleSpire, al tirar múltiples dados, si los dados no están etiquetados de forma individual (ej. `!Ataque .../Dano Cortante:1d6+4/Dano Fuego:2d4`), el juego solo mostraba la etiqueta genérica *"AND"* sin especificar el tipo de daño secundario.
+- Además, el formulario de creación de criaturas solo permitía definir un único dado y un tipo de daño rígido para cada acción rápida.
+
+**Solución Aplicada:**
+1. **Módulo Puro de Procesamiento (`src/utiles/procesadorAtaques.ts` & `procesadorAtaques.test.ts`):**
+   - Creadas las funciones puras `desglosarAtaqueRapido`, `construirFormulaAtaqueRapido` y `formatearDetalleAtaqueRapido`.
+   - Soporta serialización/deserialización transparente por separador `/` (ej. `"1d6+4 / 2d4"` y `"contundente / fuego"`), manteniendo 100% de compatibilidad con esquemas Zod (`AccionRapida`) y JSONs existentes.
+   - Construye fórmulas TaleSpire multi-etiquetadas (`!Ataque Nombre:1d20+X/Dano Tipo1:Dados1/Dano Tipo2:Dados2`) asegurando que en TaleSpire aparezcan los rótulos correctos (`AND DANO CONTUNDENTE`, `AND DANO FUEGO`).
+2. **Formulario Homebrew de Criaturas (`usarFormularioCriatura.ts` & `SeccionListasAtaques.tsx`):**
+   - Agregado el botón reactivo **`+ Añadir más dados de daño`** que despliega filas dinámicas adicionales de dados y selectores `SelectorDesplegable` por cada daño extra.
+   - Soporte completo para agregar, editar (con desglose automático), modificar y eliminar componentes individuales de daño en caliente.
+   - Previsualización visual formateada en la lista previa (`Nombre: +X | Dados1 (Tipo1) + Dados2 (Tipo2)`).
+3. **Ficha D&D 5.5e y Combat Tracker (`GestorIniciativa.tsx`, `TarjetaCriaturaIniciativa.tsx`, `PanelFichaDnD.tsx`):**
+   - Delegación de la construcción de fórmulas a `construirFormulaAtaqueRapido`.
+   - Tooltips enriquecidos en los botones de ataque rápido del tracker.
+   - Enlace automático en la ficha D&D para lanzar los dados completos de acciones y acciones adicionales.
+4. **Verificación Automatizada:**
+   - 10 pruebas unitarias nuevas en `procesadorAtaques.test.ts` cubriendo todos los casos de parsing, composición y sanitización (70 pruebas unitarias pasando al 100% con `vitest`).
+   - 0 errores en `tsc --noEmit`.
+
+---
+
 ## [2026-08-18] Arquitectura: Soporte D&D 5.5e para Monstruos (Tamaño, Alineamiento, Acciones Adicionales y Costos de Acciones Legendarias)
 **Problema:**
 - El esquema y visores de monstruos carecían de los campos actualizados de las cartas de estadísticas del Manual de Monstruos D&D 5.5e (2024): tamaño y alineamiento en el subtítulo oficial (*"Humanoide Mediano o Pequeño, neutral malvado"*), bloque de acciones adicionales (bonus actions), total de usos de acciones legendarias por ronda y visualización explícita del costo por acción legendaria (en lugar de la etiqueta ambigua de uso).

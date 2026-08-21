@@ -184,7 +184,8 @@ export function importarDesdeJSON(
           return {
             nombre: aplanarValor(r.nombre || r.Name || ""),
             descripcion: aplanarValor(r.descripcion || r.Content || ""),
-            uso: aplanarValor(r.uso || r.Usage || "")
+            uso: aplanarValor(r.uso || r.Usage || ""),
+            recarga: aplanarValor(r.recarga || r.recharge || r.Recharge || "")
           };
         });
 
@@ -205,7 +206,8 @@ export function importarDesdeJSON(
             descripcion: aplanarValor(a.descripcion || a.Content || ""),
             bonificadorAtaque: bonifAtaqueNum,
             daño: aplanarValor(a.daño || a.Damage || ""),
-            uso: aplanarValor(a.uso || a.Usage || "")
+            uso: aplanarValor(a.uso || a.Usage || ""),
+            recarga: aplanarValor(a.recarga || a.recharge || a.Recharge || "")
           };
         });
 
@@ -221,7 +223,8 @@ export function importarDesdeJSON(
               ? a.bonificadorAtaque
               : (a.bonificadorAtaque || a.Bonus ? Number(a.bonificadorAtaque || a.Bonus) : undefined),
             daño: aplanarValor(a.daño || a.Damage || ""),
-            uso: aplanarValor(a.uso || a.Usage || a.costo || a.Cost || "")
+            uso: aplanarValor(a.uso || a.Usage || a.costo || a.Cost || ""),
+            recarga: aplanarValor(a.recarga || a.recharge || a.Recharge || "")
           };
         });
 
@@ -231,7 +234,8 @@ export function importarDesdeJSON(
           return {
             nombre: aplanarValor(r.nombre || r.Name || ""),
             descripcion: aplanarValor(r.descripcion || r.Content || ""),
-            uso: aplanarValor(r.uso || r.Usage || "")
+            uso: aplanarValor(r.uso || r.Usage || ""),
+            recarga: aplanarValor(r.recarga || r.recharge || r.Recharge || "")
           };
         });
 
@@ -241,7 +245,8 @@ export function importarDesdeJSON(
           return {
             nombre: aplanarValor(l.nombre || l.Name || ""),
             descripcion: aplanarValor(l.descripcion || l.Content || ""),
-            uso: aplanarValor(l.uso || l.Usage || l.costo || l.Cost || "")
+            uso: aplanarValor(l.uso || l.Usage || l.costo || l.Cost || ""),
+            recarga: aplanarValor(l.recarga || l.recharge || l.Recharge || "")
           };
         });
 
@@ -316,7 +321,7 @@ export function importarDesdeJSON(
         }
 
         // Acciones rápidas (Quick actions)
-        let accionesRapidasFormateadas: { nombre: string; bonificadorAtaque: string; dadosDaño: string; tipoDaño: string }[] = [];
+        let accionesRapidasFormateadas: { nombre: string; bonificadorAtaque: string; dadosDaño: string; tipoDaño: string; recarga?: string; uso?: string }[] = [];
         const qaRawList = Array.isArray(m.accionesRapidas) ? m.accionesRapidas : (Array.isArray(m.QuickAction) ? m.QuickAction : []);
         if (qaRawList.length > 0) {
           accionesRapidasFormateadas = qaRawList.map((qaRaw) => {
@@ -325,7 +330,9 @@ export function importarDesdeJSON(
               nombre: aplanarValor(qa.nombre || qa.Name || "Ataque"),
               bonificadorAtaque: aplanarValor(qa.bonificadorAtaque || qa.ToHit || "+0"),
               dadosDaño: aplanarValor(qa.dadosDaño || qa.Damage || "1d6"),
-              tipoDaño: aplanarValor(qa.tipoDaño || qa.DamageType || "físico")
+              tipoDaño: aplanarValor(qa.tipoDaño || qa.DamageType || "físico"),
+              recarga: aplanarValor(qa.recarga || qa.recharge || qa.Recharge || ""),
+              uso: aplanarValor(qa.uso || qa.Usage || "")
             };
           });
         }
@@ -362,40 +369,49 @@ export function importarDesdeJSON(
             nombre: aplanarValor(qa.nombre),
             bonificadorAtaque: aplanarValor(qa.bonificadorAtaque),
             dadosDaño: aplanarValor(qa.dadosDaño),
-            tipoDaño: aplanarValor(qa.tipoDaño)
+            tipoDaño: aplanarValor(qa.tipoDaño),
+            recarga: aplanarValor(qa.recarga),
+            uso: aplanarValor(qa.uso)
           })),
           rasgos: rasgosFormateados.map((r) => ({
             nombre: aplanarValor(r.nombre),
             descripcion: aplanarValor(r.descripcion),
-            uso: aplanarValor(r.uso)
+            uso: aplanarValor(r.uso),
+            recarga: aplanarValor(r.recarga)
           })),
           acciones: accionesFormateadas.map((a) => ({
             nombre: aplanarValor(a.nombre),
             descripcion: aplanarValor(a.descripcion),
             bonificadorAtaque: a.bonificadorAtaque,
             daño: aplanarValor(a.daño),
-            uso: aplanarValor(a.uso)
+            uso: aplanarValor(a.uso),
+            recarga: aplanarValor(a.recarga)
           })),
           accionesAdicionales: accionesAdicionalesFormateadas.map((a) => ({
             nombre: aplanarValor(a.nombre),
             descripcion: aplanarValor(a.descripcion),
             bonificadorAtaque: a.bonificadorAtaque,
             daño: aplanarValor(a.daño),
-            uso: aplanarValor(a.uso)
+            uso: aplanarValor(a.uso),
+            recarga: aplanarValor(a.recarga)
           })),
           reacciones: reaccionesFormateadas.map((r) => ({
             nombre: aplanarValor(r.nombre),
             descripcion: aplanarValor(r.descripcion),
-            uso: aplanarValor(r.uso)
+            uso: aplanarValor(r.uso),
+            recarga: aplanarValor(r.recarga)
           })),
-          accionesLegendariasTotal: typeof m.accionesLegendariasTotal === "number"
-            ? m.accionesLegendariasTotal
-            : (m.accionesLegendariasTotal || m.legendaryActionsCount ? Number(m.accionesLegendariasTotal || m.legendaryActionsCount) : (legendariasFormateadas.length > 0 ? 3 : undefined)),
+          accionesLegendariasTotal: m.accionesLegendariasTotal !== undefined && m.accionesLegendariasTotal !== null && m.accionesLegendariasTotal !== ""
+            ? aplanarValor(m.accionesLegendariasTotal)
+            : (m.legendaryActionsCount !== undefined && m.legendaryActionsCount !== null ? String(m.legendaryActionsCount) : (legendariasFormateadas.length > 0 ? "3" : undefined)),
           accionesLegendarias: legendariasFormateadas.map((l) => ({
             nombre: aplanarValor(l.nombre),
             descripcion: aplanarValor(l.descripcion),
-            uso: aplanarValor(l.uso)
-          }))
+            uso: aplanarValor(l.uso),
+            recarga: aplanarValor(l.recarga)
+          })),
+          equipo: aplanarValor(m.equipo || m.Equipment || m.gear || m.Gear || ""),
+          tesoros: aplanarValor(m.tesoros || m.Treasure || m.treasure || m.treasures || m.Treasures || "")
         };
 
         const monstruoSaneadoConPasiva = sanearMonstruoSentidosYPasiva(monstruoSaneado as any);

@@ -4,6 +4,7 @@ import { CriaturaIniciativa } from "@/almacen/usarAlmacenDM";
 import { MonstruoBase, CONDICIONES_2024, EFECTOS_PREDEFINIDOS } from "@/utiles/datosIniciales";
 import { formatearVelocidad } from "@/almacen/sanitizacion";
 import { esNombreVacioODot } from "@/servicios/resolutorCriaturas";
+import { formatearDetalleAtaqueRapido } from "@/utiles/procesadorAtaques";
 import estilosClases from "./TarjetaCriaturaIniciativa.module.css";
 
 interface TarjetaCriaturaIniciativaProps {
@@ -482,7 +483,7 @@ export const TarjetaCriaturaIniciativa: React.FC<TarjetaCriaturaIniciativaProps>
                 key={index}
                 onClick={() => onLanzarAtaqueRapido(acc.nombre, acc.bonificadorAtaque, acc.dadosDaño, acc.tipoDaño)}
                 className={estilosClases.botonAccionRapidaMedieval}
-                title={`Tirar ataque: d20${acc.bonificadorAtaque} | Daño: ${acc.dadosDaño}`}
+                title={formatearDetalleAtaqueRapido(acc.bonificadorAtaque, acc.dadosDaño, acc.tipoDaño)}
               >
                 <Swords size={10} style={{ color: "var(--color-peligro)" }} />
                 <span>{acc.nombre}</span>

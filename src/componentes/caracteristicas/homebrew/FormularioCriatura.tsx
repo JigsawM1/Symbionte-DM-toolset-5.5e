@@ -33,6 +33,10 @@ export const FormularioCriatura: React.FC<Props> = ({
     tQBono, setTQBono,
     tQDados, setTQDados,
     tQTipo, setTQTipo,
+    danyosExtraQA,
+    agregarDanoExtraQA,
+    actualizarDanoExtraQA,
+    eliminarDanoExtraQA,
     quickActionEdicionIdx,
     agregarQuickAction,
     iniciarEditarQuickAction,
@@ -208,6 +212,10 @@ export const FormularioCriatura: React.FC<Props> = ({
           tQBono={tQBono} setTQBono={setTQBono}
           tQDados={tQDados} setTQDados={setTQDados}
           tQTipo={tQTipo} setTQTipo={setTQTipo}
+          danyosExtraQA={danyosExtraQA}
+          agregarDanoExtraQA={agregarDanoExtraQA}
+          actualizarDanoExtraQA={actualizarDanoExtraQA}
+          eliminarDanoExtraQA={eliminarDanoExtraQA}
           quickActionEdicionIdx={quickActionEdicionIdx}
           agregarQuickAction={agregarQuickAction}
           iniciarEditarQuickAction={iniciarEditarQuickAction}

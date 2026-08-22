@@ -2,6 +2,7 @@ import { create, StateCreator } from "zustand";
 import { crearSliceIniciativa, SliceIniciativa } from "./slices/sliceIniciativa";
 import { crearSliceHomebrew, SliceHomebrew } from "./slices/sliceHomebrew";
 import { crearSliceConfiguracion, SliceConfiguracion } from "./slices/sliceConfiguracion";
+import { crearSlicePersonajes, SlicePersonajes } from "./slices/slicePersonajes";
 
 // Re-exportar tipos para mantener compatibilidad hacia atrás
 export * from "@/tipos";
@@ -56,7 +57,7 @@ export interface NotificacionUI {
 import { persistirEstadoCompleto } from "./persistencia";
 
 // Interfaz del Estado combinando todos los Slices para TypeScript estricto
-export interface EstadoDM extends SliceIniciativa, SliceHomebrew, SliceConfiguracion {}
+export interface EstadoDM extends SliceIniciativa, SliceHomebrew, SliceConfiguracion, SlicePersonajes {}
 
 const CLAVES_PERSISTIBLES: (keyof EstadoDM)[] = [
   "colaIniciativa",
@@ -69,7 +70,9 @@ const CLAVES_PERSISTIBLES: (keyof EstadoDM)[] = [
   "metodoVidaMonstruo",
   "listaPendientes",
   "notasDM",
-  "encuentrosGuardados"
+  "encuentrosGuardados",
+  "personajes",
+  "idPersonajeActivo"
 ];
 
 type PersistenciaMiddleware = (
@@ -103,7 +106,8 @@ export const usarAlmacenDM = create<EstadoDM>()(
   persistenciaMiddleware((set, get, api) => ({
     ...crearSliceIniciativa(set, get, api),
     ...crearSliceHomebrew(set, get, api),
-    ...crearSliceConfiguracion(set, get, api)
+    ...crearSliceConfiguracion(set, get, api),
+    ...crearSlicePersonajes(set, get, api)
   }))
 );
 

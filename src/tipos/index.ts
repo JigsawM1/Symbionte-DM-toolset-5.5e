@@ -350,3 +350,10 @@ export interface EfectoPredefinido {
   duracionEstandar: number; // en rondas
   esConcentracion?: boolean;
 }
+
+// ==========================================
+// 7. PERSONAJE JUGADOR (D&D 5.5e)
+// ==========================================
+
+export * from "./personaje";
+

@@ -13,3 +13,5 @@ export * from './usarEstadoIniciativa';
 export * from './usarEstadoHomebrew';
 export * from './usarEstadoConfiguracion';
 export * from './usarEstadoUtiles';
+export * from './usarEstadoPersonajes';
+

@@ -1,6 +1,7 @@
 import { StateCreator } from 'zustand';
 import { ElementoPendiente, EncuentroGuardado, CriaturaIniciativa, NotificacionUI } from '@/almacen/usarAlmacenDM';
-import { MonstruoBase, HechizoBase, ObjetoHomebrew } from '@/tipos';
+import { MonstruoBase, HechizoBase, ObjetoHomebrew, PersonajeJugador } from '@/tipos';
+import { PERSONAJE_POR_DEFECTO } from '@/constantes';
 import { MONSTRUOS_INICIALES, HECHIZOS_INICIALES, OBJETOS_INICIALES } from '@/utiles/datosIniciales';
 import { leerBlobGlobal, limpiarBlobGlobal } from '@/utiles/almacenamientoTaleSpire';
 import { sanearObjetoHomebrew, sanearHechizoCD, sanearMonstruoSentidosYPasiva } from '@/almacen/sanitizacion';
@@ -213,6 +214,15 @@ export const crearSliceConfiguracion: StateCreator<
           set({ asociacionesFichas: asociaciones });
         }
 
+        const personajes = blob.personajes as PersonajeJugador[] | undefined;
+        const idPersonajeActivo = blob.id_personaje_activo as string | undefined;
+        if (personajes && personajes.length > 0) {
+          set({
+            personajes,
+            idPersonajeActivo: idPersonajeActivo || personajes[0].id
+          });
+        }
+
         logger.info("[TS Storage] Carga completa desde blob oficial de TaleSpire.");
         set({ cargandoDatos: false });
         return;
@@ -271,6 +281,8 @@ export const crearSliceConfiguracion: StateCreator<
       ],
       notasDM: "Escribe aquí las notas de tu sesión de D&D 5.5e...",
       encuentrosGuardados: [],
+      personajes: [PERSONAJE_POR_DEFECTO],
+      idPersonajeActivo: PERSONAJE_POR_DEFECTO.id,
       cargandoDatos: false
     });
   }

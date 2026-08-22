@@ -243,6 +243,72 @@ class TaleSpireAdapter {
   };
 
   // ==========================================
+  // --- 📦 CONTENT PACKS (ASSETS & THUMBNAILS API) ---
+  // ==========================================
+
+  contentPacks = {
+    /**
+     * Obtiene la lista de fragmentos de paquetes de contenido cargados en TaleSpire.
+     */
+    getContentPacks: async (): Promise<any[]> => {
+      const cp = (window.TS as any)?.contentPacks;
+      if (cp && typeof cp.getContentPacks === "function") {
+        try {
+          return await cp.getContentPacks();
+        } catch (e) {
+          logger.warn("[TS Adapter] Error al obtener getContentPacks:", e);
+        }
+      }
+      return [];
+    },
+
+    /**
+     * Obtiene metadatos e información extendida sobre los paquetes de contenido.
+     */
+    getMoreInfo: async (packs: any[]): Promise<any[]> => {
+      const cp = (window.TS as any)?.contentPacks;
+      if (cp && typeof cp.getMoreInfo === "function") {
+        try {
+          return await cp.getMoreInfo(packs);
+        } catch (e) {
+          logger.warn("[TS Adapter] Error al obtener getMoreInfo de contentPacks:", e);
+        }
+      }
+      return [];
+    },
+
+    /**
+     * Busca un objeto del tablero (miniatura/prop/tile) dentro de los paquetes de contenido.
+     */
+    findBoardObjectInPacks: async (boardObjectId: string, packsInfos: any[]): Promise<any | null> => {
+      const cp = (window.TS as any)?.contentPacks;
+      if (cp && typeof cp.findBoardObjectInPacks === "function") {
+        try {
+          return await cp.findBoardObjectInPacks(boardObjectId, packsInfos);
+        } catch (e) {
+          logger.warn("[TS Adapter] Error al buscar objeto en contentPacks:", e);
+        }
+      }
+      return null;
+    },
+
+    /**
+     * Crea un elemento DOM (canvas/img) con la miniatura renderizada del catálogo 3D de TaleSpire.
+     */
+    createThumbnailElementForBoardObject: async (boardObjectInfo: any, size = 64): Promise<HTMLElement | null> => {
+      const cp = (window.TS as any)?.contentPacks;
+      if (cp && typeof cp.createThumbnailElementForBoardObject === "function") {
+        try {
+          return await cp.createThumbnailElementForBoardObject(boardObjectInfo, size);
+        } catch (e) {
+          logger.warn("[TS Adapter] Error al crear thumbnail element de objeto:", e);
+        }
+      }
+      return null;
+    }
+  };
+
+  // ==========================================
   // --- 🛡️ CAMPAÑA (CAMPAIGNS API) ---
   // ==========================================
 

@@ -53,6 +53,7 @@ export function usarAccionesIniciativa() {
       autoLanzarIniciativaMonstruos:     s.autoLanzarIniciativaMonstruos,
       actualizarColaIniciativaDesdeTaleSpire: s.actualizarColaIniciativaDesdeTaleSpire,
       actualizarSeleccionCriaturas:      s.actualizarSeleccionCriaturas,
+      establecerTipoTirada:              s.establecerTipoTirada,
     }))
   );
 }

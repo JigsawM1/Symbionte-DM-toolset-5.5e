@@ -2,6 +2,56 @@
 
 Este archivo registra errores encontrados, sus causas raíz y las soluciones aplicadas.
 
+## [2026-08-21] Arquitectura y Funcionalidad: Hoja de Personaje de Jugadores D&D 5.5e (Apartados A, B y C)
+**Problema:**
+- Se requería plantear e implementar la Hoja de Personaje de los Jugadores (modo manual) conforme a las reglas oficiales D&D 5.5e (2024), con persistencia global en TaleSpire, lanzamiento de dados 3D nativos y compatibilidad con Chromium CEF.
+- La vista previa de jugadores (`VistaJugadores.tsx`) solo contaba con un panel de prueba preliminar desarticulado de los datos del personaje.
+
+**Solución Aplicada:**
+1. **Modelos Zod y Tipado Estricto (`src/tipos/personaje.ts` & `src/tipos/index.ts`):**
+   - Creado `EsquemaPersonajeJugador` y tipos TypeScript (`PersonajeJugador`, `GradoCompetencia`, `OverridesFijos`, `CompetenciasSalvacion`, `GradosHabilidades`, `SalvacionesMuerte`).
+   - **Prevención de Ciclos de Módulos (TDZ):** Se eliminaron las importaciones circulares entre `index.ts` y `personaje.ts` para evitar el error `ReferenceError: Cannot access 'EsquemaCaracteristicas' before initialization`.
+   - Se añadió protección con encadenamiento opcional (`?.`) y valores por defecto robustos en `calcularEstadisticasPersonaje` para garantizar renderizado seguro incluso ante objetos parciales.
+2. **Constantes y Reglas D&D 5.5e (`src/constantes/personajeConstantes.ts`):**
+   - Tablas de bonificador de competencia por nivel (1-20), experiencia mínima por nivel, dado de golpe por clase (`"d6"` a `"d12"`), mapa de 18 habilidades a características y plantilla inicial limpia de nivel 1.
+3. **Servicio Aislado de Descansos (`src/servicios/procesadorDescansos.ts` & `.test.ts`):**
+   - Funciones puras e inmutables `ejecutarDescansoCorto` y `ejecutarDescansoLargo` conforme a D&D 5.5e (restauración de HP, recuperación de $\lfloor\text{total}/2\rfloor$ dados de golpe y reducción de 1 nivel de cansancio). Cobertura con 7 pruebas unitarias nuevas.
+4. **Almacén Zustand y Persistencia (`slicePersonajes.ts`, `sliceConfiguracion.ts`, `persistencia.ts`, `usarEstadoPersonajes.ts`):**
+   - Slice dedicado `SlicePersonajes` con soporte para múltiples personajes y un puntero `idPersonajeActivo`.
+   - **Mecánica de Daño y Escudo (HP Temporal):** Implementadas `aplicarDanoPersonaje` y `aplicarCuracionPersonaje`. Al aplicar daño, si el personaje posee puntos de golpe temporales (`hpTemporal > 0`), el escudo absorbe el daño primero. Solo el daño excedente que sobrepase el escudo se descuenta de la vida actual (`hpActual`), conforme a las reglas oficiales de D&D 5.5e.
+   - Nuevas acciones directas: `ciclarGradoHabilidadPersonaje` (ciclo interactivo de 4 estados: ninguna -> medio -> competente -> pericia), `alternarSalvacionPersonaje`, `establecerHPActualPersonaje`, `modificarHPMaximoEfectivoPersonaje` y `modificarHPMaximoBasePersonaje`.
+   - Persistencia automática de `personajes` e `id_personaje_activo` en el blob oficial de TaleSpire (`TS.localStorage.global`).
+   - Cobertura con 5 pruebas unitarias dedicadas en `slicePersonajes.test.ts` (total 83 tests pasando).
+5. **Componentes UI y Ergonomía Refinada (`src/componentes/caracteristicas/personajes/`):**
+   - **Escala Visual Aumentada:** Tipografías reescaladas (modificadores a 26-28px, métricas a 22-24px, habilidades a 13-14px, barra de vida a 38px) con target táctil mínimo de 32-36px.
+   - **Paleta Oscura Sobria:** Fondos en carbón profundo (`#161b22`, `#0b0f14`), textos en `#f1f5f9` y acentos en lavanda/índigo suave (`#818cf8`) sin brillos estridentes.
+   - **Dinamismo Interactivo Directo:**
+     - Clic en el indicador de habilidad cicla por 4 estados visuales (vacío, medio lleno, competente, pericia con doble anillo) a escala $16\text{px}\times16\text{px}$ con área de clic táctil dedicada (`botonToggleHabilidad`).
+     - **Separación Estricta de Check y Tirada de Salvación:** El punto de competencia de salvación se amplió a **$14\text{px}\times14\text{px}$** (`puntoCompetenciaSalvacion`) y se encapsuló en un botón exclusivo a la izquierda (`botonToggleSalvacion`), mientras que el texto a la derecha (`botonTextoSalvacion`) activa la tirada 3D. Esto erradica cualquier posibilidad de disparar una tirada al hacer clic sobre o cerca del check.
+     - Inputs directos y discretos (sin bordes llamativos) en la barra de salud para HP actual y HP máximo efectivo.
+     - **Edición Libre de Atributos Base:** Inputs de puntuación base transparentes y cómodos, con eliminación de las flechas nativas del navegador (`-webkit-appearance: none`, `appearance: textfield`) y estado local que permite dejar el campo en blanco mientras se escribe, guardando al salir (`onBlur`) o al presionar Enter.
+     - **Salvaciones contra la Muerte 100% 3D Nativas:** Se eliminó la evaluación anticipada por simulación matemática interna en JavaScript. Al presionar "Salv. Muerte", se envía la tirada 3D a la bandeja física de TaleSpire (`1d20`) asociada con `MetadataSalvacionMuerte`. Solo cuando los dados físicos terminan de rodar y caer, el evento nativo `rollResults` de TaleSpire es interceptado por `procesarResultadosDadosTaleSpire`, evaluando el valor real del dado para marcar el corazón ($\ge 10$) o calavera ($\le 9$).
+     - **Sincronización Reactiva de HP Temporal:** El input de vida temporal sincroniza automáticamente su estado local con el almacén Zustand (`useEffect`), evitando que reaparezcan valores antiguos tras recibir daño.
+     - **Infligir Daño con Tecla Enter:** Al escribir una cantidad en el input de modificación de vida y pulsar `Enter`, se ejecuta automáticamente la acción de daño (idéntico al Combat Tracker del DM).
+     - **Visualización de Miniatura 3D y Avatares:**
+       - Soporte nativo para miniaturas 3D de TaleSpire mediante `ts.contentPacks`: cuando un personaje se vincula a una criatura física del tablero (`idMiniaturaTS`), se resuelve automáticamente su `morphId` y se renderiza el thumbnail 3D de alta calidad del catálogo oficial de TaleSpire dentro del marco circular del avatar.
+       - Soporte para **URL de Avatar Personalizado (`avatarUrl`)**: los jugadores pueden ingresar URLs de imágenes externas (ilustraciones de personajes, tokens, etc.) en el modal de configuración.
+       - Botón interactivo en el avatar para vincular la miniatura seleccionada en el tablero 3D con un solo clic.
+       - Fallback tipográfico degradado con la inicial del héroe cuando no hay mini ni imagen.
+     - Habilidades ordenadas alfabéticamente de la A a la Z.
+   - **Modal de Configuración Adaptable:** `SelectorSugerencias` tanto para la clase como para el tipo de dado de golpe, permitiendo libre personalización y multiclases.
+   - `ModalEditarPersonaje.tsx`: Modal con 4 sub-pestañas (*Identidad*, *Atributos*, *Competencias*, *Sentidos/Salud*) usando exclusivamente `SelectorDesplegable` para compatibilidad CEF.
+   - `GestorPersonajes.tsx`: Galería de héroes con creación, duplicación, activación y eliminación con `ConfirmDialog`.
+   - `VistaJugadores.tsx`: Integración con sub-pestañas *"Ficha de Héroe"* y *"Mis Personajes"*.
+6. **Verificación Automatizada:**
+   - 86 pruebas unitarias pasando al 100% en `vitest`.
+   - 0 errores de compilación TypeScript (`tsc --noEmit`).
+   - Compilación exitosa para producción con Vite.
+   - 0 errores en `tsc --noEmit`.
+   - Compilación de producción exitosa con Vite (`pnpm build`).
+
+---
+
 ## [2026-08-20] Arquitectura y Esquema: Soporte D&D 5.5e para Monstruos (Equipo, Tesoros y Acciones Legendarias Dinámicas)
 **Problema:**
 - En la base de datos de monstruos se añadieron los campos `equipo` y `tesoros`, así como valores compuestos en `accionesLegendariasTotal` en formato texto (ej. `"3 (4 en guarida)"`).

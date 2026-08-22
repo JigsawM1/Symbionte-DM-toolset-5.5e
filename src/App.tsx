@@ -39,6 +39,8 @@ const AppContenido: React.FC = () => {
           return <CreadorHomebrew />;
         case "configuracion":
           return <ConfiguracionDM />;
+        case "jugadores":
+          return <VistaJugadores />;
         default:
           return <VistaJugadores />;
       }
@@ -47,6 +49,8 @@ const AppContenido: React.FC = () => {
     switch (pestañaActiva) {
       case "iniciativa":
         return <GestorIniciativa />;
+      case "jugadores":
+        return <VistaJugadores />;
       case "tablas":
         return <TablasDM />;
       case "pendientes":

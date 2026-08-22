@@ -1,0 +1,1268 @@
+/* ==========================================================================
+   HojaPersonaje.module.css
+   Estilos Neomórficos Oscuros y Sobrios para la Hoja de Personaje D&D 5.5e
+   Escala tipográfica aumentada, ergonomía táctil y paleta mate sin brillos estridentes
+   ========================================================================== */
+
+.contenedorPrincipal {
+  width: 100%;
+  max-width: 620px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 8px 10px 48px 10px;
+  box-sizing: border-box;
+  color: #f1f5f9;
+  font-family: var(--fuente-principal, 'Inter', system-ui, sans-serif);
+}
+
+/* ==========================================
+   UTILIDADES NEOMÓRFICAS Y SUPERFICIES
+   ========================================= */
+
+.neoRaised {
+  background-color: #161b22;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.7), -1px -1px 3px rgba(255, 255, 255, 0.02);
+  border-radius: 8px;
+}
+
+.neoPressed {
+  background-color: #0b0f14;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  box-shadow: inset 2px 2px 6px rgba(0, 0, 0, 0.8), inset -1px -1px 3px rgba(255, 255, 255, 0.02);
+  border-radius: 6px;
+}
+
+.neoButton {
+  background-color: #1e2530;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #cbd5e1;
+  cursor: pointer;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 32px;
+  box-sizing: border-box;
+}
+
+.neoButton:hover {
+  background-color: #283243;
+  border-color: #818cf8;
+  color: #ffffff;
+}
+
+.neoButton:active {
+  background-color: #0b0f14;
+  box-shadow: inset 1px 1px 4px rgba(0, 0, 0, 0.8);
+}
+
+/* ==========================================
+   1. CABECERA E IDENTIDAD (APARTADO A)
+   ========================================= */
+
+.seccionCabecera {
+  padding: 12px 14px;
+  display: flex;
+  gap: 14px;
+  align-items: center;
+}
+
+.contenedorAvatar {
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  cursor: pointer;
+}
+
+.contenedorAvatar:hover {
+  border-color: #818cf8;
+}
+
+.avatarImg,
+.avatarImagen {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.avatarThumbnailContenedor {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background-color: #0b0f14;
+}
+
+.avatarThumbnailContenedor canvas,
+.avatarThumbnailContenedor img,
+.avatarThumbnailContenedor svg {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: contain;
+}
+
+.avatarFallback {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #1e2530, #312e81);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26px;
+  font-weight: 800;
+  color: #e0e7ff;
+}
+
+.indicadorMiniVinculada {
+  position: absolute;
+  bottom: 2px;
+  right: 2px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background-color: #34d399;
+  border: 2px solid #0b0f14;
+}
+
+.infoIdentidad {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.filaNombreNivel {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.cajaNombre {
+  padding: 6px 12px;
+  flex-grow: 1;
+  min-width: 0;
+}
+
+.nombrePersonaje {
+  font-family: var(--fuente-titulo, 'Outfit', sans-serif);
+  font-size: 18px;
+  font-weight: 700;
+  color: #ffffff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.2;
+}
+
+.subtituloNombre {
+  font-size: 10px;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-top: 2px;
+}
+
+.cajaNivel {
+  padding: 4px 10px;
+  text-align: center;
+  min-width: 56px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.numeroNivel {
+  font-size: 20px;
+  font-weight: 800;
+  color: #a5b4fc;
+  line-height: 1;
+}
+
+.etiquetaNivel {
+  font-size: 9px;
+  color: #94a3b8;
+  text-transform: uppercase;
+  margin-top: 2px;
+}
+
+.botonConfigurarPj {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #94a3b8;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 32px;
+  min-height: 32px;
+}
+
+.botonConfigurarPj:hover {
+  color: #a5b4fc;
+  background-color: #1e2530;
+  border-color: #818cf8;
+}
+
+.cuadriculaDetalles {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.pastillaDetalle {
+  padding: 6px 8px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.valorDetalle {
+  font-size: 13px;
+  font-weight: 600;
+  color: #f1f5f9;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.labelDetalle {
+  font-size: 9px;
+  color: #94a3b8;
+  text-transform: uppercase;
+  margin-top: 2px;
+}
+
+/* ==========================================
+   2. BARRA TÁCTICA (DESCANSOS, VENT, CONDICIONES)
+   ========================================= */
+
+.seccionBarraTactica {
+  padding: 10px 12px;
+  display: flex;
+  gap: 10px;
+  align-items: stretch;
+}
+
+.columnaControlesTacticos {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.filaDescansosVentaja {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.grupoBotonesPill {
+  display: inline-flex;
+  padding: 3px;
+  gap: 3px;
+}
+
+.botonPill {
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 5px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  text-transform: uppercase;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.botonPill:hover {
+  color: #ffffff;
+}
+
+.botonPillActivo {
+  background-color: #3730a3;
+  color: #ffffff !important;
+}
+
+.columnaCondicionesActivas {
+  flex: 1;
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-height: 60px;
+}
+
+.tituloCondicionesActivas {
+  font-size: 9px;
+  font-weight: 700;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.listaChipsCondiciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  align-items: center;
+}
+
+.chipCondicion {
+  background-color: rgba(99, 102, 241, 0.15);
+  border: 1px solid rgba(129, 140, 248, 0.35);
+  padding: 3px 8px;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #c7d2fe;
+}
+
+.chipBotonCerrar {
+  background: transparent;
+  border: none;
+  color: #c7d2fe;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  line-height: 1;
+}
+
+.chipBotonCerrar:hover {
+  color: #f87171;
+}
+
+.textoSinCondiciones {
+  font-size: 11px;
+  color: #64748b;
+  font-style: italic;
+}
+
+/* ==========================================
+   3. MÉTRICAS RÁPIDAS (CA, INIC, VEL, PB, INSP)
+   ========================================= */
+
+.filaMetricasRapidas {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr) 64px;
+  gap: 8px;
+}
+
+.tarjetaMetrica {
+  padding: 8px 6px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  text-align: center;
+}
+
+.etiquetaMetrica {
+  font-size: 9px;
+  font-weight: 700;
+  color: #94a3b8;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.valorMetrica {
+  font-family: var(--fuente-codigo, 'JetBrains Mono', monospace);
+  font-size: 22px;
+  font-weight: 700;
+  color: #a5b4fc;
+  line-height: 1;
+}
+
+.unidadMetrica {
+  font-size: 11px;
+  font-weight: 400;
+  color: #94a3b8;
+  margin-left: 2px;
+}
+
+.botonInspiracion {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 2px;
+}
+
+.botonInspiracionActiva {
+  background-color: #eab308;
+  border-color: #fef08a;
+  box-shadow: 0 0 10px rgba(234, 179, 8, 0.5);
+}
+
+/* ==========================================
+   4. VITALIDAD Y COMBATE (APARTADO C)
+   ========================================= */
+
+.seccionVitalidad {
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.filaSaludPrincipal {
+  display: flex;
+  gap: 14px;
+  align-items: stretch;
+}
+
+.cajaHpContenedor {
+  flex: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.cabeceraHp {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.tituloHp {
+  font-size: 11px;
+  font-weight: 700;
+  color: #cbd5e1;
+  text-transform: uppercase;
+}
+
+.controlesHpMod {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.botonModHp {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background-color: #1e2530;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #f1f5f9;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+.botonModHp:hover {
+  background-color: #3730a3;
+}
+
+.botonModHpPeligro:hover {
+  background-color: #dc2626;
+}
+
+.inputHpMod {
+  width: 44px;
+  height: 24px;
+  text-align: center;
+  font-family: var(--fuente-codigo, 'JetBrains Mono', monospace);
+  font-size: 13px;
+  font-weight: 700;
+  color: #a5b4fc;
+  background-color: #0b0f14;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 4px;
+  padding: 0;
+}
+
+.barraVidaFondo {
+  height: 38px;
+  border-radius: 8px;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 12px;
+}
+
+.barraVidaProgreso {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  background: linear-gradient(90deg, #1e1b4b 0%, #4338ca 100%);
+  border-radius: 8px;
+  min-width: 4px;
+}
+
+.barraVidaTexto {
+  position: relative;
+  z-index: 2;
+  font-family: var(--fuente-codigo, 'JetBrains Mono', monospace);
+  font-size: 18px;
+  font-weight: 700;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Input discreto sin bordes llamativos */
+.inputHpDirecto {
+  width: 48px;
+  background: transparent;
+  border: none;
+  outline: none;
+  border-radius: 4px;
+  text-align: center;
+  font-family: var(--fuente-codigo, 'JetBrains Mono', monospace);
+  font-size: 18px;
+  font-weight: 800;
+  color: #ffffff;
+  padding: 1px 2px;
+  cursor: text;
+}
+
+.inputHpDirecto:hover {
+  background-color: rgba(255, 255, 255, 0.08);
+}
+
+.inputHpDirecto:focus {
+  background-color: rgba(0, 0, 0, 0.6);
+  border: 1px solid #818cf8;
+}
+
+.hpMaxAumentado {
+  color: #38bdf8 !important;
+}
+
+.hpMaxReducido {
+  color: #f87171 !important;
+}
+
+.cajaHpTemporal {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.barraTempFondo {
+  height: 38px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.valorTempHp {
+  font-family: var(--fuente-codigo, 'JetBrains Mono', monospace);
+  font-size: 20px;
+  font-weight: 700;
+  color: #38bdf8;
+}
+
+.filaRecursosSalud {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.tarjetaRecursoSalud {
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.filaCabeceraRecurso {
+  display: flex;
+  align-items: center;
+  justify-content: space-evenly;
+  width: 100%;
+  margin-bottom: 4px;
+}
+
+.tituloRecursoSalud {
+  font-size: 9px;
+  font-weight: 700;
+  color: #94a3b8;
+  text-transform: uppercase;
+}
+
+.botonSalvacionMuerte {
+  background: transparent;
+  border: none;
+  font-size: 9px;
+  font-weight: 700;
+  color: #cbd5e1;
+  text-transform: uppercase;
+  cursor: pointer;
+  padding: 1px 4px;
+  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.botonSalvacionMuerte:hover {
+  color: #818cf8;
+  background-color: rgba(129, 140, 248, 0.15);
+}
+
+.valorDadosGolpe {
+  font-family: var(--fuente-codigo, 'JetBrains Mono', monospace);
+  font-size: 14px;
+  font-weight: 700;
+  color: #a5b4fc;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.filaPuntosMuerte {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.iconoSlotMuerte {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px;
+  border-radius: 4px;
+}
+
+.iconoSlotMuerte:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.puntoCheck {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(255, 255, 255, 0.45);
+  background-color: #0b0f14;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.puntoCheckActivoExito {
+  background-color: #10b981;
+  border-color: #34d399;
+}
+
+.puntoCheckActivoFallo {
+  background-color: #ef4444;
+  border-color: #f87171;
+}
+
+.puntoCansancio {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(255, 255, 255, 0.45);
+  background-color: #0b0f14;
+  cursor: pointer;
+}
+
+.puntoCansancioActivo {
+  background-color: #f59e0b;
+  border-color: #fbbf24;
+}
+
+/* ==========================================
+   5. ATRIBUTOS Y SENTIDOS PASIVOS (APARTADO B)
+   ========================================= */
+
+.filaAtributosSentidos {
+  display: flex;
+  gap: 12px;
+  align-items: stretch;
+}
+
+.gridAtributos {
+  flex: 6;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.tarjetaAtributo {
+  padding: 10px 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  cursor: pointer;
+}
+
+.tarjetaAtributo:hover {
+  border-color: #818cf8;
+}
+
+.nombreAtributo {
+  font-size: 11px;
+  font-weight: 700;
+  color: #94a3b8;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.circuloModificador {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.textoModificador {
+  font-family: var(--fuente-codigo, 'JetBrains Mono', monospace);
+  font-size: 26px;
+  font-weight: 800;
+  color: #a5b4fc;
+}
+
+/* Eliminar flechas de incremento/decremento en todos los inputs numéricos de la hoja */
+.badgePuntuacionBase::-webkit-outer-spin-button,
+.badgePuntuacionBase::-webkit-inner-spin-button,
+.inputHpDirecto::-webkit-outer-spin-button,
+.inputHpDirecto::-webkit-inner-spin-button,
+.inputHpMod::-webkit-outer-spin-button,
+.inputHpMod::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.badgePuntuacionBase,
+.inputHpDirecto,
+.inputHpMod {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+/* Input interactivo discreto y transparente para la puntuación base */
+.badgePuntuacionBase {
+  background: transparent;
+  border: none;
+  outline: none;
+  border-radius: 4px;
+  font-family: var(--fuente-codigo, 'JetBrains Mono', monospace);
+  font-size: 14px;
+  font-weight: 700;
+  color: #cbd5e1;
+  margin-bottom: 6px;
+  width: 44px;
+  text-align: center;
+  padding: 1px 2px;
+  cursor: text;
+  box-sizing: border-box;
+}
+
+.badgePuntuacionBase:hover {
+  background-color: rgba(255, 255, 255, 0.08);
+}
+
+.badgePuntuacionBase:focus {
+  background-color: rgba(0, 0, 0, 0.6);
+  border: 1px solid #818cf8;
+  color: #ffffff;
+}
+
+.filaSalvacionAtributo {
+  width: 100%;
+  padding-top: 6px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-left: 2px;
+  padding-right: 2px;
+  font-size: 11px;
+  text-transform: uppercase;
+  color: #94a3b8;
+}
+
+/* Botón envoltorio para alternar competencia sin riesgo de disparar tirada */
+.botonToggleSalvacion {
+  background: transparent;
+  border: none;
+  padding: 4px;
+  margin: -4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  outline: none;
+}
+
+.botonToggleSalvacion:hover {
+  background-color: rgba(255, 255, 255, 0.08);
+}
+
+/* puntoCompetenciaSalvacion a 14px x 14px */
+.puntoCompetenciaSalvacion {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background-color: #1e2530;
+  border: 1.5px solid rgba(255, 255, 255, 0.35);
+  cursor: pointer;
+  flex-shrink: 0;
+  padding: 0;
+  outline: none;
+  transition: all 0.15s ease;
+}
+
+.puntoCompetenciaActivo {
+  background-color: #818cf8;
+  border-color: #a5b4fc;
+  box-shadow: 0 0 6px rgba(129, 140, 248, 0.4);
+}
+
+/* Botón dedicado exclusivamente a tirar la salvación */
+.botonTextoSalvacion {
+  background: transparent;
+  border: none;
+  padding: 2px 4px;
+  margin: -2px -4px;
+  font-size: 11px;
+  color: #94a3b8;
+  text-transform: uppercase;
+  cursor: pointer;
+  border-radius: 4px;
+  outline: none;
+  display: flex;
+  align-items: center;
+  transition: all 0.15s ease;
+}
+
+.botonTextoSalvacion:hover {
+  color: #a5b4fc;
+  background-color: rgba(129, 140, 248, 0.12);
+}
+
+.textoSalvacionCompetente {
+  color: #f1f5f9;
+  font-weight: 700;
+}
+
+/* panelSentidosPasivos con justify-content: center */
+.panelSentidosPasivos {
+  flex: 4;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 8px;
+}
+
+.tituloPanelLateral {
+  font-size: 11px;
+  font-weight: 700;
+  color: #94a3b8;
+  text-transform: uppercase;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding-bottom: 5px;
+}
+
+.itemSentidoPasivo {
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.valorSentidoPasivo {
+  font-family: var(--fuente-codigo, 'JetBrains Mono', monospace);
+  font-size: 20px;
+  font-weight: 800;
+  color: #a5b4fc;
+}
+
+.labelSentidoPasivo {
+  font-size: 11px;
+  color: #cbd5e1;
+  text-transform: uppercase;
+  text-align: right;
+  line-height: 1.2;
+}
+
+/* ==========================================
+   6. HABILIDADES Y COMPETENCIAS (APARTADO B)
+   ========================================= */
+
+.filaHabilidadesCompetencias {
+  display: flex;
+  gap: 12px;
+  align-items: stretch;
+}
+
+.panelHabilidades {
+  flex: 6;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.gridHabilidadesDobleColumna {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px 12px;
+}
+
+.itemHabilidad {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 5px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  min-height: 32px;
+}
+
+.itemHabilidad:hover {
+  background-color: #1e2530;
+}
+
+.infoHabilidadIzquierda {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.nombreHabilidad {
+  font-size: 13px;
+  color: #f1f5f9;
+}
+
+.caracAbrevHabilidad {
+  font-size: 10px;
+  color: #64748b;
+  margin-left: 2px;
+}
+
+.valorBonoHabilidad {
+  font-family: var(--fuente-codigo, 'JetBrains Mono', monospace);
+  font-size: 14px;
+  font-weight: 600;
+  color: #94a3b8;
+}
+
+.valorBonoHabilidadDestacado {
+  color: #a5b4fc;
+  font-weight: 800;
+}
+
+/* Botón envoltorio para ciclar habilidad sin disparar tirada */
+.botonToggleHabilidad {
+  background: transparent;
+  border: none;
+  padding: 4px;
+  margin: -4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  outline: none;
+  flex-shrink: 0;
+}
+
+.botonToggleHabilidad:hover {
+  background-color: rgba(255, 255, 255, 0.08);
+}
+
+/* 4 Estados del Indicador de Habilidades (puntoGradoHabilidad a 16px x 16px) */
+.puntoGradoHabilidad {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(255, 255, 255, 0.35);
+  background-color: #0b0f14;
+  cursor: pointer;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  outline: none;
+}
+
+.puntoGradoVacio {
+  border-color: rgba(255, 255, 255, 0.35);
+  background-color: #0b0f14;
+}
+
+.puntoGradoMedio {
+  border-color: #a5b4fc;
+  background: linear-gradient(90deg, #818cf8 50%, #0b0f14 50%);
+}
+
+.puntoGradoCompetente {
+  border-color: #818cf8;
+  background-color: #818cf8;
+}
+
+.puntoGradoPericia {
+  border-color: #38bdf8;
+  background-color: #38bdf8;
+  box-shadow: 0 0 0 2px #0b0f14, 0 0 0 3px #38bdf8;
+}
+
+.panelCompetencias {
+  flex: 4;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.grupoCompetenciaItem {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.tituloGrupoCompetencia {
+  font-size: 10px;
+  font-weight: 700;
+  color: #94a3b8;
+  text-transform: uppercase;
+}
+
+.cajaTextoCompetencia {
+  padding: 6px 8px;
+  font-size: 11px;
+  color: #cbd5e1;
+  line-height: 1.4;
+  min-height: 28px;
+}
+
+/* ==========================================
+   7. GESTOR DE PERSONAJES (GALERÍA)
+   ========================================= */
+
+.cabeceraGestor {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.tituloGestor {
+  font-size: 18px;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.gridPersonajesGaleria {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 12px;
+}
+
+.tarjetaPjGaleria {
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  position: relative;
+}
+
+.tarjetaPjGaleriaActiva {
+  border-color: #818cf8;
+  box-shadow: 0 0 12px rgba(129, 140, 248, 0.2);
+}
+
+.filaPjCabeceraGaleria {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.nombrePjGaleria {
+  font-size: 16px;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.detallesPjGaleria {
+  font-size: 12px;
+  color: #94a3b8;
+  margin-top: 2px;
+}
+
+.filaBotonesAccionPj {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  margin-top: 6px;
+}
+
+/* ==========================================
+   8. MODAL DE EDICIÓN
+   ========================================= */
+
+.overlayModal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.85);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 14px;
+}
+
+.cuerpoModal {
+  width: 100%;
+  max-width: 600px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  background-color: #0b0f14;
+  border: 1px solid #3730a3;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.cabeceraModal {
+  padding: 12px 16px;
+  background-color: #161b22;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.tituloModal {
+  font-size: 16px;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.barraPestañasModal {
+  display: flex;
+  background-color: #161b22;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 0 10px;
+  gap: 6px;
+}
+
+.botonPestañaModal {
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: #94a3b8;
+  padding: 10px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  text-transform: uppercase;
+}
+
+.botonPestañaModalActiva {
+  color: #a5b4fc;
+  border-bottom-color: #818cf8;
+}
+
+.contenidoPestañaModal {
+  padding: 16px;
+  overflow-y: auto;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.filaFormulario {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.campoFormulario {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.labelFormulario {
+  font-size: 11px;
+  font-weight: 600;
+  color: #94a3b8;
+  text-transform: uppercase;
+}
+
+.inputFormulario {
+  background-color: #161b22;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+  padding: 8px 10px;
+  border-radius: 6px;
+  font-size: 13px;
+}
+
+.inputFormulario:focus {
+  border-color: #818cf8;
+}
+
+.pieModal {
+  padding: 12px 16px;
+  background-color: #161b22;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}

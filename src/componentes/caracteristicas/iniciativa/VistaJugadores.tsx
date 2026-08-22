@@ -1,115 +1,114 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   usarEstadoConfiguracion,
-  usarAccionesConfiguracion,
-  usarEstadoIniciativa,
+  usarEstadoPersonajes,
+  usarAccionesPersonajes
 } from "@/almacen/selectores";
-import { ts } from "@/utiles/TaleSpireAdapter";
-import { logger } from "@/utiles/logger";
-import type { CriaturaSeleccionadaTS } from "@/almacen/slices/sliceIniciativa";
-import {
-  Gamepad2,
-  Dices,
-  Shield,
-  User
-} from "lucide-react";
+import { HojaPersonaje, GestorPersonajes } from "@/componentes/caracteristicas/personajes";
+import { Shield, Users, UserCheck } from "lucide-react";
 import estilos from "./VistaJugadores.module.css";
+
+type SubPestanaJugador = "ficha" | "personajes";
 
 export const VistaJugadores: React.FC = () => {
   const { esGM } = usarEstadoConfiguracion();
-  const { agregarNotificacion } = usarAccionesConfiguracion();
-  const { criaturasSeleccionadas } = usarEstadoIniciativa();
+  const { personajes, idPersonajeActivo, personajeActivo } = usarEstadoPersonajes();
+  const {
+    crearPersonaje,
+    duplicarPersonaje,
+    eliminarPersonaje,
+    seleccionarPersonajeActivo
+  } = usarAccionesPersonajes();
 
-  // Función para realizar tiradas rápidas de dados para el jugador
-  const realizarTirada = async (formula: string, nombreAccion: string) => {
-    try {
-      if (ts.estaDisponible) {
-        const descriptores = await ts.dice.makeRollDescriptors(formula);
-        descriptores[0].name = nombreAccion;
-        await ts.dice.putDiceInTray(descriptores);
-        agregarNotificacion(`Tirada de ${nombreAccion} (${formula}) enviada a TaleSpire`, "exito");
-      } else {
-        const res = Math.floor(Math.random() * 20) + 1;
-        agregarNotificacion(`[Simulador] ${nombreAccion}: d20 = ${res}`, "info");
-      }
-    } catch (err) {
-      logger.error("[Vista Jugadores] Error en tirada de dados:", err);
-      agregarNotificacion("Error al procesar tirada de dados", "error");
-    }
-  };
+  const [subPestanaActiva, setSubPestanaActiva] = useState<SubPestanaJugador>("ficha");
 
   return (
     <div className={estilos.contenedorGeneral}>
-      {/* Tarjeta Banner de Estado del Modo Jugador */}
-      <div className={estilos.tarjetaModoPrueba}>
-        <div className={estilos.infoModo}>
-          <div className={estilos.tituloModo}>
-            <Gamepad2 size={18} />
-            <span>Vista de Jugadores</span>
-          </div>
-          <div className={estilos.insigniaRol}>
-            <User size={12} />
-            <span>Rol Nativo Detectado: {esGM ? "Dungeon Master (GM)" : "Jugador"}</span>
-          </div>
+      {/* Barra Superior de Sub-pestañas y Rol */}
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          backgroundColor: "var(--color-fondo-panel)",
+          border: "1px solid var(--color-borde-brutal)",
+          borderRadius: 6,
+          padding: "4px 8px"
+        }}
+      >
+        {/* Sub-pestañas: Ficha vs Mis Personajes */}
+        <div style={{ display: "flex", gap: 4 }}>
+          <button
+            type="button"
+            onClick={() => setSubPestanaActiva("ficha")}
+            style={{
+              backgroundColor: subPestanaActiva === "ficha" ? "var(--color-primario)" : "transparent",
+              borderColor: subPestanaActiva === "ficha" ? "var(--color-borde-cian)" : "transparent",
+              color: subPestanaActiva === "ficha" ? "#ffffff" : "var(--color-texto-secundario)",
+              padding: "4px 10px",
+              fontSize: 11,
+              fontWeight: 700,
+              borderRadius: 4
+            }}
+          >
+            <Shield size={12} style={{ marginRight: 4 }} />
+            Ficha de Héroe {personajeActivo ? `(${personajeActivo.nombre})` : ""}
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setSubPestanaActiva("personajes")}
+            style={{
+              backgroundColor: subPestanaActiva === "personajes" ? "var(--color-primario)" : "transparent",
+              borderColor: subPestanaActiva === "personajes" ? "var(--color-borde-cian)" : "transparent",
+              color: subPestanaActiva === "personajes" ? "#ffffff" : "var(--color-texto-secundario)",
+              padding: "4px 10px",
+              fontSize: 11,
+              fontWeight: 700,
+              borderRadius: 4
+            }}
+          >
+            <Users size={12} style={{ marginRight: 4 }} />
+            Mis Personajes ({personajes.length})
+          </button>
+        </div>
+
+        {/* Indicador de Rol */}
+        <div
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 4,
+            fontSize: 10,
+            color: "var(--color-texto-apagado)",
+            textTransform: "uppercase"
+          }}
+        >
+          <UserCheck size={12} color="var(--color-borde-cian)" />
+          <span>{esGM ? "DM (GM)" : "Jugador"}</span>
         </div>
       </div>
 
-      {/* Cuadrícula de Contenido Rápido de Jugador */}
-      <div className={estilos.cuadriculaPaneles}>
-        {/* Panel 1: Miniatura / Criatura Seleccionada en TaleSpire */}
-        <div className={estilos.panelSeccion}>
-          <div className={estilos.cabeceraPanel}>
-            <Shield size={16} />
-            <span>Miniatura Seleccionada</span>
-          </div>
-
-          {criaturasSeleccionadas.length > 0 ? (
-            <div className={estilos.listaSeleccionadas}>
-              {criaturasSeleccionadas.map((c: CriaturaSeleccionadaTS) => (
-                <div key={c.id} className={estilos.tarjetaMiniatura}>
-                  <span className={estilos.nombreMiniatura}>{c.name || "Criatura Desconocida"}</span>
-                  {c.hp !== undefined && (
-                    <span className={estilos.hpMiniatura}>
-                      HP: {c.hp} / {c.maxHp || c.hp}
-                    </span>
-                  )}
-                </div>
-              ))}
-            </div>
-          ) : (
-            <span className={estilos.textoVacio}>Selecciona tu figura en TaleSpire para ver sus datos aquí.</span>
-          )}
-        </div>
-
-        {/* Panel 2: Lanzador Rápido de Dados */}
-        <div className={estilos.panelSeccion}>
-          <div className={estilos.cabeceraPanel}>
-            <Dices size={16} />
-            <span>Lanzador Rápido de Dados</span>
-          </div>
-
-          <div className={estilos.gridDados}>
-            <button onClick={() => realizarTirada("1d20", "Prueba de Atributo")} className={estilos.botonDado} type="button">
-              1d20
-            </button>
-            <button onClick={() => realizarTirada("1d20+5", "Ataque con Ventaja (+5)")} className={estilos.botonDado} type="button">
-              1d20 + 5
-            </button>
-            <button onClick={() => realizarTirada("1d6", "Dado d6")} className={estilos.botonDado} type="button">
-              1d6
-            </button>
-            <button onClick={() => realizarTirada("1d8", "Dado d8")} className={estilos.botonDado} type="button">
-              1d8
-            </button>
-            <button onClick={() => realizarTirada("1d10", "Dado d10")} className={estilos.botonDado} type="button">
-              1d10
-            </button>
-            <button onClick={() => realizarTirada("1d12", "Dado d12")} className={estilos.botonDado} type="button">
-              1d12
-            </button>
-          </div>
-        </div>
-      </div>
+      {/* Contenido según la sub-pestaña activa */}
+      {subPestanaActiva === "ficha" ? (
+        <HojaPersonaje />
+      ) : (
+        <GestorPersonajes
+          personajes={personajes}
+          idPersonajeActivo={idPersonajeActivo}
+          alSeleccionarActivo={(id) => {
+            seleccionarPersonajeActivo(id);
+            setSubPestanaActiva("ficha");
+          }}
+          alCrearNuevo={() => {
+            crearPersonaje();
+            setSubPestanaActiva("ficha");
+          }}
+          alDuplicar={duplicarPersonaje}
+          alEliminar={eliminarPersonaje}
+          alAbrirFicha={() => setSubPestanaActiva("ficha")}
+        />
+      )}
     </div>
   );
 };

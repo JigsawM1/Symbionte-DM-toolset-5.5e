@@ -18,21 +18,21 @@ export const CLASES_DND = [
 
 export const HABILIDADES_LISTA = [
   { clave: "acrobacias", nombre: "Acrobacias" },
-  { clave: "manejoAnimales", nombre: "Manejo Animales" },
   { clave: "arcanos", nombre: "Arcanos" },
   { clave: "atletismo", nombre: "Atletismo" },
   { clave: "engaño", nombre: "Engaño" },
   { clave: "historia", nombre: "Historia" },
-  { clave: "perspicacia", nombre: "Perspicacia" },
+  { clave: "interpretacion", nombre: "Interpretación" },
   { clave: "intimidacion", nombre: "Intimidación" },
   { clave: "investigacion", nombre: "Investigación" },
+  { clave: "juegoManos", nombre: "Juego de Manos" },
+  { clave: "manejoAnimales", nombre: "Manejo Animales" },
   { clave: "medicina", nombre: "Medicina" },
   { clave: "naturaleza", nombre: "Naturaleza" },
   { clave: "percepcion", nombre: "Percepción" },
-  { clave: "interpretacion", nombre: "Interpretación" },
+  { clave: "perspicacia", nombre: "Perspicacia" },
   { clave: "persuasion", nombre: "Persuasión" },
   { clave: "religion", nombre: "Religión" },
-  { clave: "juegoManos", nombre: "Juego de Manos" },
   { clave: "sigilo", nombre: "Sigilo" },
   { clave: "supervivencia", nombre: "Supervivencia" }
 ];

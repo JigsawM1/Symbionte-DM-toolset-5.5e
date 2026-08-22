@@ -33,6 +33,14 @@ export interface MetadataIniciativa {
 // Registro global de tiradas de iniciativa activas en memoria
 const tiradasIniciativaActivas: Record<string, MetadataIniciativa> = {};
 
+export interface MetadataSalvacionMuerte {
+  tipo: "salvacionMuerte";
+  personajeId: string;
+}
+
+// Registro global de tiradas de salvación contra la muerte 3D activas en memoria
+const tiradasSalvacionMuerteActivas: Record<string, MetadataSalvacionMuerte> = {};
+
 /**
  * Sanitiza una etiqueta para remover acentos, eñes y caracteres no ASCII
  * que no son soportados correctamente por la interfaz 3D o el chat de TaleSpire.
@@ -186,7 +194,8 @@ export async function lanzarDadosPorChatTaleSpire(formula: string): Promise<void
 export async function lanzarDadosTaleSpire(
   formula: string,
   etiqueta: string,
-  metaIniciativa?: MetadataIniciativa
+  metaIniciativa?: MetadataIniciativa,
+  metaSalvacionMuerte?: MetadataSalvacionMuerte
 ): Promise<void> {
   // 1. Obtener tipo de tirada (ventaja, desventaja, plano) del Zustand
   const { tipoTirada, establecerTipoTirada } = usarAlmacenDM.getState();
@@ -290,6 +299,11 @@ export async function lanzarDadosTaleSpire(
         logger.debug(`[Lanzador Dados] Registrada tirada de iniciativa nativa con rollId: ${rollId}`, metaIniciativa);
       }
 
+      if (metaSalvacionMuerte && rollId) {
+        tiradasSalvacionMuerteActivas[rollId] = metaSalvacionMuerte;
+        logger.debug(`[Lanzador Dados] Registrada tirada de salvación contra la muerte 3D con rollId: ${rollId}`, metaSalvacionMuerte);
+      }
+
       ts.debug.log(`Tirando dados en bandeja física: ${nombreEtiqueta} (${formulaLimpia})`);
     } catch (error) {
       logger.error("[Lanzador Dados] Fallo de API directa de dados. Recurriendo al canal de chat de TaleSpire...", error);
@@ -301,9 +315,20 @@ export async function lanzarDadosTaleSpire(
       }
     }
   } else {
-    // 2. Fallback de desarrollo en navegador local (sin simulación pesada, solo log y consola)
+    // 2. Fallback de desarrollo en navegador local fuera de TaleSpire
     logger.warn("[Lanzador Dados] API de TaleSpire no disponible. Ejecutando tirada matemática de desarrollo.");
     ejecutarTiradaFallbackLocal(formulaLimpia, nombreEtiqueta);
+
+    // Si es una salvación de muerte en entorno de prueba local fuera de TaleSpire
+    if (metaSalvacionMuerte) {
+      const d20 = Math.floor(Math.random() * 20) + 1;
+      const state = usarAlmacenDM.getState();
+      if (d20 >= 10) {
+        state.modificarSalvacionesMuertePersonaje(metaSalvacionMuerte.personajeId, "exitos", 1);
+      } else {
+        state.modificarSalvacionesMuertePersonaje(metaSalvacionMuerte.personajeId, "fallos", 1);
+      }
+    }
   }
 }
 
@@ -333,6 +358,7 @@ export async function procesarResultadosDadosTaleSpire(evento: unknown): Promise
   
   const rollId = ev.payload.rollId;
   const infoIniciativaPlana = tiradasIniciativaActivas[rollId];
+  const infoSalvacionMuertePlana = tiradasSalvacionMuerteActivas[rollId];
   const infoTirada = tiradasEspecialesActivas[rollId];
   
   // Caso 1: Tirada de iniciativa plana nativa (sin ventaja ni desventaja)
@@ -344,7 +370,6 @@ export async function procesarResultadosDadosTaleSpire(evento: unknown): Promise
         const grupoInic = resultGroups[0];
         const total = await ts.dice.evaluateDiceResultsGroup(grupoInic);
         logger.debug(`[Lanzador Dados] Iniciativa plana obtenida: ${total} para la criatura ${infoIniciativaPlana.criaturaId}`);
-        // Usar la acción de actualizar en combat tracker si existiera
         const state = usarAlmacenDM.getState();
         const nuevaCola = state.colaIniciativa.map((c) => {
           if (c.id === infoIniciativaPlana.criaturaId) {
@@ -360,6 +385,29 @@ export async function procesarResultadosDadosTaleSpire(evento: unknown): Promise
     }
     delete tiradasIniciativaActivas[rollId];
     return false; // Permitir que TaleSpire muestre su tarjeta nativa de chat
+  }
+
+  // Caso 2: Tirada de salvación de muerte plana nativa (esperando a que los dados 3D caigan)
+  if (!infoTirada && infoSalvacionMuertePlana) {
+    logger.debug(`[Lanzador Dados] Procesando resultado 3D de salvación contra la muerte para rollId: ${rollId}`);
+    const resultGroups = ev.payload.resultsGroups;
+    if (resultGroups && Array.isArray(resultGroups) && resultGroups.length > 0) {
+      try {
+        const grupoMuerte = resultGroups[0];
+        const total = await ts.dice.evaluateDiceResultsGroup(grupoMuerte);
+        logger.debug(`[Lanzador Dados] Resultado 3D de Salvación de Muerte obtenido de la bandeja física: ${total}`);
+        const state = usarAlmacenDM.getState();
+        if (total >= 10) {
+          state.modificarSalvacionesMuertePersonaje(infoSalvacionMuertePlana.personajeId, "exitos", 1);
+        } else {
+          state.modificarSalvacionesMuertePersonaje(infoSalvacionMuertePlana.personajeId, "fallos", 1);
+        }
+      } catch (error) {
+        logger.error("[Lanzador Dados] Error al evaluar resultado 3D de salvación de muerte:", error);
+      }
+    }
+    delete tiradasSalvacionMuerteActivas[rollId];
+    return false;
   }
   
   if (!infoTirada) {
@@ -450,6 +498,19 @@ export async function procesarResultadosDadosTaleSpire(evento: unknown): Promise
       nuevaCola.sort((a, b) => b.iniciativa - a.iniciativa);
       usarAlmacenDM.setState({ colaIniciativa: nuevaCola });
       delete tiradasIniciativaActivas[rollId];
+    }
+
+    // Si esta tirada especial también era para salvación contra la muerte, actualizamos el personaje
+    const infoMuerteEspecial = tiradasSalvacionMuerteActivas[rollId];
+    if (infoMuerteEspecial) {
+      logger.debug(`[Lanzador Dados] Salvación de muerte especial 3D obtenida: ${totalElegido} para el personaje ${infoMuerteEspecial.personajeId}`);
+      const state = usarAlmacenDM.getState();
+      if (totalElegido >= 10) {
+        state.modificarSalvacionesMuertePersonaje(infoMuerteEspecial.personajeId, "exitos", 1);
+      } else {
+        state.modificarSalvacionesMuertePersonaje(infoMuerteEspecial.personajeId, "fallos", 1);
+      }
+      delete tiradasSalvacionMuerteActivas[rollId];
     }
     
     delete tiradasEspecialesActivas[rollId];

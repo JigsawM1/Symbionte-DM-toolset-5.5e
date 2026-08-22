@@ -30,6 +30,8 @@ export const persistirEstadoCompleto = (estado: Partial<EstadoDM>) => {
       indice_turno_activo: estado.indiceTurnoActivo !== undefined ? estado.indiceTurnoActivo : 0,
       metodo_vida:         estado.metodoVidaMonstruo || "azar",
       asociaciones_fichas: estado.asociacionesFichas || {},
+      personajes:          estado.personajes || [],
+      id_personaje_activo: estado.idPersonajeActivo || null,
     };
 
     guardarBlobGlobal(blob).catch((e: unknown) => {

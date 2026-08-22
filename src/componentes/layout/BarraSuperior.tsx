@@ -178,6 +178,18 @@ export const BarraSuperior: React.FC = () => {
             </button>
 
             <button
+              onClick={() => establecerPestaña("jugadores")}
+              className={`${estilosClases.pestanaBoton} ${
+                pestañaActiva === "jugadores" ? estilosClases.pestanaActiva : ""
+              }`}
+              title="Fichas de Personaje de los Jugadores"
+              type="button"
+            >
+              <Gamepad2 size={13} />
+              <span className={estilosClases.pestanaTexto}>Fichas PJ</span>
+            </button>
+
+            <button
               onClick={() => establecerPestaña("tablas")}
               className={`${estilosClases.pestanaBoton} ${
                 pestañaActiva === "tablas" ? estilosClases.pestanaActiva : ""

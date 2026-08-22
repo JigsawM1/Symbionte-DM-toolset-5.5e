@@ -2,6 +2,102 @@
 
 Este archivo registra errores encontrados, sus causas raíz y las soluciones aplicadas.
 
+## [2026-08-22] Arquitectura y DRY: Homologación Canónica de Tiradas 3D en la Hoja de Personaje (D&D 5.5e)
+**Decisión y Motivación:**
+- En la Hoja de Personaje (`HojaPersonaje.tsx`), las tiradas d20 se enviaban a TaleSpire únicamente con la fórmula matemática cruda (ej. `1d20+3`) en lugar de utilizar la sintaxis nativa de etiquetas (`!Etiqueta:1d20+X`).
+- Esto causaba que al lanzar tiradas con **Ventaja** o **Desventaja** (`modoTirada = "vent" | "disv"`), el procesador de dados `lanzadorDados.ts` no pudiera extraer el nombre del grupo y cayera en el fallback por defecto `Ataque (A)` / `Ataque (B)` -> `"Ataque (Ventaja)"`, mostrando erróneamente *"Ataque"* en la bandeja 3D y en el chat incluso al realizar tiradas de habilidad (ej. *Sigilo*), tiradas de salvación o pruebas de característica.
+- Además, las etiquetas de chat y logs no incorporaban el nombre del héroe activo (`${personajeActivo.nombre} - ${etiqueta}`).
+
+**Solución Aplicada:**
+1. **Homologación de Tiradas con el Combat Tracker del DM (`HojaPersonaje.tsx`):**
+   - Función canónica `lanzarTiradaD20Personaje(etiqueta, bono)` que genera la fórmula con prefijo nativo `!${sanitizarEtiqueta(etiqueta)}:1d20${signo}${bono}` y la etiqueta compuesta `${nombrePj} - ${etiqueta}`.
+   - **Pruebas de Característica**: `Prueba de [CAR]` (ej. `!Prueba de FUE:1d20+3`).
+   - **Tiradas de Salvación**: `Salvación de [CAR]` (ej. `!Salvacion de DES:1d20+5`).
+   - **Iniciativa**: `Iniciativa` (ej. `!Iniciativa:1d20+2`).
+   - **Salvaciones contra la Muerte**: `Salvacion Muerte` (ej. `!Salvacion Muerte:1d20`) vinculado a `MetadataSalvacionMuerte` para procesar el resultado físico al caer los dados.
+2. **Sincronización Reactiva de Modo de Tirada (Fix Desincronización Ventaja/Desventaja):**
+   - **Causa Raíz:** `HojaPersonaje.tsx` utilizaba un `useState` local desconectado para `modoTirada`. Al realizar una tirada con ventaja, `lanzadorDados.ts` restablecía `tipoTirada = "plano"` en el store global Zustand, pero el botón en la interfaz de la hoja de personaje permanecía visualmente en `"vent"`, haciendo que la siguiente tirada saliera plana a pesar de mostrarse seleccionada como ventaja.
+   - **Solución:** Se eliminó el `useState` local y se derivó `modoTirada` reactivamente de `usarEstadoConfiguracion().tipoTirada` (`Single Source of Truth`). Al completarse la tirada, el selector de la barra táctica se restablece automáticamente a plano de forma instantánea.
+3. **Sincronización de Componentes de Sub-dominio (`PanelAtributosPersonaje.tsx` & `PanelHabilidadesPersonaje.tsx`):**
+   - Normalización de las llamadas `alTirarSalvacion` a `Salvación de ${etiqueta}` y refinamiento de los tooltips para reflejar con precisión el tipo de tirada (`Prueba de FUE (+X)` / `Tirada de Salvación de FUE (+X)`).
+4. **Robustez y Aislamiento en el Adaptador TaleSpire (`TaleSpireAdapter.ts`):**
+   - Getter privado seguro `tsGlobal` que previene errores de `ReferenceError: window is not defined` en entornos sin DOM (como pruebas en Node.js / Vitest).
+5. **Verificación Automatizada:**
+   - 8 pruebas unitarias en `src/componentes/caracteristicas/personajes/HojaPersonajeTiradas.test.ts` validando la sanitización, normalización de fórmulas, creación de descriptores, resolución con Ventaja/Desventaja y reseteo automático a plano.
+   - 106 pruebas unitarias pasando al 100% en `vitest`.
+   - 0 errores en `tsc --noEmit` y compilación de producción exitosa con Vite (`pnpm run build`).
+
+---
+
+## [2026-08-21] Arquitectura y DRY: Componente Universal `ChipCondicion`, Estilos Globales y Anclaje Inteligente
+**Decisión y Motivación:**
+- Existía código duplicado en el renderizado de chips de condiciones, desangrado y efectos mágicos entre `TarjetaCriaturaIniciativa.tsx` y `BarraTacticaPersonaje.tsx`.
+- Además, en paneles laterales estrechos o columnas derechas (como la sección de condiciones en la Hoja de Personaje), los tooltips flotantes con `left: 0` se desbordaban por el borde derecho de la ventana de TaleSpire quedando truncados visualmente.
+- Se creó el componente atómico universal `ChipCondicion.tsx` en `src/componentes/comunes/` y se centralizaron los estilos en `src/index.css` junto con soporte para anclaje inteligente a la derecha (`right: 0; left: auto;`).
+
+**Solución Aplicada:**
+1. **Componente Reutilizable `ChipCondicion.tsx` (`src/componentes/comunes/`):**
+   - Resuelve automáticamente los detalles de cualquier condición o efecto mediante `obtenerDetalleCondicion`.
+   - Soporta variantes semánticas automáticas: `.chip-condicion-estandar` (esmeralda/cian), `.chip-condicion-desangrado` (carmesí táctico), `.chip-condicion-concentracion` (ámbar), `.chip-condicion-magico` (púrpura) y permanentes.
+   - Propiedad `alineacionTooltip?: "izquierda" | "derecha"` para anclaje controlado.
+   - Integra badges de expiración (`R.3`, `∞`), prefijo `[CON]` y prefijo de sangre `🩸`.
+   - Renderiza el tooltip flotante enriquecido `.tooltip-contenido` con activación instantánea a 0ms de retardo.
+   - Botón interactivo de descarte `X` con `e.stopPropagation()` aislado.
+2. **Estilos Globales Canónicos y Prevención de Desbordamiento (`src/index.css` & `HojaPersonaje.module.css`):**
+   - Estandarización de clases universales `.chip-condicion-universal`, `.tooltip-ancla-derecha` (`right: 0 !important; left: auto !important;`) y `.tooltip-ancla-izquierda`.
+   - Regla en `HojaPersonaje.module.css` asegurando que todos los tooltips de `.columnaCondicionesActivas` se desplieguen hacia el interior de la pantalla (anclados a la derecha).
+3. **Refactorización Completa en la Aplicación:**
+   - `BarraTacticaPersonaje.tsx`: Reducido drásticamente a llamadas limpias `<ChipCondicion nombre={cond} alineacionTooltip="derecha" onQuitar={...} />`.
+   - `TarjetaCriaturaIniciativa.tsx`: Eliminadas más de 120 líneas de código duplicado de renderizado de condiciones, cansancio, desangrado y efectos.
+4. **Verificación Automatizada:**
+   - 98 pruebas unitarias pasando al 100% en `vitest`.
+   - 0 errores en `tsc --noEmit`.
+   - Compilación y despliegue exitoso a TaleSpire (`pnpm run deploy`).
+
+---
+
+## [2026-08-21] Arquitectura y Diccionario Oficial: Integración Canónica de "Desangrándose (Bloodied)" en EFECTOS_PREDEFINIDOS
+**Decisión y Motivación:**
+- Para eliminar la dispersión de textos estáticos y descripciones hardcodeadas en el código fuente, se formalizó el registro de **"Desangrándose (Bloodied)"** dentro del diccionario canónico `EFECTOS_PREDEFINIDOS` (`src/utiles/datosIniciales.ts`).
+- Tanto el Combat Tracker de iniciativa (`TarjetaCriaturaIniciativa.tsx`), la Barra Táctica del Héroe (`BarraTacticaPersonaje.tsx`) y el Diccionario de Condiciones y Efectos del DM (`DiccionarioCondiciones.tsx`) consumen la misma fuente única de verdad a través del servicio puro `obtenerDetalleCondicion`.
+
+**Solución Aplicada:**
+1. **Entrada Canónica en `EFECTOS_PREDEFINIDOS` (`src/utiles/datosIniciales.ts`):**
+   - `{ nombre: "Desangrándose (Bloodied)", descripcion: "Esta criatura o personaje está por debajo del 50% de sus puntos de golpe máximos. Se aplica automáticamente cuando la salud cae por debajo de la mitad y desaparece cuando se recupera por encima de dicho umbral.", duracionEstandar: 0 }`.
+2. **Servicio Puro `resolutorCondiciones.ts` con Normalización Insensible a Acentos:**
+   - Normalización con remoción de diacríticos (`normalize("NFD").replace(/[\u0300-\u036f]/g, "")`) para resolución robusta e insensible a acentos (`"desangrándose"`, `"desangrandose"`, `"bloodied"`).
+3. **Consumo Centralizado en UI:**
+   - `TarjetaCriaturaIniciativa.tsx`: Extrae el título y descripción del tooltip dinámicamente mediante `obtenerDetalleCondicion("Desangrándose")`.
+   - `BarraTacticaPersonaje.tsx`: Extrae el título y descripción del tooltip de igual forma.
+   - `DiccionarioCondiciones.tsx`: Reconoce la duración condicional (`duracionEstandar === 0`) mostrándola como `"AUTOMÁTICA / HASTA SANAR (>50% HP)"`.
+4. **Verificación Automatizada:**
+   - 5 nuevas pruebas unitarias en `src/servicios/resolutorCondiciones.test.ts` evaluando la resolución con/sin tildes y mayúsculas/minúsculas.
+   - 98 pruebas unitarias pasando al 100% en `vitest`.
+   - 0 errores en `tsc --noEmit`.
+   - Compilación y despliegue exitoso (`pnpm run deploy`).
+
+---
+
+## [2026-08-21] Diseño y UX: Embellecimiento Visual Táctico de la Hoja de Personaje D&D 5.5e (Sin Animaciones)
+**Decisión y Motivación:**
+- Se requería elevar la calidad estética de la Hoja de Personajes a un estándar *premium* de fantasía heroica táctica y alta densidad de información, sin incorporar animaciones o transiciones que causaran sobrecarga o pérdida de fotogramas en el entorno Chromium CEF / Unity de TaleSpire.
+
+**Solución Aplicada:**
+1. **Estética Táctica Dark Fantasy en CSS Modules (`HojaPersonaje.module.css`):**
+   - Superficies en capas de carbón de grafito (`#121722`, `#0b0f16`, `#161e2c`) con biseles de 1px (`rgba(148, 163, 184, 0.14)`) y acentos de color contextual.
+   - Cero `transition` o `animation` (`transition: none !important; animation: none !important;`) garantizando 0ms de retraso y respuesta táctil instantánea.
+2. **Cromatismo Semántico y Jerarquía Visual:**
+   - **Vitalidad**: Barra de salud con gradientes semánticos (`vidaPlena`, `vidaHerida`, `vidaCritica`), badge de estado (`Pleno`, `Saludable`, `Herido`, `Crítico`, `Inconsciente`), controles discretos de curación (`#064e3b` / `#10b981`) y daño (`#7f1d1d` / `#ef4444`).
+   - **Táctica**: Selector de modos de tirada con colores de impacto (*Desventaja* en carmesí, *Plano* en pizarra, *Ventaja* en esmeralda).
+   - **Métricas Rápidas**: Incorporación de iconografía de alta nitidez (`Shield`, `Zap`, `Footprints`, `Award`, `Sparkles`) y números grandes en `JetBrains Mono`.
+   - **Habilidades y Competencias**: Indicador de 4 estados visuales bien delimitados para competencias/pericias y panel de competencias categorizado con iconos temáticos (`Swords`, `Shield`, `Languages`, `Wrench`).
+3. **Verificación Automatizada:**
+   - 91 pruebas unitarias pasando al 100% en `vitest`.
+   - 0 errores en `tsc --noEmit`.
+   - Compilación exitosa para producción y despliegue a TaleSpire (`pnpm run deploy`).
+
+---
+
 ## [2026-08-21] Arquitectura y UX: Auto-Resolución Silenciosa de Miniaturas del Jugador en TaleSpire
 **Decisión y Motivación:**
 - En lugar de requerir que el jugador o el DM seleccionen y vinculen manualmente la miniatura mediante botones, el Simbionte ahora detecta automáticamente la miniatura física del jugador en el tablero 3D.

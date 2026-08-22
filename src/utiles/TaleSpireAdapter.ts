@@ -35,10 +35,17 @@ class TaleSpireAdapter {
   private getQueuePromise: Promise<ColaIniciativaTS> | null = null;
 
   /**
+   * Obtiene la referencia global de window.TS de forma segura en cualquier entorno.
+   */
+  private get tsGlobal(): any {
+    return typeof window !== "undefined" ? (window as any).TS : undefined;
+  }
+
+  /**
    * Indica si la API global de TaleSpire está activa e inicializada.
    */
   get estaDisponible(): boolean {
-    return !!window.TS;
+    return !!this.tsGlobal;
   }
 
   // ==========================================
@@ -50,8 +57,9 @@ class TaleSpireAdapter {
      * Valida si un string cumple con el formato estándar de dados de TaleSpire.
      */
     isValidRollString: (rollStr: string): boolean => {
-      if (window.TS?.dice && typeof window.TS.dice.isValidRollString === "function") {
-        return window.TS.dice.isValidRollString(rollStr);
+      const ts = this.tsGlobal;
+      if (ts?.dice && typeof ts.dice.isValidRollString === "function") {
+        return ts.dice.isValidRollString(rollStr);
       }
       return false;
     },
@@ -60,9 +68,10 @@ class TaleSpireAdapter {
      * Convierte un string de tirada física en descriptores nativos 3D.
      */
     makeRollDescriptors: async (rollStr: string): Promise<DescriptorTirada[]> => {
-      if (window.TS?.dice && typeof window.TS.dice.makeRollDescriptors === "function") {
+      const ts = this.tsGlobal;
+      if (ts?.dice && typeof ts.dice.makeRollDescriptors === "function") {
         try {
-          return await window.TS.dice.makeRollDescriptors(rollStr);
+          return await ts.dice.makeRollDescriptors(rollStr);
         } catch (error) {
           logger.error("[TS Adapter] Error en makeRollDescriptors nativo:", error);
         }
@@ -75,8 +84,9 @@ class TaleSpireAdapter {
      * Lanza los dados físicamente en la mesa 3D.
      */
     putDiceInTray: async (descriptors: DescriptorTirada[], silenceDefaultChatCard = false): Promise<string> => {
-      if (window.TS?.dice && typeof window.TS.dice.putDiceInTray === "function") {
-        return await window.TS.dice.putDiceInTray(descriptors, silenceDefaultChatCard);
+      const ts = this.tsGlobal;
+      if (ts?.dice && typeof ts.dice.putDiceInTray === "function") {
+        return await ts.dice.putDiceInTray(descriptors, silenceDefaultChatCard);
       }
       logger.error("[TS Adapter] dice.putDiceInTray no disponible.");
       return "";
@@ -86,9 +96,10 @@ class TaleSpireAdapter {
      * Evalúa el total numérico de un grupo de resultados de dados.
      */
     evaluateDiceResultsGroup: async (group: any): Promise<number> => {
-      if (window.TS?.dice && typeof window.TS.dice.evaluateDiceResultsGroup === "function") {
+      const ts = this.tsGlobal;
+      if (ts?.dice && typeof ts.dice.evaluateDiceResultsGroup === "function") {
         try {
-          return await window.TS.dice.evaluateDiceResultsGroup(group);
+          return await ts.dice.evaluateDiceResultsGroup(group);
         } catch (e) {
           logger.error("[TS Adapter] Error evaluando grupo con API nativa:", e);
         }
@@ -100,8 +111,9 @@ class TaleSpireAdapter {
      * Envía de forma elegante un resultado filtrado al chat del juego.
      */
     sendDiceResult: async (groups: any[], rollId: string): Promise<void> => {
-      if (window.TS?.dice && typeof window.TS.dice.sendDiceResult === "function") {
-        await window.TS.dice.sendDiceResult(groups, rollId);
+      const ts = this.tsGlobal;
+      if (ts?.dice && typeof ts.dice.sendDiceResult === "function") {
+        await ts.dice.sendDiceResult(groups, rollId);
       } else {
         logger.warn("[TS Adapter] dice.sendDiceResult no disponible.");
       }
@@ -117,9 +129,10 @@ class TaleSpireAdapter {
      * Envia un mensaje plano (o de dados) al chat de TaleSpire.
      */
     send: async (message: string): Promise<boolean> => {
-      if (window.TS?.chat && typeof window.TS.chat.send === "function") {
+      const ts = this.tsGlobal;
+      if (ts?.chat && typeof ts.chat.send === "function") {
         // La API v0.1 requiere un segundo parámetro "board" para representar visualmente el chat.
-        return await window.TS.chat.send(message, "board");
+        return await ts.chat.send(message, "board");
       }
       logger.warn("[TS Adapter] chat.send no disponible.");
       return false;
@@ -129,12 +142,13 @@ class TaleSpireAdapter {
      * Envía un mensaje en el chat visible solo para destinatarios específicos.
      */
     multiSend: async (message: string, targets: string[]): Promise<boolean> => {
-      if (window.TS?.chat) {
-        if (typeof window.TS.chat.multiSend === "function") {
-          return await window.TS.chat.multiSend(message, targets);
-        } else if (typeof window.TS.chat.send === "function") {
+      const ts = this.tsGlobal;
+      if (ts?.chat) {
+        if (typeof ts.chat.multiSend === "function") {
+          return await ts.chat.multiSend(message, targets);
+        } else if (typeof ts.chat.send === "function") {
           // Fallback a send plano si multiSend no existe
-          return await window.TS.chat.send(message, "board");
+          return await ts.chat.send(message, "board");
         }
       }
       logger.warn("[TS Adapter] chat.multiSend no disponible.");
@@ -145,8 +159,9 @@ class TaleSpireAdapter {
      * Envía un mensaje como una criatura específica.
      */
     sendAsCreature: async (creatureId: FragmentoOId, message: string): Promise<boolean> => {
-      if (window.TS?.chat && typeof window.TS.chat.sendAsCreature === "function") {
-        return await window.TS.chat.sendAsCreature(creatureId, message);
+      const ts = this.tsGlobal;
+      if (ts?.chat && typeof ts.chat.sendAsCreature === "function") {
+        return await ts.chat.sendAsCreature(creatureId, message);
       }
       return false;
     },
@@ -155,8 +170,9 @@ class TaleSpireAdapter {
      * Envía un mensaje como una criatura a destinatarios específicos.
      */
     multiSendAsCreature: async (creatureId: FragmentoOId, message: string, targets: string[]): Promise<boolean> => {
-      if (window.TS?.chat && typeof window.TS.chat.multiSendAsCreature === "function") {
-        return await window.TS.chat.multiSendAsCreature(creatureId, message, targets);
+      const ts = this.tsGlobal;
+      if (ts?.chat && typeof ts.chat.multiSendAsCreature === "function") {
+        return await ts.chat.multiSendAsCreature(creatureId, message, targets);
       }
       return false;
     }

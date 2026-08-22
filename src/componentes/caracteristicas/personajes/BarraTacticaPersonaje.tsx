@@ -1,8 +1,7 @@
 import React, { useState } from "react";
-import { SelectorSugerencias } from "@/componentes/comunes/SelectorSugerencias";
-import { CONDICIONES_2024 } from "@/utiles/datosIniciales";
-import { obtenerDetalleCondicion } from "@/servicios/resolutorCondiciones";
-import { X, Moon, Sunrise } from "lucide-react";
+import { SelectorSugerencias, ChipCondicion } from "@/componentes/comunes";
+import { CONDICIONES_2024, EFECTOS_PREDEFINIDOS } from "@/utiles/datosIniciales";
+import { Moon, Sunrise } from "lucide-react";
 import estilos from "./HojaPersonaje.module.css";
 
 export type ModoTirada = "disv" | "plano" | "vent";
@@ -10,6 +9,8 @@ export type ModoTirada = "disv" | "plano" | "vent";
 interface BarraTacticaPersonajeProps {
   modoTirada: ModoTirada;
   condicionesActivas: string[];
+  hpActual: number;
+  hpMaximo: number;
   alCambiarModoTirada: (modo: ModoTirada) => void;
   alEjecutarDescansoCorto: () => void;
   alEjecutarDescansoLargo: () => void;
@@ -20,6 +21,8 @@ interface BarraTacticaPersonajeProps {
 export const BarraTacticaPersonaje: React.FC<BarraTacticaPersonajeProps> = ({
   modoTirada,
   condicionesActivas,
+  hpActual,
+  hpMaximo,
   alCambiarModoTirada,
   alEjecutarDescansoCorto,
   alEjecutarDescansoLargo,
@@ -28,8 +31,14 @@ export const BarraTacticaPersonaje: React.FC<BarraTacticaPersonajeProps> = ({
 }) => {
   const [condicionSeleccionada, setCondicionSeleccionada] = useState("");
 
-  const sugerenciasCondiciones = CONDICIONES_2024.map((c) => c.nombre);
+  const sugerenciasCondiciones = [
+    ...CONDICIONES_2024.map((c) => c.nombre),
+    ...EFECTOS_PREDEFINIDOS.map((e) => e.nombre)
+  ];
 
+  // Estado automático de sangrado: vida actual menor al 50% del máximo efectivo
+  const estaDesangrandose = hpActual > 0 && hpActual < hpMaximo / 2;
+  const hayCondicionesOEstados = condicionesActivas.length > 0 || estaDesangrandose;
 
   return (
     <section className={`${estilos.neoRaised} ${estilos.seccionBarraTactica}`}>
@@ -40,7 +49,7 @@ export const BarraTacticaPersonaje: React.FC<BarraTacticaPersonajeProps> = ({
           <div className={`${estilos.grupoBotonesPill} ${estilos.neoPressed}`}>
             <button
               type="button"
-              className={estilos.botonPill}
+              className={`${estilos.botonPill} ${estilos.botonPillDescansoCorto}`}
               onClick={alEjecutarDescansoCorto}
               title="Descanso Corto (Gastar dados de golpe para curar)"
             >
@@ -49,7 +58,7 @@ export const BarraTacticaPersonaje: React.FC<BarraTacticaPersonajeProps> = ({
             </button>
             <button
               type="button"
-              className={estilos.botonPill}
+              className={`${estilos.botonPill} ${estilos.botonPillDescansoLargo}`}
               onClick={alEjecutarDescansoLargo}
               title="Descanso Largo (Restaurar HP, dados y reducir cansancio)"
             >
@@ -62,7 +71,9 @@ export const BarraTacticaPersonaje: React.FC<BarraTacticaPersonajeProps> = ({
           <div className={`${estilos.grupoBotonesPill} ${estilos.neoPressed}`}>
             <button
               type="button"
-              className={`${estilos.botonPill} ${modoTirada === "disv" ? estilos.botonPillActivo : ""}`}
+              className={`${estilos.botonPill} ${estilos.botonPillDisv} ${
+                modoTirada === "disv" ? estilos.botonPillActivoDisv : ""
+              }`}
               onClick={() => alCambiarModoTirada("disv")}
               title="Tirar con Desventaja (2d20 menor)"
             >
@@ -70,7 +81,9 @@ export const BarraTacticaPersonaje: React.FC<BarraTacticaPersonajeProps> = ({
             </button>
             <button
               type="button"
-              className={`${estilos.botonPill} ${modoTirada === "plano" ? estilos.botonPillActivo : ""}`}
+              className={`${estilos.botonPill} ${
+                modoTirada === "plano" ? estilos.botonPillActivoPlano : ""
+              }`}
               onClick={() => alCambiarModoTirada("plano")}
               title="Tirada normal plana (1d20)"
             >
@@ -78,7 +91,9 @@ export const BarraTacticaPersonaje: React.FC<BarraTacticaPersonajeProps> = ({
             </button>
             <button
               type="button"
-              className={`${estilos.botonPill} ${modoTirada === "vent" ? estilos.botonPillActivo : ""}`}
+              className={`${estilos.botonPill} ${estilos.botonPillVent} ${
+                modoTirada === "vent" ? estilos.botonPillActivoVent : ""
+              }`}
               onClick={() => alCambiarModoTirada("vent")}
               title="Tirar con Ventaja (2d20 mayor)"
             >
@@ -105,36 +120,31 @@ export const BarraTacticaPersonaje: React.FC<BarraTacticaPersonajeProps> = ({
         </div>
       </div>
 
-      {/* Columna Derecha: Condiciones Activas */}
+      {/* Columna Derecha: Condiciones Activas y Sangrado Automático */}
       <div className={`${estilos.columnaCondicionesActivas} ${estilos.neoPressed}`}>
         <span className={estilos.tituloCondicionesActivas}>Condiciones Activas</span>
         <div className={estilos.listaChipsCondiciones}>
-          {condicionesActivas.length > 0 ? (
-            condicionesActivas.map((cond) => {
-              const detalle = obtenerDetalleCondicion(cond);
-              const tooltip =
-                detalle.efectos && detalle.efectos.length > 0
-                  ? `${detalle.titulo}\n\n${detalle.efectos.map((e) => `• ${e}`).join("\n")}`
-                  : `${detalle.titulo}: ${detalle.descripcion}`;
+          {hayCondicionesOEstados ? (
+            <>
+              {/* Chip automático de Desangrándose (<50% de HP) */}
+              {estaDesangrandose && (
+                <ChipCondicion
+                  nombre="Desangrándose"
+                  esDesangrado
+                  alineacionTooltip="derecha"
+                />
+              )}
 
-              return (
-                <span
+              {/* Condiciones manuales y de cansancio */}
+              {condicionesActivas.map((cond) => (
+                <ChipCondicion
                   key={cond}
-                  className={estilos.chipCondicion}
-                  title={tooltip}
-                >
-                  {cond}
-                  <button
-                    type="button"
-                    className={estilos.chipBotonCerrar}
-                    onClick={() => alQuitarCondicion(cond)}
-                    title={`Quitar condición ${cond}`}
-                  >
-                    <X size={10} />
-                  </button>
-                </span>
-              );
-            })
+                  nombre={cond}
+                  alineacionTooltip="derecha"
+                  onQuitar={() => alQuitarCondicion(cond)}
+                />
+              ))}
+            </>
           ) : (
             <span className={estilos.textoSinCondiciones}>Sin estados alterados</span>
           )}

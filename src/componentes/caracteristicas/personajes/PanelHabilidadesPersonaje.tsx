@@ -2,6 +2,7 @@ import React from "react";
 import type { PersonajeJugador, Habilidad, GradoCompetencia } from "@/tipos";
 import { HABILIDADES_LISTA, MAPA_HABILIDAD_A_CARACTERISTICA } from "@/constantes";
 import type { EstadisticasCalculadasPersonaje } from "@/almacen/selectores/usarEstadoPersonajes";
+import { Swords, Shield, Languages, Wrench } from "lucide-react";
 import estilos from "./HojaPersonaje.module.css";
 
 interface PanelHabilidadesPersonajeProps {
@@ -116,28 +117,36 @@ export const PanelHabilidadesPersonaje: React.FC<PanelHabilidadesPersonajeProps>
         <span className={estilos.tituloPanelLateral}>Competencias</span>
 
         <div className={estilos.grupoCompetenciaItem}>
-          <span className={estilos.tituloGrupoCompetencia}>Armas</span>
+          <span className={estilos.tituloGrupoCompetencia} style={{ display: "flex", alignItems: "center", gap: 4 }}>
+            <Swords size={11} color="#94a3b8" /> Armas
+          </span>
           <div className={`${estilos.cajaTextoCompetencia} ${estilos.neoPressed}`}>
             {personaje.competenciasArmas || "Ninguna"}
           </div>
         </div>
 
         <div className={estilos.grupoCompetenciaItem}>
-          <span className={estilos.tituloGrupoCompetencia}>Armaduras</span>
+          <span className={estilos.tituloGrupoCompetencia} style={{ display: "flex", alignItems: "center", gap: 4 }}>
+            <Shield size={11} color="#94a3b8" /> Armaduras
+          </span>
           <div className={`${estilos.cajaTextoCompetencia} ${estilos.neoPressed}`}>
             {personaje.competenciasArmaduras || "Ninguna"}
           </div>
         </div>
 
         <div className={estilos.grupoCompetenciaItem}>
-          <span className={estilos.tituloGrupoCompetencia}>Idiomas</span>
+          <span className={estilos.tituloGrupoCompetencia} style={{ display: "flex", alignItems: "center", gap: 4 }}>
+            <Languages size={11} color="#94a3b8" /> Idiomas
+          </span>
           <div className={`${estilos.cajaTextoCompetencia} ${estilos.neoPressed}`}>
             {personaje.idiomas || "Común"}
           </div>
         </div>
 
         <div className={estilos.grupoCompetenciaItem}>
-          <span className={estilos.tituloGrupoCompetencia}>Herramientas</span>
+          <span className={estilos.tituloGrupoCompetencia} style={{ display: "flex", alignItems: "center", gap: 4 }}>
+            <Wrench size={11} color="#94a3b8" /> Herramientas
+          </span>
           <div className={`${estilos.cajaTextoCompetencia} ${estilos.neoPressed}`}>
             {personaje.herramientas || "Ninguna"}
           </div>

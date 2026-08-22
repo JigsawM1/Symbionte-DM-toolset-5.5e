@@ -326,12 +326,86 @@ button.activo {
   box-shadow: 0 0 0 1px var(--color-borde-cian);
 }
 
-/* ================= TOOLTIPS PREMIUM DE CONDICIONES (COMBAT TRACKER) ================= */
+/* ================= CHIPS Y TOOLTIPS UNIVERSALES DE CONDICIONES Y EFECTOS ================= */
+.chip-condicion-universal,
 .chip-condicion-chico-tooltip {
   position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: var(--fuente-codigo, 'JetBrains Mono', monospace);
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  border: 1px solid;
   cursor: help;
+  user-select: none;
+  line-height: 1.2;
 }
 
+/* Variantes cromáticas semánticas universales */
+.chip-condicion-estandar {
+  background-color: hsla(172, 90%, 7%, 0.75);
+  border-color: hsla(172, 90%, 45%, 0.7);
+  color: hsl(172, 100%, 85%);
+}
+
+.chip-condicion-desangrado {
+  background-color: hsla(0, 80%, 9%, 0.85) !important;
+  border-color: hsla(0, 80%, 50%, 0.7) !important;
+  color: hsl(0, 100%, 88%) !important;
+  box-shadow: inset 0 0 4px rgba(239, 68, 68, 0.25) !important;
+}
+
+.chip-condicion-concentracion {
+  background-color: hsla(45, 80%, 10%, 0.8) !important;
+  border-color: hsla(45, 90%, 55%, 0.8) !important;
+  color: hsl(45, 100%, 85%) !important;
+}
+
+.chip-condicion-magico {
+  background-color: hsla(265, 80%, 12%, 0.75) !important;
+  border-color: hsla(265, 80%, 60%, 0.7) !important;
+  color: hsl(265, 95%, 90%) !important;
+}
+
+.chip-condicion-permanente {
+  background-color: hsla(220, 20%, 12%, 0.75) !important;
+  border-color: hsla(220, 20%, 40%, 0.7) !important;
+  color: hsl(0, 0%, 90%) !important;
+}
+
+.chip-condicion-boton-quitar {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  margin-left: 2px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: inherit;
+  opacity: 0.75;
+}
+
+.chip-condicion-boton-quitar:hover {
+  opacity: 1;
+  color: #f87171 !important;
+}
+
+.chip-condicion-badge-expiracion {
+  margin-left: 4px;
+  font-size: 8px;
+  padding: 1px 3px;
+  background-color: rgba(255, 255, 255, 0.12);
+  border-radius: 2px;
+}
+
+/* Tooltip Flotante Universal (0ms Hover) */
+.chip-condicion-universal .tooltip-contenido,
 .chip-condicion-chico-tooltip .tooltip-contenido {
   display: none;
   position: absolute;
@@ -344,19 +418,35 @@ button.activo {
   box-shadow: 0 4px 15px rgba(0, 245, 212, 0.35);
   color: var(--color-texto-principal);
   padding: 8px 12px;
-  border-radius: 3px;
+  border-radius: 4px;
   width: max-content;
-  max-width: 210px;
+  max-width: 240px;
   font-size: 11px;
   line-height: 1.45;
   white-space: pre-wrap;
   z-index: 99999;
   pointer-events: none;
   text-align: left;
-  font-family: var(--fuente-principal);
+  font-family: var(--fuente-principal, 'Inter', sans-serif);
   font-weight: normal;
+  text-transform: none;
+  letter-spacing: normal;
 }
 
+/* Anclaje y orientación de despliegue */
+.chip-condicion-universal.tooltip-ancla-derecha .tooltip-contenido,
+.tooltip-ancla-derecha .tooltip-contenido {
+  right: 0 !important;
+  left: auto !important;
+}
+
+.chip-condicion-universal.tooltip-ancla-izquierda .tooltip-contenido,
+.tooltip-ancla-izquierda .tooltip-contenido {
+  left: 0 !important;
+  right: auto !important;
+}
+
+.chip-condicion-universal:hover .tooltip-contenido,
 .chip-condicion-chico-tooltip:hover .tooltip-contenido {
   display: block;
 }

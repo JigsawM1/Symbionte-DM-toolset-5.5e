@@ -59,6 +59,24 @@ export const PanelVitalidadPersonaje: React.FC<PanelVitalidadPersonajeProps> = (
       ? estilos.hpMaxReducido
       : "";
 
+  const claseGradienteVida =
+    porcentajeHp >= 50
+      ? estilos.vidaPlena
+      : porcentajeHp > 20
+      ? estilos.vidaHerida
+      : estilos.vidaCritica;
+
+  const etiquetaEstadoVida =
+    personaje.hpActual <= 0
+      ? "Inconsciente"
+      : porcentajeHp < 25
+      ? "Crítico"
+      : porcentajeHp < 50
+      ? "Desangrándose"
+      : porcentajeHp >= 100
+      ? "Pleno"
+      : "Saludable";
+
   const manejarAplicarCuracion = () => {
     const cantidad = parseInt(valorDeltaHp, 10) || 1;
     alModificarHP(Math.abs(cantidad));
@@ -130,7 +148,7 @@ export const PanelVitalidadPersonaje: React.FC<PanelVitalidadPersonajeProps> = (
               <span className={estilos.tituloHp}>Puntos de Golpe</span>
               <button
                 type="button"
-                className={estilos.botonModHp}
+                className={estilos.botonModHpCurar}
                 onClick={manejarAplicarCuracion}
                 title="Curar cantidad ingresada (+)"
               >
@@ -152,21 +170,21 @@ export const PanelVitalidadPersonaje: React.FC<PanelVitalidadPersonajeProps> = (
               />
               <button
                 type="button"
-                className={`${estilos.botonModHp} ${estilos.botonModHpPeligro}`}
+                className={estilos.botonModHpDano}
                 onClick={manejarAplicarDano}
                 title="Infligir daño por cantidad ingresada (- o Enter)"
               >
                 <Minus size={14} />
               </button>
             </div>
-            <span style={{ fontSize: 11, color: "#94a3b8" }} title="HP Máximo Base fijado en configuración">
+            <span style={{ fontSize: 10, color: "#94a3b8" }} title="HP Máximo Base fijado en configuración">
               Base: {maxBase}
             </span>
           </div>
 
           <div className={`${estilos.barraVidaFondo} ${estilos.neoPressed}`}>
             <div
-              className={estilos.barraVidaProgreso}
+              className={`${estilos.barraVidaProgreso} ${claseGradienteVida}`}
               style={{ width: `${porcentajeHp}%` }}
             />
             <div className={estilos.barraVidaTexto}>
@@ -196,6 +214,7 @@ export const PanelVitalidadPersonaje: React.FC<PanelVitalidadPersonajeProps> = (
                 }
               />
             </div>
+            <span className={estilos.badgeEstadoVida}>{etiquetaEstadoVida}</span>
           </div>
         </div>
 

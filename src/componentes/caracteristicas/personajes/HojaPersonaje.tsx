@@ -4,8 +4,9 @@ import {
   usarAccionesPersonajes,
   calcularEstadisticasPersonaje
 } from "@/almacen/selectores/usarEstadoPersonajes";
+import { usarEstadoConfiguracion } from "@/almacen/selectores/usarEstadoConfiguracion";
 import { usarAccionesIniciativa } from "@/almacen/selectores/usarEstadoIniciativa";
-import { lanzarDadosTaleSpire } from "@/utiles/lanzadorDados";
+import { lanzarDadosTaleSpire, sanitizarEtiqueta } from "@/utiles/lanzadorDados";
 import type { Caracteristica, Habilidad } from "@/tipos";
 
 import { CabeceraPersonaje } from "./CabeceraPersonaje";
@@ -20,6 +21,7 @@ import estilos from "./HojaPersonaje.module.css";
 
 export const HojaPersonaje: React.FC = () => {
   const { personajeActivo } = usarEstadoPersonajes();
+  const { tipoTirada } = usarEstadoConfiguracion();
   const {
     actualizarPersonaje,
     modificarHPPersonaje,
@@ -42,7 +44,6 @@ export const HojaPersonaje: React.FC = () => {
 
   const { establecerTipoTirada } = usarAccionesIniciativa();
 
-  const [modoTirada, setModoTirada] = useState<ModoTirada>("plano");
   const [modalEdicionAbierto, setModalEdicionAbierto] = useState(false);
 
   if (!personajeActivo) {
@@ -60,44 +61,49 @@ export const HojaPersonaje: React.FC = () => {
   // 1. Calcular estadísticas derivadas y modificadores
   const statsCalculadas = calcularEstadisticasPersonaje(personajeActivo);
 
-  // 2. Manejador para cambiar el modo de tirada y sincronizarlo con el lanzador de dados
+  // 2. Mapeo reactivo del modo de tirada desde el estado global de Zustand (Single Source of Truth)
+  const modoTirada: ModoTirada =
+    tipoTirada === "ventaja" ? "vent" : tipoTirada === "desventaja" ? "disv" : "plano";
+
   const manejarCambioModoTirada = (modo: ModoTirada) => {
-    setModoTirada(modo);
     const tipoGlobal = modo === "vent" ? "ventaja" : modo === "disv" ? "desventaja" : "plano";
     establecerTipoTirada(tipoGlobal);
   };
 
-  // 3. Lanzadores de Dados 3D a TaleSpire
-  const ejecutarTirada3D = async (etiqueta: string, bono: number) => {
+  // 3. Lanzadores de Dados 3D a TaleSpire (Homologados con el Combat Tracker del DM)
+  const lanzarTiradaD20Personaje = async (etiqueta: string, bono: number) => {
     try {
-      const signo = bono >= 0 ? "+" : "";
-      const formula = bono !== 0 ? `1d20${signo}${bono}` : "1d20";
-      await lanzarDadosTaleSpire(formula, etiqueta);
+      const nombrePj = personajeActivo.nombre?.trim() || "Personaje";
+      const formulaDados = `!${sanitizarEtiqueta(etiqueta)}:1d20${bono >= 0 ? "+" : ""}${bono}`;
+      const etiquetaLog = `${nombrePj} - ${etiqueta}`;
+      await lanzarDadosTaleSpire(formulaDados, etiquetaLog);
     } catch (err) {
       console.error("[HojaPersonaje] Error al enviar tirada 3D:", err);
     }
   };
 
   const manejarTirarCaracteristica = (_carac: Caracteristica, etiqueta: string, bono: number) => {
-    ejecutarTirada3D(`Prueba ${etiqueta}`, bono);
+    lanzarTiradaD20Personaje(`Prueba de ${etiqueta}`, bono);
   };
 
   const manejarTirarSalvacion = (_carac: Caracteristica, etiqueta: string, bono: number) => {
-    ejecutarTirada3D(etiqueta, bono);
+    const etiquetaLimpia = etiqueta.replace(/^Salvaci[oó]n(\s+de)?\s+/i, "");
+    lanzarTiradaD20Personaje(`Salvación de ${etiquetaLimpia}`, bono);
   };
 
   const manejarTirarHabilidad = (_hab: Habilidad, nombre: string, bono: number) => {
-    ejecutarTirada3D(`Prueba ${nombre}`, bono);
+    lanzarTiradaD20Personaje(`Prueba de ${nombre}`, bono);
   };
 
   const manejarTirarIniciativa = () => {
     const bonoInic = statsCalculadas.modificadores.destreza + (personajeActivo.iniciativaBono || 0);
-    ejecutarTirada3D("Iniciativa", bonoInic);
+    lanzarTiradaD20Personaje("Iniciativa", bonoInic);
   };
 
   const manejarTirarSalvacionMuerte3D = async () => {
     // Enviamos el dado 3D a la bandeja de TaleSpire y esperamos a que caiga físicamente
-    await lanzarDadosTaleSpire("1d20", "Salvación Muerte", undefined, {
+    const nombrePj = personajeActivo.nombre?.trim() || "Personaje";
+    await lanzarDadosTaleSpire("!Salvacion Muerte:1d20", `${nombrePj} - Salvación Muerte`, undefined, {
       tipo: "salvacionMuerte",
       personajeId: personajeActivo.id
     });
@@ -116,6 +122,8 @@ export const HojaPersonaje: React.FC = () => {
       <BarraTacticaPersonaje
         modoTirada={modoTirada}
         condicionesActivas={personajeActivo.condicionesActivas || []}
+        hpActual={personajeActivo.hpActual}
+        hpMaximo={personajeActivo.hpMaximo || personajeActivo.hpMaximoBase || 10}
         alCambiarModoTirada={manejarCambioModoTirada}
         alEjecutarDescansoCorto={() => ejecutarDescansoPersonaje(personajeActivo.id, "corto", 1)}
         alEjecutarDescansoLargo={() => ejecutarDescansoPersonaje(personajeActivo.id, "largo")}

@@ -6,6 +6,13 @@ export interface DetalleCondicionOEfecto {
   efectos?: string[];
 }
 
+const normalizar = (texto: string) =>
+  texto
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim();
+
 /**
  * Servicio encargado de buscar y estructurar los detalles y efectos mecánicos
  * de cualquier condición o efecto activo para su visualización en tooltips o paneles.
@@ -15,13 +22,13 @@ export function obtenerDetalleCondicion(nombre: string): DetalleCondicionOEfecto
     return { titulo: "Efecto Desconocido", descripcion: "Sin información adicional." };
   }
 
-  const nombreLimpio = nombre.trim().toLowerCase();
+  const nombreNorm = normalizar(nombre);
 
   // Buscar coincidencia en CONDICIONES_2024
   const condEncontrada = CONDICIONES_2024.find((c) => {
-    const minCond = c.nombre.toLowerCase();
-    const palabraClave = c.nombre.split(" ")[0].toLowerCase();
-    return minCond.includes(nombreLimpio) || nombreLimpio.includes(palabraClave);
+    const minCond = normalizar(c.nombre);
+    const palabraClave = normalizar(c.nombre.split(" ")[0]);
+    return minCond.includes(nombreNorm) || nombreNorm.includes(palabraClave);
   });
 
   if (condEncontrada) {
@@ -34,9 +41,9 @@ export function obtenerDetalleCondicion(nombre: string): DetalleCondicionOEfecto
 
   // Buscar coincidencia en EFECTOS_PREDEFINIDOS
   const efectoEncontrado = EFECTOS_PREDEFINIDOS.find((e) => {
-    const minEf = e.nombre.toLowerCase();
-    const palabraClave = e.nombre.split(" ")[0].toLowerCase();
-    return minEf.includes(nombreLimpio) || nombreLimpio.includes(palabraClave);
+    const minEf = normalizar(e.nombre);
+    const palabraClave = normalizar(e.nombre.split(" ")[0]);
+    return minEf.includes(nombreNorm) || nombreNorm.includes(palabraClave);
   });
 
   if (efectoEncontrado) {

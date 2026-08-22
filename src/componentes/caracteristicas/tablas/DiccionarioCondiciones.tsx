@@ -73,7 +73,12 @@ export const DiccionarioCondiciones: React.FC = () => {
           <div className={estilos.detalleCondicionPanel}>
             <h3 className={`${estilos.tituloCondicion} ${estilos.tituloCondicionEfecto}`}>{efectoSeleccionado.nombre}</h3>
             <span className={estilos.origenCondicion}>
-              DURACIÓN ESTÁNDAR: <strong style={{ color: "#d8b4fe" }}>{efectoSeleccionado.duracionEstandar} RONDAS</strong>
+              DURACIÓN ESTÁNDAR:{" "}
+              <strong style={{ color: "#d8b4fe" }}>
+                {efectoSeleccionado.duracionEstandar > 0
+                  ? `${efectoSeleccionado.duracionEstandar} RONDAS`
+                  : "AUTOMÁTICA / HASTA SANAR (>50% HP)"}
+              </strong>
             </span>
             
             <div className={`${estilos.bloqueEfectosCondicion} ${estilos.bloqueEfectosEfecto}`}>

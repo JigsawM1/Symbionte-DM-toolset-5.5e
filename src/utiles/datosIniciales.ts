@@ -199,6 +199,7 @@ export const CRITICOS_ALEATORIOS: string[] = [
 ];
 
 export const EFECTOS_PREDEFINIDOS: EfectoPredefinido[] = [
+  { nombre: "Desangrándose (Bloodied)", descripcion: "Esta criatura o personaje está por debajo del 50% de sus puntos de golpe máximos. Se aplica automáticamente cuando la salud cae por debajo de la mitad y desaparece cuando se recupera por encima de dicho umbral.", duracionEstandar: 0 },
   { nombre: "Bendecir (Bless)", descripcion: "Añade 1d4 a las tiradas de ataque y salvaciones.", duracionEstandar: 10 },
   { nombre: "Furia (Rage)", descripcion: "Ventaja en tiradas de Fuerza, daño extra en ataques de Fuerza, resistencia a daño contundente, perforante y cortante.", duracionEstandar: 10 },
   { nombre: "Auxilio (Aid)", descripcion: "Aumenta los puntos de golpe máximos y actuales en 5 por nivel de espacio.", duracionEstandar: 800 },

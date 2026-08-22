@@ -1,7 +1,8 @@
 import React, { useState, useRef, useEffect } from "react";
-import { Trash2, Heart, Swords, X, Dices, } from "lucide-react";
+import { Trash2, Heart, Swords, Dices } from "lucide-react";
 import { CriaturaIniciativa } from "@/almacen/usarAlmacenDM";
 import { MonstruoBase, CONDICIONES_2024, EFECTOS_PREDEFINIDOS } from "@/utiles/datosIniciales";
+import { ChipCondicion } from "@/componentes/comunes";
 import { formatearVelocidad } from "@/almacen/sanitizacion";
 import { esNombreVacioODot } from "@/servicios/resolutorCriaturas";
 import { formatearDetalleAtaqueRapido } from "@/utiles/procesadorAtaques";
@@ -238,102 +239,16 @@ export const TarjetaCriaturaIniciativa: React.FC<TarjetaCriaturaIniciativaProps>
 
         {/* Chips de Condiciones */}
         <div className={estilosClases.filaCondicionesChips}>
-          {criatura.condiciones.map((cond) => {
-            const esAlerta = ["muerto", "inconsciente", "aturdido", "paralizado"].includes(cond.toLowerCase());
-            const condObj = CONDICIONES_2024.find(
-              (c) => c.nombre.toLowerCase().includes(cond.toLowerCase()) || cond.toLowerCase().includes(c.nombre.split(" ")[0].toLowerCase())
-            );
-
-            let tooltipTexto = condObj
-              ? `${condObj.nombre}\n\n${condObj.efectos.map(e => `• ${e}`).join("\n")}`
-              : cond;
-
-            const esCansado = cond.toLowerCase().startsWith("cansado") || cond.toLowerCase().includes("cansancio");
-            let cansadoEstilos: React.CSSProperties = {};
-            let textoMostrar = cond;
-
-            if (esCansado) {
-              const matches = cond.match(/\d+/);
-              const nivel = matches ? parseInt(matches[0], 10) : 1;
-              textoMostrar = `CANSADO NVEL ${nivel}`;
-              if (nivel <= 2) {
-                cansadoEstilos = {
-                  backgroundColor: "hsla(45, 80%, 8%, 0.75)",
-                  borderColor: "hsla(45, 80%, 50%, 0.7)",
-                  color: "hsl(45, 100%, 85%)"
-                };
-              } else if (nivel <= 4) {
-                cansadoEstilos = {
-                  backgroundColor: "hsla(25, 80%, 9%, 0.75)",
-                  borderColor: "hsla(25, 80%, 52%, 0.7)",
-                  color: "hsl(25, 100%, 85%)"
-                };
-              } else if (nivel === 5) {
-                cansadoEstilos = {
-                  backgroundColor: "hsla(5, 80%, 10%, 0.78)",
-                  borderColor: "hsla(5, 80%, 55%, 0.75)",
-                  color: "hsl(5, 100%, 85%)"
-                };
-              } else {
-                textoMostrar = "MUERTE (CANSADO 6)";
-                cansadoEstilos = {
-                  background: "linear-gradient(135deg, hsl(0, 100%, 4%) 0%, hsl(340, 100%, 12%) 100%)",
-                  borderColor: "hsl(340, 100%, 55%)",
-                  color: "#ffffff",
-                  fontWeight: "800",
-                  boxShadow: "0 0 5px rgba(255, 0, 85, 0.4)"
-                };
-              }
-              tooltipTexto = `CANSADO (Nivel ${nivel})\n\n• Tiradas de d20: Restas -${nivel * 2} a todas tus tiradas de d20 (ataques, salvaciones, pruebas de habilidad).\n• Velocidad: Tu velocidad se reduce en -${nivel * 5} pies.\n${nivel === 6 ? "• MUERTE: ¡El nivel 6 causa la muerte instantánea!" : ""}`;
-            }
-
-            const estilosBase = esCansado
-              ? cansadoEstilos
-              : esAlerta
-                ? {
-                  backgroundColor: "hsla(355, 80%, 10%, 0.75)",
-                  borderColor: "hsla(355, 80%, 55%, 0.7)",
-                  color: "hsl(355, 100%, 85%)"
-                }
-                : {
-                  backgroundColor: "hsla(172, 90%, 7%, 0.75)",
-                  borderColor: "hsla(172, 90%, 45%, 0.7)",
-                  color: "hsl(172, 100%, 85%)"
-                };
-
-            return (
-              <div
-                key={cond}
-                className={`chip-condicion-chico-tooltip ${estilosClases.chipCondicionChico}`}
-                style={{
-                  ...estilosBase,
-                  display: "inline-flex",
-                  alignItems: "center"
-                }}
-              >
-                <span>{textoMostrar}</span>
-                <span className="tooltip-contenido">{tooltipTexto}</span>
-                <button
-                  onClick={() => onQuitarCondicion(cond)}
-                  className={estilosClases.botonQuitarCondicionChico}
-                  style={{
-                    color: estilosBase.color || "var(--color-borde-cian)",
-                    marginLeft: "3px"
-                  }}
-                >
-                  <X size={8} />
-                </button>
-              </div>
-            );
-          })}
+          {criatura.condiciones.map((cond) => (
+            <ChipCondicion
+              key={cond}
+              nombre={cond}
+              onQuitar={() => onQuitarCondicion(cond)}
+            />
+          ))}
 
           {criatura.vidaActual > 0 && criatura.vidaActual < (criatura.vidaMaxima / 2) && (
-            <div className={`chip-condicion-chico-tooltip ${estilosClases.chipCondicionChico} ${estilosClases.chipDesangrado}`}>
-              <span> DESANGRÁNDOSE</span>
-              <span className="tooltip-contenido">
-                {`DESANGRÁNDOSE (<50% de Vida)\n\n• Esta criatura está por debajo del 50% de sus puntos de golpe máximos.\n• Se aplica automáticamente y desaparecerá cuando recupere la salud por encima de la mitad.`}
-              </span>
-            </div>
+            <ChipCondicion nombre="Desangrándose" esDesangrado />
           )}
 
           {/* Mini Selector Directo para añadir condiciones */}
@@ -374,68 +289,15 @@ export const TarjetaCriaturaIniciativa: React.FC<TarjetaCriaturaIniciativaProps>
         {/* Chips de Efectos Activos y Selector de Efectos */}
         <div className={estilosClases.filaCondicionesChips} style={{ marginTop: "4px" }}>
           {criatura.efectos && criatura.efectos.length > 0 ? (
-            criatura.efectos.map((ef) => {
-              const efPredef = EFECTOS_PREDEFINIDOS.find(
-                (ep) => ep.nombre.toLowerCase().includes(ef.nombre.toLowerCase()) || ef.nombre.toLowerCase().includes(ep.nombre.toLowerCase().split(" ")[0])
-              );
-
-              const esConcentracion = ef.concentracion === true;
-              const tieneExpiracion = ef.expiraRonda !== undefined;
-
-              let claseChipEfecto = estilosClases.chipEfectoPredefinido;
-              let colorQuitar = "hsl(265, 95%, 90%)";
-              if (esConcentracion) {
-                claseChipEfecto = estilosClases.chipEfectoConcentracion;
-                colorQuitar = "hsl(45, 100%, 75%)";
-              } else if (!tieneExpiracion) {
-                claseChipEfecto = estilosClases.chipEfectoPermanente;
-                colorQuitar = "hsl(0, 0%, 85%)";
-              }
-
-              let textoExpiracion = "";
-              let textoTooltipExpiracion = "Efecto activo permanente.";
-              if (esConcentracion) {
-                textoExpiracion = "";
-                textoTooltipExpiracion = "Manteniendo concentración.";
-              } else if (tieneExpiracion) {
-                textoExpiracion = `R.${ef.expiraRonda}`;
-                textoTooltipExpiracion = `Expira automáticamente en la ronda ${ef.expiraRonda}.`;
-              } else {
-                textoExpiracion = "∞";
-              }
-
-              const prefijoLabel = esConcentracion ? "[CON] " : "";
-              const labelEfecto = `${prefijoLabel}${ef.nombre.toUpperCase()}`;
-
-              const tooltipEfecto = efPredef
-                ? `${efPredef.nombre} (${textoTooltipExpiracion})\n\n${efPredef.descripcion}`
-                : `${ef.nombre} (${textoTooltipExpiracion})\n\nEfecto activo aplicado a esta criatura.`;
-
-              return (
-                <div key={ef.id} className={`chip-condicion-chico-tooltip ${estilosClases.chipCondicionChico} ${claseChipEfecto}`}>
-                  <span>
-                    {labelEfecto}
-                    {textoExpiracion && (
-                      <span className={estilosClases.badgeExpiracion}>
-                        {textoExpiracion}
-                      </span>
-                    )}
-                  </span>
-                  <span className="tooltip-contenido">{tooltipEfecto}</span>
-                  <button
-                    onClick={() => onQuitarEfecto(ef.id)}
-                    className={estilosClases.botonQuitarCondicionChico}
-                    style={{
-                      color: colorQuitar,
-                      marginLeft: "3px"
-                    }}
-                    title="Quitar efecto"
-                  >
-                    <X size={8} />
-                  </button>
-                </div>
-              );
-            })
+            criatura.efectos.map((ef) => (
+              <ChipCondicion
+                key={ef.id}
+                nombre={ef.nombre}
+                concentracion={ef.concentracion}
+                expiraRonda={ef.expiraRonda}
+                onQuitar={() => onQuitarEfecto(ef.id)}
+              />
+            ))
           ) : null}
 
           {/* Mini Selector Directo para añadir efectos */}

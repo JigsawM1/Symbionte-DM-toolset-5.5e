@@ -22,7 +22,7 @@ if (!fs.existsSync(buildPath)) {
 }
 
 // Run Vite build with the specified output directory
-execSync(`vite build --outDir ${buildPath}`, { stdio: 'inherit' });
+execSync(`vite build --outDir "${buildPath}"`, { stdio: 'inherit' });
 
 // Zip the build folder
 const zipBuildFolder = async () => {

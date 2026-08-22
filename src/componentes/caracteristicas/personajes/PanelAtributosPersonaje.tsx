@@ -145,10 +145,10 @@ export const PanelAtributosPersonaje: React.FC<PanelAtributosPersonajeProps> = (
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
-                    alTirarSalvacion(carac, `Salvación ${etiqueta}`, bonoSalvacion);
+                    alTirarSalvacion(carac, `Salvación de ${etiqueta}`, bonoSalvacion);
                   }}
                   onMouseDown={(e) => e.stopPropagation()}
-                  title={`Tirada de Salvación (${salvTexto}). Clic para tirar en 3D.`}
+                  title={`Tirada de Salvación de ${etiqueta} (${salvTexto}). Clic para tirar en 3D.`}
                 >
                   {salvTexto} Salv.
                 </button>

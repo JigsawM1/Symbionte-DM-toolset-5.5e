@@ -1,66 +1,76 @@
 /* ==========================================================================
    HojaPersonaje.module.css
-   Estilos Neomórficos Oscuros y Sobrios para la Hoja de Personaje D&D 5.5e
-   Escala tipográfica aumentada, ergonomía táctil y paleta mate sin brillos estridentes
+   Estética Táctica Dark Fantasy para la Hoja de Personaje D&D 5.5e
+   Alta densidad, jerarquía tipográfica, cero animaciones (0ms latencia en CEF)
    ========================================================================== */
 
 .contenedorPrincipal {
   width: 100%;
-  max-width: 620px;
+  max-width: 640px;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  padding: 8px 10px 48px 10px;
+  gap: 10px;
+  padding: 6px 8px 48px 8px;
   box-sizing: border-box;
-  color: #f1f5f9;
+  color: var(--color-texto-principal, #f1f5f9);
   font-family: var(--fuente-principal, 'Inter', system-ui, sans-serif);
 }
 
 /* ==========================================
-   UTILIDADES NEOMÓRFICAS Y SUPERFICIES
+   SUPERFICIES, PANELES Y TARJETAS TÁCTICAS
    ========================================= */
 
 .neoRaised {
-  background-color: #161b22;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.7), -1px -1px 3px rgba(255, 255, 255, 0.02);
+  background-color: #121722;
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.04);
   border-radius: 8px;
+  position: relative;
 }
 
 .neoPressed {
-  background-color: #0b0f14;
-  border: 1px solid rgba(255, 255, 255, 0.04);
-  box-shadow: inset 2px 2px 6px rgba(0, 0, 0, 0.8), inset -1px -1px 3px rgba(255, 255, 255, 0.02);
+  background-color: #0b0f16;
+  border: 1px solid rgba(148, 163, 184, 0.08);
+  box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.7);
   border-radius: 6px;
 }
 
 .neoButton {
-  background-color: #1e2530;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background-color: #1a2230;
+  border: 1px solid rgba(148, 163, 184, 0.18);
   color: #cbd5e1;
   cursor: pointer;
-  padding: 6px 12px;
+  padding: 5px 10px;
   border-radius: 6px;
-  font-size: 12px;
-  font-weight: 600;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  min-height: 32px;
+  gap: 5px;
+  min-height: 28px;
   box-sizing: border-box;
+  user-select: none;
 }
 
 .neoButton:hover {
-  background-color: #283243;
+  background-color: #242f42;
   border-color: #818cf8;
   color: #ffffff;
 }
 
 .neoButton:active {
-  background-color: #0b0f14;
-  box-shadow: inset 1px 1px 4px rgba(0, 0, 0, 0.8);
+  background-color: #0e131c;
+  border-color: #6366f1;
+}
+
+.neoButton:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  border-color: rgba(148, 163, 184, 0.08);
 }
 
 /* ==========================================
@@ -68,28 +78,33 @@
    ========================================= */
 
 .seccionCabecera {
-  padding: 12px 14px;
+  padding: 10px 12px;
   display: flex;
-  gap: 14px;
+  gap: 12px;
   align-items: center;
+  background: linear-gradient(180deg, #161e2c 0%, #111622 100%);
+  border: 1px solid rgba(129, 140, 248, 0.22);
 }
 
 .contenedorAvatar {
-  width: 68px;
-  height: 68px;
-  border-radius: 50%;
+  width: 72px;
+  height: 72px;
+  border-radius: 10%;
   flex-shrink: 0;
   position: relative;
   overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 2px solid rgba(255, 255, 255, 0.1);
+  border: 2px solid #818cf8;
+  box-shadow: 0 0 10px rgba(129, 140, 248, 0.3);
   cursor: pointer;
+  background-color: #0b0f16;
 }
 
 .contenedorAvatar:hover {
-  border-color: #818cf8;
+  border-color: #a5b4fc;
+  box-shadow: 0 0 14px rgba(165, 180, 252, 0.45);
 }
 
 .avatarImg,
@@ -106,7 +121,7 @@
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  background-color: #0b0f14;
+  background-color: #0b0f16;
   border-radius: 50%;
 }
 
@@ -124,96 +139,110 @@
 .avatarFallback {
   width: 100%;
   height: 100%;
-  background: linear-gradient(135deg, #1e2530, #312e81);
+  background: linear-gradient(135deg, #1e2638 0%, #312e81 100%);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 26px;
+  font-family: var(--fuente-titulo, 'Outfit', sans-serif);
+  font-size: 28px;
   font-weight: 800;
   color: #e0e7ff;
+  letter-spacing: -0.5px;
 }
 
 .indicadorMiniVinculada {
   position: absolute;
   bottom: 2px;
   right: 2px;
-  width: 12px;
-  height: 12px;
+  width: 13px;
+  height: 13px;
   border-radius: 50%;
-  background-color: #34d399;
-  border: 2px solid #0b0f14;
+  background-color: #10b981;
+  border: 2px solid #0b0f16;
+  box-shadow: 0 0 6px #10b981;
 }
 
 .infoIdentidad {
   flex-grow: 1;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 7px;
   min-width: 0;
 }
 
 .filaNombreNivel {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  gap: 10px;
+  align-items: stretch;
+  gap: 8px;
 }
 
 .cajaNombre {
-  padding: 6px 12px;
+  padding: 5px 10px;
   flex-grow: 1;
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  border-left: 3px solid #818cf8;
 }
 
 .nombrePersonaje {
   font-family: var(--fuente-titulo, 'Outfit', sans-serif);
-  font-size: 18px;
+  font-size: 17px;
   font-weight: 700;
   color: #ffffff;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   line-height: 1.2;
+  letter-spacing: 0.2px;
 }
 
 .subtituloNombre {
   font-size: 10px;
+  font-weight: 500;
   color: #94a3b8;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  margin-top: 2px;
+  margin-top: 1px;
 }
 
 .cajaNivel {
-  padding: 4px 10px;
+  padding: 3px 8px;
   text-align: center;
-  min-width: 56px;
+  min-width: 52px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  border: 1px solid rgba(129, 140, 248, 0.3);
+  background: linear-gradient(180deg, #1c2436 0%, #0d121c 100%);
 }
 
 .numeroNivel {
-  font-size: 20px;
+  font-family: var(--fuente-codigo, 'JetBrains Mono', monospace);
+  font-size: 19px;
   font-weight: 800;
   color: #a5b4fc;
   line-height: 1;
 }
 
 .etiquetaNivel {
-  font-size: 9px;
+  font-size: 8px;
+  font-weight: 700;
   color: #94a3b8;
   text-transform: uppercase;
+  letter-spacing: 0.5px;
   margin-top: 2px;
 }
 
 .botonConfigurarPj {
-  background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: #1a2230;
+  border: 1px solid rgba(148, 163, 184, 0.18);
   color: #94a3b8;
   cursor: pointer;
-  padding: 6px;
+  padding: 0;
   border-radius: 6px;
   display: flex;
   align-items: center;
@@ -224,141 +253,206 @@
 
 .botonConfigurarPj:hover {
   color: #a5b4fc;
-  background-color: #1e2530;
+  background-color: #242f42;
   border-color: #818cf8;
 }
 
 .cuadriculaDetalles {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
+  gap: 6px;
 }
 
 .pastillaDetalle {
-  padding: 6px 8px;
+  padding: 4px 6px;
   text-align: center;
   display: flex;
   flex-direction: column;
   justify-content: center;
+  background-color: #0e131d;
+  border: 1px solid rgba(148, 163, 184, 0.08);
 }
 
 .valorDetalle {
-  font-size: 13px;
-  font-weight: 600;
-  color: #f1f5f9;
+  font-size: 12px;
+  font-weight: 700;
+  color: #e2e8f0;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .labelDetalle {
-  font-size: 9px;
-  color: #94a3b8;
+  font-size: 8.5px;
+  font-weight: 600;
+  color: #718096;
   text-transform: uppercase;
-  margin-top: 2px;
+  letter-spacing: 0.5px;
+  margin-top: 1px;
 }
 
 /* ==========================================
-   2. BARRA TÁCTICA (DESCANSOS, VENT, CONDICIONES)
+   2. BARRA TÁCTICA (DESCANSOS, VENT/DISV, COND)
    ========================================= */
 
 .seccionBarraTactica {
-  padding: 10px 12px;
+  padding: 8px 10px;
   display: flex;
-  gap: 10px;
+  gap: 8px;
   align-items: stretch;
 }
 
 .columnaControlesTacticos {
-  flex: 1;
+  flex: 1.1;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
 }
 
 .filaDescansosVentaja {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
 }
 
 .grupoBotonesPill {
   display: inline-flex;
-  padding: 3px;
-  gap: 3px;
+  padding: 2px;
+  gap: 2px;
+  background-color: #0b0f16;
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  border-radius: 6px;
 }
 
 .botonPill {
   background: transparent;
-  border: none;
+  border: 1px solid transparent;
   color: #94a3b8;
-  font-size: 11px;
+  font-size: 10.5px;
   font-weight: 700;
-  padding: 5px 10px;
+  padding: 4px 8px;
   border-radius: 4px;
   cursor: pointer;
   text-transform: uppercase;
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 3px;
+  user-select: none;
 }
 
 .botonPill:hover {
-  color: #ffffff;
+  color: #f1f5f9;
+  background-color: rgba(255, 255, 255, 0.04);
 }
 
-.botonPillActivo {
-  background-color: #3730a3;
+.botonPillDescansoCorto:hover {
+  color: #60a5fa;
+  border-color: rgba(96, 165, 250, 0.3);
+}
+
+.botonPillDescansoLargo:hover {
+  color: #fbbf24;
+  border-color: rgba(251, 191, 36, 0.3);
+}
+
+.botonPillDisv {
+  color: #f87171;
+}
+
+.botonPillVent {
+  color: #34d399;
+}
+
+.botonPillActivoDisv {
+  background-color: #7f1d1d !important;
+  color: #fecaca !important;
+  border-color: #ef4444 !important;
+  box-shadow: 0 0 6px rgba(239, 68, 68, 0.4);
+}
+
+.botonPillActivoPlano {
+  background-color: #334155 !important;
   color: #ffffff !important;
+  border-color: #64748b !important;
+}
+
+.botonPillActivoVent {
+  background-color: #064e3b !important;
+  color: #a7f3d0 !important;
+  border-color: #10b981 !important;
+  box-shadow: 0 0 6px rgba(16, 185, 129, 0.4);
 }
 
 .columnaCondicionesActivas {
   flex: 1;
-  padding: 8px 10px;
+  padding: 6px 8px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  min-height: 60px;
+  gap: 5px;
+  min-height: 58px;
+  background-color: #0b0f16;
+  position: relative;
+  overflow: visible;
+}
+
+.columnaCondicionesActivas :global(.tooltip-contenido),
+.listaChipsCondiciones :global(.tooltip-contenido) {
+  right: 0 !important;
+  left: auto !important;
 }
 
 .tituloCondicionesActivas {
-  font-size: 9px;
+  font-size: 8.5px;
   font-weight: 700;
   color: #94a3b8;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.6px;
 }
 
 .listaChipsCondiciones {
   display: flex;
   flex-wrap: wrap;
-  gap: 5px;
+  gap: 4px;
   align-items: center;
+  position: relative;
+  overflow: visible;
 }
 
 .chipCondicion {
-  background-color: rgba(99, 102, 241, 0.15);
-  border: 1px solid rgba(129, 140, 248, 0.35);
-  padding: 3px 8px;
-  border-radius: 12px;
+  background-color: #1a2233;
+  border: 1px solid rgba(129, 140, 248, 0.4);
+  padding: 2px 6px;
+  border-radius: 4px;
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  font-size: 11px;
-  font-weight: 600;
+  gap: 4px;
+  font-size: 10px;
+  font-weight: 700;
   color: #c7d2fe;
+  cursor: help;
+  position: relative;
+}
+
+.chipDesangrado {
+  background-color: hsla(0, 80%, 9%, 0.85) !important;
+  border-color: hsla(0, 80%, 50%, 0.7) !important;
+  color: hsl(0, 100%, 88%) !important;
+  box-shadow: inset 0 0 4px rgba(239, 68, 68, 0.25) !important;
+  font-weight: 700;
 }
 
 .chipBotonCerrar {
   background: transparent;
   border: none;
-  color: #c7d2fe;
+  color: #94a3b8;
   cursor: pointer;
   padding: 0;
   display: flex;
   align-items: center;
   line-height: 1;
+  position: relative;
+  z-index: 2;
 }
 
 .chipBotonCerrar:hover {
@@ -366,7 +460,7 @@
 }
 
 .textoSinCondiciones {
-  font-size: 11px;
+  font-size: 10.5px;
   color: #64748b;
   font-style: italic;
 }
@@ -377,60 +471,81 @@
 
 .filaMetricasRapidas {
   display: grid;
-  grid-template-columns: repeat(4, 1fr) 64px;
-  gap: 8px;
+  grid-template-columns: repeat(4, 1fr) 58px;
+  gap: 6px;
 }
 
 .tarjetaMetrica {
-  padding: 8px 6px;
+  padding: 7px 4px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   position: relative;
   text-align: center;
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  background: linear-gradient(180deg, #141b27 0%, #0e131d 100%);
+  user-select: none;
+}
+
+.tarjetaMetricaInteractiva:hover {
+  border-color: #818cf8;
+  background: linear-gradient(180deg, #1a2333 0%, #111722 100%);
+}
+
+.iconoMetricaDecorativo {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  opacity: 0.25;
+  color: #94a3b8;
 }
 
 .etiquetaMetrica {
-  font-size: 9px;
+  font-size: 8.5px;
   font-weight: 700;
   color: #94a3b8;
   text-transform: uppercase;
-  margin-bottom: 4px;
+  letter-spacing: 0.5px;
+  margin-bottom: 3px;
 }
 
 .valorMetrica {
   font-family: var(--fuente-codigo, 'JetBrains Mono', monospace);
-  font-size: 22px;
-  font-weight: 700;
-  color: #a5b4fc;
+  font-size: 21px;
+  font-weight: 800;
+  color: #ffffff;
   line-height: 1;
 }
 
+.valorMetricaAcento {
+  color: #a5b4fc;
+}
+
 .unidadMetrica {
-  font-size: 11px;
-  font-weight: 400;
+  font-size: 10px;
+  font-weight: 500;
   color: #94a3b8;
   margin-left: 2px;
 }
 
 .botonInspiracion {
-  width: 28px;
-  height: 28px;
+  width: 26px;
+  height: 26px;
   border-radius: 50%;
-  background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: #0e131c;
+  border: 1px solid rgba(148, 163, 184, 0.2);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-top: 2px;
+  margin-top: 1px;
 }
 
 .botonInspiracionActiva {
   background-color: #eab308;
   border-color: #fef08a;
-  box-shadow: 0 0 10px rgba(234, 179, 8, 0.5);
+  box-shadow: 0 0 10px rgba(234, 179, 8, 0.6);
 }
 
 /* ==========================================
@@ -438,23 +553,24 @@
    ========================================= */
 
 .seccionVitalidad {
-  padding: 12px 14px;
+  padding: 10px 12px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
+  border-top: 2px solid #3b82f6;
 }
 
 .filaSaludPrincipal {
   display: flex;
-  gap: 14px;
+  gap: 10px;
   align-items: stretch;
 }
 
 .cajaHpContenedor {
-  flex: 2;
+  flex: 2.5;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 5px;
 }
 
 .cabeceraHp {
@@ -464,10 +580,11 @@
 }
 
 .tituloHp {
-  font-size: 11px;
-  font-weight: 700;
+  font-size: 10px;
+  font-weight: 800;
   color: #cbd5e1;
   text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .controlesHpMod {
@@ -476,13 +593,13 @@
   gap: 4px;
 }
 
-.botonModHp {
+.botonModHpCurar {
   width: 24px;
   height: 24px;
-  border-radius: 50%;
-  background-color: #1e2530;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  color: #f1f5f9;
+  border-radius: 4px;
+  background-color: #064e3b;
+  border: 1px solid #10b981;
+  color: #a7f3d0;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -490,37 +607,59 @@
   padding: 0;
 }
 
-.botonModHp:hover {
-  background-color: #3730a3;
+.botonModHpCurar:hover {
+  background-color: #047857;
+  color: #ffffff;
 }
 
-.botonModHpPeligro:hover {
-  background-color: #dc2626;
+.botonModHpDano {
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  background-color: #7f1d1d;
+  border: 1px solid #ef4444;
+  color: #fecaca;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+.botonModHpDano:hover {
+  background-color: #991b1b;
+  color: #ffffff;
 }
 
 .inputHpMod {
-  width: 44px;
+  width: 42px;
   height: 24px;
   text-align: center;
   font-family: var(--fuente-codigo, 'JetBrains Mono', monospace);
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 700;
-  color: #a5b4fc;
-  background-color: #0b0f14;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #f1f5f9;
+  background-color: #0b0f16;
+  border: 1px solid rgba(148, 163, 184, 0.2);
   border-radius: 4px;
   padding: 0;
 }
 
+.inputHpMod:focus {
+  border-color: #818cf8;
+}
+
 .barraVidaFondo {
   height: 38px;
-  border-radius: 8px;
+  border-radius: 6px;
   position: relative;
   overflow: hidden;
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: space-between;
   padding: 0 12px;
+  background-color: #070a0f;
+  border: 1px solid rgba(148, 163, 184, 0.15);
 }
 
 .barraVidaProgreso {
@@ -528,9 +667,21 @@
   left: 0;
   top: 0;
   bottom: 0;
-  background: linear-gradient(90deg, #1e1b4b 0%, #4338ca 100%);
-  border-radius: 8px;
+  border-radius: 5px;
   min-width: 4px;
+}
+
+/* Gradientes semánticos de estado de vida */
+.vidaPlena {
+  background: linear-gradient(90deg, #065f46 0%, #10b981 100%);
+}
+
+.vidaHerida {
+  background: linear-gradient(90deg, #854d0e 0%, #eab308 100%);
+}
+
+.vidaCritica {
+  background: linear-gradient(90deg, #7f1d1d 0%, #ef4444 100%);
 }
 
 .barraVidaTexto {
@@ -538,18 +689,32 @@
   z-index: 2;
   font-family: var(--fuente-codigo, 'JetBrains Mono', monospace);
   font-size: 18px;
-  font-weight: 700;
+  font-weight: 800;
   color: #ffffff;
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.9);
 }
 
-/* Input discreto sin bordes llamativos */
+.badgeEstadoVida {
+  position: relative;
+  z-index: 2;
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 2px 6px;
+  border-radius: 3px;
+  background-color: rgba(0, 0, 0, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #cbd5e1;
+}
+
 .inputHpDirecto {
-  width: 48px;
+  width: 44px;
   background: transparent;
-  border: none;
+  border: 1px solid transparent;
   outline: none;
   border-radius: 4px;
   text-align: center;
@@ -557,16 +722,17 @@
   font-size: 18px;
   font-weight: 800;
   color: #ffffff;
-  padding: 1px 2px;
+  padding: 1px;
   cursor: text;
 }
 
 .inputHpDirecto:hover {
-  background-color: rgba(255, 255, 255, 0.08);
+  background-color: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.2);
 }
 
 .inputHpDirecto:focus {
-  background-color: rgba(0, 0, 0, 0.6);
+  background-color: rgba(0, 0, 0, 0.85);
   border: 1px solid #818cf8;
 }
 
@@ -582,37 +748,45 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 5px;
 }
 
 .barraTempFondo {
   height: 38px;
-  border-radius: 8px;
+  border-radius: 6px;
   display: flex;
   align-items: center;
   justify-content: center;
+  background-color: #0b131e;
+  border: 1px solid rgba(56, 189, 248, 0.3);
+}
+
+.barraTempFondo:hover {
+  border-color: #38bdf8;
 }
 
 .valorTempHp {
   font-family: var(--fuente-codigo, 'JetBrains Mono', monospace);
-  font-size: 20px;
-  font-weight: 700;
+  font-size: 19px;
+  font-weight: 800;
   color: #38bdf8;
 }
 
 .filaRecursosSalud {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
+  gap: 8px;
 }
 
 .tarjetaRecursoSalud {
-  padding: 8px 10px;
+  padding: 6px 8px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   text-align: center;
+  background: linear-gradient(180deg, #131924 0%, #0d121b 100%);
+  border: 1px solid rgba(148, 163, 184, 0.12);
 }
 
 .filaCabeceraRecurso {
@@ -621,98 +795,82 @@
   justify-content: space-evenly;
   width: 100%;
   margin-bottom: 4px;
+  padding: 0 2px;
 }
 
 .tituloRecursoSalud {
-  font-size: 9px;
+  font-size: 8.5px;
   font-weight: 700;
   color: #94a3b8;
   text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .botonSalvacionMuerte {
   background: transparent;
-  border: none;
-  font-size: 9px;
+  border: 1px solid rgba(129, 140, 248, 0.3);
+  font-size: 8.5px;
   font-weight: 700;
   color: #cbd5e1;
   text-transform: uppercase;
   cursor: pointer;
-  padding: 1px 4px;
-  border-radius: 4px;
+  padding: 1px 5px;
+  border-radius: 3px;
   display: inline-flex;
   align-items: center;
   gap: 3px;
 }
 
 .botonSalvacionMuerte:hover {
-  color: #818cf8;
-  background-color: rgba(129, 140, 248, 0.15);
+  color: #ffffff;
+  background-color: #3730a3;
+  border-color: #818cf8;
 }
 
 .valorDadosGolpe {
   font-family: var(--fuente-codigo, 'JetBrains Mono', monospace);
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 700;
   color: #a5b4fc;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.filaPuntosMuerte {
   display: flex;
   align-items: center;
   gap: 5px;
 }
 
+.filaPuntosMuerte {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
 .iconoSlotMuerte {
+  background: transparent;
+  border: none;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 2px;
-  border-radius: 4px;
+  border-radius: 3px;
 }
 
 .iconoSlotMuerte:hover {
-  background-color: rgba(255, 255, 255, 0.1);
-}
-
-.puntoCheck {
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  border: 1.5px solid rgba(255, 255, 255, 0.45);
-  background-color: #0b0f14;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.puntoCheckActivoExito {
-  background-color: #10b981;
-  border-color: #34d399;
-}
-
-.puntoCheckActivoFallo {
-  background-color: #ef4444;
-  border-color: #f87171;
+  background-color: rgba(255, 255, 255, 0.08);
 }
 
 .puntoCansancio {
-  width: 14px;
-  height: 14px;
+  width: 13px;
+  height: 13px;
   border-radius: 50%;
-  border: 1.5px solid rgba(255, 255, 255, 0.45);
-  background-color: #0b0f14;
+  border: 1.5px solid rgba(255, 255, 255, 0.25);
+  background-color: #0b0f16;
   cursor: pointer;
 }
 
 .puntoCansancioActivo {
   background-color: #f59e0b;
   border-color: #fbbf24;
+  box-shadow: 0 0 5px rgba(245, 158, 11, 0.5);
 }
 
 /* ==========================================
@@ -721,7 +879,7 @@
 
 .filaAtributosSentidos {
   display: flex;
-  gap: 12px;
+  gap: 8px;
   align-items: stretch;
 }
 
@@ -729,50 +887,55 @@
   flex: 6;
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
+  gap: 8px;
 }
 
 .tarjetaAtributo {
-  padding: 10px 8px;
+  padding: 8px 6px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   position: relative;
   cursor: pointer;
+  background: linear-gradient(180deg, #151c28 0%, #0d121c 100%);
+  border: 1px solid rgba(148, 163, 184, 0.14);
 }
 
 .tarjetaAtributo:hover {
   border-color: #818cf8;
+  background: linear-gradient(180deg, #1b2434 0%, #101622 100%);
 }
 
 .nombreAtributo {
-  font-size: 11px;
-  font-weight: 700;
+  font-size: 10px;
+  font-weight: 800;
   color: #94a3b8;
   text-transform: uppercase;
-  margin-bottom: 4px;
+  letter-spacing: 0.6px;
+  margin-bottom: 3px;
 }
 
 .circuloModificador {
-  width: 52px;
-  height: 52px;
+  width: 48px;
+  height: 48px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 6px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  margin-bottom: 5px;
+  border: 2px solid rgba(129, 140, 248, 0.25);
+  background-color: #090d14;
 }
 
 .textoModificador {
   font-family: var(--fuente-codigo, 'JetBrains Mono', monospace);
-  font-size: 26px;
+  font-size: 24px;
   font-weight: 800;
   color: #a5b4fc;
 }
 
-/* Eliminar flechas de incremento/decremento en todos los inputs numéricos de la hoja */
+/* Inputs numéricos sin flechas */
 .badgePuntuacionBase::-webkit-outer-spin-button,
 .badgePuntuacionBase::-webkit-inner-spin-button,
 .inputHpDirecto::-webkit-outer-spin-button,
@@ -790,59 +953,56 @@
   appearance: textfield;
 }
 
-/* Input interactivo discreto y transparente para la puntuación base */
 .badgePuntuacionBase {
-  background: transparent;
-  border: none;
+  background: #090d14;
+  border: 1px solid rgba(148, 163, 184, 0.12);
   outline: none;
   border-radius: 4px;
   font-family: var(--fuente-codigo, 'JetBrains Mono', monospace);
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 700;
   color: #cbd5e1;
-  margin-bottom: 6px;
-  width: 44px;
+  margin-bottom: 5px;
+  width: 36px;
   text-align: center;
-  padding: 1px 2px;
+  padding: 1px;
   cursor: text;
-  box-sizing: border-box;
 }
 
 .badgePuntuacionBase:hover {
-  background-color: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.3);
 }
 
 .badgePuntuacionBase:focus {
-  background-color: rgba(0, 0, 0, 0.6);
-  border: 1px solid #818cf8;
+  border-color: #818cf8;
   color: #ffffff;
+  background-color: #000000;
 }
 
 .filaSalvacionAtributo {
   width: 100%;
-  padding-top: 6px;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  padding-top: 5px;
+  border-top: 1px solid rgba(148, 163, 184, 0.1);
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding-left: 2px;
   padding-right: 2px;
-  font-size: 11px;
+  font-size: 10px;
   text-transform: uppercase;
   color: #94a3b8;
 }
 
-/* Botón envoltorio para alternar competencia sin riesgo de disparar tirada */
 .botonToggleSalvacion {
   background: transparent;
   border: none;
-  padding: 4px;
-  margin: -4px;
+  padding: 3px;
+  margin: -3px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 4px;
+  border-radius: 3px;
   outline: none;
 }
 
@@ -850,88 +1010,90 @@
   background-color: rgba(255, 255, 255, 0.08);
 }
 
-/* puntoCompetenciaSalvacion a 14px x 14px */
 .puntoCompetenciaSalvacion {
-  width: 14px;
-  height: 14px;
+  width: 13px;
+  height: 13px;
   border-radius: 50%;
-  background-color: #1e2530;
-  border: 1.5px solid rgba(255, 255, 255, 0.35);
+  background-color: #0b0f16;
+  border: 1.5px solid rgba(148, 163, 184, 0.35);
   cursor: pointer;
   flex-shrink: 0;
   padding: 0;
   outline: none;
-  transition: all 0.15s ease;
 }
 
 .puntoCompetenciaActivo {
   background-color: #818cf8;
   border-color: #a5b4fc;
-  box-shadow: 0 0 6px rgba(129, 140, 248, 0.4);
+  box-shadow: 0 0 6px rgba(129, 140, 248, 0.5);
 }
 
-/* Botón dedicado exclusivamente a tirar la salvación */
 .botonTextoSalvacion {
   background: transparent;
-  border: none;
-  padding: 2px 4px;
-  margin: -2px -4px;
-  font-size: 11px;
+  border: 1px solid transparent;
+  padding: 1px 3px;
+  margin: -1px -3px;
+  font-size: 10.5px;
+  font-weight: 600;
   color: #94a3b8;
   text-transform: uppercase;
   cursor: pointer;
-  border-radius: 4px;
+  border-radius: 3px;
   outline: none;
   display: flex;
   align-items: center;
-  transition: all 0.15s ease;
 }
 
 .botonTextoSalvacion:hover {
   color: #a5b4fc;
   background-color: rgba(129, 140, 248, 0.12);
+  border-color: rgba(129, 140, 248, 0.25);
 }
 
 .textoSalvacionCompetente {
   color: #f1f5f9;
-  font-weight: 700;
+  font-weight: 800;
 }
 
-/* panelSentidosPasivos con justify-content: center */
 .panelSentidosPasivos {
-  flex: 4;
-  padding: 12px 14px;
+  flex: 3.8;
+  padding: 10px 10px;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  gap: 8px;
+  gap: 7px;
+  background: linear-gradient(180deg, #141a27 0%, #0d111a 100%);
 }
 
 .tituloPanelLateral {
-  font-size: 11px;
-  font-weight: 700;
+  font-size: 9.5px;
+  font-weight: 800;
   color: #94a3b8;
   text-transform: uppercase;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  padding-bottom: 5px;
+  letter-spacing: 0.6px;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+  padding-bottom: 4px;
 }
 
 .itemSentidoPasivo {
-  padding: 8px 12px;
+  padding: 6px 8px;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  border: 1px solid rgba(148, 163, 184, 0.08);
+  background-color: #0b0f16;
 }
 
 .valorSentidoPasivo {
   font-family: var(--fuente-codigo, 'JetBrains Mono', monospace);
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 800;
   color: #a5b4fc;
 }
 
 .labelSentidoPasivo {
-  font-size: 11px;
+  font-size: 9.5px;
+  font-weight: 600;
   color: #cbd5e1;
   text-transform: uppercase;
   text-align: right;
@@ -944,59 +1106,65 @@
 
 .filaHabilidadesCompetencias {
   display: flex;
-  gap: 12px;
+  gap: 8px;
   align-items: stretch;
 }
 
 .panelHabilidades {
-  flex: 6;
-  padding: 14px;
+  flex: 6.2;
+  padding: 10px 12px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 7px;
+  background: linear-gradient(180deg, #141b28 0%, #0e131d 100%);
 }
 
 .gridHabilidadesDobleColumna {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 6px 12px;
+  gap: 4px 8px;
 }
 
 .itemHabilidad {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 5px 8px;
-  border-radius: 6px;
+  padding: 3px 6px;
+  border-radius: 4px;
   cursor: pointer;
-  min-height: 32px;
+  min-height: 28px;
+  background-color: rgba(255, 255, 255, 0.015);
+  border: 1px solid rgba(148, 163, 184, 0.06);
 }
 
 .itemHabilidad:hover {
-  background-color: #1e2530;
+  background-color: #1a2334;
+  border-color: rgba(129, 140, 248, 0.3);
 }
 
 .infoHabilidadIzquierda {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
 }
 
 .nombreHabilidad {
-  font-size: 13px;
+  font-size: 11.5px;
+  font-weight: 600;
   color: #f1f5f9;
 }
 
 .caracAbrevHabilidad {
-  font-size: 10px;
+  font-size: 9px;
+  font-weight: 700;
   color: #64748b;
-  margin-left: 2px;
+  text-transform: uppercase;
 }
 
 .valorBonoHabilidad {
   font-family: var(--fuente-codigo, 'JetBrains Mono', monospace);
-  font-size: 14px;
-  font-weight: 600;
+  font-size: 13px;
+  font-weight: 700;
   color: #94a3b8;
 }
 
@@ -1005,17 +1173,16 @@
   font-weight: 800;
 }
 
-/* Botón envoltorio para ciclar habilidad sin disparar tirada */
 .botonToggleHabilidad {
   background: transparent;
   border: none;
-  padding: 4px;
-  margin: -4px;
+  padding: 3px;
+  margin: -3px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 4px;
+  border-radius: 3px;
   outline: none;
   flex-shrink: 0;
 }
@@ -1024,13 +1191,13 @@
   background-color: rgba(255, 255, 255, 0.08);
 }
 
-/* 4 Estados del Indicador de Habilidades (puntoGradoHabilidad a 16px x 16px) */
+/* Indicador de 4 Estados de Grado de Habilidad */
 .puntoGradoHabilidad {
-  width: 16px;
-  height: 16px;
+  width: 14px;
+  height: 14px;
   border-radius: 50%;
-  border: 1.5px solid rgba(255, 255, 255, 0.35);
-  background-color: #0b0f14;
+  border: 1.5px solid rgba(148, 163, 184, 0.35);
+  background-color: #0b0f16;
   cursor: pointer;
   flex-shrink: 0;
   display: flex;
@@ -1041,13 +1208,13 @@
 }
 
 .puntoGradoVacio {
-  border-color: rgba(255, 255, 255, 0.35);
-  background-color: #0b0f14;
+  border-color: rgba(148, 163, 184, 0.25);
+  background-color: #0b0f16;
 }
 
 .puntoGradoMedio {
   border-color: #a5b4fc;
-  background: linear-gradient(90deg, #818cf8 50%, #0b0f14 50%);
+  background: linear-gradient(90deg, #818cf8 50%, #0b0f16 50%);
 }
 
 .puntoGradoCompetente {
@@ -1058,36 +1225,40 @@
 .puntoGradoPericia {
   border-color: #38bdf8;
   background-color: #38bdf8;
-  box-shadow: 0 0 0 2px #0b0f14, 0 0 0 3px #38bdf8;
+  box-shadow: 0 0 0 1.5px #0b0f16, 0 0 0 2.5px #38bdf8;
 }
 
 .panelCompetencias {
-  flex: 4;
-  padding: 14px;
+  flex: 3.8;
+  padding: 10px 10px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
+  background: linear-gradient(180deg, #141a27 0%, #0d111a 100%);
 }
 
 .grupoCompetenciaItem {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 3px;
 }
 
 .tituloGrupoCompetencia {
-  font-size: 10px;
+  font-size: 9px;
   font-weight: 700;
   color: #94a3b8;
   text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .cajaTextoCompetencia {
-  padding: 6px 8px;
-  font-size: 11px;
+  padding: 5px 7px;
+  font-size: 10.5px;
   color: #cbd5e1;
-  line-height: 1.4;
-  min-height: 28px;
+  line-height: 1.35;
+  min-height: 26px;
+  background-color: #0b0f16;
+  border: 1px solid rgba(148, 163, 184, 0.08);
 }
 
 /* ==========================================
@@ -1098,11 +1269,12 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
 }
 
 .tituloGestor {
-  font-size: 18px;
+  font-family: var(--fuente-titulo, 'Outfit', sans-serif);
+  font-size: 17px;
   font-weight: 700;
   color: #ffffff;
 }
@@ -1110,20 +1282,22 @@
 .gridPersonajesGaleria {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 12px;
+  gap: 10px;
 }
 
 .tarjetaPjGaleria {
-  padding: 14px;
+  padding: 12px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
   position: relative;
+  background: linear-gradient(180deg, #141b27 0%, #0e131d 100%);
+  border: 1px solid rgba(148, 163, 184, 0.14);
 }
 
 .tarjetaPjGaleriaActiva {
   border-color: #818cf8;
-  box-shadow: 0 0 12px rgba(129, 140, 248, 0.2);
+  box-shadow: 0 0 10px rgba(129, 140, 248, 0.25);
 }
 
 .filaPjCabeceraGaleria {
@@ -1133,22 +1307,23 @@
 }
 
 .nombrePjGaleria {
-  font-size: 16px;
+  font-family: var(--fuente-titulo, 'Outfit', sans-serif);
+  font-size: 15px;
   font-weight: 700;
   color: #ffffff;
 }
 
 .detallesPjGaleria {
-  font-size: 12px;
+  font-size: 11px;
   color: #94a3b8;
-  margin-top: 2px;
+  margin-top: 1px;
 }
 
 .filaBotonesAccionPj {
   display: flex;
-  gap: 8px;
+  gap: 6px;
   justify-content: flex-end;
-  margin-top: 6px;
+  margin-top: 4px;
 }
 
 /* ==========================================
@@ -1166,7 +1341,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 14px;
+  padding: 12px;
 }
 
 .cuerpoModal {
@@ -1175,33 +1350,35 @@
   max-height: 90vh;
   display: flex;
   flex-direction: column;
-  background-color: #0b0f14;
+  background-color: #0b0f16;
   border: 1px solid #3730a3;
   border-radius: 8px;
   overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.9);
 }
 
 .cabeceraModal {
-  padding: 12px 16px;
-  background-color: #161b22;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 10px 14px;
+  background-color: #141a26;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.12);
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 
 .tituloModal {
-  font-size: 16px;
+  font-family: var(--fuente-titulo, 'Outfit', sans-serif);
+  font-size: 15px;
   font-weight: 700;
   color: #ffffff;
 }
 
 .barraPestañasModal {
   display: flex;
-  background-color: #161b22;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  padding: 0 10px;
-  gap: 6px;
+  background-color: #101622;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+  padding: 0 8px;
+  gap: 4px;
 }
 
 .botonPestañaModal {
@@ -1209,11 +1386,12 @@
   border: none;
   border-bottom: 2px solid transparent;
   color: #94a3b8;
-  padding: 10px 14px;
-  font-size: 12px;
-  font-weight: 600;
+  padding: 8px 12px;
+  font-size: 11px;
+  font-weight: 700;
   cursor: pointer;
   text-transform: uppercase;
+  letter-spacing: 0.3px;
 }
 
 .botonPestañaModalActiva {
@@ -1222,40 +1400,41 @@
 }
 
 .contenidoPestañaModal {
-  padding: 16px;
+  padding: 14px;
   overflow-y: auto;
   flex-grow: 1;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 12px;
 }
 
 .filaFormulario {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 12px;
+  gap: 10px;
 }
 
 .campoFormulario {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 3px;
 }
 
 .labelFormulario {
-  font-size: 11px;
-  font-weight: 600;
+  font-size: 10px;
+  font-weight: 700;
   color: #94a3b8;
   text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .inputFormulario {
-  background-color: #161b22;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background-color: #141b27;
+  border: 1px solid rgba(148, 163, 184, 0.14);
   color: #ffffff;
-  padding: 8px 10px;
-  border-radius: 6px;
-  font-size: 13px;
+  padding: 6px 8px;
+  border-radius: 4px;
+  font-size: 12px;
 }
 
 .inputFormulario:focus {
@@ -1263,10 +1442,10 @@
 }
 
 .pieModal {
-  padding: 12px 16px;
-  background-color: #161b22;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 10px 14px;
+  background-color: #141a26;
+  border-top: 1px solid rgba(148, 163, 184, 0.12);
   display: flex;
   justify-content: flex-end;
-  gap: 10px;
+  gap: 8px;
 }

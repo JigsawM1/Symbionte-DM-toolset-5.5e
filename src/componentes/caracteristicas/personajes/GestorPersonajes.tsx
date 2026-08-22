@@ -106,10 +106,15 @@ export const GestorPersonajes: React.FC<GestorPersonajesProps> = ({
                     justifyContent: "center",
                     fontWeight: 700,
                     fontSize: 14,
-                    color: "var(--color-primario-brillante)"
+                    color: "var(--color-primario-brillante)",
+                    overflow: "hidden"
                   }}
                 >
-                  {(pj.nombre || "P")[0].toUpperCase()}
+                  {pj.avatarUrl ? (
+                    <img src={pj.avatarUrl} alt={pj.nombre} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                  ) : (
+                    (pj.nombre || "P")[0].toUpperCase()
+                  )}
                 </div>
               </div>
 

@@ -2,6 +2,24 @@
 
 Este archivo registra errores encontrados, sus causas raíz y las soluciones aplicadas.
 
+## [2026-08-21] Arquitectura y UX: Auto-Resolución Silenciosa de Miniaturas del Jugador en TaleSpire
+**Decisión y Motivación:**
+- En lugar de requerir que el jugador o el DM seleccionen y vinculen manualmente la miniatura mediante botones, el Simbionte ahora detecta automáticamente la miniatura física del jugador en el tablero 3D.
+- La API de TaleSpire (`ts.clients.obtenerPlayerId()`, `ts.players.whoAmI()`, `ts.creatures.getCreaturesOwnedByPlayer(playerId)` y `ts.creatures.getMoreInfo(ids)`) permite obtener las criaturas asignadas al jugador actual y emparejarlas por nombre (`personaje.nombre === criatura.name`) o mediante asignación 1-a-1 por defecto.
+
+**Solución Aplicada:**
+1. **Servicio Puro `resolutorMiniaturasJugador.ts`:**
+   - Función determinista `emparejarPersonajesConCriaturas` con normalización de cadenas (insensible a mayúsculas y espacios).
+   - Función asíncrona `autoResolverMiniaturasJugador` que actualiza silenciosamente el almacén Zustand.
+2. **Métodos en `TaleSpireAdapter.ts`:**
+   - Añadidos métodos `getCreaturesOwnedByPlayer` (con soporte polimórfico para fragmento u objeto ID) y `players.whoAmI`.
+3. **Limpieza en la UI (`ModalEditarPersonaje.tsx` & `VistaJugadores.tsx`):**
+   - Eliminado el botón manual de vinculación y reemplazado por una pastilla de estado visual que indica si la miniatura fue detectada en la mesa.
+4. **Verificación Automatizada:**
+   - 91 pruebas unitarias pasando al 100%, 0 errores en `tsc --noEmit` y despliegue exitoso en TaleSpire.
+
+---
+
 ## [2026-08-21] Arquitectura y Funcionalidad: Hoja de Personaje de Jugadores D&D 5.5e (Apartados A, B y C)
 **Problema:**
 - Se requería plantear e implementar la Hoja de Personaje de los Jugadores (modo manual) conforme a las reglas oficiales D&D 5.5e (2024), con persistencia global en TaleSpire, lanzamiento de dados 3D nativos y compatibilidad con Chromium CEF.

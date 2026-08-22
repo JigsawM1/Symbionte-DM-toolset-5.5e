@@ -107,14 +107,18 @@
   justify-content: center;
   overflow: hidden;
   background-color: #0b0f14;
+  border-radius: 50%;
 }
 
+.avatarThumbnailContenedor > *,
 .avatarThumbnailContenedor canvas,
 .avatarThumbnailContenedor img,
-.avatarThumbnailContenedor svg {
+.avatarThumbnailContenedor svg,
+.avatarThumbnailContenedor div {
   width: 100% !important;
   height: 100% !important;
   object-fit: contain;
+  border-radius: 50%;
 }
 
 .avatarFallback {

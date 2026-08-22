@@ -19,6 +19,7 @@ import type {
   DescriptorTirada,
   GrupoResultadosTirada,
   FragmentoOId,
+  FragmentoJugador,
   InfoCriatura,
   EventoIniciativaActualizada
 } from "@/tipos/talespire";
@@ -232,6 +233,21 @@ class TaleSpireAdapter {
     },
 
     /**
+     * Obtiene el listado de miniaturas que pertenecen a un jugador específico.
+     */
+    getCreaturesOwnedByPlayer: async (playerFragmentOrId: FragmentoOId): Promise<FragmentoCriatura[]> => {
+      if (window.TS?.creatures && typeof window.TS.creatures.getCreaturesOwnedByPlayer === "function") {
+        try {
+          const idStr = typeof playerFragmentOrId === "string" ? playerFragmentOrId : playerFragmentOrId.id;
+          return await window.TS.creatures.getCreaturesOwnedByPlayer(idStr);
+        } catch (e) {
+          logger.warn("[TS Adapter] Error en getCreaturesOwnedByPlayer:", e);
+        }
+      }
+      return [];
+    },
+
+    /**
      * Obtiene información extendida sobre un listado de criaturas.
      */
     getMoreInfo: async (creatureFragmentOrIds: FragmentoOId[]): Promise<InfoCriatura[]> => {
@@ -254,10 +270,14 @@ class TaleSpireAdapter {
       const cp = (window.TS as any)?.contentPacks;
       if (cp && typeof cp.getContentPacks === "function") {
         try {
-          return await cp.getContentPacks();
+          const resultado = await cp.getContentPacks();
+          logger.debug("[TS Adapter contentPacks] getContentPacks retorno:", resultado);
+          return resultado || [];
         } catch (e) {
-          logger.warn("[TS Adapter] Error al obtener getContentPacks:", e);
+          logger.error("[TS Adapter contentPacks] Error al obtener getContentPacks:", e);
         }
+      } else {
+        logger.warn("[TS Adapter contentPacks] window.TS.contentPacks.getContentPacks no está disponible");
       }
       return [];
     },
@@ -269,10 +289,14 @@ class TaleSpireAdapter {
       const cp = (window.TS as any)?.contentPacks;
       if (cp && typeof cp.getMoreInfo === "function") {
         try {
-          return await cp.getMoreInfo(packs);
+          const resultado = await cp.getMoreInfo(packs);
+          logger.debug("[TS Adapter contentPacks] getMoreInfo retorno:", resultado?.length, "paquetes con información");
+          return resultado || [];
         } catch (e) {
-          logger.warn("[TS Adapter] Error al obtener getMoreInfo de contentPacks:", e);
+          logger.error("[TS Adapter contentPacks] Error al obtener getMoreInfo de contentPacks:", e);
         }
+      } else {
+        logger.warn("[TS Adapter contentPacks] window.TS.contentPacks.getMoreInfo no está disponible");
       }
       return [];
     },
@@ -284,10 +308,14 @@ class TaleSpireAdapter {
       const cp = (window.TS as any)?.contentPacks;
       if (cp && typeof cp.findBoardObjectInPacks === "function") {
         try {
-          return await cp.findBoardObjectInPacks(boardObjectId, packsInfos);
+          const resultado = await cp.findBoardObjectInPacks(boardObjectId, packsInfos);
+          logger.debug(`[TS Adapter contentPacks] findBoardObjectInPacks para '${boardObjectId}':`, resultado);
+          return resultado;
         } catch (e) {
-          logger.warn("[TS Adapter] Error al buscar objeto en contentPacks:", e);
+          logger.warn(`[TS Adapter contentPacks] Error al buscar objeto '${boardObjectId}' en contentPacks:`, e);
         }
+      } else {
+        logger.warn("[TS Adapter contentPacks] window.TS.contentPacks.findBoardObjectInPacks no está disponible");
       }
       return null;
     },
@@ -295,14 +323,40 @@ class TaleSpireAdapter {
     /**
      * Crea un elemento DOM (canvas/img) con la miniatura renderizada del catálogo 3D de TaleSpire.
      */
-    createThumbnailElementForBoardObject: async (boardObjectInfo: any, size = 64): Promise<HTMLElement | null> => {
+    createThumbnailElementForBoardObject: async (boardObjectInfo: any, size?: number): Promise<HTMLElement | null> => {
       const cp = (window.TS as any)?.contentPacks;
       if (cp && typeof cp.createThumbnailElementForBoardObject === "function") {
-        try {
-          return await cp.createThumbnailElementForBoardObject(boardObjectInfo, size);
-        } catch (e) {
-          logger.warn("[TS Adapter] Error al crear thumbnail element de objeto:", e);
+        // Probamos tanto el objeto interno (.boardObject) como la envoltura completa
+        const candidatos = [
+          boardObjectInfo?.boardObject,
+          boardObjectInfo
+        ].filter(Boolean);
+
+        for (const candidato of candidatos) {
+          if (size !== undefined) {
+            try {
+              const el = await cp.createThumbnailElementForBoardObject(candidato, size);
+              if (el) {
+                logger.debug("[TS Adapter contentPacks] Thumbnail creado con tamaño especificado:", el);
+                return el;
+              }
+            } catch (e1) {
+              logger.debug("[TS Adapter contentPacks] Intento con tamaño falló:", e1);
+            }
+          }
+
+          try {
+            const el = await cp.createThumbnailElementForBoardObject(candidato);
+            if (el) {
+              logger.debug("[TS Adapter contentPacks] Thumbnail creado con tamaño por defecto:", el);
+              return el;
+            }
+          } catch (e2) {
+            logger.debug("[TS Adapter contentPacks] Intento sin tamaño falló:", e2);
+          }
         }
+      } else {
+        logger.warn("[TS Adapter contentPacks] window.TS.contentPacks.createThumbnailElementForBoardObject no está disponible");
       }
       return null;
     }
@@ -460,6 +514,26 @@ class TaleSpireAdapter {
           return yo.player?.id || (yo as unknown as { playerId?: string }).playerId || null;
         } catch (e) {
           logger.error("[TS Adapter] Error obteniendo ID de jugador:", e);
+        }
+      }
+      return null;
+    }
+  };
+
+  // ==========================================
+  // --- 👥 JUGADORES (PLAYERS API) ---
+  // ==========================================
+
+  players = {
+    /**
+     * Retorna el fragmento del propio jugador conectado ejecutando el Simbionte.
+     */
+    whoAmI: async (): Promise<FragmentoJugador | null> => {
+      if (window.TS?.players && typeof window.TS.players.whoAmI === "function") {
+        try {
+          return await window.TS.players.whoAmI();
+        } catch (e) {
+          logger.warn("[TS Adapter] Error en players.whoAmI:", e);
         }
       }
       return null;

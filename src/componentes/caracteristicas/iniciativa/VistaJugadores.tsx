@@ -1,10 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   usarEstadoConfiguracion,
   usarEstadoPersonajes,
   usarAccionesPersonajes
 } from "@/almacen/selectores";
 import { HojaPersonaje, GestorPersonajes } from "@/componentes/caracteristicas/personajes";
+import { autoResolverMiniaturasJugador } from "@/servicios/resolutorMiniaturasJugador";
 import { Shield, Users, UserCheck } from "lucide-react";
 import estilos from "./VistaJugadores.module.css";
 
@@ -17,10 +18,16 @@ export const VistaJugadores: React.FC = () => {
     crearPersonaje,
     duplicarPersonaje,
     eliminarPersonaje,
-    seleccionarPersonajeActivo
+    seleccionarPersonajeActivo,
+    vincularMiniaturaTSPersonaje
   } = usarAccionesPersonajes();
 
   const [subPestanaActiva, setSubPestanaActiva] = useState<SubPestanaJugador>("ficha");
+
+  // Auto-resolución silenciosa de miniaturas de TaleSpire en segundo plano
+  useEffect(() => {
+    autoResolverMiniaturasJugador(personajes, vincularMiniaturaTSPersonaje);
+  }, [personajes.length, personajeActivo?.nombre]);
 
   return (
     <div className={estilos.contenedorGeneral}>

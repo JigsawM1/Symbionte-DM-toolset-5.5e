@@ -15,8 +15,7 @@ import {
 } from "@/constantes";
 import { SelectorDesplegable } from "@/componentes/comunes/SelectorDesplegable";
 import { SelectorSugerencias } from "@/componentes/comunes/SelectorSugerencias";
-import { ts } from "@/utiles/TaleSpireAdapter";
-import { X, Save, Shield, User, Award, Eye, Link } from "lucide-react";
+import { X, Save, Shield, User, Award, Eye } from "lucide-react";
 import estilos from "./HojaPersonaje.module.css";
 
 interface ModalEditarPersonajeProps {
@@ -297,37 +296,48 @@ export const ModalEditarPersonaje: React.FC<ModalEditarPersonajeProps> = ({
                 </div>
 
                 <div className={estilos.campoFormulario}>
-                  <label className={estilos.labelFormulario}>Miniatura 3D TaleSpire</label>
-                  <button
-                    type="button"
-                    className={estilos.neoButton}
-                    onClick={async () => {
-                      if (!ts.estaDisponible) return;
-                      const seleccionadas = await ts.creatures.getSelectedCreatures();
-                      if (seleccionadas && seleccionadas.length > 0) {
-                        actualizarCampo("idMiniaturaTS", seleccionadas[0].id);
-                      } else {
-                        actualizarCampo("idMiniaturaTS", null);
-                      }
+                  <label className={estilos.labelFormulario}>Miniatura 3D en Tablero</label>
+                  <div
+                    style={{
+                      height: 38,
+                      fontSize: 11,
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 6,
+                      padding: "0 10px",
+                      borderRadius: 4,
+                      backgroundColor: form.idMiniaturaTS ? "rgba(16, 185, 129, 0.1)" : "rgba(255, 255, 255, 0.03)",
+                      border: form.idMiniaturaTS ? "1px solid #10b981" : "1px solid var(--color-borde-brutal)",
+                      color: form.idMiniaturaTS ? "#10b981" : "var(--color-texto-apagado)"
                     }}
-                    title="Vincula con la miniatura actualmente seleccionada en el tablero de TaleSpire"
-                    style={{ width: "100%", height: 38, fontSize: 11, display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}
+                    title="Auto-detectada automáticamente si la miniatura en el tablero tiene el mismo nombre que tu personaje"
                   >
-                    <Link size={13} />
-                    {form.idMiniaturaTS ? "✓ Miniatura 3D Vinculada" : "Vincular Seleccionada en TS"}
-                  </button>
+                    <span style={{ width: 8, height: 8, borderRadius: "50%", backgroundColor: form.idMiniaturaTS ? "#10b981" : "#64748b" }} />
+                    {form.idMiniaturaTS ? "Auto-detectada en Tablero" : "Sin Miniatura en Tablero"}
+                  </div>
                 </div>
               </div>
 
               <div className={estilos.campoFormulario}>
-                <label className={estilos.labelFormulario}>URL de Imagen de Avatar (Opcional)</label>
-                <input
-                  type="url"
-                  className={estilos.inputFormulario}
-                  value={form.avatarUrl || ""}
-                  onChange={(e) => actualizarCampo("avatarUrl", e.target.value)}
-                  placeholder="https://ejemplo.com/retrato-mi-personaje.png"
-                />
+                <label className={estilos.labelFormulario}>URL de Imagen de Avatar (Ilustración / Token)</label>
+                <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+                  {form.avatarUrl ? (
+                    <img
+                      src={form.avatarUrl}
+                      alt="Vista previa"
+                      style={{ width: 38, height: 38, borderRadius: "50%", objectFit: "cover", flexShrink: 0, border: "1px solid #818cf8" }}
+                      onError={(e) => { (e.target as HTMLElement).style.display = "none"; }}
+                    />
+                  ) : null}
+                  <input
+                    type="url"
+                    className={estilos.inputFormulario}
+                    value={form.avatarUrl || ""}
+                    onChange={(e) => actualizarCampo("avatarUrl", e.target.value)}
+                    placeholder="https://ejemplo.com/retrato-mi-personaje.png"
+                    style={{ flexGrow: 1 }}
+                  />
+                </div>
               </div>
             </>
           )}

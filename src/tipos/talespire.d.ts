@@ -256,6 +256,12 @@ export interface TaleSpireAPI {
     whereAmI?: () => Promise<unknown>;
     getBoardsInThisCampaign?: () => Promise<unknown[]>;
   };
+  contentPacks?: {
+    getContentPacks?: () => Promise<any[]>;
+    getMoreInfo?: (packs: any[]) => Promise<any[]>;
+    findBoardObjectInPacks?: (boardObjectId: string | any, packsInfos: any[]) => Promise<any>;
+    createThumbnailElementForBoardObject?: (boardObjectInfo: any, size?: number) => Promise<HTMLElement>;
+  };
   localStorage?: TSLocalStorage;
   system?: {
     clipboard?: {

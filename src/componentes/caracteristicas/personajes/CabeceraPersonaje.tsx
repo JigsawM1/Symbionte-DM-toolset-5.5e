@@ -1,127 +1,33 @@
-import React, { useEffect, useRef, useState } from "react";
+import React from "react";
 import type { PersonajeJugador } from "@/tipos";
-import { ts } from "@/utiles/TaleSpireAdapter";
 import { Settings } from "lucide-react";
 import estilos from "./HojaPersonaje.module.css";
 
 interface CabeceraPersonajeProps {
   personaje: PersonajeJugador;
   alAbrirModalEdicion: () => void;
-  alVincularMiniaturaTS: (idMini: string | null) => void;
+  alVincularMiniaturaTS?: (idMini: string | null) => void;
 }
 
 export const CabeceraPersonaje: React.FC<CabeceraPersonajeProps> = ({
   personaje,
-  alAbrirModalEdicion,
-  alVincularMiniaturaTS
+  alAbrirModalEdicion
 }) => {
-  const [nombreMiniTS, setNombreMiniTS] = useState<string | null>(null);
-  const [elementoThumbnail, setElementoThumbnail] = useState<HTMLElement | null>(null);
-  const avatarRef = useRef<HTMLDivElement>(null);
-
-  // Intentar resolver la miniatura y su thumbnail 3D en TaleSpire si está disponible
-  useEffect(() => {
-    let cancelado = false;
-
-    const resolverMiniatura = async () => {
-      try {
-        if (!ts.estaDisponible || !personaje.idMiniaturaTS) {
-          setElementoThumbnail(null);
-          setNombreMiniTS(null);
-          return;
-        }
-
-        // 1. Obtener información de la criatura vinculada
-        const infos = await ts.creatures.getMoreInfo([personaje.idMiniaturaTS]);
-        if (!infos || infos.length === 0 || cancelado) return;
-
-        const mini = infos[0];
-        setNombreMiniTS(mini.name || "Miniatura");
-
-        // 2. Intentar obtener el thumbnail 3D de TaleSpire a través de contentPacks
-        if (ts.contentPacks && typeof ts.contentPacks.getContentPacks === "function") {
-          const packs = await ts.contentPacks.getContentPacks();
-          const packsInfos = await ts.contentPacks.getMoreInfo(packs);
-
-          // Buscar el morph o asset de la miniatura
-          const morphObj = (mini as any).morphs?.[0] || mini;
-          const morphId = morphObj?.morphId || morphObj?.id || (mini as any).assetId;
-
-          if (morphId) {
-            try {
-              const boardObject = await ts.contentPacks.findBoardObjectInPacks(morphId, packsInfos);
-              if (boardObject && !cancelado) {
-                const thumbEl = await ts.contentPacks.createThumbnailElementForBoardObject(boardObject, 72);
-                if (thumbEl && !cancelado) {
-                  setElementoThumbnail(thumbEl as HTMLElement);
-                }
-              }
-            } catch (errPacks) {
-              // Si falla la búsqueda en packs, no rompe la UI
-              console.debug("[CabeceraPersonaje] Mini no encontrada en content packs:", errPacks);
-            }
-          }
-        }
-      } catch (err) {
-        console.error("[CabeceraPersonaje] Error al resolver miniatura TS:", err);
-      }
-    };
-
-    resolverMiniatura();
-    return () => {
-      cancelado = true;
-    };
-  }, [personaje.idMiniaturaTS]);
-
-  // Manejador para vincular con la miniatura actualmente seleccionada en TaleSpire
-  const manejarVincularMiniSeleccionada = async () => {
-    try {
-      if (!ts.estaDisponible) return;
-      const seleccionadas = await ts.creatures.getSelectedCreatures();
-      if (seleccionadas && seleccionadas.length > 0) {
-        const mini = seleccionadas[0];
-        alVincularMiniaturaTS(mini.id);
-        const info = await ts.creatures.getMoreInfo([mini.id]);
-        if (info && info.length > 0) {
-          setNombreMiniTS(info[0].name || "Miniatura");
-        }
-      } else {
-        // Desvincular si no hay selección
-        alVincularMiniaturaTS(null);
-        setNombreMiniTS(null);
-        setElementoThumbnail(null);
-      }
-    } catch (err) {
-      console.error("[CabeceraPersonaje] Error al vincular miniatura seleccionada:", err);
-    }
-  };
-
   const inicial = (personaje.nombre || "P")[0].toUpperCase();
 
   return (
     <section className={`${estilos.neoRaised} ${estilos.seccionCabecera}`}>
-      {/* Contenedor Avatar / Token con soporte para TaleSpire e imagen URL */}
+      {/* Contenedor Avatar / Token con soporte para imagen URL y fallback */}
       <div
-        ref={avatarRef}
         className={`${estilos.contenedorAvatar} ${estilos.neoPressed}`}
-        onClick={manejarVincularMiniSeleccionada}
+        onClick={alAbrirModalEdicion}
         title={
-          personaje.idMiniaturaTS
-            ? `Miniatura 3D vinculada: ${nombreMiniTS || personaje.idMiniaturaTS}. Clic para revincular con la seleccionada en TaleSpire.`
-            : "Haz clic para vincular con la miniatura seleccionada en TaleSpire, o edita la ficha para ingresar una URL de imagen."
+          personaje.avatarUrl
+            ? "Avatar del personaje (Clic para editar parámetros o imagen)"
+            : "Clic para abrir configuración y añadir una URL de imagen de avatar"
         }
       >
-        {elementoThumbnail ? (
-          <div
-            ref={(nodo) => {
-              if (nodo && elementoThumbnail) {
-                nodo.innerHTML = "";
-                nodo.appendChild(elementoThumbnail);
-              }
-            }}
-            className={estilos.avatarThumbnailContenedor}
-          />
-        ) : personaje.avatarUrl ? (
+        {personaje.avatarUrl ? (
           <img
             src={personaje.avatarUrl}
             alt={personaje.nombre}
@@ -137,7 +43,7 @@ export const CabeceraPersonaje: React.FC<CabeceraPersonajeProps> = ({
         {personaje.idMiniaturaTS && (
           <div
             className={estilos.indicadorMiniVinculada}
-            title="Miniatura 3D de TaleSpire vinculada"
+            title="Miniatura física de TaleSpire vinculada"
           />
         )}
       </div>
@@ -192,3 +98,5 @@ export const CabeceraPersonaje: React.FC<CabeceraPersonajeProps> = ({
 function estiquetaNivelClass(estilos: Record<string, string>): string {
   return estilos.etiquetaNivel || "";
 }
+
+export default CabeceraPersonaje;

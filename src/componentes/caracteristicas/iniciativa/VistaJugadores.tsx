@@ -4,18 +4,23 @@ import {
   usarEstadoPersonajes,
   usarAccionesPersonajes
 } from "@/almacen/selectores";
-import { HojaPersonaje, GestorPersonajes } from "@/componentes/caracteristicas/personajes";
+import {
+  HojaPersonaje,
+  PanelConfiguracionPersonaje,
+  GestorPersonajes
+} from "@/componentes/caracteristicas/personajes";
 import { autoResolverMiniaturasJugador } from "@/servicios/resolutorMiniaturasJugador";
 import { Shield, Users, UserCheck } from "lucide-react";
 import estilos from "./VistaJugadores.module.css";
 
-type SubPestanaJugador = "ficha" | "personajes";
+type SubPestanaJugador = "ficha" | "configuracion" | "personajes";
 
 export const VistaJugadores: React.FC = () => {
   const { esGM } = usarEstadoConfiguracion();
   const { personajes, idPersonajeActivo, personajeActivo } = usarEstadoPersonajes();
   const {
     crearPersonaje,
+    actualizarPersonaje,
     duplicarPersonaje,
     eliminarPersonaje,
     seleccionarPersonajeActivo,
@@ -80,6 +85,7 @@ export const VistaJugadores: React.FC = () => {
           </button>
         </div>
 
+
         {/* Indicador de Rol */}
         <div
           style={{
@@ -98,7 +104,13 @@ export const VistaJugadores: React.FC = () => {
 
       {/* Contenido según la sub-pestaña activa */}
       {subPestanaActiva === "ficha" ? (
-        <HojaPersonaje />
+        <HojaPersonaje alAbrirConfiguracion={() => setSubPestanaActiva("configuracion")} />
+      ) : subPestanaActiva === "configuracion" && personajeActivo ? (
+        <PanelConfiguracionPersonaje
+          personaje={personajeActivo}
+          alGuardar={(cambios) => actualizarPersonaje(personajeActivo.id, cambios)}
+          alVolverAFicha={() => setSubPestanaActiva("ficha")}
+        />
       ) : (
         <GestorPersonajes
           personajes={personajes}
@@ -109,7 +121,7 @@ export const VistaJugadores: React.FC = () => {
           }}
           alCrearNuevo={() => {
             crearPersonaje();
-            setSubPestanaActiva("ficha");
+            setSubPestanaActiva("configuracion");
           }}
           alDuplicar={duplicarPersonaje}
           alEliminar={eliminarPersonaje}
@@ -121,3 +133,4 @@ export const VistaJugadores: React.FC = () => {
 };
 
 export default VistaJugadores;
+

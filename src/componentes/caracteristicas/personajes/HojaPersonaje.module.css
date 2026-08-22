@@ -985,7 +985,7 @@
   border-top: 1px solid rgba(148, 163, 184, 0.1);
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: space-around;
   padding-left: 2px;
   padding-right: 2px;
   font-size: 10px;

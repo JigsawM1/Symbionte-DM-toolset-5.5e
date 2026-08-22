@@ -379,7 +379,7 @@ class TaleSpireAdapter {
   };
 
   // ==========================================
-  // --- 🛡️ CAMPAÑA (CAMPAIGNS API) ---
+  // ---  CAMPAÑA (CAMPAIGNS API) ---
   // ==========================================
 
   campaigns = {
@@ -553,8 +553,56 @@ class TaleSpireAdapter {
         }
       }
       return null;
+    },
+
+    /**
+     * Obtiene el nombre del jugador local conectado a TaleSpire.
+     */
+    obtenerNombreJugadorLocal: async (): Promise<string | null> => {
+      const ts = window.TS;
+      if (!ts) return null;
+
+      // 1. Intentar con players.whoAmI()
+      if (ts.players && typeof ts.players.whoAmI === "function") {
+        try {
+          const yo = await ts.players.whoAmI();
+          if (yo?.name && yo.name.trim() !== "") {
+            return yo.name.trim();
+          }
+          if (yo?.id && typeof ts.players.getMoreInfo === "function") {
+            const info = await ts.players.getMoreInfo([yo.id]);
+            if (info && info[0]?.name) {
+              return info[0].name.trim();
+            }
+          }
+        } catch (e) {
+          logger.warn("[TS Adapter] Error al resolver nombre en players.whoAmI:", e);
+        }
+      }
+
+      // 2. Intentar con clients.whoAmI()
+      if (ts.clients && typeof ts.clients.whoAmI === "function") {
+        try {
+          const yoCliente = await ts.clients.whoAmI();
+          if (yoCliente?.player?.name && yoCliente.player.name.trim() !== "") {
+            return yoCliente.player.name.trim();
+          }
+          const pId = yoCliente?.player?.id || (yoCliente as any)?.playerId;
+          if (pId && ts.players && typeof ts.players.getMoreInfo === "function") {
+            const info = await ts.players.getMoreInfo([pId]);
+            if (info && info[0]?.name) {
+              return info[0].name.trim();
+            }
+          }
+        } catch (e) {
+          logger.warn("[TS Adapter] Error al resolver nombre en clients.whoAmI:", e);
+        }
+      }
+
+      return null;
     }
   };
+
 
   // ==========================================
   // --- 💾 ALMACENAMIENTO (LOCALSTORAGE API) ---

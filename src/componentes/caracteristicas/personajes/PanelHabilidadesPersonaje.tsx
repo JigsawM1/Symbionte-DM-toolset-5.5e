@@ -66,6 +66,8 @@ export const PanelHabilidadesPersonaje: React.FC<PanelHabilidadesPersonajeProps>
         <div className={estilos.gridHabilidadesDobleColumna}>
           {HABILIDADES_LISTA.map(({ clave, nombre }) => {
             const hab = clave as Habilidad;
+            const custom = personaje.personalizacionesHabilidades?.[hab];
+            const nombreMostrar = custom?.nombrePersonalizado || nombre;
             const bono = habilidades[hab] || 0;
             const bonoTexto = bono >= 0 ? `+${bono}` : `${bono}`;
             const grado = (personaje.gradosHabilidades?.[hab] || "ninguna") as GradoCompetencia;
@@ -77,8 +79,8 @@ export const PanelHabilidadesPersonaje: React.FC<PanelHabilidadesPersonajeProps>
               <div
                 key={hab}
                 className={estilos.itemHabilidad}
-                onClick={() => alTirarHabilidad(hab, nombre, bono)}
-                title={`Prueba de ${nombre} (${bonoTexto}). Clic para tirar en 3D.`}
+                onClick={() => alTirarHabilidad(hab, nombreMostrar, bono)}
+                title={`Prueba de ${nombreMostrar} (${bonoTexto}). Clic para tirar en 3D.`}
               >
                 <div className={estilos.infoHabilidadIzquierda}>
                   {/* Botón envoltorio exclusivo para ciclar competencia sin disparar tirada */}
@@ -95,7 +97,7 @@ export const PanelHabilidadesPersonaje: React.FC<PanelHabilidadesPersonajeProps>
                   >
                     <div className={obtenerClaseGrado(grado, estilos)} />
                   </button>
-                  <span className={estilos.nombreHabilidad}>{nombre}</span>
+                  <span className={estilos.nombreHabilidad}>{nombreMostrar}</span>
                   <span className={estilos.caracAbrevHabilidad}>({abrevCarac})</span>
                 </div>
 
@@ -155,3 +157,6 @@ export const PanelHabilidadesPersonaje: React.FC<PanelHabilidadesPersonajeProps>
     </section>
   );
 };
+
+export default PanelHabilidadesPersonaje;
+

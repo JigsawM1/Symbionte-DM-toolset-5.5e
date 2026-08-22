@@ -89,6 +89,16 @@ export function obtenerExperienciaMinimaPorNivel(nivel: number): number {
   return TABLA_EXPERIENCIA[nivelSeguro] ?? 0;
 }
 
+export function obtenerNivelPorExperiencia(xp: number): number {
+  const xpSegura = Math.max(0, Math.floor(xp) || 0);
+  for (let niv = 20; niv >= 1; niv--) {
+    if (xpSegura >= (TABLA_EXPERIENCIA[niv] ?? 0)) {
+      return niv;
+    }
+  }
+  return 1;
+}
+
 export function obtenerDadoGolpePorClase(clase: string): "d6" | "d8" | "d10" | "d12" {
   return DADO_GOLPE_POR_CLASE[clase] ?? "d8";
 }
@@ -155,6 +165,7 @@ export const PERSONAJE_POR_DEFECTO: PersonajeJugador = {
     sigilo: "ninguna",
     supervivencia: "ninguna"
   },
+  personalizacionesHabilidades: {},
   hpMaximoBase: 10,
   hpMaximo: 10,
   hpActual: 10,
@@ -171,7 +182,14 @@ export const PERSONAJE_POR_DEFECTO: PersonajeJugador = {
   velocidad: "30 pies",
   sentidos: "",
   competenciasArmas: "",
+  competenciasArmasGrupos: [],
+  competenciasArmasLista: [],
   competenciasArmaduras: "",
+  competenciasArmadurasGrupos: [],
+  competenciasArmadurasLista: [],
   idiomas: "Común",
-  herramientas: ""
+  idiomasLista: ["Común"],
+  herramientas: "",
+  herramientasLista: []
 };
+

@@ -2,6 +2,45 @@
 
 Este archivo registra errores encontrados, sus causas raíz y las soluciones aplicadas.
 
+## [2026-08-22] Arquitectura y UX: Panel de Configuración como Subpestaña, Competencias Categorizadas e Inspector de Habilidades D&D 5.5e
+**Decisión y Motivación:**
+- **Navegación Limpia y Directa:** Se simplificó la barra superior de `VistaJugadores.tsx` para mantener únicamente las pestañas principales *"Ficha de Héroe"* y *"Mis Personajes"*. El acceso al panel de configuración se realiza de forma contextual e intuitiva al pulsar el botón de engranaje o el avatar en la ficha de personaje (o al editar/crear desde Mis Personajes).
+- **Eliminación de Barra Superior Redundante en Configuración:** Se eliminó la sección superior duplicada de `PanelConfiguracionPersonaje.tsx` (`Volver a la Ficha` / `Guardar Cambios`), dejando que el panel comience limpiamente con sus sub-pestañas temáticas y manteniendo las acciones de confirmación centralizadas en el pie (`Cancelar y Volver` / `Guardar Cambios`).
+
+- **Auto-detección del Nombre del Jugador:** Integración con la API nativa de TaleSpire (`ts.players.whoAmI()` / `ts.clients.whoAmI()`) a través de `TaleSpireAdapter.ts` para autocompletar el nombre del jugador si el campo está vacío o mediante un botón de refresco interactivo.
+- **Sincronización Bidireccional de XP y Nivel:** Se corrigió el problema por el cual los PX permanecían en 0 o desconectados del nivel. Se implementaron los helpers puros `obtenerExperienciaMinimaPorNivel` y `obtenerNivelPorExperiencia` conforme a la tabla oficial de D&D 5.5e.
+- **Inspector y Personalizador de Habilidades (`ModalDetalleHabilidad.tsx`):** Implementado con diseño idéntico a las referencias (pestaña *Información* con descripción de `habilidades descripcion.md` + desglose matemático de modificadores + tirada 3D; pestaña *Personalizar* con nombre, descripción, mod extra, override fijo, selector de grado y notas). Disponible centralizadamente en la sub-pestaña de configuración de ficha; la hoja de personaje normal mantiene una experiencia de juego limpia y directa (clic simple para tirar en 3D y clic en el punto para ciclar grado).
+
+- **Gestión Directa de Salvaciones:** Eliminado el bloque redundante de salvaciones en el panel de configuración, manteniéndolo exclusivamente en la propia hoja de personaje.
+- **Inspector y Personalizador de Atributos (`ModalDetalleCaracteristica.tsx`) y Tarjetas Tácticas:**
+  - En la pestaña de configuración *Atributos y Overrides*, se reemplazaron los inputs planos por **6 Tarjetas Tácticas de Atributos** (Fuerza, Destreza, Constitución, Inteligencia, Sabiduría, Carisma) con badges de Modificador, Override Fijo, Salvación y la descripción oficial de `caracteristicas.md` (ej. *"Resistir físicamente una fuerza directa"*).
+  - Cada tarjeta cuenta con un botón **`Configurar / Desglose`** que abre el modal [`ModalDetalleCaracteristica.tsx`](file:///c:/Users/zamor/OneDrive/Documentos/Programas/ToolSet%20Es%205.5/src/componentes/caracteristicas/personajes/ModalDetalleCaracteristica.tsx), ofreciendo la pestaña *Información y Tiradas* (con desglose matemático completo de Puntuación Base, Override, Modificador, PB y Salvación + botones para tiradas 3D directas) y la pestaña *Configurar / Override*.
+  - **Inputs Numéricos Libres y Controles Tácticos:** Se eliminaron las restricciones rígidas de `type="number"`. Ahora el input de puntuación base usa texto editable libremente (permite borrar, pegar y escribir a gusto), complementado con botones incrementales `[-]` y `[+]` para ajustes rápidos de 1 en 1, normalización en `onBlur`, y cálculo reactivo en tiempo real del modificador y salvación.
+  - **Override Fijo con Presets Mágicos Rápidos:** Entrada libre con botón `Quitar` y presets de un clic (`19 - Ogro/Diadema`, `21 - Colina`, `23 - Piedra`) para agilizar la asignación de objetos mágicos.
+  - **Paleta Táctica Sobria y Armónica:** Se eliminaron bordes de color índigo/púrpura neón y cianes chillones, adoptando una paleta mate de bajo brillo integrada con el tema oscuro de TaleSpire (`#111622` para fondos de tarjetas, bordes en `rgba(148, 163, 184, 0.14)`, textos claros en `#f1f5f9` y acentos suaves en `#60a5fa` y `#fca5a5`).
+
+
+- **Modularización y Armonización Visual de Competencias y Habilidades:**
+  - Se aplicó la misma paleta sobria, mate y táctica a la Pestaña 3 (`PanelConfiguracionPersonaje.tsx`), al modal de selección de competencias ([`ModalSelectorCompetencias.tsx`](file:///c:/Users/zamor/OneDrive/Documentos/Programas/ToolSet%20Es%205.5/src/componentes/caracteristicas/personajes/ModalSelectorCompetencias.tsx)) y al inspector de habilidades ([`ModalDetalleHabilidad.tsx`](file:///c:/Users/zamor/OneDrive/Documentos/Programas/ToolSet%20Es%205.5/src/componentes/caracteristicas/personajes/ModalDetalleHabilidad.tsx)).
+  - Las 4 tarjetas de competencias (Armas, Armaduras, Idiomas, Herramientas) y las 18 tarjetas de habilidades utilizan fondos carbón `#111622`, bordes `rgba(148, 163, 184, 0.12)`, textos claros `#f1f5f9` y botones sobrios `#18202f` con acentos suaves para pericia (`#d8b4fe`) y competencia (`#93c5fd`).
+  - **Corrección de Botón Guardar:** Se eliminó el color naranja residual de la plantilla externa en el botón Guardar del modal de habilidades, unificándolo al estándar táctico sobrio (`#1e293b` con borde `rgba(96, 165, 250, 0.4)` y texto `#93c5fd`).
+
+- **Competencias con Armas, Armaduras, Idiomas y Herramientas Conectadas a Objetos:**
+  - Checkboxes maestros para *"Todas las sencillas"*, *"Todas las marciales"*, *"Armas de fuego"*, armaduras ligeras/medias/pesadas/escudos, idiomas estándar/inusuales y herramientas (artesano, otras, instrumentos, juegos).
+  - Selección en lote e individual sincronizada mediante el modelo híbrido estructurado (`competenciasArmasGrupos`, `competenciasArmasLista`, `competenciasArmadurasGrupos`, `competenciasArmadurasLista`, etc.).
+  - Funciones puras `esCompetenteConArma`, `esCompetenteConArmadura`, `formatearResumenCompetenciasArmas` y `formatearResumenCompetenciasArmaduras` para validar activamente tiradas de ataque y CA en el sistema de objetos.
+
+
+**Verificación Automatizada:**
+- 17 pruebas unitarias en `src/servicios/competenciasPersonaje.test.ts` evaluando formateo de resúmenes, validación de competencias de armas y armaduras, sincronización de XP/Nivel, personalización de habilidades y cálculo de atributos/salvaciones con overrides.
+- 123 pruebas unitarias pasando al 100% en `vitest`.
+- 0 errores en `tsc --noEmit`.
+- Compilación de producción (`pnpm run build`) y despliegue exitoso a TaleSpire (`pnpm run deploy`).
+
+
+---
+
+
 ## [2026-08-22] Arquitectura y DRY: Homologación Canónica de Tiradas 3D en la Hoja de Personaje (D&D 5.5e)
 **Decisión y Motivación:**
 - En la Hoja de Personaje (`HojaPersonaje.tsx`), las tiradas d20 se enviaban a TaleSpire únicamente con la fórmula matemática cruda (ej. `1d20+3`) en lugar de utilizar la sintaxis nativa de etiquetas (`!Etiqueta:1d20+X`).

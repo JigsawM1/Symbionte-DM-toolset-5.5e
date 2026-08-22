@@ -5,5 +5,12 @@ export * from "./MetricasRapidasPersonaje";
 export * from "./PanelVitalidadPersonaje";
 export * from "./PanelAtributosPersonaje";
 export * from "./PanelHabilidadesPersonaje";
+export * from "./PanelConfiguracionPersonaje";
+export * from "./ModalDetalleHabilidad";
+export * from "./ModalDetalleCaracteristica";
+export * from "./ModalSelectorCompetencias";
 export * from "./ModalEditarPersonaje";
+
 export * from "./GestorPersonajes";
+
+

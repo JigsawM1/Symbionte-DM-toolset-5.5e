@@ -43,11 +43,18 @@ export interface SlicePersonajes {
   modificarCaracteristicaBasePersonaje: (id: string, carac: Caracteristica, valor: number) => void;
   alternarSalvacionPersonaje: (id: string, carac: Caracteristica) => void;
   ciclarGradoHabilidadPersonaje: (id: string, hab: Habilidad) => void;
+  establecerGradoHabilidadPersonaje: (id: string, hab: Habilidad, grado: GradoCompetencia) => void;
+  personalizarHabilidadPersonaje: (
+    id: string,
+    hab: Habilidad,
+    datos: Partial<import("@/tipos").PersonalizacionHabilidad>
+  ) => void;
 
   aplicarCondicionPersonaje: (id: string, condicion: string) => void;
   quitarCondicionPersonaje: (id: string, condicion: string) => void;
   vincularMiniaturaTSPersonaje: (id: string, idMiniatura: string | null) => void;
 }
+
 
 const ORDEN_CICLO_HABILIDAD: Record<GradoCompetencia, GradoCompetencia> = {
   ninguna: "medio",
@@ -370,7 +377,43 @@ export const crearSlicePersonajes: StateCreator<
     }));
   },
 
+  establecerGradoHabilidadPersonaje: (id, hab, grado) => {
+    set((state) => ({
+      personajes: state.personajes.map((pj) => {
+        if (pj.id !== id) return pj;
+        return {
+          ...pj,
+          gradosHabilidades: {
+            ...pj.gradosHabilidades,
+            [hab]: grado
+          }
+        };
+      })
+    }));
+  },
+
+  personalizarHabilidadPersonaje: (id, hab, datos) => {
+    set((state) => ({
+      personajes: state.personajes.map((pj) => {
+        if (pj.id !== id) return pj;
+        const actual = pj.personalizacionesHabilidades?.[hab] || {
+          modificadorExtra: 0,
+          valorFijo: null,
+          notas: ""
+        };
+        return {
+          ...pj,
+          personalizacionesHabilidades: {
+            ...pj.personalizacionesHabilidades,
+            [hab]: { ...actual, ...datos }
+          }
+        };
+      })
+    }));
+  },
+
   aplicarCondicionPersonaje: (id, condicion) => {
+
     set((state) => ({
       personajes: state.personajes.map((pj) => {
         if (pj.id !== id) return pj;

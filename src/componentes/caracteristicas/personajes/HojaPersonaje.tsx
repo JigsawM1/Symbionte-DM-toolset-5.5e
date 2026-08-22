@@ -16,10 +16,14 @@ import { PanelVitalidadPersonaje } from "./PanelVitalidadPersonaje";
 import { PanelAtributosPersonaje } from "./PanelAtributosPersonaje";
 import { PanelHabilidadesPersonaje } from "./PanelHabilidadesPersonaje";
 import { ModalEditarPersonaje } from "./ModalEditarPersonaje";
-
 import estilos from "./HojaPersonaje.module.css";
 
-export const HojaPersonaje: React.FC = () => {
+interface HojaPersonajeProps {
+
+  alAbrirConfiguracion?: () => void;
+}
+
+export const HojaPersonaje: React.FC<HojaPersonajeProps> = ({ alAbrirConfiguracion }) => {
   const { personajeActivo } = usarEstadoPersonajes();
   const { tipoTirada } = usarEstadoConfiguracion();
   const {
@@ -42,9 +46,19 @@ export const HojaPersonaje: React.FC = () => {
     vincularMiniaturaTSPersonaje
   } = usarAccionesPersonajes();
 
+
   const { establecerTipoTirada } = usarAccionesIniciativa();
 
   const [modalEdicionAbierto, setModalEdicionAbierto] = useState(false);
+
+  const manejarAbrirEdicion = () => {
+    if (alAbrirConfiguracion) {
+      alAbrirConfiguracion();
+    } else {
+      setModalEdicionAbierto(true);
+    }
+  };
+
 
   if (!personajeActivo) {
     return (
@@ -114,7 +128,7 @@ export const HojaPersonaje: React.FC = () => {
       {/* 1. Cabecera e Identidad (Apartado A) */}
       <CabeceraPersonaje
         personaje={personajeActivo}
-        alAbrirModalEdicion={() => setModalEdicionAbierto(true)}
+        alAbrirModalEdicion={manejarAbrirEdicion}
         alVincularMiniaturaTS={(idMini) => vincularMiniaturaTSPersonaje(personajeActivo.id, idMini)}
       />
 
@@ -176,7 +190,8 @@ export const HojaPersonaje: React.FC = () => {
         alCiclarGradoHabilidad={(hab) => ciclarGradoHabilidadPersonaje(personajeActivo.id, hab)}
       />
 
-      {/* Modal de Configuración Base */}
+
+      {/* Modal de Configuración Base Fallback */}
       {modalEdicionAbierto && (
         <ModalEditarPersonaje
           personaje={personajeActivo}
@@ -185,6 +200,7 @@ export const HojaPersonaje: React.FC = () => {
         />
       )}
     </main>
+
   );
 };
 

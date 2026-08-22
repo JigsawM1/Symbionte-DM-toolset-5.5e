@@ -114,6 +114,15 @@ export const GRADOS_HABILIDADES_DEFECTO: GradosHabilidades = {
   supervivencia: "ninguna"
 };
 
+export const EsquemaPersonalizacionHabilidad = z.object({
+  nombrePersonalizado: z.string().optional(),
+  descripcionPersonalizada: z.string().optional(),
+  modificadorExtra: z.number().default(0),
+  valorFijo: z.number().nullable().default(null),
+  notas: z.string().default("")
+});
+export type PersonalizacionHabilidad = z.infer<typeof EsquemaPersonalizacionHabilidad>;
+
 // ==========================================
 // 3. ESQUEMA PRINCIPAL DEL PERSONAJE JUGADOR
 // ==========================================
@@ -162,6 +171,7 @@ export const EsquemaPersonajeJugador = z.object({
     carisma: false
   }),
   gradosHabilidades: EsquemaGradosHabilidades.default(GRADOS_HABILIDADES_DEFECTO),
+  personalizacionesHabilidades: z.record(z.string(), EsquemaPersonalizacionHabilidad).default({}),
 
   // Vitalidad, Supervivencia y Combate (Apartado C)
   hpMaximoBase: z.number().int().min(1).default(10),
@@ -184,11 +194,18 @@ export const EsquemaPersonajeJugador = z.object({
   velocidad: z.union([z.string(), EsquemaVelocidad]).default("30 pies"),
   sentidos: z.union([z.string(), EsquemaSentidos]).default(""),
 
-  // Competencias de Texto (Apartado B)
+  // Competencias de Texto y Listas Estructuradas (Apartado B)
   competenciasArmas: z.string().default(""),
+  competenciasArmasGrupos: z.array(z.string()).default([]),
+  competenciasArmasLista: z.array(z.string()).default([]),
   competenciasArmaduras: z.string().default(""),
+  competenciasArmadurasGrupos: z.array(z.string()).default([]),
+  competenciasArmadurasLista: z.array(z.string()).default([]),
   idiomas: z.string().default("Común"),
-  herramientas: z.string().default("")
+  idiomasLista: z.array(z.string()).default(["Común"]),
+  herramientas: z.string().default(""),
+  herramientasLista: z.array(z.string()).default([])
 });
 
 export type PersonajeJugador = z.infer<typeof EsquemaPersonajeJugador>;
+

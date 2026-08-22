@@ -60,7 +60,7 @@ export const CabeceraPersonaje: React.FC<CabeceraPersonajeProps> = ({
 
           <div className={`${estilos.cajaNivel} ${estilos.neoPressed}`}>
             <span className={estilos.numeroNivel}>{personaje.nivel}</span>
-            <span className={estiquetaNivelClass(estilos)}>{personaje.subclase ? "Niv / Sub" : "Nivel"}</span>
+            <span className={estiquetaNivelClass(estilos)}>Nivel</span>
           </div>
 
           <button

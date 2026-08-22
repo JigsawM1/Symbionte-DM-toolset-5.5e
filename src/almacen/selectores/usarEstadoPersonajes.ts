@@ -93,22 +93,29 @@ export function calcularEstadisticasPersonaje(pj: PersonajeJugador): Estadistica
   const habilidades = {} as Record<Habilidad, number>;
   const listaHabilidades = Object.keys(MAPA_HABILIDAD_A_CARACTERISTICA) as Habilidad[];
   const grados = pj?.gradosHabilidades || {};
+  const personalizaciones = pj?.personalizacionesHabilidades || {};
 
   for (const hab of listaHabilidades) {
     const caracAsociada = MAPA_HABILIDAD_A_CARACTERISTICA[hab];
     const modBase = modificadores[caracAsociada] || 0;
     const grado = grados[hab] || "ninguna";
+    const custom = personalizaciones[hab];
 
-    let bonoHabilidad = 0;
-    if (grado === "competente") {
-      bonoHabilidad = bonoCompetencia;
-    } else if (grado === "pericia") {
-      bonoHabilidad = bonoCompetencia * 2;
-    } else if (grado === "medio") {
-      bonoHabilidad = Math.floor(bonoCompetencia / 2);
+    if (custom?.valorFijo !== null && custom?.valorFijo !== undefined) {
+      habilidades[hab] = custom.valorFijo;
+    } else {
+      let bonoHabilidad = 0;
+      if (grado === "competente") {
+        bonoHabilidad = bonoCompetencia;
+      } else if (grado === "pericia") {
+        bonoHabilidad = bonoCompetencia * 2;
+      } else if (grado === "medio") {
+        bonoHabilidad = Math.floor(bonoCompetencia / 2);
+      }
+
+      const modExtra = custom?.modificadorExtra || 0;
+      habilidades[hab] = modBase + bonoHabilidad + modExtra;
     }
-
-    habilidades[hab] = modBase + bonoHabilidad;
   }
 
   const pasivas = {
@@ -116,6 +123,7 @@ export function calcularEstadisticasPersonaje(pj: PersonajeJugador): Estadistica
     investigacion: 10 + (habilidades.investigacion || 0),
     perspicacia: 10 + (habilidades.perspicacia || 0)
   };
+
 
   return {
     bonoCompetencia,
@@ -172,6 +180,8 @@ export function usarAccionesPersonajes() {
       modificarCaracteristicaBasePersonaje: s.modificarCaracteristicaBasePersonaje,
       alternarSalvacionPersonaje:         s.alternarSalvacionPersonaje,
       ciclarGradoHabilidadPersonaje:      s.ciclarGradoHabilidadPersonaje,
+      establecerGradoHabilidadPersonaje:  s.establecerGradoHabilidadPersonaje,
+      personalizarHabilidadPersonaje:     s.personalizarHabilidadPersonaje,
       aplicarCondicionPersonaje:          s.aplicarCondicionPersonaje,
       quitarCondicionPersonaje:           s.quitarCondicionPersonaje,
       vincularMiniaturaTSPersonaje:       s.vincularMiniaturaTSPersonaje

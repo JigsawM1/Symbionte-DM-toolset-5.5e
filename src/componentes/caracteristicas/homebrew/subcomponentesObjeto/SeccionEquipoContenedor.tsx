@@ -2,7 +2,7 @@ import React from "react";
 import { SubcategoriaEquipo } from "@/almacen/usarAlmacenDM";
 import { ObjetoHomebrew } from "@/tipos";
 import { SelectorDesplegable } from "@/componentes/comunes";
-import { Backpack, X } from "lucide-react";
+import { Backpack, X, FlaskConical, Hammer } from "lucide-react";
 
 const OPCIONES_TIPO_VENENO = [
   { valor: "Contacto", etiqueta: "Contacto (Contact)" },
@@ -121,8 +121,9 @@ export const SeccionEquipoContenedor: React.FC<Props> = ({
               onChange={(e) => setOEsVeneno(e.target.checked)}
               className={estilos.checkMini}
             />
-            <span style={{ color: "hsl(120, 100%, 40%)", fontWeight: "bold", textShadow: "0 0 5px rgba(0,255,0,0.15)" }}>
-              🧪 ¿Es un Veneno (Poison)?
+            <span style={{ color: "hsl(120, 100%, 40%)", fontWeight: "bold", textShadow: "0 0 5px rgba(0,255,0,0.15)", display: "inline-flex", alignItems: "center", gap: "5px" }}>
+              <FlaskConical size={14} />
+              <span>¿Es un Veneno (Poison)?</span>
             </span>
           </label>
 
@@ -238,7 +239,7 @@ export const SeccionEquipoContenedor: React.FC<Props> = ({
             <div style={{ flex: 3, position: "relative" }}>
               <input
                 type="text"
-                placeholder="🔍 Buscar objeto en el compendio..."
+                placeholder="Buscar objeto en el compendio..."
                 value={busquedaContenidoQuery}
                 onChange={(e) => setBusquedaContenidoQuery(e.target.value)}
                 className={estilos.inputForm}
@@ -344,7 +345,7 @@ export const SeccionEquipoContenedor: React.FC<Props> = ({
             <div style={{ flex: 3, position: "relative" }}>
               <input
                 type="text"
-                placeholder="🔍 Buscar receta elaborable..."
+                placeholder="Buscar receta elaborable..."
                 value={busquedaCraftQuery}
                 onChange={(e) => setBusquedaCraftQuery(e.target.value)}
                 className={estilos.inputForm}
@@ -416,7 +417,8 @@ export const SeccionEquipoContenedor: React.FC<Props> = ({
             <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
               {oCraft.map((c, idx) => (
                 <span key={idx} style={{ display: "inline-flex", alignItems: "center", gap: "6px", background: "rgba(168, 85, 247, 0.15)", border: "1px solid hsl(270, 70%, 60%)", color: "hsl(270, 100%, 85%)", padding: "3px 8px", borderRadius: "4px", fontSize: "11px" }}>
-                  🔨 {c.name}
+                  <Hammer size={12} />
+                  <span>{c.name}</span>
                   <X
                     size={12}
                     style={{ cursor: "pointer", color: "var(--color-borde-cian)" }}

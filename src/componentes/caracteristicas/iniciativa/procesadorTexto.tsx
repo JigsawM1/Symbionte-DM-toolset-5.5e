@@ -1,4 +1,5 @@
 import React from "react";
+import { BookOpen } from "lucide-react";
 import { renderizarTextoConDadosInteractivos } from "@/utiles/lanzadorDados";
 import { HechizoBase } from "@/tipos";
 
@@ -85,12 +86,15 @@ export const procesarTextoFicha = (
                 padding: "0 4px",
                 backgroundColor: "rgba(0, 245, 212, 0.06)",
                 borderRadius: "3px",
-                display: "inline-block",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "4px",
                 transition: "all 0.15s ease"
               },
               title: `Ver conjuro "${hechizo.nombre}"`
             },
-            `📖 ${coincidenciaOriginal}`
+            React.createElement(BookOpen, { size: 11, style: { display: "inline-block" } }),
+            coincidenciaOriginal
           );
 
           nuevosTextos.push({ componente: enlaceReact });

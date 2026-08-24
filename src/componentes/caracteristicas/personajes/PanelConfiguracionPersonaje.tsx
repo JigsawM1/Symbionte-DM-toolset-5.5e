@@ -992,8 +992,8 @@ export const PanelConfiguracionPersonaje: React.FC<PanelConfiguracionPersonajePr
                     Habilidades e Inspector de Desglose (18)
                   </label>
                 </div>
-                <span style={{ fontSize: 10, color: "#94a3b8" }}>
-                  Clic en ⚙️ para ver desglose matemático o personalizar
+                <span style={{ fontSize: 10, color: "#94a3b8", display: "inline-flex", alignItems: "center", gap: 3 }}>
+                  Clic en <Settings size={10} style={{ display: "inline-block" }} /> para ver desglose matemático o personalizar
                 </span>
               </div>
 

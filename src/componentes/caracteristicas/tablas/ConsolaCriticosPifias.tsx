@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { TABLAS_CRITICOS_55E } from "@/utiles/tablasCriticos";
-import { MessageSquare } from "lucide-react";
+import { MessageSquare, Swords, Crosshair, Sparkles, Flame, AlertTriangle, Dices } from "lucide-react";
 import { ts } from "@/utiles/TaleSpireAdapter";
 import { logger } from "@/utiles/logger";
 import estilosClases from "./ConsolaCriticosPifias.module.css";
@@ -114,8 +114,9 @@ export const ConsolaCriticosPifias: React.FC = () => {
                 className={`${estilosClases.botonToggleChico} ${
                   tipoCombate === "melee" ? estilosClases.botonToggleChicoActivo : ""
                 }`}
+                style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 4 }}
               >
-                ⚔️ Melee
+                <Swords size={12} /> Melee
               </button>
               <button
                 onClick={() => {
@@ -125,8 +126,9 @@ export const ConsolaCriticosPifias: React.FC = () => {
                 className={`${estilosClases.botonToggleChico} ${
                   tipoCombate === "distancia" ? estilosClases.botonToggleChicoActivo : ""
                 }`}
+                style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 4 }}
               >
-                🏹 Rango
+                <Crosshair size={12} /> Rango
               </button>
               <button
                 onClick={() => {
@@ -136,8 +138,9 @@ export const ConsolaCriticosPifias: React.FC = () => {
                 className={`${estilosClases.botonToggleChico} ${
                   tipoCombate === "magico" ? estilosClases.botonToggleChicoActivo : ""
                 }`}
+                style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 4 }}
               >
-                ✨ Mágico
+                <Sparkles size={12} /> Mágico
               </button>
             </div>
           </div>
@@ -154,8 +157,9 @@ export const ConsolaCriticosPifias: React.FC = () => {
                 className={`${estilosClases.botonToggleChico} ${
                   sentidoTirada === "critico" ? estilosClases.toggleCriticoActivo : ""
                 }`}
+                style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 4 }}
               >
-                🔥 Crítico (20 Nat)
+                <Flame size={12} /> Crítico (20 Nat)
               </button>
               <button
                 onClick={() => {
@@ -165,8 +169,9 @@ export const ConsolaCriticosPifias: React.FC = () => {
                 className={`${estilosClases.botonToggleChico} ${
                   sentidoTirada === "pifia" ? estilosClases.togglePifiaActivo : ""
                 }`}
+                style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 4 }}
               >
-                ⚠️ Pifia (1 Nat)
+                <AlertTriangle size={12} /> Pifia (1 Nat)
               </button>
             </div>
           </div>
@@ -183,8 +188,9 @@ export const ConsolaCriticosPifias: React.FC = () => {
               className={`${estilosClases.botonLanzarDadoCustom} ${
                 sentidoTirada === "critico" ? estilosClases.botonLanzarD20Critico : estilosClases.botonLanzarD20Pifia
               }`}
+              style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 6 }}
             >
-              🎲 Tirar d20 (Estándar)
+              <Dices size={14} /> Tirar d20 (Estándar)
             </button>
             <button
               onMouseDown={detenerPropagacion}
@@ -196,8 +202,9 @@ export const ConsolaCriticosPifias: React.FC = () => {
               className={`${estilosClases.botonLanzarDadoCustom} ${
                 sentidoTirada === "critico" ? estilosClases.botonLanzarD4Critico : estilosClases.botonLanzarD4Pifia
               }`}
+              style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 6 }}
             >
-              🔥 Tirar d4 (Severo)
+              <Flame size={14} /> Tirar d4 (Severo)
             </button>
           </div>
         </div>

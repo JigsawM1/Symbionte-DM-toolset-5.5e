@@ -161,7 +161,7 @@ export const crearSliceConfiguracion: StateCreator<
       set({ cargandoDatos: true });
 
       if (blob && Object.keys(blob).length > 0) {
-        logger.info("[TS Storage] ✅ Blob encontrado. Cargando datos desde TS.localStorage.global...");
+        logger.info("[TS Storage] [OK] Blob encontrado. Cargando datos desde TS.localStorage.global...");
 
         const monstruosHomebrew = blob.monstruos_homebrew as MonstruoBase[] | undefined;
         const hechizosHomebrew  = blob.hechizos_homebrew  as HechizoBase[]  | undefined;

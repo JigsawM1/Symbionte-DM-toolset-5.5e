@@ -1,5 +1,5 @@
 import React from "react";
-import { X } from "lucide-react";
+import { X, Droplets } from "lucide-react";
 import { obtenerDetalleCondicion } from "@/servicios/resolutorCondiciones";
 
 export interface ChipCondicionProps {
@@ -56,11 +56,11 @@ export const ChipCondicion: React.FC<ChipCondicionProps> = ({
       : "";
 
   // Texto principal
-  const prefijoBloodied = esBloodied && !nombre.includes("🩸") ? "🩸 " : "";
+  const nombreLimpio = nombre.replace(/🩸\s*/g, "");
   const prefijoConcentracion = concentracion ? "[CON] " : "";
   const textoAMostrar =
     textoCustom ||
-    `${prefijoBloodied}${prefijoConcentracion}${nombre.split(" (")[0].toUpperCase()}`;
+    `${prefijoConcentracion}${nombreLimpio.split(" (")[0].toUpperCase()}`;
 
   // Texto del tooltip enriquecido
   let tooltipTexto = tooltipCustom;
@@ -83,8 +83,14 @@ export const ChipCondicion: React.FC<ChipCondicionProps> = ({
       className={`chip-condicion-universal ${claseVariante} ${claseAncla} ${className}`}
       style={style}
     >
-      <span>
-        {textoAMostrar}
+      <span style={{ display: "inline-flex", alignItems: "center", gap: "4px" }}>
+        {esBloodied && (
+          <Droplets
+            size={11}
+            style={{ color: "#ef4444", display: "inline-block", flexShrink: 0 }}
+          />
+        )}
+        <span>{textoAMostrar}</span>
         {textoExpiracion && (
           <span className="chip-condicion-badge-expiracion">{textoExpiracion}</span>
         )}

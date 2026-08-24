@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Clock, MapPin, Layers, X, Edit2 } from "lucide-react";
+import { Clock, MapPin, Layers, X, Edit2, Dices } from "lucide-react";
 import { lanzarDadosTaleSpire } from "@/utiles/lanzadorDados";
 import { calcularFormulaEscalada } from "@/utiles/utilesConjuros";
 import { HechizoBase } from "@/tipos";
@@ -208,8 +208,10 @@ export const FichaHechizo: React.FC<FichaHechizoProps> = React.memo(({ hechizo, 
               <button
                 onClick={manejarLanzamientoDados}
                 className={nivelLanzamiento > nivelBase && esEscalable ? estilosClases.botonTirarUpcast : estilosClases.botonTirarCombate}
+                style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "6px" }}
               >
-                🎲 Tirar Daño en TaleSpire {nivelLanzamiento > nivelBase && esEscalable ? `(Nivel ${nivelLanzamiento})` : ""}
+                <Dices size={16} />
+                <span>Tirar Daño en TaleSpire {nivelLanzamiento > nivelBase && esEscalable ? `(Nivel ${nivelLanzamiento})` : ""}</span>
               </button>
             )}
           </div>

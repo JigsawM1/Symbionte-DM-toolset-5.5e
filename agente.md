@@ -2,6 +2,37 @@
 
 Este archivo registra errores encontrados, sus causas raíz y las soluciones aplicadas.
 
+## [2026-08-23] Arquitectura y UI: Estandarización de Iconografía Vectorial Nativa (Lucide React)
+**Decisión y Motivación:**
+- Se erradicó el uso de caracteres emoji Unicode (tales como `🎲`, `🩸`, `☠️`, `✨`, `⚔️`, `🏹`, `🔥`, `⚠️`, `⭐`, `★`, `📖`, `🧪`, `🔨`, `⚙️`, `✕`) incrustados directamente en textos, cadenas de renderizado, botones y comentarios en todo el código base.
+- Los emojis Unicode renderizan de forma inconsistente según la plataforma, el sistema operativo del host y el motor Chromium CEF / Off-Screen Rendering de TaleSpire (provocando variaciones de color, falta de nitidez o problemas de alineación vertical con tipografías monoespaciadas).
+- Se reemplazaron por componentes vectoriales SVG nativos de `lucide-react` integrados con control tipográfico fino, escalado semántico y alineación flexible.
+
+**Solución Aplicada:**
+1. **Dados y Lanzamientos 3D:**
+   - Estandarizado el uso de `<Dices size={...} />` en `PanelDados.tsx`, `FichaHechizo.tsx`, `ListaHomebrew.tsx`, `ConsolaCriticosPifias.tsx` y enlaces interactivos generados dinámicamente en `lanzadorDados.ts`.
+2. **Desangrado y Condiciones:**
+   - En `ChipCondicion.tsx`, se reemplazó el prefijo emoji `🩸` por el componente `<Droplets size={11} style={{ color: "#ef4444" }} />`, manteniendo una regex de sanitización pasiva para normalizar datos heredados.
+3. **Consolas, Tablas y Formulario Homebrew:**
+   - `ConsolaCriticosPifias.tsx`: Iconografía temática para Melee (`<Swords />`), Rango (`<Crosshair />`), Mágico (`<Sparkles />`), Crítico (`<Flame />`), Pifia (`<AlertTriangle />`) y tiradas de d20/d4 (`<Dices />`, `<Flame />`).
+   - `ConversorDivisas.tsx`: Reemplazada estrella `⭐` por `<Star size={11} fill="#eab308" color="#eab308" />`.
+   - `ListaHomebrew.tsx`: Reemplazado `☠️` por `<Skull size={...} />` en badges y cabeceras de veneno.
+   - `FormularioObjeto.tsx` y `ModalDetalleCaracteristica.tsx`: Reemplazado `✨` por `<Sparkles size={...} />`.
+   - `SeccionEquipoContenedor.tsx`: Reemplazado `🧪` por `<FlaskConical size={14} />`, `🔨` por `<Hammer size={12} />` y eliminados emojis en placeholders.
+   - `SeccionListasAtaques.tsx`: Reemplazado caracter `✕` por `<X size={14} />`.
+   - `PanelFichaDnD.tsx`: Reemplazado caracter `★` en salvaciones entrenadas por `<Star size={10} fill="currentColor" />`.
+   - `procesadorTexto.tsx`: Reemplazado `📖` en enlaces de conjuros por `<BookOpen size={11} />`.
+   - `PanelConfiguracionPersonaje.tsx`: Reemplazado `⚙️` en la leyenda de habilidades por `<Settings size={10} />`.
+4. **Limpieza de Logs y Comentarios:**
+   - Eliminados emojis en logs de depuración (`lanzadorDados.ts`, `sliceConfiguracion.ts`) y cabeceras de secciones en `TaleSpireAdapter.ts` y CSS.
+
+**Verificación Automatizada:**
+- 123 pruebas unitarias pasando al 100% en `vitest`.
+- 0 errores en `tsc --noEmit`.
+- Compilación de producción exitosa con Vite (`pnpm run build`).
+
+---
+
 ## [2026-08-22] Arquitectura y UX: Panel de Configuración como Subpestaña, Competencias Categorizadas e Inspector de Habilidades D&D 5.5e
 **Decisión y Motivación:**
 - **Navegación Limpia y Directa:** Se simplificó la barra superior de `VistaJugadores.tsx` para mantener únicamente las pestañas principales *"Ficha de Héroe"* y *"Mis Personajes"*. El acceso al panel de configuración se realiza de forma contextual e intuitiva al pulsar el botón de engranaje o el avatar en la ficha de personaje (o al editar/crear desde Mis Personajes).

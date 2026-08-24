@@ -1,4 +1,5 @@
 import React from "react";
+import { Dices } from "lucide-react";
 import { usarAlmacenDM } from "@/almacen/usarAlmacenDM";
 import { ts } from "./TaleSpireAdapter";
 import { logger } from '@/utiles/logger';
@@ -534,7 +535,7 @@ function ejecutarTiradaFallbackLocal(
   try {
     const grupos = formula.split("/");
     
-    logger.debug(`🎲 [TIRADA LOCAL MOCK] ${etiquetaGlobal.toUpperCase()}`);
+    logger.debug(`[TIRADA LOCAL MOCK] ${etiquetaGlobal.toUpperCase()}`);
 
     grupos.forEach((grupo, idx) => {
       let formulaDados = grupo;
@@ -699,13 +700,16 @@ export function renderizarTextoConDadosInteractivos(
             padding: "0 4px",
             backgroundColor: "rgba(255, 118, 117, 0.1)",
             borderRadius: "4px",
-            display: "inline-block",
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "3px",
             fontFamily: "monospace"
           },
-          title: `🎲 Tirar ${textoCoincidente} en TaleSpire`,
+          title: `Tirar ${textoCoincidente} en TaleSpire`,
           className: "dado-interactivo-inline"
         },
-        `🎲 ${textoCoincidente}`
+        React.createElement(Dices, { size: 12, style: { display: "inline-block", flexShrink: 0 } }),
+        textoCoincidente
       )
     );
 

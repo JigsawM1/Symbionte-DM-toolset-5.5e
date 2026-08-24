@@ -14,7 +14,9 @@ import {
   Sparkles,
   Coins,
   Scale,
-  Copy
+  Copy,
+  Skull,
+  Dices
 } from "lucide-react";
 import estilos from "./ListaHomebrew.module.css";
 import { ConfirmDialog, SelectorDesplegable } from "@/componentes/comunes";
@@ -384,10 +386,14 @@ export const ListaHomebrew: React.FC<Props> = ({
                             borderRadius: "4px",
                             background: "rgba(168, 85, 247, 0.18)",
                             border: "1px solid rgba(168, 85, 247, 0.4)",
-                            color: "hsl(270, 95%, 80%)"
+                            color: "hsl(270, 95%, 80%)",
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: "4px"
                           }}
                         >
-                          ☠️ VENENO {o.cdSalvacionVeneno !== undefined ? `(CD ${o.cdSalvacionVeneno})` : ""}
+                          <Skull size={10} />
+                          <span>VENENO {o.cdSalvacionVeneno !== undefined ? `(CD ${o.cdSalvacionVeneno})` : ""}</span>
                         </span>
                       )}
                     </div>
@@ -791,7 +797,10 @@ export const ListaHomebrew: React.FC<Props> = ({
               {(objeto.esVeneno || objeto.tipoVeneno || objeto.cdSalvacionVeneno !== undefined || objeto.efectoVeneno) && (
                 <div className={estilos.cajaMecanicasCombateObjeto} style={{ borderColor: "rgba(168, 85, 247, 0.4)", background: "rgba(168, 85, 247, 0.05)" }}>
                   <div className={estilos.tituloMecanicasObjeto} style={{ color: "hsl(270, 95%, 80%)", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "8px" }}>
-                    <span>☠️ Propiedades y Mecánicas del Veneno</span>
+                    <span style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}>
+                      <Skull size={14} />
+                      <span>Propiedades y Mecánicas del Veneno</span>
+                    </span>
                     <div style={{ display: "flex", gap: "6px", alignItems: "center" }}>
                       {objeto.cdSalvacionVeneno !== undefined && (
                         <button
@@ -815,7 +824,8 @@ export const ListaHomebrew: React.FC<Props> = ({
                           type="button"
                           title="Lanzar tirada de salvación de Constitución (d20) en TaleSpire"
                         >
-                          🎲 Salvación CON (CD {objeto.cdSalvacionVeneno})
+                          <Dices size={13} />
+                          <span>Salvación CON (CD {objeto.cdSalvacionVeneno})</span>
                         </button>
                       )}
                       {(() => {
@@ -845,7 +855,8 @@ export const ListaHomebrew: React.FC<Props> = ({
                               type="button"
                               title={`Lanzar daño de veneno (${formulaDado}) en TaleSpire`}
                             >
-                              🎲 Daño Veneno ({formulaDado})
+                              <Dices size={13} />
+                              <span>Daño Veneno ({formulaDado})</span>
                             </button>
                           );
                         }

@@ -14,7 +14,7 @@ import {
   usarAccionesConfiguracion,
 } from "@/almacen/selectores";
 import { ObjetoHomebrew } from "@/tipos";
-import { Save } from "lucide-react";
+import { Save, Sparkles } from "lucide-react";
 import estilos from "./FormularioObjeto.module.css";
 
 import {
@@ -239,8 +239,13 @@ export const FormularioObjeto: React.FC<Props> = ({
           type="button"
           onClick={() => setPestanaActiva("magia")}
           className={`${estilos.pestanaBoton} ${pestanaActiva === "magia" ? estilos.pestanaBotonActivo : ""}`}
+          style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "4px" }}
         >
-          [Propiedades Mágicas {tieneDatosMagicos ? "✨" : ""}]
+          <span>[Propiedades Mágicas</span>
+          {tieneDatosMagicos && (
+            <Sparkles size={13} style={{ color: "hsl(50, 100%, 65%)", display: "inline-block" }} />
+          )}
+          <span>]</span>
         </button>
       </div>
 

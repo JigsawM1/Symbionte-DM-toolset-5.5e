@@ -1,5 +1,5 @@
 import React from "react";
-import { Swords } from "lucide-react";
+import { Swords, Star } from "lucide-react";
 import { MonstruoBase, HechizoBase } from "@/tipos";
 import { formatearVelocidad, formatearSentidos, formatearSubtituloCriatura, formatearRecargaTexto } from "@/almacen/sanitizacion";
 import { detectarTipoDaño } from "@/utiles/lanzadorDados";
@@ -141,7 +141,9 @@ export const PanelFichaDnD: React.FC<PanelFichaDnDProps> = ({
                 >
                   {etiqueta}
                 </span>
-                <span className={estilosClases.atributoValorNum}>{tieneSalvacionEspecial ? "★" : " "}</span>
+                <span className={estilosClases.atributoValorNum} style={{ display: "inline-flex", alignItems: "center", justifyContent: "center" }}>
+                  {tieneSalvacionEspecial ? <Star size={10} fill="currentColor" /> : " "}
+                </span>
                 <span
                   className={`${estilosClases.atributoModSign} ${
                     tieneSalvacionEspecial ? estilosClases.atributoModSalvacionEntrenada : ""

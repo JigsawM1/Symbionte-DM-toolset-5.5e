@@ -6,7 +6,7 @@ import {
 } from "@/constantes";
 import { calcularModificadorCaracteristica } from "@/servicios/procesadorDescansos";
 import ts from "@/utiles/TaleSpireAdapter";
-import { X, Info, Settings, Dices, Shield, Save } from "lucide-react";
+import { X, Info, Settings, Dices, Shield, Save, Sparkles } from "lucide-react";
 import estilos from "./HojaPersonaje.module.css";
 
 interface ModalDetalleCaracteristicaProps {
@@ -464,8 +464,8 @@ export const ModalDetalleCaracteristica: React.FC<ModalDetalleCaracteristicaProp
                   Override Fijo (Puntuación por Objeto Mágico)
                 </label>
                 {overrideValidoPreview !== null && (
-                  <span style={{ fontSize: 10, color: "#d8b4fe", fontWeight: 700 }}>
-                    ✨ Activo: {overrideValidoPreview}
+                  <span style={{ fontSize: 10, color: "#d8b4fe", fontWeight: 700, display: "inline-flex", alignItems: "center", gap: 3 }}>
+                    <Sparkles size={11} /> Activo: {overrideValidoPreview}
                   </span>
                 )}
               </div>

@@ -1,3 +1,4 @@
+import { Dices, X } from "lucide-react";
 import { usarBandejaDados, DadosBandeja } from "@/hooks/usarBandejaDados";
 import estilosClases from "./PanelDados.module.css";
 
@@ -39,8 +40,9 @@ export function PanelDados() {
         className={estilosClases.botonFlotante}
         title="Abrir Panel de Dados"
         type="button"
+        style={{ display: "flex", alignItems: "center", justifyContent: "center" }}
       >
-        🎲
+        <Dices size={20} />
       </button>
     );
   }
@@ -50,11 +52,11 @@ export function PanelDados() {
       {/* Cabecera del Panel */}
       <div className={estilosClases.cabecera}>
         <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-          <span style={{ fontSize: "1.2rem" }}>🎲</span>
+          <Dices size={18} style={{ color: "#60a5fa" }} />
           <span className={estilosClases.titulo}>Bandeja de Dados</span>
         </div>
-        <button onClick={() => setMinimizado(true)} className={estilosClases.botonMinimizar} type="button">
-          ✕
+        <button onClick={() => setMinimizado(true)} className={estilosClases.botonMinimizar} type="button" title="Minimizar panel">
+          <X size={14} />
         </button>
       </div>
 

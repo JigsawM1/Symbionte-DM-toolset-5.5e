@@ -1,5 +1,5 @@
 import React from "react";
-import { Plus, Trash2, Edit2 } from "lucide-react";
+import { Plus, Trash2, Edit2, X } from "lucide-react";
 import { RasgoBase, AccionMonstruo, AccionRapida } from "@/tipos";
 import { SelectorDesplegable } from "@/componentes/comunes";
 import { desglosarAtaqueRapido, ComponenteDano } from "@/utiles/procesadorAtaques";
@@ -234,11 +234,14 @@ export const SeccionListasAtaques: React.FC<SeccionListasAtaquesProps> = ({
                 onClick={cancelarEditarQuickAction}
                 className={estilos.botonAgregarDinamico}
                 style={{
-                  backgroundColor: "var(--color-daño)"
+                  backgroundColor: "var(--color-daño)",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center"
                 }}
                 title="Cancelar Edición"
               >
-                ✕
+                <X size={14} />
               </button>
             )}
           </div>

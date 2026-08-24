@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Coins } from "lucide-react";
+import { Coins, Star } from "lucide-react";
 import { SelectorDesplegable } from "@/componentes/comunes";
 import estilosClases from "./ConversorDivisas.module.css";
 
@@ -93,8 +93,9 @@ export const ConversorDivisas: React.FC = () => {
                   }`}
                 >
                   <div style={{ display: "flex", flexDirection: "column" }}>
-                    <span style={{ fontSize: "11px", fontWeight: "bold", color: m.color }}>
-                      {m.nombre} {esOrigen && "⭐"}
+                    <span style={{ fontSize: "11px", fontWeight: "bold", color: m.color, display: "inline-flex", alignItems: "center", gap: "4px" }}>
+                      <span>{m.nombre}</span>
+                      {esOrigen && <Star size={11} fill="#eab308" color="#eab308" style={{ display: "inline-block" }} />}
                     </span>
                     <span style={{ fontSize: "8px", color: "var(--color-texto-secundario)" }}>
                       {m.desc}

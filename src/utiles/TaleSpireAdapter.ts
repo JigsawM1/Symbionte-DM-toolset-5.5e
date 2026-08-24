@@ -49,7 +49,7 @@ class TaleSpireAdapter {
   }
 
   // ==========================================
-  // --- 🎲 DADOS (DICE API) ---
+  // --- DADOS (DICE API) ---
   // ==========================================
 
   dice = {
@@ -121,7 +121,7 @@ class TaleSpireAdapter {
   };
 
   // ==========================================
-  // --- 💬 CHAT (CHAT API) ---
+  // --- CHAT (CHAT API) ---
   // ==========================================
 
   chat = {
@@ -179,7 +179,7 @@ class TaleSpireAdapter {
   };
 
   // ==========================================
-  // --- ⚔️ INICIATIVA (INITIATIVE API) ---
+  // --- INICIATIVA (INITIATIVE API) ---
   // ==========================================
 
   initiative = {
@@ -221,7 +221,7 @@ class TaleSpireAdapter {
   };
 
   // ==========================================
-  // --- 👤 CRIATURAS (CREATURES API) ---
+  // --- CRIATURAS (CREATURES API) ---
   // ==========================================
 
   creatures = {
@@ -275,7 +275,7 @@ class TaleSpireAdapter {
   };
 
   // ==========================================
-  // --- 📦 CONTENT PACKS (ASSETS & THUMBNAILS API) ---
+  // --- CONTENT PACKS (ASSETS & THUMBNAILS API) ---
   // ==========================================
 
   contentPacks = {
@@ -379,7 +379,7 @@ class TaleSpireAdapter {
   };
 
   // ==========================================
-  // ---  CAMPAÑA (CAMPAIGNS API) ---
+  // --- CAMPAÑA (CAMPAIGNS API) ---
   // ==========================================
 
   campaigns = {
@@ -395,7 +395,7 @@ class TaleSpireAdapter {
   };
 
   // ==========================================
-  // --- 🎮 CLIENTES (CLIENTS / PLAYERS API) ---
+  // --- CLIENTES (CLIENTS / PLAYERS API) ---
   // ==========================================
 
   clients = {
@@ -537,7 +537,7 @@ class TaleSpireAdapter {
   };
 
   // ==========================================
-  // --- 👥 JUGADORES (PLAYERS API) ---
+  // --- JUGADORES (PLAYERS API) ---
   // ==========================================
 
   players = {
@@ -605,7 +605,7 @@ class TaleSpireAdapter {
 
 
   // ==========================================
-  // --- 💾 ALMACENAMIENTO (LOCALSTORAGE API) ---
+  // --- ALMACENAMIENTO (LOCALSTORAGE API) ---
   // ==========================================
 
   localStorage = {
@@ -673,7 +673,7 @@ class TaleSpireAdapter {
   };
 
   // ==========================================
-  // --- 📋 PORTAPAPELES & SISTEMA (SYSTEM API) ---
+  // --- PORTAPAPELES & SISTEMA (SYSTEM API) ---
   // ==========================================
 
   system = {
@@ -713,7 +713,7 @@ class TaleSpireAdapter {
   };
 
   // ==========================================
-  // --- 📡 DEPURACIÓN (DEBUG API) ---
+  // --- DEPURACIÓN (DEBUG API) ---
   // ==========================================
 
   debug = {

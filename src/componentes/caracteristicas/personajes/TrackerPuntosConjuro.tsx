@@ -1,14 +1,16 @@
 import React, { useState } from "react";
-import { Sparkles, RotateCcw, ChevronDown, ChevronUp, Zap } from "lucide-react";
+import { Sparkles, RotateCcw, ChevronDown, ChevronUp } from "lucide-react";
 import { COSTE_PUNTOS_POR_NIVEL } from "@/constantes";
 
 interface TrackerPuntosConjuroProps {
   puntosMaximos: number;
   puntosGastados: number;
   nivelMaximo: number;
-  alGastarPuntos: (cantidad: number) => void;
-  alRecuperarPuntos: (cantidad: number) => void;
-  alRecuperarTodosPuntos: () => void;
+  alGastarPuntos?: (cantidad: number) => void;
+  alRecuperarPuntos?: (cantidad: number) => void;
+  alRecuperarTodosPuntos?: () => void;
+  mostrarBotonRestablecer?: boolean;
+  mostrarGastoManual?: boolean;
 }
 
 export const TrackerPuntosConjuro: React.FC<TrackerPuntosConjuroProps> = ({
@@ -17,7 +19,9 @@ export const TrackerPuntosConjuro: React.FC<TrackerPuntosConjuroProps> = ({
   nivelMaximo,
   alGastarPuntos,
   alRecuperarPuntos,
-  alRecuperarTodosPuntos
+  alRecuperarTodosPuntos,
+  mostrarBotonRestablecer = false,
+  mostrarGastoManual = true
 }) => {
   const [mostrarTablaCostes, setMostrarTablaCostes] = useState(false);
   const [puntosPersonalizados, setPuntosPersonalizados] = useState<string>("");
@@ -25,13 +29,9 @@ export const TrackerPuntosConjuro: React.FC<TrackerPuntosConjuroProps> = ({
   const puntosDisponibles = Math.max(0, puntosMaximos - puntosGastados);
   const porcentaje = puntosMaximos > 0 ? (puntosDisponibles / puntosMaximos) * 100 : 0;
 
-  const nivelesBotones = Object.entries(COSTE_PUNTOS_POR_NIVEL)
-    .map(([nv, coste]) => ({ nivel: Number(nv), coste }))
-    .filter((item) => item.nivel <= Math.max(1, nivelMaximo));
-
   const manejarGastoPersonalizado = () => {
     const cant = parseInt(puntosPersonalizados, 10);
-    if (!isNaN(cant) && cant > 0) {
+    if (!isNaN(cant) && cant > 0 && alGastarPuntos) {
       alGastarPuntos(cant);
       setPuntosPersonalizados("");
     }
@@ -39,7 +39,7 @@ export const TrackerPuntosConjuro: React.FC<TrackerPuntosConjuroProps> = ({
 
   const manejarRecuperacionPersonalizada = () => {
     const cant = parseInt(puntosPersonalizados, 10);
-    if (!isNaN(cant) && cant > 0) {
+    if (!isNaN(cant) && cant > 0 && alRecuperarPuntos) {
       alRecuperarPuntos(cant);
       setPuntosPersonalizados("");
     }
@@ -92,26 +92,28 @@ export const TrackerPuntosConjuro: React.FC<TrackerPuntosConjuroProps> = ({
             Nivel Máx: <strong style={{ color: "#38bdf8" }}>{nivelMaximo}</strong>
           </span>
 
-          <button
-            type="button"
-            onClick={alRecuperarTodosPuntos}
-            title="Restablecer todos los puntos de conjuro"
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 4,
-              background: "#18202f",
-              border: "1px solid rgba(148, 163, 184, 0.2)",
-              borderRadius: 4,
-              color: "#94a3b8",
-              fontSize: 11,
-              padding: "3px 8px",
-              cursor: "pointer"
-            }}
-          >
-            <RotateCcw size={11} />
-            <span>Restablecer</span>
-          </button>
+          {mostrarBotonRestablecer && alRecuperarTodosPuntos && (
+            <button
+              type="button"
+              onClick={alRecuperarTodosPuntos}
+              title="Restablecer todos los puntos de conjuro"
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 4,
+                background: "#18202f",
+                border: "1px solid rgba(148, 163, 184, 0.2)",
+                borderRadius: 4,
+                color: "#94a3b8",
+                fontSize: 11,
+                padding: "3px 8px",
+                cursor: "pointer"
+              }}
+            >
+              <RotateCcw size={11} />
+              <span>Restablecer</span>
+            </button>
+          )}
         </div>
       </div>
 
@@ -154,117 +156,71 @@ export const TrackerPuntosConjuro: React.FC<TrackerPuntosConjuroProps> = ({
         </div>
       </div>
 
-      {/* Botones de Lanzamiento Rápido por Nivel */}
-      <div>
-        <div
-          style={{
-            fontSize: 10,
-            fontWeight: 700,
-            color: "#64748b",
-            textTransform: "uppercase",
-            letterSpacing: "0.05em",
-            marginBottom: 6
-          }}
-        >
-          Gastar por Nivel de Conjuro
-        </div>
-
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-          {nivelesBotones.map((item) => {
-            const puedePagar = puntosDisponibles >= item.coste;
-            return (
-              <button
-                key={`gasto-nv-${item.nivel}`}
-                type="button"
-                disabled={!puedePagar}
-                onClick={() => alGastarPuntos(item.coste)}
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: 4,
-                  padding: "4px 8px",
-                  borderRadius: 4,
-                  border: puedePagar
-                    ? "1px solid rgba(56, 189, 248, 0.3)"
-                    : "1px solid rgba(148, 163, 184, 0.1)",
-                  backgroundColor: puedePagar ? "#162235" : "#0f172a",
-                  color: puedePagar ? "#bae6fd" : "#475569",
-                  cursor: puedePagar ? "pointer" : "not-allowed",
-                  fontSize: 11,
-                  fontWeight: 600
-                }}
-              >
-                <Zap size={10} color={puedePagar ? "#38bdf8" : "#475569"} />
-                <span>Nv.{item.nivel} ({item.coste}p)</span>
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Control Personalizado y Tabla de Referencia */}
+      {/* Control Personalizado (Opcional) y Tabla de Referencia */}
       <div
         style={{
           display: "flex",
-          justifyContent: "space-between",
+          justifyContent: mostrarGastoManual ? "space-between" : "flex-end",
           alignItems: "center",
           paddingTop: 8,
           borderTop: "1px solid rgba(148, 163, 184, 0.1)"
         }}
       >
-        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-          <input
-            type="number"
-            min={1}
-            max={puntosMaximos}
-            placeholder="Cant."
-            value={puntosPersonalizados}
-            onChange={(e) => setPuntosPersonalizados(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") manejarGastoPersonalizado();
-            }}
-            style={{
-              width: 55,
-              padding: "3px 6px",
-              backgroundColor: "#0b0f16",
-              border: "1px solid rgba(148, 163, 184, 0.2)",
-              borderRadius: 4,
-              color: "#f1f5f9",
-              fontSize: 11,
-              textAlign: "center"
-            }}
-          />
-          <button
-            type="button"
-            onClick={manejarGastoPersonalizado}
-            style={{
-              padding: "3px 8px",
-              backgroundColor: "#1e293b",
-              border: "1px solid rgba(148, 163, 184, 0.2)",
-              borderRadius: 4,
-              color: "#94a3b8",
-              fontSize: 11,
-              cursor: "pointer"
-            }}
-          >
-            Gastar
-          </button>
-          <button
-            type="button"
-            onClick={manejarRecuperacionPersonalizada}
-            style={{
-              padding: "3px 8px",
-              backgroundColor: "#1e293b",
-              border: "1px solid rgba(56, 189, 248, 0.2)",
-              borderRadius: 4,
-              color: "#38bdf8",
-              fontSize: 11,
-              cursor: "pointer"
-            }}
-          >
-            +Recuperar
-          </button>
-        </div>
+        {mostrarGastoManual && (
+          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            <input
+              type="number"
+              min={1}
+              max={puntosMaximos}
+              placeholder="Cant."
+              value={puntosPersonalizados}
+              onChange={(e) => setPuntosPersonalizados(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") manejarGastoPersonalizado();
+              }}
+              style={{
+                width: 55,
+                padding: "3px 6px",
+                backgroundColor: "#0b0f16",
+                border: "1px solid rgba(148, 163, 184, 0.2)",
+                borderRadius: 4,
+                color: "#f1f5f9",
+                fontSize: 11,
+                textAlign: "center"
+              }}
+            />
+            <button
+              type="button"
+              onClick={manejarGastoPersonalizado}
+              style={{
+                padding: "3px 8px",
+                backgroundColor: "#1e293b",
+                border: "1px solid rgba(148, 163, 184, 0.2)",
+                borderRadius: 4,
+                color: "#94a3b8",
+                fontSize: 11,
+                cursor: "pointer"
+              }}
+            >
+              Gastar
+            </button>
+            <button
+              type="button"
+              onClick={manejarRecuperacionPersonalizada}
+              style={{
+                padding: "3px 8px",
+                backgroundColor: "#1e293b",
+                border: "1px solid rgba(56, 189, 248, 0.2)",
+                borderRadius: 4,
+                color: "#38bdf8",
+                fontSize: 11,
+                cursor: "pointer"
+              }}
+            >
+              +Recuperar
+            </button>
+          </div>
+        )}
 
         <button
           type="button"

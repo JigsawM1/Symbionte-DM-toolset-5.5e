@@ -7,7 +7,7 @@ import {
 import { usarEstadoConfiguracion } from "@/almacen/selectores/usarEstadoConfiguracion";
 import { usarEstadoHomebrew } from "@/almacen/selectores/usarEstadoHomebrew";
 import { usarAccionesIniciativa } from "@/almacen/selectores/usarEstadoIniciativa";
-import { lanzarDadosTaleSpire, sanitizarEtiqueta } from "@/utiles/lanzadorDados";
+import { lanzarDadosTaleSpire, sanitizarEtiqueta, type MetadataIniciativa } from "@/utiles/lanzadorDados";
 import type { Caracteristica, Habilidad } from "@/tipos";
 
 import { CabeceraPersonaje } from "./CabeceraPersonaje";
@@ -19,6 +19,7 @@ import { PanelHabilidadesPersonaje } from "./PanelHabilidadesPersonaje";
 import { PanelConjurosPersonaje } from "./PanelConjurosPersonaje";
 import { ModalEditarPersonaje } from "./ModalEditarPersonaje";
 import { BotonSubPestana } from "./BotonSubPestana";
+import { usarEstadoPersistido } from "@/hooks";
 import { Swords, Sparkles } from "lucide-react";
 import estilos from "./HojaPersonaje.module.css";
 
@@ -70,16 +71,17 @@ export const HojaPersonaje: React.FC<HojaPersonajeProps> = ({ alAbrirConfiguraci
   const { establecerTipoTirada } = usarAccionesIniciativa();
 
   const [modalEdicionAbierto, setModalEdicionAbierto] = useState(false);
-  const [subPestanaActiva, setSubPestanaActiva] = useState<SubPestanaHoja>("general");
+  const [subPestanaActiva, setSubPestanaActiva] = usarEstadoPersistido<SubPestanaHoja>(
+    "ts_hoja_subpestana",
+    "general"
+  );
 
-  // Sincronización con la pestaña activa superior
+  // Sincronización explícita si se pulsa la pestaña dedicada "conjuros"
   useEffect(() => {
     if (pestañaActiva === "conjuros") {
       setSubPestanaActiva("conjuros");
-    } else if (pestañaActiva === "jugadores" || pestañaActiva === "caracteristicas") {
-      setSubPestanaActiva("general");
     }
-  }, [pestañaActiva]);
+  }, [pestañaActiva, setSubPestanaActiva]);
 
   const manejarAbrirEdicion = () => {
     if (alAbrirConfiguracion) {
@@ -114,12 +116,12 @@ export const HojaPersonaje: React.FC<HojaPersonajeProps> = ({ alAbrirConfiguraci
   };
 
   // 3. Lanzadores de Dados 3D a TaleSpire (Homologados con el Combat Tracker del DM)
-  const lanzarTiradaD20Personaje = async (etiqueta: string, bono: number) => {
+  const lanzarTiradaD20Personaje = async (etiqueta: string, bono: number, metaIniciativa?: MetadataIniciativa) => {
     try {
       const nombrePj = personajeActivo.nombre?.trim() || "Personaje";
       const formulaDados = `!${sanitizarEtiqueta(etiqueta)}:1d20${bono >= 0 ? "+" : ""}${bono}`;
       const etiquetaLog = `${nombrePj} - ${etiqueta}`;
-      await lanzarDadosTaleSpire(formulaDados, etiquetaLog);
+      await lanzarDadosTaleSpire(formulaDados, etiquetaLog, metaIniciativa);
     } catch (err) {
       console.error("[HojaPersonaje] Error al enviar tirada 3D:", err);
     }
@@ -140,7 +142,14 @@ export const HojaPersonaje: React.FC<HojaPersonajeProps> = ({ alAbrirConfiguraci
 
   const manejarTirarIniciativa = () => {
     const bonoInic = statsCalculadas.modificadores.destreza + (personajeActivo.iniciativaBono || 0);
-    lanzarTiradaD20Personaje("Iniciativa", bonoInic);
+    const metaInic: MetadataIniciativa = {
+      tipo: "iniciativa",
+      criaturaId: personajeActivo.idMiniaturaTS || personajeActivo.id,
+      nombrePersonaje: personajeActivo.nombre,
+      idMiniaturaTS: personajeActivo.idMiniaturaTS,
+      idPersonaje: personajeActivo.id
+    };
+    lanzarTiradaD20Personaje("Iniciativa", bonoInic, metaInic);
   };
 
   const manejarTirarSalvacionMuerte3D = async () => {

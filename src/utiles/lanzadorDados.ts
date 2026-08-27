@@ -1,6 +1,7 @@
 import React from "react";
 import { Dices } from "lucide-react";
-import { usarAlmacenDM } from "@/almacen/usarAlmacenDM";
+import { usarAlmacenDM, type CriaturaIniciativa } from "@/almacen/usarAlmacenDM";
+import { calcularEstadisticasPersonaje } from "@/almacen/selectores/usarEstadoPersonajes";
 import { ts } from "./TaleSpireAdapter";
 import { logger } from '@/utiles/logger';
 
@@ -29,6 +30,9 @@ const tiradasEspecialesActivas: Record<string, MetadataTiradaEspecial> = {};
 export interface MetadataIniciativa {
   tipo: "iniciativa";
   criaturaId: string;
+  nombrePersonaje?: string;
+  idMiniaturaTS?: string | null;
+  idPersonaje?: string;
 }
 
 // Registro global de tiradas de iniciativa activas en memoria
@@ -41,6 +45,90 @@ export interface MetadataSalvacionMuerte {
 
 // Registro global de tiradas de salvación contra la muerte 3D activas en memoria
 const tiradasSalvacionMuerteActivas: Record<string, MetadataSalvacionMuerte> = {};
+
+/**
+ * Aplica el resultado de una tirada de iniciativa en el estado global del DM.
+ * Actualiza la criatura existente o incorpora automáticamente al héroe a la cola.
+ */
+export function aplicarResultadoIniciativaEnEstado(
+  infoIniciativa: MetadataIniciativa,
+  totalIniciativa: number
+): void {
+  const state = usarAlmacenDM.getState();
+  const nombreNorm = (infoIniciativa.nombrePersonaje || "").trim().toLowerCase();
+
+  let encontrada = false;
+  const colaActualizada = state.colaIniciativa.map((c) => {
+    const coincideId =
+      c.id === infoIniciativa.criaturaId ||
+      (infoIniciativa.idMiniaturaTS && c.id === infoIniciativa.idMiniaturaTS) ||
+      (infoIniciativa.idPersonaje && c.id === infoIniciativa.idPersonaje);
+    const coincideNombre = nombreNorm && c.nombre.trim().toLowerCase() === nombreNorm;
+
+    if (coincideId || coincideNombre) {
+      encontrada = true;
+      return { ...c, iniciativa: totalIniciativa };
+    }
+    return c;
+  });
+
+  if (encontrada) {
+    colaActualizada.sort((a, b) => b.iniciativa - a.iniciativa);
+    usarAlmacenDM.setState({ colaIniciativa: colaActualizada });
+    logger.info(`[Lanzador Dados] Iniciativa actualizada para criatura existente a ${totalIniciativa}`);
+    return;
+  }
+
+  // Si no estaba en la cola de iniciativa, buscar si corresponde a un Personaje Jugador y agregarlo
+  const pj = state.personajes.find(
+    (p) =>
+      p.id === infoIniciativa.idPersonaje ||
+      (infoIniciativa.idMiniaturaTS && p.idMiniaturaTS === infoIniciativa.idMiniaturaTS) ||
+      (nombreNorm && p.nombre.trim().toLowerCase() === nombreNorm)
+  );
+
+  if (pj) {
+    const statsPj = calcularEstadisticasPersonaje(pj);
+    const caCalculada = pj.ca || statsPj.claseArmadura.total || 10;
+    const nuevaCriatura: CriaturaIniciativa = {
+      id: pj.idMiniaturaTS || pj.id,
+      nombre: pj.nombre,
+      iniciativa: totalIniciativa,
+      vidaMaxima: pj.hpMaximo || 10,
+      vidaActual: pj.hpActual !== undefined ? pj.hpActual : (pj.hpMaximo || 10),
+      vidaTemporal: pj.hpTemporal || 0,
+      ca: caCalculada,
+      condiciones: pj.condicionesActivas || [],
+      efectos: [],
+      bonificadorIniciativa: statsPj.modificadores.destreza + (pj.iniciativaBono || 0),
+      esMonstruo: false,
+      velocidad: `${pj.velocidad || "30 pies"}`
+    };
+
+    const nuevaCola = [...state.colaIniciativa, nuevaCriatura];
+    nuevaCola.sort((a, b) => b.iniciativa - a.iniciativa);
+    usarAlmacenDM.setState({ colaIniciativa: nuevaCola });
+    logger.info(`[Lanzador Dados] Héroe ${pj.nombre} añadido a la cola de iniciativa con valor ${totalIniciativa}`);
+  } else {
+    // Fallback si era una criatura genérica que no estaba en cola
+    const nuevaCriatura: CriaturaIniciativa = {
+      id: infoIniciativa.criaturaId,
+      nombre: infoIniciativa.nombrePersonaje || "Combatiente",
+      iniciativa: totalIniciativa,
+      vidaMaxima: 10,
+      vidaActual: 10,
+      ca: 10,
+      condiciones: [],
+      bonificadorIniciativa: 0,
+      esMonstruo: true,
+      velocidad: "30 pies",
+      vidaTemporal: 0
+    };
+    const nuevaCola = [...state.colaIniciativa, nuevaCriatura];
+    nuevaCola.sort((a, b) => b.iniciativa - a.iniciativa);
+    usarAlmacenDM.setState({ colaIniciativa: nuevaCola });
+  }
+}
 
 /**
  * Sanitiza una etiqueta para remover acentos, eñes y caracteres no ASCII
@@ -330,6 +418,15 @@ export async function lanzarDadosTaleSpire(
         state.modificarSalvacionesMuertePersonaje(metaSalvacionMuerte.personajeId, "fallos", 1);
       }
     }
+
+    // Si es una tirada de iniciativa en entorno local fuera de TaleSpire
+    if (metaIniciativa) {
+      const matchBono = formulaLimpia.match(/1d20([+-]\d+)/i);
+      const bono = matchBono ? parseInt(matchBono[1], 10) : 0;
+      const d20 = Math.floor(Math.random() * 20) + 1;
+      const totalInic = d20 + bono;
+      aplicarResultadoIniciativaEnEstado(metaIniciativa, totalInic);
+    }
   }
 }
 
@@ -370,16 +467,8 @@ export async function procesarResultadosDadosTaleSpire(evento: unknown): Promise
       try {
         const grupoInic = resultGroups[0];
         const total = await ts.dice.evaluateDiceResultsGroup(grupoInic);
-        logger.debug(`[Lanzador Dados] Iniciativa plana obtenida: ${total} para la criatura ${infoIniciativaPlana.criaturaId}`);
-        const state = usarAlmacenDM.getState();
-        const nuevaCola = state.colaIniciativa.map((c) => {
-          if (c.id === infoIniciativaPlana.criaturaId) {
-            return { ...c, iniciativa: total };
-          }
-          return c;
-        });
-        nuevaCola.sort((a, b) => b.iniciativa - a.iniciativa);
-        usarAlmacenDM.setState({ colaIniciativa: nuevaCola });
+        logger.debug(`[Lanzador Dados] Iniciativa plana obtenida: ${total}`);
+        aplicarResultadoIniciativaEnEstado(infoIniciativaPlana, total);
       } catch (error) {
         logger.error("[Lanzador Dados] Error al evaluar iniciativa plana:", error);
       }
@@ -488,16 +577,8 @@ export async function procesarResultadosDadosTaleSpire(evento: unknown): Promise
     // Si esta tirada especial también era para iniciativa, actualizamos la criatura
     const infoIniciativaEspecial = tiradasIniciativaActivas[rollId];
     if (infoIniciativaEspecial) {
-      logger.debug(`[Lanzador Dados] Iniciativa especial obtenida: ${totalElegido} para la criatura ${infoIniciativaEspecial.criaturaId}`);
-      const state = usarAlmacenDM.getState();
-      const nuevaCola = state.colaIniciativa.map((c) => {
-        if (c.id === infoIniciativaEspecial.criaturaId) {
-          return { ...c, iniciativa: totalElegido };
-        }
-        return c;
-      });
-      nuevaCola.sort((a, b) => b.iniciativa - a.iniciativa);
-      usarAlmacenDM.setState({ colaIniciativa: nuevaCola });
+      logger.debug(`[Lanzador Dados] Iniciativa especial obtenida: ${totalElegido}`);
+      aplicarResultadoIniciativaEnEstado(infoIniciativaEspecial, totalElegido);
       delete tiradasIniciativaActivas[rollId];
     }
 

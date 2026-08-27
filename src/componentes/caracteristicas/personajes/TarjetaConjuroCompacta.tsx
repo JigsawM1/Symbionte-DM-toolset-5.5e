@@ -12,6 +12,7 @@ import {
   gastarRecursoLanzamientoConjuro
 } from "@/servicios/calculadorMagia";
 import { SelectorDesplegable } from "@/componentes/comunes";
+import estilos from "./TarjetaConjuroCompacta.module.css";
 
 interface TarjetaConjuroCompactaProps {
   hechizo: HechizoBase;
@@ -202,29 +203,16 @@ export const TarjetaConjuroCompacta: React.FC<TarjetaConjuroCompactaProps> = ({
     }
   };
 
+  const claseEstadoTarjeta = esConcentracionActual
+    ? estilos.tarjetaConcentracion
+    : estaPreparado || !mostrarTogglePreparado
+    ? estilos.tarjetaPreparada
+    : estilos.tarjetaNoPreparada;
+
   return (
-    <div
-      style={{
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-        backgroundColor: esConcentracionActual
-          ? "rgba(245, 158, 11, 0.08)"
-          : estaPreparado || !mostrarTogglePreparado
-          ? "#141b27"
-          : "#0f141d",
-        border: esConcentracionActual
-          ? "1px solid rgba(245, 158, 11, 0.4)"
-          : estaPreparado
-          ? "1px solid rgba(96, 165, 250, 0.25)"
-          : "1px solid rgba(148, 163, 184, 0.1)",
-        borderRadius: 6,
-        padding: "6px 10px",
-        gap: 8
-      }}
-    >
+    <div className={`${estilos.tarjeta} ${claseEstadoTarjeta}`}>
       {/* Lado Izquierdo: Checkbox (si aplica) + Nombre y Badges */}
-      <div style={{ display: "flex", alignItems: "center", gap: 8, flex: 1, minWidth: 0 }}>
+      <div className={estilos.ladoIzquierdo}>
         {mostrarTogglePreparado && !esTruco && (
           <button
             type="button"
@@ -236,51 +224,23 @@ export const TarjetaConjuroCompacta: React.FC<TarjetaConjuroCompactaProps> = ({
                 ? "Conjuro preparado (clic para desmarcar)"
                 : "Conjuro no preparado (clic para preparar)"
             }
-            style={{
-              width: 18,
-              height: 18,
-              borderRadius: 3,
-              border: esDeSubclase
-                ? "1px solid #facc15"
-                : estaPreparado
-                ? "1px solid #60a5fa"
-                : "1px solid rgba(148, 163, 184, 0.3)",
-              backgroundColor: esDeSubclase
-                ? "rgba(202, 138, 4, 0.35)"
-                : estaPreparado
-                ? "#2563eb"
-                : "transparent",
-              color: esDeSubclase ? "#fef08a" : "#ffffff",
-              cursor: esDeSubclase ? "default" : "pointer",
-              padding: 0,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              flexShrink: 0
-            }}
+            className={
+              esDeSubclase
+                ? estilos.checkboxSubclase
+                : `${estilos.checkboxPreparado} ${estaPreparado ? estilos.checkboxPreparadoActivo : ""}`
+            }
           >
             {(estaPreparado || esDeSubclase) && <Check size={12} />}
           </button>
         )}
 
-        <div style={{ display: "flex", flexDirection: "column", minWidth: 0 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+        <div className={estilos.bloqueNombre}>
+          <div className={estilos.filaTitulo}>
             <button
               type="button"
               onClick={() => alAbrirDetalleCompleto(hechizo)}
-              style={{
-                background: "none",
-                border: "none",
-                color: "#f1f5f9",
-                fontSize: 12,
-                fontWeight: 600,
-                cursor: "pointer",
-                padding: 0,
-                textAlign: "left",
-                textDecoration: "none"
-              }}
-              onMouseEnter={(e) => (e.currentTarget.style.color = "#93c5fd")}
-              onMouseLeave={(e) => (e.currentTarget.style.color = "#f1f5f9")}
+              className={`${estilos.nombreConjuro} ${!estaPreparado && mostrarTogglePreparado && !esDeSubclase ? estilos.nombreConjuroInactivo : ""}`}
+              style={{ background: "none", border: "none", padding: 0, cursor: "pointer", textAlign: "left" }}
             >
               {hechizo.nombre}
             </button>
@@ -289,18 +249,7 @@ export const TarjetaConjuroCompacta: React.FC<TarjetaConjuroCompactaProps> = ({
             {esDeSubclase && (
               <span
                 title="Conjuro otorgado automáticamente por tu subclase"
-                style={{
-                  fontSize: 9,
-                  fontWeight: 700,
-                  backgroundColor: "rgba(234, 179, 8, 0.18)",
-                  color: "#fde047",
-                  border: "1px solid rgba(234, 179, 8, 0.35)",
-                  borderRadius: 3,
-                  padding: "1px 4px",
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: 3
-                }}
+                className={estilos.badgeSubclaseTexto}
               >
                 <Sparkles size={8} /> Subclase
               </span>
@@ -310,15 +259,7 @@ export const TarjetaConjuroCompacta: React.FC<TarjetaConjuroCompactaProps> = ({
             {hechizo.concentracion && (
               <span
                 title="Requiere Concentración"
-                style={{
-                  fontSize: 9,
-                  fontWeight: 700,
-                  backgroundColor: "rgba(245, 158, 11, 0.2)",
-                  color: "#f59e0b",
-                  border: "1px solid rgba(245, 158, 11, 0.3)",
-                  borderRadius: 3,
-                  padding: "1px 4px"
-                }}
+                className={estilos.tagConcentracion}
               >
                 C
               </span>
@@ -327,22 +268,14 @@ export const TarjetaConjuroCompacta: React.FC<TarjetaConjuroCompactaProps> = ({
             {hechizo.ritual && (
               <span
                 title="Puede lanzarse como Ritual"
-                style={{
-                  fontSize: 9,
-                  fontWeight: 700,
-                  backgroundColor: "rgba(168, 85, 247, 0.2)",
-                  color: "#c084fc",
-                  border: "1px solid rgba(168, 85, 247, 0.3)",
-                  borderRadius: 3,
-                  padding: "1px 4px"
-                }}
+                className={estilos.tagRitual}
               >
                 R
               </span>
             )}
           </div>
 
-          <span style={{ fontSize: 10, color: "#64748b" }}>
+          <span className={estilos.filaMetadatos}>
             {hechizo.escuela} {hechizo.alcance ? `• ${hechizo.alcance}` : ""}
             {esTruco && infoTruco?.etiquetaVisual ? (
               <strong style={{ color: infoTruco.multiplicador > 1 ? "#93c5fd" : "#cbd5e1", marginLeft: 4 }}>
@@ -358,11 +291,11 @@ export const TarjetaConjuroCompacta: React.FC<TarjetaConjuroCompactaProps> = ({
       </div>
 
       {/* Lado Derecho: Selector de Nivel de Ranura (Upcast) o Badge Fijo de Pacto + Botón Lanzar + Botón Detalles + Quitar */}
-      <div style={{ display: "flex", alignItems: "center", gap: 5, flexShrink: 0 }}>
+      <div className={estilos.ladoDerecho}>
         {/* Selector Upcast o Badge Informativo Fijo */}
         {!esTruco && (
           opcionesLanzamiento.length > 1 ? (
-            <div style={{ width: 84, minWidth: 84 }}>
+            <div className={estilos.selectUpcastContenedor}>
               <SelectorDesplegable
                 valor={String(nivelUpcast)}
                 alCambiar={(val) => setNivelUpcast(Number(val))}
@@ -418,19 +351,7 @@ export const TarjetaConjuroCompacta: React.FC<TarjetaConjuroCompactaProps> = ({
                     : "1 espacio"
                 })`
           }
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 4,
-            backgroundColor: "#1e293b",
-            border: "1px solid rgba(56, 189, 248, 0.3)",
-            borderRadius: 4,
-            color: "#38bdf8",
-            fontSize: 11,
-            fontWeight: 600,
-            padding: "3px 7px",
-            cursor: "pointer"
-          }}
+          className={estilos.botonLanzar}
         >
           <Zap size={11} />
           <span>Lanzar</span>
@@ -442,22 +363,7 @@ export const TarjetaConjuroCompacta: React.FC<TarjetaConjuroCompactaProps> = ({
             type="button"
             onClick={manejarLanzamientoRitual}
             title="Lanzar como Ritual (+10 min adicionales, sin consumir ranuras ni puntos de magia)"
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 3,
-              backgroundColor: "rgba(168, 85, 247, 0.12)",
-              border: "1px solid rgba(168, 85, 247, 0.35)",
-              borderRadius: 4,
-              color: "#c084fc",
-              fontSize: 11,
-              fontWeight: 700,
-              padding: "3px 6px",
-              cursor: "pointer",
-              transition: "all 0.15s ease"
-            }}
-            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "rgba(168, 85, 247, 0.22)")}
-            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "rgba(168, 85, 247, 0.12)")}
+            className={estilos.botonRitual}
           >
             <Sparkles size={11} />
             <span>Ritual</span>
@@ -469,17 +375,7 @@ export const TarjetaConjuroCompacta: React.FC<TarjetaConjuroCompactaProps> = ({
           type="button"
           onClick={() => alAbrirDetalleCompleto(hechizo)}
           title="Ver ficha completa y opciones de lanzamiento"
-          style={{
-            background: "none",
-            border: "none",
-            color: "#64748b",
-            cursor: "pointer",
-            padding: 3,
-            display: "flex",
-            alignItems: "center"
-          }}
-          onMouseEnter={(e) => (e.currentTarget.style.color = "#f1f5f9")}
-          onMouseLeave={(e) => (e.currentTarget.style.color = "#64748b")}
+          className={estilos.botonIcono}
         >
           <Eye size={13} />
         </button>
@@ -489,17 +385,7 @@ export const TarjetaConjuroCompacta: React.FC<TarjetaConjuroCompactaProps> = ({
           type="button"
           onClick={alQuitarDeLista}
           title="Quitar conjuro de la lista del personaje"
-          style={{
-            background: "none",
-            border: "none",
-            color: "#64748b",
-            cursor: "pointer",
-            padding: 3,
-            display: "flex",
-            alignItems: "center"
-          }}
-          onMouseEnter={(e) => (e.currentTarget.style.color = "#ef4444")}
-          onMouseLeave={(e) => (e.currentTarget.style.color = "#64748b")}
+          className={`${estilos.botonIcono} ${estilos.botonIconoEliminar}`}
         >
           <Trash2 size={13} />
         </button>

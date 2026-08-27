@@ -1,10 +1,10 @@
 import { StateCreator } from 'zustand';
 import { ElementoPendiente, EncuentroGuardado, CriaturaIniciativa, NotificacionUI } from '@/almacen/usarAlmacenDM';
-import { MonstruoBase, HechizoBase, ObjetoHomebrew, PersonajeJugador } from '@/tipos';
+import { MonstruoBase, HechizoBase, ObjetoHomebrew } from '@/tipos';
 import { PERSONAJE_POR_DEFECTO } from '@/constantes';
 import { MONSTRUOS_INICIALES, HECHIZOS_INICIALES, OBJETOS_INICIALES } from '@/utiles/datosIniciales';
 import { leerBlobGlobal, limpiarBlobGlobal } from '@/utiles/almacenamientoTaleSpire';
-import { sanearObjetoHomebrew, sanearHechizoCD, sanearMonstruoSentidosYPasiva } from '@/almacen/sanitizacion';
+import { sanearObjetoHomebrew, sanearHechizoCD, sanearMonstruoSentidosYPasiva, sanearPersonaje } from '@/almacen/sanitizacion';
 import { importarDesdeJSON } from '@/almacen/importadorJSON';
 import { desduplicarEntidades } from '@/utiles/busquedaTolerante';
 import type { EstadoDM } from '@/almacen/usarAlmacenDM';
@@ -238,12 +238,13 @@ export const crearSliceConfiguracion: StateCreator<
           set({ asociacionesFichas: asociaciones });
         }
 
-        const personajes = blob.personajes as PersonajeJugador[] | undefined;
+        const personajesRaw = (blob.personajes || []) as unknown[];
         const idPersonajeActivo = blob.id_personaje_activo as string | undefined;
-        if (personajes && personajes.length > 0) {
+        if (Array.isArray(personajesRaw) && personajesRaw.length > 0) {
+          const personajesSaneados = personajesRaw.map(sanearPersonaje);
           set({
-            personajes,
-            idPersonajeActivo: idPersonajeActivo || personajes[0].id
+            personajes: personajesSaneados,
+            idPersonajeActivo: idPersonajeActivo || personajesSaneados[0].id
           });
         }
 

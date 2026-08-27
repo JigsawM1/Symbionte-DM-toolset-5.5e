@@ -1,14 +1,18 @@
-import React, { useState } from "react";
+import React from "react";
 import { BookOpen, Swords, Sparkles } from "lucide-react";
 import { CompendioConjurosJugador } from "./CompendioConjurosJugador";
 import { ListaHechizos } from "./ListaHechizos";
 import { ListaHomebrew } from "@/componentes/caracteristicas/homebrew/ListaHomebrew";
 import { usarEstadoConfiguracion } from "@/almacen/selectores";
+import { usarEstadoPersistido } from "@/hooks";
 import estilos from "./Compendio.module.css";
 
 export const Compendio: React.FC = () => {
   const { esGM } = usarEstadoConfiguracion();
-  const [subPestaña, setSubPestaña] = useState<"conjuros" | "bestiario" | "equipo">("conjuros");
+  const [subPestaña, setSubPestaña] = usarEstadoPersistido<"conjuros" | "bestiario" | "equipo">(
+    "ts_compendio_subpestana",
+    "conjuros"
+  );
 
   // Para jugadores (!esGM), el compendio es el Gestor y Listado de Conjuros de Jugadores (con gestión de conocidos y preparados)
   if (!esGM) {

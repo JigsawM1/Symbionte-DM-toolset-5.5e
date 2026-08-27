@@ -1,4 +1,5 @@
-import { HechizoBase, ObjetoHomebrew, Rareza, Arma, Armadura, EquipoAventuras, TipoBonoDestreza, SubcategoriaEquipo, VelocidadEstructurada, SentidosEstructurados, MonstruoBase } from '@/tipos';
+import { HechizoBase, ObjetoHomebrew, Rareza, Arma, Armadura, EquipoAventuras, TipoBonoDestreza, SubcategoriaEquipo, VelocidadEstructurada, SentidosEstructurados, MonstruoBase, EsquemaPersonajeJugador, PersonajeJugador } from '@/tipos';
+import { PERSONAJE_POR_DEFECTO } from '@/constantes/personajeConstantes';
 import { generarId } from '@/utiles/generarId';
 
 // Normaliza el texto eliminando acentos y convirtiendo a minúsculas
@@ -1090,4 +1091,73 @@ export function sanearMonstruoSentidosYPasiva(m: MonstruoBase): MonstruoBase {
     sentidos: sentidosObj
   };
 }
+
+/**
+ * Sanea y valida un objeto de personaje garantizando que cumpla con el esquema
+ * estricto de D&D 5.5e y rellenando propiedades faltantes de versiones anteriores.
+ */
+export function sanearPersonaje(p: unknown): PersonajeJugador {
+  if (!p || typeof p !== "object") {
+    return {
+      ...PERSONAJE_POR_DEFECTO,
+      id: generarId("pj")
+    };
+  }
+
+  const raw = p as Record<string, unknown>;
+
+  // Fusionamos con los valores por defecto de primer y segundo nivel
+  const fusionado: Record<string, unknown> = {
+    ...PERSONAJE_POR_DEFECTO,
+    ...raw,
+    id: typeof raw.id === "string" && raw.id.trim() ? raw.id.trim() : generarId("pj"),
+    nombre: typeof raw.nombre === "string" && raw.nombre.trim() ? raw.nombre.trim() : "Nuevo Personaje",
+    caracteristicas: {
+      ...PERSONAJE_POR_DEFECTO.caracteristicas,
+      ...(typeof raw.caracteristicas === "object" && raw.caracteristicas ? (raw.caracteristicas as Record<string, number>) : {})
+    },
+    overridesFijos: {
+      ...PERSONAJE_POR_DEFECTO.overridesFijos,
+      ...(typeof raw.overridesFijos === "object" && raw.overridesFijos ? (raw.overridesFijos as Record<string, number | null>) : {})
+    },
+    competenciasSalvacion: {
+      ...PERSONAJE_POR_DEFECTO.competenciasSalvacion,
+      ...(typeof raw.competenciasSalvacion === "object" && raw.competenciasSalvacion ? (raw.competenciasSalvacion as Record<string, boolean>) : {})
+    },
+    gradosHabilidades: {
+      ...PERSONAJE_POR_DEFECTO.gradosHabilidades,
+      ...(typeof raw.gradosHabilidades === "object" && raw.gradosHabilidades ? (raw.gradosHabilidades as Record<string, unknown>) : {})
+    },
+    salvacionesMuerte: {
+      ...PERSONAJE_POR_DEFECTO.salvacionesMuerte,
+      ...(typeof raw.salvacionesMuerte === "object" && raw.salvacionesMuerte ? (raw.salvacionesMuerte as Record<string, number>) : {})
+    },
+    bolsaMonedas: {
+      ...PERSONAJE_POR_DEFECTO.bolsaMonedas,
+      ...(typeof raw.bolsaMonedas === "object" && raw.bolsaMonedas ? (raw.bolsaMonedas as Record<string, number>) : {})
+    },
+    clases: Array.isArray(raw.clases) && raw.clases.length > 0
+      ? raw.clases
+      : [{ nombre: (typeof raw.clase === "string" && raw.clase) || "Guerrero", subclase: (typeof raw.subclase === "string" && raw.subclase) || "", nivel: (typeof raw.nivel === "number" && raw.nivel) || 1 }],
+    inventario: Array.isArray(raw.inventario) ? raw.inventario : [],
+    condicionesActivas: Array.isArray(raw.condicionesActivas) ? raw.condicionesActivas : [],
+    trucosConocidosIds: Array.isArray(raw.trucosConocidosIds) ? raw.trucosConocidosIds : [],
+    conjurosConocidosIds: Array.isArray(raw.conjurosConocidosIds) ? raw.conjurosConocidosIds : [],
+    conjurosPreparadosIds: Array.isArray(raw.conjurosPreparadosIds) ? raw.conjurosPreparadosIds : [],
+    conjurosSiemprePreparadosIds: Array.isArray(raw.conjurosSiemprePreparadosIds) ? raw.conjurosSiemprePreparadosIds : []
+  };
+
+  const resultado = EsquemaPersonajeJugador.safeParse(fusionado);
+  if (resultado.success) {
+    return resultado.data;
+  }
+
+  // Fallback si algún campo anidado no pasa Zod
+  return {
+    ...PERSONAJE_POR_DEFECTO,
+    id: typeof raw.id === "string" && raw.id.trim() ? raw.id.trim() : generarId("pj"),
+    nombre: typeof raw.nombre === "string" && raw.nombre.trim() ? raw.nombre.trim() : "Nuevo Personaje"
+  };
+}
+
 

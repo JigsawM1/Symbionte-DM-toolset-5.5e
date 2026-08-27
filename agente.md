@@ -2,6 +2,101 @@
 
 Este archivo registra errores encontrados, sus causas raíz y las soluciones aplicadas.
 
+## [2026-08-27] Refinamiento de la Pestaña de Acciones: Daño Versátil (+Atributo), Crítico Dual, Modal de Conjuros DRY y Simplificación de Puntos de Conjuro
+**Decisión y Motivación:**
+1. **Cálculo y Tiradas de Daño y Crítico Versátil (`VistaAtaquesJugador.tsx` y `TarjetaAtaquePersonaje.tsx`):**
+   - *Causa*: En objetos de compendio (`Equipo es.json` y saneador), `two_handed_damage` contenía el tipo de daño adjunto (`"1d10 (Cortante)"`). Al concatenar el bonificador de daño (`+3`), la fórmula resultante `"1d10 (Cortante)+3"` impedía al parser de TaleSpire sumar el modificador de atributo. Adicionalmente, cuando un arma tenía 5 botones de tirada (`Atacar`, `1M`, `2M`, `Crit 1M`, `Crit 2M`), se comprimían todos horizontalmente en una sola fila sobrecargando la tarjeta.
+   - *Solución*:
+     - Se implementó extracción pura de dados por regex (`(\d+d\d+)`) y regla de inferencia oficial D&D 5.5e (ej. `1d6` $\rightarrow$ `1d8`, `1d8` $\rightarrow$ `1d10`) para componer fórmulas limpias como `1d10+3`.
+     - En `TarjetaAtaquePersonaje`, si el arma es versátil se muestra el desglose dual en la métrica (`1d8+3 (1d10+3 2M)`) y botones independientes: `[1M]` y `[2M]` para daño normal, y `[Crit 1M]` y `[Crit 2M]` para daño crítico (duplicando `1d10` a `2d10+3`).
+     - En `VistaAtaquesJugador.module.css`, se rediseñó `.filaAccionesTirada` utilizando CSS Grid (`grid-template-columns: repeat(3, auto)`) con `justify-content: end` para limitar estrictamente a un máximo de 3 botones por fila, logrando una distribución limpia en 2 filas cuando hay 5 botones (Fila 1: `[Atacar] [1M] [2M]`, Fila 2: `[Crit 1M] [Crit 2M]`).
+2. **Ocultamiento del Badge Redundante y Modo Solo Lectura de Ranuras en Acciones (`TrackerEspaciosPacto.tsx`, `TrackerEspaciosConjuro.tsx` y `TrackerPuntosConjuro.tsx`):**
+   - *Causa*: Los botones de restablecer/descanso corto y los clics directos sobre las burbujas de ranuras permitían alterar manualmente los espacios en combate rápido, cuando el gasto debe ser automatizado por el lanzamiento de conjuros.
+   - *Solución*: Se añadieron las propiedades `mostrarBotonRecuperar = false`, `mostrarBotonRestablecer = false` y `soloLectura = true` en la pestaña de Acciones ([`VistaAtaquesJugador.tsx`](file:///c:/Users/zamor/OneDrive/Documentos/Programas/ToolSet%20Es%205.5/src/componentes/caracteristicas/ataques/VistaAtaquesJugador.tsx)). Las burbujas de espacios de conjuro y ranuras de pacto funcionan como indicadores visuales informativos sin acción al clic, manteniendo la interactividad manual completa en la pestaña de Conjuros.
+3. **Persistencia de Estado de UI al Cambiar de Pestaña (`usarEstadoPersistido.ts`):**
+   - *Causa*: Al navegar entre pestañas principales de la barra superior (ej. de "Acciones" a "Inventario", "Ficha" o "Conjuros"), los componentes se desmontaban y se perdían los filtros activos (`filtro`), las secciones abiertas/cerradas (`seccionesAbiertas`), las características de armas personalizadas (`caracteristicasArmas`) y las sub-pestañas internas.
+   - *Solución*:
+     - Se creó el hook genérico [`usarEstadoPersistido`](file:///c:/Users/zamor/OneDrive/Documentos/Programas/ToolSet%20Es%205.5/src/hooks/usarEstadoPersistido.ts) con sincronización transparente e instantánea a `localStorage`.
+     - Se aplicó en:
+       - [`VistaAtaquesJugador.tsx`](file:///c:/Users/zamor/OneDrive/Documentos/Programas/ToolSet%20Es%205.5/src/componentes/caracteristicas/ataques/VistaAtaquesJugador.tsx): `filtro` (`"ts_acciones_filtro"`), `seccionesAbiertas` (`"ts_acciones_secciones"`) y `caracteristicasArmas` (`"ts_caracteristicas_armas_[idPersonaje]"`).
+       - [`HojaPersonaje.tsx`](file:///c:/Users/zamor/OneDrive/Documentos/Programas/ToolSet%20Es%205.5/src/componentes/caracteristicas/personajes/HojaPersonaje.tsx): sub-pestaña `general` vs `conjuros` (`"ts_hoja_subpestana"`).
+       - [`VistaJugadores.tsx`](file:///c:/Users/zamor/OneDrive/Documentos/Programas/ToolSet%20Es%205.5/src/componentes/caracteristicas/iniciativa/VistaJugadores.tsx): sub-pestaña `ficha` vs `personajes` (`"ts_jugadores_subpestana"`).
+       - [`Compendio.tsx`](file:///c:/Users/zamor/OneDrive/Documentos/Programas/ToolSet%20Es%205.5/src/componentes/caracteristicas/compendio/Compendio.tsx): sub-pestaña `conjuros`, `bestiario`, `equipo` (`"ts_compendio_subpestana"`).
+4. **UI/UX Táctica Compacta, Secciones Colapsables y Homogeneización Visual (`VistaAtaquesJugador.tsx` y `VistaAtaquesJugador.module.css`):**
+   - *Causa*: La pestaña de acciones tenía elementos visualmente discordantes con la paleta Dark Fantasy del simbionte (fondos con gradientes no estándar, bordes desalineados con `.neoRaised`/`.neoPressed`, botones sin el lenguaje táctico `#1a2230` y ausencia de mecanismo para colapsar bloques extensos).
+   - *Solución*:
+     - Se dotó a cada sección (`Recursos Mágicos`, `Armas y Ataques Físicos`, `Conjuros y Acciones Mágicas`, `Consumibles y Pociones`) de cabeceras colapsables interactivas con chevron (`ChevronDown`/`ChevronRight`), badge contador de items y hover refinado.
+     - Se rediseñó la paleta completa unificándola con `HojaPersonaje.module.css` y `PanelConjurosPersonaje.module.css`: superficies `#121722`, cajas de métricas `#0b0f16` (inset `neoPressed`), botones tácticos `#1a2230` con bordes de color temático (`#38bdf8` impacto, `#f87171` daño, `#fbbf24` crítico, `#10b981` consumibles) y tipografía compacta de alta densidad con `JetBrains Mono` y `Outfit`.
+5. **Eliminación de Botones por Nivel y Control de Visibilidad del Gasto Manual (`TrackerPuntosConjuro.tsx`):**
+   - *Causa*: Los botones "GASTAR POR NIVEL DE CONJURO" eran innecesarios y sobrecargaban el tracker.
+   - *Solución*: Se eliminó definitivamente la sección "Gastar por Nivel de Conjuro" (`nivelesBotones`), se restauraron los controles manuales (`[Cant.]`, `[Gastar]` y `[+Recuperar]`) en `TrackerPuntosConjuro.tsx` y se añadió la prop `mostrarGastoManual`. En `VistaAtaquesJugador.tsx` se oculta (`mostrarGastoManual={false}`), mientras que en la pestaña de conjuros (`PanelConjurosPersonaje.tsx`) permanece disponible para ajustes manuales.
+5. **Despliegue Modal de Carta de Conjuro en Acciones (`VistaAtaquesJugador.tsx`):**
+   - *Causa*: `FichaHechizo` se renderizaba sin el contenedor flotante `position: fixed` con fondo oscuro (`backdrop`), quedando invisible fuera del scroll.
+   - *Solución*: Se encapsuló `FichaHechizo` en la estructura modal estándar (`position: fixed`, `zIndex: 1000`) con soporte para cierre por click fuera / botón 'X' y conexión de todos los callbacks de lanzamiento con ranuras/puntos, rituales y concentración (100% DRY con `PanelConjurosPersonaje`).
+5. **Validación:**
+   - Creado `VistaAtaquesVersatil.test.ts`. Total: **27 archivos de prueba pasados y 276/276 tests aprobados al 100%**.
+   - Compilación de producción estricta (`tsc && vite build`) completada con éxito en 8.98s y sincronizada con el directorio de simbiontes de TaleSpire.
+
+
+## [2026-08-27] Iniciativa en Tiempo Real, Sincronización Reactiva de Miniaturas y Party Backup
+**Decisión y Motivación:**
+1. **Actualización Automática del Tracker de Iniciativa del DM al tirar desde la Ficha (`lanzadorDados.ts` y `HojaPersonaje.tsx`):**
+   - *Causa*: Al tirar iniciativa desde la hoja de personaje, no se enviaban metadatos (`metaIniciativa`), por lo que el resultado 3D no actualizaba la cola del combate del DM.
+   - *Solución*: Se extendió `MetadataIniciativa` con `nombrePersonaje`, `idMiniaturaTS` e `idPersonaje`, y se implementó `aplicarResultadoIniciativaEnEstado` para tiradas planas y con ventaja/desventaja. Si el héroe no existía en la cola, se incorpora automáticamente con sus estadísticas reales calculadas (`ca`, `hpMaximo`, `hpActual`, `hpTemporal`, `esMonstruo: false`).
+2. **Sincronización Reactiva de Miniatura Seleccionada (`sliceIniciativa.ts`):**
+   - *Causa*: Seleccionar una miniatura física en TaleSpire no cambiaba la ficha de personaje activa.
+   - *Solución*: En `actualizarSeleccionCriaturas`, si la miniatura seleccionada coincide por `idMiniaturaTS` o por nombre con un `PersonajeJugador`, se actualiza de forma reactiva `idPersonajeActivo` en Zustand.
+3. **Exportación e Importación en Lote de Todo el Grupo (Party Backup) y Copiado al Portapapeles (`GestorPersonajes.tsx`, `VistaJugadores.tsx` e `importadorJSON.ts`):**
+   - *Causa*: En el sandbox CEF de TaleSpire, las descargas mediante `<a>` o Blob URLs son bloqueadas por el navegador embebido, causando que pulsar "Descargar" no genere ningún archivo.
+   - *Solución*: Se homologó el mecanismo de exportación con la Configuración del DM: ahora `manejarExportarPersonaje` y `manejarExportarGrupo` utilizan `ts.system.clipboard.setText(jsonStr)` para copiar el JSON directamente al portapapeles del sistema del usuario con confirmación visual. Adicionalmente, se implementaron modales para ver/copiar el código JSON manualmente y para pegar/importar texto JSON directamente desde el portapapeles.
+4. **Validación:**
+   - Creado `importadorGrupo.test.ts` y ampliados tests en `HojaPersonajeTiradas.test.ts`. Total: **26 archivos de prueba pasados y 272/272 tests aprobados al 100%**.
+   - Compilación estricta `tsc && vite build` completada con éxito en 8.28s.
+
+## [2026-08-27] Arquitectura y Refactorización: Subsistema de Jugador (Fase 2: CSS Modules en Magia y Robustez de Ataques)
+
+**Decisión y Motivación:**
+1. **Migración a CSS Modules en Magia (`PanelConjurosPersonaje.module.css` y `TarjetaConjuroCompacta.module.css`):**
+   - *Causa*: Más de 200 líneas de estilos `style={{}}` inline en los componentes de conjuros (`PanelConjurosPersonaje.tsx` y `TarjetaConjuroCompacta.tsx`) sobrecargaban la memoria en Chromium CEF y dificultaban el mantenimiento visual.
+   - *Solución*: Se extrajeron clases CSS puras y modulares para paneles, métricas mágicas, alertas de concentración, badges de subclase/ritual/concentración y selectores de upcast, desacoplando completamente la lógica de renderizado.
+2. **Robustez en Cálculo de Armas y Bonos Mágicos (`VistaAtaquesJugador.tsx`):**
+   - *Causa*: Armas eliminadas del compendio homebrew caían en fallback genérico de `1d6 Contundente` y el cálculo de bonos mágicos solo detectaba regex `+\d+` en el nombre.
+   - *Solución*: Se implementó inferencia inteligente de armería D&D 5.5e (identificando por nombre arcos, ballestas, espadones, estoques, dagas, etc. con sus alcances y propiedades correctas) y soporte para propiedades mágicas del objeto de compendio (`bonoMagico`, `bonoAtaque`, `esMagico`).
+3. **Escalado de Artes Marciales D&D 5.5e (2024):**
+   - El dado de daño de golpe sin armas de monje ahora escala con el nivel del personaje según las reglas oficiales 5.5e: Niv. 1-4 (`1d6`), Niv. 5-10 (`1d8`), Niv. 11-16 (`1d10`), Niv. 17-20 (`1d12`).
+4. **Validación:**
+   - Suite Vitest con **25/25 archivos pasados y 267/267 pruebas exitosas (100%)**.
+   - Compilación de producción estricta (`tsc && vite build`) completada con éxito en 9.99s.
+
+## [2026-08-26] Integración y Robustez del Apartado de Jugador (Ficha como Fuente de la Verdad)
+
+**Decisión y Motivación:**
+1. **Ficha como Fuente de la Verdad (Single Source of Truth):**
+   - Se estableció que la Ficha de Personaje gestiona su propio estado (HP, recursos, descansos, condiciones e inventario) sin sincronizaciones invasivas que sobreescriban la configuración del jugador.
+2. **Resolución Automática de Héroes en Cola de Iniciativa (`sincronizacionIniciativa.ts`):**
+   - *Causa*: Las miniaturas enviadas por TaleSpire poseen IDs UUID de tablero, lo que provocaba que se clasificaran erróneamente como monstruos (`esMonstruo: true`) con CA 10 genérica.
+   - *Solución*: Se implementó el cruce con la lista de `personajes` (por `idMiniaturaTS` o por nombre). Si coincide un héroe, se marca como `esMonstruo: false` y se reflejan sus estadísticas reales (CA, HP máximo, HP actual, HP temporal, velocidad y bonificador de iniciativa) calculadas directamente desde su ficha.
+3. **Sanitización y Resiliencia en Persistencia (`sanitizacion.ts` y `sliceConfiguracion.ts`):**
+   - *Causa*: La carga de personajes antiguos de `localStorage`/TaleSpire storage inyectaba objetos sin validar, arriesgando excepciones de tipo `undefined` en campos modernos (como `bolsaMonedas`, `salvacionesMuerte` o `overridesFijos`).
+   - *Solución*: Se creó la función pura `sanearPersonaje`, rellenando defaults seguros validados con Zod y aplicándola en `cargarDatosPersistidos`.
+4. **Limpieza de Tiradas en Consumibles (`VistaInventarioJugador.tsx`):**
+   - Se eliminó el intento artificial de tirar un dado `1d1` en TaleSpire al usar consumibles no curativos, reemplazándolo por una notificación y log limpios.
+5. **Exportación e Importación de Personajes en JSON (`GestorPersonajes.tsx` e `importadorJSON.ts`):**
+   - Implementadas las funciones `importarPersonajesDesdeJSON` y los botones de "Exportar JSON" e "Importar JSON" en la galería del gestor de personajes para permitir respaldos y transferencias entre campañas.
+6. **Validación:**
+   - Creado `sanitizacionPersonaje.test.ts` y ampliados los tests de `sincronizacionIniciativa.test.ts`.
+   - Total de la suite: **25 archivos de tests, 267 pruebas pasando al 100%** y `pnpm build` completado sin errores.
+
+## [2026-08-26] Compilación y Empaquetado: Build and Zip
+
+**Decisión y Motivación:**
+1. **Validación Previa:**
+   - Ejecutadas pruebas unitarias (`pnpm test`) con 262 pruebas pasando al 100% en 24 archivos de tests.
+   - Comprobación estricta de tipado (`pnpm exec tsc --noEmit`) sin errores de TypeScript.
+2. **Generación de Distribución Zip:**
+   - Compilado con Vite de producción hacia `mod-io-build/ToolSet Es 5.5`.
+   - Empaquetado y comprimido en `ToolSet Es 5.5.zip` (~1.50 MB) con mapas de origen y activos optimizados.
+
 ## [2026-08-26] Arquitectura y Refactorización: Hoja de Jugador / Vista de Jugador (Fase 2: Modularización UI y Cobertura de Tests)
 **Decisión y Motivación:**
 1. **Componente Reutilizable `BotonSubPestana.tsx` (`BotonSubPestana.tsx` y `HojaPersonaje.tsx`):**

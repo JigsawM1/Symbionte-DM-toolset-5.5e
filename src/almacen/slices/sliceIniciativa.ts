@@ -173,7 +173,8 @@ export const crearSliceIniciativa: StateCreator<
       indiceMonstruos,
       metodoVidaMonstruo: state.metodoVidaMonstruo,
       indiceTurnoActivo: state.indiceTurnoActivo,
-      rondaActual: state.rondaActual
+      rondaActual: state.rondaActual,
+      personajes: state.personajes
     });
 
     return resultado;
@@ -564,7 +565,28 @@ export const crearSliceIniciativa: StateCreator<
     };
   },
 
-  actualizarSeleccionCriaturas: (seleccionadas) => set({ criaturasSeleccionadas: seleccionadas }),
+  actualizarSeleccionCriaturas: (seleccionadas) => set((state) => {
+    const patch: Partial<EstadoDM> = { criaturasSeleccionadas: seleccionadas };
+
+    // Si se seleccionó una miniatura y coincide con un personaje jugador vinculado (por idMiniaturaTS o nombre),
+    // activar reactivamente su ficha de personaje
+    if (seleccionadas && seleccionadas.length > 0) {
+      const primera = seleccionadas[0];
+      const nombreNorm = (primera.name || "").trim().toLowerCase();
+
+      const pjEncontrado = state.personajes.find(
+        (pj) =>
+          (pj.idMiniaturaTS && pj.idMiniaturaTS === primera.id) ||
+          (pj.nombre && nombreNorm && pj.nombre.trim().toLowerCase() === nombreNorm)
+      );
+
+      if (pjEncontrado && pjEncontrado.id !== state.idPersonajeActivo) {
+        patch.idPersonajeActivo = pjEncontrado.id;
+      }
+    }
+
+    return patch;
+  }),
 
   agregarCriaturasSeleccionadasAIniciativa: () => set((state) => {
     if (!state.criaturasSeleccionadas || state.criaturasSeleccionadas.length === 0) return {};

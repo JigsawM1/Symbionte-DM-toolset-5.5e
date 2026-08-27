@@ -1,5 +1,5 @@
-import { MonstruoBase, HechizoBase, ObjetoHomebrew, EsquemaMonstruoBase, EsquemaHechizoBase, EsquemaObjetoJuego } from '@/tipos';
-import { aplanarValor, sanearObjetoHomebrew, sanearHechizoCD, parsearVelocidad, parsearSentidos, sanearMonstruoSentidosYPasiva } from '@/almacen/sanitizacion';
+import { MonstruoBase, HechizoBase, ObjetoHomebrew, EsquemaMonstruoBase, EsquemaHechizoBase, EsquemaObjetoJuego, PersonajeJugador } from '@/tipos';
+import { aplanarValor, sanearObjetoHomebrew, sanearHechizoCD, parsearVelocidad, parsearSentidos, sanearMonstruoSentidosYPasiva, sanearPersonaje } from '@/almacen/sanitizacion';
 import { generarIdSlug } from '@/utiles/generarId';
 import { logger } from '@/utiles/logger';
 
@@ -950,3 +950,28 @@ export function importarDesdeJSON(
     };
   }
 }
+
+/**
+ * Extrae y sanea personajes desde un archivo JSON (objeto único, lista o backup).
+ */
+export function importarPersonajesDesdeJSON(datosJSON: unknown): PersonajeJugador[] {
+  if (!datosJSON || typeof datosJSON !== "object") return [];
+
+  let candidatos: unknown[] = [];
+  const datosObj = datosJSON as Record<string, unknown>;
+
+  if (Array.isArray(datosJSON)) {
+    candidatos = datosJSON;
+  } else if (Array.isArray(datosObj.personajes)) {
+    candidatos = datosObj.personajes;
+  } else if (datosObj.personaje && typeof datosObj.personaje === "object") {
+    candidatos = [datosObj.personaje];
+  } else if (datosObj.nombre || datosObj.clase || datosObj.caracteristicas || datosObj.hpMaximo || datosObj.nivel) {
+    candidatos = [datosObj];
+  }
+
+  return candidatos
+    .filter((c) => c && typeof c === "object")
+    .map(sanearPersonaje);
+}
+

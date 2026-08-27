@@ -6,3 +6,4 @@ export { usarFormularioHechizo } from "./usarFormularioHechizo";
 export { usarFormularioObjeto } from "./usarFormularioObjeto";
 export { usarListaDinamica } from "./usarListaDinamica";
 export type { ItemConNombre } from "./usarListaDinamica";
+export { usarEstadoPersistido } from "./usarEstadoPersistido";

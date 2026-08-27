@@ -80,14 +80,8 @@ export const VistaInventarioJugador: React.FC = () => {
         "exito"
       );
     } else {
-      // Consumible no curativo
-      const log = `${personajeActivo.nombre} usa ${objeto.nombre}`;
-      try {
-        await lanzarDadosTaleSpire(`!Uso ${sanitizarEtiqueta(objeto.nombre)}:1d1`, log);
-      } catch (err) {
-        console.error("[VistaInventarioJugador] Error al enviar log a TaleSpire:", err);
-      }
-      agregarNotificacion(`Has usado 1× "${objeto.nombre}".`, "info");
+      // Consumible no curativo (consumo de recurso / aplicación de efecto)
+      agregarNotificacion(`Has consumido 1× "${objeto.nombre}".`, "info");
     }
   }, [personajeActivo, modificarCantidadObjeto, aplicarCuracionPersonaje, agregarNotificacion]);
 

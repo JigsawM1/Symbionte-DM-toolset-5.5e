@@ -8,8 +8,10 @@
 
 import type { ColaIniciativaTS } from "@/tipos/talespire";
 import type { CriaturaIniciativa } from "@/almacen/usarAlmacenDM";
+import type { PersonajeJugador } from "@/tipos";
 import { formatearVelocidad } from "@/almacen/sanitizacion";
 import { resolverPlantillaPorCriatura, calcularVidaInicial } from "./resolutorCriaturas";
+import { calcularEstadisticasPersonaje } from "@/almacen/selectores/usarEstadoPersonajes";
 import type { IndiceMonstruos } from "./indiceMonstruos";
 import { logger } from "@/utiles/logger";
 
@@ -27,6 +29,7 @@ export interface OpcionesSincronizacion {
   metodoVidaMonstruo: string;
   indiceTurnoActivo: number;
   rondaActual: number;
+  personajes?: PersonajeJugador[];
 }
 
 /**
@@ -61,7 +64,8 @@ export function sincronizarConEstadoLocal(opciones: OpcionesSincronizacion): Res
     indiceMonstruos,
     metodoVidaMonstruo,
     indiceTurnoActivo,
-    rondaActual
+    rondaActual,
+    personajes = []
   } = opciones;
 
   const colaTSItems = colaTS.items || [];
@@ -80,6 +84,30 @@ export function sincronizarConEstadoLocal(opciones: OpcionesSincronizacion): Res
     
     // Simplificado usando Nullish Coalescing (??)
     const iniciativaFisica = cTSAny.initiative ?? (existente ? existente.iniciativa : (colaTSItems.length - index));
+
+    // Comprobar si esta miniatura corresponde a un Personaje Jugador
+    const nombreNorm = cTS.name ? cTS.name.trim().toLowerCase() : "";
+    const pjAsociado = personajes.find(
+      (pj) => (pj.idMiniaturaTS && pj.idMiniaturaTS === cTS.id) || (pj.nombre && pj.nombre.trim().toLowerCase() === nombreNorm)
+    );
+
+    if (pjAsociado) {
+      const statsPj = calcularEstadisticasPersonaje(pjAsociado);
+      return {
+        id: cTS.id,
+        nombre: pjAsociado.nombre,
+        iniciativa: iniciativaFisica,
+        vidaMaxima: pjAsociado.hpMaximo || 10,
+        vidaActual: pjAsociado.hpActual !== undefined ? pjAsociado.hpActual : (pjAsociado.hpMaximo || 10),
+        vidaTemporal: pjAsociado.hpTemporal || 0,
+        ca: statsPj.claseArmadura.total,
+        condiciones: existente ? existente.condiciones : [],
+        efectos: existente ? existente.efectos : [],
+        bonificadorIniciativa: statsPj.modificadores.destreza,
+        esMonstruo: false,
+        velocidad: `${pjAsociado.velocidad || "30 pies"}`
+      } as CriaturaIniciativa;
+    }
 
     const plantillaMonstruo = resolverPlantillaPorCriatura(
       cTS.id,

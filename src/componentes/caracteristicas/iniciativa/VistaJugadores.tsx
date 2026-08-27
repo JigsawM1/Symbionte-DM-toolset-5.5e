@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect } from "react";
 import {
   usarEstadoConfiguracion,
+  usarAccionesConfiguracion,
   usarEstadoPersonajes,
   usarAccionesPersonajes
 } from "@/almacen/selectores";
@@ -10,6 +11,7 @@ import {
   GestorPersonajes
 } from "@/componentes/caracteristicas/personajes";
 import { autoResolverMiniaturasJugador } from "@/servicios/resolutorMiniaturasJugador";
+import { usarEstadoPersistido } from "@/hooks";
 import { Shield, Users, UserCheck } from "lucide-react";
 import estilos from "./VistaJugadores.module.css";
 
@@ -17,6 +19,7 @@ type SubPestanaJugador = "ficha" | "configuracion" | "personajes";
 
 export const VistaJugadores: React.FC = () => {
   const { esGM } = usarEstadoConfiguracion();
+  const { agregarNotificacion } = usarAccionesConfiguracion();
   const { personajes, idPersonajeActivo, personajeActivo } = usarEstadoPersonajes();
   const {
     crearPersonaje,
@@ -27,7 +30,10 @@ export const VistaJugadores: React.FC = () => {
     vincularMiniaturaTSPersonaje
   } = usarAccionesPersonajes();
 
-  const [subPestanaActiva, setSubPestanaActiva] = useState<SubPestanaJugador>("ficha");
+  const [subPestanaActiva, setSubPestanaActiva] = usarEstadoPersistido<SubPestanaJugador>(
+    "ts_jugadores_subpestana",
+    "ficha"
+  );
 
   // Auto-resolución silenciosa de miniaturas de TaleSpire en segundo plano
   useEffect(() => {
@@ -126,6 +132,24 @@ export const VistaJugadores: React.FC = () => {
           alDuplicar={duplicarPersonaje}
           alEliminar={eliminarPersonaje}
           alAbrirFicha={() => setSubPestanaActiva("ficha")}
+          alImportar={(pjsImportados) => {
+            pjsImportados.forEach((pj) => {
+              crearPersonaje(pj);
+            });
+            if (pjsImportados.length > 1) {
+              agregarNotificacion(
+                `Se han importado exitosamente ${pjsImportados.length} personajes del grupo.`,
+                "exito"
+              );
+              setSubPestanaActiva("personajes");
+            } else if (pjsImportados.length === 1) {
+              agregarNotificacion(
+                `Se ha importado la ficha de "${pjsImportados[0].nombre}".`,
+                "exito"
+              );
+              setSubPestanaActiva("ficha");
+            }
+          }}
         />
       )}
     </div>

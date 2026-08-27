@@ -6,22 +6,28 @@
   max-height: 100%;
   overflow-y: auto;
   overflow-x: hidden;
-  padding: 6px 8px 80px 8px;
+  padding: 4px 6px 80px 6px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
   box-sizing: border-box;
+  color: var(--color-texto-principal, #f1f5f9);
+  font-family: var(--fuente-principal, 'Inter', system-ui, sans-serif);
 }
+
+/* ==========================================
+   CABECERA PRINCIPAL Y FILTROS
+   ========================================= */
 
 .cabeceraPrincipal {
   background: linear-gradient(180deg, #161e2c 0%, #111622 100%);
   border: 1px solid rgba(129, 140, 248, 0.22);
   border-radius: 8px;
-  padding: 10px 12px;
+  padding: 8px 10px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.04);
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
 }
 
 .filaTitulo {
@@ -35,12 +41,12 @@
 .grupoTitulo {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
 }
 
 .tituloTexto {
   font-family: var(--fuente-titulo, 'Outfit', sans-serif);
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 800;
   color: #f8fafc;
   margin: 0;
@@ -54,8 +60,8 @@
   background-color: rgba(56, 189, 248, 0.12);
   border: 1px solid rgba(56, 189, 248, 0.3);
   color: #38bdf8;
-  padding: 1px 7px;
-  border-radius: 10px;
+  padding: 1px 6px;
+  border-radius: 8px;
   font-family: var(--fuente-codigo, 'JetBrains Mono', monospace);
 }
 
@@ -65,27 +71,27 @@
   gap: 6px;
 }
 
-/* Barra de Filtros de Acción */
+/* Barra de Filtros Tácticos de Acción */
 .barraFiltros {
   display: flex;
-  gap: 4px;
-  background-color: #0c1017;
+  gap: 3px;
+  background-color: #0b0f16;
   border: 1px solid rgba(148, 163, 184, 0.12);
   border-radius: 6px;
-  padding: 3px;
+  padding: 2px;
   overflow-x: auto;
 }
 
 .botonFiltro {
   flex: 1;
-  min-width: 70px;
+  min-width: 65px;
   background: transparent;
   border: 1px solid transparent;
   border-radius: 4px;
   color: #94a3b8;
-  font-size: 10.5px;
+  font-size: 10px;
   font-weight: 700;
-  padding: 4px 8px;
+  padding: 4px 6px;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -93,6 +99,7 @@
   gap: 4px;
   transition: all 0.15s ease;
   white-space: nowrap;
+  user-select: none;
 }
 
 .botonFiltro:hover {
@@ -101,10 +108,10 @@
 }
 
 .botonFiltroActivo {
-  background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
-  border-color: rgba(56, 189, 248, 0.4);
-  color: #38bdf8;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+  background-color: #1a2230;
+  border: 1px solid #818cf8;
+  color: #ffffff;
+  box-shadow: 0 0 8px rgba(129, 140, 248, 0.25);
 }
 
 .badgeConteoFiltro {
@@ -117,29 +124,43 @@
   background-color: #121722;
   border: 1px solid rgba(148, 163, 184, 0.14);
   border-radius: 8px;
-  padding: 24px;
+  padding: 20px;
   text-align: center;
   color: #94a3b8;
-  font-size: 13px;
+  font-size: 12px;
 }
+
+/* ==========================================
+   SECCIONES Y GRUPOS COLAPSABLES
+   ========================================= */
 
 .seccionGrupoAtaques {
   background-color: #121722;
   border: 1px solid rgba(148, 163, 184, 0.14);
   border-radius: 8px;
-  padding: 10px 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  padding: 6px 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.04);
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
 }
 
 .cabeceraGrupoAtaques {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding-bottom: 6px;
-  border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+  padding: 4px 6px;
+  background: linear-gradient(180deg, rgba(22, 30, 44, 0.7) 0%, rgba(17, 22, 34, 0.7) 100%);
+  border: 1px solid rgba(148, 163, 184, 0.08);
+  border-radius: 5px;
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.15s ease;
+}
+
+.cabeceraGrupoAtaques:hover {
+  background: linear-gradient(180deg, #1a2436 0%, #131b29 100%);
+  border-color: rgba(129, 140, 248, 0.25);
 }
 
 .tituloGrupoAtaques {
@@ -147,34 +168,56 @@
   font-weight: 800;
   color: #cbd5e1;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.4px;
   display: flex;
   align-items: center;
   gap: 6px;
 }
 
+.ladoDerechoCabecera {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #94a3b8;
+}
+
+.badgeConteoSeccion {
+  font-size: 9.5px;
+  font-weight: 700;
+  background-color: rgba(148, 163, 184, 0.12);
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  color: #cbd5e1;
+  padding: 0.5px 5px;
+  border-radius: 8px;
+  font-family: var(--fuente-codigo, 'JetBrains Mono', monospace);
+}
+
 .listaAtaques {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
 }
 
-/* Tarjeta de Ataque / Acción */
+/* ==========================================
+   TARJETAS DE ATAQUE / ACCIÓN
+   ========================================= */
+
 .tarjetaAtaque {
-  background: linear-gradient(180deg, #151d2a 0%, #101622 100%);
-  border: 1px solid rgba(129, 140, 248, 0.18);
+  background: linear-gradient(180deg, #161e2c 0%, #111622 100%);
+  border: 1px solid rgba(148, 163, 184, 0.14);
   border-left: 3px solid #38bdf8;
   border-radius: 6px;
-  padding: 8px 10px;
+  padding: 6px 8px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 5px;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
-  transition: border-color 0.15s ease;
+  transition: all 0.15s ease;
 }
 
 .tarjetaAtaque:hover {
   border-color: rgba(129, 140, 248, 0.35);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
 }
 
 .tarjetaAtaqueDesarmado {
@@ -186,29 +229,29 @@
 }
 
 .tarjetaAtaqueReaccion {
-  border-left-color: #a855f7;
+  border-left-color: #c084fc;
 }
 
 .filaSuperiorAtaque {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
 }
 
 .nombreAtaque {
-  font-size: 13px;
-  font-weight: 800;
+  font-size: 12px;
+  font-weight: 700;
   color: #f8fafc;
-  letter-spacing: 0.2px;
+  letter-spacing: 0.1px;
 }
 
 .badgeAtaqueTipo {
-  font-size: 9px;
+  font-size: 8.5px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.3px;
-  padding: 1px 6px;
+  padding: 1px 5px;
   border-radius: 3px;
   background-color: rgba(56, 189, 248, 0.08);
   border: 1px solid rgba(56, 189, 248, 0.22);
@@ -217,25 +260,25 @@
 
 .badgeAccionTipo {
   font-size: 8.5px;
-  font-weight: 800;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.3px;
   padding: 1px 5px;
   border-radius: 3px;
-  background-color: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background-color: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   color: #94a3b8;
 }
 
 .badgeAccionAdicional {
   background-color: rgba(251, 146, 60, 0.1);
-  border-color: rgba(251, 146, 60, 0.3);
+  border-color: rgba(251, 146, 60, 0.25);
   color: #fdba74;
 }
 
 .badgeReaccion {
-  background-color: rgba(168, 85, 247, 0.1);
-  border-color: rgba(168, 85, 247, 0.3);
+  background-color: rgba(192, 132, 252, 0.1);
+  border-color: rgba(192, 132, 252, 0.25);
   color: #d8b4fe;
 }
 
@@ -243,31 +286,31 @@
   display: grid;
   grid-template-columns: auto auto 1fr auto;
   align-items: center;
-  gap: 8px;
-  background-color: rgba(10, 14, 22, 0.6);
+  gap: 6px;
+  background-color: #0b0f16;
   border: 1px solid rgba(148, 163, 184, 0.08);
   border-radius: 4px;
-  padding: 6px 8px;
+  padding: 4px 6px;
 }
 
 .bloqueBonoImpacto {
   display: flex;
   flex-direction: column;
   align-items: center;
-  min-width: 42px;
+  min-width: 36px;
 }
 
 .etiquetaMicro {
-  font-size: 8px;
+  font-size: 7.5px;
   font-weight: 800;
   color: #64748b;
   text-transform: uppercase;
-  letter-spacing: 0.4px;
+  letter-spacing: 0.3px;
 }
 
 .valorBonoImpacto {
   font-family: var(--fuente-codigo, 'JetBrains Mono', monospace);
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 800;
   color: #38bdf8;
 }
@@ -284,7 +327,7 @@
   border-radius: 3px;
   color: #cbd5e1;
   font-family: var(--fuente-codigo, 'JetBrains Mono', monospace);
-  font-size: 9.5px;
+  font-size: 9px;
   font-weight: 700;
   padding: 1px 2px;
   cursor: pointer;
@@ -293,94 +336,113 @@
 .bloqueDano {
   display: flex;
   flex-direction: column;
-  padding-left: 4px;
+  padding-left: 2px;
 }
 
 .valorDano {
   font-family: var(--fuente-codigo, 'JetBrains Mono', monospace);
-  font-size: 12.5px;
+  font-size: 12px;
   font-weight: 800;
   color: #f1f5f9;
 }
 
 .tipoDanoTexto {
-  font-size: 9.5px;
+  font-size: 9px;
   color: #94a3b8;
   font-weight: 500;
 }
 
 .filaAccionesTirada {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(3, auto);
+  gap: 3px;
+  justify-content: end;
   align-items: center;
-  gap: 4px;
-  flex-wrap: wrap;
-  justify-content: flex-end;
+}
+
+.filaAccionesTirada button {
+  justify-content: center;
+  text-align: center;
+  white-space: nowrap;
 }
 
 .botonTirarAtaque {
-  background: linear-gradient(180deg, #1b263b 0%, #111a28 100%);
-  border: 1px solid rgba(56, 189, 248, 0.45);
+  background-color: #1a2230;
+  border: 1px solid rgba(56, 189, 248, 0.35);
   color: #e0f2fe;
   cursor: pointer;
-  padding: 4px 8px;
+  padding: 3px 6px;
   border-radius: 4px;
-  font-size: 10px;
-  font-weight: 800;
+  font-size: 9.5px;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.3px;
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  justify-content: center;
+  gap: 3px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
   transition: all 0.15s ease;
+  white-space: nowrap;
+  user-select: none;
 }
 
 .botonTirarAtaque:hover {
-  background: linear-gradient(180deg, #23334e 0%, #162234 100%);
+  background-color: #242f42;
   border-color: #38bdf8;
   box-shadow: 0 0 8px rgba(56, 189, 248, 0.3);
+  color: #ffffff;
 }
 
 .botonTirarDano {
-  background: linear-gradient(180deg, #241b2b 0%, #16101c 100%);
+  background-color: #1a2230;
   border: 1px solid rgba(248, 113, 113, 0.35);
   color: #fee2e2;
   cursor: pointer;
-  padding: 4px 8px;
+  padding: 3px 6px;
   border-radius: 4px;
-  font-size: 10px;
-  font-weight: 800;
+  font-size: 9.5px;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.3px;
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  justify-content: center;
+  gap: 3px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
   transition: all 0.15s ease;
+  white-space: nowrap;
+  user-select: none;
 }
 
 .botonTirarDano:hover {
-  background: linear-gradient(180deg, #32213b 0%, #1e1326 100%);
+  background-color: #242f42;
   border-color: #f87171;
   box-shadow: 0 0 8px rgba(248, 113, 113, 0.25);
+  color: #ffffff;
 }
 
 .botonTirarCritico {
-  background: #141923;
-  border: 1px solid rgba(251, 191, 36, 0.3);
+  background-color: #18202f;
+  border: 1px solid rgba(251, 191, 36, 0.35);
   color: #fbbf24;
   cursor: pointer;
-  padding: 4px 6px;
+  padding: 3px 5px;
   border-radius: 4px;
   font-size: 9px;
-  font-weight: 800;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.3px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   transition: all 0.15s ease;
+  white-space: nowrap;
+  user-select: none;
 }
 
 .botonTirarCritico:hover {
-  background: rgba(251, 191, 36, 0.12);
+  background-color: #242f42;
   border-color: #fbbf24;
   color: #fef08a;
 }
@@ -388,14 +450,14 @@
 .filaPropiedadesAtaque {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 3px;
   flex-wrap: wrap;
-  font-size: 10px;
+  font-size: 9.5px;
 }
 
 .badgePropiedad {
-  font-size: 9px;
-  padding: 1px 5px;
+  font-size: 8.5px;
+  padding: 1px 4px;
   border-radius: 3px;
   background-color: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.08);
@@ -411,9 +473,9 @@
 }
 
 .badgeMaestria {
-  font-size: 9px;
+  font-size: 8.5px;
   font-weight: 700;
-  padding: 1px 5px;
+  padding: 1px 4px;
   border-radius: 3px;
   background-color: rgba(168, 85, 247, 0.1);
   border: 1px solid rgba(168, 85, 247, 0.28);
@@ -430,18 +492,19 @@
 /* ==========================================
    CONSUMIBLES Y POCIONES (D&D 5.5e)
    ========================================= */
+
 .tarjetaConsumible {
   border-left-color: #10b981;
 }
 
 .badgeCantidadConsumible {
-  font-size: 10px;
+  font-size: 9.5px;
   font-weight: 800;
   color: #10b981;
   background-color: rgba(16, 185, 129, 0.12);
   border: 1px solid rgba(16, 185, 129, 0.25);
   border-radius: 3px;
-  padding: 1px 5px;
+  padding: 0.5px 4px;
   font-family: var(--fuente-codigo, 'JetBrains Mono', monospace);
 }
 
@@ -449,22 +512,22 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 8px;
-  background-color: rgba(10, 14, 22, 0.6);
+  gap: 6px;
+  background-color: #0b0f16;
   border: 1px solid rgba(148, 163, 184, 0.08);
   border-radius: 4px;
-  padding: 6px 8px;
+  padding: 4px 6px;
 }
 
 .textoEfectoCuracion {
-  font-size: 11px;
+  font-size: 10.5px;
   font-weight: 700;
   color: #f87171;
   font-family: var(--fuente-codigo, 'JetBrains Mono', monospace);
 }
 
 .textoEfectoGenerico {
-  font-size: 11px;
+  font-size: 10.5px;
   color: #94a3b8;
   white-space: nowrap;
   overflow: hidden;
@@ -472,28 +535,29 @@
 }
 
 .botonUsarConsumible {
-  background: linear-gradient(180deg, #064e3b 0%, #022c22 100%);
-  border: 1px solid rgba(16, 185, 129, 0.45);
+  background-color: #1a2230;
+  border: 1px solid rgba(16, 185, 129, 0.4);
   color: #6ee7b7;
   cursor: pointer;
-  padding: 4px 10px;
+  padding: 3px 8px;
   border-radius: 4px;
-  font-size: 10.5px;
-  font-weight: 800;
+  font-size: 9.5px;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.3px;
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 3px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
   transition: all 0.15s ease;
   flex-shrink: 0;
+  user-select: none;
 }
 
 .botonUsarConsumible:hover {
-  background: linear-gradient(180deg, #047857 0%, #064e3b 100%);
+  background-color: #242f42;
   border-color: #10b981;
   color: #ffffff;
-  box-shadow: 0 0 10px rgba(16, 185, 129, 0.35);
+  box-shadow: 0 0 8px rgba(16, 185, 129, 0.3);
 }
 

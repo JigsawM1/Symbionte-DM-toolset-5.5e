@@ -4,9 +4,11 @@ import { Sparkles, RotateCcw } from "lucide-react";
 interface TrackerEspaciosConjuroProps {
   espaciosMaximos: Record<string, number>;
   espaciosGastados: Record<string, number>;
-  alGastarEspacio: (nivel: number) => void;
-  alRecuperarEspacio: (nivel: number) => void;
-  alRecuperarTodosEspacios: () => void;
+  alGastarEspacio?: (nivel: number) => void;
+  alRecuperarEspacio?: (nivel: number) => void;
+  alRecuperarTodosEspacios?: () => void;
+  mostrarBotonRestablecer?: boolean;
+  soloLectura?: boolean;
 }
 
 export const TrackerEspaciosConjuro: React.FC<TrackerEspaciosConjuroProps> = ({
@@ -14,7 +16,9 @@ export const TrackerEspaciosConjuro: React.FC<TrackerEspaciosConjuroProps> = ({
   espaciosGastados,
   alGastarEspacio,
   alRecuperarEspacio,
-  alRecuperarTodosEspacios
+  alRecuperarTodosEspacios,
+  mostrarBotonRestablecer = false,
+  soloLectura = false
 }) => {
   const nivelesDisponibles = Object.keys(espaciosMaximos)
     .map(Number)
@@ -62,26 +66,28 @@ export const TrackerEspaciosConjuro: React.FC<TrackerEspaciosConjuroProps> = ({
           </span>
         </div>
 
-        <button
-          type="button"
-          onClick={alRecuperarTodosEspacios}
-          title="Restaurar todos los espacios de conjuro"
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 4,
-            background: "#18202f",
-            border: "1px solid rgba(148, 163, 184, 0.2)",
-            borderRadius: 4,
-            color: "#94a3b8",
-            fontSize: 11,
-            padding: "3px 8px",
-            cursor: "pointer"
-          }}
-        >
-          <RotateCcw size={11} />
-          <span>Restablecer</span>
-        </button>
+        {mostrarBotonRestablecer && alRecuperarTodosEspacios && (
+          <button
+            type="button"
+            onClick={alRecuperarTodosEspacios}
+            title="Restaurar todos los espacios de conjuro"
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 4,
+              background: "#18202f",
+              border: "1px solid rgba(148, 163, 184, 0.2)",
+              borderRadius: 4,
+              color: "#94a3b8",
+              fontSize: 11,
+              padding: "3px 8px",
+              cursor: "pointer"
+            }}
+          >
+            <RotateCcw size={11} />
+            <span>Restablecer</span>
+          </button>
+        )}
       </div>
 
       {/* Grid de Espacios Estándar por Nivel */}
@@ -133,26 +139,30 @@ export const TrackerEspaciosConjuro: React.FC<TrackerEspaciosConjuroProps> = ({
                 </span>
               </div>
 
-              {/* Burbujas interactivas */}
+              {/* Burbujas de ranuras */}
               <div style={{ display: "flex", gap: 5, flexWrap: "wrap" }}>
                 {Array.from({ length: max }).map((_, idx) => {
                   const estaDisponible = idx < disponibles;
                   return (
-                    <button
+                    <div
                       key={`slot-${nivel}-${idx}`}
-                      type="button"
+                      title={
+                        soloLectura
+                          ? estaDisponible
+                            ? `Espacio de Nivel ${nivel} disponible`
+                            : `Espacio de Nivel ${nivel} gastado`
+                          : estaDisponible
+                            ? `Clic para gastar espacio de Nivel ${nivel}`
+                            : `Clic para recuperar espacio de Nivel ${nivel}`
+                      }
                       onClick={() => {
+                        if (soloLectura) return;
                         if (estaDisponible) {
-                          alGastarEspacio(nivel);
+                          alGastarEspacio?.(nivel);
                         } else {
-                          alRecuperarEspacio(nivel);
+                          alRecuperarEspacio?.(nivel);
                         }
                       }}
-                      title={
-                        estaDisponible
-                          ? `Clic para gastar espacio de Nivel ${nivel}`
-                          : `Clic para recuperar espacio de Nivel ${nivel}`
-                      }
                       style={{
                         width: 20,
                         height: 20,
@@ -161,11 +171,12 @@ export const TrackerEspaciosConjuro: React.FC<TrackerEspaciosConjuroProps> = ({
                           ? "2px solid #818cf8"
                           : "1px dashed rgba(148, 163, 184, 0.3)",
                         backgroundColor: estaDisponible ? "#4338ca" : "transparent",
-                        cursor: "pointer",
+                        cursor: soloLectura ? "default" : "pointer",
                         padding: 0,
                         display: "flex",
                         alignItems: "center",
-                        justifyContent: "center"
+                        justifyContent: "center",
+                        boxSizing: "border-box"
                       }}
                     />
                   );

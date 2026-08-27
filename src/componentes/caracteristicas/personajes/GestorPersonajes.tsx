@@ -1,7 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import type { PersonajeJugador } from "@/tipos";
 import { ConfirmDialog } from "@/componentes/comunes/ConfirmDialog";
-import { Plus, Copy, Trash2, CheckCircle2, User } from "lucide-react";
+import { Plus, Copy, Trash2, CheckCircle2, User, Download, Upload, Check, Clipboard, X, FileText } from "lucide-react";
+import { importarPersonajesDesdeJSON } from "@/almacen/importadorJSON";
+import { usarAccionesConfiguracion } from "@/almacen/selectores";
+import { ts } from "@/utiles/TaleSpireAdapter";
 import estilos from "./HojaPersonaje.module.css";
 
 interface GestorPersonajesProps {
@@ -12,6 +15,7 @@ interface GestorPersonajesProps {
   alDuplicar: (id: string) => void;
   alEliminar: (id: string) => void;
   alAbrirFicha: () => void;
+  alImportar?: (personajes: PersonajeJugador[]) => void;
 }
 
 export const GestorPersonajes: React.FC<GestorPersonajesProps> = ({
@@ -21,9 +25,19 @@ export const GestorPersonajes: React.FC<GestorPersonajesProps> = ({
   alCrearNuevo,
   alDuplicar,
   alEliminar,
-  alAbrirFicha
+  alAbrirFicha,
+  alImportar
 }) => {
+  const { agregarNotificacion } = usarAccionesConfiguracion();
   const [idPjAEliminar, setIdPjAEliminar] = useState<string | null>(null);
+  const [copiadoPjId, setCopiadoPjId] = useState<string | null>(null);
+  const [grupoCopiado, setGrupoCopiado] = useState<boolean>(false);
+  const [modalJSON, setModalJSON] = useState<{ titulo: string; contenido: string } | null>(null);
+  const [modalPegarAbierto, setModalPegarAbierto] = useState<boolean>(false);
+  const [textoJSONPegado, setTextoJSONPegado] = useState<string>("");
+  const [errorPegado, setErrorPegado] = useState<string | null>(null);
+
+  const refInputArchivo = useRef<HTMLInputElement>(null);
 
   const personajeAEliminar = personajes.find((p) => p.id === idPjAEliminar);
 
@@ -34,26 +48,181 @@ export const GestorPersonajes: React.FC<GestorPersonajesProps> = ({
     }
   };
 
+  const manejarExportarPersonaje = async (pj: PersonajeJugador) => {
+    const datos = {
+      version: "5.5",
+      tipo: "personaje",
+      fechaExportacion: new Date().toISOString(),
+      personaje: pj
+    };
+    const jsonStr = JSON.stringify(datos, null, 2);
+
+    // 1. Copiar al portapapeles nativo de TaleSpire / Sistema
+    const exito = await ts.system.clipboard.setText(jsonStr);
+
+    // 2. Intentar descarga en navegador
+    try {
+      const blob = new Blob([jsonStr], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const enlace = document.createElement("a");
+      enlace.href = url;
+      enlace.download = `ficha_${(pj.nombre || "personaje").toLowerCase().replace(/\s+/g, "_")}.json`;
+      document.body.appendChild(enlace);
+      enlace.click();
+      document.body.removeChild(enlace);
+      URL.revokeObjectURL(url);
+    } catch {}
+
+    if (exito) {
+      setCopiadoPjId(pj.id);
+      setTimeout(() => setCopiadoPjId(null), 3000);
+      agregarNotificacion(`¡Ficha de "${pj.nombre}" copiada al portapapeles en formato JSON!`, "exito");
+    } else {
+      setModalJSON({
+        titulo: `Ficha de ${pj.nombre} (JSON)`,
+        contenido: jsonStr
+      });
+    }
+  };
+
+  const manejarExportarGrupo = async () => {
+    if (personajes.length === 0) return;
+    const datos = {
+      version: "5.5",
+      tipo: "grupo_personajes",
+      fechaExportacion: new Date().toISOString(),
+      totalPersonajes: personajes.length,
+      personajes: personajes
+    };
+    const jsonStr = JSON.stringify(datos, null, 2);
+
+    const exito = await ts.system.clipboard.setText(jsonStr);
+
+    try {
+      const blob = new Blob([jsonStr], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const enlace = document.createElement("a");
+      enlace.href = url;
+      const fecha = new Date().toISOString().split("T")[0];
+      enlace.download = `grupo_personajes_${fecha}.json`;
+      document.body.appendChild(enlace);
+      enlace.click();
+      document.body.removeChild(enlace);
+      URL.revokeObjectURL(url);
+    } catch {}
+
+    if (exito) {
+      setGrupoCopiado(true);
+      setTimeout(() => setGrupoCopiado(false), 3000);
+      agregarNotificacion(`¡Respaldo de grupo (${personajes.length} héroes) copiado al portapapeles!`, "exito");
+    } else {
+      setModalJSON({
+        titulo: `Respaldo del Grupo (${personajes.length} Personajes)`,
+        contenido: jsonStr
+      });
+    }
+  };
+
+  const procesarTextoJSON = (texto: string) => {
+    try {
+      const parsed = JSON.parse(texto);
+      const pjs = importarPersonajesDesdeJSON(parsed);
+      if (pjs.length > 0 && alImportar) {
+        alImportar(pjs);
+        setModalPegarAbierto(false);
+        setTextoJSONPegado("");
+        setErrorPegado(null);
+      } else {
+        setErrorPegado("No se encontraron personajes válidos en los datos provistos.");
+      }
+    } catch (err) {
+      setErrorPegado("El texto no contiene un formato JSON válido.");
+      console.error("[GestorPersonajes] Error al parsear JSON:", err);
+    }
+  };
+
+  const manejarArchivoImportar = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const archivo = e.target.files?.[0];
+    if (!archivo) return;
+    const lector = new FileReader();
+    lector.onload = (evento) => {
+      const contenido = evento.target?.result as string;
+      procesarTextoJSON(contenido);
+    };
+    lector.readAsText(archivo);
+    e.target.value = "";
+  };
+
+  const manejarPegarDesdePortapapeles = async () => {
+    try {
+      if (navigator.clipboard && typeof navigator.clipboard.readText === "function") {
+        const texto = await navigator.clipboard.readText();
+        if (texto) {
+          setTextoJSONPegado(texto);
+          setErrorPegado(null);
+          return;
+        }
+      }
+    } catch (e) {
+      console.warn("[GestorPersonajes] No se pudo leer directamente el portapapeles:", e);
+    }
+    agregarNotificacion("Pega el texto JSON directamente en el campo usando Ctrl+V.", "info");
+  };
+
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 12, padding: "8px 0" }}>
+      {/* Input oculto para importación de archivos JSON */}
+      <input
+        ref={refInputArchivo}
+        type="file"
+        accept=".json"
+        style={{ display: "none" }}
+        onChange={manejarArchivoImportar}
+      />
+
       {/* Cabecera del Gestor */}
       <div className={estilos.cabeceraGestor}>
         <div>
           <h2 className={estilos.tituloGestor}>Mis Personajes Guardados</h2>
           <p style={{ fontSize: 11, color: "var(--color-texto-apagado)", margin: "2px 0 0 0" }}>
-            Administra tus héroes, selecciona la ficha activa o crea una nueva.
+            Administra tus héroes, copia su JSON al portapapeles o importa nuevos.
           </p>
         </div>
 
-        <button
-          type="button"
-          className={estilos.neoButton}
-          onClick={alCrearNuevo}
-          style={{ backgroundColor: "var(--color-primario)", color: "#fff", borderColor: "var(--color-borde-cian)" }}
-        >
-          <Plus size={14} />
-          Nuevo Personaje
-        </button>
+        <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+          {personajes.length > 0 && (
+            <button
+              type="button"
+              className={estilos.neoButton}
+              onClick={manejarExportarGrupo}
+              title={`Copiar todo el grupo (${personajes.length} personajes) al portapapeles`}
+              style={grupoCopiado ? { borderColor: "var(--color-borde-cian)", color: "var(--color-borde-cian)" } : {}}
+            >
+              {grupoCopiado ? <Check size={14} /> : <Download size={14} />}
+              {grupoCopiado ? "¡Grupo Copiado!" : `Exportar Grupo (${personajes.length})`}
+            </button>
+          )}
+
+          <button
+            type="button"
+            className={estilos.neoButton}
+            onClick={() => setModalPegarAbierto(true)}
+            title="Importar ficha o grupo desde archivo o portapapeles"
+          >
+            <Upload size={14} />
+            Importar / Pegar JSON
+          </button>
+
+          <button
+            type="button"
+            className={estilos.neoButton}
+            onClick={alCrearNuevo}
+            style={{ backgroundColor: "var(--color-primario)", color: "#fff", borderColor: "var(--color-borde-cian)" }}
+          >
+            <Plus size={14} />
+            Nuevo Personaje
+          </button>
+        </div>
       </div>
 
       {/* Cuadrícula de Tarjetas de Personajes */}
@@ -178,6 +347,16 @@ export const GestorPersonajes: React.FC<GestorPersonajesProps> = ({
                 <button
                   type="button"
                   className={estilos.neoButton}
+                  onClick={() => manejarExportarPersonaje(pj)}
+                  title="Copiar JSON de la ficha al portapapeles"
+                  style={copiadoPjId === pj.id ? { borderColor: "var(--color-borde-cian)", color: "var(--color-borde-cian)" } : {}}
+                >
+                  {copiadoPjId === pj.id ? <Check size={12} /> : <Clipboard size={12} />}
+                </button>
+
+                <button
+                  type="button"
+                  className={estilos.neoButton}
                   onClick={() => setIdPjAEliminar(pj.id)}
                   disabled={personajes.length <= 1}
                   title={personajes.length <= 1 ? "No puedes eliminar el único personaje" : "Eliminar personaje"}
@@ -190,6 +369,230 @@ export const GestorPersonajes: React.FC<GestorPersonajesProps> = ({
           );
         })}
       </div>
+
+      {/* Modal para Visualizar / Copiar JSON Manualmente */}
+      {modalJSON && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: "rgba(0,0,0,0.75)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 9999,
+            padding: 16
+          }}
+          onClick={() => setModalJSON(null)}
+        >
+          <div
+            className={estilos.neoRaised}
+            style={{
+              width: "100%",
+              maxWidth: 540,
+              padding: 16,
+              display: "flex",
+              flexDirection: "column",
+              gap: 12,
+              maxHeight: "85vh"
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                <FileText size={16} style={{ color: "var(--color-borde-cian)" }} />
+                <h3 style={{ margin: 0, fontSize: 14 }}>{modalJSON.titulo}</h3>
+              </div>
+              <button
+                type="button"
+                className={estilos.neoButton}
+                onClick={() => setModalJSON(null)}
+                style={{ minHeight: 24, padding: "2px 6px" }}
+              >
+                <X size={14} />
+              </button>
+            </div>
+
+            <p style={{ margin: 0, fontSize: 11, color: "var(--color-texto-apagado)" }}>
+              Copia el código JSON a continuación para compartir o respaldar la ficha:
+            </p>
+
+            <textarea
+              readOnly
+              value={modalJSON.contenido}
+              rows={12}
+              style={{
+                width: "100%",
+                backgroundColor: "var(--color-fondo-panel)",
+                border: "1px solid var(--color-borde-brutal)",
+                borderRadius: 6,
+                color: "#e2e8f0",
+                fontSize: 11,
+                fontFamily: "monospace",
+                padding: 8,
+                resize: "vertical",
+                boxSizing: "border-box"
+              }}
+            />
+
+            <div style={{ display: "flex", justifyContent: "flex-end", gap: 8 }}>
+              <button
+                type="button"
+                className={estilos.neoButton}
+                onClick={async () => {
+                  await ts.system.clipboard.setText(modalJSON.contenido);
+                  agregarNotificacion("¡Texto JSON copiado al portapapeles!", "exito");
+                }}
+                style={{ backgroundColor: "var(--color-primario)", color: "#fff", borderColor: "var(--color-borde-cian)" }}
+              >
+                <Clipboard size={14} />
+                Copiar al Portapapeles
+              </button>
+              <button
+                type="button"
+                className={estilos.neoButton}
+                onClick={() => setModalJSON(null)}
+              >
+                Cerrar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal para Pegar e Importar JSON */}
+      {modalPegarAbierto && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: "rgba(0,0,0,0.75)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 9999,
+            padding: 16
+          }}
+          onClick={() => setModalPegarAbierto(false)}
+        >
+          <div
+            className={estilos.neoRaised}
+            style={{
+              width: "100%",
+              maxWidth: 540,
+              padding: 16,
+              display: "flex",
+              flexDirection: "column",
+              gap: 12,
+              maxHeight: "85vh"
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                <Upload size={16} style={{ color: "var(--color-borde-cian)" }} />
+                <h3 style={{ margin: 0, fontSize: 14 }}>Importar Ficha o Grupo JSON</h3>
+              </div>
+              <button
+                type="button"
+                className={estilos.neoButton}
+                onClick={() => setModalPegarAbierto(false)}
+                style={{ minHeight: 24, padding: "2px 6px" }}
+              >
+                <X size={14} />
+              </button>
+            </div>
+
+            <div style={{ display: "flex", gap: 8 }}>
+              <button
+                type="button"
+                className={estilos.neoButton}
+                onClick={() => {
+                  refInputArchivo.current?.click();
+                  setModalPegarAbierto(false);
+                }}
+                title="Seleccionar archivo .json del equipo"
+                style={{ flex: 1 }}
+              >
+                <Upload size={14} />
+                Seleccionar Archivo .JSON
+              </button>
+              <button
+                type="button"
+                className={estilos.neoButton}
+                onClick={manejarPegarDesdePortapapeles}
+                title="Pegar contenido del portapapeles"
+                style={{ flex: 1 }}
+              >
+                <Clipboard size={14} />
+                Pegar Portapapeles
+              </button>
+            </div>
+
+            <p style={{ margin: 0, fontSize: 11, color: "var(--color-texto-apagado)" }}>
+              O pega el texto JSON de la ficha o grupo directamente en el siguiente campo:
+            </p>
+
+            <textarea
+              placeholder='Pega aquí el JSON exportado (ej: { "personaje": { ... } } o { "personajes": [ ... ] })'
+              value={textoJSONPegado}
+              onChange={(e) => {
+                setTextoJSONPegado(e.target.value);
+                if (errorPegado) setErrorPegado(null);
+              }}
+              rows={9}
+              style={{
+                width: "100%",
+                backgroundColor: "var(--color-fondo-panel)",
+                border: errorPegado ? "1px solid var(--color-peligro)" : "1px solid var(--color-borde-brutal)",
+                borderRadius: 6,
+                color: "#e2e8f0",
+                fontSize: 11,
+                fontFamily: "monospace",
+                padding: 8,
+                resize: "vertical",
+                boxSizing: "border-box"
+              }}
+            />
+
+            {errorPegado && (
+              <span style={{ color: "var(--color-peligro)", fontSize: 11, fontWeight: 600 }}>
+                {errorPegado}
+              </span>
+            )}
+
+            <div style={{ display: "flex", justifyContent: "flex-end", gap: 8 }}>
+              <button
+                type="button"
+                className={estilos.neoButton}
+                disabled={!textoJSONPegado.trim()}
+                onClick={() => procesarTextoJSON(textoJSONPegado)}
+                style={{ backgroundColor: "var(--color-primario)", color: "#fff", borderColor: "var(--color-borde-cian)" }}
+              >
+                <Check size={14} />
+                Importar Personajes
+              </button>
+              <button
+                type="button"
+                className={estilos.neoButton}
+                onClick={() => {
+                  setModalPegarAbierto(false);
+                  setTextoJSONPegado("");
+                  setErrorPegado(null);
+                }}
+              >
+                Cancelar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Modal de Confirmación para Eliminar */}
       <ConfirmDialog

@@ -7,6 +7,8 @@ interface TrackerEspaciosPactoProps {
   nivelEspacioPacto: number;
   alGastarEspacioPacto?: () => void;
   alRecuperarEspaciosPacto?: () => void;
+  mostrarBotonRecuperar?: boolean;
+  soloLectura?: boolean;
 }
 
 export const TrackerEspaciosPacto: React.FC<TrackerEspaciosPactoProps> = ({
@@ -14,7 +16,9 @@ export const TrackerEspaciosPacto: React.FC<TrackerEspaciosPactoProps> = ({
   espaciosPactoGastados,
   nivelEspacioPacto,
   alGastarEspacioPacto,
-  alRecuperarEspaciosPacto
+  alRecuperarEspaciosPacto,
+  mostrarBotonRecuperar = false,
+  soloLectura = false
 }) => {
   const disponibles = Math.max(0, espaciosPactoMaximos - espaciosPactoGastados);
 
@@ -77,7 +81,7 @@ export const TrackerEspaciosPacto: React.FC<TrackerEspaciosPactoProps> = ({
             <span style={{ color: "#64748b", fontSize: 11 }}> / {espaciosPactoMaximos} ranuras</span>
           </div>
 
-          {alRecuperarEspaciosPacto && (
+          {mostrarBotonRecuperar && alRecuperarEspaciosPacto && (
             <button
               type="button"
               onClick={alRecuperarEspaciosPacto}
@@ -123,10 +127,10 @@ export const TrackerEspaciosPacto: React.FC<TrackerEspaciosPactoProps> = ({
           {Array.from({ length: espaciosPactoMaximos }).map((_, idx) => {
             const estaDisponible = idx < disponibles;
             return (
-              <button
+              <div
                 key={`pacto-slot-${idx}`}
-                type="button"
                 onClick={() => {
+                  if (soloLectura) return;
                   if (estaDisponible && alGastarEspacioPacto) {
                     alGastarEspacioPacto();
                   } else if (!estaDisponible && alRecuperarEspaciosPacto) {
@@ -134,9 +138,13 @@ export const TrackerEspaciosPacto: React.FC<TrackerEspaciosPactoProps> = ({
                   }
                 }}
                 title={
-                  estaDisponible
-                    ? `Espacio de Pacto Nivel ${nivelEspacioPacto} disponible (clic para gastar)`
-                    : `Espacio de Pacto gastado (clic para restaurar)`
+                  soloLectura
+                    ? estaDisponible
+                      ? `Espacio de Pacto Nivel ${nivelEspacioPacto} disponible`
+                      : `Espacio de Pacto Nivel ${nivelEspacioPacto} gastado`
+                    : estaDisponible
+                      ? `Espacio de Pacto Nivel ${nivelEspacioPacto} disponible (clic para gastar)`
+                      : `Espacio de Pacto gastado (clic para restaurar)`
                 }
                 style={{
                   width: 26,
@@ -147,15 +155,23 @@ export const TrackerEspaciosPacto: React.FC<TrackerEspaciosPactoProps> = ({
                     : "1px dashed rgba(192, 132, 252, 0.35)",
                   backgroundColor: estaDisponible ? "#7e22ce" : "transparent",
                   boxShadow: estaDisponible ? "0 0 8px rgba(192, 132, 252, 0.4)" : "none",
-                  cursor: "pointer",
+                  cursor: soloLectura ? "default" : "pointer",
                   padding: 0,
-                  transition: "all 0.15s ease"
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  transition: "all 0.15s ease",
+                  boxSizing: "border-box"
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = "scale(1.1)";
+                  if (!soloLectura) {
+                    e.currentTarget.style.transform = "scale(1.1)";
+                  }
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = "scale(1)";
+                  if (!soloLectura) {
+                    e.currentTarget.style.transform = "scale(1)";
+                  }
                 }}
               />
             );

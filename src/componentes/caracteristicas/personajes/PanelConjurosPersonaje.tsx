@@ -26,6 +26,7 @@ import { TrackerPuntosConjuro } from "./TrackerPuntosConjuro";
 import { TarjetaConjuroCompacta } from "./TarjetaConjuroCompacta";
 import { SeccionArcanoMistico } from "./SeccionArcanoMistico";
 import { FichaHechizo } from "@/componentes/caracteristicas/compendio/FichaHechizo";
+import estilos from "./PanelConjurosPersonaje.module.css";
 
 interface PanelConjurosPersonajeProps {
   personaje: PersonajeJugador;
@@ -138,41 +139,41 @@ export const PanelConjurosPersonaje: React.FC<PanelConjurosPersonajeProps> = ({
   };
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 14, padding: "4px 0" }}>
+    <div className={estilos.contenedor}>
       {personaje.concentracionActiva && (
-        <div style={{ backgroundColor: "rgba(239, 68, 68, 0.12)", border: "1px solid rgba(239, 68, 68, 0.4)", borderRadius: 8, padding: "10px 14px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <Flame size={18} color="#ef4444" style={{ flexShrink: 0 }} />
-            <div style={{ display: "flex", flexDirection: "column" }}>
-              <span style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", color: "#f87171" }}>Concentración Activa</span>
-              <span style={{ fontSize: 13, fontWeight: 800, color: "#fecaca" }}>{personaje.concentracionActiva.nombreHechizo}</span>
+        <div className={estilos.alertaConcentracion}>
+          <div className={estilos.concentracionIzquierda}>
+            <Flame size={18} color="#ef4444" className={estilos.concentracionIcono} />
+            <div className={estilos.concentracionTextos}>
+              <span className={estilos.concentracionEtiqueta}>Concentración Activa</span>
+              <span className={estilos.concentracionNombre}>{personaje.concentracionActiva.nombreHechizo}</span>
             </div>
           </div>
-          <button type="button" onClick={alRomperConcentracion} style={{ backgroundColor: "rgba(239, 68, 68, 0.2)", border: "1px solid rgba(239, 68, 68, 0.5)", borderRadius: 4, color: "#fecaca", fontSize: 11, fontWeight: 700, padding: "4px 10px", cursor: "pointer" }}>Romper</button>
+          <button type="button" onClick={alRomperConcentracion} className={estilos.botonRomperConcentracion}>Romper</button>
         </div>
       )}
 
       {/* Tarjetas de Estadísticas Mágicas (Habilidad, CD, Ataque Mágico) */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10 }}>
-        <div style={{ backgroundColor: "#111622", border: "1px solid rgba(148, 163, 184, 0.14)", borderRadius: 8, padding: "10px 12px", display: "flex", flexDirection: "column", alignItems: "center" }}>
-          <span style={{ fontSize: 10, fontWeight: 700, color: "#64748b", textTransform: "uppercase" }}>Habilidad</span>
-          <div style={{ display: "flex", alignItems: "baseline", gap: 4, marginTop: 2 }}>
-            <span style={{ fontSize: 18, fontWeight: 800, color: "#93c5fd" }}>{etiquetaHabilidad}</span>
-            <span style={{ fontSize: 13, fontWeight: 700, color: "#60a5fa" }}>{modHabilidad >= 0 ? `+${modHabilidad}` : modHabilidad}</span>
+      <div className={estilos.gridEstadisticas}>
+        <div className={estilos.tarjetaEstadistica}>
+          <span className={estilos.estadisticaEtiqueta}>Habilidad</span>
+          <div className={estilos.estadisticaFilaValor}>
+            <span className={estilos.estadisticaHabilidad}>{etiquetaHabilidad}</span>
+            <span className={estilos.estadisticaModificador}>{modHabilidad >= 0 ? `+${modHabilidad}` : modHabilidad}</span>
           </div>
         </div>
 
-        <div style={{ backgroundColor: "#111622", border: "1px solid rgba(148, 163, 184, 0.14)", borderRadius: 8, padding: "10px 12px", display: "flex", flexDirection: "column", alignItems: "center" }}>
-          <span style={{ fontSize: 10, fontWeight: 700, color: "#64748b", textTransform: "uppercase" }}>CD Salvación</span>
-          <span style={{ fontSize: 22, fontWeight: 800, color: "#38bdf8", fontFamily: "JetBrains Mono, monospace", marginTop: 2 }}>{cdConjuros}</span>
+        <div className={estilos.tarjetaEstadistica}>
+          <span className={estilos.estadisticaEtiqueta}>CD Salvación</span>
+          <span className={estilos.estadisticaNumeroMono}>{cdConjuros}</span>
         </div>
 
-        <div onClick={manejarTiradaAtaqueMagico} title="Haz clic para tirar Ataque Mágico en TaleSpire" style={{ backgroundColor: "#111622", border: "1px solid rgba(167, 139, 250, 0.3)", borderRadius: 8, padding: "10px 12px", display: "flex", flexDirection: "column", alignItems: "center", cursor: "pointer" }}>
+        <div onClick={manejarTiradaAtaqueMagico} title="Haz clic para tirar Ataque Mágico en TaleSpire" className={estilos.tarjetaAtaqueMagico}>
           <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
             <Zap size={11} color="#a78bfa" />
-            <span style={{ fontSize: 10, fontWeight: 700, color: "#c4b5fd", textTransform: "uppercase" }}>Ataque Mágico</span>
+            <span className={estilos.estadisticaEtiquetaMorada}>Ataque Mágico</span>
           </div>
-          <span style={{ fontSize: 22, fontWeight: 800, color: "#a78bfa", fontFamily: "JetBrains Mono, monospace", marginTop: 2 }}>{bonoAtaqueMagico >= 0 ? `+${bonoAtaqueMagico}` : bonoAtaqueMagico}</span>
+          <span className={estilos.estadisticaNumeroMorado}>{bonoAtaqueMagico >= 0 ? `+${bonoAtaqueMagico}` : bonoAtaqueMagico}</span>
         </div>
       </div>
 
@@ -188,26 +189,11 @@ export const PanelConjurosPersonaje: React.FC<PanelConjurosPersonajeProps> = ({
       />
 
       {/* Barra de Acciones Rápidas (Compendio de Conjuros + Ajustar Clases) */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+      <div className={estilos.barraAccionesRapidas}>
         <button
           type="button"
           onClick={() => establecerPestaña("compendio")}
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 6,
-            backgroundColor: "rgba(59, 130, 246, 0.12)",
-            border: "1px solid rgba(59, 130, 246, 0.28)",
-            borderRadius: 6,
-            color: "#93c5fd",
-            fontSize: 11,
-            fontWeight: 700,
-            padding: "5px 10px",
-            cursor: "pointer",
-            transition: "all 0.15s ease"
-          }}
-          onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "rgba(59, 130, 246, 0.22)"; }}
-          onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "rgba(59, 130, 246, 0.12)"; }}
+          className={estilos.botonCompendio}
         >
           <BookOpen size={13} />
           <span>Compendio de Conjuros</span>
@@ -217,14 +203,7 @@ export const PanelConjurosPersonaje: React.FC<PanelConjurosPersonajeProps> = ({
           <button
             type="button"
             onClick={alAbrirConfiguracion}
-            style={{
-              background: "none",
-              border: "none",
-              color: "#64748b",
-              fontSize: 11,
-              cursor: "pointer",
-              textDecoration: "underline"
-            }}
+            className={estilos.botonEnlaceAjustes}
           >
             Ajustar Clases y Magia
           </button>
@@ -242,7 +221,7 @@ export const PanelConjurosPersonaje: React.FC<PanelConjurosPersonajeProps> = ({
         const tienePacto = (personaje.espaciosPactoMaximos || 0) > 0 || esLanzadorPacto;
 
         return (
-          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          <div className={estilos.contenedorTrackers}>
             {/* Magia Estándar: Puntos o Espacios de Conjuro */}
             {tieneMagiaEstandar && (
               sistemaMagia === "puntos" ? (
@@ -296,17 +275,7 @@ export const PanelConjurosPersonaje: React.FC<PanelConjurosPersonajeProps> = ({
 
             {/* Sin recursos mágicos */}
             {!tieneMagiaEstandar && !tienePacto && nivelesArcanoDisponibles.length === 0 && (
-              <div
-                style={{
-                  padding: 16,
-                  backgroundColor: "#111622",
-                  border: "1px dashed rgba(148, 163, 184, 0.2)",
-                  borderRadius: 6,
-                  textAlign: "center",
-                  color: "#94a3b8",
-                  fontSize: 12
-                }}
-              >
+              <div className={estilos.alertaSinRecursos}>
                 No hay recursos de magia configurados. Configura tu clase lanzadora en los ajustes del personaje.
               </div>
             )}
@@ -315,47 +284,35 @@ export const PanelConjurosPersonaje: React.FC<PanelConjurosPersonajeProps> = ({
       })()}
 
       {/* Sección: Trucos Listos */}
-      <div style={{ display: "flex", flexDirection: "column", gap: 8, backgroundColor: "#111622", border: "1px solid rgba(148, 163, 184, 0.14)", borderRadius: 8, padding: "12px 14px" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+      <div className={estilos.seccionNivel}>
+        <div className={estilos.cabeceraNivel}>
+          <div className={estilos.tituloNivelFila}>
             <Sparkles size={14} color="#a78bfa" />
-            <span style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", color: "#f1f5f9" }}>Trucos Listos</span>
-            <span style={{ fontSize: 10, backgroundColor: "rgba(167, 139, 250, 0.15)", color: "#c4b5fd", padding: "1px 6px", borderRadius: 10, fontWeight: 700 }}>{trucosConocidos.length}</span>
+            <span className={estilos.tituloNivelTexto}>Trucos Listos</span>
+            <span className={estilos.badgeConteoNivel}>{trucosConocidos.length}</span>
           </div>
           {trucosConocidos.length > 0 && (
-            <span style={{ fontSize: 10, color: "#64748b" }}>
+            <span className={estilos.textoEscalado}>
               Escalado: Nivel {personaje.nivel || 1}
             </span>
           )}
         </div>
         {trucosConocidos.length === 0 ? (
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, padding: "4px 0" }}>
-            <p style={{ margin: 0, fontSize: 11, color: "#64748b", fontStyle: "italic" }}>
+          <div className={estilos.filaVacioTrucos}>
+            <p className={estilos.textoVacio}>
               No tienes trucos listos.
             </p>
             <button
               type="button"
               onClick={() => establecerPestaña("compendio")}
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 5,
-                backgroundColor: "rgba(167, 139, 250, 0.15)",
-                border: "1px solid rgba(167, 139, 250, 0.3)",
-                borderRadius: 4,
-                color: "#c4b5fd",
-                fontSize: 11,
-                fontWeight: 700,
-                padding: "3px 8px",
-                cursor: "pointer"
-              }}
+              className={estilos.botonAnadirTrucos}
             >
               <BookOpen size={11} />
               Añadir Trucos
             </button>
           </div>
         ) : (
-          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+          <div className={estilos.listaTarjetas}>
             {trucosConocidos.map((truco) => (
               <TarjetaConjuroCompacta
                 key={`truco-${truco.id}`}
@@ -378,27 +335,14 @@ export const PanelConjurosPersonaje: React.FC<PanelConjurosPersonajeProps> = ({
 
       {/* Estado Vacío de Conjuros de Nivel 1-9 */}
       {conteoEfectivo.total === 0 && (
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: 10,
-            padding: "24px 16px",
-            backgroundColor: "#111622",
-            border: "1px dashed rgba(148, 163, 184, 0.2)",
-            borderRadius: 8,
-            textAlign: "center"
-          }}
-        >
+        <div className={estilos.tarjetaVaciaConjuros}>
           <BookOpen size={24} color="#94a3b8" />
-          <span style={{ fontSize: 13, fontWeight: 700, color: "#cbd5e1" }}>
+          <span className={estilos.tituloVacioConjuros}>
             {requierePreparacion
               ? "No tienes conjuros preparados para el día"
               : "No tienes conjuros en tu lista"}
           </span>
-          <p style={{ margin: 0, fontSize: 11, color: "#64748b", maxWidth: 320, lineHeight: 1.4 }}>
+          <p className={estilos.descripcionVacioConjuros}>
             {requierePreparacion
               ? "Accede al Compendio de Conjuros para revisar tu repertorio o grimorio y preparar tus hechizos con la estrella."
               : "Accede al Compendio de Conjuros para añadir hechizos a tu lista de conocidos."}
@@ -406,23 +350,7 @@ export const PanelConjurosPersonaje: React.FC<PanelConjurosPersonajeProps> = ({
           <button
             type="button"
             onClick={() => establecerPestaña("compendio")}
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 6,
-              marginTop: 4,
-              backgroundColor: "#2563eb",
-              border: "none",
-              borderRadius: 6,
-              color: "#ffffff",
-              fontSize: 12,
-              fontWeight: 700,
-              padding: "7px 14px",
-              cursor: "pointer",
-              transition: "background-color 0.15s ease"
-            }}
-            onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "#1d4ed8"; }}
-            onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "#2563eb"; }}
+            className={estilos.botonIrCompendio}
           >
             <BookOpen size={14} />
             <span>Ir al Compendio de Conjuros</span>
@@ -436,11 +364,11 @@ export const PanelConjurosPersonaje: React.FC<PanelConjurosPersonajeProps> = ({
         const conjurosNivel = conjurosPorNivel[nivel] || [];
         if (conjurosNivel.length === 0) return null;
         return (
-          <div key={`seccion-nv-${nivel}`} style={{ display: "flex", flexDirection: "column", gap: 8, backgroundColor: "#111622", border: "1px solid rgba(148, 163, 184, 0.14)", borderRadius: 8, padding: "12px 14px" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <span style={{ fontSize: 12, fontWeight: 800, color: "#f1f5f9" }}>Nivel {nivel}</span>
+          <div key={`seccion-nv-${nivel}`} className={estilos.seccionNivel}>
+            <div className={estilos.cabeceraNivel}>
+              <span className={estilos.tituloNivelPrincipal}>Nivel {nivel}</span>
             </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+            <div className={estilos.listaTarjetas}>
               {conjurosNivel.map((hechizo) => (
                 <TarjetaConjuroCompacta
                   key={`conjuro-${hechizo.id}`}

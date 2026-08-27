@@ -196,10 +196,15 @@ export const TarjetaAtaquePersonaje: React.FC<TarjetaAtaquePersonajeProps> = ({
         {/* Daño Principal */}
         <div className={estilos.bloqueDano}>
           <span className={estilos.etiquetaMicro}>Daño</span>
-          <div style={{ display: "flex", alignItems: "baseline", gap: 4 }}>
+          <div style={{ display: "flex", alignItems: "baseline", gap: 4, flexWrap: "wrap" }}>
             <span className={estilos.valorDano}>
               {ataque.esDanoFijo ? `${ataque.dadoDano} (Fijo)` : ataque.dadoDano}
             </span>
+            {ataque.danoVersatil && (
+              <span style={{ fontSize: 10, color: "#fdba74", fontWeight: 700 }}>
+                ({ataque.danoVersatil} 2M)
+              </span>
+            )}
             <span className={estilos.tipoDanoTexto}>{ataque.tipoDano}</span>
           </div>
         </div>
@@ -223,10 +228,10 @@ export const TarjetaAtaquePersonaje: React.FC<TarjetaAtaquePersonajeProps> = ({
               type="button"
               className={estilos.botonTirarDano}
               onClick={() => alTirarDano(ataque, false)}
-              title={`Tirar Daño normal (${ataque.dadoDano})`}
+              title={ataque.danoVersatil ? `Tirar Daño a 1 Mano (${ataque.dadoDano})` : `Tirar Daño normal (${ataque.dadoDano})`}
             >
               <Swords size={11} />
-              <span>Daño</span>
+              <span>{ataque.danoVersatil ? "1M" : "Daño"}</span>
             </button>
           )}
 
@@ -238,7 +243,7 @@ export const TarjetaAtaquePersonaje: React.FC<TarjetaAtaquePersonajeProps> = ({
               title={`Tirar Daño a 2 Manos (${ataque.danoVersatil})`}
               style={{ background: "linear-gradient(180deg, #2b1f13 0%, #17100a 100%)", borderColor: "rgba(251, 146, 60, 0.45)", color: "#fed7aa" }}
             >
-              <span>2M ({ataque.danoVersatil})</span>
+              <span>2M</span>
             </button>
           )}
 
@@ -247,9 +252,21 @@ export const TarjetaAtaquePersonaje: React.FC<TarjetaAtaquePersonajeProps> = ({
               type="button"
               className={estilos.botonTirarCritico}
               onClick={() => alTirarCritico(ataque, false)}
-              title="Tirar Daño Crítico (duplica dados de impacto)"
+              title={ataque.danoVersatil ? "Tirar Daño Crítico a 1 Mano" : "Tirar Daño Crítico (duplica dados de impacto)"}
             >
-              Crítico
+              {ataque.danoVersatil ? "Crit 1M" : "Crítico"}
+            </button>
+          )}
+
+          {!ataque.esDanoFijo && ataque.tieneTiradaAtaque && ataque.danoVersatil && (
+            <button
+              type="button"
+              className={estilos.botonTirarCritico}
+              onClick={() => alTirarCritico(ataque, true)}
+              title="Tirar Daño Crítico a 2 Manos (duplica dados versátiles)"
+              style={{ borderColor: "rgba(251, 146, 60, 0.4)", color: "#fdba74" }}
+            >
+              Crit 2M
             </button>
           )}
         </div>

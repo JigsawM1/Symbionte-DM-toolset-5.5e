@@ -7,3 +7,5 @@ export * from "./logger";
 export * from "./tablasCriticos";
 export * from "./utilesConjuros";
 export * from "./procesadorAtaques";
+export * from "./busquedaTolerante";
+

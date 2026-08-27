@@ -15,6 +15,7 @@ import {
 } from "@/almacen/selectores";
 import { ObjetoHomebrew } from "@/tipos";
 import { Save, Sparkles } from "lucide-react";
+import { coincideBusquedaTolerante } from "@/utiles/busquedaTolerante";
 import estilos from "./FormularioObjeto.module.css";
 
 import {
@@ -193,15 +194,15 @@ export const FormularioObjeto: React.FC<Props> = ({
   const listaTodosObjetos = [...objetosHomebrew].sort((a, b) => a.nombre.localeCompare(b.nombre));
 
   const resultadosContenido = busquedaContenidoQuery.trim()
-    ? listaTodosObjetos.filter((o) =>
-        o.nombre.toLowerCase().includes(busquedaContenidoQuery.toLowerCase())
-      ).slice(0, 5)
+    ? listaTodosObjetos
+        .filter((o) => coincideBusquedaTolerante([o.nombre, o.tipoPrincipal, o.subcategoria], busquedaContenidoQuery))
+        .slice(0, 5)
     : [];
 
   const resultadosCraft = busquedaCraftQuery.trim()
-    ? listaTodosObjetos.filter((o) =>
-        o.nombre.toLowerCase().includes(busquedaCraftQuery.toLowerCase())
-      ).slice(0, 5)
+    ? listaTodosObjetos
+        .filter((o) => coincideBusquedaTolerante([o.nombre, o.tipoPrincipal, o.subcategoria], busquedaCraftQuery))
+        .slice(0, 5)
     : [];
 
   return (

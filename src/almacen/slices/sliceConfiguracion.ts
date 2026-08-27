@@ -6,6 +6,7 @@ import { MONSTRUOS_INICIALES, HECHIZOS_INICIALES, OBJETOS_INICIALES } from '@/ut
 import { leerBlobGlobal, limpiarBlobGlobal } from '@/utiles/almacenamientoTaleSpire';
 import { sanearObjetoHomebrew, sanearHechizoCD, sanearMonstruoSentidosYPasiva } from '@/almacen/sanitizacion';
 import { importarDesdeJSON } from '@/almacen/importadorJSON';
+import { desduplicarEntidades } from '@/utiles/busquedaTolerante';
 import type { EstadoDM } from '@/almacen/usarAlmacenDM';
 import { generarId } from '@/utiles/generarId';
 import { logger } from '@/utiles/logger';
@@ -15,6 +16,7 @@ export interface SliceConfiguracion {
   modoHomebrew: "crear" | "lista";
   tipoHomebrewActivo: "criatura" | "hechizo" | "objeto";
   metodoVidaMonstruo: "estandar" | "maximo" | "azar";
+  sistemaMagia: "espacios" | "puntos";
   campañaNombre: string;
   esGM: boolean;
   mostrarPorcentajeVidaAJugadores: boolean;
@@ -31,6 +33,7 @@ export interface SliceConfiguracion {
   establecerModoHomebrew: (modo: "crear" | "lista") => void;
   establecerTipoHomebrew: (tipo: "criatura" | "hechizo" | "objeto") => void;
   establecerMetodoVidaMonstruo: (metodo: "estandar" | "maximo" | "azar") => void;
+  establecerSistemaMagia: (sistema: "espacios" | "puntos") => void;
   establecerDatosCampaña: (nombre: string, esGM: boolean) => void;
   establecerMostrarPorcentajeVidaAJugadores: (permitir: boolean) => void;
 
@@ -59,6 +62,7 @@ export const crearSliceConfiguracion: StateCreator<
   modoHomebrew: "crear" as const,
   tipoHomebrewActivo: "criatura" as const,
   metodoVidaMonstruo: "azar" as const,
+  sistemaMagia: "espacios" as const,
   campañaNombre: "Cargando campaña de TaleSpire...",
   esGM: true,
   mostrarPorcentajeVidaAJugadores: typeof localStorage !== "undefined" ? localStorage.getItem("ts_mostrar_porcentaje_vida") !== "false" : true,
@@ -77,6 +81,9 @@ export const crearSliceConfiguracion: StateCreator<
   establecerTipoHomebrew: (tipo: "criatura" | "hechizo" | "objeto") => set({ tipoHomebrewActivo: tipo }),
   establecerMetodoVidaMonstruo: (metodo: "estandar" | "maximo" | "azar") => {
     set({ metodoVidaMonstruo: metodo });
+  },
+  establecerSistemaMagia: (sistema: "espacios" | "puntos") => {
+    set({ sistemaMagia: sistema });
   },
   establecerDatosCampaña: (nombre: string, esGM: boolean) => set({ campañaNombre: nombre, esGM }),
   establecerMostrarPorcentajeVidaAJugadores: (permitir: boolean) => {
@@ -174,18 +181,32 @@ export const crearSliceConfiguracion: StateCreator<
         const ronda             = blob.ronda_actual       as number          | undefined;
         const turno             = blob.indice_turno_activo as number         | undefined;
         const metodo            = blob.metodo_vida        as "estandar" | "maximo" | "azar" | undefined;
+        const sistemaMagiaBlob  = blob.sistema_magia      as "espacios" | "puntos" | undefined;
         const asociaciones      = blob.asociaciones_fichas as Record<string, string> | undefined;
 
         if (monstruosHomebrew && monstruosHomebrew.length > 0) {
-          set(() => ({ baseDatosMonstruos: [...MONSTRUOS_INICIALES, ...monstruosHomebrew.map(sanearMonstruoSentidosYPasiva)] }));
+          set(() => ({
+            baseDatosMonstruos: desduplicarEntidades(
+              MONSTRUOS_INICIALES,
+              monstruosHomebrew.map(sanearMonstruoSentidosYPasiva)
+            )
+          }));
         }
         if (hechizosHomebrew && hechizosHomebrew.length > 0) {
-          set(() => ({ baseDatosHechizos: [...HECHIZOS_INICIALES, ...hechizosHomebrew.map(sanearHechizoCD)] }));
+          set(() => ({
+            baseDatosHechizos: desduplicarEntidades(
+              HECHIZOS_INICIALES,
+              hechizosHomebrew.map(sanearHechizoCD)
+            )
+          }));
         }
         if (objetosHomebrew && objetosHomebrew.length > 0) {
-          const idsHomebrew = new Set(objetosHomebrew.map((o) => o.id));
-          const baseObjetosFiltrados = OBJETOS_INICIALES.filter((o) => !idsHomebrew.has(o.id)).map(sanearObjetoHomebrew);
-          set(() => ({ objetosHomebrew: [...baseObjetosFiltrados, ...objetosHomebrew.map(sanearObjetoHomebrew)] }));
+          set(() => ({
+            objetosHomebrew: desduplicarEntidades(
+              OBJETOS_INICIALES.map(sanearObjetoHomebrew),
+              objetosHomebrew.map(sanearObjetoHomebrew)
+            )
+          }));
         }
         if (pendientes && pendientes.length > 0) {
           set({ listaPendientes: pendientes });
@@ -209,6 +230,9 @@ export const crearSliceConfiguracion: StateCreator<
         }
         if (metodo) {
           set({ metodoVidaMonstruo: metodo });
+        }
+        if (sistemaMagiaBlob) {
+          set({ sistemaMagia: sistemaMagiaBlob });
         }
         if (asociaciones) {
           set({ asociacionesFichas: asociaciones });

@@ -15,7 +15,10 @@ import {
   Settings,
   Plus,
   Edit2,
-  Gamepad2
+  Gamepad2,
+  Backpack,
+  Sparkles,
+  Swords
 } from "lucide-react";
 import estilosClases from "./BarraSuperior.module.css";
 
@@ -106,25 +109,49 @@ export const BarraSuperior: React.FC = () => {
             <button
               onClick={() => establecerPestaña("jugadores")}
               className={`${estilosClases.pestanaBoton} ${
-                pestañaActiva === "jugadores" || (pestañaActiva !== "compendio" && pestañaActiva !== "tablas" && pestañaActiva !== "notas" && pestañaActiva !== "iniciativa" && pestañaActiva !== "configuracion" && pestañaActiva !== "homebrew") ? estilosClases.pestanaActiva : ""
+                pestañaActiva === "jugadores" || pestañaActiva === "caracteristicas" || (pestañaActiva !== "acciones" && pestañaActiva !== "ataques" && pestañaActiva !== "conjuros" && pestañaActiva !== "compendio" && pestañaActiva !== "hechizos" && pestañaActiva !== "inventario" && pestañaActiva !== "tablas" && pestañaActiva !== "notas" && pestañaActiva !== "iniciativa" && pestañaActiva !== "configuracion" && pestañaActiva !== "homebrew") ? estilosClases.pestanaActiva : ""
               }`}
-              title="Panel Principal del Jugador"
+              title="Ficha y Características del Personaje"
               type="button"
             >
               <Gamepad2 size={13} />
-              <span className={estilosClases.pestanaTexto}>Vista Jugador</span>
+              <span className={estilosClases.pestanaTexto}>Características</span>
             </button>
 
             <button
-              onClick={() => establecerPestaña("compendio")}
+              onClick={() => establecerPestaña("acciones")}
               className={`${estilosClases.pestanaBoton} ${
-                pestañaActiva === "compendio" || pestañaActiva === "hechizos" ? estilosClases.pestanaActiva : ""
+                pestañaActiva === "acciones" || pestañaActiva === "ataques" ? estilosClases.pestanaActiva : ""
               }`}
-              title="Compendio de Hechizos, Objetos y Equipo"
+              title="Acciones de Combate, Armas y Conjuros"
               type="button"
             >
-              <BookOpen size={13} />
-              <span className={estilosClases.pestanaTexto}>Compendio</span>
+              <Swords size={13} />
+              <span className={estilosClases.pestanaTexto}>Acciones</span>
+            </button>
+
+            <button
+              onClick={() => establecerPestaña("conjuros")}
+              className={`${estilosClases.pestanaBoton} ${
+                pestañaActiva === "conjuros" || pestañaActiva === "compendio" || pestañaActiva === "hechizos" ? estilosClases.pestanaActiva : ""
+              }`}
+              title="Gestor y Compendio de Conjuros"
+              type="button"
+            >
+              <Sparkles size={13} />
+              <span className={estilosClases.pestanaTexto}>Conjuros</span>
+            </button>
+
+            <button
+              onClick={() => establecerPestaña("inventario")}
+              className={`${estilosClases.pestanaBoton} ${
+                pestañaActiva === "inventario" ? estilosClases.pestanaActiva : ""
+              }`}
+              title="Inventario, Equipamiento y Monedas"
+              type="button"
+            >
+              <Backpack size={13} />
+              <span className={estilosClases.pestanaTexto}>Inventario</span>
             </button>
 
             <button
@@ -175,18 +202,6 @@ export const BarraSuperior: React.FC = () => {
             >
               <Play size={13} fill={pestañaActiva === "iniciativa" ? "currentColor" : "none"} />
               <span className={estilosClases.pestanaTexto}>Iniciativa</span>
-            </button>
-
-            <button
-              onClick={() => establecerPestaña("jugadores")}
-              className={`${estilosClases.pestanaBoton} ${
-                pestañaActiva === "jugadores" ? estilosClases.pestanaActiva : ""
-              }`}
-              title="Fichas de Personaje de los Jugadores"
-              type="button"
-            >
-              <Gamepad2 size={13} />
-              <span className={estilosClases.pestanaTexto}>Fichas PJ</span>
             </button>
 
             <button

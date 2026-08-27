@@ -123,8 +123,102 @@ export const EsquemaPersonalizacionHabilidad = z.object({
 });
 export type PersonalizacionHabilidad = z.infer<typeof EsquemaPersonalizacionHabilidad>;
 
+export const EsquemaPersonalizacionCaracteristica = z.object({
+  nombrePersonalizado: z.string().optional(),
+  descripcionPersonalizada: z.string().optional(),
+  modificadorExtra: z.number().default(0),
+  valorFijo: z.number().nullable().default(null),
+  bonoSalvacionExtra: z.number().default(0),
+  notas: z.string().default("")
+});
+export type PersonalizacionCaracteristica = z.infer<typeof EsquemaPersonalizacionCaracteristica>;
+
+export const EsquemaClasePersonaje = z.object({
+  nombre: z.string().default("Guerrero"),
+  subclase: z.string().default(""),
+  nivel: z.number().int().min(1).max(20).default(1)
+});
+export type ClasePersonaje = z.infer<typeof EsquemaClasePersonaje>;
+
 // ==========================================
-// 3. ESQUEMA PRINCIPAL DEL PERSONAJE JUGADOR
+// 3. TIPOS Y ESQUEMAS DE MAGIA (D&D 5.5e)
+// ==========================================
+
+export const EsquemaTipoLanzador = z.enum([
+  "completo",
+  "medio",
+  "tercio",
+  "pacto",
+  "ninguno"
+]);
+export type TipoLanzador = z.infer<typeof EsquemaTipoLanzador>;
+
+export const EsquemaModeloConjuros = z.enum([
+  "conocidos",
+  "preparados",
+  "grimorio",
+  "ninguno"
+]);
+export type ModeloConjuros = z.infer<typeof EsquemaModeloConjuros>;
+
+export const EsquemaClaseLanzadora = z.object({
+  clase: z.string(),
+  nivel: z.number().int().min(1).max(20),
+  tipoLanzador: EsquemaTipoLanzador,
+  habilidadConjuro: EsquemaCaracteristica.nullable().default(null),
+  modeloConjuros: EsquemaModeloConjuros.default("ninguno")
+});
+export type ClaseLanzadora = z.infer<typeof EsquemaClaseLanzadora>;
+
+export const EsquemaConcentracionActiva = z.object({
+  hechizoId: z.string(),
+  nombreHechizo: z.string()
+});
+export type ConcentracionActiva = z.infer<typeof EsquemaConcentracionActiva>;
+
+// ==========================================
+// 3.5 TIPOS Y ESQUEMAS DE INVENTARIO Y MONEDAS (D&D 5.5e)
+// ==========================================
+
+export const EsquemaTamanoPersonaje = z.enum(["Diminuto", "Pequeño", "Mediano", "Grande"]);
+export type TamanoPersonaje = z.infer<typeof EsquemaTamanoPersonaje>;
+
+export const EsquemaBolsaMonedas = z.object({
+  pc: z.number().int().min(0).default(0),
+  pp: z.number().int().min(0).default(0),
+  pe: z.number().int().min(0).default(0),
+  po: z.number().int().min(0).default(0),
+  ppt: z.number().int().min(0).default(0)
+});
+export type BolsaMonedas = z.infer<typeof EsquemaBolsaMonedas>;
+export type TipoMonedaClave = keyof BolsaMonedas;
+
+export const EsquemaTipoContenedor = z.enum(["mochila", "bolsa_contencion", "montura", "almacen"]);
+export type TipoContenedor = z.infer<typeof EsquemaTipoContenedor>;
+
+export const EsquemaObjetoInventario = z.object({
+  idInstancia: z.string(),
+  idObjeto: z.string(),
+  nombre: z.string(),
+  cantidad: z.number().int().min(1).default(1),
+  equipado: z.boolean().default(false),
+  sintonizado: z.boolean().default(false),
+  notas: z.string().default(""),
+  contenedor: EsquemaTipoContenedor.optional(),
+
+  pesoLb: z.number().default(0),
+  tipoPrincipal: z.enum(["Arma", "Armadura", "Equipo de Aventuras"]),
+  esMagico: z.boolean().default(false),
+  rareza: z.enum(["Común", "Poco Común", "Raro", "Muy Raro", "Legendario", "Artefacto"]).default("Común"),
+  equipable: z.boolean().default(false),
+  sintonizacionRequerida: z.boolean().default(false),
+  cargasMaximas: z.number().int().min(0).optional(),
+  cargasActuales: z.number().int().min(0).optional()
+});
+export type ObjetoInventario = z.infer<typeof EsquemaObjetoInventario>;
+
+// ==========================================
+// 4. ESQUEMA PRINCIPAL DEL PERSONAJE JUGADOR
 // ==========================================
 
 export const EsquemaPersonajeJugador = z.object({
@@ -134,8 +228,11 @@ export const EsquemaPersonajeJugador = z.object({
   jugador: z.string().default(""),
   clase: z.string().default("Guerrero"),
   subclase: z.string().default(""),
+  clases: z.array(EsquemaClasePersonaje).default([]),
   nivel: z.number().int().min(1).max(20).default(1),
   especie: z.string().default("Humano"),
+  subespecie: z.string().default(""),
+  tamano: EsquemaTamanoPersonaje.default("Mediano"),
   trasfondo: z.string().default("Personalizado"),
   alineacion: z.string().default("Neutral"),
   experiencia: z.number().int().min(0).default(0),
@@ -160,6 +257,7 @@ export const EsquemaPersonajeJugador = z.object({
     sabiduria: null,
     carisma: null
   }),
+  personalizacionesCaracteristicas: z.record(z.string(), EsquemaPersonalizacionCaracteristica).default({}),
 
   // Salvaciones y Habilidades (Apartado B)
   competenciasSalvacion: EsquemaCompetenciasSalvacion.default({
@@ -204,7 +302,46 @@ export const EsquemaPersonajeJugador = z.object({
   idiomas: z.string().default("Común"),
   idiomasLista: z.array(z.string()).default(["Común"]),
   herramientas: z.string().default(""),
-  herramientasLista: z.array(z.string()).default([])
+  herramientasLista: z.array(z.string()).default([]),
+
+  // Lanzamiento de Conjuros y Magia (Apartado D)
+  esLanzador: z.boolean().default(false),
+  clasesLanzadoras: z.array(EsquemaClaseLanzadora).default([]),
+  concentracionActiva: EsquemaConcentracionActiva.nullable().default(null),
+
+  // Trucos y Listas de Conjuros
+  trucosConocidosIds: z.array(z.string()).default([]),
+  conjurosConocidosIds: z.array(z.string()).default([]),
+  conjurosPreparadosIds: z.array(z.string()).default([]),
+  conjurosSiemprePreparadosIds: z.array(z.string()).default([]),
+
+  // Recursos: Espacios de Conjuro
+  espaciosConjuroMaximos: z.record(z.string(), z.number()).default({}),
+  espaciosConjuroGastados: z.record(z.string(), z.number()).default({}),
+
+  // Recursos: Puntos de Conjuro (Variante DMG)
+  puntosConjuroMaximos: z.number().int().min(0).default(0),
+  puntosConjuroGastados: z.number().int().min(0).default(0),
+  nivelConjuroMaximo: z.number().int().min(0).max(9).default(0),
+
+  // Magia de Pacto (Brujo)
+  espaciosPactoMaximos: z.number().int().min(0).default(0),
+  espaciosPactoGastados: z.number().int().min(0).default(0),
+  nivelEspacioPacto: z.number().int().min(0).max(5).default(0),
+
+  // Campos reservados para mecánicas avanzadas de clase
+  arcanoMisticoIds: z.array(z.string()).default([]),
+  arcanoMisticoGastados: z.array(z.string()).default([]),
+  puntosHechiceriaMaximos: z.number().int().min(0).default(0),
+  puntosHechiceriaActuales: z.number().int().min(0).default(0),
+
+  // Overrides Manuales
+  overrideEspaciosConjuro: z.record(z.string(), z.number()).nullable().default(null),
+  overridePuntosConjuro: z.number().nullable().default(null),
+
+  // Inventario y Equipo (Apartado E)
+  inventario: z.array(EsquemaObjetoInventario).default([]),
+  bolsaMonedas: EsquemaBolsaMonedas.default({ pc: 0, pp: 0, pe: 0, po: 0, ppt: 0 })
 });
 
 export type PersonajeJugador = z.infer<typeof EsquemaPersonajeJugador>;

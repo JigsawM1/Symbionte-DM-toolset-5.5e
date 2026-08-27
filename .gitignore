@@ -29,6 +29,8 @@ dist-ssr
 mod-io-build
 *.zip
 
+DESING.md
+DESING_MASTER.md
 agent.md
 agente.md
 Documentacion API v0.1.md

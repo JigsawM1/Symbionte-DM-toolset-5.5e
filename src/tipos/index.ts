@@ -214,6 +214,7 @@ export const EsquemaHechizoBase = z.object({
   duracion: z.string().optional(),
   clases: z.array(z.string()).optional(),
   ataqueCd: z.string().optional(), // "TIRADA DE ATAQUE", "CD DE SALVACIÓN", "N/A"
+  requiereAtaque: z.boolean().optional(),
   dadosDaño: z.string().optional(),
   dadosDañoNivelSuperior: z.string().optional(),
   cdSalvacion: z.string().optional(), // ej. "Destreza", "Sabiduría"

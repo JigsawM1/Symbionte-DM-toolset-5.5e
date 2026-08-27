@@ -1,8 +1,14 @@
-import React, { useState } from "react";
-import { Clock, MapPin, Layers, X, Edit2, Dices } from "lucide-react";
+import React, { useState, useMemo, useEffect } from "react";
+import { Clock, MapPin, Layers, X, Edit2, Dices, ChevronLeft, Zap, Sparkles } from "lucide-react";
 import { lanzarDadosTaleSpire } from "@/utiles/lanzadorDados";
-import { calcularFormulaEscalada } from "@/utiles/utilesConjuros";
+import {
+  calcularFormulaEscalada,
+  extraerDadosBaseTruco,
+  calcularInfoTruco,
+  construirFormulaTaleSpireTruco
+} from "@/utiles/utilesConjuros";
 import { HechizoBase } from "@/tipos";
+import { obtenerOpcionesLanzamientoConjuro } from "@/servicios/calculadorMagia";
 import { SelectorDesplegable } from "@/componentes/comunes";
 import estilosClases from "./FichaHechizo.module.css";
 
@@ -11,41 +17,191 @@ interface FichaHechizoProps {
   onClose: () => void;
   onEditar?: () => void;
   onAtras?: () => void;
+  onLanzarConjuro?: (nivelLanzamiento: number) => void;
+  onLanzarRitual?: () => void;
+  nombrePersonaje?: string;
+  nivelPersonaje?: number;
+  bonoAtaqueMagico?: number;
+  esLanzadorPacto?: boolean;
+  nivelEspacioPacto?: number;
+  espaciosPactoMaximos?: number;
+  espaciosConjuroMaximos?: Record<string, number>;
+  nivelConjuroMaximo?: number;
+  sistemaMagia?: "espacios" | "puntos";
 }
 
-export const FichaHechizo: React.FC<FichaHechizoProps> = React.memo(({ hechizo, onClose, onEditar, onAtras }) => {
-  // Inicializar nivel de Upcast con el nivel base del conjuro
+export const FichaHechizo: React.FC<FichaHechizoProps> = React.memo(({
+  hechizo,
+  onClose,
+  onEditar,
+  onAtras,
+  onLanzarConjuro,
+  onLanzarRitual,
+  nombrePersonaje,
+  nivelPersonaje = 1,
+  bonoAtaqueMagico,
+  esLanzadorPacto = false,
+  nivelEspacioPacto = 0,
+  espaciosPactoMaximos = 0,
+  espaciosConjuroMaximos = {},
+  nivelConjuroMaximo = 0,
+  sistemaMagia = "espacios"
+}) => {
   const nivelBase = hechizo.nivel;
-  const [nivelLanzamiento, setNivelLanzamiento] = useState<number>(nivelBase > 0 ? nivelBase : 1);
+  const esTruco = nivelBase === 0;
 
-  // Comprobar si el hechizo es escalable a niveles superiores
-  const esEscalable = nivelBase > 0 && hechizo.dadosDañoNivelSuperior && hechizo.dadosDañoNivelSuperior !== "N/A";
+  // Obtener opciones de nivel válidas (respetando ranuras reales, pacto fijo y multiclase)
+  const opcionesLanzamiento = useMemo(() => {
+    return obtenerOpcionesLanzamientoConjuro({
+      nivelHechizo: nivelBase,
+      espaciosConjuroMaximos,
+      nivelConjuroMaximo,
+      sistemaMagia,
+      esLanzadorPacto,
+      nivelEspacioPacto,
+      espaciosPactoMaximos
+    });
+  }, [
+    nivelBase,
+    espaciosConjuroMaximos,
+    nivelConjuroMaximo,
+    sistemaMagia,
+    esLanzadorPacto,
+    nivelEspacioPacto,
+    espaciosPactoMaximos
+  ]);
 
-  // Calcular dados escalados en tiempo real si aplica
-  const dadosBaseValidos = hechizo.dadosDaño && hechizo.dadosDaño !== "N/A" ? hechizo.dadosDaño : "1d6";
-  const formulaEscalada = esEscalable
-    ? calcularFormulaEscalada(dadosBaseValidos, hechizo.dadosDañoNivelSuperior || "1d6", nivelBase, nivelLanzamiento)
+  const [nivelLanzamiento, setNivelLanzamiento] = useState<number>(() => {
+    return opcionesLanzamiento[0]?.nivel ?? (nivelBase > 0 ? nivelBase : 1);
+  });
+
+  useEffect(() => {
+    if (opcionesLanzamiento.length > 0) {
+      const existe = opcionesLanzamiento.some((opt) => opt.nivel === nivelLanzamiento);
+      if (!existe) {
+        setNivelLanzamiento(opcionesLanzamiento[0].nivel);
+      }
+    }
+  }, [opcionesLanzamiento, nivelLanzamiento]);
+
+  // Escalado de trucos según el nivel de personaje (dados o múltiples ataques/rayos)
+  const dadosTrucoBase = esTruco ? extraerDadosBaseTruco(hechizo) : "";
+  const infoTruco = esTruco ? calcularInfoTruco(hechizo, nivelPersonaje) : null;
+
+  // Calcular dados válidos reales del conjuro SIN fallbacks inventados
+  const dadosBaseValidos = esTruco
+    ? (infoTruco?.formula || dadosTrucoBase || "")
+    : (hechizo.dadosDaño && hechizo.dadosDaño !== "N/A" ? hechizo.dadosDaño : "");
+
+  // Comprobar si el hechizo es escalable a niveles superiores con dados adicionales
+  const esEscalable =
+    nivelBase > 0 &&
+    !!hechizo.dadosDañoNivelSuperior &&
+    hechizo.dadosDañoNivelSuperior !== "N/A";
+
+  const formulaEscalada = esEscalable && dadosBaseValidos
+    ? calcularFormulaEscalada(dadosBaseValidos, hechizo.dadosDañoNivelSuperior || "", nivelBase, nivelLanzamiento)
     : { formula: dadosBaseValidos, adicionalText: "" };
+
+  const tieneAtaque =
+    hechizo.requiereAtaque === true ||
+    (!!hechizo.ataqueCd &&
+      hechizo.ataqueCd !== "N/A" &&
+      hechizo.ataqueCd !== "none" &&
+      (hechizo.ataqueCd.toUpperCase().includes("ATAQUE") || hechizo.ataqueCd.toUpperCase().includes("ATTACK")));
+
+  const tieneCDSalvacion =
+    !!hechizo.cdSalvacion &&
+    hechizo.cdSalvacion !== "N/A" &&
+    hechizo.cdSalvacion !== "none";
+
+  const tieneDano =
+    !!dadosBaseValidos &&
+    dadosBaseValidos !== "N/A" &&
+    dadosBaseValidos !== "none";
+
+  const tieneMecanicasCombate = tieneAtaque || tieneCDSalvacion || tieneDano || esEscalable;
 
   // Manejar el lanzamiento de dados en TaleSpire
   const manejarLanzamientoDados = (e: React.MouseEvent) => {
     e.stopPropagation();
     e.preventDefault();
-    
-    const tipoDanoText = hechizo.tipoDaño && hechizo.tipoDaño !== "N/A"
-      ? ` (${hechizo.tipoDaño})`
-      : "";
 
-    if (nivelLanzamiento > nivelBase && esEscalable) {
-      lanzarDadosTaleSpire(
-        formulaEscalada.formula,
-        `Conjuro: ${hechizo.nombre} [Niv ${nivelLanzamiento}]${tipoDanoText}`
+    const prefijoPj = nombrePersonaje ? `${nombrePersonaje} - ` : "";
+
+    if (esTruco) {
+      const res = construirFormulaTaleSpireTruco(
+        hechizo,
+        nivelPersonaje,
+        bonoAtaqueMagico,
+        nombrePersonaje || "Personaje"
       );
+      lanzarDadosTaleSpire(res.formulaTaleSpire, res.etiquetaLog);
     } else {
-      lanzarDadosTaleSpire(
-        dadosBaseValidos,
-        `Conjuro: ${hechizo.nombre}${tipoDanoText}`
-      );
+      const tipoDanoText = hechizo.tipoDaño && hechizo.tipoDaño !== "N/A"
+        ? ` (${hechizo.tipoDaño})`
+        : "";
+
+      const formulaDano =
+        nivelLanzamiento > nivelBase && esEscalable
+          ? formulaEscalada.formula
+          : dadosBaseValidos;
+
+      let formulaFinalTaleSpire = "";
+      if (tieneAtaque && bonoAtaqueMagico !== undefined) {
+        const bonoSigno = bonoAtaqueMagico >= 0 ? `+${bonoAtaqueMagico}` : `${bonoAtaqueMagico}`;
+        if (formulaDano) {
+          formulaFinalTaleSpire = `!Ataque ${hechizo.nombre}:1d20${bonoSigno}/Daño${tipoDanoText}:${formulaDano}`;
+        } else {
+          formulaFinalTaleSpire = `!Ataque ${hechizo.nombre}:1d20${bonoSigno}`;
+        }
+      } else if (formulaDano) {
+        formulaFinalTaleSpire = `!Daño ${hechizo.nombre}${tipoDanoText}:${formulaDano}`;
+      } else {
+        formulaFinalTaleSpire = `!Lanzar Conjuro:${hechizo.nombre}`;
+      }
+
+      const etiquetaLog = `${prefijoPj}Conjuro: ${hechizo.nombre}${
+        nivelLanzamiento > nivelBase ? ` [Niv ${nivelLanzamiento}]` : ""
+      }${tipoDanoText}`;
+
+      lanzarDadosTaleSpire(formulaFinalTaleSpire, etiquetaLog);
+    }
+
+    // Si se abrió desde la hoja de personaje, descontar el recurso y registrar concentración
+    if (onLanzarConjuro) {
+      onLanzarConjuro(nivelLanzamiento);
+    }
+  };
+
+  // Lanzamiento como Ritual (D&D 2024: +10 min, sin gastar ranuras)
+  const manejarLanzamientoRitual = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+
+    const prefijoPj = nombrePersonaje ? `${nombrePersonaje} - ` : "";
+    const tipoDanoText = hechizo.tipoDaño && hechizo.tipoDaño !== "N/A" ? ` (${hechizo.tipoDaño})` : "";
+    const formulaDano = dadosBaseValidos;
+
+    let formulaFinalTaleSpire = "";
+    if (tieneAtaque && bonoAtaqueMagico !== undefined) {
+      const bonoSigno = bonoAtaqueMagico >= 0 ? `+${bonoAtaqueMagico}` : `${bonoAtaqueMagico}`;
+      if (formulaDano) {
+        formulaFinalTaleSpire = `!Ataque ${hechizo.nombre}:1d20${bonoSigno}/Daño${tipoDanoText}:${formulaDano}`;
+      } else {
+        formulaFinalTaleSpire = `!Ataque ${hechizo.nombre}:1d20${bonoSigno}`;
+      }
+    } else if (formulaDano) {
+      formulaFinalTaleSpire = `!Daño Ritual ${hechizo.nombre}${tipoDanoText}:${formulaDano}`;
+    } else {
+      formulaFinalTaleSpire = `!Lanzar Ritual:${hechizo.nombre} (+10 min)`;
+    }
+
+    const etiquetaLog = `${prefijoPj}Ritual: ${hechizo.nombre} (+10 min, sin ranura)${tipoDanoText}`;
+    lanzarDadosTaleSpire(formulaFinalTaleSpire, etiquetaLog);
+
+    if (onLanzarRitual) {
+      onLanzarRitual();
     }
   };
 
@@ -64,7 +220,7 @@ export const FichaHechizo: React.FC<FichaHechizoProps> = React.memo(({ hechizo, 
               title="Volver atrás"
               type="button"
             >
-              ⬅
+              <ChevronLeft size={16} />
             </button>
           )}
           <span className={estilosClases.metaNivel}>
@@ -145,73 +301,158 @@ export const FichaHechizo: React.FC<FichaHechizoProps> = React.memo(({ hechizo, 
           </div>
         )}
 
-        {/* MECÁNICAS DE COMBATE (Daño / CD / Upcasting) */}
-        {((hechizo.ataqueCd && hechizo.ataqueCd !== "N/A") || 
-          (hechizo.dadosDaño && hechizo.dadosDaño !== "N/A") || 
-          (hechizo.cdSalvacion && hechizo.cdSalvacion !== "N/A")) && (
+        {/* MECÁNICAS DE COMBATE (Daño / CD / Upcasting / Mejora de Truco / Lanzamiento) */}
+        {(tieneMecanicasCombate || onLanzarConjuro) && (
           <div className={estilosClases.cajaCombate}>
-            <div className={estilosClases.tituloCombate}>Mecánicas de Combate Integradas</div>
+            <div className={estilosClases.tituloCombate}>
+              {tieneMecanicasCombate ? "Mecánicas de Combate Integradas" : "Lanzamiento del Conjuro"}
+            </div>
             
             <div className={estilosClases.gridCombate}>
-              {hechizo.ataqueCd && hechizo.ataqueCd !== "N/A" && (
+              {tieneAtaque && (
                 <div className={estilosClases.combateItem}>
                   <span className={estilosClases.combateLabel}>Efecto/Ataque: </span>
                   <strong className={estilosClases.colorActivo}>{hechizo.ataqueCd}</strong>
                 </div>
               )}
-              {hechizo.cdSalvacion && hechizo.cdSalvacion !== "N/A" && (
+              {tieneCDSalvacion && (
                 <div className={estilosClases.combateItem}>
                   <span className={estilosClases.combateLabel}>CD Salvación: </span>
                   <strong className={estilosClases.colorAlerta}>CD {hechizo.cdSalvacion}</strong>
                 </div>
               )}
-              {hechizo.dadosDaño && hechizo.dadosDaño !== "N/A" && (
-                <div className={estilosClases.combateItem} style={{ gridColumn: esEscalable ? "1 / -1" : "auto" }}>
-                  <span className={estilosClases.combateLabel}>Daño Base: </span>
+              {tieneDano && (
+                <div className={estilosClases.combateItem} style={{ gridColumn: (esEscalable || esTruco) ? "1 / -1" : "auto" }}>
+                  <span className={estilosClases.combateLabel}>
+                    {esTruco && infoTruco?.esAtaqueMultiple && infoTruco.cantidadAtaques > 1
+                      ? "Ataques de Rayos: "
+                      : esTruco
+                      ? "Daño del Truco: "
+                      : "Daño Base: "}
+                  </span>
                   <strong className={estilosClases.colorDano}>
-                    {hechizo.dadosDaño} 
+                    {esTruco && infoTruco ? (
+                      <>
+                        {infoTruco.etiquetaVisual}
+                        {infoTruco.multiplicador > 1 && !infoTruco.esAtaqueMultiple && (
+                          <span style={{ fontSize: 11, color: "#93c5fd", fontWeight: 600, marginLeft: 6 }}>
+                            ({infoTruco.multiplicador}x dado base {infoTruco.base} • Nv.{nivelPersonaje})
+                          </span>
+                        )}
+                      </>
+                    ) : (
+                      hechizo.dadosDaño || dadosBaseValidos
+                    )}
                     {hechizo.tipoDaño && hechizo.tipoDaño !== "N/A" ? ` (${hechizo.tipoDaño})` : ""}
                   </strong>
                 </div>
               )}
             </div>
 
-            {/* Panel de Upcasting Interactivo */}
-            {esEscalable && (
+            {/* Panel de Upcasting Interactivo para conjuros de nivel 1+ */}
+            {nivelBase > 0 && (esEscalable || onLanzarConjuro) && (
               <div className={estilosClases.seccionUpcast}>
                 <div className={estilosClases.lineaDivisoria}></div>
-                  <div className={estilosClases.upcastSelectContenedor}>
-                    <span className={estilosClases.upcastLabel}>Lanzar con Ranura:</span>
-                    <div style={{ minWidth: "130px" }}>
+                <div className={estilosClases.upcastSelectContenedor}>
+                  <span className={estilosClases.upcastLabel}>Lanzar con Ranura:</span>
+                  {opcionesLanzamiento.length > 1 ? (
+                    <div style={{ minWidth: "140px" }}>
                       <SelectorDesplegable
                         valor={String(nivelLanzamiento)}
                         alCambiar={(val) => setNivelLanzamiento(Number(val))}
-                        opciones={Array.from({ length: 10 - nivelBase }, (_, i) => nivelBase + i).map((lvl) => ({
-                          valor: String(lvl),
-                          etiqueta: `Nivel ${lvl} ${lvl === nivelBase ? "(Base)" : ""}`
+                        opciones={opcionesLanzamiento.map((opt) => ({
+                          valor: String(opt.nivel),
+                          etiqueta: opt.etiqueta
                         }))}
                         tamano="compacto"
                       />
                     </div>
-                  </div>
-                  {nivelLanzamiento > nivelBase && (
-                    <div className={estilosClases.formulasVista}>
-                      <span className={estilosClases.formulaTotal}>{formulaEscalada.formula}</span>
-                      <span className={estilosClases.formulaDetalle}>{formulaEscalada.adicionalText}</span>
+                  ) : (
+                    <div
+                      style={{
+                        fontSize: 12,
+                        fontWeight: 700,
+                        backgroundColor: opcionesLanzamiento[0]?.tipo === "pacto"
+                          ? "rgba(168, 85, 247, 0.15)"
+                          : "rgba(148, 163, 184, 0.1)",
+                        color: opcionesLanzamiento[0]?.tipo === "pacto" ? "#d8b4fe" : "#cbd5e1",
+                        border: opcionesLanzamiento[0]?.tipo === "pacto"
+                          ? "1px solid rgba(168, 85, 247, 0.35)"
+                          : "1px solid rgba(148, 163, 184, 0.2)",
+                        borderRadius: 4,
+                        padding: "4px 8px"
+                      }}
+                      title={
+                        opcionesLanzamiento[0]?.tipo === "pacto"
+                          ? "Lanzamiento automático con ranura de Pacto de nivel fijo (Brujo)"
+                          : `Lanzamiento con ranura de Nivel ${opcionesLanzamiento[0]?.nivel || nivelBase}`
+                      }
+                    >
+                      {opcionesLanzamiento[0]?.etiqueta || `Nivel ${nivelBase}`}
                     </div>
                   )}
                 </div>
-              )}
+                {nivelLanzamiento > nivelBase && esEscalable && (
+                  <div className={estilosClases.formulasVista}>
+                    <span className={estilosClases.formulaTotal}>{formulaEscalada.formula}</span>
+                    <span className={estilosClases.formulaDetalle}>{formulaEscalada.adicionalText}</span>
+                  </div>
+                )}
+              </div>
+            )}
 
-            {/* Botón de Lanzamiento de Dados */}
-            {hechizo.dadosDaño && hechizo.dadosDaño !== "N/A" && (
+            {/* Botón de Lanzamiento a TaleSpire */}
+            <button
+              onClick={manejarLanzamientoDados}
+              className={nivelLanzamiento > nivelBase && esEscalable ? estilosClases.botonTirarUpcast : estilosClases.botonTirarCombate}
+              style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "6px" }}
+              type="button"
+            >
+              {tieneDano || tieneAtaque ? <Dices size={16} /> : <Zap size={16} />}
+              <span>
+                {esTruco && infoTruco?.esAtaqueMultiple && infoTruco.cantidadAtaques > 1
+                  ? `Tirar ${infoTruco.etiquetaVisual} en TaleSpire`
+                  : tieneDano
+                  ? `Tirar Daño en TaleSpire ${
+                      esTruco && infoTruco?.formula
+                        ? `(${infoTruco.formula})`
+                        : nivelLanzamiento > nivelBase && esEscalable
+                        ? `(Nivel ${nivelLanzamiento})`
+                        : ""
+                    }`
+                  : tieneAtaque
+                  ? `Tirar Ataque en TaleSpire ${bonoAtaqueMagico !== undefined ? `(${bonoAtaqueMagico >= 0 ? "+" : ""}${bonoAtaqueMagico})` : ""}`
+                  : `Lanzar Conjuro en TaleSpire ${nivelLanzamiento > nivelBase ? `(Nivel ${nivelLanzamiento})` : ""}`}
+              </span>
+            </button>
+
+            {/* Botón Lanzamiento como Ritual */}
+            {hechizo.ritual && !esTruco && (
               <button
-                onClick={manejarLanzamientoDados}
-                className={nivelLanzamiento > nivelBase && esEscalable ? estilosClases.botonTirarUpcast : estilosClases.botonTirarCombate}
-                style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "6px" }}
+                onClick={manejarLanzamientoRitual}
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: "6px",
+                  backgroundColor: "rgba(168, 85, 247, 0.15)",
+                  border: "1px solid rgba(168, 85, 247, 0.4)",
+                  borderRadius: 6,
+                  color: "#d8b4fe",
+                  fontSize: 13,
+                  fontWeight: 700,
+                  padding: "8px 14px",
+                  cursor: "pointer",
+                  marginTop: 6,
+                  width: "100%",
+                  transition: "background-color 0.15s ease"
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "rgba(168, 85, 247, 0.25)")}
+                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "rgba(168, 85, 247, 0.15)")}
+                type="button"
               >
-                <Dices size={16} />
-                <span>Tirar Daño en TaleSpire {nivelLanzamiento > nivelBase && esEscalable ? `(Nivel ${nivelLanzamiento})` : ""}</span>
+                <Sparkles size={15} />
+                <span>Lanzar como Ritual (+10 min, sin gastar ranura)</span>
               </button>
             )}
           </div>

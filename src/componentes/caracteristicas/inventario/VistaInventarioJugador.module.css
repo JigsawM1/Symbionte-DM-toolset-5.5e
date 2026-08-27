@@ -1,0 +1,76 @@
+.contenedorGeneral {
+  width: 100%;
+  max-width: 640px;
+  margin: 0 auto;
+  height: 100%;
+  max-height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 6px 8px 80px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  box-sizing: border-box;
+}
+
+.cabeceraPrincipal {
+  background: linear-gradient(180deg, #161e2c 0%, #111622 100%);
+  border: 1px solid rgba(129, 140, 248, 0.22);
+  border-radius: 8px;
+  padding: 8px 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.filaTitulo {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.grupoTitulo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tituloTexto {
+  font-family: var(--fuente-titulo, 'Outfit', sans-serif);
+  font-size: 15px;
+  font-weight: 800;
+  color: #f8fafc;
+  margin: 0;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+}
+
+.contadorBadge {
+  font-size: 10px;
+  font-weight: 700;
+  background-color: rgba(0, 245, 212, 0.12);
+  border: 1px solid rgba(0, 245, 212, 0.3);
+  color: #00f5d4;
+  padding: 1px 7px;
+  border-radius: 10px;
+  font-family: var(--fuente-codigo, 'JetBrains Mono', monospace);
+}
+
+.selectorPersonaje {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.tarjetaVacia {
+  background-color: #121722;
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  border-radius: 8px;
+  padding: 32px;
+  text-align: center;
+  color: #94a3b8;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}

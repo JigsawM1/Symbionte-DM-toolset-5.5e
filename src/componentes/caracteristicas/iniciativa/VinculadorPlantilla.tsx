@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Link, Search, X, Check } from "lucide-react";
 import { MonstruoBase } from "@/utiles/datosIniciales";
+import { coincideBusquedaTolerante } from "@/utiles/busquedaTolerante";
 import estilos from "./VinculadorPlantilla.module.css";
 
 interface VinculadorPlantillaProps {
@@ -18,7 +19,7 @@ export const VinculadorPlantilla: React.FC<VinculadorPlantillaProps> = ({
   const [mostrarListaVinculos, setMostrarListaVinculos] = useState(false);
 
   const plantillasFiltradas = baseDatosMonstruos.filter((m) =>
-    m.nombre.toLowerCase().includes(filtroBuscadorVinculo.toLowerCase())
+    coincideBusquedaTolerante([m.nombre, m.tipo, m.alineacion], filtroBuscadorVinculo)
   );
 
   return (

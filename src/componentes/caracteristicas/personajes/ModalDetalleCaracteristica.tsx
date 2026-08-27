@@ -1,12 +1,12 @@
 import React, { useState } from "react";
-import type { PersonajeJugador, Caracteristica } from "@/tipos";
+import type { PersonajeJugador, Caracteristica, PersonalizacionCaracteristica } from "@/tipos";
 import {
   DESCRIPCIONES_CARACTERISTICAS,
   obtenerBonoCompetenciaPorNivel
 } from "@/constantes";
 import { calcularModificadorCaracteristica } from "@/servicios/procesadorDescansos";
 import ts from "@/utiles/TaleSpireAdapter";
-import { X, Info, Settings, Dices, Shield, Save, Sparkles } from "lucide-react";
+import { X, Info, Edit3, Dices, Shield, Save, Sparkles } from "lucide-react";
 import estilos from "./HojaPersonaje.module.css";
 
 interface ModalDetalleCaracteristicaProps {
@@ -19,6 +19,7 @@ interface ModalDetalleCaracteristicaProps {
       valorBase: number;
       overrideFijo: number | null;
       competenteSalvacion: boolean;
+      personalizacion?: Partial<PersonalizacionCaracteristica>;
     }
   ) => void;
   alTirarCaracteristica?: (carac: Caracteristica, nombre: string, bono: number) => void;
@@ -51,20 +52,38 @@ export const ModalDetalleCaracteristica: React.FC<ModalDetalleCaracteristicaProp
   alTirarCaracteristica,
   alTirarSalvacion
 }) => {
-  const [pestanaActiva, setPestanaActiva] = useState<"info" | "configurar">("info");
+  const [pestanaActiva, setPestanaActiva] = useState<"info" | "personalizar">("info");
 
   const nombreCarac = NOMBRES_CARACTERISTICAS[caracteristicaClave] || "Característica";
   const abrev = ABREVIATURAS[caracteristicaClave] || "ATR";
-  const descripcionSalvacion = DESCRIPCIONES_CARACTERISTICAS[caracteristicaClave] || "";
+  const descripcionSalvacionOficial = DESCRIPCIONES_CARACTERISTICAS[caracteristicaClave] || "";
 
+  const customExistente = personaje.personalizacionesCaracteristicas?.[caracteristicaClave];
   const valorBaseActual = personaje.caracteristicas?.[caracteristicaClave] ?? 10;
-  const overrideActual = personaje.overridesFijos?.[caracteristicaClave] ?? null;
-  const esCompetenteActual = !!personaje.competenciasSalvacion?.[caracteristicaClave]  // Estado del formulario de configuración (texto libre para permitir borrar y escribir a gusto)
+  const overrideActual = customExistente?.valorFijo ?? personaje.overridesFijos?.[caracteristicaClave] ?? null;
+  const esCompetenteActual = !!personaje.competenciasSalvacion?.[caracteristicaClave];
+
+  // Estado del formulario de personalización y configuración
+  const [nombreForm, setNombreForm] = useState<string>(customExistente?.nombrePersonalizado ?? "");
+  const [descForm, setDescForm] = useState<string>(
+    customExistente?.descripcionPersonalizada ?? descripcionSalvacionOficial
+  );
   const [valorBaseForm, setValorBaseForm] = useState<string>(String(valorBaseActual));
   const [overrideForm, setOverrideForm] = useState<string>(
     overrideActual !== null && overrideActual !== undefined ? String(overrideActual) : ""
   );
+  const [modExtraForm, setModExtraForm] = useState<string>(
+    customExistente?.modificadorExtra !== undefined && customExistente.modificadorExtra !== 0
+      ? String(customExistente.modificadorExtra)
+      : ""
+  );
+  const [bonoSalvacionExtraForm, setBonoSalvacionExtraForm] = useState<string>(
+    customExistente?.bonoSalvacionExtra !== undefined && customExistente.bonoSalvacionExtra !== 0
+      ? String(customExistente.bonoSalvacionExtra)
+      : ""
+  );
   const [competenteSalvacionForm, setCompetenteSalvacionForm] = useState<boolean>(esCompetenteActual);
+  const [notasForm, setNotasForm] = useState<string>(customExistente?.notas ?? "");
 
   // Cálculos matemáticos en tiempo real
   const pb = obtenerBonoCompetenciaPorNivel(personaje.nivel || 1);
@@ -75,13 +94,22 @@ export const ModalDetalleCaracteristica: React.FC<ModalDetalleCaracteristicaProp
   const overrideNumPreview = overrideForm.trim() !== "" ? parseInt(overrideForm, 10) : null;
   const overrideValidoPreview = overrideNumPreview !== null && !isNaN(overrideNumPreview) && overrideNumPreview >= 1 && overrideNumPreview <= 30 ? overrideNumPreview : null;
   const valorEfectivoPreview = overrideValidoPreview !== null ? overrideValidoPreview : baseValidaPreview;
-  const modPreview = calcularModificadorCaracteristica(valorEfectivoPreview);
-  const bonoSalvacionPreview = competenteSalvacionForm ? modPreview + pb : modPreview;
+  const modBasePreview = calcularModificadorCaracteristica(valorEfectivoPreview);
+  const modExtraNumPreview = parseInt(modExtraForm, 10) || 0;
+  const modTotalPreview = modBasePreview + modExtraNumPreview;
+  const bonoSalvExtraNumPreview = parseInt(bonoSalvacionExtraForm, 10) || 0;
+  const bonoSalvacionPreview = (competenteSalvacionForm ? modTotalPreview + pb : modTotalPreview) + bonoSalvExtraNumPreview;
 
-  // Modificadores de la ficha guardada para las tiradas
+  // Modificadores guardados actuales para las tiradas
   const valorEfectivoGuardado = overrideActual !== null && overrideActual !== undefined ? overrideActual : valorBaseActual;
-  const modGuardado = calcularModificadorCaracteristica(valorEfectivoGuardado);
-  const bonoSalvacionGuardado = esCompetenteActual ? modGuardado + pb : modGuardado;
+  const modBaseGuardado = calcularModificadorCaracteristica(valorEfectivoGuardado);
+  const modExtraGuardado = customExistente?.modificadorExtra || 0;
+  const modTotalGuardado = modBaseGuardado + modExtraGuardado;
+  const bonoSalvExtraGuardado = customExistente?.bonoSalvacionExtra || 0;
+  const bonoSalvacionGuardado = (esCompetenteActual ? modTotalGuardado + pb : modTotalGuardado) + bonoSalvExtraGuardado;
+
+  const tituloMostrar = customExistente?.nombrePersonalizado || nombreCarac;
+  const descripcionMostrar = customExistente?.descripcionPersonalizada || descripcionSalvacionOficial;
 
   const cambiarBaseDelta = (delta: number) => {
     const num = parseInt(valorBaseForm, 10);
@@ -93,9 +121,9 @@ export const ModalDetalleCaracteristica: React.FC<ModalDetalleCaracteristicaProp
   // Tiradas de dados 3D nativas
   const ejecutarTiradaCaracteristica = () => {
     if (alTirarCaracteristica) {
-      alTirarCaracteristica(caracteristicaClave, nombreCarac, modGuardado);
+      alTirarCaracteristica(caracteristicaClave, tituloMostrar, modTotalGuardado);
     } else {
-      const formula = modGuardado >= 0 ? `1d20+${modGuardado}` : `1d20${modGuardado}`;
+      const formula = modTotalGuardado >= 0 ? `1d20+${modTotalGuardado}` : `1d20${modTotalGuardado}`;
       ts.dice
         .putDiceInTray([{ name: `Prueba de ${abrev}`, roll: formula }], true)
         .catch((err: unknown) => {
@@ -106,7 +134,7 @@ export const ModalDetalleCaracteristica: React.FC<ModalDetalleCaracteristicaProp
 
   const ejecutarTiradaSalvacion = () => {
     if (alTirarSalvacion) {
-      alTirarSalvacion(caracteristicaClave, nombreCarac, bonoSalvacionGuardado);
+      alTirarSalvacion(caracteristicaClave, tituloMostrar, bonoSalvacionGuardado);
     } else {
       const formula = bonoSalvacionGuardado >= 0 ? `1d20+${bonoSalvacionGuardado}` : `1d20${bonoSalvacionGuardado}`;
       ts.dice
@@ -123,12 +151,24 @@ export const ModalDetalleCaracteristica: React.FC<ModalDetalleCaracteristicaProp
     const baseFinal = !isNaN(baseNum) && baseNum >= 1 && baseNum <= 30 ? baseNum : valorBaseActual;
     const overrideNum = overrideForm.trim() !== "" ? parseInt(overrideForm, 10) : null;
     const overrideFinal = overrideNum !== null && !isNaN(overrideNum) && overrideNum >= 1 && overrideNum <= 30 ? overrideNum : null;
+    const modExtraFinal = parseInt(modExtraForm, 10) || 0;
+    const bonoSalvExtraFinal = parseInt(bonoSalvacionExtraForm, 10) || 0;
 
     alGuardar(caracteristicaClave, {
       valorBase: baseFinal,
       overrideFijo: overrideFinal,
-      competenteSalvacion: competenteSalvacionForm
+      competenteSalvacion: competenteSalvacionForm,
+      personalizacion: {
+        nombrePersonalizado: nombreForm.trim() !== "" ? nombreForm.trim() : undefined,
+        descripcionPersonalizada: descForm.trim() !== "" ? descForm.trim() : undefined,
+        modificadorExtra: modExtraFinal,
+        valorFijo: overrideFinal,
+        bonoSalvacionExtra: bonoSalvExtraFinal,
+        notas: notasForm
+      }
     });
+
+    alCerrar();
   };
 
   return (
@@ -160,12 +200,12 @@ export const ModalDetalleCaracteristica: React.FC<ModalDetalleCaracteristicaProp
             </div>
             <div>
               <h3 className={estilos.tituloModal} style={{ margin: 0 }}>
-                {nombreCarac}
+                {tituloMostrar}
               </h3>
               <span style={{ fontSize: 11, color: "#94a3b8" }}>
                 Puntuación: <strong style={{ color: "#f1f5f9" }}>{valorEfectivoPreview}</strong> (Mod:{" "}
-                <strong style={{ color: modPreview >= 0 ? "#60a5fa" : "#fca5a5" }}>
-                  {modPreview >= 0 ? `+${modPreview}` : modPreview}
+                <strong style={{ color: modTotalPreview >= 0 ? "#60a5fa" : "#fca5a5" }}>
+                  {modTotalPreview >= 0 ? `+${modTotalPreview}` : modTotalPreview}
                 </strong>
                 )
                 {overrideValidoPreview !== null && (
@@ -188,7 +228,7 @@ export const ModalDetalleCaracteristica: React.FC<ModalDetalleCaracteristicaProp
             </div>
           </div>
 
-          <button type="button" className={estilos.botonCerrarModal} onClick={alCerrar}>
+          <button type="button" className={estilos.botonCerrarModal} onClick={alCerrar} title="Cerrar">
             <X size={18} />
           </button>
         </div>
@@ -200,24 +240,24 @@ export const ModalDetalleCaracteristica: React.FC<ModalDetalleCaracteristicaProp
             className={`${estilos.pestañaModal} ${pestanaActiva === "info" ? estilos.pestañaModalActiva : ""}`}
             onClick={() => setPestanaActiva("info")}
           >
-            <Info size={14} />
+            <Info size={13} />
             Información y Tiradas
           </button>
 
           <button
             type="button"
-            className={`${estilos.pestañaModal} ${pestanaActiva === "configurar" ? estilos.pestañaModalActiva : ""}`}
-            onClick={() => setPestanaActiva("configurar")}
+            className={`${estilos.pestañaModal} ${pestanaActiva === "personalizar" ? estilos.pestañaModalActiva : ""}`}
+            onClick={() => setPestanaActiva("personalizar")}
           >
-            <Settings size={14} />
-            Configurar / Override
+            <Edit3 size={13} />
+            Personalizar
           </button>
         </div>
 
         {/* PESTAÑA 1: INFORMACIÓN Y TIRADAS */}
         {pestanaActiva === "info" && (
           <div className={estilos.contenidoPestañaModal} style={{ gap: 12 }}>
-            {/* Uso oficial de Salvaciones (D&D 5.5e) */}
+            {/* Uso oficial / personalizado de Salvaciones */}
             <div
               style={{
                 padding: "10px 12px",
@@ -230,11 +270,11 @@ export const ModalDetalleCaracteristica: React.FC<ModalDetalleCaracteristicaProp
               <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 3 }}>
                 <Shield size={13} color="#94a3b8" />
                 <span style={{ fontSize: 11, fontWeight: 700, color: "#cbd5e1" }}>
-                  Haz una tirada de salvación para...
+                  Tiradas de salvación y usos de {tituloMostrar}...
                 </span>
               </div>
               <p style={{ margin: 0, fontSize: 12, color: "#f1f5f9", lineHeight: 1.4 }}>
-                {descripcionSalvacion}
+                {descripcionMostrar}
               </p>
             </div>
 
@@ -246,7 +286,7 @@ export const ModalDetalleCaracteristica: React.FC<ModalDetalleCaracteristicaProp
                 borderRadius: 6,
                 display: "flex",
                 flexDirection: "column",
-                gap: 8,
+                gap: 6,
                 backgroundColor: "#0a0e16"
               }}
             >
@@ -273,10 +313,35 @@ export const ModalDetalleCaracteristica: React.FC<ModalDetalleCaracteristicaProp
                 </div>
 
                 <div style={{ display: "flex", justifyContent: "space-between", color: "#94a3b8" }}>
-                  <span>Modificador Resultante:</span>
-                  <strong style={{ color: modGuardado >= 0 ? "#60a5fa" : "#fca5a5" }}>
-                    {modGuardado >= 0 ? `+${modGuardado}` : modGuardado}
+                  <span>Modificador Base ({valorEfectivoGuardado}):</span>
+                  <strong style={{ color: modBaseGuardado >= 0 ? "#60a5fa" : "#fca5a5" }}>
+                    {modBaseGuardado >= 0 ? `+${modBaseGuardado}` : modBaseGuardado}
                   </strong>
+                </div>
+
+                {modExtraGuardado !== 0 && (
+                  <div style={{ display: "flex", justifyContent: "space-between", color: "#94a3b8" }}>
+                    <span>Modificador Adicional a Pruebas:</span>
+                    <strong style={{ color: modExtraGuardado >= 0 ? "#60a5fa" : "#fca5a5" }}>
+                      {modExtraGuardado >= 0 ? `+${modExtraGuardado}` : modExtraGuardado}
+                    </strong>
+                  </div>
+                )}
+
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    color: "#f1f5f9",
+                    borderTop: "1px solid rgba(148, 163, 184, 0.12)",
+                    paddingTop: 4,
+                    fontWeight: 700
+                  }}
+                >
+                  <span>Total Modificador de Prueba:</span>
+                  <span style={{ color: modTotalGuardado >= 0 ? "#60a5fa" : "#fca5a5" }}>
+                    {modTotalGuardado >= 0 ? `+${modTotalGuardado}` : modTotalGuardado}
+                  </span>
                 </div>
 
                 <div
@@ -300,6 +365,15 @@ export const ModalDetalleCaracteristica: React.FC<ModalDetalleCaracteristicaProp
                   </span>
                 </div>
 
+                {bonoSalvExtraGuardado !== 0 && (
+                  <div style={{ display: "flex", justifyContent: "space-between", color: "#94a3b8" }}>
+                    <span>Bono Adicional a Salvaciones:</span>
+                    <span style={{ color: bonoSalvExtraGuardado >= 0 ? "#93c5fd" : "#fca5a5" }}>
+                      {bonoSalvExtraGuardado >= 0 ? `+${bonoSalvExtraGuardado}` : bonoSalvExtraGuardado}
+                    </span>
+                  </div>
+                )}
+
                 <div
                   style={{
                     display: "flex",
@@ -318,6 +392,23 @@ export const ModalDetalleCaracteristica: React.FC<ModalDetalleCaracteristicaProp
                 </div>
               </div>
             </div>
+
+            {/* Notas si existen */}
+            {customExistente?.notas && (
+              <div
+                style={{
+                  fontSize: 11,
+                  color: "#94a3b8",
+                  padding: "8px 10px",
+                  borderRadius: 4,
+                  backgroundColor: "#0d121c",
+                  border: "1px dashed rgba(148, 163, 184, 0.2)"
+                }}
+              >
+                <strong style={{ color: "#cbd5e1" }}>Notas: </strong>
+                {customExistente.notas}
+              </div>
+            )}
 
             {/* Botones de Tirada 3D */}
             <div style={{ display: "flex", gap: 10, marginTop: 4 }}>
@@ -338,7 +429,7 @@ export const ModalDetalleCaracteristica: React.FC<ModalDetalleCaracteristicaProp
                 }}
               >
                 <Dices size={14} color="#94a3b8" />
-                Prueba {abrev} ({modGuardado >= 0 ? `+${modGuardado}` : modGuardado})
+                Prueba {abrev} ({modTotalGuardado >= 0 ? `+${modTotalGuardado}` : modTotalGuardado})
               </button>
 
               <button
@@ -364,17 +455,46 @@ export const ModalDetalleCaracteristica: React.FC<ModalDetalleCaracteristicaProp
           </div>
         )}
 
-        {/* PESTAÑA 2: CONFIGURAR / OVERRIDE */}
-        {pestanaActiva === "configurar" && (
-          <form onSubmit={manejarGuardar} className={estilos.contenidoPestañaModal} style={{ gap: 14 }}>
+        {/* PESTAÑA 2: PERSONALIZAR */}
+        {pestanaActiva === "personalizar" && (
+          <form onSubmit={manejarGuardar} className={estilos.contenidoPestañaModal} style={{ gap: 12 }}>
+            <p style={{ fontSize: 11, color: "#94a3b8", margin: 0 }}>
+              Personaliza el nombre a mostrar, descripción, puntuaciones base, overrides y bonificadores especiales.
+            </p>
+
+            {/* Campo Nombre Personalizado */}
+            <div className={estilos.campoFormulario}>
+              <label className={estilos.labelFormulario}>Nombre Personalizado</label>
+              <input
+                type="text"
+                className={estilos.inputFormulario}
+                value={nombreForm}
+                onChange={(e) => setNombreForm(e.target.value)}
+                placeholder={nombreCarac}
+              />
+            </div>
+
+            {/* Campo Descripción Personalizada */}
+            <div className={estilos.campoFormulario}>
+              <label className={estilos.labelFormulario}>Descripción de Usos y Salvaciones</label>
+              <textarea
+                className={estilos.inputFormulario}
+                rows={2}
+                value={descForm}
+                onChange={(e) => setDescForm(e.target.value)}
+                placeholder="Descripción del uso de la característica..."
+                style={{ resize: "vertical", fontSize: 11 }}
+              />
+            </div>
+
             {/* Puntuación Base con botones +/- y edición libre de texto */}
             <div className={estilos.campoFormulario}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <label className={estilos.labelFormulario} style={{ color: "#f1f5f9" }}>
-                  Puntuación Base de {nombreCarac} (1 - 30)
+                  Puntuación Base Natural (1 - 30)
                 </label>
                 <span style={{ fontSize: 11, color: "#93c5fd", fontWeight: 700 }}>
-                  Mod: {modPreview >= 0 ? `+${modPreview}` : modPreview}
+                  Mod Base: {modBasePreview >= 0 ? `+${modBasePreview}` : modBasePreview}
                 </span>
               </div>
 
@@ -451,10 +571,6 @@ export const ModalDetalleCaracteristica: React.FC<ModalDetalleCaracteristicaProp
                   +
                 </button>
               </div>
-
-              <span style={{ fontSize: 10, color: "#94a3b8" }}>
-                Puntuación natural asignada por tirada, compra de puntos o mejoras de nivel.
-              </span>
             </div>
 
             {/* Override Fijo con Presets Rápidos */}
@@ -557,10 +673,31 @@ export const ModalDetalleCaracteristica: React.FC<ModalDetalleCaracteristicaProp
                   23 (Piedra)
                 </button>
               </div>
+            </div>
 
-              <span style={{ fontSize: 10, color: "#94a3b8" }}>
-                Fija la puntuación independientemente de la base (D&D 5.5e).
-              </span>
+            {/* Fila Modificadores Adicionales (Prueba y Salvación) */}
+            <div className={estilos.filaFormulario}>
+              <div className={estilos.campoFormulario}>
+                <label className={estilos.labelFormulario}>Modificador Extra a Pruebas</label>
+                <input
+                  type="number"
+                  className={estilos.inputFormulario}
+                  value={modExtraForm}
+                  onChange={(e) => setModExtraForm(e.target.value)}
+                  placeholder="+0"
+                />
+              </div>
+
+              <div className={estilos.campoFormulario}>
+                <label className={estilos.labelFormulario}>Bono Extra a Salvaciones</label>
+                <input
+                  type="number"
+                  className={estilos.inputFormulario}
+                  value={bonoSalvacionExtraForm}
+                  onChange={(e) => setBonoSalvacionExtraForm(e.target.value)}
+                  placeholder="+0"
+                />
+              </div>
             </div>
 
             {/* Competencia en Salvación */}
@@ -596,52 +733,31 @@ export const ModalDetalleCaracteristica: React.FC<ModalDetalleCaracteristicaProp
               </label>
             </div>
 
-            {/* Botones de acción */}
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "flex-end",
-                gap: 10,
-                borderTop: "1px solid rgba(148, 163, 184, 0.15)",
-                paddingTop: 10,
-                marginTop: 2
-              }}
-            >
-              <button
-                type="button"
-                onClick={alCerrar}
-                style={{
-                  padding: "6px 12px",
-                  borderRadius: 4,
-                  backgroundColor: "#18202f",
-                  border: "1px solid rgba(148, 163, 184, 0.2)",
-                  color: "#cbd5e1",
-                  fontSize: 11,
-                  fontWeight: 600,
-                  cursor: "pointer"
-                }}
-              >
+            {/* Campo Notas */}
+            <div className={estilos.campoFormulario}>
+              <label className={estilos.labelFormulario}>Notas y Rasgos Especiales</label>
+              <textarea
+                className={estilos.inputFormulario}
+                rows={2}
+                value={notasForm}
+                onChange={(e) => setNotasForm(e.target.value)}
+                placeholder="Añade notas para que no se te escape nada sobre este atributo..."
+                style={{ resize: "vertical", fontSize: 11 }}
+              />
+            </div>
+
+            {/* Botones de Pie */}
+            <div className={estilos.pieModal} style={{ marginTop: 4 }}>
+              <button type="button" className={estilos.neoButton} onClick={alCerrar}>
                 Cancelar
               </button>
-
               <button
                 type="submit"
-                style={{
-                  padding: "6px 14px",
-                  borderRadius: 4,
-                  backgroundColor: "#1e293b",
-                  border: "1px solid rgba(96, 165, 250, 0.4)",
-                  color: "#93c5fd",
-                  fontSize: 11,
-                  fontWeight: 700,
-                  cursor: "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 6
-                }}
+                className={estilos.neoButton}
+                style={{ backgroundColor: "#1e293b", borderColor: "rgba(96, 165, 250, 0.4)", color: "#93c5fd" }}
               >
-                <Save size={14} />
-                Guardar Atributo
+                <Save size={14} style={{ marginRight: 4 }} />
+                Guardar Personalización
               </button>
             </div>
           </form>

@@ -1,12 +1,15 @@
 import React from "react";
 import type { PersonajeJugador } from "@/tipos";
+import type { InformacionCA } from "@/almacen/selectores/usarEstadoPersonajes";
 import { Shield, Zap, Footprints, Award, Sparkles } from "lucide-react";
+import { TooltipUniversal } from "@/componentes/comunes";
 import estilos from "./HojaPersonaje.module.css";
 
 interface MetricasRapidasPersonajeProps {
   personaje: PersonajeJugador;
   bonoCompetencia: number;
   modDestreza: number;
+  claseArmadura?: InformacionCA;
   alTirarIniciativa: () => void;
   alAlternarInspiracion: () => void;
 }
@@ -15,6 +18,7 @@ export const MetricasRapidasPersonaje: React.FC<MetricasRapidasPersonajeProps> =
   personaje,
   bonoCompetencia,
   modDestreza,
+  claseArmadura,
   alTirarIniciativa,
   alAlternarInspiracion
 }) => {
@@ -25,14 +29,23 @@ export const MetricasRapidasPersonaje: React.FC<MetricasRapidasPersonajeProps> =
       ? personaje.velocidad
       : `${personaje.velocidad.caminar || 30} pies`;
 
+  const caTotal = claseArmadura?.total ?? personaje.ca ?? 10;
+  const caTooltip = claseArmadura?.desglose || personaje.caNotas || "Clase de Armadura (D&D 5.5e)";
+
   return (
     <section className={estilos.filaMetricasRapidas}>
       {/* 1. Clase de Armadura */}
-      <div className={`${estilos.neoRaised} ${estilos.tarjetaMetrica}`} title={personaje.caNotas || "Clase de Armadura"}>
-        <Shield size={13} className={estilos.iconoMetricaDecorativo} />
-        <span className={estilos.etiquetaMetrica}>Clase Armadura</span>
-        <span className={estilos.valorMetrica}>{personaje.ca || 10}</span>
-      </div>
+      <TooltipUniversal
+        titulo="Clase de Armadura"
+        contenido={caTooltip}
+        posicion="abajo"
+      >
+        <div className={`${estilos.neoRaised} ${estilos.tarjetaMetrica}`}>
+          <Shield size={13} className={estilos.iconoMetricaDecorativo} />
+          <span className={estilos.etiquetaMetrica}>Clase Armadura</span>
+          <span className={estilos.valorMetrica}>{caTotal}</span>
+        </div>
+      </TooltipUniversal>
 
       {/* 2. Iniciativa */}
       <div

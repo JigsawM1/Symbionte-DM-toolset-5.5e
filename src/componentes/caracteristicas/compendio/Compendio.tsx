@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { BookOpen, Swords, Sparkles } from "lucide-react";
+import { CompendioConjurosJugador } from "./CompendioConjurosJugador";
 import { ListaHechizos } from "./ListaHechizos";
 import { ListaHomebrew } from "@/componentes/caracteristicas/homebrew/ListaHomebrew";
 import { usarEstadoConfiguracion } from "@/almacen/selectores";
@@ -9,9 +10,14 @@ export const Compendio: React.FC = () => {
   const { esGM } = usarEstadoConfiguracion();
   const [subPestaña, setSubPestaña] = useState<"conjuros" | "bestiario" | "equipo">("conjuros");
 
+  // Para jugadores (!esGM), el compendio es el Gestor y Listado de Conjuros de Jugadores (con gestión de conocidos y preparados)
+  if (!esGM) {
+    return <CompendioConjurosJugador />;
+  }
+
   return (
     <div className={estilos.contenedorCompendio}>
-      {/* Sub-Navegación del Compendio */}
+      {/* Sub-Navegación del Compendio para DM */}
       <div className={estilos.subNavegacion}>
         <button
           onClick={() => setSubPestaña("conjuros")}
@@ -24,19 +30,16 @@ export const Compendio: React.FC = () => {
           Conjuros (Spells)
         </button>
 
-        {/* El Bestiario solo es visible para el Dungeon Master */}
-        {esGM && (
-          <button
-            onClick={() => setSubPestaña("bestiario")}
-            className={`${estilos.subBotonNav} ${
-              subPestaña === "bestiario" ? estilos.subBotonNavActivo : ""
-            }`}
-            type="button"
-          >
-            <Swords size={14} />
-            Bestiario (Criaturas)
-          </button>
-        )}
+        <button
+          onClick={() => setSubPestaña("bestiario")}
+          className={`${estilos.subBotonNav} ${
+            subPestaña === "bestiario" ? estilos.subBotonNavActivo : ""
+          }`}
+          type="button"
+        >
+          <Swords size={14} />
+          Bestiario (Criaturas)
+        </button>
 
         <button
           onClick={() => setSubPestaña("equipo")}

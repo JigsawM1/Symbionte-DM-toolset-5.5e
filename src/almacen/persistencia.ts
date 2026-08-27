@@ -29,6 +29,7 @@ export const persistirEstadoCompleto = (estado: Partial<EstadoDM>) => {
       ronda_actual:        estado.rondaActual !== undefined ? estado.rondaActual : 1,
       indice_turno_activo: estado.indiceTurnoActivo !== undefined ? estado.indiceTurnoActivo : 0,
       metodo_vida:         estado.metodoVidaMonstruo || "azar",
+      sistema_magia:       estado.sistemaMagia || "espacios",
       asociaciones_fichas: estado.asociacionesFichas || {},
       personajes:          estado.personajes || [],
       id_personaje_activo: estado.idPersonajeActivo || null,

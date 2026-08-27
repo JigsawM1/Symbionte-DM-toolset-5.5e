@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { normalizarTexto } from "@/almacen/usarAlmacenDM";
+import { coincideBusquedaTolerante } from "@/utiles/busquedaTolerante";
 import {
   usarEstadoHomebrew,
   usarAccionesHomebrew,
@@ -116,15 +117,14 @@ export const ListaHomebrew: React.FC<Props> = ({
     ? objetosHomebrew
     : objetosHomebrew.filter((o) => !IDS_INICIALES_OBJETOS.has(o.id));
 
-  const queryNormalizada = normalizarTexto(filtroBusqueda);
   const monstruosHomebrew = monstruosHomebrewSinFiltro.filter((m) =>
-    (m.nombreNormalizado || normalizarTexto(m.nombre)).includes(queryNormalizada)
+    coincideBusquedaTolerante([m.nombre, m.tipo, m.alineacion, m.tamaño], filtroBusqueda)
   );
   const hechizosHomebrew = hechizosHomebrewSinFiltro.filter((h) =>
-    (h.nombreNormalizado || normalizarTexto(h.nombre)).includes(queryNormalizada)
+    coincideBusquedaTolerante([h.nombre, h.escuela, h.descripcion], filtroBusqueda)
   );
   const objetosHomebrewFiltrados = objetosHomebrewSinFiltro.filter((o) =>
-    (o.nombreNormalizado || normalizarTexto(o.nombre)).includes(queryNormalizada)
+    coincideBusquedaTolerante([o.nombre, o.tipoPrincipal, o.subcategoria, o.descripcion], filtroBusqueda)
   );
 
   // Ordenamiento dinámico

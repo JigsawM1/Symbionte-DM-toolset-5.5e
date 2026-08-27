@@ -14,6 +14,18 @@ import {
 } from '@/constantes';
 import { calcularModificadorCaracteristica } from '@/servicios/procesadorDescansos';
 
+export interface InformacionCA {
+  total: number;
+  base: number;
+  modDestrezaAplicado: number;
+  bonoEscudo: number;
+  bonosMagicos: number;
+  armaduraEquipadaNombre: string | null;
+  escudoEquipadoNombre: string | null;
+  tipoArmadura: "Sin Armadura" | "Ligera" | "Mediana" | "Pesada";
+  desglose: string;
+}
+
 /** Estadísticas y bonificadores dinámicos calculados a partir de un personaje. */
 export interface EstadisticasCalculadasPersonaje {
   bonoCompetencia: number;
@@ -26,7 +38,42 @@ export interface EstadisticasCalculadasPersonaje {
     investigacion: number;
     perspicacia: number;
   };
+  claseArmadura: InformacionCA;
 }
+
+/**
+ * Tabla de referencia de armaduras oficiales de D&D 5.5e
+ */
+interface ReferenciaArmadura {
+  caBase: number;
+  tipo: "Ligera" | "Mediana" | "Pesada";
+  limiteDes: number | null; // null = sin límite, 2 = máx +2, 0 = no suma
+}
+
+const ARMADURAS_OFICIALES: Record<string, ReferenciaArmadura> = {
+  "acolchada": { caBase: 11, tipo: "Ligera", limiteDes: null },
+  "armadura acolchada": { caBase: 11, tipo: "Ligera", limiteDes: null },
+  "cuero": { caBase: 11, tipo: "Ligera", limiteDes: null },
+  "armadura de cuero": { caBase: 11, tipo: "Ligera", limiteDes: null },
+  "cuero tachonado": { caBase: 12, tipo: "Ligera", limiteDes: null },
+  "armadura de cuero tachonado": { caBase: 12, tipo: "Ligera", limiteDes: null },
+
+  "pieles": { caBase: 12, tipo: "Mediana", limiteDes: 2 },
+  "armadura de pieles": { caBase: 12, tipo: "Mediana", limiteDes: 2 },
+  "camison de malla": { caBase: 13, tipo: "Mediana", limiteDes: 2 },
+  "camisa de malla": { caBase: 13, tipo: "Mediana", limiteDes: 2 },
+  "cota de escamas": { caBase: 14, tipo: "Mediana", limiteDes: 2 },
+  "coraza": { caBase: 14, tipo: "Mediana", limiteDes: 2 },
+  "semiplacas": { caBase: 15, tipo: "Mediana", limiteDes: 2 },
+  "semi-placas": { caBase: 15, tipo: "Mediana", limiteDes: 2 },
+
+  "cota de anillas": { caBase: 14, tipo: "Pesada", limiteDes: 0 },
+  "cota de malla": { caBase: 16, tipo: "Pesada", limiteDes: 0 },
+  "bandas": { caBase: 17, tipo: "Pesada", limiteDes: 0 },
+  "cota de bandas": { caBase: 17, tipo: "Pesada", limiteDes: 0 },
+  "placas": { caBase: 18, tipo: "Pesada", limiteDes: 0 },
+  "armadura de placas": { caBase: 18, tipo: "Pesada", limiteDes: 0 }
+};
 
 /**
  * Función pura que calcula todas las estadísticas derivadas de un personaje
@@ -54,22 +101,24 @@ export function calcularEstadisticasPersonaje(pj: PersonajeJugador): Estadistica
     carisma: null
   };
 
+  const personalizacionesCarac = pj?.personalizacionesCaracteristicas || {};
+
   const puntuacionesEfectivas: Record<Caracteristica, number> = {
-    fuerza: overrides.fuerza ?? carac.fuerza ?? 10,
-    destreza: overrides.destreza ?? carac.destreza ?? 10,
-    constitucion: overrides.constitucion ?? carac.constitucion ?? 10,
-    inteligencia: overrides.inteligencia ?? carac.inteligencia ?? 10,
-    sabiduria: overrides.sabiduria ?? carac.sabiduria ?? 10,
-    carisma: overrides.carisma ?? carac.carisma ?? 10
+    fuerza: personalizacionesCarac.fuerza?.valorFijo ?? overrides.fuerza ?? carac.fuerza ?? 10,
+    destreza: personalizacionesCarac.destreza?.valorFijo ?? overrides.destreza ?? carac.destreza ?? 10,
+    constitucion: personalizacionesCarac.constitucion?.valorFijo ?? overrides.constitucion ?? carac.constitucion ?? 10,
+    inteligencia: personalizacionesCarac.inteligencia?.valorFijo ?? overrides.inteligencia ?? carac.inteligencia ?? 10,
+    sabiduria: personalizacionesCarac.sabiduria?.valorFijo ?? overrides.sabiduria ?? carac.sabiduria ?? 10,
+    carisma: personalizacionesCarac.carisma?.valorFijo ?? overrides.carisma ?? carac.carisma ?? 10
   };
 
   const modificadores: Record<Caracteristica, number> = {
-    fuerza: calcularModificadorCaracteristica(puntuacionesEfectivas.fuerza),
-    destreza: calcularModificadorCaracteristica(puntuacionesEfectivas.destreza),
-    constitucion: calcularModificadorCaracteristica(puntuacionesEfectivas.constitucion),
-    inteligencia: calcularModificadorCaracteristica(puntuacionesEfectivas.inteligencia),
-    sabiduria: calcularModificadorCaracteristica(puntuacionesEfectivas.sabiduria),
-    carisma: calcularModificadorCaracteristica(puntuacionesEfectivas.carisma)
+    fuerza: calcularModificadorCaracteristica(puntuacionesEfectivas.fuerza) + (personalizacionesCarac.fuerza?.modificadorExtra || 0),
+    destreza: calcularModificadorCaracteristica(puntuacionesEfectivas.destreza) + (personalizacionesCarac.destreza?.modificadorExtra || 0),
+    constitucion: calcularModificadorCaracteristica(puntuacionesEfectivas.constitucion) + (personalizacionesCarac.constitucion?.modificadorExtra || 0),
+    inteligencia: calcularModificadorCaracteristica(puntuacionesEfectivas.inteligencia) + (personalizacionesCarac.inteligencia?.modificadorExtra || 0),
+    sabiduria: calcularModificadorCaracteristica(puntuacionesEfectivas.sabiduria) + (personalizacionesCarac.sabiduria?.modificadorExtra || 0),
+    carisma: calcularModificadorCaracteristica(puntuacionesEfectivas.carisma) + (personalizacionesCarac.carisma?.modificadorExtra || 0)
   };
 
   const compSalv = pj?.competenciasSalvacion || {
@@ -82,12 +131,12 @@ export function calcularEstadisticasPersonaje(pj: PersonajeJugador): Estadistica
   };
 
   const salvaciones: Record<Caracteristica, number> = {
-    fuerza: modificadores.fuerza + (compSalv.fuerza ? bonoCompetencia : 0),
-    destreza: modificadores.destreza + (compSalv.destreza ? bonoCompetencia : 0),
-    constitucion: modificadores.constitucion + (compSalv.constitucion ? bonoCompetencia : 0),
-    inteligencia: modificadores.inteligencia + (compSalv.inteligencia ? bonoCompetencia : 0),
-    sabiduria: modificadores.sabiduria + (compSalv.sabiduria ? bonoCompetencia : 0),
-    carisma: modificadores.carisma + (compSalv.carisma ? bonoCompetencia : 0)
+    fuerza: modificadores.fuerza + (compSalv.fuerza ? bonoCompetencia : 0) + (personalizacionesCarac.fuerza?.bonoSalvacionExtra || 0),
+    destreza: modificadores.destreza + (compSalv.destreza ? bonoCompetencia : 0) + (personalizacionesCarac.destreza?.bonoSalvacionExtra || 0),
+    constitucion: modificadores.constitucion + (compSalv.constitucion ? bonoCompetencia : 0) + (personalizacionesCarac.constitucion?.bonoSalvacionExtra || 0),
+    inteligencia: modificadores.inteligencia + (compSalv.inteligencia ? bonoCompetencia : 0) + (personalizacionesCarac.inteligencia?.bonoSalvacionExtra || 0),
+    sabiduria: modificadores.sabiduria + (compSalv.sabiduria ? bonoCompetencia : 0) + (personalizacionesCarac.sabiduria?.bonoSalvacionExtra || 0),
+    carisma: modificadores.carisma + (compSalv.carisma ? bonoCompetencia : 0) + (personalizacionesCarac.carisma?.bonoSalvacionExtra || 0)
   };
 
   const habilidades = {} as Record<Habilidad, number>;
@@ -124,6 +173,124 @@ export function calcularEstadisticasPersonaje(pj: PersonajeJugador): Estadistica
     perspicacia: 10 + (habilidades.perspicacia || 0)
   };
 
+  // ==========================================
+  // CÁLCULO DE CLASE DE ARMADURA (CA - D&D 5.5e)
+  // ==========================================
+  const inventario = pj?.inventario || [];
+  const normalizar = (s: string) => s.toLowerCase().trim();
+
+  // 1. Identificar armadura corporal y escudo equipados
+  const armaduraObj = inventario.find(
+    (o) => o.equipado && o.tipoPrincipal === "Armadura" && !normalizar(o.nombre).includes("escudo")
+  );
+  const escudoObj = inventario.find(
+    (o) => o.equipado && (normalizar(o.nombre).includes("escudo") || (o.tipoPrincipal === "Armadura" && normalizar(o.nombre).startsWith("escudo")))
+  );
+
+  let caBase = 10;
+  let modDesAplicado = modificadores.destreza || 0;
+  let tipoArmadura: InformacionCA["tipoArmadura"] = "Sin Armadura";
+  let armaduraNombre: string | null = null;
+  let desglosePartes: string[] = [];
+
+  const clasePrincipal = pj?.clase || "";
+  const clasesPj = (pj?.clases || []).map((c) => c.nombre);
+  const esBarbaro = clasePrincipal === "Bárbaro" || clasesPj.includes("Bárbaro");
+  const esMonje = clasePrincipal === "Monje" || clasesPj.includes("Monje");
+
+  if (armaduraObj) {
+    armaduraNombre = armaduraObj.nombre;
+    const nombreNorm = normalizar(armaduraObj.nombre);
+    const refOficial = ARMADURAS_OFICIALES[nombreNorm];
+
+    if (refOficial) {
+      caBase = refOficial.caBase;
+      tipoArmadura = refOficial.tipo;
+      if (refOficial.limiteDes === null) {
+        modDesAplicado = modificadores.destreza;
+      } else if (refOficial.limiteDes === 2) {
+        modDesAplicado = Math.min(2, Math.max(0, modificadores.destreza));
+      } else {
+        modDesAplicado = 0;
+      }
+    } else {
+      // Fallback para armaduras homebrew / custom
+      caBase = 11; // Base genérica
+      tipoArmadura = "Ligera";
+      modDesAplicado = modificadores.destreza;
+    }
+    desglosePartes.push(`${armaduraObj.nombre} ${caBase}`);
+    if (modDesAplicado !== 0) {
+      desglosePartes.push(`DES ${modDesAplicado >= 0 ? `+${modDesAplicado}` : modDesAplicado}`);
+    }
+  } else {
+    // Sin armadura equipada
+    caBase = 10;
+    desglosePartes.push(`Base 10`);
+    if (esBarbaro) {
+      // Defensa sin armadura Bárbaro: 10 + DES + CON
+      const modCon = modificadores.constitucion || 0;
+      desglosePartes.push(`DES ${modDesAplicado >= 0 ? `+${modDesAplicado}` : modDesAplicado}`);
+      if (modCon !== 0) {
+        desglosePartes.push(`CON ${modCon >= 0 ? `+${modCon}` : modCon}`);
+        caBase += modCon;
+      }
+    } else if (esMonje && !escudoObj) {
+      // Defensa sin armadura Monje: 10 + DES + SAB (sin escudo)
+      const modSab = modificadores.sabiduria || 0;
+      desglosePartes.push(`DES ${modDesAplicado >= 0 ? `+${modDesAplicado}` : modDesAplicado}`);
+      if (modSab !== 0) {
+        desglosePartes.push(`SAB ${modSab >= 0 ? `+${modSab}` : modSab}`);
+        caBase += modSab;
+      }
+    } else {
+      if (modDesAplicado !== 0) {
+        desglosePartes.push(`DES ${modDesAplicado >= 0 ? `+${modDesAplicado}` : modDesAplicado}`);
+      }
+    }
+  }
+
+  // 2. Escudo
+  let bonoEscudo = 0;
+  let escudoNombre: string | null = null;
+  if (escudoObj) {
+    escudoNombre = escudoObj.nombre;
+    bonoEscudo = 2;
+    desglosePartes.push(`${escudoObj.nombre} +2`);
+  }
+
+  // 3. Bonos Mágicos
+  let bonosMagicos = 0;
+  if (armaduraObj?.esMagico && armaduraObj.nombre.includes("+")) {
+    const match = armaduraObj.nombre.match(/\+(\d+)/);
+    if (match) {
+      const b = parseInt(match[1], 10);
+      bonosMagicos += b;
+      desglosePartes.push(`Magia +${b}`);
+    }
+  }
+  if (escudoObj?.esMagico && escudoObj.nombre.includes("+")) {
+    const match = escudoObj.nombre.match(/\+(\d+)/);
+    if (match) {
+      const b = parseInt(match[1], 10);
+      bonosMagicos += b;
+      desglosePartes.push(`Escudo Mágico +${b}`);
+    }
+  }
+
+  const totalCA = caBase + modDesAplicado + bonoEscudo + bonosMagicos;
+
+  const claseArmadura: InformacionCA = {
+    total: totalCA,
+    base: caBase,
+    modDestrezaAplicado: modDesAplicado,
+    bonoEscudo,
+    bonosMagicos,
+    armaduraEquipadaNombre: armaduraNombre,
+    escudoEquipadoNombre: escudoNombre,
+    tipoArmadura,
+    desglose: `CA ${totalCA} (${desglosePartes.join(" + ")})`
+  };
 
   return {
     bonoCompetencia,
@@ -131,7 +298,8 @@ export function calcularEstadisticasPersonaje(pj: PersonajeJugador): Estadistica
     modificadores,
     salvaciones,
     habilidades,
-    pasivas
+    pasivas,
+    claseArmadura
   };
 }
 
@@ -182,9 +350,43 @@ export function usarAccionesPersonajes() {
       ciclarGradoHabilidadPersonaje:      s.ciclarGradoHabilidadPersonaje,
       establecerGradoHabilidadPersonaje:  s.establecerGradoHabilidadPersonaje,
       personalizarHabilidadPersonaje:     s.personalizarHabilidadPersonaje,
+      personalizarCaracteristicaPersonaje: s.personalizarCaracteristicaPersonaje,
       aplicarCondicionPersonaje:          s.aplicarCondicionPersonaje,
       quitarCondicionPersonaje:           s.quitarCondicionPersonaje,
-      vincularMiniaturaTSPersonaje:       s.vincularMiniaturaTSPersonaje
+      vincularMiniaturaTSPersonaje:       s.vincularMiniaturaTSPersonaje,
+
+      // Magia y Lanzamiento de Conjuros
+      configurarLanzadorConjuros:         s.configurarLanzadorConjuros,
+      establecerConcentracion:            s.establecerConcentracion,
+      romperConcentracion:                s.romperConcentracion,
+      agregarTrucoConocido:               s.agregarTrucoConocido,
+      quitarTrucoConocido:                s.quitarTrucoConocido,
+      agregarConjuroConocido:             s.agregarConjuroConocido,
+      quitarConjuroConocido:              s.quitarConjuroConocido,
+      alternarConjuroPreparado:           s.alternarConjuroPreparado,
+      gastarEspacioConjuro:               s.gastarEspacioConjuro,
+      recuperarEspacioConjuro:            s.recuperarEspacioConjuro,
+      recuperarTodosEspaciosConjuro:      s.recuperarTodosEspaciosConjuro,
+      gastarPuntosConjuro:                s.gastarPuntosConjuro,
+      recuperarPuntosConjuro:             s.recuperarPuntosConjuro,
+      recuperarTodosPuntosConjuro:        s.recuperarTodosPuntosConjuro,
+      gastarEspacioPacto:                 s.gastarEspacioPacto,
+      recuperarEspaciosPacto:             s.recuperarEspaciosPacto,
+      establecerOverrideEspacios:         s.establecerOverrideEspacios,
+      establecerOverridePuntos:           s.establecerOverridePuntos,
+      recalcularRecursosMagicos:          s.recalcularRecursosMagicos,
+
+      // Inventario y Monedas
+      agregarObjetoInventario:            s.agregarObjetoInventario,
+      quitarObjetoInventario:             s.quitarObjetoInventario,
+      modificarCantidadObjeto:            s.modificarCantidadObjeto,
+      alternarEquipadoObjeto:             s.alternarEquipadoObjeto,
+      alternarSintonizadoObjeto:          s.alternarSintonizadoObjeto,
+      actualizarNotasObjeto:              s.actualizarNotasObjeto,
+      modificarCargasObjeto:              s.modificarCargasObjeto,
+      cambiarContenedorObjeto:            s.cambiarContenedorObjeto,
+      establecerMonedas:                  s.establecerMonedas,
+      modificarMoneda:                    s.modificarMoneda
     }))
   );
 }

@@ -5,7 +5,7 @@ import {
   usarEstadoConfiguracion,
   usarAccionesConfiguracion,
 } from "@/almacen/selectores";
-import { Upload, Download, Trash2, ShieldAlert, CheckCircle, Heart, Copy, X, Eye, Settings } from "lucide-react";
+import { Upload, Download, Trash2, ShieldAlert, CheckCircle, Heart, Copy, X, Eye, Settings, Sparkles } from "lucide-react";
 import { IDS_INICIALES_MONSTRUOS, IDS_INICIALES_HECHIZOS, IDS_INICIALES_OBJETOS } from "@/utiles/datosIniciales";
 import { logger } from '@/utiles/logger';
 import { ts } from "@/utiles/TaleSpireAdapter";
@@ -14,11 +14,12 @@ import estilosClases from "./ConfiguracionDM.module.css";
 export const ConfiguracionDM: React.FC = () => {
   const { baseDatosMonstruos, baseDatosHechizos, objetosHomebrew } = usarEstadoHomebrew();
   const { importarBaseDatosJSONCompleta } = usarAccionesHomebrew();
-  const { metodoVidaMonstruo, mostrarPorcentajeVidaAJugadores } = usarEstadoConfiguracion();
+  const { metodoVidaMonstruo, mostrarPorcentajeVidaAJugadores, sistemaMagia } = usarEstadoConfiguracion();
   const {
     restablecerDatosDeFabrica,
     establecerMetodoVidaMonstruo,
     establecerMostrarPorcentajeVidaAJugadores,
+    establecerSistemaMagia,
   } = usarAccionesConfiguracion();
 
   const [estadoImportacion, setEstadoImportacion] = useState<"inactivo" | "exito" | "error">("inactivo");
@@ -274,6 +275,37 @@ export const ConfiguracionDM: React.FC = () => {
                 type="button"
               >
                 OCULTAR % DE VIDA
+              </button>
+            </div>
+          </div>
+
+          {/* PANEL: SISTEMA DE MAGIA DE LA CAMPAÑA */}
+          <div className={estilosClases.tarjetaConfigHP} style={{ marginTop: "12px" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "4px" }}>
+              <Sparkles size={14} style={{ color: "#c084fc" }} />
+              <span className={estilosClases.tituloConfigHP}>SISTEMA DE MAGIA DE LA CAMPAÑA</span>
+            </div>
+            <p className={estilosClases.descripcionConfigHP}>
+              Selecciona si los personajes gestionan sus conjuros mediante Espacios estándar (PHB) o Puntos de Conjuro / Maná (Variante DMG).
+            </p>
+            <div className={estilosClases.selectorHPGrid}>
+              <button
+                onClick={() => establecerSistemaMagia("espacios")}
+                className={`${estilosClases.botonHPBrutal} ${
+                  sistemaMagia === "espacios" ? estilosClases.botonHPBrutalActivo : ""
+                }`}
+                type="button"
+              >
+                ESPACIOS DE CONJURO (PHB)
+              </button>
+              <button
+                onClick={() => establecerSistemaMagia("puntos")}
+                className={`${estilosClases.botonHPBrutal} ${
+                  sistemaMagia === "puntos" ? estilosClases.botonHPBrutalActivo : ""
+                }`}
+                type="button"
+              >
+                PUNTOS DE CONJURO (DMG)
               </button>
             </div>
           </div>

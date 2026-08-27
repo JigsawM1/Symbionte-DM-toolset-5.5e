@@ -14,6 +14,8 @@ const NotasDM = React.lazy(() => import("@/componentes/caracteristicas/notas").t
 const CreadorHomebrew = React.lazy(() => import("@/componentes/caracteristicas/homebrew").then((m) => ({ default: m.CreadorHomebrew })));
 const ConfiguracionDM = React.lazy(() => import("@/componentes/caracteristicas/configuracion").then((m) => ({ default: m.ConfiguracionDM })));
 const VistaJugadores = React.lazy(() => import("@/componentes/caracteristicas/iniciativa").then((m) => ({ default: m.VistaJugadores })));
+const VistaAtaquesJugador = React.lazy(() => import("@/componentes/caracteristicas/ataques").then((m) => ({ default: m.VistaAtaquesJugador })));
+const VistaInventarioJugador = React.lazy(() => import("@/componentes/caracteristicas/inventario").then((m) => ({ default: m.VistaInventarioJugador })));
 const IniciativaJugador = React.lazy(() => import("@/componentes/caracteristicas/iniciativa").then((m) => ({ default: m.IniciativaJugador })));
 
 const AppContenido: React.FC = () => {
@@ -28,9 +30,15 @@ const AppContenido: React.FC = () => {
       switch (pestañaActiva) {
         case "iniciativa":
           return <IniciativaJugador />;
+        case "acciones":
+        case "ataques":
+          return <VistaAtaquesJugador />;
         case "compendio":
         case "hechizos":
+        case "conjuros":
           return <Compendio />;
+        case "inventario":
+          return <VistaInventarioJugador />;
         case "tablas":
           return <TablasDM />;
         case "notas":
@@ -40,7 +48,7 @@ const AppContenido: React.FC = () => {
         case "configuracion":
           return <ConfiguracionDM />;
         case "jugadores":
-          return <VistaJugadores />;
+        case "caracteristicas":
         default:
           return <VistaJugadores />;
       }
@@ -49,8 +57,6 @@ const AppContenido: React.FC = () => {
     switch (pestañaActiva) {
       case "iniciativa":
         return <GestorIniciativa />;
-      case "jugadores":
-        return <VistaJugadores />;
       case "tablas":
         return <TablasDM />;
       case "pendientes":
@@ -64,6 +70,7 @@ const AppContenido: React.FC = () => {
         return <CreadorHomebrew />;
       case "configuracion":
         return <ConfiguracionDM />;
+      case "jugadores":
       default:
         return <GestorIniciativa />;
     }

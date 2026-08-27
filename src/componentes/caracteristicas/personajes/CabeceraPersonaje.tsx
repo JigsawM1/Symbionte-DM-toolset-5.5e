@@ -76,17 +76,28 @@ export const CabeceraPersonaje: React.FC<CabeceraPersonajeProps> = ({
         {/* Cuadrícula de 3 pastillas de detalles */}
         <div className={estilos.cuadriculaDetalles}>
           <div className={`${estilos.pastillaDetalle} ${estilos.neoPressed}`}>
-            <span className={estilos.valorDetalle}>{personaje.clase || "Mago"}</span>
+            <span className={estilos.valorDetalle} title={personaje.clase || "Guerrero"}>
+              {personaje.clases && personaje.clases.length > 1
+                ? personaje.clases.map((c) => `${c.nombre} ${c.nivel}`).join(" / ")
+                : (personaje.clase || "Guerrero") + (personaje.subclase ? ` (${personaje.subclase})` : "")}
+            </span>
             <span className={estilos.labelDetalle}>Clase</span>
           </div>
 
           <div className={`${estilos.pastillaDetalle} ${estilos.neoPressed}`}>
-            <span className={estilos.valorDetalle}>{personaje.especie || "Humano"}</span>
+            <span
+              className={estilos.valorDetalle}
+              title={personaje.subespecie ? `${personaje.especie || "Humano"} (${personaje.subespecie})` : personaje.especie || "Humano"}
+            >
+              {personaje.subespecie
+                ? `${personaje.especie || "Humano"} (${personaje.subespecie})`
+                : personaje.especie || "Humano"}
+            </span>
             <span className={estilos.labelDetalle}>Especie</span>
           </div>
 
           <div className={`${estilos.pastillaDetalle} ${estilos.neoPressed}`}>
-            <span className={estilos.valorDetalle}>{personaje.trasfondo || "Erudito"}</span>
+            <span className={estilos.valorDetalle}>{personaje.trasfondo || "Personalizado"}</span>
             <span className={estilos.labelDetalle}>Trasfondo</span>
           </div>
         </div>

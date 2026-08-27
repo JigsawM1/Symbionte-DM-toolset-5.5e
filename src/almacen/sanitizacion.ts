@@ -426,15 +426,15 @@ export function sanearObjetoHomebrew(o: unknown): ObjetoHomebrew {
     let subArma: "Sencilla" | "Marcial" | "De Fuego" = "Sencilla";
     let subTxt = aplanarValor(obj.subcategoria || obj.weapon_category || obj.tipoArma || "").toUpperCase();
     
-    if (!subTxt && Array.isArray(obj.equipment_categories)) {
-      subTxt = obj.equipment_categories.map((c: any) => {
-        if (c && typeof c === "object") return aplanarValor(c.index || c.name || "").toUpperCase();
-        return aplanarValor(c).toUpperCase();
-      }).join(" | ");
+    if (Array.isArray(obj.equipment_categories)) {
+      const catsTxt = obj.equipment_categories
+        .map((c: any) => (c && typeof c === "object" ? aplanarValor(c.index || c.name || "").toUpperCase() : aplanarValor(c).toUpperCase()))
+        .join(" | ");
+      subTxt = subTxt ? `${subTxt} | ${catsTxt}` : catsTxt;
     }
     
-    if (subTxt.includes("MARCIAL") || subTxt.includes("MARTIAL")) subArma = "Marcial";
-    else if (subTxt.includes("FUEGO") || subTxt.includes("FIRE")) subArma = "De Fuego";
+    if (subTxt.includes("FUEGO") || subTxt.includes("FIREARM") || subTxt.includes("FIRE")) subArma = "De Fuego";
+    else if (subTxt.includes("MARCIAL") || subTxt.includes("MARTIAL")) subArma = "Marcial";
 
     let estiloAtq: "Cuerpo a Cuerpo" | "A Distancia" = "Cuerpo a Cuerpo";
     // Siempre inferir desde equipment_categories primero (fuente más confiable)
@@ -624,16 +624,16 @@ export function sanearObjetoHomebrew(o: unknown): ObjetoHomebrew {
     let subArmor: "Ligera" | "Mediana" | "Pesada" | "Escudo" = "Ligera";
     let subTxt = aplanarValor(obj.subcategoria || obj.armor_category || "").toUpperCase();
     
-    if (!subTxt && Array.isArray(obj.equipment_categories)) {
-      subTxt = obj.equipment_categories.map((c: any) => {
-        if (c && typeof c === "object") return aplanarValor(c.index || c.name || "").toUpperCase();
-        return aplanarValor(c).toUpperCase();
-      }).join(" | ");
+    if (Array.isArray(obj.equipment_categories)) {
+      const catsTxt = obj.equipment_categories
+        .map((c: any) => (c && typeof c === "object" ? aplanarValor(c.index || c.name || "").toUpperCase() : aplanarValor(c).toUpperCase()))
+        .join(" | ");
+      subTxt = subTxt ? `${subTxt} | ${catsTxt}` : catsTxt;
     }
     
-    if (subTxt.includes("MEDIANA") || subTxt.includes("MEDIUM")) subArmor = "Mediana";
+    if (subTxt.includes("ESCUDO") || subTxt.includes("SHIELD")) subArmor = "Escudo";
     else if (subTxt.includes("PESADA") || subTxt.includes("HEAVY")) subArmor = "Pesada";
-    else if (subTxt.includes("ESCUDO") || subTxt.includes("SHIELD")) subArmor = "Escudo";
+    else if (subTxt.includes("MEDIANA") || subTxt.includes("MEDIUM")) subArmor = "Mediana";
 
     let caBaseSaneada = 10;
     let dexBonus = true;
@@ -702,19 +702,61 @@ export function sanearObjetoHomebrew(o: unknown): ObjetoHomebrew {
     let subEquipo: SubcategoriaEquipo = "Equipo";
     let subTxt = aplanarValor(obj.subcategoria || obj.equipment_category || "").toUpperCase();
     
-    if (!subTxt && Array.isArray(obj.equipment_categories)) {
-      subTxt = obj.equipment_categories.map((c: any) => {
-        if (c && typeof c === "object") return aplanarValor(c.index || c.name || "").toUpperCase();
-        return aplanarValor(c).toUpperCase();
-      }).join(" | ");
+    if (Array.isArray(obj.equipment_categories)) {
+      const catsTxt = obj.equipment_categories
+        .map((c: any) => (c && typeof c === "object" ? aplanarValor(c.index || c.name || "").toUpperCase() : aplanarValor(c).toUpperCase()))
+        .join(" | ");
+      subTxt = subTxt ? `${subTxt} | ${catsTxt}` : catsTxt;
     }
     
-    if (subTxt.includes("CONSUMIBLE") || subTxt.includes("CONSUMABLE") || subTxt.includes("VENENO") || subTxt.includes("POISON") || obj.esVeneno) subEquipo = "Consumible";
-    else if (subTxt.includes("MUNICIÓN") || subTxt.includes("MUNITION") || subTxt.includes("AMMUNITION")) subEquipo = "Munición";
-    else if (subTxt.includes("HERRAMIENTA") || subTxt.includes("TOOL")) subEquipo = "Herramienta";
-    else if (subTxt.includes("INSTRUMENTO") || subTxt.includes("INSTRUMENT")) subEquipo = "Instrumento";
-    else if (subTxt.includes("PAQUETE") || subTxt.includes("PACK") || subTxt.includes("GEAR") || subTxt.includes("STANDARD-GEAR")) subEquipo = "Paquete";
-    else if (subTxt.includes("MARAVILLOSO") || subTxt.includes("WONDROUS")) subEquipo = "Maravilloso";
+    if (
+      subTxt.includes("CONSUMIBLE") ||
+      subTxt.includes("CONSUMABLE") ||
+      subTxt.includes("POTION") ||
+      subTxt.includes("POCIÓN") ||
+      subTxt.includes("SCROLL") ||
+      subTxt.includes("PERGAMINO") ||
+      subTxt.includes("VENENO") ||
+      subTxt.includes("POISON") ||
+      obj.esVeneno
+    ) {
+      subEquipo = "Consumible";
+    } else if (
+      subTxt.includes("MUNICIÓN") ||
+      subTxt.includes("MUNITION") ||
+      subTxt.includes("AMMUNITION")
+    ) {
+      subEquipo = "Munición";
+    } else if (
+      subTxt.includes("MUSICAL") ||
+      subTxt.includes("INSTRUMENT")
+    ) {
+      subEquipo = "Instrumento";
+    } else if (
+      subTxt.includes("HERRAMIENTA") ||
+      subTxt.includes("TOOL") ||
+      subTxt.includes("ARTISAN") ||
+      subTxt.includes("GAMING") ||
+      subTxt.includes("KIT")
+    ) {
+      subEquipo = "Herramienta";
+    } else if (
+      subTxt.includes("EQUIPMENT-PACK") ||
+      subTxt.includes("EQUIPMENT_PACK") ||
+      subTxt.includes("PAQUETE") ||
+      (subTxt.includes("PACK") && !subTxt.includes("BACKPACK"))
+    ) {
+      subEquipo = "Paquete";
+    } else if (
+      subTxt.includes("MARAVILLOSO") ||
+      subTxt.includes("WONDROUS") ||
+      subTxt.includes("MAGIC-ITEM") ||
+      obj.esMagico
+    ) {
+      subEquipo = "Maravilloso";
+    } else {
+      subEquipo = "Equipo";
+    }
 
     const cant = obj.cantidad !== undefined ? (Number(obj.cantidad) || undefined) : undefined;
 

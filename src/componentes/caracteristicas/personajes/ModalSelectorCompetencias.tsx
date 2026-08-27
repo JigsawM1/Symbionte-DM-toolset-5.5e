@@ -19,6 +19,7 @@ import {
   formatearResumenCompetenciasArmaduras
 } from "@/constantes";
 import { Swords, Shield, Languages, Wrench, X, Search, CheckSquare, Square } from "lucide-react";
+import { coincideBusquedaTolerante } from "@/utiles/busquedaTolerante";
 import estilos from "./HojaPersonaje.module.css";
 
 export type CategoriaCompetencia = "armas" | "armaduras" | "idiomas" | "herramientas";
@@ -409,7 +410,7 @@ export const ModalSelectorCompetencias: React.FC<ModalSelectorCompetenciasProps>
                   }}
                 >
                   {[...TODAS_ARMAS_SENCILLAS, ...TODAS_ARMAS_MARCIALES, ...ARMAS_DE_FUEGO]
-                    .filter((a) => (filtro ? a.toLowerCase().includes(filtro) : true))
+                    .filter((a) => coincideBusquedaTolerante(a, filtro))
                     .map((arma) => {
                       const check = armasLista.includes(arma);
                       return (
@@ -495,7 +496,7 @@ export const ModalSelectorCompetencias: React.FC<ModalSelectorCompetenciasProps>
                   }}
                 >
                   {[...ARMADURAS_LIGERAS, ...ARMADURAS_MEDIAS, ...ARMADURAS_PESADAS, ...ESCUDOS]
-                    .filter((a) => (filtro ? a.toLowerCase().includes(filtro) : true))
+                    .filter((a) => coincideBusquedaTolerante(a, filtro))
                     .map((armadura) => {
                       const check = armadurasLista.includes(armadura);
                       return (
@@ -547,7 +548,7 @@ export const ModalSelectorCompetencias: React.FC<ModalSelectorCompetenciasProps>
                   }}
                 >
                   {[...IDIOMAS_ESTANDAR, ...IDIOMAS_INUSUALES]
-                    .filter((i) => (filtro ? i.toLowerCase().includes(filtro) : true))
+                    .filter((i) => coincideBusquedaTolerante(i, filtro))
                     .map((idioma) => {
                       const check = idiomas.includes(idioma);
                       return (
@@ -604,7 +605,7 @@ export const ModalSelectorCompetencias: React.FC<ModalSelectorCompetenciasProps>
                     ...INSTRUMENTOS_MUSICALES,
                     ...JUEGOS_MESA
                   ]
-                    .filter((h) => (filtro ? h.toLowerCase().includes(filtro) : true))
+                    .filter((h) => coincideBusquedaTolerante(h, filtro))
                     .map((herramienta) => {
                       const check = herramientas.includes(herramienta);
                       return (

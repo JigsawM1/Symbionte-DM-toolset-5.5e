@@ -1,11 +1,21 @@
 import React, { useState, useRef, useEffect, useMemo } from "react";
 import { ChevronDown, Check } from "lucide-react";
+import { coincideBusquedaTolerante } from "@/utiles/busquedaTolerante";
 import estilos from "./SelectorSugerencias.module.css";
+
+export interface OpcionSugerencia {
+  valor: string;
+  etiqueta?: string;
+  grupo?: string;
+  subtitulo?: string;
+}
+
+export type OpcionEntradaSugerencia = string | OpcionSugerencia;
 
 export interface SelectorSugerenciasProps {
   valor: string;
   alCambiar: (nuevoValor: string) => void;
-  opciones: readonly string[] | string[];
+  opciones: readonly OpcionEntradaSugerencia[] | OpcionEntradaSugerencia[];
   placeholder?: string;
   className?: string;
   id?: string;
@@ -41,23 +51,52 @@ export const SelectorSugerencias: React.FC<SelectorSugerenciasProps> = ({
     };
   }, []);
 
-  // Filtrar sugerencias relevantes en base al texto escrito
-  const opcionesFiltradas = useMemo(() => {
-    const textoLimpio = valor.trim().toLowerCase();
-    if (!textoLimpio) return opciones;
+  // Normalizar opciones a OpcionSugerencia
+  const opcionesNormalizadas = useMemo<OpcionSugerencia[]>(() => {
+    return opciones.map((opt) => {
+      if (typeof opt === "string") {
+        return { valor: opt, etiqueta: opt };
+      }
+      return opt;
+    });
+  }, [opciones]);
 
-    const filtradas = opciones.filter((opcion) =>
-      opcion.toLowerCase().includes(textoLimpio)
-    );
+  // Filtrar sugerencias relevantes en base al texto escrito de forma tolerante (tildes, mayúsculas, etc.)
+  const opcionesFiltradas = useMemo<OpcionSugerencia[]>(() => {
+    if (!valor || !valor.trim()) return opcionesNormalizadas;
 
-    // Si ninguna coincide exactamente por substring, mostrar todas para que el usuario pueda elegir
-    return filtradas.length > 0 ? filtradas : opciones;
-  }, [valor, opciones]);
+    const filtradas = opcionesNormalizadas.filter((opcion) => {
+      return coincideBusquedaTolerante(
+        [opcion.valor, opcion.etiqueta, opcion.grupo, opcion.subtitulo],
+        valor
+      );
+    });
 
-  const seleccionarOpcion = (opcion: string, e: React.MouseEvent) => {
+    return filtradas;
+  }, [valor, opcionesNormalizadas]);
+
+  // Agrupar opciones filtradas por categoría/grupo
+  const gruposOpciones = useMemo(() => {
+    const gruposMap = new Map<string, OpcionSugerencia[]>();
+    const sinGrupo: OpcionSugerencia[] = [];
+
+    opcionesFiltradas.forEach((opcion) => {
+      if (opcion.grupo) {
+        const lista = gruposMap.get(opcion.grupo) || [];
+        lista.push(opcion);
+        gruposMap.set(opcion.grupo, lista);
+      } else {
+        sinGrupo.push(opcion);
+      }
+    });
+
+    return { gruposMap, sinGrupo, tieneGrupos: gruposMap.size > 0 };
+  }, [opcionesFiltradas]);
+
+  const seleccionarOpcion = (opcionValor: string, e: React.MouseEvent) => {
     e.stopPropagation();
     e.preventDefault();
-    alCambiar(opcion);
+    alCambiar(opcionValor);
     setAbierto(false);
   };
 
@@ -67,6 +106,26 @@ export const SelectorSugerencias: React.FC<SelectorSugerenciasProps> = ({
     if (!disabled) {
       setAbierto((prev) => !prev);
     }
+  };
+
+  const renderFilaOpcion = (opcion: OpcionSugerencia) => {
+    const estaSeleccionada = opcion.valor.toLowerCase() === valor.trim().toLowerCase();
+    return (
+      <button
+        key={opcion.valor}
+        type="button"
+        onClick={(e) => seleccionarOpcion(opcion.valor, e)}
+        className={`${estilos.opcion} ${estaSeleccionada ? estilos.opcionSeleccionada : ""}`}
+      >
+        <div className={estilos.infoOpcion}>
+          <span className={estilos.nombreOpcion}>{opcion.etiqueta || opcion.valor}</span>
+          {opcion.subtitulo && (
+            <span className={estilos.subtituloOpcion}>{opcion.subtitulo}</span>
+          )}
+        </div>
+        {estaSeleccionada && <Check size={12} />}
+      </button>
+    );
   };
 
   return (
@@ -100,20 +159,23 @@ export const SelectorSugerencias: React.FC<SelectorSugerenciasProps> = ({
       {abierto && !disabled && (
         <div className={estilos.dropdown}>
           {opcionesFiltradas.length > 0 ? (
-            opcionesFiltradas.map((opcion) => {
-              const estaSeleccionada = opcion.toLowerCase() === valor.trim().toLowerCase();
-              return (
-                <button
-                  key={opcion}
-                  type="button"
-                  onClick={(e) => seleccionarOpcion(opcion, e)}
-                  className={`${estilos.opcion} ${estaSeleccionada ? estilos.opcionSeleccionada : ""}`}
-                >
-                  <span>{opcion}</span>
-                  {estaSeleccionada && <Check size={12} />}
-                </button>
-              );
-            })
+            gruposOpciones.tieneGrupos ? (
+              <>
+                {Array.from(gruposOpciones.gruposMap.entries()).map(([nombreGrupo, items]) => (
+                  <div key={nombreGrupo} className={estilos.seccionGrupo}>
+                    <div className={estilos.encabezadoGrupo}>
+                      <span>{nombreGrupo}</span>
+                      <span className={estilos.badgeConteoGrupo}>{items.length}</span>
+                    </div>
+                    {items.map((opcion) => renderFilaOpcion(opcion))}
+                  </div>
+                ))}
+                {gruposOpciones.sinGrupo.length > 0 &&
+                  gruposOpciones.sinGrupo.map((opcion) => renderFilaOpcion(opcion))}
+              </>
+            ) : (
+              opcionesFiltradas.map((opcion) => renderFilaOpcion(opcion))
+            )
           ) : (
             <div className={estilos.sinResultados}>No hay sugerencias</div>
           )}

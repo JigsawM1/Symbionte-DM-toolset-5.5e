@@ -1,0 +1,144 @@
+.contenedorGeneral {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background-color: #0b0f16;
+  color: #f1f5f9;
+  overflow: hidden;
+}
+
+.cabeceraPrincipal {
+  padding: 12px 16px 0 16px;
+  background-color: #111622;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.filaTitulo {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.tituloTexto {
+  font-size: 16px;
+  font-weight: 800;
+  color: #f8fafc;
+  margin: 0;
+  letter-spacing: 0.02em;
+}
+
+.filaPestañasYFiltro {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.grupoPestañas {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex-wrap: wrap;
+}
+
+.botonPestaña {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 9px;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: #94a3b8;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  user-select: none;
+  white-space: nowrap;
+}
+
+.botonPestaña:hover {
+  color: #cbd5e1;
+  background-color: rgba(255, 255, 255, 0.03);
+}
+
+.botonPestañaActiva {
+  color: #fb923c;
+  border-bottom-color: #fb923c;
+  background-color: rgba(251, 146, 60, 0.06);
+}
+
+.botonFiltrar {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background-color: #1e293b;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 6px;
+  color: #cbd5e1;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 5px 9px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.botonFiltrar:hover {
+  background-color: #273549;
+  border-color: rgba(148, 163, 184, 0.4);
+  color: #ffffff;
+}
+
+.botonFiltrarActivo {
+  background-color: #c2410c;
+  border-color: #ea580c;
+  color: #ffffff;
+}
+
+.panelFiltros {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  background-color: #161e2c;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+  flex-wrap: wrap;
+}
+
+.buscadorInput {
+  flex: 1;
+  min-width: 160px;
+  background-color: #0b0f16;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 6px;
+  color: #f8fafc;
+  font-size: 11px;
+  padding: 6px 10px;
+  outline: none;
+}
+
+.buscadorInput:focus {
+  border-color: #3b82f6;
+}
+
+.areaLista {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.mensajeVacio {
+  padding: 40px 20px;
+  text-align: center;
+  color: #64748b;
+  font-size: 13px;
+  font-style: italic;
+}

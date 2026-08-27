@@ -1,6 +1,6 @@
 import { MonstruoBase, HechizoBase, ObjetoHomebrew, EsquemaMonstruoBase, EsquemaHechizoBase, EsquemaObjetoJuego } from '@/tipos';
 import { aplanarValor, sanearObjetoHomebrew, sanearHechizoCD, parsearVelocidad, parsearSentidos, sanearMonstruoSentidosYPasiva } from '@/almacen/sanitizacion';
-import { generarId } from '@/utiles/generarId';
+import { generarIdSlug } from '@/utiles/generarId';
 import { logger } from '@/utiles/logger';
 
 export interface ResultadoImportacion {
@@ -337,9 +337,10 @@ export function importarDesdeJSON(
           });
         }
 
+        const nombreMonstruo = aplanarValor(m.Name || m.nombre || "Monstruo Desconocido");
         const monstruoSaneado = {
-          id: aplanarValor(m.Id || m.id || generarId('m_importado')),
-          nombre: aplanarValor(m.Name || m.nombre || "Monstruo Desconocido"),
+          id: aplanarValor(m.Id || m.id || generarIdSlug('m', nombreMonstruo)),
+          nombre: nombreMonstruo,
           tipo: limpiarTipoCriatura(m.Type || m.tipo || "Humanoide"),
           ca: caVal,
           caNotas: aplanarValor(caNotas),
@@ -606,12 +607,15 @@ export function importarDesdeJSON(
         }
 
         // tirada_de_salvacion (nuevo formato) → cdSalvacion
+        // Mapear requiere_ataque (booleano explícito del JSON)
+        const requiereAtaque = h.requiere_ataque === true || h.requiereAtaque === true;
+
         // Mapear tanto el nuevo campo tirada_de_salvacion como el clásico spell_save_dc_type
         const tiradaSalv = h.tirada_de_salvacion || h.spell_save_dc_type;
 
         // CD de salvación mapeado (nuevo: tirada_de_salvacion | clásico: spell_save_dc_type)
         let cdSalv = "";
-        if (tiradaSalv) {
+        if (tiradaSalv && tiradaSalv !== "null" && tiradaSalv !== "N/A") {
           const dcType = String(tiradaSalv).toUpperCase().trim();
           if (dcType.includes("STR") || dcType.includes("FUE") || dcType.includes("FUERZA")) cdSalv = "Fuerza";
           else if (dcType.includes("DEX") || dcType.includes("DES") || dcType.includes("DESTREZA")) cdSalv = "Destreza";
@@ -619,10 +623,11 @@ export function importarDesdeJSON(
           else if (dcType.includes("INT") || dcType.includes("INTELIGENCIA")) cdSalv = "Inteligencia";
           else if (dcType.includes("WIS") || dcType.includes("SAB")) cdSalv = "Sabiduría";
           else if (dcType.includes("CHA") || dcType.includes("CAR")) cdSalv = "Carisma";
+          else if (dcType !== "" && dcType !== "NONE") cdSalv = String(tiradaSalv);
         }
 
-        if (!cdSalv) {
-          // Escanear descripción para deducir la característica de salvación
+        // Solo escanear descripción si tirada_de_salvacion no vino explícitamente en el JSON (para compatibilidad con otros formatos)
+        if (!cdSalv && h.tirada_de_salvacion === undefined) {
           const descLower = descClean.toLowerCase();
           if (descLower.includes("salvación de destreza") || descLower.includes("tirada de salvación de destreza") || descLower.includes("salvación: dex") || descLower.includes("salvación: des") || descLower.includes("salvacion de destreza")) {
             cdSalv = "Destreza";
@@ -639,6 +644,16 @@ export function importarDesdeJSON(
           }
         }
 
+        // Determinar tipo de efecto de combate: Ataque, CD de Salvación o N/A
+        let ataqueCdFinal = "N/A";
+        if (requiereAtaque) {
+          ataqueCdFinal = "TIRADA DE ATAQUE";
+        } else if (cdSalv) {
+          ataqueCdFinal = "CD DE SALVACIÓN";
+        } else if (h.ataqueCd && h.ataqueCd !== "N/A" && h.ataqueCd !== "none") {
+          ataqueCdFinal = aplanarValor(h.ataqueCd);
+        }
+
         // Tiempo de lanzamiento: nuevo campo tiempo_de_lanzamiento | clásico: tiempoLanzamiento | inglés: casting_time
         const tiempoLanzamiento = aplanarValor(
           h.tiempo_de_lanzamiento || h.tiempoLanzamiento || h.casting_time || "1 acción"
@@ -647,9 +662,10 @@ export function importarDesdeJSON(
         // Duración: nuevo campo duracion | clásico: duracion | inglés: duration
         const duracion = aplanarValor(h.duracion || h.duration || "");
 
+        const nombreHechizo = aplanarValor(h.nombre || h.name || "Hechizo Desconocido");
         const hechizoMapeado = {
-          id: aplanarValor(h.id || h.Id || generarId('h_importado')),
-          nombre: aplanarValor(h.nombre || h.name || "Hechizo Desconocido"),
+          id: aplanarValor(h.id || h.Id || generarIdSlug('h', nombreHechizo)),
+          nombre: nombreHechizo,
           nivel: nivelNum,
           escuela: aplanarValor(h.escuela || h.school || "Universal"),
           tiempoLanzamiento,
@@ -664,10 +680,8 @@ export function importarDesdeJSON(
           componentesSeleccionados,
           duracion: duracion || undefined,
           clases: clasesArray.length > 0 ? clasesArray : undefined,
-          ataqueCd: h.ataqueCd ? aplanarValor(h.ataqueCd)
-            : (h.requiere_ataque === true ? "TIRADA DE ATAQUE"
-            : (tiradaSalv ? "CD DE SALVACIÓN"
-            : (dadosDano ? "TIRADA DE ATAQUE" : "N/A"))),
+          ataqueCd: ataqueCdFinal,
+          requiereAtaque,
           dadosDaño: dadosDano || undefined,
           dadosDañoNivelSuperior: dadosDanoNivelSuperior || undefined,
           cdSalvacion: cdSalv || (h.cdSalvacion && String(h.cdSalvacion).toUpperCase().trim() !== "CD DC" && String(h.cdSalvacion).toUpperCase().trim() !== "DC" ? aplanarValor(h.cdSalvacion) : (h.toHitOrDC && String(h.toHitOrDC).toUpperCase().trim() !== "CD DC" && String(h.toHitOrDC).toUpperCase().trim() !== "DC" ? aplanarValor(h.toHitOrDC) : undefined)),
@@ -876,7 +890,7 @@ export function importarDesdeJSON(
         
         const objetoMapeado = sanearObjetoHomebrew({
           ...o, // Conservar todas las propiedades originales clásicas para que sanearObjetoHomebrew las mapee con total precisión (armor_class, armor_category, str_minimum, etc.)
-          id: o.index || o.id || generarId('o_importado'),
+          id: aplanarValor(o.index || o.id || o.Id || generarIdSlug('o', nombre)),
           nombre,
           rareza,
           // IMPORTANTE: NO sobreescribir 'propiedades' aquí — sanearObjetoHomebrew lee 'o.properties' (array original)

@@ -2,6 +2,325 @@
 
 Este archivo registra errores encontrados, sus causas raíz y las soluciones aplicadas.
 
+## [2026-08-26] Arquitectura y Refactorización: Hoja de Jugador / Vista de Jugador (Fase 2: Modularización UI y Cobertura de Tests)
+**Decisión y Motivación:**
+1. **Componente Reutilizable `BotonSubPestana.tsx` (`BotonSubPestana.tsx` y `HojaPersonaje.tsx`):**
+   - Se modularizó la botonera interna en un componente presentacional puro fuertemente tipado con badges numéricos reactivos, reduciendo la duplicación de marcado JSX.
+2. **Corrección en Comparación de Slugs Prefijados (`comparadorHechizos.ts`):**
+   - *Causa*: Si un ID de conjuro ya incluía el prefijo `h_` (`h_bendicion`), la función `generarIdSlug("h", "h_bendicion")` producía `h_h-bendicion`, fallando al compararlo contra `"Bendición"` (`h_bendicion`).
+   - *Solución*: Se implementó la remoción previa del prefijo `h_` antes del slugging, garantizando un emparejamiento 100% simétrico entre slugs, identificadores y nombres legibles.
+3. **Suite Completa de Pruebas Unitarias de Servicios Puros:**
+   - Creados `comparadorHechizos.test.ts` (coincidencias fonéticas, tildes, sinónimos oficiales y deduplicación).
+   - Creados `procesadorEquipamiento.test.ts` (regla de armadura única, división de stacks y fusión al desequipar).
+   - Creados `sincronizadorConjurosSubclase.test.ts` (sincronización y depuración según clase y nivel).
+   - Creados `calculadorInventario.test.ts` (capacidad de carga D&D 5.5e, multiplicadores de tamaño, pesos por contenedor, operaciones de monedas y sintonizaciones).
+   - Total de la suite incrementada a **24 archivos de tests y 262 pruebas pasando al 100%**.
+
+## [2026-08-26] Arquitectura y Refactorización: Hoja de Jugador / Vista de Jugador (Fase 1: P0 y P1)
+
+**Decisión y Motivación:**
+1. **Auditoría Exhaustiva del Área de Jugador (`audit_report.md`):**
+   - Se analizaron integralmente más de 30 componentes, slices, selectores y servicios del área de la Ficha/Hoja de Jugador siguiendo los estándares KISS, DRY, Clean Code y Clean Architecture.
+2. **Migración a CSS Modules (`HojaPersonaje.module.css` y `HojaPersonaje.tsx`):**
+   - *Causa*: La barra de sub-pestañas (`Combate y Atributos` vs `Conjuros y Magia`) utilizaba ~70 líneas de estilos `style={{}}` inline, rompiendo la coherencia de diseño del proyecto.
+   - *Solución*: Se añadieron las clases `.barraSubPestanas`, `.botonSubPestana`, `.botonSubPestanaActivo` y `.badgeContadorConjuros` en `HojaPersonaje.module.css`, eliminando los objetos inline y mejorando el rendimiento de renderizado en Chromium CEF.
+3. **Extracción de Helpers de Negocio a Servicios Puros (`comparadorHechizos.ts` y `sincronizadorConjurosSubclase.ts`):**
+   - *Causa*: Funciones de negocio independientes del store (`coincideHechizoId`, `deduplicarListaIds`, `sincronizarConjurosSubclaseHelper`) residían dentro de `slicePersonajes.ts`, violando el principio SRP (Single Responsibility).
+   - *Solución*: Se aislaron en `src/servicios/comparadorHechizos.ts` y `src/servicios/sincronizadorConjurosSubclase.ts`, reexportándolas desde `slicePersonajes.ts` para garantizar compatibilidad retroactiva al 100%.
+4. **Aislamiento de Reglas de Equipamiento D&D 5.5e (`procesadorEquipamiento.ts`):**
+   - *Solución*: Se extrajo la lógica de `alternarEquipadoObjeto` (regla de armadura única, split de stacks y fusión automática en mochila) a `src/servicios/procesadorEquipamiento.ts` como función pura testeable `procesarAlternarEquipado`.
+5. **Reducción de Boilerplate en Zustand con `mutarPersonaje` (`mutarPersonaje.ts` y `slicePersonajes.ts`):**
+   - *Causa*: El patrón `set((state) => ({ personajes: state.personajes.map((pj) => pj.id === id ? ... : pj) }))` se repetía más de 40 veces a lo largo de 1467 líneas.
+   - *Solución*: Se creó el helper genérico `mutarPersonaje<T>(set, id, mutador)` reduciendo el tamaño del slice en más de 370 líneas de código repetitivo y garantizando inmutabilidad y tipado estricto.
+6. **Lección Aprendida sobre Verificación de Archivos:**
+   - *Incidencia*: Un subagente de investigación inicial alucinó nombres de archivos en inglés que no existían. Se estableció la directriz de verificar siempre la existencia física de los archivos antes de proceder y leer los archivos reales del proyecto directamente.
+
+## [2026-08-25] Fase 2: Conjuros de Subclase para las 12 Clases Oficiales y Arcano Místico D&D 2024
+
+**Decisión y Motivación:**
+1. **Catálogo Maestro de Conjuros de Subclase (`subclasesConjurosConstantes.ts` y `calculadorMagia.ts`):**
+   - Se estructuró el catálogo `CATALOGO_CONJUROS_SUBCLASES` que abarca las 48 subclases oficiales de D&D 5.5e (2024) provenientes de `dicionario herramientas/clases/`:
+     - **Clérigo (4/4):** Dominios de Vida, Luz, Engaño y Guerra con sus listas completas de niveles 3, 5, 7 y 9.
+     - **Paladín (4/4):** Juramentos de Entrega/Devoción, Gloria, Antiguos y Venganza con sus listas de niveles 3, 5, 9, 13 y 17.
+     - **Brujo (4/4):** Patrones de Archihada, Celestial (con trucos *Luz* y *Llama sagrada*), Infernal y Gran Primigenio (*Maldición* a Nv 10).
+     - **Druida (4/4):** Círculo de la Tierra (con soporte de sus 4 biomas: Árida, Polar, Templada, Tropical), Luna, Mar (truco *Rayo de escarcha*) y Estrellas (truco *Guía* y *Saeta guía*).
+     - **Hechicero (4/4):** Hechicería Aberrante (truco *Astilla mental* y conjuros psiónicos), Mecanismo de Relojería y Dracónica.
+     - **Explorador (4/4):** Errante Feérico y Acechador en la Penumbra.
+     - **Bardo (4/4):** Colegio del Glamour (*Hechizar persona*, *Imagen múltiple*, *Orden imperiosa*).
+     - **Mago (4/4):** Abjurador (*Contrahechizo* y *Disipar magia* a Nv 10) e Ilusionista (*Ilusión menor*, *Invocar bestia*, *Invocar feérico*).
+     - **Guerrero (4/4):** Guerrero Psiónico (*Telequinesis* a Nv 18).
+     - **Pícaro (4/4):** Embaucador Arcano (*Mano de mago*).
+     - **Monje (4/4):** Guerrero de la Sombra (*Oscuridad*, *Ilusión menor*) y Guerrero de los Elementos (*Elementalismo*).
+     - **Bárbaro (4/4):** Senda del Corazón Salvaje (rituales *Sentidos de la bestia*, *Hablar con los animales*, *Comunión con la naturaleza*).
+2. **Sincronización Automática, Depuración Bidireccional y Desmarcado Flexible (`slicePersonajes.ts`, `PanelConfiguracionPersonaje.tsx`, `PanelConjurosPersonaje.tsx`, `CompendioConjurosJugador.tsx`):**
+   - *Causa Raíz*: Al subir de nivel (ej. a Nv 7) y luego bajar (ej. a Nv 3), los conjuros de subclase de los niveles superiores (*Aura de vida*, *Guarda contra la muerte*, etc.) quedaban retenidos en `conjurosPreparadosIds`. Además, `alternarConjuroPreparado` y `quitarConjuroConocido` realizaban comparaciones literales estrictas (`===`), por lo que no lograban emparejar ni desmarcar conjuros si diferían entre slug (`"h_bendicion"`), ID y nombre capitalizado (`"Bendición"`).
+   - *Solución Aplicada*:
+     1. Se implementó `coincideHechizoId(idA, idB)` para emparejar por slug, nombre e igualdad fonética sin tildes (`normalize("NFD")`).
+     2. Se implementó `sincronizarConjurosSubclaseHelper` que detecta los conjuros de subclase eliminados al reducir de nivel o cambiar de subclase y los depura automáticamente de `conjurosSiemprePreparadosIds`, `conjurosPreparadosIds` y `conjurosConocidosIds`.
+     3. Se actualizaron `alternarConjuroPreparado`, `quitarConjuroConocido`, `agregarConjuroConocido`, `quitarTrucoConocido` y `agregarTrucoConocido` para usar `coincideHechizoId`, permitiendo al usuario desmarcar y alternar cualquier conjuro libremente sin bloqueos residuales.
+     4. Se refactorizó el cálculo de tarjetas de métricas (`CONJUROS: libres / max (+subclase)`) en `CompendioConjurosJugador.tsx` y `PanelConjurosPersonaje.tsx` para basarse en los conjuros únicos reales del repertorio en lugar de la longitud bruta de arrays con strings acumulados, separando de forma clara los conjuros libres (que consumen el límite de clase) de los de subclase (que no consumen límite).
+     5. Se creó la tabla de sinónimos bidireccionales `MAPA_ALIAS_HECHIZOS` para resolver discrepancias históricas de traducción entre compendios (*Susurros disonantes* $\leftrightarrow$ *Susurros discordantes*, *Risa espantosa de Tasha* $\leftrightarrow$ *Risa horrible de Tasha*, *Vínculo telepático de Rary* $\leftrightarrow$ *Enlace telepático de Rary*), asegurando que se reconozcan y sincronicen en el catálogo de subclases y compendio sin importar la variante empleada.
+     6. **Arquitectura DRY de Magia y Métricas (`usarMagiaPersonaje.ts` y `TarjetasMetricasMagia.tsx`):**
+        - *Causa Raíz*: La Hoja de Personaje (`PanelConjurosPersonaje.tsx`) y el Compendio (`CompendioConjurosJugador.tsx`) tenían duplicada la lógica de cálculo de conjuros de subclase (`esHechizoDeSubclase`), estado de preparación (`estaPreparado`), pertenencia al repertorio (`estaEnLista`) y tarjetas de métricas (`libres / max (+subclase)`). Esto causaba desincronizaciones cuando se actualizaba una vista y no la otra.
+        - *Solución*: Se centralizó toda la lógica en el hook universal `usarMagiaPersonaje` y se creó el componente reutilizable `TarjetasMetricasMagia`. Ambos paneles consumen exactamente la misma fuente de verdad, asegurando total coherencia en contadores, insignias de `[Subclase]` y listas de conjuros.
+     7. **Lanzamiento como Ritual D&D 5.5e (2024) (`TarjetaConjuroCompacta.tsx`, `FichaHechizo.tsx`, `FilaConjuroCompendio.tsx`):**
+        - *Regla*: En D&D 2024, cualquier lanzador puede lanzar conjuros con la etiqueta `Ritual` si están en sus conocidos/preparados (o libro para Magos) añadiendo 10 minutos sin consumir ranuras ni puntos de conjuro.
+        - *Implementación*: Se agregó el botón interactivo `[RITUAL]` con distintivo violeta en la tarjeta compacta y en la ficha completa. Al activarse, envía la tirada a TaleSpire indicando `(RITUAL - +10 min)`, activa la concentración si el conjuro la requiere y preserva intactas las ranuras y puntos de magia.
+3. **Arcano Místico para Brujos de Nivel 11+ (`SeccionArcanoMistico.tsx` y `slicePersonajes.ts`):**
+   - Para brujos de nivel $\ge 11$, el sistema desbloquea slots de Arcano Místico según su nivel de Brujo: Nivel 6 (a Nv 11), Nivel 7 (a Nv 13), Nivel 8 (a Nv 15) y Nivel 9 (a Nv 17).
+   - Permite asignar cualquier conjuro de ese nivel desde el compendio, realizar el lanzamiento gratuito 1/día a TaleSpire y registrar el estado gastado hasta el próximo descanso largo.
+   - `procesadorDescansos.ts` restablece `arcanoMisticoGastados: []` automáticamente al ejecutar un Descanso Largo.
+
+## [2026-08-25] Mecánicas y UI: Validaciones de Upcasting, Brujos Puros y Delegación Multiclase
+**Decisión y Motivación:**
+1. **Upcasting Acotado a Ranuras Reales Disponibles (`calculadorMagia.ts`, `TarjetaConjuroCompacta.tsx`, `FichaHechizo.tsx`):**
+   - *Causa Raíz*: El selector de Upcasting generaba opciones indiscriminadamente hasta Nivel 9 (`Array.from({ length: 10 - hechizo.nivel })`), permitiendo a personajes de nivel bajo seleccionar ranuras que aún no poseen.
+   - *Solución*: Implementada la función pura `obtenerOpcionesLanzamientoConjuro`, que evalúa los espacios estándar (`espaciosConjuroMaximos`), el sistema de puntos (`nivelConjuroMaximo`) y la Magia de Pacto (`nivelEspacioPacto`). El selector solo renderiza los niveles reales que el personaje puede lanzar ($\ge \text{nivelHechizo}$).
+2. **Bloqueo de Upcasting Manual para Brujos Puros (Warlock Mono-clase):**
+   - *Regla Oficial*: En D&D 5.5e / 5e, un Brujo puro siempre lanza todos sus conjuros utilizando sus ranuras de pacto de nivel fijo dictadas por su tabla de clase (ej. Nivel 3 para un Brujo nivel 5).
+   - *Solución*: Si el personaje solo posee Magia de Pacto, `obtenerOpcionesLanzamientoConjuro` devuelve una única opción fija `[{ nivel: nivelEspacioPacto, etiqueta: "Pacto Nv. X", tipo: "pacto" }]`. En la UI se oculta el selector desplegable y se muestra una insignia fija `[Pacto Nv. X]` con estilo púrpura mate. Al pulsar *"Lanzar"*, el conjuro escala automáticamente al nivel de pacto y descuenta 1 espacio de pacto.
+3. **Delegación de Recursos en Multiclase de Brujo con otra Clase Lanzadora:**
+   - *Problema*: Al combinar Brujo con otra clase lanzadora (ej. Mago/Brujo, Clérigo/Brujo, Paladín/Brujo), si el personaje lanzaba un conjuro a nivel 1 o 2, el sistema consumía erróneamente un espacio de pacto de nivel superior en lugar del espacio estándar.
+   - *Solución*:
+     - Se implementó `gastarRecursoLanzamientoConjuro`.
+     - Si el nivel seleccionado $L \ne \text{nivelEspacioPacto}$, el sistema **DELEGA** el gasto a la otra clase lanzadora (`alGastarEspacio(L)` o `alGastarPuntos`), manteniendo intactos los espacios de pacto del Brujo.
+     - Si el nivel seleccionado $L === \text{nivelEspacioPacto}$, el sistema consume 1 espacio de pacto (`alGastarEspacioPacto()`); si los espacios de pacto están agotados y tiene espacios estándar de ese mismo nivel, delega automáticamente a los estándar.
+
+## [2026-08-25] Arquitectura, Mecánicas y UI: Multiclase (Tope Nivel 20), XP Bidireccional, Subespecies, Personalización de Atributos y Guías de Diseño Visual
+**Decisión y Motivación:**
+1. **Lista Completa Oficial de Clases de D&D 5.5e / 2024 (`src/constantes/homebrewConstantes.ts`):**
+   - *Causa Raíz*: `CLASES_DND` solo contenía las clases lanzadoras de conjuros, omitiendo Bárbaro, Guerrero, Monje y Pícaro.
+   - *Solución*: Se incorporaron las 12 clases oficiales de D&D 5.5e más Artífice: `["Bárbaro", "Bardo", "Brujo", "Clérigo", "Druida", "Explorador", "Guerrero", "Hechicero", "Mago", "Monje", "Paladín", "Pícaro", "Artífice"]`.
+2. **Soporte de Multiclase Dinámica con Tope Estricto de Nivel 20 (`PanelConfiguracionPersonaje.tsx` & `personaje.ts`):**
+   - Nuevo modelo `ClasePersonaje` (`{ nombre: string, subclase: string, nivel: number }`) dentro del esquema de personaje.
+   - Regla de límite máximo global: $\sum_{i} \text{clases}[i].\text{nivel} \le 20$.
+   - Para cada clase en la lista multiclase, el nivel máximo configurable se acota dinámicamente a $\min(20, 20 - \sum_{j \ne i} \text{clases}[j].\text{nivel})$.
+   - Botón `+ Añadir Multiclase` disponible hasta alcanzar el nivel global 20.
+   - Sincronización automática multiclase de recursos mágicos mediante `sincronizarMagiaMulticlase` y `calcularTodosRecursosMagicos`.
+3. **Sincronización Bidireccional de Nivel y Experiencia por Rangos (`personajeConstantes.ts` & `PanelConfiguracionPersonaje.tsx`):**
+   - Implementadas `obtenerExperienciaMaximaPorNivel` y `obtenerRangoExperienciaPorNivel`.
+   - Si la XP cambia a un valor dentro del rango de otro nivel, el nivel se actualiza automáticamente; si el nivel cambia, la XP se ajusta al rango del nivel (mínimo de ese nivel si queda desfasada).
+   - Visualización clara del rango activo de XP: `Rango Nv. X: [min] - [max] PX`.
+4. **Campo para Subespecie / Legado / Linaje (`personaje.ts`, `PanelConfiguracionPersonaje.tsx`, `CabeceraPersonaje.tsx`):**
+   - Añadido campo persistente `subespecie` en `EsquemaPersonajeJugador` y en el formulario de Identidad.
+   - Renderizado dinámico en la pastilla de especie de la cabecera de personaje: `Especie (Subespecie)` (ej. `Elfo (Alto elfo)`).
+5. **Personalización e Inspección Matemática de Atributos (`ModalDetalleCaracteristica.tsx` & `usarEstadoPersonajes.ts`):**
+   - Sub-pestaña **`Información y Tiradas`**:
+     - Muestra la descripción oficial o personalizada de los usos y tiradas de salvación.
+     - Desglose matemático: Puntuación Base, Override Fijo, Puntuación Efectiva Final, Modificador Base, Modificador Extra, Mod Total Pruebas, PB, Salvación entrenada (+PB) y Bono Extra a Salvaciones.
+     - Cuadro de notas y botones de tirada 3D directos a TaleSpire.
+   - Sub-pestaña **`Personalizar`**:
+     - Edición libre de Nombre Personalizado y Descripción de Usos/Salvaciones.
+     - Puntuación Base con botones tácticos `[-]` y `[+]` con edición de texto libre y `onBlur`.
+     - Override Fijo / Valor Fijo con presets rápidos (`19 - Ogro/Diadema`, `21 - Colina`, `23 - Piedra`) y botón `Quitar`.
+     - Modificador Extra a Pruebas y Bono Extra a Salvaciones.
+     - Checkbox de Competencia en Tiradas de Salvación.
+     - Cuadro de Notas y Rasgos Especiales.
+   - Conexión completa en `calcularEstadisticasPersonaje` integrando `personalizacionesCaracteristicas`.
+6. **Guías de Estilo Visual Estandarizadas (`DESIGN.md` y `DESIGN_MASTER.md`):**
+   - `DESIGN.md`: Manual de diseño visual, densidad táctica, paleta de colores, escalas tipográficas y componentes para la Hoja de Personaje del Jugador.
+   - `DESIGN_MASTER.md`: Manual de diseño visual para las herramientas del Master (Combat Tracker, Fichas de Monstruos, Compendio, Facción y Ergonomía).
+
+## [2026-08-24] Arquitectura y UI: Compendio de Conjuros del Jugador y Lanzador Rápido Táctico
+**Decisión y Motivación:**
+- **Separación de Responsabilidades:**
+  - El panel de conjuros en la hoja de personaje (`PanelConjurosPersonaje.tsx`) se sobrecargaba al incluir un buscador modal integrado. Se simplificó para funcionar como un **Lanzador Rápido Táctico** enfocado en el combate: trackers de recursos (espacios/maná/pacto), banner de concentración activa, CD y Bono de Ataque Mágico interactivo (clickable para tirar 1d20+Bono a TaleSpire) y tarjetas de conjuros listos para lanzar.
+- **Nuevo Compendio de Conjuros para Jugadores (`CompendioConjurosJugador.tsx`):**
+  - Al hacer clic en la pestaña superior **COMPENDIO** (en modo Jugador `!esGM`), se renderiza directamente el listado maestro de conjuros con 4 sub-pestañas:
+    1. **`★ Preparados`**: Muestra los conjuros preparados del personaje activo.
+    2. **`☑ Mi lista`** (o **`☑ Libro de conjuros`** si es Mago): Muestra los conjuros aprendidos/conocidos en su repertorio.
+    3. **`🕮 Disponibles`**: Muestra todos los conjuros del compendio disponibles para las clases del personaje activo, ordenados por nivel (0 a 9) y alfabéticamente.
+    4. **`🌐 Todos`**: Muestra la base de datos completa de conjuros.
+  - Botón **`Filtrar`** superior con panel colapsable (búsqueda de texto, nivel y escuela).
+  - Filas de conjuro estructuradas (`FilaConjuroCompendio.tsx`):
+    - **Diseño Ultra-Compacto sin Scroll Horizontal**:
+      - **Línea 1**: Estrella (preparar), Checkbox (lista), Icono de escuela, Nombre del conjuro (con prioridad y puntos suspensivos) y a la derecha los badges de Nivel y Escuela.
+      - **Línea 2**: Metadatos compactos en línea con separadores circulares (`Tiempo [R] • Alcance • Duración [C] • Componentes • Dados de Daño`).
+      - **Línea 3**: Extracto descriptivo de 2 líneas.
+      - Elimina al 100% la necesidad de scroll horizontal en la barra lateral de TaleSpire.
+    - **Botones Interactivos Accesibles**:
+      - La estrella y el checkbox están montados sobre botones dedicados (`button type="button"`) con área de toque de 22-24px, efecto hover sutil y detención de propagación de eventos (`e.stopPropagation()`), garantizando clics precisos sin abrir accidentalmente la ficha modal del conjuro.
+- **Navegación Rápida al Compendio y Estados Vacíos (`PanelConjurosPersonaje.tsx`):**
+  - Botón directo superior `[ 🕮 Compendio de Conjuros ]` para saltar de inmediato a la asignación de conjuros.
+  - Botón contextual `[ 🕮 Añadir Trucos ]` cuando el personaje no tiene trucos seleccionados.
+  - Tarjeta de estado vacío con botón `[ 🕮 Ir al Compendio de Conjuros ]` cuando el personaje no tiene conjuros preparados o conocidos.
+- **Tarjetas de Conteo Máximo de Conjuros y Trucos (`media_1787610426120.png`):**
+  - Implementado `calcularMaximosConjurosYTrucos` en `src/servicios/calculadorMagia.ts` con tablas oficiales de D&D 5.5e (2024) y soporte para multiclase y mono-clase.
+  - Diseñadas 2 tarjetas gemelas de resumen táctico integradas tanto en la cabecera de `CompendioConjurosJugador.tsx` como en el panel de estadísticas de `PanelConjurosPersonaje.tsx`:
+    - **`CONJUROS [actual / max] PREPARADOS/CONOCIDOS`**: Indica cuántos conjuros tiene asignados de su límite disponible.
+    - **`TRUCOS [actual / max] CONOCIDOS`**: Muestra la cantidad de trucos aprendidos vs el máximo permitido por su clase/nivel.
+- **Trucos de Ataques Múltiples Independientes (ej. Descarga Sobrenatural / Eldritch Blast):**
+  - Implementadas `esTrucoDeAtaquesMultiples`, `calcularInfoTruco` y `construirFormulaTaleSpireTruco` en `src/utiles/utilesConjuros.ts`.
+  - A diferencia de los trucos que aumentan los dados de daño de un solo golpe (ej. *Toque Helado* de `1d10` a `2d10`), trucos como *Descarga Sobrenatural* generan ataques adicionales independientes (1 rayo a nv 1-4, 2 rayos a nv 5-10, 3 rayos a nv 11-16, 4 rayos a nv 17-20).
+  - La visualización en tarjeta indica `• 2 rayos (1d10 c/u) (Nv.5)`.
+  - Al pulsar **`⚡ Lanzar`**, envía a la bandeja 3D de TaleSpire tiradas independientes de ataque y daño para cada rayo (`!Ataque Rayo 1:1d20+Bono/Daño Rayo 1 (fuerza):1d10/Ataque Rayo 2:1d20+Bono/Daño Rayo 2 (fuerza):1d10`), permitiendo verificar individualmente qué impactos aciertan.
+- **Corrección Crítica: Persistencia de Conjuros y Trucos entre Sesiones (IDs Deterministas vs UUIDs Aleatorios):**
+  - *Problema*: Al reiniciar o recargar TaleSpire, los conjuros de la lista y preparados del personaje parecían "olvidarse" (`media_1787611073754.png`), mostrando el contador en cabecera `2 / 6` pero el listado vacío `(0 conjuros)`.
+  - *Causa Raíz*: `importadorJSON.ts` generaba `generarId('h_importado')` (con `crypto.randomUUID()`) al importar el compendio inicial `all.json` en cada inicio. Por tanto, cada vez que la app cargaba, los conjuros recibían IDs completamente nuevos y diferentes a los IDs que el personaje había guardado en `localStorage`.
+  - *Solución*:
+    1. Creada `generarIdSlug(prefijo, nombre)` en `src/utiles/generarId.ts` para producir IDs deterministas basados en slug (`h_descarga-sobrenatural`, `h_toque-helado`, etc.), 100% estables e idénticos en cada recarga.
+    2. Actualizado `importadorJSON.ts` para usar `generarIdSlug` en hechizos, monstruos y equipo base.
+    3. Implementado mecanismo de resolución bidireccional y tolerante a fallos (`estaEnSet`, mapa de búsqueda por ID/slug/nombre) en `CompendioConjurosJugador.tsx`, `PanelConjurosPersonaje.tsx` y `BuscadorConjurosPersonaje.tsx` para garantizar compatibilidad retroactiva total con personajes existentes.
+- **Corrección: Eliminación de Fallback Fantasma de "1d6" en Conjuros de Utilidad/No Ofensivos ([`FichaHechizo.tsx`](file:///c:/Users/zamor/OneDrive/Documentos/Programas/ToolSet%20Es%205.5/src/componentes/caracteristicas/compendio/FichaHechizo.tsx)):**
+  - *Problema*: Conjuros sin dados de daño como *Detectar magia*, *Identificar*, *Escudo*, *Auxilio divino*, *Paso brumoso* (`media_1787613230505.png`) mostraban `Daño Base: 1d6` y el botón `Tirar Daño en TaleSpire`.
+  - *Causa Raíz*: `dadosBaseValidos` contenía un fallback por defecto `|| "1d6"` cuando el conjuro no definía `dadosDaño`.
+  - *Solución*:
+    1. Eliminado por completo el fallback `"1d6"`, dejando la cadena vacía `""` cuando el conjuro no tiene dados de daño.
+    2. La sección `cajaCombate` ahora evalúa estrictamente `tieneAtaque`, `tieneCDSalvacion`, `tieneDano` y `esEscalable`.
+    3. Para conjuros utilitarios o de apoyo, la ficha no muestra campos de daño falsos; si se lanzan a TaleSpire, envían `!Lanzar Conjuro: Nombre` y el botón muestra `⚡ Lanzar Conjuro en TaleSpire`.
+- **Corrección: Eliminación de Fallback Fantasma de "1d10" y Detección de Trucos Utilitarios ([`utilesConjuros.ts`](file:///c:/Users/zamor/OneDrive/Documentos/Programas/ToolSet%20Es%205.5/src/utiles/utilesConjuros.ts)):**
+  - *Problema*: Trucos de soporte, utilidad o no ofensivos (como *Guía*, *Luz*, *Mano de mago*, *Prestidigitación*, *Taumaturgia*, *Mensaje*, *Piedad con los moribundos*) mostraban dados de daño falsos (ej. `2d10 (Nv.5)` por fallback de `1d10`, o `2d4` extraído del `1d4` de bono a pruebas de característica de *Guía*).
+  - *Causa Raíz*: `calcularInfoTruco` tenía un fallback `|| "1d10"`, y `extraerDadosBaseTruco` extraía cualquier patrón de dados en la descripción sin verificar si el truco era de daño o de utilidad.
+  - *Solución*:
+    1. `extraerDadosBaseTruco` ahora verifica si el truco tiene `dadosDaño` explícitos, tipo de daño (`tipoDaño`), tirada de ataque o palabras clave de combate/daño (`mejora de truco`, `el daño aumenta`, `inflige`, `daño`), descartando descripciones de utilidad como el `1d4` de *Guía*.
+    2. `calcularInfoTruco` devuelve `formula: ""` y `etiquetaVisual: ""` cuando el truco no inflige daño.
+    3. `construirFormulaTaleSpireTruco` envía `!Lanzar Truco: Nombre` de forma limpia a TaleSpire para trucos utilitarios, sin inventar tiradas de ataque ni daño.
+- **Corrección: Mapeo Directo y Estricto de `requiere_ataque` y `tirada_de_salvacion` ([`importadorJSON.ts`](file:///c:/Users/zamor/OneDrive/Documentos/Programas/ToolSet%20Es%205.5/src/almacen/importadorJSON.ts), [`FichaHechizo.tsx`](file:///c:/Users/zamor/OneDrive/Documentos/Programas/ToolSet%20Es%205.5/src/componentes/caracteristicas/compendio/FichaHechizo.tsx)):**
+  - *Problema*: Si un conjuro tenía `requiere_ataque: false` o `tirada_de_salvacion: null`, el importador a veces infería `TIRADA DE ATAQUE` si encontraba cualquier mención de dados en la descripción o campos secundarios.
+  - *Solución*:
+    1. Se mapea directamente el booleano `requiere_ataque` (`requiereAtaque: boolean`) y el campo `tirada_de_salvacion`.
+    2. Si `requiere_ataque === true`, se marca como `TIRADA DE ATAQUE`. Si `tirada_de_salvacion` contiene una característica (ej. `"Destreza"`), se marca como `CD DE SALVACIÓN`.
+    3. Si ambos son `null` / `false` / ausentes (ej. conjuros utilitarios como *Abrir*, *Detectar magia*, *Adivinación*, *Luz*), el conjuro se clasifica limpiamente con `ataqueCd: "N/A"` y sin CD de salvación, eliminando cualquier tirada o mecánica ofensiva innecesaria.
+- **Corrección: Upcasting Condicional a Trucos con Cláusula de "Mejora de Truco" ([`utilesConjuros.ts`](file:///c:/Users/zamor/OneDrive/Documentos/Programas/ToolSet%20Es%205.5/src/utiles/utilesConjuros.ts)):**
+  - *Problema*: No todos los trucos de daño escalan con el nivel de personaje (por ejemplo, *Garrote / Shillelagh* cambia el dado de arma a 1d8 pero nunca sube a 2d8 a nivel 5 en las reglas oficiales de D&D 5.5e / 5e).
+  - *Solución*:
+    1. Creada la función [`trucoTieneMejora(hechizo)`](file:///c:/Users/zamor/OneDrive/Documentos/Programas/ToolSet%20Es%205.5/src/utiles/utilesConjuros.ts) que verifica si la descripción del truco contiene explícitamente *"Mejora de truco"*, *"El daño aumenta en"*, *"Cantrip Upgrade"* o mecánicas de ataques/rayos adicionales (*Descarga sobrenatural*).
+    2. Si el truco no posee esta cláusula, el multiplicador se mantiene en `1` (`mult = 1`) independientemente del nivel del personaje, conservando sus dados base originales.
+- **Arquitectura: Independencia Total de Magia de Pacto vs Espacios/Puntos de Conjuro ([`TrackerEspaciosPacto.tsx`](file:///c:/Users/zamor/OneDrive/Documentos/Programas/ToolSet%20Es%205.5/src/componentes/caracteristicas/personajes/TrackerEspaciosPacto.tsx), [`PanelConjurosPersonaje.tsx`](file:///c:/Users/zamor/OneDrive/Documentos/Programas/ToolSet%20Es%205.5/src/componentes/caracteristicas/personajes/PanelConjurosPersonaje.tsx), [`TarjetaConjuroCompacta.tsx`](file:///c:/Users/zamor/OneDrive/Documentos/Programas/ToolSet%20Es%205.5/src/componentes/caracteristicas/personajes/TarjetaConjuroCompacta.tsx)):**
+  - *Principio de D&D 5.5e / 5e*: La regla variante de Puntos de Conjuro (DMG) reemplaza únicamente el Lanzamiento de Conjuros Estándar (Mago, Hechicero, Clérigo, Druida, Bardo, Paladín, Explorador). La **Magia de Pacto (Brujo)** es una característica independiente y exclusiva que SIEMPRE utiliza ranuras de pacto de nivel fijo que se recuperan en descanso corto.
+  - *Solución*:
+    1. Creado el componente independiente [`TrackerEspaciosPacto.tsx`](file:///c:/Users/zamor/OneDrive/Documentos/Programas/ToolSet%20Es%205.5/src/componentes/caracteristicas/personajes/TrackerEspaciosPacto.tsx) con controles visuales violetas/púrpuras, conteo de ranuras fijas de nivel y botón de recuperación por Descanso Corto.
+    2. `PanelConjurosPersonaje.tsx` evalúa de forma desacoplada la magia estándar (`tieneMagiaEstandar` -> `TrackerEspaciosConjuro` o `TrackerPuntosConjuro`) y la magia de pacto (`tienePacto` -> `TrackerEspaciosPacto`). Si el personaje es Brujo puro, solo se renderiza su tracker de pacto, sin barras vacías de maná ni ranuras estándar en 0.
+- **Separación de Vistas DM vs Jugador ([`BarraSuperior.tsx`](file:///c:/Users/zamor/OneDrive/Documentos/Programas/ToolSet%20Es%205.5/src/componentes/layout/BarraSuperior.tsx), [`App.tsx`](file:///c:/Users/zamor/OneDrive/Documentos/Programas/ToolSet%20Es%205.5/src/App.tsx), [`Compendio.tsx`](file:///c:/Users/zamor/OneDrive/Documentos/Programas/ToolSet%20Es%205.5/src/componentes/caracteristicas/compendio/Compendio.tsx)):**
+  - *Requerimiento*: Separar estrictamente la experiencia de DM y Jugador según el rol detectado por TaleSpire (`esGM`).
+  - *Cambios Realizados*:
+    1. **Eliminación de "Fichas PJ" en DM**: En la vista de DM (`esGM === true`), se eliminó la pestaña "Fichas PJ" de la barra de navegación superior y se ajustó el enrutador en `App.tsx` para que el DM tenga únicamente sus herramientas operativas (Iniciativa, Tablas DM, Pendientes, Compendio, Notas DM).
+    2. **Compendio Adaptativo por Rol**:
+       - Para el **DM** (`esGM === true`), la sub-pestaña de conjuros renderiza la vista clásica de consulta ([`ListaHechizos.tsx`](file:///c:/Users/zamor/OneDrive/Documentos/Programas/ToolSet%20Es%205.5/src/componentes/caracteristicas/compendio/ListaHechizos.tsx)) con búsqueda, filtro por nivel, filtro por escuela y modal de detalle.
+- **Batería de Pruebas de Integración y Unitarias de Conjuros ([`integracionConjuros.test.ts`](file:///c:/Users/zamor/OneDrive/Documentos/Programas/ToolSet%20Es%205.5/src/servicios/integracionConjuros.test.ts)):**
+  - *Objetivo*: Probar de punta a punta todo el flujo de magia D&D 5.5e (creación, upcasting, concentración, descansos, pactos, multiclase, maná y límites).
+  - *Casos Críticos Detectados y Corregidos*:
+    1. **Restauración de Magia de Pacto en Descanso Corto sin dados de golpe** ([`procesadorDescansos.ts`](file:///c:/Users/zamor/OneDrive/Documentos/Programas/ToolSet%20Es%205.5/src/servicios/procesadorDescansos.ts)): Antes, si un jugador hacía un descanso corto con `dadosAGastar = 0` (ej. estando a vida máxima), la función retornaba temprano sin restaurar los espacios de pacto. Se corrigió para que el reinicio de `espaciosPactoGastados = 0` y salvaciones de muerte siempre se ejecute en descanso corto.
+    2. **Inicialización de Magia al Crear Personaje** ([`slicePersonajes.ts`](file:///c:/Users/zamor/OneDrive/Documentos/Programas/ToolSet%20Es%205.5/src/almacen/slices/slicePersonajes.ts)): Si se pasaban `clasesLanzadoras` explícitas en el payload inicial de `crearPersonaje`, no se ejecutaba `calcularTodosRecursosMagicos`. Ahora se evalúa tanto para clases explícitas como auto-detectadas.
+    3. **Tercio-Lanzadores en Tablas Oficiales** ([`calculadorMagia.ts`](file:///c:/Users/zamor/OneDrive/Documentos/Programas/ToolSet%20Es%205.5/src/servicios/calculadorMagia.ts)): `normalizarClaveClase` ahora recibe `tipoLanzador` y detecta correctamente a Caballero Arcano y Embaucador Arcano para obtener sus máximos de trucos y conjuros conocidos.
+  - Cero emojis Unicode en todo el código y UI (utilizando estrictamente iconos SVG de `lucide-react`, reemplazado el carácter de flecha atrás por `<ChevronLeft />`).
+
+---
+
+## [2026-08-24] Arquitectura: Integración Completa de Magia de Pacto (Brujo / Warlock)
+**Decisión y Motivación:**
+- **Causa Raíz de los Problemas con el Brujo:**
+  - El Brujo no utiliza la tabla de espacios multiclase estándar (devuelve `{}` en `calcularEspaciosConjuro`).
+  - Al cambiar de clase a Brujo en el panel de configuración o en el store, no se calculaban `espaciosPactoMaximos` ni `nivelEspacioPacto`, dejando al personaje sin espacios utilizables y con secciones de nivel ocultas en la hoja de conjuros.
+  - Además, al lanzar conjuros desde la tarjeta o ficha, el sistema intentaba descontar de los espacios estándar en vez de llamar a `gastarEspacioPacto()`.
+- **Solución Implementada:**
+  1. **Helper Unificado (`src/servicios/calculadorMagia.ts`):**
+     - Creado `calcularTodosRecursosMagicos(clasesLanzadoras, overridesEspacios, overridesPuntos)` que encapsula el cálculo de espacios estándar (1-9), maná DMG y Magia de Pacto (`espaciosPactoMaximos` y `nivelEspacioPacto`) en una sola llamada pura.
+  2. **Store y Formulario Sincronizados (`slicePersonajes.ts` y `PanelConfiguracionPersonaje.tsx`):**
+     - Actualizados `crearPersonaje`, `actualizarPersonaje`, `recalcularRecursosMagicos`, `sincronizarMagiaPorClase` y los eventos de edición de clases para poblar siempre los recursos de pacto.
+  3. **UI y Gasto de Recursos (`PanelConjurosPersonaje.tsx` y `TarjetaConjuroCompacta.tsx`):**
+     - En el nivel correspondiente al pacto (ej. Nivel 3 para un Brujo nivel 5), se muestra el badge morado `{disponibles}/{max} Pacto`.
+     - `TarjetaConjuroCompacta` preselecciona el `nivelEspacioPacto` para conjuros de nivel inferior (ej. un conjuro de nivel 1 se lanza a nivel 3 automáticamente) y descuenta espacios de pacto `alGastarEspacioPacto()` al pulsar `Lanzar`.
+     - `FichaHechizo` detecta el lanzador de pacto y descuenta el espacio de pacto al tirar los dados.
+
+---
+
+## [2026-08-24] UI y Componentes: Paleta Azulada y Ancho Expandible en SelectorDesplegable
+**Decisión y Motivación:**
+- **Armonización de Color Táctico Azul (`SelectorDesplegable.module.css`):**
+  - El componente común utilizaba variables verdes / menta (`rgba(0, 245, 212, ...)`), desentonando con el tema azul marino de la Hoja de Personaje.
+  - Se sustituyeron por los colores corporativos azulados: borde enfocado `#3b82f6` (`rgba(59, 130, 246, 0.25)`), fondo `#111622` / `#141b27`, hover en opciones `rgba(59, 130, 246, 0.18)` con texto `#93c5fd`, y selección con acento `#60a5fa`.
+- **Desbordamiento y Truncamiento de Opciones ("Nv. ..."):**
+  - El menú emergente `.dropdown` estaba restringido al ancho del gatillo padre (`width: 100%`), provocando que con anchos pequeños se truncara el texto a `"N.."`.
+  - Se configuró `.dropdown` con `min-width: 100%; width: max-content; right: 0; padding: 4px;`, y el contenedor en `TarjetaConjuroCompacta.tsx` a `width: 78px; minWidth: 78px;`, permitiendo que el desplegable se abra flotando hacia la izquierda con holgura total para mostrar todos los números de nivel con total claridad.
+
+---
+
+## [2026-08-24] UI y Componentes: Estandarización Universal de SelectorDesplegable y Upcasting Nítido
+**Decisión y Motivación:**
+- **Reemplazo Universal de `<select>` Nativos por `<SelectorDesplegable />`:**
+  - Los `<select>` nativos del navegador presentan menús flotantes blancos con estilos del sistema operativo en el Chromium Embedded Framework (CEF) de TaleSpire, rompiendo la estética oscura táctica y truncando textos en anchos reducidos.
+  - Se sustituyeron todos los selectores nativos en `TarjetaConjuroCompacta.tsx`, `PanelConfiguracionPersonaje.tsx` (Tipo de Lanzador y Habilidad Mágica) y `BuscadorConjurosPersonaje.tsx` (Filtros de Nivel y Escuela) por `<SelectorDesplegable />` con `tamano="mini"` o `tamano="compacto"`.
+- **Selector de Upcasting Táctico (`TarjetaConjuroCompacta.tsx`):**
+  - El selector de Upcast ahora utiliza `SelectorDesplegable` en modo `mini` (ancho fijo de 68px) mostrando etiquetas claras `"Nv. 1"`, `"Nv. 2 ↑"`, `"Nv. 3 ↑"`, etc., con popup oscuro de alto contraste, icono de verificación `<Check />` y flecha `<ChevronDown />`.
+
+---
+
+## [2026-08-24] UI y UX: Cuadrícula Proporcional de 5 Columnas para Sub-pestañas Modal
+**Decisión y Motivación:**
+- **Solución al Desbordamiento en Paneles Estrechos (`HojaPersonaje.module.css` y `PanelConfiguracionPersonaje.tsx`):**
+  - En la vista lateral compacta de TaleSpire (~380px), las pestañas con `display: flex` y nombres compuestos provocaban que la última pestaña quedara parcialmente fuera de los límites de la ventana.
+  - Se refactorizó `.barraPestañasModal` a una cuadrícula CSS estricta: `display: grid; grid-template-columns: repeat(5, 1fr); width: 100%;`.
+  - Se unificaron las etiquetas a una sola palabra concisa: `Identidad`, `Atributos`, `Competencias`, `Sentidos`, `Magia`, con iconos SVG de 12px centrados, padding simétrico `8px 2px` y `font-size: 9.5px`, garantizando un reparto equitativo del 20% exacto para cada pestaña sin ningún corte de texto en resoluciones de pantalla reducidas.
+
+---
+
+## [2026-08-24] Mecánicas: Upcasting Directo y Descuento de Recursos en Ficha de Conjuro
+**Decisión y Motivación:**
+- **Upcasting Rápido y Visible en Tarjeta Compacta (`TarjetaConjuroCompacta.tsx`):**
+  - Anteriormente, el selector de Upcast estaba asignado a un menú contextual (`onContextMenu` / clic derecho) que resultaba poco intuitivo y no evidente para los jugadores.
+  - Se colocó un selector compacto `[Nv. X ▾]` directamente al lado del botón `Lanzar` para todos los conjuros de nivel 1 a 9. Al cambiar el selector, el conjuro escala automáticamente su daño en la tirada 3D y descuenta el espacio o coste de maná del nivel seleccionado al pulsar `Lanzar`.
+- **Lanzamiento y Consumo de Recursos desde Ficha Completa (`FichaHechizo.tsx` y `PanelConjurosPersonaje.tsx`):**
+  - Al abrir el modal detallado de `FichaHechizo` desde la hoja de personaje, el componente ahora recibe `onLanzarConjuro`, `nombrePersonaje` y `bonoAtaqueMagico`.
+  - Al pulsar *"Tirar Daño en TaleSpire"* dentro de la ficha (con el selector de *"Lanzar con Ranura: Nivel X"*), se realiza la tirada 3D en TaleSpire con el prefijo del personaje, se descuenta el espacio de conjuro o los puntos correspondientes y se registra la concentración si el conjuro lo requiere.
+
+---
+
+## [2026-08-24] UI y UX: Corrección de Desbordamiento de Sub-pestañas y Auto-detección Automática de Lanzador
+**Decisión y Motivación:**
+- **Corrección de Desbordamiento y Hover Morado en Sub-pestañas (`HojaPersonaje.module.css`):**
+  - La barra de sub-pestañas del panel de configuración (`barraPestañasModal`) desbordaba en ventanas medianas/estrechas provocando que la pestaña *"Magia y Conjuros"* se cortara a la derecha.
+  - Además, la regla global `button:hover` de `index.css` le inyectaba un fondo morado `var(--color-primario)` involuntario.
+  - Se configuró `.barraPestañasModal` con `overflow-x: auto`, scroll táctil invisible y `.botonPestañaModal` con `background: transparent !important;`, `:hover` mate `#161e2c !important;` y acento azul activo `#3b82f6` (`color: #93c5fd`). Las etiquetas se abreviaron de forma limpia (`Identidad`, `Atributos`, `Competencias`, `Sentidos y Salud`, `Magia y Conjuros`).
+- **Auto-detección y Sincronización Automática de Clase Lanzadora (`PanelConfiguracionPersonaje.tsx` y `slicePersonajes.ts`):**
+  - Al seleccionar o cambiar la clase (ej. *Bardo, Mago, Clérigo, Druida, Hechicero, Paladín, Explorador, Brujo*) o subclases mágicas (*Caballero/Embaucador Arcano*), el sistema activa automáticamente `esLanzador: true`, configura la clase lanzadora con su habilidad mágica correspondiente (INT/SAB/CAR) y calcula en tiempo real los espacios de conjuro y puntos de maná según el nivel, sin requerir activación manual previa.
+  - Si se cambia a una clase no lanzadora, desactiva el lanzador a menos que existan multiclases explícitas.
+
+---
+
+## [2026-08-24] Arquitectura e Implementación: Sistema de Lanzamiento de Conjuros y Magia D&D 2024 / ToolSet Es 5.5
+**Decisión y Motivación:**
+- Se implementó la infraestructura de lanzamiento de conjuros para la hoja de personaje del jugador (`HojaPersonaje.tsx`), soportando los dos sistemas oficiales: **Espacios de Conjuro (PHB)** y **Puntos de Conjuro / Reserva de Maná (Variante DMG)**.
+- Se mantuvieron las directrices de diseño táctico sobrio (fondos `#111622` / `#161e2c`, bordes mate `rgba(148, 163, 184, 0.14)`), sin animaciones CSS (rendimiento Chromium CEF de TaleSpire) y sin emojis Unicode (estandarización 100% SVG con `lucide-react`).
+
+**Componentes y Módulos Creados/Actualizados:**
+1. **Modelo de Datos y Tipos (`src/tipos/personaje.ts` y `src/tipos/index.ts`):**
+   - Nuevos esquemas Zod: `EsquemaTipoLanzador` (`"completo" | "medio" | "tercio" | "pacto" | "ninguno"`), `EsquemaModeloConjuros` (`"conocidos" | "preparados" | "grimorio" | "ninguno"`), `EsquemaClaseLanzadora` y `EsquemaConcentracionActiva` (`{ hechizoId, nombreHechizo }`).
+   - Nuevos campos en `EsquemaPersonajeJugador`: `esLanzador`, `clasesLanzadoras`, `concentracionActiva`, `trucosConocidosIds`, `conjurosConocidosIds`, `conjurosPreparadosIds`, `espaciosConjuroMaximos`, `espaciosConjuroGastados`, `puntosConjuroMaximos`, `puntosConjuroGastados`, `nivelConjuroMaximo`, `espaciosPactoMaximos`, `espaciosPactoGastados`, `nivelEspacioPacto`, `arcanoMisticoIds`, `puntosHechiceriaMaximos`, `overrideEspaciosConjuro`, `overridePuntosConjuro`.
+2. **Tablas de Progresión y Constantes (`src/constantes/personajeConstantes.ts`):**
+   - `TABLA_ESPACIOS_CONJURO`: Progresión completa de niveles 1 a 20 de lanzador combinado para ranuras de nivel 1 a 9.
+   - `TABLA_PUNTOS_CONJURO`: Puntos totales y nivel máximo de conjuro por nivel (variante DMG).
+   - `COSTE_PUNTOS_POR_NIVEL`: Coste en puntos por nivel de conjuro (1=2p hasta 9=13p).
+   - `TIPO_LANZADOR_POR_CLASE`: Mapeo oficial de las 10 clases/subclases lanzadoras D&D 2024.
+   - `TABLA_PACTO_BRUJO`: Progresión independiente de espacios y nivel de ranura de Magia de Pacto.
+   - Plantilla `PERSONAJE_POR_DEFECTO` actualizada con valores iniciales seguros.
+3. **Servicio Puro de Cálculo (`src/servicios/calculadorMagia.ts`):**
+   - `calcularNivelLanzadorMulticlase`: Reglas multiclase (completo ×1, medio $\lfloor\text{nv}/2\rfloor$, tercio $\lfloor\text{nv}/3\rfloor$, pacto separado). En mono-clase medio caster D&D 2024 lanzan desde nivel 1.
+   - `calcularEspaciosConjuro`, `calcularPuntosConjuro`, `calcularCDConjuros` ($8 + \text{PB} + \text{Mod}$), `calcularBonoAtaqueConjuro` ($\text{PB} + \text{Mod}$), `calcularEspaciosPacto`, `obtenerCostePuntos`, `detectarTipoLanzador`.
+   - Pruebas unitarias completas en `src/servicios/calculadorMagia.test.ts` (18 tests pasando al 100%).
+4. **Store de Zustand y Descansos (`slicePersonajes.ts`, `sliceConfiguracion.ts`, `procesadorDescansos.ts`, `persistencia.ts`):**
+   - 15 nuevas acciones en `slicePersonajes.ts` para gestión de recursos mágicos, concentración, listas de trucos/conjuros y overrides con recálculo reactivo.
+   - `ejecutarDescansoLargo`: Restablece todos los espacios, puntos, magia de pacto y limpia concentración activa.
+   - `ejecutarDescansoCorto`: Restablece los espacios de Magia de Pacto del Brujo.
+   - `sistemaMagia` (`"espacios" | "puntos"`) configurable por el DM y persistido en `TS.localStorage.global`.
+5. **Componentes de Interfaz UI (`src/componentes/caracteristicas/personajes/`):**
+   - `TrackerEspaciosConjuro.tsx`: Visualizador interactivo de ranuras por nivel (círculos disponibles/gastados) y de Magia de Pacto.
+   - `TrackerPuntosConjuro.tsx`: Barra de reserva de maná con botones rápidos por nivel, entrada personalizada (+Recuperar / Gastar) y tabla de costes desplegable.
+   - `TarjetaConjuroCompacta.tsx`: Visualizador compacto con badges `[C]` / `[R]`, checkbox de preparado, botón rápido `Lanzar` (tirada 3D a TaleSpire con soporte de upcast) y botón para ver la `FichaHechizo` completa del compendio.
+   - `BuscadorConjurosPersonaje.tsx`: Buscador con filtros por nivel y escuela conectado a `baseDatosHechizos`.
+   - `PanelConjurosPersonaje.tsx`: Orquestador con banner de concentración activa (`Concentrándose en: ...`), métricas de lanzamiento (Habilidad, CD, Bono Ataque), tracker dual y listas de conjuros por nivel.
+   - `HojaPersonaje.tsx`: Sub-pestañas `Combate y Atributos` (`<Swords />`) y `Conjuros y Magia` (`<Sparkles />`), manteniendo Cabecera, Barra Táctica y Métricas Rápidas siempre fijas arriba.
+   - `PanelConfiguracionPersonaje.tsx`: Sub-pestaña `Magia y Conjuros` para configurar el tipo de lanzador, clases (multiclase) y overrides de ranuras.
+   - `ConfiguracionDM.tsx`: Panel para que el DM seleccione el sistema de magia de la campaña (`"espacios" | "puntos"`).
+
+**Verificación Automatizada:**
+- 147 pruebas unitarias pasando al 100% en `vitest`.
+- 0 errores en `tsc --noEmit`.
+- Compilación y empaquetado de producción exitosos (`pnpm run build`).
+- Despliegue automático exitoso al directorio de Symbiotes de TaleSpire (`pnpm run deploy`).
+
+---
+
 ## [2026-08-23] Arquitectura y UI: Estandarización de Iconografía Vectorial Nativa (Lucide React)
 **Decisión y Motivación:**
 - Se erradicó el uso de caracteres emoji Unicode (tales como `🎲`, `🩸`, `☠️`, `✨`, `⚔️`, `🏹`, `🔥`, `⚠️`, `⭐`, `★`, `📖`, `🧪`, `🔨`, `⚙️`, `✕`) incrustados directamente en textos, cadenas de renderizado, botones y comentarios en todo el código base.
@@ -2431,3 +2750,533 @@ Se añadieron propiedades específicas de rasterización en el CSS para contrarr
    - **Insignia en Tarjeta**: Muestra un badge resplandeciente `☠️ VENENO (CD X)` en la vista de lista de objetos.
    - **Metadatos y Chips**: Muestra los chips de `EXPOSICIÓN` y `SALVACIÓN` en la cabecera del panel modal de inspección.
    - **Mecánicas del Veneno**: Se creó el bloque `☠️ Propiedades y Mecánicas del Veneno` con botones interactivos de dados 3D para lanzar tiradas de salvación de Constitución (`🎲 Salvación CON (CD X)`) y tiradas de daño por veneno (`🎲 Daño Veneno (10d6)`) directamente a la bandeja de TaleSpire.
+
+---
+
+## 78. Implementación del Panel de Inventario, Equipables, Mochila, Sintonización, Monedas y Capacidad de Carga en la Hoja de Personaje (D&D 5.5e)
+
+### Contexto y Necesidad
+La hoja de personaje del jugador requería una tercera sub-pestaña táctica dedicada a la gestión integral de inventario, equipamiento, mochila, sintonización de objetos mágicos, bolsa de monedas multiequivalencia y cálculo reactivo de la capacidad de carga en base a la Fuerza y el tamaño de la criatura.
+
+### Decisiones Arquitectónicas y Reglas Implementadas
+1. **Modelo de Datos Snapshot (`ObjetoInventario` y `BolsaMonedas`)**:
+   - Cada objeto en el inventario contiene una instantánea (`snapshot`) de sus propiedades (`nombre`, `pesoLb`, `tipoPrincipal`, `rareza`, `equipable`, `sintonizacionRequerida`, `cargasMaximas`, etc.) junto con su estado mutable (`cantidad`, `equipado`, `sintonizado`, `cargasActuales`, `notas`).
+   - Se extendió `EsquemaPersonajeJugador` y `PERSONAJE_POR_DEFECTO` con `tamano` (Diminuto, Pequeño, Mediano, Grande), `inventario: ObjetoInventario[]` y `bolsaMonedas: BolsaMonedas`.
+2. **Capacidad de Carga con Multiplicadores por Tamaño (`calculadorInventario.ts`)**:
+   - Fórmula: $\text{Fuerza Efectiva} \times 15\text{ lb} \times \text{Multiplicador de Tamaño}$.
+   - Multiplicadores oficiales D&D 5.5e: `Diminuto: ×0.5`, `Pequeño: ×0.75`, `Mediano: ×1`, `Grande: ×2`.
+   - Peso de Monedas: Cada 50 monedas equivale a 1 libra (según PHB).
+   - Estado de Sobrecarga: Binario (`Normal` verde vs `Sobrecargado` rojo con barra de progreso reactiva).
+   - Equivalente en Piezas de Oro: Cálculo dinámico de valor total en PO ($1\text{ PC}=0.01, 1\text{ PP}=0.1, 1\text{ PE}=0.5, 1\text{ PO}=1, 1\text{ PPT}=10$).
+3. **Control Estricto de Sintonizaciones Mágicas (Máximo 3)**:
+   - Los objetos con `sintonizacionRequerida: true` pueden alternar su sintonización siempre que el personaje no tenga ya 3 objetos sintonizados activos.
+   - El panel muestra 3 slots visuales dedicados indicando las ranuras ocupadas y libres.
+4. **Separación Táctica de Equipados y Mochila**:
+   - **Equipados Activos**: Objetos marcados como `equipado: true` (armas, armaduras y escudos en uso) con borde y elevación táctica azul.
+   - **Mochila y Equipo**: Resto de consumibles, herramientas, munición y equipo con selectores de cantidad `[-] N [+]` y contadores de cargas `[-] N/M [+]`.
+5. **Modal de Adición de Doble Modo (`ModalAgregarObjeto.tsx`)**:
+   - **Compendio Oficial**: Búsqueda integrada con `SelectorSugerencias` sobre la base de datos de 185+ objetos de `Equipo es.json` con filtros de categoría (Armas, Armaduras, Equipo), vista previa de estadísticas, peso, valor y descripción.
+   - **Objeto Personalizado**: Formulario rápido con nombre, tipo, peso, cantidad, toggles de equipable/sintonización/mágico, rareza y notas.
+6. **Sub-pestaña en la Hoja de Personaje (`HojaPersonaje.tsx`)**:
+   - Tercer botón en la cabecera interna con icono `Backpack` de color ámbar `#f59e0b` y badge con el conteo de objetos activos.
+
+### Archivos Creados y Modificados
+- **Creados**:
+  - `src/servicios/calculadorInventario.ts`: Lógica pura de cálculo de capacidad, peso total, equivalencia de divisas, sintonización y factories de objetos.
+  - `src/servicios/calculadorInventario.test.ts`: Suite de 10 pruebas unitarias con Vitest (todas superadas).
+  - `src/componentes/caracteristicas/personajes/TarjetaObjetoInventario.tsx`: Tarjeta compacta para objetos.
+  - `src/componentes/caracteristicas/personajes/ModalAgregarObjeto.tsx`: Modal de búsqueda en compendio y creación custom.
+  - `src/componentes/caracteristicas/personajes/PanelInventarioPersonaje.tsx`: Contenedor principal con 6 secciones tácticas.
+- **Modificados**:
+  - `src/tipos/personaje.ts`: Esquemas Zod y tipos `TamanoPersonaje`, `BolsaMonedas`, `TipoMonedaClave`, `ObjetoInventario` y extensión de `EsquemaPersonajeJugador`.
+  - `src/constantes/personajeConstantes.ts`: Inicialización de `tamano`, `inventario` y `bolsaMonedas` en `PERSONAJE_POR_DEFECTO`.
+  - `src/servicios/index.ts`: Exportación de `calculadorInventario`.
+  - `src/almacen/slices/slicePersonajes.ts`: 9 acciones Zustand para inventario y monedas.
+  - `src/almacen/selectores/usarEstadoPersonajes.ts`: Exposición de acciones en `usarAccionesPersonajes`.
+  - `src/componentes/caracteristicas/personajes/HojaPersonaje.module.css`: Estilos tácticos brutalistas para el inventario, monedas y modal.
+  - `src/componentes/caracteristicas/personajes/index.ts`: Exportación de los 3 nuevos componentes.
+  - `src/componentes/caracteristicas/personajes/HojaPersonaje.tsx`: Integración de la tercera pestaña reactiva y conexión al store.
+
+---
+
+## 79. Reorganización de la Navegación Superior para el Modo Jugador (D&D 5.5e)
+
+### Contexto y Ajuste Semántico
+Se optimizó la barra superior de navegación (`BarraSuperior.tsx`) para el rol de Jugador (`!esGM`), renombrando las pestañas para mayor claridad y agregando el acceso directo a `Inventario`:
+1. **"Vista Jugador" $\rightarrow$ "Características"**: Acceso a la ficha principal de combate, vitalidad, atributos y habilidades.
+2. **"Compendio" $\rightarrow$ "Conjuros"**: Acceso directo al catálogo y gestor de conjuros del jugador.
+3. **"Inventario" (Nueva Pestaña Superior)**: Acceso directo al panel táctico de inventario, equipamiento, sintonización y bolsa de monedas con icono `Backpack`.
+4. **Sincronización Bidireccional**: `HojaPersonaje.tsx` y `App.tsx` sincronizan reactivamente la navegación superior y las sub-pestañas internas.
+
+### Archivos Modificados
+- `src/componentes/layout/BarraSuperior.tsx`: Renombrado de pestañas y adición de botón `Inventario`.
+- `src/App.tsx`: Manejo de las rutas `caracteristicas`, `conjuros` e `inventario` con lazy loading independiente.
+- `src/componentes/caracteristicas/personajes/HojaPersonaje.tsx`: Sincronización de `pestañaActiva` con `subPestanaActiva`.
+
+---
+
+## 80. Desacoplamiento de Inventario como Módulo Independiente de Primer Nivel
+
+### Contexto y Corrección Estructural
+1. **Eliminación de la Sub-pestaña Inventario en `HojaPersonaje.tsx`**:
+   - Se removió el botón y sub-pestaña `Inventario` del interior de la Ficha de Personaje (`HojaPersonaje.tsx`), regresando la hoja a sus dos vistas tácticas: `Combate y Atributos` y `Conjuros y Magia`.
+2. **Creación de `VistaInventarioJugador.tsx`**:
+   - Nuevo contenedor de primer nivel en `src/componentes/caracteristicas/inventario/VistaInventarioJugador.tsx`.
+   - Muestra una cabecera limpia con el título, cantidad total de objetos y selector de personaje (si existen varios), sin arrastrar los descansos, tiradas con ventaja/desventaja ni las cajas de combate/habilidades de la hoja de características.
+   - Renderiza directamente el `PanelInventarioPersonaje` con sus 6 secciones tácticas: Monedas, Capacidad de Carga con multiplicador por tamaño, Sintonización Mágica (máx 3), Equipados Activos, Mochila y Modales de Adición rápida.
+3. **Enrutamiento en `App.tsx`**:
+   - `case "inventario": return <VistaInventarioJugador />;` con importación perezosa `React.lazy`.
+
+---
+
+## 81. Sustitución de 'Personalizado' por 'Otras Posesiones' en el Inventario
+
+### Contexto y Simplificación de Flujo
+Dado que ya existe un módulo y formulario completo para la creación de objetos estructurados y balanceados (`FormularioObjeto.tsx` en Homebrew), se simplificó la adición rápida en el inventario:
+1. **Reemplazo de 'Objeto Personalizado' por 'Otras Posesiones' (`ModalAgregarObjeto.tsx`)**:
+   - Se eliminó el formulario técnico con toggles de equipable, sintonización, rarezas y cargas.
+   - Se implementó un formulario ágil centrado en:
+     - **Nombre de la Posesión / Objeto**: Input de texto libre con foco automático.
+     - **Cantidad**: Selector numérico (mínimo 1).
+     - **Peso Total (lb)**: Selector numérico (opcional, default 0).
+     - **Notas / Descripción Rápida**: Textarea para apuntar procedencia, detalles o pistas.
+   - Crea instantáneamente un objeto de inventario de categoría `Equipo de Aventuras` y rareza `Común`, listo para usar en la mochila.
+2. **Botón en Panel de Inventario (`PanelInventarioPersonaje.tsx`)**:
+   - El botón inferior secundario ahora se titula `Otras Posesiones` con icono `FileText`.
+   - Permite alternar y abrir el modal directamente en la pestaña de `Compendio` o `Otras Posesiones` de forma fluida.
+
+---
+
+## 82. Corrección de Desbordamiento y Recorte en SelectorSugerencias dentro de Modales
+
+### Causa del Fallo
+El componente `.cuerpoModal` tenía configurado `overflow: hidden`, lo que provocaba que la lista desplegable de sugerencias con posicionamiento absoluto (`position: absolute; top: calc(100% + 4px)`) fuera recortada por el borde inferior del modal antes de renderizar todas sus opciones.
+
+### Solución Implementada
+1. **`ModalAgregarObjeto.tsx`**:
+   - Se configuró `overflow: visible` en `.cuerpoModal` y en el formulario contenedor de compendio.
+   - Se añadió un `minHeight: 260px` al formulario de búsqueda para que el modal mantenga una altura visual cómoda.
+2. **`SelectorSugerencias.module.css`**:
+   - Se elevó el `z-index` a `10000` con sombra difuminada profunda (`box-shadow: 0 12px 32px rgba(0, 0, 0, 0.95)`) y `max-height: 190px` con scroll suave interno.
+
+---
+
+## 83. Evaluación Aritmética Dinámica y Limpieza de Controles en la Bolsa de Monedas
+
+### Contexto y Optimización Táctica
+Para una gestión mucho más rápida y limpia de las finanzas del personaje sin botones invasivos:
+1. **Eliminación de Botones `+` y `-`**:
+   - Se removieron los botones laterales de incremento/decremento `+` y `-` de cada casilla de moneda.
+2. **Eliminación de Flechas/Spinners Nativos**:
+   - Se aplicó CSS estricto (`-moz-appearance: textfield`, `-webkit-appearance: none`) y se cambió el input a modo texto con `inputMode="numeric"`.
+3. **Evaluación Aritmética Dinámica (`evaluarOperacionMoneda`)**:
+   - Soporta sumas y restas con delta relativo: escribir `+20` suma 20 al valor actual; `-15` resta 15 al valor actual.
+   - Soporta expresiones compuestas: `50 + 20`, `100 - 30 + 5`.
+   - Soporta asignación directa de enteros: `80`.
+   - Se evalúa de inmediato al presionar **Enter** o al desenfocar el campo (**onBlur**), aplicando clamp no negativo ($\ge 0$).
+
+---
+
+## 84. Agrupación por Subcategorías y Subtítulos en SelectorSugerencias
+
+### Contexto y Experiencia de Usuario
+Para hacer la búsqueda en el Compendio mucho más intuitiva y estructurada (especialmente con catálogos grandes de armas, armaduras y equipo de aventuras):
+1. **Soporte de Agrupación en `SelectorSugerencias.tsx`**:
+   - Se extendieron las opciones para aceptar tanto `string[]` como `OpcionSugerencia[]` (`{ valor, etiqueta, grupo, subtitulo }`).
+   - El desplegable agrupa automáticamente los elementos por su `grupo`, renderizando cabeceras fijas (`position: sticky`) con el nombre de la subcategoría y el conteo de elementos (`badgeConteoGrupo`).
+2. **Subtítulos con Métricas Clave**:
+   - Se añadieron subtítulos compactos debajo del nombre del objeto para ver al instante sus estadísticas:
+     - **Armas**: Peso (`lb`) y Valor (`PO`).
+     - **Armaduras**: Clase de Armadura (`CA`) y Peso (`lb`).
+     - **Equipo**: Peso (`lb`) y Valor (`PO`).
+3. **Subcategorías en `ModalAgregarObjeto.tsx`**:
+   - Armas agrupadas por subcategoría: *Armas Sencillas*, *Armas Marciales*, *Armas De Fuego*.
+   - Armaduras agrupadas por: *Armaduras Ligeras*, *Armaduras Medianas*, *Armaduras Pesadas*, *Escudos*.
+   - Equipo agrupado por: *Consumibles*, *Herramientas*, *Focos de Lanzamiento*, *Municiones*, *Equipo General*.
+
+---
+
+## 85. Alineación UI/UX con DESIGN.md: Iconografía SVG y Claridad de Acciones
+
+### Contexto y Pulido Visual
+1. **Erradicación de Emojis y Caracteres Unicode (`DESIGN.md §1.3`)**:
+   - Se reemplazó el símbolo unicode `✦` en la vista previa del modal por el componente SVG vectorial `<Sparkles size={11} />` de `lucide-react`.
+2. **Claridad de Acción: "Agregar Objeto"**:
+   - Se reemplazó la etiqueta difusa *"Compendio"* en la barra de acciones inferiores del inventario (`PanelInventarioPersonaje.tsx`) por **`+ Agregar Objeto`** con icono `<Plus size={15} color="#f59e0b" />`.
+   - En el modal de adición (`ModalAgregarObjeto.tsx`), la pestaña izquierda ahora se llama explícitamente **`Agregar Objeto`** con icono `<Plus size={14} />`.
+
+---
+
+## 86. Carga Completa del Catálogo Base Oficial y Erradicación Total de Emojis
+
+### Causa del Fallo en Subcategorías
+En `VistaInventarioJugador.tsx`, la propiedad `baseDatosObjetos` estaba recibiendo únicamente `objetosHomebrew`, dejando fuera el catálogo base oficial de D&D 5.5e (`OBJETOS_INICIALES` de `Equipo es.json`). Por ello, las subcategorías oficiales (armaduras medianas/pesadas, herramientas, municiones, paquetes, instrumentos) no se mostraban completas.
+
+### Solución Implementada
+1. **Unificación de Catálogo Oficial y Homebrew (`VistaInventarioJugador.tsx`)**:
+   - Se importó `OBJETOS_INICIALES` y se computó `baseDatosObjetos` combinando el compendio oficial con los objetos creados por el usuario vía `Map` por ID.
+2. **Mapeo Exhaustivo de Subcategorías (`ModalAgregarObjeto.tsx`)**:
+   - **Armas**: *Armas Sencillas (Cuerpo a Cuerpo / A Distancia)*, *Armas Marciales (Cuerpo a Cuerpo / A Distancia)*, *Armas de Fuego*.
+   - **Armaduras**: *Armaduras Ligeras*, *Armaduras Medianas*, *Armaduras Pesadas*, *Escudos*.
+   - **Equipo**: *Consumibles y Pociones*, *Municiones*, *Herramientas*, *Instrumentos Musicales*, *Paquetes de Equipo*, *Objetos Maravillosos*, *Equipo de Aventuras*.
+3. **Erradicación del Emoji 📝 (`DESIGN.md §1.3`)**:
+   - Se sustituyó el emoji `📝` en el banner explicativo de *Otras Posesiones* por el icono SVG vectorial `<FileText size={14} color="#38bdf8" />`.
+
+---
+
+## 87. Corrección en Sanitización de Subcategorías de Equipo de Aventuras (`sanitizacion.ts`)
+
+### Causa Raíz
+En `src/almacen/sanitizacion.ts`, la condición:
+`else if (subTxt.includes("PAQUETE") || subTxt.includes("PACK") || subTxt.includes("GEAR") || subTxt.includes("STANDARD-GEAR")) subEquipo = "Paquete";`
+provocaba que la palabra `"GEAR"` (presente en `adventuring-gear` y `standard-gear`) absorbiera el 90% de los objetos comunes, clasificándolos erróneamente como `"Paquete"`. Además, la condición `if (!subTxt && Array.isArray(obj.equipment_categories))` ignoraba categorías anidadas si `subTxt` ya contenía algún valor previo.
+
+### Corrección Aplicada
+1. **Concatenación Completa de Categorías**: Se extraen y unen siempre todas las etiquetas de `equipment_categories` (`subTxt = `${subTxt} | ${catsTxt}``).
+2. **Prioridad y Exclusión Táctica**:
+   - `Consumible`: Pociones, pergaminos, venenos, consumibles.
+   - `Munición`: Flechas, virotes, balas, agujas.
+   - `Instrumento`: Instrumentos musicales (gaitas, laúdes, flautas, tambores, etc.).
+   - `Herramienta`: Herramientas de artesano, kits de juego, kits de robo, suministros.
+   - `Paquete`: Paquetes de explorador, erudito, diplomático, etc. (excluyendo mochilas/backpacks).
+   - `Maravilloso`: Objetos mágicos y maravillosos.
+   - `Equipo`: Todo el equipo de aventuras estándar (antorchas, cuerdas, odres, raciones, etc.).
+3. **Resultado**: Los 196 objetos del catálogo se distribuyen ahora de manera balanceada en todas sus categorías correspondientes.
+
+---
+
+## 88. Perfeccionamiento del Sticky Header y Ordenamiento Táctico (Alfabético / CA)
+
+### Mejoras Realizadas
+1. **Eliminación de Fugas Visuales en el Sticky Header (`SelectorSugerencias.module.css`)**:
+   - Se removió el `padding-top: 4px` del `.dropdown` (`padding: 0 0 6px 0`) para que la cabecera sticky pegue exactamente en el límite superior (`top: 0`).
+   - Se aplicó fondo sólido oscuro opaco (`#0b0f17`), `z-index: 20` y sombra difuminada profunda (`box-shadow: 0 3px 6px rgba(0, 0, 0, 0.85)`), bloqueando por completo la transparencia del texto superior al scrollear.
+2. **Ordenamiento Alfabético Universal y por CA en Armaduras (`ModalAgregarObjeto.tsx`)**:
+   - **Armaduras**: Ordenadas de menor a mayor por su Clase de Armadura (`caBase`), y a igual CA por orden alfabético de nombre (ej. Acolchada CA 11 $\rightarrow$ Cuero CA 11 $\rightarrow$ Cuero Tachonado CA 12 $\rightarrow$ ... $\rightarrow$ Placas CA 18).
+   - **Armas y Equipo de Aventuras**: Ordenados estrictamente en orden alfabético por nombre (`localeCompare("es")`).
+   - **Grupos**: Presentados en jerarquía táctica estructurada (Armas Sencillas $\rightarrow$ Marciales $\rightarrow$ Fuego; Armaduras Ligeras $\rightarrow$ Medianas $\rightarrow$ Pesadas $\rightarrow$ Escudos; Consumibles $\rightarrow$ Equipo $\rightarrow$ Herramientas $\rightarrow$ Instrumentos $\rightarrow$ Municiones).
+
+---
+
+## 89. Mecánicas de Desempaquetado Automático de Paquetes y Visor Táctico de Inspección
+
+### Desempaquetado Automático de Paquetes (`ModalAgregarObjeto.tsx`, `VistaInventarioJugador.tsx`)
+1. **Detección de Contenidos**:
+   - Al seleccionar cualquier *Paquete de Equipo* (ej. *Paquete de Explorador*, *Paquete de Erudito*, *Paquete de Sacerdote*, etc.), el modal detecta la lista relacional `contents` del compendio.
+   - En la vista previa del modal, se muestra el listado detallado de todos los objetos que componen el paquete y la cantidad total a recibir multiplicada por la cantidad elegida.
+2. **Instanciación Individual**:
+   - Al confirmar la adición, en vez de crear un objeto genérico, el sistema recorre cada item de `contents`, busca su definición oficial en la base de datos de objetos, e inserta cada elemento con su peso, valor y atributos correspondientes de forma individual en la mochila.
+
+### Visor Táctico de Inspección (`ModalDetalleObjetoInventario.tsx`, `TarjetaObjetoInventario.tsx`, `PanelInventarioPersonaje.tsx`)
+1. **Interactividad del Nombre**:
+   - El nombre de cada objeto en la tarjeta de inventario es accesible e interactivo (`.nombreObjetoClickable`), con feedback visual al hover (`#38bdf8`) y soporte de teclado (`Enter` / `Espacio`).
+2. **Ficha Completa de Inspección**:
+   - Muestra cabecera con rareza coloreada, tipo y subcategoría.
+   - Métricas clave: Peso total y unitario, valor en PO, cantidad, daño base y versátil para armas, CA y bono de Destreza para armaduras, cargas mágicas.
+   - Propiedades tácticas, maestrías, alcance, requisitos de fuerza y desventajas de sigilo.
+   - Descripción oficial completa del compendio o notas homebrew.
+   - Bloques contextuales: Desglose de contenido si es paquete, efectos pasivos y hechizos vinculados.
+   - Editor de **Notas Personales del Jugador** con botón para guardar.
+   - Acciones rápidas en el pie: Equipar/Desequipar y Sintonizar/Desintonizar.
+
+---
+
+## 90. Habilitación de Scroll Completo y Limpieza Visual de Tarjetas de Inventario
+
+### Problemas Solucionados
+1. **Desbordamiento sin Scroll (`VistaInventarioJugador.module.css`)**:
+   - El contenedor `.contenedorGeneral` no tenía `height: 100%` ni `overflow-y: auto`, provocando que el contenido se cortara al llegar al fondo del viewport sin permitir desplazamiento hacia abajo.
+   - Se configuró `height: 100%`, `max-height: 100%`, `overflow-y: auto`, `overflow-x: hidden` y `padding-bottom: 80px` para asegurar un scroll suave que no quede tapado por el botón flotante de dados.
+2. **Eliminación de Badges Redundantes de Tipo (`TarjetaObjetoInventario.tsx`)**:
+   - Se removieron los badges de tipo `[Arma]`, `[Armadura]`, `[Equipo]` que sobrecargaban la fila superior de cada objeto.
+   - La tarjeta ahora muestra directamente el nombre del objeto en tipografía nítida e interactiva, manteniendo el diseño táctico minimalista de `DESIGN.md`.
+
+---
+
+## 91. Homogeneización de la UI y Tokens de Color del Inventario
+
+### Mejoras Realizadas
+1. **Unificación de la Cabecera Principal (`VistaInventarioJugador.module.css`)**:
+   - Gradiente de superficie: `linear-gradient(180deg, #161e2c 0%, #111622 100%)`.
+   - Borde táctico: `1px solid rgba(129, 140, 248, 0.22)` con brillo interior `inset 0 1px 0 rgba(255, 255, 255, 0.04)`.
+   - Título en tipografía Outfit mayúscula y badge de conteo con acento cian `#00f5d4` en JetBrains Mono.
+2. **Armonización de Paneles y Eliminación de Discrepancias (`HojaPersonaje.module.css`)**:
+   - Eliminada la línea divisoria superior naranja estridente (`border-top: 2px solid #f59e0b`).
+   - Botón de **Equipar Activo**: Gradiente azul `#1e3a8a` $\rightarrow$ `#172554` con borde `#38bdf8`, texto `#93c5fd` y resplandor cian `0 0 6px rgba(56, 189, 248, 0.25)`.
+   - Botón de **Sintonizar Activo**: Gradiente púrpura `#581c87` $\rightarrow$ `#3b0764` con borde `#c084fc`, texto `#e9d5ff` y resplandor violeta `0 0 6px rgba(192, 132, 252, 0.25)`.
+   - Botones de **Agregar Objeto** y **Otras Posesiones**: Gradiente idéntico al de los paneles de personaje (`#161e2c` $\rightarrow$ `#111622`), borde `rgba(129, 140, 248, 0.25)`, y hover interactivo con acento cian `#38bdf8`.
+
+---
+
+## 92. Fusión Automática de Duplicados, Equipamiento Individual y Regla de Armadura Única
+
+### 1. Fusión Automática al Agregar Objetos (`slicePersonajes.ts`)
+- **Detección de Duplicados**: Al agregar cualquier objeto a través del compendio o de paquetes, el slice busca si ya existe un objeto idéntico no equipado en la mochila (por `idObjeto` del compendio o por coincidencia normalizada de nombre y `tipoPrincipal`).
+- **Suma de Cantidad**: Si existe, incrementa su cantidad (`existente.cantidad += nuevo.cantidad`) en lugar de generar una fila duplicada.
+
+### 2. Equipamiento Individual y Desglose de Cantidades (`slicePersonajes.ts`, `TarjetaObjetoInventario.tsx`)
+- **Ocultamiento del Selector de Cantidad**: Al estar equipado un objeto, se oculta el control de incremento/decremento (`- ×1 +`), garantizando que la sección de equipados muestre ítems individuales activos.
+- **Desglose Inteligente**: Si un objeto en la mochila tiene cantidad mayor a 1 (ej. 3 Hoz o 5 Dagas) y el usuario pulsa "Equipar", el sistema equipa exactamente 1 unidad (`equipado: true`, `cantidad: 1`) y preserva el sobrante (`cantidad - 1`) en la mochila como una entrada no equipada.
+- **Re-fusión al Desequipar**: Al desequipar el objeto, si ya existe una entrada idéntica en la mochila, se vuelve a fusionar sumando la unidad desequipada.
+
+### 3. Restricción de 1 Sola Armadura Equipada (`slicePersonajes.ts`)
+- Al equipar cualquier armadura corporal (`tipoPrincipal === "Armadura"`), el sistema desequipa de forma automática cualquier otra armadura previamente equipada en el inventario, respetando las reglas de D&D 5.5e y evitando solapamientos de CA.
+
+---
+
+## 93. Cálculo Automático de Clase de Armadura (CA) y Pestaña de Ataques Rápidos
+
+### 1. Cálculo Centralizado de la Clase de Armadura (`usarEstadoPersonajes.ts`, `MetricasRapidasPersonaje.tsx`)
+- **Reglas Oficiales D&D 5.5e Implementadas**:
+  - **Sin Armadura**: Base $10 + \text{Modificador de Destreza}$.
+    - Si la clase es **Bárbaro**: $10 + \text{DES} + \text{CON}$ (Defensa sin Armadura).
+    - Si la clase es **Monje**: $10 + \text{DES} + \text{SAB}$ (Defensa sin Armadura, requiere no portar escudo).
+  - **Armadura Ligera** (Cuero, Acolchada, Cuero Tachonado): $\text{CA Base} + \text{DES}$.
+  - **Armadura Mediana** (Pieles, Camisote de Malla, Cota de Escamas, Coraza, Semiplacas): $\text{CA Base} + \min(2, \max(0, \text{DES}))$.
+  - **Armadura Pesada** (Cota de Anillas, Cota de Malla, Bandas, Placas): $\text{CA Base}$ (la Destreza no se suma).
+  - **Escudo Equipado**: $+2$ a la CA.
+  - **Bonificaciones Mágicas**: Detección automática de armas/armaduras/escudos mágicos ($+1, +2, +3$).
+- **Interfaz Táctica**:
+  - La tarjeta de Clase de Armadura en `MetricasRapidasPersonaje.tsx` muestra el valor total calculado y un tooltip detallado con el desglose de la fórmula (ej: `CA 16 (Cota de Escamas 14 + DES +2)` o `CA 20 (Placas 18 + Escudo +2)`).
+
+### 2. Pestaña y Vistas de Ataques Rápidos (`VistaAtaquesJugador.tsx`, `TarjetaAtaquePersonaje.tsx`, `BarraSuperior.tsx`, `App.tsx`)
+- **Ubicación Estratégica**: Pestaña **`Ataques`** situada en la barra de navegación entre **`Características`** y **`Conjuros`**.
+- **Categorías de Ataque Desplegadas**:
+  1. **Armas Equipadas**: Sincronizadas reactivamente con el inventario. Calcula automáticamente si usa Fuerza o Destreza (armas sutiles o a distancia), el bonificador de impacto ($\text{Bono Competencia} + \text{Mod Atributo} + \text{Mágico}$) y la fórmula de daño.
+  2. **Daño Versátil**: Botón directo para empuñar a dos manos (ej. `1d10+3`) en armas con la propiedad Versátil.
+  3. **Ataque Desarmado (Golpe sin Armas)**: Siempre disponible con daño contundente base e impacto competente.
+  4. **Conjuros y Trucos Ofensivos**: Muestra los trucos y hechizos preparados que requieran tirada de ataque o daño con su respectiva CD o bono de conjuro.
+- **Integración Nativa con TaleSpire**:
+  - Botón **Atacar**: Envía `!Ataque [Arma]:1d20+[Bono]` a la bandeja de dados 3D y chat.
+  - Botón **Daño**: Envía `!Daño [Tipo]:[Fórmula]`.
+  - Botón **Crítico**: Duplica automáticamente los dados de daño según la regla oficial (ej. `2d8+3`).
+
+---
+
+## 94. Refactorización Integral del Panel de Acciones, Magia DRY y Estética Neo-Brutalista
+
+### 1. Homogeneización Estética y Eliminación de Saturación (`VistaAtaquesJugador.module.css`)
+- **Alineación con DESIGN.md**: Se eliminaron los fondos rojos, rosas e hiperbrillantes.
+- **Paleta Táctica**: Gradientes oscuros `#161e2c` $\rightarrow$ `#111622`, bordes sutiles `rgba(129, 140, 248, 0.18)`, textos claros `#f8fafc`/`#cbd5e1` y botones de acción sobrios (`Atacar` en azul oscuro `#1b263b` con borde `#38bdf8`, `Daño` en vino oscuro `#241b2b` y `Crítico` en oro viejo `#fbbf24`).
+
+### 2. Filtros de Acción y Pestaña "Acciones" (`BarraSuperior.tsx`, `VistaAtaquesJugador.tsx`)
+- **Renombre de Pestaña**: Pestaña renombrada formalmente a **`Acciones`** en la barra superior y rutas.
+- **Barra de Filtros Tácticos**: Selector con pastillas interactivas: **`Todas`**, **`Acción`**, **`Acción Adicional`** y **`Reacción`**, con conteo dinámico de acciones disponibles por cada tipo.
+
+### 3. Reutilización DRY en Magia y Trackers de Recursos Mágicos
+- **Integración DRY (`TarjetaConjuroCompacta.tsx`)**: Reutilización directa del motor oficial de lanzamiento de conjuros, con escalado por nivel de upcast, deducción automática de ranuras/puntos y control de concentración.
+- **Trackers de Ranuras y Puntos**: Despliegue superior de `TrackerEspaciosConjuro`, `TrackerEspaciosPacto` y `TrackerPuntosConjuro` conectado en tiempo real con las mutaciones del store.
+- **Regla de Críticos**: Los conjuros con CD de salvación no ofrecen botón de crítico, reservándolo exclusivamente para ataques con tirada de impacto d20.
+
+### 4. Mecánica de Combate Desarmado y Rasgos Mágicos (Pacto de la Hoja)
+- **Daño Desarmado Fijo**: Para clases no-monjes, se muestra daño fijo $1 + \text{FUE}$ (sin botón de tirada de dados para evitar errores de sintaxis en TaleSpire). En Monjes se activa el dado de Artes Marciales (ej. `1d6 + DES`).
+- **Selector de Característica de Ataque**: Cada arma permite conmutar la característica usada (FUE, DES, INT, SAB, CAR) para adaptarse automáticamente a *Pacto de la Hoja*, *Mágica de Batalla* o *Shillelagh*.
+
+### 5. Tooltips Descriptivos Oficiales (D&D 5.5e 2024)
+- Diccionario exhaustivo con descripciones completas en hover para todas las maestrías de armas (`Cleave`, `Graze`, `Nick`, `Push`, `Sap`, `Slow`, `Topple`, `Vex`) y propiedades (`Sutil`, `Ligera`, `Versátil`, `Arrojadiza`, `A Dos Manos`, `Pesada`, `Alcance`, `Munición`, `Recarga`, `Concentración`).
+
+---
+
+## 95. Componente Universal de Tooltip Flotante para TaleSpire CEF
+
+### 1. Problema de Compatibilidad en TaleSpire CEF
+- Los tooltips nativos del navegador mediante el atributo HTML `title="..."` no se renderizan o fallan en el entorno embebido Chromium Embedded Framework (CEF) de TaleSpire.
+
+### 2. Creación de `TooltipUniversal` (`src/componentes/comunes/TooltipUniversal.tsx`)
+- **Arquitectura Universal**:
+  - Envoltorio flexible (`children`) que soporta títulos en mayúsculas, textos largos o elementos JSX.
+  - Posicionamiento automático multidireccional (`arriba`, `abajo`, `izquierda`, `derecha`) con micro-flechas CSS estilizadas.
+  - Activación híbrida: Funciona mediante CSS puro `:hover` complementado con eventos React `onMouseEnter`/`onMouseLeave`.
+  - Capa superior garantizada con `z-index: 99999`, desenfoque de fondo `backdrop-filter: blur(10px)` y `pointer-events: none`.
+- **Adopción Inmediata**:
+  - Aplicado en `TarjetaAtaquePersonaje.tsx` para todas las maestrías y propiedades de armas de D&D 5.5e.
+  - Aplicado en `MetricasRapidasPersonaje.tsx` para el desglose detallado de la Clase de Armadura (CA).
+  - Exportado en el barrel `@/componentes/comunes` para uso universal en toda la aplicación.
+
+---
+
+## 96. Reemplazo de Selects Nativos por SelectorDesplegable Universal en Panel de Acciones
+
+### 1. Eliminación de `<select>` Nativos de HTML
+- Los elementos `<select>` nativos del navegador se renderizan con estilos blancos por defecto de Chromium que rompen la inmersión y la estética táctica oscura en TaleSpire CEF.
+
+### 2. Aplicación de `SelectorDesplegable`
+- **Selector de Atributo de Arma (`TarjetaAtaquePersonaje.tsx`)**: Reemplazado por `<SelectorDesplegable<Caracteristica> tamano="mini">` con opciones FUE, DES, INT, SAB, CAR, perfectamente integrado con fondo `#0b0f17` y hover táctico.
+- **Selector de Personaje Activo (`VistaAtaquesJugador.tsx`)**: Reemplazado por `<SelectorDesplegable<string> tamano="compacto">` en la cabecera.
+
+---
+
+## 97. Auto-Detección de Viewport y Prevención de Desbordes en TooltipUniversal
+
+### 1. Diagnóstico del Corte de Tooltip en Márgenes Izquierdos
+- Al abrirse un tooltip de un elemento situado cerca del borde lateral (como el badge de Maestría), el centrado horizontal por defecto (`left: 50%; transform: translateX(-50%)`) provocaba que la mitad izquierda del tooltip se saliera de los límites visibles de la ventana.
+
+### 2. Solución Integral y Adaptativa
+- **Detección Dinámica de Bordes (`TooltipUniversal.tsx`)**: Al activarse el hover, se evalúa `getBoundingClientRect()` respecto a los 4 límites de la pantalla (`window.innerWidth`, `window.innerHeight`).
+  - Si el espacio a la izquierda es $< 150\text{px}$, se activa automáticamente `alineacion="inicio"` (`left: 0; transform: none`).
+  - Si el espacio a la derecha es $< 150\text{px}$, se activa automáticamente `alineacion="fin"` (`right: 0; transform: none`).
+  - Si el espacio superior es insuficiente, se conmuta automáticamente la posición de `arriba` a `abajo`.
+- **CSS Específico (`TooltipUniversal.module.css`)**: Reglas de alineación estricta con micro-flechas reubicadas (`left: 16px` para inicio, `right: 16px` para fin) que anulan cualquier desplazamiento indebido.
+
+---
+
+## 98. Botón de Acción Rápida "Usar" para Consumibles y Pociones (D&D 5.5e 2024)
+
+### 1. Reglas Oficiales D&D 5.5e (2024)
+- En la revisión 2024, **beber una poción es una Acción Adicional (Bonus Action)**, mientras que administrársela a otra criatura es una Acción.
+
+### 2. Servicio de Procesamiento de Consumibles (`src/servicios/procesadorConsumibles.ts`)
+- **Detección Automática**: Identifica pociones oficiales (*Poción de Curación* `2d4+2`, *Mayor* `4d4+4`, *Superior* `8d4+8`, *Suprema* `10d4+20`) y patrones de curación en notas/descripción.
+- **Clasificación de Acción**: Asigna `Acción Adicional` a todas las pociones y `Acción` a consumibles genéricos.
+- **Evaluación y Sanación**: Simula tirada matemática exacta y envía la fórmula a TaleSpire (`!Curación [Nombre]:[Fórmula]`).
+
+### 3. Integración en Paneles de Inventario y Acciones
+- **Pestaña Inventario (`TarjetaObjetoInventario.tsx`, `VistaInventarioJugador.tsx`)**:
+  - Cada consumible o poción muestra un botón verde esmeralda táctico **Usar** / **Beber**.
+  - Al hacer clic: reduce 1 unidad (`cantidad - 1`), aplica los Puntos de Golpe al personaje en el store Zustand (`aplicarCuracionPersonaje`), envía la tirada 3D a TaleSpire y dispara un Toast de notificación.
+- **Pestaña Acciones (`VistaAtaquesJugador.tsx`, `TarjetaConsumibleAccion.tsx`)**:
+  - Sección dedicada de **Consumibles y Pociones** filtrable por `Todas`, `Acción` o `Acción Adicional`.
+  - Tarjetas con conteo dinámico (`×N`), fórmula de PV y botón directo **Beber/Usar**.
+
+---
+
+## 99. Motor Universal de Búsqueda Tolerante (Anti-Tildes, Insensible a Mayúsculas y Multi-Palabra)
+
+### 1. Diagnóstico del Problema
+- Los buscadores del sistema realizaban búsquedas con `.toLowerCase().includes(query)`, provocando que búsquedas comunes en español como `"baston"` no encontraran `"Bastón"`, `"pocion curacion"` no encontrara `"Poción de Curación"`, o fallaran por variaciones en tildes, diéresis o el orden de las palabras clave.
+
+### 2. Arquitectura de la Solución (`src/utiles/busquedaTolerante.ts`)
+- **`normalizarParaBusqueda(texto)`**:
+  - Aplica normalización Unicode `NFD` y remueve diacríticos `[\u0300-\u036f]`.
+  - Convierte a minúsculas y elimina espacios superfluos.
+  - Opcionalmente unifica `ñ` con `n` para usuarios con distribuciones de teclado en inglés.
+- **`tokenizarBusqueda(consulta)`**:
+  - Divide la consulta del usuario en palabras clave separadas por espacios.
+- **`coincideBusquedaTolerante(objetivos, consulta)`**:
+  - Evalúa si **todos** los términos de la consulta existen en el conjunto de campos objetivo (nombre, categoría, subtítulo, descripción), en cualquier orden.
+
+### 3. Integración en Todos los Buscadores del Proyecto
+- **`SelectorSugerencias.tsx` / `ModalAgregarObjeto.tsx`**: Buscador universal de objetos de inventario y compendios en modales.
+- **`CompendioConjurosJugador.tsx` / `ListaHechizos.tsx`**: Buscador de conjuros en compendio y hoja de personaje.
+- **`ListaHomebrew.tsx`**: Filtro de criaturas, conjuros y objetos creados.
+- **`BuscadorConjurosPersonaje.tsx`**: Buscador en la gestión de trucos y conjuros preparados.
+- **`ModalSelectorCompetencias.tsx`**: Filtros de armas, armaduras, idiomas y herramientas.
+- **`VinculadorPlantilla.tsx`**: Buscador de vinculación rápida de miniaturas a hojas de monstruos.
+- **FormularioObjeto.tsx**: Selectores de contenedores y componentes de crafteo.
+
+### 4. Resultados de Pruebas
+- 251/251 tests unitarios superados en 21 suites (incluyendo suite exhaustiva `busquedaTolerante.test.ts`).
+- `pnpm build` finalizado con éxito sin errores de tipado.
+
+---
+
+## 100. Desduplicación Universal de Entidades en Compendio e Inventario (Corrección de Objetos Duplicados)
+
+### 1. Diagnóstico de la Causa Raíz
+- **Combinación de Compendio Base y Almacenamiento**:
+  - `OBJETOS_INICIALES` contenía el objeto `Aceite` con `id: "oil"`.
+  - Al hidratar o sincronizar con `objetosHomebrew` (o si se importaron datos previamente con otro ID como `o-aceite`), `baseDatosObjetos` fusionaba los arrays mediante `Map<id, obj>`.
+  - Dado que los IDs eran diferentes a pesar de tener el mismo nombre `"Aceite"` y propiedades idénticas (1 lb • 0.1 PO), el mapa no detectaba la colisión y ambos ítems se presentaban en `ModalAgregarObjeto.tsx`.
+
+### 2. Solución Arquitectónica (`desduplicarEntidades`)
+- **Unicidad Bidireccional (`id` + `nombreNormalizado`)**:
+  - Implementada la función `desduplicarEntidades(...)` en `src/utiles/busquedaTolerante.ts`.
+  - Garantiza que ninguna entidad comparta el mismo `id` ni el mismo nombre normalizado. Si un ítem personalizado/homebrew coincide en nombre con uno del compendio oficial, se consolida en una única entrada.
+- **Puntos de Control Actualizados**:
+  - `VistaInventarioJugador.tsx`: `baseDatosObjetos = desduplicarEntidades(OBJETOS_INICIALES, objetosHomebrew)`.
+  - `VistaAtaquesJugador.tsx`: `baseDatosObjetos = desduplicarEntidades(OBJETOS_INICIALES, objetosHomebrew)`.
+  - `ModalAgregarObjeto.tsx`: `objetosFiltrados = desduplicarEntidades(baseDatosObjetos)`.
+  - `sliceConfiguracion.ts`: desduplicación al hidratar `blob.objetos_homebrew`, `blob.monstruos_homebrew` y `blob.hechizos_homebrew`.
+
+### 3. Verificación
+- 252/252 tests pasando en 21 suites.
+- `pnpm build` ejecutado exitosamente (código 0).
+
+---
+
+## 101. Barra de Búsqueda Rápida y Organización Táctica de la Mochila (Por Tipo, LIFO, Peso y Valor)
+
+### 1. Diagnóstico y Requerimiento
+- Tras desempaquetar lotes o comprar provisiones, la mochila acumula docenas de ítems (antorchas, cuerdas, raciones, yesca, pergaminos, etc.).
+- Se descartó el uso de chips para evitar sobrecargar la interfaz.
+- Se implementó:
+  1. Barra de búsqueda rápida e integrada con `coincideBusquedaTolerante` (anti-tildes, insensible a mayúsculas y tolerante a orden de palabras).
+  2. Selector universal de ordenación (`SelectorDesplegable` táctico).
+  3. Modo por defecto de organización por **Subsecciones Temáticas** dentro de la mochila.
+  4. Modos de lista ordenada por **Último Agregado (Pila LIFO)**, **Mayor/Menor Peso**, **Nombre (A - Z)** y **Mayor Valor (PO)**.
+
+### 2. Arquitectura de Organización (`PanelInventarioPersonaje.tsx`)
+- **Modo "Por Tipo (Secciones)"**:
+  - Clasifica automáticamente los ítems de la mochila en 6 bloques temáticos:
+    - 🧪 **Consumibles y Pociones** (color `#10b981`)
+    - ⚔️ **Armas en Reserva** (color `#f87171`)
+    - 🛡️ **Armaduras y Escudos** (color `#60a5fa`)
+    - 🔧 **Herramientas e Instrumentos** (color `#f59e0b`)
+    - ✨ **Objetos Mágicos y Maravillosos** (color `#c084fc`)
+    - 🎒 **Equipo de Aventuras y Varios** (color `#94a3b8`)
+  - Cada subsección muestra su título con icono temático, contador de ítems y peso total acumulado en libras.
+- **Modo "Último Agregado (Pila LIFO)"**:
+  - Invierte el orden del array de inventario (`reverse()`), colocando inmediatamente en la parte superior los últimos objetos añadidos o desempaquetados.
+- **Modos de Peso, Nombre y Valor**:
+  - Ordena por peso total (`pesoLb * cantidad`), orden alfabético o valor en piezas de oro.
+
+### 3. Verificación
+- 252/252 tests pasando en 21 suites.
+- `pnpm build` ejecutado exitosamente (código 0).
+
+---
+
+## 102. Contenedores Especiales (Bolsa de Contención, Montura/Carreta y Almacén con Peso Libre de Carga)
+
+### 1. Diagnóstico y Requerimiento
+- En D&D 5.5e, los objetos almacenados en una **Bolsa de Contención (Bag of Holding)**, en una **Montura/Carreta (Alforjas)** o en un **Almacén/Base/Campamento** no deben penalizar la capacidad de carga que el personaje lleva encima.
+- Se requería poder asignar la ubicación/contenedor de cualquier objeto y que el sistema recalculara de forma inteligente y automática el peso efectivo sobre el personaje (0 lb para contenedores extradimensionales y externos).
+
+### 2. Arquitectura de Contenedores (`src/servicios/calculadorInventario.ts`, `src/tipos/personaje.ts`)
+- **Tipo y Metadatos (`CONFIG_CONTENEDORES`)**:
+  - `mochila`: Mochila / Encima (Suma normalmente a la carga).
+  - `bolsa_contencion`: Bolsa de Contención (Bag of Holding) $\rightarrow$ Espacio extradimensional (Peso efectivo 0 lb sobre el personaje).
+  - `montura`: Montura / Carreta / Alforjas $\rightarrow$ Transportado por bestias de carga (0 lb sobre el personaje).
+  - `almacen`: Almacén / Base / Fortaleza $\rightarrow$ Guardado en el campamento o base (0 lb sobre el personaje).
+- **Cálculo de Carga Inteligente (`calcularPesoTotal`, `calcularDesglosePesosPorContenedor`)**:
+  - `calcularPesoInventario(inventario, soloCargaPersonaje)`: descuenta automáticamente los objetos guardados en contenedores especiales (a menos que estén equipados activamente).
+  - Desglose visual en la barra de carga: `FUE X × 15 lb = Capacidad lb | (En Contenedores: Y lb)`.
+
+### 3. Integración en la Interfaz de Usuario
+- **`TarjetaObjetoInventario.tsx`**:
+  - Badges tácticos coloreados para `Bolsa Contención`, `Montura/Carreta` y `Almacén`.
+  - Peso indicado con formato `0 lb` (y peso real interior tachado con tooltip informativo).
+- **`ModalDetalleObjetoInventario.tsx`**:
+  - Selector interactivo de 4 ubicaciones para mover objetos entre la mochila, la bolsa de contención, la montura y el almacén con un solo clic.
+- **`PanelInventarioPersonaje.tsx`**:
+  - Subsecciones temáticas dedicadas para Bolsa de Contención, Montura y Almacén en el modo "Por Tipo".
+  - Desglose en tiempo real de pesos interiores y capacidad.
+
+### 4. Verificación
+- 254/254 tests unitarios pasando al 100% en 21 suites (incluyendo suite extendida `calculadorInventario.test.ts`).
+- `pnpm build` ejecutado exitosamente sin errores de TypeScript (código 0).
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

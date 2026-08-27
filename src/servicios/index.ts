@@ -6,4 +6,5 @@ export * from "./procesadorCondiciones";
 export * from "./procesadorDescansos";
 export * from "./resolutorMiniaturasJugador";
 export * from "./indiceMonstruos";
+export * from "./calculadorInventario";
 

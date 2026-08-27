@@ -1,0 +1,499 @@
+.contenedorGeneral {
+  width: 100%;
+  max-width: 640px;
+  margin: 0 auto;
+  height: 100%;
+  max-height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 6px 8px 80px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  box-sizing: border-box;
+}
+
+.cabeceraPrincipal {
+  background: linear-gradient(180deg, #161e2c 0%, #111622 100%);
+  border: 1px solid rgba(129, 140, 248, 0.22);
+  border-radius: 8px;
+  padding: 10px 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.filaTitulo {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.grupoTitulo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tituloTexto {
+  font-family: var(--fuente-titulo, 'Outfit', sans-serif);
+  font-size: 15px;
+  font-weight: 800;
+  color: #f8fafc;
+  margin: 0;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+}
+
+.contadorBadge {
+  font-size: 10px;
+  font-weight: 700;
+  background-color: rgba(56, 189, 248, 0.12);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  color: #38bdf8;
+  padding: 1px 7px;
+  border-radius: 10px;
+  font-family: var(--fuente-codigo, 'JetBrains Mono', monospace);
+}
+
+.selectorPersonaje {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Barra de Filtros de Acción */
+.barraFiltros {
+  display: flex;
+  gap: 4px;
+  background-color: #0c1017;
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  border-radius: 6px;
+  padding: 3px;
+  overflow-x: auto;
+}
+
+.botonFiltro {
+  flex: 1;
+  min-width: 70px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  color: #94a3b8;
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 4px 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.botonFiltro:hover {
+  background-color: rgba(255, 255, 255, 0.04);
+  color: #e2e8f0;
+}
+
+.botonFiltroActivo {
+  background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+  border-color: rgba(56, 189, 248, 0.4);
+  color: #38bdf8;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+}
+
+.badgeConteoFiltro {
+  font-size: 9px;
+  font-family: var(--fuente-codigo, 'JetBrains Mono', monospace);
+  opacity: 0.8;
+}
+
+.tarjetaVacia {
+  background-color: #121722;
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  border-radius: 8px;
+  padding: 24px;
+  text-align: center;
+  color: #94a3b8;
+  font-size: 13px;
+}
+
+.seccionGrupoAtaques {
+  background-color: #121722;
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  border-radius: 8px;
+  padding: 10px 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.cabeceraGrupoAtaques {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 6px;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+}
+
+.tituloGrupoAtaques {
+  font-size: 11px;
+  font-weight: 800;
+  color: #cbd5e1;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.listaAtaques {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* Tarjeta de Ataque / Acción */
+.tarjetaAtaque {
+  background: linear-gradient(180deg, #151d2a 0%, #101622 100%);
+  border: 1px solid rgba(129, 140, 248, 0.18);
+  border-left: 3px solid #38bdf8;
+  border-radius: 6px;
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+  transition: border-color 0.15s ease;
+}
+
+.tarjetaAtaque:hover {
+  border-color: rgba(129, 140, 248, 0.35);
+}
+
+.tarjetaAtaqueDesarmado {
+  border-left-color: #94a3b8;
+}
+
+.tarjetaAtaqueAdicional {
+  border-left-color: #fb923c;
+}
+
+.tarjetaAtaqueReaccion {
+  border-left-color: #a855f7;
+}
+
+.filaSuperiorAtaque {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.nombreAtaque {
+  font-size: 13px;
+  font-weight: 800;
+  color: #f8fafc;
+  letter-spacing: 0.2px;
+}
+
+.badgeAtaqueTipo {
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  padding: 1px 6px;
+  border-radius: 3px;
+  background-color: rgba(56, 189, 248, 0.08);
+  border: 1px solid rgba(56, 189, 248, 0.22);
+  color: #7dd3fc;
+}
+
+.badgeAccionTipo {
+  font-size: 8.5px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  padding: 1px 5px;
+  border-radius: 3px;
+  background-color: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #94a3b8;
+}
+
+.badgeAccionAdicional {
+  background-color: rgba(251, 146, 60, 0.1);
+  border-color: rgba(251, 146, 60, 0.3);
+  color: #fdba74;
+}
+
+.badgeReaccion {
+  background-color: rgba(168, 85, 247, 0.1);
+  border-color: rgba(168, 85, 247, 0.3);
+  color: #d8b4fe;
+}
+
+.filaMetricasAtaque {
+  display: grid;
+  grid-template-columns: auto auto 1fr auto;
+  align-items: center;
+  gap: 8px;
+  background-color: rgba(10, 14, 22, 0.6);
+  border: 1px solid rgba(148, 163, 184, 0.08);
+  border-radius: 4px;
+  padding: 6px 8px;
+}
+
+.bloqueBonoImpacto {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 42px;
+}
+
+.etiquetaMicro {
+  font-size: 8px;
+  font-weight: 800;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.valorBonoImpacto {
+  font-family: var(--fuente-codigo, 'JetBrains Mono', monospace);
+  font-size: 13px;
+  font-weight: 800;
+  color: #38bdf8;
+}
+
+.bloqueAtributoSelector {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.selectAtributoMini {
+  background-color: #0b0f17;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 3px;
+  color: #cbd5e1;
+  font-family: var(--fuente-codigo, 'JetBrains Mono', monospace);
+  font-size: 9.5px;
+  font-weight: 700;
+  padding: 1px 2px;
+  cursor: pointer;
+}
+
+.bloqueDano {
+  display: flex;
+  flex-direction: column;
+  padding-left: 4px;
+}
+
+.valorDano {
+  font-family: var(--fuente-codigo, 'JetBrains Mono', monospace);
+  font-size: 12.5px;
+  font-weight: 800;
+  color: #f1f5f9;
+}
+
+.tipoDanoTexto {
+  font-size: 9.5px;
+  color: #94a3b8;
+  font-weight: 500;
+}
+
+.filaAccionesTirada {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.botonTirarAtaque {
+  background: linear-gradient(180deg, #1b263b 0%, #111a28 100%);
+  border: 1px solid rgba(56, 189, 248, 0.45);
+  color: #e0f2fe;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+  transition: all 0.15s ease;
+}
+
+.botonTirarAtaque:hover {
+  background: linear-gradient(180deg, #23334e 0%, #162234 100%);
+  border-color: #38bdf8;
+  box-shadow: 0 0 8px rgba(56, 189, 248, 0.3);
+}
+
+.botonTirarDano {
+  background: linear-gradient(180deg, #241b2b 0%, #16101c 100%);
+  border: 1px solid rgba(248, 113, 113, 0.35);
+  color: #fee2e2;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+  transition: all 0.15s ease;
+}
+
+.botonTirarDano:hover {
+  background: linear-gradient(180deg, #32213b 0%, #1e1326 100%);
+  border-color: #f87171;
+  box-shadow: 0 0 8px rgba(248, 113, 113, 0.25);
+}
+
+.botonTirarCritico {
+  background: #141923;
+  border: 1px solid rgba(251, 191, 36, 0.3);
+  color: #fbbf24;
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: 4px;
+  font-size: 9px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  transition: all 0.15s ease;
+}
+
+.botonTirarCritico:hover {
+  background: rgba(251, 191, 36, 0.12);
+  border-color: #fbbf24;
+  color: #fef08a;
+}
+
+.filaPropiedadesAtaque {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+  font-size: 10px;
+}
+
+.badgePropiedad {
+  font-size: 9px;
+  padding: 1px 5px;
+  border-radius: 3px;
+  background-color: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #94a3b8;
+  cursor: help;
+  transition: all 0.15s ease;
+}
+
+.badgePropiedad:hover {
+  background-color: rgba(255, 255, 255, 0.08);
+  color: #f1f5f9;
+  border-color: rgba(255, 255, 255, 0.16);
+}
+
+.badgeMaestria {
+  font-size: 9px;
+  font-weight: 700;
+  padding: 1px 5px;
+  border-radius: 3px;
+  background-color: rgba(168, 85, 247, 0.1);
+  border: 1px solid rgba(168, 85, 247, 0.28);
+  color: #d8b4fe;
+  cursor: help;
+  transition: all 0.15s ease;
+}
+
+.badgeMaestria:hover {
+  background-color: rgba(168, 85, 247, 0.18);
+  border-color: #c084fc;
+}
+
+/* ==========================================
+   CONSUMIBLES Y POCIONES (D&D 5.5e)
+   ========================================= */
+.tarjetaConsumible {
+  border-left-color: #10b981;
+}
+
+.badgeCantidadConsumible {
+  font-size: 10px;
+  font-weight: 800;
+  color: #10b981;
+  background-color: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  border-radius: 3px;
+  padding: 1px 5px;
+  font-family: var(--fuente-codigo, 'JetBrains Mono', monospace);
+}
+
+.filaMetricasConsumible {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  background-color: rgba(10, 14, 22, 0.6);
+  border: 1px solid rgba(148, 163, 184, 0.08);
+  border-radius: 4px;
+  padding: 6px 8px;
+}
+
+.textoEfectoCuracion {
+  font-size: 11px;
+  font-weight: 700;
+  color: #f87171;
+  font-family: var(--fuente-codigo, 'JetBrains Mono', monospace);
+}
+
+.textoEfectoGenerico {
+  font-size: 11px;
+  color: #94a3b8;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.botonUsarConsumible {
+  background: linear-gradient(180deg, #064e3b 0%, #022c22 100%);
+  border: 1px solid rgba(16, 185, 129, 0.45);
+  color: #6ee7b7;
+  cursor: pointer;
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 10.5px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+}
+
+.botonUsarConsumible:hover {
+  background: linear-gradient(180deg, #047857 0%, #064e3b 100%);
+  border-color: #10b981;
+  color: #ffffff;
+  box-shadow: 0 0 10px rgba(16, 185, 129, 0.35);
+}
+

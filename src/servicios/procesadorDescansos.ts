@@ -58,43 +58,46 @@ export function ejecutarDescansoCorto(
   const acciones: AccionDescanso[] = [];
   const dadosValidos = Math.max(0, Math.min(dadosAGastar, personaje.dadosGolpeRestantes));
 
-  if (dadosValidos === 0) {
-    return {
-      personajeActualizado: { ...personaje },
-      acciones: [{ tipo: "hp", descripcion: "Descanso corto completado sin gastar dados de golpe." }]
-    };
+  let hpNuevo = personaje.hpActual;
+  let dadosRestantesNuevos = personaje.dadosGolpeRestantes;
+
+  if (dadosValidos > 0) {
+    const scoreCon = personaje.overridesFijos?.constitucion ?? personaje.caracteristicas?.constitucion ?? 10;
+    const modCon = calcularModificadorCaracteristica(scoreCon);
+    const carasDado = obtenerValorDadoCaras(personaje.tipoDadoGolpe || "d8");
+
+    let curacionTotal = 0;
+    for (let i = 0; i < dadosValidos; i++) {
+      const tiradaBase = tiradasDados[i] ?? Math.floor(carasDado / 2) + 1; // Tirada provista o promedio
+      const curacionDado = Math.max(1, tiradaBase + modCon);
+      curacionTotal += curacionDado;
+    }
+
+    const hpPrevio = personaje.hpActual;
+    hpNuevo = Math.min(personaje.hpMaximo, hpPrevio + curacionTotal);
+    const curacionEfectiva = hpNuevo - hpPrevio;
+    dadosRestantesNuevos = personaje.dadosGolpeRestantes - dadosValidos;
+
+    acciones.push({
+      tipo: "dadosGolpe",
+      descripcion: `Gastados ${dadosValidos} ${personaje.tipoDadoGolpe} (${dadosRestantesNuevos}/${personaje.dadosGolpeTotal} restantes).`,
+      cambio: -dadosValidos
+    });
+
+    acciones.push({
+      tipo: "hp",
+      descripcion: `Curados +${curacionEfectiva} HP (${hpNuevo}/${personaje.hpMaximo}).`,
+      cambio: curacionEfectiva
+    });
+  } else {
+    acciones.push({
+      tipo: "hp",
+      descripcion: "Descanso corto completado sin gastar dados de golpe."
+    });
   }
-
-  const scoreCon = personaje.overridesFijos.constitucion ?? personaje.caracteristicas.constitucion;
-  const modCon = calcularModificadorCaracteristica(scoreCon);
-  const carasDado = obtenerValorDadoCaras(personaje.tipoDadoGolpe);
-
-  let curacionTotal = 0;
-  for (let i = 0; i < dadosValidos; i++) {
-    const tiradaBase = tiradasDados[i] ?? Math.floor(carasDado / 2) + 1; // Tirada provista o promedio
-    const curacionDado = Math.max(1, tiradaBase + modCon);
-    curacionTotal += curacionDado;
-  }
-
-  const hpPrevio = personaje.hpActual;
-  const hpNuevo = Math.min(personaje.hpMaximo, hpPrevio + curacionTotal);
-  const curacionEfectiva = hpNuevo - hpPrevio;
-  const dadosRestantesNuevos = personaje.dadosGolpeRestantes - dadosValidos;
-
-  acciones.push({
-    tipo: "dadosGolpe",
-    descripcion: `Gastados ${dadosValidos} ${personaje.tipoDadoGolpe} (${dadosRestantesNuevos}/${personaje.dadosGolpeTotal} restantes).`,
-    cambio: -dadosValidos
-  });
-
-  acciones.push({
-    tipo: "hp",
-    descripcion: `Curados +${curacionEfectiva} HP (${hpNuevo}/${personaje.hpMaximo}).`,
-    cambio: curacionEfectiva
-  });
 
   // Reiniciar salvaciones de muerte si estaba estabilizándose
-  const reinicioMuerte = personaje.salvacionesMuerte.exitos > 0 || personaje.salvacionesMuerte.fallos > 0;
+  const reinicioMuerte = (personaje.salvacionesMuerte?.exitos || 0) > 0 || (personaje.salvacionesMuerte?.fallos || 0) > 0;
   if (reinicioMuerte) {
     acciones.push({
       tipo: "salvacionesMuerte",
@@ -102,11 +105,22 @@ export function ejecutarDescansoCorto(
     });
   }
 
+  // Recuperar Espacios de Magia de Pacto (Brujo) en Descanso Corto
+  let espaciosPactoGastadosNuevos = personaje.espaciosPactoGastados;
+  if ((personaje.espaciosPactoMaximos || 0) > 0 && (personaje.espaciosPactoGastados || 0) > 0) {
+    espaciosPactoGastadosNuevos = 0;
+    acciones.push({
+      tipo: "ranura",
+      descripcion: `Espacios de Pacto restaurados (${personaje.espaciosPactoMaximos}/${personaje.espaciosPactoMaximos}).`
+    });
+  }
+
   const personajeActualizado: PersonajeJugador = {
     ...personaje,
     hpActual: hpNuevo,
     dadosGolpeRestantes: dadosRestantesNuevos,
-    salvacionesMuerte: { exitos: 0, fallos: 0 }
+    salvacionesMuerte: { exitos: 0, fallos: 0 },
+    espaciosPactoGastados: espaciosPactoGastadosNuevos
   };
 
   return { personajeActualizado, acciones };
@@ -123,6 +137,8 @@ export function ejecutarDescansoCorto(
  * 3. Recupera hasta la mitad de los dados de golpe totales (mínimo 1).
  * 4. Reduce en 1 nivel el Cansancio (si es mayor a 0).
  * 5. Reinicia las salvaciones contra la muerte.
+ * 6. Restaura todos los espacios de conjuro, puntos de conjuro y espacios de pacto.
+ * 7. Limpia la concentración activa y condición de concentración.
  */
 export function ejecutarDescansoLargo(personaje: PersonajeJugador): ResultadoDescanso {
   const acciones: AccionDescanso[] = [];
@@ -183,13 +199,32 @@ export function ejecutarDescansoLargo(personaje: PersonajeJugador): ResultadoDes
     });
   }
 
+  // 6. Restaurar recursos mágicos completos
+  if (personaje.esLanzador) {
+    acciones.push({
+      tipo: "ranura",
+      descripcion: "Todos los espacios y puntos de conjuro han sido restaurados."
+    });
+  }
+
+  // 7. Limpiar concentración y condiciones activas asociadas
+  const condicionesLimpias = (personaje.condicionesActivas || []).filter(
+    (c) => !c.toLowerCase().includes("concentra")
+  );
+
   const personajeActualizado: PersonajeJugador = {
     ...personaje,
     hpActual: personaje.hpMaximo,
     hpTemporal: 0,
     dadosGolpeRestantes: dadosNuevos,
     cansancio: cansancioNuevo,
-    salvacionesMuerte: { exitos: 0, fallos: 0 }
+    salvacionesMuerte: { exitos: 0, fallos: 0 },
+    espaciosConjuroGastados: {},
+    puntosConjuroGastados: 0,
+    espaciosPactoGastados: 0,
+    arcanoMisticoGastados: [],
+    concentracionActiva: null,
+    condicionesActivas: condicionesLimpias
   };
 
   return { personajeActualizado, acciones };

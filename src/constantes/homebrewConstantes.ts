@@ -11,9 +11,21 @@ export const CONDICIONES_DND = [
   "incapacitado", "inconsciente", "invisible", "paralizado", "petrificado"
 ];
 
-//estas son solo las lanzadoras de hechizos no involucran todas las opciones del libro
+// Lista oficial completa de clases de D&D 5.5e (2024) y Artífice
 export const CLASES_DND = [
-  "Bardo", "Brujo", "Clérigo", "Druida", "Explorador", "Hechicero", "Mago", "Paladín", "Artífice"
+  "Bárbaro",
+  "Bardo",
+  "Brujo",
+  "Clérigo",
+  "Druida",
+  "Explorador",
+  "Guerrero",
+  "Hechicero",
+  "Mago",
+  "Monje",
+  "Paladín",
+  "Pícaro",
+  "Artífice"
 ];
 
 export const HABILIDADES_LISTA = [

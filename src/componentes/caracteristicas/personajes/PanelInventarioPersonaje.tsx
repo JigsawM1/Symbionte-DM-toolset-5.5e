@@ -23,7 +23,8 @@ import {
   Shield,
   Wrench,
   Package,
-  Box
+  Box,
+  Target
 } from "lucide-react";
 import {
   calcularCapacidadCarga,
@@ -38,6 +39,7 @@ import {
 } from "@/servicios/calculadorInventario";
 import { coincideBusquedaTolerante } from "@/utiles/busquedaTolerante";
 import { esObjetoConsumible } from "@/servicios/procesadorConsumibles";
+import { esContenedorFisicoMunicion } from "@/servicios/gestorMunicion";
 import { SelectorDesplegable, OpcionDesplegable } from "@/componentes/comunes/SelectorDesplegable";
 import { TarjetaObjetoInventario } from "./TarjetaObjetoInventario";
 import { ModalAgregarObjeto } from "./ModalAgregarObjeto";
@@ -54,8 +56,10 @@ interface PanelInventarioPersonajeProps {
   alAlternarEquipado: (idInstancia: string) => void;
   alAlternarSintonizado: (idInstancia: string) => void;
   alActualizarNotas: (idInstancia: string, notas: string) => void;
+  alActualizarObjeto?: (idInstancia: string, cambios: Partial<ObjetoInventario>) => void;
   alModificarCargas: (idInstancia: string, delta: number) => void;
   alCambiarContenedor?: (idInstancia: string, contenedor: TipoContenedor) => void;
+  alDesempaquetarPaquete?: (idInstancia: string) => void;
   alEstablecerMonedas: (monedas: Partial<BolsaMonedas>) => void;
   alModificarMoneda: (tipo: TipoMonedaClave, delta: number) => void;
   alUsarObjeto?: (objeto: ObjetoInventario) => void;
@@ -65,7 +69,7 @@ type CriterioOrdenMochila = "tipo" | "reciente" | "peso-desc" | "peso-asc" | "no
 
 const OPCIONES_ORDEN_MOCHILA: OpcionDesplegable<CriterioOrdenMochila>[] = [
   { valor: "tipo", etiqueta: "Por Tipo (Secciones)" },
-  { valor: "reciente", etiqueta: "Último Agregado (Pila LIFO)" },
+  { valor: "reciente", etiqueta: "Último Agregado" },
   { valor: "peso-desc", etiqueta: "Mayor Peso" },
   { valor: "peso-asc", etiqueta: "Menor Peso" },
   { valor: "nombre-asc", etiqueta: "Nombre (A - Z)" },
@@ -145,8 +149,10 @@ export const PanelInventarioPersonaje: React.FC<PanelInventarioPersonajeProps> =
   alAlternarEquipado,
   alAlternarSintonizado,
   alActualizarNotas,
+  alActualizarObjeto,
   alModificarCargas,
   alCambiarContenedor,
+  alDesempaquetarPaquete,
   alEstablecerMonedas,
   alModificarMoneda: _alModificarMoneda,
   alUsarObjeto
@@ -154,6 +160,16 @@ export const PanelInventarioPersonaje: React.FC<PanelInventarioPersonajeProps> =
   const [modalAgregarAbierto, setModalAgregarAbierto] = useState(false);
   const [tabModalAgregar, setTabModalAgregar] = useState<"compendio" | "otrasPosesiones">("compendio");
   const [objetoInspeccionadoId, setObjetoInspeccionadoId] = useState<string | null>(null);
+
+  // Helper para verificar si un objeto de inventario tiene contents
+  const comprobarTieneContents = (obj: ObjetoInventario): boolean => {
+    const normalizar = (s: string) => s.toLowerCase().trim();
+    const objetoCompendio = baseDatosObjetos.find(
+      (b) => b.id === obj.idObjeto || normalizar(b.nombre) === normalizar(obj.nombre)
+    );
+    const contents = objetoCompendio?.contents || (obj as any).contents;
+    return Array.isArray(contents) && contents.length > 0;
+  };
 
   // Estados de Búsqueda y Orden en Mochila
   const [busquedaMochila, setBusquedaMochila] = useState("");
@@ -215,6 +231,7 @@ export const PanelInventarioPersonaje: React.FC<PanelInventarioPersonajeProps> =
   // 6. Clasificación en Subsecciones (para modo "Por Tipo")
   const subseccionesPorTipo = useMemo(() => {
     const consumibles: ObjetoInventario[] = [];
+    const municion: ObjetoInventario[] = [];
     const armas: ObjetoInventario[] = [];
     const armaduras: ObjetoInventario[] = [];
     const herramientas: ObjetoInventario[] = [];
@@ -241,6 +258,34 @@ export const PanelInventarioPersonaje: React.FC<PanelInventarioPersonajeProps> =
         continue;
       }
 
+      // Detectar si es munición o contenedor de munición (Carcaj, Caja de Virotes, Bolsa de Balas)
+      const comp = baseDatosObjetos.find(
+        (b) => b.id === obj.idObjeto || b.nombre.toLowerCase().trim() === obj.nombre.toLowerCase().trim()
+      );
+      const sub = (comp?.subcategoria || "").toLowerCase();
+      const nom = obj.nombre.toLowerCase().trim();
+
+      const esMunicionOContenedor =
+        sub.includes("municion") ||
+        comp?.storage !== undefined ||
+        esContenedorFisicoMunicion(nom) ||
+        (obj.idObjeto && esContenedorFisicoMunicion(obj.idObjeto)) ||
+        nom.includes("flecha") ||
+        nom.includes("virote") ||
+        nom.includes("carcaj") ||
+        nom.includes("caja de virotes") ||
+        nom.includes("bolsa de balas") ||
+        nom.includes("cartuchera") ||
+        nom.includes("bolsita") ||
+        nom.includes("estuche de agujas") ||
+        nom.includes("aguja") ||
+        nom.includes("quiver");
+
+      if (esMunicionOContenedor && obj.tipoPrincipal !== "Arma") {
+        municion.push(obj);
+        continue;
+      }
+
       // Objetos en Mochila / Encima:
       if (esObjetoConsumible(obj.nombre, obj.notas)) {
         consumibles.push(obj);
@@ -256,11 +301,6 @@ export const PanelInventarioPersonaje: React.FC<PanelInventarioPersonajeProps> =
         armaduras.push(obj);
         continue;
       }
-
-      const comp = baseDatosObjetos.find(
-        (b) => b.id === obj.idObjeto || b.nombre.toLowerCase().trim() === obj.nombre.toLowerCase().trim()
-      );
-      const sub = (comp?.subcategoria || "").toLowerCase();
 
       if (sub.includes("consumible") || sub.includes("pocion")) {
         consumibles.push(obj);
@@ -290,6 +330,15 @@ export const PanelInventarioPersonaje: React.FC<PanelInventarioPersonajeProps> =
         color: "#10b981",
         items: consumibles,
         pesoTotal: calcPeso(consumibles),
+        esContenedorEspecial: false
+      },
+      {
+        id: "municion",
+        titulo: "Munición y Contenedores (Carcaj)",
+        icono: <Target size={13} color="#38bdf8" />,
+        color: "#38bdf8",
+        items: municion,
+        pesoTotal: calcPeso(municion),
         esContenedorEspecial: false
       },
       {
@@ -438,7 +487,7 @@ export const PanelInventarioPersonaje: React.FC<PanelInventarioPersonajeProps> =
           <div className={estilos.detalleCalculoCarga}>
             FUE {fuerzaEfectiva} × 15 lb{multiplicadorTexto} = {capacidadCarga} lb
             {pesoContenedoresSinCarga > 0 && (
-              <span style={{ color: "#c084fc", marginLeft: 6, fontSize: 9.5 }}>
+              <span className={estilos.detalleCalculoCargaContenedores}>
                 (En Contenedores: {pesoContenedoresSinCarga} lb)
               </span>
             )}
@@ -454,7 +503,7 @@ export const PanelInventarioPersonaje: React.FC<PanelInventarioPersonajeProps> =
           />
           <div className={estilos.barraCargaTexto}>
             <span>{pesoTotal}</span>
-            <span style={{ fontSize: 10, color: "rgba(255, 255, 255, 0.7)", fontWeight: 500 }}>
+            <span className={estilos.barraCargaTextoTotal}>
               / {capacidadCarga} lb
             </span>
           </div>
@@ -475,7 +524,7 @@ export const PanelInventarioPersonaje: React.FC<PanelInventarioPersonajeProps> =
             <Link2 size={14} color="#c084fc" />
             <span>Sintonización Mágica</span>
           </div>
-          <span style={{ fontSize: 10, fontWeight: 700, color: "#c084fc" }}>
+          <span className={estilos.sintonizacionRanurasTexto}>
             {totalSintonizados} / 3 Ranuras
           </span>
         </div>
@@ -529,6 +578,8 @@ export const PanelInventarioPersonaje: React.FC<PanelInventarioPersonajeProps> =
               <TarjetaObjetoInventario
                 key={obj.idInstancia}
                 objeto={obj}
+                baseDatosObjetos={baseDatosObjetos}
+                inventarioCompleto={personaje.inventario || []}
                 totalSintonizados={totalSintonizados}
                 alInspeccionar={() => setObjetoInspeccionadoId(obj.idInstancia)}
                 alAlternarEquipado={() => alAlternarEquipado(obj.idInstancia)}
@@ -600,7 +651,7 @@ export const PanelInventarioPersonaje: React.FC<PanelInventarioPersonajeProps> =
           </div>
         ) : criterioOrden === "tipo" ? (
           /* MODO 1: ORGANIZACIÓN POR SUBSECCIONES TEMÁTICAS Y CONTENEDORES */
-          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+          <div className={estilos.listaSubseccionesMochila}>
             {subseccionesPorTipo
               .filter((sub) => sub.items.length > 0)
               .map((sub) => (
@@ -627,7 +678,10 @@ export const PanelInventarioPersonaje: React.FC<PanelInventarioPersonajeProps> =
                       <TarjetaObjetoInventario
                         key={obj.idInstancia}
                         objeto={obj}
+                        baseDatosObjetos={baseDatosObjetos}
+                        inventarioCompleto={personaje.inventario || []}
                         totalSintonizados={totalSintonizados}
+                        tieneContents={comprobarTieneContents(obj)}
                         alInspeccionar={() => setObjetoInspeccionadoId(obj.idInstancia)}
                         alAlternarEquipado={() => alAlternarEquipado(obj.idInstancia)}
                         alAlternarSintonizado={() => alAlternarSintonizado(obj.idInstancia)}
@@ -635,6 +689,7 @@ export const PanelInventarioPersonaje: React.FC<PanelInventarioPersonajeProps> =
                         alModificarCargas={(delta) => alModificarCargas(obj.idInstancia, delta)}
                         alEliminar={() => alQuitarObjeto(obj.idInstancia)}
                         alUsar={alUsarObjeto}
+                        alDesempaquetar={() => alDesempaquetarPaquete && alDesempaquetarPaquete(obj.idInstancia)}
                         alCambiarContenedor={(c) => alCambiarContenedor && alCambiarContenedor(obj.idInstancia, c)}
                       />
                     ))}
@@ -649,7 +704,10 @@ export const PanelInventarioPersonaje: React.FC<PanelInventarioPersonajeProps> =
               <TarjetaObjetoInventario
                 key={obj.idInstancia}
                 objeto={obj}
+                baseDatosObjetos={baseDatosObjetos}
+                inventarioCompleto={personaje.inventario || []}
                 totalSintonizados={totalSintonizados}
+                tieneContents={comprobarTieneContents(obj)}
                 alInspeccionar={() => setObjetoInspeccionadoId(obj.idInstancia)}
                 alAlternarEquipado={() => alAlternarEquipado(obj.idInstancia)}
                 alAlternarSintonizado={() => alAlternarSintonizado(obj.idInstancia)}
@@ -657,6 +715,7 @@ export const PanelInventarioPersonaje: React.FC<PanelInventarioPersonajeProps> =
                 alModificarCargas={(delta) => alModificarCargas(obj.idInstancia, delta)}
                 alEliminar={() => alQuitarObjeto(obj.idInstancia)}
                 alUsar={alUsarObjeto}
+                alDesempaquetar={() => alDesempaquetarPaquete && alDesempaquetarPaquete(obj.idInstancia)}
                 alCambiarContenedor={(c) => alCambiarContenedor && alCambiarContenedor(obj.idInstancia, c)}
               />
             ))}
@@ -706,12 +765,16 @@ export const PanelInventarioPersonaje: React.FC<PanelInventarioPersonajeProps> =
         <ModalDetalleObjetoInventario
           objeto={objetoInspeccionado}
           baseDatosObjetos={baseDatosObjetos}
+          inventarioCompleto={personaje.inventario || []}
           totalSintonizados={totalSintonizados}
           alCerrar={() => setObjetoInspeccionadoId(null)}
           alAlternarEquipado={() => alAlternarEquipado(objetoInspeccionado.idInstancia)}
           alAlternarSintonizado={() => alAlternarSintonizado(objetoInspeccionado.idInstancia)}
           alActualizarNotas={(notas) => alActualizarNotas(objetoInspeccionado.idInstancia, notas)}
+          alActualizarObjeto={(cambios) => alActualizarObjeto && alActualizarObjeto(objetoInspeccionado.idInstancia, cambios)}
           alCambiarContenedor={(c) => alCambiarContenedor && alCambiarContenedor(objetoInspeccionado.idInstancia, c)}
+          alDesempaquetar={() => alDesempaquetarPaquete && alDesempaquetarPaquete(objetoInspeccionado.idInstancia)}
+          alModificarCargas={(delta) => alModificarCargas(objetoInspeccionado.idInstancia, delta)}
         />
       )}
     </div>

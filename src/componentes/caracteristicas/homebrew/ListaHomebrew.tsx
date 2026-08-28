@@ -377,7 +377,7 @@ export const ListaHomebrew: React.FC<Props> = ({
                   >
                     <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
                       <span className={estilos.itemNombre}>{o.nombre}</span>
-                      {(o.esVeneno || o.tipoVeneno || o.cdSalvacionVeneno !== undefined) && (
+                      {(o.esVeneno || o.tipoVeneno) && (
                         <span
                           style={{
                             fontSize: "10px",
@@ -393,7 +393,7 @@ export const ListaHomebrew: React.FC<Props> = ({
                           }}
                         >
                           <Skull size={10} />
-                          <span>VENENO {o.cdSalvacionVeneno !== undefined ? `(CD ${o.cdSalvacionVeneno})` : ""}</span>
+                          <span>VENENO {o.tipoVeneno ? `(${o.tipoVeneno})` : ""}</span>
                         </span>
                       )}
                     </div>
@@ -645,22 +645,11 @@ export const ListaHomebrew: React.FC<Props> = ({
                 )}
                 {objeto.tipoVeneno && (
                   <div className={estilos.metaItem}>
-                    <Sparkles size={12} className={estilos.iconoDetalle} style={{ color: "hsl(270, 95%, 75%)" }} />
+                    <Skull size={12} className={estilos.iconoDetalle} style={{ color: "hsl(270, 95%, 80%)" }} />
                     <div>
                       <div className={estilos.metaLabel}>EXPOSICIÓN</div>
                       <div className={estilos.metaValor} style={{ color: "hsl(270, 95%, 80%)", fontWeight: "bold" }}>
                         {objeto.tipoVeneno}
-                      </div>
-                    </div>
-                  </div>
-                )}
-                {objeto.cdSalvacionVeneno !== undefined && (
-                  <div className={estilos.metaItem}>
-                    <Sparkles size={12} className={estilos.iconoDetalle} style={{ color: "var(--color-advertencia)" }} />
-                    <div>
-                      <div className={estilos.metaLabel}>SALVACIÓN</div>
-                      <div className={estilos.metaValor} style={{ color: "var(--color-advertencia)", fontWeight: "bold" }}>
-                        CON CD {objeto.cdSalvacionVeneno}
                       </div>
                     </div>
                   </div>
@@ -685,7 +674,7 @@ export const ListaHomebrew: React.FC<Props> = ({
                      MÁGICO
                   </span>
                 )}
-                {(objeto.esVeneno || objeto.tipoVeneno || objeto.cdSalvacionVeneno !== undefined) && (
+                {(objeto.esVeneno || objeto.tipoVeneno) && (
                   <span className={estilos.chipConcentracion} style={{ backgroundColor: "rgba(168, 85, 247, 0.18)", color: "hsl(270, 95%, 85%)", border: "1px solid rgba(168, 85, 247, 0.5)" }}>
                      VENENO {objeto.tipoVeneno ? `(${objeto.tipoVeneno.toUpperCase()})` : ""}
                   </span>
@@ -794,7 +783,7 @@ export const ListaHomebrew: React.FC<Props> = ({
               )}
 
               {/* MECÁNICAS Y EFECTOS DEL VENENO */}
-              {(objeto.esVeneno || objeto.tipoVeneno || objeto.cdSalvacionVeneno !== undefined || objeto.efectoVeneno) && (
+              {(objeto.esVeneno || objeto.tipoVeneno || objeto.efectoVeneno) && (
                 <div className={estilos.cajaMecanicasCombateObjeto} style={{ borderColor: "rgba(168, 85, 247, 0.4)", background: "rgba(168, 85, 247, 0.05)" }}>
                   <div className={estilos.tituloMecanicasObjeto} style={{ color: "hsl(270, 95%, 80%)", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "8px" }}>
                     <span style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}>
@@ -802,32 +791,6 @@ export const ListaHomebrew: React.FC<Props> = ({
                       <span>Propiedades y Mecánicas del Veneno</span>
                     </span>
                     <div style={{ display: "flex", gap: "6px", alignItems: "center" }}>
-                      {objeto.cdSalvacionVeneno !== undefined && (
-                        <button
-                          onClick={() => {
-                            const label = sanitizarEtiqueta(`Salvacion CON CD ${objeto.cdSalvacionVeneno} - ${objeto.nombre}`);
-                            lanzarDadosTaleSpire("1d20", label);
-                          }}
-                          style={{
-                            background: "rgba(168, 85, 247, 0.22)",
-                            border: "1px solid rgba(168, 85, 247, 0.55)",
-                            color: "hsl(270, 95%, 88%)",
-                            borderRadius: "4px",
-                            padding: "3px 9px",
-                            fontSize: "11px",
-                            fontWeight: "bold",
-                            cursor: "pointer",
-                            display: "flex",
-                            alignItems: "center",
-                            gap: "4px"
-                          }}
-                          type="button"
-                          title="Lanzar tirada de salvación de Constitución (d20) en TaleSpire"
-                        >
-                          <Dices size={13} />
-                          <span>Salvación CON (CD {objeto.cdSalvacionVeneno})</span>
-                        </button>
-                      )}
                       {(() => {
                         const textoCompleto = `${objeto.descripcion || ""} ${objeto.efectoVeneno || ""}`;
                         const matchDado = textoCompleto.match(/(\d+d\d+(?:\s*[+-]\s*\d+)?)/i);
@@ -874,14 +837,6 @@ export const ListaHomebrew: React.FC<Props> = ({
                         </strong>
                       </div>
                     )}
-                    {objeto.cdSalvacionVeneno !== undefined && (
-                      <div className={estilos.itemMecanica}>
-                        <span className={estilos.textoEtiquetaMecanica}>Dificultad de Salvación: </span>
-                        <strong className={estilos.valorMecanicaCd} style={{ color: "var(--color-advertencia)" }}>
-                          Constitución CD {objeto.cdSalvacionVeneno}
-                        </strong>
-                      </div>
-                    )}
                     {objeto.efectoVeneno && (
                       <div className={estilos.itemMecanica} style={{ gridColumn: "1 / -1" }}>
                         <span className={estilos.textoEtiquetaMecanica}>Efecto Adicional: </span>
@@ -895,27 +850,11 @@ export const ListaHomebrew: React.FC<Props> = ({
               )}
 
               {/* PROPIEDADES MÁGICAS Y NARRATIVAS COMUNES */}
-              {(objeto.cargas || objeto.sintonizacionRequerida || objeto.estaMaldito || objeto.esConsciente || (objeto.modificadorAtaqueDano !== undefined && objeto.modificadorAtaqueDano !== null)) && (
+              {(objeto.cargas || objeto.sintonizacionRequerida || (objeto.modificadorAtaqueDano !== undefined && objeto.modificadorAtaqueDano !== null)) && (
                 <div className={estilos.cajaMecanicasCombateObjeto} style={{ borderColor: "var(--color-borde-cian)" }}>
                   <div className={estilos.tituloMecanicasObjeto} style={{ color: "var(--color-borde-cian)" }}>
                     Propiedades Mágicas y Narrativas
                   </div>
-                  
-                  {/* Toggles narrativos llamativos */}
-                  {(objeto.estaMaldito || objeto.esConsciente) && (
-                    <div style={{ display: "flex", gap: "8px", marginBottom: "8px", flexWrap: "wrap" }}>
-                      {objeto.estaMaldito && (
-                        <span style={{ fontSize: "11px", fontWeight: "bold", background: "rgba(239, 68, 68, 0.15)", border: "1px solid var(--color-peligro)", color: "var(--color-peligro)", padding: "2px 6px", borderRadius: "4px" }}>
-                           OBJETO MALDITO
-                        </span>
-                      )}
-                      {objeto.esConsciente && (
-                        <span style={{ fontSize: "11px", fontWeight: "bold", background: "rgba(6, 182, 212, 0.15)", border: "1px solid var(--color-borde-cian)", color: "var(--color-borde-cian)", padding: "2px 6px", borderRadius: "4px" }}>
-                           OBJETO CONSCIENTE
-                        </span>
-                      )}
-                    </div>
-                  )}
 
                   <div className={estilos.gridMecanicas}>
                     {objeto.cargas && (

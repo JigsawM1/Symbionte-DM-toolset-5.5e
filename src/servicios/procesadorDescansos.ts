@@ -1,4 +1,5 @@
 import type { PersonajeJugador } from "@/tipos";
+import { evaluarFormulaDados } from "@/servicios/procesadorConsumibles";
 
 // ==========================================
 // 1. INTERFACES Y CONTRATOS EXTENSIBLES
@@ -212,6 +213,34 @@ export function ejecutarDescansoLargo(personaje: PersonajeJugador): ResultadoDes
     (c) => !c.toLowerCase().includes("concentra")
   );
 
+  // 8. Recargar Cargas de Objetos Mágicos del Inventario
+  let totalCargasRecargadas = 0;
+  const inventarioActualizado = (personaje.inventario || []).map((obj) => {
+    if (obj.cargasMaximas === undefined || obj.cargasMaximas <= 0) return obj;
+    const cargasActuales = obj.cargasActuales ?? obj.cargasMaximas;
+    if (cargasActuales >= obj.cargasMaximas) return obj;
+
+    let recarga = obj.cargasMaximas - cargasActuales;
+    if ((obj as any).formulaRecarga) {
+      const tirada = evaluarFormulaDados((obj as any).formulaRecarga);
+      if (tirada > 0) recarga = tirada;
+    }
+
+    const nuevasCargas = Math.min(obj.cargasMaximas, cargasActuales + recarga);
+    const delta = nuevasCargas - cargasActuales;
+    if (delta > 0) totalCargasRecargadas += delta;
+
+    return { ...obj, cargasActuales: nuevasCargas };
+  });
+
+  if (totalCargasRecargadas > 0) {
+    acciones.push({
+      tipo: "recurso",
+      descripcion: `Objetos mágicos recargados (+${totalCargasRecargadas} cargas totales recuperadas).`,
+      cambio: totalCargasRecargadas
+    });
+  }
+
   const personajeActualizado: PersonajeJugador = {
     ...personaje,
     hpActual: personaje.hpMaximo,
@@ -224,7 +253,8 @@ export function ejecutarDescansoLargo(personaje: PersonajeJugador): ResultadoDes
     espaciosPactoGastados: 0,
     arcanoMisticoGastados: [],
     concentracionActiva: null,
-    condicionesActivas: condicionesLimpias
+    condicionesActivas: condicionesLimpias,
+    inventario: inventarioActualizado
   };
 
   return { personajeActualizado, acciones };

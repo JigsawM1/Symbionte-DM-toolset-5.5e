@@ -1,15 +1,22 @@
-import React, { useState } from "react";
-import type { ObjetoInventario, Rareza, TipoContenedor } from "@/tipos";
-import { Swords, Link2, Trash2, Plus, Minus, Zap, Sparkles, Heart } from "lucide-react";
+import React, { useState, useMemo } from "react";
+import type { ObjetoInventario, Rareza, TipoContenedor, ObjetoJuego, Arma } from "@/tipos";
+import { Swords, Link2, Trash2, Plus, Minus, Zap, Sparkles, Heart, PackageOpen, FlaskConical, Target } from "lucide-react";
 import { ConfirmDialog } from "@/componentes/comunes/ConfirmDialog";
 import { TooltipUniversal } from "@/componentes/comunes/TooltipUniversal";
 import { detectarInfoConsumible, esObjetoConsumible } from "@/servicios/procesadorConsumibles";
 import { CONFIG_CONTENEDORES } from "@/servicios/calculadorInventario";
+import {
+  calcularAlmacenamientoMunicion,
+  calcularContenidoContenedorMunicion
+} from "@/servicios/gestorMunicion";
 import estilos from "./HojaPersonaje.module.css";
 
 interface TarjetaObjetoInventarioProps {
   objeto: ObjetoInventario;
+  baseDatosObjetos?: ObjetoJuego[];
+  inventarioCompleto?: ObjetoInventario[];
   totalSintonizados: number;
+  tieneContents?: boolean;
   alInspeccionar?: () => void;
   alAlternarEquipado: () => void;
   alAlternarSintonizado: () => void;
@@ -17,6 +24,7 @@ interface TarjetaObjetoInventarioProps {
   alModificarCargas: (delta: number) => void;
   alEliminar: () => void;
   alUsar?: (objeto: ObjetoInventario) => void;
+  alDesempaquetar?: () => void;
   alCambiarContenedor?: (contenedor: TipoContenedor) => void;
 }
 
@@ -31,7 +39,10 @@ const CLASES_RAREZA: Record<Rareza, string> = {
 
 export const TarjetaObjetoInventario: React.FC<TarjetaObjetoInventarioProps> = ({
   objeto,
+  baseDatosObjetos,
+  inventarioCompleto,
   totalSintonizados,
+  tieneContents,
   alInspeccionar,
   alAlternarEquipado,
   alAlternarSintonizado,
@@ -39,9 +50,20 @@ export const TarjetaObjetoInventario: React.FC<TarjetaObjetoInventarioProps> = (
   alModificarCargas,
   alEliminar,
   alUsar,
+  alDesempaquetar,
   alCambiarContenedor: _alCambiarContenedor
 }) => {
   const [modalEliminarAbierto, setModalEliminarAbierto] = useState(false);
+
+  const objetoBase = useMemo<ObjetoJuego | null>(() => {
+    if (!baseDatosObjetos) return null;
+    const normalizar = (s: string) => s.toLowerCase().trim();
+    return (
+      baseDatosObjetos.find(
+        (o) => o.id === objeto.idObjeto || normalizar(o.nombre) === normalizar(objeto.nombre)
+      ) || null
+    );
+  }, [baseDatosObjetos, objeto.idObjeto, objeto.nombre]);
 
   const pesoTotal = Math.round((Number(objeto.pesoLb) || 0) * (Number(objeto.cantidad) || 1) * 100) / 100;
   const rarezaClass = CLASES_RAREZA[objeto.rareza as Rareza] || estilos.rarezaComun;
@@ -57,6 +79,22 @@ export const TarjetaObjetoInventario: React.FC<TarjetaObjetoInventarioProps> = (
   const contenedor = objeto.contenedor || "mochila";
   const estaEnContenedorEspecial = !objeto.equipado && contenedor !== "mochila";
   const infoContenedor = CONFIG_CONTENEDORES[contenedor] || CONFIG_CONTENEDORES.mochila;
+
+  const bonoMagico = objetoBase?.modificadorAtaqueDano;
+  const esVeneno = Boolean(objetoBase?.esVeneno || objetoBase?.tipoVeneno);
+  const maestria = objetoBase?.tipoPrincipal === "Arma" ? (objetoBase as Arma).maestria : undefined;
+
+  // 1. Estado detallado de almacenamiento si este ítem es Munición
+  const infoAlmacenamientoMunicion = useMemo(() => {
+    if (!inventarioCompleto) return null;
+    return calcularAlmacenamientoMunicion(objeto, inventarioCompleto, objetoBase || undefined);
+  }, [objeto, inventarioCompleto, objetoBase]);
+
+  // 2. Estado de ocupación si este ítem es un Contenedor Físico (ej. Carcaj, Caja de Virotes, Bolsa de Balas)
+  const infoContenedorFisico = useMemo(() => {
+    if (!inventarioCompleto) return null;
+    return calcularContenidoContenedorMunicion(objeto, inventarioCompleto);
+  }, [objeto, inventarioCompleto]);
 
   return (
     <>
@@ -83,17 +121,86 @@ export const TarjetaObjetoInventario: React.FC<TarjetaObjetoInventarioProps> = (
             >
               {objeto.nombre}
             </span>
+            {bonoMagico !== undefined && bonoMagico > 0 && (
+              <span className={estilos.badgeMeta} style={{ backgroundColor: "rgba(236, 72, 153, 0.15)", color: "#fbcfe8", borderColor: "rgba(236, 72, 153, 0.3)" }}>
+                +{bonoMagico}
+              </span>
+            )}
+            {esVeneno && (
+              <span className={estilos.badgeMeta} style={{ backgroundColor: "rgba(16, 185, 129, 0.15)", color: "#6ee7b7", borderColor: "rgba(16, 185, 129, 0.3)" }}>
+                <FlaskConical size={9} style={{ display: "inline", verticalAlign: "middle", marginRight: 2 }} />
+                Veneno
+              </span>
+            )}
+            {maestria && (
+              <span className={estilos.badgeMeta} style={{ backgroundColor: "rgba(168, 85, 247, 0.15)", color: "#d8b4fe", borderColor: "rgba(168, 85, 247, 0.3)" }}>
+                {maestria}
+              </span>
+            )}
+
+            {/* Badges de Munición y Almacenamiento con Límite de Capacidad */}
+            {infoAlmacenamientoMunicion && (
+              infoAlmacenamientoMunicion.tieneContenedor ? (
+                <>
+                  <span
+                    className={estilos.badgeMeta}
+                    style={{ backgroundColor: "rgba(56, 189, 248, 0.15)", color: "#7dd3fc", borderColor: "rgba(56, 189, 248, 0.3)" }}
+                    title={`${infoAlmacenamientoMunicion.almacenadasEnContenedor} de ${infoAlmacenamientoMunicion.totalMunicion} proyectiles guardados en ${infoAlmacenamientoMunicion.nombreContenedor}`}
+                  >
+                    <Target size={9} style={{ display: "inline", verticalAlign: "middle", marginRight: 2 }} />
+                    {infoAlmacenamientoMunicion.almacenadasEnContenedor}/{infoAlmacenamientoMunicion.capacidadTotal} en {infoAlmacenamientoMunicion.nombreContenedor}
+                  </span>
+                  {infoAlmacenamientoMunicion.sueltasEnMochila > 0 && (
+                    <span
+                      className={estilos.badgeMeta}
+                      style={{ backgroundColor: "rgba(245, 158, 11, 0.15)", color: "#fcd34d", borderColor: "rgba(245, 158, 11, 0.3)" }}
+                      title={`${infoAlmacenamientoMunicion.sueltasEnMochila} proyectiles exceden la capacidad de tu ${infoAlmacenamientoMunicion.nombreContenedor} y van sueltos en la mochila`}
+                    >
+                      +{infoAlmacenamientoMunicion.sueltasEnMochila} en mochila
+                    </span>
+                  )}
+                </>
+              ) : (
+                <span
+                  className={estilos.badgeMeta}
+                  style={{ backgroundColor: "rgba(148, 163, 184, 0.1)", color: "#94a3b8", borderColor: "rgba(148, 163, 184, 0.2)" }}
+                  title={`Transportas esta munición suelta en la mochila. Recomendado: ${infoAlmacenamientoMunicion.nombreContenedor}`}
+                >
+                  Sueltas en mochila
+                </span>
+              )
+            )}
+
+            {/* Badge para el Contenedor Físico (ej. Carcaj, Caja de Virotes, Bolsa de Balas) */}
+            {infoContenedorFisico && (
+              <span
+                className={estilos.badgeMeta}
+                style={{
+                  backgroundColor: infoContenedorFisico.totalAlmacenado > 0 ? "rgba(16, 185, 129, 0.15)" : "rgba(148, 163, 184, 0.1)",
+                  color: infoContenedorFisico.totalAlmacenado > 0 ? "#6ee7b7" : "#94a3b8",
+                  borderColor: infoContenedorFisico.totalAlmacenado > 0 ? "rgba(16, 185, 129, 0.3)" : "rgba(148, 163, 184, 0.2)"
+                }}
+                title={
+                  infoContenedorFisico.totalAlmacenado > 0
+                    ? `Alberga ${infoContenedorFisico.totalAlmacenado} de su capacidad máxima de ${infoContenedorFisico.capacidadTotal} ${infoContenedorFisico.tipoProyectil}`
+                    : `Capacidad para ${infoContenedorFisico.capacidadTotal} ${infoContenedorFisico.tipoProyectil} (Actualmente vacío)`
+                }
+              >
+                <Target size={9} style={{ display: "inline", verticalAlign: "middle", marginRight: 2 }} />
+                {infoContenedorFisico.totalAlmacenado}/{infoContenedorFisico.capacidadTotal} {infoContenedorFisico.tipoProyectil}
+                {infoContenedorFisico.estaLleno && " (Lleno)"}
+              </span>
+            )}
           </div>
 
-          <div style={{ display: "flex", alignItems: "center", gap: 4, flexShrink: 0 }}>
+          <div className={estilos.filaAccionesDerecha}>
             {estaEnContenedorEspecial && (
               <span
                 className={estilos.badgeMeta}
                 style={{
                   backgroundColor: `${infoContenedor.color}18`,
                   borderColor: `${infoContenedor.color}50`,
-                  color: infoContenedor.color,
-                  fontSize: 8.5
+                  color: infoContenedor.color
                 }}
                 title={infoContenedor.descripcion}
               >
@@ -126,24 +233,24 @@ export const TarjetaObjetoInventario: React.FC<TarjetaObjetoInventarioProps> = (
                 contenido={`Peso interior: ${pesoTotal} lb. Al estar en ${infoContenedor.nombreCorto}, no suma peso a la carga del personaje.`}
                 posicion="arriba"
               >
-                <div style={{ display: "inline-flex", alignItems: "center", gap: 3 }}>
-                  <span style={{ fontSize: 9.5, color: "#64748b", textDecoration: "line-through" }}>
+                <div className={estilos.grupoPesoContenedor}>
+                  <span className={estilos.textoPesoTachado}>
                     {pesoTotal} lb
                   </span>
-                  <span style={{ fontSize: 10, color: infoContenedor.color, fontWeight: 700 }}>
+                  <span className={estilos.textoPesoEfectivo} style={{ color: infoContenedor.color }}>
                     0 lb
                   </span>
                 </div>
               </TooltipUniversal>
             ) : (
-              <span style={{ fontSize: 10, color: "#94a3b8" }}>
+              <span className={estilos.textoPesoSimple}>
                 {pesoTotal > 0 ? `${pesoTotal} lb` : "—"}
               </span>
             )}
 
             {/* Selector de Cantidad (Solo visible en objetos en la mochila) */}
             {!objeto.equipado && (
-              <div style={{ display: "inline-flex", alignItems: "center", gap: 2, marginLeft: 4 }}>
+              <div className={estilos.grupoModificadorCantidad}>
                 <button
                   type="button"
                   className={estilos.botonMonedaMod}
@@ -152,7 +259,7 @@ export const TarjetaObjetoInventario: React.FC<TarjetaObjetoInventarioProps> = (
                 >
                   <Minus size={9} />
                 </button>
-                <span style={{ fontSize: 10, fontWeight: 700, minWidth: 16, textAlign: "center", color: "#f1f5f9" }}>
+                <span className={estilos.valorCantidadItem}>
                   ×{objeto.cantidad}
                 </span>
                 <button
@@ -168,7 +275,7 @@ export const TarjetaObjetoInventario: React.FC<TarjetaObjetoInventarioProps> = (
 
             {/* Tracker de Cargas si aplica */}
             {objeto.cargasMaximas !== undefined && (
-              <div style={{ display: "inline-flex", alignItems: "center", gap: 2, marginLeft: 4 }}>
+              <div className={estilos.grupoTrackerCargas}>
                 <Zap size={10} color="#fbbf24" />
                 <button
                   type="button"
@@ -179,7 +286,7 @@ export const TarjetaObjetoInventario: React.FC<TarjetaObjetoInventarioProps> = (
                 >
                   <Minus size={9} />
                 </button>
-                <span style={{ fontSize: 10, fontWeight: 700, color: "#fbbf24" }}>
+                <span className={estilos.valorCargasItem}>
                   {objeto.cargasActuales ?? objeto.cargasMaximas}/{objeto.cargasMaximas}
                 </span>
                 <button
@@ -197,6 +304,25 @@ export const TarjetaObjetoInventario: React.FC<TarjetaObjetoInventarioProps> = (
 
           {/* Botones de acción: Usar, Equipar y Sintonizar */}
           <div className={estilos.accionesObjeto}>
+            {/* Botón de Desempaquetar para Paquetes / Kits */}
+            {tieneContents && alDesempaquetar && (
+              <TooltipUniversal
+                titulo="Desempaquetar Paquete"
+                contenido="Extrae todos los ítems individuales a tu mochila y descarta este contenedor abstracto."
+                posicion="arriba"
+                alineacion="fin"
+              >
+                <button
+                  type="button"
+                  className={`${estilos.botonAccionObjeto} ${estilos.botonAccionDesempaquetar}`}
+                  onClick={alDesempaquetar}
+                >
+                  <PackageOpen size={10} />
+                  <span>Abrir</span>
+                </button>
+              </TooltipUniversal>
+            )}
+
             {/* Botón de Usar para Consumibles y Pociones */}
             {esConsumible && alUsar && (
               <TooltipUniversal

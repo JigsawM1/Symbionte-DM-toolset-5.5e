@@ -2,6 +2,243 @@
 
 Este archivo registra errores encontrados, sus causas raíz y las soluciones aplicadas.
 
+## [2026-08-27] Equiparación Total de Contenedores Dedicados (Estuche de Agujas, Cartuchera, Bolsa de Balas, Caja de Virotes, Carcaj)
+**Decisión y Motivación:**
+- *Causa*: Todos los contenedores de munición oficiales (*Estuche de Agujas*, *Cartuchera*, *Bolsa de Balas*, *Caja de Virotes* y *Carcaj*) deben recibir exactamente el mismo tratamiento de primer nivel en todas las capas del sistema.
+- *Solución*:
+  1. **Capacidades y Patrones Dedicados**:
+     - *Carcaj* (`quiver`): 20 Flechas.
+     - *Caja de Virotes* (`case-crossbow-bolt`): 20 Virotes.
+     - *Bolsa de Balas* (`bullet-pouch`): 20 Balas de Honda.
+     - *Cartuchera* (`cartridge-pouch`): 20 Balas de Arma de Fuego / Pólvora.
+     - *Estuche de Agujas* (`needle-case`): 50 Agujas de Cerbatana.
+  2. **Badges Tácticos de Inventario**: Cada contenedor muestra su ocupación exacta: `<Target size={9} /> N/Capacidad proyectil (Lleno)` o `0/Capacidad proyectil`.
+  3. **Desglose de Excedente en Munición**: Las balas/agujas/flechas muestran su alojamiento en su contenedor dedicado (`<Target size={9} /> 20/20 en Cartuchera`, `50/50 en Estuche de Agujas`, etc.) y el badge ámbar `+N en mochila` si hay sobrante suelto.
+  4. **Subsección de Mochila**: Todos los contenedores se agrupan en *"Munición y Contenedores"*.
+  5. **Lanzador de Ataques**: El arma vinculada (Pistola, Mosquete, Cerbatana, Honda, Arco, Ballesta) solo dispara proyectiles en contenedor activo, muestra badges compactos (`20 Balas`, `50 Agujas`) y emite advertencias contextuales en el tooltip (`"Sin Cartuchera"`, `"Tu Estuche de Agujas está vacío"`).
+- *Validación*: 30/30 suites de tests aprobadas (319/319 tests unitarios al 100%), verificación estricta de TypeScript y despliegue a TaleSpire.
+
+
+
+## [2026-08-27] Nuevos Contenedores en Compendio y Selector de Mutación/Especialización de Bolsita
+**Decisión y Motivación:**
+- *Causa*: Para evitar ambigüedades en la contención de munición, el usuario requirió poder especializar o mutar una Bolsita a un contenedor específico (*Bolsa de Balas*, *Estuche de Agujas* o *Cartuchera*). Si estos objetos mutados no existían en el compendio oficial `Equipo es.json`, se producían desajustes al inspeccionar o consultar datos del compendio.
+- *Solución*:
+  1. **Incorporación en `Equipo es.json`**: Se añadieron formalmente las definiciones de:
+     - `needle-case` (*Estuche de Agujas*, capacidad 50 agujas).
+     - `cartridge-pouch` (*Cartuchera*, capacidad 20 balas de arma de fuego / pólvora).
+     - `bullet-pouch` (*Bolsa de Balas*, capacidad 20 balas de honda).
+  2. **Acción de Estado `actualizarObjetoInventario`**: Se integró en `slicePersonajes.ts` y se exportó a través de `usarAccionesPersonajes` para mutar propiedades de objetos de inventario de forma inmutable.
+  3. **Selector Desplegable en el Modal de Inspección**: En `ModalDetalleObjetoInventario.tsx`, cualquier contenedor afín a bolsas muestra el bloque *"Especialización del Contenedor"*, permitiendo mutarlo al instante entre:
+     - *Bolsita Genérica (Multiuso)*
+     - *Bolsa de Balas (Honda - 20 balas)*
+     - *Estuche de Agujas (Cerbatana - 50 agujas)*
+     - *Cartuchera (Arma de Fuego - 20 balas)*
+  4. **Adaptación Reactiva**: Al cambiar la especialización, el nombre e `idObjeto` se actualizan reactivamente, ajustando los badges tácticos y la contención de proyectiles sin conflicto.
+- *Validación*: 30/30 suites de tests aprobadas (316/316 tests al 100%), verificación estricta de TypeScript y despliegue a TaleSpire.
+
+
+
+## [2026-08-27] Partición y Resolución No Conflictiva de Bolsitas Compartidas (Agujas, Balas de Honda, Balas de Fuego)
+**Decisión y Motivación:**
+- *Causa*: La Bolsita genérica (*Pouch*) puede ser utilizada por 3 tipos de munición distintos (Agujas de Cerbatana, Balas de Honda y Balas de Arma de Fuego). Si un personaje tenía 1 sola Bolsita pero llevaba tanto Agujas como Balas de Honda, una lógica ingenua podía asignar la misma Bolsita física al 100% a ambos proyectiles, generando un conflicto de sobrecapacidad irreal.
+- *Solución*:
+  1. **Diferenciación entre Contenedores Dedicados y Bolsitas Genéricas**: Si el personaje tiene un contenedor con nombre específico (ej. *"Bolsa de Balas"*, *"Estuche de Agujas"*, *"Cartuchera"*), este se vincula exclusivamente a su munición sin competir.
+  2. **Partición Secuencial de Bolsitas Genéricas**: Si el personaje tiene $N$ Bolsitas genéricas, `detectarContenedorMunicion` asigna las unidades de bolsas disponibles de forma secuencial y sin solapamiento entre los tipos de munición presentes en la mochila.
+     - Con **1 Bolsita** y **50 Agujas + 20 Balas de Honda**: La Bolsita alberga las 50 Agujas ($50/50$), y las 20 Balas de Honda quedan marcadas de forma clara y realista como `0/20 en Bolsita (+20 en mochila)`.
+     - Si el jugador añade una **segunda Bolsita** ($N=2$), las Agujas ocupan la Bolsita 1 y las Balas ocupan la Bolsita 2 ($20/20$), eliminando cualquier conflicto.
+- *Validación*: 30/30 suites de tests aprobadas (315/315 tests unitarios al 100%), verificación estricta de TypeScript y despliegue a TaleSpire.
+
+
+
+## [2026-08-27] Integración Táctica de Bolsita (Pouch) como Contenedor de Munición (D&D 5.5e)
+**Decisión y Motivación:**
+- *Causa*: La Bolsita (*Pouch*) debía recibir exactamente la misma lógica de contención, límites de capacidad, cálculo de excedente y badges tácticos que el Carcaj y la Caja de Virotes.
+- *Solución*:
+  1. **Capacidades Oficiales**: Se configuró la Bolsita para almacenar hasta **50 agujas de cerbatana** (según el `storage` del compendio D&D 5.5e) o hasta **20 balas de honda**.
+  2. **Cálculo de Ocupación Dinámico**: `calcularContenidoContenedorMunicion` evalúa si la Bolsita contiene agujas o balas en la mochila del personaje y muestra en el inventario: `<Target size={9} /> 50/50 agujas (Lleno)` o `20/20 balas (Lleno)`.
+  3. **Desglose de Excedente**: Si el personaje tiene 80 agujas y 1 Bolsita, las agujas muestran: `<Target size={9} /> 50/50 en Bolsita` y un badge ámbar `+30 en mochila`.
+  4. **Exclusión Absoluta**: La Bolsita queda excluida de proyectiles consumibles para que jamás se descuente o elimine al disparar con la cerbatana o la honda.
+  5. **Subsección Táctica**: Las Bolsitas y Estuches de Agujas aparecen agrupados en la sección de *"Munición y Contenedores"* de la mochila.
+- *Validación*: Nuevos tests unitarios en `gestorMunicion.test.ts`, 30/30 suites aprobadas (313/313 tests al 100%), verificación estricta de TypeScript y despliegue a TaleSpire.
+
+
+
+## [2026-08-27] Corrección de Contenedor Oficial para Agujas de Cerbatana (Bolsita / Estuche de Agujas)
+**Decisión y Motivación:**
+- *Causa*: En la lista de patrones de contenedor para `agujas`, se había incluido erróneamente `"carcaj"`. Al tener un Carcaj en el inventario (destinado a flechas), la Cerbatana lo detectaba como su contenedor y mostraba *"Tu Carcaj está vacío (0/20)"*. Según el compendio oficial de D&D 5.5e / 5e, las Agujas de Cerbatana se guardan en una **Bolsita** (*Pouch*) o en un **Estuche de Agujas** (*Needle Case*), nunca en un carcaj de flechas.
+- *Solución*:
+  - Se desvinculó `"carcaj"` y `"quiver"` de la munición de tipo `agujas`.
+  - Se configuraron exclusivamente **Bolsita** (*Pouch*) y **Estuche de Agujas** (*Needle Case*) como los contenedores válidos.
+- *Validación*: 30/30 suites de tests aprobadas (310/310 tests al 100%), verificación estricta de TypeScript y despliegue a TaleSpire.
+
+
+
+## [2026-08-27] Diseño Ultra Compacto de Badges de Munición en Tarjetas de Ataque
+**Decisión y Motivación:**
+- *Causa*: Los mensajes largos de bloqueo o advertencia de munición (ej. *"No tienes un Cartuchera / Frasco de Pólvora en tu equipo para desenfundar flechas"*) se renderizaban como texto visible dentro del badge de la cabecera de la tarjeta de ataque. Esto ocupaba cientos de píxeles, deformaba la cuadrícula y empujaba el texto de alcance y botones fuera de la pantalla.
+- *Solución*:
+  1. **Badges Concisos de 1-2 Palabras**:
+     - Con munición lista: `<Target size={10} /> 20 Flechas` (+ badge diminuto `+20` en ámbar si hay excedente).
+     - Sin contenedor encima: `<AlertTriangle size={10} /> Sin Cartuchera` o `<AlertTriangle size={10} /> Sin Carcaj`.
+     - Contenedor vacío (0 proyectiles): `<AlertTriangle size={10} /> 0 Balas` o `<AlertTriangle size={10} /> 0 Flechas`.
+  2. **Detalles Explicativos en Tooltip (`title`)**: Las explicaciones completas de por qué no se puede disparar residen únicamente en el atributo `title` accesible al hacer hover.
+  3. **CSS Resiliente**: Se añadieron `white-space: nowrap`, `flex-shrink: 0` y fuentes de 9.5px para evitar desbordamientos en TaleSpire CEF.
+- *Validación*: 30/30 suites de tests aprobadas (310/310 tests al 100%), verificación estricta de TypeScript y despliegue a TaleSpire.
+
+
+
+## [2026-08-27] Exclusión Estricta de Contenedores Físicos como Munición y Aislamiento de Compartimentos Externos
+**Decisión y Motivación:**
+- *Causa*:
+  1. Nombres de contenedores como *"Caja de Virotes de Ballesta"*, *"Bolsa de Balas"* o *"Carcaj de Flechas"* contenían subcadenas como `"virote"` o `"bala"`. Esto causaba que `esMunicionCompatibleConArma` clasificara erróneamente al propio contenedor como proyectil consumible, y al disparar en combate se reducía la cantidad del contenedor hasta eliminarlo del inventario.
+  2. Las flechas guardadas en compartimentos externos (*Montura / Carreta*, *Bolsa de Contención*, *Almacén*) se estaban sumando automáticamente a la munición lista para disparar en combate, y el Carcaj se recargaba de proyectiles que estaban guardados a kilómetros o en un plano extradimensional.
+- *Solución*:
+  1. **Exclusión Absoluta de Contenedores (`PATRONES_CONTENEDORES_MUNICION` y `esContenedorFisicoMunicion`)**: Se implementó una verificación de exclusión a nivel raíz. Si un ítem es un contenedor físico (*Carcaj, Caja de Virotes, Bolsa de Balas, Estuche de Agujas, Frasco de Pólvora, etc.*), `esMunicionCompatibleConArma` retorna `false` de inmediato y no permite que el contenedor sea consumido ni borrado.
+  2. **Aislamiento de Compartimentos Externos**:
+     - `esItemEnMochila(it)` comprueba que el ítem esté llevado encima en la `mochila`.
+     - Solo los proyectiles en la mochila pueden recargar el Carcaj.
+     - Solo los proyectiles cargados en el Carcaj/contenedor activo llevado encima pueden ser disparados por el lanzador de ataques.
+     - Si los proyectiles están en la montura o bolsa de contención, el lanzador bloquea el disparo y avisa que los proyectiles están en un compartimento externo.
+- *Validación*: Nuevas pruebas unitarias en `gestorMunicion.test.ts`, 30/30 suites aprobadas (310/310 tests unitarios al 100%), verificación estricta de TypeScript y despliegue a TaleSpire.
+
+
+
+## [2026-08-27] Control Estricto de Límites de Capacidad de Contenedores de Munición (D&D 5.5e / 5e)
+**Decisión y Motivación:**
+- *Causa*: Los contenedores de munición tienen un límite de capacidad física según las reglas oficiales (Carcaj: 20 flechas, Caja de Virotes: 20 virotes, Bolsa de Balas: 20 balas, Estuche de Agujas: 50 agujas, Frasco de Pólvora: 20 cargas). Si un jugador acumulaba más proyectiles de los que cabían en sus contenedores (ej. 40 flechas y 1 Carcaj), no se controlaba la capacidad máxima ni se calculaba el excedente que quedaba suelto en la mochila.
+- *Solución*:
+  1. **Capacidades Oficiales (`CAPACIDADES_CONTENEDORES_MUNICION`)**: Se tiparon y registraron las capacidades unitarias oficiales en `gestorMunicion.ts`.
+  2. **Cálculo Dinámico Multi-Contenedor (`calcularAlmacenamientoMunicion` y `calcularContenidoContenedorMunicion`)**:
+     - Calcula la capacidad total sumando todas las unidades de contenedores en el inventario ($N \times \text{Capacidad Unitaria}$).
+     - Determina cuántos proyectiles van dentro del contenedor (`almacenadasEnContenedor = min(total, capacidadTotal)`) y cuántos exceden el límite y van sueltos (`sueltasEnMochila = max(0, total - capacidadTotal)`).
+  3. **Badges Tácticos Informativos**:
+     - Si tienes 20 flechas y 1 Carcaj $\rightarrow$ `<Target size={9} /> 20/20 en Carcaj`.
+     - Si tienes 40 flechas y 1 Carcaj $\rightarrow$ `<Target size={9} /> 20/20 en Carcaj` y badge de aviso `+20 en mochila`.
+     - En el Carcaj $\rightarrow$ `<Target size={9} /> 20/20 flechas (Lleno)` o `15/20 flechas`.
+  4. **Visor de Detalle**: `ModalDetalleObjetoInventario.tsx` desglosa con advertencias visuales el estado de capacidad y excedente.
+- *Validación*: Nueva suite de pruebas unitarias en `gestorMunicion.test.ts`, 30/30 suites aprobadas (306/306 tests al 100%), compilación limpia de TypeScript y despliegue a TaleSpire.
+
+
+
+## [2026-08-27] Vinculación Activa y Renderizado de Contenedores Tácticos (Carcaj, Caja de Virotes, Bolsa de Balas)
+**Decisión y Motivación:**
+- *Causa*: Cuando el personaje tenía tanto flechas como un Carcaj en su inventario, las flechas no mostraban en la interfaz de la mochila que estaban almacenadas en el Carcaj, ni el Carcaj mostraba cuántas flechas contenía, ni existía una subsección dedicada de munición en el inventario.
+- *Solución*:
+  1. **Subsección Dedicada**: Se añadió la sección *"Munición y Contenedores (Carcaj)"* en `PanelInventarioPersonaje.tsx` con icono `<Target size={13} color="#38bdf8" />`.
+  2. **Badges Tácticos Bidireccionales**:
+     - En la tarjeta de **Flechas / Proyectiles**: Si en el inventario existe el contenedor sugerido (`storage`), muestra el badge activo `<Target size={9} /> En Carcaj`.
+     - En la tarjeta del **Carcaj / Caja de Virotes / Bolsa de Balas**: Muestra la cantidad acumulada de proyectiles que alberga (ej. `<Target size={9} /> 20 flechas`).
+  3. **Visor de Detalle**: En `ModalDetalleObjetoInventario.tsx`, la sección de almacenamiento ahora comprueba en tiempo real si el personaje posee el contenedor en su inventario y muestra `✓ Almacenado en: Carcaj (Detectado en inventario)`.
+- *Validación*: 30/30 suites de tests aprobadas (302/302 tests unitarios al 100%), compilación limpia de TypeScript y despliegue a TaleSpire.
+
+
+
+## [2026-08-27] Asignación por Packs/Lotes y Peso Unitario Individual (`quantity` y `pesoUnitario`)
+**Decisión y Motivación:**
+- *Causa*: En D&D 5.5e, ciertos consumibles y municiones se comercializan y asignan en paquetes o lotes oficiales (ej. *Flechas* ×20 por 1 PO y 1 lb, *Virotes* ×20 por 1 PO y 1.5 lb, *Balas de Honda* ×20 por 4 PC y 1.5 lb, *Agujas* ×50 por 1 PO y 1 lb). Sin embargo, en combate y juego se consumen individualmente (disparo a disparo). Si el sistema asignaba `cantidad: 1` al comprar 1 pack, el personaje solo tenía 1 proyectil; y si el peso era de 1 lb asignado a 20 unidades con peso unitario sin dividir, el inventario calculaba $20 \times 1\text{ lb} = 20\text{ lb}$ de carga erróneamente.
+- *Solución*:
+  1. **Sanitización del Compendio**: `sanitizacion.ts` ahora extrae el campo raíz `quantity` de `Equipo es.json` y precalcula el peso unitario real por ítem (`pesoUnitario = pesoTotalLote / quantityLote`, ej. $1\text{ lb} / 20 = 0.05\text{ lb}$ por flecha).
+  2. **Factory de Creación de Inventario**: `crearObjetoInventarioDesdeCompendio` en `calculadorInventario.ts` ahora multiplica los lotes adquiridos por la cantidad del pack ($1 \text{ pack} \times 20 = 20 \text{ flechas}$) y asigna a la instancia de inventario el `pesoLb` unitario real ($0.05\text{ lb}$).
+  3. **Cálculo de Carga Físico Exacto**: Al tener 20 flechas, el inventario computa $20 \times 0.05\text{ lb} = 1\text{ lb}$. Al disparar 5 flechas y quedar 15, la carga se reduce automáticamente a $15 \times 0.05 = 0.75\text{ lb}$.
+  4. **Claridad en UI**: `ModalAgregarObjeto.tsx` desglosa con total transparencia cuántas unidades individuales se añadirán y el peso unitario por unidad.
+- *Validación*: Nueva suite de pruebas unitarias en `calculadorInventario.test.ts`, 30/30 suites aprobadas (302/302 tests unitarios al 100%), verificación limpia de TypeScript y despliegue a TaleSpire.
+
+
+
+## [2026-08-27] Consumo Directo y Prioritario de Campos Relacionales (`ammunition` y `storage`) en `gestorMunicion`
+**Decisión y Motivación:**
+- *Causa*: Aunque `REGLAS_MUNICION` resolvía las compatibilidades por patrones de texto, los objetos del compendio (`Equipo es.json`) y homebrew ya definen directamente los campos estructurados `ammunition: { index, name }` en las armas y `storage: { index, name }` en las municiones.
+- *Solución*:
+  1. `gestorMunicion.ts` (`esMunicionCompatibleConArma` y `resolverEstadoMunicionArma`) ahora consume prioritariamente el campo estructurado `arma.ammunition` directo del compendio para filtrar los proyectiles con exactitud de índice/nombre.
+  2. `detectarContenedorMunicion` consume prioritariamente `municion.storage` directo del compendio para detectar en el inventario el contenedor exacto asignado (ej. *Carcaj*, *Caja de Virotes*, etc.).
+  3. Si un arma o munición personalizada no posee metadatos relacionales explícitos, se activa el fallback de `REGLAS_MUNICION`.
+- *Validación*: Nueva prueba unitaria específica en `gestorMunicion.test.ts`, 30/30 suites de tests aprobadas (299/299 tests al 100%), compilación limpia y despliegue a TaleSpire.
+
+
+
+
+
+## [2026-08-27] Compatibilidad Estricta de Munición y Detección de Contenedores D&D 5.5e (`gestorMunicion.ts`)
+**Decisión y Motivación:**
+- *Causa*: Las armas a distancia consumían genéricamente cualquier objeto marcado como "munición" sin validar si el tipo de proyectil era compatible con el arma empuñada (ej. un arco no puede disparar virotes de ballesta ni balas de honda, y las ballestas requieren virotes específicos). Además, en D&D 5.5e cada munición se almacena en su contenedor táctico correspondiente (*Carcaj* para Flechas, *Caja de Virotes* para Ballestas, *Bolsa de Balas* para Hondas, *Estuche de Agujas* para Cerbatanas, *Cartuchera / Frasco de Pólvora* para Armas de Fuego).
+- *Solución*:
+  1. Se creó el servicio especializado [`gestorMunicion.ts`](file:///c:/Users/zamor/OneDrive/Documentos/Programas/ToolSet%20Es%205.5/src/servicios/gestorMunicion.ts) con tipado estricto (`TipoMunicion`), reglas oficiales de armas/proyectiles/contenedores, y funciones puras:
+     - `esMunicionCompatibleConArma`: Filtra estrictamente la munición por arma (Arcos $\rightarrow$ Flechas, Ballestas $\rightarrow$ Virotes, Hondas $\rightarrow$ Balas de honda, Cerbatanas $\rightarrow$ Agujas, Armas de fuego $\rightarrow$ Balas de pólvora), excluyendo tipos incompatibles.
+     - `detectarContenedorMunicion`: Examina el inventario para identificar si el personaje posee el contenedor oficial asociado a ese tipo de proyectil (*Carcaj*, *Caja de Virotes*, *Bolsa de Balas*, etc.).
+     - `resolverEstadoMunicionArma`: Agrega el recuento exacto de munición compatible, ítems específicos y contenedor detectado.
+  2. Integración en [`VistaAtaquesJugador.tsx`](file:///c:/Users/zamor/OneDrive/Documentos/Programas/ToolSet%20Es%205.5/src/componentes/caracteristicas/ataques/VistaAtaquesJugador.tsx):
+     - La lista de ataques evalúa el estado de munición mediante `resolverEstadoMunicionArma`.
+     - Al ejecutar `manejarTirarAtaque`, se localiza y descuenta exactamente 1 unidad del ítem compatible disponible. Si no hay munición compatible, emite una advertencia contextual clara.
+  3. Enriquecimiento de [`TarjetaAtaquePersonaje.tsx`](file:///c:/Users/zamor/OneDrive/Documentos/Programas/ToolSet%20Es%205.5/src/componentes/caracteristicas/ataques/TarjetaAtaquePersonaje.tsx):
+     - El badge visual muestra el recuento de proyectiles y el contenedor detectado (ej. `<Target size={10} /> 20 Flechas (Carcaj)` o `⚠️ Sin Flechas`).
+- *Validación*: Nueva suite de pruebas unitarias [`gestorMunicion.test.ts`](file:///c:/Users/zamor/OneDrive/Documentos/Programas/ToolSet%20Es%205.5/src/servicios/gestorMunicion.test.ts) (11 tests aprobados), 30/30 suites totales de Vitest aprobadas (298/298 tests al 100%), compilación limpia y despliegue a TaleSpire.
+
+
+
+## [2026-08-27] Corrección: Preservación de Paquetes Empaquetados al Añadirlos al Inventario (`ModalAgregarObjeto.tsx`)
+**Decisión y Motivación:**
+- *Causa*: En [`ModalAgregarObjeto.tsx`](file:///c:/Users/zamor/OneDrive/Documentos/Programas/ToolSet%20Es%205.5/src/componentes/caracteristicas/personajes/ModalAgregarObjeto.tsx), la función `manejarAgregarDesdeCompendio` contenía una condición legacy que interceptaba cualquier objeto con `contents` (ej. *Paquete de Explorador*, *Paquete de Erudito*, *Kit de Curandero*) y lo desempaquetaba de forma forzada e inmediata al inventario, impidiendo que el jugador tuviera el paquete agrupado en su mochila.
+- *Solución*:
+  1. Se eliminó la bifurcación de auto-desempaquetado forzado en `manejarAgregarDesdeCompendio`. Ahora, los paquetes seleccionados del compendio se añaden como una entidad única empaquetada (`crearObjetoInventarioDesdeCompendio`).
+  2. El jugador puede inspeccionar el paquete agrupado en su inventario, consultar su contenido y decidir libremente cuándo desempaquetarlo usando el botón `[Abrir]` de la tarjeta o `[Desempaquetar]` del modal de detalle.
+  3. Se actualizó la vista previa de `ModalAgregarObjeto` aclarando que el paquete se agrega agrupado a la mochila.
+- *Validación*: 29/29 suites de pruebas unitarias pasadas (287/287 tests al 100%), verificación estricta de TypeScript y despliegue a TaleSpire Symbiotes.
+
+
+
+## [2026-08-27] Estandarización de Iconografía Vectorial SVG (Sin Emojis en UI conforme a DESIGN.md)
+**Decisión y Motivación:**
+- *Causa*: En algunos badges tácticos de combate e inventario se usaron caracteres decorativos o emojis unicode (`🎯`, `⚠️`, `⚡`, `★`). Según la sección 1.3 de [`DESIGN.md`](file:///c:/Users/zamor/OneDrive/Documentos/Programas/ToolSet%20Es%205.5/DESIGN.md), toda la iconografía debe ser exclusivamente vectorial SVG limpia mediante `lucide-react` para mantener la sobriedad, consistencia y renderizado nítido en TaleSpire CEF.
+- *Solución*:
+  1. En [`TarjetaAtaquePersonaje.tsx`](file:///c:/Users/zamor/OneDrive/Documentos/Programas/ToolSet%20Es%205.5/src/componentes/caracteristicas/ataques/TarjetaAtaquePersonaje.tsx):
+     - Sustituido `★ Mágico` por `<Sparkles size={10} /> Mágico`.
+     - Sustituidos `🎯` y `⚠️` por `<Target size={10} />` y `<AlertTriangle size={10} />` vectoriales.
+  2. En [`VistaAtaquesJugador.tsx`](file:///c:/Users/zamor/OneDrive/Documentos/Programas/ToolSet%20Es%205.5/src/componentes/caracteristicas/ataques/VistaAtaquesJugador.tsx):
+     - Sustituido el emoji `⚡` en el badge de cargas por el componente `<Zap size={10} />` de `lucide-react`.
+- *Validación*: 29/29 suites de Vitest pasadas (287/287 tests al 100%), compilación limpia con `tsc --noEmit` y sincronización con TaleSpire Symbiotes.
+
+
+## [2026-08-27] Refactorización Exhaustiva a CSS Modules (Eliminación de CSS Inline en Objetos, Combate e Inventario)
+**Decisión y Motivación:**
+- *Causa*: Durante las implementaciones tácticas se acumularon propiedades `style={{ ... }}` inline en componentes clave (`ModalDetalleObjetoInventario`, `TarjetaObjetoInventario`, `VistaAtaquesJugador`, `TarjetaAtaquePersonaje`, `PanelInventarioPersonaje`). El CSS inline dificulta el mantenimiento, incrementa el árbol virtual de React y degrada el rendimiento de renderizado en Chromium Embedded Framework (CEF) de TaleSpire.
+- *Solución*:
+  1. **Modal de Detalle de Objetos**: Se creó el módulo dedicado [`ModalDetalleObjetoInventario.module.css`](file:///c:/Users/zamor/OneDrive/Documentos/Programas/ToolSet%20Es%205.5/src/componentes/caracteristicas/personajes/ModalDetalleObjetoInventario.module.css) desacoplándolo de `HojaPersonaje.module.css`, estandarizando `.backdropModal`, `.ventanaModal`, `.gridMetricas`, `.cajaMetrica`, `.seccionDatosGenerales`, `.filaBadges`, `.filaInteractiva`, `.seccionContenedor`, `.gridContenedores`, `.tarjetaHechizoVinculado`, `.botonLanzarHechizoModal`, `.botonDesempaquetarModal`, `.cajaTextoDescripcion` y `.textareaNotasModal`.
+  2. **Tarjeta de Objeto e Inventario**: Se integraron clases puras en [`HojaPersonaje.module.css`](file:///c:/Users/zamor/OneDrive/Documentos/Programas/ToolSet%20Es%205.5/src/componentes/caracteristicas/personajes/HojaPersonaje.module.css) para `.filaAccionesDerecha`, `.grupoPesoContenedor`, `.textoPesoTachado`, `.textoPesoEfectivo`, `.textoPesoSimple`, `.grupoModificadorCantidad`, `.valorCantidadItem`, `.grupoTrackerCargas`, `.valorCargasItem` y `.botonAccionDesempaquetar`.
+  3. **Combate y Acciones**: En [`VistaAtaquesJugador.module.css`](file:///c:/Users/zamor/OneDrive/Documentos/Programas/ToolSet%20Es%205.5/src/componentes/caracteristicas/ataques/VistaAtaquesJugador.module.css), se añadieron clases semánticas para `.tarjetaHechizoObjeto`, `.nombreFuenteObjeto`, `.badgeCargasObjeto`, `.badgeCargasVacias`, `.costeCargasTexto`, `.botonLanzarObjeto`, `.badgeMagicoAtaque`, `.badgeMunicion`, `.badgeMunicionVacia`, `.textoAlcance`, `.textoDanoVersatilBadge`, `.botonTirarDano2M`, `.botonTirarCritico2M`, `.backdropModalHechizo` y `.contenedorModalHechizo`.
+  4. **Panel de Inventario**: Limpieza de estilos inline en cálculo de carga (`.detalleCalculoCargaContenedores`, `.barraCargaTextoTotal`), sintonización (`.sintonizacionRanurasTexto`) y contenedor de subsecciones (`.listaSubseccionesMochila`).
+- *Validación*: 29/29 suites de pruebas unitarias aprobadas (287/287 tests al 100%), compilación limpia con `tsc --noEmit` y sincronización con TaleSpire Symbiotes.
+
+## [2026-08-27] Sistema Global de Objetos, Inventario y Combate D&D 5.5e (Desempaquetado, Efectos Pasivos, Munición Táctica, Hechizos de Objetos y Recarga en Descansos)
+**Decisión y Motivación:**
+1. **Limpieza Definitiva de Esquemas Obsoletos (`tipos/index.ts`, `sanitizacion.ts`, `FormularioObjeto.tsx`, etc.):**
+   - *Causa*: Existían campos obsoletos (`estaMaldito`, `esConsciente` y `cdSalvacionVeneno`) que no tenían utilidad en D&D 5.5e ni en el flujo del simbionte. En particular, la CD de venenos la tira la criatura receptora, no el aplicador, y los flags de maldición/consciencia añadían sobrecarga innecesaria.
+   - *Solución*: Se eliminaron totalmente del esquema TypeScript (`EsquemaObjetoBase`), sanitizadores, hooks (`usarFormularioObjeto.ts`), formularios y listas homebrew.
+2. **Desempaquetado Manual de Paquetes (`contents`) con Fusión de Stacks (`calculadorInventario.ts` y `slicePersonajes.ts`):**
+   - *Causa*: Los paquetes agregados al inventario necesitaban poder mantenerse agrupados en la mochila y permitir al jugador desempaquetarlos bajo demanda cuando decida abrir su contenido.
+   - *Solución*: Se implementó la función pura `desempaquetarPaqueteInventario` y la acción `desempaquetarPaquete` en `slicePersonajes`. Al pulsar `[📦 Abrir]` en la tarjeta o `[📦 Desempaquetar]` en el modal de detalle, se transfieren todos sus componentes individuales desglosados (fusionando cantidades si ya existen stacks en el inventario del personaje) y se descarta el contenedor abstracto.
+3. **Cálculo Dinámico de Efectos Pasivos de Objetos en la Ficha (`calcularEstadisticasPersonaje` en `usarEstadoPersonajes.ts`):**
+   - *Causa*: Los objetos mágicos equipados (y sintonizados si lo requieren) no aplicaban sus efectos pasivos a las estadísticas calculadas del personaje (CA, características, salvaciones, habilidades y modificadores).
+   - *Solución*: Se integró la resolución de `efectosPasivosActivos` en `calcularEstadisticasPersonaje`:
+     - **CA**: Suma bonos mágicos de armaduras/escudos y efectos tipo `CA` (ej. *Anillo de Protección* +1 CA, *Capa de Protección* +1 CA) con desglose auditado.
+     - **Características**: Soporte para overrides/fijaciones (ej. *Cinturón de Fuerza de Gigante* = 19) y bonos relativos antes de computar modificadores derivados.
+     - **Salvaciones**: Aplicación de bonos específicos o universales (ej. +1 a todas las salvaciones).
+     - **Habilidades**: Bonos a pericias específicas o globales.
+     - **Respeto Estricto de Reglas**: Solo se activan si `equipado === true` y (`!sintonizacionRequerida || sintonizado === true`).
+4. **Combate Táctico: Detección y Consumo de Munición y Hechizos de Objetos Mágicos (`VistaAtaquesJugador.tsx` y `TarjetaAtaquePersonaje.tsx`):**
+   - *Causa*: Las armas a distancia no mostraban el contador de proyectiles en combate ni descontaban munición en el inventario al atacar; asimismo, los objetos mágicos con hechizos vinculados requerían una vía rápida de lanzamiento desde la pestaña de Acciones.
+   - *Solución*:
+     - **Munición**: Se agregó el badge táctico `🎯 ×N Flechas/Virotes/Balas` (con alerta visual `⚠️ Sin munición`). Al pulsar `[Atacar]`, se descuenta automáticamente 1 unidad del inventario del personaje.
+     - **Hechizos de Objetos**: Se creó la sección colapsable `[⚡ Hechizos de Objetos Mágicos]` en Acciones, permitiendo lanzar conjuros vinculados con su botón `[⚡ Lanzar (-X Cargas)]`, deduciendo las cargas del objeto en el store y ejecutando la tirada en TaleSpire.
+5. **Recarga de Objetos Mágicos en Descanso Largo (`procesadorDescansos.ts`):**
+   - *Causa*: Al ejecutar un descanso largo, los objetos mágicos con cargas no recuperaban sus usos.
+   - *Solución*: En `ejecutarDescansoLargo`, se recorre el inventario del personaje y se restauran las cargas de los objetos mágicos (usando su `formulaRecarga` o recargando al máximo `cargasMaximas` por defecto).
+6. **Validación:**
+   - 29 archivos de pruebas pasados y **287/287 tests aprobados al 100%**.
+   - Verificación estricta de tipos (`pnpm exec tsc --noEmit`) sin advertencias ni errores.
+
+
+
 ## [2026-08-27] Refinamiento de la Pestaña de Acciones: Daño Versátil (+Atributo), Crítico Dual, Modal de Conjuros DRY y Simplificación de Puntos de Conjuro
 **Decisión y Motivación:**
 1. **Cálculo y Tiradas de Daño y Crítico Versátil (`VistaAtaquesJugador.tsx` y `TarjetaAtaquePersonaje.tsx`):**

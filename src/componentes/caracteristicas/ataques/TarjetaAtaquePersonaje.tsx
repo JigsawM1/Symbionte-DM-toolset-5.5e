@@ -1,5 +1,5 @@
 import React from "react";
-import { Swords, Zap, Sparkles, Target } from "lucide-react";
+import { Swords, Zap, Sparkles, Target, AlertTriangle } from "lucide-react";
 import type { Caracteristica } from "@/tipos";
 import { TooltipUniversal, SelectorDesplegable } from "@/componentes/comunes";
 import estilos from "./VistaAtaquesJugador.module.css";
@@ -29,6 +29,16 @@ export interface AtaquePersonajeCalculado {
   tieneTiradaAtaque: boolean;
   cdSalvacion?: number;
   tipoSalvacion?: string;
+  requiereMunicion?: boolean;
+  municionNombre?: string;
+  municionCantidad?: number;
+  nombreContenedor?: string;
+  tieneContenedor?: boolean;
+  municionEnContenedor?: number;
+  municionSueltEnMochila?: number;
+  municionEnCompartimentosExternos?: number;
+  puedeDisparar?: boolean;
+  motivoBloqueo?: string;
 }
 
 /** Diccionario de descripciones oficiales D&D 5.5e (2024) para tooltips */
@@ -135,19 +145,52 @@ export const TarjetaAtaquePersonaje: React.FC<TarjetaAtaquePersonajeProps> = ({
     >
       {/* Fila Superior: Nombre + Badges + Alcance */}
       <div className={estilos.filaSuperiorAtaque}>
-        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+        <div className={estilos.grupoTitulo}>
           {ataque.tipo === "Arma" && <Swords size={14} color="#38bdf8" />}
           {ataque.tipo === "Desarmado" && <Zap size={14} color="#94a3b8" />}
           {ataque.tipo === "Conjuro" && <Sparkles size={14} color="#c084fc" />}
           <span className={estilos.nombreAtaque}>{ataque.nombre}</span>
           {ataque.esMagico && (
-            <span style={{ fontSize: 9.5, color: "#a855f7", fontWeight: 700 }}>★ Mágico</span>
+            <span className={estilos.badgeMagicoAtaque}>
+              <Sparkles size={10} /> Mágico
+            </span>
           )}
         </div>
 
-        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+        <div className={estilos.grupoTitulo}>
+          {ataque.requiereMunicion && (
+            <span
+              className={ataque.puedeDisparar ? estilos.badgeMunicion : estilos.badgeMunicionVacia}
+              title={
+                ataque.puedeDisparar
+                  ? `${ataque.municionEnContenedor || ataque.municionCantidad} ${ataque.municionNombre || "proyectiles"} listos en ${ataque.nombreContenedor || "Contenedor"}${ataque.municionSueltEnMochila ? ` (+${ataque.municionSueltEnMochila} en mochila)` : ""}${ataque.municionEnCompartimentosExternos ? ` (+${ataque.municionEnCompartimentosExternos} en carreta)` : ""}`
+                  : (ataque.motivoBloqueo || `Sin ${ataque.municionNombre || "munición"} disponible`)
+              }
+            >
+              {ataque.puedeDisparar ? (
+                <>
+                  <Target size={10} />
+                  <span>{ataque.municionEnContenedor || ataque.municionCantidad} {ataque.municionNombre || ""}</span>
+                  {ataque.municionSueltEnMochila !== undefined && ataque.municionSueltEnMochila > 0 && (
+                    <span className={estilos.subtextoMochilaExcedente}>
+                      +{ataque.municionSueltEnMochila}
+                    </span>
+                  )}
+                </>
+              ) : (
+                <>
+                  <AlertTriangle size={10} />
+                  <span>
+                    {!ataque.tieneContenedor
+                      ? `Sin ${ataque.nombreContenedor ? ataque.nombreContenedor.split(" ")[0] : "Contenedor"}`
+                      : `0 ${ataque.municionNombre || "Munición"}`}
+                  </span>
+                </>
+              )}
+            </span>
+          )}
           {ataque.alcance && (
-            <span style={{ fontSize: 10, color: "#94a3b8", display: "flex", alignItems: "center", gap: 2 }}>
+            <span className={estilos.textoAlcance}>
               <Target size={11} /> {ataque.alcance}
             </span>
           )}
@@ -196,12 +239,12 @@ export const TarjetaAtaquePersonaje: React.FC<TarjetaAtaquePersonajeProps> = ({
         {/* Daño Principal */}
         <div className={estilos.bloqueDano}>
           <span className={estilos.etiquetaMicro}>Daño</span>
-          <div style={{ display: "flex", alignItems: "baseline", gap: 4, flexWrap: "wrap" }}>
+          <div className={estilos.grupoTitulo}>
             <span className={estilos.valorDano}>
               {ataque.esDanoFijo ? `${ataque.dadoDano} (Fijo)` : ataque.dadoDano}
             </span>
             {ataque.danoVersatil && (
-              <span style={{ fontSize: 10, color: "#fdba74", fontWeight: 700 }}>
+              <span className={estilos.textoDanoVersatilBadge}>
                 ({ataque.danoVersatil} 2M)
               </span>
             )}
@@ -238,10 +281,9 @@ export const TarjetaAtaquePersonaje: React.FC<TarjetaAtaquePersonajeProps> = ({
           {!ataque.esDanoFijo && ataque.danoVersatil && (
             <button
               type="button"
-              className={estilos.botonTirarDano}
+              className={`${estilos.botonTirarDano} ${estilos.botonTirarDano2M}`}
               onClick={() => alTirarDano(ataque, true)}
               title={`Tirar Daño a 2 Manos (${ataque.danoVersatil})`}
-              style={{ background: "linear-gradient(180deg, #2b1f13 0%, #17100a 100%)", borderColor: "rgba(251, 146, 60, 0.45)", color: "#fed7aa" }}
             >
               <span>2M</span>
             </button>
@@ -261,10 +303,9 @@ export const TarjetaAtaquePersonaje: React.FC<TarjetaAtaquePersonajeProps> = ({
           {!ataque.esDanoFijo && ataque.tieneTiradaAtaque && ataque.danoVersatil && (
             <button
               type="button"
-              className={estilos.botonTirarCritico}
+              className={`${estilos.botonTirarCritico} ${estilos.botonTirarCritico2M}`}
               onClick={() => alTirarCritico(ataque, true)}
               title="Tirar Daño Crítico a 2 Manos (duplica dados versátiles)"
-              style={{ borderColor: "rgba(251, 146, 60, 0.4)", color: "#fdba74" }}
             >
               Crit 2M
             </button>

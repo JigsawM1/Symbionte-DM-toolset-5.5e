@@ -2102,6 +2102,99 @@
   box-shadow: 0 0 10px rgba(16, 185, 129, 0.4);
 }
 
+.botonAccionDesempaquetar {
+  background-color: rgba(56, 189, 248, 0.12) !important;
+  border-color: rgba(56, 189, 248, 0.35) !important;
+  color: #38bdf8 !important;
+}
+
+.botonAccionDesempaquetar:hover {
+  background-color: rgba(56, 189, 248, 0.25) !important;
+  border-color: #38bdf8 !important;
+  color: #ffffff !important;
+}
+
+.filaAccionesDerecha {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.grupoPesoContenedor {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.textoPesoTachado {
+  font-size: 9.5px;
+  color: #64748b;
+  text-decoration: line-through;
+}
+
+.textoPesoEfectivo {
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.textoPesoSimple {
+  font-size: 10px;
+  color: #94a3b8;
+}
+
+.grupoModificadorCantidad {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  margin-left: 4px;
+}
+
+.valorCantidadItem {
+  font-size: 10px;
+  font-weight: 700;
+  min-width: 16px;
+  text-align: center;
+  color: #f1f5f9;
+}
+
+.grupoTrackerCargas {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  margin-left: 4px;
+}
+
+.valorCargasItem {
+  font-size: 10px;
+  font-weight: 700;
+  color: #fbbf24;
+}
+
+.detalleCalculoCargaContenedores {
+  color: #c084fc;
+  margin-left: 6px;
+  font-size: 9.5px;
+}
+
+.barraCargaTextoTotal {
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 500;
+}
+
+.sintonizacionRanurasTexto {
+  font-size: 10px;
+  font-weight: 700;
+  color: #c084fc;
+}
+
+.listaSubseccionesMochila {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
 .botonEliminarObjeto {
   background: transparent;
   border: 1px solid transparent;

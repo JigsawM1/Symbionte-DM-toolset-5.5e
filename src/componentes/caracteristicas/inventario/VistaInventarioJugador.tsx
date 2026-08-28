@@ -28,8 +28,10 @@ export const VistaInventarioJugador: React.FC = () => {
     alternarEquipadoObjeto,
     alternarSintonizadoObjeto,
     actualizarNotasObjeto,
+    actualizarObjetoInventario,
     modificarCargasObjeto,
     cambiarContenedorObjeto,
+    desempaquetarPaquete,
     establecerMonedas,
     modificarMoneda,
     aplicarCuracionPersonaje
@@ -143,8 +145,13 @@ export const VistaInventarioJugador: React.FC = () => {
         alAlternarEquipado={(idInst) => alternarEquipadoObjeto(personajeActivo.id, idInst)}
         alAlternarSintonizado={(idInst) => alternarSintonizadoObjeto(personajeActivo.id, idInst)}
         alActualizarNotas={(idInst, notas) => actualizarNotasObjeto(personajeActivo.id, idInst, notas)}
+        alActualizarObjeto={(idInst, cambios) => actualizarObjetoInventario(personajeActivo.id, idInst, cambios)}
         alModificarCargas={(idInst, delta) => modificarCargasObjeto(personajeActivo.id, idInst, delta)}
         alCambiarContenedor={(idInst, c) => cambiarContenedorObjeto(personajeActivo.id, idInst, c)}
+        alDesempaquetarPaquete={(idInst) => {
+          desempaquetarPaquete(personajeActivo.id, idInst, baseDatosObjetos);
+          agregarNotificacion("¡Paquete desempaquetado con éxito en tu mochila!", "exito");
+        }}
         alEstablecerMonedas={(monedas) => establecerMonedas(personajeActivo.id, monedas)}
         alModificarMoneda={(tipo, delta) => modificarMoneda(personajeActivo.id, tipo, delta)}
         alUsarObjeto={manejarUsarConsumible}

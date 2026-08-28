@@ -22,20 +22,57 @@ import {
   Check,
   Save,
   BookOpen,
-  Box
+  Box,
+  PackageOpen,
+  Dices,
+  FlaskConical,
+  Hammer,
+  Clock,
+  Target
 } from "lucide-react";
 import { CONFIG_CONTENEDORES } from "@/servicios/calculadorInventario";
-import estilos from "./HojaPersonaje.module.css";
+import {
+  calcularAlmacenamientoMunicion,
+  calcularContenidoContenedorMunicion,
+  normalizarTexto
+} from "@/servicios/gestorMunicion";
+import { SelectorDesplegable } from "@/componentes/comunes/SelectorDesplegable";
+import { lanzarDadosTaleSpire, sanitizarEtiqueta } from "@/utiles/lanzadorDados";
+import estilos from "./ModalDetalleObjetoInventario.module.css";
+
+/** Diccionario de descripciones oficiales de maestrías D&D 5.5e (2024) */
+const DESCRIPCIONES_MAESTRIAS: Record<string, string> = {
+  "cleave": "HENDER (Cleave): Si impactas a una criatura con un ataque cuerpo a cuerpo, puedes realizar otro ataque contra una segunda criatura a 5 pies que esté a tu alcance.",
+  "hender": "HENDER (Cleave): Si impactas a una criatura con un ataque cuerpo a cuerpo, puedes realizar otro ataque contra una segunda criatura a 5 pies que esté a tu alcance.",
+  "graze": "ROZAR (Graze): Si fallas una tirada de ataque contra una criatura, aun así le infliges daño igual al modificador de la característica usada.",
+  "rozar": "ROZAR (Graze): Si fallas una tirada de ataque contra una criatura, aun así le infliges daño igual al modificador de la característica usada.",
+  "nick": "CORTE RÁPIDO (Nick): Puedes realizar el ataque adicional de la propiedad Ligera como parte de la misma Acción de Atacar, en lugar de consumir tu Acción Adicional.",
+  "corte": "CORTE RÁPIDO (Nick): Puedes realizar el ataque adicional de la propiedad Ligera como parte de la misma Acción de Atacar, en lugar de consumir tu Acción Adicional.",
+  "push": "EMPUJE (Push): Si impactas a una criatura, puedes empujarla hasta 10 pies en línea recta lejos de ti (si es de tamaño Grande o menor).",
+  "empuje": "EMPUJE (Push): Si impactas a una criatura, puedes empujarla hasta 10 pies en línea recta lejos de ti (si es de tamaño Grande o menor).",
+  "sap": "ZAPATAZO / ATURDIR (Sap): Si impactas a una criatura, esta tiene desventaja en su próxima tirada de ataque antes del inicio de tu próximo turno.",
+  "aturdir": "ZAPATAZO / ATURDIR (Sap): Si impactas a una criatura, esta tiene desventaja en su próxima tirada de ataque antes del inicio de tu próximo turno.",
+  "slow": "FRENAR (Slow): Si impactas a una criatura y le infliges daño, reduces su velocidad en 10 pies hasta el inicio de tu próximo turno.",
+  "frenar": "FRENAR (Slow): Si impactas a una criatura y le infliges daño, reduces su velocidad en 10 pies hasta el inicio de tu próximo turno.",
+  "topple": "DERRIBAR (Topple): Si impactas a una criatura, debe superar una salvación de Constitución o caer derribada (Tumbada).",
+  "derribar": "DERRIBAR (Topple): Si impactas a una criatura, debe superar una salvación de Constitución o caer derribada (Tumbada).",
+  "vex": "HOSTIGAR (Vex): Si impactas a una criatura y le infliges daño, ganas ventaja en tu próxima tirada de ataque contra ella antes del final de tu próximo turno.",
+  "hostigar": "HOSTIGAR (Vex): Si impactas a una criatura y le infliges daño, ganas ventaja en tu próxima tirada de ataque contra ella antes del final de tu próximo turno."
+};
 
 interface ModalDetalleObjetoInventarioProps {
   objeto: ObjetoInventario;
   baseDatosObjetos?: ObjetoJuego[];
+  inventarioCompleto?: ObjetoInventario[];
   totalSintonizados: number;
   alCerrar: () => void;
   alAlternarEquipado?: () => void;
   alAlternarSintonizado?: () => void;
   alActualizarNotas?: (notas: string) => void;
+  alActualizarObjeto?: (cambios: Partial<ObjetoInventario>) => void;
   alCambiarContenedor?: (contenedor: TipoContenedor) => void;
+  alDesempaquetar?: () => void;
+  alModificarCargas?: (delta: number) => void;
 }
 
 const CLASES_RAREZA: Record<Rareza, string> = {
@@ -47,15 +84,58 @@ const CLASES_RAREZA: Record<Rareza, string> = {
   "Artefacto": estilos.rarezaArtefacto
 };
 
+export interface OpcionEspecializacionContenedor {
+  id: string;
+  nombre: string;
+  idObjeto: string;
+  etiqueta: string;
+  descripcion: string;
+}
+
+export const OPCIONES_ESPECIALIZACION_BOLSAS: OpcionEspecializacionContenedor[] = [
+  {
+    id: "pouch",
+    nombre: "Bolsita",
+    idObjeto: "pouch",
+    etiqueta: "Bolsita Genérica (Multiuso)",
+    descripcion: "Contenedor estándar multiuso (hasta 20 balas o 50 agujas)."
+  },
+  {
+    id: "bullet-pouch",
+    nombre: "Bolsa de Balas",
+    idObjeto: "bullet-pouch",
+    etiqueta: "Bolsa de Balas (Honda)",
+    descripcion: "Especializada exclusivamente para transportar hasta 20 Balas de Honda."
+  },
+  {
+    id: "needle-case",
+    nombre: "Estuche de Agujas",
+    idObjeto: "needle-case",
+    etiqueta: "Estuche de Agujas (Cerbatana)",
+    descripcion: "Especializado exclusivamente para transportar hasta 50 Agujas de Cerbatana."
+  },
+  {
+    id: "cartridge-pouch",
+    nombre: "Cartuchera",
+    idObjeto: "cartridge-pouch",
+    etiqueta: "Cartuchera (Arma de Fuego)",
+    descripcion: "Especializada exclusivamente para transportar hasta 20 Balas de Arma de Fuego / Cargas."
+  }
+];
+
 export const ModalDetalleObjetoInventario: React.FC<ModalDetalleObjetoInventarioProps> = ({
   objeto,
   baseDatosObjetos,
+  inventarioCompleto,
   totalSintonizados,
   alCerrar,
   alAlternarEquipado,
   alAlternarSintonizado,
   alActualizarNotas,
-  alCambiarContenedor
+  alActualizarObjeto,
+  alCambiarContenedor,
+  alDesempaquetar,
+  alModificarCargas
 }) => {
   const [notasTemp, setNotasTemp] = useState(objeto.notas || "");
   const [notasGuardadas, setNotasGuardadas] = useState(false);
@@ -96,33 +176,34 @@ export const ModalDetalleObjetoInventario: React.FC<ModalDetalleObjetoInventario
   };
 
   return (
-    <div className={estilos.overlayModal} onClick={alCerrar}>
+    <div className={estilos.backdropModal} onClick={alCerrar}>
       <div
-        className={estilos.contenedorModal}
-        style={{ maxWidth: 540 }}
+        className={estilos.ventanaModal}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Cabecera del Visor */}
         <div className={estilos.cabeceraModal}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            {esArma && <Swords size={18} color="#f87171" />}
-            {esArmadura && <Shield size={18} color="#60a5fa" />}
-            {!esArma && !esArmadura && (
-              objeto.esMagico || objetoBase?.esMagico ? (
-                <Sparkles size={18} color="#a855f7" />
-              ) : (
-                <Package size={18} color="#34d399" />
-              )
-            )}
+          <div className={estilos.grupoTitulo}>
+            <div className={estilos.iconoTipo}>
+              {esArma && <Swords size={18} color="#f87171" />}
+              {esArmadura && <Shield size={18} color="#60a5fa" />}
+              {!esArma && !esArmadura && (
+                objeto.esMagico || objetoBase?.esMagico ? (
+                  <Sparkles size={18} color="#a855f7" />
+                ) : (
+                  <Package size={18} color="#34d399" />
+                )
+              )}
+            </div>
             <div>
-              <h3 className={estilos.tituloModal} style={{ margin: 0, fontSize: 16 }}>
+              <h3 className={estilos.tituloModal}>
                 {objeto.nombre}
               </h3>
-              <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 2 }}>
+              <div className={estilos.filaSubtitulo}>
                 <span className={`${estilos.badgeMeta} ${rarezaClass}`}>
                   {rareza}
                 </span>
-                <span style={{ fontSize: 11, color: "#94a3b8" }}>
+                <span className={estilos.textoSubtitulo}>
                   {objeto.tipoPrincipal} {subcategoria ? `• ${subcategoria}` : ""}
                 </span>
               </div>
@@ -131,7 +212,7 @@ export const ModalDetalleObjetoInventario: React.FC<ModalDetalleObjetoInventario
 
           <button
             type="button"
-            className={estilos.botonCerrarModal}
+            className={estilos.botonCerrar}
             onClick={alCerrar}
             title="Cerrar visor"
           >
@@ -140,31 +221,19 @@ export const ModalDetalleObjetoInventario: React.FC<ModalDetalleObjetoInventario
         </div>
 
         {/* Cuerpo del Visor con scroll táctico */}
-        <div
-          className={estilos.cuerpoModal}
-          style={{ maxHeight: "75vh", overflowY: "auto", display: "flex", flexDirection: "column", gap: 14, padding: 16 }}
-        >
+        {/* Cuerpo del Visor con scroll táctico */}
+        <div className={estilos.cuerpoModal}>
           {/* Rejilla de Métricas Principales */}
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(110px, 1fr))",
-              gap: 8,
-              backgroundColor: "rgba(15, 23, 42, 0.75)",
-              padding: 10,
-              borderRadius: 6,
-              border: "1px solid rgba(148, 163, 184, 0.15)"
-            }}
-          >
+          <div className={estilos.gridMetricas}>
             {/* Peso */}
-            <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-              <span style={{ fontSize: 10, color: "#94a3b8", textTransform: "uppercase", fontWeight: 700, display: "flex", alignItems: "center", gap: 3 }}>
+            <div className={estilos.cajaMetrica}>
+              <span className={estilos.etiquetaMetrica}>
                 <Weight size={11} /> Peso
               </span>
-              <strong style={{ fontSize: 12, color: "#f8fafc" }}>
+              <strong className={estilos.valorMetrica}>
                 {pesoTotal > 0 ? `${pesoTotal} lb` : "0 lb"}
                 {objeto.cantidad > 1 && (
-                  <span style={{ fontSize: 10, color: "#64748b", fontWeight: 400, marginLeft: 4 }}>
+                  <span className={estilos.subtextoMetrica}>
                     ({pesoUnitario} c/u)
                   </span>
                 )}
@@ -172,32 +241,36 @@ export const ModalDetalleObjetoInventario: React.FC<ModalDetalleObjetoInventario
             </div>
 
             {/* Valor */}
-            <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-              <span style={{ fontSize: 10, color: "#94a3b8", textTransform: "uppercase", fontWeight: 700, display: "flex", alignItems: "center", gap: 3 }}>
+            <div className={estilos.cajaMetrica}>
+              <span className={estilos.etiquetaMetrica}>
                 <Coins size={11} /> Valor
               </span>
-              <strong style={{ fontSize: 12, color: "#fbbf24" }}>
-                {valorPO > 0 ? `${valorPO} PO` : "—"}
+              <strong className={`${estilos.valorMetrica} ${estilos.valorMetricaOro}`}>
+                {objetoBase?.costoOriginal && objetoBase.costoOriginal.cantidad > 0
+                  ? `${objetoBase.costoOriginal.cantidad} ${objetoBase.costoOriginal.unidad}`
+                  : valorPO > 0
+                  ? `${valorPO} PO`
+                  : "—"}
               </strong>
             </div>
 
             {/* Cantidad */}
-            <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-              <span style={{ fontSize: 10, color: "#94a3b8", textTransform: "uppercase", fontWeight: 700 }}>
+            <div className={estilos.cajaMetrica}>
+              <span className={estilos.etiquetaMetrica}>
                 Cantidad
               </span>
-              <strong style={{ fontSize: 12, color: "#38bdf8" }}>
+              <strong className={`${estilos.valorMetrica} ${estilos.valorMetricaAzul}`}>
                 ×{objeto.cantidad}
               </strong>
             </div>
 
             {/* Daño si es Arma */}
             {esArma && armaObj && (
-              <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                <span style={{ fontSize: 10, color: "#94a3b8", textTransform: "uppercase", fontWeight: 700 }}>
+              <div className={estilos.cajaMetrica}>
+                <span className={estilos.etiquetaMetrica}>
                   Daño Base
                 </span>
-                <strong style={{ fontSize: 12, color: "#f87171" }}>
+                <strong className={`${estilos.valorMetrica} ${estilos.valorMetricaRojo}`}>
                   {armaObj.dadoDano} {armaObj.tipoDano}
                 </strong>
               </div>
@@ -205,11 +278,11 @@ export const ModalDetalleObjetoInventario: React.FC<ModalDetalleObjetoInventario
 
             {/* CA si es Armadura */}
             {esArmadura && armaduraObj && (
-              <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                <span style={{ fontSize: 10, color: "#94a3b8", textTransform: "uppercase", fontWeight: 700 }}>
+              <div className={estilos.cajaMetrica}>
+                <span className={estilos.etiquetaMetrica}>
                   Clase Armadura
                 </span>
-                <strong style={{ fontSize: 12, color: "#60a5fa" }}>
+                <strong className={`${estilos.valorMetrica} ${estilos.valorMetricaAzul}`}>
                   CA {armaduraObj.caBase}
                 </strong>
               </div>
@@ -217,11 +290,11 @@ export const ModalDetalleObjetoInventario: React.FC<ModalDetalleObjetoInventario
 
             {/* Cargas si aplica */}
             {objeto.cargasMaximas !== undefined && (
-              <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                <span style={{ fontSize: 10, color: "#94a3b8", textTransform: "uppercase", fontWeight: 700, display: "flex", alignItems: "center", gap: 3 }}>
+              <div className={estilos.cajaMetrica}>
+                <span className={estilos.etiquetaMetrica}>
                   <Zap size={11} color="#fbbf24" /> Cargas
                 </span>
-                <strong style={{ fontSize: 12, color: "#fbbf24" }}>
+                <strong className={`${estilos.valorMetrica} ${estilos.valorMetricaOro}`}>
                   {objeto.cargasActuales ?? objeto.cargasMaximas} / {objeto.cargasMaximas}
                 </strong>
               </div>
@@ -230,34 +303,50 @@ export const ModalDetalleObjetoInventario: React.FC<ModalDetalleObjetoInventario
 
           {/* Estadísticas Detalladas de Arma */}
           {esArma && armaObj && (
-            <div style={{ display: "flex", flexDirection: "column", gap: 6, backgroundColor: "rgba(15, 23, 42, 0.4)", padding: 10, borderRadius: 6, border: "1px solid rgba(248, 113, 113, 0.2)" }}>
-              <div style={{ display: "flex", flexWrap: "wrap", gap: 6, alignItems: "center" }}>
+            <div className={`${estilos.seccionDatosGenerales} ${estilos.seccionArma}`}>
+              <div className={estilos.filaBadges}>
                 {armaObj.tipoAtaque && (
-                  <span className={estilos.badgeMeta} style={{ backgroundColor: "rgba(248, 113, 113, 0.15)", color: "#fca5a5", border: "1px solid rgba(248, 113, 113, 0.3)" }}>
+                  <span className={`${estilos.badgeMeta} ${estilos.badgeArmaAtaque}`}>
                     {armaObj.tipoAtaque}
                   </span>
                 )}
                 {armaObj.danoVersatil && (
-                  <span className={estilos.badgeMeta} style={{ backgroundColor: "rgba(251, 191, 36, 0.15)", color: "#fde047", border: "1px solid rgba(251, 191, 36, 0.3)" }}>
+                  <span className={`${estilos.badgeMeta} ${estilos.badgeArmaVersatil}`}>
                     Versátil ({armaObj.danoVersatil})
                   </span>
                 )}
                 {armaObj.alcanceNormal && (
-                  <span className={estilos.badgeMeta} style={{ backgroundColor: "rgba(56, 189, 248, 0.15)", color: "#7dd3fc", border: "1px solid rgba(56, 189, 248, 0.3)" }}>
+                  <span className={`${estilos.badgeMeta} ${estilos.badgeArmaAlcance}`}>
                     Alcance {armaObj.alcanceNormal}/{armaObj.alcanceLargo || armaObj.alcanceNormal} pies
                   </span>
                 )}
                 {armaObj.maestria && (
-                  <span className={estilos.badgeMeta} style={{ backgroundColor: "rgba(168, 85, 247, 0.15)", color: "#d8b4fe", border: "1px solid rgba(168, 85, 247, 0.3)" }}>
+                  <span className={`${estilos.badgeMeta} ${estilos.badgeArmaMaestria}`}>
                     Maestría: {armaObj.maestria}
+                  </span>
+                )}
+                {armaObj.ammunition && (
+                  <span className={`${estilos.badgeMeta} ${estilos.badgeAmmunition}`}>
+                    <Target size={10} /> Munición: {armaObj.ammunition.name}
+                  </span>
+                )}
+                {objetoBase?.modificadorAtaqueDano && (
+                  <span className={`${estilos.badgeMeta} ${estilos.badgeMagicoBono}`}>
+                    <Sparkles size={10} /> Bono: +{objetoBase.modificadorAtaqueDano}
                   </span>
                 )}
               </div>
 
+              {armaObj.maestria && DESCRIPCIONES_MAESTRIAS[armaObj.maestria.toLowerCase()] && (
+                <div className={estilos.explicacionMaestria}>
+                  {DESCRIPCIONES_MAESTRIAS[armaObj.maestria.toLowerCase()]}
+                </div>
+              )}
+
               {armaObj.propiedades && armaObj.propiedades.length > 0 && (
-                <div style={{ display: "flex", flexWrap: "wrap", gap: 4, marginTop: 4 }}>
+                <div className={estilos.filaPropiedadesLista}>
                   {armaObj.propiedades.map((p) => (
-                    <span key={p} style={{ fontSize: 10, padding: "2px 6px", borderRadius: 4, backgroundColor: "rgba(255, 255, 255, 0.05)", border: "1px solid rgba(255, 255, 255, 0.1)", color: "#cbd5e1" }}>
+                    <span key={p} className={estilos.badgePropiedad}>
                       {p}
                     </span>
                   ))}
@@ -268,43 +357,182 @@ export const ModalDetalleObjetoInventario: React.FC<ModalDetalleObjetoInventario
 
           {/* Estadísticas Detalladas de Armadura */}
           {esArmadura && armaduraObj && (
-            <div style={{ display: "flex", flexDirection: "column", gap: 6, backgroundColor: "rgba(15, 23, 42, 0.4)", padding: 10, borderRadius: 6, border: "1px solid rgba(96, 165, 250, 0.2)" }}>
-              <div style={{ display: "flex", flexWrap: "wrap", gap: 6, alignItems: "center" }}>
-                <span className={estilos.badgeMeta} style={{ backgroundColor: "rgba(96, 165, 250, 0.15)", color: "#93c5fd", border: "1px solid rgba(96, 165, 250, 0.3)" }}>
+            <div className={`${estilos.seccionDatosGenerales} ${estilos.seccionArmadura}`}>
+              <div className={estilos.filaBadges}>
+                <span className={`${estilos.badgeMeta} ${estilos.badgeArmaduraDes}`}>
                   Bono Destreza: {armaduraObj.bonoDestreza || "Completo"}
                 </span>
                 {armaduraObj.requisitoFuerza && (
-                  <span className={estilos.badgeMeta} style={{ backgroundColor: "rgba(245, 158, 11, 0.15)", color: "#fcd34d", border: "1px solid rgba(245, 158, 11, 0.3)" }}>
+                  <span className={`${estilos.badgeMeta} ${estilos.badgeArmaduraFue}`}>
                     Fuerza Requerida: {armaduraObj.requisitoFuerza}
                   </span>
                 )}
                 {armaduraObj.desventajaSigilo && (
-                  <span className={estilos.badgeMeta} style={{ backgroundColor: "rgba(239, 68, 68, 0.15)", color: "#fca5a5", border: "1px solid rgba(239, 68, 68, 0.3)" }}>
+                  <span className={`${estilos.badgeMeta} ${estilos.badgeArmaduraSigilo}`}>
                     Desventaja en Sigilo
+                  </span>
+                )}
+                {armaduraObj.tiempoEquipar && (
+                  <span className={`${estilos.badgeMeta} ${estilos.badgeTiempoEquipar}`}>
+                    <Clock size={10} /> Poner/Quitar: {armaduraObj.tiempoEquipar}
                   </span>
                 )}
               </div>
             </div>
           )}
 
+          {/* Selector de Especialización de Contenedor (Mutación táctica de Bolsita) */}
+          {(() => {
+            const nomNorm = normalizarTexto(objeto.nombre);
+            const idNorm = normalizarTexto(objeto.idObjeto || "");
+            const esContenedorBolsa =
+              nomNorm.includes("bols") ||
+              nomNorm.includes("pouch") ||
+              nomNorm.includes("estuche de agujas") ||
+              nomNorm.includes("needle case") ||
+              nomNorm.includes("cartuchera") ||
+              idNorm === "pouch" ||
+              idNorm === "bullet-pouch" ||
+              idNorm === "needle-case" ||
+              idNorm === "cartridge-pouch";
+
+            if (!esContenedorBolsa || !alActualizarObjeto) return null;
+
+            let valorActual = "pouch";
+            if (idNorm === "bullet-pouch" || nomNorm.includes("bolsa de balas")) valorActual = "bullet-pouch";
+            else if (idNorm === "needle-case" || nomNorm.includes("estuche de agujas") || nomNorm.includes("needle case")) valorActual = "needle-case";
+            else if (idNorm === "cartridge-pouch" || nomNorm.includes("cartuchera")) valorActual = "cartridge-pouch";
+
+            const opcionActual = OPCIONES_ESPECIALIZACION_BOLSAS.find((o) => o.id === valorActual);
+
+            return (
+              <div className={estilos.seccionEspecializacionContenedor}>
+                <div className={estilos.cabeceraEspecializacion}>
+                  <span className={estilos.tituloEspecializacion}>
+                    <Box size={13} /> Especialización del Contenedor
+                  </span>
+                  <SelectorDesplegable<string>
+                    valor={valorActual}
+                    alCambiar={(nuevaId) => {
+                      const seleccionada = OPCIONES_ESPECIALIZACION_BOLSAS.find((o) => o.id === nuevaId);
+                      if (seleccionada) {
+                        alActualizarObjeto({
+                          idObjeto: seleccionada.idObjeto,
+                          nombre: seleccionada.nombre
+                        });
+                      }
+                    }}
+                    tamano="compacto"
+                    opciones={OPCIONES_ESPECIALIZACION_BOLSAS.map((opc) => ({
+                      valor: opc.id,
+                      etiqueta: opc.etiqueta
+                    }))}
+                  />
+                </div>
+                {opcionActual && (
+                  <span className={estilos.descripcionEspecializacion}>
+                    {opcionActual.descripcion}
+                  </span>
+                )}
+              </div>
+            );
+          })()}
+
+          {/* Regla de Almacenamiento / Capacidad de Munición o Contenedor Físico */}
+          {(() => {
+            const infoMunicion = inventarioCompleto
+              ? calcularAlmacenamientoMunicion(objeto, inventarioCompleto, objetoBase || undefined)
+              : null;
+            const infoContenedor = inventarioCompleto
+              ? calcularContenidoContenedorMunicion(objeto, inventarioCompleto)
+              : null;
+
+            if (infoMunicion) {
+              return (
+                <div className={estilos.filaBadges} style={{ flexDirection: "column", alignItems: "flex-start", gap: 6 }}>
+                  {infoMunicion.tieneContenedor ? (
+                    <>
+                      <span className={`${estilos.badgeMeta} ${estilos.badgeStorage}`} style={{ backgroundColor: "rgba(56, 189, 248, 0.15)", color: "#7dd3fc", borderColor: "rgba(56, 189, 248, 0.35)" }}>
+                        <Check size={10} /> Almacenamiento: {infoMunicion.almacenadasEnContenedor} de {infoMunicion.totalMunicion} en {infoMunicion.nombreContenedor} (Capacidad: {infoMunicion.capacidadTotal})
+                      </span>
+                      {infoMunicion.sueltasEnMochila > 0 && (
+                        <span className={`${estilos.badgeMeta}`} style={{ backgroundColor: "rgba(245, 158, 11, 0.15)", color: "#fcd34d", borderColor: "rgba(245, 158, 11, 0.35)" }}>
+                          ⚠️ {infoMunicion.sueltasEnMochila} proyectiles exceden la capacidad de tu {infoMunicion.nombreContenedor} y van sueltos en la mochila
+                        </span>
+                      )}
+                    </>
+                  ) : (
+                    <span className={`${estilos.badgeMeta} ${estilos.badgeStorage}`} style={{ backgroundColor: "rgba(148, 163, 184, 0.1)", color: "#94a3b8", borderColor: "rgba(148, 163, 184, 0.2)" }}>
+                      <Package size={10} /> Suelto en mochila. Requiere: {infoMunicion.nombreContenedor} (Capacidad: {infoMunicion.capacidadUnitaria} uds)
+                    </span>
+                  )}
+                </div>
+              );
+            }
+
+            if (infoContenedor) {
+              return (
+                <div className={estilos.filaBadges} style={{ flexDirection: "column", alignItems: "flex-start", gap: 6 }}>
+                  <span className={`${estilos.badgeMeta}`} style={{ backgroundColor: "rgba(16, 185, 129, 0.15)", color: "#6ee7b7", borderColor: "rgba(16, 185, 129, 0.35)" }}>
+                    <Target size={10} /> Capacidad de Munición: {infoContenedor.totalAlmacenado} / {infoContenedor.capacidadTotal} {infoContenedor.tipoProyectil} ({infoContenedor.capacidadUnitaria} por unidad)
+                    {infoContenedor.estaLleno && " • Completo"}
+                  </span>
+                </div>
+              );
+            }
+
+            return null;
+          })()}
+
+          {/* Regla de Recarga de Cargas si existe */}
+          {objetoBase?.formulaRecarga && (
+            <div className={estilos.filaBadges}>
+              <span className={estilos.badgeRecargaCargas}>
+                <Sparkles size={10} /> Recarga: {objetoBase.formulaRecarga}
+              </span>
+            </div>
+          )}
+
+          {/* Sección de Venenos */}
+          {(objetoBase?.esVeneno || objetoBase?.tipoVeneno || objetoBase?.efectoVeneno) && (
+            <div className={estilos.seccionVeneno}>
+              <span className={`${estilos.tituloSeccion} ${estilos.tituloSeccionVeneno}`}>
+                <FlaskConical size={12} /> Propiedades del Veneno
+              </span>
+              {objetoBase.tipoVeneno && (
+                <div className={estilos.filaBadges}>
+                  <span className={`${estilos.badgeMeta} ${estilos.badgeVenenoTipo}`}>
+                    Tipo: {objetoBase.tipoVeneno}
+                  </span>
+                </div>
+              )}
+              {objetoBase.efectoVeneno && (
+                <div className={estilos.cajaTextoVeneno}>
+                  {objetoBase.efectoVeneno}
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Estado de Sintonización si aplica */}
           {(objeto.sintonizacionRequerida || objetoBase?.sintonizacionRequerida) && (
             <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                padding: "8px 12px",
-                borderRadius: 6,
-                backgroundColor: objeto.sintonizado ? "rgba(168, 85, 247, 0.12)" : "rgba(15, 23, 42, 0.6)",
-                border: `1px solid ${objeto.sintonizado ? "rgba(168, 85, 247, 0.4)" : "rgba(148, 163, 184, 0.2)"}`
-              }}
+              className={`${estilos.filaInteractiva} ${
+                objeto.sintonizado ? estilos.filaInteractivaSintonizado : ""
+              }`}
             >
-              <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+              <div className={estilos.bloqueInfoInteractiva}>
                 <Link2 size={14} color={objeto.sintonizado ? "#c084fc" : "#94a3b8"} />
-                <span style={{ fontSize: 12, color: objeto.sintonizado ? "#e9d5ff" : "#94a3b8" }}>
-                  {objeto.sintonizado ? "Sintonizado con este personaje" : "Requiere Sintonización (No sintonizado)"}
-                </span>
+                <div>
+                  <span className={objeto.sintonizado ? estilos.textoInteractivaActivo : estilos.textoInteractiva}>
+                    {objeto.sintonizado ? "Sintonizado con este personaje" : "Requiere Sintonización (No sintonizado)"}
+                  </span>
+                  {objetoBase?.condicionSintonizacion && (
+                    <div className={estilos.subtextoCondicionSintonizacion}>
+                      Condición: {objetoBase.condicionSintonizacion}
+                    </div>
+                  )}
+                </div>
               </div>
 
               {alAlternarSintonizado && (
@@ -312,16 +540,9 @@ export const ModalDetalleObjetoInventario: React.FC<ModalDetalleObjetoInventario
                   type="button"
                   onClick={alAlternarSintonizado}
                   disabled={!puedeSintonizar}
-                  style={{
-                    backgroundColor: objeto.sintonizado ? "rgba(239, 68, 68, 0.2)" : "rgba(168, 85, 247, 0.2)",
-                    border: `1px solid ${objeto.sintonizado ? "rgba(239, 68, 68, 0.5)" : "rgba(168, 85, 247, 0.5)"}`,
-                    color: objeto.sintonizado ? "#fca5a5" : "#d8b4fe",
-                    padding: "4px 10px",
-                    borderRadius: 4,
-                    fontSize: 11,
-                    fontWeight: 700,
-                    cursor: puedeSintonizar ? "pointer" : "not-allowed"
-                  }}
+                  className={`${estilos.botonAccionModal} ${
+                    objeto.sintonizado ? estilos.botonDesintonizar : estilos.botonSintonizar
+                  }`}
                 >
                   {objeto.sintonizado ? "Desintonizar" : "Sintonizar"}
                 </button>
@@ -330,21 +551,11 @@ export const ModalDetalleObjetoInventario: React.FC<ModalDetalleObjetoInventario
           )}
 
           {/* Ubicación y Contenedor Especial */}
-          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-            <span style={{ fontSize: 11, fontWeight: 800, color: "#f59e0b", textTransform: "uppercase", letterSpacing: 0.5, display: "flex", alignItems: "center", gap: 4 }}>
+          <div className={estilos.seccionContenedor}>
+            <span className={estilos.tituloSeccion}>
               <Box size={12} /> Ubicación / Contenedor
             </span>
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fit, minmax(115px, 1fr))",
-                gap: 6,
-                backgroundColor: "rgba(15, 23, 42, 0.5)",
-                padding: 8,
-                borderRadius: 6,
-                border: "1px solid rgba(148, 163, 184, 0.12)"
-              }}
-            >
+            <div className={estilos.gridContenedores}>
               {(["mochila", "bolsa_contencion", "montura", "almacen"] as TipoContenedor[]).map((contClave) => {
                 const info = CONFIG_CONTENEDORES[contClave];
                 const seleccionado = (objeto.contenedor || "mochila") === contClave;
@@ -354,91 +565,125 @@ export const ModalDetalleObjetoInventario: React.FC<ModalDetalleObjetoInventario
                     type="button"
                     onClick={() => alCambiarContenedor && alCambiarContenedor(contClave)}
                     disabled={objeto.equipado && contClave !== "mochila"}
+                    className={`${estilos.botonContenedor} ${
+                      seleccionado ? estilos.botonContenedorActivo : ""
+                    }`}
                     style={{
-                      display: "flex",
-                      flexDirection: "column",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      padding: "6px 8px",
-                      borderRadius: 4,
-                      backgroundColor: seleccionado ? `${info.color}22` : "rgba(255, 255, 255, 0.03)",
-                      border: `1px solid ${seleccionado ? info.color : "rgba(148, 163, 184, 0.15)"}`,
-                      color: seleccionado ? "#ffffff" : "#94a3b8",
-                      cursor: (objeto.equipado && contClave !== "mochila") ? "not-allowed" : "pointer",
-                      transition: "all 0.15s ease",
-                      gap: 2,
-                      opacity: (objeto.equipado && contClave !== "mochila") ? 0.4 : 1
+                      backgroundColor: seleccionado ? `${info.color}22` : undefined,
+                      borderColor: seleccionado ? info.color : undefined
                     }}
                     title={info.descripcion}
                   >
-                    <span style={{ fontSize: 10, fontWeight: 700, color: seleccionado ? info.color : "#cbd5e1" }}>
+                    <span
+                      className={estilos.nombreContenedor}
+                      style={{ color: seleccionado ? info.color : undefined }}
+                    >
                       {info.nombreCorto}
                     </span>
-                    <span style={{ fontSize: 8.5, color: info.sumaCargaPersonaje ? "#94a3b8" : "#34d399" }}>
+                    <span className={info.sumaCargaPersonaje ? estilos.subtextoContenedor : `${estilos.subtextoContenedor} ${estilos.subtextoContenedorExento}`}>
                       {info.sumaCargaPersonaje ? "Suma carga" : "0 lb carga"}
                     </span>
                   </button>
                 );
               })}
             </div>
-            <div style={{ fontSize: 10, color: "#64748b", padding: "0 4px" }}>
+            <div className={estilos.explicacionContenedor}>
               {(objeto.contenedor || "mochila") === "mochila" ? (
-                "🎒 Llevas este objeto encima. Su peso cuenta para tu capacidad de carga."
+                " Llevas este objeto encima. Su peso cuenta para tu capacidad de carga."
               ) : (objeto.contenedor === "bolsa_contencion") ? (
-                "🌀 Guardado en la Bolsa de Contención (Bag of Holding). Su peso es 0 lb sobre tu personaje."
+                " Guardado en la Bolsa de Contención (Bag of Holding). Su peso es 0 lb sobre tu personaje."
               ) : (objeto.contenedor === "montura") ? (
-                "🐎 Transportado por tu montura, mula o carreta. No penaliza tu capacidad de carga."
+                " Transportado por tu montura, mula o carreta. No penaliza tu capacidad de carga."
               ) : (
-                "📦 Guardado en tu almacén, base o campamento. No penaliza tu capacidad de carga."
+                " Guardado en tu almacén, base o campamento. No penaliza tu capacidad de carga."
               )}
             </div>
           </div>
 
           {/* Descripción Completa */}
-          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-            <span style={{ fontSize: 11, fontWeight: 800, color: "#38bdf8", textTransform: "uppercase", letterSpacing: 0.5, display: "flex", alignItems: "center", gap: 4 }}>
+          <div className={estilos.seccionBloque}>
+            <span className={`${estilos.tituloSeccion} ${estilos.tituloSeccionDescripcion}`}>
               <BookOpen size={12} /> Descripción y Reglas
             </span>
-            <div
-              style={{
-                fontSize: 12,
-                color: "#cbd5e1",
-                lineHeight: 1.6,
-                backgroundColor: "rgba(15, 23, 42, 0.5)",
-                padding: "10px 12px",
-                borderRadius: 6,
-                border: "1px solid rgba(148, 163, 184, 0.12)",
-                whiteSpace: "pre-wrap"
-              }}
-            >
+            <div className={estilos.cajaTextoDescripcion}>
               {descripcion ? descripcion : "Sin descripción adicional disponible."}
             </div>
           </div>
 
+          {/* Receta de Artesanía y Crafteo si posee */}
+          {((objetoBase?.artesania && (objetoBase.artesania.tallerRequerido || (objetoBase.artesania.componentes && objetoBase.artesania.componentes.length > 0))) || (objetoBase?.craft && objetoBase.craft.length > 0)) && (
+            <div className={estilos.seccionArtesania}>
+              <span className={`${estilos.tituloSeccion} ${estilos.tituloSeccionArtesania}`}>
+                <Hammer size={12} /> Receta de Artesanía y Fabricación
+              </span>
+              <div className={estilos.filaArtesaniaMeta}>
+                {objetoBase.artesania?.tallerRequerido && (
+                  <div>
+                    <span>Taller: </span>
+                    <strong style={{ color: "#f8fafc" }}>{objetoBase.artesania.tallerRequerido}</strong>
+                  </div>
+                )}
+              </div>
+
+              {objetoBase.craft && objetoBase.craft.length > 0 && (
+                <div>
+                  <span style={{ fontSize: "10.5px", color: "#94a3b8", display: "block", marginBottom: 3 }}>
+                    Herramientas Requeridas:
+                  </span>
+                  <div className={estilos.listaComponentesChips}>
+                    {objetoBase.craft.map((c: { name: string; index: string }, idx: number) => (
+                      <span key={idx} className={estilos.chipHerramientaCraft}>
+                        {c.name}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {objetoBase.artesania?.componentes && objetoBase.artesania.componentes.length > 0 && (
+                <div>
+                  <span style={{ fontSize: "10.5px", color: "#94a3b8", display: "block", marginBottom: 3 }}>
+                    Componentes:
+                  </span>
+                  <div className={estilos.listaComponentesChips}>
+                    {objetoBase.artesania.componentes.map((comp: string, idx: number) => (
+                      <span key={idx} className={estilos.chipComponente}>
+                        {comp}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Contenido del Paquete si posee contents */}
           {objetoBase?.contents && objetoBase.contents.length > 0 && (
-            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-              <span style={{ fontSize: 11, fontWeight: 800, color: "#34d399", textTransform: "uppercase", letterSpacing: 0.5, display: "flex", alignItems: "center", gap: 4 }}>
-                <Package size={12} /> Contenido del Paquete ({objetoBase.contents.length} objetos)
-              </span>
-              <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                {objetoBase.contents.map((itemContenido: { item: { name: string; index: string }; quantity: number }, idx: number) => (
-                  <div
-                    key={idx}
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                      padding: "6px 10px",
-                      backgroundColor: "rgba(255, 255, 255, 0.03)",
-                      borderRadius: 4,
-                      border: "1px solid rgba(255, 255, 255, 0.06)",
-                      fontSize: 11,
-                      color: "#f1f5f9"
+            <div className={estilos.seccionBloque}>
+              <div className={estilos.cabeceraContents}>
+                <span className={`${estilos.tituloSeccion} ${estilos.tituloSeccionContents}`}>
+                  <Package size={12} /> Contenido del Paquete ({objetoBase.contents.length} objetos)
+                </span>
+                {alDesempaquetar && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      alDesempaquetar();
+                      alCerrar();
                     }}
+                    className={estilos.botonDesempaquetarModal}
+                    title="Desempaquetar todos los ítems a tu mochila"
                   >
+                    <PackageOpen size={12} />
+                    <span>Desempaquetar</span>
+                  </button>
+                )}
+              </div>
+              <div className={estilos.listaItemsVertical}>
+                {objetoBase.contents.map((itemContenido: { item: { name: string; index: string }; quantity: number }, idx: number) => (
+                  <div key={idx} className={estilos.filaItemContenido}>
                     <span>{itemContenido.item.name}</span>
-                    <strong style={{ color: "#38bdf8" }}>×{itemContenido.quantity}</strong>
+                    <strong className={estilos.cantidadItemContenido}>×{itemContenido.quantity}</strong>
                   </div>
                 ))}
               </div>
@@ -447,13 +692,13 @@ export const ModalDetalleObjetoInventario: React.FC<ModalDetalleObjetoInventario
 
           {/* Efectos Pasivos si posee */}
           {objetoBase?.efectosPasivos && objetoBase.efectosPasivos.length > 0 && (
-            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-              <span style={{ fontSize: 11, fontWeight: 800, color: "#c084fc", textTransform: "uppercase", letterSpacing: 0.5 }}>
+            <div className={estilos.seccionBloque}>
+              <span className={`${estilos.tituloSeccion} ${estilos.tituloSeccionPasivos}`}>
                 Efectos Pasivos y Bonos
               </span>
-              <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+              <div className={estilos.listaItemsVertical}>
                 {objetoBase.efectosPasivos.map((efecto: EfectoPasivo, idx: number) => (
-                  <div key={idx} style={{ padding: "6px 10px", backgroundColor: "rgba(168, 85, 247, 0.08)", borderRadius: 4, border: "1px solid rgba(168, 85, 247, 0.2)", fontSize: 11, color: "#e9d5ff" }}>
+                  <div key={idx} className={estilos.filaEfectoPasivo}>
                     <strong>[{efecto.tipo}] {efecto.bono}</strong>: {efecto.descripcion || efecto.valor}
                   </div>
                 ))}
@@ -463,36 +708,73 @@ export const ModalDetalleObjetoInventario: React.FC<ModalDetalleObjetoInventario
 
           {/* Hechizos Vinculados si posee */}
           {objetoBase?.hechizosVinculados && objetoBase.hechizosVinculados.length > 0 && (
-            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-              <span style={{ fontSize: 11, fontWeight: 800, color: "#a855f7", textTransform: "uppercase", letterSpacing: 0.5 }}>
+            <div className={estilos.seccionBloque}>
+              <span className={`${estilos.tituloSeccion} ${estilos.tituloSeccionHechizos}`}>
                 Hechizos Vinculados
               </span>
-              <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                {objetoBase.hechizosVinculados.map((hechizo: HechizoVinculado, idx: number) => (
-                  <div key={idx} style={{ display: "flex", justifyContent: "space-between", padding: "6px 10px", backgroundColor: "rgba(168, 85, 247, 0.08)", borderRadius: 4, border: "1px solid rgba(168, 85, 247, 0.2)", fontSize: 11, color: "#e9d5ff" }}>
-                    <span>{hechizo.nombre}</span>
-                    <span>{hechizo.cd !== undefined ? `CD ${hechizo.cd}` : ""} {hechizo.costeCargas !== undefined ? `(${hechizo.costeCargas} cargas)` : ""}</span>
-                  </div>
-                ))}
+              <div className={estilos.listaItemsVertical}>
+                {objetoBase.hechizosVinculados.map((hechizo: HechizoVinculado, idx: number) => {
+                  const coste = Number(hechizo.costeCargas) || 0;
+                  const cargasDisponibles = objeto.cargasActuales ?? (objeto.cargasMaximas || 0);
+                  const tieneCargasSuficientes = coste === 0 || cargasDisponibles >= coste;
+
+                  const lanzarHechizoVinculado = async () => {
+                    if (coste > 0 && alModificarCargas) {
+                      alModificarCargas(-coste);
+                    }
+                    const etiqueta = sanitizarEtiqueta(`Hechizo ${hechizo.nombre} (${objeto.nombre})`);
+                    if (hechizo.bonoAtaque !== undefined && !isNaN(Number(hechizo.bonoAtaque))) {
+                      const formula = `1d20+${hechizo.bonoAtaque}`;
+                      await lanzarDadosTaleSpire(formula, `Ataque Mágico: ${etiqueta}`);
+                    } else if (hechizo.cd !== undefined && !isNaN(Number(hechizo.cd))) {
+                      await lanzarDadosTaleSpire("1d20", `Salvación vs CD ${hechizo.cd} (${etiqueta})`);
+                    } else {
+                      await lanzarDadosTaleSpire("1d20", etiqueta);
+                    }
+                  };
+
+                  return (
+                    <div key={idx} className={estilos.tarjetaHechizoVinculado}>
+                      <div>
+                        <strong className={estilos.nombreHechizoVinculado}>{hechizo.nombre}</strong>
+                        <span className={estilos.metaHechizoVinculado}>
+                          {hechizo.cd !== undefined ? `CD ${hechizo.cd}` : ""}
+                          {hechizo.bonoAtaque !== undefined ? ` | Ataque +${hechizo.bonoAtaque}` : ""}
+                          {coste > 0 ? ` (${coste} ${coste === 1 ? "carga" : "cargas"})` : ""}
+                        </span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={lanzarHechizoVinculado}
+                        disabled={!tieneCargasSuficientes}
+                        className={estilos.botonLanzarHechizoModal}
+                        title={tieneCargasSuficientes ? `Lanzar ${hechizo.nombre} en TaleSpire` : "Cargas insuficientes"}
+                      >
+                        <Dices size={11} />
+                        <span>Lanzar {coste > 0 ? `(-${coste})` : ""}</span>
+                      </button>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           )}
 
           {/* Notas Personales del Jugador */}
-          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <span style={{ fontSize: 11, fontWeight: 800, color: "#fbbf24", textTransform: "uppercase", letterSpacing: 0.5 }}>
+          <div className={estilos.seccionBloque}>
+            <div className={estilos.cabeceraNotas}>
+              <span className={estilos.tituloSeccion}>
                 Notas Personales
               </span>
               {notasGuardadas && (
-                <span style={{ fontSize: 11, color: "#34d399", display: "flex", alignItems: "center", gap: 3 }}>
+                <span className={estilos.textoGuardado}>
                   <Check size={12} /> Guardado
                 </span>
               )}
             </div>
 
             <textarea
-              className={estilos.textareaFormulario}
+              className={estilos.textareaNotasModal}
               value={notasTemp}
               onChange={(e) => setNotasTemp(e.target.value)}
               placeholder="Añade notas sobre el origen, marcas, runas o uso de este objeto..."
@@ -502,25 +784,24 @@ export const ModalDetalleObjetoInventario: React.FC<ModalDetalleObjetoInventario
             {alActualizarNotas && (
               <button
                 type="button"
-                className={estilos.botonAccionPrimario}
+                className={estilos.botonGuardarNotas}
                 onClick={manejarGuardarNotas}
-                style={{ alignSelf: "flex-end", padding: "4px 10px", fontSize: 11 }}
               >
-                <Save size={12} style={{ marginRight: 4 }} />
-                Guardar Notas
+                <Save size={12} />
+                <span>Guardar Notas</span>
               </button>
             )}
           </div>
         </div>
 
         {/* Pie del Modal con Acciones Rápidas */}
-        <div className={estilos.pieModal} style={{ justifyContent: "space-between" }}>
+        <div className={estilos.pieModal}>
           <div>
             {(esArma || esArmadura) && alAlternarEquipado && (
               <button
                 type="button"
                 onClick={alAlternarEquipado}
-                className={objeto.equipado ? estilos.botonDesequipar : estilos.botonEquipar}
+                className={objeto.equipado ? estilos.botonDesequiparModal : estilos.botonEquiparModal}
               >
                 {objeto.equipado ? "Desequipar" : "Equipar"}
               </button>
@@ -529,7 +810,7 @@ export const ModalDetalleObjetoInventario: React.FC<ModalDetalleObjetoInventario
 
           <button
             type="button"
-            className={estilos.botonAccionSecundario}
+            className={estilos.botonCerrarVisor}
             onClick={alCerrar}
           >
             Cerrar Visor

@@ -19,8 +19,6 @@ interface Props {
   setOEsVeneno: (es: boolean) => void;
   oTipoVeneno: "Contacto" | "Ingerido" | "Inhalado" | "Lesión";
   setOTipoVeneno: (tipo: "Contacto" | "Ingerido" | "Inhalado" | "Lesión") => void;
-  oCdSalvacionVeneno: number | "";
-  setOCdSalvacionVeneno: (cd: number | "") => void;
   oEfectoVeneno: string;
   setOEfectoVeneno: (efecto: string) => void;
   oStorageIndex: string;
@@ -59,8 +57,6 @@ export const SeccionEquipoContenedor: React.FC<Props> = ({
   setOEsVeneno,
   oTipoVeneno,
   setOTipoVeneno,
-  oCdSalvacionVeneno,
-  setOCdSalvacionVeneno,
   oEfectoVeneno,
   setOEfectoVeneno,
   oStorageIndex,
@@ -141,26 +137,13 @@ export const SeccionEquipoContenedor: React.FC<Props> = ({
                 gap: "10px"
               }}
             >
-              <div className={estilos.filaDobleForm}>
-                <div className={estilos.campoForm}>
-                  <label className={estilos.labelForm}>Tipo de Veneno:</label>
-                  <SelectorDesplegable
-                    valor={oTipoVeneno}
-                    alCambiar={(val) => setOTipoVeneno(val as "Contacto" | "Ingerido" | "Inhalado" | "Lesión")}
-                    opciones={OPCIONES_TIPO_VENENO}
-                  />
-                </div>
-                <div className={estilos.campoForm}>
-                  <label className={estilos.labelForm}>CD Salvación (Cons.):</label>
-                  <input
-                    type="number"
-                    min="0"
-                    value={oCdSalvacionVeneno}
-                    onChange={(e) => setOCdSalvacionVeneno(e.target.value === "" ? "" : parseInt(e.target.value) || "")}
-                    placeholder="Ej. 13"
-                    className={estilos.inputForm}
-                  />
-                </div>
+              <div className={estilos.campoForm}>
+                <label className={estilos.labelForm}>Tipo de Veneno:</label>
+                <SelectorDesplegable
+                  valor={oTipoVeneno}
+                  alCambiar={(val) => setOTipoVeneno(val as "Contacto" | "Ingerido" | "Inhalado" | "Lesión")}
+                  opciones={OPCIONES_TIPO_VENENO}
+                />
               </div>
               <div className={estilos.campoForm}>
                 <label className={estilos.labelForm}>Efecto del Veneno:</label>

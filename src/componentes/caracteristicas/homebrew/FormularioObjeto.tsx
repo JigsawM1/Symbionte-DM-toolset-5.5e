@@ -81,14 +81,11 @@ export const FormularioObjeto: React.FC<Props> = ({
 
     oEsVeneno, setOEsVeneno,
     oTipoVeneno, setOTipoVeneno,
-    oCdSalvacionVeneno, setOCdSalvacionVeneno,
     oEfectoVeneno, setOEfectoVeneno,
     oEquipable, setOEquipable,
 
     oCondicionSintonizacion, setOCondicionSintonizacion,
     oFormulaRecarga, setOFormulaRecarga,
-    oEstaMaldito, setOEstaMaldito,
-    oEsConsciente, setOEsConsciente,
     oModificadorAtaqueDano, setOModificadorAtaqueDano,
     oHechizosVinculados,
     oArtesaniaTaller, setOArtesaniaTaller,
@@ -342,8 +339,6 @@ export const FormularioObjeto: React.FC<Props> = ({
               setOEsVeneno={setOEsVeneno}
               oTipoVeneno={oTipoVeneno}
               setOTipoVeneno={setOTipoVeneno}
-              oCdSalvacionVeneno={oCdSalvacionVeneno}
-              setOCdSalvacionVeneno={setOCdSalvacionVeneno}
               oEfectoVeneno={oEfectoVeneno}
               setOEfectoVeneno={setOEfectoVeneno}
               oStorageIndex={oStorageIndex}
@@ -389,10 +384,6 @@ export const FormularioObjeto: React.FC<Props> = ({
           setOCargas={setOCargas}
           oFormulaRecarga={oFormulaRecarga}
           setOFormulaRecarga={setOFormulaRecarga}
-          oEstaMaldito={oEstaMaldito}
-          setOEstaMaldito={setOEstaMaldito}
-          oEsConsciente={oEsConsciente}
-          setOEsConsciente={setOEsConsciente}
           oModificadorAtaqueDano={oModificadorAtaqueDano}
           setOModificadorAtaqueDano={setOModificadorAtaqueDano}
           oEfectosPasivos={oEfectosPasivos}

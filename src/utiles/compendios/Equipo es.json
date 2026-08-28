@@ -969,6 +969,54 @@
     "weight": 1
   },
   {
+    "index": "needle-case",
+    "name": "Estuche de Agujas",
+    "description": "Un Estuche de Agujas contiene hasta 50 Agujas de Cerbatana.",
+    "equipment_categories": [
+      {
+        "index": "adventuring-gear",
+        "name": "Equipo de Aventurero"
+      }
+    ],
+    "cost": {
+      "quantity": 1,
+      "unit": "po"
+    },
+    "weight": 1
+  },
+  {
+    "index": "cartridge-pouch",
+    "name": "Cartuchera",
+    "description": "Una Cartuchera contiene hasta 20 Balas de Arma de Fuego o cargas de pólvora.",
+    "equipment_categories": [
+      {
+        "index": "adventuring-gear",
+        "name": "Equipo de Aventurero"
+      }
+    ],
+    "cost": {
+      "quantity": 1,
+      "unit": "po"
+    },
+    "weight": 1
+  },
+  {
+    "index": "bullet-pouch",
+    "name": "Bolsa de Balas",
+    "description": "Una Bolsa de Balas contiene hasta 20 Balas de Honda.",
+    "equipment_categories": [
+      {
+        "index": "adventuring-gear",
+        "name": "Equipo de Aventurero"
+      }
+    ],
+    "cost": {
+      "quantity": 5,
+      "unit": "pp"
+    },
+    "weight": 1
+  },
+  {
     "index": "case-map-or-scroll",
     "name": "Caja, Mapa o Pergamino",
     "equipment_categories": [

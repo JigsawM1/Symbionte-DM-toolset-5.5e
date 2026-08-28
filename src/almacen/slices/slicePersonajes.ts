@@ -6,6 +6,7 @@ import type {
   Habilidad,
   GradoCompetencia,
   ObjetoInventario,
+  ObjetoJuego,
   BolsaMonedas,
   TipoMonedaClave,
   TipoContenedor
@@ -14,7 +15,7 @@ import { PERSONAJE_POR_DEFECTO } from "@/constantes";
 import { generarId } from "@/utiles/generarId";
 import { ejecutarDescansoCorto, ejecutarDescansoLargo } from "@/servicios/procesadorDescansos";
 import { aplicarCondicion, quitarCondicion } from "@/servicios/procesadorCondiciones";
-import { contarSintonizaciones } from "@/servicios/calculadorInventario";
+import { contarSintonizaciones, desempaquetarPaqueteInventario } from "@/servicios/calculadorInventario";
 import {
   calcularTodosRecursosMagicos,
   detectarTipoLanzador,
@@ -138,8 +139,10 @@ export interface SlicePersonajes {
   alternarEquipadoObjeto: (idPj: string, idInstancia: string) => void;
   alternarSintonizadoObjeto: (idPj: string, idInstancia: string) => void;
   actualizarNotasObjeto: (idPj: string, idInstancia: string, notas: string) => void;
+  actualizarObjetoInventario: (idPj: string, idInstancia: string, cambios: Partial<ObjetoInventario>) => void;
   modificarCargasObjeto: (idPj: string, idInstancia: string, delta: number) => void;
   cambiarContenedorObjeto: (idPj: string, idInstancia: string, contenedor: TipoContenedor) => void;
+  desempaquetarPaquete: (idPj: string, idInstancia: string, baseDatosObjetos: ObjetoJuego[]) => void;
   establecerMonedas: (idPj: string, monedas: Partial<BolsaMonedas>) => void;
   modificarMoneda: (idPj: string, tipo: TipoMonedaClave, delta: number) => void;
 }
@@ -1031,6 +1034,15 @@ export const crearSlicePersonajes: StateCreator<
     }));
   },
 
+  actualizarObjetoInventario: (idPj, idInstancia, cambios) => {
+    mutarPersonaje(set, idPj, (pj) => ({
+      ...pj,
+      inventario: (pj.inventario || []).map((o) =>
+        o.idInstancia === idInstancia ? { ...o, ...cambios } : o
+      )
+    }));
+  },
+
   modificarCargasObjeto: (idPj, idInstancia, delta) => {
     mutarPersonaje(set, idPj, (pj) => ({
       ...pj,
@@ -1057,6 +1069,13 @@ export const crearSlicePersonajes: StateCreator<
           equipado: desequipar ? false : o.equipado
         };
       })
+    }));
+  },
+
+  desempaquetarPaquete: (idPj, idInstancia, baseDatosObjetos) => {
+    mutarPersonaje(set, idPj, (pj) => ({
+      ...pj,
+      inventario: desempaquetarPaqueteInventario(pj.inventario || [], idInstancia, baseDatosObjetos)
     }));
   },
 

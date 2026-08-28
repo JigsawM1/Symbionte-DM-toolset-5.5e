@@ -1,0 +1,878 @@
+/* ==========================================================================
+   ModalDetalleObjetoInventario.module.css
+   Estética Táctica Dark Fantasy para la Inspección Detallada de Objetos
+   Alta densidad, jerarquía visual CEF y cero animaciones bloqueantes
+   ========================================================================== */
+
+.backdropModal {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.78);
+  backdrop-filter: blur(2px);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px;
+  box-sizing: border-box;
+}
+
+.ventanaModal {
+  width: 100%;
+  max-width: 540px;
+  background-color: #111622;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 8px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-sizing: border-box;
+  color: #f1f5f9;
+}
+
+/* Cabecera del Modal */
+.cabeceraModal {
+  padding: 10px 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: linear-gradient(180deg, #161e2c 0%, #111622 100%);
+  border-bottom: 1px solid rgba(148, 163, 184, 0.14);
+}
+
+.grupoTitulo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.iconoTipo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.tituloModal {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 800;
+  color: #f8fafc;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.filaSubtitulo {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 2px;
+  flex-wrap: wrap;
+}
+
+.textoSubtitulo {
+  font-size: 11px;
+  color: #94a3b8;
+}
+
+.botonCerrar {
+  background: transparent;
+  border: 1px solid transparent;
+  color: #94a3b8;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+}
+
+.botonCerrar:hover {
+  color: #f87171;
+  background-color: rgba(239, 68, 68, 0.15);
+  border-color: rgba(239, 68, 68, 0.3);
+}
+
+/* Badges de Meta y Rarezas */
+.badgeMeta {
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  padding: 1px 6px;
+  border-radius: 3px;
+}
+
+.rarezaComun {
+  background-color: #1a2230;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  color: #94a3b8;
+}
+
+.rarezaPocoComun {
+  background-color: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  color: #6ee7b7;
+}
+
+.rarezaRaro {
+  background-color: rgba(96, 165, 250, 0.12);
+  border: 1px solid rgba(96, 165, 250, 0.35);
+  color: #93c5fd;
+}
+
+.rarezaMuyRaro {
+  background-color: rgba(168, 85, 247, 0.12);
+  border: 1px solid rgba(168, 85, 247, 0.35);
+  color: #d8b4fe;
+}
+
+.rarezaLegendario {
+  background-color: rgba(251, 191, 36, 0.12);
+  border: 1px solid rgba(251, 191, 36, 0.35);
+  color: #fde68a;
+}
+
+.rarezaArtefacto {
+  background-color: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  color: #fca5a5;
+}
+
+/* Cuerpo con Scroll */
+.cuerpoModal {
+  max-height: 75vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px;
+  box-sizing: border-box;
+}
+
+/* Grid de Métricas Principales */
+.gridMetricas {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+  gap: 8px;
+  background-color: rgba(15, 23, 42, 0.75);
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid rgba(148, 163, 184, 0.15);
+}
+
+.cajaMetrica {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.etiquetaMetrica {
+  font-size: 9.5px;
+  color: #94a3b8;
+  text-transform: uppercase;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.valorMetrica {
+  font-size: 12px;
+  font-weight: 800;
+  color: #f8fafc;
+}
+
+.valorMetricaOro {
+  color: #fbbf24;
+}
+
+.valorMetricaAzul {
+  color: #38bdf8;
+}
+
+.valorMetricaRojo {
+  color: #f87171;
+}
+
+.valorMetricaVerde {
+  color: #34d399;
+}
+
+.valorMetricaMorado {
+  color: #c084fc;
+}
+
+.subtextoMetrica {
+  font-size: 10px;
+  color: #64748b;
+  font-weight: 400;
+  margin-left: 4px;
+}
+
+/* Secciones de Datos (Armas, Armaduras, Mágico) */
+.seccionDatosGenerales {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background-color: rgba(15, 23, 42, 0.4);
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid rgba(148, 163, 184, 0.15);
+}
+
+.seccionArma {
+  border-color: rgba(248, 113, 113, 0.25);
+}
+
+.seccionArmadura {
+  border-color: rgba(96, 165, 250, 0.25);
+}
+
+.seccionMagico {
+  border-color: rgba(168, 85, 247, 0.25);
+}
+
+.filaBadges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+
+.badgeArmaAtaque {
+  background-color: rgba(248, 113, 113, 0.15);
+  color: #fca5a5;
+  border: 1px solid rgba(248, 113, 113, 0.3);
+}
+
+.badgeArmaVersatil {
+  background-color: rgba(251, 191, 36, 0.15);
+  color: #fde047;
+  border: 1px solid rgba(251, 191, 36, 0.3);
+}
+
+.badgeArmaAlcance {
+  background-color: rgba(56, 189, 248, 0.15);
+  color: #7dd3fc;
+  border: 1px solid rgba(56, 189, 248, 0.3);
+}
+
+.badgeArmaMaestria {
+  background-color: rgba(168, 85, 247, 0.15);
+  color: #d8b4fe;
+  border: 1px solid rgba(168, 85, 247, 0.3);
+}
+
+.badgeArmaduraDes {
+  background-color: rgba(96, 165, 250, 0.15);
+  color: #93c5fd;
+  border: 1px solid rgba(96, 165, 250, 0.3);
+}
+
+.badgeArmaduraFue {
+  background-color: rgba(245, 158, 11, 0.15);
+  color: #fcd34d;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.badgeArmaduraSigilo {
+  background-color: rgba(239, 68, 68, 0.15);
+  color: #fca5a5;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.filaPropiedadesLista {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+.badgePropiedad {
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background-color: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #cbd5e1;
+}
+
+/* Sintonización y Cargas Interactivas */
+.filaInteractiva {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  border-radius: 6px;
+  background-color: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+}
+
+.filaInteractivaSintonizado {
+  border-color: rgba(168, 85, 247, 0.4);
+  background: linear-gradient(180deg, rgba(88, 28, 135, 0.15) 0%, rgba(11, 15, 22, 0.9) 100%);
+}
+
+.bloqueInfoInteractiva {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.textoInteractiva {
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+.textoInteractivaActivo {
+  color: #e9d5ff;
+}
+
+.botonAccionModal {
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  cursor: pointer;
+  border: 1px solid transparent;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.15s ease;
+}
+
+.botonSintonizar {
+  background-color: rgba(168, 85, 247, 0.2);
+  border-color: rgba(168, 85, 247, 0.5);
+  color: #d8b4fe;
+}
+
+.botonSintonizar:hover:not(:disabled) {
+  background-color: rgba(168, 85, 247, 0.35);
+  color: #ffffff;
+}
+
+.botonDesintonizar {
+  background-color: rgba(239, 68, 68, 0.2);
+  border-color: rgba(239, 68, 68, 0.5);
+  color: #fca5a5;
+}
+
+.botonDesintonizar:hover {
+  background-color: rgba(239, 68, 68, 0.35);
+  color: #ffffff;
+}
+
+.botonAccionModal:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* Selector de Contenedores */
+.seccionContenedor {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.tituloSeccion {
+  font-size: 11px;
+  font-weight: 800;
+  color: #f59e0b;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.tituloSeccionDescripcion {
+  color: #38bdf8;
+}
+
+.tituloSeccionContents {
+  color: #34d399;
+}
+
+.tituloSeccionPasivos {
+  color: #c084fc;
+}
+
+.tituloSeccionHechizos {
+  color: #a855f7;
+}
+
+.gridContenedores {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(115px, 1fr));
+  gap: 6px;
+  background-color: rgba(15, 23, 42, 0.5);
+  padding: 8px;
+  border-radius: 6px;
+  border: 1px solid rgba(148, 163, 184, 0.12);
+}
+
+.botonContenedor {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 8px;
+  border-radius: 4px;
+  background-color: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(148, 163, 184, 0.15);
+  color: #94a3b8;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  gap: 2px;
+}
+
+.botonContenedor:hover:not(:disabled) {
+  background-color: #1a2230;
+  border-color: rgba(148, 163, 184, 0.3);
+}
+
+.botonContenedor:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.botonContenedorActivo {
+  color: #ffffff;
+}
+
+.nombreContenedor {
+  font-size: 10px;
+  font-weight: 700;
+  color: #cbd5e1;
+}
+
+.subtextoContenedor {
+  font-size: 8.5px;
+  color: #94a3b8;
+}
+
+.subtextoContenedorExento {
+  color: #34d399;
+}
+
+.explicacionContenedor {
+  font-size: 10px;
+  color: #64748b;
+  padding: 0 4px;
+}
+
+/* Efectos Pasivos y Hechizos */
+.seccionBloque {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.cabeceraContents {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.listaItemsVertical {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.filaItemContenido {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 10px;
+  background-color: rgba(255, 255, 255, 0.03);
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  font-size: 11px;
+  color: #f1f5f9;
+}
+
+.cantidadItemContenido {
+  color: #38bdf8;
+}
+
+.filaEfectoPasivo {
+  padding: 6px 10px;
+  background-color: rgba(168, 85, 247, 0.08);
+  border-radius: 4px;
+  border: 1px solid rgba(168, 85, 247, 0.2);
+  font-size: 11px;
+  color: #e9d5ff;
+}
+
+.tarjetaHechizoVinculado {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 10px;
+  background-color: rgba(168, 85, 247, 0.08);
+  border-radius: 4px;
+  border: 1px solid rgba(168, 85, 247, 0.2);
+  font-size: 11px;
+  color: #e9d5ff;
+}
+
+.nombreHechizoVinculado {
+  font-weight: 700;
+  color: #f3e8ff;
+}
+
+.metaHechizoVinculado {
+  margin-left: 6px;
+  color: #cbd5e1;
+  font-size: 10px;
+}
+
+.botonLanzarHechizoModal {
+  padding: 2px 7px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background-color: rgba(168, 85, 247, 0.25);
+  border: 1px solid rgba(168, 85, 247, 0.6);
+  color: #f3e8ff;
+  transition: all 0.15s ease;
+}
+
+.botonLanzarHechizoModal:hover:not(:disabled) {
+  background-color: rgba(168, 85, 247, 0.45);
+  color: #ffffff;
+}
+
+.botonLanzarHechizoModal:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  background-color: rgba(100, 116, 139, 0.2);
+  border-color: rgba(100, 116, 139, 0.4);
+  color: #94a3b8;
+}
+
+/* Desempaquetado */
+.botonDesempaquetarModal {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 4px;
+  background: rgba(56, 189, 248, 0.15);
+  border: 1px solid rgba(56, 189, 248, 0.4);
+  color: #38bdf8;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.botonDesempaquetarModal:hover {
+  background: rgba(56, 189, 248, 0.3);
+  color: #ffffff;
+}
+
+/* Descripción y Notas */
+.cajaTextoDescripcion {
+  font-size: 12px;
+  color: #cbd5e1;
+  line-height: 1.6;
+  background-color: rgba(15, 23, 42, 0.5);
+  padding: 10px 12px;
+  border-radius: 6px;
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  white-space: pre-wrap;
+}
+
+.cabeceraNotas {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.textoGuardado {
+  font-size: 11px;
+  color: #34d399;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.textareaNotasModal {
+  width: 100%;
+  min-height: 60px;
+  background-color: #0b0f16;
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  border-radius: 6px;
+  padding: 6px 8px;
+  color: #f1f5f9;
+  font-size: 11px;
+  font-family: inherit;
+  resize: vertical;
+  box-sizing: border-box;
+}
+
+.textareaNotasModal:focus {
+  outline: none;
+  border-color: #f59e0b;
+}
+
+.botonGuardarNotas {
+  align-self: flex-end;
+  background-color: #1a2230;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  color: #cbd5e1;
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.botonGuardarNotas:hover {
+  background-color: #242f42;
+  border-color: #f59e0b;
+  color: #ffffff;
+}
+
+/* Pie del Modal */
+.pieModal {
+  padding: 10px 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #0d121c;
+  border-top: 1px solid rgba(148, 163, 184, 0.14);
+}
+
+.botonEquiparModal {
+  background: #1a2230;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  color: #cbd5e1;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.botonEquiparModal:hover {
+  background-color: #242f42;
+  border-color: #38bdf8;
+  color: #ffffff;
+}
+
+.botonDesequiparModal {
+  background: linear-gradient(180deg, #1e3a8a 0%, #172554 100%);
+  border: 1px solid #38bdf8;
+  color: #93c5fd;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.botonDesequiparModal:hover {
+  background: linear-gradient(180deg, #1d4ed8 0%, #1e3a8a 100%);
+  color: #ffffff;
+}
+
+.botonCerrarVisor {
+  background: #1a2230;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  color: #cbd5e1;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.botonCerrarVisor:hover {
+  background-color: #242f42;
+  color: #ffffff;
+}
+
+/* Nuevas Secciones Avanzadas de Objetos */
+.tituloSeccionVeneno {
+  color: #34d399;
+}
+
+.seccionVeneno {
+  background-color: rgba(16, 185, 129, 0.06);
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  border-radius: 6px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.badgeVenenoTipo {
+  background-color: rgba(16, 185, 129, 0.2);
+  color: #a7f3d0;
+  border: 1px solid rgba(16, 185, 129, 0.5);
+}
+
+.cajaTextoVeneno {
+  font-size: 11px;
+  color: #d1fae5;
+  line-height: 1.5;
+  background-color: rgba(6, 78, 59, 0.25);
+  padding: 8px 10px;
+  border-radius: 4px;
+  border-left: 3px solid #10b981;
+}
+
+.tituloSeccionArtesania {
+  color: #c084fc;
+}
+
+.seccionArtesania {
+  background-color: rgba(88, 28, 135, 0.08);
+  border: 1px solid rgba(168, 85, 247, 0.25);
+  border-radius: 6px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.filaArtesaniaMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 11px;
+  color: #cbd5e1;
+}
+
+.listaComponentesChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.chipComponente {
+  font-size: 10px;
+  background-color: rgba(168, 85, 247, 0.15);
+  border: 1px solid rgba(168, 85, 247, 0.4);
+  color: #f3e8ff;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.chipHerramientaCraft {
+  font-size: 10px;
+  background-color: rgba(56, 189, 248, 0.15);
+  border: 1px solid rgba(56, 189, 248, 0.4);
+  color: #e0f2fe;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.subtextoCondicionSintonizacion {
+  font-size: 10px;
+  color: #d8b4fe;
+  font-style: italic;
+  margin-top: 2px;
+}
+
+.badgeRecargaCargas {
+  font-size: 9.5px;
+  color: #fde68a;
+  background-color: rgba(251, 191, 36, 0.12);
+  border: 1px solid rgba(251, 191, 36, 0.3);
+  padding: 2px 6px;
+  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.badgeMagicoBono {
+  background-color: rgba(236, 72, 153, 0.15);
+  color: #fbcfe8;
+  border: 1px solid rgba(236, 72, 153, 0.4);
+}
+
+.badgeTiempoEquipar {
+  background-color: rgba(148, 163, 184, 0.12);
+  color: #cbd5e1;
+  border: 1px solid rgba(148, 163, 184, 0.25);
+}
+
+.badgeAmmunition {
+  background-color: rgba(56, 189, 248, 0.15);
+  color: #7dd3fc;
+  border: 1px solid rgba(56, 189, 248, 0.3);
+}
+
+.badgeStorage {
+  background-color: rgba(245, 158, 11, 0.15);
+  color: #fde68a;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.explicacionMaestria {
+  font-size: 10.5px;
+  color: #d8b4fe;
+  background-color: rgba(168, 85, 247, 0.08);
+  padding: 6px 8px;
+  border-radius: 4px;
+  border-left: 2px solid #a855f7;
+  line-height: 1.4;
+}
+
+/* Sección de Especialización / Mutación de Contenedor */
+.seccionEspecializacionContenedor {
+  background-color: rgba(30, 41, 59, 0.45);
+  border: 1px solid rgba(245, 158, 11, 0.25);
+  border-radius: 6px;
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  box-sizing: border-box;
+}
+
+.cabeceraEspecializacion {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.tituloEspecializacion {
+  font-size: 11px;
+  font-weight: 600;
+  color: #fbbf24;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.descripcionEspecializacion {
+  font-size: 10px;
+  color: #94a3b8;
+  line-height: 1.35;
+}
+

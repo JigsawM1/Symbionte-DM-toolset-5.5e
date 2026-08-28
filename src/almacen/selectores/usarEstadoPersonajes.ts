@@ -7,12 +7,13 @@
 
 import { useShallow } from 'zustand/react/shallow';
 import { usarAlmacenDM } from '@/almacen/usarAlmacenDM';
-import type { PersonajeJugador, Caracteristica, Habilidad } from '@/tipos';
+import type { PersonajeJugador, Caracteristica, Habilidad, EfectoPasivo } from '@/tipos';
 import {
   obtenerBonoCompetenciaPorNivel,
   MAPA_HABILIDAD_A_CARACTERISTICA
 } from '@/constantes';
 import { calcularModificadorCaracteristica } from '@/servicios/procesadorDescansos';
+import { OBJETOS_INICIALES } from '@/utiles/datosIniciales';
 
 export interface InformacionCA {
   total: number;
@@ -102,6 +103,60 @@ export function calcularEstadisticasPersonaje(pj: PersonajeJugador): Estadistica
   };
 
   const personalizacionesCarac = pj?.personalizacionesCaracteristicas || {};
+  const inventario = pj?.inventario || [];
+  const normalizar = (s: string) =>
+    s
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .trim();
+
+  // Mapeo tolerante de alias de características
+  const MAPA_ALIAS_CARAC: Record<string, Caracteristica> = {
+    fue: "fuerza",
+    fuerza: "fuerza",
+    str: "fuerza",
+    des: "destreza",
+    destreza: "destreza",
+    dex: "destreza",
+    con: "constitucion",
+    constitucion: "constitucion",
+    int: "inteligencia",
+    inteligencia: "inteligencia",
+    sab: "sabiduria",
+    sabiduria: "sabiduria",
+    wis: "sabiduria",
+    car: "carisma",
+    carisma: "carisma",
+    cha: "carisma"
+  };
+
+  // Recopilar efectos pasivos activos de objetos equipados y sintonizados
+  const efectosPasivosActivos: EfectoPasivo[] = [];
+  let bonosModificadorDirectoArmadura = 0;
+  const homebrews = usarAlmacenDM.getState?.()?.objetosHomebrew || [];
+
+  for (const item of inventario) {
+    if (!item.equipado) continue;
+    if (item.sintonizacionRequerida && !item.sintonizado) continue;
+
+    const objetoComp =
+      homebrews.find((b) => b.id === item.idObjeto || normalizar(b.nombre) === normalizar(item.nombre)) ||
+      OBJETOS_INICIALES.find((b) => b.id === item.idObjeto || normalizar(b.nombre) === normalizar(item.nombre));
+
+    const efectosDirectos = (item as any).efectosPasivos;
+    const efectosComp = objetoComp?.efectosPasivos;
+    const listaEfectos = Array.isArray(efectosDirectos) && efectosDirectos.length > 0 ? efectosDirectos : efectosComp;
+
+    if (listaEfectos && Array.isArray(listaEfectos)) {
+      efectosPasivosActivos.push(...listaEfectos);
+    }
+
+    const modDirecto = (item as any).modificadorAtaqueDano ?? objetoComp?.modificadorAtaqueDano;
+    if (modDirecto && item.tipoPrincipal === "Armadura") {
+      bonosModificadorDirectoArmadura += Number(modDirecto) || 0;
+    }
+  }
 
   const puntuacionesEfectivas: Record<Caracteristica, number> = {
     fuerza: personalizacionesCarac.fuerza?.valorFijo ?? overrides.fuerza ?? carac.fuerza ?? 10,
@@ -111,6 +166,24 @@ export function calcularEstadisticasPersonaje(pj: PersonajeJugador): Estadistica
     sabiduria: personalizacionesCarac.sabiduria?.valorFijo ?? overrides.sabiduria ?? carac.sabiduria ?? 10,
     carisma: personalizacionesCarac.carisma?.valorFijo ?? overrides.carisma ?? carac.carisma ?? 10
   };
+
+  // Aplicar bonos y overrides pasivos a características
+  for (const efecto of efectosPasivosActivos) {
+    const tipoNorm = normalizar(efecto.tipo || "");
+    if (tipoNorm.includes("caracteristica") || tipoNorm === "atributo") {
+      const caracClave = MAPA_ALIAS_CARAC[normalizar(efecto.bono || "")];
+      if (caracClave) {
+        const valNum = Number(efecto.valor);
+        if (!isNaN(valNum)) {
+          if (valNum >= 19) {
+            puntuacionesEfectivas[caracClave] = Math.max(puntuacionesEfectivas[caracClave], valNum);
+          } else {
+            puntuacionesEfectivas[caracClave] += valNum;
+          }
+        }
+      }
+    }
+  }
 
   const modificadores: Record<Caracteristica, number> = {
     fuerza: calcularModificadorCaracteristica(puntuacionesEfectivas.fuerza) + (personalizacionesCarac.fuerza?.modificadorExtra || 0),
@@ -138,6 +211,25 @@ export function calcularEstadisticasPersonaje(pj: PersonajeJugador): Estadistica
     sabiduria: modificadores.sabiduria + (compSalv.sabiduria ? bonoCompetencia : 0) + (personalizacionesCarac.sabiduria?.bonoSalvacionExtra || 0),
     carisma: modificadores.carisma + (compSalv.carisma ? bonoCompetencia : 0) + (personalizacionesCarac.carisma?.bonoSalvacionExtra || 0)
   };
+
+  // Aplicar bonos pasivos a tiradas de salvación
+  for (const efecto of efectosPasivosActivos) {
+    const tipoNorm = normalizar(efecto.tipo || "");
+    if (tipoNorm.includes("salvacion")) {
+      const bonoNorm = normalizar(efecto.bono || "");
+      const valNum = Number(efecto.valor) || 0;
+      if (bonoNorm === "todas" || bonoNorm === "universal" || bonoNorm === "todas las salvaciones") {
+        for (const k of Object.keys(salvaciones) as Caracteristica[]) {
+          salvaciones[k] += valNum;
+        }
+      } else {
+        const caracClave = MAPA_ALIAS_CARAC[bonoNorm];
+        if (caracClave) {
+          salvaciones[caracClave] += valNum;
+        }
+      }
+    }
+  }
 
   const habilidades = {} as Record<Habilidad, number>;
   const listaHabilidades = Object.keys(MAPA_HABILIDAD_A_CARACTERISTICA) as Habilidad[];
@@ -167,6 +259,25 @@ export function calcularEstadisticasPersonaje(pj: PersonajeJugador): Estadistica
     }
   }
 
+  // Aplicar bonos pasivos a habilidades
+  for (const efecto of efectosPasivosActivos) {
+    const tipoNorm = normalizar(efecto.tipo || "");
+    if (tipoNorm.includes("habilidad") || tipoNorm.includes("pericia")) {
+      const bonoNorm = normalizar(efecto.bono || "");
+      const valNum = Number(efecto.valor) || 0;
+      if (bonoNorm === "todas" || bonoNorm === "universal") {
+        for (const hab of listaHabilidades) {
+          habilidades[hab] += valNum;
+        }
+      } else {
+        const matchHab = listaHabilidades.find((h) => normalizar(h) === bonoNorm);
+        if (matchHab) {
+          habilidades[matchHab] += valNum;
+        }
+      }
+    }
+  }
+
   const pasivas = {
     percepcion: 10 + (habilidades.percepcion || 0),
     investigacion: 10 + (habilidades.investigacion || 0),
@@ -176,8 +287,6 @@ export function calcularEstadisticasPersonaje(pj: PersonajeJugador): Estadistica
   // ==========================================
   // CÁLCULO DE CLASE DE ARMADURA (CA - D&D 5.5e)
   // ==========================================
-  const inventario = pj?.inventario || [];
-  const normalizar = (s: string) => s.toLowerCase().trim();
 
   // 1. Identificar armadura corporal y escudo equipados
   const armaduraObj = inventario.find(
@@ -259,7 +368,7 @@ export function calcularEstadisticasPersonaje(pj: PersonajeJugador): Estadistica
     desglosePartes.push(`${escudoObj.nombre} +2`);
   }
 
-  // 3. Bonos Mágicos
+  // 3. Bonos Mágicos y Efectos Pasivos de CA
   let bonosMagicos = 0;
   if (armaduraObj?.esMagico && armaduraObj.nombre.includes("+")) {
     const match = armaduraObj.nombre.match(/\+(\d+)/);
@@ -276,6 +385,25 @@ export function calcularEstadisticasPersonaje(pj: PersonajeJugador): Estadistica
       bonosMagicos += b;
       desglosePartes.push(`Escudo Mágico +${b}`);
     }
+  }
+
+  let bonosPasivosCA = 0;
+  for (const efecto of efectosPasivosActivos) {
+    const tipoNorm = normalizar(efecto.tipo || "");
+    if (tipoNorm === "ca" || tipoNorm === "defensa" || tipoNorm === "clase de armadura") {
+      const valNum = Number(efecto.valor) || (efecto.bono && !isNaN(Number(efecto.bono)) ? Number(efecto.bono) : 1);
+      bonosPasivosCA += valNum;
+    }
+  }
+
+  if (bonosPasivosCA > 0) {
+    bonosMagicos += bonosPasivosCA;
+    desglosePartes.push(`Objetos Mágicos +${bonosPasivosCA}`);
+  }
+
+  if (bonosModificadorDirectoArmadura > 0 && !armaduraObj?.nombre.includes("+") && !escudoObj?.nombre.includes("+")) {
+    bonosMagicos += bonosModificadorDirectoArmadura;
+    desglosePartes.push(`Refuerzo Mágico +${bonosModificadorDirectoArmadura}`);
   }
 
   const totalCA = caBase + modDesAplicado + bonoEscudo + bonosMagicos;
@@ -383,8 +511,10 @@ export function usarAccionesPersonajes() {
       alternarEquipadoObjeto:             s.alternarEquipadoObjeto,
       alternarSintonizadoObjeto:          s.alternarSintonizadoObjeto,
       actualizarNotasObjeto:              s.actualizarNotasObjeto,
+      actualizarObjetoInventario:         s.actualizarObjetoInventario,
       modificarCargasObjeto:              s.modificarCargasObjeto,
       cambiarContenedorObjeto:            s.cambiarContenedorObjeto,
+      desempaquetarPaquete:               s.desempaquetarPaquete,
       establecerMonedas:                  s.establecerMonedas,
       modificarMoneda:                    s.modificarMoneda
     }))

@@ -252,8 +252,6 @@ export function sanearObjetoHomebrew(o: unknown): ObjetoHomebrew {
   // Propiedades mágicas y narrativas comunes
   const condicionSintonizacionSaneada = obj.condicionSintonizacion !== undefined ? aplanarValor(obj.condicionSintonizacion) : undefined;
   const formulaRecargaSaneada = obj.formulaRecarga !== undefined ? aplanarValor(obj.formulaRecarga) : undefined;
-  const estaMalditoSaneado = obj.estaMaldito !== undefined ? !!obj.estaMaldito : undefined;
-  const esConscienteSaneado = obj.esConsciente !== undefined ? !!obj.esConsciente : undefined;
   const modificadorAtaqueDanoSaneado = obj.modificadorAtaqueDano !== undefined && obj.modificadorAtaqueDano !== ""
     ? (Number(obj.modificadorAtaqueDano) || undefined)
     : undefined;
@@ -330,7 +328,6 @@ export function sanearObjetoHomebrew(o: unknown): ObjetoHomebrew {
 
   const esVenenoSaneado = obj.esVeneno !== undefined ? !!obj.esVeneno : undefined;
   const tipoVenenoSaneado = obj.tipoVeneno ? (aplanarValor(obj.tipoVeneno) as "Contacto" | "Ingerido" | "Inhalado" | "Lesión") : undefined;
-  const cdSalvacionVenenoSaneado = obj.cdSalvacionVeneno !== undefined && obj.cdSalvacionVeneno !== "" ? (Number(obj.cdSalvacionVeneno) || undefined) : undefined;
   const efectoVenenoSaneado = obj.efectoVeneno !== undefined ? aplanarValor(obj.efectoVeneno) : undefined;
 
   // Extraer ammunition relacional
@@ -388,6 +385,15 @@ export function sanearObjetoHomebrew(o: unknown): ObjetoHomebrew {
     }).filter((c: any) => c.index && c.name);
   }
 
+  // Extraer quantity (unidades por pack/lote en el compendio)
+  const quantitySaneada = obj.quantity !== undefined && obj.quantity !== ""
+    ? (Number(obj.quantity) || undefined)
+    : undefined;
+
+  const pesoUnitarioSaneado = quantitySaneada && quantitySaneada > 1 && pesoSaneado > 0
+    ? Math.round((pesoSaneado / quantitySaneada) * 1000) / 1000
+    : (pesoSaneado > 0 ? pesoSaneado : undefined);
+
   // Estructura base común
   const baseObjeto = {
     id: idSaneado,
@@ -395,21 +401,20 @@ export function sanearObjetoHomebrew(o: unknown): ObjetoHomebrew {
     nombreNormalizado: normalizarTexto(nombreSaneado),
     descripcion: descSaneada,
     pesoLb: pesoSaneado,
+    pesoUnitario: pesoUnitarioSaneado,
+    quantity: quantitySaneada,
     valorPO: valorSaneado,
     rareza: rarezaSaneada,
     esMagico: esMagicoSaneado,
     costoOriginal: costoOriginalSaneado,
     esVeneno: esVenenoSaneado,
     tipoVeneno: tipoVenenoSaneado,
-    cdSalvacionVeneno: cdSalvacionVenenoSaneado,
     efectoVeneno: efectoVenenoSaneado,
     equipable: equipableSaneado,
     sintonizacionRequerida: sintonizacionRequeridaSaneada,
     cargas: cargasSaneadas,
     condicionSintonizacion: condicionSintonizacionSaneada,
     formulaRecarga: formulaRecargaSaneada,
-    estaMaldito: estaMalditoSaneado,
-    esConsciente: esConscienteSaneado,
     modificadorAtaqueDano: modificadorAtaqueDanoSaneado,
     efectosPasivos: efectosPasivosSaneados,
     hechizosVinculados: hechizosVinculadosSaneados,

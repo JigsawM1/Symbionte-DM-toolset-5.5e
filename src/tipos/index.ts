@@ -265,7 +265,6 @@ export const EsquemaObjetoBase = z.object({
   }).optional(),
   esVeneno: z.boolean().optional(),
   tipoVeneno: z.enum(["Contacto", "Ingerido", "Inhalado", "Lesión"]).optional(),
-  cdSalvacionVeneno: z.number().optional(),
   efectoVeneno: z.string().optional(),
   equipable: z.boolean().default(false),
 
@@ -274,8 +273,6 @@ export const EsquemaObjetoBase = z.object({
   cargas: z.number().optional(),
   condicionSintonizacion: z.string().optional(),
   formulaRecarga: z.string().optional(),
-  estaMaldito: z.boolean().optional(),
-  esConsciente: z.boolean().optional(),
   modificadorAtaqueDano: z.number().optional(),
   efectosPasivos: z.array(EsquemaEfectoPasivo).optional(),
   hechizosVinculados: z.array(EsquemaHechizoVinculado).optional(),
@@ -286,6 +283,8 @@ export const EsquemaObjetoBase = z.object({
   // Campos relacionales y estructurados adicionales para compendio
   ammunition: z.object({ index: z.string(), name: z.string() }).optional(),
   storage: z.object({ index: z.string(), name: z.string() }).optional(),
+  quantity: z.number().optional(),
+  pesoUnitario: z.number().optional(),
   contents: z.array(z.object({
     item: z.object({ index: z.string(), name: z.string() }),
     quantity: z.number()

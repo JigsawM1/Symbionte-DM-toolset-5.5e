@@ -28,10 +28,6 @@ interface Props {
   setOCargas: (cargas: number | "") => void;
   oFormulaRecarga: string;
   setOFormulaRecarga: (formula: string) => void;
-  oEstaMaldito: boolean;
-  setOEstaMaldito: (maldito: boolean) => void;
-  oEsConsciente: boolean;
-  setOEsConsciente: (consciente: boolean) => void;
   oModificadorAtaqueDano: number | "";
   setOModificadorAtaqueDano: (mod: number | "") => void;
   // Efectos Pasivos
@@ -73,10 +69,6 @@ export const SeccionEfectosPasivos: React.FC<Props> = ({
   setOCargas,
   oFormulaRecarga,
   setOFormulaRecarga,
-  oEstaMaldito,
-  setOEstaMaldito,
-  oEsConsciente,
-  setOEsConsciente,
   oModificadorAtaqueDano,
   setOModificadorAtaqueDano,
   oEfectosPasivos,
@@ -158,63 +150,51 @@ export const SeccionEfectosPasivos: React.FC<Props> = ({
                   type="text"
                   value={oCondicionSintonizacion}
                   onChange={(e) => setOCondicionSintonizacion(e.target.value)}
-                  placeholder="Ej. por un Mago o Elfo, alineamiento bueno..."
+                  placeholder="Ej. Por un hechicero, mago o brujo..."
                   className={estilos.inputForm}
                 />
               </div>
             )}
+          </div>
 
-            {oCargas !== "" && oCargas > 0 && (
-              <div className={estilos.campoForm} style={{ marginTop: "10px" }}>
-                <label className={estilos.labelForm}>Fórmula de Recarga de Cargas:</label>
+          <div className={estilos.filaDobleForm}>
+            <div className={estilos.campoForm}>
+              <label className={estilos.labelForm}>Cargas Máximas (Opcional):</label>
+              <input
+                type="number"
+                min="0"
+                value={oCargas}
+                onChange={(e) => setOCargas(e.target.value === "" ? "" : parseInt(e.target.value) || "")}
+                placeholder="Ej. 7"
+                className={estilos.inputForm}
+              />
+            </div>
+
+            {oCargas !== "" && Number(oCargas) > 0 && (
+              <div className={estilos.campoForm}>
+                <label className={estilos.labelForm}>Fórmula de Recarga (Opcional):</label>
                 <input
                   type="text"
                   value={oFormulaRecarga}
                   onChange={(e) => setOFormulaRecarga(e.target.value)}
-                  placeholder="Ej. 1d6+1 al amanecer..."
+                  placeholder="Ej. 1d6 + 1 cada amanecer"
                   className={estilos.inputForm}
                 />
               </div>
             )}
+          </div>
 
-            <div className={estilos.filaDobleForm} style={{ marginTop: "10px", borderTop: "1px dashed rgba(255,255,255,0.05)", paddingTop: "10px" }}>
-              <div className={estilos.campoForm} style={{ justifyContent: "center" }}>
-                <label className={estilos.labelCheckbox}>
-                  <input
-                    type="checkbox"
-                    checked={oEstaMaldito}
-                    onChange={(e) => setOEstaMaldito(e.target.checked)}
-                    className={estilos.checkMini}
-                  />
-                  <span style={{ color: "var(--color-peligro)", fontWeight: "bold" }}>Objeto Maldito (Curse)</span>
-                </label>
-              </div>
-
-              <div className={estilos.campoForm} style={{ justifyContent: "center" }}>
-                <label className={estilos.labelCheckbox}>
-                  <input
-                    type="checkbox"
-                    checked={oEsConsciente}
-                    onChange={(e) => setOEsConsciente(e.target.checked)}
-                    className={estilos.checkMini}
-                  />
-                  <span style={{ color: "var(--color-borde-cian)" }}>Objeto Consciente (Sentient)</span>
-                </label>
-              </div>
-            </div>
-
-            <div className={estilos.campoForm} style={{ marginTop: "10px", borderTop: "1px dashed rgba(255,255,255,0.05)", paddingTop: "10px" }}>
-              <label className={estilos.labelForm}>Modificador Mágico Directo (Ataque, Daño o Defensa):</label>
-              <input
-                type="number"
-                value={oModificadorAtaqueDano}
-                onChange={(e) => setOModificadorAtaqueDano(e.target.value === "" ? "" : parseInt(e.target.value))}
-                placeholder="Ej. 1 para un objeto +1..."
-                className={estilos.inputForm}
-                min={-5}
-                max={10}
-              />
-            </div>
+          <div className={estilos.campoForm} style={{ marginTop: "10px", borderTop: "1px dashed rgba(255,255,255,0.05)", paddingTop: "10px" }}>
+            <label className={estilos.labelForm}>Modificador Mágico Directo (Ataque, Daño o Defensa):</label>
+            <input
+              type="number"
+              value={oModificadorAtaqueDano}
+              onChange={(e) => setOModificadorAtaqueDano(e.target.value === "" ? "" : parseInt(e.target.value))}
+              placeholder="Ej. 1 para un objeto +1..."
+              className={estilos.inputForm}
+              min={-5}
+              max={10}
+            />
           </div>
 
           {/* EFECTOS PASIVOS Y BONOS */}

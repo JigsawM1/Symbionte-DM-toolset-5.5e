@@ -178,47 +178,6 @@ export const ModalAgregarObjeto: React.FC<ModalAgregarObjetoProps> = ({
     e.preventDefault();
     if (!objetoSeleccionado) return;
 
-    // Si es un paquete de equipo con contenido interno, desempaquetar cada elemento
-    if (objetoSeleccionado.contents && objetoSeleccionado.contents.length > 0) {
-      const normalizar = (s: string) => s.toLowerCase().trim();
-      const listaDesempaquetada: ObjetoInventario[] = [];
-
-      objetoSeleccionado.contents.forEach((c) => {
-        const itemQty = (Number(c.quantity) || 1) * Math.max(1, cantidadCompendio || 1);
-        const refIndex = c.item.index;
-        const refName = c.item.name;
-
-        // Buscar en la base de datos completa de objetos
-        const encontrado = baseDatosObjetos.find(
-          (o) => o.id === refIndex || normalizar(o.nombre) === normalizar(refName)
-        );
-
-        if (encontrado) {
-          listaDesempaquetada.push(
-            crearObjetoInventarioDesdeCompendio(encontrado, itemQty)
-          );
-        } else {
-          listaDesempaquetada.push(
-            crearObjetoInventarioCustom({
-              nombre: refName,
-              cantidad: itemQty,
-              pesoLb: 0,
-              tipoPrincipal: "Equipo de Aventuras",
-              rareza: "Común",
-              equipable: false,
-              sintonizacionRequerida: false,
-              esMagico: false,
-              notas: `Contenido de ${objetoSeleccionado.nombre}`
-            })
-          );
-        }
-      });
-
-      alAgregarObjeto(listaDesempaquetada);
-      alCerrar();
-      return;
-    }
-
     const nuevoObj = crearObjetoInventarioDesdeCompendio(
       objetoSeleccionado,
       cantidadCompendio
@@ -366,9 +325,21 @@ export const ModalAgregarObjeto: React.FC<ModalAgregarObjetoProps> = ({
                   </span>
                 </div>
 
-                <div style={{ display: "flex", gap: 10, fontSize: 10, color: "#94a3b8", alignItems: "center" }}>
-                  <span>Peso: <strong style={{ color: "#f1f5f9" }}>{objetoSeleccionado.pesoLb || 0} lb</strong></span>
+                <div style={{ display: "flex", gap: 10, fontSize: 10, color: "#94a3b8", alignItems: "center", flexWrap: "wrap" }}>
+                  <span>
+                    Peso: <strong style={{ color: "#f1f5f9" }}>{objetoSeleccionado.pesoLb || 0} lb</strong>
+                    {objetoSeleccionado.quantity && objetoSeleccionado.quantity > 1 && (
+                      <span style={{ color: "#38bdf8", marginLeft: 4 }}>
+                        ({objetoSeleccionado.pesoUnitario || Math.round(((objetoSeleccionado.pesoLb || 0) / objetoSeleccionado.quantity) * 1000) / 1000} lb c/u)
+                      </span>
+                    )}
+                  </span>
                   <span>Valor: <strong style={{ color: "#fbbf24" }}>{objetoSeleccionado.valorPO || 0} PO</strong></span>
+                  {objetoSeleccionado.quantity && objetoSeleccionado.quantity > 1 && (
+                    <span style={{ color: "#34d399", fontWeight: 700 }}>
+                      Viene en lote de {objetoSeleccionado.quantity} uds (Se añadirán: {objetoSeleccionado.quantity * (cantidadCompendio || 1)})
+                    </span>
+                  )}
                   {objetoSeleccionado.sintonizacionRequerida && (
                     <span style={{ color: "#c084fc", display: "inline-flex", alignItems: "center", gap: 3 }}>
                       <Sparkles size={11} />
@@ -387,7 +358,7 @@ export const ModalAgregarObjeto: React.FC<ModalAgregarObjetoProps> = ({
                 {objetoSeleccionado.contents && objetoSeleccionado.contents.length > 0 && (
                   <div style={{ marginTop: 6, display: "flex", flexDirection: "column", gap: 4, backgroundColor: "rgba(16, 185, 129, 0.08)", padding: "8px 10px", borderRadius: 4, border: "1px solid rgba(16, 185, 129, 0.25)" }}>
                     <span style={{ fontSize: 10.5, fontWeight: 700, color: "#34d399", display: "flex", alignItems: "center", gap: 4 }}>
-                      <Package size={12} /> Paquete con {objetoSeleccionado.contents.length} objetos (Se desempaquetarán en el inventario):
+                      <Package size={12} /> Paquete con {objetoSeleccionado.contents.length} objetos (Podrás abrirlo o desempaquetarlo desde tu inventario):
                     </span>
                     <div style={{ maxHeight: 80, overflowY: "auto", display: "flex", flexDirection: "column", gap: 2 }}>
                       {objetoSeleccionado.contents.map((item, idx) => (

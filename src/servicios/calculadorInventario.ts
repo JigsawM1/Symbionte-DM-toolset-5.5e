@@ -268,24 +268,40 @@ export function puedeSintonizar(
 
 /**
  * Factory para crear una instancia de inventario a partir de un ObjetoJuego del compendio.
+ * Si el objeto en el compendio se adquiere en lote/pack (ej. Flechas ×20, Balas ×20, Agujas ×50),
+ * se asigna la cantidad individual total (lotes * unidadesPorLote) y el peso unitario real por ítem.
  */
 export function crearObjetoInventarioDesdeCompendio(
   objetoJuego: ObjetoJuego,
-  cantidad: number = 1
+  cantidadLotes: number = 1
 ): ObjetoInventario {
   const rarezaValida: Rareza = (objetoJuego.rareza as Rareza) || "Común";
   const cargas = objetoJuego.cargas !== undefined ? Number(objetoJuego.cargas) : undefined;
+
+  const unidadesPorLote =
+    objetoJuego.quantity && objetoJuego.quantity > 1
+      ? Number(objetoJuego.quantity)
+      : 1;
+
+  const cantidadTotal = Math.max(1, Math.floor(cantidadLotes * unidadesPorLote));
+
+  const pesoUnitarioReal =
+    objetoJuego.pesoUnitario !== undefined
+      ? objetoJuego.pesoUnitario
+      : unidadesPorLote > 1 && (objetoJuego.pesoLb || 0) > 0
+      ? Math.round(((objetoJuego.pesoLb || 0) / unidadesPorLote) * 1000) / 1000
+      : Number(objetoJuego.pesoLb) || 0;
 
   return {
     idInstancia: generarId("inv"),
     idObjeto: objetoJuego.id,
     nombre: objetoJuego.nombre,
-    cantidad: Math.max(1, Math.floor(cantidad)),
+    cantidad: cantidadTotal,
     equipado: false,
     sintonizado: false,
     notas: "",
     contenedor: "mochila",
-    pesoLb: Number(objetoJuego.pesoLb) || 0,
+    pesoLb: pesoUnitarioReal,
     tipoPrincipal: objetoJuego.tipoPrincipal,
     esMagico: Boolean(objetoJuego.esMagico),
     rareza: rarezaValida,
@@ -334,3 +350,90 @@ export function crearObjetoInventarioCustom(datos: {
     cargasActuales: cargas
   };
 }
+
+/**
+ * Desempaqueta un paquete de equipo (ej. Paquete de Explorador, Carcaj) extrayendo
+ * todos sus contenidos (`contents`) hacia la mochila y eliminando el paquete abstracto
+ * original para no duplicar peso ni generar ítems residuales.
+ */
+export function desempaquetarPaqueteInventario(
+  inventarioActual: ObjetoInventario[],
+  idInstancia: string,
+  baseDatosObjetos: ObjetoJuego[]
+): ObjetoInventario[] {
+  const objTarget = inventarioActual.find((o) => o.idInstancia === idInstancia);
+  if (!objTarget) return inventarioActual;
+
+  const normalizar = (s: string) =>
+    s
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .trim();
+
+  // Buscar objeto en la base de datos compendio
+  const objetoCompendio = baseDatosObjetos.find(
+    (b) =>
+      b.id === objTarget.idObjeto ||
+      normalizar(b.nombre) === normalizar(objTarget.nombre)
+  );
+
+  const contents = objetoCompendio?.contents || (objTarget as any).contents;
+  if (!Array.isArray(contents) || contents.length === 0) {
+    return inventarioActual;
+  }
+
+  const cantidadPaquetes = Math.max(1, objTarget.cantidad || 1);
+  let nuevoInventario = inventarioActual.filter((o) => o.idInstancia !== idInstancia);
+
+  for (const c of contents) {
+    if (!c || !c.item) continue;
+    const itemIndex = c.item.index || "";
+    const itemName = c.item.name || "";
+    const itemQty = (Number(c.quantity) || 1) * cantidadPaquetes;
+
+    // Buscar si existe el ítem en la base de datos de objetos
+    const itemComp = baseDatosObjetos.find(
+      (b) =>
+        (itemIndex && b.id === itemIndex) ||
+        normalizar(b.nombre) === normalizar(itemName)
+    );
+
+    let nuevoObj: ObjetoInventario;
+    if (itemComp) {
+      nuevoObj = crearObjetoInventarioDesdeCompendio(itemComp, itemQty);
+    } else {
+      nuevoObj = crearObjetoInventarioCustom({
+        nombre: itemName,
+        cantidad: itemQty
+      });
+    }
+
+    // Fusionar con stack existente en mochila si coincide
+    const indiceExistente = nuevoInventario.findIndex(
+      (o) =>
+        !o.equipado &&
+        (o.contenedor || "mochila") === "mochila" &&
+        ((o.idObjeto &&
+          nuevoObj.idObjeto &&
+          !o.idObjeto.startsWith("obj_custom") &&
+          !nuevoObj.idObjeto.startsWith("obj_custom") &&
+          o.idObjeto === nuevoObj.idObjeto) ||
+          (normalizar(o.nombre) === normalizar(nuevoObj.nombre) &&
+            o.tipoPrincipal === nuevoObj.tipoPrincipal))
+    );
+
+    if (indiceExistente !== -1) {
+      nuevoInventario = nuevoInventario.map((o, idx) =>
+        idx === indiceExistente
+          ? { ...o, cantidad: (o.cantidad || 1) + itemQty }
+          : o
+      );
+    } else {
+      nuevoInventario.push(nuevoObj);
+    }
+  }
+
+  return nuevoInventario;
+}
+

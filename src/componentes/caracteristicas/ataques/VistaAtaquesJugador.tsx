@@ -23,12 +23,13 @@ import { FichaHechizo } from "@/componentes/caracteristicas/compendio/FichaHechi
 import { lanzarDadosTaleSpire, sanitizarEtiqueta } from "@/utiles/lanzadorDados";
 import { calcularBonoAtaqueConjuro, gastarRecursoLanzamientoConjuro } from "@/servicios/calculadorMagia";
 import { detectarInfoConsumible, evaluarFormulaDados, esObjetoConsumible } from "@/servicios/procesadorConsumibles";
+import { resolverEstadoMunicionArma, esMunicionCompatibleConArma } from "@/servicios/gestorMunicion";
 import { desduplicarEntidades } from "@/utiles/busquedaTolerante";
 import { COSTE_PUNTOS_POR_NIVEL } from "@/constantes";
-import type { Arma, ObjetoJuego, HechizoBase, Caracteristica } from "@/tipos";
+import type { Arma, ObjetoJuego, HechizoBase, Caracteristica, HechizoVinculado } from "@/tipos";
 import { SelectorDesplegable } from "@/componentes/comunes";
 import { usarEstadoPersistido } from "@/hooks";
-import { Swords, Sparkles, UserCheck, FlaskConical, ChevronDown, ChevronRight } from "lucide-react";
+import { Swords, Sparkles, UserCheck, FlaskConical, ChevronDown, ChevronRight, Zap } from "lucide-react";
 import estilos from "./VistaAtaquesJugador.module.css";
 
 type FiltroAccion = "todas" | "accion" | "accionAdicional" | "reaccion";
@@ -47,6 +48,7 @@ export const VistaAtaquesJugador: React.FC = () => {
     gastarEspacioPacto,
     establecerConcentracion,
     modificarCantidadObjeto,
+    modificarCargasObjeto,
     aplicarCuracionPersonaje
   } = usarAccionesPersonajes();
 
@@ -252,6 +254,19 @@ export const VistaAtaquesJugador: React.FC = () => {
         alcanceStr = `${objetoCompendio.alcanceNormal}/${objetoCompendio.alcanceLargo || objetoCompendio.alcanceNormal} ft`;
       }
 
+      // Detección estricta de compatibilidad de munición y contenedor
+      const estadoMunicion = resolverEstadoMunicionArma(armaInst.nombre, propiedades, inventario, baseDatosObjetos);
+      const requiereMunicion = estadoMunicion.requiereMunicion;
+      const municionNombre = estadoMunicion.nombreMunicionEsperada;
+      const municionCantidad = estadoMunicion.municionDisponibleCantidad;
+      const nombreContenedor = estadoMunicion.tieneContenedorEnInventario ? estadoMunicion.nombreContenedorDetectado : undefined;
+      const tieneContenedor = estadoMunicion.tieneContenedorEnInventario;
+      const municionEnContenedor = estadoMunicion.municionEnContenedor;
+      const municionSueltEnMochila = estadoMunicion.municionSueltEnMochila;
+      const municionEnCompartimentosExternos = estadoMunicion.municionEnCompartimentosExternos;
+      const puedeDisparar = estadoMunicion.puedeDisparar;
+      const motivoBloqueo = estadoMunicion.motivoBloqueo;
+
       ataques.push({
         id: armaInst.idInstancia,
         nombre: armaInst.nombre,
@@ -271,7 +286,17 @@ export const VistaAtaquesJugador: React.FC = () => {
         propiedades,
         maestria: objetoCompendio?.maestria,
         esMagico: esMagicoReal,
-        tieneTiradaAtaque: true
+        tieneTiradaAtaque: true,
+        requiereMunicion,
+        municionNombre,
+        municionCantidad,
+        nombreContenedor,
+        tieneContenedor,
+        municionEnContenedor,
+        municionSueltEnMochila,
+        municionEnCompartimentosExternos,
+        puedeDisparar,
+        motivoBloqueo
       });
     }
 
@@ -398,6 +423,53 @@ export const VistaAtaquesJugador: React.FC = () => {
     return resultado;
   }, [personajeActivo]);
 
+  // Hechizos vinculados a Objetos Mágicos equipados y sintonizados
+  const hechizosObjetosMagicos = useMemo(() => {
+    if (!personajeActivo) return [];
+    const inventario = personajeActivo.inventario || [];
+    const normalizar = (s: string) => s.toLowerCase().trim();
+    const lista: {
+      objetoInstanciaId: string;
+      objetoNombre: string;
+      cargasActuales: number;
+      cargasMaximas: number;
+      hechizo: HechizoVinculado;
+      tipoAccion: TipoAccionConsumida;
+    }[] = [];
+
+    for (const obj of inventario) {
+      if (!obj.equipado) continue;
+      if (obj.sintonizacionRequerida && !obj.sintonizado) continue;
+
+      const objComp =
+        objetosHomebrew.find((b) => b.id === obj.idObjeto || normalizar(b.nombre) === normalizar(obj.nombre)) ||
+        OBJETOS_INICIALES.find((b) => b.id === obj.idObjeto || normalizar(b.nombre) === normalizar(obj.nombre));
+
+      const hechizos = (obj as Record<string, unknown>).hechizosVinculados || objComp?.hechizosVinculados;
+      if (hechizos && Array.isArray(hechizos)) {
+        const cMax = obj.cargasMaximas ?? ((objComp as Record<string, unknown>)?.cargasMaximas as number | undefined) ?? 0;
+        const cAct = obj.cargasActuales ?? cMax;
+        for (const h of hechizos as HechizoVinculado[]) {
+          let tipoAccion: TipoAccionConsumida = "accion";
+          const hTipoAccion = (h as Record<string, unknown>).tipoAccion as string | undefined;
+          const taNorm = normalizar(hTipoAccion || "");
+          if (taNorm.includes("adicional") || taNorm.includes("bonus")) tipoAccion = "accionAdicional";
+          else if (taNorm.includes("reaccion") || taNorm.includes("reacción")) tipoAccion = "reaccion";
+
+          lista.push({
+            objetoInstanciaId: obj.idInstancia,
+            objetoNombre: obj.nombre,
+            cargasActuales: cAct,
+            cargasMaximas: cMax,
+            hechizo: h,
+            tipoAccion
+          });
+        }
+      }
+    }
+    return lista;
+  }, [personajeActivo, objetosHomebrew]);
+
   // Manejadores de Tiradas para Armas y Ataques Físicos
   const manejarTirarAtaque = async (ataque: AtaquePersonajeCalculado) => {
     try {
@@ -405,6 +477,30 @@ export const VistaAtaquesJugador: React.FC = () => {
       const bonoStr = ataque.bonoAtaque >= 0 ? `+${ataque.bonoAtaque}` : `${ataque.bonoAtaque}`;
       const formulaDados = `!Ataque ${sanitizarEtiqueta(ataque.nombre)}:1d20${bonoStr}`;
       const etiquetaLog = `${nombrePj} - Ataque con ${ataque.nombre}`;
+
+      // Descontar munición compatible si el arma la requiere (estrictamente desde contenedor de la mochila)
+      if (ataque.requiereMunicion && personajeActivo) {
+        const inv = personajeActivo.inventario || [];
+        const estadoActual = resolverEstadoMunicionArma(ataque.nombre, ataque.propiedades, inv, baseDatosObjetos);
+
+        if (!estadoActual.puedeDisparar || estadoActual.municionEnContenedor <= 0) {
+          agregarNotificacion(
+            estadoActual.motivoBloqueo || `¡No puedes disparar! No tienes ${ataque.municionNombre || "munición"} lista en tu contenedor llevado encima.`,
+            "advertencia"
+          );
+          return;
+        }
+
+        const municionItemMochila = inv.find((it) => {
+          const enMochila = (it.contenedor || "mochila") === "mochila";
+          return enMochila && it.cantidad > 0 && esMunicionCompatibleConArma(ataque.nombre, it, ataque.propiedades, baseDatosObjetos);
+        });
+
+        if (municionItemMochila) {
+          modificarCantidadObjeto(personajeActivo.id, municionItemMochila.idInstancia, -1);
+        }
+      }
+
       await lanzarDadosTaleSpire(formulaDados, etiquetaLog);
     } catch (err) {
       console.error("[VistaAtaquesJugador] Error al tirar ataque:", err);
@@ -515,23 +611,35 @@ export const VistaAtaquesJugador: React.FC = () => {
     (c) => filtro === "todas" || c.tipoAccion === filtro
   );
 
+  const hechizosObjetosFiltrados = useMemo(() => {
+    if (filtro === "todas") return hechizosObjetosMagicos;
+    return hechizosObjetosMagicos.filter((h) => h.tipoAccion === filtro);
+  }, [hechizosObjetosMagicos, filtro]);
+
   // Conteos para los botones de filtro
   const conteoAccion =
     listaAtaquesFisicos.filter((a) => a.tipoAccion === "accion").length +
     conjurosAcciones.filter((c) => c.tipoAccion === "accion").length +
-    listaConsumibles.filter((c) => c.tipoAccion === "accion").length;
+    listaConsumibles.filter((c) => c.tipoAccion === "accion").length +
+    hechizosObjetosMagicos.filter((h) => h.tipoAccion === "accion").length;
 
   const conteoAccionAdicional =
     listaAtaquesFisicos.filter((a) => a.tipoAccion === "accionAdicional").length +
     conjurosAcciones.filter((c) => c.tipoAccion === "accionAdicional").length +
-    listaConsumibles.filter((c) => c.tipoAccion === "accionAdicional").length;
+    listaConsumibles.filter((c) => c.tipoAccion === "accionAdicional").length +
+    hechizosObjetosMagicos.filter((h) => h.tipoAccion === "accionAdicional").length;
 
   const conteoReaccion =
     listaAtaquesFisicos.filter((a) => a.tipoAccion === "reaccion").length +
     conjurosAcciones.filter((c) => c.tipoAccion === "reaccion").length +
-    listaConsumibles.filter((c) => c.tipoAccion === "reaccion").length;
+    listaConsumibles.filter((c) => c.tipoAccion === "reaccion").length +
+    hechizosObjetosMagicos.filter((h) => h.tipoAccion === "reaccion").length;
 
-  const conteoTotal = listaAtaquesFisicos.length + conjurosAcciones.length + listaConsumibles.length;
+  const conteoTotal =
+    listaAtaquesFisicos.length +
+    conjurosAcciones.length +
+    listaConsumibles.length +
+    hechizosObjetosMagicos.length;
 
   // Parámetros de magia
   const modMagico = statsCalculadas.modificadores[habilidadMagica] || 0;
@@ -632,7 +740,7 @@ export const VistaAtaquesJugador: React.FC = () => {
           </div>
 
           {seccionesAbiertas.recursos && (
-            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            <div className={estilos.listaAtaques}>
               {tieneMagiaEstandar && (
                 sistemaMagia === "puntos" ? (
                   <TrackerPuntosConjuro
@@ -798,41 +906,129 @@ export const VistaAtaquesJugador: React.FC = () => {
         </div>
       )}
 
-      {/* Estado vacío cuando no hay acciones con el filtro seleccionado */}
-      {ataquesFisicosFiltrados.length === 0 && conjurosFiltrados.length === 0 && consumiblesFiltrados.length === 0 && (
-        <div className={estilos.tarjetaVacia}>
-          No se encontraron acciones de tipo <strong>"{filtro.toUpperCase()}"</strong> para este personaje.
+      {/* Sección 4: Hechizos de Objetos Mágicos */}
+      {hechizosObjetosFiltrados.length > 0 && (
+        <div className={estilos.seccionGrupoAtaques}>
+          <div
+            className={estilos.cabeceraGrupoAtaques}
+            onClick={() => alternarSeccion("hechizosObjetos")}
+            role="button"
+            tabIndex={0}
+            title="Clic para mostrar u ocultar hechizos de objetos mágicos"
+          >
+            <div className={estilos.tituloGrupoAtaques}>
+              <Sparkles size={14} color="#ec4899" />
+              <span>Hechizos de Objetos Mágicos</span>
+              <span className={estilos.badgeConteoSeccion}>{hechizosObjetosFiltrados.length}</span>
+            </div>
+            <div className={estilos.ladoDerechoCabecera}>
+              {seccionesAbiertas.hechizosObjetos ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+            </div>
+          </div>
+
+          {seccionesAbiertas.hechizosObjetos && (
+            <div className={estilos.listaAtaques}>
+              {hechizosObjetosFiltrados.map((item, idx) => {
+                const coste = Number(item.hechizo.costeCargas) || 0;
+                const tieneCargas = coste === 0 || item.cargasActuales >= coste;
+                const lanzarHechizo = async () => {
+                  if (coste > 0) {
+                    modificarCargasObjeto(personajeActivo.id, item.objetoInstanciaId, -coste);
+                  }
+                  const etiqueta = sanitizarEtiqueta(`Hechizo ${item.hechizo.nombre} (${item.objetoNombre})`);
+                  if (item.hechizo.bonoAtaque !== undefined && !isNaN(Number(item.hechizo.bonoAtaque))) {
+                    await lanzarDadosTaleSpire(`1d20+${item.hechizo.bonoAtaque}`, `Ataque Mágico: ${etiqueta}`);
+                  } else if (item.hechizo.cd !== undefined && !isNaN(Number(item.hechizo.cd))) {
+                    await lanzarDadosTaleSpire("1d20", `Salvación vs CD ${item.hechizo.cd} (${etiqueta})`);
+                  } else {
+                    await lanzarDadosTaleSpire("1d20", etiqueta);
+                  }
+                };
+
+                return (
+                  <div
+                    key={idx}
+                    className={`${estilos.tarjetaAtaque} ${estilos.tarjetaHechizoObjeto}`}
+                  >
+                    <div className={estilos.filaSuperiorAtaque}>
+                      <div className={estilos.grupoTitulo}>
+                        <Sparkles size={14} color="#ec4899" />
+                        <span className={estilos.nombreAtaque}>{item.hechizo.nombre}</span>
+                        <span className={estilos.nombreFuenteObjeto}>({item.objetoNombre})</span>
+                      </div>
+                      <div className={estilos.grupoTitulo}>
+                        {item.cargasMaximas > 0 && (
+                          <span className={item.cargasActuales > 0 ? estilos.badgeCargasObjeto : estilos.badgeCargasVacias}>
+                            <Zap size={10} /> {item.cargasActuales}/{item.cargasMaximas} cargas
+                          </span>
+                        )}
+                        <span className={estilos.badgeAccionTipo}>
+                          {item.tipoAccion === "accionAdicional" ? "Acción Adicional" : item.tipoAccion === "reaccion" ? "Reacción" : "Acción"}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className={estilos.filaMetricasAtaque}>
+                      <div className={estilos.bloqueBonoImpacto}>
+                        <span className={estilos.etiquetaMicro}>
+                          {item.hechizo.bonoAtaque !== undefined ? "Impacto" : item.hechizo.cd !== undefined ? "Salvación" : "Efecto"}
+                        </span>
+                        <span className={estilos.valorBonoImpacto}>
+                          {item.hechizo.bonoAtaque !== undefined
+                            ? `+${item.hechizo.bonoAtaque}`
+                            : item.hechizo.cd !== undefined
+                            ? `CD ${item.hechizo.cd}`
+                            : "Especial"}
+                        </span>
+                      </div>
+
+                      {coste > 0 && (
+                        <div className={estilos.bloqueDano}>
+                          <span className={estilos.etiquetaMicro}>Coste</span>
+                          <span className={`${estilos.valorDano} ${estilos.costeCargasTexto}`}>
+                            {coste} {coste === 1 ? "carga" : "cargas"}
+                          </span>
+                        </div>
+                      )}
+
+                      <div className={estilos.filaAccionesTirada}>
+                        <button
+                          type="button"
+                          className={`${estilos.botonTirarAtaque} ${estilos.botonLanzarObjeto}`}
+                          onClick={lanzarHechizo}
+                          disabled={!tieneCargas}
+                        >
+                          <Sparkles size={11} />
+                          <span>{coste > 0 ? `Lanzar (-${coste})` : "Lanzar"}</span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       )}
+
+      {/* Estado vacío cuando no hay acciones con el filtro seleccionado */}
+      {ataquesFisicosFiltrados.length === 0 &&
+        conjurosFiltrados.length === 0 &&
+        consumiblesFiltrados.length === 0 &&
+        hechizosObjetosFiltrados.length === 0 && (
+          <div className={estilos.tarjetaVacia}>
+            No se encontraron acciones de tipo <strong>"{filtro.toUpperCase()}"</strong> para este personaje.
+          </div>
+        )}
 
       {/* Modal de Detalle Completo de Hechizo (FichaHechizo DRY) */}
       {hechizoDetalle && (
         <div
-          style={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: "rgba(0, 0, 0, 0.75)",
-            zIndex: 1000,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            padding: 16
-          }}
+          className={estilos.backdropModalHechizo}
           onClick={() => setHechizoDetalle(null)}
         >
           <div
-            style={{
-              maxWidth: 550,
-              width: "100%",
-              maxHeight: "90vh",
-              overflowY: "auto",
-              backgroundColor: "#161b22",
-              borderRadius: 8,
-              border: "1px solid rgba(148, 163, 184, 0.2)"
-            }}
+            className={estilos.contenedorModalHechizo}
             onClick={(e) => e.stopPropagation()}
           >
             <FichaHechizo

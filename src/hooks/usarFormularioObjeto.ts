@@ -40,8 +40,6 @@ export function usarFormularioObjeto(idEnEdicion: string | null, alGuardarExitos
   const [oCargas, setOCargas] = useState<number | "">("");
   const [oCondicionSintonizacion, setOCondicionSintonizacion] = useState("");
   const [oFormulaRecarga, setOFormulaRecarga] = useState("");
-  const [oEstaMaldito, setOEstaMaldito] = useState(false);
-  const [oEsConsciente, setOEsConsciente] = useState(false);
   const [oModificadorAtaqueDano, setOModificadorAtaqueDano] = useState<number | "">("");
   const [oHechizosVinculados, setOHechizosVinculados] = useState<{ nombre: string; cd?: number | ""; bonoAtaque?: number | ""; costeCargas?: number | "" }[]>([]);
 
@@ -53,7 +51,6 @@ export function usarFormularioObjeto(idEnEdicion: string | null, alGuardarExitos
   // --- ESTADOS DE VENENO ---
   const [oEsVeneno, setOEsVeneno] = useState(false);
   const [oTipoVeneno, setOTipoVeneno] = useState<"Contacto" | "Ingerido" | "Inhalado" | "Lesión">("Contacto");
-  const [oCdSalvacionVeneno, setOCdSalvacionVeneno] = useState<number | "">("");
   const [oEfectoVeneno, setOEfectoVeneno] = useState("");
 
   // --- ESTADOS DE TIENDA Y EQUIPABILIDAD ---
@@ -131,8 +128,6 @@ export function usarFormularioObjeto(idEnEdicion: string | null, alGuardarExitos
     setOCargas("");
     setOCondicionSintonizacion("");
     setOFormulaRecarga("");
-    setOEstaMaldito(false);
-    setOEsConsciente(false);
     setOModificadorAtaqueDano("");
     setOHechizosVinculados([]);
 
@@ -166,7 +161,6 @@ export function usarFormularioObjeto(idEnEdicion: string | null, alGuardarExitos
 
     setOEsVeneno(false);
     setOTipoVeneno("Contacto");
-    setOCdSalvacionVeneno("");
     setOEfectoVeneno("");
     setOEquipable(false);
 
@@ -226,8 +220,6 @@ export function usarFormularioObjeto(idEnEdicion: string | null, alGuardarExitos
     setOCargas(o.cargas !== undefined ? o.cargas : "");
     setOCondicionSintonizacion(o.condicionSintonizacion || "");
     setOFormulaRecarga(o.formulaRecarga || "");
-    setOEstaMaldito(o.estaMaldito || false);
-    setOEsConsciente(o.esConsciente || false);
     setOModificadorAtaqueDano(o.modificadorAtaqueDano !== undefined ? o.modificadorAtaqueDano : "");
     
     setOHechizosVinculados(o.hechizosVinculados ? o.hechizosVinculados.map(h => ({
@@ -264,7 +256,6 @@ export function usarFormularioObjeto(idEnEdicion: string | null, alGuardarExitos
 
     setOEsVeneno(o.esVeneno || false);
     setOTipoVeneno(o.tipoVeneno || "Contacto");
-    setOCdSalvacionVeneno(o.cdSalvacionVeneno !== undefined ? o.cdSalvacionVeneno : "");
     setOEfectoVeneno(o.efectoVeneno || "");
     setOEquipable(o.equipable || false);
 
@@ -418,8 +409,6 @@ export function usarFormularioObjeto(idEnEdicion: string | null, alGuardarExitos
       cargas: oCargas !== "" ? Number(oCargas) : undefined,
       condicionSintonizacion: oCondicionSintonizacion.trim() || undefined,
       formulaRecarga: oFormulaRecarga.trim() || undefined,
-      estaMaldito: oEstaMaldito,
-      esConsciente: oEsConsciente,
       modificadorAtaqueDano: oModificadorAtaqueDano !== "" ? Number(oModificadorAtaqueDano) : undefined,
       hechizosVinculados: hechizosPayload,
       artesania: artesaniaPayload,
@@ -473,7 +462,6 @@ export function usarFormularioObjeto(idEnEdicion: string | null, alGuardarExitos
         ...(oSubcategoriaEquipo === "Consumible" && oEsVeneno ? {
           esVeneno: true,
           tipoVeneno: oTipoVeneno,
-          cdSalvacionVeneno: oCdSalvacionVeneno !== "" ? Number(oCdSalvacionVeneno) : undefined,
           efectoVeneno: oEfectoVeneno.trim()
         } : {
           esVeneno: false
@@ -497,10 +485,10 @@ export function usarFormularioObjeto(idEnEdicion: string | null, alGuardarExitos
     oMaestria, oAlcanceNormal, oAlcanceLargo, oDanoVersatil, oMunicionRequerida, 
     oSubcategoriaArmadura, oCaBase, oRequisitoFuerza, oDesventajaSigilo, oBonoDestreza, oTiempoEquipar,
     oSubcategoriaEquipo, oCantidad, oSintonizacionRequerida, oCargas, oCondicionSintonizacion, 
-    oFormulaRecarga, oEstaMaldito, oEsConsciente, oModificadorAtaqueDano, oHechizosVinculados,
+    oFormulaRecarga, oModificadorAtaqueDano, oHechizosVinculados,
     oArtesaniaTaller, oArtesaniaComponentes, idEnEdicion, agregarObjetoHomebrew, actualizarObjetoHomebrew, 
     agregarNotificacion, limpiarFormulario, alGuardarExitoso, oCostoCantidad, oCostoUnidad, oEsVeneno, 
-    oTipoVeneno, oCdSalvacionVeneno, oEfectoVeneno, oEquipable, oAmmunitionIndex, oAmmunitionName, 
+    oTipoVeneno, oEfectoVeneno, oEquipable, oAmmunitionIndex, oAmmunitionName, 
     oStorageIndex, oStorageName, oContents, oCraft
   ]);
 
@@ -542,15 +530,12 @@ export function usarFormularioObjeto(idEnEdicion: string | null, alGuardarExitos
 
     oEsVeneno, setOEsVeneno,
     oTipoVeneno, setOTipoVeneno,
-    oCdSalvacionVeneno, setOCdSalvacionVeneno,
     oEfectoVeneno, setOEfectoVeneno,
     oEquipable, setOEquipable,
 
     // Nuevos estados mágicos/narrativos y artesanía
     oCondicionSintonizacion, setOCondicionSintonizacion,
     oFormulaRecarga, setOFormulaRecarga,
-    oEstaMaldito, setOEstaMaldito,
-    oEsConsciente, setOEsConsciente,
     oModificadorAtaqueDano, setOModificadorAtaqueDano,
     oHechizosVinculados, setOHechizosVinculados,
     oArtesaniaTaller, setOArtesaniaTaller,

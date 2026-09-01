@@ -5,7 +5,7 @@ import {
   PROPIEDADES_ARMAS_DND,
   EXPLICACIONES_PROPIEDADES,
   EXPLICACIONES_MAESTRIAS
-} from "@/constantes/objetoConstantes";
+} from "@/constantes/equipoConstantes";
 import { SelectorDesplegable } from "@/componentes/comunes";
 import { X } from "lucide-react";
 

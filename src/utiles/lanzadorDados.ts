@@ -292,9 +292,23 @@ export async function lanzarDadosTaleSpire(
   const tipoTiradaGlobal = state.tipoTirada;
   const establecerTipoTirada = state.establecerTipoTirada;
 
-  // Si el usuario seleccionó explícitamente ventaja o desventaja en la barra táctica, se respeta;
-  // si está en plano pero la tirada exige desventaja (ej. por armadura), se aplica el forzado.
-  const tipoTirada = tipoTiradaForzado && tipoTiradaGlobal === "plano" ? tipoTiradaForzado : tipoTiradaGlobal;
+  // Regla oficial D&D 5.5e (2024): Anulación simétrica de fuentes de Ventaja y Desventaja
+  const tieneVentaja = tipoTiradaGlobal === "ventaja" || tipoTiradaForzado === "ventaja";
+  const tieneDesventaja = tipoTiradaGlobal === "desventaja" || tipoTiradaForzado === "desventaja";
+
+  let tipoTirada: "ventaja" | "desventaja" | "plano" = "plano";
+  if (tieneVentaja && tieneDesventaja) {
+    tipoTirada = "plano";
+  } else if (tieneVentaja) {
+    tipoTirada = "ventaja";
+  } else if (tieneDesventaja) {
+    tipoTirada = "desventaja";
+  }
+
+  // Restablecer el selector global de la barra táctica a "plano" si estaba activado manualmente
+  if (tipoTiradaGlobal !== "plano") {
+    establecerTipoTirada("plano");
+  }
   
   let formulaProcesada = formula;
   let tiradaEspecial: MetadataTiradaEspecial | null = null;
@@ -350,11 +364,6 @@ export async function lanzarDadosTaleSpire(
       formulaProcesada = gruposProcesados.join("/");
     } else {
       tiradaEspecial = null;
-    }
-    
-    // Restablecer el selector global a "plano" si estaba activado manualmente
-    if (tipoTiradaGlobal !== "plano") {
-      establecerTipoTirada("plano");
     }
   }
 

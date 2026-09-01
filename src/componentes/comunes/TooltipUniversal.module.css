@@ -6,9 +6,8 @@
   max-width: 100%;
 }
 
-.flotante {
-  display: none;
-  position: absolute;
+.flotantePortal {
+  position: fixed;
   min-width: 180px;
   max-width: 280px;
   width: max-content;
@@ -18,25 +17,24 @@
   -webkit-backdrop-filter: blur(10px);
   border: 1px solid rgba(0, 245, 212, 0.35);
   border-radius: 6px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6), 0 0 10px rgba(0, 245, 212, 0.08);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.7), 0 0 10px rgba(0, 245, 212, 0.1);
   color: #f8fafc;
   font-family: var(--fuente-principal, 'Inter', sans-serif);
   font-size: 11px;
   line-height: 1.45;
   white-space: pre-wrap;
-  z-index: 99999;
+  z-index: 999999;
   pointer-events: none;
   text-align: left;
   animation: tooltipFadeIn 0.12s ease-out;
+  display: flex;
   flex-direction: column;
   gap: 4px;
 }
 
-/* Posición Arriba (por defecto) */
+/* Posición Arriba (por defecto en fixed) */
 .posicionArriba {
-  bottom: calc(100% + 6px);
-  left: 50%;
-  transform: translateX(-50%);
+  transform: translate(-50%, -100%);
 }
 
 .posicionArriba::after {
@@ -52,8 +50,6 @@
 
 /* Posición Abajo */
 .posicionAbajo {
-  top: calc(100% + 6px);
-  left: 50%;
   transform: translateX(-50%);
 }
 
@@ -70,9 +66,7 @@
 
 /* Posición Izquierda */
 .posicionIzquierda {
-  right: calc(100% + 6px);
-  top: 50%;
-  transform: translateY(-50%);
+  transform: translate(-100%, -50%);
 }
 
 .posicionIzquierda::after {
@@ -88,8 +82,6 @@
 
 /* Posición Derecha */
 .posicionDerecha {
-  left: calc(100% + 6px);
-  top: 50%;
   transform: translateY(-50%);
 }
 
@@ -105,10 +97,11 @@
 }
 
 /* Alineaciones Horizontales Específicas para Evitar Desbordes */
-.posicionArriba.alineacionInicio,
+.posicionArriba.alineacionInicio {
+  transform: translateY(-100%) !important;
+}
+
 .posicionAbajo.alineacionInicio {
-  left: 0 !important;
-  right: auto !important;
   transform: none !important;
 }
 
@@ -119,11 +112,12 @@
   transform: none !important;
 }
 
-.posicionArriba.alineacionFin,
+.posicionArriba.alineacionFin {
+  transform: translate(-100%, -100%) !important;
+}
+
 .posicionAbajo.alineacionFin {
-  left: auto !important;
-  right: 0 !important;
-  transform: none !important;
+  transform: translateX(-100%) !important;
 }
 
 .posicionArriba.alineacionFin::after,
@@ -131,12 +125,6 @@
   left: auto !important;
   right: 16px !important;
   transform: none !important;
-}
-
-/* Visibilidad */
-.contenedor:hover > .flotante,
-.flotanteVisible {
-  display: flex !important;
 }
 
 .titulo {

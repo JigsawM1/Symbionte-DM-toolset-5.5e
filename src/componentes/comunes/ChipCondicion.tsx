@@ -1,10 +1,12 @@
 import React from "react";
-import { X, Droplets } from "lucide-react";
+import { X, Droplets, AlertTriangle, Footprints } from "lucide-react";
 import { obtenerDetalleCondicion } from "@/servicios/resolutorCondiciones";
 
 export interface ChipCondicionProps {
   nombre: string;
   esDesangrado?: boolean;
+  esAlerta?: boolean;
+  esSigilo?: boolean;
   concentracion?: boolean;
   expiraRonda?: number;
   textoCustom?: string;
@@ -22,6 +24,8 @@ export interface ChipCondicionProps {
 export const ChipCondicion: React.FC<ChipCondicionProps> = ({
   nombre,
   esDesangrado,
+  esAlerta,
+  esSigilo,
   concentracion,
   expiraRonda,
   textoCustom,
@@ -32,15 +36,31 @@ export const ChipCondicion: React.FC<ChipCondicionProps> = ({
   style
 }) => {
   const detalle = obtenerDetalleCondicion(nombre);
+  const nombreMin = nombre.toLowerCase();
+
   const esBloodied =
     esDesangrado ||
-    nombre.toLowerCase().includes("desangr") ||
-    nombre.toLowerCase().includes("bloodied");
+    nombreMin.includes("desangr") ||
+    nombreMin.includes("bloodied");
+
+  const esPenalizacionArmadura =
+    esAlerta ||
+    nombreMin.includes("sin competencia") ||
+    nombreMin.includes("incompetencia");
+
+  const esDesventajaSigilo =
+    esSigilo ||
+    nombreMin.includes("desventaja en sigilo") ||
+    nombreMin.includes("sigilo ruidoso");
 
   // Determinar variante visual
   let claseVariante = "chip-condicion-estandar";
   if (esBloodied) {
     claseVariante = "chip-condicion-desangrado";
+  } else if (esPenalizacionArmadura) {
+    claseVariante = "chip-condicion-penalizacion";
+  } else if (esDesventajaSigilo) {
+    claseVariante = "chip-condicion-sigilo";
   } else if (concentracion) {
     claseVariante = "chip-condicion-concentracion";
   } else if (expiraRonda !== undefined) {
@@ -88,6 +108,18 @@ export const ChipCondicion: React.FC<ChipCondicionProps> = ({
           <Droplets
             size={11}
             style={{ color: "#ef4444", display: "inline-block", flexShrink: 0 }}
+          />
+        )}
+        {esPenalizacionArmadura && !esBloodied && (
+          <AlertTriangle
+            size={11}
+            style={{ color: "#f59e0b", display: "inline-block", flexShrink: 0 }}
+          />
+        )}
+        {esDesventajaSigilo && !esBloodied && !esPenalizacionArmadura && (
+          <Footprints
+            size={11}
+            style={{ color: "#c084fc", display: "inline-block", flexShrink: 0 }}
           />
         )}
         <span>{textoAMostrar}</span>

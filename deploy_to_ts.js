@@ -24,7 +24,7 @@ switch (os.platform()) {
         process.exit(1);
 }
 
-// Function to safely delete build-specific files/directories without touching game cache or persistence
+// Función para eliminar de forma segura archivos/carpetas de compilaciones previas
 const deleteBuildElement = (itemPath) => {
     if (fs.existsSync(itemPath)) {
         const stat = fs.lstatSync(itemPath);
@@ -34,27 +34,37 @@ const deleteBuildElement = (itemPath) => {
                 if (!fs.lstatSync(curPath).isDirectory()) {
                     try {
                         fs.unlinkSync(curPath);
-                    } catch (e) {
-                        // Ignore if locked by the active WebView
+                    } catch (error) {
+                        // Si está bloqueado por TaleSpire, intentar renombrarlo temporalmente
+                        try {
+                            fs.renameSync(curPath, `${curPath}.old.${Date.now()}`);
+                        } catch (renameErr) {
+                            console.warn(`[Aviso Despliegue] Archivo bloqueado por TaleSpire (${file}): ${error instanceof Error ? error.message : String(error)}`);
+                        }
                     }
                 }
             });
             try {
                 fs.rmdirSync(itemPath);
-            } catch (e) {
-                // Ignore
+            } catch (error) {
+                // Notificar si el directorio no pudo ser removido por contener archivos bloqueados
+                console.warn(`[Aviso Despliegue] No se pudo eliminar directorio de assets anterior (${path.basename(itemPath)}): ${error instanceof Error ? error.message : String(error)}`);
             }
         } else {
             try {
                 fs.unlinkSync(itemPath);
-            } catch (e) {
-                // Ignore
+            } catch (error) {
+                try {
+                    fs.renameSync(itemPath, `${itemPath}.old.${Date.now()}`);
+                } catch (renameErr) {
+                    console.warn(`[Aviso Despliegue] Archivo bloqueado (${path.basename(itemPath)}): ${error instanceof Error ? error.message : String(error)}`);
+                }
             }
         }
     }
 };
 
-// Ensure target directory exists and selectively clean old build files
+// Asegurar que el directorio de destino existe y limpiar compilaciones anteriores
 if (!fs.existsSync(targetDir)) {
     fs.mkdirSync(targetDir, { recursive: true });
 } else {
@@ -63,7 +73,35 @@ if (!fs.existsSync(targetDir)) {
     deleteBuildElement(path.join(targetDir, 'manifest.json'));
 }
 
-// Function to copy files recursively
+// Función auxiliar para copiar archivo con estrategia de reemplazo ante bloqueos (EBUSY / EPERM)
+const copiarArchivoSeguro = (srcPath, destPath, nombreArchivo) => {
+    try {
+        fs.copyFileSync(srcPath, destPath);
+    } catch (error) {
+        const err = error;
+        if (err && (err.code === 'EBUSY' || err.code === 'EPERM')) {
+            try {
+                // En Windows, renombrar un archivo abierto a menudo permite escribir un nuevo archivo con el nombre original
+                const rutaTemporal = `${destPath}.old.${Date.now()}`;
+                if (fs.existsSync(destPath)) {
+                    fs.renameSync(destPath, rutaTemporal);
+                }
+                fs.copyFileSync(srcPath, destPath);
+                console.log(`[Recuperado] Archivo ${nombreArchivo} reemplazado tras bloqueo de TaleSpire.`);
+                return;
+            } catch (retryError) {
+                console.error(`\n[ERROR EBUSY] TaleSpire tiene bloqueado el archivo: ${nombreArchivo}`);
+                console.error(`-> Detalle: ${retryError instanceof Error ? retryError.message : String(retryError)}`);
+                console.error(`-> Solución: Cierra TaleSpire o recarga/cierra el simbionte en el juego y vuelve a ejecutar 'pnpm run deploy'.\n`);
+                throw retryError;
+            }
+        }
+        console.error(`[Error de copia] No se pudo copiar ${nombreArchivo}: ${err instanceof Error ? err.message : String(err)}`);
+        throw error;
+    }
+};
+
+// Función para copiar archivos recursivamente
 const copyDir = (src, dest) => {
     if (!fs.existsSync(dest)) {
         fs.mkdirSync(dest, { recursive: true });
@@ -77,12 +115,16 @@ const copyDir = (src, dest) => {
         if (entry.isDirectory()) {
             copyDir(srcPath, destPath);
         } else {
-            fs.copyFileSync(srcPath, destPath);
+            copiarArchivoSeguro(srcPath, destPath, entry.name);
         }
     });
 };
 
-// Copy the build directory to the target directory
-copyDir(buildDir, targetDir);
-
-console.log(`Build copied to ${targetDir}`);
+// Copiar directorio de compilación a TaleSpire
+try {
+    copyDir(buildDir, targetDir);
+    console.log(`Despliegue exitoso: Build copiado a ${targetDir}`);
+} catch (error) {
+    console.error(`Fallo en el despliegue a TaleSpire.`);
+    process.exit(1);
+}

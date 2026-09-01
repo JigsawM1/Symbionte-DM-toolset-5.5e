@@ -26,6 +26,7 @@ import { detectarInfoConsumible, evaluarFormulaDados, esObjetoConsumible } from 
 import { resolverEstadoMunicionArma, esMunicionCompatibleConArma } from "@/servicios/gestorMunicion";
 import { desduplicarEntidades } from "@/utiles/busquedaTolerante";
 import { esCompetenteConArma } from "@/constantes/competenciasConstantes";
+import { evaluarEfectosCondicionesEnTirada } from "@/servicios/procesadorCondiciones";
 import type { Arma, ObjetoJuego, HechizoBase, Caracteristica, HechizoVinculado } from "@/tipos";
 import { SelectorDesplegable } from "@/componentes/comunes";
 import { usarEstadoPersistido, usarLanzadorConjuros } from "@/hooks";
@@ -501,15 +502,28 @@ export const VistaAtaquesJugador: React.FC = () => {
   const manejarTirarAtaque = async (ataque: AtaquePersonajeCalculado) => {
     try {
       const nombrePj = personajeActivo?.nombre?.trim() || "Personaje";
-      const bonoStr = ataque.bonoAtaque >= 0 ? `+${ataque.bonoAtaque}` : `${ataque.bonoAtaque}`;
       
-      // Regla D&D 5.5e: Desventaja en tiradas de ataque con FUE o DES si se viste armadura sin competencia
-      const tieneDesventajaArmadura =
-        !!statsCalculadas?.penalizacionArmadura?.sinCompetencia &&
-        (ataque.caracteristicaUsada === "fuerza" || ataque.caracteristicaUsada === "destreza");
+      // Evaluación integral de condiciones activas y penalizaciones de equipo (D&D 5.5e)
+      const evaluacionCondiciones = evaluarEfectosCondicionesEnTirada({
+        tipo: "ataque",
+        caracteristica: ataque.caracteristicaUsada as Caracteristica,
+        penalizacionArmadura: !!statsCalculadas?.penalizacionArmadura?.sinCompetencia,
+        desventajaSigiloArmadura: !!statsCalculadas?.desventajaSigiloArmadura,
+        condicionesActivas: personajeActivo?.condicionesActivas
+      });
 
+      const bonoFinal = ataque.bonoAtaque + evaluacionCondiciones.penalizadorD20;
+      const bonoStr = bonoFinal >= 0 ? `+${bonoFinal}` : `${bonoFinal}`;
+
+      const motivos = [
+        ...evaluacionCondiciones.motivosDesventaja,
+        ...evaluacionCondiciones.motivosVentaja,
+        ...evaluacionCondiciones.motivosModificadores
+      ].join(", ");
+
+      const sufijoMotivo = motivos ? ` (${motivos})` : "";
       const formulaDados = `!Ataque ${sanitizarEtiqueta(ataque.nombre)}:1d20${bonoStr}`;
-      const etiquetaLog = `${nombrePj} - Ataque con ${ataque.nombre}${tieneDesventajaArmadura ? " (Desventaja por Armadura)" : ""}`;
+      const etiquetaLog = `${nombrePj} - Ataque con ${ataque.nombre}${sufijoMotivo}`;
 
       // Descontar munición compatible si el arma la requiere (estrictamente desde contenedor de la mochila)
       if (ataque.requiereMunicion && personajeActivo) {
@@ -538,7 +552,7 @@ export const VistaAtaquesJugador: React.FC = () => {
         etiquetaLog,
         undefined,
         undefined,
-        tieneDesventajaArmadura ? "desventaja" : undefined
+        evaluacionCondiciones.modoEfectivo !== "plano" ? evaluacionCondiciones.modoEfectivo : undefined
       );
     } catch (err) {
       console.error("[VistaAtaquesJugador] Error al tirar ataque:", err);
@@ -884,16 +898,27 @@ export const VistaAtaquesJugador: React.FC = () => {
 
           {seccionesAbiertas.fisicos && (
             <div className={estilos.listaAtaques}>
-              {ataquesFisicosFiltrados.map((ataque) => (
-                <TarjetaAtaquePersonaje
-                  key={ataque.id}
-                  ataque={ataque}
-                  alTirarAtaque={manejarTirarAtaque}
-                  alTirarDano={manejarTirarDano}
-                  alTirarCritico={manejarTirarCritico}
-                  alCambiarCaracteristica={manejarCambiarCaracteristicaArma}
-                />
-              ))}
+              {ataquesFisicosFiltrados.map((ataque) => {
+                const evalCond = evaluarEfectosCondicionesEnTirada({
+                  tipo: "ataque",
+                  caracteristica: ataque.caracteristicaUsada as Caracteristica,
+                  penalizacionArmadura: !!statsCalculadas?.penalizacionArmadura?.sinCompetencia,
+                  desventajaSigiloArmadura: !!statsCalculadas?.desventajaSigiloArmadura,
+                  condicionesActivas: personajeActivo?.condicionesActivas
+                });
+
+                return (
+                  <TarjetaAtaquePersonaje
+                    key={ataque.id}
+                    ataque={ataque}
+                    evaluacionCondiciones={evalCond}
+                    alTirarAtaque={manejarTirarAtaque}
+                    alTirarDano={manejarTirarDano}
+                    alTirarCritico={manejarTirarCritico}
+                    alCambiarCaracteristica={manejarCambiarCaracteristicaArma}
+                  />
+                );
+              })}
             </div>
           )}
         </div>

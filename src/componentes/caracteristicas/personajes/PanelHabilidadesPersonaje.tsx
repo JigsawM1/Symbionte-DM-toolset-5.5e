@@ -2,7 +2,8 @@ import React from "react";
 import type { PersonajeJugador, Habilidad, GradoCompetencia } from "@/tipos";
 import { HABILIDADES_LISTA, MAPA_HABILIDAD_A_CARACTERISTICA } from "@/constantes";
 import type { EstadisticasCalculadasPersonaje } from "@/almacen/selectores/usarEstadoPersonajes";
-import { Swords, Shield, Languages, Wrench, AlertTriangle } from "lucide-react";
+import { evaluarEfectosCondicionesEnTirada } from "@/servicios/procesadorCondiciones";
+import { Swords, Shield, Languages, Wrench, AlertTriangle, Sparkles } from "lucide-react";
 import type { CategoriaCompetencia } from "./ModalSelectorCompetencias";
 import estilos from "./HojaPersonaje.module.css";
 
@@ -59,6 +60,8 @@ export const PanelHabilidadesPersonaje: React.FC<PanelHabilidadesPersonajeProps>
   alAbrirSelectorCompetencias
 }) => {
   const { habilidades } = statsCalculadas;
+  const penalizacionSinComp = !!statsCalculadas.penalizacionArmadura?.sinCompetencia;
+  const desventajaSigiloArmadura = !!statsCalculadas.desventajaSigiloArmadura;
 
   return (
     <section className={estilos.filaHabilidadesCompetencias}>
@@ -77,17 +80,28 @@ export const PanelHabilidadesPersonaje: React.FC<PanelHabilidadesPersonajeProps>
             const esCompetente = grado !== "ninguna";
             const caracAsociada = MAPA_HABILIDAD_A_CARACTERISTICA[hab] || "destreza";
             const abrevCarac = ABREVIATURA_CARACTERISTICA[caracAsociada] || "Des";
-            const tieneDesventajaArmadura =
-              !!statsCalculadas.penalizacionArmadura?.sinCompetencia &&
-              (caracAsociada === "fuerza" || caracAsociada === "destreza");
-            const tieneDesventajaSigiloArmadura =
-              hab === "sigilo" && !!statsCalculadas.desventajaSigiloArmadura && !tieneDesventajaArmadura;
+
+            // Evaluación integral de condiciones activas para cada habilidad
+            const evalHab = evaluarEfectosCondicionesEnTirada({
+              tipo: "caracteristica",
+              caracteristica: caracAsociada,
+              habilidad: hab,
+              penalizacionArmadura: penalizacionSinComp,
+              desventajaSigiloArmadura,
+              condicionesActivas: personaje.condicionesActivas
+            });
+
+            const motivosHab = [
+              ...evalHab.motivosDesventaja,
+              ...evalHab.motivosVentaja,
+              ...evalHab.motivosModificadores
+            ].join(", ");
 
             let tooltipHab = `Prueba de ${nombreMostrar} (${bonoTexto}). Clic para tirar en 3D.`;
-            if (tieneDesventajaArmadura) {
-              tooltipHab = `Prueba de ${nombreMostrar} (${bonoTexto}). DESVENTAJA por armadura sin competencia. Clic para tirar.`;
-            } else if (tieneDesventajaSigiloArmadura) {
-              tooltipHab = `Prueba de ${nombreMostrar} (${bonoTexto}). DESVENTAJA por tipo de armadura (Sigilo ruidoso). Clic para tirar.`;
+            if (evalHab.tieneDesventaja) {
+              tooltipHab = `Prueba de ${nombreMostrar} (${bonoTexto}). DESVENTAJA por: ${evalHab.motivosDesventaja.join(", ")}. Clic para tirar.`;
+            } else if (evalHab.tieneVentaja) {
+              tooltipHab = `Prueba de ${nombreMostrar} (${bonoTexto}). VENTAJA por: ${evalHab.motivosVentaja.join(", ")}. Clic para tirar.`;
             }
 
             return (
@@ -114,14 +128,14 @@ export const PanelHabilidadesPersonaje: React.FC<PanelHabilidadesPersonajeProps>
                   </button>
                   <span className={estilos.nombreHabilidad}>{nombreMostrar}</span>
                   <span className={estilos.caracAbrevHabilidad}>({abrevCarac})</span>
-                  {tieneDesventajaArmadura && (
-                    <span title="Desventaja por armadura sin competencia">
-                      <AlertTriangle size={10} color="#ef4444" style={{ marginLeft: 2 }} />
+                  {evalHab.tieneDesventaja && (
+                    <span title={`Desventaja en ${nombreMostrar} por: ${motivosHab}`}>
+                      <AlertTriangle size={10} color="#f59e0b" style={{ marginLeft: 2 }} />
                     </span>
                   )}
-                  {tieneDesventajaSigiloArmadura && (
-                    <span title="Desventaja en Sigilo por tu armadura equipada">
-                      <AlertTriangle size={10} color="#f59e0b" style={{ marginLeft: 2 }} />
+                  {evalHab.tieneVentaja && !evalHab.tieneDesventaja && (
+                    <span title={`Ventaja en ${nombreMostrar} por: ${motivosHab}`}>
+                      <Sparkles size={10} color="#38bdf8" style={{ marginLeft: 2 }} />
                     </span>
                   )}
                 </div>

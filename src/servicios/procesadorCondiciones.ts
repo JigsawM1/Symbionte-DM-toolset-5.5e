@@ -1,11 +1,14 @@
 /**
  * procesadorCondiciones.ts
  * -----------------------
- * Servicio puro para el procesamiento y manipulación de condiciones D&D 5.5e
- * aplicando el Strategy Pattern para diferenciar condiciones apilables (Cansado/Exhaustion)
- * de condiciones simples e idempotentes.
- *
+ * Servicio puro para el procesamiento, manipulación y evaluación mecánica
+ * de condiciones y efectos tácticos D&D 5.5e (2024).
+ * 
+ * Aplica Strategy Pattern para condiciones apilables e idempotentes,
+ * y centraliza la resolución de ventajas, desventajas y modificadores en tiradas d20.
  */
+
+import type { Caracteristica, Habilidad } from "@/tipos";
 
 export const NIVEL_MAXIMO_CANSANCIO = 6;
 
@@ -26,22 +29,24 @@ export interface EstrategiaCondicion {
 export class EstrategiaCansancio implements EstrategiaCondicion {
   aplicaPara(condicion: string): boolean {
     const normalizada = condicion.trim().toLowerCase();
-    return normalizada.includes("cansado") || normalizada.includes("exhausted");
+    return normalizada.includes("cansado") || normalizada.includes("exhausted") || normalizada.includes("agotamiento");
   }
 
   aplicar(condicionesActuales: readonly string[], _nuevaCondicion: string): string[] {
-    const condicionCansadoExistente = condicionesActuales.find((c) =>
-      c.toLowerCase().startsWith("cansado")
-    );
+    const condicionCansadoExistente = condicionesActuales.find((c) => {
+      const min = c.toLowerCase();
+      return min.startsWith("cansado") || min.startsWith("exhausted") || min.startsWith("agotamiento");
+    });
 
     if (condicionCansadoExistente) {
       const matches = condicionCansadoExistente.match(/\d+/);
       const nivelActual = matches ? parseInt(matches[0], 10) : 1;
       const nuevoNivel = Math.min(NIVEL_MAXIMO_CANSANCIO, nivelActual + 1);
 
-      const condicionesFiltradas = condicionesActuales.filter(
-        (c) => !c.toLowerCase().startsWith("cansado")
-      );
+      const condicionesFiltradas = condicionesActuales.filter((c) => {
+        const min = c.toLowerCase();
+        return !min.startsWith("cansado") && !min.startsWith("exhausted") && !min.startsWith("agotamiento");
+      });
       return [...condicionesFiltradas, `Cansado (Niv. ${nuevoNivel})`];
     }
 
@@ -119,9 +124,10 @@ export function quitarCondicion(
  * Reduce en 1 el nivel de "Cansado" o lo elimina por completo si está en nivel 1.
  */
 export function reducirNivelCansancio(condicionesActuales: readonly string[]): string[] {
-  const condicionCansadoExistente = condicionesActuales.find((c) =>
-    c.toLowerCase().startsWith("cansado")
-  );
+  const condicionCansadoExistente = condicionesActuales.find((c) => {
+    const min = c.toLowerCase();
+    return min.startsWith("cansado") || min.startsWith("exhausted") || min.startsWith("agotamiento");
+  });
 
   if (!condicionCansadoExistente) {
     return [...condicionesActuales];
@@ -130,13 +136,178 @@ export function reducirNivelCansancio(condicionesActuales: readonly string[]): s
   const matches = condicionCansadoExistente.match(/\d+/);
   const nivelActual = matches ? parseInt(matches[0], 10) : 1;
 
-  const condicionesFiltradas = condicionesActuales.filter(
-    (c) => !c.toLowerCase().startsWith("cansado")
-  );
+  const condicionesFiltradas = condicionesActuales.filter((c) => {
+    const min = c.toLowerCase();
+    return !min.startsWith("cansado") && !min.startsWith("exhausted") && !min.startsWith("agotamiento");
+  });
 
   if (nivelActual <= 1) {
     return condicionesFiltradas;
   }
 
   return [...condicionesFiltradas, `Cansado (Niv. ${nivelActual - 1})`];
+}
+
+// =========================================================================
+// MOTOR DE EVALUACIÓN MECÁNICA DE CONDICIONES EN TIRADAS D&D 5.5e (2024)
+// =========================================================================
+
+export type TipoTiradaMecanica = "ataque" | "caracteristica" | "salvacion" | "iniciativa";
+
+export interface ContextoTiradaCondiciones {
+  tipo: TipoTiradaMecanica;
+  caracteristica?: Caracteristica;
+  habilidad?: Habilidad;
+  esAtaqueMagico?: boolean;
+  penalizacionArmadura?: boolean;
+  desventajaSigiloArmadura?: boolean;
+  condicionesActivas?: readonly string[];
+}
+
+export interface ResultadoEvaluacionCondiciones {
+  tieneDesventaja: boolean;
+  tieneVentaja: boolean;
+  modoEfectivo: "ventaja" | "desventaja" | "plano";
+  penalizadorD20: number;
+  motivosDesventaja: string[];
+  motivosVentaja: string[];
+  motivosModificadores: string[];
+}
+
+/**
+ * Evalúa el impacto mecánico de todas las condiciones activas y penalizaciones de equipo
+ * sobre una tirada d20 bajo las reglas oficiales de D&D 5.5e (2024).
+ */
+export function evaluarEfectosCondicionesEnTirada(
+  contexto: ContextoTiradaCondiciones
+): ResultadoEvaluacionCondiciones {
+  const motivosDesventaja: string[] = [];
+  const motivosVentaja: string[] = [];
+  const motivosModificadores: string[] = [];
+  let penalizadorD20 = 0;
+
+  const condiciones = (contexto.condicionesActivas || []).map((c) => c.toLowerCase().trim());
+
+  // 1. Penalización por Armadura o Escudo sin Competencia (D&D 5.5e)
+  if (contexto.penalizacionArmadura) {
+    if (contexto.tipo === "ataque") {
+      // Desventaja en tiradas de ataque si se utiliza Fuerza o Destreza (o si no se especifica característica en armas)
+      if (!contexto.caracteristica || contexto.caracteristica === "fuerza" || contexto.caracteristica === "destreza") {
+        motivosDesventaja.push("Armadura sin Competencia (FUE/DES)");
+      }
+    } else if (contexto.tipo === "caracteristica" || contexto.tipo === "salvacion") {
+      if (contexto.caracteristica === "fuerza" || contexto.caracteristica === "destreza") {
+        motivosDesventaja.push(`Armadura sin Competencia (${contexto.caracteristica.toUpperCase()})`);
+      }
+    }
+  }
+
+  // 2. Desventaja en Sigilo por Armadura Ruidosa (D&D 5.5e)
+  if (contexto.desventajaSigiloArmadura && contexto.habilidad === "sigilo") {
+    motivosDesventaja.push("Sigilo Ruidoso (Armadura)");
+  }
+
+  // 3. Evaluar condiciones y estados activos del combatiente
+  for (const cond of condiciones) {
+    // Envenenado (Poisoned): Desventaja en tiradas de ataque y pruebas de característica
+    if (cond.startsWith("envenenado") || cond.startsWith("poisoned")) {
+      if (contexto.tipo === "ataque") {
+        motivosDesventaja.push("Envenenado (Ataque)");
+      } else if (contexto.tipo === "caracteristica") {
+        motivosDesventaja.push("Envenenado (Prueba)");
+      }
+    }
+
+    // Asustado (Frightened): Desventaja en pruebas de característica y tiradas de ataque
+    if (cond.startsWith("asustado") || cond.startsWith("frightened")) {
+      if (contexto.tipo === "ataque") {
+        motivosDesventaja.push("Asustado (Ataque)");
+      } else if (contexto.tipo === "caracteristica") {
+        motivosDesventaja.push("Asustado (Prueba)");
+      }
+    }
+
+    // Derribado (Prone): Desventaja en tiradas de ataque
+    if (cond.startsWith("derribado") || cond.startsWith("prone")) {
+      if (contexto.tipo === "ataque") {
+        motivosDesventaja.push("Derribado (Ataque)");
+      }
+    }
+
+    // Cegado (Blinded): Desventaja en tiradas de ataque y pruebas visuales
+    if (cond.startsWith("cegado") || cond.startsWith("blinded")) {
+      if (contexto.tipo === "ataque") {
+        motivosDesventaja.push("Cegado (Ataque)");
+      } else if (contexto.habilidad === "percepcion") {
+        motivosDesventaja.push("Cegado (Percepción)");
+      }
+    }
+
+    // Apresado (Restrained): Desventaja en tiradas de ataque y salvaciones de Destreza
+    if (cond.startsWith("apresado") || cond.startsWith("restrained")) {
+      if (contexto.tipo === "ataque") {
+        motivosDesventaja.push("Apresado (Ataque)");
+      } else if (contexto.tipo === "salvacion" && contexto.caracteristica === "destreza") {
+        motivosDesventaja.push("Apresado (Salvación DES)");
+      }
+    }
+
+    // Invisible (Invisible): Ventaja en tiradas de ataque
+    if (cond.startsWith("invisible")) {
+      if (contexto.tipo === "ataque") {
+        motivosVentaja.push("Invisible (Ataque)");
+      }
+    }
+
+    // Furia (Rage): Ventaja en pruebas y salvaciones de Fuerza
+    if (cond.startsWith("furia") || cond.startsWith("rage")) {
+      if (contexto.tipo === "caracteristica" && contexto.caracteristica === "fuerza") {
+        motivosVentaja.push("Furia (Fuerza)");
+      } else if (contexto.tipo === "salvacion" && contexto.caracteristica === "fuerza") {
+        motivosVentaja.push("Furia (Salvación FUE)");
+      }
+    }
+
+    // Hechicería Innata (Innate Sorcery): Ventaja en tiradas de ataque de conjuro
+    if (cond.startsWith("hechicería innata") || cond.startsWith("hechiceria innata") || cond.startsWith("innate sorcery")) {
+      if (contexto.tipo === "ataque" && contexto.esAtaqueMagico) {
+        motivosVentaja.push("Hechicería Innata (Ataque Mágico)");
+      }
+    }
+
+    // Cansado / Agotamiento (Exhaustion D&D 2024): -2 * nivel a todas las tiradas de d20
+    if (cond.startsWith("cansado") || cond.startsWith("exhausted") || cond.startsWith("agotamiento")) {
+      const match = cond.match(/\d+/);
+      const nivel = match ? parseInt(matchesNumero(cond), 10) : 1;
+      const penalizacion = -2 * Math.max(1, Math.min(NIVEL_MAXIMO_CANSANCIO, nivel));
+      penalizadorD20 += penalizacion;
+      motivosModificadores.push(`Cansancio Niv. ${nivel} (${penalizacion})`);
+    }
+  }
+
+  const tieneDesventaja = motivosDesventaja.length > 0;
+  const tieneVentaja = motivosVentaja.length > 0;
+
+  // En D&D 5.5e, si hay al menos una fuente de ventaja y una de desventaja, se anulan mutuamente
+  let modoEfectivo: "ventaja" | "desventaja" | "plano" = "plano";
+  if (tieneVentaja && !tieneDesventaja) {
+    modoEfectivo = "ventaja";
+  } else if (tieneDesventaja && !tieneVentaja) {
+    modoEfectivo = "desventaja";
+  }
+
+  return {
+    tieneDesventaja,
+    tieneVentaja,
+    modoEfectivo,
+    penalizadorD20,
+    motivosDesventaja,
+    motivosVentaja,
+    motivosModificadores
+  };
+}
+
+function matchesNumero(cadena: string): string {
+  const m = cadena.match(/\d+/);
+  return m ? m[0] : "1";
 }

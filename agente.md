@@ -15,6 +15,92 @@ Este archivo registra reglas globales, errores encontrados, sus causas raíz y l
 
 ---
 
+## [2026-09-01] Corrección de Anulación Simétrica de Ventaja/Desventaja e Indicadores Universales de Condiciones
+**Decisión y Motivación:**
+- *Causa*: 
+  1. Al seleccionar manualmente "Vent" o "Disv" en la barra táctica mientras el personaje poseía una condición o penalización opuesta (ej. Ventaja manual vs Desventaja por Armadura/Envenenado), la función `lanzarDadosTaleSpire` no realizaba la anulación simétrica oficial D&D 5.5e y sobreescribía la tirada.
+  2. Los indicadores visuales (iconos `<AlertTriangle />` con tooltip) solo estaban presentes para incompetencia de armadura o sigilo en FUE/DES, pero no reflejaban otras condiciones activas (como `Envenenado`, `Asustado`, `Derribado`, `Cegado`, `Apresado`, `Furia`, etc.) en Atributos, Salvaciones, Habilidades ni Tarjetas de Ataque.
+- *Solución*:
+  1. **Anulación Simétrica Canónica (`lanzadorDados.ts` y `HojaPersonaje.tsx`)**:
+     - `tieneVentaja = tipoTiradaGlobal === "ventaja" || tipoTiradaForzado === "ventaja"`
+     - `tieneDesventaja = tipoTiradaGlobal === "desventaja" || tipoTiradaForzado === "desventaja"`
+     - Si coexisten ambas, `tipoTirada` pasa a ser `"plano"` y el selector de la barra táctica se restablece a plano. El log en TaleSpire informa `"(Ventaja y Desventaja se anulan -> Tirada Plana)"`.
+  2. **Indicadores Universales de Condiciones en la Hoja de Personaje**:
+     - **Características y Salvaciones (`PanelAtributosPersonaje.tsx`)**: Evalúa en tiempo real todas las condiciones activas. Muestra `<AlertTriangle size={11} color="#f59e0b" />` si hay desventaja o `<Sparkles size={11} color="#38bdf8" />` si hay ventaja, con tooltip detallado indicando los motivos (ej. `Desventaja por: Envenenado, Armadura sin Competencia`).
+     - **Habilidades (`PanelHabilidadesPersonaje.tsx`)**: Cada una de las 18 habilidades muestra su icono de alerta o destello con tooltip contextual de qué condición la está afectando.
+     - **Tarjetas de Ataque (`TarjetaAtaquePersonaje.tsx` y `VistaAtaquesJugador.tsx`)**: Muestra badges de `Desventaja` o `Ventaja` en la cabecera del ataque con tooltip de las fuentes que lo modifican.
+  3. **Verificación y Despliegue**: 355 tests unitarios pasando al 100% (`pnpm test`), 0 errores en `tsc --noEmit` y compilación/despliegue exitoso a TaleSpire (`pnpm run deploy`).
+
+---
+
+## [2026-09-01] Integración de Incompetencia y Desventaja de Sigilo en Efectos Activos y Motor de Condiciones Aplicables
+**Decisión y Motivación:**
+- *Causa*: La incompetencia con armadura/escudo y la desventaja en sigilo se calculaban internamente pero no se mostraban en la barra táctica de condiciones y efectos del personaje, y no existía un motor unificado para evaluar las consecuencias mecánicas de las condiciones activas (Envenenado, Asustado, Derribado, Cegado, Apresado, Cansancio D&D 2024, etc.) en tiradas de d20.
+- *Solución*:
+  1. **Chips Automáticos de Efectos Activos en Barra Táctica (`BarraTacticaPersonaje.tsx` y `ChipCondicion.tsx`)**:
+     - Si el personaje viste armadura o escudo sin competencia (`penalizacionArmadura.sinCompetencia`), aparece automáticamente el chip `"SIN COMPETENCIA (ARMADURA)"` con variante cromática de alerta (`.chip-condicion-penalizacion`), icono `<AlertTriangle />` y tooltip detallado con todas las restricciones de D&D 5.5e.
+     - Si la armadura corporal equipada tiene la propiedad de sigilo ruidoso (`desventajaSigiloArmadura`), aparece automáticamente el chip `"SIGILO RUIDOSO (ARMADURA)"` con variante cromática (`.chip-condicion-sigilo`) e icono `<Footprints />`.
+     - Si el personaje mantiene concentración (`concentracionActiva`), se muestra el chip de `"Concentración"` con opción de romperla con un clic.
+  2. **Motor de Evaluación Mecánica de Condiciones (`procesadorCondiciones.ts`)**:
+     - Función pura `evaluarEfectosCondicionesEnTirada(contexto: ContextoTiradaCondiciones): ResultadoEvaluacionCondiciones`.
+     - Evalúa de forma unificada:
+       * Desventajas automáticas por condiciones (`Envenenado`, `Asustado`, `Derribado`, `Cegado`, `Apresado`, `Armadura sin Competencia`, `Sigilo Ruidoso`).
+       * Ventajas automáticas (`Invisible`).
+       * Regla oficial de anulación de ventaja y desventaja (tirada plana).
+       * Penalizadores dinámicos de d20 (Cansancio D&D 2024: $-2 \times \text{nivel}$).
+       * Registro detallado de motivos en el log de TaleSpire.
+  3. **Integración con Tiradas de Personaje y Combate**:
+     - `HojaPersonaje.tsx`: Conectado a pruebas de característica, salvaciones, habilidades e iniciativa.
+     - `VistaAtaquesJugador.tsx`: Conectado a tiradas de ataque con armas y ataques físicos.
+  4. **Diccionario Oficial Enriquecido (`resolutorCondiciones.ts` y `datosIniciales.ts`)**:
+     - Añadidas definiciones oficiales D&D 5.5e para `"Armadura sin Competencia"` y `"Desventaja en Sigilo (Armadura)"`.
+  5. **Verificación y Despliegue**: 354 tests unitarios pasando al 100% (`pnpm test`), 0 errores de TypeScript (`tsc --noEmit`) y despliegue completado a TaleSpire (`pnpm run deploy`).
+
+---
+
+## [2026-09-01] Consolidación Centralizada del Glosario de Equipo D&D 5.5e (`equipoConstantes.ts`)
+**Decisión y Motivación:**
+- *Causa*: `equipoConstantes.ts` era código muerto no consumido por ningún módulo, mientras que `objetoConstantes.ts` y `resolutorPropiedades.ts` duplicaban definiciones de maestrías, propiedades y explicaciones de armas y armaduras.
+- *Solución*:
+  1. **Glosario Central Único (`src/constantes/equipoConstantes.ts`)**:
+     - Centraliza tipos (`InfoPropiedad`, `InformacionVeneno`), opciones para selectores (`MAESTRIAS_DND_55`, `PROPIEDADES_ARMAS_DND`), explicaciones directas para formularios (`EXPLICACIONES_PROPIEDADES`, `EXPLICACIONES_MAESTRIAS`), diccionarios de normalización bilingüe (`DICCIONARIO_MAESTRIAS`, `DICCIONARIO_PROPIEDADES_ARMAS`), y constantes de armaduras (`INFO_ARMADURA_DESVENTAJA_SIGILO`, `INFO_ARMADURA_ESCUDO`, `INFO_ARMADURA_BONOS_DESTREZA`, funciones generadoras de requisitos de fuerza y CA base).
+  2. **Refactorización de Consumidores**:
+     - `resolutorPropiedades.ts`: Consume directamente el glosario centralizado sin duplicar diccionarios en memoria.
+     - `objetoConstantes.ts`: Limpiado para conservar exclusivamente constantes de objetos generales (rarezas, atributos y habilidades).
+     - `SeccionArma.tsx`: Actualizado para importar desde `@/constantes/equipoConstantes`.
+     - `sanitizacion.ts`: Actualizado `MAESTRIA_MAP` para soportar todas las variantes bilingües y compuestas de `vex` (`"Vex (Irritar)"`, `"vex (molestar)"`, etc.).
+  3. **Verificación y Despliegue**: 349 tests unitarios pasando al 100% (`pnpm test`), verificación estricta de TypeScript (`tsc --noEmit`) y despliegue a TaleSpire (`pnpm run deploy`).
+
+---
+
+## [2026-09-01] Corrección de Tooltips Flotantes con React Portal (`TooltipUniversal`) y Normalización de "Sin Bono" en Armaduras
+**Decisión y Motivación:**
+- *Causa*:
+  1. *Tooltips cortados en modales*: Al estar posicionados relativamente en `.contenedor` con `position: absolute`, los tooltips se recortaban cuando el contenedor padre (`.cuerpoModal` o `.ventanaModal`) tenía `overflow-y: auto` o `overflow: hidden`.
+  2. *Bono Destreza por defecto ("Completo") en Armaduras Pesadas*: `obtenerInfoPropiedadArmadura("bonoDestreza")` solo buscaba `"ninguno"` o `"none"`. Como el compendio y `sanitizacion.ts` almacenan `"Sin Bono"`, no coincidía y caía en el fallback `"Completo"`.
+- *Solución*:
+  1. **React Portal + Posicionamiento Fixed en `TooltipUniversal.tsx`**:
+     - Se migró `TooltipUniversal` para renderizar el popup flotante en `document.body` mediante `createPortal`.
+     - Coordenadas dinámicas con `getBoundingClientRect()`, detectando bordes de pantalla (vertical y horizontal) y reposicionando ante scroll o resize de la ventana.
+     - `z-index: 999999` para garantizar que ningún contenedor modal, tabla o subsección recorte el tooltip.
+  2. **Normalización Exhaustiva de `bonoDestreza`**:
+     - En `resolutorPropiedades.ts`, se incorporaron patrones como `"sin bono"`, `"sin"`, `"pesada"`, `"no"`, `"0"`.
+     - Inferencia contextual en `ModalDetalleObjetoInventario.tsx` y `ModalAgregarObjeto.tsx` basada en `subcategoria` si el valor no viniera tipado.
+  3. **Suite de Tests y Despliegue**: Tests actualizados en `resolutorPropiedades.test.ts` (349 tests al 100%), verificación estricta de TypeScript y despliegue a TaleSpire.
+
+---
+
+## [2026-09-01] Manejo Resiliente de Bloqueos de Archivos (EBUSY / EPERM) en `deploy_to_ts.js`
+**Decisión y Motivación:**
+- *Causa*: Al ejecutar `pnpm run deploy`, si TaleSpire o su WebView interno (CEF) se encuentra en ejecución, mantiene bloqueados en memoria los archivos de compilación (`assets/*.js`). En Windows, esto provocaba una excepción `EBUSY: resource busy or locked` al intentar sobrescribir archivos con `fs.copyFileSync` o eliminarlos con `fs.unlinkSync`, interrumpiendo el ciclo de despliegue de forma abrupta.
+- *Solución*:
+  1. **Estrategia de Renombrado Seguro**: Se implementó `copiarArchivoSeguro`, que al detectar un error `EBUSY` o `EPERM` renombra el archivo bloqueado a una extensión temporal `.old.<timestamp>`, permitiendo a Windows liberar el nombre original y escribir inmediatamente el nuevo bundle.
+  2. **Eliminación y Logging Explícito**: Se reemplazaron bloques `catch` vacíos en `deleteBuildElement` por renombrado de descarte y avisos informativos (`console.warn`) para evitar silenciar excepciones de I/O.
+  3. **Diagnóstico Claro**: Si un archivo no puede desbloquearse, el script emite un mensaje en consola guiando al usuario a recargar el simbionte o cerrar TaleSpire antes de abortar.
+- *Validación*: Compilación y despliegue exitosos con `pnpm run deploy`.
+
+---
+
 ## [2026-09-01] Sistema Global de Tokens de Jugador (`temaJugador.css`), Separación Master vs Jugador y Accesibilidad UI
 **Decisión y Motivación:**
 - *Causa*: En la vista de jugador (Hoja de personaje, Combate/Ataques, Conjuros e Inventario), existían múltiples tamaños de letra inferiores a 11px (8px-10px) y textos secundarios apagados (`#64748b`, `#718096`) sobre fondos oscuros, causando fatiga visual y baja legibilidad en TaleSpire CEF. Además, los estilos no estaban desacoplados de las variables de diseño del Master (DM).

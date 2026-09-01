@@ -9,6 +9,7 @@ import { usarEstadoHomebrew } from "@/almacen/selectores/usarEstadoHomebrew";
 import { usarAccionesIniciativa } from "@/almacen/selectores/usarEstadoIniciativa";
 import { lanzarDadosTaleSpire, sanitizarEtiqueta, type MetadataIniciativa } from "@/utiles/lanzadorDados";
 import { MAPA_HABILIDAD_A_CARACTERISTICA } from "@/constantes";
+import { evaluarEfectosCondicionesEnTirada } from "@/servicios/procesadorCondiciones";
 import type { Caracteristica, Habilidad } from "@/tipos";
 
 import { CabeceraPersonaje } from "./CabeceraPersonaje";
@@ -123,12 +124,27 @@ export const HojaPersonaje: React.FC<HojaPersonajeProps> = ({ alAbrirConfiguraci
     etiqueta: string,
     bono: number,
     metaIniciativa?: MetadataIniciativa,
-    forzarDesventaja?: boolean
+    tipoTiradaCondicion?: "ventaja" | "desventaja" | "plano",
+    sufijoMotivo?: string
   ) => {
     try {
       const nombrePj = personajeActivo.nombre?.trim() || "Personaje";
       const formulaDados = `!${sanitizarEtiqueta(etiqueta)}:1d20${bono >= 0 ? "+" : ""}${bono}`;
-      const sufijoLog = forzarDesventaja && modoTirada === "plano" ? " (Desventaja por Armadura)" : "";
+      
+      const tieneVentManual = tipoTirada === "ventaja";
+      const tieneDisvManual = tipoTirada === "desventaja";
+      const tieneVentCond = tipoTiradaCondicion === "ventaja";
+      const tieneDisvCond = tipoTiradaCondicion === "desventaja";
+      
+      const seAnulan = (tieneVentManual && tieneDisvCond) || (tieneDisvManual && tieneVentCond);
+
+      let sufijoLog = "";
+      if (seAnulan) {
+        sufijoLog = " (Ventaja y Desventaja se anulan -> Tirada Plana)";
+      } else if (sufijoMotivo && tipoTirada === "plano") {
+        sufijoLog = ` (${sufijoMotivo})`;
+      }
+
       const etiquetaLog = `${nombrePj} - ${etiqueta}${sufijoLog}`;
       
       await lanzarDadosTaleSpire(
@@ -136,7 +152,7 @@ export const HojaPersonaje: React.FC<HojaPersonajeProps> = ({ alAbrirConfiguraci
         etiquetaLog,
         metaIniciativa,
         undefined,
-        forzarDesventaja ? "desventaja" : undefined
+        tipoTiradaCondicion
       );
     } catch (err) {
       console.error("[HojaPersonaje] Error al enviar tirada 3D:", err);
@@ -144,27 +160,78 @@ export const HojaPersonaje: React.FC<HojaPersonajeProps> = ({ alAbrirConfiguraci
   };
 
   const penalizacionSinComp = !!statsCalculadas.penalizacionArmadura?.sinCompetencia;
+  const desventajaSigiloArmadura = !!statsCalculadas.desventajaSigiloArmadura;
 
   const manejarTirarCaracteristica = (carac: Caracteristica, etiqueta: string, bono: number) => {
-    const desventajaArmadura = penalizacionSinComp && (carac === "fuerza" || carac === "destreza");
-    lanzarTiradaD20Personaje(`Prueba de ${etiqueta}`, bono, undefined, desventajaArmadura);
+    const evaluacion = evaluarEfectosCondicionesEnTirada({
+      tipo: "caracteristica",
+      caracteristica: carac,
+      penalizacionArmadura: penalizacionSinComp,
+      desventajaSigiloArmadura,
+      condicionesActivas: personajeActivo.condicionesActivas
+    });
+    const bonoFinal = bono + evaluacion.penalizadorD20;
+    const motivos = [...evaluacion.motivosDesventaja, ...evaluacion.motivosVentaja, ...evaluacion.motivosModificadores].join(", ");
+    lanzarTiradaD20Personaje(
+      `Prueba de ${etiqueta}`,
+      bonoFinal,
+      undefined,
+      evaluacion.modoEfectivo !== "plano" ? evaluacion.modoEfectivo : undefined,
+      motivos
+    );
   };
 
   const manejarTirarSalvacion = (carac: Caracteristica, etiqueta: string, bono: number) => {
     const etiquetaLimpia = etiqueta.replace(/^Salvaci[oó]n(\s+de)?\s+/i, "");
-    const desventajaArmadura = penalizacionSinComp && (carac === "fuerza" || carac === "destreza");
-    lanzarTiradaD20Personaje(`Salvación de ${etiquetaLimpia}`, bono, undefined, desventajaArmadura);
+    const evaluacion = evaluarEfectosCondicionesEnTirada({
+      tipo: "salvacion",
+      caracteristica: carac,
+      penalizacionArmadura: penalizacionSinComp,
+      desventajaSigiloArmadura,
+      condicionesActivas: personajeActivo.condicionesActivas
+    });
+    const bonoFinal = bono + evaluacion.penalizadorD20;
+    const motivos = [...evaluacion.motivosDesventaja, ...evaluacion.motivosVentaja, ...evaluacion.motivosModificadores].join(", ");
+    lanzarTiradaD20Personaje(
+      `Salvación de ${etiquetaLimpia}`,
+      bonoFinal,
+      undefined,
+      evaluacion.modoEfectivo !== "plano" ? evaluacion.modoEfectivo : undefined,
+      motivos
+    );
   };
 
   const manejarTirarHabilidad = (hab: Habilidad, nombre: string, bono: number) => {
     const caracAsociada = MAPA_HABILIDAD_A_CARACTERISTICA[hab];
-    const desventajaArmadura = penalizacionSinComp && (caracAsociada === "fuerza" || caracAsociada === "destreza");
-    const desventajaSigilo = hab === "sigilo" && !!statsCalculadas.desventajaSigiloArmadura;
-    lanzarTiradaD20Personaje(`Prueba de ${nombre}`, bono, undefined, desventajaArmadura || desventajaSigilo);
+    const evaluacion = evaluarEfectosCondicionesEnTirada({
+      tipo: "caracteristica",
+      caracteristica: caracAsociada,
+      habilidad: hab,
+      penalizacionArmadura: penalizacionSinComp,
+      desventajaSigiloArmadura,
+      condicionesActivas: personajeActivo.condicionesActivas
+    });
+    const bonoFinal = bono + evaluacion.penalizadorD20;
+    const motivos = [...evaluacion.motivosDesventaja, ...evaluacion.motivosVentaja, ...evaluacion.motivosModificadores].join(", ");
+    lanzarTiradaD20Personaje(
+      `Prueba de ${nombre}`,
+      bonoFinal,
+      undefined,
+      evaluacion.modoEfectivo !== "plano" ? evaluacion.modoEfectivo : undefined,
+      motivos
+    );
   };
 
   const manejarTirarIniciativa = () => {
-    const bonoInic = statsCalculadas.modificadores.destreza + (personajeActivo.iniciativaBono || 0);
+    const evaluacion = evaluarEfectosCondicionesEnTirada({
+      tipo: "iniciativa",
+      caracteristica: "destreza",
+      penalizacionArmadura: penalizacionSinComp,
+      desventajaSigiloArmadura,
+      condicionesActivas: personajeActivo.condicionesActivas
+    });
+    const bonoBase = statsCalculadas.modificadores.destreza + (personajeActivo.iniciativaBono || 0);
+    const bonoFinal = bonoBase + evaluacion.penalizadorD20;
     const metaInic: MetadataIniciativa = {
       tipo: "iniciativa",
       criaturaId: personajeActivo.idMiniaturaTS || personajeActivo.id,
@@ -172,7 +239,12 @@ export const HojaPersonaje: React.FC<HojaPersonajeProps> = ({ alAbrirConfiguraci
       idMiniaturaTS: personajeActivo.idMiniaturaTS,
       idPersonaje: personajeActivo.id
     };
-    lanzarTiradaD20Personaje("Iniciativa", bonoInic, metaInic);
+    lanzarTiradaD20Personaje(
+      "Iniciativa",
+      bonoFinal,
+      metaInic,
+      evaluacion.modoEfectivo !== "plano" ? evaluacion.modoEfectivo : undefined
+    );
   };
 
   const manejarTirarSalvacionMuerte3D = async () => {
@@ -202,11 +274,15 @@ export const HojaPersonaje: React.FC<HojaPersonajeProps> = ({ alAbrirConfiguraci
         condicionesActivas={personajeActivo.condicionesActivas || []}
         hpActual={personajeActivo.hpActual}
         hpMaximo={personajeActivo.hpMaximo || personajeActivo.hpMaximoBase || 10}
+        penalizacionArmadura={statsCalculadas.penalizacionArmadura}
+        desventajaSigiloArmadura={statsCalculadas.desventajaSigiloArmadura}
+        concentracionActiva={personajeActivo.concentracionActiva}
         alCambiarModoTirada={manejarCambioModoTirada}
         alEjecutarDescansoCorto={() => ejecutarDescansoPersonaje(personajeActivo.id, "corto", 1)}
         alEjecutarDescansoLargo={() => ejecutarDescansoPersonaje(personajeActivo.id, "largo")}
         alAplicarCondicion={(cond) => aplicarCondicionPersonaje(personajeActivo.id, cond)}
         alQuitarCondicion={(cond) => quitarCondicionPersonaje(personajeActivo.id, cond)}
+        alRomperConcentracion={() => romperConcentracion(personajeActivo.id)}
       />
 
       {/* 3. Métricas Rápidas: CA, Iniciativa, Velocidad, PB, Inspiración */}

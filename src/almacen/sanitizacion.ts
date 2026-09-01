@@ -503,17 +503,17 @@ export function sanearObjetoHomebrew(o: unknown): ObjetoHomebrew {
     const rawProps = obj.properties || obj.propiedadesArma || obj.propiedades;
     
     const PROP_TRADUCCION: Record<string, string> = {
-      "finesse": "Sutil (Finesse)", "sutil": "Sutil (Finesse)",
-      "versatile": "Versátil (Versatile)", "versátil": "Versátil (Versatile)",
-      "heavy": "Pesada (Heavy)", "pesado": "Pesada (Heavy)", "pesada": "Pesada (Heavy)",
-      "light": "Ligera (Light)", "ligero": "Ligera (Light)", "ligera": "Ligera (Light)",
-      "loading": "Carga (Loading)", "carga": "Carga (Loading)",
-      "reach": "Alcance (Reach)", "alcance": "Alcance (Reach)",
-      "thrown": "Arrojadiza (Thrown)", "arrojadiza": "Arrojadiza (Thrown)",
-      "two-handed": "A dos manos (Two-Handed)", "a dos manos": "A dos manos (Two-Handed)",
-      "silvered": "Plateada (Silvered)", "plateado": "Plateada (Silvered)", "plateada": "Plateada (Silvered)",
-      "special": "Especial (Special)", "especial": "Especial (Special)",
-      "ammunition": "Munición (Ammunition)", "munición": "Munición (Ammunition)",
+      "finesse": "Sutil", "sutil": "Sutil",
+      "versatile": "Versátil", "versátil": "Versátil",
+      "heavy": "Pesada", "pesado": "Pesada", "pesada": "Pesada",
+      "light": "Ligera", "ligero": "Ligera", "ligera": "Ligera",
+      "loading": "Carga", "carga": "Carga",
+      "reach": "Alcance", "alcance": "Alcance",
+      "thrown": "Arrojadiza", "arrojadiza": "Arrojadiza",
+      "two-handed": "A dos manos", "a dos manos": "A dos manos",
+      "silvered": "Plateada", "plateado": "Plateada", "plateada": "Plateada",
+      "special": "Especial", "especial": "Especial",
+      "ammunition": "Munición", "munición": "Munición",
       "attunement": "Sintonización", "sintonización": "Sintonización", "sintonizacion": "Sintonización",
       "nick": "Golpe Rápido", "golpe rápido": "Golpe Rápido",
       "push": "Empuje", "empuje": "Empuje",
@@ -554,12 +554,12 @@ export function sanearObjetoHomebrew(o: unknown): ObjetoHomebrew {
     const MAESTRIA_MAP: Record<string, string> = {
       "cleave": "Cleave (Tajo)", "tajo": "Cleave (Tajo)", "hender": "Cleave (Tajo)", "cleave (tajo)": "Cleave (Tajo)",
       "graze": "Graze (Rozar)", "rozar": "Graze (Rozar)", "roce": "Graze (Rozar)", "graze (rozar)": "Graze (Rozar)",
-      "nick": "Nick (Corte)", "corte": "Nick (Corte)", "golpe rápido": "Nick (Corte)", "muesca": "Nick (Corte)", "nick (corte)": "Nick (Corte)",
+      "nick": "Nick (Mellar)", "corte": "Nick (Mellar)", "golpe rápido": "Nick (Mellar)", "muesca": "Nick (Mellar)", "nick (corte)": "Nick (Mellar)",
       "push": "Push (Empujar)", "empujar": "Push (Empujar)", "empuje": "Push (Empujar)", "push (empujar)": "Push (Empujar)",
       "sap": "Sap (Debilitar)", "debilitar": "Sap (Debilitar)", "menoscabo": "Sap (Debilitar)", "sap (debilitar)": "Sap (Debilitar)",
       "slow": "Slow (Ralentizar)", "ralentizar": "Slow (Ralentizar)", "lentitud": "Slow (Ralentizar)", "lento": "Slow (Ralentizar)", "slow (ralentizar)": "Slow (Ralentizar)",
       "topple": "Topple (Derribar)", "derribar": "Topple (Derribar)", "derribo": "Topple (Derribar)", "topple (derribar)": "Topple (Derribar)",
-      "vex": "Vex (Irritar)", "irritar": "Vex (Irritar)", "acoso": "Vex (Irritar)", "vejar": "Vex (Irritar)", "vex (irritar)": "Vex (Irritar)"
+      "vex": "Vex (Molestar)", "irritar": "Vex (Molestar)", "acoso": "Vex (Molestar)", "vejar": "Vex (Molestar)", "vex (irritar)": "Vex (Molestar)", "vex (molestar)": "Vex (Molestar)", "molestar": "Vex (Molestar)"
     };
     
     const maestriaSaneada = MAESTRIA_MAP[rawMaestria] || "Ninguna";

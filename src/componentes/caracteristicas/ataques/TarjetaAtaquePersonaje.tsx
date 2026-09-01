@@ -1,6 +1,7 @@
 import React from "react";
 import { Swords, Zap, Sparkles, Target, AlertTriangle } from "lucide-react";
 import type { Caracteristica } from "@/tipos";
+import type { ResultadoEvaluacionCondiciones } from "@/servicios/procesadorCondiciones";
 import { TooltipUniversal, SelectorDesplegable } from "@/componentes/comunes";
 import estilos from "./VistaAtaquesJugador.module.css";
 
@@ -57,6 +58,7 @@ function obtenerTooltipPropiedad(propiedadTexto: string): string {
 
 interface TarjetaAtaquePersonajeProps {
   ataque: AtaquePersonajeCalculado;
+  evaluacionCondiciones?: ResultadoEvaluacionCondiciones;
   alTirarAtaque: (ataque: AtaquePersonajeCalculado) => void;
   alTirarDano: (ataque: AtaquePersonajeCalculado, versatil?: boolean) => void;
   alTirarCritico: (ataque: AtaquePersonajeCalculado, versatil?: boolean) => void;
@@ -65,12 +67,19 @@ interface TarjetaAtaquePersonajeProps {
 
 export const TarjetaAtaquePersonaje: React.FC<TarjetaAtaquePersonajeProps> = ({
   ataque,
+  evaluacionCondiciones,
   alTirarAtaque,
   alTirarDano,
   alTirarCritico,
   alCambiarCaracteristica
 }) => {
   const bonoImpactoTexto = ataque.bonoAtaque >= 0 ? `+${ataque.bonoAtaque}` : `${ataque.bonoAtaque}`;
+
+  const motivosAtaque = [
+    ...(evaluacionCondiciones?.motivosDesventaja || []),
+    ...(evaluacionCondiciones?.motivosVentaja || []),
+    ...(evaluacionCondiciones?.motivosModificadores || [])
+  ].join(", ");
 
   const textoBadgeAccion =
     ataque.tipoAccion === "accionAdicional"
@@ -116,6 +125,23 @@ export const TarjetaAtaquePersonaje: React.FC<TarjetaAtaquePersonajeProps> = ({
               title="No eres competente con esta arma. No sumas tu bono de competencia al ataque."
             >
               <AlertTriangle size={10} /> No Competente
+            </span>
+          )}
+          {evaluacionCondiciones?.tieneDesventaja && (
+            <span
+              className={estilos.badgeNoCompetente}
+              title={`Desventaja en ataque por: ${motivosAtaque}`}
+              style={{ backgroundColor: "rgba(245, 158, 11, 0.15)", borderColor: "rgba(245, 158, 11, 0.5)", color: "#f59e0b" }}
+            >
+              <AlertTriangle size={10} /> Desventaja
+            </span>
+          )}
+          {evaluacionCondiciones?.tieneVentaja && !evaluacionCondiciones?.tieneDesventaja && (
+            <span
+              className={estilos.badgeMagicoAtaque}
+              title={`Ventaja en ataque por: ${motivosAtaque}`}
+            >
+              <Sparkles size={10} /> Ventaja
             </span>
           )}
         </div>
@@ -281,7 +307,7 @@ export const TarjetaAtaquePersonaje: React.FC<TarjetaAtaquePersonajeProps> = ({
         <div className={estilos.filaPropiedadesAtaque}>
           {ataque.maestria && (
             <TooltipUniversal
-              titulo={`Maestría: ${ataque.maestria}`}
+              titulo={`${ataque.maestria}`}
               contenido={obtenerTooltipMaestria(ataque.maestria)}
               posicion="arriba"
               alineacion="inicio"

@@ -2,7 +2,8 @@ import React, { useState, useEffect } from "react";
 import type { PersonajeJugador, Caracteristica } from "@/tipos";
 import { CARACTERISTICAS_CLAVES } from "@/constantes";
 import type { EstadisticasCalculadasPersonaje } from "@/almacen/selectores/usarEstadoPersonajes";
-import { AlertTriangle } from "lucide-react";
+import { evaluarEfectosCondicionesEnTirada } from "@/servicios/procesadorCondiciones";
+import { AlertTriangle, Sparkles } from "lucide-react";
 import estilos from "./HojaPersonaje.module.css";
 
 interface PanelAtributosPersonajeProps {
@@ -58,6 +59,8 @@ export const PanelAtributosPersonaje: React.FC<PanelAtributosPersonajeProps> = (
     }
   };
 
+  const penalizacionSinComp = !!statsCalculadas.penalizacionArmadura?.sinCompetencia;
+
   return (
     <section className={estilos.filaAtributosSentidos}>
       {/* Cuadrícula 3x2 de Características */}
@@ -70,13 +73,40 @@ export const PanelAtributosPersonaje: React.FC<PanelAtributosPersonajeProps> = (
           const bonoSalvacion = salvaciones[carac] || 0;
           const salvTexto = bonoSalvacion >= 0 ? `+${bonoSalvacion}` : `${bonoSalvacion}`;
           const tieneCompetenciaSalv = personaje.competenciasSalvacion?.[carac] || false;
-          const tieneDesventajaArmadura =
-            !!statsCalculadas.penalizacionArmadura?.sinCompetencia &&
-            (carac === "fuerza" || carac === "destreza");
 
-          const tooltipAtributo = tieneDesventajaArmadura
-            ? `Prueba de ${etiqueta} (${modTexto}). DESVENTAJA por armadura sin competencia. Haz clic para tirar.`
-            : `Prueba de ${etiqueta} (${modTexto}). Haz clic para tirar en 3D.`;
+          // Evaluación integral de condiciones activas para Característica y Salvación
+          const evalCarac = evaluarEfectosCondicionesEnTirada({
+            tipo: "caracteristica",
+            caracteristica: carac,
+            penalizacionArmadura: penalizacionSinComp,
+            condicionesActivas: personaje.condicionesActivas
+          });
+
+          const evalSalv = evaluarEfectosCondicionesEnTirada({
+            tipo: "salvacion",
+            caracteristica: carac,
+            penalizacionArmadura: penalizacionSinComp,
+            condicionesActivas: personaje.condicionesActivas
+          });
+
+          const motivosCarac = [
+            ...evalCarac.motivosDesventaja,
+            ...evalCarac.motivosVentaja,
+            ...evalCarac.motivosModificadores
+          ].join(", ");
+
+          const motivosSalv = [
+            ...evalSalv.motivosDesventaja,
+            ...evalSalv.motivosVentaja,
+            ...evalSalv.motivosModificadores
+          ].join(", ");
+
+          let tooltipAtributo = `Prueba de ${etiqueta} (${modTexto}). Haz clic para tirar en 3D.`;
+          if (evalCarac.tieneDesventaja) {
+            tooltipAtributo = `Prueba de ${etiqueta} (${modTexto}). DESVENTAJA por: ${evalCarac.motivosDesventaja.join(", ")}. Clic para tirar.`;
+          } else if (evalCarac.tieneVentaja) {
+            tooltipAtributo = `Prueba de ${etiqueta} (${modTexto}). VENTAJA por: ${evalCarac.motivosVentaja.join(", ")}. Clic para tirar.`;
+          }
 
           return (
             <div
@@ -87,9 +117,14 @@ export const PanelAtributosPersonaje: React.FC<PanelAtributosPersonajeProps> = (
             >
               <div style={{ display: "flex", alignItems: "center", gap: 3, justifyContent: "center" }}>
                 <span className={estilos.nombreAtributo}>{etiqueta}</span>
-                {tieneDesventajaArmadura && (
-                  <span title="Desventaja en pruebas y salvaciones por armadura/escudo sin competencia">
+                {evalCarac.tieneDesventaja && (
+                  <span title={`Desventaja en pruebas por: ${motivosCarac}`}>
                     <AlertTriangle size={11} color="#f59e0b" />
+                  </span>
+                )}
+                {evalCarac.tieneVentaja && !evalCarac.tieneDesventaja && (
+                  <span title={`Ventaja en pruebas por: ${motivosCarac}`}>
+                    <Sparkles size={11} color="#38bdf8" />
                   </span>
                 )}
               </div>
@@ -163,9 +198,21 @@ export const PanelAtributosPersonaje: React.FC<PanelAtributosPersonajeProps> = (
                     alTirarSalvacion(carac, `Salvación de ${etiqueta}`, bonoSalvacion);
                   }}
                   onMouseDown={(e) => e.stopPropagation()}
-                  title={`Tirada de Salvación de ${etiqueta} (${salvTexto}). Clic para tirar en 3D.`}
+                  title={
+                    evalSalv.tieneDesventaja
+                      ? `Tirada de Salvación de ${etiqueta} (${salvTexto}). DESVENTAJA por: ${motivosSalv}. Clic para tirar en 3D.`
+                      : evalSalv.tieneVentaja
+                      ? `Tirada de Salvación de ${etiqueta} (${salvTexto}). VENTAJA por: ${motivosSalv}. Clic para tirar en 3D.`
+                      : `Tirada de Salvación de ${etiqueta} (${salvTexto}). Clic para tirar en 3D.`
+                  }
                 >
                   {salvTexto} Salv.
+                  {evalSalv.tieneDesventaja && (
+                    <AlertTriangle size={10} color="#f59e0b" style={{ marginLeft: 3, verticalAlign: "middle" }} />
+                  )}
+                  {evalSalv.tieneVentaja && !evalSalv.tieneDesventaja && (
+                    <Sparkles size={10} color="#38bdf8" style={{ marginLeft: 3, verticalAlign: "middle" }} />
+                  )}
                 </button>
               </div>
             </div>

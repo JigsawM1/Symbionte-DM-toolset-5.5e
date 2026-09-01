@@ -493,11 +493,18 @@ export const ModalAgregarObjeto: React.FC<ModalAgregarObjetoProps> = ({
                         CA {armaduraObj.caBase}
                       </span>
                       {(() => {
-                        const infoDes = obtenerInfoPropiedadArmadura("bonoDestreza", armaduraObj.bonoDestreza);
+                        const bonoDestReal =
+                          armaduraObj.bonoDestreza ||
+                          (armaduraObj.subcategoria === "Pesada"
+                            ? "Sin Bono"
+                            : armaduraObj.subcategoria === "Mediana"
+                            ? "Máximo 2"
+                            : "Completo");
+                        const infoDes = obtenerInfoPropiedadArmadura("bonoDestreza", bonoDestReal);
                         return (
                           <TooltipUniversal titulo={infoDes.titulo} contenido={infoDes.descripcion} posicion="arriba">
                             <span className={estilos.badgeMeta} style={{ cursor: "help" }}>
-                              Bono Des: {armaduraObj.bonoDestreza || "Completo"}
+                              Bono Des: {bonoDestReal}
                             </span>
                           </TooltipUniversal>
                         );

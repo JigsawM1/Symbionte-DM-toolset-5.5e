@@ -400,7 +400,14 @@ export const ModalDetalleObjetoInventario: React.FC<ModalDetalleObjetoInventario
             <div className={`${estilos.seccionDatosGenerales} ${estilos.seccionArmadura}`}>
               <div className={estilos.filaBadges}>
                 {(() => {
-                  const infoDes = obtenerInfoPropiedadArmadura("bonoDestreza", armaduraObj.bonoDestreza);
+                  const bonoDestReal =
+                    armaduraObj.bonoDestreza ||
+                    (armaduraObj.subcategoria === "Pesada"
+                      ? "Sin Bono"
+                      : armaduraObj.subcategoria === "Mediana"
+                      ? "Máximo 2"
+                      : "Completo");
+                  const infoDes = obtenerInfoPropiedadArmadura("bonoDestreza", bonoDestReal);
                   return (
                     <TooltipUniversal
                       titulo={infoDes.titulo}
@@ -408,7 +415,7 @@ export const ModalDetalleObjetoInventario: React.FC<ModalDetalleObjetoInventario
                       posicion="arriba"
                     >
                       <span className={`${estilos.badgeMeta} ${estilos.badgeArmaduraDes}`} style={{ cursor: "help" }}>
-                        Bono Destreza: {armaduraObj.bonoDestreza || "Completo"}
+                        Bono Destreza: {bonoDestReal}
                       </span>
                     </TooltipUniversal>
                   );

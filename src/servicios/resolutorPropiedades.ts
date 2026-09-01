@@ -17,111 +17,111 @@ export interface InfoPropiedad {
 /** Diccionario maestro de Maestrías oficiales D&D 5.5e (2024) */
 export const DICCIONARIO_MAESTRIAS: Record<string, { titulo: string; descripcion: string }> = {
   "cleave": {
-    titulo: "Hender (Cleave)",
+    titulo: "Hender",
     descripcion: "Si impactas a una criatura con un ataque cuerpo a cuerpo, puedes realizar otro ataque contra una segunda criatura a 5 pies de la primera que esté a tu alcance. Si impactas, la segunda criatura recibe el daño del arma (sin sumar tu modificador de característica a menos que sea negativo). Máximo una vez por turno."
   },
   "hender": {
-    titulo: "Hender (Cleave)",
+    titulo: "Hender",
     descripcion: "Si impactas a una criatura con un ataque cuerpo a cuerpo, puedes realizar otro ataque contra una segunda criatura a 5 pies de la primera que esté a tu alcance. Si impactas, la segunda criatura recibe el daño del arma (sin sumar tu modificador de característica a menos que sea negativo). Máximo una vez por turno."
   },
   "tajo": {
-    titulo: "Hender (Cleave / Tajo)",
+    titulo: "Hender",
     descripcion: "Si impactas a una criatura con un ataque cuerpo a cuerpo, puedes realizar otro ataque contra una segunda criatura a 5 pies de la primera que esté a tu alcance. Si impactas, la segunda criatura recibe el daño del arma (sin sumar tu modificador de característica a menos que sea negativo). Máximo una vez por turno."
   },
   "graze": {
-    titulo: "Rozar (Graze)",
+    titulo: "Rozar",
     descripcion: "Si fallas una tirada de ataque contra una criatura, aun así le infliges daño igual al modificador de la característica que usaste para el ataque. Este daño es del mismo tipo que el arma y no se puede incrementar salvo aumentando dicho modificador."
   },
   "rozar": {
-    titulo: "Rozar (Graze)",
+    titulo: "Rozar",
     descripcion: "Si fallas una tirada de ataque contra una criatura, aun así le infliges daño igual al modificador de la característica que usaste para el ataque. Este daño es del mismo tipo que el arma y no se puede incrementar salvo aumentando dicho modificador."
   },
   "roce": {
-    titulo: "Rozar (Graze / Roce)",
+    titulo: "Rozar",
     descripcion: "Si fallas una tirada de ataque contra una criatura, aun así le infliges daño igual al modificador de la característica que usaste para el ataque. Este daño es del mismo tipo que el arma y no se puede incrementar salvo aumentando dicho modificador."
   },
   "nick": {
-    titulo: "Corte Rápido (Nick)",
+    titulo: "Mellar",
     descripcion: "Puedes realizar el ataque adicional otorgado por la propiedad Ligera como parte de la misma Acción de Atacar en lugar de consumir tu Acción Adicional. Solo puedes realizar este ataque extra una vez por turno."
   },
   "corte": {
-    titulo: "Corte Rápido (Nick)",
+    titulo: "Mellar",
     descripcion: "Puedes realizar el ataque adicional otorgado por la propiedad Ligera como parte de la misma Acción de Atacar en lugar de consumir tu Acción Adicional. Solo puedes realizar este ataque extra una vez por turno."
   },
   "golpe rapido": {
-    titulo: "Corte Rápido (Nick)",
+    titulo: "Mellar",
     descripcion: "Puedes realizar el ataque adicional otorgado por la propiedad Ligera como parte de la misma Acción de Atacar en lugar de consumir tu Acción Adicional. Solo puedes realizar este ataque extra una vez por turno."
   },
   "push": {
-    titulo: "Empujar (Push)",
+    titulo: "Empujar",
     descripcion: "Si impactas a una criatura con este ataque, puedes empujarla hasta 10 pies en línea recta lejos de ti (siempre que la criatura sea de tamaño Grande o menor)."
   },
   "empuje": {
-    titulo: "Empujar (Push)",
+    titulo: "Empujar",
     descripcion: "Si impactas a una criatura con este ataque, puedes empujarla hasta 10 pies en línea recta lejos de ti (siempre que la criatura sea de tamaño Grande o menor)."
   },
   "empujar": {
-    titulo: "Empujar (Push)",
+    titulo: "Empujar",
     descripcion: "Si impactas a una criatura con este ataque, puedes empujarla hasta 10 pies en línea recta lejos de ti (siempre que la criatura sea de tamaño Grande o menor)."
   },
   "sap": {
-    titulo: "Aturdir / Debilitar (Sap)",
+    titulo: "Debilitar",
     descripcion: "Si impactas a una criatura, esta sufrirá Desventaja en su siguiente tirada de ataque realizada antes del inicio de tu siguiente turno."
   },
   "aturdir": {
-    titulo: "Aturdir / Debilitar (Sap)",
+    titulo: "Debilitar",
     descripcion: "Si impactas a una criatura, esta sufrirá Desventaja en su siguiente tirada de ataque realizada antes del inicio de tu siguiente turno."
   },
   "debilitar": {
-    titulo: "Aturdir / Debilitar (Sap)",
+    titulo: "Debilitar",
     descripcion: "Si impactas a una criatura, esta sufrirá Desventaja en su siguiente tirada de ataque realizada antes del inicio de tu siguiente turno."
   },
   "menoscabo": {
-    titulo: "Aturdir / Debilitar (Sap)",
+    titulo: "Debilitar",
     descripcion: "Si impactas a una criatura, esta sufrirá Desventaja en su siguiente tirada de ataque realizada antes del inicio de tu siguiente turno."
   },
   "slow": {
-    titulo: "Ralentizar (Slow)",
+    titulo: "Ralentizar",
     descripcion: "Si impactas a una criatura y le infliges daño, su velocidad se reduce en 10 pies hasta el inicio de tu siguiente turno. Impactos sucesivos no acumulan la reducción de velocidad más allá de 10 pies."
   },
   "ralentizar": {
-    titulo: "Ralentizar (Slow)",
+    titulo: "Ralentizar",
     descripcion: "Si impactas a una criatura y le infliges daño, su velocidad se reduce en 10 pies hasta el inicio de tu siguiente turno. Impactos sucesivos no acumulan la reducción de velocidad más allá de 10 pies."
   },
   "frenar": {
-    titulo: "Ralentizar (Slow)",
+    titulo: "Ralentizar",
     descripcion: "Si impactas a una criatura y le infliges daño, su velocidad se reduce en 10 pies hasta el inicio de tu siguiente turno. Impactos sucesivos no acumulan la reducción de velocidad más allá de 10 pies."
   },
   "lentitud": {
-    titulo: "Ralentizar (Slow)",
+    titulo: "Ralentizar",
     descripcion: "Si impactas a una criatura y le infliges daño, su velocidad se reduce en 10 pies hasta el inicio de tu siguiente turno. Impactos sucesivos no acumulan la reducción de velocidad más allá de 10 pies."
   },
   "topple": {
-    titulo: "Derribar (Topple)",
+    titulo: "Derribar",
     descripcion: "Si impactas a una criatura, puedes forzarla a superar una tirada de salvación de Constitución (CD 8 + tu bono de competencia + mod de característica) o caer en condición de Derribada (Prone)."
   },
   "derribar": {
-    titulo: "Derribar (Topple)",
+    titulo: "Derribar",
     descripcion: "Si impactas a una criatura, puedes forzarla a superar una tirada de salvación de Constitución (CD 8 + tu bono de competencia + mod de característica) o caer en condición de Derribada (Prone)."
   },
   "derribo": {
-    titulo: "Derribar (Topple)",
+    titulo: "Derribar",
     descripcion: "Si impactas a una criatura, puedes forzarla a superar una tirada de salvación de Constitución (CD 8 + tu bono de competencia + mod de característica) o caer en condición de Derribada (Prone)."
   },
   "vex": {
-    titulo: "Hostigar / Irritar (Vex)",
+    titulo: "Molestar",
     descripcion: "Si impactas a una criatura y le infliges daño, obtienes Ventaja en tu siguiente tirada de ataque contra esa misma criatura antes del final de tu siguiente turno."
   },
   "hostigar": {
-    titulo: "Hostigar / Irritar (Vex)",
+    titulo: "Molestar",
     descripcion: "Si impactas a una criatura y le infliges daño, obtienes Ventaja en tu siguiente tirada de ataque contra esa misma criatura antes del final de tu siguiente turno."
   },
   "irritar": {
-    titulo: "Hostigar / Irritar (Vex)",
+    titulo: "Molestar",
     descripcion: "Si impactas a una criatura y le infliges daño, obtienes Ventaja en tu siguiente tirada de ataque contra esa misma criatura antes del final de tu siguiente turno."
   },
   "acoso": {
-    titulo: "Hostigar / Irritar (Vex)",
+    titulo: "Molestar",
     descripcion: "Si impactas a una criatura y le infliges daño, obtienes Ventaja en tu siguiente tirada de ataque contra esa misma criatura antes del final de tu siguiente turno."
   }
 };
@@ -129,103 +129,103 @@ export const DICCIONARIO_MAESTRIAS: Record<string, { titulo: string; descripcion
 /** Diccionario maestro de Propiedades de Armas */
 export const DICCIONARIO_PROPIEDADES_ARMAS: Record<string, { titulo: string; descripcion: string }> = {
   "sutil": {
-    titulo: "Sutil (Finesse)",
+    titulo: "Sutil",
     descripcion: "Al realizar un ataque con esta arma, puedes elegir libremente usar tu modificador de Fuerza o de Destreza para las tiradas de ataque y daño (debes usar el mismo para ambas)."
   },
   "finesse": {
-    titulo: "Sutil (Finesse)",
+    titulo: "Sutil",
     descripcion: "Al realizar un ataque con esta arma, puedes elegir libremente usar tu modificador de Fuerza o de Destreza para las tiradas de ataque y daño (debes usar el mismo para ambas)."
   },
   "ligera": {
-    titulo: "Ligera (Light)",
+    titulo: "Ligera",
     descripcion: "Cuando atacas con un arma ligera usando la Acción de Atacar, puedes realizar un ataque adicional con otra arma ligera en tu otra mano como Acción Adicional (o como parte de la acción si tienes la maestría Nick)."
   },
   "ligero": {
-    titulo: "Ligera (Light)",
+    titulo: "Ligera",
     descripcion: "Cuando atacas con un arma ligera usando la Acción de Atacar, puedes realizar un ataque adicional con otra arma ligera en tu otra mano como Acción Adicional (o como parte de la acción si tienes la maestría Nick)."
   },
   "light": {
-    titulo: "Ligera (Light)",
+    titulo: "Ligera",
     descripcion: "Cuando atacas con un arma ligera usando la Acción de Atacar, puedes realizar un ataque adicional con otra arma ligera en tu otra mano como Acción Adicional (o como parte de la acción si tienes la maestría Nick)."
   },
   "versatil": {
-    titulo: "Versátil (Versatile)",
+    titulo: "Versátil",
     descripcion: "Esta arma puede empuñarse con una o dos manos. Al empuñarla a dos manos para un ataque cuerpo a cuerpo, inflige el daño superior especificado entre paréntesis."
   },
   "versatile": {
-    titulo: "Versátil (Versatile)",
+    titulo: "Versátil",
     descripcion: "Esta arma puede empuñarse con una o dos manos. Al empuñarla a dos manos para un ataque cuerpo a cuerpo, inflige el daño superior especificado entre paréntesis."
   },
   "pesada": {
-    titulo: "Pesada (Heavy)",
+    titulo: "Pesada",
     descripcion: "Las criaturas de tamaño Pequeño o menor tienen desventaja en las tiradas de ataque con armas pesadas. En D&D 5.5e, requiere Fuerza 13 (cuerpo a cuerpo) o Destreza 13 (a distancia) para evitar desventaja."
   },
   "pesado": {
-    titulo: "Pesada (Heavy)",
+    titulo: "Pesada",
     descripcion: "Las criaturas de tamaño Pequeño o menor tienen desventaja en las tiradas de ataque con armas pesadas. En D&D 5.5e, requiere Fuerza 13 (cuerpo a cuerpo) o Destreza 13 (a distancia) para evitar desventaja."
   },
   "heavy": {
-    titulo: "Pesada (Heavy)",
+    titulo: "Pesada",
     descripcion: "Las criaturas de tamaño Pequeño o menor tienen desventaja en las tiradas de ataque con armas pesadas. En D&D 5.5e, requiere Fuerza 13 (cuerpo a cuerpo) o Destreza 13 (a distancia) para evitar desventaja."
   },
   "alcance": {
-    titulo: "Alcance (Reach)",
+    titulo: "Alcance",
     descripcion: "Esta arma añade 5 pies adicionales a tu distancia de alcance cuerpo a cuerpo tanto para atacar en tu turno como para determinar Ataques de Oportunidad."
   },
   "reach": {
-    titulo: "Alcance (Reach)",
+    titulo: "Alcance",
     descripcion: "Esta arma añade 5 pies adicionales a tu distancia de alcance cuerpo a cuerpo tanto para atacar en tu turno como para determinar Ataques de Oportunidad."
   },
   "arrojadiza": {
-    titulo: "Arrojadiza (Thrown)",
+    titulo: "Arrojadiza",
     descripcion: "Puedes lanzar el arma para realizar un ataque a distancia usando el mismo modificador de característica (Fuerza o Destreza) que usarías en cuerpo a cuerpo. Desenvainarla forma parte del ataque."
   },
   "thrown": {
-    titulo: "Arrojadiza (Thrown)",
+    titulo: "Arrojadiza",
     descripcion: "Puedes lanzar el arma para realizar un ataque a distancia usando el mismo modificador de característica (Fuerza o Destreza) que usarías en cuerpo a cuerpo. Desenvainarla forma parte del ataque."
   },
   "a dos manos": {
-    titulo: "A Dos Manos (Two-Handed)",
+    titulo: "A Dos Manos",
     descripcion: "Esta arma requiere obligatoriamente el uso de ambas manos cuando realizas un ataque con ella."
   },
   "two-handed": {
-    titulo: "A Dos Manos (Two-Handed)",
+    titulo: "A Dos Manos",
     descripcion: "Esta arma requiere obligatoriamente el uso de ambas manos cuando realizas un ataque con ella."
   },
   "carga": {
-    titulo: "Carga / Recarga (Loading)",
+    titulo: "Recarga",
     descripcion: "Debido al tiempo de recarga, solo puedes disparar 1 proyectil con esta arma cuando usas una Acción, Acción Adicional o Reacción, independientemente del número de ataques que puedas realizar."
   },
   "recarga": {
-    titulo: "Carga / Recarga (Loading)",
+    titulo: "Recarga",
     descripcion: "Debido al tiempo de recarga, solo puedes disparar 1 proyectil con esta arma cuando usas una Acción, Acción Adicional o Reacción, independientemente del número de ataques que puedas realizar."
   },
   "loading": {
-    titulo: "Carga / Recarga (Loading)",
+    titulo: "Recarga",
     descripcion: "Debido al tiempo de recarga, solo puedes disparar 1 proyectil con esta arma cuando usas una Acción, Acción Adicional o Reacción, independientemente del número de ataques que puedas realizar."
   },
   "municion": {
-    titulo: "Munición (Ammunition)",
+    titulo: "Munición",
     descripcion: "Requiere proyectiles compatibles para realizar ataques a distancia. Cada disparo consume 1 proyectil. Sacar la munición es parte del ataque y tras el combate puedes recuperar la mitad gastada."
   },
   "ammunition": {
-    titulo: "Munición (Ammunition)",
+    titulo: "Munición",
     descripcion: "Requiere proyectiles compatibles para realizar ataques a distancia. Cada disparo consume 1 proyectil. Sacar la munición es parte del ataque y tras el combate puedes recuperar la mitad gastada."
   },
   "especial": {
-    titulo: "Especial (Special)",
+    titulo: "Especial",
     descripcion: "Esta arma posee reglas tácticas o mecánicas únicas y especiales detalladas en la descripción del objeto."
   },
   "special": {
-    titulo: "Especial (Special)",
+    titulo: "Especial",
     descripcion: "Esta arma posee reglas tácticas o mecánicas únicas y especiales detalladas en la descripción del objeto."
   },
   "plateada": {
-    titulo: "Plateada (Silvered)",
+    titulo: "Plateada",
     descripcion: "El arma cuenta con una aleación o baño de plata que le permite superar la resistencia o inmunidad al daño no mágico de licántropos y otras criaturas sobrenaturales."
   },
   "silvered": {
-    titulo: "Plateada (Silvered)",
+    titulo: "Plateada",
     descripcion: "El arma cuenta con una aleación o baño de plata que le permite superar la resistencia o inmunidad al daño no mágico de licántropos y otras criaturas sobrenaturales."
   },
   "sintonizacion": {

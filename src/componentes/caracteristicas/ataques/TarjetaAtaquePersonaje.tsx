@@ -287,7 +287,7 @@ export const TarjetaAtaquePersonaje: React.FC<TarjetaAtaquePersonajeProps> = ({
               alineacion="inicio"
             >
               <span className={estilos.badgeMaestria}>
-                Maestría: {ataque.maestria}
+                {ataque.maestria}
               </span>
             </TooltipUniversal>
           )}

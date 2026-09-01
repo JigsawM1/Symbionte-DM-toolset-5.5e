@@ -11,14 +11,16 @@
   flex-direction: column;
   gap: 10px;
   box-sizing: border-box;
+  color: var(--pj-texto-primario-suave, #f8fafc);
+  font-family: var(--fuente-principal, 'Inter', system-ui, sans-serif);
 }
 
 .cabeceraPrincipal {
-  background: linear-gradient(180deg, #161e2c 0%, #111622 100%);
-  border: 1px solid rgba(129, 140, 248, 0.22);
+  background: var(--pj-fondo-cabecera-gradiente, linear-gradient(180deg, #161e2c 0%, #111622 100%));
+  border: 1px solid var(--pj-borde-acento-tenue, rgba(129, 140, 248, 0.25));
   border-radius: 8px;
   padding: 8px 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  box-shadow: var(--pj-sombra-panel, 0 4px 12px rgba(0, 0, 0, 0.5));
 }
 
 .filaTitulo {
@@ -37,20 +39,20 @@
 
 .tituloTexto {
   font-family: var(--fuente-titulo, 'Outfit', sans-serif);
-  font-size: 15px;
+  font-size: var(--pj-fuente-subtitulo, 15px);
   font-weight: 800;
-  color: #f8fafc;
+  color: var(--pj-texto-primario, #ffffff);
   margin: 0;
   letter-spacing: 0.3px;
   text-transform: uppercase;
 }
 
 .contadorBadge {
-  font-size: 10px;
+  font-size: var(--pj-fuente-micro, 11px);
   font-weight: 700;
-  background-color: rgba(0, 245, 212, 0.12);
-  border: 1px solid rgba(0, 245, 212, 0.3);
-  color: #00f5d4;
+  background-color: var(--pj-acento-cian-fondo, rgba(56, 189, 248, 0.12));
+  border: 1px solid var(--pj-borde-cian, rgba(56, 189, 248, 0.35));
+  color: var(--pj-texto-cian, #38bdf8);
   padding: 1px 7px;
   border-radius: 10px;
   font-family: var(--fuente-codigo, 'JetBrains Mono', monospace);
@@ -62,20 +64,21 @@
   gap: 6px;
   justify-content: flex-end;
   background: rgba(17, 22, 34, 0.7);
-  border: 1px solid rgba(148, 163, 184, 0.15);
+  border: 1px solid var(--pj-borde-sutil, rgba(148, 163, 184, 0.16));
   border-radius: 6px;
   padding: 4px 8px;
 }
 
 .tarjetaVacia {
-  background-color: #121722;
-  border: 1px solid rgba(148, 163, 184, 0.14);
+  background-color: var(--pj-fondo-tarjeta, #121722);
+  border: 1px solid var(--pj-borde-sutil, rgba(148, 163, 184, 0.16));
   border-radius: 8px;
   padding: 32px;
   text-align: center;
-  color: #94a3b8;
+  color: var(--pj-texto-secundario, #cbd5e1);
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 8px;
+  font-size: var(--pj-fuente-cuerpo, 12.5px);
 }

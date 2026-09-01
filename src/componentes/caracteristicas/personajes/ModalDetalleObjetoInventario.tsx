@@ -38,28 +38,14 @@ import {
   normalizarTexto
 } from "@/servicios/gestorMunicion";
 import { SelectorDesplegable } from "@/componentes/comunes/SelectorDesplegable";
+import { TooltipUniversal } from "@/componentes/comunes/TooltipUniversal";
 import { lanzarDadosTaleSpire, sanitizarEtiqueta } from "@/utiles/lanzadorDados";
+import {
+  obtenerInfoMaestria,
+  obtenerInfoPropiedadArma,
+  obtenerInfoPropiedadArmadura
+} from "@/servicios/resolutorPropiedades";
 import estilos from "./ModalDetalleObjetoInventario.module.css";
-
-/** Diccionario de descripciones oficiales de maestrías D&D 5.5e (2024) */
-const DESCRIPCIONES_MAESTRIAS: Record<string, string> = {
-  "cleave": "HENDER (Cleave): Si impactas a una criatura con un ataque cuerpo a cuerpo, puedes realizar otro ataque contra una segunda criatura a 5 pies que esté a tu alcance.",
-  "hender": "HENDER (Cleave): Si impactas a una criatura con un ataque cuerpo a cuerpo, puedes realizar otro ataque contra una segunda criatura a 5 pies que esté a tu alcance.",
-  "graze": "ROZAR (Graze): Si fallas una tirada de ataque contra una criatura, aun así le infliges daño igual al modificador de la característica usada.",
-  "rozar": "ROZAR (Graze): Si fallas una tirada de ataque contra una criatura, aun así le infliges daño igual al modificador de la característica usada.",
-  "nick": "CORTE RÁPIDO (Nick): Puedes realizar el ataque adicional de la propiedad Ligera como parte de la misma Acción de Atacar, en lugar de consumir tu Acción Adicional.",
-  "corte": "CORTE RÁPIDO (Nick): Puedes realizar el ataque adicional de la propiedad Ligera como parte de la misma Acción de Atacar, en lugar de consumir tu Acción Adicional.",
-  "push": "EMPUJE (Push): Si impactas a una criatura, puedes empujarla hasta 10 pies en línea recta lejos de ti (si es de tamaño Grande o menor).",
-  "empuje": "EMPUJE (Push): Si impactas a una criatura, puedes empujarla hasta 10 pies en línea recta lejos de ti (si es de tamaño Grande o menor).",
-  "sap": "ZAPATAZO / ATURDIR (Sap): Si impactas a una criatura, esta tiene desventaja en su próxima tirada de ataque antes del inicio de tu próximo turno.",
-  "aturdir": "ZAPATAZO / ATURDIR (Sap): Si impactas a una criatura, esta tiene desventaja en su próxima tirada de ataque antes del inicio de tu próximo turno.",
-  "slow": "FRENAR (Slow): Si impactas a una criatura y le infliges daño, reduces su velocidad en 10 pies hasta el inicio de tu próximo turno.",
-  "frenar": "FRENAR (Slow): Si impactas a una criatura y le infliges daño, reduces su velocidad en 10 pies hasta el inicio de tu próximo turno.",
-  "topple": "DERRIBAR (Topple): Si impactas a una criatura, debe superar una salvación de Constitución o caer derribada (Tumbada).",
-  "derribar": "DERRIBAR (Topple): Si impactas a una criatura, debe superar una salvación de Constitución o caer derribada (Tumbada).",
-  "vex": "HOSTIGAR (Vex): Si impactas a una criatura y le infliges daño, ganas ventaja en tu próxima tirada de ataque contra ella antes del final de tu próximo turno.",
-  "hostigar": "HOSTIGAR (Vex): Si impactas a una criatura y le infliges daño, ganas ventaja en tu próxima tirada de ataque contra ella antes del final de tu próximo turno."
-};
 
 interface ModalDetalleObjetoInventarioProps {
   objeto: ObjetoInventario;
@@ -318,45 +304,92 @@ export const ModalDetalleObjetoInventario: React.FC<ModalDetalleObjetoInventario
                   </span>
                 )}
                 {armaObj.danoVersatil && (
-                  <span className={`${estilos.badgeMeta} ${estilos.badgeArmaVersatil}`}>
-                    Versátil ({armaObj.danoVersatil})
-                  </span>
+                  <TooltipUniversal
+                    titulo="Daño Versátil"
+                    contenido={`Inflige ${armaObj.danoVersatil} de daño cuando se empuña a dos manos para realizar un ataque cuerpo a cuerpo.`}
+                    posicion="arriba"
+                  >
+                    <span className={`${estilos.badgeMeta} ${estilos.badgeArmaVersatil}`} style={{ cursor: "help" }}>
+                      Versátil ({armaObj.danoVersatil})
+                    </span>
+                  </TooltipUniversal>
                 )}
                 {armaObj.alcanceNormal && (
-                  <span className={`${estilos.badgeMeta} ${estilos.badgeArmaAlcance}`}>
-                    Alcance {armaObj.alcanceNormal}/{armaObj.alcanceLargo || armaObj.alcanceNormal} pies
-                  </span>
+                  <TooltipUniversal
+                    titulo="Alcance del Arma"
+                    contenido={`Alcance normal de ${armaObj.alcanceNormal} pies${armaObj.alcanceLargo ? ` y alcance largo hasta ${armaObj.alcanceLargo} pies (las tiradas de ataque entre ambos rangos sufren Desventaja).` : "."}`}
+                    posicion="arriba"
+                  >
+                    <span className={`${estilos.badgeMeta} ${estilos.badgeArmaAlcance}`} style={{ cursor: "help" }}>
+                      Alcance {armaObj.alcanceNormal}/{armaObj.alcanceLargo || armaObj.alcanceNormal} pies
+                    </span>
+                  </TooltipUniversal>
                 )}
-                {armaObj.maestria && (
-                  <span className={`${estilos.badgeMeta} ${estilos.badgeArmaMaestria}`}>
-                    Maestría: {armaObj.maestria}
-                  </span>
-                )}
+                {armaObj.maestria && (() => {
+                  const infoM = obtenerInfoMaestria(armaObj.maestria);
+                  return (
+                    <TooltipUniversal
+                      titulo={infoM.titulo}
+                      contenido={infoM.descripcion}
+                      posicion="arriba"
+                    >
+                      <span className={`${estilos.badgeMeta} ${estilos.badgeArmaMaestria}`} style={{ cursor: "help" }}>
+                        {armaObj.maestria}
+                      </span>
+                    </TooltipUniversal>
+                  );
+                })()}
                 {armaObj.ammunition && (
-                  <span className={`${estilos.badgeMeta} ${estilos.badgeAmmunition}`}>
-                    <Target size={10} /> Munición: {armaObj.ammunition.name}
-                  </span>
+                  <TooltipUniversal
+                    titulo={`Munición: ${armaObj.ammunition.name}`}
+                    contenido="Esta arma requiere proyectiles compatibles listos en tu inventario para poder disparar en combate."
+                    posicion="arriba"
+                  >
+                    <span className={`${estilos.badgeMeta} ${estilos.badgeAmmunition}`} style={{ cursor: "help" }}>
+                      <Target size={10} /> Munición: {armaObj.ammunition.name}
+                    </span>
+                  </TooltipUniversal>
                 )}
                 {objetoBase?.modificadorAtaqueDano && (
-                  <span className={`${estilos.badgeMeta} ${estilos.badgeMagicoBono}`}>
-                    <Sparkles size={10} /> Bono: +{objetoBase.modificadorAtaqueDano}
-                  </span>
+                  <TooltipUniversal
+                    titulo="Bonificador Mágico"
+                    contenido={`Otorga un bono de +${objetoBase.modificadorAtaqueDano} a las tiradas de ataque y daño con esta arma.`}
+                    posicion="arriba"
+                  >
+                    <span className={`${estilos.badgeMeta} ${estilos.badgeMagicoBono}`} style={{ cursor: "help" }}>
+                      <Sparkles size={10} /> Bono: +{objetoBase.modificadorAtaqueDano}
+                    </span>
+                  </TooltipUniversal>
                 )}
               </div>
 
-              {armaObj.maestria && DESCRIPCIONES_MAESTRIAS[armaObj.maestria.toLowerCase()] && (
-                <div className={estilos.explicacionMaestria}>
-                  {DESCRIPCIONES_MAESTRIAS[armaObj.maestria.toLowerCase()]}
-                </div>
-              )}
+              {armaObj.maestria && (() => {
+                const infoM = obtenerInfoMaestria(armaObj.maestria);
+                return (
+                  <div className={estilos.explicacionMaestria}>
+                    <strong>{infoM.titulo}: </strong>
+                    {infoM.descripcion}
+                  </div>
+                );
+              })()}
 
               {armaObj.propiedades && armaObj.propiedades.length > 0 && (
                 <div className={estilos.filaPropiedadesLista}>
-                  {armaObj.propiedades.map((p) => (
-                    <span key={p} className={estilos.badgePropiedad}>
-                      {p}
-                    </span>
-                  ))}
+                  {armaObj.propiedades.map((p) => {
+                    const infoP = obtenerInfoPropiedadArma(p);
+                    return (
+                      <TooltipUniversal
+                        key={p}
+                        titulo={infoP.titulo}
+                        contenido={infoP.descripcion}
+                        posicion="arriba"
+                      >
+                        <span className={estilos.badgePropiedad} style={{ cursor: "help" }}>
+                          {p}
+                        </span>
+                      </TooltipUniversal>
+                    );
+                  })}
                 </div>
               )}
             </div>
@@ -366,19 +399,48 @@ export const ModalDetalleObjetoInventario: React.FC<ModalDetalleObjetoInventario
           {esArmadura && armaduraObj && (
             <div className={`${estilos.seccionDatosGenerales} ${estilos.seccionArmadura}`}>
               <div className={estilos.filaBadges}>
-                <span className={`${estilos.badgeMeta} ${estilos.badgeArmaduraDes}`}>
-                  Bono Destreza: {armaduraObj.bonoDestreza || "Completo"}
-                </span>
-                {armaduraObj.requisitoFuerza && (
-                  <span className={`${estilos.badgeMeta} ${estilos.badgeArmaduraFue}`}>
-                    Fuerza Requerida: {armaduraObj.requisitoFuerza}
-                  </span>
-                )}
-                {armaduraObj.desventajaSigilo && (
-                  <span className={`${estilos.badgeMeta} ${estilos.badgeArmaduraSigilo}`}>
-                    Desventaja en Sigilo
-                  </span>
-                )}
+                {(() => {
+                  const infoDes = obtenerInfoPropiedadArmadura("bonoDestreza", armaduraObj.bonoDestreza);
+                  return (
+                    <TooltipUniversal
+                      titulo={infoDes.titulo}
+                      contenido={infoDes.descripcion}
+                      posicion="arriba"
+                    >
+                      <span className={`${estilos.badgeMeta} ${estilos.badgeArmaduraDes}`} style={{ cursor: "help" }}>
+                        Bono Destreza: {armaduraObj.bonoDestreza || "Completo"}
+                      </span>
+                    </TooltipUniversal>
+                  );
+                })()}
+                {armaduraObj.requisitoFuerza && (() => {
+                  const infoFue = obtenerInfoPropiedadArmadura("requisitoFuerza", armaduraObj.requisitoFuerza);
+                  return (
+                    <TooltipUniversal
+                      titulo={infoFue.titulo}
+                      contenido={infoFue.descripcion}
+                      posicion="arriba"
+                    >
+                      <span className={`${estilos.badgeMeta} ${estilos.badgeArmaduraFue}`} style={{ cursor: "help" }}>
+                        Fuerza Requerida: {armaduraObj.requisitoFuerza}
+                      </span>
+                    </TooltipUniversal>
+                  );
+                })()}
+                {armaduraObj.desventajaSigilo && (() => {
+                  const infoSigilo = obtenerInfoPropiedadArmadura("desventajaSigilo");
+                  return (
+                    <TooltipUniversal
+                      titulo={infoSigilo.titulo}
+                      contenido={infoSigilo.descripcion}
+                      posicion="arriba"
+                    >
+                      <span className={`${estilos.badgeMeta} ${estilos.badgeArmaduraSigilo}`} style={{ cursor: "help" }}>
+                        Desventaja en Sigilo
+                      </span>
+                    </TooltipUniversal>
+                  );
+                })()}
                 {armaduraObj.tiempoEquipar && (
                   <span className={`${estilos.badgeMeta} ${estilos.badgeTiempoEquipar}`}>
                     <Clock size={10} /> Poner/Quitar: {armaduraObj.tiempoEquipar}

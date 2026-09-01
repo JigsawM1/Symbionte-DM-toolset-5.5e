@@ -42,63 +42,17 @@ export interface AtaquePersonajeCalculado {
   esCompetenteConArma?: boolean;
 }
 
-/** Diccionario de descripciones oficiales D&D 5.5e (2024) para tooltips */
-const DESCRIPCIONES_MAESTRIAS: Record<string, string> = {
-  "cleave": "HENDER (Cleave): Si impactas a una criatura con un ataque cuerpo a cuerpo, puedes realizar otro ataque contra una segunda criatura a 5 pies que esté a tu alcance.",
-  "hender": "HENDER (Cleave): Si impactas a una criatura con un ataque cuerpo a cuerpo, puedes realizar otro ataque contra una segunda criatura a 5 pies que esté a tu alcance.",
-  "graze": "ROZAR (Graze): Si fallas una tirada de ataque contra una criatura, aun así le infliges daño igual al modificador de la característica usada.",
-  "rozar": "ROZAR (Graze): Si fallas una tirada de ataque contra una criatura, aun así le infliges daño igual al modificador de la característica usada.",
-  "nick": "CORTE RÁPIDO (Nick): Puedes realizar el ataque adicional de la propiedad Ligera como parte de la misma Acción de Atacar, en lugar de consumir tu Acción Adicional.",
-  "corte": "CORTE RÁPIDO (Nick): Puedes realizar el ataque adicional de la propiedad Ligera como parte de la misma Acción de Atacar, en lugar de consumir tu Acción Adicional.",
-  "push": "EMPUJE (Push): Si impactas a una criatura, puedes empujarla hasta 10 pies en línea recta lejos de ti (si es de tamaño Grande o menor).",
-  "empuje": "EMPUJE (Push): Si impactas a una criatura, puedes empujarla hasta 10 pies en línea recta lejos de ti (si es de tamaño Grande o menor).",
-  "sap": "ATURDIR (Sap): Si impactas a una criatura, tiene Desventaja en su siguiente tirada de ataque antes del inicio de tu siguiente turno.",
-  "aturdir": "ATURDIR (Sap): Si impactas a una criatura, tiene Desventaja en su siguiente tirada de ataque antes del inicio de tu siguiente turno.",
-  "slow": "RALENTIZAR (Slow): Si impactas a una criatura y le haces daño, su velocidad se reduce en 10 pies hasta el inicio de tu siguiente turno.",
-  "ralentizar": "RALENTIZAR (Slow): Si impactas a una criatura y le haces daño, su velocidad se reduce en 10 pies hasta el inicio de tu siguiente turno.",
-  "topple": "DERRIBAR (Topple): Si impactas a una criatura, puedes obligarla a superar una salvación de Constitución (CD 8 + Competencia + Modificador) o caer Derribada (Prone).",
-  "derribar": "DERRIBAR (Topple): Si impactas a una criatura, puedes obligarla a superar una salvación de Constitución (CD 8 + Competencia + Modificador) o caer Derribada (Prone).",
-  "vex": "HOSTIGAR (Vex): Si impactas a una criatura y le haces daño, obtienes Ventaja en tu siguiente tirada de ataque contra ella antes del final de tu siguiente turno.",
-  "hostigar": "HOSTIGAR (Vex): Si impactas a una criatura y le haces daño, obtienes Ventaja en tu siguiente tirada de ataque contra ella antes del final de tu siguiente turno."
-};
-
-const DESCRIPCIONES_PROPIEDADES: Record<string, string> = {
-  "sutil": "Sutil (Finesse): Puedes elegir usar tu modificador de Fuerza o de Destreza para las tiradas de ataque y daño.",
-  "finesse": "Sutil (Finesse): Puedes elegir usar tu modificador de Fuerza o de Destreza para las tiradas de ataque y daño.",
-  "ligera": "Ligera (Light): Cuando atacas con esta arma en una mano, puedes usar una Acción Adicional para atacar con otra arma ligera en la otra mano.",
-  "light": "Ligera (Light): Cuando atacas con esta arma en una mano, puedes usar una Acción Adicional para atacar con otra arma ligera en la otra mano.",
-  "versatil": "Versátil (Versatile): Puedes empuñarla con una mano o con dos manos. El daño entre paréntesis se aplica al usar dos manos.",
-  "versatile": "Versátil (Versatile): Puedes empuñarla con una mano o con dos manos. El daño entre paréntesis se aplica al usar dos manos.",
-  "arrojadiza": "Arrojadiza (Thrown): Puedes lanzar el arma para hacer un ataque a distancia usando la misma característica que en cuerpo a cuerpo.",
-  "thrown": "Arrojadiza (Thrown): Puedes lanzar el arma para hacer un ataque a distancia usando la misma característica que en cuerpo a cuerpo.",
-  "a dos manos": "A Dos Manos (Two-Handed): Requiere dos manos para poder atacar.",
-  "two-handed": "A Dos Manos (Two-Handed): Requiere dos manos para poder atacar.",
-  "pesada": "Pesada (Heavy): Las criaturas Pequeñas tienen desventaja en tiradas de ataque con armas pesadas.",
-  "heavy": "Pesada (Heavy): Las criaturas Pequeñas tienen desventaja en tiradas de ataque con armas pesadas.",
-  "alcance": "Alcance (Reach): Añade 5 pies a tu alcance cuando atacas con ella.",
-  "reach": "Alcance (Reach): Añade 5 pies a tu alcance cuando atacas con ella.",
-  "municion": "Munición (Ammunition): Requiere munición para disparar.",
-  "ammunition": "Munición (Ammunition): Requiere munición para disparar.",
-  "recarga": "Recarga (Loading): Solo puedes disparar 1 proyectil por acción/reacción independientemente de tus ataques múltiples.",
-  "loading": "Recarga (Loading): Solo puedes disparar 1 proyectil por acción/reacción independientemente de tus ataques múltiples.",
-  "concentracion": "Concentración: Requiere mantener la concentración mientras dure el efecto.",
-  "concentration": "Concentración: Requiere mantener la concentración mientras dure el efecto."
-};
+import {
+  obtenerInfoMaestria,
+  obtenerInfoPropiedadArma
+} from "@/servicios/resolutorPropiedades";
 
 function obtenerTooltipMaestria(maestriaTexto: string): string {
-  const clave = maestriaTexto.toLowerCase().replace(/[^a-z]/g, "");
-  for (const [k, desc] of Object.entries(DESCRIPCIONES_MAESTRIAS)) {
-    if (clave.includes(k)) return desc;
-  }
-  return `Maestría de armas: ${maestriaTexto}`;
+  return obtenerInfoMaestria(maestriaTexto).textoCompleto;
 }
 
 function obtenerTooltipPropiedad(propiedadTexto: string): string {
-  const clave = propiedadTexto.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-  for (const [k, desc] of Object.entries(DESCRIPCIONES_PROPIEDADES)) {
-    if (clave.includes(k)) return desc;
-  }
-  return propiedadTexto;
+  return obtenerInfoPropiedadArma(propiedadTexto).textoCompleto;
 }
 
 interface TarjetaAtaquePersonajeProps {

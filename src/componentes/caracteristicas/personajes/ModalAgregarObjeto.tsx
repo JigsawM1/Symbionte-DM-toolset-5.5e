@@ -1,11 +1,17 @@
 import React, { useState, useMemo, useEffect } from "react";
-import type { ObjetoJuego, ObjetoInventario, Arma, TipoContenedor } from "@/tipos";
+import type { ObjetoJuego, ObjetoInventario, Arma, Armadura, TipoContenedor } from "@/tipos";
 import { FileText, X, Plus, Sparkles, Package, Backpack, Box } from "lucide-react";
 import { SelectorSugerencias, OpcionSugerencia } from "@/componentes/comunes/SelectorSugerencias";
+import { TooltipUniversal } from "@/componentes/comunes/TooltipUniversal";
 import {
   crearObjetoInventarioDesdeCompendio,
   crearObjetoInventarioCustom
 } from "@/servicios/calculadorInventario";
+import {
+  obtenerInfoMaestria,
+  obtenerInfoPropiedadArma,
+  obtenerInfoPropiedadArmadura
+} from "@/servicios/resolutorPropiedades";
 import { desduplicarEntidades } from "@/utiles/busquedaTolerante";
 import estilos from "./HojaPersonaje.module.css";
 
@@ -419,6 +425,106 @@ export const ModalAgregarObjeto: React.FC<ModalAgregarObjetoProps> = ({
                     </span>
                   )}
                 </div>
+
+                {/* Badges de Estadísticas y Propiedades de Arma / Armadura */}
+                {objetoSeleccionado.tipoPrincipal === "Arma" && (() => {
+                  const armaObj = objetoSeleccionado as Arma;
+                  return (
+                    <div style={{ display: "flex", gap: 4, flexWrap: "wrap", marginTop: 4 }}>
+                      {armaObj.tipoAtaque && (
+                        <span className={`${estilos.badgeMeta} ${estilos.badgeArmaAtaque}`}>
+                          {armaObj.tipoAtaque}
+                        </span>
+                      )}
+                      {armaObj.dadoDano && (
+                        <span className={estilos.badgeMeta} style={{ backgroundColor: "rgba(239, 68, 68, 0.15)", color: "#fca5a5", borderColor: "rgba(239, 68, 68, 0.3)" }}>
+                          {armaObj.dadoDano} {armaObj.tipoDano}
+                        </span>
+                      )}
+                      {armaObj.danoVersatil && (
+                        <TooltipUniversal
+                          titulo="Daño Versátil"
+                          contenido={`Inflige ${armaObj.danoVersatil} de daño al empuñarse con dos manos.`}
+                          posicion="arriba"
+                        >
+                          <span className={estilos.badgeMeta} style={{ backgroundColor: "rgba(99, 102, 241, 0.15)", color: "#c7d2fe", borderColor: "rgba(99, 102, 241, 0.3)", cursor: "help" }}>
+                            Versátil ({armaObj.danoVersatil})
+                          </span>
+                        </TooltipUniversal>
+                      )}
+                      {armaObj.maestria && (() => {
+                        const infoM = obtenerInfoMaestria(armaObj.maestria);
+                        return (
+                          <TooltipUniversal
+                            titulo={infoM.titulo}
+                            contenido={infoM.descripcion}
+                            posicion="arriba"
+                          >
+                            <span className={estilos.badgeMeta} style={{ backgroundColor: "rgba(168, 85, 247, 0.15)", color: "#d8b4fe", borderColor: "rgba(168, 85, 247, 0.3)", cursor: "help" }}>
+                              Maestría: {armaObj.maestria}
+                            </span>
+                          </TooltipUniversal>
+                        );
+                      })()}
+                      {armaObj.propiedades?.map((p) => {
+                        const infoP = obtenerInfoPropiedadArma(p);
+                        return (
+                          <TooltipUniversal
+                            key={p}
+                            titulo={infoP.titulo}
+                            contenido={infoP.descripcion}
+                            posicion="arriba"
+                          >
+                            <span className={estilos.badgeMeta} style={{ backgroundColor: "rgba(99, 102, 241, 0.15)", color: "#c7d2fe", borderColor: "rgba(99, 102, 241, 0.3)", cursor: "help" }}>
+                              {p}
+                            </span>
+                          </TooltipUniversal>
+                        );
+                      })}
+                    </div>
+                  );
+                })()}
+
+                {objetoSeleccionado.tipoPrincipal === "Armadura" && (() => {
+                  const armaduraObj = objetoSeleccionado as Armadura;
+                  return (
+                    <div style={{ display: "flex", gap: 4, flexWrap: "wrap", marginTop: 4 }}>
+                      <span className={estilos.badgeMeta} style={{ backgroundColor: "rgba(16, 185, 129, 0.15)", color: "#6ee7b7", borderColor: "rgba(16, 185, 129, 0.3)" }}>
+                        CA {armaduraObj.caBase}
+                      </span>
+                      {(() => {
+                        const infoDes = obtenerInfoPropiedadArmadura("bonoDestreza", armaduraObj.bonoDestreza);
+                        return (
+                          <TooltipUniversal titulo={infoDes.titulo} contenido={infoDes.descripcion} posicion="arriba">
+                            <span className={estilos.badgeMeta} style={{ cursor: "help" }}>
+                              Bono Des: {armaduraObj.bonoDestreza || "Completo"}
+                            </span>
+                          </TooltipUniversal>
+                        );
+                      })()}
+                      {armaduraObj.requisitoFuerza && (() => {
+                        const infoFue = obtenerInfoPropiedadArmadura("requisitoFuerza", armaduraObj.requisitoFuerza);
+                        return (
+                          <TooltipUniversal titulo={infoFue.titulo} contenido={infoFue.descripcion} posicion="arriba">
+                            <span className={estilos.badgeMeta} style={{ backgroundColor: "rgba(245, 158, 11, 0.15)", color: "#fcd34d", borderColor: "rgba(245, 158, 11, 0.3)", cursor: "help" }}>
+                              FUE {armaduraObj.requisitoFuerza}
+                            </span>
+                          </TooltipUniversal>
+                        );
+                      })()}
+                      {armaduraObj.desventajaSigilo && (() => {
+                        const infoSigilo = obtenerInfoPropiedadArmadura("desventajaSigilo");
+                        return (
+                          <TooltipUniversal titulo={infoSigilo.titulo} contenido={infoSigilo.descripcion} posicion="arriba">
+                            <span className={estilos.badgeMeta} style={{ backgroundColor: "rgba(239, 68, 68, 0.15)", color: "#fca5a5", borderColor: "rgba(239, 68, 68, 0.3)", cursor: "help" }}>
+                              Sigilo (Desv.)
+                            </span>
+                          </TooltipUniversal>
+                        );
+                      })()}
+                    </div>
+                  );
+                })()}
 
                 {objetoSeleccionado.descripcion && (
                   <div className={estilos.descripcionPreview}>

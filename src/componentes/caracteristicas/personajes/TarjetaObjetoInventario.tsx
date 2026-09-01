@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from "react";
-import type { ObjetoInventario, Rareza, TipoContenedor, ObjetoJuego, Arma } from "@/tipos";
+import type { ObjetoInventario, Rareza, TipoContenedor, ObjetoJuego, Arma, Armadura } from "@/tipos";
 import { Swords, Link2, Trash2, Plus, Minus, Zap, Sparkles, Heart, PackageOpen, FlaskConical, Target, GripVertical } from "lucide-react";
 import { ConfirmDialog } from "@/componentes/comunes/ConfirmDialog";
 import { TooltipUniversal } from "@/componentes/comunes/TooltipUniversal";
@@ -9,6 +9,11 @@ import {
   calcularAlmacenamientoMunicion,
   calcularContenidoContenedorMunicion
 } from "@/servicios/gestorMunicion";
+import {
+  obtenerInfoMaestria,
+  obtenerInfoPropiedadArma,
+  obtenerInfoPropiedadArmadura
+} from "@/servicios/resolutorPropiedades";
 import estilos from "./HojaPersonaje.module.css";
 
 interface TarjetaObjetoInventarioProps {
@@ -90,7 +95,11 @@ export const TarjetaObjetoInventario: React.FC<TarjetaObjetoInventarioProps> = (
 
   const bonoMagico = objetoBase?.modificadorAtaqueDano;
   const esVeneno = Boolean(objetoBase?.esVeneno || objetoBase?.tipoVeneno);
-  const maestria = objetoBase?.tipoPrincipal === "Arma" ? (objetoBase as Arma).maestria : undefined;
+  const esArma = objetoBase?.tipoPrincipal === "Arma";
+  const armaObj = esArma ? (objetoBase as Arma) : null;
+  const esArmadura = objetoBase?.tipoPrincipal === "Armadura";
+  const armaduraObj = esArmadura ? (objetoBase as Armadura) : null;
+  const maestria = armaObj?.maestria;
 
   // 1. Estado detallado de almacenamiento si este ítem es Munición
   const infoAlmacenamientoMunicion = useMemo(() => {
@@ -200,21 +209,133 @@ export const TarjetaObjetoInventario: React.FC<TarjetaObjetoInventarioProps> = (
               {objeto.nombre}
             </span>
             {bonoMagico !== undefined && bonoMagico > 0 && (
-              <span className={estilos.badgeMeta} style={{ backgroundColor: "rgba(236, 72, 153, 0.15)", color: "#fbcfe8", borderColor: "rgba(236, 72, 153, 0.3)" }}>
-                +{bonoMagico}
-              </span>
+              <TooltipUniversal
+                titulo="Bonificador Mágico"
+                contenido={`Otorga +${bonoMagico} a las tiradas de ataque y daño (o a la CA).`}
+                posicion="arriba"
+              >
+                <span
+                  className={estilos.badgeMeta}
+                  style={{
+                    backgroundColor: "rgba(236, 72, 153, 0.15)",
+                    color: "#fbcfe8",
+                    borderColor: "rgba(236, 72, 153, 0.3)",
+                    cursor: "help"
+                  }}
+                >
+                  +{bonoMagico}
+                </span>
+              </TooltipUniversal>
             )}
             {esVeneno && (
-              <span className={estilos.badgeMeta} style={{ backgroundColor: "rgba(16, 185, 129, 0.15)", color: "#6ee7b7", borderColor: "rgba(16, 185, 129, 0.3)" }}>
-                <FlaskConical size={9} style={{ display: "inline", verticalAlign: "middle", marginRight: 2 }} />
-                Veneno
-              </span>
+              <TooltipUniversal
+                titulo="Veneno Aplicado"
+                contenido="Objeto impregnado con sustancia venenosa que añade efectos especiales o daño por veneno."
+                posicion="arriba"
+              >
+                <span
+                  className={estilos.badgeMeta}
+                  style={{
+                    backgroundColor: "rgba(16, 185, 129, 0.15)",
+                    color: "#6ee7b7",
+                    borderColor: "rgba(16, 185, 129, 0.3)",
+                    cursor: "help"
+                  }}
+                >
+                  <FlaskConical size={9} style={{ display: "inline", verticalAlign: "middle", marginRight: 2 }} />
+                  Veneno
+                </span>
+              </TooltipUniversal>
             )}
-            {maestria && (
-              <span className={estilos.badgeMeta} style={{ backgroundColor: "rgba(168, 85, 247, 0.15)", color: "#d8b4fe", borderColor: "rgba(168, 85, 247, 0.3)" }}>
-                {maestria}
-              </span>
-            )}
+            {maestria && (() => {
+              const infoM = obtenerInfoMaestria(maestria);
+              return (
+                <TooltipUniversal
+                  titulo={infoM.titulo}
+                  contenido={infoM.descripcion}
+                  posicion="arriba"
+                >
+                  <span
+                    className={estilos.badgeMeta}
+                    style={{
+                      backgroundColor: "rgba(168, 85, 247, 0.15)",
+                      color: "#d8b4fe",
+                      borderColor: "rgba(168, 85, 247, 0.3)",
+                      cursor: "help"
+                    }}
+                  >
+                    {maestria}
+                  </span>
+                </TooltipUniversal>
+              );
+            })()}
+            {armaObj?.propiedades && armaObj.propiedades.map((p) => {
+              const infoP = obtenerInfoPropiedadArma(p);
+              return (
+                <TooltipUniversal
+                  key={p}
+                  titulo={infoP.titulo}
+                  contenido={infoP.descripcion}
+                  posicion="arriba"
+                >
+                  <span
+                    className={estilos.badgeMeta}
+                    style={{
+                      backgroundColor: "rgba(99, 102, 241, 0.15)",
+                      color: "#c7d2fe",
+                      borderColor: "rgba(99, 102, 241, 0.3)",
+                      cursor: "help"
+                    }}
+                  >
+                    {p}
+                  </span>
+                </TooltipUniversal>
+              );
+            })}
+            {armaduraObj?.desventajaSigilo && (() => {
+              const infoSigilo = obtenerInfoPropiedadArmadura("desventajaSigilo");
+              return (
+                <TooltipUniversal
+                  titulo={infoSigilo.titulo}
+                  contenido={infoSigilo.descripcion}
+                  posicion="arriba"
+                >
+                  <span
+                    className={estilos.badgeMeta}
+                    style={{
+                      backgroundColor: "rgba(239, 68, 68, 0.15)",
+                      color: "#fca5a5",
+                      borderColor: "rgba(239, 68, 68, 0.3)",
+                      cursor: "help"
+                    }}
+                  >
+                    Sigilo (Desv.)
+                  </span>
+                </TooltipUniversal>
+              );
+            })()}
+            {armaduraObj?.requisitoFuerza && (() => {
+              const infoFue = obtenerInfoPropiedadArmadura("requisitoFuerza", armaduraObj.requisitoFuerza);
+              return (
+                <TooltipUniversal
+                  titulo={infoFue.titulo}
+                  contenido={infoFue.descripcion}
+                  posicion="arriba"
+                >
+                  <span
+                    className={estilos.badgeMeta}
+                    style={{
+                      backgroundColor: "rgba(245, 158, 11, 0.15)",
+                      color: "#fcd34d",
+                      borderColor: "rgba(245, 158, 11, 0.3)",
+                      cursor: "help"
+                    }}
+                  >
+                    FUE {armaduraObj.requisitoFuerza}
+                  </span>
+                </TooltipUniversal>
+              );
+            })()}
 
             {/* Badges de Munición y Almacenamiento con Límite de Capacidad */}
             {infoAlmacenamientoMunicion && (

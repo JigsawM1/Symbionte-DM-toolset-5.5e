@@ -15,6 +15,46 @@ Este archivo registra reglas globales, errores encontrados, sus causas raíz y l
 
 ---
 
+## [2026-09-01] Sistema Global de Tokens de Jugador (`temaJugador.css`), Separación Master vs Jugador y Accesibilidad UI
+**Decisión y Motivación:**
+- *Causa*: En la vista de jugador (Hoja de personaje, Combate/Ataques, Conjuros e Inventario), existían múltiples tamaños de letra inferiores a 11px (8px-10px) y textos secundarios apagados (`#64748b`, `#718096`) sobre fondos oscuros, causando fatiga visual y baja legibilidad en TaleSpire CEF. Además, los estilos no estaban desacoplados de las variables de diseño del Master (DM).
+- *Solución*:
+  1. **Nuevo Archivo de Tokens Globales (`src/estilos/temaJugador.css`)**:
+     - Centraliza todas las variables de la vista de jugador con el prefijo `--pj-*` (superficies, bordes, tipografía, contrastes WCAG AA/AAA y estados semánticos D&D).
+     - Desacopla la identidad Dark Fantasy Zafiro/Índigo del jugador respecto al tema brutalista cyberpunk del Master.
+     - Importado globalmente en `src/index.css`.
+  2. **Escala Tipográfica Aumentada y Accesible (DESIGN.md)**:
+     - Eliminación de tamaños menores a 11px (mínimo absoluto 11px para badges y metadatos; 12.5px-13px para cuerpo; 14px-15px para subtítulos; 16px-18px para títulos).
+     - Paleta de alto contraste cromático: texto primario `#ffffff`/`#f8fafc`, secundario `#cbd5e1`/`#e2e8f0`, terciario/labels `#94a3b8`/`#a0aec0` y acentos luminosos.
+  3. **Migración Homogénea de Módulos CSS**:
+     - `HojaPersonaje.module.css`: Cabecera, barra táctica, métricas rápidas, vitalidad, atributos, sentidos pasivos, habilidades, competencias, monedas, carga y modales.
+     - `VistaAtaquesJugador.module.css`: Filtros de acción, grupos colapsables de nivel y tarjetas de ataque.
+     - `TarjetaConjuroCompacta.module.css`: Nombres de conjuros, badges de concentración/ritual y botones tácticos.
+     - `ModalDetalleObjetoInventario.module.css`: Badges de rareza, propiedades y cuadrículas de métricas.
+     - `PanelConjurosPersonaje.module.css`: Ranuras, bloqueos de armadura y tarjetas de ataque mágico.
+     - `VistaInventarioJugador.module.css`: Encabezados y selectores.
+- *Validación*: 33 suites de Vitest aprobadas (349/349 tests unitarios al 100%), verificación estricta de tipos de TypeScript (`tsc --noEmit` con 0 errores).
+
+---
+
+## [2026-09-01] Descripciones Hover (Tooltips) para Propiedades y Maestrías en el Inventario (D&D 5.5e / 2024)
+**Decisión y Motivación:**
+- *Causa*: En la vista de inventario del personaje, los badges de maestrías de armas (`Cleave`, `Graze`, `Nick`, `Push`, `Sap`, `Slow`, `Topple`, `Vex`) y propiedades de equipo (`Sutil`, `Ligera`, `Versátil`, `Pesada`, `Alcance`, `Arrojadiza`, `Carga`, `Munición`, `Desventaja en Sigilo`, `Fuerza Requerida`, etc.) se mostraban como etiquetas de texto plano o sin explicaciones mecánicas completas al pasar el cursor (hover).
+- *Solución*:
+  1. **Servicio Centralizado de Propiedades y Maestrías (`src/servicios/resolutorPropiedades.ts`)**:
+     - Creadas funciones puras `obtenerInfoMaestria`, `obtenerInfoPropiedadArma` y `obtenerInfoPropiedadArmadura` con normalización insensible a mayúsculas, tildes y variantes de texto tanto en español como en inglés.
+     - Contiene los textos explicativos oficiales de las reglas de D&D 5.5e (PHB 2024).
+  2. **Integración en Tarjeta de Objeto del Inventario (`TarjetaObjetoInventario.tsx`)**:
+     - Badges de maestrías, propiedades de armas, bonificadores mágicos, venenos y propiedades de armaduras envueltos en `TooltipUniversal` con cursor de ayuda e información técnica al pasar el ratón.
+  3. **Integración en Modal de Detalle / Inspección (`ModalDetalleObjetoInventario.tsx`)**:
+     - Enriquecidos todos los badges de la ficha detallada (tipo de ataque, daño versátil, alcance normal/largo, maestría, propiedades y penalizaciones de armadura) con tooltips contextuales reactivos.
+  4. **Integración en Modal de Adición (`ModalAgregarObjeto.tsx`) y Tarjeta de Ataque (`TarjetaAtaquePersonaje.tsx`)**:
+     - Vista previa al añadir objetos con tooltips en badges de maestría y propiedades.
+     - Reutilización centralizada del resolutor en tarjetas de combate para mantener consistencia 100% homogénea.
+  5. **Suite de Tests**: 5 pruebas unitarias en `resolutorPropiedades.test.ts` (349 tests en total pasando al 100%), verificación estricta de TypeScript (`tsc --noEmit`) y despliegue a TaleSpire.
+
+---
+
 ## [2026-09-01] Refactorización: Servicio Centralizado de Lanzamiento de Magia (Patrón Facade + Strategy)
 **Decisión y Motivación:**
 - *Causa*: La lógica de lanzamiento de conjuros estaba dispersa en 6 componentes (`TarjetaConjuroCompacta`, `FichaHechizo`, `VistaAtaquesJugador`, `PanelConjurosPersonaje`, `SeccionArcanoMistico`, `ModalDetalleObjetoInventario`), con duplicación masiva de código de validaciones, construcción heterogénea de fórmulas TaleSpire, omisiones de concentración (en Arcano Místico y objetos mágicos), y un punto de fuga donde `ModalDetalleObjetoInventario` no bloqueaba hechizos por armadura sin competencia.

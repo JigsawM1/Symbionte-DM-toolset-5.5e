@@ -1,14 +1,14 @@
 /* ==========================================================================
    ModalDetalleObjetoInventario.module.css
    Estética Táctica Dark Fantasy para la Inspección Detallada de Objetos
+   Tokens globales: --pj-* (src/estilos/temaJugador.css)
    Alta densidad, jerarquía visual CEF y cero animaciones bloqueantes
    ========================================================================== */
 
 .backdropModal {
   position: fixed;
   inset: 0;
-  background-color: rgba(0, 0, 0, 0.78);
-  backdrop-filter: blur(2px);
+  background-color: var(--pj-fondo-modal-overlay, rgba(0, 0, 0, 0.85));
   z-index: 9999;
   display: flex;
   align-items: center;
@@ -20,15 +20,15 @@
 .ventanaModal {
   width: 100%;
   max-width: 540px;
-  background-color: #111622;
-  border: 1px solid rgba(148, 163, 184, 0.2);
+  background-color: var(--pj-fondo-modal-cuerpo, #0b0f16);
+  border: 1px solid var(--pj-borde-acento-fuerte, #818cf8);
   border-radius: 8px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  box-shadow: var(--pj-sombra-modal, 0 10px 30px rgba(0, 0, 0, 0.9));
   display: flex;
   flex-direction: column;
   overflow: hidden;
   box-sizing: border-box;
-  color: #f1f5f9;
+  color: var(--pj-texto-primario-suave, #f8fafc);
 }
 
 /* Cabecera del Modal */
@@ -37,8 +37,8 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: linear-gradient(180deg, #161e2c 0%, #111622 100%);
-  border-bottom: 1px solid rgba(148, 163, 184, 0.14);
+  background: var(--pj-fondo-cabecera-gradiente, linear-gradient(180deg, #161e2c 0%, #111622 100%));
+  border-bottom: 1px solid var(--pj-borde-sutil, rgba(148, 163, 184, 0.14));
 }
 
 .grupoTitulo {
@@ -57,9 +57,9 @@
 
 .tituloModal {
   margin: 0;
-  font-size: 15px;
+  font-size: var(--pj-fuente-titulo, 16px);
   font-weight: 800;
-  color: #f8fafc;
+  color: var(--pj-texto-primario, #ffffff);
   letter-spacing: 0.3px;
   white-space: nowrap;
   overflow: hidden;
@@ -75,21 +75,20 @@
 }
 
 .textoSubtitulo {
-  font-size: 11px;
-  color: #94a3b8;
+  font-size: var(--pj-fuente-micro, 11.5px);
+  color: var(--pj-texto-terciario, #94a3b8);
 }
 
 .botonCerrar {
   background: transparent;
   border: 1px solid transparent;
-  color: #94a3b8;
+  color: var(--pj-texto-secundario, #cbd5e1);
   cursor: pointer;
   padding: 4px;
   border-radius: 4px;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.15s ease;
 }
 
 .botonCerrar:hover {
@@ -100,7 +99,7 @@
 
 /* Badges de Meta y Rarezas */
 .badgeMeta {
-  font-size: 9px;
+  font-size: var(--pj-fuente-micro, 11px);
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.4px;
@@ -109,39 +108,39 @@
 }
 
 .rarezaComun {
-  background-color: #1a2230;
-  border: 1px solid rgba(148, 163, 184, 0.2);
-  color: #94a3b8;
+  background-color: var(--pj-fondo-tarjeta-hover, #1a2230);
+  border: 1px solid var(--pj-borde-medio, rgba(148, 163, 184, 0.25));
+  color: var(--pj-texto-secundario, #cbd5e1);
 }
 
 .rarezaPocoComun {
-  background-color: rgba(16, 185, 129, 0.12);
-  border: 1px solid rgba(16, 185, 129, 0.35);
-  color: #6ee7b7;
+  background-color: var(--pj-acento-exito-fondo, rgba(16, 185, 129, 0.12));
+  border: 1px solid var(--pj-borde-exito, rgba(16, 185, 129, 0.4));
+  color: var(--pj-texto-exito, #6ee7b7);
 }
 
 .rarezaRaro {
-  background-color: rgba(96, 165, 250, 0.12);
-  border: 1px solid rgba(96, 165, 250, 0.35);
-  color: #93c5fd;
+  background-color: var(--pj-acento-cian-fondo, rgba(56, 189, 248, 0.12));
+  border: 1px solid var(--pj-borde-cian, rgba(56, 189, 248, 0.4));
+  color: var(--pj-texto-cian-claro, #7dd3fc);
 }
 
 .rarezaMuyRaro {
-  background-color: rgba(168, 85, 247, 0.12);
-  border: 1px solid rgba(168, 85, 247, 0.35);
-  color: #d8b4fe;
+  background-color: var(--pj-acento-magia-fondo, rgba(168, 85, 247, 0.12));
+  border: 1px solid rgba(168, 85, 247, 0.4);
+  color: var(--pj-texto-magia, #d8b4fe);
 }
 
 .rarezaLegendario {
-  background-color: rgba(251, 191, 36, 0.12);
-  border: 1px solid rgba(251, 191, 36, 0.35);
-  color: #fde68a;
+  background-color: var(--pj-acento-oro-fondo, rgba(251, 191, 36, 0.12));
+  border: 1px solid var(--pj-borde-oro, rgba(251, 191, 36, 0.4));
+  color: var(--pj-texto-oro, #fde68a);
 }
 
 .rarezaArtefacto {
-  background-color: rgba(239, 68, 68, 0.12);
-  border: 1px solid rgba(239, 68, 68, 0.35);
-  color: #fca5a5;
+  background-color: var(--pj-acento-peligro-fondo, rgba(239, 68, 68, 0.12));
+  border: 1px solid var(--pj-borde-peligro, rgba(239, 68, 68, 0.4));
+  color: var(--pj-texto-alerta, #fca5a5);
 }
 
 /* Cuerpo con Scroll */
@@ -160,10 +159,10 @@
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
   gap: 8px;
-  background-color: rgba(15, 23, 42, 0.75);
+  background-color: var(--pj-fondo-hundido, #080c14);
   padding: 10px;
   border-radius: 6px;
-  border: 1px solid rgba(148, 163, 184, 0.15);
+  border: 1px solid var(--pj-borde-sutil, rgba(148, 163, 184, 0.16));
 }
 
 .cajaMetrica {
@@ -173,31 +172,31 @@
 }
 
 .etiquetaMetrica {
-  font-size: 9.5px;
-  color: #94a3b8;
+  font-size: var(--pj-fuente-micro, 11px);
+  color: var(--pj-texto-label, #a0aec0);
   text-transform: uppercase;
   font-weight: 700;
   display: flex;
   align-items: center;
-  gap: 3px;
+  gap: 4px;
 }
 
 .valorMetrica {
-  font-size: 12px;
+  font-size: var(--pj-fuente-cuerpo, 13px);
   font-weight: 800;
-  color: #f8fafc;
+  color: var(--pj-texto-primario, #ffffff);
 }
 
 .valorMetricaOro {
-  color: #fbbf24;
+  color: var(--pj-texto-oro, #fbbf24);
 }
 
 .valorMetricaAzul {
-  color: #38bdf8;
+  color: var(--pj-texto-cian, #38bdf8);
 }
 
 .valorMetricaRojo {
-  color: #f87171;
+  color: var(--pj-texto-alerta, #f87171);
 }
 
 .valorMetricaVerde {

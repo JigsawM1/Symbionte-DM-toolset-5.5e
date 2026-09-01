@@ -1,87 +1,91 @@
-# Sistema de Diseño Visual — Hoja de Personaje (Jugador)
-*Guía de estilo, arquitectura visual y principios de diseño para ToolSet D&D 5.5e (TaleSpire Symbiote)*
+# Sistema de Diseño Visual — Hoja de Personaje y Vista de Jugador
+*Guía de estilo, arquitectura visual y tokens globales para ToolSet D&D 5.5e (TaleSpire Symbiote)*
 
 ---
 
-## 1. Filosofía y Principios Fundamentales
+## 1. Filosofía y Arquitectura Visual Segregada
 
+### A. Separación Arquitectónica: Master (DM) vs Jugador (Player)
+Para mantener coherencia temática y evitar interferencias estilísticas entre los distintos modos de la aplicación:
+1. **Modo Master (DM)**:
+   - Identidad visual brutalista tecnológica cyberpunk con acentos violetas oscuros (`#7b2cbf`), cian eléctrico (`#00f5d4`) y magenta (`#f72585`).
+   - Gobierna el Gestor de Encuentros, Iniciativa del DM, Creador Homebrew y Configuración Global.
+2. **Modo Jugador (Player UI)**:
+   - Identidad visual **Dark Fantasy Zafiro/Índigo Táctico** de alta densidad.
+   - Centralizado en `src/estilos/temaJugador.css` con el prefijo global `--pj-*`.
+   - Gobierna la Hoja de Personaje, Vista de Acciones/Ataques, Gestión de Magia/Conjuros, Inventario del Aventurero e Iniciativa de Jugador.
+
+### B. Principios Fundamentales de la Vista de Jugador
 1. **Densidad Táctica y Funcional**:
-   - La hoja de personaje debe optimizar cada píxel para que el jugador tenga acceso inmediato a sus modificadores, recursos y tiradas de dados 3D sin scroll innecesario.
-   - Jerarquía visual marcada: Puntuación/Modificador grande y visible, etiquetas secundarias en tipografía compacta y apagada.
-
+   - Cada píxel optimizado para acceso instantáneo a modificadores, recursos y tiradas de dados 3D en TaleSpire sin desplazamientos innecesarios.
 2. **Entorno TaleSpire (Off-Screen Rendering / CEF)**:
-   - **Prohibición de Animaciones CSS**: Por restricciones de renderizado en Chromium CEF dentro de Unity, están prohibidas las transiciones complejas (`transition: none !important; animation: none !important;`). La interfaz debe sentirse ágil, instantánea y robusta.
-   - **Prohibición de Selectores Nativos**: Los elementos `<select>` nativos fallan en CEF overlay. Se deben utilizar exclusivamente los componentes `<SelectorDesplegable />` o `<SelectorSugerencias />`.
-
-3. **Iconografía SVG Consistente**:
-   - Uso exclusivo de iconos vectoriales SVG limpios vía `lucide-react`.
-   - Tamaños estandarizados: `12px` - `14px` para badges y acciones secundarias, `16px` - `18px` para cabeceras y botones principales.
+   - **Prohibición Total de Animaciones CSS**: Cero transiciones y cero keyframes (`transition: none !important; animation: none !important;`) para latencia de 0ms en Chromium Embedded Framework.
+   - **Prohibición de Selectores Nativos**: Uso exclusivo de componentes controlados (`<SelectorDesplegable />` o `<SelectorSugerencias />`).
+3. **Tipografía Nítida y Accesible**:
+   - Tamaño mínimo absoluto de **11px** para evitar pérdida de nitidez en resoluciones escaladas de TaleSpire.
+   - Contraste WCAG AA/AAA estricto en todos los textos sobre fondos oscuros.
+4. **Iconografía SVG Exclusiva**:
+   - Iconos locales limpios vía `lucide-react`. Prohibición absoluta de emojis en toda la interfaz.
 
 ---
 
-## 2. Paleta de Colores y Tokens Visuales
+## 2. Tokens Globales de Jugador (`--pj-*`)
 
-| Elemento / Rol | Variable / Color Hex | Propósito |
+| Token CSS | Valor Hex / HSL | Propósito / Elementos |
 | :--- | :--- | :--- |
-| **Fondo Principal** | `#070a10` / `#0a0e16` | Fondo ultra oscuro con tono azulado profundo |
-| **Superficie de Tarjeta (NeoRaised)** | `#111622` / `#161f2e` | Elevación táctica sobria con borde sutil |
-| **Superficie Hundida (NeoPressed)** | `#0a0e16` / `#0d121c` | Inputs, contadores, desgloses matemáticos |
-| **Bordes Tácticos** | `rgba(148, 163, 184, 0.12)` a `0.20` | Delimitación nítida sin contraste estridente |
-| **Texto Primario** | `#f1f5f9` | Valores numéricos principales, nombres |
-| **Texto Secundario** | `#cbd5e1` | Modificadores, texto descriptivo |
-| **Texto Terciario / Labels** | `#94a3b8` / `#64748b` | Etiquetas, fórmulas, badges inactivos |
-| **Acento Primario (D&D Blue)** | `#38bdf8` / `#60a5fa` / `#93c5fd` | Modificadores positivos, competencias, botones activos |
-| **Acento Mágico (Pacto/Grimorio)**| `#a855f7` / `#d8b4fe` | Overrides fijos, recursos mágicos, espacios de pacto |
-| **Alerta / Daño / Falo** | `#ef4444` / `#fca5a5` | Daño recibido, salvaciones fallidas, niveles máximos |
-| **Éxito / Curación / Vida** | `#10b981` / `#6ee7b7` | Curación, miniatura 3D vinculada, inspiraciones |
+| `--pj-fondo-base` | `#070a10` | Fondo general de la vista de jugador |
+| `--pj-fondo-panel` | `#0d121c` | Contenedores y paneles secundarios |
+| `--pj-fondo-tarjeta` | `#121722` | Tarjetas de atributos, habilidades, ataques |
+| `--pj-fondo-tarjeta-hover` | `#1b2434` | Estado hover en tarjetas tácticas |
+| `--pj-fondo-hundido` | `#080c14` | Inputs numéricos, desgloses matemáticos |
+| `--pj-fondo-cabecera-gradiente` | `linear-gradient(180deg, #161e2c, #111622)` | Cabeceras de panel y modales |
+| `--pj-borde-sutil` | `rgba(148, 163, 184, 0.16)` | Delimitadores de rejilla y separadores |
+| `--pj-borde-medio` | `rgba(148, 163, 184, 0.26)` | Bordes de tarjeta estándar |
+| `--pj-borde-acento-fuerte` | `#818cf8` | Foco activo, bordes destacados de héroe |
+| `--pj-texto-primario` | `#ffffff` / `#f8fafc` | Nombres de personaje, números principales |
+| `--pj-texto-secundario` | `#cbd5e1` / `#e2e8f0` | Modificadores, descripciones, notas |
+| `--pj-texto-terciario` | `#94a3b8` / `#a0aec0` | Labels, fórmulas, badges inactivos |
+| `--pj-texto-acento` | `#a5b4fc` | Modificadores positivos, títulos tácticos |
+| `--pj-texto-cian` | `#38bdf8` | D&D Blue, pericias, valores destacados |
+| `--pj-texto-alerta` | `#fca5a5` | Daño recibido, salvaciones fallidas |
+| `--pj-texto-exito` | `#6ee7b7` | Curaciones, ventajas, miniaturas vinculadas |
+| `--pj-texto-oro` | `#fde047` | Monedas, subclase, inspiraciones activas |
 
 ---
 
-## 3. Tipografía y Escalas de Texto
+## 3. Escala Tipográfica de Alta Legibilidad
 
 - **Fuente Base**: `system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif`
-- **Escala de Tamaños**:
-  - **Títulos de Modal / Sección**: `15px` - `16px` (Font-Weight: 800)
-  - **Números Clave / Modificadores**: `14px` - `18px` (Font-Weight: 800)
-  - **Subtítulos y Nombres de Tarjeta**: `12px` - `13px` (Font-Weight: 700)
-  - **Cuerpo / Descripciones**: `11px` - `12px` (Font-Weight: 500, Line-Height: 1.4)
-  - **Etiquetas, Fórmulas y Badges**: `9px` - `10px` (Font-Weight: 700, Uppercase o Compacto)
+- **Fuente Monospace**: `'JetBrains Mono', 'Fira Code', monospace`
+- **Escala de Tamaños Mínimos**:
+  - **Títulos Principales y Modales**: `16px` – `18px` (Font-Weight: 800)
+  - **Valores Numéricos / Modificadores Clave**: `20px` – `26px` (Font-Weight: 800 Mono)
+  - **Nombres de Tarjeta y Subtítulos**: `13.5px` – `15px` (Font-Weight: 700)
+  - **Cuerpo, Descripciones y Fórmulas**: `12.5px` – `13px` (Font-Weight: 500 / 600, Line-Height: 1.45)
+  - **Botones y Filtros Tácticos**: `11.5px` – `12.5px` (Font-Weight: 700)
+  - **Badges, Etiquetas y Metadatos Mínimos**: `11px` – `11.5px` (Font-Weight: 700, Uppercase o Compacto)
 
 ---
 
 ## 4. Componentes y Patrones UI de la Hoja
 
 ### A. Tarjetas de Atributos y Habilidades
-- **Estructura**:
-  - **Badge de Sigla**: Contenedor cuadrado de `30x30px` con fondo `#18202e` y borde de `1px`.
-  - **Identificador**: Nombre del atributo/habilidad con subtítulo indicando puntuación base.
-  - **Caja de Modificador**: Contenedor hundido con valor numérico grande coloreado (`#60a5fa` positivo, `#fca5a5` negativo).
-  - **Fila de Badges**: Etiquetas compactas para Salvación (`+PB`), Override Fijo (`Fijo: 19`) y Modificadores Extras.
-  - **Botón de Acción**: Botón táctico inferior de ancho completo para abrir inspección o personalización.
+- **Modificador Principal**: Círculo hundido de alto contraste con texto de `24px` / `26px` (`--pj-texto-acento`).
+- **Salvaciones**: Toggle táctico con indicador visual claro (`+PB`, `+Mod`) a `11.5px` legible.
+- **Grados de Habilidad**: 4 estados visuales diferenciados (Sin entrenar, Medio PB, Competente, Pericia).
 
-### B. Modales de Detalle y Personalización
-- **Estructura en 2 Sub-pestañas**:
-  1. **Información y Tiradas**:
-     - Cuadro explicativo oficial/personalizado.
-     - Tabla de desglose matemático detallado (Base + Override + PB + Mod Extra = Total).
-     - Notas rápidas si existen.
-     - Botones de tirada 3D directos hacia TaleSpire.
-  2. **Personalizar**:
-     - Edición libre de Nombre y Descripción.
-     - Controles incrementales `[-]` Input `[+]` con soporte de texto y `onBlur`.
-     - Presets rápidos para overrides fijos (ej. 19, 21, 23).
-     - Modificadores adicionales a pruebas y salvaciones.
-     - Área de notas libres.
+### B. Barra Táctica y Condiciones
+- **Descansos y Ventajas**: Botones de 3 estados (Desventaja roja, Plano gris, Ventaja verde) a `11.5px`.
+- **Chips de Condición**: Tags interactivos a `11px` con tooltips universales a `12px` de despliegue instantáneo (0ms hover).
 
-### C. Multiclase y Progresión de Niveles
-- **Límite Estricto**: Suma de clases $\le 20$.
-- **Sincronización Bidireccional**: Nivel $\leftrightarrow$ Rango de Experiencia (D&D 5.5e).
-- **Control Visual**: Badge que indica los niveles disponibles restantes (`Puedes asignar hasta X niveles más`).
+### C. Vitalidad y Recursos
+- **Barra de Vida**: Gradiente de 3 estados (Plena `#10b981`, Herida `#eab308`, Crítica `#ef4444`) con valores a `18px` y badges a `11px`.
+- **Recursos Rápidos**: Dados de Golpe, Salvaciones de Muerte y Cansancio con contraste nítido.
 
 ---
 
 ## 5. Accesibilidad y Ergonomía
 
-- Contraste WCAG AA en textos sobre fondos oscuros.
-- Áreas interactivas mínimas de `32x32px` para controles de clic en pantallas pequeñas.
-- Indicación explícita del estado activo mediante borde luminoso y fondo coloreado tenue.
+- Contraste WCAG AA ($\ge 4.5:1$ en texto pequeño y $\ge 7:1$ en texto estándar) sobre fondos oscuros.
+- Áreas táctiles mínimas de `32x32px` para controles de clic en pantallas pequeñas.
+- Indicación explícita del estado activo mediante bordes luminosos `--pj-borde-acento-fuerte` y sombras tenues.

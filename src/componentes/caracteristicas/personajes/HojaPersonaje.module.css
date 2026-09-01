@@ -1,6 +1,7 @@
 /* ==========================================================================
    HojaPersonaje.module.css
    Estética Táctica Dark Fantasy para la Hoja de Personaje D&D 5.5e
+   Tokens globales: --pj-* (src/estilos/temaJugador.css)
    Alta densidad, jerarquía tipográfica, cero animaciones (0ms latencia en CEF)
    ========================================================================== */
 
@@ -13,7 +14,7 @@
   gap: 10px;
   padding: 6px 8px 48px 8px;
   box-sizing: border-box;
-  color: var(--color-texto-principal, #f1f5f9);
+  color: var(--pj-texto-primario-suave, #f8fafc);
   font-family: var(--fuente-principal, 'Inter', system-ui, sans-serif);
 }
 
@@ -22,28 +23,28 @@
    ========================================= */
 
 .neoRaised {
-  background-color: #121722;
-  border: 1px solid rgba(148, 163, 184, 0.14);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  background-color: var(--pj-fondo-tarjeta, #121722);
+  border: 1px solid var(--pj-borde-sutil, rgba(148, 163, 184, 0.16));
+  box-shadow: var(--pj-sombra-panel, 0 4px 12px rgba(0, 0, 0, 0.5));
   border-radius: 8px;
   position: relative;
 }
 
 .neoPressed {
-  background-color: #0b0f16;
-  border: 1px solid rgba(148, 163, 184, 0.08);
-  box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.7);
+  background-color: var(--pj-fondo-hundido, #080c14);
+  border: 1px solid var(--pj-borde-sutil, rgba(148, 163, 184, 0.16));
+  box-shadow: var(--pj-sombra-hundida, inset 0 2px 5px rgba(0, 0, 0, 0.7));
   border-radius: 6px;
 }
 
 .neoButton {
-  background-color: #1a2230;
-  border: 1px solid rgba(148, 163, 184, 0.18);
-  color: #cbd5e1;
+  background-color: var(--pj-fondo-tarjeta-hover, #1b2434);
+  border: 1px solid var(--pj-borde-medio, rgba(148, 163, 184, 0.26));
+  color: var(--pj-texto-secundario, #cbd5e1);
   cursor: pointer;
   padding: 5px 10px;
   border-radius: 6px;
-  font-size: 11px;
+  font-size: var(--pj-fuente-boton, 12px);
   font-weight: 700;
   letter-spacing: 0.3px;
   text-transform: uppercase;
@@ -58,7 +59,7 @@
 
 .neoButton:hover {
   background-color: #242f42;
-  border-color: #818cf8;
+  border-color: var(--pj-borde-acento-fuerte, #818cf8);
   color: #ffffff;
 }
 
@@ -70,7 +71,7 @@
 .neoButton:disabled {
   opacity: 0.45;
   cursor: not-allowed;
-  border-color: rgba(148, 163, 184, 0.08);
+  border-color: var(--pj-borde-sutil, rgba(148, 163, 184, 0.1));
 }
 
 /* ==========================================
@@ -82,8 +83,8 @@
   display: flex;
   gap: 12px;
   align-items: center;
-  background: linear-gradient(180deg, #161e2c 0%, #111622 100%);
-  border: 1px solid rgba(129, 140, 248, 0.22);
+  background: var(--pj-fondo-cabecera-gradiente, linear-gradient(180deg, #161e2c 0%, #111622 100%));
+  border: 1px solid var(--pj-borde-acento-tenue, rgba(129, 140, 248, 0.25));
 }
 
 .contenedorAvatar {
@@ -96,14 +97,14 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 2px solid #818cf8;
-  box-shadow: 0 0 10px rgba(129, 140, 248, 0.3);
+  border: 2px solid var(--pj-borde-acento-fuerte, #818cf8);
+  box-shadow: var(--pj-sombra-brillo-acento, 0 0 10px rgba(129, 140, 248, 0.3));
   cursor: pointer;
-  background-color: #0b0f16;
+  background-color: var(--pj-fondo-hundido, #080c14);
 }
 
 .contenedorAvatar:hover {
-  border-color: #a5b4fc;
+  border-color: var(--pj-borde-acento-luminoso, #a5b4fc);
   box-shadow: 0 0 14px rgba(165, 180, 252, 0.45);
 }
 
@@ -121,7 +122,7 @@
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  background-color: #0b0f16;
+  background-color: var(--pj-fondo-hundido, #080c14);
   border-radius: 50%;
 }
 
@@ -157,8 +158,8 @@
   width: 13px;
   height: 13px;
   border-radius: 50%;
-  background-color: #10b981;
-  border: 2px solid #0b0f16;
+  background-color: var(--pj-acento-exito, #10b981);
+  border: 2px solid var(--pj-fondo-hundido, #080c14);
   box-shadow: 0 0 6px #10b981;
 }
 
@@ -184,14 +185,14 @@
   display: flex;
   flex-direction: column;
   justify-content: center;
-  border-left: 3px solid #818cf8;
+  border-left: 3px solid var(--pj-acento-primario, #818cf8);
 }
 
 .nombrePersonaje {
   font-family: var(--fuente-titulo, 'Outfit', sans-serif);
-  font-size: 17px;
-  font-weight: 700;
-  color: #ffffff;
+  font-size: var(--pj-fuente-titulo-grande, 18px);
+  font-weight: 800;
+  color: var(--pj-texto-primario, #ffffff);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -200,47 +201,47 @@
 }
 
 .subtituloNombre {
-  font-size: 10px;
-  font-weight: 500;
-  color: #94a3b8;
+  font-size: var(--pj-fuente-micro, 11.5px);
+  font-weight: 600;
+  color: var(--pj-texto-terciario, #94a3b8);
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  margin-top: 1px;
+  margin-top: 2px;
 }
 
 .cajaNivel {
   padding: 3px 8px;
   text-align: center;
-  min-width: 52px;
+  min-width: 54px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  border: 1px solid rgba(129, 140, 248, 0.3);
+  border: 1px solid var(--pj-borde-acento, rgba(129, 140, 248, 0.3));
   background: linear-gradient(180deg, #1c2436 0%, #0d121c 100%);
 }
 
 .numeroNivel {
   font-family: var(--fuente-codigo, 'JetBrains Mono', monospace);
-  font-size: 19px;
+  font-size: var(--pj-fuente-numero-lg, 20px);
   font-weight: 800;
-  color: #a5b4fc;
+  color: var(--pj-texto-acento, #a5b4fc);
   line-height: 1;
 }
 
 .etiquetaNivel {
-  font-size: 8px;
+  font-size: var(--pj-fuente-micro, 11px);
   font-weight: 700;
-  color: #94a3b8;
+  color: var(--pj-texto-label, #a0aec0);
   text-transform: uppercase;
   letter-spacing: 0.5px;
   margin-top: 2px;
 }
 
 .botonConfigurarPj {
-  background: #1a2230;
-  border: 1px solid rgba(148, 163, 184, 0.18);
-  color: #94a3b8;
+  background: var(--pj-fondo-tarjeta-hover, #1b2434);
+  border: 1px solid var(--pj-borde-medio, rgba(148, 163, 184, 0.26));
+  color: var(--pj-texto-secundario, #cbd5e1);
   cursor: pointer;
   padding: 0;
   border-radius: 6px;
@@ -252,9 +253,9 @@
 }
 
 .botonConfigurarPj:hover {
-  color: #a5b4fc;
+  color: var(--pj-texto-acento, #a5b4fc);
   background-color: #242f42;
-  border-color: #818cf8;
+  border-color: var(--pj-borde-acento-fuerte, #818cf8);
 }
 
 .cuadriculaDetalles {
@@ -269,23 +270,23 @@
   display: flex;
   flex-direction: column;
   justify-content: center;
-  background-color: #0e131d;
-  border: 1px solid rgba(148, 163, 184, 0.08);
+  background-color: var(--pj-fondo-hundido, #080c14);
+  border: 1px solid var(--pj-borde-sutil, rgba(148, 163, 184, 0.16));
 }
 
 .valorDetalle {
-  font-size: 12px;
+  font-size: var(--pj-fuente-cuerpo, 12.5px);
   font-weight: 700;
-  color: #e2e8f0;
+  color: var(--pj-texto-primario-suave, #f8fafc);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .labelDetalle {
-  font-size: 8.5px;
+  font-size: var(--pj-fuente-micro, 11px);
   font-weight: 600;
-  color: #718096;
+  color: var(--pj-texto-label, #a0aec0);
   text-transform: uppercase;
   letter-spacing: 0.5px;
   margin-top: 1px;
@@ -320,16 +321,16 @@
   display: inline-flex;
   padding: 2px;
   gap: 2px;
-  background-color: #0b0f16;
-  border: 1px solid rgba(148, 163, 184, 0.12);
+  background-color: var(--pj-fondo-hundido, #080c14);
+  border: 1px solid var(--pj-borde-sutil, rgba(148, 163, 184, 0.16));
   border-radius: 6px;
 }
 
 .botonPill {
   background: transparent;
   border: 1px solid transparent;
-  color: #94a3b8;
-  font-size: 10.5px;
+  color: var(--pj-texto-secundario, #cbd5e1);
+  font-size: var(--pj-fuente-micro, 11.5px);
   font-weight: 700;
   padding: 4px 8px;
   border-radius: 4px;
@@ -337,36 +338,36 @@
   text-transform: uppercase;
   display: inline-flex;
   align-items: center;
-  gap: 3px;
+  gap: 4px;
   user-select: none;
 }
 
 .botonPill:hover {
-  color: #f1f5f9;
-  background-color: rgba(255, 255, 255, 0.04);
+  color: #ffffff;
+  background-color: rgba(255, 255, 255, 0.08);
 }
 
 .botonPillDescansoCorto:hover {
-  color: #60a5fa;
-  border-color: rgba(96, 165, 250, 0.3);
+  color: var(--pj-texto-cian, #38bdf8);
+  border-color: rgba(56, 189, 248, 0.4);
 }
 
 .botonPillDescansoLargo:hover {
-  color: #fbbf24;
-  border-color: rgba(251, 191, 36, 0.3);
+  color: var(--pj-texto-oro, #fde047);
+  border-color: rgba(251, 191, 36, 0.4);
 }
 
 .botonPillDisv {
-  color: #f87171;
+  color: var(--pj-texto-alerta, #fca5a5);
 }
 
 .botonPillVent {
-  color: #34d399;
+  color: var(--pj-texto-exito, #6ee7b7);
 }
 
 .botonPillActivoDisv {
   background-color: #7f1d1d !important;
-  color: #fecaca !important;
+  color: #fee2e2 !important;
   border-color: #ef4444 !important;
   box-shadow: 0 0 6px rgba(239, 68, 68, 0.4);
 }
@@ -379,7 +380,7 @@
 
 .botonPillActivoVent {
   background-color: #064e3b !important;
-  color: #a7f3d0 !important;
+  color: #d1fae5 !important;
   border-color: #10b981 !important;
   box-shadow: 0 0 6px rgba(16, 185, 129, 0.4);
 }
@@ -391,7 +392,7 @@
   flex-direction: column;
   gap: 5px;
   min-height: 58px;
-  background-color: #0b0f16;
+  background-color: var(--pj-fondo-hundido, #080c14);
   position: relative;
   overflow: visible;
 }
@@ -403,9 +404,9 @@
 }
 
 .tituloCondicionesActivas {
-  font-size: 8.5px;
+  font-size: var(--pj-fuente-micro, 11px);
   font-weight: 700;
-  color: #94a3b8;
+  color: var(--pj-texto-label, #a0aec0);
   text-transform: uppercase;
   letter-spacing: 0.6px;
 }
@@ -421,15 +422,15 @@
 
 .chipCondicion {
   background-color: #1a2233;
-  border: 1px solid rgba(129, 140, 248, 0.4);
-  padding: 2px 6px;
+  border: 1px solid var(--pj-borde-acento, rgba(129, 140, 248, 0.4));
+  padding: 3px 5px;
   border-radius: 4px;
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  font-size: 10px;
+  gap: 5px;
+  font-size: var(--pj-fuente-micro, 11px);
   font-weight: 700;
-  color: #c7d2fe;
+  color: var(--pj-texto-acento-brillante, #c7d2fe);
   cursor: help;
   position: relative;
 }
@@ -445,7 +446,7 @@
 .chipBotonCerrar {
   background: transparent;
   border: none;
-  color: #94a3b8;
+  color: var(--pj-texto-secundario, #cbd5e1);
   cursor: pointer;
   padding: 0;
   display: flex;
@@ -460,8 +461,8 @@
 }
 
 .textoSinCondiciones {
-  font-size: 10.5px;
-  color: #64748b;
+  font-size: var(--pj-fuente-micro, 11.5px);
+  color: var(--pj-texto-terciario, #94a3b8);
   font-style: italic;
 }
 
@@ -476,20 +477,20 @@
 }
 
 .tarjetaMetrica {
-  padding: 7px 4px;
+  padding: 8px 4px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   position: relative;
   text-align: center;
-  border: 1px solid rgba(148, 163, 184, 0.14);
-  background: linear-gradient(180deg, #141b27 0%, #0e131d 100%);
+  border: 1px solid var(--pj-borde-sutil, rgba(148, 163, 184, 0.16));
+  background: var(--pj-fondo-cabecera-gradiente, linear-gradient(180deg, #141b27 0%, #0e131d 100%));
   user-select: none;
 }
 
 .tarjetaMetricaInteractiva:hover {
-  border-color: #818cf8;
+  border-color: var(--pj-borde-acento-fuerte, #818cf8);
   background: linear-gradient(180deg, #1a2333 0%, #111722 100%);
 }
 
@@ -497,14 +498,14 @@
   position: absolute;
   top: 4px;
   right: 4px;
-  opacity: 0.25;
-  color: #94a3b8;
+  opacity: 0.3;
+  color: var(--pj-texto-terciario, #94a3b8);
 }
 
 .etiquetaMetrica {
-  font-size: 8.5px;
+  font-size: var(--pj-fuente-micro, 11px);
   font-weight: 700;
-  color: #94a3b8;
+  color: var(--pj-texto-label, #a0aec0);
   text-transform: uppercase;
   letter-spacing: 0.5px;
   margin-bottom: 3px;
@@ -512,29 +513,29 @@
 
 .valorMetrica {
   font-family: var(--fuente-codigo, 'JetBrains Mono', monospace);
-  font-size: 21px;
+  font-size: var(--pj-fuente-numero-lg, 22px);
   font-weight: 800;
-  color: #ffffff;
+  color: var(--pj-texto-primario, #ffffff);
   line-height: 1;
 }
 
 .valorMetricaAcento {
-  color: #a5b4fc;
+  color: var(--pj-texto-acento, #a5b4fc);
 }
 
 .unidadMetrica {
-  font-size: 10px;
-  font-weight: 500;
-  color: #94a3b8;
+  font-size: var(--pj-fuente-micro, 11px);
+  font-weight: 600;
+  color: var(--pj-texto-terciario, #94a3b8);
   margin-left: 2px;
 }
 
 .botonInspiracion {
-  width: 26px;
-  height: 26px;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
-  background: #0e131c;
-  border: 1px solid rgba(148, 163, 184, 0.2);
+  background: var(--pj-fondo-hundido, #080c14);
+  border: 1px solid var(--pj-borde-medio, rgba(148, 163, 184, 0.26));
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -543,9 +544,9 @@
 }
 
 .botonInspiracionActiva {
-  background-color: #eab308;
+  background-color: var(--pj-acento-oro, #eab308);
   border-color: #fef08a;
-  box-shadow: 0 0 10px rgba(234, 179, 8, 0.6);
+  box-shadow: var(--pj-sombra-brillo-oro, 0 0 10px rgba(234, 179, 8, 0.6));
 }
 
 /* ==========================================
@@ -557,7 +558,7 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
-  border-top: 2px solid #3b82f6;
+  border-top: 2px solid var(--pj-acento-cian, #0284c7);
 }
 
 .filaSaludPrincipal {
@@ -580,9 +581,9 @@
 }
 
 .tituloHp {
-  font-size: 10px;
+  font-size: var(--pj-fuente-micro, 11.5px);
   font-weight: 800;
-  color: #cbd5e1;
+  color: var(--pj-texto-secundario-claro, #e2e8f0);
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
@@ -594,12 +595,12 @@
 }
 
 .botonModHpCurar {
-  width: 24px;
-  height: 24px;
+  width: 26px;
+  height: 26px;
   border-radius: 4px;
-  background-color: #064e3b;
-  border: 1px solid #10b981;
-  color: #a7f3d0;
+  background-color: var(--pj-acento-exito-oscuro, #064e3b);
+  border: 1px solid var(--pj-acento-exito, #10b981);
+  color: var(--pj-texto-exito-brillante, #a7f3d0);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -613,12 +614,12 @@
 }
 
 .botonModHpDano {
-  width: 24px;
-  height: 24px;
+  width: 26px;
+  height: 26px;
   border-radius: 4px;
-  background-color: #7f1d1d;
-  border: 1px solid #ef4444;
-  color: #fecaca;
+  background-color: var(--pj-acento-peligro-oscuro, #7f1d1d);
+  border: 1px solid var(--pj-acento-peligro, #ef4444);
+  color: var(--pj-texto-alerta-brillante, #fee2e2);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -632,21 +633,21 @@
 }
 
 .inputHpMod {
-  width: 42px;
-  height: 24px;
+  width: 44px;
+  height: 26px;
   text-align: center;
   font-family: var(--fuente-codigo, 'JetBrains Mono', monospace);
-  font-size: 12px;
+  font-size: var(--pj-fuente-cuerpo, 13px);
   font-weight: 700;
-  color: #f1f5f9;
-  background-color: #0b0f16;
-  border: 1px solid rgba(148, 163, 184, 0.2);
+  color: var(--pj-texto-primario, #ffffff);
+  background-color: var(--pj-fondo-hundido, #080c14);
+  border: 1px solid var(--pj-borde-medio, rgba(148, 163, 184, 0.26));
   border-radius: 4px;
   padding: 0;
 }
 
 .inputHpMod:focus {
-  border-color: #818cf8;
+  border-color: var(--pj-borde-acento-fuerte, #818cf8);
 }
 
 .barraVidaFondo {
@@ -658,8 +659,8 @@
   align-items: center;
   justify-content: space-between;
   padding: 0 12px;
-  background-color: #070a0f;
-  border: 1px solid rgba(148, 163, 184, 0.15);
+  background-color: var(--pj-fondo-hundido-profundo, #05080e);
+  border: 1px solid var(--pj-borde-sutil, rgba(148, 163, 184, 0.16));
 }
 
 .barraVidaProgreso {
@@ -688,9 +689,9 @@
   position: relative;
   z-index: 2;
   font-family: var(--fuente-codigo, 'JetBrains Mono', monospace);
-  font-size: 18px;
+  font-size: var(--pj-fuente-numero-lg, 19px);
   font-weight: 800;
-  color: #ffffff;
+  color: var(--pj-texto-primario, #ffffff);
   display: flex;
   align-items: center;
   gap: 4px;
@@ -700,48 +701,48 @@
 .badgeEstadoVida {
   position: relative;
   z-index: 2;
-  font-size: 9px;
+  font-size: var(--pj-fuente-micro, 11px);
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  padding: 2px 6px;
+  padding: 2px 7px;
   border-radius: 3px;
-  background-color: rgba(0, 0, 0, 0.65);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  color: #cbd5e1;
+  background-color: rgba(0, 0, 0, 0.75);
+  border: 1px solid var(--pj-borde-medio, rgba(255, 255, 255, 0.15));
+  color: var(--pj-texto-secundario, #cbd5e1);
 }
 
 .inputHpDirecto {
-  width: 44px;
+  width: 46px;
   background: transparent;
   border: 1px solid transparent;
   outline: none;
   border-radius: 4px;
   text-align: center;
   font-family: var(--fuente-codigo, 'JetBrains Mono', monospace);
-  font-size: 18px;
+  font-size: var(--pj-fuente-numero-lg, 19px);
   font-weight: 800;
-  color: #ffffff;
+  color: var(--pj-texto-primario, #ffffff);
   padding: 1px;
   cursor: text;
 }
 
 .inputHpDirecto:hover {
   background-color: rgba(255, 255, 255, 0.12);
-  border-color: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.25);
 }
 
 .inputHpDirecto:focus {
-  background-color: rgba(0, 0, 0, 0.85);
-  border: 1px solid #818cf8;
+  background-color: rgba(0, 0, 0, 0.9);
+  border: 1px solid var(--pj-borde-acento-fuerte, #818cf8);
 }
 
 .hpMaxAumentado {
-  color: #38bdf8 !important;
+  color: var(--pj-texto-cian, #38bdf8) !important;
 }
 
 .hpMaxReducido {
-  color: #f87171 !important;
+  color: var(--pj-texto-alerta, #f87171) !important;
 }
 
 .cajaHpTemporal {
@@ -749,6 +750,7 @@
   display: flex;
   flex-direction: column;
   gap: 5px;
+  justify-content: flex-end;
 }
 
 .barraTempFondo {
@@ -758,18 +760,18 @@
   align-items: center;
   justify-content: center;
   background-color: #0b131e;
-  border: 1px solid rgba(56, 189, 248, 0.3);
+  border: 1px solid var(--pj-borde-cian, rgba(56, 189, 248, 0.3));
 }
 
 .barraTempFondo:hover {
-  border-color: #38bdf8;
+  border-color: var(--pj-borde-cian-fuerte, #38bdf8);
 }
 
 .valorTempHp {
   font-family: var(--fuente-codigo, 'JetBrains Mono', monospace);
-  font-size: 19px;
+  font-size: var(--pj-fuente-numero-lg, 20px);
   font-weight: 800;
-  color: #38bdf8;
+  color: var(--pj-texto-cian, #38bdf8);
 }
 
 .filaRecursosSalud {
@@ -785,8 +787,8 @@
   align-items: center;
   justify-content: center;
   text-align: center;
-  background: linear-gradient(180deg, #131924 0%, #0d121b 100%);
-  border: 1px solid rgba(148, 163, 184, 0.12);
+  background: var(--pj-fondo-cabecera-gradiente, linear-gradient(180deg, #131924 0%, #0d121b 100%));
+  border: 1px solid var(--pj-borde-sutil, rgba(148, 163, 184, 0.16));
 }
 
 .filaCabeceraRecurso {
@@ -799,22 +801,22 @@
 }
 
 .tituloRecursoSalud {
-  font-size: 8.5px;
+  font-size: var(--pj-fuente-micro, 11px);
   font-weight: 700;
-  color: #94a3b8;
+  color: var(--pj-texto-label, #a0aec0);
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
 .botonSalvacionMuerte {
   background: transparent;
-  border: 1px solid rgba(129, 140, 248, 0.3);
-  font-size: 8.5px;
+  border: 1px solid var(--pj-borde-acento, rgba(129, 140, 248, 0.3));
+  font-size: var(--pj-fuente-micro, 11px);
   font-weight: 700;
-  color: #cbd5e1;
+  color: var(--pj-texto-secundario, #cbd5e1);
   text-transform: uppercase;
   cursor: pointer;
-  padding: 1px 5px;
+  padding: 2px 6px;
   border-radius: 3px;
   display: inline-flex;
   align-items: center;
@@ -824,14 +826,14 @@
 .botonSalvacionMuerte:hover {
   color: #ffffff;
   background-color: #3730a3;
-  border-color: #818cf8;
+  border-color: var(--pj-borde-acento-fuerte, #818cf8);
 }
 
 .valorDadosGolpe {
   font-family: var(--fuente-codigo, 'JetBrains Mono', monospace);
-  font-size: 13px;
+  font-size: var(--pj-fuente-subtitulo, 14px);
   font-weight: 700;
-  color: #a5b4fc;
+  color: var(--pj-texto-acento, #a5b4fc);
   display: flex;
   align-items: center;
   gap: 5px;
@@ -859,18 +861,18 @@
 }
 
 .puntoCansancio {
-  width: 13px;
-  height: 13px;
+  width: 14px;
+  height: 14px;
   border-radius: 50%;
-  border: 1.5px solid rgba(255, 255, 255, 0.25);
-  background-color: #0b0f16;
+  border: 1.5px solid var(--pj-borde-medio, rgba(255, 255, 255, 0.3));
+  background-color: var(--pj-fondo-hundido, #080c14);
   cursor: pointer;
 }
 
 .puntoCansancioActivo {
-  background-color: #f59e0b;
+  background-color: var(--pj-acento-oro, #eab308);
   border-color: #fbbf24;
-  box-shadow: 0 0 5px rgba(245, 158, 11, 0.5);
+  box-shadow: var(--pj-sombra-brillo-oro, 0 0 6px rgba(245, 158, 11, 0.5));
 }
 
 /* ==========================================
@@ -898,41 +900,41 @@
   justify-content: center;
   position: relative;
   cursor: pointer;
-  background: linear-gradient(180deg, #151c28 0%, #0d121c 100%);
-  border: 1px solid rgba(148, 163, 184, 0.14);
+  background: var(--pj-fondo-cabecera-gradiente, linear-gradient(180deg, #151c28 0%, #0d121c 100%));
+  border: 1px solid var(--pj-borde-sutil, rgba(148, 163, 184, 0.16));
 }
 
 .tarjetaAtributo:hover {
-  border-color: #818cf8;
+  border-color: var(--pj-borde-acento-fuerte, #818cf8);
   background: linear-gradient(180deg, #1b2434 0%, #101622 100%);
 }
 
 .nombreAtributo {
-  font-size: 10px;
+  font-size: var(--pj-fuente-micro, 11.5px);
   font-weight: 800;
-  color: #94a3b8;
+  color: var(--pj-texto-label, #a0aec0);
   text-transform: uppercase;
   letter-spacing: 0.6px;
   margin-bottom: 3px;
 }
 
 .circuloModificador {
-  width: 48px;
-  height: 48px;
+  width: 50px;
+  height: 50px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   margin-bottom: 5px;
-  border: 2px solid rgba(129, 140, 248, 0.25);
-  background-color: #090d14;
+  border: 2px solid var(--pj-borde-acento-tenue, rgba(129, 140, 248, 0.25));
+  background-color: var(--pj-fondo-hundido-profundo, #05080e);
 }
 
 .textoModificador {
   font-family: var(--fuente-codigo, 'JetBrains Mono', monospace);
-  font-size: 24px;
+  font-size: var(--pj-fuente-numero-xl, 25px);
   font-weight: 800;
-  color: #a5b4fc;
+  color: var(--pj-texto-acento, #a5b4fc);
 }
 
 /* Inputs numéricos sin flechas */
@@ -954,16 +956,16 @@
 }
 
 .badgePuntuacionBase {
-  background: #090d14;
-  border: 1px solid rgba(148, 163, 184, 0.12);
+  background: var(--pj-fondo-hundido-profundo, #05080e);
+  border: 1px solid var(--pj-borde-sutil, rgba(148, 163, 184, 0.16));
   outline: none;
   border-radius: 4px;
   font-family: var(--fuente-codigo, 'JetBrains Mono', monospace);
-  font-size: 12px;
+  font-size: var(--pj-fuente-cuerpo, 12.5px);
   font-weight: 700;
-  color: #cbd5e1;
+  color: var(--pj-texto-secundario, #cbd5e1);
   margin-bottom: 5px;
-  width: 36px;
+  width: 38px;
   text-align: center;
   padding: 1px;
   cursor: text;
@@ -974,7 +976,7 @@
 }
 
 .badgePuntuacionBase:focus {
-  border-color: #818cf8;
+  border-color: var(--pj-borde-acento-fuerte, #818cf8);
   color: #ffffff;
   background-color: #000000;
 }
@@ -982,15 +984,15 @@
 .filaSalvacionAtributo {
   width: 100%;
   padding-top: 5px;
-  border-top: 1px solid rgba(148, 163, 184, 0.1);
+  border-top: 1px solid var(--pj-borde-sutil, rgba(148, 163, 184, 0.1));
   display: flex;
   align-items: center;
   justify-content: space-around;
   padding-left: 2px;
   padding-right: 2px;
-  font-size: 10px;
+  font-size: var(--pj-fuente-micro, 11px);
   text-transform: uppercase;
-  color: #94a3b8;
+  color: var(--pj-texto-terciario, #94a3b8);
 }
 
 .botonToggleSalvacion {
@@ -1011,11 +1013,11 @@
 }
 
 .puntoCompetenciaSalvacion {
-  width: 13px;
-  height: 13px;
+  width: 14px;
+  height: 14px;
   border-radius: 50%;
-  background-color: #0b0f16;
-  border: 1.5px solid rgba(148, 163, 184, 0.35);
+  background-color: var(--pj-fondo-hundido, #080c14);
+  border: 1.5px solid var(--pj-borde-medio, rgba(148, 163, 184, 0.35));
   cursor: pointer;
   flex-shrink: 0;
   padding: 0;
@@ -1023,19 +1025,19 @@
 }
 
 .puntoCompetenciaActivo {
-  background-color: #818cf8;
-  border-color: #a5b4fc;
-  box-shadow: 0 0 6px rgba(129, 140, 248, 0.5);
+  background-color: var(--pj-acento-primario, #818cf8);
+  border-color: var(--pj-borde-acento-luminoso, #a5b4fc);
+  box-shadow: var(--pj-sombra-brillo-acento, 0 0 6px rgba(129, 140, 248, 0.5));
 }
 
 .botonTextoSalvacion {
   background: transparent;
   border: 1px solid transparent;
-  padding: 1px 3px;
+  padding: 1px 4px;
   margin: -1px -3px;
-  font-size: 10.5px;
-  font-weight: 600;
-  color: #94a3b8;
+  font-size: var(--pj-fuente-micro, 11.5px);
+  font-weight: 700;
+  color: var(--pj-texto-label, #a0aec0);
   text-transform: uppercase;
   cursor: pointer;
   border-radius: 3px;
@@ -1045,13 +1047,13 @@
 }
 
 .botonTextoSalvacion:hover {
-  color: #a5b4fc;
-  background-color: rgba(129, 140, 248, 0.12);
-  border-color: rgba(129, 140, 248, 0.25);
+  color: var(--pj-texto-acento, #a5b4fc);
+  background-color: var(--pj-acento-primario-fondo, rgba(129, 140, 248, 0.12));
+  border-color: var(--pj-borde-acento, rgba(129, 140, 248, 0.25));
 }
 
 .textoSalvacionCompetente {
-  color: #f1f5f9;
+  color: var(--pj-texto-primario, #ffffff);
   font-weight: 800;
 }
 
@@ -1062,16 +1064,16 @@
   flex-direction: column;
   justify-content: center;
   gap: 7px;
-  background: linear-gradient(180deg, #141a27 0%, #0d111a 100%);
+  background: var(--pj-fondo-cabecera-gradiente, linear-gradient(180deg, #141a27 0%, #0d111a 100%));
 }
 
 .tituloPanelLateral {
-  font-size: 9.5px;
+  font-size: var(--pj-fuente-micro, 11px);
   font-weight: 800;
-  color: #94a3b8;
+  color: var(--pj-texto-label, #a0aec0);
   text-transform: uppercase;
   letter-spacing: 0.6px;
-  border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+  border-bottom: 1px solid var(--pj-borde-sutil, rgba(148, 163, 184, 0.12));
   padding-bottom: 4px;
 }
 
@@ -1080,21 +1082,21 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border: 1px solid rgba(148, 163, 184, 0.08);
-  background-color: #0b0f16;
+  border: 1px solid var(--pj-borde-sutil, rgba(148, 163, 184, 0.12));
+  background-color: var(--pj-fondo-hundido, #080c14);
 }
 
 .valorSentidoPasivo {
   font-family: var(--fuente-codigo, 'JetBrains Mono', monospace);
-  font-size: 18px;
+  font-size: var(--pj-fuente-numero-lg, 19px);
   font-weight: 800;
-  color: #a5b4fc;
+  color: var(--pj-texto-acento, #a5b4fc);
 }
 
 .labelSentidoPasivo {
-  font-size: 9.5px;
+  font-size: var(--pj-fuente-micro, 11px);
   font-weight: 600;
-  color: #cbd5e1;
+  color: var(--pj-texto-secundario-claro, #e2e8f0);
   text-transform: uppercase;
   text-align: right;
   line-height: 1.2;
@@ -1116,7 +1118,7 @@
   display: flex;
   flex-direction: column;
   gap: 7px;
-  background: linear-gradient(180deg, #141b28 0%, #0e131d 100%);
+  background: var(--pj-fondo-cabecera-gradiente, linear-gradient(180deg, #141b28 0%, #0e131d 100%));
 }
 
 .gridHabilidadesDobleColumna {
@@ -1129,17 +1131,17 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 3px 6px;
+  padding: 4px 6px;
   border-radius: 4px;
   cursor: pointer;
-  min-height: 28px;
-  background-color: rgba(255, 255, 255, 0.015);
-  border: 1px solid rgba(148, 163, 184, 0.06);
+  min-height: 30px;
+  background-color: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--pj-borde-sutil, rgba(148, 163, 184, 0.1));
 }
 
 .itemHabilidad:hover {
-  background-color: #1a2334;
-  border-color: rgba(129, 140, 248, 0.3);
+  background-color: var(--pj-fondo-tarjeta-hover, #1b2434);
+  border-color: var(--pj-borde-acento, rgba(129, 140, 248, 0.4));
 }
 
 .infoHabilidadIzquierda {
@@ -1149,27 +1151,27 @@
 }
 
 .nombreHabilidad {
-  font-size: 11.5px;
+  font-size: var(--pj-fuente-cuerpo, 12.5px);
   font-weight: 600;
-  color: #f1f5f9;
+  color: var(--pj-texto-primario-suave, #f8fafc);
 }
 
 .caracAbrevHabilidad {
-  font-size: 9px;
+  font-size: var(--pj-fuente-micro, 11px);
   font-weight: 700;
-  color: #64748b;
+  color: var(--pj-texto-terciario, #94a3b8);
   text-transform: uppercase;
 }
 
 .valorBonoHabilidad {
   font-family: var(--fuente-codigo, 'JetBrains Mono', monospace);
-  font-size: 13px;
+  font-size: var(--pj-fuente-subtitulo, 14px);
   font-weight: 700;
-  color: #94a3b8;
+  color: var(--pj-texto-secundario, #cbd5e1);
 }
 
 .valorBonoHabilidadDestacado {
-  color: #a5b4fc;
+  color: var(--pj-texto-acento, #a5b4fc);
   font-weight: 800;
 }
 
@@ -1193,11 +1195,11 @@
 
 /* Indicador de 4 Estados de Grado de Habilidad */
 .puntoGradoHabilidad {
-  width: 14px;
-  height: 14px;
+  width: 15px;
+  height: 15px;
   border-radius: 50%;
-  border: 1.5px solid rgba(148, 163, 184, 0.35);
-  background-color: #0b0f16;
+  border: 1.5px solid var(--pj-borde-medio, rgba(148, 163, 184, 0.35));
+  background-color: var(--pj-fondo-hundido, #080c14);
   cursor: pointer;
   flex-shrink: 0;
   display: flex;
@@ -1208,24 +1210,24 @@
 }
 
 .puntoGradoVacio {
-  border-color: rgba(148, 163, 184, 0.25);
-  background-color: #0b0f16;
+  border-color: var(--pj-borde-sutil, rgba(148, 163, 184, 0.25));
+  background-color: var(--pj-fondo-hundido, #080c14);
 }
 
 .puntoGradoMedio {
-  border-color: #a5b4fc;
-  background: linear-gradient(90deg, #818cf8 50%, #0b0f16 50%);
+  border-color: var(--pj-borde-acento-luminoso, #a5b4fc);
+  background: linear-gradient(90deg, #818cf8 50%, #080c14 50%);
 }
 
 .puntoGradoCompetente {
-  border-color: #818cf8;
-  background-color: #818cf8;
+  border-color: var(--pj-acento-primario, #818cf8);
+  background-color: var(--pj-acento-primario, #818cf8);
 }
 
 .puntoGradoPericia {
-  border-color: #38bdf8;
-  background-color: #38bdf8;
-  box-shadow: 0 0 0 1.5px #0b0f16, 0 0 0 2.5px #38bdf8;
+  border-color: var(--pj-texto-cian, #38bdf8);
+  background-color: var(--pj-texto-cian, #38bdf8);
+  box-shadow: 0 0 0 1.5px var(--pj-fondo-hundido, #080c14), 0 0 0 2.5px #38bdf8;
 }
 
 .panelCompetencias {
@@ -1234,7 +1236,7 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
-  background: linear-gradient(180deg, #141a27 0%, #0d111a 100%);
+  background: var(--pj-fondo-cabecera-gradiente, linear-gradient(180deg, #141a27 0%, #0d111a 100%));
 }
 
 .grupoCompetenciaItem {
@@ -1244,33 +1246,32 @@
 }
 
 .tituloGrupoCompetencia {
-  font-size: 9px;
+  font-size: var(--pj-fuente-micro, 11px);
   font-weight: 700;
-  color: #94a3b8;
+  color: var(--pj-texto-label, #a0aec0);
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
 .cajaTextoCompetencia {
-  padding: 5px 7px;
-  font-size: 10.5px;
-  color: #cbd5e1;
+  padding: 6px 8px;
+  font-size: var(--pj-fuente-cuerpo, 12px);
+  color: var(--pj-texto-secundario-claro, #e2e8f0);
   line-height: 1.35;
-  min-height: 26px;
-  background-color: #0b0f16;
-  border: 1px solid rgba(148, 163, 184, 0.08);
+  min-height: 28px;
+  background-color: var(--pj-fondo-hundido, #080c14);
+  border: 1px solid var(--pj-borde-sutil, rgba(148, 163, 184, 0.12));
 }
 
 .cajaTextoCompetenciaInteractiva {
   cursor: pointer;
-  transition: all 0.15s ease;
   user-select: none;
 }
 
 .cajaTextoCompetenciaInteractiva:hover {
-  border-color: rgba(56, 189, 248, 0.4);
-  background-color: rgba(56, 189, 248, 0.06);
-  color: #f8fafc;
+  border-color: var(--pj-borde-cian, rgba(56, 189, 248, 0.4));
+  background-color: var(--pj-acento-cian-fondo, rgba(56, 189, 248, 0.08));
+  color: #ffffff;
 }
 
 /* ==========================================
@@ -1286,9 +1287,9 @@
 
 .tituloGestor {
   font-family: var(--fuente-titulo, 'Outfit', sans-serif);
-  font-size: 17px;
-  font-weight: 700;
-  color: #ffffff;
+  font-size: var(--pj-fuente-titulo-grande, 18px);
+  font-weight: 800;
+  color: var(--pj-texto-primario, #ffffff);
 }
 
 .gridPersonajesGaleria {
@@ -1303,13 +1304,13 @@
   flex-direction: column;
   gap: 8px;
   position: relative;
-  background: linear-gradient(180deg, #141b27 0%, #0e131d 100%);
-  border: 1px solid rgba(148, 163, 184, 0.14);
+  background: var(--pj-fondo-cabecera-gradiente, linear-gradient(180deg, #141b27 0%, #0e131d 100%));
+  border: 1px solid var(--pj-borde-sutil, rgba(148, 163, 184, 0.16));
 }
 
 .tarjetaPjGaleriaActiva {
-  border-color: #818cf8;
-  box-shadow: 0 0 10px rgba(129, 140, 248, 0.25);
+  border-color: var(--pj-borde-acento-fuerte, #818cf8);
+  box-shadow: var(--pj-sombra-brillo-acento, 0 0 10px rgba(129, 140, 248, 0.25));
 }
 
 .filaPjCabeceraGaleria {
@@ -1320,14 +1321,14 @@
 
 .nombrePjGaleria {
   font-family: var(--fuente-titulo, 'Outfit', sans-serif);
-  font-size: 15px;
+  font-size: var(--pj-fuente-titulo, 16px);
   font-weight: 700;
-  color: #ffffff;
+  color: var(--pj-texto-primario, #ffffff);
 }
 
 .detallesPjGaleria {
-  font-size: 11px;
-  color: #94a3b8;
+  font-size: var(--pj-fuente-micro, 11.5px);
+  color: var(--pj-texto-terciario, #94a3b8);
   margin-top: 1px;
 }
 
@@ -1348,7 +1349,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0, 0, 0, 0.85);
+  background-color: var(--pj-fondo-modal-overlay, rgba(0, 0, 0, 0.85));
   z-index: 9999;
   display: flex;
   align-items: center;
@@ -1362,17 +1363,17 @@
   max-height: 90vh;
   display: flex;
   flex-direction: column;
-  background-color: #0b0f16;
-  border: 1px solid #3730a3;
+  background-color: var(--pj-fondo-modal-cuerpo, #0b0f16);
+  border: 1px solid var(--pj-borde-acento-fuerte, #818cf8);
   border-radius: 8px;
   overflow: hidden;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.9);
+  box-shadow: var(--pj-sombra-modal, 0 10px 30px rgba(0, 0, 0, 0.9));
 }
 
 .cabeceraModal {
   padding: 10px 14px;
-  background-color: #141a26;
-  border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+  background-color: var(--pj-fondo-modal-cabecera, #141a26);
+  border-bottom: 1px solid var(--pj-borde-sutil, rgba(148, 163, 184, 0.14));
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -1380,16 +1381,16 @@
 
 .tituloModal {
   font-family: var(--fuente-titulo, 'Outfit', sans-serif);
-  font-size: 15px;
-  font-weight: 700;
-  color: #ffffff;
+  font-size: var(--pj-fuente-titulo, 16px);
+  font-weight: 800;
+  color: var(--pj-texto-primario, #ffffff);
 }
 
 .barraPestañasModal {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
   background-color: #101622;
-  border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+  border-bottom: 1px solid var(--pj-borde-sutil, rgba(148, 163, 184, 0.14));
   padding: 0;
   gap: 0;
   width: 100%;
@@ -1399,9 +1400,9 @@
   background: transparent !important;
   border: none;
   border-bottom: 2px solid transparent;
-  color: #94a3b8;
+  color: var(--pj-texto-terciario, #94a3b8);
   padding: 8px 2px;
-  font-size: 9.5px;
+  font-size: var(--pj-fuente-micro, 11px);
   font-weight: 700;
   cursor: pointer;
   text-transform: uppercase;
@@ -1410,22 +1411,22 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 3px;
+  gap: 4px;
   width: 100%;
   text-align: center;
 }
 
 .botonPestañaModal:hover {
   background-color: #161e2c !important;
-  color: #f1f5f9;
-  border-bottom-color: rgba(148, 163, 184, 0.3);
+  color: #ffffff;
+  border-bottom-color: var(--pj-borde-acento-luminoso, #a5b4fc);
 }
 
 .botonPestañaModalActiva,
 .botonPestañaModalActiva:hover {
   background-color: #141b27 !important;
-  color: #93c5fd;
-  border-bottom-color: #3b82f6;
+  color: var(--pj-texto-cian, #38bdf8);
+  border-bottom-color: var(--pj-texto-cian, #38bdf8);
 }
 
 .contenidoPestañaModal {
@@ -1450,30 +1451,30 @@
 }
 
 .labelFormulario {
-  font-size: 10px;
+  font-size: var(--pj-fuente-micro, 11px);
   font-weight: 700;
-  color: #94a3b8;
+  color: var(--pj-texto-label, #a0aec0);
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
 .inputFormulario {
-  background-color: #141b27;
-  border: 1px solid rgba(148, 163, 184, 0.14);
-  color: #ffffff;
+  background-color: var(--pj-fondo-hundido, #080c14);
+  border: 1px solid var(--pj-borde-medio, rgba(148, 163, 184, 0.26));
+  color: var(--pj-texto-primario, #ffffff);
   padding: 6px 8px;
   border-radius: 4px;
-  font-size: 12px;
+  font-size: var(--pj-fuente-cuerpo, 12.5px);
 }
 
 .inputFormulario:focus {
-  border-color: #818cf8;
+  border-color: var(--pj-borde-acento-fuerte, #818cf8);
 }
 
 .pieModal {
   padding: 10px 14px;
-  background-color: #141a26;
-  border-top: 1px solid rgba(148, 163, 184, 0.12);
+  background-color: var(--pj-fondo-modal-cabecera, #141a26);
+  border-top: 1px solid var(--pj-borde-sutil, rgba(148, 163, 184, 0.14));
   display: flex;
   justify-content: flex-end;
   gap: 8px;
@@ -1504,9 +1505,9 @@
 }
 
 .tituloMonedas {
-  font-size: 10px;
+  font-size: var(--pj-fuente-micro, 11.5px);
   font-weight: 800;
-  color: #cbd5e1;
+  color: var(--pj-texto-secundario-claro, #e2e8f0);
   text-transform: uppercase;
   letter-spacing: 0.5px;
   display: flex;
@@ -1515,11 +1516,11 @@
 }
 
 .resumenEquivalentePO {
-  font-size: 10px;
+  font-size: var(--pj-fuente-micro, 11px);
   font-weight: 700;
-  color: #fbbf24;
-  background-color: rgba(245, 158, 11, 0.12);
-  border: 1px solid rgba(245, 158, 11, 0.25);
+  color: var(--pj-texto-oro, #fde047);
+  background-color: var(--pj-acento-oro-fondo, rgba(234, 179, 8, 0.14));
+  border: 1px solid var(--pj-borde-oro, rgba(245, 158, 11, 0.35));
   padding: 2px 8px;
   border-radius: 4px;
   font-family: var(--fuente-codigo, 'JetBrains Mono', monospace);
@@ -1538,35 +1539,35 @@
   align-items: center;
   gap: 4px;
   text-align: center;
-  background-color: #0b0f16;
-  border: 1px solid rgba(148, 163, 184, 0.12);
+  background-color: var(--pj-fondo-hundido, #080c14);
+  border: 1px solid var(--pj-borde-sutil, rgba(148, 163, 184, 0.16));
   border-radius: 6px;
   box-sizing: border-box;
 }
 
 .etiquetaMoneda {
-  font-size: 9px;
+  font-size: var(--pj-fuente-micro, 11px);
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
-.monedaPPT { color: #bac2de; }
-.monedaPO  { color: #f9e2af; }
-.monedaPE  { color: #89b4fa; }
-.monedaPP  { color: #cdd6f4; }
-.monedaPC  { color: #cd7f32; }
+.monedaPPT { color: var(--pj-moneda-platino, #e2e8f0); }
+.monedaPO  { color: var(--pj-moneda-oro, #fbbf24); }
+.monedaPE  { color: var(--pj-moneda-electrum, #38bdf8); }
+.monedaPP  { color: var(--pj-moneda-plata, #cbd5e1); }
+.monedaPC  { color: var(--pj-moneda-cobre, #d97706); }
 
 .inputMoneda {
   width: 100%;
-  height: 24px;
+  height: 26px;
   text-align: center;
   font-family: var(--fuente-codigo, 'JetBrains Mono', monospace);
-  font-size: 13px;
+  font-size: var(--pj-fuente-subtitulo, 14px);
   font-weight: 800;
-  color: #ffffff;
-  background-color: #070a0f;
-  border: 1px solid rgba(148, 163, 184, 0.18);
+  color: var(--pj-texto-primario, #ffffff);
+  background-color: var(--pj-fondo-hundido-profundo, #05080e);
+  border: 1px solid var(--pj-borde-medio, rgba(148, 163, 184, 0.26));
   border-radius: 4px;
   padding: 0 4px;
   outline: none;
@@ -1581,9 +1582,9 @@
 }
 
 .inputMoneda:focus {
-  border-color: #f59e0b;
+  border-color: var(--pj-acento-oro, #eab308);
   background-color: #111622;
-  box-shadow: 0 0 0 1px rgba(245, 158, 11, 0.3);
+  box-shadow: 0 0 0 1px rgba(245, 158, 11, 0.4);
 }
 
 /* --- SECCIÓN 2: CAPACIDAD DE CARGA --- */
@@ -1601,9 +1602,9 @@
 }
 
 .tituloCarga {
-  font-size: 10px;
+  font-size: var(--pj-fuente-micro, 11.5px);
   font-weight: 800;
-  color: #cbd5e1;
+  color: var(--pj-texto-secundario-claro, #e2e8f0);
   text-transform: uppercase;
   letter-spacing: 0.5px;
   display: flex;
@@ -1612,9 +1613,9 @@
 }
 
 .detalleCalculoCarga {
-  font-size: 9px;
+  font-size: var(--pj-fuente-micro, 11px);
   font-weight: 600;
-  color: #94a3b8;
+  color: var(--pj-texto-terciario, #94a3b8);
 }
 
 .barraCargaFondo {
@@ -1626,8 +1627,8 @@
   align-items: center;
   justify-content: space-between;
   padding: 0 10px;
-  background-color: #070a0f;
-  border: 1px solid rgba(148, 163, 184, 0.15);
+  background-color: var(--pj-fondo-hundido-profundo, #05080e);
+  border: 1px solid var(--pj-borde-sutil, rgba(148, 163, 184, 0.16));
 }
 
 .barraCargaProgreso {
@@ -1651,33 +1652,33 @@
   position: relative;
   z-index: 2;
   font-family: var(--fuente-codigo, 'JetBrains Mono', monospace);
-  font-size: 13px;
+  font-size: var(--pj-fuente-subtitulo, 13.5px);
   font-weight: 800;
-  color: #ffffff;
+  color: var(--pj-texto-primario, #ffffff);
   text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9);
 }
 
 .badgeEstadoCarga {
   position: relative;
   z-index: 2;
-  font-size: 8.5px;
+  font-size: var(--pj-fuente-micro, 11px);
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  padding: 2px 6px;
+  padding: 2px 7px;
   border-radius: 3px;
 }
 
 .badgeCargaNormal {
-  background-color: rgba(6, 78, 59, 0.85);
+  background-color: rgba(6, 78, 59, 0.9);
   border: 1px solid #10b981;
-  color: #a7f3d0;
+  color: #d1fae5;
 }
 
 .badgeCargaSobrecargado {
-  background-color: rgba(127, 29, 29, 0.85);
+  background-color: rgba(127, 29, 29, 0.9);
   border: 1px solid #ef4444;
-  color: #fecaca;
+  color: #fee2e2;
 }
 
 /* --- SECCIÓN 3: SINTONIZACIÓN --- */
@@ -1695,9 +1696,9 @@
 }
 
 .tituloSintonizacion {
-  font-size: 10px;
+  font-size: var(--pj-fuente-micro, 11.5px);
   font-weight: 800;
-  color: #cbd5e1;
+  color: var(--pj-texto-secundario-claro, #e2e8f0);
   text-transform: uppercase;
   letter-spacing: 0.5px;
   display: flex;
@@ -1717,23 +1718,23 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  background-color: #0b0f16;
-  border: 1px solid rgba(148, 163, 184, 0.12);
-  min-height: 28px;
+  background-color: var(--pj-fondo-hundido, #080c14);
+  border: 1px solid var(--pj-borde-sutil, rgba(148, 163, 184, 0.16));
+  min-height: 30px;
   box-sizing: border-box;
 }
 
 .slotSintonizacionActivo {
   background: linear-gradient(180deg, #1f1430 0%, #150f24 100%);
-  border-color: rgba(168, 85, 247, 0.5);
-  box-shadow: inset 0 0 6px rgba(168, 85, 247, 0.2);
+  border-color: rgba(168, 85, 247, 0.6);
+  box-shadow: inset 0 0 6px rgba(168, 85, 247, 0.25);
 }
 
 .slotSintonizacionVacio {
   border-style: dashed;
-  border-color: rgba(148, 163, 184, 0.15);
-  color: #64748b;
-  font-size: 10px;
+  border-color: var(--pj-borde-sutil, rgba(148, 163, 184, 0.2));
+  color: var(--pj-texto-terciario, #94a3b8);
+  font-size: var(--pj-fuente-micro, 11px);
   font-style: italic;
   justify-content: center;
 }
@@ -1744,9 +1745,9 @@
 }
 
 .textoSlotSintonizacion {
-  font-size: 11px;
+  font-size: var(--pj-fuente-micro, 11.5px);
   font-weight: 700;
-  color: #f1f5f9;
+  color: var(--pj-texto-primario-suave, #f8fafc);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1765,7 +1766,7 @@
   justify-content: space-between;
   align-items: center;
   padding-bottom: 4px;
-  border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+  border-bottom: 1px solid var(--pj-borde-sutil, rgba(148, 163, 184, 0.14));
 }
 
 /* Barra de Búsqueda y Orden en Mochila */
@@ -1787,31 +1788,30 @@
 .iconoBuscadorMochila {
   position: absolute;
   left: 8px;
-  color: #64748b;
+  color: var(--pj-texto-terciario, #94a3b8);
   pointer-events: none;
 }
 
 .inputBuscadorMochila {
   width: 100%;
-  padding: 5px 26px 5px 26px;
-  background-color: #0b0f17;
-  border: 1px solid rgba(148, 163, 184, 0.18);
+  padding: 6px 28px 6px 28px;
+  background-color: var(--pj-fondo-hundido, #080c14);
+  border: 1px solid var(--pj-borde-medio, rgba(148, 163, 184, 0.26));
   border-radius: 5px;
-  color: #f1f5f9;
-  font-size: 11px;
+  color: var(--pj-texto-primario, #ffffff);
+  font-size: var(--pj-fuente-micro, 11.5px);
   outline: none;
-  transition: all 0.15s ease;
 }
 
 .inputBuscadorMochila:focus {
-  border-color: #38bdf8;
+  border-color: var(--pj-borde-cian-fuerte, #38bdf8);
   box-shadow: 0 0 6px rgba(56, 189, 248, 0.25);
   background-color: #0f1523;
 }
 
 .inputBuscadorMochila::placeholder {
-  color: #64748b;
-  font-size: 10.5px;
+  color: var(--pj-texto-terciario, #94a3b8);
+  font-size: var(--pj-fuente-micro, 11px);
 }
 
 .botonLimpiarBusquedaMochila {
@@ -1819,7 +1819,7 @@
   right: 6px;
   background: transparent;
   border: none;
-  color: #64748b;
+  color: var(--pj-texto-terciario, #94a3b8);
   cursor: pointer;
   padding: 2px;
   display: flex;
@@ -1845,9 +1845,8 @@
   gap: 5px;
   padding: 6px 8px;
   background: rgba(11, 15, 23, 0.4);
-  border: 1px solid rgba(148, 163, 184, 0.08);
+  border: 1px solid var(--pj-borde-sutil, rgba(148, 163, 184, 0.12));
   border-radius: 6px;
-  transition: border-color 0.15s ease, background-color 0.15s ease;
 }
 
 .cabeceraSubseccionMochila {
@@ -1855,19 +1854,19 @@
   justify-content: space-between;
   align-items: center;
   padding-bottom: 3px;
-  border-bottom: 1px dashed rgba(148, 163, 184, 0.1);
+  border-bottom: 1px dashed var(--pj-borde-sutil, rgba(148, 163, 184, 0.14));
   cursor: pointer;
   user-select: none;
 }
 
 .cabeceraSubseccionMochila:hover {
-  background-color: rgba(255, 255, 255, 0.02);
+  background-color: rgba(255, 255, 255, 0.03);
 }
 
 .tituloSubseccionMochila {
-  font-size: 10px;
+  font-size: var(--pj-fuente-micro, 11.5px);
   font-weight: 800;
-  color: #94a3b8;
+  color: var(--pj-texto-secundario, #cbd5e1);
   text-transform: uppercase;
   letter-spacing: 0.4px;
   display: flex;
@@ -1881,11 +1880,11 @@
 }
 
 .cabeceraColapsableInventario:hover {
-  background-color: rgba(255, 255, 255, 0.02);
+  background-color: rgba(255, 255, 255, 0.03);
 }
 
 .iconoChevronColapso {
-  color: #94a3b8;
+  color: var(--pj-texto-terciario, #94a3b8);
   display: inline-flex;
   align-items: center;
   margin-right: 4px;

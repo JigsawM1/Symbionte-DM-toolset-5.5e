@@ -5,22 +5,21 @@
   border-radius: 6px;
   padding: 6px 10px;
   gap: 8px;
-  transition: all 0.15s ease;
 }
 
 .tarjetaConcentracion {
-  background-color: rgba(245, 158, 11, 0.08);
-  border: 1px solid rgba(245, 158, 11, 0.4);
+  background-color: var(--pj-acento-oro-fondo, rgba(245, 158, 11, 0.1));
+  border: 1px solid var(--pj-borde-oro, rgba(245, 158, 11, 0.45));
 }
 
 .tarjetaPreparada {
-  background-color: #141b27;
-  border: 1px solid rgba(96, 165, 250, 0.25);
+  background-color: var(--pj-fondo-tarjeta-hover, #161e2c);
+  border: 1px solid var(--pj-borde-cian, rgba(56, 189, 248, 0.35));
 }
 
 .tarjetaNoPreparada {
-  background-color: #0f141d;
-  border: 1px solid rgba(148, 163, 184, 0.1);
+  background-color: var(--pj-fondo-hundido, #0f141d);
+  border: 1px solid var(--pj-borde-sutil, rgba(148, 163, 184, 0.14));
 }
 
 .ladoIzquierdo {
@@ -32,35 +31,34 @@
 }
 
 .checkboxPreparado {
-  width: 18px;
-  height: 18px;
-  border-radius: 3px;
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 0;
   cursor: pointer;
   flex-shrink: 0;
-  border: 1px solid rgba(148, 163, 184, 0.3);
-  background-color: transparent;
-  transition: all 0.15s ease;
+  border: 1px solid var(--pj-borde-medio, rgba(148, 163, 184, 0.35));
+  background-color: var(--pj-fondo-hundido, #080c14);
 }
 
 .checkboxPreparadoActivo {
-  border-color: #60a5fa;
-  background-color: rgba(37, 99, 235, 0.25);
+  border-color: var(--pj-texto-cian, #38bdf8);
+  background-color: rgba(2, 132, 199, 0.3);
 }
 
 .checkboxSubclase {
-  width: 18px;
-  height: 18px;
-  border-radius: 3px;
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 0;
   flex-shrink: 0;
-  border: 1px solid #facc15;
+  border: 1px solid var(--pj-texto-oro, #fde047);
   background-color: rgba(202, 138, 4, 0.35);
   cursor: default;
 }
@@ -78,25 +76,25 @@
 }
 
 .nombreConjuro {
-  font-size: 12px;
+  font-size: var(--pj-fuente-subtitulo, 12.5px);
   font-weight: 700;
-  color: #f1f5f9;
+  color: var(--pj-texto-primario-suave, #f8fafc);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .nombreConjuroInactivo {
-  color: #64748b;
+  color: var(--pj-texto-terciario, #94a3b8);
 }
 
 .badgeSubclaseTexto {
-  font-size: 9px;
+  font-size: var(--pj-fuente-micro, 11px);
   font-weight: 700;
-  background-color: rgba(234, 179, 8, 0.15);
-  color: #fde047;
-  border: 1px solid rgba(234, 179, 8, 0.3);
-  padding: 0 4px;
+  background-color: var(--pj-acento-oro-fondo, rgba(234, 179, 8, 0.15));
+  color: var(--pj-texto-oro, #fde047);
+  border: 1px solid var(--pj-borde-oro, rgba(234, 179, 8, 0.35));
+  padding: 0 5px;
   border-radius: 3px;
   flex-shrink: 0;
 }
@@ -104,28 +102,28 @@
 .filaMetadatos {
   display: flex;
   align-items: center;
-  gap: 5px;
-  font-size: 10px;
-  color: #64748b;
+  gap: 6px;
+  font-size: var(--pj-fuente-micro, 11px);
+  color: var(--pj-texto-terciario, #94a3b8);
 }
 
 .tagRitual {
-  font-size: 9px;
+  font-size: var(--pj-fuente-micro, 11px);
   font-weight: 700;
-  background-color: rgba(56, 189, 248, 0.12);
-  color: #38bdf8;
-  border: 1px solid rgba(56, 189, 248, 0.3);
-  padding: 0 4px;
+  background-color: var(--pj-acento-cian-fondo, rgba(56, 189, 248, 0.12));
+  color: var(--pj-texto-cian, #38bdf8);
+  border: 1px solid var(--pj-borde-cian, rgba(56, 189, 248, 0.35));
+  padding: 0 5px;
   border-radius: 3px;
 }
 
 .tagConcentracion {
-  font-size: 9px;
+  font-size: var(--pj-fuente-micro, 11px);
   font-weight: 700;
-  background-color: rgba(245, 158, 11, 0.12);
-  color: #fbbf24;
-  border: 1px solid rgba(245, 158, 11, 0.3);
-  padding: 0 4px;
+  background-color: var(--pj-acento-oro-fondo, rgba(245, 158, 11, 0.12));
+  color: var(--pj-texto-oro, #fbbf24);
+  border: 1px solid var(--pj-borde-oro, rgba(245, 158, 11, 0.35));
+  padding: 0 5px;
   border-radius: 3px;
 }
 
@@ -137,7 +135,7 @@
 }
 
 .selectUpcastContenedor {
-  min-width: 100px;
+  min-width: 105px;
 }
 
 .botonLanzar {
@@ -145,14 +143,13 @@
   align-items: center;
   gap: 4px;
   background-color: #2563eb;
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 4px;
   color: #ffffff;
-  font-size: 11px;
+  font-size: var(--pj-fuente-boton, 12px);
   font-weight: 700;
-  padding: 4px 8px;
+  padding: 4px 10px;
   cursor: pointer;
-  transition: all 0.15s ease;
 }
 
 .botonLanzar:hover {
@@ -163,36 +160,35 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  background-color: rgba(56, 189, 248, 0.12);
-  border: 1px solid rgba(56, 189, 248, 0.3);
+  background-color: var(--pj-acento-cian-fondo, rgba(56, 189, 248, 0.14));
+  border: 1px solid var(--pj-borde-cian, rgba(56, 189, 248, 0.4));
   border-radius: 4px;
-  color: #38bdf8;
-  font-size: 10px;
+  color: var(--pj-texto-cian, #38bdf8);
+  font-size: var(--pj-fuente-micro, 11.5px);
   font-weight: 700;
-  padding: 4px 6px;
+  padding: 4px 8px;
   cursor: pointer;
-  transition: all 0.15s ease;
 }
 
 .botonRitual:hover {
-  background-color: rgba(56, 189, 248, 0.22);
+  background-color: rgba(56, 189, 248, 0.25);
+  color: #ffffff;
 }
 
 .botonIcono {
   background: none;
   border: none;
-  color: #64748b;
+  color: var(--pj-texto-terciario, #94a3b8);
   cursor: pointer;
   padding: 3px;
   display: flex;
   align-items: center;
   justify-content: center;
   border-radius: 3px;
-  transition: color 0.15s ease;
 }
 
 .botonIcono:hover {
-  color: #cbd5e1;
+  color: #ffffff;
 }
 
 .botonIconoEliminar:hover {

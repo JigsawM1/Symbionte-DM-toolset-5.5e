@@ -1,0 +1,132 @@
+/* ==========================================================================
+   temaJugador.css — Sistema Global de Tokens Visuales para la Vista de Jugador
+   ToolSet D&D 5.5e (TaleSpire Symbiote)
+   
+   Separación arquitectónica: Este archivo define la identidad visual del
+   JUGADOR (Player UI), completamente desacoplada del tema del Master (DM).
+   Garantiza alto contraste WCAG AA/AAA y legibilidad óptima en TaleSpire CEF.
+   ========================================================================== */
+
+:root {
+  /* ==========================================
+     1. SUPERFICIES Y FONDOS (JUGADOR)
+     ========================================== */
+  --pj-fondo-base: #070a10;
+  --pj-fondo-panel: #0d121c;
+  --pj-fondo-tarjeta: #121722;
+  --pj-fondo-tarjeta-elevada: #161e2c;
+  --pj-fondo-tarjeta-hover: #1b2434;
+  --pj-fondo-hundido: #080c14;
+  --pj-fondo-hundido-profundo: #05080e;
+  --pj-fondo-cabecera-gradiente: linear-gradient(180deg, #161e2c 0%, #111622 100%);
+  --pj-fondo-modal-overlay: rgba(0, 0, 0, 0.85);
+  --pj-fondo-modal-cuerpo: #0b0f16;
+  --pj-fondo-modal-cabecera: #141a26;
+
+  /* ==========================================
+     2. BORDES TÁCTICOS Y DELIMITADORES
+     ========================================== */
+  --pj-borde-sutil: rgba(148, 163, 184, 0.16);
+  --pj-borde-medio: rgba(148, 163, 184, 0.26);
+  --pj-borde-fuerte: rgba(148, 163, 184, 0.45);
+  --pj-borde-acento-tenue: rgba(129, 140, 248, 0.25);
+  --pj-borde-acento: rgba(129, 140, 248, 0.45);
+  --pj-borde-acento-fuerte: #818cf8;
+  --pj-borde-acento-luminoso: #a5b4fc;
+  --pj-borde-cian-tenue: rgba(56, 189, 248, 0.25);
+  --pj-borde-cian: rgba(56, 189, 248, 0.45);
+  --pj-borde-cian-fuerte: #38bdf8;
+  --pj-borde-peligro: rgba(239, 68, 68, 0.5);
+  --pj-borde-exito: rgba(16, 185, 129, 0.5);
+  --pj-borde-oro: rgba(234, 179, 8, 0.5);
+
+  /* ==========================================
+     3. TIPOGRAFÍA Y COLORES DE TEXTO (ALTO CONTRASTE WCAG)
+     ========================================== */
+  /* Texto Primario: Máxima legibilidad para títulos, nombres y valores principales */
+  --pj-texto-primario: #ffffff;
+  --pj-texto-primario-suave: #f8fafc;
+
+  /* Texto Secundario: Descripciones, modificadores y valores intermedios (WCAG AA > 7:1) */
+  --pj-texto-secundario: #cbd5e1;
+  --pj-texto-secundario-claro: #e2e8f0;
+
+  /* Texto Terciario / Labels: Etiquetas, metadatos y fórmulas (WCAG AA > 4.5:1) */
+  --pj-texto-terciario: #94a3b8;
+  --pj-texto-label: #a0aec0;
+  --pj-texto-apagado: #8896ab;
+
+  /* Textos con Color Semántico para lectura nítida */
+  --pj-texto-acento: #a5b4fc;
+  --pj-texto-acento-brillante: #c7d2fe;
+  --pj-texto-cian: #38bdf8;
+  --pj-texto-cian-claro: #7dd3fc;
+  --pj-texto-alerta: #fca5a5;
+  --pj-texto-alerta-brillante: #fee2e2;
+  --pj-texto-exito: #6ee7b7;
+  --pj-texto-exito-brillante: #a7f3d0;
+  --pj-texto-oro: #fde047;
+  --pj-texto-oro-brillante: #fef08a;
+  --pj-texto-magia: #d8b4fe;
+
+  /* ==========================================
+     4. ESCALA DE TAMAÑOS TIPOGRÁFICOS (MÍNIMO 11PX)
+     ========================================== */
+  --pj-fuente-micro: 11px;         /* Badges compactos, fórmulas mínimas, abreviaturas */
+  --pj-fuente-badge: 11.5px;       /* Badges estándar, tags de condición, estados */
+  --pj-fuente-label: 11px;         /* Etiquetas de datos y cabeceras de columnas */
+  --pj-fuente-cuerpo: 12.5px;      /* Descripciones, cuerpo de texto, notas */
+  --pj-fuente-boton: 12px;         /* Botones tácticos, filtros, acciones */
+  --pj-fuente-subtitulo: 12.5px;     /* Nombres de tarjetas, secciones secundarias */
+  --pj-fuente-titulo: 16px;        /* Títulos de panel, cabecera de personaje */
+  --pj-fuente-titulo-grande: 18px; /* Títulos principales de modal y vistas */
+  --pj-fuente-numero-md: 15px;     /* Bonos de tirada, contadores intermedios */
+  --pj-fuente-numero-lg: 20px;     /* CA, Iniciativa, Velocidad, Nivel */
+  --pj-fuente-numero-xl: 24px;     /* Modificadores de atributo principales */
+
+  /* ==========================================
+     5. COLORES DE ACENTO Y ACCIÓN D&D
+     ========================================== */
+  --pj-acento-primario: #818cf8;
+  --pj-acento-primario-hover: #6366f1;
+  --pj-acento-primario-fondo: rgba(129, 140, 248, 0.12);
+  --pj-acento-primario-activo: rgba(129, 140, 248, 0.25);
+
+  --pj-acento-cian: #0284c7;
+  --pj-acento-cian-brillante: #38bdf8;
+  --pj-acento-cian-fondo: rgba(56, 189, 248, 0.12);
+
+  --pj-acento-peligro: #ef4444;
+  --pj-acento-peligro-fondo: rgba(239, 68, 68, 0.14);
+  --pj-acento-peligro-oscuro: #7f1d1d;
+
+  --pj-acento-exito: #10b981;
+  --pj-acento-exito-fondo: rgba(16, 185, 129, 0.14);
+  --pj-acento-exito-oscuro: #064e3b;
+
+  --pj-acento-oro: #eab308;
+  --pj-acento-oro-fondo: rgba(234, 179, 8, 0.14);
+
+  --pj-acento-magia: #8b5cf6;
+  --pj-acento-magia-fondo: rgba(139, 92, 246, 0.14);
+
+  /* ==========================================
+     6. MONEDAS Y RECURSOS
+     ========================================== */
+  --pj-moneda-cobre: #d97706;
+  --pj-moneda-plata: #cbd5e1;
+  --pj-moneda-electrum: #38bdf8;
+  --pj-moneda-oro: #fbbf24;
+  --pj-moneda-platino: #e2e8f0;
+
+  /* ==========================================
+     7. SOMBRAS TÁCTICAS (SIN ANIMACIÓN CEF)
+     ========================================== */
+  --pj-sombra-panel: 0 4px 12px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  --pj-sombra-tarjeta: 0 2px 8px rgba(0, 0, 0, 0.4);
+  --pj-sombra-hundida: inset 0 2px 5px rgba(0, 0, 0, 0.7);
+  --pj-sombra-modal: 0 10px 30px rgba(0, 0, 0, 0.9);
+  --pj-sombra-brillo-acento: 0 0 10px rgba(129, 140, 248, 0.3);
+  --pj-sombra-brillo-cian: 0 0 10px rgba(56, 189, 248, 0.3);
+  --pj-sombra-brillo-oro: 0 0 10px rgba(234, 179, 8, 0.4);
+}

@@ -7,3 +7,7 @@ export { usarFormularioObjeto } from "./usarFormularioObjeto";
 export { usarListaDinamica } from "./usarListaDinamica";
 export type { ItemConNombre } from "./usarListaDinamica";
 export { usarEstadoPersistido } from "./usarEstadoPersistido";
+export { usarMagiaPersonaje } from "./usarMagiaPersonaje";
+export type { EstadoMagiaPersonaje } from "./usarMagiaPersonaje";
+export { usarLanzadorConjuros } from "./usarLanzadorConjuros";
+export type { ControlLanzadorConjuros, OpcionesLanzadorConjuros } from "./usarLanzadorConjuros";

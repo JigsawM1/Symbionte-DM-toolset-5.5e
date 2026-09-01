@@ -10,6 +10,7 @@ import {
 import { HechizoBase } from "@/tipos";
 import { obtenerOpcionesLanzamientoConjuro } from "@/servicios/calculadorMagia";
 import { SelectorDesplegable } from "@/componentes/comunes";
+import type { ModoLanzamiento } from "@/servicios/servicioLanzamientoConjuros";
 import estilosClases from "./FichaHechizo.module.css";
 
 interface FichaHechizoProps {
@@ -17,6 +18,7 @@ interface FichaHechizoProps {
   onClose: () => void;
   onEditar?: () => void;
   onAtras?: () => void;
+  alLanzar?: (modo: ModoLanzamiento, nivelLanzamiento?: number) => Promise<boolean | void>;
   onLanzarConjuro?: (nivelLanzamiento: number) => void;
   onLanzarRitual?: () => void;
   nombrePersonaje?: string;
@@ -31,6 +33,7 @@ interface FichaHechizoProps {
   ocultarLanzamiento?: boolean;
   bloqueadoPorArmadura?: boolean;
   motivoBloqueoArmadura?: string;
+  permitirUpcastLibre?: boolean;
 }
 
 export const FichaHechizo: React.FC<FichaHechizoProps> = React.memo(({
@@ -38,6 +41,7 @@ export const FichaHechizo: React.FC<FichaHechizoProps> = React.memo(({
   onClose,
   onEditar,
   onAtras,
+  alLanzar,
   onLanzarConjuro,
   onLanzarRitual,
   nombrePersonaje,
@@ -51,12 +55,18 @@ export const FichaHechizo: React.FC<FichaHechizoProps> = React.memo(({
   sistemaMagia = "espacios",
   ocultarLanzamiento = false,
   bloqueadoPorArmadura = false,
-  motivoBloqueoArmadura
+  motivoBloqueoArmadura,
+  permitirUpcastLibre
 }) => {
   const nivelBase = hechizo.nivel;
   const esTruco = nivelBase === 0;
 
-  // Obtener opciones de nivel válidas (respetando ranuras reales, pacto fijo y multiclase)
+  // Si no se pasaron restricciones de ranuras del personaje (modo DM / Compendio), permitir upcasting libre
+  const esUpcastLibreEfectivo =
+    permitirUpcastLibre ??
+    (Object.keys(espaciosConjuroMaximos).length === 0 && !esLanzadorPacto);
+
+  // Obtener opciones de nivel válidas (respetando ranuras reales, pacto fijo y multiclase o modo libre DM)
   const opcionesLanzamiento = useMemo(() => {
     return obtenerOpcionesLanzamientoConjuro({
       nivelHechizo: nivelBase,
@@ -65,7 +75,8 @@ export const FichaHechizo: React.FC<FichaHechizoProps> = React.memo(({
       sistemaMagia,
       esLanzadorPacto,
       nivelEspacioPacto,
-      espaciosPactoMaximos
+      espaciosPactoMaximos,
+      permitirUpcastLibre: esUpcastLibreEfectivo
     });
   }, [
     nivelBase,
@@ -74,7 +85,8 @@ export const FichaHechizo: React.FC<FichaHechizoProps> = React.memo(({
     sistemaMagia,
     esLanzadorPacto,
     nivelEspacioPacto,
-    espaciosPactoMaximos
+    espaciosPactoMaximos,
+    esUpcastLibreEfectivo
   ]);
 
   const [nivelLanzamiento, setNivelLanzamiento] = useState<number>(() => {
@@ -129,11 +141,19 @@ export const FichaHechizo: React.FC<FichaHechizoProps> = React.memo(({
   const tieneMecanicasCombate = tieneAtaque || tieneCDSalvacion || tieneDano || esEscalable;
 
   // Manejar el lanzamiento de dados en TaleSpire
-  const manejarLanzamientoDados = (e: React.MouseEvent) => {
+  const manejarLanzamientoDados = async (e: React.MouseEvent) => {
     e.stopPropagation();
     e.preventDefault();
 
     if (bloqueadoPorArmadura) {
+      return;
+    }
+
+    if (alLanzar) {
+      await alLanzar(esTruco ? "truco" : "espacio", nivelLanzamiento);
+      if (onLanzarConjuro) {
+        onLanzarConjuro(nivelLanzamiento);
+      }
       return;
     }
 
@@ -185,11 +205,19 @@ export const FichaHechizo: React.FC<FichaHechizoProps> = React.memo(({
   };
 
   // Lanzamiento como Ritual (D&D 2024: +10 min, sin gastar ranuras)
-  const manejarLanzamientoRitual = (e: React.MouseEvent) => {
+  const manejarLanzamientoRitual = async (e: React.MouseEvent) => {
     e.stopPropagation();
     e.preventDefault();
 
     if (bloqueadoPorArmadura) {
+      return;
+    }
+
+    if (alLanzar) {
+      await alLanzar("ritual", nivelLanzamiento);
+      if (onLanzarRitual) {
+        onLanzarRitual();
+      }
       return;
     }
 

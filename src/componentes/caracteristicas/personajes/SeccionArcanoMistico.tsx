@@ -17,6 +17,7 @@ interface SeccionArcanoMisticoProps {
   alGastarArcano: (nivel: number) => void;
   alRecuperarArcano: (nivel: number) => void;
   alAbrirFichaHechizo?: (hechizo: HechizoBase) => void;
+  alLanzar?: (solicitud: { modo: "arcanoMistico"; hechizo: HechizoBase; nivelLanzamiento: number }) => Promise<boolean | void>;
   bloqueadoPorArmadura?: boolean;
   motivoBloqueoArmadura?: string;
 }
@@ -34,6 +35,7 @@ export const SeccionArcanoMistico: React.FC<SeccionArcanoMisticoProps> = ({
   alGastarArcano,
   alRecuperarArcano,
   alAbrirFichaHechizo,
+  alLanzar,
   bloqueadoPorArmadura = false,
   motivoBloqueoArmadura
 }) => {
@@ -73,6 +75,15 @@ export const SeccionArcanoMistico: React.FC<SeccionArcanoMisticoProps> = ({
   const lanzarArcano = async (nivel: number, hechizo: HechizoBase) => {
     const estaGastado = arcanoMisticoGastados.includes(String(nivel));
     if (estaGastado || bloqueadoPorArmadura) {
+      return;
+    }
+
+    if (alLanzar) {
+      await alLanzar({
+        modo: "arcanoMistico",
+        hechizo,
+        nivelLanzamiento: nivel
+      });
       return;
     }
 

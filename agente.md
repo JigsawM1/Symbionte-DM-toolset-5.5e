@@ -15,6 +15,26 @@ Este archivo registra reglas globales, errores encontrados, sus causas raíz y l
 
 ---
 
+## [2026-09-01] Refactorización: Servicio Centralizado de Lanzamiento de Magia (Patrón Facade + Strategy)
+**Decisión y Motivación:**
+- *Causa*: La lógica de lanzamiento de conjuros estaba dispersa en 6 componentes (`TarjetaConjuroCompacta`, `FichaHechizo`, `VistaAtaquesJugador`, `PanelConjurosPersonaje`, `SeccionArcanoMistico`, `ModalDetalleObjetoInventario`), con duplicación masiva de código de validaciones, construcción heterogénea de fórmulas TaleSpire, omisiones de concentración (en Arcano Místico y objetos mágicos), y un punto de fuga donde `ModalDetalleObjetoInventario` no bloqueaba hechizos por armadura sin competencia.
+- *Solución*:
+  1. **Servicio Puro Centralizado (`src/servicios/servicioLanzamientoConjuros.ts`)**:
+     - Implementa el patrón **Facade + Strategy** desacoplado de React y Zustand.
+     - Centraliza `validarLanzamiento(solicitud, contexto)` y `prepararLanzamiento(solicitud, contexto)`.
+     - Estrategias dedicadas: `truco` (escalado por nivel 1/5/11/17 con soporte multirrayo), `espacio` (upcast con escalado dinámico), `ritual` (etiqueta +10 min y 0 coste), `objetoMagico` (coste en cargas y ataque/CD), `arcanoMistico` (1/día, activando concentración si aplica), `ataqueMagico` (tirada táctica d20+bono).
+     - Sanitización uniforme de etiquetas TaleSpire en todos los modos.
+  2. **Hook de Integración React (`src/hooks/usarLanzadorConjuros.ts`)**:
+     - Conecta el servicio de dominio con las acciones del store Zustand (`usarAlmacenDM`) y el despachador de dados 3D (`lanzarDadosTaleSpire`).
+     - Expone `{ puedeLanzar, motivoBloqueo, validar, lanzar }`.
+  3. **Corrección de Bugs y Puntos Ciegos**:
+     - *Upcasting en Modo DM/Monstruos*: Se añadió soporte `permitirUpcastLibre` a `obtenerOpcionesLanzamientoConjuro` y `FichaHechizo` para que los DMs y monstruos en `GestorIniciativa` puedan escalar hechizos libremente de nivel base al 9.
+     - *Sellado de punto de fuga*: `ModalDetalleObjetoInventario` ahora valida `bloqueadoPorArmadura` e invoca el servicio centralizado.
+     - *Concentración integral*: El Arcano Místico y los hechizos de objetos mágicos ahora activan la concentración del personaje si el conjuro lo requiere.
+  4. **Suite de Tests**: 9 tests unitarios nuevos en `servicioLanzamientoConjuros.test.ts` (344 tests en total pasando al 100%).
+
+---
+
 ## [2026-08-31] Bloqueo Integral de Lanzamiento de Hechizos por Armadura sin Competencia (D&D 5.5e)
 **Decisión y Motivación:**
 - *Causa*: En D&D 5.5e (2024), llevar armadura o escudo sin entrenamiento impide terminantemente lanzar conjuros y rituales. Aunque se había implementado una advertencia en el modal, las tiradas de dados 3D y el consumo de recursos aún podían detonarse desde la tarjeta rápida de conjuro (`TarjetaConjuroCompacta`), desde los hechizos de objetos mágicos y desde la subpestaña de magia (`PanelConjurosPersonaje`).

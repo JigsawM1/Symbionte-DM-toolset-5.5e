@@ -11,6 +11,7 @@ import {
   obtenerOpcionesLanzamientoConjuro,
   gastarRecursoLanzamientoConjuro
 } from "@/servicios/calculadorMagia";
+import type { ModoLanzamiento } from "@/servicios/servicioLanzamientoConjuros";
 import { SelectorDesplegable } from "@/componentes/comunes";
 import estilos from "./TarjetaConjuroCompacta.module.css";
 
@@ -26,6 +27,7 @@ interface TarjetaConjuroCompactaProps {
   alAlternarPreparado?: () => void;
   alQuitarDeLista: () => void;
   alAbrirDetalleCompleto: (hechizo: HechizoBase) => void;
+  alLanzar?: (modo: ModoLanzamiento, nivelLanzamiento?: number) => Promise<boolean | void>;
   alGastarEspacio?: (nivel: number) => void;
   alGastarPuntos?: (cantidad: number) => void;
   alGastarEspacioPacto?: () => void;
@@ -40,6 +42,7 @@ interface TarjetaConjuroCompactaProps {
   sistemaMagia?: "espacios" | "puntos";
   bloqueadoPorArmadura?: boolean;
   motivoBloqueoArmadura?: string;
+  permitirUpcastLibre?: boolean;
 }
 
 export const TarjetaConjuroCompacta: React.FC<TarjetaConjuroCompactaProps> = ({
@@ -54,6 +57,7 @@ export const TarjetaConjuroCompacta: React.FC<TarjetaConjuroCompactaProps> = ({
   alAlternarPreparado,
   alQuitarDeLista,
   alAbrirDetalleCompleto,
+  alLanzar,
   alGastarEspacio,
   alGastarPuntos,
   alGastarEspacioPacto,
@@ -67,7 +71,8 @@ export const TarjetaConjuroCompacta: React.FC<TarjetaConjuroCompactaProps> = ({
   costePuntosPorNivel,
   sistemaMagia = "espacios",
   bloqueadoPorArmadura = false,
-  motivoBloqueoArmadura
+  motivoBloqueoArmadura,
+  permitirUpcastLibre
 }) => {
   const esTruco = hechizo.nivel === 0;
 
@@ -80,7 +85,8 @@ export const TarjetaConjuroCompacta: React.FC<TarjetaConjuroCompactaProps> = ({
       sistemaMagia,
       esLanzadorPacto,
       nivelEspacioPacto,
-      espaciosPactoMaximos
+      espaciosPactoMaximos,
+      permitirUpcastLibre
     });
   }, [
     hechizo.nivel,
@@ -89,7 +95,8 @@ export const TarjetaConjuroCompacta: React.FC<TarjetaConjuroCompactaProps> = ({
     sistemaMagia,
     esLanzadorPacto,
     nivelEspacioPacto,
-    espaciosPactoMaximos
+    espaciosPactoMaximos,
+    permitirUpcastLibre
   ]);
 
   const [nivelUpcast, setNivelUpcast] = useState<number>(() => {
@@ -112,6 +119,11 @@ export const TarjetaConjuroCompacta: React.FC<TarjetaConjuroCompactaProps> = ({
   const manejarLanzamientoRapido = async () => {
     try {
       if (bloqueadoPorArmadura) {
+        return;
+      }
+
+      if (alLanzar) {
+        await alLanzar(esTruco ? "truco" : "espacio", nivelUpcast);
         return;
       }
 
@@ -194,6 +206,11 @@ export const TarjetaConjuroCompacta: React.FC<TarjetaConjuroCompactaProps> = ({
   const manejarLanzamientoRitual = async () => {
     try {
       if (bloqueadoPorArmadura) {
+        return;
+      }
+
+      if (alLanzar) {
+        await alLanzar("ritual", nivelUpcast);
         return;
       }
 

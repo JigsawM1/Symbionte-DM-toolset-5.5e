@@ -21,15 +21,14 @@ import { TrackerEspaciosPacto } from "@/componentes/caracteristicas/personajes/T
 import { TrackerPuntosConjuro } from "@/componentes/caracteristicas/personajes/TrackerPuntosConjuro";
 import { FichaHechizo } from "@/componentes/caracteristicas/compendio/FichaHechizo";
 import { lanzarDadosTaleSpire, sanitizarEtiqueta } from "@/utiles/lanzadorDados";
-import { calcularBonoAtaqueConjuro, gastarRecursoLanzamientoConjuro } from "@/servicios/calculadorMagia";
+import { calcularBonoAtaqueConjuro } from "@/servicios/calculadorMagia";
 import { detectarInfoConsumible, evaluarFormulaDados, esObjetoConsumible } from "@/servicios/procesadorConsumibles";
 import { resolverEstadoMunicionArma, esMunicionCompatibleConArma } from "@/servicios/gestorMunicion";
 import { desduplicarEntidades } from "@/utiles/busquedaTolerante";
-import { COSTE_PUNTOS_POR_NIVEL } from "@/constantes";
 import { esCompetenteConArma } from "@/constantes/competenciasConstantes";
 import type { Arma, ObjetoJuego, HechizoBase, Caracteristica, HechizoVinculado } from "@/tipos";
 import { SelectorDesplegable } from "@/componentes/comunes";
-import { usarEstadoPersistido } from "@/hooks";
+import { usarEstadoPersistido, usarLanzadorConjuros } from "@/hooks";
 import { Swords, Sparkles, UserCheck, FlaskConical, ChevronDown, ChevronRight, Zap, AlertTriangle } from "lucide-react";
 import estilos from "./VistaAtaquesJugador.module.css";
 
@@ -47,9 +46,8 @@ export const VistaAtaquesJugador: React.FC = () => {
     recuperarPuntosConjuro,
     recuperarTodosPuntosConjuro,
     gastarEspacioPacto,
-    establecerConcentracion,
+    recuperarEspaciosPacto,
     modificarCantidadObjeto,
-    modificarCargasObjeto,
     aplicarCuracionPersonaje
   } = usarAccionesPersonajes();
 
@@ -106,11 +104,6 @@ export const VistaAtaquesJugador: React.FC = () => {
     return calcularEstadisticasPersonaje(personajeActivo);
   }, [personajeActivo]);
 
-  const estaBloqueadoPorArmadura = !!statsCalculadas?.penalizacionArmadura?.sinCompetencia;
-  const motivoBloqueoArmadura = estaBloqueadoPorArmadura
-    ? `No puedes lanzar conjuros mientras vistas ${[statsCalculadas?.penalizacionArmadura?.armaduraNoCompetente, statsCalculadas?.penalizacionArmadura?.escudoNoCompetente].filter(Boolean).join(" o ")} sin competencia.`
-    : undefined;
-
   // Habilidad mágica del personaje
   const habilidadMagica: Caracteristica = useMemo(() => {
     if (personajeActivo?.clasesLanzadoras && personajeActivo.clasesLanzadoras.length > 0) {
@@ -125,6 +118,22 @@ export const VistaAtaquesJugador: React.FC = () => {
     }
     return "inteligencia";
   }, [personajeActivo]);
+
+  // Parámetros de magia
+  const modMagico = statsCalculadas ? statsCalculadas.modificadores[habilidadMagica] || 0 : 0;
+  const bonoAtaqueMagico = statsCalculadas
+    ? calcularBonoAtaqueConjuro(statsCalculadas.bonoCompetencia, modMagico)
+    : 0;
+
+  // Hook centralizado de lanzamiento de magia (Facade + Strategy)
+  const { puedeLanzar, motivoBloqueo, lanzar } = usarLanzadorConjuros({
+    personaje: personajeActivo,
+    penalizacionArmadura: statsCalculadas?.penalizacionArmadura,
+    bonoAtaqueMagico
+  });
+
+  const estaBloqueadoPorArmadura = !puedeLanzar;
+  const motivoBloqueoArmadura = motivoBloqueo;
 
   // Construir la lista dinámica de ataques físicos y desarmados
   const listaAtaquesFisicos = useMemo<AtaquePersonajeCalculado[]>(() => {
@@ -702,13 +711,6 @@ export const VistaAtaquesJugador: React.FC = () => {
     listaConsumibles.length +
     hechizosObjetosMagicos.length;
 
-  // Parámetros de magia
-  const modMagico = statsCalculadas.modificadores[habilidadMagica] || 0;
-  const bonoAtaqueMagico = calcularBonoAtaqueConjuro(
-    statsCalculadas.bonoCompetencia,
-    modMagico
-  );
-
   const tieneEspaciosEstandar = Object.values(personajeActivo.espaciosConjuroMaximos || {}).some((v) => (v || 0) > 0);
   const tienePuntosEstandar = (personajeActivo.puntosConjuroMaximos || 0) > 0;
   const tieneMagiaEstandar = sistemaMagia === "puntos" ? tienePuntosEstandar : tieneEspaciosEstandar;
@@ -850,7 +852,7 @@ export const VistaAtaquesJugador: React.FC = () => {
                   espaciosPactoGastados={personajeActivo.espaciosPactoGastados || 0}
                   nivelEspacioPacto={personajeActivo.nivelEspacioPacto || 1}
                   alGastarEspacioPacto={() => gastarEspacioPacto(personajeActivo.id)}
-                  alRecuperarEspaciosPacto={() => recuperarTodosEspaciosConjuro(personajeActivo.id)}
+                  alRecuperarEspaciosPacto={() => recuperarEspaciosPacto(personajeActivo.id)}
                   mostrarBotonRecuperar={false}
                   soloLectura={true}
                 />
@@ -966,17 +968,13 @@ export const VistaAtaquesJugador: React.FC = () => {
                             motivoBloqueoArmadura={motivoBloqueoArmadura}
                             alAbrirDetalleCompleto={(h) => setHechizoDetalle(h)}
                             alQuitarDeLista={() => {}}
-                            alGastarEspacio={(niv) => gastarEspacioConjuro(personajeActivo.id, niv)}
-                            alGastarPuntos={(cant) => gastarPuntosConjuro(personajeActivo.id, cant)}
-                            alGastarEspacioPacto={() => gastarEspacioPacto(personajeActivo.id)}
+                            alLanzar={(modo, niv) => lanzar({ modo, hechizo, nivelLanzamiento: niv })}
                             esLanzadorPacto={tienePacto}
                             nivelEspacioPacto={personajeActivo.nivelEspacioPacto || 0}
                             espaciosPactoMaximos={personajeActivo.espaciosPactoMaximos || 0}
                             espaciosPactoGastados={personajeActivo.espaciosPactoGastados || 0}
                             espaciosConjuroMaximos={personajeActivo.espaciosConjuroMaximos || {}}
                             nivelConjuroMaximo={personajeActivo.nivelConjuroMaximo || 0}
-                            alEstablecerConcentracion={(id, nombre) => establecerConcentracion(personajeActivo.id, id, nombre)}
-                            costePuntosPorNivel={COSTE_PUNTOS_POR_NIVEL}
                             sistemaMagia={sistemaMagia}
                           />
                         ))}
@@ -1050,24 +1048,27 @@ export const VistaAtaquesJugador: React.FC = () => {
                 const coste = Number(item.hechizo.costeCargas) || 0;
                 const tieneCargas = coste === 0 || item.cargasActuales >= coste;
                 const lanzarHechizo = async () => {
-                  if (estaBloqueadoPorArmadura) {
-                    agregarNotificacion(
-                      motivoBloqueoArmadura || "No puedes lanzar conjuros mientras vistas armadura o portes escudo sin competencia.",
-                      "advertencia"
-                    );
-                    return;
-                  }
-                  if (coste > 0) {
-                    modificarCargasObjeto(personajeActivo.id, item.objetoInstanciaId, -coste);
-                  }
-                  const etiqueta = sanitizarEtiqueta(`Hechizo ${item.hechizo.nombre} (${item.objetoNombre})`);
-                  if (item.hechizo.bonoAtaque !== undefined && !isNaN(Number(item.hechizo.bonoAtaque))) {
-                    await lanzarDadosTaleSpire(`1d20+${item.hechizo.bonoAtaque}`, `Ataque Mágico: ${etiqueta}`);
-                  } else if (item.hechizo.cd !== undefined && !isNaN(Number(item.hechizo.cd))) {
-                    await lanzarDadosTaleSpire("1d20", `Salvación vs CD ${item.hechizo.cd} (${etiqueta})`);
-                  } else {
-                    await lanzarDadosTaleSpire("1d20", etiqueta);
-                  }
+                  await lanzar({
+                    modo: "objetoMagico",
+                    hechizo: {
+                      id: item.hechizo.nombre.toLowerCase().replace(/\s+/g, "-"),
+                      nombre: item.hechizo.nombre,
+                      nivel: 1,
+                      escuela: "Universal",
+                      tiempoLanzamiento: "1 Accion",
+                      alcance: "60 pies",
+                      componentes: "V, S",
+                      duracion: "Instantaneo",
+                      concentracion: false,
+                      ritual: false,
+                      descripcion: ""
+                    },
+                    objetoNombre: item.objetoNombre,
+                    objetoInstanciaId: item.objetoInstanciaId,
+                    bonoAtaqueObjeto: item.hechizo.bonoAtaque,
+                    cdObjeto: item.hechizo.cd,
+                    costeCargasObjeto: coste
+                  });
                 };
 
                 return (
@@ -1178,38 +1179,15 @@ export const VistaAtaquesJugador: React.FC = () => {
               bloqueadoPorArmadura={estaBloqueadoPorArmadura}
               motivoBloqueoArmadura={motivoBloqueoArmadura}
               onClose={() => setHechizoDetalle(null)}
-              onLanzarRitual={() => {
-                if (estaBloqueadoPorArmadura) {
-                  return;
+              alLanzar={async (modo, nivelLanzamiento) => {
+                const exito = await lanzar({
+                  modo,
+                  hechizo: hechizoDetalle,
+                  nivelLanzamiento
+                });
+                if (exito) {
+                  setHechizoDetalle(null);
                 }
-                if (hechizoDetalle.concentracion) {
-                  establecerConcentracion(personajeActivo.id, hechizoDetalle.id, hechizoDetalle.nombre);
-                }
-                setHechizoDetalle(null);
-              }}
-              onLanzarConjuro={(nivelLanzamiento) => {
-                if (estaBloqueadoPorArmadura) {
-                  return;
-                }
-                if (hechizoDetalle.nivel > 0) {
-                  gastarRecursoLanzamientoConjuro({
-                    nivelLanzamiento,
-                    esLanzadorPacto: tienePacto,
-                    nivelEspacioPacto: personajeActivo.nivelEspacioPacto || 0,
-                    espaciosPactoMaximos: personajeActivo.espaciosPactoMaximos || 0,
-                    espaciosPactoGastados: personajeActivo.espaciosPactoGastados || 0,
-                    espaciosConjuroMaximos: personajeActivo.espaciosConjuroMaximos || {},
-                    sistemaMagia,
-                    costePuntosPorNivel: COSTE_PUNTOS_POR_NIVEL,
-                    alGastarEspacio: (niv) => gastarEspacioConjuro(personajeActivo.id, niv),
-                    alGastarPuntos: (cant) => gastarPuntosConjuro(personajeActivo.id, cant),
-                    alGastarEspacioPacto: () => gastarEspacioPacto(personajeActivo.id)
-                  });
-                }
-                if (hechizoDetalle.concentracion) {
-                  establecerConcentracion(personajeActivo.id, hechizoDetalle.id, hechizoDetalle.nombre);
-                }
-                setHechizoDetalle(null);
               }}
             />
           </div>

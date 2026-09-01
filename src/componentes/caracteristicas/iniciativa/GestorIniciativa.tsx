@@ -304,6 +304,7 @@ export const GestorIniciativa: React.FC = () => {
           <div className={estilosClases.modalContenedor} onClick={(e) => e.stopPropagation()}>
             <FichaHechizo
               hechizo={hechizoFlotanteDetalle}
+              permitirUpcastLibre={true}
               onClose={() => setHechizoFlotanteDetalle(null)}
             />
           </div>

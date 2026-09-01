@@ -12,15 +12,11 @@ import type {
   HechizoBase
 } from "@/tipos";
 import type { PenalizacionArmadura } from "@/almacen/selectores/usarEstadoPersonajes";
-import {
-  gastarRecursoLanzamientoConjuro,
-  obtenerConjurosSubclasePersonaje
-} from "@/servicios/calculadorMagia";
-import { COSTE_PUNTOS_POR_NIVEL } from "@/constantes";
-import { lanzarDadosTaleSpire } from "@/utiles/lanzadorDados";
+import { obtenerConjurosSubclasePersonaje } from "@/servicios/calculadorMagia";
 import { usarAccionesConfiguracion } from "@/almacen/selectores/usarEstadoConfiguracion";
 import { usarAlmacenDM } from "@/almacen/usarAlmacenDM";
 import { usarMagiaPersonaje } from "@/hooks/usarMagiaPersonaje";
+import { usarLanzadorConjuros } from "@/hooks/usarLanzadorConjuros";
 import { TarjetasMetricasMagia } from "./TarjetasMetricasMagia";
 import { TrackerEspaciosConjuro } from "./TrackerEspaciosConjuro";
 import { TrackerEspaciosPacto } from "./TrackerEspaciosPacto";
@@ -69,7 +65,7 @@ export const PanelConjurosPersonaje: React.FC<PanelConjurosPersonajeProps> = ({
   alRecuperarTodosPuntos,
   alGastarEspacioPacto,
   alRecuperarEspaciosPacto,
-  alEstablecerConcentracion,
+  alEstablecerConcentracion: _alEstablecerConcentracion,
   alRomperConcentracion,
   alQuitarTruco,
   alQuitarConjuro,
@@ -131,21 +127,34 @@ export const PanelConjurosPersonaje: React.FC<PanelConjurosPersonajeProps> = ({
 
   const { establecerPestaña } = usarAccionesConfiguracion();
 
-  const estaBloqueadoPorArmadura = !!penalizacionArmadura?.sinCompetencia;
-  const motivoBloqueoArmadura = estaBloqueadoPorArmadura
-    ? `No puedes lanzar conjuros mientras vistas ${[penalizacionArmadura?.armaduraNoCompetente, penalizacionArmadura?.escudoNoCompetente].filter(Boolean).join(" o ")} sin competencia.`
-    : undefined;
+  // Hook centralizado de lanzamiento de magia (Facade + Strategy)
+  const { puedeLanzar, motivoBloqueo, lanzar } = usarLanzadorConjuros({
+    personaje,
+    penalizacionArmadura,
+    bonoAtaqueMagico
+  });
+
+  const estaBloqueadoPorArmadura = !puedeLanzar;
+  const motivoBloqueoArmadura = motivoBloqueo;
 
   const manejarTiradaAtaqueMagico = async () => {
-    if (estaBloqueadoPorArmadura) return;
-    try {
-      const nombrePj = personaje.nombre?.trim() || "Personaje";
-      const modTexto = bonoAtaqueMagico >= 0 ? `+${bonoAtaqueMagico}` : `${bonoAtaqueMagico}`;
-      const formula = `!Ataque de Conjuro:1d20${modTexto}`;
-      await lanzarDadosTaleSpire(formula, `${nombrePj} - Ataque Mágico`);
-    } catch (err) {
-      console.error("[PanelConjurosPersonaje] Error al lanzar tirada:", err);
-    }
+    if (!puedeLanzar) return;
+    await lanzar({
+      modo: "ataqueMagico",
+      hechizo: {
+        id: "ataque-magico",
+        nombre: "Ataque Mágico",
+        nivel: 0,
+        escuela: "Evocacion",
+        tiempoLanzamiento: "1 Accion",
+        alcance: "Personal",
+        componentes: "V",
+        duracion: "Instantaneo",
+        concentracion: false,
+        ritual: false,
+        descripcion: "Tirada genérica de ataque de conjuro."
+      }
+    });
   };
 
   return (
@@ -306,6 +315,7 @@ export const PanelConjurosPersonaje: React.FC<PanelConjurosPersonajeProps> = ({
                 alGastarArcano={(nivel) => gastarArcanoMistico(personaje.id, nivel)}
                 alRecuperarArcano={(nivel) => recuperarArcanoMistico(personaje.id, nivel)}
                 alAbrirFichaHechizo={(h) => setHechizoModal(h)}
+                alLanzar={(sol) => lanzar(sol)}
               />
             )}
 
@@ -364,7 +374,7 @@ export const PanelConjurosPersonaje: React.FC<PanelConjurosPersonajeProps> = ({
                 motivoBloqueoArmadura={motivoBloqueoArmadura}
                 alQuitarDeLista={() => alQuitarTruco(truco.id)}
                 alAbrirDetalleCompleto={(h) => setHechizoModal(h)}
-                alEstablecerConcentracion={alEstablecerConcentracion}
+                alLanzar={(modo, niv) => lanzar({ modo, hechizo: truco, nivelLanzamiento: niv })}
               />
             ))}
           </div>
@@ -423,9 +433,7 @@ export const PanelConjurosPersonaje: React.FC<PanelConjurosPersonajeProps> = ({
                   alAlternarPreparado={() => alAlternarPreparado(hechizo.id)}
                   alQuitarDeLista={() => alQuitarConjuro(hechizo.id)}
                   alAbrirDetalleCompleto={(h) => setHechizoModal(h)}
-                  alGastarEspacio={alGastarEspacio}
-                  alGastarPuntos={alGastarPuntos}
-                  alGastarEspacioPacto={alGastarEspacioPacto}
+                  alLanzar={(modo, niv) => lanzar({ modo, hechizo, nivelLanzamiento: niv })}
                   esLanzadorPacto={esLanzadorPacto}
                   nivelEspacioPacto={nivelEspacioPacto}
                   espaciosPactoMaximos={personaje.espaciosPactoMaximos || 0}
@@ -433,8 +441,6 @@ export const PanelConjurosPersonaje: React.FC<PanelConjurosPersonajeProps> = ({
                   espaciosConjuroMaximos={personaje.espaciosConjuroMaximos || {}}
                   nivelConjuroMaximo={personaje.nivelConjuroMaximo || 0}
                   sistemaMagia={sistemaMagia}
-                  alEstablecerConcentracion={alEstablecerConcentracion}
-                  costePuntosPorNivel={COSTE_PUNTOS_POR_NIVEL}
                 />
               ))}
             </div>
@@ -460,34 +466,15 @@ export const PanelConjurosPersonaje: React.FC<PanelConjurosPersonajeProps> = ({
               bloqueadoPorArmadura={estaBloqueadoPorArmadura}
               motivoBloqueoArmadura={motivoBloqueoArmadura}
               onClose={() => setHechizoModal(null)}
-              onLanzarRitual={() => {
-                if (estaBloqueadoPorArmadura) return;
-                if (hechizoModal.concentracion && alEstablecerConcentracion) {
-                  alEstablecerConcentracion(hechizoModal.id, hechizoModal.nombre);
+              alLanzar={async (modo, nivelLanzamiento) => {
+                const exito = await lanzar({
+                  modo,
+                  hechizo: hechizoModal,
+                  nivelLanzamiento
+                });
+                if (exito) {
+                  setHechizoModal(null);
                 }
-                setHechizoModal(null);
-              }}
-              onLanzarConjuro={(nivelLanzamiento) => {
-                if (estaBloqueadoPorArmadura) return;
-                if (hechizoModal.nivel > 0) {
-                  gastarRecursoLanzamientoConjuro({
-                    nivelLanzamiento,
-                    esLanzadorPacto,
-                    nivelEspacioPacto,
-                    espaciosPactoMaximos: personaje.espaciosPactoMaximos || 0,
-                    espaciosPactoGastados: personaje.espaciosPactoGastados || 0,
-                    espaciosConjuroMaximos: personaje.espaciosConjuroMaximos || {},
-                    sistemaMagia,
-                    costePuntosPorNivel: COSTE_PUNTOS_POR_NIVEL,
-                    alGastarEspacio,
-                    alGastarPuntos,
-                    alGastarEspacioPacto
-                  });
-                }
-                if (hechizoModal.concentracion && alEstablecerConcentracion) {
-                  alEstablecerConcentracion(hechizoModal.id, hechizoModal.nombre);
-                }
-                setHechizoModal(null);
               }}
             />
           </div>

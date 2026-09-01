@@ -376,6 +376,7 @@ export function obtenerOpcionesLanzamientoConjuro(parametros: {
   esLanzadorPacto?: boolean;
   nivelEspacioPacto?: number;
   espaciosPactoMaximos?: number;
+  permitirUpcastLibre?: boolean;
 }): OpcionNivelLanzamiento[] {
   const {
     nivelHechizo,
@@ -384,12 +385,26 @@ export function obtenerOpcionesLanzamientoConjuro(parametros: {
     sistemaMagia = "espacios",
     esLanzadorPacto = false,
     nivelEspacioPacto = 0,
-    espaciosPactoMaximos = 0
+    espaciosPactoMaximos = 0,
+    permitirUpcastLibre = false
   } = parametros;
 
   // 1. Trucos (Nivel 0)
   if (nivelHechizo === 0) {
     return [{ nivel: 0, etiqueta: "Truco", tipo: "estandar" }];
+  }
+
+  // Modo libre (ej. DM / Monstruos en GestorIniciativa o Compendio): permite upcasting completo del nivel base al 9
+  if (permitirUpcastLibre) {
+    const opciones: OpcionNivelLanzamiento[] = [];
+    for (let lvl = nivelHechizo; lvl <= 9; lvl++) {
+      opciones.push({
+        nivel: lvl,
+        etiqueta: lvl === nivelHechizo ? `Nv. ${lvl}` : `Nv. ${lvl} ↑`,
+        tipo: "estandar"
+      });
+    }
+    return opciones;
   }
 
   // 2. Comprobar si tiene magia estándar y si tiene magia de pacto

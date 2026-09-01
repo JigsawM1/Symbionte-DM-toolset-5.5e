@@ -74,6 +74,9 @@ interface ModalDetalleObjetoInventarioProps {
   alCambiarContenedor?: (contenedor: TipoContenedor) => void;
   alDesempaquetar?: () => void;
   alModificarCargas?: (delta: number) => void;
+  alLanzarHechizo?: (hechizo: HechizoVinculado, objetoNombre: string, coste: number) => Promise<boolean | void>;
+  bloqueadoPorArmadura?: boolean;
+  motivoBloqueoArmadura?: string;
 }
 
 const CLASES_RAREZA: Record<Rareza, string> = {
@@ -136,7 +139,10 @@ export const ModalDetalleObjetoInventario: React.FC<ModalDetalleObjetoInventario
   alActualizarObjeto,
   alCambiarContenedor,
   alDesempaquetar,
-  alModificarCargas
+  alModificarCargas,
+  alLanzarHechizo,
+  bloqueadoPorArmadura = false,
+  motivoBloqueoArmadura
 }) => {
   const [notasTemp, setNotasTemp] = useState(objeto.notas || "");
   const [notasGuardadas, setNotasGuardadas] = useState(false);
@@ -720,6 +726,15 @@ export const ModalDetalleObjetoInventario: React.FC<ModalDetalleObjetoInventario
                   const tieneCargasSuficientes = coste === 0 || cargasDisponibles >= coste;
 
                   const lanzarHechizoVinculado = async () => {
+                    if (bloqueadoPorArmadura) {
+                      return;
+                    }
+
+                    if (alLanzarHechizo) {
+                      await alLanzarHechizo(hechizo, objeto.nombre, coste);
+                      return;
+                    }
+
                     if (coste > 0 && alModificarCargas) {
                       alModificarCargas(-coste);
                     }
@@ -747,9 +762,16 @@ export const ModalDetalleObjetoInventario: React.FC<ModalDetalleObjetoInventario
                       <button
                         type="button"
                         onClick={lanzarHechizoVinculado}
-                        disabled={!tieneCargasSuficientes}
+                        disabled={!tieneCargasSuficientes || bloqueadoPorArmadura}
                         className={estilos.botonLanzarHechizoModal}
-                        title={tieneCargasSuficientes ? `Lanzar ${hechizo.nombre} en TaleSpire` : "Cargas insuficientes"}
+                        title={
+                          bloqueadoPorArmadura
+                            ? (motivoBloqueoArmadura || "Bloqueado por armadura sin competencia (D&D 5.5e)")
+                            : tieneCargasSuficientes
+                            ? `Lanzar ${hechizo.nombre} en TaleSpire`
+                            : "Cargas insuficientes"
+                        }
+                        style={bloqueadoPorArmadura ? { opacity: 0.5, cursor: "not-allowed" } : undefined}
                       >
                         <Dices size={11} />
                         <span>Lanzar {coste > 0 ? `(-${coste})` : ""}</span>

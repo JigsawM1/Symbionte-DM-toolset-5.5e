@@ -44,7 +44,7 @@ import { coincideBusquedaTolerante } from "@/utiles/busquedaTolerante";
 import { esObjetoConsumible } from "@/servicios/procesadorConsumibles";
 import { esContenedorFisicoMunicion } from "@/servicios/gestorMunicion";
 import { SelectorDesplegable, OpcionDesplegable } from "@/componentes/comunes/SelectorDesplegable";
-import { usarEstadoPersistido } from "@/hooks";
+import { usarEstadoPersistido, usarLanzadorConjuros } from "@/hooks";
 import { usarAccionesConfiguracion } from "@/almacen/selectores/usarEstadoConfiguracion";
 import { TarjetaObjetoInventario } from "./TarjetaObjetoInventario";
 import { ModalAgregarObjeto } from "./ModalAgregarObjeto";
@@ -239,6 +239,12 @@ export const PanelInventarioPersonaje: React.FC<PanelInventarioPersonajeProps> =
   const [modalAgregarAbierto, setModalAgregarAbierto] = useState(false);
   const [tabModalAgregar, setTabModalAgregar] = useState<"compendio" | "otrasPosesiones">("compendio");
   const [objetoInspeccionadoId, setObjetoInspeccionadoId] = useState<string | null>(null);
+
+  // Hook centralizado de lanzamiento de magia (Facade + Strategy)
+  const { puedeLanzar, motivoBloqueo, lanzar } = usarLanzadorConjuros({
+    personaje,
+    penalizacionArmadura: statsCalculadas?.penalizacionArmadura
+  });
 
   // Estado persistente de secciones colapsables del inventario
   const [seccionesAbiertas, setSeccionesAbiertas] = usarEstadoPersistido<Record<string, boolean>>(
@@ -1304,6 +1310,31 @@ export const PanelInventarioPersonaje: React.FC<PanelInventarioPersonajeProps> =
           alCambiarContenedor={(c) => alCambiarContenedor && alCambiarContenedor(objetoInspeccionado.idInstancia, c)}
           alDesempaquetar={() => alDesempaquetarPaquete && alDesempaquetarPaquete(objetoInspeccionado.idInstancia)}
           alModificarCargas={(delta) => alModificarCargas(objetoInspeccionado.idInstancia, delta)}
+          alLanzarHechizo={async (hechizo, objetoNombre, coste) => {
+            await lanzar({
+              modo: "objetoMagico",
+              hechizo: {
+                id: hechizo.nombre.toLowerCase().replace(/\s+/g, "-"),
+                nombre: hechizo.nombre,
+                nivel: 1,
+                escuela: "Universal",
+                tiempoLanzamiento: "1 Accion",
+                alcance: "60 pies",
+                componentes: "V, S",
+                duracion: "Instantaneo",
+                concentracion: false,
+                ritual: false,
+                descripcion: ""
+              },
+              objetoNombre,
+              objetoInstanciaId: objetoInspeccionado.idInstancia,
+              bonoAtaqueObjeto: hechizo.bonoAtaque,
+              cdObjeto: hechizo.cd,
+              costeCargasObjeto: coste
+            });
+          }}
+          bloqueadoPorArmadura={!puedeLanzar}
+          motivoBloqueoArmadura={motivoBloqueo}
         />
       )}
     </div>

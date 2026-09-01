@@ -284,10 +284,17 @@ export async function lanzarDadosTaleSpire(
   formula: string,
   etiqueta: string,
   metaIniciativa?: MetadataIniciativa,
-  metaSalvacionMuerte?: MetadataSalvacionMuerte
+  metaSalvacionMuerte?: MetadataSalvacionMuerte,
+  tipoTiradaForzado?: "ventaja" | "desventaja" | "plano"
 ): Promise<void> {
-  // 1. Obtener tipo de tirada (ventaja, desventaja, plano) del Zustand
-  const { tipoTirada, establecerTipoTirada } = usarAlmacenDM.getState();
+  // 1. Obtener tipo de tirada (ventaja, desventaja, plano) del Zustand o forzado
+  const state = usarAlmacenDM.getState();
+  const tipoTiradaGlobal = state.tipoTirada;
+  const establecerTipoTirada = state.establecerTipoTirada;
+
+  // Si el usuario seleccionó explícitamente ventaja o desventaja en la barra táctica, se respeta;
+  // si está en plano pero la tirada exige desventaja (ej. por armadura), se aplica el forzado.
+  const tipoTirada = tipoTiradaForzado && tipoTiradaGlobal === "plano" ? tipoTiradaForzado : tipoTiradaGlobal;
   
   let formulaProcesada = formula;
   let tiradaEspecial: MetadataTiradaEspecial | null = null;
@@ -345,8 +352,10 @@ export async function lanzarDadosTaleSpire(
       tiradaEspecial = null;
     }
     
-    // Restablecer el selector a "plano" después de programar la tirada
-    establecerTipoTirada("plano");
+    // Restablecer el selector global a "plano" si estaba activado manualmente
+    if (tipoTiradaGlobal !== "plano") {
+      establecerTipoTirada("plano");
+    }
   }
 
   const formulaLimpia = normalizarFormulaDados(formulaProcesada);

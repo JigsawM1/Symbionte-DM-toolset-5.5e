@@ -265,7 +265,7 @@ export const ModalSelectorCompetencias: React.FC<ModalSelectorCompetenciasProps>
         <div className={estilos.cabeceraModal}>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             <span style={{ fontSize: 16 }}></span>
-            <h3 className={estilos.tituloModal}>Selector de Competencias D&D 5.5e</h3>
+            <h3 className={estilos.tituloModal}>Selector de Competencias</h3>
           </div>
           <button
             type="button"

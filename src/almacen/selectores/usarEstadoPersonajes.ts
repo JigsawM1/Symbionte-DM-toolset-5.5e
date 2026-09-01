@@ -12,6 +12,7 @@ import {
   obtenerBonoCompetenciaPorNivel,
   MAPA_HABILIDAD_A_CARACTERISTICA
 } from '@/constantes';
+import { esCompetenteConArmadura } from '@/constantes/competenciasConstantes';
 import { calcularModificadorCaracteristica } from '@/servicios/procesadorDescansos';
 import { OBJETOS_INICIALES } from '@/utiles/datosIniciales';
 
@@ -25,6 +26,13 @@ export interface InformacionCA {
   escudoEquipadoNombre: string | null;
   tipoArmadura: "Sin Armadura" | "Ligera" | "Mediana" | "Pesada";
   desglose: string;
+  desventajaSigilo?: boolean;
+}
+
+export interface PenalizacionArmadura {
+  sinCompetencia: boolean;
+  armaduraNoCompetente: string | null;
+  escudoNoCompetente: string | null;
 }
 
 /** Estadísticas y bonificadores dinámicos calculados a partir de un personaje. */
@@ -40,6 +48,8 @@ export interface EstadisticasCalculadasPersonaje {
     perspicacia: number;
   };
   claseArmadura: InformacionCA;
+  penalizacionArmadura: PenalizacionArmadura;
+  desventajaSigiloArmadura: boolean;
 }
 
 /**
@@ -49,11 +59,12 @@ interface ReferenciaArmadura {
   caBase: number;
   tipo: "Ligera" | "Mediana" | "Pesada";
   limiteDes: number | null; // null = sin límite, 2 = máx +2, 0 = no suma
+  desventajaSigilo?: boolean;
 }
 
 const ARMADURAS_OFICIALES: Record<string, ReferenciaArmadura> = {
-  "acolchada": { caBase: 11, tipo: "Ligera", limiteDes: null },
-  "armadura acolchada": { caBase: 11, tipo: "Ligera", limiteDes: null },
+  "acolchada": { caBase: 11, tipo: "Ligera", limiteDes: null, desventajaSigilo: true },
+  "armadura acolchada": { caBase: 11, tipo: "Ligera", limiteDes: null, desventajaSigilo: true },
   "cuero": { caBase: 11, tipo: "Ligera", limiteDes: null },
   "armadura de cuero": { caBase: 11, tipo: "Ligera", limiteDes: null },
   "cuero tachonado": { caBase: 12, tipo: "Ligera", limiteDes: null },
@@ -63,17 +74,17 @@ const ARMADURAS_OFICIALES: Record<string, ReferenciaArmadura> = {
   "armadura de pieles": { caBase: 12, tipo: "Mediana", limiteDes: 2 },
   "camison de malla": { caBase: 13, tipo: "Mediana", limiteDes: 2 },
   "camisa de malla": { caBase: 13, tipo: "Mediana", limiteDes: 2 },
-  "cota de escamas": { caBase: 14, tipo: "Mediana", limiteDes: 2 },
+  "cota de escamas": { caBase: 14, tipo: "Mediana", limiteDes: 2, desventajaSigilo: true },
   "coraza": { caBase: 14, tipo: "Mediana", limiteDes: 2 },
-  "semiplacas": { caBase: 15, tipo: "Mediana", limiteDes: 2 },
-  "semi-placas": { caBase: 15, tipo: "Mediana", limiteDes: 2 },
+  "semiplacas": { caBase: 15, tipo: "Mediana", limiteDes: 2, desventajaSigilo: true },
+  "semi-placas": { caBase: 15, tipo: "Mediana", limiteDes: 2, desventajaSigilo: true },
 
-  "cota de anillas": { caBase: 14, tipo: "Pesada", limiteDes: 0 },
-  "cota de malla": { caBase: 16, tipo: "Pesada", limiteDes: 0 },
-  "bandas": { caBase: 17, tipo: "Pesada", limiteDes: 0 },
-  "cota de bandas": { caBase: 17, tipo: "Pesada", limiteDes: 0 },
-  "placas": { caBase: 18, tipo: "Pesada", limiteDes: 0 },
-  "armadura de placas": { caBase: 18, tipo: "Pesada", limiteDes: 0 }
+  "cota de anillas": { caBase: 14, tipo: "Pesada", limiteDes: 0, desventajaSigilo: true },
+  "cota de malla": { caBase: 16, tipo: "Pesada", limiteDes: 0, desventajaSigilo: true },
+  "bandas": { caBase: 17, tipo: "Pesada", limiteDes: 0, desventajaSigilo: true },
+  "cota de bandas": { caBase: 17, tipo: "Pesada", limiteDes: 0, desventajaSigilo: true },
+  "placas": { caBase: 18, tipo: "Pesada", limiteDes: 0, desventajaSigilo: true },
+  "armadura de placas": { caBase: 18, tipo: "Pesada", limiteDes: 0, desventajaSigilo: true }
 };
 
 /**
@@ -406,6 +417,15 @@ export function calcularEstadisticasPersonaje(pj: PersonajeJugador): Estadistica
     desglosePartes.push(`Refuerzo Mágico +${bonosModificadorDirectoArmadura}`);
   }
 
+  let desventajaSigiloArmadura = false;
+  if (armaduraObj) {
+    const nombreNorm = normalizar(armaduraObj.nombre);
+    const refOficial = ARMADURAS_OFICIALES[nombreNorm];
+    if (refOficial?.desventajaSigilo || (armaduraObj.notas && normalizar(armaduraObj.notas).includes("desventaja en sigilo"))) {
+      desventajaSigiloArmadura = true;
+    }
+  }
+
   const totalCA = caBase + modDesAplicado + bonoEscudo + bonosMagicos;
 
   const claseArmadura: InformacionCA = {
@@ -417,7 +437,48 @@ export function calcularEstadisticasPersonaje(pj: PersonajeJugador): Estadistica
     armaduraEquipadaNombre: armaduraNombre,
     escudoEquipadoNombre: escudoNombre,
     tipoArmadura,
-    desglose: `CA ${totalCA} (${desglosePartes.join(" + ")})`
+    desglose: `CA ${totalCA} (${desglosePartes.join(" + ")})`,
+    desventajaSigilo: desventajaSigiloArmadura
+  };
+
+  // ==========================================
+  // PENALIZACIÓN POR ARMADURA SIN COMPETENCIA (D&D 5.5e)
+  // ==========================================
+  let armaduraNoCompetente: string | null = null;
+  let escudoNoCompetente: string | null = null;
+
+  const gruposArmadura = pj?.competenciasArmadurasGrupos || [];
+  const listaArmaduras = pj?.competenciasArmadurasLista || [];
+
+  if (armaduraObj) {
+    const subcat = tipoArmadura !== "Sin Armadura" ? tipoArmadura : "Ligera";
+    const esCompArmadura = esCompetenteConArmadura(
+      armaduraObj.nombre,
+      subcat,
+      gruposArmadura,
+      listaArmaduras
+    );
+    if (!esCompArmadura) {
+      armaduraNoCompetente = armaduraObj.nombre;
+    }
+  }
+
+  if (escudoObj) {
+    const esCompEscudo = esCompetenteConArmadura(
+      escudoObj.nombre,
+      "Escudo",
+      gruposArmadura,
+      listaArmaduras
+    );
+    if (!esCompEscudo) {
+      escudoNoCompetente = escudoObj.nombre;
+    }
+  }
+
+  const penalizacionArmadura: PenalizacionArmadura = {
+    sinCompetencia: !!armaduraNoCompetente || !!escudoNoCompetente,
+    armaduraNoCompetente,
+    escudoNoCompetente
   };
 
   return {
@@ -427,7 +488,9 @@ export function calcularEstadisticasPersonaje(pj: PersonajeJugador): Estadistica
     salvaciones,
     habilidades,
     pasivas,
-    claseArmadura
+    claseArmadura,
+    penalizacionArmadura,
+    desventajaSigiloArmadura
   };
 }
 
@@ -514,6 +577,7 @@ export function usarAccionesPersonajes() {
       actualizarObjetoInventario:         s.actualizarObjetoInventario,
       modificarCargasObjeto:              s.modificarCargasObjeto,
       cambiarContenedorObjeto:            s.cambiarContenedorObjeto,
+      reordenarInventario:                s.reordenarInventario,
       desempaquetarPaquete:               s.desempaquetarPaquete,
       establecerMonedas:                  s.establecerMonedas,
       modificarMoneda:                    s.modificarMoneda

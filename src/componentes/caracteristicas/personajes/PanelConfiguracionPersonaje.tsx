@@ -738,7 +738,7 @@ export const PanelConfiguracionPersonaje: React.FC<PanelConfiguracionPersonajePr
                 <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                   <Award size={14} color="#60a5fa" />
                   <strong style={{ fontSize: 12, color: "#f1f5f9" }}>
-                    Clases y Progresión Multiclase (D&D 5.5e)
+                    Clases y Progresión Multiclase
                   </strong>
                 </div>
                 <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
@@ -859,7 +859,7 @@ export const PanelConfiguracionPersonaje: React.FC<PanelConfiguracionPersonajePr
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 4 }}>
                 <span style={{ fontSize: 11, color: "#94a3b8" }}>
                   {(form.nivel || 1) >= 20
-                    ? "Alcanzaste el nivel máximo total de 20 (D&D 5.5e)."
+                    ? "Alcanzaste el nivel máximo total de 20."
                     : `Puedes asignar hasta ${20 - (form.nivel || 1)} niveles más en otras clases.`}
                 </span>
 
@@ -1065,7 +1065,7 @@ export const PanelConfiguracionPersonaje: React.FC<PanelConfiguracionPersonajePr
               }}
             >
               <span style={{ fontSize: 11, color: "#94a3b8", lineHeight: 1.4 }}>
-                Puntuaciones base, <strong>Overrides Fijos</strong> y <strong>Personalización</strong> de atributos (D&D 5.5e).
+                Puntuaciones base, <strong>Overrides Fijos</strong> y <strong>Personalización</strong> de atributos.
               </span>
               <span
                 style={{

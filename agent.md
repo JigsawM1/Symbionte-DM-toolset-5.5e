@@ -4,6 +4,12 @@ Este archivo sirve como bitácora de aprendizaje técnico y memoria permanente p
 
 ---
 
+## 🚫 REGLA GLOBAL OBLIGATORIA: CERO EMOJIS (SOLO ICONOS LOCALES SVG / LUCIDE-REACT)
+* **Bajo ninguna circunstancia se deben usar emojis** en la interfaz gráfica, componentes de UI, textos, tooltips, modales ni cadenas de código.
+* Toda representación gráfica o icono debe implementarse utilizando exclusivamente **iconos vectoriales locales SVG** (mediante la librería `lucide-react`) o estilización CSS.
+
+---
+
 ## 🚀 1. Arquitectura de Despliegue y Rutas (VITAL)
 
 *   **Doble Entorno**: 

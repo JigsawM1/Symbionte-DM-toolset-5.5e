@@ -317,7 +317,7 @@ export const FilaConjuroCompendio: React.FC<FilaConjuroCompendioProps> = ({
           <span>{hechizo.tiempoLanzamiento || "-"}</span>
           {hechizo.ritual && (
             <span
-              title="Lanzamiento Ritual (D&D 2024): puede lanzarse añadiendo 10 minutos sin consumir ranuras de conjuro"
+              title="Lanzamiento Ritual: puede lanzarse añadiendo 10 minutos sin consumir ranuras de conjuro"
               style={{
                 fontSize: 8,
                 fontWeight: 800,

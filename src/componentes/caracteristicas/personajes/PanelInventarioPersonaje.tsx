@@ -14,7 +14,6 @@ import {
   Link2,
   Swords,
   Backpack,
-  FileText,
   Sparkles,
   Plus,
   Search,
@@ -24,7 +23,11 @@ import {
   Wrench,
   Package,
   Box,
-  Target
+  Target,
+  ChevronDown,
+  ChevronRight,
+  Maximize2,
+  Minimize2
 } from "lucide-react";
 import {
   calcularCapacidadCarga,
@@ -41,6 +44,8 @@ import { coincideBusquedaTolerante } from "@/utiles/busquedaTolerante";
 import { esObjetoConsumible } from "@/servicios/procesadorConsumibles";
 import { esContenedorFisicoMunicion } from "@/servicios/gestorMunicion";
 import { SelectorDesplegable, OpcionDesplegable } from "@/componentes/comunes/SelectorDesplegable";
+import { usarEstadoPersistido } from "@/hooks";
+import { usarAccionesConfiguracion } from "@/almacen/selectores/usarEstadoConfiguracion";
 import { TarjetaObjetoInventario } from "./TarjetaObjetoInventario";
 import { ModalAgregarObjeto } from "./ModalAgregarObjeto";
 import { ModalDetalleObjetoInventario } from "./ModalDetalleObjetoInventario";
@@ -59,21 +64,93 @@ interface PanelInventarioPersonajeProps {
   alActualizarObjeto?: (idInstancia: string, cambios: Partial<ObjetoInventario>) => void;
   alModificarCargas: (idInstancia: string, delta: number) => void;
   alCambiarContenedor?: (idInstancia: string, contenedor: TipoContenedor) => void;
+  alReordenarInventario?: (idInstanciaOrigen: string, idInstanciaDestino: string) => void;
   alDesempaquetarPaquete?: (idInstancia: string) => void;
   alEstablecerMonedas: (monedas: Partial<BolsaMonedas>) => void;
   alModificarMoneda: (tipo: TipoMonedaClave, delta: number) => void;
   alUsarObjeto?: (objeto: ObjetoInventario) => void;
 }
 
-type CriterioOrdenMochila = "tipo" | "reciente" | "peso-desc" | "peso-asc" | "nombre-asc" | "valor-desc";
+type CriterioOrdenMochila = "tipo" | "personalizado" | "reciente" | "peso-desc" | "peso-asc" | "nombre-asc" | "valor-desc";
 
 const OPCIONES_ORDEN_MOCHILA: OpcionDesplegable<CriterioOrdenMochila>[] = [
   { valor: "tipo", etiqueta: "Por Tipo (Secciones)" },
+  { valor: "personalizado", etiqueta: "Personalizado (Libre)" },
   { valor: "reciente", etiqueta: "Último Agregado" },
   { valor: "peso-desc", etiqueta: "Mayor Peso" },
   { valor: "peso-asc", etiqueta: "Menor Peso" },
   { valor: "nombre-asc", etiqueta: "Nombre (A - Z)" },
   { valor: "valor-desc", etiqueta: "Mayor Valor" }
+];
+
+const CAJAS_MOVILIZACION_RAPIDA: {
+  id: string;
+  titulo: string;
+  subtitulo: string;
+  color: string;
+  icono: React.ReactNode;
+}[] = [
+  {
+    id: "mochila",
+    titulo: "Mochila",
+    subtitulo: "Carga directa",
+    color: "#f59e0b",
+    icono: <Backpack size={13} color="#f59e0b" />
+  },
+  {
+    id: "bolsa_contencion",
+    titulo: "Bolsa Contención",
+    subtitulo: "0 lb carga",
+    color: "#c084fc",
+    icono: <Sparkles size={13} color="#c084fc" />
+  },
+  {
+    id: "montura",
+    titulo: "Montura / Carreta",
+    subtitulo: "0 lb carga",
+    color: "#38bdf8",
+    icono: <Box size={13} color="#38bdf8" />
+  },
+  {
+    id: "almacen",
+    titulo: "Almacén / Base",
+    subtitulo: "0 lb carga",
+    color: "#94a3b8",
+    icono: <Package size={13} color="#94a3b8" />
+  },
+  {
+    id: "equipados",
+    titulo: "Equipar",
+    subtitulo: "Armas / Armadura",
+    color: "#60a5fa",
+    icono: <Swords size={13} color="#60a5fa" />
+  }
+];
+
+const CONTENEDORES_ESPECIALES_CONFIG: {
+  id: "bolsa_contencion" | "montura" | "almacen";
+  titulo: string;
+  icono: React.ReactNode;
+  color: string;
+}[] = [
+  {
+    id: "bolsa_contencion",
+    titulo: "Bolsa de Contención (Bag of Holding)",
+    icono: <Sparkles size={14} color="#c084fc" />,
+    color: "#c084fc"
+  },
+  {
+    id: "montura",
+    titulo: "Montura / Carreta / Alforjas",
+    icono: <Box size={14} color="#38bdf8" />,
+    color: "#38bdf8"
+  },
+  {
+    id: "almacen",
+    titulo: "Almacén / Base / Campamento",
+    icono: <Package size={14} color="#94a3b8" />,
+    color: "#94a3b8"
+  }
 ];
 
 const MONEDAS_CONFIG: { clave: TipoMonedaClave; etiqueta: string; claseColor: string }[] = [
@@ -152,14 +229,249 @@ export const PanelInventarioPersonaje: React.FC<PanelInventarioPersonajeProps> =
   alActualizarObjeto,
   alModificarCargas,
   alCambiarContenedor,
+  alReordenarInventario,
   alDesempaquetarPaquete,
   alEstablecerMonedas,
   alModificarMoneda: _alModificarMoneda,
   alUsarObjeto
 }) => {
+  const { agregarNotificacion } = usarAccionesConfiguracion();
   const [modalAgregarAbierto, setModalAgregarAbierto] = useState(false);
   const [tabModalAgregar, setTabModalAgregar] = useState<"compendio" | "otrasPosesiones">("compendio");
   const [objetoInspeccionadoId, setObjetoInspeccionadoId] = useState<string | null>(null);
+
+  // Estado persistente de secciones colapsables del inventario
+  const [seccionesAbiertas, setSeccionesAbiertas] = usarEstadoPersistido<Record<string, boolean>>(
+    "ts_inventario_secciones_abiertas",
+    {
+      recursos: true,
+      equipados: true,
+      consumibles: true,
+      municion: true,
+      armas: true,
+      armaduras: true,
+      herramientas: true,
+      magicos: true,
+      equipo: true,
+      bolsa_contencion: true,
+      montura: true,
+      almacen: true
+    }
+  );
+
+  // Estado visual de la zona de soltado activa y estado global de arrastre
+  const [zonaDropActiva, setZonaDropActiva] = useState<string | null>(null);
+  const [arrastrandoItem, setArrastrandoItem] = useState(false);
+
+  // Limpieza global de seguridad para Drag & Drop (evita que el dock flotante quede atascado si el DOM desmonta el elemento arrastrado)
+  useEffect(() => {
+    if (!arrastrandoItem) return;
+
+    const finalizarArrastreGlobal = () => {
+      setArrastrandoItem(false);
+      setZonaDropActiva(null);
+    };
+
+    window.addEventListener("dragend", finalizarArrastreGlobal);
+    window.addEventListener("mouseup", finalizarArrastreGlobal);
+    window.addEventListener("drop", finalizarArrastreGlobal);
+
+    return () => {
+      window.removeEventListener("dragend", finalizarArrastreGlobal);
+      window.removeEventListener("mouseup", finalizarArrastreGlobal);
+      window.removeEventListener("drop", finalizarArrastreGlobal);
+    };
+  }, [arrastrandoItem]);
+
+  const alternarSeccion = (idSeccion: string) => {
+    setSeccionesAbiertas((prev) => ({
+      ...prev,
+      [idSeccion]: prev[idSeccion] === false ? true : false
+    }));
+  };
+
+  const colapsarTodasSecciones = () => {
+    setSeccionesAbiertas({
+      recursos: false,
+      equipados: false,
+      consumibles: false,
+      municion: false,
+      armas: false,
+      armaduras: false,
+      herramientas: false,
+      magicos: false,
+      equipo: false,
+      bolsa_contencion: false,
+      montura: false,
+      almacen: false
+    });
+  };
+
+  const expandirTodasSecciones = () => {
+    setSeccionesAbiertas({
+      recursos: true,
+      equipados: true,
+      consumibles: true,
+      municion: true,
+      armas: true,
+      armaduras: true,
+      herramientas: true,
+      magicos: true,
+      equipo: true,
+      bolsa_contencion: true,
+      montura: true,
+      almacen: true
+    });
+  };
+
+  // Manejadores de Drag and Drop Nativo
+  const manejarDragOver = (e: React.DragEvent, idSeccion: string) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+    if (zonaDropActiva !== idSeccion) {
+      setZonaDropActiva(idSeccion);
+    }
+  };
+
+  const manejarDragLeave = (e: React.DragEvent, idSeccion: string) => {
+    if (e.currentTarget.contains(e.relatedTarget as Node)) return;
+    if (zonaDropActiva === idSeccion) {
+      setZonaDropActiva(null);
+    }
+  };
+
+  const manejarDrop = (e: React.DragEvent, destino: string) => {
+    e.preventDefault();
+    setZonaDropActiva(null);
+    setArrastrandoItem(false);
+    try {
+      const raw = e.dataTransfer.getData("application/json");
+      if (!raw) return;
+      const payload = JSON.parse(raw) as {
+        idInstancia: string;
+        nombre: string;
+        equipable: boolean;
+        equipado: boolean;
+        contenedor: TipoContenedor;
+      };
+
+      const idInstancia = payload.idInstancia;
+      const objActual = inventario.find((o) => o.idInstancia === idInstancia);
+      if (!objActual) return;
+
+      if (destino === "equipados") {
+        // REGLA: Solo lo equipable es equipable
+        if (!objActual.equipable) {
+          agregarNotificacion(
+            `"${objActual.nombre}" no es un objeto equipable (solo armas, armaduras o equipo vestible).`,
+            "advertencia"
+          );
+          return;
+        }
+
+        if (objActual.contenedor && objActual.contenedor !== "mochila") {
+          alCambiarContenedor?.(idInstancia, "mochila");
+        }
+        if (!objActual.equipado) {
+          alAlternarEquipado(idInstancia);
+          agregarNotificacion(`"${objActual.nombre}" equipado.`, "exito");
+        }
+        return;
+      }
+
+      if (destino === "bolsa_contencion" || destino === "montura" || destino === "almacen") {
+        if (objActual.equipado) {
+          alAlternarEquipado(idInstancia);
+          agregarNotificacion(`"${objActual.nombre}" desequipado.`, "info");
+        }
+        if (objActual.contenedor !== destino) {
+          alCambiarContenedor?.(idInstancia, destino as TipoContenedor);
+          const nombreCont = CONFIG_CONTENEDORES[destino as TipoContenedor]?.nombreCorto || destino;
+          agregarNotificacion(`"${objActual.nombre}" movido a ${nombreCont}.`, "info");
+        }
+        return;
+      }
+
+      // Cualquier otra subsección de la mochila o la mochila en sí -> mover a la mochila / desequipar
+      if (objActual.equipado) {
+        alAlternarEquipado(idInstancia);
+        agregarNotificacion(`"${objActual.nombre}" desequipado.`, "info");
+      }
+      const contActual = objActual.contenedor || "mochila";
+      if (contActual !== "mochila") {
+        alCambiarContenedor?.(idInstancia, "mochila");
+        agregarNotificacion(`"${objActual.nombre}" movido a la mochila.`, "info");
+      }
+    } catch (err) {
+      console.error("[PanelInventarioPersonaje] Error al procesar drop:", err);
+    }
+  };
+
+  // Reordenación libre de items y transferencia entre compartimentos por Drag & Drop
+  const manejarReordenarItems = (idOrigen: string, idDestino: string) => {
+    setArrastrandoItem(false);
+    setZonaDropActiva(null);
+
+    const objOrigen = inventario.find((o) => o.idInstancia === idOrigen);
+    const objDestino = inventario.find((o) => o.idInstancia === idDestino);
+
+    if (!objOrigen || !objDestino) return;
+
+    const contOrigen = objOrigen.contenedor || "mochila";
+    const contDestino = objDestino.contenedor || "mochila";
+
+    // CASO 1: Soltar un objeto sobre otro en "Equipados Activos"
+    if (objDestino.equipado && !objOrigen.equipado) {
+      if (!objOrigen.equipable) {
+        agregarNotificacion(
+          `"${objOrigen.nombre}" no es un objeto equipable (solo armas, armaduras o equipo vestible).`,
+          "advertencia"
+        );
+        return;
+      }
+      if (contOrigen !== "mochila") {
+        alCambiarContenedor?.(idOrigen, "mochila");
+      }
+      alAlternarEquipado(idOrigen);
+      agregarNotificacion(`"${objOrigen.nombre}" equipado.`, "exito");
+      alReordenarInventario?.(idOrigen, idDestino);
+      return;
+    }
+
+    // CASO 2: Soltar un objeto equipado sobre un objeto NO equipado (en la mochila o contenedor)
+    if (objOrigen.equipado && !objDestino.equipado) {
+      alAlternarEquipado(idOrigen);
+      if (contDestino !== "mochila") {
+        alCambiarContenedor?.(idOrigen, contDestino);
+        const nombreDestino = CONFIG_CONTENEDORES[contDestino]?.nombreCorto || contDestino;
+        agregarNotificacion(`"${objOrigen.nombre}" desequipado y movido a ${nombreDestino}.`, "info");
+      } else {
+        agregarNotificacion(`"${objOrigen.nombre}" desequipado.`, "info");
+      }
+      if (criterioOrden !== "personalizado") {
+        setCriterioOrden("personalizado");
+        agregarNotificacion("Orden de inventario cambiado a Personalizado.", "info");
+      }
+      alReordenarInventario?.(idOrigen, idDestino);
+      return;
+    }
+
+    // CASO 3: Traslado entre compartimentos distintos (ej. de Bolsa de Contención a Mochila o viceversa)
+    if (contOrigen !== contDestino) {
+      if (objOrigen.equipado) {
+        alAlternarEquipado(idOrigen);
+      }
+      alCambiarContenedor?.(idOrigen, contDestino);
+      const nombreDestino = CONFIG_CONTENEDORES[contDestino]?.nombreCorto || contDestino;
+      agregarNotificacion(`"${objOrigen.nombre}" movido a ${nombreDestino}.`, "info");
+    }
+
+    if (criterioOrden !== "personalizado") {
+      setCriterioOrden("personalizado");
+      agregarNotificacion("Orden de inventario cambiado a Personalizado.", "info");
+    }
+    alReordenarInventario?.(idOrigen, idDestino);
+  };
 
   // Helper para verificar si un objeto de inventario tiene contents
   const comprobarTieneContents = (obj: ObjetoInventario): boolean => {
@@ -202,23 +514,47 @@ export const PanelInventarioPersonaje: React.FC<PanelInventarioPersonajeProps> =
   const totalSintonizados = contarSintonizaciones(inventario);
   const objetosSintonizados = inventario.filter((o) => o.sintonizado);
 
-  // 4. División de listas base
+  // 4. División de listas base por compartimento
   const objetosEquipados = inventario.filter((o) => o.equipado);
-  const objetosMochilaBase = inventario.filter((o) => !o.equipado);
+  const objetosNoEquipados = inventario.filter((o) => !o.equipado);
 
-  // 5. Filtrado tolerante de la mochila
-  const objetosMochilaFiltrados = useMemo(() => {
+  const objetosMochilaBase = objetosNoEquipados.filter(
+    (o) => !o.contenedor || o.contenedor === "mochila"
+  );
+  const objetosBolsaContencionBase = objetosNoEquipados.filter(
+    (o) => o.contenedor === "bolsa_contencion"
+  );
+  const objetosMonturaBase = objetosNoEquipados.filter(
+    (o) => o.contenedor === "montura"
+  );
+  const objetosAlmacenBase = objetosNoEquipados.filter(
+    (o) => o.contenedor === "almacen"
+  );
+
+  // 5. Filtrado tolerante según búsqueda
+  const filtrarLista = (lista: ObjetoInventario[]) => {
     if (!busquedaMochila || !busquedaMochila.trim()) {
-      return objetosMochilaBase;
+      return lista;
     }
-    return objetosMochilaBase.filter((obj) => {
+    return lista.filter((obj) => {
       const nombreContenedor = obj.contenedor ? (CONFIG_CONTENEDORES[obj.contenedor]?.nombre || "") : "";
       return coincideBusquedaTolerante(
         [obj.nombre, obj.tipoPrincipal, obj.notas, obj.rareza, nombreContenedor],
         busquedaMochila
       );
     });
-  }, [objetosMochilaBase, busquedaMochila]);
+  };
+
+  const objetosMochilaFiltrados = useMemo(() => filtrarLista(objetosMochilaBase), [objetosMochilaBase, busquedaMochila]);
+  const objetosBolsaContencionFiltrados = useMemo(() => filtrarLista(objetosBolsaContencionBase), [objetosBolsaContencionBase, busquedaMochila]);
+  const objetosMonturaFiltrados = useMemo(() => filtrarLista(objetosMonturaBase), [objetosMonturaBase, busquedaMochila]);
+  const objetosAlmacenFiltrados = useMemo(() => filtrarLista(objetosAlmacenBase), [objetosAlmacenBase, busquedaMochila]);
+
+  const mapaContenedoresEspeciales = useMemo<Record<"bolsa_contencion" | "montura" | "almacen", ObjetoInventario[]>>(() => ({
+    bolsa_contencion: objetosBolsaContencionFiltrados,
+    montura: objetosMonturaFiltrados,
+    almacen: objetosAlmacenFiltrados
+  }), [objetosBolsaContencionFiltrados, objetosMonturaFiltrados, objetosAlmacenFiltrados]);
 
   // Función auxiliar para obtener el valor monetario en PO
   const obtenerValorPO = (obj: ObjetoInventario): number => {
@@ -228,7 +564,7 @@ export const PanelInventarioPersonaje: React.FC<PanelInventarioPersonajeProps> =
     return Number(comp?.valorPO) || 0;
   };
 
-  // 6. Clasificación en Subsecciones (para modo "Por Tipo")
+  // 6. Clasificación en Subsecciones de Mochila (para modo "Por Tipo")
   const subseccionesPorTipo = useMemo(() => {
     const consumibles: ObjetoInventario[] = [];
     const municion: ObjetoInventario[] = [];
@@ -237,27 +573,8 @@ export const PanelInventarioPersonaje: React.FC<PanelInventarioPersonajeProps> =
     const herramientas: ObjetoInventario[] = [];
     const magicos: ObjetoInventario[] = [];
     const equipo: ObjetoInventario[] = [];
-    const bolsaContencion: ObjetoInventario[] = [];
-    const montura: ObjetoInventario[] = [];
-    const almacen: ObjetoInventario[] = [];
 
     for (const obj of objetosMochilaFiltrados) {
-      const contenedor = obj.contenedor || "mochila";
-
-      // Si está en un contenedor especial no-mochila:
-      if (contenedor === "bolsa_contencion") {
-        bolsaContencion.push(obj);
-        continue;
-      }
-      if (contenedor === "montura") {
-        montura.push(obj);
-        continue;
-      }
-      if (contenedor === "almacen") {
-        almacen.push(obj);
-        continue;
-      }
-
       // Detectar si es munición o contenedor de munición (Carcaj, Caja de Virotes, Bolsa de Balas)
       const comp = baseDatosObjetos.find(
         (b) => b.id === obj.idObjeto || b.nombre.toLowerCase().trim() === obj.nombre.toLowerCase().trim()
@@ -385,33 +702,6 @@ export const PanelInventarioPersonaje: React.FC<PanelInventarioPersonajeProps> =
         items: equipo,
         pesoTotal: calcPeso(equipo),
         esContenedorEspecial: false
-      },
-      {
-        id: "bolsa_contencion",
-        titulo: "Bolsa de Contención (Bag of Holding)",
-        icono: <Sparkles size={13} color="#c084fc" />,
-        color: "#c084fc",
-        items: bolsaContencion,
-        pesoTotal: calcPeso(bolsaContencion),
-        esContenedorEspecial: true
-      },
-      {
-        id: "montura",
-        titulo: "Montura / Carreta / Alforjas",
-        icono: <Box size={13} color="#38bdf8" />,
-        color: "#38bdf8",
-        items: montura,
-        pesoTotal: calcPeso(montura),
-        esContenedorEspecial: true
-      },
-      {
-        id: "almacen",
-        titulo: "Almacén / Base / Campamento",
-        icono: <Box size={13} color="#94a3b8" />,
-        color: "#94a3b8",
-        items: almacen,
-        pesoTotal: calcPeso(almacen),
-        esContenedorEspecial: true
       }
     ];
   }, [objetosMochilaFiltrados, baseDatosObjetos]);
@@ -421,6 +711,10 @@ export const PanelInventarioPersonaje: React.FC<PanelInventarioPersonajeProps> =
     const lista = [...objetosMochilaFiltrados];
 
     switch (criterioOrden) {
+      case "personalizado":
+        // Orden personalizado: preserva el orden exacto del inventario
+        return lista;
+
       case "reciente":
         // Pila LIFO: el último añadido en el array de inventario sale primero
         return lista.reverse();
@@ -451,115 +745,167 @@ export const PanelInventarioPersonaje: React.FC<PanelInventarioPersonajeProps> =
 
   return (
     <div className={estilos.seccionInventario}>
-      {/* SECCIÓN 1: BOLSA DE MONEDAS */}
-      <div className={`${estilos.neoRaised} ${estilos.contenedorMonedas}`}>
-        <div className={estilos.cabeceraMonedas}>
-          <div className={estilos.tituloMonedas}>
+      {/* SECCIÓN 1: RECURSOS, CARGA Y FINANZAS (UNIFICADA Y COLAPSABLE) */}
+      <div className={`${estilos.neoRaised} ${estilos.grupoListaInventario}`}>
+        <div
+          className={`${estilos.cabeceraGrupoInventario} ${estilos.cabeceraColapsableInventario}`}
+          onClick={() => alternarSeccion("recursos")}
+          title="Haz clic para colapsar o expandir finanzas, carga y sintonización"
+        >
+          <div className={estilos.tituloGrupoInventario}>
+            <span className={estilos.iconoChevronColapso}>
+              {seccionesAbiertas.recursos !== false ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+            </span>
             <Coins size={14} color="#f59e0b" />
-            <span>Bolsa de Monedas</span>
+            <span>Recursos, Carga y Finanzas</span>
           </div>
-          <div className={estilos.resumenEquivalentePO}>
-            Total: {totalPOEquivalente.toLocaleString("es-ES")} PO
-          </div>
-        </div>
-
-        <div className={estilos.cuadriculaMonedas}>
-          {MONEDAS_CONFIG.map(({ clave, etiqueta, claseColor }) => (
-            <CasillaMoneda
-              key={clave}
-              clave={clave}
-              etiqueta={etiqueta}
-              claseColor={claseColor}
-              valorActual={bolsaMonedas[clave] || 0}
-              alGuardar={(c, val) => alEstablecerMonedas({ [c]: val })}
-            />
-          ))}
-        </div>
-      </div>
-
-      {/* SECCIÓN 2: CAPACIDAD DE CARGA */}
-      <div className={`${estilos.neoRaised} ${estilos.contenedorCarga}`}>
-        <div className={estilos.cabeceraCarga}>
-          <div className={estilos.tituloCarga}>
-            <Weight size={14} color={sobrecargado ? "#ef4444" : "#10b981"} />
-            <span>Capacidad de Carga</span>
-          </div>
-          <div className={estilos.detalleCalculoCarga}>
-            FUE {fuerzaEfectiva} × 15 lb{multiplicadorTexto} = {capacidadCarga} lb
-            {pesoContenedoresSinCarga > 0 && (
-              <span className={estilos.detalleCalculoCargaContenedores}>
-                (En Contenedores: {pesoContenedoresSinCarga} lb)
-              </span>
-            )}
-          </div>
-        </div>
-
-        <div className={estilos.barraCargaFondo}>
-          <div
-            className={`${estilos.barraCargaProgreso} ${
-              sobrecargado ? estilos.cargaSobrecargado : estilos.cargaNormal
-            }`}
-            style={{ width: `${porcentajeCarga}%` }}
-          />
-          <div className={estilos.barraCargaTexto}>
-            <span>{pesoTotal}</span>
-            <span className={estilos.barraCargaTextoTotal}>
-              / {capacidadCarga} lb
+          <div className={estilos.resumenCabeceraRecursos}>
+            <span className={estilos.badgeResumenRecursoPO} title="Total en oro">
+              <Coins size={10} color="#fbbf24" style={{ marginRight: 3, verticalAlign: "middle" }} />
+              {totalPOEquivalente.toLocaleString("es-ES")} PO
+            </span>
+            <span
+              className={`${estilos.badgeResumenRecursoCarga} ${sobrecargado ? estilos.badgeResumenCargaSobrecargado : ""}`}
+              title="Peso total vs capacidad de carga"
+            >
+              <Weight size={10} color={sobrecargado ? "#ef4444" : "#10b981"} style={{ marginRight: 3, verticalAlign: "middle" }} />
+              {pesoTotal} / {capacidadCarga} lb
+            </span>
+            <span className={estilos.badgeResumenRecursoSintonizacion} title="Ranuras sintonizadas ocupadas">
+              <Link2 size={10} color="#c084fc" style={{ marginRight: 3, verticalAlign: "middle" }} />
+              {totalSintonizados}/3
             </span>
           </div>
-          <div
-            className={`${estilos.badgeEstadoCarga} ${
-              sobrecargado ? estilos.badgeCargaSobrecargado : estilos.badgeCargaNormal
-            }`}
-          >
-            {sobrecargado ? "Sobrecargado" : "Normal"}
-          </div>
-        </div>
-      </div>
-
-      {/* SECCIÓN 3: SINTONIZACIÓN (MÁXIMO 3) */}
-      <div className={`${estilos.neoRaised} ${estilos.contenedorSintonizacion}`}>
-        <div className={estilos.cabeceraSintonizacion}>
-          <div className={estilos.tituloSintonizacion}>
-            <Link2 size={14} color="#c084fc" />
-            <span>Sintonización Mágica</span>
-          </div>
-          <span className={estilos.sintonizacionRanurasTexto}>
-            {totalSintonizados} / 3 Ranuras
-          </span>
         </div>
 
-        <div className={estilos.filaSlotsSintonizacion}>
-          {[0, 1, 2].map((indice) => {
-            const obj = objetosSintonizados[indice];
-            if (obj) {
-              return (
-                <div
-                  key={obj.idInstancia}
-                  className={`${estilos.slotSintonizacion} ${estilos.slotSintonizacionActivo}`}
-                  title={`${obj.nombre} (Sintonizado)`}
-                >
-                  <Sparkles size={12} className={estilos.iconoSlotSintonizacion} />
-                  <span className={estilos.textoSlotSintonizacion}>{obj.nombre}</span>
+        {seccionesAbiertas.recursos !== false && (
+          <div className={estilos.cuerpoSeccionRecursos}>
+            {/* SUB-BLOQUE 1: BOLSA DE MONEDAS */}
+            <div className={estilos.contenedorMonedasInterior}>
+              <div className={estilos.cabeceraMonedas}>
+                <div className={estilos.tituloMonedas}>
+                  <Coins size={12} color="#f59e0b" />
+                  <span>Bolsa de Monedas</span>
                 </div>
-              );
-            }
-            return (
-              <div
-                key={`vacio-${indice}`}
-                className={`${estilos.slotSintonizacion} ${estilos.slotSintonizacionVacio}`}
-              >
-                <span>Ranura {indice + 1} Libre</span>
+                <div className={estilos.resumenEquivalentePO}>
+                  Total: {totalPOEquivalente.toLocaleString("es-ES")} PO
+                </div>
               </div>
-            );
-          })}
-        </div>
+
+              <div className={estilos.cuadriculaMonedas}>
+                {MONEDAS_CONFIG.map(({ clave, etiqueta, claseColor }) => (
+                  <CasillaMoneda
+                    key={clave}
+                    clave={clave}
+                    etiqueta={etiqueta}
+                    claseColor={claseColor}
+                    valorActual={bolsaMonedas[clave] || 0}
+                    alGuardar={(c, val) => alEstablecerMonedas({ [c]: val })}
+                  />
+                ))}
+              </div>
+            </div>
+
+            {/* SUB-BLOQUE 2: CAPACIDAD DE CARGA */}
+            <div className={estilos.contenedorCargaInterior}>
+              <div className={estilos.cabeceraCarga}>
+                <div className={estilos.tituloCarga}>
+                  <Weight size={12} color={sobrecargado ? "#ef4444" : "#10b981"} />
+                  <span>Capacidad de Carga</span>
+                </div>
+                <div className={estilos.detalleCalculoCarga}>
+                  FUE {fuerzaEfectiva} × 15 lb{multiplicadorTexto} = {capacidadCarga} lb
+                  {pesoContenedoresSinCarga > 0 && (
+                    <span className={estilos.detalleCalculoCargaContenedores}>
+                      (En Contenedores: {pesoContenedoresSinCarga} lb)
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              <div className={estilos.barraCargaFondo}>
+                <div
+                  className={`${estilos.barraCargaProgreso} ${
+                    sobrecargado ? estilos.cargaSobrecargado : estilos.cargaNormal
+                  }`}
+                  style={{ width: `${porcentajeCarga}%` }}
+                />
+                <div className={estilos.barraCargaTexto}>
+                  <span>{pesoTotal}</span>
+                  <span className={estilos.barraCargaTextoTotal}>
+                    / {capacidadCarga} lb
+                  </span>
+                </div>
+                <div
+                  className={`${estilos.badgeEstadoCarga} ${
+                    sobrecargado ? estilos.badgeCargaSobrecargado : estilos.badgeCargaNormal
+                  }`}
+                >
+                  {sobrecargado ? "Sobrecargado" : "Normal"}
+                </div>
+              </div>
+            </div>
+
+            {/* SUB-BLOQUE 3: SINTONIZACIÓN */}
+            <div className={estilos.contenedorSintonizacionInterior}>
+              <div className={estilos.cabeceraSintonizacion}>
+                <div className={estilos.tituloSintonizacion}>
+                  <Link2 size={12} color="#c084fc" />
+                  <span>Sintonización Mágica</span>
+                </div>
+                <span className={estilos.sintonizacionRanurasTexto}>
+                  {totalSintonizados} / 3 Ranuras
+                </span>
+              </div>
+
+              <div className={estilos.filaSlotsSintonizacion}>
+                {[0, 1, 2].map((indice) => {
+                  const obj = objetosSintonizados[indice];
+                  if (obj) {
+                    return (
+                      <div
+                        key={obj.idInstancia}
+                        className={`${estilos.slotSintonizacion} ${estilos.slotSintonizacionActivo}`}
+                        title={`${obj.nombre} (Sintonizado)`}
+                      >
+                        <Sparkles size={12} className={estilos.iconoSlotSintonizacion} />
+                        <span className={estilos.textoSlotSintonizacion}>{obj.nombre}</span>
+                      </div>
+                    );
+                  }
+                  return (
+                    <div
+                      key={`vacio-${indice}`}
+                      className={`${estilos.slotSintonizacion} ${estilos.slotSintonizacionVacio}`}
+                    >
+                      <span>Ranura {indice + 1} Libre</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* SECCIÓN 4: OBJETOS EQUIPADOS */}
-      <div className={`${estilos.neoRaised} ${estilos.grupoListaInventario}`}>
-        <div className={estilos.cabeceraGrupoInventario}>
+      <div
+        className={`${estilos.neoRaised} ${estilos.grupoListaInventario} ${
+          zonaDropActiva === "equipados" ? estilos.zonaDropActiva : ""
+        }`}
+        onDragOver={(e) => manejarDragOver(e, "equipados")}
+        onDragLeave={(e) => manejarDragLeave(e, "equipados")}
+        onDrop={(e) => manejarDrop(e, "equipados")}
+      >
+        <div
+          className={`${estilos.cabeceraGrupoInventario} ${estilos.cabeceraColapsableInventario}`}
+          onClick={() => alternarSeccion("equipados")}
+          title="Haz clic para colapsar o expandir (o arrastra aquí para equipar)"
+        >
           <div className={estilos.tituloGrupoInventario}>
+            <span className={estilos.iconoChevronColapso}>
+              {seccionesAbiertas.equipados !== false ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+            </span>
             <Swords size={14} color="#60a5fa" />
             <span>Equipados Activos</span>
           </div>
@@ -568,53 +914,68 @@ export const PanelInventarioPersonaje: React.FC<PanelInventarioPersonajeProps> =
           </span>
         </div>
 
-        <div className={estilos.listaItemsInventario}>
-          {objetosEquipados.length === 0 ? (
-            <div className={estilos.mensajeVacioInventario}>
-              No hay armas o armaduras equipadas actualmente.
-            </div>
-          ) : (
-            objetosEquipados.map((obj) => (
-              <TarjetaObjetoInventario
-                key={obj.idInstancia}
-                objeto={obj}
-                baseDatosObjetos={baseDatosObjetos}
-                inventarioCompleto={personaje.inventario || []}
-                totalSintonizados={totalSintonizados}
-                alInspeccionar={() => setObjetoInspeccionadoId(obj.idInstancia)}
-                alAlternarEquipado={() => alAlternarEquipado(obj.idInstancia)}
-                alAlternarSintonizado={() => alAlternarSintonizado(obj.idInstancia)}
-                alModificarCantidad={(delta) => alModificarCantidad(obj.idInstancia, delta)}
-                alModificarCargas={(delta) => alModificarCargas(obj.idInstancia, delta)}
-                alEliminar={() => alQuitarObjeto(obj.idInstancia)}
-                alUsar={alUsarObjeto}
-                alCambiarContenedor={(c) => alCambiarContenedor && alCambiarContenedor(obj.idInstancia, c)}
-              />
-            ))
-          )}
-        </div>
+        {seccionesAbiertas.equipados !== false && (
+          <div className={estilos.listaItemsInventario}>
+            {objetosEquipados.length === 0 ? (
+              <div className={estilos.mensajeVacioInventario}>
+                No hay armas o armaduras equipadas actualmente. Arrastra objetos aquí para equiparlos.
+              </div>
+            ) : (
+              objetosEquipados.map((obj) => (
+                <TarjetaObjetoInventario
+                  key={obj.idInstancia}
+                  objeto={obj}
+                  baseDatosObjetos={baseDatosObjetos}
+                  inventarioCompleto={personaje.inventario || []}
+                  totalSintonizados={totalSintonizados}
+                  alInspeccionar={() => setObjetoInspeccionadoId(obj.idInstancia)}
+                  alAlternarEquipado={() => alAlternarEquipado(obj.idInstancia)}
+                  alAlternarSintonizado={() => alAlternarSintonizado(obj.idInstancia)}
+                  alModificarCantidad={(delta) => alModificarCantidad(obj.idInstancia, delta)}
+                  alModificarCargas={(delta) => alModificarCargas(obj.idInstancia, delta)}
+                  alEliminar={() => alQuitarObjeto(obj.idInstancia)}
+                  alUsar={alUsarObjeto}
+                  alCambiarContenedor={(c) => alCambiarContenedor && alCambiarContenedor(obj.idInstancia, c)}
+                  alSoltarReordenar={manejarReordenarItems}
+                  alIniciarArrastre={() => setArrastrandoItem(true)}
+                  alFinalizarArrastre={() => {
+                    setArrastrandoItem(false);
+                    setZonaDropActiva(null);
+                  }}
+                />
+              ))
+            )}
+          </div>
+        )}
       </div>
 
-      {/* SECCIÓN 5: MOCHILA, CONTENEDORES Y EQUIPO */}
-      <div className={`${estilos.neoRaised} ${estilos.grupoListaInventario}`}>
+      {/* SECCIÓN 5: MOCHILA */}
+      <div
+        className={`${estilos.neoRaised} ${estilos.grupoListaInventario} ${
+          zonaDropActiva === "mochila" ? estilos.zonaDropActiva : ""
+        }`}
+        onDragOver={(e) => manejarDragOver(e, "mochila")}
+        onDragLeave={(e) => manejarDragLeave(e, "mochila")}
+        onDrop={(e) => manejarDrop(e, "mochila")}
+      >
         <div className={estilos.cabeceraGrupoInventario}>
           <div className={estilos.tituloGrupoInventario}>
             <Backpack size={14} color="#f59e0b" />
-            <span>Mochila y Contenedores</span>
+            <span>Mochila</span>
           </div>
           <span className={estilos.contadorGrupoInventario}>
             {objetosMochilaFiltrados.length} / {objetosMochilaBase.length}
           </span>
         </div>
 
-        {/* Barra de Búsqueda Rápida y Selector de Orden */}
+        {/* Barra de Búsqueda Rápida, Selector de Orden y Controles de Colapso */}
         <div className={estilos.barraControlesMochila}>
           <div className={estilos.cajaBuscadorMochila}>
             <Search size={12} className={estilos.iconoBuscadorMochila} />
             <input
               type="text"
               className={estilos.inputBuscadorMochila}
-              placeholder="Buscar en la mochila o contenedores..."
+              placeholder="Buscar en el inventario..."
               value={busquedaMochila}
               onChange={(e) => setBusquedaMochila(e.target.value)}
             />
@@ -638,68 +999,134 @@ export const PanelInventarioPersonaje: React.FC<PanelInventarioPersonajeProps> =
               tamano="mini"
             />
           </div>
+
+          {criterioOrden === "tipo" && (
+            <div className={estilos.filaControlesColapso}>
+              <button
+                type="button"
+                className={estilos.botonControlColapso}
+                onClick={expandirTodasSecciones}
+                title="Expandir todas las categorías"
+              >
+                <Maximize2 size={10} />
+                <span>Expandir</span>
+              </button>
+              <button
+                type="button"
+                className={estilos.botonControlColapso}
+                onClick={colapsarTodasSecciones}
+                title="Colapsar todas las categorías"
+              >
+                <Minimize2 size={10} />
+                <span>Colapsar</span>
+              </button>
+            </div>
+          )}
         </div>
+
+        {/* Botón Superior de Agregar Objeto */}
+        <button
+          type="button"
+          className={estilos.botonAgregarMochilaSuperior}
+          onClick={() => {
+            setTabModalAgregar("compendio");
+            setModalAgregarAbierto(true);
+          }}
+        >
+          <Plus size={14} color="#f59e0b" />
+          <span>Agregar Objeto</span>
+        </button>
 
         {/* Contenido de la Mochila */}
         {objetosMochilaBase.length === 0 ? (
           <div className={estilos.mensajeVacioInventario}>
-            La mochila está vacía. Añade equipo o consumibles abajo.
+            La mochila está vacía. Añade equipo o consumibles arriba.
           </div>
         ) : objetosMochilaFiltrados.length === 0 ? (
           <div className={estilos.mensajeVacioInventario}>
             No se encontraron objetos que coincidan con "{busquedaMochila}".
           </div>
         ) : criterioOrden === "tipo" ? (
-          /* MODO 1: ORGANIZACIÓN POR SUBSECCIONES TEMÁTICAS Y CONTENEDORES */
+          /* MODO 1: ORGANIZACIÓN POR SUBSECCIONES TEMÁTICAS DE LA MOCHILA */
           <div className={estilos.listaSubseccionesMochila}>
             {subseccionesPorTipo
               .filter((sub) => sub.items.length > 0)
-              .map((sub) => (
-                <div key={sub.id} className={estilos.subseccionMochila}>
-                  <div className={estilos.cabeceraSubseccionMochila}>
-                    <div className={estilos.tituloSubseccionMochila} style={{ color: sub.color }}>
-                      {sub.icono}
-                      <span>{sub.titulo}</span>
-                    </div>
-                    <div className={estilos.metaSubseccionMochila}>
-                      {sub.pesoTotal > 0 && (
-                        <span className={estilos.pesoSubseccionMochila}>
-                          {sub.esContenedorEspecial ? `${sub.pesoTotal} lb (0 lb carga)` : `${sub.pesoTotal} lb`}
+              .map((sub) => {
+                const abierta = seccionesAbiertas[sub.id] !== false;
+                const estaSobrevolada = zonaDropActiva === sub.id;
+                return (
+                  <div
+                    key={sub.id}
+                    className={`${estilos.subseccionMochila} ${estaSobrevolada ? estilos.zonaDropActiva : ""}`}
+                    onDragOver={(e) => manejarDragOver(e, sub.id)}
+                    onDragLeave={(e) => manejarDragLeave(e, sub.id)}
+                    onDrop={(e) => manejarDrop(e, sub.id)}
+                  >
+                    <div
+                      className={estilos.cabeceraSubseccionMochila}
+                      onClick={() => alternarSeccion(sub.id)}
+                      title="Haz clic para colapsar o expandir (o arrastra aquí para mover)"
+                    >
+                      <div className={estilos.tituloSubseccionMochila} style={{ color: sub.color }}>
+                        <span className={estilos.iconoChevronColapso}>
+                          {abierta ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
                         </span>
-                      )}
-                      <span className={estilos.contadorGrupoInventario}>
-                        {sub.items.length}
-                      </span>
+                        {sub.icono}
+                        <span>{sub.titulo}</span>
+                      </div>
+                      <div className={estilos.metaSubseccionMochila}>
+                        {sub.pesoTotal > 0 && (
+                          <span className={estilos.pesoSubseccionMochila}>
+                            {sub.pesoTotal} lb
+                          </span>
+                        )}
+                        <span className={estilos.contadorGrupoInventario}>
+                          {sub.items.length}
+                        </span>
+                      </div>
                     </div>
-                  </div>
 
-                  <div className={estilos.listaItemsInventario}>
-                    {sub.items.map((obj) => (
-                      <TarjetaObjetoInventario
-                        key={obj.idInstancia}
-                        objeto={obj}
-                        baseDatosObjetos={baseDatosObjetos}
-                        inventarioCompleto={personaje.inventario || []}
-                        totalSintonizados={totalSintonizados}
-                        tieneContents={comprobarTieneContents(obj)}
-                        alInspeccionar={() => setObjetoInspeccionadoId(obj.idInstancia)}
-                        alAlternarEquipado={() => alAlternarEquipado(obj.idInstancia)}
-                        alAlternarSintonizado={() => alAlternarSintonizado(obj.idInstancia)}
-                        alModificarCantidad={(delta) => alModificarCantidad(obj.idInstancia, delta)}
-                        alModificarCargas={(delta) => alModificarCargas(obj.idInstancia, delta)}
-                        alEliminar={() => alQuitarObjeto(obj.idInstancia)}
-                        alUsar={alUsarObjeto}
-                        alDesempaquetar={() => alDesempaquetarPaquete && alDesempaquetarPaquete(obj.idInstancia)}
-                        alCambiarContenedor={(c) => alCambiarContenedor && alCambiarContenedor(obj.idInstancia, c)}
-                      />
-                    ))}
+                    {abierta && (
+                      <div className={estilos.listaItemsInventario}>
+                        {sub.items.map((obj) => (
+                          <TarjetaObjetoInventario
+                            key={obj.idInstancia}
+                            objeto={obj}
+                            baseDatosObjetos={baseDatosObjetos}
+                            inventarioCompleto={personaje.inventario || []}
+                            totalSintonizados={totalSintonizados}
+                            tieneContents={comprobarTieneContents(obj)}
+                            alInspeccionar={() => setObjetoInspeccionadoId(obj.idInstancia)}
+                            alAlternarEquipado={() => alAlternarEquipado(obj.idInstancia)}
+                            alAlternarSintonizado={() => alAlternarSintonizado(obj.idInstancia)}
+                            alModificarCantidad={(delta) => alModificarCantidad(obj.idInstancia, delta)}
+                            alModificarCargas={(delta) => alModificarCargas(obj.idInstancia, delta)}
+                            alEliminar={() => alQuitarObjeto(obj.idInstancia)}
+                            alUsar={alUsarObjeto}
+                            alDesempaquetar={() => alDesempaquetarPaquete && alDesempaquetarPaquete(obj.idInstancia)}
+                            alCambiarContenedor={(c) => alCambiarContenedor && alCambiarContenedor(obj.idInstancia, c)}
+                            alSoltarReordenar={manejarReordenarItems}
+                            alIniciarArrastre={() => setArrastrandoItem(true)}
+                            alFinalizarArrastre={() => {
+                              setArrastrandoItem(false);
+                              setZonaDropActiva(null);
+                            }}
+                          />
+                        ))}
+                      </div>
+                    )}
                   </div>
-                </div>
-              ))}
+                );
+              })}
           </div>
         ) : (
-          /* MODO 2: LISTA PLANA ORDENADA (LIFO Reciente, Peso, Nombre, Valor) */
-          <div className={estilos.listaItemsInventario}>
+          /* MODO 2: LISTA PLANA ORDENADA DE LA MOCHILA */
+          <div
+            className={`${estilos.listaItemsInventario} ${zonaDropActiva === "mochila" ? estilos.zonaDropActiva : ""}`}
+            onDragOver={(e) => manejarDragOver(e, "mochila")}
+            onDragLeave={(e) => manejarDragLeave(e, "mochila")}
+            onDrop={(e) => manejarDrop(e, "mochila")}
+          >
             {objetosMochilaOrdenadosPlano.map((obj) => (
               <TarjetaObjetoInventario
                 key={obj.idInstancia}
@@ -717,38 +1144,140 @@ export const PanelInventarioPersonaje: React.FC<PanelInventarioPersonajeProps> =
                 alUsar={alUsarObjeto}
                 alDesempaquetar={() => alDesempaquetarPaquete && alDesempaquetarPaquete(obj.idInstancia)}
                 alCambiarContenedor={(c) => alCambiarContenedor && alCambiarContenedor(obj.idInstancia, c)}
+                alSoltarReordenar={manejarReordenarItems}
+                alIniciarArrastre={() => setArrastrandoItem(true)}
+                alFinalizarArrastre={() => {
+                  setArrastrandoItem(false);
+                  setZonaDropActiva(null);
+                }}
               />
             ))}
           </div>
         )}
       </div>
 
-      {/* SECCIÓN 6: BOTONES DE AGREGAR */}
-      <div className={estilos.filaBotonesAgregar}>
-        <button
-          type="button"
-          className={estilos.botonAgregarPrincipal}
-          onClick={() => {
-            setTabModalAgregar("compendio");
-            setModalAgregarAbierto(true);
-          }}
-        >
-          <Plus size={15} color="#f59e0b" />
-          <span>Agregar Objeto</span>
-        </button>
+      {/* SECCIÓN 6: CONTENEDORES EXTERNOS DEDICADOS (OCULTOS SI ESTÁN VACÍOS) */}
+      {CONTENEDORES_ESPECIALES_CONFIG
+        .filter((cont) => (mapaContenedoresEspeciales[cont.id] || []).length > 0)
+        .map((cont) => {
+          const itemsContenedor = mapaContenedoresEspeciales[cont.id];
+          const pesoContenedor = Math.round(
+            itemsContenedor.reduce((acc, o) => acc + (o.pesoLb || 0) * (o.cantidad || 1), 0) * 100
+          ) / 100;
+          const abierta = seccionesAbiertas[cont.id] !== false;
+          const estaSobrevolada = zonaDropActiva === cont.id;
 
-        <button
-          type="button"
-          className={estilos.botonAgregarPrincipal}
-          onClick={() => {
-            setTabModalAgregar("otrasPosesiones");
-            setModalAgregarAbierto(true);
-          }}
-        >
-          <FileText size={14} color="#f59e0b" />
-          <span>Otras Posesiones</span>
-        </button>
-      </div>
+        return (
+          <div
+            key={cont.id}
+            className={`${estilos.neoRaised} ${estilos.grupoListaInventario} ${
+              estaSobrevolada ? estilos.zonaDropActiva : ""
+            }`}
+            onDragOver={(e) => manejarDragOver(e, cont.id)}
+            onDragLeave={(e) => manejarDragLeave(e, cont.id)}
+            onDrop={(e) => manejarDrop(e, cont.id)}
+          >
+            <div
+              className={`${estilos.cabeceraGrupoInventario} ${estilos.cabeceraColapsableInventario}`}
+              onClick={() => alternarSeccion(cont.id)}
+              title={`Haz clic para colapsar o expandir (o arrastra aquí para mover a ${cont.titulo})`}
+            >
+              <div className={estilos.tituloGrupoInventario} style={{ color: cont.color }}>
+                <span className={estilos.iconoChevronColapso}>
+                  {abierta ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+                </span>
+                {cont.icono}
+                <span>{cont.titulo}</span>
+              </div>
+              <div className={estilos.metaSubseccionMochila}>
+                {pesoContenedor > 0 && (
+                  <span className={estilos.pesoSubseccionMochila}>
+                    {pesoContenedor} lb (0 lb carga)
+                  </span>
+                )}
+                <span className={estilos.contadorGrupoInventario}>
+                  {itemsContenedor.length}
+                </span>
+              </div>
+            </div>
+
+            {abierta && (
+              <div className={estilos.listaItemsInventario}>
+                {itemsContenedor.length === 0 ? (
+                  <div className={estilos.mensajeVacioInventario}>
+                    No hay objetos en este compartimento. Arrastra objetos aquí para transferirlos.
+                  </div>
+                ) : (
+                  itemsContenedor.map((obj) => (
+                    <TarjetaObjetoInventario
+                      key={obj.idInstancia}
+                      objeto={obj}
+                      baseDatosObjetos={baseDatosObjetos}
+                      inventarioCompleto={personaje.inventario || []}
+                      totalSintonizados={totalSintonizados}
+                      tieneContents={comprobarTieneContents(obj)}
+                      alInspeccionar={() => setObjetoInspeccionadoId(obj.idInstancia)}
+                      alAlternarEquipado={() => alAlternarEquipado(obj.idInstancia)}
+                      alAlternarSintonizado={() => alAlternarSintonizado(obj.idInstancia)}
+                      alModificarCantidad={(delta) => alModificarCantidad(obj.idInstancia, delta)}
+                      alModificarCargas={(delta) => alModificarCargas(obj.idInstancia, delta)}
+                      alEliminar={() => alQuitarObjeto(obj.idInstancia)}
+                      alUsar={alUsarObjeto}
+                      alDesempaquetar={() => alDesempaquetarPaquete && alDesempaquetarPaquete(obj.idInstancia)}
+                      alCambiarContenedor={(c) => alCambiarContenedor && alCambiarContenedor(obj.idInstancia, c)}
+                      alSoltarReordenar={manejarReordenarItems}
+                      alIniciarArrastre={() => setArrastrandoItem(true)}
+                      alFinalizarArrastre={() => {
+                        setArrastrandoItem(false);
+                        setZonaDropActiva(null);
+                      }}
+                    />
+                  ))
+                )}
+              </div>
+            )}
+          </div>
+        );
+      })}
+
+      {/* Dock Flotante/Sticky de Movilización Rápida (Solo visible durante Drag & Drop) */}
+      {arrastrandoItem && (
+        <div className={estilos.dockMovilizacionFlotanteInferior}>
+          <div className={estilos.tituloDockMovilizacion}>
+            <Package size={11} color="#38bdf8" />
+            <span>Movilización Rápida (Suelta para transferir)</span>
+          </div>
+          <div className={estilos.gridCajasMovilizacion}>
+            {CAJAS_MOVILIZACION_RAPIDA.map((caja) => {
+              const estaSobrevolada = zonaDropActiva === caja.id;
+              return (
+                <div
+                  key={caja.id}
+                  className={`${estilos.cajaMovilizacionRapida} ${estaSobrevolada ? estilos.cajaMovilizacionSobrevolada : ""}`}
+                  style={{
+                    borderColor: estaSobrevolada ? caja.color : `${caja.color}60`,
+                    backgroundColor: estaSobrevolada ? `${caja.color}35` : `${caja.color}15`
+                  }}
+                  onDragOver={(e) => manejarDragOver(e, caja.id)}
+                  onDragLeave={(e) => manejarDragLeave(e, caja.id)}
+                  onDrop={(e) => manejarDrop(e, caja.id)}
+                  title={`Arrastra y suelta aquí para transferir a ${caja.titulo}`}
+                >
+                  <div className={estilos.iconoCajaMovilizacion}>{caja.icono}</div>
+                  <div className={estilos.infoCajaMovilizacion}>
+                    <span className={estilos.nombreCajaMovilizacion} style={{ color: caja.color }}>
+                      {caja.titulo}
+                    </span>
+                    <span className={estilos.subtituloCajaMovilizacion}>
+                      {caja.subtitulo}
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* MODAL DE ADICIÓN DE OBJETOS */}
       {modalAgregarAbierto && (

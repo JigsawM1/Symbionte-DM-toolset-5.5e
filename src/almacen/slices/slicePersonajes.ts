@@ -142,6 +142,7 @@ export interface SlicePersonajes {
   actualizarObjetoInventario: (idPj: string, idInstancia: string, cambios: Partial<ObjetoInventario>) => void;
   modificarCargasObjeto: (idPj: string, idInstancia: string, delta: number) => void;
   cambiarContenedorObjeto: (idPj: string, idInstancia: string, contenedor: TipoContenedor) => void;
+  reordenarInventario: (idPj: string, idInstanciaOrigen: string, idInstanciaDestino: string) => void;
   desempaquetarPaquete: (idPj: string, idInstancia: string, baseDatosObjetos: ObjetoJuego[]) => void;
   establecerMonedas: (idPj: string, monedas: Partial<BolsaMonedas>) => void;
   modificarMoneda: (idPj: string, tipo: TipoMonedaClave, delta: number) => void;
@@ -933,10 +934,14 @@ export const crearSlicePersonajes: StateCreator<
     mutarPersonaje(set, idPj, (pj) => {
       const inventarioActual = pj.inventario || [];
       const normalizar = (s: string) => s.toLowerCase().trim();
+      const contNuevo = objeto.contenedor || "mochila";
 
-      // Buscar si ya existe un objeto IDÉNTICO NO EQUIPADO en la mochila para fusionar
+      // Buscar si ya existe un objeto IDÉNTICO NO EQUIPADO en el mismo contenedor para fusionar
       const indiceExistente = inventarioActual.findIndex((o) => {
         if (o.equipado || objeto.equipado) return false;
+        const contExistente = o.contenedor || "mochila";
+        if (contExistente !== contNuevo) return false;
+
         // Si ambos provienen del compendio y tienen idObjeto válido
         if (
           o.idObjeto &&
@@ -969,6 +974,26 @@ export const crearSlicePersonajes: StateCreator<
       return {
         ...pj,
         inventario: [...inventarioActual, objeto]
+      };
+    });
+  },
+
+  reordenarInventario: (idPj, idInstanciaOrigen, idInstanciaDestino) => {
+    mutarPersonaje(set, idPj, (pj) => {
+      const inventarioActual = [...(pj.inventario || [])];
+      const indiceOrigen = inventarioActual.findIndex((o) => o.idInstancia === idInstanciaOrigen);
+      const indiceDestino = inventarioActual.findIndex((o) => o.idInstancia === idInstanciaDestino);
+
+      if (indiceOrigen === -1 || indiceDestino === -1 || indiceOrigen === indiceDestino) {
+        return pj;
+      }
+
+      const [objetoMovido] = inventarioActual.splice(indiceOrigen, 1);
+      inventarioActual.splice(indiceDestino, 0, objetoMovido);
+
+      return {
+        ...pj,
+        inventario: inventarioActual
       };
     });
   },

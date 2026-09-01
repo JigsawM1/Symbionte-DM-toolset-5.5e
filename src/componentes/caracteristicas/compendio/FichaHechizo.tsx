@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from "react";
-import { Clock, MapPin, Layers, X, Edit2, Dices, ChevronLeft, Zap, Sparkles } from "lucide-react";
+import { Clock, MapPin, Layers, X, Edit2, Dices, ChevronLeft, Zap, Sparkles, AlertTriangle } from "lucide-react";
 import { lanzarDadosTaleSpire } from "@/utiles/lanzadorDados";
 import {
   calcularFormulaEscalada,
@@ -28,6 +28,9 @@ interface FichaHechizoProps {
   espaciosConjuroMaximos?: Record<string, number>;
   nivelConjuroMaximo?: number;
   sistemaMagia?: "espacios" | "puntos";
+  ocultarLanzamiento?: boolean;
+  bloqueadoPorArmadura?: boolean;
+  motivoBloqueoArmadura?: string;
 }
 
 export const FichaHechizo: React.FC<FichaHechizoProps> = React.memo(({
@@ -45,7 +48,10 @@ export const FichaHechizo: React.FC<FichaHechizoProps> = React.memo(({
   espaciosPactoMaximos = 0,
   espaciosConjuroMaximos = {},
   nivelConjuroMaximo = 0,
-  sistemaMagia = "espacios"
+  sistemaMagia = "espacios",
+  ocultarLanzamiento = false,
+  bloqueadoPorArmadura = false,
+  motivoBloqueoArmadura
 }) => {
   const nivelBase = hechizo.nivel;
   const esTruco = nivelBase === 0;
@@ -127,6 +133,10 @@ export const FichaHechizo: React.FC<FichaHechizoProps> = React.memo(({
     e.stopPropagation();
     e.preventDefault();
 
+    if (bloqueadoPorArmadura) {
+      return;
+    }
+
     const prefijoPj = nombrePersonaje ? `${nombrePersonaje} - ` : "";
 
     if (esTruco) {
@@ -178,6 +188,10 @@ export const FichaHechizo: React.FC<FichaHechizoProps> = React.memo(({
   const manejarLanzamientoRitual = (e: React.MouseEvent) => {
     e.stopPropagation();
     e.preventDefault();
+
+    if (bloqueadoPorArmadura) {
+      return;
+    }
 
     const prefijoPj = nombrePersonaje ? `${nombrePersonaje} - ` : "";
     const tipoDanoText = hechizo.tipoDaño && hechizo.tipoDaño !== "N/A" ? ` (${hechizo.tipoDaño})` : "";
@@ -302,7 +316,7 @@ export const FichaHechizo: React.FC<FichaHechizoProps> = React.memo(({
         )}
 
         {/* MECÁNICAS DE COMBATE (Daño / CD / Upcasting / Mejora de Truco / Lanzamiento) */}
-        {(tieneMecanicasCombate || onLanzarConjuro) && (
+        {!ocultarLanzamiento && (tieneMecanicasCombate || onLanzarConjuro) && (
           <div className={estilosClases.cajaCombate}>
             <div className={estilosClases.tituloCombate}>
               {tieneMecanicasCombate ? "Mecánicas de Combate Integradas" : "Lanzamiento del Conjuro"}
@@ -401,11 +415,44 @@ export const FichaHechizo: React.FC<FichaHechizoProps> = React.memo(({
               </div>
             )}
 
+            {/* Banner de Advertencia por Armadura sin Competencia */}
+            {bloqueadoPorArmadura && (
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 8,
+                  padding: "8px 12px",
+                  backgroundColor: "rgba(239, 68, 68, 0.15)",
+                  border: "1px solid rgba(239, 68, 68, 0.4)",
+                  borderRadius: 6,
+                  color: "#fca5a5",
+                  fontSize: 12,
+                  fontWeight: 600,
+                  marginBottom: 8
+                }}
+              >
+                <AlertTriangle size={15} color="#ef4444" style={{ flexShrink: 0 }} />
+                <span>
+                  {motivoBloqueoArmadura || "No puedes lanzar conjuros mientras vistas armadura o portes escudo sin competencia."}
+                </span>
+              </div>
+            )}
+
             {/* Botón de Lanzamiento a TaleSpire */}
             <button
               onClick={manejarLanzamientoDados}
+              disabled={bloqueadoPorArmadura}
               className={nivelLanzamiento > nivelBase && esEscalable ? estilosClases.botonTirarUpcast : estilosClases.botonTirarCombate}
-              style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "6px" }}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: "6px",
+                opacity: bloqueadoPorArmadura ? 0.45 : 1,
+                cursor: bloqueadoPorArmadura ? "not-allowed" : "pointer"
+              }}
+              title={bloqueadoPorArmadura ? (motivoBloqueoArmadura || "Bloqueado por armadura sin competencia") : undefined}
               type="button"
             >
               {tieneDano || tieneAtaque ? <Dices size={16} /> : <Zap size={16} />}
@@ -430,6 +477,7 @@ export const FichaHechizo: React.FC<FichaHechizoProps> = React.memo(({
             {hechizo.ritual && !esTruco && (
               <button
                 onClick={manejarLanzamientoRitual}
+                disabled={bloqueadoPorArmadura}
                 style={{
                   display: "inline-flex",
                   alignItems: "center",
@@ -442,13 +490,19 @@ export const FichaHechizo: React.FC<FichaHechizoProps> = React.memo(({
                   fontSize: 13,
                   fontWeight: 700,
                   padding: "8px 14px",
-                  cursor: "pointer",
+                  cursor: bloqueadoPorArmadura ? "not-allowed" : "pointer",
+                  opacity: bloqueadoPorArmadura ? 0.45 : 1,
                   marginTop: 6,
                   width: "100%",
                   transition: "background-color 0.15s ease"
                 }}
-                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "rgba(168, 85, 247, 0.25)")}
-                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "rgba(168, 85, 247, 0.15)")}
+                title={bloqueadoPorArmadura ? (motivoBloqueoArmadura || "Bloqueado por armadura sin competencia") : undefined}
+                onMouseEnter={(e) => {
+                  if (!bloqueadoPorArmadura) e.currentTarget.style.backgroundColor = "rgba(168, 85, 247, 0.25)";
+                }}
+                onMouseLeave={(e) => {
+                  if (!bloqueadoPorArmadura) e.currentTarget.style.backgroundColor = "rgba(168, 85, 247, 0.15)";
+                }}
                 type="button"
               >
                 <Sparkles size={15} />

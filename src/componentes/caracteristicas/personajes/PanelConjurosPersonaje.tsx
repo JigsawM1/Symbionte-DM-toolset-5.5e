@@ -3,13 +3,15 @@ import {
   Sparkles,
   Flame,
   Zap,
-  BookOpen
+  BookOpen,
+  AlertTriangle
 } from "lucide-react";
 import type {
   PersonajeJugador,
   Caracteristica,
   HechizoBase
 } from "@/tipos";
+import type { PenalizacionArmadura } from "@/almacen/selectores/usarEstadoPersonajes";
 import {
   gastarRecursoLanzamientoConjuro,
   obtenerConjurosSubclasePersonaje
@@ -34,6 +36,7 @@ interface PanelConjurosPersonajeProps {
   modificadores: Record<Caracteristica, number>;
   baseDatosHechizos: HechizoBase[];
   sistemaMagia: "espacios" | "puntos";
+  penalizacionArmadura?: PenalizacionArmadura;
   alAbrirConfiguracion?: () => void;
   alGastarEspacio: (nivel: number) => void;
   alRecuperarEspacio: (nivel: number) => void;
@@ -56,6 +59,7 @@ export const PanelConjurosPersonaje: React.FC<PanelConjurosPersonajeProps> = ({
   modificadores,
   baseDatosHechizos,
   sistemaMagia,
+  penalizacionArmadura,
   alAbrirConfiguracion,
   alGastarEspacio,
   alRecuperarEspacio,
@@ -127,7 +131,13 @@ export const PanelConjurosPersonaje: React.FC<PanelConjurosPersonajeProps> = ({
 
   const { establecerPestaña } = usarAccionesConfiguracion();
 
+  const estaBloqueadoPorArmadura = !!penalizacionArmadura?.sinCompetencia;
+  const motivoBloqueoArmadura = estaBloqueadoPorArmadura
+    ? `No puedes lanzar conjuros mientras vistas ${[penalizacionArmadura?.armaduraNoCompetente, penalizacionArmadura?.escudoNoCompetente].filter(Boolean).join(" o ")} sin competencia.`
+    : undefined;
+
   const manejarTiradaAtaqueMagico = async () => {
+    if (estaBloqueadoPorArmadura) return;
     try {
       const nombrePj = personaje.nombre?.trim() || "Personaje";
       const modTexto = bonoAtaqueMagico >= 0 ? `+${bonoAtaqueMagico}` : `${bonoAtaqueMagico}`;
@@ -140,6 +150,18 @@ export const PanelConjurosPersonaje: React.FC<PanelConjurosPersonajeProps> = ({
 
   return (
     <div className={estilos.contenedor}>
+      {/* Banner de Bloqueo por Armadura sin Competencia (Regla Oficial D&D 5.5e) */}
+      {estaBloqueadoPorArmadura && (
+        <div className={estilos.bannerBloqueoMagia}>
+          <AlertTriangle size={18} color="#ef4444" style={{ flexShrink: 0 }} />
+          <div>
+            <strong>Lanzamiento de Conjuros Bloqueado:</strong>
+            {" "}Vistes {penalizacionArmadura?.armaduraNoCompetente || penalizacionArmadura?.escudoNoCompetente} sin competencia.
+            {" "}Las reglas impiden lanzar conjuros y rituales bajo esta condición.
+          </div>
+        </div>
+      )}
+
       {personaje.concentracionActiva && (
         <div className={estilos.alertaConcentracion}>
           <div className={estilos.concentracionIzquierda}>
@@ -168,12 +190,24 @@ export const PanelConjurosPersonaje: React.FC<PanelConjurosPersonajeProps> = ({
           <span className={estilos.estadisticaNumeroMono}>{cdConjuros}</span>
         </div>
 
-        <div onClick={manejarTiradaAtaqueMagico} title="Haz clic para tirar Ataque Mágico en TaleSpire" className={estilos.tarjetaAtaqueMagico}>
+        <div
+          onClick={manejarTiradaAtaqueMagico}
+          title={estaBloqueadoPorArmadura ? (motivoBloqueoArmadura || "Bloqueado por armadura sin competencia") : "Haz clic para tirar Ataque Mágico en TaleSpire"}
+          className={`${estilos.tarjetaAtaqueMagico} ${estaBloqueadoPorArmadura ? estilos.tarjetaAtaqueMagicoBloqueada : ""}`}
+        >
           <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-            <Zap size={11} color="#a78bfa" />
-            <span className={estilos.estadisticaEtiquetaMorada}>Ataque Mágico</span>
+            {estaBloqueadoPorArmadura ? (
+              <AlertTriangle size={11} color="#ef4444" />
+            ) : (
+              <Zap size={11} color="#a78bfa" />
+            )}
+            <span className={estaBloqueadoPorArmadura ? undefined : estilos.estadisticaEtiquetaMorada} style={estaBloqueadoPorArmadura ? { color: "#f87171", fontSize: 10, fontWeight: 700, textTransform: "uppercase" } : undefined}>
+              Ataque Mágico
+            </span>
           </div>
-          <span className={estilos.estadisticaNumeroMorado}>{bonoAtaqueMagico >= 0 ? `+${bonoAtaqueMagico}` : bonoAtaqueMagico}</span>
+          <span className={estaBloqueadoPorArmadura ? undefined : estilos.estadisticaNumeroMorado} style={estaBloqueadoPorArmadura ? { color: "#fca5a5", fontSize: 18, fontWeight: 800 } : undefined}>
+            {bonoAtaqueMagico >= 0 ? `+${bonoAtaqueMagico}` : bonoAtaqueMagico}
+          </span>
         </div>
       </div>
 
@@ -265,6 +299,8 @@ export const PanelConjurosPersonaje: React.FC<PanelConjurosPersonajeProps> = ({
                 nombrePersonaje={personaje.nombre}
                 bonoAtaqueMagico={bonoAtaqueMagico}
                 cdConjuros={cdConjuros}
+                bloqueadoPorArmadura={estaBloqueadoPorArmadura}
+                motivoBloqueoArmadura={motivoBloqueoArmadura}
                 alAsignarArcano={(nivel, hechizoId) => asignarArcanoMistico(personaje.id, nivel, hechizoId)}
                 alQuitarArcano={(nivel) => quitarArcanoMistico(personaje.id, nivel)}
                 alGastarArcano={(nivel) => gastarArcanoMistico(personaje.id, nivel)}
@@ -324,6 +360,8 @@ export const PanelConjurosPersonaje: React.FC<PanelConjurosPersonajeProps> = ({
                 esDeSubclase={esHechizoDeSubclase(truco)}
                 mostrarTogglePreparado={false}
                 esConcentracionActual={personaje.concentracionActiva?.hechizoId === truco.id}
+                bloqueadoPorArmadura={estaBloqueadoPorArmadura}
+                motivoBloqueoArmadura={motivoBloqueoArmadura}
                 alQuitarDeLista={() => alQuitarTruco(truco.id)}
                 alAbrirDetalleCompleto={(h) => setHechizoModal(h)}
                 alEstablecerConcentracion={alEstablecerConcentracion}
@@ -380,6 +418,8 @@ export const PanelConjurosPersonaje: React.FC<PanelConjurosPersonajeProps> = ({
                   esDeSubclase={esHechizoDeSubclase(hechizo)}
                   mostrarTogglePreparado={requierePreparacion}
                   esConcentracionActual={personaje.concentracionActiva?.hechizoId === hechizo.id}
+                  bloqueadoPorArmadura={estaBloqueadoPorArmadura}
+                  motivoBloqueoArmadura={motivoBloqueoArmadura}
                   alAlternarPreparado={() => alAlternarPreparado(hechizo.id)}
                   alQuitarDeLista={() => alQuitarConjuro(hechizo.id)}
                   alAbrirDetalleCompleto={(h) => setHechizoModal(h)}
@@ -417,14 +457,18 @@ export const PanelConjurosPersonaje: React.FC<PanelConjurosPersonajeProps> = ({
               espaciosConjuroMaximos={personaje.espaciosConjuroMaximos || {}}
               nivelConjuroMaximo={personaje.nivelConjuroMaximo || 0}
               sistemaMagia={sistemaMagia}
+              bloqueadoPorArmadura={estaBloqueadoPorArmadura}
+              motivoBloqueoArmadura={motivoBloqueoArmadura}
               onClose={() => setHechizoModal(null)}
               onLanzarRitual={() => {
+                if (estaBloqueadoPorArmadura) return;
                 if (hechizoModal.concentracion && alEstablecerConcentracion) {
                   alEstablecerConcentracion(hechizoModal.id, hechizoModal.nombre);
                 }
                 setHechizoModal(null);
               }}
               onLanzarConjuro={(nivelLanzamiento) => {
+                if (estaBloqueadoPorArmadura) return;
                 if (hechizoModal.nivel > 0) {
                   gastarRecursoLanzamientoConjuro({
                     nivelLanzamiento,

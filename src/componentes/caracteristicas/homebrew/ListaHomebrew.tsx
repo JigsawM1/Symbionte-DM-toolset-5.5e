@@ -511,6 +511,7 @@ export const ListaHomebrew: React.FC<Props> = ({
           <div className={estilos.panelDetalleOverlay}>
             <FichaHechizo
               hechizo={hechizo}
+              ocultarLanzamiento={true}
               onClose={() => setIdHechizoDetalleCreador(null)}
               onEditar={
                 !soloLectura && iniciarEdicionHechizo
@@ -691,7 +692,7 @@ export const ListaHomebrew: React.FC<Props> = ({
               {objeto.tipoPrincipal === "Arma" && (
                 <div className={estilos.cajaMecanicasCombateObjeto}>
                   <div className={estilos.tituloMecanicasObjeto}>
-                    Propiedades de Combate del Arma (D&D 5.5e)
+                    Propiedades de Combate del Arma
                   </div>
                   <div className={estilos.gridMecanicas}>
                     {objeto.dadoDano && (
@@ -753,7 +754,7 @@ export const ListaHomebrew: React.FC<Props> = ({
               {objeto.tipoPrincipal === "Armadura" && (
                 <div className={estilos.cajaMecanicasCombateObjeto} style={{ borderColor: "rgba(255, 165, 0, 0.25)" }}>
                   <div className={estilos.tituloMecanicasObjeto} style={{ color: "var(--color-advertencia)" }}>
-                    Protección y Sigilo (D&D 5e)
+                    Protección y Sigilo
                   </div>
                   <div className={estilos.gridMecanicas}>
                     <div className={estilos.itemMecanica}>

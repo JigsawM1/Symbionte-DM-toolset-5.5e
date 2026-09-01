@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from "react";
-import type { ObjetoJuego, ObjetoInventario, Arma } from "@/tipos";
-import { FileText, X, Plus, Sparkles, Package } from "lucide-react";
+import type { ObjetoJuego, ObjetoInventario, Arma, TipoContenedor } from "@/tipos";
+import { FileText, X, Plus, Sparkles, Package, Backpack, Box } from "lucide-react";
 import { SelectorSugerencias, OpcionSugerencia } from "@/componentes/comunes/SelectorSugerencias";
 import {
   crearObjetoInventarioDesdeCompendio,
@@ -20,6 +20,38 @@ interface ModalAgregarObjetoProps {
 
 type FiltroTipo = "todos" | "Arma" | "Armadura" | "Equipo de Aventuras";
 
+const OPCIONES_CONTENEDOR_DESTINO: {
+  clave: TipoContenedor;
+  nombre: string;
+  subtitulo: string;
+  color: string;
+}[] = [
+  {
+    clave: "mochila",
+    nombre: "Mochila",
+    subtitulo: "Carga directa",
+    color: "#f59e0b"
+  },
+  {
+    clave: "bolsa_contencion",
+    nombre: "Bolsa Contención",
+    subtitulo: "0 lb carga",
+    color: "#c084fc"
+  },
+  {
+    clave: "montura",
+    nombre: "Montura",
+    subtitulo: "0 lb carga",
+    color: "#38bdf8"
+  },
+  {
+    clave: "almacen",
+    nombre: "Almacén",
+    subtitulo: "0 lb carga",
+    color: "#94a3b8"
+  }
+];
+
 export const ModalAgregarObjeto: React.FC<ModalAgregarObjetoProps> = ({
   tabInicial = "compendio",
   baseDatosObjetos,
@@ -27,6 +59,7 @@ export const ModalAgregarObjeto: React.FC<ModalAgregarObjetoProps> = ({
   alCerrar
 }) => {
   const [tabActiva, setTabActiva] = useState<TabModalAgregar>(tabInicial);
+  const [contenedorDestino, setContenedorDestino] = useState<TipoContenedor>("mochila");
 
   useEffect(() => {
     setTabActiva(tabInicial);
@@ -180,7 +213,8 @@ export const ModalAgregarObjeto: React.FC<ModalAgregarObjetoProps> = ({
 
     const nuevoObj = crearObjetoInventarioDesdeCompendio(
       objetoSeleccionado,
-      cantidadCompendio
+      cantidadCompendio,
+      contenedorDestino
     );
     alAgregarObjeto(nuevoObj);
     alCerrar();
@@ -205,6 +239,7 @@ export const ModalAgregarObjeto: React.FC<ModalAgregarObjetoProps> = ({
       equipable: false,
       sintonizacionRequerida: false,
       esMagico: false,
+      contenedor: contenedorDestino,
       notas: notasPosesion.trim()
     });
 
@@ -311,6 +346,43 @@ export const ModalAgregarObjeto: React.FC<ModalAgregarObjetoProps> = ({
                 value={cantidadCompendio}
                 onChange={(e) => setCantidadCompendio(Math.max(1, parseInt(e.target.value, 10) || 1))}
               />
+            </div>
+
+            {/* Selector de Contenedor de Destino */}
+            <div className={estilos.campoFormulario}>
+              <label className={estilos.labelFormulario}>Guardar en:</label>
+              <div className={estilos.cuadriculaSelectoresDestino}>
+                {OPCIONES_CONTENEDOR_DESTINO.map((opc) => {
+                  const activo = contenedorDestino === opc.clave;
+                  return (
+                    <button
+                      key={opc.clave}
+                      type="button"
+                      className={`${estilos.botonSelectorDestino} ${activo ? estilos.botonSelectorDestinoActivo : ""}`}
+                      style={{
+                        borderColor: activo ? opc.color : undefined,
+                        backgroundColor: activo ? `${opc.color}15` : undefined
+                      }}
+                      onClick={() => setContenedorDestino(opc.clave)}
+                    >
+                      <div className={estilos.iconoSelectorDestino}>
+                        {opc.clave === "mochila" && <Backpack size={13} color={opc.color} />}
+                        {opc.clave === "bolsa_contencion" && <Sparkles size={13} color={opc.color} />}
+                        {opc.clave === "montura" && <Box size={13} color={opc.color} />}
+                        {opc.clave === "almacen" && <Package size={13} color={opc.color} />}
+                      </div>
+                      <div className={estilos.infoSelectorDestino}>
+                        <span className={estilos.nombreSelectorDestino} style={{ color: activo ? opc.color : "#cbd5e1" }}>
+                          {opc.nombre}
+                        </span>
+                        <span className={estilos.subtituloSelectorDestino}>
+                          {opc.subtitulo}
+                        </span>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
 
             {/* Vista Previa del Objeto Seleccionado */}
@@ -442,6 +514,43 @@ export const ModalAgregarObjeto: React.FC<ModalAgregarObjetoProps> = ({
                   onChange={(e) => setPesoPosesion(e.target.value)}
                   placeholder="0 (ligero / insignificante)"
                 />
+              </div>
+            </div>
+
+            {/* Selector de Contenedor de Destino */}
+            <div className={estilos.campoFormulario}>
+              <label className={estilos.labelFormulario}>Guardar en:</label>
+              <div className={estilos.cuadriculaSelectoresDestino}>
+                {OPCIONES_CONTENEDOR_DESTINO.map((opc) => {
+                  const activo = contenedorDestino === opc.clave;
+                  return (
+                    <button
+                      key={opc.clave}
+                      type="button"
+                      className={`${estilos.botonSelectorDestino} ${activo ? estilos.botonSelectorDestinoActivo : ""}`}
+                      style={{
+                        borderColor: activo ? opc.color : undefined,
+                        backgroundColor: activo ? `${opc.color}15` : undefined
+                      }}
+                      onClick={() => setContenedorDestino(opc.clave)}
+                    >
+                      <div className={estilos.iconoSelectorDestino}>
+                        {opc.clave === "mochila" && <Backpack size={13} color={opc.color} />}
+                        {opc.clave === "bolsa_contencion" && <Sparkles size={13} color={opc.color} />}
+                        {opc.clave === "montura" && <Box size={13} color={opc.color} />}
+                        {opc.clave === "almacen" && <Package size={13} color={opc.color} />}
+                      </div>
+                      <div className={estilos.infoSelectorDestino}>
+                        <span className={estilos.nombreSelectorDestino} style={{ color: activo ? opc.color : "#cbd5e1" }}>
+                          {opc.nombre}
+                        </span>
+                        <span className={estilos.subtituloSelectorDestino}>
+                          {opc.subtitulo}
+                        </span>
+                      </div>
+                    </button>
+                  );
+                })}
               </div>
             </div>
 

@@ -56,10 +56,15 @@
   font-family: var(--fuente-codigo, 'JetBrains Mono', monospace);
 }
 
-.selectorPersonaje {
+.filaSelectorPersonajeCompacto {
   display: flex;
   align-items: center;
   gap: 6px;
+  justify-content: flex-end;
+  background: rgba(17, 22, 34, 0.7);
+  border: 1px solid rgba(148, 163, 184, 0.15);
+  border-radius: 6px;
+  padding: 4px 8px;
 }
 
 .tarjetaVacia {

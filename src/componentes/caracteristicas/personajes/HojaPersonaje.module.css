@@ -1261,6 +1261,18 @@
   border: 1px solid rgba(148, 163, 184, 0.08);
 }
 
+.cajaTextoCompetenciaInteractiva {
+  cursor: pointer;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+
+.cajaTextoCompetenciaInteractiva:hover {
+  border-color: rgba(56, 189, 248, 0.4);
+  background-color: rgba(56, 189, 248, 0.06);
+  color: #f8fafc;
+}
+
 /* ==========================================
    7. GESTOR DE PERSONAJES (GALERÍA)
    ========================================= */
@@ -1835,6 +1847,7 @@
   background: rgba(11, 15, 23, 0.4);
   border: 1px solid rgba(148, 163, 184, 0.08);
   border-radius: 6px;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
 }
 
 .cabeceraSubseccionMochila {
@@ -1843,6 +1856,12 @@
   align-items: center;
   padding-bottom: 3px;
   border-bottom: 1px dashed rgba(148, 163, 184, 0.1);
+  cursor: pointer;
+  user-select: none;
+}
+
+.cabeceraSubseccionMochila:hover {
+  background-color: rgba(255, 255, 255, 0.02);
 }
 
 .tituloSubseccionMochila {
@@ -1854,6 +1873,80 @@
   display: flex;
   align-items: center;
   gap: 5px;
+}
+
+.cabeceraColapsableInventario {
+  cursor: pointer;
+  user-select: none;
+}
+
+.cabeceraColapsableInventario:hover {
+  background-color: rgba(255, 255, 255, 0.02);
+}
+
+.iconoChevronColapso {
+  color: #94a3b8;
+  display: inline-flex;
+  align-items: center;
+  margin-right: 4px;
+}
+
+.zonaDropActiva {
+  border-color: #38bdf8 !important;
+  border-style: dashed !important;
+  background-color: rgba(56, 189, 248, 0.08) !important;
+  box-shadow: 0 0 10px rgba(56, 189, 248, 0.25) inset !important;
+}
+
+.tarjetaObjetoArrastrando {
+  opacity: 0.4 !important;
+  border-style: dashed !important;
+  border-color: #38bdf8 !important;
+}
+
+.iconoGripDrag {
+  color: #475569;
+  cursor: grab;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  transition: color 0.15s ease;
+}
+
+.iconoGripDrag:hover {
+  color: #94a3b8;
+}
+
+.iconoGripDrag:active {
+  cursor: grabbing;
+}
+
+.filaControlesColapso {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.botonControlColapso {
+  background: transparent;
+  border: 1px solid rgba(148, 163, 184, 0.15);
+  border-radius: 4px;
+  color: #94a3b8;
+  font-size: 9px;
+  font-weight: 700;
+  padding: 3px 6px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.botonControlColapso:hover {
+  background-color: #1a2230;
+  border-color: #38bdf8;
+  color: #f1f5f9;
 }
 
 .metaSubseccionMochila {
@@ -2345,6 +2438,286 @@
   padding: 1px 6px;
   border-radius: 10px;
   font-weight: 700;
+}
+
+/* --- SECCIÓN UNIFICADA DE RECURSOS, CARGA Y FINANZAS --- */
+.resumenCabeceraRecursos {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.badgeResumenRecursoPO {
+  font-size: 9.5px;
+  font-weight: 700;
+  color: #fbbf24;
+  background-color: rgba(245, 158, 11, 0.12);
+  border: 1px solid rgba(245, 158, 11, 0.25);
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-family: var(--fuente-codigo, 'JetBrains Mono', monospace);
+}
+
+.badgeResumenRecursoCarga {
+  font-size: 9.5px;
+  font-weight: 700;
+  color: #10b981;
+  background-color: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-family: var(--fuente-codigo, 'JetBrains Mono', monospace);
+}
+
+.badgeResumenCargaSobrecargado {
+  color: #f87171 !important;
+  background-color: rgba(239, 68, 68, 0.12) !important;
+  border-color: rgba(239, 68, 68, 0.35) !important;
+}
+
+.badgeResumenRecursoSintonizacion {
+  font-size: 9.5px;
+  font-weight: 700;
+  color: #c084fc;
+  background-color: rgba(192, 132, 252, 0.12);
+  border: 1px solid rgba(192, 132, 252, 0.25);
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-family: var(--fuente-codigo, 'JetBrains Mono', monospace);
+}
+
+.cuerpoSeccionRecursos {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 4px;
+}
+
+.contenedorMonedasInterior,
+.contenedorCargaInterior,
+.contenedorSintonizacionInterior {
+  background: rgba(11, 15, 23, 0.5);
+  border: 1px solid rgba(148, 163, 184, 0.1);
+  border-radius: 6px;
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* --- BOTÓN SUPERIOR AGREGAR OBJETO --- */
+.botonAgregarMochilaSuperior {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  padding: 7px 12px;
+  background: linear-gradient(180deg, #1c2638 0%, #131a28 100%);
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  border-radius: 6px;
+  color: #f8fafc;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+  margin-bottom: 2px;
+}
+
+.botonAgregarMochilaSuperior:hover {
+  background: linear-gradient(180deg, #243048 0%, #182236 100%);
+  border-color: #f59e0b;
+  box-shadow: 0 0 10px rgba(245, 158, 11, 0.25);
+  transform: translateY(-1px);
+}
+
+.botonAgregarMochilaSuperior:active {
+  transform: translateY(0);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+}
+
+/* --- DOCK DE MOVILIZACIÓN RÁPIDA FLOTANTE INFERIOR (DRAG & DROP TÁCTICO) --- */
+.dockMovilizacionFlotanteInferior {
+  position: fixed;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: calc(100% - 32px);
+  max-width: 580px;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px 12px;
+  background: rgba(11, 16, 26, 0.95);
+  border: 1.5px dashed rgba(56, 189, 248, 0.8);
+  border-radius: 10px;
+  box-shadow: 0 10px 35px rgba(0, 0, 0, 0.85), 0 0 15px rgba(56, 189, 248, 0.25);
+  backdrop-filter: blur(10px);
+  animation: aparecerDock 0.18s ease-out;
+}
+
+@keyframes aparecerDock {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 15px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
+.dockMovilizacionRapida {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 6px 8px;
+  background: rgba(11, 15, 23, 0.5);
+  border: 1px dashed rgba(148, 163, 184, 0.15);
+  border-radius: 6px;
+  margin-bottom: 4px;
+  transition: all 0.2s ease;
+}
+
+.dockMovilizacionActivo {
+  border-color: rgba(56, 189, 248, 0.6);
+  background: rgba(15, 23, 42, 0.8);
+  box-shadow: 0 0 10px rgba(56, 189, 248, 0.15);
+}
+
+.tituloDockMovilizacion {
+  font-size: 9px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #94a3b8;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.gridCajasMovilizacion {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 6px;
+}
+
+.cajaMovilizacionRapida {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 3px;
+  padding: 6px 4px;
+  border-radius: 5px;
+  border: 1px dashed rgba(148, 163, 184, 0.2);
+  background: rgba(15, 23, 42, 0.6);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  user-select: none;
+  min-height: 48px;
+  justify-content: center;
+}
+
+.cajaMovilizacionRapida:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.15);
+}
+
+.cajaMovilizacionSobrevolada {
+  border-style: solid !important;
+  transform: scale(1.03);
+  box-shadow: 0 0 10px rgba(56, 189, 248, 0.3);
+}
+
+.iconoCajaMovilizacion {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.infoCajaMovilizacion {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1.1;
+}
+
+.nombreCajaMovilizacion {
+  font-size: 9.5px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.subtituloCajaMovilizacion {
+  font-size: 8px;
+  color: #64748b;
+  font-weight: 600;
+}
+
+/* --- SELECTOR DE CONTENEDOR DE DESTINO EN MODAL --- */
+.cuadriculaSelectoresDestino {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.botonSelectorDestino {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  background-color: #0b0f16;
+  border: 1px solid rgba(148, 163, 184, 0.15);
+  border-radius: 5px;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.15s ease;
+}
+
+.botonSelectorDestino:hover {
+  background-color: #111622;
+  border-color: rgba(148, 163, 184, 0.3);
+}
+
+.botonSelectorDestinoActivo {
+  border-width: 1.5px;
+  box-shadow: 0 0 6px rgba(56, 189, 248, 0.2);
+}
+
+.iconoSelectorDestino {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.infoSelectorDestino {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.nombreSelectorDestino {
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.subtituloSelectorDestino {
+  font-size: 9px;
+  color: #64748b;
+}
+
+.tarjetaObjetoSobrevolada {
+  border-color: #38bdf8 !important;
+  box-shadow: 0 0 0 1px #38bdf8, 0 4px 8px rgba(56, 189, 248, 0.15) !important;
+  background: rgba(56, 189, 248, 0.06) !important;
 }
 
 

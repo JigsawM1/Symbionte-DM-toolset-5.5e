@@ -192,7 +192,7 @@ export const ConfiguracionDM: React.FC = () => {
           )}
 
           <div className={estilosClases.estructuraAyuda}>
-            <h5 className={estilosClases.tituloAyuda}>ESQUEMA JSON ESPERADO (D&D 5.5e):</h5>
+            <h5 className={estilosClases.tituloAyuda}>ESQUEMA JSON ESPERADO:</h5>
             <pre className={estilosClases.codigoEjemplo}>
 {`{
   "monstruos": [

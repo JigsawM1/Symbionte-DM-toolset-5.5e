@@ -198,3 +198,12 @@
 .botonIconoEliminar:hover {
   color: #ef4444;
 }
+
+.botonBloqueado,
+.botonBloqueado:hover {
+  background-color: rgba(239, 68, 68, 0.15) !important;
+  border-color: rgba(239, 68, 68, 0.35) !important;
+  color: #f87171 !important;
+  cursor: not-allowed !important;
+  opacity: 0.5;
+}

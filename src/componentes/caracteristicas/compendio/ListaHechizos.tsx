@@ -69,7 +69,7 @@ export const ListaHechizos: React.FC = () => {
   return (
     <div className={estilosClases.contenedor}>
       <h3 className={estilosClases.titulo}>
-        <span>Compendio de Conjuros (D&D 5.5e)</span>
+        <span>Compendio de Conjuros</span>
         <span className={estilosClases.contador}>
           Encontrados: {hechizosFiltrados.length}
         </span>
@@ -151,6 +151,7 @@ export const ListaHechizos: React.FC = () => {
         <div className={estilosClases.panelDetalleOverlay}>
           <FichaHechizo
             hechizo={hechizoSeleccionado}
+            ocultarLanzamiento={true}
             onClose={() => setIdHechizoDetalle(null)}
           />
         </div>

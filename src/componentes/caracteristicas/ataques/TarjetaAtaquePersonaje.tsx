@@ -39,6 +39,7 @@ export interface AtaquePersonajeCalculado {
   municionEnCompartimentosExternos?: number;
   puedeDisparar?: boolean;
   motivoBloqueo?: string;
+  esCompetenteConArma?: boolean;
 }
 
 /** Diccionario de descripciones oficiales D&D 5.5e (2024) para tooltips */
@@ -89,7 +90,7 @@ function obtenerTooltipMaestria(maestriaTexto: string): string {
   for (const [k, desc] of Object.entries(DESCRIPCIONES_MAESTRIAS)) {
     if (clave.includes(k)) return desc;
   }
-  return `Maestría de armas D&D 5.5e: ${maestriaTexto}`;
+  return `Maestría de armas: ${maestriaTexto}`;
 }
 
 function obtenerTooltipPropiedad(propiedadTexto: string): string {
@@ -153,6 +154,14 @@ export const TarjetaAtaquePersonaje: React.FC<TarjetaAtaquePersonajeProps> = ({
           {ataque.esMagico && (
             <span className={estilos.badgeMagicoAtaque}>
               <Sparkles size={10} /> Mágico
+            </span>
+          )}
+          {ataque.tipo === "Arma" && ataque.esCompetenteConArma === false && (
+            <span
+              className={estilos.badgeNoCompetente}
+              title="No eres competente con esta arma. No sumas tu bono de competencia al ataque."
+            >
+              <AlertTriangle size={10} /> No Competente
             </span>
           )}
         </div>

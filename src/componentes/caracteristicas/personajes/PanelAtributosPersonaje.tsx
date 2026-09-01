@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import type { PersonajeJugador, Caracteristica } from "@/tipos";
 import { CARACTERISTICAS_CLAVES } from "@/constantes";
 import type { EstadisticasCalculadasPersonaje } from "@/almacen/selectores/usarEstadoPersonajes";
+import { AlertTriangle } from "lucide-react";
 import estilos from "./HojaPersonaje.module.css";
 
 interface PanelAtributosPersonajeProps {
@@ -69,15 +70,29 @@ export const PanelAtributosPersonaje: React.FC<PanelAtributosPersonajeProps> = (
           const bonoSalvacion = salvaciones[carac] || 0;
           const salvTexto = bonoSalvacion >= 0 ? `+${bonoSalvacion}` : `${bonoSalvacion}`;
           const tieneCompetenciaSalv = personaje.competenciasSalvacion?.[carac] || false;
+          const tieneDesventajaArmadura =
+            !!statsCalculadas.penalizacionArmadura?.sinCompetencia &&
+            (carac === "fuerza" || carac === "destreza");
+
+          const tooltipAtributo = tieneDesventajaArmadura
+            ? `Prueba de ${etiqueta} (${modTexto}). DESVENTAJA por armadura sin competencia. Haz clic para tirar.`
+            : `Prueba de ${etiqueta} (${modTexto}). Haz clic para tirar en 3D.`;
 
           return (
             <div
               key={carac}
               className={`${estilos.neoRaised} ${estilos.tarjetaAtributo}`}
               onClick={() => alTirarCaracteristica(carac, etiqueta, mod)}
-              title={`Prueba de ${etiqueta} (${modTexto}). Haz clic para tirar en 3D.`}
+              title={tooltipAtributo}
             >
-              <span className={estilos.nombreAtributo}>{etiqueta}</span>
+              <div style={{ display: "flex", alignItems: "center", gap: 3, justifyContent: "center" }}>
+                <span className={estilos.nombreAtributo}>{etiqueta}</span>
+                {tieneDesventajaArmadura && (
+                  <span title="Desventaja en pruebas y salvaciones por armadura/escudo sin competencia">
+                    <AlertTriangle size={11} color="#f59e0b" />
+                  </span>
+                )}
+              </div>
 
               <div className={`${estilos.circuloModificador} ${estilos.neoPressed}`}>
                 <span className={estilos.textoModificador}>{modTexto}</span>

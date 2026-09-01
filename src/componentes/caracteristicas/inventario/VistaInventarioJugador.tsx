@@ -1,5 +1,5 @@
 import React, { useMemo, useCallback } from "react";
-import { Backpack, User } from "lucide-react";
+import { User } from "lucide-react";
 import type { PersonajeJugador, ObjetoJuego, ObjetoInventario } from "@/tipos";
 import {
   usarEstadoPersonajes,
@@ -31,6 +31,7 @@ export const VistaInventarioJugador: React.FC = () => {
     actualizarObjetoInventario,
     modificarCargasObjeto,
     cambiarContenedorObjeto,
+    reordenarInventario,
     desempaquetarPaquete,
     establecerMonedas,
     modificarMoneda,
@@ -99,36 +100,23 @@ export const VistaInventarioJugador: React.FC = () => {
 
   return (
     <div className={estilos.contenedorGeneral}>
-      {/* Cabecera del Panel con selector de personaje */}
-      <div className={estilos.cabeceraInventario}>
-        <div className={estilos.filaTitulo}>
-          <div className={estilos.grupoTitulo}>
-            <Backpack size={18} color="#f59e0b" />
-            <h2 className={estilos.tituloTexto}>Inventario de Aventuras</h2>
-            <span className={estilos.contadorBadge}>
-              {personajeActivo.inventario?.length || 0}
-            </span>
-          </div>
-
-          {/* Selector de personaje si hay más de 1 */}
-          {personajes.length > 1 && (
-            <div className={estilos.selectorPersonaje}>
-              <User size={13} color="#94a3b8" />
-              <SelectorDesplegable<string>
-                valor={personajeActivo.id}
-                alCambiar={(id) => seleccionarPersonajeActivo(id)}
-                tamano="compacto"
-                opciones={personajes.map((p: PersonajeJugador) => ({
-                  valor: p.id,
-                  etiqueta: `${p.nombre} (${p.clase || "PJ"})`
-                }))}
-              />
-            </div>
-          )}
+      {/* Selector de personaje si hay más de 1 */}
+      {personajes.length > 1 && (
+        <div className={estilos.filaSelectorPersonajeCompacto}>
+          <User size={13} color="#94a3b8" />
+          <SelectorDesplegable<string>
+            valor={personajeActivo.id}
+            alCambiar={(id) => seleccionarPersonajeActivo(id)}
+            tamano="compacto"
+            opciones={personajes.map((p: PersonajeJugador) => ({
+              valor: p.id,
+              etiqueta: `${p.nombre} (${p.clase || "PJ"})`
+            }))}
+          />
         </div>
-      </div>
+      )}
 
-      {/* Panel táctico de Inventario con sus 6 secciones */}
+      {/* Panel táctico de Inventario */}
       <PanelInventarioPersonaje
         personaje={personajeActivo}
         statsCalculadas={statsCalculadas}
@@ -148,6 +136,7 @@ export const VistaInventarioJugador: React.FC = () => {
         alActualizarObjeto={(idInst, cambios) => actualizarObjetoInventario(personajeActivo.id, idInst, cambios)}
         alModificarCargas={(idInst, delta) => modificarCargasObjeto(personajeActivo.id, idInst, delta)}
         alCambiarContenedor={(idInst, c) => cambiarContenedorObjeto(personajeActivo.id, idInst, c)}
+        alReordenarInventario={(origen, destino) => reordenarInventario(personajeActivo.id, origen, destino)}
         alDesempaquetarPaquete={(idInst) => {
           desempaquetarPaquete(personajeActivo.id, idInst, baseDatosObjetos);
           agregarNotificacion("¡Paquete desempaquetado con éxito en tu mochila!", "exito");

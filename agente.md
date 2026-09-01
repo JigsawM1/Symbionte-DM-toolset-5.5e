@@ -1,6 +1,204 @@
 # agente.md — Aprendizaje Autónomo del Simbionte DM
 
-Este archivo registra errores encontrados, sus causas raíz y las soluciones aplicadas.
+Este archivo registra reglas globales, errores encontrados, sus causas raíz y las soluciones aplicadas.
+
+## REGLAS GLOBALES OBLIGATORIAS (VIGENCIA PERMANENTE)
+1. **PROHIBICIÓN TOTAL DE EMOJIS (SOLO ICONOS LOCALES SVG / LUCIDE-REACT)**:
+   - **Bajo ninguna circunstancia se deben usar emojis** en la interfaz de usuario, botones, títulos, badges, tooltips, modales, textos de notificación, logs de chat ni cadenas de código.
+   - Cualquier representación gráfica o visual debe realizarse **estrictamente mediante iconos vectoriales locales SVG** (principalmente `lucide-react`) o diseño CSS.
+2. **GESTOR DE PAQUETES EXCLUSIVO**:
+   - Usar estrictamente `pnpm` (`pnpm add`, `pnpm test`, `pnpm run deploy`, etc.). Jamás sugerir ni invocar `npm` ni `yarn`.
+3. **IDIOMA DE COMUNICACIÓN Y CÓDIGO**:
+   - Toda interacción, comentarios y documentación técnica se redacta 100% en español.
+4. **TIPADO ESTRICTO Y CÓDIGO LIMPIO**:
+   - `strict: true` en TypeScript. Cero tipos `any`. Interfaces explícitas, generics y principios SOLID.
+
+---
+
+## [2026-08-31] Bloqueo Integral de Lanzamiento de Hechizos por Armadura sin Competencia (D&D 5.5e)
+**Decisión y Motivación:**
+- *Causa*: En D&D 5.5e (2024), llevar armadura o escudo sin entrenamiento impide terminantemente lanzar conjuros y rituales. Aunque se había implementado una advertencia en el modal, las tiradas de dados 3D y el consumo de recursos aún podían detonarse desde la tarjeta rápida de conjuro (`TarjetaConjuroCompacta`), desde los hechizos de objetos mágicos y desde la subpestaña de magia (`PanelConjurosPersonaje`).
+- *Solución*:
+  1. **Desde la Carta / Tarjeta Compacta y Ficha (`TarjetaConjuroCompacta.tsx` y `FichaHechizo.tsx`)**:
+     - Se añadió soporte de `bloqueadoPorArmadura` y `motivoBloqueoArmadura`.
+     - Se bloqueó la ejecución de `manejarLanzamientoRapido`, `manejarLanzamientoRitual` y `manejarLanzamientoDados`, garantizando que no se envíen dados a TaleSpire, no se descuenten ranuras/puntos y no se marque concentración activa.
+     - Botones "Lanzar" y "Ritual" deshabilitados con estilo visual atenuado en rojo (`.botonBloqueado`), tooltip contextual y badge `<AlertTriangle size={11} color="#ef4444" />`.
+     - En la ficha completa (`FichaHechizo`), se muestra un banner superior de advertencia explícito.
+  2. **Desde la Subpestaña de Magia en Características (`PanelConjurosPersonaje.tsx`)**:
+     - Banner superior de aviso de bloqueo de magia cuando el personaje viste armadura o escudo no competente.
+     - Botón de "Ataque Mágico" bloqueado y estilizado en advertencia (`.tarjetaAtaqueMagicoBloqueada`).
+     - Propagación de bloqueo a la lista de trucos, lista de conjuros por nivel (1-9) y Arcano Místico (`SeccionArcanoMistico.tsx`).
+  3. **Desde Acciones de Combate (`VistaAtaquesJugador.tsx`)**:
+     - Propagación de bloqueo a la lista de conjuros categorizados por tipo de acción (Acción, Acción Adicional, Reacción).
+     - Bloqueo y deshabilitación en hechizos concedidos por Objetos Mágicos sintonizados/equipados con notificación informativa.
+     - Modal de ficha completa (`FichaHechizo`) configurado con bloqueo estricto.
+
+## [2026-08-31] Corrección de Tiradas de Ataque con Desventaja en TaleSpire (Incompatibilidad de 2d20kl1)
+**Decisión y Motivación:**
+- *Causa*: Al aplicar la desventaja automática por armadura sin competencia en tiradas de Fuerza o Destreza, se generaba una cadena de dados con sintaxis de Roll20 (`"2d20kl1"`). La API física y el motor de dados de TaleSpire (`window.TS.dice`) **no admiten** modificadores de texto como `kl1` (keep lowest), por lo que el validador y el generador de descriptores físicos fallaban, bloqueando las tiradas en la bandeja 3D y en el chat.
+- *Solución*:
+  1. Se actualizó `lanzarDadosTaleSpire` para admitir un parámetro `tipoTiradaForzado?: "ventaja" | "desventaja" | "plano"`.
+  2. Las fórmulas conservan el formato limpio nativo (`1d20+bono`).
+  3. Si la regla impone desventaja (por armadura no competente), `lanzarDadosTaleSpire` divide la tirada en las pistas nativas de TaleSpire (`Pista (A):1d20+X / Pista (B):1d20+X`), lanza dos d20 físicos a la bandeja 3D y `procesarResultadosDadosTaleSpire` escoge automáticamente el menor para la desventaja (o el mayor para ventaja), publicando la tarjeta limpia en el chat sin fallos.
+  4. Se corrigieron `VistaAtaquesJugador.tsx` y `HojaPersonaje.tsx` para no inyectar nunca `2d20kl1`.
+
+## [2026-08-31] Regla Global: Eliminación de Emojis y Sustitución por Iconos Locales SVG
+**Decisión y Motivación:**
+- *Causa*: Se detectaron algunos remanentes puntuales de emojis en tooltips y avisos de almacenamiento. Los emojis presentan inconsistencias de renderizado en diferentes plataformas, rompen la estética neomórfica oscura del simbionte y saturan visualmente el UI.
+- *Solución*:
+  1. Se eliminaron todos los emojis residuales en el código fuente (`MetricasRapidasPersonaje.tsx`, `ModalDetalleObjetoInventario.tsx`).
+  2. Se reemplazaron por componentes SVG locales de `lucide-react` (`<AlertTriangle />`, `<Check />`, `<Package />`, etc.).
+  3. Se estableció como regla global inviolable el uso exclusivo de iconos locales.
+
+## [2026-08-31] Aplicación Estricta de Reglas Oficiales de Competencia D&D 5.5e (Armas, Armaduras y Conjuros)
+**Decisión y Motivación:**
+- *Causa*:
+  1. *Armas sin Competencia*: `VistaAtaquesJugador.tsx` sumaba incondicionalmente el bono de competencia (`bonoCompetencia + modAtributo + bonoMagico`) a todas las armas equipadas, ignorando las competencias configuradas en el personaje (`competenciasArmasGrupos` y `competenciasArmasLista`). Las funciones validadoras (`esCompetenteConArma`) nunca se invocaban en el pipeline de ataque.
+  2. *Armaduras sin Competencia*: `usarEstadoPersonajes.ts` calculaba la CA sin evaluar si el personaje era competente con la armadura o escudo equipados (`esCompetenteConArmadura`). En las reglas oficiales de D&D 5.5e (2024), llevar armadura o escudo sin competencia impone **Desventaja** en tiradas de ataque y pruebas/salvaciones que usen Fuerza o Destreza, e **incapacidad total de lanzar conjuros**.
+- *Solución*:
+  1. **Evaluación de Armas en Ataques**:
+     - `VistaAtaquesJugador.tsx` ahora infiere subcategorías de armas (`Sencilla`, `Marcial`, `De Fuego`) y ejecuta `esCompetenteConArma(...)`.
+     - Si el personaje no es competente con el arma equipada, el bono de ataque solo suma `modAtributo + bonoMagico` (sin bono de competencia).
+     - La tarjeta de ataque (`TarjetaAtaquePersonaje.tsx`) renderiza un badge táctico ámbar `<AlertTriangle size={10} /> No Competente` con tooltip explicativo.
+  2. **Penalización por Armadura/Escudo sin Competencia y Desventaja en Sigilo**:
+     - En `usarEstadoPersonajes.ts`, `calcularEstadisticasPersonaje` genera el objeto `penalizacionArmadura: { sinCompetencia, armaduraNoCompetente, escudoNoCompetente }` evaluando armaduras corporales y escudos equipados.
+     - Detecta automáticamente armaduras oficiales con propiedad de Sigilo con desventaja (`desventajaSigiloArmadura`) como Placas, Cota de Malla, Semiplacas, etc.
+     - **Tiradas de Ataque Físico**: Si el personaje tiene penalización de armadura y el ataque usa Fuerza o Destreza, `manejarTirarAtaque` lanza con fórmula `2d20kl1` (desventaja oficial) y etiqueta `(Desventaja por Armadura)`.
+     - **Tiradas de Hoja (Salvaciones, Atributos, Habilidades)**: En `HojaPersonaje.tsx`, las tiradas de Fuerza y Destreza lanzan automáticamente `2d20kl1`, y la tirada de Sigilo aplica desventaja cuando se porta armadura ruidosa.
+     - **Bloqueo / Advertencia de Conjuros**: En `VistaAtaquesJugador.tsx`, si se intenta lanzar un conjuro o ritual con armadura no competente, el sistema emite una advertencia de reglas de D&D 5.5e bloqueando el lanzamiento.
+     - **Selector Interactivo de Competencias Directo**: En `PanelHabilidadesPersonaje.tsx`, hacer clic en Armas, Armaduras, Idiomas o Herramientas abre de inmediato el `ModalSelectorCompetencias` para edición y guardado instantáneo sin salir de la hoja.
+     - **Indicadores Visuales**:
+       - Banner superior de advertencia en `VistaAtaquesJugador.tsx`.
+       - Iconos de advertencia en `PanelAtributosPersonaje.tsx` (Fuerza y Destreza) y `PanelHabilidadesPersonaje.tsx` (Atletismo, Acrobacias, Juego de Manos, Sigilo).
+       - Badge de advertencia en la métrica de Clase de Armadura (`MetricasRapidasPersonaje.tsx`).
+- *Validación*: 31/31 suites de Vitest aprobadas (334/334 tests al 100%), verificación estricta de tipos (`tsc --noEmit`), compilación exitosa de producción y despliegue directo a TaleSpire Symbiotes.
+
+## [2026-08-31] Uso Permisivo y No Bloqueante de Armas con Munición (Avisos No Intrusivos)
+**Decisión y Motivación:**
+- *Causa*: En `VistaAtaquesJugador.tsx`, al realizar una tirada de ataque con un arma a distancia o que requiere munición (`ataque.requiereMunicion`), si el personaje no contaba con proyectiles disponibles o contenedor en su inventario activo (`!estadoActual.puedeDisparar || estadoActual.municionEnContenedor <= 0`), el flujo emitía una advertencia de bloqueo y ejecutaba un `return;` inmediato. Esta prohibición impedía que el jugador utilizara el equipo para tirar dados en TaleSpire (por ejemplo, al disparar proyectiles improvisados, munición prestada o decisiones del DM en mesa).
+- *Solución*:
+  1. **Tirada Permisiva No Bloqueante**: En `VistaAtaquesJugador.tsx` (`manejarTirarAtaque`), se removió la cláusula prohibitiva `return;`.
+  2. **Notificación No Intrusiva**: Cuando no hay munición lista en el contenedor o se carece de contenedor, el sistema emite una notificación de advertencia informativa contextual (`Aviso: Tu Carcaj está vacío...`) sin abortar la acción.
+  3. **Consumo Controlado de Proyectiles**: Si hay munición compatible lista en el contenedor de la mochila, se descuenta 1 unidad como siempre; si no hay munición, no se realiza deducción pero la tirada de ataque a TaleSpire se ejecuta de forma natural y transparente.
+  4. **Preservación Visual**: Se mantienen los badges tácticos compactos y tooltips en `TarjetaAtaquePersonaje.tsx` para informar del estado de la munición sin saturar la pantalla.
+- *Validación*: 31/31 suites de Vitest aprobadas (329/329 tests al 100%), verificación estricta de tipos (`tsc --noEmit`), compilación y despliegue a TaleSpire Symbiotes.
+
+## [2026-08-31] Drag & Drop (Desequipar), Dock Atascado y Equipamiento Simultáneo de Armadura + Escudo
+**Decisión y Motivación:**
+- *Causa*:
+  1. *Desequipamiento por Drag & Drop*: Al arrastrar un objeto desde "Equipados Activos" y soltarlo sobre una tarjeta de la mochila, `TarjetaObjetoInventario` interceptaba el evento con `e.stopPropagation()` y delegaba en `manejarReordenarItems`. Este método no desequipaba el objeto si el destino estaba en la mochila (`contDestino === "mochila"`), manteniendo el ítem marcado como equipado.
+  2. *Dock Flotante Atascado*: Al trasladar el único ítem de un contenedor externo (*Bolsa de Contención*, *Montura*, *Almacén*) a la mochila, el estado de React vaciaba el contenedor y lo desmontaba inmediatamente del DOM junto a la tarjeta que se estaba arrastrando. En HTML5, si el elemento fuente se desmonta antes de soltar o finalizar el ciclo, el navegador nunca dispara el evento `dragend` en el elemento desvinculado, dejando `arrastrandoItem === true` de forma permanente.
+  3. *Equipamiento de Armadura y Escudo (D&D 5.5e)*: En `procesadorEquipamiento.ts`, la regla de armadura única trataba a todos los ítems con `tipoPrincipal === "Armadura"` por igual. Si un héroe equipaba un escudo teniendo armadura corporal puesta (o viceversa), el sistema desequipaba la armadura. Según las reglas oficiales de D&D 5.5e, un personaje puede portar 1 armadura corporal y 1 escudo simultáneamente.
+- *Solución*:
+  1. **Desequipamiento Bidireccional en Drag & Drop**:
+     - Actualizado `manejarReordenarItems` en `PanelInventarioPersonaje.tsx` para detectar si el origen está equipado y el destino no (`objOrigen.equipado && !objDestino.equipado`), invocando automáticamente `alAlternarEquipado` y notificando el desequipado.
+     - Igualmente, si se arrastra un objeto no equipado sobre un ítem equipado, valida si es equipable y lo equipa (`alAlternarEquipado`).
+     - En `manejarDrop`, se asegura que soltar sobre cualquier subsección o contenedor desequipe y notifique debidamente.
+  2. **Limpieza Global Resiliente de Drag & Drop**:
+     - Se añadió un listener global con `useEffect` en `PanelInventarioPersonaje.tsx` para interceptar `dragend`, `mouseup` y `drop` a nivel de `window` mientras `arrastrandoItem === true`.
+     - Se invocó la limpieza (`setArrastrandoItem(false)` y `setZonaDropActiva(null)`) dentro de `manejarReordenarItems` y en el `manejarDrop` de `TarjetaObjetoInventario.tsx`.
+  3. **Segregación Pura de Armaduras Corporales y Escudos**:
+     - Creadas las funciones puras `esObjetoEscudo` y `esObjetoArmaduraCorporal` en `procesadorEquipamiento.ts`.
+     - `procesarAlternarEquipado` ahora desequipa escudos previos únicamente cuando se equipa otro escudo, y armaduras corporales previas únicamente cuando se equipa otra armadura corporal, permitiendo llevar ambos simultáneamente y sumando con total fidelidad la CA en `usarEstadoPersonajes.ts`.
+- *Validación*: 31/31 suites de tests aprobadas (327/327 tests al 100%), verificación estricta de TypeScript (`tsc --noEmit`) y despliegue a TaleSpire Symbiotes.
+
+## [2026-08-28] Ocultación de Mecánicas de Combate / Lanzamiento en Vista de Compendio
+**Decisión y Motivación:**
+- *Causa*: Al abrir la ficha detallada de un conjuro (`FichaHechizo.tsx`) desde la pestaña de **Compendio** (`CompendioConjurosJugador.tsx`, `ListaHechizos.tsx` o `ListaHomebrew.tsx`), se renderizaba automáticamente el contenedor `.cajaCombate` ("Mecánicas de combate integradas", selector de ranuras de pacto/espacios y botones de tirada en TaleSpire / ritual). Esta sección interactiva de lanzamiento y tirada de dados solo tiene sentido táctico dentro de la pestaña de combate (**Acciones**) y en la ficha de personaje (**PanelConjurosPersonaje**), donde se gestionan los recursos reales de magia.
+- *Solución*:
+  1. Añadida la propiedad opcional `ocultarLanzamiento?: boolean` en la interfaz `FichaHechizoProps` de `FichaHechizo.tsx` (con valor por defecto `false`).
+  2. Condicionado el bloque `.cajaCombate` a `!ocultarLanzamiento && (tieneMecanicasCombate || onLanzarConjuro)`.
+  3. Pasado `ocultarLanzamiento={true}` en `CompendioConjurosJugador.tsx`, `ListaHechizos.tsx` y `ListaHomebrew.tsx`.
+  4. Preservada la funcionalidad completa e interactiva de lanzamiento con ranuras/puntos y tirada a TaleSpire en `VistaAtaquesJugador.tsx` y `PanelConjurosPersonaje.tsx`.
+- *Validación*: 31/31 suites de tests aprobadas (324/324 tests al 100%), verificación estricta de TypeScript (`tsc --noEmit`) y despliegue a TaleSpire.
+
+
+## [2026-08-28] Organización de Conjuros por Nivel y Colapsabilidad en Vista de Acciones
+**Decisión y Motivación:**
+- *Causa*: En la vista de combate y acciones (`VistaAtaquesJugador.tsx`), los conjuros se renderizaban en una lista plana dentro del grupo de acciones mágicas, lo que dificultaba localizar rápidamente los trucos vs conjuros de niveles 1-9 y generaba listas largas en personajes lanzadores de niveles altos.
+- *Solución*:
+  1. Implementada la segregación en `conjurosPorNivel` dividiendo los conjuros listos en *Trucos Listos* (Nivel 0) y niveles del 1 al 9.
+  2. Cada nivel con al menos 1 conjuro se renderiza en su propia subsección visual (`.seccionNivelMagico`), con cabecera interactiva, chevron de expansión/colapso y badge con el conteo de conjuros.
+  3. Estado de colapso persistente individual por nivel (`magicos_nv_${nivel}`) en `localStorage`, permitiendo que el jugador mantenga abiertas o cerradas las categorías según su conveniencia táctica.
+  4. Preservada la integración completa de lanzamientos, concentraciones, selección de espacios/puntos/pacto y badges de subclase.
+- *Validación*: 30/30 suites de tests aprobadas (321/321 tests al 100%), verificación estricta de TypeScript y despliegue a TaleSpire.
+
+## [2026-08-28] Corrección de Transferencia Drag & Drop de Contenedores Especiales a Mochila
+**Decisión y Motivación:**
+- *Causa*: Al arrastrar un objeto desde *Bolsa de Contención*, *Montura* o *Almacén* hacia la mochila o sobre una tarjeta de la mochila (`alSoltarReordenar`), el método `manejarReordenarItems` solo modificaba el orden de los índices en el array pero no actualizaba la propiedad `contenedor` del objeto a `"mochila"`. Además, el contenedor raíz de la mochila carecía de receptores `onDragOver` y `onDrop`.
+- *Solución*:
+  1. Actualizado `manejarReordenarItems` para detectar si el ítem de origen y el de destino pertenecen a compartimentos diferentes; al soltar sobre un ítem de la mochila, actualiza automáticamente `contenedor: "mochila"` (y desequipa si procede) mediante `alCambiarContenedor`.
+  2. Añadidos `onDragOver`, `onDragLeave` y `onDrop` con destino `"mochila"` en el contenedor principal de la mochila y en las subsecciones/estado vacío.
+  3. Asegurado que `manejarDrop` evalúe cualquier valor que no sea `equipados`, `bolsa_contencion`, `montura` o `almacen` (o `"mochila"`) y mueva el ítem a la mochila (`alCambiarContenedor(id, "mochila")`).
+- *Validación*: 30/30 suites de tests aprobadas (321/321 tests al 100%), verificación estricta de TypeScript y despliegue a TaleSpire.
+
+## [2026-08-28] Ocultación Dinámica de Contenedores Externos Vacíos
+**Decisión y Motivación:**
+- *Causa*: Si el personaje no posee objetos en *Bolsa de Contención*, *Montura* o *Almacén*, mostrar las secciones vacías ocupaba espacio visual innecesario.
+- *Solución*:
+  1. Se filtran las secciones dedicadas con `(mapaContenedoresEspeciales[cont.id] || []).length > 0` para ocultarlas automáticamente cuando no tienen elementos.
+  2. Si el usuario arrastra un objeto, el **Dock Flotante de Movilización Rápida** en la parte inferior siempre muestra las 5 cajas de destino (*Mochila, Bolsa Contención, Montura, Almacén, Equipar*), permitiendo transferir un ítem a un compartimento vacío en cualquier momento. Al soltarlo o asignarlo desde el modal de añadir, la sección aparece al instante.
+- *Validación*: 30/30 suites de tests aprobadas (321/321 tests al 100%), verificación estricta de TypeScript y despliegue a TaleSpire.
+
+## [2026-08-28] Arquitectura de Contenedores Externos Dedicados e Independientes
+**Decisión y Motivación:**
+- *Causa*: Los contenedores extradimensionales y externos (*Bolsa de Contención*, *Montura / Carreta / Alforjas*, *Almacén / Base / Campamento*) son compartimentos físicos o mágicos completamente independientes de la mochila personal. No debían mezclarse en una sola lista plana al cambiar el filtro de ordenación de la mochila a modos distintos de *"Por Tipo"*.
+- *Solución*:
+  1. Segregación estricta de las listas base: `objetosMochilaBase` vs `objetosBolsaContencionBase`, `objetosMonturaBase`, `objetosAlmacenBase`.
+  2. Los filtros de ordenación de la mochila (*"Por Tipo"*, *"Personalizado"*, *"Último Agregado"*, *"Mayor/Menor Peso"*, *"Nombre"*, *"Valor"*) aplican exclusivamente a los objetos que porta el aventurero en su **Mochila**.
+  3. **Bolsa de Contención**, **Montura / Carreta** y **Almacén** se renderizan SIEMPRE como sus propias secciones colapsables dedicadas (`SECCIÓN 6`), con su propio cálculo de peso (0 lb carga efectiva), contador de ítems, estado persistente de colapso y zona receptora de Drag & Drop.
+- *Validación*: 30/30 suites de tests aprobadas (321/321 tests al 100%), verificación estricta de TypeScript y despliegue a TaleSpire.
+
+## [2026-08-28] Refinamiento de UI/UX del Inventario: Eliminación de Título Redundante, Dock Flotante Inferior y Botón Superior
+**Decisión y Motivación:**
+- *Causa*:
+  1. El título *"INVENTARIO DE AVENTURAS"* ocupaba espacio vertical valioso en la ventana overlay de TaleSpire sin aportar valor funcional.
+  2. El dock de movilización rápida ocupaba espacio estático en la mochila; era más óptimo que solo apareciera de forma flotante e inferior (`sticky / fixed bottom`) cuando el usuario estuviese activamente en un ciclo de arrastre (Drag & Drop).
+  3. El botón *"Agregar Objeto"* debía ubicarse en la parte superior de la sección de la mochila para acceso directo e intuitivo, eliminando el botón redundantemente separado de *"Otras Posesiones"*.
+- *Solución*:
+  1. Eliminado el bloque de cabecera y el título de `VistaInventarioJugador.tsx`, preservando únicamente el selector compacto de personaje cuando existen múltiples héroes.
+  2. Creado el contenedor flotante inferior `.dockMovilizacionFlotanteInferior` en `HojaPersonaje.module.css`, renderizado condicionalmente en `PanelInventarioPersonaje.tsx` solo cuando `arrastrandoItem === true` con animación de entrada y backdrop blur.
+  3. Reubicado el botón *"Agregar Objeto"* (`.botonAgregarMochilaSuperior`) a la cabecera superior de la mochila, y retirado el bloque inferior de botones.
+- *Validación*: 30/30 suites de tests aprobadas (321/321 tests al 100%), verificación estricta de TypeScript (`tsc --noEmit`) y despliegue limpio a TaleSpire.
+
+## [2026-08-27] Optimización Táctica del Inventario: Sección Colapsable Unificada, Drag & Drop Libre (Personalizado), Dock de Movilización Rápida y Selector de Almacenamiento
+**Decisión y Motivación:**
+- *Causa*:
+  1. Las cajas superiores de *Bolsa de Monedas*, *Capacidad de Carga* y *Sintonización Mágica* ocupaban espacio vertical permanente sin posibilidad de colapso conjunto ni métricas sintéticas visibles al cerrarse.
+  2. En listas planas de inventario, el usuario requería poder reorganizar libremente el orden de los ítems arrastrándolos y soltándolos, cambiando automáticamente el filtro de ordenación a *"Personalizado"*.
+  3. Para agilizar la gestión de equipo en juego, se necesitaban cajas tácticas de soltado rápido (*Mochila, Bolsa de Contención, Montura/Carreta, Almacén, Equipar*) directamente accesibles al arrastrar cualquier objeto.
+  4. Al añadir un objeto nuevo (desde el Compendio o en Otras Posesiones), debía ser posible seleccionar de inmediato el compartimento de destino (*Mochila, Bolsa de Contención, Montura, Almacén*) para evitar sobrecargas innecesarias y traslados posteriores manuales.
+  5. Se respetó estrictamente la prohibición de emojis en la UI, empleando iconografía vectorial pura SVG con `lucide-react`.
+- *Solución*:
+  1. **Sección Unificada de Recursos, Carga y Finanzas**:
+     - Agrupación de Monedas, Carga y Sintonización en un único contenedor colapsable con memoria en `localStorage` (`ts_inventario_secciones_abiertas` clave `recursos`).
+     - Resumen métrico en la cabecera interactiva: total en PO (`Coins`), peso actual / capacidad máxima (`Weight`, en rojo si hay sobrecarga) y ranuras sintonizadas (`Link2`).
+  2. **Reordenación Libre Drag & Drop y Modo "Personalizado"**:
+     - Creada la acción pura `reordenarInventario` en `slicePersonajes.ts`.
+     - Al soltar una tarjeta de objeto sobre otra en la lista, se conmuta automáticamente el selector de orden a `"personalizado"` (`"Personalizado (Libre)"`) y se reubica el elemento en el array del personaje.
+  3. **Dock de Movilización Rápida**:
+     - Barra con 5 zonas de soltado reactivas (`mochila`, `bolsa_contencion`, `montura`, `almacen`, `equipados`) con bordes temáticos, iluminándose activamente al arrastrar cualquier objeto para una transferencia en 1 solo paso.
+  4. **Selector de Contenedor de Destino en Adición**:
+     - `ModalAgregarObjeto.tsx` incluye el selector de compartimento tanto en la pestaña del Compendio como en Otras Posesiones, pasando el contenedor seleccionado a los constructores `crearObjetoInventarioDesdeCompendio` y `crearObjetoInventarioCustom`.
+     - `agregarObjetoInventario` en Zustand asegura que stacks no se fusionen si están en compartimentos diferentes.
+- *Validación*: 30/30 suites de tests aprobadas (321/321 tests unitarios al 100%), verificación estricta de TypeScript (`tsc --noEmit`) y compilación/despliegue de producción limpio a TaleSpire.
+
+## [2026-08-27] Reorganización UI/UX del Inventario: Paneles Colapsables Persistentes y Drag & Drop Nativo
+**Decisión y Motivación:**
+- *Causa*: El inventario del jugador acumulaba excesivo espacio vertical en pantallas reducidas del overlay de TaleSpire. Se requería una distribución colapsable con memoria persistente (similar a la vista de Acciones/Ataques) y un sistema ágil de arrastrar y soltar (Drag & Drop) para transferir objetos entre Equipados, Mochila y Contenedores Externos.
+- *Solución*:
+  1. **Secciones y Subsecciones Colapsables**:
+     - *Equipados Activos* y cada subcategoría temática de la mochila (*Pociones, Munición, Armas, Armaduras, Herramientas, Mágicos, Equipo de Aventuras, Bolsa de Contención, Montura, Almacén*) cuentan con encabezados tácticos clicables, chevrones indicadores (`ChevronDown` / `ChevronRight`), badges de conteo y pesos subtotales.
+     - Persistencia reactiva del estado de colapso en `localStorage` mediante `usarEstadoPersistido` (`ts_inventario_secciones_abiertas`).
+     - Botones de acción masiva *"Expandir"* y *"Colapsar"* en la barra de controles de la mochila.
+  2. **Sistema Drag & Drop Nativo (HTML5 / CEF)**:
+     - Cada tarjeta `TarjetaObjetoInventario` implementa `draggable` con identificador de agarre (`GripVertical`), cursor grab y opacidad sutil en tránsito.
+     - Las cabeceras y paneles actúan como zonas de soltado reactivas, iluminándose con un borde discontinuo cian (`#38bdf8`) al recibir el drag over.
+     - **Regla Estricta de Equipamiento**: Al soltar en *Equipados Activos*, solo se equipan armas, armaduras o equipo vestible (`obj.equipable === true`), emitiendo una notificación explicativa si el objeto no es equipable.
+     - **Transferencia a Contenedores**: Al soltar en la mochila se desequipa y ubica en `mochila`; al soltar en *Bolsa de Contención*, *Montura* o *Almacén*, se desequipa y se asigna a su compartimento correspondiente, actualizando inmediatamente la capacidad de carga.
+- *Validación*: 30/30 suites de tests aprobadas (319/319 tests unitarios al 100%), verificación estricta de TypeScript y compilación de producción con Vite.
+
+
 
 ## [2026-08-27] Equiparación Total de Contenedores Dedicados (Estuche de Agujas, Cartuchera, Bolsa de Balas, Caja de Virotes, Carcaj)
 **Decisión y Motivación:**

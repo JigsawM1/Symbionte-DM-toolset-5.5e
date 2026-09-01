@@ -71,7 +71,7 @@ export const crearSliceConfiguracion: StateCreator<
     { id: "p_2", texto: "Preparar encuentro en el puente levadizo", completado: false },
     { id: "p_3", texto: "Hacer tiradas de rumores en la taberna", completado: false }
   ],
-  notasDM: "Escribe aquí las notas de tu sesión de D&D 5.5e...",
+  notasDM: "Escribe aquí las notas de tu sesión...",
   encuentrosGuardados: [],
   notificaciones: [],
   cargandoDatos: false,
@@ -304,7 +304,7 @@ export const crearSliceConfiguracion: StateCreator<
         { id: "p_2", texto: "Preparar encuentro en el puente levadizo", completado: false },
         { id: "p_3", texto: "Hacer tiradas de rumores en la taberna", completado: false }
       ],
-      notasDM: "Escribe aquí las notas de tu sesión de D&D 5.5e...",
+      notasDM: "Escribe aquí las notas de tu sesión...",
       encuentrosGuardados: [],
       personajes: [PERSONAJE_POR_DEFECTO],
       idPersonajeActivo: PERSONAJE_POR_DEFECTO.id,

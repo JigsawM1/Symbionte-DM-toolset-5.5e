@@ -28,7 +28,8 @@ import {
   FlaskConical,
   Hammer,
   Clock,
-  Target
+  Target,
+  AlertTriangle
 } from "lucide-react";
 import { CONFIG_CONTENEDORES } from "@/servicios/calculadorInventario";
 import {
@@ -456,8 +457,8 @@ export const ModalDetalleObjetoInventario: React.FC<ModalDetalleObjetoInventario
                         <Check size={10} /> Almacenamiento: {infoMunicion.almacenadasEnContenedor} de {infoMunicion.totalMunicion} en {infoMunicion.nombreContenedor} (Capacidad: {infoMunicion.capacidadTotal})
                       </span>
                       {infoMunicion.sueltasEnMochila > 0 && (
-                        <span className={`${estilos.badgeMeta}`} style={{ backgroundColor: "rgba(245, 158, 11, 0.15)", color: "#fcd34d", borderColor: "rgba(245, 158, 11, 0.35)" }}>
-                          ⚠️ {infoMunicion.sueltasEnMochila} proyectiles exceden la capacidad de tu {infoMunicion.nombreContenedor} y van sueltos en la mochila
+                        <span className={`${estilos.badgeMeta}`} style={{ backgroundColor: "rgba(245, 158, 11, 0.15)", color: "#fcd34d", borderColor: "rgba(245, 158, 11, 0.35)", display: "inline-flex", alignItems: "center", gap: 4 }}>
+                          <AlertTriangle size={10} /> {infoMunicion.sueltasEnMochila} proyectiles exceden la capacidad de tu {infoMunicion.nombreContenedor} y van sueltos en la mochila
                         </span>
                       )}
                     </>

@@ -2,7 +2,8 @@ import React from "react";
 import type { PersonajeJugador, Habilidad, GradoCompetencia } from "@/tipos";
 import { HABILIDADES_LISTA, MAPA_HABILIDAD_A_CARACTERISTICA } from "@/constantes";
 import type { EstadisticasCalculadasPersonaje } from "@/almacen/selectores/usarEstadoPersonajes";
-import { Swords, Shield, Languages, Wrench } from "lucide-react";
+import { Swords, Shield, Languages, Wrench, AlertTriangle } from "lucide-react";
+import type { CategoriaCompetencia } from "./ModalSelectorCompetencias";
 import estilos from "./HojaPersonaje.module.css";
 
 interface PanelHabilidadesPersonajeProps {
@@ -10,6 +11,7 @@ interface PanelHabilidadesPersonajeProps {
   statsCalculadas: EstadisticasCalculadasPersonaje;
   alTirarHabilidad: (hab: Habilidad, nombre: string, bono: number) => void;
   alCiclarGradoHabilidad: (hab: Habilidad) => void;
+  alAbrirSelectorCompetencias?: (categoria: CategoriaCompetencia) => void;
 }
 
 const ABREVIATURA_CARACTERISTICA: Record<string, string> = {
@@ -53,7 +55,8 @@ export const PanelHabilidadesPersonaje: React.FC<PanelHabilidadesPersonajeProps>
   personaje,
   statsCalculadas,
   alTirarHabilidad,
-  alCiclarGradoHabilidad
+  alCiclarGradoHabilidad,
+  alAbrirSelectorCompetencias
 }) => {
   const { habilidades } = statsCalculadas;
 
@@ -74,13 +77,25 @@ export const PanelHabilidadesPersonaje: React.FC<PanelHabilidadesPersonajeProps>
             const esCompetente = grado !== "ninguna";
             const caracAsociada = MAPA_HABILIDAD_A_CARACTERISTICA[hab] || "destreza";
             const abrevCarac = ABREVIATURA_CARACTERISTICA[caracAsociada] || "Des";
+            const tieneDesventajaArmadura =
+              !!statsCalculadas.penalizacionArmadura?.sinCompetencia &&
+              (caracAsociada === "fuerza" || caracAsociada === "destreza");
+            const tieneDesventajaSigiloArmadura =
+              hab === "sigilo" && !!statsCalculadas.desventajaSigiloArmadura && !tieneDesventajaArmadura;
+
+            let tooltipHab = `Prueba de ${nombreMostrar} (${bonoTexto}). Clic para tirar en 3D.`;
+            if (tieneDesventajaArmadura) {
+              tooltipHab = `Prueba de ${nombreMostrar} (${bonoTexto}). DESVENTAJA por armadura sin competencia. Clic para tirar.`;
+            } else if (tieneDesventajaSigiloArmadura) {
+              tooltipHab = `Prueba de ${nombreMostrar} (${bonoTexto}). DESVENTAJA por tipo de armadura (Sigilo ruidoso). Clic para tirar.`;
+            }
 
             return (
               <div
                 key={hab}
                 className={estilos.itemHabilidad}
                 onClick={() => alTirarHabilidad(hab, nombreMostrar, bono)}
-                title={`Prueba de ${nombreMostrar} (${bonoTexto}). Clic para tirar en 3D.`}
+                title={tooltipHab}
               >
                 <div className={estilos.infoHabilidadIzquierda}>
                   {/* Botón envoltorio exclusivo para ciclar competencia sin disparar tirada */}
@@ -99,6 +114,16 @@ export const PanelHabilidadesPersonaje: React.FC<PanelHabilidadesPersonajeProps>
                   </button>
                   <span className={estilos.nombreHabilidad}>{nombreMostrar}</span>
                   <span className={estilos.caracAbrevHabilidad}>({abrevCarac})</span>
+                  {tieneDesventajaArmadura && (
+                    <span title="Desventaja por armadura sin competencia">
+                      <AlertTriangle size={10} color="#ef4444" style={{ marginLeft: 2 }} />
+                    </span>
+                  )}
+                  {tieneDesventajaSigiloArmadura && (
+                    <span title="Desventaja en Sigilo por tu armadura equipada">
+                      <AlertTriangle size={10} color="#f59e0b" style={{ marginLeft: 2 }} />
+                    </span>
+                  )}
                 </div>
 
                 <span
@@ -122,7 +147,13 @@ export const PanelHabilidadesPersonaje: React.FC<PanelHabilidadesPersonajeProps>
           <span className={estilos.tituloGrupoCompetencia} style={{ display: "flex", alignItems: "center", gap: 4 }}>
             <Swords size={11} color="#94a3b8" /> Armas
           </span>
-          <div className={`${estilos.cajaTextoCompetencia} ${estilos.neoPressed}`}>
+          <div
+            className={`${estilos.cajaTextoCompetencia} ${estilos.neoPressed} ${alAbrirSelectorCompetencias ? estilos.cajaTextoCompetenciaInteractiva : ""}`}
+            onClick={() => alAbrirSelectorCompetencias?.("armas")}
+            title={alAbrirSelectorCompetencias ? "Haz clic para editar competencias en Armas" : undefined}
+            role={alAbrirSelectorCompetencias ? "button" : undefined}
+            tabIndex={alAbrirSelectorCompetencias ? 0 : undefined}
+          >
             {personaje.competenciasArmas || "Ninguna"}
           </div>
         </div>
@@ -131,7 +162,13 @@ export const PanelHabilidadesPersonaje: React.FC<PanelHabilidadesPersonajeProps>
           <span className={estilos.tituloGrupoCompetencia} style={{ display: "flex", alignItems: "center", gap: 4 }}>
             <Shield size={11} color="#94a3b8" /> Armaduras
           </span>
-          <div className={`${estilos.cajaTextoCompetencia} ${estilos.neoPressed}`}>
+          <div
+            className={`${estilos.cajaTextoCompetencia} ${estilos.neoPressed} ${alAbrirSelectorCompetencias ? estilos.cajaTextoCompetenciaInteractiva : ""}`}
+            onClick={() => alAbrirSelectorCompetencias?.("armaduras")}
+            title={alAbrirSelectorCompetencias ? "Haz clic para editar competencias en Armaduras" : undefined}
+            role={alAbrirSelectorCompetencias ? "button" : undefined}
+            tabIndex={alAbrirSelectorCompetencias ? 0 : undefined}
+          >
             {personaje.competenciasArmaduras || "Ninguna"}
           </div>
         </div>
@@ -140,7 +177,13 @@ export const PanelHabilidadesPersonaje: React.FC<PanelHabilidadesPersonajeProps>
           <span className={estilos.tituloGrupoCompetencia} style={{ display: "flex", alignItems: "center", gap: 4 }}>
             <Languages size={11} color="#94a3b8" /> Idiomas
           </span>
-          <div className={`${estilos.cajaTextoCompetencia} ${estilos.neoPressed}`}>
+          <div
+            className={`${estilos.cajaTextoCompetencia} ${estilos.neoPressed} ${alAbrirSelectorCompetencias ? estilos.cajaTextoCompetenciaInteractiva : ""}`}
+            onClick={() => alAbrirSelectorCompetencias?.("idiomas")}
+            title={alAbrirSelectorCompetencias ? "Haz clic para editar Idiomas conocidos" : undefined}
+            role={alAbrirSelectorCompetencias ? "button" : undefined}
+            tabIndex={alAbrirSelectorCompetencias ? 0 : undefined}
+          >
             {personaje.idiomas || "Común"}
           </div>
         </div>
@@ -149,7 +192,13 @@ export const PanelHabilidadesPersonaje: React.FC<PanelHabilidadesPersonajeProps>
           <span className={estilos.tituloGrupoCompetencia} style={{ display: "flex", alignItems: "center", gap: 4 }}>
             <Wrench size={11} color="#94a3b8" /> Herramientas
           </span>
-          <div className={`${estilos.cajaTextoCompetencia} ${estilos.neoPressed}`}>
+          <div
+            className={`${estilos.cajaTextoCompetencia} ${estilos.neoPressed} ${alAbrirSelectorCompetencias ? estilos.cajaTextoCompetenciaInteractiva : ""}`}
+            onClick={() => alAbrirSelectorCompetencias?.("herramientas")}
+            title={alAbrirSelectorCompetencias ? "Haz clic para editar competencias en Herramientas" : undefined}
+            role={alAbrirSelectorCompetencias ? "button" : undefined}
+            tabIndex={alAbrirSelectorCompetencias ? 0 : undefined}
+          >
             {personaje.herramientas || "Ninguna"}
           </div>
         </div>

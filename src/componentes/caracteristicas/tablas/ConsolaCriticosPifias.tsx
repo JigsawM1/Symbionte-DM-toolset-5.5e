@@ -238,7 +238,7 @@ export const ConsolaCriticosPifias: React.FC = () => {
           </div>
         ) : (
           <div className={estilosClases.cajaVaciaConsola}>
-            Selecciona tipo, efecto y haz tu tirada de dados táctica de D&D 5.5e para ver el resultado.
+            Selecciona tipo, efecto y haz tu tirada de dados para ver el resultado.
           </div>
         )}
       </div>

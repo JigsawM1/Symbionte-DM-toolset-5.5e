@@ -412,6 +412,7 @@ export const CompendioConjurosJugador: React.FC = () => {
               espaciosPactoMaximos={personajeActivo?.espaciosPactoMaximos || 0}
               espaciosConjuroMaximos={personajeActivo?.espaciosConjuroMaximos || {}}
               nivelConjuroMaximo={personajeActivo?.nivelConjuroMaximo || 0}
+              ocultarLanzamiento={true}
               onClose={() => setHechizoModal(null)}
             />
           </div>

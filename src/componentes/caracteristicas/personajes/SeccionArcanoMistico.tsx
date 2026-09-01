@@ -17,6 +17,8 @@ interface SeccionArcanoMisticoProps {
   alGastarArcano: (nivel: number) => void;
   alRecuperarArcano: (nivel: number) => void;
   alAbrirFichaHechizo?: (hechizo: HechizoBase) => void;
+  bloqueadoPorArmadura?: boolean;
+  motivoBloqueoArmadura?: string;
 }
 
 export const SeccionArcanoMistico: React.FC<SeccionArcanoMisticoProps> = ({
@@ -31,7 +33,9 @@ export const SeccionArcanoMistico: React.FC<SeccionArcanoMisticoProps> = ({
   alQuitarArcano,
   alGastarArcano,
   alRecuperarArcano,
-  alAbrirFichaHechizo
+  alAbrirFichaHechizo,
+  bloqueadoPorArmadura = false,
+  motivoBloqueoArmadura
 }) => {
   // Mapear los arcanos asignados por nivel
   const arcanosPorNivel = useMemo(() => {
@@ -68,7 +72,7 @@ export const SeccionArcanoMistico: React.FC<SeccionArcanoMisticoProps> = ({
 
   const lanzarArcano = async (nivel: number, hechizo: HechizoBase) => {
     const estaGastado = arcanoMisticoGastados.includes(String(nivel));
-    if (estaGastado) {
+    if (estaGastado || bloqueadoPorArmadura) {
       return;
     }
 
@@ -254,25 +258,28 @@ export const SeccionArcanoMistico: React.FC<SeccionArcanoMisticoProps> = ({
                       <button
                         type="button"
                         onClick={() => lanzarArcano(nivel, hechizo)}
+                        disabled={bloqueadoPorArmadura}
+                        title={bloqueadoPorArmadura ? (motivoBloqueoArmadura || "Bloqueado por armadura sin competencia") : undefined}
                         style={{
                           display: "inline-flex",
                           alignItems: "center",
                           gap: 4,
-                          backgroundColor: "#7e22ce",
-                          border: "1px solid #c084fc",
+                          backgroundColor: bloqueadoPorArmadura ? "rgba(239, 68, 68, 0.15)" : "#7e22ce",
+                          border: bloqueadoPorArmadura ? "1px solid rgba(239, 68, 68, 0.35)" : "1px solid #c084fc",
                           borderRadius: 4,
-                          color: "#ffffff",
+                          color: bloqueadoPorArmadura ? "#f87171" : "#ffffff",
                           fontSize: 11,
                           fontWeight: 700,
                           padding: "4px 8px",
-                          cursor: "pointer",
+                          cursor: bloqueadoPorArmadura ? "not-allowed" : "pointer",
+                          opacity: bloqueadoPorArmadura ? 0.5 : 1,
                           transition: "all 0.15s ease"
                         }}
                         onMouseEnter={(e) => {
-                          e.currentTarget.style.backgroundColor = "#9333ea";
+                          if (!bloqueadoPorArmadura) e.currentTarget.style.backgroundColor = "#9333ea";
                         }}
                         onMouseLeave={(e) => {
-                          e.currentTarget.style.backgroundColor = "#7e22ce";
+                          if (!bloqueadoPorArmadura) e.currentTarget.style.backgroundColor = "#7e22ce";
                         }}
                       >
                         <Zap size={11} />

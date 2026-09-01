@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from "react";
-import { Zap, Eye, Trash2, Check, Sparkles } from "lucide-react";
+import { Zap, Eye, Trash2, Check, Sparkles, AlertTriangle } from "lucide-react";
 import type { HechizoBase } from "@/tipos";
 import { lanzarDadosTaleSpire, sanitizarEtiqueta } from "@/utiles/lanzadorDados";
 import {
@@ -38,6 +38,8 @@ interface TarjetaConjuroCompactaProps {
   alEstablecerConcentracion?: (id: string, nombre: string) => void;
   costePuntosPorNivel?: Record<number, number>;
   sistemaMagia?: "espacios" | "puntos";
+  bloqueadoPorArmadura?: boolean;
+  motivoBloqueoArmadura?: string;
 }
 
 export const TarjetaConjuroCompacta: React.FC<TarjetaConjuroCompactaProps> = ({
@@ -63,7 +65,9 @@ export const TarjetaConjuroCompacta: React.FC<TarjetaConjuroCompactaProps> = ({
   nivelConjuroMaximo = 0,
   alEstablecerConcentracion,
   costePuntosPorNivel,
-  sistemaMagia = "espacios"
+  sistemaMagia = "espacios",
+  bloqueadoPorArmadura = false,
+  motivoBloqueoArmadura
 }) => {
   const esTruco = hechizo.nivel === 0;
 
@@ -107,6 +111,10 @@ export const TarjetaConjuroCompacta: React.FC<TarjetaConjuroCompactaProps> = ({
   // Lanzamiento rápido 3D a TaleSpire
   const manejarLanzamientoRapido = async () => {
     try {
+      if (bloqueadoPorArmadura) {
+        return;
+      }
+
       const nombrePj = nombrePersonaje.trim() || "Personaje";
       let formulaTaleSpire = "";
       let etiquetaLog = "";
@@ -185,6 +193,10 @@ export const TarjetaConjuroCompacta: React.FC<TarjetaConjuroCompactaProps> = ({
   // Lanzamiento como Ritual (D&D 5.5e 2024: +10 min, no gasta ranuras/puntos)
   const manejarLanzamientoRitual = async () => {
     try {
+      if (bloqueadoPorArmadura) {
+        return;
+      }
+
       const nombrePj = nombrePersonaje.trim() || "Personaje";
       const formulaBase = hechizo.dadosDaño?.trim() || "";
       const formulaTaleSpire = formulaBase
@@ -273,6 +285,15 @@ export const TarjetaConjuroCompacta: React.FC<TarjetaConjuroCompactaProps> = ({
                 R
               </span>
             )}
+
+            {bloqueadoPorArmadura && (
+              <span
+                title={motivoBloqueoArmadura || "Lanzamiento bloqueado por armadura sin competencia"}
+                style={{ display: "inline-flex", alignItems: "center" }}
+              >
+                <AlertTriangle size={11} color="#ef4444" />
+              </span>
+            )}
           </div>
 
           <span className={estilos.filaMetadatos}>
@@ -340,8 +361,11 @@ export const TarjetaConjuroCompacta: React.FC<TarjetaConjuroCompactaProps> = ({
         <button
           type="button"
           onClick={manejarLanzamientoRapido}
+          disabled={bloqueadoPorArmadura}
           title={
-            esTruco
+            bloqueadoPorArmadura
+              ? (motivoBloqueoArmadura || "Bloqueado por armadura sin competencia")
+              : esTruco
               ? "Lanzar truco a TaleSpire"
               : esLanzadorPacto
               ? `Lanzar con ranura de Pacto Nivel ${nivelEspacioPacto || nivelUpcast} (descuenta 1 espacio de pacto)`
@@ -351,7 +375,7 @@ export const TarjetaConjuroCompacta: React.FC<TarjetaConjuroCompactaProps> = ({
                     : "1 espacio"
                 })`
           }
-          className={estilos.botonLanzar}
+          className={`${estilos.botonLanzar} ${bloqueadoPorArmadura ? estilos.botonBloqueado : ""}`}
         >
           <Zap size={11} />
           <span>Lanzar</span>
@@ -362,8 +386,13 @@ export const TarjetaConjuroCompacta: React.FC<TarjetaConjuroCompactaProps> = ({
           <button
             type="button"
             onClick={manejarLanzamientoRitual}
-            title="Lanzar como Ritual (+10 min adicionales, sin consumir ranuras ni puntos de magia)"
-            className={estilos.botonRitual}
+            disabled={bloqueadoPorArmadura}
+            title={
+              bloqueadoPorArmadura
+                ? (motivoBloqueoArmadura || "Bloqueado por armadura sin competencia")
+                : "Lanzar como Ritual (+10 min adicionales, sin consumir ranuras ni puntos de magia)"
+            }
+            className={`${estilos.botonRitual} ${bloqueadoPorArmadura ? estilos.botonBloqueado : ""}`}
           >
             <Sparkles size={11} />
             <span>Ritual</span>

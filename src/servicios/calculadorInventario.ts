@@ -273,7 +273,8 @@ export function puedeSintonizar(
  */
 export function crearObjetoInventarioDesdeCompendio(
   objetoJuego: ObjetoJuego,
-  cantidadLotes: number = 1
+  cantidadLotes: number = 1,
+  contenedor: TipoContenedor = "mochila"
 ): ObjetoInventario {
   const rarezaValida: Rareza = (objetoJuego.rareza as Rareza) || "Común";
   const cargas = objetoJuego.cargas !== undefined ? Number(objetoJuego.cargas) : undefined;
@@ -300,7 +301,7 @@ export function crearObjetoInventarioDesdeCompendio(
     equipado: false,
     sintonizado: false,
     notas: "",
-    contenedor: "mochila",
+    contenedor: contenedor || "mochila",
     pesoLb: pesoUnitarioReal,
     tipoPrincipal: objetoJuego.tipoPrincipal,
     esMagico: Boolean(objetoJuego.esMagico),

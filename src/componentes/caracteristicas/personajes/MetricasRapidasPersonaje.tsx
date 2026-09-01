@@ -1,7 +1,7 @@
 import React from "react";
 import type { PersonajeJugador } from "@/tipos";
-import type { InformacionCA } from "@/almacen/selectores/usarEstadoPersonajes";
-import { Shield, Zap, Footprints, Award, Sparkles } from "lucide-react";
+import type { InformacionCA, PenalizacionArmadura } from "@/almacen/selectores/usarEstadoPersonajes";
+import { Shield, Zap, Footprints, Award, Sparkles, AlertTriangle } from "lucide-react";
 import { TooltipUniversal } from "@/componentes/comunes";
 import estilos from "./HojaPersonaje.module.css";
 
@@ -10,6 +10,7 @@ interface MetricasRapidasPersonajeProps {
   bonoCompetencia: number;
   modDestreza: number;
   claseArmadura?: InformacionCA;
+  penalizacionArmadura?: PenalizacionArmadura;
   alTirarIniciativa: () => void;
   alAlternarInspiracion: () => void;
 }
@@ -19,6 +20,7 @@ export const MetricasRapidasPersonaje: React.FC<MetricasRapidasPersonajeProps> =
   bonoCompetencia,
   modDestreza,
   claseArmadura,
+  penalizacionArmadura,
   alTirarIniciativa,
   alAlternarInspiracion
 }) => {
@@ -30,19 +32,27 @@ export const MetricasRapidasPersonaje: React.FC<MetricasRapidasPersonajeProps> =
       : `${personaje.velocidad.caminar || 30} pies`;
 
   const caTotal = claseArmadura?.total ?? personaje.ca ?? 10;
-  const caTooltip = claseArmadura?.desglose || personaje.caNotas || "Clase de Armadura (D&D 5.5e)";
+  const avisoNoComp = penalizacionArmadura?.sinCompetencia
+    ? ` [SIN COMPETENCIA] (${[penalizacionArmadura.armaduraNoCompetente, penalizacionArmadura.escudoNoCompetente].filter(Boolean).join(", ")}): Desventaja en ataques/pruebas/salvaciones de FUE y DES. No puedes lanzar conjuros.`
+    : "";
+  const caTooltip = `${claseArmadura?.desglose || personaje.caNotas || "Clase de Armadura"}${avisoNoComp}`;
 
   return (
     <section className={estilos.filaMetricasRapidas}>
       {/* 1. Clase de Armadura */}
       <TooltipUniversal
-        titulo="Clase de Armadura"
+        titulo={penalizacionArmadura?.sinCompetencia ? "Clase de Armadura (Sin Competencia)" : "Clase de Armadura"}
         contenido={caTooltip}
         posicion="abajo"
       >
         <div className={`${estilos.neoRaised} ${estilos.tarjetaMetrica}`}>
           <Shield size={13} className={estilos.iconoMetricaDecorativo} />
-          <span className={estilos.etiquetaMetrica}>Clase Armadura</span>
+          <span className={estilos.etiquetaMetrica}>
+            Clase Armadura
+            {penalizacionArmadura?.sinCompetencia && (
+              <AlertTriangle size={10} color="#ef4444" style={{ marginLeft: 3, verticalAlign: "middle" }} />
+            )}
+          </span>
           <span className={estilos.valorMetrica}>{caTotal}</span>
         </div>
       </TooltipUniversal>

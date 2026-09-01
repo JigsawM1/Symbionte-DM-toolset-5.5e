@@ -85,7 +85,7 @@ export const SeccionArma: React.FC<Props> = ({
         </div>
 
         <div className={estilos.campoForm}>
-          <label className={estilos.labelForm}>Maestría de Arma (D&D 5.5e):</label>
+          <label className={estilos.labelForm}>Maestría de Arma:</label>
           <div className={estilos.tooltipContenedor} style={{ width: "100%" }}>
             <SelectorDesplegable
               valor={oMaestria}
@@ -282,7 +282,7 @@ export const SeccionArma: React.FC<Props> = ({
         
         {oMunicionRequerida && (
           <div className={estilos.campoForm} style={{ marginTop: "10px", backgroundColor: "rgba(0, 245, 212, 0.03)", padding: "10px", borderRadius: "5px", border: "1px dashed rgba(0, 245, 212, 0.15)" }}>
-            <label className={estilos.labelForm} style={{ marginBottom: "8px" }}>Seleccionar Munición Vinculada (D&D 5.5e):</label>
+            <label className={estilos.labelForm} style={{ marginBottom: "8px" }}>Seleccionar Munición Vinculada:</label>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))", gap: "8px" }}>
               {[
                 { id: "arrows", label: "Flechas" },

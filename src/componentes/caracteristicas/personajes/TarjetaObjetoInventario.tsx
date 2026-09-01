@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from "react";
 import type { ObjetoInventario, Rareza, TipoContenedor, ObjetoJuego, Arma } from "@/tipos";
-import { Swords, Link2, Trash2, Plus, Minus, Zap, Sparkles, Heart, PackageOpen, FlaskConical, Target } from "lucide-react";
+import { Swords, Link2, Trash2, Plus, Minus, Zap, Sparkles, Heart, PackageOpen, FlaskConical, Target, GripVertical } from "lucide-react";
 import { ConfirmDialog } from "@/componentes/comunes/ConfirmDialog";
 import { TooltipUniversal } from "@/componentes/comunes/TooltipUniversal";
 import { detectarInfoConsumible, esObjetoConsumible } from "@/servicios/procesadorConsumibles";
@@ -26,6 +26,9 @@ interface TarjetaObjetoInventarioProps {
   alUsar?: (objeto: ObjetoInventario) => void;
   alDesempaquetar?: () => void;
   alCambiarContenedor?: (contenedor: TipoContenedor) => void;
+  alSoltarReordenar?: (idInstanciaOrigen: string, idInstanciaDestino: string) => void;
+  alIniciarArrastre?: () => void;
+  alFinalizarArrastre?: () => void;
 }
 
 const CLASES_RAREZA: Record<Rareza, string> = {
@@ -51,9 +54,14 @@ export const TarjetaObjetoInventario: React.FC<TarjetaObjetoInventarioProps> = (
   alEliminar,
   alUsar,
   alDesempaquetar,
-  alCambiarContenedor: _alCambiarContenedor
+  alCambiarContenedor: _alCambiarContenedor,
+  alSoltarReordenar,
+  alIniciarArrastre,
+  alFinalizarArrastre
 }) => {
   const [modalEliminarAbierto, setModalEliminarAbierto] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const [isDragOver, setIsDragOver] = useState(false);
 
   const objetoBase = useMemo<ObjetoJuego | null>(() => {
     if (!baseDatosObjetos) return null;
@@ -96,20 +104,90 @@ export const TarjetaObjetoInventario: React.FC<TarjetaObjetoInventarioProps> = (
     return calcularContenidoContenedorMunicion(objeto, inventarioCompleto);
   }, [objeto, inventarioCompleto]);
 
+  const manejarDragStart = (e: React.DragEvent<HTMLDivElement>) => {
+    setIsDragging(true);
+    alIniciarArrastre?.();
+    e.dataTransfer.setData(
+      "application/json",
+      JSON.stringify({
+        idInstancia: objeto.idInstancia,
+        nombre: objeto.nombre,
+        equipable: Boolean(objeto.equipable),
+        equipado: Boolean(objeto.equipado),
+        contenedor: objeto.contenedor || "mochila"
+      })
+    );
+    e.dataTransfer.effectAllowed = "move";
+  };
+
+  const manejarDragEnd = () => {
+    setIsDragging(false);
+    setIsDragOver(false);
+    alFinalizarArrastre?.();
+  };
+
+  const manejarDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    if (!alSoltarReordenar) return;
+    e.preventDefault();
+    e.stopPropagation();
+    e.dataTransfer.dropEffect = "move";
+    if (!isDragOver) {
+      setIsDragOver(true);
+    }
+  };
+
+  const manejarDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+    if (e.currentTarget.contains(e.relatedTarget as Node)) return;
+    setIsDragOver(false);
+  };
+
+  const manejarDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    if (!alSoltarReordenar) return;
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(false);
+    setIsDragging(false);
+    alFinalizarArrastre?.();
+    try {
+      const raw = e.dataTransfer.getData("application/json");
+      if (!raw) return;
+      const payload = JSON.parse(raw) as { idInstancia: string };
+      if (payload.idInstancia && payload.idInstancia !== objeto.idInstancia) {
+        alSoltarReordenar(payload.idInstancia, objeto.idInstancia);
+      }
+    } catch (err) {
+      console.error("[TarjetaObjetoInventario] Error al procesar reordenación:", err);
+    }
+  };
+
   return (
     <>
       <div
         className={`${estilos.tarjetaObjetoInventario} ${
           objeto.equipado ? estilos.tarjetaObjetoEquipado : ""
+        } ${isDragging ? estilos.tarjetaObjetoArrastrando : ""} ${
+          isDragOver ? estilos.tarjetaObjetoSobrevolada : ""
         }`}
+        draggable
+        onDragStart={manejarDragStart}
+        onDragEnd={manejarDragEnd}
+        onDragOver={manejarDragOver}
+        onDragLeave={manejarDragLeave}
+        onDrop={manejarDrop}
       >
         {/* Fila Superior: Nombre + Badges + Eliminar */}
         <div className={estilos.filaSuperiorObjeto}>
           <div className={estilos.columnaInfoObjeto}>
             <span
+              className={estilos.iconoGripDrag}
+              title="Arrastra para mover a Equipados, Mochila o Contenedores"
+            >
+              <GripVertical size={11} />
+            </span>
+            <span
               className={estilos.nombreObjetoClickable}
               onClick={alInspeccionar}
-              title={`Ver descripción y detalles de ${objeto.nombre}`}
+              title={`Ver descripción y detalles de ${objeto.nombre} (Arrastra para mover)`}
               role="button"
               tabIndex={0}
               onKeyDown={(e) => {

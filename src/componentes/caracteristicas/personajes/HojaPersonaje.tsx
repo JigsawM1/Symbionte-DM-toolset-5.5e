@@ -8,6 +8,7 @@ import { usarEstadoConfiguracion } from "@/almacen/selectores/usarEstadoConfigur
 import { usarEstadoHomebrew } from "@/almacen/selectores/usarEstadoHomebrew";
 import { usarAccionesIniciativa } from "@/almacen/selectores/usarEstadoIniciativa";
 import { lanzarDadosTaleSpire, sanitizarEtiqueta, type MetadataIniciativa } from "@/utiles/lanzadorDados";
+import { MAPA_HABILIDAD_A_CARACTERISTICA } from "@/constantes";
 import type { Caracteristica, Habilidad } from "@/tipos";
 
 import { CabeceraPersonaje } from "./CabeceraPersonaje";
@@ -18,6 +19,7 @@ import { PanelAtributosPersonaje } from "./PanelAtributosPersonaje";
 import { PanelHabilidadesPersonaje } from "./PanelHabilidadesPersonaje";
 import { PanelConjurosPersonaje } from "./PanelConjurosPersonaje";
 import { ModalEditarPersonaje } from "./ModalEditarPersonaje";
+import { ModalSelectorCompetencias, type CategoriaCompetencia } from "./ModalSelectorCompetencias";
 import { BotonSubPestana } from "./BotonSubPestana";
 import { usarEstadoPersistido } from "@/hooks";
 import { Swords, Sparkles } from "lucide-react";
@@ -71,6 +73,7 @@ export const HojaPersonaje: React.FC<HojaPersonajeProps> = ({ alAbrirConfiguraci
   const { establecerTipoTirada } = usarAccionesIniciativa();
 
   const [modalEdicionAbierto, setModalEdicionAbierto] = useState(false);
+  const [modalCompetencias, setModalCompetencias] = useState<CategoriaCompetencia | null>(null);
   const [subPestanaActiva, setSubPestanaActiva] = usarEstadoPersistido<SubPestanaHoja>(
     "ts_hoja_subpestana",
     "general"
@@ -116,28 +119,48 @@ export const HojaPersonaje: React.FC<HojaPersonajeProps> = ({ alAbrirConfiguraci
   };
 
   // 3. Lanzadores de Dados 3D a TaleSpire (Homologados con el Combat Tracker del DM)
-  const lanzarTiradaD20Personaje = async (etiqueta: string, bono: number, metaIniciativa?: MetadataIniciativa) => {
+  const lanzarTiradaD20Personaje = async (
+    etiqueta: string,
+    bono: number,
+    metaIniciativa?: MetadataIniciativa,
+    forzarDesventaja?: boolean
+  ) => {
     try {
       const nombrePj = personajeActivo.nombre?.trim() || "Personaje";
       const formulaDados = `!${sanitizarEtiqueta(etiqueta)}:1d20${bono >= 0 ? "+" : ""}${bono}`;
-      const etiquetaLog = `${nombrePj} - ${etiqueta}`;
-      await lanzarDadosTaleSpire(formulaDados, etiquetaLog, metaIniciativa);
+      const sufijoLog = forzarDesventaja && modoTirada === "plano" ? " (Desventaja por Armadura)" : "";
+      const etiquetaLog = `${nombrePj} - ${etiqueta}${sufijoLog}`;
+      
+      await lanzarDadosTaleSpire(
+        formulaDados,
+        etiquetaLog,
+        metaIniciativa,
+        undefined,
+        forzarDesventaja ? "desventaja" : undefined
+      );
     } catch (err) {
       console.error("[HojaPersonaje] Error al enviar tirada 3D:", err);
     }
   };
 
-  const manejarTirarCaracteristica = (_carac: Caracteristica, etiqueta: string, bono: number) => {
-    lanzarTiradaD20Personaje(`Prueba de ${etiqueta}`, bono);
+  const penalizacionSinComp = !!statsCalculadas.penalizacionArmadura?.sinCompetencia;
+
+  const manejarTirarCaracteristica = (carac: Caracteristica, etiqueta: string, bono: number) => {
+    const desventajaArmadura = penalizacionSinComp && (carac === "fuerza" || carac === "destreza");
+    lanzarTiradaD20Personaje(`Prueba de ${etiqueta}`, bono, undefined, desventajaArmadura);
   };
 
-  const manejarTirarSalvacion = (_carac: Caracteristica, etiqueta: string, bono: number) => {
+  const manejarTirarSalvacion = (carac: Caracteristica, etiqueta: string, bono: number) => {
     const etiquetaLimpia = etiqueta.replace(/^Salvaci[oó]n(\s+de)?\s+/i, "");
-    lanzarTiradaD20Personaje(`Salvación de ${etiquetaLimpia}`, bono);
+    const desventajaArmadura = penalizacionSinComp && (carac === "fuerza" || carac === "destreza");
+    lanzarTiradaD20Personaje(`Salvación de ${etiquetaLimpia}`, bono, undefined, desventajaArmadura);
   };
 
-  const manejarTirarHabilidad = (_hab: Habilidad, nombre: string, bono: number) => {
-    lanzarTiradaD20Personaje(`Prueba de ${nombre}`, bono);
+  const manejarTirarHabilidad = (hab: Habilidad, nombre: string, bono: number) => {
+    const caracAsociada = MAPA_HABILIDAD_A_CARACTERISTICA[hab];
+    const desventajaArmadura = penalizacionSinComp && (caracAsociada === "fuerza" || caracAsociada === "destreza");
+    const desventajaSigilo = hab === "sigilo" && !!statsCalculadas.desventajaSigiloArmadura;
+    lanzarTiradaD20Personaje(`Prueba de ${nombre}`, bono, undefined, desventajaArmadura || desventajaSigilo);
   };
 
   const manejarTirarIniciativa = () => {
@@ -192,6 +215,7 @@ export const HojaPersonaje: React.FC<HojaPersonajeProps> = ({ alAbrirConfiguraci
         bonoCompetencia={statsCalculadas.bonoCompetencia}
         modDestreza={statsCalculadas.modificadores.destreza}
         claseArmadura={statsCalculadas.claseArmadura}
+        penalizacionArmadura={statsCalculadas.penalizacionArmadura}
         alTirarIniciativa={manejarTirarIniciativa}
         alAlternarInspiracion={() => alternarInspiracionPersonaje(personajeActivo.id)}
       />
@@ -213,8 +237,6 @@ export const HojaPersonaje: React.FC<HojaPersonajeProps> = ({ alAbrirConfiguraci
           alClick={() => setSubPestanaActiva("conjuros")}
         />
       </div>
-
-
 
       {/* 5. Contenido según Sub-pestaña Activa */}
       {subPestanaActiva === "general" ? (
@@ -253,6 +275,7 @@ export const HojaPersonaje: React.FC<HojaPersonajeProps> = ({ alAbrirConfiguraci
             statsCalculadas={statsCalculadas}
             alTirarHabilidad={manejarTirarHabilidad}
             alCiclarGradoHabilidad={(hab) => ciclarGradoHabilidadPersonaje(personajeActivo.id, hab)}
+            alAbrirSelectorCompetencias={(categoria) => setModalCompetencias(categoria)}
           />
         </>
       ) : (
@@ -262,6 +285,7 @@ export const HojaPersonaje: React.FC<HojaPersonajeProps> = ({ alAbrirConfiguraci
           modificadores={statsCalculadas.modificadores}
           baseDatosHechizos={baseDatosHechizos}
           sistemaMagia={sistemaMagia}
+          penalizacionArmadura={statsCalculadas.penalizacionArmadura}
           alAbrirConfiguracion={manejarAbrirEdicion}
           alGastarEspacio={(niv) => gastarEspacioConjuro(personajeActivo.id, niv)}
           alRecuperarEspacio={(niv) => recuperarEspacioConjuro(personajeActivo.id, niv)}
@@ -276,6 +300,26 @@ export const HojaPersonaje: React.FC<HojaPersonajeProps> = ({ alAbrirConfiguraci
           alQuitarTruco={(hId) => quitarTrucoConocido(personajeActivo.id, hId)}
           alQuitarConjuro={(hId) => quitarConjuroConocido(personajeActivo.id, hId)}
           alAlternarPreparado={(hId) => alternarConjuroPreparado(personajeActivo.id, hId)}
+        />
+      )}
+
+      {/* Modal Selector de Competencias (Armas, Armaduras, Idiomas, Herramientas) */}
+      {modalCompetencias && (
+        <ModalSelectorCompetencias
+          categoriaInicial={modalCompetencias}
+          estadoInicial={{
+            competenciasArmasGrupos: (personajeActivo.competenciasArmasGrupos || []) as ("sencillas" | "marciales" | "fuego")[],
+            competenciasArmasLista: personajeActivo.competenciasArmasLista || [],
+            competenciasArmadurasGrupos: (personajeActivo.competenciasArmadurasGrupos || []) as ("ligeras" | "medias" | "pesadas" | "escudos")[],
+            competenciasArmadurasLista: personajeActivo.competenciasArmadurasLista || [],
+            idiomasLista: personajeActivo.idiomasLista || [],
+            herramientasLista: personajeActivo.herramientasLista || []
+          }}
+          alGuardar={(nuevas) => {
+            actualizarPersonaje(personajeActivo.id, nuevas);
+            setModalCompetencias(null);
+          }}
+          alCerrar={() => setModalCompetencias(null)}
         />
       )}
 

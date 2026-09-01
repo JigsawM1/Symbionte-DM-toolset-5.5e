@@ -26,10 +26,11 @@ import { detectarInfoConsumible, evaluarFormulaDados, esObjetoConsumible } from 
 import { resolverEstadoMunicionArma, esMunicionCompatibleConArma } from "@/servicios/gestorMunicion";
 import { desduplicarEntidades } from "@/utiles/busquedaTolerante";
 import { COSTE_PUNTOS_POR_NIVEL } from "@/constantes";
+import { esCompetenteConArma } from "@/constantes/competenciasConstantes";
 import type { Arma, ObjetoJuego, HechizoBase, Caracteristica, HechizoVinculado } from "@/tipos";
 import { SelectorDesplegable } from "@/componentes/comunes";
 import { usarEstadoPersistido } from "@/hooks";
-import { Swords, Sparkles, UserCheck, FlaskConical, ChevronDown, ChevronRight, Zap } from "lucide-react";
+import { Swords, Sparkles, UserCheck, FlaskConical, ChevronDown, ChevronRight, Zap, AlertTriangle } from "lucide-react";
 import estilos from "./VistaAtaquesJugador.module.css";
 
 type FiltroAccion = "todas" | "accion" | "accionAdicional" | "reaccion";
@@ -105,6 +106,11 @@ export const VistaAtaquesJugador: React.FC = () => {
     return calcularEstadisticasPersonaje(personajeActivo);
   }, [personajeActivo]);
 
+  const estaBloqueadoPorArmadura = !!statsCalculadas?.penalizacionArmadura?.sinCompetencia;
+  const motivoBloqueoArmadura = estaBloqueadoPorArmadura
+    ? `No puedes lanzar conjuros mientras vistas ${[statsCalculadas?.penalizacionArmadura?.armaduraNoCompetente, statsCalculadas?.penalizacionArmadura?.escudoNoCompetente].filter(Boolean).join(" o ")} sin competencia.`
+    : undefined;
+
   // Habilidad mágica del personaje
   const habilidadMagica: Caracteristica = useMemo(() => {
     if (personajeActivo?.clasesLanzadoras && personajeActivo.clasesLanzadoras.length > 0) {
@@ -149,45 +155,46 @@ export const VistaAtaquesJugador: React.FC = () => {
       // Inferencia de armería si no existe en el compendio
       let propiedadesInferidas: string[] = [];
       let tipoAtaqueInferido: "Cuerpo a Cuerpo" | "A Distancia" = "Cuerpo a Cuerpo";
+      let subcategoriaInferida: "Sencilla" | "Marcial" | "De Fuego" = "Sencilla";
       let dadoBaseInferido = "1d6";
       let tipoDanoInferido: "Contundente" | "Perforante" | "Cortante" = "Contundente";
       let danoVersatilInferido: string | undefined = undefined;
       let alcanceInferido: string | undefined = "5 ft";
 
       if (nombreNorm.includes("arco largo") || nombreNorm.includes("longbow")) {
-        dadoBaseInferido = "1d8"; tipoDanoInferido = "Perforante"; alcanceInferido = "150/600 ft"; tipoAtaqueInferido = "A Distancia"; propiedadesInferidas = ["A dos manos", "Pesada", "Munición"];
+        dadoBaseInferido = "1d8"; tipoDanoInferido = "Perforante"; alcanceInferido = "150/600 ft"; tipoAtaqueInferido = "A Distancia"; subcategoriaInferida = "Marcial"; propiedadesInferidas = ["A dos manos", "Pesada", "Munición"];
       } else if (nombreNorm.includes("arco corto") || nombreNorm.includes("shortbow")) {
-        dadoBaseInferido = "1d6"; tipoDanoInferido = "Perforante"; alcanceInferido = "80/320 ft"; tipoAtaqueInferido = "A Distancia"; propiedadesInferidas = ["A dos manos", "Munición"];
+        dadoBaseInferido = "1d6"; tipoDanoInferido = "Perforante"; alcanceInferido = "80/320 ft"; tipoAtaqueInferido = "A Distancia"; subcategoriaInferida = "Sencilla"; propiedadesInferidas = ["A dos manos", "Munición"];
       } else if (nombreNorm.includes("ballesta ligera") || nombreNorm.includes("light crossbow")) {
-        dadoBaseInferido = "1d8"; tipoDanoInferido = "Perforante"; alcanceInferido = "80/320 ft"; tipoAtaqueInferido = "A Distancia"; propiedadesInferidas = ["A dos manos", "Carga", "Munición"];
+        dadoBaseInferido = "1d8"; tipoDanoInferido = "Perforante"; alcanceInferido = "80/320 ft"; tipoAtaqueInferido = "A Distancia"; subcategoriaInferida = "Sencilla"; propiedadesInferidas = ["A dos manos", "Carga", "Munición"];
       } else if (nombreNorm.includes("ballesta pesada") || nombreNorm.includes("heavy crossbow")) {
-        dadoBaseInferido = "1d10"; tipoDanoInferido = "Perforante"; alcanceInferido = "100/400 ft"; tipoAtaqueInferido = "A Distancia"; propiedadesInferidas = ["A dos manos", "Pesada", "Carga", "Munición"];
+        dadoBaseInferido = "1d10"; tipoDanoInferido = "Perforante"; alcanceInferido = "100/400 ft"; tipoAtaqueInferido = "A Distancia"; subcategoriaInferida = "Marcial"; propiedadesInferidas = ["A dos manos", "Pesada", "Carga", "Munición"];
       } else if (nombreNorm.includes("ballesta de mano") || nombreNorm.includes("hand crossbow")) {
-        dadoBaseInferido = "1d6"; tipoDanoInferido = "Perforante"; alcanceInferido = "30/120 ft"; tipoAtaqueInferido = "A Distancia"; propiedadesInferidas = ["Ligera", "Carga", "Munición"];
+        dadoBaseInferido = "1d6"; tipoDanoInferido = "Perforante"; alcanceInferido = "30/120 ft"; tipoAtaqueInferido = "A Distancia"; subcategoriaInferida = "Marcial"; propiedadesInferidas = ["Ligera", "Carga", "Munición"];
       } else if (nombreNorm.includes("daga") || nombreNorm.includes("dagger")) {
-        dadoBaseInferido = "1d4"; tipoDanoInferido = "Perforante"; alcanceInferido = "20/60 ft"; propiedadesInferidas = ["Sutil", "Ligera", "Arrojadiza"];
+        dadoBaseInferido = "1d4"; tipoDanoInferido = "Perforante"; alcanceInferido = "20/60 ft"; subcategoriaInferida = "Sencilla"; propiedadesInferidas = ["Sutil", "Ligera", "Arrojadiza"];
       } else if (nombreNorm.includes("espada corta") || nombreNorm.includes("shortsword")) {
-        dadoBaseInferido = "1d6"; tipoDanoInferido = "Perforante"; propiedadesInferidas = ["Sutil", "Ligera"];
+        dadoBaseInferido = "1d6"; tipoDanoInferido = "Perforante"; subcategoriaInferida = "Marcial"; propiedadesInferidas = ["Sutil", "Ligera"];
       } else if (nombreNorm.includes("espada larga") || nombreNorm.includes("longsword")) {
-        dadoBaseInferido = "1d8"; danoVersatilInferido = "1d10"; tipoDanoInferido = "Cortante"; propiedadesInferidas = ["Versátil"];
+        dadoBaseInferido = "1d8"; danoVersatilInferido = "1d10"; tipoDanoInferido = "Cortante"; subcategoriaInferida = "Marcial"; propiedadesInferidas = ["Versátil"];
       } else if (nombreNorm.includes("espadón") || nombreNorm.includes("espadon") || nombreNorm.includes("greatsword")) {
-        dadoBaseInferido = "2d6"; tipoDanoInferido = "Cortante"; propiedadesInferidas = ["A dos manos", "Pesada"];
+        dadoBaseInferido = "2d6"; tipoDanoInferido = "Cortante"; subcategoriaInferida = "Marcial"; propiedadesInferidas = ["A dos manos", "Pesada"];
       } else if (nombreNorm.includes("cimitarra") || nombreNorm.includes("scimitar")) {
-        dadoBaseInferido = "1d6"; tipoDanoInferido = "Cortante"; propiedadesInferidas = ["Sutil", "Ligera"];
+        dadoBaseInferido = "1d6"; tipoDanoInferido = "Cortante"; subcategoriaInferida = "Marcial"; propiedadesInferidas = ["Sutil", "Ligera"];
       } else if (nombreNorm.includes("estoque") || nombreNorm.includes("rapier")) {
-        dadoBaseInferido = "1d8"; tipoDanoInferido = "Perforante"; propiedadesInferidas = ["Sutil"];
+        dadoBaseInferido = "1d8"; tipoDanoInferido = "Perforante"; subcategoriaInferida = "Marcial"; propiedadesInferidas = ["Sutil"];
       } else if (nombreNorm.includes("hacha de batalla") || nombreNorm.includes("battleaxe")) {
-        dadoBaseInferido = "1d8"; danoVersatilInferido = "1d10"; tipoDanoInferido = "Cortante"; propiedadesInferidas = ["Versátil"];
+        dadoBaseInferido = "1d8"; danoVersatilInferido = "1d10"; tipoDanoInferido = "Cortante"; subcategoriaInferida = "Marcial"; propiedadesInferidas = ["Versátil"];
       } else if (nombreNorm.includes("gran hacha") || nombreNorm.includes("greataxe")) {
-        dadoBaseInferido = "1d12"; tipoDanoInferido = "Cortante"; propiedadesInferidas = ["A dos manos", "Pesada"];
+        dadoBaseInferido = "1d12"; tipoDanoInferido = "Cortante"; subcategoriaInferida = "Marcial"; propiedadesInferidas = ["A dos manos", "Pesada"];
       } else if (nombreNorm.includes("lanza") || nombreNorm.includes("spear")) {
-        dadoBaseInferido = "1d6"; danoVersatilInferido = "1d8"; tipoDanoInferido = "Perforante"; alcanceInferido = "20/60 ft"; propiedadesInferidas = ["Versátil", "Arrojadiza"];
+        dadoBaseInferido = "1d6"; danoVersatilInferido = "1d8"; tipoDanoInferido = "Perforante"; alcanceInferido = "20/60 ft"; subcategoriaInferida = "Sencilla"; propiedadesInferidas = ["Versátil", "Arrojadiza"];
       } else if (nombreNorm.includes("bastón") || nombreNorm.includes("baston") || nombreNorm.includes("quarterstaff")) {
-        dadoBaseInferido = "1d6"; danoVersatilInferido = "1d8"; tipoDanoInferido = "Contundente"; propiedadesInferidas = ["Versátil"];
+        dadoBaseInferido = "1d6"; danoVersatilInferido = "1d8"; tipoDanoInferido = "Contundente"; subcategoriaInferida = "Sencilla"; propiedadesInferidas = ["Versátil"];
       } else if (nombreNorm.includes("martillo de guerra") || nombreNorm.includes("warhammer")) {
-        dadoBaseInferido = "1d8"; danoVersatilInferido = "1d10"; tipoDanoInferido = "Contundente"; propiedadesInferidas = ["Versátil"];
+        dadoBaseInferido = "1d8"; danoVersatilInferido = "1d10"; tipoDanoInferido = "Contundente"; subcategoriaInferida = "Marcial"; propiedadesInferidas = ["Versátil"];
       } else if (nombreNorm.includes("tridente") || nombreNorm.includes("trident")) {
-        dadoBaseInferido = "1d8"; danoVersatilInferido = "1d10"; tipoDanoInferido = "Perforante"; alcanceInferido = "20/60 ft"; propiedadesInferidas = ["Versátil", "Arrojadiza"];
+        dadoBaseInferido = "1d8"; danoVersatilInferido = "1d10"; tipoDanoInferido = "Perforante"; alcanceInferido = "20/60 ft"; subcategoriaInferida = "Marcial"; propiedadesInferidas = ["Versátil", "Arrojadiza"];
       }
 
       const propiedades = objetoCompendio?.propiedades || propiedadesInferidas;
@@ -220,7 +227,17 @@ export const VistaAtaquesJugador: React.FC = () => {
       }
 
       const esMagicoReal = armaInst.esMagico || !!objetoCompendio?.esMagico || bonoMagico > 0;
-      const bonoAtaque = bonoCompetencia + modAtributo + bonoMagico;
+
+      // Validación estricta de competencia con el arma (D&D 5.5e)
+      const subcategoriaArma = objetoCompendio?.subcategoria || subcategoriaInferida;
+      const esCompetenteArma = esCompetenteConArma(
+        armaInst.nombre,
+        subcategoriaArma,
+        personajeActivo.competenciasArmasGrupos || [],
+        personajeActivo.competenciasArmasLista || []
+      );
+
+      const bonoAtaque = (esCompetenteArma ? bonoCompetencia : 0) + modAtributo + bonoMagico;
       const dadoDanoBase = objetoCompendio?.dadoDano || dadoBaseInferido;
       const tipoDano = objetoCompendio?.tipoDano || tipoDanoInferido;
       const modDanoTotal = modAtributo + bonoMagico;
@@ -296,7 +313,8 @@ export const VistaAtaquesJugador: React.FC = () => {
         municionSueltEnMochila,
         municionEnCompartimentosExternos,
         puedeDisparar,
-        motivoBloqueo
+        motivoBloqueo,
+        esCompetenteConArma: esCompetenteArma
       });
     }
 
@@ -475,8 +493,14 @@ export const VistaAtaquesJugador: React.FC = () => {
     try {
       const nombrePj = personajeActivo?.nombre?.trim() || "Personaje";
       const bonoStr = ataque.bonoAtaque >= 0 ? `+${ataque.bonoAtaque}` : `${ataque.bonoAtaque}`;
+      
+      // Regla D&D 5.5e: Desventaja en tiradas de ataque con FUE o DES si se viste armadura sin competencia
+      const tieneDesventajaArmadura =
+        !!statsCalculadas?.penalizacionArmadura?.sinCompetencia &&
+        (ataque.caracteristicaUsada === "fuerza" || ataque.caracteristicaUsada === "destreza");
+
       const formulaDados = `!Ataque ${sanitizarEtiqueta(ataque.nombre)}:1d20${bonoStr}`;
-      const etiquetaLog = `${nombrePj} - Ataque con ${ataque.nombre}`;
+      const etiquetaLog = `${nombrePj} - Ataque con ${ataque.nombre}${tieneDesventajaArmadura ? " (Desventaja por Armadura)" : ""}`;
 
       // Descontar munición compatible si el arma la requiere (estrictamente desde contenedor de la mochila)
       if (ataque.requiereMunicion && personajeActivo) {
@@ -484,24 +508,29 @@ export const VistaAtaquesJugador: React.FC = () => {
         const estadoActual = resolverEstadoMunicionArma(ataque.nombre, ataque.propiedades, inv, baseDatosObjetos);
 
         if (!estadoActual.puedeDisparar || estadoActual.municionEnContenedor <= 0) {
-          agregarNotificacion(
-            estadoActual.motivoBloqueo || `¡No puedes disparar! No tienes ${ataque.municionNombre || "munición"} lista en tu contenedor llevado encima.`,
-            "advertencia"
-          );
-          return;
-        }
+          const mensajeAviso =
+            estadoActual.motivoBloqueo ||
+            `Aviso: No tienes ${ataque.municionNombre || "munición"} lista en tu contenedor llevado encima.`;
+          agregarNotificacion(mensajeAviso, "advertencia");
+        } else {
+          const municionItemMochila = inv.find((it) => {
+            const enMochila = (it.contenedor || "mochila") === "mochila";
+            return enMochila && it.cantidad > 0 && esMunicionCompatibleConArma(ataque.nombre, it, ataque.propiedades, baseDatosObjetos);
+          });
 
-        const municionItemMochila = inv.find((it) => {
-          const enMochila = (it.contenedor || "mochila") === "mochila";
-          return enMochila && it.cantidad > 0 && esMunicionCompatibleConArma(ataque.nombre, it, ataque.propiedades, baseDatosObjetos);
-        });
-
-        if (municionItemMochila) {
-          modificarCantidadObjeto(personajeActivo.id, municionItemMochila.idInstancia, -1);
+          if (municionItemMochila) {
+            modificarCantidadObjeto(personajeActivo.id, municionItemMochila.idInstancia, -1);
+          }
         }
       }
 
-      await lanzarDadosTaleSpire(formulaDados, etiquetaLog);
+      await lanzarDadosTaleSpire(
+        formulaDados,
+        etiquetaLog,
+        undefined,
+        undefined,
+        tieneDesventajaArmadura ? "desventaja" : undefined
+      );
     } catch (err) {
       console.error("[VistaAtaquesJugador] Error al tirar ataque:", err);
     }
@@ -606,6 +635,38 @@ export const VistaAtaquesJugador: React.FC = () => {
   const conjurosFiltrados = conjurosAcciones.filter(
     (item) => filtro === "todas" || item.tipoAccion === filtro
   );
+
+  const esHechizoDeSubclase = useCallback(
+    (hechizo: HechizoBase | null | undefined): boolean => {
+      if (!hechizo || !personajeActivo) return false;
+      const siemprePrep = personajeActivo.conjurosSiemprePreparadosIds || [];
+      const normalizar = (s: string) => s.toLowerCase().trim();
+      return (
+        siemprePrep.includes(hechizo.id) ||
+        siemprePrep.some((id) => normalizar(id) === normalizar(hechizo.nombre))
+      );
+    },
+    [personajeActivo]
+  );
+
+  // Agrupación de conjuros filtrados por nivel (0 para Trucos, 1-9 para niveles)
+  const conjurosPorNivel = useMemo(() => {
+    const mapa: Record<number, { hechizo: HechizoBase; tipoAccion: TipoAccionConsumida }[]> = {};
+    for (let i = 0; i <= 9; i++) {
+      mapa[i] = [];
+    }
+
+    for (const item of conjurosFiltrados) {
+      const niv = item.hechizo.nivel ?? 0;
+      if (mapa[niv]) {
+        mapa[niv].push(item);
+      } else {
+        mapa[niv] = [item];
+      }
+    }
+
+    return mapa;
+  }, [conjurosFiltrados]);
 
   const consumiblesFiltrados = listaConsumibles.filter(
     (c) => filtro === "todas" || c.tipoAccion === filtro
@@ -718,6 +779,23 @@ export const VistaAtaquesJugador: React.FC = () => {
             <span className={estilos.badgeConteoFiltro}>({conteoReaccion})</span>
           </button>
         </div>
+
+        {/* Banner de Advertencia: Penalización por Armadura sin Competencia (D&D 5.5e) */}
+        {statsCalculadas.penalizacionArmadura?.sinCompetencia && (
+          <div className={estilos.bannerPenalizacionArmadura}>
+            <AlertTriangle size={16} color="#ef4444" style={{ flexShrink: 0, marginTop: 1 }} />
+            <div>
+              <strong>Penalización por Armadura sin Competencia:</strong>
+              {statsCalculadas.penalizacionArmadura.armaduraNoCompetente && (
+                <span> No eres competente con <em>{statsCalculadas.penalizacionArmadura.armaduraNoCompetente}</em>.</span>
+              )}
+              {statsCalculadas.penalizacionArmadura.escudoNoCompetente && (
+                <span> No eres competente con <em>{statsCalculadas.penalizacionArmadura.escudoNoCompetente}</em>.</span>
+              )}
+              <div>Tienes <strong>Desventaja</strong> en tiradas de ataque y pruebas/salvaciones de Fuerza y Destreza. <strong>No puedes lanzar conjuros</strong>.</div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Trackers de Recursos Mágicos (Espacios de Conjuro, Pacto y Puntos) */}
@@ -819,7 +897,7 @@ export const VistaAtaquesJugador: React.FC = () => {
         </div>
       )}
 
-      {/* Sección 2: Conjuros y Trucos de Combate (DRY Completo) */}
+      {/* Sección 2: Conjuros y Trucos de Combate Separados por Nivel */}
       {conjurosFiltrados.length > 0 && (
         <div className={estilos.seccionGrupoAtaques}>
           <div
@@ -840,33 +918,73 @@ export const VistaAtaquesJugador: React.FC = () => {
           </div>
 
           {seccionesAbiertas.magicos && (
-            <div className={estilos.listaAtaques}>
-              {conjurosFiltrados.map(({ hechizo }) => (
-                <TarjetaConjuroCompacta
-                  key={hechizo.id}
-                  hechizo={hechizo}
-                  nombrePersonaje={personajeActivo.nombre}
-                  nivelPersonaje={personajeActivo.nivel || 1}
-                  bonoAtaqueMagico={bonoAtaqueMagico}
-                  estaPreparado={true}
-                  mostrarTogglePreparado={false}
-                  esConcentracionActual={personajeActivo.concentracionActiva?.hechizoId === hechizo.id}
-                  alAbrirDetalleCompleto={(h) => setHechizoDetalle(h)}
-                  alQuitarDeLista={() => {}}
-                  alGastarEspacio={(niv) => gastarEspacioConjuro(personajeActivo.id, niv)}
-                  alGastarPuntos={(cant) => gastarPuntosConjuro(personajeActivo.id, cant)}
-                  alGastarEspacioPacto={() => gastarEspacioPacto(personajeActivo.id)}
-                  esLanzadorPacto={tienePacto}
-                  nivelEspacioPacto={personajeActivo.nivelEspacioPacto || 0}
-                  espaciosPactoMaximos={personajeActivo.espaciosPactoMaximos || 0}
-                  espaciosPactoGastados={personajeActivo.espaciosPactoGastados || 0}
-                  espaciosConjuroMaximos={personajeActivo.espaciosConjuroMaximos || {}}
-                  nivelConjuroMaximo={personajeActivo.nivelConjuroMaximo || 0}
-                  alEstablecerConcentracion={(id, nombre) => establecerConcentracion(personajeActivo.id, id, nombre)}
-                  costePuntosPorNivel={COSTE_PUNTOS_POR_NIVEL}
-                  sistemaMagia={sistemaMagia}
-                />
-              ))}
+            <div className={estilos.listaSeccionesNivelMagico}>
+              {Array.from({ length: 10 }).map((_, nivel) => {
+                const itemsNivel = conjurosPorNivel[nivel] || [];
+                if (itemsNivel.length === 0) return null;
+                const abierta = seccionesAbiertas[`magicos_nv_${nivel}`] !== false;
+
+                return (
+                  <div key={`magicos-nv-${nivel}`} className={estilos.seccionNivelMagico}>
+                    <div
+                      className={estilos.cabeceraNivelMagico}
+                      onClick={() => alternarSeccion(`magicos_nv_${nivel}`)}
+                      role="button"
+                      tabIndex={0}
+                      title={`Clic para ${abierta ? "colapsar" : "expandir"} ${nivel === 0 ? "trucos" : `conjuros de nivel ${nivel}`}`}
+                    >
+                      <div className={estilos.tituloNivelMagico}>
+                        {nivel === 0 ? (
+                          <>
+                            <Sparkles size={13} color="#a78bfa" />
+                            <span>Trucos Listos</span>
+                          </>
+                        ) : (
+                          <span>Nivel {nivel}</span>
+                        )}
+                        <span className={estilos.badgeConteoNivelMagico}>{itemsNivel.length}</span>
+                      </div>
+                      <div className={estilos.ladoDerechoCabeceraNivel}>
+                        {abierta ? <ChevronDown size={13} /> : <ChevronRight size={13} />}
+                      </div>
+                    </div>
+
+                    {abierta && (
+                      <div className={estilos.listaTarjetasNivelMagico}>
+                        {itemsNivel.map(({ hechizo }) => (
+                          <TarjetaConjuroCompacta
+                            key={hechizo.id}
+                            hechizo={hechizo}
+                            nombrePersonaje={personajeActivo.nombre}
+                            nivelPersonaje={personajeActivo.nivel || 1}
+                            bonoAtaqueMagico={bonoAtaqueMagico}
+                            estaPreparado={true}
+                            mostrarTogglePreparado={false}
+                            esDeSubclase={esHechizoDeSubclase(hechizo)}
+                            esConcentracionActual={personajeActivo.concentracionActiva?.hechizoId === hechizo.id}
+                            bloqueadoPorArmadura={estaBloqueadoPorArmadura}
+                            motivoBloqueoArmadura={motivoBloqueoArmadura}
+                            alAbrirDetalleCompleto={(h) => setHechizoDetalle(h)}
+                            alQuitarDeLista={() => {}}
+                            alGastarEspacio={(niv) => gastarEspacioConjuro(personajeActivo.id, niv)}
+                            alGastarPuntos={(cant) => gastarPuntosConjuro(personajeActivo.id, cant)}
+                            alGastarEspacioPacto={() => gastarEspacioPacto(personajeActivo.id)}
+                            esLanzadorPacto={tienePacto}
+                            nivelEspacioPacto={personajeActivo.nivelEspacioPacto || 0}
+                            espaciosPactoMaximos={personajeActivo.espaciosPactoMaximos || 0}
+                            espaciosPactoGastados={personajeActivo.espaciosPactoGastados || 0}
+                            espaciosConjuroMaximos={personajeActivo.espaciosConjuroMaximos || {}}
+                            nivelConjuroMaximo={personajeActivo.nivelConjuroMaximo || 0}
+                            alEstablecerConcentracion={(id, nombre) => establecerConcentracion(personajeActivo.id, id, nombre)}
+                            costePuntosPorNivel={COSTE_PUNTOS_POR_NIVEL}
+                            sistemaMagia={sistemaMagia}
+                          />
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           )}
         </div>
@@ -932,6 +1050,13 @@ export const VistaAtaquesJugador: React.FC = () => {
                 const coste = Number(item.hechizo.costeCargas) || 0;
                 const tieneCargas = coste === 0 || item.cargasActuales >= coste;
                 const lanzarHechizo = async () => {
+                  if (estaBloqueadoPorArmadura) {
+                    agregarNotificacion(
+                      motivoBloqueoArmadura || "No puedes lanzar conjuros mientras vistas armadura o portes escudo sin competencia.",
+                      "advertencia"
+                    );
+                    return;
+                  }
                   if (coste > 0) {
                     modificarCargasObjeto(personajeActivo.id, item.objetoInstanciaId, -coste);
                   }
@@ -996,7 +1121,15 @@ export const VistaAtaquesJugador: React.FC = () => {
                           type="button"
                           className={`${estilos.botonTirarAtaque} ${estilos.botonLanzarObjeto}`}
                           onClick={lanzarHechizo}
-                          disabled={!tieneCargas}
+                          disabled={!tieneCargas || estaBloqueadoPorArmadura}
+                          title={
+                            estaBloqueadoPorArmadura
+                              ? (motivoBloqueoArmadura || "Bloqueado por armadura sin competencia")
+                              : !tieneCargas
+                              ? "Cargas insuficientes para lanzar este conjuro"
+                              : "Lanzar conjuro desde el objeto"
+                          }
+                          style={estaBloqueadoPorArmadura ? { opacity: 0.5, cursor: "not-allowed" } : undefined}
                         >
                           <Sparkles size={11} />
                           <span>{coste > 0 ? `Lanzar (-${coste})` : "Lanzar"}</span>
@@ -1042,14 +1175,22 @@ export const VistaAtaquesJugador: React.FC = () => {
               espaciosConjuroMaximos={personajeActivo.espaciosConjuroMaximos || {}}
               nivelConjuroMaximo={personajeActivo.nivelConjuroMaximo || 0}
               sistemaMagia={sistemaMagia}
+              bloqueadoPorArmadura={estaBloqueadoPorArmadura}
+              motivoBloqueoArmadura={motivoBloqueoArmadura}
               onClose={() => setHechizoDetalle(null)}
               onLanzarRitual={() => {
+                if (estaBloqueadoPorArmadura) {
+                  return;
+                }
                 if (hechizoDetalle.concentracion) {
                   establecerConcentracion(personajeActivo.id, hechizoDetalle.id, hechizoDetalle.nombre);
                 }
                 setHechizoDetalle(null);
               }}
               onLanzarConjuro={(nivelLanzamiento) => {
+                if (estaBloqueadoPorArmadura) {
+                  return;
+                }
                 if (hechizoDetalle.nivel > 0) {
                   gastarRecursoLanzamientoConjuro({
                     nivelLanzamiento,

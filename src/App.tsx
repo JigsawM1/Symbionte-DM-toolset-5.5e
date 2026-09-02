@@ -16,6 +16,7 @@ const ConfiguracionDM = React.lazy(() => import("@/componentes/caracteristicas/c
 const VistaJugadores = React.lazy(() => import("@/componentes/caracteristicas/iniciativa").then((m) => ({ default: m.VistaJugadores })));
 const VistaAtaquesJugador = React.lazy(() => import("@/componentes/caracteristicas/ataques").then((m) => ({ default: m.VistaAtaquesJugador })));
 const VistaInventarioJugador = React.lazy(() => import("@/componentes/caracteristicas/inventario").then((m) => ({ default: m.VistaInventarioJugador })));
+const VistaRasgosJugador = React.lazy(() => import("@/componentes/caracteristicas/rasgos").then((m) => ({ default: m.VistaRasgosJugador })));
 const IniciativaJugador = React.lazy(() => import("@/componentes/caracteristicas/iniciativa").then((m) => ({ default: m.IniciativaJugador })));
 
 const AppContenido: React.FC = () => {
@@ -37,6 +38,8 @@ const AppContenido: React.FC = () => {
         case "hechizos":
         case "conjuros":
           return <Compendio />;
+        case "rasgos":
+          return <VistaRasgosJugador />;
         case "inventario":
           return <VistaInventarioJugador />;
         case "tablas":

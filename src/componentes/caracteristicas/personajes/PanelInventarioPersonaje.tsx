@@ -40,7 +40,7 @@ import {
   calcularDesglosePesosPorContenedor,
   CONFIG_CONTENEDORES
 } from "@/servicios/calculadorInventario";
-import { coincideBusquedaTolerante } from "@/utiles/busquedaTolerante";
+import { coincideBusquedaTolerante, compararPorRelevanciaTitulo } from "@/utiles/busquedaTolerante";
 import { esObjetoConsumible } from "@/servicios/procesadorConsumibles";
 import { esContenedorFisicoMunicion } from "@/servicios/gestorMunicion";
 import { SelectorDesplegable, OpcionDesplegable } from "@/componentes/comunes/SelectorDesplegable";
@@ -537,18 +537,27 @@ export const PanelInventarioPersonaje: React.FC<PanelInventarioPersonajeProps> =
     (o) => o.contenedor === "almacen"
   );
 
-  // 5. Filtrado tolerante según búsqueda
+  // 5. Filtrado tolerante según búsqueda priorizando título/nombre
   const filtrarLista = (lista: ObjetoInventario[]) => {
     if (!busquedaMochila || !busquedaMochila.trim()) {
       return lista;
     }
-    return lista.filter((obj) => {
+    const filtrada = lista.filter((obj) => {
       const nombreContenedor = obj.contenedor ? (CONFIG_CONTENEDORES[obj.contenedor]?.nombre || "") : "";
       return coincideBusquedaTolerante(
         [obj.nombre, obj.tipoPrincipal, obj.notas, obj.rareza, nombreContenedor],
         busquedaMochila
       );
     });
+
+    return filtrada.sort(
+      compararPorRelevanciaTitulo(
+        (o) => o.nombre,
+        busquedaMochila,
+        (a, b) => a.nombre.localeCompare(b.nombre, "es"),
+        (o) => [o.tipoPrincipal, o.notas, o.rareza]
+      )
+    );
   };
 
   const objetosMochilaFiltrados = useMemo(() => filtrarLista(objetosMochilaBase), [objetosMochilaBase, busquedaMochila]);
@@ -716,6 +725,33 @@ export const PanelInventarioPersonaje: React.FC<PanelInventarioPersonajeProps> =
   const objetosMochilaOrdenadosPlano = useMemo(() => {
     const lista = [...objetosMochilaFiltrados];
 
+    const comparadorDesempate = (a: ObjetoInventario, b: ObjetoInventario): number => {
+      switch (criterioOrden) {
+        case "reciente":
+          return 0; // Se mantiene orden LIFO
+        case "peso-desc":
+          return (b.pesoLb || 0) * (b.cantidad || 1) - (a.pesoLb || 0) * (a.cantidad || 1);
+        case "peso-asc":
+          return (a.pesoLb || 0) * (a.cantidad || 1) - (b.pesoLb || 0) * (b.cantidad || 1);
+        case "valor-desc":
+          return obtenerValorPO(b) - obtenerValorPO(a);
+        case "nombre-asc":
+        default:
+          return a.nombre.localeCompare(b.nombre, "es");
+      }
+    };
+
+    if (busquedaMochila && busquedaMochila.trim()) {
+      return lista.sort(
+        compararPorRelevanciaTitulo(
+          (o) => o.nombre,
+          busquedaMochila,
+          comparadorDesempate,
+          (o) => [o.tipoPrincipal, o.notas, o.rareza]
+        )
+      );
+    }
+
     switch (criterioOrden) {
       case "personalizado":
         // Orden personalizado: preserva el orden exacto del inventario
@@ -744,7 +780,7 @@ export const PanelInventarioPersonaje: React.FC<PanelInventarioPersonajeProps> =
       default:
         return lista;
     }
-  }, [objetosMochilaFiltrados, criterioOrden, baseDatosObjetos]);
+  }, [objetosMochilaFiltrados, criterioOrden, busquedaMochila, baseDatosObjetos]);
 
   const multiplicadorTexto =
     tamano === "Mediano" ? "" : ` × ${MULTIPLICADORES_TAMANO[tamano]} (${tamano})`;

@@ -13,6 +13,166 @@ Este archivo registra reglas globales, errores encontrados, sus causas raíz y l
 4. **TIPADO ESTRICTO Y CÓDIGO LIMPIO**:
    - `strict: true` en TypeScript. Cero tipos `any`. Interfaces explícitas, generics y principios SOLID.
 
+## [2026-09-01] Rediseño Jerárquico, Scroll Optimizado y Barra Compacta en la Pestaña de "Rasgos"
+**Decisión y Motivación:**
+- *Causa*:
+  1. *Falta de Scroll y Desbordamiento*: El contenedor principal carecía de `height: 100%`, `max-height: 100%` y `overflow-y: auto`, impidiendo el desplazamiento vertical en la vista estrecha de TaleSpire WebView.
+  2. *Filtros Voluminosos*: Las múltiples filas apiladas de chips de filtro y buscador ocupaban excesivo espacio vertical útil.
+  3. *Organización Plana vs Jerárquica*: La organización no reflejaba la jerarquía natural del personaje (Raza -> Clases con sus respectivas Subclases anidadas -> Dotes -> Personalizados).
+- *Solución*:
+  1. **Scroll, Layout y Prevención de Solapamiento (`VistaRasgosJugador.module.css`)**:
+     - Asignado `flex-shrink: 0` a todas las tarjetas, cabeceras, sub-bloques y secciones principales para impedir que flexbox colapse elementos sobre otros.
+     - Contenedor con `height: 100%`, `max-height: 100%`, `overflow-y: auto !important`, `overflow-x: hidden`, `-webkit-overflow-scrolling: touch`, `max-width: 640px` y `padding-bottom: 100px`.
+     - Barra de scroll WebKit estilizada y visible para TaleSpire CEF.
+     - Eliminada la función y botón de compartir en el chat de TaleSpire en las tarjetas de rasgos para evitar saturación visual y botones residuales.
+     - En rasgos canónicos oficiales solo se muestran los datos del rasgo (y dados/usos si los tiene); los botones de Editar y Eliminar quedan reservados exclusivamente para rasgos creados (Homebrew / Personalizados / Dotes).
+     - Eliminados por completo los bordes y fondos cuadrados de los botones de acción (`.botonIconoAccion` a transparent y borderless).
+  2. **Barra Superior Compacta (`VistaRasgosJugador.tsx` y `.module.css`)**:
+     - Cabecera en una sola fila compacta con buscador integrado, botón desplegable de filtros de acción (`SlidersHorizontal`), botón "+ Añadir", botón de sincronización y alternador global de colapso/expansión (`ChevronsUpDown`).
+  3. **Árbol Jerárquico Riguroso**:
+     - **Raza / Especie**: Sección superior con los rasgos propios de la especie activa (`User`).
+     - **Clases y Subclases (Multiclase)**: Cada clase tiene su tarjeta contenedora (`Clase: Guerrero (Nivel 3)`), subdividida internamente en:
+       - *Rasgos de Clase Base*
+       - *Subclase: [Nombre Subclase]* (bloque anidado con diseño dorado y borde punteado)
+     - **Dotes**: Sección de dotes adquiridas con botón rápido "+ Dote".
+     - **Rasgos Personalizados y Homebrew**: Sección para rasgos propios con botón "+ Crear Homebrew".
+  4. **Verificación**:
+     - 384 tests pasando al 100% (`pnpm test`).
+     - 0 errores `tsc --noEmit`.
+     - Despliegue correcto con `pnpm run deploy`.
+
+---
+
+## [2026-09-01] Cajas Colapsables y Filtros Avanzados en la Pestaña de Magia y Hechizos (QoL)
+**Decisión y Motivación:**
+- *Causa*: La pestaña de conjuros del personaje mostraba todos los niveles de forma continua sin capacidad de colapsar/expandir secciones por nivel (a diferencia de la vista de Acciones/Ataques) y carecía de filtros para gestionar listas grandes de conjuros según requisitos tácticos (concentración, tirada de ataque / salvación CD / utilidad, componentes V, S, M).
+- *Solución*:
+  1. **Secciones Colapsables con Persistencia (`src/componentes/caracteristicas/personajes/PanelConjurosPersonaje.tsx`)**:
+     - Cada nivel (Trucos Listos y Niveles 1 al 9) ahora cuenta con una cabecera interactiva colapsable con cursor pointer, badge de conteo de conjuros visibles/totales y chevron (`ChevronDown` / `ChevronRight`).
+     - Persistencia del estado colapsado por personaje mediante `usarEstadoPersistido` con clave `ts_conjuros_secciones_{id}`.
+     - Botones globales de acción rápida para **"Expandir"** y **"Colapsar"** todos los niveles simultáneamente.
+  2. **Barra de Filtros Avanzados Integrada (`src/componentes/caracteristicas/personajes/PanelConjurosPersonaje.tsx` y `.module.css`)**:
+     - **Buscador Rápido**: Búsqueda reactiva tolerante por nombre, escuela o descripción con botón de borrado inmediato.
+     - **Filtro de Concentración**: Chips interactivos para alternar entre *Todos*, *Sin Concentración* y *Con Concentración*.
+     - **Filtro de Tipo de Resolución**: Chips para alternar entre *Todos*, *Tirada de Ataque*, *Salvación (CD)* y *Utilidad / Efecto*.
+     - **Filtro de Componentes (V, S, M)**: Chips tácticos para *Sin V (Verbal)* (útil en Silencio/Sigilo), *Sin S (Somático)* (útil si está apresado o sin manos libres), *Sin M (Material)* y *Requiere M*.
+     - Conteo dinámico de filtros aplicados en el badge del botón de filtros y botón de *Limpiar todos los filtros*.
+  3. **Verificación**:
+     - 35 suites de prueba y 377 tests pasando al 100% (`pnpm test`).
+     - Tipado estricto verificado sin errores (`tsc --noEmit`).
+     - Compilación y despliegue exitoso a TaleSpire Symbiotes (`pnpm run deploy`).
+
+---
+
+## [2026-09-01] Corrección de Deducción de Espacios de Conjuro vs Puntos y Omisión de Mensajes al Chat Sin Dados (D&D 5.5e)
+**Decisión y Motivación:**
+- *Causa*:
+  1. *Falsa Inferencia de Sistema de Magia*: En `usarLanzadorConjuros.ts`, se asignaba `sistemaMagia: personaje.puntosConjuroMaximos && personaje.puntosConjuroMaximos > 0 ? "puntos" : "espacios"`. Como el motor multiclase (`calcularTodosRecursosMagicos`) calcula automáticamente la equivalencia en puntos del DMG para cualquier lanzador (`puntosConjuroMaximos > 0`), el hook siempre sobreescribía el modo a `"puntos"`. Al lanzar cualquier conjuro, el calculador deducía puntos de magia (`gastarPuntosConjuro`) en lugar de restar los espacios de conjuro tradicionales (`gastarEspacioConjuro`).
+  2. *Spam y Fallos de Dados en TaleSpire*: Al lanzar conjuros sin tirada de ataque ni daño (como *Escudo*, *Bendición*, *Armadura de Mago*, *Invisibilidad*, *Paso Brumoso*), se intentaba enviar mensajes al chat o a la bandeja física de TaleSpire. El usuario solicitó no enviar mensajes al chat ni tirar dados si el conjuro no requiere tirada física.
+- *Solución*:
+  1. **Vinculación Correcta a la Configuración de Magia (`src/hooks/usarLanzadorConjuros.ts`)**:
+     - `usarLanzadorConjuros` ahora lee `sistemaMagia` directamente del store de configuración (`usarEstadoConfiguracion().sistemaMagia`, valor por defecto `"espacios"`) o del prop `opciones.sistemaMagia`.
+     - Ahora descuenta con total fidelidad el espacio de conjuro (`gastarEspacioConjuro`) correspondiente al nivel lanzado o upcasteado cuando el personaje usa el sistema tradicional de espacios, y solo gasta puntos si la campaña está explícitamente configurada en modo puntos de magia.
+  2. **Omisión Total de Mensajes al Chat Sin Dados (`src/utiles/lanzadorDados.ts`)**:
+     - `lanzarDadosTaleSpire` verifica `contieneExpresionDados(formula)`. Si la fórmula no contiene dados (`\b\d*d\d+\b`), no invoca `ts.dice.putDiceInTray` ni `ts.chat.send`, registrando únicamente en logs de depuración locales.
+  3. **Verificación**:
+     - 35 suites de pruebas y 377 tests pasando al 100% (`pnpm test`).
+     - Tipado TypeScript estricto verificado sin errores (`tsc --noEmit`).
+     - Compilación y despliegue exitoso a TaleSpire Symbiotes (`pnpm run deploy`).
+
+---
+
+## [2026-09-01] Priorización de Título en Buscadores de Inventario, Conjuros y Compendios (QoL)
+**Decisión y Motivación:**
+- *Causa*: Al buscar términos en los buscadores de inventario, hechizos o compendios, los elementos que coincidían únicamente en la descripción, tipo, notas o escuela aparecían mezclados con los elementos que tenían el término en el título principal. Se requería priorizar las coincidencias en el título/nombre y ordenar secundariamente por el resto de campos.
+- *Solución*:
+  1. **Motor Universal de Relevancia (`src/utiles/busquedaTolerante.ts`)**:
+     - Creada la función pura `calcularRelevanciaBusqueda(titulo, consulta, secundarios)` con escala ponderada de relevancia:
+       * 1000: Coincidencia exacta con el título.
+       * 800: El título comienza por la consulta.
+       * 600: El título contiene la consulta como subcadena.
+       * 400: El título contiene todas las palabras clave (tokens).
+       * 300: El título contiene al menos una palabra clave.
+       * 100: Coincidencia en campos secundarios (descripción, notas, tipo, escuela, contenedor).
+       * 0: Sin coincidencia.
+     - Creada la función de ordenamiento `compararPorRelevanciaTitulo(obtenerTitulo, consulta, desempate, obtenerSecundarios)`.
+  2. **Integración en Componentes de Hechizos y Compendios**:
+     - `CompendioConjurosJugador.tsx`: Ordena los conjuros filtrados priorizando coincidencias en el nombre sobre la descripción o escuela, desempando por nivel y alfabéticamente.
+     - `ListaHechizos.tsx`: Compendio general del DM y jugador actualizado para priorizar coincidencias en el título.
+     - `BuscadorConjurosPersonaje.tsx`: Selector de conjuros del compendio actualizado con el comparador de relevancia.
+  3. **Integración en Componentes de Inventario y Selectores**:
+     - `PanelInventarioPersonaje.tsx`: `filtrarLista` y `objetosMochilaOrdenadosPlano` priorizan los objetos cuyo nombre coincide con la búsqueda sobre los que solo coinciden por notas/tipo/rareza/contenedor, respetando el criterio de desempate seleccionado (peso, valor, reciente, nombre).
+     - `SelectorSugerencias.tsx`: Autocompletado de adición de objetos al inventario actualizado para ordenar por coincidencia en etiqueta/título antes que por subtítulo o grupo.
+     - `ListaHomebrew.tsx`: Listas de monstruos, hechizos y objetos homebrew actualizadas con ordenación por relevancia de título.
+  4. **Verificación y Despliegue**:
+     - Añadidas pruebas unitarias en `busquedaTolerante.test.ts`. Total: 35 suites y 374 tests unitarios pasando al 100% (`pnpm test`).
+     - Tipado TypeScript estricto verificado sin errores (`tsc --noEmit`).
+     - Compilación de producción y despliegue exitoso a TaleSpire Symbiotes (`pnpm run deploy`).
+
+---
+
+## [2026-09-01] Mejoras en la Vista de Jugador: Salvaciones de Muerte 5.5e, Dados de Golpe Inline, Descansos No Forzados, Modal Informativo, Despreparar Conjuros y Ocultar Tablas
+**Decisión y Motivación:**
+- *Causa*:
+  1. **Tirada de Salvación de la Muerte (D&D 5.5e / 2024)**: Las tiradas de salvación contra la muerte solo añadían 1 éxito o 1 fallo binario (>=10 / <10), ignorando los efectos críticos oficiales: el 1 en el dado debe añadir 2 fallos de muerte, y el 20 en el dado otorga 3 éxitos automáticos (estabilización inmediata) más 1 punto de golpe (+1 HP).
+  2. **Dados de Golpe Inline**: Los dados de golpe tienen otros usos además de curar (habilidades de clase, conjuros, aptitudes), pero solo se podían gastar para curar o modificar mediante descansos. Se requería poder cambiar la cantidad de dados de golpe directamente en la interfaz.
+  3. **Descanso Corto No Forzado**: Al pulsar el botón de descanso corto, el sistema forzaba el gasto automático de 1 dado de golpe del jugador (`ejecutarDescansoPersonaje(..., "corto", 1)`), lo que no permitía tomar un descanso corto para recuperar habilidades o espacios de pacto sin gastar dados.
+  4. **Modal Informativo de Recuperación en Descansos**: Al aplicar un descanso corto o largo no había feedback claro sobre todos los recursos recuperados o modificados (HP, dados de golpe, espacios de conjuro/pacto, cansancio, concentración).
+  5. **Pestaña "Tablas" en Vista de Jugador**: La pestaña de tablas de referencia pertenecía al control del DM y saturaba la barra superior del jugador.
+  6. **Despreparar Conjuros sin Borrar de Conocidos**: Al pulsar el botón de quitar un conjuro en la subpestaña de conjuros de la Hoja de Personaje, se eliminaba permanentemente de `conjurosConocidosIds`, obligando al jugador a volver a importarlo o buscarlo desde cero en el compendio en vez de simplemente quitarlo de su lista de conjuros preparados para el día.
+- *Solución*:
+  1. **Salvación de Muerte D&D 5.5e (`lanzadorDados.ts`)**:
+     - Creada la función centralizada `aplicarResultadoSalvacionMuerteEnEstado(personajeId: string, totalDado: number)`.
+     - 1 natural: `modificarSalvacionesMuertePersonaje(personajeId, "fallos", 2)`.
+     - 20 natural: `establecerSalvacionesMuertePersonaje(personajeId, "exitos", 3)` y `modificarHPPersonaje(personajeId, 1)`.
+     - 10 a 19: `modificarSalvacionesMuertePersonaje(personajeId, "exitos", 1)`.
+     - 2 a 9: `modificarSalvacionesMuertePersonaje(personajeId, "fallos", 1)`.
+     - Conectado en las 3 vías de resolución: tiradas 3D nativas en bandeja TaleSpire, tiradas especiales (con ventaja/desventaja) y fallback local.
+  2. **Edición Inline de Dados de Golpe (`slicePersonajes.ts`, `PanelVitalidadPersonaje.tsx` y `HojaPersonaje.module.css`)**:
+     - Agregada acción `establecerDadosGolpeRestantesPersonaje(id, valor)` que garantiza los límites `[0, dadosGolpeTotal]`.
+     - Creada la clase CSS `.inputDadosGolpeDirecto` e integrado input interactivo en `PanelVitalidadPersonaje` con validación en `onBlur` y soporte de teclas `Enter` y `Escape`.
+  3. **Descanso Corto Desacoplado de Dados (`HojaPersonaje.tsx`)**:
+     - `manejarDescansoCorto` invoca `ejecutarDescansoPersonaje(personajeActivo.id, "corto", 0)` (sin consumo forzado de dados).
+  4. **Modal Informativo de Recuperación (`ModalResumenDescanso.tsx` y `ModalResumenDescanso.module.css`)**:
+     - `ejecutarDescansoPersonaje` ahora retorna el `ResultadoDescanso` completo (`{ personajeActualizado, acciones }`).
+     - Al completar cualquier descanso, se abre `ModalResumenDescanso` mostrando la lista de recursos restaurados (HP, dados de golpe, slots, cansancio, concentración) con iconos específicos por tipo (`Heart`, `Dices`, `Sparkles`, `Shield`, `Activity`, `Skull`, `Zap`) y soporte de accesibilidad (Escape, foco automático y role="dialog").
+  5. **Ocultar Pestaña "Tablas" en Vista de Jugador (`BarraSuperior.tsx`)**:
+     - Eliminado el botón de la pestaña `"tablas"` dentro del bloque `!esGM`. En la vista del DM (`esGM`), "Tablas DM" permanece completamente operativa.
+  6. **Despreparar Conjuros sin Borrar Conocidos (`slicePersonajes.ts`, `usarMagiaPersonaje.ts` y `HojaPersonaje.tsx`)**:
+     - Agregada la acción `desprepararConjuroPersonaje(id, hechizoId)` en Zustand, que remueve el ID exclusivamente de `conjurosPreparadosIds` sin alterar `conjurosConocidosIds`.
+     - `usarMagiaPersonaje.ts`: `estaEnLista` ahora respeta el modelo de preparación (`maximos.modelo === "preparados"`), de modo que al despreparar el conjuro se oculta de la lista activa de combate en Características pero se preserva intacto en el Compendio para volver a prepararlo.
+  7. **Verificación y Despliegue**:
+     - Creada suite unitaria `HojaPersonajeMejoras.test.ts`.
+     - Total: 35 archivos de prueba y 370 tests unitarios pasando al 100% (`pnpm test`).
+     - Tipado estricto verificado sin errores (`tsc --noEmit`).
+     - Despliegue exitoso al simbionte TaleSpire (`pnpm run deploy`).
+
+---
+
+## [2026-09-01] Selector Inteligente de Características en Armas Sutiles, Golpe Desarmado y Armas Improvisadas (D&D 5.5e)
+**Decisión y Motivación:**
+- *Causa*:
+  1. El selector de características en las tarjetas de ataque mostraba todas las opciones (FUE, DES, INT, SAB, CAR) de forma genérica, permitiendo seleccionar Destreza en armas cuerpo a cuerpo que no tenían la propiedad *Sutil* (*Finesse*).
+  2. No existía la acción predeterminada de *"Golpe con Arma Improvisada"* ($1\text{d}4+\text{Fuerza}$) en la lista de ataques físicos ni se podían gestionar formalmente las competencias en *"Ataque desarmado"* y *"Armas improvisadas"* desde el selector de competencias.
+  3. El Golpe sin Armas debía seguir estrictamente la regla D&D 5.5e (siempre con Fuerza salvo clase Monje o efecto especial).
+- *Solución*:
+  1. **Selector Inteligente de Atributos (`TarjetaAtaquePersonaje.tsx`)**:
+     - Si el arma es *Sutil* o a distancia: el selector incluye `DES` (FUE, DES, INT, SAB, CAR para sutiles; DES, INT, SAB, CAR para distancia).
+     - Si el arma es cuerpo a cuerpo *No Sutil*: el selector excluye terminantemente `DES` y muestra `FUE, INT, SAB, CAR` (permitiendo aptitudes mágicas como Pacto de la Hoja o Shillelagh).
+     - **Selección por Defecto Óptima (`VistaAtaquesJugador.tsx`)**: En armas sutiles, el sistema escoge automáticamente $\max(\text{modFue}, \text{modDes})$ para la tirada inicial.
+  2. **Golpe con Arma Improvisada (`VistaAtaquesJugador.tsx`)**:
+     - Creado el ataque dinámico *"Golpe con Arma Improvisada"* ($1\text{d}4+\text{Fuerza}$, daño contundente, alcance 5 ft / 20/60 ft arrojadiza).
+     - Validación estricta de competencia con `"Armas improvisadas"` (`esCompetenteConArma`). Si no se es competente, no suma el bono de competencia y muestra badge táctico `No Competente`.
+  3. **Regla Oficial de Golpe Desarmado (`VistaAtaquesJugador.tsx`)**:
+     - Para cualquier clase convencional: siempre utiliza **Fuerza** ($1+\text{Fuerza}$ daño fijo contundente) y no es sutil.
+     - Para clase **Monje**: utiliza *Artes Marciales* con Destreza (si $\text{modDes} > \text{modFue}$), dado de daño escalado por nivel ($1\text{d}6-1\text{d}12$) y es sutil.
+     - Vinculado a la competencia `"Ataque desarmado"`.
+  4. **Panel y Modal de Competencias (`ModalSelectorCompetencias.tsx` y `competenciasConstantes.ts`)**:
+     - Exportada la constante `COMPETENCIAS_COMBATE_ESPECIALES` (`"Ataque desarmado"`, `"Armas improvisadas"`).
+     - Integradas en la lista de armas individuales del modal selector para marcarlas/desmarcarlas interactivamente.
+     - `esCompetenteConArma` actualizado para detección tolerante de ataques desarmados e improvisados.
+  5. **Verificación y Despliegue**: 361 tests unitarios pasando al 100% (`pnpm test`), 0 errores de compilación TypeScript (`tsc --noEmit`) y despliegue exitoso al simbionte TaleSpire (`pnpm run deploy`).
+
 ---
 
 ## [2026-09-01] Corrección de Anulación Simétrica de Ventaja/Desventaja e Indicadores Universales de Condiciones

@@ -530,6 +530,7 @@ export function usarAccionesPersonajes() {
       modificarHPMaximoBasePersonaje:     s.modificarHPMaximoBasePersonaje,
       modificarHPTemporalPersonaje:       s.modificarHPTemporalPersonaje,
       gastarDadoGolpePersonaje:           s.gastarDadoGolpePersonaje,
+      establecerDadosGolpeRestantesPersonaje: s.establecerDadosGolpeRestantesPersonaje,
       ejecutarDescansoPersonaje:          s.ejecutarDescansoPersonaje,
       alternarInspiracionPersonaje:       s.alternarInspiracionPersonaje,
       modificarSalvacionesMuertePersonaje: s.modificarSalvacionesMuertePersonaje,
@@ -555,6 +556,7 @@ export function usarAccionesPersonajes() {
       agregarConjuroConocido:             s.agregarConjuroConocido,
       quitarConjuroConocido:              s.quitarConjuroConocido,
       alternarConjuroPreparado:           s.alternarConjuroPreparado,
+      desprepararConjuroPersonaje:        s.desprepararConjuroPersonaje,
       gastarEspacioConjuro:               s.gastarEspacioConjuro,
       recuperarEspacioConjuro:            s.recuperarEspacioConjuro,
       recuperarTodosEspaciosConjuro:      s.recuperarTodosEspaciosConjuro,
@@ -580,7 +582,16 @@ export function usarAccionesPersonajes() {
       reordenarInventario:                s.reordenarInventario,
       desempaquetarPaquete:               s.desempaquetarPaquete,
       establecerMonedas:                  s.establecerMonedas,
-      modificarMoneda:                    s.modificarMoneda
+      modificarMoneda:                    s.modificarMoneda,
+
+      // Rasgos y Dotes
+      agregarRasgoPersonaje:              s.agregarRasgoPersonaje,
+      actualizarRasgoPersonaje:           s.actualizarRasgoPersonaje,
+      eliminarRasgoPersonaje:             s.eliminarRasgoPersonaje,
+      gastarUsoRasgoPersonaje:            s.gastarUsoRasgoPersonaje,
+      recuperarUsoRasgoPersonaje:         s.recuperarUsoRasgoPersonaje,
+      establecerUsosRestantesRasgoPersonaje: s.establecerUsosRestantesRasgoPersonaje,
+      sincronizarRasgosPersonaje:         s.sincronizarRasgosPersonaje
     }))
   );
 }

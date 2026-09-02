@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { EsquemaRasgoPersonaje } from "./rasgos";
 
 // ==========================================
 // 1. CARACTERÍSTICAS Y CAPACIDADES BASE
@@ -341,7 +342,11 @@ export const EsquemaPersonajeJugador = z.object({
 
   // Inventario y Equipo (Apartado E)
   inventario: z.array(EsquemaObjetoInventario).default([]),
-  bolsaMonedas: EsquemaBolsaMonedas.default({ pc: 0, pp: 0, pe: 0, po: 0, ppt: 0 })
+  bolsaMonedas: EsquemaBolsaMonedas.default({ pc: 0, pp: 0, pe: 0, po: 0, ppt: 0 }),
+
+  // Rasgos, Dotes y Personalizaciones (Apartado F)
+  rasgos: z.array(EsquemaRasgoPersonaje).default([]),
+  dotes: z.array(z.string()).default([])
 });
 
 export type PersonajeJugador = z.infer<typeof EsquemaPersonajeJugador>;

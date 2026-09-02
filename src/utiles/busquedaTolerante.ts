@@ -99,3 +99,86 @@ export function desduplicarEntidades<T extends { id: string; nombre: string }>(
 
   return Array.from(mapaPorId.values());
 }
+
+/**
+ * Calcula un puntaje de relevancia de búsqueda para un elemento dado su título y campos secundarios.
+ * Mayor puntaje indica mayor prioridad en los resultados de búsqueda.
+ * 
+ * Escala de prioridad:
+ * - 1000: Coincidencia exacta con el título
+ * - 800: El título comienza con la consulta completa
+ * - 600: El título contiene la consulta completa como subcadena
+ * - 400: El título contiene todas las palabras clave (tokens) de la consulta
+ * - 300: El título contiene al menos una palabra clave de la consulta
+ * - 100: Coincidencia exclusiva en campos secundarios (descripción, tipo, notas, etc.)
+ * - 0: Sin coincidencia
+ */
+export function calcularRelevanciaBusqueda(
+  titulo: string | undefined | null,
+  consulta: string,
+  secundarios?: (string | undefined | null)[]
+): number {
+  if (!consulta || !consulta.trim()) return 0;
+  const tokens = tokenizarBusqueda(consulta);
+  if (tokens.length === 0) return 0;
+
+  const consultaNorm = normalizarParaBusqueda(consulta);
+  const tituloNorm = normalizarParaBusqueda(titulo || "");
+
+  if (tituloNorm) {
+    if (tituloNorm === consultaNorm) return 1000;
+    if (tituloNorm.startsWith(consultaNorm)) return 800;
+    if (tituloNorm.includes(consultaNorm)) return 600;
+
+    const tokensEnTitulo = tokens.filter((t) =>
+      tituloNorm.includes(t) || tituloNorm.replace(/ñ/g, "n").includes(t.replace(/ñ/g, "n"))
+    );
+
+    if (tokensEnTitulo.length === tokens.length) return 400;
+    if (tokensEnTitulo.length > 0) return 300;
+  }
+
+  // Comprobar coincidencia en campos secundarios si se proporcionan
+  if (secundarios && secundarios.length > 0) {
+    const coincideSecundarios = coincideBusquedaTolerante(secundarios, consulta);
+    if (coincideSecundarios) return 100;
+  }
+
+  return 0;
+}
+
+/**
+ * Función comparadora de ordenamiento que prioriza elementos coincidentes en el título/nombre,
+ * situando después las coincidencias en campos secundarios ("después ya por lo demás")
+ * y aplicando un comparador de desempate opcional.
+ */
+export function compararPorRelevanciaTitulo<T>(
+  obtenerTitulo: (item: T) => string,
+  consulta: string,
+  desempate?: (a: T, b: T) => number,
+  obtenerSecundarios?: (item: T) => (string | undefined | null)[]
+): (a: T, b: T) => number {
+  if (!consulta || !consulta.trim()) {
+    return desempate || (() => 0);
+  }
+
+  return (a: T, b: T) => {
+    const tituloA = obtenerTitulo(a);
+    const tituloB = obtenerTitulo(b);
+    const secA = obtenerSecundarios ? obtenerSecundarios(a) : undefined;
+    const secB = obtenerSecundarios ? obtenerSecundarios(b) : undefined;
+
+    const relA = calcularRelevanciaBusqueda(tituloA, consulta, secA);
+    const relB = calcularRelevanciaBusqueda(tituloB, consulta, secB);
+
+    if (relA !== relB) {
+      return relB - relA; // Mayor relevancia primero
+    }
+
+    if (desempate) {
+      return desempate(a, b);
+    }
+
+    return (tituloA || "").localeCompare(tituloB || "", "es");
+  };
+}

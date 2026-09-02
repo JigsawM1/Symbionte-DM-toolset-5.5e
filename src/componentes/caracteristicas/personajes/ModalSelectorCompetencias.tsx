@@ -4,6 +4,7 @@ import {
   TODAS_ARMAS_SENCILLAS,
   TODAS_ARMAS_MARCIALES,
   ARMAS_DE_FUEGO,
+  COMPETENCIAS_COMBATE_ESPECIALES,
   GRUPOS_ARMADURAS,
   ARMADURAS_LIGERAS,
   ARMADURAS_MEDIAS,
@@ -409,7 +410,7 @@ export const ModalSelectorCompetencias: React.FC<ModalSelectorCompetenciasProps>
                     border: "1px solid rgba(148, 163, 184, 0.12)"
                   }}
                 >
-                  {[...TODAS_ARMAS_SENCILLAS, ...TODAS_ARMAS_MARCIALES, ...ARMAS_DE_FUEGO]
+                  {[...COMPETENCIAS_COMBATE_ESPECIALES, ...TODAS_ARMAS_SENCILLAS, ...TODAS_ARMAS_MARCIALES, ...ARMAS_DE_FUEGO]
                     .filter((a) => coincideBusquedaTolerante(a, filtro))
                     .map((arma) => {
                       const check = armasLista.includes(arma);

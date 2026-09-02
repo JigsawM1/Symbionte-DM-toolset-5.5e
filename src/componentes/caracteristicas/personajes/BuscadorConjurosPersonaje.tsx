@@ -3,7 +3,7 @@ import { Search, Plus, Check, BookOpen, X } from "lucide-react";
 import type { HechizoBase } from "@/tipos";
 import { SelectorDesplegable } from "@/componentes/comunes";
 import { generarIdSlug } from "@/utiles/generarId";
-import { coincideBusquedaTolerante } from "@/utiles/busquedaTolerante";
+import { coincideBusquedaTolerante, compararPorRelevanciaTitulo } from "@/utiles/busquedaTolerante";
 
 interface BuscadorConjurosPersonajeProps {
   baseDatosHechizos: HechizoBase[];
@@ -35,7 +35,7 @@ export const BuscadorConjurosPersonaje: React.FC<BuscadorConjurosPersonajeProps>
   }, [baseDatosHechizos]);
 
   const resultados = useMemo(() => {
-    return baseDatosHechizos.filter((h) => {
+    const filtrados = baseDatosHechizos.filter((h) => {
       // Filtro de texto tolerante
       if (busqueda && busqueda.trim()) {
         const coincide = coincideBusquedaTolerante(
@@ -57,6 +57,18 @@ export const BuscadorConjurosPersonaje: React.FC<BuscadorConjurosPersonajeProps>
 
       return true;
     });
+
+    return filtrados.sort(
+      compararPorRelevanciaTitulo(
+        (h) => h.nombre,
+        busqueda,
+        (a, b) => {
+          if (a.nivel !== b.nivel) return a.nivel - b.nivel;
+          return a.nombre.localeCompare(b.nombre, "es");
+        },
+        (h) => [h.descripcion, h.escuela]
+      )
+    );
   }, [baseDatosHechizos, busqueda, filtroNivel, filtroEscuela]);
 
   const idsYaAgregados = useMemo(() => {

@@ -1149,7 +1149,9 @@ export function sanearPersonaje(p: unknown): PersonajeJugador {
     trucosConocidosIds: Array.isArray(raw.trucosConocidosIds) ? raw.trucosConocidosIds : [],
     conjurosConocidosIds: Array.isArray(raw.conjurosConocidosIds) ? raw.conjurosConocidosIds : [],
     conjurosPreparadosIds: Array.isArray(raw.conjurosPreparadosIds) ? raw.conjurosPreparadosIds : [],
-    conjurosSiemprePreparadosIds: Array.isArray(raw.conjurosSiemprePreparadosIds) ? raw.conjurosSiemprePreparadosIds : []
+    conjurosSiemprePreparadosIds: Array.isArray(raw.conjurosSiemprePreparadosIds) ? raw.conjurosSiemprePreparadosIds : [],
+    rasgos: Array.isArray(raw.rasgos) ? raw.rasgos : [],
+    dotes: Array.isArray(raw.dotes) ? raw.dotes : []
   };
 
   const resultado = EsquemaPersonajeJugador.safeParse(fusionado);

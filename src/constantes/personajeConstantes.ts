@@ -348,6 +348,10 @@ export const PERSONAJE_POR_DEFECTO: PersonajeJugador = {
 
   // Inventario y Equipo (Apartado E)
   inventario: [],
-  bolsaMonedas: { pc: 0, pp: 0, pe: 0, po: 0, ppt: 0 }
+  bolsaMonedas: { pc: 0, pp: 0, pe: 0, po: 0, ppt: 0 },
+
+  // Rasgos, Dotes y Personalizaciones (Apartado F)
+  rasgos: [],
+  dotes: []
 };
 

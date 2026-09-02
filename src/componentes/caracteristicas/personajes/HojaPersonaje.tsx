@@ -21,6 +21,8 @@ import { PanelHabilidadesPersonaje } from "./PanelHabilidadesPersonaje";
 import { PanelConjurosPersonaje } from "./PanelConjurosPersonaje";
 import { ModalEditarPersonaje } from "./ModalEditarPersonaje";
 import { ModalSelectorCompetencias, type CategoriaCompetencia } from "./ModalSelectorCompetencias";
+import { ModalResumenDescanso } from "./ModalResumenDescanso";
+import type { AccionDescanso } from "@/servicios/procesadorDescansos";
 import { BotonSubPestana } from "./BotonSubPestana";
 import { usarEstadoPersistido } from "@/hooks";
 import { Swords, Sparkles } from "lucide-react";
@@ -43,6 +45,7 @@ export const HojaPersonaje: React.FC<HojaPersonajeProps> = ({ alAbrirConfiguraci
     modificarHPMaximoEfectivoPersonaje,
     modificarHPTemporalPersonaje,
     gastarDadoGolpePersonaje,
+    establecerDadosGolpeRestantesPersonaje,
     ejecutarDescansoPersonaje,
     alternarInspiracionPersonaje,
     establecerSalvacionesMuertePersonaje,
@@ -67,14 +70,23 @@ export const HojaPersonaje: React.FC<HojaPersonajeProps> = ({ alAbrirConfiguraci
     establecerConcentracion,
     romperConcentracion,
     quitarTrucoConocido,
-    quitarConjuroConocido,
-    alternarConjuroPreparado
+    alternarConjuroPreparado,
+    desprepararConjuroPersonaje
   } = usarAccionesPersonajes();
 
   const { establecerTipoTirada } = usarAccionesIniciativa();
 
   const [modalEdicionAbierto, setModalEdicionAbierto] = useState(false);
   const [modalCompetencias, setModalCompetencias] = useState<CategoriaCompetencia | null>(null);
+  const [modalDescanso, setModalDescanso] = useState<{
+    abierto: boolean;
+    tipo: "corto" | "largo";
+    acciones: AccionDescanso[];
+  }>({
+    abierto: false,
+    tipo: "corto",
+    acciones: []
+  });
   const [subPestanaActiva, setSubPestanaActiva] = usarEstadoPersistido<SubPestanaHoja>(
     "ts_hoja_subpestana",
     "general"
@@ -117,6 +129,24 @@ export const HojaPersonaje: React.FC<HojaPersonajeProps> = ({ alAbrirConfiguraci
   const manejarCambioModoTirada = (modo: ModoTirada) => {
     const tipoGlobal = modo === "vent" ? "ventaja" : modo === "disv" ? "desventaja" : "plano";
     establecerTipoTirada(tipoGlobal);
+  };
+
+  const manejarDescansoCorto = () => {
+    const res = ejecutarDescansoPersonaje(personajeActivo.id, "corto", 0);
+    setModalDescanso({
+      abierto: true,
+      tipo: "corto",
+      acciones: res?.acciones || []
+    });
+  };
+
+  const manejarDescansoLargo = () => {
+    const res = ejecutarDescansoPersonaje(personajeActivo.id, "largo");
+    setModalDescanso({
+      abierto: true,
+      tipo: "largo",
+      acciones: res?.acciones || []
+    });
   };
 
   // 3. Lanzadores de Dados 3D a TaleSpire (Homologados con el Combat Tracker del DM)
@@ -278,8 +308,8 @@ export const HojaPersonaje: React.FC<HojaPersonajeProps> = ({ alAbrirConfiguraci
         desventajaSigiloArmadura={statsCalculadas.desventajaSigiloArmadura}
         concentracionActiva={personajeActivo.concentracionActiva}
         alCambiarModoTirada={manejarCambioModoTirada}
-        alEjecutarDescansoCorto={() => ejecutarDescansoPersonaje(personajeActivo.id, "corto", 1)}
-        alEjecutarDescansoLargo={() => ejecutarDescansoPersonaje(personajeActivo.id, "largo")}
+        alEjecutarDescansoCorto={manejarDescansoCorto}
+        alEjecutarDescansoLargo={manejarDescansoLargo}
         alAplicarCondicion={(cond) => aplicarCondicionPersonaje(personajeActivo.id, cond)}
         alQuitarCondicion={(cond) => quitarCondicionPersonaje(personajeActivo.id, cond)}
         alRomperConcentracion={() => romperConcentracion(personajeActivo.id)}
@@ -325,6 +355,7 @@ export const HojaPersonaje: React.FC<HojaPersonajeProps> = ({ alAbrirConfiguraci
             alModificarHPMaximoEfectivo={(valor) => modificarHPMaximoEfectivoPersonaje(personajeActivo.id, valor)}
             alModificarHPTemporal={(valor) => modificarHPTemporalPersonaje(personajeActivo.id, valor)}
             alGastarDadoGolpe={() => gastarDadoGolpePersonaje(personajeActivo.id)}
+            alEstablecerDadosGolpeRestantes={(val) => establecerDadosGolpeRestantesPersonaje(personajeActivo.id, val)}
             alEstablecerSalvacionMuerte={(tipo, valor) =>
               establecerSalvacionesMuertePersonaje(personajeActivo.id, tipo, valor)
             }
@@ -374,7 +405,7 @@ export const HojaPersonaje: React.FC<HojaPersonajeProps> = ({ alAbrirConfiguraci
           alEstablecerConcentracion={(hId, nom) => establecerConcentracion(personajeActivo.id, hId, nom)}
           alRomperConcentracion={() => romperConcentracion(personajeActivo.id)}
           alQuitarTruco={(hId) => quitarTrucoConocido(personajeActivo.id, hId)}
-          alQuitarConjuro={(hId) => quitarConjuroConocido(personajeActivo.id, hId)}
+          alQuitarConjuro={(hId) => desprepararConjuroPersonaje(personajeActivo.id, hId)}
           alAlternarPreparado={(hId) => alternarConjuroPreparado(personajeActivo.id, hId)}
         />
       )}
@@ -407,6 +438,15 @@ export const HojaPersonaje: React.FC<HojaPersonajeProps> = ({ alAbrirConfiguraci
           alCerrar={() => setModalEdicionAbierto(false)}
         />
       )}
+
+      {/* Modal Resumen de Descanso */}
+      <ModalResumenDescanso
+        abierto={modalDescanso.abierto}
+        tipoDescanso={modalDescanso.tipo}
+        acciones={modalDescanso.acciones}
+        nombrePersonaje={personajeActivo.nombre}
+        alCerrar={() => setModalDescanso((prev) => ({ ...prev, abierto: false }))}
+      />
     </main>
   );
 };

@@ -9,11 +9,12 @@ import type {
   ObjetoJuego,
   BolsaMonedas,
   TipoMonedaClave,
-  TipoContenedor
+  TipoContenedor,
+  RasgoPersonaje
 } from "@/tipos";
 import { PERSONAJE_POR_DEFECTO } from "@/constantes";
 import { generarId } from "@/utiles/generarId";
-import { ejecutarDescansoCorto, ejecutarDescansoLargo } from "@/servicios/procesadorDescansos";
+import { ejecutarDescansoCorto, ejecutarDescansoLargo, type ResultadoDescanso } from "@/servicios/procesadorDescansos";
 import { aplicarCondicion, quitarCondicion } from "@/servicios/procesadorCondiciones";
 import { contarSintonizaciones, desempaquetarPaqueteInventario } from "@/servicios/calculadorInventario";
 import {
@@ -23,6 +24,7 @@ import {
 } from "@/servicios/calculadorMagia";
 import { coincideHechizoId, deduplicarListaIds } from "@/servicios/comparadorHechizos";
 import { sincronizarConjurosSubclaseHelper } from "@/servicios/sincronizadorConjurosSubclase";
+import { sincronizarRasgosAutomaticos } from "@/servicios/compendioRasgos";
 import { procesarAlternarEquipado } from "@/servicios/procesadorEquipamiento";
 import { mutarPersonaje } from "./helpers/mutarPersonaje";
 
@@ -52,12 +54,13 @@ export interface SlicePersonajes {
   modificarHPMaximoBasePersonaje: (id: string, nuevoBase: number) => void;
   modificarHPTemporalPersonaje: (id: string, valor: number) => void;
   gastarDadoGolpePersonaje: (id: string, tiradas?: number[]) => void;
+  establecerDadosGolpeRestantesPersonaje: (id: string, valor: number) => void;
   ejecutarDescansoPersonaje: (
     id: string,
     tipo: "corto" | "largo",
     dadosAGastar?: number,
     tiradas?: number[]
-  ) => void;
+  ) => ResultadoDescanso | null;
   alternarInspiracionPersonaje: (id: string) => void;
   modificarSalvacionesMuertePersonaje: (id: string, tipo: "exitos" | "fallos", delta: number) => void;
   establecerSalvacionesMuertePersonaje: (id: string, tipo: "exitos" | "fallos", valor: number) => void;
@@ -101,6 +104,7 @@ export interface SlicePersonajes {
   agregarConjuroConocido: (id: string, hechizoId: string) => void;
   quitarConjuroConocido: (id: string, hechizoId: string) => void;
   alternarConjuroPreparado: (id: string, hechizoId: string) => void;
+  desprepararConjuroPersonaje: (id: string, hechizoId: string) => void;
 
   gastarEspacioConjuro: (id: string, nivel: number) => void;
   recuperarEspacioConjuro: (id: string, nivel: number) => void;
@@ -146,6 +150,15 @@ export interface SlicePersonajes {
   desempaquetarPaquete: (idPj: string, idInstancia: string, baseDatosObjetos: ObjetoJuego[]) => void;
   establecerMonedas: (idPj: string, monedas: Partial<BolsaMonedas>) => void;
   modificarMoneda: (idPj: string, tipo: TipoMonedaClave, delta: number) => void;
+
+  // Rasgos, Dotes y Personalizaciones (Apartado F)
+  agregarRasgoPersonaje: (idPj: string, rasgo: RasgoPersonaje) => void;
+  actualizarRasgoPersonaje: (idPj: string, idRasgo: string, cambios: Partial<RasgoPersonaje>) => void;
+  eliminarRasgoPersonaje: (idPj: string, idRasgo: string) => void;
+  gastarUsoRasgoPersonaje: (idPj: string, idRasgo: string) => void;
+  recuperarUsoRasgoPersonaje: (idPj: string, idRasgo: string) => void;
+  establecerUsosRestantesRasgoPersonaje: (idPj: string, idRasgo: string, usos: number) => void;
+  sincronizarRasgosPersonaje: (idPj: string) => void;
 }
 
 
@@ -410,16 +423,28 @@ export const crearSlicePersonajes: StateCreator<
     get().actualizarPersonaje(id, personajeActualizado);
   },
 
+  establecerDadosGolpeRestantesPersonaje: (id, valor) => {
+    mutarPersonaje(set, id, (pj) => {
+      const maxDados = pj.dadosGolpeTotal || pj.nivel || 1;
+      const valorValido = Math.max(0, Math.min(maxDados, Math.floor(valor)));
+      return {
+        ...pj,
+        dadosGolpeRestantes: valorValido
+      };
+    });
+  },
+
   ejecutarDescansoPersonaje: (id, tipo, dadosAGastar = 0, tiradas = []) => {
     const pj = get().personajes.find((p) => p.id === id);
-    if (!pj) return;
+    if (!pj) return null;
 
-    const { personajeActualizado } =
+    const resultado =
       tipo === "largo"
         ? ejecutarDescansoLargo(pj)
         : ejecutarDescansoCorto(pj, dadosAGastar, tiradas);
 
-    get().actualizarPersonaje(id, personajeActualizado);
+    get().actualizarPersonaje(id, resultado.personajeActualizado);
+    return resultado;
   },
 
   alternarInspiracionPersonaje: (id) => {
@@ -759,6 +784,14 @@ export const crearSlicePersonajes: StateCreator<
         ? preparados.filter((hId) => !coincideHechizoId(hId, hechizoId))
         : [...preparados, hechizoId];
 
+      return { ...pj, conjurosPreparadosIds: nuevaLista };
+    });
+  },
+
+  desprepararConjuroPersonaje: (id, hechizoId) => {
+    mutarPersonaje(set, id, (pj) => {
+      const preparados = pj.conjurosPreparadosIds || [];
+      const nuevaLista = preparados.filter((hId) => !coincideHechizoId(hId, hechizoId));
       return { ...pj, conjurosPreparadosIds: nuevaLista };
     });
   },
@@ -1133,6 +1166,100 @@ export const crearSlicePersonajes: StateCreator<
         }
       };
     });
+  },
+
+  // Rasgos, Dotes y Personalizaciones
+  agregarRasgoPersonaje: (idPj, rasgo) => {
+    mutarPersonaje(set, idPj, (pj) => {
+      const rasgosActuales = pj.rasgos || [];
+      return {
+        ...pj,
+        rasgos: [...rasgosActuales, rasgo]
+      };
+    });
+  },
+
+  actualizarRasgoPersonaje: (idPj, idRasgo, cambios) => {
+    mutarPersonaje(set, idPj, (pj) => {
+      const rasgosActuales = (pj.rasgos || []).map((r) =>
+        r.id === idRasgo ? { ...r, ...cambios } : r
+      );
+      return {
+        ...pj,
+        rasgos: rasgosActuales
+      };
+    });
+  },
+
+  eliminarRasgoPersonaje: (idPj, idRasgo) => {
+    mutarPersonaje(set, idPj, (pj) => {
+      const rasgosFiltrados = (pj.rasgos || []).filter((r) => r.id !== idRasgo);
+      return {
+        ...pj,
+        rasgos: rasgosFiltrados
+      };
+    });
+  },
+
+  gastarUsoRasgoPersonaje: (idPj, idRasgo) => {
+    mutarPersonaje(set, idPj, (pj) => {
+      const rasgosActualizados = (pj.rasgos || []).map((r) => {
+        if (r.id === idRasgo && r.tieneUsosLimitados) {
+          const maxUsos = r.usosMaximos ?? 1;
+          const restantes = r.usosRestantes ?? maxUsos;
+          return {
+            ...r,
+            usosRestantes: Math.max(0, restantes - 1)
+          };
+        }
+        return r;
+      });
+      return { ...pj, rasgos: rasgosActualizados };
+    });
+  },
+
+  recuperarUsoRasgoPersonaje: (idPj, idRasgo) => {
+    mutarPersonaje(set, idPj, (pj) => {
+      const rasgosActualizados = (pj.rasgos || []).map((r) => {
+        if (r.id === idRasgo && r.tieneUsosLimitados) {
+          const maxUsos = r.usosMaximos ?? 1;
+          const restantes = r.usosRestantes ?? 0;
+          return {
+            ...r,
+            usosRestantes: Math.min(maxUsos, restantes + 1)
+          };
+        }
+        return r;
+      });
+      return { ...pj, rasgos: rasgosActualizados };
+    });
+  },
+
+  establecerUsosRestantesRasgoPersonaje: (idPj, idRasgo, usos) => {
+    mutarPersonaje(set, idPj, (pj) => {
+      const rasgosActualizados = (pj.rasgos || []).map((r) => {
+        if (r.id === idRasgo && r.tieneUsosLimitados) {
+          const maxUsos = r.usosMaximos ?? 1;
+          return {
+            ...r,
+            usosRestantes: Math.max(0, Math.min(maxUsos, usos))
+          };
+        }
+        return r;
+      });
+      return { ...pj, rasgos: rasgosActualizados };
+    });
+  },
+
+  sincronizarRasgosPersonaje: (idPj) => {
+    mutarPersonaje(set, idPj, (pj) => {
+      const rasgosSincronizados = sincronizarRasgosAutomaticos(pj);
+      return {
+        ...pj,
+        rasgos: rasgosSincronizados
+      };
+    });
   }
 });
+
 

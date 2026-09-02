@@ -238,12 +238,6 @@ export function usarMagiaPersonaje(
     return estaEnSet(setPreparadosIds, hechizo);
   }, [estaEnSet, setTrucosIds, esHechizoDeSubclase, setPreparadosIds]);
 
-  const estaEnLista = useCallback((hechizo: HechizoBase): boolean => {
-    if (hechizo.nivel === 0) return estaEnSet(setTrucosIds, hechizo);
-    if (esHechizoDeSubclase(hechizo)) return true;
-    return estaEnSet(setConocidosIds, hechizo) || estaEnSet(setPreparadosIds, hechizo);
-  }, [estaEnSet, setTrucosIds, esHechizoDeSubclase, setConocidosIds, setPreparadosIds]);
-
   // 6. Límites máximos
   const maximos = useMemo(() => {
     return calcularMaximosConjurosYTrucos(
@@ -252,6 +246,15 @@ export function usarMagiaPersonaje(
       modHabilidad
     );
   }, [personaje?.clasesLanzadoras, personaje?.nivel, modHabilidad]);
+
+  const estaEnLista = useCallback((hechizo: HechizoBase): boolean => {
+    if (hechizo.nivel === 0) return estaEnSet(setTrucosIds, hechizo);
+    if (esHechizoDeSubclase(hechizo)) return true;
+    if (maximos.modelo === "preparados") {
+      return estaEnSet(setPreparadosIds, hechizo);
+    }
+    return estaEnSet(setConocidosIds, hechizo) || estaEnSet(setPreparadosIds, hechizo);
+  }, [estaEnSet, setTrucosIds, esHechizoDeSubclase, maximos.modelo, setConocidosIds, setPreparadosIds]);
 
   // 7. Lista agrupada de conjuros por nivel y trucos
   const conjurosPorNivel = useMemo(() => {

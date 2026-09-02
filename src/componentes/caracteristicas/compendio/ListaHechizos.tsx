@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from "react";
-import { coincideBusquedaTolerante } from "@/utiles/busquedaTolerante";
+import { coincideBusquedaTolerante, compararPorRelevanciaTitulo } from "@/utiles/busquedaTolerante";
 import { usarEstadoHomebrew } from "@/almacen/selectores";
 import { Search, Info } from "lucide-react";
 import { FichaHechizo } from "./FichaHechizo";
@@ -44,9 +44,9 @@ export const ListaHechizos: React.FC = () => {
     ];
   }, [escuelasDisponibles]);
 
-  // Filtrar hechizos
+  // Filtrar y ordenar hechizos priorizando el título
   const hechizosFiltrados = useMemo(() => {
-    return baseDatosHechizos.filter((hechizo) => {
+    const filtrados = baseDatosHechizos.filter((hechizo) => {
       const coincideTexto = coincideBusquedaTolerante(
         [hechizo.nombre, hechizo.descripcion, hechizo.escuela],
         busqueda
@@ -60,6 +60,18 @@ export const ListaHechizos: React.FC = () => {
 
       return coincideTexto && coincideNivel && coincideEscuela;
     });
+
+    return filtrados.sort(
+      compararPorRelevanciaTitulo(
+        (h) => h.nombre,
+        busqueda,
+        (a, b) => {
+          if (a.nivel !== b.nivel) return a.nivel - b.nivel;
+          return a.nombre.localeCompare(b.nombre, "es");
+        },
+        (h) => [h.descripcion, h.escuela]
+      )
+    );
   }, [baseDatosHechizos, busqueda, nivelFiltro, escuelaFiltro]);
 
   const hechizoSeleccionado = useMemo(() => {

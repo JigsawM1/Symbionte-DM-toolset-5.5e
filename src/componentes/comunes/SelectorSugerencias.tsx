@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useMemo } from "react";
 import { ChevronDown, Check } from "lucide-react";
-import { coincideBusquedaTolerante } from "@/utiles/busquedaTolerante";
+import { coincideBusquedaTolerante, compararPorRelevanciaTitulo } from "@/utiles/busquedaTolerante";
 import estilos from "./SelectorSugerencias.module.css";
 
 export interface OpcionSugerencia {
@@ -61,18 +61,25 @@ export const SelectorSugerencias: React.FC<SelectorSugerenciasProps> = ({
     });
   }, [opciones]);
 
-  // Filtrar sugerencias relevantes en base al texto escrito de forma tolerante (tildes, mayúsculas, etc.)
+  // Filtrar sugerencias relevantes en base al texto escrito de forma tolerante y priorizando el título
   const opcionesFiltradas = useMemo<OpcionSugerencia[]>(() => {
     if (!valor || !valor.trim()) return opcionesNormalizadas;
 
     const filtradas = opcionesNormalizadas.filter((opcion) => {
       return coincideBusquedaTolerante(
-        [opcion.valor, opcion.etiqueta, opcion.grupo, opcion.subtitulo],
+        [opcion.etiqueta || opcion.valor, opcion.subtitulo, opcion.grupo],
         valor
       );
     });
 
-    return filtradas;
+    return filtradas.sort(
+      compararPorRelevanciaTitulo(
+        (opt) => opt.etiqueta || opt.valor,
+        valor,
+        (a, b) => (a.etiqueta || a.valor).localeCompare(b.etiqueta || b.valor, "es"),
+        (opt) => [opt.subtitulo, opt.grupo]
+      )
+    );
   }, [valor, opcionesNormalizadas]);
 
   // Agrupar opciones filtradas por categoría/grupo

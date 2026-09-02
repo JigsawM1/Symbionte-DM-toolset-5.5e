@@ -10,6 +10,7 @@ interface PanelVitalidadPersonajeProps {
   alModificarHPMaximoEfectivo: (valor: number) => void;
   alModificarHPTemporal: (valor: number) => void;
   alGastarDadoGolpe: () => void;
+  alEstablecerDadosGolpeRestantes?: (valor: number) => void;
   alEstablecerSalvacionMuerte: (tipo: "exitos" | "fallos", valor: number) => void;
   alReiniciarSalvacionesMuerte: () => void;
   alModificarCansancio: (delta: number) => void;
@@ -23,6 +24,7 @@ export const PanelVitalidadPersonaje: React.FC<PanelVitalidadPersonajeProps> = (
   alModificarHPMaximoEfectivo,
   alModificarHPTemporal,
   alGastarDadoGolpe,
+  alEstablecerDadosGolpeRestantes,
   alEstablecerSalvacionMuerte,
   alReiniciarSalvacionesMuerte,
   alModificarCansancio,
@@ -35,6 +37,7 @@ export const PanelVitalidadPersonaje: React.FC<PanelVitalidadPersonajeProps> = (
   // Estados locales para los inputs directos en la barra
   const [hpActualInput, setHpActualInput] = useState(String(personaje.hpActual));
   const [hpMaxInput, setHpMaxInput] = useState(String(personaje.hpMaximo));
+  const [dadosGolpeInput, setDadosGolpeInput] = useState(String(personaje.dadosGolpeRestantes));
 
   useEffect(() => {
     setHpActualInput(String(personaje.hpActual));
@@ -47,6 +50,10 @@ export const PanelVitalidadPersonaje: React.FC<PanelVitalidadPersonajeProps> = (
   useEffect(() => {
     setValorTempInput(String(personaje.hpTemporal || 0));
   }, [personaje.hpTemporal]);
+
+  useEffect(() => {
+    setDadosGolpeInput(String(personaje.dadosGolpeRestantes));
+  }, [personaje.dadosGolpeRestantes]);
 
   const maxBase = personaje.hpMaximoBase || personaje.hpMaximo || 10;
   const maxEfectivo = personaje.hpMaximo || 10;
@@ -134,6 +141,15 @@ export const PanelVitalidadPersonaje: React.FC<PanelVitalidadPersonajeProps> = (
       alEstablecerSalvacionMuerte("fallos", indice - 1);
     } else {
       alEstablecerSalvacionMuerte("fallos", indice);
+    }
+  };
+
+  const confirmarDadosGolpeDirecto = () => {
+    const val = parseInt(dadosGolpeInput, 10);
+    if (!isNaN(val) && alEstablecerDadosGolpeRestantes) {
+      alEstablecerDadosGolpeRestantes(val);
+    } else {
+      setDadosGolpeInput(String(personaje.dadosGolpeRestantes));
     }
   };
 
@@ -254,10 +270,28 @@ export const PanelVitalidadPersonaje: React.FC<PanelVitalidadPersonajeProps> = (
             <span className={estilos.tituloRecursoSalud}>Dados Golpe</span>
           </div>
           <div className={estilos.valorDadosGolpe}>
-            <span>
-              {personaje.dadosGolpeRestantes}{personaje.tipoDadoGolpe}{" "}
+            <div style={{ display: "flex", alignItems: "center", gap: 2 }}>
+              <input
+                type="number"
+                className={estilos.inputDadosGolpeDirecto}
+                value={dadosGolpeInput}
+                onChange={(e) => setDadosGolpeInput(e.target.value)}
+                onBlur={confirmarDadosGolpeDirecto}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.currentTarget.blur();
+                  } else if (e.key === "Escape") {
+                    setDadosGolpeInput(String(personaje.dadosGolpeRestantes));
+                    e.currentTarget.blur();
+                  }
+                }}
+                min="0"
+                max={personaje.dadosGolpeTotal}
+                title="Editar cantidad de dados de golpe disponibles"
+              />
+              <span>{personaje.tipoDadoGolpe}{" "}</span>
               <span style={{ fontSize: 11, opacity: 0.7 }}>/ {personaje.dadosGolpeTotal}{personaje.tipoDadoGolpe}</span>
-            </span>
+            </div>
             <button
               type="button"
               className={estilos.neoButton}

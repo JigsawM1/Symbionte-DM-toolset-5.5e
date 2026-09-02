@@ -41,6 +41,8 @@ export interface AtaquePersonajeCalculado {
   puedeDisparar?: boolean;
   motivoBloqueo?: string;
   esCompetenteConArma?: boolean;
+  esSutil?: boolean;
+  esDistancia?: boolean;
 }
 
 import {
@@ -80,6 +82,45 @@ export const TarjetaAtaquePersonaje: React.FC<TarjetaAtaquePersonajeProps> = ({
     ...(evaluacionCondiciones?.motivosVentaja || []),
     ...(evaluacionCondiciones?.motivosModificadores || [])
   ].join(", ");
+
+  const esSutil = ataque.esSutil || ataque.propiedades?.some((p) => {
+    const norm = p.toLowerCase().trim();
+    return norm.includes("sutil") || norm.includes("finesse");
+  });
+
+  const esDistancia = ataque.esDistancia || ataque.subtipo?.toLowerCase().includes("distancia") || ataque.propiedades?.some((p) => {
+    const norm = p.toLowerCase().trim();
+    return norm.includes("munición") || norm.includes("municion") || norm.includes("distancia");
+  });
+
+  // Selector inteligente de características (D&D 5.5e):
+  // - Solo muestra Destreza si el arma es sutil o a distancia.
+  // - En armas cuerpo a cuerpo no sutiles, muestra Fuerza y las aptitudes mágicas (INT, SAB, CAR).
+  const opcionesAtributo: { valor: Caracteristica; etiqueta: string }[] = React.useMemo(() => {
+    if (esSutil) {
+      return [
+        { valor: "fuerza", etiqueta: "FUE" },
+        { valor: "destreza", etiqueta: "DES" },
+        { valor: "inteligencia", etiqueta: "INT" },
+        { valor: "sabiduria", etiqueta: "SAB" },
+        { valor: "carisma", etiqueta: "CAR" }
+      ];
+    }
+    if (esDistancia) {
+      return [
+        { valor: "destreza", etiqueta: "DES" },
+        { valor: "inteligencia", etiqueta: "INT" },
+        { valor: "sabiduria", etiqueta: "SAB" },
+        { valor: "carisma", etiqueta: "CAR" }
+      ];
+    }
+    return [
+      { valor: "fuerza", etiqueta: "FUE" },
+      { valor: "inteligencia", etiqueta: "INT" },
+      { valor: "sabiduria", etiqueta: "SAB" },
+      { valor: "carisma", etiqueta: "CAR" }
+    ];
+  }, [esSutil, esDistancia]);
 
   const textoBadgeAccion =
     ataque.tipoAccion === "accionAdicional"
@@ -206,21 +247,24 @@ export const TarjetaAtaquePersonaje: React.FC<TarjetaAtaquePersonajeProps> = ({
           </span>
         </div>
 
-        {/* Selector de Característica (Pacto de la Hoja / Atributo Mágico) */}
-        {alCambiarCaracteristica && ataque.tipo === "Arma" && (
-          <div className={estilos.bloqueAtributoSelector} title="Característica usada para el ataque (Pacto de la Hoja, Shillelagh, etc.)">
+        {/* Selector de Característica (Sutil / Pacto de la Hoja / Atributo Mágico) */}
+        {alCambiarCaracteristica && (ataque.tipo === "Arma" || (ataque.tipo === "Desarmado" && esSutil)) && (
+          <div
+            className={estilos.bloqueAtributoSelector}
+            title={
+              esSutil
+                ? "Arma Sutil: Elige entre Fuerza o Destreza (por defecto la mayor) o aptitud mágica"
+                : esDistancia
+                ? "Arma a Distancia: Destreza o aptitud mágica"
+                : "Arma Cuerpo a Cuerpo: Fuerza o aptitud mágica (Pacto de la Hoja, etc.)"
+            }
+          >
             <span className={estilos.etiquetaMicro}>Atributo</span>
             <SelectorDesplegable<Caracteristica>
               valor={ataque.caracteristicaUsada}
               alCambiar={(nuevaCarac) => alCambiarCaracteristica(ataque.id, nuevaCarac)}
               tamano="mini"
-              opciones={[
-                { valor: "fuerza", etiqueta: "FUE" },
-                { valor: "destreza", etiqueta: "DES" },
-                { valor: "inteligencia", etiqueta: "INT" },
-                { valor: "sabiduria", etiqueta: "SAB" },
-                { valor: "carisma", etiqueta: "CAR" }
-              ]}
+              opciones={opcionesAtributo}
             />
           </div>
         )}

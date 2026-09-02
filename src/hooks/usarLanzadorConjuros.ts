@@ -12,13 +12,14 @@ import {
   type ResultadoValidacion
 } from "@/servicios/servicioLanzamientoConjuros";
 import { usarAlmacenDM } from "@/almacen/usarAlmacenDM";
-import { usarAccionesConfiguracion } from "@/almacen/selectores/usarEstadoConfiguracion";
+import { usarAccionesConfiguracion, usarEstadoConfiguracion } from "@/almacen/selectores/usarEstadoConfiguracion";
 
 export interface OpcionesLanzadorConjuros {
   personaje?: PersonajeJugador | null;
   penalizacionArmadura?: PenalizacionArmadura | null;
   bonoAtaqueMagico?: number;
   permitirUpcastLibre?: boolean;
+  sistemaMagia?: "espacios" | "puntos";
 }
 
 export interface ControlLanzadorConjuros {
@@ -37,8 +38,12 @@ export function usarLanzadorConjuros(opciones: OpcionesLanzadorConjuros): Contro
   const {
     personaje,
     penalizacionArmadura,
-    bonoAtaqueMagico = 0
+    bonoAtaqueMagico = 0,
+    sistemaMagia: sistemaMagiaProp
   } = opciones;
+
+  const { sistemaMagia: sistemaMagiaConfigurado } = usarEstadoConfiguracion();
+  const sistemaMagiaEfectivo = sistemaMagiaProp ?? sistemaMagiaConfigurado ?? "espacios";
 
   const {
     gastarEspacioConjuro,
@@ -58,7 +63,7 @@ export function usarLanzadorConjuros(opciones: OpcionesLanzadorConjuros): Contro
         penalizacionArmadura: penalizacionArmadura ?? null,
         espaciosConjuroMaximos: {},
         nivelConjuroMaximo: 0,
-        sistemaMagia: "espacios",
+        sistemaMagia: sistemaMagiaEfectivo,
         esLanzadorPacto: false,
         nivelEspacioPacto: 0,
         espaciosPactoMaximos: 0,
@@ -75,7 +80,7 @@ export function usarLanzadorConjuros(opciones: OpcionesLanzadorConjuros): Contro
       penalizacionArmadura: penalizacionArmadura ?? null,
       espaciosConjuroMaximos: personaje.espaciosConjuroMaximos || {},
       nivelConjuroMaximo: personaje.nivelConjuroMaximo || 0,
-      sistemaMagia: personaje.puntosConjuroMaximos && personaje.puntosConjuroMaximos > 0 ? "puntos" : "espacios",
+      sistemaMagia: sistemaMagiaEfectivo,
       costePuntosPorNivel: COSTE_PUNTOS_POR_NIVEL,
       esLanzadorPacto: tienePacto,
       nivelEspacioPacto: personaje.nivelEspacioPacto || 0,
@@ -83,7 +88,7 @@ export function usarLanzadorConjuros(opciones: OpcionesLanzadorConjuros): Contro
       espaciosPactoGastados: personaje.espaciosPactoGastados || 0,
       arcanoMisticoGastados: personaje.arcanoMisticoGastados || []
     };
-  }, [personaje, penalizacionArmadura]);
+  }, [personaje, penalizacionArmadura, sistemaMagiaEfectivo]);
 
   // 2. Estado general de bloqueo por armadura
   const estaBloqueadoPorArmadura = Boolean(penalizacionArmadura?.sinCompetencia);
@@ -135,13 +140,7 @@ export function usarLanzadorConjuros(opciones: OpcionesLanzadorConjuros): Contro
         // B. Preparar fórmula y gasto con la estrategia correspondiente
         const preparado = prepararLanzamiento(solicitudCompleta, contexto);
 
-        // C. Enviar tirada física / chat a TaleSpire
-        await lanzarDadosTaleSpire(
-          preparado.formula.formulaTaleSpire,
-          preparado.formula.etiquetaLog
-        );
-
-        // D. Ejecutar deducción de recursos en Zustand si el personaje existe
+        // C. Ejecutar deducción garantizada de recursos en Zustand si el personaje existe
         if (personaje) {
           switch (preparado.gasto.tipo) {
             case "espacio":
@@ -164,7 +163,7 @@ export function usarLanzadorConjuros(opciones: OpcionesLanzadorConjuros): Contro
               break;
           }
 
-          // E. Activar concentración si el conjuro lo requiere
+          // D. Activar concentración si el conjuro lo requiere
           if (preparado.activarConcentracion && solicitudCompleta.hechizo.id) {
             establecerConcentracion(
               personaje.id,
@@ -174,10 +173,20 @@ export function usarLanzadorConjuros(opciones: OpcionesLanzadorConjuros): Contro
           }
         }
 
+        // E. Enviar tirada física / chat a TaleSpire de forma segura y no bloqueante
+        try {
+          await lanzarDadosTaleSpire(
+            preparado.formula.formulaTaleSpire,
+            preparado.formula.etiquetaLog
+          );
+        } catch (errTaleSpire) {
+          console.error("[usarLanzadorConjuros] Error al enviar tirada a TaleSpire:", errTaleSpire);
+        }
+
         return true;
       } catch (err) {
         console.error("[usarLanzadorConjuros] Error al ejecutar lanzamiento:", err);
-        agregarNotificacion("Error al enviar la tirada de conjuro a TaleSpire.", "error");
+        agregarNotificacion("Error al procesar el lanzamiento del conjuro.", "error");
         return false;
       }
     },

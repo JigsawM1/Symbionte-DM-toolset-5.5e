@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { normalizarTexto } from "@/almacen/usarAlmacenDM";
-import { coincideBusquedaTolerante } from "@/utiles/busquedaTolerante";
+import { coincideBusquedaTolerante, compararPorRelevanciaTitulo } from "@/utiles/busquedaTolerante";
 import {
   usarEstadoHomebrew,
   usarAccionesHomebrew,
@@ -127,37 +127,58 @@ export const ListaHomebrew: React.FC<Props> = ({
     coincideBusquedaTolerante([o.nombre, o.tipoPrincipal, o.subcategoria, o.descripcion], filtroBusqueda)
   );
 
-  // Ordenamiento dinámico
-  const monstruosOrdenados = [...monstruosHomebrew].sort((a, b) => {
-    if (criterioOrden === "nombre-desc") {
-      return b.nombre.localeCompare(a.nombre, "es", { sensitivity: "base" });
-    } else if (criterioOrden === "cr-asc") {
-      const crA = parsearCR(a.desafio);
-      const crB = parsearCR(b.desafio);
-      if (crA !== crB) return crA - crB;
-      return a.nombre.localeCompare(b.nombre, "es", { sensitivity: "base" });
-    } else if (criterioOrden === "cr-desc") {
-      const crA = parsearCR(a.desafio);
-      const crB = parsearCR(b.desafio);
-      if (crA !== crB) return crB - crA;
-      return a.nombre.localeCompare(b.nombre, "es", { sensitivity: "base" });
-    }
-    return a.nombre.localeCompare(b.nombre, "es", { sensitivity: "base" });
-  });
+  // Ordenamiento dinámico priorizando el título
+  const monstruosOrdenados = [...monstruosHomebrew].sort(
+    compararPorRelevanciaTitulo(
+      (m) => m.nombre,
+      filtroBusqueda,
+      (a, b) => {
+        if (criterioOrden === "nombre-desc") {
+          return b.nombre.localeCompare(a.nombre, "es", { sensitivity: "base" });
+        } else if (criterioOrden === "cr-asc") {
+          const crA = parsearCR(a.desafio);
+          const crB = parsearCR(b.desafio);
+          if (crA !== crB) return crA - crB;
+          return a.nombre.localeCompare(b.nombre, "es", { sensitivity: "base" });
+        } else if (criterioOrden === "cr-desc") {
+          const crA = parsearCR(a.desafio);
+          const crB = parsearCR(b.desafio);
+          if (crA !== crB) return crB - crA;
+          return a.nombre.localeCompare(b.nombre, "es", { sensitivity: "base" });
+        }
+        return a.nombre.localeCompare(b.nombre, "es", { sensitivity: "base" });
+      },
+      (m) => [m.tipo, m.alineacion, m.tamaño]
+    )
+  );
 
-  const hechizosOrdenados = [...hechizosHomebrew].sort((a, b) => {
-    if (criterioOrden === "nombre-desc") {
-      return b.nombre.localeCompare(a.nombre, "es", { sensitivity: "base" });
-    }
-    return a.nombre.localeCompare(b.nombre, "es", { sensitivity: "base" });
-  });
+  const hechizosOrdenados = [...hechizosHomebrew].sort(
+    compararPorRelevanciaTitulo(
+      (h) => h.nombre,
+      filtroBusqueda,
+      (a, b) => {
+        if (criterioOrden === "nombre-desc") {
+          return b.nombre.localeCompare(a.nombre, "es", { sensitivity: "base" });
+        }
+        return a.nombre.localeCompare(b.nombre, "es", { sensitivity: "base" });
+      },
+      (h) => [h.escuela, h.descripcion]
+    )
+  );
 
-  const objetosOrdenados = [...objetosHomebrewFiltrados].sort((a, b) => {
-    if (criterioOrden === "nombre-desc") {
-      return b.nombre.localeCompare(a.nombre, "es", { sensitivity: "base" });
-    }
-    return a.nombre.localeCompare(b.nombre, "es", { sensitivity: "base" });
-  });
+  const objetosOrdenados = [...objetosHomebrewFiltrados].sort(
+    compararPorRelevanciaTitulo(
+      (o) => o.nombre,
+      filtroBusqueda,
+      (a, b) => {
+        if (criterioOrden === "nombre-desc") {
+          return b.nombre.localeCompare(a.nombre, "es", { sensitivity: "base" });
+        }
+        return a.nombre.localeCompare(b.nombre, "es", { sensitivity: "base" });
+      },
+      (o) => [o.tipoPrincipal, o.subcategoria, o.descripcion]
+    )
+  );
 
   const cantExistentes =
     tipoHomebrew === "criatura"

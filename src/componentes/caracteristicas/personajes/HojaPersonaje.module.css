@@ -839,6 +839,31 @@
   gap: 5px;
 }
 
+.inputDadosGolpeDirecto {
+  width: 26px;
+  background: transparent;
+  border: 1px solid transparent;
+  outline: none;
+  border-radius: 4px;
+  text-align: center;
+  font-family: var(--fuente-codigo, 'JetBrains Mono', monospace);
+  font-size: var(--pj-fuente-subtitulo, 14px);
+  font-weight: 700;
+  color: var(--pj-texto-acento, #a5b4fc);
+  padding: 0;
+  cursor: text;
+}
+
+.inputDadosGolpeDirecto:hover {
+  background-color: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.25);
+}
+
+.inputDadosGolpeDirecto:focus {
+  background-color: rgba(0, 0, 0, 0.9);
+  border: 1px solid var(--pj-borde-acento-fuerte, #818cf8);
+}
+
 .filaPuntosMuerte {
   display: flex;
   align-items: center;
@@ -942,6 +967,8 @@
 .badgePuntuacionBase::-webkit-inner-spin-button,
 .inputHpDirecto::-webkit-outer-spin-button,
 .inputHpDirecto::-webkit-inner-spin-button,
+.inputDadosGolpeDirecto::-webkit-outer-spin-button,
+.inputDadosGolpeDirecto::-webkit-inner-spin-button,
 .inputHpMod::-webkit-outer-spin-button,
 .inputHpMod::-webkit-inner-spin-button {
   -webkit-appearance: none;
@@ -950,6 +977,7 @@
 
 .badgePuntuacionBase,
 .inputHpDirecto,
+.inputDadosGolpeDirecto,
 .inputHpMod {
   -moz-appearance: textfield;
   appearance: textfield;

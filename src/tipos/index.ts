@@ -352,8 +352,9 @@ export interface EfectoPredefinido {
 }
 
 // ==========================================
-// 7. PERSONAJE JUGADOR (D&D 5.5e)
+// 7. PERSONAJE JUGADOR Y RASGOS (D&D 5.5e)
 // ==========================================
 
+export * from "./rasgos";
 export * from "./personaje";
 

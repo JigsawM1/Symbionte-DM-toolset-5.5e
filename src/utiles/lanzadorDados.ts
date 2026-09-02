@@ -47,6 +47,35 @@ export interface MetadataSalvacionMuerte {
 const tiradasSalvacionMuerteActivas: Record<string, MetadataSalvacionMuerte> = {};
 
 /**
+ * Aplica el resultado de una tirada de salvación contra la muerte en el estado global.
+ * Reglas D&D 5.5e / 2024:
+ * - 1 en el d20: 2 fallos de muerte (+2 fallos).
+ * - 20 en el d20: 3 éxitos automáticos y recupera 1 punto de golpe (+1 HP).
+ * - 10..19: 1 éxito (+1 éxito).
+ * - 2..9: 1 fallo (+1 fallo).
+ */
+export function aplicarResultadoSalvacionMuerteEnEstado(
+  personajeId: string,
+  totalDado: number
+): void {
+  const state = usarAlmacenDM.getState();
+  if (totalDado === 1) {
+    logger.info(`[Lanzador Dados] Salvación de Muerte: 1 Natural (Pifia). Añadiendo 2 fallos.`);
+    state.modificarSalvacionesMuertePersonaje(personajeId, "fallos", 2);
+  } else if (totalDado === 20) {
+    logger.info(`[Lanzador Dados] Salvación de Muerte: 20 Natural (Crítico). 3 éxitos y +1 HP.`);
+    state.establecerSalvacionesMuertePersonaje(personajeId, "exitos", 3);
+    state.modificarHPPersonaje(personajeId, 1);
+  } else if (totalDado >= 10) {
+    logger.info(`[Lanzador Dados] Salvación de Muerte: Éxito (${totalDado}). Añadiendo 1 éxito.`);
+    state.modificarSalvacionesMuertePersonaje(personajeId, "exitos", 1);
+  } else {
+    logger.info(`[Lanzador Dados] Salvación de Muerte: Fallo (${totalDado}). Añadiendo 1 fallo.`);
+    state.modificarSalvacionesMuertePersonaje(personajeId, "fallos", 1);
+  }
+}
+
+/**
  * Aplica el resultado de una tirada de iniciativa en el estado global del DM.
  * Actualiza la criatura existente o incorpora automáticamente al héroe a la cola.
  */
@@ -149,6 +178,14 @@ export function sanitizarEtiqueta(etiqueta: string): string {
 }
 
 /**
+ * Determina si una cadena contiene al menos una expresión de dados estándar D&D (ej: 1d20, d20, 2d6, 3d8+4, 1d4).
+ */
+export function contieneExpresionDados(cadena: string): boolean {
+  if (!cadena) return false;
+  return /\b(?:\d+)?d\d+\b/i.test(cadena);
+}
+
+/**
  * Normaliza y limpia una fórmula de dados para asegurar la compatibilidad con TaleSpire.
  * Soporta la sintaxis de etiquetas oficial de TaleSpire (ej. "Ataque:1d20+5/Dano:2d6+3").
  * Elimina automáticamente el prefijo "!" obsoleto y sanitiza las eñes y acentos.
@@ -183,18 +220,16 @@ export function normalizarFormulaDados(formula: string): string {
  * Limpia y normaliza una fórmula de dados simple (sin etiquetas).
  */
 export function limpiarYNormalizarDadosSimples(formulaSimple: string): string {
-  // Limpiar espacios en blanco y convertir a minúsculas
-  let limpia = formulaSimple.replace(/\s+/g, "").toLowerCase();
+  let limpia = (formulaSimple || "").replace(/\s+/g, "").toLowerCase();
   
   if (!limpia) return "1d20";
 
-  // Si comienza directamente con "d", asumir 1d (ej: "d20" -> "1d20")
-  if (limpia.startsWith("d")) {
+  // Si comienza directamente con "d" seguido de números (ej: "d20" -> "1d20")
+  if (/^d\d+/i.test(limpia)) {
     limpia = "1" + limpia;
   }
   
-  // Si es solo un número (ej. "+5" o "3"), no se puede tirar en bandeja sin un dado.
-  // Le agregamos un d20 base simulando una tirada estándar.
+  // Si es solo un número o modificador numérico (ej. "+5" o "3"), le agregamos 1d20 base
   if (/^[+-]?\d+$/.test(limpia)) {
     const signo = limpia.startsWith("-") || limpia.startsWith("+") ? "" : "+";
     limpia = `1d20${signo}${limpia}`;
@@ -202,6 +237,11 @@ export function limpiarYNormalizarDadosSimples(formulaSimple: string): string {
 
   // Quitar cualquier carácter no válido para una fórmula de dados estándar
   limpia = limpia.replace(/[^d0-9+\-*/()]/g, "");
+
+  // Si tras limpiar no tiene formato válido de dado (ej. si era solo "d" por la letra de una palabra), fallback a 1d20
+  if (!/\b(?:\d+)?d\d+\b/i.test(limpia)) {
+    return "1d20";
+  }
 
   return limpia || "1d20";
 }
@@ -287,6 +327,15 @@ export async function lanzarDadosTaleSpire(
   metaSalvacionMuerte?: MetadataSalvacionMuerte,
   tipoTiradaForzado?: "ventaja" | "desventaja" | "plano"
 ): Promise<void> {
+  const nombreEtiqueta = sanitizarEtiqueta(etiqueta.trim() || "Tirada");
+
+  // Si la fórmula no contiene ninguna expresión de dados real (ej. conjuro utilitario/buff/narrativo),
+  // omitimos enviar tiradas físicas a la bandeja 3D y omitimos enviar mensajes al chat de TaleSpire.
+  if (!contieneExpresionDados(formula)) {
+    logger.debug(`[Lanzador Dados] Fórmula no contiene dados ("${formula}"). Omitiendo tirada física y chat.`);
+    return;
+  }
+
   // 1. Obtener tipo de tirada (ventaja, desventaja, plano) del Zustand o forzado
   const state = usarAlmacenDM.getState();
   const tipoTiradaGlobal = state.tipoTirada;
@@ -368,7 +417,6 @@ export async function lanzarDadosTaleSpire(
   }
 
   const formulaLimpia = normalizarFormulaDados(formulaProcesada);
-  const nombreEtiqueta = sanitizarEtiqueta(etiqueta.trim() || "Tirada");
 
   logger.debug(`[Lanzador Dados] Preparando tirada: "${nombreEtiqueta}" con fórmula: "${formulaLimpia}" (Tipo original: ${tipoTirada})`);
 
@@ -429,12 +477,7 @@ export async function lanzarDadosTaleSpire(
     // Si es una salvación de muerte en entorno de prueba local fuera de TaleSpire
     if (metaSalvacionMuerte) {
       const d20 = Math.floor(Math.random() * 20) + 1;
-      const state = usarAlmacenDM.getState();
-      if (d20 >= 10) {
-        state.modificarSalvacionesMuertePersonaje(metaSalvacionMuerte.personajeId, "exitos", 1);
-      } else {
-        state.modificarSalvacionesMuertePersonaje(metaSalvacionMuerte.personajeId, "fallos", 1);
-      }
+      aplicarResultadoSalvacionMuerteEnEstado(metaSalvacionMuerte.personajeId, d20);
     }
 
     // Si es una tirada de iniciativa en entorno local fuera de TaleSpire
@@ -504,12 +547,7 @@ export async function procesarResultadosDadosTaleSpire(evento: unknown): Promise
         const grupoMuerte = resultGroups[0];
         const total = await ts.dice.evaluateDiceResultsGroup(grupoMuerte);
         logger.debug(`[Lanzador Dados] Resultado 3D de Salvación de Muerte obtenido de la bandeja física: ${total}`);
-        const state = usarAlmacenDM.getState();
-        if (total >= 10) {
-          state.modificarSalvacionesMuertePersonaje(infoSalvacionMuertePlana.personajeId, "exitos", 1);
-        } else {
-          state.modificarSalvacionesMuertePersonaje(infoSalvacionMuertePlana.personajeId, "fallos", 1);
-        }
+        aplicarResultadoSalvacionMuerteEnEstado(infoSalvacionMuertePlana.personajeId, total);
       } catch (error) {
         logger.error("[Lanzador Dados] Error al evaluar resultado 3D de salvación de muerte:", error);
       }
@@ -604,12 +642,7 @@ export async function procesarResultadosDadosTaleSpire(evento: unknown): Promise
     const infoMuerteEspecial = tiradasSalvacionMuerteActivas[rollId];
     if (infoMuerteEspecial) {
       logger.debug(`[Lanzador Dados] Salvación de muerte especial 3D obtenida: ${totalElegido} para el personaje ${infoMuerteEspecial.personajeId}`);
-      const state = usarAlmacenDM.getState();
-      if (totalElegido >= 10) {
-        state.modificarSalvacionesMuertePersonaje(infoMuerteEspecial.personajeId, "exitos", 1);
-      } else {
-        state.modificarSalvacionesMuertePersonaje(infoMuerteEspecial.personajeId, "fallos", 1);
-      }
+      aplicarResultadoSalvacionMuerteEnEstado(infoMuerteEspecial.personajeId, totalElegido);
       delete tiradasSalvacionMuerteActivas[rollId];
     }
     

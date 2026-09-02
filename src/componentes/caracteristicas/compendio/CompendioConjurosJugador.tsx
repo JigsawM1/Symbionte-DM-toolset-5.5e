@@ -10,7 +10,7 @@ import {
   User
 } from "lucide-react";
 import type { HechizoBase, PersonajeJugador, ClaseLanzadora } from "@/tipos";
-import { coincideBusquedaTolerante } from "@/utiles/busquedaTolerante";
+import { coincideBusquedaTolerante, compararPorRelevanciaTitulo } from "@/utiles/busquedaTolerante";
 import {
   usarEstadoHomebrew,
   usarEstadoPersonajes,
@@ -168,10 +168,17 @@ export const CompendioConjurosJugador: React.FC = () => {
       }
       return true;
     });
-    return filtrados.sort((a, b) => {
-      if (a.nivel !== b.nivel) return a.nivel - b.nivel;
-      return a.nombre.localeCompare(b.nombre, "es");
-    });
+    return filtrados.sort(
+      compararPorRelevanciaTitulo(
+        (h) => h.nombre,
+        busqueda,
+        (a, b) => {
+          if (a.nivel !== b.nivel) return a.nivel - b.nivel;
+          return a.nombre.localeCompare(b.nombre, "es");
+        },
+        (h) => [h.descripcion, h.escuela]
+      )
+    );
   }, [conjurosPestaña, busqueda, nivelFiltro, escuelaFiltro]);
 
   const manejarAlternarEnLista = (hechizo: HechizoBase) => {

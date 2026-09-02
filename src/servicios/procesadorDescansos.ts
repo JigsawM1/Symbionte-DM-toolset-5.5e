@@ -116,12 +116,36 @@ export function ejecutarDescansoCorto(
     });
   }
 
+  // Recuperar Usos de Rasgos con recarga en Descanso Corto
+  let rasgosRecargadosCorto = 0;
+  const rasgosActualizadosCorto = (personaje.rasgos || []).map((rasgo) => {
+    if (
+      rasgo.tieneUsosLimitados &&
+      rasgo.recuperacion === "descanso_corto" &&
+      typeof rasgo.usosMaximos === "number" &&
+      typeof rasgo.usosRestantes === "number" &&
+      rasgo.usosRestantes < rasgo.usosMaximos
+    ) {
+      rasgosRecargadosCorto++;
+      return { ...rasgo, usosRestantes: rasgo.usosMaximos };
+    }
+    return rasgo;
+  });
+
+  if (rasgosRecargadosCorto > 0) {
+    acciones.push({
+      tipo: "recurso",
+      descripcion: `Rasgos y habilidades de descanso corto restaurados (${rasgosRecargadosCorto} rasgos recargados).`
+    });
+  }
+
   const personajeActualizado: PersonajeJugador = {
     ...personaje,
     hpActual: hpNuevo,
     dadosGolpeRestantes: dadosRestantesNuevos,
     salvacionesMuerte: { exitos: 0, fallos: 0 },
-    espaciosPactoGastados: espaciosPactoGastadosNuevos
+    espaciosPactoGastados: espaciosPactoGastadosNuevos,
+    rasgos: rasgosActualizadosCorto
   };
 
   return { personajeActualizado, acciones };
@@ -241,6 +265,29 @@ export function ejecutarDescansoLargo(personaje: PersonajeJugador): ResultadoDes
     });
   }
 
+  // 9. Recargar Todos los Usos de Rasgos (Descanso Corto y Largo)
+  let rasgosRecargadosLargo = 0;
+  const rasgosActualizadosLargo = (personaje.rasgos || []).map((rasgo) => {
+    if (
+      rasgo.tieneUsosLimitados &&
+      (rasgo.recuperacion === "descanso_corto" || rasgo.recuperacion === "descanso_largo") &&
+      typeof rasgo.usosMaximos === "number" &&
+      typeof rasgo.usosRestantes === "number" &&
+      rasgo.usosRestantes < rasgo.usosMaximos
+    ) {
+      rasgosRecargadosLargo++;
+      return { ...rasgo, usosRestantes: rasgo.usosMaximos };
+    }
+    return rasgo;
+  });
+
+  if (rasgosRecargadosLargo > 0) {
+    acciones.push({
+      tipo: "recurso",
+      descripcion: `Todos los rasgos y habilidades limitadas han sido restaurados (${rasgosRecargadosLargo} rasgos recargados).`
+    });
+  }
+
   const personajeActualizado: PersonajeJugador = {
     ...personaje,
     hpActual: personaje.hpMaximo,
@@ -254,7 +301,8 @@ export function ejecutarDescansoLargo(personaje: PersonajeJugador): ResultadoDes
     arcanoMisticoGastados: [],
     concentracionActiva: null,
     condicionesActivas: condicionesLimpias,
-    inventario: inventarioActualizado
+    inventario: inventarioActualizado,
+    rasgos: rasgosActualizadosLargo
   };
 
   return { personajeActualizado, acciones };

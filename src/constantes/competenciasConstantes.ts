@@ -105,6 +105,11 @@ export const TODAS_ARMAS_MARCIALES = [
   ...ARMAS_MARCIALES_A_DISTANCIA
 ];
 
+export const COMPETENCIAS_COMBATE_ESPECIALES = [
+  "Ataque desarmado",
+  "Armas improvisadas"
+] as const;
+
 export const GRUPOS_ARMAS = [
   { id: "sencillas", etiqueta: "Todas las armas sencillas (simples)", armas: TODAS_ARMAS_SENCILLAS },
   { id: "marciales", etiqueta: "Todas las armas marciales", armas: TODAS_ARMAS_MARCIALES },
@@ -336,6 +341,24 @@ export function esCompetenteConArma(
   }
 
   const nombreLimpio = nombreArma.toLowerCase().trim();
+
+  // Detección tolerante de combate desarmado y armas improvisadas
+  const esDesarmado = nombreLimpio.includes("desarmado") || nombreLimpio.includes("sin armas") || nombreLimpio.includes("unarmed");
+  if (esDesarmado) {
+    return listaIndividual.some((arma) => {
+      const a = arma.toLowerCase().trim();
+      return a.includes("desarmado") || a.includes("sin armas") || a.includes("unarmed");
+    });
+  }
+
+  const esImprovisada = nombreLimpio.includes("improvisad") || subNormalizada.includes("improvisad");
+  if (esImprovisada) {
+    return listaIndividual.some((arma) => {
+      const a = arma.toLowerCase().trim();
+      return a.includes("improvisad");
+    });
+  }
+
   return listaIndividual.some((arma) => arma.toLowerCase().trim() === nombreLimpio);
 }
 

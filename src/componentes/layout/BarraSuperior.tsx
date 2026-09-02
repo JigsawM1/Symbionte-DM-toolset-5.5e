@@ -18,7 +18,8 @@ import {
   Gamepad2,
   Backpack,
   Sparkles,
-  Swords
+  Swords,
+  BookMarked
 } from "lucide-react";
 import estilosClases from "./BarraSuperior.module.css";
 
@@ -109,7 +110,7 @@ export const BarraSuperior: React.FC = () => {
             <button
               onClick={() => establecerPestaña("jugadores")}
               className={`${estilosClases.pestanaBoton} ${
-                pestañaActiva === "jugadores" || pestañaActiva === "caracteristicas" || (pestañaActiva !== "acciones" && pestañaActiva !== "ataques" && pestañaActiva !== "conjuros" && pestañaActiva !== "compendio" && pestañaActiva !== "hechizos" && pestañaActiva !== "inventario" && pestañaActiva !== "tablas" && pestañaActiva !== "notas" && pestañaActiva !== "iniciativa" && pestañaActiva !== "configuracion" && pestañaActiva !== "homebrew") ? estilosClases.pestanaActiva : ""
+                pestañaActiva === "jugadores" || pestañaActiva === "caracteristicas" || (pestañaActiva !== "acciones" && pestañaActiva !== "ataques" && pestañaActiva !== "conjuros" && pestañaActiva !== "compendio" && pestañaActiva !== "hechizos" && pestañaActiva !== "rasgos" && pestañaActiva !== "inventario" && pestañaActiva !== "tablas" && pestañaActiva !== "notas" && pestañaActiva !== "iniciativa" && pestañaActiva !== "configuracion" && pestañaActiva !== "homebrew") ? estilosClases.pestanaActiva : ""
               }`}
               title="Ficha y Características del Personaje"
               type="button"
@@ -143,6 +144,18 @@ export const BarraSuperior: React.FC = () => {
             </button>
 
             <button
+              onClick={() => establecerPestaña("rasgos")}
+              className={`${estilosClases.pestanaBoton} ${
+                pestañaActiva === "rasgos" ? estilosClases.pestanaActiva : ""
+              }`}
+              title="Rasgos de Clase, Especie, Dotes y Homebrew"
+              type="button"
+            >
+              <BookMarked size={13} />
+              <span className={estilosClases.pestanaTexto}>Rasgos</span>
+            </button>
+
+            <button
               onClick={() => establecerPestaña("inventario")}
               className={`${estilosClases.pestanaBoton} ${
                 pestañaActiva === "inventario" ? estilosClases.pestanaActiva : ""
@@ -152,18 +165,6 @@ export const BarraSuperior: React.FC = () => {
             >
               <Backpack size={13} />
               <span className={estilosClases.pestanaTexto}>Inventario</span>
-            </button>
-
-            <button
-              onClick={() => establecerPestaña("tablas")}
-              className={`${estilosClases.pestanaBoton} ${
-                pestañaActiva === "tablas" ? estilosClases.pestanaActiva : ""
-              }`}
-              title="Tablas de Referencia (Condiciones, Críticos, Reglas)"
-              type="button"
-            >
-              <Table size={13} />
-              <span className={estilosClases.pestanaTexto}>Tablas</span>
             </button>
 
             <button

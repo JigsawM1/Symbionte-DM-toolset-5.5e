@@ -130,7 +130,8 @@ export const VistaAtaquesJugador: React.FC = () => {
   const { puedeLanzar, motivoBloqueo, lanzar } = usarLanzadorConjuros({
     personaje: personajeActivo,
     penalizacionArmadura: statsCalculadas?.penalizacionArmadura,
-    bonoAtaqueMagico
+    bonoAtaqueMagico,
+    sistemaMagia
   });
 
   const estaBloqueadoPorArmadura = !puedeLanzar;
@@ -216,7 +217,8 @@ export const VistaAtaquesJugador: React.FC = () => {
       if (esDistancia) {
         caracDefecto = "destreza";
       } else if (esSutil) {
-        caracDefecto = (modificadores.destreza || 0) > (modificadores.fuerza || 0) ? "destreza" : "fuerza";
+        // Arma sutil: escoge automáticamente el mayor modificador entre Fuerza y Destreza
+        caracDefecto = (modificadores.destreza || 0) >= (modificadores.fuerza || 0) ? "destreza" : "fuerza";
       } else if (esMonje) {
         caracDefecto = (modificadores.destreza || 0) > (modificadores.fuerza || 0) ? "destreza" : "fuerza";
       }
@@ -324,16 +326,34 @@ export const VistaAtaquesJugador: React.FC = () => {
         municionEnCompartimentosExternos,
         puedeDisparar,
         motivoBloqueo,
-        esCompetenteConArma: esCompetenteArma
+        esCompetenteConArma: esCompetenteArma,
+        esSutil,
+        esDistancia
       });
     }
 
-    // 2. Ataque Desarmado (Golpe sin Armas)
+    // 2. Ataque Desarmado (Golpe sin Armas - D&D 5.5e)
+    const esCompetenteDesarmado =
+      esCompetenteConArma(
+        "Ataque desarmado",
+        "Sencilla",
+        personajeActivo.competenciasArmasGrupos || [],
+        personajeActivo.competenciasArmasLista || []
+      ) ||
+      (!personajeActivo.competenciasArmas && (personajeActivo.competenciasArmasLista || []).length === 0);
+
     const modFue = modificadores.fuerza || 0;
     const modDes = modificadores.destreza || 0;
-    const caracDesarmado: Caracteristica = esMonje && modDes > modFue ? "destreza" : "fuerza";
+
+    // Regla D&D 5.5e: El golpe desarmado siempre usa Fuerza salvo clase Monje o efecto especial configurado
+    let caracDefectoDesarmado: Caracteristica = "fuerza";
+    if (esMonje) {
+      caracDefectoDesarmado = modDes > modFue ? "destreza" : "fuerza";
+    }
+
+    const caracDesarmado: Caracteristica = caracteristicasArmas["ataque-desarmado"] || caracDefectoDesarmado;
     const modDesarmado = modificadores[caracDesarmado] || 0;
-    const bonoAtaqueDesarmado = bonoCompetencia + modDesarmado;
+    const bonoAtaqueDesarmado = (esCompetenteDesarmado ? bonoCompetencia : 0) + modDesarmado;
 
     if (esMonje) {
       // Monje: dado de artes marciales (D&D 5.5e: 1-4: 1d6, 5-10: 1d8, 11-16: 1d10, 17-20: 1d12)
@@ -358,30 +378,73 @@ export const VistaAtaquesJugador: React.FC = () => {
         esDanoFijo: false,
         tipoDano: "Contundente",
         alcance: "5 ft",
-        propiedades: ["Artes Marciales"],
-        tieneTiradaAtaque: true
+        propiedades: ["Artes Marciales", "Sutil"],
+        tieneTiradaAtaque: true,
+        esCompetenteConArma: esCompetenteDesarmado,
+        esSutil: true,
+        esDistancia: false
       });
     } else {
       // Regla D&D 5.5e estándar: Daño Fijo 1 + FUE (Sin tirar dados de daño)
-      const danoFijo = Math.max(1, 1 + modFue);
+      const danoFijo = Math.max(1, 1 + modDesarmado);
       ataques.push({
         id: "ataque-desarmado",
         nombre: "Golpe sin Armas",
         tipo: "Desarmado",
         subtipo: "Cuerpo a Cuerpo",
         tipoAccion: "accion",
-        caracteristicaUsada: "fuerza",
+        caracteristicaUsada: caracDesarmado,
         bonoAtaque: bonoAtaqueDesarmado,
         dadoDano: `${danoFijo}`,
         dadoDanoBase: "1",
-        modificadorDano: modFue,
+        modificadorDano: modDesarmado,
         esDanoFijo: true,
         tipoDano: "Contundente",
         alcance: "5 ft",
         propiedades: [],
-        tieneTiradaAtaque: true
+        tieneTiradaAtaque: true,
+        esCompetenteConArma: esCompetenteDesarmado,
+        esSutil: false,
+        esDistancia: false
       });
     }
+
+    // 3. Golpe con Arma Improvisada (D&D 5.5e: 1d4 + Fuerza, alcance 5 ft / 20/60 ft arrojadiza)
+    const esCompetenteImprovisada = esCompetenteConArma(
+      "Armas improvisadas",
+      "Improvisada",
+      personajeActivo.competenciasArmasGrupos || [],
+      personajeActivo.competenciasArmasLista || []
+    );
+
+    const caracImprovisada: Caracteristica = caracteristicasArmas["ataque-arma-improvisada"] || "fuerza";
+    const modImprovisada = modificadores[caracImprovisada] || 0;
+    const bonoAtaqueImprovisada = (esCompetenteImprovisada ? bonoCompetencia : 0) + modImprovisada;
+    const formulaImprovisada =
+      modImprovisada !== 0
+        ? `1d4${modImprovisada >= 0 ? `+${modImprovisada}` : `${modImprovisada}`}`
+        : "1d4";
+
+    ataques.push({
+      id: "ataque-arma-improvisada",
+      nombre: "Golpe con Arma Improvisada",
+      tipo: "Arma",
+      subtipo: "Cuerpo a Cuerpo / Arrojadiza",
+      tipoAccion: "accion",
+      caracteristicaUsada: caracImprovisada,
+      bonoAtaque: bonoAtaqueImprovisada,
+      dadoDano: formulaImprovisada,
+      dadoDanoBase: "1d4",
+      modificadorDano: modImprovisada,
+      esDanoFijo: false,
+      tipoDano: "Contundente",
+      alcance: "5 ft (20/60 ft arrojadiza)",
+      propiedades: ["Improvisada", "Arrojadiza (20/60 ft)"],
+      tieneTiradaAtaque: true,
+      esCompetenteConArma: esCompetenteImprovisada,
+      esSutil: false,
+      esDistancia: false
+    });
 
     return ataques;
   }, [personajeActivo, statsCalculadas, baseDatosObjetos, caracteristicasArmas]);

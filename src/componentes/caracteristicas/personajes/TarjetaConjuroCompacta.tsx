@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from "react";
-import { Zap, Eye, Trash2, Check, Sparkles, AlertTriangle } from "lucide-react";
+import { Zap, Eye, EyeOff, Trash2, Check, Sparkles, AlertTriangle } from "lucide-react";
 import type { HechizoBase } from "@/tipos";
 import { lanzarDadosTaleSpire, sanitizarEtiqueta } from "@/utiles/lanzadorDados";
 import {
@@ -24,6 +24,8 @@ interface TarjetaConjuroCompactaProps {
   esDeSubclase?: boolean;
   mostrarTogglePreparado?: boolean;
   esConcentracionActual?: boolean;
+  esOculto?: boolean;
+  alAlternarOcultar?: () => void;
   alAlternarPreparado?: () => void;
   alQuitarDeLista: () => void;
   alAbrirDetalleCompleto: (hechizo: HechizoBase) => void;
@@ -54,6 +56,8 @@ export const TarjetaConjuroCompacta: React.FC<TarjetaConjuroCompactaProps> = ({
   esDeSubclase = false,
   mostrarTogglePreparado = false,
   esConcentracionActual = false,
+  esOculto = false,
+  alAlternarOcultar,
   alAlternarPreparado,
   alQuitarDeLista,
   alAbrirDetalleCompleto,
@@ -268,21 +272,12 @@ export const TarjetaConjuroCompacta: React.FC<TarjetaConjuroCompactaProps> = ({
             <button
               type="button"
               onClick={() => alAbrirDetalleCompleto(hechizo)}
+              title="Ver descripción y ficha completa del conjuro"
               className={`${estilos.nombreConjuro} ${!estaPreparado && mostrarTogglePreparado && !esDeSubclase ? estilos.nombreConjuroInactivo : ""}`}
               style={{ background: "none", border: "none", padding: 0, cursor: "pointer", textAlign: "left" }}
             >
               {hechizo.nombre}
             </button>
-
-            {/* Badge de Subclase */}
-            {esDeSubclase && (
-              <span
-                title="Conjuro otorgado automáticamente por tu subclase"
-                className={estilos.badgeSubclaseTexto}
-              >
-                <Sparkles size={8} /> Subclase
-              </span>
-            )}
 
             {/* Badges */}
             {hechizo.concentracion && (
@@ -325,6 +320,18 @@ export const TarjetaConjuroCompacta: React.FC<TarjetaConjuroCompactaProps> = ({
               ""
             )}
           </span>
+
+          {/* Badge de Subclase debajo de escuela y alcance */}
+          {esDeSubclase && (
+            <div className={estilos.filaSubclaseInferior}>
+              <span
+                title="Conjuro otorgado automáticamente por tu subclase"
+                className={estilos.badgeSubclaseTexto}
+              >
+                <Sparkles size={8} /> Subclase
+              </span>
+            </div>
+          )}
         </div>
       </div>
 
@@ -416,15 +423,26 @@ export const TarjetaConjuroCompacta: React.FC<TarjetaConjuroCompactaProps> = ({
           </button>
         )}
 
-        {/* Botón Ver Ficha Completa */}
-        <button
-          type="button"
-          onClick={() => alAbrirDetalleCompleto(hechizo)}
-          title="Ver ficha completa y opciones de lanzamiento"
-          className={estilos.botonIcono}
-        >
-          <Eye size={13} />
-        </button>
+        {/* Botón Ocultar/Mostrar o Ver Ficha Completa */}
+        {alAlternarOcultar ? (
+          <button
+            type="button"
+            onClick={alAlternarOcultar}
+            title={esOculto ? "Mostrar conjuro (restaurar a su nivel)" : "Ocultar conjuro"}
+            className={`${estilos.botonIcono} ${esOculto ? estilos.botonOcultoActivo : ""}`}
+          >
+            {esOculto ? <EyeOff size={13} /> : <Eye size={13} />}
+          </button>
+        ) : (
+          <button
+            type="button"
+            onClick={() => alAbrirDetalleCompleto(hechizo)}
+            title="Ver ficha completa y opciones de lanzamiento"
+            className={estilos.botonIcono}
+          >
+            <Eye size={13} />
+          </button>
+        )}
 
         {/* Botón Quitar de Lista */}
         <button

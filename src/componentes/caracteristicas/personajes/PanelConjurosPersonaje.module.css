@@ -577,3 +577,48 @@
 .botonIrCompendio:hover {
   background-color: #1d4ed8;
 }
+
+.seccionOcultos {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background-color: rgba(15, 20, 29, 0.7);
+  border: 1px dashed var(--pj-borde-medio, rgba(148, 163, 184, 0.25));
+  border-radius: 8px;
+  padding: 12px 14px;
+  margin-top: 4px;
+}
+
+.tituloOcultosTexto {
+  font-size: var(--pj-fuente-micro, 11.5px);
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--pj-texto-terciario, #94a3b8);
+}
+
+.badgeConteoOcultos {
+  font-size: var(--pj-fuente-micro, 11px);
+  background-color: rgba(148, 163, 184, 0.15);
+  color: var(--pj-texto-terciario, #94a3b8);
+  padding: 1px 7px;
+  border-radius: 10px;
+  font-weight: 700;
+}
+
+.botonDesocultarTodos {
+  background: none;
+  border: 1px solid var(--pj-borde-sutil, rgba(148, 163, 184, 0.2));
+  border-radius: 4px;
+  color: var(--pj-texto-cian, #38bdf8);
+  font-size: 10.5px;
+  font-weight: 600;
+  padding: 2px 7px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.botonDesocultarTodos:hover {
+  background-color: var(--pj-acento-cian-fondo, rgba(56, 189, 248, 0.12));
+  border-color: var(--pj-borde-cian, rgba(56, 189, 248, 0.4));
+  color: #ffffff;
+}

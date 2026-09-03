@@ -330,13 +330,27 @@ export function esCompetenteConArma(
 ): boolean {
   const subNormalizada = subcategoria?.toLowerCase().trim() || "";
 
-  if (subNormalizada.includes("sencilla") && gruposCompetencias.includes("sencillas")) {
+  const tieneGrupoSencillas = gruposCompetencias.some((g) => {
+    const gn = g.toLowerCase();
+    return gn === "sencillas" || gn.includes("sencill") || gn.includes("simple");
+  });
+  if (subNormalizada.includes("sencilla") && tieneGrupoSencillas) {
     return true;
   }
-  if (subNormalizada.includes("marcial") && gruposCompetencias.includes("marciales")) {
+
+  const tieneGrupoMarciales = gruposCompetencias.some((g) => {
+    const gn = g.toLowerCase();
+    return gn === "marciales" || gn.includes("marcial");
+  });
+  if (subNormalizada.includes("marcial") && tieneGrupoMarciales) {
     return true;
   }
-  if ((subNormalizada.includes("fuego") || subNormalizada.includes("firearm")) && gruposCompetencias.includes("fuego")) {
+
+  const tieneGrupoFuego = gruposCompetencias.some((g) => {
+    const gn = g.toLowerCase();
+    return gn === "fuego" || gn.includes("fuego") || gn.includes("firearm");
+  });
+  if ((subNormalizada.includes("fuego") || subNormalizada.includes("firearm")) && tieneGrupoFuego) {
     return true;
   }
 
@@ -373,19 +387,109 @@ export function esCompetenteConArmadura(
 ): boolean {
   const subNormalizada = subcategoria?.toLowerCase().trim() || "";
 
-  if (subNormalizada.includes("ligera") && gruposCompetencias.includes("ligeras")) {
+  const tieneLigeras = gruposCompetencias.some((g) => {
+    const gn = g.toLowerCase();
+    return gn === "ligeras" || gn.includes("liger");
+  });
+  if (subNormalizada.includes("ligera") && tieneLigeras) {
     return true;
   }
-  if ((subNormalizada.includes("mediana") || subNormalizada.includes("media")) && gruposCompetencias.includes("medias")) {
+
+  const tieneMedias = gruposCompetencias.some((g) => {
+    const gn = g.toLowerCase();
+    return gn === "medias" || gn.includes("mediana") || gn.includes("media");
+  });
+  if ((subNormalizada.includes("mediana") || subNormalizada.includes("media")) && tieneMedias) {
     return true;
   }
-  if (subNormalizada.includes("pesada") && gruposCompetencias.includes("pesadas")) {
+
+  const tienePesadas = gruposCompetencias.some((g) => {
+    const gn = g.toLowerCase();
+    return gn === "pesadas" || gn.includes("pesad");
+  });
+  if (subNormalizada.includes("pesada") && tienePesadas) {
     return true;
   }
-  if (subNormalizada.includes("escudo") && gruposCompetencias.includes("escudos")) {
+
+  const tieneEscudos = gruposCompetencias.some((g) => {
+    const gn = g.toLowerCase();
+    return gn === "escudos" || gn.includes("escudo");
+  });
+  if (subNormalizada.includes("escudo") && tieneEscudos) {
     return true;
   }
 
   const nombreLimpio = nombreArmadura.toLowerCase().trim();
   return listaIndividual.some((arm) => arm.toLowerCase().trim() === nombreLimpio);
+}
+
+/**
+ * Resuelve y sincroniza las competencias de armas y armaduras procedentes de una clase o build
+ * mapeando cadenas canónicas a los IDs de grupo oficiales y poblando sus listas individuales.
+ */
+export function resolverGruposYSustitutosCompetencias(
+  armasRaw: string[] = [],
+  armadurasRaw: string[] = []
+): {
+  competenciasArmasGrupos: ("sencillas" | "marciales" | "fuego")[];
+  competenciasArmasLista: string[];
+  competenciasArmas: string;
+  competenciasArmadurasGrupos: ("ligeras" | "medias" | "pesadas" | "escudos")[];
+  competenciasArmadurasLista: string[];
+  competenciasArmaduras: string;
+} {
+  const gruposArmasSet = new Set<"sencillas" | "marciales" | "fuego">();
+  const armasListaSet = new Set<string>();
+
+  for (const item of armasRaw) {
+    const norm = item.toLowerCase().trim();
+    if (norm.includes("sencill") || norm.includes("simple")) {
+      gruposArmasSet.add("sencillas");
+      TODAS_ARMAS_SENCILLAS.forEach((a) => armasListaSet.add(a));
+    } else if (norm.includes("marcial")) {
+      gruposArmasSet.add("marciales");
+      TODAS_ARMAS_MARCIALES.forEach((a) => armasListaSet.add(a));
+    } else if (norm.includes("fuego") || norm.includes("firearm")) {
+      gruposArmasSet.add("fuego");
+      ARMAS_DE_FUEGO.forEach((a) => armasListaSet.add(a));
+    } else if (norm) {
+      armasListaSet.add(item.trim());
+    }
+  }
+
+  const gruposArmadurasSet = new Set<"ligeras" | "medias" | "pesadas" | "escudos">();
+  const armadurasListaSet = new Set<string>();
+
+  for (const item of armadurasRaw) {
+    const norm = item.toLowerCase().trim();
+    if (norm.includes("liger")) {
+      gruposArmadurasSet.add("ligeras");
+      ARMADURAS_LIGERAS.forEach((a) => armadurasListaSet.add(a));
+    } else if (norm.includes("mediana") || norm.includes("media")) {
+      gruposArmadurasSet.add("medias");
+      ARMADURAS_MEDIAS.forEach((a) => armadurasListaSet.add(a));
+    } else if (norm.includes("pesad")) {
+      gruposArmadurasSet.add("pesadas");
+      ARMADURAS_PESADAS.forEach((a) => armadurasListaSet.add(a));
+    } else if (norm.includes("escudo")) {
+      gruposArmadurasSet.add("escudos");
+      ESCUDOS.forEach((a) => armadurasListaSet.add(a));
+    } else if (norm) {
+      armadurasListaSet.add(item.trim());
+    }
+  }
+
+  const competenciasArmasGrupos = Array.from(gruposArmasSet);
+  const competenciasArmasLista = Array.from(armasListaSet);
+  const competenciasArmadurasGrupos = Array.from(gruposArmadurasSet);
+  const competenciasArmadurasLista = Array.from(armadurasListaSet);
+
+  return {
+    competenciasArmasGrupos,
+    competenciasArmasLista,
+    competenciasArmas: formatearResumenCompetenciasArmas(competenciasArmasGrupos, competenciasArmasLista),
+    competenciasArmadurasGrupos,
+    competenciasArmadurasLista,
+    competenciasArmaduras: formatearResumenCompetenciasArmaduras(competenciasArmadurasGrupos, competenciasArmadurasLista)
+  };
 }

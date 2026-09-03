@@ -47,32 +47,57 @@ export function obtenerDetalleCondicion(nombre: string): DetalleCondicionOEfecto
     };
   }
 
-  // 2. Buscar coincidencia en EFECTOS_PREDEFINIDOS (como Desangrándose, Bendecir, etc.)
-  const efectoEncontrado = EFECTOS_PREDEFINIDOS.find((e) => {
-    const minEf = normalizar(e.nombre);
-    const palabraClave = normalizar(e.nombre.split(" ")[0]);
-    return minEf.includes(nombreNorm) || nombreNorm.includes(palabraClave);
-  });
-
-  if (efectoEncontrado) {
+  // 2. Condición específica Furia de los Dioses (Senda del Fanático Nv 14)
+  if (nombreNorm.includes("furia de los dioses") || nombreNorm.includes("rage of the gods")) {
     return {
-      titulo: efectoEncontrado.nombre,
-      descripcion: efectoEncontrado.descripcion
+      titulo: "Furia de los Dioses (Rage of the Gods)",
+      descripcion: "Forma de guerrero divino (1 min / 10 turnos): Velocidad de vuelo con flotación, resistencia a daño necrótico, psíquico y radiante, y revivificación de aliados.",
+      efectos: [
+        "Vuelo: Tienes una velocidad volando igual a tu velocidad de movimiento y puedes flotar.",
+        "Resistencias Divinas: Tienes resistencia al daño Necrótico, Psíquico y Radiante.",
+        "Revivificación (Reacción): Si un aliado a 30 pies fuera a caer a 0 HP, gastas 1 uso de Furia y sus HP se vuelven iguales a tu nivel de bárbaro."
+      ]
     };
   }
 
-  // 3. Buscar coincidencia en CONDICIONES_2024
-  const condEncontrada = CONDICIONES_2024.find((c) => {
-    const minCond = normalizar(c.nombre);
-    const palabraClave = normalizar(c.nombre.split(" ")[0]);
-    return minCond.includes(nombreNorm) || nombreNorm.includes(palabraClave);
+  // 3. Buscar coincidencia exacta en EFECTOS_PREDEFINIDOS
+  const efectoExacto = EFECTOS_PREDEFINIDOS.find((e) => {
+    const minEf = normalizar(e.nombre);
+    return minEf === nombreNorm || normalizar(e.nombre.split(" (")[0]) === normalizar(nombre.split(" (")[0]);
   });
 
-  if (condEncontrada) {
+  if (efectoExacto) {
     return {
-      titulo: condEncontrada.nombre,
-      descripcion: condEncontrada.descripcion,
-      efectos: condEncontrada.efectos
+      titulo: efectoExacto.nombre,
+      descripcion: efectoExacto.descripcion
+    };
+  }
+
+  // 4. Buscar coincidencia en CONDICIONES_2024
+  const condExacta = CONDICIONES_2024.find((c) => {
+    const minCond = normalizar(c.nombre);
+    return minCond === nombreNorm || normalizar(c.nombre.split(" (")[0]) === normalizar(nombre.split(" (")[0]);
+  });
+
+  if (condExacta) {
+    return {
+      titulo: condExacta.nombre,
+      descripcion: condExacta.descripcion,
+      efectos: condExacta.efectos
+    };
+  }
+
+  // 5. Fallback por coincidencia más larga en EFECTOS_PREDEFINIDOS
+  const candidatosEfectos = EFECTOS_PREDEFINIDOS.filter((e) => {
+    const minEf = normalizar(e.nombre);
+    return minEf.includes(nombreNorm) || nombreNorm.includes(minEf);
+  });
+
+  if (candidatosEfectos.length > 0) {
+    const mejor = candidatosEfectos.sort((a, b) => b.nombre.length - a.nombre.length)[0];
+    return {
+      titulo: mejor.nombre,
+      descripcion: mejor.descripcion
     };
   }
 

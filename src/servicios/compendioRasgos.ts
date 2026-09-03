@@ -1,9 +1,9 @@
 import type { PersonajeJugador, RasgoPersonaje, DotePersonaje } from "@/tipos";
 import {
-  RASGOS_POR_CLASE,
   RASGOS_POR_ESPECIE,
   DOTES_CANONICAS_DND55
 } from "@/constantes/rasgosDND55";
+import { obtenerRasgosClaseYSubclase } from "@/servicios/gestorClases";
 
 /**
  * Normaliza nombres para comparación tolerante e insensible a mayúsculas/acentos
@@ -54,7 +54,7 @@ export function obtenerRasgosSugeridosPorEspecie(
       recuperacion: p.recuperacion || "ninguno",
       formulaDados: p.formulaDados,
       personalizado: false,
-      activo: true,
+      activo: (p as { esActivable?: boolean }).esActivable ? false : true,
       notas: ""
     };
   });
@@ -67,55 +67,16 @@ export function obtenerRasgosSugeridosPorClases(
   clases: { nombre: string; subclase?: string; nivel: number }[]
 ): RasgoPersonaje[] {
   const rasgosTotales: RasgoPersonaje[] = [];
+  const idsVistos = new Set<string>();
 
   for (const itemClase of clases) {
-    const normClase = normalizarTexto(itemClase.nombre);
     const nivel = Math.max(1, Math.min(20, itemClase.nivel || 1));
-    const subclase = itemClase.subclase ? normalizarTexto(itemClase.subclase) : "";
-
-    const claveClase = Object.keys(RASGOS_POR_CLASE).find(
-      (k) => normalizarTexto(k) === normClase || normClase.includes(normalizarTexto(k))
-    );
-
-    if (!claveClase || !RASGOS_POR_CLASE[claveClase]) {
-      continue;
-    }
-
-    const plantillas = RASGOS_POR_CLASE[claveClase];
-
-    for (const p of plantillas) {
-      // Filtrar por nivel
-      if (p.nivel > nivel) continue;
-
-      // Filtrar por subclase si el rasgo pertenece a una subclase específica
-      if (p.subclase) {
-        if (!subclase) continue;
-        const normSubclaseRasgo = normalizarTexto(p.subclase);
-        if (!subclase.includes(normSubclaseRasgo) && !normSubclaseRasgo.includes(subclase)) {
-          continue;
-        }
+    const rasgosClase = obtenerRasgosClaseYSubclase(itemClase.nombre, nivel, itemClase.subclase);
+    for (const r of rasgosClase) {
+      if (!idsVistos.has(r.id)) {
+        idsVistos.add(r.id);
+        rasgosTotales.push(r);
       }
-
-      const id = `rasgo_cls_${normalizarTexto(claveClase)}_${normalizarTexto(p.nombre).replace(/\s+/g, "_")}`;
-      const usos = p.tieneUsosLimitados && p.obtenerUsosMaximos ? p.obtenerUsosMaximos(nivel) : undefined;
-
-      rasgosTotales.push({
-        id,
-        nombre: p.nombre,
-        descripcion: p.descripcion,
-        origen: p.subclase ? "subclase" : "clase",
-        fuente: `${claveClase} (Nivel ${p.nivel})${p.subclase ? ` - ${p.subclase}` : ""}`,
-        tipoAccion: p.tipoAccion,
-        nivelRequerido: p.nivel,
-        tieneUsosLimitados: !!p.tieneUsosLimitados,
-        usosMaximos: usos,
-        usosRestantes: usos,
-        recuperacion: p.recuperacion || "ninguno",
-        formulaDados: p.formulaDados,
-        personalizado: false,
-        activo: true,
-        notas: ""
-      });
     }
   }
 
@@ -136,9 +97,11 @@ export function obtenerTodasDotesCanonicas(): DotePersonaje[] {
 export function sincronizarRasgosAutomaticos(personaje: PersonajeJugador): RasgoPersonaje[] {
   const rasgosExistentes = Array.isArray(personaje.rasgos) ? personaje.rasgos : [];
 
-  // 1. Conservar rasgos personalizados, dotes y de trasfondo creados por el jugador
+  // 1. Conservar rasgos personalizados, dotes y de trasfondo creados por el jugador (purgando marcadores obsoletos)
   const rasgosPersonalizados = rasgosExistentes.filter(
-    (r) => r.personalizado || r.origen === "personalizado" || r.origen === "dote" || r.origen === "trasfondo"
+    (r) =>
+      (r.personalizado || r.origen === "personalizado" || r.origen === "dote" || r.origen === "trasfondo") &&
+      !r.nombre.toLowerCase().includes("rasgo de subclase")
   );
 
   // 2. Resolver rasgos canónicos según Especie y Clases
@@ -160,10 +123,20 @@ export function sincronizarRasgosAutomaticos(personaje: PersonajeJugador): Rasgo
 
   const canonicosNuevos = [...rasgosEspecie, ...rasgosClase];
 
+  // Filtrar placeholders de tabla y deduplicar canonicosNuevos por ID
+  const idsVistosNuevos = new Set<string>();
+  const canonicosNuevosUnicos: RasgoPersonaje[] = [];
+  for (const r of canonicosNuevos) {
+    if (!r.nombre.toLowerCase().includes("rasgo de subclase") && !idsVistosNuevos.has(r.id)) {
+      idsVistosNuevos.add(r.id);
+      canonicosNuevosUnicos.push(r);
+    }
+  }
+
   // 3. Fusionar respetando el estado de usos restantes previo si ya existía el rasgo
   const mapaExistentes = new Map(rasgosExistentes.map((r) => [r.id, r]));
 
-  const canonicosFusionados = canonicosNuevos.map((nuevo) => {
+  const canonicosFusionados = canonicosNuevosUnicos.map((nuevo) => {
     const existente = mapaExistentes.get(nuevo.id);
     if (existente) {
       return {
@@ -172,12 +145,23 @@ export function sincronizarRasgosAutomaticos(personaje: PersonajeJugador): Rasgo
           typeof existente.usosRestantes === "number" && nuevo.usosMaximos
             ? Math.min(existente.usosRestantes, nuevo.usosMaximos)
             : nuevo.usosRestantes,
-        activo: existente.activo !== undefined ? existente.activo : nuevo.activo,
+        activo: existente.activo !== undefined ? existente.activo : (nuevo.esActivable ? false : true),
         notas: existente.notas || nuevo.notas
       };
     }
-    return nuevo;
+    return {
+      ...nuevo,
+      activo: nuevo.esActivable ? false : (nuevo.activo ?? true)
+    };
   });
 
-  return [...canonicosFusionados, ...rasgosPersonalizados];
+  // 4. Garantizar deduplicación estricta por ID único en el array consolidado final
+  const mapaFinal = new Map<string, RasgoPersonaje>();
+  for (const r of [...canonicosFusionados, ...rasgosPersonalizados]) {
+    if (!mapaFinal.has(r.id)) {
+      mapaFinal.set(r.id, r);
+    }
+  }
+
+  return Array.from(mapaFinal.values());
 }

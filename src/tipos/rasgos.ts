@@ -32,6 +32,69 @@ export const EsquemaRecuperacionRasgo = z.enum([
 ]);
 export type RecuperacionRasgo = z.infer<typeof EsquemaRecuperacionRasgo>;
 
+// ==========================================
+// TIPOS Y ESQUEMAS DE EFECTOS MECÁNICOS Y SELECTORES
+// ==========================================
+
+export const EsquemaTipoEfectoMecanico = z.enum([
+  "modificador_stat",
+  "modificador_ca",
+  "modificador_velocidad",
+  "ventaja",
+  "desventaja",
+  "dado_extra_dano",
+  "bono_dano_fuerza",
+  "resistencia_dano",
+  "inmunidad_condicion",
+  "competencia",
+  "habilidad_con_fuerza",
+  "personalizado"
+]);
+export type TipoEfectoMecanico = z.infer<typeof EsquemaTipoEfectoMecanico>;
+
+export const EsquemaEfectoMecanicoRasgo = z.object({
+  id: z.string().optional(),
+  tipo: EsquemaTipoEfectoMecanico,
+  objetivo: z.string(), // ej. "fuerza", "ca", "velocidad.caminar", "salvacion.destreza", "iniciativa", "ataque_fuerza"
+  valor: z.union([z.number(), z.string()]), // ej. 4, "2d6", "+2"
+  condicion: z.string().nullable().optional(), // ej. "furia_activa", "sin_armadura_pesada", "sin_armadura", "siempre"
+  descripcion: z.string().optional(),
+  activo: z.boolean().default(true).optional()
+});
+export type EfectoMecanicoRasgo = z.infer<typeof EsquemaEfectoMecanicoRasgo>;
+
+export const EsquemaOpcionSelector = z.object({
+  id: z.string(),
+  nombre: z.string(),
+  descripcion: z.string().default(""),
+  efectos: z.array(EsquemaEfectoMecanicoRasgo).optional()
+});
+export type OpcionSelector = z.infer<typeof EsquemaOpcionSelector>;
+
+export const EsquemaSelectorRasgo = z.object({
+  id: z.string(),
+  tipo: z.enum(["unico", "multiple"]).default("unico"),
+  etiqueta: z.string(),
+  opciones: z.array(EsquemaOpcionSelector).default([]),
+  maxSelecciones: z.number().int().min(1).default(1),
+  valorActual: z.array(z.string()).default([])
+});
+export type SelectorRasgo = z.infer<typeof EsquemaSelectorRasgo>;
+
+// Tablas de escalado/progresión por nivel en el rasgo
+export const EsquemaFilaTablaEscalado = z.object({
+  nivel: z.number().int().min(1).max(20),
+  valores: z.array(z.string())
+});
+export type FilaTablaEscalado = z.infer<typeof EsquemaFilaTablaEscalado>;
+
+export const EsquemaTablaEscaladoRasgo = z.object({
+  columnas: z.array(z.string()).default(["Nivel", "Descripción"]),
+  filas: z.array(EsquemaFilaTablaEscalado).default([]),
+  notaPie: z.string().default("Cada nivel reemplaza al anterior")
+});
+export type TablaEscaladoRasgo = z.infer<typeof EsquemaTablaEscaladoRasgo>;
+
 export const EsquemaRasgoPersonaje = z.object({
   id: z.string(),
   nombre: z.string().min(1, "El nombre del rasgo es obligatorio"),
@@ -50,9 +113,26 @@ export const EsquemaRasgoPersonaje = z.object({
   // Fórmulas o dados asociados (ej. "1d10 + nivel", "1d8", etc.)
   formulaDados: z.string().optional(),
   
-  // Estado y personalización
+  // Estado, activables y ligaduras
   personalizado: z.boolean().default(false),
   activo: z.boolean().default(true),
+  esActivable: z.boolean().default(false).optional(), // Toggle on/off
+  ligadoA: z.string().optional(), // ID de rasgo padre requerido activo
+  categoriaMecanica: z.enum([
+    "consumible",
+    "activable",
+    "selector_informativo",
+    "pasivo_permanente",
+    "extension",
+    "curacion"
+  ]).optional(),
+  formulaEscalado: z.string().optional(),
+  
+  // Mecánicas estructuradas
+  efectos: z.array(EsquemaEfectoMecanicoRasgo).default([]).optional(),
+  selectores: z.array(EsquemaSelectorRasgo).default([]).optional(),
+  tablaProgresion: EsquemaTablaEscaladoRasgo.optional(),
+
   notas: z.string().default("")
 });
 

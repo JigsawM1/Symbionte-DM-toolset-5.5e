@@ -13,6 +13,8 @@ import {
   obtenerDadoGolpePorClase,
   obtenerExperienciaMinimaPorNivel
 } from "@/constantes";
+import { obtenerSubclasesDeClase } from "@/servicios/gestorClases";
+import { sincronizarRasgosAutomaticos } from "@/servicios/compendioRasgos";
 import { SelectorDesplegable } from "@/componentes/comunes/SelectorDesplegable";
 import { SelectorSugerencias } from "@/componentes/comunes/SelectorSugerencias";
 import { X, Save, Shield, User, Award, Eye } from "lucide-react";
@@ -115,7 +117,10 @@ export const ModalEditarPersonaje: React.FC<ModalEditarPersonajeProps> = ({
 
   const manejarGuardar = (e: React.FormEvent) => {
     e.preventDefault();
-    alGuardar(form);
+    alGuardar({
+      ...form,
+      rasgos: sincronizarRasgosAutomaticos(form)
+    });
     alCerrar();
   };
 
@@ -224,12 +229,11 @@ export const ModalEditarPersonaje: React.FC<ModalEditarPersonajeProps> = ({
 
                 <div className={estilos.campoFormulario}>
                   <label className={estilos.labelFormulario}>Subclase</label>
-                  <input
-                    type="text"
-                    className={estilos.inputFormulario}
-                    value={form.subclase}
-                    onChange={(e) => actualizarCampo("subclase", e.target.value)}
-                    placeholder="Ej. Campeón, Evocación..."
+                  <SelectorSugerencias
+                    valor={form.subclase}
+                    alCambiar={(nuevaSub) => actualizarCampo("subclase", nuevaSub)}
+                    opciones={obtenerSubclasesDeClase(form.clase).map((s) => s.nombre)}
+                    placeholder="Elegir o escribir subclase..."
                   />
                 </div>
               </div>

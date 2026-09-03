@@ -198,7 +198,8 @@ export const HojaPersonaje: React.FC<HojaPersonajeProps> = ({ alAbrirConfiguraci
       caracteristica: carac,
       penalizacionArmadura: penalizacionSinComp,
       desventajaSigiloArmadura,
-      condicionesActivas: personajeActivo.condicionesActivas
+      condicionesActivas: personajeActivo.condicionesActivas,
+      personaje: personajeActivo
     });
     const bonoFinal = bono + evaluacion.penalizadorD20;
     const motivos = [...evaluacion.motivosDesventaja, ...evaluacion.motivosVentaja, ...evaluacion.motivosModificadores].join(", ");
@@ -218,7 +219,8 @@ export const HojaPersonaje: React.FC<HojaPersonajeProps> = ({ alAbrirConfiguraci
       caracteristica: carac,
       penalizacionArmadura: penalizacionSinComp,
       desventajaSigiloArmadura,
-      condicionesActivas: personajeActivo.condicionesActivas
+      condicionesActivas: personajeActivo.condicionesActivas,
+      personaje: personajeActivo
     });
     const bonoFinal = bono + evaluacion.penalizadorD20;
     const motivos = [...evaluacion.motivosDesventaja, ...evaluacion.motivosVentaja, ...evaluacion.motivosModificadores].join(", ");
@@ -239,7 +241,8 @@ export const HojaPersonaje: React.FC<HojaPersonajeProps> = ({ alAbrirConfiguraci
       habilidad: hab,
       penalizacionArmadura: penalizacionSinComp,
       desventajaSigiloArmadura,
-      condicionesActivas: personajeActivo.condicionesActivas
+      condicionesActivas: personajeActivo.condicionesActivas,
+      personaje: personajeActivo
     });
     const bonoFinal = bono + evaluacion.penalizadorD20;
     const motivos = [...evaluacion.motivosDesventaja, ...evaluacion.motivosVentaja, ...evaluacion.motivosModificadores].join(", ");
@@ -258,7 +261,8 @@ export const HojaPersonaje: React.FC<HojaPersonajeProps> = ({ alAbrirConfiguraci
       caracteristica: "destreza",
       penalizacionArmadura: penalizacionSinComp,
       desventajaSigiloArmadura,
-      condicionesActivas: personajeActivo.condicionesActivas
+      condicionesActivas: personajeActivo.condicionesActivas,
+      personaje: personajeActivo
     });
     const bonoBase = statsCalculadas.modificadores.destreza + (personajeActivo.iniciativaBono || 0);
     const bonoFinal = bonoBase + evaluacion.penalizadorD20;
@@ -322,6 +326,7 @@ export const HojaPersonaje: React.FC<HojaPersonajeProps> = ({ alAbrirConfiguraci
         modDestreza={statsCalculadas.modificadores.destreza}
         claseArmadura={statsCalculadas.claseArmadura}
         penalizacionArmadura={statsCalculadas.penalizacionArmadura}
+        bonoVelocidad={statsCalculadas.bonoVelocidadRasgos}
         alTirarIniciativa={manejarTirarIniciativa}
         alAlternarInspiracion={() => alternarInspiracionPersonaje(personajeActivo.id)}
       />

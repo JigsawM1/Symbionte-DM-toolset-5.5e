@@ -8,4 +8,8 @@ export * from "./resolutorMiniaturasJugador";
 export * from "./indiceMonstruos";
 export * from "./calculadorInventario";
 export * from "./gestorMunicion";
+export * from "./gestorClases";
+export * from "./compendioRasgos";
+export * from "./calculadorMagia";
+export * from "./sincronizadorConjurosSubclase";
 

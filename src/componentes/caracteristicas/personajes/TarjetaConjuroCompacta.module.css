@@ -88,6 +88,12 @@
   color: var(--pj-texto-terciario, #94a3b8);
 }
 
+.filaSubclaseInferior {
+  display: flex;
+  align-items: center;
+  margin-top: 3px;
+}
+
 .badgeSubclaseTexto {
   font-size: var(--pj-fuente-micro, 11px);
   font-weight: 700;
@@ -97,6 +103,9 @@
   padding: 0 5px;
   border-radius: 3px;
   flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
 }
 
 .filaMetadatos {
@@ -193,6 +202,14 @@
 
 .botonIconoEliminar:hover {
   color: #ef4444;
+}
+
+.botonOcultoActivo {
+  color: var(--pj-texto-cian, #38bdf8) !important;
+}
+
+.botonOcultoActivo:hover {
+  color: #7dd3fc !important;
 }
 
 .botonBloqueado,

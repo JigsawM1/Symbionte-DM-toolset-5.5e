@@ -12,17 +12,23 @@ import {
   CLASES_DND,
   ALINEAMIENTOS_DND,
   DESCRIPCIONES_CARACTERISTICAS,
-  obtenerDadoGolpePorClase,
   obtenerRangoExperienciaPorNivel,
   obtenerNivelPorExperiencia,
-  obtenerBonoCompetenciaPorNivel
+  obtenerBonoCompetenciaPorNivel,
+  resolverGruposYSustitutosCompetencias
 } from "@/constantes";
 import { calcularModificadorCaracteristica } from "@/servicios/procesadorDescansos";
+import { sincronizarRasgosAutomaticos } from "@/servicios/compendioRasgos";
 import {
   detectarTipoLanzador,
   calcularTodosRecursosMagicos,
   obtenerConjurosSubclasePersonaje
 } from "@/servicios/calculadorMagia";
+import {
+  obtenerSubclasesDeClase,
+  obtenerClasePorNombre,
+  construirBuildClase
+} from "@/servicios/gestorClases";
 import { coincideHechizoId } from "@/almacen/slices/slicePersonajes";
 import ts from "@/utiles/TaleSpireAdapter";
 import { SelectorDesplegable } from "@/componentes/comunes/SelectorDesplegable";
@@ -250,7 +256,13 @@ export const PanelConfiguracionPersonaje: React.FC<PanelConfiguracionPersonajePr
   }, []);
 
   const actualizarCampo = <K extends keyof PersonajeJugador>(campo: K, valor: PersonajeJugador[K]) => {
-    setForm((prev) => ({ ...prev, [campo]: valor }));
+    setForm((prev) => {
+      const nuevo = { ...prev, [campo]: valor };
+      if (campo === "especie" || campo === "subespecie") {
+        nuevo.rasgos = sincronizarRasgosAutomaticos(nuevo);
+      }
+      return nuevo;
+    });
   };
 
   // Acción manual para refrescar el nombre del jugador desde TaleSpire
@@ -273,9 +285,39 @@ export const PanelConfiguracionPersonaje: React.FC<PanelConfiguracionPersonajePr
     setForm((prev) => {
       const clases = [...(prev.clases || [])];
       if (!clases[index]) return prev;
-      clases[index] = { ...clases[index], nombre: nuevoNombre };
+      clases[index] = { ...clases[index], nombre: nuevoNombre, subclase: "" };
 
-      const dadoSugerido = index === 0 ? obtenerDadoGolpePorClase(nuevoNombre.trim()) : prev.tipoDadoGolpe;
+      // Si se cambia la clase primaria (index 0), aplicamos automáticamente competencias y dado sugerido
+      let buildExtras: Partial<PersonajeJugador> = {};
+      if (index === 0) {
+        const build = construirBuildClase(nuevoNombre, clases[index].nivel || 1);
+        if (build) {
+          const salvacionesActualizadas = {
+            ...prev.competenciasSalvacion,
+            fuerza: build.salvacionesCompetentes.includes("fuerza"),
+            destreza: build.salvacionesCompetentes.includes("destreza"),
+            constitucion: build.salvacionesCompetentes.includes("constitucion"),
+            inteligencia: build.salvacionesCompetentes.includes("inteligencia"),
+            sabiduria: build.salvacionesCompetentes.includes("sabiduria"),
+            carisma: build.salvacionesCompetentes.includes("carisma")
+          };
+          const resComp = resolverGruposYSustitutosCompetencias(
+            build.competenciasArmas,
+            build.competenciasArmaduras
+          );
+          buildExtras = {
+            tipoDadoGolpe: build.dadoGolpe,
+            competenciasSalvacion: salvacionesActualizadas,
+            competenciasArmas: resComp.competenciasArmas,
+            competenciasArmasGrupos: resComp.competenciasArmasGrupos,
+            competenciasArmasLista: resComp.competenciasArmasLista,
+            competenciasArmaduras: resComp.competenciasArmaduras,
+            competenciasArmadurasGrupos: resComp.competenciasArmadurasGrupos,
+            competenciasArmadurasLista: resComp.competenciasArmadurasLista
+          };
+        }
+      }
+
       const sincMagia = sincronizarMagiaMulticlase(
         clases,
         prev.overrideEspaciosConjuro,
@@ -286,12 +328,20 @@ export const PanelConfiguracionPersonaje: React.FC<PanelConfiguracionPersonajePr
         prev.conjurosSiemprePreparadosIds
       );
 
-      return {
+      const intermedio: PersonajeJugador = {
         ...prev,
         clases,
         clase: generarNombreClaseResumen(clases),
-        tipoDadoGolpe: dadoSugerido,
+        subclase: generarSubclaseResumen(clases),
+        ...buildExtras,
         ...sincMagia
+      };
+
+      const rasgosActualizados = sincronizarRasgosAutomaticos(intermedio);
+
+      return {
+        ...intermedio,
+        rasgos: rasgosActualizados
       };
     });
   };
@@ -312,11 +362,54 @@ export const PanelConfiguracionPersonaje: React.FC<PanelConfiguracionPersonajePr
         prev.conjurosSiemprePreparadosIds
       );
 
-      return {
+      const intermedio: PersonajeJugador = {
         ...prev,
         clases,
         subclase: generarSubclaseResumen(clases),
         ...sincMagia
+      };
+
+      const rasgosActualizados = sincronizarRasgosAutomaticos(intermedio);
+
+      return {
+        ...intermedio,
+        rasgos: rasgosActualizados
+      };
+    });
+  };
+
+  const manejarAplicarBuildSugerida = (index: number) => {
+    const claseItem = form.clases?.[index];
+    if (!claseItem) return;
+    const build = construirBuildClase(claseItem.nombre, claseItem.nivel, claseItem.subclase);
+    if (!build) return;
+
+    setForm((prev) => {
+      const salvacionesActualizadas = {
+        ...prev.competenciasSalvacion,
+        fuerza: build.salvacionesCompetentes.includes("fuerza"),
+        destreza: build.salvacionesCompetentes.includes("destreza"),
+        constitucion: build.salvacionesCompetentes.includes("constitucion"),
+        inteligencia: build.salvacionesCompetentes.includes("inteligencia"),
+        sabiduria: build.salvacionesCompetentes.includes("sabiduria"),
+        carisma: build.salvacionesCompetentes.includes("carisma")
+      };
+
+      const resComp = resolverGruposYSustitutosCompetencias(
+        [...(prev.competenciasArmasGrupos || []), ...build.competenciasArmas],
+        [...(prev.competenciasArmadurasGrupos || []), ...build.competenciasArmaduras]
+      );
+
+      return {
+        ...prev,
+        tipoDadoGolpe: build.dadoGolpe,
+        competenciasSalvacion: salvacionesActualizadas,
+        competenciasArmas: resComp.competenciasArmas,
+        competenciasArmasGrupos: resComp.competenciasArmasGrupos,
+        competenciasArmasLista: Array.from(new Set([...(prev.competenciasArmasLista || []), ...resComp.competenciasArmasLista])),
+        competenciasArmaduras: resComp.competenciasArmaduras,
+        competenciasArmadurasGrupos: resComp.competenciasArmadurasGrupos,
+        competenciasArmadurasLista: Array.from(new Set([...(prev.competenciasArmadurasLista || []), ...resComp.competenciasArmadurasLista]))
       };
     });
   };
@@ -351,7 +444,7 @@ export const PanelConfiguracionPersonaje: React.FC<PanelConfiguracionPersonajePr
         prev.conjurosSiemprePreparadosIds
       );
 
-      return {
+      const intermedio: PersonajeJugador = {
         ...prev,
         clases,
         nivel: nivelTotal,
@@ -360,6 +453,13 @@ export const PanelConfiguracionPersonaje: React.FC<PanelConfiguracionPersonajePr
         dadosGolpeTotal: nivelTotal,
         dadosGolpeRestantes: Math.min(prev.dadosGolpeRestantes, nivelTotal),
         ...sincMagia
+      };
+
+      const rasgosActualizados = sincronizarRasgosAutomaticos(intermedio);
+
+      return {
+        ...intermedio,
+        rasgos: rasgosActualizados
       };
     });
   };
@@ -393,7 +493,7 @@ export const PanelConfiguracionPersonaje: React.FC<PanelConfiguracionPersonajePr
         prev.conjurosSiemprePreparadosIds
       );
 
-      return {
+      const intermedio: PersonajeJugador = {
         ...prev,
         clases: nuevasClases,
         nivel: nuevoNivelTotal,
@@ -403,6 +503,13 @@ export const PanelConfiguracionPersonaje: React.FC<PanelConfiguracionPersonajePr
         dadosGolpeTotal: nuevoNivelTotal,
         dadosGolpeRestantes: Math.min(prev.dadosGolpeRestantes, nuevoNivelTotal),
         ...sincMagia
+      };
+
+      const rasgosActualizados = sincronizarRasgosAutomaticos(intermedio);
+
+      return {
+        ...intermedio,
+        rasgos: rasgosActualizados
       };
     });
   };
@@ -429,7 +536,7 @@ export const PanelConfiguracionPersonaje: React.FC<PanelConfiguracionPersonajePr
         prev.conjurosSiemprePreparadosIds
       );
 
-      return {
+      const intermedio: PersonajeJugador = {
         ...prev,
         clases: nuevasClases,
         nivel: nuevoNivelTotal,
@@ -439,6 +546,13 @@ export const PanelConfiguracionPersonaje: React.FC<PanelConfiguracionPersonajePr
         dadosGolpeTotal: nuevoNivelTotal,
         dadosGolpeRestantes: Math.min(prev.dadosGolpeRestantes, nuevoNivelTotal),
         ...sincMagia
+      };
+
+      const rasgosActualizados = sincronizarRasgosAutomaticos(intermedio);
+
+      return {
+        ...intermedio,
+        rasgos: rasgosActualizados
       };
     });
   };
@@ -486,7 +600,7 @@ export const PanelConfiguracionPersonaje: React.FC<PanelConfiguracionPersonajePr
         prev.conjurosSiemprePreparadosIds
       );
 
-      return {
+      const intermedio: PersonajeJugador = {
         ...prev,
         nivel: niv,
         clases: nuevasClases,
@@ -495,6 +609,13 @@ export const PanelConfiguracionPersonaje: React.FC<PanelConfiguracionPersonajePr
         dadosGolpeTotal: niv,
         dadosGolpeRestantes: Math.min(prev.dadosGolpeRestantes, niv),
         ...sincMagia
+      };
+
+      const rasgosActualizados = sincronizarRasgosAutomaticos(intermedio);
+
+      return {
+        ...intermedio,
+        rasgos: rasgosActualizados
       };
     });
   };
@@ -530,7 +651,7 @@ export const PanelConfiguracionPersonaje: React.FC<PanelConfiguracionPersonajePr
         prev.conjurosSiemprePreparadosIds
       );
 
-      return {
+      const intermedio: PersonajeJugador = {
         ...prev,
         experiencia: xpVal,
         nivel: nivelSugerido,
@@ -539,6 +660,13 @@ export const PanelConfiguracionPersonaje: React.FC<PanelConfiguracionPersonajePr
         dadosGolpeTotal: nivelSugerido,
         dadosGolpeRestantes: Math.min(prev.dadosGolpeRestantes, nivelSugerido),
         ...sincMagia
+      };
+
+      const rasgosActualizados = sincronizarRasgosAutomaticos(intermedio);
+
+      return {
+        ...intermedio,
+        rasgos: rasgosActualizados
       };
     });
   };
@@ -602,7 +730,11 @@ export const PanelConfiguracionPersonaje: React.FC<PanelConfiguracionPersonajePr
   // -------------------------------------------------------------
   const manejarGuardar = (e: React.FormEvent) => {
     e.preventDefault();
-    alGuardar(form);
+    const formFinal: PersonajeJugador = {
+      ...form,
+      rasgos: sincronizarRasgosAutomaticos(form)
+    };
+    alGuardar(formFinal);
     alVolverAFicha();
   };
 
@@ -772,83 +904,146 @@ export const PanelConfiguracionPersonaje: React.FC<PanelConfiguracionPersonajePr
                       <div
                         key={index}
                         style={{
-                          display: "grid",
-                          gridTemplateColumns: "minmax(140px, 1.2fr) minmax(130px, 1fr) 90px auto",
+                          display: "flex",
+                          flexDirection: "column",
                           gap: 8,
-                          alignItems: "center",
                           backgroundColor: "#111622",
-                          padding: "8px 10px",
+                          padding: "10px 12px",
                           borderRadius: 6,
                           border: "1px solid rgba(148, 163, 184, 0.12)"
                         }}
                       >
-                        <div>
-                          <label style={{ fontSize: 10, color: "#94a3b8", display: "block", marginBottom: 3 }}>
-                            Clase #{index + 1}
-                          </label>
-                          <SelectorSugerencias
-                            valor={claseItem.nombre}
-                            alCambiar={(nuevoNombre) => manejarCambioClaseNombre(index, nuevoNombre)}
-                            opciones={CLASES_DND}
-                            placeholder="Clase..."
-                          />
+                        <div
+                          style={{
+                            display: "grid",
+                            gridTemplateColumns: "minmax(140px, 1.2fr) minmax(140px, 1.2fr) 80px auto",
+                            gap: 8,
+                            alignItems: "center"
+                          }}
+                        >
+                          <div>
+                            <label style={{ fontSize: 10, color: "#94a3b8", display: "block", marginBottom: 3 }}>
+                              Clase #{index + 1}
+                            </label>
+                            <SelectorSugerencias
+                              valor={claseItem.nombre}
+                              alCambiar={(nuevoNombre) => manejarCambioClaseNombre(index, nuevoNombre)}
+                              opciones={CLASES_DND}
+                              placeholder="Clase..."
+                            />
+                          </div>
+
+                          <div>
+                            <label style={{ fontSize: 10, color: "#94a3b8", display: "block", marginBottom: 3 }}>
+                              Subclase (Nivel 3+)
+                            </label>
+                            <SelectorSugerencias
+                              valor={claseItem.subclase || ""}
+                              alCambiar={(nuevaSub) => manejarCambioClaseSubclase(index, nuevaSub)}
+                              opciones={obtenerSubclasesDeClase(claseItem.nombre).map((s) => s.nombre)}
+                              placeholder="Elegir subclase..."
+                            />
+                          </div>
+
+                          <div>
+                            <label style={{ fontSize: 10, color: "#94a3b8", display: "block", marginBottom: 3 }}>
+                              Nivel (Max {maxNivelClase})
+                            </label>
+                            <input
+                              type="number"
+                              className={estilos.inputFormulario}
+                              value={claseItem.nivel}
+                              onChange={(e) => manejarCambioClaseNivel(index, e.target.value)}
+                              min="1"
+                              max={maxNivelClase}
+                              required
+                              style={{ height: 34, textAlign: "center", fontWeight: 700, fontSize: 12 }}
+                            />
+                          </div>
+
+                          <div style={{ paddingTop: 16 }}>
+                            {(form.clases || []).length > 1 ? (
+                              <button
+                                type="button"
+                                onClick={() => manejarEliminarClase(index)}
+                                title="Eliminar clase"
+                                style={{
+                                  width: 34,
+                                  height: 34,
+                                  borderRadius: 4,
+                                  backgroundColor: "#201317",
+                                  border: "1px solid rgba(239, 68, 68, 0.3)",
+                                  color: "#fca5a5",
+                                  cursor: "pointer",
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "center"
+                                }}
+                              >
+                                <Trash2 size={14} />
+                              </button>
+                            ) : (
+                              <div style={{ width: 34 }} />
+                            )}
+                          </div>
                         </div>
 
-                        <div>
-                          <label style={{ fontSize: 10, color: "#94a3b8", display: "block", marginBottom: 3 }}>
-                            Subclase
-                          </label>
-                          <input
-                            type="text"
-                            className={estilos.inputFormulario}
-                            value={claseItem.subclase || ""}
-                            onChange={(e) => manejarCambioClaseSubclase(index, e.target.value)}
-                            placeholder="Ej. Campeón..."
-                            style={{ height: 34, fontSize: 11 }}
-                          />
-                        </div>
-
-                        <div>
-                          <label style={{ fontSize: 10, color: "#94a3b8", display: "block", marginBottom: 3 }}>
-                            Nivel (Max {maxNivelClase})
-                          </label>
-                          <input
-                            type="number"
-                            className={estilos.inputFormulario}
-                            value={claseItem.nivel}
-                            onChange={(e) => manejarCambioClaseNivel(index, e.target.value)}
-                            min="1"
-                            max={maxNivelClase}
-                            required
-                            style={{ height: 34, textAlign: "center", fontWeight: 700, fontSize: 12 }}
-                          />
-                        </div>
-
-                        <div style={{ paddingTop: 16 }}>
-                          {(form.clases || []).length > 1 ? (
-                            <button
-                              type="button"
-                              onClick={() => manejarEliminarClase(index)}
-                              title="Eliminar clase"
+                        {/* Metadatos y Acción de Build Rápida */}
+                        {(() => {
+                          const infoClase = obtenerClasePorNombre(claseItem.nombre);
+                          if (!infoClase) return null;
+                          return (
+                            <div
                               style={{
-                                width: 34,
-                                height: 34,
-                                borderRadius: 4,
-                                backgroundColor: "#201317",
-                                border: "1px solid rgba(239, 68, 68, 0.3)",
-                                color: "#fca5a5",
-                                cursor: "pointer",
                                 display: "flex",
+                                justifyContent: "space-between",
                                 alignItems: "center",
-                                justifyContent: "center"
+                                paddingTop: 6,
+                                borderTop: "1px solid rgba(148, 163, 184, 0.08)",
+                                fontSize: 11,
+                                color: "#94a3b8"
                               }}
                             >
-                              <Trash2 size={14} />
-                            </button>
-                          ) : (
-                            <div style={{ width: 34 }} />
-                          )}
-                        </div>
+                              <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+                                <span>
+                                  Dado: <strong style={{ color: "#38bdf8" }}>{infoClase.dadoGolpe}</strong>
+                                </span>
+                                <span>
+                                  Salvaciones:{" "}
+                                  <strong style={{ color: "#a78bfa" }}>
+                                    {infoClase.salvacionesCompetentes.map((s) => s.slice(0, 3).toUpperCase()).join(", ")}
+                                  </strong>
+                                </span>
+                                {infoClase.configuracionMagica && (
+                                  <span style={{ color: "#fbbf24" }}>
+                                    Magia: {infoClase.configuracionMagica.habilidadConjuro.slice(0, 3).toUpperCase()} ({infoClase.configuracionMagica.tipoLanzador})
+                                  </span>
+                                )}
+                              </div>
+
+                              <button
+                                type="button"
+                                onClick={() => manejarAplicarBuildSugerida(index)}
+                                style={{
+                                  display: "inline-flex",
+                                  alignItems: "center",
+                                  gap: 4,
+                                  fontSize: 10,
+                                  fontWeight: 600,
+                                  padding: "3px 8px",
+                                  borderRadius: 4,
+                                  backgroundColor: "rgba(56, 189, 248, 0.12)",
+                                  border: "1px solid rgba(56, 189, 248, 0.3)",
+                                  color: "#38bdf8",
+                                  cursor: "pointer"
+                                }}
+                                title="Aplica automáticamente las salvaciones, competencias de equipo y dados de golpe oficiales de esta clase"
+                              >
+                                <Sparkles size={11} /> Aplicar Build Sugerida
+                              </button>
+                            </div>
+                          );
+                        })()}
                       </div>
                     );
                   }

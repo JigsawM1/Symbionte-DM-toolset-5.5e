@@ -1,5 +1,6 @@
 import { HechizoBase, ObjetoHomebrew, Rareza, Arma, Armadura, EquipoAventuras, TipoBonoDestreza, SubcategoriaEquipo, VelocidadEstructurada, SentidosEstructurados, MonstruoBase, EsquemaPersonajeJugador, PersonajeJugador } from '@/tipos';
 import { PERSONAJE_POR_DEFECTO } from '@/constantes/personajeConstantes';
+import { resolverGruposYSustitutosCompetencias } from '@/constantes/competenciasConstantes';
 import { generarId } from '@/utiles/generarId';
 
 // Normaliza el texto eliminando acentos y convirtiendo a minúsculas
@@ -1142,7 +1143,17 @@ export function sanearPersonaje(p: unknown): PersonajeJugador {
       ...(typeof raw.bolsaMonedas === "object" && raw.bolsaMonedas ? (raw.bolsaMonedas as Record<string, number>) : {})
     },
     clases: Array.isArray(raw.clases) && raw.clases.length > 0
-      ? raw.clases
+      ? raw.clases.filter(
+          (c: unknown, idx: number, self: unknown[]) =>
+            c &&
+            typeof c === "object" &&
+            self.findIndex(
+              (otro: unknown) =>
+                otro &&
+                typeof otro === "object" &&
+                (otro as Record<string, unknown>).nombre === (c as Record<string, unknown>).nombre
+            ) === idx
+        )
       : [{ nombre: (typeof raw.clase === "string" && raw.clase) || "Guerrero", subclase: (typeof raw.subclase === "string" && raw.subclase) || "", nivel: (typeof raw.nivel === "number" && raw.nivel) || 1 }],
     inventario: Array.isArray(raw.inventario) ? raw.inventario : [],
     condicionesActivas: Array.isArray(raw.condicionesActivas) ? raw.condicionesActivas : [],
@@ -1150,9 +1161,62 @@ export function sanearPersonaje(p: unknown): PersonajeJugador {
     conjurosConocidosIds: Array.isArray(raw.conjurosConocidosIds) ? raw.conjurosConocidosIds : [],
     conjurosPreparadosIds: Array.isArray(raw.conjurosPreparadosIds) ? raw.conjurosPreparadosIds : [],
     conjurosSiemprePreparadosIds: Array.isArray(raw.conjurosSiemprePreparadosIds) ? raw.conjurosSiemprePreparadosIds : [],
-    rasgos: Array.isArray(raw.rasgos) ? raw.rasgos : [],
+    rasgos: Array.isArray(raw.rasgos)
+      ? raw.rasgos
+          .filter((r: unknown): r is Record<string, unknown> => {
+            if (!r || typeof r !== "object") return false;
+            const obj = r as Record<string, unknown>;
+            const nom = typeof obj.nombre === "string" ? obj.nombre.toLowerCase().trim() : "";
+            return nom !== "rasgo de subclase" && !nom.includes("rasgo de subclase");
+          })
+          .filter((r: Record<string, unknown>, idx: number, self: Record<string, unknown>[]) => {
+            const idVal = typeof r.id === "string" && r.id ? r.id : `${r.nombre}_${r.nivelRequerido || 0}`;
+            return (
+              self.findIndex(
+                (item) => (typeof item.id === "string" && item.id ? item.id : `${item.nombre}_${item.nivelRequerido || 0}`) === idVal
+              ) === idx
+            );
+          })
+          .map((r: Record<string, unknown>) => {
+            const esActivable = Boolean(r.esActivable);
+            return {
+              ...r,
+              esActivable,
+              activo: typeof r.activo === "boolean" ? r.activo : (esActivable ? false : true)
+            };
+          })
+      : [],
     dotes: Array.isArray(raw.dotes) ? raw.dotes : []
   };
+
+  // Normalizar y enriquecer competencias de equipo si vienen crudas o vacías
+  const rawArmasGrupos = Array.isArray(raw.competenciasArmasGrupos) ? (raw.competenciasArmasGrupos as string[]) : [];
+  const rawArmasTexto = typeof raw.competenciasArmas === "string" ? raw.competenciasArmas.split(",") : [];
+  const rawArmadurasGrupos = Array.isArray(raw.competenciasArmadurasGrupos) ? (raw.competenciasArmadurasGrupos as string[]) : [];
+  const rawArmadurasTexto = typeof raw.competenciasArmaduras === "string" ? raw.competenciasArmaduras.split(",") : [];
+
+  const necesitaSaneamientoComp =
+    rawArmasGrupos.some((g) => g.includes(" ")) ||
+    rawArmadurasGrupos.some((g) => g.includes(" ")) ||
+    ((!Array.isArray(raw.competenciasArmasLista) || raw.competenciasArmasLista.length === 0) && (rawArmasGrupos.length > 0 || rawArmasTexto.length > 0));
+
+  if (necesitaSaneamientoComp) {
+    const resComp = resolverGruposYSustitutosCompetencias(
+      [...rawArmasGrupos, ...rawArmasTexto],
+      [...rawArmadurasGrupos, ...rawArmadurasTexto]
+    );
+    fusionado.competenciasArmasGrupos = resComp.competenciasArmasGrupos;
+    fusionado.competenciasArmasLista = Array.isArray(raw.competenciasArmasLista) && (raw.competenciasArmasLista as string[]).length > 0
+      ? Array.from(new Set([...(raw.competenciasArmasLista as string[]), ...resComp.competenciasArmasLista]))
+      : resComp.competenciasArmasLista;
+    fusionado.competenciasArmas = resComp.competenciasArmas;
+
+    fusionado.competenciasArmadurasGrupos = resComp.competenciasArmadurasGrupos;
+    fusionado.competenciasArmadurasLista = Array.isArray(raw.competenciasArmadurasLista) && (raw.competenciasArmadurasLista as string[]).length > 0
+      ? Array.from(new Set([...(raw.competenciasArmadurasLista as string[]), ...resComp.competenciasArmadurasLista]))
+      : resComp.competenciasArmadurasLista;
+    fusionado.competenciasArmaduras = resComp.competenciasArmaduras;
+  }
 
   const resultado = EsquemaPersonajeJugador.safeParse(fusionado);
   if (resultado.success) {

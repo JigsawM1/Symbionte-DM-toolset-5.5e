@@ -43,8 +43,17 @@ export interface MetadataSalvacionMuerte {
   personajeId: string;
 }
 
-// Registro global de tiradas de salvación contra la muerte 3D activas en memoria
+export interface MetadataCuracionRasgo {
+  tipo: "curacionRasgo";
+  personajeId: string;
+  rasgoId?: string;
+  nombreRasgo?: string;
+  cantidadDadosGastados?: number;
+}
+
+// Registro global de tiradas de salvación contra la muerte y curación de rasgos 3D activas en memoria
 const tiradasSalvacionMuerteActivas: Record<string, MetadataSalvacionMuerte> = {};
+const tiradasCuracionRasgoActivas: Record<string, MetadataCuracionRasgo> = {};
 
 /**
  * Aplica el resultado de una tirada de salvación contra la muerte en el estado global.
@@ -325,7 +334,8 @@ export async function lanzarDadosTaleSpire(
   etiqueta: string,
   metaIniciativa?: MetadataIniciativa,
   metaSalvacionMuerte?: MetadataSalvacionMuerte,
-  tipoTiradaForzado?: "ventaja" | "desventaja" | "plano"
+  tipoTiradaForzado?: "ventaja" | "desventaja" | "plano",
+  metaCuracionRasgo?: MetadataCuracionRasgo
 ): Promise<void> {
   const nombreEtiqueta = sanitizarEtiqueta(etiqueta.trim() || "Tirada");
 
@@ -459,6 +469,11 @@ export async function lanzarDadosTaleSpire(
         logger.debug(`[Lanzador Dados] Registrada tirada de salvación contra la muerte 3D con rollId: ${rollId}`, metaSalvacionMuerte);
       }
 
+      if (metaCuracionRasgo && rollId) {
+        tiradasCuracionRasgoActivas[rollId] = metaCuracionRasgo;
+        logger.debug(`[Lanzador Dados] Registrada tirada de curación de rasgo 3D con rollId: ${rollId}`, metaCuracionRasgo);
+      }
+
       ts.debug.log(`Tirando dados en bandeja física: ${nombreEtiqueta} (${formulaLimpia})`);
     } catch (error) {
       logger.error("[Lanzador Dados] Fallo de API directa de dados. Recurriendo al canal de chat de TaleSpire...", error);
@@ -487,6 +502,19 @@ export async function lanzarDadosTaleSpire(
       const d20 = Math.floor(Math.random() * 20) + 1;
       const totalInic = d20 + bono;
       aplicarResultadoIniciativaEnEstado(metaIniciativa, totalInic);
+    }
+
+    // Si es una curación de rasgo en entorno local fuera de TaleSpire
+    if (metaCuracionRasgo) {
+      const matchDados = formulaLimpia.match(/(\d+)d(\d+)/i);
+      const numDados = matchDados ? parseInt(matchDados[1], 10) : 1;
+      const caraDado = matchDados ? parseInt(matchDados[2], 10) : 12;
+      let totalCurado = 0;
+      for (let i = 0; i < numDados; i++) {
+        totalCurado += Math.floor(Math.random() * caraDado) + 1;
+      }
+      state.aplicarCuracionPersonaje(metaCuracionRasgo.personajeId, totalCurado);
+      logger.info(`[Lanzador Dados Fallback] Curación de rasgo aplicada: +${totalCurado} PV.`);
     }
   }
 }
@@ -555,7 +583,26 @@ export async function procesarResultadosDadosTaleSpire(evento: unknown): Promise
     delete tiradasSalvacionMuerteActivas[rollId];
     return false;
   }
-  
+
+  // Caso 3: Tirada de curación de rasgo 3D (ej. Guerrero de los Dioses)
+  const infoCuracionRasgo = tiradasCuracionRasgoActivas[rollId];
+  if (!infoTirada && infoCuracionRasgo) {
+    logger.debug(`[Lanzador Dados] Procesando resultado 3D de curación de rasgo para rollId: ${rollId}`);
+    const resultGroups = ev.payload.resultsGroups;
+    if (resultGroups && Array.isArray(resultGroups) && resultGroups.length > 0) {
+      try {
+        const total = await ts.dice.evaluateDiceResultsGroup(resultGroups[0]);
+        logger.debug(`[Lanzador Dados] Curación de rasgo 3D obtenida: +${total} PV`);
+        const state = usarAlmacenDM.getState();
+        state.aplicarCuracionPersonaje(infoCuracionRasgo.personajeId, total);
+      } catch (error) {
+        logger.error("[Lanzador Dados] Error al evaluar resultado 3D de curación de rasgo:", error);
+      }
+    }
+    delete tiradasCuracionRasgoActivas[rollId];
+    return false;
+  }
+
   if (!infoTirada) {
     return false;
   }

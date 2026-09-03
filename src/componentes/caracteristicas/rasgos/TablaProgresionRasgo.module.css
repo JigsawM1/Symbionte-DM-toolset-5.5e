@@ -1,0 +1,119 @@
+.contenedorTablaProgresion {
+  margin: 12px 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.tablaEstilizada {
+  width: 100%;
+  border-collapse: collapse;
+  background: #181d26;
+  border-top: 1px solid rgba(255, 255, 255, 0.25);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.25);
+  font-size: 12px;
+}
+
+.encabezadoTabla {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.25);
+  background: rgba(0, 0, 0, 0.25);
+}
+
+.thNivel {
+  padding: 8px 12px;
+  text-align: center;
+  font-weight: 700;
+  color: #f8fafc;
+  width: 70px;
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.thDescripcion {
+  padding: 8px 14px;
+  text-align: left;
+  font-weight: 700;
+  color: #f8fafc;
+}
+
+.thGenerico {
+  padding: 8px 12px;
+  text-align: left;
+  font-weight: 700;
+  color: #f8fafc;
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.thGenerico:last-child {
+  border-right: none;
+}
+
+.filaProgresion {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  transition: background-color 0.15s ease;
+}
+
+.filaProgresion:last-child {
+  border-bottom: none;
+}
+
+.filaProgresion:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.filaNivelAlcanzado {
+  background: rgba(56, 189, 248, 0.04);
+}
+
+.filaNivelActual {
+  background: rgba(212, 175, 55, 0.12);
+  font-weight: 600;
+}
+
+.celdaNivel {
+  padding: 7px 12px;
+  text-align: center;
+  color: #e2e8f0;
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+  font-family: var(--fuente-codigo, monospace);
+  font-size: 11.5px;
+}
+
+.celdaDescripcion {
+  padding: 7px 14px;
+  color: #e2e8f0;
+  line-height: 1.4;
+}
+
+.celdaGenerica {
+  padding: 7px 12px;
+  color: #e2e8f0;
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.celdaGenerica:last-child {
+  border-right: none;
+}
+
+.badgeActual {
+  display: inline-block;
+  margin-left: 6px;
+  font-size: 9px;
+  font-weight: 700;
+  padding: 1px 5px;
+  border-radius: 3px;
+  background: rgba(212, 175, 55, 0.25);
+  color: #fbbf24;
+  border: 1px solid rgba(212, 175, 55, 0.4);
+  text-transform: uppercase;
+}
+
+.notaPie {
+  margin: 0;
+  padding: 0 4px;
+  text-align: right;
+  font-size: 11px;
+  color: #94a3b8;
+  font-style: normal;
+  letter-spacing: 0.2px;
+}

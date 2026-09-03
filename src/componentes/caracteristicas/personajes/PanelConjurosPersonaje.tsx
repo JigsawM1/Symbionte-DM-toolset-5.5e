@@ -11,7 +11,8 @@ import {
   ChevronDown,
   ChevronRight,
   ChevronsUpDown,
-  Shield
+  Shield,
+  EyeOff
 } from "lucide-react";
 import type {
   PersonajeJugador,
@@ -172,9 +173,29 @@ export const PanelConjurosPersonaje: React.FC<PanelConjurosPersonajeProps> = ({
       nv_6: true,
       nv_7: true,
       nv_8: true,
-      nv_9: true
+      nv_9: true,
+      ocultos: true
     }
   );
+
+  // Estado persistente para IDs de conjuros ocultados por el jugador
+  const claveOcultosPj = `ts_conjuros_ocultos_${personaje.id || "default"}`;
+  const [conjurosOcultosIds, setConjurosOcultosIds] = usarEstadoPersistido<string[]>(
+    claveOcultosPj,
+    []
+  );
+
+  const alternarOculto = (hechizoId: string) => {
+    setConjurosOcultosIds((prev) =>
+      prev.includes(hechizoId) ? prev.filter((id) => id !== hechizoId) : [...prev, hechizoId]
+    );
+  };
+
+  const desocultarTodos = () => {
+    setConjurosOcultosIds([]);
+  };
+
+  const conjurosOcultosSet = useMemo(() => new Set(conjurosOcultosIds), [conjurosOcultosIds]);
 
   const alternarSeccion = (clave: string) => {
     setSeccionesAbiertas((prev) => ({
@@ -194,7 +215,8 @@ export const PanelConjurosPersonaje: React.FC<PanelConjurosPersonajeProps> = ({
       nv_6: abrir,
       nv_7: abrir,
       nv_8: abrir,
-      nv_9: abrir
+      nv_9: abrir,
+      ocultos: abrir
     });
   };
 
@@ -305,24 +327,67 @@ export const PanelConjurosPersonaje: React.FC<PanelConjurosPersonajeProps> = ({
     setFiltroComponentes({ sinV: false, sinS: false, sinM: false, soloM: false });
   };
 
-  // Filtrar trucos
+  // Trucos visibles (no ocultos) y ocultos
+  const trucosVisibles = useMemo(() => {
+    return trucosConocidos.filter((t) => !conjurosOcultosSet.has(t.id));
+  }, [trucosConocidos, conjurosOcultosSet]);
+
+  const trucosOcultos = useMemo(() => {
+    return trucosConocidos.filter((t) => conjurosOcultosSet.has(t.id));
+  }, [trucosConocidos, conjurosOcultosSet]);
+
+  // Filtrar trucos visibles
   const trucosFiltrados = useMemo(() => {
-    return trucosConocidos.filter((truco) =>
+    return trucosVisibles.filter((truco) =>
       evaluarFiltrosHechizo(truco, busqueda, filtroConcentracion, filtroResolucion, filtroComponentes)
     );
-  }, [trucosConocidos, busqueda, filtroConcentracion, filtroResolucion, filtroComponentes]);
+  }, [trucosVisibles, busqueda, filtroConcentracion, filtroResolucion, filtroComponentes]);
 
-  // Filtrar conjuros por nivel (1 a 9)
+  // Conjuros de nivel 1 a 9 visibles vs ocultos
+  const { conjurosVisiblesPorNivel, todosConjurosOcultos } = useMemo(() => {
+    const visibles: Record<number, HechizoBase[]> = {};
+    const ocultos: HechizoBase[] = [...trucosOcultos];
+
+    for (let nivel = 1; nivel <= 9; nivel++) {
+      const lista = conjurosPorNivel[nivel] || [];
+      const vis: HechizoBase[] = [];
+      for (const h of lista) {
+        if (conjurosOcultosSet.has(h.id)) {
+          ocultos.push(h);
+        } else {
+          vis.push(h);
+        }
+      }
+      visibles[nivel] = vis;
+    }
+
+    // Ordenar los ocultos por nivel ascendente y luego alfabéticamente
+    ocultos.sort((a, b) => {
+      if (a.nivel !== b.nivel) return a.nivel - b.nivel;
+      return a.nombre.localeCompare(b.nombre, "es", { sensitivity: "base" });
+    });
+
+    return { conjurosVisiblesPorNivel: visibles, todosConjurosOcultos: ocultos };
+  }, [conjurosPorNivel, trucosOcultos, conjurosOcultosSet]);
+
+  // Filtrar conjuros visibles por nivel (1 a 9)
   const conjurosFiltradosPorNivel = useMemo(() => {
     const res: Record<number, HechizoBase[]> = {};
     for (let nivel = 1; nivel <= 9; nivel++) {
-      const lista = conjurosPorNivel[nivel] || [];
+      const lista = conjurosVisiblesPorNivel[nivel] || [];
       res[nivel] = lista.filter((h) =>
         evaluarFiltrosHechizo(h, busqueda, filtroConcentracion, filtroResolucion, filtroComponentes)
       );
     }
     return res;
-  }, [conjurosPorNivel, busqueda, filtroConcentracion, filtroResolucion, filtroComponentes]);
+  }, [conjurosVisiblesPorNivel, busqueda, filtroConcentracion, filtroResolucion, filtroComponentes]);
+
+  // Filtrar conjuros ocultos con búsqueda y filtros
+  const conjurosOcultosFiltrados = useMemo(() => {
+    return todosConjurosOcultos.filter((h) =>
+      evaluarFiltrosHechizo(h, busqueda, filtroConcentracion, filtroResolucion, filtroComponentes)
+    );
+  }, [todosConjurosOcultos, busqueda, filtroConcentracion, filtroResolucion, filtroComponentes]);
 
   return (
     <div className={estilos.contenedor}>
@@ -719,12 +784,12 @@ export const PanelConjurosPersonaje: React.FC<PanelConjurosPersonajeProps> = ({
             <span className={estilos.tituloNivelTexto}>Trucos Listos</span>
             <span className={estilos.badgeConteoNivel}>
               {hayFiltrosActivos
-                ? `${trucosFiltrados.length} / ${trucosConocidos.length}`
-                : trucosConocidos.length}
+                ? `${trucosFiltrados.length} / ${trucosVisibles.length}`
+                : trucosVisibles.length}
             </span>
           </div>
           <div className={estilos.ladoDerechoCabeceraNivel}>
-            {trucosConocidos.length > 0 && (
+            {trucosVisibles.length > 0 && (
               <span className={estilos.textoEscalado}>
                 Escalado: Nivel {personaje.nivel || 1}
               </span>
@@ -751,6 +816,12 @@ export const PanelConjurosPersonaje: React.FC<PanelConjurosPersonajeProps> = ({
                   Añadir Trucos
                 </button>
               </div>
+            ) : trucosVisibles.length === 0 ? (
+              <div className={estilos.filaVacioTrucos}>
+                <p className={estilos.textoVacio}>
+                  Todos tus trucos ({trucosConocidos.length}) están en la sección de Conjuros Ocultos.
+                </p>
+              </div>
             ) : trucosFiltrados.length === 0 ? (
               <p className={estilos.alertaFiltroVacioNivel}>
                 Ningún truco coincide con los filtros aplicados.
@@ -768,6 +839,8 @@ export const PanelConjurosPersonaje: React.FC<PanelConjurosPersonajeProps> = ({
                     esDeSubclase={esHechizoDeSubclase(truco)}
                     mostrarTogglePreparado={false}
                     esConcentracionActual={personaje.concentracionActiva?.hechizoId === truco.id}
+                    esOculto={false}
+                    alAlternarOcultar={() => alternarOculto(truco.id)}
                     bloqueadoPorArmadura={estaBloqueadoPorArmadura}
                     motivoBloqueoArmadura={motivoBloqueoArmadura}
                     alQuitarDeLista={() => alQuitarTruco(truco.id)}
@@ -812,6 +885,10 @@ export const PanelConjurosPersonaje: React.FC<PanelConjurosPersonajeProps> = ({
         const conjurosNivelTotal = conjurosPorNivel[nivel] || [];
         if (conjurosNivelTotal.length === 0) return null;
 
+        const conjurosNivelVisiblesBase = conjurosVisiblesPorNivel[nivel] || [];
+        // Si todos los conjuros de este nivel están ocultos, se separan a Ocultos y no ocupan espacio aquí
+        if (conjurosNivelVisiblesBase.length === 0) return null;
+
         const conjurosNivelVisibles = conjurosFiltradosPorNivel[nivel] || [];
         const estaAbierta = seccionesAbiertas[`nv_${nivel}`] !== false;
 
@@ -828,8 +905,8 @@ export const PanelConjurosPersonaje: React.FC<PanelConjurosPersonajeProps> = ({
                 <span className={estilos.tituloNivelPrincipal}>Nivel {nivel}</span>
                 <span className={estilos.badgeConteoNivel}>
                   {hayFiltrosActivos
-                    ? `${conjurosNivelVisibles.length} / ${conjurosNivelTotal.length}`
-                    : conjurosNivelTotal.length}
+                    ? `${conjurosNivelVisibles.length} / ${conjurosNivelVisiblesBase.length}`
+                    : conjurosNivelVisiblesBase.length}
                 </span>
               </div>
               <div className={estilos.ladoDerechoCabeceraNivel}>
@@ -856,6 +933,8 @@ export const PanelConjurosPersonaje: React.FC<PanelConjurosPersonajeProps> = ({
                         esDeSubclase={esHechizoDeSubclase(hechizo)}
                         mostrarTogglePreparado={requierePreparacion}
                         esConcentracionActual={personaje.concentracionActiva?.hechizoId === hechizo.id}
+                        esOculto={false}
+                        alAlternarOcultar={() => alternarOculto(hechizo.id)}
                         bloqueadoPorArmadura={estaBloqueadoPorArmadura}
                         motivoBloqueoArmadura={motivoBloqueoArmadura}
                         alAlternarPreparado={() => alAlternarPreparado(hechizo.id)}
@@ -878,6 +957,87 @@ export const PanelConjurosPersonaje: React.FC<PanelConjurosPersonajeProps> = ({
           </div>
         );
       })}
+
+      {/* Sección: Conjuros Ocultos (Contenedor Separado de Nivel) */}
+      {todosConjurosOcultos.length > 0 && (
+        <div className={estilos.seccionOcultos}>
+          <div
+            className={estilos.cabeceraNivelInteractiva}
+            onClick={() => alternarSeccion("ocultos")}
+            role="button"
+            tabIndex={0}
+            title={`Clic para ${seccionesAbiertas.ocultos !== false ? "colapsar" : "expandir"} conjuros ocultos`}
+          >
+            <div className={estilos.tituloNivelFila}>
+              <EyeOff size={14} color="#94a3b8" />
+              <span className={estilos.tituloOcultosTexto}>Conjuros Ocultos</span>
+              <span className={estilos.badgeConteoOcultos}>
+                {hayFiltrosActivos
+                  ? `${conjurosOcultosFiltrados.length} / ${todosConjurosOcultos.length}`
+                  : todosConjurosOcultos.length}
+              </span>
+            </div>
+            <div className={estilos.ladoDerechoCabeceraNivel}>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  desocultarTodos();
+                }}
+                className={estilos.botonDesocultarTodos}
+                title="Mostrar y devolver todos los conjuros a sus niveles correspondientes"
+              >
+                Mostrar todos
+              </button>
+              {seccionesAbiertas.ocultos !== false ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+            </div>
+          </div>
+
+          {seccionesAbiertas.ocultos !== false && (
+            <>
+              {conjurosOcultosFiltrados.length === 0 ? (
+                <p className={estilos.alertaFiltroVacioNivel}>
+                  Ningún conjuro oculto coincide con los filtros aplicados.
+                </p>
+              ) : (
+                <div className={estilos.listaTarjetas}>
+                  {conjurosOcultosFiltrados.map((hechizo) => {
+                    const esTruco = hechizo.nivel === 0;
+                    return (
+                      <TarjetaConjuroCompacta
+                        key={`oculto-${hechizo.id}`}
+                        hechizo={hechizo}
+                        nombrePersonaje={personaje.nombre}
+                        nivelPersonaje={personaje.nivel || 1}
+                        bonoAtaqueMagico={bonoAtaqueMagico}
+                        estaPreparado={esTruco ? true : estaPreparado(hechizo)}
+                        esDeSubclase={esHechizoDeSubclase(hechizo)}
+                        mostrarTogglePreparado={!esTruco && requierePreparacion}
+                        esConcentracionActual={personaje.concentracionActiva?.hechizoId === hechizo.id}
+                        esOculto={true}
+                        alAlternarOcultar={() => alternarOculto(hechizo.id)}
+                        bloqueadoPorArmadura={estaBloqueadoPorArmadura}
+                        motivoBloqueoArmadura={motivoBloqueoArmadura}
+                        alAlternarPreparado={esTruco ? undefined : () => alAlternarPreparado(hechizo.id)}
+                        alQuitarDeLista={() => esTruco ? alQuitarTruco(hechizo.id) : alQuitarConjuro(hechizo.id)}
+                        alAbrirDetalleCompleto={(h) => setHechizoModal(h)}
+                        alLanzar={(modo, niv) => lanzar({ modo, hechizo, nivelLanzamiento: niv })}
+                        esLanzadorPacto={esLanzadorPacto}
+                        nivelEspacioPacto={nivelEspacioPacto}
+                        espaciosPactoMaximos={personaje.espaciosPactoMaximos || 0}
+                        espaciosPactoGastados={personaje.espaciosPactoGastados || 0}
+                        espaciosConjuroMaximos={personaje.espaciosConjuroMaximos || {}}
+                        nivelConjuroMaximo={personaje.nivelConjuroMaximo || 0}
+                        sistemaMagia={sistemaMagia}
+                      />
+                    );
+                  })}
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      )}
 
       {/* Modal Ficha Completa */}
       {hechizoModal && (

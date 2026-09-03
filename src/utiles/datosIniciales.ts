@@ -204,6 +204,7 @@ export const EFECTOS_PREDEFINIDOS: EfectoPredefinido[] = [
   { nombre: "Desventaja en Sigilo (Armadura)", descripcion: "Reglas D&D 5.5e (2024): La armadura corporal equipada es pesada o ruidosa e impone Desventaja automática en todas las pruebas de Sigilo (Destreza).", duracionEstandar: 0 },
   { nombre: "Bendecir (Bless)", descripcion: "Añade 1d4 a las tiradas de ataque y salvaciones.", duracionEstandar: 10 },
   { nombre: "Furia (Rage)", descripcion: "Ventaja en tiradas de Fuerza, daño extra en ataques de Fuerza, resistencia a daño contundente, perforante y cortante.", duracionEstandar: 10 },
+  { nombre: "Ataque Temerario (Reckless Attack)", descripcion: "Ventaja en tiradas de ataque que usen Fuerza durante tu turno, pero los ataques contra ti tienen ventaja hasta el inicio de tu siguiente turno.", duracionEstandar: 1 },
   { nombre: "Auxilio (Aid)", descripcion: "Aumenta los puntos de golpe máximos y actuales en 5 por nivel de espacio.", duracionEstandar: 800 },
   { nombre: "Concentración", descripcion: "La criatura se está concentrando en mantener un conjuro activo.", duracionEstandar: 100, esConcentracion: true },
   { nombre: "Escudo (Shield)", descripcion: "+5 a la CA y no sufre daño de Proyectil Mágico.", duracionEstandar: 1 },
@@ -216,5 +217,6 @@ export const EFECTOS_PREDEFINIDOS: EfectoPredefinido[] = [
   { nombre: "Recargando (Recharging)", descripcion: "La habilidad especial o aliento está recargando para poder usarse nuevamente.", duracionEstandar: 1 },
   { nombre: "Ralentizar (Slow)", descripcion: "Velocidad a la mitad, CA -2, -2 a salvaciones de Destreza, no puede realizar reacciones.", duracionEstandar: 10 },
   { nombre: "Santuario (Sanctuary)", descripcion: "Cualquier criatura que intente atacar al objetivo debe superar una salvación de Sabiduría.", duracionEstandar: 10 },
-  { nombre: "Hechicería Innata", descripcion: "Regla 2024: Como acción adicional, obtienes ventaja en tiradas de ataque de conjuro y tu CD de salvación aumenta en 1.", duracionEstandar: 10 }
+  { nombre: "Hechicería Innata", descripcion: "Regla 2024: Como acción adicional, obtienes ventaja en tiradas de ataque de conjuro y tu CD de salvación aumenta en 1.", duracionEstandar: 10 },
+  { nombre: "Furia de los Dioses (Rage of the Gods)", descripcion: "Forma de guerrero divino (1 min / 10 turnos): Velocidad de vuelo con flotación, resistencia a daño necrótico, psíquico y radiante, y revivificación de aliados a 30 pies.", duracionEstandar: 10 }
 ];

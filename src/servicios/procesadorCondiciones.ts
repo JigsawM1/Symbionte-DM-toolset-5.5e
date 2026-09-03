@@ -8,7 +8,8 @@
  * y centraliza la resolución de ventajas, desventajas y modificadores en tiradas d20.
  */
 
-import type { Caracteristica, Habilidad } from "@/tipos";
+import type { Caracteristica, Habilidad, PersonajeJugador } from "@/tipos";
+import { evaluarVentajasDeRasgosEnTirada } from "@/servicios/evaluadorEfectosRasgos";
 
 export const NIVEL_MAXIMO_CANSANCIO = 6;
 
@@ -162,6 +163,7 @@ export interface ContextoTiradaCondiciones {
   penalizacionArmadura?: boolean;
   desventajaSigiloArmadura?: boolean;
   condicionesActivas?: readonly string[];
+  personaje?: PersonajeJugador;
 }
 
 export interface ResultadoEvaluacionCondiciones {
@@ -175,8 +177,8 @@ export interface ResultadoEvaluacionCondiciones {
 }
 
 /**
- * Evalúa el impacto mecánico de todas las condiciones activas y penalizaciones de equipo
- * sobre una tirada d20 bajo las reglas oficiales de D&D 5.5e (2024).
+ * Evalúa el impacto mecánico de todas las condiciones activas, penalizaciones de equipo
+ * y rasgos mecánicos sobre una tirada d20 bajo las reglas oficiales de D&D 5.5e (2024).
  */
 export function evaluarEfectosCondicionesEnTirada(
   contexto: ContextoTiradaCondiciones
@@ -207,7 +209,27 @@ export function evaluarEfectosCondicionesEnTirada(
     motivosDesventaja.push("Sigilo Ruidoso (Armadura)");
   }
 
-  // 3. Evaluar condiciones y estados activos del combatiente
+  // 3. Evaluar ventajas otorgadas por rasgos mecánicos activos del personaje
+  if (contexto.personaje) {
+    const subtipo =
+      contexto.tipo === "salvacion" || contexto.tipo === "caracteristica" || contexto.tipo === "ataque"
+        ? contexto.caracteristica
+        : contexto.habilidad;
+
+    const resRasgos = evaluarVentajasDeRasgosEnTirada(contexto.personaje, {
+      tipoTirada: contexto.tipo,
+      subtipo
+    });
+
+    if (resRasgos.tieneVentaja) {
+      motivosVentaja.push(...resRasgos.razones);
+    }
+    if (resRasgos.tieneDesventaja) {
+      motivosDesventaja.push(...resRasgos.razones);
+    }
+  }
+
+  // 4. Evaluar condiciones y estados activos del combatiente
   for (const cond of condiciones) {
     // Envenenado (Poisoned): Desventaja en tiradas de ataque y pruebas de característica
     if (cond.startsWith("envenenado") || cond.startsWith("poisoned")) {
@@ -234,16 +256,14 @@ export function evaluarEfectosCondicionesEnTirada(
       }
     }
 
-    // Cegado (Blinded): Desventaja en tiradas de ataque y pruebas visuales
+    // Cegado (Blinded): Desventaja en tiradas de ataque
     if (cond.startsWith("cegado") || cond.startsWith("blinded")) {
       if (contexto.tipo === "ataque") {
         motivosDesventaja.push("Cegado (Ataque)");
-      } else if (contexto.habilidad === "percepcion") {
-        motivosDesventaja.push("Cegado (Percepción)");
       }
     }
 
-    // Apresado (Restrained): Desventaja en tiradas de ataque y salvaciones de Destreza
+    // Apresado / Restrained: Desventaja en ataques y salvaciones de Destreza
     if (cond.startsWith("apresado") || cond.startsWith("restrained")) {
       if (contexto.tipo === "ataque") {
         motivosDesventaja.push("Apresado (Ataque)");
@@ -259,12 +279,26 @@ export function evaluarEfectosCondicionesEnTirada(
       }
     }
 
-    // Furia (Rage): Ventaja en pruebas y salvaciones de Fuerza
-    if (cond.startsWith("furia") || cond.startsWith("rage")) {
+    // Furia de los Dioses (Rage of the Gods): Forma de guerrero divino
+    const esFuriaDioses = cond.includes("furia de los dioses") || cond.includes("rage of the gods");
+    if (esFuriaDioses && !motivosModificadores.some((m) => m.toLowerCase().includes("furia de los dioses"))) {
+      motivosModificadores.push("Furia de los Dioses (Vuelo + Resistencias)");
+    }
+
+    // Furia (Rage): Ventaja en pruebas y salvaciones de Fuerza (solo para Furia base, no Furia de los Dioses)
+    const esFuriaBase = (cond.startsWith("furia") || cond.startsWith("rage")) && !esFuriaDioses;
+    if (esFuriaBase && !motivosVentaja.some((m) => m.toLowerCase().includes("fuerza"))) {
       if (contexto.tipo === "caracteristica" && contexto.caracteristica === "fuerza") {
         motivosVentaja.push("Furia (Fuerza)");
       } else if (contexto.tipo === "salvacion" && contexto.caracteristica === "fuerza") {
         motivosVentaja.push("Furia (Salvación FUE)");
+      }
+    }
+
+    // Ataque Temerario (Reckless Attack): Ventaja en ataques que usen Fuerza
+    if ((cond.includes("temerario") || cond.includes("reckless")) && !motivosVentaja.some((m) => m.toLowerCase().includes("temerario"))) {
+      if (contexto.tipo === "ataque" && contexto.caracteristica === "fuerza") {
+        motivosVentaja.push("Ataque Temerario (Fuerza)");
       }
     }
 
@@ -282,6 +316,20 @@ export function evaluarEfectosCondicionesEnTirada(
       const penalizacion = -2 * Math.max(1, Math.min(NIVEL_MAXIMO_CANSANCIO, nivel));
       penalizadorD20 += penalizacion;
       motivosModificadores.push(`Cansancio Niv. ${nivel} (${penalizacion})`);
+    }
+  }
+
+  // Enfoque fanático (Senda del Fanático): Bonificador de Daño de Furia a salvaciones
+  if (contexto.tipo === "salvacion" && contexto.personaje) {
+    const pj = contexto.personaje;
+    const rasgoEnfoque = (pj.rasgos || []).find(
+      (r) => (r.id.includes("enfoque_fanatico") || r.nombre.toLowerCase().includes("enfoque fanático") || r.nombre.toLowerCase().includes("enfoque fanatico")) && r.activo
+    );
+    if (rasgoEnfoque) {
+      const claseBarbaro = (pj.clases || []).find((c) => c.nombre.toLowerCase().includes("barbaro") || c.nombre.toLowerCase().includes("bárbaro"));
+      const nivelBarbaro = claseBarbaro?.nivel || (pj.clase?.toLowerCase().includes("barbaro") ? pj.nivel || 1 : 1);
+      const bonoFuria = nivelBarbaro >= 16 ? 4 : nivelBarbaro >= 9 ? 3 : 2;
+      motivosModificadores.push(`Enfoque Fanático (+${bonoFuria})`);
     }
   }
 

@@ -37,5 +37,9 @@ Documentacion API v0.1.md
 *.test.ts
 datos
 /.codegraph
-/dicionario herramientas
+/dicionario_herramientas
 skills-lock.json
+/cambio_build
+/app_sencilla
+/ejemplos_de_tipos
+/scratch

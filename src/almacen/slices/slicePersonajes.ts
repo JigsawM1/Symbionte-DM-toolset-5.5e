@@ -26,6 +26,7 @@ import { coincideHechizoId, deduplicarListaIds } from "@/servicios/comparadorHec
 import { sincronizarConjurosSubclaseHelper } from "@/servicios/sincronizadorConjurosSubclase";
 import { sincronizarRasgosAutomaticos } from "@/servicios/compendioRasgos";
 import { procesarAlternarEquipado } from "@/servicios/procesadorEquipamiento";
+import { aplicarBuildClaseAPersonaje } from "@/servicios/gestorClases";
 import { mutarPersonaje } from "./helpers/mutarPersonaje";
 
 // Re-exportaciones de compatibilidad retroactiva
@@ -42,6 +43,13 @@ export interface SlicePersonajes {
 
   crearPersonaje: (datosIniciales?: Partial<PersonajeJugador>) => string;
   actualizarPersonaje: (id: string, cambios: Partial<PersonajeJugador>) => void;
+  aplicarBuildClasePersonaje: (
+    id: string,
+    claseNombre: string,
+    nivel: number,
+    subclaseNombre?: string,
+    opciones?: import("@/tipos").OpcionesAplicarBuild
+  ) => void;
   eliminarPersonaje: (id: string) => void;
   duplicarPersonaje: (id: string) => string;
   seleccionarPersonajeActivo: (id: string | null) => void;
@@ -159,6 +167,8 @@ export interface SlicePersonajes {
   recuperarUsoRasgoPersonaje: (idPj: string, idRasgo: string) => void;
   establecerUsosRestantesRasgoPersonaje: (idPj: string, idRasgo: string, usos: number) => void;
   sincronizarRasgosPersonaje: (idPj: string) => void;
+  alternarActivoRasgo: (idPj: string, idRasgo: string) => void;
+  actualizarSeleccionRasgo: (idPj: string, idRasgo: string, idSelector: string, valorActual: string[]) => void;
 }
 
 
@@ -237,6 +247,14 @@ export const crearSlicePersonajes: StateCreator<
       }
     }
 
+    // Auto-detección y sincronización de rasgos al crear
+    if (!nuevoPersonaje.rasgos || nuevoPersonaje.rasgos.length === 0) {
+      nuevoPersonaje = {
+        ...nuevoPersonaje,
+        rasgos: sincronizarRasgosAutomaticos(nuevoPersonaje)
+      };
+    }
+
     // Auto-detección y sincronización de conjuros de subclase al crear
     nuevoPersonaje = sincronizarConjurosSubclaseHelper(nuevoPersonaje);
 
@@ -285,6 +303,32 @@ export const crearSlicePersonajes: StateCreator<
           }
         }
 
+        // Auto-sincronizar rasgos estándar si cambia la identidad de clase, nivel o especie
+        const clasesCambiadas =
+          cambios.clases !== undefined &&
+          JSON.stringify(cambios.clases) !== JSON.stringify(pj.clases);
+        const claseCambiada = cambios.clase !== undefined && cambios.clase !== pj.clase;
+        const subclaseCambiada = cambios.subclase !== undefined && cambios.subclase !== pj.subclase;
+        const nivelCambiado = cambios.nivel !== undefined && cambios.nivel !== pj.nivel;
+        const especieCambiada =
+          (cambios.especie !== undefined && cambios.especie !== pj.especie) ||
+          (cambios.subespecie !== undefined && cambios.subespecie !== pj.subespecie);
+
+        const cambioIdentidadOProgreso =
+          clasesCambiadas || claseCambiada || subclaseCambiada || nivelCambiado || especieCambiada;
+
+        if (
+          cambioIdentidadOProgreso ||
+          (cambios.rasgos === undefined && (cambios.clase !== undefined || cambios.nivel !== undefined)) ||
+          !fusionado.rasgos ||
+          fusionado.rasgos.length === 0
+        ) {
+          fusionado = {
+            ...fusionado,
+            rasgos: sincronizarRasgosAutomaticos(fusionado)
+          };
+        }
+
         // Sincronizar dinámicamente conjuros de subclase (limpiando los que ya no correspondan al nivel/subclase)
         return sincronizarConjurosSubclaseHelper(
           fusionado,
@@ -293,6 +337,15 @@ export const crearSlicePersonajes: StateCreator<
           cambios.subclase !== undefined ? fusionado.subclase : undefined,
           cambios.nivel !== undefined ? fusionado.nivel : undefined
         );
+      })
+    }));
+  },
+
+  aplicarBuildClasePersonaje: (id, claseNombre, nivel, subclaseNombre, opciones) => {
+    set((state) => ({
+      personajes: state.personajes.map((pj) => {
+        if (pj.id !== id) return pj;
+        return aplicarBuildClaseAPersonaje(pj, claseNombre, nivel, subclaseNombre, opciones);
       })
     }));
   },
@@ -604,7 +657,41 @@ export const crearSlicePersonajes: StateCreator<
       }
 
       const nuevasCondiciones = aplicarCondicion(pj.condicionesActivas, condicion);
-      return { ...pj, condicionesActivas: nuevasCondiciones };
+      let rasgosActualizados = pj.rasgos;
+
+      // Sincronización automática de condiciones hacia rasgos: Furia, Furia de los Dioses y Ataque Temerario
+      const esFuriaDiosesCond = normalizada.includes("furia de los dioses") || normalizada.includes("rage of the gods");
+      const esFuriaBaseCond = (normalizada.includes("furia") || normalizada.includes("rage")) && !esFuriaDiosesCond;
+
+      if (esFuriaDiosesCond) {
+        rasgosActualizados = (pj.rasgos || []).map((r) => {
+          const rNom = r.nombre.toLowerCase().trim();
+          if ((rNom.includes("furia de los dioses") || r.id.includes("furia_de_los_dioses")) && r.esActivable && !r.activo) {
+            const usosRest = typeof r.usosRestantes === "number" ? Math.max(0, r.usosRestantes - 1) : r.usosRestantes;
+            return { ...r, activo: true, usosRestantes: usosRest };
+          }
+          return r;
+        });
+      } else if (esFuriaBaseCond) {
+        rasgosActualizados = (pj.rasgos || []).map((r) => {
+          const rNom = r.nombre.toLowerCase().trim();
+          if ((rNom === "furia" || r.id === "rasgo_cls_barbaro_furia") && r.esActivable && !r.activo) {
+            const usosRest = typeof r.usosRestantes === "number" ? Math.max(0, r.usosRestantes - 1) : r.usosRestantes;
+            return { ...r, activo: true, usosRestantes: usosRest };
+          }
+          return r;
+        });
+      } else if (normalizada.includes("temerario") || normalizada.includes("reckless")) {
+        rasgosActualizados = (pj.rasgos || []).map((r) => {
+          const rNom = r.nombre.toLowerCase().trim();
+          if ((rNom.includes("temerario") || r.id.includes("temerario")) && r.esActivable && !r.activo) {
+            return { ...r, activo: true };
+          }
+          return r;
+        });
+      }
+
+      return { ...pj, condicionesActivas: nuevasCondiciones, rasgos: rasgosActualizados };
     });
   },
 
@@ -628,16 +715,63 @@ export const crearSlicePersonajes: StateCreator<
       }
 
       const nuevasCondiciones = quitarCondicion(pj.condicionesActivas, condicion);
-      return { ...pj, condicionesActivas: nuevasCondiciones };
+      let rasgosActualizados = pj.rasgos;
+
+      const esFuriaDiosesCondQuitar = normalizada.includes("furia de los dioses") || normalizada.includes("rage of the gods");
+      const esFuriaBaseCondQuitar = (normalizada.includes("furia") || normalizada.includes("rage")) && !esFuriaDiosesCondQuitar;
+
+      if (esFuriaDiosesCondQuitar) {
+        rasgosActualizados = (pj.rasgos || []).map((r) => {
+          const rNom = r.nombre.toLowerCase().trim();
+          if ((rNom.includes("furia de los dioses") || r.id.includes("furia_de_los_dioses")) && r.esActivable && r.activo) {
+            return { ...r, activo: false };
+          }
+          return r;
+        });
+      } else if (esFuriaBaseCondQuitar) {
+        rasgosActualizados = (pj.rasgos || []).map((r) => {
+          const rNom = r.nombre.toLowerCase().trim();
+          const rId = r.id.toLowerCase().trim();
+          if ((rNom === "furia" || rId === "rasgo_cls_barbaro_furia" || rNom.includes("furia divina") || rId.includes("furia_divina") || rNom.includes("golpe brutal") || rId.includes("golpe_brutal")) && r.esActivable && r.activo) {
+            return { ...r, activo: false };
+          }
+          return r;
+        });
+      } else if (normalizada.includes("temerario") || normalizada.includes("reckless")) {
+        rasgosActualizados = (pj.rasgos || []).map((r) => {
+          const rNom = r.nombre.toLowerCase().trim();
+          if ((rNom.includes("temerario") || r.id.includes("temerario")) && r.esActivable && r.activo) {
+            return { ...r, activo: false };
+          }
+          return r;
+        });
+      }
+
+      return { ...pj, condicionesActivas: nuevasCondiciones, rasgos: rasgosActualizados };
     });
   },
 
   limpiarCondicionesPersonaje: (id) => {
-    mutarPersonaje(set, id, (pj) => ({
-      ...pj,
-      condicionesActivas: [],
-      cansancio: 0
-    }));
+    mutarPersonaje(set, id, (pj) => {
+      const rasgosDesactivados = (pj.rasgos || []).map((r) => {
+        const rNom = r.nombre.toLowerCase().trim();
+        const rId = r.id.toLowerCase().trim();
+        if (
+          (rNom === "furia" || rId === "rasgo_cls_barbaro_furia" || rNom.includes("temerario") || rNom.includes("furia de los dioses") || rNom.includes("furia divina") || rId.includes("furia_divina") || rNom.includes("golpe brutal") || rId.includes("golpe_brutal")) &&
+          r.esActivable &&
+          r.activo
+        ) {
+          return { ...r, activo: false };
+        }
+        return r;
+      });
+      return {
+        ...pj,
+        condicionesActivas: [],
+        cansancio: 0,
+        rasgos: rasgosDesactivados
+      };
+    });
   },
 
   vincularMiniaturaTSPersonaje: (id, idMiniatura) => {
@@ -1258,6 +1392,129 @@ export const crearSlicePersonajes: StateCreator<
         ...pj,
         rasgos: rasgosSincronizados
       };
+    });
+  },
+
+  alternarActivoRasgo: (idPj, idRasgo) => {
+    mutarPersonaje(set, idPj, (pj) => {
+      let condicionesActualizadas = [...(pj.condicionesActivas || [])];
+
+      const rasgoObjetivo = (pj.rasgos || []).find((r) => r.id === idRasgo);
+      if (!rasgoObjetivo) return pj;
+
+      const nuevoActivo = !rasgoObjetivo.activo;
+      const nomObjetivo = rasgoObjetivo.nombre.toLowerCase().trim();
+      const idObjetivo = rasgoObjetivo.id.toLowerCase().trim();
+
+      const esFuriaDeLosDioses = nomObjetivo.includes("furia de los dioses") || idObjetivo.includes("furia_de_los_dioses");
+      const esFuriaPersistente = nomObjetivo.includes("furia persistente") || idObjetivo.includes("furia_persistente");
+      const esFuriaBase = (nomObjetivo === "furia" || idObjetivo === "rasgo_cls_barbaro_furia") && !esFuriaDeLosDioses && !esFuriaPersistente;
+      const esTemerario = nomObjetivo.includes("temerario") || idObjetivo.includes("temerario");
+
+      const furiaEstaActiva = (pj.rasgos || []).some(
+        (r) => (r.nombre.toLowerCase().trim() === "furia" || r.id.toLowerCase().trim() === "rasgo_cls_barbaro_furia") && r.activo
+      ) || (pj.condicionesActivas || []).some(
+        (c) => c.toLowerCase().includes("furia (rage)") || (c.toLowerCase().includes("furia") && !c.toLowerCase().includes("furia de los dioses"))
+      );
+
+      const esFuriaDivina = nomObjetivo.includes("furia divina") || idObjetivo.includes("furia_divina");
+      const esGolpeBrutal = nomObjetivo.includes("golpe brutal") || idObjetivo.includes("golpe_brutal");
+
+      // Regla: Furia divina y Golpe brutal solo se deben poder activar si Furia está activa
+      if (nuevoActivo && (esFuriaDivina || esGolpeBrutal) && !furiaEstaActiva) {
+        return pj;
+      }
+
+      if (esFuriaDeLosDioses) {
+        if (nuevoActivo) {
+          if (!condicionesActualizadas.some((c) => c.toLowerCase().includes("furia de los dioses") || c.toLowerCase().includes("rage of the gods"))) {
+            condicionesActualizadas = aplicarCondicion(condicionesActualizadas, "Furia de los Dioses (Rage of the Gods)");
+          }
+        } else {
+          condicionesActualizadas = condicionesActualizadas.filter(
+            (c) => !c.toLowerCase().includes("furia de los dioses") && !c.toLowerCase().includes("rage of the gods")
+          );
+        }
+      } else if (esFuriaBase) {
+        if (nuevoActivo) {
+          if (!condicionesActualizadas.some((c) => c.toLowerCase().includes("furia (rage)") || (c.toLowerCase().includes("furia") && !c.toLowerCase().includes("furia de los dioses")))) {
+            condicionesActualizadas = aplicarCondicion(condicionesActualizadas, "Furia (Rage)");
+          }
+        } else {
+          condicionesActualizadas = condicionesActualizadas.filter(
+            (c) => {
+              const cn = c.toLowerCase();
+              return !(cn.includes("furia (rage)") || (cn.includes("furia") && !cn.includes("furia de los dioses")));
+            }
+          );
+        }
+      } else if (esTemerario) {
+        if (nuevoActivo) {
+          if (!condicionesActualizadas.some((c) => c.toLowerCase().includes("temerario") || c.toLowerCase().includes("reckless"))) {
+            condicionesActualizadas = aplicarCondicion(condicionesActualizadas, "Ataque Temerario (Reckless Attack)");
+          }
+        } else {
+          condicionesActualizadas = condicionesActualizadas.filter(
+            (c) => !c.toLowerCase().includes("temerario") && !c.toLowerCase().includes("reckless")
+          );
+        }
+      }
+
+      const rasgosActualizados = (pj.rasgos || []).map((r) => {
+        const rNom = r.nombre.toLowerCase().trim();
+        const rId = r.id.toLowerCase().trim();
+
+        // Si desactivamos Furia base, desactivamos automáticamente los rasgos dependientes de Furia (Furia divina, Golpe brutal)
+        if (esFuriaBase && !nuevoActivo) {
+          if (rNom.includes("furia divina") || rId.includes("furia_divina") || rNom.includes("golpe brutal") || rId.includes("golpe_brutal")) {
+            return { ...r, activo: false };
+          }
+        }
+
+        // Si activamos Furia Persistente, rellenamos los usos gastados de Furia base a su máximo
+        if (esFuriaPersistente && nuevoActivo && (rNom === "furia" || rId === "rasgo_cls_barbaro_furia")) {
+          const max = typeof r.usosMaximos === "number" ? r.usosMaximos : (r.usosRestantes ?? 2);
+          return { ...r, usosRestantes: max };
+        }
+
+        if (r.id === idRasgo) {
+          let usosRest = r.usosRestantes;
+          if (nuevoActivo && r.tieneUsosLimitados && typeof r.usosRestantes === "number") {
+            usosRest = Math.max(0, r.usosRestantes - 1);
+          }
+          return {
+            ...r,
+            activo: nuevoActivo,
+            usosRestantes: usosRest
+          };
+        }
+
+        return r;
+      });
+
+      return {
+        ...pj,
+        rasgos: rasgosActualizados,
+        condicionesActivas: condicionesActualizadas
+      };
+    });
+  },
+
+  actualizarSeleccionRasgo: (idPj, idRasgo, idSelector, valorActual) => {
+    mutarPersonaje(set, idPj, (pj) => {
+      const rasgosActualizados = (pj.rasgos || []).map((r) => {
+        if (r.id === idRasgo && Array.isArray(r.selectores)) {
+          const selectoresActualizados = r.selectores.map((s) =>
+            s.id === idSelector ? { ...s, valorActual } : s
+          );
+          return {
+            ...r,
+            selectores: selectoresActualizados
+          };
+        }
+        return r;
+      });
+      return { ...pj, rasgos: rasgosActualizados };
     });
   }
 });

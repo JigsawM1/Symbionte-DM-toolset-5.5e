@@ -13,7 +13,402 @@ Este archivo registra reglas globales, errores encontrados, sus causas raíz y l
 4. **TIPADO ESTRICTO Y CÓDIGO LIMPIO**:
    - `strict: true` en TypeScript. Cero tipos `any`. Interfaces explícitas, generics y principios SOLID.
 
-## [2026-09-01] Rediseño Jerárquico, Scroll Optimizado y Barra Compacta en la Pestaña de "Rasgos"
+## [2026-09-03] Corrección de Bono de Nivel en Furia Divina y Desactivación por Defecto de Rasgos Activables
+**Decisión y Motivación:**
+- *Causas*:
+  1. El bono `+ nivelBarbaro / 2` de *Furia Divina* no se estaba aplicando a las tiradas de ataque porque `normalizar(c.nombre)` no eliminaba acentos diacríticos ("Bárbaro" vs "barbaro"), provocando que no se detectara la clase Bárbaro y cayera en un fallback de nivel 1 con bono $\lfloor 1/2 \rfloor = 0$.
+  2. Los rasgos activables (`esActivable: true`) se creaban y sincronizaban erróneamente con `activo: true` por defecto, provocando que habilidades con toggle nacieran encendidas en lugar de apagadas.
+- *Solución*:
+  1. **Normalización sin acentos y resolución de nivel (`VistaAtaquesJugador.tsx`)**:
+     - `normalizar` implementa `.normalize("NFD").replace(/[\u0300-\u036f]/g, "")` para emparejar `"Bárbaro"` con `"barbaro"` de forma infalible.
+     - Fallback robusto a `personajeActivo.nivel` si el personaje posee el rasgo *Furia Divina*.
+  2. **Escalado de Fórmula en Compendio (`gestorClases.ts`)**:
+     - En `obtenerRasgosClaseYSubclase`, *Furia Divina* calcula su `formulaDados` como `1d6 + Math.floor(nivelSeguro / 2)` (ej. `1d6+1` a Nv 3, `1d6+2` a Nv 5, `1d6+4` a Nv 9, `1d6+7` a Nv 14).
+  3. **Desactivación por Defecto de Activables (`gestorClases.ts`, `compendioRasgos.ts`, `sanitizacion.ts`, `VistaRasgosJugador.tsx`)**:
+     - Todos los rasgos con `esActivable: true` nacen estrictamente con `activo: false` por defecto. Los rasgos pasivos (`esActivable: false`) conservan `activo: true`.
+- *Verificación*: 423 pruebas Vitest pasando (100%), 0 errores de tipado TypeScript (`tsc --noEmit`), compilación y despliegue a TaleSpire exitosos.
+
+---
+
+## [2026-09-03] Activación Condicionada de Furia Divina y Golpe Brutal a Furia Activa (D&D 5.5e)
+**Decisión y Motivación:**
+- *Causa*: Los rasgos *Furia Divina* (Senda del Fanático) y *Golpe Brutal* (Bárbaro Nv. 9) podían activarse libremente desde la interfaz o el store sin que la *Furia* estuviese encendida, contraviniendo las reglas de D&D 5.5e (2024).
+- *Solución*:
+  1. **Control de Store (`slicePersonajes.ts`)**:
+     - En `alternarActivoRasgo`: Se comprueba si la Furia está activa (mediante el rasgo `furia` activo o la condición `Furia (Rage)`). Si la Furia no está activa y se intenta activar *Furia Divina* o *Golpe Brutal*, la acción se rechaza de forma no destructiva manteniendo `activo: false`.
+     - Desactivación en cascada: Al desactivar *Furia* (ya sea apagando el rasgo, quitando la condición `Furia (Rage)` o mediante `limpiarCondicionesPersonaje`), tanto *Furia Divina* como *Golpe Brutal* se desactivan automáticamente (`activo: false`).
+  2. **Protección en la Vista de Ataques (`VistaAtaquesJugador.tsx`)**:
+     - `furiaEstaActiva` se evalúa al calcular la lista de ataques físicos, armas equipadas, golpes desarmados y armas improvisadas. Si la furia no está activa, ni *Golpe Brutal* ni *Furia Divina* añaden sus dados o fórmulas a las tiradas de ataque y daño.
+  3. **Feedback en la Interfaz de Usuario (`TarjetaRasgo.tsx`, `ModalDetalleRasgo.tsx`, `VistaRasgosJugador.tsx`)**:
+     - Si la Furia no está activa, el botón de alternancia ACTIVO/INACTIVO de *Furia Divina* y *Golpe Brutal* se deshabilita visualmente (`opacity: 0.5`, `cursor: not-allowed`), y su tooltip informa: *"Requiere que la Furia esté activa para poder activarse"*.
+  4. **Verificación**: 421 pruebas Vitest pasando (100%), 0 errores de tipado TypeScript (`tsc --noEmit`), compilación y despliegue a TaleSpire exitosos.
+
+---
+
+## [2026-09-03] Ajuste de Golpe Desarmado con Furia Divina (Prevenir Fallback a d20 en TaleSpire)
+**Decisión y Motivación:**
+- *Causa*: Al separar el daño de Furia Divina con `/` en el golpe desarmado (`5 / 1d6+1`), el primer grupo (`5`) al ser un número entero sin notación de dados (`d`), provocaba que el parser de dados de TaleSpire (`normalizarFormulaDados` / `limpiarYNormalizarDadosSimples`) aplicara su fallback automático a d20, lanzando erróneamente `1d20+5 / 1d6+1` en lugar del golpe de puño.
+- *Solución*:
+  1. **Composición sin Barra (`VistaAtaquesJugador.tsx`)**: Para el ataque desarmado con Furia Divina activa, no se separa con `/`. Se compone directamente como una única fórmula con dado d6: `1d6 + Fuerza + mitad de nivel de bárbaro (+ bono de furia si aplica)`.
+  2. **Etiqueta y Crítico**:
+     - `dadoDano`: ej. `1d6+5` (o `1d6+7` con furia).
+     - `dadoDanoBase`: `"1d6"`.
+     - `tipoDano`: `"Contundente (Radiante o Necrótico)"` para reflejar ambos tipos sin usar barras divisorias.
+     - `Crítico`: Duplica a `2d6 + mod` limpiamente sin generar d20 indeseados.
+  3. **Verificación**: 420 pruebas Vitest pasando (100%), 0 errores de tipado TypeScript (`tsc --noEmit`), compilación de producción y despliegue en TaleSpire exitosos.
+
+---
+
+## [2026-09-03] Creación y Aislamiento de la Condición y Efecto "Furia de los Dioses" (D&D 5.5e)
+**Decisión y Motivación:**
+- *Causa*: Al activar el rasgo activable *Furia de los dioses* (Bárbaro Senda del Fanático Nv. 14), se activaba la condición y el rasgo de *Furia* base en lugar de su propia condición/efecto independiente.
+- *Causa Raíz Técnica*:
+  1. En `slicePersonajes.ts` (`aplicarCondicionPersonaje`), la verificación `normalizada.includes("furia")` coincidía con `"furia de los dioses (rage of the gods)"`, activando por error el rasgo de Furia base y consumiendo un uso de Furia.
+  2. En `resolutorCondiciones.ts` (`obtenerDetalleCondicion`), la búsqueda por palabra clave hacía que `"Furia (Rage)"` coincidiera con cualquier texto que incluyera "furia", resolviendo siempre el tooltip y nombre de *Furia (Rage)* para *Furia de los dioses*.
+  3. En `procesadorCondiciones.ts`, `cond.startsWith("furia")` añadía incorrectamente la ventaja de Fuerza de Furia base a las tiradas cuando estaba activa Furia de los dioses.
+- *Solución*:
+  1. **Aislamiento en Store (`slicePersonajes.ts`)**:
+     - `alternarActivoRasgo`: evalúa `esFuriaDeLosDioses` prioritariamente y excluye Furia de los dioses y Furia persistente de `esFuriaBase`. Al activar *Furia de los dioses*, aplica estrictamente `"Furia de los Dioses (Rage of the Gods)"` sin activar Furia base.
+     - `aplicarCondicionPersonaje` y `quitarCondicionPersonaje`: diferencian explícitamente `esFuriaDiosesCond` de `esFuriaBaseCond`.
+  2. **Resolución y Detalle Mecánico (`resolutorCondiciones.ts`)**:
+     - Creado caso específico para *Furia de los Dioses (Rage of the Gods)* con sus efectos canónicos D&D 5.5e: Vuelo (con flotación), Resistencias Divinas (Necrótico, Psíquico y Radiante) y Revivificación por reacción a 30 pies.
+     - Desambiguación de coincidencia exacta en `EFECTOS_PREDEFINIDOS` para erradicar colisiones de prefijo.
+  3. **Mecánica de Tiradas (`procesadorCondiciones.ts`)**:
+     - Registra modificador `Furia de los Dioses (Vuelo + Resistencias)` sin activar ventajas de Fuerza de Furia base.
+  4. **Componente Visual (`ChipCondicion.tsx`)**:
+     - Estilo visual radiante/mágico con icono `<Sparkles />` dorado (`#fbbf24`), tooltip con desglose de Vuelo, Resistencias y Revivificación, y etiqueta limpia `FURIA DE LOS DIOSES`.
+  5. **Verificación**: 419 tests Vitest pasando (100%), 0 errores de tipado TypeScript (`tsc --noEmit`), compilación de producción exitosa y desplegada en TaleSpire.
+
+---
+
+## [2026-09-03] Limpieza de Descripción de Enfoque Fanático y Separación con Barra (/) de Furia Divina
+**Decisión y Motivación:**
+- *Causa*:
+  1. La descripción del rasgo *Enfoque fanático* mostraba una fórmula matemática explícita entre paréntesis `(+2 para nivel < 9, +3 para nivel 9-15, +4 para nivel >= 16)`, lo cual ensuciaba el texto canónico oficial de la regla D&D 5.5e.
+  2. El daño del rasgo *Furia divina* (Senda del Fanático) se estaba sumando con `+` a la fórmula física del arma (`1d12+1d6+1+4`), cuando en realidad es un tipo de daño totalmente independiente (Radiante o Necrótico) del daño físico del arma (Cortante/Perforante/Contundente).
+- *Solución*:
+  1. **Limpieza de Descripción (`clasesDND55.ts`)**: Se eliminó la fórmula matemática hardcodeada de la descripción de *Enfoque fanático*, dejándola como el texto oficial limpio: *"Una vez por cada Furia activa, si fallas una tirada de salvación, puedes repetirla con un bonificador igual a tu bonificador de Daño de Furia, y debes quedarte con el nuevo resultado."* (El motor ya calcula y aplica el bono exacto de forma programática).
+  2. **Separación con Barra (`/`) de Daño Secundario (`VistaAtaquesJugador.tsx`)**:
+     - El dado de *Furia divina* (`1d6 + Math.floor(nivelBarbaro / 2)`) ahora se concatena con `/` como un grupo independiente: ej. `1d12+4 / 1d6+1` para armas estándar, `1d10+4 / 1d6+1` (1M) / `1d12+4 / 1d6+1` (2M) para versátiles, `1d4+4 / 1d6+1` para armas improvisadas, y `5 / 1d6+1` para golpes desarmados.
+     - Al lanzar el daño a TaleSpire, se envían como grupos etiquetados independientes: `!Daño [TipoFísico]:[DadosArma]/Furia Divina (Radiante o Necrótico):[DadosFuria]`.
+     - En tiradas de impacto crítico, se duplican ambos grupos de forma aislada respetando modificadores: `!Crítico [TipoFísico]:[CriticoArma]/Furia Divina (Radiante o Necrótico):[CriticoFuria]`.
+  3. **Verificación**: 417 pruebas Vitest pasando (100%), 0 errores de tipado TypeScript (`tsc --noEmit`), compilación de producción y despliegue a TaleSpire exitosos.
+
+---
+
+## [2026-09-03] Auto-sincronización Reactiva Total de Rasgos al Cambiar Clase, Subclase o Nivel
+**Decisión y Motivación:**
+- *Causa*: El usuario reportó que los rasgos no se actualizaban solos al cambiar de clase, subclase o al subir de nivel; era molesto y confuso tener que pulsar manualmente el botón de "actualizar" o "sincronizar" en la pestaña de rasgos.
+- *Causa Raíz Técnica*:
+  1. En `slicePersonajes.ts` (`actualizarPersonaje`), la auto-sincronización estaba condicionada a `cambios.rasgos === undefined`. Dado que los formularios de edición (`PanelConfiguracionPersonaje.tsx` y `ModalEditarPersonaje.tsx`) envían el estado completo del personaje (`form`), el array `cambios.rasgos` venía definido con los rasgos viejos, impidiendo que la auto-sincronización se disparara.
+  2. En `PanelConfiguracionPersonaje.tsx`, los manejadores de cambio de clase (`manejarCambioClaseNombre`), subclase (`manejarCambioClaseSubclase`), nivel (`manejarCambioClaseNivel`, `manejarCambioNivelTotal`), multiclase y experiencia alteraban los campos de nivel/clase pero dejaban `form.rasgos` intacto con la lista anterior.
+  3. En `VistaRasgosJugador.tsx`, el `useEffect` de auto-sincronización únicamente comprobaba si el personaje no tenía ningún rasgo (`rasgos.length === 0`). Si el personaje ya tenía rasgos y subía de nivel o cambiaba de subclase, la vista no detectaba el cambio de progresión.
+- *Solución*:
+  1. **Detección de Cambio de Progresión en Store (`slicePersonajes.ts`)**: `actualizarPersonaje` ahora detecta si `clases`, `clase`, `subclase`, `nivel`, `especie` o `subespecie` cambiaron respecto al estado previo (`pj`). Si hubo cualquier cambio de progreso o identidad, ejecuta automáticamente `sincronizarRasgosAutomaticos(fusionado)` sin importar si `cambios.rasgos` venía definido.
+  2. **Auto-actualización Inmediata en Formulario (`PanelConfiguracionPersonaje.tsx` y `ModalEditarPersonaje.tsx`)**:
+     - Al cambiar nombre de clase: se resetea la subclase obsoleta, se aplican automáticamente las competencias y dado de golpe por defecto, y se actualiza `form.rasgos` al instante.
+     - Al cambiar subclase, nivel individual, nivel total, añadir clase, eliminar clase, o editar experiencia: `form.rasgos` se recalcula de inmediato con `sincronizarRasgosAutomaticos`.
+     - Al pulsar "Guardar": se garantiza una pasada de `sincronizarRasgosAutomaticos(form)`.
+  3. **Auto-sincronización Reactiva en UI (`VistaRasgosJugador.tsx`)**:
+     - Se incorporó una firma compuesta de progresión (`firmaProgresion`) rastreada con `useRef`. Si la clase, subclase, nivel o especie del personaje activo cambian, la vista dispara automáticamente `sincronizarRasgosPersonaje(personajeActivo.id)`.
+  4. **Verificación**: 415 pruebas automáticas pasando (100%), 0 errores de tipado TypeScript (`tsc --noEmit`), compilación de producción exitosa y desplegada a TaleSpire.
+
+---
+
+## [2026-09-03] Perfeccionamiento Mecánico de Competencias, Bárbaro Fanático y Usabilidad de Progresión (7 Puntos)
+**Decisión y Motivación:**
+- *Causa*: El usuario reportó 7 desajustes mecánicos y de interfaz tras el testeo en vivo:
+  1. *Golpe brutal* no mostraba la descripción de las opciones de *Golpe brutal mejorado* (Nv 13) ni *(II)* (Nv 17) en el modal.
+  2. *Furia persistente* no recargaba los usos gastados de Furia a su máximo al activarse, y se confundía con la Furia base debido a coincidencia de substring `rNom.includes("furia")`.
+  3. Al pulsar *"Aplicar build sugerida"*, las competencias de armas y armaduras aparecían en el panel de texto pero no se asignaban a los arrays técnicos `competenciasArmasGrupos`, `competenciasArmasLista`, `competenciasArmadurasGrupos` y `competenciasArmadurasLista`. Los selectores del modal aparecían vacíos y el motor no reconocía la competencia al atacar.
+  4. En la subclase *Senda del Fanático*, *Furia divina* no aplicaba su daño extra de `1d6 + Math.floor(nivel/2)` a los ataques con armas y desarmados aunque estuviera activa.
+  5. *Enfoque fanático* debe ser un activable que otorgue un bono igual al Daño de Furia (+2, +3, +4 según nivel) a las tiradas de salvación.
+  6. *Furia de los dioses* debe ser un activable con 1 uso por descanso largo que aplique la condición/efecto *"Furia de los Dioses (Rage of the Gods)"* con duración de 1 minuto (10 turnos).
+  7. En la pestaña de progresión, las tarjetas abrían innecesariamente un modal y el nombre de la pestaña debía simplificarse a *"Progresión"*.
+- *Solución*:
+  1. **Golpe Brutal Enriquecido (`gestorClases.ts`)**:
+     - A nivel >= 13 se concatena la descripción canónica de *Golpe desestabilizador* y *Golpe desgarrador*, actualizando la fuente a `Bárbaro (Niveles 9, 13)`.
+     - A nivel >= 17 se concatena la descripción de *Golpe brutal mejorado (II)*, actualizando la fuente a `Bárbaro (Niveles 9, 13, 17)`.
+  2. **Recarga de Furia Persistente y Aislamiento de Condiciones (`slicePersonajes.ts`)**:
+     - Diferenciación estricta de nombres e IDs para `esFuriaBase`, `esFuriaPersistente`, `esFuriaDeLosDioses` y `esTemerario`.
+     - Al alternar activo `Furia persistente`, consume 1 uso y busca el rasgo de Furia base en `pj.rasgos`, rellenando sus `usosRestantes` al `usosMaximos`.
+     - Al remover la condición `Furia (Rage)` ya no se desactivan `Furia persistente`, `Furia divina` ni `Furia de los dioses`.
+  3. **Resolución y Autocura de Competencias de Equipo (`competenciasConstantes.ts`, `gestorClases.ts`, `PanelConfiguracionPersonaje.tsx`, `sanitizacion.ts`)**:
+     - Creada función `resolverGruposYSustitutosCompetencias(armasRaw, armadurasRaw)` que mapea etiquetas a IDs de grupo (`"sencillas"`, `"marciales"`, `"fuego"`, `"ligeras"`, `"medias"`, `"pesadas"`, `"escudos"`) y expande todas las armas y armaduras individuales correspondientes.
+     - `esCompetenteConArma` y `esCompetenteConArmadura` ahora soportan tanto IDs canónicos como nombres legibles en `gruposCompetencias`.
+     - `sanearPersonaje` autocura personajes persistidos que tuvieran etiquetas crudas en `competenciasArmasGrupos`.
+  4. **Daño Escalonado de Furia Divina (`VistaAtaquesJugador.tsx`)**:
+     - Si `rasgoFuriaDivina` está activo, se añade `1d6 + Math.floor(nivelBarbaro / 2)` a los ataques con armas, ataques desarmados y armas improvisadas que usen Fuerza.
+  5. **Bono de Enfoque Fanático a Salvaciones (`clasesDND55.ts`, `usarEstadoPersonajes.ts`, `procesadorCondiciones.ts`)**:
+     - `Enfoque fanático` configurado como `esActivable: true`.
+     - `usarEstadoPersonajes.ts` suma `obtenerBonoDanoFuria(nivelBarbaro)` a todas las salvaciones en `statsCalculadas.salvaciones`.
+     - `procesadorCondiciones.ts` añade el motivo en la evaluación de tiradas de salvación.
+  6. **Efecto y Límite de Furia de los Dioses (`clasesDND55.ts`, `datosIniciales.ts`, `slicePersonajes.ts`)**:
+     - Agregada condición predefinida `Furia de los Dioses (Rage of the Gods)` con 10 turnos de duración en `EFECTOS_PREDEFINIDOS`.
+     - `Furia de los dioses` configurado con 1 uso por descanso largo y activable sincronizado bidireccionalmente con la condición.
+  7. **Limpieza de UI en Progresión (`VistaRasgosJugador.tsx`)**:
+     - Pestaña renombrada a *"Progresión"*.
+     - Eliminada apertura de modales y cursor pointer en las tarjetas de la lista de progresión 1-20.
+  8. **Verificación**: 414 pruebas pasando al 100% en Vitest (39 archivos de test), 0 errores `tsc --noEmit`, build de producción y despliegue exitoso en TaleSpire.
+
+---
+
+## [2026-09-02] Corrección de Placeholders "Rasgo de subclase": Deduplicación y Fallo de Reconciliación en Filtros
+**Decisión y Motivación:**
+- *Causa*: En la vista de rasgos (`VistaRasgosJugador.tsx`), el usuario observó dos comportamientos anómalos al visualizar personajes (ej. Bárbaro nivel 20):
+  1. Las tarjetas de *"Rasgo de subclase"* aparecían multiplicadas repetidamente (alternando Nv 6 y Nv 10 decenas de veces).
+  2. Al aplicar filtros (por ejemplo, filtrar por tipo de acción "Acción"), las tarjetas de *"Rasgo de subclase"* no desaparecían, dando la impresión de que *"el filtro no le afecta"*.
+- *Causa Raíz Técnica*:
+  1. **Generación de ID Colisionante**: En `src/constantes/clasesDND55.ts`, cada clase incluye filas de catálogo para los niveles donde la subclase otorga algo (ej. Bárbaro nv 6, 10 y 14 con nombre `"Rasgo de subclase"` y descripción `"Obtienes un rasgo de tu subclase de bárbaro."`). En `gestorClases.ts`, el identificador se generaba como `rasgo_cls_${clase.id}_${r.nombre}`, asignando exactamente el mismo ID (`rasgo_cls_barbaro_rasgo_de_subclase`) a los 3 niveles.
+  2. **Inutilidad del Placeholder**: En la hoja de personaje, *"Rasgo de subclase"* es redundante y superfluo, ya que la subclase seleccionada inyecta sus propios rasgos canónicos (ej. Frenesí, Furia inconsciente, Presencia intimidante, etc.).
+  3. **Colapso de Reconciliación en React (Zombies en el Virtual DOM)**: Al renderizar `<TarjetaRasgo key={rasgo.id} />` con claves duplicadas, el reconciliador de React no pudo determinar qué elementos debían desmontarse al conmutar filtros de acción o búsqueda. Como consecuencia, los nodos DOM correspondientes a *"Rasgo de subclase"* quedaban huérfanos y persistían visibles en pantalla, acumulándose en cada actualización.
+- *Solución*:
+  1. **Exclusión en Origen (`gestorClases.ts`)**: En `obtenerRasgosClaseYSubclase`, se omiten explícitamente los marcadores de posición (`r.nombre.toLowerCase().includes("rasgo de subclase")`).
+  2. **Deduplicación Estricta (`compendioRasgos.ts`)**: `sincronizarRasgosAutomaticos` y `obtenerRasgosSugeridosPorClases` purgan cualquier rasgo obsoleto de subclase y deduplican el array canónico final mediante `Map` indexado por `id`.
+  3. **Autocura en Saneamiento (`sanitizacion.ts`)**: En `sanearPersonaje`, se filtran marcadores de subclase y se deduplican rasgos y clases por nombre único al hidratar o importar el estado del personaje.
+  4. **Blindaje de Reconciliación en UI (`VistaRasgosJugador.tsx`)**:
+     - Filtro explícito en `rasgosFiltrados` para descartar marcadores de subclase.
+     - Asignación de claves compuestas infalibles en `TarjetaRasgo`: `key={`${rasgo.id}_${rasgo.nivelRequerido || 0}_${idx}`}`.
+     - En el modo de progresión PHB 2024, si el personaje tiene una subclase asignada, se ocultan las filas placeholder para evitar duplicidad con los rasgos específicos de la subclase.
+  5. **Verificación**: 409 tests pasando en Vitest, compilación limpia en producción y despliegue a TaleSpire.
+
+---
+
+## [2026-09-02] Corrección y Perfeccionamiento Mecánico del Bárbaro y Subclases (9 Puntos D&D 5.5e)
+**Decisión y Motivación:**
+- *Causa*: Tras el piloto de clases, se detectaron 9 desajustes mecánicos y de usabilidad:
+  1. Furia no estaba ligada bidireccionalmente a la condición de Furia ni descontaba 1 uso al activarse.
+  2. Ataque Temerario no sincronizaba con su condición correspondiente ni aplicaba ventaja en ataques de Fuerza.
+  3. Maestría con armas seleccionaba nombres de armas en vez de las 8 propiedades de maestría oficiales D&D 5.5e.
+  4. Descripciones del catálogo del Bárbaro contenían medidas métricas no canónicas ("1,5 m").
+  5. El daño adicional de Golpe Brutal (+1d10 / +2d10) no se sumaba en tiradas de daño ni renunciaba a la ventaja en el ataque.
+  6. Golpe Brutal Mejorado y Mejora de Característica saturaban la vista repitiéndose en tarjetas vacías.
+  7. Campeón Primigenio (+4 FUE y +4 CON) no mostraba la puntuación efectiva en la caja inferior de atributos.
+  8. Frenesí no escalaba con el bono de Furia (+2d6, +3d6, +4d6) ni se sumaba a las armas de Fuerza.
+  9. Guerrero de los Dioses (reserva de d12) no descontaba usos ni curaba automáticamente en TaleSpire.
+- *Solución*:
+  1. **Sincronización Bidireccional de Rasgos y Condiciones (`slicePersonajes.ts` y `procesadorCondiciones.ts`)**:
+     - Al alternar activo el rasgo de Furia: se descuenta 1 uso de `usosRestantes` y se agrega/remueve la condición `Furia (Rage)`. Al aplicar/quitar la condición de Furia desde la barra táctica, se sincroniza el estado del rasgo `activo` y descuenta el uso.
+     - Sincronización idéntica para `Ataque temerario` y la condición `Ataque Temerario (Reckless Attack)`.
+     - `procesadorCondiciones.ts`: Evalúa ventaja automática en tiradas de ataque con Fuerza si la condición está presente.
+  2. **8 Maestrías Oficiales D&D 5.5e (`clasesDND55.ts`)**:
+     - Las opciones seleccionables se actualizaron a las 8 propiedades oficiales: `Cleave (Hender)`, `Graze (Rozar)`, `Nick (Mellar)`, `Push (Empujar)`, `Sap (Debilitar)`, `Slow (Ralentizar)`, `Topple (Derribar)`, `Vex (Molestar)`.
+     - Progresión de 2 selecciones (nv 1), 3 (nv 4) y 4 (nv 10).
+  3. **Descripciones Oficiales Canónicas (`clasesDND55.ts`)**:
+     - Actualizadas todas las descripciones del Bárbaro y sus 4 subclases tomando como fuente `catalogo-clases-dnd55 (3).json` (eliminando medidas métricas y preservando tablas y selectores).
+  4. **Golpe Brutal y Renuncia a Ventaja (`gestorClases.ts` y `VistaAtaquesJugador.tsx`)**:
+     - Regla oficial 5.5e: En `VistaAtaquesJugador.tsx`, si el ataque usa Fuerza y Golpe Brutal está activo, si el modo venía en `"ventaja"` se conmuta a `"plano"` y se anota `"Golpe Brutal (Renuncia a ventaja)"`.
+     - El dado de daño (+1d10 o +2d10) se añade a la fórmula de daño base, daño versátil y daño de armas improvisadas.
+     - Inyección orgánica: a nivel >= 13 se inyectan las 2 opciones adicionales de Golpe Brutal Mejorado I (`golpe_desestabilizador` y `golpe_desgarrador`). A nivel >= 17 se expande a `2d10` con `maxSelecciones: 2` de tipo múltiple.
+  5. **Consolidación de Rasgos Ligados y Mejora de Característica (`gestorClases.ts`)**:
+     - Rasgos de `categoriaMecanica: "extension"` (Golpe Brutal Mejorado I y II) no se duplican como tarjetas sueltas.
+     - "Mejora de característica" se consolida en una única tarjeta acumulativa (`Niveles 4, 8, 12, 16`).
+  6. **Puntuación Efectiva en UI de Atributos (`PanelAtributosPersonaje.tsx`)**:
+     - La caja inferior muestra la `puntuacionEfectiva` (con resaltado cian `#7dd3fc` y tooltip explicativo si tiene bonos de rasgos como Campeón Primigenio).
+     - Al hacer clic o enfocar el input (`onFocus`), permite editar directamente la puntuación base.
+  7. **Frenesí Escalable y Críticos Compuestos (`gestorClases.ts` y `VistaAtaquesJugador.tsx`)**:
+     - Frenesí calcula dinámicamente su `formulaDados` como `${bonoDanoFuria}d6` (+2d6, +3d6, +4d6) y suma sus dados a los ataques basados en Fuerza.
+     - En `manejarTirarCritico`: se duplica cada grupo de dados con expresión regular global (`(\d+)d(\d+)`), duplicando limpiamente fórmulas compuestas (`1d12+2d6+1d10` -> `2d12+4d6+2d10`).
+  8. **Guerrero de los Dioses: Curación de Reserva 3D (`lanzadorDados.ts`, `TarjetaRasgo.tsx`, `ModalDetalleRasgo.tsx`)**:
+     - Se añadió `MetadataCuracionRasgo` y el registro de eventos 3D `tiradasCuracionRasgoActivas`.
+     - El botón detecta la categoría `"curacion"` o nombre `Guerrero de los dioses`, mostrando el icono de corazón y consumiendo 1 uso de la reserva (de 4 a 7 dados d12 según nivel).
+     - Al completar la tirada física en TaleSpire o en fallback local, se aplica la curación automáticamente a los puntos de golpe del personaje en el almacén Zustand.
+  9. **Verificación Integral**:
+     - 408 tests unitarios pasando al 100% en Vitest.
+     - 0 errores `tsc --noEmit`.
+     - Despliegue completado a TaleSpire con `node deploy_to_ts.js`.
+
+---
+
+## [2026-09-02] Sistema Generalizado de Build de Clases con Efectos Mecánicos, Tablas de Progresión y UI Reactiva (Piloto: Bárbaro)
+**Decisión y Motivación:**
+- *Causa*: El usuario solicitó generalizar el sistema de build de clases para que soporte clases y subclases homebrew de forma flexible, adoptando una revisión mecánica completa de la clase Bárbaro y sus 4 subclases oficiales (Berserker, Corazón Salvaje, Árbol del Mundo, Fanático). Además, requirió la incorporación de tablas de progresión visuales (idénticas a capturas de referencia con cabeceras `Nivel` | `Descripción` y pie `"Cada nivel reemplaza al anterior"`), soporte híbrido de fórmulas sin `eval()`, y controles interactivos en la UI (toggles de rasgos activables y selectores de opciones como Maestrías y Golpes Brutales).
+- *Solución*:
+  1. **Tipos y Esquemas Centrales (`src/tipos/rasgos.ts` y `src/constantes/rasgosDND55.ts`)**:
+     - Creados esquemas Zod y tipos TypeScript estrictos: `EfectoMecanicoRasgo`, `TipoEfectoMecanico`, `SelectorRasgo`, `OpcionSelector`, `TablaEscaladoRasgo` y `FilaTablaEscalado`.
+     - Extendido `EsquemaRasgoPersonaje` y `PlantillaRasgoClase` con campos opcionales para preservar 100% de retrocompatibilidad: `efectos`, `selectores`, `tablaProgresion`, `esActivable`, `ligadoA`, `categoriaMecanica`, `formulaEscalado`, `formulaUsos`.
+  2. **Componente Visual de Tablas de Progresión (`TablaProgresionRasgo.tsx` y `.module.css`)**:
+     - Reproduce exactamente el diseño oscuro de las imágenes provistas:
+       - Cabecera `Nivel` | `Descripción`.
+       - Filas alternadas oscuras con resaltado de borde y badge `"Actual"` para el nivel presente del personaje.
+       - Nota al pie a la derecha: `"Cada nivel reemplaza al anterior"`.
+  3. **Motor Evaluador de Efectos Mecánicos Desacoplado (`src/servicios/evaluadorEfectosRasgos.ts`)**:
+     - `evaluarEfectosRasgosActivos(personaje)`: Recopila efectos verificando activación (`activo !== false`), jerarquía (`ligadoA`, ej. Golpe Brutal ligado a Ataque Temerario) y condiciones (`furia_activa`, `sin_armadura`, `sin_armadura_pesada`, `ataque_temerario_activo`).
+     - `calcularModificadoresStatsRasgos(personaje)`: Aplica bonos (ej. Campeón Primigenio: +4 FUE y +4 CON elevando el tope natural de 20 a 25).
+     - `calcularDefensaSinArmaduraRasgos(personaje, modificadores)`: Calcula CA declarativa (Bárbaro: 10 + DES + CON permitiendo escudo; Monje: 10 + DES + SAB sin escudo).
+     - `calcularBonoVelocidadRasgos(personaje)`: Movimiento rápido (+10 pies sin armadura pesada).
+     - `evaluarVentajasDeRasgosEnTirada(personaje, consulta)`: Otorga ventajas en salvaciones (Sentido del Peligro -> DES), iniciativa (Instinto Salvaje -> Iniciativa) y ataques (Ataque Temerario -> Ataques con Fuerza).
+     - `obtenerBonoDanoFuria(nivel)`: Escalado canónico +2 (nv 1-8), +3 (nv 9-15), +4 (nv 16-20).
+  4. **Enriquecimiento del Catálogo Oficial (`src/constantes/clasesDND55.ts`)**:
+     - Bárbaro base enriquecido con efectos mecánicos, tablas de progresión (Furia, Maestría con armas) y selectores.
+     - Subclases enriquecidas: Berserker (Frenesí activable), Corazón Salvaje (selectores de Corazón, Aspecto y Poder), Árbol del Mundo (Vitalidad del Árbol), Fanático (Furia Divina y Guerrero de los Dioses con reservas de dados d12).
+  5. **Evaluación Segura de Expresiones (`src/servicios/gestorClases.ts`)**:
+     - `evaluarFormulaUsos`: Evaluador seguro sin `eval()` que normaliza variables (`nivel`, `niv`, `level`) y resuelve expresiones ternarias y valores constantes para catálogos JSON Homebrew.
+  6. **Integración en Zustand y Selectores**:
+     - `slicePersonajes.ts`: Nuevas acciones `alternarActivoRasgo(idPj, idRasgo)` y `actualizarSeleccionRasgo(idPj, idRasgo, idSelector, valorActual)`.
+     - `usarEstadoPersonajes.ts`: `puntuacionesEfectivas` aplica modificadores de rasgos respetando límites ampliados hasta 25; CA evalúa defensa sin armadura; tiradas de habilidades contemplan Conocimiento Primigenio; métricas de velocidad y daño de furia expuestas.
+     - `procesadorCondiciones.ts`: Evalúa motivos de ventaja automáticos procedentes de rasgos de clase.
+  7. **Interfaz de Usuario Reactiva e Interactiva (`TarjetaRasgo.tsx`, `ModalDetalleRasgo.tsx` y `VistaRasgosJugador.tsx`)**:
+     - `TarjetaRasgo`: Conmutador ON/OFF en la tarjeta para rasgos activables (`esActivable`); visualización de chips para opciones seleccionadas (ej. armas de Maestría) con hover tooltips.
+     - `ModalDetalleRasgo`: Conmutador ON/OFF en cabecera; renderizado de `TablaProgresionRasgo`; tarjetas interactivas de opciones para selectores únicos y múltiples con límite (`maxSelecciones`). Sincronización reactiva inmediata con el estado global de Zustand.
+     - Progresión 1-20: Renderiza tablas de escalado directamente en el visor tipo compendio PHB 2024.
+  8. **Verificación**:
+     - Nueva suite de pruebas unitarias `src/servicios/evaluadorEfectosRasgos.test.ts` (9 tests pasando al 100%).
+     - Suite global: 39 suites y 404 tests pasando exitosamente en Vitest (`pnpm test -- --run`).
+     - Tipado estricto `tsc --noEmit` completado con 0 errores.
+
+---
+
+## [2026-09-02] Renderizado Selectivo de Color para Texto entre Asteriscos (*, **, ***) en Rasgos y Progresión
+**Decisión y Motivación:**
+- *Causa*: El usuario solicitó que únicamente el texto delimitado por asteriscos se coloree con el tono de acento (cian `#38bdf8`), respetando además las negritas y cursivas según el número de asteriscos, manteniendo todo el texto plano sin asteriscos en blanco puro (`#ffffff`).
+- *Solución*:
+  1. **Tokenización Precisa de Asteriscos (`ModalDetalleRasgo.tsx`)**:
+     - `renderizarTextoEnriquecidoDND` ahora utiliza el regex `(\*\*\*[^*]+?\*\*\*|\*\*[^*]+?\*\*|\*[^*]+?\*)` para procesar selectivamente:
+       - `***texto***` (3 asteriscos): aplica negrita (`<strong>`), cursiva (`<em>`) y color cian (`#38bdf8`) mediante `.subtituloRasgoModal`.
+       - `**texto**` (2 asteriscos): aplica negrita (`<strong>`) y color cian (`#38bdf8`) mediante `.negritaModal`.
+       - `*texto*` (1 asterisco): aplica cursiva (`<em>`) y color cian (`#38bdf8`) mediante `.cursivaColoreadaModal`.
+       - Todo el texto fuera de asteriscos se conserva como texto plano en blanco nítido (`#ffffff`), eliminando coloreados no deseados en palabras sueltas.
+  2. **Limpieza en Resumen de Tarjetas (`TarjetaRasgo.tsx`)**:
+     - Se extendió el limpiador de texto para eliminar también asteriscos simples (`.replace(/\*/g, "")`) en el extracto truncado de las tarjetas de rasgos.
+  3. **Verificación**:
+     - 395 tests unitarios pasando al 100% en Vitest (`pnpm test`).
+     - 0 errores `tsc --noEmit`.
+
+---
+
+## [2026-09-02] Gestión Dinámica de Conjuros Ocultos, Contenedor Separado de Nivel y Reubicación de Badges en Hoja de Personaje
+
+
+**Decisión y Motivación:**
+- *Causa*:
+  1. En la subpestaña de conjuros de la Hoja de Personaje, el icono de ojo abría el modal descriptivo de la ficha en lugar de permitir personalizar y ocultar/mostrar conjuros secundarios o contextuales.
+  2. Los jugadores necesitaban limpiar visualmente los contenedores de nivel activo, reuniendo todos los conjuros ocultos en un contenedor independiente sin alterar las reglas oficiales de preparación ni los cupos diarios de D&D 5.5e.
+  3. El badge indicador de conjuro otorgado por subclase ("Subclase") se renderizaba junto al nombre del conjuro en la fila de título, sobrecargando el encabezado de la tarjeta y dificultando la lectura en pantallas compactas.
+- *Solución*:
+  1. **Apertura de Descripción por Nombre e Icono de Ojo para Alternar Visibilidad (`TarjetaConjuroCompacta.tsx` y `.module.css`)**:
+     - El botón con el nombre del conjuro (`.nombreConjuro`) centraliza la apertura de la ficha completa de detalles (`FichaHechizo`).
+     - El icono del ojo ahora actúa como toggle interactivo de visibilidad: si el conjuro está activo en su nivel, muestra `<Eye />` ("Ocultar conjuro"); si está en el contenedor de ocultos, muestra `<EyeOff />` con acento cian (`.botonOcultoActivo`) ("Mostrar conjuro (restaurar a su nivel)").
+     - Reubicación del badge "Subclase": se retiró de `filaTitulo` y se trasladó a una nueva fila `.filaSubclaseInferior` situada justamente debajo de la escuela de magia y el alcance.
+  2. **Contenedor Independiente de Conjuros Ocultos con Persistencia (`PanelConjurosPersonaje.tsx` y `.module.css`)**:
+     - Persistencia por personaje en `localStorage` con la clave `ts_conjuros_ocultos_{idPersonaje}` mediante `usarEstadoPersistido`.
+     - Segregación estricta: los trucos y conjuros marcados como ocultos desaparecen de sus respectivos niveles (Trucos Listos y Niveles 1 a 9). Si un nivel tiene todos sus conjuros ocultos, su contenedor no ocupa espacio visual en la vista principal.
+     - Nuevo contenedor colapsable **"Conjuros Ocultos"**: reúne todos los trucos y conjuros ocultos ordenados por nivel (0 a 9) y alfabéticamente.
+     - Botón de acción rápida **"Mostrar todos"** para restaurar inmediatamente todos los hechizos a sus niveles originales.
+     - Plena integración con el motor de búsqueda tolerante y filtros tácticos (concentración, resolución, componentes V/S/M).
+  3. **Verificación y Despliegue**:
+     - 395 tests pasando al 100% en Vitest (`pnpm test`).
+     - Tipado estricto sin errores en `tsc --noEmit`.
+     - Compilación limpia con Vite (`pnpm build`).
+     - Despliegue exitoso al simbionte TaleSpire (`pnpm run deploy`).
+
+---
+
+## [2026-09-02] Corrección de Reconocimiento de Subclases y Diseño Responsive en App Sencilla
+**Decisión y Motivación:**
+- *Causa*:
+  1. En la versión inicial de `app sencilla/index.html`, las subclases se generaban con arrays de rasgos vacíos (`rasgos: []`) y el selector de subclase en el simulador no sincronizaba su ID al cambiar de clase (quedando apuntando a subclases inexistentes). Además, datos obsoletos en `localStorage` impedían que el navegador leyera las nuevas subclases.
+  2. El layout estaba fijado en columnas rígidas (`grid-template-columns: 280px 1fr`), lo que ocasionaba desbordamientos en pantallas móviles y tablets.
+- *Solución*:
+  1. **Integración Completa de Subclases y Conjuros (`app sencilla/index.html`)**:
+     - Se extrajo el catálogo real canónico de `src/constantes/clasesDND55.ts`, dotando a las 48 subclases de sus rasgos oficiales 100% poblados y de sus tablas de progresión de conjuros (`progresionConjuros`).
+     - Se corrigió la reactividad de `AppState`: al cambiar de clase o de nivel, `this.simSubclase` se reasigna automáticamente a la primera subclase válida de la clase activa.
+     - Se añadió un aviso de nivel si el nivel seleccionado es menor que el nivel de desbloqueo de la subclase (ej. Nivel 3).
+     - Si el nivel es adecuado, el simulador muestra tanto los rasgos de la subclase (con estilo cian distintivo) como los conjuros siempre preparados por la subclase.
+     - Se actualizó la clave de almacenamiento a `dnd55_catalogo_clases_v2` con chequeo de integridad para migrar automáticamente catálogos antiguos con subclases vacías.
+  2. **Diseño Completamente Responsive**:
+     - Implementación de media queries adaptativas (`@media (max-width: 900px)` y `@media (max-width: 600px)`).
+     - Menú móvil estilo drawer off-canvas con botón hamburguesa, botón de cierre y overlay oscuro con backdrop blur.
+     - Selector rápido de clase en banner móvil para cambiar de clase sin abrir el drawer.
+     - Barra de pestañas con scroll horizontal suave sin desbordamientos (`overflow-x: auto; scrollbar-width: none`).
+     - Adaptación de formularios y tarjetas a 1 y 2 columnas con tamaños táctiles (touch targets >= 38px).
+  3. **Verificación**:
+     - 48 de 48 subclases validadas con rasgos oficiales.
+     - Validación de sintaxis JS limpia (`0 errores de sintaxis`).
+     - 392 tests del proyecto pasando exitosamente.
+
+---
+
+## [2026-09-02] Creación de App Sencilla Monolítica (HTML/CSS/JS) para Edición de Clases y Builds D&D 5.5e
+
+## [2026-09-02] Unificación de Texto a Blanco Puro en Rasgos y Modales (Legibilidad Táctica)
+**Decisión y Motivación:**
+- *Causa*: Los resaltados automáticos en azul/cian sobre palabras clave (ej. "Furia", "resistencia", "ventaja") generaban ruido visual y fatiga de lectura en el modal de detalle y la progresión.
+- *Solución*:
+  1. **Tipografía Limpia y Uniforme (`ModalDetalleRasgo.tsx` y `VistaRasgosJugador.module.css`)**:
+     - Se eliminó el coloreado en azul de términos de reglas (`palabraClaveRegla`), unificando todo el cuerpo descriptivo a blanco nítido (`#ffffff`).
+     - Se preservó el formato estructural de negritas (`**texto**` a `<strong>`) y subtítulos en negrita cursiva (`***subtítulo.***` a `<strong><em>`), facilitando una lectura limpia, jerarquizada y sin distracciones cromáticas.
+  2. **Verificación**:
+     - 392 tests pasando al 100% (`pnpm test`).
+     - 0 errores `tsc --noEmit`.
+
+---
+
+## [2026-09-01] Separación de Tarjetas de Clase y Subclase (Estructuración Modular)
+
+**Decisión y Motivación:**
+- *Causa*: Los rasgos de subclase se mostraban anidados dentro de la misma tarjeta contenedora de la clase, lo que restaba claridad visual al distinguir los rasgos propios de la clase base respecto a la especialización elegida.
+- *Solución*:
+  1. **Contenedores de Primer Nivel Independientes (`VistaRasgosJugador.tsx`)**:
+     - Se separó la renderización en dos tarjetas independientes:
+       - **Tarjeta de Clase**: Con icono dorado `Swords`, título `Clase: {Nombre} (Nivel {Nivel})`, contador y lista de rasgos base.
+       - **Tarjeta de Subclase**: Con borde lateral cian (`borderLeft: 3px solid #38bdf8`), icono cian `Sparkles`, título `Subclase: {Subclase} ({Clase})` y su propia lista de rasgos.
+     - Ambas tarjetas cuentan con estado de colapso independiente persistido (`claveColapsoClase` y `claveColapsoSubclase`).
+  2. **Verificación**:
+     - 392 tests unitarios pasando al 100% (`pnpm test`).
+     - 0 errores `tsc --noEmit`.
+
+---
+
+## [2026-09-01] Auto-sincronización de Rasgos, Tarjetas Compactas con Modal de Detalle y Visor de Progresión PHB 2024
+
+**Decisión y Motivación:**
+- *Causa*:
+  1. *Falta de actualización automática*: El usuario debía pulsar manualmente el botón de sincronización cada vez que cambiaba nivel, clase o subclase.
+  2. *Tarjetas de rasgos extensas*: Las descripciones completas saturaban verticalmente la vista del jugador en pantallas estrechas.
+  3. *Estética de progresión de clase*: El usuario solicitó adaptar la vista de la clase al formato y estilo canónico de los compendios D&D 5.5e / 2024 (títulos en mayúsculas doradas para la clase, cian para la subclase, lemas en cursiva, citas de manual y resaltado de palabras clave).
+- *Solución*:
+  1. **Auto-sincronización Reactiva (`slicePersonajes.ts`)**:
+     - Al crear o actualizar personajes con cambios en `clase`, `subclase`, `clases`, `nivel`, `especie` o `subespecie`, el store ejecuta automáticamente `sincronizarRasgosAutomaticos`, manteniendo la ficha siempre actualizada en tiempo real sin requerir interacción manual.
+  2. **Tarjetas Compactas y Modal de Detalle Completo (`TarjetaRasgo.tsx` y `ModalDetalleRasgo.tsx`)**:
+     - Las tarjetas reducen su altura y truncan la descripción a ~115 caracteres con elipsis y enlace "Ver detalle completo".
+     - Al pulsar en la tarjeta se abre `ModalDetalleRasgo.tsx` con el desglose completo del rasgo, contador interactivo de usos, tiradas de dados 3D, notas y resaltado de términos tácticos (*Ventaja*, *Desventaja*, *Reacción*, *Acción Adicional*, etc.).
+  3. **Visor de Progresión 1-20 estilo PHB 2024 (`VistaRasgosJugador.tsx` y `.module.css`)**:
+     - Pestañas para alternar entre "Mis Rasgos Activos" y "Progresión 1-20 (PHB 2024)".
+     - Encabezados dorados en versalitas para la clase (`NIVEL X: TITULO`), banner estilizado de subclase con lema en cursiva, títulos cian de subclase, citas de página (`PHB'24 p.XX`) e indicador de rasgos desbloqueados vs futuros.
+  4. **Verificación**:
+     - 392 tests unitarios pasando al 100% en Vitest (`pnpm test`).
+     - 0 errores de compilación TypeScript (`tsc --noEmit`).
+     - Compilación de producción con Vite (`pnpm build`) completada con éxito.
+
+---
+
+## [2026-09-01] Sistema Integral de Builds de Clases y Subclases Canónicas D&D 5.5e (2024)
+
+**Decisión y Motivación:**
+- *Causa*: Los datos de progresión de clases, rasgos y conjuros de subclase estaban fragmentados o dispersos entre diccionarios manuales y archivos estáticos. Se requería extraer exhaustivamente los 12 archivos canónicos de `dicionario herramientas/clases/`, tipar todas las 12 clases y 48 subclases oficiales (4 por clase) y unificar el consumo para que tanto los rasgos como los hechizos y métricas de personaje provengan de una única fuente de verdad: la Build oficial de la clase.
+- *Solución*:
+  1. **Tipado Estricto de Dominio (`src/tipos/clases.ts`)**:
+     - Creadas las interfaces `DefinicionClase`, `DefinicionSubclase`, `ProgresionConjurosNivel`, `ConfiguracionMagicaClase`, `OpcionesAplicarBuild` y `BuildClaseCalculada`.
+  2. **Catálogo Maestro Canónico (`src/constantes/clasesDND55.ts`)**:
+     - Compiladas las 12 clases completas y sus 48 subclases oficiales de D&D 5.5e (2024).
+     - Cada clase incluye dado de golpe, salvaciones, competencias de armas/armaduras/herramientas, opciones de habilidades, equipo inicial, configuración de lanzador, rasgos del nivel 1 al 20 clasificados por tipo de acción (`accion`, `accion_adicional`, `reaccion`, `pasivo`), usos calculables y dados asociados.
+     - Cada subclase incluye progresión completa de conjuros siempre preparados y trucos.
+  3. **Servicio Dominio de Builds (`src/servicios/gestorClases.ts`)**:
+     - Métodos puros y normalizados: `obtenerCatalogoClases()`, `obtenerTodasSubclases()`, `obtenerClasePorNombre()`, `obtenerSubclasePorNombre()`, `obtenerRasgosClaseYSubclase()`, `obtenerConjurosSubclaseBuild()`, `construirBuildClase()`, y `aplicarBuildClaseAPersonaje()`.
+  4. **Unificación de Magia y Rasgos (`subclasesConjurosConstantes.ts`, `compendioRasgos.ts`, `calculadorMagia.ts`)**:
+     - `CATALOGO_CONJUROS_SUBCLASES` y `RASGOS_POR_CLASE` ahora se derivan directamente de `CATALOGO_CLASES_DND55`.
+     - `obtenerRasgosSugeridosPorClases` consume directamente `gestorClases.ts`.
+  5. **Integración en Zustand y UI (`slicePersonajes.ts`, `PanelConfiguracionPersonaje.tsx`, `ModalEditarPersonaje.tsx`)**:
+     - Añadida la acción `aplicarBuildClasePersonaje` al store.
+     - Selectores inteligentes de subclases en la UI que muestran dinámicamente las 4 subclases de la clase activa y botón "Aplicar Build Sugerida" con insignias informativas (dado de golpe, salvaciones, aptitud mágica).
+  6. **Verificación**:
+     - 392 tests unitarios pasando al 100% en Vitest.
+     - 0 errores `tsc --noEmit`.
+     - Compilación de producción con Vite (`pnpm build`) exitosa en 8.27s.
+
+---
+
 **Decisión y Motivación:**
 - *Causa*:
   1. *Falta de Scroll y Desbordamiento*: El contenedor principal carecía de `height: 100%`, `max-height: 100%` y `overflow-y: auto`, impidiendo el desplazamiento vertical en la vista estrecha de TaleSpire WebView.

@@ -11,6 +11,7 @@ interface MetricasRapidasPersonajeProps {
   modDestreza: number;
   claseArmadura?: InformacionCA;
   penalizacionArmadura?: PenalizacionArmadura;
+  bonoVelocidad?: number;
   alTirarIniciativa: () => void;
   alAlternarInspiracion: () => void;
 }
@@ -21,15 +22,21 @@ export const MetricasRapidasPersonaje: React.FC<MetricasRapidasPersonajeProps> =
   modDestreza,
   claseArmadura,
   penalizacionArmadura,
+  bonoVelocidad = 0,
   alTirarIniciativa,
   alAlternarInspiracion
 }) => {
   const iniciativaTotal = modDestreza + (personaje.iniciativaBono || 0);
   const textoIniciativa = iniciativaTotal >= 0 ? `+${iniciativaTotal}` : `${iniciativaTotal}`;
-  const velocidadTexto =
+  const velocidadBase =
     typeof personaje.velocidad === "string"
-      ? personaje.velocidad
-      : `${personaje.velocidad.caminar || 30} pies`;
+      ? parseInt(personaje.velocidad, 10) || 30
+      : personaje.velocidad.caminar || 30;
+  const velocidadTotal = velocidadBase + (bonoVelocidad || 0);
+  const velocidadTooltip =
+    bonoVelocidad > 0
+      ? `Velocidad: ${velocidadBase} ft + ${bonoVelocidad} ft (Rasgos de Clase)`
+      : `Velocidad: ${velocidadBase} ft`;
 
   const caTotal = claseArmadura?.total ?? personaje.ca ?? 10;
   const avisoNoComp = penalizacionArmadura?.sinCompetencia
@@ -70,14 +77,20 @@ export const MetricasRapidasPersonaje: React.FC<MetricasRapidasPersonajeProps> =
       </div>
 
       {/* 3. Velocidad */}
-      <div className={`${estilos.neoRaised} ${estilos.tarjetaMetrica}`}>
-        <Footprints size={13} className={estilos.iconoMetricaDecorativo} />
-        <span className={estilos.etiquetaMetrica}>Velocidad</span>
-        <span className={estilos.valorMetrica}>
-          {velocidadTexto.replace("pies", "").trim()}
-          <span className={estilos.unidadMetrica}>ft</span>
-        </span>
-      </div>
+      <TooltipUniversal
+        titulo="Velocidad de Movimiento"
+        contenido={velocidadTooltip}
+        posicion="abajo"
+      >
+        <div className={`${estilos.neoRaised} ${estilos.tarjetaMetrica}`}>
+          <Footprints size={13} className={estilos.iconoMetricaDecorativo} />
+          <span className={estilos.etiquetaMetrica}>Velocidad</span>
+          <span className={estilos.valorMetrica}>
+            {velocidadTotal}
+            <span className={estilos.unidadMetrica}>ft</span>
+          </span>
+        </div>
+      </TooltipUniversal>
 
       {/* 4. Competencia */}
       <div className={`${estilos.neoRaised} ${estilos.tarjetaMetrica}`}>

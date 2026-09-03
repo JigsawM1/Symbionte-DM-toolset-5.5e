@@ -1,5 +1,5 @@
 import React from "react";
-import { X, Droplets, AlertTriangle, Footprints } from "lucide-react";
+import { X, Droplets, AlertTriangle, Footprints, Sparkles } from "lucide-react";
 import { obtenerDetalleCondicion } from "@/servicios/resolutorCondiciones";
 
 export interface ChipCondicionProps {
@@ -53,6 +53,10 @@ export const ChipCondicion: React.FC<ChipCondicionProps> = ({
     nombreMin.includes("desventaja en sigilo") ||
     nombreMin.includes("sigilo ruidoso");
 
+  const esFuriaDeLosDioses =
+    nombreMin.includes("furia de los dioses") ||
+    nombreMin.includes("rage of the gods");
+
   // Determinar variante visual
   let claseVariante = "chip-condicion-estandar";
   if (esBloodied) {
@@ -63,7 +67,7 @@ export const ChipCondicion: React.FC<ChipCondicionProps> = ({
     claseVariante = "chip-condicion-sigilo";
   } else if (concentracion) {
     claseVariante = "chip-condicion-concentracion";
-  } else if (expiraRonda !== undefined) {
+  } else if (esFuriaDeLosDioses || expiraRonda !== undefined) {
     claseVariante = "chip-condicion-magico";
   }
 
@@ -120,6 +124,12 @@ export const ChipCondicion: React.FC<ChipCondicionProps> = ({
           <Footprints
             size={11}
             style={{ color: "#c084fc", display: "inline-block", flexShrink: 0 }}
+          />
+        )}
+        {esFuriaDeLosDioses && !esBloodied && !esPenalizacionArmadura && !esDesventajaSigilo && (
+          <Sparkles
+            size={11}
+            style={{ color: "#fbbf24", display: "inline-block", flexShrink: 0 }}
           />
         )}
         <span>{textoAMostrar}</span>

@@ -15,6 +15,15 @@ import {
 import { esCompetenteConArmadura } from '@/constantes/competenciasConstantes';
 import { calcularModificadorCaracteristica } from '@/servicios/procesadorDescansos';
 import { OBJETOS_INICIALES } from '@/utiles/datosIniciales';
+import {
+  calcularModificadoresStatsRasgos,
+  calcularDefensaSinArmaduraRasgos,
+  calcularBonoVelocidadRasgos,
+  obtenerBonoDanoFuria,
+  obtenerNivelClasePersonaje,
+  estaFuriaActiva
+} from '@/servicios/evaluadorEfectosRasgos';
+import { ARMADURAS_OFICIALES } from '@/constantes/equipoConstantes';
 
 export interface InformacionCA {
   total: number;
@@ -50,42 +59,10 @@ export interface EstadisticasCalculadasPersonaje {
   claseArmadura: InformacionCA;
   penalizacionArmadura: PenalizacionArmadura;
   desventajaSigiloArmadura: boolean;
+  bonoVelocidadRasgos: number;
+  bonoDanoFuria: number;
 }
 
-/**
- * Tabla de referencia de armaduras oficiales de D&D 5.5e
- */
-interface ReferenciaArmadura {
-  caBase: number;
-  tipo: "Ligera" | "Mediana" | "Pesada";
-  limiteDes: number | null; // null = sin límite, 2 = máx +2, 0 = no suma
-  desventajaSigilo?: boolean;
-}
-
-const ARMADURAS_OFICIALES: Record<string, ReferenciaArmadura> = {
-  "acolchada": { caBase: 11, tipo: "Ligera", limiteDes: null, desventajaSigilo: true },
-  "armadura acolchada": { caBase: 11, tipo: "Ligera", limiteDes: null, desventajaSigilo: true },
-  "cuero": { caBase: 11, tipo: "Ligera", limiteDes: null },
-  "armadura de cuero": { caBase: 11, tipo: "Ligera", limiteDes: null },
-  "cuero tachonado": { caBase: 12, tipo: "Ligera", limiteDes: null },
-  "armadura de cuero tachonado": { caBase: 12, tipo: "Ligera", limiteDes: null },
-
-  "pieles": { caBase: 12, tipo: "Mediana", limiteDes: 2 },
-  "armadura de pieles": { caBase: 12, tipo: "Mediana", limiteDes: 2 },
-  "camison de malla": { caBase: 13, tipo: "Mediana", limiteDes: 2 },
-  "camisa de malla": { caBase: 13, tipo: "Mediana", limiteDes: 2 },
-  "cota de escamas": { caBase: 14, tipo: "Mediana", limiteDes: 2, desventajaSigilo: true },
-  "coraza": { caBase: 14, tipo: "Mediana", limiteDes: 2 },
-  "semiplacas": { caBase: 15, tipo: "Mediana", limiteDes: 2, desventajaSigilo: true },
-  "semi-placas": { caBase: 15, tipo: "Mediana", limiteDes: 2, desventajaSigilo: true },
-
-  "cota de anillas": { caBase: 14, tipo: "Pesada", limiteDes: 0, desventajaSigilo: true },
-  "cota de malla": { caBase: 16, tipo: "Pesada", limiteDes: 0, desventajaSigilo: true },
-  "bandas": { caBase: 17, tipo: "Pesada", limiteDes: 0, desventajaSigilo: true },
-  "cota de bandas": { caBase: 17, tipo: "Pesada", limiteDes: 0, desventajaSigilo: true },
-  "placas": { caBase: 18, tipo: "Pesada", limiteDes: 0, desventajaSigilo: true },
-  "armadura de placas": { caBase: 18, tipo: "Pesada", limiteDes: 0, desventajaSigilo: true }
-};
 
 /**
  * Función pura que calcula todas las estadísticas derivadas de un personaje
@@ -169,13 +146,21 @@ export function calcularEstadisticasPersonaje(pj: PersonajeJugador): Estadistica
     }
   }
 
+  // Bonos de características procedentes de rasgos mecánicos (ej. Campeón primigenio)
+  const { bonos: bonosStatsRasgos, limitesMaximos: limitesStatsRasgos } = pj
+    ? calcularModificadoresStatsRasgos(pj)
+    : {
+        bonos: { fuerza: 0, destreza: 0, constitucion: 0, inteligencia: 0, sabiduria: 0, carisma: 0 },
+        limitesMaximos: {}
+      };
+
   const puntuacionesEfectivas: Record<Caracteristica, number> = {
-    fuerza: personalizacionesCarac.fuerza?.valorFijo ?? overrides.fuerza ?? carac.fuerza ?? 10,
-    destreza: personalizacionesCarac.destreza?.valorFijo ?? overrides.destreza ?? carac.destreza ?? 10,
-    constitucion: personalizacionesCarac.constitucion?.valorFijo ?? overrides.constitucion ?? carac.constitucion ?? 10,
-    inteligencia: personalizacionesCarac.inteligencia?.valorFijo ?? overrides.inteligencia ?? carac.inteligencia ?? 10,
-    sabiduria: personalizacionesCarac.sabiduria?.valorFijo ?? overrides.sabiduria ?? carac.sabiduria ?? 10,
-    carisma: personalizacionesCarac.carisma?.valorFijo ?? overrides.carisma ?? carac.carisma ?? 10
+    fuerza: personalizacionesCarac.fuerza?.valorFijo ?? overrides.fuerza ?? Math.min(limitesStatsRasgos.fuerza || 20, (carac.fuerza ?? 10) + bonosStatsRasgos.fuerza),
+    destreza: personalizacionesCarac.destreza?.valorFijo ?? overrides.destreza ?? Math.min(limitesStatsRasgos.destreza || 20, (carac.destreza ?? 10) + bonosStatsRasgos.destreza),
+    constitucion: personalizacionesCarac.constitucion?.valorFijo ?? overrides.constitucion ?? Math.min(limitesStatsRasgos.constitucion || 20, (carac.constitucion ?? 10) + bonosStatsRasgos.constitucion),
+    inteligencia: personalizacionesCarac.inteligencia?.valorFijo ?? overrides.inteligencia ?? Math.min(limitesStatsRasgos.inteligencia || 20, (carac.inteligencia ?? 10) + bonosStatsRasgos.inteligencia),
+    sabiduria: personalizacionesCarac.sabiduria?.valorFijo ?? overrides.sabiduria ?? Math.min(limitesStatsRasgos.sabiduria || 20, (carac.sabiduria ?? 10) + bonosStatsRasgos.sabiduria),
+    carisma: personalizacionesCarac.carisma?.valorFijo ?? overrides.carisma ?? Math.min(limitesStatsRasgos.carisma || 20, (carac.carisma ?? 10) + bonosStatsRasgos.carisma)
   };
 
   // Aplicar bonos y overrides pasivos a características
@@ -242,6 +227,18 @@ export function calcularEstadisticasPersonaje(pj: PersonajeJugador): Estadistica
     }
   }
 
+  // Enfoque fanático (Senda del Fanático): bono de Daño de Furia a todas las salvaciones si está activo
+  const rasgoEnfoque = (pj?.rasgos || []).find(
+    (r) => (r.id.includes("enfoque_fanatico") || normalizar(r.nombre).includes("enfoque fanatico")) && r.activo
+  );
+  if (rasgoEnfoque) {
+    const nivelBarbaro = obtenerNivelClasePersonaje(pj as PersonajeJugador, "bárbaro") || obtenerNivelClasePersonaje(pj as PersonajeJugador, "barbaro") || pj?.nivel || 1;
+    const bonoFuriaSalv = obtenerBonoDanoFuria(nivelBarbaro);
+    for (const k of Object.keys(salvaciones) as Caracteristica[]) {
+      salvaciones[k] += bonoFuriaSalv;
+    }
+  }
+
   const habilidades = {} as Record<Habilidad, number>;
   const listaHabilidades = Object.keys(MAPA_HABILIDAD_A_CARACTERISTICA) as Habilidad[];
   const grados = pj?.gradosHabilidades || {};
@@ -266,7 +263,15 @@ export function calcularEstadisticasPersonaje(pj: PersonajeJugador): Estadistica
       }
 
       const modExtra = custom?.modificadorExtra || 0;
-      habilidades[hab] = modBase + bonoHabilidad + modExtra;
+      // Conocimiento primigenio: con Furia activa, Acrobacias, Intimidación, Percepción, Sigilo o Supervivencia usan FUE si es mayor
+      const usaFuerzaPorRasgo =
+        pj &&
+        estaFuriaActiva(pj) &&
+        ["acrobacias", "intimidacion", "percepcion", "sigilo", "supervivencia"].includes(hab) &&
+        (pj.rasgos || []).some((r) => r.activo !== false && normalizar(r.nombre).includes("conocimiento primigenio"));
+
+      const modEfectivo = usaFuerzaPorRasgo && modificadores.fuerza > modBase ? modificadores.fuerza : modBase;
+      habilidades[hab] = modEfectivo + bonoHabilidad + modExtra;
     }
   }
 
@@ -347,8 +352,19 @@ export function calcularEstadisticasPersonaje(pj: PersonajeJugador): Estadistica
     // Sin armadura equipada
     caBase = 10;
     desglosePartes.push(`Base 10`);
-    if (esBarbaro) {
-      // Defensa sin armadura Bárbaro: 10 + DES + CON
+
+    // Comprobar primero rasgos mecánicos (Bárbaro, Monje o clases Homebrew con Defensa sin armadura)
+    const defSinArmadura = pj ? calcularDefensaSinArmaduraRasgos(pj, modificadores) : null;
+    if (defSinArmadura?.aplica) {
+      const statNom = (defSinArmadura.caracteristicaExtra || "con").toUpperCase();
+      const bonoStat = defSinArmadura.bonoExtra;
+      desglosePartes.push(`DES ${modDesAplicado >= 0 ? `+${modDesAplicado}` : modDesAplicado}`);
+      if (bonoStat !== 0) {
+        desglosePartes.push(`${statNom} ${bonoStat >= 0 ? `+${bonoStat}` : bonoStat}`);
+        caBase += bonoStat;
+      }
+    } else if (esBarbaro) {
+      // Fallback si el rasgo aún no fue sincronizado
       const modCon = modificadores.constitucion || 0;
       desglosePartes.push(`DES ${modDesAplicado >= 0 ? `+${modDesAplicado}` : modDesAplicado}`);
       if (modCon !== 0) {
@@ -356,7 +372,7 @@ export function calcularEstadisticasPersonaje(pj: PersonajeJugador): Estadistica
         caBase += modCon;
       }
     } else if (esMonje && !escudoObj) {
-      // Defensa sin armadura Monje: 10 + DES + SAB (sin escudo)
+      // Fallback Monje
       const modSab = modificadores.sabiduria || 0;
       desglosePartes.push(`DES ${modDesAplicado >= 0 ? `+${modDesAplicado}` : modDesAplicado}`);
       if (modSab !== 0) {
@@ -481,6 +497,11 @@ export function calcularEstadisticasPersonaje(pj: PersonajeJugador): Estadistica
     escudoNoCompetente
   };
 
+  const nivelBarbaro = pj ? obtenerNivelClasePersonaje(pj, "Bárbaro") : 0;
+  const furiaActiva = pj ? estaFuriaActiva(pj) : false;
+  const bonoDanoFuria = furiaActiva && nivelBarbaro > 0 ? obtenerBonoDanoFuria(nivelBarbaro) : 0;
+  const bonoVelocidadRasgos = pj ? calcularBonoVelocidadRasgos(pj) : 0;
+
   return {
     bonoCompetencia,
     puntuacionesEfectivas,
@@ -490,7 +511,9 @@ export function calcularEstadisticasPersonaje(pj: PersonajeJugador): Estadistica
     pasivas,
     claseArmadura,
     penalizacionArmadura,
-    desventajaSigiloArmadura
+    desventajaSigiloArmadura,
+    bonoVelocidadRasgos,
+    bonoDanoFuria
   };
 }
 
@@ -591,7 +614,9 @@ export function usarAccionesPersonajes() {
       gastarUsoRasgoPersonaje:            s.gastarUsoRasgoPersonaje,
       recuperarUsoRasgoPersonaje:         s.recuperarUsoRasgoPersonaje,
       establecerUsosRestantesRasgoPersonaje: s.establecerUsosRestantesRasgoPersonaje,
-      sincronizarRasgosPersonaje:         s.sincronizarRasgosPersonaje
+      sincronizarRasgosPersonaje:         s.sincronizarRasgosPersonaje,
+      alternarActivoRasgo:                s.alternarActivoRasgo,
+      actualizarSeleccionRasgo:           s.actualizarSeleccionRasgo
     }))
   );
 }

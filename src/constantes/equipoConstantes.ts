@@ -360,3 +360,38 @@ export function crearInfoCaBase(caBase: number): InfoPropiedad {
     textoCompleto: `CA Base: ${caBase}`
   };
 }
+
+/**
+ * Tabla de referencia de armaduras oficiales de D&D 5.5e
+ */
+export interface ReferenciaArmadura {
+  caBase: number;
+  tipo: "Ligera" | "Mediana" | "Pesada";
+  limiteDes: number | null; // null = sin límite, 2 = máx +2, 0 = no suma
+  desventajaSigilo?: boolean;
+}
+
+export const ARMADURAS_OFICIALES: Record<string, ReferenciaArmadura> = {
+  "acolchada": { caBase: 11, tipo: "Ligera", limiteDes: null, desventajaSigilo: true },
+  "armadura acolchada": { caBase: 11, tipo: "Ligera", limiteDes: null, desventajaSigilo: true },
+  "cuero": { caBase: 11, tipo: "Ligera", limiteDes: null },
+  "armadura de cuero": { caBase: 11, tipo: "Ligera", limiteDes: null },
+  "cuero tachonado": { caBase: 12, tipo: "Ligera", limiteDes: null },
+  "armadura de cuero tachonado": { caBase: 12, tipo: "Ligera", limiteDes: null },
+
+  "pieles": { caBase: 12, tipo: "Mediana", limiteDes: 2 },
+  "armadura de pieles": { caBase: 12, tipo: "Mediana", limiteDes: 2 },
+  "camison de malla": { caBase: 13, tipo: "Mediana", limiteDes: 2 },
+  "camisa de malla": { caBase: 13, tipo: "Mediana", limiteDes: 2 },
+  "cota de escamas": { caBase: 14, tipo: "Mediana", limiteDes: 2, desventajaSigilo: true },
+  "coraza": { caBase: 14, tipo: "Mediana", limiteDes: 2 },
+  "semiplacas": { caBase: 15, tipo: "Mediana", limiteDes: 2, desventajaSigilo: true },
+  "semi-placas": { caBase: 15, tipo: "Mediana", limiteDes: 2, desventajaSigilo: true },
+
+  "cota de anillas": { caBase: 14, tipo: "Pesada", limiteDes: 0, desventajaSigilo: true },
+  "cota de malla": { caBase: 16, tipo: "Pesada", limiteDes: 0, desventajaSigilo: true },
+  "bandas": { caBase: 17, tipo: "Pesada", limiteDes: 0, desventajaSigilo: true },
+  "cota de bandas": { caBase: 17, tipo: "Pesada", limiteDes: 0, desventajaSigilo: true },
+  "placas": { caBase: 18, tipo: "Pesada", limiteDes: 0, desventajaSigilo: true },
+  "armadura de placas": { caBase: 18, tipo: "Pesada", limiteDes: 0, desventajaSigilo: true }
+};

@@ -26,6 +26,7 @@ export const PanelAtributosPersonaje: React.FC<PanelAtributosPersonajeProps> = (
   const { modificadores, salvaciones, pasivas } = statsCalculadas;
 
   // Estado local para permitir escribir libremente y dejar el campo vacío antes de confirmar
+  const [campoEnEdicion, setCampoEnEdicion] = useState<Caracteristica | null>(null);
   const [valoresLocales, setValoresLocales] = useState<Record<Caracteristica, string>>({
     fuerza: String(personaje.caracteristicas?.fuerza ?? 10),
     destreza: String(personaje.caracteristicas?.destreza ?? 10),
@@ -57,6 +58,7 @@ export const PanelAtributosPersonaje: React.FC<PanelAtributosPersonajeProps> = (
         [carac]: String(personaje.caracteristicas?.[carac] ?? 10)
       }));
     }
+    setCampoEnEdicion(null);
   };
 
   const penalizacionSinComp = !!statsCalculadas.penalizacionArmadura?.sinCompetencia;
@@ -74,19 +76,21 @@ export const PanelAtributosPersonaje: React.FC<PanelAtributosPersonajeProps> = (
           const salvTexto = bonoSalvacion >= 0 ? `+${bonoSalvacion}` : `${bonoSalvacion}`;
           const tieneCompetenciaSalv = personaje.competenciasSalvacion?.[carac] || false;
 
-          // Evaluación integral de condiciones activas para Característica y Salvación
+          // Evaluación integral de condiciones activas y rasgos para Característica y Salvación
           const evalCarac = evaluarEfectosCondicionesEnTirada({
             tipo: "caracteristica",
             caracteristica: carac,
             penalizacionArmadura: penalizacionSinComp,
-            condicionesActivas: personaje.condicionesActivas
+            condicionesActivas: personaje.condicionesActivas,
+            personaje: personaje
           });
 
           const evalSalv = evaluarEfectosCondicionesEnTirada({
             tipo: "salvacion",
             caracteristica: carac,
             penalizacionArmadura: penalizacionSinComp,
-            condicionesActivas: personaje.condicionesActivas
+            condicionesActivas: personaje.condicionesActivas,
+            personaje: personaje
           });
 
           const motivosCarac = [
@@ -133,30 +137,57 @@ export const PanelAtributosPersonaje: React.FC<PanelAtributosPersonajeProps> = (
                 <span className={estilos.textoModificador}>{modTexto}</span>
               </div>
 
-              {/* Input numérico directo sin flechas, editable libremente al estilo de la vida */}
-              <input
-                type="number"
-                className={estilos.badgePuntuacionBase}
-                value={override !== null && override !== undefined ? override : valoresLocales[carac]}
-                onClick={(e) => e.stopPropagation()}
-                onMouseDown={(e) => e.stopPropagation()}
-                onChange={(e) => {
-                  const texto = e.target.value;
-                  setValoresLocales((prev) => ({ ...prev, [carac]: texto }));
-                }}
-                onBlur={() => manejarGuardarAtributo(carac)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    manejarGuardarAtributo(carac);
-                    (e.target as HTMLInputElement).blur();
-                  }
-                }}
-                title={
+              {/* Input numérico directo sin flechas: muestra puntuación efectiva y permite editar la base */}
+              {(() => {
+                const puntBase = personaje.caracteristicas?.[carac] ?? 10;
+                const puntEfectiva = statsCalculadas.puntuacionesEfectivas?.[carac] ?? puntBase;
+                const tieneBono = puntEfectiva !== puntBase;
+                const diferencia = puntEfectiva - puntBase;
+                const valorMostrar =
+                  override !== null && override !== undefined
+                    ? override
+                    : campoEnEdicion === carac
+                    ? valoresLocales[carac]
+                    : puntEfectiva;
+
+                const tooltipTexto =
                   override !== null && override !== undefined
                     ? `Override fijo activo: ${override}. Modifica en configuración.`
-                    : "Puntuación base. Escribe para modificar directamente."
-                }
-              />
+                    : tieneBono
+                    ? `Puntuación efectiva: ${puntEfectiva} (Base: ${puntBase} ${diferencia > 0 ? `+${diferencia}` : `${diferencia}`} por Rasgos). Clic para editar base.`
+                    : "Puntuación base. Clic para modificar directamente.";
+
+                return (
+                  <input
+                    type="number"
+                    className={estilos.badgePuntuacionBase}
+                    style={
+                      tieneBono && (override === null || override === undefined)
+                        ? { borderColor: "rgba(56, 189, 248, 0.7)", color: "#7dd3fc" }
+                        : undefined
+                    }
+                    value={valorMostrar}
+                    onClick={(e) => e.stopPropagation()}
+                    onMouseDown={(e) => e.stopPropagation()}
+                    onFocus={() => {
+                      setCampoEnEdicion(carac);
+                      setValoresLocales((prev) => ({ ...prev, [carac]: String(puntBase) }));
+                    }}
+                    onChange={(e) => {
+                      const texto = e.target.value;
+                      setValoresLocales((prev) => ({ ...prev, [carac]: texto }));
+                    }}
+                    onBlur={() => manejarGuardarAtributo(carac)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        manejarGuardarAtributo(carac);
+                        (e.target as HTMLInputElement).blur();
+                      }
+                    }}
+                    title={tooltipTexto}
+                  />
+                );
+              })()}
 
               {/* Fila de Salvación: Check aislado a la izquierda y Tirada a la derecha */}
               <div

@@ -81,14 +81,15 @@ export const PanelHabilidadesPersonaje: React.FC<PanelHabilidadesPersonajeProps>
             const caracAsociada = MAPA_HABILIDAD_A_CARACTERISTICA[hab] || "destreza";
             const abrevCarac = ABREVIATURA_CARACTERISTICA[caracAsociada] || "Des";
 
-            // Evaluación integral de condiciones activas para cada habilidad
+            // Evaluación integral de condiciones activas y rasgos para cada habilidad
             const evalHab = evaluarEfectosCondicionesEnTirada({
               tipo: "caracteristica",
               caracteristica: caracAsociada,
               habilidad: hab,
               penalizacionArmadura: penalizacionSinComp,
               desventajaSigiloArmadura,
-              condicionesActivas: personaje.condicionesActivas
+              condicionesActivas: personaje.condicionesActivas,
+              personaje: personaje
             });
 
             const motivosHab = [

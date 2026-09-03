@@ -665,11 +665,14 @@ export function obtenerConjurosSubclasePersonaje(
         ];
 
   for (const item of listaClases) {
-    if (item.nombre && item.subclase && item.nivel > 0) {
+    const nombreClase = item.nombre || (item as { clase?: string }).clase || "";
+    const subclase = item.subclase || "";
+    const nivel = item.nivel || 1;
+    if (nombreClase && subclase && nivel > 0) {
       const res = obtenerConjurosSiemprePreparadosSubclase(
-        item.nombre,
-        item.subclase,
-        item.nivel
+        nombreClase,
+        subclase,
+        nivel
       );
       res.conjuros.forEach((c) => conjurosTotales.add(c));
       res.trucos.forEach((t) => trucosTotales.add(t));

@@ -143,13 +143,23 @@ export const VistaAtaquesJugador: React.FC = () => {
 
     const ataques: AtaquePersonajeCalculado[] = [];
     const inventario = personajeActivo.inventario || [];
-    const normalizar = (s: string) => s.toLowerCase().trim();
+    const normalizar = (s: string) =>
+      s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
 
     const bonoCompetencia = statsCalculadas.bonoCompetencia;
     const modificadores = statsCalculadas.modificadores;
 
     const clasePrincipal = personajeActivo.clase || "";
     const esMonje = clasePrincipal.toLowerCase().includes("monje");
+
+    const furiaEstaActiva = Boolean(
+      (personajeActivo.rasgos || []).some(
+        (r) => (r.nombre.toLowerCase().trim() === "furia" || r.id.toLowerCase().trim() === "rasgo_cls_barbaro_furia") && r.activo
+      ) ||
+      (personajeActivo.condicionesActivas || []).some(
+        (c) => c.toLowerCase().includes("furia (rage)") || (c.toLowerCase().includes("furia") && !c.toLowerCase().includes("furia de los dioses"))
+      )
+    );
 
     // 1. Armas Equipadas
     const armasEquipadas = inventario.filter(
@@ -252,9 +262,51 @@ export const VistaAtaquesJugador: React.FC = () => {
       const bonoAtaque = (esCompetenteArma ? bonoCompetencia : 0) + modAtributo + bonoMagico;
       const dadoDanoBase = objetoCompendio?.dadoDano || dadoBaseInferido;
       const tipoDano = objetoCompendio?.tipoDano || tipoDanoInferido;
-      const modDanoTotal = modAtributo + bonoMagico;
+      const bonoFuriaArma = (caracUsada === "fuerza" && statsCalculadas.bonoDanoFuria > 0) ? statsCalculadas.bonoDanoFuria : 0;
+      const modDanoTotal = modAtributo + bonoMagico + bonoFuriaArma;
       const signoMod = modDanoTotal >= 0 ? `+${modDanoTotal}` : `${modDanoTotal}`;
-      const formulaDano = modDanoTotal !== 0 ? `${dadoDanoBase}${signoMod}` : dadoDanoBase;
+
+      // Dados adicionales de Frenesí y Golpe Brutal con ataques que usan Fuerza
+      const dadosExtraFuerza: string[] = [];
+      let formulaExtraFuriaDivina: string | undefined;
+
+      if (caracUsada === "fuerza") {
+        const rasgoFrenesi = (personajeActivo.rasgos || []).find(
+          (r) => (r.id.includes("frenesi") || r.nombre.toLowerCase().includes("frenesí") || r.nombre.toLowerCase().includes("frenesi")) && r.activo
+        );
+        if (rasgoFrenesi) {
+          const dadosF = rasgoFrenesi.formulaDados || `${statsCalculadas.bonoDanoFuria || 2}d6`;
+          dadosExtraFuerza.push(dadosF);
+        }
+
+        const rasgoGolpeBrutal = furiaEstaActiva ? (personajeActivo.rasgos || []).find(
+          (r) => (r.id.includes("golpe_brutal") || r.nombre.toLowerCase().includes("golpe brutal")) && r.activo
+        ) : undefined;
+        if (rasgoGolpeBrutal) {
+          const dadosGb = rasgoGolpeBrutal.formulaDados || "1d10";
+          dadosExtraFuerza.push(dadosGb);
+        }
+
+        const rasgoFuriaDivina = furiaEstaActiva ? (personajeActivo.rasgos || []).find(
+          (r) => (r.id.includes("furia_divina") || normalizar(r.nombre).includes("furia divina")) && r.activo
+        ) : undefined;
+        if (rasgoFuriaDivina) {
+          const claseBarbaro = (personajeActivo.clases || []).find((c) => normalizar(c.nombre).includes("barbaro"));
+          const nivelBarbaro = claseBarbaro?.nivel || (normalizar(personajeActivo.clase || "").includes("barbaro") ? personajeActivo.nivel : personajeActivo.nivel || 1);
+          const bonoMitadNivel = Math.floor(nivelBarbaro / 2);
+          formulaExtraFuriaDivina = bonoMitadNivel > 0 ? `1d6+${bonoMitadNivel}` : "1d6";
+        }
+      }
+
+      const strExtraFuerza = dadosExtraFuerza.length > 0 ? `+${dadosExtraFuerza.join("+")}` : "";
+      let dadoDanoTotalBase = `${dadoDanoBase}${strExtraFuerza}`;
+      let formulaDano = modDanoTotal !== 0 ? `${dadoDanoTotalBase}${signoMod}` : dadoDanoTotalBase;
+
+      // Si Furia Divina está activa, se agrega con '/' como grupo de daño secundario independiente (Radiante/Necrótico)
+      if (formulaExtraFuriaDivina) {
+        dadoDanoTotalBase = `${dadoDanoTotalBase}/${formulaExtraFuriaDivina}`;
+        formulaDano = `${formulaDano}/${formulaExtraFuriaDivina}`;
+      }
 
       // Daño versátil si aplica (extrayendo únicamente dados limpios para sumar el modificador de atributo)
       let formulaVersatil: string | undefined;
@@ -264,16 +316,27 @@ export const VistaAtaquesJugador: React.FC = () => {
 
       if (rawVersatil) {
         const matchDadosV = rawVersatil.match(/(\d+d\d+)/i);
-        dadoVersatilBase = matchDadosV ? matchDadosV[1] : rawVersatil.trim();
+        const dadoV = matchDadosV ? matchDadosV[1] : rawVersatil.trim();
+        dadoVersatilBase = `${dadoV}${strExtraFuerza}`;
         formulaVersatil = modDanoTotal !== 0 ? `${dadoVersatilBase}${signoMod}` : dadoVersatilBase;
+        if (formulaExtraFuriaDivina) {
+          dadoVersatilBase = `${dadoVersatilBase}/${formulaExtraFuriaDivina}`;
+          formulaVersatil = `${formulaVersatil}/${formulaExtraFuriaDivina}`;
+        }
       } else if (esPropiedadVersatil) {
-        if (dadoDanoBase.includes("1d6")) dadoVersatilBase = "1d8";
-        else if (dadoDanoBase.includes("1d8")) dadoVersatilBase = "1d10";
-        else if (dadoDanoBase.includes("1d10")) dadoVersatilBase = "1d12";
-        else if (dadoDanoBase.includes("1d4")) dadoVersatilBase = "1d6";
+        let dadoV: string | undefined;
+        if (dadoDanoBase.includes("1d6")) dadoV = "1d8";
+        else if (dadoDanoBase.includes("1d8")) dadoV = "1d10";
+        else if (dadoDanoBase.includes("1d10")) dadoV = "1d12";
+        else if (dadoDanoBase.includes("1d4")) dadoV = "1d6";
 
-        if (dadoVersatilBase) {
+        if (dadoV) {
+          dadoVersatilBase = `${dadoV}${strExtraFuerza}`;
           formulaVersatil = modDanoTotal !== 0 ? `${dadoVersatilBase}${signoMod}` : dadoVersatilBase;
+          if (formulaExtraFuriaDivina) {
+            dadoVersatilBase = `${dadoVersatilBase}/${formulaExtraFuriaDivina}`;
+            formulaVersatil = `${formulaVersatil}/${formulaExtraFuriaDivina}`;
+          }
         }
       }
 
@@ -305,7 +368,7 @@ export const VistaAtaquesJugador: React.FC = () => {
         caracteristicaUsada: caracUsada,
         bonoAtaque,
         dadoDano: formulaDano,
-        dadoDanoBase,
+        dadoDanoBase: dadoDanoTotalBase,
         modificadorDano: modDanoTotal,
         esDanoFijo: false,
         danoVersatil: formulaVersatil,
@@ -385,8 +448,34 @@ export const VistaAtaquesJugador: React.FC = () => {
         esDistancia: false
       });
     } else {
-      // Regla D&D 5.5e estándar: Daño Fijo 1 + FUE (Sin tirar dados de daño)
-      const danoFijo = Math.max(1, 1 + modDesarmado);
+      // Regla D&D 5.5e estándar: Daño Fijo 1 + FUE (+ bono Furia si aplica)
+      const bonoFuriaDesarmado = (caracDesarmado === "fuerza" && statsCalculadas.bonoDanoFuria > 0) ? statsCalculadas.bonoDanoFuria : 0;
+      const modDesarmadoTotal = modDesarmado + bonoFuriaDesarmado;
+      const danoFijo = Math.max(1, 1 + modDesarmadoTotal);
+
+      let formulaDesarmado = `${danoFijo}`;
+      let dadoBaseDesarmado = "1";
+      let esDanoFijoDesarmado = true;
+      let tipoDanoDesarmado = "Contundente";
+      let modDanoDesarmadoFinal = modDesarmadoTotal;
+
+      const rasgoFuriaDivina = furiaEstaActiva ? (personajeActivo.rasgos || []).find(
+        (r) => (r.id.includes("furia_divina") || normalizar(r.nombre).includes("furia divina")) && r.activo
+      ) : undefined;
+      if (caracDesarmado === "fuerza" && rasgoFuriaDivina) {
+        const claseBarbaro = (personajeActivo.clases || []).find((c) => normalizar(c.nombre).includes("barbaro"));
+        const nivelBarbaro = claseBarbaro?.nivel || (normalizar(personajeActivo.clase || "").includes("barbaro") ? personajeActivo.nivel : personajeActivo.nivel || 1);
+        const bonoMitadNivel = Math.floor(nivelBarbaro / 2);
+        // Para golpe desarmado no se usa '/' porque el daño base fijo provocaría que TaleSpire hiciera fallback a 1d20.
+        // Se compone directamente como 1d6 + Fuerza + mitad de nivel de bárbaro (+ bono furia si aplica).
+        modDanoDesarmadoFinal = modDesarmadoTotal + bonoMitadNivel;
+        const signoFd = modDanoDesarmadoFinal !== 0 ? (modDanoDesarmadoFinal > 0 ? `+${modDanoDesarmadoFinal}` : `${modDanoDesarmadoFinal}`) : "";
+        formulaDesarmado = `1d6${signoFd}`;
+        dadoBaseDesarmado = "1d6";
+        esDanoFijoDesarmado = false;
+        tipoDanoDesarmado = "Contundente (Radiante o Necrótico)";
+      }
+
       ataques.push({
         id: "ataque-desarmado",
         nombre: "Golpe sin Armas",
@@ -395,11 +484,11 @@ export const VistaAtaquesJugador: React.FC = () => {
         tipoAccion: "accion",
         caracteristicaUsada: caracDesarmado,
         bonoAtaque: bonoAtaqueDesarmado,
-        dadoDano: `${danoFijo}`,
-        dadoDanoBase: "1",
-        modificadorDano: modDesarmado,
-        esDanoFijo: true,
-        tipoDano: "Contundente",
+        dadoDano: formulaDesarmado,
+        dadoDanoBase: dadoBaseDesarmado,
+        modificadorDano: modDanoDesarmadoFinal,
+        esDanoFijo: esDanoFijoDesarmado,
+        tipoDano: tipoDanoDesarmado,
         alcance: "5 ft",
         propiedades: [],
         tieneTiradaAtaque: true,
@@ -419,11 +508,47 @@ export const VistaAtaquesJugador: React.FC = () => {
 
     const caracImprovisada: Caracteristica = caracteristicasArmas["ataque-arma-improvisada"] || "fuerza";
     const modImprovisada = modificadores[caracImprovisada] || 0;
+    const bonoFuriaImprovisada = (caracImprovisada === "fuerza" && statsCalculadas.bonoDanoFuria > 0) ? statsCalculadas.bonoDanoFuria : 0;
+    const modImprovisadaTotal = modImprovisada + bonoFuriaImprovisada;
     const bonoAtaqueImprovisada = (esCompetenteImprovisada ? bonoCompetencia : 0) + modImprovisada;
-    const formulaImprovisada =
-      modImprovisada !== 0
-        ? `1d4${modImprovisada >= 0 ? `+${modImprovisada}` : `${modImprovisada}`}`
-        : "1d4";
+
+    const dadosExtraImprovisada: string[] = [];
+    let formulaExtraFuriaImprovisada: string | undefined;
+
+    if (caracImprovisada === "fuerza") {
+      const rasgoFrenesi = (personajeActivo.rasgos || []).find(
+        (r) => (r.id.includes("frenesi") || r.nombre.toLowerCase().includes("frenesí") || r.nombre.toLowerCase().includes("frenesi")) && r.activo
+      );
+      if (rasgoFrenesi) {
+        dadosExtraImprovisada.push(rasgoFrenesi.formulaDados || `${statsCalculadas.bonoDanoFuria || 2}d6`);
+      }
+      const rasgoGolpeBrutal = furiaEstaActiva ? (personajeActivo.rasgos || []).find(
+        (r) => (r.id.includes("golpe_brutal") || r.nombre.toLowerCase().includes("golpe brutal")) && r.activo
+      ) : undefined;
+      if (rasgoGolpeBrutal) {
+        dadosExtraImprovisada.push(rasgoGolpeBrutal.formulaDados || "1d10");
+      }
+      const rasgoFuriaDivina = furiaEstaActiva ? (personajeActivo.rasgos || []).find(
+        (r) => (r.id.includes("furia_divina") || normalizar(r.nombre).includes("furia divina")) && r.activo
+      ) : undefined;
+      if (rasgoFuriaDivina) {
+        const claseBarbaro = (personajeActivo.clases || []).find((c) => normalizar(c.nombre).includes("barbaro"));
+        const nivelBarbaro = claseBarbaro?.nivel || (normalizar(personajeActivo.clase || "").includes("barbaro") ? personajeActivo.nivel : personajeActivo.nivel || 1);
+        const bonoMitadNivel = Math.floor(nivelBarbaro / 2);
+        formulaExtraFuriaImprovisada = bonoMitadNivel > 0 ? `1d6+${bonoMitadNivel}` : "1d6";
+      }
+    }
+    const strExtraImprovisada = dadosExtraImprovisada.length > 0 ? `+${dadosExtraImprovisada.join("+")}` : "";
+    let dadoDanoImprovisadaBase = `1d4${strExtraImprovisada}`;
+    let formulaImprovisada =
+      modImprovisadaTotal !== 0
+        ? `${dadoDanoImprovisadaBase}${modImprovisadaTotal >= 0 ? `+${modImprovisadaTotal}` : `${modImprovisadaTotal}`}`
+        : dadoDanoImprovisadaBase;
+
+    if (formulaExtraFuriaImprovisada) {
+      dadoDanoImprovisadaBase = `${dadoDanoImprovisadaBase}/${formulaExtraFuriaImprovisada}`;
+      formulaImprovisada = `${formulaImprovisada}/${formulaExtraFuriaImprovisada}`;
+    }
 
     ataques.push({
       id: "ataque-arma-improvisada",
@@ -434,8 +559,8 @@ export const VistaAtaquesJugador: React.FC = () => {
       caracteristicaUsada: caracImprovisada,
       bonoAtaque: bonoAtaqueImprovisada,
       dadoDano: formulaImprovisada,
-      dadoDanoBase: "1d4",
-      modificadorDano: modImprovisada,
+      dadoDanoBase: dadoDanoImprovisadaBase,
+      modificadorDano: modImprovisadaTotal,
       esDanoFijo: false,
       tipoDano: "Contundente",
       alcance: "5 ft (20/60 ft arrojadiza)",
@@ -566,17 +691,29 @@ export const VistaAtaquesJugador: React.FC = () => {
     try {
       const nombrePj = personajeActivo?.nombre?.trim() || "Personaje";
       
-      // Evaluación integral de condiciones activas y penalizaciones de equipo (D&D 5.5e)
+      // Evaluación integral de condiciones activas, penalizaciones de equipo y rasgos mecánicos (D&D 5.5e)
       const evaluacionCondiciones = evaluarEfectosCondicionesEnTirada({
         tipo: "ataque",
         caracteristica: ataque.caracteristicaUsada as Caracteristica,
         penalizacionArmadura: !!statsCalculadas?.penalizacionArmadura?.sinCompetencia,
         desventajaSigiloArmadura: !!statsCalculadas?.desventajaSigiloArmadura,
-        condicionesActivas: personajeActivo?.condicionesActivas
+        condicionesActivas: personajeActivo?.condicionesActivas,
+        personaje: personajeActivo
       });
 
       const bonoFinal = ataque.bonoAtaque + evaluacionCondiciones.penalizadorD20;
       const bonoStr = bonoFinal >= 0 ? `+${bonoFinal}` : `${bonoFinal}`;
+
+      // Si Golpe Brutal está activo y el ataque usa Fuerza, se renuncia a la ventaja (D&D 5.5e)
+      if (ataque.caracteristicaUsada === "fuerza") {
+        const rasgoGolpeBrutal = (personajeActivo?.rasgos || []).find(
+          (r) => (r.id.includes("golpe_brutal") || r.nombre.toLowerCase().includes("golpe brutal")) && r.activo
+        );
+        if (rasgoGolpeBrutal && evaluacionCondiciones.modoEfectivo === "ventaja") {
+          evaluacionCondiciones.modoEfectivo = "plano";
+          evaluacionCondiciones.motivosModificadores.push("Golpe Brutal (Renuncia a ventaja)");
+        }
+      }
 
       const motivos = [
         ...evaluacionCondiciones.motivosDesventaja,
@@ -628,7 +765,17 @@ export const VistaAtaquesJugador: React.FC = () => {
 
       const nombrePj = personajeActivo?.nombre?.trim() || "Personaje";
       const formulaDadoUsar = versatil && ataque.danoVersatil ? ataque.danoVersatil : ataque.dadoDano;
-      const formulaDados = `!Daño ${sanitizarEtiqueta(ataque.tipoDano)}:${formulaDadoUsar}`;
+
+      let formulaDados: string;
+      if (formulaDadoUsar.includes("/")) {
+        const partes = formulaDadoUsar.split("/");
+        const parteArma = partes[0].trim();
+        const parteExtra = partes.slice(1).join("/").trim();
+        formulaDados = `!Daño ${sanitizarEtiqueta(ataque.tipoDano)}:${parteArma}/Furia Divina (Radiante o Necrótico):${parteExtra}`;
+      } else {
+        formulaDados = `!Daño ${sanitizarEtiqueta(ataque.tipoDano)}:${formulaDadoUsar}`;
+      }
+
       const etiquetaLog = `${nombrePj} - Daño ${ataque.nombre}${versatil ? " (2 Manos)" : ""}`;
       await lanzarDadosTaleSpire(formulaDados, etiquetaLog);
     } catch (err) {
@@ -643,23 +790,33 @@ export const VistaAtaquesJugador: React.FC = () => {
       const nombrePj = personajeActivo?.nombre?.trim() || "Personaje";
       const dadoBase = versatil && ataque.dadoVersatilBase ? ataque.dadoVersatilBase : ataque.dadoDanoBase;
 
-      // Duplicar el número de dados (ej. "1d8" -> "2d8", "1d10" -> "2d10", "2d6" -> "4d6")
-      let formulaCritico = dadoBase;
-      const matchDados = dadoBase.match(/^(\d+)d(\d+)/i);
-      if (matchDados) {
-        const numDados = parseInt(matchDados[1], 10) * 2;
-        const tipoDado = matchDados[2];
-        formulaCritico = `${numDados}d${tipoDado}`;
+      let formulaDados: string;
+      if (dadoBase.includes("/")) {
+        const partesBase = dadoBase.split("/");
+        const baseArma = partesBase[0].trim();
+        const baseExtra = partesBase.slice(1).join("/").trim();
+
+        // Duplicar dados de arma física
+        const criticoArma = baseArma.replace(/(\d+)d(\d+)/gi, (_, n, d) => `${parseInt(n, 10) * 2}d${d}`);
+        const signoArma = ataque.modificadorDano !== 0 ? (ataque.modificadorDano >= 0 ? `+${ataque.modificadorDano}` : `${ataque.modificadorDano}`) : "";
+
+        // Duplicar dados de Furia Divina (1d6 -> 2d6) conservando el bono de mitad de nivel (+X)
+        const criticoExtra = baseExtra.replace(/(\d+)d(\d+)/gi, (_, n, d) => `${parseInt(n, 10) * 2}d${d}`);
+
+        formulaDados = `!Crítico ${sanitizarEtiqueta(ataque.tipoDano)}:${criticoArma}${signoArma}/Furia Divina (Radiante o Necrótico):${criticoExtra}`;
       } else {
-        formulaCritico = `2d6`;
+        // Duplicar el número de dados de cada grupo (ej. "1d12+2d6+1d10" -> "2d12+4d6+2d10")
+        const formulaCriticoDados = dadoBase.replace(/(\d+)d(\d+)/gi, (_, n, d) => `${parseInt(n, 10) * 2}d${d}`);
+        let formulaCritico = formulaCriticoDados || "2d6";
+
+        if (ataque.modificadorDano !== 0) {
+          const signo = ataque.modificadorDano >= 0 ? `+${ataque.modificadorDano}` : `${ataque.modificadorDano}`;
+          formulaCritico = `${formulaCritico}${signo}`;
+        }
+
+        formulaDados = `!Crítico ${sanitizarEtiqueta(ataque.tipoDano)}:${formulaCritico}`;
       }
 
-      if (ataque.modificadorDano !== 0) {
-        const signo = ataque.modificadorDano >= 0 ? `+${ataque.modificadorDano}` : `${ataque.modificadorDano}`;
-        formulaCritico = `${formulaCritico}${signo}`;
-      }
-
-      const formulaDados = `!Crítico ${sanitizarEtiqueta(ataque.tipoDano)}:${formulaCritico}`;
       const etiquetaLog = `${nombrePj} - ¡Golpe Crítico! con ${ataque.nombre}${versatil ? " (2 Manos)" : ""}`;
       await lanzarDadosTaleSpire(formulaDados, etiquetaLog);
     } catch (err) {
@@ -967,7 +1124,8 @@ export const VistaAtaquesJugador: React.FC = () => {
                   caracteristica: ataque.caracteristicaUsada as Caracteristica,
                   penalizacionArmadura: !!statsCalculadas?.penalizacionArmadura?.sinCompetencia,
                   desventajaSigiloArmadura: !!statsCalculadas?.desventajaSigiloArmadura,
-                  condicionesActivas: personajeActivo?.condicionesActivas
+                  condicionesActivas: personajeActivo?.condicionesActivas,
+                  personaje: personajeActivo
                 });
 
                 return (

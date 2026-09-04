@@ -7,7 +7,7 @@
 
 import { useShallow } from 'zustand/react/shallow';
 import { usarAlmacenDM } from '@/almacen/usarAlmacenDM';
-import type { PersonajeJugador, Caracteristica, Habilidad, EfectoPasivo } from '@/tipos';
+import type { PersonajeJugador, Caracteristica, Habilidad, EfectoPasivo, GradoCompetencia } from '@/tipos';
 import {
   obtenerBonoCompetenciaPorNivel,
   MAPA_HABILIDAD_A_CARACTERISTICA
@@ -23,7 +23,10 @@ import {
   obtenerNivelClasePersonaje,
   estaFuriaActiva,
   obtenerBonosSalvacionesRasgos,
-  obtenerHabilidadesConFuerzaRasgos
+  obtenerHabilidadesConFuerzaRasgos,
+  tieneMedioBonoHabilidades,
+  obtenerCompetenciasExtraRasgos,
+  obtenerCompetenciasEfectivasTexto
 } from '@/servicios/evaluadorEfectosRasgos';
 import { ARMADURAS_OFICIALES } from '@/constantes/equipoConstantes';
 
@@ -53,6 +56,7 @@ export interface EstadisticasCalculadasPersonaje {
   modificadores: Record<Caracteristica, number>;
   salvaciones: Record<Caracteristica, number>;
   habilidades: Record<Habilidad, number>;
+  gradosHabilidadesEfectivos: Record<Habilidad, GradoCompetencia>;
   pasivas: {
     percepcion: number;
     investigacion: number;
@@ -63,6 +67,10 @@ export interface EstadisticasCalculadasPersonaje {
   desventajaSigiloArmadura: boolean;
   bonoVelocidadRasgos: number;
   bonoDanoFuria: number;
+  competenciasEfectivas: {
+    armasTexto: string;
+    armadurasTexto: string;
+  };
 }
 
 
@@ -250,15 +258,19 @@ export function calcularEstadisticasPersonaje(pj: PersonajeJugador): Estadistica
   }
 
   const habilidades = {} as Record<Habilidad, number>;
+  const gradosHabilidadesEfectivos = {} as Record<Habilidad, GradoCompetencia>;
   const listaHabilidades = Object.keys(MAPA_HABILIDAD_A_CARACTERISTICA) as Habilidad[];
   const grados = pj?.gradosHabilidades || {};
   const personalizaciones = pj?.personalizacionesHabilidades || {};
   const habsConFuerzaRasgos = pj ? obtenerHabilidadesConFuerzaRasgos(pj) : new Set<string>();
+  const tieneAprendiz = pj ? tieneMedioBonoHabilidades(pj) : false;
 
   for (const hab of listaHabilidades) {
     const caracAsociada = MAPA_HABILIDAD_A_CARACTERISTICA[hab];
     const modBase = modificadores[caracAsociada] || 0;
-    const grado = grados[hab] || "ninguna";
+    const gradoBase = grados[hab] || "ninguna";
+    const grado: GradoCompetencia = gradoBase === "ninguna" && tieneAprendiz ? "medio" : gradoBase;
+    gradosHabilidadesEfectivos[hab] = grado;
     const custom = personalizaciones[hab];
 
     if (custom?.valorFijo !== null && custom?.valorFijo !== undefined) {
@@ -475,7 +487,10 @@ export function calcularEstadisticasPersonaje(pj: PersonajeJugador): Estadistica
   let armaduraNoCompetente: string | null = null;
   let escudoNoCompetente: string | null = null;
 
-  const gruposArmadura = pj?.competenciasArmadurasGrupos || [];
+  const compExtraRasgos = pj ? obtenerCompetenciasExtraRasgos(pj) : { armasGrupos: [], armadurasGrupos: [] };
+  const gruposArmadura = Array.from(
+    new Set([...(pj?.competenciasArmadurasGrupos || []), ...compExtraRasgos.armadurasGrupos])
+  );
   const listaArmaduras = pj?.competenciasArmadurasLista || [];
 
   if (armaduraObj) {
@@ -513,6 +528,9 @@ export function calcularEstadisticasPersonaje(pj: PersonajeJugador): Estadistica
   const furiaActiva = pj ? estaFuriaActiva(pj) : false;
   const bonoDanoFuria = furiaActiva && nivelBarbaro > 0 ? obtenerBonoDanoFuria(nivelBarbaro) : 0;
   const bonoVelocidadRasgos = pj ? calcularBonoVelocidadRasgos(pj) : 0;
+  const competenciasEfectivas = pj
+    ? obtenerCompetenciasEfectivasTexto(pj)
+    : { armasTexto: "Ninguna", armadurasTexto: "Ninguna" };
 
   return {
     bonoCompetencia,
@@ -520,12 +538,14 @@ export function calcularEstadisticasPersonaje(pj: PersonajeJugador): Estadistica
     modificadores,
     salvaciones,
     habilidades,
+    gradosHabilidadesEfectivos,
     pasivas,
     claseArmadura,
     penalizacionArmadura,
     desventajaSigiloArmadura,
     bonoVelocidadRasgos,
-    bonoDanoFuria
+    bonoDanoFuria,
+    competenciasEfectivas
   };
 }
 

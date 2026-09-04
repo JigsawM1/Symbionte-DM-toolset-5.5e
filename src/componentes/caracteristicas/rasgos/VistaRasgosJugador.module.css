@@ -1380,8 +1380,8 @@
 }
 
 .gridOpcionesSelectorModal {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  display: flex;
+  flex-wrap: wrap;
   gap: 6px;
 }
 
@@ -1389,13 +1389,14 @@
   background: #1e293b;
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 4px;
-  padding: 6px 8px;
+  padding: 5px 10px;
   cursor: pointer;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
   transition: all 0.15s ease;
-  text-align: left;
+  text-align: center;
 }
 
 .opcionSelectorCard:hover {

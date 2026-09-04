@@ -112,8 +112,11 @@ const TIPOS_EFECTO_DISPONIBLES: { tipo: TipoEfectoMecanico; etiqueta: string; de
   { tipo: "desventaja", etiqueta: "Desventaja en Tiradas d20", desc: "Aplica desventaja táctica en tiradas seleccionadas" },
   { tipo: "bono_salvacion", etiqueta: "Bono a Tiradas de Salvación", desc: "Bono a salvaciones de una característica o universales (ej. Enfoque Fanático)" },
   { tipo: "habilidad_con_fuerza", etiqueta: "Uso de Fuerza en Habilidades", desc: "Permite sustituir el atributo base por Fuerza en habilidades seleccionadas" },
-  { tipo: "resistencia_dano", etiqueta: "Resistencia a Daño", desc: "Reduce a la mitad el daño de tipos específicos" },
-  { tipo: "inmunidad_condicion", etiqueta: "Inmunidad a Condición", desc: "Inmunidad frente a estados o condiciones tácticas" }
+  { tipo: "inmunidad_condicion", etiqueta: "Inmunidad a Condición", desc: "Inmunidad frente a estados o condiciones tácticas" },
+  { tipo: "medio_bono_habilidades", etiqueta: "Aprendiz de Mucho / Medio Bono", desc: "Suma la mitad de competencia a habilidades no entrenadas" },
+  { tipo: "ataque_desarmado", etiqueta: "Ataque Desarmado Especial", desc: "Permite usar Destreza y dados propios (ej. Daño Bárdico)" },
+  { tipo: "conjuro_otorgado", etiqueta: "Conjuro Siempre Preparado", desc: "Otorga un conjuro siempre preparado por rasgo" },
+  { tipo: "competencia", etiqueta: "Competencia en Armas o Armaduras", desc: "Otorga competencia en armas marciales, armaduras medias, etc." }
 ];
 
 export const ConstructorRasgoDote: React.FC<ConstructorRasgoDoteProps> = ({
@@ -136,15 +139,21 @@ export const ConstructorRasgoDote: React.FC<ConstructorRasgoDoteProps> = ({
 
   // 2. Activación, Conmutador y Vínculos
   const [esActivable, setEsActivable] = useState<boolean>(rasgoInicial?.esActivable || false);
+  const [autoDesactivar, setAutoDesactivar] = useState<boolean>(rasgoInicial?.autoDesactivar || false);
   const [ligadoA, setLigadoA] = useState<string>(rasgoInicial?.ligadoA || "");
   const [condicionAlActivar, setCondicionAlActivar] = useState<string>(rasgoInicial?.condicionAlActivar || "");
 
   // 3. Usos y Recursos
   const [tieneUsosLimitados, setTieneUsosLimitados] = useState(rasgoInicial?.tieneUsosLimitados || false);
+  const [gastarDePadre, setGastarDePadre] = useState<boolean>(rasgoInicial?.gastarDePadre || false);
+  const [heredarDadosPadre, setHeredarDadosPadre] = useState<boolean>(rasgoInicial?.heredarDadosPadre || false);
   const [usosMaximos, setUsosMaximos] = useState<number>(rasgoInicial?.usosMaximos || 1);
   const [usosRestantes, setUsosRestantes] = useState<number>(rasgoInicial?.usosRestantes ?? 1);
   const [recuperacion, setRecuperacion] = useState<RecuperacionRasgo>(rasgoInicial?.recuperacion || "descanso_largo");
   const [formulaDados, setFormulaDados] = useState(rasgoInicial?.formulaDados || "");
+  const [conjurosOtorgadosTexto, setConjurosOtorgadosTexto] = useState<string>(
+    (rasgoInicial?.conjurosOtorgados || []).join(", ")
+  );
 
   // 4. Efectos Mecánicos
   const [efectos, setEfectos] = useState<EfectoMecanicoRasgo[]>(rasgoInicial?.efectos || []);
@@ -236,6 +245,19 @@ export const ConstructorRasgoDote: React.FC<ConstructorRasgoDoteProps> = ({
     } else if (t === "habilidad_con_fuerza") {
       setNuevoObjetivo("habilidades");
       setNuevoValor("acrobacias,intimidacion,sigilo,percepcion,supervivencia");
+    } else if (t === "medio_bono_habilidades") {
+      setNuevoObjetivo("habilidades_sin_competencia");
+      setNuevoValor("mitad_competencia");
+    } else if (t === "ataque_desarmado") {
+      setNuevoObjetivo("destreza");
+      setNuevoValor("dado_inspiracion");
+      setNuevoPermiteEscudo(false);
+    } else if (t === "conjuro_otorgado") {
+      setNuevoObjetivo("conjuro");
+      setNuevoValor("Palabra de poder: curar");
+    } else if (t === "competencia") {
+      setNuevoObjetivo("armas_marciales");
+      setNuevoValor("marciales");
     }
   };
 
@@ -276,6 +298,18 @@ export const ConstructorRasgoDote: React.FC<ConstructorRasgoDoteProps> = ({
         case "habilidad_con_fuerza":
           descFinal = `Usar Fuerza en ${nuevoValor}`;
           break;
+        case "medio_bono_habilidades":
+          descFinal = "Medio bono de competencia a habilidades sin competencia";
+          break;
+        case "ataque_desarmado":
+          descFinal = `Ataque sin armas con ${nuevoObjetivo} (${nuevoValor})`;
+          break;
+        case "conjuro_otorgado":
+          descFinal = `Conjuro otorgado: ${nuevoValor}`;
+          break;
+        case "competencia":
+          descFinal = `Competencia con ${nuevoObjetivo}`;
+          break;
         default:
           descFinal = `${nuevoTipoEfecto}: ${nuevoValor}`;
           break;
@@ -295,7 +329,7 @@ export const ConstructorRasgoDote: React.FC<ConstructorRasgoDoteProps> = ({
       activo: true
     };
 
-    setEfectos([...efectos, nuevoEfecto]);
+    setEfectos((prev) => [...prev, nuevoEfecto]);
     setModoCreandoEfecto(false);
     setNuevaDescripcionEfecto("");
   };
@@ -322,6 +356,12 @@ export const ConstructorRasgoDote: React.FC<ConstructorRasgoDoteProps> = ({
       personalizado: true,
       activo: esActivable ? false : true,
       esActivable,
+      autoDesactivar: esActivable ? autoDesactivar : undefined,
+      gastarDePadre: gastarDePadre || undefined,
+      heredarDadosPadre: heredarDadosPadre || undefined,
+      conjurosOtorgados: conjurosOtorgadosTexto.trim()
+        ? conjurosOtorgadosTexto.split(",").map((s) => s.trim()).filter(Boolean)
+        : undefined,
       ligadoA: esActivable && ligadoA.trim() ? ligadoA.trim() : undefined,
       condicionAlActivar: esActivable && condicionAlActivar.trim() ? condicionAlActivar.trim() : undefined,
       efectos,
@@ -340,6 +380,10 @@ export const ConstructorRasgoDote: React.FC<ConstructorRasgoDoteProps> = ({
     recuperacion,
     formulaDados,
     esActivable,
+    autoDesactivar,
+    gastarDePadre,
+    heredarDadosPadre,
+    conjurosOtorgadosTexto,
     ligadoA,
     condicionAlActivar,
     efectos,
@@ -578,6 +622,23 @@ export const ConstructorRasgoDote: React.FC<ConstructorRasgoDoteProps> = ({
                 Al encender el rasgo, se añadirá esta condición a la barra táctica. Al quitar la condición en TaleSpire, el rasgo se apagará automáticamente.
               </p>
             </div>
+
+            <div className={estilos.filaToggle} style={{ gridColumn: "1 / -1", marginTop: "6px" }}>
+              <div className={estilos.infoToggle}>
+                <span className={estilos.labelToggle}>¿Auto-desactivar inmediatamente tras su uso?</span>
+                <span className={estilos.pistaToggle}>
+                  Ideal para habilidades instantáneas o de un solo golpe que restablecen recursos (ej. Furia persistente).
+                </span>
+              </div>
+              <label className={estilos.interruptor}>
+                <input
+                  type="checkbox"
+                  checked={autoDesactivar}
+                  onChange={(e) => setAutoDesactivar(e.target.checked)}
+                />
+                <span className={estilos.deslizador} />
+              </label>
+            </div>
           </div>
         )}
       </div>
@@ -667,6 +728,56 @@ export const ConstructorRasgoDote: React.FC<ConstructorRasgoDoteProps> = ({
           />
           <p className={estilos.pistaCampo}>
             Muestra un botón de dados en la tarjeta para lanzar esta tirada directamente a la bandeja 3D de TaleSpire.
+          </p>
+        </div>
+
+        <div className={estilos.filaToggle} style={{ marginTop: "8px" }}>
+          <div className={estilos.infoToggle}>
+            <span className={estilos.labelToggle}>¿Gastar usos del rasgo padre?</span>
+            <span className={estilos.pistaToggle}>
+              Consume cargas del rasgo principal al que está vinculado (ej. Inspiración bárdica o Furia) sin requerir usos propios.
+            </span>
+          </div>
+          <label className={estilos.interruptor}>
+            <input
+              type="checkbox"
+              checked={gastarDePadre}
+              onChange={(e) => setGastarDePadre(e.target.checked)}
+            />
+            <span className={estilos.deslizador} />
+          </label>
+        </div>
+
+        <div className={estilos.filaToggle} style={{ marginTop: "8px" }}>
+          <div className={estilos.infoToggle}>
+            <span className={estilos.labelToggle}>¿Heredar dados de escala del rasgo padre?</span>
+            <span className={estilos.pistaToggle}>
+              Hereda dinámicamente el dado del padre (ej. 1d6 - 1d12 de Inspiración bárdica) para tiradas 3D a TaleSpire.
+            </span>
+          </div>
+          <label className={estilos.interruptor}>
+            <input
+              type="checkbox"
+              checked={heredarDadosPadre}
+              onChange={(e) => setHeredarDadosPadre(e.target.checked)}
+            />
+            <span className={estilos.deslizador} />
+          </label>
+        </div>
+
+        <div className={estilos.campoGrupo} style={{ marginTop: "8px" }}>
+          <label className={estilos.labelCampo}>
+            <span>Conjuros Otorgados (Siempre preparados, separados por coma)</span>
+          </label>
+          <input
+            type="text"
+            className={estilos.inputControl}
+            placeholder="ej. Palabra de poder: curar, Palabra de poder: matar"
+            value={conjurosOtorgadosTexto}
+            onChange={(e) => setConjurosOtorgadosTexto(e.target.value)}
+          />
+          <p className={estilos.pistaCampo}>
+            Los conjuros especificados aquí se prepararán automáticamente en el libro de conjuros del personaje.
           </p>
         </div>
       </div>
@@ -964,6 +1075,101 @@ export const ConstructorRasgoDote: React.FC<ConstructorRasgoDoteProps> = ({
                 <p className={estilos.pistaCampo}>
                   ej. acrobacias, intimidacion, sigilo, percepcion, supervivencia (Conocimiento Primigenio)
                 </p>
+              </div>
+            )}
+
+            {nuevoTipoEfecto === "medio_bono_habilidades" && (
+              <div className={estilos.campoGrupo}>
+                <p className={estilos.pistaCampo} style={{ color: "#38bdf8" }}>
+                  Aplica la regla canónica de Aprendiz de mucho: suma la mitad de la competencia (redondeada hacia abajo) a cualquier habilidad en la que el personaje no sea competente.
+                </p>
+              </div>
+            )}
+
+            {nuevoTipoEfecto === "ataque_desarmado" && (
+              <div className={estilos.gridDosColumnas}>
+                <div className={estilos.campoGrupo}>
+                  <label className={estilos.labelCampo}>
+                    <span>Característica de Ataque</span>
+                  </label>
+                  <SelectorDesplegable
+                    valor={nuevoObjetivo}
+                    opciones={[
+                      { valor: "destreza", etiqueta: "Destreza (Daño Bárdico / Monje)" },
+                      { valor: "fuerza", etiqueta: "Fuerza" },
+                      { valor: "carisma", etiqueta: "Carisma" }
+                    ]}
+                    alCambiar={(val) => setNuevoObjetivo(val)}
+                    tamano="normal"
+                  />
+                </div>
+                <div className={estilos.campoGrupo}>
+                  <label className={estilos.labelCampo}>
+                    <span>Dado de Daño Base</span>
+                  </label>
+                  <input
+                    type="text"
+                    className={estilos.inputControl}
+                    placeholder="dado_inspiracion o ej. 1d6, 1d8..."
+                    value={nuevoValor}
+                    onChange={(e) => setNuevoValor(e.target.value)}
+                  />
+                  <p className={estilos.pistaCampo}>
+                    Usa "dado_inspiracion" para escalar automáticamente con la tabla de Inspiración del bardo.
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {nuevoTipoEfecto === "conjuro_otorgado" && (
+              <div className={estilos.campoGrupo}>
+                <label className={estilos.labelCampo}>
+                  <span>Nombre del Conjuro Otorgado</span>
+                </label>
+                <input
+                  type="text"
+                  className={estilos.inputControl}
+                  placeholder="ej. Palabra de poder: curar"
+                  value={nuevoValor}
+                  onChange={(e) => setNuevoValor(e.target.value)}
+                />
+              </div>
+            )}
+
+            {nuevoTipoEfecto === "competencia" && (
+              <div className={estilos.gridDosColumnas}>
+                <div className={estilos.campoGrupo}>
+                  <label className={estilos.labelCampo}>
+                    <span>Categoría o Grupo</span>
+                  </label>
+                  <SelectorDesplegable
+                    valor={nuevoObjetivo}
+                    opciones={[
+                      { valor: "armas_marciales", etiqueta: "Armas Marciales" },
+                      { valor: "armas_sencillas", etiqueta: "Armas Sencillas" },
+                      { valor: "armaduras_medias", etiqueta: "Armaduras Medias" },
+                      { valor: "armaduras_pesadas", etiqueta: "Armaduras Pesadas" },
+                      { valor: "armaduras_ligeras", etiqueta: "Armaduras Ligeras" },
+                      { valor: "escudos", etiqueta: "Escudos" }
+                    ]}
+                    alCambiar={(val) => {
+                      setNuevoObjetivo(val);
+                      setNuevoValor(val.replace("armas_", "").replace("armaduras_", ""));
+                    }}
+                    tamano="normal"
+                  />
+                </div>
+                <div className={estilos.campoGrupo}>
+                  <label className={estilos.labelCampo}>
+                    <span>Descripción de la Competencia</span>
+                  </label>
+                  <input
+                    type="text"
+                    className={estilos.inputControl}
+                    value={nuevoValor}
+                    onChange={(e) => setNuevoValor(e.target.value)}
+                  />
+                </div>
               </div>
             )}
 

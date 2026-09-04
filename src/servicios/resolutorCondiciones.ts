@@ -60,6 +60,31 @@ export function obtenerDetalleCondicion(nombre: string): DetalleCondicionOEfecto
     };
   }
 
+  // Manto de Majestad (Colegio del Glamour Nv 6)
+  if (nombreNorm.includes("manto de majestad") || nombreNorm.includes("mantle of majesty")) {
+    return {
+      titulo: "Manto de Majestad (Mantle of Majesty)",
+      descripcion: "Adoptas una apariencia mágica sobrenatural durante 1 minuto (10 turnos) o hasta que pierdas la concentración.",
+      efectos: [
+        "Orden imperiosa gratuita: Puedes lanzar Orden imperiosa como acción adicional sin gastar un espacio de conjuro.",
+        "Fallo automático: Cualquier criatura Hechizada por ti falla automáticamente su tirada de salvación contra la Orden imperiosa que lances.",
+        "Concentración: Requiere mantener concentración activa durante su duración."
+      ]
+    };
+  }
+
+  // Majestad Inquebrantable (Colegio del Glamour Nv 14)
+  if (nombreNorm.includes("majestad inquebrantable") || nombreNorm.includes("unbreakable majesty")) {
+    return {
+      titulo: "Majestad Inquebrantable (Unbreakable Majesty)",
+      descripcion: "Asumes una presencia mágicamente majestuosa durante 1 minuto (10 turnos) o hasta quedar incapacitado.",
+      efectos: [
+        "Protección regia: Cuando una criatura te impacta por primera vez en un turno, debe superar una salvación de Carisma contra tu CD de conjuros.",
+        "Desvío de impacto: Si el atacante falla la salvación, el ataque falla automáticamente y retrocede ante tu majestad."
+      ]
+    };
+  }
+
   // 3. Buscar coincidencia exacta en EFECTOS_PREDEFINIDOS
   const efectoExacto = EFECTOS_PREDEFINIDOS.find((e) => {
     const minEf = normalizar(e.nombre);

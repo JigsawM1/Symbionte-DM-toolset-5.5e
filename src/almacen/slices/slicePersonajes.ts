@@ -27,6 +27,10 @@ import { sincronizarConjurosSubclaseHelper } from "@/servicios/sincronizadorConj
 import { sincronizarRasgosAutomaticos } from "@/servicios/compendioRasgos";
 import { procesarAlternarEquipado } from "@/servicios/procesadorEquipamiento";
 import { aplicarBuildClaseAPersonaje } from "@/servicios/gestorClases";
+import {
+  tieneMedioBonoHabilidades,
+  aplicarAprendizDeMuchoAGradosHabilidades
+} from "@/servicios/evaluadorEfectosRasgos";
 import { mutarPersonaje } from "./helpers/mutarPersonaje";
 
 // Re-exportaciones de compatibilidad retroactiva
@@ -327,6 +331,31 @@ export const crearSlicePersonajes: StateCreator<
             ...fusionado,
             rasgos: sincronizarRasgosAutomaticos(fusionado)
           };
+        } else if (cambios.caracteristicas?.carisma !== undefined || cambios.overridesFijos?.carisma !== undefined) {
+          const scoreCar = fusionado.overridesFijos?.carisma ?? fusionado.caracteristicas?.carisma ?? 10;
+          const modCar = Math.floor((scoreCar - 10) / 2);
+          const usosNuevos = Math.max(1, modCar);
+
+          fusionado = {
+            ...fusionado,
+            rasgos: (fusionado.rasgos || []).map((r) => {
+              const norm = (r.nombre || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+              if (
+                norm.includes("inspiracion bardica") ||
+                (r.tieneUsosLimitados && (r.formulaEscalado || "").toLowerCase().includes("carisma")) ||
+                (r.tieneUsosLimitados && (r.descripcion || "").toLowerCase().includes("modificador por carisma"))
+              ) {
+                const diferencia = usosNuevos - (r.usosMaximos ?? 1);
+                const restantes = r.usosRestantes ?? (r.usosMaximos ?? 1);
+                return {
+                  ...r,
+                  usosMaximos: usosNuevos,
+                  usosRestantes: Math.max(0, Math.min(usosNuevos, restantes + (diferencia > 0 ? diferencia : 0)))
+                };
+              }
+              return r;
+            })
+          };
         }
 
         // Sincronizar dinámicamente conjuros de subclase (limpiando los que ya no correspondan al nivel/subclase)
@@ -558,13 +587,44 @@ export const crearSlicePersonajes: StateCreator<
   },
 
   modificarCaracteristicaBasePersonaje: (id, carac, valor) => {
-    mutarPersonaje(set, id, (pj) => ({
-      ...pj,
-      caracteristicas: {
+    mutarPersonaje(set, id, (pj) => {
+      const nuevoValor = Math.max(1, Math.min(30, valor || 10));
+      const nuevasCarac = {
         ...pj.caracteristicas,
-        [carac]: Math.max(1, Math.min(30, valor || 10))
+        [carac]: nuevoValor
+      };
+
+      let rasgosActualizados = pj.rasgos;
+      if (carac === "carisma" && Array.isArray(pj.rasgos)) {
+        const scoreCar = pj.overridesFijos?.carisma ?? nuevoValor;
+        const modCar = Math.floor((scoreCar - 10) / 2);
+        const usosNuevos = Math.max(1, modCar);
+
+        rasgosActualizados = pj.rasgos.map((r) => {
+          const norm = (r.nombre || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+          if (
+            norm.includes("inspiracion bardica") ||
+            (r.tieneUsosLimitados && (r.formulaEscalado || "").toLowerCase().includes("carisma")) ||
+            (r.tieneUsosLimitados && (r.descripcion || "").toLowerCase().includes("modificador por carisma"))
+          ) {
+            const diferencia = usosNuevos - (r.usosMaximos ?? 1);
+            const restantes = r.usosRestantes ?? (r.usosMaximos ?? 1);
+            return {
+              ...r,
+              usosMaximos: usosNuevos,
+              usosRestantes: Math.max(0, Math.min(usosNuevos, restantes + (diferencia > 0 ? diferencia : 0)))
+            };
+          }
+          return r;
+        });
       }
-    }));
+
+      return {
+        ...pj,
+        caracteristicas: nuevasCarac,
+        rasgos: rasgosActualizados
+      };
+    });
   },
 
   alternarSalvacionPersonaje: (id, carac) => {
@@ -579,26 +639,32 @@ export const crearSlicePersonajes: StateCreator<
 
   ciclarGradoHabilidadPersonaje: (id, hab) => {
     mutarPersonaje(set, id, (pj) => {
+      const tieneAprendiz = tieneMedioBonoHabilidades(pj);
       const gradoActual = pj.gradosHabilidades[hab] || "ninguna";
       const nuevoGrado = ORDEN_CICLO_HABILIDAD[gradoActual] || "ninguna";
+      const nuevoGradoFinal = (nuevoGrado === "ninguna" && tieneAprendiz) ? "medio" : nuevoGrado;
       return {
         ...pj,
         gradosHabilidades: {
           ...pj.gradosHabilidades,
-          [hab]: nuevoGrado
+          [hab]: nuevoGradoFinal
         }
       };
     });
   },
 
   establecerGradoHabilidadPersonaje: (id, hab, grado) => {
-    mutarPersonaje(set, id, (pj) => ({
-      ...pj,
-      gradosHabilidades: {
-        ...pj.gradosHabilidades,
-        [hab]: grado
-      }
-    }));
+    mutarPersonaje(set, id, (pj) => {
+      const tieneAprendiz = tieneMedioBonoHabilidades(pj);
+      const gradoFinal = (grado === "ninguna" && tieneAprendiz) ? "medio" : grado;
+      return {
+        ...pj,
+        gradosHabilidades: {
+          ...pj.gradosHabilidades,
+          [hab]: gradoFinal
+        }
+      };
+    });
   },
 
   personalizarHabilidadPersonaje: (id, hab, datos) => {
@@ -626,12 +692,43 @@ export const crearSlicePersonajes: StateCreator<
         bonoSalvacionExtra: 0,
         notas: ""
       };
+      const nuevasPersonalizaciones = {
+        ...pj.personalizacionesCaracteristicas,
+        [carac]: { ...actual, ...datos }
+      };
+
+      let rasgosActualizados = pj.rasgos;
+      if (carac === "carisma" && Array.isArray(pj.rasgos)) {
+        const scoreBase = pj.overridesFijos?.carisma ?? pj.caracteristicas?.carisma ?? 10;
+        const modBase = Math.floor((scoreBase - 10) / 2);
+        const modEfectivo = datos.valorFijo !== undefined && datos.valorFijo !== null
+          ? datos.valorFijo
+          : modBase + (datos.modificadorExtra !== undefined ? datos.modificadorExtra : actual.modificadorExtra || 0);
+        const usosNuevos = Math.max(1, modEfectivo);
+
+        rasgosActualizados = pj.rasgos.map((r) => {
+          const norm = (r.nombre || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+          if (
+            norm.includes("inspiracion bardica") ||
+            (r.tieneUsosLimitados && (r.formulaEscalado || "").toLowerCase().includes("carisma")) ||
+            (r.tieneUsosLimitados && (r.descripcion || "").toLowerCase().includes("modificador por carisma"))
+          ) {
+            const diferencia = usosNuevos - (r.usosMaximos ?? 1);
+            const restantes = r.usosRestantes ?? (r.usosMaximos ?? 1);
+            return {
+              ...r,
+              usosMaximos: usosNuevos,
+              usosRestantes: Math.max(0, Math.min(usosNuevos, restantes + (diferencia > 0 ? diferencia : 0)))
+            };
+          }
+          return r;
+        });
+      }
+
       return {
         ...pj,
-        personalizacionesCaracteristicas: {
-          ...pj.personalizacionesCaracteristicas,
-          [carac]: { ...actual, ...datos }
-        }
+        personalizacionesCaracteristicas: nuevasPersonalizaciones,
+        rasgos: rasgosActualizados
       };
     });
   },
@@ -662,14 +759,26 @@ export const crearSlicePersonajes: StateCreator<
       // Sincronización automática de condiciones hacia rasgos (canónicas y personalizadas con condicionAlActivar)
       const esFuriaDiosesCond = normalizada.includes("furia de los dioses") || normalizada.includes("rage of the gods");
       const esFuriaBaseCond = (normalizada.includes("furia") || normalizada.includes("rage")) && !esFuriaDiosesCond;
+      const esMantoMajestadCond = normalizada.includes("manto de majestad") || normalizada.includes("manto de la majestad") || normalizada.includes("mantle of majesty");
+      const esMajestadInquebrantableCond = normalizada.includes("majestad inquebrantable") || normalizada.includes("unbreakable majesty");
 
       rasgosActualizados = (pj.rasgos || []).map((r) => {
         const rNom = r.nombre.toLowerCase().trim();
+        const rId = r.id.toLowerCase().trim();
         const rCond = (r.condicionAlActivar || "").toLowerCase().trim();
         const coincideCond = rCond && (normalizada === rCond || normalizada.includes(rCond) || rCond.includes(normalizada));
+        const coincideMantoMajestad = esMantoMajestadCond && (
+          rNom.includes("manto de majestad") || rNom.includes("manto de la majestad") ||
+          rId.includes("manto_de_majestad") || rId.includes("manto_de_la_majestad")
+        );
+        const coincideMajestadInq = esMajestadInquebrantableCond && (
+          rNom.includes("majestad inquebrantable") || rId.includes("majestad_inquebrantable")
+        );
 
         if (
           (coincideCond ||
+            coincideMantoMajestad ||
+            coincideMajestadInq ||
             (esFuriaDiosesCond && (rNom.includes("furia de los dioses") || r.id.includes("furia_de_los_dioses"))) ||
             (esFuriaBaseCond && (rNom === "furia" || r.id === "rasgo_cls_barbaro_furia")) ||
             ((normalizada.includes("temerario") || normalizada.includes("reckless")) && (rNom.includes("temerario") || r.id.includes("temerario")))) &&
@@ -710,6 +819,8 @@ export const crearSlicePersonajes: StateCreator<
 
       const esFuriaDiosesCondQuitar = normalizada.includes("furia de los dioses") || normalizada.includes("rage of the gods");
       const esFuriaBaseCondQuitar = (normalizada.includes("furia") || normalizada.includes("rage")) && !esFuriaDiosesCondQuitar;
+      const esMantoMajestadCondQuitar = normalizada.includes("manto de majestad") || normalizada.includes("manto de la majestad") || normalizada.includes("mantle of majesty");
+      const esMajestadInquebrantableCondQuitar = normalizada.includes("majestad inquebrantable") || normalizada.includes("unbreakable majesty");
 
       const clavesPadresApagados = new Set<string>();
 
@@ -718,11 +829,20 @@ export const crearSlicePersonajes: StateCreator<
         const rId = r.id.toLowerCase().trim();
         const rCond = (r.condicionAlActivar || "").toLowerCase().trim();
         const coincideCond = rCond && (normalizada === rCond || normalizada.includes(rCond) || rCond.includes(normalizada));
+        const coincideMantoMajestad = esMantoMajestadCondQuitar && (
+          rNom.includes("manto de majestad") || rNom.includes("manto de la majestad") ||
+          rId.includes("manto_de_majestad") || rId.includes("manto_de_la_majestad")
+        );
+        const coincideMajestadInq = esMajestadInquebrantableCondQuitar && (
+          rNom.includes("majestad inquebrantable") || rId.includes("majestad_inquebrantable")
+        );
 
         if (
           (coincideCond ||
+            coincideMantoMajestad ||
+            coincideMajestadInq ||
             (esFuriaDiosesCondQuitar && (rNom.includes("furia de los dioses") || r.id.includes("furia_de_los_dioses"))) ||
-            (esFuriaBaseCondQuitar && (rNom === "furia" || rId === "rasgo_cls_barbaro_furia" || rNom.includes("furia divina") || rId.includes("furia_divina") || rNom.includes("golpe brutal") || rId.includes("golpe_brutal"))) ||
+            (esFuriaBaseCondQuitar && (rNom === "furia" || rId === "rasgo_cls_barbaro_furia" || rNom.includes("furia divina") || rId.includes("furia_divina") || rNom.includes("golpe brutal") || rId.includes("golpe_brutal") || rNom.includes("furia de los dioses") || rId.includes("furia_de_los_dioses"))) ||
             ((normalizada.includes("temerario") || normalizada.includes("reckless")) && (rNom.includes("temerario") || r.id.includes("temerario")))) &&
           r.esActivable &&
           r.activo
@@ -1338,8 +1458,40 @@ export const crearSlicePersonajes: StateCreator<
 
   gastarUsoRasgoPersonaje: (idPj, idRasgo) => {
     mutarPersonaje(set, idPj, (pj) => {
+      const targetTrait = (pj.rasgos || []).find((r) => r.id === idRasgo);
+      let idObjetivoGasto = idRasgo;
+
+      const norm = (s: string) => (s || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+
+      // Delegar en el rasgo padre si tiene gastarDePadre o está ligado a Inspiración bárdica
+      const debeGastarDePadre = !!(
+        targetTrait?.gastarDePadre ||
+        (targetTrait?.ligadoA && (
+          norm(targetTrait.ligadoA).includes("inspiracion") ||
+          norm(targetTrait.nombre).includes("palabras cortantes") ||
+          norm(targetTrait.nombre).includes("habilidad inigualable") ||
+          norm(targetTrait.nombre).includes("manto de inspiracion")
+        ))
+      );
+
+      if (debeGastarDePadre) {
+        let padre: RasgoPersonaje | undefined;
+        if (targetTrait?.ligadoA) {
+          const lig = norm(targetTrait.ligadoA);
+          padre = (pj.rasgos || []).find(
+            (r) => norm(r.id) === lig || norm(r.nombre) === lig || (norm(r.nombre).includes("inspiracion") && lig.includes("inspiracion"))
+          );
+        }
+        if (!padre) {
+          padre = (pj.rasgos || []).find((r) => norm(r.nombre).includes("inspiracion bardica"));
+        }
+        if (padre) {
+          idObjetivoGasto = padre.id;
+        }
+      }
+
       const rasgosActualizados = (pj.rasgos || []).map((r) => {
-        if (r.id === idRasgo && r.tieneUsosLimitados) {
+        if (r.id === idObjetivoGasto && r.tieneUsosLimitados) {
           const maxUsos = r.usosMaximos ?? 1;
           const restantes = r.usosRestantes ?? maxUsos;
           return {
@@ -1355,8 +1507,39 @@ export const crearSlicePersonajes: StateCreator<
 
   recuperarUsoRasgoPersonaje: (idPj, idRasgo) => {
     mutarPersonaje(set, idPj, (pj) => {
+      const targetTrait = (pj.rasgos || []).find((r) => r.id === idRasgo);
+      let idObjetivoGasto = idRasgo;
+
+      const norm = (s: string) => (s || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+
+      const debeGastarDePadre = !!(
+        targetTrait?.gastarDePadre ||
+        (targetTrait?.ligadoA && (
+          norm(targetTrait.ligadoA).includes("inspiracion") ||
+          norm(targetTrait.nombre).includes("palabras cortantes") ||
+          norm(targetTrait.nombre).includes("habilidad inigualable") ||
+          norm(targetTrait.nombre).includes("manto de inspiracion")
+        ))
+      );
+
+      if (debeGastarDePadre) {
+        let padre: RasgoPersonaje | undefined;
+        if (targetTrait?.ligadoA) {
+          const lig = norm(targetTrait.ligadoA);
+          padre = (pj.rasgos || []).find(
+            (r) => norm(r.id) === lig || norm(r.nombre) === lig || (norm(r.nombre).includes("inspiracion") && lig.includes("inspiracion"))
+          );
+        }
+        if (!padre) {
+          padre = (pj.rasgos || []).find((r) => norm(r.nombre).includes("inspiracion bardica"));
+        }
+        if (padre) {
+          idObjetivoGasto = padre.id;
+        }
+      }
+
       const rasgosActualizados = (pj.rasgos || []).map((r) => {
-        if (r.id === idRasgo && r.tieneUsosLimitados) {
+        if (r.id === idObjetivoGasto && r.tieneUsosLimitados) {
           const maxUsos = r.usosMaximos ?? 1;
           const restantes = r.usosRestantes ?? 0;
           return {
@@ -1389,9 +1572,15 @@ export const crearSlicePersonajes: StateCreator<
   sincronizarRasgosPersonaje: (idPj) => {
     mutarPersonaje(set, idPj, (pj) => {
       const rasgosSincronizados = sincronizarRasgosAutomaticos(pj);
+      const pjConRasgos = { ...pj, rasgos: rasgosSincronizados };
+      const tieneAprendiz = tieneMedioBonoHabilidades(pjConRasgos);
+      const gradosActualizados = aplicarAprendizDeMuchoAGradosHabilidades(
+        pj.gradosHabilidades,
+        tieneAprendiz
+      );
       return {
-        ...pj,
-        rasgos: rasgosSincronizados
+        ...pjConRasgos,
+        gradosHabilidades: gradosActualizados
       };
     });
   },
@@ -1430,27 +1619,47 @@ export const crearSlicePersonajes: StateCreator<
 
       const esFuriaDivina = nomObjetivo.includes("furia divina") || idObjetivo.includes("furia_divina");
       const esGolpeBrutal = nomObjetivo.includes("golpe brutal") || idObjetivo.includes("golpe_brutal");
+      const esFuriaDeLosDioses = nomObjetivo.includes("furia de los dioses") || idObjetivo.includes("furia_de_los_dioses");
 
-      // Regla canónica: Furia divina y Golpe brutal solo se deben poder activar si Furia está activa
-      if (nuevoActivo && (esFuriaDivina || esGolpeBrutal) && !furiaEstaActiva) {
+      // Regla canónica: Furia divina, Golpe brutal y Furia de los dioses solo se deben poder activar si Furia está activa
+      if (nuevoActivo && (esFuriaDivina || esGolpeBrutal || esFuriaDeLosDioses) && !furiaEstaActiva) {
         return pj;
       }
 
-      const esFuriaDeLosDioses = nomObjetivo.includes("furia de los dioses") || idObjetivo.includes("furia_de_los_dioses");
       const esFuriaPersistente = nomObjetivo.includes("furia persistente") || idObjetivo.includes("furia_persistente");
       const esFuriaBase = (nomObjetivo === "furia" || idObjetivo === "rasgo_cls_barbaro_furia") && !esFuriaDeLosDioses && !esFuriaPersistente;
       const esTemerario = nomObjetivo.includes("temerario") || idObjetivo.includes("temerario");
+      const esMantoMajestad = nomObjetivo.includes("manto de majestad") || nomObjetivo.includes("manto de la majestad") || idObjetivo.includes("manto_de_majestad") || idObjetivo.includes("manto_de_la_majestad");
+      const esMajestadInquebrantable = nomObjetivo.includes("majestad inquebrantable") || idObjetivo.includes("majestad_inquebrantable");
 
       // Sincronización de condición asociada (personalizada o canónica)
       const condicionAsociada = targetTrait?.condicionAlActivar || (
         esFuriaDeLosDioses ? "Furia de los Dioses (Rage of the Gods)" :
         esFuriaBase ? "Furia (Rage)" :
-        esTemerario ? "Ataque Temerario (Reckless Attack)" : undefined
+        esTemerario ? "Ataque Temerario (Reckless Attack)" :
+        esMantoMajestad ? "Manto de Majestad (Mantle of Majesty)" :
+        esMajestadInquebrantable ? "Majestad Inquebrantable (Unbreakable Majesty)" : undefined
       );
 
-      if (condicionAsociada) {
+      const debeAutoDesactivarTarget = !!(nuevoActivo && (targetTrait?.autoDesactivar || esFuriaPersistente));
+
+      if (condicionAsociada && !debeAutoDesactivarTarget) {
         if (nuevoActivo) {
-          if (!condicionesActualizadas.some((c) => c.toLowerCase() === condicionAsociada.toLowerCase() || (esFuriaBase && (c.toLowerCase().includes("furia (rage)") || (c.toLowerCase().includes("furia") && !c.toLowerCase().includes("furia de los dioses")))))) {
+          const yaTieneCond = condicionesActualizadas.some((c) => {
+            const cn = c.toLowerCase();
+            if (esFuriaBase) {
+              return cn.includes("furia (rage)") || (cn.includes("furia") && !cn.includes("furia de los dioses"));
+            }
+            if (esMantoMajestad) {
+              return cn.includes("manto de majestad") || cn.includes("manto de la majestad") || cn.includes("mantle of majesty");
+            }
+            if (esMajestadInquebrantable) {
+              return cn.includes("majestad inquebrantable") || cn.includes("unbreakable majesty");
+            }
+            return cn === condicionAsociada.toLowerCase() || cn.includes(condicionAsociada.toLowerCase());
+          });
+
+          if (!yaTieneCond) {
             condicionesActualizadas = aplicarCondicion(condicionesActualizadas, condicionAsociada);
           }
         } else {
@@ -1459,7 +1668,13 @@ export const crearSlicePersonajes: StateCreator<
             if (esFuriaBase) {
               return !(cn.includes("furia (rage)") || (cn.includes("furia") && !cn.includes("furia de los dioses")));
             }
-            return cn !== condicionAsociada.toLowerCase();
+            if (esMantoMajestad) {
+              return !(cn.includes("manto de majestad") || cn.includes("manto de la majestad") || cn.includes("mantle of majesty"));
+            }
+            if (esMajestadInquebrantable) {
+              return !(cn.includes("majestad inquebrantable") || cn.includes("unbreakable majesty"));
+            }
+            return cn !== condicionAsociada.toLowerCase() && !cn.includes(condicionAsociada.toLowerCase());
           });
         }
       }
@@ -1476,7 +1691,7 @@ export const crearSlicePersonajes: StateCreator<
               idsHijosADesactivar.add(r.id);
             }
           }
-          if (esFuriaBase && (r.nombre.toLowerCase().includes("furia divina") || r.id.includes("furia_divina") || r.nombre.toLowerCase().includes("golpe brutal") || r.id.includes("golpe_brutal"))) {
+          if (esFuriaBase && (r.nombre.toLowerCase().includes("furia divina") || r.id.includes("furia_divina") || r.nombre.toLowerCase().includes("golpe brutal") || r.id.includes("golpe_brutal") || r.nombre.toLowerCase().includes("furia de los dioses") || r.id.includes("furia_de_los_dioses"))) {
             idsHijosADesactivar.add(r.id);
           }
         }
@@ -1512,9 +1727,10 @@ export const crearSlicePersonajes: StateCreator<
           if (nuevoActivo && r.tieneUsosLimitados && typeof r.usosRestantes === "number") {
             usosRest = Math.max(0, r.usosRestantes - 1);
           }
+          const debeAutoDesactivar = !!(nuevoActivo && (r.autoDesactivar || esFuriaPersistente));
           return {
             ...r,
-            activo: nuevoActivo,
+            activo: debeAutoDesactivar ? false : nuevoActivo,
             usosRestantes: usosRest
           };
         }
@@ -1522,10 +1738,20 @@ export const crearSlicePersonajes: StateCreator<
         return r;
       });
 
-      return {
+      const pjPrevio = {
         ...pj,
         rasgos: rasgosActualizados,
         condicionesActivas: condicionesActualizadas
+      };
+      const tieneAprendiz = tieneMedioBonoHabilidades(pjPrevio);
+      const gradosActualizados = aplicarAprendizDeMuchoAGradosHabilidades(
+        pj.gradosHabilidades,
+        tieneAprendiz
+      );
+
+      return {
+        ...pjPrevio,
+        gradosHabilidades: gradosActualizados
       };
     });
   },

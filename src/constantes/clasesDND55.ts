@@ -41,13 +41,6 @@ export const CATALOGO_CLASES_DND55: DefinicionClase[] = [
             descripcion: "Daño de Furia (+2 nv 1-8, +3 nv 9-15, +4 nv 16-20)"
           },
           {
-            tipo: "resistencia_dano",
-            objetivo: "contundente,perforante,cortante",
-            valor: "resistencia",
-            condicion: "furia_activa",
-            descripcion: "Resistencia al daño contundente, perforante y cortante"
-          },
-          {
             tipo: "ventaja",
             objetivo: "prueba.fuerza",
             valor: "ventaja",
@@ -322,7 +315,9 @@ export const CATALOGO_CLASES_DND55: DefinicionClase[] = [
         obtenerUsosMaximos: () => 1,
         recuperacion: "descanso_largo",
         esActivable: true,
-        categoriaMecanica: "activable"
+        autoDesactivar: true,
+        categoriaMecanica: "activable",
+        restaurarUsosAlActivar: { idRasgoObjetivo: "rasgo_cls_barbaro_furia", cantidad: "maximo" }
       },
       {
         nivel: 16,
@@ -668,6 +663,8 @@ export const CATALOGO_CLASES_DND55: DefinicionClase[] = [
             obtenerUsosMaximos: () => 1,
             recuperacion: "descanso_largo",
             esActivable: true,
+            ligadoA: "rasgo_cls_barbaro_furia",
+            condicionAlActivar: "Furia de los Dioses (Rage of the Gods)",
             categoriaMecanica: "activable"
           },
         ]
@@ -691,16 +688,28 @@ export const CATALOGO_CLASES_DND55: DefinicionClase[] = [
       {
         nivel: 1,
         nombre: "Inspiración bárdica",
-        descripcion: "Puedes recurrir a tus palabras, música o danza para inspirar de forma sobrenatural a los demás. Esta inspiración se representa con tu dado de Inspiración bárdica, que es un d6.\n\n***Utilizar la Inspiración bárdica.*** Como acción adicional, puedes inspirar a otra criatura que esté a 18 m (60 pies) o menos de ti y que te pueda ver u oír. Esa criatura obtiene uno de tus dados de Inspiración bárdica. Cada criatura no puede tener más de un dado de Inspiración bárdica.\nUna sola vez durante la siguiente hora, cuando la criatura falle una prueba con d20, podrá tirar el dado de Inspiración bárdica y sumar el resultado al d20, lo que podría hacerle superar la prueba. Un dado de Inspiración bárdica se gasta al tirarlo.\n\n***Número de usos.*** Puedes conceder un dado de Inspiración bárdica una cantidad de veces igual a tu modificador por Carisma (mínimo una vez) y recuperas todos sus usos tras finalizar un descanso largo.\n\n***A niveles superiores.*** Tu dado de Inspiración bárdica cambia cuando alcanzas ciertos niveles de bardo, como se muestra en la columna \"Dado bárdico\" de la tabla \"Rasgos de bardo\". El dado se convierte en un d8 en el nivel 5, un d10 en el nivel 10 y un d12 en el nivel 15.",
+        descripcion: "Puedes recurrir a tus palabras, música o danza para inspirar de forma sobrenatural a los demás. Esta inspiración se representa con tu dado de Inspiración bárdica, que es un d6.\n\n***Utilizar la Inspiración bárdica.*** Como acción adicional, puedes inspirar a otra criatura que esté a 60 pies o menos de ti y que te pueda ver u oír. Esa criatura obtiene uno de tus dados de Inspiración bárdica. Cada criatura no puede tener más de un dado de Inspiración bárdica.\n\nUna sola vez durante la siguiente hora, cuando la criatura falle una prueba con d20, podrá tirar el dado de Inspiración bárdica y sumar el resultado al d20, lo que podría hacerle superar la prueba. Un dado de Inspiración bárdica se gasta al tirarlo.\n\n***Número de usos.*** Puedes conceder un dado de Inspiración bárdica una cantidad de veces igual a tu modificador por Carisma (mínimo una vez) y recuperas todos sus usos tras finalizar un descanso largo.\n\n***A niveles superiores.*** Tu dado de Inspiración bárdica cambia cuando alcanzas ciertos niveles de bardo. El dado se convierte en un d8 en el nivel 5, un d10 en el nivel 10 y un d12 en el nivel 15.",
         tipoAccion: "accion_adicional",
         tieneUsosLimitados: true,
+        formulaUsos: "modificador de carisma (minimo 1)",
         recuperacion: "descanso_largo",
-        formulaDados: "1d6"
+        categoriaMecanica: "consumible",
+        formulaDados: "1d6",
+        tablaProgresion: {
+          columnas: ["Nivel", "Descripción"],
+          filas: [
+            { nivel: 1, valores: ["Dado de bardo: 1d6"] },
+            { nivel: 5, valores: ["Dado de bardo: 1d8"] },
+            { nivel: 10, valores: ["Dado de bardo: 1d10"] },
+            { nivel: 15, valores: ["Dado de bardo: 1d12"] }
+          ],
+          notaPie: "Cada nivel reemplaza al anterior"
+        }
       },
       {
         nivel: 1,
         nombre: "Lanzamiento de conjuros",
-        descripcion: "Has aprendido a lanzar conjuros mediante tus artes bárdicas. Consulta el *capítulo 7* para ver las reglas sobre el lanzamiento de conjuros. La información presentada a continuación detalla cómo usar esas reglas con los conjuros de bardo, que encontrarás más adelante en la lista de conjuros de bardo de la descripción de la clase.\n\n***Trucos.*** Conoces dos trucos de tu elección escogidos de entre los de la lista de conjuros de bardo. Se recomiendan *luces danzantes* y *burla dañina*.\nCada vez que subas un nivel de bardo, puedes sustituir uno de tus trucos por otro truco de tu elección de la lista de conjuros de bardo.\nCuando alcances los niveles 4 y 10 de bardo, aprenderás otro truco de tu elección de la lista de conjuros de bardo, como se muestra en la columna \"Trucos\" de la tabla \"Rasgos de bardo\".\n\n***Espacios de conjuro.*** La tabla \"Rasgos de bardo\" muestra cuántos espacios de conjuro tienes para lanzar tus conjuros de nivel 1 y superiores. Recuperas todos los espacios utilizados tras finalizar un descanso largo.\n\n***Conjuros preparados de nivel 1 y superiores.*** Preparas una serie de conjuros de nivel 1 y superiores, que son los que podrás lanzar con este rasgo. Para empezar, elige cuatro conjuros de nivel 1 de la lista de conjuros de bardo. Se recomiendan *hechizar persona*, *rociada de color*, *susurros discordantes* y *palabra de curación*.\nEl número de conjuros de tu lista aumenta conforme subes de nivel de bardo, como se muestra en la columna \"Conjuros preparados\" de la tabla \"Rasgos de bardo\". Cuando ese número aumente, elige conjuros adicionales de la lista de conjuros de bardo hasta que el número de conjuros de tu lista coincida con el número de la tabla. Estos conjuros deben ser de un nivel para el que tengas espacios de conjuro. Por ejemplo, si eres un bardo de nivel 3, podrás preparar cualquier combinación de seis conjuros de niveles 1 o 2.\nSi otro rasgo de bardo te proporciona conjuros que siempre tienes preparados, esos conjuros no cuentan para el total que puedes preparar con este rasgo, pero sí que cuentan como conjuros de bardo para ti.\n\n***Cambiar los conjuros preparados.*** Cada vez que subas un nivel de bardo, puedes sustituir un conjuro de tu lista por otro conjuro de bardo para el que tengas espacios de conjuro.\n\n***Aptitud mágica.*** El Carisma es tu aptitud mágica en lo que respecta a tus conjuros de bardo.\n\n***Canalizador mágico.*** Puedes utilizar un *instrumento musical* como canalizador mágico para tus conjuros de bardo.",
+        descripcion: "Has aprendido a lanzar conjuros mediante tus artes bárdicas.\n\n***Trucos.*** Conoces dos trucos de tu elección escogidos de entre los de la lista de conjuros de bardo. Se recomiendan *luces danzantes* y *burla dañina*.\nCada vez que subas un nivel de bardo, puedes sustituir uno de tus trucos por otro truco de tu elección de la lista de conjuros de bardo.\n\nCuando alcances los niveles 4 y 10 de bardo, aprenderás otro truco de tu elección de la lista de conjuros de bardo.\n\n***Espacios de conjuro.*** El panel de espacios de conjuro de acciones o características muestra cuántos espacios de conjuro tienes para lanzar tus conjuros de nivel 1 y superiores. Recuperas todos los espacios utilizados tras finalizar un descanso largo.\n\n***Conjuros preparados de nivel 1 y superiores.*** Preparas una serie de conjuros de nivel 1 y superiores, que son los que podrás lanzar con este rasgo. Para empezar, elige cuatro conjuros de nivel 1 de la lista de conjuros de bardo. Se recomiendan *hechizar persona*, *rociada de color*, *susurros discordantes* y *palabra de curación*.\n\nEl número de conjuros de tu lista aumenta conforme subes de nivel de bardo. Cuando ese número aumente, elige conjuros adicionales de la lista de conjuros de bardo hasta que el número de conjuros de tu lista coincida con el número de la tabla. Estos conjuros deben ser de un nivel para el que tengas espacios de conjuro. Por ejemplo, si eres un bardo de nivel 3, podrás preparar cualquier combinación de seis conjuros de niveles 1 o 2.\n\nSi otro rasgo de bardo te proporciona conjuros que siempre tienes preparados, esos conjuros no cuentan para el total que puedes preparar con este rasgo, pero sí que cuentan como conjuros de bardo para ti.\n\n***Cambiar los conjuros preparados.*** Cada vez que subas un nivel de bardo, puedes sustituir un conjuro de tu lista por otro conjuro de bardo para el que tengas espacios de conjuro.\n\n***Aptitud mágica.*** El Carisma es tu aptitud mágica en lo que respecta a tus conjuros de bardo.\n\n***Canalizador mágico.*** Puedes utilizar un *instrumento musical* como canalizador mágico para tus conjuros de bardo.",
         tipoAccion: "pasivo",
         tieneUsosLimitados: true,
         recuperacion: "descanso_largo"
@@ -708,14 +717,23 @@ export const CATALOGO_CLASES_DND55: DefinicionClase[] = [
       {
         nivel: 2,
         nombre: "Pericia",
-        descripcion: "Ganas pericia en dos de tus competencias de habilidades de tu elección. Se recomiendan Interpretación y Persuasión si eres competente en ellas.\nEn el nivel 9 de bardo, ganas pericia en otras dos competencias de habilidades de tu elección.",
+        descripcion: "Ganas pericia en dos de tus competencias de habilidades de tu elección. Se recomiendan Interpretación y Persuasión si eres competente en ellas.\n\nEn el nivel 9 de bardo, ganas pericia en otras dos competencias de habilidades de tu elección.",
         tipoAccion: "pasivo"
       },
       {
         nivel: 2,
         nombre: "Aprendiz de mucho",
-        descripcion: "Puedes sumar la mitad de tu bonificador por competencia (redondeando hacia abajo) a cualquier prueba de característica que hagas que utilice una habilidad en la que no seas competente y que no use de otro modo tu bonificador por competencia.\nPor ejemplo, si haces una prueba de Fuerza (Atletismo) y no eres competente en Atletismo, puedes sumar la mitad de tu bonificador por competencia a la prueba.\n> ##### El repertorio de un bardo\n>\n>¿Tu bardo golpea un *tambor* mientras canta las hazañas de antiguos héroes? ¿Toca el *laúd* mientras entona canciones románticas? ¿Interpreta arias de poder conmovedor? ¿Recita monólogos dramáticos de tragedias clásicas? ¿Usa el ritmo de una danza folclórica para coordinar el movimiento de sus aliados en la batalla? ¿Compone rimas traviesas?\n>\n>Al interpretar a un bardo, piensa en el estilo de actuación artística que prefieres, los estados de ánimo que podrías invocar y los temas que inspiran tus propias creaciones. ¿Tus poemas se inspiran en momentos de belleza natural o son reflexiones sombrías sobre la pérdida? ¿Prefieres himnos elevados o canciones bulliciosas de taberna? ¿Te atraen los lamentos por los caídos o las celebraciones de alegría? ¿Bailas danzas alegres o realizas coreografías interpretativas elaboradas? ¿Te centras en un solo estilo de actuación o te esfuerzas por dominarlos todos?\n>",
-        tipoAccion: "pasivo"
+        descripcion: "Puedes sumar la mitad de tu bonificador por competencia (redondeando hacia abajo) a cualquier prueba de característica que hagas que utilice una habilidad en la que no seas competente y que no use de otro modo tu bonificador por competencia.\n\nPor ejemplo, si haces una prueba de Fuerza (Atletismo) y no eres competente en Atletismo, puedes sumar la mitad de tu bonificador por competencia a la prueba.",
+        tipoAccion: "pasivo",
+        categoriaMecanica: "pasivo_permanente",
+        efectos: [
+          {
+            tipo: "medio_bono_habilidades",
+            objetivo: "habilidades_sin_competencia",
+            valor: "mitad_competencia",
+            descripcion: "Aprendiz de mucho (Mitad de bono de competencia a habilidades sin competencia)"
+          }
+        ]
       },
       {
         nivel: 3,
@@ -726,16 +744,16 @@ export const CATALOGO_CLASES_DND55: DefinicionClase[] = [
       {
         nivel: 4,
         nombre: "Mejora de característica",
-        descripcion: "Obtienes la dote Mejora de característica u otra [dote](feats.html) de tu elección para la que cumplas las condiciones. Vuelves a obtener este rasgo en los niveles 8, 12 y 16 de bardo.",
+        descripcion: "Obtienes la dote Mejora de característica u otra dote de tu elección para la que cumplas las condiciones. Vuelves a obtener este rasgo en los niveles 8, 12 y 16 de bardo.",
         tipoAccion: "pasivo"
       },
       {
         nivel: 5,
         nombre: "Fuente de inspiración",
-        descripcion: "Ahora recuperas todos los usos gastados de Inspiración bárdica cuando finalizas un descanso corto o largo.\nAdemás, puedes gastar un espacio de conjuro (no requiere acción) para recuperar un uso gastado de Inspiración bárdica.",
+        descripcion: "Ahora recuperas todos los usos gastados de Inspiración bárdica cuando finalizas un descanso corto o largo.\n\nAdemás, puedes gastar un espacio de conjuro (no requiere acción) para recuperar un uso gastado de Inspiración bárdica.",
         tipoAccion: "pasivo",
-        tieneUsosLimitados: true,
-        recuperacion: "descanso_corto"
+        categoriaMecanica: "pasivo_permanente",
+        ligadoA: "rasgo_cls_bardo_inspiracion_bardica"
       },
       {
         nivel: 6,
@@ -746,13 +764,13 @@ export const CATALOGO_CLASES_DND55: DefinicionClase[] = [
       {
         nivel: 7,
         nombre: "Contraencantamiento",
-        descripcion: "Puedes utilizar notas musicales o palabras de poder para interrumpir efectos que influyan en la mente. Si tú o una criatura a 9 m (30 pies) o menos de ti falláis una tirada de salvación contra un efecto que aplique el estado de Hechizado o Asustado, puedes usar tu reacción para hacer que se repita la tirada de salvación, y la nueva tirada tiene ventaja.",
+        descripcion: "Puedes utilizar notas musicales o palabras de poder para interrumpir efectos que influyan en la mente. Si tú o una criatura a 30 pies o menos de ti fallan una tirada de salvación contra un efecto que aplique el estado de Hechizado o Asustado, puedes usar tu reacción para hacer que se repita la tirada de salvación, y la nueva tirada tiene ventaja.",
         tipoAccion: "reaccion"
       },
       {
         nivel: 8,
         nombre: "Mejora de característica",
-        descripcion: "Obtienes la dote Mejora de característica u otra [dote](feats.html) de tu elección para la que cumplas las condiciones.",
+        descripcion: "Obtienes la dote Mejora de característica u otra dote de tu elección para la que cumplas las condiciones.",
         tipoAccion: "pasivo"
       },
       {
@@ -764,13 +782,13 @@ export const CATALOGO_CLASES_DND55: DefinicionClase[] = [
       {
         nivel: 10,
         nombre: "Secretos mágicos",
-        descripcion: "Has aprendido secretos de varias tradiciones mágicas. Cada vez que alcances un nivel de bardo (incluyendo este nivel) y el número de Conjuros preparados en la tabla \"Rasgos de bardo\" aumente, puedes elegir cualquiera de tus nuevos conjuros preparados de las listas de conjuros de bardo, clérigo, druida y mago, y los conjuros elegidos cuentan como conjuros de bardo para ti (consulta la sección de cada clase para ver su lista de conjuros). Además, siempre que reemplaces un conjuro preparado de esta clase, puedes sustituirlo por un conjuro de esas listas.",
+        descripcion: "Cada vez que aprendas o cambies un conjuro por subir de nivel de Bardo, puedes elegirlo de las listas de Bardo, Clérigo, Druida o Mago. El conjuro debe ser de un nivel para el cual ya tengas espacios de conjuro.",
         tipoAccion: "pasivo"
       },
       {
         nivel: 12,
         nombre: "Mejora de característica",
-        descripcion: "Obtienes la dote Mejora de característica u otra [dote](feats.html) de tu elección para la que cumplas las condiciones.",
+        descripcion: "Obtienes la dote Mejora de característica u otra dote de tu elección para la que cumplas las condiciones.",
         tipoAccion: "pasivo"
       },
       {
@@ -782,7 +800,7 @@ export const CATALOGO_CLASES_DND55: DefinicionClase[] = [
       {
         nivel: 16,
         nombre: "Mejora de característica",
-        descripcion: "Obtienes la dote Mejora de característica u otra [dote](feats.html) de tu elección para la que cumplas las condiciones.",
+        descripcion: "Obtienes la dote Mejora de característica u otra dote de tu elección para la que cumplas las condiciones.",
         tipoAccion: "pasivo"
       },
       {
@@ -794,14 +812,15 @@ export const CATALOGO_CLASES_DND55: DefinicionClase[] = [
       {
         nivel: 19,
         nombre: "Don épico",
-        descripcion: "Obtienes una dote de don épico u otra [dote](feats.html) de tu elección para la que cumplas las condiciones. Se recomienda Don del recuerdo de conjuros.",
+        descripcion: "Obtienes una dote de don épico u otra dote de tu elección para la que cumplas las condiciones. Se recomienda Don del recuerdo de conjuros.",
         tipoAccion: "pasivo"
       },
       {
         nivel: 20,
         nombre: "Palabras de creación",
-        descripcion: "Has dominado dos de las Palabras de creación: las palabras de la vida y la muerte. Por lo tanto, siempre tienes preparados los conjuros *palabra de poder: curar* y *palabra de poder: matar*. Cuando lances cualquiera de los dos conjuros, puedes elegir a una segunda criatura como objetivo si esta se encuentra a 3 m (10 pies) o menos del primer objetivo.",
-        tipoAccion: "pasivo"
+        descripcion: "Has dominado dos de las Palabras de creación: las palabras de la vida y la muerte. Por lo tanto, siempre tienes preparados los conjuros *palabra de poder: curar* y *palabra de poder: matar*. Cuando lances cualquiera de los dos conjuros, puedes elegir a una segunda criatura como objetivo si esta se encuentra a 10 pies o menos del primer objetivo.",
+        tipoAccion: "pasivo",
+        conjurosOtorgados: ["Palabra de poder: curar", "Palabra de poder: matar"]
       },
     ],
     subclases: [
@@ -817,27 +836,51 @@ export const CATALOGO_CLASES_DND55: DefinicionClase[] = [
             nivel: 3,
             nombre: "Juego de pies deslumbrante",
             descripcion: "Mientras no lleves armadura ni empuñes un *escudo*, obtienes los siguientes beneficios.\n\n***Virtuoso de la danza.*** Tienes ventaja en cualquier prueba de Carisma (Interpretación) que hagas que implique que estés bailando.\n\n***Defensa sin armadura.*** Tu Clase de Armadura base es igual a 10 más tus modificadores por Destreza y Carisma.\n\n***Golpes ágiles.*** Cuando gastas un uso de tu Inspiración bárdica como parte de una acción, una acción adicional o una reacción, puedes hacer un ataque sin armas como parte de esa acción, acción adicional o reacción.\n\n***Daño bárdico.*** Puedes usar Destreza en lugar de Fuerza para las tiradas de ataque de tus ataques sin armas. Cuando causas daño con un ataque sin armas, puedes infligir daño contundente igual a una tirada de tu dado de Inspiración bárdica más tu modificador por Destreza, en lugar del daño normal del golpe. Esta tirada no gasta el dado.",
-            tipoAccion: "accion_adicional",
-            subclase: "Colegio de la Danza"
+            tipoAccion: "pasivo",
+            subclase: "Colegio de la Danza",
+            categoriaMecanica: "pasivo_permanente",
+            efectos: [
+              {
+                tipo: "modificador_ca",
+                objetivo: "defensa_sin_armadura",
+                valor: "carisma",
+                permiteEscudo: false,
+                descripcion: "Defensa sin armadura (Colegio de la Danza: 10 + DES + CAR)"
+              },
+              {
+                tipo: "ataque_desarmado",
+                objetivo: "destreza",
+                valor: "dado_inspiracion",
+                condicion: "sin_armadura_ni_escudo",
+                descripcion: "Daño bárdico (DES + Dado de Inspiración)"
+              }
+            ]
           },
           {
             nivel: 6,
             nombre: "Movimiento inspirador",
-            descripcion: "Cuando un enemigo que puedas ver termine su turno a 1,5 m (5 pies) o menos de ti, puedes usar una reacción y gastar un uso de tu Inspiración bárdica para moverte hasta la mitad de tu velocidad. Luego, un aliado de tu elección a 9 m (30 pies) o menos de ti también puede moverse hasta la mitad de su velocidad usando su reacción.\nNinguno de los movimientos de este rasgo provoca ataques de oportunidad.",
-            tipoAccion: "pasivo",
-            subclase: "Colegio de la Danza"
+            descripcion: "Cuando un enemigo que puedas ver termine su turno a 15 pies o menos de ti, puedes usar una reacción y gastar un uso de tu Inspiración bárdica para moverte hasta la mitad de tu velocidad. Luego, un aliado de tu elección a 30 pies o menos de ti también puede moverse hasta la mitad de su velocidad usando su reacción.\n\nNinguno de los movimientos de este rasgo provoca ataques de oportunidad.",
+            tipoAccion: "reaccion",
+            subclase: "Colegio de la Danza",
+            gastarDePadre: true,
+            heredarDadosPadre: true,
+            categoriaMecanica: "consumible"
           },
           {
             nivel: 6,
             nombre: "Juego de pies en tándem",
-            descripcion: "Cuando tiras iniciativa, puedes gastar un uso de tu Inspiración bárdica si no tienes el estado de Incapacitado. Al hacerlo, tira tu dado de Inspiración bárdica; tú y cada aliado a 9 m (30 pies) o menos de ti que pueda verte u oírte gana un bonificador a la iniciativa igual al número que hayas sacado.",
-            tipoAccion: "pasivo",
-            subclase: "Colegio de la Danza"
+            descripcion: "Cuando tiras iniciativa, puedes gastar un uso de tu Inspiración bárdica si no tienes el estado de Incapacitado. Al hacerlo, tira tu dado de Inspiración bárdica; tú y cada aliado a 30 pies o menos de ti que pueda verte u oírte gana un bonificador a la iniciativa igual al número que hayas sacado.",
+            tipoAccion: "especial",
+            subclase: "Colegio de la Danza",
+            gastarDePadre: true,
+            heredarDadosPadre: true,
+            autoDesactivar: true,
+            categoriaMecanica: "consumible"
           },
           {
             nivel: 14,
             nombre: "Evasión líder",
-            descripcion: "Cuando estás sujeto a un efecto que te permite hacer una tirada de salvación de Destreza para recibir solo la mitad del daño, en su lugar no recibes daño si tienes éxito en la tirada de salvación y solo la mitad del daño si fallas. Si alguna criatura a 1,5 m (5 pies) o menos de ti está haciendo la misma tirada de salvación de Destreza, puedes compartir este beneficio con ellas para esa salvación.\nNo puedes usar este rasgo si tienes el estado de Incapacitado.",
+            descripcion: "Cuando estás sujeto a un efecto que te permite hacer una tirada de salvación de Destreza para recibir solo la mitad del daño, en su lugar no recibes daño si tienes éxito en la tirada de salvación y solo la mitad del daño si fallas. Si alguna criatura a 5 pies o menos de ti está haciendo la misma tirada de salvación de Destreza, puedes compartir este beneficio con ellas para esa salvación.\n\nNo puedes usar este rasgo si tienes el estado de Incapacitado.",
             tipoAccion: "pasivo",
             subclase: "Colegio de la Danza"
           },
@@ -850,41 +893,89 @@ export const CATALOGO_CLASES_DND55: DefinicionClase[] = [
         descripcion: "El Colegio del Glamour remonta sus orígenes a la magia cautivadora de los Parajes Feéricos. Los bardos que estudian esta magia tejen hilos de belleza y terror en sus canciones e historias, y los más poderosos de entre ellos pueden envolverse en una majestad de otro mundo. Sus actuaciones despiertan anhelos melancólicos por la inocencia olvidada, evocan recuerdos inconscientes de miedos largamente guardados y tiran de las emociones de incluso los oyentes más insensibles.",
         lema: "Urde magia feérica cautivadora",
         nivelDesbloqueo: 3,
-        progresionConjuros: [{"nivelClase":3,"conjuros":["Hechizar persona","Imagen múltiple","Orden imperiosa"]}],
+        progresionConjuros: [
+          {
+            nivelClase: 3,
+            conjuros: ["Hechizar persona", "Imagen múltiple"]
+          },
+          {
+            nivelClase: 6,
+            conjuros: ["Orden imperiosa"]
+          }
+        ],
         rasgos: [
           {
             nivel: 3,
             nombre: "Magia cautivadora",
-            descripcion: "Siempre tienes los conjuros *hechizar persona* e *imagen múltiple* preparados.\nAdemás, inmediatamente después de lanzar un conjuro de Encantamiento o Ilusionismo utilizando un espacio de conjuro, puedes obligar a una criatura que puedas ver a 18 m (60 pies) o menos de ti a hacer una tirada de salvación de Sabiduría contra la CD de salvación de tus conjuros. Si falla la tirada, el objetivo obtiene el estado de Hechizado o Asustado (tú eliges) durante 1 minuto. El objetivo repite la tirada de salvación al final de cada uno de sus turnos, terminando el efecto sobre sí mismo si tiene éxito.\nUna vez que utilices este beneficio, no podrás volver a usarlo hasta que finalices un descanso largo. También puedes recuperar su uso gastando un uso de tu Inspiración bárdica (no requiere acción).",
+            descripcion: "Siempre tienes los conjuros *hechizar persona* e *imagen múltiple* preparados.\n\nAdemás, inmediatamente después de lanzar un conjuro de Encantamiento o Ilusionismo utilizando un espacio de conjuro, puedes obligar a una criatura que puedas ver a 60 pies o menos de ti a hacer una tirada de salvación de Sabiduría contra la CD de salvación de tus conjuros. Si falla la tirada, el objetivo obtiene el estado de Hechizado o Asustado (tú eliges) durante 1 minuto. El objetivo repite la tirada de salvación al final de cada uno de sus turnos, terminando el efecto sobre sí mismo si tiene éxito.\n\nUna vez que utilices este beneficio, no podrás volver a usarlo hasta que finalices un descanso largo. También puedes recuperar su uso gastando un uso de tu Inspiración bárdica (no requiere acción).",
             tipoAccion: "pasivo",
             subclase: "Colegio del Glamour",
             tieneUsosLimitados: true,
+            formulaUsos: "1",
             recuperacion: "descanso_largo"
           },
           {
             nivel: 3,
             nombre: "Manto de inspiración",
-            descripcion: "Puedes tejer magia feérica en una canción o danza para llenar a otros de vigor. Como acción adicional, puedes gastar un uso de Inspiración bárdica, tirando un dado de Inspiración bárdica. Al hacerlo, elige una cantidad de criaturas adicionales a 18 m (60 pies) o menos de ti, hasta un número igual a tu modificador por Carisma (mínimo de una criatura). Cada una de esas criaturas obtiene una cantidad de Puntos de golpe temporales igual al doble del número sacado en el dado de Inspiración bárdica, y luego cada una puede usar su reacción para moverse hasta su velocidad sin provocar ataques de oportunidad.",
+            descripcion: "Puedes tejer magia feérica en una canción o danza para llenar a otros de vigor. Como acción adicional, puedes gastar un uso de Inspiración bárdica, tirando un dado de Inspiración bárdica. Al hacerlo, elige una cantidad de criaturas adicionales a 60 pies o menos de ti, hasta un número igual a tu modificador por Carisma (mínimo de una criatura). Cada una de esas criaturas obtiene una cantidad de Puntos de golpe temporales igual al doble del número sacado en el dado de Inspiración bárdica, y luego cada una puede usar su reacción para moverse hasta su velocidad sin provocar ataques de oportunidad.",
             tipoAccion: "accion_adicional",
-            subclase: "Colegio del Glamour"
+            subclase: "Colegio del Glamour",
+            gastarDePadre: true,
+            heredarDadosPadre: true,
+            categoriaMecanica: "consumible",
+            efectos: [
+              {
+                tipo: "hp_temporal",
+                objetivo: "propio",
+                valor: "2_veces_dado_inspiracion",
+                descripcion: "Otorga Puntos de golpe temporales al personaje igual al doble del número sacado en el dado de Inspiración bárdica"
+              }
+            ]
           },
           {
             nivel: 6,
             nombre: "Manto de majestad",
-            descripcion: "Siempre tienes el conjuro *orden imperiosa* preparado.\nComo acción adicional, lanzas *orden imperiosa* sin gastar un espacio de conjuro, y adoptas una apariencia sobrenatural durante 1 minuto o hasta que pierdas la concentración. Durante este tiempo, puedes lanzar *orden imperiosa* como acción adicional sin gastar un espacio de conjuro.\nCualquier criatura Hechizada por ti falla automáticamente su tirada de salvación contra la *orden imperiosa* que lances con este rasgo.\nUna vez que utilices este rasgo, no podrás volver a usarlo hasta que finalices un descanso largo. También puedes recuperar su uso gastando un espacio de conjuro de nivel 3 o superior (no requiere acción).",
+            descripcion: "Siempre tienes el conjuro *orden imperiosa* preparado.\n\nComo acción adicional, lanzas *orden imperiosa* sin gastar un espacio de conjuro, y adoptas una apariencia sobrenatural durante 1 minuto o hasta que pierdas la concentración. Durante este tiempo, puedes lanzar *orden imperiosa* como acción adicional sin gastar un espacio de conjuro.\n\nCualquier criatura Hechizada por ti falla automáticamente su tirada de salvación contra la *orden imperiosa* que lances con este rasgo.\n\nUna vez que utilices este rasgo, no podrás volver a usarlo hasta que finalices un descanso largo. También puedes recuperar su uso gastando un espacio de conjuro de nivel 3 o superior (no requiere acción).",
             tipoAccion: "accion_adicional",
             subclase: "Colegio del Glamour",
             tieneUsosLimitados: true,
-            recuperacion: "descanso_largo"
+            formulaUsos: "1",
+            obtenerUsosMaximos: () => 1,
+            recuperacion: "descanso_largo",
+            esActivable: true,
+            condicionAlActivar: "Manto de Majestad (Mantle of Majesty)",
+            categoriaMecanica: "activable",
+            conjurosOtorgados: ["Orden imperiosa"],
+            efectos: [
+              {
+                tipo: "conjuro_gratuito",
+                objetivo: "Orden imperiosa",
+                valor: "sin_espacio",
+                descripcion: "Permite lanzar Orden imperiosa sin gastar espacios ni puntos de conjuro mientras Manto de majestad esté activo"
+              }
+            ]
           },
           {
             nivel: 14,
             nombre: "Majestad inquebrantable",
-            descripcion: "Como acción adicional, puedes asumir una presencia mágicamente majestuosa durante 1 minuto o hasta que obtengas el estado de Incapacitado. Mientras dure, siempre que cualquier criatura te acierte con una tirada de ataque por primera vez en un turno, el atacante debe tener éxito en una tirada de salvación de Carisma contra la CD de salvación de tus conjuros, o el ataque falla en su lugar, mientras la criatura retrocede ante tu majestad.\nUna vez que asumas esta presencia majestuosa, no podrás volver a hacerlo hasta que finalices un descanso corto o largo.",
+            descripcion: "Como acción adicional, puedes asumir una presencia mágicamente majestuosa durante 1 minuto o hasta que obtengas el estado de Incapacitado. Mientras dure, siempre que cualquier criatura te acierte con una tirada de ataque por primera vez en un turno, el atacante debe tener éxito en una tirada de salvación de Carisma contra la CD de salvación de tus conjuros, o el ataque falla en su lugar, mientras la criatura retrocede ante tu majestad.\n\nUna vez que asumas esta presencia majestuosa, no podrás volver a hacerlo hasta que finalices un descanso corto o largo.",
             tipoAccion: "accion_adicional",
             subclase: "Colegio del Glamour",
             tieneUsosLimitados: true,
-            recuperacion: "descanso_corto"
+            formulaUsos: "1",
+            obtenerUsosMaximos: () => 1,
+            recuperacion: "descanso_corto",
+            esActivable: true,
+            condicionAlActivar: "Majestad Inquebrantable (Unbreakable Majesty)",
+            categoriaMecanica: "activable",
+            efectos: [
+              {
+                tipo: "personalizado",
+                objetivo: "propio",
+                valor: "informativo",
+                descripcion: "Presencia majestuosa: Si una criatura te acierta con un ataque por primera vez en un turno, debe superar una salvación de Carisma contra tu CD de conjuros o el ataque falla."
+              }
+            ]
           },
         ]
       },
@@ -906,14 +997,17 @@ export const CATALOGO_CLASES_DND55: DefinicionClase[] = [
           {
             nivel: 3,
             nombre: "Palabras cortantes",
-            descripcion: "Aprendes a usar tu ingenio para distraer de forma sobrenatural, confundir y de otro modo minar la confianza y la competencia de los demás. Cuando una criatura que puedas ver a 18 m (60 pies) o menos de ti haga una tirada de daño o tenga éxito en una prueba de característica o tirada de ataque, puedes usar una reacción para gastar un uso de tu Inspiración bárdica; tira tu dado de Inspiración bárdica y resta el número sacado de la tirada de la criatura, reduciendo el daño o potencialmente convirtiendo el éxito en un fracaso.",
-            tipoAccion: "pasivo",
-            subclase: "Colegio del Conocimiento"
+            descripcion: "Aprendes a usar tu ingenio para distraer de forma sobrenatural, confundir y de otro modo minar la confianza y la competencia de los demás. Cuando una criatura que puedas ver a 60 pies o menos de ti haga una tirada de daño o tenga éxito en una prueba de característica o tirada de ataque, puedes usar una reacción para gastar un uso de tu Inspiración bárdica; tira tu dado de Inspiración bárdica y resta el número sacado de la tirada de la criatura, reduciendo el daño o potencialmente convirtiendo el éxito en un fracaso.",
+            tipoAccion: "reaccion",
+            subclase: "Colegio del Conocimiento",
+            gastarDePadre: true,
+            heredarDadosPadre: true,
+            categoriaMecanica: "consumible"
           },
           {
             nivel: 6,
             nombre: "Descubrimientos mágicos",
-            descripcion: "Aprendes dos conjuros de tu elección. Estos conjuros pueden provenir de la lista de conjuros de clérigo, druida o mago, o cualquier combinación de los mismos (consulta la sección de una clase para ver su lista de conjuros). Un conjuro que elijas debe ser un truco o un conjuro para el que tengas espacios de conjuro, como se muestra en la tabla \"Rasgos de bardo\".\nSiempre tienes los conjuros elegidos preparados, y cada vez que subas un nivel de bardo, puedes sustituir uno de los conjuros por otro conjuro que cumpla con estos requisitos.",
+            descripcion: "Aprendes dos conjuros de tu elección. Estos conjuros pueden provenir de la lista de conjuros de clérigo, druida o mago, o cualquier combinación de los mismos. Un conjuro que elijas debe ser un truco o un conjuro para el que tengas espacios de conjuro,.\n\nSiempre tienes los conjuros elegidos preparados, y cada vez que subas un nivel de bardo, puedes sustituir uno de los conjuros por otro conjuro que cumpla con estos requisitos.",
             tipoAccion: "pasivo",
             subclase: "Colegio del Conocimiento"
           },
@@ -922,7 +1016,10 @@ export const CATALOGO_CLASES_DND55: DefinicionClase[] = [
             nombre: "Habilidad inigualable",
             descripcion: "Cuando hagas una prueba de característica o una tirada de ataque y falles, puedes gastar un uso de Inspiración bárdica; tira el dado de Inspiración bárdica y suma el número sacado al d20, potencialmente convirtiendo un fracaso en un éxito. En caso de fallo, la Inspiración bárdica no se gasta.",
             tipoAccion: "pasivo",
-            subclase: "Colegio del Conocimiento"
+            subclase: "Colegio del Conocimiento",
+            gastarDePadre: true,
+            heredarDadosPadre: true,
+            categoriaMecanica: "consumible"
           },
         ]
       },
@@ -944,14 +1041,35 @@ export const CATALOGO_CLASES_DND55: DefinicionClase[] = [
           {
             nivel: 3,
             nombre: "Entrenamiento marcial",
-            descripcion: "Ganas competencia con armas marciales y entrenamiento con armaduras medias y *escudos*.\nAdemás, puedes usar un arma sencilla o marcial como Canalizador mágico para lanzar conjuros de tu lista de conjuros de bardo.",
+            descripcion: "Ganas competencia con armas marciales y entrenamiento con armaduras medias y *escudos*.\n\nAdemás, puedes usar un arma sencilla o marcial como Canalizador mágico para lanzar conjuros de tu lista de conjuros de bardo.",
             tipoAccion: "pasivo",
-            subclase: "Colegio del Valor"
+            subclase: "Colegio del Valor",
+            categoriaMecanica: "pasivo_permanente",
+            efectos: [
+              {
+                tipo: "competencia",
+                objetivo: "armas_marciales",
+                valor: "marciales",
+                descripcion: "Competencia con armas marciales"
+              },
+              {
+                tipo: "competencia",
+                objetivo: "armaduras_medias",
+                valor: "medias",
+                descripcion: "Competencia con armaduras medias"
+              },
+              {
+                tipo: "competencia",
+                objetivo: "escudos",
+                valor: "escudos",
+                descripcion: "Competencia con escudos"
+              }
+            ]
           },
           {
             nivel: 6,
             nombre: "Ataque adicional",
-            descripcion: "Puedes atacar dos veces en lugar de una cada vez que realices la acción de Atacar en tu turno.\nAdemás, puedes lanzar uno de tus trucos que tenga un tiempo de lanzamiento de una acción en lugar de uno de esos ataques.",
+            descripcion: "Puedes atacar dos veces en lugar de una cada vez que realices la acción de Atacar en tu turno.\n\nAdemás, puedes lanzar uno de tus trucos que tenga un tiempo de lanzamiento de una acción en lugar de uno de esos ataques.",
             tipoAccion: "accion",
             subclase: "Colegio del Valor"
           },

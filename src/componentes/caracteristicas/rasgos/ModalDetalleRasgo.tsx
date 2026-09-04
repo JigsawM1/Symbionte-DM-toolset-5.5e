@@ -18,6 +18,7 @@ import {
   Award
 } from "lucide-react";
 import { TablaProgresionRasgo } from "./TablaProgresionRasgo";
+import { TooltipUniversal } from "@/componentes/comunes";
 import estilos from "./VistaRasgosJugador.module.css";
 
 interface ModalDetalleRasgoProps {
@@ -34,6 +35,8 @@ interface ModalDetalleRasgoProps {
   alActualizarSeleccion?: (idSelector: string, valores: string[]) => void;
   alEditar?: () => void;
   alEliminar?: () => void;
+  usosPadre?: { restantes: number; maximos: number; nombre: string };
+  formulaDadosEfectiva?: string;
 }
 
 const ICONO_POR_ACCION: Record<TipoAccionRasgo, React.ReactNode> = {
@@ -135,23 +138,34 @@ export const ModalDetalleRasgo: React.FC<ModalDetalleRasgoProps> = ({
   motivoDeshabilitado,
   alActualizarSeleccion,
   alEditar,
-  alEliminar
+  alEliminar,
+  usosPadre,
+  formulaDadosEfectiva
 }) => {
-  const tieneUsos = rasgo.tieneUsosLimitados && typeof rasgo.usosMaximos === "number";
-  const usosRestantes = rasgo.usosRestantes ?? (rasgo.usosMaximos || 1);
-  const usosMaximos = rasgo.usosMaximos || 1;
+  const formulaEfectiva = formulaDadosEfectiva || rasgo.formulaDados;
+  const tieneUsosPropios = rasgo.tieneUsosLimitados && typeof rasgo.usosMaximos === "number";
+  const tieneUsosPadre = !tieneUsosPropios && Boolean(rasgo.gastarDePadre && usosPadre);
+
+  const usosRestantes = tieneUsosPropios
+    ? (rasgo.usosRestantes ?? (rasgo.usosMaximos || 1))
+    : (usosPadre?.restantes ?? 0);
+  const usosMaximos = tieneUsosPropios
+    ? (rasgo.usosMaximos || 1)
+    : (usosPadre?.maximos || 1);
+
+  const sinUsosDisponibles = (tieneUsosPropios || tieneUsosPadre) && usosRestantes <= 0;
   const esCuracion = rasgo.categoriaMecanica === "curacion" || rasgo.nombre.toLowerCase().includes("guerrero de los dioses");
 
   const manejarTirarDados = async () => {
-    if (!rasgo.formulaDados) return;
-    if (esCuracion && tieneUsos && usosRestantes <= 0) return;
+    if (!formulaEfectiva) return;
+    if (sinUsosDisponibles) return;
 
     try {
-      if (esCuracion && alGastarUso) {
+      if ((esCuracion || rasgo.gastarDePadre) && alGastarUso) {
         alGastarUso();
       }
-      const formula = `!${rasgo.nombre}:${rasgo.formulaDados}`;
-      const etiqueta = `${nombrePersonaje} - ${rasgo.nombre} (${rasgo.formulaDados})`;
+      const formula = `!${rasgo.nombre}:${formulaEfectiva}`;
+      const etiqueta = `${nombrePersonaje} - ${rasgo.nombre} (${formulaEfectiva})`;
       await lanzarDadosTaleSpire(
         formula,
         etiqueta,
@@ -274,18 +288,20 @@ export const ModalDetalleRasgo: React.FC<ModalDetalleRasgoProps> = ({
         </div>
 
         {/* Zona de Recursos y Tiradas */}
-        {(tieneUsos || rasgo.formulaDados) && (
+        {(tieneUsosPropios || tieneUsosPadre || formulaEfectiva) && (
           <div className={estilos.barraRecursosModal}>
-            {tieneUsos && alGastarUso && alRecuperarUso && (
+            {(tieneUsosPropios || tieneUsosPadre) && alGastarUso && alRecuperarUso && (
               <div className={estilos.controlUsosModal}>
-                <span className={estilos.etiquetaUsosModal}>Usos Disponibles:</span>
+                <span className={estilos.etiquetaUsosModal}>
+                  {tieneUsosPropios ? "Usos Disponibles:" : `Reserva (${usosPadre?.nombre || "Principal"}):`}
+                </span>
                 <div className={estilos.grupoBotonesUsoModal}>
                   <button
                     type="button"
                     className={estilos.botonPasoUsoModal}
                     onClick={alGastarUso}
                     disabled={usosRestantes <= 0}
-                    title="Gastar 1 uso"
+                    title={tieneUsosPropios ? "Gastar 1 uso" : `Gastar 1 uso de ${usosPadre?.nombre || "padre"}`}
                   >
                     -
                   </button>
@@ -299,7 +315,7 @@ export const ModalDetalleRasgo: React.FC<ModalDetalleRasgoProps> = ({
                     className={estilos.botonPasoUsoModal}
                     onClick={alRecuperarUso}
                     disabled={usosRestantes >= usosMaximos}
-                    title="Recuperar 1 uso"
+                    title={tieneUsosPropios ? "Recuperar 1 uso" : `Recuperar 1 uso de ${usosPadre?.nombre || "padre"}`}
                   >
                     +
                   </button>
@@ -313,20 +329,28 @@ export const ModalDetalleRasgo: React.FC<ModalDetalleRasgoProps> = ({
               </div>
             )}
 
-            {rasgo.formulaDados && (
+            {formulaEfectiva && (
               <button
                 type="button"
                 className={estilos.botonLanzarDadosModal}
                 onClick={manejarTirarDados}
-                disabled={esCuracion && tieneUsos && usosRestantes <= 0}
+                disabled={sinUsosDisponibles}
                 title={
                   esCuracion
-                    ? `Gastar 1 dado de la reserva (${usosRestantes}/${usosMaximos}) y curar ${rasgo.formulaDados}`
-                    : `Lanzar tirada de ${rasgo.formulaDados} a TaleSpire`
+                    ? `Gastar 1 dado de la reserva (${usosRestantes}/${usosMaximos}) y curar ${formulaEfectiva}`
+                    : rasgo.gastarDePadre && usosPadre
+                    ? `Lanzar ${formulaEfectiva} a TaleSpire (Gasta 1 uso de ${usosPadre.nombre}: ${usosRestantes}/${usosMaximos})`
+                    : `Lanzar tirada de ${formulaEfectiva} a TaleSpire`
                 }
               >
                 {esCuracion ? <Heart size={14} color="#10b981" /> : <Dices size={14} />}
-                <span>{esCuracion ? `Curar ${rasgo.formulaDados} (Gasta 1 dado)` : `Lanzar ${rasgo.formulaDados}`}</span>
+                <span>
+                  {esCuracion
+                    ? `Curar ${formulaEfectiva} (Gasta 1 dado)`
+                    : rasgo.gastarDePadre && usosPadre
+                    ? `Lanzar ${formulaEfectiva} (Gasta 1 Inspiración)`
+                    : `Lanzar ${formulaEfectiva}`}
+                </span>
               </button>
             )}
           </div>
@@ -363,41 +387,42 @@ export const ModalDetalleRasgo: React.FC<ModalDetalleRasgoProps> = ({
                       {sel.opciones.map((op) => {
                         const estaActiva = seleccionados.includes(op.id);
                         return (
-                          <button
+                          <TooltipUniversal
                             key={op.id}
-                            type="button"
-                            className={`${estilos.opcionSelectorCard} ${estaActiva ? estilos.opcionSelectorCardActiva : ""}`}
-                            onClick={() => {
-                              if (!alActualizarSeleccion) return;
-                              if (sel.tipo === "unico") {
-                                alActualizarSeleccion(sel.id, [op.id]);
-                              } else {
-                                if (estaActiva) {
-                                  alActualizarSeleccion(
-                                    sel.id,
-                                    seleccionados.filter((id) => id !== op.id)
-                                  );
+                            titulo={op.nombre}
+                            contenido={op.descripcion || op.nombre}
+                            posicion="arriba"
+                          >
+                            <button
+                              type="button"
+                              className={`${estilos.opcionSelectorCard} ${estaActiva ? estilos.opcionSelectorCardActiva : ""}`}
+                              onClick={() => {
+                                if (!alActualizarSeleccion) return;
+                                if (sel.tipo === "unico") {
+                                  alActualizarSeleccion(sel.id, [op.id]);
                                 } else {
-                                  if (seleccionados.length < max) {
-                                    alActualizarSeleccion(sel.id, [...seleccionados, op.id]);
+                                  if (estaActiva) {
+                                    alActualizarSeleccion(
+                                      sel.id,
+                                      seleccionados.filter((id) => id !== op.id)
+                                    );
                                   } else {
-                                    // Reemplazar la más antigua si se supera el máximo
-                                    const nuevos = [...seleccionados.slice(1), op.id];
-                                    alActualizarSeleccion(sel.id, nuevos);
+                                    if (seleccionados.length < max) {
+                                      alActualizarSeleccion(sel.id, [...seleccionados, op.id]);
+                                    } else {
+                                      // Reemplazar la más antigua si se supera el máximo
+                                      const nuevos = [...seleccionados.slice(1), op.id];
+                                      alActualizarSeleccion(sel.id, nuevos);
+                                    }
                                   }
                                 }
-                              }
-                            }}
-                          >
-                            <span className={estilos.nombreOpcionSelector}>
-                              {op.nombre} {estaActiva && "✓"}
-                            </span>
-                            {op.descripcion && (
-                              <span className={estilos.descripcionOpcionSelector}>
-                                {op.descripcion}
+                              }}
+                            >
+                              <span className={estilos.nombreOpcionSelector}>
+                                {op.nombre} {estaActiva && "✓"}
                               </span>
-                            )}
-                          </button>
+                            </button>
+                          </TooltipUniversal>
                         );
                       })}
                     </div>

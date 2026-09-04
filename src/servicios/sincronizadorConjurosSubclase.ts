@@ -1,6 +1,7 @@
 import type { PersonajeJugador, ClasePersonaje } from "@/tipos";
 import { obtenerConjurosSubclasePersonaje } from "@/servicios/calculadorMagia";
 import { coincideHechizoId, deduplicarListaIds } from "@/servicios/comparadorHechizos";
+import { obtenerConjurosOtorgadosPorRasgos } from "@/servicios/evaluadorEfectosRasgos";
 
 /**
  * Sincroniza dinámicamente los conjuros y trucos de subclase en el personaje.
@@ -26,7 +27,8 @@ export function sincronizarConjurosSubclaseHelper(
     nivel
   );
 
-  const nuevosSiemprePrep = Array.from(new Set(resultadoSubclase.conjuros || []));
+  const conjurosRasgos = obtenerConjurosOtorgadosPorRasgos(pj);
+  const nuevosSiemprePrep = Array.from(new Set([...(resultadoSubclase.conjuros || []), ...conjurosRasgos]));
   const viejosSiemprePrep = pj.conjurosSiemprePreparadosIds || [];
 
   // Conjuros que eran de subclase pero ya no lo son (por bajada de nivel o cambio de subclase)

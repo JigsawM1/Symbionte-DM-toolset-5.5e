@@ -428,6 +428,40 @@ export const VistaRasgosJugador: React.FC = () => {
     setModoVista("mis_rasgos");
   };
 
+  const resolverRecursosPadre = (rasgo: RasgoPersonaje) => {
+    if (!personajeActivo || (!rasgo.gastarDePadre && !rasgo.heredarDadosPadre)) {
+      return { usosPadre: undefined, formulaDadosEfectiva: undefined };
+    }
+
+    let padre: RasgoPersonaje | undefined;
+    if (rasgo.ligadoA) {
+      padre = (personajeActivo.rasgos || []).find((r) => r.id === rasgo.ligadoA);
+    }
+    if (!padre) {
+      padre = (personajeActivo.rasgos || []).find((r) =>
+        normalizar(r.nombre).includes("inspiracion bardica")
+      );
+    }
+
+    if (!padre) {
+      return { usosPadre: undefined, formulaDadosEfectiva: undefined };
+    }
+
+    const usosPadre = rasgo.gastarDePadre
+      ? {
+          restantes: padre.usosRestantes ?? (padre.usosMaximos || 1),
+          maximos: padre.usosMaximos || 1,
+          nombre: padre.nombre
+        }
+      : undefined;
+
+    const formulaDadosEfectiva = rasgo.heredarDadosPadre
+      ? (padre.formulaDados || rasgo.formulaDados)
+      : undefined;
+
+    return { usosPadre, formulaDadosEfectiva };
+  };
+
   if (modoVista === "creador_homebrew") {
     return (
       <div className={estilos.contenedorGeneral}>
@@ -674,6 +708,7 @@ export const VistaRasgosJugador: React.FC = () => {
                             alEditar={() => abrirModalEdicion(rasgo)}
                             alEliminar={() => eliminarRasgoPersonaje(personajeActivo.id, rasgo.id)}
                             alVerDetalle={() => setRasgoSeleccionadoDetalle(rasgo)}
+                            {...resolverRecursosPadre(rasgo)}
                           />
                         );
                       })}
@@ -726,6 +761,7 @@ export const VistaRasgosJugador: React.FC = () => {
                                   alEditar={() => abrirModalEdicion(rasgo)}
                                   alEliminar={() => eliminarRasgoPersonaje(personajeActivo.id, rasgo.id)}
                                   alVerDetalle={() => setRasgoSeleccionadoDetalle(rasgo)}
+                                  {...resolverRecursosPadre(rasgo)}
                                 />
                               );
                             })}
@@ -774,6 +810,7 @@ export const VistaRasgosJugador: React.FC = () => {
                                   alEditar={() => abrirModalEdicion(rasgo)}
                                   alEliminar={() => eliminarRasgoPersonaje(personajeActivo.id, rasgo.id)}
                                   alVerDetalle={() => setRasgoSeleccionadoDetalle(rasgo)}
+                                  {...resolverRecursosPadre(rasgo)}
                                 />
                               );
                             })}
@@ -836,6 +873,7 @@ export const VistaRasgosJugador: React.FC = () => {
                             alEditar={() => abrirModalEdicion(rasgo)}
                             alEliminar={() => eliminarRasgoPersonaje(personajeActivo.id, rasgo.id)}
                             alVerDetalle={() => setRasgoSeleccionadoDetalle(rasgo)}
+                            {...resolverRecursosPadre(rasgo)}
                           />
                         );
                       })}
@@ -899,6 +937,7 @@ export const VistaRasgosJugador: React.FC = () => {
                             alEditar={() => abrirModalEdicion(rasgo)}
                             alEliminar={() => eliminarRasgoPersonaje(personajeActivo.id, rasgo.id)}
                             alVerDetalle={() => setRasgoSeleccionadoDetalle(rasgo)}
+                            {...resolverRecursosPadre(rasgo)}
                           />
                         );
                       })
@@ -1041,6 +1080,7 @@ export const VistaRasgosJugador: React.FC = () => {
             setRasgoSeleccionadoDetalle(null);
             eliminarRasgoPersonaje(personajeActivo.id, r.id);
           }}
+          {...resolverRecursosPadre(rasgoDetalleEfectivo)}
         />
       )}
     </div>

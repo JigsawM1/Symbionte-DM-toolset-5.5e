@@ -28,10 +28,14 @@ import { desduplicarEntidades } from "@/utiles/busquedaTolerante";
 import { esCompetenteConArma } from "@/constantes/competenciasConstantes";
 import { evaluarEfectosCondicionesEnTirada } from "@/servicios/procesadorCondiciones";
 import {
+  evaluarEfectosRasgosActivos,
   obtenerDadosExtraAtaque,
   obtenerDanosSecundariosAtaque,
   obtenerBonoDanoFuerzaExtra,
-  ContextoAtaquePersonaje
+  ContextoAtaquePersonaje,
+  evaluarAtaqueDesarmadoEspecial,
+  obtenerCompetenciasExtraRasgos,
+  personajeTieneMaestriaArma
 } from "@/servicios/evaluadorEfectosRasgos";
 import type { Arma, ObjetoJuego, HechizoBase, Caracteristica, HechizoVinculado } from "@/tipos";
 import { SelectorDesplegable } from "@/componentes/comunes";
@@ -167,6 +171,16 @@ export const VistaAtaquesJugador: React.FC = () => {
       )
     );
 
+    const efectosActivosRasgos = evaluarEfectosRasgosActivos(personajeActivo);
+    const yaIncluyeFuriaEnEfectos = efectosActivosRasgos.some(
+      (ef) => ef.tipo === "bono_dano_fuerza" && (String(ef.valor).toLowerCase().trim() === "dano_furia" || String(ef.descripcion).toLowerCase().includes("furia"))
+    );
+
+    const compExtraRasgos = obtenerCompetenciasExtraRasgos(personajeActivo);
+    const gruposArmasConsolidados = Array.from(
+      new Set([...(personajeActivo.competenciasArmasGrupos || []), ...compExtraRasgos.armasGrupos])
+    );
+
     // 1. Armas Equipadas
     const armasEquipadas = inventario.filter(
       (obj) => obj.equipado && obj.tipoPrincipal === "Arma"
@@ -262,7 +276,7 @@ export const VistaAtaquesJugador: React.FC = () => {
       const esCompetenteArma = esCompetenteConArma(
         armaInst.nombre,
         subcategoriaArma,
-        personajeActivo.competenciasArmasGrupos || [],
+        gruposArmasConsolidados,
         personajeActivo.competenciasArmasLista || []
       );
 
@@ -278,7 +292,7 @@ export const VistaAtaquesJugador: React.FC = () => {
       };
 
       const bonoDanoExtraRasgos = obtenerBonoDanoFuerzaExtra(personajeActivo, contextoAtaqueArma);
-      const bonoFuriaArma = (caracUsada === "fuerza" && statsCalculadas.bonoDanoFuria > 0) ? statsCalculadas.bonoDanoFuria : 0;
+      const bonoFuriaArma = (!yaIncluyeFuriaEnEfectos && caracUsada === "fuerza" && statsCalculadas.bonoDanoFuria > 0) ? statsCalculadas.bonoDanoFuria : 0;
       const modDanoTotal = modAtributo + bonoMagico + bonoFuriaArma + bonoDanoExtraRasgos;
       const signoMod = modDanoTotal >= 0 ? `+${modDanoTotal}` : `${modDanoTotal}`;
 
@@ -405,7 +419,10 @@ export const VistaAtaquesJugador: React.FC = () => {
         tipoDano,
         alcance: alcanceStr,
         propiedades,
-        maestria: objetoCompendio?.maestria,
+        maestria:
+          objetoCompendio?.maestria && personajeTieneMaestriaArma(personajeActivo, objetoCompendio.maestria)
+            ? objetoCompendio.maestria
+            : undefined,
         esMagico: esMagicoReal,
         tieneTiradaAtaque: true,
         requiereMunicion,
@@ -429,18 +446,21 @@ export const VistaAtaquesJugador: React.FC = () => {
       esCompetenteConArma(
         "Ataque desarmado",
         "Sencilla",
-        personajeActivo.competenciasArmasGrupos || [],
+        gruposArmasConsolidados,
         personajeActivo.competenciasArmasLista || []
       ) ||
       (!personajeActivo.competenciasArmas && (personajeActivo.competenciasArmasLista || []).length === 0);
 
     const modFue = modificadores.fuerza || 0;
     const modDes = modificadores.destreza || 0;
+    const ataqueDesarmadoEsp = evaluarAtaqueDesarmadoEspecial(personajeActivo);
 
     // Regla D&D 5.5e: El golpe desarmado siempre usa Fuerza salvo clase Monje o efecto especial configurado
     let caracDefectoDesarmado: Caracteristica = "fuerza";
     if (esMonje) {
       caracDefectoDesarmado = modDes > modFue ? "destreza" : "fuerza";
+    } else if (ataqueDesarmadoEsp.aplica && ataqueDesarmadoEsp.caracteristicaSugerida) {
+      caracDefectoDesarmado = ataqueDesarmadoEsp.caracteristicaSugerida;
     }
 
     const caracDesarmado: Caracteristica = caracteristicasArmas["ataque-desarmado"] || caracDefectoDesarmado;
@@ -476,6 +496,30 @@ export const VistaAtaquesJugador: React.FC = () => {
         esSutil: true,
         esDistancia: false
       });
+    } else if (ataqueDesarmadoEsp.aplica) {
+      // Ataque desarmado especial por rasgo (ej. Daño bárdico del Colegio de la Danza o homebrew)
+      const dadoBaseEsp = ataqueDesarmadoEsp.dadoDanoBase || "1d6";
+      const formulaEsp = modDesarmado !== 0 ? `${dadoBaseEsp}${modDesarmado >= 0 ? `+${modDesarmado}` : modDesarmado}` : dadoBaseEsp;
+      ataques.push({
+        id: "ataque-desarmado",
+        nombre: ataqueDesarmadoEsp.nombreAtaque || "Golpe sin Armas (Daño Bárdico)",
+        tipo: "Desarmado",
+        subtipo: "Cuerpo a Cuerpo",
+        tipoAccion: "accion",
+        caracteristicaUsada: caracDesarmado,
+        bonoAtaque: bonoAtaqueDesarmado,
+        dadoDano: formulaEsp,
+        dadoDanoBase: dadoBaseEsp,
+        modificadorDano: modDesarmado,
+        esDanoFijo: false,
+        tipoDano: "Contundente",
+        alcance: "5 ft",
+        propiedades: ataqueDesarmadoEsp.propiedades || ["Daño Bárdico", "Sutil"],
+        tieneTiradaAtaque: true,
+        esCompetenteConArma: esCompetenteDesarmado,
+        esSutil: true,
+        esDistancia: false
+      });
     } else {
       // Regla D&D 5.5e estándar: Daño Fijo 1 + FUE (+ bono Furia si aplica)
       const contextoDesarmado: ContextoAtaquePersonaje = {
@@ -485,7 +529,7 @@ export const VistaAtaquesJugador: React.FC = () => {
         esDistancia: false
       };
       const bonoDanoExtraDesarmado = obtenerBonoDanoFuerzaExtra(personajeActivo, contextoDesarmado);
-      const bonoFuriaDesarmado = (caracDesarmado === "fuerza" && statsCalculadas.bonoDanoFuria > 0) ? statsCalculadas.bonoDanoFuria : 0;
+      const bonoFuriaDesarmado = (!yaIncluyeFuriaEnEfectos && caracDesarmado === "fuerza" && statsCalculadas.bonoDanoFuria > 0) ? statsCalculadas.bonoDanoFuria : 0;
       const modDesarmadoTotal = modDesarmado + bonoFuriaDesarmado + bonoDanoExtraDesarmado;
       const danoFijo = Math.max(1, 1 + modDesarmadoTotal);
 
@@ -563,25 +607,24 @@ export const VistaAtaquesJugador: React.FC = () => {
     const esCompetenteImprovisada = esCompetenteConArma(
       "Armas improvisadas",
       "Improvisada",
-      personajeActivo.competenciasArmasGrupos || [],
+      gruposArmasConsolidados,
       personajeActivo.competenciasArmasLista || []
     );
 
     const caracImprovisada: Caracteristica = caracteristicasArmas["ataque-arma-improvisada"] || "fuerza";
     const modImprovisada = modificadores[caracImprovisada] || 0;
-    const bonoFuriaImprovisada = (caracImprovisada === "fuerza" && statsCalculadas.bonoDanoFuria > 0) ? statsCalculadas.bonoDanoFuria : 0;
-    const modImprovisadaTotal = modImprovisada + bonoFuriaImprovisada;
-    const bonoAtaqueImprovisada = (esCompetenteImprovisada ? bonoCompetencia : 0) + modImprovisada;
-
-    const dadosExtraImprovisada: string[] = [];
-
     const contextoImprovisada: ContextoAtaquePersonaje = {
       tipo: "improvisada",
       caracteristica: caracImprovisada,
       esCuerpoACuerpo: true,
       esDistancia: false
     };
+    const bonoDanoExtraImprovisada = obtenerBonoDanoFuerzaExtra(personajeActivo, contextoImprovisada);
+    const bonoFuriaImprovisada = (!yaIncluyeFuriaEnEfectos && caracImprovisada === "fuerza" && statsCalculadas.bonoDanoFuria > 0) ? statsCalculadas.bonoDanoFuria : 0;
+    const modImprovisadaTotal = modImprovisada + bonoFuriaImprovisada + bonoDanoExtraImprovisada;
+    const bonoAtaqueImprovisada = (esCompetenteImprovisada ? bonoCompetencia : 0) + modImprovisada;
 
+    const dadosExtraImprovisada: string[] = [];
     const dadosExtraEfectosImp = obtenerDadosExtraAtaque(personajeActivo, contextoImprovisada);
     for (const d of dadosExtraEfectosImp) {
       dadosExtraImprovisada.push(d.dados);

@@ -53,6 +53,8 @@ export interface ContextoMagicoPersonaje {
   espaciosPactoGastados?: number;
   arcanoMisticoGastados?: string[];
   cargasObjetoActuales?: number;
+  conjurosGratuitosActivos?: string[];
+  esLanzamientoGratuito?: boolean;
 }
 
 export interface ResultadoValidacion {
@@ -394,28 +396,39 @@ export function prepararLanzamiento(
           nombrePersonaje
         );
 
-        // Determinar qué recurso se gasta delegando a la lógica multiclase / pacto
-        let tipoGastoDetectado: InstruccionGasto = { tipo: "ninguno" };
-        gastarRecursoLanzamientoConjuro({
-          nivelLanzamiento,
-          esLanzadorPacto: contexto.esLanzadorPacto,
-          nivelEspacioPacto: contexto.nivelEspacioPacto,
-          espaciosPactoMaximos: contexto.espaciosPactoMaximos,
-          espaciosPactoGastados: contexto.espaciosPactoGastados,
-          espaciosConjuroMaximos: contexto.espaciosConjuroMaximos,
-          sistemaMagia: contexto.sistemaMagia,
-          costePuntosPorNivel: contexto.costePuntosPorNivel,
-          alGastarEspacio: (niv) => {
-            tipoGastoDetectado = { tipo: "espacio", nivel: niv };
-          },
-          alGastarPuntos: (cant) => {
-            tipoGastoDetectado = { tipo: "puntos", cantidad: cant, nivel: nivelLanzamiento };
-          },
-          alGastarEspacioPacto: () => {
-            tipoGastoDetectado = { tipo: "pacto", nivel: contexto.nivelEspacioPacto || nivelLanzamiento };
-          }
-        });
-        gasto = tipoGastoDetectado;
+        // Si el conjuro es gratuito por un rasgo activo (ej. Manto de Majestad / Orden imperiosa)
+        const esGratis =
+          contexto.esLanzamientoGratuito ||
+          (contexto.conjurosGratuitosActivos || []).some(
+            (c) => c.toLowerCase().trim() === solicitud.hechizo.nombre.toLowerCase().trim()
+          );
+
+        if (esGratis) {
+          gasto = { tipo: "ninguno" };
+        } else {
+          // Determinar qué recurso se gasta delegando a la lógica multiclase / pacto
+          let tipoGastoDetectado: InstruccionGasto = { tipo: "ninguno" };
+          gastarRecursoLanzamientoConjuro({
+            nivelLanzamiento,
+            esLanzadorPacto: contexto.esLanzadorPacto,
+            nivelEspacioPacto: contexto.nivelEspacioPacto,
+            espaciosPactoMaximos: contexto.espaciosPactoMaximos,
+            espaciosPactoGastados: contexto.espaciosPactoGastados,
+            espaciosConjuroMaximos: contexto.espaciosConjuroMaximos,
+            sistemaMagia: contexto.sistemaMagia,
+            costePuntosPorNivel: contexto.costePuntosPorNivel,
+            alGastarEspacio: (niv) => {
+              tipoGastoDetectado = { tipo: "espacio", nivel: niv };
+            },
+            alGastarPuntos: (cant) => {
+              tipoGastoDetectado = { tipo: "puntos", cantidad: cant, nivel: nivelLanzamiento };
+            },
+            alGastarEspacioPacto: () => {
+              tipoGastoDetectado = { tipo: "pacto", nivel: contexto.nivelEspacioPacto || nivelLanzamiento };
+            }
+          });
+          gasto = tipoGastoDetectado;
+        }
       }
       break;
     }

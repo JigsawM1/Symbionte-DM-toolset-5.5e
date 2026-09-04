@@ -76,7 +76,8 @@ export const PanelHabilidadesPersonaje: React.FC<PanelHabilidadesPersonajeProps>
             const nombreMostrar = custom?.nombrePersonalizado || nombre;
             const bono = habilidades[hab] || 0;
             const bonoTexto = bono >= 0 ? `+${bono}` : `${bono}`;
-            const grado = (personaje.gradosHabilidades?.[hab] || "ninguna") as GradoCompetencia;
+            const grado = statsCalculadas.gradosHabilidadesEfectivos?.[hab] ||
+              ((personaje.gradosHabilidades?.[hab] || "ninguna") as GradoCompetencia);
             const esCompetente = grado !== "ninguna";
             const caracAsociada = MAPA_HABILIDAD_A_CARACTERISTICA[hab] || "destreza";
             const abrevCarac = ABREVIATURA_CARACTERISTICA[caracAsociada] || "Des";
@@ -169,7 +170,7 @@ export const PanelHabilidadesPersonaje: React.FC<PanelHabilidadesPersonajeProps>
             role={alAbrirSelectorCompetencias ? "button" : undefined}
             tabIndex={alAbrirSelectorCompetencias ? 0 : undefined}
           >
-            {personaje.competenciasArmas || "Ninguna"}
+            {statsCalculadas?.competenciasEfectivas?.armasTexto || personaje.competenciasArmas || "Ninguna"}
           </div>
         </div>
 
@@ -184,7 +185,7 @@ export const PanelHabilidadesPersonaje: React.FC<PanelHabilidadesPersonajeProps>
             role={alAbrirSelectorCompetencias ? "button" : undefined}
             tabIndex={alAbrirSelectorCompetencias ? 0 : undefined}
           >
-            {personaje.competenciasArmaduras || "Ninguna"}
+            {statsCalculadas?.competenciasEfectivas?.armadurasTexto || personaje.competenciasArmaduras || "Ninguna"}
           </div>
         </div>
 

@@ -47,10 +47,14 @@ export const EsquemaTipoEfectoMecanico = z.enum([
   "dano_secundario",
   "bono_dano_fuerza",
   "bono_salvacion",
-  "resistencia_dano",
   "inmunidad_condicion",
   "competencia",
   "habilidad_con_fuerza",
+  "medio_bono_habilidades",
+  "ataque_desarmado",
+  "conjuro_otorgado",
+  "conjuro_gratuito",
+  "hp_temporal",
   "restaurar_recurso",
   "personalizado"
 ]);
@@ -125,8 +129,12 @@ export const EsquemaRasgoPersonaje = z.object({
   personalizado: z.boolean().default(false),
   activo: z.boolean().default(true),
   esActivable: z.boolean().default(false).optional(), // Toggle on/off
+  autoDesactivar: z.boolean().default(false).optional(), // Si es true, vuelve a activo: false tras ejecutarse
   ligadoA: z.string().optional(), // ID o nombre de rasgo padre requerido activo
+  gastarDePadre: z.boolean().default(false).optional(), // Descuenta uso de la reserva del rasgo padre
+  heredarDadosPadre: z.boolean().default(false).optional(), // Hereda formulaDados del rasgo padre
   condicionAlActivar: z.string().optional(), // Condición táctica a sincronizar en condicionesActivas (ej. "Furia (Rage)")
+  conjurosOtorgados: z.array(z.string()).default([]).optional(), // Conjuros siempre preparados otorgados por el rasgo
   restaurarUsosAlActivar: z.object({
     idRasgoObjetivo: z.string(),
     cantidad: z.union([z.literal("maximo"), z.number().int().min(1)])

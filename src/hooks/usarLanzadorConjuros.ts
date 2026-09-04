@@ -13,6 +13,7 @@ import {
 } from "@/servicios/servicioLanzamientoConjuros";
 import { usarAlmacenDM } from "@/almacen/usarAlmacenDM";
 import { usarAccionesConfiguracion, usarEstadoConfiguracion } from "@/almacen/selectores/usarEstadoConfiguracion";
+import { tieneConjuroGratuitoActivo } from "@/servicios/evaluadorEfectosRasgos";
 
 export interface OpcionesLanzadorConjuros {
   personaje?: PersonajeJugador | null;
@@ -76,6 +77,12 @@ export function usarLanzadorConjuros(opciones: OpcionesLanzadorConjuros): Contro
       (personaje.espaciosPactoMaximos || 0) > 0 ||
       (personaje.clasesLanzadoras || []).some((c) => c.tipoLanzador === "pacto");
 
+    // Identificar conjuros que el personaje puede lanzar gratis actualmente (ej: Orden imperiosa con Manto de Majestad)
+    const conjurosGratuitos: string[] = [];
+    if (tieneConjuroGratuitoActivo(personaje, "Orden imperiosa")) {
+      conjurosGratuitos.push("Orden imperiosa");
+    }
+
     return {
       penalizacionArmadura: penalizacionArmadura ?? null,
       espaciosConjuroMaximos: personaje.espaciosConjuroMaximos || {},
@@ -86,7 +93,8 @@ export function usarLanzadorConjuros(opciones: OpcionesLanzadorConjuros): Contro
       nivelEspacioPacto: personaje.nivelEspacioPacto || 0,
       espaciosPactoMaximos: personaje.espaciosPactoMaximos || 0,
       espaciosPactoGastados: personaje.espaciosPactoGastados || 0,
-      arcanoMisticoGastados: personaje.arcanoMisticoGastados || []
+      arcanoMisticoGastados: personaje.arcanoMisticoGastados || [],
+      conjurosGratuitosActivos: conjurosGratuitos
     };
   }, [personaje, penalizacionArmadura, sistemaMagiaEfectivo]);
 

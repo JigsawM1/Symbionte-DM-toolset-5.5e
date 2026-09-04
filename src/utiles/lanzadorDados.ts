@@ -51,9 +51,36 @@ export interface MetadataCuracionRasgo {
   cantidadDadosGastados?: number;
 }
 
-// Registro global de tiradas de salvación contra la muerte y curación de rasgos 3D activas en memoria
+export interface MetadataHpTemporalRasgo {
+  tipo: "hpTemporalRasgo";
+  personajeId: string;
+  rasgoId?: string;
+  nombreRasgo?: string;
+  multiplicador?: number;
+}
+
+export type MetadataEspecialRasgo = MetadataCuracionRasgo | MetadataHpTemporalRasgo;
+
+// Registro global de tiradas de salvación contra la muerte, curación y HP temporal 3D activas en memoria
 const tiradasSalvacionMuerteActivas: Record<string, MetadataSalvacionMuerte> = {};
 const tiradasCuracionRasgoActivas: Record<string, MetadataCuracionRasgo> = {};
+const tiradasHpTemporalRasgoActivas: Record<string, MetadataHpTemporalRasgo> = {};
+
+/**
+ * Aplica Puntos de Golpe Temporales calculados al personaje activo.
+ * Sigue la regla D&D 5.5e: los HP temporales no se acumulan entre sí,
+ * tomándose el valor superior o renovando el recurso.
+ */
+export function aplicarResultadoHpTemporalEnEstado(
+  personajeId: string,
+  hpTemporalNuevo: number
+): void {
+  const state = usarAlmacenDM.getState();
+  const pj = state.personajes.find((p) => p.id === personajeId);
+  const actual = pj?.hpTemporal || 0;
+  const valorFinal = Math.max(actual, hpTemporalNuevo);
+  state.modificarHPTemporalPersonaje(personajeId, valorFinal);
+}
 
 /**
  * Aplica el resultado de una tirada de salvación contra la muerte en el estado global.
@@ -335,7 +362,7 @@ export async function lanzarDadosTaleSpire(
   metaIniciativa?: MetadataIniciativa,
   metaSalvacionMuerte?: MetadataSalvacionMuerte,
   tipoTiradaForzado?: "ventaja" | "desventaja" | "plano",
-  metaCuracionRasgo?: MetadataCuracionRasgo
+  metaEspecialRasgo?: MetadataEspecialRasgo
 ): Promise<void> {
   const nombreEtiqueta = sanitizarEtiqueta(etiqueta.trim() || "Tirada");
 
@@ -469,9 +496,14 @@ export async function lanzarDadosTaleSpire(
         logger.debug(`[Lanzador Dados] Registrada tirada de salvación contra la muerte 3D con rollId: ${rollId}`, metaSalvacionMuerte);
       }
 
-      if (metaCuracionRasgo && rollId) {
-        tiradasCuracionRasgoActivas[rollId] = metaCuracionRasgo;
-        logger.debug(`[Lanzador Dados] Registrada tirada de curación de rasgo 3D con rollId: ${rollId}`, metaCuracionRasgo);
+      if (metaEspecialRasgo && rollId) {
+        if (metaEspecialRasgo.tipo === "curacionRasgo") {
+          tiradasCuracionRasgoActivas[rollId] = metaEspecialRasgo;
+          logger.debug(`[Lanzador Dados] Registrada tirada de curación de rasgo 3D con rollId: ${rollId}`, metaEspecialRasgo);
+        } else if (metaEspecialRasgo.tipo === "hpTemporalRasgo") {
+          tiradasHpTemporalRasgoActivas[rollId] = metaEspecialRasgo;
+          logger.debug(`[Lanzador Dados] Registrada tirada de HP temporal de rasgo 3D con rollId: ${rollId}`, metaEspecialRasgo);
+        }
       }
 
       ts.debug.log(`Tirando dados en bandeja física: ${nombreEtiqueta} (${formulaLimpia})`);
@@ -504,17 +536,24 @@ export async function lanzarDadosTaleSpire(
       aplicarResultadoIniciativaEnEstado(metaIniciativa, totalInic);
     }
 
-    // Si es una curación de rasgo en entorno local fuera de TaleSpire
-    if (metaCuracionRasgo) {
+    // Si es una curación o HP temporal de rasgo en entorno local fuera de TaleSpire
+    if (metaEspecialRasgo) {
       const matchDados = formulaLimpia.match(/(\d+)d(\d+)/i);
       const numDados = matchDados ? parseInt(matchDados[1], 10) : 1;
-      const caraDado = matchDados ? parseInt(matchDados[2], 10) : 12;
-      let totalCurado = 0;
+      const caraDado = matchDados ? parseInt(matchDados[2], 10) : 6;
+      let totalDado = 0;
       for (let i = 0; i < numDados; i++) {
-        totalCurado += Math.floor(Math.random() * caraDado) + 1;
+        totalDado += Math.floor(Math.random() * caraDado) + 1;
       }
-      state.aplicarCuracionPersonaje(metaCuracionRasgo.personajeId, totalCurado);
-      logger.info(`[Lanzador Dados Fallback] Curación de rasgo aplicada: +${totalCurado} PV.`);
+      if (metaEspecialRasgo.tipo === "curacionRasgo") {
+        state.aplicarCuracionPersonaje(metaEspecialRasgo.personajeId, totalDado);
+        logger.info(`[Lanzador Dados Fallback] Curación de rasgo aplicada: +${totalDado} PV.`);
+      } else if (metaEspecialRasgo.tipo === "hpTemporalRasgo") {
+        const mult = metaEspecialRasgo.multiplicador ?? 1;
+        const hpTemp = totalDado * mult;
+        aplicarResultadoHpTemporalEnEstado(metaEspecialRasgo.personajeId, hpTemp);
+        logger.info(`[Lanzador Dados Fallback] HP temporal de rasgo aplicado: +${hpTemp} PV temp (${totalDado} x ${mult}).`);
+      }
     }
   }
 }
@@ -600,6 +639,26 @@ export async function procesarResultadosDadosTaleSpire(evento: unknown): Promise
       }
     }
     delete tiradasCuracionRasgoActivas[rollId];
+    return false;
+  }
+
+  // Caso 4: Tirada de HP temporal de rasgo 3D (ej. Manto de inspiración)
+  const infoHpTemporalRasgo = tiradasHpTemporalRasgoActivas[rollId];
+  if (!infoTirada && infoHpTemporalRasgo) {
+    logger.debug(`[Lanzador Dados] Procesando resultado 3D de HP temporal de rasgo para rollId: ${rollId}`);
+    const resultGroups = ev.payload.resultsGroups;
+    if (resultGroups && Array.isArray(resultGroups) && resultGroups.length > 0) {
+      try {
+        const total = await ts.dice.evaluateDiceResultsGroup(resultGroups[0]);
+        const mult = infoHpTemporalRasgo.multiplicador ?? 1;
+        const hpTemp = total * mult;
+        logger.debug(`[Lanzador Dados] HP temporal de rasgo 3D obtenido: +${hpTemp} PV temp (${total} x ${mult})`);
+        aplicarResultadoHpTemporalEnEstado(infoHpTemporalRasgo.personajeId, hpTemp);
+      } catch (error) {
+        logger.error("[Lanzador Dados] Error al evaluar resultado 3D de HP temporal de rasgo:", error);
+      }
+    }
+    delete tiradasHpTemporalRasgoActivas[rollId];
     return false;
   }
 

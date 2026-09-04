@@ -109,8 +109,18 @@ export function sincronizarRasgosAutomaticos(personaje: PersonajeJugador): Rasgo
     personaje.clases && personaje.clases.length > 0
       ? personaje.clases.map((c, idx) => ({
           ...c,
-          nombre: c.nombre || (idx === 0 ? personaje.clase || "Guerrero" : "Guerrero"),
-          subclase: c.subclase !== undefined ? c.subclase : (idx === 0 ? personaje.subclase || "" : ""),
+          nombre:
+            personaje.clases && personaje.clases.length === 1 && personaje.clase
+              ? personaje.clase
+              : c.nombre || (idx === 0 ? personaje.clase || "Guerrero" : "Guerrero"),
+          subclase:
+            personaje.clases && personaje.clases.length === 1 && personaje.subclase !== undefined
+              ? personaje.subclase
+              : c.subclase !== undefined
+              ? c.subclase
+              : idx === 0
+              ? personaje.subclase || ""
+              : "",
           nivel:
             personaje.clases.length === 1 && typeof personaje.nivel === "number" && personaje.nivel > 0
               ? personaje.nivel
@@ -136,11 +146,47 @@ export function sincronizarRasgosAutomaticos(personaje: PersonajeJugador): Rasgo
   // 3. Fusionar respetando el estado de usos restantes previo si ya existía el rasgo
   const mapaExistentes = new Map(rasgosExistentes.map((r) => [r.id, r]));
 
-  const canonicosFusionados = canonicosNuevosUnicos.map((nuevo) => {
+  const canonicosFusionados = canonicosNuevosUnicos.map((nuevoRaw) => {
+    let nuevo = nuevoRaw;
+    // Resolver usos dependientes de Carisma para Inspiración bárdica o rasgos basados en Carisma
+    if (
+      normalizarTexto(nuevo.nombre).includes("inspiracion bardica") ||
+      (nuevo.tieneUsosLimitados && normalizarTexto(nuevo.formulaEscalado || "").includes("carisma")) ||
+      (nuevo.tieneUsosLimitados && normalizarTexto(nuevo.descripcion || "").includes("modificador por carisma"))
+    ) {
+      const scoreCar = personaje.overridesFijos?.carisma ?? personaje.caracteristicas?.carisma ?? 10;
+      const modCar = Math.floor((scoreCar - 10) / 2);
+      const usosCar = Math.max(1, modCar);
+      nuevo = {
+        ...nuevo,
+        usosMaximos: usosCar,
+        usosRestantes: nuevo.usosRestantes ?? usosCar
+      };
+    }
+
+    // Inyección de rescate para Manto de Majestad y Majestad Inquebrantable
+    const nomNorm = normalizarTexto(nuevo.nombre);
+    if ((nomNorm.includes("manto de majestad") || nomNorm.includes("manto de la majestad")) && !nuevo.condicionAlActivar) {
+      nuevo = { ...nuevo, condicionAlActivar: "Manto de Majestad (Mantle of Majesty)" };
+    } else if (nomNorm.includes("majestad inquebrantable") && !nuevo.condicionAlActivar) {
+      nuevo = { ...nuevo, condicionAlActivar: "Majestad Inquebrantable (Unbreakable Majesty)" };
+    }
+
     const existente = mapaExistentes.get(nuevo.id);
     if (existente) {
+      const selectoresSincronizados = nuevo.selectores?.map((sNuevo) => {
+        const sExistente = existente.selectores?.find((s) => s.id === sNuevo.id);
+        return {
+          ...sNuevo,
+          valorActual: sExistente?.valorActual ?? sNuevo.valorActual ?? []
+        };
+      }) ?? existente.selectores;
+
       return {
         ...nuevo,
+        selectores: selectoresSincronizados,
+        condicionAlActivar: nuevo.condicionAlActivar ?? existente.condicionAlActivar,
+        restaurarUsosAlActivar: nuevo.restaurarUsosAlActivar ?? existente.restaurarUsosAlActivar,
         usosRestantes:
           typeof existente.usosRestantes === "number" && nuevo.usosMaximos
             ? Math.min(existente.usosRestantes, nuevo.usosMaximos)

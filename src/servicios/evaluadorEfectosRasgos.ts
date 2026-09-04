@@ -1,7 +1,10 @@
-import type {
-  PersonajeJugador,
-  EfectoMecanicoRasgo,
-  Caracteristica
+import {
+  type PersonajeJugador,
+  type EfectoMecanicoRasgo,
+  type Caracteristica,
+  type Habilidad,
+  type GradoCompetencia,
+  GRADOS_HABILIDADES_DEFECTO
 } from "@/tipos";
 import { ARMADURAS_OFICIALES } from "@/constantes/equipoConstantes";
 
@@ -29,7 +32,7 @@ export function tieneArmaduraEquipada(personaje: PersonajeJugador): {
   const armaduraObj = inventario.find(
     (o) =>
       o.equipado &&
-      (o.tipoPrincipal === "Armadura" || (o as any).tipo === "armadura") &&
+      (o.tipoPrincipal === "Armadura" || ("tipo" in o && (o as { tipo?: unknown }).tipo === "armadura")) &&
       !normalizar(o.nombre).includes("escudo")
   );
 
@@ -609,4 +612,407 @@ export function obtenerHabilidadesConFuerzaRasgos(personaje: PersonajeJugador): 
 
   return habilidades;
 }
+
+/**
+ * Retorna el dado de Inspiración Bárdica según el nivel de Bardo conforme a D&D 5.5e:
+ * Nv 1-4: 1d6, Nv 5-9: 1d8, Nv 10-14: 1d10, Nv 15-20: 1d12.
+ */
+export function obtenerDadoInspiracionBardica(nivelBardo: number): string {
+  const niv = Math.max(1, Math.min(20, Math.floor(nivelBardo) || 1));
+  if (niv >= 15) return "1d12";
+  if (niv >= 10) return "1d10";
+  if (niv >= 5) return "1d8";
+  return "1d6";
+}
+
+/**
+ * Determina si el personaje tiene activo el beneficio de medio bono a habilidades
+ * en las que no posee competencia ni pericia (Aprendiz de mucho o rasgo Homebrew equivalente).
+ */
+export function tieneMedioBonoHabilidades(personaje: PersonajeJugador): boolean {
+  if (!personaje) return false;
+
+  // 1. D&D 5.5e Canónico: Si es Bardo de nivel 2 o superior
+  const esBardoNivel2 =
+    (normalizar(personaje.clase || "").includes("bardo") && (personaje.nivel || 1) >= 2) ||
+    (personaje.clases || []).some(
+      (c) => normalizar(c.nombre).includes("bardo") && (c.nivel || 1) >= 2
+    );
+  if (esBardoNivel2) return true;
+
+  // 2. Si tiene efectos activos con tipo "medio_bono_habilidades"
+  const efectos = evaluarEfectosRasgosActivos(personaje);
+  for (const ef of efectos) {
+    if (ef.tipo === "medio_bono_habilidades") {
+      return true;
+    }
+  }
+
+  // 3. Fallback canónico si el rasgo está activo en su ficha
+  return (personaje.rasgos || []).some(
+    (r) =>
+      r.activo !== false &&
+      (normalizar(r.nombre).includes("aprendiz de mucho") || normalizar(r.nombre).includes("jack of all trades"))
+  );
+}
+
+/**
+ * Aplica o revierte el grado "medio" (medio bono) en las competencias de habilidades del personaje
+ * respetando estrictamente las habilidades que ya cuenten con competencia o pericia.
+ */
+export function aplicarAprendizDeMuchoAGradosHabilidades(
+  gradosHabilidades: Record<Habilidad, GradoCompetencia> | undefined,
+  tieneAprendiz: boolean
+): Record<Habilidad, GradoCompetencia> {
+  const resultado: Record<Habilidad, GradoCompetencia> = {
+    ...GRADOS_HABILIDADES_DEFECTO,
+    ...(gradosHabilidades || {})
+  };
+
+  const listaHabilidades = Object.keys(resultado) as Habilidad[];
+  for (const hab of listaHabilidades) {
+    const gradoActual = resultado[hab] || "ninguna";
+    if (tieneAprendiz) {
+      if (gradoActual === "ninguna") {
+        resultado[hab] = "medio";
+      }
+    } else {
+      if (gradoActual === "medio") {
+        resultado[hab] = "ninguna";
+      }
+    }
+  }
+
+  return resultado;
+}
+
+export interface InfoAtaqueDesarmadoEspecial {
+  aplica: boolean;
+  caracteristicaSugerida?: Caracteristica;
+  dadoDanoBase?: string;
+  nombreAtaque?: string;
+  propiedades?: string[];
+}
+
+/**
+ * Evalúa si el personaje posee un rasgo activo que modifique el ataque sin armas
+ * (ej. Daño bárdico del Colegio de la Danza, o rasgos Homebrew de combate desarmado).
+ */
+export function evaluarAtaqueDesarmadoEspecial(personaje: PersonajeJugador): InfoAtaqueDesarmadoEspecial {
+  const armadura = tieneArmaduraEquipada(personaje);
+  const tieneEscudo = tieneEscudoEquipado(personaje);
+  const sinArmaduraNiEscudo = !armadura.tieneArmadura && !tieneEscudo;
+
+  const efectos = evaluarEfectosRasgosActivos(personaje);
+  for (const ef of efectos) {
+    if (ef.tipo === "ataque_desarmado") {
+      const exigeSinArmadura = ef.condicion === "sin_armadura" || ef.condicion === "sin_armadura_ni_escudo";
+      if (exigeSinArmadura && !sinArmaduraNiEscudo) continue;
+
+      let dadoDano = String(ef.valor || "1d6");
+      if (dadoDano === "dado_inspiracion" || dadoDano === "dado_padre") {
+        const nivelBardo = obtenerNivelClasePersonaje(personaje, "bardo") || personaje.nivel || 1;
+        dadoDano = obtenerDadoInspiracionBardica(nivelBardo);
+      }
+
+      return {
+        aplica: true,
+        caracteristicaSugerida: (ef.objetivo as Caracteristica) || "destreza",
+        dadoDanoBase: dadoDano,
+        nombreAtaque: ef.descripcion || "Golpe sin Armas Especial",
+        propiedades: ["Sutil"]
+      };
+    }
+  }
+
+  // Comprobar si tiene el rasgo canónico Juego de pies deslumbrante activo
+  const rasgoDanza = (personaje.rasgos || []).find(
+    (r) => r.activo !== false && normalizar(r.nombre).includes("juego de pies deslumbrante")
+  );
+  if (rasgoDanza && sinArmaduraNiEscudo) {
+    const nivelBardo = obtenerNivelClasePersonaje(personaje, "bardo") || personaje.nivel || 1;
+    const dadoBardo = obtenerDadoInspiracionBardica(nivelBardo);
+    return {
+      aplica: true,
+      caracteristicaSugerida: "destreza",
+      dadoDanoBase: dadoBardo,
+      nombreAtaque: "Golpe sin Armas (Daño Bárdico)",
+      propiedades: ["Daño Bárdico", "Sutil"]
+    };
+  }
+
+  return { aplica: false };
+}
+
+/**
+ * Obtiene la lista consolidada de nombres de conjuros siempre preparados otorgados directamente por rasgos
+ * (ej. Palabras de creación de Bardo Nv 20 u opciones Homebrew con conjurosOtorgados o ef.tipo === "conjuro_otorgado").
+ */
+export function obtenerConjurosOtorgadosPorRasgos(personaje: PersonajeJugador): string[] {
+  const conjuros = new Set<string>();
+
+  for (const r of personaje.rasgos || []) {
+    if (r.activo === false) continue;
+
+    if (Array.isArray(r.conjurosOtorgados)) {
+      for (const c of r.conjurosOtorgados) {
+        if (c && c.trim()) conjuros.add(c.trim());
+      }
+    }
+
+    if (Array.isArray(r.efectos)) {
+      for (const ef of r.efectos) {
+        if (ef.tipo === "conjuro_otorgado") {
+          const cNom = String(ef.valor || ef.objetivo).trim();
+          if (cNom) conjuros.add(cNom);
+        }
+      }
+    }
+
+    // Regla canónica D&D 5.5e: Palabras de creación (Bardo Nv 20)
+    if (normalizar(r.nombre).includes("palabras de creacion")) {
+      conjuros.add("Palabra de poder: curar");
+      conjuros.add("Palabra de poder: matar");
+    }
+  }
+
+  return Array.from(conjuros);
+}
+
+/**
+ * Obtiene las competencias en grupos de armas y armaduras otorgadas por rasgos activos.
+ */
+export function obtenerCompetenciasExtraRasgos(personaje: PersonajeJugador): {
+  armasGrupos: ("sencillas" | "marciales" | "fuego")[];
+  armadurasGrupos: ("ligeras" | "medias" | "pesadas" | "escudos")[];
+} {
+  const armas = new Set<"sencillas" | "marciales" | "fuego">();
+  const armaduras = new Set<"ligeras" | "medias" | "pesadas" | "escudos">();
+
+  const efectos = evaluarEfectosRasgosActivos(personaje);
+  for (const ef of efectos) {
+    if (ef.tipo === "competencia") {
+      const texto = normalizar(`${ef.objetivo} ${ef.valor}`);
+      if (texto.includes("marcial")) armas.add("marciales");
+      if (texto.includes("sencill")) armas.add("sencillas");
+      if (texto.includes("fuego")) armas.add("fuego");
+
+      if (texto.includes("media") || texto.includes("mediana")) armaduras.add("medias");
+      if (texto.includes("escudo")) armaduras.add("escudos");
+      if (texto.includes("pesada")) armaduras.add("pesadas");
+      if (texto.includes("ligera")) armaduras.add("ligeras");
+    }
+  }
+
+  // Comprobación canónica de Entrenamiento Marcial (Colegio del Valor)
+  const rasgoValor = (personaje.rasgos || []).find(
+    (r) => r.activo !== false && normalizar(r.nombre).includes("entrenamiento marcial")
+  );
+  if (rasgoValor) {
+    armas.add("marciales");
+    armaduras.add("medias");
+    armaduras.add("escudos");
+  }
+
+  return {
+    armasGrupos: Array.from(armas),
+    armadurasGrupos: Array.from(armaduras)
+  };
+}
+
+/**
+ * Determina si el personaje tiene una bonificación o rasgo activo que le permita lanzar un conjuro
+ * de forma gratuita (sin gastar espacio de conjuro).
+ * 
+ * Regla Canónica D&D 5.5e: Manto de Majestad (Colegio del Glamour Nivel 6) permite lanzar
+ * 'Orden imperiosa' (Command) como acción adicional sin gastar espacio de conjuro mientras esté activo.
+ */
+export function tieneConjuroGratuitoActivo(personaje: PersonajeJugador, nombreConjuro: string): boolean {
+  if (!personaje || !nombreConjuro) return false;
+  const nomNorm = normalizar(nombreConjuro);
+
+  // 1. Verificar condiciones tácticas activas (ej: "Manto de Majestad (Mantle of Majesty)")
+  const condiciones = personaje.condicionesActivas || [];
+  const tieneMantoMajestad = condiciones.some((c) => normalizar(c).includes("manto de majestad"));
+  if (tieneMantoMajestad && nomNorm.includes("orden imperiosa")) {
+    return true;
+  }
+
+  // 2. Verificar rasgos activos con efecto "conjuro_gratuito"
+  const rasgos = personaje.rasgos || [];
+  for (const r of rasgos) {
+    if (r.activo === false) continue;
+    if (Array.isArray(r.efectos)) {
+      for (const ef of r.efectos) {
+        if (ef.tipo === "conjuro_gratuito") {
+          const objNorm = normalizar(String(ef.objetivo || ""));
+          if (objNorm === nomNorm || nomNorm.includes(objNorm) || objNorm.includes(nomNorm)) {
+            return true;
+          }
+        }
+      }
+    }
+    // Verificación canónica por nombre de rasgo activo
+    if (normalizar(r.nombre).includes("manto de majestad") && r.activo && nomNorm.includes("orden imperiosa")) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+/**
+ * Retorna las cadenas legibles de competencias en armas y armaduras integrando
+ * las competencias base del personaje y las otorgadas por rasgos de clase/subclase (ej. Colegio del Valor).
+ */
+export function obtenerCompetenciasEfectivasTexto(personaje: PersonajeJugador): {
+  armasTexto: string;
+  armadurasTexto: string;
+} {
+  const compExtra = obtenerCompetenciasExtraRasgos(personaje);
+  
+  // Procesar armas
+  const partesArmas = new Set<string>();
+  if (personaje.competenciasArmas && personaje.competenciasArmas !== "Ninguna") {
+    personaje.competenciasArmas.split(",").forEach((p) => {
+      const t = p.trim();
+      if (t) partesArmas.add(t);
+    });
+  }
+  if (compExtra.armasGrupos.includes("marciales")) {
+    partesArmas.add("Armas Marciales");
+  }
+  if (compExtra.armasGrupos.includes("sencillas")) {
+    partesArmas.add("Armas Sencillas");
+  }
+
+  // Procesar armaduras
+  const partesArmaduras = new Set<string>();
+  if (personaje.competenciasArmaduras && personaje.competenciasArmaduras !== "Ninguna") {
+    personaje.competenciasArmaduras.split(",").forEach((p) => {
+      const t = p.trim();
+      if (t) partesArmaduras.add(t);
+    });
+  }
+  if (compExtra.armadurasGrupos.includes("ligeras")) {
+    partesArmaduras.add("Armaduras Ligeras");
+  }
+  if (compExtra.armadurasGrupos.includes("medias")) {
+    partesArmaduras.add("Armaduras Medias");
+  }
+  if (compExtra.armadurasGrupos.includes("pesadas")) {
+    partesArmaduras.add("Armaduras Pesadas");
+  }
+  if (compExtra.armadurasGrupos.includes("escudos")) {
+    partesArmaduras.add("Escudos");
+  }
+
+  return {
+    armasTexto: partesArmas.size > 0 ? Array.from(partesArmas).join(", ") : "Ninguna",
+    armadurasTexto: partesArmaduras.size > 0 ? Array.from(partesArmaduras).join(", ") : "Ninguna"
+  };
+}
+
+/**
+ * Obtiene el conjunto de claves normalizadas de las maestrías de armas que el personaje
+ * tiene actualmente aprendidas o seleccionadas en sus rasgos de maestría.
+ */
+export function obtenerMaestriasArmasAprendidas(personaje: PersonajeJugador): Set<string> {
+  const maestrias = new Set<string>();
+  if (!personaje || !Array.isArray(personaje.rasgos)) {
+    return maestrias;
+  }
+
+  for (const rasgo of personaje.rasgos) {
+    if (!Array.isArray(rasgo.selectores) || rasgo.selectores.length === 0) continue;
+
+    const nombreRasgo = normalizar(rasgo.nombre);
+    const esRasgoMaestria =
+      nombreRasgo.includes("maestria con armas") ||
+      nombreRasgo.includes("weapon mastery") ||
+      rasgo.id.toLowerCase().includes("maestria");
+
+    for (const sel of rasgo.selectores) {
+      const idSel = normalizar(sel.id);
+      const etiquetaSel = normalizar(sel.etiqueta);
+      const esSelectorMaestria =
+        esRasgoMaestria ||
+        idSel.includes("maestria") ||
+        etiquetaSel.includes("maestria");
+
+      if (!esSelectorMaestria) continue;
+
+      const valores: string[] = Array.isArray(sel.valorActual)
+        ? sel.valorActual
+        : typeof sel.valorActual === "string"
+        ? [sel.valorActual]
+        : [];
+
+      for (const val of valores) {
+        if (!val) continue;
+        const claveVal = normalizar(val);
+        maestrias.add(claveVal);
+
+        // Buscar en las opciones del selector para enriquecer con sinónimos (id, nombre, etc.)
+        const opc = sel.opciones.find(
+          (o) => normalizar(o.id) === claveVal || normalizar(o.nombre) === claveVal
+        );
+        if (opc) {
+          maestrias.add(normalizar(opc.id));
+          maestrias.add(normalizar(opc.nombre));
+          // Extraer posibles partes de patrones como "Cleave (Hender)"
+          const matchParen = opc.nombre.match(/^([^(]+)\s*\(([^)]+)\)/);
+          if (matchParen) {
+            maestrias.add(normalizar(matchParen[1]));
+            maestrias.add(normalizar(matchParen[2]));
+          }
+        }
+      }
+    }
+  }
+
+  return maestrias;
+}
+
+/**
+ * Comprueba si el personaje tiene desbloqueada o aprendida una maestría de arma específica.
+ */
+export function personajeTieneMaestriaArma(
+  personaje: PersonajeJugador,
+  maestriaArma?: string | null
+): boolean {
+  if (!maestriaArma || !maestriaArma.trim() || normalizar(maestriaArma) === "ninguna") {
+    return false;
+  }
+
+  const maestriasAprendidas = obtenerMaestriasArmasAprendidas(personaje);
+  if (maestriasAprendidas.size === 0) {
+    return false;
+  }
+
+  const claveArma = normalizar(maestriaArma);
+  if (maestriasAprendidas.has(claveArma)) {
+    return true;
+  }
+
+  // Extraer tokens de expresiones como "Cleave (Hender)" o "Topple (Derribar)"
+  const matchParen = maestriaArma.match(/^([^(]+)\s*\(([^)]+)\)/);
+  if (matchParen) {
+    const p1 = normalizar(matchParen[1]);
+    const p2 = normalizar(matchParen[2]);
+    if (maestriasAprendidas.has(p1) || maestriasAprendidas.has(p2)) {
+      return true;
+    }
+  }
+
+  // Comprobar coincidencia por contención si la clave es suficientemente descriptiva
+  for (const aprendida of maestriasAprendidas) {
+    if (aprendida.length >= 3 && (claveArma.includes(aprendida) || aprendida.includes(claveArma))) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
 

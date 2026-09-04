@@ -19,6 +19,12 @@ import { calcularTodosRecursosMagicos } from "@/servicios/calculadorMagia";
 import { sincronizarRasgosAutomaticos } from "@/servicios/compendioRasgos";
 import { sincronizarConjurosSubclaseHelper } from "@/servicios/sincronizadorConjurosSubclase";
 import { resolverGruposYSustitutosCompetencias } from "@/constantes/competenciasConstantes";
+import {
+  obtenerDadoInspiracionBardica,
+  tieneMedioBonoHabilidades,
+  aplicarAprendizDeMuchoAGradosHabilidades,
+  obtenerCompetenciasExtraRasgos
+} from "@/servicios/evaluadorEfectosRasgos";
 
 /**
  * Normaliza cadenas de texto para comparaciones tolerantes (insensible a tildes, mayúsculas y espacios).
@@ -210,7 +216,10 @@ export function obtenerRasgosClaseYSubclase(
       // Ajustar selectores con escalado dinámico por nivel
       const selectoresClonados = r.selectores ? JSON.parse(JSON.stringify(r.selectores)) : [];
       if (r.nombre === "Maestría con armas" && selectoresClonados.length > 0) {
-        const maxArmas = nivelSeguro >= 10 ? 4 : nivelSeguro >= 4 ? 3 : 2;
+        const esGuerrero = clase.nombre.toLowerCase().includes("guerrero");
+        const maxArmas = esGuerrero
+          ? (nivelSeguro >= 16 ? 6 : nivelSeguro >= 10 ? 5 : nivelSeguro >= 4 ? 4 : 3)
+          : (nivelSeguro >= 10 ? 4 : nivelSeguro >= 4 ? 3 : 2);
         selectoresClonados[0].maxSelecciones = maxArmas;
       }
 
@@ -247,6 +256,15 @@ export function obtenerRasgosClaseYSubclase(
         }
       }
 
+      // Inspiración bárdica: dado escalado dinámicamente y recarga en descanso corto a nivel >= 5
+      let recuperacionRasgo = r.recuperacion || "ninguno";
+      if (normalizarTextoClase(r.nombre).includes("inspiracion bardica")) {
+        formulaDadosRasgo = obtenerDadoInspiracionBardica(nivelSeguro);
+        if (nivelSeguro >= 5) {
+          recuperacionRasgo = "descanso_corto";
+        }
+      }
+
       rasgosResultado.push({
         id,
         nombre: r.nombre,
@@ -258,12 +276,18 @@ export function obtenerRasgosClaseYSubclase(
         tieneUsosLimitados: !!r.tieneUsosLimitados,
         usosMaximos: usos,
         usosRestantes: usos,
-        recuperacion: r.recuperacion || "ninguno",
+        recuperacion: recuperacionRasgo,
         formulaDados: formulaDadosRasgo,
         personalizado: false,
         activo: r.esActivable ? false : true,
         esActivable: !!r.esActivable,
+        condicionAlActivar: r.condicionAlActivar,
+        restaurarUsosAlActivar: r.restaurarUsosAlActivar ? { ...r.restaurarUsosAlActivar } : undefined,
+        autoDesactivar: !!r.autoDesactivar,
         ligadoA: r.ligadoA,
+        gastarDePadre: !!r.gastarDePadre,
+        heredarDadosPadre: !!r.heredarDadosPadre,
+        conjurosOtorgados: r.conjurosOtorgados ? [...r.conjurosOtorgados] : [],
         categoriaMecanica: r.categoriaMecanica,
         formulaEscalado: r.formulaEscalado,
         efectos: r.efectos ? JSON.parse(JSON.stringify(r.efectos)) : [],
@@ -313,6 +337,18 @@ export function obtenerRasgosClaseYSubclase(
             formulaDadosRasgo = mitadNivel > 0 ? `1d6+${mitadNivel}` : "1d6";
           }
 
+          // Rasgos de bardo que usan o heredan el dado de Inspiración bárdica
+          const esRasgoDadoBardo = r.heredarDadosPadre || [
+            "palabras cortantes",
+            "manto de inspiracion",
+            "habilidad inigualable",
+            "juego de pies en tandem"
+          ].some((nom) => r.nombre.toLowerCase().includes(nom));
+
+          if (esRasgoDadoBardo) {
+            formulaDadosRasgo = obtenerDadoInspiracionBardica(nivelSeguro);
+          }
+
           const selectoresClonados = r.selectores ? JSON.parse(JSON.stringify(r.selectores)) : [];
 
           rasgosResultado.push({
@@ -331,7 +367,13 @@ export function obtenerRasgosClaseYSubclase(
             personalizado: false,
             activo: r.esActivable ? false : true,
             esActivable: !!r.esActivable,
+            condicionAlActivar: r.condicionAlActivar,
+            restaurarUsosAlActivar: r.restaurarUsosAlActivar ? { ...r.restaurarUsosAlActivar } : undefined,
+            autoDesactivar: !!r.autoDesactivar,
             ligadoA: r.ligadoA,
+            gastarDePadre: !!r.gastarDePadre,
+            heredarDadosPadre: !!r.heredarDadosPadre,
+            conjurosOtorgados: r.conjurosOtorgados ? [...r.conjurosOtorgados] : [],
             categoriaMecanica,
             formulaEscalado: r.formulaEscalado,
             efectos: r.efectos ? JSON.parse(JSON.stringify(r.efectos)) : [],
@@ -579,17 +621,70 @@ export function aplicarBuildClaseAPersonaje(
     rasgosFinales = sincronizarRasgosAutomaticos(personajeIntermedio);
   }
 
+  // Fusión persistente de competencias otorgadas por subclases (ej. Colegio del Valor: armas marciales, armaduras medias, escudos)
+  let armasTextoPersistente = competenciasArmas;
+  let armadurasTextoPersistente = competenciasArmaduras;
+  const compSubclase = obtenerCompetenciasExtraRasgos({ ...personajeIntermedio, rasgos: rasgosFinales });
+
+  if (compSubclase.armasGrupos.includes("marciales")) {
+    if (!armasTextoPersistente || armasTextoPersistente === "Ninguna") {
+      armasTextoPersistente = "Armas Marciales";
+    } else if (!armasTextoPersistente.toLowerCase().includes("marcial")) {
+      armasTextoPersistente = `${armasTextoPersistente}, Armas Marciales`;
+    }
+  }
+
+  const armadurasExtras: string[] = [];
+  if (compSubclase.armadurasGrupos.includes("medias") && !armadurasTextoPersistente?.toLowerCase().includes("media")) {
+    armadurasExtras.push("Armaduras Medias");
+  }
+  if (compSubclase.armadurasGrupos.includes("escudos") && !armadurasTextoPersistente?.toLowerCase().includes("escudo")) {
+    armadurasExtras.push("Escudos");
+  }
+  if (armadurasExtras.length > 0) {
+    if (!armadurasTextoPersistente || armadurasTextoPersistente === "Ninguna") {
+      armadurasTextoPersistente = armadurasExtras.join(", ");
+    } else {
+      armadurasTextoPersistente = `${armadurasTextoPersistente}, ${armadurasExtras.join(", ")}`;
+    }
+  }
+
+  const gruposArmadurasPersistentes = Array.from(
+    new Set([...(competenciasArmadurasGrupos || []), ...compSubclase.armadurasGrupos])
+  );
+  const gruposArmasPersistentes = Array.from(
+    new Set([...(competenciasArmasGrupos || []), ...compSubclase.armasGrupos])
+  );
+
+  const personajeConRasgos: PersonajeJugador = {
+    ...personajeIntermedio,
+    competenciasArmas: armasTextoPersistente,
+    competenciasArmaduras: armadurasTextoPersistente,
+    competenciasArmadurasGrupos: gruposArmadurasPersistentes,
+    competenciasArmasGrupos: gruposArmasPersistentes,
+    rasgos: rasgosFinales
+  };
+
+  const tieneAprendiz = tieneMedioBonoHabilidades(personajeConRasgos);
+  const gradosActualizados = aplicarAprendizDeMuchoAGradosHabilidades(
+    personaje.gradosHabilidades,
+    tieneAprendiz
+  );
+
+  const personajeFinal: PersonajeJugador = {
+    ...personajeConRasgos,
+    gradosHabilidades: gradosActualizados
+  };
+
   // 7. Sincronizar conjuros de subclase
   if (opciones.sincronizarConjurosSubclase) {
-    const syncMagia = sincronizarConjurosSubclaseHelper(personajeIntermedio);
+    const syncMagia = sincronizarConjurosSubclaseHelper(personajeFinal);
     return {
       ...syncMagia,
-      rasgos: rasgosFinales
+      rasgos: rasgosFinales,
+      gradosHabilidades: gradosActualizados
     };
   }
 
-  return {
-    ...personajeIntermedio,
-    rasgos: rasgosFinales
-  };
+  return personajeFinal;
 }

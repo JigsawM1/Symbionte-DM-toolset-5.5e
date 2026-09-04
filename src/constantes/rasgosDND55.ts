@@ -24,8 +24,12 @@ export interface PlantillaRasgoClase {
   
   // Mecánicas estructuradas
   esActivable?: boolean;
+  autoDesactivar?: boolean;
   ligadoA?: string;
+  gastarDePadre?: boolean;
+  heredarDadosPadre?: boolean;
   condicionAlActivar?: string;
+  conjurosOtorgados?: string[];
   restaurarUsosAlActivar?: { idRasgoObjetivo: string; cantidad: number | "maximo" };
   categoriaMecanica?: "consumible" | "activable" | "selector_informativo" | "pasivo_permanente" | "extension" | "curacion";
   formulaEscalado?: string;

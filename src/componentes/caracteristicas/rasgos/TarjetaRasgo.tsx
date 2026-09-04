@@ -28,6 +28,8 @@ interface TarjetaRasgoProps {
   alEditar: () => void;
   alEliminar: () => void;
   alVerDetalle: () => void;
+  usosPadre?: { restantes: number; maximos: number; nombre: string };
+  formulaDadosEfectiva?: string;
 }
 
 const ICONO_POR_ACCION: Record<TipoAccionRasgo, React.ReactNode> = {
@@ -83,39 +85,65 @@ export const TarjetaRasgo: React.FC<TarjetaRasgoProps> = ({
   motivoDeshabilitado,
   alEditar,
   alEliminar,
-  alVerDetalle
+  alVerDetalle,
+  usosPadre,
+  formulaDadosEfectiva
 }) => {
-  const tieneUsos = rasgo.tieneUsosLimitados && typeof rasgo.usosMaximos === "number";
-  const usosRestantes = rasgo.usosRestantes ?? (rasgo.usosMaximos || 1);
-  const usosMaximos = rasgo.usosMaximos || 1;
+  const formulaEfectiva = formulaDadosEfectiva || rasgo.formulaDados;
+  const tieneUsosPropios = rasgo.tieneUsosLimitados && typeof rasgo.usosMaximos === "number";
+  const tieneUsosPadre = !tieneUsosPropios && Boolean(rasgo.gastarDePadre && usosPadre);
+
+  const usosRestantes = tieneUsosPropios
+    ? (rasgo.usosRestantes ?? (rasgo.usosMaximos || 1))
+    : (usosPadre?.restantes ?? 0);
+  const usosMaximos = tieneUsosPropios
+    ? (rasgo.usosMaximos || 1)
+    : (usosPadre?.maximos || 1);
+
+  const sinUsosDisponibles = (tieneUsosPropios || tieneUsosPadre) && usosRestantes <= 0;
   const esCuracion = rasgo.categoriaMecanica === "curacion" || rasgo.nombre.toLowerCase().includes("guerrero de los dioses");
+  const tieneEfectoHpTemporal =
+    (rasgo.efectos || []).some((ef) => ef.tipo === "hp_temporal") ||
+    rasgo.nombre.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").includes("manto de inspiracion");
 
   const manejarTirarDados = async (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (!rasgo.formulaDados) return;
-    if (esCuracion && tieneUsos && usosRestantes <= 0) return;
+    if (!formulaEfectiva) return;
+    if (sinUsosDisponibles) return;
 
     try {
-      if (esCuracion && alGastarUso) {
+      if ((esCuracion || tieneEfectoHpTemporal || rasgo.gastarDePadre) && alGastarUso) {
         alGastarUso();
       }
-      const formula = `!${rasgo.nombre}:${rasgo.formulaDados}`;
-      const etiqueta = `${nombrePersonaje} - ${rasgo.nombre} (${rasgo.formulaDados})`;
+      const formula = `!${rasgo.nombre}:${formulaEfectiva}`;
+      const etiqueta = `${nombrePersonaje} - ${rasgo.nombre} (${formulaEfectiva})`;
+
+      let metaEspecial: any = undefined;
+      if (esCuracion && idPersonaje) {
+        metaEspecial = {
+          tipo: "curacionRasgo",
+          personajeId: idPersonaje,
+          rasgoId: rasgo.id,
+          nombreRasgo: rasgo.nombre,
+          cantidadDadosGastados: 1
+        };
+      } else if (tieneEfectoHpTemporal && idPersonaje) {
+        metaEspecial = {
+          tipo: "hpTemporalRasgo",
+          personajeId: idPersonaje,
+          rasgoId: rasgo.id,
+          nombreRasgo: rasgo.nombre,
+          multiplicador: 2
+        };
+      }
+
       await lanzarDadosTaleSpire(
         formula,
         etiqueta,
         undefined,
         undefined,
         undefined,
-        esCuracion && idPersonaje
-          ? {
-              tipo: "curacionRasgo",
-              personajeId: idPersonaje,
-              rasgoId: rasgo.id,
-              nombreRasgo: rasgo.nombre,
-              cantidadDadosGastados: 1
-            }
-          : undefined
+        metaEspecial
       );
     } catch (error) {
       console.error("[TarjetaRasgo] Error al tirar dados:", error);
@@ -200,11 +228,15 @@ export const TarjetaRasgo: React.FC<TarjetaRasgoProps> = ({
             </button>
           )}
 
-          {/* Contador de Usos */}
-          {tieneUsos && (
+          {/* Contador de Usos (Propios o de Rasgo Padre) */}
+          {(tieneUsosPropios || tieneUsosPadre) && (
             <div
               className={estilos.contadorUsos}
-              title={`Recuperación: ${rasgo.recuperacion || "Descanso"}`}
+              title={
+                tieneUsosPropios
+                  ? `Recuperación: ${rasgo.recuperacion || "Descanso"}`
+                  : `Gasta de: ${usosPadre?.nombre || "Rasgo Principal"} (${usosRestantes}/${usosMaximos})`
+              }
               onClick={(e) => e.stopPropagation()}
             >
               <button
@@ -215,7 +247,7 @@ export const TarjetaRasgo: React.FC<TarjetaRasgoProps> = ({
                   alGastarUso();
                 }}
                 disabled={usosRestantes <= 0}
-                title="Gastar 1 uso"
+                title={tieneUsosPropios ? "Gastar 1 uso" : `Gastar 1 uso de ${usosPadre?.nombre || "padre"}`}
               >
                 -
               </button>
@@ -232,7 +264,7 @@ export const TarjetaRasgo: React.FC<TarjetaRasgoProps> = ({
                   alRecuperarUso();
                 }}
                 disabled={usosRestantes >= usosMaximos}
-                title="Recuperar 1 uso"
+                title={tieneUsosPropios ? "Recuperar 1 uso" : `Recuperar 1 uso de ${usosPadre?.nombre || "padre"}`}
               >
                 +
               </button>
@@ -240,20 +272,22 @@ export const TarjetaRasgo: React.FC<TarjetaRasgoProps> = ({
           )}
 
           {/* Botón de Tirada de Dados 3D / Curación */}
-          {rasgo.formulaDados && (
+          {formulaEfectiva && (
             <button
               type="button"
               className={estilos.botonTirarDados}
               onClick={manejarTirarDados}
-              disabled={esCuracion && tieneUsos && usosRestantes <= 0}
+              disabled={sinUsosDisponibles}
               title={
                 esCuracion
-                  ? `Gastar 1 dado de la reserva (${usosRestantes}/${usosMaximos}) y curar ${rasgo.formulaDados}`
-                  : `Lanzar ${rasgo.formulaDados} a TaleSpire`
+                  ? `Gastar 1 dado de la reserva (${usosRestantes}/${usosMaximos}) y curar ${formulaEfectiva}`
+                  : rasgo.gastarDePadre && usosPadre
+                  ? `Lanzar ${formulaEfectiva} a TaleSpire (Gasta 1 uso de ${usosPadre.nombre}: ${usosRestantes}/${usosMaximos})`
+                  : `Lanzar ${formulaEfectiva} a TaleSpire`
               }
             >
               {esCuracion ? <Heart size={11} color="#10b981" /> : <Dices size={11} />}
-              <span>{esCuracion ? `Curar ${rasgo.formulaDados}` : rasgo.formulaDados}</span>
+              <span>{esCuracion ? `Curar ${formulaEfectiva}` : formulaEfectiva}</span>
             </button>
           )}
 

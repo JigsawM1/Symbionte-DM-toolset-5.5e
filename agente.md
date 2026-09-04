@@ -12,6 +12,178 @@ Este archivo registra reglas globales, errores encontrados, sus causas raíz y l
    - Toda interacción, comentarios y documentación técnica se redacta 100% en español.
 4. **TIPADO ESTRICTO Y CÓDIGO LIMPIO**:
    - `strict: true` en TypeScript. Cero tipos `any`. Interfaces explícitas, generics y principios SOLID.
+
+## [2026-09-04] Sincronización Bidireccional de Condiciones y Rasgos: Manto de Majestad y Majestad Inquebrantable (Colegio del Glamour)
+**Decisión y Motivación:**
+- *Solicitud del Usuario*:
+  "cuando activo Majestad inquebrantable o Manto de la majestad, no se me agrega la condicion/efecto de los mismos. recuerda que esta debe estar ligada a ese efecto, si no esta ese efecto se debe desactivar y viseversa (igual a lo que hace la furia del barbaro)"
+- *Causa Raíz*:
+  1. En `src/servicios/gestorClases.ts`, durante la creación y clonado de rasgos tanto de clase base como de subclase, la asignación de campos omitía explícitamente `condicionAlActivar: r.condicionAlActivar` y `restaurarUsosAlActivar: r.restaurarUsosAlActivar`. Por ende, los rasgos de subclase en el personaje se generaban con `condicionAlActivar = undefined`.
+  2. Al invocar `alternarActivoRasgo` en `src/almacen/slices/slicePersonajes.ts`, la variable `condicionAsociada` evaluaba a `undefined` para estos rasgos, impidiendo que se añadiese la condición correspondiente a `condicionesActivas`.
+  3. En `aplicarCondicionPersonaje` y `quitarCondicionPersonaje`, no existían ramas canónicas tolerantes para `"Manto de Majestad"` ni `"Majestad Inquebrantable"`, imposibilitando la reactividad en sentido inverso (de condición hacia rasgo).
+- *Solución Arquitectónica*:
+  1. **Propagación en Gestor de Clases (`gestorClases.ts`)**:
+     - Se añadió `condicionAlActivar: r.condicionAlActivar` y `restaurarUsosAlActivar: r.restaurarUsosAlActivar ? { ...r.restaurarUsosAlActivar } : undefined` tanto en el constructor de rasgos de clase base como en el de subclases.
+  2. **Inyección de Rescate y Fusión (`compendioRasgos.ts`)**:
+     - En `sincronizarRasgosAutomaticos`, si un rasgo se llama canónicamente *"Manto de majestad"* (o *"Manto de la majestad"*) o *"Majestad inquebrantable"*, se le asigna de forma proactiva su `condicionAlActivar` (`"Manto de Majestad (Mantle of Majesty)"` y `"Majestad Inquebrantable (Unbreakable Majesty)"`).
+     - Al fusionar con un rasgo preexistente, se preserva `condicionAlActivar: nuevo.condicionAlActivar ?? existente.condicionAlActivar`.
+  3. **Reactividad Bidireccional Estricta (`slicePersonajes.ts`)**:
+     - En `alternarActivoRasgo`: Se reconocen `esMantoMajestad` y `esMajestadInquebrantable` como condiciones canónicas fallback. Al encender el rasgo (`nuevoActivo = true`), se agrega la condición usando matching tolerante; al apagar el rasgo (`nuevoActivo = false`), se purga la condición correspondiente de `condicionesActivas`.
+     - En `aplicarCondicionPersonaje`: Al agregar la condición (desde el panel de condiciones o Combat Tracker), se activa el rasgo correspondiente (`activo = true`) y se descuenta un uso si procede.
+     - En `quitarCondicionPersonaje`: Al remover la condición, se desactiva el rasgo correspondiente (`activo = false`).
+- *Verificación*:
+  - Pruebas unitarias dedicadas en `bardoYBarbaroDND55.test.ts` verificando el ciclo completo en ambas direcciones.
+  - 41 suites de Vitest y 451 pruebas pasando al 100% (`pnpm test -- --run`).
+  - Verificación de tipos TypeScript estricta con 0 errores (`pnpm exec tsc --noEmit`).
+
+---
+
+## [2026-09-04] Maestría de Armas Dinámica por Nivel, Filtrado de Badges en Acciones de Ataque, Rediseño Compacto de Selectores con Tooltips y Duración de Furia (D&D 5.5e)
+**Decisión y Motivación:**
+- *Solicitud del Usuario*:
+  1. Selector de armas maestras dinámico en caliente según el nivel del personaje (Nivel 1-3: 2 armas, Nivel 4-9: 3 armas, Nivel 10-20: 4 armas para Bárbaro).
+  2. Badges de maestría en las tarjetas de ataque: sólo deben mostrarse si el personaje tiene esa maestría de arma aprendida/seleccionada en sus rasgos.
+  3. UI de selectores en los rasgos: los selectores ocupaban demasiado espacio con tarjetas enormes y descripciones largas. Rediseñar a formato compacto mostrando únicamente el título (con check si está activa) y delegar la descripción completa al `TooltipUniversal` flotante al hacer hover.
+  4. La Furia en D&D 5.5e (2024) dura hasta 10 minutos (100 rondas de combate) en vez de 10 rondas.
+- *Causa Raíz y Solución Arquitectónica*:
+  1. **Sincronización en Caliente de Selectores (`compendioRasgos.ts`, `gestorClases.ts`)**:
+     - Al subir de nivel o sincronizar rasgos automáticos en `compendioRasgos.ts`, cuando un rasgo ya existía en el personaje (`existente`), sus selectores conservaban el `maxSelecciones` desactualizado del nivel inicial. Se implementó una sincronización profunda que toma la nueva estructura de `nuevo.selectores` (con `maxSelecciones` escalado canónicamente por nivel: 2/3/4 en Bárbaro, 3/4/5/6 en Guerrero) pero preserva intacto el array `valorActual` de las opciones ya seleccionadas por el jugador.
+  2. **Detección y Filtrado de Maestrías Aprendidas (`evaluadorEfectosRasgos.ts`, `VistaAtaquesJugador.tsx`)**:
+     - Se implementaron y exportaron `obtenerMaestriasArmasAprendidas(personaje: PersonajeJugador): Set<string>` y `personajeTieneMaestriaArma(personaje, maestriaArma): boolean`.
+     - La función normaliza diacríticos y resuelve sinónimos (ej. `cleave`, `hender`, `Cleave (Hender)`).
+     - En `VistaAtaquesJugador.tsx`, al computar cada ataque físico de un arma, se verifica `personajeTieneMaestriaArma(personajeActivo, objetoCompendio.maestria)`. Si no la tiene aprendida, se asigna `maestria: undefined`, ocultando automáticamente el badge en las acciones de combate del jugador.
+  3. **Rediseño Compacto de Selectores con Tooltip (`ModalDetalleRasgo.tsx`, `VistaRasgosJugador.module.css`)**:
+     - En `ModalDetalleRasgo.tsx`, se envolvieron las opciones con `TooltipUniversal` (`titulo={op.nombre}`, `contenido={op.descripcion}`).
+     - En el botón se muestra exclusivamente el nombre y la tilde `✓` cuando está seleccionado.
+     - En el CSS se transformó la cuadrícula a un contenedor `flex-wrap` con botones tipo "chips" compactos y estilizados.
+  4. **Duración de la Furia (`datosIniciales.ts`)**:
+     - Se actualizó `duracionEstandar: 100` rondas (10 minutos oficiales de D&D 5.5e) en `EFECTOS_PREDEFINIDOS` para `"Furia (Rage)"`.
+- *Verificación*:
+  - 41 suites de Vitest y 449 pruebas pasando al 100% (`pnpm test -- --run`).
+  - TypeScript estricto verificado con 0 errores (`pnpm exec tsc --noEmit`).
+
+---
+
+## [2026-09-04] Resolución Canónica del Bardo (D&D 5.5e): Reactividad de Carisma, Manto de Inspiración, Manto de Majestad y Competencias de Subclase
+**Decisión y Motivación:**
+- *Solicitud del Usuario*:
+  1. El dado y usos de Inspiración bárdica deben actualizarse en caliente al cambiar el Carisma del personaje en la hoja.
+  2. Manto de inspiración debe aplicar los puntos de golpe temporales ($2 \times \text{resultado}$) exclusivamente al personaje activo al tirar los dados.
+  3. Sincronización textual 100% canónica con `cambio_build/catalogo-clases-dnd55 (5).json`.
+  4. Orden imperiosa en Colegio del Glamour se aprende a nivel 6 junto con *Manto de majestad*.
+  5. Efecto estructurado para *Manto de la majestad* que permita lanzar *Orden imperiosa* sin gastar espacios de conjuro.
+  6. Efecto de *Majestad inquebrantable* meramente informativo.
+  7. Colegio del Valor: *Entrenamiento marcial* debe otorgar y mostrar visualmente las competencias en armas marciales, armaduras medias y escudos.
+- *Causa Raíz y Solución Arquitectónica*:
+  1. **Actualización en Caliente de Carisma (`slicePersonajes.ts`)**:
+     - En `modificarCaracteristicaBasePersonaje`, `personalizarCaracteristicaPersonaje` y `actualizarPersonaje`, cuando varía `carisma`, se recalculan automáticamente los `usosMaximos` ($\max(1, \lfloor(\text{CAR}-10)/2\rfloor)$) y se preservan o expanden los `usosRestantes` para todos los rasgos que escalan con Carisma (como *Inspiración bárdica*).
+  2. **Manto de Inspiración - HP Temporales (`tipos/rasgos.ts`, `utiles/lanzadorDados.ts`, `TarjetaRasgo.tsx`)**:
+     - Agregado el tipo de efecto `"hp_temporal"` a `EsquemaTipoEfectoMecanico`.
+     - Implementado `aplicarResultadoHpTemporalEnEstado(personajeId, hpTemporalNuevo)` respetando la regla oficial de D&D (los puntos temporales no se acumulan; se toma el mayor).
+     - `TarjetaRasgo.tsx` detecta rasgos con efecto `"hp_temporal"` o *Manto de inspiración* y despacha `metaEspecial` `{ tipo: "hpTemporalRasgo", personajeId, multiplicador: 2 }`, interceptado tanto en tiradas locales como 3D en TaleSpire para aplicar $2 \times \text{dado}$ al personaje activo.
+  3. **Descripciones Canónicas (`constantes/clasesDND55.ts`)**:
+     - Sincronizadas las descripciones textuales del Bardo y sus subclases (Danza, Glamour, Conocimiento, Valor) idénticas a `catalogo-clases-dnd55 (5).json`.
+  4. **Colegio del Glamour: Nivel 6 y Manto de Majestad (`clasesDND55.ts`, `evaluadorEfectosRasgos.ts`, `servicioLanzamientoConjuros.ts`, `usarLanzadorConjuros.ts`)**:
+     - Reubicado *Orden imperiosa* a nivel 6 en la progresión de conjuros de subclase de Glamour (nivel 3 sólo *Hechizar persona* e *Imagen múltiple*).
+     - *Manto de majestad* configurado con condición táctica `"Manto de Majestad (Mantle of Majesty)"` y efecto `"conjuro_gratuito"` para `"Orden imperiosa"`.
+     - *Majestad inquebrantable* configurado con efecto meramente informativo.
+     - Implementado `tieneConjuroGratuitoActivo(personaje, nombreConjuro)` en `evaluadorEfectosRasgos.ts`.
+     - `servicioLanzamientoConjuros.ts` y `usarLanzadorConjuros.ts` verifican si el conjuro está exento de coste (`esGratis`), asignando `gasto = { tipo: "ninguno" }` y permitiendo el lanzamiento sin consumir ranuras ni puntos de magia.
+  5. **Colegio del Valor: Competencias de Entrenamiento Marcial (`evaluadorEfectosRasgos.ts`, `gestorClases.ts`, `usarEstadoPersonajes.ts`, `PanelHabilidadesPersonaje.tsx`)**:
+     - `obtenerCompetenciasEfectivasTexto(personaje)` unifica competencias base y las otorgadas por rasgos de subclase.
+     - `gestorClases.ts` enriquece de forma persistente `competenciasArmas`, `competenciasArmaduras` y sus grupos al aplicar build de Colegio del Valor.
+     - `usarEstadoPersonajes.ts` expone `competenciasEfectivas` en `EstadisticasCalculadasPersonaje`, y `PanelHabilidadesPersonaje.tsx` muestra las competencias efectivas en tiempo real.
+- *Verificación*:
+  - 41 suites de pruebas de Vitest pasando al 100% (446 tests aprobados).
+  - TypeScript en modo estricto verificado con 0 errores (`pnpm exec tsc --noEmit`).
+
+---
+
+## [2026-09-04] Resolución y Unificación Canónica de "Aprendiz de Mucho" (Jack of All Trades) con GradoCompetencia = "medio"
+**Decisión y Motivación:**
+- *Solicitud del Usuario*:
+  "el aprendiz de mucho no se esta aplicando, te recuerdo que las funciones que asignan competencia ya existen y el asignar medio mebo ya existe"
+- *Causa Raíz*:
+  1. El sistema ya contaba con el tipo canónico `GradoCompetencia = "medio"` y su clase CSS `puntoGradoMedio` (círculo bicolor verde/azul) en `PanelHabilidadesPersonaje.tsx`. Sin embargo, `calcularEstadisticasPersonaje` aplicaba el medio bono sumándolo de forma virtual al total numérico de la habilidad sin alterar el grado visual ni persistido, por lo que la interfaz seguía mostrando el círculo vacío (`puntoGradoVacio`) de `"Sin competencia"`.
+  2. Al aplicar un build de clase o subir de nivel a un Bardo en `gestorClases.ts`, no se actualizaba `personaje.gradosHabilidades` para convertir las habilidades `"ninguna"` en `"medio"`.
+  3. `PanelHabilidadesPersonaje.tsx` leía `personaje.gradosHabilidades?.[hab]` directamente en lugar de un grado efectivo derivado.
+- *Solución Arquitectónica*:
+  1. **Evaluador Central (`src/servicios/evaluadorEfectosRasgos.ts`)**:
+     - `tieneMedioBonoHabilidades(personaje)`: Reconoce tanto Bardo $\ge$ nivel 2 (a través de `personaje.clase` o `personaje.clases`) como efectos activos `"medio_bono_habilidades"` de cualquier rasgo Homebrew.
+     - `aplicarAprendizDeMuchoAGradosHabilidades(grados, tieneAprendiz)`: Convierte todas las habilidades con `"ninguna"` en `"medio"` si `tieneAprendiz` es verdadero; revierte `"medio"` a `"ninguna"` si es falso; preserva siempre inalteradas las habilidades con `"competente"` y `"pericia"`.
+  2. **Selector de Estadísticas (`src/almacen/selectores/usarEstadoPersonajes.ts`)**:
+     - Ampliada la interfaz `EstadisticasCalculadasPersonaje` con `gradosHabilidadesEfectivos: Record<Habilidad, GradoCompetencia>`.
+     - Si la habilidad tiene grado base `"ninguna"` y el personaje tiene activo Aprendiz de mucho, el grado efectivo se establece como `"medio"`, calculando el bono mediante la rama nativa $\lfloor PB / 2 \rfloor$.
+  3. **Gestor de Clases (`src/servicios/gestorClases.ts`)**:
+     - En `aplicarBuildClaseAPersonaje`, una vez sincronizados los rasgos, se evalúa si el personaje tiene Aprendiz de mucho y se actualiza `gradosHabilidades` persistido mediante `aplicarAprendizDeMuchoAGradosHabilidades`.
+  4. **Store de Personajes (`src/almacen/slices/slicePersonajes.ts`)**:
+     - En `sincronizarRasgosPersonaje` y `alternarActivoRasgo`, se actualiza `gradosHabilidades` aplicando `aplicarAprendizDeMuchoAGradosHabilidades`.
+     - En `ciclarGradoHabilidadPersonaje` y `establecerGradoHabilidadPersonaje`, si el personaje posee Aprendiz de mucho activo, el grado base no cae por debajo de `"medio"`.
+  5. **Componentes de Interfaz (`PanelHabilidadesPersonaje.tsx`, `ModalDetalleHabilidad.tsx`)**:
+     - `PanelHabilidadesPersonaje.tsx`: Resuelve `grado` leyendo `statsCalculadas.gradosHabilidadesEfectivos?.[hab]`, activando de inmediato el renderizado del punto medio (`puntoGradoMedio`) y el tooltip `Medio Bono (0.5x PB) — Clic para cambiar a Competente`.
+     - `ModalDetalleHabilidad.tsx`: Contextualiza `gradoActual` y las opciones del selector desplegable para mostrar `Por defecto (Medio bono por Aprendiz de mucho)`.
+- *Verificación*:
+  - 41 suites de Vitest y 442 pruebas pasando al 100% (`pnpm test -- --run`).
+  - Verificación de tipos TypeScript estricta con 0 errores (`pnpm exec tsc --noEmit`).
+
+---
+
+## [2026-09-04] Implementación Canónica del Bardo (D&D 5.5e), Subclases Oficiales, Generalización en el Builder y Hotfix de Bárbaro
+**Decisión y Motivación:**
+- *Solicitud del Usuario*:
+  1. Hotfix Bárbaro: *Furia persistente* debe auto-desactivarse inmediatamente tras su activación (`activo: false`), restaurar al máximo los usos de *Furia* y no dejar condiciones residuales activas.
+  2. Implementación canónica del Bardo (D&D 5.5e / PHB 2024) y sus 4 subclases: Colegio de la Danza, Colegio del Glamour, Colegio del Conocimiento y Colegio del Valor.
+  3. Generalización universal en el Builder (`ConstructorRasgoDote.tsx`, `evaluadorEfectosRasgos.ts`, `gestorClases.ts`, `rasgos.ts`) para que cualquier clase o subclase Homebrew pueda replicar estas mecánicas.
+  4. Tabla de progresión canónica de dados de *Inspiración bárdica* (1d6 -> 1d8 -> 1d10 -> 1d12).
+  5. En *Palabras cortantes* y *Habilidad inigualable*, no automatizar modificaciones a tiradas d20 ajenas; permitir lanzar el dado de Inspiración bárdica a TaleSpire y descontar 1 uso del rasgo padre (*Inspiración bárdica*).
+- *Causa Raíz y Solución Arquitectónica*:
+  1. **Hotfix de Furia Persistente (`slicePersonajes.ts`, `clasesDND55.ts`)**:
+     - Se añadió `autoDesactivar: true` al esquema y plantilla de *Furia persistente*. En `alternarActivoRasgo`, si el rasgo posee `autoDesactivar: true`, ejecuta la restauración de recursos al máximo en *Furia* base, consume 1 uso de sí mismo y se apaga de inmediato (`activo: false`) sin añadir ni mantener condiciones activas.
+  2. **Tabla y Progresión de Inspiración Bárdica (`evaluadorEfectosRasgos.ts`, `gestorClases.ts`, `compendioRasgos.ts`)**:
+     - `obtenerDadoInspiracionBardica(nivel)` escala canónicamente: Nv 1-4: 1d6, Nv 5-9: 1d8, Nv 10-14: 1d10, Nv 15-20: 1d12.
+     - Usos máximos vinculados dinámicamente al modificador de Carisma del personaje ($\max(1, \lfloor(\text{CAR}-10)/2\rfloor)$).
+     - Al alcanzar nivel 5 (*Fuente de inspiración*), la recarga del rasgo pasa automáticamente de descanso largo a descanso corto.
+  3. **Aprendiz de Mucho (`usarEstadoPersonajes.ts`, `evaluadorEfectosRasgos.ts`)**:
+     - Añadido efecto `"medio_bono_habilidades"` con objetivo `"habilidades_sin_competencia"`. El selector `calcularEstadisticasPersonaje` suma $\lfloor\text{Bono Competencia} / 2\rfloor$ a toda habilidad con `grado === "ninguna"`.
+  4. **Subclases Canónicas**:
+     - *Colegio de la Danza*: *Juego de pies deslumbrante* aplica CA base $10 + \text{DES} + \text{CAR}$ sin armadura ni escudo, y Golpe sin armas especial con Destreza y dado escalable de Inspiración bárdica. *Juego de pies en tándem* delega uso y tirada al padre con auto-desactivación.
+     - *Colegio del Glamour*: *Manto de inspiración* con `gastarDePadre: true`. *Manto de majestad* y *Majestad inquebrantable* como rasgos activables vinculados a sus condiciones tácticas correspondientes.
+     - *Colegio del Conocimiento*: *Palabras cortantes* y *Habilidad inigualable* configurados con `gastarDePadre: true` y `heredarDadosPadre: true`, permitiendo tirar el dado de Inspiración bárdica directamente desde su tarjeta y descontar de la reserva de Inspiración.
+     - *Colegio del Valor*: *Entrenamiento marcial* otorga competencias en armas marciales, armaduras medianas y escudos mediante efectos `"competencia"`, reflejados en cálculos de CA y ataques.
+  5. **Generalización en el Builder Homebrew (`ConstructorRasgoDote.tsx`)**:
+     - Se integraron controles visuales para `autoDesactivar`, `gastarDePadre`, `heredarDadosPadre`, `conjurosOtorgados` y los tipos de efecto `"medio_bono_habilidades"`, `"ataque_desarmado"`, `"conjuro_otorgado"` y `"competencia"`.
+  6. **Resolución de Nombres y Normalización Tolerante**:
+     - Se implementó normalización sin acentos diacríticos (`.normalize("NFD").replace(/[\u0300-\u036f]/g, "")`) en `gestorClases.ts` y `slicePersonajes.ts`.
+     - En `compendioRasgos.ts`, `clasesCalculo` prioriza `personaje.clase` cuando el personaje posee una sola clase registrada, previniendo herencias erróneas de plantillas por defecto.
+- *Verificación*: 41 suites de Vitest y 440 pruebas pasando al 100% (`pnpm test -- --run`), 0 errores de tipado TypeScript (`tsc --noEmit`).
+
+---
+
+## [2026-09-04] Corrección de Duplicación de Daño en Furia, Subordinación de Furia de los Dioses y Retiro de Resistencia al Daño
+**Decisión y Motivación:**
+- *Solicitud del Usuario*:
+  1. Ligar el rasgo de subclase *Furia de los dioses* a *Furia* para que no pueda activarse sin ella y se apague en cascada.
+  2. Resolver duplicación de daño en Furia (+4 en vez de +2 a nivel 5).
+  3. Aclarar que la sincronización de condiciones es con la barra táctica de estados del simbionte, no bidireccional con TaleSpire.
+  4. Eliminar por completo la mecánica de *Resistencia al Daño*, ya que TaleSpire no soporta determinar ni interceptar daño entrante.
+  5. No aplicar restricciones que desactiven rasgos cuando el personaje esté incapacitado.
+- *Causa Raíz y Solución*:
+  1. **Duplicación de Daño de Furia (`VistaAtaquesJugador.tsx`)**:
+     - *Causa*: Al declararse en *Furia* el efecto mecánico `bono_dano_fuerza: "dano_furia"`, `obtenerBonoDanoFuerzaExtra()` calculaba correctamente +2. Sin embargo, `VistaAtaquesJugador.tsx` seguía sumando concurrentemente `statsCalculadas.bonoDanoFuria` (+2), acumulando +4.
+     - *Solución*: Se evaluó `yaIncluyeFuriaEnEfectos` mediante `evaluarEfectosRasgosActivos`. Si los efectos declarativos del rasgo ya contemplan `bono_dano_fuerza`, `bonoFuriaArma`, `bonoFuriaDesarmado` y `bonoFuriaImprovisada` se establecen en 0, previniendo el doble cómputo y garantizando compatibilidad con personajes con rasgos antiguos.
+  2. **Subordinación de Furia de los Dioses (`clasesDND55.ts`, `slicePersonajes.ts`)**:
+     - Añadido `ligadoA: "rasgo_cls_barbaro_furia"` y `condicionAlActivar: "Furia de los Dioses (Rage of the Gods)"`.
+     - En `slicePersonajes.ts`, `alternarActivoRasgo` bloquea la activación si la Furia no está activa, y añade a los hijos a desactivar en cascada cuando Furia cesa o cuando se retira la condición de la barra de estados.
+  3. **Eliminación Total de Resistencia al Daño (`rasgos.ts`, `ConstructorRasgoDote.tsx`, `clasesDND55.ts`, `guia_constructor_homebrew.md`)**:
+     - Retirado `"resistencia_dano"` de `EsquemaTipoEfectoMecanico`, del compendio maestro de clases y del desplegable del Constructor de Rasgos (reduciendo a 12 efectos disponibles).
+  4. **Condiciones del Simbionte vs TaleSpire**:
+     - Se documentó y clarificó que la barra de estados sincronizada pertenece a la interfaz táctica del simbionte (`condicionesActivas`), ya que TaleSpire no expone una API para registrar o leer condiciones de las miniaturas.
+  5. **Incapacitado**:
+     - No se incluyeron filtros que bloqueen rasgos como Sentido del Peligro o Furia ante la condición "incapacitado".
+- *Verificación*: Pruebas de tipado TypeScript (`tsc --noEmit`), suites de tests unitarios Vitest, compilación de producción y despliegue a TaleSpire.
+
+---
+
 ## [2026-09-04] Verificación y Unificación Declarativa de Rasgos de Bárbaro con el Constructor
 **Decisión y Motivación:**
 - *Solicitud del Usuario*: Verificar si todos los rasgos del Bárbaro se construyeron con funciones generales y que esas funciones generales se aplicaron al builder, junto con un resumen integral de mecánicas añadidas para la clase Bárbaro.

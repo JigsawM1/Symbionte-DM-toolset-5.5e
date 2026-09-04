@@ -6,6 +6,7 @@ import {
   obtenerBonoCompetenciaPorNivel
 } from "@/constantes";
 import { calcularModificadorCaracteristica } from "@/servicios/procesadorDescansos";
+import { tieneMedioBonoHabilidades } from "@/servicios/evaluadorEfectosRasgos";
 import { SelectorDesplegable } from "@/componentes/comunes/SelectorDesplegable";
 import { X, Info, Edit3, Dices, Save } from "lucide-react";
 import estilos from "./HojaPersonaje.module.css";
@@ -23,12 +24,6 @@ interface ModalDetalleHabilidadProps {
   ) => void;
 }
 
-const OPCIONES_COMPETENCIA_DROPDOWN = [
-  { valor: "ninguna", etiqueta: "Por defecto (Sin competencia)" },
-  { valor: "medio", etiqueta: "Medio bono (0.5x PB)" },
-  { valor: "competente", etiqueta: "Competencia (1x PB)" },
-  { valor: "pericia", etiqueta: "Pericia / Experto (2x PB)" }
-];
 
 const ABREVIATURA_CARAC: Record<string, string> = {
   fuerza: "Fue",
@@ -63,7 +58,9 @@ export const ModalDetalleHabilidad: React.FC<ModalDetalleHabilidadProps> = ({
   const nombreCarac = NOMBRE_COMPLETO_CARAC[caracAsociada] || "Destreza";
 
   const customExistente = personaje.personalizacionesHabilidades?.[habilidadClave];
-  const gradoActual = (personaje.gradosHabilidades?.[habilidadClave] || "ninguna") as GradoCompetencia;
+  const tieneAprendiz = tieneMedioBonoHabilidades(personaje);
+  const gradoBase = (personaje.gradosHabilidades?.[habilidadClave] || "ninguna") as GradoCompetencia;
+  const gradoActual: GradoCompetencia = gradoBase === "ninguna" && tieneAprendiz ? "medio" : gradoBase;
 
   // Estado del formulario de personalización
   const [nombreForm, setNombreForm] = useState(customExistente?.nombrePersonalizado ?? "");
@@ -82,6 +79,18 @@ export const ModalDetalleHabilidad: React.FC<ModalDetalleHabilidadProps> = ({
   );
   const [gradoForm, setGradoForm] = useState<GradoCompetencia>(gradoActual);
   const [notasForm, setNotasForm] = useState(customExistente?.notas ?? "");
+
+  const opcionesCompetenciaDropdown = [
+    {
+      valor: "ninguna",
+      etiqueta: tieneAprendiz
+        ? "Por defecto (Medio bono por Aprendiz de mucho)"
+        : "Por defecto (Sin competencia)"
+    },
+    { valor: "medio", etiqueta: "Medio bono (0.5x PB)" },
+    { valor: "competente", etiqueta: "Competencia (1x PB)" },
+    { valor: "pericia", etiqueta: "Pericia / Experto (2x PB)" }
+  ];
 
   // Cálculos matemáticos en tiempo real
   const pb = obtenerBonoCompetenciaPorNivel(personaje.nivel || 1);
@@ -116,8 +125,9 @@ export const ModalDetalleHabilidad: React.FC<ModalDetalleHabilidadProps> = ({
     e.preventDefault();
     const modExtraParsed = parseInt(modExtraForm, 10);
     const valorFijoParsed = valorFijoForm.trim() === "" ? null : parseInt(valorFijoForm, 10);
+    const gradoAGuardar = (gradoForm === "ninguna" && tieneAprendiz) ? "medio" : gradoForm;
 
-    alGuardarPersonalizacion(habilidadClave, gradoForm, {
+    alGuardarPersonalizacion(habilidadClave, gradoAGuardar, {
       nombrePersonalizado: nombreForm.trim() !== "" ? nombreForm.trim() : undefined,
       descripcionPersonalizada: descForm.trim() !== "" ? descForm.trim() : undefined,
       modificadorExtra: isNaN(modExtraParsed) ? 0 : modExtraParsed,
@@ -419,7 +429,7 @@ export const ModalDetalleHabilidad: React.FC<ModalDetalleHabilidadProps> = ({
               <SelectorDesplegable
                 valor={gradoForm}
                 alCambiar={(val) => setGradoForm(val as GradoCompetencia)}
-                opciones={OPCIONES_COMPETENCIA_DROPDOWN}
+                opciones={opcionesCompetenciaDropdown}
                 tamano="normal"
               />
             </div>

@@ -29,12 +29,14 @@ export const CATALOGO_CLASES_DND55: DefinicionClase[] = [
         obtenerUsosMaximos: (niv) => (niv >= 17 ? 6 : niv >= 12 ? 5 : niv >= 6 ? 4 : niv >= 3 ? 3 : 2),
         recuperacion: "descanso_largo",
         esActivable: true,
+        condicionAlActivar: "Furia (Rage)",
         categoriaMecanica: "consumible",
         efectos: [
           {
             tipo: "bono_dano_fuerza",
             objetivo: "ataque_fuerza",
-            valor: "+2 a +4 según nivel",
+            valor: "dano_furia",
+            aplicaA: "arma_fuerza",
             condicion: "furia_activa",
             descripcion: "Daño de Furia (+2 nv 1-8, +3 nv 9-15, +4 nv 16-20)"
           },
@@ -148,6 +150,7 @@ export const CATALOGO_CLASES_DND55: DefinicionClase[] = [
         descripcion: "Puedes dejar de lado toda preocupación por la defensa para atacar con mayor ferocidad. Cuando hagas tu primera tirada de ataque en tu turno, puedes decidir atacar de forma temeraria. Hacerlo te da ventaja en las tiradas de ataque que usen Fuerza hasta el comienzo de tu siguiente turno, pero las tiradas de ataque contra ti tienen ventaja durante ese tiempo.",
         tipoAccion: "pasivo",
         esActivable: true,
+        condicionAlActivar: "Ataque Temerario (Reckless Attack)",
         categoriaMecanica: "activable",
         efectos: [
           {
@@ -252,6 +255,15 @@ export const CATALOGO_CLASES_DND55: DefinicionClase[] = [
         esActivable: true,
         ligadoA: "rasgo_cls_barbaro_ataque_temerario",
         categoriaMecanica: "activable",
+        efectos: [
+          {
+            tipo: "dado_extra_dano",
+            objetivo: "arma_fuerza",
+            valor: "1d10",
+            aplicaA: "arma_fuerza",
+            descripcion: "Golpe brutal (+1d10 al daño con armas de Fuerza)"
+          }
+        ],
         selectores: [
           {
             id: "efecto_golpe_brutal",
@@ -325,7 +337,16 @@ export const CATALOGO_CLASES_DND55: DefinicionClase[] = [
         tipoAccion: "pasivo",
         formulaDados: "2d10",
         categoriaMecanica: "extension",
-        ligadoA: "rasgo_cls_barbaro_golpe_brutal"
+        ligadoA: "rasgo_cls_barbaro_golpe_brutal",
+        efectos: [
+          {
+            tipo: "dado_extra_dano",
+            objetivo: "arma_fuerza",
+            valor: "2d10",
+            aplicaA: "arma_fuerza",
+            descripcion: "Golpe brutal mejorado (+2d10 al daño con armas de Fuerza)"
+          }
+        ]
       },
       {
         nivel: 18,
@@ -381,7 +402,16 @@ export const CATALOGO_CLASES_DND55: DefinicionClase[] = [
             esActivable: true,
             categoriaMecanica: "activable",
             ligadoA: "rasgo_cls_barbaro_ataque_temerario",
-            formulaDados: "2d6"
+            formulaDados: "2d6",
+            efectos: [
+              {
+                tipo: "dado_extra_dano",
+                objetivo: "arma_fuerza",
+                valor: "2d6",
+                aplicaA: "arma_fuerza",
+                descripcion: "Frenesí (+2d6 daño adicional)"
+              }
+            ]
           },
           {
             nivel: 6,
@@ -572,7 +602,17 @@ export const CATALOGO_CLASES_DND55: DefinicionClase[] = [
             formulaDados: "1d6",
             esActivable: true,
             categoriaMecanica: "activable",
-            ligadoA: "rasgo_cls_barbaro_furia"
+            ligadoA: "rasgo_cls_barbaro_furia",
+            efectos: [
+              {
+                tipo: "dano_secundario",
+                objetivo: "arma_fuerza",
+                valor: "1d6+mitad_nivel",
+                tipoDano: "Radiante o Necrótico",
+                aplicaA: "arma_fuerza",
+                descripcion: "Furia divina (1d6 + mitad nivel bárbaro Radiante o Necrótico)"
+              }
+            ]
           },
           {
             nivel: 3,
@@ -595,7 +635,17 @@ export const CATALOGO_CLASES_DND55: DefinicionClase[] = [
             tipoAccion: "especial",
             subclase: "Senda del Fanático",
             esActivable: true,
-            categoriaMecanica: "activable"
+            categoriaMecanica: "activable",
+            ligadoA: "rasgo_cls_barbaro_furia",
+            efectos: [
+              {
+                tipo: "bono_salvacion",
+                objetivo: "todas",
+                valor: "dano_furia",
+                condicion: "furia_activa",
+                descripcion: "Enfoque fanático (Bono a salvación igual al daño de furia)"
+              }
+            ]
           },
           {
             nivel: 10,

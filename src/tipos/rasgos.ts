@@ -40,14 +40,18 @@ export const EsquemaTipoEfectoMecanico = z.enum([
   "modificador_stat",
   "modificador_ca",
   "modificador_velocidad",
+  "movimiento_especial",
   "ventaja",
   "desventaja",
   "dado_extra_dano",
+  "dano_secundario",
   "bono_dano_fuerza",
+  "bono_salvacion",
   "resistencia_dano",
   "inmunidad_condicion",
   "competencia",
   "habilidad_con_fuerza",
+  "restaurar_recurso",
   "personalizado"
 ]);
 export type TipoEfectoMecanico = z.infer<typeof EsquemaTipoEfectoMecanico>;
@@ -56,8 +60,12 @@ export const EsquemaEfectoMecanicoRasgo = z.object({
   id: z.string().optional(),
   tipo: EsquemaTipoEfectoMecanico,
   objetivo: z.string(), // ej. "fuerza", "ca", "velocidad.caminar", "salvacion.destreza", "iniciativa", "ataque_fuerza"
-  valor: z.union([z.number(), z.string()]), // ej. 4, "2d6", "+2"
+  valor: z.union([z.number(), z.string()]), // ej. 4, "2d6", "+2", "1d6+mitad_nivel", "dano_furia"
   condicion: z.string().nullable().optional(), // ej. "furia_activa", "sin_armadura_pesada", "sin_armadura", "siempre"
+  tipoDano: z.string().optional(), // ej. "Radiante o Necrótico", "Fuego", "Fuerza", etc.
+  aplicaA: z.enum(["arma_fuerza", "arma_cac", "arma_distancia", "desarmado", "todos_ataques"]).optional(),
+  limiteMaximo: z.number().int().optional(), // ej. 25 para modificador_stat
+  permiteEscudo: z.boolean().optional(), // ej. true para Defensa sin armadura de Bárbaro
   descripcion: z.string().optional(),
   activo: z.boolean().default(true).optional()
 });
@@ -117,7 +125,12 @@ export const EsquemaRasgoPersonaje = z.object({
   personalizado: z.boolean().default(false),
   activo: z.boolean().default(true),
   esActivable: z.boolean().default(false).optional(), // Toggle on/off
-  ligadoA: z.string().optional(), // ID de rasgo padre requerido activo
+  ligadoA: z.string().optional(), // ID o nombre de rasgo padre requerido activo
+  condicionAlActivar: z.string().optional(), // Condición táctica a sincronizar en condicionesActivas (ej. "Furia (Rage)")
+  restaurarUsosAlActivar: z.object({
+    idRasgoObjetivo: z.string(),
+    cantidad: z.union([z.literal("maximo"), z.number().int().min(1)])
+  }).optional(),
   categoriaMecanica: z.enum([
     "consumible",
     "activable",

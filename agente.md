@@ -12,6 +12,47 @@ Este archivo registra reglas globales, errores encontrados, sus causas raíz y l
    - Toda interacción, comentarios y documentación técnica se redacta 100% en español.
 4. **TIPADO ESTRICTO Y CÓDIGO LIMPIO**:
    - `strict: true` en TypeScript. Cero tipos `any`. Interfaces explícitas, generics y principios SOLID.
+## [2026-09-04] Verificación y Unificación Declarativa de Rasgos de Bárbaro con el Constructor
+**Decisión y Motivación:**
+- *Solicitud del Usuario*: Verificar si todos los rasgos del Bárbaro se construyeron con funciones generales y que esas funciones generales se aplicaron al builder, junto con un resumen integral de mecánicas añadidas para la clase Bárbaro.
+- *Análisis y Solución*:
+  1. Se verificó el motor central `evaluadorEfectosRasgos.ts`: todas las funciones evaluadoras (`obtenerDadosExtraAtaque`, `obtenerDanosSecundariosAtaque`, `calcularDefensaSinArmaduraRasgos`, `calcularModificadoresStatsRasgos`, `evaluarVentajasDeRasgosEnTirada`, `obtenerBonosSalvacionesRasgos`, `obtenerHabilidadesConFuerzaRasgos`, `resolverFormulaDinamica`) son 100% genéricas, operando sobre tipos de efectos normalizados en lugar de IDs o nombres rígidos.
+  2. Se actualizó el catálogo maestro `clasesDND55.ts` para que rasgos como *Golpe Brutal*, *Golpe Brutal Mejorado II*, *Frenesí*, *Furia Divina* y *Enfoque Fanático* incluyan explícitamente sus arrays de `efectos: [...]` y `condicionAlActivar`, quedando en paridad técnica absoluta con lo que produce el Constructor Homebrew.
+  3. Se amplió `PlantillaRasgoClase` en `rasgosDND55.ts` con `condicionAlActivar` y `restaurarUsosAlActivar` con tipado estricto.
+- *Verificación*: 40 suites y 429 pruebas pasando al 100% (`pnpm test -- --run`), 0 errores TypeScript (`tsc --noEmit`), compilación y despliegue a TaleSpire exitosos.
+
+---
+
+## [2026-09-03] Constructor Universal de Rasgos y Dotes Homebrew (Pestaña / Vista Dedicada)
+**Decisión y Motivación:**
+- *Solicitud del Usuario*: Generalizar todas las mecánicas implementadas en el Bárbaro para que cualquier rasgo o dote Homebrew pueda interactuar activamente con el personaje, y sustituir el modal flotante por una pestaña nueva a todo el ancho y alto del panel para mayor espacio y ergonomía.
+- *Solución*:
+  1. **Tipos y Esquemas (`src/tipos/rasgos.ts`)**:
+     - Ampliado `EsquemaTipoEfectoMecanico` con `"dano_secundario"`, `"bono_salvacion"`, `"movimiento_especial"`, `"restaurar_recurso"`.
+     - Ampliado `EsquemaEfectoMecanicoRasgo` con `tipoDano`, `aplicaA`, `limiteMaximo`, `permiteEscudo`.
+     - Ampliado `EsquemaRasgoPersonaje` con `condicionAlActivar` y `restaurarUsosAlActivar`.
+  2. **Evaluador Central (`src/servicios/evaluadorEfectosRasgos.ts`)**:
+     - `cumpleCondicionEfecto`: Soporta condiciones tácticas arbitrarias y rasgos activos.
+     - `resolverFormulaDinamica`: Resuelve variables como `"mitad_nivel"`, `"nivel"`, `"dano_furia"`.
+     - Funciones evaluadoras para tiradas y ataques: `obtenerDadosExtraAtaque`, `obtenerDanosSecundariosAtaque` (grupos con `/`), `obtenerBonoDanoFuerzaExtra`, `obtenerBonosSalvacionesRasgos`, `obtenerHabilidadesConFuerzaRasgos`.
+  3. **Store Reactivo (`src/almacen/slices/slicePersonajes.ts`)**:
+     - `alternarActivoRasgo`: Comprueba cualquier rasgo padre requerido (`ligadoA`); sincroniza automáticamente `condicionAlActivar` en `condicionesActivas`; ejecuta desactivación en cascada para todos los rasgos hijos cuando el padre se apaga; gestiona `restaurarUsosAlActivar`.
+     - `quitarCondicionPersonaje` y `limpiarCondicionesPersonaje`: Apagan en cascada cualquier rasgo cuya `condicionAlActivar` coincida con la condición retirada.
+  4. **Ataques y Atributos (`VistaAtaquesJugador.tsx`, `usarEstadoPersonajes.ts`)**:
+     - Integración de dados extra de daño y daño secundario (`/`) en armas, desarmado e improvisadas.
+     - Integración de bonos dinámicos a salvaciones y habilidades con Fuerza.
+  5. **Vista Dedicada Exclusiva (`ConstructorRasgoDote.tsx`, `VistaRasgosJugador.tsx`)**:
+     - Se eliminó el botón de subpestaña permanente del selector superior para no restar sentido ni valor al botón "+ Añadir".
+     - El selector de subpestañas mantiene exclusivamente "Mis Rasgos Activos" y "Progresión (1-20)".
+     - La pantalla completa del Constructor es accesible únicamente al pulsar **"+ Añadir"** en la cabecera, **"+ Dote"** en la sección de Dotes, **"+ Crear Homebrew"** en Personalizados, o **"Editar"** en cualquier tarjeta de rasgo.
+     - Cuenta con navegación directa de regreso ("← Volver a Mis Rasgos") que restaura el modo de lista de forma limpia.
+  6. **Cumplimiento Estricto de DESIGN.md**:
+     - **Cero Selectores Nativos**: Se reemplazaron los 13 elementos `<select>` nativos por el componente controlado canónico `<SelectorDesplegable />` de `@/componentes/comunes/SelectorDesplegable`.
+     - **Cero Animaciones / Transiciones CSS**: Eliminadas todas las transiciones (`transition: none !important`) y keyframes (`animation: none !important`) en `ConstructorRasgoDote.module.css` para latencia 0ms en Chromium Embedded Framework (TaleSpire CEF).
+     - **Tokens `--pj-*` y Tipografía**: Fondo, bordes y textos adaptados a la paleta Dark Fantasy Zafiro Táctico con tamaños de fuente $\ge 11\text{px}$.
+- *Verificación*: 40 archivos de prueba Vitest y 429 pruebas pasando al 100% (`pnpm test -- --run`), 0 errores de tipado estricto TypeScript (`tsc --noEmit`), compilación de producción (`pnpm build`) y despliegue a TaleSpire completados con éxito.
+
+---
 
 ## [2026-09-03] Corrección de Bono de Nivel en Furia Divina y Desactivación por Defecto de Rasgos Activables
 **Decisión y Motivación:**

@@ -144,6 +144,16 @@ function cumpleCondicionEfecto(
     return !estadoArmadura.esPesada;
   }
 
+  // Si coincide con alguna condición activa del personaje
+  if ((personaje.condicionesActivas || []).some((c) => normalizar(c) === condNorm || normalizar(c).includes(condNorm))) {
+    return true;
+  }
+
+  // Si coincide con algún rasgo activo del personaje
+  if (estaRasgoActivo(personaje, condicion)) {
+    return true;
+  }
+
   return true;
 }
 
@@ -226,8 +236,7 @@ export function calcularModificadoresStatsRasgos(
         const valNum = Number(ef.valor) || 0;
         bonos[statNorm] += valNum;
         if (valNum > 0) {
-          // El Campeón primigenio eleva el límite natural de 20 a 25
-          limitesMaximos[statNorm] = 25;
+          limitesMaximos[statNorm] = ef.limiteMaximo || 25;
         }
       }
     }
@@ -257,8 +266,9 @@ export function calcularDefensaSinArmaduraRasgos(
   for (const ef of efectos) {
     if (ef.tipo === "modificador_ca" && normalizar(ef.objetivo).includes("defensa_sin_armadura")) {
       const statNorm = normalizar(String(ef.valor)) as Caracteristica;
-      // Bárbaro permite escudo; Monje no permite escudo
-      if (statNorm === "sabiduria" && tieneEscudo) {
+      // Regla de escudo: si permiteEscudo es explícito se respeta; si no, Bárbaro (con) permite escudo y Monje (sab) no permite escudo
+      const permiteEscudo = ef.permiteEscudo !== undefined ? ef.permiteEscudo : (statNorm !== "sabiduria");
+      if (!permiteEscudo && tieneEscudo) {
         continue;
       }
 
@@ -365,3 +375,238 @@ export function evaluarVentajasDeRasgosEnTirada(
 
   return { tieneVentaja, tieneDesventaja, razones };
 }
+
+/**
+ * Contexto de un ataque físico o mágico para evaluar si aplican efectos de rasgos.
+ */
+export interface ContextoAtaquePersonaje {
+  tipo: "arma" | "desarmado" | "improvisada" | "conjuro";
+  caracteristica: Caracteristica;
+  esCuerpoACuerpo: boolean;
+  esDistancia: boolean;
+}
+
+/**
+ * Resuelve fórmulas escaladas dinámicas basadas en el nivel del personaje o clase.
+ * Soporta:
+ * - "1d6 + mitad_nivel" -> ej. "1d6+2"
+ * - "1d8 + nivel" -> ej. "1d8+5"
+ * - "mitad_nivel" -> "2"
+ * - "dano_furia" -> "2", "3" o "4"
+ */
+export function resolverFormulaDinamica(
+  formula: string | number,
+  personaje: PersonajeJugador,
+  nombreClaseContexto?: string
+): string {
+  if (typeof formula === "number") return String(formula);
+  if (!formula || typeof formula !== "string") return "";
+
+  const nivelGlobal = personaje.nivel || 1;
+  const nivelClase = nombreClaseContexto
+    ? obtenerNivelClasePersonaje(personaje, nombreClaseContexto) || nivelGlobal
+    : nivelGlobal;
+  const mitadNivel = Math.max(1, Math.floor(nivelClase / 2));
+  const bonoFuria = obtenerBonoDanoFuria(nivelClase);
+
+  const reemplazado = formula
+    .replace(/dano_furia/gi, String(bonoFuria))
+    .replace(/mitad_nivel/gi, String(mitadNivel))
+    .replace(/\bnivel\b/gi, String(nivelClase))
+    .trim();
+
+  // Evaluar expresiones matemáticas simples si quedaron como "+2", "1+2", etc.
+  return reemplazado;
+}
+
+/**
+ * Comprueba si un efecto mecánico de daño aplica al contexto del ataque actual.
+ */
+function aplicaEfectoAAtaque(
+  aplicaA: string | undefined,
+  objetivo: string,
+  contexto: ContextoAtaquePersonaje
+): boolean {
+  const criterio = normalizar(aplicaA || objetivo || "");
+
+  if (criterio === "todos_ataques" || criterio === "todos" || criterio === "ataque") {
+    return true;
+  }
+  if (criterio === "arma_fuerza" || criterio === "ataque_fuerza") {
+    return contexto.caracteristica === "fuerza";
+  }
+  if (criterio === "arma_cac" || criterio === "cuerpo_a_cuerpo") {
+    return contexto.esCuerpoACuerpo;
+  }
+  if (criterio === "arma_distancia" || criterio === "distancia") {
+    return contexto.esDistancia;
+  }
+  if (criterio === "desarmado") {
+    return contexto.tipo === "desarmado";
+  }
+
+  // Por defecto, si el objetivo incluye "fuerza", requiere ataque de fuerza
+  if (criterio.includes("fuerza")) {
+    return contexto.caracteristica === "fuerza";
+  }
+
+  return true;
+}
+
+/**
+ * Obtiene dados adicionales para sumar al daño principal del arma / ataque
+ * procedentes de rasgos activos con efecto `dado_extra_dano`.
+ */
+export function obtenerDadosExtraAtaque(
+  personaje: PersonajeJugador,
+  contexto: ContextoAtaquePersonaje
+): { dados: string; origen: string }[] {
+  const efectos = evaluarEfectosRasgosActivos(personaje);
+  const resultado: { dados: string; origen: string }[] = [];
+
+  for (const ef of efectos) {
+    if (ef.tipo === "dado_extra_dano") {
+      if (aplicaEfectoAAtaque(ef.aplicaA, ef.objetivo, contexto)) {
+        const formulaResuelta = resolverFormulaDinamica(ef.valor, personaje);
+        if (formulaResuelta) {
+          resultado.push({
+            dados: formulaResuelta,
+            origen: ef.descripcion || "Rasgo activo"
+          });
+        }
+      }
+    }
+  }
+
+  return resultado;
+}
+
+/**
+ * Obtiene grupos de daño secundario independiente (que se suman con `/` en TaleSpire)
+ * procedentes de rasgos activos con efecto `dano_secundario`.
+ */
+export function obtenerDanosSecundariosAtaque(
+  personaje: PersonajeJugador,
+  contexto: ContextoAtaquePersonaje
+): { formula: string; tipoDano: string; origen: string }[] {
+  const efectos = evaluarEfectosRasgosActivos(personaje);
+  const resultado: { formula: string; tipoDano: string; origen: string }[] = [];
+
+  for (const ef of efectos) {
+    if (ef.tipo === "dano_secundario") {
+      if (aplicaEfectoAAtaque(ef.aplicaA, ef.objetivo, contexto)) {
+        const formulaResuelta = resolverFormulaDinamica(ef.valor, personaje);
+        if (formulaResuelta) {
+          resultado.push({
+            formula: formulaResuelta,
+            tipoDano: ef.tipoDano || "Adicional",
+            origen: ef.descripcion || "Rasgo activo"
+          });
+        }
+      }
+    }
+  }
+
+  return resultado;
+}
+
+/**
+ * Obtiene bonificadores numéricos extra al daño procedentes de rasgos activos
+ * con efecto `bono_dano_fuerza` o similar.
+ */
+export function obtenerBonoDanoFuerzaExtra(
+  personaje: PersonajeJugador,
+  contexto: ContextoAtaquePersonaje
+): number {
+  let bonoTotal = 0;
+  const efectos = evaluarEfectosRasgosActivos(personaje);
+
+  for (const ef of efectos) {
+    if (ef.tipo === "bono_dano_fuerza") {
+      if (aplicaEfectoAAtaque(ef.aplicaA, ef.objetivo, contexto)) {
+        const valStr = String(ef.valor).toLowerCase().trim();
+        if (valStr === "dano_furia") {
+          const nivelB = obtenerNivelClasePersonaje(personaje, "bárbaro") || personaje.nivel || 1;
+          bonoTotal += obtenerBonoDanoFuria(nivelB);
+        } else if (valStr === "mitad_nivel") {
+          bonoTotal += Math.max(1, Math.floor((personaje.nivel || 1) / 2));
+        } else {
+          bonoTotal += Number(ef.valor) || 0;
+        }
+      }
+    }
+  }
+
+  return bonoTotal;
+}
+
+/**
+ * Obtiene bonos acumulados a las tiradas de salvación procedentes de rasgos activos.
+ */
+export function obtenerBonosSalvacionesRasgos(
+  personaje: PersonajeJugador
+): Record<Caracteristica, number> {
+  const bonos: Record<Caracteristica, number> = {
+    fuerza: 0,
+    destreza: 0,
+    constitucion: 0,
+    inteligencia: 0,
+    sabiduria: 0,
+    carisma: 0
+  };
+
+  const efectos = evaluarEfectosRasgosActivos(personaje);
+  for (const ef of efectos) {
+    if (ef.tipo === "bono_salvacion") {
+      const objNorm = normalizar(ef.objetivo);
+      let valorNum = 0;
+
+      const valStr = String(ef.valor).toLowerCase().trim();
+      if (valStr === "dano_furia") {
+        const nivelB = obtenerNivelClasePersonaje(personaje, "bárbaro") || personaje.nivel || 1;
+        valorNum = obtenerBonoDanoFuria(nivelB);
+      } else if (valStr === "mitad_nivel") {
+        valorNum = Math.max(1, Math.floor((personaje.nivel || 1) / 2));
+      } else {
+        valorNum = Number(ef.valor) || 0;
+      }
+
+      if (objNorm === "todas" || objNorm === "universal" || objNorm === "") {
+        for (const k of Object.keys(bonos) as Caracteristica[]) {
+          bonos[k] += valorNum;
+        }
+      } else {
+        const statNorm = objNorm.replace(/^salvacion[._]/, "") as Caracteristica;
+        if (statNorm in bonos) {
+          bonos[statNorm] += valorNum;
+        }
+      }
+    }
+  }
+
+  return bonos;
+}
+
+/**
+ * Obtiene el conjunto de nombres de habilidades que pueden usar Fuerza como atributo base
+ * procedentes de rasgos activos con efecto `habilidad_con_fuerza`.
+ */
+export function obtenerHabilidadesConFuerzaRasgos(personaje: PersonajeJugador): Set<string> {
+  const habilidades = new Set<string>();
+  const efectos = evaluarEfectosRasgosActivos(personaje);
+
+  for (const ef of efectos) {
+    if (ef.tipo === "habilidad_con_fuerza") {
+      const lista = String(ef.valor || ef.objetivo)
+        .split(/[,;\s]+/)
+        .map((h) => normalizar(h))
+        .filter(Boolean);
+      for (const hab of lista) {
+        habilidades.add(hab);
+      }
+    }
+  }
+
+  return habilidades;
+}
+

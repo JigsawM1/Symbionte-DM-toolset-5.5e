@@ -5,7 +5,7 @@ import {
 } from "@/almacen/selectores/usarEstadoPersonajes";
 import type { RasgoPersonaje, TipoAccionRasgo, OrigenRasgo } from "@/tipos";
 import { TarjetaRasgo } from "./TarjetaRasgo";
-import { ModalCrearEditarRasgo } from "./ModalCrearEditarRasgo";
+import { ConstructorRasgoDote } from "./ConstructorRasgoDote";
 import { ModalDetalleRasgo, renderizarTextoEnriquecidoDND } from "./ModalDetalleRasgo";
 import { TablaProgresionRasgo } from "./TablaProgresionRasgo";
 import { obtenerClasePorNombre, obtenerSubclasePorNombre } from "@/servicios/gestorClases";
@@ -68,8 +68,8 @@ export const VistaRasgosJugador: React.FC = () => {
     actualizarSeleccionRasgo
   } = usarAccionesPersonajes();
 
-  // Modo de vista: Mis Rasgos vs Progresión 1-20 (PHB 2024)
-  const [modoVista, setModoVista] = useState<"mis_rasgos" | "progresion_clase">("mis_rasgos");
+  // Modo de vista: Mis Rasgos vs Progresión 1-20 vs Constructor Homebrew
+  const [modoVista, setModoVista] = useState<"mis_rasgos" | "progresion_clase" | "creador_homebrew">("mis_rasgos");
 
   // Búsqueda y filtros reactivos compactos
   const [consultaBusqueda, setConsultaBusqueda] = useState("");
@@ -88,8 +88,7 @@ export const VistaRasgosJugador: React.FC = () => {
     );
   }, [rasgoSeleccionadoDetalle, personajeActivo]);
 
-  // Estado del modal de creación/edición
-  const [modalAbierto, setModalAbierto] = useState(false);
+  // Estado del creador / editor de rasgo
   const [rasgoParaEditar, setRasgoParaEditar] = useState<RasgoPersonaje | null>(null);
   const [origenPredeterminadoModal, setOrigenPredeterminadoModal] = useState<OrigenRasgo>("personalizado");
 
@@ -410,13 +409,13 @@ export const VistaRasgosJugador: React.FC = () => {
   const abrirModalCreacion = (origen: OrigenRasgo = "personalizado") => {
     setRasgoParaEditar(null);
     setOrigenPredeterminadoModal(origen);
-    setModalAbierto(true);
+    setModoVista("creador_homebrew");
   };
 
   const abrirModalEdicion = (rasgo: RasgoPersonaje) => {
     setRasgoParaEditar(rasgo);
     setOrigenPredeterminadoModal(rasgo.origen);
-    setModalAbierto(true);
+    setModoVista("creador_homebrew");
   };
 
   const manejarGuardarRasgoModal = (rasgoGuardado: RasgoPersonaje) => {
@@ -425,9 +424,26 @@ export const VistaRasgosJugador: React.FC = () => {
     } else {
       agregarRasgoPersonaje(personajeActivo.id, rasgoGuardado);
     }
-    setModalAbierto(false);
     setRasgoParaEditar(null);
+    setModoVista("mis_rasgos");
   };
+
+  if (modoVista === "creador_homebrew") {
+    return (
+      <div className={estilos.contenedorGeneral}>
+        <ConstructorRasgoDote
+          personaje={personajeActivo}
+          rasgoInicial={rasgoParaEditar}
+          origenPredeterminado={origenPredeterminadoModal}
+          alGuardar={manejarGuardarRasgoModal}
+          alVolver={() => {
+            setRasgoParaEditar(null);
+            setModoVista("mis_rasgos");
+          }}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className={estilos.contenedorGeneral}>
@@ -1024,19 +1040,6 @@ export const VistaRasgosJugador: React.FC = () => {
             const r = rasgoDetalleEfectivo;
             setRasgoSeleccionadoDetalle(null);
             eliminarRasgoPersonaje(personajeActivo.id, r.id);
-          }}
-        />
-      )}
-
-      {/* Modal de Creación / Edición */}
-      {modalAbierto && (
-        <ModalCrearEditarRasgo
-          rasgoInicial={rasgoParaEditar}
-          origenPredeterminado={origenPredeterminadoModal}
-          alGuardar={manejarGuardarRasgoModal}
-          alCerrar={() => {
-            setModalAbierto(false);
-            setRasgoParaEditar(null);
           }}
         />
       )}

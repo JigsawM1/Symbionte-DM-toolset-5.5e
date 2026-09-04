@@ -21,7 +21,9 @@ import {
   calcularBonoVelocidadRasgos,
   obtenerBonoDanoFuria,
   obtenerNivelClasePersonaje,
-  estaFuriaActiva
+  estaFuriaActiva,
+  obtenerBonosSalvacionesRasgos,
+  obtenerHabilidadesConFuerzaRasgos
 } from '@/servicios/evaluadorEfectosRasgos';
 import { ARMADURAS_OFICIALES } from '@/constantes/equipoConstantes';
 
@@ -227,11 +229,19 @@ export function calcularEstadisticasPersonaje(pj: PersonajeJugador): Estadistica
     }
   }
 
+  // Bonos a salvaciones procedentes de efectos mecánicos de rasgos (bono_salvacion)
+  if (pj) {
+    const bonosSalvRasgos = obtenerBonosSalvacionesRasgos(pj);
+    for (const k of Object.keys(salvaciones) as Caracteristica[]) {
+      salvaciones[k] += bonosSalvRasgos[k] || 0;
+    }
+  }
+
   // Enfoque fanático (Senda del Fanático): bono de Daño de Furia a todas las salvaciones si está activo
   const rasgoEnfoque = (pj?.rasgos || []).find(
     (r) => (r.id.includes("enfoque_fanatico") || normalizar(r.nombre).includes("enfoque fanatico")) && r.activo
   );
-  if (rasgoEnfoque) {
+  if (rasgoEnfoque && (!pj || !pj.rasgos?.some((r) => r.activo && r.efectos?.some((e) => e.tipo === "bono_salvacion")))) {
     const nivelBarbaro = obtenerNivelClasePersonaje(pj as PersonajeJugador, "bárbaro") || obtenerNivelClasePersonaje(pj as PersonajeJugador, "barbaro") || pj?.nivel || 1;
     const bonoFuriaSalv = obtenerBonoDanoFuria(nivelBarbaro);
     for (const k of Object.keys(salvaciones) as Caracteristica[]) {
@@ -243,6 +253,7 @@ export function calcularEstadisticasPersonaje(pj: PersonajeJugador): Estadistica
   const listaHabilidades = Object.keys(MAPA_HABILIDAD_A_CARACTERISTICA) as Habilidad[];
   const grados = pj?.gradosHabilidades || {};
   const personalizaciones = pj?.personalizacionesHabilidades || {};
+  const habsConFuerzaRasgos = pj ? obtenerHabilidadesConFuerzaRasgos(pj) : new Set<string>();
 
   for (const hab of listaHabilidades) {
     const caracAsociada = MAPA_HABILIDAD_A_CARACTERISTICA[hab];
@@ -263,12 +274,13 @@ export function calcularEstadisticasPersonaje(pj: PersonajeJugador): Estadistica
       }
 
       const modExtra = custom?.modificadorExtra || 0;
-      // Conocimiento primigenio: con Furia activa, Acrobacias, Intimidación, Percepción, Sigilo o Supervivencia usan FUE si es mayor
+      // Conocimiento primigenio / Habilidad con Fuerza: si está configurado en rasgos o con Furia activa
       const usaFuerzaPorRasgo =
-        pj &&
-        estaFuriaActiva(pj) &&
-        ["acrobacias", "intimidacion", "percepcion", "sigilo", "supervivencia"].includes(hab) &&
-        (pj.rasgos || []).some((r) => r.activo !== false && normalizar(r.nombre).includes("conocimiento primigenio"));
+        habsConFuerzaRasgos.has(hab) ||
+        (pj &&
+          estaFuriaActiva(pj) &&
+          ["acrobacias", "intimidacion", "percepcion", "sigilo", "supervivencia"].includes(hab) &&
+          (pj.rasgos || []).some((r) => r.activo !== false && normalizar(r.nombre).includes("conocimiento primigenio")));
 
       const modEfectivo = usaFuerzaPorRasgo && modificadores.fuerza > modBase ? modificadores.fuerza : modBase;
       habilidades[hab] = modEfectivo + bonoHabilidad + modExtra;

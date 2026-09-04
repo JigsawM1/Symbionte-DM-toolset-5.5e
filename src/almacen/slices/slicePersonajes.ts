@@ -659,37 +659,28 @@ export const crearSlicePersonajes: StateCreator<
       const nuevasCondiciones = aplicarCondicion(pj.condicionesActivas, condicion);
       let rasgosActualizados = pj.rasgos;
 
-      // Sincronización automática de condiciones hacia rasgos: Furia, Furia de los Dioses y Ataque Temerario
+      // Sincronización automática de condiciones hacia rasgos (canónicas y personalizadas con condicionAlActivar)
       const esFuriaDiosesCond = normalizada.includes("furia de los dioses") || normalizada.includes("rage of the gods");
       const esFuriaBaseCond = (normalizada.includes("furia") || normalizada.includes("rage")) && !esFuriaDiosesCond;
 
-      if (esFuriaDiosesCond) {
-        rasgosActualizados = (pj.rasgos || []).map((r) => {
-          const rNom = r.nombre.toLowerCase().trim();
-          if ((rNom.includes("furia de los dioses") || r.id.includes("furia_de_los_dioses")) && r.esActivable && !r.activo) {
-            const usosRest = typeof r.usosRestantes === "number" ? Math.max(0, r.usosRestantes - 1) : r.usosRestantes;
-            return { ...r, activo: true, usosRestantes: usosRest };
-          }
-          return r;
-        });
-      } else if (esFuriaBaseCond) {
-        rasgosActualizados = (pj.rasgos || []).map((r) => {
-          const rNom = r.nombre.toLowerCase().trim();
-          if ((rNom === "furia" || r.id === "rasgo_cls_barbaro_furia") && r.esActivable && !r.activo) {
-            const usosRest = typeof r.usosRestantes === "number" ? Math.max(0, r.usosRestantes - 1) : r.usosRestantes;
-            return { ...r, activo: true, usosRestantes: usosRest };
-          }
-          return r;
-        });
-      } else if (normalizada.includes("temerario") || normalizada.includes("reckless")) {
-        rasgosActualizados = (pj.rasgos || []).map((r) => {
-          const rNom = r.nombre.toLowerCase().trim();
-          if ((rNom.includes("temerario") || r.id.includes("temerario")) && r.esActivable && !r.activo) {
-            return { ...r, activo: true };
-          }
-          return r;
-        });
-      }
+      rasgosActualizados = (pj.rasgos || []).map((r) => {
+        const rNom = r.nombre.toLowerCase().trim();
+        const rCond = (r.condicionAlActivar || "").toLowerCase().trim();
+        const coincideCond = rCond && (normalizada === rCond || normalizada.includes(rCond) || rCond.includes(normalizada));
+
+        if (
+          (coincideCond ||
+            (esFuriaDiosesCond && (rNom.includes("furia de los dioses") || r.id.includes("furia_de_los_dioses"))) ||
+            (esFuriaBaseCond && (rNom === "furia" || r.id === "rasgo_cls_barbaro_furia")) ||
+            ((normalizada.includes("temerario") || normalizada.includes("reckless")) && (rNom.includes("temerario") || r.id.includes("temerario")))) &&
+          r.esActivable &&
+          !r.activo
+        ) {
+          const usosRest = typeof r.usosRestantes === "number" ? Math.max(0, r.usosRestantes - 1) : r.usosRestantes;
+          return { ...r, activo: true, usosRestantes: usosRest };
+        }
+        return r;
+      });
 
       return { ...pj, condicionesActivas: nuevasCondiciones, rasgos: rasgosActualizados };
     });
@@ -720,28 +711,37 @@ export const crearSlicePersonajes: StateCreator<
       const esFuriaDiosesCondQuitar = normalizada.includes("furia de los dioses") || normalizada.includes("rage of the gods");
       const esFuriaBaseCondQuitar = (normalizada.includes("furia") || normalizada.includes("rage")) && !esFuriaDiosesCondQuitar;
 
-      if (esFuriaDiosesCondQuitar) {
-        rasgosActualizados = (pj.rasgos || []).map((r) => {
-          const rNom = r.nombre.toLowerCase().trim();
-          if ((rNom.includes("furia de los dioses") || r.id.includes("furia_de_los_dioses")) && r.esActivable && r.activo) {
-            return { ...r, activo: false };
-          }
-          return r;
-        });
-      } else if (esFuriaBaseCondQuitar) {
-        rasgosActualizados = (pj.rasgos || []).map((r) => {
-          const rNom = r.nombre.toLowerCase().trim();
-          const rId = r.id.toLowerCase().trim();
-          if ((rNom === "furia" || rId === "rasgo_cls_barbaro_furia" || rNom.includes("furia divina") || rId.includes("furia_divina") || rNom.includes("golpe brutal") || rId.includes("golpe_brutal")) && r.esActivable && r.activo) {
-            return { ...r, activo: false };
-          }
-          return r;
-        });
-      } else if (normalizada.includes("temerario") || normalizada.includes("reckless")) {
-        rasgosActualizados = (pj.rasgos || []).map((r) => {
-          const rNom = r.nombre.toLowerCase().trim();
-          if ((rNom.includes("temerario") || r.id.includes("temerario")) && r.esActivable && r.activo) {
-            return { ...r, activo: false };
+      const clavesPadresApagados = new Set<string>();
+
+      rasgosActualizados = (pj.rasgos || []).map((r) => {
+        const rNom = r.nombre.toLowerCase().trim();
+        const rId = r.id.toLowerCase().trim();
+        const rCond = (r.condicionAlActivar || "").toLowerCase().trim();
+        const coincideCond = rCond && (normalizada === rCond || normalizada.includes(rCond) || rCond.includes(normalizada));
+
+        if (
+          (coincideCond ||
+            (esFuriaDiosesCondQuitar && (rNom.includes("furia de los dioses") || r.id.includes("furia_de_los_dioses"))) ||
+            (esFuriaBaseCondQuitar && (rNom === "furia" || rId === "rasgo_cls_barbaro_furia" || rNom.includes("furia divina") || rId.includes("furia_divina") || rNom.includes("golpe brutal") || rId.includes("golpe_brutal"))) ||
+            ((normalizada.includes("temerario") || normalizada.includes("reckless")) && (rNom.includes("temerario") || r.id.includes("temerario")))) &&
+          r.esActivable &&
+          r.activo
+        ) {
+          clavesPadresApagados.add(r.id.toLowerCase());
+          clavesPadresApagados.add(r.nombre.toLowerCase().trim());
+          return { ...r, activo: false };
+        }
+        return r;
+      });
+
+      // Desactivación en cascada de rasgos hijos
+      if (clavesPadresApagados.size > 0) {
+        rasgosActualizados = rasgosActualizados.map((r) => {
+          if (r.activo && r.ligadoA) {
+            const lig = r.ligadoA.toLowerCase().trim();
+            if (clavesPadresApagados.has(lig)) {
+              return { ...r, activo: false };
+            }
           }
           return r;
         });
@@ -756,8 +756,9 @@ export const crearSlicePersonajes: StateCreator<
       const rasgosDesactivados = (pj.rasgos || []).map((r) => {
         const rNom = r.nombre.toLowerCase().trim();
         const rId = r.id.toLowerCase().trim();
+        const tieneCond = Boolean(r.condicionAlActivar);
         if (
-          (rNom === "furia" || rId === "rasgo_cls_barbaro_furia" || rNom.includes("temerario") || rNom.includes("furia de los dioses") || rNom.includes("furia divina") || rId.includes("furia_divina") || rNom.includes("golpe brutal") || rId.includes("golpe_brutal")) &&
+          (tieneCond || rNom === "furia" || rId === "rasgo_cls_barbaro_furia" || rNom.includes("temerario") || rNom.includes("furia de los dioses") || rNom.includes("furia divina") || rId.includes("furia_divina") || rNom.includes("golpe brutal") || rId.includes("golpe_brutal") || r.ligadoA) &&
           r.esActivable &&
           r.activo
         ) {
@@ -1401,15 +1402,12 @@ export const crearSlicePersonajes: StateCreator<
 
       const rasgoObjetivo = (pj.rasgos || []).find((r) => r.id === idRasgo);
       if (!rasgoObjetivo) return pj;
+      const targetTrait = (pj.rasgos || []).find((r) => r.id === idRasgo);
+      if (!targetTrait) return pj;
 
-      const nuevoActivo = !rasgoObjetivo.activo;
-      const nomObjetivo = rasgoObjetivo.nombre.toLowerCase().trim();
-      const idObjetivo = rasgoObjetivo.id.toLowerCase().trim();
-
-      const esFuriaDeLosDioses = nomObjetivo.includes("furia de los dioses") || idObjetivo.includes("furia_de_los_dioses");
-      const esFuriaPersistente = nomObjetivo.includes("furia persistente") || idObjetivo.includes("furia_persistente");
-      const esFuriaBase = (nomObjetivo === "furia" || idObjetivo === "rasgo_cls_barbaro_furia") && !esFuriaDeLosDioses && !esFuriaPersistente;
-      const esTemerario = nomObjetivo.includes("temerario") || idObjetivo.includes("temerario");
+      const nuevoActivo = !targetTrait.activo;
+      const nomObjetivo = targetTrait ? targetTrait.nombre.toLowerCase().trim() : "";
+      const idObjetivo = targetTrait ? targetTrait.id.toLowerCase().trim() : idRasgo.toLowerCase().trim();
 
       const furiaEstaActiva = (pj.rasgos || []).some(
         (r) => (r.nombre.toLowerCase().trim() === "furia" || r.id.toLowerCase().trim() === "rasgo_cls_barbaro_furia") && r.activo
@@ -1417,61 +1415,93 @@ export const crearSlicePersonajes: StateCreator<
         (c) => c.toLowerCase().includes("furia (rage)") || (c.toLowerCase().includes("furia") && !c.toLowerCase().includes("furia de los dioses"))
       );
 
+      // Comprobación de rasgo padre requerido (ligadoA)
+      const padreKey = targetTrait?.ligadoA ? targetTrait.ligadoA.toLowerCase().trim() : undefined;
+      if (nuevoActivo && padreKey) {
+        const padreActivo = (pj.rasgos || []).some(
+          (r) => (r.id.toLowerCase() === padreKey || r.nombre.toLowerCase().trim() === padreKey || (padreKey.includes("furia") && (r.nombre.toLowerCase().trim() === "furia" || r.id === "rasgo_cls_barbaro_furia"))) && r.activo
+        ) || (pj.condicionesActivas || []).some(
+          (c) => c.toLowerCase().includes(padreKey)
+        );
+        if (!padreActivo) {
+          return pj; // Bloqueado: rasgo padre requerido no está activo
+        }
+      }
+
       const esFuriaDivina = nomObjetivo.includes("furia divina") || idObjetivo.includes("furia_divina");
       const esGolpeBrutal = nomObjetivo.includes("golpe brutal") || idObjetivo.includes("golpe_brutal");
 
-      // Regla: Furia divina y Golpe brutal solo se deben poder activar si Furia está activa
+      // Regla canónica: Furia divina y Golpe brutal solo se deben poder activar si Furia está activa
       if (nuevoActivo && (esFuriaDivina || esGolpeBrutal) && !furiaEstaActiva) {
         return pj;
       }
 
-      if (esFuriaDeLosDioses) {
+      const esFuriaDeLosDioses = nomObjetivo.includes("furia de los dioses") || idObjetivo.includes("furia_de_los_dioses");
+      const esFuriaPersistente = nomObjetivo.includes("furia persistente") || idObjetivo.includes("furia_persistente");
+      const esFuriaBase = (nomObjetivo === "furia" || idObjetivo === "rasgo_cls_barbaro_furia") && !esFuriaDeLosDioses && !esFuriaPersistente;
+      const esTemerario = nomObjetivo.includes("temerario") || idObjetivo.includes("temerario");
+
+      // Sincronización de condición asociada (personalizada o canónica)
+      const condicionAsociada = targetTrait?.condicionAlActivar || (
+        esFuriaDeLosDioses ? "Furia de los Dioses (Rage of the Gods)" :
+        esFuriaBase ? "Furia (Rage)" :
+        esTemerario ? "Ataque Temerario (Reckless Attack)" : undefined
+      );
+
+      if (condicionAsociada) {
         if (nuevoActivo) {
-          if (!condicionesActualizadas.some((c) => c.toLowerCase().includes("furia de los dioses") || c.toLowerCase().includes("rage of the gods"))) {
-            condicionesActualizadas = aplicarCondicion(condicionesActualizadas, "Furia de los Dioses (Rage of the Gods)");
+          if (!condicionesActualizadas.some((c) => c.toLowerCase() === condicionAsociada.toLowerCase() || (esFuriaBase && (c.toLowerCase().includes("furia (rage)") || (c.toLowerCase().includes("furia") && !c.toLowerCase().includes("furia de los dioses")))))) {
+            condicionesActualizadas = aplicarCondicion(condicionesActualizadas, condicionAsociada);
           }
         } else {
-          condicionesActualizadas = condicionesActualizadas.filter(
-            (c) => !c.toLowerCase().includes("furia de los dioses") && !c.toLowerCase().includes("rage of the gods")
-          );
-        }
-      } else if (esFuriaBase) {
-        if (nuevoActivo) {
-          if (!condicionesActualizadas.some((c) => c.toLowerCase().includes("furia (rage)") || (c.toLowerCase().includes("furia") && !c.toLowerCase().includes("furia de los dioses")))) {
-            condicionesActualizadas = aplicarCondicion(condicionesActualizadas, "Furia (Rage)");
-          }
-        } else {
-          condicionesActualizadas = condicionesActualizadas.filter(
-            (c) => {
-              const cn = c.toLowerCase();
+          condicionesActualizadas = condicionesActualizadas.filter((c) => {
+            const cn = c.toLowerCase();
+            if (esFuriaBase) {
               return !(cn.includes("furia (rage)") || (cn.includes("furia") && !cn.includes("furia de los dioses")));
             }
-          );
-        }
-      } else if (esTemerario) {
-        if (nuevoActivo) {
-          if (!condicionesActualizadas.some((c) => c.toLowerCase().includes("temerario") || c.toLowerCase().includes("reckless"))) {
-            condicionesActualizadas = aplicarCondicion(condicionesActualizadas, "Ataque Temerario (Reckless Attack)");
-          }
-        } else {
-          condicionesActualizadas = condicionesActualizadas.filter(
-            (c) => !c.toLowerCase().includes("temerario") && !c.toLowerCase().includes("reckless")
-          );
+            return cn !== condicionAsociada.toLowerCase();
+          });
         }
       }
+
+      // Desactivación en cascada para rasgos hijos si apagamos el rasgo
+      const idsHijosADesactivar = new Set<string>();
+      if (!nuevoActivo && targetTrait) {
+        const tId = targetTrait.id.toLowerCase();
+        const tNom = targetTrait.nombre.toLowerCase().trim();
+        for (const r of (pj.rasgos || [])) {
+          if (r.activo && r.ligadoA) {
+            const lig = r.ligadoA.toLowerCase().trim();
+            if (lig === tId || lig === tNom || (esFuriaBase && lig.includes("furia") && !lig.includes("dioses"))) {
+              idsHijosADesactivar.add(r.id);
+            }
+          }
+          if (esFuriaBase && (r.nombre.toLowerCase().includes("furia divina") || r.id.includes("furia_divina") || r.nombre.toLowerCase().includes("golpe brutal") || r.id.includes("golpe_brutal"))) {
+            idsHijosADesactivar.add(r.id);
+          }
+        }
+      }
+
+      // Restauración de recursos al activar
+      const restauracion = targetTrait?.restaurarUsosAlActivar;
 
       const rasgosActualizados = (pj.rasgos || []).map((r) => {
         const rNom = r.nombre.toLowerCase().trim();
         const rId = r.id.toLowerCase().trim();
 
-        // Si desactivamos Furia base, desactivamos automáticamente los rasgos dependientes de Furia (Furia divina, Golpe brutal)
-        if (esFuriaBase && !nuevoActivo) {
-          if (rNom.includes("furia divina") || rId.includes("furia_divina") || rNom.includes("golpe brutal") || rId.includes("golpe_brutal")) {
-            return { ...r, activo: false };
-          }
+        // Apagar en cascada
+        if (idsHijosADesactivar.has(r.id)) {
+          return { ...r, activo: false };
         }
 
-        // Si activamos Furia Persistente, rellenamos los usos gastados de Furia base a su máximo
+        // Restauración configurable
+        if (nuevoActivo && restauracion && (r.id === restauracion.idRasgoObjetivo || rNom === restauracion.idRasgoObjetivo.toLowerCase().trim())) {
+          const max = typeof r.usosMaximos === "number" ? r.usosMaximos : (r.usosRestantes ?? 1);
+          const cantidadRestaurar = restauracion.cantidad === "maximo" ? max : Math.min(max, (r.usosRestantes || 0) + restauracion.cantidad);
+          return { ...r, usosRestantes: cantidadRestaurar };
+        }
+
+        // Furia Persistente canónica
         if (esFuriaPersistente && nuevoActivo && (rNom === "furia" || rId === "rasgo_cls_barbaro_furia")) {
           const max = typeof r.usosMaximos === "number" ? r.usosMaximos : (r.usosRestantes ?? 2);
           return { ...r, usosRestantes: max };

@@ -736,7 +736,7 @@ export function evaluarAtaqueDesarmadoEspecial(personaje: PersonajeJugador): Inf
       aplica: true,
       caracteristicaSugerida: "destreza",
       dadoDanoBase: dadoBardo,
-      nombreAtaque: "Golpe sin Armas (Daño Bárdico)",
+      nombreAtaque: "Daño Bárdico",
       propiedades: ["Daño Bárdico", "Sutil"]
     };
   }
@@ -771,7 +771,7 @@ export function obtenerConjurosOtorgadosPorRasgos(personaje: PersonajeJugador): 
 
     // Regla canónica D&D 5.5e: Palabras de creación (Bardo Nv 20)
     if (normalizar(r.nombre).includes("palabras de creacion")) {
-      conjuros.add("Palabra de poder: curar");
+      conjuros.add("Palabra de poder: sanar");
       conjuros.add("Palabra de poder: matar");
     }
   }

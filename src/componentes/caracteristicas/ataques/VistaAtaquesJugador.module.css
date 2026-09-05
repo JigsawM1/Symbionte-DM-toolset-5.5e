@@ -40,8 +40,10 @@
 
 .grupoTitulo {
   display: flex;
-  align-items: center;
   gap: 6px;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: center;
 }
 
 .tituloTexto {
@@ -334,6 +336,7 @@
   display: flex;
   flex-direction: column;
   padding-left: 2px;
+  align-items: center;
 }
 
 .valorDano {

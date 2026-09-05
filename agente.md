@@ -13,6 +13,76 @@ Este archivo registra reglas globales, errores encontrados, sus causas raíz y l
 4. **TIPADO ESTRICTO Y CÓDIGO LIMPIO**:
    - `strict: true` en TypeScript. Cero tipos `any`. Interfaces explícitas, generics y principios SOLID.
 
+
+## [2026-09-04] Actualización Completa de la Suite de Edición en App Sencilla (Build & Homebrew)
+**Decisión y Motivación:**
+- *Causa*: La interfaz de edición de `app sencilla/index.html` solo permitía editar campos básicos (nivel, nombre, acción, usos y descripción), careciendo de controles para configurar los nuevos sistemas de la build: efectos mecánicos estructurados, selectores con opciones, conmutadores tácticos con condiciones de activación, conjuros otorgados y edición interactiva de la progresión de conjuros de subclases.
+- *Solución*:
+  1. **Modal de Edición de Rasgos Expandido (5 Paneles Especializados)**:
+     - *1. Básico y Reglas*: Nivel (1-20), nombre, tipo de acción, categoría mecánica (`pasivo`, `buff`, `consumible`, `curacion`, `tirada_enfrentada`, `dote`), recuperación y conjuros otorgados preparados.
+     - *2. Recursos y Dados*: Usos limitados con fórmula, delegación de consumo en rasgo padre (`gastarDePadre`), fórmula de dados (`formulaDados`) y herencia de dados (`heredarDadosPadre`).
+     - *3. Activación y Condiciones*: Conmutador táctico on/off (`esActivable`), condición al activar (`condicionAlActivar`), auto-desactivar al final de turno, ligado a estado y restauración de usos al activar.
+     - *4. Efectos Mecánicos (`efectos`)*: Editor interactivo con lista de efectos, alta dinámica con tipos de efecto oficiales (`modificador_stat`, `modificador_ca`, `bono_dano_fuerza`, `hp_temporal`, `conjuro_gratuito`, `restaurar_recurso`, etc.), objetivo, valor, condición y descripción.
+     - *5. Selectores y Opciones (`selectores`)*: Editor interactivo de selectores para rasgos como Maniobras o Golpes Brutales, con tipo (único/múltiple), máx selecciones y lista dinámica de opciones editables.
+  2. **Editor de Progresión Mágica de Subclase (`progresionConjuros`)**:
+     - La tabla de conjuros de subclase ahora es 100% interactiva con botón `+ Añadir Nivel Mágico`.
+     - Permite modificar el nivel de clase, los conjuros otorgados (separados por coma), los trucos y eliminar filas en tiempo real con persistencia inmediata en el catálogo.
+  3. **Verificación**:
+     - Los 24 controladores y componentes del editor interactivo validados con 0 errores de sintaxis en `app sencilla/index.html`.
+     - 451 pruebas unitarias pasando al 100% (`pnpm test`).
+
+---
+
+## [2026-09-04] Sincronización de App Sencilla Monolítica con la Build Actualizada
+**Decisión y Motivación:**
+- *Causa*: La aplicación monolítica desacoplada (`app sencilla/index.html`) requería sincronizarse con las últimas actualizaciones del catálogo maestro de D&D 5.5e y las nuevas arquitecturas de build (bardo, bárbaro, efectos mecánicos avanzados, selectores, condiciones tácticas y conjuros otorgados por rasgos).
+- *Solución*:
+  1. **Actualización del Catálogo y Persistencia Local (v3)**:
+     - Se extrajo el catálogo canónico completo actualizado desde `src/constantes/clasesDND55.ts` serializándolo a `scratch/catalogoReal.json` (incluyendo la corrección de *Palabra de poder: sanar*, efectos de Danza, Furia y subclases).
+     - Se migró la clave de persistencia de `localStorage` a `dnd55_catalogo_clases_v3` para invalidar versiones obsoletas en caché del navegador.
+  2. **Compatibilidad Integral con Metadatos Avanzados de la Build**:
+     - *Badges visuales y metadatos tácticos*: Se agregaron insignias para rasgos activables, condiciones asociadas (`condicionAlActivar`), conteo de efectos mecánicos (`efectos`), selectores configurables (`selectores`) y conjuros preparados otorgados (`conjurosOtorgados`).
+     - *Simulador de Build Expandido*: Se enriqueció la sección de "Conjuros Siempre Preparados Otorgados", consolidando automáticamente tanto los conjuros de subclase (`progresionConjuros`) como los otorgados por rasgos de clase (ej. Nivel 20 de Bardo) o rasgos específicos de subclase.
+     - *Edición Quirúrgica No Destructiva*: Se actualizó `guardarRasgoModal()` para preservar íntegramente los campos estructurales de build (`efectos`, `selectores`, `condicionAlActivar`, `restaurarUsosAlActivar`, `tablaProgresion`) al editar títulos o descripciones.
+     - *Generador TypeScript Fiel a la Build*: Se actualizó `generarTypeScriptCodigo()` para serializar fielmente todos los nuevos atributos del catálogo maestro.
+  3. **Verificación**:
+     - Validaciones programáticas en Node (0 errores de sintaxis en `app sencilla/index.html`).
+     - Suite completa de 451 pruebas unitarias pasando al 100% (`pnpm test`).
+
+---
+
+## [2026-09-04] Auditoría de Código y Generalización de Mecánicas para el Creador Homebrew (DRY, KISS, Clean Code, Clean Architecture)
+**Decisión y Motivación:**
+- *Solicitud del Usuario*:
+  "verifica todo lo que añadiste para bardo y las correcciones de barbaro. solo te recuerdo que las funciones debieron ser lo mas generales posibles para que el builder homebrew pueda usarlas. tambien te recuerdo que el objetivo principal es que el builder debe ser lo suficientemente bueno como para poder crear las clases que hemos hecho hasta ahora desde él. dicho esto tambien me gustaria que hicieras una auditoria de codigo. para ver si se cumplieron los estandares de programacion basicos (DRY, KISS, CLEAN CODE, CLEAN ARCHITECTURE)"
+- *Hallazgos de la Auditoría*:
+  1. **DRY (Don't Repeat Yourself)**:
+     - `gastarUsoRasgoPersonaje` y `recuperarUsoRasgoPersonaje` repetían 30 líneas de código idénticas para resolver si un rasgo delegaba su gasto en un padre (ej. Inspiración bárdica).
+     - `alternarActivoRasgo`, `aplicarCondicionPersonaje` y `quitarCondicionPersonaje` contenían comparaciones cableadas de cadenas de texto duplicadas para condiciones tácticas (Furia, Temerario, Manto de majestad, etc.).
+  2. **KISS (Keep It Simple, Stupid)**:
+     - El conmutador de activación en `alternarActivoRasgo` realizaba búsquedas redundantes de rasgos en el array y filtros manuales de arrays en vez de usar funciones auxiliares puras reutilizables.
+  3. **Clean Code & Tipado Estricto (Regla 5)**:
+     - En `TarjetaRasgo.tsx`, la variable `metaEspecial` estaba tipada como `any`, y el multiplicador de HP temporal estaba cableado rígidamente como `2`.
+  4. **Clean Architecture & Capacidades del Builder Homebrew (`ConstructorRasgoDote.tsx`)**:
+     - Aunque el esquema de datos (`EsquemaRasgoPersonaje`) ya soportaba selectores, restauración de recursos al activar y efectos avanzados (`hp_temporal`, `conjuro_gratuito`, `restaurar_recurso`), el formulario de usuario (`ConstructorRasgoDote.tsx`) no exponía estos controles al creador homebrew, imposibilitando recrear clases como Bardo o Bárbaro directamente desde la UI.
+- *Solución Arquitectónica y Correcciones Aplicadas*:
+  1. **Centralización Pura en `slicePersonajes.ts`**:
+     - Creada la función pura `resolverIdRasgoObjetivoGasto(targetTrait, rasgos)` que resuelve genéricamente el consumo de recursos de padre/hijo.
+     - Creadas `resolverCondicionAsociadaRasgo(r)` y `coincideCondicionConRasgo(condicionTexto, r)` para unificar el enlace bidireccional entre estados tácticos y rasgos (canónicos y personalizados con `condicionAlActivar`).
+     - Refactorizados `gastarUsoRasgoPersonaje`, `recuperarUsoRasgoPersonaje`, `aplicarCondicionPersonaje`, `quitarCondicionPersonaje` y `alternarActivoRasgo` eliminando más de 80 líneas de código repetido.
+  2. **Tipado Estricto y Generalización en `TarjetaRasgo.tsx`**:
+     - Importada y tipada `MetadataEspecialRasgo` eliminando el tipo `any`.
+     - Dinamizado el multiplicador de `hp_temporal` leyendo el valor del efecto mecánico (`efectoHp?.valor === "2_veces_dado_inspiracion" ? 2 : Number(ef.valor) || 1`), haciéndolo universal para cualquier rasgo futuro.
+  3. **Capacidades Homebrew Completas en `ConstructorRasgoDote.tsx`**:
+     - Agregados a `TIPOS_EFECTO_DISPONIBLES` los tipos `hp_temporal`, `conjuro_gratuito` y `restaurar_recurso` con sus formularios interactivos correspondientes.
+     - Agregada en la Sección 2 la configuración para `restaurarUsosAlActivar` (objetivo y cantidad: máximo o fija), permitiendo diseñar habilidades como *Furia persistente*.
+     - Creada la nueva Sección 5: *Opciones y Selectores Configurables*, que permite crear y gestionar selectores (`SelectorRasgo`) con múltiples opciones, etiquetas y límites de selección (para rasgos como *Maestro en Armas*, *Maniobras* o *Invocaciones*).
+- *Verificación*:
+  - `pnpm exec tsc --noEmit` completado con 0 errores (tipado estricto al 100%).
+  - 41 suites de prueba y 451 pruebas unitarias/de integración pasando al 100% (`pnpm test -- --run`).
+
+---
+
 ## [2026-09-04] Sincronización Bidireccional de Condiciones y Rasgos: Manto de Majestad y Majestad Inquebrantable (Colegio del Glamour)
 **Decisión y Motivación:**
 - *Solicitud del Usuario*:

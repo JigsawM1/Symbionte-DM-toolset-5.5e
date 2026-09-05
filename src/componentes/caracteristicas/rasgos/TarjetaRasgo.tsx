@@ -1,6 +1,6 @@
 import React from "react";
 import type { RasgoPersonaje, TipoAccionRasgo, OrigenRasgo } from "@/tipos";
-import { lanzarDadosTaleSpire } from "@/utiles/lanzadorDados";
+import { lanzarDadosTaleSpire, type MetadataEspecialRasgo } from "@/utiles/lanzadorDados";
 import {
   Sparkles,
   Zap,
@@ -118,7 +118,7 @@ export const TarjetaRasgo: React.FC<TarjetaRasgoProps> = ({
       const formula = `!${rasgo.nombre}:${formulaEfectiva}`;
       const etiqueta = `${nombrePersonaje} - ${rasgo.nombre} (${formulaEfectiva})`;
 
-      let metaEspecial: any = undefined;
+      let metaEspecial: MetadataEspecialRasgo | undefined = undefined;
       if (esCuracion && idPersonaje) {
         metaEspecial = {
           tipo: "curacionRasgo",
@@ -128,12 +128,25 @@ export const TarjetaRasgo: React.FC<TarjetaRasgoProps> = ({
           cantidadDadosGastados: 1
         };
       } else if (tieneEfectoHpTemporal && idPersonaje) {
+        const efectoHp = (rasgo.efectos || []).find((ef) => ef.tipo === "hp_temporal");
+        let multiplicador = 1;
+        if (efectoHp?.valor) {
+          if (efectoHp.valor === "2_veces_dado_inspiracion") {
+            multiplicador = 2;
+          } else {
+            const num = Number(efectoHp.valor);
+            if (!Number.isNaN(num) && num > 0) multiplicador = num;
+          }
+        } else if (rasgo.nombre.toLowerCase().includes("manto de inspiracion")) {
+          multiplicador = 2;
+        }
+
         metaEspecial = {
           tipo: "hpTemporalRasgo",
           personajeId: idPersonaje,
           rasgoId: rasgo.id,
           nombreRasgo: rasgo.nombre,
-          multiplicador: 2
+          multiplicador
         };
       }
 

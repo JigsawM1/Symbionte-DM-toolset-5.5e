@@ -818,9 +818,9 @@ export const CATALOGO_CLASES_DND55: DefinicionClase[] = [
       {
         nivel: 20,
         nombre: "Palabras de creación",
-        descripcion: "Has dominado dos de las Palabras de creación: las palabras de la vida y la muerte. Por lo tanto, siempre tienes preparados los conjuros *palabra de poder: curar* y *palabra de poder: matar*. Cuando lances cualquiera de los dos conjuros, puedes elegir a una segunda criatura como objetivo si esta se encuentra a 10 pies o menos del primer objetivo.",
+        descripcion: "Has dominado dos de las Palabras de creación: las palabras de la vida y la muerte. Por lo tanto, siempre tienes preparados los conjuros *palabra de poder: sanar* y *palabra de poder: matar*. Cuando lances cualquiera de los dos conjuros, puedes elegir a una segunda criatura como objetivo si esta se encuentra a 10 pies o menos del primer objetivo.",
         tipoAccion: "pasivo",
-        conjurosOtorgados: ["Palabra de poder: curar", "Palabra de poder: matar"]
+        conjurosOtorgados: ["Palabra de poder: sanar", "Palabra de poder: matar"]
       },
     ],
     subclases: [
@@ -852,7 +852,7 @@ export const CATALOGO_CLASES_DND55: DefinicionClase[] = [
                 objetivo: "destreza",
                 valor: "dado_inspiracion",
                 condicion: "sin_armadura_ni_escudo",
-                descripcion: "Daño bárdico (DES + Dado de Inspiración)"
+                descripcion: "Daño bárdico"
               }
             ]
           },

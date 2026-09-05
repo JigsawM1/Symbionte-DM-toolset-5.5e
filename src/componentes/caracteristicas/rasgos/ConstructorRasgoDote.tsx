@@ -6,7 +6,9 @@ import type {
   RecuperacionRasgo,
   EfectoMecanicoRasgo,
   TipoEfectoMecanico,
-  PersonajeJugador
+  PersonajeJugador,
+  SelectorRasgo,
+  OpcionSelector
 } from "@/tipos";
 import { DOTES_CANONICAS_DND55 } from "@/constantes/rasgosDND55";
 import { generarId } from "@/utiles/generarId";
@@ -22,7 +24,8 @@ import {
   Zap,
   Eye,
   Settings2,
-  Dice5
+  Dice5,
+  ListFilter
 } from "lucide-react";
 import estilos from "./ConstructorRasgoDote.module.css";
 
@@ -116,6 +119,9 @@ const TIPOS_EFECTO_DISPONIBLES: { tipo: TipoEfectoMecanico; etiqueta: string; de
   { tipo: "medio_bono_habilidades", etiqueta: "Aprendiz de Mucho / Medio Bono", desc: "Suma la mitad de competencia a habilidades no entrenadas" },
   { tipo: "ataque_desarmado", etiqueta: "Ataque Desarmado Especial", desc: "Permite usar Destreza y dados propios (ej. Daño Bárdico)" },
   { tipo: "conjuro_otorgado", etiqueta: "Conjuro Siempre Preparado", desc: "Otorga un conjuro siempre preparado por rasgo" },
+  { tipo: "conjuro_gratuito", etiqueta: "Lanzamiento Gratuito de Conjuro", desc: "Permite lanzar un conjuro sin gastar espacios de conjuro (ej. Orden imperiosa)" },
+  { tipo: "hp_temporal", etiqueta: "Puntos de Golpe Temporales", desc: "Otorga puntos de golpe temporales calculados o con multiplicador" },
+  { tipo: "restaurar_recurso", etiqueta: "Restaurar Recursos Mecánicos", desc: "Restaura usos o cargas de otro rasgo al activarse (ej. Furia persistente)" },
   { tipo: "competencia", etiqueta: "Competencia en Armas o Armaduras", desc: "Otorga competencia en armas marciales, armaduras medias, etc." }
 ];
 
@@ -142,6 +148,14 @@ export const ConstructorRasgoDote: React.FC<ConstructorRasgoDoteProps> = ({
   const [autoDesactivar, setAutoDesactivar] = useState<boolean>(rasgoInicial?.autoDesactivar || false);
   const [ligadoA, setLigadoA] = useState<string>(rasgoInicial?.ligadoA || "");
   const [condicionAlActivar, setCondicionAlActivar] = useState<string>(rasgoInicial?.condicionAlActivar || "");
+  const [tieneRestauracion, setTieneRestauracion] = useState<boolean>(Boolean(rasgoInicial?.restaurarUsosAlActivar));
+  const [idRasgoRestaurar, setIdRasgoRestaurar] = useState<string>(rasgoInicial?.restaurarUsosAlActivar?.idRasgoObjetivo || "");
+  const [tipoCantidadRestaurar, setTipoCantidadRestaurar] = useState<"maximo" | "fijo">(
+    rasgoInicial?.restaurarUsosAlActivar?.cantidad === "maximo" ? "maximo" : "fijo"
+  );
+  const [cantidadRestaurarFija, setCantidadRestaurarFija] = useState<number>(
+    typeof rasgoInicial?.restaurarUsosAlActivar?.cantidad === "number" ? rasgoInicial.restaurarUsosAlActivar.cantidad : 1
+  );
 
   // 3. Usos y Recursos
   const [tieneUsosLimitados, setTieneUsosLimitados] = useState(rasgoInicial?.tieneUsosLimitados || false);
@@ -158,6 +172,14 @@ export const ConstructorRasgoDote: React.FC<ConstructorRasgoDoteProps> = ({
   // 4. Efectos Mecánicos
   const [efectos, setEfectos] = useState<EfectoMecanicoRasgo[]>(rasgoInicial?.efectos || []);
   const [modoCreandoEfecto, setModoCreandoEfecto] = useState<boolean>(false);
+
+  // 5. Selectores de Opciones (Maestrías, Maniobras, Invocaciones)
+  const [selectores, setSelectores] = useState<SelectorRasgo[]>(rasgoInicial?.selectores || []);
+  const [modoCreandoSelector, setModoCreandoSelector] = useState<boolean>(false);
+  const [nuevoSelectorEtiqueta, setNuevoSelectorEtiqueta] = useState<string>("");
+  const [nuevoSelectorTipo, setNuevoSelectorTipo] = useState<"unico" | "multiple">("unico");
+  const [nuevoSelectorMax, setNuevoSelectorMax] = useState<number>(1);
+  const [nuevoOpcionesTexto, setNuevoOpcionesTexto] = useState<string>("");
 
   // Estado temporal para el nuevo efecto
   const [nuevoTipoEfecto, setNuevoTipoEfecto] = useState<TipoEfectoMecanico>("dado_extra_dano");
@@ -254,10 +276,22 @@ export const ConstructorRasgoDote: React.FC<ConstructorRasgoDoteProps> = ({
       setNuevoPermiteEscudo(false);
     } else if (t === "conjuro_otorgado") {
       setNuevoObjetivo("conjuro");
-      setNuevoValor("Palabra de poder: curar");
+      setNuevoValor("Palabra de poder: sanar");
     } else if (t === "competencia") {
       setNuevoObjetivo("armas_marciales");
       setNuevoValor("marciales");
+    } else if (t === "hp_temporal") {
+      setNuevoObjetivo("hp_temporal");
+      setNuevoValor("2_veces_dado_inspiracion");
+      setNuevaDescripcionEfecto("Puntos de golpe temporales calculados");
+    } else if (t === "conjuro_gratuito") {
+      setNuevoObjetivo("conjuro");
+      setNuevoValor("orden_imperiosa");
+      setNuevaDescripcionEfecto("Lanzamiento sin consumir espacios");
+    } else if (t === "restaurar_recurso") {
+      setNuevoObjetivo("furia");
+      setNuevoValor("maximo");
+      setNuevaDescripcionEfecto("Restaura usos del recurso al activarse");
     }
   };
 
@@ -307,6 +341,15 @@ export const ConstructorRasgoDote: React.FC<ConstructorRasgoDoteProps> = ({
         case "conjuro_otorgado":
           descFinal = `Conjuro otorgado: ${nuevoValor}`;
           break;
+        case "conjuro_gratuito":
+          descFinal = `Lanzamiento gratuito: ${nuevoValor}`;
+          break;
+        case "hp_temporal":
+          descFinal = `Puntos de golpe temporales: ${nuevoValor}`;
+          break;
+        case "restaurar_recurso":
+          descFinal = `Restaurar ${nuevoValor} uso(s) de ${nuevoObjetivo}`;
+          break;
         case "competencia":
           descFinal = `Competencia con ${nuevoObjetivo}`;
           break;
@@ -338,6 +381,38 @@ export const ConstructorRasgoDote: React.FC<ConstructorRasgoDoteProps> = ({
     setEfectos(efectos.filter((e) => e.id !== idEf));
   };
 
+  // Manejo de selectores de opciones
+  const manejarAgregarSelector = () => {
+    if (!nuevoSelectorEtiqueta.trim()) return;
+    const nombresOpciones = nuevoOpcionesTexto
+      .split(/[\n,]/)
+      .map((s) => s.trim())
+      .filter(Boolean);
+    const opciones: OpcionSelector[] = nombresOpciones.map((nom) => ({
+      id: generarId("opt"),
+      nombre: nom,
+      descripcion: ""
+    }));
+    const nuevoSel: SelectorRasgo = {
+      id: generarId("sel"),
+      etiqueta: nuevoSelectorEtiqueta.trim(),
+      tipo: nuevoSelectorTipo,
+      maxSelecciones: nuevoSelectorTipo === "multiple" ? Math.max(1, nuevoSelectorMax) : 1,
+      opciones,
+      valorActual: []
+    };
+    setSelectores((prev) => [...prev, nuevoSel]);
+    setNuevoSelectorEtiqueta("");
+    setNuevoOpcionesTexto("");
+    setNuevoSelectorTipo("unico");
+    setNuevoSelectorMax(1);
+    setModoCreandoSelector(false);
+  };
+
+  const manejarEliminarSelector = (idSel: string) => {
+    setSelectores((prev) => prev.filter((s) => s.id !== idSel));
+  };
+
   // Previsualización en vivo del rasgo generado
   const rasgoPrevisualizado: RasgoPersonaje = useMemo(() => {
     return {
@@ -364,6 +439,13 @@ export const ConstructorRasgoDote: React.FC<ConstructorRasgoDoteProps> = ({
         : undefined,
       ligadoA: esActivable && ligadoA.trim() ? ligadoA.trim() : undefined,
       condicionAlActivar: esActivable && condicionAlActivar.trim() ? condicionAlActivar.trim() : undefined,
+      restaurarUsosAlActivar: (esActivable && tieneRestauracion && idRasgoRestaurar.trim())
+        ? {
+            idRasgoObjetivo: idRasgoRestaurar.trim(),
+            cantidad: tipoCantidadRestaurar === "maximo" ? "maximo" : Math.max(1, cantidadRestaurarFija)
+          }
+        : undefined,
+      selectores: selectores.length > 0 ? selectores : undefined,
       efectos,
       notas: notas.trim()
     };
@@ -386,6 +468,11 @@ export const ConstructorRasgoDote: React.FC<ConstructorRasgoDoteProps> = ({
     conjurosOtorgadosTexto,
     ligadoA,
     condicionAlActivar,
+    tieneRestauracion,
+    idRasgoRestaurar,
+    tipoCantidadRestaurar,
+    cantidadRestaurarFija,
+    selectores,
     efectos,
     notas,
     rasgoInicial?.id
@@ -639,6 +726,66 @@ export const ConstructorRasgoDote: React.FC<ConstructorRasgoDoteProps> = ({
                 <span className={estilos.deslizador} />
               </label>
             </div>
+
+            <div className={estilos.filaToggle} style={{ gridColumn: "1 / -1", marginTop: "6px" }}>
+              <div className={estilos.infoToggle}>
+                <span className={estilos.labelToggle}>¿Restaurar usos de otro rasgo al activarse?</span>
+                <span className={estilos.pistaToggle}>
+                  Permite recargar usos de otro recurso al encender este rasgo (ej. Furia Persistente restaura Furia).
+                </span>
+              </div>
+              <label className={estilos.interruptor}>
+                <input
+                  type="checkbox"
+                  checked={tieneRestauracion}
+                  onChange={(e) => setTieneRestauracion(e.target.checked)}
+                />
+                <span className={estilos.deslizador} />
+              </label>
+            </div>
+
+            {tieneRestauracion && (
+              <div className={estilos.gridDosColumnas} style={{ gridColumn: "1 / -1", marginTop: "4px" }}>
+                <div className={estilos.campoGrupo}>
+                  <label className={estilos.labelCampo}>
+                    <span>Rasgo Objetivo a Recargar</span>
+                  </label>
+                  <input
+                    type="text"
+                    className={estilos.inputControl}
+                    placeholder="ej. furia, inspiracion bardica, o ID del rasgo"
+                    value={idRasgoRestaurar}
+                    onChange={(e) => setIdRasgoRestaurar(e.target.value)}
+                  />
+                </div>
+                <div className={estilos.campoGrupo}>
+                  <label className={estilos.labelCampo}>
+                    <span>Cantidad a Restaurar</span>
+                  </label>
+                  <div style={{ display: "flex", gap: "8px" }}>
+                    <select
+                      className={estilos.inputControl}
+                      value={tipoCantidadRestaurar}
+                      onChange={(e) => setTipoCantidadRestaurar(e.target.value as "maximo" | "fijo")}
+                      style={{ flex: 1 }}
+                    >
+                      <option value="maximo">Todos (Máximo)</option>
+                      <option value="fijo">Cantidad Fija</option>
+                    </select>
+                    {tipoCantidadRestaurar === "fijo" && (
+                      <input
+                        type="number"
+                        min={1}
+                        className={estilos.inputControl}
+                        style={{ width: "80px" }}
+                        value={cantidadRestaurarFija}
+                        onChange={(e) => setCantidadRestaurarFija(Math.max(1, parseInt(e.target.value, 10) || 1))}
+                      />
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -772,7 +919,7 @@ export const ConstructorRasgoDote: React.FC<ConstructorRasgoDoteProps> = ({
           <input
             type="text"
             className={estilos.inputControl}
-            placeholder="ej. Palabra de poder: curar, Palabra de poder: matar"
+            placeholder="ej. Palabra de poder: sanar, Palabra de poder: matar"
             value={conjurosOtorgadosTexto}
             onChange={(e) => setConjurosOtorgadosTexto(e.target.value)}
           />
@@ -1095,7 +1242,7 @@ export const ConstructorRasgoDote: React.FC<ConstructorRasgoDoteProps> = ({
                   <SelectorDesplegable
                     valor={nuevoObjetivo}
                     opciones={[
-                      { valor: "destreza", etiqueta: "Destreza (Daño Bárdico / Monje)" },
+                      { valor: "destreza", etiqueta: "Destreza" },
                       { valor: "fuerza", etiqueta: "Fuerza" },
                       { valor: "carisma", etiqueta: "Carisma" }
                     ]}
@@ -1129,7 +1276,7 @@ export const ConstructorRasgoDote: React.FC<ConstructorRasgoDoteProps> = ({
                 <input
                   type="text"
                   className={estilos.inputControl}
-                  placeholder="ej. Palabra de poder: curar"
+                  placeholder="ej. Palabra de poder: sanar"
                   value={nuevoValor}
                   onChange={(e) => setNuevoValor(e.target.value)}
                 />
@@ -1173,6 +1320,99 @@ export const ConstructorRasgoDote: React.FC<ConstructorRasgoDoteProps> = ({
               </div>
             )}
 
+            {nuevoTipoEfecto === "hp_temporal" && (
+              <div className={estilos.gridDosColumnas}>
+                <div className={estilos.campoGrupo}>
+                  <label className={estilos.labelCampo}>
+                    <span>Fórmula o Multiplicador de HP Temporal</span>
+                  </label>
+                  <input
+                    type="text"
+                    className={estilos.inputControl}
+                    placeholder="ej. 2_veces_dado_inspiracion, 5, 1d8+carisma..."
+                    value={nuevoValor}
+                    onChange={(e) => setNuevoValor(e.target.value)}
+                  />
+                  <p className={estilos.pistaCampo}>
+                    Soporta multiplicadores ("2_veces_dado_inspiracion"), fórmulas o números planos.
+                  </p>
+                </div>
+                <div className={estilos.campoGrupo}>
+                  <label className={estilos.labelCampo}>
+                    <span>Descripción del Efecto</span>
+                  </label>
+                  <input
+                    type="text"
+                    className={estilos.inputControl}
+                    placeholder="ej. Puntos de golpe temporales a aliados"
+                    value={nuevaDescripcionEfecto}
+                    onChange={(e) => setNuevaDescripcionEfecto(e.target.value)}
+                  />
+                </div>
+              </div>
+            )}
+
+            {nuevoTipoEfecto === "conjuro_gratuito" && (
+              <div className={estilos.gridDosColumnas}>
+                <div className={estilos.campoGrupo}>
+                  <label className={estilos.labelCampo}>
+                    <span>Conjuro Otorgado Gratis</span>
+                  </label>
+                  <input
+                    type="text"
+                    className={estilos.inputControl}
+                    placeholder="ej. orden_imperiosa, detectar_magia..."
+                    value={nuevoValor}
+                    onChange={(e) => setNuevoValor(e.target.value)}
+                  />
+                  <p className={estilos.pistaCampo}>
+                    ID o nombre del conjuro que se podrá lanzar sin gastar espacios de conjuro.
+                  </p>
+                </div>
+                <div className={estilos.campoGrupo}>
+                  <label className={estilos.labelCampo}>
+                    <span>Descripción del Efecto</span>
+                  </label>
+                  <input
+                    type="text"
+                    className={estilos.inputControl}
+                    placeholder="ej. Lanzamiento gratuito sin gastar espacios"
+                    value={nuevaDescripcionEfecto}
+                    onChange={(e) => setNuevaDescripcionEfecto(e.target.value)}
+                  />
+                </div>
+              </div>
+            )}
+
+            {nuevoTipoEfecto === "restaurar_recurso" && (
+              <div className={estilos.gridDosColumnas}>
+                <div className={estilos.campoGrupo}>
+                  <label className={estilos.labelCampo}>
+                    <span>Rasgo o Recurso a Restaurar</span>
+                  </label>
+                  <input
+                    type="text"
+                    className={estilos.inputControl}
+                    placeholder="ej. furia, inspiracion bardica..."
+                    value={nuevoObjetivo}
+                    onChange={(e) => setNuevoObjetivo(e.target.value)}
+                  />
+                </div>
+                <div className={estilos.campoGrupo}>
+                  <label className={estilos.labelCampo}>
+                    <span>Cantidad Restaurada</span>
+                  </label>
+                  <input
+                    type="text"
+                    className={estilos.inputControl}
+                    placeholder="ej. maximo, 1, 2..."
+                    value={nuevoValor}
+                    onChange={(e) => setNuevoValor(e.target.value)}
+                  />
+                </div>
+              </div>
+            )}
+
             <div className={estilos.botonesNuevoEfecto}>
               <button
                 type="button"
@@ -1198,6 +1438,145 @@ export const ConstructorRasgoDote: React.FC<ConstructorRasgoDoteProps> = ({
           >
             <Plus size={14} />
             <span>Añadir Efecto Mecánico</span>
+          </button>
+        )}
+      </div>
+
+      {/* 5. Sección de Opciones y Selectores Configurables */}
+      <div className={estilos.seccionCard}>
+        <div className={estilos.cabeceraSeccion}>
+          <div className={estilos.tituloSeccion}>
+            <ListFilter size={14} color="#38bdf8" />
+            <span>5. Opciones y Selectores Configurables (Homebrew)</span>
+          </div>
+          <p className={estilos.descripcionSeccion}>
+            Permite al jugador elegir opciones tácticas para este rasgo (ej. Armas con Maestría, Maniobras de Batalla, Invocaciones)
+          </p>
+        </div>
+
+        {/* Lista de Selectores Agregados */}
+        {selectores.length > 0 ? (
+          <div className={estilos.listaEfectos}>
+            {selectores.map((sel) => (
+              <div key={sel.id} className={estilos.tarjetaEfectoItem}>
+                <div className={estilos.cuerpoEfectoItem}>
+                  <div className={estilos.filaBadgeEfecto}>
+                    <span className={estilos.badgeEfectoTipo}>Selector {sel.tipo === "multiple" ? `Múltiple (Hasta ${sel.maxSelecciones})` : "Único"}</span>
+                    <span className={estilos.badgeEfectoValor}>{sel.opciones.length} opciones</span>
+                  </div>
+                  <span className={estilos.descripcionEfectoItem}>
+                    <strong>{sel.etiqueta}:</strong> {sel.opciones.map((o) => o.nombre).join(", ")}
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  className={estilos.botonEliminarEfecto}
+                  onClick={() => manejarEliminarSelector(sel.id)}
+                  title="Eliminar este selector"
+                >
+                  <Trash2 size={13} />
+                </button>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className={estilos.pistaCampo} style={{ fontStyle: "italic" }}>
+            No hay selectores de opciones configurados para este rasgo.
+          </p>
+        )}
+
+        {/* Formulario para Crear Nuevo Selector */}
+        {modoCreandoSelector ? (
+          <div className={estilos.cajaNuevoEfecto}>
+            <div className={estilos.cabeceraNuevoEfecto}>
+              <span className={estilos.tituloNuevoEfecto}>Nuevo Selector de Opciones</span>
+            </div>
+
+            <div className={estilos.gridDosColumnas}>
+              <div className={estilos.campoGrupo}>
+                <label className={estilos.labelCampo}>
+                  <span>Etiqueta del Selector</span>
+                </label>
+                <input
+                  type="text"
+                  className={estilos.inputControl}
+                  placeholder="ej. Armas con Maestría, Maniobras de Batalla..."
+                  value={nuevoSelectorEtiqueta}
+                  onChange={(e) => setNuevoSelectorEtiqueta(e.target.value)}
+                />
+              </div>
+
+              <div className={estilos.campoGrupo}>
+                <label className={estilos.labelCampo}>
+                  <span>Tipo de Selección</span>
+                </label>
+                <div style={{ display: "flex", gap: "8px" }}>
+                  <select
+                    className={estilos.inputControl}
+                    value={nuevoSelectorTipo}
+                    onChange={(e) => setNuevoSelectorTipo(e.target.value as "unico" | "multiple")}
+                    style={{ flex: 1 }}
+                  >
+                    <option value="unico">Opción Única (1)</option>
+                    <option value="multiple">Selección Múltiple</option>
+                  </select>
+                  {nuevoSelectorTipo === "multiple" && (
+                    <input
+                      type="number"
+                      min={1}
+                      className={estilos.inputControl}
+                      style={{ width: "80px" }}
+                      title="Máximo de selecciones"
+                      placeholder="Máx."
+                      value={nuevoSelectorMax}
+                      onChange={(e) => setNuevoSelectorMax(Math.max(1, parseInt(e.target.value, 10) || 1))}
+                    />
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <div className={estilos.campoGrupo} style={{ marginTop: "8px" }}>
+              <label className={estilos.labelCampo}>
+                <span>Opciones disponibles (separadas por comas o saltos de línea)</span>
+              </label>
+              <textarea
+                className={estilos.inputControl}
+                rows={3}
+                placeholder="ej. Espada larga, Hacha de batalla, Daga, Alabarda..."
+                value={nuevoOpcionesTexto}
+                onChange={(e) => setNuevoOpcionesTexto(e.target.value)}
+              />
+              <p className={estilos.pistaCampo}>
+                Ingresa los nombres de las opciones entre las que el jugador podrá escoger en su hoja.
+              </p>
+            </div>
+
+            <div className={estilos.botonesNuevoEfecto}>
+              <button
+                type="button"
+                className={estilos.botonCancelarEfecto}
+                onClick={() => setModoCreandoSelector(false)}
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                className={estilos.botonConfirmarEfecto}
+                onClick={manejarAgregarSelector}
+              >
+                Confirmar Selector
+              </button>
+            </div>
+          </div>
+        ) : (
+          <button
+            type="button"
+            className={estilos.botonAnadirEfecto}
+            onClick={() => setModoCreandoSelector(true)}
+          >
+            <Plus size={14} />
+            <span>Añadir Selector de Opciones</span>
           </button>
         )}
       </div>

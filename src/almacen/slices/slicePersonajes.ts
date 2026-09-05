@@ -183,6 +183,119 @@ const ORDEN_CICLO_HABILIDAD: Record<GradoCompetencia, GradoCompetencia> = {
   pericia: "ninguna"
 };
 
+/**
+ * Normaliza cadenas para comparaciones de condiciones y rasgos sin distinción de mayúsculas ni diacríticos.
+ */
+function normalizarTextoSeguro(s: string = ""): string {
+  return s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+}
+
+/**
+ * Resuelve la condición táctica asociada a un rasgo activable (personalizada o canónica).
+ */
+export function resolverCondicionAsociadaRasgo(r: RasgoPersonaje): string | undefined {
+  if (r.condicionAlActivar && r.condicionAlActivar.trim()) {
+    return r.condicionAlActivar.trim();
+  }
+  const nom = normalizarTextoSeguro(r.nombre);
+  const id = normalizarTextoSeguro(r.id);
+
+  if (nom.includes("furia de los dioses") || id.includes("furia_de_los_dioses")) {
+    return "Furia de los Dioses (Rage of the Gods)";
+  }
+  if ((nom === "furia" || id === "rasgo_cls_barbaro_furia") && !nom.includes("persistente")) {
+    return "Furia (Rage)";
+  }
+  if (nom.includes("temerario") || id.includes("temerario")) {
+    return "Ataque Temerario (Reckless Attack)";
+  }
+  if (nom.includes("manto de majestad") || nom.includes("manto de la majestad") || id.includes("manto_de_majestad")) {
+    return "Manto de Majestad (Mantle of Majesty)";
+  }
+  if (nom.includes("majestad inquebrantable") || id.includes("majestad_inquebrantable")) {
+    return "Majestad Inquebrantable (Unbreakable Majesty)";
+  }
+  return undefined;
+}
+
+/**
+ * Determina si una condición táctica coincide con un rasgo para activación/desactivación reactiva.
+ */
+export function coincideCondicionConRasgo(condicionTexto: string, r: RasgoPersonaje): boolean {
+  const cNorm = normalizarTextoSeguro(condicionTexto);
+  if (!cNorm) return false;
+
+  const rCond = r.condicionAlActivar ? normalizarTextoSeguro(r.condicionAlActivar) : "";
+  if (rCond && (cNorm === rCond || cNorm.includes(rCond) || rCond.includes(cNorm))) {
+    return true;
+  }
+
+  const condAsociada = resolverCondicionAsociadaRasgo(r);
+  if (condAsociada) {
+    const asocNorm = normalizarTextoSeguro(condAsociada);
+    if (cNorm === asocNorm || cNorm.includes(asocNorm) || asocNorm.includes(cNorm)) {
+      return true;
+    }
+  }
+
+  const rNom = normalizarTextoSeguro(r.nombre);
+  const rId = normalizarTextoSeguro(r.id);
+
+  if (cNorm.includes("furia de los dioses") || cNorm.includes("rage of the gods")) {
+    return rNom.includes("furia de los dioses") || rId.includes("furia_de_los_dioses");
+  }
+  if (cNorm.includes("furia") || cNorm.includes("rage")) {
+    return rNom === "furia" || rId === "rasgo_cls_barbaro_furia";
+  }
+  if (cNorm.includes("temerario") || cNorm.includes("reckless")) {
+    return rNom.includes("temerario") || rId.includes("temerario");
+  }
+  if (cNorm.includes("manto de majestad") || cNorm.includes("manto de la majestad") || cNorm.includes("mantle of majesty")) {
+    return rNom.includes("manto de majestad") || rNom.includes("manto de la majestad") || rId.includes("manto_de_majestad");
+  }
+  if (cNorm.includes("majestad inquebrantable") || cNorm.includes("unbreakable majesty")) {
+    return rNom.includes("majestad inquebrantable") || rId.includes("majestad_inquebrantable");
+  }
+
+  return false;
+}
+
+/**
+ * Resuelve el ID del rasgo que debe consumir o recuperar el uso.
+ * Si el rasgo especifica gastarDePadre o está ligado a un padre (ej. Inspiración bárdica),
+ * delega la operación en dicho rasgo padre de forma genérica.
+ */
+export function resolverIdRasgoObjetivoGasto(targetTrait: RasgoPersonaje | undefined, rasgos: RasgoPersonaje[]): string {
+  if (!targetTrait) return "";
+
+  const debeGastarDePadre = Boolean(
+    targetTrait.gastarDePadre ||
+    (targetTrait.ligadoA && (
+      normalizarTextoSeguro(targetTrait.ligadoA).includes("inspiracion") ||
+      normalizarTextoSeguro(targetTrait.nombre).includes("palabras cortantes") ||
+      normalizarTextoSeguro(targetTrait.nombre).includes("habilidad inigualable") ||
+      normalizarTextoSeguro(targetTrait.nombre).includes("manto de inspiracion")
+    ))
+  );
+
+  if (!debeGastarDePadre) {
+    return targetTrait.id;
+  }
+
+  if (targetTrait.ligadoA) {
+    const lig = normalizarTextoSeguro(targetTrait.ligadoA);
+    const padre = rasgos.find(
+      (r) => normalizarTextoSeguro(r.id) === lig || normalizarTextoSeguro(r.nombre) === lig || (normalizarTextoSeguro(r.nombre).includes("inspiracion") && lig.includes("inspiracion"))
+    );
+    if (padre) return padre.id;
+  }
+
+  const padreInspiracion = rasgos.find((r) => normalizarTextoSeguro(r.nombre).includes("inspiracion bardica"));
+  if (padreInspiracion) return padreInspiracion.id;
+
+  return targetTrait.id;
+}
+
 // ==========================================
 // 2. CREADOR DEL SLICE
 // ==========================================
@@ -757,34 +870,8 @@ export const crearSlicePersonajes: StateCreator<
       let rasgosActualizados = pj.rasgos;
 
       // Sincronización automática de condiciones hacia rasgos (canónicas y personalizadas con condicionAlActivar)
-      const esFuriaDiosesCond = normalizada.includes("furia de los dioses") || normalizada.includes("rage of the gods");
-      const esFuriaBaseCond = (normalizada.includes("furia") || normalizada.includes("rage")) && !esFuriaDiosesCond;
-      const esMantoMajestadCond = normalizada.includes("manto de majestad") || normalizada.includes("manto de la majestad") || normalizada.includes("mantle of majesty");
-      const esMajestadInquebrantableCond = normalizada.includes("majestad inquebrantable") || normalizada.includes("unbreakable majesty");
-
       rasgosActualizados = (pj.rasgos || []).map((r) => {
-        const rNom = r.nombre.toLowerCase().trim();
-        const rId = r.id.toLowerCase().trim();
-        const rCond = (r.condicionAlActivar || "").toLowerCase().trim();
-        const coincideCond = rCond && (normalizada === rCond || normalizada.includes(rCond) || rCond.includes(normalizada));
-        const coincideMantoMajestad = esMantoMajestadCond && (
-          rNom.includes("manto de majestad") || rNom.includes("manto de la majestad") ||
-          rId.includes("manto_de_majestad") || rId.includes("manto_de_la_majestad")
-        );
-        const coincideMajestadInq = esMajestadInquebrantableCond && (
-          rNom.includes("majestad inquebrantable") || rId.includes("majestad_inquebrantable")
-        );
-
-        if (
-          (coincideCond ||
-            coincideMantoMajestad ||
-            coincideMajestadInq ||
-            (esFuriaDiosesCond && (rNom.includes("furia de los dioses") || r.id.includes("furia_de_los_dioses"))) ||
-            (esFuriaBaseCond && (rNom === "furia" || r.id === "rasgo_cls_barbaro_furia")) ||
-            ((normalizada.includes("temerario") || normalizada.includes("reckless")) && (rNom.includes("temerario") || r.id.includes("temerario")))) &&
-          r.esActivable &&
-          !r.activo
-        ) {
+        if (coincideCondicionConRasgo(condicion, r) && r.esActivable && !r.activo) {
           const usosRest = typeof r.usosRestantes === "number" ? Math.max(0, r.usosRestantes - 1) : r.usosRestantes;
           return { ...r, activo: true, usosRestantes: usosRest };
         }
@@ -816,37 +903,10 @@ export const crearSlicePersonajes: StateCreator<
 
       const nuevasCondiciones = quitarCondicion(pj.condicionesActivas, condicion);
       let rasgosActualizados = pj.rasgos;
-
-      const esFuriaDiosesCondQuitar = normalizada.includes("furia de los dioses") || normalizada.includes("rage of the gods");
-      const esFuriaBaseCondQuitar = (normalizada.includes("furia") || normalizada.includes("rage")) && !esFuriaDiosesCondQuitar;
-      const esMantoMajestadCondQuitar = normalizada.includes("manto de majestad") || normalizada.includes("manto de la majestad") || normalizada.includes("mantle of majesty");
-      const esMajestadInquebrantableCondQuitar = normalizada.includes("majestad inquebrantable") || normalizada.includes("unbreakable majesty");
-
       const clavesPadresApagados = new Set<string>();
 
       rasgosActualizados = (pj.rasgos || []).map((r) => {
-        const rNom = r.nombre.toLowerCase().trim();
-        const rId = r.id.toLowerCase().trim();
-        const rCond = (r.condicionAlActivar || "").toLowerCase().trim();
-        const coincideCond = rCond && (normalizada === rCond || normalizada.includes(rCond) || rCond.includes(normalizada));
-        const coincideMantoMajestad = esMantoMajestadCondQuitar && (
-          rNom.includes("manto de majestad") || rNom.includes("manto de la majestad") ||
-          rId.includes("manto_de_majestad") || rId.includes("manto_de_la_majestad")
-        );
-        const coincideMajestadInq = esMajestadInquebrantableCondQuitar && (
-          rNom.includes("majestad inquebrantable") || rId.includes("majestad_inquebrantable")
-        );
-
-        if (
-          (coincideCond ||
-            coincideMantoMajestad ||
-            coincideMajestadInq ||
-            (esFuriaDiosesCondQuitar && (rNom.includes("furia de los dioses") || r.id.includes("furia_de_los_dioses"))) ||
-            (esFuriaBaseCondQuitar && (rNom === "furia" || rId === "rasgo_cls_barbaro_furia" || rNom.includes("furia divina") || rId.includes("furia_divina") || rNom.includes("golpe brutal") || rId.includes("golpe_brutal") || rNom.includes("furia de los dioses") || rId.includes("furia_de_los_dioses"))) ||
-            ((normalizada.includes("temerario") || normalizada.includes("reckless")) && (rNom.includes("temerario") || r.id.includes("temerario")))) &&
-          r.esActivable &&
-          r.activo
-        ) {
+        if (coincideCondicionConRasgo(condicion, r) && r.esActivable && r.activo) {
           clavesPadresApagados.add(r.id.toLowerCase());
           clavesPadresApagados.add(r.nombre.toLowerCase().trim());
           return { ...r, activo: false };
@@ -856,10 +916,26 @@ export const crearSlicePersonajes: StateCreator<
 
       // Desactivación en cascada de rasgos hijos
       if (clavesPadresApagados.size > 0) {
+        const esFuriaApagada = clavesPadresApagados.has("furia") || clavesPadresApagados.has("rasgo_cls_barbaro_furia");
         rasgosActualizados = rasgosActualizados.map((r) => {
-          if (r.activo && r.ligadoA) {
+          if (!r.activo) return r;
+          if (r.ligadoA) {
             const lig = r.ligadoA.toLowerCase().trim();
-            if (clavesPadresApagados.has(lig)) {
+            if (clavesPadresApagados.has(lig) || (esFuriaApagada && lig.includes("furia") && !lig.includes("dioses"))) {
+              return { ...r, activo: false };
+            }
+          }
+          if (esFuriaApagada) {
+            const rNom = r.nombre.toLowerCase().trim();
+            const rId = r.id.toLowerCase().trim();
+            if (
+              rNom.includes("furia divina") ||
+              rId.includes("furia_divina") ||
+              rNom.includes("golpe brutal") ||
+              rId.includes("golpe_brutal") ||
+              rNom.includes("furia de los dioses") ||
+              rId.includes("furia_de_los_dioses")
+            ) {
               return { ...r, activo: false };
             }
           }
@@ -1459,36 +1535,7 @@ export const crearSlicePersonajes: StateCreator<
   gastarUsoRasgoPersonaje: (idPj, idRasgo) => {
     mutarPersonaje(set, idPj, (pj) => {
       const targetTrait = (pj.rasgos || []).find((r) => r.id === idRasgo);
-      let idObjetivoGasto = idRasgo;
-
-      const norm = (s: string) => (s || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
-
-      // Delegar en el rasgo padre si tiene gastarDePadre o está ligado a Inspiración bárdica
-      const debeGastarDePadre = !!(
-        targetTrait?.gastarDePadre ||
-        (targetTrait?.ligadoA && (
-          norm(targetTrait.ligadoA).includes("inspiracion") ||
-          norm(targetTrait.nombre).includes("palabras cortantes") ||
-          norm(targetTrait.nombre).includes("habilidad inigualable") ||
-          norm(targetTrait.nombre).includes("manto de inspiracion")
-        ))
-      );
-
-      if (debeGastarDePadre) {
-        let padre: RasgoPersonaje | undefined;
-        if (targetTrait?.ligadoA) {
-          const lig = norm(targetTrait.ligadoA);
-          padre = (pj.rasgos || []).find(
-            (r) => norm(r.id) === lig || norm(r.nombre) === lig || (norm(r.nombre).includes("inspiracion") && lig.includes("inspiracion"))
-          );
-        }
-        if (!padre) {
-          padre = (pj.rasgos || []).find((r) => norm(r.nombre).includes("inspiracion bardica"));
-        }
-        if (padre) {
-          idObjetivoGasto = padre.id;
-        }
-      }
+      const idObjetivoGasto = resolverIdRasgoObjetivoGasto(targetTrait, pj.rasgos || []);
 
       const rasgosActualizados = (pj.rasgos || []).map((r) => {
         if (r.id === idObjetivoGasto && r.tieneUsosLimitados) {
@@ -1508,35 +1555,7 @@ export const crearSlicePersonajes: StateCreator<
   recuperarUsoRasgoPersonaje: (idPj, idRasgo) => {
     mutarPersonaje(set, idPj, (pj) => {
       const targetTrait = (pj.rasgos || []).find((r) => r.id === idRasgo);
-      let idObjetivoGasto = idRasgo;
-
-      const norm = (s: string) => (s || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
-
-      const debeGastarDePadre = !!(
-        targetTrait?.gastarDePadre ||
-        (targetTrait?.ligadoA && (
-          norm(targetTrait.ligadoA).includes("inspiracion") ||
-          norm(targetTrait.nombre).includes("palabras cortantes") ||
-          norm(targetTrait.nombre).includes("habilidad inigualable") ||
-          norm(targetTrait.nombre).includes("manto de inspiracion")
-        ))
-      );
-
-      if (debeGastarDePadre) {
-        let padre: RasgoPersonaje | undefined;
-        if (targetTrait?.ligadoA) {
-          const lig = norm(targetTrait.ligadoA);
-          padre = (pj.rasgos || []).find(
-            (r) => norm(r.id) === lig || norm(r.nombre) === lig || (norm(r.nombre).includes("inspiracion") && lig.includes("inspiracion"))
-          );
-        }
-        if (!padre) {
-          padre = (pj.rasgos || []).find((r) => norm(r.nombre).includes("inspiracion bardica"));
-        }
-        if (padre) {
-          idObjetivoGasto = padre.id;
-        }
-      }
+      const idObjetivoGasto = resolverIdRasgoObjetivoGasto(targetTrait, pj.rasgos || []);
 
       const rasgosActualizados = (pj.rasgos || []).map((r) => {
         if (r.id === idObjetivoGasto && r.tieneUsosLimitados) {
@@ -1589,8 +1608,6 @@ export const crearSlicePersonajes: StateCreator<
     mutarPersonaje(set, idPj, (pj) => {
       let condicionesActualizadas = [...(pj.condicionesActivas || [])];
 
-      const rasgoObjetivo = (pj.rasgos || []).find((r) => r.id === idRasgo);
-      if (!rasgoObjetivo) return pj;
       const targetTrait = (pj.rasgos || []).find((r) => r.id === idRasgo);
       if (!targetTrait) return pj;
 
@@ -1628,54 +1645,19 @@ export const crearSlicePersonajes: StateCreator<
 
       const esFuriaPersistente = nomObjetivo.includes("furia persistente") || idObjetivo.includes("furia_persistente");
       const esFuriaBase = (nomObjetivo === "furia" || idObjetivo === "rasgo_cls_barbaro_furia") && !esFuriaDeLosDioses && !esFuriaPersistente;
-      const esTemerario = nomObjetivo.includes("temerario") || idObjetivo.includes("temerario");
-      const esMantoMajestad = nomObjetivo.includes("manto de majestad") || nomObjetivo.includes("manto de la majestad") || idObjetivo.includes("manto_de_majestad") || idObjetivo.includes("manto_de_la_majestad");
-      const esMajestadInquebrantable = nomObjetivo.includes("majestad inquebrantable") || idObjetivo.includes("majestad_inquebrantable");
 
       // Sincronización de condición asociada (personalizada o canónica)
-      const condicionAsociada = targetTrait?.condicionAlActivar || (
-        esFuriaDeLosDioses ? "Furia de los Dioses (Rage of the Gods)" :
-        esFuriaBase ? "Furia (Rage)" :
-        esTemerario ? "Ataque Temerario (Reckless Attack)" :
-        esMantoMajestad ? "Manto de Majestad (Mantle of Majesty)" :
-        esMajestadInquebrantable ? "Majestad Inquebrantable (Unbreakable Majesty)" : undefined
-      );
-
-      const debeAutoDesactivarTarget = !!(nuevoActivo && (targetTrait?.autoDesactivar || esFuriaPersistente));
+      const condicionAsociada = resolverCondicionAsociadaRasgo(targetTrait);
+      const debeAutoDesactivarTarget = Boolean(nuevoActivo && (targetTrait.autoDesactivar || esFuriaPersistente));
 
       if (condicionAsociada && !debeAutoDesactivarTarget) {
         if (nuevoActivo) {
-          const yaTieneCond = condicionesActualizadas.some((c) => {
-            const cn = c.toLowerCase();
-            if (esFuriaBase) {
-              return cn.includes("furia (rage)") || (cn.includes("furia") && !cn.includes("furia de los dioses"));
-            }
-            if (esMantoMajestad) {
-              return cn.includes("manto de majestad") || cn.includes("manto de la majestad") || cn.includes("mantle of majesty");
-            }
-            if (esMajestadInquebrantable) {
-              return cn.includes("majestad inquebrantable") || cn.includes("unbreakable majesty");
-            }
-            return cn === condicionAsociada.toLowerCase() || cn.includes(condicionAsociada.toLowerCase());
-          });
-
+          const yaTieneCond = condicionesActualizadas.some((c) => coincideCondicionConRasgo(c, targetTrait));
           if (!yaTieneCond) {
             condicionesActualizadas = aplicarCondicion(condicionesActualizadas, condicionAsociada);
           }
         } else {
-          condicionesActualizadas = condicionesActualizadas.filter((c) => {
-            const cn = c.toLowerCase();
-            if (esFuriaBase) {
-              return !(cn.includes("furia (rage)") || (cn.includes("furia") && !cn.includes("furia de los dioses")));
-            }
-            if (esMantoMajestad) {
-              return !(cn.includes("manto de majestad") || cn.includes("manto de la majestad") || cn.includes("mantle of majesty"));
-            }
-            if (esMajestadInquebrantable) {
-              return !(cn.includes("majestad inquebrantable") || cn.includes("unbreakable majesty"));
-            }
-            return cn !== condicionAsociada.toLowerCase() && !cn.includes(condicionAsociada.toLowerCase());
-          });
+          condicionesActualizadas = condicionesActualizadas.filter((c) => !coincideCondicionConRasgo(c, targetTrait));
         }
       }
 

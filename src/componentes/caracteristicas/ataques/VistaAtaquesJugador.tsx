@@ -502,7 +502,7 @@ export const VistaAtaquesJugador: React.FC = () => {
       const formulaEsp = modDesarmado !== 0 ? `${dadoBaseEsp}${modDesarmado >= 0 ? `+${modDesarmado}` : modDesarmado}` : dadoBaseEsp;
       ataques.push({
         id: "ataque-desarmado",
-        nombre: ataqueDesarmadoEsp.nombreAtaque || "Golpe sin Armas (Daño Bárdico)",
+        nombre: ataqueDesarmadoEsp.nombreAtaque || "Daño Bárdico",
         tipo: "Desarmado",
         subtipo: "Cuerpo a Cuerpo",
         tipoAccion: "accion",

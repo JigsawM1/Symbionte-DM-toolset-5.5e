@@ -1,146 +1,129 @@
+# Symbionte DM ToolSet para D&D 5.5e
 
-# TaleSpire Symbiote Base with Vite + React
+Pantalla de DM y hoja de jugador para D&D 5.5e (reglas 2024), integrada en TaleSpire como Symbiote. La aplicación detecta automáticamente si el cliente es Master o Jugador mediante `esGM` y muestra la interfaz correspondiente.
 
-This project serves as a base for creating Symbiotes for TaleSpire using Vite and React. It provides a streamlined setup to get you started quickly.
+## Características principales
 
-## Getting Started
+### Modo Master
 
-### Prerequisites
+- Gestor de iniciativa con cola, rondas, turnos y sincronización con la iniciativa nativa de TaleSpire.
+- Selección de miniaturas de TaleSpire, incorporación de criaturas seleccionadas y vinculación de plantillas de monstruo.
+- Tarjetas de criatura con vida, vida temporal, clase de armadura, velocidad, percepción pasiva, condiciones y efectos con duración.
+- Buscador de monstruos, preparación de encuentros y guardado de encuentros para recuperarlos durante la sesión.
+- Salvaciones en área con CD, mitigación y aplicación masiva de condiciones o efectos.
+- Compendio de monstruos, hechizos y equipo, además de datos creados por el usuario.
+- Creador Homebrew para criaturas, hechizos y objetos, con saneamiento de datos y validación mediante Zod.
+- Tablas de reglas, condiciones de D&D 2024, críticos y pifias, conversión de divisas, cálculo de viajes y saltos.
+- Paneles para pendientes, notas de DM, configuración de campaña y visibilidad del porcentaje de vida para jugadores.
 
-Ensure you have Node.js and npm installed on your machine. If not, download and install them from [Node.js official site](https://nodejs.org/).
+### Modo Jugador
 
-### Project Setup
+- Hoja de personaje con atributos, modificadores, salvaciones, habilidades, competencias, sentidos, vitalidad y recursos.
+- Construcción de personajes con clases y subclases de D&D 5.5e 2024, progresión de rasgos, selectores y efectos mecánicos.
+- Ataques, acciones y consumibles con fórmulas de dados 3D, además de evaluación de condiciones, ventajas y desventajas.
+- Magia con conjuros conocidos, preparados, ocultos y de subclase; espacios, puntos de conjuro, espacios de pacto, lanzamiento a niveles superiores y Arcano Místico.
+- Inventario con equipo, peso, monedas, sintonización, equipamiento, paquetes, contenedores y munición compatible con armas.
+- Condiciones, cansancio, concentración, descansos cortos y largos, dados de golpe y salvaciones contra la muerte.
+- Iniciativa del jugador y vinculación de la ficha con una miniatura de TaleSpire.
+- Persistencia de los datos de campaña mediante el almacenamiento global de TaleSpire y saneamiento al cargar datos antiguos o importados.
 
-This project was set up using the command:
+## Stack tecnológico
 
-```sh
-npm create vite@latest . --template react
+- Vite 5, React 18 y TypeScript.
+- Zustand 4 para el estado global dividido en slices.
+- Zod 4 para esquemas y validación de datos.
+- CSS Modules y hojas de estilo específicas para la vista de jugador.
+- `lucide-react` para la iconografía SVG.
+- Vitest para las pruebas.
+- API de TaleSpire Symbiote v0.1, ejecutada en WebView2 o Chromium Embedded Framework (CEF).
+
+## Requisitos
+
+- Node.js compatible con Vite 5.
+- `pnpm`.
+- TaleSpire para probar el Symbiote dentro del juego.
+- En Windows, macOS o Linux, permisos de escritura en la carpeta de Symbiotes de TaleSpire para usar `pnpm deploy`.
+
+## Instalación y desarrollo
+
+```bash
+pnpm install
+pnpm dev
 ```
 
-If you're picking up this project, follow these steps to get started:
+Comandos de comprobación:
 
-1. **Clone the Repository:**
-
-   ```sh
-   git clone https://github.com/PanoramicPanda/vite-react-symbiote.git
-   cd vite-react-symbiote
-   ```
-
-2. **Install Dependencies:**
-
-   ```sh
-   npm install
-   ```
-
-### Development
-
-To start the development server:
-
-```sh
-npm run dev
+```bash
+pnpm test
+pnpm lint
 ```
 
-The development environment is configured to match the Symbiote's width (599px) for accurate styling and layout.
+`pnpm dev` inicia Vite para desarrollo local. Fuera de TaleSpire, el adaptador proporciona los fallbacks de desarrollo definidos en `src/utiles/TaleSpireAdapter.ts` y `src/utiles/lanzadorDados.ts`.
 
-### Building for Mod.io
+## Compilación y despliegue en TaleSpire
 
-To build and zip the project for upload on Mod.io:
+La carpeta de salida se define en `build_folder_name.json`:
 
-1. **Update Symbiote Name:**
-
-   Ensure you update the `buildFolder` variable in the `build_folder_name.json` to match your Symbiote's folder name.
-
-2. **Run Build and Zip Script:**
-
-```sh
-npm run build-and-zip
+```json
+{
+  "buildFolder": "ToolSet_Es_5.5"
+}
 ```
 
-This will create a `mod-io-build` folder containing the production build of your Symbiote, along with zipping it up in an appropriately named zip for upload.
+El comando siguiente compila TypeScript, genera `dist` y copia sus archivos a la carpeta del Symbiote:
 
-### Deployment
-
-Running the deploy_to_ts script will copy the build to the default locally installed Symbiotes folder based on your OS.
-
-1. **Update Symbiote Name:**
-
-   Ensure you update the `buildFolder` variable in the `build_folder_name.json` to match your Symbiote's folder name.
-
-2. **Run Deploy Script:**
-
-   ```sh
-   npm run deploy
-   ```
-
-For more information on Symbiote installation paths, refer to the [Symbiote installation documentation](https://symbiote-docs.talespire.com/#installing).
-
-### Manifest Configuration
-
-The `manifest.json` file located in the `public` folder includes basic configuration for your Symbiote, such as name, website, and authors.
-
-**Note:** This manifest does not include the TaleSpire API hooks. For detailed documentation on the manifest configuration, visit [Symbiote Manifest Documentation](https://symbiote-docs.talespire.com/manifest_doc_v1.html).
-
-### Ensuring Listener Functions Are Not Minified
-
-When working with functions that are intended to be listeners on subscriptions in your project, it's crucial to ensure these functions are not minified during the build process. This ensures that their names remain intact and can be correctly referenced.
-Steps to Prevent Minification
-
-#### Update vite.config.js:
-   
-   Configure Vite to use Terser and specify the functions you want to keep non-minified. Add the following configuration to your vite.config.js:
-
-```javascript
-import { defineConfig } from 'vite';
-import react from '@vitejs/plugin-react';
-
-export default defineConfig({
-   plugins: [react()],
-   build: {
-      minify: 'terser',
-      terserOptions: {
-         keep_fnames: /oneFunctionNameToKeep|otherFunctionNamesToKeep/
-      }
-   }
-});
+```bash
+pnpm deploy
 ```
 
-In the terserOptions, replace otherFunctionNamesToKeep with any other function names you want to keep non-minified.
+`deploy_to_ts.js` calcula el destino según el sistema operativo:
 
-### Notes
+- Windows: `%LOCALAPPDATA%\BouncyRock Entertainment\TaleSpire\Symbiotes\ToolSet_Es_5.5`.
+- macOS: `~/Library/Application Support/com.bouncyrock.talespire/Symbiotes/ToolSet_Es_5.5`.
+- Linux: la instalación de Steam de TaleSpire bajo `~/.local/share/Steam/steamapps/compatdata/720620/pfx/drive_c/users/steamuser/AppData/LocalLow/BouncyRock Entertainment/TaleSpire/Symbiotes/ToolSet_Es_5.5`.
 
-- The project uses JavaScript (JS) instead of TypeScript (TS).
-- SVG files are not supported in Symbiotes; please use PNG files instead.
-- Update your project name in the `package.json` file.
+El script limpia `assets`, `index.html` y `manifest.json` de la compilación anterior y copia `dist`. Si TaleSpire mantiene un archivo abierto, puede aparecer `EBUSY` o `EPERM`; cierra TaleSpire o recarga/cierra el Symbiote y vuelve a ejecutar el comando. El script intenta renombrar archivos bloqueados antes de abortar.
 
-## Helpful Links
+Para crear el paquete que se sube a mod.io:
 
-- [TaleSpire Symbiote Documentation](https://symbiote-docs.talespire.com/)
-- [Vite Documentation](https://vitejs.dev/)
-- [React Documentation](https://reactjs.org/)
+```bash
+pnpm build-and-zip
+```
 
-## License
+El script genera `mod-io-build/ToolSet_Es_5.5` y el archivo `ToolSet_Es_5.5.zip`.
 
-MIT License
+## Estructura del proyecto
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+```text
+src/
+├── almacen/                 Estado Zustand, slices, selectores, persistencia y saneamiento
+├── componentes/             Interfaz React organizada por características y layout
+│   ├── caracteristicas/     Iniciativa, personajes, ataques, inventario, compendio y herramientas
+│   ├── comunes/             Selectores, tooltips, diálogos, condiciones y notificaciones
+│   └── layout/              Barra superior, controles y panel de dados
+├── constantes/              Catálogos de clases, rasgos, equipo, objetos y homebrew
+├── estilos/                 Tema visual de la hoja de jugador
+├── hooks/                   Conexión, persistencia, magia, formularios y listas dinámicas
+├── servicios/               Reglas, sincronización, inventario, magia, condiciones y puente TaleSpire
+├── tipos/                   Tipos TypeScript y esquemas Zod, incluida la API TaleSpire
+└── utiles/                  Adaptador TaleSpire, dados, almacenamiento, datos iniciales y compendios
+```
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+## Reglas de desarrollo
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+- No usar emojis. Los iconos de la interfaz se implementan con SVG mediante `lucide-react`.
+- No añadir transiciones ni animaciones CSS; el entorno CEF requiere cambios inmediatos.
+- No usar elementos `<select>` nativos; usar `SelectorDesplegable` o `SelectorSugerencias`.
+- Mantener la fuente mínima legible para el overlay, con un mínimo de 11 px según la guía visual.
+- Mantener CSS aislado en CSS Modules y respetar los tokens `--pj-*` del tema de jugador.
+- Usar español en identificadores, textos y documentación nueva.
+- Mantener las reglas de negocio fuera de los componentes cuando exista un servicio o selector apropiado.
 
+## Documentación
 
----
+- [Wiki del proyecto](https://github.com/JigsawM1/Symbionte-DM-toolset-5.5e/wiki)
+- [Wiki versionada en el repositorio](docs/wiki/)
 
-By following the above steps, you should be able to set up, develop, and deploy your TaleSpire Symbiote efficiently. If you encounter any issues or have questions, refer to the provided documentation links for more detailed information.
+## Créditos
+
+Basado en la plantilla [vite-react-symbiote](https://github.com/PanoramicPanda/vite-react-symbiote) de PanoramicPanda. Autor y mantenimiento del proyecto: JigsawM1.

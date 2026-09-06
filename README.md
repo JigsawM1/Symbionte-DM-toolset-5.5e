@@ -78,7 +78,7 @@ pnpm deploy
 
 `deploy_to_ts.js` calcula el destino según el sistema operativo:
 
-- Windows: `%LOCALAPPDATA%\BouncyRock Entertainment\TaleSpire\Symbiotes\ToolSet_Es_5.5`.
+- Windows: `%USERPROFILE%\AppData\LocalLow\BouncyRock Entertainment\TaleSpire\Symbiotes\ToolSet_Es_5.5`.
 - macOS: `~/Library/Application Support/com.bouncyrock.talespire/Symbiotes/ToolSet_Es_5.5`.
 - Linux: la instalación de Steam de TaleSpire bajo `~/.local/share/Steam/steamapps/compatdata/720620/pfx/drive_c/users/steamuser/AppData/LocalLow/BouncyRock Entertainment/TaleSpire/Symbiotes/ToolSet_Es_5.5`.
 

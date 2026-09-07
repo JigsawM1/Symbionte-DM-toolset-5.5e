@@ -1,0 +1,55 @@
+name: CI - Integración Continua
+
+on:
+  push:
+    branches:
+      - main
+      - master
+      - develop
+  pull_request:
+    branches:
+      - main
+      - master
+      - develop
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verificacion-calidad:
+    name: Verificación de Calidad y Compilación
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Clonar Repositorio
+        uses: actions/checkout@v4
+
+      - name: Instalar pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Configurar Node.js (v20) con caché de pnpm
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+
+      - name: Instalar Dependencias
+        run: pnpm install --frozen-lockfile
+
+      - name: Verificación Estricta de Tipos (TypeScript)
+        run: pnpm exec tsc --noEmit
+
+      - name: Análisis Estático de Código (ESLint)
+        run: pnpm run lint
+
+      - name: Ejecución de Pruebas Automatizadas (Vitest)
+        run: pnpm run test
+
+      - name: Auditoría de Tamaño de Archivos y Prevención de Monolitos
+        run: pnpm run verificar:lineas
+
+      - name: Compilación y Empaquetado de Producción (Vite Build)
+        run: pnpm run build

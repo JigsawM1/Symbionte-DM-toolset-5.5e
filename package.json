@@ -10,7 +10,9 @@
     "build-and-zip": "node build_and_zip.js",
     "preview": "vite preview",
     "lint": "eslint src",
-    "test": "vitest run"
+    "test": "vitest run",
+    "verificar:lineas": "node scripts/verificar-limite-lineas.js",
+    "ci": "tsc --noEmit && eslint src && vitest run && node scripts/verificar-limite-lineas.js && vite build"
   },
   "dependencies": {
     "lucide-react": "^0.395.0",

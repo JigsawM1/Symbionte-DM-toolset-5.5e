@@ -13,6 +13,28 @@ Este archivo registra reglas globales, errores encontrados, sus causas raíz y l
 4. **TIPADO ESTRICTO Y CÓDIGO LIMPIO**:
    - `strict: true` en TypeScript. Cero tipos `any`. Interfaces explícitas, generics y principios SOLID.
 
+## [2026-09-07] Culminación Exitosa - Fase 4: Automatización de Integración Continua (CI) y Control de Monolitos
+**Contexto y Logros:**
+- Se implementó la automatización de Integración Continua (CI) para blindar el repositorio contra regresiones de código, fallos de tipado, estilo, tests y proliferación de componentes monolíticos.
+- **Configuración de Umbrales acordados con el usuario**:
+  - **Límite de Advertencia (Warning)**: > 300 líneas (sugiere refactorización preventiva sin romper el build).
+  - **Límite de Error Crítico (Fallo CI)**: > 500 líneas (bloquea la integración de cualquier nuevo componente o modificación que rebase este umbral).
+- **Herramientas y Scripts Creados**:
+  - `scripts/verificar-limite-lineas.js`: Script en ESM/Node.js para auditoría recursiva del Modo Jugador (`personajes/` y `rasgos/`), discriminando archivos óptimos (<300 lín), en advertencia (300-500 lín), componentes heredados en backlog (5 componentes no abordados aún identificados para futuras fases de creadores/DM) y errores críticos (>500 lín).
+  - Comandos en `package.json`:
+    - `"verificar:lineas"`: `node scripts/verificar-limite-lineas.js`
+    - `"ci"`: `tsc --noEmit && eslint src && vitest run && node scripts/verificar-limite-lineas.js && vite build`
+  - Workflow de GitHub Actions (`.github/workflows/ci.yml`):
+    - Configurado estrictamente con `pnpm` (`pnpm/action-setup@v4`), Node 20 con caché, `pnpm install --frozen-lockfile`.
+    - Pipeline secuencial: Typecheck estricto -> ESLint -> 452 Pruebas Vitest -> Control de tamaño de líneas -> Build de Vite.
+- **Métricas y Resultados de la Auditoría en CI**:
+  - 90 archivos auditados en Modo Jugador.
+  - 74 componentes óptimos (<300 líneas, incluyendo el 100% de los refactorizados en Fases 1, 2 y 3).
+  - 11 componentes en advertencia preventiva (300-500 líneas).
+  - 5 componentes heredados clasificados para fases posteriores.
+  - 0 errores críticos (>500 líneas).
+  - Pipeline integral `pnpm run ci` finalizado con éxito (código 0).
+
 ## [2026-09-07] Culminación Exitosa - Fase 3: Reducción Agresiva de Monolitos Principales (<250 Líneas Estricto)
 **Contexto y Logros:**
 - Se redujeron y desacoplaron quirúrgicamente los 3 componentes monolíticos principales restantes de la ficha del Modo Jugador (`PanelConjurosPersonaje`, `VistaRasgosJugador`, `PanelInventarioPersonaje`), logrando que **el 100% de los archivos del módulo queden estrictamente por debajo de 250 líneas** (rango obtenido: 28 a 246 líneas, media: 138 líneas).

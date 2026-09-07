@@ -15,6 +15,10 @@ import {
   DICCIONARIO_CLASES_POR_ID,
   TODAS_SUBCLASES_DND55
 } from "@/constantes/clasesDND55";
+import {
+  obtenerMaxInvocacionesBrujo,
+  generarOpcionesSelectorInvocaciones
+} from "@/constantes/invocacionesSobrenaturales";
 import { calcularTodosRecursosMagicos } from "@/servicios/calculadorMagia";
 import { sincronizarRasgosAutomaticos } from "@/servicios/compendioRasgos";
 import { sincronizarConjurosSubclaseHelper } from "@/servicios/sincronizadorConjurosSubclase";
@@ -221,6 +225,12 @@ export function obtenerRasgosClaseYSubclase(
           ? (nivelSeguro >= 16 ? 6 : nivelSeguro >= 10 ? 5 : nivelSeguro >= 4 ? 4 : 3)
           : (nivelSeguro >= 10 ? 4 : nivelSeguro >= 4 ? 3 : 2);
         selectoresClonados[0].maxSelecciones = maxArmas;
+      }
+
+      // Ajustar selector de Invocaciones Sobrenaturales según nivel de Brujo
+      if (r.nombre === "Invocaciones sobrenaturales" && selectoresClonados.length > 0) {
+        selectoresClonados[0].maxSelecciones = obtenerMaxInvocacionesBrujo(nivelSeguro);
+        selectoresClonados[0].opciones = generarOpcionesSelectorInvocaciones(nivelSeguro);
       }
 
       // Ajustar Golpe Brutal si nivel >= 13 o >= 17

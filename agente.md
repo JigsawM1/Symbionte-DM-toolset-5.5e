@@ -12,7 +12,110 @@ Este archivo registra reglas globales, errores encontrados, sus causas raíz y l
    - Toda interacción, comentarios y documentación técnica se redacta 100% en español.
 4. **TIPADO ESTRICTO Y CÓDIGO LIMPIO**:
    - `strict: true` en TypeScript. Cero tipos `any`. Interfaces explícitas, generics y principios SOLID.
+## [2026-09-07] Corrección de Colapso Visual por Flexbox en Selector de Invocaciones Sobrenaturales
+**Error y Causa Raíz:**
+- *Síntoma reportado*: Las 28 tarjetas de invocación se mostraban como líneas horizontales aplastadas (de apenas 3-4px de altura) en la interfaz, volviéndose ilegibles y no desplegables.
+- *Causa Raíz*: El contenedor `.listaCajasInvocaciones` estaba configurado como un flexbox con `max-height: 480px` y `overflow-y: auto`. Por defecto en CSS Flexbox, los elementos hijos tienen `flex-shrink: 1`. Al renderizar 28 tarjetas cerradas con `overflow: hidden` dentro de una altura finita, el motor flexbox redujo la altura de cada tarjeta al mínimo posible, colapsando todas las tarjetas a franjas microscópicas.
+- *Solución Aplicada*:
+  1. En `SelectorInvocacionesAcordeon.module.css`:
+     - Se aplicó `flex-shrink: 0; min-height: 46px; width: 100%; box-sizing: border-box;` a `.tarjetaInvocacionCaja` y a `.cabeceraInvocacionCaja`.
+     - Se eliminó el límite `max-height: 480px; overflow-y: auto;` de `.listaCajasInvocaciones` para permitir que la lista fluya de manera natural dentro del panel exterior de la tarjeta independiente.
+     - Se añadió `flex-shrink: 0; box-sizing: border-box;` a `.cuerpoInvocacionCaja` para garantizar que cuando una tarjeta se expanda, el contenido tenga su altura calculada sin deformaciones.
+- *Verificación*:
+  - `pnpm tsc --noEmit` y `pnpm build` ejecutados exitosamente con 0 errores.
 
+## [2026-09-06] Sección Exterior Independiente para Invocaciones Sobrenaturales en Vista de Rasgos
+**Decisión y Motivación:**
+- *Solicitud del Usuario*: "ok por lo que vi la mejor opcion es hacer que las invocaciones sobrenaturales tengan su propia caja afuera como las subclases".
+- *Causa*: El rasgo "Invocaciones sobrenaturales" se mostraba como un rasgo ordinario dentro de la tarjeta de Clase Base, obligando al usuario a abrir un modal para poder gestionar o visualizar sus invocaciones. Al igual que las subclases poseen su propia sección/tarjeta exterior desacoplada, las Invocaciones Sobrenaturales tienen la suficiente entidad, volumen y relevancia como para tener su propio bloque principal en la vista de rasgos.
+- *Solución Arquitectónica*:
+  1. **Aislamiento en `datosJerarquicos` (`VistaRasgosJugador.tsx`)**:
+     - Se añadió `claveColapsoInvocaciones: "invocaciones_${idx}_${normalizar(c.nombre)}"` y `rasgoInvocaciones` a cada grupo de clase en `mapClases`.
+     - Al clasificar los rasgos, si coincide con "Invocaciones sobrenaturales" y posee selectores, se aparta de `rasgosBase` y se asigna a `mc.rasgoInvocaciones`. Esto evita que aparezca duplicado en la caja de la clase base.
+  2. **Tarjeta Exterior Dedicada ("Tarjeta 3: Invocaciones Sobrenaturales")**:
+     - Renderizada en el mismo nivel jerárquico que la Clase Base y la Subclase, con su propio borde temático violeta `#a855f7`, icono `<Flame size={13} color="#a855f7" />`, título oficial y badge interactivo de conteo (`X / Y` aprendidas).
+     - Integra de forma nativa el componente `SelectorInvocacionesAcordeon`:
+       - Permite consultar, buscar por texto y filtrar por estado ("Todas", "Disponibles", "Aprendidas").
+       - Permite desplegar y alternar la selección con botones directos "+ Agregar" / "Quitar" sin necesidad de abrir modales secundarios.
+       - Aplica los cambios en el almacén global mediante `actualizarSeleccionRasgo`.
+  3. **Control de Colapso Global**:
+     - `colapsarTodas` y `expandirTodas` ahora contemplan la clave `claveColapsoInvocaciones` para expandir o contraer todas las secciones limpiamente con el conmutador general.
+- *Verificación*:
+  - `pnpm tsc --noEmit` completado con 0 errores.
+  - `pnpm build` ejecutado exitosamente con Vite en 13.00s (0 errores).
+
+## [2026-09-05] Desacoplamiento y Catálogo Modular de Invocaciones Sobrenaturales del Brujo (D&D 5.5e)
+**Decisión y Motivación:**
+- *Solicitud del Usuario*: "hola segumos haciendo los rasgos de las clases de la hoja de personaje. vamos por brujo y para eso primero considero que es importante sacar cada INVOCACIÓN SOBRENATURAL a algo independiente, ya que cada invocacion tiene algun efecto dicionario_herramientas/clases/invocaciones_sobrenaturales.md alli te la dejo".
+- *Causa*: El rasgo "Opciones de invocación sobrenatural" del Brujo en `clasesDND55.ts` era un bloque monolítico de texto en un solo campo `descripcion` que contenía todas las invocaciones sin tipar, impidiendo que el jugador seleccionara interactivamente sus invocaciones, impidiendo la aplicación de efectos mecánicos (como conjuros gratuitos, bonificaciones con Carisma o ventajas en concentración) y sin validación de requisitos ni escalado dinámico por nivel.
+- *Decisiones Clave*:
+  1. Las invocaciones fuera de las mecánicas automatizables del simbionte (empujar de Descarga ahuyentadora, sentidos especiales como Vista del diablo y Visión bruja, derribar de Castigo arcano, Don de las profundidades en respiración acuática, Inversión del amo de las cadenas, Mirada de las dos mentes, Hoja devoradora y protección contra 0 HP de Don de los protectores) se mantienen como informativas o con efectos informativos documentados.
+  2. Todas las referencias a modificadores de características usan las variables canónicas en español (`carisma` o `car`).
+  3. Filtrado por requisitos implementado en tiempo real: nivel mínimo requerido e invocaciones previas requeridas (ej. Pacto del filo para Castigo arcano o Filo sediento).
+  4. Invocaciones repetibles (Descarga agónica, Descarga ahuyentadora, Lanza sobrenatural y Lecciones de los Primeros) tratadas como opción seleccionable individual en esta fase.
+- *Solución Arquitectónica*:
+  1. **Tipado Estricto (`src/tipos/rasgos.ts`)**:
+     - Se enriqueció `EsquemaOpcionSelector` con `requisito?: string`, `nivelMinimo?: number`, `requisitoInvocacion?: string` y `repetible?: boolean`.
+     - Se creó la interfaz canónica `InvocacionSobrenatural` con tipado estricto (cero `any`).
+  2. **Catálogo Canónico Dedicado (`src/constantes/invocacionesSobrenaturales.ts`)**:
+     - 28 invocaciones completas tipadas derivadas fielmente de `dicionario_herramientas/clases/invocaciones_sobrenaturales.md`.
+     - Implementación de `obtenerMaxInvocacionesBrujo(nivelBrujo)` según la tabla oficial D&D 5.5e (Nv 1: 1, Nv 2: 3, Nv 5: 5, Nv 7: 6, Nv 9: 7, Nv 12+: 8).
+     - Implementación de `generarOpcionesSelectorInvocaciones(nivelBrujo)` para alimentar selectores de opciones con requisitos y descripciones enriquecidas.
+  3. **Reestructuración del Brujo en el Catálogo Maestro (`src/constantes/clasesDND55.ts`)**:
+     - El rasgo `Invocaciones sobrenaturales` ahora posee `categoriaMecanica: "selector_informativo"`, `selectores: [...]` dinámico y `tablaProgresion` oficial.
+     - Se eliminó el rasgo monolítico redundante `Opciones de invocación sobrenatural`.
+  4. **Escalado Reactivo en `gestorClases.ts`**:
+     - En `obtenerRasgosClaseYSubclase`, el selector `invocaciones_sobrenaturales_aprendidas` escala `maxSelecciones` y sus opciones según el nivel del Brujo en la build.
+  5. **Visualización y Selección Especializada con Cajas Colapsables (`SelectorInvocacionesAcordeon.tsx`)**:
+     - En respuesta a la incomodidad de los tooltips para textos largos, se implementó un acordeón con tarjetas colapsables independientes por invocación.
+     - Cada tarjeta colapsable posee:
+       - Cabecera con chevron (`ChevronDown`/`ChevronUp`), título, badges de nivel (`Nivel X+`), estado (`Aprendida` / `Bloqueada`), y botón directo de acción rápida ("+ Agregar" o "Quitar").
+       - Cuerpo expandido con alerta destacada de requisitos (cumplidos en verde con `ShieldCheck`, pendientes en rojo con `AlertCircle`), descripción completa renderizada con `renderizarTextoEnriquecidoDND`, desglose de efectos mecánicos y botón de acción expandido.
+       - Barra de herramientas con buscador en tiempo real por texto/requisito y filtros rápidos por estado ("Todas", "Disponibles", "Aprendidas").
+  6. **Erradicación Total de Emojis Unicode (Regla 1 Obligatoria)**:
+     - *Error cometido*: Se introdujeron caracteres unicode (`🔒` y `✓`) en botones y etiquetas dentro de `ModalDetalleRasgo.tsx`.
+     - *Corrección*: Se eliminaron al 100% todos los caracteres unicode no estándar y se sustituyeron estrictamente por componentes vectoriales SVG de `lucide-react` (`Lock`, `Check`, `Plus`, `Trash2`, `AlertCircle`, `ShieldCheck`).
+  7. **Soporte de Conjuros Gratuitos en `evaluadorEfectosRasgos.ts`**:
+     - `esLanzamientoGratuitoDeConjuro` se refactorizó para evaluar `evaluarEfectosRasgosActivos(personaje)`, cubriendo automáticamente invocaciones como *Armadura de sombras*, *Máscara de los mil rostros*, *Vigor infernal*, etc.
+- *Verificación*:
+  - `pnpm tsc --noEmit` completado con 0 errores de compilación.
+  - `pnpm build` ejecutado exitosamente con Vite en 7.15s (0 errores).
+
+## [2026-09-05] Creación de la Aplicación Autónoma de Edición de Equipo Compendio y Gestión Dinámica de Categorías (editor_equipo/)
+**Decisión y Motivación:**
+- *Solicitud del Usuario*: "creame una app, para modificar y editar los objetos de @[src/utiles/compendios/Equipo es.json], quiero que esten todas las opciones del editor homebrew, quiero poder tomar y crear categorias y subcategorias, ETC. necesito que la app sea en html,css y js o ts"
+- *Causa*: Los 199 objetos base de `Equipo es.json` estaban tratados históricamente como constantes de solo lectura en el compendio DM, y el creador homebrew tradicional excluía los objetos originales mediante `IDS_INICIALES_OBJETOS`. Además, no existía una herramienta gráfica dedicada para editar, categorizar masivamente, crear nuevas categorías dinámicas (`equipment_categories`) y exportar el JSON con formato canónico.
+- *Solución Arquitectónica*:
+  1. **Aplicación Web Modular y Autónoma (`editor_equipo/`)**:
+     - *`index.html`*: Maquetación de dos columnas de alta densidad (explorador/filtros a la izquierda, editor por 4 pestañas a la derecha, barra de herramientas superior, modales flotantes y toasts).
+     - *`styles.css`*: Paleta Dark Fantasy Zafiro Táctico matching con ToolSet Es 5.5, variables CSS, badges de rareza, chips de categorías y cero animaciones CSS para latencia 0ms.
+     - *`tipos.ts`*: Definiciones TypeScript estrictas (`strict: true`, cero `any`) para objetos, categorías, costes, dados de daño, maestrías 5.5e, propiedades, CA, contenedor, artesanía, venenos, magia y efectos pasivos.
+     - *`datosBase.js`*: Serialización de los 199 objetos canónicos iniciales para arranque inmediato en modo standalone o local.
+     - *`app.ts` & `app.js`*: Motor reactivo en TypeScript compilado a JavaScript nativo para ejecución inmediata en cualquier navegador.
+  2. **Sistema Dinámico de Categorías y Subcategorías**:
+     - *Tomar*: Desplegable y píldoras rápidas con las 25 categorías del compendio oficial (`equipment_categories`).
+     - *Crear*: Input interactivo con generación automática de slug y asignación instantánea al objeto.
+     - *Gestor Global*: Modal interactivo que lista todas las categorías, cuenta cuántos objetos tiene cada una, permite renombrarlas en lote a través de todo el compendio o eliminarlas de forma segura.
+  3. **Suite Completa de Opciones Homebrew (4 Pestañas)**:
+     - *1. Datos Generales*: Nombre, slug identificador, categorías múltiples, tipo principal, subcategoría primaria, rareza, coste y moneda, peso en lb, toggles mágico/equipable/veneno, opciones completas de veneno (tipo, CD, efecto) y descripción con imagen.
+     - *2. Atributos de Combate y Equipo*: Armas (daño, daño versátil, tipo de daño, maestrías 5.5e, checklist de 11 propiedades oficiales, alcances normal/largo, munición requerida y enlace relacional), Armaduras (CA base, modificador destreza, requisito fuerza, desventaja sigilo, don/doff), Herramientas/Paquetes (lote, almacenamiento, característica ability, contenidos con buscador y cantidades, acciones utilize con CD).
+     - *3. Magia y Efectos Pasivos*: Sintonización y requisitos, cargas y recarga, bono mágico a ataque/daño (+1, +2, +3), tabla interactiva de efectos pasivos (resistencias, CA, salvaciones, etc.), y tabla de conjuros vinculados (CD, bono, cargas).
+     - *4. Ficha Previa*: Statblock oficial renderizado en tiempo real con diseño pergamino/zafiro.
+  4. **Exportación, Importación y Persistencia**:
+     - Descarga directa de `Equipo es.json` formateado con indentación a 2 espacios y campos canónicos limpios.
+     - Copia al portapapeles con 1 clic.
+     - Lector de archivos JSON para cargar y fusionar compendios externos.
+     - Persistencia automática de cambios en `localStorage`.
+     - Restauración segura a valores de fábrica (199 objetos).
+  5. **Integración**:
+     - Enlace directo accesible desde la subpestaña "Equipo y Objetos" de `Compendio.tsx` para abrir la aplicación.
+- *Verificación*:
+  - Sintaxis validada con `node --check` para `datosBase.js` y `app.js` (0 errores).
+  - Tipado TypeScript estricto verificado con `pnpm exec tsc` (0 errores).
+  - Suite completa de 41 suites y 451 pruebas unitarias pasando al 100% (`pnpm test`).
+  - Proyecto principal verificado con `pnpm exec tsc --noEmit` (0 errores).
+
+---
 
 ## [2026-09-04] Actualización Completa de la Suite de Edición en App Sencilla (Build & Homebrew)
 **Decisión y Motivación:**

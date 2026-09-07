@@ -79,9 +79,27 @@ export const EsquemaOpcionSelector = z.object({
   id: z.string(),
   nombre: z.string(),
   descripcion: z.string().default(""),
+  requisito: z.string().optional(),
+  nivelMinimo: z.number().int().min(1).max(20).optional(),
+  requisitoInvocacion: z.string().optional(),
+  repetible: z.boolean().optional(),
   efectos: z.array(EsquemaEfectoMecanicoRasgo).optional()
 });
 export type OpcionSelector = z.infer<typeof EsquemaOpcionSelector>;
+
+export interface InvocacionSobrenatural {
+  id: string;
+  nombre: string;
+  descripcion: string;
+  nivelMinimo: number;
+  requisitoPrevio?: string;
+  requisitoInvocacion?: string;
+  tipoAccion: "pasivo" | "accion" | "accion_adicional" | "reaccion" | "especial";
+  repetible: boolean;
+  efectos?: EfectoMecanicoRasgo[];
+  conjuroGratuito?: string;
+  recuperacionConjuro?: "ninguno" | "descanso_largo" | "ilimitado";
+}
 
 export const EsquemaSelectorRasgo = z.object({
   id: z.string(),

@@ -29,8 +29,10 @@ import {
   User,
   Swords,
   Award,
-  CheckCircle2
+  CheckCircle2,
+  Flame
 } from "lucide-react";
+import { SelectorInvocacionesAcordeon } from "./SelectorInvocacionesAcordeon";
 import estilos from "./VistaRasgosJugador.module.css";
 
 type FiltroTipoAccion = "todos" | TipoAccionRasgo;
@@ -151,10 +153,12 @@ export const VistaRasgosJugador: React.FC = () => {
       personajeActivo.clases.forEach((c, idx) => {
         colapsadas[`clase_${idx}_${normalizar(c.nombre)}`] = true;
         colapsadas[`subclase_${idx}_${normalizar(c.nombre)}_${normalizar(c.subclase || "sin_subclase")}`] = true;
+        colapsadas[`invocaciones_${idx}_${normalizar(c.nombre)}`] = true;
       });
     } else {
       colapsadas["clase_0_principal"] = true;
       colapsadas["subclase_0_principal"] = true;
+      colapsadas["invocaciones_0_principal"] = true;
     }
     setSeccionesColapsadas(colapsadas);
   };
@@ -335,8 +339,10 @@ export const VistaRasgosJugador: React.FC = () => {
       clase: c,
       claveColapsoClase: `clase_${idx}_${normalizar(c.nombre)}`,
       claveColapsoSubclase: `subclase_${idx}_${normalizar(c.nombre)}_${normalizar(c.subclase || "sin_subclase")}`,
+      claveColapsoInvocaciones: `invocaciones_${idx}_${normalizar(c.nombre)}`,
       rasgosBase: [] as RasgoPersonaje[],
       rasgosSubclase: [] as RasgoPersonaje[],
+      rasgoInvocaciones: undefined as RasgoPersonaje | undefined,
       total: 0
     }));
 
@@ -362,7 +368,14 @@ export const VistaRasgosJugador: React.FC = () => {
             normFuente.includes(normNombreClase) ||
             rasgo.id.includes(`_${normNombreClase}_`)
           ) {
+            const nomRasgoNorm = normalizar(rasgo.nombre);
             if (
+              nomRasgoNorm.includes("invocaciones sobrenaturales") &&
+              Array.isArray(rasgo.selectores) &&
+              rasgo.selectores.length > 0
+            ) {
+              mc.rasgoInvocaciones = rasgo;
+            } else if (
               rasgo.origen === "subclase" ||
               (normSubClasePj && normFuente.includes(normSubClasePj))
             ) {
@@ -717,10 +730,15 @@ export const VistaRasgosJugador: React.FC = () => {
                 </div>
               )}
 
-              {/* BLOQUE 2: CLASE(S) Y SUBCLASE(S) SEPARADAS */}
+              {/* BLOQUE 2: CLASE(S), SUBCLASE(S) E INVOCACIONES SEPARADAS */}
               {datosJerarquicos.clases.map((mc) => {
                 const claseColapsada = !!seccionesColapsadas[mc.claveColapsoClase];
                 const subclaseColapsada = !!seccionesColapsadas[mc.claveColapsoSubclase];
+                const invocacionesColapsada = !!seccionesColapsadas[mc.claveColapsoInvocaciones];
+
+                const selectorInvocaciones = mc.rasgoInvocaciones?.selectores?.[0];
+                const aprendidasInvocaciones = selectorInvocaciones?.valorActual || [];
+                const maxInvocaciones = selectorInvocaciones?.maxSelecciones || 1;
 
                 return (
                   <React.Fragment key={`grupo_clase_${mc.clase.nombre}`}>
@@ -814,6 +832,52 @@ export const VistaRasgosJugador: React.FC = () => {
                                 />
                               );
                             })}
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Tarjeta 3: Invocaciones Sobrenaturales (Caja Exterior Independiente como las Subclases) */}
+                    {mc.rasgoInvocaciones && selectorInvocaciones && (
+                      <div
+                        className={estilos.seccionPrincipal}
+                        style={{ borderLeft: "3px solid #a855f7" }}
+                      >
+                        <div
+                          className={estilos.cabeceraSeccionPrincipal}
+                          onClick={() => alternarColapso(mc.claveColapsoInvocaciones)}
+                        >
+                          <div className={estilos.ladoIzquierdoCabecera}>
+                            {invocacionesColapsada ? <ChevronRight size={15} /> : <ChevronDown size={15} />}
+                            <Flame size={13} color="#a855f7" />
+                            <span className={estilos.tituloSeccion} style={{ color: "#c084fc" }}>
+                              Invocaciones Sobrenaturales ({mc.clase.nombre})
+                            </span>
+                            <span
+                              className={estilos.badgeConteoSeccion}
+                              style={{ background: "rgba(168, 85, 247, 0.2)", color: "#e9d5ff", borderColor: "#a855f7" }}
+                            >
+                              {aprendidasInvocaciones.length} / {maxInvocaciones}
+                            </span>
+                          </div>
+                        </div>
+
+                        {!invocacionesColapsada && (
+                          <div className={estilos.cuerpoSeccionPrincipal} style={{ padding: "8px 12px 14px 12px" }}>
+                            <SelectorInvocacionesAcordeon
+                              selector={selectorInvocaciones}
+                              nivelPersonaje={mc.clase.nivel}
+                              alActualizarSeleccion={(idSelector, valores) => {
+                                if (mc.rasgoInvocaciones) {
+                                  actualizarSeleccionRasgo(
+                                    personajeActivo.id,
+                                    mc.rasgoInvocaciones.id,
+                                    idSelector,
+                                    valores
+                                  );
+                                }
+                              }}
+                            />
                           </div>
                         )}
                       </div>

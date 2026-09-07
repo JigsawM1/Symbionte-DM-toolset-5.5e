@@ -838,22 +838,21 @@ export function tieneConjuroGratuitoActivo(personaje: PersonajeJugador, nombreCo
     return true;
   }
 
-  // 2. Verificar rasgos activos con efecto "conjuro_gratuito"
-  const rasgos = personaje.rasgos || [];
-  for (const r of rasgos) {
-    if (r.activo === false) continue;
-    if (Array.isArray(r.efectos)) {
-      for (const ef of r.efectos) {
-        if (ef.tipo === "conjuro_gratuito") {
-          const objNorm = normalizar(String(ef.objetivo || ""));
-          if (objNorm === nomNorm || nomNorm.includes(objNorm) || objNorm.includes(nomNorm)) {
-            return true;
-          }
-        }
+  // 2. Verificar efectos activos con "conjuro_gratuito" (rasgos directos y opciones de selectores como Invocaciones)
+  const efectosActivos = evaluarEfectosRasgosActivos(personaje);
+  for (const ef of efectosActivos) {
+    if (ef.tipo === "conjuro_gratuito") {
+      const objNorm = normalizar(String(ef.objetivo || ""));
+      if (objNorm === nomNorm || nomNorm.includes(objNorm) || objNorm.includes(nomNorm)) {
+        return true;
       }
     }
-    // Verificación canónica por nombre de rasgo activo
-    if (normalizar(r.nombre).includes("manto de majestad") && r.activo && nomNorm.includes("orden imperiosa")) {
+  }
+
+  // 3. Verificación canónica por nombre de rasgo activo (Manto de majestad)
+  const rasgos = personaje.rasgos || [];
+  for (const r of rasgos) {
+    if (r.activo !== false && normalizar(r.nombre).includes("manto de majestad") && nomNorm.includes("orden imperiosa")) {
       return true;
     }
   }

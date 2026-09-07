@@ -1,4 +1,5 @@
 import { useState, useEffect, Dispatch, SetStateAction } from "react";
+import { logger } from "@/utiles/logger";
 
 /**
  * Hook para sincronizar estado de componentes con localStorage.
@@ -19,7 +20,7 @@ export function usarEstadoPersistido<T>(
         return JSON.parse(guardado) as T;
       }
     } catch (err) {
-      console.warn(`[usarEstadoPersistido] Error al leer la clave "${clave}":`, err);
+      logger.warn(`[usarEstadoPersistido] Error al leer la clave "${clave}":`, err);
     }
     return typeof valorInicial === "function" ? (valorInicial as () => T)() : valorInicial;
   });
@@ -33,7 +34,7 @@ export function usarEstadoPersistido<T>(
         setEstado(JSON.parse(guardado) as T);
       }
     } catch (err) {
-      console.warn(`[usarEstadoPersistido] Error al recargar la clave "${clave}":`, err);
+      logger.warn(`[usarEstadoPersistido] Error al recargar la clave "${clave}":`, err);
     }
   }, [clave]);
 
@@ -42,7 +43,7 @@ export function usarEstadoPersistido<T>(
     try {
       localStorage.setItem(clave, JSON.stringify(estado));
     } catch (err) {
-      console.warn(`[usarEstadoPersistido] Error al guardar la clave "${clave}":`, err);
+      logger.warn(`[usarEstadoPersistido] Error al guardar la clave "${clave}":`, err);
     }
   }, [clave, estado]);
 

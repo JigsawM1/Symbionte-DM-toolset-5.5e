@@ -14,6 +14,7 @@ import { PanelInventarioPersonaje } from "@/componentes/caracteristicas/personaj
 import { detectarInfoConsumible, evaluarFormulaDados } from "@/servicios/procesadorConsumibles";
 import { lanzarDadosTaleSpire, sanitizarEtiqueta } from "@/utiles/lanzadorDados";
 import { desduplicarEntidades } from "@/utiles/busquedaTolerante";
+import { logger } from "@/utiles/logger";
 import estilos from "./VistaInventarioJugador.module.css";
 
 export const VistaInventarioJugador: React.FC = () => {
@@ -75,7 +76,7 @@ export const VistaInventarioJugador: React.FC = () => {
       try {
         await lanzarDadosTaleSpire(etiquetaTaleSpire, log);
       } catch (err) {
-        console.error("[VistaInventarioJugador] Error al tirar curación a TaleSpire:", err);
+        logger.error("[VistaInventarioJugador] Error al tirar curación a TaleSpire:", err);
       }
 
       agregarNotificacion(

@@ -1,6 +1,7 @@
 import React from "react";
 import type { RasgoPersonaje, TipoAccionRasgo, OrigenRasgo } from "@/tipos";
 import { lanzarDadosTaleSpire } from "@/utiles/lanzadorDados";
+import { logger } from "@/utiles/logger";
 import {
   X,
   Shield,
@@ -126,7 +127,7 @@ export const ModalDetalleRasgo: React.FC<ModalDetalleRasgoProps> = ({
           : undefined
       );
     } catch (error) {
-      console.error("[ModalDetalleRasgo] Error al tirar dados:", error);
+      logger.error("[ModalDetalleRasgo] Error al tirar dados:", error);
     }
   };
 

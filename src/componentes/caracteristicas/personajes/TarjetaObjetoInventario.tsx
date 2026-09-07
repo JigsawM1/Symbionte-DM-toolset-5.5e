@@ -14,6 +14,7 @@ import {
   obtenerInfoPropiedadArma,
   obtenerInfoPropiedadArmadura
 } from "@/servicios/resolutorPropiedades";
+import { logger } from "@/utiles/logger";
 import estilos from "./HojaPersonaje.module.css";
 
 interface TarjetaObjetoInventarioProps {
@@ -165,7 +166,7 @@ export const TarjetaObjetoInventario: React.FC<TarjetaObjetoInventarioProps> = (
         alSoltarReordenar(payload.idInstancia, objeto.idInstancia);
       }
     } catch (err) {
-      console.error("[TarjetaObjetoInventario] Error al procesar reordenación:", err);
+      logger.error("[TarjetaObjetoInventario] Error al procesar reordenación:", err);
     }
   };
 

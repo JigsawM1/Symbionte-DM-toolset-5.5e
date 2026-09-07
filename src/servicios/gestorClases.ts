@@ -23,6 +23,7 @@ import { calcularTodosRecursosMagicos } from "@/servicios/calculadorMagia";
 import { sincronizarRasgosAutomaticos } from "@/servicios/compendioRasgos";
 import { sincronizarConjurosSubclaseHelper } from "@/servicios/sincronizadorConjurosSubclase";
 import { resolverGruposYSustitutosCompetencias } from "@/constantes/competenciasConstantes";
+import { logger } from "@/utiles/logger";
 import {
   obtenerDadoInspiracionBardica,
   tieneMedioBonoHabilidades,
@@ -158,7 +159,7 @@ export function evaluarFormulaUsos(formula: string | null | undefined, nivel: nu
       if (!isNaN(valDefecto)) return valDefecto;
     }
   } catch (error) {
-    console.warn(`[gestorClases] Error al evaluar formulaUsos: "${formula}"`, error);
+    logger.warn(`[gestorClases] Error al evaluar formulaUsos: "${formula}"`, error);
   }
 
   return undefined;

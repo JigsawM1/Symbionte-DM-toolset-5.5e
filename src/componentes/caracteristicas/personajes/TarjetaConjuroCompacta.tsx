@@ -13,6 +13,7 @@ import {
 } from "@/servicios/calculadorMagia";
 import type { ModoLanzamiento } from "@/servicios/servicioLanzamientoConjuros";
 import { SelectorDesplegable } from "@/componentes/comunes";
+import { logger } from "@/utiles/logger";
 import estilos from "./TarjetaConjuroCompacta.module.css";
 
 interface TarjetaConjuroCompactaProps {
@@ -202,7 +203,7 @@ export const TarjetaConjuroCompacta: React.FC<TarjetaConjuroCompactaProps> = ({
         alEstablecerConcentracion(hechizo.id, hechizo.nombre);
       }
     } catch (err) {
-      console.error("[TarjetaConjuroCompacta] Error al lanzar conjuro:", err);
+      logger.error("[TarjetaConjuroCompacta] Error al lanzar conjuro:", err);
     }
   };
 
@@ -232,7 +233,7 @@ export const TarjetaConjuroCompacta: React.FC<TarjetaConjuroCompactaProps> = ({
         alEstablecerConcentracion(hechizo.id, hechizo.nombre);
       }
     } catch (err) {
-      console.error("[TarjetaConjuroCompacta] Error al lanzar ritual:", err);
+      logger.error("[TarjetaConjuroCompacta] Error al lanzar ritual:", err);
     }
   };
 

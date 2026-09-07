@@ -10,6 +10,7 @@ import { lanzarDadosTaleSpire, sanitizarEtiqueta } from "@/utiles/lanzadorDados"
 import { evaluarEfectosCondicionesEnTirada } from "@/servicios/procesadorCondiciones";
 import { esMunicionCompatibleConArma } from "@/servicios/gestorMunicion";
 import { evaluarFormulaDados } from "@/servicios/procesadorConsumibles";
+import { logger } from "@/utiles/logger";
 
 export interface ContextoTiradaAtaqueFisico {
   ataque: AtaquePersonajeCalculado;
@@ -105,7 +106,7 @@ export async function ejecutarTiradaAtaqueFisico(ctx: ContextoTiradaAtaqueFisico
 
     await lanzarDadosTaleSpire(formula, etiqueta);
   } catch (error) {
-    console.error("Error al tirar ataque:", error);
+    logger.error("Error al tirar ataque:", error);
   }
 }
 
@@ -143,7 +144,7 @@ export async function ejecutarTiradaDanoFisico(
     const formulaCompuesta = formulasTaleSpire.join("/");
     await lanzarDadosTaleSpire(formulaCompuesta, `${nombrePj}: Daño ${ataque.nombre}`);
   } catch (error) {
-    console.error("Error al tirar daño:", error);
+    logger.error("Error al tirar daño:", error);
   }
 }
 
@@ -201,7 +202,7 @@ export async function ejecutarTiradaCritico(
     const formulaFinal = formulasTaleSpire.join("/");
     await lanzarDadosTaleSpire(formulaFinal, `${nombrePj}: CRÍTICO con ${ataque.nombre}`);
   } catch (error) {
-    console.error("Error al tirar daño crítico:", error);
+    logger.error("Error al tirar daño crítico:", error);
   }
 }
 
@@ -250,6 +251,6 @@ export async function ejecutarUsoConsumible(ctx: ContextoUsoConsumible): Promise
       );
     }
   } catch (error) {
-    console.error("Error al usar consumible:", error);
+    logger.error("Error al usar consumible:", error);
   }
 }

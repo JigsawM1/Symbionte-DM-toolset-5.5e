@@ -3,6 +3,7 @@ import type { PersonajeJugador, HechizoBase } from "@/tipos";
 import type { PenalizacionArmadura } from "@/almacen/selectores/usarEstadoPersonajes";
 import { COSTE_PUNTOS_POR_NIVEL } from "@/constantes";
 import { lanzarDadosTaleSpire } from "@/utiles/lanzadorDados";
+import { logger } from "@/utiles/logger";
 import {
   validarLanzamiento,
   prepararLanzamiento,
@@ -188,12 +189,12 @@ export function usarLanzadorConjuros(opciones: OpcionesLanzadorConjuros): Contro
             preparado.formula.etiquetaLog
           );
         } catch (errTaleSpire) {
-          console.error("[usarLanzadorConjuros] Error al enviar tirada a TaleSpire:", errTaleSpire);
+          logger.error("[usarLanzadorConjuros] Error al enviar tirada a TaleSpire:", errTaleSpire);
         }
 
         return true;
       } catch (err) {
-        console.error("[usarLanzadorConjuros] Error al ejecutar lanzamiento:", err);
+        logger.error("[usarLanzadorConjuros] Error al ejecutar lanzamiento:", err);
         agregarNotificacion("Error al procesar el lanzamiento del conjuro.", "error");
         return false;
       }

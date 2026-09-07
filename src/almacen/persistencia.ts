@@ -33,6 +33,7 @@ export const persistirEstadoCompleto = (estado: Partial<EstadoDM>) => {
       asociaciones_fichas: estado.asociacionesFichas || {},
       personajes:          estado.personajes || [],
       id_personaje_activo: estado.idPersonajeActivo || null,
+      mostrar_porcentaje_vida: estado.mostrarPorcentajeVidaAJugadores !== undefined ? estado.mostrarPorcentajeVidaAJugadores : true,
     };
 
     guardarBlobGlobal(blob).catch((e: unknown) => {

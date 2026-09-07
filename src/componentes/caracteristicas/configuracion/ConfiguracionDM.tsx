@@ -8,7 +8,7 @@ import {
 import { Upload, Download, Trash2, ShieldAlert, CheckCircle, Heart, Copy, X, Eye, Settings, Sparkles } from "lucide-react";
 import { IDS_INICIALES_MONSTRUOS, IDS_INICIALES_HECHIZOS, IDS_INICIALES_OBJETOS } from "@/utiles/datosIniciales";
 import { logger } from '@/utiles/logger';
-import { ts } from "@/utiles/TaleSpireAdapter";
+import { copiarAlPortapapeles } from "@/servicios/sistemaTaleSpire";
 import estilosClases from "./ConfiguracionDM.module.css";
 
 export const ConfiguracionDM: React.FC = () => {
@@ -123,7 +123,7 @@ export const ConfiguracionDM: React.FC = () => {
 
   const copiarDelModal = async () => {
     if (!modalExport) return;
-    const exito = await ts.system.clipboard.setText(modalExport);
+    const exito = await copiarAlPortapapeles(modalExport);
     if (exito) {
       setCopiado(true);
       setTimeout(() => setCopiado(false), 3000);

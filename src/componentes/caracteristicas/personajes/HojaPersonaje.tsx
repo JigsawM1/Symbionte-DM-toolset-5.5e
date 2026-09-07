@@ -12,6 +12,7 @@ import {
 import { usarEstadoHomebrew } from "@/almacen/selectores/usarEstadoHomebrew";
 import { usarAccionesIniciativa } from "@/almacen/selectores/usarEstadoIniciativa";
 import { lanzarDadosTaleSpire, sanitizarEtiqueta, type MetadataIniciativa } from "@/utiles/lanzadorDados";
+import { logger } from "@/utiles/logger";
 import { MAPA_HABILIDAD_A_CARACTERISTICA } from "@/constantes";
 import { evaluarEfectosCondicionesEnTirada } from "@/servicios/procesadorCondiciones";
 import type { Caracteristica, Habilidad } from "@/tipos";
@@ -187,7 +188,7 @@ export const HojaPersonaje: React.FC<HojaPersonajeProps> = ({ alAbrirConfiguraci
         tipoTiradaCondicion
       );
     } catch (err) {
-      console.error("[HojaPersonaje] Error al enviar tirada 3D:", err);
+      logger.error("[HojaPersonaje] Error al enviar tirada 3D:", err);
     }
   }, [personajeActivo, tipoTirada]);
 

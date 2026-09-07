@@ -248,6 +248,18 @@ export const crearSliceConfiguracion: StateCreator<
           });
         }
 
+        const mostrarVida = blob.mostrar_porcentaje_vida as boolean | undefined;
+        if (mostrarVida !== undefined && mostrarVida !== null) {
+          if (typeof localStorage !== "undefined") {
+            try {
+              localStorage.setItem("ts_mostrar_porcentaje_vida", String(mostrarVida));
+            } catch (e) {
+              logger.warn("[TS Storage] No se pudo sincronizar ts_mostrar_porcentaje_vida en localStorage:", e);
+            }
+          }
+          set({ mostrarPorcentajeVidaAJugadores: Boolean(mostrarVida) });
+        }
+
         logger.info("[TS Storage] Carga completa desde blob oficial de TaleSpire.");
         set({ cargandoDatos: false });
         return;
@@ -308,8 +320,17 @@ export const crearSliceConfiguracion: StateCreator<
       encuentrosGuardados: [],
       personajes: [PERSONAJE_POR_DEFECTO],
       idPersonajeActivo: PERSONAJE_POR_DEFECTO.id,
+      mostrarPorcentajeVidaAJugadores: true,
       cargandoDatos: false
     });
+
+    if (typeof localStorage !== "undefined") {
+      try {
+        localStorage.setItem("ts_mostrar_porcentaje_vida", "true");
+      } catch (e) {
+        logger.warn("[TS Storage] Error al restablecer ts_mostrar_porcentaje_vida en localStorage:", e);
+      }
+    }
   }
 });
 

@@ -101,7 +101,7 @@ export function validarLanzamiento(
     const motivoTexto = motivos.length > 0 ? motivos.join(" y ") : "equipo sin entrenamiento";
     return {
       permitido: false,
-      motivo: `No puedes lanzar conjuros ni rituales mientras vistas ${motivoTexto} sin competencia.`
+      motivo: `No puedes lanzar conjuros ni rituales mientras vistas ${motivoTexto} sin competencia (Reglas D&D 5.5e).`
     };
   }
 

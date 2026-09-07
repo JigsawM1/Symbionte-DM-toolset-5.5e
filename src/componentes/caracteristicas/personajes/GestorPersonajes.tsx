@@ -4,7 +4,8 @@ import { ConfirmDialog } from "@/componentes/comunes/ConfirmDialog";
 import { Plus, Copy, Trash2, CheckCircle2, User, Download, Upload, Check, Clipboard, X, FileText } from "lucide-react";
 import { importarPersonajesDesdeJSON } from "@/almacen/importadorJSON";
 import { usarAccionesConfiguracion } from "@/almacen/selectores";
-import { ts } from "@/utiles/TaleSpireAdapter";
+import { copiarAlPortapapeles, descargarArchivoJSON } from "@/servicios/sistemaTaleSpire";
+import { logger } from "@/utiles/logger";
 import estilos from "./HojaPersonaje.module.css";
 
 interface GestorPersonajesProps {
@@ -57,21 +58,12 @@ export const GestorPersonajes: React.FC<GestorPersonajesProps> = ({
     };
     const jsonStr = JSON.stringify(datos, null, 2);
 
-    // 1. Copiar al portapapeles nativo de TaleSpire / Sistema
-    const exito = await ts.system.clipboard.setText(jsonStr);
+    // 1. Copiar al portapapeles desacoplado
+    const exito = await copiarAlPortapapeles(jsonStr);
 
-    // 2. Intentar descarga en navegador
-    try {
-      const blob = new Blob([jsonStr], { type: "application/json" });
-      const url = URL.createObjectURL(blob);
-      const enlace = document.createElement("a");
-      enlace.href = url;
-      enlace.download = `ficha_${(pj.nombre || "personaje").toLowerCase().replace(/\s+/g, "_")}.json`;
-      document.body.appendChild(enlace);
-      enlace.click();
-      document.body.removeChild(enlace);
-      URL.revokeObjectURL(url);
-    } catch {}
+    // 2. Descarga en navegador / cliente CEF
+    const nombreArchivo = `ficha_${(pj.nombre || "personaje").toLowerCase().replace(/\s+/g, "_")}.json`;
+    descargarArchivoJSON(jsonStr, nombreArchivo);
 
     if (exito) {
       setCopiadoPjId(pj.id);
@@ -96,20 +88,10 @@ export const GestorPersonajes: React.FC<GestorPersonajesProps> = ({
     };
     const jsonStr = JSON.stringify(datos, null, 2);
 
-    const exito = await ts.system.clipboard.setText(jsonStr);
+    const exito = await copiarAlPortapapeles(jsonStr);
 
-    try {
-      const blob = new Blob([jsonStr], { type: "application/json" });
-      const url = URL.createObjectURL(blob);
-      const enlace = document.createElement("a");
-      enlace.href = url;
-      const fecha = new Date().toISOString().split("T")[0];
-      enlace.download = `grupo_personajes_${fecha}.json`;
-      document.body.appendChild(enlace);
-      enlace.click();
-      document.body.removeChild(enlace);
-      URL.revokeObjectURL(url);
-    } catch {}
+    const fecha = new Date().toISOString().split("T")[0];
+    descargarArchivoJSON(jsonStr, `grupo_personajes_${fecha}.json`);
 
     if (exito) {
       setGrupoCopiado(true);
@@ -137,7 +119,7 @@ export const GestorPersonajes: React.FC<GestorPersonajesProps> = ({
       }
     } catch (err) {
       setErrorPegado("El texto no contiene un formato JSON válido.");
-      console.error("[GestorPersonajes] Error al parsear JSON:", err);
+      logger.error("[GestorPersonajes] Error al parsear JSON:", err);
     }
   };
 
@@ -164,7 +146,7 @@ export const GestorPersonajes: React.FC<GestorPersonajesProps> = ({
         }
       }
     } catch (e) {
-      console.warn("[GestorPersonajes] No se pudo leer directamente el portapapeles:", e);
+      logger.warn("[GestorPersonajes] No se pudo leer directamente el portapapeles:", e);
     }
     agregarNotificacion("Pega el texto JSON directamente en el campo usando Ctrl+V.", "info");
   };
@@ -443,7 +425,7 @@ export const GestorPersonajes: React.FC<GestorPersonajesProps> = ({
                 type="button"
                 className={estilos.neoButton}
                 onClick={async () => {
-                  await ts.system.clipboard.setText(modalJSON.contenido);
+                  await copiarAlPortapapeles(modalJSON.contenido);
                   agregarNotificacion("¡Texto JSON copiado al portapapeles!", "exito");
                 }}
                 style={{ backgroundColor: "var(--color-primario)", color: "#fff", borderColor: "var(--color-borde-cian)" }}

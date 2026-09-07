@@ -2,6 +2,7 @@ import { Component, ErrorInfo, ReactNode } from "react";
 import { AlertOctagon, RotateCcw } from "lucide-react";
 import estilos from "./LimiteError.module.css";
 import { logger } from '@/utiles/logger';
+import { limpiarBlobGlobal } from '@/utiles/almacenamientoTaleSpire';
 
 interface Props {
   children?: ReactNode;
@@ -26,14 +27,18 @@ export class LimiteError extends Component<Props, State> {
     logger.error("Error no capturado por el Simbionte:", error, errorInfo);
   }
 
-  private alReiniciar = () => {
-    localStorage.removeItem("dm_monstruos_homebrew");
-    localStorage.removeItem("dm_hechizos_homebrew");
-    localStorage.removeItem("dm_objetos_homebrew");
-    localStorage.removeItem("dm_pendientes");
-    localStorage.removeItem("dm_notas");
-    localStorage.removeItem("dm_encuentros_guardados");
-    window.location.reload();
+  private alReiniciar = async () => {
+    try {
+      logger.warn("[LimiteError] Reiniciando caché total tras excepción crítica...");
+      await limpiarBlobGlobal();
+      if (typeof localStorage !== "undefined") {
+        localStorage.clear();
+      }
+    } catch (err) {
+      logger.error("[LimiteError] Error al limpiar datos durante reinicio de emergencia:", err);
+    } finally {
+      window.location.reload();
+    }
   };
 
   public render() {

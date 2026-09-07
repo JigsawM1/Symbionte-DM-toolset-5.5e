@@ -3,6 +3,7 @@ import { Sparkles, Zap, RotateCcw, X, BookOpen } from "lucide-react";
 import type { HechizoBase } from "@/tipos";
 import { SelectorDesplegable } from "@/componentes/comunes";
 import { lanzarDadosTaleSpire } from "@/utiles/lanzadorDados";
+import { logger } from "@/utiles/logger";
 
 interface SeccionArcanoMisticoProps {
   arcanoMisticoIds: string[];
@@ -102,7 +103,7 @@ export const SeccionArcanoMistico: React.FC<SeccionArcanoMisticoProps> = ({
     try {
       await lanzarDadosTaleSpire(formula, `${nombrePj} - Arcano Místico Nv.${nivel} (${hechizo.nombre})`);
     } catch (err) {
-      console.error("[SeccionArcanoMistico] Error al enviar tirada a TaleSpire:", err);
+      logger.error("[SeccionArcanoMistico] Error al enviar tirada a TaleSpire:", err);
     }
     alGastarArcano(nivel);
   };

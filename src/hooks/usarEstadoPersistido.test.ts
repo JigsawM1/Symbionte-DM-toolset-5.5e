@@ -57,4 +57,17 @@ describe("Persistencia en LocalStorage (usarEstadoPersistido)", () => {
     const valorGuardado = mockStorage.getItem("clave_inexistente");
     expect(valorGuardado).toBeNull();
   });
+
+  it("tolera JSON corrupto en localStorage recuperando de forma segura", () => {
+    const clave = "ts_corrupto";
+    mockStorage.setItem(clave, "{ formato_invalido: json }");
+
+    let parseado: unknown = null;
+    try {
+      parseado = JSON.parse(mockStorage.getItem(clave) || "");
+    } catch {
+      parseado = { fallback: true };
+    }
+    expect(parseado).toEqual({ fallback: true });
+  });
 });

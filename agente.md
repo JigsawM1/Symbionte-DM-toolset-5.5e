@@ -13,6 +13,130 @@ Este archivo registra reglas globales, errores encontrados, sus causas raíz y l
 4. **TIPADO ESTRICTO Y CÓDIGO LIMPIO**:
    - `strict: true` en TypeScript. Cero tipos `any`. Interfaces explícitas, generics y principios SOLID.
 
+## [2026-09-07] Culminación Exitosa - Fase 3: Reducción Agresiva de Monolitos Principales (<250 Líneas Estricto)
+**Contexto y Logros:**
+- Se redujeron y desacoplaron quirúrgicamente los 3 componentes monolíticos principales restantes de la ficha del Modo Jugador (`PanelConjurosPersonaje`, `VistaRasgosJugador`, `PanelInventarioPersonaje`), logrando que **el 100% de los archivos del módulo queden estrictamente por debajo de 250 líneas** (rango obtenido: 28 a 246 líneas, media: 138 líneas).
+- **Módulos y Transformaciones Arquitectónicas**:
+  1. *PanelConjurosPersonaje.tsx (756 -> 233 líneas, -69%)*:
+     - `tiposPanelConjuros.ts` (63 líneas): Centralización de contratos de interfaces `PanelConjurosPersonajeProps` y `CabeceraYRecursosMagicosProps`.
+     - `usarFiltrosYSeccionesConjuros.ts` (200 líneas): Hook de filtrado reactivo (concentración, resolución, componentes V/S/M), ordenación y acordeones persistidos.
+     - `CabeceraYRecursosMagicos.tsx` (231 líneas): Banner de concentración activa, alerta de armadura no competente, métricas y trackers unificados.
+     - `ListaNivelesConjuros.tsx` (171 líneas): Trucos listos, estado vacío de conjuros y mapeo de niveles 1 a 9 con `SeccionNivelConjuros`.
+     - `SeccionConjurosOcultos.tsx` (141 líneas): Gestión y visualización de conjuros ocultados por el jugador con opción de desocultar todos.
+     - `ModalFichaHechizoFlotante.tsx` (92 líneas): Modal flotante de inspección detallada y lanzamiento de hechizo.
+  2. *VistaRasgosJugador.tsx (817 -> 206 líneas, -75%)*:
+     - `tiposRasgosJugador.ts` (28 líneas): Modelos de datos para secciones colapsables y jerarquía de rasgos.
+     - `utilidadesProgresionRasgos.ts` (240 líneas): Funciones puras de cálculo de progresión 1-20 (PHB 2024), normalización, validación de bloqueo por furia y resolución de recursos padre (dados heredados y usos compartidos).
+     - `usarVistaRasgos.ts` (246 líneas): Hook reactivo para búsqueda con relevancia, colapso persistido y sincronización automática por firma de multiclase.
+     - `SeccionesRasgosActivos.tsx` (168 líneas): Orquestador de acordeones para Especie, Clases, Dotes y Personalizados.
+     - `GrupoClaseRasgos.tsx` (145 líneas): Despliegue de clase base, subclase e invocaciones sobrenaturales (`SelectorInvocacionesAcordeon`).
+  3. *PanelInventarioPersonaje.tsx (446 -> 236 líneas, -47%)*:
+     - `tiposPanelInventario.ts` (30 líneas): Contrato estricto de props del inventario.
+     - `SeccionObjetosEquipados.tsx` (67 líneas): Bloque colapsable de armas y armaduras equipadas activas con soporte Drag & Drop.
+     - `SeccionMochilaInventario.tsx` (151 líneas): Mochila con barra de herramientas, filtrado, orden temático por acordeones y lista plana.
+     - `SeccionContenedoresEspeciales.tsx` (92 líneas): Mapeo de compartimentos extradimensionales (bolsa de contención, alforjas, cofre).
+     - `ModalInspeccionObjetoFlotante.tsx` (89 líneas): Inspección detallada y conexión con `usarLanzadorConjuros` para objetos mágicos.
+- **Lecciones y Errores Evitados**:
+  - *Preservación de Contratos Canónicos*: Las props públicas de `PanelConjurosPersonaje` y `PanelInventarioPersonaje` deben coincidir exactamente con lo que suministra `HojaPersonaje.tsx` (`statsCalculadas.modificadores`, `bonoCompetencia`, etc.) para no provocar discrepancias en componentes de alto nivel.
+  - *Tipado Estricto de Parámetros Opcionales*: En `SeccionNivelConjuros`, `nivelEspacioPacto` es de tipo `number`, por lo que siempre debe proporcionarse un fallback seguro (`nivelEspacioPacto || 1`) cuando proviene de un valor opcional.
+- **Métricas de Calidad Verificadas**:
+  - 19 de 19 archivos de la feature están por debajo de 250 líneas (Máximo registrado: 246 líneas).
+  - `pnpm exec tsc --noEmit`: 0 errores (Strict Mode activo).
+  - `pnpm lint`: 0 errores, 0 warnings (ESLint limpio).
+  - `pnpm test`: 41 suites superadas, 452 de 452 pruebas pasando (100%).
+  - `pnpm build`: Empaquetado exitoso de producción Vite en 6.38s (código 0).
+
+## [2026-09-07] Culminación Exitosa - Fase 2: Reducción Agresiva de Monolitos del Modo Jugador y Unificación de Trackers Mágicos (H-11)
+**Contexto y Logros:**
+- Se redujeron y modularizaron agresivamente los monolitos más grandes restantes del Modo Jugador que superaban las 600–900 líneas (`ModalDetalleObjetoInventario`, `ModalDetalleCaracteristica`, `ModalSelectorCompetencias`) y se unificó la representación de ranuras mágicas (H-11), logrando que **absolutamente ningún archivo nuevo o modificado supere las 250 líneas** (KISS / SRP estricto).
+- **Módulos y Transformaciones Arquitectónicas**:
+  1. *Unificación de Trackers Mágicos (H-11)*:
+     - `src/componentes/caracteristicas/personajes/magia/TrackerRecursoMagico.tsx` (240 líneas): Componente polimórfico y reutilizable para ranuras estándar de D&D (1-9), magia de pacto del brujo y futuros recursos de maná.
+     - `TrackerEspaciosConjuro.tsx` reducido de 193 a **59 líneas**.
+     - `TrackerEspaciosPacto.tsx` reducido de 186 a **59 líneas**.
+  2. *Descomposición de ModalDetalleCaracteristica (764 líneas -> orquestador de 229 líneas)*:
+     - `usarModalCaracteristica.ts` (205 líneas): Hook de lógica, estado del formulario, preview en tiempo real y tiradas TaleSpire.
+     - `PestanaInfoCaracteristica.tsx` (244 líneas): Desglose matemático exhaustivo y disparador de tiradas 3D de atributo y salvación.
+     - `PestanaPersonalizarCaracteristica.tsx` (194 líneas): Formulario de personalización de nombres, notas, salvaciones y modificadores extra.
+     - `EditorPuntuacionYOverride.tsx` (190 líneas): Stepper +/- numérico de puntuación base y presets tácticos de override fijo (19, 21, 23).
+  3. *Descomposición de ModalDetalleObjetoInventario (915 líneas -> orquestador de 165 líneas)*:
+     - `usarDetalleObjetoInventario.ts` (129 líneas): Hook de resolución con el compendio, cálculo de peso acumulado, rarezas y notas.
+     - `CabeceraDetalleObjeto.tsx` (66 líneas): Cabecera semántica con iconos según tipo de objeto (arma, armadura, mágico, general).
+     - `MetricasPrincipalesObjeto.tsx` (108 líneas): Cuadrícula compacta de peso, valor en PO, cantidad, daño base y CA.
+     - `SeccionDetallesEquipo.tsx` (209 líneas): Estadísticas de armas (propiedades, maestría, versátil, alcance) y armaduras (destreza, fuerza, sigilo).
+     - `SeccionAlmacenamientoMunicion.tsx` (121 líneas): Gestión de bolsas especializadas, capacidad de proyectiles y excesos en mochila.
+     - `SeccionMagiaYEfectosObjeto.tsx` (244 líneas): Recarga de cargas, venenos, sintonización, descripción, artesanía y efectos pasivos.
+     - `SeccionContenedorYUbicacion.tsx` (53 líneas): Selector de mochila, bolsa de contención, montura o almacén.
+     - `ListaHechizosVinculadosObjeto.tsx` (84 líneas): Invocación y tirada 3D de hechizos asociados con control de cargas.
+  4. *Descomposición de ModalSelectorCompetencias (670 líneas -> orquestador de 237 líneas)*:
+     - `usarSelectorCompetencias.ts` (253 líneas): Hook para alternancia de grupos maestros e individuales, formateo de resúmenes canónicos.
+     - `PestanaArmasCompetencias.tsx` (117 líneas): Cuadrícula de armas sencillas, marciales y de fuego.
+     - `PestanaArmadurasCompetencias.tsx` (117 líneas): Cuadrícula de ligeras, medias, pesadas y escudos.
+     - `PestanaListaSimpleCompetencias.tsx` (75 líneas): Subcomponente genérico para selección de idiomas y herramientas.
+- **Métricas de Calidad Verificadas**:
+  - 100% de los 21 archivos involucrados están por debajo del límite de 250 líneas.
+  - `tsc --noEmit`: 0 errores de tipado estricto.
+  - `pnpm lint`: 0 errores, 0 warnings.
+  - `pnpm test`: 41 suites superadas, 452 de 452 pruebas pasando (100%).
+  - `pnpm build`: Empaquetado exitoso de Vite en 6.31s (código 0).
+
+## [2026-09-07] Culminación Exitosa - Fase 1: Modularización Integral y Desacoplamiento de PanelConfiguracionPersonaje (H-04)
+**Contexto y Logros:**
+- Se descompuso completamente el mayor monolito del Modo Jugador (`PanelConfiguracionPersonaje.tsx` de 2.414 líneas) reduciéndolo a **~230 líneas** de orquestador declarativo (reducción del 90%), segregando la lógica de reglas D&D 5.5e en un servicio puro, el estado en un hook React especializado y la presentación en 7 submódulos ultraligeros (<220 líneas cada uno) en `src/componentes/caracteristicas/personajes/configuracion/`.
+- **Decisiones Arquitectónicas y Módulos Creados**:
+  1. *Capa de Servicios de Dominio Puro (D&D 5.5e)*:
+     - `src/servicios/sincronizadorMulticlase.ts` (~140 líneas): Funciones puras e inmutables para sincronización de nivel global y XP, recálculo de clases y subclases, inicialización de build de multiclase y ajuste dinámico de atributos de lanzador de conjuros.
+  2. *Capa de Lógica React (Hook Especializado)*:
+     - `usarConfiguracionPersonaje.ts` (~190 líneas): Hook que encapsula el estado del formulario en borrador, pestañas activas, validaciones, detección de jugador en TaleSpire, y callbacks de guardado y mutación.
+  3. *Submódulos Especializados de Presentación (SRP / ISP)*:
+     - `PestanaIdentidad.tsx` (~210 líneas): Nombre, jugador con auto-detección desde TaleSpire, nivel global/PX bidireccional, especie, trasfondo, alineación y avatar/miniatura 3D.
+     - `SeccionMulticlase.tsx` (~190 líneas): Gestión reactiva de clases primaria y secundarias, selector de subclases, build sugerida y límites de nivel global (20).
+     - `PestanaAtributos.tsx` (~170 líneas): Despliegue en cuadrícula de las 6 características de D&D 5.5e, puntuaciones efectivas, modificadores, overrides fijos y modal de desglose.
+     - `PestanaCompetencias.tsx` (~160 líneas): Ensambla la gestión de competencias y la lista de las 18 habilidades de D&D.
+     - `TarjetaResumenCompetencia.tsx` (~50 líneas): Componente genérico deduplicado que sustituye las 4 tarjetas idénticas de 60 líneas (Armas, Armaduras, Idiomas y Herramientas), erradicando el clon detectado por `jscpd`.
+     - `PestanaSentidosSalud.tsx` (~120 líneas): Puntos de golpe base, tipo de dado de golpe, CA y notas, bono de iniciativa, velocidad y sentidos especiales.
+     - `PestanaMagia.tsx` (~180 líneas): Interruptor de lanzador, clases lanzadoras configurables y matriz de overrides de espacios por nivel de conjuro.
+  4. *Erradicación de Estilos Inline y Tokens Tácticos*:
+     - Se creó `ConfiguracionPersonaje.module.css` con clases semánticas empleando las variables `--pj-*` del sistema de diseño, eliminando 126 estilos `style={{}}` del JSX del panel.
+  5. *Preservación de Contrato y Compatibilidad*:
+     - La interfaz pública de `PanelConfiguracionPersonaje` (`personaje`, `alGuardar`, `alVolverAFicha`) se mantuvo 100% idéntica, permitiendo que `VistaJugadores.tsx` y la navegación del usuario funcionen transparentemente.
+- **Métricas de Calidad Verificadas**:
+  - Ningún archivo `.tsx` ni servicio en esta feature supera las 230 líneas.
+  - `tsc --noEmit`: 0 errores (Strict Mode estricto).
+  - `pnpm lint`: 0 errores, 0 warnings (100% conforme a ESLint).
+  - `pnpm test`: 41 suites superadas, 452 de 452 pruebas pasando (100%).
+  - `pnpm build`: Empaquetado de producción de Vite exitoso (código 0).
+
+## [2026-09-07] Culminación Exitosa - Etapa 6: Persistencia Unificada y Desacoplamiento de la API de TaleSpire
+**Contexto y Logros:**
+- Se consolidó la persistencia unificada del Simbionte en el almacenamiento global de TaleSpire, se desacoplaron las dependencias directas de la API nativa de TaleSpire de los componentes de la interfaz de usuario, se erradicaron los bloques `catch {}` vacíos y se migró el 100% de las llamadas a consola hacia el sistema estructurado `logger.ts`.
+- **Decisiones Arquitectónicas y Mejoras Implementadas**:
+  1. *Persistencia Unificada de Configuración de Campaña (`persistencia.ts` y `sliceConfiguracion.ts`)*:
+     - Se incorporó el campo `mostrar_porcentaje_vida` en el objeto serializado enviado al blob global oficial de TaleSpire (`__dm_pantalla_datos__` via `guardarBlobGlobal`).
+     - Al cargar los datos persistidos (`cargarDatosPersistidos`), se recupera el valor de `mostrar_porcentaje_vida` del blob y se sincroniza reactivamente tanto en el estado de Zustand como en `localStorage` como capa síncrona local de acceso rápido.
+     - En `restablecerDatosDeFabrica`, se asegura el restablecimiento a `true` en ambos niveles de almacenamiento.
+  2. *Resiliencia y Recuperación ante Fallos Críticos (`LimiteError.tsx`)*:
+     - Se sustituyeron las llamadas obsoletas a `localStorage.removeItem("dm_*")` por la invocación asíncrona a `limpiarBlobGlobal()`, el vaciado controlado de `localStorage` y el registro de auditoría con `logger.warn`, garantizando que un reseteo de emergencia limpie el blob corrupto real de TaleSpire.
+  3. *Capa de Servicios Desacoplada del Sistema (`src/servicios/sistemaTaleSpire.ts`)*:
+     - `copiarAlPortapapeles(texto)`: Intenta la API nativa de TaleSpire (`ts.system.clipboard.setText`) con fallback transparente a la API estándar del navegador (`navigator.clipboard.writeText`), capturando y registrando cualquier fallo de forma proactiva.
+     - `descargarArchivoJSON(contenido, nombreArchivo)`: Centraliza la creación del Blob, enlace temporal y disparo de descarga en navegador/CEF con manejo explícito de errores, erradicando los bloques `catch {}` vacíos presentes anteriormente en `GestorPersonajes.tsx`.
+     - `obtenerNombreJugadorActivo()`: Consulta el nombre del jugador local mediante `ts.players.obtenerNombreJugadorLocal()`, atrapando y registrando excepciones con fallback a `null`.
+  4. *Desacoplamiento de Componentes de Presentación*:
+     - `ModalDetalleCaracteristica.tsx`: Se eliminó la invocación directa a `ts.dice.putDiceInTray` y `console.error`, adoptando la función de dominio `lanzarDadosTaleSpire(formula, etiqueta)` de `@/utiles/lanzadorDados`. Se retiró la importación de `TaleSpireAdapter`.
+     - `PanelConfiguracionPersonaje.tsx`: Se sustituyó el acceso directo a `ts.players` por `obtenerNombreJugadorActivo()` del servicio desacoplado, eliminando la dependencia con `TaleSpireAdapter`.
+     - `GestorPersonajes.tsx`: Se reemplazó el acceso directo a `ts.system.clipboard` y las descargas con bloques mudos por `copiarAlPortapapeles` y `descargarArchivoJSON`, retirando la importación de `TaleSpireAdapter`.
+     - `ConfiguracionDM.tsx`: Se sustituyó `ts.system.clipboard.setText` por `copiarAlPortapapeles`.
+  5. *Hook de Persistencia de UI (`usarEstadoPersistido.ts`)*:
+     - Se sustituyeron las advertencias directas de consola por `logger.warn`, añadiendo pruebas unitarias para validar la resiliencia ante JSON corrupto en `localStorage`.
+  6. *Erradicación Total de `console.*` en Favor de `logger.ts`*:
+     - Se migraron 25 llamadas en 11 archivos de componentes y servicios hacia `logger.error` o `logger.warn`.
+     - Se verificó que `src/utiles/logger.ts` es ahora el único punto de todo el código base que interactúa con la consola del motor de ejecución.
+- **Métricas de Calidad Verificadas**:
+  - `tsc --noEmit`: 0 errores (Strict Mode estricto).
+  - `pnpm lint`: 0 errores, 0 warnings (100% limpio).
+  - `pnpm test`: 41 suites de prueba superadas, 452 de 452 pruebas pasando (100%).
+  - `pnpm build`: Compilación y empaquetado de producción de Vite exitoso en 6.42s (código 0).
+
 ## [2026-09-07] Culminación Exitosa - Etapa 5: Desacoplamiento de Lógica de Dominio y Erradicación de Deuda Técnica
 **Contexto y Logros:**
 - Se desacopló la lógica de dominio dispersa y se descompuso el monolito de estado de `slicePersonajes.ts` (1.761 líneas -> 60 líneas de fachada orquestadora + 7 sub-slices modulares), preservando el 100% de retrocompatibilidad y pasando las 451 pruebas unitarias.

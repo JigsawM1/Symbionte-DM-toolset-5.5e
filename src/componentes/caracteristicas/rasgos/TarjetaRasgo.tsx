@@ -2,6 +2,7 @@ import React from "react";
 import type { RasgoPersonaje, TipoAccionRasgo, OrigenRasgo } from "@/tipos";
 import { lanzarDadosTaleSpire, type MetadataEspecialRasgo } from "@/utiles/lanzadorDados";
 import { limpiarYTruncarTextoMarkdown } from "@/utiles/formatoTextoDND";
+import { logger } from "@/utiles/logger";
 import {
   Sparkles,
   Zap,
@@ -160,7 +161,7 @@ export const TarjetaRasgo: React.FC<TarjetaRasgoProps> = ({
         metaEspecial
       );
     } catch (error) {
-      console.error("[TarjetaRasgo] Error al tirar dados:", error);
+      logger.error("[TarjetaRasgo] Error al tirar dados:", error);
     }
   };
 

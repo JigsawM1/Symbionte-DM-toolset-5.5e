@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import type { ObjetoInventario, TipoContenedor } from "@/tipos";
+import { logger } from "@/utiles/logger";
 
 interface ParametrosDragAndDropInventario {
   inventario: ObjetoInventario[];
@@ -128,7 +129,7 @@ export function usarDragAndDropInventario({
         }
       }
     } catch (error) {
-      console.error("Error al procesar drop:", error);
+      logger.error("Error al procesar drop:", error);
     }
   };
 

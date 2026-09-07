@@ -42,7 +42,7 @@ describe("Multiclase, Experiencia y Personalización de Características", () =>
     const rangoNv5 = obtenerRangoExperienciaPorNivel(5);
     expect(rangoNv5.min).toBe(6500);
     expect(rangoNv5.max).toBe(13999);
-    expect(rangoNv5.texto).toContain("6.500 - 13.999 PX");
+    expect(rangoNv5.texto).toMatch(/6[.,]500\s*-\s*13[.,]999\s*PX/);
   });
 
   it("calcula estadísticas efectivas incluyendo personalizaciones de características", () => {

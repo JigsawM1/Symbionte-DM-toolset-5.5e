@@ -95,12 +95,16 @@ export function obtenerExperienciaMaximaPorNivel(nivel: number): number {
   return (TABLA_EXPERIENCIA[nivelSeguro + 1] ?? 355000) - 1;
 }
 
+function formatearMiles(num: number): string {
+  return Math.floor(num).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+}
+
 export function obtenerRangoExperienciaPorNivel(nivel: number): { min: number; max: number; texto: string } {
   const min = obtenerExperienciaMinimaPorNivel(nivel);
   const max = obtenerExperienciaMaximaPorNivel(nivel);
   const texto = max === Infinity 
-    ? `${min.toLocaleString()} PX o más`
-    : `${min.toLocaleString()} - ${max.toLocaleString()} PX`;
+    ? `${formatearMiles(min)} PX o más`
+    : `${formatearMiles(min)} - ${formatearMiles(max)} PX`;
   return { min, max, texto };
 }
 

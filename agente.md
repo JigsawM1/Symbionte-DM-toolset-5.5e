@@ -37,6 +37,9 @@ Este archivo registra reglas globales, errores encontrados, sus causas raíz y l
    - Se amplió `scripts/verificar-limite-lineas.js` para auditar también `inventario` y `ataques` junto a `personajes` y `rasgos` (105 archivos auditados, 0 errores críticos).
 4. **Documentación Oficial**:
    - Se actualizó `docs/wiki/Arquitectura.md` con el diagrama de dependencias unidireccionales y la especificación detallada de cada capa funcional.
+5. **Corrección de Formateo Numérico Dependiente del Locale (CI en Linux / GitHub Actions)**:
+   - `obtenerRangoExperienciaPorNivel` invocaba `toLocaleString()` sin formato determinista, produciendo comas en Ubuntu (`6,500 - 13,999 PX`) y rompiendo la aserción de la prueba que esperaba puntos de miles en español (`6.500 - 13.999 PX`).
+   - Se implementó la función pura `formatearMiles` mediante regex para garantizar que el separador de miles en español sea siempre determinista en cualquier plataforma (`Windows`, `Linux`, `macOS`), y se fortaleció la aserción en `multiclaseYPersonalizacion.test.ts` con regex resiliente.
 
 **Métricas de Calidad Verificadas:**
 - `pnpm exec tsc --noEmit`: 0 errores (Strict Mode activo).

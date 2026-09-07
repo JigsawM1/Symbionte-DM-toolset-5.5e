@@ -10,7 +10,32 @@
 import { useShallow } from 'zustand/react/shallow';
 import { usarAlmacenDM } from '@/almacen/usarAlmacenDM';
 
-/** Estado de lectura de la configuración y sesión. */
+/** Selector atómico para el modo de tirada activo (plano, ventaja, desventaja). */
+export function usarTipoTirada() {
+  return usarAlmacenDM((s) => s.tipoTirada);
+}
+
+/** Selector atómico para el sistema de magia (espacios o puntos). */
+export function usarSistemaMagia() {
+  return usarAlmacenDM((s) => s.sistemaMagia);
+}
+
+/** Selector atómico para la pestaña activa. */
+export function usarPestanaActiva() {
+  return usarAlmacenDM((s) => s.pestañaActiva);
+}
+
+/** Selector atómico para las notificaciones del sistema. */
+export function usarNotificaciones() {
+  return usarAlmacenDM((s) => s.notificaciones);
+}
+
+/** Selector atómico para el rol de GM. */
+export function usarEsGM() {
+  return usarAlmacenDM((s) => s.esGM);
+}
+
+/** Estado de lectura de la configuración y sesión (Compatibilidad retroactiva). */
 export function usarEstadoConfiguracion() {
   return usarAlmacenDM(
     useShallow((s) => ({

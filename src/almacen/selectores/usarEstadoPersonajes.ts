@@ -5,6 +5,7 @@
  * relacionados con los personajes de los jugadores.
  */
 
+import { useMemo } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 import { usarAlmacenDM } from '@/almacen/usarAlmacenDM';
 import type { PersonajeJugador, Caracteristica, Habilidad, EfectoPasivo, GradoCompetencia } from '@/tipos';
@@ -74,11 +75,20 @@ export interface EstadisticasCalculadasPersonaje {
 }
 
 
+const cacheEstadisticasPersonaje = new WeakMap<PersonajeJugador, EstadisticasCalculadasPersonaje>();
+
 /**
  * Función pura que calcula todas las estadísticas derivadas de un personaje
  * conforme a las reglas oficiales de D&D 5.5e.
+ * Optimizado con caché referencial WeakMap O(1).
  */
 export function calcularEstadisticasPersonaje(pj: PersonajeJugador): EstadisticasCalculadasPersonaje {
+  if (pj && typeof pj === 'object') {
+    const enCache = cacheEstadisticasPersonaje.get(pj);
+    if (enCache) {
+      return enCache;
+    }
+  }
   const nivel = pj?.nivel || 1;
   const bonoCompetencia = obtenerBonoCompetenciaPorNivel(nivel);
 
@@ -533,7 +543,7 @@ export function calcularEstadisticasPersonaje(pj: PersonajeJugador): Estadistica
     ? obtenerCompetenciasEfectivasTexto(pj)
     : { armasTexto: "Ninguna", armadurasTexto: "Ninguna" };
 
-  return {
+  const resultado: EstadisticasCalculadasPersonaje = {
     bonoCompetencia,
     puntuacionesEfectivas,
     modificadores,
@@ -548,9 +558,48 @@ export function calcularEstadisticasPersonaje(pj: PersonajeJugador): Estadistica
     bonoDanoFuria,
     competenciasEfectivas
   };
+
+  if (pj && typeof pj === 'object') {
+    cacheEstadisticasPersonaje.set(pj, resultado);
+  }
+
+  return resultado;
 }
 
-/** Estado de lectura de personajes. */
+/**
+ * Selector atómico para suscribirse única y exclusivamente al personaje activo.
+ * Previene re-renders cuando mutan otros personajes en la lista.
+ */
+export function usarPersonajeActivo(): PersonajeJugador | null {
+  return usarAlmacenDM((s) => {
+    const lista = s.personajes || [];
+    return lista.find((p) => p && p.id === s.idPersonajeActivo) || lista[0] || null;
+  });
+}
+
+/**
+ * Selector atómico para suscribirse únicamente al ID del personaje activo.
+ */
+export function usarIdPersonajeActivo(): string | null {
+  return usarAlmacenDM((s) => s.idPersonajeActivo);
+}
+
+/**
+ * Selector atómico para la lista completa de personajes.
+ */
+export function usarListaPersonajes(): PersonajeJugador[] {
+  return usarAlmacenDM((s) => s.personajes || []);
+}
+
+/**
+ * Hook memoizado que retorna las estadísticas calculadas del personaje activo actual.
+ */
+export function usarEstadisticasPersonajeActivo(): EstadisticasCalculadasPersonaje | null {
+  const personaje = usarPersonajeActivo();
+  return useMemo(() => (personaje ? calcularEstadisticasPersonaje(personaje) : null), [personaje]);
+}
+
+/** Estado de lectura de personajes (Compatibilidad retroactiva). */
 export function usarEstadoPersonajes() {
   return usarAlmacenDM(
     useShallow((s) => {

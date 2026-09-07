@@ -9,6 +9,7 @@ import {
   obtenerBonoDanoFuerzaExtra,
   ContextoAtaquePersonaje
 } from "@/servicios/evaluadorEfectosRasgos";
+import { coincideIdRasgo, ID_RASGO } from "@/constantes";
 
 const normalizar = (s: string): string =>
   s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
@@ -60,11 +61,7 @@ export function resolverBonosYDadosExtraCombate(params: {
 
   if (caracUsada === "fuerza") {
     const rasgoFrenesi = (personajeActivo.rasgos || []).find(
-      (r) =>
-        (r.id.includes("frenesi") ||
-          r.nombre.toLowerCase().includes("frenesí") ||
-          r.nombre.toLowerCase().includes("frenesi")) &&
-        r.activo
+      (r) => coincideIdRasgo(r, ID_RASGO.FRENESI) && r.activo
     );
     if (rasgoFrenesi && !dadosExtraEfectos.some((d) => d.origen.toLowerCase().includes("frenes"))) {
       const dadosF = rasgoFrenesi.formulaDados || `${statsCalculadas.bonoDanoFuria || 2}d6`;
@@ -73,7 +70,7 @@ export function resolverBonosYDadosExtraCombate(params: {
 
     const rasgoGolpeBrutal = furiaEstaActiva
       ? (personajeActivo.rasgos || []).find(
-          (r) => (r.id.includes("golpe_brutal") || r.nombre.toLowerCase().includes("golpe brutal")) && r.activo
+          (r) => coincideIdRasgo(r, ID_RASGO.GOLPE_BRUTAL) && r.activo
         )
       : undefined;
     if (rasgoGolpeBrutal && !dadosExtraEfectos.some((d) => d.origen.toLowerCase().includes("golpe brutal"))) {
@@ -90,7 +87,7 @@ export function resolverBonosYDadosExtraCombate(params: {
 
   if (caracUsada === "fuerza" && furiaEstaActiva) {
     const rasgoFuriaDivina = (personajeActivo.rasgos || []).find(
-      (r) => (r.id.includes("furia_divina") || normalizar(r.nombre).includes("furia divina")) && r.activo
+      (r) => coincideIdRasgo(r, ID_RASGO.FURIA_DIVINA) && r.activo
     );
     if (rasgoFuriaDivina && !danosSecEfectos.some((d) => d.origen.toLowerCase().includes("furia divina"))) {
       const claseBarbaro = (personajeActivo.clases || []).find((c) => normalizar(c.nombre).includes("barbaro"));

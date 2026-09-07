@@ -17,7 +17,7 @@ interface PanelVitalidadPersonajeProps {
   alTirarSalvacionMuerte3D: () => void;
 }
 
-export const PanelVitalidadPersonaje: React.FC<PanelVitalidadPersonajeProps> = ({
+const PanelVitalidadPersonajeComponent: React.FC<PanelVitalidadPersonajeProps> = ({
   personaje,
   alModificarHP,
   alEstablecerHPActual,
@@ -410,3 +410,5 @@ export const PanelVitalidadPersonaje: React.FC<PanelVitalidadPersonajeProps> = (
     </section>
   );
 };
+
+export const PanelVitalidadPersonaje = React.memo(PanelVitalidadPersonajeComponent);

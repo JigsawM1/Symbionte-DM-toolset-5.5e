@@ -52,7 +52,7 @@ function obtenerTituloGrado(grado: GradoCompetencia): string {
   }
 }
 
-export const PanelHabilidadesPersonaje: React.FC<PanelHabilidadesPersonajeProps> = ({
+const PanelHabilidadesPersonajeComponent: React.FC<PanelHabilidadesPersonajeProps> = ({
   personaje,
   statsCalculadas,
   alTirarHabilidad,
@@ -223,5 +223,6 @@ export const PanelHabilidadesPersonaje: React.FC<PanelHabilidadesPersonajeProps>
   );
 };
 
+export const PanelHabilidadesPersonaje = React.memo(PanelHabilidadesPersonajeComponent);
 export default PanelHabilidadesPersonaje;
 

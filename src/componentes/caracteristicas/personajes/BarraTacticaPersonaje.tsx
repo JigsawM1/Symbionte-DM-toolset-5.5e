@@ -24,7 +24,7 @@ interface BarraTacticaPersonajeProps {
   alRomperConcentracion?: () => void;
 }
 
-export const BarraTacticaPersonaje: React.FC<BarraTacticaPersonajeProps> = ({
+const BarraTacticaPersonajeComponent: React.FC<BarraTacticaPersonajeProps> = ({
   modoTirada,
   condicionesActivas,
   hpActual,
@@ -220,3 +220,5 @@ export const BarraTacticaPersonaje: React.FC<BarraTacticaPersonajeProps> = ({
     </section>
   );
 };
+
+export const BarraTacticaPersonaje = React.memo(BarraTacticaPersonajeComponent);

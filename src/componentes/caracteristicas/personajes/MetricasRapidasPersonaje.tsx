@@ -16,7 +16,7 @@ interface MetricasRapidasPersonajeProps {
   alAlternarInspiracion: () => void;
 }
 
-export const MetricasRapidasPersonaje: React.FC<MetricasRapidasPersonajeProps> = ({
+const MetricasRapidasPersonajeComponent: React.FC<MetricasRapidasPersonajeProps> = ({
   personaje,
   bonoCompetencia,
   modDestreza,
@@ -114,4 +114,6 @@ export const MetricasRapidasPersonaje: React.FC<MetricasRapidasPersonajeProps> =
     </section>
   );
 };
+
+export const MetricasRapidasPersonaje = React.memo(MetricasRapidasPersonajeComponent);
 

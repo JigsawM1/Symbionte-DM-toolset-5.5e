@@ -7,6 +7,7 @@ import {
   usarEstadoConfiguracion,
   usarAccionesConfiguracion
 } from "@/almacen/selectores";
+import { esLanzadorCarisma, esClasePacto } from "@/constantes";
 import { OBJETOS_INICIALES } from "@/utiles/datosIniciales";
 export type {
   AtaquePersonajeCalculado,
@@ -113,11 +114,12 @@ export function usarCalculoAtaquesJugador() {
     if (personajeActivo?.clasesLanzadoras && personajeActivo.clasesLanzadoras.length > 0) {
       return personajeActivo.clasesLanzadoras[0].habilidadConjuro as Caracteristica;
     }
-    const clase = (personajeActivo?.clase || "").toLowerCase();
-    if (clase.includes("brujo") || clase.includes("bardo") || clase.includes("hechicero") || clase.includes("paladín") || clase.includes("paladin")) {
+    const clase = personajeActivo?.clase || "";
+    if (esLanzadorCarisma(clase)) {
       return "carisma";
     }
-    if (clase.includes("clérigo") || clase.includes("clerigo") || clase.includes("druida") || clase.includes("explorador")) {
+    const claseNorm = clase.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    if (claseNorm.includes("clerigo") || claseNorm.includes("druida") || claseNorm.includes("explorador") || claseNorm.includes("cleric") || claseNorm.includes("ranger")) {
       return "sabiduria";
     }
     return "inteligencia";
@@ -271,7 +273,7 @@ export function usarCalculoAtaquesJugador() {
   const tieneEspaciosEstandar = Object.values(personajeActivo?.espaciosConjuroMaximos || {}).some((v) => (v || 0) > 0);
   const tienePuntosEstandar = (personajeActivo?.puntosConjuroMaximos || 0) > 0;
   const tieneMagiaEstandar = sistemaMagia === "puntos" ? tienePuntosEstandar : tieneEspaciosEstandar;
-  const tienePacto = (personajeActivo?.espaciosPactoMaximos || 0) > 0 || (personajeActivo?.clase || "").toLowerCase().includes("brujo");
+  const tienePacto = (personajeActivo?.espaciosPactoMaximos || 0) > 0 || esClasePacto(personajeActivo?.clase);
 
   return {
     personajes,

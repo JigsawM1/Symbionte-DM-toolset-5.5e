@@ -2,11 +2,10 @@ import React, { useState } from "react";
 import type { PersonajeJugador, Habilidad, GradoCompetencia, PersonalizacionHabilidad } from "@/tipos";
 import {
   MAPA_HABILIDAD_A_CARACTERISTICA,
-  DESCRIPCIONES_HABILIDADES,
-  obtenerBonoCompetenciaPorNivel
+  DESCRIPCIONES_HABILIDADES
 } from "@/constantes";
-import { calcularModificadorCaracteristica } from "@/servicios/procesadorDescansos";
 import { tieneMedioBonoHabilidades } from "@/servicios/evaluadorEfectosRasgos";
+import { calcularEstadisticasPersonaje } from "@/almacen/selectores/usarEstadoPersonajes";
 import { SelectorDesplegable } from "@/componentes/comunes/SelectorDesplegable";
 import { X, Info, Edit3, Dices, Save } from "lucide-react";
 import estilos from "./HojaPersonaje.module.css";
@@ -92,11 +91,10 @@ export const ModalDetalleHabilidad: React.FC<ModalDetalleHabilidadProps> = ({
     { valor: "pericia", etiqueta: "Pericia / Experto (2x PB)" }
   ];
 
-  // Cálculos matemáticos en tiempo real
-  const pb = obtenerBonoCompetenciaPorNivel(personaje.nivel || 1);
-  const valorCarac =
-    personaje.overridesFijos?.[caracAsociada] ?? personaje.caracteristicas?.[caracAsociada] ?? 10;
-  const modCarac = calcularModificadorCaracteristica(valorCarac);
+  // Cálculos matemáticos a partir de estadísticas derivadas canónicas
+  const statsCalculadas = calcularEstadisticasPersonaje(personaje);
+  const pb = statsCalculadas.bonoCompetencia;
+  const modCarac = statsCalculadas.modificadores[caracAsociada] ?? 0;
 
   let bonoCompetenciaValor = 0;
   let etiquetaCompetencia = "Sin competencia";
@@ -115,7 +113,7 @@ export const ModalDetalleHabilidad: React.FC<ModalDetalleHabilidadProps> = ({
   const tieneValorFijo = customExistente?.valorFijo !== null && customExistente?.valorFijo !== undefined;
   const totalCalculado = tieneValorFijo
     ? customExistente!.valorFijo!
-    : modCarac + bonoCompetenciaValor + modExtraNum;
+    : (statsCalculadas.habilidades[habilidadClave] ?? (modCarac + bonoCompetenciaValor + modExtraNum));
 
   const tituloMostrar = customExistente?.nombrePersonalizado || nombreHabilidad;
   const descripcionMostrar =

@@ -1,6 +1,7 @@
 import React from "react";
 import type { RasgoPersonaje, TipoAccionRasgo, OrigenRasgo } from "@/tipos";
 import { lanzarDadosTaleSpire, type MetadataEspecialRasgo } from "@/utiles/lanzadorDados";
+import { limpiarYTruncarTextoMarkdown } from "@/utiles/formatoTextoDND";
 import {
   Sparkles,
   Zap,
@@ -167,14 +168,9 @@ export const TarjetaRasgo: React.FC<TarjetaRasgoProps> = ({
   const esHomebrewOPersonalizado = rasgo.personalizado || rasgo.origen === "personalizado" || rasgo.origen === "dote";
 
   // Truncado de descripción para tarjeta compacta
-  const textoLimpio = (rasgo.descripcion || "")
-    .replace(/\*\*\*/g, "")
-    .replace(/\*\*/g, "")
-    .replace(/\*/g, "")
-    .trim();
   const LIMITE_CARACTERES = 115;
-  const esLargo = textoLimpio.length > LIMITE_CARACTERES;
-  const textoTruncado = esLargo ? `${textoLimpio.slice(0, LIMITE_CARACTERES)}...` : textoLimpio;
+  const textoTruncado = limpiarYTruncarTextoMarkdown(rasgo.descripcion, LIMITE_CARACTERES);
+  const esLargo = (rasgo.descripcion || "").length > LIMITE_CARACTERES;
 
   const esClase = rasgo.origen === "clase";
   const esSubclase = rasgo.origen === "subclase";

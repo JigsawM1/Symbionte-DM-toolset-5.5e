@@ -61,3 +61,19 @@ export function renderizarTextoEnriquecidoDND(texto: string): React.ReactNode {
     );
   });
 }
+
+/**
+ * Limpia marcas de markdown simples (asteriscos de énfasis) y trunca el texto al límite especificado.
+ */
+export function limpiarYTruncarTextoMarkdown(texto: string = "", limite = 115): string {
+  const textoLimpio = texto
+    .replace(/\*\*\*/g, "")
+    .replace(/\*\*/g, "")
+    .replace(/\*/g, "")
+    .trim();
+
+  if (textoLimpio.length <= limite) {
+    return textoLimpio;
+  }
+  return `${textoLimpio.slice(0, limite)}...`;
+}

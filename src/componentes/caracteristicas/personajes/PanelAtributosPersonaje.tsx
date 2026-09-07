@@ -15,7 +15,7 @@ interface PanelAtributosPersonajeProps {
   alModificarCaracteristicaBase: (carac: Caracteristica, valor: number) => void;
 }
 
-export const PanelAtributosPersonaje: React.FC<PanelAtributosPersonajeProps> = ({
+const PanelAtributosPersonajeComponent: React.FC<PanelAtributosPersonajeProps> = ({
   personaje,
   statsCalculadas,
   alTirarCaracteristica,
@@ -273,3 +273,5 @@ export const PanelAtributosPersonaje: React.FC<PanelAtributosPersonajeProps> = (
     </section>
   );
 };
+
+export const PanelAtributosPersonaje = React.memo(PanelAtributosPersonajeComponent);

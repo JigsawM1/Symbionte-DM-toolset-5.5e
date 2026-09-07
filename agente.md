@@ -13,6 +13,71 @@ Este archivo registra reglas globales, errores encontrados, sus causas raíz y l
 4. **TIPADO ESTRICTO Y CÓDIGO LIMPIO**:
    - `strict: true` en TypeScript. Cero tipos `any`. Interfaces explícitas, generics y principios SOLID.
 
+## [2026-09-07] Culminación Exitosa - Etapa 5: Desacoplamiento de Lógica de Dominio y Erradicación de Deuda Técnica
+**Contexto y Logros:**
+- Se desacopló la lógica de dominio dispersa y se descompuso el monolito de estado de `slicePersonajes.ts` (1.761 líneas -> 60 líneas de fachada orquestadora + 7 sub-slices modulares), preservando el 100% de retrocompatibilidad y pasando las 451 pruebas unitarias.
+- **Transformaciones de Arquitectura y Dominio Implementadas**:
+  1. *Descomposición Modular del Slice de Personajes (`src/almacen/slices/personajes/`)*:
+     - `slicePersonajesTipos.ts`: Define las interfaces segregadas por responsabilidad (ISP): `SubSlicePersonajesBase`, `SubSliceVitalidad`, `SubSliceCaracteristicasHabilidades`, `SubSliceCondiciones`, `SubSliceMagia`, `SubSliceInventario`, `SubSliceRasgos` y su unión canónica `SlicePersonajes`.
+     - `slicePersonajesBase.ts`: CRUD raíz, selección, duplicación, build de clase y vinculación con TaleSpire.
+     - `sliceVitalidad.ts`: Puntos de vida, daño absorbido por vida temporal, dados de golpe, descansos cortos/largos, inspiración, salvaciones de muerte y cansancio.
+     - `sliceCaracteristicasHabilidades.ts`: Atributos base, salvaciones, ciclado y configuración de grados de habilidad, y personalizaciones de valores fijos/modificadores.
+     - `sliceCondiciones.ts`: Adición, supresión y limpieza de condiciones tácticas, manejando la sincronización reactiva con rasgos (como Furia y Ataque Temerario).
+     - `sliceMagia.ts`: Recálculo de recursos mágicos, concentración, conjuros conocidos/preparados, slots, spell points, magia de pacto, puntos de hechicería, Arcano Místico y overrides.
+     - `sliceInventario.ts`: Mochila, contenedores especiales (Bolsa de Contención, Montura, Almacén), equipamiento, sintonización (límite 3), monedas y desempaquetado de paquetes.
+     - `sliceRasgos.ts`: Rasgos, dotes, control de usos limitados, dependencias de activación padre-hijo (ej. Furia hacia Golpe Brutal o Furia Divina) y desactivación en cascada.
+     - `slicePersonajes.ts`: Rediseñado como fachada unificada compacta (~60 líneas) que compone los 7 sub-slices mediante el patrón Composite de StateCreators de Zustand.
+  2. *Identificadores Canónicos y Reglas de Dominio (`src/constantes/identificadoresDND.ts`)*:
+     - Catálogo de constantes tipadas `ID_CLASE` e `ID_RASGO` (`ID_RASGO.FRENESI`, `ID_RASGO.GOLPE_BRUTAL`, `ID_RASGO.FURIA`, `ID_RASGO.FURIA_DIVINA`).
+     - Funciones puras deterministas con normalización diacrítica: `coincideIdRasgo`, `esClasePacto`, `esLanzadorCarisma`.
+     - Erradicación de heurísticas frágiles de cadenas en `calculadorDanoCombate.ts` y `usarCalculoAtaquesJugador.ts`.
+  3. *Consistencia y Deduplicación en UI y Servicios*:
+     - `clasificadorInventario.ts`: Detección robusta de herramientas mediante la función pura `esObjetoHerramienta(nombre, notas, subcategoria)` que examina metadatos formales del compendio antes de caer en heurísticas.
+     - `formatoTextoDND.tsx` y `TarjetaRasgo.tsx`: Función pura compartida `limpiarYTruncarTextoMarkdown`, erradicando expresiones regulares duplicadas en componentes de tarjeta.
+     - `ModalDetalleHabilidad.tsx`: Unificación del cálculo de modificadores y bonos mediante `calcularEstadisticasPersonaje(personaje)` en \(O(1)\), eliminando lecturas manuales desfasadas de overrides.
+- **Métricas de Calidad Verificadas**:
+  - `tsc --noEmit`: 0 errores (Strict Mode estricto).
+  - `pnpm lint`: 0 errores, 0 warnings (100% limpio).
+  - `pnpm test`: 41 suites superadas, 451 de 451 pruebas pasando (100%).
+  - `pnpm build`: Empaquetado exitoso de Vite en 10.24s (código 0).
+
+## [2026-09-07] Culminación Exitosa - Etapa 4: Arquitectura del Estado y Rendimiento React (Selectores de Grano Fino y Memoización O(1))
+**Contexto y Logros:**
+- Se optimizó integralmente el flujo reactivo y el ciclo de vida de renderizado del Modo Jugador y su Hoja de Personaje, eliminando re-renders parásitos causados por notificaciones efímeras y recálculos pesados de estadísticas D&D 5.5e.
+- **Optimizaciones de Arquitectura y Rendimiento Implementadas**:
+  1. *Caché Referencial O(1) con `WeakMap` en `calcularEstadisticasPersonaje`*:
+     - Se introdujo una caché a nivel de módulo `WeakMap<PersonajeJugador, EstadisticasCalculadasPersonaje>` en `src/almacen/selectores/usarEstadoPersonajes.ts`.
+     - Permite que múltiples componentes (HojaPersonaje, Ataques, Inventario, Conjuros) que consultan las estadísticas del mismo personaje obtengan el resultado en \(O(1)\) inmediato sin iterar repetidamente sobre cientos de objetos de inventario, dotes y rasgos de clase.
+     - Dado que Immer actualiza por inmutabilidad sólo cuando se muta el personaje, las referencias del objeto son idénticas entre renders limpios, liberando la memoria automáticamente al desecharse el personaje.
+  2. *Selectores Atómicos de Granularidad Fina en Zustand*:
+     - `src/almacen/selectores/usarEstadoPersonajes.ts`:
+       - `usarPersonajeActivo()`: Se suscribe únicamente al personaje activo actual.
+       - `usarIdPersonajeActivo()`: Selector de ID primitivo para componentes que solo despachan mutaciones.
+       - `usarListaPersonajes()`: Selector para barras laterales y modales de selección.
+       - `usarEstadisticasPersonajeActivo()`: Retorna las estadísticas precalculadas y memoizadas directamente.
+     - `src/almacen/selectores/usarEstadoConfiguracion.ts`:
+       - `usarTipoTirada()`: Selector atómico para modo ventaja/desventaja/plano.
+       - `usarSistemaMagia()`: Selector atómico para slots vs spell points.
+       - `usarPestanaActiva()`: Selector de navegación de la barra principal.
+       - `usarNotificaciones()`: **Desacopla los toasts y notificaciones temporales de 3s**, evitando que cada mensaje efímero provoque re-renders masivos en la hoja de personaje y vistas secundarias.
+       - `usarEsGM()`: Selector booleano de modo Director de Juego.
+  3. *Optimización y Memoización en `HojaPersonaje.tsx`*:
+     - Migración completa de destructuring monolítico (`usarEstadoPersonajes`, `usarEstadoConfiguracion`) a selectores atómicos.
+     - `statsCalculadas` envuelto en `useMemo` con dependencia exclusiva `[personajeActivo]`.
+     - Memoización con `useCallback` de todos los manejadores de eventos: `manejarAbrirEdicion`, `manejarCambioModoTirada`, `manejarDescansoCorto`, `manejarDescansoLargo`, `lanzarTiradaD20Personaje`, `manejarTirarCaracteristica`, `manejarTirarSalvacion`, `manejarTirarHabilidad`, `manejarTirarIniciativa` y `manejarTirarSalvacionMuerte3D`.
+     - Preservación estricta de las reglas de hooks de React (llamadas incondicionales al inicio del componente) y salvaguarda de renderizado con estrechamiento seguro de tipos (`if (!personajeActivo || !statsCalculadas)`).
+  4. *Aislamiento de Paneles Hijos con `React.memo`*:
+     - `PanelVitalidadPersonaje.tsx`: Evita re-renders cuando mutan conjuros, atributos o competencias.
+     - `PanelAtributosPersonaje.tsx`: Evita re-renders cuando varía el daño, vitalidad o inventario.
+     - `PanelHabilidadesPersonaje.tsx`: Aísla el renderizado de las 18 habilidades de cambios en el inventario o tiradas.
+     - `MetricasRapidasPersonaje.tsx`: Aísla las tarjetas de CA, PB, Inspiración y Velocidad.
+     - `BarraTacticaPersonaje.tsx`: Aísla el conmutador de ventaja/desventaja y la barra de condiciones de otras pestañas.
+- **Métricas de Calidad Verificadas**:
+  - `tsc --noEmit`: 0 errores de tipado estricto.
+  - `pnpm lint`: 0 errores, 0 warnings (100% conforme a ESLint).
+  - `pnpm test`: 41 suites superadas, 451 de 451 pruebas pasando (100%).
+  - `pnpm build`: Empaquetado exitoso de Vite en 6.50s (código de salida 0).
+
 ## [2026-09-07] Culminación Exitosa - Etapa 3: Modularización de Componentes Monolíticos (Responsabilidad Única y Tipado Canónico)
 **Contexto y Logros:**
 - Se modularizaron con éxito los 4 componentes más extensos y críticos del Modo Jugador (>1.000 líneas cada uno), desacoplando la lógica de negocio y presentación sin romper compatibilidad de interfaces.

@@ -1,10 +1,14 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import {
-  usarEstadoPersonajes,
+  usarPersonajeActivo,
   usarAccionesPersonajes,
   calcularEstadisticasPersonaje
 } from "@/almacen/selectores/usarEstadoPersonajes";
-import { usarEstadoConfiguracion } from "@/almacen/selectores/usarEstadoConfiguracion";
+import {
+  usarTipoTirada,
+  usarSistemaMagia,
+  usarPestanaActiva
+} from "@/almacen/selectores/usarEstadoConfiguracion";
 import { usarEstadoHomebrew } from "@/almacen/selectores/usarEstadoHomebrew";
 import { usarAccionesIniciativa } from "@/almacen/selectores/usarEstadoIniciativa";
 import { lanzarDadosTaleSpire, sanitizarEtiqueta, type MetadataIniciativa } from "@/utiles/lanzadorDados";
@@ -35,8 +39,10 @@ interface HojaPersonajeProps {
 }
 
 export const HojaPersonaje: React.FC<HojaPersonajeProps> = ({ alAbrirConfiguracion }) => {
-  const { personajeActivo } = usarEstadoPersonajes();
-  const { tipoTirada, sistemaMagia, pestañaActiva } = usarEstadoConfiguracion();
+  const personajeActivo = usarPersonajeActivo();
+  const tipoTirada = usarTipoTirada();
+  const sistemaMagia = usarSistemaMagia();
+  const pestañaActiva = usarPestanaActiva();
   const { baseDatosHechizos } = usarEstadoHomebrew();
   const {
     actualizarPersonaje,
@@ -99,64 +105,60 @@ export const HojaPersonaje: React.FC<HojaPersonajeProps> = ({ alAbrirConfiguraci
     }
   }, [pestañaActiva, setSubPestanaActiva]);
 
-  const manejarAbrirEdicion = () => {
+  const manejarAbrirEdicion = useCallback(() => {
     if (alAbrirConfiguracion) {
       alAbrirConfiguracion();
     } else {
       setModalEdicionAbierto(true);
     }
-  };
+  }, [alAbrirConfiguracion]);
 
-  if (!personajeActivo) {
-    return (
-      <div className={estilos.contenedorPrincipal}>
-        <div className={`${estilos.neoRaised}`} style={{ padding: 24, textAlign: "center" }}>
-          <p style={{ color: "#94a3b8", margin: 0 }}>
-            No hay ningún personaje activo seleccionado. Ve a la pestaña "Mis Personajes" para crear o activar uno.
-          </p>
-        </div>
-      </div>
-    );
-  }
+  // 1. Calcular estadísticas derivadas memoizadas con O(1)
+  const statsCalculadas = useMemo(
+    () => (personajeActivo ? calcularEstadisticasPersonaje(personajeActivo) : null),
+    [personajeActivo]
+  );
 
-  // 1. Calcular estadísticas derivadas y modificadores
-  const statsCalculadas = calcularEstadisticasPersonaje(personajeActivo);
+  // 2. Mapeo reactivo del modo de tirada desde el estado global de Zustand
+  const modoTirada: ModoTirada = useMemo(
+    () => (tipoTirada === "ventaja" ? "vent" : tipoTirada === "desventaja" ? "disv" : "plano"),
+    [tipoTirada]
+  );
 
-  // 2. Mapeo reactivo del modo de tirada desde el estado global de Zustand (Single Source of Truth)
-  const modoTirada: ModoTirada =
-    tipoTirada === "ventaja" ? "vent" : tipoTirada === "desventaja" ? "disv" : "plano";
-
-  const manejarCambioModoTirada = (modo: ModoTirada) => {
+  const manejarCambioModoTirada = useCallback((modo: ModoTirada) => {
     const tipoGlobal = modo === "vent" ? "ventaja" : modo === "disv" ? "desventaja" : "plano";
     establecerTipoTirada(tipoGlobal);
-  };
+  }, [establecerTipoTirada]);
 
-  const manejarDescansoCorto = () => {
+  const manejarDescansoCorto = useCallback(() => {
+    if (!personajeActivo) return;
     const res = ejecutarDescansoPersonaje(personajeActivo.id, "corto", 0);
     setModalDescanso({
       abierto: true,
       tipo: "corto",
       acciones: res?.acciones || []
     });
-  };
+  }, [personajeActivo, ejecutarDescansoPersonaje]);
 
-  const manejarDescansoLargo = () => {
+  const manejarDescansoLargo = useCallback(() => {
+    if (!personajeActivo) return;
     const res = ejecutarDescansoPersonaje(personajeActivo.id, "largo");
     setModalDescanso({
       abierto: true,
       tipo: "largo",
       acciones: res?.acciones || []
     });
-  };
+  }, [personajeActivo, ejecutarDescansoPersonaje]);
 
   // 3. Lanzadores de Dados 3D a TaleSpire (Homologados con el Combat Tracker del DM)
-  const lanzarTiradaD20Personaje = async (
+  const lanzarTiradaD20Personaje = useCallback(async (
     etiqueta: string,
     bono: number,
     metaIniciativa?: MetadataIniciativa,
     tipoTiradaCondicion?: "ventaja" | "desventaja" | "plano",
     sufijoMotivo?: string
   ) => {
+    if (!personajeActivo) return;
     try {
       const nombrePj = personajeActivo.nombre?.trim() || "Personaje";
       const formulaDados = `!${sanitizarEtiqueta(etiqueta)}:1d20${bono >= 0 ? "+" : ""}${bono}`;
@@ -187,12 +189,13 @@ export const HojaPersonaje: React.FC<HojaPersonajeProps> = ({ alAbrirConfiguraci
     } catch (err) {
       console.error("[HojaPersonaje] Error al enviar tirada 3D:", err);
     }
-  };
+  }, [personajeActivo, tipoTirada]);
 
-  const penalizacionSinComp = !!statsCalculadas.penalizacionArmadura?.sinCompetencia;
-  const desventajaSigiloArmadura = !!statsCalculadas.desventajaSigiloArmadura;
+  const penalizacionSinComp = !!statsCalculadas?.penalizacionArmadura?.sinCompetencia;
+  const desventajaSigiloArmadura = !!statsCalculadas?.desventajaSigiloArmadura;
 
-  const manejarTirarCaracteristica = (carac: Caracteristica, etiqueta: string, bono: number) => {
+  const manejarTirarCaracteristica = useCallback((carac: Caracteristica, etiqueta: string, bono: number) => {
+    if (!personajeActivo) return;
     const evaluacion = evaluarEfectosCondicionesEnTirada({
       tipo: "caracteristica",
       caracteristica: carac,
@@ -210,9 +213,10 @@ export const HojaPersonaje: React.FC<HojaPersonajeProps> = ({ alAbrirConfiguraci
       evaluacion.modoEfectivo !== "plano" ? evaluacion.modoEfectivo : undefined,
       motivos
     );
-  };
+  }, [personajeActivo, penalizacionSinComp, desventajaSigiloArmadura, lanzarTiradaD20Personaje]);
 
-  const manejarTirarSalvacion = (carac: Caracteristica, etiqueta: string, bono: number) => {
+  const manejarTirarSalvacion = useCallback((carac: Caracteristica, etiqueta: string, bono: number) => {
+    if (!personajeActivo) return;
     const etiquetaLimpia = etiqueta.replace(/^Salvaci[oó]n(\s+de)?\s+/i, "");
     const evaluacion = evaluarEfectosCondicionesEnTirada({
       tipo: "salvacion",
@@ -231,9 +235,10 @@ export const HojaPersonaje: React.FC<HojaPersonajeProps> = ({ alAbrirConfiguraci
       evaluacion.modoEfectivo !== "plano" ? evaluacion.modoEfectivo : undefined,
       motivos
     );
-  };
+  }, [personajeActivo, penalizacionSinComp, desventajaSigiloArmadura, lanzarTiradaD20Personaje]);
 
-  const manejarTirarHabilidad = (hab: Habilidad, nombre: string, bono: number) => {
+  const manejarTirarHabilidad = useCallback((hab: Habilidad, nombre: string, bono: number) => {
+    if (!personajeActivo) return;
     const caracAsociada = MAPA_HABILIDAD_A_CARACTERISTICA[hab];
     const evaluacion = evaluarEfectosCondicionesEnTirada({
       tipo: "caracteristica",
@@ -253,9 +258,10 @@ export const HojaPersonaje: React.FC<HojaPersonajeProps> = ({ alAbrirConfiguraci
       evaluacion.modoEfectivo !== "plano" ? evaluacion.modoEfectivo : undefined,
       motivos
     );
-  };
+  }, [personajeActivo, penalizacionSinComp, desventajaSigiloArmadura, lanzarTiradaD20Personaje]);
 
-  const manejarTirarIniciativa = () => {
+  const manejarTirarIniciativa = useCallback(() => {
+    if (!personajeActivo || !statsCalculadas) return;
     const evaluacion = evaluarEfectosCondicionesEnTirada({
       tipo: "iniciativa",
       caracteristica: "destreza",
@@ -279,19 +285,32 @@ export const HojaPersonaje: React.FC<HojaPersonajeProps> = ({ alAbrirConfiguraci
       metaInic,
       evaluacion.modoEfectivo !== "plano" ? evaluacion.modoEfectivo : undefined
     );
-  };
+  }, [personajeActivo, statsCalculadas, penalizacionSinComp, desventajaSigiloArmadura, lanzarTiradaD20Personaje]);
 
-  const manejarTirarSalvacionMuerte3D = async () => {
+  const manejarTirarSalvacionMuerte3D = useCallback(async () => {
+    if (!personajeActivo) return;
     const nombrePj = personajeActivo.nombre?.trim() || "Personaje";
     await lanzarDadosTaleSpire("!Salvacion Muerte:1d20", `${nombrePj} - Salvación Muerte`, undefined, {
       tipo: "salvacionMuerte",
       personajeId: personajeActivo.id
     });
-  };
+  }, [personajeActivo]);
 
   const totalConjurosYTrucos =
-    (personajeActivo.trucosConocidosIds?.length || 0) +
-    (personajeActivo.conjurosConocidosIds?.length || 0);
+    (personajeActivo?.trucosConocidosIds?.length || 0) +
+    (personajeActivo?.conjurosConocidosIds?.length || 0);
+
+  if (!personajeActivo || !statsCalculadas) {
+    return (
+      <div className={estilos.contenedorPrincipal}>
+        <div className={`${estilos.neoRaised}`} style={{ padding: 24, textAlign: "center" }}>
+          <p style={{ color: "#94a3b8", margin: 0 }}>
+            No hay ningún personaje activo seleccionado. Ve a la pestaña "Mis Personajes" para crear o activar uno.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <main className={estilos.contenedorPrincipal}>

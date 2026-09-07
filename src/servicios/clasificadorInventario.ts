@@ -58,6 +58,32 @@ export function obtenerValorPO(obj: ObjetoInventario, baseDatosObjetos: ObjetoJu
 }
 
 /**
+ * Determina si un objeto de inventario califica como herramienta, instrumento musical,
+ * juego o kit de artesano según su nombre, notas o subcategoría del compendio.
+ */
+export function esObjetoHerramienta(nombre: string = "", notas?: string, subcategoria?: string): boolean {
+  const norm = (s: string) => s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+  const nNorm = norm(nombre);
+  const notNorm = norm(notas || "");
+  const subNorm = norm(subcategoria || "");
+
+  const claves = [
+    "herramienta",
+    "instrumento",
+    "juego",
+    "kit",
+    "utensilio",
+    "suministro",
+    "artesano",
+    "ladron",
+    "thieves",
+    "tools"
+  ];
+
+  return claves.some((k) => nNorm.includes(k) || notNorm.includes(k) || subNorm.includes(k));
+}
+
+/**
  * Clasifica los objetos de la mochila en 7 categorías semánticas para el modo de visualización "Por Tipo".
  */
 export function clasificarMochilaPorTipo(
@@ -117,13 +143,7 @@ export function clasificarMochilaPorTipo(
 
     if (sub.includes("consumible") || sub.includes("pocion")) {
       consumibles.push(obj);
-    } else if (
-      sub.includes("herramienta") ||
-      sub.includes("instrumento") ||
-      sub.includes("juego") ||
-      obj.nombre.toLowerCase().includes("herramientas") ||
-      obj.nombre.toLowerCase().includes("kit")
-    ) {
+    } else if (esObjetoHerramienta(obj.nombre, obj.notas, sub)) {
       herramientas.push(obj);
     } else if (obj.esMagico || obj.rareza !== "Común" || sub.includes("maravilloso")) {
       magicos.push(obj);

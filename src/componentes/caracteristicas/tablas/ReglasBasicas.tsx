@@ -5,7 +5,7 @@ export const ReglasBasicas: React.FC = () => {
   return (
     <div className={estilosClases.seccionReglasBasicasGrid}>
       <div className={estilosClases.tarjetaReglaBrutal}>
-        <div className={estilosClases.cabeceraReglaBrutal}>DIFICULTAD DE PRUEBAS (CD 5.5e)</div>
+        <div className={estilosClases.cabeceraReglaBrutal}>DIFICULTAD DE PRUEBAS</div>
         <table className={estilosClases.tablaRegla}>
           <thead>
             <tr className={estilosClases.filaTablaReglaHead}>
@@ -25,7 +25,7 @@ export const ReglasBasicas: React.FC = () => {
       </div>
 
       <div className={estilosClases.tarjetaReglaBrutal}>
-        <div className={estilosClases.cabeceraReglaBrutal}>COBERTURAS DE COMBATE (5.5e)</div>
+        <div className={estilosClases.cabeceraReglaBrutal}>COBERTURAS DE COMBATE</div>
         <ul className={estilosClases.listaCobertura}>
           <li className={estilosClases.itemCobertura}>
             <strong>Cobertura Media (+2 CA):</strong> Al menos la mitad del cuerpo está a cubierto. Otorga +2 a CA y salvaciones de Destreza.
@@ -40,7 +40,7 @@ export const ReglasBasicas: React.FC = () => {
       </div>
 
       <div className={estilosClases.tarjetaReglaBrutal}>
-        <div className={estilosClases.cabeceraReglaBrutal}>VISIBILIDAD Y SIGILO (5.5e)</div>
+        <div className={estilosClases.cabeceraReglaBrutal}>VISIBILIDAD Y SIGILO</div>
         <div className={estilosClases.textoCuerpoRegla}>
           • <strong>Acción Esconderse:</strong> Superar prueba de <strong>Destreza (Sigilo) CD 15</strong>. Con éxito, ganas la condición <strong>Invisible</strong> (ventaja en ataques, enemigos tienen desventaja en golpearte, etc.) hasta que hagas ruido, ataques o te vean.
           <br /><br />
@@ -49,7 +49,7 @@ export const ReglasBasicas: React.FC = () => {
       </div>
 
       <div className={estilosClases.tarjetaReglaBrutal}>
-        <div className={estilosClases.cabeceraReglaBrutal}>CONCENTRACIÓN Y CONJUROS (5.5e)</div>
+        <div className={estilosClases.cabeceraReglaBrutal}>CONCENTRACIÓN Y CONJUROS</div>
         <div className={estilosClases.textoCuerpoRegla}>
           • <strong>Daño sufrido:</strong> Haz una <strong>salvación de Constitución CD 10</strong> o la mitad del daño recibido (lo que sea mayor) para no perder la concentración de tu conjuro activo.
           <br /><br />
@@ -58,7 +58,7 @@ export const ReglasBasicas: React.FC = () => {
       </div>
 
       <div className={estilosClases.tarjetaReglaBrutal}>
-        <div className={estilosClases.cabeceraReglaBrutal}>REGLAS DE ASFIXIA (5.5e)</div>
+        <div className={estilosClases.cabeceraReglaBrutal}>REGLAS DE ASFIXIA</div>
         <div className={estilosClases.textoCuerpoRegla}>
           Una criatura puede aguantar la respiración una cantidad de minutos igual a <strong>1 + su modificador de Constitución</strong> (mínimo 30 segundos).
           <br /><br />

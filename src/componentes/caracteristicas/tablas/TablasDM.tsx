@@ -27,7 +27,7 @@ export const TablasDM: React.FC = () => {
           }`}
         >
           <BookOpen size={10} />
-          Condiciones 5.5e
+          Condiciones
         </button>
 
         <button

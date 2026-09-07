@@ -171,7 +171,7 @@ const BarraTacticaPersonajeComponent: React.FC<BarraTacticaPersonajeProps> = ({
                   esAlerta
                   textoCustom="SIN COMPETENCIA (ARMADURA)"
                   alineacionTooltip="derecha"
-                  tooltipCustom={`Armadura sin Competencia (D&D 5.5e)\n\n• Vistes ${[
+                  tooltipCustom={`Armadura sin Competencia\n\n• Vistes ${[
                     penalizacionArmadura?.armaduraNoCompetente,
                     penalizacionArmadura?.escudoNoCompetente
                   ]

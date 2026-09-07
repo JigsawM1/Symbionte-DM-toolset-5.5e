@@ -28,7 +28,7 @@ export function obtenerDetalleCondicion(nombre: string): DetalleCondicionOEfecto
   if (nombreNorm.includes("sin competencia") || nombreNorm.includes("incompetencia")) {
     return {
       titulo: "Armadura sin Competencia",
-      descripcion: "Reglas Oficiales D&D 5.5e (2024): Vistes armadura o portas escudo sin entrenamiento.",
+      descripcion: "Vistes armadura o portas escudo sin entrenamiento.",
       efectos: [
         "Desventaja en cualquier tirada de ataque que use Fuerza o Destreza.",
         "Desventaja en pruebas de característica y tiradas de salvación de Fuerza y Destreza.",
@@ -40,7 +40,7 @@ export function obtenerDetalleCondicion(nombre: string): DetalleCondicionOEfecto
   if (nombreNorm.includes("desventaja en sigilo") || nombreNorm.includes("sigilo ruidoso")) {
     return {
       titulo: "Desventaja en Sigilo (Armadura)",
-      descripcion: "Reglas Oficiales D&D 5.5e (2024): La armadura corporal equipada es pesada o ruidosa.",
+      descripcion: "La armadura corporal equipada es pesada o ruidosa.",
       efectos: [
         "La armadura corporal equipada impone Desventaja automática en todas las pruebas de Sigilo (Destreza)."
       ]

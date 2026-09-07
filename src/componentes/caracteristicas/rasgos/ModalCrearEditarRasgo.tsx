@@ -139,7 +139,7 @@ export const ModalCrearEditarRasgo: React.FC<ModalCrearEditarRasgoProps> = ({
             {!esEdicion && origen === "dote" && (
               <div className={estilos.grupoCampo}>
                 <label className={estilos.labelCampo}>
-                  Cargar plantilla de Dote oficial D&D 5.5e (Opcional):
+                  Cargar plantilla de Dote oficial D&D (Opcional):
                 </label>
                 <SelectorDesplegable
                   valor={dotePredefinidaSeleccionada}

@@ -535,14 +535,14 @@ export function sanearObjetoHomebrew(o: unknown): ObjetoHomebrew {
       "special": "Especial", "especial": "Especial",
       "ammunition": "Munición", "munición": "Munición",
       "attunement": "Sintonización", "sintonización": "Sintonización", "sintonizacion": "Sintonización",
-      "nick": "Golpe Rápido", "golpe rápido": "Golpe Rápido",
-      "push": "Empuje", "empuje": "Empuje",
-      "slow": "Lentitud", "lentitud": "Lentitud",
-      "graze": "Roce", "roce": "Roce",
-      "cleave": "Tajo", "tajo": "Tajo",
-      "topple": "Derribo", "derribo": "Derribo",
-      "vex": "Acoso", "acoso": "Acoso",
-      "sap": "Menoscabo", "menoscabo": "Menoscabo"
+      "nick": "Mellar", "mellar": "Mellar",
+      "push": "Empujar", "empujar": "Empujar",
+      "slow": "Ralentizar", "ralentizar": "Ralentizar",
+      "graze": "Rozar", "rozar": "Rozar",
+      "cleave": "Hender", "hender": "Hender",
+      "topple": "Derribar", "derribar": "Derribar",
+      "vex": "Molestar", "molestar": "Molestar",
+      "sap": "Debilitar", "debilita": "Debilitar"
     };
 
     if (Array.isArray(rawProps)) {

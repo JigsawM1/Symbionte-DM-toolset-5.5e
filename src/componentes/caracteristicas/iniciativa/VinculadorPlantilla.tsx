@@ -28,7 +28,7 @@ export const VinculadorPlantilla: React.FC<VinculadorPlantillaProps> = ({
         <Link size={20} className={estilos.iconoEnlace} />
         <span className={estilos.tituloAlertaVinculo}>SISTEMA DE ASOCIACIÓN DE FICHA</span>
         <span className={estilos.descAlertaVinculo}>
-          Esta criatura física no cuenta con un bloque de estadísticas de D&D 5.5e cargado. Asóciala ahora con un monstruo del manual para habilitar tiradas y visualización en tiempo real.
+          Esta criatura física no cuenta con un bloque de estadísticas cargado. Asóciala ahora con un monstruo del manual para habilitar tiradas y visualización en tiempo real.
         </span>
       </div>
 

@@ -63,7 +63,7 @@ export function obtenerInfoMaestria(maestriaTexto?: string | null): InfoPropieda
   // Fallback genérico si no se encuentra en el diccionario oficial
   return {
     titulo: `Maestría: ${maestriaTexto}`,
-    descripcion: `Propiedad de maestría de armas D&D 5.5e (${maestriaTexto}). Se activa si el personaje tiene entrenamiento en maestrías de armas.`,
+    descripcion: `Propiedad de maestría de armas (${maestriaTexto}). Se activa si el personaje tiene entrenamiento en maestrías de armas.`,
     textoCompleto: `Maestría: ${maestriaTexto}`
   };
 }

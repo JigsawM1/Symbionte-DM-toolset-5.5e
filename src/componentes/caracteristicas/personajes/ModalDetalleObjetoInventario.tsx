@@ -835,7 +835,7 @@ export const ModalDetalleObjetoInventario: React.FC<ModalDetalleObjetoInventario
                         className={estilos.botonLanzarHechizoModal}
                         title={
                           bloqueadoPorArmadura
-                            ? (motivoBloqueoArmadura || "Bloqueado por armadura sin competencia (D&D 5.5e)")
+                            ? (motivoBloqueoArmadura || "Bloqueado por armadura sin competencia")
                             : tieneCargasSuficientes
                             ? `Lanzar ${hechizo.nombre} en TaleSpire`
                             : "Cargas insuficientes"

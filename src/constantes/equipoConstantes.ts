@@ -229,15 +229,15 @@ export const DICCIONARIO_PROPIEDADES_ARMAS: Record<string, { titulo: string; des
   },
   "pesada": {
     titulo: "Pesada",
-    descripcion: "Las criaturas de tamaño Pequeño o menor tienen desventaja en las tiradas de ataque con armas pesadas. En D&D 5.5e, requiere Fuerza 13 (cuerpo a cuerpo) o Destreza 13 (a distancia) para evitar desventaja."
+    descripcion: "Las criaturas de tamaño Pequeño o menor tienen desventaja en las tiradas de ataque con armas pesadas. Requiere Fuerza 13 (cuerpo a cuerpo) o Destreza 13 (a distancia) para evitar desventaja."
   },
   "pesado": {
     titulo: "Pesada",
-    descripcion: "Las criaturas de tamaño Pequeño o menor tienen desventaja en las tiradas de ataque con armas pesadas. En D&D 5.5e, requiere Fuerza 13 (cuerpo a cuerpo) o Destreza 13 (a distancia) para evitar desventaja."
+    descripcion: "Las criaturas de tamaño Pequeño o menor tienen desventaja en las tiradas de ataque con armas pesadas. Requiere Fuerza 13 (cuerpo a cuerpo) o Destreza 13 (a distancia) para evitar desventaja."
   },
   "heavy": {
     titulo: "Pesada",
-    descripcion: "Las criaturas de tamaño Pequeño o menor tienen desventaja en las tiradas de ataque con armas pesadas. En D&D 5.5e, requiere Fuerza 13 (cuerpo a cuerpo) o Destreza 13 (a distancia) para evitar desventaja."
+    descripcion: "Las criaturas de tamaño Pequeño o menor tienen desventaja en las tiradas de ataque con armas pesadas. Requiere Fuerza 13 (cuerpo a cuerpo) o Destreza 13 (a distancia) para evitar desventaja."
   },
   "alcance": {
     titulo: "Alcance",

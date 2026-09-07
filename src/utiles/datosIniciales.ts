@@ -37,7 +37,7 @@ export const IDS_INICIALES_OBJETOS: ReadonlySet<string>   = new Set(OBJETOS_INIC
 export const CONDICIONES_2024: CondicionDnd[] = [
   {
     nombre: "AGARRADO (Grappled)",
-    descripcion: "Reglas D&D 2024 (5.5e)",
+    descripcion: "Reglas D&D",
     efectos: [
       "La velocidad del objetivo agarrado pasa a ser 0 y no puede beneficiarse de ningún bonificador a la velocidad.",
       "La condición termina si el agarrador queda Incapacitado o si un efecto desplaza al objetivo fuera del alcance del agarrador.",
@@ -48,7 +48,7 @@ export const CONDICIONES_2024: CondicionDnd[] = [
   },
   {
     nombre: "APRESADO (Restrained)",
-    descripcion: "Reglas D&D 2024 (5.5e)",
+    descripcion: "Reglas D&D",
     efectos: [
       "La velocidad de la criatura pasa a ser 0 y no puede beneficiarse de ningún bonificador a su velocidad.",
       "Las tiradas de ataque contra la criatura tienen ventaja.",
@@ -58,7 +58,7 @@ export const CONDICIONES_2024: CondicionDnd[] = [
   },
   {
     nombre: "ASUSTADO (Frightened)",
-    descripcion: "Reglas D&D 2024 (5.5e)",
+    descripcion: "Reglas D&D",
     efectos: [
       "La criatura asustada tiene desventaja en las pruebas de característica y tiradas de ataque mientras la fuente de su miedo esté dentro de su línea de visión.",
       "La criatura no puede acercarse voluntariamente a la fuente de su miedo."
@@ -66,7 +66,7 @@ export const CONDICIONES_2024: CondicionDnd[] = [
   },
   {
     nombre: "ATURDIDO (Stunned)",
-    descripcion: "Reglas D&D 2024 (5.5e)",
+    descripcion: "Reglas D&D",
     efectos: [
       "La criatura aturdida está Incapacitada, no puede moverse y sólo puede hablar balbuceando.",
       "La criatura falla automáticamente las tiradas de salvación de Fuerza y Destreza.",
@@ -75,7 +75,7 @@ export const CONDICIONES_2024: CondicionDnd[] = [
   },
   {
     nombre: "CANSADO (Exhausted)",
-    descripcion: "Reglas D&D 2024 (5.5e)",
+    descripcion: "Reglas D&D",
     efectos: [
       "Esta condición es acumulativa y tiene 6 niveles. Si alcanzas el nivel 6, mueres de inmediato.",
       "Tiradas d20: Restas 2 veces tu nivel de cansancio a todas tus tiradas de d20 (ataques, salvaciones y pruebas).",
@@ -85,7 +85,7 @@ export const CONDICIONES_2024: CondicionDnd[] = [
   },
   {
     nombre: "CEGADO (Blinded)",
-    descripcion: "Reglas D&D 2024 (5.5e)",
+    descripcion: "Reglas D&D",
     efectos: [
       "La criatura ciega no puede ver y falla automáticamente cualquier prueba de característica que requiera la vista.",
       "Las tiradas de ataque contra la criatura tienen ventaja.",
@@ -94,7 +94,7 @@ export const CONDICIONES_2024: CondicionDnd[] = [
   },
   {
     nombre: "DERRIBADO (Prone)",
-    descripcion: "Reglas D&D 2024 (5.5e)",
+    descripcion: "Reglas D&D",
     efectos: [
       "La única opción de movimiento de la criatura es arrastrarse, a menos que se levante gastando la mitad de su velocidad.",
       "La criatura tiene desventaja en las tiradas de ataque.",
@@ -103,21 +103,21 @@ export const CONDICIONES_2024: CondicionDnd[] = [
   },
   {
     nombre: "ENSORDECIDO (Deafened)",
-    descripcion: "Reglas D&D 2024 (5.5e)",
+    descripcion: "Reglas D&D",
     efectos: [
       "La criatura ensordecida no puede oír y falla automáticamente cualquier prueba de característica que requiera el oído."
     ]
   },
   {
     nombre: "ENVENENADO (Poisoned)",
-    descripcion: "Reglas D&D 2024 (5.5e)",
+    descripcion: "Reglas D&D",
     efectos: [
       "La criatura envenenada tiene desventaja en las tiradas de ataque y en las pruebas de característica."
     ]
   },
   {
     nombre: "HECHIZADO (Charmed)",
-    descripcion: "Reglas D&D 2024 (5.5e)",
+    descripcion: "Reglas D&D",
     efectos: [
       "La criatura hechizada no puede atacar al hechizador ni afectarlo con habilidades dañinas o efectos mágicos.",
       "El hechizador tiene ventaja en cualquier prueba de característica para interactuar socialmente con la criatura hechizada."
@@ -125,7 +125,7 @@ export const CONDICIONES_2024: CondicionDnd[] = [
   },
   {
     nombre: "INCAPACITADO (Incapacitated)",
-    descripcion: "Reglas D&D 2024 (5.5e)",
+    descripcion: "Reglas D&D",
     efectos: [
       "La criatura no puede realizar acciones ni reacciones.",
       "Si la criatura está incapacitada, pierde la concentración en cualquier conjuro activo de forma automática.",
@@ -134,7 +134,7 @@ export const CONDICIONES_2024: CondicionDnd[] = [
   },
   {
     nombre: "INCONSCIENTE (Unconscious)",
-    descripcion: "Reglas D&D 2024 (5.5e)",
+    descripcion: "Reglas D&D",
     efectos: [
       "La criatura inconsciente está Incapacitada, no puede moverse ni hablar y no es consciente de su entorno.",
       "La criatura deja caer lo que esté sosteniendo y queda Derribada.",
@@ -145,7 +145,7 @@ export const CONDICIONES_2024: CondicionDnd[] = [
   },
   {
     nombre: "INVISIBLE (Invisible)",
-    descripcion: "Reglas D&D 2024 (5.5e)",
+    descripcion: "Reglas D&D",
     efectos: [
       "La criatura es imposible de ver sin la ayuda de magia o un sentido especial.",
       "La criatura se considera fuertemente oculta a efectos de esconderse.",
@@ -154,7 +154,7 @@ export const CONDICIONES_2024: CondicionDnd[] = [
   },
   {
     nombre: "PARALIZADO (Paralyzed)",
-    descripcion: "Reglas D&D 2024 (5.5e)",
+    descripcion: "Reglas D&D",
     efectos: [
       "La criatura paralizada está Incapacitada y no puede moverse ni hablar.",
       "La criatura falla automáticamente las tiradas de salvación de Fuerza y Destreza.",
@@ -164,7 +164,7 @@ export const CONDICIONES_2024: CondicionDnd[] = [
   },
   {
     nombre: "PETRIFICADO (Petrified)",
-    descripcion: "Reglas D&D 2024 (5.5e)",
+    descripcion: "Reglas D&D",
     efectos: [
       "La criatura petrificada es transformada, junto con todos sus objetos no mágicos que viste o lleva, en una sustancia sólida e inerte (generalmente piedra). Su peso se multiplica por diez y cesa de envejecer.",
       "La criatura está Incapacitada, no puede moverse ni hablar, y no es consciente de su entorno.",
@@ -200,8 +200,8 @@ export const CRITICOS_ALEATORIOS: string[] = [
 
 export const EFECTOS_PREDEFINIDOS: EfectoPredefinido[] = [
   { nombre: "Desangrándose (Bloodied)", descripcion: "Esta criatura o personaje está por debajo del 50% de sus puntos de golpe máximos. Se aplica automáticamente cuando la salud cae por debajo de la mitad y desaparece cuando se recupera por encima de dicho umbral.", duracionEstandar: 0 },
-  { nombre: "Armadura sin Competencia", descripcion: "Reglas D&D 5.5e (2024): Vistes armadura o portas escudo sin entrenamiento. Tienes Desventaja en cualquier tirada de ataque, prueba de característica o salvación que use Fuerza o Destreza, y no puedes lanzar conjuros ni realizar rituales.", duracionEstandar: 0 },
-  { nombre: "Desventaja en Sigilo (Armadura)", descripcion: "Reglas D&D 5.5e (2024): La armadura corporal equipada es pesada o ruidosa e impone Desventaja automática en todas las pruebas de Sigilo (Destreza).", duracionEstandar: 0 },
+  { nombre: "Armadura sin Competencia", descripcion: "Vistes armadura o portas escudo sin entrenamiento. Tienes Desventaja en cualquier tirada de ataque, prueba de característica o salvación que use Fuerza o Destreza, y no puedes lanzar conjuros ni realizar rituales.", duracionEstandar: 0 },
+  { nombre: "Desventaja en Sigilo (Armadura)", descripcion: "La armadura corporal equipada es pesada o ruidosa e impone Desventaja automática en todas las pruebas de Sigilo (Destreza).", duracionEstandar: 0 },
   { nombre: "Bendecir (Bless)", descripcion: "Añade 1d4 a las tiradas de ataque y salvaciones.", duracionEstandar: 10 },
   { nombre: "Furia (Rage)", descripcion: "Ventaja en tiradas de Fuerza, daño extra en ataques de Fuerza, resistencia a daño contundente, perforante y cortante.", duracionEstandar: 100 },
   { nombre: "Ataque Temerario (Reckless Attack)", descripcion: "Ventaja en tiradas de ataque que usen Fuerza durante tu turno, pero los ataques contra ti tienen ventaja hasta el inicio de tu siguiente turno.", duracionEstandar: 1 },

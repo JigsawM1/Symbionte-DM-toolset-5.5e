@@ -98,7 +98,7 @@ export const ConsolaCriticosPifias: React.FC = () => {
       {/* PARTE IZQUIERDA: GENERADOR CONSOLA */}
       <div className={estilosClases.consolaTiradorCard}>
         <div className={estilosClases.tituloConsolaTactico}>
-          <span>Consola Táctica de Críticos/Pifias 5.5e</span>
+          <span>Consola Táctica de Críticos/Pifias</span>
         </div>
         
         <div className={estilosClases.grupoControlesConsola}>

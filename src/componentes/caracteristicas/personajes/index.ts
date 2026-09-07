@@ -18,11 +18,10 @@ export * from "./BuscadorConjurosPersonaje";
 export * from "./PanelConjurosPersonaje";
 export * from "./SeccionArcanoMistico";
 
-export * from "./PanelInventarioPersonaje";
-export * from "./TarjetaObjetoInventario";
-export * from "./ModalAgregarObjeto";
+export * from "@/componentes/caracteristicas/inventario";
 
 export * from "./GestorPersonajes";
+export * from "./VistaJugadores";
 
 
 

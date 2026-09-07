@@ -7,12 +7,12 @@ import { ModalAgregarObjeto } from "./ModalAgregarObjeto";
 import { usarInventarioOrdenado } from "./usarInventarioOrdenado";
 import { BarraMetricasInventario } from "./BarraMetricasInventario";
 import { DockMovilizacionRapida } from "./DockMovilizacionRapida";
-import { SeccionObjetosEquipados } from "./inventario/SeccionObjetosEquipados";
-import { SeccionMochilaInventario } from "./inventario/SeccionMochilaInventario";
-import { SeccionContenedoresEspeciales } from "./inventario/SeccionContenedoresEspeciales";
-import { ModalInspeccionObjetoFlotante } from "./inventario/ModalInspeccionObjetoFlotante";
-import type { PanelInventarioPersonajeProps } from "./inventario/tiposPanelInventario";
-import estilos from "./HojaPersonaje.module.css";
+import { SeccionObjetosEquipados } from "./subcomponentes/SeccionObjetosEquipados";
+import { SeccionMochilaInventario } from "./subcomponentes/SeccionMochilaInventario";
+import { SeccionContenedoresEspeciales } from "./subcomponentes/SeccionContenedoresEspeciales";
+import { ModalInspeccionObjetoFlotante } from "./subcomponentes/ModalInspeccionObjetoFlotante";
+import type { PanelInventarioPersonajeProps } from "./subcomponentes/tiposPanelInventario";
+import estilos from "@/componentes/caracteristicas/personajes/HojaPersonaje.module.css";
 
 export type { PanelInventarioPersonajeProps };
 

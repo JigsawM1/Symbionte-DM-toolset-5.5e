@@ -71,4 +71,26 @@ export default [
       },
     },
   },
+  {
+    files: [
+      "src/servicios/**/*.ts",
+      "src/almacen/**/*.ts",
+      "src/tipos/**/*.ts",
+      "src/constantes/**/*.ts",
+      "src/utiles/**/*.ts"
+    ],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            {
+              group: ["@/componentes*", "@/componentes/**", "../*/componentes*", "../*/componentes/**"],
+              message: "Violación de Arquitectura de Capas: Los servicios, almacén, tipos, constantes y utilidades no deben importar componentes ni estilos de la capa UI."
+            }
+          ]
+        }
+      ]
+    }
+  }
 ];

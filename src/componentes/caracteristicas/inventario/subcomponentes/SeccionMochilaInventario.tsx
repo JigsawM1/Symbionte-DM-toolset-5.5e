@@ -3,7 +3,7 @@ import type { ObjetoInventario } from "@/tipos";
 import { Backpack, ChevronDown, ChevronRight } from "lucide-react";
 import type { CriterioOrdenMochila, SubseccionMochilaTipo } from "../usarInventarioOrdenado";
 import { BarraHerramientasInventario } from "../BarraHerramientasInventario";
-import estilos from "../HojaPersonaje.module.css";
+import estilos from "@/componentes/caracteristicas/personajes/HojaPersonaje.module.css";
 
 interface SeccionMochilaInventarioProps {
   zonaDropActiva: string | null;

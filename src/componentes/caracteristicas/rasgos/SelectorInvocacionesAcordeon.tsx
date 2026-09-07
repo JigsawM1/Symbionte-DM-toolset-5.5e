@@ -12,7 +12,7 @@ import {
   ShieldCheck,
   Search
 } from "lucide-react";
-import { renderizarTextoEnriquecidoDND } from "@/utiles/formatoTextoDND";
+import { TextoEnriquecidoDND } from "@/componentes/comunes";
 import estilos from "./SelectorInvocacionesAcordeon.module.css";
 
 interface SelectorInvocacionesAcordeonProps {
@@ -248,7 +248,7 @@ export const SelectorInvocacionesAcordeon: React.FC<SelectorInvocacionesAcordeon
 
                     {/* Descripción Completa Enriquecida */}
                     <div className={estilos.textoDescripcionInvocacion}>
-                      {renderizarTextoEnriquecidoDND(op.descripcion || op.nombre)}
+                      <TextoEnriquecidoDND texto={op.descripcion || op.nombre} />
                     </div>
 
                     {/* Efectos Mecánicos Estructurados */}

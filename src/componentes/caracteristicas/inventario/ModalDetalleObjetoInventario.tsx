@@ -5,11 +5,11 @@ import type {
   HechizoVinculado,
   TipoContenedor
 } from "@/tipos";
-import { usarDetalleObjetoInventario } from "./inventario/usarDetalleObjetoInventario";
-import { CabeceraDetalleObjeto } from "./inventario/CabeceraDetalleObjeto";
-import { MetricasPrincipalesObjeto } from "./inventario/MetricasPrincipalesObjeto";
-import { SeccionDetallesEquipo } from "./inventario/SeccionDetallesEquipo";
-import { SeccionMagiaYEfectosObjeto } from "./inventario/SeccionMagiaYEfectosObjeto";
+import { usarDetalleObjetoInventario } from "./subcomponentes/usarDetalleObjetoInventario";
+import { CabeceraDetalleObjeto } from "./subcomponentes/CabeceraDetalleObjeto";
+import { MetricasPrincipalesObjeto } from "./subcomponentes/MetricasPrincipalesObjeto";
+import { SeccionDetallesEquipo } from "./subcomponentes/SeccionDetallesEquipo";
+import { SeccionMagiaYEfectosObjeto } from "./subcomponentes/SeccionMagiaYEfectosObjeto";
 import estilos from "./ModalDetalleObjetoInventario.module.css";
 
 interface ModalDetalleObjetoInventarioProps {

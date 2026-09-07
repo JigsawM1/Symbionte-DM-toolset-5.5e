@@ -1,6 +1,5 @@
 export { GestorIniciativa } from "./GestorIniciativa";
 export { IniciativaJugador } from "./IniciativaJugador";
-export { VistaJugadores } from "./VistaJugadores";
 export { BuscadorMonstruos } from "./BuscadorMonstruos";
 export { MenuEncuentros } from "./MenuEncuentros";
 export { SelectorCondiciones } from "./SelectorCondiciones";

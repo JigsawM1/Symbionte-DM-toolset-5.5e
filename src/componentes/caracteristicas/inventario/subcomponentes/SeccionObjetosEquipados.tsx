@@ -1,7 +1,7 @@
 import React from "react";
 import type { ObjetoInventario } from "@/tipos";
 import { Swords, ChevronDown, ChevronRight } from "lucide-react";
-import estilos from "../HojaPersonaje.module.css";
+import estilos from "@/componentes/caracteristicas/personajes/HojaPersonaje.module.css";
 
 interface SeccionObjetosEquipadosProps {
   estaAbierta: boolean;

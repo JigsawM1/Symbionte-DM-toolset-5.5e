@@ -13,7 +13,7 @@ const Compendio = React.lazy(() => import("@/componentes/caracteristicas/compend
 const NotasDM = React.lazy(() => import("@/componentes/caracteristicas/notas").then((m) => ({ default: m.NotasDM })));
 const CreadorHomebrew = React.lazy(() => import("@/componentes/caracteristicas/homebrew").then((m) => ({ default: m.CreadorHomebrew })));
 const ConfiguracionDM = React.lazy(() => import("@/componentes/caracteristicas/configuracion").then((m) => ({ default: m.ConfiguracionDM })));
-const VistaJugadores = React.lazy(() => import("@/componentes/caracteristicas/iniciativa").then((m) => ({ default: m.VistaJugadores })));
+const VistaJugadores = React.lazy(() => import("@/componentes/caracteristicas/personajes").then((m) => ({ default: m.VistaJugadores })));
 const VistaAtaquesJugador = React.lazy(() => import("@/componentes/caracteristicas/ataques").then((m) => ({ default: m.VistaAtaquesJugador })));
 const VistaInventarioJugador = React.lazy(() => import("@/componentes/caracteristicas/inventario").then((m) => ({ default: m.VistaInventarioJugador })));
 const VistaRasgosJugador = React.lazy(() => import("@/componentes/caracteristicas/rasgos").then((m) => ({ default: m.VistaRasgosJugador })));

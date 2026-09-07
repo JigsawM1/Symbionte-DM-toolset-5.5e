@@ -1,7 +1,7 @@
 import React from "react";
 import { Package } from "lucide-react";
 import { CAJAS_MOVILIZACION_RAPIDA } from "./usarInventarioOrdenado";
-import estilos from "./HojaPersonaje.module.css";
+import estilos from "@/componentes/caracteristicas/personajes/HojaPersonaje.module.css";
 
 interface DockMovilizacionRapidaProps {
   arrastrandoItem: boolean;

@@ -1,9 +1,9 @@
 import type {
   PersonajeJugador,
-  Caracteristica
+  Caracteristica,
+  AtaquePersonajeCalculado
 } from "@/tipos";
 import type { EstadisticasCalculadasPersonaje } from "@/almacen/selectores/usarEstadoPersonajes";
-import type { AtaquePersonajeCalculado } from "@/componentes/caracteristicas/ataques/TarjetaAtaquePersonaje";
 import { esCompetenteConArma } from "@/constantes/competenciasConstantes";
 import {
   evaluarAtaqueDesarmadoEspecial,

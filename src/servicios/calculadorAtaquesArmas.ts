@@ -3,10 +3,10 @@ import type {
   ObjetoJuego,
   ObjetoInventario,
   Caracteristica,
-  PersonajeJugador
+  PersonajeJugador,
+  AtaquePersonajeCalculado
 } from "@/tipos";
 import type { EstadisticasCalculadasPersonaje } from "@/almacen/selectores/usarEstadoPersonajes";
-import type { AtaquePersonajeCalculado } from "@/componentes/caracteristicas/ataques/TarjetaAtaquePersonaje";
 import { esCompetenteConArma } from "@/constantes/competenciasConstantes";
 import { resolverEstadoMunicionArma } from "@/servicios/gestorMunicion";
 import {

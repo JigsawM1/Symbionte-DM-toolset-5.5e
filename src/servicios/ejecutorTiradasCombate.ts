@@ -1,11 +1,11 @@
 import type {
   PersonajeJugador,
   Caracteristica,
-  ObjetoJuego
+  ObjetoJuego,
+  AtaquePersonajeCalculado,
+  ConsumibleAccionCalculado
 } from "@/tipos";
 import type { EstadisticasCalculadasPersonaje } from "@/almacen/selectores/usarEstadoPersonajes";
-import type { AtaquePersonajeCalculado } from "@/componentes/caracteristicas/ataques/TarjetaAtaquePersonaje";
-import type { ConsumibleAccionCalculado } from "@/componentes/caracteristicas/ataques/TarjetaConsumibleAccion.tipos";
 import { lanzarDadosTaleSpire, sanitizarEtiqueta } from "@/utiles/lanzadorDados";
 import { evaluarEfectosCondicionesEnTirada } from "@/servicios/procesadorCondiciones";
 import { esMunicionCompatibleConArma } from "@/servicios/gestorMunicion";

@@ -10,7 +10,7 @@ import { usarEstadoHomebrew } from "@/almacen/selectores/usarEstadoHomebrew";
 import { usarAccionesConfiguracion } from "@/almacen/selectores/usarEstadoConfiguracion";
 import { OBJETOS_INICIALES } from "@/utiles/datosIniciales";
 import { SelectorDesplegable } from "@/componentes/comunes/SelectorDesplegable";
-import { PanelInventarioPersonaje } from "@/componentes/caracteristicas/personajes/PanelInventarioPersonaje";
+import { PanelInventarioPersonaje } from "./PanelInventarioPersonaje";
 import { detectarInfoConsumible, evaluarFormulaDados } from "@/servicios/procesadorConsumibles";
 import { lanzarDadosTaleSpire, sanitizarEtiqueta } from "@/utiles/lanzadorDados";
 import { desduplicarEntidades } from "@/utiles/busquedaTolerante";

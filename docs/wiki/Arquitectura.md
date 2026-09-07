@@ -2,24 +2,42 @@
 
 La aplicación separa la interfaz React, el estado de campaña, las reglas de negocio y la comunicación con TaleSpire. El punto de entrada visual es `src/App.tsx`.
 
-## Capas
+## Capas y Flujo Unidireccional de Dependencias
 
 ```mermaid
 flowchart TD
-    A[Componentes React] --> B[Hooks y selectores]
-    B --> C[Almacén Zustand]
-    C --> D[Servicios de reglas]
-    D --> E[Utiles y TaleSpireAdapter]
-    E --> F[window.TS]
-    F --> G[EventBus puenteTaleSpire]
-    G --> E
+    A[App Shell / Layout] --> B[Caracteristicas / Features]
+    B --> C[UI Comunes / Primitivas]
+    B --> D[Hooks y Selectores Zustand]
+    D --> E[Almacén Zustand]
+    E --> F[Servicios de Negocio]
+    F --> G[Utiles Puros y TaleSpireAdapter]
+    F --> H[Constantes y Tipos TypeScript]
+    G --> I[window.TS]
+    I --> J[EventBus puenteTaleSpire]
+    J --> G
 ```
 
-### Componentes
+> **Regla de Oro Unidireccional**: Las dependencias fluyen estrictamente de arriba hacia abajo. La lógica de negocio (`servicios`), la gestión de estado (`almacen`), los datos fijos (`constantes`), las utilidades (`utiles`) y los contratos (`tipos`) tienen **terminantemente prohibido** importar elementos o estilos de la capa visual (`componentes`). Esta regla se encuentra blindada y automatizada mediante `eslint` (`no-restricted-imports`).
 
-`src/componentes/` contiene el layout y las características. `App.tsx` monta `BarraSuperior`, `BarraControl`, `PanelDados`, el contenedor de notificaciones y el límite de errores.
+### Capas de Interfaz de Usuario (UI Layers)
 
-Las pestañas pesadas se cargan de forma diferida con `React.lazy`: tablas, pendientes, compendio, notas, homebrew, configuración y vistas del jugador.
+1. **Layout / Cascarón (`src/componentes/layout/`)**:
+   - Elementos estructurales de la ventana de TaleSpire (`BarraSuperior`, `BarraControl`, `PanelDados`).
+2. **Características (`src/componentes/caracteristicas/`)**:
+   - Módulos organizados por dominio funcional de D&D 5.5e y rol de usuario:
+     - `iniciativa`: Gestor del combate para DM (`GestorIniciativa`) y vista táctica del jugador (`IniciativaJugador`).
+     - `personajes`: Vista de ficha (`VistaJugadores`), gestor de personajes, paneles de vitalidad, atributos y habilidades.
+     - `inventario`: Vista de inventario (`VistaInventarioJugador`), panel táctico (`PanelInventarioPersonaje`), modales de inspección, drag & drop y transferencia rápida entre contenedores.
+     - `ataques`: Vista de acciones del jugador (`VistaAtaquesJugador`), ataques físicos, mágicos, maestría y armas.
+     - `rasgos`: Vista de dotes, especie y clase (`VistaRasgosJugador`), progresión y selección de invocaciones.
+     - `compendio`: Búsqueda y fichas oficiales del SRD 2024 (`Compendio`, `ListaHechizos`, `FichaHechizo`).
+     - `homebrew`: Creadores de contenido personalizado para el DM (`CreadorHomebrew`).
+     - `tablas`, `notas`, `pendientes`, `configuracion`: Módulos auxiliares y de soporte de campaña.
+3. **Comunes / Primitivas Visuales (`src/componentes/comunes/`)**:
+   - Componentes transversales desacoplados de dominios específicos: selectores de accesibilidad CEF (`SelectorDesplegable`, `SelectorSugerencias`), tooltips instantáneos (`TooltipUniversal`), diálogos de confirmación (`ConfirmDialog`), límites de error (`LimiteError`), contenedor de toasts (`NotificacionesContenedor`) y renderizadores enriquecidos (`TextoEnriquecidoDND`).
+
+Las pestañas pesadas o inactivas se cargan de forma diferida mediante `React.lazy` directamente desde el barril `index.ts` de su característica respectiva en `src/App.tsx`.
 
 ### Hooks y selectores
 

@@ -1,0 +1,19 @@
+.parrafoModalEnriquecido {
+  margin: 0;
+  color: var(--pj-texto-primario, #ffffff);
+}
+
+.subtituloRasgoModal {
+  color: var(--pj-texto-cian, #38bdf8);
+  font-weight: 700;
+}
+
+.negritaModal {
+  color: var(--pj-texto-cian, #38bdf8);
+  font-weight: 700;
+}
+
+.cursivaColoreadaModal {
+  color: var(--pj-texto-cian, #38bdf8);
+  font-style: italic;
+}

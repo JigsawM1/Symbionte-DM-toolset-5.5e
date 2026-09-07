@@ -1,7 +1,7 @@
 import React from "react";
 import { Swords, CheckCircle2 } from "lucide-react";
 import type { RasgoPersonaje, DefinicionClase, DefinicionSubclase } from "@/tipos";
-import { renderizarTextoEnriquecidoDND } from "@/utiles/formatoTextoDND";
+import { TextoEnriquecidoDND } from "@/componentes/comunes";
 import { TablaProgresionRasgo } from "./TablaProgresionRasgo";
 import estilos from "./VistaRasgosJugador.module.css";
 
@@ -114,7 +114,7 @@ export const VisorProgresionClase: React.FC<VisorProgresionClaseProps> = ({
 
                     {/* Texto descriptivo enriquecido */}
                     <div className={estilos.textoDescripcionProgresion}>
-                      {renderizarTextoEnriquecidoDND(item.descripcion)}
+                      <TextoEnriquecidoDND texto={item.descripcion} />
                     </div>
 
                     {/* Tabla de Progresión y Escalado por Nivel */}

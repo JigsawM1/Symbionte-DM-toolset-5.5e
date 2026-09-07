@@ -1,49 +1,11 @@
 import React from "react";
 import { Swords, Zap, Sparkles, Target, AlertTriangle } from "lucide-react";
-import type { Caracteristica } from "@/tipos";
+import type { Caracteristica, TipoAccionConsumida, AtaquePersonajeCalculado } from "@/tipos";
 import type { ResultadoEvaluacionCondiciones } from "@/servicios/procesadorCondiciones";
 import { TooltipUniversal, SelectorDesplegable } from "@/componentes/comunes";
 import estilos from "./VistaAtaquesJugador.module.css";
 
-export type TipoAccionConsumida = "accion" | "accionAdicional" | "reaccion" | "especial";
-
-export interface AtaquePersonajeCalculado {
-  id: string;
-  nombre: string;
-  tipo: "Arma" | "Desarmado" | "Conjuro" | "Habilidad";
-  subtipo?: string;
-  tipoAccion: TipoAccionConsumida;
-  caracteristicaUsada: Caracteristica;
-  bonoAtaque: number;
-  dadoDano: string;
-  dadoDanoBase: string; // ej. "1d8" o "1"
-  modificadorDano: number;
-  esDanoFijo: boolean; // Si true, no tira dados de daño
-  danoVersatil?: string;
-  dadoVersatilBase?: string;
-  tipoDano: string;
-  alcance?: string;
-  propiedades: string[];
-  maestria?: string;
-  esMagico?: boolean;
-  notas?: string;
-  tieneTiradaAtaque: boolean;
-  cdSalvacion?: number;
-  tipoSalvacion?: string;
-  requiereMunicion?: boolean;
-  municionNombre?: string;
-  municionCantidad?: number;
-  nombreContenedor?: string;
-  tieneContenedor?: boolean;
-  municionEnContenedor?: number;
-  municionSueltEnMochila?: number;
-  municionEnCompartimentosExternos?: number;
-  puedeDisparar?: boolean;
-  motivoBloqueo?: string;
-  esCompetenteConArma?: boolean;
-  esSutil?: boolean;
-  esDistancia?: boolean;
-}
+export type { TipoAccionConsumida, AtaquePersonajeCalculado };
 
 import {
   obtenerInfoMaestria,

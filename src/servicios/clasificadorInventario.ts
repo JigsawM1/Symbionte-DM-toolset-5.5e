@@ -1,13 +1,14 @@
 import React from "react";
-import type { ObjetoInventario, ObjetoJuego } from "@/tipos";
+import type {
+  ObjetoInventario,
+  ObjetoJuego,
+  CriterioOrdenMochila,
+  SubseccionMochilaTipo
+} from "@/tipos";
 import { coincideBusquedaTolerante, compararPorRelevanciaTitulo } from "@/utiles/busquedaTolerante";
 import { esObjetoConsumible } from "@/servicios/procesadorConsumibles";
 import { esContenedorFisicoMunicion } from "@/servicios/gestorMunicion";
 import { CONFIG_CONTENEDORES } from "@/servicios/calculadorInventario";
-import type {
-  CriterioOrdenMochila,
-  SubseccionMochilaTipo
-} from "@/componentes/caracteristicas/personajes/inventarioConstantes";
 import {
   Sparkles,
   Package,

@@ -13,15 +13,17 @@ const LIMITE_ADVERTENCIA_LINEAS = 300; // Sugerencia de refactorización
 // Archivos heredados pendientes de modularización en fases posteriores de mantenimiento
 const ARCHIVOS_HEREDADOS_PENDIENTES = new Set([
   "src/componentes/caracteristicas/rasgos/ConstructorRasgoDote.tsx", // Creador masivo heredado pendiente de refactorización
-  "src/componentes/caracteristicas/personajes/ModalAgregarObjeto.tsx", // Modal heredado de gestión de inventario
+  "src/componentes/caracteristicas/inventario/ModalAgregarObjeto.tsx", // Modal heredado de gestión de inventario
   "src/componentes/caracteristicas/personajes/ModalEditarPersonaje.tsx", // Modal heredado de edición general
-  "src/componentes/caracteristicas/personajes/TarjetaObjetoInventario.tsx", // Componente de tarjeta de objeto heredado
+  "src/componentes/caracteristicas/inventario/TarjetaObjetoInventario.tsx", // Componente de tarjeta de objeto heredado
   "src/componentes/caracteristicas/personajes/GestorPersonajes.tsx", // Vista contenedora general de personajes
 ]);
 
 // Directorios prioritarios a auditar (Modo Jugador y componentes principales)
 const DIRECTORIOS_AUDITADOS = [
   path.join(raizProyecto, "src", "componentes", "caracteristicas", "personajes"),
+  path.join(raizProyecto, "src", "componentes", "caracteristicas", "inventario"),
+  path.join(raizProyecto, "src", "componentes", "caracteristicas", "ataques"),
   path.join(raizProyecto, "src", "componentes", "caracteristicas", "rasgos")
 ];
 

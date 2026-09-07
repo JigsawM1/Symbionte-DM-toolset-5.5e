@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Coins, Weight, Link2, Sparkles, ChevronDown, ChevronRight } from "lucide-react";
 import type { BolsaMonedas, TipoMonedaClave, ObjetoInventario } from "@/tipos";
 import { evaluarOperacionMoneda } from "@/servicios/calculadorInventario";
-import estilos from "./HojaPersonaje.module.css";
+import estilos from "@/componentes/caracteristicas/personajes/HojaPersonaje.module.css";
 
 const MONEDAS_CONFIG: { clave: TipoMonedaClave; etiqueta: string; claseColor: string }[] = [
   { clave: "ppt", etiqueta: "PPT", claseColor: estilos.monedaPPT },

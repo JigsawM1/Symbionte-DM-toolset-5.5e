@@ -5,7 +5,7 @@ import {
   CriterioOrdenMochila,
   OPCIONES_ORDEN_MOCHILA
 } from "./usarInventarioOrdenado";
-import estilos from "./HojaPersonaje.module.css";
+import estilos from "@/componentes/caracteristicas/personajes/HojaPersonaje.module.css";
 
 interface BarraHerramientasInventarioProps {
   busquedaMochila: string;

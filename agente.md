@@ -12,6 +12,39 @@ Este archivo registra reglas globales, errores encontrados, sus causas raíz y l
    - Toda interacción, comentarios y documentación técnica se redacta 100% en español.
 4. **TIPADO ESTRICTO Y CÓDIGO LIMPIO**:
    - `strict: true` en TypeScript. Cero tipos `any`. Interfaces explícitas, generics y principios SOLID.
+5. **BLINDAJE ARQUITECTÓNICO FEATURE-DRIVEN + UI LAYERS (UNIDIRECCIONALIDAD ESTRICTA)**:
+   - Las dependencias fluyen estrictamente hacia abajo: `App/Layout -> Caracteristicas -> Comunes -> Almacen -> Servicios -> Utiles/Constantes/Tipos`.
+   - **Bajo ninguna circunstancia** los módulos de lógica de negocio (`servicios/`), gestores de estado (`almacen/`), contratos (`tipos/`), valores de reglas (`constantes/`) ni funciones de soporte (`utiles/`) deben importar componentes visuales o archivos CSS (`componentes/`). Esta regla está reforzada en CI vía ESLint `no-restricted-imports`.
+
+## [2026-09-07] Culminación Exitosa: Reconfiguración y Blindaje Integral de la Arquitectura Feature-Driven + UI Layers
+**Contexto y Problema Detectado:**
+- Se detectó una progresiva pérdida de la arquitectura Feature-Driven y de capas UI debido al rápido crecimiento del Modo Jugador:
+  1. *Inversión de dependencias*: Los servicios de combate (`calculadorAtaquesArmas.ts`, `calculadorAtaqueDesarmado.ts`, `ejecutorTiradasCombate.ts`, `calculadorAccionesCombate.ts`) y de inventario (`clasificadorInventario.ts`) importaban tipos y constantes directamente desde componentes UI (`TarjetaAtaquePersonaje.tsx`, `inventarioConstantes.ts`). Asimismo, `src/utiles/formatoTextoDND.tsx` importaba CSS modules de un componente específico.
+  2. *Fronteras de características rotas*: `VistaJugadores.tsx` (orquestador de la ficha de personaje) se encontraba extraviada en `caracteristicas/iniciativa/`. Además, la característica `inventario/` estaba partida, manteniendo casi la totalidad de sus componentes y subdirectorios dentro de `personajes/`.
+
+**Solución Aplicada y Transformaciones Arquitectónicas:**
+1. **Saneamiento de la Inversión de Dependencias (Purity First)**:
+   - Se crearon los módulos canónicos `src/tipos/combate.ts` (`AtaquePersonajeCalculado`, `TipoAccionConsumida`, `ConsumibleAccionCalculado`) y `src/tipos/inventario.ts` (`CriterioOrdenMochila`, `SubseccionMochilaTipo`, `CajaMovilizacionRapida`, etc.), reexportados desde `src/tipos/index.ts`.
+   - Se desacoplaron todos los servicios de negocio (`src/servicios/`) para que importen exclusivamente desde `@/tipos`.
+   - Se transformó `src/utiles/formatoTextoDND.ts` en un módulo de utilidades puras de texto, sin JSX ni dependencias de React ni CSS.
+   - Se creó el componente común de UI `<TextoEnriquecidoDND />` en `src/componentes/comunes/TextoEnriquecidoDND.tsx` con sus propios estilos CSS aislados en `TextoEnriquecidoDND.module.css`.
+2. **Reubicación y Consolidación Feature-Driven**:
+   - `VistaJugadores.tsx` y su CSS se trasladaron a `src/componentes/caracteristicas/personajes/`, actualizando los barriles `iniciativa/index.ts`, `personajes/index.ts` y la carga diferida en `src/App.tsx`.
+   - Se consolidó la característica `inventario`: se trasladaron `PanelInventarioPersonaje`, `ModalDetalleObjetoInventario`, `ModalAgregarObjeto`, `TarjetaObjetoInventario`, `BarraHerramientasInventario`, `BarraMetricasInventario`, `DockMovilizacionRapida`, `usarDragAndDropInventario`, `usarInventarioOrdenado` y la subcarpeta `subcomponentes/` a `src/componentes/caracteristicas/inventario/`.
+   - Se configuró el barril `src/componentes/caracteristicas/inventario/index.ts` y se reexportó desde `personajes/index.ts` para total retrocompatibilidad.
+3. **Guardrails y Blindaje Automatizado en ESLint y CI**:
+   - Se configuró la regla `no-restricted-imports` en `eslint.config.js` bloqueando cualquier import de `@/componentes/**` desde `servicios`, `almacen`, `tipos`, `constantes` y `utiles`.
+   - Se amplió `scripts/verificar-limite-lineas.js` para auditar también `inventario` y `ataques` junto a `personajes` y `rasgos` (105 archivos auditados, 0 errores críticos).
+4. **Documentación Oficial**:
+   - Se actualizó `docs/wiki/Arquitectura.md` con el diagrama de dependencias unidireccionales y la especificación detallada de cada capa funcional.
+
+**Métricas de Calidad Verificadas:**
+- `pnpm exec tsc --noEmit`: 0 errores (Strict Mode activo).
+- `pnpm lint`: 0 errores, 0 warnings (ESLint limpio).
+- `pnpm test`: 41 suites superadas, 452 de 452 pruebas pasando (100%).
+- `node scripts/verificar-limite-lineas.js`: 105 archivos auditados, 0 errores críticos.
+
+---
 
 ## [2026-09-07] Culminación Exitosa - Fase 4: Automatización de Integración Continua (CI) y Control de Monolitos
 **Contexto y Logros:**

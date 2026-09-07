@@ -8,4 +8,5 @@ export { ChipCondicion } from "./ChipCondicion";
 export type { ChipCondicionProps } from "./ChipCondicion";
 export { TooltipUniversal } from "./TooltipUniversal";
 export type { TooltipUniversalProps } from "./TooltipUniversal";
+export { TextoEnriquecidoDND } from "./TextoEnriquecidoDND";
 

@@ -292,8 +292,8 @@ export const EsquemaObjetoBase = z.object({
   craft: z.array(z.object({ index: z.string(), name: z.string() })).optional(),
 
   // Preservar datos crudos de compendio para re-sanitización dinámica
-  mastery: z.any().optional(),
-  equipment_categories: z.any().optional()
+  mastery: z.unknown().optional(),
+  equipment_categories: z.unknown().optional()
 });
 export type ObjetoBase = z.infer<typeof EsquemaObjetoBase>;
 
@@ -358,4 +358,6 @@ export interface EfectoPredefinido {
 export * from "./rasgos";
 export * from "./personaje";
 export * from "./clases";
+export * from "./combate";
+export * from "./inventario";
 

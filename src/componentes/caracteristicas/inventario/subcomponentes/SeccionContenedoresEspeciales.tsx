@@ -2,7 +2,7 @@ import React from "react";
 import type { ObjetoInventario } from "@/tipos";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import { CONTENEDORES_ESPECIALES_CONFIG } from "../usarInventarioOrdenado";
-import estilos from "../HojaPersonaje.module.css";
+import estilos from "@/componentes/caracteristicas/personajes/HojaPersonaje.module.css";
 
 interface SeccionContenedoresEspecialesProps {
   mapaContenedoresEspeciales: Record<string, ObjetoInventario[]>;

@@ -13,7 +13,7 @@ import {
   obtenerInfoPropiedadArmadura
 } from "@/servicios/resolutorPropiedades";
 import { desduplicarEntidades } from "@/utiles/busquedaTolerante";
-import estilos from "./HojaPersonaje.module.css";
+import estilos from "@/componentes/caracteristicas/personajes/HojaPersonaje.module.css";
 
 export type TabModalAgregar = "compendio" | "otrasPosesiones";
 

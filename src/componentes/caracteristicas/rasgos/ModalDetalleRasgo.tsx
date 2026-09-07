@@ -23,7 +23,7 @@ import {
 import { TablaProgresionRasgo } from "./TablaProgresionRasgo";
 import { SelectorInvocacionesAcordeon } from "./SelectorInvocacionesAcordeon";
 import { TooltipUniversal } from "@/componentes/comunes";
-import { renderizarTextoEnriquecidoDND } from "@/utiles/formatoTextoDND";
+import { TextoEnriquecidoDND } from "@/componentes/comunes";
 import estilos from "./VistaRasgosJugador.module.css";
 
 interface ModalDetalleRasgoProps {
@@ -302,7 +302,7 @@ export const ModalDetalleRasgo: React.FC<ModalDetalleRasgoProps> = ({
 
         {/* Cuerpo con la Descripción Completa y Tablas / Selectores */}
         <div className={estilos.cuerpoModalDetalle}>
-          {renderizarTextoEnriquecidoDND(rasgo.descripcion)}
+          <TextoEnriquecidoDND texto={rasgo.descripcion} />
 
           {/* Tabla de Progresión y Escalado por Nivel */}
           {rasgo.tablaProgresion && (

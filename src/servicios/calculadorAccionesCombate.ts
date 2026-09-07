@@ -2,10 +2,10 @@ import type {
   PersonajeJugador,
   HechizoBase,
   HechizoVinculado,
-  ObjetoJuego
+  ObjetoJuego,
+  TipoAccionConsumida,
+  ConsumibleAccionCalculado
 } from "@/tipos";
-import type { TipoAccionConsumida } from "@/componentes/caracteristicas/ataques/TarjetaAtaquePersonaje";
-import type { ConsumibleAccionCalculado } from "@/componentes/caracteristicas/ataques/TarjetaConsumibleAccion.tipos";
 import { detectarInfoConsumible, esObjetoConsumible } from "@/servicios/procesadorConsumibles";
 import { obtenerConjurosSubclasePersonaje } from "@/servicios/calculadorMagia";
 import { OBJETOS_INICIALES } from "@/utiles/datosIniciales";

@@ -15,7 +15,7 @@ import {
   obtenerInfoPropiedadArmadura
 } from "@/servicios/resolutorPropiedades";
 import { logger } from "@/utiles/logger";
-import estilos from "./HojaPersonaje.module.css";
+import estilos from "@/componentes/caracteristicas/personajes/HojaPersonaje.module.css";
 
 interface TarjetaObjetoInventarioProps {
   objeto: ObjetoInventario;

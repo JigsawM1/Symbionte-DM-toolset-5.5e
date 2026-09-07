@@ -5,11 +5,9 @@ import {
   usarEstadoPersonajes,
   usarAccionesPersonajes
 } from "@/almacen/selectores";
-import {
-  HojaPersonaje,
-  PanelConfiguracionPersonaje,
-  GestorPersonajes
-} from "@/componentes/caracteristicas/personajes";
+import { HojaPersonaje } from "./HojaPersonaje";
+import { PanelConfiguracionPersonaje } from "./PanelConfiguracionPersonaje";
+import { GestorPersonajes } from "./GestorPersonajes";
 import { autoResolverMiniaturasJugador } from "@/servicios/resolutorMiniaturasJugador";
 import { usarEstadoPersistido } from "@/hooks";
 import { Shield, Users, UserCheck } from "lucide-react";

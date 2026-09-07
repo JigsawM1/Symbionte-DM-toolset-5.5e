@@ -336,16 +336,16 @@ export function usarFormularioCriatura(idEnEdicion: string | null, alGuardarExit
       id: idEnEdicion || "",
       velocidad: velocidadEstructurada,
       sentidos: sentidosEstructurados
-    } as any);
+    } as unknown as MonstruoBase);
 
     if (idEnEdicion) {
-      actualizarMonstruoHomebrew(idEnEdicion, monstruoParaGuardar as any);
+      actualizarMonstruoHomebrew(idEnEdicion, monstruoParaGuardar);
       agregarNotificacion("¡Criatura Homebrew actualizada con éxito!", "exito");
     } else {
       agregarMonstruoHomebrew({
         ...monstruoParaGuardar,
         vidaActual: monstruoForm.vidaMaxima
-      } as any);
+      });
       agregarNotificacion("¡Criatura Homebrew guardada con éxito!", "exito");
     }
 

@@ -80,10 +80,10 @@ export function sincronizarConEstadoLocal(opciones: OpcionesSincronizacion): Res
   const nuevasCriaturasNativas = colaTSItems.map((cTS, index) => {
     // Reemplaza el .find() lento por una lectura directa
     const existente = mapaLocal.get(cTS.id);
-    const cTSAny = cTS as any;
+    const cTSConPropiedades = cTS as typeof cTS & { initiative?: number; maxHp?: number; hp?: number };
     
     // Simplificado usando Nullish Coalescing (??)
-    const iniciativaFisica = cTSAny.initiative ?? (existente ? existente.iniciativa : (colaTSItems.length - index));
+    const iniciativaFisica = cTSConPropiedades.initiative ?? (existente ? existente.iniciativa : (colaTSItems.length - index));
 
     // Comprobar si esta miniatura corresponde a un Personaje Jugador
     const nombreNorm = cTS.name ? cTS.name.trim().toLowerCase() : "";
@@ -131,8 +131,8 @@ export function sincronizarConEstadoLocal(opciones: OpcionesSincronizacion): Res
     const { vidaMaxima: vidaMaxCalculada, vidaActual: vidaActCalculada } = calcularVidaInicial(
       plantillaMonstruo,
       metodoVidaMonstruo,
-      cTSAny.maxHp,
-      cTSAny.hp
+      cTSConPropiedades.maxHp,
+      cTSConPropiedades.hp
     );
 
     return {
@@ -195,9 +195,9 @@ export function sincronizarConEstadoLocal(opciones: OpcionesSincronizacion): Res
   }
 
   // Sincronizar ronda si TaleSpire la envía de forma explícita
-  const colaTSAny = colaTS as any;
-  if (colaTSAny && colaTSAny.round !== undefined && typeof colaTSAny.round === "number" && colaTSAny.round > 0) {
-    nuevaRonda = colaTSAny.round;
+  const colaTSConRonda = colaTS as typeof colaTS & { round?: number };
+  if (colaTSConRonda && typeof colaTSConRonda.round === "number" && colaTSConRonda.round > 0) {
+    nuevaRonda = colaTSConRonda.round;
   }
 
   // Filtrar efectos temporales si la ronda avanzó

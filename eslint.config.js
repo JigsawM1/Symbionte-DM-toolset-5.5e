@@ -50,6 +50,15 @@ export default [
       "react/react-in-jsx-scope": "off",
       // Forzar error ante explicit any
       "@typescript-eslint/no-explicit-any": "error",
+      // Permitir variables/parámetros no usados con prefijo _
+      "@typescript-eslint/no-unused-vars": [
+        "error",
+        {
+          argsIgnorePattern: "^_",
+          varsIgnorePattern: "^_",
+          caughtErrorsIgnorePattern: "^_",
+        },
+      ],
       // Otras reglas
       "react-refresh/only-export-components": [
         "warn",

@@ -1,4 +1,4 @@
-import { MonstruoBase, HechizoBase, ObjetoHomebrew, EsquemaMonstruoBase, EsquemaHechizoBase, EsquemaObjetoJuego, PersonajeJugador } from '@/tipos';
+import { MonstruoBase, HechizoBase, ObjetoHomebrew, EsquemaMonstruoBase, EsquemaHechizoBase, EsquemaObjetoJuego, PersonajeJugador, VelocidadEstructurada, SentidosEstructurados } from '@/tipos';
 import { aplanarValor, sanearObjetoHomebrew, sanearHechizoCD, parsearVelocidad, parsearSentidos, sanearMonstruoSentidosYPasiva, sanearPersonaje } from '@/almacen/sanitizacion';
 import { generarIdSlug } from '@/utiles/generarId';
 import { logger } from '@/utiles/logger';
@@ -349,10 +349,10 @@ export function importarDesdeJSON(
           vidaNotas: aplanarValor(vidaNotas),
           iniciativaBonificador: inicBonif,
           velocidad: (velRaw && typeof velRaw === "object" && !Array.isArray(velRaw))
-            ? (velRaw as any)
+            ? (velRaw as unknown as VelocidadEstructurada)
             : parsearVelocidad(velocidadStr),
           sentidos: (m.sentidos && typeof m.sentidos === "object")
-            ? (m.sentidos as any)
+            ? (m.sentidos as unknown as SentidosEstructurados)
             : parsearSentidos(aplanarValor(m.sentidos || m.Senses)),
           tamaño: aplanarValor(m.tamaño || m.tamano || m.Size || m.size || ""),
           alineacion: aplanarValor(m.alineacion || m.alineamiento || m.Alignment || m.alignment || ""),
@@ -415,7 +415,7 @@ export function importarDesdeJSON(
           tesoros: aplanarValor(m.tesoros || m.Treasure || m.treasure || m.treasures || m.Treasures || "")
         };
 
-        const monstruoSaneadoConPasiva = sanearMonstruoSentidosYPasiva(monstruoSaneado as any);
+        const monstruoSaneadoConPasiva = sanearMonstruoSentidosYPasiva(monstruoSaneado as unknown as MonstruoBase);
         const val = EsquemaMonstruoBase.safeParse(monstruoSaneadoConPasiva);
         if (val.success) {
           return val.data;

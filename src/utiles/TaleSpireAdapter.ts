@@ -21,7 +21,14 @@ import type {
   FragmentoOId,
   FragmentoJugador,
   InfoCriatura,
-  EventoIniciativaActualizada
+  EventoIniciativaActualizada,
+  PaqueteContenidoTS,
+  InfoObjetoTableroTS,
+  TaleSpireAPI,
+  EventoClienteTS,
+  FragmentoCliente,
+  InfoCliente,
+  InfoJugador
 } from "@/tipos/talespire";
 import { logger } from "@/utiles/logger";
 
@@ -37,8 +44,8 @@ class TaleSpireAdapter {
   /**
    * Obtiene la referencia global de window.TS de forma segura en cualquier entorno.
    */
-  private get tsGlobal(): any {
-    return typeof window !== "undefined" ? (window as any).TS : undefined;
+  private get tsGlobal(): TaleSpireAPI | undefined {
+    return typeof window !== "undefined" ? (window as unknown as { TS?: TaleSpireAPI }).TS : undefined;
   }
 
   /**
@@ -95,7 +102,7 @@ class TaleSpireAdapter {
     /**
      * Evalúa el total numérico de un grupo de resultados de dados.
      */
-    evaluateDiceResultsGroup: async (group: any): Promise<number> => {
+    evaluateDiceResultsGroup: async (group: GrupoResultadosTirada | unknown): Promise<number> => {
       const ts = this.tsGlobal;
       if (ts?.dice && typeof ts.dice.evaluateDiceResultsGroup === "function") {
         try {
@@ -110,7 +117,7 @@ class TaleSpireAdapter {
     /**
      * Envía de forma elegante un resultado filtrado al chat del juego.
      */
-    sendDiceResult: async (groups: any[], rollId: string): Promise<void> => {
+    sendDiceResult: async (groups: GrupoResultadosTirada[] | unknown[], rollId: string): Promise<void> => {
       const ts = this.tsGlobal;
       if (ts?.dice && typeof ts.dice.sendDiceResult === "function") {
         await ts.dice.sendDiceResult(groups, rollId);
@@ -282,8 +289,8 @@ class TaleSpireAdapter {
     /**
      * Obtiene la lista de fragmentos de paquetes de contenido cargados en TaleSpire.
      */
-    getContentPacks: async (): Promise<any[]> => {
-      const cp = (window.TS as any)?.contentPacks;
+    getContentPacks: async (): Promise<PaqueteContenidoTS[]> => {
+      const cp = window.TS?.contentPacks;
       if (cp && typeof cp.getContentPacks === "function") {
         try {
           const resultado = await cp.getContentPacks();
@@ -301,8 +308,8 @@ class TaleSpireAdapter {
     /**
      * Obtiene metadatos e información extendida sobre los paquetes de contenido.
      */
-    getMoreInfo: async (packs: any[]): Promise<any[]> => {
-      const cp = (window.TS as any)?.contentPacks;
+    getMoreInfo: async (packs: PaqueteContenidoTS[] | unknown[]): Promise<PaqueteContenidoTS[]> => {
+      const cp = window.TS?.contentPacks;
       if (cp && typeof cp.getMoreInfo === "function") {
         try {
           const resultado = await cp.getMoreInfo(packs);
@@ -320,8 +327,8 @@ class TaleSpireAdapter {
     /**
      * Busca un objeto del tablero (miniatura/prop/tile) dentro de los paquetes de contenido.
      */
-    findBoardObjectInPacks: async (boardObjectId: string, packsInfos: any[]): Promise<any | null> => {
-      const cp = (window.TS as any)?.contentPacks;
+    findBoardObjectInPacks: async (boardObjectId: string, packsInfos: PaqueteContenidoTS[] | unknown[]): Promise<InfoObjetoTableroTS | null> => {
+      const cp = window.TS?.contentPacks;
       if (cp && typeof cp.findBoardObjectInPacks === "function") {
         try {
           const resultado = await cp.findBoardObjectInPacks(boardObjectId, packsInfos);
@@ -339,12 +346,13 @@ class TaleSpireAdapter {
     /**
      * Crea un elemento DOM (canvas/img) con la miniatura renderizada del catálogo 3D de TaleSpire.
      */
-    createThumbnailElementForBoardObject: async (boardObjectInfo: any, size?: number): Promise<HTMLElement | null> => {
-      const cp = (window.TS as any)?.contentPacks;
+    createThumbnailElementForBoardObject: async (boardObjectInfo: InfoObjetoTableroTS | unknown, size?: number): Promise<HTMLElement | null> => {
+      const cp = window.TS?.contentPacks;
       if (cp && typeof cp.createThumbnailElementForBoardObject === "function") {
         // Probamos tanto el objeto interno (.boardObject) como la envoltura completa
+        const objInfo = boardObjectInfo as InfoObjetoTableroTS | undefined;
         const candidatos = [
-          boardObjectInfo?.boardObject,
+          objInfo?.boardObject,
           boardObjectInfo
         ].filter(Boolean);
 
@@ -418,7 +426,7 @@ class TaleSpireAdapter {
       // 1. Consultar a través de window.TS.clients.whoAmI() y window.TS.clients.getMoreInfo()
       if (window.TS?.clients && typeof window.TS.clients.whoAmI === "function") {
         try {
-          const yoCliente = await window.TS.clients.whoAmI() as any;
+          const yoCliente = await window.TS.clients.whoAmI() as (FragmentoCliente & { clientMode?: string; id?: string }) | undefined;
           const clientId = typeof yoCliente === "string" ? yoCliente : yoCliente?.id;
 
           if (yoCliente?.clientMode) {
@@ -431,14 +439,14 @@ class TaleSpireAdapter {
           if (clientId && typeof window.TS.clients.getMoreInfo === "function") {
             const infoClientes = await window.TS.clients.getMoreInfo([clientId]);
             if (infoClientes && infoClientes[0]) {
-              const clientInfo = infoClientes[0] as any;
-              if (clientInfo.clientMode) {
+              const clientInfo = infoClientes[0] as (InfoCliente & { clientMode?: string; rights?: { canGm?: boolean }; playerRights?: { canGm?: boolean }; permissions?: { canGm?: boolean } }) | undefined;
+              if (clientInfo?.clientMode) {
                 logger.debug("[TS Adapter esGM] clientInfo.clientMode:", clientInfo.clientMode);
                 const esGm = clientInfo.clientMode === "gm";
                 cacheEsGM = esGm;
                 return esGm;
               }
-              const derechos = clientInfo.rights || clientInfo.playerRights || clientInfo.permissions;
+              const derechos = clientInfo?.rights || clientInfo?.playerRights || clientInfo?.permissions;
               if (derechos?.canGm !== undefined) {
                 const esGm = Boolean(derechos.canGm);
                 cacheEsGM = esGm;
@@ -454,14 +462,14 @@ class TaleSpireAdapter {
       // 2. Consultar a través de window.TS.players.whoAmI() y window.TS.players.getMoreInfo()
       if (window.TS?.players && typeof window.TS.players.whoAmI === "function") {
         try {
-          const yoJugador = await window.TS.players.whoAmI() as any;
+          const yoJugador = await window.TS.players.whoAmI() as (FragmentoJugador & { id?: string }) | undefined;
           const playerId = typeof yoJugador === "string" ? yoJugador : yoJugador?.id;
 
           if (playerId && typeof window.TS.players.getMoreInfo === "function") {
             const infoJugadores = await window.TS.players.getMoreInfo([playerId]);
             if (infoJugadores && infoJugadores[0]) {
-              const jugadorInfo = infoJugadores[0] as any;
-              const derechos = jugadorInfo.rights || jugadorInfo.playerRights || jugadorInfo.permissions;
+              const jugadorInfo = infoJugadores[0] as (InfoJugador & { rights?: { canGm?: boolean }; playerRights?: { canGm?: boolean }; permissions?: { canGm?: boolean } }) | undefined;
+              const derechos = jugadorInfo?.rights || jugadorInfo?.playerRights || jugadorInfo?.permissions;
               if (derechos?.canGm !== undefined) {
                 const esGm = Boolean(derechos.canGm);
                 cacheEsGM = esGm;
@@ -481,7 +489,7 @@ class TaleSpireAdapter {
           logger.debug("[TS Adapter esGM] Permiso de campaña otorgado -> esGM: true");
           cacheEsGM = true;
           return true;
-        } catch (err: any) {
+        } catch (err: unknown) {
           logger.warn("[TS Adapter esGM] Permiso denegado en getBoardsInThisCampaign -> esGM: false", err);
           cacheEsGM = false;
           return false;
@@ -498,22 +506,24 @@ class TaleSpireAdapter {
      * Escucha el evento 'clientModeChanged' de TaleSpire en tiempo real cuando un usuario cambia de rol (DM <-> Jugador).
      */
     suscribirACambioModoCliente: (callback: (modo: import("../tipos/talespire").ModoCliente) => void): { desuscribir: () => void } => {
-      const listener = (evento: any) => {
-        const modo = typeof evento === "string" ? evento : (evento?.clientMode || evento?.payload?.clientMode);
+      const listener = (evento: unknown) => {
+        const ev = evento as EventoClienteTS | { clientMode?: string; payload?: { clientMode?: string } } | string | null | undefined;
+        if (!ev) return;
+        const modo = typeof ev === "string" ? ev : ("clientMode" in ev ? ev.clientMode : ev?.payload?.clientMode);
         if (modo === "gm" || modo === "player" || modo === "spectator") {
           cacheEsGM = modo === "gm";
           callback(modo);
         }
       };
 
-      const onClientEvent = window.TS?.clients?.onClientEvent as any;
+      const onClientEvent = window.TS?.clients?.onClientEvent;
       if (onClientEvent) {
         if (typeof onClientEvent.subscribe === "function") {
-          const sub = onClientEvent.subscribe(listener);
+          const sub = onClientEvent.subscribe(listener as (e: EventoClienteTS) => void);
           return { desuscribir: () => sub?.desuscribir?.() };
         }
         if (typeof onClientEvent === "function") {
-          const unsub = onClientEvent(listener);
+          const unsub = (onClientEvent as unknown as (fn: (e: unknown) => void) => (() => void) | undefined)(listener);
           return { desuscribir: () => (typeof unsub === "function" ? unsub() : undefined) };
         }
       }
@@ -587,7 +597,7 @@ class TaleSpireAdapter {
           if (yoCliente?.player?.name && yoCliente.player.name.trim() !== "") {
             return yoCliente.player.name.trim();
           }
-          const pId = yoCliente?.player?.id || (yoCliente as any)?.playerId;
+          const pId = yoCliente?.player?.id || (yoCliente as unknown as { playerId?: string })?.playerId;
           if (pId && ts.players && typeof ts.players.getMoreInfo === "function") {
             const info = await ts.players.getMoreInfo([pId]);
             if (info && info[0]?.name) {
@@ -695,7 +705,9 @@ class TaleSpireAdapter {
           try {
             await window.TS.clipboard.copyText(texto);
             return true;
-          } catch (e) {}
+          } catch {
+            // Silencioso
+          }
         }
         // Nav web clipboard fallback
         try {
@@ -736,18 +748,27 @@ class TaleSpireAdapter {
   /**
    * Suma manualmente los valores resultantes de dados de un grupo si evaluate nativa falla.
    */
-  private obtenerTotalGrupoFallback(grupo: GrupoResultadosTirada): number {
+  private obtenerTotalGrupoFallback(grupo: GrupoResultadosTirada | unknown): number {
     if (!grupo || typeof grupo !== "object") return 0;
-    const resultObj = grupo.result as any;
+    const g = grupo as { result?: unknown };
+    const resultObj = g.result as { total?: unknown } | undefined;
     if (resultObj && typeof resultObj.total === "number") {
       return resultObj.total;
     }
 
-    const evaluarNodo = (nodo: any): number => {
+    interface NodoResultado {
+      value?: number;
+      results?: Array<number | { value?: unknown }>;
+      operator?: string;
+      operands?: NodoResultado[];
+    }
+
+    const evaluarNodo = (nodo: unknown): number => {
       if (!nodo || typeof nodo !== "object") return 0;
-      if (typeof nodo.value === "number") return nodo.value;
-      if (Array.isArray(nodo.results)) {
-        return nodo.results.reduce((sum: number, r: any) => {
+      const n = nodo as NodoResultado;
+      if (typeof n.value === "number") return n.value;
+      if (Array.isArray(n.results)) {
+        return n.results.reduce((sum: number, r) => {
           if (typeof r === "number") return sum + r;
           if (r && typeof r === "object") {
             return sum + (Number(r.value) || 0);
@@ -755,19 +776,19 @@ class TaleSpireAdapter {
           return sum;
         }, 0);
       }
-      if (nodo.operator === "+" && Array.isArray(nodo.operands)) {
-        return nodo.operands.reduce((sum: number, op: any) => sum + evaluarNodo(op), 0);
+      if (n.operator === "+" && Array.isArray(n.operands)) {
+        return n.operands.reduce((sum: number, op) => sum + evaluarNodo(op), 0);
       }
-      if (nodo.operator === "-" && Array.isArray(nodo.operands)) {
-        if (nodo.operands.length === 0) return 0;
-        const primerOp = evaluarNodo(nodo.operands[0]);
-        const restOp = nodo.operands.slice(1).reduce((sum: number, op: any) => sum + evaluarNodo(op), 0);
+      if (n.operator === "-" && Array.isArray(n.operands)) {
+        if (n.operands.length === 0) return 0;
+        const primerOp = evaluarNodo(n.operands[0]);
+        const restOp = n.operands.slice(1).reduce((sum: number, op) => sum + evaluarNodo(op), 0);
         return primerOp - restOp;
       }
       return 0;
     };
 
-    return evaluarNodo(grupo.result);
+    return evaluarNodo(g.result);
   }
 }
 

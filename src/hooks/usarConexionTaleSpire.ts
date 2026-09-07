@@ -41,9 +41,9 @@ export function usarConexionTaleSpire() {
       logger.info("[TaleSpire Simbionte] Conectando escuchas y suscripciones del EventBus...");
       
       try {
-        const procesarSeleccionRaw = async (seleccion: any) => {
+        const procesarSeleccionRaw = async (seleccion: unknown) => {
           if (!activo) return;
-          let data = seleccion;
+          let data: unknown = seleccion;
           if (typeof seleccion === "string") {
             try {
               data = JSON.parse(seleccion);
@@ -52,15 +52,16 @@ export function usarConexionTaleSpire() {
             }
           }
 
-          let fragments: Array<any> = [];
+          let fragments: Array<string | { id?: string } | null | undefined> = [];
+          const dataObj = data as { creatures?: Array<string | { id?: string }>; payload?: { creatures?: Array<string | { id?: string }> }; items?: Array<string | { id?: string }> } | null;
           if (Array.isArray(data)) {
             fragments = data;
-          } else if (Array.isArray(data?.creatures)) {
-            fragments = data.creatures;
-          } else if (Array.isArray(data?.payload?.creatures)) {
-            fragments = data.payload.creatures;
-          } else if (Array.isArray(data?.items)) {
-            fragments = data.items;
+          } else if (Array.isArray(dataObj?.creatures)) {
+            fragments = dataObj.creatures;
+          } else if (Array.isArray(dataObj?.payload?.creatures)) {
+            fragments = dataObj.payload.creatures;
+          } else if (Array.isArray(dataObj?.items)) {
+            fragments = dataObj.items;
           }
 
           const ids: string[] = fragments
@@ -195,7 +196,7 @@ export function usarConexionTaleSpire() {
                     maxHp: c.hp?.max
                   }));
                   actualizarSeleccionCriaturas(seleccionadas);
-                } catch (e) {
+                } catch {
                   actualizarSeleccionCriaturas(ids.map((id) => ({ id, name: "Criatura Seleccionada" })));
                 }
               }

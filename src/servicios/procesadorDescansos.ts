@@ -245,8 +245,9 @@ export function ejecutarDescansoLargo(personaje: PersonajeJugador): ResultadoDes
     if (cargasActuales >= obj.cargasMaximas) return obj;
 
     let recarga = obj.cargasMaximas - cargasActuales;
-    if ((obj as any).formulaRecarga) {
-      const tirada = evaluarFormulaDados((obj as any).formulaRecarga);
+    const objConRecarga = obj as unknown as { formulaRecarga?: string };
+    if (objConRecarga.formulaRecarga) {
+      const tirada = evaluarFormulaDados(objConRecarga.formulaRecarga);
       if (tirada > 0) recarga = tirada;
     }
 

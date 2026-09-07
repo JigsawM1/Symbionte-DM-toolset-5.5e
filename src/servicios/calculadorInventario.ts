@@ -379,7 +379,8 @@ export function desempaquetarPaqueteInventario(
       normalizar(b.nombre) === normalizar(objTarget.nombre)
   );
 
-  const contents = objetoCompendio?.contents || (objTarget as any).contents;
+  const targetConContents = objTarget as unknown as { contents?: Array<{ item?: { index?: string; name?: string }; quantity?: number }> };
+  const contents = objetoCompendio?.contents || targetConContents.contents;
   if (!Array.isArray(contents) || contents.length === 0) {
     return inventarioActual;
   }

@@ -75,12 +75,13 @@ export function sanearObjetoHomebrew(o: unknown): ObjetoHomebrew {
   }
   if (Array.isArray(obj.utilize) && obj.utilize.length > 0) {
     infoAdicionalTexto += `\n\nAcción de Utilizar:`;
-    obj.utilize.forEach((u: any) => {
+    obj.utilize.forEach((u: unknown) => {
       if (u && typeof u === "object") {
-        const uName = aplanarValor(u.name);
+        const uObj = u as Record<string, unknown>;
+        const uName = aplanarValor(uObj.name);
         let dcText = "";
-        if (u.dc && typeof u.dc === "object") {
-          const dcObj = u.dc as Record<string, unknown>;
+        if (uObj.dc && typeof uObj.dc === "object") {
+          const dcObj = uObj.dc as Record<string, unknown>;
           const dcTypeObj = dcObj.dc_type as Record<string, unknown> | undefined;
           const dcTypeName = dcTypeObj ? aplanarValor(dcTypeObj.name || dcTypeObj.index).toUpperCase() : "";
           const dcVal = dcObj.dc_value !== undefined ? String(dcObj.dc_value) : "";
@@ -153,9 +154,14 @@ export function sanearObjetoHomebrew(o: unknown): ObjetoHomebrew {
   let costoOriginalSaneado: { cantidad: number; unidad: "PC" | "PP" | "PE" | "PO" | "PPT" } | undefined = undefined;
   if (obj.costoOriginal && typeof obj.costoOriginal === "object") {
     const co = obj.costoOriginal as Record<string, unknown>;
+    const uStr = typeof co.unidad === "string" ? co.unidad.toUpperCase() : "";
+    const unidadValida: "PC" | "PP" | "PE" | "PO" | "PPT" =
+      uStr === "PC" || uStr === "PP" || uStr === "PE" || uStr === "PO" || uStr === "PPT"
+        ? uStr
+        : "PO";
     costoOriginalSaneado = {
       cantidad: Number(co.cantidad) || 0,
-      unidad: (co.unidad as any) || "PO"
+      unidad: unidadValida
     };
   }
 
@@ -286,9 +292,10 @@ export function sanearObjetoHomebrew(o: unknown): ObjetoHomebrew {
   let catTxt = "";
   if (Array.isArray(obj.equipment_categories) && obj.equipment_categories.length > 0) {
     // Buscar en todas las categorías
-    const cats = obj.equipment_categories.map((c: any) => {
+    const cats = obj.equipment_categories.map((c: unknown) => {
       if (c && typeof c === "object") {
-        return aplanarValor(c.index || c.name || "").toUpperCase();
+        const cObj = c as Record<string, unknown>;
+        return aplanarValor(cObj.index || cObj.name || "").toUpperCase();
       }
       return aplanarValor(c).toUpperCase();
     });
@@ -302,7 +309,8 @@ export function sanearObjetoHomebrew(o: unknown): ObjetoHomebrew {
     // Asignar el primer index/name como catTxt para la subcategoría
     const firstCat = obj.equipment_categories[0];
     if (firstCat && typeof firstCat === "object") {
-      catTxt = aplanarValor(firstCat.index || firstCat.name || "").toUpperCase();
+      const fcObj = firstCat as Record<string, unknown>;
+      catTxt = aplanarValor(fcObj.index || fcObj.name || "").toUpperCase();
     } else {
       catTxt = aplanarValor(firstCat).toUpperCase();
     }
@@ -354,15 +362,16 @@ export function sanearObjetoHomebrew(o: unknown): ObjetoHomebrew {
   // Extraer contents relacional
   let contentsSaneado: { item: { index: string; name: string }; quantity: number }[] | undefined = undefined;
   if (Array.isArray(obj.contents)) {
-    contentsSaneado = obj.contents.map((c: any) => {
+    contentsSaneado = obj.contents.map((c: unknown) => {
       if (c && typeof c === "object") {
-        const itemObj = c.item as Record<string, unknown> | undefined;
+        const cObj = c as Record<string, unknown>;
+        const itemObj = cObj.item as Record<string, unknown> | undefined;
         return {
           item: {
             index: aplanarValor(itemObj?.index || itemObj?.id || ""),
             name: aplanarValor(itemObj?.name || "")
           },
-          quantity: Number(c.quantity) || 1
+          quantity: Number(cObj.quantity) || 1
         };
       }
       return null;
@@ -372,18 +381,19 @@ export function sanearObjetoHomebrew(o: unknown): ObjetoHomebrew {
   // Extraer craft relacional
   let craftSaneado: { index: string; name: string }[] | undefined = undefined;
   if (Array.isArray(obj.craft)) {
-    craftSaneado = obj.craft.map((c: any) => {
+    craftSaneado = obj.craft.map((c: unknown) => {
       if (c && typeof c === "object") {
+        const cObj = c as Record<string, unknown>;
         return {
-          index: aplanarValor(c.index || c.id || ""),
-          name: aplanarValor(c.name || "")
+          index: aplanarValor(cObj.index || cObj.id || ""),
+          name: aplanarValor(cObj.name || "")
         };
       }
       return {
         index: normalizarTexto(aplanarValor(c)),
         name: aplanarValor(c)
       };
-    }).filter((c: any) => c.index && c.name);
+    }).filter((c): c is { index: string; name: string } => Boolean(c.index && c.name));
   }
 
   // Extraer quantity (unidades por pack/lote en el compendio)
@@ -435,7 +445,13 @@ export function sanearObjetoHomebrew(o: unknown): ObjetoHomebrew {
     
     if (Array.isArray(obj.equipment_categories)) {
       const catsTxt = obj.equipment_categories
-        .map((c: any) => (c && typeof c === "object" ? aplanarValor(c.index || c.name || "").toUpperCase() : aplanarValor(c).toUpperCase()))
+        .map((c: unknown) => {
+          if (c && typeof c === "object") {
+            const cObj = c as Record<string, unknown>;
+            return aplanarValor(cObj.index || cObj.name || "").toUpperCase();
+          }
+          return aplanarValor(c).toUpperCase();
+        })
         .join(" | ");
       subTxt = subTxt ? `${subTxt} | ${catsTxt}` : catsTxt;
     }
@@ -447,8 +463,11 @@ export function sanearObjetoHomebrew(o: unknown): ObjetoHomebrew {
     // Siempre inferir desde equipment_categories primero (fuente más confiable)
     let estiloInferido = false;
     if (Array.isArray(obj.equipment_categories)) {
-      const catTxt = obj.equipment_categories.map((c: any) => {
-        if (c && typeof c === "object") return aplanarValor(c.index || c.name || "").toUpperCase();
+      const catTxt = obj.equipment_categories.map((c: unknown) => {
+        if (c && typeof c === "object") {
+          const cObj = c as Record<string, unknown>;
+          return aplanarValor(cObj.index || cObj.name || "").toUpperCase();
+        }
         return aplanarValor(c).toUpperCase();
       }).join(" | ");
       if (catTxt.includes("DISTANCIA") || catTxt.includes("RANGED")) {
@@ -633,7 +652,13 @@ export function sanearObjetoHomebrew(o: unknown): ObjetoHomebrew {
     
     if (Array.isArray(obj.equipment_categories)) {
       const catsTxt = obj.equipment_categories
-        .map((c: any) => (c && typeof c === "object" ? aplanarValor(c.index || c.name || "").toUpperCase() : aplanarValor(c).toUpperCase()))
+        .map((c: unknown) => {
+          if (c && typeof c === "object") {
+            const cObj = c as Record<string, unknown>;
+            return aplanarValor(cObj.index || cObj.name || "").toUpperCase();
+          }
+          return aplanarValor(c).toUpperCase();
+        })
         .join(" | ");
       subTxt = subTxt ? `${subTxt} | ${catsTxt}` : catsTxt;
     }
@@ -711,7 +736,13 @@ export function sanearObjetoHomebrew(o: unknown): ObjetoHomebrew {
     
     if (Array.isArray(obj.equipment_categories)) {
       const catsTxt = obj.equipment_categories
-        .map((c: any) => (c && typeof c === "object" ? aplanarValor(c.index || c.name || "").toUpperCase() : aplanarValor(c).toUpperCase()))
+        .map((c: unknown) => {
+          if (c && typeof c === "object") {
+            const cObj = c as Record<string, unknown>;
+            return aplanarValor(cObj.index || cObj.name || "").toUpperCase();
+          }
+          return aplanarValor(c).toUpperCase();
+        })
         .join(" | ");
       subTxt = subTxt ? `${subTxt} | ${catsTxt}` : catsTxt;
     }
@@ -1039,7 +1070,7 @@ export function formatearRecargaTexto(recarga?: string, uso?: string): string {
 export function sanearMonstruoSentidosYPasiva(m: MonstruoBase): MonstruoBase {
   let sentidosObj: SentidosEstructurados;
   if (m.sentidos && typeof m.sentidos === "object" && !Array.isArray(m.sentidos)) {
-    sentidosObj = { ...(m.sentidos as any) };
+    sentidosObj = { ...(m.sentidos as unknown as SentidosEstructurados) };
   } else {
     sentidosObj = parsearSentidos(typeof m.sentidos === "string" ? m.sentidos : "");
   }

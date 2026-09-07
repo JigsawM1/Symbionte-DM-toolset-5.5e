@@ -81,7 +81,7 @@ export const GestorIniciativa: React.FC = () => {
     if (!plantilla) return 10;
 
     if (plantilla.sentidos && typeof plantilla.sentidos === "object" && "percepcionPasiva" in plantilla.sentidos) {
-      return (plantilla.sentidos as any).percepcionPasiva ?? 10;
+      return (plantilla.sentidos as { percepcionPasiva?: number }).percepcionPasiva ?? 10;
     }
 
     return 10;

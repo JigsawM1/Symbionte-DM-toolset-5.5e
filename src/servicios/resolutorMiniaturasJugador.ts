@@ -83,8 +83,9 @@ export async function autoResolverMiniaturasJugador(
       return;
     }
 
-    // 3. Obtener metadatos detallados de las criaturas
-    const ids = fragmentos.map((f: any) => (typeof f === "string" ? f : f.id)).filter(Boolean);
+    const ids = fragmentos
+      .map((f: { id?: string } | string) => (typeof f === "string" ? f : f.id || ""))
+      .filter(Boolean);
     if (ids.length === 0) return;
 
     const infos = await ts.creatures.getMoreInfo(ids);

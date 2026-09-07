@@ -231,7 +231,7 @@ export const ListaHomebrew: React.FC<Props> = ({
         <div style={{ minWidth: "165px" }}>
           <SelectorDesplegable
             valor={criterioOrden}
-            alCambiar={(val) => setCriterioOrden(val as any)}
+            alCambiar={(val) => setCriterioOrden(val as typeof criterioOrden)}
             opciones={[
               { valor: "nombre-asc", etiqueta: "Nombre (A - Z)" },
               { valor: "nombre-desc", etiqueta: "Nombre (Z - A)" },
@@ -909,7 +909,7 @@ export const ListaHomebrew: React.FC<Props> = ({
 
               {/* MECÁNICAS DE MUNICIÓN O ALMACENAMIENTO */}
               {(() => {
-                const cantidadItem = "cantidad" in objeto ? (objeto as any).cantidad as number | undefined : undefined;
+                const cantidadItem = "cantidad" in objeto ? (objeto as { cantidad?: number }).cantidad : undefined;
                 if (!objeto.storage && cantidadItem === undefined) return null;
                 
                 return (
@@ -1051,7 +1051,7 @@ export const ListaHomebrew: React.FC<Props> = ({
                 <div className={estilos.seccionDescripcionFichaMargenGrande}>
                   <div className={estilos.descripcionTituloFicha}>CONTENIDO DEL PAQUETE</div>
                   <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-                    {objeto.contents.map((c: any, idx: number) => {
+                    {objeto.contents.map((c: { item: { index: string; name: string }; quantity: number }, idx: number) => {
                       const idDestino = c.item.index;
                       const existeDestino = objetosHomebrew.some(o => o.id === idDestino || normalizarTexto(o.nombre) === normalizarTexto(c.item.name));
                       
@@ -1097,7 +1097,7 @@ export const ListaHomebrew: React.FC<Props> = ({
                 <div className={estilos.seccionDescripcionFichaMargenGrande}>
                   <div className={estilos.descripcionTituloFicha}>OBJETOS QUE PUEDE ELABORAR</div>
                   <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
-                    {objeto.craft.map((c: any, idx: number) => {
+                    {objeto.craft.map((c: { index: string; name: string }, idx: number) => {
                       const idDestino = c.index;
                       const existeDestino = objetosHomebrew.some(o => o.id === idDestino || normalizarTexto(o.nombre) === normalizarTexto(c.name));
                       

@@ -164,6 +164,8 @@ export interface ElementoTurnoIniciativa {
   kind: "creature";
 }
 
+export type ItemIniciativaTS = ElementoTurnoIniciativa;
+
 export interface ColaIniciativaTS {
   items: ElementoTurnoIniciativa[];
   activeItemIndex: number;
@@ -206,14 +208,27 @@ export interface ResultadosTirada {
   quiet: boolean;
 }
 
+export interface PaqueteContenidoTS {
+  id?: string;
+  name?: string;
+  [key: string]: unknown;
+}
+
+export interface InfoObjetoTableroTS {
+  id?: string;
+  name?: string;
+  boardObject?: unknown;
+  [key: string]: unknown;
+}
+
 // API Principal de TaleSpire
 export interface TaleSpireAPI {
   dice: {
     isValidRollString: (rollStr: string) => boolean;
     makeRollDescriptors: (rollStr: string) => Promise<DescriptorTirada[]>;
     putDiceInTray: (descriptors: DescriptorTirada[], silenceDefaultChatCard?: boolean) => Promise<string>;
-    evaluateDiceResultsGroup: (group: GrupoResultadosTirada | any) => Promise<number>;
-    sendDiceResult: (groups: GrupoResultadosTirada[] | any[], rollId: string) => Promise<void>;
+    evaluateDiceResultsGroup: (group: GrupoResultadosTirada | unknown) => Promise<number>;
+    sendDiceResult: (groups: GrupoResultadosTirada[] | unknown[], rollId: string) => Promise<void>;
     onRollResults?: Suscribible<ResultadosTirada>;
   };
   chat?: {
@@ -257,10 +272,10 @@ export interface TaleSpireAPI {
     getBoardsInThisCampaign?: () => Promise<unknown[]>;
   };
   contentPacks?: {
-    getContentPacks?: () => Promise<any[]>;
-    getMoreInfo?: (packs: any[]) => Promise<any[]>;
-    findBoardObjectInPacks?: (boardObjectId: string | any, packsInfos: any[]) => Promise<any>;
-    createThumbnailElementForBoardObject?: (boardObjectInfo: any, size?: number) => Promise<HTMLElement>;
+    getContentPacks?: () => Promise<PaqueteContenidoTS[]>;
+    getMoreInfo?: (packs: PaqueteContenidoTS[] | unknown[]) => Promise<PaqueteContenidoTS[]>;
+    findBoardObjectInPacks?: (boardObjectId: string, packsInfos: PaqueteContenidoTS[] | unknown[]) => Promise<InfoObjetoTableroTS | null>;
+    createThumbnailElementForBoardObject?: (boardObjectInfo: InfoObjetoTableroTS | unknown, size?: number) => Promise<HTMLElement>;
   };
   localStorage?: TSLocalStorage;
   system?: {

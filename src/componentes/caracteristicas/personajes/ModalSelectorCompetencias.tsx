@@ -93,7 +93,7 @@ export const ModalSelectorCompetencias: React.FC<ModalSelectorCompetenciasProps>
     else if (grupoId === "fuego") armasDelGrupo = ARMAS_DE_FUEGO;
 
     if (yaSeleccionado) {
-      nuevaLista = nuevaLista.filter((a) => !armasDelGrupo.includes(a as any));
+      nuevaLista = nuevaLista.filter((a) => !armasDelGrupo.includes(a));
     } else {
       for (const arma of armasDelGrupo) {
         if (!nuevaLista.includes(arma)) {
@@ -157,7 +157,7 @@ export const ModalSelectorCompetencias: React.FC<ModalSelectorCompetenciasProps>
     else if (grupoId === "escudos") armadurasDelGrupo = ESCUDOS;
 
     if (yaSeleccionado) {
-      nuevaLista = nuevaLista.filter((a) => !armadurasDelGrupo.includes(a as any));
+      nuevaLista = nuevaLista.filter((a) => !armadurasDelGrupo.includes(a));
     } else {
       for (const arm of armadurasDelGrupo) {
         if (!nuevaLista.includes(arm)) {
@@ -179,28 +179,28 @@ export const ModalSelectorCompetencias: React.FC<ModalSelectorCompetenciasProps>
     }
 
     const nuevosGrupos = [...armadurasGrupos];
-    const todasLigeras = ARMADURAS_LIGERAS.every((a) => nuevaLista.includes(a as any));
+    const todasLigeras = ARMADURAS_LIGERAS.every((a) => nuevaLista.includes(a));
     if (todasLigeras && !nuevosGrupos.includes("ligeras")) nuevosGrupos.push("ligeras");
     else if (!todasLigeras && nuevosGrupos.includes("ligeras")) {
       const idx = nuevosGrupos.indexOf("ligeras");
       if (idx !== -1) nuevosGrupos.splice(idx, 1);
     }
 
-    const todasMedias = ARMADURAS_MEDIAS.every((a) => nuevaLista.includes(a as any));
+    const todasMedias = ARMADURAS_MEDIAS.every((a) => nuevaLista.includes(a));
     if (todasMedias && !nuevosGrupos.includes("medias")) nuevosGrupos.push("medias");
     else if (!todasMedias && nuevosGrupos.includes("medias")) {
       const idx = nuevosGrupos.indexOf("medias");
       if (idx !== -1) nuevosGrupos.splice(idx, 1);
     }
 
-    const todasPesadas = ARMADURAS_PESADAS.every((a) => nuevaLista.includes(a as any));
+    const todasPesadas = ARMADURAS_PESADAS.every((a) => nuevaLista.includes(a));
     if (todasPesadas && !nuevosGrupos.includes("pesadas")) nuevosGrupos.push("pesadas");
     else if (!todasPesadas && nuevosGrupos.includes("pesadas")) {
       const idx = nuevosGrupos.indexOf("pesadas");
       if (idx !== -1) nuevosGrupos.splice(idx, 1);
     }
 
-    const todosEscudos = ESCUDOS.every((a) => nuevaLista.includes(a as any));
+    const todosEscudos = ESCUDOS.every((a) => nuevaLista.includes(a));
     if (todosEscudos && !nuevosGrupos.includes("escudos")) nuevosGrupos.push("escudos");
     else if (!todosEscudos && nuevosGrupos.includes("escudos")) {
       const idx = nuevosGrupos.indexOf("escudos");

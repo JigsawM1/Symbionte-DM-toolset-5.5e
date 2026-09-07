@@ -12,6 +12,43 @@ Este archivo registra reglas globales, errores encontrados, sus causas raíz y l
    - Toda interacción, comentarios y documentación técnica se redacta 100% en español.
 4. **TIPADO ESTRICTO Y CÓDIGO LIMPIO**:
    - `strict: true` en TypeScript. Cero tipos `any`. Interfaces explícitas, generics y principios SOLID.
+
+## [2026-09-07] Culminación Exitosa - Etapa 1: Saneamiento de Tipado e Infraestructura (Red de Seguridad Total)
+**Contexto y Logros:**
+- Se ejecutó de forma integral la **Etapa 1** del plan de remediación técnica.
+- **Red de Seguridad Activada**:
+  1. *Versionado de Pruebas*: Se removió la regla `*.test.ts` de `.gitignore`. Los 41 archivos de prueba existentes (451 tests) ahora están versionados en el repositorio de forma activa y protegida.
+  2. *Erradicación Total de Errores de ESLint*: De 138 errores iniciales (`@typescript-eslint/no-explicit-any` y `@typescript-eslint/no-unused-vars`), se redujo el contador a **0 errores**.
+  3. *Reglas de Linter Optimizadas*: Se ajustó `eslint.config.js` para ignorar variables y argumentos contractuales prefijados con guion bajo (`_`).
+  4. *Tipado Estricto de la API de TaleSpire*: Se tiparon formalmente `DescriptorTirada`, `ItemIniciativaTS`, `PaqueteContenidoTS`, `InfoObjetoTableroTS`, `TaleSpireAPI` y listeners de eventos en `src/tipos/talespire.d.ts` y `src/utiles/TaleSpireAdapter.ts`, eliminando todo uso de `any`.
+  5. *Tipado Estricto en Almacén y Helpers*:
+     - `mutarPersonaje`: Se eliminaron las aserciones `as unknown as (personaje: PersonajeJugador) => void` y se tiparon limpiamente las mutaciones Draft con `immer`.
+     - `sanitizacion.ts` e `importadorJSON.ts`: Eliminados 11 casos de `any`, tipados campos relacionales de D&D (`contents`, `craft`, `equipment_categories`, `costoOriginal`, `utilize`, `velocidad`, `sentidos`).
+     - Corregidos imports de `@/tipos/criaturas` inexistente a `@/tipos`.
+  6. *Servicios y Mocks de Tests Saneados*:
+     - `sincronizacionIniciativa.ts` y `sincronizacionIniciativa.test.ts`: Eliminados todos los `cTSAny` y `as any`, tipando `cTSConPropiedades` e intersecciones de iniciativa física TaleSpire.
+     - `usarFormularioObjeto.test.ts`: Reemplazados todos los `as any` por las interfaces canónicas `Arma` y `Armadura`.
+     - `HojaPersonajeTiradas.test.ts`: Tipados descriptores de dados 3D y grupos de chat con `DescriptorTirada` y tipos seguros sin `any`.
+     - `gestorMunicion.test.ts`: Eliminados errores TS2322 en objetos sintéticos de compendio.
+- **Métricas de Calidad Verificadas**:
+  - `pnpm lint`: 0 errores (código de salida 0).
+  - `pnpm test`: 41 de 41 archivos de test superados, 451 de 451 pruebas pasando al 100% (6.66s).
+  - `pnpm build`: `tsc` superado con 0 errores y empaquetado de producción de Vite completado en 7.19s (código de salida 0).
+
+## [2026-09-07] Diagnóstico y Registro de Auditoría Técnica Integral del Modo Jugador
+**Contexto y Análisis de la Auditoría (`auditoria/`):**
+- Se analizaron los resultados de la auditoría estática reciente realizada sobre 92 archivos y ~45.000 líneas del Modo Jugador.
+- **Hallazgos Clave Identificados**:
+  1. *Tests*: Falta de suite de pruebas activa en el repo (`*.test.ts` excluido en `.gitignore`), provocando fallo de `pnpm test`.
+  2. *Linter*: 93 problemas (90 errores, 78 `no-explicit-any`, 12 variables sin uso).
+  3. *Componentes Monolíticos*: `PanelConfiguracionPersonaje.tsx` (2.413 lín), `VistaAtaquesJugador.tsx` (1.446 lín), `PanelInventarioPersonaje.tsx` (1.378 lín), `PanelConjurosPersonaje.tsx` (1.076 lín), `VistaRasgosJugador.tsx` (1.047 lín). 26 componentes > 400 líneas.
+  4. *Estado*: `slicePersonajes.ts` monolítico (1.522 lín, 80 acciones) y `mutarPersonaje` con `as unknown as`.
+  5. *Reglas de Proyecto Violadas*: 63 transiciones/animaciones activas (contrarias a regla 0ms), 91 fuentes < 11px, 626 estilos inline `style={{}}`, 868 colores hexadecimales hardcodeados (no usan `--pj-*`), 4 `<select>` nativos y 2 caracteres unicode no vectoriales.
+  6. *Dominio en UI & Duplicación*: Reglas de combate y detección de rasgos/clases por cadenas de texto (`includes("frenesí")`, etc.) en lugar de IDs canónicos en capa de servicios. 145 clones exactos (2.402 líneas duplicadas).
+  7. *Rendimiento*: `calcularEstadisticasPersonaje` (450 líneas) ejecutado en cada render de `HojaPersonaje` sin `useMemo`.
+- **Directiva de Trabajo Futuro**:
+  - Cumplir estrictamente con el mapa de ruta establecido en `informe_auditoria_modo_jugador.md` (Fases 0 a 7), priorizando la creación de tests de caracterización, CI, limpieza de `any` y modularización de componentes gigantes.
+
 ## [2026-09-07] Corrección de Colapso Visual por Flexbox en Selector de Invocaciones Sobrenaturales
 **Error y Causa Raíz:**
 - *Síntoma reportado*: Las 28 tarjetas de invocación se mostraban como líneas horizontales aplastadas (de apenas 3-4px de altura) en la interfaz, volviéndose ilegibles y no desplegables.

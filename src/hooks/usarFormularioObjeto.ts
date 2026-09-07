@@ -202,10 +202,11 @@ export function usarFormularioObjeto(idEnEdicion: string | null, alGuardarExitos
     setOEsMagico(o.esMagico);
     
     // Carga de efectosPasivos con fallback a bonosMagicos
+    const oLegacy = o as { bonosMagicos?: Array<{ categoria: string; bono: string; valor: number }> };
     if (o.efectosPasivos) {
       setOEfectosPasivos(o.efectosPasivos);
-    } else if ((o as any).bonosMagicos) {
-      const legacyBonos = (o as any).bonosMagicos as { categoria: string; bono: string; valor: number }[];
+    } else if (oLegacy.bonosMagicos) {
+      const legacyBonos = oLegacy.bonosMagicos;
       setOEfectosPasivos(legacyBonos.map(b => ({
         tipo: b.categoria,
         bono: b.bono,

@@ -66,7 +66,7 @@ const OPCIONES_APLICA_A_ATAQUE = [
   { valor: "arma_distancia", etiqueta: "Armas a Distancia" },
   { valor: "desarmado", etiqueta: "Golpe sin Armas (Desarmado)" },
   { valor: "todos_ataques", etiqueta: "Todos los Ataques" }
-];
+] as const;
 
 const OPCIONES_ATRIBUTO_CA = [
   { valor: "constitucion", etiqueta: "Constitución (10 + DES + CON - Bárbaro)" },
@@ -1011,10 +1011,10 @@ export const ConstructorRasgoDote: React.FC<ConstructorRasgoDoteProps> = ({
                   <label className={estilos.labelCampo}>
                     <span>Aplica a Tipo de Ataque</span>
                   </label>
-                  <SelectorDesplegable
+                  <SelectorDesplegable<"arma_fuerza" | "arma_cac" | "arma_distancia" | "desarmado" | "todos_ataques">
                     valor={nuevoAplicaA}
                     opciones={OPCIONES_APLICA_A_ATAQUE}
-                    alCambiar={(val) => setNuevoAplicaA(val as any)}
+                    alCambiar={(val) => setNuevoAplicaA(val)}
                     tamano="normal"
                   />
                 </div>
@@ -1054,10 +1054,10 @@ export const ConstructorRasgoDote: React.FC<ConstructorRasgoDoteProps> = ({
                   <label className={estilos.labelCampo}>
                     <span>Aplica a</span>
                   </label>
-                  <SelectorDesplegable
+                  <SelectorDesplegable<"arma_fuerza" | "arma_cac" | "arma_distancia" | "desarmado" | "todos_ataques">
                     valor={nuevoAplicaA}
                     opciones={OPCIONES_APLICA_A_ATAQUE}
-                    alCambiar={(val) => setNuevoAplicaA(val as any)}
+                    alCambiar={(val) => setNuevoAplicaA(val)}
                     tamano="normal"
                   />
                 </div>
@@ -1082,13 +1082,13 @@ export const ConstructorRasgoDote: React.FC<ConstructorRasgoDoteProps> = ({
                   <label className={estilos.labelCampo}>
                     <span>Aplica a</span>
                   </label>
-                  <SelectorDesplegable
+                  <SelectorDesplegable<"arma_fuerza" | "arma_cac" | "arma_distancia" | "desarmado" | "todos_ataques">
                     valor={nuevoAplicaA}
                     opciones={[
                       { valor: "arma_fuerza", etiqueta: "Armas con Fuerza" },
                       { valor: "todos_ataques", etiqueta: "Todos los Ataques" }
                     ]}
-                    alCambiar={(val) => setNuevoAplicaA(val as any)}
+                    alCambiar={(val) => setNuevoAplicaA(val)}
                     tamano="normal"
                   />
                 </div>

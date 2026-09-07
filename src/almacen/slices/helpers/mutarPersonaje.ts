@@ -9,11 +9,12 @@ export interface EstadoConPersonajes {
  * Elimina el boilerplate repetitivo de `set((state) => ({ personajes: state.personajes.map(...) }))`.
  */
 export function mutarPersonaje<T extends EstadoConPersonajes>(
-  set: (fn: (state: T) => Partial<T>) => void,
+  set: (fn: (state: T) => Partial<T> | T) => void,
   id: string,
   mutador: (pj: PersonajeJugador) => PersonajeJugador
 ): void {
   set((state) => ({
+    ...state,
     personajes: state.personajes.map((pj) => (pj.id === id ? mutador(pj) : pj))
-  } as unknown as Partial<T>));
+  }));
 }

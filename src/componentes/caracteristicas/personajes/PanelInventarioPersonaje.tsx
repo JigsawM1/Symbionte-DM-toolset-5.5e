@@ -485,7 +485,7 @@ export const PanelInventarioPersonaje: React.FC<PanelInventarioPersonajeProps> =
     const objetoCompendio = baseDatosObjetos.find(
       (b) => b.id === obj.idObjeto || normalizar(b.nombre) === normalizar(obj.nombre)
     );
-    const contents = objetoCompendio?.contents || (obj as any).contents;
+    const contents = objetoCompendio?.contents || (obj as unknown as { contents?: unknown[] }).contents;
     return Array.isArray(contents) && contents.length > 0;
   };
 

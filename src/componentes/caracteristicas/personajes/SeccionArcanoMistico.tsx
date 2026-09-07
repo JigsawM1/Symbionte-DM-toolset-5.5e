@@ -283,8 +283,7 @@ export const SeccionArcanoMistico: React.FC<SeccionArcanoMisticoProps> = ({
                           fontWeight: 700,
                           padding: "4px 8px",
                           cursor: bloqueadoPorArmadura ? "not-allowed" : "pointer",
-                          opacity: bloqueadoPorArmadura ? 0.5 : 1,
-                          transition: "all 0.15s ease"
+                          opacity: bloqueadoPorArmadura ? 0.5 : 1
                         }}
                         onMouseEnter={(e) => {
                           if (!bloqueadoPorArmadura) e.currentTarget.style.backgroundColor = "#9333ea";

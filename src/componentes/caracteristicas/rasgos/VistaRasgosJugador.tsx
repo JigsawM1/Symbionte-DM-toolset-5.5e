@@ -6,7 +6,8 @@ import {
 import type { RasgoPersonaje, TipoAccionRasgo, OrigenRasgo } from "@/tipos";
 import { TarjetaRasgo } from "./TarjetaRasgo";
 import { ConstructorRasgoDote } from "./ConstructorRasgoDote";
-import { ModalDetalleRasgo, renderizarTextoEnriquecidoDND } from "./ModalDetalleRasgo";
+import { ModalDetalleRasgo } from "./ModalDetalleRasgo";
+import { renderizarTextoEnriquecidoDND } from "@/utiles/formatoTextoDND";
 import { TablaProgresionRasgo } from "./TablaProgresionRasgo";
 import { obtenerClasePorNombre, obtenerSubclasePorNombre } from "@/servicios/gestorClases";
 import { usarEstadoPersistido } from "@/hooks";

@@ -74,7 +74,7 @@ const CLASES_RAREZA: Record<Rareza, string> = {
   "Artefacto": estilos.rarezaArtefacto
 };
 
-export interface OpcionEspecializacionContenedor {
+interface OpcionEspecializacionContenedor {
   id: string;
   nombre: string;
   idObjeto: string;
@@ -82,7 +82,7 @@ export interface OpcionEspecializacionContenedor {
   descripcion: string;
 }
 
-export const OPCIONES_ESPECIALIZACION_BOLSAS: OpcionEspecializacionContenedor[] = [
+const OPCIONES_ESPECIALIZACION_BOLSAS: OpcionEspecializacionContenedor[] = [
   {
     id: "pouch",
     nombre: "Bolsita",

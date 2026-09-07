@@ -32,7 +32,7 @@
 }
 
 .concentracionEtiqueta {
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
   color: #f87171;
@@ -53,7 +53,7 @@
   font-weight: 700;
   padding: 4px 10px;
   cursor: pointer;
-  transition: background-color 0.15s ease;
+  transition: none;
 }
 
 .botonRomperConcentracion:hover {
@@ -246,7 +246,7 @@
   user-select: none;
   padding: 2px 0;
   border-radius: 4px;
-  transition: opacity 0.15s ease;
+  transition: none;
 }
 
 .cabeceraNivelInteractiva:hover {
@@ -329,7 +329,7 @@
   font-weight: 700;
   padding: 5px 10px;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: none;
 }
 
 .botonToggleFiltros:hover {
@@ -346,7 +346,7 @@
 .badgeFiltrosActivos {
   background-color: #a78bfa;
   color: #0b0f17;
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 800;
   border-radius: 10px;
   padding: 0 5px;
@@ -366,7 +366,7 @@
   font-weight: 600;
   padding: 4px 8px;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: none;
 }
 
 .botonAccionRapidaSecciones:hover {
@@ -390,7 +390,7 @@
 }
 
 .etiquetaGrupoFiltro {
-  font-size: 10.5px;
+  font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
   color: var(--pj-texto-terciario, #94a3b8);
@@ -416,7 +416,7 @@
   font-weight: 600;
   padding: 3px 8px;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: none;
 }
 
 .chipFiltro:hover {
@@ -571,7 +571,7 @@
   font-weight: 700;
   padding: 7px 14px;
   cursor: pointer;
-  transition: background-color 0.15s ease;
+  transition: none;
 }
 
 .botonIrCompendio:hover {
@@ -610,11 +610,11 @@
   border: 1px solid var(--pj-borde-sutil, rgba(148, 163, 184, 0.2));
   border-radius: 4px;
   color: var(--pj-texto-cian, #38bdf8);
-  font-size: 10.5px;
+  font-size: 11px;
   font-weight: 600;
   padding: 2px 7px;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: none;
 }
 
 .botonDesocultarTodos:hover {

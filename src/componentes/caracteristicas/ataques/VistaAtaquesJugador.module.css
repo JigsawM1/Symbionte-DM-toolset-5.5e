@@ -449,18 +449,18 @@
   align-items: center;
   gap: 3px;
   flex-wrap: wrap;
-  font-size: 9.5px;
+  font-size: 11px;
 }
 
 .badgePropiedad {
-  font-size: 9.5px;
+  font-size: 11px;
   padding: 1px 4px;
   border-radius: 3px;
   background-color: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.08);
   color: #94a3b8;
   cursor: help;
-  transition: all 0.15s ease;
+  transition: none;
 }
 
 .badgePropiedad:hover {
@@ -470,7 +470,7 @@
 }
 
 .badgeMaestria {
-  font-size: 10.5px;
+  font-size: 11px;
   font-weight: 700;
   padding: 1px 4px;
   border-radius: 3px;
@@ -478,7 +478,7 @@
   border: 1px solid rgba(168, 85, 247, 0.28);
   color: #d8b4fe;
   cursor: help;
-  transition: all 0.15s ease;
+  transition: none;
 }
 
 .badgeMaestria:hover {
@@ -495,7 +495,7 @@
 }
 
 .badgeCantidadConsumible {
-  font-size: 9.5px;
+  font-size: 11px;
   font-weight: 800;
   color: #10b981;
   background-color: rgba(16, 185, 129, 0.12);
@@ -517,14 +517,14 @@
 }
 
 .textoEfectoCuracion {
-  font-size: 10.5px;
+  font-size: 11px;
   font-weight: 700;
   color: #f87171;
   font-family: var(--fuente-codigo, 'JetBrains Mono', monospace);
 }
 
 .textoEfectoGenerico {
-  font-size: 10.5px;
+  font-size: 11px;
   color: #94a3b8;
   white-space: nowrap;
   overflow: hidden;
@@ -538,7 +538,7 @@
   cursor: pointer;
   padding: 3px 8px;
   border-radius: 4px;
-  font-size: 9.5px;
+  font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.3px;
@@ -546,7 +546,7 @@
   align-items: center;
   gap: 3px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
-  transition: all 0.15s ease;
+  transition: none;
   flex-shrink: 0;
   user-select: none;
 }
@@ -567,18 +567,18 @@
 }
 
 .nombreFuenteObjeto {
-  font-size: 10px;
+  font-size: 11px;
   color: #94a3b8;
 }
 
 .badgeCargasObjeto {
-  font-size: 10px;
+  font-size: 11px;
   color: #f59e0b;
   font-weight: 700;
 }
 
 .badgeCargasVacias {
-  font-size: 10px;
+  font-size: 11px;
   color: #ef4444;
   font-weight: 700;
 }
@@ -608,13 +608,13 @@
 }
 
 .badgeMagicoAtaque {
-  font-size: 9.5px;
+  font-size: 11px;
   color: #a855f7;
   font-weight: 700;
 }
 
 .badgeMunicion {
-  font-size: 9.5px;
+  font-size: 11px;
   font-weight: 700;
   padding: 1px 5px;
   border-radius: 4px;
@@ -629,7 +629,7 @@
 }
 
 .badgeMunicionVacia {
-  font-size: 9.5px;
+  font-size: 11px;
   font-weight: 700;
   padding: 1px 5px;
   border-radius: 4px;
@@ -644,14 +644,14 @@
 }
 
 .subtextoMochilaExcedente {
-  font-size: 8.5px;
+  font-size: 11px;
   color: #fcd34d;
   font-weight: 600;
   margin-left: 2px;
 }
 
 .badgeNoCompetente {
-  font-size: 9.5px;
+  font-size: 11px;
   font-weight: 700;
   padding: 1px 5px;
   border-radius: 4px;
@@ -685,14 +685,14 @@
 }
 
 .subtextoContenedorMunicion {
-  font-size: 8.5px;
+  font-size: 11px;
   color: #94a3b8;
   font-weight: 500;
   margin-left: 2px;
 }
 
 .textoAlcance {
-  font-size: 10px;
+  font-size: 11px;
   color: #94a3b8;
   display: flex;
   align-items: center;
@@ -700,7 +700,7 @@
 }
 
 .textoDanoVersatilBadge {
-  font-size: 10px;
+  font-size: 11px;
   color: #fdba74;
   font-weight: 700;
 }
@@ -762,7 +762,7 @@
   border-radius: 8px;
   padding: 8px 10px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
-  transition: all 0.15s ease;
+  transition: none;
 }
 
 .seccionNivelMagico:hover {
@@ -779,7 +779,7 @@
   border-radius: 5px;
   cursor: pointer;
   user-select: none;
-  transition: all 0.15s ease;
+  transition: none;
 }
 
 .cabeceraNivelMagico:hover {
@@ -798,7 +798,7 @@
 }
 
 .badgeConteoNivelMagico {
-  font-size: 9.5px;
+  font-size: 11px;
   font-weight: 700;
   background-color: rgba(167, 139, 250, 0.15);
   border: 1px solid rgba(167, 139, 250, 0.3);

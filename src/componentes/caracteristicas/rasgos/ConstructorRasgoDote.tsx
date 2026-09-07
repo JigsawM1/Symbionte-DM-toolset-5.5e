@@ -763,15 +763,14 @@ export const ConstructorRasgoDote: React.FC<ConstructorRasgoDoteProps> = ({
                     <span>Cantidad a Restaurar</span>
                   </label>
                   <div style={{ display: "flex", gap: "8px" }}>
-                    <select
-                      className={estilos.inputControl}
-                      value={tipoCantidadRestaurar}
-                      onChange={(e) => setTipoCantidadRestaurar(e.target.value as "maximo" | "fijo")}
-                      style={{ flex: 1 }}
-                    >
-                      <option value="maximo">Todos (Máximo)</option>
-                      <option value="fijo">Cantidad Fija</option>
-                    </select>
+                    <SelectorDesplegable<"maximo" | "fijo">
+                      valor={tipoCantidadRestaurar}
+                      opciones={[
+                        { valor: "maximo", etiqueta: "Todos (Máximo)" },
+                        { valor: "fijo", etiqueta: "Cantidad Fija" }
+                      ]}
+                      alCambiar={(val) => setTipoCantidadRestaurar(val)}
+                    />
                     {tipoCantidadRestaurar === "fijo" && (
                       <input
                         type="number"
@@ -1511,15 +1510,14 @@ export const ConstructorRasgoDote: React.FC<ConstructorRasgoDoteProps> = ({
                   <span>Tipo de Selección</span>
                 </label>
                 <div style={{ display: "flex", gap: "8px" }}>
-                  <select
-                    className={estilos.inputControl}
-                    value={nuevoSelectorTipo}
-                    onChange={(e) => setNuevoSelectorTipo(e.target.value as "unico" | "multiple")}
-                    style={{ flex: 1 }}
-                  >
-                    <option value="unico">Opción Única (1)</option>
-                    <option value="multiple">Selección Múltiple</option>
-                  </select>
+                  <SelectorDesplegable<"unico" | "multiple">
+                    valor={nuevoSelectorTipo}
+                    opciones={[
+                      { valor: "unico", etiqueta: "Opción Única (1)" },
+                      { valor: "multiple", etiqueta: "Selección Múltiple" }
+                    ]}
+                    alCambiar={(val) => setNuevoSelectorTipo(val)}
+                  />
                   {nuevoSelectorTipo === "multiple" && (
                     <input
                       type="number"

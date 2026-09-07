@@ -208,7 +208,7 @@
 }
 
 .subtextoMetrica {
-  font-size: 10px;
+  font-size: 11px;
   color: #64748b;
   font-weight: 400;
   margin-left: 4px;
@@ -294,7 +294,7 @@
 }
 
 .badgePropiedad {
-  font-size: 10px;
+  font-size: 11px;
   padding: 2px 6px;
   border-radius: 4px;
   background-color: rgba(255, 255, 255, 0.05);
@@ -345,7 +345,7 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  transition: all 0.15s ease;
+  transition: none;
 }
 
 .botonSintonizar {
@@ -430,7 +430,7 @@
   border: 1px solid rgba(148, 163, 184, 0.15);
   color: #94a3b8;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: none;
   gap: 2px;
 }
 
@@ -449,13 +449,13 @@
 }
 
 .nombreContenedor {
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
   color: #cbd5e1;
 }
 
 .subtextoContenedor {
-  font-size: 8.5px;
+  font-size: 11px;
   color: #94a3b8;
 }
 
@@ -464,7 +464,7 @@
 }
 
 .explicacionContenedor {
-  font-size: 10px;
+  font-size: 11px;
   color: #64748b;
   padding: 0 4px;
 }
@@ -533,13 +533,13 @@
 .metaHechizoVinculado {
   margin-left: 6px;
   color: #cbd5e1;
-  font-size: 10px;
+  font-size: 11px;
 }
 
 .botonLanzarHechizoModal {
   padding: 2px 7px;
   border-radius: 4px;
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
   cursor: pointer;
   display: inline-flex;
@@ -548,7 +548,7 @@
   background-color: rgba(168, 85, 247, 0.25);
   border: 1px solid rgba(168, 85, 247, 0.6);
   color: #f3e8ff;
-  transition: all 0.15s ease;
+  transition: none;
 }
 
 .botonLanzarHechizoModal:hover:not(:disabled) {
@@ -577,7 +577,7 @@
   font-size: 11px;
   font-weight: 700;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: none;
 }
 
 .botonDesempaquetarModal:hover {
@@ -670,7 +670,7 @@
   font-size: 11px;
   font-weight: 700;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: none;
 }
 
 .botonEquiparModal:hover {
@@ -771,7 +771,7 @@
 }
 
 .chipComponente {
-  font-size: 10px;
+  font-size: 11px;
   background-color: rgba(168, 85, 247, 0.15);
   border: 1px solid rgba(168, 85, 247, 0.4);
   color: #f3e8ff;
@@ -780,7 +780,7 @@
 }
 
 .chipHerramientaCraft {
-  font-size: 10px;
+  font-size: 11px;
   background-color: rgba(56, 189, 248, 0.15);
   border: 1px solid rgba(56, 189, 248, 0.4);
   color: #e0f2fe;
@@ -789,14 +789,14 @@
 }
 
 .subtextoCondicionSintonizacion {
-  font-size: 10px;
+  font-size: 11px;
   color: #d8b4fe;
   font-style: italic;
   margin-top: 2px;
 }
 
 .badgeRecargaCargas {
-  font-size: 9.5px;
+  font-size: 11px;
   color: #fde68a;
   background-color: rgba(251, 191, 36, 0.12);
   border: 1px solid rgba(251, 191, 36, 0.3);
@@ -832,7 +832,7 @@
 }
 
 .explicacionMaestria {
-  font-size: 10.5px;
+  font-size: 11px;
   color: #d8b4fe;
   background-color: rgba(168, 85, 247, 0.08);
   padding: 6px 8px;
@@ -870,7 +870,7 @@
 }
 
 .descripcionEspecializacion {
-  font-size: 10px;
+  font-size: 11px;
   color: #94a3b8;
   line-height: 1.35;
 }

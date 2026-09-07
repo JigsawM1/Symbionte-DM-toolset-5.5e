@@ -35,6 +35,42 @@ Este archivo registra reglas globales, errores encontrados, sus causas raíz y l
   - `pnpm test`: 41 de 41 archivos de test superados, 451 de 451 pruebas pasando al 100% (6.66s).
   - `pnpm build`: `tsc` superado con 0 errores y empaquetado de producción de Vite completado en 7.19s (código de salida 0).
 
+## [2026-09-07] Culminación Exitosa - Etapa 2: Normativa Visual y Rendimiento (TaleSpire CEF & Accesibilidad)
+**Contexto y Logros:**
+- Se completó al 100% la **Etapa 2** del plan de saneamiento técnico del Modo Jugador y herramientas del Simbionte.
+- **Acciones y Mejoras Implementadas**:
+  1. *Desacoplamiento para Fast Refresh (Vite React)*:
+     - Se extrajo la función utilitaria pura `renderizarTextoEnriquecidoDND` fuera del componente React `ModalDetalleRasgo.tsx` hacia un módulo dedicado `src/utiles/formatoTextoDND.tsx`.
+     - Se eliminó el export indebido de constantes de configuración interna en `ModalDetalleObjetoInventario.tsx`.
+     - Resultado: ESLint reporta **0 errores y 0 warnings** absolutos (`react-refresh/only-export-components` resuelto).
+  2. *Erradicación Total de `<select>` Nativos*:
+     - Se eliminaron todos los `<select>` nativos del proyecto (4 en `ModalCrearEditarRasgo.tsx` y 2 en `ConstructorRasgoDote.tsx`).
+     - Se reemplazaron de forma homogénea con el componente táctico accesible `SelectorDesplegable`.
+     - Resultado: 0 elementos `<select` nativos residuales en todo `src/`.
+  3. *Regla de Rendimiento Estricto TaleSpire CEF (0ms)*:
+     - Se añadió una directiva de rendimiento global en `src/estilos/temaJugador.css` que fuerza `transition-duration: 0s !important` y `animation-duration: 0s !important` en todos los elementos del tema del jugador.
+     - Se eliminaron transiciones inline en `FichaHechizo.tsx`, `SeccionArcanoMistico.tsx` y `TrackerEspaciosPacto.tsx`.
+     - Se eliminaron todas las transiciones y animaciones (`transition: none;`, `animation: none;`) en los módulos CSS del Modo Jugador:
+       - `HojaPersonaje.module.css` (11 transiciones + keyframe aparecerDock).
+       - `VistaRasgosJugador.module.css` (11 transiciones).
+       - `VistaAtaquesJugador.module.css` (5 transiciones).
+       - `IniciativaJugador.module.css` (5 transiciones + animación pulso infinito).
+       - `PanelConjurosPersonaje.module.css` (7 transiciones).
+       - `ModalResumenDescanso.module.css` (2 animaciones + 2 transiciones).
+       - `ModalDetalleObjetoInventario.module.css` (5 transiciones).
+       - `VistaJugadores.module.css` (4 transiciones).
+       - `SelectorInvocacionesAcordeon.module.css` (6 transiciones).
+       - `TablaProgresionRasgo.module.css` (1 transición).
+     - Resultado: Eliminadas más de 65 transiciones y animaciones que causaban caídas de cuadros en el WebView embebido CEF de TaleSpire.
+  4. *Accesibilidad Tipográfica (Escala Mínima >= 11px)*:
+     - Se erradicaron todas las fuentes microscópicas sub-11px (`7.5px`, `8px`, `8.5px`, `9px`, `9.5px`, `10px`, `10.5px`) en todos los componentes del Modo Jugador y Compendio (`VistaRasgosJugador`, `VistaAtaquesJugador`, `PanelConjurosPersonaje`, `ModalDetalleObjetoInventario`, `HojaPersonaje`, `SelectorInvocacionesAcordeon`, `TablaProgresionRasgo` y `FichaHechizo`), elevándolas a un mínimo estricto de `11px` (`var(--pj-fuente-micro)`).
+  5. *Erradicación de Emojis Literales Residuales*:
+     - Sustituido emoji literal en `ChipCondicion.tsx` por la secuencia unicode escapada `\u{1FA78}`, asegurando compatibilidad con fuentes bitmap de TaleSpire y cumplimiento de la regla global de cero emojis.
+- **Métricas de Calidad Verificadas**:
+  - `pnpm lint`: 0 errores y 0 warnings (código 0).
+  - `pnpm test`: 41 de 41 suites superadas, 451 de 451 tests pasando al 100% (código 0).
+  - `pnpm build`: `tsc` y empaquetado de producción de Vite exitosos en 7.09s (código 0).
+
 ## [2026-09-07] Diagnóstico y Registro de Auditoría Técnica Integral del Modo Jugador
 **Contexto y Análisis de la Auditoría (`auditoria/`):**
 - Se analizaron los resultados de la auditoría estática reciente realizada sobre 92 archivos y ~45.000 líneas del Modo Jugador.

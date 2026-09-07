@@ -117,7 +117,7 @@
 }
 
 .chipConcentracion {
-  font-size: 10px;
+  font-size: 11px;
   font-weight: bold;
   background-color: rgba(239, 71, 111, 0.15);
   border: 1px solid #ef476f;
@@ -129,7 +129,7 @@
 }
 
 .chipRitual {
-  font-size: 10px;
+  font-size: 11px;
   font-weight: bold;
   background-color: rgba(114, 9, 183, 0.15);
   border: 1px solid #7209b7;
@@ -141,7 +141,7 @@
 }
 
 .chipEscuela {
-  font-size: 10px;
+  font-size: 11px;
   font-weight: bold;
   background-color: rgba(0, 245, 212, 0.05);
   border: 1px solid rgba(0, 245, 212, 0.2);
@@ -174,7 +174,7 @@
 }
 
 .metaLabel {
-  font-size: 10px;
+  font-size: 11px;
   font-weight: bold;
   color: var(--color-texto-apagado);
   letter-spacing: 0.05em;
@@ -230,7 +230,7 @@
 }
 
 .tituloCombate {
-  font-size: 9px;
+  font-size: 11px;
   font-weight: bold;
   color: var(--color-borde-cian);
   text-transform: uppercase;
@@ -282,7 +282,7 @@
 }
 
 .upcastLabel {
-  font-size: 10px;
+  font-size: 11px;
   color: var(--color-texto-secundario);
   white-space: nowrap;
 }
@@ -292,7 +292,7 @@
   background-color: var(--color-fondo-profundo);
   border: 1px solid rgba(0, 245, 212, 0.3);
   color: var(--color-texto-principal);
-  font-size: 10px;
+  font-size: 11px;
   border-radius: 2px;
   padding: 0 6px;
   cursor: pointer;
@@ -320,7 +320,7 @@
 }
 
 .formulaDetalle {
-  font-size: 9px;
+  font-size: 11px;
   color: #74b9ff;
   font-family: var(--fuente-codigo);
 }

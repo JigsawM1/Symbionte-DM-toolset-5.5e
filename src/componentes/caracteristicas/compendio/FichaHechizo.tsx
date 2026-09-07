@@ -521,8 +521,7 @@ export const FichaHechizo: React.FC<FichaHechizoProps> = React.memo(({
                   cursor: bloqueadoPorArmadura ? "not-allowed" : "pointer",
                   opacity: bloqueadoPorArmadura ? 0.45 : 1,
                   marginTop: 6,
-                  width: "100%",
-                  transition: "background-color 0.15s ease"
+                  width: "100%"
                 }}
                 title={bloqueadoPorArmadura ? (motivoBloqueoArmadura || "Bloqueado por armadura sin competencia") : undefined}
                 onMouseEnter={(e) => {

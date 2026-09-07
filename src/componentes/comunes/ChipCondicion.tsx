@@ -80,7 +80,7 @@ export const ChipCondicion: React.FC<ChipCondicionProps> = ({
       : "";
 
   // Texto principal
-  const nombreLimpio = nombre.replace(/🩸\s*/g, "");
+  const nombreLimpio = nombre.replace(/\u{1FA78}\s*/gu, "");
   const prefijoConcentracion = concentracion ? "[CON] " : "";
   const textoAMostrar =
     textoCustom ||

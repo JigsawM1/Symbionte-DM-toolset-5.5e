@@ -1937,7 +1937,7 @@
   flex-shrink: 0;
   display: inline-flex;
   align-items: center;
-  transition: color 0.15s ease;
+  transition: none;
 }
 
 .iconoGripDrag:hover {
@@ -1959,7 +1959,7 @@
   border: 1px solid rgba(148, 163, 184, 0.15);
   border-radius: 4px;
   color: #94a3b8;
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 700;
   padding: 3px 6px;
   cursor: pointer;
@@ -1983,13 +1983,13 @@
 }
 
 .pesoSubseccionMochila {
-  font-size: 9.5px;
+  font-size: 11px;
   font-weight: 600;
   color: #64748b;
 }
 
 .tituloGrupoInventario {
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 800;
   color: #cbd5e1;
   text-transform: uppercase;
@@ -2000,7 +2000,7 @@
 }
 
 .contadorGrupoInventario {
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 700;
   color: #94a3b8;
   background-color: #1a2230;
@@ -2071,7 +2071,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
   cursor: pointer;
-  transition: color 0.15s ease, text-decoration 0.15s ease;
+  transition: none;
   user-select: none;
 }
 
@@ -2091,7 +2091,7 @@
   justify-content: space-between;
   align-items: center;
   gap: 6px;
-  font-size: 10px;
+  font-size: 11px;
   color: #94a3b8;
 }
 
@@ -2103,7 +2103,7 @@
 }
 
 .badgeMeta {
-  font-size: 8.5px;
+  font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.3px;
@@ -2179,7 +2179,7 @@
   cursor: pointer;
   padding: 3px 6px;
   border-radius: 4px;
-  font-size: 9.5px;
+  font-size: 11px;
   font-weight: 700;
   display: inline-flex;
   align-items: center;
@@ -2248,18 +2248,18 @@
 }
 
 .textoPesoTachado {
-  font-size: 9.5px;
+  font-size: 11px;
   color: #64748b;
   text-decoration: line-through;
 }
 
 .textoPesoEfectivo {
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
 }
 
 .textoPesoSimple {
-  font-size: 10px;
+  font-size: 11px;
   color: #94a3b8;
 }
 
@@ -2271,7 +2271,7 @@
 }
 
 .valorCantidadItem {
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
   min-width: 16px;
   text-align: center;
@@ -2286,7 +2286,7 @@
 }
 
 .valorCargasItem {
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
   color: #fbbf24;
 }
@@ -2294,17 +2294,17 @@
 .detalleCalculoCargaContenedores {
   color: #c084fc;
   margin-left: 6px;
-  font-size: 9.5px;
+  font-size: 11px;
 }
 
 .barraCargaTextoTotal {
-  font-size: 10px;
+  font-size: 11px;
   color: rgba(255, 255, 255, 0.7);
   font-weight: 500;
 }
 
 .sintonizacionRanurasTexto {
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
   color: #c084fc;
 }
@@ -2325,7 +2325,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.15s ease;
+  transition: none;
 }
 
 .botonEliminarObjeto:hover {
@@ -2358,7 +2358,7 @@
   justify-content: center;
   gap: 6px;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
-  transition: all 0.15s ease;
+  transition: none;
 }
 
 .botonAgregarPrincipal:hover {
@@ -2444,7 +2444,7 @@
   font-weight: 700;
   padding: 6px 12px;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: none;
 }
 
 .botonSubPestana:hover {
@@ -2459,7 +2459,7 @@
 }
 
 .badgeContadorConjuros {
-  font-size: 10px;
+  font-size: 11px;
   background-color: rgba(129, 140, 248, 0.2);
   color: #c7d2fe;
   padding: 1px 6px;
@@ -2476,7 +2476,7 @@
 }
 
 .badgeResumenRecursoPO {
-  font-size: 9.5px;
+  font-size: 11px;
   font-weight: 700;
   color: #fbbf24;
   background-color: rgba(245, 158, 11, 0.12);
@@ -2487,7 +2487,7 @@
 }
 
 .badgeResumenRecursoCarga {
-  font-size: 9.5px;
+  font-size: 11px;
   font-weight: 700;
   color: #10b981;
   background-color: rgba(16, 185, 129, 0.12);
@@ -2504,7 +2504,7 @@
 }
 
 .badgeResumenRecursoSintonizacion {
-  font-size: 9.5px;
+  font-size: 11px;
   font-weight: 700;
   color: #c084fc;
   background-color: rgba(192, 132, 252, 0.12);
@@ -2550,7 +2550,7 @@
   text-transform: uppercase;
   letter-spacing: 0.5px;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: none;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
   margin-bottom: 2px;
 }
@@ -2585,7 +2585,7 @@
   border-radius: 10px;
   box-shadow: 0 10px 35px rgba(0, 0, 0, 0.85), 0 0 15px rgba(56, 189, 248, 0.25);
   backdrop-filter: blur(10px);
-  animation: aparecerDock 0.18s ease-out;
+  animation: none;
 }
 
 @keyframes aparecerDock {
@@ -2608,7 +2608,7 @@
   border: 1px dashed rgba(148, 163, 184, 0.15);
   border-radius: 6px;
   margin-bottom: 4px;
-  transition: all 0.2s ease;
+  transition: none;
 }
 
 .dockMovilizacionActivo {
@@ -2618,7 +2618,7 @@
 }
 
 .tituloDockMovilizacion {
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -2645,7 +2645,7 @@
   border: 1px dashed rgba(148, 163, 184, 0.2);
   background: rgba(15, 23, 42, 0.6);
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: none;
   user-select: none;
   min-height: 48px;
   justify-content: center;
@@ -2676,13 +2676,13 @@
 }
 
 .nombreCajaMovilizacion {
-  font-size: 9.5px;
+  font-size: 11px;
   font-weight: 800;
   white-space: nowrap;
 }
 
 .subtituloCajaMovilizacion {
-  font-size: 8px;
+  font-size: 11px;
   color: #64748b;
   font-weight: 600;
 }
@@ -2705,7 +2705,7 @@
   border-radius: 5px;
   cursor: pointer;
   text-align: left;
-  transition: all 0.15s ease;
+  transition: none;
 }
 
 .botonSelectorDestino:hover {
@@ -2737,7 +2737,7 @@
 }
 
 .subtituloSelectorDestino {
-  font-size: 9px;
+  font-size: 11px;
   color: #64748b;
 }
 

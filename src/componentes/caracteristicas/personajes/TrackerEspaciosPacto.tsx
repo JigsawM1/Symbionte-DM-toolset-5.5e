@@ -96,8 +96,7 @@ export const TrackerEspaciosPacto: React.FC<TrackerEspaciosPactoProps> = ({
                 color: "#d8b4fe",
                 fontSize: 11,
                 padding: "3px 8px",
-                cursor: "pointer",
-                transition: "all 0.15s ease"
+                cursor: "pointer"
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.backgroundColor = "rgba(168, 85, 247, 0.25)";
@@ -160,7 +159,6 @@ export const TrackerEspaciosPacto: React.FC<TrackerEspaciosPactoProps> = ({
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  transition: "all 0.15s ease",
                   boxSizing: "border-box"
                 }}
                 onMouseEnter={(e) => {

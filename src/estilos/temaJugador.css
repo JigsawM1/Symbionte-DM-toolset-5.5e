@@ -130,3 +130,18 @@
   --pj-sombra-brillo-cian: 0 0 10px rgba(56, 189, 248, 0.3);
   --pj-sombra-brillo-oro: 0 0 10px rgba(234, 179, 8, 0.4);
 }
+
+/* ==========================================
+   8. RENDIMIENTO TALESPIRE CEF (REGLA 0MS)
+   Eliminación estricta de transiciones y animaciones
+   para evitar caídas de fotogramas y repaints.
+   ========================================== */
+*,
+*::before,
+*::after {
+  transition-duration: 0s !important;
+  transition-delay: 0s !important;
+  animation-duration: 0s !important;
+  animation-delay: 0s !important;
+}
+

@@ -3,7 +3,31 @@ import type { RasgoPersonaje, OrigenRasgo, TipoAccionRasgo, RecuperacionRasgo } 
 import { DOTES_CANONICAS_DND55 } from "@/constantes/rasgosDND55";
 import { generarId } from "@/utiles/generarId";
 import { Plus, Edit2, X, Check } from "lucide-react";
+import { SelectorDesplegable } from "@/componentes/comunes";
 import estilos from "./VistaRasgosJugador.module.css";
+
+const OPCIONES_ORIGEN: { valor: OrigenRasgo; etiqueta: string }[] = [
+  { valor: "personalizado", etiqueta: "Personalizado / Homebrew" },
+  { valor: "dote", etiqueta: "Dote" },
+  { valor: "clase", etiqueta: "Clase" },
+  { valor: "subclase", etiqueta: "Subclase" },
+  { valor: "especie", etiqueta: "Especie / Raza" },
+  { valor: "trasfondo", etiqueta: "Trasfondo" }
+];
+
+const OPCIONES_TIPO_ACCION: { valor: TipoAccionRasgo; etiqueta: string }[] = [
+  { valor: "pasivo", etiqueta: "Pasivo (Permanente)" },
+  { valor: "accion", etiqueta: "Acción Principal" },
+  { valor: "accion_adicional", etiqueta: "Acción Adicional" },
+  { valor: "reaccion", etiqueta: "Reacción" },
+  { valor: "especial", etiqueta: "Especial / Variable" }
+];
+
+const OPCIONES_RECUPERACION: { valor: RecuperacionRasgo; etiqueta: string }[] = [
+  { valor: "descanso_corto", etiqueta: "Descanso Corto (y Largo)" },
+  { valor: "descanso_largo", etiqueta: "Solo Descanso Largo" },
+  { valor: "manual", etiqueta: "Manual / Otro" }
+];
 
 interface ModalCrearEditarRasgoProps {
   rasgoInicial?: RasgoPersonaje | null;
@@ -117,18 +141,18 @@ export const ModalCrearEditarRasgo: React.FC<ModalCrearEditarRasgoProps> = ({
                 <label className={estilos.labelCampo}>
                   Cargar plantilla de Dote oficial D&D 5.5e (Opcional):
                 </label>
-                <select
-                  className={estilos.selectCampo}
-                  value={dotePredefinidaSeleccionada}
-                  onChange={(e) => manejarSeleccionarDotePreset(e.target.value)}
-                >
-                  <option value="">-- Seleccionar de la lista canónica --</option>
-                  {DOTES_CANONICAS_DND55.map((d) => (
-                    <option key={d.id} value={d.id}>
-                      {d.nombre} ({d.categoria.toUpperCase()})
-                    </option>
-                  ))}
-                </select>
+                <SelectorDesplegable
+                  valor={dotePredefinidaSeleccionada}
+                  opciones={[
+                    { valor: "", etiqueta: "-- Seleccionar de la lista canónica --" },
+                    ...DOTES_CANONICAS_DND55.map((d) => ({
+                      valor: d.id,
+                      etiqueta: `${d.nombre} (${d.categoria.toUpperCase()})`
+                    }))
+                  ]}
+                  alCambiar={(val) => manejarSeleccionarDotePreset(val)}
+                  placeholder="-- Seleccionar de la lista canónica --"
+                />
               </div>
             )}
 
@@ -150,33 +174,20 @@ export const ModalCrearEditarRasgo: React.FC<ModalCrearEditarRasgoProps> = ({
             <div className={estilos.filaDosCampos}>
               <div className={estilos.grupoCampo}>
                 <label className={estilos.labelCampo}>Categoría / Origen</label>
-                <select
-                  className={estilos.selectCampo}
-                  value={origen}
-                  onChange={(e) => setOrigen(e.target.value as OrigenRasgo)}
-                >
-                  <option value="personalizado">Personalizado / Homebrew</option>
-                  <option value="dote">Dote</option>
-                  <option value="clase">Clase</option>
-                  <option value="subclase">Subclase</option>
-                  <option value="especie">Especie / Raza</option>
-                  <option value="trasfondo">Trasfondo</option>
-                </select>
+                <SelectorDesplegable<OrigenRasgo>
+                  valor={origen}
+                  opciones={OPCIONES_ORIGEN}
+                  alCambiar={(val) => setOrigen(val)}
+                />
               </div>
 
               <div className={estilos.grupoCampo}>
                 <label className={estilos.labelCampo}>Tipo de Acción</label>
-                <select
-                  className={estilos.selectCampo}
-                  value={tipoAccion}
-                  onChange={(e) => setTipoAccion(e.target.value as TipoAccionRasgo)}
-                >
-                  <option value="pasivo">Pasivo (Permanente)</option>
-                  <option value="accion">Acción Principal</option>
-                  <option value="accion_adicional">Acción Adicional</option>
-                  <option value="reaccion">Reacción</option>
-                  <option value="especial">Especial / Variable</option>
-                </select>
+                <SelectorDesplegable<TipoAccionRasgo>
+                  valor={tipoAccion}
+                  opciones={OPCIONES_TIPO_ACCION}
+                  alCambiar={(val) => setTipoAccion(val)}
+                />
               </div>
             </div>
 
@@ -234,15 +245,11 @@ export const ModalCrearEditarRasgo: React.FC<ModalCrearEditarRasgoProps> = ({
 
                 <div className={estilos.grupoCampo}>
                   <label className={estilos.labelCampo}>Recuperación de Usos</label>
-                  <select
-                    className={estilos.selectCampo}
-                    value={recuperacion}
-                    onChange={(e) => setRecuperacion(e.target.value as RecuperacionRasgo)}
-                  >
-                    <option value="descanso_corto">Descanso Corto (y Largo)</option>
-                    <option value="descanso_largo">Solo Descanso Largo</option>
-                    <option value="manual">Manual / Otro</option>
-                  </select>
+                  <SelectorDesplegable<RecuperacionRasgo>
+                    valor={recuperacion}
+                    opciones={OPCIONES_RECUPERACION}
+                    alCambiar={(val) => setRecuperacion(val)}
+                  />
                 </div>
               </div>
             )}

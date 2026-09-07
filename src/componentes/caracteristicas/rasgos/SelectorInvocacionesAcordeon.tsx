@@ -12,7 +12,7 @@ import {
   ShieldCheck,
   Search
 } from "lucide-react";
-import { renderizarTextoEnriquecidoDND } from "./ModalDetalleRasgo";
+import { renderizarTextoEnriquecidoDND } from "@/utiles/formatoTextoDND";
 import estilos from "./SelectorInvocacionesAcordeon.module.css";
 
 interface SelectorInvocacionesAcordeonProps {

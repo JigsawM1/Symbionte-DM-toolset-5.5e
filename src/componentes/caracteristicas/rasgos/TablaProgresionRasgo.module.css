@@ -50,7 +50,7 @@
 
 .filaProgresion {
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-  transition: background-color 0.15s ease;
+  transition: none;
 }
 
 .filaProgresion:last-child {
@@ -98,7 +98,7 @@
 .badgeActual {
   display: inline-block;
   margin-left: 6px;
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 700;
   padding: 1px 5px;
   border-radius: 3px;

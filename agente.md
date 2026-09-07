@@ -13,6 +13,65 @@ Este archivo registra reglas globales, errores encontrados, sus causas raíz y l
 4. **TIPADO ESTRICTO Y CÓDIGO LIMPIO**:
    - `strict: true` en TypeScript. Cero tipos `any`. Interfaces explícitas, generics y principios SOLID.
 
+## [2026-09-07] Culminación Exitosa - Etapa 3: Modularización de Componentes Monolíticos (Responsabilidad Única y Tipado Canónico)
+**Contexto y Logros:**
+- Se modularizaron con éxito los 4 componentes más extensos y críticos del Modo Jugador (>1.000 líneas cada uno), desacoplando la lógica de negocio y presentación sin romper compatibilidad de interfaces.
+- **Reducción de Líneas y Descomposición Modular**:
+  1. *VistaAtaquesJugador.tsx* (1.573 -> 186 líneas, reducción del -88%):
+     - Hook de lógica: `usarCalculoAtaquesJugador.ts` (descompuesto de 1.127 a **245 líneas** tras desacoplar servicios puros de dominio).
+     - Servicios de dominio y tiradas creados:
+       - `src/servicios/calculadorAtaquesArmas.ts`: Orquestador puro de ataques físicos (reducido de 679 a **285 líneas** al desacoplar catálogo e inferencia de daño).
+       - `src/constantes/armasInferenciaConstantes.ts`: Catálogo estático y tabla de lookup de 20 armas fallback para evitar cascadas `if-else`.
+       - `src/servicios/calculadorDanoCombate.ts`: Función unificada `resolverBonosYDadosExtraCombate` y formateador de dados compuestos, eliminando 180 líneas de duplicación de Furia, Frenesí, Golpe Brutal y Furia Divina.
+       - `src/servicios/calculadorAtaqueDesarmado.ts`: Cálculo independiente de artes marciales de monje (1d6 a 1d12), daño bárdico y golpe desarmado estándar.
+       - `src/servicios/calculadorAccionesCombate.ts`: Clasificación por economía de acción de conjuros preparados/conocidos, consumibles rápidos de combate y hechizos de objetos mágicos con control de cargas.
+       - `src/servicios/ejecutorTiradasCombate.ts`: Gestión pura de tiradas de ataque, daño, crítico compuesto y uso de consumibles con dados 3D en TaleSpire y descuento automático de munición.
+     - Subcomponentes creados:
+       - `CabeceraAtaquesJugador.tsx`: Estadísticas tácticas clave (CD salvación mágica, modificador de ataque mágico, bonificador de competencia).
+       - `SeccionRecursosMagicosAtaque.tsx`: Visualización de puntos de hechicería, espacios de pacto y recursos de ataque.
+       - `SeccionAtaquesFisicos.tsx`: Despliegue de armas cuerpo a cuerpo y a distancia con soporte de munición y maestrías.
+       - `SeccionAtaquesMagicos.tsx`: Despliegue de trucos y conjuros ofensivos con validación de componentes y lanzamiento directo.
+       - `SeccionConsumiblesAtaque.tsx`: Gestión de objetos arrojadizos, pociones de combate y pergaminos.
+       - `SeccionHechizosObjetosMagicos.tsx`: Invocación de poderes ofensivos vinculados a objetos mágicos equipados/sintonizados.
+  2. *PanelInventarioPersonaje.tsx* (1.379 -> 384 líneas, reducción del -72%):
+     - Hook de ordenamiento y filtrado: `usarInventarioOrdenado.ts` (descompuesto de 729 a **270 líneas**).
+     - Módulos auxiliares creados:
+       - `src/componentes/caracteristicas/personajes/inventarioConstantes.ts`: Contratos de interfaz, opciones de orden y cajas de movilización rápida.
+       - `src/servicios/clasificadorInventario.ts`: Agrupación en 7 subsecciones de mochila, cálculo de pesos por categoría, búsqueda difusa tolerante y ordenación plana.
+       - `src/componentes/caracteristicas/personajes/usarDragAndDropInventario.ts`: Hook especializado en eventos de Drag & Drop HTML5 nativo y soltado entre compartimentos.
+     - Subcomponentes creados:
+       - `BarraMetricasInventario.tsx`: Indicadores de peso actual/máximo, estado de sobrecarga y desglose de monedas.
+       - `BarraHerramientasInventario.tsx`: Búsqueda reactiva, ordenación múltiple y filtrado rápido de inventario.
+       - `DockMovilizacionRapida.tsx`: Barra de acceso rápido para equipamiento, descarte y transferencia ágil de objetos.
+  3. *PanelConjurosPersonaje.tsx* (1.077 -> 582 líneas, reducción del -46%):
+     - Utilidad de filtrado: `filtrosConjuros.ts` (lógica desacoplada de filtros por escuela, concentración, ritual y tiempo de lanzamiento).
+     - Subcomponentes creados:
+       - `BannerConcentracionActiva.tsx`: Indicador prioritario de conjuro en concentración con botón de interrupción inmediata.
+       - `BarraFiltrosConjuros.tsx`: Búsqueda, selectores tácticos de escuela y conmutadores de ritual/concentración.
+       - `SeccionNivelConjuros.tsx`: Bloques colapsables por nivel de conjuro con gestión de espacios disponibles y lanzamiento escalado.
+  4. *VistaRasgosJugador.tsx* (1.156 -> 589 líneas, reducción del -49%):
+     - Subcomponentes creados:
+       - `CabeceraRasgosJugador.tsx`: Resumen de rasgos de raza, trasfondo, clase y dotes con buscador global integrado.
+       - `FiltrosAccionRasgos.tsx`: Píldoras de filtrado por economía de acciones (Acción, Acción Adicional, Reacción, Pasivo).
+       - `VisorProgresionClase.tsx`: Tabla de progresión por nivel, subclases y rasgos desbloqueados de la clase del personaje.
+- **Correcciones Técnicas y Aprendizajes de Tipado**:
+  1. *Descomposición de "God Hooks"*:
+     - Se evitó trasladar la complejidad monolítica de los componentes visuales a mega-hooks. Los cálculos matemáticos y de reglas D&D se alojaron en servicios puros desacoplados de React en `src/servicios/`, manteniendo los hooks en menos de 300 líneas.
+  2. *Contrato Canónico de ModoLanzamiento*:
+     - La interfaz de magia centralizada (`@/servicios/servicioLanzamientoConjuros`) define `ModoLanzamiento = "truco" | "espacio" | "ritual" | "objetoMagico" | "arcanoMistico" | "ataqueMagico"`. Se corrigieron llamadas que pasaban valores arbitrarios (`"pacto"`, `"normal"`), alineándolos al tipo canónico.
+  3. *Firma de esMunicionCompatibleConArma*:
+     - El helper espera el objeto de inventario completo `ItemInventario`, no una cadena con el nombre de la munición.
+  4. *Firma de agregarNotificacion*:
+     - Se corrigió la llamada para ajustarse a `(mensaje: string, tipo?: TipoNotificacion)`, eliminando llamadas erróneas que pasaban `{ mensaje, tipo }`.
+  5. *Inferencia Estricta en Progresión de Clases y Condiciones*:
+     - Sustituido el filtrado encadenado con `.filter(Boolean)` por un bucle iterativo `for` fuertemente tipado en `VisorProgresionClase.tsx`. Corregida nulabilidad estricta en `evaluarEfectosCondicionesEnTirada` pasando `personajeActivo || undefined`.
+  6. *Directivas ESLint Huérfanas*:
+     - Erradicados comentarios `eslint-disable-next-line react-hooks/exhaustive-deps` innecesarios que disparaban advertencias bajo configuración estricta.
+- **Métricas de Calidad Verificadas**:
+  - `pnpm lint`: 0 errores, 0 warnings (100% limpio).
+  - `pnpm test`: 41 suites superadas, 451 de 451 pruebas pasando (100%).
+  - `pnpm build`: `tsc` completado sin errores y empaquetado de producción de Vite exitoso en 6.19s (código 0).
+
 ## [2026-09-07] Culminación Exitosa - Etapa 1: Saneamiento de Tipado e Infraestructura (Red de Seguridad Total)
 **Contexto y Logros:**
 - Se ejecutó de forma integral la **Etapa 1** del plan de remediación técnica.

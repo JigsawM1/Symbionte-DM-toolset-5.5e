@@ -3,51 +3,43 @@ import {
   usarEstadoPersonajes,
   usarAccionesPersonajes
 } from "@/almacen/selectores/usarEstadoPersonajes";
-import type { RasgoPersonaje, TipoAccionRasgo, OrigenRasgo } from "@/tipos";
+import type { RasgoPersonaje, OrigenRasgo } from "@/tipos";
 import { TarjetaRasgo } from "./TarjetaRasgo";
 import { ConstructorRasgoDote } from "./ConstructorRasgoDote";
 import { ModalDetalleRasgo } from "./ModalDetalleRasgo";
-import { renderizarTextoEnriquecidoDND } from "@/utiles/formatoTextoDND";
-import { TablaProgresionRasgo } from "./TablaProgresionRasgo";
+import { SelectorInvocacionesAcordeon } from "./SelectorInvocacionesAcordeon";
 import { obtenerClasePorNombre, obtenerSubclasePorNombre } from "@/servicios/gestorClases";
 import { usarEstadoPersistido } from "@/hooks";
 import { calcularRelevanciaBusqueda } from "@/utiles/busquedaTolerante";
 import {
-  BookMarked,
-  Search,
-  X,
-  Plus,
-  RefreshCw,
   ChevronDown,
   ChevronRight,
   Sparkles,
-  Shield,
-  Zap,
-  Clock,
-  Layers,
-  SlidersHorizontal,
-  ChevronsUpDown,
   User,
   Swords,
   Award,
-  CheckCircle2,
-  Flame
+  Flame,
+  Layers,
+  Search,
+  Plus
 } from "lucide-react";
-import { SelectorInvocacionesAcordeon } from "./SelectorInvocacionesAcordeon";
+import {
+  CabeceraRasgosJugador,
+  type FiltroTipoAccion
+} from "./CabeceraRasgosJugador";
+import { FiltrosAccionRasgos } from "./FiltrosAccionRasgos";
+import {
+  VisorProgresionClase,
+  type ItemProgresionClase,
+  type BloqueProgresionClase
+} from "./VisorProgresionClase";
 import estilos from "./VistaRasgosJugador.module.css";
-
-type FiltroTipoAccion = "todos" | TipoAccionRasgo;
 
 interface SeccionesColapsadas {
   especie: boolean;
   dotes: boolean;
   personalizados: boolean;
   [claveClase: string]: boolean;
-}
-
-interface ItemProgresionClase extends RasgoPersonaje {
-  alcanzado: boolean;
-  nivel: number;
 }
 
 function normalizar(txt: string): string {
@@ -82,7 +74,6 @@ export const VistaRasgosJugador: React.FC = () => {
   // Estado del modal de detalle de rasgo
   const [rasgoSeleccionadoDetalle, setRasgoSeleccionadoDetalle] = useState<RasgoPersonaje | null>(null);
 
-  // Rasgo seleccionado para detalle sincronizado reactivamente con el personaje
   const rasgoDetalleEfectivo = useMemo(() => {
     if (!rasgoSeleccionadoDetalle || !personajeActivo) return null;
     return (
@@ -106,7 +97,6 @@ export const VistaRasgosJugador: React.FC = () => {
     }
   );
 
-  // Clave de firma de progresión para detectar cambios de nivel, clase, subclase o especie
   const firmaProgresion = personajeActivo
     ? `${personajeActivo.id}_${personajeActivo.clase}_${personajeActivo.subclase}_${personajeActivo.nivel}_${(personajeActivo.clases || [])
         .map((c) => `${c.nombre}:${c.subclase}:${c.nivel}`)
@@ -115,7 +105,6 @@ export const VistaRasgosJugador: React.FC = () => {
 
   const firmaPreviaRef = useRef<string>(firmaProgresion);
 
-  // Auto-sincronización reactiva si no tiene rasgos o si cambió su clase/subclase/nivel/especie
   useEffect(() => {
     if (!personajeActivo) return;
 
@@ -128,7 +117,6 @@ export const VistaRasgosJugador: React.FC = () => {
     }
   }, [personajeActivo?.id, firmaProgresion, sincronizarRasgosPersonaje]);
 
-  // Alternar colapso de sección individual
   const alternarColapso = (clave: string) => {
     setSeccionesColapsadas((prev) => ({
       ...prev,
@@ -174,7 +162,6 @@ export const VistaRasgosJugador: React.FC = () => {
     }
   };
 
-  // Clases del personaje estructuradas
   const clasesPersonaje = useMemo(() => {
     if (!personajeActivo) return [];
     if (personajeActivo.clases && personajeActivo.clases.length > 0) {
@@ -210,18 +197,18 @@ export const VistaRasgosJugador: React.FC = () => {
     return { bloqueado: false };
   };
 
-  // Progresión 1-20 completa para el visor estilo PHB 2024
-  const datosProgresionClases = useMemo(() => {
+  const datosProgresionClases = useMemo<BloqueProgresionClase[]>(() => {
     if (!personajeActivo) return [];
 
-    return clasesPersonaje.map((claseItem) => {
+    const lista: BloqueProgresionClase[] = [];
+
+    for (const claseItem of clasesPersonaje) {
       const defClase = obtenerClasePorNombre(claseItem.nombre);
-      if (!defClase) return null;
+      if (!defClase) continue;
 
       const subDef = claseItem.subclase ? obtenerSubclasePorNombre(claseItem.nombre, claseItem.subclase) : null;
       const nivelPj = claseItem.nivel || 1;
 
-      // Rasgos de clase base del 1 al 20 (omitiendo placeholders si hay subclase definida)
       const rasgosClase1a20: ItemProgresionClase[] = defClase.rasgos
         .filter((r) => {
           if (subDef && r.nombre.toLowerCase().includes("rasgo de subclase")) {
@@ -230,32 +217,31 @@ export const VistaRasgosJugador: React.FC = () => {
           return true;
         })
         .map((r) => ({
-        id: `prog_cls_${r.nivel}_${normalizar(r.nombre)}`,
-        nombre: r.nombre,
-        descripcion: r.descripcion,
-        origen: "clase",
-        fuente: `${defClase.nombre} (Nivel ${r.nivel})`,
-        tipoAccion: r.tipoAccion,
-        nivelRequerido: r.nivel,
-        nivel: r.nivel,
-        tieneUsosLimitados: !!r.tieneUsosLimitados,
-        usosMaximos: r.tieneUsosLimitados && r.obtenerUsosMaximos ? r.obtenerUsosMaximos(nivelPj) : undefined,
-        usosRestantes: r.tieneUsosLimitados && r.obtenerUsosMaximos ? r.obtenerUsosMaximos(nivelPj) : undefined,
-        recuperacion: r.recuperacion || "ninguno",
-        formulaDados: r.formulaDados,
-        personalizado: false,
-        activo: r.esActivable ? false : true,
-        notas: "",
-        alcanzado: nivelPj >= r.nivel,
-        tablaProgresion: r.tablaProgresion,
-        esActivable: !!r.esActivable,
-        ligadoA: r.ligadoA,
-        categoriaMecanica: r.categoriaMecanica,
-        efectos: r.efectos ? JSON.parse(JSON.stringify(r.efectos)) : [],
-        selectores: r.selectores ? JSON.parse(JSON.stringify(r.selectores)) : []
-      }));
+          id: `prog_cls_${r.nivel}_${normalizar(r.nombre)}`,
+          nombre: r.nombre,
+          descripcion: r.descripcion,
+          origen: "clase",
+          fuente: `${defClase.nombre} (Nivel ${r.nivel})`,
+          tipoAccion: r.tipoAccion,
+          nivelRequerido: r.nivel,
+          nivel: r.nivel,
+          tieneUsosLimitados: !!r.tieneUsosLimitados,
+          usosMaximos: r.tieneUsosLimitados && r.obtenerUsosMaximos ? r.obtenerUsosMaximos(nivelPj) : undefined,
+          usosRestantes: r.tieneUsosLimitados && r.obtenerUsosMaximos ? r.obtenerUsosMaximos(nivelPj) : undefined,
+          recuperacion: r.recuperacion || "ninguno",
+          formulaDados: r.formulaDados,
+          personalizado: false,
+          activo: r.esActivable ? false : true,
+          notas: "",
+          alcanzado: nivelPj >= r.nivel,
+          tablaProgresion: r.tablaProgresion,
+          esActivable: !!r.esActivable,
+          ligadoA: r.ligadoA,
+          categoriaMecanica: r.categoriaMecanica,
+          efectos: r.efectos ? JSON.parse(JSON.stringify(r.efectos)) : [],
+          selectores: r.selectores ? JSON.parse(JSON.stringify(r.selectores)) : []
+        }));
 
-      // Rasgos de subclase del 3 al 20 si existe
       const rasgosSub1a20: ItemProgresionClase[] = (subDef ? subDef.rasgos : []).map((r) => ({
         id: `prog_sub_${r.nivel}_${normalizar(r.nombre)}`,
         nombre: r.nombre,
@@ -282,24 +268,21 @@ export const VistaRasgosJugador: React.FC = () => {
         selectores: r.selectores ? JSON.parse(JSON.stringify(r.selectores)) : []
       }));
 
-      // Unir y ordenar cronológicamente
-      const todosProgresion: ItemProgresionClase[] = [...rasgosClase1a20, ...rasgosSub1a20].sort((a, b) => a.nivel - b.nivel);
+      const todosProgresion: ItemProgresionClase[] = [...rasgosClase1a20, ...rasgosSub1a20].sort(
+        (a, b) => a.nivel - b.nivel
+      );
 
-      return {
+      lista.push({
         clase: claseItem,
         defClase,
         subDef,
         items: todosProgresion
-      };
-    }).filter(Boolean) as Array<{
-      clase: typeof clasesPersonaje[0];
-      defClase: NonNullable<ReturnType<typeof obtenerClasePorNombre>>;
-      subDef: ReturnType<typeof obtenerSubclasePorNombre>;
-      items: ItemProgresionClase[];
-    }>;
+      });
+    }
+
+    return lista;
   }, [personajeActivo, clasesPersonaje]);
 
-  // Filtrado de rasgos según búsqueda y filtro de tipo de acción
   const rasgosFiltrados = useMemo(() => {
     if (!personajeActivo || !Array.isArray(personajeActivo.rasgos)) return [];
 
@@ -330,7 +313,6 @@ export const VistaRasgosJugador: React.FC = () => {
     return lista;
   }, [personajeActivo, filtroAccion, consultaBusqueda]);
 
-  // Agrupación Jerárquica
   const datosJerarquicos = useMemo(() => {
     const especie: RasgoPersonaje[] = [];
     const dotes: RasgoPersonaje[] = [];
@@ -358,17 +340,13 @@ export const VistaRasgosJugador: React.FC = () => {
         personalizados.push(rasgo);
       } else {
         const normFuente = normalizar(rasgo.fuente || "");
-
         let asignado = false;
 
         for (const mc of mapClases) {
           const normNombreClase = normalizar(mc.clase.nombre);
           const normSubClasePj = normalizar(mc.clase.subclase || "");
 
-          if (
-            normFuente.includes(normNombreClase) ||
-            rasgo.id.includes(`_${normNombreClase}_`)
-          ) {
+          if (normFuente.includes(normNombreClase) || rasgo.id.includes(`_${normNombreClase}_`)) {
             const nomRasgoNorm = normalizar(rasgo.nombre);
             if (
               nomRasgoNorm.includes("invocaciones sobrenaturales") &&
@@ -376,10 +354,7 @@ export const VistaRasgosJugador: React.FC = () => {
               rasgo.selectores.length > 0
             ) {
               mc.rasgoInvocaciones = rasgo;
-            } else if (
-              rasgo.origen === "subclase" ||
-              (normSubClasePj && normFuente.includes(normSubClasePj))
-            ) {
+            } else if (rasgo.origen === "subclase" || (normSubClasePj && normFuente.includes(normSubClasePj))) {
               mc.rasgosSubclase.push(rasgo);
             } else {
               mc.rasgosBase.push(rasgo);
@@ -476,6 +451,27 @@ export const VistaRasgosJugador: React.FC = () => {
     return { usosPadre, formulaDadosEfectiva };
   };
 
+  const renderizarTarjetaRasgo = (rasgo: RasgoPersonaje, idx: number) => {
+    const bloqueo = obtenerBloqueoToggleRasgo(rasgo);
+    return (
+      <TarjetaRasgo
+        key={`${rasgo.id}_${rasgo.nivelRequerido || 0}_${idx}`}
+        rasgo={rasgo}
+        nombrePersonaje={nombrePj}
+        idPersonaje={personajeActivo.id}
+        alGastarUso={() => gastarUsoRasgoPersonaje(personajeActivo.id, rasgo.id)}
+        alRecuperarUso={() => recuperarUsoRasgoPersonaje(personajeActivo.id, rasgo.id)}
+        alAlternarActivo={() => alternarActivoRasgo(personajeActivo.id, rasgo.id)}
+        deshabilitadoToggle={bloqueo.bloqueado}
+        motivoDeshabilitado={bloqueo.motivo}
+        alEditar={() => abrirModalEdicion(rasgo)}
+        alEliminar={() => eliminarRasgoPersonaje(personajeActivo.id, rasgo.id)}
+        alVerDetalle={() => setRasgoSeleccionadoDetalle(rasgo)}
+        {...resolverRecursosPadre(rasgo)}
+      />
+    );
+  };
+
   if (modoVista === "creador_homebrew") {
     return (
       <div className={estilos.contenedorGeneral}>
@@ -495,177 +491,37 @@ export const VistaRasgosJugador: React.FC = () => {
 
   return (
     <div className={estilos.contenedorGeneral}>
-      {/* 1. Barra Superior Compacta de Herramientas */}
-      <div className={estilos.cabeceraCompacta}>
-        <div className={estilos.filaCabecera}>
-          <div className={estilos.grupoTitulo}>
-            <BookMarked size={15} color="#38bdf8" />
-            <h1 className={estilos.tituloTexto}>Rasgos y Dotes</h1>
-            <span className={estilos.contadorBadge}>
-              {rasgosFiltrados.length} / {totalRasgosPj}
-            </span>
-          </div>
+      {/* 1. Cabecera Compacta */}
+      <CabeceraRasgosJugador
+        totalRasgosFiltrados={rasgosFiltrados.length}
+        totalRasgosPj={totalRasgosPj}
+        alAbrirCreacion={() => abrirModalCreacion("personalizado")}
+        alSincronizar={() => sincronizarRasgosPersonaje(personajeActivo.id)}
+        alAlternarTodas={alternarTodas}
+        estanTodasExpandidas={estanTodasExpandidas}
+        modoVista={modoVista}
+        alCambiarModoVista={setModoVista}
+        consultaBusqueda={consultaBusqueda}
+        alCambiarBusqueda={setConsultaBusqueda}
+        mostrarFiltros={mostrarFiltros}
+        alAlternarMostrarFiltros={() => setMostrarFiltros(!mostrarFiltros)}
+        filtroAccion={filtroAccion}
+      />
 
-          {/* Botones de Acción Rápida */}
-          <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-            <button
-              type="button"
-              className={`${estilos.botonHerramienta} ${estilos.botonHerramientaPrimario}`}
-              onClick={() => abrirModalCreacion("personalizado")}
-              title="Añadir rasgo o dote personalizado"
-            >
-              <Plus size={12} />
-              <span>Añadir</span>
-            </button>
+      {/* 2. Filtros Desplegables */}
+      {modoVista === "mis_rasgos" && mostrarFiltros && (
+        <FiltrosAccionRasgos
+          filtroAccion={filtroAccion}
+          alCambiarFiltroAccion={setFiltroAccion}
+          hayFiltrosActivos={hayFiltrosActivos}
+          alLimpiarFiltros={() => {
+            setConsultaBusqueda("");
+            setFiltroAccion("todos");
+          }}
+        />
+      )}
 
-            <button
-              type="button"
-              className={estilos.botonHerramienta}
-              onClick={() => sincronizarRasgosPersonaje(personajeActivo.id)}
-              title="Sincronizar rasgos estándar de Clase y Raza"
-            >
-              <RefreshCw size={11} />
-            </button>
-
-            <button
-              type="button"
-              className={estilos.botonHerramienta}
-              onClick={alternarTodas}
-              title={estanTodasExpandidas ? "Colapsar todas las secciones" : "Expandir todas las secciones"}
-            >
-              <ChevronsUpDown size={11} />
-            </button>
-          </div>
-        </div>
-
-        {/* Selector de Modo de Vista: Mis Rasgos vs Progresión 1-20 (PHB 2024) */}
-        <div className={estilos.pestanasVistaModo}>
-          <button
-            type="button"
-            className={`${estilos.botonPestanaModo} ${modoVista === "mis_rasgos" ? estilos.botonPestanaModoActivo : ""}`}
-            onClick={() => setModoVista("mis_rasgos")}
-          >
-            <BookMarked size={12} />
-            <span>Mis Rasgos Activos ({rasgosFiltrados.length})</span>
-          </button>
-          <button
-            type="button"
-            className={`${estilos.botonPestanaModo} ${modoVista === "progresion_clase" ? estilos.botonPestanaModoActivo : ""}`}
-            onClick={() => setModoVista("progresion_clase")}
-          >
-            <Swords size={12} />
-            <span>Progresión</span>
-          </button>
-        </div>
-
-        {/* Fila de Buscador Compacto y Botón de Filtros (en modo Mis Rasgos) */}
-        {modoVista === "mis_rasgos" && (
-          <div className={estilos.filaHerramientas}>
-            <div className={estilos.cajaBuscadorCompacta}>
-              <Search size={13} color="#64748b" />
-              <input
-                type="text"
-                className={estilos.inputBuscador}
-                placeholder="Buscar rasgo o regla..."
-                value={consultaBusqueda}
-                onChange={(e) => setConsultaBusqueda(e.target.value)}
-              />
-              {consultaBusqueda && (
-                <button
-                  type="button"
-                  className={estilos.botonLimpiarBusqueda}
-                  onClick={() => setConsultaBusqueda("")}
-                  title="Limpiar búsqueda"
-                >
-                  <X size={13} />
-                </button>
-              )}
-            </div>
-
-            <button
-              type="button"
-              className={`${estilos.botonHerramienta} ${mostrarFiltros || filtroAccion !== "todos" ? estilos.botonHerramientaActivo : ""}`}
-              onClick={() => setMostrarFiltros(!mostrarFiltros)}
-              title="Filtrar por tipo de acción"
-            >
-              <SlidersHorizontal size={11} />
-              <span>Filtros{filtroAccion !== "todos" ? " (1)" : ""}</span>
-            </button>
-          </div>
-        )}
-
-        {/* Cajón Desplegable Compacto de Filtros */}
-        {modoVista === "mis_rasgos" && mostrarFiltros && (
-          <div className={estilos.cajonFiltrosDesplegable}>
-            <span className={estilos.labelFiltroMini}>Acción:</span>
-            <button
-              type="button"
-              className={`${estilos.chipFiltroMini} ${filtroAccion === "todos" ? estilos.chipFiltroMiniActivo : ""}`}
-              onClick={() => setFiltroAccion("todos")}
-            >
-              Todos
-            </button>
-            <button
-              type="button"
-              className={`${estilos.chipFiltroMini} ${filtroAccion === "pasivo" ? estilos.chipFiltroMiniActivo : ""}`}
-              onClick={() => setFiltroAccion("pasivo")}
-            >
-              <Shield size={10} />
-              <span>Pasivo</span>
-            </button>
-            <button
-              type="button"
-              className={`${estilos.chipFiltroMini} ${filtroAccion === "accion" ? estilos.chipFiltroMiniActivo : ""}`}
-              onClick={() => setFiltroAccion("accion")}
-            >
-              <Zap size={10} />
-              <span>Acción</span>
-            </button>
-            <button
-              type="button"
-              className={`${estilos.chipFiltroMini} ${filtroAccion === "accion_adicional" ? estilos.chipFiltroMiniActivo : ""}`}
-              onClick={() => setFiltroAccion("accion_adicional")}
-            >
-              <Clock size={10} />
-              <span>Adicional</span>
-            </button>
-            <button
-              type="button"
-              className={`${estilos.chipFiltroMini} ${filtroAccion === "reaccion" ? estilos.chipFiltroMiniActivo : ""}`}
-              onClick={() => setFiltroAccion("reaccion")}
-            >
-              <Sparkles size={10} />
-              <span>Reacción</span>
-            </button>
-            <button
-              type="button"
-              className={`${estilos.chipFiltroMini} ${filtroAccion === "especial" ? estilos.chipFiltroMiniActivo : ""}`}
-              onClick={() => setFiltroAccion("especial")}
-            >
-              <Layers size={10} />
-              <span>Especial</span>
-            </button>
-
-            {hayFiltrosActivos && (
-              <button
-                type="button"
-                className={estilos.chipFiltroMini}
-                style={{ marginLeft: "auto", color: "#f87171" }}
-                onClick={() => {
-                  setConsultaBusqueda("");
-                  setFiltroAccion("todos");
-                }}
-              >
-                Limpiar
-              </button>
-            )}
-          </div>
-        )}
-      </div>
-
-      {/* =======================================================
-          MODO A: MIS RASGOS ACTIVOS (TARJETAS COMPACTAS)
-         ======================================================= */}
+      {/* 3. MODO A: MIS RASGOS ACTIVOS */}
       {modoVista === "mis_rasgos" && (
         <>
           {rasgosFiltrados.length === 0 ? (
@@ -696,7 +552,8 @@ export const VistaRasgosJugador: React.FC = () => {
                       {seccionesColapsadas.especie ? <ChevronRight size={15} /> : <ChevronDown size={15} />}
                       <User size={13} color="#10b981" />
                       <span className={estilos.tituloSeccion}>
-                        Raza: {personajeActivo.especie || "Humano"}{personajeActivo.subespecie ? ` (${personajeActivo.subespecie})` : ""}
+                        Raza: {personajeActivo.especie || "Humano"}
+                        {personajeActivo.subespecie ? ` (${personajeActivo.subespecie})` : ""}
                       </span>
                       <span className={estilos.badgeConteoSeccion}>
                         {datosJerarquicos.especie.length}
@@ -706,32 +563,13 @@ export const VistaRasgosJugador: React.FC = () => {
 
                   {!seccionesColapsadas.especie && (
                     <div className={estilos.cuerpoSeccionPrincipal}>
-                      {datosJerarquicos.especie.map((rasgo, idx) => {
-                        const bloqueo = obtenerBloqueoToggleRasgo(rasgo);
-                        return (
-                          <TarjetaRasgo
-                            key={`${rasgo.id}_${rasgo.nivelRequerido || 0}_${idx}`}
-                            rasgo={rasgo}
-                            nombrePersonaje={nombrePj}
-                            idPersonaje={personajeActivo.id}
-                            alGastarUso={() => gastarUsoRasgoPersonaje(personajeActivo.id, rasgo.id)}
-                            alRecuperarUso={() => recuperarUsoRasgoPersonaje(personajeActivo.id, rasgo.id)}
-                            alAlternarActivo={() => alternarActivoRasgo(personajeActivo.id, rasgo.id)}
-                            deshabilitadoToggle={bloqueo.bloqueado}
-                            motivoDeshabilitado={bloqueo.motivo}
-                            alEditar={() => abrirModalEdicion(rasgo)}
-                            alEliminar={() => eliminarRasgoPersonaje(personajeActivo.id, rasgo.id)}
-                            alVerDetalle={() => setRasgoSeleccionadoDetalle(rasgo)}
-                            {...resolverRecursosPadre(rasgo)}
-                          />
-                        );
-                      })}
+                      {datosJerarquicos.especie.map(renderizarTarjetaRasgo)}
                     </div>
                   )}
                 </div>
               )}
 
-              {/* BLOQUE 2: CLASE(S), SUBCLASE(S) E INVOCACIONES SEPARADAS */}
+              {/* BLOQUE 2: CLASES, SUBCLASES E INVOCACIONES */}
               {datosJerarquicos.clases.map((mc) => {
                 const claseColapsada = !!seccionesColapsadas[mc.claveColapsoClase];
                 const subclaseColapsada = !!seccionesColapsadas[mc.claveColapsoSubclase];
@@ -743,7 +581,7 @@ export const VistaRasgosJugador: React.FC = () => {
 
                 return (
                   <React.Fragment key={`grupo_clase_${mc.clase.nombre}`}>
-                    {/* Tarjeta 1: Rasgos de Clase Base */}
+                    {/* Rasgos de Clase Base */}
                     {mc.rasgosBase.length > 0 && (
                       <div className={estilos.seccionPrincipal}>
                         <div
@@ -764,32 +602,13 @@ export const VistaRasgosJugador: React.FC = () => {
 
                         {!claseColapsada && (
                           <div className={estilos.cuerpoSeccionPrincipal}>
-                            {mc.rasgosBase.map((rasgo, idx) => {
-                              const bloqueo = obtenerBloqueoToggleRasgo(rasgo);
-                              return (
-                                <TarjetaRasgo
-                                  key={`${rasgo.id}_${rasgo.nivelRequerido || 0}_${idx}`}
-                                  rasgo={rasgo}
-                                  nombrePersonaje={nombrePj}
-                                  idPersonaje={personajeActivo.id}
-                                  alGastarUso={() => gastarUsoRasgoPersonaje(personajeActivo.id, rasgo.id)}
-                                  alRecuperarUso={() => recuperarUsoRasgoPersonaje(personajeActivo.id, rasgo.id)}
-                                  alAlternarActivo={() => alternarActivoRasgo(personajeActivo.id, rasgo.id)}
-                                  deshabilitadoToggle={bloqueo.bloqueado}
-                                  motivoDeshabilitado={bloqueo.motivo}
-                                  alEditar={() => abrirModalEdicion(rasgo)}
-                                  alEliminar={() => eliminarRasgoPersonaje(personajeActivo.id, rasgo.id)}
-                                  alVerDetalle={() => setRasgoSeleccionadoDetalle(rasgo)}
-                                  {...resolverRecursosPadre(rasgo)}
-                                />
-                              );
-                            })}
+                            {mc.rasgosBase.map(renderizarTarjetaRasgo)}
                           </div>
                         )}
                       </div>
                     )}
 
-                    {/* Tarjeta 2: Rasgos de Subclase (Separada e Independiente) */}
+                    {/* Rasgos de Subclase */}
                     {mc.rasgosSubclase.length > 0 && (
                       <div
                         className={estilos.seccionPrincipal}
@@ -813,32 +632,13 @@ export const VistaRasgosJugador: React.FC = () => {
 
                         {!subclaseColapsada && (
                           <div className={estilos.cuerpoSeccionPrincipal}>
-                            {mc.rasgosSubclase.map((rasgo, idx) => {
-                              const bloqueo = obtenerBloqueoToggleRasgo(rasgo);
-                              return (
-                                <TarjetaRasgo
-                                  key={`${rasgo.id}_${rasgo.nivelRequerido || 0}_${idx}`}
-                                  rasgo={rasgo}
-                                  nombrePersonaje={nombrePj}
-                                  idPersonaje={personajeActivo.id}
-                                  alGastarUso={() => gastarUsoRasgoPersonaje(personajeActivo.id, rasgo.id)}
-                                  alRecuperarUso={() => recuperarUsoRasgoPersonaje(personajeActivo.id, rasgo.id)}
-                                  alAlternarActivo={() => alternarActivoRasgo(personajeActivo.id, rasgo.id)}
-                                  deshabilitadoToggle={bloqueo.bloqueado}
-                                  motivoDeshabilitado={bloqueo.motivo}
-                                  alEditar={() => abrirModalEdicion(rasgo)}
-                                  alEliminar={() => eliminarRasgoPersonaje(personajeActivo.id, rasgo.id)}
-                                  alVerDetalle={() => setRasgoSeleccionadoDetalle(rasgo)}
-                                  {...resolverRecursosPadre(rasgo)}
-                                />
-                              );
-                            })}
+                            {mc.rasgosSubclase.map(renderizarTarjetaRasgo)}
                           </div>
                         )}
                       </div>
                     )}
 
-                    {/* Tarjeta 3: Invocaciones Sobrenaturales (Caja Exterior Independiente como las Subclases) */}
+                    {/* Invocaciones Sobrenaturales */}
                     {mc.rasgoInvocaciones && selectorInvocaciones && (
                       <div
                         className={estilos.seccionPrincipal}
@@ -897,9 +697,7 @@ export const VistaRasgosJugador: React.FC = () => {
                     <div className={estilos.ladoIzquierdoCabecera}>
                       {seccionesColapsadas.dotes ? <ChevronRight size={15} /> : <ChevronDown size={15} />}
                       <Award size={13} color="#a78bfa" />
-                      <span className={estilos.tituloSeccion}>
-                        Dotes
-                      </span>
+                      <span className={estilos.tituloSeccion}>Dotes</span>
                       <span className={estilos.badgeConteoSeccion}>
                         {datosJerarquicos.dotes.length}
                       </span>
@@ -922,26 +720,7 @@ export const VistaRasgosJugador: React.FC = () => {
 
                   {!seccionesColapsadas.dotes && (
                     <div className={estilos.cuerpoSeccionPrincipal}>
-                      {datosJerarquicos.dotes.map((rasgo, idx) => {
-                        const bloqueo = obtenerBloqueoToggleRasgo(rasgo);
-                        return (
-                          <TarjetaRasgo
-                            key={`${rasgo.id}_${rasgo.nivelRequerido || 0}_${idx}`}
-                            rasgo={rasgo}
-                            nombrePersonaje={nombrePj}
-                            idPersonaje={personajeActivo.id}
-                            alGastarUso={() => gastarUsoRasgoPersonaje(personajeActivo.id, rasgo.id)}
-                            alRecuperarUso={() => recuperarUsoRasgoPersonaje(personajeActivo.id, rasgo.id)}
-                            alAlternarActivo={() => alternarActivoRasgo(personajeActivo.id, rasgo.id)}
-                            deshabilitadoToggle={bloqueo.bloqueado}
-                            motivoDeshabilitado={bloqueo.motivo}
-                            alEditar={() => abrirModalEdicion(rasgo)}
-                            alEliminar={() => eliminarRasgoPersonaje(personajeActivo.id, rasgo.id)}
-                            alVerDetalle={() => setRasgoSeleccionadoDetalle(rasgo)}
-                            {...resolverRecursosPadre(rasgo)}
-                          />
-                        );
-                      })}
+                      {datosJerarquicos.dotes.map(renderizarTarjetaRasgo)}
                     </div>
                   )}
                 </div>
@@ -986,26 +765,7 @@ export const VistaRasgosJugador: React.FC = () => {
                         No has añadido rasgos personalizados o homebrew. Pulsa en "+ Crear Homebrew" para agregar uno.
                       </div>
                     ) : (
-                      datosJerarquicos.personalizados.map((rasgo, idx) => {
-                        const bloqueo = obtenerBloqueoToggleRasgo(rasgo);
-                        return (
-                          <TarjetaRasgo
-                            key={`${rasgo.id}_${rasgo.nivelRequerido || 0}_${idx}`}
-                            rasgo={rasgo}
-                            nombrePersonaje={nombrePj}
-                            idPersonaje={personajeActivo.id}
-                            alGastarUso={() => gastarUsoRasgoPersonaje(personajeActivo.id, rasgo.id)}
-                            alRecuperarUso={() => recuperarUsoRasgoPersonaje(personajeActivo.id, rasgo.id)}
-                            alAlternarActivo={() => alternarActivoRasgo(personajeActivo.id, rasgo.id)}
-                            deshabilitadoToggle={bloqueo.bloqueado}
-                            motivoDeshabilitado={bloqueo.motivo}
-                            alEditar={() => abrirModalEdicion(rasgo)}
-                            alEliminar={() => eliminarRasgoPersonaje(personajeActivo.id, rasgo.id)}
-                            alVerDetalle={() => setRasgoSeleccionadoDetalle(rasgo)}
-                            {...resolverRecursosPadre(rasgo)}
-                          />
-                        );
-                      })
+                      datosJerarquicos.personalizados.map(renderizarTarjetaRasgo)
                     )}
                   </div>
                 )}
@@ -1015,111 +775,12 @@ export const VistaRasgosJugador: React.FC = () => {
         </>
       )}
 
-      {/* =======================================================
-          MODO B: VISOR DE PROGRESIÓN DE CLASE 1-20 (PHB 2024)
-         ======================================================= */}
+      {/* 4. MODO B: VISOR DE PROGRESIÓN DE CLASE 1-20 (PHB 2024) */}
       {modoVista === "progresion_clase" && (
-        <div className={estilos.contenedorCompendioProgresion}>
-          {datosProgresionClases.map((bloqueClase) => {
-            let yaMostroBannerSubclase = false;
-
-            return (
-              <div key={bloqueClase.clase.nombre} style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                {/* Cabecera de la Clase */}
-                <div className={estilos.cabeceraCompendioClase}>
-                  <h2 className={estilos.tituloCompendioClase}>
-                    <Swords size={16} color="#d4af37" />
-                    <span>{bloqueClase.defClase.nombre}</span>
-                    <span style={{ fontSize: 11, color: "#94a3b8", fontWeight: 600, textTransform: "none" }}>
-                      (Dado: {bloqueClase.defClase.dadoGolpe} · Nivel Actual: {bloqueClase.clase.nivel})
-                    </span>
-                  </h2>
-
-                  {bloqueClase.subDef && (
-                    <span style={{ fontSize: 11, color: "#38bdf8", fontWeight: 700 }}>
-                      {bloqueClase.subDef.nombre}
-                    </span>
-                  )}
-                </div>
-
-                {/* Lista Cronológica 1 - 20 con estilo PHB 2024 */}
-                {bloqueClase.items.map((item, idx) => {
-                  const esSubclase = item.origen === "subclase";
-                  const mostrarBannerAhora = esSubclase && !yaMostroBannerSubclase && bloqueClase.subDef;
-                  if (mostrarBannerAhora) {
-                    yaMostroBannerSubclase = true;
-                  }
-
-                  return (
-                    <React.Fragment key={item.id || idx}>
-                      {/* Banner de Subclase estilo PHB 2024 */}
-                      {mostrarBannerAhora && bloqueClase.subDef && (
-                        <div className={estilos.bannerSubclaseCompendio}>
-                          <h3 className={estilos.tituloBannerSubclase}>
-                            {bloqueClase.subDef.nombre}
-                          </h3>
-                          {bloqueClase.subDef.lema && (
-                            <p className={estilos.lemaBannerSubclase}>
-                              {bloqueClase.subDef.lema}
-                            </p>
-                          )}
-                        </div>
-                      )}
-
-                      {/* Fila del Rasgo */}
-                      <div
-                        className={`${estilos.itemProgresion} ${!item.alcanzado ? estilos.itemNivelFuturo : ""}`}
-                      >
-                        <div className={estilos.filaTituloProgresion}>
-                          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                            <span
-                              className={esSubclase ? estilos.tituloProgresionSubclase : estilos.tituloProgresionClase}
-                            >
-                              NIVEL {item.nivel}: {item.nombre.toUpperCase()}
-                            </span>
-
-                            {item.alcanzado ? (
-                              <span className={estilos.badgeNivelAlcanzado} title="Desbloqueado">
-                                <CheckCircle2 size={8} style={{ marginRight: 2, display: "inline" }} />
-                                Activo
-                              </span>
-                            ) : (
-                              <span className={estilos.badgeNivelPendiente} title="Nivel futuro">
-                                Nvl {item.nivel}
-                              </span>
-                            )}
-                          </div>
-
-                          <span className={estilos.badgeFuenteProgresion}>
-                            PHB'24 p.{50 + item.nivel}
-                          </span>
-                        </div>
-
-                        {/* Texto descriptivo enriquecido */}
-                        <div className={estilos.textoDescripcionProgresion}>
-                          {renderizarTextoEnriquecidoDND(item.descripcion)}
-                        </div>
-
-                        {/* Tabla de Progresión y Escalado por Nivel (si existe) */}
-                        {item.tablaProgresion && (
-                          <div style={{ marginTop: 8 }} onClick={(e) => e.stopPropagation()}>
-                            <TablaProgresionRasgo
-                              tabla={item.tablaProgresion}
-                              nivelPersonaje={bloqueClase.clase.nivel}
-                            />
-                          </div>
-                        )}
-                      </div>
-                    </React.Fragment>
-                  );
-                })}
-              </div>
-            );
-          })}
-        </div>
+        <VisorProgresionClase datosProgresionClases={datosProgresionClases} />
       )}
 
-      {/* Modal de Detalle Completo de Rasgo */}
+      {/* 5. Modal de Detalle Completo de Rasgo */}
       {rasgoDetalleEfectivo && (
         <ModalDetalleRasgo
           rasgo={rasgoDetalleEfectivo}

@@ -101,7 +101,7 @@ export function sincronizarConEstadoLocal(opciones: OpcionesSincronizacion): Res
         vidaActual: pjAsociado.hpActual !== undefined ? pjAsociado.hpActual : (pjAsociado.hpMaximo || 10),
         vidaTemporal: pjAsociado.hpTemporal || 0,
         ca: statsPj.claseArmadura.total,
-        condiciones: existente ? existente.condiciones : [],
+        condiciones: pjAsociado.condicionesActivas?.length ? pjAsociado.condicionesActivas : (existente ? existente.condiciones : []),
         efectos: existente ? existente.efectos : [],
         bonificadorIniciativa: statsPj.modificadores.destreza,
         esMonstruo: false,

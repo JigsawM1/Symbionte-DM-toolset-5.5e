@@ -1,10 +1,5 @@
 import { useState, useMemo } from "react";
-import type {
-  PersonajeJugador,
-  ObjetoJuego,
-  ObjetoInventario,
-  TipoContenedor
-} from "@/tipos";
+import type { PersonajeJugador, ObjetoJuego, ObjetoInventario, TipoContenedor } from "@/tipos";
 import type { EstadisticasCalculadasPersonaje } from "@/almacen/selectores/usarEstadoPersonajes";
 import {
   calcularCapacidadCarga,
@@ -16,6 +11,7 @@ import {
   MULTIPLICADORES_TAMANO
 } from "@/servicios/calculadorInventario";
 import { usarEstadoPersistido } from "@/hooks";
+import { esObjetoEquipable } from "@/servicios/procesadorEquipamiento";
 import {
   CriterioOrdenMochila,
   OPCIONES_ORDEN_MOCHILA,
@@ -32,17 +28,8 @@ import {
 } from "@/servicios/clasificadorInventario";
 import { usarDragAndDropInventario } from "./usarDragAndDropInventario";
 
-export type {
-  CriterioOrdenMochila,
-  CajaMovilizacionRapida,
-  ContenedorEspecialConfig,
-  SubseccionMochilaTipo
-};
-export {
-  OPCIONES_ORDEN_MOCHILA,
-  CAJAS_MOVILIZACION_RAPIDA,
-  CONTENEDORES_ESPECIALES_CONFIG
-};
+export type { CriterioOrdenMochila, CajaMovilizacionRapida, ContenedorEspecialConfig, SubseccionMochilaTipo };
+export { OPCIONES_ORDEN_MOCHILA, CAJAS_MOVILIZACION_RAPIDA, CONTENEDORES_ESPECIALES_CONFIG };
 
 interface ParametrosInventarioOrdenado {
   personaje: PersonajeJugador;
@@ -224,6 +211,7 @@ export function usarInventarioOrdenado({
     alCambiarContenedor,
     alAlternarEquipado,
     alReordenarInventario,
+    alCambiarOrden: setCriterioOrden,
     agregarNotificacion
   });
 
@@ -262,7 +250,37 @@ export function usarInventarioOrdenado({
     manejarDragOver,
     manejarDragLeave,
     manejarDrop,
-    manejarReordenarItems: (origen: string, destino: string) => alReordenarInventario?.(origen, destino),
+    manejarReordenarItems: (origen: string, destino: string) => {
+      const objOrigen = inventario.find((o) => o.idInstancia === origen);
+      const objDestino = inventario.find((o) => o.idInstancia === destino);
+
+      // Si se suelta sobre un objeto equipado y el de origen no está equipado: EQUIPAR
+      if (objDestino?.equipado && !objOrigen?.equipado) {
+        if (!objOrigen || !esObjetoEquipable(objOrigen)) {
+          agregarNotificacion(
+            `"${objOrigen?.nombre || "El objeto"}" no es un objeto equipable (solo armas, armaduras o equipo vestible).`,
+            "advertencia"
+          );
+          return;
+        }
+        if (objOrigen.contenedor && objOrigen.contenedor !== "mochila") {
+          alCambiarContenedor?.(origen, "mochila");
+        }
+        alAlternarEquipado(origen);
+        agregarNotificacion(`"${objOrigen.nombre}" equipado.`, "exito");
+        return;
+      }
+
+      if (objOrigen?.equipado) {
+        alAlternarEquipado(origen);
+        agregarNotificacion(`"${objOrigen.nombre}" desequipado.`, "info");
+      }
+      if (objOrigen?.contenedor && objOrigen.contenedor !== "mochila") {
+        alCambiarContenedor?.(origen, "mochila");
+      }
+      setCriterioOrden("personalizado");
+      alReordenarInventario?.(origen, destino);
+    },
     multiplicadorTexto,
     comprobarTieneContents
   };

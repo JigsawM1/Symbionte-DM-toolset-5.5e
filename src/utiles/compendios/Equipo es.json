@@ -13,7 +13,9 @@
       "unit": "po"
     },
     "weight": 1,
-    "description": "Cuando realizas la acción de Atacar, puedes reemplazar uno de tus ataques lanzando un vial de Ácido. Elige como objetivo a una criatura u objeto que puedas ver a 20 pies o menos de ti. El objetivo debe tener éxito en una tirada de salvación de Destreza (CD 8 más tu modificador de Destreza y Bonificador de Competencia) o recibe 2d6 de daño por Ácido."
+    "description": "Cuando realizas la acción de Atacar, puedes reemplazar uno de tus ataques lanzando un vial de Ácido. Elige como objetivo a una criatura u objeto que puedas ver a 20 pies o menos de ti. El objetivo debe tener éxito en una tirada de salvación de Destreza (CD 8 más tu modificador de Destreza y Bonificador de Competencia) o recibe 2d6 de daño por Ácido.",
+    "subcategoria": "Consumible",
+    "rareza": "Común"
   },
   {
     "index": "alchemists-fire",
@@ -139,7 +141,9 @@
       "unit": "po"
     },
     "weight": 1,
-    "description": "Como Acción Adicional, puedes beber un vial de Antitoxina para obtener Ventaja en las tiradas de salvación para evitar o terminar la condición de Envenenado durante 1 hora."
+    "description": "Como Acción Adicional, puedes beber un vial de Antitoxina para obtener Ventaja en las tiradas de salvación para evitar o terminar la condición de Envenenado durante 1 hora.",
+    "subcategoria": "Consumible",
+    "rareza": "Común"
   },
   {
     "index": "arrows",
@@ -816,7 +820,9 @@
       "unit": "po"
     },
     "weight": 2,
-    "description": "Como acción de Utilizar, puedes esparcir Abrojos de su bolsa para cubrir un área de 5 pies cuadrados a menos de 5 pies de ti. Una criatura que entra en esta área por primera vez en un turno debe tener éxito en una tirada de salvación de Destreza CD 15 o recibir 1 de daño Perforante y su Velocidad se reduce a 0 hasta el inicio de su siguiente turno. Toma 10 minutos recuperar los Abrojos."
+    "description": "Como acción de Utilizar, puedes esparcir Abrojos de su bolsa para cubrir un área de 5 pies cuadrados a menos de 5 pies de ti. Una criatura que entra en esta área por primera vez en un turno debe tener éxito en una tirada de salvación de Destreza CD 15 o recibir 1 de daño Perforante y su Velocidad se reduce a 0 hasta el inicio de su siguiente turno. Toma 10 minutos recuperar los Abrojos.",
+    "subcategoria": "Consumible",
+    "rareza": "Común"
   },
   {
     "index": "candle",
@@ -1268,6 +1274,18 @@
       {
         "index": "adventuring-gear",
         "name": "Equipo de Aventurero"
+      },
+      {
+        "index": "arcane-foci",
+        "name": "Focos Arcanos"
+      },
+      {
+        "index": "druidic-foci",
+        "name": "Focos Druídicos"
+      },
+      {
+        "index": "holy-symbols",
+        "name": "Símbolos Sagrados"
       }
     ],
     "cost": {
@@ -1275,7 +1293,8 @@
       "unit": "po"
     },
     "description": "Una Bolsa de Componentes es estanca y está llena de compartimentos que contienen todos los componentes Materiales gratuitos de tus conjuros.",
-    "weight": 1
+    "weight": 1,
+    "rareza": "Común"
   },
   {
     "index": "cooks-utensils",
@@ -2281,7 +2300,7 @@
       }
     },
     "range": {
-      "normal": 5
+      "normal": 10
     },
     "weight": 6,
     "properties": [
@@ -2547,7 +2566,7 @@
       }
     },
     "range": {
-      "normal": 5
+      "normal": 10
     },
     "weight": 6,
     "properties": [
@@ -2730,7 +2749,10 @@
       "unit": "po"
     },
     "description": "Un Kit de Sanador tiene diez usos. Como acción de Utilizar, puedes gastar uno de sus usos para estabilizar a una criatura Inconsciente que tenga 0 Puntos de Golpe sin necesidad de hacer una prueba de Sabiduría (Medicina).",
-    "weight": 3
+    "weight": 3,
+    "subcategoria": "Consumible",
+    "charges": 10,
+    "formulaRecarga": "0"
   },
   {
     "index": "heavy-crossbow",
@@ -2896,7 +2918,9 @@
       "unit": "po"
     },
     "description": "Cuando realizas la acción de Atacar, puedes reemplazar uno de tus ataques lanzando un frasco de Agua Bendita. Elige como objetivo a una criatura que puedas ver a 20 pies o menos de ti. El objetivo debe tener éxito en una tirada de salvación de Destreza (CD 8 más tu modificador de Destreza y Bonificador de Competencia) o recibe 2d8 de daño Radiante si es un Infernal o un Muerto Viviente.",
-    "weight": 1
+    "weight": 1,
+    "subcategoria": "Consumible",
+    "rareza": "Común"
   },
   {
     "index": "horn",
@@ -3205,7 +3229,7 @@
       "A dos manos a menos que estés montado"
     ],
     "range": {
-      "normal": 5
+      "normal": 10
     },
     "weight": 6,
     "properties": [
@@ -4122,7 +4146,9 @@
       "unit": "pp"
     },
     "description": "Puedes empapar a una criatura, objeto o espacio con Aceite o usarlo como combustible, como se detalla a continuación.\n Empapar a una Criatura o un Objeto. Cuando realizas la acción de Atacar, puedes reemplazar uno de tus ataques lanzando un frasco de Aceite. Elige como objetivo a una criatura u objeto a 20 pies o menos de ti. El objetivo debe tener éxito en una tirada de salvación de Destreza (CD 8 más tu modificador de Destreza y Bonificador de Competencia) o quedará cubierto de aceite. Si el objetivo recibe daño por Fuego antes de que el aceite se seque (después de 1 minuto), recibe 5 de daño por Fuego adicional del aceite ardiendo.\n Empapar un Espacio. Puedes realizar la acción de Utilizar para derramar un frasco de Aceite en un suelo nivelado para cubrir un área de 5 pies cuadrados a menos de 5 pies de ti. Si se enciende, el aceite arde hasta el final del turno 2 asaltos después de ser encendido (o 12 segundos) y causa 5 de daño por Fuego a cualquier criatura que entre al área o termine su turno allí. Una criatura puede recibir este daño solo una vez por turno.\n Combustible. El Aceite sirve como combustible para Lámparas y Linternas. Una vez encendido, un frasco de Aceite arde durante 6 horas en una Lámpara o Linterna. Esa duración no necesita ser consecutiva; puedes apagar el Aceite ardiendo (como una acción de Utilizar) y volver a encenderlo hasta que haya ardido por un total de 6 horas.",
-    "weight": 1
+    "weight": 1,
+    "subcategoria": "Consumible",
+    "rareza": "Común"
   },
   {
     "index": "orb",
@@ -4368,7 +4394,7 @@
       }
     },
     "range": {
-      "normal": 5
+      "normal": 10
     },
     "weight": 6,
     "properties": [
@@ -4642,7 +4668,9 @@
     "weight": 0,
     "esVeneno": true,
     "tipoVeneno": "Lesión",
-    "cdSalvacionVeneno": 10
+    "cdSalvacionVeneno": 10,
+    "rareza": "Común",
+    "efectoVeneno": "1d4"
   },
   {
     "index": "assassins-blood",
@@ -4822,7 +4850,9 @@
     "weight": 0,
     "esVeneno": true,
     "tipoVeneno": "Lesión",
-    "cdSalvacionVeneno": 21
+    "cdSalvacionVeneno": 21,
+    "rareza": "Raro",
+    "efectoVeneno": "10d6"
   },
   {
     "index": "serpent-venom",
@@ -4842,7 +4872,9 @@
     "weight": 0,
     "esVeneno": true,
     "tipoVeneno": "Lesión",
-    "cdSalvacionVeneno": 11
+    "cdSalvacionVeneno": 11,
+    "rareza": "Poco Común",
+    "efectoVeneno": "3d6"
   },
   {
     "index": "spiders-sting",
@@ -4922,7 +4954,9 @@
     "weight": 0,
     "esVeneno": true,
     "tipoVeneno": "Lesión",
-    "cdSalvacionVeneno": 14
+    "cdSalvacionVeneno": 14,
+    "rareza": "Poco Común",
+    "efectoVeneno": "7d6"
   },
   {
     "index": "pole",
@@ -4970,7 +5004,9 @@
       "unit": "po"
     },
     "description": "Esta poción es un objeto mágico. Como Acción Adicional, puedes beberla o administrarla a otra criatura a 5 pies o menos de ti. La criatura que bebe el fluido mágico rojo de este vial recupera 2d4 + 2 Puntos de Golpe.",
-    "weight": 0.5
+    "weight": 0.5,
+    "subcategoria": "Consumible",
+    "rareza": "Común"
   },
   {
     "index": "potters-tools",
@@ -5263,7 +5299,8 @@
       "unit": "pp"
     },
     "description": "Las Raciones consisten en comida lista para viajar, incluyendo carne seca, fruta seca, galletas y nueces. Consulta \"Desnutrición\" en el \"Glosario de Reglas\" para los riesgos de no comer.",
-    "weight": 2
+    "weight": 2,
+    "subcategoria": "Consumible"
   },
   {
     "index": "reliquary",
@@ -6258,6 +6295,18 @@
       {
         "index": "druidic-foci",
         "name": "Focos Druídicos"
+      },
+      {
+        "index": "melee-weapons",
+        "name": "Armas Cuerpo a Cuerpo"
+      },
+      {
+        "index": "simple-weapons",
+        "name": "Armas Simples"
+      },
+      {
+        "index": "weapons",
+        "name": "Armas"
       }
     ],
     "cost": {
@@ -6265,7 +6314,34 @@
       "unit": "po"
     },
     "weight": 4,
-    "description": "Un Foco Arcano adopta una de las formas de la tabla de Focos Arcanos y está adornado con joyas o tallado para canalizar la magia arcana. Un Hechicero, Brujo o Mago puede usar dicho objeto como Foco de Lanzamiento de Conjuros. Un Foco Druídico adopta una de las formas de la tabla de Focos Druídicos y está tallado, atado con una cinta o pintado para canalizar magia primordial. Un Druida o Guardabosques puede usar tal objeto como Foco de Lanzamiento de Conjuros."
+    "description": "Un Foco Arcano adopta una de las formas de la tabla de Focos Arcanos y está adornado con joyas o tallado para canalizar la magia arcana. Un Hechicero, Brujo o Mago puede usar dicho objeto como Foco de Lanzamiento de Conjuros. Un Foco Druídico adopta una de las formas de la tabla de Focos Druídicos y está tallado, atado con una cinta o pintado para canalizar magia primordial. Un Druida o Guardabosques puede usar tal objeto como Foco de Lanzamiento de Conjuros.",
+    "damage": {
+      "damage_dice": "1d6",
+      "damage_type": {
+        "index": "bludgeoning",
+        "name": "Contundente"
+      }
+    },
+    "properties": [
+      {
+        "index": "versatile",
+        "name": "Versátil"
+      }
+    ],
+    "two_handed_damage": {
+      "damage_dice": "1d8",
+      "damage_type": {
+        "index": "bludgeoning",
+        "name": "Contundente"
+      }
+    },
+    "mastery": {
+      "index": "topple",
+      "name": "Derribar"
+    },
+    "range": {
+      "normal": 5
+    }
   },
   {
     "index": "string",
@@ -6950,7 +7026,7 @@
       }
     },
     "range": {
-      "normal": 5
+      "normal": 10
     },
     "weight": 3,
     "properties": [

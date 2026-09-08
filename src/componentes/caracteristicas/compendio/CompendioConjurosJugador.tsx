@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useDeferredValue } from "react";
 import {
   Star,
   CheckSquare,
@@ -45,6 +45,7 @@ export const CompendioConjurosJugador: React.FC = () => {
   const [pestañaActiva, setPestañaActiva] = useState<TipoPestañaConjuros>("miLista");
   const [mostrarFiltros, setMostrarFiltros] = useState<boolean>(false);
   const [busqueda, setBusqueda] = useState<string>("");
+  const busquedaDiferida = useDeferredValue(busqueda);
   const [nivelFiltro, setNivelFiltro] = useState<string | number>("todos");
   const [escuelaFiltro, setEscuelaFiltro] = useState<string>("todas");
   const [hechizoModal, setHechizoModal] = useState<HechizoBase | null>(null);
@@ -152,11 +153,12 @@ export const CompendioConjurosJugador: React.FC = () => {
   }, [pestañaActiva, baseDatosHechizos, estaPreparado, estaEnLista, clasesDelPersonaje]);
 
   const conjurosFiltrados = useMemo(() => {
+    const busqLimpia = busquedaDiferida.trim();
     const filtrados = conjurosPestaña.filter((h) => {
-      if (busqueda && busqueda.trim()) {
+      if (busqLimpia) {
         const coincide = coincideBusquedaTolerante(
-          [h.nombre, h.descripcion, h.escuela],
-          busqueda
+          [h.nombre, h.escuela, h.descripcion],
+          busqLimpia
         );
         if (!coincide) return false;
       }
@@ -171,15 +173,15 @@ export const CompendioConjurosJugador: React.FC = () => {
     return filtrados.sort(
       compararPorRelevanciaTitulo(
         (h) => h.nombre,
-        busqueda,
+        busqLimpia,
         (a, b) => {
           if (a.nivel !== b.nivel) return a.nivel - b.nivel;
           return a.nombre.localeCompare(b.nombre, "es");
         },
-        (h) => [h.descripcion, h.escuela]
+        (h) => [h.escuela, h.descripcion]
       )
     );
-  }, [conjurosPestaña, busqueda, nivelFiltro, escuelaFiltro]);
+  }, [conjurosPestaña, busquedaDiferida, nivelFiltro, escuelaFiltro]);
 
   const manejarAlternarEnLista = (hechizo: HechizoBase) => {
     if (!personajeActivo) return;

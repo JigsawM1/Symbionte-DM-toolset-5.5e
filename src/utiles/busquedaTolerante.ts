@@ -4,12 +4,19 @@
  * sin importar cómo lo escriba el usuario (ej: "baston" -> "Bastón", "pocion curacion" -> "Poción de Curación").
  */
 
+const cacheNormalizacion = new Map<string, string>();
+const LIMITE_CACHE_NORMALIZACION = 1500;
+
 /**
  * Normaliza una cadena de texto eliminando tildes, diéresis, mayúsculas y caracteres diacríticos.
  * También normaliza opcionalmente 'ñ' a 'n' para usuarios sin teclado en español.
  */
 export function normalizarParaBusqueda(texto: string, normalizarEnye: boolean = false): string {
   if (!texto) return "";
+  const clave = normalizarEnye ? `${texto}__enye` : texto;
+  const enCache = cacheNormalizacion.get(clave);
+  if (enCache !== undefined) return enCache;
+
   let resultado = texto
     .toLowerCase()
     .normalize("NFD")
@@ -20,6 +27,10 @@ export function normalizarParaBusqueda(texto: string, normalizarEnye: boolean = 
     resultado = resultado.replace(/ñ/g, "n");
   }
 
+  if (cacheNormalizacion.size >= LIMITE_CACHE_NORMALIZACION) {
+    cacheNormalizacion.clear();
+  }
+  cacheNormalizacion.set(clave, resultado);
   return resultado;
 }
 
@@ -35,6 +46,7 @@ export function tokenizarBusqueda(consulta: string): string[] {
 /**
  * Comprueba si una consulta coincide con uno o varios textos objetivos.
  * Coincide si TODOS los tokens de la consulta están presentes en la unión de los textos.
+ * Optimizado perezosamente: examina campos cortos (nombre, categoría) antes de analizar textos masivos.
  * 
  * @param objetivos Texto o lista de textos (ej: [nombre, categoria, subtitulo, descripcion])
  * @param consulta Texto que el usuario ingresó en el buscador
@@ -50,23 +62,35 @@ export function coincideBusquedaTolerante(
   const tokens = tokenizarBusqueda(consulta);
   if (tokens.length === 0) return true;
 
-  // Unificar y normalizar todos los textos objetivos
-  const listaObjetivos = Array.isArray(objetivos) ? objetivos : [objetivos];
-  const textoUnificado = listaObjetivos
-    .filter((t): t is string => typeof t === "string" && t.length > 0)
-    .map((t) => normalizarParaBusqueda(t))
-    .join(" ");
+  const listaObjetivos = (Array.isArray(objetivos) ? objetivos : [objetivos])
+    .filter((t): t is string => typeof t === "string" && t.length > 0);
 
-  if (!textoUnificado) return false;
+  if (listaObjetivos.length === 0) return false;
 
-  // Versión secundaria con 'ñ' -> 'n' para tolerancia extra
-  const textoUnificadoSinEnye = textoUnificado.replace(/ñ/g, "n");
+  // Ordenar perezosamente: campos más cortos primero para descartar o confirmar sin tocar descripciones largas
+  const objetivosOrdenados = listaObjetivos.length > 1
+    ? [...listaObjetivos].sort((a, b) => a.length - b.length)
+    : listaObjetivos;
 
-  // Cada token debe estar contenido en el texto unificado
-  return tokens.every((token) => {
-    const tokenSinEnye = token.replace(/ñ/g, "n");
-    return textoUnificado.includes(token) || textoUnificadoSinEnye.includes(tokenSinEnye);
-  });
+  const tokensPendientes = new Set(tokens);
+
+  for (const obj of objetivosOrdenados) {
+    const objNorm = normalizarParaBusqueda(obj);
+    const objNormSinEnye = objNorm.includes("ñ") ? objNorm.replace(/ñ/g, "n") : objNorm;
+
+    for (const token of Array.from(tokensPendientes)) {
+      const tokenSinEnye = token.includes("ñ") ? token.replace(/ñ/g, "n") : token;
+      if (objNorm.includes(token) || objNormSinEnye.includes(tokenSinEnye)) {
+        tokensPendientes.delete(token);
+      }
+    }
+
+    if (tokensPendientes.size === 0) {
+      return true;
+    }
+  }
+
+  return false;
 }
 
 /**

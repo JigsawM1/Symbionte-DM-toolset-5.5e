@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useDeferredValue } from "react";
 import type { HechizoBase, PersonajeJugador } from "@/tipos";
 import { usarEstadoPersistido } from "@/hooks";
 import {
@@ -18,6 +18,7 @@ export const usarFiltrosYSeccionesConjuros = ({
   trucosConocidos
 }: PropiedadesHookFiltrosYSeccionesConjuros) => {
   const [busqueda, setBusqueda] = useState<string>("");
+  const busquedaDiferida = useDeferredValue(busqueda);
   const [mostrarFiltros, setMostrarFiltros] = useState<boolean>(false);
   const [filtroConcentracion, setFiltroConcentracion] = useState<"todos" | "sin" | "con">("todos");
   const [filtroResolucion, setFiltroResolucion] = useState<"todos" | "ataque" | "salvacion" | "utilidad">("todos");
@@ -91,7 +92,7 @@ export const usarFiltrosYSeccionesConjuros = ({
 
   const conteoFiltrosActivos = useMemo(() => {
     let conteo = 0;
-    if (busqueda.trim()) conteo++;
+    if (busquedaDiferida.trim()) conteo++;
     if (filtroConcentracion !== "todos") conteo++;
     if (filtroResolucion !== "todos") conteo++;
     if (filtroComponentes.sinV) conteo++;
@@ -99,7 +100,7 @@ export const usarFiltrosYSeccionesConjuros = ({
     if (filtroComponentes.sinM) conteo++;
     if (filtroComponentes.soloM) conteo++;
     return conteo;
-  }, [busqueda, filtroConcentracion, filtroResolucion, filtroComponentes]);
+  }, [busquedaDiferida, filtroConcentracion, filtroResolucion, filtroComponentes]);
 
   const hayFiltrosActivos = conteoFiltrosActivos > 0;
 
@@ -121,9 +122,9 @@ export const usarFiltrosYSeccionesConjuros = ({
 
   const trucosFiltrados = useMemo(() => {
     return trucosVisibles.filter((truco) =>
-      evaluarFiltrosHechizo(truco, busqueda, filtroConcentracion, filtroResolucion, filtroComponentes)
+      evaluarFiltrosHechizo(truco, busquedaDiferida, filtroConcentracion, filtroResolucion, filtroComponentes)
     );
-  }, [trucosVisibles, busqueda, filtroConcentracion, filtroResolucion, filtroComponentes]);
+  }, [trucosVisibles, busquedaDiferida, filtroConcentracion, filtroResolucion, filtroComponentes]);
 
   // Conjuros de nivel 1 a 9 visibles vs ocultos
   const { conjurosVisiblesPorNivel, todosConjurosOcultos } = useMemo(() => {
@@ -157,18 +158,18 @@ export const usarFiltrosYSeccionesConjuros = ({
     for (let nivel = 1; nivel <= 9; nivel++) {
       const lista = conjurosVisiblesPorNivel[nivel] || [];
       res[nivel] = lista.filter((h) =>
-        evaluarFiltrosHechizo(h, busqueda, filtroConcentracion, filtroResolucion, filtroComponentes)
+        evaluarFiltrosHechizo(h, busquedaDiferida, filtroConcentracion, filtroResolucion, filtroComponentes)
       );
     }
     return res;
-  }, [conjurosVisiblesPorNivel, busqueda, filtroConcentracion, filtroResolucion, filtroComponentes]);
+  }, [conjurosVisiblesPorNivel, busquedaDiferida, filtroConcentracion, filtroResolucion, filtroComponentes]);
 
   // Filtrar conjuros ocultos
   const conjurosOcultosFiltrados = useMemo(() => {
     return todosConjurosOcultos.filter((h) =>
-      evaluarFiltrosHechizo(h, busqueda, filtroConcentracion, filtroResolucion, filtroComponentes)
+      evaluarFiltrosHechizo(h, busquedaDiferida, filtroConcentracion, filtroResolucion, filtroComponentes)
     );
-  }, [todosConjurosOcultos, busqueda, filtroConcentracion, filtroResolucion, filtroComponentes]);
+  }, [todosConjurosOcultos, busquedaDiferida, filtroConcentracion, filtroResolucion, filtroComponentes]);
 
   return {
     busqueda,

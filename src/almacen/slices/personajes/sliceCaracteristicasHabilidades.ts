@@ -72,7 +72,8 @@ export const crearSubSliceCaracteristicasHabilidades: StateCreator<
   ciclarGradoHabilidadPersonaje: (id, hab) => {
     mutarPersonaje(set, id, (pj) => {
       const tieneAprendiz = tieneMedioBonoHabilidades(pj);
-      const gradoActual = pj.gradosHabilidades[hab] || "ninguna";
+      const gradoAlmacenado = pj.gradosHabilidades?.[hab] || "ninguna";
+      const gradoActual = (gradoAlmacenado === "ninguna" && tieneAprendiz) ? "medio" : gradoAlmacenado;
       const nuevoGrado = ORDEN_CICLO_HABILIDAD[gradoActual] || "ninguna";
       const nuevoGradoFinal = (nuevoGrado === "ninguna" && tieneAprendiz) ? "medio" : nuevoGrado;
       return {

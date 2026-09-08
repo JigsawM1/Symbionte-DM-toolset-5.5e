@@ -272,23 +272,59 @@ export const crearSliceIniciativa: StateCreator<
   }),
 
   agregarCondicionACriatura: (id, condicion) => set((state) => {
+    let criaturaAfectadaNombre = "";
     const nuevaCola = state.colaIniciativa.map((c) => {
       if (c.id === id) {
+        criaturaAfectadaNombre = c.nombre;
         return { ...c, condiciones: aplicarCondicion(c.condiciones, condicion) };
       }
       return c;
     });
-    return { colaIniciativa: nuevaCola };
+
+    const cNom = criaturaAfectadaNombre.trim().toLowerCase();
+    const nuevosPjs = state.personajes.map((pj) => {
+      const coincide =
+        pj.id === id ||
+        pj.idMiniaturaTS === id ||
+        (cNom && (pj.nombre || "").trim().toLowerCase() === cNom);
+      if (coincide) {
+        return {
+          ...pj,
+          condicionesActivas: aplicarCondicion(pj.condicionesActivas || [], condicion)
+        };
+      }
+      return pj;
+    });
+
+    return { colaIniciativa: nuevaCola, personajes: nuevosPjs };
   }),
 
   quitarCondicionDeCriatura: (id, condicion) => set((state) => {
+    let criaturaAfectadaNombre = "";
     const nuevaCola = state.colaIniciativa.map((c) => {
       if (c.id === id) {
+        criaturaAfectadaNombre = c.nombre;
         return { ...c, condiciones: quitarCondicion(c.condiciones, condicion) };
       }
       return c;
     });
-    return { colaIniciativa: nuevaCola };
+
+    const cNom = criaturaAfectadaNombre.trim().toLowerCase();
+    const nuevosPjs = state.personajes.map((pj) => {
+      const coincide =
+        pj.id === id ||
+        pj.idMiniaturaTS === id ||
+        (cNom && (pj.nombre || "").trim().toLowerCase() === cNom);
+      if (coincide) {
+        return {
+          ...pj,
+          condicionesActivas: quitarCondicion(pj.condicionesActivas || [], condicion)
+        };
+      }
+      return pj;
+    });
+
+    return { colaIniciativa: nuevaCola, personajes: nuevosPjs };
   }),
 
   agregarEfectoACriatura: (idCriatura, nombreEfecto, duracion, opciones) => set((state) => {

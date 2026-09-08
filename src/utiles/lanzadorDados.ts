@@ -59,12 +59,20 @@ export interface MetadataHpTemporalRasgo {
   multiplicador?: number;
 }
 
+export interface MetadataDadoGolpe {
+  tipo: "dadoGolpe";
+  personajeId: string;
+  nombrePersonaje?: string;
+  tipoDado?: string;
+}
+
 export type MetadataEspecialRasgo = MetadataCuracionRasgo | MetadataHpTemporalRasgo;
 
-// Registro global de tiradas de salvación contra la muerte, curación y HP temporal 3D activas en memoria
+// Registro global de tiradas de salvación contra la muerte, curación, HP temporal y dados de golpe 3D activas en memoria
 const tiradasSalvacionMuerteActivas: Record<string, MetadataSalvacionMuerte> = {};
 const tiradasCuracionRasgoActivas: Record<string, MetadataCuracionRasgo> = {};
 const tiradasHpTemporalRasgoActivas: Record<string, MetadataHpTemporalRasgo> = {};
+const tiradasDadoGolpeActivas: Record<string, MetadataDadoGolpe> = {};
 
 /**
  * Aplica Puntos de Golpe Temporales calculados al personaje activo.
@@ -362,7 +370,8 @@ export async function lanzarDadosTaleSpire(
   metaIniciativa?: MetadataIniciativa,
   metaSalvacionMuerte?: MetadataSalvacionMuerte,
   tipoTiradaForzado?: "ventaja" | "desventaja" | "plano",
-  metaEspecialRasgo?: MetadataEspecialRasgo
+  metaEspecialRasgo?: MetadataEspecialRasgo,
+  metaDadoGolpe?: MetadataDadoGolpe
 ): Promise<void> {
   const nombreEtiqueta = sanitizarEtiqueta(etiqueta.trim() || "Tirada");
 
@@ -506,6 +515,11 @@ export async function lanzarDadosTaleSpire(
         }
       }
 
+      if (metaDadoGolpe && rollId) {
+        tiradasDadoGolpeActivas[rollId] = metaDadoGolpe;
+        logger.debug(`[Lanzador Dados] Registrada tirada de dado de golpe con rollId: ${rollId}`, metaDadoGolpe);
+      }
+
       ts.debug.log(`Tirando dados en bandeja física: ${nombreEtiqueta} (${formulaLimpia})`);
     } catch (error) {
       logger.error("[Lanzador Dados] Fallo de API directa de dados. Recurriendo al canal de chat de TaleSpire...", error);
@@ -554,6 +568,18 @@ export async function lanzarDadosTaleSpire(
         aplicarResultadoHpTemporalEnEstado(metaEspecialRasgo.personajeId, hpTemp);
         logger.info(`[Lanzador Dados Fallback] HP temporal de rasgo aplicado: +${hpTemp} PV temp (${totalDado} x ${mult}).`);
       }
+    }
+
+    // Si es una tirada de dado de golpe en entorno local fuera de TaleSpire
+    if (metaDadoGolpe) {
+      const matchDados = formulaLimpia.match(/(\d+)d(\d+)/i);
+      const caras = matchDados ? parseInt(matchDados[2], 10) : 8;
+      const totalDado = Math.floor(Math.random() * caras) + 1;
+      state.gastarDadoGolpePersonaje(metaDadoGolpe.personajeId);
+      const pj = state.personajes.find((p) => p.id === metaDadoGolpe.personajeId);
+      const restantes = pj ? pj.dadosGolpeRestantes : 0;
+      state.agregarNotificacion(`¡Dado de Golpe gastado! Resultado: ${totalDado} (${restantes} dados restantes).`, "info");
+      logger.info(`[Lanzador Dados Fallback] Dado de Golpe gastado. Resultado: ${totalDado}.`);
     }
   }
 }
@@ -659,6 +685,28 @@ export async function procesarResultadosDadosTaleSpire(evento: unknown): Promise
       }
     }
     delete tiradasHpTemporalRasgoActivas[rollId];
+    return false;
+  }
+
+  // Caso 5: Tirada de Dado de Golpe 3D (descuenta el dado y notifica el resultado sin curar HP)
+  const infoDadoGolpe = tiradasDadoGolpeActivas[rollId];
+  if (!infoTirada && infoDadoGolpe) {
+    logger.debug(`[Lanzador Dados] Procesando resultado 3D de dado de golpe para rollId: ${rollId}`);
+    const resultGroups = ev.payload.resultsGroups;
+    if (resultGroups && Array.isArray(resultGroups) && resultGroups.length > 0) {
+      try {
+        const total = await ts.dice.evaluateDiceResultsGroup(resultGroups[0]);
+        logger.debug(`[Lanzador Dados] Dado de golpe 3D obtenido: ${total}`);
+        const state = usarAlmacenDM.getState();
+        state.gastarDadoGolpePersonaje(infoDadoGolpe.personajeId);
+        const pj = state.personajes.find((p) => p.id === infoDadoGolpe.personajeId);
+        const restantes = pj ? pj.dadosGolpeRestantes : 0;
+        state.agregarNotificacion(`¡Dado de Golpe gastado! Resultado: ${total} (${restantes} dados restantes).`, "info");
+      } catch (error) {
+        logger.error("[Lanzador Dados] Error al evaluar resultado 3D de dado de golpe:", error);
+      }
+    }
+    delete tiradasDadoGolpeActivas[rollId];
     return false;
   }
 

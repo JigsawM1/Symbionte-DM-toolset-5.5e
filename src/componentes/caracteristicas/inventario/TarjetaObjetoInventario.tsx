@@ -3,6 +3,7 @@ import type { ObjetoInventario, Rareza, TipoContenedor, ObjetoJuego, Arma, Armad
 import { Swords, Link2, Trash2, Plus, Minus, Zap, Sparkles, Heart, PackageOpen, FlaskConical, Target, GripVertical } from "lucide-react";
 import { ConfirmDialog } from "@/componentes/comunes/ConfirmDialog";
 import { TooltipUniversal } from "@/componentes/comunes/TooltipUniversal";
+import { esObjetoEquipable } from "@/servicios/procesadorEquipamiento";
 import { detectarInfoConsumible, esObjetoConsumible } from "@/servicios/procesadorConsumibles";
 import { CONFIG_CONTENEDORES } from "@/servicios/calculadorInventario";
 import {
@@ -122,7 +123,7 @@ export const TarjetaObjetoInventario: React.FC<TarjetaObjetoInventarioProps> = (
       JSON.stringify({
         idInstancia: objeto.idInstancia,
         nombre: objeto.nombre,
-        equipable: Boolean(objeto.equipable),
+        equipable: esObjetoEquipable(objeto),
         equipado: Boolean(objeto.equipado),
         contenedor: objeto.contenedor || "mochila"
       })
@@ -563,7 +564,7 @@ export const TarjetaObjetoInventario: React.FC<TarjetaObjetoInventarioProps> = (
               </button>
             )}
 
-            {objeto.equipable && (
+            {esObjetoEquipable(objeto) && (
               <button
                 type="button"
                 className={`${estilos.botonAccionObjeto} ${

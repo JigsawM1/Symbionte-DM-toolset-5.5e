@@ -88,12 +88,14 @@ export const crearSubSliceVitalidad: StateCreator<
     }));
   },
 
-  gastarDadoGolpePersonaje: (id, tiradas = []) => {
-    const pj = get().personajes.find((p) => p.id === id);
-    if (!pj || pj.dadosGolpeRestantes <= 0) return;
-
-    const { personajeActualizado } = ejecutarDescansoCorto(pj, 1, tiradas);
-    get().actualizarPersonaje(id, personajeActualizado);
+  gastarDadoGolpePersonaje: (id) => {
+    mutarPersonaje(set, id, (pj) => {
+      if (pj.dadosGolpeRestantes <= 0) return pj;
+      return {
+        ...pj,
+        dadosGolpeRestantes: Math.max(0, pj.dadosGolpeRestantes - 1)
+      };
+    });
   },
 
   establecerDadosGolpeRestantesPersonaje: (id, valor) => {

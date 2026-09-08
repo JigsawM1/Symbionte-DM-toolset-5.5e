@@ -22,7 +22,15 @@ describe("procesadorEquipamiento", () => {
   });
 
   it("no debe modificar el inventario si el objeto no es equipable", () => {
-    const inventario = [crearObjeto({ idInstancia: "pocion_1", equipable: false, equipado: false })];
+    const inventario = [
+      crearObjeto({
+        idInstancia: "pocion_1",
+        nombre: "Poción de Curación",
+        tipoPrincipal: "Equipo de Aventuras",
+        equipable: false,
+        equipado: false
+      })
+    ];
     const resultado = procesarAlternarEquipado(inventario, "pocion_1");
     expect(resultado[0].equipado).toBe(false);
   });

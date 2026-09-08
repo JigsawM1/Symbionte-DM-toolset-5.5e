@@ -30,6 +30,17 @@ export function esObjetoArmaduraCorporal(obj: ObjetoInventario): boolean {
 }
 
 /**
+ * Determina si un objeto es equipable según sus propiedades o categoría D&D 5.5e
+ * (armas, armaduras corporales, escudos o equipo vestible marcado como equipable).
+ */
+export function esObjetoEquipable(obj: ObjetoInventario): boolean {
+  if (obj.equipable === true) return true;
+  if (obj.tipoPrincipal === "Arma" || obj.tipoPrincipal === "Armadura") return true;
+  if (esObjetoEscudo(obj) || esObjetoArmaduraCorporal(obj)) return true;
+  return false;
+}
+
+/**
  * Procesa el equipamiento o desequipamiento de un objeto en el inventario
  * aplicando las reglas oficiales de D&D 5.5e y ergonomía de juego:
  * 1. Regla de Armadura y Escudo: Se puede tener 1 Armadura Corporal y 1 Escudo equipados simultáneamente.
@@ -41,7 +52,7 @@ export function procesarAlternarEquipado(
   idInstancia: string
 ): ObjetoInventario[] {
   const objTarget = inventarioActual.find((o) => o.idInstancia === idInstancia);
-  if (!objTarget || !objTarget.equipable) return inventarioActual;
+  if (!objTarget || !esObjetoEquipable(objTarget)) return inventarioActual;
 
   const vaAEquipar = !objTarget.equipado;
   const normalizar = (s: string) => s.toLowerCase().trim();
@@ -77,13 +88,13 @@ export function procesarAlternarEquipado(
 
       inventarioProcesado = inventarioProcesado.map((o) =>
         o.idInstancia === idInstancia
-          ? { ...o, cantidad: 1, equipado: true }
+          ? { ...o, cantidad: 1, equipado: true, equipable: true }
           : o
       );
       inventarioProcesado.push(copiaResto);
     } else {
       inventarioProcesado = inventarioProcesado.map((o) =>
-        o.idInstancia === idInstancia ? { ...o, equipado: true } : o
+        o.idInstancia === idInstancia ? { ...o, equipado: true, equipable: true } : o
       );
     }
 

@@ -51,7 +51,6 @@ export const HojaPersonaje: React.FC<HojaPersonajeProps> = ({ alAbrirConfiguraci
     establecerHPActualPersonaje,
     modificarHPMaximoEfectivoPersonaje,
     modificarHPTemporalPersonaje,
-    gastarDadoGolpePersonaje,
     establecerDadosGolpeRestantesPersonaje,
     ejecutarDescansoPersonaje,
     alternarInspiracionPersonaje,
@@ -297,6 +296,21 @@ export const HojaPersonaje: React.FC<HojaPersonajeProps> = ({ alAbrirConfiguraci
     });
   }, [personajeActivo]);
 
+  const manejarTirarDadoGolpe = useCallback(async () => {
+    if (!personajeActivo || personajeActivo.dadosGolpeRestantes <= 0) return;
+    const tipoDado = personajeActivo.tipoDadoGolpe || "d8";
+    const nombrePj = personajeActivo.nombre?.trim() || "Personaje";
+    await lanzarDadosTaleSpire(
+      `!Dado de Golpe:1${tipoDado}`,
+      `${nombrePj} - Dado de Golpe (${tipoDado})`,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      { tipo: "dadoGolpe", personajeId: personajeActivo.id, nombrePersonaje: nombrePj, tipoDado }
+    );
+  }, [personajeActivo]);
+
   const totalConjurosYTrucos =
     (personajeActivo?.trucosConocidosIds?.length || 0) +
     (personajeActivo?.conjurosConocidosIds?.length || 0);
@@ -379,7 +393,7 @@ export const HojaPersonaje: React.FC<HojaPersonajeProps> = ({ alAbrirConfiguraci
             alEstablecerHPActual={(valor) => establecerHPActualPersonaje(personajeActivo.id, valor)}
             alModificarHPMaximoEfectivo={(valor) => modificarHPMaximoEfectivoPersonaje(personajeActivo.id, valor)}
             alModificarHPTemporal={(valor) => modificarHPTemporalPersonaje(personajeActivo.id, valor)}
-            alGastarDadoGolpe={() => gastarDadoGolpePersonaje(personajeActivo.id)}
+            alGastarDadoGolpe={manejarTirarDadoGolpe}
             alEstablecerDadosGolpeRestantes={(val) => establecerDadosGolpeRestantesPersonaje(personajeActivo.id, val)}
             alEstablecerSalvacionMuerte={(tipo, valor) =>
               establecerSalvacionesMuertePersonaje(personajeActivo.id, tipo, valor)

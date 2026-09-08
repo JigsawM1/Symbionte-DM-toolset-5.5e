@@ -16,6 +16,78 @@ Este archivo registra reglas globales, errores encontrados, sus causas raíz y l
    - Las dependencias fluyen estrictamente hacia abajo: `App/Layout -> Caracteristicas -> Comunes -> Almacen -> Servicios -> Utiles/Constantes/Tipos`.
    - **Bajo ninguna circunstancia** los módulos de lógica de negocio (`servicios/`), gestores de estado (`almacen/`), contratos (`tipos/`), valores de reglas (`constantes/`) ni funciones de soporte (`utiles/`) deben importar componentes visuales o archivos CSS (`componentes/`). Esta regla está reforzada en CI vía ESLint `no-restricted-imports`.
 
+## [2026-09-08] Culminación Exitosa: Equipamiento Universal y Robusto mediante Drag & Drop (D&D 5.5e)
+**Contexto y Problema Reportado:**
+- El usuario reportó: *"ahora puedo desequipar pero no equipar con el drag and drop"*.
+- Al arrastrar armas, armaduras o escudos desde la mochila hacia la sección de "Equipados Activos", hacia la caja "Equipar" del Dock de Movilización Rápida o sobre una tarjeta de ítem equipado, no se efectuaba el equipamiento.
+
+**Causas Raíz Identificadas:**
+1. **Verificación Estricta y Frágil de `equipable`**:
+   - En `usarDragAndDropInventario.ts` y en `procesadorEquipamiento.ts`, la comprobación dependía exclusivamente de `if (!objActual.equipable)`. Sin embargo, en el compendio oficial de D&D 5.5e y en los objetos parseados por Zod (`EsquemaObjetoInventario`), el campo `equipable` por defecto es `false` salvo que se especifique expresamente. Elementos estándar como "Espada larga", "Cota de malla" o "Escudo" definen `tipoPrincipal === "Arma"` o `tipoPrincipal === "Armadura"`, pero tenían `equipable: false`, disparando la advertencia *"no es un objeto equipable"* y abortando el equipamiento.
+2. **Intercepción de Eventos en Tarjetas Equipadas (`TarjetaObjetoInventario`)**:
+   - Al soltar un objeto sobre una tarjeta en la sección de equipados, `TarjetaObjetoInventario` ejecutaba `e.stopPropagation()` e invocaba `alSoltarReordenar(origen, destino)`. En `usarInventarioOrdenado.ts`, `manejarReordenarItems` solo evaluaba si `objOrigen.equipado` era `true` (desequipar), pero nunca evaluaba si `objDestino.equipado` era `true` y `objOrigen.equipado` era `false` (equipar), procediendo únicamente a reordenar el array en memoria sin equipar el objeto.
+3. **Zonas de Soltado Internas en `SeccionObjetosEquipados`**:
+   - El placeholder vacío (`.mensajeVacioInventario`) y el contenedor de tarjetas (`.listaItemsInventario`) no tenían asignados explícitamente los manejadores `onDragOver` y `onDrop` para la zona `"equipados"`.
+4. **Visibilidad del Botón "Equipar" y Payload de Arrastre**:
+   - En `TarjetaObjetoInventario.tsx`, el botón de equipar y el payload transferido vía HTML5 Drag & Drop usaban `Boolean(objeto.equipable)` en lugar de evaluar si el objeto es un arma, armadura o escudo según las reglas del juego.
+
+**Solución Aplicada y Decisiones de Arquitectura:**
+1. **Unificación Canónica con `esObjetoEquipable` (`src/servicios/procesadorEquipamiento.ts`)**:
+   - Se definió la función pura `esObjetoEquipable(obj: ObjetoInventario): boolean` que clasifica de forma determinista como equipable cualquier objeto si `obj.equipable === true`, si `obj.tipoPrincipal === "Arma"`, si `obj.tipoPrincipal === "Armadura"`, o si cumple `esObjetoEscudo(obj)` o `esObjetoArmaduraCorporal(obj)`.
+   - Se integró `esObjetoEquipable` como única fuente de verdad en `usarDragAndDropInventario.ts`, `usarInventarioOrdenado.ts` y `TarjetaObjetoInventario.tsx`.
+2. **Equipamiento al Soltar sobre Ítems Equipados**:
+   - En `usarInventarioOrdenado.ts` (`manejarReordenarItems`) y en `usarDragAndDropInventario.ts` (`manejarDrop` con destino `item_*`), se añadió la detección: si `objDestino?.equipado && !objOrigen?.equipado`, se comprueba `esObjetoEquipable(objOrigen)`, se reubica el contenedor a `"mochila"` si correspondía, se invoca `alAlternarEquipado(origen)` y se emite la notificación `"Objeto equipado"`.
+3. **Refuerzo de Zonas Drop en `SeccionObjetosEquipados.tsx`**:
+   - Se vincularon los manejadores `onDragOver={(e) => alDragOver(e, "equipados")}` y `onDrop={(e) => alDrop(e, "equipados")}` tanto en `.listaItemsInventario` como en `.mensajeVacioInventario`.
+4. **Cobertura de Pruebas Unitarias (`HojaPersonajeCorreccionesBugs.test.ts`)**:
+   - Se agregaron pruebas para `esObjetoEquipable`, equipamiento de armas sin flag previo, respeto a la regla 5.5e de coexistencia de 1 Armadura Corporal y 1 Escudo, y división de stacks (cantidad > 1) al equipar y fusión al desequipar.
+
+**Métricas de Calidad Verificadas:**
+- `pnpm exec tsc --noEmit`: 0 errores (Strict Mode activo).
+- `pnpm lint`: 0 errores, 0 advertencias.
+- `pnpm test`: 42 suites superadas, 467 de 467 pruebas pasando (100%).
+- `node scripts/verificar-limite-lineas.js`: 105 archivos auditados, 0 errores críticos (todos < 300 líneas en archivos modificados).
+- `pnpm build`: Empaquetado exitoso de producción Vite en 12.49s (código 0).
+- `pnpm run ci`: Pipeline integral finalizado con código de salida 0.
+
+---
+
+## [2026-09-08] Culminación Exitosa: Corrección Integral de 6 Requerimientos del Modo Jugador e Iniciativa
+**Contexto y Problemas Resueltos:**
+1. **Drag & Drop en Inventario no desequipaba al soltar en la mochila**:
+   - *Causa*: Al arrastrar un objeto equipado hacia la mochila general, subsecciones temáticas o sobre otros ítems de la mochila, no se evaluaba la propiedad `equipado` ni se disparaba la desequipación (`alAlternarEquipado`).
+   - *Solución*: Se unificó el conjunto `DESTINOS_MOCHILA` (`mochila`, `consumibles`, `municion`, `armas`, `armaduras`, `herramientas`, `magicos`, `equipo`). Si el ítem arrastrado está equipado (`objActual.equipado`), se invoca de inmediato `alAlternarEquipado` con notificación explicativa tanto al soltar en secciones como sobre otros ítems (`item_*`).
+2. **El orden de la mochila no conmutaba a "Personalizado" tras reordenar con drag & drop**:
+   - *Causa*: Al hacer drop sobre un ítem en la mochila (`manejarReordenarItems`), el estado `criterioOrden` permanecía en su valor previo (por ejemplo "tipo" o "peso"), reordenando visualmente según dicho criterio e ignorando el orden manual establecido.
+   - *Solución*: Se integró `alCambiarOrden: setCriterioOrden` en `usarDragAndDropInventario.ts` y en `usarInventarioOrdenado.ts`, forzando la conmutación instantánea a `"personalizado"` al reordenar ítems mediante drag & drop.
+3. **Gasto de Dados de Golpe y Tiradas 3D sin curación indebida de vida**:
+   - *Causa*: El botón de gastar dado de golpe sólo descontaba el dado en memoria (`gastarDadoGolpePersonaje`), sin lanzar la animación física de dados 3D en la bandeja de TaleSpire. Además, `gastarDadoGolpePersonaje` aplicaba curación automática de HP, lo cual violaba mecánicas de D&D 5.5e y habilidades/clases especiales (como Blood Hunter u otros efectos) que gastan dados de golpe para fines ajenos a curar.
+   - *Solución*: Se desacopló la curación en `sliceVitalidad.ts`, permitiendo que `gastarDadoGolpePersonaje` únicamente descuente el dado. Se introdujo `MetadataDadoGolpe` en `lanzadorDados.ts`, registrando la tirada 3D de TaleSpire (`!Dado de Golpe:1dX`) con fallback matemático local que descuenta el dado y notifica el resultado sin tocar la vida (`hpActual`).
+4. **Competencias de Bardo con 'Aprendiz de mucho' requerían doble clic**:
+   - *Causa*: Para un bardo de nivel 2+ con el rasgo *Aprendiz de mucho*, el cálculo de bonus ya aplica medio bono de competencia por defecto; sin embargo, en `pj.gradosHabilidades` el valor almacenado seguía siendo `"ninguna"`. El primer clic en la UI pasaba de `"ninguna"` a `"medio"`, por lo que el usuario no percibía cambio visual y requería un segundo clic para alcanzar `"competente"`.
+   - *Solución*: En `sliceCaracteristicasHabilidades.ts`, se evalúa el grado base inicial considerando `tieneAprendiz`: si el valor almacenado es `"ninguna"`, se asume como base `"medio"`, permitiendo que el primer clic avance limpiamente a `"competente"`. El ciclo completo para bardos con este rasgo es: `medio -> competente -> pericia -> medio`.
+5. **Búsquedas de hechizos pesadas y lentas**:
+   - *Causa*: En el compendio y selectores de conjuros, la búsqueda tolerante normalizaba textos y descripciones completas de más de 400 conjuros en cada pulsación de tecla, bloqueando el hilo de renderizado.
+   - *Solución*:
+     - Se añadió memoización con límite de tamaño (`cacheNormalizacion`) en `busquedaTolerante.ts` y ordenamiento perezoso de los objetivos por longitud (priorizando nombre y escuela antes de inspeccionar descripciones extensas).
+     - Se incorporó `useDeferredValue` en `BuscadorConjurosPersonaje.tsx`, `CompendioConjurosJugador.tsx` y `usarFiltrosYSeccionesConjuros.ts`, desacoplando la respuesta táctil del input a 60 FPS del filtrado de listas.
+6. **Sincronización bidireccional de condiciones entre Ficha de Personaje e Iniciativa**:
+   - *Causa*: Las condiciones añadidas en la hoja de personaje (`sliceCondiciones.ts`) no se reflejaban en la cola del DM (`GestorIniciativa`) ni en la iniciativa del jugador (`IniciativaJugador`), y viceversa.
+   - *Solución*:
+     - En `sliceCondiciones.ts`, se implementó `sincronizarCondicionesEnIniciativa` en `aplicarCondicionPersonaje`, `quitarCondicionPersonaje` y `limpiarCondicionesPersonaje`, actualizando de forma reactiva la criatura correspondiente en `colaIniciativa`.
+     - En `sliceIniciativa.ts`, se actualizaron `agregarCondicionACriatura` y `quitarCondicionDeCriatura` para sincronizar `condicionesActivas` en el personaje jugador coincidente (`personajes`).
+     - En `sincronizacionIniciativa.ts`, se preservan y combinan las condiciones activas del personaje jugador al refrescar la cola con TaleSpire.
+
+**Métricas de Calidad Verificadas:**
+- `pnpm exec tsc --noEmit`: 0 errores (Strict Mode estricto).
+- `pnpm lint`: 0 errores, 0 warnings (ESLint 100% limpio).
+- `pnpm test`: 42 suites superadas, 461 de 461 pruebas pasando (100%).
+- `node scripts/verificar-limite-lineas.js`: 105 archivos auditados, 0 errores críticos.
+- `pnpm build`: Empaquetado exitoso de producción Vite en 6.75s (código 0).
+- `pnpm run ci`: Pipeline integral finalizado con código de salida 0.
+
+---
+
 ## [2026-09-07] Culminación Exitosa: Reconfiguración y Blindaje Integral de la Arquitectura Feature-Driven + UI Layers
 **Contexto y Problema Detectado:**
 - Se detectó una progresiva pérdida de la arquitectura Feature-Driven y de capas UI debido al rápido crecimiento del Modo Jugador:

@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
 import type { ObjetoInventario, TipoContenedor } from "@/tipos";
+import type { CriterioOrdenMochila } from "./inventarioConstantes";
+import { esObjetoEquipable } from "@/servicios/procesadorEquipamiento";
 import { logger } from "@/utiles/logger";
 
 interface ParametrosDragAndDropInventario {
@@ -7,14 +9,27 @@ interface ParametrosDragAndDropInventario {
   alCambiarContenedor?: (idInstancia: string, contenedor: TipoContenedor) => void;
   alAlternarEquipado: (idInstancia: string) => void;
   alReordenarInventario?: (idInstanciaOrigen: string, idInstanciaDestino: string) => void;
+  alCambiarOrden?: (orden: CriterioOrdenMochila) => void;
   agregarNotificacion: (mensaje: string, tipo?: "info" | "exito" | "advertencia" | "error") => void;
 }
+
+const DESTINOS_MOCHILA = new Set([
+  "mochila",
+  "consumibles",
+  "municion",
+  "armas",
+  "armaduras",
+  "herramientas",
+  "magicos",
+  "equipo"
+]);
 
 export function usarDragAndDropInventario({
   inventario,
   alCambiarContenedor,
   alAlternarEquipado,
   alReordenarInventario,
+  alCambiarOrden,
   agregarNotificacion
 }: ParametrosDragAndDropInventario) {
   const [zonaDropActiva, setZonaDropActiva] = useState<string | null>(null);
@@ -75,7 +90,7 @@ export function usarDragAndDropInventario({
       if (!objActual) return;
 
       if (destino === "equipados") {
-        if (!objActual.equipable) {
+        if (!esObjetoEquipable(objActual)) {
           agregarNotificacion(
             `"${objActual.nombre}" no es un objeto equipable (solo armas, armaduras o equipo vestible).`,
             "advertencia"
@@ -113,7 +128,11 @@ export function usarDragAndDropInventario({
         return;
       }
 
-      if (destino === "mochila") {
+      if (DESTINOS_MOCHILA.has(destino)) {
+        if (objActual.equipado) {
+          alAlternarEquipado(idInstancia);
+          agregarNotificacion(`"${objActual.nombre}" desequipado.`, "info");
+        }
         if (objActual.contenedor && objActual.contenedor !== "mochila") {
           alCambiarContenedor?.(idInstancia, "mochila");
           agregarNotificacion(`"${objActual.nombre}" movido a Mochila.`, "info");
@@ -121,10 +140,35 @@ export function usarDragAndDropInventario({
         return;
       }
 
-      // Reordenación libre dentro de la mochila
+      // Reordenación libre dentro de la mochila o soltado sobre ítem equipado
       if (destino.startsWith("item_") && alReordenarInventario) {
         const idDestino = destino.replace("item_", "");
         if (idDestino !== idInstancia) {
+          const objDestino = inventario.find((o) => o.idInstancia === idDestino);
+          if (objDestino?.equipado && !objActual.equipado) {
+            if (!esObjetoEquipable(objActual)) {
+              agregarNotificacion(
+                `"${objActual.nombre}" no es un objeto equipable (solo armas, armaduras o equipo vestible).`,
+                "advertencia"
+              );
+              return;
+            }
+            if (objActual.contenedor && objActual.contenedor !== "mochila") {
+              alCambiarContenedor?.(idInstancia, "mochila");
+            }
+            alAlternarEquipado(idInstancia);
+            agregarNotificacion(`"${objActual.nombre}" equipado.`, "exito");
+            return;
+          }
+
+          if (objActual.equipado) {
+            alAlternarEquipado(idInstancia);
+            agregarNotificacion(`"${objActual.nombre}" desequipado.`, "info");
+          }
+          if (objActual.contenedor && objActual.contenedor !== "mochila") {
+            alCambiarContenedor?.(idInstancia, "mochila");
+          }
+          alCambiarOrden?.("personalizado");
           alReordenarInventario(idInstancia, idDestino);
         }
       }

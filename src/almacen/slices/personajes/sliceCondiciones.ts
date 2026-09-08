@@ -1,9 +1,34 @@
 import type { StateCreator } from "zustand";
 import type { EstadoDM } from "@/almacen/usarAlmacenDM";
+import type { PersonajeJugador } from "@/tipos";
 import { aplicarCondicion, quitarCondicion } from "@/servicios/procesadorCondiciones";
 import { mutarPersonaje } from "../helpers/mutarPersonaje";
 import type { SubSliceCondiciones } from "./slicePersonajesTipos";
 import { coincideCondicionConRasgo } from "./condicionesRasgosHelpers";
+
+function sincronizarCondicionesEnIniciativa(
+  set: (fn: (state: EstadoDM) => Partial<EstadoDM>) => void,
+  pj: PersonajeJugador,
+  condiciones: string[]
+): void {
+  const nombreNorm = (pj.nombre || "").trim().toLowerCase();
+  set((state) => {
+    if (!state.colaIniciativa || state.colaIniciativa.length === 0) return {};
+    let huboCambio = false;
+    const nuevaCola = state.colaIniciativa.map((c) => {
+      const coincide =
+        c.id === pj.id ||
+        (pj.idMiniaturaTS && c.id === pj.idMiniaturaTS) ||
+        (nombreNorm && c.nombre.trim().toLowerCase() === nombreNorm);
+      if (coincide) {
+        huboCambio = true;
+        return { ...c, condiciones };
+      }
+      return c;
+    });
+    return huboCambio ? { colaIniciativa: nuevaCola } : {};
+  });
+}
 
 export const crearSubSliceCondiciones: StateCreator<
   EstadoDM,
@@ -12,6 +37,8 @@ export const crearSubSliceCondiciones: StateCreator<
   SubSliceCondiciones
 > = (set) => ({
   aplicarCondicionPersonaje: (id, condicion) => {
+    let pjObjetivo: PersonajeJugador | null = null;
+    let condicionesFinales: string[] = [];
     mutarPersonaje(set, id, (pj) => {
       const normalizada = condicion.trim().toLowerCase();
       const esCansancio =
@@ -24,11 +51,13 @@ export const crearSubSliceCondiciones: StateCreator<
         const condicionesFiltradas = (pj.condicionesActivas || []).filter(
           (c) => !c.toLowerCase().startsWith("cansado") && !c.toLowerCase().startsWith("agotado")
         );
-        return {
+        condicionesFinales = [...condicionesFiltradas, `Cansado (Niv. ${nuevoCansancio})`];
+        pjObjetivo = {
           ...pj,
           cansancio: nuevoCansancio,
-          condicionesActivas: [...condicionesFiltradas, `Cansado (Niv. ${nuevoCansancio})`]
+          condicionesActivas: condicionesFinales
         };
+        return pjObjetivo;
       }
 
       const nuevasCondiciones = aplicarCondicion(pj.condicionesActivas, condicion);
@@ -43,11 +72,19 @@ export const crearSubSliceCondiciones: StateCreator<
         return r;
       });
 
-      return { ...pj, condicionesActivas: nuevasCondiciones, rasgos: rasgosActualizados };
+      condicionesFinales = nuevasCondiciones;
+      pjObjetivo = { ...pj, condicionesActivas: nuevasCondiciones, rasgos: rasgosActualizados };
+      return pjObjetivo;
     });
+
+    if (pjObjetivo) {
+      sincronizarCondicionesEnIniciativa(set, pjObjetivo, condicionesFinales);
+    }
   },
 
   quitarCondicionPersonaje: (id, condicion) => {
+    let pjObjetivo: PersonajeJugador | null = null;
+    let condicionesFinales: string[] = [];
     mutarPersonaje(set, id, (pj) => {
       const normalizada = condicion.trim().toLowerCase();
       const esCansancio =
@@ -59,11 +96,13 @@ export const crearSubSliceCondiciones: StateCreator<
         const condicionesFiltradas = (pj.condicionesActivas || []).filter(
           (c) => !c.toLowerCase().startsWith("cansado") && !c.toLowerCase().startsWith("agotado")
         );
-        return {
+        condicionesFinales = condicionesFiltradas;
+        pjObjetivo = {
           ...pj,
           cansancio: 0,
           condicionesActivas: condicionesFiltradas
         };
+        return pjObjetivo;
       }
 
       const nuevasCondiciones = quitarCondicion(pj.condicionesActivas, condicion);
@@ -108,11 +147,18 @@ export const crearSubSliceCondiciones: StateCreator<
         });
       }
 
-      return { ...pj, condicionesActivas: nuevasCondiciones, rasgos: rasgosActualizados };
+      condicionesFinales = nuevasCondiciones;
+      pjObjetivo = { ...pj, condicionesActivas: nuevasCondiciones, rasgos: rasgosActualizados };
+      return pjObjetivo;
     });
+
+    if (pjObjetivo) {
+      sincronizarCondicionesEnIniciativa(set, pjObjetivo, condicionesFinales);
+    }
   },
 
   limpiarCondicionesPersonaje: (id) => {
+    let pjObjetivo: PersonajeJugador | null = null;
     mutarPersonaje(set, id, (pj) => {
       const rasgosDesactivados = (pj.rasgos || []).map((r) => {
         const rNom = r.nombre.toLowerCase().trim();
@@ -127,12 +173,17 @@ export const crearSubSliceCondiciones: StateCreator<
         }
         return r;
       });
-      return {
+      pjObjetivo = {
         ...pj,
         condicionesActivas: [],
         cansancio: 0,
         rasgos: rasgosDesactivados
       };
+      return pjObjetivo;
     });
+
+    if (pjObjetivo) {
+      sincronizarCondicionesEnIniciativa(set, pjObjetivo, []);
+    }
   }
 });

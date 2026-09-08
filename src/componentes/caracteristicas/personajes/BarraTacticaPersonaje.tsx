@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { SelectorSugerencias, ChipCondicion } from "@/componentes/comunes";
 import { CONDICIONES_2024, EFECTOS_PREDEFINIDOS } from "@/utiles/datosIniciales";
 import type { PenalizacionArmadura } from "@/almacen/selectores/usarEstadoPersonajes";
-import type { ConcentracionActiva } from "@/tipos";
+import type { ConcentracionActiva, EfectoActivoPj } from "@/tipos";
 import { Moon, Sunrise } from "lucide-react";
 import estilos from "./HojaPersonaje.module.css";
 
@@ -11,6 +11,8 @@ export type ModoTirada = "disv" | "plano" | "vent";
 interface BarraTacticaPersonajeProps {
   modoTirada: ModoTirada;
   condicionesActivas: string[];
+  efectosActivos?: EfectoActivoPj[];
+  rondaActual?: number;
   hpActual: number;
   hpMaximo: number;
   penalizacionArmadura?: PenalizacionArmadura | null;
@@ -21,12 +23,15 @@ interface BarraTacticaPersonajeProps {
   alEjecutarDescansoLargo: () => void;
   alAplicarCondicion: (condicion: string) => void;
   alQuitarCondicion: (condicion: string) => void;
+  alQuitarEfecto?: (idEfecto: string) => void;
   alRomperConcentracion?: () => void;
 }
 
 const BarraTacticaPersonajeComponent: React.FC<BarraTacticaPersonajeProps> = ({
   modoTirada,
   condicionesActivas,
+  efectosActivos = [],
+  rondaActual,
   hpActual,
   hpMaximo,
   penalizacionArmadura,
@@ -37,6 +42,7 @@ const BarraTacticaPersonajeComponent: React.FC<BarraTacticaPersonajeProps> = ({
   alEjecutarDescansoLargo,
   alAplicarCondicion,
   alQuitarCondicion,
+  alQuitarEfecto,
   alRomperConcentracion
 }) => {
   const [condicionSeleccionada, setCondicionSeleccionada] = useState("");
@@ -52,13 +58,31 @@ const BarraTacticaPersonajeComponent: React.FC<BarraTacticaPersonajeProps> = ({
   const tieneDesventajaSigilo = Boolean(desventajaSigiloArmadura);
   const tieneConcentracion = Boolean(concentracionActiva);
 
-  // Filtrar condiciones manuales para evitar duplicar las automáticas
+  // Filtrar efectos para no duplicar el chip de concentración si ya se muestra arriba
+  const efectosFiltrados = efectosActivos.filter((ef) => {
+    if (tieneConcentracion && (ef.concentracion || ef.id === "ef_concentracion" || ef.nombre.toLowerCase().startsWith("concentra"))) {
+      return false;
+    }
+    return true;
+  });
+
+  const nombresEfectosSet = new Set<string>();
+  efectosFiltrados.forEach((ef) => {
+    const efMin = ef.nombre.toLowerCase().trim();
+    const efBase = ef.nombre.split(" (")[0].toLowerCase().trim();
+    nombresEfectosSet.add(efMin);
+    nombresEfectosSet.add(efBase);
+  });
+
+  // Filtrar condiciones manuales para evitar duplicar las automáticas, concentración o efectos activos
   const condicionesManuales = condicionesActivas.filter((cond) => {
-    const min = cond.toLowerCase();
-    if (tieneConcentracion && min === "concentración") return false;
+    const min = cond.toLowerCase().trim();
+    const base = cond.split(" (")[0].toLowerCase().trim();
+    if (min.includes("concentra")) return false;
     if (min.includes("desangr") || min.includes("bloodied")) return false;
     if (tienePenalizacionArmadura && (min.includes("sin competencia") || min.includes("incompetencia"))) return false;
     if (tieneDesventajaSigilo && (min.includes("desventaja en sigilo") || min.includes("sigilo ruidoso"))) return false;
+    if (nombresEfectosSet.has(min) || nombresEfectosSet.has(base)) return false;
     return true;
   });
 
@@ -67,7 +91,8 @@ const BarraTacticaPersonajeComponent: React.FC<BarraTacticaPersonajeProps> = ({
     estaDesangrandose ||
     tienePenalizacionArmadura ||
     tieneDesventajaSigilo ||
-    tieneConcentracion;
+    tieneConcentracion ||
+    efectosFiltrados.length > 0;
 
   return (
     <section className={`${estilos.neoRaised} ${estilos.seccionBarraTactica}`}>
@@ -151,7 +176,14 @@ const BarraTacticaPersonajeComponent: React.FC<BarraTacticaPersonajeProps> = ({
 
       {/* Columna Derecha: Condiciones Activas y Efectos Automáticos */}
       <div className={`${estilos.columnaCondicionesActivas} ${estilos.neoPressed}`}>
-        <span className={estilos.tituloCondicionesActivas}>Condiciones Activas</span>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%", marginBottom: "4px" }}>
+          <span className={estilos.tituloCondicionesActivas}>Condiciones y Efectos</span>
+          {rondaActual !== undefined && rondaActual > 0 && (
+            <span style={{ fontSize: "10px", color: "var(--color-texto-apagado)", fontWeight: 700 }}>
+              Ronda {rondaActual}
+            </span>
+          )}
+        </div>
         <div className={estilos.listaChipsCondiciones}>
           {hayCondicionesOEstados ? (
             <>
@@ -196,13 +228,13 @@ const BarraTacticaPersonajeComponent: React.FC<BarraTacticaPersonajeProps> = ({
                   nombre="Concentración"
                   concentracion
                   textoCustom={`[CON] ${concentracionActiva.nombreHechizo.toUpperCase()}`}
-                  tooltipCustom={`Concentración Activa\n\n• Manteniendo conjuro: ${concentracionActiva.nombreHechizo}.\n• Si sufres daño, debes superar una salvación de Constitución (CD 10 o mitad del daño recibido).`}
+                  tooltipCustom={`Concentración Activa\n\n• Manteniendo conjuro: ${concentracionActiva.nombreHechizo}.\n• Si sufres daño, debes superar una salvación de Constitución (CD 10 o mitad del daño recibido).\n• Quedar incapacitado o lanzar otro conjuro de concentración rompe este efecto inmediatamente (D&D 5.5e).`}
                   alineacionTooltip="derecha"
                   onQuitar={alRomperConcentracion}
                 />
               )}
 
-              {/* Condiciones manuales añadidas por el usuario */}
+              {/* Condiciones de estado manuales añadidas por el usuario */}
               {condicionesManuales.map((cond) => (
                 <ChipCondicion
                   key={cond}
@@ -211,9 +243,28 @@ const BarraTacticaPersonajeComponent: React.FC<BarraTacticaPersonajeProps> = ({
                   onQuitar={() => alQuitarCondicion(cond)}
                 />
               ))}
+
+              {/* Efectos mágicos y temporales con rondas restantes */}
+              {efectosFiltrados.map((ef) => {
+                const rondasRestantes = (ef.expiraRonda !== undefined && rondaActual !== undefined)
+                  ? Math.max(0, ef.expiraRonda - rondaActual)
+                  : undefined;
+
+                return (
+                  <ChipCondicion
+                    key={ef.id}
+                    nombre={ef.nombre}
+                    concentracion={ef.concentracion}
+                    expiraRonda={ef.expiraRonda}
+                    rondasRestantes={rondasRestantes}
+                    alineacionTooltip="derecha"
+                    onQuitar={alQuitarEfecto ? () => alQuitarEfecto(ef.id) : undefined}
+                  />
+                );
+              })}
             </>
           ) : (
-            <span className={estilos.textoSinCondiciones}>Sin estados alterados</span>
+            <span className={estilos.textoSinCondiciones}>Sin estados alterados ni efectos</span>
           )}
         </div>
       </div>

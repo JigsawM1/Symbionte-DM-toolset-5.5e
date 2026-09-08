@@ -9,6 +9,7 @@ export interface ChipCondicionProps {
   esSigilo?: boolean;
   concentracion?: boolean;
   expiraRonda?: number;
+  rondasRestantes?: number;
   textoCustom?: string;
   tooltipCustom?: string;
   alineacionTooltip?: "izquierda" | "derecha";
@@ -28,6 +29,7 @@ export const ChipCondicion: React.FC<ChipCondicionProps> = ({
   esSigilo,
   concentracion,
   expiraRonda,
+  rondasRestantes,
   textoCustom,
   tooltipCustom,
   alineacionTooltip,
@@ -57,6 +59,13 @@ export const ChipCondicion: React.FC<ChipCondicionProps> = ({
     nombreMin.includes("furia de los dioses") ||
     nombreMin.includes("rage of the gods");
 
+  const esEfectoConcentracion = Boolean(
+    concentracion ||
+    nombreMin.startsWith("concentra") ||
+    nombreMin.includes("concentración") ||
+    nombreMin.includes("concentracion")
+  );
+
   // Determinar variante visual
   let claseVariante = "chip-condicion-estandar";
   if (esBloodied) {
@@ -65,7 +74,7 @@ export const ChipCondicion: React.FC<ChipCondicionProps> = ({
     claseVariante = "chip-condicion-penalizacion";
   } else if (esDesventajaSigilo) {
     claseVariante = "chip-condicion-sigilo";
-  } else if (concentracion) {
+  } else if (esEfectoConcentracion) {
     claseVariante = "chip-condicion-concentracion";
   } else if (esFuriaDeLosDioses || expiraRonda !== undefined) {
     claseVariante = "chip-condicion-magico";
@@ -81,26 +90,59 @@ export const ChipCondicion: React.FC<ChipCondicionProps> = ({
 
   // Texto principal
   const nombreLimpio = nombre.replace(/\u{1FA78}\s*/gu, "");
-  const prefijoConcentracion = concentracion ? "[CON] " : "";
+  let nombreEfectivo = nombreLimpio;
+  if (esEfectoConcentracion) {
+    const nombreConjuroExtraido = nombreLimpio
+      .replace(/^concentraci[oó]n:\s*/i, "")
+      .replace(/^concentraci[oó]n\s*\((.*?)\)$/i, "$1")
+      .trim();
+    if (nombreConjuroExtraido && !nombreConjuroExtraido.toLowerCase().startsWith("concentra")) {
+      nombreEfectivo = nombreConjuroExtraido;
+    }
+  } else {
+    nombreEfectivo = nombreLimpio.split(" (")[0];
+  }
+  const prefijoConcentracion = esEfectoConcentracion ? "[CON] " : "";
   const textoAMostrar =
     textoCustom ||
-    `${prefijoConcentracion}${nombreLimpio.split(" (")[0].toUpperCase()}`;
+    `${prefijoConcentracion}${nombreEfectivo.toUpperCase()}`;
 
   // Texto del tooltip enriquecido
   let tooltipTexto = tooltipCustom;
   if (!tooltipTexto) {
+    let contenidoBase = "";
     if (esBloodied) {
-      tooltipTexto = `${detalle.titulo} (<50% de Vida)\n\n• ${detalle.descripcion}`;
+      contenidoBase = `${detalle.titulo} (<50% de Vida)\n\n• ${detalle.descripcion}`;
+    } else if (esEfectoConcentracion) {
+      const esSoloConcentracion =
+        nombreEfectivo.toLowerCase() === "concentración" ||
+        nombreEfectivo.toLowerCase() === "concentracion";
+      const spellLabel = !esSoloConcentracion ? ` (${nombreEfectivo})` : "";
+      contenidoBase = `Concentración${spellLabel}\n\n• Requiere mantener la concentración activa.\n• Al recibir daño: Salvación de Constitución CD 10 o la mitad del daño recibido (la que sea mayor).\n• Quedar incapacitado o lanzar otro conjuro de concentración rompe este efecto inmediatamente (D&D 5.5e).`;
     } else if (detalle.efectos && detalle.efectos.length > 0) {
-      tooltipTexto = `${detalle.titulo}\n\n${detalle.efectos.map((e) => `• ${e}`).join("\n")}`;
+      contenidoBase = `${detalle.titulo}\n\n${detalle.efectos.map((e) => `• ${e}`).join("\n")}`;
     } else {
-      tooltipTexto = `${detalle.titulo}\n\n• ${detalle.descripcion}`;
+      contenidoBase = `${detalle.titulo}\n\n• ${detalle.descripcion}`;
+    }
+
+    if (expiraRonda !== undefined) {
+      const infoRondas =
+        rondasRestantes !== undefined
+          ? ` (le quedan ${rondasRestantes} rondas activas)`
+          : "";
+      tooltipTexto = `${contenidoBase}\n\n• Expira en la ronda ${expiraRonda}${infoRondas}.`;
+    } else {
+      tooltipTexto = contenidoBase;
     }
   }
 
   // Expiración por rondas
   const tieneExpiracion = expiraRonda !== undefined;
-  const textoExpiracion = tieneExpiracion ? `R.${expiraRonda}` : "";
+  const textoExpiracion = tieneExpiracion
+    ? rondasRestantes !== undefined
+      ? `R.${expiraRonda} (${rondasRestantes}r)`
+      : `R.${expiraRonda}`
+    : "";
 
   return (
     <div

@@ -650,6 +650,7 @@ export function usarAccionesPersonajes() {
       personalizarCaracteristicaPersonaje: s.personalizarCaracteristicaPersonaje,
       aplicarCondicionPersonaje:          s.aplicarCondicionPersonaje,
       quitarCondicionPersonaje:           s.quitarCondicionPersonaje,
+      quitarEfectoPersonaje:              s.quitarEfectoPersonaje,
       vincularMiniaturaTSPersonaje:       s.vincularMiniaturaTSPersonaje,
 
       // Magia y Lanzamiento de Conjuros

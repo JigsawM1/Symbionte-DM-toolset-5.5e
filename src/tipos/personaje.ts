@@ -218,6 +218,15 @@ export const EsquemaObjetoInventario = z.object({
 });
 export type ObjetoInventario = z.infer<typeof EsquemaObjetoInventario>;
 
+export const EsquemaEfectoActivo = z.object({
+  id: z.string(),
+  nombre: z.string(),
+  expiraRonda: z.number().int().optional(),
+  concentracion: z.boolean().optional(),
+  duracion: z.number().optional()
+});
+export type EfectoActivoPj = z.infer<typeof EsquemaEfectoActivo>;
+
 // ==========================================
 // 4. ESQUEMA PRINCIPAL DEL PERSONAJE JUGADOR
 // ==========================================
@@ -285,6 +294,7 @@ export const EsquemaPersonajeJugador = z.object({
 
   // Condiciones y Efectos Activos
   condicionesActivas: z.array(z.string()).default([]),
+  efectosActivos: z.array(EsquemaEfectoActivo).default([]),
 
   // Métricas de Combate Rápido
   ca: z.number().int().default(10),

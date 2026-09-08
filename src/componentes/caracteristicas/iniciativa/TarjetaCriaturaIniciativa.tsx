@@ -26,6 +26,7 @@ interface TarjetaCriaturaIniciativaProps {
   onEstablecerIniciativa: (nuevaIniciativa: number) => void;
   onLanzarAtaqueRapido: (ataqueNombre: string, bonoAtaque: string, dadosDaño: string, tipoDaño: string) => void;
   obtenerPercepcionPasiva: (plantilla: MonstruoBase | null) => number;
+  rondaActual?: number;
 }
 
 export const TarjetaCriaturaIniciativa: React.FC<TarjetaCriaturaIniciativaProps> = React.memo(({
@@ -33,6 +34,7 @@ export const TarjetaCriaturaIniciativa: React.FC<TarjetaCriaturaIniciativaProps>
   esTurnoActivo,
   estaSeleccionadaEnTS = false,
   plantilla,
+  rondaActual,
   onEliminar,
   onSeleccionar,
   onCurar,
@@ -239,13 +241,30 @@ export const TarjetaCriaturaIniciativa: React.FC<TarjetaCriaturaIniciativaProps>
 
         {/* Chips de Condiciones */}
         <div className={estilosClases.filaCondicionesChips}>
-          {criatura.condiciones.map((cond) => (
-            <ChipCondicion
-              key={cond}
-              nombre={cond}
-              onQuitar={() => onQuitarCondicion(cond)}
-            />
-          ))}
+          {(() => {
+            const tieneEfectoConcentracion = (criatura.efectos || []).some(
+              (ef) => ef.concentracion || ef.nombre.toLowerCase().startsWith("concentra")
+            );
+            const nombresEfectosSet = new Set<string>();
+            (criatura.efectos || []).forEach((ef) => {
+              nombresEfectosSet.add(ef.nombre.toLowerCase().trim());
+              nombresEfectosSet.add(ef.nombre.split(" (")[0].toLowerCase().trim());
+            });
+            const condicionesVisibles = (criatura.condiciones || []).filter((cond) => {
+              const condMin = cond.toLowerCase().trim();
+              const condBase = cond.split(" (")[0].toLowerCase().trim();
+              if (tieneEfectoConcentracion && condMin.includes("concentra")) return false;
+              if (nombresEfectosSet.has(condMin) || nombresEfectosSet.has(condBase)) return false;
+              return true;
+            });
+            return condicionesVisibles.map((cond) => (
+              <ChipCondicion
+                key={cond}
+                nombre={cond}
+                onQuitar={() => onQuitarCondicion(cond)}
+              />
+            ));
+          })()}
 
           {criatura.vidaActual > 0 && criatura.vidaActual < (criatura.vidaMaxima / 2) && (
             <ChipCondicion nombre="Desangrándose" esDesangrado />
@@ -289,15 +308,21 @@ export const TarjetaCriaturaIniciativa: React.FC<TarjetaCriaturaIniciativaProps>
         {/* Chips de Efectos Activos y Selector de Efectos */}
         <div className={estilosClases.filaCondicionesChips} style={{ marginTop: "4px" }}>
           {criatura.efectos && criatura.efectos.length > 0 ? (
-            criatura.efectos.map((ef) => (
-              <ChipCondicion
-                key={ef.id}
-                nombre={ef.nombre}
-                concentracion={ef.concentracion}
-                expiraRonda={ef.expiraRonda}
-                onQuitar={() => onQuitarEfecto(ef.id)}
-              />
-            ))
+            criatura.efectos.map((ef) => {
+              const rondasRestantes = (ef.expiraRonda !== undefined && rondaActual !== undefined)
+                ? Math.max(0, ef.expiraRonda - rondaActual)
+                : undefined;
+              return (
+                <ChipCondicion
+                  key={ef.id}
+                  nombre={ef.nombre}
+                  concentracion={ef.concentracion}
+                  expiraRonda={ef.expiraRonda}
+                  rondasRestantes={rondasRestantes}
+                  onQuitar={() => onQuitarEfecto(ef.id)}
+                />
+              );
+            })
           ) : null}
 
           {/* Mini Selector Directo para añadir efectos */}

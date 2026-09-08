@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from "react";
 import { usarEstadoIniciativa, usarEstadoConfiguracion } from "@/almacen/selectores";
-import { obtenerDetalleCondicion } from "@/servicios/resolutorCondiciones";
-import { Users, Swords, ShieldAlert, Heart } from "lucide-react";
+import { ChipCondicion } from "@/componentes/comunes";
+import { Users, Swords, Heart } from "lucide-react";
 import estilos from "./IniciativaJugador.module.css";
 
 export const IniciativaJugador: React.FC = () => {
@@ -47,10 +47,23 @@ export const IniciativaJugador: React.FC = () => {
               const colorVida = porcentaje > 50 ? "#34d399" : porcentaje > 25 ? "#fbbf24" : "#ef4444";
               const estadoTexto = porcentaje > 50 ? "Saludable" : porcentaje > 0 ? "Herido" : "Inconsciente";
 
-              const efectosActivos = [
-                ...(item.condiciones || []),
-                ...(item.efectos || []).map((e) => e.nombre)
-              ];
+              const tieneEfectoConcentracion = (item.efectos || []).some(
+                (ef) => ef.concentracion || ef.nombre.toLowerCase().startsWith("concentra")
+              );
+              const nombresEfectosSet = new Set<string>();
+              (item.efectos || []).forEach((ef) => {
+                nombresEfectosSet.add(ef.nombre.toLowerCase().trim());
+                nombresEfectosSet.add(ef.nombre.split(" (")[0].toLowerCase().trim());
+              });
+              const condicionesVisibles = (item.condiciones || []).filter((c) => {
+                const cMin = c.toLowerCase().trim();
+                const cBase = c.split(" (")[0].toLowerCase().trim();
+                if (tieneEfectoConcentracion && cMin.includes("concentra")) return false;
+                if (nombresEfectosSet.has(cMin) || nombresEfectosSet.has(cBase)) return false;
+                return true;
+              });
+              const efectosVisibles = item.efectos || [];
+              const tieneEstados = condicionesVisibles.length > 0 || efectosVisibles.length > 0;
 
               return (
                 <div
@@ -93,32 +106,31 @@ export const IniciativaJugador: React.FC = () => {
                     )}
                   </div>
 
-                  {/* Fila Inferior: Condiciones y Efectos Activos con Hover Tooltip */}
-                  {efectosActivos.length > 0 && (
+                  {/* Fila Inferior: Condiciones y Efectos Activos con Hover Tooltip y Duración */}
+                  {tieneEstados && (
                     <div className={estilos.seccionCondiciones}>
-                      {efectosActivos.map((cond, cIdx) => {
-                        const detalle = obtenerDetalleCondicion(cond);
+                      {/* Condiciones de Estado */}
+                      {condicionesVisibles.map((cond, cIdx) => (
+                        <ChipCondicion
+                          key={`cond-${cIdx}-${cond}`}
+                          nombre={cond}
+                        />
+                      ))}
+
+                      {/* Efectos Temporales y Concentración con Rondas Restantes */}
+                      {efectosVisibles.map((ef) => {
+                        const rondasRestantes = ef.expiraRonda !== undefined
+                          ? Math.max(0, ef.expiraRonda - rondaActual)
+                          : undefined;
 
                         return (
-                          <div key={cIdx} className={estilos.contenedorInsignia}>
-                            <div className={estilos.insigniaCondicion}>
-                              <ShieldAlert size={12} style={{ color: "#f87171" }} />
-                              <span>{cond}</span>
-                            </div>
-
-                            {/* Tooltip UI Flotante para CEF TaleSpire */}
-                            <div className={estilos.tooltipFlotante}>
-                              <div className={estilos.tooltipTitulo}>{detalle.titulo}</div>
-                              <div className={estilos.tooltipDesc}>{detalle.descripcion}</div>
-                              {detalle.efectos && detalle.efectos.length > 0 && (
-                                <ul className={estilos.listaEfectosTooltip}>
-                                  {detalle.efectos.map((ef, efIdx) => (
-                                    <li key={efIdx}>{ef}</li>
-                                  ))}
-                                </ul>
-                              )}
-                            </div>
-                          </div>
+                          <ChipCondicion
+                            key={`ef-${ef.id}`}
+                            nombre={ef.nombre}
+                            concentracion={ef.concentracion}
+                            expiraRonda={ef.expiraRonda}
+                            rondasRestantes={rondasRestantes}
+                          />
                         );
                       })}
                     </div>

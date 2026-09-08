@@ -93,6 +93,41 @@ export function sincronizarConEstadoLocal(opciones: OpcionesSincronizacion): Res
 
     if (pjAsociado) {
       const statsPj = calcularEstadisticasPersonaje(pjAsociado);
+
+      let condicionesPj = pjAsociado.condicionesActivas?.length
+        ? [...pjAsociado.condicionesActivas]
+        : existente
+        ? [...existente.condiciones]
+        : [];
+
+      let efectosPj = pjAsociado.efectosActivos?.length
+        ? [...pjAsociado.efectosActivos]
+        : existente?.efectos
+        ? [...existente.efectos]
+        : [];
+
+      if (pjAsociado.concentracionActiva) {
+        const nombreHechizo = pjAsociado.concentracionActiva.nombreHechizo;
+        // Limpiar de condiciones para no duplicar con el efecto
+        condicionesPj = condicionesPj.filter((c) => !c.toLowerCase().includes("concentra"));
+
+        const yaTieneEfecto = efectosPj.some(
+          (e) => e.concentracion || e.id === "ef_concentracion" || e.nombre.toLowerCase().includes("concentra")
+        );
+        if (!yaTieneEfecto) {
+          efectosPj.push({
+            id: "ef_concentracion",
+            nombre: `Concentración: ${nombreHechizo}`,
+            concentracion: true
+          });
+        }
+      } else {
+        condicionesPj = condicionesPj.filter((c) => !c.toLowerCase().includes("concentra"));
+        efectosPj = efectosPj.filter(
+          (e) => !e.concentracion && e.id !== "ef_concentracion" && !e.nombre.toLowerCase().includes("concentra")
+        );
+      }
+
       return {
         id: cTS.id,
         nombre: pjAsociado.nombre,
@@ -101,8 +136,8 @@ export function sincronizarConEstadoLocal(opciones: OpcionesSincronizacion): Res
         vidaActual: pjAsociado.hpActual !== undefined ? pjAsociado.hpActual : (pjAsociado.hpMaximo || 10),
         vidaTemporal: pjAsociado.hpTemporal || 0,
         ca: statsPj.claseArmadura.total,
-        condiciones: pjAsociado.condicionesActivas?.length ? pjAsociado.condicionesActivas : (existente ? existente.condiciones : []),
-        efectos: existente ? existente.efectos : [],
+        condiciones: condicionesPj,
+        efectos: efectosPj,
         bonificadorIniciativa: statsPj.modificadores.destreza,
         esMonstruo: false,
         velocidad: `${pjAsociado.velocidad || "30 pies"}`

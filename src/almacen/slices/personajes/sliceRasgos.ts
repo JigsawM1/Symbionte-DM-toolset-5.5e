@@ -13,13 +13,15 @@ import {
   resolverCondicionAsociadaRasgo,
   coincideCondicionConRasgo
 } from "./condicionesRasgosHelpers";
+import { EFECTOS_PREDEFINIDOS } from "@/utiles/datosIniciales";
+import { generarId } from "@/utiles/generarId";
 
 export const crearSubSliceRasgos: StateCreator<
   EstadoDM,
   [],
   [],
   SubSliceRasgos
-> = (set) => ({
+> = (set, get) => ({
   agregarRasgoPersonaje: (idPj, rasgo) => {
     mutarPersonaje(set, idPj, (pj) => {
       const rasgosActuales = pj.rasgos || [];
@@ -170,14 +172,42 @@ export const crearSubSliceRasgos: StateCreator<
       const condicionAsociada = resolverCondicionAsociadaRasgo(targetTrait);
       const debeAutoDesactivarTarget = Boolean(nuevoActivo && (targetTrait.autoDesactivar || esFuriaPersistente));
 
+      let efectosActualizados = pj.efectosActivos || [];
       if (condicionAsociada && !debeAutoDesactivarTarget) {
+        const efectoDef = EFECTOS_PREDEFINIDOS.find((ep) => {
+          const epNorm = ep.nombre.toLowerCase().trim();
+          const epBase = ep.nombre.split(" (")[0].toLowerCase().trim();
+          const asocNorm = condicionAsociada.toLowerCase().trim();
+          const asocBase = condicionAsociada.split(" (")[0].toLowerCase().trim();
+          return epNorm === asocNorm || epBase === asocBase || epNorm.includes(asocBase) || asocNorm.includes(epBase);
+        });
+
         if (nuevoActivo) {
           const yaTieneCond = condicionesActualizadas.some((c) => coincideCondicionConRasgo(c, targetTrait));
           if (!yaTieneCond) {
             condicionesActualizadas = aplicarCondicion(condicionesActualizadas, condicionAsociada);
           }
+          if (efectoDef && efectoDef.duracionEstandar > 0) {
+            const nombreLimpioEfecto = efectoDef.nombre.split(" (")[0];
+            const yaTieneEfecto = efectosActualizados.some((e) => e.nombre.toLowerCase().trim() === nombreLimpioEfecto.toLowerCase().trim());
+            if (!yaTieneEfecto) {
+              const rondaActual = get().rondaActual || 1;
+              const nuevoEfecto = {
+                id: generarId(nombreLimpioEfecto.toLowerCase().replace(/[^a-z0-9]/g, '_').substring(0, 20)),
+                nombre: nombreLimpioEfecto,
+                expiraRonda: rondaActual + efectoDef.duracionEstandar,
+                concentracion: efectoDef.esConcentracion
+              };
+              efectosActualizados = [...efectosActualizados, nuevoEfecto];
+            }
+          }
         } else {
           condicionesActualizadas = condicionesActualizadas.filter((c) => !coincideCondicionConRasgo(c, targetTrait));
+          const asocBase = condicionAsociada.split(" (")[0].toLowerCase().trim();
+          efectosActualizados = efectosActualizados.filter((e) => {
+            const eBase = e.nombre.split(" (")[0].toLowerCase().trim();
+            return eBase !== asocBase && !coincideCondicionConRasgo(e.nombre, targetTrait);
+          });
         }
       }
 
@@ -243,7 +273,8 @@ export const crearSubSliceRasgos: StateCreator<
       const pjPrevio = {
         ...pj,
         rasgos: rasgosActualizados,
-        condicionesActivas: condicionesActualizadas
+        condicionesActivas: condicionesActualizadas,
+        efectosActivos: efectosActualizados
       };
       const tieneAprendiz = tieneMedioBonoHabilidades(pjPrevio);
       const gradosActualizados = aplicarAprendizDeMuchoAGradosHabilidades(
@@ -256,6 +287,37 @@ export const crearSubSliceRasgos: StateCreator<
         gradosHabilidades: gradosActualizados
       };
     });
+
+    const state = get();
+    if (state.colaIniciativa && state.colaIniciativa.length > 0) {
+      const pjActualizado = state.personajes.find((p) => p.id === idPj);
+      if (pjActualizado) {
+        const nombreNorm = (pjActualizado.nombre || "").trim().toLowerCase();
+        const nuevaCola = state.colaIniciativa.map((c) => {
+          const coincide =
+            c.id === pjActualizado.id ||
+            (pjActualizado.idMiniaturaTS && c.id === pjActualizado.idMiniaturaTS) ||
+            (nombreNorm && c.nombre.trim().toLowerCase() === nombreNorm);
+          if (!coincide) return c;
+
+          const efectosPj = pjActualizado.efectosActivos || [];
+          const nombresEfectos = new Set(efectosPj.map((e) => e.nombre.toLowerCase().trim()));
+          const tieneEfectoConcentracion = efectosPj.some(
+            (ef) => ef.concentracion || ef.nombre.toLowerCase().startsWith("concentra")
+          );
+          const condicionesSinDuplicados = (pjActualizado.condicionesActivas || []).filter((cond) => {
+            const cNorm = cond.toLowerCase().trim();
+            const cBase = cond.split(" (")[0].toLowerCase().trim();
+            if (tieneEfectoConcentracion && cNorm.includes("concentra")) return false;
+            if (nombresEfectos.has(cNorm) || nombresEfectos.has(cBase)) return false;
+            return true;
+          });
+
+          return { ...c, condiciones: condicionesSinDuplicados, efectos: efectosPj };
+        });
+        set({ colaIniciativa: nuevaCola });
+      }
+    }
   },
 
   actualizarSeleccionRasgo: (idPj, idRasgo, idSelector, valorActual) => {

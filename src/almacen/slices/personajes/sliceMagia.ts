@@ -1,5 +1,5 @@
 import type { StateCreator } from "zustand";
-import type { EstadoDM } from "@/almacen/usarAlmacenDM";
+import type { EstadoDM, EfectoActivo } from "@/almacen/usarAlmacenDM";
 import {
   calcularTodosRecursosMagicos,
   obtenerConjurosSubclasePersonaje
@@ -8,6 +8,66 @@ import { coincideHechizoId } from "@/servicios/comparadorHechizos";
 import { sincronizarConjurosSubclaseHelper } from "@/servicios/sincronizadorConjurosSubclase";
 import { mutarPersonaje } from "../helpers/mutarPersonaje";
 import type { SubSliceMagia } from "./slicePersonajesTipos";
+
+function sincronizarConcentracionEnIniciativa(
+  set: (fn: (state: EstadoDM) => Partial<EstadoDM>) => void,
+  idPj: string,
+  nombreHechizo: string | null
+): void {
+  set((state) => {
+    if (!state.colaIniciativa || state.colaIniciativa.length === 0) return {};
+    const pj = state.personajes.find((p) => p.id === idPj);
+    if (!pj) return {};
+    const nombreNorm = (pj.nombre || "").trim().toLowerCase();
+
+    let huboCambio = false;
+    const nuevaCola = state.colaIniciativa.map((c) => {
+      const coincide =
+        c.id === idPj ||
+        (pj.idMiniaturaTS && c.id === pj.idMiniaturaTS) ||
+        (nombreNorm && c.nombre.trim().toLowerCase() === nombreNorm);
+
+      if (!coincide) return c;
+      huboCambio = true;
+
+      if (nombreHechizo) {
+        // La concentración es un efecto de conjuro, se limpia de condiciones para evitar duplicación
+        const nuevasCondiciones = (c.condiciones || []).filter(
+          (cond) => !cond.toLowerCase().includes("concentra")
+        );
+
+        const efectosSinConcentracion = (c.efectos || []).filter(
+          (e) => !e.concentracion && e.id !== "ef_concentracion" && !e.nombre.toLowerCase().startsWith("concentra")
+        );
+        const nuevoEfecto: EfectoActivo = {
+          id: "ef_concentracion",
+          nombre: `Concentración: ${nombreHechizo}`,
+          concentracion: true
+        };
+
+        return {
+          ...c,
+          condiciones: nuevasCondiciones,
+          efectos: [...efectosSinConcentracion, nuevoEfecto]
+        };
+      } else {
+        const nuevasCondiciones = (c.condiciones || []).filter(
+          (cond) => !cond.toLowerCase().includes("concentra")
+        );
+        const nuevosEfectos = (c.efectos || []).filter(
+          (e) => !e.concentracion && e.id !== "ef_concentracion" && !e.nombre.toLowerCase().startsWith("concentra")
+        );
+        return {
+          ...c,
+          condiciones: nuevasCondiciones,
+          efectos: nuevosEfectos
+        };
+      }
+    });
+
+    return huboCambio ? { colaIniciativa: nuevaCola } : {};
+  });
+}
 
 export const crearSubSliceMagia: StateCreator<
   EstadoDM,
@@ -83,16 +143,26 @@ export const crearSubSliceMagia: StateCreator<
 
   establecerConcentracion: (id, hechizoId, nombreHechizo) => {
     mutarPersonaje(set, id, (pj) => {
-      const condiciones = pj.condicionesActivas || [];
-      const tieneCondicion = condiciones.some((c) => c.toLowerCase().includes("concentra"));
-      const nuevasCondiciones = tieneCondicion ? condiciones : [...condiciones, "Concentración"];
+      const condiciones = (pj.condicionesActivas || []).includes("Concentración")
+        ? pj.condicionesActivas
+        : [...(pj.condicionesActivas || []), "Concentración"];
+      const otrosEfectos = (pj.efectosActivos || []).filter(
+        (e) => !e.concentracion && e.id !== "ef_concentracion" && !e.nombre.toLowerCase().startsWith("concentra")
+      );
+      const nuevoEfecto = {
+        id: "ef_concentracion",
+        nombre: `Concentración: ${nombreHechizo}`,
+        concentracion: true
+      };
 
       return {
         ...pj,
         concentracionActiva: { hechizoId, nombreHechizo },
-        condicionesActivas: nuevasCondiciones
+        condicionesActivas: condiciones,
+        efectosActivos: [...otrosEfectos, nuevoEfecto]
       };
     });
+    sincronizarConcentracionEnIniciativa(set, id, nombreHechizo);
   },
 
   romperConcentracion: (id) => {
@@ -100,12 +170,17 @@ export const crearSubSliceMagia: StateCreator<
       const nuevasCondiciones = (pj.condicionesActivas || []).filter(
         (c) => !c.toLowerCase().includes("concentra")
       );
+      const nuevosEfectos = (pj.efectosActivos || []).filter(
+        (e) => !e.concentracion && e.id !== "ef_concentracion" && !e.nombre.toLowerCase().startsWith("concentra")
+      );
       return {
         ...pj,
         concentracionActiva: null,
-        condicionesActivas: nuevasCondiciones
+        condicionesActivas: nuevasCondiciones,
+        efectosActivos: nuevosEfectos
       };
     });
+    sincronizarConcentracionEnIniciativa(set, id, null);
   },
 
   agregarTrucoConocido: (id, hechizoId) => {

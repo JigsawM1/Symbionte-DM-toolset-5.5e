@@ -10,7 +10,7 @@ import {
   usarPestanaActiva
 } from "@/almacen/selectores/usarEstadoConfiguracion";
 import { usarEstadoHomebrew } from "@/almacen/selectores/usarEstadoHomebrew";
-import { usarAccionesIniciativa } from "@/almacen/selectores/usarEstadoIniciativa";
+import { usarAccionesIniciativa, usarEstadoIniciativa } from "@/almacen/selectores/usarEstadoIniciativa";
 import { lanzarDadosTaleSpire, sanitizarEtiqueta, type MetadataIniciativa } from "@/utiles/lanzadorDados";
 import { logger } from "@/utiles/logger";
 import { MAPA_HABILIDAD_A_CARACTERISTICA } from "@/constantes";
@@ -77,10 +77,12 @@ export const HojaPersonaje: React.FC<HojaPersonajeProps> = ({ alAbrirConfiguraci
     romperConcentracion,
     quitarTrucoConocido,
     alternarConjuroPreparado,
-    desprepararConjuroPersonaje
+    desprepararConjuroPersonaje,
+    quitarEfectoPersonaje
   } = usarAccionesPersonajes();
 
   const { establecerTipoTirada } = usarAccionesIniciativa();
+  const { rondaActual } = usarEstadoIniciativa();
 
   const [modalEdicionAbierto, setModalEdicionAbierto] = useState(false);
   const [modalCompetencias, setModalCompetencias] = useState<CategoriaCompetencia | null>(null);
@@ -340,6 +342,8 @@ export const HojaPersonaje: React.FC<HojaPersonajeProps> = ({ alAbrirConfiguraci
       <BarraTacticaPersonaje
         modoTirada={modoTirada}
         condicionesActivas={personajeActivo.condicionesActivas || []}
+        efectosActivos={personajeActivo.efectosActivos || []}
+        rondaActual={rondaActual}
         hpActual={personajeActivo.hpActual}
         hpMaximo={personajeActivo.hpMaximo || personajeActivo.hpMaximoBase || 10}
         penalizacionArmadura={statsCalculadas.penalizacionArmadura}
@@ -350,6 +354,7 @@ export const HojaPersonaje: React.FC<HojaPersonajeProps> = ({ alAbrirConfiguraci
         alEjecutarDescansoLargo={manejarDescansoLargo}
         alAplicarCondicion={(cond) => aplicarCondicionPersonaje(personajeActivo.id, cond)}
         alQuitarCondicion={(cond) => quitarCondicionPersonaje(personajeActivo.id, cond)}
+        alQuitarEfecto={(idEfecto) => quitarEfectoPersonaje(personajeActivo.id, idEfecto)}
         alRomperConcentracion={() => romperConcentracion(personajeActivo.id)}
       />
 
@@ -471,21 +476,11 @@ export const HojaPersonaje: React.FC<HojaPersonajeProps> = ({ alAbrirConfiguraci
 
       {/* Modal de Configuración Base Fallback */}
       {modalEdicionAbierto && (
-        <ModalEditarPersonaje
-          personaje={personajeActivo}
-          alGuardar={(cambios) => actualizarPersonaje(personajeActivo.id, cambios)}
-          alCerrar={() => setModalEdicionAbierto(false)}
-        />
+        <ModalEditarPersonaje personaje={personajeActivo} alGuardar={(cambios) => actualizarPersonaje(personajeActivo.id, cambios)} alCerrar={() => setModalEdicionAbierto(false)} />
       )}
 
       {/* Modal Resumen de Descanso */}
-      <ModalResumenDescanso
-        abierto={modalDescanso.abierto}
-        tipoDescanso={modalDescanso.tipo}
-        acciones={modalDescanso.acciones}
-        nombrePersonaje={personajeActivo.nombre}
-        alCerrar={() => setModalDescanso((prev) => ({ ...prev, abierto: false }))}
-      />
+      <ModalResumenDescanso abierto={modalDescanso.abierto} tipoDescanso={modalDescanso.tipo} acciones={modalDescanso.acciones} nombrePersonaje={personajeActivo.nombre} alCerrar={() => setModalDescanso((prev) => ({ ...prev, abierto: false }))} />
     </main>
   );
 };

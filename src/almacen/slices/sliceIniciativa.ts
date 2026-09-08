@@ -17,6 +17,10 @@ import {
   filtrarEfectosExpirados
 } from '@/servicios/sincronizacionIniciativa';
 import { aplicarCondicion, quitarCondicion } from '@/servicios/procesadorCondiciones';
+import {
+  activarRasgosPorCondicionOEfecto,
+  desactivarRasgosPorCondicionOEfecto
+} from '@/almacen/slices/personajes/condicionesRasgosHelpers';
 import { generarId } from '@/utiles/generarId';
 import { logger } from '@/utiles/logger';
 
@@ -301,10 +305,16 @@ export const crearSliceIniciativa: StateCreator<
 
   quitarCondicionDeCriatura: (id, condicion) => set((state) => {
     let criaturaAfectadaNombre = "";
+    const esConcentracion = condicion.toLowerCase().includes("concentra");
+
     const nuevaCola = state.colaIniciativa.map((c) => {
       if (c.id === id) {
         criaturaAfectadaNombre = c.nombre;
-        return { ...c, condiciones: quitarCondicion(c.condiciones, condicion) };
+        const condicionesNuevas = quitarCondicion(c.condiciones, condicion);
+        const efectosNuevos = esConcentracion
+          ? (c.efectos || []).filter((e) => !e.concentracion && e.id !== "ef_concentracion" && !e.nombre.toLowerCase().startsWith("concentra"))
+          : c.efectos;
+        return { ...c, condiciones: condicionesNuevas, efectos: efectosNuevos };
       }
       return c;
     });
@@ -318,6 +328,7 @@ export const crearSliceIniciativa: StateCreator<
       if (coincide) {
         return {
           ...pj,
+          concentracionActiva: esConcentracion ? null : pj.concentracionActiva,
           condicionesActivas: quitarCondicion(pj.condicionesActivas || [], condicion)
         };
       }
@@ -328,34 +339,134 @@ export const crearSliceIniciativa: StateCreator<
   }),
 
   agregarEfectoACriatura: (idCriatura, nombreEfecto, duracion, opciones) => set((state) => {
+    let criaturaAfectadaNombre = "";
+    const esConcentracion = opciones?.concentracion || 
+                           nombreEfecto.toLowerCase().trim() === "concentración" || 
+                           nombreEfecto.toLowerCase().trim() === "concentracion";
+
+    const nuevoEfecto: EfectoActivo = {
+      id: generarId(nombreEfecto.toLowerCase().replace(/[^a-z0-9]/g, '_').substring(0, 20)),
+      nombre: nombreEfecto,
+      expiraRonda: esConcentracion ? undefined : state.rondaActual + duracion,
+      concentracion: esConcentracion || undefined
+    };
+
     const nuevaCola = state.colaIniciativa.map((c) => {
       if (c.id === idCriatura) {
+        criaturaAfectadaNombre = c.nombre;
         const nuevosEfectos = c.efectos ? [...c.efectos] : [];
-        const esConcentracion = opciones?.concentracion || 
-                               nombreEfecto.toLowerCase().trim() === "concentración" || 
-                               nombreEfecto.toLowerCase().trim() === "concentracion";
-        const nuevoEfecto: EfectoActivo = {
-          id: generarId(nombreEfecto.toLowerCase().replace(/[^a-z0-9]/g, '_').substring(0, 20)),
-          nombre: nombreEfecto,
-          expiraRonda: esConcentracion ? undefined : state.rondaActual + duracion,
-          concentracion: esConcentracion || undefined
-        };
-        return { ...c, efectos: [...nuevosEfectos, nuevoEfecto] };
+        const nombreLimpio = nombreEfecto.split(" (")[0].toLowerCase().trim();
+        const condicionesActualizadas = (c.condiciones || []).filter((cond) => {
+          if (esConcentracion && cond.toLowerCase().includes("concentra")) return false;
+          const condLimpia = cond.split(" (")[0].toLowerCase().trim();
+          if (condLimpia === nombreLimpio || cond.toLowerCase().trim() === nombreEfecto.toLowerCase().trim()) return false;
+          return true;
+        });
+        return { ...c, condiciones: condicionesActualizadas, efectos: [...nuevosEfectos, nuevoEfecto] };
       }
       return c;
     });
-    return { colaIniciativa: nuevaCola };
+
+    const cNom = criaturaAfectadaNombre.trim().toLowerCase();
+    const nuevosPjs = state.personajes.map((pj) => {
+      const coincide =
+        pj.id === idCriatura ||
+        pj.idMiniaturaTS === idCriatura ||
+        (cNom && (pj.nombre || "").trim().toLowerCase() === cNom);
+
+      if (coincide) {
+        const spellName = nombreEfecto.replace(/^concentraci[oó]n:\s*/i, "").trim();
+        const efectosPjPrevios = (pj.efectosActivos || []).filter((e) => {
+          if (esConcentracion && (e.concentracion || e.id === "ef_concentracion" || e.nombre.toLowerCase().startsWith("concentra"))) {
+            return false;
+          }
+          return e.id !== nuevoEfecto.id;
+        });
+
+        let conds = pj.condicionesActivas || [];
+        if (esConcentracion) {
+          if (!conds.includes("Concentración")) {
+            conds = [...conds, "Concentración"];
+          }
+        } else {
+          conds = aplicarCondicion(conds, nombreEfecto);
+        }
+
+        const rasgosActualizados = activarRasgosPorCondicionOEfecto(nombreEfecto, pj.rasgos || []);
+
+        return {
+          ...pj,
+          condicionesActivas: conds,
+          efectosActivos: [...efectosPjPrevios, nuevoEfecto],
+          concentracionActiva: esConcentracion
+            ? { hechizoId: nuevoEfecto.id, nombreHechizo: spellName || nombreEfecto }
+            : pj.concentracionActiva,
+          rasgos: rasgosActualizados
+        };
+      }
+      return pj;
+    });
+
+    return { colaIniciativa: nuevaCola, personajes: nuevosPjs };
   }),
 
   quitarEfectoDeCriatura: (idCriatura, idEfecto) => set((state) => {
+    let criaturaAfectadaNombre = "";
+    let efectoEliminado: EfectoActivo | undefined;
+
     const nuevaCola = state.colaIniciativa.map((c) => {
       if (c.id === idCriatura) {
-        const nuevosEfectos = c.efectos ? c.efectos.filter((e) => e.id !== idEfecto) : [];
-        return { ...c, efectos: nuevosEfectos };
+        criaturaAfectadaNombre = c.nombre;
+        efectoEliminado = (c.efectos || []).find((e) => e.id === idEfecto);
+        const nuevosEfectos = (c.efectos || []).filter((e) => e.id !== idEfecto);
+        const eraConcentracion = efectoEliminado?.concentracion || efectoEliminado?.nombre.toLowerCase().includes("concentra");
+        let condicionesActualizadas = eraConcentracion
+          ? quitarCondicion(c.condiciones, "Concentración")
+          : c.condiciones;
+        if (efectoEliminado) {
+          const elimLimpio = efectoEliminado.nombre.split(" (")[0].toLowerCase().trim();
+          condicionesActualizadas = (condicionesActualizadas || []).filter(
+            (cond) => cond.toLowerCase().trim() !== elimLimpio && cond.toLowerCase().trim() !== efectoEliminado!.nombre.toLowerCase().trim()
+          );
+        }
+        return { ...c, condiciones: condicionesActualizadas, efectos: nuevosEfectos };
       }
       return c;
     });
-    return { colaIniciativa: nuevaCola };
+
+    const cNom = criaturaAfectadaNombre.trim().toLowerCase();
+    const nuevosPjs = state.personajes.map((pj) => {
+      const coincide =
+        pj.id === idCriatura ||
+        pj.idMiniaturaTS === idCriatura ||
+        (cNom && (pj.nombre || "").trim().toLowerCase() === cNom);
+
+      if (coincide && efectoEliminado) {
+        const eraConcentracion = efectoEliminado.concentracion || efectoEliminado.nombre.toLowerCase().includes("concentra");
+        const nuevosEfectosPj = (pj.efectosActivos || []).filter((e) => e.id !== idEfecto && e.nombre !== efectoEliminado!.nombre);
+        let conds = pj.condicionesActivas || [];
+        if (eraConcentracion) {
+          conds = conds.filter((c) => !c.toLowerCase().includes("concentra"));
+        }
+        conds = quitarCondicion(conds, efectoEliminado.nombre);
+        const elimLimpio = efectoEliminado.nombre.split(" (")[0];
+        if (elimLimpio !== efectoEliminado.nombre) {
+          conds = quitarCondicion(conds, elimLimpio);
+        }
+        const rasgosActualizados = desactivarRasgosPorCondicionOEfecto(efectoEliminado.nombre, pj.rasgos || []);
+
+        return {
+          ...pj,
+          condicionesActivas: conds,
+          efectosActivos: nuevosEfectosPj,
+          concentracionActiva: eraConcentracion ? null : pj.concentracionActiva,
+          rasgos: rasgosActualizados
+        };
+      }
+      return pj;
+    });
+
+    return { colaIniciativa: nuevaCola, personajes: nuevosPjs };
   }),
 
   asociarPlantillaACriatura: (idCriatura, idPlantilla) => set((state) => {
@@ -592,7 +703,28 @@ export const crearSliceIniciativa: StateCreator<
       return criaturaActualizada;
     });
 
-    set({ colaIniciativa: colaModificada });
+    const nuevosPersonajesSalvacion = state.personajes.map((pj) => {
+      const c = colaModificada.find((item) => {
+        const cNom = (item.nombre || "").trim().toLowerCase();
+        return (
+          pj.id === item.id ||
+          (Boolean(pj.idMiniaturaTS) && pj.idMiniaturaTS === item.id) ||
+          (Boolean(cNom) && (pj.nombre || "").trim().toLowerCase() === cNom)
+        );
+      });
+      if (c && condicionOEfecto) {
+        const logItem = resultadosLog.find((r) => r.id === c.id);
+        if (logItem?.condicionAplicada) {
+          return {
+            ...pj,
+            condicionesActivas: aplicarCondicion(pj.condicionesActivas || [], condicionOEfecto.nombre)
+          };
+        }
+      }
+      return pj;
+    });
+
+    set({ colaIniciativa: colaModificada, personajes: nuevosPersonajesSalvacion });
 
     return {
       caracteristica,
@@ -682,16 +814,18 @@ export const crearSliceIniciativa: StateCreator<
     if (state.colaIniciativa.length === 0 || cantidad === 0) return {};
     return aplicarTransformacionEnArea(state, idsObjetivo, (c) => {
       if (cantidad > 0) {
-        // Daño: Absorbe vida temporal primero
+        // Daño
         let dañoRestante = cantidad;
         let vidaTemp = c.vidaTemporal || 0;
         let vidaAct = c.vidaActual;
-        if (vidaTemp >= dañoRestante) {
-          vidaTemp -= dañoRestante;
-          dañoRestante = 0;
-        } else {
-          dañoRestante -= vidaTemp;
-          vidaTemp = 0;
+        if (vidaTemp > 0) {
+          if (vidaTemp >= dañoRestante) {
+            vidaTemp -= dañoRestante;
+            dañoRestante = 0;
+          } else {
+            dañoRestante -= vidaTemp;
+            vidaTemp = 0;
+          }
         }
         if (dañoRestante > 0) {
           vidaAct = Math.max(0, vidaAct - dañoRestante);
@@ -708,10 +842,38 @@ export const crearSliceIniciativa: StateCreator<
   aplicarCondicionEnArea: (condicion, idsObjetivo) => set((state) => {
     if (state.colaIniciativa.length === 0 || !condicion.trim()) return {};
     const condTrimmed = condicion.trim();
-    return aplicarTransformacionEnArea(state, idsObjetivo, (c) => ({
-      ...c,
-      condiciones: aplicarCondicion(c.condiciones, condTrimmed)
-    }));
+    const targets = obtenerIdsObjetivoMasivo(
+      state.colaIniciativa,
+      state.indiceTurnoActivo,
+      state.criaturasSeleccionadas,
+      idsObjetivo
+    );
+    if (targets.size === 0) return {};
+
+    const nuevaCola = state.colaIniciativa.map((c) =>
+      targets.has(c.id) ? { ...c, condiciones: aplicarCondicion(c.condiciones, condTrimmed) } : c
+    );
+
+    const criaturasAfectadas = state.colaIniciativa.filter((c) => targets.has(c.id));
+    const nuevosPersonajes = state.personajes.map((pj) => {
+      const coincide = criaturasAfectadas.some((c) => {
+        const cNom = (c.nombre || "").trim().toLowerCase();
+        return (
+          pj.id === c.id ||
+          (Boolean(pj.idMiniaturaTS) && pj.idMiniaturaTS === c.id) ||
+          (Boolean(cNom) && (pj.nombre || "").trim().toLowerCase() === cNom)
+        );
+      });
+      if (coincide) {
+        return {
+          ...pj,
+          condicionesActivas: aplicarCondicion(pj.condicionesActivas || [], condTrimmed)
+        };
+      }
+      return pj;
+    });
+
+    return { colaIniciativa: nuevaCola, personajes: nuevosPersonajes };
   }),
 
   aplicarEfectoEnArea: (nombreEfecto, duracion, opciones, idsObjetivo) => set((state) => {
@@ -719,15 +881,79 @@ export const crearSliceIniciativa: StateCreator<
     const esConcentracion = opciones?.concentracion ||
       nombreEfecto.toLowerCase().trim() === "concentración" ||
       nombreEfecto.toLowerCase().trim() === "concentracion";
-    return aplicarTransformacionEnArea(state, idsObjetivo, (c) => {
-      const nuevoEfecto: EfectoActivo = {
-        id: generarId(nombreEfecto.toLowerCase().replace(/[^a-z0-9]/g, '_').substring(0, 20)),
-        nombre: nombreEfecto,
-        expiraRonda: esConcentracion ? undefined : state.rondaActual + duracion,
-        concentracion: esConcentracion || undefined
-      };
-      return { ...c, efectos: [...(c.efectos ?? []), nuevoEfecto] };
+    const spellName = nombreEfecto.replace(/^concentraci[oó]n:\s*/i, "").trim();
+
+    const targets = obtenerIdsObjetivoMasivo(
+      state.colaIniciativa,
+      state.indiceTurnoActivo,
+      state.criaturasSeleccionadas,
+      idsObjetivo
+    );
+    if (targets.size === 0) return {};
+
+    const nuevoEfectoId = generarId(nombreEfecto.toLowerCase().replace(/[^a-z0-9]/g, '_').substring(0, 20));
+    const nuevoEfecto: EfectoActivo = {
+      id: nuevoEfectoId,
+      nombre: nombreEfecto,
+      expiraRonda: esConcentracion ? undefined : state.rondaActual + duracion,
+      concentracion: esConcentracion || undefined
+    };
+
+    const nuevaCola = state.colaIniciativa.map((c) => {
+      if (!targets.has(c.id)) return c;
+      const nombreLimpio = nombreEfecto.split(" (")[0].toLowerCase().trim();
+      const condicionesActualizadas = (c.condiciones || []).filter((cond) => {
+        if (esConcentracion && cond.toLowerCase().includes("concentra")) return false;
+        const condLimpia = cond.split(" (")[0].toLowerCase().trim();
+        if (condLimpia === nombreLimpio || cond.toLowerCase().trim() === nombreEfecto.toLowerCase().trim()) return false;
+        return true;
+      });
+      return { ...c, condiciones: condicionesActualizadas, efectos: [...(c.efectos ?? []), nuevoEfecto] };
     });
+
+    const criaturasAfectadas = state.colaIniciativa.filter((c) => targets.has(c.id));
+    const nuevosPersonajes = state.personajes.map((pj) => {
+      const coincide = criaturasAfectadas.some((c) => {
+        const cNom = (c.nombre || "").trim().toLowerCase();
+        return (
+          pj.id === c.id ||
+          (Boolean(pj.idMiniaturaTS) && pj.idMiniaturaTS === c.id) ||
+          (Boolean(cNom) && (pj.nombre || "").trim().toLowerCase() === cNom)
+        );
+      });
+      if (coincide) {
+        const efectosPjPrevios = (pj.efectosActivos || []).filter((e) => {
+          if (esConcentracion && (e.concentracion || e.id === "ef_concentracion" || e.nombre.toLowerCase().startsWith("concentra"))) {
+            return false;
+          }
+          return e.id !== nuevoEfecto.id;
+        });
+
+        let conds = pj.condicionesActivas || [];
+        if (esConcentracion) {
+          if (!conds.includes("Concentración")) {
+            conds = [...conds, "Concentración"];
+          }
+        } else {
+          conds = aplicarCondicion(conds, nombreEfecto);
+        }
+
+        const rasgosActualizados = activarRasgosPorCondicionOEfecto(nombreEfecto, pj.rasgos || []);
+
+        return {
+          ...pj,
+          condicionesActivas: conds,
+          efectosActivos: [...efectosPjPrevios, nuevoEfecto],
+          concentracionActiva: esConcentracion
+            ? { hechizoId: nuevoEfecto.id, nombreHechizo: spellName || nombreEfecto }
+            : pj.concentracionActiva,
+          rasgos: rasgosActualizados
+        };
+      }
+      return pj;
+    });
+
+    return { colaIniciativa: nuevaCola, personajes: nuevosPersonajes };
   })
 });
 

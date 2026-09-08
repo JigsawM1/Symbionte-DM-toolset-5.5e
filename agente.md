@@ -16,6 +16,140 @@ Este archivo registra reglas globales, errores encontrados, sus causas raíz y l
    - Las dependencias fluyen estrictamente hacia abajo: `App/Layout -> Caracteristicas -> Comunes -> Almacen -> Servicios -> Utiles/Constantes/Tipos`.
    - **Bajo ninguna circunstancia** los módulos de lógica de negocio (`servicios/`), gestores de estado (`almacen/`), contratos (`tipos/`), valores de reglas (`constantes/`) ni funciones de soporte (`utiles/`) deben importar componentes visuales o archivos CSS (`componentes/`). Esta regla está reforzada en CI vía ESLint `no-restricted-imports`.
 
+## [2026-09-08] Culminación Exitosa: Unificación Simétrica de Furia, Condiciones y Efectos (Master <-> Jugador <-> Mecánicas de Clase)
+**Contexto y Problema Reportado:**
+- El usuario reportó:
+  1. *"creo que el tracker del master consume las condiciones/efectos de otro apartado de como lo hacen los jugadores, y esto no deberia ser asi. si yo selecciono furia cmo master se selecciona como efecto, y si lo hago como jugador se selecciona como jugador, la furia como master no le esta imponiendo las condiciones de furia como cuando lo seleccionas de jugador (y no debe ser asi, por que deberia ser la misma)"*
+  2. En el tracker del Master se duplicaban los chips: chip verde `FURIA` en condiciones y chip morado `FURIA [R.101]` en efectos (al igual que con `FURIA DE LOS DIOSES`).
+  3. En la ficha del jugador, el chip mostraba badges redundantes (`FURIA [R.101 (100R)] R.101 ✕`) y el tooltip sobreescrito borraba la descripción canónica de reglas D&D de Furia (ventaja en Fuerza, resistencias al daño contundente/perforante/cortante, bonificador de daño).
+
+**Causas Raíz Identificadas:**
+1. **Asimetría en la persistencia del estado**:
+   - Al agregar Furia desde el Master (`agregarEfectoACriatura`), sólo se inyectaba en `pj.efectosActivos`, pero los motores de cálculo de combate (`calculadorAtaquesArmas.ts`, mitigación de daño y resistencias) evalúan `pj.condicionesActivas` y `pj.rasgos`. Al no actualizar ambos, el personaje no recibía los beneficios mecánicos de Furia ni se marcaba el rasgo en su ficha.
+   - Al seleccionar Furia desde la ficha del Jugador (`aplicarCondicionPersonaje`), se guardaba como condición plana sin contador de rondas ni expiración en iniciativa.
+2. **Duplicación visual cruzada entre Condiciones y Efectos**:
+   - Ni `TarjetaCriaturaIniciativa`, ni `IniciativaJugador`, ni `BarraTacticaPersonaje` desduplicaban las condiciones por nombre contra la lista de efectos activos. Al existir "Furia" en ambas listas (para reglas y para duración), se renderizaban chips duplicados en verde y morado.
+3. **Sobreescritura de tooltips y redundancia de badges**:
+   - `BarraTacticaPersonaje.tsx` componía manualmente `[R.101 (100r)]` en `textoCustom` mientras `ChipCondicion` ya renderizaba `R.101` de forma nativa. Además, `tooltipCustom` truncaba toda la regla oficial de D&D 5.5e dejando solo la línea de expiración.
+
+**Solución Aplicada y Decisiones de Arquitectura:**
+1. **Módulo Puro de Activación Reactiva de Rasgos (`src/almacen/slices/personajes/condicionesRasgosHelpers.ts`)**:
+   - Se crearon las funciones puras `activarRasgosPorCondicionOEfecto(nombreEstado, rasgos)` y `desactivarRasgosPorCondicionOEfecto(nombreEstado, rasgos)`.
+   - Vinculan reactivamente las condiciones tácticas (ej. Furia, Furia de los Dioses, Ataque Temerario, Manto de Majestad) con los rasgos de clase activables, descontando usos limitados y ejecutando apagados en cascada de rasgos dependientes (ej. desactivar Golpe Brutal y Furia Divina si se apaga Furia).
+2. **Unificación Simétrica en `sliceIniciativa.ts`**:
+   - `agregarEfectoACriatura`: Inyecta el efecto en `pj.efectosActivos`, añade su nombre a `pj.condicionesActivas` para las fórmulas de combate, activa el rasgo en `pj.rasgos` mediante `activarRasgosPorCondicionOEfecto`, y purga cualquier condición homónima de `c.condiciones` para evitar duplicación visual en el tracker del Master.
+   - `quitarEfectoDeCriatura`: Retira el efecto de `pj.efectosActivos`, de `pj.condicionesActivas`, apaga el rasgo mediante `desactivarRasgosPorCondicionOEfecto` y limpia `c.condiciones`.
+   - `aplicarEfectoEnArea`: Aplica la misma sincronización simétrica para efectos masivos de área.
+3. **Detección Automática de Duración en `sliceCondiciones.ts`**:
+   - `aplicarCondicionPersonaje`: Si la condición agregada por el jugador se encuentra en `EFECTOS_PREDEFINIDOS` con duración estándar > 0 (ej. Furia con 100 rondas), se crea automáticamente como `EfectoActivo` en `pj.efectosActivos` con `expiraRonda`, se sincroniza en `c.efectos` y se activa el rasgo de clase en `pj.rasgos`.
+   - `quitarCondicionPersonaje` y `quitarEfectoPersonaje`: Eliminan de forma coordinada el estado en ambas listas y apagan el rasgo.
+4. **Sincronización en `sliceRasgos.ts` (`alternarActivoRasgo`)**:
+   - Al encender o apagar un rasgo con condición asociada (ej. Furia o Furia de los Dioses), se crea o destruye automáticamente el efecto en `pj.efectosActivos` y en la cola de iniciativa (`c.efectos`), manteniendo la coherencia sin importar desde dónde se accione.
+5. **Deduplicación Visual Cruzada y Tooltip Canónico Enriquecido**:
+   - `ChipCondicion.tsx`: Añadida prop `rondasRestantes?: number`. Renderiza la insignia limpia `R.${expiraRonda} (${rondasRestantes}r)` sin duplicar etiquetas. Enriquecido el tooltip con la descripción oficial D&D 5.5e concatenando al final la información de ronda de finalización y rondas restantes activas.
+   - `BarraTacticaPersonaje.tsx`, `TarjetaCriaturaIniciativa.tsx` e `IniciativaJugador.tsx`: Filtran de `condicionesVisibles` cualquier condición cuyo nombre base (`cond.split(" (")[0].toLowerCase().trim()`) o nombre completo coincida con algún efecto en la lista de efectos activos. Esto resuelve que condiciones guardadas con subtítulos o traducciones en inglés (ej. `Furia (Rage)` o `Ataque Temerario (Reckless Attack)`) no se dupliquen como chips verdes cuando ya se renderizan como chips morados con rondas.
+   - `procesadorCondiciones.ts`: `quitarCondicion` ahora evalúa de manera case-insensitive y comparando tanto el nombre completo como el nombre base previo a paréntesis, garantizando remociones simétricas y limpias.
+
+**Métricas de Calidad Verificadas:**
+- `pnpm exec tsc --noEmit`: 0 errores (Strict Mode estricto).
+- `pnpm test`: 44 suites superadas, 484 de 484 pruebas pasando (100%).
+- `node scripts/verificar-limite-lineas.js`: 105 archivos auditados, 0 errores críticos.
+- `pnpm run ci`: Pipeline integral finalizado con código de salida 0.
+
+---
+
+## [2026-09-08] Culminación Exitosa: Desduplicación de Concentración y Diferenciación de Condiciones vs Efectos con Rondas Restantes
+**Contexto y Problema Reportado:**
+- El usuario reportó:
+  1. *"al master se le duplica la concentracion de los personajes, tambien en la iniciativa de jugador"*
+  2. *"los jugadore no se diferencia entre condicion y efecto, por ende no se reconoce en cuantos turnos acaba dicho efecto"*
+- En la tarjeta del Master (`TarjetaCriaturaIniciativa`) se renderizaban simultáneamente dos chips (`[CON] CONCENTRACIÓN` en condiciones y `[CON] NOMBRE_CONJURO` en efectos). En `IniciativaJugador` ocurría lo mismo con dos insignias rojas contiguas.
+- En la ficha del jugador (pestaña *Características* / `BarraTacticaPersonaje`), los efectos temporales (Bendición, Escudo de la Fe, etc.) se trataban como condiciones planas de texto, perdiendo el metadato de cuándo expiran y sin cálculo de rondas/turnos restantes respecto a la ronda actual del combate.
+
+**Causas Raíz Identificadas:**
+1. **Doble representación en la cola de iniciativa (`colaIniciativa`)**:
+   - Se inyectaba simultáneamente `"Concentración"` en `criatura.condiciones` y `{ nombre: "Concentración: Conjuro", concentracion: true }` en `criatura.efectos`. Dado que tanto la vista del Master como la del Jugador listaban ambas colecciones consecutivamente, se visualizaban dos insignias de concentración.
+2. **Carencia de `efectosActivos` en el modelo del personaje jugador**:
+   - `PersonajeJugador` sólo poseía `condicionesActivas: string[]`, por lo que cualquier efecto aplicado por el Master desde la iniciativa o lanzado por el jugador perdía su duración (`expiraRonda`), su identificador unívoco y la capacidad de removerse independientemente.
+3. **Presentación indiscriminada en `BarraTacticaPersonaje`**:
+   - No se discriminaban los estados cualitativos (Cegado, Derribado, Cansado) de los efectos mágicos cuantificables con duración finita en rondas.
+
+**Solución Aplicada y Decisiones de Arquitectura:**
+1. **Ampliación del Modelo de Datos de Personaje (`src/tipos/personaje.ts` y `personajeConstantes.ts`)**:
+   - Se definió `EsquemaEfectoActivo` y se incorporó `efectosActivos: z.array(EsquemaEfectoActivo).default([])` en `EsquemaPersonajeJugador` y `PERSONAJE_POR_DEFECTO`.
+2. **Deduplicación Canónica en Vistas de Iniciativa**:
+   - En `TarjetaCriaturaIniciativa.tsx` e `IniciativaJugador.tsx`, se filtra de las condiciones visibles cualquier condición de concentración (`c.toLowerCase().includes("concentra")`) cuando la criatura ya cuenta con un efecto de concentración en `efectos`.
+   - En `sincronizacionIniciativa.ts`, al sincronizar con TaleSpire o el estado local, se purga la duplicación en `condicionesPj` asegurando que la concentración se presente de forma unívoca.
+3. **Sincronización Bidireccional de Efectos con Rondas**:
+   - `sliceIniciativa.ts`: Al aplicar efectos a criaturas (`agregarEfectoACriatura` y `aplicarEfectoEnArea`), si la criatura corresponde a un personaje jugador, se propaga el efecto a `pj.efectosActivos` conservando `id`, `nombre`, `expiraRonda` y `concentracion`.
+   - `sliceCondiciones.ts`: Se añadió la acción `quitarEfectoPersonaje(id, idEfecto)` con sincronización reactiva hacia la criatura en `colaIniciativa`.
+   - `sliceMagia.ts`: `establecerConcentracion` registra en `pj.efectosActivos` y preserva `"Concentración"` en `pj.condicionesActivas` para plena compatibilidad con las reglas del sistema de conjuros, sincronizando con la iniciativa sin duplicación.
+4. **Diferenciación Táctica en la Ficha del Jugador (`BarraTacticaPersonaje.tsx`)**:
+   - Visualización separada y jerárquica de dos categorías:
+     - **Condiciones de Estado**: Chips ámbar con tooltip explicativo 5.5e y botón de quitar.
+     - **Efectos Mágicos y Temporales**: Chips con duración restante dinámica respecto a `rondaActual` (`[R.X (Yr)]`), tooltip detallando la ronda de expiración y rondas activas restantes, y botón individual de retiro (`alQuitarEfecto`).
+5. **Control Estricto de Monolitos**:
+   - `HojaPersonaje.tsx` se mantuvo estrictamente en 485 líneas (< 500 límite duro de CI).
+
+**Métricas de Calidad Verificadas:**
+- `pnpm exec tsc --noEmit`: 0 errores (Strict Mode estricto).
+- `pnpm test`: 44 suites superadas, 479 de 479 pruebas pasando (100%).
+- `node scripts/verificar-limite-lineas.js`: 105 archivos auditados, 0 errores críticos.
+- `pnpm run ci`: Pipeline integral finalizado con código de salida 0.
+
+---
+
+## [2026-09-08] Culminación Exitosa: Sincronización Bidireccional de Efectos, Concentración y Condiciones (Master <-> Jugador / Características)
+**Contexto y Problema Reportado:**
+- El usuario reportó:
+  1. *"las condiciones de caracteristicas no esta conectado a la iniciativa del master ni a la iniciativa del jugador"*
+  2. *"creo que la manera que procesa las condiciones/efectos el master es diferente a como lo hace el jugador, por ejemplo si se esta concentrando no se muestra el efecto concentracion ni en que se esta concentrando en el tracker del master. al igual que si aplico efectos desde el master no se muestran en las condiciones de 'caracteristicas'"*
+- Al concentrarse un jugador en un conjuro, el tracker del Master no reflejaba la condición ni el conjuro.
+- Al aplicar efectos el Master desde el tracker de iniciativa (individuales o en área), no aparecían en las *Condiciones Activas* de la pestaña *Características* de la ficha del jugador.
+- Al romper concentración o quitar efectos desde cualquier lado, no se sincronizaban recíprocamente.
+
+**Causas Raíz Identificadas:**
+1. **Desconexión entre `sliceMagia.ts` y la cola de iniciativa**:
+   - `establecerConcentracion` y `romperConcentracion` sólo mutaban `pj.concentracionActiva` y `pj.condicionesActivas` en `state.personajes`, sin actualizar `colaIniciativa`.
+2. **Desconexión de Efectos en `sliceIniciativa.ts`**:
+   - `agregarEfectoACriatura` y `quitarEfectoDeCriatura` mutaban `c.efectos` en la criatura de la cola, pero no propagaban los efectos hacia `pj.condicionesActivas` ni asociaban la concentración activa en el personaje jugador correspondiente.
+   - Las funciones de área (`aplicarCondicionEnArea`, `aplicarEfectoEnArea` y `procesarSalvacionEnArea`) transformaban las criaturas en `colaIniciativa` pero ignoraban `state.personajes`.
+3. **Pérdida del nombre del conjuro en `ChipCondicion.tsx`**:
+   - El formateo ejecutaba `nombreLimpio.split(" (")[0].toUpperCase()`, lo cual provocaba que un efecto como `Concentración (Escudo de la Fe)` se truncara a `[CON] CONCENTRACIÓN`, ocultando el conjuro concentrado. Además, no se disponía de un tooltip específico con las reglas oficiales 5.5e de concentración (salvación de Constitución CD 10 o mitad del daño).
+4. **Falta de limpieza en `sliceCondiciones.ts`**:
+   - Al quitar condiciones desde el jugador (`quitarCondicionPersonaje`), si se retiraba concentración o un efecto aplicado, `c.efectos` conservaba el efecto residual en la criatura de iniciativa.
+5. **Resincronización en caliente con TaleSpire (`sincronizacionIniciativa.ts`)**:
+   - Al refrescar o sincronizar con TaleSpire, las miniaturas mapeadas a PJs no inyectaban su `concentracionActiva` en `c.efectos` ni limpiaban efectos huérfanos.
+
+**Solución Aplicada y Decisiones de Arquitectura:**
+1. **Sincronización Reactiva de Concentración (`src/almacen/slices/personajes/sliceMagia.ts`)**:
+   - `establecerConcentracion` ahora inyecta en la criatura coincidente de `colaIniciativa` la condición `"Concentración"` y el efecto `{ id: "ef_concentracion", nombre: "Concentración: " + nombreHechizo, concentracion: true }`.
+   - `romperConcentracion` retira la condición y limpia cualquier efecto de concentración en la criatura de iniciativa.
+2. **Sincronización Bidireccional de Efectos e Iniciativa (`src/almacen/slices/sliceIniciativa.ts`)**:
+   - `agregarEfectoACriatura`: Añade el efecto a `pj.condicionesActivas`. Si el efecto tiene la propiedad de concentración o el nombre corresponde a concentración, configura reactivamente `pj.concentracionActiva = { hechizoId, nombreHechizo }` y agrega `"Concentración"`.
+   - `quitarEfectoDeCriatura`: Retira el efecto de `pj.condicionesActivas`. Si era concentración, limpia `pj.concentracionActiva = null` y remueve `"Concentración"` tanto en `c.condiciones` como en `pj.condicionesActivas`.
+   - `aplicarCondicionEnArea`, `aplicarEfectoEnArea` y `procesarSalvacionEnArea`: Sincronizan de forma determinista y masiva con `state.personajes` para cualquier criatura objetivo que corresponda a un Personaje Jugador.
+3. **Sincronización de Retiro de Condiciones desde el Jugador (`src/almacen/slices/personajes/sliceCondiciones.ts`)**:
+   - `sincronizarCondicionesEnIniciativa` ahora recibe `condicionEliminada`, limpiando de `c.efectos` cualquier efecto coincidente o de concentración.
+   - `quitarCondicionPersonaje` y `limpiarCondicionesPersonaje` limpian `pj.concentracionActiva` cuando se retira la concentración.
+4. **Formateo Semántico y Tooltip Oficial 5.5e en `ChipCondicion.tsx`**:
+   - Se extrae limpiamente el nombre del conjuro para mostrar `[CON] [NOMBRE CONJURO]` (ej. `[CON] ESCUDO DE LA FE`).
+   - Se construyó el tooltip flotante enriquecido con las reglas oficiales D&D 5.5e: salvación de Constitución CD 10 o mitad del daño recibido, y ruptura inmediata por incapacidad o nuevo conjuro de concentración.
+5. **Resiliencia de Sincronización en `sincronizacionIniciativa.ts`**:
+   - Al sincronizar con TaleSpire o el estado local, si el PJ tiene `concentracionActiva`, se garantiza la presencia de `"Concentración"` en `condiciones` y de `{ id: "ef_concentracion", nombre: "Concentración: " + nombreHechizo, concentracion: true }` en `efectos`.
+6. **Cobertura Integral de Pruebas Unitarias**:
+   - Creados `src/almacen/slices/sincronizacionEfectosIniciativa.test.ts` (8 pruebas) y `src/componentes/comunes/ChipCondicion.test.ts` (3 pruebas) verificando el ciclo completo en ambas direcciones.
+
+**Métricas de Calidad Verificadas:**
+- `pnpm exec tsc --noEmit`: 0 errores (Strict Mode activo).
+- `pnpm lint`: 0 errores, 0 advertencias.
+- `pnpm test`: 44 suites superadas, 478 de 478 pruebas pasando (100%).
+- `node scripts/verificar-limite-lineas.js`: 105 archivos auditados, 0 errores críticos.
+- `pnpm build`: Empaquetado exitoso de producción Vite en 11.54s (código 0).
+- `pnpm run ci`: Pipeline integral finalizado con código de salida 0.
+
+---
+
 ## [2026-09-08] Culminación Exitosa: Equipamiento Universal y Robusto mediante Drag & Drop (D&D 5.5e)
 **Contexto y Problema Reportado:**
 - El usuario reportó: *"ahora puedo desequipar pero no equipar con el drag and drop"*.

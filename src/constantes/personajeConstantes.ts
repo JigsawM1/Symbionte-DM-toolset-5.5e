@@ -311,6 +311,7 @@ export const PERSONAJE_POR_DEFECTO: PersonajeJugador = {
   salvacionesMuerte: { exitos: 0, fallos: 0 },
   cansancio: 0,
   condicionesActivas: [],
+  efectosActivos: [],
   ca: 10,
   caNotas: "",
   iniciativaBono: 0,

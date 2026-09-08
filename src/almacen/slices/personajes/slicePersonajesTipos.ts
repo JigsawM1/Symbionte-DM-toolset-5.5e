@@ -82,6 +82,7 @@ export interface SubSliceCaracteristicasHabilidades {
 export interface SubSliceCondiciones {
   aplicarCondicionPersonaje: (id: string, condicion: string) => void;
   quitarCondicionPersonaje: (id: string, condicion: string) => void;
+  quitarEfectoPersonaje: (id: string, idEfecto: string) => void;
   limpiarCondicionesPersonaje: (id: string) => void;
 }
 

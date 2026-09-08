@@ -110,3 +110,80 @@ export function resolverIdRasgoObjetivoGasto(targetTrait: RasgoPersonaje | undef
 
   return targetTrait.id;
 }
+
+/**
+ * Activa de forma reactiva los rasgos coincidentes con un nombre de condición o efecto,
+ * descontando el uso correspondiente si el rasgo dispone de usos limitados.
+ */
+export function activarRasgosPorCondicionOEfecto(
+  nombreEstado: string,
+  rasgos: RasgoPersonaje[]
+): RasgoPersonaje[] {
+  if (!nombreEstado || !rasgos || rasgos.length === 0) return rasgos;
+
+  return rasgos.map((r) => {
+    if (coincideCondicionConRasgo(nombreEstado, r) && (r.esActivable ?? true) && !r.activo) {
+      const usosRest =
+        typeof r.usosRestantes === "number" ? Math.max(0, r.usosRestantes - 1) : r.usosRestantes;
+      return { ...r, activo: true, usosRestantes: usosRest };
+    }
+    return r;
+  });
+}
+
+/**
+ * Desactiva de forma reactiva los rasgos coincidentes con un nombre de condición o efecto,
+ * ejecutando la desactivación en cascada para rasgos dependientes (ej. Furia Divina o Golpe Brutal al desactivar Furia).
+ */
+export function desactivarRasgosPorCondicionOEfecto(
+  nombreEstado: string,
+  rasgos: RasgoPersonaje[]
+): RasgoPersonaje[] {
+  if (!nombreEstado || !rasgos || rasgos.length === 0) return rasgos;
+
+  const clavesPadresApagados = new Set<string>();
+
+  let rasgosActualizados = rasgos.map((r) => {
+    if (coincideCondicionConRasgo(nombreEstado, r) && (r.esActivable ?? true) && r.activo) {
+      clavesPadresApagados.add(r.id.toLowerCase());
+      clavesPadresApagados.add(r.nombre.toLowerCase().trim());
+      return { ...r, activo: false };
+    }
+    return r;
+  });
+
+  if (clavesPadresApagados.size > 0) {
+    const esFuriaApagada =
+      clavesPadresApagados.has("furia") || clavesPadresApagados.has("rasgo_cls_barbaro_furia");
+
+    rasgosActualizados = rasgosActualizados.map((r) => {
+      if (!r.activo) return r;
+      if (r.ligadoA) {
+        const lig = r.ligadoA.toLowerCase().trim();
+        if (
+          clavesPadresApagados.has(lig) ||
+          (esFuriaApagada && lig.includes("furia") && !lig.includes("dioses"))
+        ) {
+          return { ...r, activo: false };
+        }
+      }
+      if (esFuriaApagada) {
+        const rNom = r.nombre.toLowerCase().trim();
+        const rId = r.id.toLowerCase().trim();
+        if (
+          rNom.includes("furia divina") ||
+          rId.includes("furia_divina") ||
+          rNom.includes("golpe brutal") ||
+          rId.includes("golpe_brutal") ||
+          rNom.includes("furia de los dioses") ||
+          rId.includes("furia_de_los_dioses")
+        ) {
+          return { ...r, activo: false };
+        }
+      }
+      return r;
+    });
+  }
+
+  return rasgosActualizados;
+}

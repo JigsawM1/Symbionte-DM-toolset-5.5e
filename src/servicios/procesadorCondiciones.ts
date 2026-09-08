@@ -117,8 +117,13 @@ export function quitarCondicion(
   condicionesActuales: readonly string[],
   condicionAQuitar: string
 ): string[] {
-  const normalizada = condicionAQuitar.trim();
-  return condicionesActuales.filter((c) => c !== normalizada);
+  const normalizada = condicionAQuitar.trim().toLowerCase();
+  const baseAQuitar = normalizada.split(" (")[0].trim();
+  return condicionesActuales.filter((c) => {
+    const cNorm = c.trim().toLowerCase();
+    const cBase = cNorm.split(" (")[0].trim();
+    return cNorm !== normalizada && cBase !== baseAQuitar;
+  });
 }
 
 /**

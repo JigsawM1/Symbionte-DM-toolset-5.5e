@@ -19,7 +19,7 @@ import estilosClases from "./GestorIniciativa.module.css";
 import { ConfirmDialog } from "@/componentes/comunes";
  
 export const GestorIniciativa: React.FC = () => {
-  const { colaIniciativa, indiceTurnoActivo, criaturasSeleccionadas, asociacionesFichas } = usarEstadoIniciativa();
+  const { colaIniciativa, indiceTurnoActivo, rondaActual, criaturasSeleccionadas, asociacionesFichas } = usarEstadoIniciativa();
   const {
     quitarCriaturaDeIniciativa,
     modificarVidaCriaturaIniciativa,
@@ -188,6 +188,7 @@ export const GestorIniciativa: React.FC = () => {
                     esTurnoActivo={esTurnoActivo}
                     estaSeleccionadaEnTS={estaSeleccionadaEnTS}
                     plantilla={plantilla}
+                    rondaActual={rondaActual}
                     onEliminar={() => {
                       if (idCriaturaDetalle === criatura.id) {
                         setIdCriaturaDetalle(null);

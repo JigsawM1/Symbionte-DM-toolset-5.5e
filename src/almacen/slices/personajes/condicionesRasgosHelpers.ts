@@ -45,6 +45,9 @@ export function resolverCondicionAsociadaRasgo(r: RasgoPersonaje): string | unde
     }
     return "Alas Celestiales";
   }
+  if (nom.includes("vuelo draconico") || id.includes("vuelo_draconico")) {
+    return "Vuelo dracónico";
+  }
   return undefined;
 }
 
@@ -93,6 +96,9 @@ export function coincideCondicionConRasgo(condicionTexto: string, r: RasgoPerson
     cNorm.includes("revelacion celestial")
   ) {
     return rNom.includes("revelacion celestial") || rId.includes("revelacion_celestial");
+  }
+  if (cNorm.includes("vuelo draconico") || cNorm.includes("draconic flight")) {
+    return rNom.includes("vuelo draconico") || rId.includes("vuelo_draconico");
   }
 
   return false;

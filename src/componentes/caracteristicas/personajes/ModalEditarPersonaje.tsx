@@ -15,6 +15,7 @@ import {
 } from "@/constantes";
 import { obtenerSubclasesDeClase } from "@/servicios/gestorClases";
 import { sincronizarRasgosAutomaticos } from "@/servicios/compendioRasgos";
+import { obtenerCatalogoEspecies, obtenerSubespeciesDeEspecie } from "@/servicios/gestorEspecies";
 import { SelectorDesplegable } from "@/componentes/comunes/SelectorDesplegable";
 import { SelectorSugerencias } from "@/componentes/comunes/SelectorSugerencias";
 import { X, Save, Shield, User, Award, Eye } from "lucide-react";
@@ -267,15 +268,38 @@ export const ModalEditarPersonaje: React.FC<ModalEditarPersonajeProps> = ({
               <div className={estilos.filaFormulario}>
                 <div className={estilos.campoFormulario}>
                   <label className={estilos.labelFormulario}>Especie / Raza</label>
-                  <input
-                    type="text"
-                    className={estilos.inputFormulario}
-                    value={form.especie}
-                    onChange={(e) => actualizarCampo("especie", e.target.value)}
-                    placeholder="Ej. Humano, Elfo, Enano..."
+                  <SelectorSugerencias
+                    valor={form.especie}
+                    alCambiar={(nuevaEsp) => {
+                      actualizarCampo("especie", nuevaEsp);
+                      const subs = obtenerSubespeciesDeEspecie(nuevaEsp);
+                      if (subs.length > 0 && !subs.some((s) => s.nombre.toLowerCase() === (form.subespecie || "").toLowerCase())) {
+                        actualizarCampo("subespecie", subs[0].nombre);
+                      }
+                    }}
+                    opciones={obtenerCatalogoEspecies().map((e) => e.nombre)}
+                    placeholder="Escribe o selecciona una especie..."
                   />
                 </div>
 
+                <div className={estilos.campoFormulario}>
+                  <label className={estilos.labelFormulario}>
+                    {form.especie?.toLowerCase().includes("dracon")
+                      ? "Legado Dracónico"
+                      : form.especie?.toLowerCase().includes("tiefling")
+                      ? "Legado Infernal"
+                      : "Subraza / Legado"}
+                  </label>
+                  <SelectorSugerencias
+                    valor={form.subespecie || ""}
+                    alCambiar={(nuevaSub) => actualizarCampo("subespecie", nuevaSub)}
+                    opciones={obtenerSubespeciesDeEspecie(form.especie).map((s) => s.nombre)}
+                    placeholder="Elegir o escribir legado/subraza..."
+                  />
+                </div>
+              </div>
+
+              <div className={estilos.filaFormulario}>
                 <div className={estilos.campoFormulario}>
                   <label className={estilos.labelFormulario}>Trasfondo</label>
                   <input
@@ -286,9 +310,7 @@ export const ModalEditarPersonaje: React.FC<ModalEditarPersonajeProps> = ({
                     placeholder="Ej. Soldado, Erudito..."
                   />
                 </div>
-              </div>
 
-              <div className={estilos.filaFormulario}>
                 <div className={estilos.campoFormulario}>
                   <label className={estilos.labelFormulario}>Alineamiento</label>
                   <SelectorDesplegable
@@ -298,7 +320,9 @@ export const ModalEditarPersonaje: React.FC<ModalEditarPersonajeProps> = ({
                     tamano="normal"
                   />
                 </div>
+              </div>
 
+              <div className={estilos.filaFormulario}>
                 <div className={estilos.campoFormulario}>
                   <label className={estilos.labelFormulario}>Miniatura 3D en Tablero</label>
                   <div

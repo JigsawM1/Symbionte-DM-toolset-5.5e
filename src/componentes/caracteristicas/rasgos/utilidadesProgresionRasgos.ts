@@ -179,6 +179,7 @@ export function agruparRasgosJerarquicos(
   clasesPersonaje: Array<{ nombre: string; subclase?: string; nivel: number }>
 ): DatosJerarquicosRasgos {
   const especie: RasgoPersonaje[] = [];
+  const subespecie: RasgoPersonaje[] = [];
   const dotes: RasgoPersonaje[] = [];
   const personalizados: RasgoPersonaje[] = [];
 
@@ -196,8 +197,19 @@ export function agruparRasgosJerarquicos(
   const otrosClase: RasgoPersonaje[] = [];
 
   for (const rasgo of rasgosFiltrados) {
-    if (rasgo.origen === "especie") {
-      especie.push(rasgo);
+    if (rasgo.origen === "subespecie") {
+      subespecie.push(rasgo);
+    } else if (rasgo.origen === "especie") {
+      const normFuente = normalizar(rasgo.fuente || "");
+      if (
+        normFuente.includes("subespecie:") ||
+        normFuente.includes("legado:") ||
+        normFuente.includes("linaje:")
+      ) {
+        subespecie.push(rasgo);
+      } else {
+        especie.push(rasgo);
+      }
     } else if (rasgo.origen === "dote") {
       dotes.push(rasgo);
     } else if (rasgo.origen === "personalizado") {
@@ -235,5 +247,5 @@ export function agruparRasgosJerarquicos(
     }
   }
 
-  return { especie, dotes, personalizados, clases: mapClases, otrosClase };
+  return { especie, subespecie, dotes, personalizados, clases: mapClases, otrosClase };
 }

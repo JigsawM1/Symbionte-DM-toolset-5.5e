@@ -4,6 +4,7 @@ import {
   ChevronDown,
   ChevronRight,
   User,
+  Sparkles,
   Award,
   Layers,
   Plus
@@ -38,7 +39,7 @@ export const SeccionesRasgosActivos: React.FC<SeccionesRasgosActivosProps> = ({
 }) => {
   return (
     <>
-      {/* BLOQUE 1: ESPECIE / RAZA */}
+      {/* BLOQUE 1A: ESPECIE / RAZA */}
       {datosJerarquicos.especie.length > 0 && (
         <div className={estilos.seccionPrincipal}>
           <div
@@ -50,7 +51,6 @@ export const SeccionesRasgosActivos: React.FC<SeccionesRasgosActivosProps> = ({
               <User size={13} color="#10b981" />
               <span className={estilos.tituloSeccion}>
                 Raza: {personajeActivo.especie || "Humano"}
-                {personajeActivo.subespecie ? ` (${personajeActivo.subespecie})` : ""}
               </span>
               <span className={estilos.badgeConteoSeccion}>
                 {datosJerarquicos.especie.length}
@@ -61,6 +61,40 @@ export const SeccionesRasgosActivos: React.FC<SeccionesRasgosActivosProps> = ({
           {!seccionesColapsadas.especie && (
             <div className={estilos.cuerpoSeccionPrincipal}>
               {datosJerarquicos.especie.map(renderizarTarjetaRasgo)}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* BLOQUE 1B: LEGADO / SUBRAZA (CAJA INDEPENDIENTE SIMILAR A SUBCLASES) */}
+      {datosJerarquicos.subespecie && datosJerarquicos.subespecie.length > 0 && (
+        <div
+          className={estilos.seccionPrincipal}
+          style={{ borderLeft: "3px solid #10b981" }}
+        >
+          <div
+            className={estilos.cabeceraSeccionPrincipal}
+            onClick={() => alternarColapso("subespecie")}
+          >
+            <div className={estilos.ladoIzquierdoCabecera}>
+              {seccionesColapsadas.subespecie ? <ChevronRight size={15} /> : <ChevronDown size={15} />}
+              <Sparkles size={13} color="#10b981" />
+              <span className={estilos.tituloSeccion} style={{ color: "#34d399" }}>
+                {personajeActivo.especie?.toLowerCase().includes("dracon")
+                  ? "Legado Dracónico"
+                  : personajeActivo.especie?.toLowerCase().includes("tiefling")
+                  ? "Legado Infernal"
+                  : "Subraza / Linaje"}: {personajeActivo.subespecie || "Especialización"} ({personajeActivo.especie})
+              </span>
+              <span className={estilos.badgeConteoSeccion}>
+                {datosJerarquicos.subespecie.length}
+              </span>
+            </div>
+          </div>
+
+          {!seccionesColapsadas.subespecie && (
+            <div className={estilos.cuerpoSeccionPrincipal}>
+              {datosJerarquicos.subespecie.map(renderizarTarjetaRasgo)}
             </div>
           )}
         </div>

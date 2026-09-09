@@ -60,6 +60,7 @@ export function usarVistaRasgos() {
     clavePersistencia,
     {
       especie: false,
+      subespecie: false,
       dotes: false,
       personalizados: false
     }
@@ -95,6 +96,7 @@ export function usarVistaRasgos() {
   const expandirTodas = () => {
     setSeccionesColapsadas({
       especie: false,
+      subespecie: false,
       dotes: false,
       personalizados: false
     });
@@ -103,6 +105,7 @@ export function usarVistaRasgos() {
   const colapsarTodas = () => {
     const colapsadas: SeccionesColapsadas = {
       especie: true,
+      subespecie: true,
       dotes: true,
       personalizados: true
     };

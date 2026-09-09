@@ -12,6 +12,7 @@ const OPCIONES_ORIGEN: { valor: OrigenRasgo; etiqueta: string }[] = [
   { valor: "clase", etiqueta: "Clase" },
   { valor: "subclase", etiqueta: "Subclase" },
   { valor: "especie", etiqueta: "Especie / Raza" },
+  { valor: "subespecie", etiqueta: "Subraza / Legado" },
   { valor: "trasfondo", etiqueta: "Trasfondo" }
 ];
 

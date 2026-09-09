@@ -1,6 +1,53 @@
 import type {
-  DefinicionEspecie
+  DefinicionEspecie,
+  DefinicionSubespecie
 } from "@/tipos/especies";
+
+// =======================================================
+// CONFIGURACIÓN Y FÁBRICA DE LEGADOS DRACÓNICOS (D&D 5.5e)
+// =======================================================
+
+const TABLA_ANCESTROS_DRACONICOS = [
+  { id: "draconido_negro", nombre: "Dragón Negro", tipoDano: "Ácido", descripcion: "Linaje de dragón negro imbuido con la corrosión del ácido." },
+  { id: "draconido_azul", nombre: "Dragón Azul", tipoDano: "Relámpago", descripcion: "Linaje de dragón azul imbuido con la energía del relámpago." },
+  { id: "draconido_oropel", nombre: "Dragón de Oropel", tipoDano: "Fuego", descripcion: "Linaje de dragón de oropel imbuido con el calor abrasador del fuego." },
+  { id: "draconido_bronce", nombre: "Dragón de Bronce", tipoDano: "Relámpago", descripcion: "Linaje de dragón de bronce imbuido con las chispas del relámpago." },
+  { id: "draconido_cobre", nombre: "Dragón de Cobre", tipoDano: "Ácido", descripcion: "Linaje de dragón de cobre imbuido con la acidez disolvente." },
+  { id: "draconido_oro", nombre: "Dragón de Oro", tipoDano: "Fuego", descripcion: "Linaje de dragón de oro imbuido con la llama solar purificadora del fuego." },
+  { id: "draconido_verde", nombre: "Dragón Verde", tipoDano: "Veneno", descripcion: "Linaje de dragón verde imbuido con la toxicidad letal del veneno." },
+  { id: "draconido_rojo", nombre: "Dragón Rojo", tipoDano: "Fuego", descripcion: "Linaje de dragón rojo imbuido con la furia ardiente del fuego." },
+  { id: "draconido_plata", nombre: "Dragón de Plata", tipoDano: "Frío", descripcion: "Linaje de dragón de plata imbuido con el aliento gélido del frío." },
+  { id: "draconido_blanco", nombre: "Dragón Blanco", tipoDano: "Frío", descripcion: "Linaje de dragón blanco imbuido con la helada invernal del frío." }
+];
+
+function crearSubespeciesDraconidas(): DefinicionSubespecie[] {
+  return TABLA_ANCESTROS_DRACONICOS.map((ancestro) => ({
+    id: ancestro.id,
+    especiePadre: "draconido",
+    nombre: ancestro.nombre,
+    descripcion: ancestro.descripcion,
+    resistenciasDanio: [ancestro.tipoDano],
+    rasgos: [
+      {
+        nombre: "Resistencia al daño",
+        descripcion: `Tienes resistencia al daño de *${ancestro.tipoDano.toLowerCase()}* determinado por tu linaje dracónico *(${ancestro.nombre})*.`,
+        tipoAccion: "pasivo",
+        categoriaMecanica: "pasivo_permanente"
+      },
+      {
+        nombre: "Ataque de aliento",
+        descripcion: `Cuando lleves a cabo la acción de atacar en tu turno, puedes sustituir uno de tus ataques por una exhalación de energía mágica en un cono de 15 pies o en una línea de 30 pies de largo y 5 pies de ancho (elige la forma cada vez). Todas las criaturas situadas en esa zona deberán hacer una tirada de salvación de Destreza (CD 8 más tu modificador por Constitución y tu bonificador por competencia). Si la fallan, sufrirán 1d10 de daño de *${ancestro.tipoDano.toLowerCase()}* (*${ancestro.nombre}*). Si la superan, recibirán la mitad de ese daño. El daño aumenta en 1d10 cuando alcanzas los niveles 5 (2d10), 11 (3d10) y 17 (4d10) de personaje.\n\nPuedes utilizar este ataque de aliento una cantidad de veces igual a tu bonificador por competencia y recuperas todos los usos tras finalizar un descanso largo.`,
+        tipoAccion: "accion",
+        tieneUsosLimitados: true,
+        usosMaximos: 2,
+        recuperacion: "descanso_largo",
+        formulaDados: "1d10",
+        formulaEscalado: "bono_competencia",
+        categoriaMecanica: "consumible"
+      }
+    ]
+  }));
+}
 
 // =======================================================
 // CATÁLOGO CANÓNICO DE ESPECIES / RAZAS D&D 5.5e (2024)
@@ -620,44 +667,43 @@ export const CATALOGO_ESPECIES_DND55: DefinicionEspecie[] = [
     visionOscuridad: 60,
     rasgos: [
       {
-        nombre: "Linaje dracónico",
-        descripcion: "Tu linaje proviene de un progenitor dragón, afectando a tu aliento y resistencia elemental.",
+        nombre: "Tipo de criatura",
+        descripcion: "Eres una criatura del tipo Humanoide.",
         tipoAccion: "pasivo",
         categoriaMecanica: "pasivo_permanente"
       },
       {
-        nombre: "Ataque de aliento",
-        descripcion: "Al tomar la acción de atacar, sustituyes un ataque por una exhalación mágica (cono de 15 pies o línea de 30 pies) infligiendo 1d10 de daño elemental (aumenta a nivel 5, 11 y 17). Usos igual a PB por descanso largo.",
-        tipoAccion: "accion",
-        tieneUsosLimitados: true,
-        usosMaximos: 2,
-        recuperacion: "descanso_largo",
-        formulaDados: "1d10",
-        formulaEscalado: "bono_competencia"
-      },
-      {
-        nombre: "Resistencia al daño",
-        descripcion: "Tienes resistencia al tipo de daño asociado con tu linaje dracónico.",
+        nombre: "Tamaño",
+        descripcion: "Eres de tamaño Mediano (entre 5 y 7 pies de altura).",
         tipoAccion: "pasivo",
         categoriaMecanica: "pasivo_permanente"
       },
       {
         nombre: "Visión en la oscuridad",
-        descripcion: "Tienes visión en la oscuridad hasta 60 pies.",
+        descripcion: "Tienes visión en la oscuridad con un alcance de 60 pies.",
+        tipoAccion: "pasivo",
+        categoriaMecanica: "pasivo_permanente"
+      },
+      {
+        nombre: "Linaje dracónico",
+        descripcion: "Tu linaje proviene de un progenitor dragón. Tu elección determina tu resistencia al daño, la energía elemental de tu ataque de aliento y tus rasgos físicos.",
         tipoAccion: "pasivo",
         categoriaMecanica: "pasivo_permanente"
       },
       {
         nombre: "Vuelo dracónico",
-        descripcion: "A nivel 5, puedes manifestar alas espectrales durante 10 minutos como acción adicional (1/descanso largo) con velocidad de vuelo igual a tu velocidad.",
+        descripcion: "Cuando alcanzas el nivel 5 de personaje, puedes canalizar la magia dracónica para volar de forma temporal. Como acción adicional, haces que en la espalda te broten unas alas espectrales que duran 10 minutos o hasta que las repliegues (no requiere acción) o tengas el estado de incapacitado. Durante ese tiempo, tendrás una velocidad volando igual a tu velocidad. Tus alas parecen hechas de la misma energía que tu ataque de aliento. Cuando uses este atributo, no podrás volver a hacerlo hasta que finalices un descanso largo.",
         tipoAccion: "accion_adicional",
         nivelRequerido: 5,
         tieneUsosLimitados: true,
         usosMaximos: 1,
         recuperacion: "descanso_largo",
-        esActivable: true
+        esActivable: true,
+        condicionAlActivar: "Vuelo dracónico",
+        categoriaMecanica: "activable"
       }
-    ]
+    ],
+    subespecies: crearSubespeciesDraconidas()
   }
 ];
 

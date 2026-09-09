@@ -6,6 +6,7 @@ import { z } from "zod";
 
 export const EsquemaOrigenRasgo = z.enum([
   "especie",
+  "subespecie",
   "clase",
   "subclase",
   "dote",

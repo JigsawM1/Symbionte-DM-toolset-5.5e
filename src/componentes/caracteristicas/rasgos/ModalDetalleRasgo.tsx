@@ -64,6 +64,7 @@ const ETIQUETA_ORIGEN: Record<OrigenRasgo, string> = {
   clase: "Clase",
   subclase: "Subclase",
   especie: "Especie",
+  subespecie: "Legado / Subraza",
   dote: "Dote",
   trasfondo: "Trasfondo",
   personalizado: "Personalizado / Homebrew"
@@ -101,8 +102,18 @@ export const ModalDetalleRasgo: React.FC<ModalDetalleRasgoProps> = ({
   const normNombre = rasgo.nombre.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
   const esCuracion = rasgo.categoriaMecanica === "curacion" || normNombre.includes("guerrero de los dioses");
   const esManosCurativas = normNombre.includes("manos curativas");
+  const esMantoInspiracion = normNombre.includes("manto de inspiracion");
+  const esInspiracionBardica = normNombre.includes("inspiracion bardica");
+  const esAtaqueAliento = normNombre.includes("ataque de aliento") || normNombre.includes("arma de aliento");
   const esCuracionAuto = esCuracion && !esManosCurativas;
-  const gastaUsoAlTirar = esCuracionAuto || esManosCurativas || rasgo.gastarDePadre;
+  const gastaUsoAlTirar =
+    esCuracionAuto ||
+    esManosCurativas ||
+    esMantoInspiracion ||
+    esInspiracionBardica ||
+    esAtaqueAliento ||
+    rasgo.categoriaMecanica === "consumible" ||
+    rasgo.gastarDePadre;
 
   const manejarTirarDados = async () => {
     if (!formulaEfectiva) return;

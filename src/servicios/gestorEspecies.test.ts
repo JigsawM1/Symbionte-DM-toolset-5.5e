@@ -261,6 +261,23 @@ describe("GestorEspecies - Dominio de Razas y Subrazas (D&D 5.5e)", () => {
       expect(esMantoInspiracion).toBe(true);
       expect(tieneEfectoHpTemporalAuto).toBe(false);
     });
+
+    it("Ataque de aliento e Inspiración bárdica gastan uso al tirar los dados", () => {
+      const draconido = obtenerEspeciePorId("draconido")!;
+      const subRojo = obtenerSubespeciePorNombre("draconido", "Dragón Rojo");
+      const rasgos = construirRasgosEspecie(draconido, subRojo, 3, 2);
+      const aliento = rasgos.find((r) => r.nombre === "Ataque de aliento")!;
+
+      expect(aliento).toBeDefined();
+      const normAliento = aliento.nombre.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+      const esAtaqueAliento = normAliento.includes("ataque de aliento") || normAliento.includes("arma de aliento");
+      const gastaUsoAliento = esAtaqueAliento || aliento.categoriaMecanica === "consumible";
+      expect(gastaUsoAliento).toBe(true);
+
+      const normInspiracion = "Inspiración bárdica".toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+      const esInspiracion = normInspiracion.includes("inspiracion bardica");
+      expect(esInspiracion).toBe(true);
+    });
   });
 
   describe("Tarjetas de Rasgos Universales: Tipo de Criatura y Tamaño Configurable", () => {
@@ -495,6 +512,237 @@ describe("GestorEspecies - Dominio de Razas y Subrazas (D&D 5.5e)", () => {
         descripcion: "Tres dardos."
       });
       expect(origenNormal).toBeNull();
+    });
+  });
+
+  describe("Dracónido y Legados Dracónicos (draconido.md)", () => {
+    it("cumple los campos universales y rasgos base del Dracónido", () => {
+      const draconido = obtenerEspeciePorId("draconido");
+      expect(draconido).toBeDefined();
+      expect(draconido?.tipoCriatura).toBe("Humanoide");
+      expect(draconido?.tamanoOpciones).toEqual(["Mediano"]);
+      expect(draconido?.tamanoPorDefecto).toBe("Mediano");
+      expect(draconido?.velocidadBase).toBe(30);
+      expect(draconido?.visionOscuridad).toBe(60);
+
+      const nombresRasgos = draconido?.rasgos.map((r) => r.nombre);
+      expect(nombresRasgos).toContain("Tipo de criatura");
+      expect(nombresRasgos).toContain("Tamaño");
+      expect(nombresRasgos).toContain("Visión en la oscuridad");
+      expect(nombresRasgos).toContain("Linaje dracónico");
+      expect(nombresRasgos).toContain("Vuelo dracónico");
+    });
+
+    it("modela los 10 legados dracónicos oficiales en la tabla de ancestros", () => {
+      const legados = obtenerSubespeciesDeEspecie("draconido");
+      expect(legados).toHaveLength(10);
+
+      const mapaEsperado: Record<string, string> = {
+        "draconido_negro": "Ácido",
+        "draconido_azul": "Relámpago",
+        "draconido_oropel": "Fuego",
+        "draconido_bronce": "Relámpago",
+        "draconido_cobre": "Ácido",
+        "draconido_oro": "Fuego",
+        "draconido_verde": "Veneno",
+        "draconido_rojo": "Fuego",
+        "draconido_plata": "Frío",
+        "draconido_blanco": "Frío"
+      };
+
+      for (const [id, tipoDano] of Object.entries(mapaEsperado)) {
+        const sub = legados.find((s) => s.id === id);
+        expect(sub).toBeDefined();
+        expect(sub?.resistenciasDanio).toContain(tipoDano);
+
+        // Cada legado debe contener Resistencia al daño y Ataque de aliento
+        const nombresSubRasgos = sub?.rasgos.map((r) => r.nombre);
+        expect(nombresSubRasgos).toContain("Resistencia al daño");
+        expect(nombresSubRasgos).toContain("Ataque de aliento");
+
+        const rasgoResistencia = sub?.rasgos.find((r) => r.nombre === "Resistencia al daño");
+        expect(rasgoResistencia?.descripcion.toLowerCase()).toContain(tipoDano.toLowerCase());
+
+        const rasgoAliento = sub?.rasgos.find((r) => r.nombre === "Ataque de aliento");
+        expect(rasgoAliento?.descripcion.toLowerCase()).toContain(tipoDano.toLowerCase());
+      }
+    });
+
+    it("permite búsqueda tolerante por nombre parcial, id o nombre canónico del legado", () => {
+      const porId = obtenerSubespeciePorNombre("draconido", "draconido_rojo");
+      expect(porId?.nombre).toBe("Dragón Rojo");
+
+      const porNombreCorto = obtenerSubespeciePorNombre("draconido", "rojo");
+      expect(porNombreCorto?.nombre).toBe("Dragón Rojo");
+
+      const porNombreCompleto = obtenerSubespeciePorNombre("draconido", "Dragón Rojo");
+      expect(porNombreCompleto?.id).toBe("draconido_rojo");
+
+      const porNombreOropel = obtenerSubespeciePorNombre("draconido", "oropel");
+      expect(porNombreOropel?.id).toBe("draconido_oropel");
+    });
+
+    it("escala dinámicamente los dados y usos de Ataque de aliento según nivel y competencia", () => {
+      const draconido = obtenerEspeciePorId("draconido")!;
+      const legadoAzul = obtenerSubespeciePorNombre("draconido", "azul")!;
+
+      // Nivel 1 (PB = 2) -> 1d10, 2 usos
+      const rasgosNivel1 = construirRasgosEspecie(draconido, legadoAzul, 1, 2);
+      const alientoN1 = rasgosNivel1.find((r) => r.nombre === "Ataque de aliento")!;
+      expect(alientoN1.formulaDados).toBe("1d10");
+      expect(alientoN1.usosMaximos).toBe(2);
+      expect(alientoN1.origen).toBe("subespecie");
+
+      // Nivel 5 (PB = 3) -> 2d10, 3 usos
+      const rasgosNivel5 = construirRasgosEspecie(draconido, legadoAzul, 5, 3);
+      const alientoN5 = rasgosNivel5.find((r) => r.nombre === "Ataque de aliento")!;
+      expect(alientoN5.formulaDados).toBe("2d10");
+      expect(alientoN5.usosMaximos).toBe(3);
+
+      // Nivel 11 (PB = 4) -> 3d10, 4 usos
+      const rasgosNivel11 = construirRasgosEspecie(draconido, legadoAzul, 11, 4);
+      const alientoN11 = rasgosNivel11.find((r) => r.nombre === "Ataque de aliento")!;
+      expect(alientoN11.formulaDados).toBe("3d10");
+      expect(alientoN11.usosMaximos).toBe(4);
+
+      // Nivel 17 (PB = 6) -> 4d10, 6 usos
+      const rasgosNivel17 = construirRasgosEspecie(draconido, legadoAzul, 17, 6);
+      const alientoN17 = rasgosNivel17.find((r) => r.nombre === "Ataque de aliento")!;
+      expect(alientoN17.formulaDados).toBe("4d10");
+      expect(alientoN17.usosMaximos).toBe(6);
+    });
+
+    it("aplica Dracónido y su legado a un personaje mediante la función genérica del builder", () => {
+      const pjInicial: PersonajeJugador = {
+        ...PERSONAJE_POR_DEFECTO,
+        id: "pj-builder-draconido",
+        nivel: 5,
+        especie: "Humano",
+        subespecie: "",
+        rasgos: [
+          {
+            id: "rasgo_esp_humano_versatil",
+            nombre: "Versatilidad humana",
+            descripcion: "Rasgo previo.",
+            origen: "especie",
+            fuente: "Especie: Humano",
+            tipoAccion: "pasivo",
+            tieneUsosLimitados: false,
+            recuperacion: "ninguno",
+            personalizado: false,
+            activo: true,
+            notas: ""
+          },
+          {
+            id: "rasgo_cls_guerrero_segundo_aliento",
+            nombre: "Segundo aliento",
+            descripcion: "Rasgo de clase.",
+            origen: "clase",
+            fuente: "Clase: Guerrero",
+            tipoAccion: "accion_adicional",
+            tieneUsosLimitados: true,
+            recuperacion: "descanso_corto",
+            personalizado: false,
+            activo: true,
+            notas: ""
+          }
+        ]
+      };
+
+      const pjActualizado = aplicarEspecieAPersonaje(pjInicial, {
+        especieId: "draconido",
+        subespecieId: "draconido_verde"
+      });
+
+      expect(pjActualizado.especie).toBe("Dracónido");
+      expect(pjActualizado.subespecie).toBe("Dragón Verde");
+      expect(pjActualizado.tipoCriatura).toBe("Humanoide");
+      expect(pjActualizado.tamano).toBe("Mediano");
+      expect(pjActualizado.sentidos).toBe("Visión en la oscuridad 60 pies");
+
+      // Rasgo de clase se preserva intacto
+      expect(pjActualizado.rasgos.some((r) => r.id === "rasgo_cls_guerrero_segundo_aliento")).toBe(true);
+
+      // Rasgo previo de humano purgado
+      expect(pjActualizado.rasgos.some((r) => r.id === "rasgo_esp_humano_versatil")).toBe(false);
+
+      // Rasgos base de especie presentes con origen 'especie'
+      const rasgosBase = pjActualizado.rasgos.filter((r) => r.origen === "especie");
+      expect(rasgosBase.some((r) => r.nombre === "Visión en la oscuridad")).toBe(true);
+      expect(rasgosBase.some((r) => r.nombre === "Vuelo dracónico")).toBe(true);
+
+      // Rasgos del legado presentes con origen 'subespecie'
+      const rasgosLegado = pjActualizado.rasgos.filter((r) => r.origen === "subespecie");
+      expect(rasgosLegado.some((r) => r.nombre === "Resistencia al daño")).toBe(true);
+      const alientoVerde = rasgosLegado.find((r) => r.nombre === "Ataque de aliento")!;
+      expect(alientoVerde).toBeDefined();
+      expect(alientoVerde.descripcion).toContain("veneno");
+      expect(alientoVerde.formulaDados).toBe("2d10"); // Nivel 5
+    });
+
+    it("Vuelo dracónico activa el efecto informativo con duración 100 rondas", () => {
+      const pjInicial = aplicarEspecieAPersonaje(
+        {
+          ...PERSONAJE_POR_DEFECTO,
+          id: "pj-draconido-vuelo",
+          nombre: "Ignis",
+          nivel: 5,
+          efectosActivos: [],
+          condicionesActivas: []
+        },
+        { especieId: "draconido", subespecieId: "draconido_rojo" }
+      );
+
+      usarAlmacenDM.setState({
+        personajes: [pjInicial],
+        idPersonajeActivo: "pj-draconido-vuelo",
+        colaIniciativa: [
+          {
+            id: "pj-draconido-vuelo",
+            nombre: "Ignis",
+            iniciativa: 12,
+            vidaMaxima: 35,
+            vidaActual: 35,
+            ca: 16,
+            bonificadorIniciativa: 2,
+            esMonstruo: false,
+            velocidad: "30 pies",
+            condiciones: [],
+            efectos: []
+          }
+        ]
+      });
+
+      const store = usarAlmacenDM.getState();
+      const rasgoVuelo = pjInicial.rasgos.find((r) => r.nombre === "Vuelo dracónico")!;
+      expect(rasgoVuelo).toBeDefined();
+      expect(rasgoVuelo.nivelRequerido).toBe(5);
+      expect(rasgoVuelo.condicionAlActivar).toBe("Vuelo dracónico");
+
+      // Activar Vuelo dracónico
+      store.alternarActivoRasgo("pj-draconido-vuelo", rasgoVuelo.id);
+
+      const pjTrasActivar = usarAlmacenDM.getState().personajes.find((p) => p.id === "pj-draconido-vuelo")!;
+      const colaTrasActivar = usarAlmacenDM.getState().colaIniciativa;
+
+      // Se creó el efecto activo con duración estándar de 100 rondas (10 minutos)
+      expect(pjTrasActivar.efectosActivos).toHaveLength(1);
+      expect(pjTrasActivar.efectosActivos[0].nombre).toBe("Vuelo dracónico");
+      expect(pjTrasActivar.efectosActivos[0].expiraRonda).toBe(101);
+
+      // Sincronizado en la cola de iniciativa del combate
+      expect(colaTrasActivar[0]?.efectos).toHaveLength(1);
+      expect(colaTrasActivar[0]?.efectos?.[0]?.nombre).toBe("Vuelo dracónico");
+      expect(colaTrasActivar[0]?.efectos?.[0]?.expiraRonda).toBe(101);
+
+      // Desactivar Vuelo dracónico
+      store.alternarActivoRasgo("pj-draconido-vuelo", rasgoVuelo.id);
+
+      const pjTrasDesactivar = usarAlmacenDM.getState().personajes.find((p) => p.id === "pj-draconido-vuelo")!;
+      const colaTrasDesactivar = usarAlmacenDM.getState().colaIniciativa;
+
+      expect(pjTrasDesactivar.efectosActivos).toHaveLength(0);
+      expect(colaTrasDesactivar[0]?.efectos).toHaveLength(0);
     });
   });
 });

@@ -62,6 +62,7 @@ const ETIQUETA_ORIGEN: Record<OrigenRasgo, string> = {
   clase: "Clase",
   subclase: "Subclase",
   especie: "Especie",
+  subespecie: "Legado / Subraza",
   dote: "Dote",
   trasfondo: "Trasfondo",
   personalizado: "Personalizado / Homebrew"
@@ -71,6 +72,7 @@ const CLASE_ORIGEN_BORDE: Record<OrigenRasgo, string> = {
   clase: estilos.origenClase,
   subclase: estilos.origenSubclase,
   especie: estilos.origenEspecie,
+  subespecie: estilos.origenSubclase,
   dote: estilos.origenDote,
   trasfondo: estilos.origenDote,
   personalizado: estilos.origenPersonalizado
@@ -107,14 +109,24 @@ export const TarjetaRasgo: React.FC<TarjetaRasgoProps> = ({
   const normNombre = rasgo.nombre.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
   const esManosCurativas = normNombre.includes("manos curativas");
   const esMantoInspiracion = normNombre.includes("manto de inspiracion");
+  const esInspiracionBardica = normNombre.includes("inspiracion bardica");
+  const esAtaqueAliento = normNombre.includes("ataque de aliento") || normNombre.includes("arma de aliento");
 
   // La auto-curación y auto-HP temporal solo se aplican a rasgos exclusivamente personales (ej. Guerrero de los dioses).
-  // Rasgos que pueden aplicarse a otras criaturas (como Manos curativas o Manto de inspiración)
+  // Rasgos que pueden aplicarse a otras criaturas (como Manos curativas o Manto de inspiración) o consumibles (Ataque de aliento, Inspiración bárdica)
   // tiran los dados y consumen el uso, pero no alteran automáticamente la vida del propio lanzador.
   const esCuracion = rasgo.categoriaMecanica === "curacion" || normNombre.includes("guerrero de los dioses");
   const esCuracionAuto = esCuracion && !esManosCurativas;
   const tieneEfectoHpTemporalAuto = (rasgo.efectos || []).some((ef) => ef.tipo === "hp_temporal") && !esMantoInspiracion;
-  const gastaUsoAlTirar = esCuracionAuto || tieneEfectoHpTemporalAuto || esManosCurativas || esMantoInspiracion || rasgo.gastarDePadre;
+  const gastaUsoAlTirar =
+    esCuracionAuto ||
+    tieneEfectoHpTemporalAuto ||
+    esManosCurativas ||
+    esMantoInspiracion ||
+    esInspiracionBardica ||
+    esAtaqueAliento ||
+    rasgo.categoriaMecanica === "consumible" ||
+    rasgo.gastarDePadre;
 
   const manejarTirarDados = async (e: React.MouseEvent) => {
     e.stopPropagation();

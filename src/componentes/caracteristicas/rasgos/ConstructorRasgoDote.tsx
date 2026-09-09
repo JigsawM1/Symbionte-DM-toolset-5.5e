@@ -42,7 +42,8 @@ const OPCIONES_ORIGEN: { valor: OrigenRasgo; etiqueta: string }[] = [
   { valor: "dote", etiqueta: "Dote" },
   { valor: "clase", etiqueta: "Rasgo de Clase" },
   { valor: "subclase", etiqueta: "Rasgo de Subclase" },
-  { valor: "especie", etiqueta: "Rasgo de Especie / Linaje" }
+  { valor: "especie", etiqueta: "Rasgo de Especie" },
+  { valor: "subespecie", etiqueta: "Rasgo de Subraza / Legado" }
 ];
 
 const OPCIONES_TIPO_ACCION: { valor: TipoAccionRasgo; etiqueta: string }[] = [

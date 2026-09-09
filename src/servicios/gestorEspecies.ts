@@ -67,7 +67,7 @@ export function obtenerSubespeciesDeEspecie(especieNombreOId: string): Definicio
 }
 
 /**
- * Busca una subespecie o linaje específico por nombre o ID.
+ * Busca una subespecie o linaje específico por nombre o ID con búsqueda tolerante.
  */
 export function obtenerSubespeciePorNombre(
   especieNombreOId?: string,
@@ -76,20 +76,28 @@ export function obtenerSubespeciePorNombre(
   if (!subespecieNombre) return undefined;
   const subNorm = normalizarTextoEspecie(subespecieNombre);
 
+  const coincide = (s: DefinicionSubespecie): boolean => {
+    const sIdNorm = normalizarTextoEspecie(s.id);
+    const sNomNorm = normalizarTextoEspecie(s.nombre);
+    return (
+      sIdNorm === subNorm ||
+      sNomNorm === subNorm ||
+      sNomNorm.includes(subNorm) ||
+      subNorm.includes(sNomNorm) ||
+      sIdNorm.includes(subNorm)
+    );
+  };
+
   if (especieNombreOId) {
     const subespecies = obtenerSubespeciesDeEspecie(especieNombreOId);
-    const coincidencia = subespecies.find(
-      (s) => normalizarTextoEspecie(s.id) === subNorm || normalizarTextoEspecie(s.nombre) === subNorm
-    );
+    const coincidencia = subespecies.find(coincide);
     if (coincidencia) return coincidencia;
   }
 
   // Búsqueda global entre todas las especies
   for (const esp of CATALOGO_ESPECIES_DND55) {
     if (!esp.subespecies) continue;
-    const match = esp.subespecies.find(
-      (s) => normalizarTextoEspecie(s.id) === subNorm || normalizarTextoEspecie(s.nombre) === subNorm
-    );
+    const match = esp.subespecies.find(coincide);
     if (match) return match;
   }
 
@@ -102,21 +110,19 @@ export function obtenerSubespeciePorNombre(
 export function construirRasgosEspecie(
   especie: DefinicionEspecie,
   subespecie?: DefinicionSubespecie,
-  _nivel: number = 1,
+  nivel: number = 1,
   bonificadorCompetencia: number = 2,
   tamanoElegido?: TamanoPersonaje
 ): RasgoPersonaje[] {
-  const plantillas = [
-    ...especie.rasgos,
-    ...(subespecie?.rasgos || [])
-  ];
+  // 1. Plantillas base de la especie
+  const plantillasBase = [...especie.rasgos];
 
-  // 1. Garantizar presencia de "Tipo de criatura" si no está explícito en plantillas
-  const tieneTipoCriatura = plantillas.some(
+  // Garantizar presencia de "Tipo de criatura" si no está explícito en plantillas
+  const tieneTipoCriatura = plantillasBase.some(
     (p) => normalizarTextoEspecie(p.nombre) === "tipo de criatura"
   );
   if (!tieneTipoCriatura) {
-    plantillas.unshift({
+    plantillasBase.unshift({
       nombre: "Tipo de criatura",
       descripcion: `Eres una criatura del tipo ${especie.tipoCriatura || "Humanoide"}.`,
       tipoAccion: "pasivo",
@@ -124,14 +130,14 @@ export function construirRasgosEspecie(
     });
   }
 
-  // 2. Garantizar presencia de "Tamaño" si no está explícito en plantillas
-  const tieneTamano = plantillas.some(
+  // Garantizar presencia de "Tamaño" si no está explícito en plantillas
+  const tieneTamano = plantillasBase.some(
     (p) => normalizarTextoEspecie(p.nombre) === "tamano"
   );
   if (!tieneTamano) {
     const esMultitamano = Array.isArray(especie.tamanoOpciones) && especie.tamanoOpciones.length > 1;
     if (esMultitamano) {
-      plantillas.splice(1, 0, {
+      plantillasBase.splice(1, 0, {
         nombre: "Tamaño",
         descripcion: `Eres ${especie.tamanoOpciones.join(" o ")}. Eliges el tamaño cuando seleccionas esta especie.`,
         tipoAccion: "pasivo",
@@ -153,7 +159,7 @@ export function construirRasgosEspecie(
       });
     } else {
       const tamFijo = especie.tamanoPorDefecto || (especie.tamanoOpciones?.[0]) || "Mediano";
-      plantillas.splice(1, 0, {
+      plantillasBase.splice(1, 0, {
         nombre: "Tamaño",
         descripcion: `Eres de tamaño ${tamFijo}.`,
         tipoAccion: "pasivo",
@@ -162,21 +168,16 @@ export function construirRasgosEspecie(
     }
   }
 
-  const nombreEspecie = especie.nombre;
-  const nombreSubespecie = subespecie?.nombre;
-  const fuenteTexto = `Especie: ${nombreEspecie}${nombreSubespecie ? ` (${nombreSubespecie})` : ""}`;
-
-  return plantillas.map((p) => {
+  // Mapear rasgos base de la especie (origen: "especie")
+  const rasgosBaseProcesados: RasgoPersonaje[] = plantillasBase.map((p) => {
     const id = `rasgo_esp_${normalizarTextoEspecie(especie.id)}_${normalizarTextoEspecie(p.nombre).replace(/\s+/g, "_")}`;
     const usos = p.tieneUsosLimitados ? p.usosMaximos || 1 : undefined;
 
-    // Fórmulas dinámicas dependientes de bonificador de competencia (ej. Manos curativas: PB d4)
     let formulaDados = p.formulaDados;
     if (p.formulaEscalado === "bono_competencia" && p.formulaDados?.endsWith("d4")) {
       formulaDados = `${bonificadorCompetencia}d4`;
     }
 
-    // Configurar el tamaño actual elegido en el selector si el rasgo es Tamaño
     let selectoresProcesados = p.selectores ? JSON.parse(JSON.stringify(p.selectores)) : [];
     if (normalizarTextoEspecie(p.nombre) === "tamano" && selectoresProcesados.length > 0) {
       const valorTamano = normalizarTextoEspecie(tamanoElegido || especie.tamanoPorDefecto || "mediano");
@@ -193,7 +194,7 @@ export function construirRasgosEspecie(
       nombre: p.nombre,
       descripcion: p.descripcion,
       origen: "especie",
-      fuente: fuenteTexto,
+      fuente: `Especie: ${especie.nombre}`,
       tipoAccion: p.tipoAccion,
       nivelRequerido: p.nivelRequerido,
       tieneUsosLimitados: !!p.tieneUsosLimitados,
@@ -216,6 +217,59 @@ export function construirRasgosEspecie(
       notas: ""
     };
   });
+
+  // Mapear rasgos de la subespecie / legado (origen: "subespecie")
+  const prefijoFuente = normalizarTextoEspecie(especie.id).includes("dracon") || normalizarTextoEspecie(especie.id).includes("tiefling")
+    ? "Legado"
+    : "Subespecie";
+
+  const rasgosSubespecieProcesados: RasgoPersonaje[] = (subespecie?.rasgos || []).map((p) => {
+    const id = `rasgo_sub_${normalizarTextoEspecie(especie.id)}_${normalizarTextoEspecie(subespecie?.id || "")}_${normalizarTextoEspecie(p.nombre).replace(/\s+/g, "_")}`;
+    const pNomNorm = normalizarTextoEspecie(p.nombre);
+
+    // Escalado dinámico de dados de Ataque de aliento según nivel (1d10, 2d10 a niv 5, 3d10 a niv 11, 4d10 a niv 17)
+    let formulaDados = p.formulaDados;
+    if (pNomNorm.includes("ataque de aliento") || p.formulaEscalado === "escalado_nivel") {
+      const numDados = nivel < 5 ? 1 : nivel < 11 ? 2 : nivel < 17 ? 3 : 4;
+      formulaDados = `${numDados}d10`;
+    }
+
+    // Escalado de usos según bonificador de competencia (Ataque de aliento = PB veces)
+    let usos = p.tieneUsosLimitados ? p.usosMaximos || 1 : undefined;
+    if (p.tieneUsosLimitados && (pNomNorm.includes("ataque de aliento") || p.formulaEscalado === "bono_competencia")) {
+      usos = bonificadorCompetencia;
+    }
+
+    return {
+      id,
+      nombre: p.nombre,
+      descripcion: p.descripcion,
+      origen: "subespecie",
+      fuente: `${prefijoFuente}: ${subespecie?.nombre || ""}`,
+      tipoAccion: p.tipoAccion,
+      nivelRequerido: p.nivelRequerido,
+      tieneUsosLimitados: !!p.tieneUsosLimitados,
+      usosMaximos: usos,
+      usosRestantes: usos,
+      recuperacion: p.recuperacion || "ninguno",
+      formulaDados,
+      personalizado: false,
+      activo: p.esActivable ? false : true,
+      esActivable: p.esActivable,
+      autoDesactivar: p.autoDesactivar,
+      ligadoA: p.ligadoA,
+      condicionAlActivar: p.condicionAlActivar,
+      conjurosOtorgados: p.conjurosOtorgados ? [...p.conjurosOtorgados] : [],
+      categoriaMecanica: p.categoriaMecanica,
+      formulaEscalado: p.formulaEscalado,
+      efectos: p.efectos ? [...p.efectos] : [],
+      selectores: p.selectores ? JSON.parse(JSON.stringify(p.selectores)) : [],
+      tablaProgresion: p.tablaProgresion,
+      notas: ""
+    };
+  });
+
+  return [...rasgosBaseProcesados, ...rasgosSubespecieProcesados];
 }
 
 /**
@@ -293,12 +347,12 @@ export function aplicarEspecieAPersonaje(
     }
   }
 
-  // 5. Rasgos de especie: purgar rasgos previos de especie y añadir los nuevos
+  // 5. Rasgos de especie: purgar rasgos previos de especie y subespecie, y añadir los nuevos
   let rasgosFinales = [...(personaje.rasgos || [])];
   if (opciones.sincronizarRasgos !== false) {
     const rasgosEspecieNuevos = construirRasgosEspecie(especie, subespecie, nivelPj, bonoCompetencia, tamanoFinal);
     // Preservar rasgos de clase, dotes, trasfondo y personalizados
-    const rasgosConservados = rasgosFinales.filter((r) => r.origen !== "especie");
+    const rasgosConservados = rasgosFinales.filter((r) => r.origen !== "especie" && r.origen !== "subespecie");
     rasgosFinales = [...rasgosConservados, ...rasgosEspecieNuevos];
   }
 

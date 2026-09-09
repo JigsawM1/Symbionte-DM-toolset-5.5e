@@ -16,6 +16,77 @@ Este archivo registra reglas globales, errores encontrados, sus causas raíz y l
    - Las dependencias fluyen estrictamente hacia abajo: `App/Layout -> Caracteristicas -> Comunes -> Almacen -> Servicios -> Utiles/Constantes/Tipos`.
    - **Bajo ninguna circunstancia** los módulos de lógica de negocio (`servicios/`), gestores de estado (`almacen/`), contratos (`tipos/`), valores de reglas (`constantes/`) ni funciones de soporte (`utiles/`) deben importar componentes visuales o archivos CSS (`componentes/`). Esta regla está reforzada en CI vía ESLint `no-restricted-imports`.
 
+## [2026-09-08] Culminación Exitosa: Consumo Automático de Usos al Tirar Dados en Ataque de Aliento e Inspiración Bárdica
+**Contexto y Problema Reportado por el Usuario:**
+- Al pulsar el botón de tirada de dados de *Ataque de aliento* (o *Arma de aliento*), se realizaba la tirada 3D en TaleSpire / chat pero no se descontaba automáticamente un uso de la reserva limitada del rasgo (similar al funcionamiento de los dados de Inspiración bárdica).
+
+**Causas Raíz Identificadas:**
+1. En `TarjetaRasgo.tsx` y `ModalDetalleRasgo.tsx`, la condición `gastaUsoAlTirar` evaluaba exclusivamente rasgos de auto-curación, auto-HP temporal o con la bandera `gastarDePadre`. No contemplaba rasgos clasificados con `categoriaMecanica: "consumible"` ni comprobaba de forma nominativa `esAtaqueAliento` o `esInspiracionBardica`.
+2. En `src/constantes/especiesDND55.ts`, la plantilla de *Ataque de aliento* estaba catalogada como `categoriaMecanica: "activable"` en vez de `"consumible"`.
+
+**Solución Implementada y Decisiones Arquitectónicas:**
+1. **Ampliación de `gastaUsoAlTirar` (`TarjetaRasgo.tsx` y `ModalDetalleRasgo.tsx`)**:
+   - Se incluyeron `esAtaqueAliento` (`ataque de aliento` / `arma de aliento`), `esInspiracionBardica` (`inspiracion bardica`), `esMantoInspiracion` y cualquier rasgo con `rasgo.categoriaMecanica === "consumible"`.
+   - Al dispararse `manejarTirarDados`, si `gastaUsoAlTirar` es verdadero y existen usos disponibles, se invoca de inmediato `alGastarUso()`, reduciendo `usosRestantes` tanto en la tarjeta compacta como en el modal de detalle del rasgo.
+2. **Tipado y Semántica en `src/constantes/especiesDND55.ts`**:
+   - Se actualizó *Ataque de aliento* a `categoriaMecanica: "consumible"`, formalizando que su activación mediante tirada de dados consume una carga de su reserva.
+3. **Validación con Pruebas Automatizadas**:
+   - Se añadió prueba en `gestorEspecies.test.ts` asegurando que tanto *Ataque de aliento* como *Inspiración bárdica* activan `gastaUsoAlTirar`.
+
+**Métricas de Calidad Verificadas:**
+- `pnpm exec tsc --noEmit`: 0 errores (Strict Mode estricto).
+- `pnpm lint`: 0 errores, 0 warnings (ESLint limpio).
+- `pnpm test`: 45 suites superadas, 511 de 511 pruebas pasando (100%).
+- `node scripts/verificar-limite-lineas.js`: 105 archivos auditados, 0 errores críticos.
+- `pnpm run ci`: Pipeline integral exitoso en 11.61s (código 0).
+
+---
+
+## [2026-09-08] Culminación Exitosa: Implementación Canónica de Dracónido (D&D 5.5e), 10 Legados Dracónicos, Contenedor UI Independiente para Legados/Subrazas y Efecto Táctico de Vuelo Dracónico
+**Contexto y Requerimientos del Usuario:**
+- Implementación de la especie **Dracónido** (*Dragonborn*) y sus 10 legados dracónicos (subrazas/ancestros) según el compendio oficial D&D 5.5e (`dicionario_herramientas/razas/draconido.md`).
+- Requisitos clave:
+  1. *Funciones genéricas para el builder*: Garantizar alto DRY, KISS y principios SOLID para reutilizar la lógica con el resto de especies.
+  2. *Contenedor UI separado*: Gestionar los legados dracónicos en una caja/sección visual independiente de la especie base, similar a la separación entre clases y subclases.
+  3. *Resistencia al daño y Ataque de aliento en el legado*: Ambos rasgos deben pertenecer directamente al legado seleccionado, no a la especie base.
+  4. *Vuelo dracónico (Nivel 5)*: Debe incorporar un efecto homónimo en el sistema de efectos, de carácter meramente informativo (duración estándar de 10 minutos / 100 rondas).
+
+**Causas Raíz y Desafíos Técnicos Identificados:**
+1. **Mezcla de orígenes de rasgos**:
+   - El contrato `EsquemaOrigenRasgo` limitaba los orígenes a `"clase" | "subclase" | "especie" | "dote" | "personalizado"`. Al marcar los rasgos de legado como `"especie"`, se mezclaban en el mismo bloque visual y, al cambiar de legado o especie en el builder, se dificultaba la purga selectiva o la asignación de insignias distintivas.
+2. **Restricción de `categoriaMecanica` en `PlantillaRasgoEspecie`**:
+   - Las categorías válidas en el tipado estricto son `"consumible" | "activable" | "selector_informativo" | "pasivo_permanente" | "extension" | "curacion" | undefined`. Tipos ad-hoc como `"dano_area"` o `"movimiento_especial"` disparaban TS2322.
+3. **Escalado dinámico del Ataque de Aliento**:
+   - En 5.5e, el daño del aliento progresa por nivel de personaje (1d10 en nv 1-4, 2d10 en nv 5-10, 3d10 en nv 11-16 y 4d10 en nv 17-20) y los usos máximos equivalen al bonificador de competencia (PB) por descanso largo. El constructor de rasgos debía calcular esto en caliente sin código espagueti ni mutaciones globales.
+
+**Solución Implementada y Decisiones Arquitectónicas:**
+1. **Extensión del Contrato de Origen de Rasgos (`src/tipos/rasgos.ts`)**:
+   - Se añadió `"subespecie"` a `EsquemaOrigenRasgo` y `OrigenRasgo`.
+   - Se actualizó `DatosJerarquicosRasgos` con `subespecie: RasgoPersonaje[]` y `SeccionesColapsadas` con `subespecie?: boolean`.
+2. **Modelado Oficial de los 10 Legados Dracónicos (`src/constantes/especiesDND55.ts`)**:
+   - Matriz `TABLA_ANCESTROS_DRACONICOS` con los 10 tipos de dragón (Negro, Azul, Oropel, Bronce, Cobre, Oro, Verde, Rojo, Plata, Blanco), discriminando tipo de daño (Ácido, Relámpago, Fuego, Veneno, Frío), forma de exhalación (cono de 15 pies o línea de 30 pies por 5 pies de ancho) y tiro de salvación canónico (Destreza o Constitución).
+   - Cada legado incluye directamente sus dos rasgos nucleares: *Resistencia al daño* (pasivo permanente) y *Ataque de aliento* (activable con tirada de daño, escala y usos por PB).
+   - La especie base Dracónido contiene: *Tipo de criatura (Humanoide)*, *Tamaño (Mediano)*, *Visión en la oscuridad (60 pies)*, *Linaje dracónico* y *Vuelo dracónico (Nivel 5)*.
+3. **Efecto Informativo de Vuelo Dracónico (`src/utiles/datosIniciales.ts` y `condicionesRasgosHelpers.ts`)**:
+   - Registrado `"Vuelo dracónico"` en `EFECTOS_PREDEFINIDOS` con 100 rondas (10 minutos) e icono de alas/movimiento.
+   - Mapeo bidireccional reactivo en `resolverCondicionAsociadaRasgo` y `coincideCondicionConRasgo` para que al activar el rasgo en la ficha se active el efecto táctico en el Combat Tracker.
+4. **Servicio Genérico Puro para el Builder (`src/servicios/gestorEspecies.ts`)**:
+   - `construirRasgosEspecie`: Asigna `origen: "subespecie"` y `fuente: "Legado: [Nombre]"`. Calcula el escalado de dados de aliento (1d10 a 4d10) según el nivel del personaje y fija `usosMaximos: bonoCompetencia`.
+   - `aplicarEspecieAPersonaje`: Purga limpiamente tanto `"especie"` como `"subespecie"` antes de inyectar la nueva configuración, garantizando idempotencia total sin tocar rasgos de clase, dotes ni personalizados.
+5. **Caja UI Independiente para Legados/Subrazas (`SeccionesRasgosActivos.tsx`)**:
+   - Contenedor visual autónomo con acento esmeralda (`borderLeft: "3px solid #10b981"`), icono `Sparkles`, cabecera colapsable independiente y contador de rasgos de legado.
+   - Sincronización en `usarVistaRasgos.ts`, `TarjetaRasgo.tsx` y `ModalDetalleRasgo.tsx` con badge canónico `"Legado / Subraza"`.
+   - Selector de sugerencias reactivo en `ModalEditarPersonaje.tsx` para `Subraza / Legado`.
+
+**Métricas de Calidad Verificadas:**
+- `pnpm exec tsc --noEmit`: 0 errores (Strict Mode estricto).
+- `pnpm lint`: 0 errores, 0 warnings (ESLint limpio).
+- `pnpm test`: 45 suites superadas, 510 de 510 pruebas pasando (100%).
+- `node scripts/verificar-limite-lineas.js`: 105 archivos auditados, 0 errores críticos.
+- `pnpm run ci`: Pipeline integral exitoso en 11.62s (código 0).
+
+---
+
 ## [2026-09-08] Culminación Exitosa: Badges de Origen de Conjuros, Tarjetas Universales de Especie (Tipo de Criatura y Tamaño Seleccionable) y Efectos Tácticos de Aasimar (Combat Tracker)
 **Contexto y Problemas Reportados por el Usuario:**
 1. *Visibilidad y badges de conjuros por rasgo*:

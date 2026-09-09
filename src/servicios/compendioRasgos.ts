@@ -28,12 +28,14 @@ function normalizarTexto(txt: string): string {
 export function obtenerRasgosSugeridosPorEspecie(
   especie: string,
   subespecie?: string,
-  tamanoActual?: PersonajeJugador["tamano"]
+  tamanoActual?: PersonajeJugador["tamano"],
+  nivel: number = 1,
+  bonificadorCompetencia: number = 2
 ): RasgoPersonaje[] {
   const espDef = obtenerEspeciePorNombre(especie);
   if (espDef) {
     const subDef = subespecie ? obtenerSubespeciePorNombre(espDef.id, subespecie) : undefined;
-    return construirRasgosEspecie(espDef, subDef, 1, 2, tamanoActual);
+    return construirRasgosEspecie(espDef, subDef, nivel, bonificadorCompetencia, tamanoActual);
   }
 
   const normEspecie = normalizarTexto(especie);
@@ -147,10 +149,15 @@ export function sincronizarRasgosAutomaticos(personaje: PersonajeJugador): Rasgo
         }))
       : [{ nombre: personaje.clase || "Guerrero", subclase: personaje.subclase || "", nivel: personaje.nivel || 1 }];
 
+  const nivelPj = Math.max(1, Math.min(20, personaje.nivel || 1));
+  const bonoCompetencia = Math.floor((nivelPj - 1) / 4) + 2;
+
   const rasgosEspecie = obtenerRasgosSugeridosPorEspecie(
     personaje.especie,
     personaje.subespecie,
-    personaje.tamano
+    personaje.tamano,
+    nivelPj,
+    bonoCompetencia
   );
   const rasgosClase = obtenerRasgosSugeridosPorClases(clasesCalculo);
 

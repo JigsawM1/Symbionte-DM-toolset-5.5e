@@ -36,7 +36,7 @@ export const IDS_INICIALES_OBJETOS: ReadonlySet<string>   = new Set(OBJETOS_INIC
 
 export const CONDICIONES_2024: CondicionDnd[] = [
   {
-    nombre: "AGARRADO (Grappled)",
+    nombre: "Agarrado",
     descripcion: "Reglas D&D",
     efectos: [
       "La velocidad del objetivo agarrado pasa a ser 0 y no puede beneficiarse de ningún bonificador a la velocidad.",
@@ -47,7 +47,7 @@ export const CONDICIONES_2024: CondicionDnd[] = [
     ]
   },
   {
-    nombre: "APRESADO (Restrained)",
+    nombre: "Apresado",
     descripcion: "Reglas D&D",
     efectos: [
       "La velocidad de la criatura pasa a ser 0 y no puede beneficiarse de ningún bonificador a su velocidad.",
@@ -57,7 +57,7 @@ export const CONDICIONES_2024: CondicionDnd[] = [
     ]
   },
   {
-    nombre: "ASUSTADO (Frightened)",
+    nombre: "Asustado",
     descripcion: "Reglas D&D",
     efectos: [
       "La criatura asustada tiene desventaja en las pruebas de característica y tiradas de ataque mientras la fuente de su miedo esté dentro de su línea de visión.",
@@ -65,7 +65,7 @@ export const CONDICIONES_2024: CondicionDnd[] = [
     ]
   },
   {
-    nombre: "ATURDIDO (Stunned)",
+    nombre: "Aturdido",
     descripcion: "Reglas D&D",
     efectos: [
       "La criatura aturdida está Incapacitada, no puede moverse y sólo puede hablar balbuceando.",
@@ -74,7 +74,7 @@ export const CONDICIONES_2024: CondicionDnd[] = [
     ]
   },
   {
-    nombre: "CANSADO (Exhausted)",
+    nombre: "Cansado",
     descripcion: "Reglas D&D",
     efectos: [
       "Esta condición es acumulativa y tiene 6 niveles. Si alcanzas el nivel 6, mueres de inmediato.",
@@ -84,7 +84,7 @@ export const CONDICIONES_2024: CondicionDnd[] = [
     ]
   },
   {
-    nombre: "CEGADO (Blinded)",
+    nombre: "Cegado",
     descripcion: "Reglas D&D",
     efectos: [
       "La criatura ciega no puede ver y falla automáticamente cualquier prueba de característica que requiera la vista.",
@@ -93,7 +93,7 @@ export const CONDICIONES_2024: CondicionDnd[] = [
     ]
   },
   {
-    nombre: "DERRIBADO (Prone)",
+    nombre: "Derribado",
     descripcion: "Reglas D&D",
     efectos: [
       "La única opción de movimiento de la criatura es arrastrarse, a menos que se levante gastando la mitad de su velocidad.",
@@ -102,21 +102,21 @@ export const CONDICIONES_2024: CondicionDnd[] = [
     ]
   },
   {
-    nombre: "ENSORDECIDO (Deafened)",
+    nombre: "Ensordecido",
     descripcion: "Reglas D&D",
     efectos: [
       "La criatura ensordecida no puede oír y falla automáticamente cualquier prueba de característica que requiera el oído."
     ]
   },
   {
-    nombre: "ENVENENADO (Poisoned)",
+    nombre: "Envenenado",
     descripcion: "Reglas D&D",
     efectos: [
       "La criatura envenenada tiene desventaja en las tiradas de ataque y en las pruebas de característica."
     ]
   },
   {
-    nombre: "HECHIZADO (Charmed)",
+    nombre: "Hechizado",
     descripcion: "Reglas D&D",
     efectos: [
       "La criatura hechizada no puede atacar al hechizador ni afectarlo con habilidades dañinas o efectos mágicos.",
@@ -124,7 +124,7 @@ export const CONDICIONES_2024: CondicionDnd[] = [
     ]
   },
   {
-    nombre: "INCAPACITADO (Incapacitated)",
+    nombre: "Incapacitado",
     descripcion: "Reglas D&D",
     efectos: [
       "La criatura no puede realizar acciones ni reacciones.",
@@ -133,7 +133,7 @@ export const CONDICIONES_2024: CondicionDnd[] = [
     ]
   },
   {
-    nombre: "INCONSCIENTE (Unconscious)",
+    nombre: "Inconsciente",
     descripcion: "Reglas D&D",
     efectos: [
       "La criatura inconsciente está Incapacitada, no puede moverse ni hablar y no es consciente de su entorno.",
@@ -144,7 +144,7 @@ export const CONDICIONES_2024: CondicionDnd[] = [
     ]
   },
   {
-    nombre: "INVISIBLE (Invisible)",
+    nombre: "Invisible",
     descripcion: "Reglas D&D",
     efectos: [
       "La criatura es imposible de ver sin la ayuda de magia o un sentido especial.",
@@ -153,7 +153,7 @@ export const CONDICIONES_2024: CondicionDnd[] = [
     ]
   },
   {
-    nombre: "PARALIZADO (Paralyzed)",
+    nombre: "Paralizado",
     descripcion: "Reglas D&D",
     efectos: [
       "La criatura paralizada está Incapacitada y no puede moverse ni hablar.",
@@ -163,7 +163,7 @@ export const CONDICIONES_2024: CondicionDnd[] = [
     ]
   },
   {
-    nombre: "PETRIFICADO (Petrified)",
+    nombre: "Petrificado",
     descripcion: "Reglas D&D",
     efectos: [
       "La criatura petrificada es transformada, junto con todos sus objetos no mágicos que viste o lleva, en una sustancia sólida e inerte (generalmente piedra). Su peso se multiplica por diez y cesa de envejecer.",
@@ -199,26 +199,29 @@ export const CRITICOS_ALEATORIOS: string[] = [
 ];
 
 export const EFECTOS_PREDEFINIDOS: EfectoPredefinido[] = [
-  { nombre: "Desangrándose (Bloodied)", descripcion: "Esta criatura o personaje está por debajo del 50% de sus puntos de golpe máximos. Se aplica automáticamente cuando la salud cae por debajo de la mitad y desaparece cuando se recupera por encima de dicho umbral.", duracionEstandar: 0 },
+  { nombre: "Desangrándose", descripcion: "Esta criatura o personaje está por debajo del 50% de sus puntos de golpe máximos. Se aplica automáticamente cuando la salud cae por debajo de la mitad y desaparece cuando se recupera por encima de dicho umbral.", duracionEstandar: 0 },
   { nombre: "Armadura sin Competencia", descripcion: "Vistes armadura o portas escudo sin entrenamiento. Tienes Desventaja en cualquier tirada de ataque, prueba de característica o salvación que use Fuerza o Destreza, y no puedes lanzar conjuros ni realizar rituales.", duracionEstandar: 0 },
-  { nombre: "Desventaja en Sigilo (Armadura)", descripcion: "La armadura corporal equipada es pesada o ruidosa e impone Desventaja automática en todas las pruebas de Sigilo (Destreza).", duracionEstandar: 0 },
-  { nombre: "Bendecir (Bless)", descripcion: "Añade 1d4 a las tiradas de ataque y salvaciones.", duracionEstandar: 10 },
-  { nombre: "Furia (Rage)", descripcion: "Ventaja en tiradas de Fuerza, daño extra en ataques de Fuerza, resistencia a daño contundente, perforante y cortante.", duracionEstandar: 100 },
-  { nombre: "Ataque Temerario (Reckless Attack)", descripcion: "Ventaja en tiradas de ataque que usen Fuerza durante tu turno, pero los ataques contra ti tienen ventaja hasta el inicio de tu siguiente turno.", duracionEstandar: 1 },
-  { nombre: "Auxilio (Aid)", descripcion: "Aumenta los puntos de golpe máximos y actuales en 5 por nivel de espacio.", duracionEstandar: 800 },
+  { nombre: "Desventaja en Sigilo", descripcion: "La armadura corporal equipada es pesada o ruidosa e impone Desventaja automática en todas las pruebas de Sigilo (Destreza).", duracionEstandar: 0 },
+  { nombre: "Bendecir", descripcion: "Añade 1d4 a las tiradas de ataque y salvaciones.", duracionEstandar: 10 },
+  { nombre: "Furia", descripcion: "Ventaja en tiradas de Fuerza, daño extra en ataques de Fuerza, resistencia a daño contundente, perforante y cortante.", duracionEstandar: 100 },
+  { nombre: "Ataque Temerario", descripcion: "Ventaja en tiradas de ataque que usen Fuerza durante tu turno, pero los ataques contra ti tienen ventaja hasta el inicio de tu siguiente turno.", duracionEstandar: 1 },
+  { nombre: "Auxilio", descripcion: "Aumenta los puntos de golpe máximos y actuales en 5 por nivel de espacio.", duracionEstandar: 800 },
   { nombre: "Concentración", descripcion: "La criatura se está concentrando en mantener un conjuro activo.", duracionEstandar: 100, esConcentracion: true },
-  { nombre: "Escudo (Shield)", descripcion: "+5 a la CA y no sufre daño de Proyectil Mágico.", duracionEstandar: 1 },
-  { nombre: "Heroísmo (Heroism)", descripcion: "Inmune al miedo y recibe puntos de golpe temporales al inicio de cada turno.", duracionEstandar: 10 },
-  { nombre: "Inspirado (Inspiración Bárdica)", descripcion: "Puede añadir un dado de inspiración (d6/d8/d10/d12) a una tirada de d20.", duracionEstandar: 100 },
-  { nombre: "Maldición (Bestow Curse)", descripcion: "El objetivo sufre desventaja en pruebas y salvaciones de una característica, o daño extra.", duracionEstandar: 10 },
-  { nombre: "Maleficio (Hex)", descripcion: "Daño extra al golpear al objetivo y desventaja en pruebas de una característica.", duracionEstandar: 100 },
-  { nombre: "Perdición (Bane)", descripcion: "Resta 1d4 a las tiradas de ataque y salvaciones del objetivo.", duracionEstandar: 10 },
-  { nombre: "Prisa (Haste)", descripcion: "CA +2, ventaja en salvaciones de Destreza, acción adicional en cada turno. Al terminar, no puede moverse ni actuar durante 1 turno.", duracionEstandar: 10 },
-  { nombre: "Recargando (Recharging)", descripcion: "La habilidad especial o aliento está recargando para poder usarse nuevamente.", duracionEstandar: 1 },
-  { nombre: "Ralentizar (Slow)", descripcion: "Velocidad a la mitad, CA -2, -2 a salvaciones de Destreza, no puede realizar reacciones.", duracionEstandar: 10 },
-  { nombre: "Santuario (Sanctuary)", descripcion: "Cualquier criatura que intente atacar al objetivo debe superar una salvación de Sabiduría.", duracionEstandar: 10 },
-  { nombre: "Hechicería Innata", descripcion: "Regla 2024: Como acción adicional, obtienes ventaja en tiradas de ataque de conjuro y tu CD de salvación aumenta en 1.", duracionEstandar: 10 },
-  { nombre: "Furia de los Dioses (Rage of the Gods)", descripcion: "Forma de guerrero divino (1 min / 10 turnos): Velocidad de vuelo con flotación, resistencia a daño necrótico, psíquico y radiante, y revivificación de aliados a 30 pies.", duracionEstandar: 10 },
-  { nombre: "Manto de Majestad (Mantle of Majesty)", descripcion: "Apariencia sobrenatural (1 min / 10 turnos, concentración): Puedes lanzar Orden imperiosa como acción adicional sin gastar espacios de conjuro. Criaturas hechizadas fallan automáticamente.", duracionEstandar: 10, esConcentracion: true },
-  { nombre: "Majestad Inquebrantable (Unbreakable Majesty)", descripcion: "Presencia majestuosa (1 min / 10 turnos): Siempre que un atacante te acierte por primera vez en un turno, debe superar una salvación de Carisma contra tu CD de conjuros o el ataque falla.", duracionEstandar: 10 }
+  { nombre: "Escudo", descripcion: "+5 a la CA y no sufre daño de Proyectil Mágico.", duracionEstandar: 1 },
+  { nombre: "Heroísmo", descripcion: "Inmune al miedo y recibe puntos de golpe temporales al inicio de cada turno.", duracionEstandar: 10 },
+  { nombre: "Inspirado", descripcion: "Puede añadir un dado de inspiración (d6/d8/d10/d12) a una tirada de d20.", duracionEstandar: 100 },
+  { nombre: "Maldición", descripcion: "El objetivo sufre desventaja en pruebas y salvaciones de una característica, o daño extra.", duracionEstandar: 10 },
+  { nombre: "Maleficio", descripcion: "Daño extra al golpear al objetivo y desventaja en pruebas de una característica.", duracionEstandar: 100 },
+  { nombre: "Perdición", descripcion: "Resta 1d4 a las tiradas de ataque y salvaciones del objetivo.", duracionEstandar: 10 },
+  { nombre: "Prisa", descripcion: "CA +2, ventaja en salvaciones de Destreza, acción adicional en cada turno. Al terminar, no puede moverse ni actuar durante 1 turno.", duracionEstandar: 10 },
+  { nombre: "Recargando", descripcion: "La habilidad especial o aliento está recargando para poder usarse nuevamente.", duracionEstandar: 1 },
+  { nombre: "Ralentizar", descripcion: "Velocidad a la mitad, CA -2, -2 a salvaciones de Destreza, no puede realizar reacciones.", duracionEstandar: 10 },
+  { nombre: "Santuario", descripcion: "Cualquier criatura que intente atacar al objetivo debe superar una salvación de Sabiduría.", duracionEstandar: 10 },
+  { nombre: "Hechicería Innata", descripcion: "Como acción adicional, obtienes ventaja en tiradas de ataque de conjuro y tu CD de salvación aumenta en 1.", duracionEstandar: 10 },
+  { nombre: "Furia de los Dioses", descripcion: "Velocidad de vuelo con flotación, resistencia a daño necrótico, psíquico y radiante, y revivificación de aliados a 30 pies.", duracionEstandar: 10 },
+  { nombre: "Manto de Majestad", descripcion: "Puedes lanzar Orden imperiosa como acción adicional sin gastar espacios de conjuro. Criaturas hechizadas fallan automáticamente.", duracionEstandar: 10, esConcentracion: true },
+  { nombre: "Majestad Inquebrantable", descripcion: "Siempre que un atacante te acierte por primera vez en un turno, debe superar una salvación de Carisma contra tu CD de conjuros o el ataque falla.", duracionEstandar: 10 },
+  { nombre: "Alas Celestiales", descripcion: "Velocidad de vuelo igual a tu velocidad de movimiento. Una vez en cada uno de tus turnos, al infligir daño con ataque o conjuro, infliges daño radiante adicional igual a tu bonificador por competencia.", duracionEstandar: 10 },
+  { nombre: "Fulgor Interior", descripcion: "Emites luz brillante en 10 pies y tenue 10 pies adicionales. Al final de tus turnos, criaturas a 10 pies reciben daño radiante igual a tu PB. Una vez en cada turno, al infligir daño con ataque o conjuro, infliges daño radiante adicional igual a tu bonificador por competencia.", duracionEstandar: 10 },
+  { nombre: "Mortaja Necrótica", descripcion: "Criaturas no aliadas a 10 pies deben superar una salvación de Carisma (CD 8 + Carisma + PB) o estarán asustadas hasta el final de tu siguiente turno. Una vez en cada turno, al infligir daño con ataque o conjuro, infliges daño necrótico adicional igual a tu bonificador por competencia.", duracionEstandar: 10 }
 ];

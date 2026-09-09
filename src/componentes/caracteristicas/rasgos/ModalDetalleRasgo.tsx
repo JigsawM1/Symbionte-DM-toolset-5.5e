@@ -98,14 +98,18 @@ export const ModalDetalleRasgo: React.FC<ModalDetalleRasgoProps> = ({
     : (usosPadre?.maximos || 1);
 
   const sinUsosDisponibles = (tieneUsosPropios || tieneUsosPadre) && usosRestantes <= 0;
-  const esCuracion = rasgo.categoriaMecanica === "curacion" || rasgo.nombre.toLowerCase().includes("guerrero de los dioses");
+  const normNombre = rasgo.nombre.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  const esCuracion = rasgo.categoriaMecanica === "curacion" || normNombre.includes("guerrero de los dioses");
+  const esManosCurativas = normNombre.includes("manos curativas");
+  const esCuracionAuto = esCuracion && !esManosCurativas;
+  const gastaUsoAlTirar = esCuracionAuto || esManosCurativas || rasgo.gastarDePadre;
 
   const manejarTirarDados = async () => {
     if (!formulaEfectiva) return;
     if (sinUsosDisponibles) return;
 
     try {
-      if ((esCuracion || rasgo.gastarDePadre) && alGastarUso) {
+      if (gastaUsoAlTirar && alGastarUso) {
         alGastarUso();
       }
       const formula = `!${rasgo.nombre}:${formulaEfectiva}`;
@@ -116,7 +120,7 @@ export const ModalDetalleRasgo: React.FC<ModalDetalleRasgoProps> = ({
         undefined,
         undefined,
         undefined,
-        esCuracion && idPersonaje
+        esCuracionAuto && idPersonaje
           ? {
               tipo: "curacionRasgo",
               personajeId: idPersonaje,

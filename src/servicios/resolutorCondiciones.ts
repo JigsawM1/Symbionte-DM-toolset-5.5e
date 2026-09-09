@@ -24,7 +24,26 @@ export function obtenerDetalleCondicion(nombre: string): DetalleCondicionOEfecto
 
   const nombreNorm = normalizar(nombre);
 
-  // 1. Casos específicos de penalizaciones de equipo D&D 5.5e
+  // Alias bilingües TaleSpire / D&D para Desangrándose y Furia
+  if (nombreNorm.includes("desangrandose") || nombreNorm.includes("bloodied")) {
+    const efDesangrado = EFECTOS_PREDEFINIDOS.find((e) => normalizar(e.nombre).includes("desangrandose"));
+    if (efDesangrado) {
+      return {
+        titulo: efDesangrado.nombre,
+        descripcion: efDesangrado.descripcion
+      };
+    }
+  }
+
+  if (nombreNorm === "rage") {
+    const efFuria = EFECTOS_PREDEFINIDOS.find((e) => normalizar(e.nombre) === "furia");
+    if (efFuria) {
+      return {
+        titulo: efFuria.nombre,
+        descripcion: efFuria.descripcion
+      };
+    }
+  }
   if (nombreNorm.includes("sin competencia") || nombreNorm.includes("incompetencia")) {
     return {
       titulo: "Armadura sin Competencia",

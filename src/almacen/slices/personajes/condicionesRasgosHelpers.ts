@@ -32,6 +32,19 @@ export function resolverCondicionAsociadaRasgo(r: RasgoPersonaje): string | unde
   if (nom.includes("majestad inquebrantable") || id.includes("majestad_inquebrantable")) {
     return "Majestad Inquebrantable (Unbreakable Majesty)";
   }
+  if (nom.includes("revelacion celestial") || id.includes("revelacion_celestial")) {
+    const sel = r.selectores?.find(
+      (s) => s.id === "opcion_revelacion_celestial" || s.etiqueta.toLowerCase().includes("revelacion")
+    );
+    const val = (sel?.valorActual?.[0] || "").toLowerCase();
+    if (val.includes("fulgor")) {
+      return "Fulgor Interior";
+    }
+    if (val.includes("mortaja")) {
+      return "Mortaja Necrótica";
+    }
+    return "Alas Celestiales";
+  }
   return undefined;
 }
 
@@ -72,6 +85,14 @@ export function coincideCondicionConRasgo(condicionTexto: string, r: RasgoPerson
   }
   if (cNorm.includes("majestad inquebrantable") || cNorm.includes("unbreakable majesty")) {
     return rNom.includes("majestad inquebrantable") || rId.includes("majestad_inquebrantable");
+  }
+  if (
+    cNorm.includes("alas celestiales") ||
+    cNorm.includes("fulgor interior") ||
+    cNorm.includes("mortaja necrotica") ||
+    cNorm.includes("revelacion celestial")
+  ) {
+    return rNom.includes("revelacion celestial") || rId.includes("revelacion_celestial");
   }
 
   return false;
@@ -121,11 +142,34 @@ export function activarRasgosPorCondicionOEfecto(
 ): RasgoPersonaje[] {
   if (!nombreEstado || !rasgos || rasgos.length === 0) return rasgos;
 
+  const eNorm = normalizarTextoSeguro(nombreEstado);
+
   return rasgos.map((r) => {
-    if (coincideCondicionConRasgo(nombreEstado, r) && (r.esActivable ?? true) && !r.activo) {
-      const usosRest =
-        typeof r.usosRestantes === "number" ? Math.max(0, r.usosRestantes - 1) : r.usosRestantes;
-      return { ...r, activo: true, usosRestantes: usosRest };
+    if (coincideCondicionConRasgo(nombreEstado, r) && (r.esActivable ?? true)) {
+      let selectoresActualizados = r.selectores;
+      const esRevelacion =
+        normalizarTextoSeguro(r.nombre).includes("revelacion celestial") ||
+        normalizarTextoSeguro(r.id).includes("revelacion_celestial");
+
+      if (esRevelacion && r.selectores && r.selectores.length > 0) {
+        let formaId = "alas_celestiales";
+        if (eNorm.includes("fulgor")) formaId = "fulgor_interior";
+        else if (eNorm.includes("mortaja")) formaId = "mortaja_necrotica";
+
+        selectoresActualizados = r.selectores.map((s) =>
+          s.id === "opcion_revelacion_celestial" || s.etiqueta.toLowerCase().includes("revelacion")
+            ? { ...s, valorActual: [formaId] }
+            : s
+        );
+      }
+
+      if (!r.activo) {
+        const usosRest =
+          typeof r.usosRestantes === "number" ? Math.max(0, r.usosRestantes - 1) : r.usosRestantes;
+        return { ...r, activo: true, usosRestantes: usosRest, selectores: selectoresActualizados };
+      } else if (selectoresActualizados !== r.selectores) {
+        return { ...r, selectores: selectoresActualizados };
+      }
     }
     return r;
   });

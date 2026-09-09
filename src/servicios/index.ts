@@ -12,4 +12,5 @@ export * from "./gestorClases";
 export * from "./compendioRasgos";
 export * from "./calculadorMagia";
 export * from "./sincronizadorConjurosSubclase";
-
+export * from "./gestorEspecies";
+export * from "./resolutorOrigenConjuros";

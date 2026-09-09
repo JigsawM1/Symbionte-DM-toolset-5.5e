@@ -5,6 +5,12 @@ import {
 } from "@/constantes/rasgosDND55";
 import { obtenerRasgosClaseYSubclase } from "@/servicios/gestorClases";
 
+import {
+  obtenerEspeciePorNombre,
+  obtenerSubespeciePorNombre,
+  construirRasgosEspecie
+} from "@/servicios/gestorEspecies";
+
 /**
  * Normaliza nombres para comparación tolerante e insensible a mayúsculas/acentos
  */
@@ -21,8 +27,15 @@ function normalizarTexto(txt: string): string {
  */
 export function obtenerRasgosSugeridosPorEspecie(
   especie: string,
-  subespecie?: string
+  subespecie?: string,
+  tamanoActual?: PersonajeJugador["tamano"]
 ): RasgoPersonaje[] {
+  const espDef = obtenerEspeciePorNombre(especie);
+  if (espDef) {
+    const subDef = subespecie ? obtenerSubespeciePorNombre(espDef.id, subespecie) : undefined;
+    return construirRasgosEspecie(espDef, subDef, 1, 2, tamanoActual);
+  }
+
   const normEspecie = normalizarTexto(especie);
   
   // Buscar en el diccionario
@@ -48,13 +61,19 @@ export function obtenerRasgosSugeridosPorEspecie(
       origen: "especie",
       fuente: `Especie: ${nombreLimpio}${subespecie ? ` (${subespecie})` : ""}`,
       tipoAccion: p.tipoAccion,
+      nivelRequerido: p.nivelRequerido,
       tieneUsosLimitados: !!p.tieneUsosLimitados,
       usosMaximos: usos,
       usosRestantes: usos,
       recuperacion: p.recuperacion || "ninguno",
       formulaDados: p.formulaDados,
       personalizado: false,
-      activo: (p as { esActivable?: boolean }).esActivable ? false : true,
+      activo: p.esActivable ? false : true,
+      esActivable: p.esActivable,
+      selectores: p.selectores ? JSON.parse(JSON.stringify(p.selectores)) : [],
+      efectos: p.efectos ? [...p.efectos] : [],
+      categoriaMecanica: p.categoriaMecanica,
+      formulaEscalado: p.formulaEscalado,
       notas: ""
     };
   });
@@ -128,7 +147,11 @@ export function sincronizarRasgosAutomaticos(personaje: PersonajeJugador): Rasgo
         }))
       : [{ nombre: personaje.clase || "Guerrero", subclase: personaje.subclase || "", nivel: personaje.nivel || 1 }];
 
-  const rasgosEspecie = obtenerRasgosSugeridosPorEspecie(personaje.especie, personaje.subespecie);
+  const rasgosEspecie = obtenerRasgosSugeridosPorEspecie(
+    personaje.especie,
+    personaje.subespecie,
+    personaje.tamano
+  );
   const rasgosClase = obtenerRasgosSugeridosPorClases(clasesCalculo);
 
   const canonicosNuevos = [...rasgosEspecie, ...rasgosClase];

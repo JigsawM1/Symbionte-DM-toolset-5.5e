@@ -1,7 +1,8 @@
 import React from "react";
 import { ChevronDown, ChevronRight, BookOpen } from "lucide-react";
-import type { HechizoBase, PersonajeJugador } from "@/tipos";
+import type { PersonajeJugador, HechizoBase } from "@/tipos";
 import type { ModoLanzamiento } from "@/servicios/servicioLanzamientoConjuros";
+import type { OrigenConjuroBadge } from "@/servicios/resolutorOrigenConjuros";
 import { TarjetaConjuroCompacta } from "./TarjetaConjuroCompacta";
 import estilos from "./PanelConjurosPersonaje.module.css";
 
@@ -19,6 +20,7 @@ interface SeccionNivelConjurosProps {
   bonoAtaqueMagico: number;
   estaPreparado: (hechizo: HechizoBase) => boolean;
   esHechizoDeSubclase: (hechizo: HechizoBase) => boolean;
+  obtenerOrigenConjuro?: (hechizo: HechizoBase) => OrigenConjuroBadge | null;
   requierePreparacion: boolean;
   esLanzadorPacto: boolean;
   nivelEspacioPacto: number;
@@ -52,6 +54,7 @@ export const SeccionNivelConjuros: React.FC<SeccionNivelConjurosProps> = ({
   bonoAtaqueMagico,
   estaPreparado,
   esHechizoDeSubclase,
+  obtenerOrigenConjuro,
   requierePreparacion,
   esLanzadorPacto,
   nivelEspacioPacto,
@@ -135,6 +138,7 @@ export const SeccionNivelConjuros: React.FC<SeccionNivelConjurosProps> = ({
                   bonoAtaqueMagico={bonoAtaqueMagico}
                   estaPreparado={esTruco ? true : estaPreparado(hechizo)}
                   esDeSubclase={esHechizoDeSubclase(hechizo)}
+                  origenBadge={obtenerOrigenConjuro ? obtenerOrigenConjuro(hechizo) : (esHechizoDeSubclase(hechizo) ? "subclase" : null)}
                   mostrarTogglePreparado={!esTruco && requierePreparacion}
                   esConcentracionActual={personaje.concentracionActiva?.hechizoId === hechizo.id}
                   esOculto={false}

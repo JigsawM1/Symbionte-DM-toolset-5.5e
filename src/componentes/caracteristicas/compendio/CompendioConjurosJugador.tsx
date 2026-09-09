@@ -88,6 +88,7 @@ export const CompendioConjurosJugador: React.FC = () => {
 
   const {
     esHechizoDeSubclase,
+    obtenerOrigenConjuro,
     estaPreparado,
     estaEnLista,
     maximos,
@@ -360,6 +361,7 @@ export const CompendioConjurosJugador: React.FC = () => {
         ) : (
           conjurosFiltrados.map((hechizo) => {
             const esSubclase = esHechizoDeSubclase(hechizo);
+            const origenBadge = obtenerOrigenConjuro(hechizo);
             const enLista = estaEnLista(hechizo);
             const preparado = estaPreparado(hechizo);
 
@@ -370,6 +372,7 @@ export const CompendioConjurosJugador: React.FC = () => {
                 estaEnLista={enLista}
                 estaPreparado={preparado}
                 esDeSubclase={esSubclase}
+                origenBadge={origenBadge}
                 requierePreparacion={requierePreparacion}
                 mostrarEstrella={pestañaActiva === "miLista" || pestañaActiva === "preparados"}
                 alAlternarEnLista={() => manejarAlternarEnLista(hechizo)}

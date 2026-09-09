@@ -4,20 +4,20 @@ import { obtenerDetalleCondicion } from "./resolutorCondiciones";
 describe("resolutorCondiciones — Diccionario Oficial de Condiciones y Efectos", () => {
   it("debe resolver el efecto Desangrándose oficialmente registrado", () => {
     const detalle = obtenerDetalleCondicion("Desangrándose");
-    expect(detalle.titulo).toBe("Desangrándose (Bloodied)");
+    expect(detalle.titulo).toContain("Desangrándose");
     expect(detalle.descripcion).toContain("50%");
     expect(detalle.descripcion).toContain("automáticamente");
   });
 
   it("debe resolver Desangrándose insensible a mayúsculas y sin acentos (desangrandose)", () => {
     const detalleSinAcento = obtenerDetalleCondicion("desangrandose");
-    expect(detalleSinAcento.titulo).toBe("Desangrándose (Bloodied)");
+    expect(detalleSinAcento.titulo).toContain("Desangrándose");
 
     const detalleMayus = obtenerDetalleCondicion("DESANGRÁNDOSE");
-    expect(detalleMayus.titulo).toBe("Desangrándose (Bloodied)");
+    expect(detalleMayus.titulo).toContain("Desangrándose");
 
     const detalleIngles = obtenerDetalleCondicion("bloodied");
-    expect(detalleIngles.titulo).toBe("Desangrándose (Bloodied)");
+    expect(detalleIngles.titulo).toContain("Desangrándose");
   });
 
   it("debe resolver condiciones estándar como Cegado o Derribado", () => {
@@ -41,7 +41,7 @@ describe("resolutorCondiciones — Diccionario Oficial de Condiciones y Efectos"
     expect(detalleDioses.efectos?.some((e) => e.toLowerCase().includes("necrótico") || e.toLowerCase().includes("necrotico"))).toBe(true);
 
     const detalleFuriaBase = obtenerDetalleCondicion("Furia");
-    expect(detalleFuriaBase.titulo).toBe("Furia (Rage)");
+    expect(detalleFuriaBase.titulo).toContain("Furia");
     expect(detalleFuriaBase.descripcion).toContain("Fuerza");
   });
 

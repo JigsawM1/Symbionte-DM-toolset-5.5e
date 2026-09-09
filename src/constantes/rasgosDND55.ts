@@ -43,10 +43,25 @@ export interface PlantillaRasgoEspecie {
   descripcion: string;
   subespecie?: string;
   tipoAccion: "pasivo" | "accion" | "accion_adicional" | "reaccion" | "especial";
+  nivelRequerido?: number;
   tieneUsosLimitados?: boolean;
   usosMaximos?: number;
+  obtenerUsosMaximos?: (nivel: number, bonificadorCompetencia?: number) => number;
+  formulaUsos?: string | null;
   recuperacion?: "descanso_corto" | "descanso_largo" | "manual" | "ninguno";
   formulaDados?: string;
+  
+  // Mecánicas estructuradas
+  esActivable?: boolean;
+  autoDesactivar?: boolean;
+  ligadoA?: string;
+  condicionAlActivar?: string;
+  conjurosOtorgados?: string[];
+  categoriaMecanica?: "consumible" | "activable" | "selector_informativo" | "pasivo_permanente" | "extension" | "curacion";
+  formulaEscalado?: string;
+  efectos?: EfectoMecanicoRasgo[];
+  selectores?: SelectorRasgo[];
+  tablaProgresion?: TablaEscaladoRasgo;
 }
 
 // -------------------------------------------------------

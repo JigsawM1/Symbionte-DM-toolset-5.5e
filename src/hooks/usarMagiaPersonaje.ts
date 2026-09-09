@@ -9,6 +9,7 @@ import {
 } from "@/servicios/calculadorMagia";
 import { MAPA_ALIAS_HECHIZOS } from "@/constantes/subclasesConjurosConstantes";
 import { generarIdSlug } from "@/utiles/generarId";
+import { resolverOrigenConjuro, OrigenConjuroBadge } from "@/servicios/resolutorOrigenConjuros";
 
 export interface EstadoMagiaPersonaje {
   habilidadMagica: Caracteristica;
@@ -24,6 +25,8 @@ export interface EstadoMagiaPersonaje {
   mapaHechizos: Map<string, HechizoBase>;
   setSiemprePreparados: Set<string>;
   esHechizoDeSubclase: (hechizo: HechizoBase) => boolean;
+  obtenerOrigenConjuro: (hechizo: HechizoBase) => OrigenConjuroBadge | null;
+  esHechizoOtorgado: (hechizo: HechizoBase) => boolean;
   estaPreparado: (hechizo: HechizoBase) => boolean;
   estaEnLista: (hechizo: HechizoBase) => boolean;
   maximos: {
@@ -232,11 +235,29 @@ export function usarMagiaPersonaje(
   const setConocidosIds = useMemo(() => new Set(personaje?.conjurosConocidosIds || []), [personaje?.conjurosConocidosIds]);
   const setTrucosIds = useMemo(() => new Set(personaje?.trucosConocidosIds || []), [personaje?.trucosConocidosIds]);
 
-  const estaPreparado = useCallback((hechizo: HechizoBase): boolean => {
-    if (hechizo.nivel === 0) return estaEnSet(setTrucosIds, hechizo);
-    if (esHechizoDeSubclase(hechizo)) return true;
-    return estaEnSet(setPreparadosIds, hechizo);
-  }, [estaEnSet, setTrucosIds, esHechizoDeSubclase, setPreparadosIds]);
+  // 5.1. Detección profunda de origen de conjuros otorgados (clase, subclase, especie, legado, rasgos)
+  const obtenerOrigenConjuro = useCallback(
+    (hechizo: HechizoBase): OrigenConjuroBadge | null => {
+      return resolverOrigenConjuro(personaje, hechizo);
+    },
+    [personaje]
+  );
+
+  const esHechizoOtorgado = useCallback(
+    (hechizo: HechizoBase): boolean => {
+      return obtenerOrigenConjuro(hechizo) !== null || esHechizoDeSubclase(hechizo);
+    },
+    [obtenerOrigenConjuro, esHechizoDeSubclase]
+  );
+
+  const estaPreparado = useCallback(
+    (hechizo: HechizoBase): boolean => {
+      if (hechizo.nivel === 0) return estaEnSet(setTrucosIds, hechizo) || esHechizoOtorgado(hechizo);
+      if (esHechizoOtorgado(hechizo)) return true;
+      return estaEnSet(setPreparadosIds, hechizo);
+    },
+    [estaEnSet, setTrucosIds, esHechizoOtorgado, setPreparadosIds]
+  );
 
   // 6. Límites máximos
   const maximos = useMemo(() => {
@@ -247,14 +268,17 @@ export function usarMagiaPersonaje(
     );
   }, [personaje?.clasesLanzadoras, personaje?.nivel, modHabilidad]);
 
-  const estaEnLista = useCallback((hechizo: HechizoBase): boolean => {
-    if (hechizo.nivel === 0) return estaEnSet(setTrucosIds, hechizo);
-    if (esHechizoDeSubclase(hechizo)) return true;
-    if (maximos.modelo === "preparados") {
-      return estaEnSet(setPreparadosIds, hechizo);
-    }
-    return estaEnSet(setConocidosIds, hechizo) || estaEnSet(setPreparadosIds, hechizo);
-  }, [estaEnSet, setTrucosIds, esHechizoDeSubclase, maximos.modelo, setConocidosIds, setPreparadosIds]);
+  const estaEnLista = useCallback(
+    (hechizo: HechizoBase): boolean => {
+      if (hechizo.nivel === 0) return estaEnSet(setTrucosIds, hechizo) || esHechizoOtorgado(hechizo);
+      if (esHechizoOtorgado(hechizo)) return true;
+      if (maximos.modelo === "preparados") {
+        return estaEnSet(setPreparadosIds, hechizo);
+      }
+      return estaEnSet(setConocidosIds, hechizo) || estaEnSet(setPreparadosIds, hechizo);
+    },
+    [estaEnSet, setTrucosIds, esHechizoOtorgado, maximos.modelo, setConocidosIds, setPreparadosIds]
+  );
 
   // 7. Lista agrupada de conjuros por nivel y trucos
   const conjurosPorNivel = useMemo(() => {
@@ -302,11 +326,11 @@ export function usarMagiaPersonaje(
     let tSubclase = 0;
 
     for (const h of baseDatosHechizos) {
-      const esSubclase = esHechizoDeSubclase(h);
+      const esOtorgado = esHechizoOtorgado(h);
 
       if (h.nivel === 0) {
         const enLista = estaEnLista(h);
-        if (esSubclase) {
+        if (esOtorgado) {
           tSubclase++;
         } else if (enLista) {
           tLibres++;
@@ -314,7 +338,7 @@ export function usarMagiaPersonaje(
       } else {
         if (maximos.modelo === "preparados") {
           const preparado = estaPreparado(h);
-          if (esSubclase) {
+          if (esOtorgado) {
             cSubclase++;
           } else if (preparado) {
             cLibres++;
@@ -322,7 +346,7 @@ export function usarMagiaPersonaje(
         } else {
           // Modelo "conocidos"
           const enLista = estaEnLista(h);
-          if (esSubclase) {
+          if (esOtorgado) {
             cSubclase++;
           } else if (enLista) {
             cLibres++;
@@ -338,7 +362,7 @@ export function usarMagiaPersonaje(
       trucosLibres: tLibres,
       trucosSubclase: tSubclase
     };
-  }, [baseDatosHechizos, esHechizoDeSubclase, estaEnLista, estaPreparado, maximos.modelo]);
+  }, [baseDatosHechizos, esHechizoOtorgado, estaEnLista, estaPreparado, maximos.modelo]);
 
   return {
     habilidadMagica,
@@ -354,6 +378,8 @@ export function usarMagiaPersonaje(
     mapaHechizos,
     setSiemprePreparados,
     esHechizoDeSubclase,
+    obtenerOrigenConjuro,
+    esHechizoOtorgado,
     estaPreparado,
     estaEnLista,
     maximos,

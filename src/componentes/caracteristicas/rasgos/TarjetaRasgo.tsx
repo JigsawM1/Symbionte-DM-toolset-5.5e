@@ -103,10 +103,18 @@ export const TarjetaRasgo: React.FC<TarjetaRasgoProps> = ({
     : (usosPadre?.maximos || 1);
 
   const sinUsosDisponibles = (tieneUsosPropios || tieneUsosPadre) && usosRestantes <= 0;
-  const esCuracion = rasgo.categoriaMecanica === "curacion" || rasgo.nombre.toLowerCase().includes("guerrero de los dioses");
-  const tieneEfectoHpTemporal =
-    (rasgo.efectos || []).some((ef) => ef.tipo === "hp_temporal") ||
-    rasgo.nombre.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").includes("manto de inspiracion");
+  
+  const normNombre = rasgo.nombre.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  const esManosCurativas = normNombre.includes("manos curativas");
+  const esMantoInspiracion = normNombre.includes("manto de inspiracion");
+
+  // La auto-curación y auto-HP temporal solo se aplican a rasgos exclusivamente personales (ej. Guerrero de los dioses).
+  // Rasgos que pueden aplicarse a otras criaturas (como Manos curativas o Manto de inspiración)
+  // tiran los dados y consumen el uso, pero no alteran automáticamente la vida del propio lanzador.
+  const esCuracion = rasgo.categoriaMecanica === "curacion" || normNombre.includes("guerrero de los dioses");
+  const esCuracionAuto = esCuracion && !esManosCurativas;
+  const tieneEfectoHpTemporalAuto = (rasgo.efectos || []).some((ef) => ef.tipo === "hp_temporal") && !esMantoInspiracion;
+  const gastaUsoAlTirar = esCuracionAuto || tieneEfectoHpTemporalAuto || esManosCurativas || esMantoInspiracion || rasgo.gastarDePadre;
 
   const manejarTirarDados = async (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -114,14 +122,14 @@ export const TarjetaRasgo: React.FC<TarjetaRasgoProps> = ({
     if (sinUsosDisponibles) return;
 
     try {
-      if ((esCuracion || tieneEfectoHpTemporal || rasgo.gastarDePadre) && alGastarUso) {
+      if (gastaUsoAlTirar && alGastarUso) {
         alGastarUso();
       }
       const formula = `!${rasgo.nombre}:${formulaEfectiva}`;
       const etiqueta = `${nombrePersonaje} - ${rasgo.nombre} (${formulaEfectiva})`;
 
       let metaEspecial: MetadataEspecialRasgo | undefined = undefined;
-      if (esCuracion && idPersonaje) {
+      if (esCuracionAuto && idPersonaje) {
         metaEspecial = {
           tipo: "curacionRasgo",
           personajeId: idPersonaje,
@@ -129,7 +137,7 @@ export const TarjetaRasgo: React.FC<TarjetaRasgoProps> = ({
           nombreRasgo: rasgo.nombre,
           cantidadDadosGastados: 1
         };
-      } else if (tieneEfectoHpTemporal && idPersonaje) {
+      } else if (tieneEfectoHpTemporalAuto && idPersonaje) {
         const efectoHp = (rasgo.efectos || []).find((ef) => ef.tipo === "hp_temporal");
         let multiplicador = 1;
         if (efectoHp?.valor) {
@@ -139,8 +147,6 @@ export const TarjetaRasgo: React.FC<TarjetaRasgoProps> = ({
             const num = Number(efectoHp.valor);
             if (!Number.isNaN(num) && num > 0) multiplicador = num;
           }
-        } else if (rasgo.nombre.toLowerCase().includes("manto de inspiracion")) {
-          multiplicador = 2;
         }
 
         metaEspecial = {
@@ -358,7 +364,7 @@ export const TarjetaRasgo: React.FC<TarjetaRasgoProps> = ({
         </div>
       )}
 
-      {/* Chips de opciones seleccionadas en selectores (ej. armas de Maestría) */}
+      {/* Chips de opciones seleccionadas en selectores (ej. armas de Maestría, tamaño, revelación) */}
       {Array.isArray(rasgo.selectores) && rasgo.selectores.length > 0 && (
         <div className={estilos.contenedorChipsSelectores}>
           {rasgo.selectores.map((sel) => {

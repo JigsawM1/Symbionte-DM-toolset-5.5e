@@ -16,6 +16,95 @@ Este archivo registra reglas globales, errores encontrados, sus causas raíz y l
    - Las dependencias fluyen estrictamente hacia abajo: `App/Layout -> Caracteristicas -> Comunes -> Almacen -> Servicios -> Utiles/Constantes/Tipos`.
    - **Bajo ninguna circunstancia** los módulos de lógica de negocio (`servicios/`), gestores de estado (`almacen/`), contratos (`tipos/`), valores de reglas (`constantes/`) ni funciones de soporte (`utiles/`) deben importar componentes visuales o archivos CSS (`componentes/`). Esta regla está reforzada en CI vía ESLint `no-restricted-imports`.
 
+## [2026-09-08] Culminación Exitosa: Badges de Origen de Conjuros, Tarjetas Universales de Especie (Tipo de Criatura y Tamaño Seleccionable) y Efectos Tácticos de Aasimar (Combat Tracker)
+**Contexto y Problemas Reportados por el Usuario:**
+1. *Visibilidad y badges de conjuros por rasgo*:
+   - Los trucos y conjuros otorgados por rasgos o especies aparecían seleccionados internamente pero no se mostraban en "Mi lista" ni en "Conocidos" / "Trucos listos" de la ficha.
+   - La insignia (badge) indicaba erróneamente siempre "Subclase". Se requería diferenciar dinámicamente entre: `clase`, `subclase`, `especie`, `legado` y `rasgos` (default).
+2. *Tarjetas de Tipo de Criatura y Tamaño*:
+   - No se visualizaban tarjetas para "Tipo de criatura" ni "Tamaño" en la sección de especie de la ficha.
+   - En especies con tamaño configurable (como Aasimar que puede ser Pequeño o Mediano), el tamaño debe figurar como rasgo con selector interactivo y sincronizar con `personaje.tamano`.
+3. *Efectos de las 3 Formas de Aasimar (Combat Tracker)*:
+   - Las tres formas de *Revelación celestial* (*Alas Celestiales*, *Fulgor Interior* y *Mortaja Necrótica*, configuradas con duración estándar de 10 turnos en `datosIniciales.ts`) debían conectarse bidireccionalmente con el Combat Tracker simétricamente a como lo hace *Furia*.
+
+**Causas Raíz Identificadas:**
+1. En `usarMagiaPersonaje.ts`, `estaEnLista` verificaba exclusivamente `personaje.trucosConocidosIds` ignorando trucos otorgados por rasgos o especie. Además, `FilaConjuroCompendio` y `TarjetaConjuroCompacta` solo recibían un booleano `esDeSubclase`.
+2. Las plantillas de `CATALOGO_ESPECIES_DND55` no incluían explícitamente "Tipo de criatura" y "Tamaño" como tarjetas de rasgos, omitiendo el selector interactivo.
+3. `resolverCondicionAsociadaRasgo`, `coincideCondicionConRasgo` y `actualizarSeleccionRasgo` no contemplaban la transmutación dinámica ni el mapeo hacia las 3 formas de Revelación celestial de Aasimar.
+
+**Solución Implementada y Decisiones Arquitectónicas:**
+1. **Resolutor Universal de Origen de Conjuros (`src/servicios/resolutorOrigenConjuros.ts`)**:
+   - `resolverOrigenConjuro(personaje, hechizo)`: Discrimina con precisión entre `"clase"`, `"subclase"`, `"especie"`, `"legado"` y `"rasgos"` (default) mediante inspección de orígenes de rasgos, catálogos de especie/subespecie y `conjurosSiemprePreparadosIds`.
+   - `CONFIG_BADGES_ORIGEN_CONJURO`: Paleta visual dedicada para cada origen con tooltip canónico en español y accesibilidad contrastada.
+   - Sincronización en `usarMagiaPersonaje.ts`: `esHechizoOtorgado` evalúa positivamente los trucos y conjuros de rasgos/especie incluyéndolos de forma natural en `trucosConocidos`, "Mi Lista" y "Preparados".
+   - Propagación de `origenBadge` a `TarjetaConjuroCompacta`, `FilaConjuroCompendio`, `CompendioConjurosJugador`, `PanelConjurosPersonaje`, `ListaNivelesConjuros`, `SeccionNivelConjuros` y `SeccionConjurosOcultos`.
+2. **Tarjetas Universales de Tipo de Criatura y Tamaño Configurable**:
+   - En `src/constantes/especiesDND55.ts`, se definieron los rasgos canónicos de Aasimar con `selector_tamano_especie` (`Mediano` y `Pequeño`).
+   - En `src/servicios/gestorEspecies.ts` (`construirRasgosEspecie`), se inyectan y sintetizan sistemáticamente "Tipo de criatura" y "Tamaño" si no existen en plantillas, preseleccionando `tamanoElegido`.
+   - En `src/servicios/compendioRasgos.ts`, `sincronizarRasgosAutomaticos` preserva las selecciones del usuario en `selectores`.
+   - **Preferencia UX del Usuario**: Las tarjetas compactas (`TarjetaRasgo.tsx`) renderizan exclusivamente chips informativos limpios de las opciones seleccionadas y derivan la selección interactiva al modal de detalle (`ModalDetalleRasgo.tsx`), evitando selectores embebidos en las tarjetas para prevenir desbordes o cambios accidentales.
+   - En `src/almacen/slices/personajes/sliceRasgos.ts` (`actualizarSeleccionRasgo`), cambiar el selector de tamaño desde el modal de detalle actualiza instantáneamente `personaje.tamano` a `"Pequeño"` o `"Mediano"`.
+3. **Sincronización Bidireccional de Efectos de Aasimar con Iniciativa (Combat Tracker)**:
+   - En `condicionesRasgosHelpers.ts`:
+     - `resolverCondicionAsociadaRasgo`: Para `Revelación celestial`, evalúa el selector y devuelve `"Alas Celestiales"`, `"Fulgor Interior"` o `"Mortaja Necrótica"`.
+     - `coincideCondicionConRasgo`: Reconoce las 3 formas celestiales de forma tolerante.
+     - `activarRasgosPorCondicionOEfecto`: Si se aplica el efecto desde iniciativa, activa el rasgo, descuenta el uso de 1/descanso largo y sincroniza la forma en el selector.
+   - En `sliceRasgos.ts`:
+     - Al alternar el rasgo activo, genera el efecto en `efectosActivos` con 10 rondas de duración (`expiraRonda: rondaActual + 10`) y lo replica en `c.efectos` de la cola de iniciativa.
+     - Si el jugador cambia de forma mientras la transformación está activa, se transmuta el efecto en caliente conservando la ronda de expiración.
+
+**Métricas de Calidad Verificadas:**
+- `pnpm exec tsc --noEmit`: 0 errores (Strict Mode estricto).
+- `pnpm lint`: 0 errores, 0 warnings (ESLint limpio).
+- `pnpm test`: 45 suites superadas, 504 de 504 pruebas pasando (100%).
+- `node scripts/verificar-limite-lineas.js`: 105 archivos auditados, 0 errores críticos.
+- `pnpm build`: Compilación de producción Vite completada con código 0.
+
+---
+
+## [2026-09-08] Culminación Exitosa: Sistema Universal de Especies/Razas y Subrazas/Legados (D&D 5.5e) — Aasimar y Funciones Genéricas para el Builder
+**Contexto y Requerimientos:**
+- El usuario solicitó iniciar la construcción sistemática de las razas/especies y subrazas/legados de D&D 5.5e partiendo de `dicionario_herramientas/razas/aasimar.md`.
+- Requerimientos clave:
+  1. *Funciones genéricas reutilizables para el constructor (builder)*: Funciones puras, desacopladas e inmutables para aplicar y consultar especies.
+  2. *Alto DRY y KISS*: Reutilizar contratos y utilidades de normalización previas, manteniendo funciones simples.
+  3. *Campos universales de especie*: Todas las especies comparten tipo de criatura (`tipoCriatura: string`, canónico `"Humanoide"` en PHB 2024), tamaño (`tamano`: opciones de selección o fijo, ej. `["Mediano", "Pequeño"]`), velocidad base (`velocidadBase: number`, ej. 30 pies) y visión en la oscuridad.
+  4. *Fidelidad mecánica e informativa de Aasimar*:
+     - *Manos curativas*: Acción de magia, tirada de d4 igual a tu bonificador de competencia (PB), curación de HP, 1 uso por descanso largo.
+     - *Portador de luz*: Conoce de base el truco *Luz* (*Light*) usando Carisma como aptitud mágica.
+     - *Revelación celestial*: Nivel 3 requerido, acción adicional, duración 1 minuto, 1 uso por descanso largo. Crea 3 efectos/opciones en selector de carácter puramente descriptivo/informativo (*Alas celestiales*, *Fulgor interior* y *Mortaja necrótica*), sin sobrecargar cálculos mecánicos complejos innecesarios.
+     - *Resistencia celestial*: Resistencia permanente al daño necrótico y radiante.
+
+**Solución Aplicada y Decisiones Arquitectónicas:**
+1. **Contratos Fuertemente Tipados (`src/tipos/especies.ts` y re-export en `src/tipos/index.ts`)**:
+   - Se crearon `DefinicionEspecie`, `DefinicionSubespecie`, `ConjuroInnatoEspecie`, `ConfiguracionEspeciePersonaje` y `OpcionesAplicarEspecie` espejando la arquitectura probada de `DefinicionClase` y `DefinicionSubclase`.
+   - Se incorporó `tipoCriatura: z.string().default("Humanoide")` en `EsquemaPersonajeJugador` y `PERSONAJE_POR_DEFECTO` con compatibilidad retroactiva total.
+2. **Catálogo Canónico Oficial (`src/constantes/especiesDND55.ts`)**:
+   - Modelado integral del **Aasimar** con todos sus rasgos mecánicos (`curacion`, dados escalables `${pb}d4`), truco *Luz* innato y selector informativo con sus 3 manifestaciones.
+   - Definiciones base de las restantes 9 especies oficiales de `dicionario_herramientas/razas/` (*Elfo*, *Enano*, *Gnomo*, *Goliat*, *Humano*, *Mediano*, *Orco*, *Tiefling*, *Dracónido*) y sus linajes/legados correspondientes, listos para extensión.
+   - Mapas indexados O(1): `DICCIONARIO_ESPECIES_POR_ID` y `DICCIONARIO_ESPECIES_POR_NOMBRE`.
+   - Ampliación de `PlantillaRasgoEspecie` en `src/constantes/rasgosDND55.ts` para admitir `nivelRequerido`, `categoriaMecanica`, `esActivable`, `selectores` y `formulaEscalado`.
+3. **Capa de Dominio Puro (`src/servicios/gestorEspecies.ts`)**:
+   - `obtenerCatalogoEspecies`, `obtenerEspeciePorId`, `obtenerEspeciePorNombre`, `obtenerSubespeciesDeEspecie`, `obtenerSubespeciePorNombre`.
+   - `construirRasgosEspecie`: Convierte las plantillas a `RasgoPersonaje[]` calculando dinámicamente dados de curación por PB, usos máximos e inyectando selectores ricos.
+   - `aplicarEspecieAPersonaje`: Función pura y genérica para el *builder* que actualiza especie, subespecie, tamaño configurable, velocidad, visión, trucos innatos y rasgos de especie sin mutar ni perder rasgos de clase, dotes o personalizados (DRY / Idempotente).
+4. **Integración con `compendioRasgos.ts`**:
+   - `obtenerRasgosSugeridosPorEspecie` delega de forma natural en `gestorEspecies.ts`, garantizando una única fuente de verdad.
+5. **Ajuste Quirúrgico: Desacoplamiento de Auto-Curación y Auto-HP Temporal en Rasgos Dirigibles a Terceros**:
+   - *Problema*: Rasgos como *Manos curativas* (Aasimar) y *Manto de inspiración* (Bardo del Glamur) pueden aplicarse a aliados o terceros, pero al enviar `metaEspecial` con `personajeId` del lanzador a `lanzadorDados.ts`, el motor aplicaba la curación o los puntos de golpe temporales directamente al propio personaje que realizaba la tirada.
+   - *Solución*: En `TarjetaRasgo.tsx` y `ModalDetalleRasgo.tsx`, se diferenció `esCuracionAuto` y `tieneEfectoHpTemporalAuto` (reservados para habilidades de uso exclusivamente personal, como *Guerrero de los dioses* del Bárbaro del Celo) de los rasgos aplicables a terceros (*Manos curativas* y *Manto de inspiración*). Para estos últimos, se mantiene `esCuracion` para renderizar el icono de corazón y formato en UI, se descuenta el uso (`gastaUsoAlTirar`) y se lanzan los dados al chat/TaleSpire, pero se omite `metaEspecial` para no mutar indebidamente la salud del lanzador.
+6. **Suite de Pruebas Unitarias (`src/servicios/gestorEspecies.test.ts`)**:
+   - 12 pruebas exhaustivas cubriendo catálogo, búsqueda tolerante, campos universales, rasgos de Aasimar, escalado de dados de Manos curativas, navegación de subrazas, aplicación inmutable al personaje en el builder y la verificación de no auto-curación ni auto-HP temporal en habilidades dirigibles a terceros.
+
+**Métricas de Calidad Verificadas:**
+- `pnpm exec tsc --noEmit`: 0 errores (TypeScript Strict Mode).
+- `pnpm lint`: 0 errores, 0 warnings (ESLint limpio).
+- `pnpm test`: 45 suites superadas, 496 de 496 pruebas pasando (100%).
+- `node scripts/verificar-limite-lineas.js`: 105 archivos auditados, 0 errores críticos.
+- `pnpm build`: Empaquetado Vite verificado con éxito (código 0).
+
+---
+
 ## [2026-09-08] Culminación Exitosa: Unificación Simétrica de Furia, Condiciones y Efectos (Master <-> Jugador <-> Mecánicas de Clase)
 **Contexto y Problema Reportado:**
 - El usuario reportó:

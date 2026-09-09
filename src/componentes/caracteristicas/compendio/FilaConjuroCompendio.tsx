@@ -13,12 +13,17 @@ import {
 } from "lucide-react";
 import type { HechizoBase } from "@/tipos";
 import { extraerDadosBaseTruco } from "@/utiles/utilesConjuros";
+import {
+  OrigenConjuroBadge,
+  CONFIG_BADGES_ORIGEN_CONJURO
+} from "@/servicios/resolutorOrigenConjuros";
 
 interface FilaConjuroCompendioProps {
   hechizo: HechizoBase;
   estaEnLista: boolean;
   estaPreparado: boolean;
   esDeSubclase?: boolean;
+  origenBadge?: OrigenConjuroBadge | null;
   requierePreparacion: boolean;
   mostrarEstrella?: boolean;
   alAlternarEnLista: () => void;
@@ -51,12 +56,17 @@ export const FilaConjuroCompendio: React.FC<FilaConjuroCompendioProps> = ({
   estaEnLista,
   estaPreparado,
   esDeSubclase = false,
+  origenBadge,
   requierePreparacion: _requierePreparacion,
   mostrarEstrella = true,
   alAlternarEnLista,
   alAlternarPreparado,
   alAbrirDetalle
 }) => {
+  const origenEfectivo: OrigenConjuroBadge | null = origenBadge ?? (esDeSubclase ? "subclase" : null);
+  const esOtorgado = Boolean(origenEfectivo);
+  const configBadge = origenEfectivo ? CONFIG_BADGES_ORIGEN_CONJURO[origenEfectivo] : null;
+
   // Limpiar HTML básico de descripción para el preview
   const descripcionLimpia = React.useMemo(() => {
     return (hechizo.descripcion || "")
@@ -68,7 +78,7 @@ export const FilaConjuroCompendio: React.FC<FilaConjuroCompendioProps> = ({
   // Manejar acción de la estrella (Preparación)
   const manejarClickEstrella = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (!esDeSubclase && hechizo.nivel > 0) {
+    if (!esOtorgado && hechizo.nivel > 0) {
       alAlternarPreparado();
     }
   };
@@ -76,13 +86,13 @@ export const FilaConjuroCompendio: React.FC<FilaConjuroCompendioProps> = ({
   // Manejar acción del checkbox (Lista / Conocidos)
   const manejarClickCheckbox = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (!esDeSubclase) {
+    if (!esOtorgado) {
       alAlternarEnLista();
     }
   };
 
-  const estaMarcadoPreparado = hechizo.nivel === 0 || esDeSubclase ? true : estaPreparado;
-  const estaMarcadoEnLista = esDeSubclase ? true : estaEnLista;
+  const estaMarcadoPreparado = hechizo.nivel === 0 || esOtorgado ? true : estaPreparado;
+  const estaMarcadoEnLista = esOtorgado ? true : estaEnLista;
 
   return (
     <div
@@ -167,8 +177,8 @@ export const FilaConjuroCompendio: React.FC<FilaConjuroCompendioProps> = ({
             type="button"
             onClick={manejarClickCheckbox}
             title={
-              esDeSubclase
-                ? "Otorgado automáticamente por tu subclase"
+              esOtorgado && configBadge
+                ? `${configBadge.tooltip} (permanente)`
                 : estaMarcadoEnLista
                 ? "En tu lista/grimorio (clic para quitar)"
                 : "Añadir a tu lista/grimorio"
@@ -183,13 +193,13 @@ export const FilaConjuroCompendio: React.FC<FilaConjuroCompendioProps> = ({
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              cursor: esDeSubclase ? "default" : "pointer",
+              cursor: esOtorgado ? "default" : "pointer",
               borderRadius: 4,
               transition: "all 0.15s ease",
               flexShrink: 0
             }}
             onMouseEnter={(e) => {
-              if (!esDeSubclase) e.currentTarget.style.backgroundColor = "rgba(59, 130, 246, 0.15)";
+              if (!esOtorgado) e.currentTarget.style.backgroundColor = "rgba(59, 130, 246, 0.15)";
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.backgroundColor = "transparent";
@@ -201,10 +211,10 @@ export const FilaConjuroCompendio: React.FC<FilaConjuroCompendioProps> = ({
                 height: 16,
                 borderRadius: 3,
                 border: estaMarcadoEnLista
-                  ? esDeSubclase ? "1px solid #facc15" : "1px solid #3b82f6"
+                  ? esOtorgado && configBadge ? `1px solid ${configBadge.colorBorde}` : "1px solid #3b82f6"
                   : "1px solid rgba(148, 163, 184, 0.35)",
                 backgroundColor: estaMarcadoEnLista
-                  ? esDeSubclase ? "rgba(202, 138, 4, 0.4)" : "#2563eb"
+                  ? esOtorgado && configBadge ? configBadge.colorFondo : "#2563eb"
                   : "rgba(15, 23, 42, 0.6)",
                 display: "flex",
                 alignItems: "center",
@@ -212,7 +222,7 @@ export const FilaConjuroCompendio: React.FC<FilaConjuroCompendioProps> = ({
                 pointerEvents: "none"
               }}
             >
-              {estaMarcadoEnLista && <Check size={10} color={esDeSubclase ? "#fef08a" : "#ffffff"} strokeWidth={3} />}
+              {estaMarcadoEnLista && <Check size={10} color={esOtorgado && configBadge ? configBadge.colorTexto : "#ffffff"} strokeWidth={3} />}
             </div>
           </button>
 
@@ -232,7 +242,7 @@ export const FilaConjuroCompendio: React.FC<FilaConjuroCompendioProps> = ({
             {obtenerIconoEscuela(hechizo.escuela)}
           </div>
 
-          {/* Nombre del Conjuro + Badge Subclase */}
+          {/* Nombre del Conjuro + Badge Origen */}
           <div style={{ display: "flex", alignItems: "center", gap: 6, minWidth: 0 }}>
             <span
               style={{
@@ -247,15 +257,15 @@ export const FilaConjuroCompendio: React.FC<FilaConjuroCompendioProps> = ({
               {hechizo.nombre}
             </span>
 
-            {esDeSubclase && (
+            {esOtorgado && configBadge && (
               <span
-                title="Conjuro otorgado automáticamente por tu subclase"
+                title={configBadge.tooltip}
                 style={{
                   fontSize: 9,
                   fontWeight: 700,
-                  backgroundColor: "rgba(234, 179, 8, 0.18)",
-                  color: "#fde047",
-                  border: "1px solid rgba(234, 179, 8, 0.35)",
+                  backgroundColor: configBadge.colorFondo,
+                  color: configBadge.colorTexto,
+                  border: `1px solid ${configBadge.colorBorde}`,
                   borderRadius: 3,
                   padding: "1px 4px",
                   display: "inline-flex",
@@ -264,7 +274,7 @@ export const FilaConjuroCompendio: React.FC<FilaConjuroCompendioProps> = ({
                   flexShrink: 0
                 }}
               >
-                <Sparkles size={8} /> Subclase
+                <Sparkles size={8} /> {configBadge.etiqueta}
               </span>
             )}
           </div>

@@ -358,6 +358,7 @@ export interface EfectoPredefinido {
 export * from "./rasgos";
 export * from "./personaje";
 export * from "./clases";
+export * from "./especies";
 export * from "./combate";
 export * from "./inventario";
 

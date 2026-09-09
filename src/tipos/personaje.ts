@@ -243,6 +243,7 @@ export const EsquemaPersonajeJugador = z.object({
   especie: z.string().default("Humano"),
   subespecie: z.string().default(""),
   tamano: EsquemaTamanoPersonaje.default("Mediano"),
+  tipoCriatura: z.string().default("Humanoide"),
   trasfondo: z.string().default("Personalizado"),
   alineacion: z.string().default("Neutral"),
   experiencia: z.number().int().min(0).default(0),

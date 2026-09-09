@@ -8,10 +8,12 @@ import {
 import { aplicarCondicion } from "@/servicios/procesadorCondiciones";
 import { mutarPersonaje } from "../helpers/mutarPersonaje";
 import type { SubSliceRasgos } from "./slicePersonajesTipos";
+import type { TamanoPersonaje } from "@/tipos";
 import {
   resolverIdRasgoObjetivoGasto,
   resolverCondicionAsociadaRasgo,
-  coincideCondicionConRasgo
+  coincideCondicionConRasgo,
+  normalizarTextoSeguro
 } from "./condicionesRasgosHelpers";
 import { EFECTOS_PREDEFINIDOS } from "@/utiles/datosIniciales";
 import { generarId } from "@/utiles/generarId";
@@ -322,8 +324,34 @@ export const crearSubSliceRasgos: StateCreator<
 
   actualizarSeleccionRasgo: (idPj, idRasgo, idSelector, valorActual) => {
     mutarPersonaje(set, idPj, (pj) => {
+      let tamanoActualizado = pj.tamano;
+      const esSelectorTamano =
+        idSelector === "selector_tamano_especie" || idSelector.toLowerCase().includes("tamano");
+
+      if (esSelectorTamano && valorActual && valorActual.length > 0) {
+        const valNorm = normalizarTextoSeguro(valorActual[0]);
+        if (valNorm.startsWith("pequen")) {
+          tamanoActualizado = "Pequeño";
+        } else if (valNorm.startsWith("median")) {
+          tamanoActualizado = "Mediano";
+        } else if (valNorm.startsWith("grand")) {
+          tamanoActualizado = "Grande";
+        } else if (valorActual[0]) {
+          tamanoActualizado = valorActual[0] as TamanoPersonaje;
+        }
+      }
+
+      let rasgoObjetivoActivo = false;
+      let esRevelacionCelestial = false;
+
       const rasgosActualizados = (pj.rasgos || []).map((r) => {
         if (r.id === idRasgo && Array.isArray(r.selectores)) {
+          if (r.activo) rasgoObjetivoActivo = true;
+          const rNom = normalizarTextoSeguro(r.nombre);
+          if (rNom.includes("revelacion celestial") || r.id.includes("revelacion_celestial")) {
+            esRevelacionCelestial = true;
+          }
+
           const selectoresActualizados = r.selectores.map((s) =>
             s.id === idSelector ? { ...s, valorActual } : s
           );
@@ -334,7 +362,100 @@ export const crearSubSliceRasgos: StateCreator<
         }
         return r;
       });
-      return { ...pj, rasgos: rasgosActualizados };
+
+      let efectosActualizados = pj.efectosActivos || [];
+      let condicionesActualizadas = pj.condicionesActivas || [];
+
+      // Si se cambia la opción de Revelación celestial mientras está activa, sincronizar los efectos y condiciones
+      if (esRevelacionCelestial && rasgoObjetivoActivo && valorActual && valorActual.length > 0) {
+        const selVal = normalizarTextoSeguro(valorActual[0]);
+        let nuevoNombreEfecto = "Alas Celestiales";
+        if (selVal.includes("fulgor")) nuevoNombreEfecto = "Fulgor Interior";
+        else if (selVal.includes("mortaja")) nuevoNombreEfecto = "Mortaja Necrótica";
+
+        const efectoPrevio = efectosActualizados.find((e) => {
+          const eNorm = normalizarTextoSeguro(e.nombre);
+          return (
+            eNorm.includes("alas celestiales") ||
+            eNorm.includes("fulgor interior") ||
+            eNorm.includes("mortaja necrotica")
+          );
+        });
+
+        const rondaActual = get().rondaActual || 1;
+        const expiraRonda =
+          efectoPrevio?.expiraRonda && efectoPrevio.expiraRonda > rondaActual
+            ? efectoPrevio.expiraRonda
+            : rondaActual + 10;
+
+        // Purgar efectos y condiciones previos de revelación
+        efectosActualizados = efectosActualizados.filter((e) => {
+          const eNorm = normalizarTextoSeguro(e.nombre);
+          return (
+            !eNorm.includes("alas celestiales") &&
+            !eNorm.includes("fulgor interior") &&
+            !eNorm.includes("mortaja necrotica")
+          );
+        });
+
+        condicionesActualizadas = condicionesActualizadas.filter((c) => {
+          const cNorm = normalizarTextoSeguro(c);
+          return (
+            !cNorm.includes("alas celestiales") &&
+            !cNorm.includes("fulgor interior") &&
+            !cNorm.includes("mortaja necrotica")
+          );
+        });
+
+        efectosActualizados.push({
+          id: generarId(nuevoNombreEfecto.toLowerCase().replace(/[^a-z0-9]/g, "_").substring(0, 20)),
+          nombre: nuevoNombreEfecto,
+          expiraRonda,
+          concentracion: false
+        });
+
+        condicionesActualizadas = aplicarCondicion(condicionesActualizadas, nuevoNombreEfecto);
+      }
+
+      return {
+        ...pj,
+        tamano: tamanoActualizado,
+        rasgos: rasgosActualizados,
+        efectosActivos: efectosActualizados,
+        condicionesActivas: condicionesActualizadas
+      };
     });
+
+    // Sincronizar cola de iniciativa si cambió revelación celestial
+    const state = get();
+    if (state.colaIniciativa && state.colaIniciativa.length > 0) {
+      const pjActualizado = state.personajes.find((p) => p.id === idPj);
+      if (pjActualizado) {
+        const nombreNorm = (pjActualizado.nombre || "").trim().toLowerCase();
+        const nuevaCola = state.colaIniciativa.map((c) => {
+          const coincide =
+            c.id === pjActualizado.id ||
+            (pjActualizado.idMiniaturaTS && c.id === pjActualizado.idMiniaturaTS) ||
+            (nombreNorm && c.nombre.trim().toLowerCase() === nombreNorm);
+          if (!coincide) return c;
+
+          const efectosPj = pjActualizado.efectosActivos || [];
+          const nombresEfectos = new Set(efectosPj.map((e) => e.nombre.toLowerCase().trim()));
+          const tieneEfectoConcentracion = efectosPj.some(
+            (ef) => ef.concentracion || ef.nombre.toLowerCase().startsWith("concentra")
+          );
+          const condicionesSinDuplicados = (pjActualizado.condicionesActivas || []).filter((cond) => {
+            const cNorm = cond.toLowerCase().trim();
+            const cBase = cond.split(" (")[0].toLowerCase().trim();
+            if (tieneEfectoConcentracion && cNorm.includes("concentra")) return false;
+            if (nombresEfectos.has(cNorm) || nombresEfectos.has(cBase)) return false;
+            return true;
+          });
+
+          return { ...c, condiciones: condicionesSinDuplicados, efectos: efectosPj };
+        });
+        set({ colaIniciativa: nuevaCola });
+      }
+    }
   }
 });

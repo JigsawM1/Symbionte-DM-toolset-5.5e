@@ -14,6 +14,10 @@ import {
 import type { ModoLanzamiento } from "@/servicios/servicioLanzamientoConjuros";
 import { SelectorDesplegable } from "@/componentes/comunes";
 import { logger } from "@/utiles/logger";
+import {
+  OrigenConjuroBadge,
+  CONFIG_BADGES_ORIGEN_CONJURO
+} from "@/servicios/resolutorOrigenConjuros";
 import estilos from "./TarjetaConjuroCompacta.module.css";
 
 interface TarjetaConjuroCompactaProps {
@@ -23,6 +27,7 @@ interface TarjetaConjuroCompactaProps {
   bonoAtaqueMagico: number;
   estaPreparado: boolean;
   esDeSubclase?: boolean;
+  origenBadge?: OrigenConjuroBadge | null;
   mostrarTogglePreparado?: boolean;
   esConcentracionActual?: boolean;
   esOculto?: boolean;
@@ -55,6 +60,7 @@ export const TarjetaConjuroCompacta: React.FC<TarjetaConjuroCompactaProps> = ({
   bonoAtaqueMagico,
   estaPreparado,
   esDeSubclase = false,
+  origenBadge,
   mostrarTogglePreparado = false,
   esConcentracionActual = false,
   esOculto = false,
@@ -80,6 +86,9 @@ export const TarjetaConjuroCompacta: React.FC<TarjetaConjuroCompactaProps> = ({
   permitirUpcastLibre
 }) => {
   const esTruco = hechizo.nivel === 0;
+  const origenEfectivo: OrigenConjuroBadge | null = origenBadge ?? (esDeSubclase ? "subclase" : null);
+  const esOtorgado = Boolean(origenEfectivo);
+  const configBadge = origenEfectivo ? CONFIG_BADGES_ORIGEN_CONJURO[origenEfectivo] : null;
 
   // Obtener las opciones de nivel válidas (respetando ranuras reales, pacto fijo y multiclase)
   const opcionesLanzamiento = useMemo(() => {
@@ -250,21 +259,21 @@ export const TarjetaConjuroCompacta: React.FC<TarjetaConjuroCompactaProps> = ({
         {mostrarTogglePreparado && !esTruco && (
           <button
             type="button"
-            onClick={esDeSubclase ? undefined : alAlternarPreparado}
+            onClick={esOtorgado ? undefined : alAlternarPreparado}
             title={
-              esDeSubclase
-                ? "Siempre preparado por tu subclase (no consume cupo diario)"
+              esOtorgado && configBadge
+                ? `${configBadge.tooltip} (no consume cupo diario)`
                 : estaPreparado
                 ? "Conjuro preparado (clic para desmarcar)"
                 : "Conjuro no preparado (clic para preparar)"
             }
             className={
-              esDeSubclase
+              esOtorgado
                 ? estilos.checkboxSubclase
                 : `${estilos.checkboxPreparado} ${estaPreparado ? estilos.checkboxPreparadoActivo : ""}`
             }
           >
-            {(estaPreparado || esDeSubclase) && <Check size={12} />}
+            {(estaPreparado || esOtorgado) && <Check size={12} />}
           </button>
         )}
 
@@ -274,7 +283,7 @@ export const TarjetaConjuroCompacta: React.FC<TarjetaConjuroCompactaProps> = ({
               type="button"
               onClick={() => alAbrirDetalleCompleto(hechizo)}
               title="Ver descripción y ficha completa del conjuro"
-              className={`${estilos.nombreConjuro} ${!estaPreparado && mostrarTogglePreparado && !esDeSubclase ? estilos.nombreConjuroInactivo : ""}`}
+              className={`${estilos.nombreConjuro} ${!estaPreparado && mostrarTogglePreparado && !esOtorgado ? estilos.nombreConjuroInactivo : ""}`}
               style={{ background: "none", border: "none", padding: 0, cursor: "pointer", textAlign: "left" }}
             >
               {hechizo.nombre}
@@ -322,14 +331,19 @@ export const TarjetaConjuroCompacta: React.FC<TarjetaConjuroCompactaProps> = ({
             )}
           </span>
 
-          {/* Badge de Subclase debajo de escuela y alcance */}
-          {esDeSubclase && (
+          {/* Badge de Origen dinámico (clase, subclase, especie, legado, rasgos) */}
+          {esOtorgado && configBadge && (
             <div className={estilos.filaSubclaseInferior}>
               <span
-                title="Conjuro otorgado automáticamente por tu subclase"
+                title={configBadge.tooltip}
                 className={estilos.badgeSubclaseTexto}
+                style={{
+                  color: configBadge.colorTexto,
+                  backgroundColor: configBadge.colorFondo,
+                  borderColor: configBadge.colorBorde
+                }}
               >
-                <Sparkles size={8} /> Subclase
+                <Sparkles size={8} /> {configBadge.etiqueta}
               </span>
             </div>
           )}

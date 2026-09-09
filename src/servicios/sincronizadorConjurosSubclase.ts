@@ -61,13 +61,26 @@ export function sincronizarConjurosSubclaseHelper(
     }
   });
 
-  // Trucos
+  // Trucos de subclase, especie y rasgos
   const trucos = deduplicarListaIds([...(pj.trucosConocidosIds || [])]);
   (resultadoSubclase.trucos || []).forEach((t) => {
     if (!trucos.some((tr) => coincideHechizoId(tr, t))) {
       trucos.push(t);
     }
   });
+
+  for (const r of pj.rasgos || []) {
+    if (r.activo === false) continue;
+    if (Array.isArray(r.conjurosOtorgados)) {
+      for (const c of r.conjurosOtorgados) {
+        const cNorm = c.toLowerCase().trim();
+        const esTruco = cNorm === "luz" || (r.descripcion && r.descripcion.toLowerCase().includes("truco " + cNorm));
+        if (esTruco && !trucos.some((tr) => coincideHechizoId(tr, c))) {
+          trucos.push(c);
+        }
+      }
+    }
+  }
 
   return {
     ...pj,

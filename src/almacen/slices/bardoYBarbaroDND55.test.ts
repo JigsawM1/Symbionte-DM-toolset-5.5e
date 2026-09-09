@@ -705,8 +705,8 @@ describe("D&D 5.5e - Bardo, Subclases y Hotfix Bárbaro", () => {
   });
 
   describe("Bárbaro: Reglas D&D 5.5e (2024)", () => {
-    it("Furia (Rage) dura 100 rondas (10 minutos) en los efectos predefinidos", () => {
-      const efectoFuria = EFECTOS_PREDEFINIDOS.find((ef) => ef.nombre.includes("Furia (Rage)"));
+    it("Furia dura 100 rondas (10 minutos) en los efectos predefinidos", () => {
+      const efectoFuria = EFECTOS_PREDEFINIDOS.find((ef) => ef.nombre === "Furia" || ef.nombre.includes("Furia (Rage)"));
       expect(efectoFuria).toBeDefined();
       expect(efectoFuria?.duracionEstandar).toBe(100);
     });

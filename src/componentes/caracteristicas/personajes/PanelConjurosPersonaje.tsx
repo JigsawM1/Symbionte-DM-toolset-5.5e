@@ -61,7 +61,7 @@ export const PanelConjurosPersonaje: React.FC<PanelConjurosPersonajeProps> = ({
   const {
     etiquetaHabilidad, modHabilidad, cdConjuros, bonoAtaqueMagico,
     requierePreparacion, esLanzadorPacto, nivelEspacioPacto,
-    nivelesArcanoDisponibles, esHechizoDeSubclase, estaPreparado,
+    nivelesArcanoDisponibles, esHechizoDeSubclase, obtenerOrigenConjuro, estaPreparado,
     maximos, conteoEfectivo, conjurosPorNivel, trucosConocidos
   } = usarMagiaPersonaje(personaje, baseDatosHechizos, modificadores, bonoCompetencia);
 
@@ -163,6 +163,7 @@ export const PanelConjurosPersonaje: React.FC<PanelConjurosPersonajeProps> = ({
         nivelEspacioPacto={nivelEspacioPacto}
         requierePreparacion={requierePreparacion}
         esHechizoDeSubclase={esHechizoDeSubclase}
+        obtenerOrigenConjuro={obtenerOrigenConjuro}
         estaPreparado={estaPreparado}
         alAlternarPreparado={alAlternarPreparado}
         alQuitarTruco={alQuitarTruco}
@@ -196,6 +197,7 @@ export const PanelConjurosPersonaje: React.FC<PanelConjurosPersonajeProps> = ({
         bonoAtaqueMagico={bonoAtaqueMagico}
         estaPreparado={estaPreparado}
         esHechizoDeSubclase={esHechizoDeSubclase}
+        obtenerOrigenConjuro={obtenerOrigenConjuro}
         requierePreparacion={requierePreparacion}
         estaBloqueadoPorArmadura={estaBloqueadoPorArmadura}
         motivoBloqueoArmadura={motivoBloqueoArmadura}

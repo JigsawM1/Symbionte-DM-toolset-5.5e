@@ -249,6 +249,7 @@ export const PERSONAJE_POR_DEFECTO: PersonajeJugador = {
   especie: "Humano",
   subespecie: "",
   tamano: "Mediano",
+  tipoCriatura: "Humanoide",
   trasfondo: "Personalizado",
   alineacion: "Neutral",
   experiencia: 0,

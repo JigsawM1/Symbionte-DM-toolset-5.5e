@@ -1,6 +1,7 @@
 import React from "react";
 import type { PersonajeJugador, HechizoBase } from "@/tipos";
 import type { ModoLanzamiento, SolicitudLanzamiento } from "@/servicios/servicioLanzamientoConjuros";
+import type { OrigenConjuroBadge } from "@/servicios/resolutorOrigenConjuros";
 import { Sparkles, BookOpen } from "lucide-react";
 import { SeccionNivelConjuros } from "../SeccionNivelConjuros";
 import estilos from "../PanelConjurosPersonaje.module.css";
@@ -15,6 +16,7 @@ interface ListaNivelesConjurosProps {
   nivelEspacioPacto?: number;
   requierePreparacion: boolean;
   esHechizoDeSubclase: (hechizo: HechizoBase) => boolean;
+  obtenerOrigenConjuro?: (hechizo: HechizoBase) => OrigenConjuroBadge | null;
   estaPreparado: (hechizo: HechizoBase) => boolean;
   alAlternarPreparado: (idHechizo: string) => void;
   alQuitarTruco: (idHechizo: string) => void;
@@ -45,6 +47,7 @@ export const ListaNivelesConjuros: React.FC<ListaNivelesConjurosProps> = ({
   nivelEspacioPacto,
   requierePreparacion,
   esHechizoDeSubclase,
+  obtenerOrigenConjuro,
   estaPreparado,
   alAlternarPreparado,
   alQuitarTruco,
@@ -86,6 +89,7 @@ export const ListaNivelesConjuros: React.FC<ListaNivelesConjurosProps> = ({
         bonoAtaqueMagico={bonoAtaqueMagico}
         estaPreparado={() => true}
         esHechizoDeSubclase={esHechizoDeSubclase}
+        obtenerOrigenConjuro={obtenerOrigenConjuro}
         requierePreparacion={false}
         esLanzadorPacto={esLanzadorPacto}
         nivelEspacioPacto={nivelEspacioPacto || 1}
@@ -151,6 +155,7 @@ export const ListaNivelesConjuros: React.FC<ListaNivelesConjurosProps> = ({
             bonoAtaqueMagico={bonoAtaqueMagico}
             estaPreparado={estaPreparado}
             esHechizoDeSubclase={esHechizoDeSubclase}
+            obtenerOrigenConjuro={obtenerOrigenConjuro}
             requierePreparacion={requierePreparacion}
             esLanzadorPacto={esLanzadorPacto}
             nivelEspacioPacto={nivelEspacioPacto || 1}

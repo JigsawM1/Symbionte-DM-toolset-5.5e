@@ -15,21 +15,17 @@ import {
   DICCIONARIO_CLASES_POR_ID,
   TODAS_SUBCLASES_DND55
 } from "@/constantes/clasesDND55";
-import {
-  obtenerMaxInvocacionesBrujo,
-  generarOpcionesSelectorInvocaciones
-} from "@/constantes/invocacionesSobrenaturales";
 import { calcularTodosRecursosMagicos } from "@/servicios/calculadorMagia";
 import { sincronizarRasgosAutomaticos } from "@/servicios/compendioRasgos";
 import { sincronizarConjurosSubclaseHelper } from "@/servicios/sincronizadorConjurosSubclase";
 import { resolverGruposYSustitutosCompetencias } from "@/constantes/competenciasConstantes";
 import { logger } from "@/utiles/logger";
 import {
-  obtenerDadoInspiracionBardica,
   tieneMedioBonoHabilidades,
   aplicarAprendizDeMuchoAGradosHabilidades,
   obtenerCompetenciasExtraRasgos
 } from "@/servicios/evaluadorEfectosRasgos";
+
 
 /**
  * Normaliza cadenas de texto para comparaciones tolerantes (insensible a tildes, mayúsculas y espacios).
@@ -166,7 +162,111 @@ export function evaluarFormulaUsos(formula: string | null | undefined, nivel: nu
 }
 
 /**
+ * Resuelve todos los escalados declarativos de un rasgo según el nivel actual.
+ * Esta función es GENÉRICA PURA: no conoce nombres de rasgos ni clases.
+ * Reemplaza todos los bloques `if (r.nombre === "...")` que existían en el builder.
+ */
+function resolverEscaladosRasgo(
+  r: {
+    formulaDados?: string;
+    recuperacion?: string;
+    sincronizarEfectosConFormula?: boolean;
+    escaladoFormulaDados?: Array<{ nivelMinimo: number; valor: string }>;
+    escaladoUsos?: {
+      tipo: "por_nivel" | "por_modificador";
+      tabla?: Array<{ nivelMinimo: number; valor: number }>;
+      modificador?: string;
+      minimo?: number;
+    };
+    escaladoRecuperacion?: Array<{ nivelMinimo: number; valor: string }>;
+  },
+  nivel: number,
+  efectosBase: Array<Record<string, unknown>>,
+  selectoresBase: Array<Record<string, unknown>>
+): {
+  formulaDados: string | undefined;
+  usosEscalados: number | undefined;
+  recuperacion: string | undefined;
+  efectos: Array<Record<string, unknown>>;
+  selectores: Array<Record<string, unknown>>;
+} {
+  let formulaDados = r.formulaDados;
+  let usosEscalados: number | undefined;
+  let recuperacion = r.recuperacion;
+  const efectos: Array<Record<string, unknown>> = JSON.parse(JSON.stringify(efectosBase));
+  const selectores: Array<Record<string, unknown>> = JSON.parse(JSON.stringify(selectoresBase));
+
+  // 1. Escalado de fórmula de dados
+  if (r.escaladoFormulaDados?.length) {
+    const entrada = [...r.escaladoFormulaDados]
+      .sort((a, b) => b.nivelMinimo - a.nivelMinimo)
+      .find((e) => nivel >= e.nivelMinimo);
+    if (entrada) formulaDados = entrada.valor;
+  }
+
+  // 2. Escalado de usos por tabla de nivel
+  if (r.escaladoUsos?.tipo === "por_nivel" && r.escaladoUsos.tabla?.length) {
+    const minimo = r.escaladoUsos.minimo ?? 1;
+    const entrada = [...r.escaladoUsos.tabla]
+      .sort((a, b) => b.nivelMinimo - a.nivelMinimo)
+      .find((e) => nivel >= e.nivelMinimo);
+    if (entrada) usosEscalados = Math.max(minimo, entrada.valor);
+  }
+
+  // 3. Escalado de recuperación
+  if (r.escaladoRecuperacion?.length) {
+    const entrada = [...r.escaladoRecuperacion]
+      .sort((a, b) => b.nivelMinimo - a.nivelMinimo)
+      .find((e) => nivel >= e.nivelMinimo);
+    if (entrada) recuperacion = entrada.valor;
+  }
+
+  // 4. Sincronizar efectos con la fórmula de dados resuelta
+  if (r.sincronizarEfectosConFormula && formulaDados) {
+    const tiposASincronizar = new Set(["dado_extra_dano", "ataque_desarmado", "bono_dano_fuerza", "dano_secundario"]);
+    for (const ef of efectos) {
+      if (typeof ef.tipo === "string" && tiposASincronizar.has(ef.tipo)) {
+        ef.valor = formulaDados;
+      }
+    }
+  }
+
+  // 5. Selectores: opciones dinámicas y escalado de maxSelecciones
+  for (const sel of selectores) {
+    const opcionesDinamicas = sel.opcionesDinamicas as Array<{ nivelMinimo: number; opciones: Array<Record<string, unknown>> }> | undefined;
+    if (opcionesDinamicas?.length) {
+      const opcionesActuales = sel.opciones as Array<{ id: string }>;
+      for (const grupo of opcionesDinamicas) {
+        if (nivel >= grupo.nivelMinimo) {
+          for (const op of grupo.opciones) {
+            if (!opcionesActuales.some((o) => o.id === op.id)) {
+              opcionesActuales.push(op as { id: string });
+            }
+          }
+        }
+      }
+    }
+    const escaladoMax = sel.escaladoMaxSelecciones as Array<{ nivelMinimo: number; valor: number }> | undefined;
+    if (escaladoMax?.length) {
+      const entrada = [...escaladoMax]
+        .sort((a, b) => b.nivelMinimo - a.nivelMinimo)
+        .find((e) => nivel >= e.nivelMinimo);
+      if (entrada) {
+        sel.maxSelecciones = entrada.valor;
+        if (entrada.valor > 1) {
+          sel.tipo = "multiple";
+        }
+      }
+    }
+  }
+
+  return { formulaDados, usosEscalados, recuperacion, efectos, selectores };
+}
+
+/**
  * Obtiene los rasgos de clase y subclase correspondientes a un nivel específico.
+ * El builder es GENÉRICO PURO: consume metadatos declarativos del catálogo.
+ * No contiene bifurcaciones por nombre de rasgo ni de clase.
  */
 export function obtenerRasgosClaseYSubclase(
   claseNombre: string,
@@ -179,17 +279,75 @@ export function obtenerRasgosClaseYSubclase(
   const nivelSeguro = Math.max(1, Math.min(20, Math.floor(nivel) || 1));
   const rasgosResultado: RasgoPersonaje[] = [];
 
+  // ── Función auxiliar para construir un RasgoPersonaje desde una plantilla ──
+  function construirRasgo(
+    r: import("@/constantes/rasgosDND55").PlantillaRasgoClase,
+    id: string,
+    fuente: string,
+    origen: "clase" | "subclase"
+  ): RasgoPersonaje {
+    let usos: number | undefined;
+    if (r.tieneUsosLimitados) {
+      if (typeof r.obtenerUsosMaximos === "function") {
+        usos = r.obtenerUsosMaximos(nivelSeguro);
+      } else if (r.formulaUsos) {
+        usos = evaluarFormulaUsos(r.formulaUsos, nivelSeguro);
+      }
+    }
+
+    const efectosBase = r.efectos ? (r.efectos as unknown as Array<Record<string, unknown>>) : [];
+    const selectoresBase = r.selectores ? (r.selectores as unknown as Array<Record<string, unknown>>) : [];
+
+    const escalados = resolverEscaladosRasgo(r, nivelSeguro, efectosBase, selectoresBase);
+
+    // Los usos escalados por tabla tienen precedencia sobre obtenerUsosMaximos
+    const usosFinales = escalados.usosEscalados ?? usos;
+
+    return {
+      id,
+      nombre: r.nombre,
+      descripcion: r.descripcion,
+      origen,
+      fuente,
+      tipoAccion: r.tipoAccion,
+      nivelRequerido: r.nivel,
+      tieneUsosLimitados: !!r.tieneUsosLimitados,
+      usosMaximos: usosFinales,
+      usosRestantes: usosFinales,
+      recuperacion: (escalados.recuperacion ?? r.recuperacion ?? "ninguno") as import("@/tipos/rasgos").RecuperacionRasgo,
+      formulaDados: escalados.formulaDados,
+      escaladoFormulaDados: r.escaladoFormulaDados,
+      escaladoUsos: r.escaladoUsos as import("@/tipos/rasgos").EscaladoUsos | undefined,
+      escaladoRecuperacion: r.escaladoRecuperacion,
+      sincronizarEfectosConFormula: !!r.sincronizarEfectosConFormula,
+      personalizado: false,
+      activo: r.esActivable ? false : true,
+      esActivable: !!r.esActivable,
+      condicionAlActivar: r.condicionAlActivar,
+      restaurarUsosAlActivar: r.restaurarUsosAlActivar ? { ...r.restaurarUsosAlActivar } : undefined,
+      autoDesactivar: !!r.autoDesactivar,
+      ligadoA: r.ligadoA,
+      gastarDePadre: !!r.gastarDePadre,
+      heredarDadosPadre: !!r.heredarDadosPadre,
+      conjurosOtorgados: r.conjurosOtorgados ? [...r.conjurosOtorgados] : [],
+      categoriaMecanica: r.categoriaMecanica,
+      formulaEscalado: r.formulaEscalado,
+      efectos: escalados.efectos as import("@/tipos/rasgos").EfectoMecanicoRasgo[],
+      selectores: escalados.selectores as import("@/tipos/rasgos").SelectorRasgo[],
+      tablaProgresion: r.tablaProgresion ? JSON.parse(JSON.stringify(r.tablaProgresion)) : undefined,
+      notas: ""
+    };
+  }
+
   // 1. Rasgos de Clase Base
   for (const r of clase.rasgos) {
     if (r.nivel <= nivelSeguro) {
-      // Consolidación orgánica de "Mejora de característica"
+      // Consolidación orgánica de "Mejora de característica" (múltiples niveles → un rasgo)
       if (r.nombre === "Mejora de característica") {
         const existenteMejora = rasgosResultado.find((x) => x.nombre === "Mejora de característica");
         if (existenteMejora) {
           const nivelesPrevios = existenteMejora.notas ? existenteMejora.notas.split(",") : [String(existenteMejora.nivelRequerido)];
-          if (!nivelesPrevios.includes(String(r.nivel))) {
-            nivelesPrevios.push(String(r.nivel));
-          }
+          if (!nivelesPrevios.includes(String(r.nivel))) nivelesPrevios.push(String(r.nivel));
           existenteMejora.notas = nivelesPrevios.join(",");
           existenteMejora.fuente = `${clase.nombre} (Niveles ${nivelesPrevios.join(", ")})`;
           existenteMejora.descripcion = `Obtienes la dote Mejora de característica u otra dote de tu elección para la que cumplas las condiciones.\n\n***Niveles alcanzados:*** ${nivelesPrevios.join(", ")}.`;
@@ -197,122 +355,31 @@ export function obtenerRasgosClaseYSubclase(
         }
       }
 
-      // Si es una extensión de otro rasgo ya incorporada orgánicamente (ej. Golpe brutal mejorado I y II)
+      // Consolidación orgánica de rasgos de extensión ligados a otro rasgo (Decorator pattern genérico)
       if (r.categoriaMecanica === "extension" && r.ligadoA) {
+        const ligNorm = normalizarTextoClase(r.ligadoA);
+        const padre = rasgosResultado.find(
+          (x) => normalizarTextoClase(x.id) === ligNorm || normalizarTextoClase(x.nombre) === ligNorm
+        );
+        if (padre) {
+          const nivelesPrevios = padre.notas ? padre.notas.split(",") : [String(padre.nivelRequerido)];
+          if (!nivelesPrevios.includes(String(r.nivel))) {
+            nivelesPrevios.push(String(r.nivel));
+          }
+          padre.notas = nivelesPrevios.join(",");
+          padre.fuente = `${clase.nombre} (Niveles ${nivelesPrevios.join(", ")})`;
+          padre.descripcion += `\n\n***${r.nombre} (Nv. ${r.nivel}).*** ${r.descripcion}`;
+          if (r.formulaDados) padre.formulaDados = r.formulaDados;
+        }
         continue;
       }
-
-      // Ignorar marcadores de posición de tabla de progresión ("Rasgo de subclase")
       const nombreNorm = r.nombre.toLowerCase().trim();
-      if (nombreNorm === "rasgo de subclase" || nombreNorm.includes("rasgo de subclase")) {
-        continue;
-      }
+      if (nombreNorm === "rasgo de subclase" || nombreNorm.includes("rasgo de subclase")) continue;
 
       const id = `rasgo_cls_${normalizarTextoClase(clase.id)}_${normalizarTextoClase(r.nombre).replace(/\s+/g, "_")}`;
-      let usos: number | undefined = undefined;
-      if (r.tieneUsosLimitados) {
-        if (typeof r.obtenerUsosMaximos === "function") {
-          usos = r.obtenerUsosMaximos(nivelSeguro);
-        } else if (r.formulaUsos) {
-          usos = evaluarFormulaUsos(r.formulaUsos, nivelSeguro);
-        }
-      }
+      const fuente = `${clase.nombre} (Nivel ${r.nivel})`;
 
-      // Ajustar selectores con escalado dinámico por nivel
-      const selectoresClonados = r.selectores ? JSON.parse(JSON.stringify(r.selectores)) : [];
-      const efectosClonados = r.efectos ? JSON.parse(JSON.stringify(r.efectos)) : [];
-      if (r.nombre === "Maestría con armas" && selectoresClonados.length > 0) {
-        const esGuerrero = clase.nombre.toLowerCase().includes("guerrero");
-        const maxArmas = esGuerrero
-          ? (nivelSeguro >= 16 ? 6 : nivelSeguro >= 10 ? 5 : nivelSeguro >= 4 ? 4 : 3)
-          : (nivelSeguro >= 10 ? 4 : nivelSeguro >= 4 ? 3 : 2);
-        selectoresClonados[0].maxSelecciones = maxArmas;
-      }
-
-      // Ajustar selector de Invocaciones Sobrenaturales según nivel de Brujo
-      if (r.nombre === "Invocaciones sobrenaturales" && selectoresClonados.length > 0) {
-        selectoresClonados[0].maxSelecciones = obtenerMaxInvocacionesBrujo(nivelSeguro);
-        selectoresClonados[0].opciones = generarOpcionesSelectorInvocaciones(nivelSeguro);
-      }
-
-      // Ajustar Golpe Brutal si nivel >= 13 o >= 17
-      let formulaDadosRasgo = r.formulaDados;
-      let descripcionRasgo = r.descripcion;
-      let fuenteRasgo = `${clase.nombre} (Nivel ${r.nivel})`;
-      if (r.nombre === "Golpe brutal" && selectoresClonados.length > 0) {
-        const selectorGb = selectoresClonados[0];
-        if (nivelSeguro >= 13) {
-          if (!selectorGb.opciones.some((op: { id: string }) => op.id === "golpe_desestabilizador")) {
-            selectorGb.opciones.push({
-              id: "golpe_desestabilizador",
-              nombre: "Golpe desestabilizador (Nv. 13)",
-              descripcion: "El objetivo tiene desventaja en la siguiente tirada de salvación y no puede hacer ataques de oportunidad hasta tu siguiente turno."
-            });
-          }
-          if (!selectorGb.opciones.some((op: { id: string }) => op.id === "golpe_desgarrador")) {
-            selectorGb.opciones.push({
-              id: "golpe_desgarrador",
-              nombre: "Golpe desgarrador (Nv. 13)",
-              descripcion: "La siguiente tirada de ataque realizada por otra criatura contra el objetivo obtiene un bonificador de +5."
-            });
-          }
-          descripcionRasgo += "\n\n***Golpe desestabilizador (Nv. 13).*** El objetivo tiene desventaja en la siguiente tirada de salvación que haga, y no puede hacer ataques de oportunidad hasta el principio de tu siguiente turno.\n\n***Golpe desgarrador (Nv. 13).*** Antes del principio de tu siguiente turno, la siguiente tirada de ataque realizada por otra criatura contra el objetivo obtiene un bonificador de +5 a la tirada. Una tirada de ataque solo puede obtener un bonificador de Golpe desgarrador.";
-          fuenteRasgo = `${clase.nombre} (Niveles 9, 13)`;
-        }
-        if (nivelSeguro >= 17) {
-          selectorGb.maxSelecciones = 2;
-          selectorGb.tipo = "multiple";
-          formulaDadosRasgo = "2d10";
-          for (const ef of efectosClonados) {
-            if (ef.tipo === "dado_extra_dano") {
-              ef.valor = "2d10";
-              ef.descripcion = "Golpe brutal (+2d10 al daño con armas de Fuerza)";
-            }
-          }
-          descripcionRasgo += "\n\n***Golpe brutal mejorado (II) (Nv. 17).*** El daño adicional que infliges con él aumenta a 2d10. Además, puedes aplicar hasta dos efectos diferentes de Golpe brutal a la vez en lugar de uno.";
-          fuenteRasgo = `${clase.nombre} (Niveles 9, 13, 17)`;
-        }
-      }
-
-      // Inspiración bárdica: dado escalado dinámicamente y recarga en descanso corto a nivel >= 5
-      let recuperacionRasgo = r.recuperacion || "ninguno";
-      if (normalizarTextoClase(r.nombre).includes("inspiracion bardica")) {
-        formulaDadosRasgo = obtenerDadoInspiracionBardica(nivelSeguro);
-        if (nivelSeguro >= 5) {
-          recuperacionRasgo = "descanso_corto";
-        }
-      }
-
-      rasgosResultado.push({
-        id,
-        nombre: r.nombre,
-        descripcion: descripcionRasgo,
-        origen: "clase",
-        fuente: fuenteRasgo,
-        tipoAccion: r.tipoAccion,
-        nivelRequerido: r.nivel,
-        tieneUsosLimitados: !!r.tieneUsosLimitados,
-        usosMaximos: usos,
-        usosRestantes: usos,
-        recuperacion: recuperacionRasgo,
-        formulaDados: formulaDadosRasgo,
-        personalizado: false,
-        activo: r.esActivable ? false : true,
-        esActivable: !!r.esActivable,
-        condicionAlActivar: r.condicionAlActivar,
-        restaurarUsosAlActivar: r.restaurarUsosAlActivar ? { ...r.restaurarUsosAlActivar } : undefined,
-        autoDesactivar: !!r.autoDesactivar,
-        ligadoA: r.ligadoA,
-        gastarDePadre: !!r.gastarDePadre,
-        heredarDadosPadre: !!r.heredarDadosPadre,
-        conjurosOtorgados: r.conjurosOtorgados ? [...r.conjurosOtorgados] : [],
-        categoriaMecanica: r.categoriaMecanica,
-        formulaEscalado: r.formulaEscalado,
-        efectos: efectosClonados,
-        selectores: selectoresClonados,
-        tablaProgresion: r.tablaProgresion ? JSON.parse(JSON.stringify(r.tablaProgresion)) : undefined,
-        notas: ""
-      });
+      rasgosResultado.push(construirRasgo(r, id, fuente, "clase"));
     }
   }
 
@@ -323,89 +390,9 @@ export function obtenerRasgosClaseYSubclase(
       for (const r of subclase.rasgos) {
         if (r.nivel <= nivelSeguro) {
           const id = `rasgo_sub_${normalizarTextoClase(subclase.id)}_${normalizarTextoClase(r.nombre).replace(/\s+/g, "_")}`;
-          let usos: number | undefined = undefined;
-          if (r.tieneUsosLimitados) {
-            if (typeof r.obtenerUsosMaximos === "function") {
-              usos = r.obtenerUsosMaximos(nivelSeguro);
-            } else if (r.formulaUsos) {
-              usos = evaluarFormulaUsos(r.formulaUsos, nivelSeguro);
-            }
-          }
+          const fuente = `${clase.nombre} (${subclase.nombre} - Nivel ${r.nivel})`;
 
-          let formulaDadosRasgo = r.formulaDados;
-          let categoriaMecanica = r.categoriaMecanica;
-
-          const selectoresClonados = r.selectores ? JSON.parse(JSON.stringify(r.selectores)) : [];
-          const efectosClonados = r.efectos ? JSON.parse(JSON.stringify(r.efectos)) : [];
-
-          // Frenesí: reaccionar al nivel con dados d6 iguales al daño de Furia (+2d6, +3d6, +4d6)
-          if (r.nombre === "Frenesí") {
-            const bonoDanoFuria = nivelSeguro >= 16 ? 4 : nivelSeguro >= 9 ? 3 : 2;
-            formulaDadosRasgo = `${bonoDanoFuria}d6`;
-            for (const ef of efectosClonados) {
-              if (ef.tipo === "dado_extra_dano") {
-                ef.valor = `${bonoDanoFuria}d6`;
-                ef.descripcion = `Frenesí (+${bonoDanoFuria}d6 daño adicional)`;
-              }
-            }
-          }
-
-          // Guerrero de los dioses: reserva curativa de d12
-          if (r.nombre === "Guerrero de los dioses") {
-            const dadosReserva = nivelSeguro >= 17 ? 7 : nivelSeguro >= 12 ? 6 : nivelSeguro >= 6 ? 5 : 4;
-            usos = dadosReserva;
-            categoriaMecanica = "curacion";
-            formulaDadosRasgo = "1d12";
-          }
-
-          // Furia divina: 1d6 + la mitad del nivel de bárbaro (redondeando hacia abajo)
-          if (r.nombre.toLowerCase().includes("furia divina")) {
-            const mitadNivel = Math.floor(nivelSeguro / 2);
-            formulaDadosRasgo = mitadNivel > 0 ? `1d6+${mitadNivel}` : "1d6";
-          }
-
-          // Rasgos de bardo que usan o heredan el dado de Inspiración bárdica
-          const esRasgoDadoBardo = r.heredarDadosPadre || [
-            "palabras cortantes",
-            "manto de inspiracion",
-            "habilidad inigualable",
-            "juego de pies en tandem"
-          ].some((nom) => r.nombre.toLowerCase().includes(nom));
-
-          if (esRasgoDadoBardo) {
-            formulaDadosRasgo = obtenerDadoInspiracionBardica(nivelSeguro);
-          }
-
-          rasgosResultado.push({
-            id,
-            nombre: r.nombre,
-            descripcion: r.descripcion,
-            origen: "subclase",
-            fuente: `${clase.nombre} (${subclase.nombre} - Nivel ${r.nivel})`,
-            tipoAccion: r.tipoAccion,
-            nivelRequerido: r.nivel,
-            tieneUsosLimitados: !!r.tieneUsosLimitados,
-            usosMaximos: usos,
-            usosRestantes: usos,
-            recuperacion: r.recuperacion || "ninguno",
-            formulaDados: formulaDadosRasgo,
-            personalizado: false,
-            activo: r.esActivable ? false : true,
-            esActivable: !!r.esActivable,
-            condicionAlActivar: r.condicionAlActivar,
-            restaurarUsosAlActivar: r.restaurarUsosAlActivar ? { ...r.restaurarUsosAlActivar } : undefined,
-            autoDesactivar: !!r.autoDesactivar,
-            ligadoA: r.ligadoA,
-            gastarDePadre: !!r.gastarDePadre,
-            heredarDadosPadre: !!r.heredarDadosPadre,
-            conjurosOtorgados: r.conjurosOtorgados ? [...r.conjurosOtorgados] : [],
-            categoriaMecanica,
-            formulaEscalado: r.formulaEscalado,
-            efectos: efectosClonados,
-            selectores: selectoresClonados,
-            tablaProgresion: r.tablaProgresion ? JSON.parse(JSON.stringify(r.tablaProgresion)) : undefined,
-            notas: ""
-          });
+          rasgosResultado.push(construirRasgo(r, id, fuente, "subclase"));
         }
       }
     }
@@ -413,6 +400,7 @@ export function obtenerRasgosClaseYSubclase(
 
   return rasgosResultado;
 }
+
 
 /**
  * Obtiene los conjuros siempre preparados y trucos otorgados por una subclase hasta un nivel dado.

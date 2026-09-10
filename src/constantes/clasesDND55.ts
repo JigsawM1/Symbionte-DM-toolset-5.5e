@@ -99,6 +99,11 @@ export const CATALOGO_CLASES_DND55: DefinicionClase[] = [
             tipo: "multiple",
             etiqueta: "Propiedades de Maestría Elegidas",
             maxSelecciones: 2,
+            escaladoMaxSelecciones: [
+              { nivelMinimo: 1,  valor: 2 },
+              { nivelMinimo: 4,  valor: 3 },
+              { nivelMinimo: 10, valor: 4 }
+            ],
             opciones: [
               { id: "cleave", nombre: "Cleave (Hender)", descripcion: "Si impactas a una criatura con un ataque cuerpo a cuerpo, puedes hacer una tirada de ataque contra una segunda criatura a 5 pies de la primera y dentro de tu alcance. Si impactas, la segunda criatura recibe el daño del arma sin tu modificador de característica. Solo una vez por turno." },
               { id: "graze", nombre: "Graze (Rozar)", descripcion: "Si tu tirada de ataque falla, puedes infligir daño igual al modificador de característica usado. El daño es del mismo tipo que el arma, y solo puede incrementarse aumentando el modificador." },
@@ -243,9 +248,14 @@ export const CATALOGO_CLASES_DND55: DefinicionClase[] = [
       {
         nivel: 9,
         nombre: "Golpe brutal",
-        descripcion: "Si usas Ataque temerario, puedes renunciar a cualquier ventaja en una tirada de ataque basada en Fuerza de tu elección en tu turno. La tirada de ataque elegida no debe tener desventaja. Si la tirada de ataque elegida acierta, el objetivo sufre 1d10 de daño adicional del mismo tipo que inflige el arma o el ataque sin armas, y puedes causar un efecto de Golpe brutal de tu elección. Tienes las siguientes opciones de efectos:\n\n***Golpe contundente.*** El objetivo es empujado 15 pies en línea recta lejos de ti. Luego puedes moverte hasta la mitad de tu velocidad directamente hacia el objetivo sin provocar ataques de oportunidad.\n\n***Golpe inmovilizador.*** La velocidad del objetivo se reduce en 15 pies hasta el comienzo de tu siguiente turno. Un objetivo solo puede verse afectado por un Golpe inmovilizador a la vez (el más reciente).",
+        descripcion: "Si usas Ataque temerario, puedes renunciar a cualquier ventaja en una tirada de ataque basada en Fuerza de tu elección en tu turno. La tirada de ataque elegida no debe tener desventaja. Si la tirada de ataque elegida acierta, el objetivo sufre 1d10 de daño adicional del mismo tipo que inflige el arma o el ataque sin armas, y puedes causar un efecto de Golpe brutal de tu elección. Tienes las siguientes opciones de efectos:\n\n***Golpe contundente.*** El objetivo es empujado 15 pies en línea recta lejos de ti. Luego puedes moverte hasta la mitad de tu velocidad directamente hacia el objetivo sin provocar ataques de oportunidad.\n\n***Golpe inmovilizador.*** La velocidad del objetivo se reduce en 15 pies hasta el comienzo de tu siguiente turno. Un objetivo solo puede verse afectado por un Golpe inmovilizador a la vez (el más reciente).\n\n***Golpe brutal mejorado (II) (Nv. 17).*** El daño adicional que infliges con él aumenta a 2d10. Además, puedes aplicar hasta dos efectos diferentes de Golpe brutal a la vez en lugar de uno.",
         tipoAccion: "pasivo",
         formulaDados: "1d10",
+        escaladoFormulaDados: [
+          { nivelMinimo: 9,  valor: "1d10" },
+          { nivelMinimo: 17, valor: "2d10" }
+        ],
+        sincronizarEfectosConFormula: true,
         esActivable: true,
         ligadoA: "rasgo_cls_barbaro_ataque_temerario",
         categoriaMecanica: "activable",
@@ -264,14 +274,28 @@ export const CATALOGO_CLASES_DND55: DefinicionClase[] = [
             tipo: "unico",
             etiqueta: "Efecto de Golpe Brutal",
             maxSelecciones: 1,
+            escaladoMaxSelecciones: [
+              { nivelMinimo: 9,  valor: 1 },
+              { nivelMinimo: 17, valor: 2 }
+            ],
             opciones: [
               { id: "golpe_contundente", nombre: "Golpe contundente", descripcion: "El objetivo es empujado 15 pies en línea recta lejos de ti. Puedes moverte hasta la mitad de tu velocidad hacia él sin provocar ataques de oportunidad." },
               { id: "golpe_inmovilizador", nombre: "Golpe inmovilizador", descripcion: "La velocidad del objetivo se reduce en 15 pies hasta el comienzo de tu siguiente turno." }
+            ],
+            opcionesDinamicas: [
+              {
+                nivelMinimo: 13,
+                opciones: [
+                  { id: "golpe_desestabilizador", nombre: "Golpe desestabilizador (Nv. 13)", descripcion: "El objetivo tiene desventaja en la siguiente tirada de salvación que haga, y no puede hacer ataques de oportunidad hasta el principio de tu siguiente turno." },
+                  { id: "golpe_desgarrador", nombre: "Golpe desgarrador (Nv. 13)", descripcion: "Antes del principio de tu siguiente turno, la siguiente tirada de ataque realizada por otra criatura contra el objetivo obtiene un bonificador de +5 a la tirada. Una tirada de ataque solo puede obtener un bonificador de Golpe desgarrador." }
+                ]
+              }
             ],
             valorActual: ["golpe_contundente"]
           }
         ]
       },
+
       {
         nivel: 10,
         nombre: "Rasgo de subclase",
@@ -328,7 +352,7 @@ export const CATALOGO_CLASES_DND55: DefinicionClase[] = [
       },
       {
         nivel: 17,
-        nombre: "Golpe brutal mejorado II",
+        nombre: "Golpe brutal mejorado (II)",
         descripcion: "El daño adicional de tu Golpe brutal aumenta a 2d10. Además, puedes usar dos efectos diferentes de Golpe brutal siempre que uses tu rasgo Golpe brutal.",
         tipoAccion: "pasivo",
         formulaDados: "2d10",
@@ -389,18 +413,25 @@ export const CATALOGO_CLASES_DND55: DefinicionClase[] = [
             esActivable: true,
             categoriaMecanica: "activable",
             ligadoA: "rasgo_cls_barbaro_ataque_temerario",
-            formulaDados: "dano_furiad6",
+            formulaDados: "2d6",
+            escaladoFormulaDados: [
+              { nivelMinimo: 1,  valor: "2d6" },
+              { nivelMinimo: 9,  valor: "3d6" },
+              { nivelMinimo: 16, valor: "4d6" }
+            ],
+            sincronizarEfectosConFormula: true,
             efectos: [
               {
                 tipo: "dado_extra_dano",
                 objetivo: "arma_fuerza",
-                valor: "dano_furiad6",
+                valor: "2d6",
                 aplicaA: "arma_fuerza",
                 condicion: "furia_y_temerario_activos",
                 descripcion: "Frenesí"
               }
             ]
           },
+
           {
             nivel: 6,
             nombre: "Furia ciega",
@@ -587,7 +618,20 @@ export const CATALOGO_CLASES_DND55: DefinicionClase[] = [
             descripcion: "Puedes canalizar poder divino en tus golpes. En cada uno de tus turnos mientras tu Furia esté activa, la primera criatura que aciertes con un arma o un ataque sin armas sufrirá daño adicional igual a 1d6 más la mitad de tu nivel de bárbaro (redondeando hacia abajo). El daño adicional es necrótico o radiante; tú eliges el tipo cada vez que causas el daño.",
             tipoAccion: "pasivo",
             subclase: "Senda del Fanático",
-            formulaDados: "1d6",
+            formulaDados: "1d6+1",
+            escaladoFormulaDados: [
+              { nivelMinimo: 3,  valor: "1d6+1" },
+              { nivelMinimo: 4,  valor: "1d6+2" },
+              { nivelMinimo: 6,  valor: "1d6+3" },
+              { nivelMinimo: 8,  valor: "1d6+4" },
+              { nivelMinimo: 10, valor: "1d6+5" },
+              { nivelMinimo: 12, valor: "1d6+6" },
+              { nivelMinimo: 14, valor: "1d6+7" },
+              { nivelMinimo: 16, valor: "1d6+8" },
+              { nivelMinimo: 18, valor: "1d6+9" },
+              { nivelMinimo: 20, valor: "1d6+10" }
+            ],
+            sincronizarEfectosConFormula: true,
             esActivable: true,
             categoriaMecanica: "activable",
             ligadoA: "rasgo_cls_barbaro_furia",
@@ -611,6 +655,15 @@ export const CATALOGO_CLASES_DND55: DefinicionClase[] = [
             tieneUsosLimitados: true,
             formulaUsos: "(niv) => (niv >= 17 ? 7 : niv >= 12 ? 6 : niv >= 6 ? 5 : 4)",
             obtenerUsosMaximos: (niv) => (niv >= 17 ? 7 : niv >= 12 ? 6 : niv >= 6 ? 5 : 4),
+            escaladoUsos: {
+              tipo: "por_nivel",
+              tabla: [
+                { nivelMinimo: 3, valor: 4 },
+                { nivelMinimo: 6, valor: 5 },
+                { nivelMinimo: 12, valor: 6 },
+                { nivelMinimo: 17, valor: 7 }
+              ]
+            },
             formulaDados: "1d12",
             recuperacion: "descanso_largo",
             esActivable: false,
@@ -688,6 +741,21 @@ export const CATALOGO_CLASES_DND55: DefinicionClase[] = [
         recuperacion: "descanso_largo",
         categoriaMecanica: "consumible",
         formulaDados: "1d6",
+        escaladoFormulaDados: [
+          { nivelMinimo: 1,  valor: "1d6"  },
+          { nivelMinimo: 5,  valor: "1d8"  },
+          { nivelMinimo: 10, valor: "1d10" },
+          { nivelMinimo: 15, valor: "1d12" }
+        ],
+        escaladoUsos: {
+          tipo: "por_modificador",
+          modificador: "carisma",
+          minimo: 1
+        },
+        escaladoRecuperacion: [
+          { nivelMinimo: 1, valor: "descanso_largo" },
+          { nivelMinimo: 5, valor: "descanso_corto" }
+        ],
         tablaProgresion: {
           columnas: ["Nivel", "Descripción"],
           filas: [
@@ -699,6 +767,7 @@ export const CATALOGO_CLASES_DND55: DefinicionClase[] = [
           notaPie: "Cada nivel reemplaza al anterior"
         }
       },
+
       {
         nivel: 1,
         nombre: "Lanzamiento de conjuros",

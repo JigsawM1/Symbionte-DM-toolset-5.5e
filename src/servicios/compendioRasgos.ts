@@ -1,4 +1,4 @@
-import type { PersonajeJugador, RasgoPersonaje, DotePersonaje } from "@/tipos";
+import type { PersonajeJugador, RasgoPersonaje, DotePersonaje, Caracteristica } from "@/tipos";
 import {
   RASGOS_POR_ESPECIE,
   DOTES_CANONICAS_DND55
@@ -178,29 +178,20 @@ export function sincronizarRasgosAutomaticos(personaje: PersonajeJugador): Rasgo
 
   const canonicosFusionados = canonicosNuevosUnicos.map((nuevoRaw) => {
     let nuevo = nuevoRaw;
-    // Resolver usos dependientes de Carisma para Inspiración bárdica o rasgos basados en Carisma
-    if (
-      normalizarTexto(nuevo.nombre).includes("inspiracion bardica") ||
-      (nuevo.tieneUsosLimitados && normalizarTexto(nuevo.formulaEscalado || "").includes("carisma")) ||
-      (nuevo.tieneUsosLimitados && normalizarTexto(nuevo.descripcion || "").includes("modificador por carisma"))
-    ) {
-      const scoreCar = personaje.overridesFijos?.carisma ?? personaje.caracteristicas?.carisma ?? 10;
-      const modCar = Math.floor((scoreCar - 10) / 2);
-      const usosCar = Math.max(1, modCar);
+
+    // Resolver usos dependientes de un modificador de stat (genérico, vía escaladoUsos)
+    if (nuevo.tieneUsosLimitados && nuevo.escaladoUsos?.tipo === "por_modificador" && nuevo.escaladoUsos.modificador) {
+      const stat = nuevo.escaladoUsos.modificador as Caracteristica;
+      const score = personaje.overridesFijos?.[stat] ?? personaje.caracteristicas?.[stat] ?? 10;
+      const mod = Math.floor((score - 10) / 2);
+      const usos = Math.max(nuevo.escaladoUsos.minimo ?? 1, mod);
       nuevo = {
         ...nuevo,
-        usosMaximos: usosCar,
-        usosRestantes: nuevo.usosRestantes ?? usosCar
+        usosMaximos: usos,
+        usosRestantes: nuevo.usosRestantes ?? usos
       };
     }
 
-    // Inyección de rescate para Manto de Majestad y Majestad Inquebrantable
-    const nomNorm = normalizarTexto(nuevo.nombre);
-    if ((nomNorm.includes("manto de majestad") || nomNorm.includes("manto de la majestad")) && !nuevo.condicionAlActivar) {
-      nuevo = { ...nuevo, condicionAlActivar: "Manto de Majestad (Mantle of Majesty)" };
-    } else if (nomNorm.includes("majestad inquebrantable") && !nuevo.condicionAlActivar) {
-      nuevo = { ...nuevo, condicionAlActivar: "Majestad Inquebrantable (Unbreakable Majesty)" };
-    }
 
     const existente = mapaExistentes.get(nuevo.id);
     if (existente) {

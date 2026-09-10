@@ -7,6 +7,8 @@ import {
   GRADOS_HABILIDADES_DEFECTO
 } from "@/tipos";
 import { ARMADURAS_OFICIALES } from "@/constantes/equipoConstantes";
+import { CATALOGO_CLASES_DND55 } from "@/constantes/clasesDND55";
+
 
 /**
  * Normaliza cadenas para comparaciones robustas e insensibles a mayúsculas/diacríticos.
@@ -681,34 +683,26 @@ export function obtenerDadoInspiracionBardica(nivelBardo: number): string {
 
 /**
  * Determina si el personaje tiene activo el beneficio de medio bono a habilidades
- * en las que no posee competencia ni pericia (Aprendiz de mucho o rasgo Homebrew equivalente).
+ * en las que no posee competencia ni pericia (Aprendiz de mucho o rasgo equivalente).
+ * Evaluación 100% genérica vía efectos declarativos y nombre de rasgo.
  */
 export function tieneMedioBonoHabilidades(personaje: PersonajeJugador): boolean {
   if (!personaje) return false;
 
-  // 1. D&D 5.5e Canónico: Si es Bardo de nivel 2 o superior
-  const esBardoNivel2 =
-    (normalizar(personaje.clase || "").includes("bardo") && (personaje.nivel || 1) >= 2) ||
-    (personaje.clases || []).some(
-      (c) => normalizar(c.nombre).includes("bardo") && (c.nivel || 1) >= 2
-    );
-  if (esBardoNivel2) return true;
-
-  // 2. Si tiene efectos activos con tipo "medio_bono_habilidades"
+  // 1. Evaluar efectos activos con tipo "medio_bono_habilidades" (camino genérico principal)
   const efectos = evaluarEfectosRasgosActivos(personaje);
   for (const ef of efectos) {
-    if (ef.tipo === "medio_bono_habilidades") {
-      return true;
-    }
+    if (ef.tipo === "medio_bono_habilidades") return true;
   }
 
-  // 3. Fallback canónico si el rasgo está activo en su ficha
+  // 2. Fallback: rasgo activo con nombre canónico "Aprendiz de mucho" (compatibilidad)
   return (personaje.rasgos || []).some(
     (r) =>
       r.activo !== false &&
       (normalizar(r.nombre).includes("aprendiz de mucho") || normalizar(r.nombre).includes("jack of all trades"))
   );
 }
+
 
 /**
  * Aplica o revierte el grado "medio" (medio bono) en las competencias de habilidades del personaje
@@ -769,30 +763,15 @@ export function evaluarAtaqueDesarmadoEspecial(personaje: PersonajeJugador): Inf
         dadoDano = obtenerDadoInspiracionBardica(nivelBardo);
       }
 
+      const nombreAtaque = ef.descripcion || "Golpe sin Armas Especial";
       return {
         aplica: true,
         caracteristicaSugerida: (ef.objetivo as Caracteristica) || "destreza",
         dadoDanoBase: dadoDano,
-        nombreAtaque: ef.descripcion || "Golpe sin Armas Especial",
-        propiedades: ["Sutil"]
+        nombreAtaque,
+        propiedades: [nombreAtaque, "Sutil"]
       };
     }
-  }
-
-  // Comprobar si tiene el rasgo canónico Juego de pies deslumbrante activo
-  const rasgoDanza = (personaje.rasgos || []).find(
-    (r) => r.activo !== false && normalizar(r.nombre).includes("juego de pies deslumbrante")
-  );
-  if (rasgoDanza && sinArmaduraNiEscudo) {
-    const nivelBardo = obtenerNivelClasePersonaje(personaje, "bardo") || personaje.nivel || 1;
-    const dadoBardo = obtenerDadoInspiracionBardica(nivelBardo);
-    return {
-      aplica: true,
-      caracteristicaSugerida: "destreza",
-      dadoDanoBase: dadoBardo,
-      nombreAtaque: "Daño Bárdico",
-      propiedades: ["Daño Bárdico", "Sutil"]
-    };
   }
 
   return { aplica: false };
@@ -843,12 +822,6 @@ export function obtenerConjurosOtorgadosPorRasgos(personaje: PersonajeJugador): 
         }
       }
     }
-
-    // Regla canónica D&D 5.5e: Palabras de creación (Bardo Nv 20)
-    if (normalizar(r.nombre).includes("palabras de creacion")) {
-      conjuros.add("Palabra de poder: sanar");
-      conjuros.add("Palabra de poder: matar");
-    }
   }
 
   return Array.from(conjuros);
@@ -856,6 +829,7 @@ export function obtenerConjurosOtorgadosPorRasgos(personaje: PersonajeJugador): 
 
 /**
  * Obtiene las competencias en grupos de armas y armaduras otorgadas por rasgos activos.
+ * Evaluación 100% genérica a través de efectos mecánicos de tipo 'competencia'.
  */
 export function obtenerCompetenciasExtraRasgos(personaje: PersonajeJugador): {
   armasGrupos: ("sencillas" | "marciales" | "fuego")[];
@@ -879,16 +853,6 @@ export function obtenerCompetenciasExtraRasgos(personaje: PersonajeJugador): {
     }
   }
 
-  // Comprobación canónica de Entrenamiento Marcial (Colegio del Valor)
-  const rasgoValor = (personaje.rasgos || []).find(
-    (r) => r.activo !== false && normalizar(r.nombre).includes("entrenamiento marcial")
-  );
-  if (rasgoValor) {
-    armas.add("marciales");
-    armaduras.add("medias");
-    armaduras.add("escudos");
-  }
-
   return {
     armasGrupos: Array.from(armas),
     armadurasGrupos: Array.from(armaduras)
@@ -899,36 +863,56 @@ export function obtenerCompetenciasExtraRasgos(personaje: PersonajeJugador): {
  * Determina si el personaje tiene una bonificación o rasgo activo que le permita lanzar un conjuro
  * de forma gratuita (sin gastar espacio de conjuro).
  * 
- * Regla Canónica D&D 5.5e: Manto de Majestad (Colegio del Glamour Nivel 6) permite lanzar
- * 'Orden imperiosa' (Command) como acción adicional sin gastar espacio de conjuro mientras esté activo.
+ * Evaluación 100% genérica: interpreta efectos 'conjuro_gratuito' de rasgos activos o de rasgos
+ * cuya 'condicionAlActivar' esté presente en condicionesActivas.
  */
 export function tieneConjuroGratuitoActivo(personaje: PersonajeJugador, nombreConjuro: string): boolean {
   if (!personaje || !nombreConjuro) return false;
   const nomNorm = normalizar(nombreConjuro);
 
-  // 1. Verificar condiciones tácticas activas (ej: "Manto de Majestad (Mantle of Majesty)")
-  const condiciones = personaje.condicionesActivas || [];
-  const tieneMantoMajestad = condiciones.some((c) => normalizar(c).includes("manto de majestad"));
-  if (tieneMantoMajestad && nomNorm.includes("orden imperiosa")) {
-    return true;
-  }
+  // Obtener rasgos del personaje, o resolver del catálogo si la ficha no los tiene instanciados
+  let rasgos: Array<{
+    activo?: boolean;
+    condicionAlActivar?: string;
+    efectos?: EfectoMecanicoRasgo[];
+  }> = personaje.rasgos || [];
 
-  // 2. Verificar efectos activos con "conjuro_gratuito" (rasgos directos y opciones de selectores como Invocaciones)
-  const efectosActivos = evaluarEfectosRasgosActivos(personaje);
-  for (const ef of efectosActivos) {
-    if (ef.tipo === "conjuro_gratuito") {
-      const objNorm = normalizar(String(ef.objetivo || ""));
-      if (objNorm === nomNorm || nomNorm.includes(objNorm) || objNorm.includes(nomNorm)) {
-        return true;
-      }
+  if (rasgos.length === 0 && personaje.clase) {
+    const claseNorm = normalizar(personaje.clase);
+    const defClase = CATALOGO_CLASES_DND55.find(
+      (c) => normalizar(c.nombre) === claseNorm || normalizar(c.id) === claseNorm
+    );
+    if (defClase) {
+      const nivelSeguro = personaje.nivel || 1;
+      const rasgosClase = defClase.rasgos.filter((r) => r.nivel <= nivelSeguro);
+      const subNorm = personaje.subclase ? normalizar(personaje.subclase) : "";
+      const defSub = subNorm
+        ? defClase.subclases.find((s) => normalizar(s.nombre) === subNorm || normalizar(s.id) === subNorm)
+        : undefined;
+      const rasgosSub = defSub ? defSub.rasgos.filter((r) => r.nivel <= nivelSeguro) : [];
+      rasgos = [...rasgosClase, ...rasgosSub];
     }
   }
 
-  // 3. Verificación canónica por nombre de rasgo activo (Manto de majestad)
-  const rasgos = personaje.rasgos || [];
+  const condiciones = (personaje.condicionesActivas || []).map(normalizar);
+
   for (const r of rasgos) {
-    if (r.activo !== false && normalizar(r.nombre).includes("manto de majestad") && nomNorm.includes("orden imperiosa")) {
-      return true;
+    const condActivarNorm = r.condicionAlActivar ? normalizar(r.condicionAlActivar) : null;
+    const estaActivoPorCondicion = Boolean(
+      condActivarNorm &&
+      condiciones.some((c) => c === condActivarNorm || c.includes(condActivarNorm) || condActivarNorm.includes(c))
+    );
+    const estaActivo = r.activo !== false || estaActivoPorCondicion;
+
+    if (!estaActivo) continue;
+
+    for (const ef of r.efectos || []) {
+      if (ef.tipo === "conjuro_gratuito") {
+        const objNorm = normalizar(String(ef.objetivo || ""));
+        if (objNorm === nomNorm || nomNorm.includes(objNorm) || objNorm.includes(nomNorm)) {
+          return true;
+        }
+      }
     }
   }
 

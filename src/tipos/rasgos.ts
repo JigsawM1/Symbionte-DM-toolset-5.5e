@@ -102,15 +102,60 @@ export interface InvocacionSobrenatural {
   recuperacionConjuro?: "ninguno" | "descanso_largo" | "ilimitado";
 }
 
+// ==========================================
+// ESQUEMAS DE ESCALADO GENÉRICO POR NIVEL
+// Eliminan la necesidad de bifurcaciones por nombre en el builder
+// ==========================================
+
+/** Escalado de fórmula de dados por nivel mínimo (e.g. Inspiración Bárdica, Frenesí) */
+export const EsquemaEscaladoFormulaDados = z.array(z.object({
+  nivelMinimo: z.number().int().min(1).max(20),
+  valor: z.string()
+}));
+export type EscaladoFormulaDados = z.infer<typeof EsquemaEscaladoFormulaDados>;
+
+/** Escalado de usos máximos por tabla de nivel o por modificador de stat */
+export const EsquemaEscaladoUsos = z.object({
+  tipo: z.enum(["por_nivel", "por_modificador"]),
+  tabla: z.array(z.object({
+    nivelMinimo: z.number().int().min(1).max(20),
+    valor: z.number().int()
+  })).optional(),
+  modificador: z.string().optional(), // "carisma", "sabiduria", etc.
+  minimo: z.number().int().default(1)
+});
+export type EscaladoUsos = z.infer<typeof EsquemaEscaladoUsos>;
+
+/** Escalado de tipo de recuperación por nivel mínimo (e.g. Inspiración Bárdica: largo→corto a nv 5) */
+export const EsquemaEscaladoRecuperacion = z.array(z.object({
+  nivelMinimo: z.number().int().min(1).max(20),
+  valor: EsquemaRecuperacionRasgo
+}));
+export type EscaladoRecuperacion = z.infer<typeof EsquemaEscaladoRecuperacion>;
+
+export const EsquemaOpcionesDinamicas = z.object({
+  nivelMinimo: z.number().int().min(1).max(20),
+  opciones: z.array(EsquemaOpcionSelector)
+});
+export type OpcionesDinamicas = z.infer<typeof EsquemaOpcionesDinamicas>;
+
 export const EsquemaSelectorRasgo = z.object({
   id: z.string(),
   tipo: z.enum(["unico", "multiple"]).default("unico"),
   etiqueta: z.string(),
   opciones: z.array(EsquemaOpcionSelector).default([]),
   maxSelecciones: z.number().int().min(1).default(1),
-  valorActual: z.array(z.string()).default([])
+  valorActual: z.array(z.string()).default([]),
+  // ── NUEVO: opciones que se desbloquean por nivel ──
+  opcionesDinamicas: z.array(EsquemaOpcionesDinamicas).optional(),
+  // ── NUEVO: max selecciones escalado por nivel ──
+  escaladoMaxSelecciones: z.array(z.object({
+    nivelMinimo: z.number().int().min(1).max(20),
+    valor: z.number().int().min(1)
+  })).optional()
 });
 export type SelectorRasgo = z.infer<typeof EsquemaSelectorRasgo>;
+
 
 // Tablas de escalado/progresión por nivel en el rasgo
 export const EsquemaFilaTablaEscalado = z.object({
@@ -143,7 +188,14 @@ export const EsquemaRasgoPersonaje = z.object({
   
   // Fórmulas o dados asociados (ej. "1d10 + nivel", "1d8", etc.)
   formulaDados: z.string().optional(),
-  
+
+  // ── ESCALADOS GENÉRICOS (reemplazan bifurcaciones por nombre en el builder) ──
+  escaladoFormulaDados: EsquemaEscaladoFormulaDados.optional(),
+  escaladoUsos: EsquemaEscaladoUsos.optional(),
+  escaladoRecuperacion: EsquemaEscaladoRecuperacion.optional(),
+  /** Si true, el builder reemplaza el `valor` de efectos dado_extra_dano/ataque_desarmado/bono_dano_fuerza con la formulaDados resuelta */
+  sincronizarEfectosConFormula: z.boolean().default(false).optional(),
+
   // Estado, activables y ligaduras
   personalizado: z.boolean().default(false),
   activo: z.boolean().default(true),
@@ -167,7 +219,7 @@ export const EsquemaRasgoPersonaje = z.object({
     "curacion"
   ]).optional(),
   formulaEscalado: z.string().optional(),
-  
+
   // Mecánicas estructuradas
   efectos: z.array(EsquemaEfectoMecanicoRasgo).default([]).optional(),
   selectores: z.array(EsquemaSelectorRasgo).default([]).optional(),
@@ -175,6 +227,7 @@ export const EsquemaRasgoPersonaje = z.object({
 
   notas: z.string().default("")
 });
+
 
 export type RasgoPersonaje = z.infer<typeof EsquemaRasgoPersonaje>;
 

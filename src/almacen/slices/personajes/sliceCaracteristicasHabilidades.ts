@@ -27,18 +27,22 @@ export const crearSubSliceCaracteristicasHabilidades: StateCreator<
       };
 
       let rasgosActualizados = pj.rasgos;
-      if (carac === "carisma" && Array.isArray(pj.rasgos)) {
-        const scoreCar = pj.overridesFijos?.carisma ?? nuevoValor;
-        const modCar = Math.floor((scoreCar - 10) / 2);
-        const usosNuevos = Math.max(1, modCar);
-
+      // Recalcular usos de rasgos cuyo límite escala con la característica modificada (genérico)
+      if (Array.isArray(pj.rasgos)) {
         rasgosActualizados = pj.rasgos.map((r) => {
-          const norm = (r.nombre || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
-          if (
-            norm.includes("inspiracion bardica") ||
-            (r.tieneUsosLimitados && (r.formulaEscalado || "").toLowerCase().includes("carisma")) ||
-            (r.tieneUsosLimitados && (r.descripcion || "").toLowerCase().includes("modificador por carisma"))
-          ) {
+          const escalaConStat = (
+            (r.escaladoUsos?.tipo === "por_modificador" && r.escaladoUsos.modificador === carac) ||
+            (carac === "carisma" && (
+              (r.formulaEscalado || "").toLowerCase().includes("carisma") ||
+              (r.descripcion || "").toLowerCase().includes("modificador por carisma") ||
+              (r.nombre || "").toLowerCase().includes("inspiracion bardica")
+            ))
+          );
+          if (r.tieneUsosLimitados && escalaConStat) {
+            const score = pj.overridesFijos?.[carac] ?? nuevoValor;
+            const mod = Math.floor((score - 10) / 2);
+            const minimo = r.escaladoUsos?.minimo ?? 1;
+            const usosNuevos = Math.max(minimo, mod);
             const diferencia = usosNuevos - (r.usosMaximos ?? 1);
             const restantes = r.usosRestantes ?? (r.usosMaximos ?? 1);
             return {
@@ -50,6 +54,8 @@ export const crearSubSliceCaracteristicasHabilidades: StateCreator<
           return r;
         });
       }
+
+
 
       return {
         ...pj,

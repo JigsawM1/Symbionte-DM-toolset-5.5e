@@ -28,8 +28,8 @@ export function obtenerBloqueoToggleRasgo(
   const requiereFuria =
     nom.includes("furia divina") ||
     id.includes("furia_divina") ||
-    nom.includes("golpe brutal") ||
-    id.includes("golpe_brutal");
+    nom.includes("frenesí") ||
+    id.includes("frenesi");
 
   if (requiereFuria && !furiaEstaActiva && !r.activo) {
     return {

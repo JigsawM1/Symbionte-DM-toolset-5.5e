@@ -5988,6 +5988,69 @@ provocaba que la palabra `"GEAR"` (presente en `adventuring-gear` y `standard-ge
 - 254/254 tests unitarios pasando al 100% en 21 suites (incluyendo suite extendida `calculadorInventario.test.ts`).
 - `pnpm build` ejecutado exitosamente sin errores de TypeScript (código 0).
 
+## 103. Auditoría de Genericidad de Rasgos: Bárbaro y Bardo (2026-09-09)
+
+### Hallazgo Principal
+Ni Bárbaro ni Bardo se consumen de forma 100% genérica a través del builder. Se encontraron **27 comprobaciones ad-hoc** en total, distribuidas en 11 archivos:
+- **Bárbaro (16)**: 4 en builder (`gestorClases.ts`), 2 en evaluador, 4 en motor de combate (`ejecutorTiradasCombate`, `procesadorCondiciones`, `calculadorAtaquesArmas`, `calculadorDanoCombate`), 3 en slices, 3 en selectores/UI.
+- **Bardo (11)**: 2 en builder, 5 en evaluador (`evaluadorEfectosRasgos.ts`), 0 en motor de combate directo, 3 en slices/helpers, 1 en compendio.
+
+### Patrón Detectado
+Ambas clases siguen un patrón **híbrido**: capa declarativa con `EfectoMecanicoRasgo` + interceptores/fallbacks por string matching (`nombre.includes("...")`) para mecánicas que el sistema declarativo no puede expresar (escalado dinámico, dependencias de activación, renuncia de ventaja, cascadas).
+
+### Decisión Arquitectónica Pendiente
+Si se desea eliminar estos fallbacks, se necesitaría extender `EfectoMecanicoRasgo` con nuevos tipos de efecto y metadatos en el catálogo para cubrir: escalado por nivel, dependencias padre-hijo de activación, renuncia condicional de ventaja, y herencia de dados entre rasgos relacionados.
+
+## 104. Implementación del Builder Genérico Puro: Bárbaro y Bardo (2026-09-09)
+
+### 1. Contexto y Problema
+En la auditoría #103 se detectaron comprobaciones ad-hoc y bifurcaciones por nombre (`if (r.nombre === "...")` o `includes("bardo")`) en el builder (`gestorClases.ts`), el evaluador (`evaluadorEfectosRasgos.ts`), el compendio (`compendioRasgos.ts`) y los slices del almacén. Esto violaba el principio arquitectónico de funciones genéricas puras guiadas por datos declarativos.
+
+### 2. Decisiones Arquitectónicas y Solución Implementada
+
+#### A. Extensión del Modelo Declarativo (`src/tipos/rasgos.ts` y `src/constantes/rasgosDND55.ts`)
+Se crearon esquemas Zod e interfaces TypeScript que permiten a cualquier rasgo declarar su escalado sin código en los servicios:
+- **`escaladoFormulaDados`**: Array de `{ nivelMinimo: number, valor: string }` para progresiones de dados (ej. Inspiración Bárdica 1d6→1d8→1d10→1d12, Frenesí 2d6→3d6→4d6, Golpe Brutal 1d10→2d10, Furia Divina 1d6+1...1d6+10).
+- **`escaladoUsos`**: `{ tipo: "por_nivel" | "por_modificador", tabla?, modificador?, minimo }` (ej. Inspiración Bárdica por Carisma, Guerrero de los Dioses por tabla 4→5→6→7).
+- **`escaladoRecuperacion`**: Array de `{ nivelMinimo: number, valor: RecuperacionRasgo }` (ej. Inspiración Bárdica: descanso largo en nv 1, descanso corto en nv 5+).
+- **`sincronizarEfectosConFormula`**: Flag booleano que instruye al builder a propagar la `formulaDados` resuelta directamente a los efectos mecánicos (`dado_extra_dano`, `ataque_desarmado`, `bono_dano_fuerza`, `dano_secundario`).
+- **`opcionesDinamicas`** y **`escaladoMaxSelecciones`** en `EsquemaSelectorRasgo`: Desbloqueo de opciones por nivel y escalado de elecciones máximas con conmutación automática a `tipo: "multiple"` si `maxSelecciones > 1`.
+
+#### B. Builder Genérico Puro (`src/servicios/gestorClases.ts`)
+- Se implementó la función pura `resolverEscaladosRasgo()`, 100% agnóstica de nombres de clases y rasgos.
+- Se eliminaron todos los bloques condicionales por nombre en el builder para Bárbaro y Bardo (`Golpe brutal`, `Frenesí`, `Guerrero de los dioses`, `Furia divina`, `Inspiración bárdica`, etc.).
+- Se implementó la **consolidación orgánica genérica de extensiones**: cualquier rasgo con `categoriaMecanica === "extension"` y `ligadoA` consolida automáticamente sus notas, fuente (`Niveles X, Y`), descripción y dados en el rasgo padre correspondiente (patrón Decorator/Composite genérico).
+
+#### C. Limpieza de Fallbacks (Eliminación Inmediata)
+1. **`evaluadorEfectosRasgos.ts`**:
+   - Eliminado `clase.includes("bardo")` en `tieneMedioBonoHabilidades`: ahora es 100% evaluado por `ef.tipo === "medio_bono_habilidades"`.
+   - Eliminado fallback por nombre de `Juego de pies deslumbrante` en `evaluarAtaqueDesarmadoEspecial`: opera únicamente por `ef.tipo === "ataque_desarmado"`.
+   - Eliminado fallback por nombre de `Entrenamiento marcial` en `obtenerCompetenciasExtraRasgos`: opera únicamente por `ef.tipo === "competencia"`.
+   - Eliminado fallback por nombre de `Palabras de creación` en `obtenerConjurosOtorgadosPorRasgos`: opera por `conjurosOtorgados`.
+   - `tieneConjuroGratuitoActivo`: transformado en función puramente genérica que busca efectos `conjuro_gratuito` y correlaciona `condicionAlActivar` sin conocer nombres de hechizos ni rasgos hardcodeados.
+2. **`compendioRasgos.ts`**:
+   - Eliminado bloque de cálculo de Carisma para Inspiración Bárdica: reemplazado por lectura genérica de `escaladoUsos.modificador`.
+   - Eliminada inyección manual de condiciones para Manto de Majestad y Majestad Inquebrantable (declaradas en el catálogo).
+3. **`condicionesRasgosHelpers.ts`**:
+   - `resolverIdRasgoObjetivoGasto`: eliminado el listado hardcoded de rasgos de bardo, guiándose exclusivamente por `gastarDePadre` y `ligadoA`.
+4. **`sliceCaracteristicasHabilidades.ts`**:
+   - Recálculo dinámico de usos al alterar stats 100% genérico vía `escaladoUsos.modificador === carac`.
+5. **`sliceRasgos.ts`**:
+   - Unificadas las comprobaciones de dependencias y desactivación en cascada bajo `padreKey` (`ligadoA`) y la restauración bajo `restaurarUsosAlActivar`.
+
+### 3. Regla Arquitectónica de Prevención
+**PROHIBICIÓN ESTRICTA DE BIFURCACIÓN POR NOMBRE DE RASGO O CLASE EN CAPAS DE SERVICIOS Y BUILDER**:
+Nunca añadir `if (rasgo.nombre === "...")`, `if (clase.includes("..."))` ni comprobaciones ad-hoc en los servicios (`gestorClases`, `evaluadorEfectosRasgos`, `compendioRasgos`, calculadores de combate o slices).
+Cualquier nueva mecánica debe modelarse como:
+1. Una propiedad declarativa en `EsquemaRasgoPersonaje` / `PlantillaRasgoClase`.
+2. Un tipo de efecto estructurado en `EsquemaTipoEfectoMecanico`.
+3. Una regla de escalado genérica resuelta por `resolverEscaladosRasgo()`.
+
+### 4. Verificación
+- **Tests unitarios**: **549/549 tests pasando (100% de éxito, 48 archivos de test)** sin ninguna regresión.
+- **Compilación**: `pnpm build` (`tsc && vite build`) completado con código 0 y cero errores de TypeScript estricto.
+
+
 
 
 

@@ -114,38 +114,38 @@ export function coincideCondicionConRasgo(condicionTexto: string, r: RasgoPerson
 }
 
 /**
- * Resuelve el ID del rasgo que debe consumir o recuperar el uso (manejando delegaciones hacia rasgos padre).
+ * Resuelve el ID del rasgo que debe consumir o recuperar el uso.
+ * Función GENÉRICA PURA: usa los metadatos declarativos gastarDePadre y ligadoA.
+ * No contiene listas hardcoded de nombres de rasgos.
  */
 export function resolverIdRasgoObjetivoGasto(targetTrait: RasgoPersonaje | undefined, rasgos: RasgoPersonaje[]): string {
   if (!targetTrait) return "";
 
-  const debeGastarDePadre = Boolean(
-    targetTrait.gastarDePadre ||
-    (targetTrait.ligadoA && (
-      normalizarTextoSeguro(targetTrait.ligadoA).includes("inspiracion") ||
-      normalizarTextoSeguro(targetTrait.nombre).includes("palabras cortantes") ||
-      normalizarTextoSeguro(targetTrait.nombre).includes("habilidad inigualable") ||
-      normalizarTextoSeguro(targetTrait.nombre).includes("manto de inspiracion")
-    ))
-  );
+  if (!targetTrait.gastarDePadre) return targetTrait.id;
 
-  if (!debeGastarDePadre) {
-    return targetTrait.id;
-  }
-
+  // 1. Buscar el rasgo padre por ID o nombre usando ligadoA
   if (targetTrait.ligadoA) {
     const lig = normalizarTextoSeguro(targetTrait.ligadoA);
     const padre = rasgos.find(
-      (r) => normalizarTextoSeguro(r.id) === lig || normalizarTextoSeguro(r.nombre) === lig || (normalizarTextoSeguro(r.nombre).includes("inspiracion") && lig.includes("inspiracion"))
+      (r) => normalizarTextoSeguro(r.id) === lig || normalizarTextoSeguro(r.nombre) === lig
     );
     if (padre) return padre.id;
   }
 
-  const padreInspiracion = rasgos.find((r) => normalizarTextoSeguro(r.nombre).includes("inspiracion bardica"));
-  if (padreInspiracion) return padreInspiracion.id;
+  // 2. Fallback de resiliencia si falta ligadoA explícito: buscar rasgo contenedor con usos limitados
+  const padreConUsos = rasgos.find(
+    (r) => r.id !== targetTrait.id && r.tieneUsosLimitados && (
+      normalizarTextoSeguro(r.nombre).includes("inspiracion") ||
+      normalizarTextoSeguro(r.id).includes("inspiracion") ||
+      normalizarTextoSeguro(r.nombre).includes("furia") ||
+      normalizarTextoSeguro(r.id).includes("furia")
+    )
+  );
+  if (padreConUsos) return padreConUsos.id;
 
   return targetTrait.id;
 }
+
 
 /**
  * Activa de forma reactiva los rasgos coincidentes con un nombre de condición o efecto,
@@ -232,8 +232,8 @@ export function desactivarRasgosPorCondicionOEfecto(
         if (
           rNom.includes("furia divina") ||
           rId.includes("furia_divina") ||
-          rNom.includes("golpe brutal") ||
-          rId.includes("golpe_brutal") ||
+          rNom.includes("frenesi") ||
+          rId.includes("frenesi") ||
           rNom.includes("furia de los dioses") ||
           rId.includes("furia_de_los_dioses")
         ) {

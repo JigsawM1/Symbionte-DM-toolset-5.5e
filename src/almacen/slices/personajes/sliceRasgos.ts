@@ -139,14 +139,15 @@ export const crearSubSliceRasgos: StateCreator<
       const nomObjetivo = targetTrait ? targetTrait.nombre.toLowerCase().trim() : "";
       const idObjetivo = targetTrait ? targetTrait.id.toLowerCase().trim() : idRasgo.toLowerCase().trim();
 
-      const furiaEstaActiva = (pj.rasgos || []).some(
-        (r) => (r.nombre.toLowerCase().trim() === "furia" || r.id.toLowerCase().trim() === "rasgo_cls_barbaro_furia") && r.activo
-      ) || (pj.condicionesActivas || []).some(
-        (c) => c.toLowerCase().includes("furia (rage)") || (c.toLowerCase().includes("furia") && !c.toLowerCase().includes("furia de los dioses"))
-      );
+      // Comprobación de rasgo padre requerido (ligadoA, con fallback canónico si el rasgo carece de metadatos)
+      const esFuriaDivina = nomObjetivo.includes("furia divina") || idObjetivo.includes("furia_divina");
+      const esFrenesi = nomObjetivo.includes("frenesí") || idObjetivo.includes("frenesí");
+      const esFuriaDeLosDioses = nomObjetivo.includes("furia de los dioses") || idObjetivo.includes("furia_de_los_dioses");
 
-      // Comprobación de rasgo padre requerido (ligadoA)
-      const padreKey = targetTrait?.ligadoA ? targetTrait.ligadoA.toLowerCase().trim() : undefined;
+      const padreKey = targetTrait?.ligadoA
+        ? targetTrait.ligadoA.toLowerCase().trim()
+        : (esFuriaDivina || esFrenesi || esFuriaDeLosDioses ? "rasgo_cls_barbaro_furia" : undefined);
+
       if (nuevoActivo && padreKey) {
         const padreActivo = (pj.rasgos || []).some(
           (r) => (r.id.toLowerCase() === padreKey || r.nombre.toLowerCase().trim() === padreKey || (padreKey.includes("furia") && (r.nombre.toLowerCase().trim() === "furia" || r.id === "rasgo_cls_barbaro_furia"))) && r.activo
@@ -158,14 +159,6 @@ export const crearSubSliceRasgos: StateCreator<
         }
       }
 
-      const esFuriaDivina = nomObjetivo.includes("furia divina") || idObjetivo.includes("furia_divina");
-      const esGolpeBrutal = nomObjetivo.includes("golpe brutal") || idObjetivo.includes("golpe_brutal");
-      const esFuriaDeLosDioses = nomObjetivo.includes("furia de los dioses") || idObjetivo.includes("furia_de_los_dioses");
-
-      // Regla canónica: Furia divina, Golpe brutal y Furia de los dioses solo se deben poder activar si Furia está activa
-      if (nuevoActivo && (esFuriaDivina || esGolpeBrutal || esFuriaDeLosDioses) && !furiaEstaActiva) {
-        return pj;
-      }
 
       const esFuriaPersistente = nomObjetivo.includes("furia persistente") || idObjetivo.includes("furia_persistente");
       const esFuriaBase = (nomObjetivo === "furia" || idObjetivo === "rasgo_cls_barbaro_furia") && !esFuriaDeLosDioses && !esFuriaPersistente;
@@ -231,12 +224,13 @@ export const crearSubSliceRasgos: StateCreator<
         }
       }
 
-      // Restauración de recursos al activar
-      const restauracion = targetTrait?.restaurarUsosAlActivar;
+      // Restauración de recursos al activar (declarativa vía restaurarUsosAlActivar)
+      const restauracion = targetTrait?.restaurarUsosAlActivar || (
+        esFuriaPersistente ? { idRasgoObjetivo: "rasgo_cls_barbaro_furia", cantidad: "maximo" as const } : undefined
+      );
 
       const rasgosActualizados = (pj.rasgos || []).map((r) => {
         const rNom = r.nombre.toLowerCase().trim();
-        const rId = r.id.toLowerCase().trim();
 
         // Apagar en cascada
         if (idsHijosADesactivar.has(r.id)) {
@@ -248,12 +242,6 @@ export const crearSubSliceRasgos: StateCreator<
           const max = typeof r.usosMaximos === "number" ? r.usosMaximos : (r.usosRestantes ?? 1);
           const cantidadRestaurar = restauracion.cantidad === "maximo" ? max : Math.min(max, (r.usosRestantes || 0) + restauracion.cantidad);
           return { ...r, usosRestantes: cantidadRestaurar };
-        }
-
-        // Furia Persistente canónica
-        if (esFuriaPersistente && nuevoActivo && (rNom === "furia" || rId === "rasgo_cls_barbaro_furia")) {
-          const max = typeof r.usosMaximos === "number" ? r.usosMaximos : (r.usosRestantes ?? 2);
-          return { ...r, usosRestantes: max };
         }
 
         if (r.id === idRasgo) {

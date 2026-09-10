@@ -21,7 +21,22 @@ export interface PlantillaRasgoClase {
   formulaUsos?: string | null;
   recuperacion?: "descanso_corto" | "descanso_largo" | "manual" | "ninguno";
   formulaDados?: string;
-  
+
+  // ── ESCALADOS GENÉRICOS (reemplazan bifurcaciones por nombre en el builder) ──
+  /** Tabla de escalado de fórmula de dados por nivel mínimo */
+  escaladoFormulaDados?: Array<{ nivelMinimo: number; valor: string }>;
+  /** Escalado de usos máximos: por tabla de nivel o por modificador de stat */
+  escaladoUsos?: {
+    tipo: "por_nivel" | "por_modificador";
+    tabla?: Array<{ nivelMinimo: number; valor: number }>;
+    modificador?: string; // "carisma", "sabiduria", etc.
+    minimo?: number;
+  };
+  /** Cambio de tipo de recuperación por nivel mínimo */
+  escaladoRecuperacion?: Array<{ nivelMinimo: number; valor: "descanso_corto" | "descanso_largo" | "manual" | "ninguno" }>;
+  /** Si true, el builder sincroniza el `valor` de efectos dado_extra_dano/ataque_desarmado/bono_dano_fuerza con la formulaDados resuelta */
+  sincronizarEfectosConFormula?: boolean;
+
   // Mecánicas estructuradas
   esActivable?: boolean;
   autoDesactivar?: boolean;
@@ -37,6 +52,7 @@ export interface PlantillaRasgoClase {
   selectores?: SelectorRasgo[];
   tablaProgresion?: TablaEscaladoRasgo;
 }
+
 
 export interface PlantillaRasgoEspecie {
   nombre: string;

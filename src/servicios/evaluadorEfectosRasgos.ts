@@ -63,9 +63,17 @@ export function tieneEscudoEquipado(personaje: PersonajeJugador): boolean {
  */
 export function estaRasgoActivo(personaje: PersonajeJugador, rasgoIdONombre: string): boolean {
   const busqueda = normalizar(rasgoIdONombre);
-  const rasgo = (personaje.rasgos || []).find(
-    (r) => normalizar(r.id) === busqueda || normalizar(r.nombre) === busqueda || normalizar(r.nombre).includes(busqueda)
-  );
+  if (!busqueda) return false;
+  const rasgo = (personaje.rasgos || []).find((r) => {
+    const idNorm = normalizar(r.id);
+    const nomNorm = normalizar(r.nombre);
+    return (
+      idNorm === busqueda ||
+      idNorm.includes(busqueda) ||
+      nomNorm === busqueda ||
+      nomNorm.includes(busqueda)
+    );
+  });
   if (!rasgo) return false;
   return rasgo.activo !== false;
 }
@@ -74,19 +82,53 @@ export function estaRasgoActivo(personaje: PersonajeJugador, rasgoIdONombre: str
  * Comprueba si la Furia del bárbaro está activa actualmente.
  */
 export function estaFuriaActiva(personaje: PersonajeJugador): boolean {
-  const enCondiciones = (personaje.condicionesActivas || []).some((c) => normalizar(c) === "furia");
+  const enCondiciones = (personaje.condicionesActivas || []).some((c) => {
+    const norm = normalizar(c);
+    return (norm === "furia" || norm.includes("furia")) && !norm.includes("furia de los dioses");
+  });
   if (enCondiciones) return true;
+
+  const enEfectos = (personaje.efectosActivos || []).some((e) => {
+    const norm = normalizar(e.nombre);
+    return (norm === "furia" || norm.includes("furia")) && !norm.includes("furia de los dioses");
+  });
+  if (enEfectos) return true;
+
   return estaRasgoActivo(personaje, "furia");
 }
 
 /**
- * Comprueba si el Ataque Temerario está activo actualmente.
+ * Comprueba si el Ataque Temerario está activo actualmente (vía condiciones, efectos o rasgo).
  */
 export function estaAtaqueTemerarioActivo(personaje: PersonajeJugador): boolean {
-  const enCondiciones = (personaje.condicionesActivas || []).some(
-    (c) => normalizar(c).includes("temerario") || normalizar(c).includes("reckless")
-  );
+  // 1. Comprobar en condiciones activas
+  const enCondiciones = (personaje.condicionesActivas || []).some((c) => {
+    const norm = normalizar(c);
+    return norm.includes("temerario") || norm.includes("reckless");
+  });
   if (enCondiciones) return true;
+
+  // 2. Comprobar en efectos temporales activos (Combat Tracker / Ficha)
+  const enEfectos = (personaje.efectosActivos || []).some((e) => {
+    const norm = normalizar(e.nombre);
+    return norm.includes("temerario") || norm.includes("reckless");
+  });
+  if (enEfectos) return true;
+
+  // 3. Comprobar en rasgos conmutados activos del personaje
+  const rasgoActivo = (personaje.rasgos || []).some((r) => {
+    if (r.activo === false) return false;
+    const idNorm = normalizar(r.id);
+    const nomNorm = normalizar(r.nombre);
+    return (
+      idNorm.includes("temerario") ||
+      idNorm.includes("reckless") ||
+      nomNorm.includes("temerario") ||
+      nomNorm.includes("reckless")
+    );
+  });
+  if (rasgoActivo) return true;
+
   return estaRasgoActivo(personaje, "ataque temerario");
 }
 
@@ -131,10 +173,19 @@ function cumpleCondicionEfecto(
   if (condNorm === "furia_activa") {
     return estaFuriaActiva(personaje);
   }
-  if (condNorm === "ataque_temerario_activo") {
+  if (
+    condNorm === "ataque_temerario_activo" ||
+    condNorm === "ataque_temerario" ||
+    condNorm === "ataque temerario" ||
+    condNorm === "reckless" ||
+    condNorm === "reckless_attack"
+  ) {
     return estaAtaqueTemerarioActivo(personaje);
   }
-  if (condNorm === "furia_y_temerario_activos") {
+  if (
+    condNorm === "furia_y_temerario_activos" ||
+    condNorm === "furia_y_ataque_temerario_activos"
+  ) {
     return estaFuriaActiva(personaje) && estaAtaqueTemerarioActivo(personaje);
   }
   if (condNorm === "sin_armadura") {
@@ -410,15 +461,18 @@ export function resolverFormulaDinamica(
     ? obtenerNivelClasePersonaje(personaje, nombreClaseContexto) || nivelGlobal
     : nivelGlobal;
   const mitadNivel = Math.max(1, Math.floor(nivelClase / 2));
-  const bonoFuria = obtenerBonoDanoFuria(nivelClase);
+  const nivelBarbaro = obtenerNivelClasePersonaje(personaje, "barbaro") || nivelGlobal;
+  const bonoFuria = obtenerBonoDanoFuria(nivelBarbaro);
+  const bonoCompetencia = Math.floor((nivelGlobal - 1) / 4) + 2;
 
   const reemplazado = formula
     .replace(/dano_furia/gi, String(bonoFuria))
     .replace(/mitad_nivel/gi, String(mitadNivel))
+    .replace(/bono_competencia/gi, String(bonoCompetencia))
     .replace(/\bnivel\b/gi, String(nivelClase))
+    .replace(/(\d+)\s+d/gi, "$1d")
     .trim();
 
-  // Evaluar expresiones matemáticas simples si quedaron como "+2", "1+2", etc.
   return reemplazado;
 }
 
@@ -750,13 +804,34 @@ export function evaluarAtaqueDesarmadoEspecial(personaje: PersonajeJugador): Inf
  */
 export function obtenerConjurosOtorgadosPorRasgos(personaje: PersonajeJugador): string[] {
   const conjuros = new Set<string>();
+  const pjNivel = personaje.nivel || 1;
 
   for (const r of personaje.rasgos || []) {
     if (r.activo === false) continue;
+    if (r.nivelRequerido && pjNivel < r.nivelRequerido) continue;
 
     if (Array.isArray(r.conjurosOtorgados)) {
       for (const c of r.conjurosOtorgados) {
         if (c && c.trim()) conjuros.add(c.trim());
+      }
+    }
+
+    if (Array.isArray(r.selectores)) {
+      for (const sel of r.selectores) {
+        const idLower = sel.id.toLowerCase();
+        if (
+          idLower.includes("truco") ||
+          idLower.includes("conjuro") ||
+          idLower.includes("hechizo") ||
+          idLower.includes("spell") ||
+          idLower.includes("cantrip")
+        ) {
+          if (Array.isArray(sel.valorActual)) {
+            for (const val of sel.valorActual) {
+              if (val && val.trim()) conjuros.add(val.trim());
+            }
+          }
+        }
       }
     }
 

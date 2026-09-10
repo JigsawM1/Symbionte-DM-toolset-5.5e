@@ -89,9 +89,9 @@ const OPCIONES_VENTAJA = [
   { valor: "salvacion.fuerza", etiqueta: "Tiradas de Salvación de Fuerza" },
   { valor: "salvacion.destreza", etiqueta: "Tiradas de Salvación de Destreza" },
   { valor: "salvacion.constitucion", etiqueta: "Tiradas de Salvación de Constitución" },
-  { valor: "ataque_fuerza", etiqueta: "Tiradas de Ataque que usan Fuerza (Ataque Temerario)" },
-  { valor: "iniciativa", etiqueta: "Tiradas de Iniciativa (Instinto Salvaje)" },
-  { valor: "prueba.fuerza", etiqueta: "Pruebas de Característica de Fuerza (Furia)" }
+  { valor: "ataque_fuerza", etiqueta: "Tiradas de Ataque que usan Fuerza" },
+  { valor: "iniciativa", etiqueta: "Tiradas de Iniciativa" },
+  { valor: "prueba.fuerza", etiqueta: "Pruebas de Característica de Fuerza" }
 ];
 
 const OPCIONES_SALVACION_OBJETIVO = [

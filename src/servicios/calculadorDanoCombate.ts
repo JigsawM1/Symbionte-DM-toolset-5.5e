@@ -7,12 +7,9 @@ import {
   obtenerDadosExtraAtaque,
   obtenerDanosSecundariosAtaque,
   obtenerBonoDanoFuerzaExtra,
+  resolverFormulaDinamica,
   ContextoAtaquePersonaje
 } from "@/servicios/evaluadorEfectosRasgos";
-import { coincideIdRasgo, ID_RASGO } from "@/constantes";
-
-const normalizar = (s: string): string =>
-  s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
 
 export interface ResultadoBonosCombate {
   modDanoTotal: number;
@@ -21,8 +18,8 @@ export interface ResultadoBonosCombate {
 }
 
 /**
- * Resuelve los bonos de daño, dados extra (frenesí, golpe brutal) y daños secundarios (furia divina)
- * aplicables a un ataque físico, desarmado o improvisado.
+ * Resuelve los bonos de daño numéricos, dados extra y daños secundarios
+ * aplicables a un ataque físico, desarmado o improvisado de forma 100% genérica.
  */
 export function resolverBonosYDadosExtraCombate(params: {
   personajeActivo: PersonajeJugador;
@@ -47,7 +44,7 @@ export function resolverBonosYDadosExtraCombate(params: {
 
   const bonoDanoExtraRasgos = obtenerBonoDanoFuerzaExtra(personajeActivo, contextoAtaque);
   const bonoFuria =
-    !yaIncluyeFuriaEnEfectos && caracUsada === "fuerza" && statsCalculadas.bonoDanoFuria > 0
+    furiaEstaActiva && !yaIncluyeFuriaEnEfectos && caracUsada === "fuerza" && statsCalculadas.bonoDanoFuria > 0
       ? statsCalculadas.bonoDanoFuria
       : 0;
 
@@ -59,23 +56,18 @@ export function resolverBonosYDadosExtraCombate(params: {
     dadosExtra.push(d.dados);
   }
 
-  if (caracUsada === "fuerza") {
-    const rasgoFrenesi = (personajeActivo.rasgos || []).find(
-      (r) => coincideIdRasgo(r, ID_RASGO.FRENESI) && r.activo
-    );
-    if (rasgoFrenesi && !dadosExtraEfectos.some((d) => d.origen.toLowerCase().includes("frenes"))) {
-      const dadosF = rasgoFrenesi.formulaDados || `${statsCalculadas.bonoDanoFuria || 2}d6`;
-      dadosExtra.push(dadosF);
-    }
-
-    const rasgoGolpeBrutal = furiaEstaActiva
-      ? (personajeActivo.rasgos || []).find(
-          (r) => coincideIdRasgo(r, ID_RASGO.GOLPE_BRUTAL) && r.activo
-        )
-      : undefined;
-    if (rasgoGolpeBrutal && !dadosExtraEfectos.some((d) => d.origen.toLowerCase().includes("golpe brutal"))) {
-      const dadosGb = rasgoGolpeBrutal.formulaDados || "1d10";
-      dadosExtra.push(dadosGb);
+  // Soporte genérico para rasgos activables con formulaDados que no definan efectos mecánicos explícitos
+  for (const r of personajeActivo.rasgos || []) {
+    if (r.activo && r.formulaDados && r.esActivable) {
+      const tieneEfectoDeDano = (r.efectos || []).some(
+        (e) => e.tipo === "dado_extra_dano" || e.tipo === "dano_secundario"
+      );
+      if (!tieneEfectoDeDano) {
+        const dadosResueltos = resolverFormulaDinamica(r.formulaDados, personajeActivo);
+        if (dadosResueltos && /^\d+d\d+/i.test(dadosResueltos)) {
+          dadosExtra.push(dadosResueltos);
+        }
+      }
     }
   }
 
@@ -83,23 +75,6 @@ export function resolverBonosYDadosExtraCombate(params: {
   const danosSecEfectos = obtenerDanosSecundariosAtaque(personajeActivo, contextoAtaque);
   for (const ds of danosSecEfectos) {
     danosSecundarios.push(ds.formula);
-  }
-
-  if (caracUsada === "fuerza" && furiaEstaActiva) {
-    const rasgoFuriaDivina = (personajeActivo.rasgos || []).find(
-      (r) => coincideIdRasgo(r, ID_RASGO.FURIA_DIVINA) && r.activo
-    );
-    if (rasgoFuriaDivina && !danosSecEfectos.some((d) => d.origen.toLowerCase().includes("furia divina"))) {
-      const claseBarbaro = (personajeActivo.clases || []).find((c) => normalizar(c.nombre).includes("barbaro"));
-      const nivelBarbaro =
-        claseBarbaro?.nivel ||
-        (normalizar(personajeActivo.clase || "").includes("barbaro")
-          ? personajeActivo.nivel
-          : personajeActivo.nivel || 1);
-      const bonoMitadNivel = Math.floor(nivelBarbaro / 2);
-      const formulaExtraFuriaDivina = bonoMitadNivel > 0 ? `1d6+${bonoMitadNivel}` : "1d6";
-      danosSecundarios.push(formulaExtraFuriaDivina);
-    }
   }
 
   return {

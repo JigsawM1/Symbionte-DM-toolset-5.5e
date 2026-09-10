@@ -224,50 +224,50 @@ export function construirRasgosEspecie(
     : "Subespecie";
 
   const rasgosSubespecieProcesados: RasgoPersonaje[] = (subespecie?.rasgos || []).map((p) => {
-    const id = `rasgo_sub_${normalizarTextoEspecie(especie.id)}_${normalizarTextoEspecie(subespecie?.id || "")}_${normalizarTextoEspecie(p.nombre).replace(/\s+/g, "_")}`;
-    const pNomNorm = normalizarTextoEspecie(p.nombre);
+      const id = `rasgo_sub_${normalizarTextoEspecie(especie.id)}_${normalizarTextoEspecie(subespecie?.id || "")}_${normalizarTextoEspecie(p.nombre).replace(/\s+/g, "_")}`;
+      const pNomNorm = normalizarTextoEspecie(p.nombre);
 
-    // Escalado dinámico de dados de Ataque de aliento según nivel (1d10, 2d10 a niv 5, 3d10 a niv 11, 4d10 a niv 17)
-    let formulaDados = p.formulaDados;
-    if (pNomNorm.includes("ataque de aliento") || p.formulaEscalado === "escalado_nivel") {
-      const numDados = nivel < 5 ? 1 : nivel < 11 ? 2 : nivel < 17 ? 3 : 4;
-      formulaDados = `${numDados}d10`;
-    }
+      // Escalado dinámico de dados de Ataque de aliento según nivel (1d10, 2d10 a niv 5, 3d10 a niv 11, 4d10 a niv 17)
+      let formulaDados = p.formulaDados;
+      if (pNomNorm.includes("ataque de aliento") || p.formulaEscalado === "escalado_nivel") {
+        const numDados = nivel < 5 ? 1 : nivel < 11 ? 2 : nivel < 17 ? 3 : 4;
+        formulaDados = `${numDados}d10`;
+      }
 
-    // Escalado de usos según bonificador de competencia (Ataque de aliento = PB veces)
-    let usos = p.tieneUsosLimitados ? p.usosMaximos || 1 : undefined;
-    if (p.tieneUsosLimitados && (pNomNorm.includes("ataque de aliento") || p.formulaEscalado === "bono_competencia")) {
-      usos = bonificadorCompetencia;
-    }
+      // Escalado de usos según bonificador de competencia (Ataque de aliento = PB veces)
+      let usos = p.tieneUsosLimitados ? p.usosMaximos || 1 : undefined;
+      if (p.tieneUsosLimitados && (pNomNorm.includes("ataque de aliento") || p.formulaEscalado === "bono_competencia")) {
+        usos = bonificadorCompetencia;
+      }
 
-    return {
-      id,
-      nombre: p.nombre,
-      descripcion: p.descripcion,
-      origen: "subespecie",
-      fuente: `${prefijoFuente}: ${subespecie?.nombre || ""}`,
-      tipoAccion: p.tipoAccion,
-      nivelRequerido: p.nivelRequerido,
-      tieneUsosLimitados: !!p.tieneUsosLimitados,
-      usosMaximos: usos,
-      usosRestantes: usos,
-      recuperacion: p.recuperacion || "ninguno",
-      formulaDados,
-      personalizado: false,
-      activo: p.esActivable ? false : true,
-      esActivable: p.esActivable,
-      autoDesactivar: p.autoDesactivar,
-      ligadoA: p.ligadoA,
-      condicionAlActivar: p.condicionAlActivar,
-      conjurosOtorgados: p.conjurosOtorgados ? [...p.conjurosOtorgados] : [],
-      categoriaMecanica: p.categoriaMecanica,
-      formulaEscalado: p.formulaEscalado,
-      efectos: p.efectos ? [...p.efectos] : [],
-      selectores: p.selectores ? JSON.parse(JSON.stringify(p.selectores)) : [],
-      tablaProgresion: p.tablaProgresion,
-      notas: ""
-    };
-  });
+      return {
+        id,
+        nombre: p.nombre,
+        descripcion: p.descripcion,
+        origen: "subespecie",
+        fuente: `${prefijoFuente}: ${subespecie?.nombre || ""}`,
+        tipoAccion: p.tipoAccion,
+        nivelRequerido: p.nivelRequerido,
+        tieneUsosLimitados: !!p.tieneUsosLimitados,
+        usosMaximos: usos,
+        usosRestantes: usos,
+        recuperacion: p.recuperacion || "ninguno",
+        formulaDados,
+        personalizado: false,
+        activo: p.esActivable ? false : true,
+        esActivable: p.esActivable,
+        autoDesactivar: p.autoDesactivar,
+        ligadoA: p.ligadoA,
+        condicionAlActivar: p.condicionAlActivar,
+        conjurosOtorgados: p.conjurosOtorgados ? [...p.conjurosOtorgados] : [],
+        categoriaMecanica: p.categoriaMecanica,
+        formulaEscalado: p.formulaEscalado,
+        efectos: p.efectos ? [...p.efectos] : [],
+        selectores: p.selectores ? JSON.parse(JSON.stringify(p.selectores)) : [],
+        tablaProgresion: p.tablaProgresion,
+        notas: ""
+      };
+    });
 
   return [...rasgosBaseProcesados, ...rasgosSubespecieProcesados];
 }
@@ -325,21 +325,67 @@ export function aplicarEspecieAPersonaje(
     }
   }
 
-  // 4. Conjuros innatos otorgados (trucos y hechizos base de especie como Portador de luz)
+  // 4. Conjuros innatos otorgados (trucos y hechizos base de especie como Portador de luz, Linaje élfico, etc.)
   const trucosNuevos = new Set(personaje.trucosConocidosIds || []);
   const conjurosSiemprePreparados = new Set(personaje.conjurosSiemprePreparadosIds || []);
 
   if (opciones.sincronizarHechizosInnatos !== false) {
+    // 4.1. Recopilar todos los conjuros/trucos innatos conocidos de cualquier especie del catálogo
+    const todosHechizosEspecies = new Set<string>();
+    for (const esp of CATALOGO_ESPECIES_DND55) {
+      for (const ci of esp.conjurosInnatos || []) {
+        todosHechizosEspecies.add(ci.hechizoId);
+      }
+      for (const sub of esp.subespecies || []) {
+        for (const ci of sub.conjurosInnatos || []) {
+          todosHechizosEspecies.add(ci.hechizoId);
+        }
+      }
+    }
+
+    // 4.2. Determinar conjuros que el personaje conserva por rasgos activos no pertenecientes a especie o subespecie
+    const hechizosConservadosPorRasgos = new Set<string>();
+    for (const r of personaje.rasgos || []) {
+      if (r.origen !== "especie" && r.origen !== "subespecie" && r.activo !== false) {
+        for (const cOtorgado of r.conjurosOtorgados || []) {
+          hechizosConservadosPorRasgos.add(cOtorgado);
+        }
+      }
+    }
+
+    // 4.3. Purgar conjuros innatos de especies previas para evitar acumulación al conmutar de especie o linaje
+    for (const hId of todosHechizosEspecies) {
+      if (!hechizosConservadosPorRasgos.has(hId)) {
+        trucosNuevos.delete(hId);
+        conjurosSiemprePreparados.delete(hId);
+      }
+    }
+
+    // 4.4. Inyectar los conjuros innatos de la nueva especie y subespecie según el nivel del personaje
     const listaInnatos: ConjuroInnatoEspecie[] = [
       ...(especie.conjurosInnatos || []),
       ...(subespecie?.conjurosInnatos || [])
     ];
 
+    // Detectar si hay un truco personalizado seleccionado en los rasgos del personaje para Alto elfo
+    let trucoAltoElfoElegido: string | null = null;
+    for (const r of personaje.rasgos || []) {
+      const selTruco = (r.selectores || []).find((s) => s.id === "selector_truco_alto_elfo");
+      if (selTruco && selTruco.valorActual?.[0]) {
+        trucoAltoElfoElegido = selTruco.valorActual[0];
+        break;
+      }
+    }
+
     for (const conjuro of listaInnatos) {
       const cumpleNivel = !conjuro.nivelRequerido || nivelPj >= conjuro.nivelRequerido;
       if (cumpleNivel) {
         if (conjuro.esTruco) {
-          trucosNuevos.add(conjuro.hechizoId);
+          if (conjuro.hechizoId === "prestidigitacion" && subespecie?.id === "alto_elfo" && trucoAltoElfoElegido) {
+            trucosNuevos.add(trucoAltoElfoElegido);
+          } else {
+            trucosNuevos.add(conjuro.hechizoId);
+          }
         } else {
           conjurosSiemprePreparados.add(conjuro.hechizoId);
         }
@@ -350,10 +396,33 @@ export function aplicarEspecieAPersonaje(
   // 5. Rasgos de especie: purgar rasgos previos de especie y subespecie, y añadir los nuevos
   let rasgosFinales = [...(personaje.rasgos || [])];
   if (opciones.sincronizarRasgos !== false) {
-    const rasgosEspecieNuevos = construirRasgosEspecie(especie, subespecie, nivelPj, bonoCompetencia, tamanoFinal);
+    const rasgosEspecieNuevos = construirRasgosEspecie(
+      especie,
+      subespecie,
+      nivelPj,
+      bonoCompetencia,
+      tamanoFinal
+    );
+
+    // Preservar usos restantes y selecciones previas de rasgos de subespecie/especie
+    const mapaRasgosPrevios = new Map((personaje.rasgos || []).map((r) => [r.id, r]));
+    const rasgosEspecieFusionados = rasgosEspecieNuevos.map((rNuevo) => {
+      const rPrev = mapaRasgosPrevios.get(rNuevo.id);
+      if (!rPrev) return rNuevo;
+
+      return {
+        ...rNuevo,
+        usosRestantes: typeof rPrev.usosRestantes === "number" ? rPrev.usosRestantes : rNuevo.usosRestantes,
+        selectores: rNuevo.selectores?.map((sNuevo) => {
+          const sPrev = rPrev.selectores?.find((sp) => sp.id === sNuevo.id);
+          return sPrev ? { ...sNuevo, valorActual: sPrev.valorActual } : sNuevo;
+        })
+      };
+    });
+
     // Preservar rasgos de clase, dotes, trasfondo y personalizados
     const rasgosConservados = rasgosFinales.filter((r) => r.origen !== "especie" && r.origen !== "subespecie");
-    rasgosFinales = [...rasgosConservados, ...rasgosEspecieNuevos];
+    rasgosFinales = [...rasgosConservados, ...rasgosEspecieFusionados];
   }
 
   return {

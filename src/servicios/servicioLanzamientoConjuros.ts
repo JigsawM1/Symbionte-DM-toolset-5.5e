@@ -25,6 +25,7 @@ export type ModoLanzamiento =
   | "ritual"
   | "objetoMagico"
   | "arcanoMistico"
+  | "gratuitoInnato"
   | "ataqueMagico";
 
 export interface SolicitudLanzamiento {
@@ -73,7 +74,8 @@ export type InstruccionGasto =
   | { tipo: "puntos"; cantidad: number; nivel: number }
   | { tipo: "pacto"; nivel: number }
   | { tipo: "cargasObjeto"; cantidad: number; objetoInstanciaId: string }
-  | { tipo: "arcanoMistico"; nivel: number };
+  | { tipo: "arcanoMistico"; nivel: number }
+  | { tipo: "gratuitoInnato"; hechizoId: string };
 
 export interface LanzamientoPreparado {
   formula: FormulaConstruida;
@@ -364,6 +366,20 @@ export function prepararLanzamiento(
       gasto = {
         tipo: "arcanoMistico",
         nivel: nivelLanzamiento
+      };
+      break;
+    }
+
+    case "gratuitoInnato": {
+      formula = construirFormulaEspacio(
+        solicitud.hechizo,
+        nivelLanzamiento,
+        bonoAtaqueMagico,
+        nombrePersonaje
+      );
+      gasto = {
+        tipo: "gratuitoInnato",
+        hechizoId: solicitud.hechizo.id
       };
       break;
     }

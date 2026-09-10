@@ -276,5 +276,19 @@ describe("servicioLanzamientoConjuros - Patrón Facade + Strategy", () => {
       expect(preparado.formula.formulaTaleSpire).toContain("Escudo");
       expect(preparado.formula.etiquetaLog).toContain("Ezren - Escudo");
     });
+
+    it("Estrategia Gratuito Innato (1/Descanso Largo de linaje/especie): genera gasto gratuitoInnato sin consumir ranuras ni puntos", () => {
+      const solicitudGratuita: SolicitudLanzamiento = {
+        modo: "gratuitoInnato",
+        hechizo: conjuroConcentracionRitual, // Detectar magia (nivel 1, concentración)
+        nivelLanzamiento: 1,
+        nombrePersonaje: "Alto Elfo Nv3"
+      };
+
+      const preparado = prepararLanzamiento(solicitudGratuita, contextoLimpio);
+      expect(preparado.gasto).toEqual({ tipo: "gratuitoInnato", hechizoId: "detectar-magia" });
+      expect(preparado.activarConcentracion).toBe(true);
+      expect(preparado.formula.etiquetaLog).toContain("Alto Elfo Nv3 - Detectar magia");
+    });
   });
 });

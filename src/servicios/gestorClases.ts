@@ -220,6 +220,7 @@ export function obtenerRasgosClaseYSubclase(
 
       // Ajustar selectores con escalado dinámico por nivel
       const selectoresClonados = r.selectores ? JSON.parse(JSON.stringify(r.selectores)) : [];
+      const efectosClonados = r.efectos ? JSON.parse(JSON.stringify(r.efectos)) : [];
       if (r.nombre === "Maestría con armas" && selectoresClonados.length > 0) {
         const esGuerrero = clase.nombre.toLowerCase().includes("guerrero");
         const maxArmas = esGuerrero
@@ -262,6 +263,12 @@ export function obtenerRasgosClaseYSubclase(
           selectorGb.maxSelecciones = 2;
           selectorGb.tipo = "multiple";
           formulaDadosRasgo = "2d10";
+          for (const ef of efectosClonados) {
+            if (ef.tipo === "dado_extra_dano") {
+              ef.valor = "2d10";
+              ef.descripcion = "Golpe brutal (+2d10 al daño con armas de Fuerza)";
+            }
+          }
           descripcionRasgo += "\n\n***Golpe brutal mejorado (II) (Nv. 17).*** El daño adicional que infliges con él aumenta a 2d10. Además, puedes aplicar hasta dos efectos diferentes de Golpe brutal a la vez en lugar de uno.";
           fuenteRasgo = `${clase.nombre} (Niveles 9, 13, 17)`;
         }
@@ -301,7 +308,7 @@ export function obtenerRasgosClaseYSubclase(
         conjurosOtorgados: r.conjurosOtorgados ? [...r.conjurosOtorgados] : [],
         categoriaMecanica: r.categoriaMecanica,
         formulaEscalado: r.formulaEscalado,
-        efectos: r.efectos ? JSON.parse(JSON.stringify(r.efectos)) : [],
+        efectos: efectosClonados,
         selectores: selectoresClonados,
         tablaProgresion: r.tablaProgresion ? JSON.parse(JSON.stringify(r.tablaProgresion)) : undefined,
         notas: ""
@@ -328,10 +335,19 @@ export function obtenerRasgosClaseYSubclase(
           let formulaDadosRasgo = r.formulaDados;
           let categoriaMecanica = r.categoriaMecanica;
 
+          const selectoresClonados = r.selectores ? JSON.parse(JSON.stringify(r.selectores)) : [];
+          const efectosClonados = r.efectos ? JSON.parse(JSON.stringify(r.efectos)) : [];
+
           // Frenesí: reaccionar al nivel con dados d6 iguales al daño de Furia (+2d6, +3d6, +4d6)
           if (r.nombre === "Frenesí") {
             const bonoDanoFuria = nivelSeguro >= 16 ? 4 : nivelSeguro >= 9 ? 3 : 2;
             formulaDadosRasgo = `${bonoDanoFuria}d6`;
+            for (const ef of efectosClonados) {
+              if (ef.tipo === "dado_extra_dano") {
+                ef.valor = `${bonoDanoFuria}d6`;
+                ef.descripcion = `Frenesí (+${bonoDanoFuria}d6 daño adicional)`;
+              }
+            }
           }
 
           // Guerrero de los dioses: reserva curativa de d12
@@ -360,8 +376,6 @@ export function obtenerRasgosClaseYSubclase(
             formulaDadosRasgo = obtenerDadoInspiracionBardica(nivelSeguro);
           }
 
-          const selectoresClonados = r.selectores ? JSON.parse(JSON.stringify(r.selectores)) : [];
-
           rasgosResultado.push({
             id,
             nombre: r.nombre,
@@ -387,7 +401,7 @@ export function obtenerRasgosClaseYSubclase(
             conjurosOtorgados: r.conjurosOtorgados ? [...r.conjurosOtorgados] : [],
             categoriaMecanica,
             formulaEscalado: r.formulaEscalado,
-            efectos: r.efectos ? JSON.parse(JSON.stringify(r.efectos)) : [],
+            efectos: efectosClonados,
             selectores: selectoresClonados,
             tablaProgresion: r.tablaProgresion ? JSON.parse(JSON.stringify(r.tablaProgresion)) : undefined,
             notas: ""

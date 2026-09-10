@@ -129,39 +129,56 @@ export const SeccionNivelConjuros: React.FC<SeccionNivelConjurosProps> = ({
             </p>
           ) : (
             <div className={estilos.listaTarjetas}>
-              {conjurosFiltrados.map((hechizo) => (
-                <TarjetaConjuroCompacta
-                  key={`${esTruco ? "truco" : "conjuro"}-${hechizo.id}`}
-                  hechizo={hechizo}
-                  nombrePersonaje={personaje.nombre}
-                  nivelPersonaje={personaje.nivel || 1}
-                  bonoAtaqueMagico={bonoAtaqueMagico}
-                  estaPreparado={esTruco ? true : estaPreparado(hechizo)}
-                  esDeSubclase={esHechizoDeSubclase(hechizo)}
-                  origenBadge={obtenerOrigenConjuro ? obtenerOrigenConjuro(hechizo) : (esHechizoDeSubclase(hechizo) ? "subclase" : null)}
-                  mostrarTogglePreparado={!esTruco && requierePreparacion}
-                  esConcentracionActual={personaje.concentracionActiva?.hechizoId === hechizo.id}
-                  esOculto={false}
-                  alAlternarOcultar={() => alAlternarOcultar(hechizo.id)}
-                  bloqueadoPorArmadura={estaBloqueadoPorArmadura}
-                  motivoBloqueoArmadura={motivoBloqueoArmadura}
-                  alAlternarPreparado={
-                    !esTruco && alAlternarPreparado
-                      ? () => alAlternarPreparado(hechizo.id)
-                      : undefined
-                  }
-                  alQuitarDeLista={() => alQuitarDeLista(hechizo.id)}
-                  alAbrirDetalleCompleto={alAbrirDetalleCompleto}
-                  alLanzar={(modo, niv) => alLanzar(modo, niv, hechizo)}
-                  esLanzadorPacto={esLanzadorPacto}
-                  nivelEspacioPacto={nivelEspacioPacto}
-                  espaciosPactoMaximos={personaje.espaciosPactoMaximos || 0}
-                  espaciosPactoGastados={personaje.espaciosPactoGastados || 0}
-                  espaciosConjuroMaximos={personaje.espaciosConjuroMaximos || {}}
-                  nivelConjuroMaximo={personaje.nivelConjuroMaximo || 0}
-                  sistemaMagia={sistemaMagia}
-                />
-              ))}
+              {conjurosFiltrados.map((hechizo) => {
+                const nomHechizoNorm = hechizo.nombre.toLowerCase().trim();
+                const rasgoInnatoGratuito = (personaje.rasgos || []).find((r) => {
+                  if (!r.tieneUsosLimitados || typeof r.usosRestantes !== "number" || r.usosRestantes <= 0) return false;
+                  if (r.nivelRequerido && (personaje.nivel || 1) < r.nivelRequerido) return false;
+                  const cOtorgados = r.conjurosOtorgados || [];
+                  return (
+                    cOtorgados.includes(hechizo.id) ||
+                    r.nombre.toLowerCase().includes(nomHechizoNorm) ||
+                    nomHechizoNorm.includes(r.nombre.toLowerCase())
+                  );
+                });
+                const tieneLanzamientoGratisDisponible = Boolean(rasgoInnatoGratuito);
+
+                return (
+                  <TarjetaConjuroCompacta
+                    key={`${esTruco ? "truco" : "conjuro"}-${hechizo.id}`}
+                    hechizo={hechizo}
+                    nombrePersonaje={personaje.nombre}
+                    nivelPersonaje={personaje.nivel || 1}
+                    bonoAtaqueMagico={bonoAtaqueMagico}
+                    estaPreparado={esTruco ? true : estaPreparado(hechizo)}
+                    esDeSubclase={esHechizoDeSubclase(hechizo)}
+                    origenBadge={obtenerOrigenConjuro ? obtenerOrigenConjuro(hechizo) : (esHechizoDeSubclase(hechizo) ? "subclase" : null)}
+                    mostrarTogglePreparado={!esTruco && requierePreparacion}
+                    esConcentracionActual={personaje.concentracionActiva?.hechizoId === hechizo.id}
+                    esOculto={false}
+                    alAlternarOcultar={() => alAlternarOcultar(hechizo.id)}
+                    bloqueadoPorArmadura={estaBloqueadoPorArmadura}
+                    motivoBloqueoArmadura={motivoBloqueoArmadura}
+                    tieneLanzamientoGratisDisponible={tieneLanzamientoGratisDisponible}
+                    alLanzarGratis={tieneLanzamientoGratisDisponible ? async () => { await alLanzar("gratuitoInnato", hechizo.nivel, hechizo); } : undefined}
+                    alAlternarPreparado={
+                      !esTruco && alAlternarPreparado
+                        ? () => alAlternarPreparado(hechizo.id)
+                        : undefined
+                    }
+                    alQuitarDeLista={() => alQuitarDeLista(hechizo.id)}
+                    alAbrirDetalleCompleto={alAbrirDetalleCompleto}
+                    alLanzar={(modo, niv) => alLanzar(modo, niv, hechizo)}
+                    esLanzadorPacto={esLanzadorPacto}
+                    nivelEspacioPacto={nivelEspacioPacto}
+                    espaciosPactoMaximos={personaje.espaciosPactoMaximos || 0}
+                    espaciosPactoGastados={personaje.espaciosPactoGastados || 0}
+                    espaciosConjuroMaximos={personaje.espaciosConjuroMaximos || {}}
+                    nivelConjuroMaximo={personaje.nivelConjuroMaximo || 0}
+                    sistemaMagia={sistemaMagia}
+                  />
+                );
+              })}
             </div>
           )}
         </>

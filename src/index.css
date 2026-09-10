@@ -63,10 +63,10 @@
   --sombra-elevada: 0 8px 32px rgba(0, 0, 0, 0.5);
   --sombra-overlay: 0 0 40px rgba(0, 0, 0, 0.8);
 
-  /* Tipografía Profesional de Google Fonts */
-  --fuente-principal: 'Inter', system-ui, -apple-system, sans-serif;
-  --fuente-titulo: 'Outfit', system-ui, -apple-system, sans-serif;
-  --fuente-codigo: 'JetBrains Mono', 'Fira Code', monospace;
+  /* Tipografía de Alto Rendimiento Offline (Nativa y sin dependencias de red) */
+  --fuente-principal: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --fuente-titulo: 'Outfit', system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --fuente-codigo: 'JetBrains Mono', 'Cascadia Code', 'Fira Code', Consolas, 'Courier New', monospace;
 
   background-color: var(--color-fondo-profundo);
   color: var(--color-texto-principal);

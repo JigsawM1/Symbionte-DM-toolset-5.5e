@@ -13,7 +13,8 @@ import {
   evaluarEfectosRasgosActivos,
   ContextoAtaquePersonaje,
   obtenerCompetenciasExtraRasgos,
-  personajeTieneMaestriaArma
+  personajeTieneMaestriaArma,
+  estaAtaqueTemerarioActivo
 } from "@/servicios/evaluadorEfectosRasgos";
 import { inferirAtributosArma } from "@/constantes/armasInferenciaConstantes";
 import {
@@ -80,7 +81,12 @@ export function calcularAtaqueArmaEquipada(
   if (esDistancia) {
     caracDefecto = "destreza";
   } else if (esSutil) {
-    caracDefecto = (modificadores.destreza || 0) >= (modificadores.fuerza || 0) ? "destreza" : "fuerza";
+    const prefiereFuerzaPorRasgo = furiaEstaActiva || estaAtaqueTemerarioActivo(personajeActivo);
+    if (prefiereFuerzaPorRasgo) {
+      caracDefecto = "fuerza";
+    } else {
+      caracDefecto = (modificadores.destreza || 0) > (modificadores.fuerza || 0) ? "destreza" : "fuerza";
+    }
   } else if (esMonje) {
     caracDefecto = (modificadores.destreza || 0) > (modificadores.fuerza || 0) ? "destreza" : "fuerza";
   }
@@ -342,14 +348,14 @@ export function generarListaAtaquesFisicos(
     });
     ataques.push(ataqueArma);
   }
+  // 2. Golpe con Arma Improvisada
+  const ataqueImprovisado = calcularAtaqueImprovisado(contextoComun);
+  ataques.push(ataqueImprovisado);
 
-  // 2. Ataque Desarmado
+  // 3. Ataque Desarmado
   const ataqueDesarmado = calcularAtaqueDesarmado(contextoComun);
   ataques.push(ataqueDesarmado);
 
-  // 3. Golpe con Arma Improvisada
-  const ataqueImprovisado = calcularAtaqueImprovisado(contextoComun);
-  ataques.push(ataqueImprovisado);
 
   return ataques;
 }

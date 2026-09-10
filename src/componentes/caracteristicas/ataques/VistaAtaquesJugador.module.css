@@ -821,4 +821,167 @@
   margin-top: 2px;
 }
 
+/* =========================================================================
+   DISEÑO UNIFICADO DE TARJETA DE ATAQUE (SIMILAR A TARJETA CONJURO COMPACTA)
+   ========================================================================= */
+
+.tarjetaAtaqueCompacta {
+  background: var(--pj-fondo-cabecera-gradiente, linear-gradient(180deg, #161e2c 0%, #111622 100%));
+  border: 1px solid var(--pj-borde-sutil, rgba(148, 163, 184, 0.16));
+  border-left: 3px solid var(--pj-texto-cian, #38bdf8);
+  border-radius: 6px;
+  padding: 6px 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.tarjetaAtaqueCompacta:hover {
+  border-color: var(--pj-borde-acento, rgba(129, 140, 248, 0.45));
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+}
+
+.ladoIzquierdoAtaque {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  flex: 1;
+  min-width: 0;
+}
+
+.filaTituloAtaque {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin: 4px;
+}
+
+.filaMetadatosAtaque {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 4px;
+  font-size: var(--pj-fuente-micro, 11px);
+  color: var(--pj-texto-terciario, #94a3b8);
+  flex-wrap: wrap;
+}
+
+.danoMetadatoTexto {
+  color: var(--pj-texto-primario-suave, #f8fafc);
+  font-weight: 700;
+  font-family: var(--fuente-codigo, 'JetBrains Mono', monospace);
+}
+
+.impactoMetadatoTexto {
+  color: var(--pj-texto-cian, #38bdf8);
+  font-weight: 800;
+  font-family: var(--fuente-codigo, 'JetBrains Mono', monospace);
+}
+
+.filaPropiedadesAtaqueCompacta {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+
+.ladoDerechoAtaque {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  align-items: flex-start
+}
+
+.columnaAccionesAtaque {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: stretch;
+  min-width: 80px;
+}
+
+.botonAtacarPrincipal {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  background-color: #0284c7;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+  color: #ffffff;
+  font-size: var(--pj-fuente-boton, 12px);
+  font-weight: 700;
+  padding: 4px 10px;
+  cursor: pointer;
+  width: 100%;
+  box-sizing: border-box;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  transition: background-color 0.15s ease;
+}
+
+.botonAtacarPrincipal:hover {
+  background-color: #0369a1;
+}
+
+.filaAccionesSecundariasAtaque {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 3px;
+}
+
+.botonSecundarioDano {
+  background-color: var(--pj-fondo-tarjeta-hover, #1b2434);
+  border: 1px solid var(--pj-borde-peligro, rgba(248, 113, 113, 0.45));
+  color: var(--pj-texto-alerta-brillante, #fee2e2);
+  cursor: pointer;
+  padding: 3px 6px;
+  border-radius: 4px;
+  font-size: var(--pj-fuente-micro, 10.5px);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.2px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  white-space: nowrap;
+}
+
+.botonSecundarioDano:hover {
+  background-color: #242f42;
+  border-color: #f87171;
+  color: #ffffff;
+}
+
+.botonSecundarioCrit {
+  background-color: var(--pj-fondo-tarjeta-hover, #18202f);
+  border: 1px solid var(--pj-borde-oro, rgba(251, 191, 36, 0.45));
+  color: var(--pj-texto-oro, #fbbf24);
+  cursor: pointer;
+  padding: 3px 5px;
+  border-radius: 4px;
+  font-size: var(--pj-fuente-micro, 10px);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.2px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+}
+
+.botonSecundarioCrit:hover {
+  background-color: #242f42;
+  border-color: #f59e0b;
+  color: #ffffff;
+}
+
 

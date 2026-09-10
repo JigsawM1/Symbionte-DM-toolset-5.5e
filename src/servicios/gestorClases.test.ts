@@ -184,4 +184,38 @@ describe("Servicio Gestor de Clases y Subclases D&D 5.5e (2024)", () => {
     const fdNv14 = rasgosNv14.find((r) => r.nombre === "Furia divina");
     expect(fdNv14?.formulaDados).toBe("1d6+7");
   });
+
+  it("Frenesí debe escalar tanto su formulaDados como el valor en sus efectos mecánicos (2d6, 3d6, 4d6)", () => {
+    // Nivel 3 Bersérker (+2 Furia -> 2d6)
+    const rasgosNv3 = obtenerRasgosClaseYSubclase("Bárbaro", 3, "Senda del Berserker");
+    const frenesi3 = rasgosNv3.find((r) => r.nombre === "Frenesí");
+    expect(frenesi3?.formulaDados).toBe("2d6");
+    expect(frenesi3?.efectos?.[0]?.valor).toBe("2d6");
+
+    // Nivel 9 Bersérker (+3 Furia -> 3d6)
+    const rasgosNv9 = obtenerRasgosClaseYSubclase("Bárbaro", 9, "Senda del Berserker");
+    const frenesi9 = rasgosNv9.find((r) => r.nombre === "Frenesí");
+    expect(frenesi9?.formulaDados).toBe("3d6");
+    expect(frenesi9?.efectos?.[0]?.valor).toBe("3d6");
+
+    // Nivel 16 Bersérker (+4 Furia -> 4d6)
+    const rasgosNv16 = obtenerRasgosClaseYSubclase("Bárbaro", 16, "Senda del Berserker");
+    const frenesi16 = rasgosNv16.find((r) => r.nombre === "Frenesí");
+    expect(frenesi16?.formulaDados).toBe("4d6");
+    expect(frenesi16?.efectos?.[0]?.valor).toBe("4d6");
+  });
+
+  it("Golpe Brutal debe escalar a 2d10 en formulaDados y en efectos mecánicos a nivel 17+", () => {
+    // Nivel 9 Bárbaro -> 1d10
+    const rasgosNv9 = obtenerRasgosClaseYSubclase("Bárbaro", 9);
+    const gb9 = rasgosNv9.find((r) => r.nombre === "Golpe brutal");
+    expect(gb9?.formulaDados).toBe("1d10");
+    expect(gb9?.efectos?.[0]?.valor).toBe("1d10");
+
+    // Nivel 17 Bárbaro -> 2d10
+    const rasgosNv17 = obtenerRasgosClaseYSubclase("Bárbaro", 17);
+    const gb17 = rasgosNv17.find((r) => r.nombre === "Golpe brutal");
+    expect(gb17?.formulaDados).toBe("2d10");
+    expect(gb17?.efectos?.[0]?.valor).toBe("2d10");
+  });
 });

@@ -1,5 +1,6 @@
 import type { PersonajeJugador, HechizoBase } from "@/tipos";
 import { generarIdSlug } from "@/utiles/generarId";
+import { coincideHechizoId } from "./comparadorHechizos";
 import { obtenerConjurosSubclasePersonaje } from "./calculadorMagia";
 import { obtenerEspeciePorNombre, obtenerSubespeciePorNombre } from "./gestorEspecies";
 
@@ -68,6 +69,9 @@ export function resolverOrigenConjuro(
 
   const coincide = (cadena: string): boolean => {
     if (!cadena) return false;
+    if (coincideHechizoId(cadena, hechizo.id) || coincideHechizoId(cadena, hechizo.nombre)) {
+      return true;
+    }
     const cNorm = cadena.toLowerCase().trim();
     const cSinTildes = cNorm.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
     const cSlug = generarIdSlug("h", cadena);
@@ -81,13 +85,34 @@ export function resolverOrigenConjuro(
     );
   };
 
+  const pjNivel = personaje.nivel || 1;
+
   // 1. Rasgos del personaje (inspección profunda de orígenes de rasgos)
   for (const r of personaje.rasgos || []) {
     if (r.activo === false) continue;
+    if (r.nivelRequerido && pjNivel < r.nivelRequerido) continue;
     let otorga = false;
 
     if (Array.isArray(r.conjurosOtorgados) && r.conjurosOtorgados.some(coincide)) {
       otorga = true;
+    }
+
+    if (!otorga && Array.isArray(r.selectores)) {
+      for (const sel of r.selectores) {
+        const idLower = sel.id.toLowerCase();
+        if (
+          idLower.includes("truco") ||
+          idLower.includes("conjuro") ||
+          idLower.includes("hechizo") ||
+          idLower.includes("spell") ||
+          idLower.includes("cantrip")
+        ) {
+          if (Array.isArray(sel.valorActual) && sel.valorActual.some(coincide)) {
+            otorga = true;
+            break;
+          }
+        }
+      }
     }
 
     if (!otorga && Array.isArray(r.efectos)) {
@@ -135,12 +160,20 @@ export function resolverOrigenConjuro(
   if (personaje.especie) {
     const espDef = obtenerEspeciePorNombre(personaje.especie);
     if (espDef) {
-      if (espDef.conjurosInnatos?.some((ci) => coincide(ci.hechizoId) || coincide(ci.nombreHechizo))) {
+      if (
+        espDef.conjurosInnatos?.some(
+          (ci) => (!ci.nivelRequerido || pjNivel >= ci.nivelRequerido) && (coincide(ci.hechizoId) || coincide(ci.nombreHechizo))
+        )
+      ) {
         return "especie";
       }
       if (personaje.subespecie) {
         const subDef = obtenerSubespeciePorNombre(espDef.id, personaje.subespecie);
-        if (subDef?.conjurosInnatos?.some((ci) => coincide(ci.hechizoId) || coincide(ci.nombreHechizo))) {
+        if (
+          subDef?.conjurosInnatos?.some(
+            (ci) => (!ci.nivelRequerido || pjNivel >= ci.nivelRequerido) && (coincide(ci.hechizoId) || coincide(ci.nombreHechizo))
+          )
+        ) {
           return "legado";
         }
       }

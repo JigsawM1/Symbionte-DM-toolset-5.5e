@@ -279,6 +279,9 @@ export function limpiarYNormalizarDadosSimples(formulaSimple: string): string {
     limpia = `1d20${signo}${limpia}`;
   }
 
+  // Si contiene sintaxis tipo Roll20 (2d20kh1 / 2d20kl1), normalizar a 1d20 para TaleSpire
+  limpia = limpia.replace(/\b2d20k[hl]1\b/gi, "1d20");
+
   // Quitar cualquier carácter no válido para una fórmula de dados estándar
   limpia = limpia.replace(/[^d0-9+\-*/()]/g, "");
 
@@ -827,31 +830,41 @@ function ejecutarTiradaFallbackLocal(
       let formulaDados = grupo;
       let etiquetaGrupo = `Grupo ${idx + 1}`;
 
-      const matchEtiqueta = grupo.match(/^!([^:]+):(.*)$/);
+      const matchEtiqueta = grupo.match(/^!?([^:]+):(.*)$/);
       if (matchEtiqueta) {
         etiquetaGrupo = matchEtiqueta[1];
         formulaDados = matchEtiqueta[2];
       }
 
-      const match = formulaDados.match(/^(\d+)d(\d+)(?:([+-])(\d+))?$/);
+      const matchKhKl = formulaDados.match(/^(\d+)d(\d+)k([hl])(\d+)(?:([+-])(\d+))?$/i);
+      const match = matchKhKl || formulaDados.match(/^(\d+)d(\d+)(?:([+-])(\d+))?$/);
       
       if (match) {
         const cantidad = parseInt(match[1], 10);
         const caras = parseInt(match[2], 10);
-        const signo = match[3] || "+";
-        const modificador = match[4] ? parseInt(match[4], 10) : 0;
+        const esKhKl = Boolean(matchKhKl);
+        const tipoKeep = esKhKl ? match[3].toLowerCase() : null;
+        const signo = esKhKl ? (match[5] || "+") : (match[3] || "+");
+        const modificador = esKhKl
+          ? (match[6] ? parseInt(match[6], 10) : 0)
+          : (match[4] ? parseInt(match[4], 10) : 0);
         
         const tiradas: number[] = [];
         let valorDadosFinal = 0;
         
-        if (caras === 20 && cantidad === 2) {
+        if (esKhKl && caras === 20 && cantidad === 2) {
+          const d1 = Math.floor(Math.random() * 20) + 1;
+          const d2 = Math.floor(Math.random() * 20) + 1;
+          tiradas.push(d1, d2);
+          valorDadosFinal = tipoKeep === "h" ? Math.max(d1, d2) : Math.min(d1, d2);
+        } else if (caras === 20 && cantidad === 2) {
           const d1 = Math.floor(Math.random() * 20) + 1;
           const d2 = Math.floor(Math.random() * 20) + 1;
           tiradas.push(d1, d2);
           
-          if (etiquetaGrupo.toLowerCase().includes("ventaja")) {
+          if (etiquetaGrupo.toLowerCase().includes("ventaja") || etiquetaGlobal.toLowerCase().includes("ventaja")) {
             valorDadosFinal = Math.max(d1, d2);
-          } else if (etiquetaGrupo.toLowerCase().includes("desventaja")) {
+          } else if (etiquetaGrupo.toLowerCase().includes("desventaja") || etiquetaGlobal.toLowerCase().includes("desventaja")) {
             valorDadosFinal = Math.min(d1, d2);
           } else {
             valorDadosFinal = d1;

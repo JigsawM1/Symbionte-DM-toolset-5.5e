@@ -64,14 +64,12 @@ export async function ejecutarTiradaAtaqueFisico(ctx: ContextoTiradaAtaqueFisico
 
     const sufijoMotivo = motivos ? ` (${motivos})` : "";
 
-    let formula = `1d20${bonoStr}`;
+    const formula = `1d20${bonoStr}`;
     let etiqueta = `${nombrePj}: Ataque con ${ataque.nombre}${sufijoMotivo}`;
 
     if (evaluacionCondiciones.modoEfectivo === "ventaja") {
-      formula = `2d20kh1${bonoStr}`;
       etiqueta = `${nombrePj}: Ataque con ${ataque.nombre} (Ventaja)${sufijoMotivo}`;
     } else if (evaluacionCondiciones.modoEfectivo === "desventaja") {
-      formula = `2d20kl1${bonoStr}`;
       etiqueta = `${nombrePj}: Ataque con ${ataque.nombre} (Desventaja)${sufijoMotivo}`;
     }
 
@@ -104,7 +102,18 @@ export async function ejecutarTiradaAtaqueFisico(ctx: ContextoTiradaAtaqueFisico
       }
     }
 
-    await lanzarDadosTaleSpire(formula, etiqueta);
+    const tipoTiradaForzado =
+      evaluacionCondiciones.modoEfectivo !== "plano"
+        ? evaluacionCondiciones.modoEfectivo
+        : undefined;
+
+    await lanzarDadosTaleSpire(
+      formula,
+      etiqueta,
+      undefined,
+      undefined,
+      tipoTiradaForzado
+    );
   } catch (error) {
     logger.error("Error al tirar ataque:", error);
   }

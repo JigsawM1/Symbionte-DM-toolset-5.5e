@@ -14,7 +14,7 @@ describe("Compendio y Sincronizador de Rasgos D&D 5.5e", () => {
     expect(rasgosElfo.length).toBeGreaterThan(0);
     const nombres = rasgosElfo.map((r) => r.nombre);
     expect(nombres).toContain("Visión en la oscuridad");
-    expect(nombres).toContain("Ascendencia feérica");
+    expect(nombres).toContain("Linaje feérico");
     expect(nombres).toContain("Trance");
   });
 

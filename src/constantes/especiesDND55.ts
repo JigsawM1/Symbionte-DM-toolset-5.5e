@@ -194,6 +194,18 @@ export const CATALOGO_ESPECIES_DND55: DefinicionEspecie[] = [
     visionOscuridad: 60,
     rasgos: [
       {
+        nombre: "Tipo de criatura",
+        descripcion: "Eres una criatura del tipo Humanoide.",
+        tipoAccion: "pasivo",
+        categoriaMecanica: "pasivo_permanente"
+      },
+      {
+        nombre: "Tamaño",
+        descripcion: "Eres de tamaño Mediano (entre 5 y 6 pies de altura).",
+        tipoAccion: "pasivo",
+        categoriaMecanica: "pasivo_permanente"
+      },
+      {
         nombre: "Visión en la oscuridad",
         descripcion: "Tienes visión en la oscuridad hasta 60 pies.",
         tipoAccion: "pasivo",
@@ -201,12 +213,12 @@ export const CATALOGO_ESPECIES_DND55: DefinicionEspecie[] = [
       },
       {
         nombre: "Linaje élfico",
-        descripcion: "Formas parte de un linaje que te otorga capacidades sobrenaturales según la opción elegida.",
+        descripcion: "Formas parte de un linaje que te otorga capacidades sobrenaturales. Al elegir tu linaje obtienes su beneficio de nivel 1 (truco innato o beneficio pasivo). Cuando alcanzas los niveles 3 y 5 de personaje, aprendes un conjuro de nivel superior de tu linaje que siempre tienes preparado. Puedes lanzar cada uno de estos conjuros de nivel 1 o superior una vez sin gastar un espacio de conjuro y recuperas la capacidad tras finalizar un descanso largo, o bien lanzarlos gastando espacios de conjuro del nivel apropiado.",
         tipoAccion: "pasivo",
         categoriaMecanica: "pasivo_permanente"
       },
       {
-        nombre: "Ascendencia feérica",
+        nombre: "Linaje feérico",
         descripcion: "Tienes ventaja en las tiradas de salvación para evitar o poner fin al estado de hechizado.",
         tipoAccion: "pasivo",
         categoriaMecanica: "pasivo_permanente"
@@ -219,7 +231,7 @@ export const CATALOGO_ESPECIES_DND55: DefinicionEspecie[] = [
       },
       {
         nombre: "Trance",
-        descripcion: "No necesitas dormir y la magia no puede dormirte. Puedes finalizar un descanso largo en 4 horas de meditación.",
+        descripcion: "No necesitas dormir y la magia no puede dormirte. Puedes finalizar un descanso largo en 4 horas si las pasas en una meditación similar a un trance, tiempo durante el cual conservas la consciencia.",
         tipoAccion: "pasivo",
         categoriaMecanica: "pasivo_permanente"
       }
@@ -229,13 +241,43 @@ export const CATALOGO_ESPECIES_DND55: DefinicionEspecie[] = [
         id: "drow",
         especiePadre: "elfo",
         nombre: "Drow",
-        descripcion: "Adaptados a las profundidades con visión en la oscuridad superior y magia oscura.",
+        descripcion: "Adaptados a las profundidades con visión en la oscuridad superior de 120 pies y la magia de luces danzantes, fuego feérico y oscuridad.",
         modificadores: { visionOscuridad: 120 },
         rasgos: [
           {
             nombre: "Visión en la oscuridad superior (120 pies)",
             descripcion: "El alcance de tu visión en la oscuridad aumenta a 120 pies.",
-            tipoAccion: "pasivo"
+            tipoAccion: "pasivo",
+            categoriaMecanica: "pasivo_permanente"
+          },
+          {
+            nombre: "Magia drow: Luces danzantes",
+            descripcion: "Conoces el truco *luces danzantes* como truco innato de tu linaje drow.",
+            tipoAccion: "pasivo",
+            conjurosOtorgados: ["luces_danzantes"],
+            categoriaMecanica: "pasivo_permanente"
+          },
+          {
+            nombre: "Magia drow: Fuego feérico",
+            descripcion: "Siempre tienes preparado el conjuro *fuego feérico*. Puedes lanzarlo una vez sin gastar un espacio de conjuro y recuperas la capacidad tras un descanso largo. También puedes lanzarlo usando espacios de conjuro del nivel apropiado.",
+            tipoAccion: "accion",
+            nivelRequerido: 3,
+            tieneUsosLimitados: true,
+            usosMaximos: 1,
+            recuperacion: "descanso_largo",
+            conjurosOtorgados: ["fuego_feerico"],
+            categoriaMecanica: "consumible"
+          },
+          {
+            nombre: "Magia drow: Oscuridad",
+            descripcion: "Siempre tienes preparado el conjuro *oscuridad*. Puedes lanzarlo una vez sin gastar un espacio de conjuro y recuperas la capacidad tras un descanso largo. También puedes lanzarlo usando espacios de conjuro del nivel apropiado.",
+            tipoAccion: "accion",
+            nivelRequerido: 5,
+            tieneUsosLimitados: true,
+            usosMaximos: 1,
+            recuperacion: "descanso_largo",
+            conjurosOtorgados: ["oscuridad"],
+            categoriaMecanica: "consumible"
           }
         ],
         conjurosInnatos: [
@@ -248,12 +290,52 @@ export const CATALOGO_ESPECIES_DND55: DefinicionEspecie[] = [
         id: "alto_elfo",
         especiePadre: "elfo",
         nombre: "Alto elfo",
-        descripcion: "Maestros arcanos capaces de aprender y sustituir trucos de la lista de mago.",
+        descripcion: "Eruditos arcanos con gracia sobrenatural, capaces de manipular trucos de mago y dominar detectar magia y paso brumoso.",
         rasgos: [
           {
             nombre: "Magia de alto elfo",
-            descripcion: "Conoces el truco prestidigitación y puedes sustituirlo tras un descanso largo por otro de mago.",
-            tipoAccion: "pasivo"
+            descripcion: "Conoces un truco de tu elección de la lista de conjuros de mago (por defecto *prestidigitación*). Tras finalizar un descanso largo, puedes sustituir ese truco por otro truco diferente de la lista de conjuros de mago.",
+            tipoAccion: "pasivo",
+            categoriaMecanica: "selector_informativo",
+            conjurosOtorgados: ["prestidigitacion"],
+            selectores: [
+              {
+                id: "selector_truco_alto_elfo",
+                tipo: "unico",
+                etiqueta: "Truco de Mago (Sustituible tras descanso largo)",
+                maxSelecciones: 1,
+                opciones: [
+                  {
+                    id: "prestidigitacion",
+                    nombre: "Prestidigitación",
+                    descripcion: "Efectos mágicos menores útiles para practicar magia."
+                  }
+                ],
+                valorActual: ["prestidigitacion"]
+              }
+            ]
+          },
+          {
+            nombre: "Magia de alto elfo: Detectar magia",
+            descripcion: "Siempre tienes preparado el conjuro *detectar magia*. Puedes lanzarlo una vez sin gastar un espacio de conjuro y recuperas la capacidad tras un descanso largo. También puedes lanzarlo usando espacios de conjuro del nivel apropiado.",
+            tipoAccion: "accion",
+            nivelRequerido: 3,
+            tieneUsosLimitados: true,
+            usosMaximos: 1,
+            recuperacion: "descanso_largo",
+            conjurosOtorgados: ["detectar_magia"],
+            categoriaMecanica: "consumible"
+          },
+          {
+            nombre: "Magia de alto elfo: Paso brumoso",
+            descripcion: "Siempre tienes preparado el conjuro *paso brumoso*. Puedes lanzarlo una vez sin gastar un espacio de conjuro y recuperas la capacidad tras un descanso largo. También puedes lanzarlo usando espacios de conjuro del nivel apropiado.",
+            tipoAccion: "accion_adicional",
+            nivelRequerido: 5,
+            tieneUsosLimitados: true,
+            usosMaximos: 1,
+            recuperacion: "descanso_largo",
+            conjurosOtorgados: ["paso_brumoso"],
+            categoriaMecanica: "consumible"
           }
         ],
         conjurosInnatos: [
@@ -266,13 +348,43 @@ export const CATALOGO_ESPECIES_DND55: DefinicionEspecie[] = [
         id: "elfo_bosques",
         especiePadre: "elfo",
         nombre: "Elfo de los bosques",
-        descripcion: "Ágiles habitantes de las espesuras con velocidad aumentada y magia druídica.",
+        descripcion: "Ágiles habitantes de las espesuras con velocidad aumentada a 35 pies y magia druídica de saber druídico, zancada prodigiosa y pasar sin rastro.",
         modificadores: { velocidad: 35 },
         rasgos: [
           {
             nombre: "Pies veloces",
             descripcion: "Tu velocidad base aumenta a 35 pies.",
-            tipoAccion: "pasivo"
+            tipoAccion: "pasivo",
+            categoriaMecanica: "pasivo_permanente"
+          },
+          {
+            nombre: "Magia de elfo de los bosques: Saber druídico",
+            descripcion: "Conoces el truco *saber druídico* como truco innato de tu linaje del bosque.",
+            tipoAccion: "pasivo",
+            conjurosOtorgados: ["saber_druidico"],
+            categoriaMecanica: "pasivo_permanente"
+          },
+          {
+            nombre: "Magia de elfo de los bosques: Zancada prodigiosa",
+            descripcion: "Siempre tienes preparado el conjuro *zancada prodigiosa*. Puedes lanzarlo una vez sin gastar un espacio de conjuro y recuperas la capacidad tras un descanso largo. También puedes lanzarlo usando espacios de conjuro del nivel apropiado.",
+            tipoAccion: "accion_adicional",
+            nivelRequerido: 3,
+            tieneUsosLimitados: true,
+            usosMaximos: 1,
+            recuperacion: "descanso_largo",
+            conjurosOtorgados: ["zancada_prodigiosa"],
+            categoriaMecanica: "consumible"
+          },
+          {
+            nombre: "Magia de elfo de los bosques: Pasar sin rastro",
+            descripcion: "Siempre tienes preparado el conjuro *pasar sin rastro*. Puedes lanzarlo una vez sin gastar un espacio de conjuro y recuperas la capacidad tras un descanso largo. También puedes lanzarlos usando espacios de conjuro del nivel apropiado.",
+            tipoAccion: "accion",
+            nivelRequerido: 5,
+            tieneUsosLimitados: true,
+            usosMaximos: 1,
+            recuperacion: "descanso_largo",
+            conjurosOtorgados: ["pasar_sin_rastro"],
+            categoriaMecanica: "consumible"
           }
         ],
         conjurosInnatos: [

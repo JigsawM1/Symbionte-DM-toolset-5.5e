@@ -343,6 +343,8 @@ export const crearSubSliceRasgos: StateCreator<
 
       let rasgoObjetivoActivo = false;
       let esRevelacionCelestial = false;
+      let trucoPrevioAltoElfo: string | null = null;
+      let nuevoTrucoAltoElfo: string | null = null;
 
       const rasgosActualizados = (pj.rasgos || []).map((r) => {
         if (r.id === idRasgo && Array.isArray(r.selectores)) {
@@ -352,16 +354,42 @@ export const crearSubSliceRasgos: StateCreator<
             esRevelacionCelestial = true;
           }
 
+          if (idSelector === "selector_truco_alto_elfo" && valorActual?.[0]) {
+            const selectorPrevio = r.selectores.find((s) => s.id === idSelector);
+            trucoPrevioAltoElfo = selectorPrevio?.valorActual?.[0] || null;
+            nuevoTrucoAltoElfo = valorActual[0];
+          }
+
           const selectoresActualizados = r.selectores.map((s) =>
             s.id === idSelector ? { ...s, valorActual } : s
           );
+
+          // Si cambió el truco del Alto elfo, sincronizar conjurosOtorgados en el rasgo
+          let conjurosOtorgadosActualizados = r.conjurosOtorgados;
+          if (nuevoTrucoAltoElfo) {
+            conjurosOtorgadosActualizados = [
+              nuevoTrucoAltoElfo,
+              ...(r.conjurosOtorgados || []).filter((id) => id !== trucoPrevioAltoElfo && id !== nuevoTrucoAltoElfo)
+            ];
+          }
+
           return {
             ...r,
+            conjurosOtorgados: conjurosOtorgadosActualizados,
             selectores: selectoresActualizados
           };
         }
         return r;
       });
+
+      // Sincronizar trucosConocidosIds del personaje
+      let trucosConocidosActualizados = pj.trucosConocidosIds || [];
+      if (nuevoTrucoAltoElfo) {
+        trucosConocidosActualizados = trucosConocidosActualizados.filter((t) => t !== trucoPrevioAltoElfo);
+        if (!trucosConocidosActualizados.includes(nuevoTrucoAltoElfo)) {
+          trucosConocidosActualizados = [...trucosConocidosActualizados, nuevoTrucoAltoElfo];
+        }
+      }
 
       let efectosActualizados = pj.efectosActivos || [];
       let condicionesActualizadas = pj.condicionesActivas || [];
@@ -420,6 +448,7 @@ export const crearSubSliceRasgos: StateCreator<
       return {
         ...pj,
         tamano: tamanoActualizado,
+        trucosConocidosIds: trucosConocidosActualizados,
         rasgos: rasgosActualizados,
         efectosActivos: efectosActualizados,
         condicionesActivas: condicionesActualizadas

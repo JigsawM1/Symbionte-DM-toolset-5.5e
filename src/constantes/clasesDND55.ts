@@ -144,7 +144,7 @@ export const CATALOGO_CLASES_DND55: DefinicionClase[] = [
         descripcion: "Puedes dejar de lado toda preocupación por la defensa para atacar con mayor ferocidad. Cuando hagas tu primera tirada de ataque en tu turno, puedes decidir atacar de forma temeraria. Hacerlo te da ventaja en las tiradas de ataque que usen Fuerza hasta el comienzo de tu siguiente turno, pero las tiradas de ataque contra ti tienen ventaja durante ese tiempo.",
         tipoAccion: "pasivo",
         esActivable: true,
-        condicionAlActivar: "Ataque Temerario (Reckless Attack)",
+        condicionAlActivar: "Ataque Temerario",
         categoriaMecanica: "activable",
         efectos: [
           {
@@ -333,16 +333,7 @@ export const CATALOGO_CLASES_DND55: DefinicionClase[] = [
         tipoAccion: "pasivo",
         formulaDados: "2d10",
         categoriaMecanica: "extension",
-        ligadoA: "rasgo_cls_barbaro_golpe_brutal",
-        efectos: [
-          {
-            tipo: "dado_extra_dano",
-            objetivo: "arma_fuerza",
-            valor: "2d10",
-            aplicaA: "arma_fuerza",
-            descripcion: "Golpe brutal mejorado (+2d10 al daño con armas de Fuerza)"
-          }
-        ]
+        ligadoA: "rasgo_cls_barbaro_golpe_brutal"
       },
       {
         nivel: 18,
@@ -398,14 +389,15 @@ export const CATALOGO_CLASES_DND55: DefinicionClase[] = [
             esActivable: true,
             categoriaMecanica: "activable",
             ligadoA: "rasgo_cls_barbaro_ataque_temerario",
-            formulaDados: "2d6",
+            formulaDados: "dano_furiad6",
             efectos: [
               {
                 tipo: "dado_extra_dano",
                 objetivo: "arma_fuerza",
-                valor: "2d6",
+                valor: "dano_furiad6",
                 aplicaA: "arma_fuerza",
-                descripcion: "Frenesí (+2d6 daño adicional)"
+                condicion: "furia_y_temerario_activos",
+                descripcion: "Frenesí"
               }
             ]
           },

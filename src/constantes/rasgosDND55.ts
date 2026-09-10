@@ -105,28 +105,33 @@ export const RASGOS_POR_ESPECIE: Record<string, PlantillaRasgoEspecie[]> = {
   "Elfo": [
     {
       nombre: "Visión en la oscuridad",
-      descripcion: "Puedes ver en luz tenue a 60 pies como si fuera luz brillante, y en oscuridad como si fuera luz tenue.",
-      tipoAccion: "pasivo"
+      descripcion: "Tienes visión en la oscuridad hasta 60 pies.",
+      tipoAccion: "pasivo",
+      categoriaMecanica: "pasivo_permanente"
     },
     {
       nombre: "Linaje élfico",
-      descripcion: "Obtienes magia y beneficios según tu linaje (Alto elfo: trucos de mago y cambio de conjuro; Elfo del bosque: velocidad 35 pies y magia druídica; Drow: visión en la oscuridad a 120 pies y magia drow).",
-      tipoAccion: "pasivo"
+      descripcion: "Formas parte de un linaje que te otorga capacidades sobrenaturales y conjuros a tus respectivos niveles.",
+      tipoAccion: "pasivo",
+      categoriaMecanica: "pasivo_permanente"
+    },
+    {
+      nombre: "Linaje feérico",
+      descripcion: "Tienes ventaja en las tiradas de salvación para evitar o poner fin al estado de hechizado.",
+      tipoAccion: "pasivo",
+      categoriaMecanica: "pasivo_permanente"
     },
     {
       nombre: "Sentidos agudos",
-      descripcion: "Eres competente en la habilidad Percepción.",
-      tipoAccion: "pasivo"
-    },
-    {
-      nombre: "Ascendencia feérica",
-      descripcion: "Tienes ventaja en las tiradas de salvación para evitar o poner fin al estado Hechizado en ti.",
-      tipoAccion: "pasivo"
+      descripcion: "Tienes competencia en la habilidad de Percepción, Perspicacia o Supervivencia.",
+      tipoAccion: "pasivo",
+      categoriaMecanica: "pasivo_permanente"
     },
     {
       nombre: "Trance",
-      descripcion: "No necesitas dormir. Puedes completar un descanso largo en 4 horas meditando profundamente.",
-      tipoAccion: "pasivo"
+      descripcion: "No necesitas dormir y la magia no puede dormirte. Puedes finalizar un descanso largo en 4 horas si las pasas en meditación.",
+      tipoAccion: "pasivo",
+      categoriaMecanica: "pasivo_permanente"
     }
   ],
 

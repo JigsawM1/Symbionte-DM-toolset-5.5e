@@ -18,9 +18,13 @@ export function coincideHechizoId(idA: string, idB: string): boolean {
   const sinTildesB = normB.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
   if (sinTildesA === sinTildesB) return true;
 
-  // Si un ID ya viene prefijado con "h_", extraer el cuerpo para slugging limpio
-  const limpioA = sinTildesA.startsWith("h_") ? sinTildesA.substring(2) : sinTildesA;
-  const limpioB = sinTildesB.startsWith("h_") ? sinTildesB.substring(2) : sinTildesB;
+  // Si un ID ya viene prefijado con "h_" o "h-", extraer el cuerpo para slugging limpio
+  const limpiarPrefijo = (s: string): string => {
+    if (s.startsWith("h_") || s.startsWith("h-")) return s.substring(2);
+    return s;
+  };
+  const limpioA = limpiarPrefijo(sinTildesA);
+  const limpioB = limpiarPrefijo(sinTildesB);
 
   if (limpioA === limpioB) return true;
 

@@ -745,4 +745,308 @@ describe("GestorEspecies - Dominio de Razas y Subrazas (D&D 5.5e)", () => {
       expect(colaTrasDesactivar[0]?.efectos).toHaveLength(0);
     });
   });
+
+  describe("Elfo y Linajes Élficos (Elfo.md - D&D 5.5e)", () => {
+    it("cumple los campos base universales y rasgos canónicos del Elfo", () => {
+      const elfo = obtenerEspeciePorId("elfo");
+      expect(elfo).toBeDefined();
+      expect(elfo?.tipoCriatura).toBe("Humanoide");
+      expect(elfo?.tamanoOpciones).toEqual(["Mediano"]);
+      expect(elfo?.tamanoPorDefecto).toBe("Mediano");
+      expect(elfo?.velocidadBase).toBe(30);
+      expect(elfo?.visionOscuridad).toBe(60);
+
+      const nombresRasgos = elfo?.rasgos.map((r) => r.nombre);
+      expect(nombresRasgos).toContain("Tipo de criatura");
+      expect(nombresRasgos).toContain("Tamaño");
+      expect(nombresRasgos).toContain("Visión en la oscuridad");
+      expect(nombresRasgos).toContain("Linaje élfico");
+      expect(nombresRasgos).toContain("Linaje feérico");
+      expect(nombresRasgos).toContain("Sentidos agudos");
+      expect(nombresRasgos).toContain("Trance");
+    });
+
+    it("modela Linaje élfico y Sentidos agudos como pasivos permanentes descriptivos, y Magia de alto elfo con selector de truco", () => {
+      const elfo = obtenerEspeciePorId("elfo")!;
+      const rasgos = construirRasgosEspecie(elfo, undefined, 1, 2, "Mediano");
+
+      const linajeElfico = rasgos.find((r) => r.nombre === "Linaje élfico");
+      expect(linajeElfico).toBeDefined();
+      expect(linajeElfico?.categoriaMecanica).toBe("pasivo_permanente");
+      expect(linajeElfico?.selectores).toEqual([]);
+
+      const sentidosAgudos = rasgos.find((r) => r.nombre === "Sentidos agudos");
+      expect(sentidosAgudos).toBeDefined();
+      expect(sentidosAgudos?.categoriaMecanica).toBe("pasivo_permanente");
+      expect(sentidosAgudos?.selectores).toEqual([]);
+
+      const linajeFeerico = rasgos.find((r) => r.nombre === "Linaje feérico");
+      expect(linajeFeerico).toBeDefined();
+      expect(linajeFeerico?.tipoAccion).toBe("pasivo");
+      expect(linajeFeerico?.categoriaMecanica).toBe("pasivo_permanente");
+      expect(linajeFeerico?.descripcion).toContain("ventaja en las tiradas de salvación para evitar o poner fin al estado de hechizado");
+
+      const trance = rasgos.find((r) => r.nombre === "Trance");
+      expect(trance).toBeDefined();
+      expect(trance?.descripcion).toContain("4 horas");
+
+      // Comprobar que la subespecie Alto elfo provee el selector para sustituir el truco de mago
+      const altoElfo = obtenerSubespeciePorNombre("elfo", "alto_elfo")!;
+      const rasgosAltoElfo = construirRasgosEspecie(elfo, altoElfo, 1, 2, "Mediano");
+      const magiaAltoElfo = rasgosAltoElfo.find((r) => r.nombre === "Magia de alto elfo");
+      expect(magiaAltoElfo).toBeDefined();
+      expect(magiaAltoElfo?.selectores).toHaveLength(1);
+      expect(magiaAltoElfo?.selectores?.[0].id).toBe("selector_truco_alto_elfo");
+    });
+
+    it("modela los 3 linajes élficos oficiales: Drow, Alto elfo y Elfo de los bosques", () => {
+      const subespecies = obtenerSubespeciesDeEspecie("elfo");
+      expect(subespecies).toHaveLength(3);
+      const nombres = subespecies.map((s) => s.nombre);
+      expect(nombres).toContain("Drow");
+      expect(nombres).toContain("Alto elfo");
+      expect(nombres).toContain("Elfo de los bosques");
+    });
+
+    it("Drow: incrementa visión a 120 pies y otorga Luces danzantes (N1), Fuego feérico (N3) y Oscuridad (N5)", () => {
+      const drow = obtenerSubespeciePorNombre("elfo", "drow")!;
+      expect(drow).toBeDefined();
+      expect(drow.modificadores?.visionOscuridad).toBe(120);
+
+      const nombresRasgos = drow.rasgos.map((r) => r.nombre);
+      expect(nombresRasgos).toContain("Visión en la oscuridad superior (120 pies)");
+      expect(nombresRasgos.some((n) => n.includes("Magia drow"))).toBe(true);
+
+      const conjuros = drow.conjurosInnatos || [];
+      expect(conjuros).toHaveLength(3);
+
+      const truco = conjuros.find((c) => c.hechizoId === "luces_danzantes");
+      expect(truco).toBeDefined();
+      expect(truco?.esTruco).toBe(true);
+      expect(truco?.nivelRequerido).toBe(1);
+
+      const fuegoFeerico = conjuros.find((c) => c.hechizoId === "fuego_feerico");
+      expect(fuegoFeerico).toBeDefined();
+      expect(fuegoFeerico?.esTruco).toBe(false);
+      expect(fuegoFeerico?.nivelRequerido).toBe(3);
+      expect(fuegoFeerico?.usosGratis).toBe(1);
+
+      const oscuridad = conjuros.find((c) => c.hechizoId === "oscuridad");
+      expect(oscuridad).toBeDefined();
+      expect(oscuridad?.esTruco).toBe(false);
+      expect(oscuridad?.nivelRequerido).toBe(5);
+      expect(oscuridad?.usosGratis).toBe(1);
+    });
+
+    it("Alto elfo: otorga Prestidigitación (N1), Detectar magia (N3) y Paso brumoso (N5)", () => {
+      const altoElfo = obtenerSubespeciePorNombre("elfo", "Alto elfo")!;
+      expect(altoElfo).toBeDefined();
+
+      const nombresRasgos = altoElfo.rasgos.map((r) => r.nombre);
+      expect(nombresRasgos).toContain("Magia de alto elfo");
+
+      const conjuros = altoElfo.conjurosInnatos || [];
+      expect(conjuros).toHaveLength(3);
+
+      const prestidigitacion = conjuros.find((c) => c.hechizoId === "prestidigitacion");
+      expect(prestidigitacion?.esTruco).toBe(true);
+      expect(prestidigitacion?.nivelRequerido).toBe(1);
+
+      const detectarMagia = conjuros.find((c) => c.hechizoId === "detectar_magia");
+      expect(detectarMagia?.esTruco).toBe(false);
+      expect(detectarMagia?.nivelRequerido).toBe(3);
+      expect(detectarMagia?.usosGratis).toBe(1);
+
+      const pasoBrumoso = conjuros.find((c) => c.hechizoId === "paso_brumoso");
+      expect(pasoBrumoso?.esTruco).toBe(false);
+      expect(pasoBrumoso?.nivelRequerido).toBe(5);
+      expect(pasoBrumoso?.usosGratis).toBe(1);
+    });
+
+    it("Elfo de los bosques: incrementa velocidad a 35 pies y otorga Saber druídico (N1), Zancada prodigiosa (N3) y Pasar sin rastro (N5)", () => {
+      const elfoBosques = obtenerSubespeciePorNombre("elfo", "Elfo de los bosques")!;
+      expect(elfoBosques).toBeDefined();
+      expect(elfoBosques.modificadores?.velocidad).toBe(35);
+
+      const nombresRasgos = elfoBosques.rasgos.map((r) => r.nombre);
+      expect(nombresRasgos).toContain("Pies veloces");
+      expect(nombresRasgos.some((n) => n.includes("Magia de elfo de los bosques"))).toBe(true);
+
+      const conjuros = elfoBosques.conjurosInnatos || [];
+      expect(conjuros).toHaveLength(3);
+
+      const saberDruidico = conjuros.find((c) => c.hechizoId === "saber_druidico");
+      expect(saberDruidico?.esTruco).toBe(true);
+      expect(saberDruidico?.nivelRequerido).toBe(1);
+
+      const zancadaProdigiosa = conjuros.find((c) => c.hechizoId === "zancada_prodigiosa");
+      expect(zancadaProdigiosa?.esTruco).toBe(false);
+      expect(zancadaProdigiosa?.nivelRequerido).toBe(3);
+      expect(zancadaProdigiosa?.usosGratis).toBe(1);
+
+      const pasarSinRastro = conjuros.find((c) => c.hechizoId === "pasar_sin_rastro");
+      expect(pasarSinRastro?.esTruco).toBe(false);
+      expect(pasarSinRastro?.nivelRequerido).toBe(5);
+      expect(pasarSinRastro?.usosGratis).toBe(1);
+    });
+
+    it("aplicarEspecieAPersonaje desbloquea progresivamente los conjuros según el nivel del personaje", () => {
+      const pjBase: PersonajeJugador = {
+        ...PERSONAJE_POR_DEFECTO,
+        id: "pj-elfo-progresion",
+        nombre: "Sylas"
+      };
+
+      // Nivel 1: solo truco Luces danzantes
+      const pjNivel1 = aplicarEspecieAPersonaje({ ...pjBase, nivel: 1 }, {
+        especieId: "elfo",
+        subespecieId: "drow"
+      });
+
+      expect(pjNivel1.especie).toBe("Elfo");
+      expect(pjNivel1.subespecie).toBe("Drow");
+      expect(pjNivel1.sentidos).toBe("Visión en la oscuridad 120 pies");
+      expect(pjNivel1.trucosConocidosIds).toContain("luces_danzantes");
+      expect(pjNivel1.conjurosSiemprePreparadosIds).not.toContain("fuego_feerico");
+      expect(pjNivel1.conjurosSiemprePreparadosIds).not.toContain("oscuridad");
+
+      // Nivel 3: truco + Fuego feérico (con rasgo de recurso 1/Descanso largo)
+      const pjNivel3 = aplicarEspecieAPersonaje({ ...pjBase, nivel: 3 }, {
+        especieId: "elfo",
+        subespecieId: "drow"
+      });
+      expect(pjNivel3.trucosConocidosIds).toContain("luces_danzantes");
+      expect(pjNivel3.conjurosSiemprePreparadosIds).toContain("fuego_feerico");
+      expect(pjNivel3.conjurosSiemprePreparadosIds).not.toContain("oscuridad");
+      const rasgoFuegoFeerico = pjNivel3.rasgos.find((r) => r.nombre.includes("Fuego feérico"));
+      expect(rasgoFuegoFeerico).toBeDefined();
+      expect(rasgoFuegoFeerico?.tieneUsosLimitados).toBe(true);
+      expect(rasgoFuegoFeerico?.usosMaximos).toBe(1);
+      expect(rasgoFuegoFeerico?.usosRestantes).toBe(1);
+      expect(rasgoFuegoFeerico?.recuperacion).toBe("descanso_largo");
+
+      // Nivel 5: truco + Fuego feérico + Oscuridad (ambos con rasgo de recurso)
+      const pjNivel5 = aplicarEspecieAPersonaje({ ...pjBase, nivel: 5 }, {
+        especieId: "elfo",
+        subespecieId: "drow"
+      });
+      expect(pjNivel5.trucosConocidosIds).toContain("luces_danzantes");
+      expect(pjNivel5.conjurosSiemprePreparadosIds).toContain("fuego_feerico");
+      expect(pjNivel5.conjurosSiemprePreparadosIds).toContain("oscuridad");
+      const rasgoOscuridad = pjNivel5.rasgos.find((r) => r.nombre.includes("Oscuridad"));
+      expect(rasgoOscuridad).toBeDefined();
+      expect(rasgoOscuridad?.tieneUsosLimitados).toBe(true);
+      expect(rasgoOscuridad?.usosMaximos).toBe(1);
+      expect(rasgoOscuridad?.recuperacion).toBe("descanso_largo");
+    });
+
+    it("conmuta limpiamente entre linajes de Elfo sin duplicar ni dejar conjuros huérfanos", () => {
+      const pjBase: PersonajeJugador = {
+        ...PERSONAJE_POR_DEFECTO,
+        id: "pj-elfo-conmutar",
+        nombre: "Lyra",
+        nivel: 5
+      };
+
+      // 1. Aplicar Alto elfo a nivel 5
+      const pjAltoElfo = aplicarEspecieAPersonaje(pjBase, {
+        especieId: "elfo",
+        subespecieId: "alto_elfo"
+      });
+      expect(pjAltoElfo.trucosConocidosIds).toContain("prestidigitacion");
+      expect(pjAltoElfo.conjurosSiemprePreparadosIds).toContain("detectar_magia");
+      expect(pjAltoElfo.conjurosSiemprePreparadosIds).toContain("paso_brumoso");
+
+      // 2. Conmutar a Elfo de los bosques
+      const pjElfoBosques = aplicarEspecieAPersonaje(pjAltoElfo, {
+        especieId: "elfo",
+        subespecieId: "elfo_bosques"
+      });
+      expect(pjElfoBosques.subespecie).toBe("Elfo de los bosques");
+      expect(pjElfoBosques.velocidad).toBe("35 pies");
+
+      // Se agregaron los conjuros de Elfo de los bosques
+      expect(pjElfoBosques.trucosConocidosIds).toContain("saber_druidico");
+      expect(pjElfoBosques.conjurosSiemprePreparadosIds).toContain("zancada_prodigiosa");
+      expect(pjElfoBosques.conjurosSiemprePreparadosIds).toContain("pasar_sin_rastro");
+
+      // Se purgaron limpiamente los de Alto elfo
+      expect(pjElfoBosques.trucosConocidosIds).not.toContain("prestidigitacion");
+      expect(pjElfoBosques.conjurosSiemprePreparadosIds).not.toContain("detectar_magia");
+      expect(pjElfoBosques.conjurosSiemprePreparadosIds).not.toContain("paso_brumoso");
+    });
+
+    it("resolverOrigenConjuro clasifica los conjuros de linaje élfico como 'legado'", () => {
+      const pjElfo = aplicarEspecieAPersonaje({ ...PERSONAJE_POR_DEFECTO, nivel: 5 }, {
+        especieId: "elfo",
+        subespecieId: "drow"
+      });
+
+      const origenFuegoFeerico = resolverOrigenConjuro(pjElfo, {
+        id: "fuego_feerico",
+        nombre: "Fuego feérico",
+        nivel: 1,
+        escuela: "Evocación",
+        tiempoLanzamiento: "1 acción",
+        alcance: "60 pies",
+        componentes: "V",
+        duracion: "Concentración, hasta 1 minuto",
+        descripcion: "Luz que perfila objetivos."
+      });
+
+      expect(origenFuegoFeerico).toBe("legado");
+
+      const origenLucesDanzantes = resolverOrigenConjuro(pjElfo, {
+        id: "luces_danzantes",
+        nombre: "Luces danzantes",
+        nivel: 0,
+        escuela: "Evocación",
+        tiempoLanzamiento: "1 acción",
+        alcance: "120 pies",
+        componentes: "V, S, M",
+        duracion: "Concentración, hasta 1 minuto",
+        descripcion: "Creas hasta 4 luces."
+      });
+
+      expect(origenLucesDanzantes).toBe("legado");
+    });
+
+    it("Alto elfo: respeta el truco seleccionado en selector_truco_alto_elfo al aplicar la especie", () => {
+      const pjBase: PersonajeJugador = {
+        ...PERSONAJE_POR_DEFECTO,
+        id: "pj-alto-elfo-custom",
+        nombre: "Aredhel",
+        nivel: 3
+      };
+
+      // 1. Aplicar Alto elfo inicialmente
+      const pjInicial = aplicarEspecieAPersonaje(pjBase, {
+        especieId: "elfo",
+        subespecieId: "alto_elfo"
+      });
+
+      // 2. Simular selección del jugador en el selector_truco_alto_elfo
+      const rasgosConSeleccion = pjInicial.rasgos.map((r) => {
+        if (r.nombre === "Magia de alto elfo") {
+          return {
+            ...r,
+            selectores: (r.selectores || []).map((s) =>
+              s.id === "selector_truco_alto_elfo" ? { ...s, valorActual: ["rayo_de_escarcha"] } : s
+            )
+          };
+        }
+        return r;
+      });
+
+      // 3. Reaplicar la especie y comprobar que se adopta el nuevo truco
+      const pjActualizado = aplicarEspecieAPersonaje({ ...pjInicial, rasgos: rasgosConSeleccion }, {
+        especieId: "elfo",
+        subespecieId: "alto_elfo"
+      });
+
+      expect(pjActualizado.trucosConocidosIds).toContain("rayo_de_escarcha");
+      expect(pjActualizado.trucosConocidosIds).not.toContain("prestidigitacion");
+      expect(pjActualizado.conjurosSiemprePreparadosIds).toContain("detectar_magia");
+    });
+  });
 });

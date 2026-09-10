@@ -2,6 +2,8 @@ import { describe, it, expect, beforeEach } from "vitest";
 import { usarAlmacenDM } from "@/almacen/usarAlmacenDM";
 import { PERSONAJE_POR_DEFECTO } from "@/constantes";
 import type { RasgoPersonaje, PersonajeJugador } from "@/tipos";
+import { estaAtaqueTemerarioActivo } from "@/servicios/evaluadorEfectosRasgos";
+import { evaluarEfectosCondicionesEnTirada } from "@/servicios/procesadorCondiciones";
 
 describe("SlicePersonajes - Daño y Escudo (HP Temporal)", () => {
   beforeEach(() => {
@@ -876,13 +878,13 @@ describe("SlicePersonajes - Daño y Escudo (HP Temporal)", () => {
       expect(rasgoDioses?.activo).toBe(true);
       expect(rasgoDioses?.usosRestantes).toBe(0);
       expect(rasgoFuria?.activo).toBe(true);
-      expect(pj?.condicionesActivas).toContain("Furia de los Dioses (Rage of the Gods)");
-      expect(pj?.condicionesActivas).toContain("Furia (Rage)");
+      expect(pj?.condicionesActivas).toContain("Furia de los Dioses");
+      expect(pj?.condicionesActivas).toContain("Furia");
 
       // 3. Desactivar rasgo "Furia de los dioses"
       alternarActivoRasgo("pj-fanatico-14", "rasgo_sub_senda_del_fanatico_furia_de_los_dioses");
       pj = usarAlmacenDM.getState().personajes.find((p) => p.id === "pj-fanatico-14");
-      expect(pj?.condicionesActivas).not.toContain("Furia de los Dioses (Rage of the Gods)");
+      expect(pj?.condicionesActivas).not.toContain("Furia de los Dioses");
 
       // Desactivamos también Furia base para verificar el paso siguiente
       alternarActivoRasgo("pj-fanatico-14", "rasgo_cls_barbaro_furia");
@@ -890,7 +892,7 @@ describe("SlicePersonajes - Daño y Escudo (HP Temporal)", () => {
       expect(pj?.rasgos.find((r) => r.id === "rasgo_cls_barbaro_furia")?.activo).toBe(false);
 
       // 4. Aplicar condición desde la barra táctica / iniciativa
-      aplicarCondicionPersonaje("pj-fanatico-14", "Furia de los Dioses (Rage of the Gods)");
+      aplicarCondicionPersonaje("pj-fanatico-14", "Furia de los Dioses");
       pj = usarAlmacenDM.getState().personajes.find((p) => p.id === "pj-fanatico-14");
       const rasgoDioses2 = pj?.rasgos.find((r) => r.id === "rasgo_sub_senda_del_fanatico_furia_de_los_dioses");
       const rasgoFuria2 = pj?.rasgos.find((r) => r.id === "rasgo_cls_barbaro_furia");
@@ -898,7 +900,7 @@ describe("SlicePersonajes - Daño y Escudo (HP Temporal)", () => {
       expect(rasgoFuria2?.activo).toBe(false); // NO debe activarse Furia base
 
       // 4. Quitar la condición desactiva el rasgo
-      quitarCondicionPersonaje("pj-fanatico-14", "Furia de los Dioses (Rage of the Gods)");
+      quitarCondicionPersonaje("pj-fanatico-14", "Furia de los Dioses");
       pj = usarAlmacenDM.getState().personajes.find((p) => p.id === "pj-fanatico-14");
       const rasgoDioses3 = pj?.rasgos.find((r) => r.id === "rasgo_sub_senda_del_fanatico_furia_de_los_dioses");
       expect(rasgoDioses3?.activo).toBe(false);
@@ -986,9 +988,9 @@ describe("SlicePersonajes - Daño y Escudo (HP Temporal)", () => {
       expect(rasgoFD?.activo).toBe(false);
       expect(rasgoGB?.activo).toBe(false);
 
-      // 4. Con condición Furia (Rage) aplicada, se activan y al quitar condición se desactivan
+      // 4. Con condición Furia aplicada, se activan y al quitar condición se desactivan
       const { aplicarCondicionPersonaje } = usarAlmacenDM.getState();
-      aplicarCondicionPersonaje("pj-barbaro-fanatico", "Furia (Rage)");
+      aplicarCondicionPersonaje("pj-barbaro-fanatico", "Furia");
       alternarActivoRasgo("pj-barbaro-fanatico", "rasgo_sub_senda_del_fanatico_furia_divina");
       alternarActivoRasgo("pj-barbaro-fanatico", "rasgo_cls_barbaro_golpe_brutal");
 
@@ -996,10 +998,126 @@ describe("SlicePersonajes - Daño y Escudo (HP Temporal)", () => {
       expect(pj?.rasgos.find((r) => r.id === "rasgo_sub_senda_del_fanatico_furia_divina")?.activo).toBe(true);
       expect(pj?.rasgos.find((r) => r.id === "rasgo_cls_barbaro_golpe_brutal")?.activo).toBe(true);
 
-      quitarCondicionPersonaje("pj-barbaro-fanatico", "Furia (Rage)");
+      quitarCondicionPersonaje("pj-barbaro-fanatico", "Furia");
       pj = usarAlmacenDM.getState().personajes.find((p) => p.id === "pj-barbaro-fanatico");
       expect(pj?.rasgos.find((r) => r.id === "rasgo_sub_senda_del_fanatico_furia_divina")?.activo).toBe(false);
       expect(pj?.rasgos.find((r) => r.id === "rasgo_cls_barbaro_golpe_brutal")?.activo).toBe(false);
+    });
+  });
+
+  describe("Ataque Temerario en Español y Efectos Temporales", () => {
+    const barbaroTemerarioId = "pj-barbaro-temerario";
+
+    beforeEach(() => {
+      const rasgoAtaqueTemerario = {
+        id: "rasgo_cls_barbaro_ataque_temerario",
+        nombre: "Ataque Temerario",
+        descripcion: "Ventaja en tiradas de ataque con Fuerza durante tu turno.",
+        tipoAccion: "pasivo",
+        esActivable: true,
+        condicionAlActivar: "Ataque Temerario",
+        categoriaMecanica: "activable",
+        activo: false,
+        efectos: [
+          {
+            tipo: "ventaja",
+            objetivo: "ataque_fuerza",
+            valor: "ventaja",
+            condicion: "ataque_temerario_activo",
+            descripcion: "Ataque Temerario (Ventaja en tiradas de ataque con Fuerza)"
+          }
+        ]
+      } as RasgoPersonaje;
+
+      const barbaro: PersonajeJugador = {
+        ...PERSONAJE_POR_DEFECTO,
+        id: barbaroTemerarioId,
+        nombre: "Conan",
+        clase: "Bárbaro",
+        nivel: 3,
+        rasgos: [rasgoAtaqueTemerario],
+        condicionesActivas: [],
+        efectosActivos: []
+      };
+
+      usarAlmacenDM.setState({
+        personajes: [barbaro],
+        idPersonajeActivo: barbaroTemerarioId,
+        rondaActual: 1
+      });
+    });
+
+    it("al activar el rasgo Ataque Temerario, se sincroniza la condición y efecto de 1 ronda, y se detecta activo", () => {
+      const { alternarActivoRasgo } = usarAlmacenDM.getState();
+      alternarActivoRasgo(barbaroTemerarioId, "rasgo_cls_barbaro_ataque_temerario");
+
+      const pj = usarAlmacenDM.getState().personajes.find((p) => p.id === barbaroTemerarioId);
+      expect(pj?.rasgos.find((r) => r.id === "rasgo_cls_barbaro_ataque_temerario")?.activo).toBe(true);
+      expect(pj?.condicionesActivas).toContain("Ataque Temerario");
+      expect(pj?.efectosActivos?.some((e) => e.nombre === "Ataque Temerario")).toBe(true);
+
+      // Verificación de que el evaluador reconoce que Ataque Temerario está activo
+      expect(estaAtaqueTemerarioActivo(pj!)).toBe(true);
+
+      // Verificación de que evaluarEfectosCondicionesEnTirada otorga ventaja en tirada de ataque con Fuerza
+      const evaluacion = evaluarEfectosCondicionesEnTirada({
+        tipo: "ataque",
+        caracteristica: "fuerza",
+        condicionesActivas: pj?.condicionesActivas,
+        personaje: pj
+      });
+      expect(evaluacion.tieneVentaja).toBe(true);
+      expect(evaluacion.motivosVentaja.some((m) => m.includes("Ataque Temerario"))).toBe(true);
+    });
+
+    it("si Ataque Temerario está únicamente en efectosActivos (desduplicado de condiciones en combate), sigue otorgando ventaja", () => {
+      // Simular que por sincronización con Combat Tracker se desduplicó de condicionesActivas y quedó en efectosActivos
+      usarAlmacenDM.setState((st) => ({
+        personajes: st.personajes.map((p) =>
+          p.id === barbaroTemerarioId
+            ? {
+                ...p,
+                condicionesActivas: [],
+                efectosActivos: [{ id: "ef_temerario", nombre: "Ataque Temerario", expiraRonda: 2 }]
+              }
+            : p
+        )
+      }));
+
+      const pj = usarAlmacenDM.getState().personajes.find((p) => p.id === barbaroTemerarioId);
+      expect(estaAtaqueTemerarioActivo(pj!)).toBe(true);
+
+      const evaluacion = evaluarEfectosCondicionesEnTirada({
+        tipo: "ataque",
+        caracteristica: "fuerza",
+        condicionesActivas: pj?.condicionesActivas,
+        personaje: pj
+      });
+      expect(evaluacion.tieneVentaja).toBe(true);
+      expect(evaluacion.motivosVentaja.some((m) => m.includes("Ataque Temerario"))).toBe(true);
+    });
+
+    it("al desactivar el rasgo Ataque Temerario, se retira la condición, el efecto y cesa la ventaja", () => {
+      const { alternarActivoRasgo } = usarAlmacenDM.getState();
+      // Activar
+      alternarActivoRasgo(barbaroTemerarioId, "rasgo_cls_barbaro_ataque_temerario");
+      // Desactivar
+      alternarActivoRasgo(barbaroTemerarioId, "rasgo_cls_barbaro_ataque_temerario");
+
+      const pj = usarAlmacenDM.getState().personajes.find((p) => p.id === barbaroTemerarioId);
+      expect(pj?.rasgos.find((r) => r.id === "rasgo_cls_barbaro_ataque_temerario")?.activo).toBe(false);
+      expect(pj?.condicionesActivas).not.toContain("Ataque Temerario");
+      expect(pj?.efectosActivos?.some((e) => e.nombre === "Ataque Temerario")).toBe(false);
+
+      expect(estaAtaqueTemerarioActivo(pj!)).toBe(false);
+
+      const evaluacion = evaluarEfectosCondicionesEnTirada({
+        tipo: "ataque",
+        caracteristica: "fuerza",
+        condicionesActivas: pj?.condicionesActivas,
+        personaje: pj
+      });
+      expect(evaluacion.tieneVentaja).toBe(false);
     });
   });
 });

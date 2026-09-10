@@ -52,6 +52,7 @@ export function usarLanzadorConjuros(opciones: OpcionesLanzadorConjuros): Contro
     gastarPuntosConjuro,
     gastarEspacioPacto,
     gastarArcanoMistico,
+    gastarUsoRasgoPersonaje,
     establecerConcentracion,
     modificarCargasObjeto
   } = usarAlmacenDM();
@@ -167,6 +168,23 @@ export function usarLanzadorConjuros(opciones: OpcionesLanzadorConjuros): Contro
             case "arcanoMistico":
               gastarArcanoMistico(personaje.id, preparado.gasto.nivel);
               break;
+            case "gratuitoInnato": {
+              const hId = preparado.gasto.hechizoId;
+              const hNomNorm = (solicitudCompleta.hechizo.nombre || "").toLowerCase().trim();
+              const rasgoAsociado = (personaje.rasgos || []).find((r) =>
+                r.tieneUsosLimitados &&
+                (r.usosRestantes || 0) > 0 &&
+                (
+                  (r.conjurosOtorgados || []).includes(hId) ||
+                  r.nombre.toLowerCase().includes(hNomNorm) ||
+                  hNomNorm.includes(r.nombre.toLowerCase())
+                )
+              );
+              if (rasgoAsociado) {
+                gastarUsoRasgoPersonaje(personaje.id, rasgoAsociado.id);
+              }
+              break;
+            }
             case "ninguno":
             default:
               break;

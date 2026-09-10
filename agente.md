@@ -16,6 +16,376 @@ Este archivo registra reglas globales, errores encontrados, sus causas raíz y l
    - Las dependencias fluyen estrictamente hacia abajo: `App/Layout -> Caracteristicas -> Comunes -> Almacen -> Servicios -> Utiles/Constantes/Tipos`.
    - **Bajo ninguna circunstancia** los módulos de lógica de negocio (`servicios/`), gestores de estado (`almacen/`), contratos (`tipos/`), valores de reglas (`constantes/`) ni funciones de soporte (`utiles/`) deben importar componentes visuales o archivos CSS (`componentes/`). Esta regla está reforzada en CI vía ESLint `no-restricted-imports`.
 
+## [2026-09-09] Escalado Dinámico de Frenesí (2d6 -> 3d6 -> 4d6) y Golpe Brutal (1d10 -> 2d10) con Arquitectura Genérica para el Builder (D&D 5.5e)
+**Contexto y Requerimientos del Usuario:**
+- El usuario reportó: *"ok, arrelgado, ahora vamos con el segundo problema. golpe brutal solo esta dando el dado minimo (1d10) al igual que frenesi (2d6) en vez de actualizarse segun el nivel"*.
+- Directriz arquitectónica explícita del usuario: *"las funciones deben ser super genéricas para consumirlas en el builder. no deberían hacer esas comprobaciones (fallbacks) específicas, por que eso le quita sentido a que sea genérico"*.
+
+**Causas Raíz Identificadas:**
+1. **Fórmulas Estáticas en Catálogo y Desconexión de Efectos Mecánicos:**
+   - En `clasesDND55.ts`, Frenesí tenía valores fijos en cadena (`formulaDados: "2d6"`, `efectos[0].valor: "2d6"`).
+   - Golpe Brutal tenía `formulaDados: "1d10"` y `efectos[0].valor: "1d10"`, sin actualizarse automáticamente al nivel 17+.
+2. **Cortocircuito y Acoplamiento no Genérico en `calculadorDanoCombate.ts`:**
+   - Se evaluaba `!dadosExtraEfectos.some((d) => d.origen.toLowerCase().includes("frenes"))`. Como `obtenerDadosExtraAtaque` ya aportaba el efecto estático `"2d6"`, la condición era falsa y nunca se ejecutaba la fórmula escalada.
+   - Golpe Brutal exigía erróneamente `furiaEstaActiva`, cuando según el PHB 2024 solo requiere usar Ataque Temerario renunciando a la ventaja con armas de Fuerza.
+   - Existían comprobaciones ad-hoc con `coincideIdRasgo(r, ID_RASGO.FRENESI)` y `ID_RASGO.GOLPE_BRUTAL`, quebrando el diseño genérico para rasgos homebrew del builder.
+3. **Omisión de Sincronización de Efectos en `gestorClases.ts`:**
+   - A nivel 17, `gestorClases.ts` actualizaba `formulaDadosRasgo = "2d10"` pero mantenía `r.efectos[0].valor = "1d10"`.
+   - Para Frenesí, no se recomputaba `efectos[0].valor` en los niveles 9 y 16.
+
+**Solución Implementada y Decisiones Arquitectónicas (100% Genérica):**
+1. **Tokens Dinámicos Universales en `resolverFormulaDinamica` (`src/servicios/evaluadorEfectosRasgos.ts`):**
+   - Soporte nativo para el token `dano_furia` (calculado con el nivel de Bárbaro del personaje, incluso en multiclase), `mitad_nivel`, `bono_competencia` y normalización de espacios (`dano_furiad6`).
+   - Frenesí en `clasesDND55.ts` se definió con `formulaDados: "dano_furiad6"` y `valor: "dano_furiad6"`. Se evalúa dinámicamente en cualquier contexto sin necesidad de fallbacks.
+2. **Desacoplamiento Absoluto en `calculadorDanoCombate.ts`:**
+   - Se eliminaron todos los `ID_RASGO` y nombres específicos de rasgos.
+   - `dadosExtra` proviene íntegramente de la evaluación genérica de `obtenerDadosExtraAtaque(personajeActivo, contextoAtaque)`.
+   - Soporte genérico para rasgos activables creados en el builder con `formulaDados` que no posean efectos mecánicos explícitos.
+   - Se corrigió el cálculo de `bonoFuria` numérico para que solo aplique cuando `furiaEstaActiva === true` y no esté ya cubierto por los efectos del rasgo.
+3. **Sincronización Pura en el Builder / `gestorClases.ts`:**
+   - Para Golpe Brutal a nivel 17+: actualiza tanto `formulaDadosRasgo = "2d10"` como `efectosClonados[0].valor = "2d10"`.
+   - Para Frenesí: sincroniza tanto `formulaDadosRasgo` como `efectosClonados[0].valor` (`2d6`, `3d6`, `4d6`).
+4. **Nueva Suite Dedicada `src/servicios/calculadorDanoCombate.test.ts` y Ampliación de `gestorClases.test.ts`:**
+   - 8 pruebas unitarias validando: Frenesí nv 3 (2d6), nv 9 (3d6), nv 16 (4d6); Golpe Brutal nv 9 (1d10 sin Furia), nv 17 (2d10); acumulación simultánea (3d6 + 1d10); y soporte genérico de rasgos activables del builder.
+
+**Métricas de Calidad Verificadas:**
+- `pnpm exec tsc --noEmit`: 0 errores (Strict Mode estricto).
+- `pnpm lint`: 0 errores y 0 advertencias (ESLint limpio).
+- `pnpm test`: 48 suites superadas, 549 de 549 pruebas pasando (100%).
+- `node scripts/verificar-limite-lineas.js`: 108 archivos auditados, 0 archivos con más de 500 líneas.
+
+---
+
+## [2026-09-09] Corrección Integral de Ventaja en Tiradas de Ataque con Ataque Temerario (TaleSpire y UI)
+**Contexto y Requerimientos del Usuario:**
+- El usuario reportó: *"nop, el efecto de ataque temerario sigue sin funcionar, no me esta dando ventaja en los ataques"*.
+- Se validó con el usuario que el rasgo Golpe Brutal efectivamente renuncia a la ventaja a cambio de mayor daño, según las reglas de D&D 5.5e (*"esta, si funciona asi, ese rasgo le quita la ventaja a cambio de mas daño"*).
+
+**Causas Raíz Identificadas:**
+1. **Fallo Crítico en `ejecutarTiradaAtaqueFisico` (`src/servicios/ejecutorTiradasCombate.ts`):**
+   - Cuando `evaluacionCondiciones.modoEfectivo === "ventaja"`, el código construía `formula = "2d20kh1" + bonoStr` y llamaba a `lanzarDadosTaleSpire(formula, etiqueta)` sin pasar el quinto argumento `tipoTiradaForzado`.
+   - Como `tipoTiradaForzado` era `undefined`, TaleSpire consideraba la tirada como `"plano"`.
+   - Además, TaleSpire **NO soporta** la sintaxis Roll20 `"2d20kh1"` (espera `1d20+X` junto a los grupos `Ataque (A)` y `Ataque (B)`).
+   - En `limpiarYNormalizarDadosSimples`, la limpieza `replace(/[^d0-9+\-*/()]/g, "")` borraba las letras `k` y `h` de `2d20kh1+5`, convirtiendo la fórmula en `2d201+5` (**¡un dado corrupto de 201 caras!**), lo que hacía fallar el motor físico 3D de TaleSpire y el fallback matemático.
+2. **Inferencia de Atributo en Armas Sutiles (`src/servicios/calculadorAtaquesArmas.ts`):**
+   - En armas sutiles (daga, espada corta, cimitarra, estoque), si Destreza >= Fuerza, se asignaba Destreza por defecto. Al evaluar la tirada de ataque en `procesadorCondiciones.ts`, la regla `caracteristica === "fuerza"` resultaba falsa, denegando la ventaja de Ataque Temerario.
+   - En un combatiente bárbaro o con Furia / Ataque Temerario activo, las armas cuerpo a cuerpo deben preferir Fuerza por defecto si el usuario no ha fijado manualmente otra opción.
+3. **Falta de soporte de sintaxis opcional en `ejecutarTiradaFallbackLocal` (`src/utiles/lanzadorDados.ts`):**
+   - La expresión regular exigía el prefijo `!` (`^!([^:]+):(.*)$`), omitiendo grupos sin exclamación como `Ataque (A):1d20+5`.
+
+**Solución Implementada y Decisiones Arquitectónicas:**
+1. **Fórmula Canónica y Propagación de `tipoTiradaForzado` (`src/servicios/ejecutorTiradasCombate.ts`):**
+   - Se mantiene siempre la fórmula como `1d20${bonoStr}`.
+   - Se pasa como 5º parámetro a `lanzarDadosTaleSpire`: `evaluacionCondiciones.modoEfectivo !== "plano" ? evaluacionCondiciones.modoEfectivo : undefined`.
+   - TaleSpire divide limpiamente la tirada en `Ataque (A): 1d20+X` y `Ataque (B): 1d20+X`, lanzando 2 dados d20 en la mesa 3D y eligiendo el mayor de forma nativa.
+2. **Inferencia Inteligente de Fuerza en Armas Cuerpo a Cuerpo (`src/servicios/calculadorAtaquesArmas.ts`):**
+   - Si `furiaEstaActiva || estaAtaqueTemerarioActivo(personajeActivo)` o si FUE >= DES, las armas sutiles cuerpo a cuerpo seleccionan `"fuerza"` por defecto, asegurando la ventaja de Ataque Temerario y el bono de daño de Furia.
+3. **Blindaje de Fórmulas y Fallback Local (`src/utiles/lanzadorDados.ts`):**
+   - En `limpiarYNormalizarDadosSimples`, se normaliza cualquier `2d20k[hl]1` a `1d20` para evitar dados corruptos.
+   - En `ejecutarTiradaFallbackLocal`, se admite `^!?([^:]+):(.*)$` y soporte para evaluar `2d20kh1` (ventaja) y `2d20kl1` (desventaja) localmente.
+4. **Mejora en UI (`src/componentes/caracteristicas/ataques/TarjetaAtaquePersonaje.tsx`):**
+   - El botón Atacar clarifica en su tooltip si la tirada se lanzará `con Ventaja` o `con Desventaja`.
+5. **Pruebas Automatizadas Nuevas (`src/servicios/ejecutorTiradasCombate.test.ts`):**
+   - Suite con 5 pruebas validando: ventaja por condición, ventaja por efecto temporal de 1 ronda, ventaja por rasgo conmutado en ficha, renuncia a ventaja por Golpe Brutal, y tirada plana normal.
+
+**Métricas de Calidad Verificadas:**
+- `pnpm exec tsc --noEmit`: 0 errores (Strict Mode).
+- `pnpm lint`: 0 errores, 0 advertencias.
+- `pnpm test`: 47 suites superadas, 539 de 539 pruebas pasando (100%).
+- `node scripts/verificar-limite-lineas.js`: 108 archivos auditados, 0 archivos con más de 500 líneas.
+
+---
+
+## [2026-09-09] Corrección Definitiva del Efecto de Ataque Temerario (Reckless Attack), Estandarización a Español y Desacoplamiento de Efectos Temporales
+**Contexto y Requerimientos del Usuario:**
+- El usuario reportó que el efecto de **Ataque Temerario** no estaba funcionando tras haber cambiado su nombre (eliminando sufijos en inglés como `(Reckless Attack)` a solo `"Ataque Temerario"`).
+- Directriz explícita del usuario: *"ahora solo vamos a usarlo en español"*.
+
+**Causas Raíz Identificadas:**
+1. **Desconexión entre `efectosActivos` y la evaluación de ventajas:**
+   - Al ser un efecto con duración estándar de 1 ronda, "Ataque Temerario" se almacena en `personaje.efectosActivos` y en iniciativa se mueve a `criatura.efectos`, desduplicándose de `condicionesActivas`.
+   - `estaAtaqueTemerarioActivo` en `evaluadorEfectosRasgos.ts` solo inspeccionaba `personaje.condicionesActivas` y `estaRasgoActivo(personaje, "ataque temerario")`.
+   - `evaluarEfectosCondicionesEnTirada` en `procesadorCondiciones.ts` solo leía `contexto.condicionesActivas`, ignorando por completo los efectos temporales de `contexto.personaje?.efectosActivos`.
+2. **Comparación rígida de identificadores en `estaRasgoActivo`:**
+   - La función comparaba `normalizar(r.id) === busqueda`. Como el ID de clase de Bárbaro es `rasgo_cls_barbaro_ataque_temerario`, la igualdad fallaba siempre al buscar `"ataque temerario"` y dependía únicamente de coincidencia por inclusión en `r.nombre`. Al cambiar el usuario el nombre, la búsqueda fallaba.
+3. **Colisión de subcadenas en `coincideCondicionConRasgo`:**
+   - `coincideCondicionConRasgo` evaluaba `asocNorm.includes(cNorm)`. Para la condición `"Furia"`, `"furia de los dioses".includes("furia")` evaluaba como verdadero, provocando que la activación de Furia base bloqueara o interfiriera con Furia de los dioses.
+
+**Solución Implementada y Decisiones Arquitectónicas:**
+1. **Inspección Integral en `estaAtaqueTemerarioActivo` (`src/servicios/evaluadorEfectosRasgos.ts`):**
+   - Comprueba `personaje.condicionesActivas` (con normalización en español).
+   - Comprueba `personaje.efectosActivos` (para reconocer el efecto temporal activo en combate o ficha).
+   - Comprueba los rasgos conmutados en `personaje.rasgos` (`r.activo !== false` coincidiendo por ID o nombre en español).
+2. **Inclusión de ID por subcadena en `estaRasgoActivo`:**
+   - `idNorm === busqueda || idNorm.includes(busqueda) || nomNorm === busqueda || nomNorm.includes(busqueda)`.
+   - Permite que búsquedas conceptuales (ej. `"ataque temerario"`, `"furia"`) encuentren automáticamente identificadores como `rasgo_cls_barbaro_ataque_temerario`.
+3. **Integración de `efectosActivos` en `evaluarEfectosCondicionesEnTirada` (`src/servicios/procesadorCondiciones.ts`):**
+   - Se combinan `contexto.condicionesActivas` con `contexto.personaje?.efectosActivos.map(e => e.nombre)`.
+   - Ataques que usen Fuerza (o ataques físicos sin restricción de característica) reciben el motivo de ventaja `"Ataque Temerario (Fuerza)"`.
+   - Se añadió un chequeo de respaldo directo contra `estaAtaqueTemerarioActivo(contexto.personaje)`.
+4. **Comparación de Nombres Base en `coincideCondicionConRasgo` (`src/almacen/slices/personajes/condicionesRasgosHelpers.ts`):**
+   - Se aíslan condiciones mediante `cBase === asocBase` (limpiando paréntesis), impidiendo que `"Furia"` colisione con `"Furia de los Dioses"`.
+5. **Estandarización 100% en Español:**
+   - Condiciones y rasgos canónicos unificados a `"Ataque Temerario"`, `"Furia"` y `"Furia de los Dioses"`.
+6. **Pruebas Automatizadas Rigurosas (`src/almacen/slices/slicePersonajes.test.ts`):**
+   - Suite dedicada `"Ataque Temerario en Español y Efectos Temporales"` validando:
+     - Activación por rasgo conmutado y propagación a condición/efecto.
+     - Detección de ventaja cuando el efecto reside únicamente en `efectosActivos`.
+     - Desactivación limpia y cese de ventaja.
+
+**Métricas de Calidad Verificadas:**
+- `pnpm exec tsc --noEmit`: 0 errores (Strict Mode estricto).
+- `pnpm lint`: 0 errores, 0 advertencias.
+- `pnpm test`: 46 suites superadas, 534 de 534 pruebas pasando (100%).
+- `node scripts/verificar-limite-lineas.js`: 108 archivos auditados, 0 archivos con más de 500 líneas.
+
+---
+
+## [2026-09-09] Resolución Canónica de Conjuros Innatos de Especie, Subespecie y Rasgos en la Pestaña Acciones
+**Contexto y Requerimientos del Usuario:**
+- En la pestaña "Acciones" (sección "Conjuros y Acciones Mágicas"), no se mostraban los conjuros ni trucos otorgados por la **especie** o **subespecie/linaje** del personaje (ej. *Detectar magia*, *Paso brumoso*, *Luces danzantes*, *Fuego feérico*, *Oscuridad*, *Luz* de Aasimar, trucos de Alto Elfo seleccionados, etc.). Solo aparecían los conjuros de clase y subclase.
+- Se solicitó resolver esta omisión para que todos los recursos mágicos innatos estén disponibles para lanzamiento y combate táctico según el nivel del personaje.
+
+**Causas Raíz Identificadas:**
+1. **Omisión de Fuentes Innatas en `resolverConjurosAcciones` (`src/servicios/calculadorAccionesCombate.ts`):**
+   - La función construía su lista de candidatos exclusivamente a partir de `trucosConocidosIds`, `conjurosSiemprePreparadosIds`, `conjurosPreparadosIds` y `conjurosConocidosIds`. No inspeccionaba `personajeActivo.rasgos` (`conjurosOtorgados`, selectores de rasgos como `selector_truco_alto_elfo`, ni efectos de rasgos), ni los conjuros innatos del catálogo de especie y subespecie (`CATALOGO_ESPECIES_DND55` vía `obtenerEspeciePorNombre` y `obtenerSubespeciePorNombre`).
+2. **Discrepancias de Identificadores y Prefijos en Compendios (`coincideHechizoId`):**
+   - La coincidencia en `resolverConjurosAcciones` utilizaba `c.id === id || normalizar(c.nombre) === normalizar(id)`. Los compendios almacenan slugs como `"h_detectar-magia"`, mientras que los rasgos registran claves con guion bajo (`"detectar_magia"`). `normalizar("detectar_magia")` no es igual a `"detectar magia"`, impidiendo la asociación incluso cuando el identificador estaba en la ficha.
+   - Además, `coincideHechizoId` en `comparadorHechizos.ts` solo limpiaba prefijos `"h_"`, no considerando variantes con guion (`"h-"`), lo que provocaba que IDs como `"h-detectar-magia"` generaran slugs duplicados (`"h_h-detectar-magia"`).
+3. **Falta de Validación de Nivel Requerido en Resolutores:**
+   - `resolverOrigenConjuro` no comprobaba `nivelRequerido`, lo que podía marcar conjuros bloqueados por nivel antes de tiempo, mientras que `obtenerConjurosOtorgadosPorRasgos` carecía del filtro de selectores mágicos, integrando selectores no mágicos (como el tamaño mediano) a listas mágicas.
+
+**Solución Implementada y Decisiones Arquitectónicas:**
+1. **Generalización de `coincideHechizoId` (`src/servicios/comparadorHechizos.ts`):**
+   - Se añadió la función auxiliar `limpiarPrefijo` para sanear tanto `"h_"` como `"h-"` antes de generar el slug determinista, logrando equivalencia perfecta entre cualquier formato de slug, id compuesto o nombre con diacríticos.
+2. **Refuerzo de `resolutorOrigenConjuros.ts`:**
+   - Integrado `coincideHechizoId` en el predicado interno `coincide`.
+   - Implementada la validación de nivel `pjNivel >= ci.nivelRequerido` y `pjNivel >= r.nivelRequerido` tanto en rasgos como en las definiciones de especie y subespecie de catálogo.
+   - Añadida la evaluación de selectores de rasgos de tipo conjuro (`sel.id` con `truco`, `conjuro`, `hechizo`, `spell`, `cantrip`), permitiendo que trucos personalizados (ej. cambiar Prestidigitación por Descarga de fuego en Alto Elfo) se reconozcan de inmediato.
+3. **Ampliación Integral de `resolverConjurosAcciones` (`src/servicios/calculadorAccionesCombate.ts`):**
+   - Se recopilan todos los candidatos desde: ficha base, rasgos activos con nivel cumplido (`conjurosOtorgados`, selectores de conjuro, efectos `conjuro_otorgado`, Palabras de creación de bardo nv 20), conjuros innatos del catálogo oficial D&D 5.5e (especie y subespecie cumpliendo nivel), y conjuros dinámicos de subclase.
+   - Se implementó un índice O(1) rápido (`setRapido`) con fallback a `coincideHechizoId` y `resolverOrigenConjuro`, garantizando un rendimiento óptimo (< 1ms en ~400 hechizos).
+   - Se ordenan por nivel de conjuro y alfabéticamente en español, asignando la economía de acción (`accion`, `accionAdicional`, `reaccion`).
+4. **Soporte de Lanzamiento Gratuito en `SeccionAtaquesMagicos.tsx`:**
+   - La búsqueda de `rasgoInnatoGratuito` ahora utiliza `coincideHechizoId` para comparar `r.conjurosOtorgados` con el conjuro, asegurando que el botón de lanzamiento gratuito (1/DL) esté siempre activo cuando correspondan usos restantes.
+5. **Pruebas Automatizadas Rigurosas (`src/servicios/calculadorAccionesCombate.test.ts`):**
+   - 9 nuevas pruebas cubriendo desbloqueo progresivo de Alto Elfo (nv 1, nv 3, nv 5), Aasimar, Drow, modificadores de selector de rasgos, economía de acciones y detección de subclases D&D 5.5e.
+6. **Métricas de Calidad Verificadas:**
+   - `pnpm exec tsc --noEmit`: 0 errores de tipado.
+   - `pnpm lint`: 0 errores, 0 advertencias.
+   - `pnpm test`: 46 suites superadas, 531/531 pruebas pasando (100%).
+   - `node scripts/verificar-limite-lineas.js`: 108 archivos auditados, 0 archivos con más de 500 líneas.
+
+---
+
+## [2026-09-09] Corrección Definitiva de net::ERR_CONTENT_DECODING_FAILED (css2:1) y Desacoplamiento Offline de Fuentes
+**Contexto y Requerimientos del Usuario:**
+- Al cargar la aplicación o el simbionte en TaleSpire CEF / Chromium, la consola emitía el error: `Failed to load resource: net::ERR_CONTENT_DECODING_FAILED css2:1`.
+- Se solicitó resolver este fallo para evitar errores de red y garantizar una carga limpia y robusta.
+
+**Causas Raíz Identificadas:**
+1. **Conflicto de compresión Brotli/GZIP en peticiones CDN externas:**
+   - En `index.html`, la etiqueta `<link href="https://fonts.googleapis.com/css2?...">` solicitaba fuentes a Google. Al identificarse como `css2:1` en Chromium, la solicitud enviaba cabeceras `Accept-Encoding: gzip, deflate, br`.
+   - En entornos CEF embebidos (como TaleSpire en Unity) o bajo cortafuegos/antivirus (Windows Defender Web Protection, proxies locales), la respuesta comprimida era alterada o entregada sin coincidencia estricta entre el encabezado `Content-Encoding` y el cuerpo de bytes, provocando que el decodificador de red de Chromium abortara la carga con `ERR_CONTENT_DECODING_FAILED`.
+2. **Dependencia frágil de red en TaleSpire:**
+   - Los simbiontes de TaleSpire deben operar de manera confiable en entornos sin conexión o con conexiones limitadas. Los enlaces externos a Google Fonts generaban latencia y vulnerabilidad ante caídas de internet.
+
+**Solución Implementada y Decisiones Arquitectónicas:**
+1. **Eliminación de dependencias CDN en `index.html`:**
+   - Se removieron las etiquetas de `preconnect` y `stylesheet` hacia `fonts.googleapis.com` y `fonts.gstatic.com`.
+2. **Pila Tipográfica de Alto Rendimiento Offline en `src/index.css`:**
+   - Se redefinieron las variables `--fuente-principal`, `--fuente-titulo` y `--fuente-codigo` con una cascada nativa de alto rendimiento:
+     - `--fuente-principal`: `'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif`
+     - `--fuente-titulo`: `'Outfit', system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif`
+     - `--fuente-codigo`: `'JetBrains Mono', 'Cascadia Code', 'Fira Code', Consolas, 'Courier New', monospace`
+   - Esto garantiza que en Windows (donde corre TaleSpire) la interfaz use fuentes modernas nativas ultra-nítidas sin consumir ancho de banda ni disparar errores en la consola.
+3. **Métricas de Calidad Verificadas:**
+   - `pnpm exec tsc --noEmit`: 0 errores.
+   - `pnpm lint`: 0 errores y 0 advertencias.
+   - `pnpm test`: 45 suites superadas, 522/522 pruebas pasando (100%).
+   - `pnpm run build`: Compilación exitosa con Vite.
+   - `node scripts/verificar-limite-lineas.js`: 108 archivos auditados, 0 archivos con más de 500 líneas.
+
+---
+
+## [2026-09-09] Unificación Visual de Tarjetas en Pestaña Acciones: Homogeneización de TarjetaAtaquePersonaje con TarjetaConjuroCompacta y Enriquecimiento de SeccionAtaquesMagicos
+**Contexto y Requerimientos del Usuario:**
+- El usuario modificó `TarjetaConjuroCompacta.tsx` pero notó que en la pestaña "Acciones" (`VistaAtaquesJugador`) los cambios no se apreciaban, preguntando si utilizaba otro componente y solicitando hacerlos similares.
+- Clarificación arquitectónica: En la pestaña "Acciones", los ataques con armas y desarmados emplean `TarjetaAtaquePersonaje.tsx`, los consumibles usan `TarjetaConsumibleAccion.tsx`, los objetos mágicos usan `SeccionHechizosObjetosMagicos.tsx`, y los conjuros de combate usan `TarjetaConjuroCompacta.tsx` a través de `SeccionAtaquesMagicos.tsx`.
+- Para que la experiencia sea coherente, se homogeneizó la estructura visual de `TarjetaAtaquePersonaje.tsx` y se enriqueció `SeccionAtaquesMagicos.tsx` propagando todas las props avanzadas.
+
+**Causas Raíz y Desafíos Técnicos Identificados:**
+1. **Componentes divergentes en Acciones vs Conjuros:**
+   - Mientras `TarjetaConjuroCompacta` adoptaba una disposición compacta horizontal con columna de acciones (`columnaAcciones`) y fila secundaria, `TarjetaAtaquePersonaje` utilizaba un diseño vertical pesado de 3 niveles con cuadrículas toscas para impacto y daño.
+2. **Desconexión de props en `SeccionAtaquesMagicos`:**
+   - La sección de conjuros dentro de "Acciones" no pasaba `tieneLanzamientoGratisDisponible`, `alLanzarGratis` ni `origenBadge`, perdiendo los botones "Gratis (1/DL)" y los distintivos de especie/legado/subclase. Además, mostraba un botón inerte de eliminación (`alQuitarDeLista={() => {}}`).
+
+**Solución Implementada y Decisiones Arquitectónicas:**
+1. **Rediseño Unificado de `TarjetaAtaquePersonaje.tsx` (`src/componentes/caracteristicas/ataques/`)**:
+   - Adopta la misma anatomía en dos bloques principales:
+     - `ladoIzquierdoAtaque`: Fila 1 (Icono + Nombre + Badges de Acción, Subtipo, Mágico, Ventaja/Desventaja), Fila 2 (Alcance • Impacto/Salvación • Daño), Fila 3 (Maestría y Propiedades con Tooltips para TaleSpire).
+     - `ladoDerechoAtaque`: Selector de atributo (sutil/pacto), indicador de munición y `columnaAccionesAtaque`.
+     - `columnaAccionesAtaque`: Botón primario destacado **"Atacar"** (o **"Daño"**) arriba, y fila de acciones secundarias abajo (**"Daño"** / **"1M"**, **"2M"**, **"Crit"**, **"Crit 2M"**).
+2. **Enriquecimiento de `SeccionAtaquesMagicos.tsx`**:
+   - Integrado `resolverOrigenConjuro(personajeActivo, hechizo)` para mostrar badges de origen canónico.
+   - Detecta automáticamente si el personaje dispone de lanzamientos innatos gratuitos diarios (`tieneLanzamientoGratisDisponible`) e invoca el modo `"gratuitoInnato"`.
+   - Omitido `alQuitarDeLista` para que no se muestre el botón de basura en combate táctico.
+3. **`TarjetaConjuroCompacta.tsx`**:
+   - `alQuitarDeLista?: () => void` condicional `{alQuitarDeLista && <button ... />}`.
+4. **Métricas de Calidad Verificadas**:
+   - `pnpm exec tsc --noEmit`: 0 errores.
+   - `pnpm lint`: 0 errores y 0 advertencias.
+   - `pnpm test`: 45 suites superadas, 522/522 pruebas pasando.
+   - `node scripts/verificar-limite-lineas.js`: 108 archivos auditados, 0 archivos con más de 500 líneas.
+
+---
+
+## [2026-09-09] Modularización y Jerarquía Visual de Acciones en TarjetaConjuroCompacta
+**Contexto y Requerimientos del Usuario:**
+- El usuario añadió un contenedor de columna flexible con estilo en línea (`<div style={{display: "flex", flexDirection: "column", gap: "4px"}}>`) para agrupar los botones de acción en `TarjetaConjuroCompacta.tsx`.
+- Solicitó arreglarlo adecuadamente, sustituyendo el estilo inline por clases CSS modulares (`TarjetaConjuroCompacta.module.css`), estructurando la jerarquía para que la tarjeta se mantenga limpia, equilibrada y consistente.
+
+**Causas Raíz y Desafíos Técnicos Identificados:**
+1. **Dispersión de estilos inline:**
+   - La inclusión ad-hoc de `style={{ display: "flex", flexDirection: "column", gap: "4px" }}` y estilos embebidos en el badge de nivel fijo (`style={{ fontSize: 10, fontWeight: 700... }}`) rompía la convención arquitectónica del proyecto de centralizar todo estilo visual en módulos CSS (`.module.css`).
+2. **Desplazamiento estructural de `ladoDerecho`:**
+   - Al introducir el contenedor de columna, el contenedor envolvente `.ladoDerecho` había quedado desplazado al interior de la columna para envolver únicamente los botones secundarios, dejando el selector de Upcast flotando como hijo directo desalineado del contenedor principal de la tarjeta.
+
+**Solución Implementada y Decisiones Arquitectónicas:**
+1. **Reestructuración Jerárquica Limpia en `TarjetaConjuroCompacta.tsx`:**
+   - `.ladoDerecho`: Vuelve a ser el contenedor flex unificado para todo el sector derecho de la tarjeta (selector de ranura / upcast + columna de acciones).
+   - `.columnaAcciones`: Contenedor en columna (`display: flex; flex-direction: column; gap: 4px; align-items: stretch;`) que alberga:
+     - Botón principal de lanzamiento (`.botonLanzar`, con `justify-content: center` y `width: 100%`).
+     - Fila de acciones secundarias (`.filaAccionesSecundarias`, con `display: flex; align-items: center; justify-content: flex-end; gap: 4px;`) conteniendo los botones condicionales "Gratis" (1/DL), "Ritual", "Ocultar/Ver" e icono de "Quitar".
+2. **Definición Modular en `TarjetaConjuroCompacta.module.css`:**
+   - Creadas las clases `.columnaAcciones`, `.filaAccionesSecundarias`, `.badgeNivelFijo` y `.badgeNivelFijoPacto`.
+   - Eliminados todos los estilos inline residuales.
+3. **Mantenimiento del Límite de Líneas y Calidad de Código:**
+   - `TarjetaConjuroCompacta.tsx` se redujo a 354 líneas (< 500 líneas).
+   - `pnpm exec tsc --noEmit`: 0 errores.
+   - `pnpm lint`: 0 errores y 0 advertencias.
+   - `pnpm test`: 45 suites superadas, 522/522 pruebas pasando.
+   - `node scripts/verificar-limite-lineas.js`: 108 archivos auditados, 0 archivos con más de 500 líneas.
+
+---
+
+## [2026-09-09] Corrección de UX en Selector de Truco de Alto Elfo: Eliminación de Autorrellenado Involuntario y Soporte de Borrado Completo
+**Contexto y Requerimientos del Usuario:**
+- El usuario reportó que en el modal de detalle del rasgo *Magia de alto elfo*, el campo para seleccionar el truco de mago no permitía borrar por completo el texto: siempre quedaba la letra `"p"` y, al intentar borrarla, se autorrellenaba inmediatamente a `"prestidigitacion"`.
+- Se solicitó poder borrar con total libertad el campo para escribir una nueva búsqueda o desplegar la lista completa de trucos de mago.
+
+**Causas Raíz Identificadas:**
+1. **Fallback Prematuro con Operador `||`:**
+   - En `SeccionSelectoresModalRasgo.tsx`, se evaluaba `const valorSeleccionado = seleccionados[0] || "prestidigitacion";`. Cuando el usuario vaciaba el input con Backspace (`""`), la cadena vacía evaluaba falsy y forzaba la restauración instantánea del truco por defecto (`"prestidigitacion"`).
+2. **Mutación Prematura de Redux en `onChange` Intermedio:**
+   - Al escribir o borrar en `SelectorSugerencias`, cada pulsación de tecla (`"p"`, `"pr"`) ejecutaba `onCambiarSeleccion` enviando caracteres truncados al estado global de Redux, corrompiendo temporalmente el ID del truco conocido.
+3. **Discrepancia entre Nombre Visible e ID Técnico:**
+   - El input mostraba el ID (`"prestidigitacion"`) en minúsculas sin acentos en lugar del nombre canónico con mayúsculas y tildes (`"Prestidigitación"`).
+
+**Solución Implementada y Decisiones Arquitectónicas:**
+1. **Componente Especializado `SelectorTrucoAltoElfo.tsx` (`src/componentes/caracteristicas/rasgos/SelectorTrucoAltoElfo.tsx`)**:
+   - Mantiene un estado local desacoplado (`texto`, `estaEditando`, `estaAbierto`).
+   - Permite borrado total (Backspace, Delete o botón `X` de limpieza) sin restaurar el truco hasta que el usuario confirme una opción o haga clic fuera (`onBlur`) sin seleccionar.
+   - Presenta los nombres formateados correctamente (`"Prestidigitación"`, `"Rayo de escarcha"`, etc.).
+   - Al vaciar el campo de texto, despliega automáticamente el listado completo de trucos de mago ordenados alfabéticamente para selección táctil o con ratón.
+   - Solo sincroniza hacia Redux (`onSeleccionar`) cuando el usuario pulsa un truco válido de la lista.
+2. **Integración en `SeccionSelectoresModalRasgo.tsx` y `ModalDetalleRasgo.tsx`**:
+   - `SeccionSelectoresModalRasgo` delega en `SelectorTrucoAltoElfo` cuando el selector corresponde al truco de mago de Alto Elfo (`sel.id.toLowerCase().includes("truco")`), pasando la lista tipada `OpcionTrucoMago[]`.
+3. **Mantenimiento del Límite de Líneas y Calidad de Código**:
+   - El nuevo componente tiene 199 líneas, cumpliendo holgadamente el límite de 500 líneas por archivo.
+   - `pnpm exec tsc --noEmit`: 0 errores.
+   - `pnpm lint`: 0 errores y 0 advertencias.
+   - `pnpm test`: 45 suites superadas, 522/522 pruebas pasando.
+   - `node scripts/verificar-limite-lineas.js`: 108 archivos auditados, 0 archivos con más de 500 líneas.
+
+---
+
+## [2026-09-09] Culminación Exitosa: Refinamiento Canónico del Elfo (D&D 5.5e), Sustitución Dinámica de Truco de Alto Elfo y Sistema Universal de Conjuros Gratuitos Diarios (1/Descanso Largo)
+**Contexto y Requerimientos del Usuario:**
+- Refinamiento de la especie **Elfo** y sus linajes (*Drow*, *Alto elfo*, *Elfo de los bosques*) según las directrices y decisiones de diseño del usuario:
+  1. *Linaje élfico*: Descripción clarificada y detallada indicando la obtención progresiva de conjuros a sus niveles respectivos (N1 truco/beneficio, N3 conjuro de nivel 2, N5 conjuro de nivel 3). Eliminación definitiva del selector de aptitud mágica (`selector_aptitud_magica_elfica`) y del parámetro `caracteristicaConjuroElegida`, descartando la bifurcación de aptitudes de lanzamiento.
+  2. *Sentidos agudos*: Rasgo meramente descriptivo y pasivo permanente (eliminación del selector de habilidades, sin imponer mecánicas rígidas automáticas en `gradosHabilidades`).
+  3. *Alto elfo (Sustitución de truco de mago tras descanso largo)*: Implementación del rasgo *Magia de alto elfo* con selector interactivo en el modal de detalle del rasgo utilizando `SelectorSugerencias`, alimentado dinámicamente desde el compendio de hechizos (`baseDatosHechizos`) filtrando trucos de mago (nivel 0), admitiendo automáticamente trucos homebrew. Al cambiar el truco, se sincroniza reactivamente `trucosConocidosIds` y `conjurosOtorgados`.
+  4. *Sistema Universal de Conjuros Gratuitos Diarios (1/Descanso Largo)*: Similar al diseño de los Arcanos Místicos del Brujo, para conjuros otorgados por especies/linajes a niveles 3 y 5 (*Fuego feérico* y *Oscuridad* para Drow; *Detectar magia* y *Paso brumoso* para Alto elfo; *Zancada prodigiosa* y *Pasar sin rastro* para Elfo de los bosques), se configuran como rasgos consumibles (`tieneUsosLimitados: true`, `usosMaximos: 1`, `recuperacion: "descanso_largo"`, `categoriaMecanica: "consumible"`). En el panel de conjuros (`TarjetaConjuroCompacta`), se muestra el botón **"Gratis (1/DL)"** junto al botón regular de **"Lanzar (Espacio)"**. Al pulsar "Gratis", se ejecuta el conjuro bajo el modo `"gratuitoInnato"`, deduciendo automáticamente 1 uso del rasgo asociado sin gastar ranuras ni puntos de magia. El descanso largo lo recarga automáticamente a 1/1. El botón tradicional de lanzamiento con ranuras sigue disponible si el jugador decide reservar su lanzamiento diario gratuito o si ya lo consumió.
+
+**Causas Raíz y Desafíos Técnicos Identificados:**
+1. **Diferenciación entre el lanzamiento gratuito innato y el lanzamiento con ranuras**:
+   - En D&D 5.5e, un conjuro otorgado por especie puede lanzarse una vez gratis por descanso largo y además usando ranuras de conjuro regulares. El motor de lanzamiento sólo admitía modos `"espacio"`, `"pacto"`, `"arcanoMistico"` y `"puntos"`. Se requería incorporar un modo `"gratuitoInnato"` que no consuma ranuras pero sí descuente la carga del rasgo de recurso correspondiente en el personaje.
+2. **Filtrado temprano de rasgos por nivel en `construirRasgosEspecie`**:
+   - Al filtrar plantillas por `nivel >= nivelRequerido`, especies como Aasimar perdían la visibilidad de sus rasgos avanzados (`Revelación celestial`, N3) en el modelo de rasgos, rompiendo contratos y pruebas unitarias. Los rasgos deben coexistir en `personaje.rasgos` con su atributo `nivelRequerido` para que la UI controle su activación según el nivel actual del PJ.
+3. **Sustitución de truco reactiva en Alto Elfo sin recarga**:
+   - Al seleccionar un nuevo truco en el selector de *Magia de alto elfo*, el slice de rasgos (`sliceRasgos.ts`) y el gestor de especies debían purgar el truco viejo de `trucosConocidosIds` e inyectar el nuevo sin alterar otros trucos de clase ni requerir reiniciar la hoja de personaje.
+
+**Solución Implementada y Decisiones Arquitectónicas:**
+1. **Modelado Canónico en `src/constantes/especiesDND55.ts` y `src/tipos/especies.ts`**:
+   - Eliminado `caracteristicaConjuroElegida` de `ConfiguracionEspeciePersonaje`.
+   - *Linaje élfico* y *Sentidos agudos* simplificados a `categoriaMecanica: "pasivo_permanente"` sin selectores.
+   - *Magia de alto elfo*: Creado con `selector_truco_alto_elfo` de tipo `"unico"`.
+   - Rasgos modulares de conjuros de linaje a niveles 3 y 5 tipados como `categoriaMecanica: "consumible"` con `tieneUsosLimitados: true`, `usosMaximos: 1` y `recuperacion: "descanso_largo"`.
+2. **Motor de Lanzamiento Facade + Strategy (`src/servicios/servicioLanzamientoConjuros.ts`)**:
+   - Añadido el modo `"gratuitoInnato"` a `ModoLanzamiento` e `InstruccionGasto`.
+   - `prepararLanzamiento`: En modo `"gratuitoInnato"`, genera la fórmula regular de lanzamiento sin descontar ranuras ni puntos de magia (`gasto: { tipo: "gratuitoInnato", hechizoId: solicitud.hechizo.id }`).
+3. **Consumo Reactivo en `usarLanzadorConjuros.ts`**:
+   - Al recibir `gasto.tipo === "gratuitoInnato"`, localiza el rasgo de recurso correspondiente en `personaje.rasgos` (por `conjurosOtorgados` o coincidencia de nombre) y descuenta 1 uso con `gastarUsoRasgoPersonaje(personaje.id, rasgo.id)`.
+4. **UI Enriquecida en `TarjetaConjuroCompacta.tsx` y `SeccionNivelConjuros.tsx`**:
+   - `SeccionNivelConjuros`: Inspecciona si el personaje posee un rasgo de uso limitado con cargas disponibles para el conjuro cumpliendo el nivel requerido, y propaga `tieneLanzamientoGratisDisponible` y `alLanzarGratis`.
+   - `TarjetaConjuroCompacta`: Renderiza el botón estilizado con gradiente esmeralda **"Gratis (1/DL)"** con icono `Sparkles`, junto al botón clásico de lanzamiento.
+5. **Selector Dinámico en `ModalDetalleRasgo.tsx` y Sincronización en `sliceRasgos.ts`**:
+   - Integrado `SelectorSugerencias` para `selector_truco_alto_elfo` que consulta `baseDatosHechizos` filtrando trucos de mago (`nivel === 0` y clases `"Mago"`).
+   - En `sliceRasgos.ts` (`actualizarSeleccionRasgo`), si el selector es `selector_truco_alto_elfo`, reemplaza el truco previo por el nuevo en `trucosConocidosIds` y en `conjurosOtorgados`.
+6. **Preservación de Estado en `gestorEspecies.ts`**:
+   - `aplicarEspecieAPersonaje` preserva los `usosRestantes` y las selecciones de selectores previas al reconstruir rasgos.
+   - En `construirRasgosEspecie`, se conservan todos los rasgos con su `nivelRequerido` intacto para inspección y activación progresiva.
+7. **Cobertura Completa de Pruebas Unitarias**:
+   - `gestorEspecies.test.ts`: Pruebas de Linaje élfico sin selectores, Sentidos agudos pasivo, rasgos consumibles 1/DL para conjuros a niveles 3 y 5, y persistencia de trucos personalizados en Alto elfo.
+   - `servicioLanzamientoConjuros.test.ts`: Prueba para la estrategia `"gratuitoInnato"` validando gasto y concentración sin consumo de ranuras.
+
+**Métricas de Calidad Verificadas:**
+- `pnpm exec tsc --noEmit`: 0 errores (Strict Mode estricto en todo el proyecto).
+- `pnpm lint`: 0 errores, 0 advertencias (ESLint limpio).
+- `pnpm test`: 45 suites superadas, 522 de 522 pruebas pasando (100%).
+
+---
+
+## [2026-09-08] Culminación Exitosa: Implementación Canónica de Elfo (D&D 5.5e / 2024), 3 Linajes Élficos (Drow, Alto Elfo, Elfo de los Bosques), Desbloqueo Progresivo de Conjuros y Selectores de Aptitud/Habilidad
+**Contexto y Requerimientos del Usuario:**
+- Implementación de la especie **Elfo** y sus 3 linajes/subrazas (*Drow*, *Alto elfo*, *Elfo de los bosques*) según el compendio oficial D&D 5.5e (`dicionario_herramientas/razas/Elfo.md`).
+- Requisitos clave:
+  1. *Funciones genéricas para el builder*: Garantizar alto DRY, KISS y principios SOLID para reutilizar la lógica con el resto de especies.
+  2. *Linaje feérico no mecánico*: Modelado como rasgo pasivo permanente descriptivo (ventaja en tiradas de salvación para evitar o poner fin al estado de hechizado).
+  3. *Linajes élficos y progresión de conjuros*: Inyectar automáticamente trucos a nivel 1 y conjuros de nivel superior a niveles 3 y 5 (1 uso gratis por descanso largo / espacios de conjuro).
+  4. *Selectores interactivos*:
+     - *Linaje élfico*: Selector de aptitud mágica entre Inteligencia, Sabiduría o Carisma.
+     - *Sentidos agudos*: Selector de competencia entre Percepción, Perspicacia o Supervivencia.
+
+**Causas Raíz y Desafíos Técnicos Identificados:**
+1. **Acumulación de conjuros innatos al cambiar de linaje/especie en el builder**:
+   - `aplicarEspecieAPersonaje` inicializaba los sets de trucos y conjuros preparados con los IDs existentes del personaje. Si el usuario conmutaba de un linaje (ej. Alto elfo con *Prestidigitación*, *Detectar magia*, *Paso brumoso*) a otro (ej. Elfo de los bosques), los conjuros del linaje anterior quedaban retenidos en la ficha.
+2. **Progresión multinivel de magia innata**:
+   - Los conjuros de nivel 3 y 5 de los linajes sólo deben prepararse si el nivel del personaje cumple con `nivelRequerido <= nivelPj`.
+
+**Solución Implementada y Decisiones Arquitectónicas:**
+1. **Modelado Oficial de Elfo y sus 3 Linajes (`src/constantes/especiesDND55.ts`)**:
+   - Especie base Elfo: *Tipo de criatura (Humanoide)*, *Tamaño (Mediano)*, *Visión en la oscuridad (60 pies)*, *Linaje élfico* (con selector de aptitud: Inteligencia/Sabiduría/Carisma), *Linaje feérico* (pasivo permanente), *Sentidos agudos* (con selector: Percepción/Perspicacia/Supervivencia) y *Trance* (4 horas de meditación).
+   - **Drow**: *Visión en la oscuridad superior (120 pies)*, *Magia drow*, trucos/conjuros: *Luces danzantes* (N1), *Fuego feérico* (N3), *Oscuridad* (N5).
+   - **Alto elfo**: *Magia de alto elfo* (truco sustituible tras descanso largo), trucos/conjuros: *Prestidigitación* (N1), *Detectar magia* (N3), *Paso brumoso* (N5).
+   - **Elfo de los bosques**: *Pies veloces* (velocidad 35 pies), *Magia de elfo de los bosques*, trucos/conjuros: *Saber druídico* (N1), *Zancada prodigiosa* (N3), *Pasar sin rastro* (N5).
+2. **Sincronización Pura e Idempotente de Conjuros Innatos (`src/servicios/gestorEspecies.ts`)**:
+   - En `aplicarEspecieAPersonaje`, se recopilan todos los conjuros/trucos innatos conocidos del catálogo y se purgan los de especies/linajes previos antes de inyectar los correspondientes a la especie/linaje activo según `nivelPj >= conjuro.nivelRequerido`.
+   - Se preservan intactos los conjuros otorgados por clases, subclases, dotes o rasgos personalizados activos.
+   - En `construirRasgosEspecie`, se admite `caracteristicaConjuroElegida` para inicializar el selector de aptitud mágica de linaje.
+3. **Cobertura Integral de Pruebas Unitarias (`src/servicios/gestorEspecies.test.ts`)**:
+   - 9 nuevas pruebas exhaustivas cubriendo catálogo, campos universales de Elfo, selectores interactivos, los 3 linajes, progresión de conjuros a niveles 1, 3 y 5, conmutación limpia entre linajes e integración con `resolverOrigenConjuro` (badge `"legado"`).
+
+**Métricas de Calidad Verificadas:**
+- `pnpm exec tsc --noEmit`: 0 errores (Strict Mode estricto).
+- `pnpm lint`: 0 errores, 0 warnings (ESLint limpio).
+- `pnpm test`: 45 suites superadas, 520 de 520 pruebas pasando (100%).
+- `node scripts/verificar-limite-lineas.js`: 105 archivos auditados, 0 errores críticos.
+- `pnpm run ci`: Pipeline integral finalizado con código de salida 0.
+
+---
+
 ## [2026-09-08] Culminación Exitosa: Consumo Automático de Usos al Tirar Dados en Ataque de Aliento e Inspiración Bárdica
 **Contexto y Problema Reportado por el Usuario:**
 - Al pulsar el botón de tirada de dados de *Ataque de aliento* (o *Arma de aliento*), se realizaba la tirada 3D en TaleSpire / chat pero no se descontaba automáticamente un uso de la reserva limitada del rasgo (similar al funcionamiento de los dados de Inspiración bárdica).

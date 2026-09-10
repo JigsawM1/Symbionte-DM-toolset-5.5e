@@ -81,7 +81,6 @@ export interface ConfiguracionEspeciePersonaje {
   especieId: string;
   subespecieId?: string;
   tamanoElegido?: TamanoPersonaje;
-  caracteristicaConjuroElegida?: Caracteristica;
 }
 
 /**

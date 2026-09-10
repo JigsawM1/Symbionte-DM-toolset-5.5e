@@ -609,7 +609,7 @@
 .descripcionRasgoCompacta {
   font-size: 11px;
   line-height: 1.4;
-  color: #94a3b8;
+  color: #f1f5f9;
   margin: 0;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -630,9 +630,9 @@
 }
 
 .descripcionRasgo {
-  font-size: 11.5px;
+  font-size: 12px;
   line-height: 1.45;
-  color: #cbd5e1;
+  color: #f1f5f9;
   white-space: pre-line;
   margin: 0;
 }

@@ -100,7 +100,7 @@ export const TarjetaAtaquePersonaje: React.FC<TarjetaAtaquePersonajeProps> = ({
 
   return (
     <div
-      className={`${estilos.tarjetaAtaque} ${
+      className={`${estilos.tarjetaAtaqueCompacta} ${
         ataque.tipo === "Desarmado"
           ? estilos.tarjetaAtaqueDesarmado
           : ataque.tipoAccion === "accionAdicional"
@@ -110,13 +110,24 @@ export const TarjetaAtaquePersonaje: React.FC<TarjetaAtaquePersonajeProps> = ({
           : ""
       }`}
     >
-      {/* Fila Superior: Nombre + Badges + Alcance */}
-      <div className={estilos.filaSuperiorAtaque}>
-        <div className={estilos.grupoTitulo}>
-          {ataque.tipo === "Arma" && <Swords size={14} color="#38bdf8" />}
-          {ataque.tipo === "Desarmado" && <Zap size={14} color="#94a3b8" />}
-          {ataque.tipo === "Conjuro" && <Sparkles size={14} color="#c084fc" />}
+      {/* Lado Izquierdo: Título, Metadatos y Propiedades */}
+      <div className={estilos.ladoIzquierdoAtaque}>
+        {/* Fila 1: Icono + Nombre + Badges de Tipo y Estado */}
+        <div className={estilos.filaTituloAtaque}>
+          {ataque.tipo === "Arma" && <Swords size={13} color="#38bdf8" />}
+          {ataque.tipo === "Desarmado" && <Zap size={13} color="#94a3b8" />}
+          {ataque.tipo === "Conjuro" && <Sparkles size={13} color="#c084fc" />}
+
           <span className={estilos.nombreAtaque}>{ataque.nombre}</span>
+
+          <span className={`${estilos.badgeAccionTipo} ${claseBadgeAccion}`}>
+            {textoBadgeAccion}
+          </span>
+
+          {ataque.subtipo && (
+            <span className={estilos.badgeAtaqueTipo}>{ataque.subtipo}</span>
+          )}
+
           {ataque.esMagico && (
             <span className={estilos.badgeMagicoAtaque}>
               <Sparkles size={10} /> Mágico
@@ -149,67 +160,94 @@ export const TarjetaAtaquePersonaje: React.FC<TarjetaAtaquePersonajeProps> = ({
           )}
         </div>
 
-        <div className={estilos.grupoTitulo}>
-          {ataque.requiereMunicion && (
-            <span
-              className={ataque.puedeDisparar ? estilos.badgeMunicion : estilos.badgeMunicionVacia}
-              title={
-                ataque.puedeDisparar
-                  ? `${ataque.municionEnContenedor || ataque.municionCantidad} ${ataque.municionNombre || "proyectiles"} listos en ${ataque.nombreContenedor || "Contenedor"}${ataque.municionSueltEnMochila ? ` (+${ataque.municionSueltEnMochila} en mochila)` : ""}${ataque.municionEnCompartimentosExternos ? ` (+${ataque.municionEnCompartimentosExternos} en carreta)` : ""}`
-                  : (ataque.motivoBloqueo || `Sin ${ataque.municionNombre || "munición"} disponible`)
-              }
-            >
-              {ataque.puedeDisparar ? (
-                <>
-                  <Target size={10} />
-                  <span>{ataque.municionEnContenedor || ataque.municionCantidad} {ataque.municionNombre || ""}</span>
-                  {ataque.municionSueltEnMochila !== undefined && ataque.municionSueltEnMochila > 0 && (
-                    <span className={estilos.subtextoMochilaExcedente}>
-                      +{ataque.municionSueltEnMochila}
-                    </span>
-                  )}
-                </>
-              ) : (
-                <>
-                  <AlertTriangle size={10} />
-                  <span>
-                    {!ataque.tieneContenedor
-                      ? `Sin ${ataque.nombreContenedor ? ataque.nombreContenedor.split(" ")[0] : "Contenedor"}`
-                      : `0 ${ataque.municionNombre || "Munición"}`}
-                  </span>
-                </>
-              )}
-            </span>
-          )}
+        {/* Fila 2: Metadatos (Alcance • Impacto • Daño) */}
+        <div className={estilos.filaMetadatosAtaque}>
           {ataque.alcance && (
             <span className={estilos.textoAlcance}>
               <Target size={11} /> {ataque.alcance}
             </span>
           )}
-          <span className={`${estilos.badgeAccionTipo} ${claseBadgeAccion}`}>
-            {textoBadgeAccion}
+
+          <span>
+            {ataque.tieneTiradaAtaque ? "Impacto: " : "Salvación: "}
+            <strong className={estilos.impactoMetadatoTexto}>
+              {ataque.tieneTiradaAtaque
+                ? bonoImpactoTexto
+                : `CD ${ataque.cdSalvacion || 10} ${ataque.tipoSalvacion || ""}`}
+            </strong>
           </span>
-          {ataque.subtipo && (
-            <span className={estilos.badgeAtaqueTipo}>{ataque.subtipo}</span>
-          )}
+
+          <span>•</span>
+
+          <span>
+            Daño:{" "}
+            <strong className={estilos.danoMetadatoTexto}>
+              {ataque.esDanoFijo ? `${ataque.dadoDano} (Fijo)` : ataque.dadoDano}
+              {ataque.danoVersatil ? ` (${ataque.danoVersatil} 2M)` : ""}
+            </strong>{" "}
+            <span className={estilos.tipoDanoTexto}>{ataque.tipoDano}</span>
+          </span>
         </div>
+
+        {/* Fila 3: Propiedades y Maestría (Tooltips CEF) */}
+        {(ataque.propiedades.length > 0 || ataque.maestria) && (
+          <div className={estilos.filaPropiedadesAtaqueCompacta}>
+            {ataque.maestria && (
+              <TooltipUniversal
+                titulo={`${ataque.maestria}`}
+                contenido={obtenerTooltipMaestria(ataque.maestria)}
+                posicion="arriba"
+                alineacion="inicio"
+              >
+                <span className={estilos.badgeMaestria}>
+                  {ataque.maestria}
+                </span>
+              </TooltipUniversal>
+            )}
+            {ataque.propiedades.map((prop) => (
+              <TooltipUniversal
+                key={prop}
+                titulo={prop}
+                contenido={obtenerTooltipPropiedad(prop)}
+                posicion="arriba"
+                alineacion="inicio"
+              >
+                <span className={estilos.badgePropiedad}>
+                  {prop}
+                </span>
+              </TooltipUniversal>
+            ))}
+          </div>
+        )}
       </div>
 
-      {/* Fila de Métricas Tácticas y Botones de Lanzamiento */}
-      <div className={estilos.filaMetricasAtaque}>
-        {/* Bono de Impacto o CD */}
-        <div className={estilos.bloqueBonoImpacto}>
-          <span className={estilos.etiquetaMicro}>
-            {ataque.tieneTiradaAtaque ? "Impacto" : "Salvación"}
+      {/* Lado Derecho: Controles Contextuales + Columna de Acciones */}
+      <div className={estilos.ladoDerechoAtaque}>
+        {/* Indicador de Munición */}
+        {ataque.requiereMunicion && (
+          <span
+            className={ataque.puedeDisparar ? estilos.badgeMunicion : estilos.badgeMunicionVacia}
+            title={
+              ataque.puedeDisparar
+                ? `${ataque.municionEnContenedor || ataque.municionCantidad} ${ataque.municionNombre || "proyectiles"} listos en ${ataque.nombreContenedor || "Contenedor"}${ataque.municionSueltEnMochila ? ` (+${ataque.municionSueltEnMochila} en mochila)` : ""}${ataque.municionEnCompartimentosExternos ? ` (+${ataque.municionEnCompartimentosExternos} en carreta)` : ""}`
+                : (ataque.motivoBloqueo || `Sin ${ataque.municionNombre || "munición"} disponible`)
+            }
+          >
+            {ataque.puedeDisparar ? (
+              <>
+                <Target size={10} />
+                <span>{ataque.municionEnContenedor || ataque.municionCantidad}</span>
+              </>
+            ) : (
+              <>
+                <AlertTriangle size={10} />
+                <span>0</span>
+              </>
+            )}
           </span>
-          <span className={estilos.valorBonoImpacto}>
-            {ataque.tieneTiradaAtaque
-              ? bonoImpactoTexto
-              : `CD ${ataque.cdSalvacion || 10} ${ataque.tipoSalvacion || ""}`}
-          </span>
-        </div>
-
-        {/* Selector de Característica (Sutil / Pacto de la Hoja / Atributo Mágico) */}
+        )}
+        
+        {/* Selector de Atributo (Sutil / Pacto / Aptitud Mágica) */}
         {alCambiarCaracteristica && (ataque.tipo === "Arma" || (ataque.tipo === "Desarmado" && esSutil)) && (
           <div
             className={estilos.bloqueAtributoSelector}
@@ -231,113 +269,86 @@ export const TarjetaAtaquePersonaje: React.FC<TarjetaAtaquePersonajeProps> = ({
           </div>
         )}
 
-        {/* Daño Principal */}
-        <div className={estilos.bloqueDano}>
-          <span className={estilos.etiquetaMicro}>Daño</span>
-          <div className={estilos.grupoTitulo}>
-            <span className={estilos.valorDano}>
-              {ataque.esDanoFijo ? `${ataque.dadoDano} (Fijo)` : ataque.dadoDano}
-            </span>
-            {ataque.danoVersatil && (
-              <span className={estilos.textoDanoVersatilBadge}>
-                ({ataque.danoVersatil} 2M)
-              </span>
-            )}
-            <span className={estilos.tipoDanoTexto}>{ataque.tipoDano}</span>
-          </div>
-        </div>
-
-        {/* Botones de Tirada */}
-        <div className={estilos.filaAccionesTirada}>
-          {ataque.tieneTiradaAtaque && (
+        {/* Columna de Acciones (Similar a TarjetaConjuroCompacta) */}
+        <div className={estilos.columnaAccionesAtaque}>
+          {/* Botón Primario: Atacar (o Daño si no tiene tirada de ataque) */}
+          {ataque.tieneTiradaAtaque ? (
             <button
               type="button"
-              className={estilos.botonTirarAtaque}
+              className={estilos.botonAtacarPrincipal}
               onClick={() => alTirarAtaque(ataque)}
-              title={`Tirar Ataque con ${ataque.nombre} en TaleSpire (1d20${bonoImpactoTexto})`}
+              title={`Tirar Ataque con ${ataque.nombre} en TaleSpire (1d20${bonoImpactoTexto}${
+                evaluacionCondiciones?.modoEfectivo === "ventaja"
+                  ? " con Ventaja"
+                  : evaluacionCondiciones?.modoEfectivo === "desventaja"
+                  ? " con Desventaja"
+                  : ""
+              })`}
             >
               <Target size={11} />
               <span>Atacar</span>
             </button>
-          )}
-
-          {!ataque.esDanoFijo && (
+          ) : (
             <button
               type="button"
-              className={estilos.botonTirarDano}
+              className={estilos.botonAtacarPrincipal}
               onClick={() => alTirarDano(ataque, false)}
-              title={ataque.danoVersatil ? `Tirar Daño a 1 Mano (${ataque.dadoDano})` : `Tirar Daño normal (${ataque.dadoDano})`}
+              title={`Tirar Daño con ${ataque.nombre} (${ataque.dadoDano})`}
             >
               <Swords size={11} />
-              <span>{ataque.danoVersatil ? "1M" : "Daño"}</span>
+              <span>Daño</span>
             </button>
           )}
 
-          {!ataque.esDanoFijo && ataque.danoVersatil && (
-            <button
-              type="button"
-              className={`${estilos.botonTirarDano} ${estilos.botonTirarDano2M}`}
-              onClick={() => alTirarDano(ataque, true)}
-              title={`Tirar Daño a 2 Manos (${ataque.danoVersatil})`}
-            >
-              <span>2M</span>
-            </button>
-          )}
+          {/* Fila de Acciones Secundarias (Daño, 2M, Crit, Crit 2M) */}
+          <div className={estilos.filaAccionesSecundariasAtaque}>
+            {ataque.tieneTiradaAtaque && !ataque.esDanoFijo && (
+              <button
+                type="button"
+                className={estilos.botonSecundarioDano}
+                onClick={() => alTirarDano(ataque, false)}
+                title={ataque.danoVersatil ? `Tirar Daño a 1 Mano (${ataque.dadoDano})` : `Tirar Daño normal (${ataque.dadoDano})`}
+              >
+                <Swords size={10} />
+                <span>{ataque.danoVersatil ? "1M" : "Daño"}</span>
+              </button>
+            )}
 
-          {!ataque.esDanoFijo && ataque.tieneTiradaAtaque && (
-            <button
-              type="button"
-              className={estilos.botonTirarCritico}
-              onClick={() => alTirarCritico(ataque, false)}
-              title={ataque.danoVersatil ? "Tirar Daño Crítico a 1 Mano" : "Tirar Daño Crítico (duplica dados de impacto)"}
-            >
-              {ataque.danoVersatil ? "Crit 1M" : "Crítico"}
-            </button>
-          )}
+            {!ataque.esDanoFijo && ataque.danoVersatil && (
+              <button
+                type="button"
+                className={estilos.botonSecundarioDano}
+                onClick={() => alTirarDano(ataque, true)}
+                title={`Tirar Daño a 2 Manos (${ataque.danoVersatil})`}
+              >
+                <span>2M</span>
+              </button>
+            )}
 
-          {!ataque.esDanoFijo && ataque.tieneTiradaAtaque && ataque.danoVersatil && (
-            <button
-              type="button"
-              className={`${estilos.botonTirarCritico} ${estilos.botonTirarCritico2M}`}
-              onClick={() => alTirarCritico(ataque, true)}
-              title="Tirar Daño Crítico a 2 Manos (duplica dados versátiles)"
-            >
-              Crit 2M
-            </button>
-          )}
+            {!ataque.esDanoFijo && ataque.tieneTiradaAtaque && (
+              <button
+                type="button"
+                className={estilos.botonSecundarioCrit}
+                onClick={() => alTirarCritico(ataque, false)}
+                title={ataque.danoVersatil ? "Tirar Daño Crítico a 1 Mano" : "Tirar Daño Crítico (duplica dados)"}
+              >
+                <span>{ataque.danoVersatil ? "Crit 1M" : "Crit"}</span>
+              </button>
+            )}
+
+            {!ataque.esDanoFijo && ataque.tieneTiradaAtaque && ataque.danoVersatil && (
+              <button
+                type="button"
+                className={estilos.botonSecundarioCrit}
+                onClick={() => alTirarCritico(ataque, true)}
+                title="Tirar Daño Crítico a 2 Manos (duplica dados versátiles)"
+              >
+                <span>Crit 2M</span>
+              </button>
+            )}
+          </div>
         </div>
       </div>
-
-      {/* Propiedades del Arma y Maestría D&D 5.5e con Tooltips en Hover para TaleSpire CEF */}
-      {(ataque.propiedades.length > 0 || ataque.maestria) && (
-        <div className={estilos.filaPropiedadesAtaque}>
-          {ataque.maestria && (
-            <TooltipUniversal
-              titulo={`${ataque.maestria}`}
-              contenido={obtenerTooltipMaestria(ataque.maestria)}
-              posicion="arriba"
-              alineacion="inicio"
-            >
-              <span className={estilos.badgeMaestria}>
-                {ataque.maestria}
-              </span>
-            </TooltipUniversal>
-          )}
-          {ataque.propiedades.map((prop) => (
-            <TooltipUniversal
-              key={prop}
-              titulo={prop}
-              contenido={obtenerTooltipPropiedad(prop)}
-              posicion="arriba"
-              alineacion="inicio"
-            >
-              <span className={estilos.badgePropiedad}>
-                {prop}
-              </span>
-            </TooltipUniversal>
-          ))}
-        </div>
-      )}
     </div>
   );
 };

@@ -3,6 +3,8 @@ import { Sparkles, ChevronDown, ChevronRight } from "lucide-react";
 import { TarjetaConjuroCompacta } from "@/componentes/caracteristicas/personajes/TarjetaConjuroCompacta";
 import type { HechizoBase, PersonajeJugador } from "@/tipos";
 import type { SolicitudLanzamiento } from "@/servicios/servicioLanzamientoConjuros";
+import { resolverOrigenConjuro } from "@/servicios/resolutorOrigenConjuros";
+import { coincideHechizoId } from "@/servicios/comparadorHechizos";
 import type { ConjuroAccionElemento } from "./usarCalculoAtaquesJugador";
 import estilos from "./VistaAtaquesJugador.module.css";
 
@@ -96,31 +98,54 @@ export const SeccionAtaquesMagicos: React.FC<SeccionAtaquesMagicosProps> = ({
 
                 {abierta && (
                   <div className={estilos.listaTarjetasNivelMagico}>
-                    {itemsNivel.map(({ hechizo }) => (
-                      <TarjetaConjuroCompacta
-                        key={hechizo.id}
-                        hechizo={hechizo}
-                        nombrePersonaje={personajeActivo.nombre}
-                        nivelPersonaje={personajeActivo.nivel || 1}
-                        bonoAtaqueMagico={bonoAtaqueMagico}
-                        estaPreparado={true}
-                        mostrarTogglePreparado={false}
-                        esDeSubclase={esHechizoDeSubclase(hechizo)}
-                        esConcentracionActual={personajeActivo.concentracionActiva?.hechizoId === hechizo.id}
-                        bloqueadoPorArmadura={estaBloqueadoPorArmadura}
-                        motivoBloqueoArmadura={motivoBloqueoArmadura}
-                        alAbrirDetalleCompleto={(h) => alAbrirDetalle(h)}
-                        alQuitarDeLista={() => {}}
-                        alLanzar={(modo, niv) => alLanzar({ modo, hechizo, nivelLanzamiento: niv })}
-                        esLanzadorPacto={tienePacto}
-                        nivelEspacioPacto={personajeActivo.nivelEspacioPacto || 0}
-                        espaciosPactoMaximos={personajeActivo.espaciosPactoMaximos || 0}
-                        espaciosPactoGastados={personajeActivo.espaciosPactoGastados || 0}
-                        espaciosConjuroMaximos={personajeActivo.espaciosConjuroMaximos || {}}
-                        nivelConjuroMaximo={personajeActivo.nivelConjuroMaximo || 0}
-                        sistemaMagia={sistemaMagia}
-                      />
-                    ))}
+                    {itemsNivel.map(({ hechizo }) => {
+                      const nomHechizoNorm = hechizo.nombre.toLowerCase().trim();
+                      const rasgoInnatoGratuito = (personajeActivo.rasgos || []).find((r) => {
+                        if (!r.tieneUsosLimitados || typeof r.usosRestantes !== "number" || r.usosRestantes <= 0) return false;
+                        if (r.nivelRequerido && (personajeActivo.nivel || 1) < r.nivelRequerido) return false;
+                        const cOtorgados = r.conjurosOtorgados || [];
+                        return (
+                          cOtorgados.some((c) => coincideHechizoId(c, hechizo.id) || coincideHechizoId(c, hechizo.nombre)) ||
+                          r.nombre.toLowerCase().includes(nomHechizoNorm) ||
+                          nomHechizoNorm.includes(r.nombre.toLowerCase())
+                        );
+                      });
+                      const tieneLanzamientoGratisDisponible = Boolean(rasgoInnatoGratuito);
+
+                      return (
+                        <TarjetaConjuroCompacta
+                          key={hechizo.id}
+                          hechizo={hechizo}
+                          nombrePersonaje={personajeActivo.nombre}
+                          nivelPersonaje={personajeActivo.nivel || 1}
+                          bonoAtaqueMagico={bonoAtaqueMagico}
+                          estaPreparado={true}
+                          mostrarTogglePreparado={false}
+                          esDeSubclase={esHechizoDeSubclase(hechizo)}
+                          origenBadge={resolverOrigenConjuro(personajeActivo, hechizo)}
+                          esConcentracionActual={personajeActivo.concentracionActiva?.hechizoId === hechizo.id}
+                          bloqueadoPorArmadura={estaBloqueadoPorArmadura}
+                          motivoBloqueoArmadura={motivoBloqueoArmadura}
+                          alAbrirDetalleCompleto={(h) => alAbrirDetalle(h)}
+                          alLanzar={(modo, niv) => alLanzar({ modo, hechizo, nivelLanzamiento: niv })}
+                          tieneLanzamientoGratisDisponible={tieneLanzamientoGratisDisponible}
+                          alLanzarGratis={
+                            tieneLanzamientoGratisDisponible
+                              ? async () => {
+                                  await alLanzar({ modo: "gratuitoInnato", hechizo, nivelLanzamiento: hechizo.nivel });
+                                }
+                              : undefined
+                          }
+                          esLanzadorPacto={tienePacto}
+                          nivelEspacioPacto={personajeActivo.nivelEspacioPacto || 0}
+                          espaciosPactoMaximos={personajeActivo.espaciosPactoMaximos || 0}
+                          espaciosPactoGastados={personajeActivo.espaciosPactoGastados || 0}
+                          espaciosConjuroMaximos={personajeActivo.espaciosConjuroMaximos || {}}
+                          nivelConjuroMaximo={personajeActivo.nivelConjuroMaximo || 0}
+                          sistemaMagia={sistemaMagia}
+                        />
+                      );
+                    })}
                   </div>
                 )}
               </div>

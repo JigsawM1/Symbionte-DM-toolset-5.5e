@@ -9,7 +9,7 @@
  */
 
 import type { Caracteristica, Habilidad, PersonajeJugador } from "@/tipos";
-import { evaluarVentajasDeRasgosEnTirada } from "@/servicios/evaluadorEfectosRasgos";
+import { evaluarVentajasDeRasgosEnTirada, estaAtaqueTemerarioActivo } from "@/servicios/evaluadorEfectosRasgos";
 
 export const NIVEL_MAXIMO_CANSANCIO = 6;
 
@@ -193,7 +193,11 @@ export function evaluarEfectosCondicionesEnTirada(
   const motivosModificadores: string[] = [];
   let penalizadorD20 = 0;
 
-  const condiciones = (contexto.condicionesActivas || []).map((c) => c.toLowerCase().trim());
+  const efectosPersonaje = (contexto.personaje?.efectosActivos || []).map((e) => e.nombre.toLowerCase().trim());
+  const condiciones = [
+    ...(contexto.condicionesActivas || []).map((c) => c.toLowerCase().trim()),
+    ...efectosPersonaje
+  ];
 
   // 1. Penalización por Armadura o Escudo sin Competencia (D&D 5.5e)
   if (contexto.penalizacionArmadura) {
@@ -301,8 +305,11 @@ export function evaluarEfectosCondicionesEnTirada(
     }
 
     // Ataque Temerario (Reckless Attack): Ventaja en ataques que usen Fuerza
-    if ((cond.includes("temerario") || cond.includes("reckless")) && !motivosVentaja.some((m) => m.toLowerCase().includes("temerario"))) {
-      if (contexto.tipo === "ataque" && contexto.caracteristica === "fuerza") {
+    if (
+      (cond.includes("temerario") || cond.includes("reckless")) &&
+      !motivosVentaja.some((m) => m.toLowerCase().includes("temerario"))
+    ) {
+      if (contexto.tipo === "ataque" && (!contexto.caracteristica || contexto.caracteristica === "fuerza")) {
         motivosVentaja.push("Ataque Temerario (Fuerza)");
       }
     }
@@ -322,6 +329,17 @@ export function evaluarEfectosCondicionesEnTirada(
       penalizadorD20 += penalizacion;
       motivosModificadores.push(`Cansancio Niv. ${nivel} (${penalizacion})`);
     }
+  }
+
+  // Comprobación de respaldo: Ventaja directa por Ataque Temerario si está activo en el personaje
+  if (
+    contexto.personaje &&
+    contexto.tipo === "ataque" &&
+    (!contexto.caracteristica || contexto.caracteristica === "fuerza") &&
+    !motivosVentaja.some((m) => m.toLowerCase().includes("temerario")) &&
+    estaAtaqueTemerarioActivo(contexto.personaje)
+  ) {
+    motivosVentaja.push("Ataque Temerario (Fuerza)");
   }
 
   // Enfoque fanático (Senda del Fanático): Bonificador de Daño de Furia a salvaciones

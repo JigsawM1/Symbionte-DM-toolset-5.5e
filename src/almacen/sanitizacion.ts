@@ -572,7 +572,7 @@ export function sanearObjetoHomebrew(o: unknown): ObjetoHomebrew {
     ).toLowerCase().trim();
     
     const MAESTRIA_MAP: Record<string, string> = {
-      "cleave": "Cleave (Tajo)", "tajo": "Cleave (Tajo)", "hender": "Cleave (Tajo)", "cleave (tajo)": "Cleave (Tajo)",
+      "cleave": "Cleave (Hender)", "tajo": "Cleave (Hender)", "hender": "Cleave (Hender)", "cleave (hender)": "Cleave (Hender)",
       "graze": "Graze (Rozar)", "rozar": "Graze (Rozar)", "roce": "Graze (Rozar)", "graze (rozar)": "Graze (Rozar)",
       "nick": "Nick (Mellar)", "corte": "Nick (Mellar)", "golpe rápido": "Nick (Mellar)", "muesca": "Nick (Mellar)", "nick (corte)": "Nick (Mellar)",
       "push": "Push (Empujar)", "empujar": "Push (Empujar)", "empuje": "Push (Empujar)", "push (empujar)": "Push (Empujar)",

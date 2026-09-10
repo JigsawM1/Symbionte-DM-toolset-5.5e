@@ -18,19 +18,19 @@ export function resolverCondicionAsociadaRasgo(r: RasgoPersonaje): string | unde
   const id = normalizarTextoSeguro(r.id);
 
   if (nom.includes("furia de los dioses") || id.includes("furia_de_los_dioses")) {
-    return "Furia de los Dioses (Rage of the Gods)";
+    return "Furia de los Dioses";
   }
   if ((nom === "furia" || id === "rasgo_cls_barbaro_furia") && !nom.includes("persistente")) {
-    return "Furia (Rage)";
+    return "Furia";
   }
-  if (nom.includes("temerario") || id.includes("temerario")) {
-    return "Ataque Temerario (Reckless Attack)";
+  if (nom.includes("temerario") || id.includes("temerario") || nom.includes("reckless") || id.includes("reckless")) {
+    return "Ataque Temerario";
   }
   if (nom.includes("manto de majestad") || nom.includes("manto de la majestad") || id.includes("manto_de_majestad")) {
-    return "Manto de Majestad (Mantle of Majesty)";
+    return "Manto de Majestad";
   }
   if (nom.includes("majestad inquebrantable") || id.includes("majestad_inquebrantable")) {
-    return "Majestad Inquebrantable (Unbreakable Majesty)";
+    return "Majestad Inquebrantable";
   }
   if (nom.includes("revelacion celestial") || id.includes("revelacion_celestial")) {
     const sel = r.selectores?.find(
@@ -58,30 +58,39 @@ export function coincideCondicionConRasgo(condicionTexto: string, r: RasgoPerson
   const cNorm = normalizarTextoSeguro(condicionTexto);
   if (!cNorm) return false;
 
-  const rCond = r.condicionAlActivar ? normalizarTextoSeguro(r.condicionAlActivar) : "";
-  if (rCond && (cNorm === rCond || cNorm.includes(rCond) || rCond.includes(cNorm))) {
-    return true;
-  }
+  const cBase = cNorm.split(" (")[0].trim();
 
   const condAsociada = resolverCondicionAsociadaRasgo(r);
   if (condAsociada) {
     const asocNorm = normalizarTextoSeguro(condAsociada);
-    if (cNorm === asocNorm || cNorm.includes(asocNorm) || asocNorm.includes(cNorm)) {
-      return true;
-    }
+    if (cNorm === asocNorm) return true;
+    const asocBase = asocNorm.split(" (")[0].trim();
+    if (asocBase === cBase) return true;
+  }
+
+  const rCond = r.condicionAlActivar ? normalizarTextoSeguro(r.condicionAlActivar) : "";
+  if (rCond) {
+    if (cNorm === rCond) return true;
+    const rCondBase = rCond.split(" (")[0].trim();
+    if (rCondBase === cBase) return true;
   }
 
   const rNom = normalizarTextoSeguro(r.nombre);
   const rId = normalizarTextoSeguro(r.id);
 
-  if (cNorm.includes("furia de los dioses") || cNorm.includes("rage of the gods")) {
+  if (cBase.includes("furia de los dioses") || cBase.includes("rage of the gods")) {
     return rNom.includes("furia de los dioses") || rId.includes("furia_de_los_dioses");
   }
-  if (cNorm.includes("furia") || cNorm.includes("rage")) {
-    return rNom === "furia" || rId === "rasgo_cls_barbaro_furia";
+  if (cBase === "furia" || cBase === "rage") {
+    return (rNom === "furia" || rId === "rasgo_cls_barbaro_furia") && !rNom.includes("dioses") && !rId.includes("dioses");
   }
-  if (cNorm.includes("temerario") || cNorm.includes("reckless")) {
-    return rNom.includes("temerario") || rId.includes("temerario");
+  if (cBase.includes("temerario") || cBase.includes("reckless")) {
+    return (
+      rNom.includes("temerario") ||
+      rId.includes("temerario") ||
+      rNom.includes("reckless") ||
+      rId.includes("reckless")
+    );
   }
   if (cNorm.includes("manto de majestad") || cNorm.includes("manto de la majestad") || cNorm.includes("mantle of majesty")) {
     return rNom.includes("manto de majestad") || rNom.includes("manto de la majestad") || rId.includes("manto_de_majestad");

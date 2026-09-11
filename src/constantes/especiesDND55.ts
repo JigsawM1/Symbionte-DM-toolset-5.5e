@@ -150,6 +150,15 @@ export const CATALOGO_ESPECIES_DND55: DefinicionEspecie[] = [
         recuperacion: "descanso_largo",
         esActivable: true,
         categoriaMecanica: "selector_informativo",
+        efectos: [
+          {
+            tipo: "bono_dano_ataque",
+            objetivo: "todos_ataques",
+            valor: "bono_competencia",
+            aplicaA: "todos_ataques",
+            descripcion: "Revelación celestial (+PB daño en ataques)"
+          }
+        ],
         selectores: [
           {
             id: "opcion_revelacion_celestial",
@@ -160,7 +169,15 @@ export const CATALOGO_ESPECIES_DND55: DefinicionEspecie[] = [
               {
                 id: "alas_celestiales",
                 nombre: "Alas celestiales",
-                descripcion: "Dos alas espectrales brotan temporalmente de tu espalda. Hasta que la transformación termine, tienes una velocidad volando igual a tu velocidad. Daño extra radiante igual a tu PB una vez por turno."
+                descripcion: "Dos alas espectrales brotan temporalmente de tu espalda. Hasta que la transformación termine, tienes una velocidad volando igual a tu velocidad. Daño extra radiante igual a tu PB una vez por turno.",
+                efectos: [
+                  {
+                    tipo: "movimiento_especial",
+                    objetivo: "velocidad.volar",
+                    valor: "volar",
+                    descripcion: "Velocidad de vuelo igual a tu velocidad"
+                  }
+                ]
               },
               {
                 id: "fulgor_interior",

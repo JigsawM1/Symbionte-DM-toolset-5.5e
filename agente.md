@@ -19,6 +19,71 @@ Este archivo registra reglas globales, errores encontrados, sus causas raíz y l
    - **Bajo ninguna circunstancia** los módulos de lógica de negocio (`servicios/`), gestores de estado (`almacen/`) o constructores (`gestorClases.ts`) deben contener bifurcaciones condicionales por nombre literal de rasgo o clase (`r.nombre === "..."`, `clase.includes("...")`, etc.).
    - Toda mecánica, progresión de dados, escalado de usos, recuperación o desbloqueo dinámico debe resolverse mediante metadatos declarativos (`escaladoFormulaDados`, `escaladoUsos`, `escaladoRecuperacion`, `opcionesDinamicas`, `escaladoMaxSelecciones`, `sincronizarEfectosConFormula`, `heredarDadosPadre`, `gastarDePadre`, `ligadoA`, `efectos`) delegando en funciones puras agnósticas como `resolverEscaladosRasgo`. Esta regla está reforzada en CI vía ESLint `no-restricted-syntax` y la suite `rasgoGenericidad.test.ts`.
 
+## [2026-09-11] Fase 1 (Corrección): Resiliencia Reactiva y Sincronización de Daño (+PB) para Revelación Celestial (Condiciones, Efectos Activos y localStorage)
+
+**Contexto y Problema Reportado por el Usuario:**
+- El usuario probó en la UI la aplicación de la transformación de Asimar y reportó: *"ok, el daño extra no se esta aplicando, me aplique el efecto y nada, en el daño no esta aplicando el daño extra"*.
+- Al aplicar la condición/efecto *"Alas Celestiales"*, *"Fulgor Interior"*, *"Mortaja Necrótica"* o *"Revelación celestial"* en la Barra Táctica o Combat Tracker, el daño del arma no reflejaba el bono `+PB` (seguía mostrando `1d8+3` en lugar de `1d8+5`).
+
+**Causas Raíz Identificadas:**
+1. **Desincronización de Snapshots de `localStorage`:** Los personajes Asimar persistidos previamente en el navegador tenían guardado el rasgo `Revelación celestial` sin el array `efectos: [{ tipo: "bono_dano_ataque", ... }]` (ya que fue creado antes de la adición al catálogo). Al cargar el personaje, `evaluarEfectosRasgosActivos` recorría `rasgo.efectos` vacío o indefinido, resultando en `0` efectos devueltos.
+2. **Falta de Reactividad Directa de Condiciones/Efectos hacia el Motor de Combate:** `obtenerBonoDanoAtaqueExtra` consultaba exclusivamente `evaluarEfectosRasgosActivos`, el cual solo leía el array `personaje.rasgos`. Si el usuario se aplicaba el efecto en la Barra Táctica o Combat Tracker (que escribe en `condicionesActivas` y `efectosActivos`), el evaluador no lo reconocía a menos que el rasgo en sí estuviera conmutado y tuviera `efectos` válidos.
+3. **Ausencia de Función de Inspección de Estado Global:** A diferencia de Furia (que dispone de `estaFuriaActiva` para auditar condiciones, efectos y rasgos al unísono), no existía `estaRevelacionCelestialActiva`.
+
+**Decisiones Arquitectónicas y Solución Implementada:**
+1. **Función Pura `estaRevelacionCelestialActiva(personaje)` (`src/servicios/evaluadorEfectosRasgos.ts`):**
+   - Audita de forma unificada:
+     a) `personaje.condicionesActivas` ("alas celestiales", "fulgor interior", "mortaja necrotica", "revelacion celestial").
+     b) `personaje.efectosActivos` (mismos criterios en nombres de efectos temporales).
+     c) `personaje.rasgos` (`r.activo !== false` en conmutador de rasgo).
+2. **Hidratación Dinámica Resiliente en `evaluarEfectosRasgosActivos`:**
+   - Si el rasgo de Revelación celestial está presente pero inactivo, se considera activo automáticamente si `estaRevelacionCelestialActiva(personaje)` es `true`.
+   - Si el rasgo guardado en `localStorage` carece de `efectos` definidos, el evaluador inyecta en tiempo de ejecución el efecto canónico de daño `{ tipo: "bono_dano_ataque", objetivo: "todos_ataques", valor: "bono_competencia", aplicaA: "todos_ataques", descripcion: "Revelación celestial (+PB daño en ataques)" }`.
+3. **Respaldo Reactivo Garantizado en `obtenerBonoDanoAtaqueExtra` (Paridad con Furia):**
+   - Tras evaluar los efectos de rasgos, si `estaRevelacionCelestialActiva(personaje)` es verdadera y ningún efecto evaluado aportó previamente el bono de Revelación, se suma directamente el Bono de Competencia (+PB) al modificador numérico de daño del ataque.
+   - Esto blinda la mecánica frente a personajes antiguos, PNJs o tokens temporales.
+4. **Auto-Saneamiento en `sanearPersonaje` (`src/almacen/sanitizacion.ts`):**
+   - Al cargar o importar cualquier personaje, si contiene `Revelación celestial` sin `efectos`, se le asegura la propiedad declarativa canónica.
+5. **Garantía en `activarRasgosPorCondicionOEfecto` (`condicionesRasgosHelpers.ts`):**
+   - Al activar el rasgo mediante una condición o efecto, se garantizan los efectos mecánicos en el estado de Zustand.
+6. **Verificación y Cobertura:**
+   - 3 pruebas de resiliencia agregadas en `calculadorDanoCombate.test.ts` validando: aplicación directa de condición "Alas Celestiales" en Barra Táctica, efecto activo "Fulgor Interior" en Combat Tracker, y auto-hidratación desde snapshot antiguo de `localStorage`.
+   - `pnpm exec tsc --noEmit`: 0 errores.
+   - `pnpm exec vitest run`: 49/49 suites aprobadas, 575/575 pruebas pasando (100%).
+
+---
+
+## [2026-09-11] Fase 1: Motor Genérico de Bonos de Daño a Ataques (+PB) y Rasgo Mecánico Revelación Celestial (Asimar)
+
+**Contexto y Requerimientos del Usuario:**
+- Solicitud del usuario: *"vamos a plantear (crea un plan de implementacion) de como añadir el rasgo mecanico de asimar Revelación celestial esta plantea que al activar el efecto de cualquira de sus transformaciones se añade un +PB al daño de los ataques y daño de los hechizos, recuerda que estas deben ser funciones totalmente genericas por que se deben consumir desdel el builder. para los ataques (daño de arma) se aplica algo similar al daño de furia del barbaro que ya esta construido asi que tal vez se pueda empezar por alli, para la fase 2 aqui se planteara para el daño de los conjuros"*.
+- Aclaración de diseño del usuario: *"debe ser daño directo al arma osea 1d8+5, por que talespire no acepta numeros solos los autocompleta con un d20. por ende el 1d8+3 / 2 no se puede"*.
+
+**Causas Raíz y Limitaciones Previas Identificadas:**
+1. **Falta de resolución dinámica de `bono_competencia` en bonos de daño:** `obtenerBonoDanoFuerzaExtra` realizaba `Number(ef.valor) || 0`, provocando que valores dinámicos como `"bono_competencia"`, `"pb"` o `"bc"` devolvieran `NaN` -> `0`.
+2. **Acoplamiento semántico a Fuerza:** El tipo de efecto disponible era únicamente `"bono_dano_fuerza"`, induciendo a confusión en el builder al configurar rasgos para ataques a distancia o universales.
+3. **Ausencia de efectos mecánicos en el catálogo:** El rasgo `Revelación celestial` de Asimar en `especiesDND55.ts` carecía de `efectos` declarativos que comunicaran su bonificación al motor de combate.
+
+**Solución Implementada y Decisiones Arquitectónicas:**
+1. **Extensión del Contrato de Efectos (`src/tipos/rasgos.ts`):**
+   - Se añadió `"bono_dano_ataque"` a `EsquemaTipoEfectoMecanico`, manteniendo `"bono_dano_fuerza"` para compatibilidad retroactiva total.
+2. **Resolución Universal y Evaluación Numérica Segura (`src/servicios/evaluadorEfectosRasgos.ts`):**
+   - `resolverFormulaDinamica` ahora reconoce los tokens `bono_competencia`, `pb` y `bc`.
+   - Se implementó `evaluarExpresionNumericaSegura` para resolver sumas numéricas en cadenas (ej. `"3"`, `"+2"`, `"2+1"`).
+   - Se creó la función pura genérica `obtenerBonoDanoAtaqueExtra(personaje, contexto)` que procesa tanto `bono_dano_ataque` como `bono_dano_fuerza`, delegando en ella `obtenerBonoDanoFuerzaExtra`.
+3. **Integración Directa en Fórmula de Arma (`src/servicios/calculadorDanoCombate.ts`):**
+   - `resolverBonosYDadosExtraCombate` suma el bono extra directamente a `modDanoTotal`, componiendo fórmulas directas (ej. `1d8+5`) compatibles con TaleSpire.
+4. **Catálogo y Builder:**
+   - Se integró `"bono_dano_ataque"` en `ConstructorRasgoDote.tsx` con su selector de objetivo (`OPCIONES_APLICA_A_ATAQUE`).
+   - Se configuró el efecto declarativo en `Revelación celestial` de Asimar en `especiesDND55.ts` con `valor: "bono_competencia"` y `aplicaA: "todos_ataques"`.
+5. **Verificación y Cobertura:**
+   - 4 pruebas unitarias añadidas en `calculadorDanoCombate.test.ts` cubriendo niveles 3 (+2 PB), nivel 9 (+4 PB), desactivación reactiva y tokens homebrew del builder.
+   - `tsc --noEmit`: 0 errores.
+   - `pnpm lint`: 0 errores.
+   - `vitest run`: 49/49 suites aprobadas, 572/572 tests pasando (100%).
+
+---
+
 ## [2026-09-11] Soporte Universal para Conjuros de Proyectiles y Ataques Múltiples Independientes (Descarga Sobrenatural, Proyectil Mágico y Rayo Abrasador)
 
 **Contexto y Requerimientos del Usuario:**

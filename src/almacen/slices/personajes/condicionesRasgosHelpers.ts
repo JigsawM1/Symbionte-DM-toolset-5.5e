@@ -178,12 +178,31 @@ export function activarRasgosPorCondicionOEfecto(
         );
       }
 
+      let efectosActualizados = r.efectos;
+      if (esRevelacion && (!Array.isArray(efectosActualizados) || efectosActualizados.length === 0)) {
+        efectosActualizados = [
+          {
+            tipo: "bono_dano_ataque",
+            objetivo: "todos_ataques",
+            valor: "bono_competencia",
+            aplicaA: "todos_ataques",
+            descripcion: "Revelación celestial (+PB daño en ataques)"
+          }
+        ];
+      }
+
       if (!r.activo) {
         const usosRest =
           typeof r.usosRestantes === "number" ? Math.max(0, r.usosRestantes - 1) : r.usosRestantes;
-        return { ...r, activo: true, usosRestantes: usosRest, selectores: selectoresActualizados };
-      } else if (selectoresActualizados !== r.selectores) {
-        return { ...r, selectores: selectoresActualizados };
+        return {
+          ...r,
+          activo: true,
+          usosRestantes: usosRest,
+          selectores: selectoresActualizados,
+          efectos: efectosActualizados
+        };
+      } else if (selectoresActualizados !== r.selectores || efectosActualizados !== r.efectos) {
+        return { ...r, selectores: selectoresActualizados, efectos: efectosActualizados };
       }
     }
     return r;

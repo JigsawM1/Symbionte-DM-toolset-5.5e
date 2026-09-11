@@ -6,7 +6,7 @@ import type { EstadisticasCalculadasPersonaje } from "@/almacen/selectores/usarE
 import {
   obtenerDadosExtraAtaque,
   obtenerDanosSecundariosAtaque,
-  obtenerBonoDanoFuerzaExtra,
+  obtenerBonoDanoAtaqueExtra,
   resolverFormulaDinamica,
   ContextoAtaquePersonaje
 } from "@/servicios/evaluadorEfectosRasgos";
@@ -42,7 +42,7 @@ export function resolverBonosYDadosExtraCombate(params: {
     yaIncluyeFuriaEnEfectos
   } = params;
 
-  const bonoDanoExtraRasgos = obtenerBonoDanoFuerzaExtra(personajeActivo, contextoAtaque);
+  const bonoDanoExtraRasgos = obtenerBonoDanoAtaqueExtra(personajeActivo, contextoAtaque);
   const bonoFuria =
     furiaEstaActiva && !yaIncluyeFuriaEnEfectos && caracUsada === "fuerza" && statsCalculadas.bonoDanoFuria > 0
       ? statsCalculadas.bonoDanoFuria

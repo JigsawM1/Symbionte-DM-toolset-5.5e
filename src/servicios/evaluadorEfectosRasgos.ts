@@ -135,6 +135,60 @@ export function estaAtaqueTemerarioActivo(personaje: PersonajeJugador): boolean 
 }
 
 /**
+ * Comprueba si la Revelación Celestial (Asimar) está activa actualmente
+ * (vía condiciones activas, efectos temporales en Combat Tracker o conmutador de rasgo).
+ */
+export function estaRevelacionCelestialActiva(personaje: PersonajeJugador): boolean {
+  // 1. Comprobar en condiciones activas
+  const enCondiciones = (personaje.condicionesActivas || []).some((c) => {
+    const norm = normalizar(c);
+    return (
+      norm.includes("alas celestiales") ||
+      norm.includes("fulgor interior") ||
+      norm.includes("mortaja necrotica") ||
+      norm.includes("revelacion celestial")
+    );
+  });
+  if (enCondiciones) return true;
+
+  // 2. Comprobar en efectos temporales activos (Combat Tracker / Ficha)
+  const enEfectos = (personaje.efectosActivos || []).some((e) => {
+    const norm = normalizar(e.nombre);
+    return (
+      norm.includes("alas celestiales") ||
+      norm.includes("fulgor interior") ||
+      norm.includes("mortaja necrotica") ||
+      norm.includes("revelacion celestial")
+    );
+  });
+  if (enEfectos) return true;
+
+  // 3. Comprobar en rasgos del personaje
+  const rasgoActivo = (personaje.rasgos || []).some((r) => {
+    if (r.activo === false) return false;
+    const idNorm = normalizar(r.id);
+    const nomNorm = normalizar(r.nombre);
+    return (
+      idNorm.includes("revelacion celestial") ||
+      idNorm.includes("revelacion_celestial") ||
+      nomNorm.includes("revelacion celestial") ||
+      nomNorm.includes("revelacion_celestial")
+    );
+  });
+  if (rasgoActivo) return true;
+
+  return estaRasgoActivo(personaje, "revelacion celestial");
+}
+
+/**
+ * Calcula el Bono de Competencia estándar de un personaje según su nivel global.
+ */
+export function obtenerBonoCompetenciaPersonaje(personaje: PersonajeJugador): number {
+  const nivelGlobal = personaje.nivel || 1;
+  return Math.floor((nivelGlobal - 1) / 4) + 2;
+}
+
+/**
  * Obtiene el nivel de una clase específica para el personaje (soporte multiclase).
  */
 export function obtenerNivelClasePersonaje(personaje: PersonajeJugador, nombreClase: string): number {
@@ -222,8 +276,17 @@ export function evaluarEfectosRasgosActivos(personaje: PersonajeJugador): Efecto
   const rasgos = personaje.rasgos || [];
 
   for (const rasgo of rasgos) {
+    const nomNorm = normalizar(rasgo.nombre);
+    const idNorm = normalizar(rasgo.id);
+    const esRevelacion =
+      nomNorm.includes("revelacion celestial") ||
+      idNorm.includes("revelacion_celestial");
+
+    // Si es Revelación celestial y está activa globalmente (condición o efecto en barra táctica), considerarla activa
+    const estaActivo = rasgo.activo !== false || (esRevelacion && estaRevelacionCelestialActiva(personaje));
+
     // Si el rasgo está desactivado explícitamente, omitirlo
-    if (rasgo.activo === false) continue;
+    if (!estaActivo) continue;
 
     // Si está ligado a otro rasgo, verificar que el padre esté activo
     if (rasgo.ligadoA) {
@@ -231,9 +294,23 @@ export function evaluarEfectosRasgosActivos(personaje: PersonajeJugador): Efecto
       if (!padreActivo) continue;
     }
 
+    // Efectos base del rasgo (con hidratación de respaldo si proviene de un snapshot antiguo de localStorage)
+    let efectosBase = rasgo.efectos;
+    if (esRevelacion && (!Array.isArray(efectosBase) || efectosBase.length === 0)) {
+      efectosBase = [
+        {
+          tipo: "bono_dano_ataque",
+          objetivo: "todos_ataques",
+          valor: "bono_competencia",
+          aplicaA: "todos_ataques",
+          descripcion: "Revelación celestial (+PB daño en ataques)"
+        }
+      ];
+    }
+
     // 1. Efectos base del rasgo
-    if (Array.isArray(rasgo.efectos)) {
-      for (const efecto of rasgo.efectos) {
+    if (Array.isArray(efectosBase)) {
+      for (const efecto of efectosBase) {
         if (efecto.activo !== false && cumpleCondicionEfecto(efecto.condicion, personaje)) {
           efectosResultado.push({
             ...efecto,
@@ -471,11 +548,38 @@ export function resolverFormulaDinamica(
     .replace(/dano_furia/gi, String(bonoFuria))
     .replace(/mitad_nivel/gi, String(mitadNivel))
     .replace(/bono_competencia/gi, String(bonoCompetencia))
+    .replace(/\b(pb|bc)\b/gi, String(bonoCompetencia))
     .replace(/\bnivel\b/gi, String(nivelClase))
     .replace(/(\d+)\s+d/gi, "$1d")
     .trim();
 
   return reemplazado;
+}
+
+/**
+ * Evalúa expresiones numéricas sencillas y seguras (ej. "3", "+2", "-1", "2+3")
+ * sin recurrir a eval(), garantizando rendimiento y seguridad.
+ */
+export function evaluarExpresionNumericaSegura(expresion: string | number): number {
+  if (typeof expresion === "number") return isNaN(expresion) ? 0 : expresion;
+  if (!expresion || typeof expresion !== "string") return 0;
+
+  const limpia = expresion.replace(/\s+/g, "").trim();
+  if (!limpia) return 0;
+
+  // Si es un número entero simple o con signo (ej. "4", "+2", "-3")
+  if (/^[+-]?\d+$/.test(limpia)) {
+    return parseInt(limpia, 10);
+  }
+
+  // Si es una suma/resta de términos numéricos simples (ej. "2+3", "4-1")
+  const matchTerminos = limpia.match(/[+-]?\d+/g);
+  if (matchTerminos && matchTerminos.join("") === limpia) {
+    return matchTerminos.reduce((acc, t) => acc + parseInt(t, 10), 0);
+  }
+
+  const num = parseInt(limpia, 10);
+  return isNaN(num) ? 0 : num;
 }
 
 /**
@@ -571,32 +675,48 @@ export function obtenerDanosSecundariosAtaque(
 
 /**
  * Obtiene bonificadores numéricos extra al daño procedentes de rasgos activos
- * con efecto `bono_dano_fuerza` o similar.
+ * con efecto `bono_dano_ataque` o `bono_dano_fuerza` de forma 100% genérica.
  */
-export function obtenerBonoDanoFuerzaExtra(
+export function obtenerBonoDanoAtaqueExtra(
   personaje: PersonajeJugador,
   contexto: ContextoAtaquePersonaje
 ): number {
   let bonoTotal = 0;
   const efectos = evaluarEfectosRasgosActivos(personaje);
+  let yaAplicoRevelacion = false;
 
   for (const ef of efectos) {
-    if (ef.tipo === "bono_dano_fuerza") {
+    if (ef.tipo === "bono_dano_ataque" || ef.tipo === "bono_dano_fuerza") {
       if (aplicaEfectoAAtaque(ef.aplicaA, ef.objetivo, contexto)) {
-        const valStr = String(ef.valor).toLowerCase().trim();
-        if (valStr === "dano_furia") {
-          const nivelB = obtenerNivelClasePersonaje(personaje, "bárbaro") || personaje.nivel || 1;
-          bonoTotal += obtenerBonoDanoFuria(nivelB);
-        } else if (valStr === "mitad_nivel") {
-          bonoTotal += Math.max(1, Math.floor((personaje.nivel || 1) / 2));
-        } else {
-          bonoTotal += Number(ef.valor) || 0;
+        const formulaResuelta = resolverFormulaDinamica(ef.valor, personaje);
+        const valorNumerico = evaluarExpresionNumericaSegura(formulaResuelta);
+        bonoTotal += valorNumerico;
+        const descNorm = normalizar(ef.descripcion || "");
+        if (descNorm.includes("revelacion celestial") || descNorm.includes("revelacion_celestial")) {
+          yaAplicoRevelacion = true;
         }
       }
     }
   }
 
+  // Respaldo reactivo garantizado: si Revelación celestial está activa (condiciones, efectos temporales o rasgo conmutado)
+  // y ningún efecto de rasgo previo aportó el bono, sumar directamente el Bono de Competencia (+PB)
+  if (!yaAplicoRevelacion && estaRevelacionCelestialActiva(personaje)) {
+    bonoTotal += obtenerBonoCompetenciaPersonaje(personaje);
+  }
+
   return bonoTotal;
+}
+
+/**
+ * Obtiene bonificadores numéricos extra al daño procedentes de rasgos activos
+ * con efecto `bono_dano_fuerza` o similar (delegador retrocompatible).
+ */
+export function obtenerBonoDanoFuerzaExtra(
+  personaje: PersonajeJugador,
+  contexto: ContextoAtaquePersonaje
+): number {
+  return obtenerBonoDanoAtaqueExtra(personaje, contexto);
 }
 
 /**

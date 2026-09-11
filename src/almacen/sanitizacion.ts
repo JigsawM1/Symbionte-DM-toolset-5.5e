@@ -1176,10 +1176,26 @@ export function sanearPersonaje(p: unknown): PersonajeJugador {
           })
           .map((r: Record<string, unknown>) => {
             const esActivable = Boolean(r.esActivable);
+            const nomL = typeof r.nombre === "string" ? r.nombre.toLowerCase().trim() : "";
+            const idL = typeof r.id === "string" ? r.id.toLowerCase().trim() : "";
+            const esRevelacion = nomL.includes("revelacion celestial") || idL.includes("revelacion_celestial");
+            let efectos = Array.isArray(r.efectos) ? [...r.efectos] : [];
+            if (esRevelacion && efectos.length === 0) {
+              efectos = [
+                {
+                  tipo: "bono_dano_ataque",
+                  objetivo: "todos_ataques",
+                  valor: "bono_competencia",
+                  aplicaA: "todos_ataques",
+                  descripcion: "Revelación celestial (+PB daño en ataques)"
+                }
+              ];
+            }
             return {
               ...r,
               esActivable,
-              activo: typeof r.activo === "boolean" ? r.activo : (esActivable ? false : true)
+              activo: typeof r.activo === "boolean" ? r.activo : (esActivable ? false : true),
+              efectos
             };
           })
       : [],

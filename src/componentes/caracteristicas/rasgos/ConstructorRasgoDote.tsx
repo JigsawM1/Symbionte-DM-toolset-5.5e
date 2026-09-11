@@ -107,7 +107,8 @@ const OPCIONES_SALVACION_OBJETIVO = [
 const TIPOS_EFECTO_DISPONIBLES: { tipo: TipoEfectoMecanico; etiqueta: string; desc: string }[] = [
   { tipo: "dado_extra_dano", etiqueta: "Dados Extra de Daño", desc: "Añade dados al arma o ataque (ej. 1d10 de Golpe Brutal o 2d6 de Frenesí)" },
   { tipo: "dano_secundario", etiqueta: "Daño Secundario con Tipo (/)", desc: "Grupo de daño independiente con tipo separado (ej. 1d6+mitad_nivel Radiante/Necrótico)" },
-  { tipo: "bono_dano_fuerza", etiqueta: "Bono Numérico de Daño", desc: "Suma daño plano (+2, dano_furia, mitad_nivel) a ataques con Fuerza" },
+  { tipo: "bono_dano_ataque", etiqueta: "Bono Numérico de Daño a Ataques", desc: "Suma daño plano (+PB, +2, dano_furia, mitad_nivel) a ataques seleccionados" },
+  { tipo: "bono_dano_fuerza", etiqueta: "Bono Numérico de Daño (Fuerza)", desc: "Suma daño plano (+2, dano_furia, mitad_nivel) a ataques con Fuerza" },
   { tipo: "modificador_ca", etiqueta: "Defensa sin Armadura / CA", desc: "Calcula CA sumando Constitución, Sabiduría o bono plano" },
   { tipo: "modificador_stat", etiqueta: "Modificador de Característica", desc: "Aumenta un atributo y permite elevar el límite de 20 a 25" },
   { tipo: "modificador_velocidad", etiqueta: "Velocidad de Movimiento", desc: "Aumenta la velocidad base a pie (+10 pies de Movimiento Rápido)" },
@@ -244,6 +245,10 @@ export const ConstructorRasgoDote: React.FC<ConstructorRasgoDoteProps> = ({
       setNuevoTipoDano("Radiante o Necrótico");
       setNuevoObjetivo("arma_fuerza");
       setNuevoAplicaA("arma_fuerza");
+    } else if (t === "bono_dano_ataque") {
+      setNuevoValor("bono_competencia");
+      setNuevoObjetivo("todos_ataques");
+      setNuevoAplicaA("todos_ataques");
     } else if (t === "bono_dano_fuerza") {
       setNuevoValor("dano_furia");
       setNuevoObjetivo("fuerza");
@@ -309,6 +314,7 @@ export const ConstructorRasgoDote: React.FC<ConstructorRasgoDoteProps> = ({
         case "dano_secundario":
           descFinal = `/${nuevoValor} [${nuevoTipoDano}]`;
           break;
+        case "bono_dano_ataque":
         case "bono_dano_fuerza":
           descFinal = `+${nuevoValor} al daño físico`;
           break;
@@ -1064,7 +1070,7 @@ export const ConstructorRasgoDote: React.FC<ConstructorRasgoDoteProps> = ({
               </div>
             )}
 
-            {nuevoTipoEfecto === "bono_dano_fuerza" && (
+            {(nuevoTipoEfecto === "bono_dano_fuerza" || nuevoTipoEfecto === "bono_dano_ataque") && (
               <div className={estilos.gridDosColumnas}>
                 <div className={estilos.campoGrupo}>
                   <label className={estilos.labelCampo}>
@@ -1073,7 +1079,7 @@ export const ConstructorRasgoDote: React.FC<ConstructorRasgoDoteProps> = ({
                   <input
                     type="text"
                     className={estilos.inputControl}
-                    placeholder="ej. +2, dano_furia, mitad_nivel..."
+                    placeholder="ej. +2, bono_competencia, dano_furia, mitad_nivel..."
                     value={nuevoValor}
                     onChange={(e) => setNuevoValor(e.target.value)}
                   />
@@ -1084,10 +1090,7 @@ export const ConstructorRasgoDote: React.FC<ConstructorRasgoDoteProps> = ({
                   </label>
                   <SelectorDesplegable<"arma_fuerza" | "arma_cac" | "arma_distancia" | "desarmado" | "todos_ataques">
                     valor={nuevoAplicaA}
-                    opciones={[
-                      { valor: "arma_fuerza", etiqueta: "Armas con Fuerza" },
-                      { valor: "todos_ataques", etiqueta: "Todos los Ataques" }
-                    ]}
+                    opciones={OPCIONES_APLICA_A_ATAQUE}
                     alCambiar={(val) => setNuevoAplicaA(val)}
                     tamano="normal"
                   />

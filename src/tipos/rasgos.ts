@@ -47,6 +47,7 @@ export const EsquemaTipoEfectoMecanico = z.enum([
   "dado_extra_dano",
   "dano_secundario",
   "bono_dano_fuerza",
+  "bono_dano_ataque",
   "bono_salvacion",
   "inmunidad_condicion",
   "competencia",

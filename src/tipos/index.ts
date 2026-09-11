@@ -188,6 +188,13 @@ export const EsquemaMonstruoBase = z.object({
 });
 export type MonstruoBase = z.infer<typeof EsquemaMonstruoBase>;
 
+export const EsquemaComponentesSeleccionados = z.object({
+  verbal: z.boolean(),
+  somatico: z.boolean(),
+  material: z.boolean()
+});
+export type ComponentesSeleccionados = z.infer<typeof EsquemaComponentesSeleccionados>;
+
 export const EsquemaHechizoBase = z.object({
   id: z.string(),
   nombre: z.string(),
@@ -198,7 +205,6 @@ export const EsquemaHechizoBase = z.object({
   escuela: EsquemaEscuelaHechizo.or(z.string()),
   tiempoLanzamiento: z.string(),
   alcance: z.string(),
-  componentes: z.string(), // ej. "V, S, M"
   descripcion: z.string(),
   concentracion: z.boolean().optional(),
   ritual: z.boolean().optional(),
@@ -206,14 +212,10 @@ export const EsquemaHechizoBase = z.object({
   // Campos avanzados enriquecidos
   descNivelSuperior: z.string().optional(),
   materiales: z.string().optional(),
-  componentesSeleccionados: z.object({
-    verbal: z.boolean(),
-    somatico: z.boolean(),
-    material: z.boolean()
-  }).optional(),
+  componentesSeleccionados: EsquemaComponentesSeleccionados,
   duracion: z.string().optional(),
   clases: z.array(z.string()).optional(),
-  ataqueCd: z.string().optional(), // "TIRADA DE ATAQUE", "CD DE SALVACIÓN", "N/A"
+  ataqueCd: z.enum(["ATAQUE", "CD", "N/A"]).optional(),
   requiereAtaque: z.boolean().optional(),
   dadosDaño: z.string().optional(),
   dadosDañoNivelSuperior: z.string().optional(),

@@ -24,7 +24,7 @@ const OPCIONES_SI_NO = [
   { valor: "Sí", etiqueta: "Sí" }
 ];
 
-const OPCIONES_ATAQUE_CD = [
+const OPCIONES_ATAQUE_CD: Array<{ valor: "ATAQUE" | "CD" | "N/A"; etiqueta: string }> = [
   { valor: "N/A", etiqueta: "N/A" },
   { valor: "ATAQUE", etiqueta: "Ataque" },
   { valor: "CD", etiqueta: "CD (Dificultad)" }

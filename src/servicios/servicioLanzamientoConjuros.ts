@@ -187,11 +187,7 @@ function construirFormulaEspacio(
   }${tipoDanoText}`;
 
   const tieneAtaque =
-    hechizo.requiereAtaque === true ||
-    (!!hechizo.ataqueCd &&
-      hechizo.ataqueCd !== "N/A" &&
-      hechizo.ataqueCd !== "none" &&
-      (hechizo.ataqueCd.toUpperCase().includes("ATAQUE") || hechizo.ataqueCd.toUpperCase().includes("ATTACK")));
+    hechizo.requiereAtaque === true || hechizo.ataqueCd === "ATAQUE";
 
   let formulaTaleSpire = "";
   if (tieneAtaque) {

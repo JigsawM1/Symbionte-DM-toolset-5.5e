@@ -192,7 +192,7 @@ export function activarRasgosPorCondicionOEfecto(
 
 /**
  * Desactiva de forma reactiva los rasgos coincidentes con un nombre de condición o efecto,
- * ejecutando la desactivación en cascada para rasgos dependientes (ej. Furia Divina o Golpe Brutal al desactivar Furia).
+ * ejecutando la desactivación en cascada para rasgos dependientes (ej. Furia Divina al desactivar Furia, o Golpe Brutal al desactivar Ataque Temerario).
  */
 export function desactivarRasgosPorCondicionOEfecto(
   nombreEstado: string,
@@ -214,6 +214,11 @@ export function desactivarRasgosPorCondicionOEfecto(
   if (clavesPadresApagados.size > 0) {
     const esFuriaApagada =
       clavesPadresApagados.has("furia") || clavesPadresApagados.has("rasgo_cls_barbaro_furia");
+    const esAtaqueTemerarioApagado =
+      clavesPadresApagados.has("ataque temerario") ||
+      clavesPadresApagados.has("rasgo_cls_barbaro_ataque_temerario") ||
+      clavesPadresApagados.has("reckless attack") ||
+      clavesPadresApagados.has("reckless");
 
     rasgosActualizados = rasgosActualizados.map((r) => {
       if (!r.activo) return r;
@@ -221,7 +226,8 @@ export function desactivarRasgosPorCondicionOEfecto(
         const lig = r.ligadoA.toLowerCase().trim();
         if (
           clavesPadresApagados.has(lig) ||
-          (esFuriaApagada && lig.includes("furia") && !lig.includes("dioses"))
+          (esFuriaApagada && lig.includes("furia") && !lig.includes("dioses")) ||
+          (esAtaqueTemerarioApagado && (lig.includes("temerario") || lig.includes("reckless")))
         ) {
           return { ...r, activo: false };
         }
@@ -237,6 +243,13 @@ export function desactivarRasgosPorCondicionOEfecto(
           rNom.includes("furia de los dioses") ||
           rId.includes("furia_de_los_dioses")
         ) {
+          return { ...r, activo: false };
+        }
+      }
+      if (esAtaqueTemerarioApagado) {
+        const rNom = r.nombre.toLowerCase().trim();
+        const rId = r.id.toLowerCase().trim();
+        if (rNom.includes("golpe brutal") || rId.includes("golpe_brutal")) {
           return { ...r, activo: false };
         }
       }

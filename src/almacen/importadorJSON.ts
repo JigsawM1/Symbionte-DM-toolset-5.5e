@@ -85,10 +85,10 @@ export function importarDesdeJSON(
         } else if (primerElem && (primerElem.HP !== undefined || primerElem.AC !== undefined || primerElem.vidaMaxima !== undefined || primerElem.vidaActual !== undefined)) {
           monstruosCandidatos = listaElementos;
         } else if (primerElem && (
-          primerElem.school !== undefined || primerElem.level !== undefined ||
-          primerElem.escuela !== undefined || primerElem.casting_time !== undefined ||
-          primerElem.tiempo_de_lanzamiento !== undefined || primerElem.tirada_de_salvacion !== undefined ||
-          primerElem.requiere_ataque !== undefined
+          primerElem.componentesSeleccionados !== undefined || primerElem.tiempoLanzamiento !== undefined ||
+          primerElem.escuela !== undefined || primerElem.school !== undefined || primerElem.level !== undefined ||
+          primerElem.casting_time !== undefined || primerElem.tiempo_de_lanzamiento !== undefined ||
+          primerElem.tirada_de_salvacion !== undefined || primerElem.requiere_ataque !== undefined
         )) {
           hechizosCandidatos = listaElementos;
         } else if (primerElem && (primerElem.rareza !== undefined || primerElem.rare !== undefined || primerElem.propiedades !== undefined)) {
@@ -434,262 +434,75 @@ export function importarDesdeJSON(
       modificado = true;
     }
 
-    // Procesar Hechizos importados
+    // Procesar Hechizos importados (formato canónico HechizoBase)
     if (hechizosCandidatos.length > 0) {
       const nuevosHechizosFormateados: HechizoBase[] = hechizosCandidatos.map((item) => {
         const h = (item && typeof item === "object" ? item : {}) as Record<string, unknown>;
         
-        let nivelNum = 0;
-        if (h.nivel !== undefined) {
-          nivelNum = Number(h.nivel);
-        } else if (h.level !== undefined) {
-          const lvlStr = String(h.level).toLowerCase();
-          if (lvlStr.includes("cantrip") || lvlStr.includes("truco")) {
-            nivelNum = 0;
-          } else {
-            const matches = lvlStr.match(/\d+/);
-            nivelNum = matches ? Number(matches[0]) : 1;
-          }
+        const nombre = aplanarValor(h.nombre || "Hechizo Desconocido");
+        const id = aplanarValor(h.id || generarIdSlug("h", nombre));
+        const nivel = Number(h.nivel ?? 0);
+        const escuela = aplanarValor(h.escuela || "Universal");
+        const tiempoLanzamiento = aplanarValor(h.tiempoLanzamiento || "1 acción");
+        const alcance = Array.isArray(h.alcance) ? aplanarValor(h.alcance[0]) : aplanarValor(h.alcance || "Personal");
+        const descripcion = Array.isArray(h.descripcion) ? aplanarValor(h.descripcion[0]) : aplanarValor(h.descripcion || "");
+        const concentracion = Boolean(h.concentracion);
+        const ritual = Boolean(h.ritual);
+
+        // Componentes canónicos estructurados
+        let componentesSeleccionados = { verbal: false, somatico: false, material: false };
+        if (h.componentesSeleccionados && typeof h.componentesSeleccionados === "object") {
+          const cs = h.componentesSeleccionados as Record<string, unknown>;
+          componentesSeleccionados = {
+            verbal: Boolean(cs.verbal),
+            somatico: Boolean(cs.somatico),
+            material: Boolean(cs.material),
+          };
+        } else if (h.componentes) {
+          const rawComp = Array.isArray(h.componentes) ? h.componentes.map(String).join("").toUpperCase() : String(h.componentes).toUpperCase();
+          componentesSeleccionados = {
+            verbal: rawComp.includes("V"),
+            somatico: rawComp.includes("S"),
+            material: rawComp.includes("M"),
+          };
         }
 
-        let concentracionVal = false;
-        if (h.concentracion !== undefined) {
-          concentracionVal = !!h.concentracion;
-        } else if (h.concentration !== undefined) {
-          const cStr = String(h.concentration).toLowerCase();
-          concentracionVal = cStr === "yes" || cStr === "true" || cStr === "sí" || cStr === "si";
-        }
-
-        let ritualVal = false;
-        if (h.ritual !== undefined) {
-          const rStr = String(h.ritual).toLowerCase().trim();
-          ritualVal = rStr.length > 0 && rStr !== "no" && rStr !== "false";
-        }
-
-        // Componentes: admite array ["V","S","M"] (nuevo formato) o string "V, S, M" (formato clásico)
-        let compStr: string;
-        const compRaw = h.componentes || h.components;
-        if (Array.isArray(compRaw)) {
-          compStr = compRaw.map(aplanarValor).join(", ").toUpperCase();
+        let ataqueCd: "ATAQUE" | "CD" | "N/A" | undefined = undefined;
+        if (h.ataqueCd === "ATAQUE" || h.ataqueCd === "CD" || h.ataqueCd === "N/A") {
+          ataqueCd = h.ataqueCd;
+        } else if (h.requiereAtaque) {
+          ataqueCd = "ATAQUE";
+        } else if (h.cdSalvacion) {
+          ataqueCd = "CD";
         } else {
-          compStr = aplanarValor(compRaw || "V, S").toUpperCase();
-        }
-        const componentesSeleccionados = {
-          verbal: compStr.includes("V"),
-          somatico: compStr.includes("S"),
-          material: compStr.includes("M")
-        };
-
-        // Clases de hechizos (array o string separado por comas)
-        let clasesArray: string[] = [];
-        const claseRaw = h.clases || h.class || h.clase;
-        if (Array.isArray(claseRaw)) {
-          clasesArray = claseRaw.map(aplanarValor);
-        } else if (typeof claseRaw === "string" && claseRaw.trim()) {
-          clasesArray = claseRaw.split(",").map((c: string) => c.trim()).filter(Boolean);
+          ataqueCd = "N/A";
         }
 
-        // Alcance: nuevo formato puede ser array ["60 pies", "18 m"] → usar versión imperial/pies (primera)
-        let alcanceStr: string;
-        if (Array.isArray(h.alcance)) {
-          const arr = (h.alcance as unknown[]).map(aplanarValor).filter(Boolean);
-          alcanceStr = arr[0] || "Personal"; // primer elemento = imperial/pies
-        } else {
-          alcanceStr = aplanarValor(h.alcance || h.range || "Personal");
-        }
-
-        // Descripción: nuevo formato puede ser array [imperial, métrico] → usar imperial/pies (primer elemento)
-        // Si es string, usarlo directamente.
-        let desc: string;
-        if (Array.isArray(h.descripcion)) {
-          const arr = (h.descripcion as unknown[]).map(aplanarValor).filter(Boolean);
-          desc = arr[0] || ""; // primer elemento = versión imperial/pies
-        } else {
-          desc = aplanarValor(h.descripcion || h.desc || "");
-        }
-
-        // Sanitizar el texto de descripción corrigiendo las corrupciones del JSON original
-        const descClean = desc
-          .replace(/(\d+)d26\s*pies[áa]s/gi, "$1d8 más")
-          .replace(/(\d+)d40\s*pies[áa]s/gi, "$1d12 más")
-          .replace(/(\d+)d13\s*piesenos/gi, "$1d4 menos")
-          .replace(/pies[áa]s/gi, "más")
-          .replace(/piesenos/gi, "menos");
-
-        // Extraer "a niveles superiores" y su daño de upcast
-        let descNivelSuperior = h.descNivelSuperior || h.higher_level 
-          ? aplanarValor(h.descNivelSuperior || h.higher_level).replace(/^(?:\s*<\/?[a-z0-9]+>)+/gi, '').trim() 
-          : undefined;
-        let dadosDanoNivelSuperior = h.dadosDañoNivelSuperior || h.dadosDanoNivelSuperior || h.damage_dice_upcast || h.higher_level_damage ? aplanarValor(h.dadosDañoNivelSuperior || h.dadosDanoNivelSuperior || h.damage_dice_upcast || h.higher_level_damage) : undefined;
-
-        if (!descNivelSuperior) {
-          const upcastRegex = /(?:con un espacio de conjuro de nivel superior|a niveles superiores|al lanzarse a un nivel superior|lanzado con un espacio de nivel superior).*?[\.:]\s*(.*)/i;
-          const upcastMatch = descClean.match(upcastRegex);
-          if (upcastMatch) {
-            descNivelSuperior = upcastMatch[1].replace(/^(?:\s*<\/?[a-z0-9]+>)+/gi, '').trim();
-          }
-        }
-
-        // Extraer dados de daño base si no vienen definidos
-        let dadosDano = h.dadosDaño || h.dadosDano || h.damage_dice ? aplanarValor(h.dadosDaño || h.dadosDano || h.damage_dice) : undefined;
-        if (!dadosDano) {
-          let descSencilla = descClean;
-          const upcastIndex = descClean.search(/(?:con un espacio de conjuro de nivel superior|a niveles superiores|al lanzarse a un nivel superior|lanzado con un espacio de nivel superior)/i);
-          if (upcastIndex !== -1) {
-            descSencilla = descClean.substring(0, upcastIndex);
-          }
-          const diceMatch = descSencilla.match(/(\d+d\d+(?:\s*[\+\-]\s*\d+)?)/);
-          if (diceMatch) {
-            dadosDano = diceMatch[1].replace(/\s+/g, "");
-          }
-        }
-
-        // Extraer dados de daño de nivel superior
-        if (descNivelSuperior && !dadosDanoNivelSuperior) {
-          const upcastDiceMatch = descNivelSuperior.match(/(\d+d\d+(?:\s*[\+\-]\s*\d+)?)/);
-          if (upcastDiceMatch) {
-            dadosDanoNivelSuperior = upcastDiceMatch[1].replace(/\s+/g, "");
-          } else if (dadosDano) {
-            const descNivelSuperiorLower = descNivelSuperior.toLowerCase();
-            if (
-              descNivelSuperiorLower.includes("dardo adicional") ||
-              descNivelSuperiorLower.includes("rayo adicional") ||
-              descNivelSuperiorLower.includes("proyectil adicional") ||
-              descNivelSuperiorLower.includes("flecha adicional") ||
-              descNivelSuperiorLower.includes("un dardo más") ||
-              descNivelSuperiorLower.includes("un rayo más") ||
-              descNivelSuperiorLower.includes("un proyectil más")
-            ) {
-              dadosDanoNivelSuperior = dadosDano;
-            } else {
-              const matchBaseDice = dadosDano.match(/\d+d(\d+)/);
-              if (matchBaseDice) {
-                const caras = matchBaseDice[1];
-                if (descNivelSuperiorLower.includes("daño") || descNivelSuperiorLower.includes("dano") || descNivelSuperiorLower.includes("aumenta")) {
-                  dadosDanoNivelSuperior = `1d${caras}`;
-                }
-              }
-            }
-          }
-        }
-
-        // Extraer/inferir tipo de daño
-        let tipoDano = h.tipoDaño || h.tipoDano || h.damage_type_01 ? aplanarValor(h.tipoDaño || h.tipoDano || h.damage_type_01).toLowerCase() : undefined;
-        if (!tipoDano && dadosDano) {
-          const danoTypes = ["ácido", "frío", "fuego", "relámpago", "veneno", "psíquico", "radiante", "cortante", "contundente", "perforante", "fuerza", "trueno", "necrótico", "curación"];
-          const descLower = descClean.toLowerCase();
-          for (const t of danoTypes) {
-            if (descLower.includes(t)) {
-              tipoDano = t;
-              break;
-            }
-          }
-        }
-        
-        // Preservar compatibilidad rústica: solo agregar extras a la descripción si es formato
-        // clásico (tiene damage_dice / dadosDaño como campo separado) Y no tiene tirada_de_salvacion
-        // explícita (nuevo formato ya tiene toda la info en el texto de descripcion).
-        // NUNCA concatenar el 'A Niveles Superiores' a la descripción — va en su campo propio.
-        const esFormatoNuevo = h.tirada_de_salvacion !== undefined || h.requiere_ataque !== undefined || h.tiempo_de_lanzamiento !== undefined;
-        if (!esFormatoNuevo) {
-          const extras: string[] = [];
-          const dmgDiceRaw = h.damage_dice || h.dadosDaño || h.dadosDano;
-          if (dmgDiceRaw) {
-            let mech = `**Daño:** ${aplanarValor(dmgDiceRaw)}`;
-            const dmgTypeRaw = h.damage_type_01 || h.tipoDaño || h.tipoDano;
-            if (dmgTypeRaw) mech += ` (${aplanarValor(dmgTypeRaw)})`;
-            if (h.spell_save_dc_type) mech += ` | CD Salvación: ${String(h.spell_save_dc_type).toUpperCase()}`;
-            extras.push(mech);
-          }
-          if (extras.length > 0) {
-            desc += "\n\n" + extras.join("\n");
-          }
-        }
-
-        // tirada_de_salvacion (nuevo formato) → cdSalvacion
-        // Mapear requiere_ataque (booleano explícito del JSON)
-        const requiereAtaque = h.requiere_ataque === true || h.requiereAtaque === true;
-
-        // Mapear tanto el nuevo campo tirada_de_salvacion como el clásico spell_save_dc_type
-        const tiradaSalv = h.tirada_de_salvacion || h.spell_save_dc_type;
-
-        // CD de salvación mapeado (nuevo: tirada_de_salvacion | clásico: spell_save_dc_type)
-        let cdSalv = "";
-        if (tiradaSalv && tiradaSalv !== "null" && tiradaSalv !== "N/A") {
-          const dcType = String(tiradaSalv).toUpperCase().trim();
-          if (dcType.includes("STR") || dcType.includes("FUE") || dcType.includes("FUERZA")) cdSalv = "Fuerza";
-          else if (dcType.includes("DEX") || dcType.includes("DES") || dcType.includes("DESTREZA")) cdSalv = "Destreza";
-          else if (dcType.includes("CON") || dcType.includes("CONSTITUCIÓN") || dcType.includes("CONSTITUCION")) cdSalv = "Constitución";
-          else if (dcType.includes("INT") || dcType.includes("INTELIGENCIA")) cdSalv = "Inteligencia";
-          else if (dcType.includes("WIS") || dcType.includes("SAB")) cdSalv = "Sabiduría";
-          else if (dcType.includes("CHA") || dcType.includes("CAR")) cdSalv = "Carisma";
-          else if (dcType !== "" && dcType !== "NONE") cdSalv = String(tiradaSalv);
-        }
-
-        // Solo escanear descripción si tirada_de_salvacion no vino explícitamente en el JSON (para compatibilidad con otros formatos)
-        if (!cdSalv && h.tirada_de_salvacion === undefined) {
-          const descLower = descClean.toLowerCase();
-          if (descLower.includes("salvación de destreza") || descLower.includes("tirada de salvación de destreza") || descLower.includes("salvación: dex") || descLower.includes("salvación: des") || descLower.includes("salvacion de destreza")) {
-            cdSalv = "Destreza";
-          } else if (descLower.includes("salvación de sabiduría") || descLower.includes("tirada de salvación de sabiduría") || descLower.includes("salvación: sab") || descLower.includes("salvación: wis") || descLower.includes("salvacion de sabiduria") || descLower.includes("salvación de sabidur")) {
-            cdSalv = "Sabiduría";
-          } else if (descLower.includes("salvación de constitución") || descLower.includes("tirada de salvación de constitución") || descLower.includes("salvación: con") || descLower.includes("salvacion de constitucion")) {
-            cdSalv = "Constitución";
-          } else if (descLower.includes("salvación de inteligencia") || descLower.includes("tirada de salvación de inteligencia") || descLower.includes("salvación: int") || descLower.includes("salvacion de inteligencia")) {
-            cdSalv = "Inteligencia";
-          } else if (descLower.includes("salvación de fuerza") || descLower.includes("tirada de salvación de fuerza") || descLower.includes("salvación: fue") || descLower.includes("salvación: str") || descLower.includes("salvacion de fuerza")) {
-            cdSalv = "Fuerza";
-          } else if (descLower.includes("salvación de carisma") || descLower.includes("tirada de salvación de carisma") || descLower.includes("salvación: car") || descLower.includes("salvación: cha") || descLower.includes("salvacion de carisma")) {
-            cdSalv = "Carisma";
-          }
-        }
-
-        // Determinar tipo de efecto de combate: Ataque, CD de Salvación o N/A
-        let ataqueCdFinal = "N/A";
-        if (requiereAtaque) {
-          ataqueCdFinal = "TIRADA DE ATAQUE";
-        } else if (cdSalv) {
-          ataqueCdFinal = "CD DE SALVACIÓN";
-        } else if (h.ataqueCd && h.ataqueCd !== "N/A" && h.ataqueCd !== "none") {
-          ataqueCdFinal = aplanarValor(h.ataqueCd);
-        }
-
-        // Tiempo de lanzamiento: nuevo campo tiempo_de_lanzamiento | clásico: tiempoLanzamiento | inglés: casting_time
-        const tiempoLanzamiento = aplanarValor(
-          h.tiempo_de_lanzamiento || h.tiempoLanzamiento || h.casting_time || "1 acción"
-        );
-
-        // Duración: nuevo campo duracion | clásico: duracion | inglés: duration
-        const duracion = aplanarValor(h.duracion || h.duration || "");
-
-        const nombreHechizo = aplanarValor(h.nombre || h.name || "Hechizo Desconocido");
         const hechizoMapeado = {
-          id: aplanarValor(h.id || h.Id || generarIdSlug('h', nombreHechizo)),
-          nombre: nombreHechizo,
-          nivel: nivelNum,
-          escuela: aplanarValor(h.escuela || h.school || "Universal"),
+          id,
+          nombre,
+          nivel,
+          escuela,
           tiempoLanzamiento,
-          alcance: alcanceStr,
-          componentes: compStr,
-          descripcion: aplanarValor(descClean),
-          concentracion: concentracionVal,
-          ritual: ritualVal,
-          
-          descNivelSuperior: descNivelSuperior || undefined,
-          materiales: (h.materiales !== null && h.materiales !== undefined) ? aplanarValor(h.materiales) : (h.material ? aplanarValor(h.material) : undefined),
+          alcance,
+          descripcion,
+          concentracion,
+          ritual,
           componentesSeleccionados,
-          duracion: duracion || undefined,
-          clases: clasesArray.length > 0 ? clasesArray : undefined,
-          ataqueCd: ataqueCdFinal,
-          requiereAtaque,
-          dadosDaño: dadosDano || undefined,
-          dadosDañoNivelSuperior: dadosDanoNivelSuperior || undefined,
-          cdSalvacion: cdSalv || (h.cdSalvacion && String(h.cdSalvacion).toUpperCase().trim() !== "CD DC" && String(h.cdSalvacion).toUpperCase().trim() !== "DC" ? aplanarValor(h.cdSalvacion) : (h.toHitOrDC && String(h.toHitOrDC).toUpperCase().trim() !== "CD DC" && String(h.toHitOrDC).toUpperCase().trim() !== "DC" ? aplanarValor(h.toHitOrDC) : undefined)),
-          agregarModificadorHabilidad: h.agregarModificadorHabilidad !== undefined ? !!h.agregarModificadorHabilidad : (h.ability_modifier === "yes" || h.ability_modifier === true || h.add_ability_modifier === "yes" || h.add_ability_modifier === true || undefined),
-          tipoDaño: tipoDano || undefined
+          descNivelSuperior: h.descNivelSuperior ? aplanarValor(h.descNivelSuperior) : undefined,
+          materiales: h.materiales != null ? aplanarValor(h.materiales) || undefined : undefined,
+          duracion: h.duracion ? aplanarValor(h.duracion) : undefined,
+          clases: Array.isArray(h.clases) ? h.clases.map(aplanarValor).filter(Boolean) : undefined,
+          ataqueCd,
+          requiereAtaque: Boolean(h.requiereAtaque || ataqueCd === "ATAQUE"),
+          dadosDaño: h.dadosDaño ? aplanarValor(h.dadosDaño) : undefined,
+          dadosDañoNivelSuperior: h.dadosDañoNivelSuperior ? aplanarValor(h.dadosDañoNivelSuperior) : undefined,
+          cdSalvacion: h.cdSalvacion ? aplanarValor(h.cdSalvacion) : undefined,
+          agregarModificadorHabilidad: Boolean(h.agregarModificadorHabilidad),
+          tipoDaño: h.tipoDaño ? aplanarValor(h.tipoDaño) : undefined,
         };
 
-        const saneado = sanearHechizoCD(hechizoMapeado);
+        const saneado = sanearHechizoCD(hechizoMapeado as HechizoBase);
         const val = EsquemaHechizoBase.safeParse(saneado);
         if (val.success) {
           return val.data;

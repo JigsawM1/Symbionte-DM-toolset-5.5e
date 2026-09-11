@@ -12,7 +12,8 @@
     "lint": "eslint src",
     "test": "vitest run",
     "verificar:lineas": "node scripts/verificar-limite-lineas.js",
-    "ci": "tsc --noEmit && eslint src && vitest run && node scripts/verificar-limite-lineas.js && vite build"
+    "ci": "tsc --noEmit && eslint src && vitest run && node scripts/verificar-limite-lineas.js && vite build",
+    "transformar-hechizos": "tsx --tsconfig tsconfig.json src/editor_hechizos/transformar.ts"
   },
   "dependencies": {
     "lucide-react": "^0.395.0",
@@ -36,6 +37,7 @@
     "eslint-plugin-react-refresh": "^0.5.2",
     "puppeteer-core": "^25.2.0",
     "terser": "^5.31.1",
+    "tsx": "^4.23.13",
     "typescript": "^5.4.5",
     "vite": "^5.3.1",
     "vitest": "^1.6.0"

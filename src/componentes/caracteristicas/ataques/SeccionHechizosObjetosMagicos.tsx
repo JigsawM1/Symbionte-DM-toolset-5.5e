@@ -67,7 +67,11 @@ export const SeccionHechizosObjetosMagicos: React.FC<SeccionHechizosObjetosMagic
                   escuela: "Universal",
                   tiempoLanzamiento: "1 Accion",
                   alcance: "60 pies",
-                  componentes: "V, S",
+                  componentesSeleccionados: {
+                    verbal: true,
+                    somatico: true,
+                    material: false
+                  },
                   duracion: "Instantaneo",
                   concentracion: false,
                   ritual: false,

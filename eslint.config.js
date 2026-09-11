@@ -92,5 +92,24 @@ export default [
         }
       ]
     }
+  },
+  {
+    files: [
+      "src/servicios/**/*.ts",
+      "src/almacen/**/*.ts"
+    ],
+    ignores: [
+      "**/*.test.ts",
+      "**/*.spec.ts"
+    ],
+    rules: {
+      "no-restricted-syntax": [
+        "error",
+        {
+          selector: "BinaryExpression[operator=/^===?$/][left.property.name='nombre'][right.type='Literal']",
+          message: "Prohibido bifurcar por nombre literal de rasgo en servicios y almacén (r.nombre === '...'). Toda la lógica mecánica debe resolverse con metadatos declarativos del catálogo."
+        }
+      ]
+    }
   }
 ];

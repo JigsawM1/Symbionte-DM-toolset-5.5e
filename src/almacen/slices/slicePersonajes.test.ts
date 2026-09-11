@@ -906,7 +906,7 @@ describe("SlicePersonajes - Daño y Escudo (HP Temporal)", () => {
       expect(rasgoDioses3?.activo).toBe(false);
     });
 
-    it("Furia Divina y Golpe Brutal solo se pueden activar si Furia está activa y se desactivan al terminar Furia", () => {
+    it("Furia Divina solo se puede activar si Furia está activa y se desactiva al terminar Furia", () => {
       const { alternarActivoRasgo, quitarCondicionPersonaje } = usarAlmacenDM.getState();
 
       usarAlmacenDM.setState({
@@ -939,69 +939,49 @@ describe("SlicePersonajes - Daño y Escudo (HP Temporal)", () => {
                 origen: "subclase",
                 activo: false,
                 esActivable: true
-              },
-              {
-                id: "rasgo_cls_barbaro_golpe_brutal",
-                nombre: "Golpe Brutal",
-                descripcion: "Sacrificas ventaja para infligir 1d10 adicional...",
-                tipoAccion: "especial",
-                origen: "clase",
-                activo: false,
-                esActivable: true
               } as RasgoPersonaje
             ]
           } as unknown as PersonajeJugador
         ]
       });
 
-      // 1. Intentar activar Furia Divina y Golpe Brutal SIN que Furia esté activa -> DEBE BLOQUEARSE
+      // 1. Intentar activar Furia Divina SIN que Furia esté activa -> DEBE BLOQUEARSE
       alternarActivoRasgo("pj-barbaro-fanatico", "rasgo_sub_senda_del_fanatico_furia_divina");
-      alternarActivoRasgo("pj-barbaro-fanatico", "rasgo_cls_barbaro_golpe_brutal");
 
       let pj = usarAlmacenDM.getState().personajes.find((p) => p.id === "pj-barbaro-fanatico");
       let rasgoFD = pj?.rasgos.find((r) => r.id === "rasgo_sub_senda_del_fanatico_furia_divina");
-      let rasgoGB = pj?.rasgos.find((r) => r.id === "rasgo_cls_barbaro_golpe_brutal");
       expect(rasgoFD?.activo).toBe(false);
-      expect(rasgoGB?.activo).toBe(false);
 
-      // 2. Activar Furia base -> Ahora SÍ se deben poder activar Furia Divina y Golpe Brutal
+      // 2. Activar Furia base -> Ahora SÍ se debe poder activar Furia Divina
       alternarActivoRasgo("pj-barbaro-fanatico", "rasgo_cls_barbaro_furia");
       alternarActivoRasgo("pj-barbaro-fanatico", "rasgo_sub_senda_del_fanatico_furia_divina");
-      alternarActivoRasgo("pj-barbaro-fanatico", "rasgo_cls_barbaro_golpe_brutal");
 
       pj = usarAlmacenDM.getState().personajes.find((p) => p.id === "pj-barbaro-fanatico");
       const rasgoFuria = pj?.rasgos.find((r) => r.id === "rasgo_cls_barbaro_furia");
       rasgoFD = pj?.rasgos.find((r) => r.id === "rasgo_sub_senda_del_fanatico_furia_divina");
-      rasgoGB = pj?.rasgos.find((r) => r.id === "rasgo_cls_barbaro_golpe_brutal");
 
       expect(rasgoFuria?.activo).toBe(true);
       expect(rasgoFD?.activo).toBe(true);
-      expect(rasgoGB?.activo).toBe(true);
 
-      // 3. Desactivar Furia base -> Furia Divina y Golpe Brutal deben desactivarse automáticamente
+      // 3. Desactivar Furia base -> Furia Divina debe desactivarse automáticamente
       alternarActivoRasgo("pj-barbaro-fanatico", "rasgo_cls_barbaro_furia");
 
       pj = usarAlmacenDM.getState().personajes.find((p) => p.id === "pj-barbaro-fanatico");
       rasgoFD = pj?.rasgos.find((r) => r.id === "rasgo_sub_senda_del_fanatico_furia_divina");
-      rasgoGB = pj?.rasgos.find((r) => r.id === "rasgo_cls_barbaro_golpe_brutal");
 
       expect(rasgoFD?.activo).toBe(false);
-      expect(rasgoGB?.activo).toBe(false);
 
-      // 4. Con condición Furia aplicada, se activan y al quitar condición se desactivan
+      // 4. Con condición Furia aplicada, se activa y al quitar condición se desactiva
       const { aplicarCondicionPersonaje } = usarAlmacenDM.getState();
       aplicarCondicionPersonaje("pj-barbaro-fanatico", "Furia");
       alternarActivoRasgo("pj-barbaro-fanatico", "rasgo_sub_senda_del_fanatico_furia_divina");
-      alternarActivoRasgo("pj-barbaro-fanatico", "rasgo_cls_barbaro_golpe_brutal");
 
       pj = usarAlmacenDM.getState().personajes.find((p) => p.id === "pj-barbaro-fanatico");
       expect(pj?.rasgos.find((r) => r.id === "rasgo_sub_senda_del_fanatico_furia_divina")?.activo).toBe(true);
-      expect(pj?.rasgos.find((r) => r.id === "rasgo_cls_barbaro_golpe_brutal")?.activo).toBe(true);
 
       quitarCondicionPersonaje("pj-barbaro-fanatico", "Furia");
       pj = usarAlmacenDM.getState().personajes.find((p) => p.id === "pj-barbaro-fanatico");
       expect(pj?.rasgos.find((r) => r.id === "rasgo_sub_senda_del_fanatico_furia_divina")?.activo).toBe(false);
-      expect(pj?.rasgos.find((r) => r.id === "rasgo_cls_barbaro_golpe_brutal")?.activo).toBe(false);
     });
   });
 
@@ -1118,6 +1098,96 @@ describe("SlicePersonajes - Daño y Escudo (HP Temporal)", () => {
         personaje: pj
       });
       expect(evaluacion.tieneVentaja).toBe(false);
+    });
+
+    it("Golpe Brutal involucra a Ataque Temerario (no a Furia): requiere Ataque Temerario activo y se desactiva al terminar este", () => {
+      const { alternarActivoRasgo, aplicarCondicionPersonaje, quitarCondicionPersonaje } = usarAlmacenDM.getState();
+
+      const rasgoGolpeBrutal: RasgoPersonaje = {
+        id: "rasgo_cls_barbaro_golpe_brutal",
+        nombre: "Golpe Brutal",
+        descripcion: "Si usas Ataque temerario, puedes renunciar a cualquier ventaja...",
+        tipoAccion: "especial",
+        origen: "clase",
+        fuente: "Bárbaro (Nivel 9)",
+        tieneUsosLimitados: false,
+        recuperacion: "ninguno",
+        personalizado: false,
+        notas: "",
+        activo: false,
+        esActivable: true,
+        ligadoA: "rasgo_cls_barbaro_ataque_temerario"
+      };
+
+      const rasgoFuria: RasgoPersonaje = {
+        id: "rasgo_cls_barbaro_furia",
+        nombre: "Furia",
+        descripcion: "Entras en furia...",
+        tipoAccion: "accion_adicional",
+        origen: "clase",
+        fuente: "Bárbaro (Nivel 1)",
+        tieneUsosLimitados: true,
+        recuperacion: "descanso_largo",
+        personalizado: false,
+        notas: "",
+        activo: false,
+        esActivable: true,
+        usosMaximos: 4,
+        usosRestantes: 4
+      };
+
+      usarAlmacenDM.setState((st) => ({
+        personajes: st.personajes.map((p) =>
+          p.id === barbaroTemerarioId
+            ? {
+                ...p,
+                rasgos: [...p.rasgos, rasgoGolpeBrutal, rasgoFuria]
+              }
+            : p
+        )
+      }));
+
+      // 1. Intentar activar Golpe Brutal sin Ataque Temerario activo -> DEBE BLOQUEARSE
+      alternarActivoRasgo(barbaroTemerarioId, "rasgo_cls_barbaro_golpe_brutal");
+      let pj = usarAlmacenDM.getState().personajes.find((p) => p.id === barbaroTemerarioId);
+      let rasgoGB = pj?.rasgos.find((r) => r.id === "rasgo_cls_barbaro_golpe_brutal");
+      expect(rasgoGB?.activo).toBe(false);
+
+      // 2. Activar Furia no debe permitir activar Golpe Brutal si Ataque Temerario no está activo
+      alternarActivoRasgo(barbaroTemerarioId, "rasgo_cls_barbaro_furia");
+      alternarActivoRasgo(barbaroTemerarioId, "rasgo_cls_barbaro_golpe_brutal");
+      pj = usarAlmacenDM.getState().personajes.find((p) => p.id === barbaroTemerarioId);
+      rasgoGB = pj?.rasgos.find((r) => r.id === "rasgo_cls_barbaro_golpe_brutal");
+      expect(rasgoGB?.activo).toBe(false);
+
+      // 3. Activar Ataque Temerario -> Ahora SÍ se puede activar Golpe Brutal
+      alternarActivoRasgo(barbaroTemerarioId, "rasgo_cls_barbaro_ataque_temerario");
+      alternarActivoRasgo(barbaroTemerarioId, "rasgo_cls_barbaro_golpe_brutal");
+      pj = usarAlmacenDM.getState().personajes.find((p) => p.id === barbaroTemerarioId);
+      rasgoGB = pj?.rasgos.find((r) => r.id === "rasgo_cls_barbaro_golpe_brutal");
+      expect(rasgoGB?.activo).toBe(true);
+
+      // 4. Desactivar Furia NO desactiva Golpe Brutal (no involucra a Furia)
+      alternarActivoRasgo(barbaroTemerarioId, "rasgo_cls_barbaro_furia");
+      pj = usarAlmacenDM.getState().personajes.find((p) => p.id === barbaroTemerarioId);
+      rasgoGB = pj?.rasgos.find((r) => r.id === "rasgo_cls_barbaro_golpe_brutal");
+      expect(rasgoGB?.activo).toBe(true);
+
+      // 5. Desactivar Ataque Temerario -> Golpe Brutal se desactiva en cascada
+      alternarActivoRasgo(barbaroTemerarioId, "rasgo_cls_barbaro_ataque_temerario");
+      pj = usarAlmacenDM.getState().personajes.find((p) => p.id === barbaroTemerarioId);
+      rasgoGB = pj?.rasgos.find((r) => r.id === "rasgo_cls_barbaro_golpe_brutal");
+      expect(rasgoGB?.activo).toBe(false);
+
+      // 6. Con condición Ataque Temerario activa, Golpe Brutal se activa y al remover condición se desactiva
+      aplicarCondicionPersonaje(barbaroTemerarioId, "Ataque Temerario");
+      alternarActivoRasgo(barbaroTemerarioId, "rasgo_cls_barbaro_golpe_brutal");
+      pj = usarAlmacenDM.getState().personajes.find((p) => p.id === barbaroTemerarioId);
+      expect(pj?.rasgos.find((r) => r.id === "rasgo_cls_barbaro_golpe_brutal")?.activo).toBe(true);
+
+      quitarCondicionPersonaje(barbaroTemerarioId, "Ataque Temerario");
+      pj = usarAlmacenDM.getState().personajes.find((p) => p.id === barbaroTemerarioId);
+      expect(pj?.rasgos.find((r) => r.id === "rasgo_cls_barbaro_golpe_brutal")?.activo).toBe(false);
     });
   });
 });

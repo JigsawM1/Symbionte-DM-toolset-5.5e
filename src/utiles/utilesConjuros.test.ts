@@ -6,7 +6,8 @@ import {
   calcularFormulaTruco,
   esTrucoDeAtaquesMultiples,
   calcularInfoTruco,
-  construirFormulaTaleSpireTruco
+  construirFormulaTaleSpireTruco,
+  formatearComponentes
 } from "./utilesConjuros";
 
 describe("utilesConjuros - Sistema de Escalado de Conjuros y Trucos (D&D 5.5e)", () => {
@@ -243,5 +244,30 @@ describe("utilesConjuros - Sistema de Escalado de Conjuros y Trucos (D&D 5.5e)",
       expect(res.adicionalText).toBe("+2d6 (Combinado)");
     });
   });
+
+  describe("formatearComponentes (Canónico sin Legacy)", () => {
+    it("formatea correctamente componentes verbales, somáticos y materiales", () => {
+      expect(formatearComponentes({ verbal: true, somatico: true, material: true })).toBe("V, S, M");
+    });
+
+    it("formatea correctamente solo verbal y somático", () => {
+      expect(formatearComponentes({ verbal: true, somatico: true, material: false })).toBe("V, S");
+    });
+
+    it("formatea correctamente solo verbal", () => {
+      expect(formatearComponentes({ verbal: true, somatico: false, material: false })).toBe("V");
+    });
+
+    it("formatea correctamente solo material", () => {
+      expect(formatearComponentes({ verbal: false, somatico: false, material: true })).toBe("M");
+    });
+
+    it("devuelve 'Ninguno' si ningún componente está activo o es nulo/indefinido", () => {
+      expect(formatearComponentes({ verbal: false, somatico: false, material: false })).toBe("Ninguno");
+      expect(formatearComponentes(undefined)).toBe("Ninguno");
+      expect(formatearComponentes(null)).toBe("Ninguno");
+    });
+  });
 });
+
 

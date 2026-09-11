@@ -457,7 +457,7 @@ describe("GestorEspecies - Dominio de Razas y Subrazas (D&D 5.5e)", () => {
         escuela: "Evocación",
         tiempoLanzamiento: "1 acción",
         alcance: "Toque",
-        componentes: "V, S, M",
+        componentesSeleccionados: { verbal: true, somatico: true, material: true },
         duracion: "1 hora",
         descripcion: "Emites luz."
       });
@@ -492,7 +492,7 @@ describe("GestorEspecies - Dominio de Razas y Subrazas (D&D 5.5e)", () => {
         escuela: "Abjuración",
         tiempoLanzamiento: "1 acción",
         alcance: "Personal",
-        componentes: "V",
+        componentesSeleccionados: { verbal: true, somatico: false, material: false },
         duracion: "Instantánea",
         descripcion: "Conjuro otorgado."
       });
@@ -507,7 +507,7 @@ describe("GestorEspecies - Dominio de Razas y Subrazas (D&D 5.5e)", () => {
         escuela: "Evocación",
         tiempoLanzamiento: "1 acción",
         alcance: "120 pies",
-        componentes: "V, S",
+        componentesSeleccionados: { verbal: true, somatico: true, material: false },
         duracion: "Instantánea",
         descripcion: "Tres dardos."
       });
@@ -989,7 +989,7 @@ describe("GestorEspecies - Dominio de Razas y Subrazas (D&D 5.5e)", () => {
         escuela: "Evocación",
         tiempoLanzamiento: "1 acción",
         alcance: "60 pies",
-        componentes: "V",
+        componentesSeleccionados: { verbal: true, somatico: false, material: false },
         duracion: "Concentración, hasta 1 minuto",
         descripcion: "Luz que perfila objetivos."
       });
@@ -1003,7 +1003,7 @@ describe("GestorEspecies - Dominio de Razas y Subrazas (D&D 5.5e)", () => {
         escuela: "Evocación",
         tiempoLanzamiento: "1 acción",
         alcance: "120 pies",
-        componentes: "V, S, M",
+        componentesSeleccionados: { verbal: true, somatico: true, material: true },
         duracion: "Concentración, hasta 1 minuto",
         descripcion: "Creas hasta 4 luces."
       });

@@ -9,7 +9,7 @@ describe("FichaHechizo - Logica de Visualizacion en Modo Compendio vs Modo Comba
     escuela: "Conjuracion",
     tiempoLanzamiento: "1 Accion",
     alcance: "60 pies",
-    componentes: "V, S, M",
+    componentesSeleccionados: { verbal: true, somatico: true, material: true },
     materiales: "Un fragmento de cristal.",
     duracion: "Hasta 1 minuto",
     concentracion: true,

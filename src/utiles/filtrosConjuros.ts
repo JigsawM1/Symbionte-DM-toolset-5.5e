@@ -1,4 +1,4 @@
-import type { HechizoBase } from "@/tipos";
+import type { HechizoBase, ComponentesSeleccionados } from "@/tipos";
 import { coincideBusquedaTolerante } from "@/utiles/busquedaTolerante";
 
 export interface FiltroComponentesConjuro {
@@ -8,23 +8,25 @@ export interface FiltroComponentesConjuro {
   soloM: boolean;
 }
 
-export function tieneComponente(componentes: string | undefined, letra: "V" | "S" | "M"): boolean {
-  if (!componentes) return false;
-  const comp = componentes.toUpperCase();
-  return comp.includes(letra);
+export function tieneComponente(
+  origen: ComponentesSeleccionados | Pick<HechizoBase, "componentesSeleccionados"> | undefined,
+  letra: "V" | "S" | "M"
+): boolean {
+  if (!origen) return false;
+  const comp = "componentesSeleccionados" in origen ? origen.componentesSeleccionados : origen;
+  if (!comp) return false;
+  if (letra === "V") return comp.verbal === true;
+  if (letra === "S") return comp.somatico === true;
+  if (letra === "M") return comp.material === true;
+  return false;
 }
 
 export function esConjuroAtaque(hechizo: HechizoBase): boolean {
-  if (hechizo.requiereAtaque) return true;
-  if (!hechizo.ataqueCd || hechizo.ataqueCd === "N/A" || hechizo.ataqueCd === "none") return false;
-  const norm = hechizo.ataqueCd.toUpperCase();
-  return norm.includes("ATAQUE") || norm.includes("ATTACK");
+  return hechizo.requiereAtaque === true || hechizo.ataqueCd === "ATAQUE";
 }
 
 export function esConjuroSalvacion(hechizo: HechizoBase): boolean {
-  if (!hechizo.ataqueCd || hechizo.ataqueCd === "N/A" || hechizo.ataqueCd === "none") return false;
-  const norm = hechizo.ataqueCd.toUpperCase();
-  return norm.includes("SALVACI") || norm.includes("SAVE") || norm.includes("CD") || norm.includes("DC");
+  return hechizo.ataqueCd === "CD";
 }
 
 export function esConjuroUtilidad(hechizo: HechizoBase): boolean {
@@ -57,10 +59,10 @@ export function evaluarFiltrosHechizo(
   if (filtroResolucion === "utilidad" && !esConjuroUtilidad(hechizo)) return false;
 
   // 4. Filtro de Componentes
-  if (filtroComponentes.sinV && tieneComponente(hechizo.componentes, "V")) return false;
-  if (filtroComponentes.sinS && tieneComponente(hechizo.componentes, "S")) return false;
-  if (filtroComponentes.sinM && tieneComponente(hechizo.componentes, "M")) return false;
-  if (filtroComponentes.soloM && !tieneComponente(hechizo.componentes, "M")) return false;
+  if (filtroComponentes.sinV && tieneComponente(hechizo.componentesSeleccionados, "V")) return false;
+  if (filtroComponentes.sinS && tieneComponente(hechizo.componentesSeleccionados, "S")) return false;
+  if (filtroComponentes.sinM && tieneComponente(hechizo.componentesSeleccionados, "M")) return false;
+  if (filtroComponentes.soloM && !tieneComponente(hechizo.componentesSeleccionados, "M")) return false;
 
   return true;
 }

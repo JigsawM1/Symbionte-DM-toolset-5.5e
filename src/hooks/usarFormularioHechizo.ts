@@ -20,7 +20,7 @@ export function usarFormularioHechizo(idEnEdicion: string | null, alGuardarExito
   const [hDuracion, setHDuracion] = useState("INSTANTÁNEO");
   const [hConcentracion, setHConcentracion] = useState("No");
   const [hClases, setHClases] = useState<string[]>([]);
-  const [hAtaqueCd, setHAtaqueCd] = useState("N/A");
+  const [hAtaqueCd, setHAtaqueCd] = useState<"ATAQUE" | "CD" | "N/A">("N/A");
   const [hDadosDaño, setHDadosDaño] = useState("");
   const [hDadosDañoNivelSuperior, setHDadosDañoNivelSuperior] = useState("");
   const [hCdSalvacion, setHCdSalvacion] = useState("N/A");
@@ -67,7 +67,7 @@ export function usarFormularioHechizo(idEnEdicion: string | null, alGuardarExito
     setHDuracion(h.duracion || "INSTANTÁNEO");
     setHConcentracion(h.concentracion ? "Sí" : "No");
     setHClases(h.clases || []);
-    setHAtaqueCd(h.ataqueCd || "N/A");
+    setHAtaqueCd(h.ataqueCd === "ATAQUE" || h.ataqueCd === "CD" ? h.ataqueCd : "N/A");
     setHDadosDaño(h.dadosDaño || "");
     setHDadosDañoNivelSuperior(h.dadosDañoNivelSuperior || "");
     setHCdSalvacion(h.cdSalvacion || "N/A");
@@ -82,25 +82,12 @@ export function usarFormularioHechizo(idEnEdicion: string | null, alGuardarExito
       return;
     }
 
-    const componentesGenerados: string[] = [];
-    if (hCompVerbal) componentesGenerados.push("V");
-    if (hCompSomatico) componentesGenerados.push("S");
-    if (hCompMaterial) {
-      if (hMateriales.trim()) {
-        componentesGenerados.push(`M (${hMateriales.trim()})`);
-      } else {
-        componentesGenerados.push("M");
-      }
-    }
-    const componentesTxt = componentesGenerados.join(", ") || "Ninguno";
-
     const payload = {
       nombre: hNombre.trim(),
       nivel: hNivel,
       escuela: hEscuela.trim(),
       tiempoLanzamiento: hTiempo.trim(),
       alcance: hAlcance.trim(),
-      componentes: componentesTxt,
       descripcion: hDescripcion.trim(),
       descNivelSuperior: hDescNivelSuperior.trim() || undefined,
       materiales: hMateriales.trim() || undefined,

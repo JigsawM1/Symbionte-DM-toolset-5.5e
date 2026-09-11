@@ -15,14 +15,14 @@ describe("servicioLanzamientoConjuros - Patrón Facade + Strategy", () => {
     escuela: "Evocacion",
     tiempoLanzamiento: "1 Accion",
     alcance: "120 pies",
-    componentes: "V, S",
+    componentesSeleccionados: { verbal: true, somatico: true, material: false },
     duracion: "Instantaneo",
     concentracion: false,
     ritual: false,
     descripcion: "Un rayo de energia crepitante...",
     dadosDaño: "1d10",
     tipoDaño: "fuerza",
-    ataqueCd: "Ataque Magico a Distancia",
+    ataqueCd: "ATAQUE",
     requiereAtaque: true
   };
 
@@ -33,7 +33,7 @@ describe("servicioLanzamientoConjuros - Patrón Facade + Strategy", () => {
     escuela: "Evocacion",
     tiempoLanzamiento: "1 Accion",
     alcance: "150 pies",
-    componentes: "V, S, M",
+    componentesSeleccionados: { verbal: true, somatico: true, material: true },
     duracion: "Instantaneo",
     concentracion: false,
     ritual: false,
@@ -41,7 +41,7 @@ describe("servicioLanzamientoConjuros - Patrón Facade + Strategy", () => {
     dadosDaño: "8d6",
     tipoDaño: "fuego",
     dadosDañoNivelSuperior: "1d6",
-    ataqueCd: "Salvacion DES"
+    ataqueCd: "CD"
   };
 
   const conjuroConcentracionRitual: HechizoBase = {
@@ -51,7 +51,7 @@ describe("servicioLanzamientoConjuros - Patrón Facade + Strategy", () => {
     escuela: "Adivinacion",
     tiempoLanzamiento: "1 Accion",
     alcance: "Personal",
-    componentes: "V, S",
+    componentesSeleccionados: { verbal: true, somatico: true, material: false },
     duracion: "Hasta 10 minutos",
     concentracion: true,
     ritual: true,
@@ -137,7 +137,7 @@ describe("servicioLanzamientoConjuros - Patrón Facade + Strategy", () => {
           escuela: "Transmutacion",
           tiempoLanzamiento: "1 Accion",
           alcance: "60 pies",
-          componentes: "V, S, M",
+          componentesSeleccionados: { verbal: true, somatico: true, material: true },
           duracion: "Instantaneo",
           concentracion: false,
           ritual: false,
@@ -229,7 +229,7 @@ describe("servicioLanzamientoConjuros - Patrón Facade + Strategy", () => {
         escuela: "Abjuracion",
         tiempoLanzamiento: "1 Accion",
         alcance: "Personal",
-        componentes: "V, S, M",
+        componentesSeleccionados: { verbal: true, somatico: true, material: true },
         duracion: "Hasta 1 minuto",
         concentracion: true,
         ritual: false,
@@ -256,7 +256,7 @@ describe("servicioLanzamientoConjuros - Patrón Facade + Strategy", () => {
         escuela: "Abjuracion",
         tiempoLanzamiento: "1 Reaccion",
         alcance: "Personal",
-        componentes: "V, S",
+        componentesSeleccionados: { verbal: true, somatico: true, material: false },
         duracion: "1 ronda",
         concentracion: false,
         ritual: false,

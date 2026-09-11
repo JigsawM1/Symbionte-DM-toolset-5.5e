@@ -620,7 +620,7 @@ describe("D&D 5.5e - Bardo, Subclases y Hotfix Bárbaro", () => {
         escuela: "Encantamiento",
         tiempoLanzamiento: "1 acción adicional",
         alcance: "60 pies",
-        componentes: "V",
+        componentesSeleccionados: { verbal: true, somatico: false, material: false },
         duracion: "1 asalto",
         descripcion: "Das una orden de una palabra a una criatura..."
       };

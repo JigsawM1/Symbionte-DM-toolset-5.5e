@@ -128,8 +128,7 @@ export function usarLanzamientoTarjetaConjuro({
         etiquetaLog = `${nombrePj} - ${hechizo.nombre}${nivelUpcast > hechizo.nivel ? ` (Nv.${nivelUpcast})` : ""}`;
 
         const tieneAtaque =
-          hechizo.ataqueCd?.toUpperCase().includes("ATAQUE") ||
-          hechizo.ataqueCd?.toUpperCase().includes("ATTACK");
+          hechizo.requiereAtaque === true || hechizo.ataqueCd === "ATAQUE";
 
         if (tieneAtaque) {
           const formulaAtaque = `!Ataque ${sanitizarEtiqueta(hechizo.nombre)}:1d20${bonoAtaqueMagico >= 0 ? "+" : ""}${bonoAtaqueMagico}`;

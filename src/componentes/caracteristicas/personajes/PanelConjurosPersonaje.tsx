@@ -78,7 +78,8 @@ export const PanelConjurosPersonaje: React.FC<PanelConjurosPersonajeProps> = ({
       modo: "ataqueMagico",
       hechizo: {
         id: "ataque-magico", nombre: "Ataque Mágico", nivel: 0, escuela: "Evocacion",
-        tiempoLanzamiento: "1 Accion", alcance: "Personal", componentes: "V",
+        tiempoLanzamiento: "1 Accion", alcance: "Personal",
+        componentesSeleccionados: { verbal: true, somatico: false, material: false },
         duracion: "Instantaneo", concentracion: false, ritual: false,
         descripcion: "Tirada genérica de ataque de conjuro."
       }

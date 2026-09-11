@@ -12,7 +12,7 @@ import {
   Star
 } from "lucide-react";
 import type { HechizoBase } from "@/tipos";
-import { extraerDadosBaseTruco } from "@/utiles/utilesConjuros";
+import { extraerDadosBaseTruco, formatearComponentes } from "@/utiles/utilesConjuros";
 import {
   OrigenConjuroBadge,
   CONFIG_BADGES_ORIGEN_CONJURO
@@ -373,10 +373,10 @@ export const FilaConjuroCompendio: React.FC<FilaConjuroCompendioProps> = ({
           )}
         </div>
 
-        {hechizo.componentes && (
+        {hechizo.componentesSeleccionados && (
           <>
             <span style={{ color: "rgba(148, 163, 184, 0.3)" }}>•</span>
-            <span style={{ color: "#94a3b8" }}>{hechizo.componentes}</span>
+            <span style={{ color: "#94a3b8" }}>{formatearComponentes(hechizo.componentesSeleccionados)}</span>
           </>
         )}
 

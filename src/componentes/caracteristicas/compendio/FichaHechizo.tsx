@@ -5,7 +5,8 @@ import {
   calcularFormulaEscalada,
   extraerDadosBaseTruco,
   calcularInfoTruco,
-  construirFormulaTaleSpireTruco
+  construirFormulaTaleSpireTruco,
+  formatearComponentes
 } from "@/utiles/utilesConjuros";
 import { HechizoBase } from "@/tipos";
 import { obtenerOpcionesLanzamientoConjuro } from "@/servicios/calculadorMagia";
@@ -122,11 +123,7 @@ export const FichaHechizo: React.FC<FichaHechizoProps> = React.memo(({
     : { formula: dadosBaseValidos, adicionalText: "" };
 
   const tieneAtaque =
-    hechizo.requiereAtaque === true ||
-    (!!hechizo.ataqueCd &&
-      hechizo.ataqueCd !== "N/A" &&
-      hechizo.ataqueCd !== "none" &&
-      (hechizo.ataqueCd.toUpperCase().includes("ATAQUE") || hechizo.ataqueCd.toUpperCase().includes("ATTACK")));
+    hechizo.requiereAtaque === true || hechizo.ataqueCd === "ATAQUE";
 
   const tieneCDSalvacion =
     !!hechizo.cdSalvacion &&
@@ -323,7 +320,7 @@ export const FichaHechizo: React.FC<FichaHechizoProps> = React.memo(({
             <Layers size={13} className={estilosClases.iconoMeta} />
             <div>
               <div className={estilosClases.metaLabel}>COMPONENTES</div>
-              <div className={estilosClases.metaValor}>{hechizo.componentes}</div>
+              <div className={estilosClases.metaValor}>{formatearComponentes(hechizo.componentesSeleccionados)}</div>
             </div>
           </div>
           <div className={estilosClases.metaItem}>

@@ -3,29 +3,26 @@ import { MonstruoBase, HechizoBase, CondicionDnd, EfectoPredefinido } from "@/ti
 import MONSTRUOS_JSON from "./compendios/Mounstros.2024-es.json";
 import HECHIZOS_JSON from "./compendios/all.json";
 import EQUIPO_JSON from "./compendios/Equipo es.json";
+import { sanearHechizoCD } from "@/almacen/sanitizacion";
 import { importarDesdeJSON } from "@/almacen/importadorJSON";
 
-// Importar y sanitizar automáticamente los compendios base en español
+// Hechizos canónicos precomputados cargados directamente en memoria
+export const HECHIZOS_INICIALES: HechizoBase[] = (HECHIZOS_JSON as unknown as HechizoBase[]).map(sanearHechizoCD);
+
+// Importar y sanitizar automáticamente los compendios base de monstruos y equipo
 const importacionMonstruos = importarDesdeJSON(MONSTRUOS_JSON, {
   baseDatosMonstruos: [],
-  baseDatosHechizos: [],
-  objetosHomebrew: []
-});
-
-const importacionHechizos = importarDesdeJSON(HECHIZOS_JSON, {
-  baseDatosMonstruos: [],
-  baseDatosHechizos: [],
+  baseDatosHechizos: HECHIZOS_INICIALES,
   objetosHomebrew: []
 });
 
 const importacionEquipo = importarDesdeJSON(EQUIPO_JSON, {
   baseDatosMonstruos: [],
-  baseDatosHechizos: [],
+  baseDatosHechizos: HECHIZOS_INICIALES,
   objetosHomebrew: []
 });
 
 export const MONSTRUOS_INICIALES: MonstruoBase[] = importacionMonstruos.baseDatosMonstruos;
-export const HECHIZOS_INICIALES: HechizoBase[] = importacionHechizos.baseDatosHechizos;
 export const OBJETOS_INICIALES = importacionEquipo.objetosHomebrew;
 
 // Sets pre-computados una sola vez al cargar el módulo (Singleton Pattern).

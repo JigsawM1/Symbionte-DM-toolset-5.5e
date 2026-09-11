@@ -3,6 +3,8 @@
  * 
  */
 
+import type { ComponentesSeleccionados } from "@/tipos";
+
 interface ResultadoEscalado {
   formula: string;
   adicionalText: string;
@@ -114,7 +116,7 @@ export function extraerDadosBaseTruco(hechizo: {
     descLower.includes("dos rayos");
 
   const tieneTipoDano = !!hechizo.tipoDaño && hechizo.tipoDaño.trim() !== "" && hechizo.tipoDaño !== "N/A";
-  const tieneAtaque = !!hechizo.ataqueCd && hechizo.ataqueCd !== "N/A" && hechizo.ataqueCd.toUpperCase().includes("ATAQUE");
+  const tieneAtaque = hechizo.ataqueCd === "ATAQUE";
 
   // Si no menciona daño ni tiene tipo de daño ni tirada de ataque, NO es un truco de daño
   if (!tienePalabraDano && !tieneTipoDano && !tieneAtaque) {
@@ -340,8 +342,7 @@ export function construirFormulaTaleSpireTruco(
   const tipoDaño = hechizo.tipoDaño && hechizo.tipoDaño !== "N/A" ? ` (${hechizo.tipoDaño})` : "";
   
   const tieneAtaque =
-    (hechizo.requiereAtaque === true ||
-      (hechizo.ataqueCd && hechizo.ataqueCd.toUpperCase().includes("ATAQUE"))) &&
+    (hechizo.requiereAtaque === true || hechizo.ataqueCd === "ATAQUE") &&
     bonoAtaqueMagico !== undefined;
 
   const modTexto = (bonoAtaqueMagico ?? 0) >= 0 ? `+${bonoAtaqueMagico ?? 0}` : `${bonoAtaqueMagico ?? 0}`;
@@ -393,5 +394,19 @@ export function construirFormulaTaleSpireTruco(
     etiquetaLog: `${nombrePersonaje} - ${nombreLimpio} (Truco)`
   };
 }
+
+/**
+ * Formatea los componentes mágicos estructurados en su representación en texto para la interfaz.
+ * Formato canónico: "V", "S", "M" combinados por comas (ej. "V, S, M").
+ */
+export function formatearComponentes(componentes?: ComponentesSeleccionados | null): string {
+  if (!componentes) return "Ninguno";
+  const partes: string[] = [];
+  if (componentes.verbal) partes.push("V");
+  if (componentes.somatico) partes.push("S");
+  if (componentes.material) partes.push("M");
+  return partes.join(", ") || "Ninguno";
+}
+
 
 

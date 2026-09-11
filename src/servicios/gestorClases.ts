@@ -164,7 +164,7 @@ export function evaluarFormulaUsos(formula: string | null | undefined, nivel: nu
 /**
  * Resuelve todos los escalados declarativos de un rasgo según el nivel actual.
  * Esta función es GENÉRICA PURA: no conoce nombres de rasgos ni clases.
- * Reemplaza todos los bloques `if (r.nombre === "...")` que existían en el builder.
+ * Reemplaza los bloques condicionales por nombre que existían en el builder.
  */
 function resolverEscaladosRasgo(
   r: {
@@ -339,12 +339,14 @@ export function obtenerRasgosClaseYSubclase(
     };
   }
 
+  const NOMBRE_RASGO_ASI = "Mejora de característica";
+
   // 1. Rasgos de Clase Base
   for (const r of clase.rasgos) {
     if (r.nivel <= nivelSeguro) {
       // Consolidación orgánica de "Mejora de característica" (múltiples niveles → un rasgo)
-      if (r.nombre === "Mejora de característica") {
-        const existenteMejora = rasgosResultado.find((x) => x.nombre === "Mejora de característica");
+      if (r.nombre === NOMBRE_RASGO_ASI) {
+        const existenteMejora = rasgosResultado.find((x) => x.nombre === NOMBRE_RASGO_ASI);
         if (existenteMejora) {
           const nivelesPrevios = existenteMejora.notas ? existenteMejora.notas.split(",") : [String(existenteMejora.nivelRequerido)];
           if (!nivelesPrevios.includes(String(r.nivel))) nivelesPrevios.push(String(r.nivel));

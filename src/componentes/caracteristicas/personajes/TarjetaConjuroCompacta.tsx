@@ -1,7 +1,7 @@
 import React from "react";
 import { Zap, Eye, EyeOff, Trash2, Check, Sparkles, AlertTriangle } from "lucide-react";
 import type { HechizoBase } from "@/tipos";
-import { calcularInfoTruco } from "@/utiles/utilesConjuros";
+import { calcularInfoTruco, aplicarBonoNumericoAFormulaDados } from "@/utiles/utilesConjuros";
 import type { ModoLanzamiento } from "@/servicios/servicioLanzamientoConjuros";
 import { SelectorDesplegable } from "@/componentes/comunes";
 import {
@@ -16,6 +16,7 @@ interface TarjetaConjuroCompactaProps {
   nombrePersonaje: string;
   nivelPersonaje?: number;
   bonoAtaqueMagico: number;
+  bonoDanoMagico?: number;
   estaPreparado: boolean;
   esDeSubclase?: boolean;
   origenBadge?: OrigenConjuroBadge | null;
@@ -51,6 +52,7 @@ export const TarjetaConjuroCompacta: React.FC<TarjetaConjuroCompactaProps> = ({
   nombrePersonaje,
   nivelPersonaje = 1,
   bonoAtaqueMagico,
+  bonoDanoMagico = 0,
   estaPreparado,
   esDeSubclase = false,
   origenBadge,
@@ -97,6 +99,7 @@ export const TarjetaConjuroCompacta: React.FC<TarjetaConjuroCompactaProps> = ({
     nombrePersonaje,
     nivelPersonaje,
     bonoAtaqueMagico,
+    bonoDanoMagico,
     bloqueadoPorArmadura,
     alLanzar,
     alGastarEspacio,
@@ -115,7 +118,7 @@ export const TarjetaConjuroCompacta: React.FC<TarjetaConjuroCompactaProps> = ({
     alLanzarGratis
   });
 
-  const infoTruco = esTruco ? calcularInfoTruco(hechizo, nivelPersonaje) : null;
+  const infoTruco = esTruco ? calcularInfoTruco(hechizo, nivelPersonaje, bonoDanoMagico) : null;
 
   const claseEstadoTarjeta = esConcentracionActual
     ? estilos.tarjetaConcentracion
@@ -196,7 +199,7 @@ export const TarjetaConjuroCompacta: React.FC<TarjetaConjuroCompactaProps> = ({
                 • {infoTruco.etiquetaVisual} {infoTruco.multiplicador > 1 ? `(Nv.${nivelPersonaje})` : ""}
               </strong>
             ) : hechizo.dadosDaño ? (
-              ` • ${hechizo.dadosDaño}`
+              ` • ${bonoDanoMagico > 0 ? aplicarBonoNumericoAFormulaDados(hechizo.dadosDaño, bonoDanoMagico) : hechizo.dadosDaño}`
             ) : (
               ""
             )}

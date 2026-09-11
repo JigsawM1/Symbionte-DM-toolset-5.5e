@@ -304,6 +304,13 @@ export function evaluarEfectosRasgosActivos(personaje: PersonajeJugador): Efecto
           valor: "bono_competencia",
           aplicaA: "todos_ataques",
           descripcion: "Revelación celestial (+PB daño en ataques)"
+        },
+        {
+          tipo: "bono_dano_conjuro",
+          objetivo: "todos_conjuros",
+          valor: "bono_competencia",
+          aplicaA: "todos_conjuros",
+          descripcion: "Revelación celestial (+PB daño en conjuros)"
         }
       ];
     }
@@ -717,6 +724,77 @@ export function obtenerBonoDanoFuerzaExtra(
   contexto: ContextoAtaquePersonaje
 ): number {
   return obtenerBonoDanoAtaqueExtra(personaje, contexto);
+}
+
+export interface ContextoDanoConjuro {
+  esTruco?: boolean;
+  nivelLanzamiento?: number;
+  escuela?: string;
+  tipoDano?: string;
+  nombreConjuro?: string;
+}
+
+/**
+ * Comprueba si un efecto mecánico de daño a conjuros aplica al contexto del conjuro actual.
+ */
+function aplicaEfectoAConjuro(
+  aplicaA: string | undefined,
+  objetivo: string,
+  contexto?: ContextoDanoConjuro
+): boolean {
+  if (!contexto) return true;
+  const criterio = normalizar(aplicaA || objetivo || "");
+  if (!criterio || criterio === "todos_conjuros" || criterio === "todos" || criterio === "conjuros") {
+    return true;
+  }
+  if (criterio === "trucos") {
+    return Boolean(contexto.esTruco);
+  }
+  if (criterio === "espacios" || criterio === "ranuras") {
+    return !contexto.esTruco;
+  }
+  if (contexto.tipoDano && normalizar(contexto.tipoDano) === criterio) {
+    return true;
+  }
+  if (contexto.escuela && normalizar(contexto.escuela) === criterio) {
+    return true;
+  }
+  return true;
+}
+
+/**
+ * Obtiene bonificadores numéricos extra al daño de conjuros procedentes de rasgos activos
+ * con efecto `bono_dano_conjuro` de forma 100% genérica.
+ */
+export function obtenerBonoDanoConjuroExtra(
+  personaje: PersonajeJugador,
+  contexto?: ContextoDanoConjuro
+): number {
+  let bonoTotal = 0;
+  const efectos = evaluarEfectosRasgosActivos(personaje);
+  let yaAplicoRevelacion = false;
+
+  for (const ef of efectos) {
+    if (ef.tipo === "bono_dano_conjuro") {
+      if (aplicaEfectoAConjuro(ef.aplicaA, ef.objetivo, contexto)) {
+        const formulaResuelta = resolverFormulaDinamica(ef.valor, personaje);
+        const valorNumerico = evaluarExpresionNumericaSegura(formulaResuelta);
+        bonoTotal += valorNumerico;
+        const descNorm = normalizar(ef.descripcion || "");
+        if (descNorm.includes("revelacion celestial") || descNorm.includes("revelacion_celestial")) {
+          yaAplicoRevelacion = true;
+        }
+      }
+    }
+  }
+
+  // Respaldo reactivo garantizado: si Revelación celestial está activa (condiciones, efectos temporales o conmutador)
+  // y ningún efecto de rasgo previo aportó el bono, sumar directamente el Bono de Competencia (+PB)
+  if (!yaAplicoRevelacion && estaRevelacionCelestialActiva(personaje)) {
+    bonoTotal += obtenerBonoCompetenciaPersonaje(personaje);
+  }
+
+  return bonoTotal;
 }
 
 /**

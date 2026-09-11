@@ -69,6 +69,16 @@ const OPCIONES_APLICA_A_ATAQUE = [
   { valor: "todos_ataques", etiqueta: "Todos los Ataques" }
 ] as const;
 
+const OPCIONES_APLICA_A_CONJURO = [
+  { valor: "todos_conjuros", etiqueta: "Todos los Conjuros y Trucos" },
+  { valor: "trucos", etiqueta: "Solo Trucos (Nivel 0)" },
+  { valor: "espacios", etiqueta: "Solo Conjuros con Ranura (Nivel 1+)" },
+  { valor: "fuego", etiqueta: "Daño de Fuego" },
+  { valor: "radiante", etiqueta: "Daño Radiante" },
+  { valor: "necrotico", etiqueta: "Daño Necrótico" },
+  { valor: "evocacion", etiqueta: "Escuela de Evocación" }
+] as const;
+
 const OPCIONES_ATRIBUTO_CA = [
   { valor: "constitucion", etiqueta: "Constitución (10 + DES + CON - Bárbaro)" },
   { valor: "sabiduria", etiqueta: "Sabiduría (10 + DES + SAB - Monje)" },
@@ -108,6 +118,7 @@ const TIPOS_EFECTO_DISPONIBLES: { tipo: TipoEfectoMecanico; etiqueta: string; de
   { tipo: "dado_extra_dano", etiqueta: "Dados Extra de Daño", desc: "Añade dados al arma o ataque (ej. 1d10 de Golpe Brutal o 2d6 de Frenesí)" },
   { tipo: "dano_secundario", etiqueta: "Daño Secundario con Tipo (/)", desc: "Grupo de daño independiente con tipo separado (ej. 1d6+mitad_nivel Radiante/Necrótico)" },
   { tipo: "bono_dano_ataque", etiqueta: "Bono Numérico de Daño a Ataques", desc: "Suma daño plano (+PB, +2, dano_furia, mitad_nivel) a ataques seleccionados" },
+  { tipo: "bono_dano_conjuro", etiqueta: "Bono Numérico de Daño a Conjuros", desc: "Suma daño plano (+PB, +3, carisma, inteligencia) a conjuros o trucos" },
   { tipo: "bono_dano_fuerza", etiqueta: "Bono Numérico de Daño (Fuerza)", desc: "Suma daño plano (+2, dano_furia, mitad_nivel) a ataques con Fuerza" },
   { tipo: "modificador_ca", etiqueta: "Defensa sin Armadura / CA", desc: "Calcula CA sumando Constitución, Sabiduría o bono plano" },
   { tipo: "modificador_stat", etiqueta: "Modificador de Característica", desc: "Aumenta un atributo y permite elevar el límite de 20 a 25" },
@@ -188,7 +199,7 @@ export const ConstructorRasgoDote: React.FC<ConstructorRasgoDoteProps> = ({
   const [nuevoObjetivo, setNuevoObjetivo] = useState<string>("arma_fuerza");
   const [nuevoValor, setNuevoValor] = useState<string>("1d10");
   const [nuevoTipoDano, setNuevoTipoDano] = useState<string>("Radiante o Necrótico");
-  const [nuevoAplicaA, setNuevoAplicaA] = useState<"arma_fuerza" | "arma_cac" | "arma_distancia" | "desarmado" | "todos_ataques">("arma_fuerza");
+  const [nuevoAplicaA, setNuevoAplicaA] = useState<string>("arma_fuerza");
   const [nuevoLimiteMaximo, setNuevoLimiteMaximo] = useState<number>(25);
   const [nuevoPermiteEscudo, setNuevoPermiteEscudo] = useState<boolean>(true);
   const [nuevaDescripcionEfecto, setNuevaDescripcionEfecto] = useState<string>("");
@@ -249,6 +260,10 @@ export const ConstructorRasgoDote: React.FC<ConstructorRasgoDoteProps> = ({
       setNuevoValor("bono_competencia");
       setNuevoObjetivo("todos_ataques");
       setNuevoAplicaA("todos_ataques");
+    } else if (t === "bono_dano_conjuro") {
+      setNuevoValor("bono_competencia");
+      setNuevoObjetivo("todos_conjuros");
+      setNuevoAplicaA("todos_conjuros");
     } else if (t === "bono_dano_fuerza") {
       setNuevoValor("dano_furia");
       setNuevoObjetivo("fuerza");
@@ -317,6 +332,9 @@ export const ConstructorRasgoDote: React.FC<ConstructorRasgoDoteProps> = ({
         case "bono_dano_ataque":
         case "bono_dano_fuerza":
           descFinal = `+${nuevoValor} al daño físico`;
+          break;
+        case "bono_dano_conjuro":
+          descFinal = `+${nuevoValor} al daño mágico (${nuevoAplicaA})`;
           break;
         case "modificador_ca":
           descFinal = `Defensa sin armadura (${nuevoValor})`;
@@ -1017,7 +1035,7 @@ export const ConstructorRasgoDote: React.FC<ConstructorRasgoDoteProps> = ({
                   <label className={estilos.labelCampo}>
                     <span>Aplica a Tipo de Ataque</span>
                   </label>
-                  <SelectorDesplegable<"arma_fuerza" | "arma_cac" | "arma_distancia" | "desarmado" | "todos_ataques">
+                  <SelectorDesplegable
                     valor={nuevoAplicaA}
                     opciones={OPCIONES_APLICA_A_ATAQUE}
                     alCambiar={(val) => setNuevoAplicaA(val)}
@@ -1060,7 +1078,7 @@ export const ConstructorRasgoDote: React.FC<ConstructorRasgoDoteProps> = ({
                   <label className={estilos.labelCampo}>
                     <span>Aplica a</span>
                   </label>
-                  <SelectorDesplegable<"arma_fuerza" | "arma_cac" | "arma_distancia" | "desarmado" | "todos_ataques">
+                  <SelectorDesplegable
                     valor={nuevoAplicaA}
                     opciones={OPCIONES_APLICA_A_ATAQUE}
                     alCambiar={(val) => setNuevoAplicaA(val)}
@@ -1088,10 +1106,41 @@ export const ConstructorRasgoDote: React.FC<ConstructorRasgoDoteProps> = ({
                   <label className={estilos.labelCampo}>
                     <span>Aplica a</span>
                   </label>
-                  <SelectorDesplegable<"arma_fuerza" | "arma_cac" | "arma_distancia" | "desarmado" | "todos_ataques">
+                  <SelectorDesplegable
                     valor={nuevoAplicaA}
                     opciones={OPCIONES_APLICA_A_ATAQUE}
                     alCambiar={(val) => setNuevoAplicaA(val)}
+                    tamano="normal"
+                  />
+                </div>
+              </div>
+            )}
+
+            {nuevoTipoEfecto === "bono_dano_conjuro" && (
+              <div className={estilos.gridDosColumnas}>
+                <div className={estilos.campoGrupo}>
+                  <label className={estilos.labelCampo}>
+                    <span>Valor del Bono</span>
+                  </label>
+                  <input
+                    type="text"
+                    className={estilos.inputControl}
+                    placeholder="ej. bono_competencia, +PB, +3, carisma, inteligencia..."
+                    value={nuevoValor}
+                    onChange={(e) => setNuevoValor(e.target.value)}
+                  />
+                </div>
+                <div className={estilos.campoGrupo}>
+                  <label className={estilos.labelCampo}>
+                    <span>Aplica a</span>
+                  </label>
+                  <SelectorDesplegable
+                    valor={nuevoAplicaA}
+                    opciones={OPCIONES_APLICA_A_CONJURO}
+                    alCambiar={(val) => {
+                      setNuevoAplicaA(val);
+                      setNuevoObjetivo(val);
+                    }}
                     tamano="normal"
                   />
                 </div>

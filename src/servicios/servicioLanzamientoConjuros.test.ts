@@ -382,5 +382,20 @@ describe("servicioLanzamientoConjuros - Patrón Facade + Strategy", () => {
       expect(preparado.activarConcentracion).toBe(true);
       expect(preparado.formula.etiquetaLog).toContain("Alto Elfo Nv3 - Detectar magia");
     });
+
+    it("Aplica bonoDanoMagico (+PB / Revelación celestial) directamente a la fórmula de daño en TaleSpire", () => {
+      const solicitudConBono: SolicitudLanzamiento = {
+        modo: "espacio",
+        hechizo: conjuroEjemplo, // Bola de fuego (8d6 de fuego)
+        nivelLanzamiento: 3,
+        bonoAtaqueMagico: 5,
+        bonoDanoMagico: 2, // +PB
+        nombrePersonaje: "Asimar Piromante"
+      };
+
+      const preparado = prepararLanzamiento(solicitudConBono, contextoLimpio);
+      expect(preparado.formula.formulaTaleSpire).toBe("!Daño Bola de fuego(fuego):8d6+2");
+      expect(preparado.formula.etiquetaLog).toContain("Asimar Piromante - Bola de fuego");
+    });
   });
 });

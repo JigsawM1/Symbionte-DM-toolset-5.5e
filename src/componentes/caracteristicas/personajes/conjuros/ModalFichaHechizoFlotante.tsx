@@ -1,6 +1,7 @@
 import React from "react";
 import type { PersonajeJugador, HechizoBase } from "@/tipos";
 import type { ModoLanzamiento } from "@/servicios/servicioLanzamientoConjuros";
+import { obtenerBonoDanoConjuroExtra } from "@/servicios/evaluadorEfectosRasgos";
 import { FichaHechizo } from "@/componentes/caracteristicas/compendio/FichaHechizo";
 
 interface ModalFichaHechizoFlotanteProps {
@@ -31,6 +32,14 @@ export const ModalFichaHechizoFlotante: React.FC<ModalFichaHechizoFlotanteProps>
   if (!hechizoModal) {
     return null;
   }
+
+  const bonoDanoMagico = obtenerBonoDanoConjuroExtra(personaje, {
+    esTruco: hechizoModal.nivel === 0,
+    nivelLanzamiento: hechizoModal.nivel,
+    tipoDano: hechizoModal.tipoDaño,
+    escuela: hechizoModal.escuela,
+    nombreConjuro: hechizoModal.nombre
+  });
 
   return (
     <div
@@ -65,6 +74,7 @@ export const ModalFichaHechizoFlotante: React.FC<ModalFichaHechizoFlotanteProps>
           nombrePersonaje={personaje.nombre}
           nivelPersonaje={personaje.nivel || 1}
           bonoAtaqueMagico={bonoAtaqueMagico}
+          bonoDanoMagico={bonoDanoMagico}
           esLanzadorPacto={esLanzadorPacto}
           nivelEspacioPacto={nivelEspacioPacto}
           espaciosPactoMaximos={personaje.espaciosPactoMaximos || 0}

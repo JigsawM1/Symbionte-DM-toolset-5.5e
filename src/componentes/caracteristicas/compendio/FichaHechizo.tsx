@@ -8,6 +8,7 @@ import {
   construirFormulaTaleSpireTruco,
   construirFormulaTaleSpireEspacio,
   obtenerInfoProyectilesMultiples,
+  aplicarBonoNumericoAFormulaDados,
   formatearComponentes
 } from "@/utiles/utilesConjuros";
 import { HechizoBase } from "@/tipos";
@@ -27,6 +28,7 @@ interface FichaHechizoProps {
   nombrePersonaje?: string;
   nivelPersonaje?: number;
   bonoAtaqueMagico?: number;
+  bonoDanoMagico?: number;
   esLanzadorPacto?: boolean;
   nivelEspacioPacto?: number;
   espaciosPactoMaximos?: number;
@@ -50,6 +52,7 @@ export const FichaHechizo: React.FC<FichaHechizoProps> = React.memo(({
   nombrePersonaje,
   nivelPersonaje = 1,
   bonoAtaqueMagico,
+  bonoDanoMagico = 0,
   esLanzadorPacto = false,
   nivelEspacioPacto = 0,
   espaciosPactoMaximos = 0,
@@ -107,7 +110,7 @@ export const FichaHechizo: React.FC<FichaHechizoProps> = React.memo(({
 
   // Escalado de trucos según el nivel de personaje (dados o múltiples ataques/rayos)
   const dadosTrucoBase = esTruco ? extraerDadosBaseTruco(hechizo) : "";
-  const infoTruco = esTruco ? calcularInfoTruco(hechizo, nivelPersonaje) : null;
+  const infoTruco = esTruco ? calcularInfoTruco(hechizo, nivelPersonaje, bonoDanoMagico) : null;
 
   // Detección de proyectiles múltiples (Descarga sobrenatural, Proyectil mágico, Rayo abrasador)
   const infoProyectiles = useMemo(() => {
@@ -120,7 +123,9 @@ export const FichaHechizo: React.FC<FichaHechizoProps> = React.memo(({
   // Calcular dados válidos reales del conjuro SIN fallbacks inventados
   const dadosBaseValidos = esTruco
     ? (infoTruco?.formula || dadosTrucoBase || "")
-    : (hechizo.dadosDaño && hechizo.dadosDaño !== "N/A" ? hechizo.dadosDaño : "");
+    : (hechizo.dadosDaño && hechizo.dadosDaño !== "N/A"
+        ? (bonoDanoMagico > 0 ? aplicarBonoNumericoAFormulaDados(hechizo.dadosDaño, bonoDanoMagico) : hechizo.dadosDaño)
+        : "");
 
   // Comprobar si el hechizo es escalable a niveles superiores con dados adicionales
   const esEscalable =
@@ -171,7 +176,8 @@ export const FichaHechizo: React.FC<FichaHechizoProps> = React.memo(({
         hechizo,
         nivelPersonaje,
         bonoAtaqueMagico,
-        nombrePj
+        nombrePj,
+        bonoDanoMagico
       );
       lanzarDadosTaleSpire(res.formulaTaleSpire, res.etiquetaLog);
     } else {
@@ -179,7 +185,8 @@ export const FichaHechizo: React.FC<FichaHechizoProps> = React.memo(({
         hechizo,
         nivelLanzamiento,
         bonoAtaqueMagico,
-        nombrePj
+        nombrePj,
+        bonoDanoMagico
       );
       lanzarDadosTaleSpire(res.formulaTaleSpire, res.etiquetaLog);
     }

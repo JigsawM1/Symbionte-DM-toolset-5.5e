@@ -1,5 +1,6 @@
 import React from "react";
 import { FichaHechizo } from "@/componentes/caracteristicas/compendio/FichaHechizo";
+import { obtenerBonoDanoConjuroExtra } from "@/servicios/evaluadorEfectosRasgos";
 import { usarCalculoAtaquesJugador } from "./usarCalculoAtaquesJugador";
 import { CabeceraAtaquesJugador } from "./CabeceraAtaquesJugador";
 import { SeccionRecursosMagicosAtaque } from "./SeccionRecursosMagicosAtaque";
@@ -171,6 +172,17 @@ export const VistaAtaquesJugador: React.FC = () => {
               nombrePersonaje={personajeActivo.nombre}
               nivelPersonaje={personajeActivo.nivel || 1}
               bonoAtaqueMagico={bonoAtaqueMagico}
+              bonoDanoMagico={
+                hechizoDetalle
+                  ? obtenerBonoDanoConjuroExtra(personajeActivo, {
+                      esTruco: hechizoDetalle.nivel === 0,
+                      nivelLanzamiento: hechizoDetalle.nivel,
+                      tipoDano: hechizoDetalle.tipoDaño,
+                      escuela: hechizoDetalle.escuela,
+                      nombreConjuro: hechizoDetalle.nombre
+                    })
+                  : 0
+              }
               esLanzadorPacto={tienePacto}
               nivelEspacioPacto={personajeActivo.nivelEspacioPacto || 0}
               espaciosPactoMaximos={personajeActivo.espaciosPactoMaximos || 0}

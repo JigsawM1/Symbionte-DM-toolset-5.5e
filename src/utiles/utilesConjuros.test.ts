@@ -9,6 +9,7 @@ import {
   construirFormulaTaleSpireTruco,
   construirFormulaTaleSpireEspacio,
   obtenerInfoProyectilesMultiples,
+  aplicarBonoNumericoAFormulaDados,
   formatearComponentes
 } from "./utilesConjuros";
 
@@ -342,6 +343,104 @@ describe("utilesConjuros - Sistema de Escalado de Conjuros y Trucos (D&D 5.5e)",
       const ts = construirFormulaTaleSpireEspacio(rayoAbrasador, 4, 6, "Hechicero");
       expect(ts.formulaTaleSpire).toContain("Ataque Rayo 5:1d20+6/Daño Rayo 5 (fuego):2d6");
       expect(ts.etiquetaLog).toBe("Hechicero - Rayo abrasador (Nv.4 -> 5 rayos)");
+    });
+  });
+
+  describe("Bono Numérico de Daño Mágico a Conjuros (+PB / Revelación Celestial y Rasgos)", () => {
+    describe("aplicarBonoNumericoAFormulaDados", () => {
+      it("aplica bono positivo a fórmula de dados simple sin modificador previo", () => {
+        expect(aplicarBonoNumericoAFormulaDados("1d10", 2)).toBe("1d10+2");
+        expect(aplicarBonoNumericoAFormulaDados("8d6", 3)).toBe("8d6+3");
+        expect(aplicarBonoNumericoAFormulaDados("2d8", 4)).toBe("2d8+4");
+      });
+
+      it("compone y suma aritméticamente modificadores existentes (directo a la fórmula para TaleSpire)", () => {
+        expect(aplicarBonoNumericoAFormulaDados("1d4+1", 2)).toBe("1d4+3");
+        expect(aplicarBonoNumericoAFormulaDados("2d6-1", 3)).toBe("2d6+2");
+        expect(aplicarBonoNumericoAFormulaDados("2d6-2", 2)).toBe("2d6");
+      });
+
+      it("devuelve la fórmula sin cambios si el bono es 0 o la fórmula está vacía", () => {
+        expect(aplicarBonoNumericoAFormulaDados("1d10", 0)).toBe("1d10");
+        expect(aplicarBonoNumericoAFormulaDados("", 2)).toBe("");
+        expect(aplicarBonoNumericoAFormulaDados("N/A", 2)).toBe("N/A");
+      });
+    });
+
+    describe("construirFormulaTaleSpireTruco con bonoDanoMagico (+PB)", () => {
+      it("añade el bono al daño de un truco concentrado simple (Saeta de fuego)", () => {
+        const saetaFuego = {
+          id: "saeta-de-fuego",
+          nombre: "Saeta de fuego",
+          nivel: 0,
+          dadosDaño: "1d10",
+          tipoDaño: "fuego",
+          requiereAtaque: true
+        };
+        const res = construirFormulaTaleSpireTruco(saetaFuego, 1, 5, "Asimar Mago", 2);
+        expect(res.formulaTaleSpire).toBe("!Ataque Saeta de fuego:1d20+5/Daño (fuego):1d10+2");
+      });
+
+      it("en trucos de múltiples rayos (Descarga sobrenatural), suma el bono sólo al primer rayo (regla 1 vez por turno)", () => {
+        const descargaSobrenatural = {
+          id: "descarga-sobrenatural",
+          nombre: "Descarga sobrenatural",
+          nivel: 0,
+          dadosDaño: "1d10",
+          tipoDaño: "fuerza",
+          requiereAtaque: true
+        };
+        // Nivel 5 -> 2 rayos, bonoDanoMagico = 3 (+PB)
+        const res = construirFormulaTaleSpireTruco(descargaSobrenatural, 5, 6, "Brujo Asimar", 3);
+        expect(res.formulaTaleSpire).toBe(
+          "!Ataque Rayo 1:1d20+6/Daño Rayo 1 (fuerza):1d10+3/Ataque Rayo 2:1d20+6/Daño Rayo 2 (fuerza):1d10"
+        );
+      });
+    });
+
+    describe("construirFormulaTaleSpireEspacio con bonoDanoMagico (+PB)", () => {
+      it("añade el bono directamente al daño de un conjuro de espacio estándar (Bola de fuego)", () => {
+        const bolaFuego = {
+          id: "bola-de-fuego",
+          nombre: "Bola de fuego",
+          nivel: 3,
+          dadosDaño: "8d6",
+          tipoDaño: "fuego",
+          ataqueCd: "CD",
+          cdSalvacion: "15"
+        };
+        const res = construirFormulaTaleSpireEspacio(bolaFuego, 3, 5, "Mago Asimar", 3);
+        expect(res.formulaTaleSpire).toBe("!Daño Bola de fuego(fuego):8d6+3");
+      });
+
+      it("en Proyectil Mágico, suma el bono al primer dardo de forma directa (1d4+1 + 2 -> 1d4+3)", () => {
+        const proyectilMagico = {
+          id: "proyectil-magico",
+          nombre: "Proyectil mágico",
+          nivel: 1,
+          dadosDaño: "1d4+1",
+          tipoDaño: "fuerza"
+        };
+        const res = construirFormulaTaleSpireEspacio(proyectilMagico, 1, 4, "Mago Asimar", 2);
+        expect(res.formulaTaleSpire).toBe(
+          "!Daño Dardo 1 (fuerza):1d4+3/Daño Dardo 2 (fuerza):1d4+1/Daño Dardo 3 (fuerza):1d4+1"
+        );
+      });
+
+      it("en Rayo Abrasador, suma el bono al daño del primer rayo y conserva el daño base en los siguientes", () => {
+        const rayoAbrasador = {
+          id: "rayo-abrasador",
+          nombre: "Rayo abrasador",
+          nivel: 2,
+          dadosDaño: "2d6",
+          tipoDaño: "fuego",
+          requiereAtaque: true
+        };
+        const res = construirFormulaTaleSpireEspacio(rayoAbrasador, 2, 5, "Hechicero Asimar", 3);
+        expect(res.formulaTaleSpire).toBe(
+          "!Ataque Rayo 1:1d20+5/Daño Rayo 1 (fuego):2d6+3/Ataque Rayo 2:1d20+5/Daño Rayo 2 (fuego):2d6/Ataque Rayo 3:1d20+5/Daño Rayo 3 (fuego):2d6"
+        );
+      });
     });
   });
 });

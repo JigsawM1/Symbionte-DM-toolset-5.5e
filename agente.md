@@ -19,6 +19,49 @@ Este archivo registra reglas globales, errores encontrados, sus causas raíz y l
    - **Bajo ninguna circunstancia** los módulos de lógica de negocio (`servicios/`), gestores de estado (`almacen/`) o constructores (`gestorClases.ts`) deben contener bifurcaciones condicionales por nombre literal de rasgo o clase (`r.nombre === "..."`, `clase.includes("...")`, etc.).
    - Toda mecánica, progresión de dados, escalado de usos, recuperación o desbloqueo dinámico debe resolverse mediante metadatos declarativos (`escaladoFormulaDados`, `escaladoUsos`, `escaladoRecuperacion`, `opcionesDinamicas`, `escaladoMaxSelecciones`, `sincronizarEfectosConFormula`, `heredarDadosPadre`, `gastarDePadre`, `ligadoA`, `efectos`) delegando en funciones puras agnósticas como `resolverEscaladosRasgo`. Esta regla está reforzada en CI vía ESLint `no-restricted-syntax` y la suite `rasgoGenericidad.test.ts`.
 
+## [2026-09-11] Fase 2: Motor Genérico de Bonos de Daño a Conjuros (+PB) y Rasgo Mecánico Revelación Celestial (Asimar)
+
+**Contexto y Requerimientos del Usuario:**
+- Solicitud del usuario: *"okok, funciono a la perfeccion, ahora fase 2, agregarlo tambien al daño de conjuros"*.
+- Regla mecánica (D&D 5.5e / 2024): Al activar cualquier transformación celestial de Asimar (*Alas celestiales*, *Fulgor interior*, *Mortaja necrótica* o el conmutador de *Revelación celestial*), se añade una vez por turno el Bono de Competencia (**+PB**) al daño de los ataques y de los hechizos/conjuros.
+- Restricción crítica de TaleSpire: TaleSpire no acepta números sueltos (los autocompleta con un d20). El daño debe ser directo a los dados de la fórmula (ej. `1d10+2`, `8d6+3`, `1d4+3`), sin separadores `/ 2`.
+- Regla D&D 5.5e para proyectiles múltiples: En conjuros como *Descarga sobrenatural*, *Proyectil mágico* o *Rayo abrasador*, la bonificación de daño adicional ("una vez en cada uno de tus turnos al hacer daño") se suma de forma limpia al **primer proyectil** (`Daño Dardo 1: 1d4+3`, `Daño Dardo 2: 1d4+1`), preservando el balance oficial.
+- Exigencia de Genericidad (Regla Global 6): Las funciones deben ser 100% genéricas, consumibles desde el builder homebrew para cualquier rasgo o dote, sin bifurcaciones hardcodeadas por nombre.
+
+**Causas Raíz y Desafíos Técnicos:**
+1. **Ausencia de un Esquema de Bono de Daño Mágico:** El contrato de rasgos sólo contemplaba bonos de daño a ataques físicos (`bono_dano_ataque` y `bono_dano_fuerza`).
+2. **Formateo de Fórmulas para TaleSpire:** No existía una utilidad para sumar un bono numérico directo respetando modificadores preexistentes (`"1d4+1"` + 2 -> `"1d4+3"`).
+3. **Flujo de Ejecución Desacoplado:** El lanzamiento de conjuros se orquesta a través de tres capas distintas: las utilidades puras (`utilesConjuros.ts`), el servicio Facade/Strategy (`servicioLanzamientoConjuros.ts`) y los hooks/componentes de la UI (`usarLanzamientoTarjetaConjuro.ts`, `TarjetaConjuroCompacta.tsx`, `FichaHechizo.tsx`).
+
+**Solución Implementada y Decisiones Arquitectónicas:**
+1. **Tipado Estricto del Contrato de Rasgos (`src/tipos/rasgos.ts`):**
+   - Se añadió `"bono_dano_conjuro"` a `EsquemaTipoEfectoMecanico`.
+   - Se flexibilizó `aplicaA` mediante `z.union([z.enum([...]), z.string()])` para admitir scopes de conjuro (`"todos_conjuros"`, `"trucos"`, `"espacios"`, tipos de daño y escuelas).
+2. **Evaluador Genérico de Daño Mágico (`src/servicios/evaluadorEfectosRasgos.ts`):**
+   - Se definió `ContextoDanoConjuro` (`esTruco`, `nivelLanzamiento`, `tipoDano`, `escuela`, `nombreConjuro`).
+   - Se implementó la función pura `aplicaEfectoAConjuro` para resolver los criterios contextuales de selección.
+   - Se implementó `obtenerBonoDanoConjuroExtra(personaje, contexto)` que evalúa los efectos activos resolviendo tokens dinámicos (`"bono_competencia"`, `"pb"`) y cuenta con respaldo reactivo directo `+PB` si `estaRevelacionCelestialActiva(personaje)` está presente en condiciones, efectos de Combat Tracker o conmutadores.
+3. **Aritmética Segura de Dados para TaleSpire (`src/utiles/utilesConjuros.ts`):**
+   - Función pura `aplicarBonoNumericoAFormulaDados(formula, bono)` que compone y suma algebraicamente modificadores numéricos directos sin generar números sueltos.
+   - Actualizadas `calcularInfoTruco`, `construirFormulaTaleSpireTruco` y `construirFormulaTaleSpireEspacio` con parámetro `bonoDanoMagico: number = 0`, aplicando el daño extra al primer proyectil en conjuros de impactos múltiples o al total en conjuros estándar.
+4. **Capa de Servicios y Hooks (`servicioLanzamientoConjuros.ts`, `usarLanzadorConjuros.ts`, `usarLanzamientoTarjetaConjuro.ts`):**
+   - Propagación de `bonoDanoMagico` en `SolicitudLanzamiento`, `validarLanzamiento` y `prepararLanzamiento`.
+5. **Componentes Visuales de la Hoja de Personaje:**
+   - `TarjetaConjuroCompacta.tsx`: Muestra en vivo la fórmula potenciada en la tarjeta (`infoTruco.etiquetaVisual` o `hechizo.dadosDaño + PB`).
+   - `SeccionNivelConjuros.tsx`, `SeccionConjurosOcultos.tsx` y `SeccionAtaquesMagicos.tsx`: Calculan el contexto y alimentan a las tarjetas.
+   - `FichaHechizo.tsx`, `ModalFichaHechizoFlotante.tsx` y `VistaAtaquesJugador.tsx`: Permiten visualizar y lanzar con el bono `+PB` reflejado tanto en la vista previa como en el comando TaleSpire.
+6. **Constructor Homebrew (`src/componentes/caracteristicas/rasgos/ConstructorRasgoDote.tsx`):**
+   - Añadido `"bono_dano_conjuro"` en `TIPOS_EFECTO_DISPONIBLES` con selector de objetivo (`OPCIONES_APLICA_A_CONJURO`).
+7. **Catálogo y Auto-Saneamiento:**
+   - Añadido el efecto declarativo canónico `bono_dano_conjuro` a `Revelación celestial` en `especiesDND55.ts`, `sanitizacion.ts` y `condicionesRasgosHelpers.ts`.
+8. **Pruebas y Verificación Integral:**
+   - Añadida suite de pruebas en `utilesConjuros.test.ts` y `servicioLanzamientoConjuros.test.ts`.
+   - `pnpm exec tsc --noEmit`: 0 errores (estricto).
+   - `pnpm exec vitest run`: 49 suites aprobadas, 584 tests pasando (100%).
+   - `pnpm run build`: Compilación exitosa para producción con Vite.
+
+---
+
 ## [2026-09-11] Fase 1 (Corrección): Resiliencia Reactiva y Sincronización de Daño (+PB) para Revelación Celestial (Condiciones, Efectos Activos y localStorage)
 
 **Contexto y Problema Reportado por el Usuario:**

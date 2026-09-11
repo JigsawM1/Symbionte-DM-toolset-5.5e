@@ -312,6 +312,32 @@ export interface InfoTrucoEscalado {
 }
 
 /**
+ * Aplica un bonificador numérico directo a una fórmula de dados de daño
+ * (ej. "1d10" + 2 -> "1d10+2", "8d6" + 3 -> "8d6+3", "1d4+1" + 2 -> "1d4+3").
+ * Compatible al 100% con los requisitos de TaleSpire.
+ */
+export function aplicarBonoNumericoAFormulaDados(formula: string, bono: number): string {
+  if (!formula || typeof formula !== "string") return formula || "";
+  const fLimpia = formula.trim();
+  if (bono === 0 || fLimpia === "" || fLimpia === "N/A") return fLimpia;
+
+  // Si termina con un modificador numérico con signo: ej. "1d4+1", "2d6-2", "2d6+1d4+3"
+  const matchModFinal = fLimpia.match(/^(.+?)([+-]\d+)$/);
+  if (matchModFinal) {
+    const base = matchModFinal[1];
+    const modActual = parseInt(matchModFinal[2], 10);
+    const modTotal = modActual + bono;
+    if (modTotal === 0) return base;
+    const signo = modTotal > 0 ? `+${modTotal}` : `${modTotal}`;
+    return `${base}${signo}`;
+  }
+
+  // Si no tiene modificador numérico previo (ej. "1d10", "8d6", "2d6+1d4")
+  const signo = bono > 0 ? `+${bono}` : `${bono}`;
+  return `${fLimpia}${signo}`;
+}
+
+/**
  * Calcula la información completa de escalado para cualquier truco según el nivel del personaje.
  * - Trucos con mejora (ej. Toque helado 1d10 -> 2d10 a nv 5, con cláusula "Mejora de truco").
  * - Trucos de ataques múltiples (ej. Descarga sobrenatural 1 rayo 1d10 -> 2 rayos de 1d10 a nv 5).
@@ -327,7 +353,8 @@ export function calcularInfoTruco(
     tipoDaño?: string;
     ataqueCd?: string;
   },
-  nivelPersonaje: number
+  nivelPersonaje: number,
+  bonoDanoMagico: number = 0
 ): InfoTrucoEscalado {
   const dadosBase = extraerDadosBaseTruco(hechizo);
   const tieneMejora = trucoTieneMejora(hechizo);
@@ -353,6 +380,7 @@ export function calcularInfoTruco(
   const caras = match ? match[2] : "10";
 
   if (esMultiple) {
+    const formulaPotenciada = bonoDanoMagico > 0 ? aplicarBonoNumericoAFormulaDados(dadosBase, bonoDanoMagico) : dadosBase;
     return {
       formula: dadosBase, // Cada rayo hace el daño base (ej. 1d10)
       multiplicador: mult,
@@ -361,7 +389,7 @@ export function calcularInfoTruco(
       base: dadosBase,
       esAtaqueMultiple: true,
       cantidadAtaques: mult,
-      etiquetaVisual: mult > 1 ? `${mult} rayos (${dadosBase} c/u)` : dadosBase
+      etiquetaVisual: mult > 1 ? `${mult} rayos (${formulaPotenciada} c/u)` : formulaPotenciada
     };
   }
 
@@ -370,16 +398,17 @@ export function calcularInfoTruco(
   const resto = match ? match[3] || "" : "";
   const cantTotal = cantBase * mult;
   const formulaEscalada = `${cantTotal}d${caras}${resto}`;
+  const formulaFinal = bonoDanoMagico > 0 ? aplicarBonoNumericoAFormulaDados(formulaEscalada, bonoDanoMagico) : formulaEscalada;
 
   return {
-    formula: formulaEscalada,
+    formula: formulaFinal,
     multiplicador: mult,
     cantDados: cantTotal,
     caras,
     base: dadosBase,
     esAtaqueMultiple: false,
     cantidadAtaques: 1,
-    etiquetaVisual: formulaEscalada
+    etiquetaVisual: formulaFinal
   };
 }
 
@@ -398,9 +427,10 @@ export function construirFormulaTaleSpireTruco(
   },
   nivelPersonaje: number,
   bonoAtaqueMagico?: number,
-  nombrePersonaje: string = "Personaje"
+  nombrePersonaje: string = "Personaje",
+  bonoDanoMagico: number = 0
 ): { formulaTaleSpire: string; etiquetaLog: string } {
-  const info = calcularInfoTruco(hechizo, nivelPersonaje);
+  const info = calcularInfoTruco(hechizo, nivelPersonaje, bonoDanoMagico);
   const nombreLimpio = hechizo.nombre || "Truco";
   const tipoDaño = hechizo.tipoDaño && hechizo.tipoDaño !== "N/A" ? ` (${hechizo.tipoDaño})` : "";
   
@@ -413,11 +443,16 @@ export function construirFormulaTaleSpireTruco(
   if (info.esAtaqueMultiple && info.cantidadAtaques > 1 && info.formula) {
     const grupos: string[] = [];
     for (let i = 1; i <= info.cantidadAtaques; i++) {
+      // Regla una vez por turno: el daño extra se suma al primer proyectil
+      const formulaRayo = i === 1 && bonoDanoMagico > 0
+        ? aplicarBonoNumericoAFormulaDados(info.formula, bonoDanoMagico)
+        : info.formula;
+
       if (tieneAtaque) {
         grupos.push(`Ataque Rayo ${i}:1d20${modTexto}`);
-        grupos.push(`Daño Rayo ${i}${tipoDaño}:${info.formula}`);
+        grupos.push(`Daño Rayo ${i}${tipoDaño}:${formulaRayo}`);
       } else {
-        grupos.push(`Daño Rayo ${i}${tipoDaño}:${info.formula}`);
+        grupos.push(`Daño Rayo ${i}${tipoDaño}:${formulaRayo}`);
       }
     }
     return {
@@ -480,7 +515,8 @@ export function construirFormulaTaleSpireEspacio(
   },
   nivelLanzamiento: number,
   bonoAtaqueMagico: number = 0,
-  nombrePersonaje: string = "Personaje"
+  nombrePersonaje: string = "Personaje",
+  bonoDanoMagico: number = 0
 ): { formulaTaleSpire: string; etiquetaLog: string } {
   const nombrePj = nombrePersonaje.trim() || "Personaje";
   const nombreLimpio = hechizo.nombre || "Conjuro";
@@ -493,11 +529,16 @@ export function construirFormulaTaleSpireEspacio(
   if (infoProyectiles && infoProyectiles.cantidadProyectiles > 0) {
     const grupos: string[] = [];
     for (let i = 1; i <= infoProyectiles.cantidadProyectiles; i++) {
+      // Regla una vez por turno: el daño extra se suma al primer proyectil
+      const formulaProyectil = i === 1 && bonoDanoMagico > 0
+        ? aplicarBonoNumericoAFormulaDados(infoProyectiles.formulaPorProyectil, bonoDanoMagico)
+        : infoProyectiles.formulaPorProyectil;
+
       if (infoProyectiles.requiereAtaque) {
         grupos.push(`Ataque ${infoProyectiles.etiquetaSingular} ${i}:1d20${bonoSigno}`);
-        grupos.push(`Daño ${infoProyectiles.etiquetaSingular} ${i}${tipoDanoText}:${infoProyectiles.formulaPorProyectil}`);
+        grupos.push(`Daño ${infoProyectiles.etiquetaSingular} ${i}${tipoDanoText}:${formulaProyectil}`);
       } else {
-        grupos.push(`Daño ${infoProyectiles.etiquetaSingular} ${i}${tipoDanoText}:${infoProyectiles.formulaPorProyectil}`);
+        grupos.push(`Daño ${infoProyectiles.etiquetaSingular} ${i}${tipoDanoText}:${formulaProyectil}`);
       }
     }
 
@@ -517,10 +558,14 @@ export function construirFormulaTaleSpireEspacio(
   const formulaAdicional = hechizo.dadosDañoNivelSuperior?.trim() || "";
   const esEscalable = nivelBase > 0 && !!formulaAdicional && formulaAdicional !== "N/A";
 
-  const formulaFinalDano =
+  let formulaFinalDano =
     dadosBaseValidos && nivelLanzamiento > nivelBase && esEscalable
       ? calcularFormulaEscalada(dadosBaseValidos, formulaAdicional, nivelBase, nivelLanzamiento).formula
       : dadosBaseValidos;
+
+  if (formulaFinalDano && bonoDanoMagico > 0) {
+    formulaFinalDano = aplicarBonoNumericoAFormulaDados(formulaFinalDano, bonoDanoMagico);
+  }
 
   const etiquetaLog = `${nombrePj} - ${nombreLimpio}${
     nivelLanzamiento > nivelBase ? ` (Nv.${nivelLanzamiento})` : ""

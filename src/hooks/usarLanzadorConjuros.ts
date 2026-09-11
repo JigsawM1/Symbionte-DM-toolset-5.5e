@@ -14,7 +14,7 @@ import {
 } from "@/servicios/servicioLanzamientoConjuros";
 import { usarAlmacenDM } from "@/almacen/usarAlmacenDM";
 import { usarAccionesConfiguracion, usarEstadoConfiguracion } from "@/almacen/selectores/usarEstadoConfiguracion";
-import { tieneConjuroGratuitoActivo } from "@/servicios/evaluadorEfectosRasgos";
+import { tieneConjuroGratuitoActivo, obtenerBonoDanoConjuroExtra } from "@/servicios/evaluadorEfectosRasgos";
 
 export interface OpcionesLanzadorConjuros {
   personaje?: PersonajeJugador | null;
@@ -114,10 +114,21 @@ export function usarLanzadorConjuros(opciones: OpcionesLanzadorConjuros): Contro
   // 3. Validador reactivo
   const validar = useCallback(
     (solicitudIncompleta: Partial<SolicitudLanzamiento> & { hechizo: HechizoBase; modo: ModoLanzamiento }): ResultadoValidacion => {
+      const bonoDanoMagico = personaje
+        ? obtenerBonoDanoConjuroExtra(personaje, {
+            esTruco: solicitudIncompleta.hechizo.nivel === 0,
+            nivelLanzamiento: solicitudIncompleta.nivelLanzamiento ?? solicitudIncompleta.hechizo.nivel,
+            escuela: solicitudIncompleta.hechizo.escuela,
+            tipoDano: solicitudIncompleta.hechizo.tipoDaño,
+            nombreConjuro: solicitudIncompleta.hechizo.nombre
+          })
+        : 0;
+
       const solicitudCompleta: SolicitudLanzamiento = {
         nombrePersonaje: personaje?.nombre || "Personaje",
         nivelPersonaje: personaje?.nivel || 1,
         bonoAtaqueMagico,
+        bonoDanoMagico,
         ...solicitudIncompleta
       };
       return validarLanzamiento(solicitudCompleta, contexto);
@@ -130,10 +141,21 @@ export function usarLanzadorConjuros(opciones: OpcionesLanzadorConjuros): Contro
     async (
       solicitudIncompleta: Partial<SolicitudLanzamiento> & { hechizo: HechizoBase; modo: ModoLanzamiento }
     ): Promise<boolean> => {
+      const bonoDanoMagico = personaje
+        ? obtenerBonoDanoConjuroExtra(personaje, {
+            esTruco: solicitudIncompleta.hechizo.nivel === 0,
+            nivelLanzamiento: solicitudIncompleta.nivelLanzamiento ?? solicitudIncompleta.hechizo.nivel,
+            escuela: solicitudIncompleta.hechizo.escuela,
+            tipoDano: solicitudIncompleta.hechizo.tipoDaño,
+            nombreConjuro: solicitudIncompleta.hechizo.nombre
+          })
+        : 0;
+
       const solicitudCompleta: SolicitudLanzamiento = {
         nombrePersonaje: personaje?.nombre || "Personaje",
         nivelPersonaje: personaje?.nivel || 1,
         bonoAtaqueMagico,
+        bonoDanoMagico,
         ...solicitudIncompleta
       };
 

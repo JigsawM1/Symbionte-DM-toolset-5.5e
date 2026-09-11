@@ -1179,17 +1179,27 @@ export function sanearPersonaje(p: unknown): PersonajeJugador {
             const nomL = typeof r.nombre === "string" ? r.nombre.toLowerCase().trim() : "";
             const idL = typeof r.id === "string" ? r.id.toLowerCase().trim() : "";
             const esRevelacion = nomL.includes("revelacion celestial") || idL.includes("revelacion_celestial");
-            let efectos = Array.isArray(r.efectos) ? [...r.efectos] : [];
-            if (esRevelacion && efectos.length === 0) {
-              efectos = [
-                {
+            const efectos: Record<string, unknown>[] = Array.isArray(r.efectos)
+              ? [...(r.efectos as Record<string, unknown>[])]
+              : [];
+            if (esRevelacion && (!efectos.some((e) => e.tipo === "bono_dano_conjuro") || efectos.length === 0)) {
+              const tieneAtaque = efectos.some((e) => e.tipo === "bono_dano_ataque");
+              if (!tieneAtaque) {
+                efectos.push({
                   tipo: "bono_dano_ataque",
                   objetivo: "todos_ataques",
                   valor: "bono_competencia",
                   aplicaA: "todos_ataques",
                   descripcion: "Revelación celestial (+PB daño en ataques)"
-                }
-              ];
+                });
+              }
+              efectos.push({
+                tipo: "bono_dano_conjuro",
+                objetivo: "todos_conjuros",
+                valor: "bono_competencia",
+                aplicaA: "todos_conjuros",
+                descripcion: "Revelación celestial (+PB daño en conjuros)"
+              });
             }
             return {
               ...r,

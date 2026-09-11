@@ -157,6 +157,13 @@ export const CATALOGO_ESPECIES_DND55: DefinicionEspecie[] = [
             valor: "bono_competencia",
             aplicaA: "todos_ataques",
             descripcion: "Revelación celestial (+PB daño en ataques)"
+          },
+          {
+            tipo: "bono_dano_conjuro",
+            objetivo: "todos_conjuros",
+            valor: "bono_competencia",
+            aplicaA: "todos_conjuros",
+            descripcion: "Revelación celestial (+PB daño en conjuros)"
           }
         ],
         selectores: [

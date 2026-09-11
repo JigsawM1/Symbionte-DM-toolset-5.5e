@@ -35,6 +35,7 @@ export interface SolicitudLanzamiento {
   nivelPersonaje?: number;
   nombrePersonaje?: string;
   bonoAtaqueMagico?: number;
+  bonoDanoMagico?: number;
   objetoNombre?: string;
   objetoInstanciaId?: string;
   bonoAtaqueObjeto?: number;
@@ -151,13 +152,15 @@ function construirFormulaTruco(
   hechizo: HechizoBase,
   nivelPersonaje: number,
   bonoAtaqueMagico: number,
-  nombrePersonaje: string
+  nombrePersonaje: string,
+  bonoDanoMagico: number = 0
 ): FormulaConstruida {
   return construirFormulaTaleSpireTruco(
     hechizo,
     nivelPersonaje,
     bonoAtaqueMagico,
-    nombrePersonaje
+    nombrePersonaje,
+    bonoDanoMagico
   );
 }
 
@@ -168,13 +171,15 @@ function construirFormulaEspacio(
   hechizo: HechizoBase,
   nivelLanzamiento: number,
   bonoAtaqueMagico: number,
-  nombrePersonaje: string
+  nombrePersonaje: string,
+  bonoDanoMagico: number = 0
 ): FormulaConstruida {
   return construirFormulaTaleSpireEspacio(
     hechizo,
     nivelLanzamiento,
     bonoAtaqueMagico,
-    nombrePersonaje
+    nombrePersonaje,
+    bonoDanoMagico
   );
 }
 
@@ -278,6 +283,7 @@ export function prepararLanzamiento(
   const nombrePersonaje = solicitud.nombrePersonaje || "Personaje";
   const nivelPersonaje = solicitud.nivelPersonaje || 1;
   const bonoAtaqueMagico = solicitud.bonoAtaqueMagico || 0;
+  const bonoDanoMagico = solicitud.bonoDanoMagico || 0;
   const nivelLanzamiento = solicitud.nivelLanzamiento ?? solicitud.hechizo.nivel;
 
   let formula: FormulaConstruida;
@@ -289,7 +295,8 @@ export function prepararLanzamiento(
         solicitud.hechizo,
         nivelPersonaje,
         bonoAtaqueMagico,
-        nombrePersonaje
+        nombrePersonaje,
+        bonoDanoMagico
       );
       gasto = { tipo: "ninguno" };
       break;
@@ -342,7 +349,8 @@ export function prepararLanzamiento(
         solicitud.hechizo,
         nivelLanzamiento,
         bonoAtaqueMagico,
-        nombrePersonaje
+        nombrePersonaje,
+        bonoDanoMagico
       );
       gasto = {
         tipo: "gratuitoInnato",
@@ -368,7 +376,8 @@ export function prepararLanzamiento(
           solicitud.hechizo,
           nivelPersonaje,
           bonoAtaqueMagico,
-          nombrePersonaje
+          nombrePersonaje,
+          bonoDanoMagico
         );
         gasto = { tipo: "ninguno" };
       } else {
@@ -376,7 +385,8 @@ export function prepararLanzamiento(
           solicitud.hechizo,
           nivelLanzamiento,
           bonoAtaqueMagico,
-          nombrePersonaje
+          nombrePersonaje,
+          bonoDanoMagico
         );
 
         // Si el conjuro es gratuito por un rasgo activo (ej. Manto de Majestad / Orden imperiosa)

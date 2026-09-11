@@ -48,6 +48,7 @@ export const EsquemaTipoEfectoMecanico = z.enum([
   "dano_secundario",
   "bono_dano_fuerza",
   "bono_dano_ataque",
+  "bono_dano_conjuro",
   "bono_salvacion",
   "inmunidad_condicion",
   "competencia",
@@ -69,7 +70,10 @@ export const EsquemaEfectoMecanicoRasgo = z.object({
   valor: z.union([z.number(), z.string()]), // ej. 4, "2d6", "+2", "1d6+mitad_nivel", "dano_furia"
   condicion: z.string().nullable().optional(), // ej. "furia_activa", "sin_armadura_pesada", "sin_armadura", "siempre"
   tipoDano: z.string().optional(), // ej. "Radiante o Necrótico", "Fuego", "Fuerza", etc.
-  aplicaA: z.enum(["arma_fuerza", "arma_cac", "arma_distancia", "desarmado", "todos_ataques"]).optional(),
+  aplicaA: z.union([
+    z.enum(["arma_fuerza", "arma_cac", "arma_distancia", "desarmado", "todos_ataques", "todos_conjuros", "trucos", "espacios"]),
+    z.string()
+  ]).optional(),
   limiteMaximo: z.number().int().optional(), // ej. 25 para modificador_stat
   permiteEscudo: z.boolean().optional(), // ej. true para Defensa sin armadura de Bárbaro
   descripcion: z.string().optional(),

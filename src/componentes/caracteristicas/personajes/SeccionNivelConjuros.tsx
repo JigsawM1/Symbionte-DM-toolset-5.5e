@@ -3,6 +3,7 @@ import { ChevronDown, ChevronRight, BookOpen } from "lucide-react";
 import type { PersonajeJugador, HechizoBase } from "@/tipos";
 import type { ModoLanzamiento } from "@/servicios/servicioLanzamientoConjuros";
 import type { OrigenConjuroBadge } from "@/servicios/resolutorOrigenConjuros";
+import { obtenerBonoDanoConjuroExtra } from "@/servicios/evaluadorEfectosRasgos";
 import { TarjetaConjuroCompacta } from "./TarjetaConjuroCompacta";
 import estilos from "./PanelConjurosPersonaje.module.css";
 
@@ -142,6 +143,13 @@ export const SeccionNivelConjuros: React.FC<SeccionNivelConjurosProps> = ({
                   );
                 });
                 const tieneLanzamientoGratisDisponible = Boolean(rasgoInnatoGratuito);
+                const bonoDanoMagico = obtenerBonoDanoConjuroExtra(personaje, {
+                  esTruco,
+                  nivelLanzamiento: nivel,
+                  tipoDano: hechizo.tipoDaño,
+                  escuela: hechizo.escuela,
+                  nombreConjuro: hechizo.nombre
+                });
 
                 return (
                   <TarjetaConjuroCompacta
@@ -150,6 +158,7 @@ export const SeccionNivelConjuros: React.FC<SeccionNivelConjurosProps> = ({
                     nombrePersonaje={personaje.nombre}
                     nivelPersonaje={personaje.nivel || 1}
                     bonoAtaqueMagico={bonoAtaqueMagico}
+                    bonoDanoMagico={bonoDanoMagico}
                     estaPreparado={esTruco ? true : estaPreparado(hechizo)}
                     esDeSubclase={esHechizoDeSubclase(hechizo)}
                     origenBadge={obtenerOrigenConjuro ? obtenerOrigenConjuro(hechizo) : (esHechizoDeSubclase(hechizo) ? "subclase" : null)}

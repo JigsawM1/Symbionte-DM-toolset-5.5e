@@ -1,6 +1,7 @@
 import React from "react";
 import { FichaHechizo } from "@/componentes/caracteristicas/compendio/FichaHechizo";
 import { obtenerBonoDanoConjuroExtra } from "@/servicios/evaluadorEfectosRasgos";
+import { obtenerModificadorAptitudMagica } from "@/servicios/calculadorMagia";
 import { usarCalculoAtaquesJugador } from "./usarCalculoAtaquesJugador";
 import { CabeceraAtaquesJugador } from "./CabeceraAtaquesJugador";
 import { SeccionRecursosMagicosAtaque } from "./SeccionRecursosMagicosAtaque";
@@ -183,6 +184,7 @@ export const VistaAtaquesJugador: React.FC = () => {
                     })
                   : 0
               }
+              modificadorHabilidad={obtenerModificadorAptitudMagica(personajeActivo)}
               esLanzadorPacto={tienePacto}
               nivelEspacioPacto={personajeActivo.nivelEspacioPacto || 0}
               espaciosPactoMaximos={personajeActivo.espaciosPactoMaximos || 0}

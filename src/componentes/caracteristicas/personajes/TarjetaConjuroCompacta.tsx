@@ -17,6 +17,7 @@ interface TarjetaConjuroCompactaProps {
   nivelPersonaje?: number;
   bonoAtaqueMagico: number;
   bonoDanoMagico?: number;
+  modificadorHabilidad?: number;
   estaPreparado: boolean;
   esDeSubclase?: boolean;
   origenBadge?: OrigenConjuroBadge | null;
@@ -53,6 +54,7 @@ export const TarjetaConjuroCompacta: React.FC<TarjetaConjuroCompactaProps> = ({
   nivelPersonaje = 1,
   bonoAtaqueMagico,
   bonoDanoMagico = 0,
+  modificadorHabilidad = 0,
   estaPreparado,
   esDeSubclase = false,
   origenBadge,
@@ -100,6 +102,7 @@ export const TarjetaConjuroCompacta: React.FC<TarjetaConjuroCompactaProps> = ({
     nivelPersonaje,
     bonoAtaqueMagico,
     bonoDanoMagico,
+    modificadorHabilidad,
     bloqueadoPorArmadura,
     alLanzar,
     alGastarEspacio,
@@ -118,7 +121,7 @@ export const TarjetaConjuroCompacta: React.FC<TarjetaConjuroCompactaProps> = ({
     alLanzarGratis
   });
 
-  const infoTruco = esTruco ? calcularInfoTruco(hechizo, nivelPersonaje, bonoDanoMagico) : null;
+  const infoTruco = esTruco ? calcularInfoTruco(hechizo, nivelPersonaje, bonoDanoMagico, modificadorHabilidad) : null;
 
   const claseEstadoTarjeta = esConcentracionActual
     ? estilos.tarjetaConcentracion
@@ -199,7 +202,11 @@ export const TarjetaConjuroCompacta: React.FC<TarjetaConjuroCompactaProps> = ({
                 • {infoTruco.etiquetaVisual} {infoTruco.multiplicador > 1 ? `(Nv.${nivelPersonaje})` : ""}
               </strong>
             ) : hechizo.dadosDaño ? (
-              ` • ${bonoDanoMagico > 0 ? aplicarBonoNumericoAFormulaDados(hechizo.dadosDaño, bonoDanoMagico) : hechizo.dadosDaño}`
+              (() => {
+                const modHab = hechizo.agregarModificadorHabilidad ? modificadorHabilidad : 0;
+                const bonoTotal = bonoDanoMagico + modHab;
+                return ` • ${bonoTotal !== 0 ? aplicarBonoNumericoAFormulaDados(hechizo.dadosDaño, bonoTotal) : hechizo.dadosDaño}`;
+              })()
             ) : (
               ""
             )}

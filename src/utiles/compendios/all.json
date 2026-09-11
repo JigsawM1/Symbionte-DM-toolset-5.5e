@@ -3023,7 +3023,7 @@
     "requiereAtaque": false,
     "dadosDaño": "2d8",
     "dadosDañoNivelSuperior": "2d8",
-    "agregarModificadorHabilidad": false
+    "agregarModificadorHabilidad": true
   },
   {
     "id": "h_curar-heridas-en-masa",
@@ -3055,7 +3055,7 @@
     "requiereAtaque": false,
     "dadosDaño": "5d8",
     "dadosDañoNivelSuperior": "1d8",
-    "agregarModificadorHabilidad": false
+    "agregarModificadorHabilidad": true
   },
   {
     "id": "h_circulo-de-muerte",
@@ -8287,7 +8287,7 @@
     "requiereAtaque": false,
     "dadosDaño": "2d4",
     "dadosDañoNivelSuperior": "2d4",
-    "agregarModificadorHabilidad": false
+    "agregarModificadorHabilidad": true
   },
   {
     "id": "h_palabra-de-curacion-en-masa",
@@ -8318,7 +8318,7 @@
     "requiereAtaque": false,
     "dadosDaño": "2d4",
     "dadosDañoNivelSuperior": "1d4",
-    "agregarModificadorHabilidad": false
+    "agregarModificadorHabilidad": true
   },
   {
     "id": "h_palabra-de-poder-aturdir",

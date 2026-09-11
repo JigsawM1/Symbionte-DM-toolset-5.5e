@@ -397,5 +397,37 @@ describe("servicioLanzamientoConjuros - Patrón Facade + Strategy", () => {
       expect(preparado.formula.formulaTaleSpire).toBe("!Daño Bola de fuego(fuego):8d6+2");
       expect(preparado.formula.etiquetaLog).toContain("Asimar Piromante - Bola de fuego");
     });
+
+    it("Aplica modificadorHabilidad en conjuros con agregarModificadorHabilidad activo (ej. Curar heridas)", () => {
+      const curarHeridas: HechizoBase = {
+        id: "curar-heridas",
+        nombre: "Curar heridas",
+        nivel: 1,
+        escuela: "Evocacion",
+        tiempoLanzamiento: "1 Accion",
+        alcance: "Toque",
+        componentesSeleccionados: { verbal: true, somatico: true, material: false },
+        duracion: "Instantaneo",
+        concentracion: false,
+        ritual: false,
+        descripcion: "Una criatura que toques recupera...",
+        dadosDaño: "2d8",
+        tipoDaño: "curacion",
+        agregarModificadorHabilidad: true
+      };
+
+      const solicitud: SolicitudLanzamiento = {
+        modo: "espacio",
+        hechizo: curarHeridas,
+        nivelLanzamiento: 1,
+        bonoAtaqueMagico: 5,
+        modificadorHabilidad: 4, // Sabiduría +4
+        nombrePersonaje: "Clérigo Sabio"
+      };
+
+      const preparado = prepararLanzamiento(solicitud, contextoLimpio);
+      expect(preparado.formula.formulaTaleSpire).toBe("!Daño Curar heridas(curacion):2d8+4");
+      expect(preparado.formula.etiquetaLog).toContain("Clérigo Sabio - Curar heridas");
+    });
   });
 });

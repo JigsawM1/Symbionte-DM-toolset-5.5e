@@ -15,6 +15,7 @@ import {
 import { usarAlmacenDM } from "@/almacen/usarAlmacenDM";
 import { usarAccionesConfiguracion, usarEstadoConfiguracion } from "@/almacen/selectores/usarEstadoConfiguracion";
 import { tieneConjuroGratuitoActivo, obtenerBonoDanoConjuroExtra } from "@/servicios/evaluadorEfectosRasgos";
+import { obtenerModificadorAptitudMagica } from "@/servicios/calculadorMagia";
 
 export interface OpcionesLanzadorConjuros {
   personaje?: PersonajeJugador | null;
@@ -124,11 +125,14 @@ export function usarLanzadorConjuros(opciones: OpcionesLanzadorConjuros): Contro
           })
         : 0;
 
+      const modificadorHabilidad = personaje ? obtenerModificadorAptitudMagica(personaje) : 0;
+
       const solicitudCompleta: SolicitudLanzamiento = {
         nombrePersonaje: personaje?.nombre || "Personaje",
         nivelPersonaje: personaje?.nivel || 1,
         bonoAtaqueMagico,
         bonoDanoMagico,
+        modificadorHabilidad,
         ...solicitudIncompleta
       };
       return validarLanzamiento(solicitudCompleta, contexto);
@@ -151,11 +155,14 @@ export function usarLanzadorConjuros(opciones: OpcionesLanzadorConjuros): Contro
           })
         : 0;
 
+      const modificadorHabilidad = personaje ? obtenerModificadorAptitudMagica(personaje) : 0;
+
       const solicitudCompleta: SolicitudLanzamiento = {
         nombrePersonaje: personaje?.nombre || "Personaje",
         nivelPersonaje: personaje?.nivel || 1,
         bonoAtaqueMagico,
         bonoDanoMagico,
+        modificadorHabilidad,
         ...solicitudIncompleta
       };
 

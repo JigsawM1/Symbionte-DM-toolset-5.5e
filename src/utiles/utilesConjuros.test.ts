@@ -442,6 +442,97 @@ describe("utilesConjuros - Sistema de Escalado de Conjuros y Trucos (D&D 5.5e)",
         );
       });
     });
+
+    describe("agregarModificadorHabilidad en Trucos y Espacios de Conjuro", () => {
+      it("aplica modificador de habilidad a Curar heridas cuando agregarModificadorHabilidad es true", () => {
+        const curarHeridas = {
+          id: "curar-heridas",
+          nombre: "Curar heridas",
+          nivel: 1,
+          dadosDaño: "2d8",
+          tipoDaño: "curacion",
+          agregarModificadorHabilidad: true
+        };
+        // Modificador de sabiduría +3
+        const res = construirFormulaTaleSpireEspacio(curarHeridas, 1, 5, "Clérigo", 0, 3);
+        expect(res.formulaTaleSpire).toBe("!Daño Curar heridas(curacion):2d8+3");
+      });
+
+      it("combina bonoDanoMagico y modificadorHabilidad cuando ambos aplican", () => {
+        const curarHeridas = {
+          id: "curar-heridas",
+          nombre: "Curar heridas",
+          nivel: 1,
+          dadosDaño: "2d8",
+          tipoDaño: "curacion",
+          agregarModificadorHabilidad: true
+        };
+        // bonoDanoMagico = 2, modificadorHabilidad = 3 -> Total bono +5
+        const res = construirFormulaTaleSpireEspacio(curarHeridas, 1, 5, "Clérigo Asimar", 2, 3);
+        expect(res.formulaTaleSpire).toBe("!Daño Curar heridas(curacion):2d8+5");
+      });
+
+      it("no añade el modificador de habilidad si agregarModificadorHabilidad es falso o indefinido", () => {
+        const bolaFuego = {
+          id: "bola-de-fuego",
+          nombre: "Bola de fuego",
+          nivel: 3,
+          dadosDaño: "8d6",
+          tipoDaño: "fuego"
+        };
+        const res = construirFormulaTaleSpireEspacio(bolaFuego, 3, 5, "Mago", 0, 4);
+        expect(res.formulaTaleSpire).toBe("!Daño Bola de fuego(fuego):8d6");
+      });
+
+      it("en trucos con múltiples proyectiles y agregarModificadorHabilidad: true (ej. Agonizing Blast / Descarga agónica), aplica a todos los proyectiles", () => {
+        const descargaAgonica = {
+          id: "descarga-sobrenatural",
+          nombre: "Descarga sobrenatural",
+          nivel: 0,
+          dadosDaño: "1d10",
+          tipoDaño: "fuerza",
+          requiereAtaque: true,
+          agregarModificadorHabilidad: true
+        };
+        // Nivel 5 -> 2 rayos, bonoDanoMagico = 2 (solo primer rayo), modificadorHabilidad = 3 (ambos rayos)
+        // Rayo 1: +2 +3 = +5
+        // Rayo 2: +3
+        const res = construirFormulaTaleSpireTruco(descargaAgonica, 5, 6, "Brujo Asimar", 2, 3);
+        expect(res.formulaTaleSpire).toBe(
+          "!Ataque Rayo 1:1d20+6/Daño Rayo 1 (fuerza):1d10+5/Ataque Rayo 2:1d20+6/Daño Rayo 2 (fuerza):1d10+3"
+        );
+      });
+
+      it("en calcularInfoTruco, formatea la fórmula con el modificador de habilidad para trucos estándar", () => {
+        const trucoEstandar = {
+          id: "saeta-de-fuego",
+          nombre: "Saeta de fuego",
+          nivel: 0,
+          dadosDaño: "1d10",
+          tipoDaño: "fuego",
+          requiereAtaque: true,
+          agregarModificadorHabilidad: true
+        };
+        const info = calcularInfoTruco(trucoEstandar, 1, 0, 4);
+        expect(info.formula).toBe("1d10+4");
+        expect(info.etiquetaVisual).toBe("1d10+4");
+      });
+
+      it("en calcularInfoTruco para ataques múltiples, refleja el bono en la etiqueta visual de cada rayo", () => {
+        const trucoMultiple = {
+          id: "descarga-sobrenatural",
+          nombre: "Descarga sobrenatural",
+          nivel: 0,
+          dadosDaño: "1d10",
+          tipoDaño: "fuerza",
+          requiereAtaque: true,
+          agregarModificadorHabilidad: true
+        };
+        const info = calcularInfoTruco(trucoMultiple, 5, 0, 4);
+        expect(info.formula).toBe("1d10");
+        expect(info.etiquetaVisual).toBe("2 rayos (1d10+4 c/u)");
+      });
+    });
   });
 });
 

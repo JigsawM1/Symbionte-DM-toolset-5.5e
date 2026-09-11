@@ -2,18 +2,21 @@ import type {
   ClaseLanzadora,
   Caracteristica,
   TipoLanzador,
-  ModeloConjuros
+  ModeloConjuros,
+  PersonajeJugador
 } from "@/tipos";
 import {
   TABLA_ESPACIOS_CONJURO,
   TABLA_PUNTOS_CONJURO,
   COSTE_PUNTOS_POR_NIVEL,
   TIPO_LANZADOR_POR_CLASE,
-  TABLA_PACTO_BRUJO
+  TABLA_PACTO_BRUJO,
+  esLanzadorCarisma
 } from "@/constantes";
 import {
   CATALOGO_CONJUROS_SUBCLASES
 } from "@/constantes/subclasesConjurosConstantes";
+import { calcularEstadisticasPersonaje } from "@/almacen/selectores/usarEstadoPersonajes";
 
 /**
  * Calcula el nivel de lanzador combinado para reglas de multiclase (D&D 5.5e).
@@ -729,5 +732,45 @@ export function calcularConteoPreparadosEfectivos(
   };
 }
 
+/**
+ * Obtiene la característica de lanzamiento principal del personaje conforme a sus clases lanzadoras o clase principal.
+ */
+export function obtenerHabilidadConjuroPersonaje(pj: PersonajeJugador | null | undefined): Caracteristica {
+  if (pj?.clasesLanzadoras && pj.clasesLanzadoras.length > 0 && pj.clasesLanzadoras[0].habilidadConjuro) {
+    return pj.clasesLanzadoras[0].habilidadConjuro as Caracteristica;
+  }
+  const clase = pj?.clase || "";
+  if (esLanzadorCarisma(clase)) {
+    return "carisma";
+  }
+  const claseNorm = (clase || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  if (
+    claseNorm.includes("clerigo") ||
+    claseNorm.includes("druida") ||
+    claseNorm.includes("explorador") ||
+    claseNorm.includes("cleric") ||
+    claseNorm.includes("ranger")
+  ) {
+    return "sabiduria";
+  }
+  return "inteligencia";
+}
 
-
+/**
+ * Obtiene el modificador numérico de aptitud mágica del personaje (ej. +3, +4).
+ * Utiliza las estadísticas calculadas en caché o deriva directamente de la puntuación de característica.
+ */
+export function obtenerModificadorAptitudMagica(pj: PersonajeJugador | null | undefined): number {
+  if (!pj) return 0;
+  const habilidad = obtenerHabilidadConjuroPersonaje(pj);
+  try {
+    const stats = calcularEstadisticasPersonaje(pj);
+    if (stats?.modificadores && typeof stats.modificadores[habilidad] === "number") {
+      return stats.modificadores[habilidad];
+    }
+  } catch {
+    // Fallback defensivo si el personaje carece de estructura completa de estadísticas
+  }
+  const valorCarac = pj.caracteristicas ? (pj.caracteristicas[habilidad] ?? 10) : 10;
+  return Math.floor((valorCarac - 10) / 2);
+}

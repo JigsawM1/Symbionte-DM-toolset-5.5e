@@ -18,6 +18,7 @@ interface ParametrosLanzamientoTarjeta {
   nivelPersonaje: number;
   bonoAtaqueMagico: number;
   bonoDanoMagico?: number;
+  modificadorHabilidad?: number;
   bloqueadoPorArmadura: boolean;
   alLanzar?: (modo: ModoLanzamiento, nivelLanzamiento?: number) => Promise<boolean | void>;
   alGastarEspacio?: (nivel: number) => void;
@@ -42,6 +43,7 @@ export function usarLanzamientoTarjetaConjuro({
   nivelPersonaje,
   bonoAtaqueMagico,
   bonoDanoMagico = 0,
+  modificadorHabilidad = 0,
   bloqueadoPorArmadura,
   alLanzar,
   alGastarEspacio,
@@ -115,7 +117,8 @@ export function usarLanzamientoTarjetaConjuro({
           nivelPersonaje,
           bonoAtaqueMagico,
           nombrePj,
-          bonoDanoMagico
+          bonoDanoMagico,
+          modificadorHabilidad
         );
         formulaTaleSpire = resultadoTruco.formulaTaleSpire;
         etiquetaLog = resultadoTruco.etiquetaLog;
@@ -125,7 +128,8 @@ export function usarLanzamientoTarjetaConjuro({
           nivelUpcast,
           bonoAtaqueMagico,
           nombrePj,
-          bonoDanoMagico
+          bonoDanoMagico,
+          modificadorHabilidad
         );
         formulaTaleSpire = resultadoEspacio.formulaTaleSpire;
         etiquetaLog = resultadoEspacio.etiquetaLog;

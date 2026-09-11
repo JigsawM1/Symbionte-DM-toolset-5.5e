@@ -19,6 +19,53 @@ Este archivo registra reglas globales, errores encontrados, sus causas raíz y l
    - **Bajo ninguna circunstancia** los módulos de lógica de negocio (`servicios/`), gestores de estado (`almacen/`) o constructores (`gestorClases.ts`) deben contener bifurcaciones condicionales por nombre literal de rasgo o clase (`r.nombre === "..."`, `clase.includes("...")`, etc.).
    - Toda mecánica, progresión de dados, escalado de usos, recuperación o desbloqueo dinámico debe resolverse mediante metadatos declarativos (`escaladoFormulaDados`, `escaladoUsos`, `escaladoRecuperacion`, `opcionesDinamicas`, `escaladoMaxSelecciones`, `sincronizarEfectosConFormula`, `heredarDadosPadre`, `gastarDePadre`, `ligadoA`, `efectos`) delegando en funciones puras agnósticas como `resolverEscaladosRasgo`. Esta regla está reforzada en CI vía ESLint `no-restricted-syntax` y la suite `rasgoGenericidad.test.ts`.
 
+## [2026-09-11] Integración de agregarModificadorHabilidad en Conjuros (D&D 5.5e y Fórmulas TaleSpire)
+
+**Contexto y Requerimientos del Usuario:**
+- Solicitud del usuario: *"ok, ahora hay que añadirle funcionalidad al un campo de la base de datos de conjuros que creo que no se esta usando 'agregarModificadorHabilidad' este se supone que funciona como el recien añadido 'bonoDanoMagico', solo que lo que suma es el modificador de caracteristica del lanzador de hechizos"*.
+- Regla mecánica (D&D 5.5e / 2024): Conjuros como *Curar heridas*, *Palabra de curación*, o invocaciones como *Descarga agónica* (Agonizing Blast) añaden el modificador de la característica de aptitud mágica del lanzador (INT, SAB o CAR según la clase) a la tirada de daño o curación.
+- Restricción TaleSpire: La fórmula no puede contener números sueltos; los bonos numéricos deben componerse directamente sobre los dados (ej. `2d8+3`, `2d8+5`).
+- Coexistencia con `bonoDanoMagico`: Si el personaje posee un bono de daño mágico (ej. +2 por Asimar / Revelación celestial) y el conjuro tiene `agregarModificadorHabilidad: true` con modificador de habilidad +3, el bono total sumado debe ser +5 (`2d8+5`).
+- Regla para proyectiles múltiples: A diferencia de `bonoDanoMagico` (que se aplica 1 vez por turno en el primer proyectil), el modificador de habilidad de aptitud mágica aplica a **todos los proyectiles** que impacten cuando la regla o rasgo así lo estipula (ej. *Descarga agónica* suma a cada rayo: Rayo 1 `1d10+5`, Rayo 2 `1d10+3`).
+
+**Causas Raíz y Desafíos Técnicos:**
+1. El campo `agregarModificadorHabilidad: boolean` estaba presente en la interfaz `HechizoBase` (`src/tipos/hechizo.ts`) y en la base de datos de conjuros, pero no era consumido por las utilidades de cálculo de fórmulas (`utilesConjuros.ts`), el servicio de lanzamiento (`servicioLanzamientoConjuros.ts`) ni los componentes visuales de la hoja de personaje.
+2. Era necesario resolver con precisión y sin redundancias la característica de aptitud mágica del personaje según su clase o configuración mágica, aprovechando la caché reactiva sin degradar rendimiento.
+3. Se requería actualizar la visualización en vivo en las tarjetas de conjuros (`TarjetaConjuroCompacta.tsx`), en la ficha detallada (`FichaHechizo.tsx`) y en el modal de lanzamiento para que el usuario aprecie la fórmula potenciada en tiempo real antes y al tirar.
+
+**Solución Implementada y Decisiones Arquitectónicas:**
+1. **Extracción y Cálculo de Aptitud Mágica (`src/servicios/calculadorMagia.ts`):**
+   - Se implementaron y exportaron `obtenerHabilidadConjuroPersonaje(pj: Personaje): TipoHabilidadMagica | null` y `obtenerModificadorAptitudMagica(pj: Personaje): number`.
+   - Utiliza la caché interna de estadísticas calculadas (`WeakMap`) para O(1) con fallback matemático directo `Math.floor((puntuacion - 10) / 2)`.
+2. **Aritmética de Fórmulas y TaleSpire (`src/utiles/utilesConjuros.ts`):**
+   - Se añadieron parámetros opcionales `modificadorHabilidad: number = 0` a:
+     - `calcularInfoTruco`: compone el modificador en `formula` y `etiquetaVisual` cuando `agregarModificadorHabilidad === true`.
+     - `construirFormulaTaleSpireTruco`: aplica el modificador a cada rayo o al truco único de forma limpia.
+     - `construirFormulaTaleSpireEspacio`: suma `modHab` a `formulaFinalDano` y a cada proyectil múltiple si el hechizo lo requiere.
+3. **Capa de Servicios y Hooks (`servicioLanzamientoConjuros.ts`, `usarLanzadorConjuros.ts`, `usarLanzamientoTarjetaConjuro.ts`):**
+   - `SolicitudLanzamiento` extendida con `modificadorHabilidad?: number`.
+   - `prepararLanzamiento`, `construirFormulaTruco` y `construirFormulaEspacio` propagan `modificadorHabilidad`.
+   - `usarLanzadorConjuros` calcula automáticamente `modificadorHabilidad` vía `obtenerModificadorAptitudMagica(personaje)` e inyecta el valor en `solicitudCompleta`.
+   - `usarLanzamientoTarjetaConjuro` recibe y transfiere el modificador a los constructores de fórmulas de TaleSpire.
+4. **Capa Visual y Tarjetas:**
+   - `TarjetaConjuroCompacta.tsx`: Recibe `modificadorHabilidad` y lo utiliza en `calcularInfoTruco` y `filaMetadatos` para mostrar la fórmula aumentada en tiempo real (ej. `2d8+3` de curación).
+   - `SeccionNivelConjuros.tsx` y `SeccionConjurosOcultos.tsx`: Obtienen el modificador de habilidad mágica del personaje y lo entregan a cada tarjeta.
+   - `FichaHechizo.tsx` y `ModalFichaHechizoFlotante.tsx`: Reciben `modificadorHabilidad` y calculan `dadosBaseValidos` sumando el modificador si `agregarModificadorHabilidad === true`.
+   - `SeccionAtaquesMagicos.tsx` y `VistaAtaquesJugador.tsx`: Suministran `modificadorHabilidad` a `TarjetaConjuroCompacta` y `FichaHechizo`.
+5. **Base de Datos de Conjuros (`src/utiles/compendios/all.json`):**
+   - Se verificó y activó `"agregarModificadorHabilidad": true` en los conjuros canónicos:
+     - *Curar heridas* (`h_curar-heridas`)
+     - *Curar heridas en masa* (`h_curar-heridas-en-masa`)
+     - *Palabra de curación* (`h_palabra-de-curacion`)
+     - *Palabra de curación en masa* (`h_palabra-de-curacion-en-masa`)
+6. **Pruebas y Verificación Integral:**
+   - Pruebas automatizadas en `utilesConjuros.test.ts` y `servicioLanzamientoConjuros.test.ts`.
+   - `pnpm exec tsc --noEmit`: 0 errores en TypeScript estricto.
+   - `pnpm exec vitest run`: 49 suites aprobadas, 591 pruebas pasando exitosamente (100%).
+   - `pnpm lint`: 0 advertencias y 0 errores.
+
+---
+
 ## [2026-09-11] Fase 2: Motor Genérico de Bonos de Daño a Conjuros (+PB) y Rasgo Mecánico Revelación Celestial (Asimar)
 
 **Contexto y Requerimientos del Usuario:**

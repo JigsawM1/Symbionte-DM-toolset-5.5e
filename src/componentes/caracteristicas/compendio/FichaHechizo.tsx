@@ -29,6 +29,7 @@ interface FichaHechizoProps {
   nivelPersonaje?: number;
   bonoAtaqueMagico?: number;
   bonoDanoMagico?: number;
+  modificadorHabilidad?: number;
   esLanzadorPacto?: boolean;
   nivelEspacioPacto?: number;
   espaciosPactoMaximos?: number;
@@ -53,6 +54,7 @@ export const FichaHechizo: React.FC<FichaHechizoProps> = React.memo(({
   nivelPersonaje = 1,
   bonoAtaqueMagico,
   bonoDanoMagico = 0,
+  modificadorHabilidad = 0,
   esLanzadorPacto = false,
   nivelEspacioPacto = 0,
   espaciosPactoMaximos = 0,
@@ -67,12 +69,10 @@ export const FichaHechizo: React.FC<FichaHechizoProps> = React.memo(({
   const nivelBase = hechizo.nivel;
   const esTruco = nivelBase === 0;
 
-  // Si no se pasaron restricciones de ranuras del personaje (modo DM / Compendio), permitir upcasting libre
-  const esUpcastLibreEfectivo =
-    permitirUpcastLibre ??
-    (Object.keys(espaciosConjuroMaximos).length === 0 && !esLanzadorPacto);
+  // En la vista de edición / compendio puro (sin personaje real), habilitar hasta nivel 9 para inspección
+  const esUpcastLibreEfectivo = permitirUpcastLibre || (!nombrePersonaje && !nivelEspacioPacto);
 
-  // Obtener opciones de nivel válidas (respetando ranuras reales, pacto fijo y multiclase o modo libre DM)
+  // Generar opciones de nivel de ranura disponibles para lanzar
   const opcionesLanzamiento = useMemo(() => {
     return obtenerOpcionesLanzamientoConjuro({
       nivelHechizo: nivelBase,
@@ -110,7 +110,7 @@ export const FichaHechizo: React.FC<FichaHechizoProps> = React.memo(({
 
   // Escalado de trucos según el nivel de personaje (dados o múltiples ataques/rayos)
   const dadosTrucoBase = esTruco ? extraerDadosBaseTruco(hechizo) : "";
-  const infoTruco = esTruco ? calcularInfoTruco(hechizo, nivelPersonaje, bonoDanoMagico) : null;
+  const infoTruco = esTruco ? calcularInfoTruco(hechizo, nivelPersonaje, bonoDanoMagico, modificadorHabilidad) : null;
 
   // Detección de proyectiles múltiples (Descarga sobrenatural, Proyectil mágico, Rayo abrasador)
   const infoProyectiles = useMemo(() => {
@@ -121,10 +121,12 @@ export const FichaHechizo: React.FC<FichaHechizoProps> = React.memo(({
   }, [hechizo, nivelLanzamiento, nivelPersonaje]);
 
   // Calcular dados válidos reales del conjuro SIN fallbacks inventados
+  const modHab = hechizo.agregarModificadorHabilidad ? modificadorHabilidad : 0;
+  const bonoTotalDano = bonoDanoMagico + modHab;
   const dadosBaseValidos = esTruco
     ? (infoTruco?.formula || dadosTrucoBase || "")
     : (hechizo.dadosDaño && hechizo.dadosDaño !== "N/A"
-        ? (bonoDanoMagico > 0 ? aplicarBonoNumericoAFormulaDados(hechizo.dadosDaño, bonoDanoMagico) : hechizo.dadosDaño)
+        ? (bonoTotalDano !== 0 ? aplicarBonoNumericoAFormulaDados(hechizo.dadosDaño, bonoTotalDano) : hechizo.dadosDaño)
         : "");
 
   // Comprobar si el hechizo es escalable a niveles superiores con dados adicionales
@@ -177,7 +179,8 @@ export const FichaHechizo: React.FC<FichaHechizoProps> = React.memo(({
         nivelPersonaje,
         bonoAtaqueMagico,
         nombrePj,
-        bonoDanoMagico
+        bonoDanoMagico,
+        modificadorHabilidad
       );
       lanzarDadosTaleSpire(res.formulaTaleSpire, res.etiquetaLog);
     } else {
@@ -186,7 +189,8 @@ export const FichaHechizo: React.FC<FichaHechizoProps> = React.memo(({
         nivelLanzamiento,
         bonoAtaqueMagico,
         nombrePj,
-        bonoDanoMagico
+        bonoDanoMagico,
+        modificadorHabilidad
       );
       lanzarDadosTaleSpire(res.formulaTaleSpire, res.etiquetaLog);
     }

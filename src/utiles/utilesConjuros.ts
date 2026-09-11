@@ -4,6 +4,7 @@
  */
 
 import type { ComponentesSeleccionados } from "@/tipos";
+import { sanitizarEtiqueta } from "./lanzadorDados";
 
 interface ResultadoEscalado {
   formula: string;
@@ -87,46 +88,17 @@ export function calcularFormulaEscalada(
 }
 
 /**
- * Extrae los dados de daño base de un truco (nivel 0) si no están explícitos en dadosDaño.
- * Valida que el truco sea realmente ofensivo o de daño (evitando extraer dados de utilidad como el 1d4 de Guía).
+ * Obtiene los dados de daño base de un truco (nivel 0) directamente de la base de datos.
+ * Si el truco no posee dados de daño estructurados o es utilitario, devuelve una cadena vacía.
  */
 export function extraerDadosBaseTruco(hechizo: {
   dadosDaño?: string;
-  descripcion?: string;
   nombre?: string;
-  ataqueCd?: string;
-  tipoDaño?: string;
+  descripcion?: string;
+  [key: string]: unknown;
 }): string {
   if (hechizo.dadosDaño && hechizo.dadosDaño.trim() !== "" && hechizo.dadosDaño !== "N/A") {
     return hechizo.dadosDaño.trim();
-  }
-  if (!hechizo.descripcion) return "";
-
-  const desc = hechizo.descripcion;
-  const descLower = desc.toLowerCase();
-
-  // Comprobar si el truco realmente inflige daño u ofensiva antes de extraer dados
-  const tienePalabraDano =
-    descLower.includes("daño") ||
-    descLower.includes("dano") ||
-    descLower.includes("damage") ||
-    descLower.includes("mejora de truco") ||
-    descLower.includes("cantrip upgrade") ||
-    descLower.includes("rayos a nivel") ||
-    descLower.includes("dos rayos");
-
-  const tieneTipoDano = !!hechizo.tipoDaño && hechizo.tipoDaño.trim() !== "" && hechizo.tipoDaño !== "N/A";
-  const tieneAtaque = hechizo.ataqueCd === "ATAQUE";
-
-  // Si no menciona daño ni tiene tipo de daño ni tirada de ataque, NO es un truco de daño
-  if (!tienePalabraDano && !tieneTipoDano && !tieneAtaque) {
-    return "";
-  }
-
-  // Buscar primer patrón de dados estándar (\d+d\d+) en la descripción
-  const match = desc.match(/(\d+)[dD](\d+)/);
-  if (match) {
-    return `${match[1]}d${match[2]}`;
   }
   return "";
 }
@@ -182,59 +154,150 @@ export function calcularFormulaTruco(
 }
 
 /**
- * Determina si un truco tiene mejora/upcasting automático por nivel de personaje (D&D 5.5e / 5e).
- * Comprueba si la descripción contiene explícitamente "Mejora de truco", "El daño aumenta",
- * "Cantrip Upgrade" o mecánicas de rayos/ataques adicionales a niveles 5, 11, 17.
+ * Determina si un truco escala por nivel de personaje (D&D 5.5e / 5e).
+ * En las reglas oficiales, todo truco con dados de daño estructurados en la base de datos
+ * escala automáticamente a los niveles 5, 11 y 17 (salvo excepciones de arma como Garrote/Shillelagh).
  */
 export function trucoTieneMejora(hechizo: {
+  id?: string;
   nombre?: string;
-  descripcion?: string;
-  descNivelSuperior?: string;
+  dadosDaño?: string;
+  [key: string]: unknown;
 }): boolean {
-  if (esTrucoDeAtaquesMultiples(hechizo)) {
-    return true;
+  const normNombre = (hechizo.nombre || "").toLowerCase().trim();
+  if (normNombre === "garrote" || normNombre === "shillelagh") {
+    return false;
   }
-  const desc = ((hechizo.descripcion || "") + " " + (hechizo.descNivelSuperior || "")).toLowerCase();
-  return (
-    desc.includes("mejora de truco") ||
-    desc.includes("mejora del truco") ||
-    desc.includes("cantrip upgrade") ||
-    desc.includes("el daño aumenta") ||
-    desc.includes("el dano aumenta") ||
-    desc.includes("daño aumenta en") ||
-    desc.includes("dano aumenta en") ||
-    desc.includes("crea dos rayos") ||
-    desc.includes("rayos cuando alcanzas") ||
-    desc.includes("rayos a nivel") ||
-    desc.includes("un rayo adicional") ||
-    desc.includes("dos rayos a nivel")
-  );
+  return Boolean(hechizo.dadosDaño && hechizo.dadosDaño.trim() !== "" && hechizo.dadosDaño !== "N/A");
 }
 
 /**
  * Detecta si un truco escala añadiendo ataques/rayos separados en lugar de aumentar los dados de un solo ataque.
- * Ejemplo canónico: Descarga sobrenatural (Eldritch Blast).
+ * Identificado directamente por su clave canónica (Descarga sobrenatural / Eldritch Blast).
  */
-export function esTrucoDeAtaquesMultiples(hechizo: { nombre?: string; descripcion?: string }): boolean {
+export function esTrucoDeAtaquesMultiples(hechizo: {
+  id?: string;
+  nombre?: string;
+  [key: string]: unknown;
+}): boolean {
+  const normId = (hechizo.id || "").toLowerCase().trim();
   const normNombre = (hechizo.nombre || "").toLowerCase().trim();
-  const desc = (hechizo.descripcion || "").toLowerCase();
 
+  return (
+    normId.includes("descarga-sobrenatural") ||
+    normId.includes("eldritch-blast") ||
+    normNombre.includes("descarga sobrenatural") ||
+    normNombre.includes("eldritch blast")
+  );
+}
+
+export interface InfoProyectilesMultiples {
+  esMultiple: boolean;
+  etiquetaSingular: string;
+  etiquetaPlural: string;
+  cantidadProyectiles: number;
+  formulaPorProyectil: string;
+  requiereAtaque: boolean;
+  tipoDaño: string;
+  etiquetaVisual: string;
+}
+
+/**
+ * Obtiene la configuración canónica de proyectiles múltiples para cualquier conjuro (truco o de ranura).
+ * Soporta de manera oficial D&D 5.5e / 5e:
+ * - Descarga sobrenatural (Truco): 1 rayo (nv 1-4), 2 rayos (nv 5-10), 3 rayos (nv 11-16), 4 rayos (nv 17-20). Ataque individual.
+ * - Proyectil mágico (Nivel 1): 3 dardos base, +1 dardo por nivel superior a 1. Impacto automático (sin ataque).
+ * - Rayo abrasador (Nivel 2): 3 rayos base, +1 rayo por nivel superior a 2. Ataque individual por cada rayo.
+ */
+export function obtenerInfoProyectilesMultiples(
+  hechizo: {
+    id?: string;
+    nombre?: string;
+    nivel?: number;
+    dadosDaño?: string;
+    tipoDaño?: string;
+    requiereAtaque?: boolean;
+    ataqueCd?: string;
+    [key: string]: unknown;
+  },
+  opciones: {
+    nivelLanzamiento?: number;
+    nivelPersonaje?: number;
+  } = {}
+): InfoProyectilesMultiples | null {
+  const normId = (hechizo.id || "").toLowerCase().trim();
+  const normNombre = (hechizo.nombre || "").toLowerCase().trim();
+  const nivel = typeof hechizo.nivel === "number" ? hechizo.nivel : 0;
+
+  // 1. Descarga sobrenatural (Truco nv 0)
   if (
+    normId.includes("descarga-sobrenatural") ||
+    normId.includes("eldritch-blast") ||
     normNombre.includes("descarga sobrenatural") ||
     normNombre.includes("eldritch blast")
   ) {
-    return true;
+    const mult = calcularMultiplicadorTruco(opciones.nivelPersonaje ?? 1);
+    const dados = hechizo.dadosDaño?.trim() || "1d10";
+    return {
+      esMultiple: true,
+      etiquetaSingular: "Rayo",
+      etiquetaPlural: "rayos",
+      cantidadProyectiles: mult,
+      formulaPorProyectil: dados,
+      requiereAtaque: true,
+      tipoDaño: hechizo.tipoDaño && hechizo.tipoDaño !== "N/A" ? hechizo.tipoDaño : "fuerza",
+      etiquetaVisual: mult > 1 ? `${mult} rayos (${dados} c/u)` : dados
+    };
   }
 
+  // 2. Proyectil mágico (Nivel 1)
   if (
-    desc.includes("crea dos rayos") ||
-    desc.includes("rayos a nivel") ||
-    desc.includes("tirada de ataque por separado para cada rayo")
+    normId.includes("proyectil-magico") ||
+    normId.includes("magic-missile") ||
+    normNombre.includes("proyectil magico") ||
+    normNombre.includes("proyectil mágico") ||
+    normNombre.includes("magic missile")
   ) {
-    return true;
+    const nivelLanzamiento = Math.max(1, opciones.nivelLanzamiento ?? nivel ?? 1);
+    const dardosExtra = Math.max(0, nivelLanzamiento - 1);
+    const cantidad = 3 + dardosExtra;
+    const dados = hechizo.dadosDaño?.trim() || "1d4+1";
+    return {
+      esMultiple: true,
+      etiquetaSingular: "Dardo",
+      etiquetaPlural: "dardos",
+      cantidadProyectiles: cantidad,
+      formulaPorProyectil: dados,
+      requiereAtaque: false,
+      tipoDaño: hechizo.tipoDaño && hechizo.tipoDaño !== "N/A" ? hechizo.tipoDaño : "fuerza",
+      etiquetaVisual: `${cantidad} dardos (${dados} c/u)`
+    };
   }
 
-  return false;
+  // 3. Rayo abrasador (Nivel 2)
+  if (
+    normId.includes("rayo-abrasador") ||
+    normId.includes("scorching-ray") ||
+    normNombre.includes("rayo abrasador") ||
+    normNombre.includes("scorching ray")
+  ) {
+    const nivelLanzamiento = Math.max(2, opciones.nivelLanzamiento ?? nivel ?? 2);
+    const rayosExtra = Math.max(0, nivelLanzamiento - 2);
+    const cantidad = 3 + rayosExtra;
+    const dados = hechizo.dadosDaño?.trim() || "2d6";
+    return {
+      esMultiple: true,
+      etiquetaSingular: "Rayo",
+      etiquetaPlural: "rayos",
+      cantidadProyectiles: cantidad,
+      formulaPorProyectil: dados,
+      requiereAtaque: true,
+      tipoDaño: hechizo.tipoDaño && hechizo.tipoDaño !== "N/A" ? hechizo.tipoDaño : "fuego",
+      etiquetaVisual: `${cantidad} rayos (${dados} c/u)`
+    };
+  }
+
+  return null;
 }
 
 export interface InfoTrucoEscalado {
@@ -392,6 +455,103 @@ export function construirFormulaTaleSpireTruco(
   return {
     formulaTaleSpire: `!Lanzar Truco:${nombreLimpio}`,
     etiquetaLog: `${nombrePersonaje} - ${nombreLimpio} (Truco)`
+  };
+}
+
+/**
+ * Construye la fórmula de dados para TaleSpire para conjuros de nivel 1+ (ranuras / upcast).
+ * Soporta de forma nativa e integrada:
+ * - Conjuros de proyectiles múltiples (ej. Proyectil mágico, Rayo abrasador) generando grupos individuales.
+ * - Conjuros con tirada de ataque + daño (ej. Saeta de fuego, Flecha ácida).
+ * - Conjuros con daño y salvación o área (ej. Bola de fuego, Manos ardientes).
+ * - Conjuros puramente de control o utilidad (ej. Escudo, Armadura de mago).
+ */
+export function construirFormulaTaleSpireEspacio(
+  hechizo: {
+    id?: string;
+    nombre?: string;
+    nivel?: number;
+    dadosDaño?: string;
+    dadosDañoNivelSuperior?: string;
+    tipoDaño?: string;
+    requiereAtaque?: boolean;
+    ataqueCd?: string;
+    [key: string]: unknown;
+  },
+  nivelLanzamiento: number,
+  bonoAtaqueMagico: number = 0,
+  nombrePersonaje: string = "Personaje"
+): { formulaTaleSpire: string; etiquetaLog: string } {
+  const nombrePj = nombrePersonaje.trim() || "Personaje";
+  const nombreLimpio = hechizo.nombre || "Conjuro";
+  const nivelBase = typeof hechizo.nivel === "number" ? hechizo.nivel : 1;
+  const tipoDanoText = hechizo.tipoDaño && hechizo.tipoDaño !== "N/A" ? ` (${hechizo.tipoDaño})` : "";
+  const bonoSigno = bonoAtaqueMagico >= 0 ? `+${bonoAtaqueMagico}` : `${bonoAtaqueMagico}`;
+
+  // 1. Detección canónica de proyectiles múltiples (Proyectil mágico, Rayo abrasador, etc.)
+  const infoProyectiles = obtenerInfoProyectilesMultiples(hechizo, { nivelLanzamiento });
+  if (infoProyectiles && infoProyectiles.cantidadProyectiles > 0) {
+    const grupos: string[] = [];
+    for (let i = 1; i <= infoProyectiles.cantidadProyectiles; i++) {
+      if (infoProyectiles.requiereAtaque) {
+        grupos.push(`Ataque ${infoProyectiles.etiquetaSingular} ${i}:1d20${bonoSigno}`);
+        grupos.push(`Daño ${infoProyectiles.etiquetaSingular} ${i}${tipoDanoText}:${infoProyectiles.formulaPorProyectil}`);
+      } else {
+        grupos.push(`Daño ${infoProyectiles.etiquetaSingular} ${i}${tipoDanoText}:${infoProyectiles.formulaPorProyectil}`);
+      }
+    }
+
+    const sufijoNivel =
+      nivelLanzamiento > nivelBase
+        ? ` (Nv.${nivelLanzamiento} -> ${infoProyectiles.cantidadProyectiles} ${infoProyectiles.etiquetaPlural})`
+        : ` (${infoProyectiles.cantidadProyectiles} ${infoProyectiles.etiquetaPlural})`;
+
+    return {
+      formulaTaleSpire: `!${grupos.join("/")}`,
+      etiquetaLog: `${nombrePj} - ${nombreLimpio}${sufijoNivel}`
+    };
+  }
+
+  // 2. Conjuro estándar con dados de daño y posible escalado
+  const dadosBaseValidos = hechizo.dadosDaño && hechizo.dadosDaño !== "N/A" ? hechizo.dadosDaño.trim() : "";
+  const formulaAdicional = hechizo.dadosDañoNivelSuperior?.trim() || "";
+  const esEscalable = nivelBase > 0 && !!formulaAdicional && formulaAdicional !== "N/A";
+
+  const formulaFinalDano =
+    dadosBaseValidos && nivelLanzamiento > nivelBase && esEscalable
+      ? calcularFormulaEscalada(dadosBaseValidos, formulaAdicional, nivelBase, nivelLanzamiento).formula
+      : dadosBaseValidos;
+
+  const etiquetaLog = `${nombrePj} - ${nombreLimpio}${
+    nivelLanzamiento > nivelBase ? ` (Nv.${nivelLanzamiento})` : ""
+  }${tipoDanoText}`;
+
+  const tieneAtaque = hechizo.requiereAtaque === true || hechizo.ataqueCd === "ATAQUE";
+
+  if (tieneAtaque) {
+    const formulaAtaque = `!Ataque ${sanitizarEtiqueta(nombreLimpio)}:1d20${bonoSigno}`;
+    if (formulaFinalDano) {
+      return {
+        formulaTaleSpire: `${formulaAtaque}/Daño${sanitizarEtiqueta(tipoDanoText)}:${formulaFinalDano}`,
+        etiquetaLog
+      };
+    }
+    return {
+      formulaTaleSpire: formulaAtaque,
+      etiquetaLog
+    };
+  }
+
+  if (formulaFinalDano) {
+    return {
+      formulaTaleSpire: `!Daño ${sanitizarEtiqueta(nombreLimpio)}${sanitizarEtiqueta(tipoDanoText)}:${formulaFinalDano}`,
+      etiquetaLog
+    };
+  }
+
+  return {
+    formulaTaleSpire: `!Lanzar Conjuro:${sanitizarEtiqueta(nombreLimpio)}`,
+    etiquetaLog
   };
 }
 

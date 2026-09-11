@@ -6,6 +6,8 @@ import {
   extraerDadosBaseTruco,
   calcularInfoTruco,
   construirFormulaTaleSpireTruco,
+  construirFormulaTaleSpireEspacio,
+  obtenerInfoProyectilesMultiples,
   formatearComponentes
 } from "@/utiles/utilesConjuros";
 import { HechizoBase } from "@/tipos";
@@ -107,6 +109,14 @@ export const FichaHechizo: React.FC<FichaHechizoProps> = React.memo(({
   const dadosTrucoBase = esTruco ? extraerDadosBaseTruco(hechizo) : "";
   const infoTruco = esTruco ? calcularInfoTruco(hechizo, nivelPersonaje) : null;
 
+  // Detección de proyectiles múltiples (Descarga sobrenatural, Proyectil mágico, Rayo abrasador)
+  const infoProyectiles = useMemo(() => {
+    return obtenerInfoProyectilesMultiples(hechizo, {
+      nivelLanzamiento,
+      nivelPersonaje
+    });
+  }, [hechizo, nivelLanzamiento, nivelPersonaje]);
+
   // Calcular dados válidos reales del conjuro SIN fallbacks inventados
   const dadosBaseValidos = esTruco
     ? (infoTruco?.formula || dadosTrucoBase || "")
@@ -154,45 +164,24 @@ export const FichaHechizo: React.FC<FichaHechizoProps> = React.memo(({
       return;
     }
 
-    const prefijoPj = nombrePersonaje ? `${nombrePersonaje} - ` : "";
+    const nombrePj = nombrePersonaje || "Personaje";
 
     if (esTruco) {
       const res = construirFormulaTaleSpireTruco(
         hechizo,
         nivelPersonaje,
         bonoAtaqueMagico,
-        nombrePersonaje || "Personaje"
+        nombrePj
       );
       lanzarDadosTaleSpire(res.formulaTaleSpire, res.etiquetaLog);
     } else {
-      const tipoDanoText = hechizo.tipoDaño && hechizo.tipoDaño !== "N/A"
-        ? ` (${hechizo.tipoDaño})`
-        : "";
-
-      const formulaDano =
-        nivelLanzamiento > nivelBase && esEscalable
-          ? formulaEscalada.formula
-          : dadosBaseValidos;
-
-      let formulaFinalTaleSpire = "";
-      if (tieneAtaque && bonoAtaqueMagico !== undefined) {
-        const bonoSigno = bonoAtaqueMagico >= 0 ? `+${bonoAtaqueMagico}` : `${bonoAtaqueMagico}`;
-        if (formulaDano) {
-          formulaFinalTaleSpire = `!Ataque ${hechizo.nombre}:1d20${bonoSigno}/Daño${tipoDanoText}:${formulaDano}`;
-        } else {
-          formulaFinalTaleSpire = `!Ataque ${hechizo.nombre}:1d20${bonoSigno}`;
-        }
-      } else if (formulaDano) {
-        formulaFinalTaleSpire = `!Daño ${hechizo.nombre}${tipoDanoText}:${formulaDano}`;
-      } else {
-        formulaFinalTaleSpire = `!Lanzar Conjuro:${hechizo.nombre}`;
-      }
-
-      const etiquetaLog = `${prefijoPj}Conjuro: ${hechizo.nombre}${
-        nivelLanzamiento > nivelBase ? ` [Niv ${nivelLanzamiento}]` : ""
-      }${tipoDanoText}`;
-
-      lanzarDadosTaleSpire(formulaFinalTaleSpire, etiquetaLog);
+      const res = construirFormulaTaleSpireEspacio(
+        hechizo,
+        nivelLanzamiento,
+        bonoAtaqueMagico,
+        nombrePj
+      );
+      lanzarDadosTaleSpire(res.formulaTaleSpire, res.etiquetaLog);
     }
 
     // Si se abrió desde la hoja de personaje, descontar el recurso y registrar concentración
@@ -482,7 +471,9 @@ export const FichaHechizo: React.FC<FichaHechizoProps> = React.memo(({
             >
               {tieneDano || tieneAtaque ? <Dices size={16} /> : <Zap size={16} />}
               <span>
-                {esTruco && infoTruco?.esAtaqueMultiple && infoTruco.cantidadAtaques > 1
+                {infoProyectiles && infoProyectiles.cantidadProyectiles > 0
+                  ? `Tirar ${infoProyectiles.etiquetaVisual} en TaleSpire`
+                  : esTruco && infoTruco?.esAtaqueMultiple && infoTruco.cantidadAtaques > 1
                   ? `Tirar ${infoTruco.etiquetaVisual} en TaleSpire`
                   : tieneDano
                   ? `Tirar Daño en TaleSpire ${

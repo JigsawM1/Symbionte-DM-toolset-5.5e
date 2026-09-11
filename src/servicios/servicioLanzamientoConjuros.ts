@@ -12,8 +12,8 @@ import {
   sanitizarEtiqueta
 } from "@/utiles/lanzadorDados";
 import {
-  calcularFormulaEscalada,
-  construirFormulaTaleSpireTruco
+  construirFormulaTaleSpireTruco,
+  construirFormulaTaleSpireEspacio
 } from "@/utiles/utilesConjuros";
 import {
   gastarRecursoLanzamientoConjuro
@@ -170,41 +170,12 @@ function construirFormulaEspacio(
   bonoAtaqueMagico: number,
   nombrePersonaje: string
 ): FormulaConstruida {
-  const nombrePj = nombrePersonaje.trim() || "Personaje";
-  const nivelBase = hechizo.nivel;
-  const dadosBaseValidos = hechizo.dadosDaño && hechizo.dadosDaño !== "N/A" ? hechizo.dadosDaño.trim() : "";
-  const formulaAdicional = hechizo.dadosDañoNivelSuperior?.trim() || "";
-
-  const esEscalable = nivelBase > 0 && !!formulaAdicional && formulaAdicional !== "N/A";
-  const formulaFinalDano =
-    dadosBaseValidos && nivelLanzamiento > nivelBase && esEscalable
-      ? calcularFormulaEscalada(dadosBaseValidos, formulaAdicional, nivelBase, nivelLanzamiento).formula
-      : dadosBaseValidos;
-
-  const tipoDanoText = hechizo.tipoDaño && hechizo.tipoDaño !== "N/A" ? ` (${hechizo.tipoDaño})` : "";
-  const etiquetaLog = `${nombrePj} - ${hechizo.nombre}${
-    nivelLanzamiento > nivelBase ? ` (Nv.${nivelLanzamiento})` : ""
-  }${tipoDanoText}`;
-
-  const tieneAtaque =
-    hechizo.requiereAtaque === true || hechizo.ataqueCd === "ATAQUE";
-
-  let formulaTaleSpire = "";
-  if (tieneAtaque) {
-    const bonoSigno = bonoAtaqueMagico >= 0 ? `+${bonoAtaqueMagico}` : `${bonoAtaqueMagico}`;
-    const formulaAtaque = `!Ataque ${sanitizarEtiqueta(hechizo.nombre)}:1d20${bonoSigno}`;
-    if (formulaFinalDano) {
-      formulaTaleSpire = `${formulaAtaque}/Daño${sanitizarEtiqueta(tipoDanoText)}:${formulaFinalDano}`;
-    } else {
-      formulaTaleSpire = formulaAtaque;
-    }
-  } else if (formulaFinalDano) {
-    formulaTaleSpire = `!Daño ${sanitizarEtiqueta(hechizo.nombre)}${sanitizarEtiqueta(tipoDanoText)}:${formulaFinalDano}`;
-  } else {
-    formulaTaleSpire = `!Lanzar Conjuro:${sanitizarEtiqueta(hechizo.nombre)}`;
-  }
-
-  return { formulaTaleSpire, etiquetaLog };
+  return construirFormulaTaleSpireEspacio(
+    hechizo,
+    nivelLanzamiento,
+    bonoAtaqueMagico,
+    nombrePersonaje
+  );
 }
 
 /**

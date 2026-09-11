@@ -186,6 +186,98 @@ describe("servicioLanzamientoConjuros - Patrón Facade + Strategy", () => {
       expect(preparado.formula.etiquetaLog).toContain("Nv.5");
     });
 
+    it("Estrategia Espacio (Proyectiles Múltiples): Proyectil Mágico lanza grupos individuales de dardos", () => {
+      const proyectilMagico: HechizoBase = {
+        id: "h_proyectil-magico",
+        nombre: "Proyectil mágico",
+        nivel: 1,
+        escuela: "Evocacion",
+        tiempoLanzamiento: "1 Accion",
+        alcance: "120 pies",
+        componentesSeleccionados: { verbal: true, somatico: true, material: false },
+        duracion: "Instantaneo",
+        concentracion: false,
+        ritual: false,
+        descripcion: "Creas tres dardos...",
+        dadosDaño: "1d4+1",
+        dadosDañoNivelSuperior: "1d4+1",
+        tipoDaño: "fuerza",
+        requiereAtaque: false
+      };
+
+      // Nivel 1 -> 3 dardos de 1d4+1
+      const solNv1: SolicitudLanzamiento = {
+        modo: "espacio",
+        hechizo: proyectilMagico,
+        nivelLanzamiento: 1,
+        nombrePersonaje: "Mago"
+      };
+      const prepNv1 = prepararLanzamiento(solNv1, contextoLimpio);
+      expect(prepNv1.formula.formulaTaleSpire).toBe(
+        "!Daño Dardo 1 (fuerza):1d4+1/Daño Dardo 2 (fuerza):1d4+1/Daño Dardo 3 (fuerza):1d4+1"
+      );
+      expect(prepNv1.formula.etiquetaLog).toContain("3 dardos");
+
+      // Upcast Nivel 2 -> 4 dardos de 1d4+1
+      const solNv2: SolicitudLanzamiento = {
+        modo: "espacio",
+        hechizo: proyectilMagico,
+        nivelLanzamiento: 2,
+        nombrePersonaje: "Mago"
+      };
+      const prepNv2 = prepararLanzamiento(solNv2, contextoLimpio);
+      expect(prepNv2.formula.formulaTaleSpire).toBe(
+        "!Daño Dardo 1 (fuerza):1d4+1/Daño Dardo 2 (fuerza):1d4+1/Daño Dardo 3 (fuerza):1d4+1/Daño Dardo 4 (fuerza):1d4+1"
+      );
+      expect(prepNv2.formula.etiquetaLog).toContain("Nv.2 -> 4 dardos");
+    });
+
+    it("Estrategia Espacio (Proyectiles Múltiples): Rayo Abrasador lanza grupos individuales con ataque y daño por rayo", () => {
+      const rayoAbrasador: HechizoBase = {
+        id: "h_rayo-abrasador",
+        nombre: "Rayo abrasador",
+        nivel: 2,
+        escuela: "Evocacion",
+        tiempoLanzamiento: "1 Accion",
+        alcance: "120 pies",
+        componentesSeleccionados: { verbal: true, somatico: true, material: false },
+        duracion: "Instantaneo",
+        concentracion: false,
+        ritual: false,
+        descripcion: "Lanzas tres rayos...",
+        dadosDaño: "2d6",
+        dadosDañoNivelSuperior: "2d6",
+        tipoDaño: "fuego",
+        requiereAtaque: true
+      };
+
+      // Nivel 2 -> 3 rayos de 2d6 con ataque individual
+      const solNv2: SolicitudLanzamiento = {
+        modo: "espacio",
+        hechizo: rayoAbrasador,
+        nivelLanzamiento: 2,
+        bonoAtaqueMagico: 5,
+        nombrePersonaje: "Hechicero"
+      };
+      const prepNv2 = prepararLanzamiento(solNv2, contextoLimpio);
+      expect(prepNv2.formula.formulaTaleSpire).toBe(
+        "!Ataque Rayo 1:1d20+5/Daño Rayo 1 (fuego):2d6/Ataque Rayo 2:1d20+5/Daño Rayo 2 (fuego):2d6/Ataque Rayo 3:1d20+5/Daño Rayo 3 (fuego):2d6"
+      );
+      expect(prepNv2.formula.etiquetaLog).toContain("3 rayos");
+
+      // Upcast Nivel 3 -> 4 rayos
+      const solNv3: SolicitudLanzamiento = {
+        modo: "espacio",
+        hechizo: rayoAbrasador,
+        nivelLanzamiento: 3,
+        bonoAtaqueMagico: 5,
+        nombrePersonaje: "Hechicero"
+      };
+      const prepNv3 = prepararLanzamiento(solNv3, contextoLimpio);
+      expect(prepNv3.formula.formulaTaleSpire).toContain("Ataque Rayo 4:1d20+5/Daño Rayo 4 (fuego):2d6");
+      expect(prepNv3.formula.etiquetaLog).toContain("Nv.3 -> 4 rayos");
+    });
+
     it("Estrategia Ritual: no gasta ranuras y añade etiqueta +10 min", () => {
       const solicitud: SolicitudLanzamiento = {
         modo: "ritual",

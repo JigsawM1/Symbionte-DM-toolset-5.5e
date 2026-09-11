@@ -812,54 +812,20 @@ export function sanearHechizoCD(h: HechizoBase): HechizoBase {
   if (!h) return h;
 
   let cdSalv: string | undefined = undefined;
-  const descLower = (h.descripcion || "").toLowerCase();
 
-  // PASO 1: Máxima prioridad — buscar el patrón explícito "cd salvación: ATTR" que el
-  // importador inserta intencionalmente. Este patrón es 100% fiable porque lo generamos nosotros.
-  const matchCdExplicito = descLower.match(/cd\s+salvaci[oó]n:\s*([a-záéíóúüñ]+)/i);
-  if (matchCdExplicito) {
-    const attrRaw = matchCdExplicito[1].toUpperCase().trim();
-    if (attrRaw.includes("FUE") || attrRaw.includes("STR")) cdSalv = "Fuerza";
-    else if (attrRaw.includes("DES") || attrRaw.includes("DEX")) cdSalv = "Destreza";
-    else if (attrRaw.includes("CON")) cdSalv = "Constitución";
-    else if (attrRaw.includes("INT")) cdSalv = "Inteligencia";
-    else if (attrRaw.includes("SAB") || attrRaw.includes("WIS")) cdSalv = "Sabiduría";
-    else if (attrRaw.includes("CAR") || attrRaw.includes("CHA")) cdSalv = "Carisma";
-  }
-
-  // PASO 2: Si no se resolvió del patrón explícito, normalizar el campo cdSalvacion almacenado
-  if (!cdSalv) {
-    const valorOriginal = h.cdSalvacion ? String(h.cdSalvacion).toUpperCase().trim() : "";
-    if (valorOriginal && valorOriginal !== "CD DC" && valorOriginal !== "DC" && valorOriginal !== "CD" && valorOriginal !== "N/A") {
-      if (valorOriginal === "FUE" || valorOriginal === "STR") cdSalv = "Fuerza";
-      else if (valorOriginal === "DES" || valorOriginal === "DEX") cdSalv = "Destreza";
-      else if (valorOriginal === "CON") cdSalv = "Constitución";
-      else if (valorOriginal === "INT") cdSalv = "Inteligencia";
-      else if (valorOriginal === "SAB" || valorOriginal === "WIS") cdSalv = "Sabiduría";
-      else if (valorOriginal === "CAR" || valorOriginal === "CHA") cdSalv = "Carisma";
-      // Si ya viene en español completo, aceptarlo directamente
-      else if (["Fuerza","Destreza","Constitución","Inteligencia","Sabiduría","Carisma"].includes(h.cdSalvacion as string)) {
-        cdSalv = h.cdSalvacion as string;
-      } else {
-        cdSalv = aplanarValor(h.cdSalvacion);
-      }
-    }
-  }
-
-  // PASO 3: Fallback — escanear la descripción completa buscando frases naturales de salvación
-  if (!cdSalv) {
-    if (descLower.includes("salvación de destreza") || descLower.includes("salvacion de destreza") || descLower.includes("salvación: dex") || descLower.includes("salvación: des")) {
-      cdSalv = "Destreza";
-    } else if (descLower.includes("salvación de sabiduría") || descLower.includes("salvacion de sabiduria") || descLower.includes("salvación: sab") || descLower.includes("salvación: wis") || descLower.includes("salvación de sabidur")) {
-      cdSalv = "Sabiduría";
-    } else if (descLower.includes("salvación de constitución") || descLower.includes("salvacion de constitucion") || descLower.includes("salvación: con")) {
-      cdSalv = "Constitución";
-    } else if (descLower.includes("salvación de inteligencia") || descLower.includes("salvacion de inteligencia") || descLower.includes("salvación: int")) {
-      cdSalv = "Inteligencia";
-    } else if (descLower.includes("salvación de fuerza") || descLower.includes("salvacion de fuerza") || descLower.includes("salvación: fue") || descLower.includes("salvación: str")) {
-      cdSalv = "Fuerza";
-    } else if (descLower.includes("salvación de carisma") || descLower.includes("salvacion de carisma") || descLower.includes("salvación: car") || descLower.includes("salvación: cha")) {
-      cdSalv = "Carisma";
+  // Normalizar el campo cdSalvacion almacenado directamente en la base de datos
+  const valorOriginal = h.cdSalvacion ? String(h.cdSalvacion).toUpperCase().trim() : "";
+  if (valorOriginal && valorOriginal !== "CD DC" && valorOriginal !== "DC" && valorOriginal !== "CD" && valorOriginal !== "N/A" && valorOriginal !== "NONE") {
+    if (valorOriginal === "FUE" || valorOriginal === "STR" || valorOriginal.includes("FUERZA")) cdSalv = "Fuerza";
+    else if (valorOriginal === "DES" || valorOriginal === "DEX" || valorOriginal.includes("DESTREZA")) cdSalv = "Destreza";
+    else if (valorOriginal === "CON" || valorOriginal.includes("CONSTITUCIÓN") || valorOriginal.includes("CONSTITUCION")) cdSalv = "Constitución";
+    else if (valorOriginal === "INT" || valorOriginal.includes("INTELIGENCIA")) cdSalv = "Inteligencia";
+    else if (valorOriginal === "SAB" || valorOriginal === "WIS" || valorOriginal.includes("SABIDURÍA") || valorOriginal.includes("SABIDURIA")) cdSalv = "Sabiduría";
+    else if (valorOriginal === "CAR" || valorOriginal === "CHA" || valorOriginal.includes("CARISMA")) cdSalv = "Carisma";
+    else if (["Fuerza", "Destreza", "Constitución", "Inteligencia", "Sabiduría", "Carisma"].includes(h.cdSalvacion as string)) {
+      cdSalv = h.cdSalvacion as string;
+    } else {
+      cdSalv = aplanarValor(h.cdSalvacion);
     }
   }
 

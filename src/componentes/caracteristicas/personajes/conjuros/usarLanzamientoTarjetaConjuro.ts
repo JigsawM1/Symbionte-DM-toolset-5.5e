@@ -2,8 +2,8 @@ import { useState, useMemo, useEffect } from "react";
 import type { HechizoBase } from "@/tipos";
 import { lanzarDadosTaleSpire, sanitizarEtiqueta } from "@/utiles/lanzadorDados";
 import {
-  calcularFormulaEscalada,
-  construirFormulaTaleSpireTruco
+  construirFormulaTaleSpireTruco,
+  construirFormulaTaleSpireEspacio
 } from "@/utiles/utilesConjuros";
 import {
   obtenerOpcionesLanzamientoConjuro,
@@ -117,33 +117,14 @@ export function usarLanzamientoTarjetaConjuro({
         formulaTaleSpire = resultadoTruco.formulaTaleSpire;
         etiquetaLog = resultadoTruco.etiquetaLog;
       } else {
-        const formulaBase = hechizo.dadosDaño?.trim() || "";
-        const formulaAdicional = hechizo.dadosDañoNivelSuperior?.trim() || "";
-
-        const formulaFinal =
-          formulaBase && nivelUpcast > hechizo.nivel
-            ? calcularFormulaEscalada(formulaBase, formulaAdicional, hechizo.nivel, nivelUpcast).formula
-            : formulaBase;
-
-        etiquetaLog = `${nombrePj} - ${hechizo.nombre}${nivelUpcast > hechizo.nivel ? ` (Nv.${nivelUpcast})` : ""}`;
-
-        const tieneAtaque =
-          hechizo.requiereAtaque === true || hechizo.ataqueCd === "ATAQUE";
-
-        if (tieneAtaque) {
-          const formulaAtaque = `!Ataque ${sanitizarEtiqueta(hechizo.nombre)}:1d20${bonoAtaqueMagico >= 0 ? "+" : ""}${bonoAtaqueMagico}`;
-          if (formulaFinal) {
-            const tipoDano = hechizo.tipoDaño ? ` (${hechizo.tipoDaño})` : "";
-            formulaTaleSpire = `${formulaAtaque}/Daño${sanitizarEtiqueta(tipoDano)}:${formulaFinal}`;
-          } else {
-            formulaTaleSpire = formulaAtaque;
-          }
-        } else if (formulaFinal) {
-          const tipoDano = hechizo.tipoDaño ? ` (${hechizo.tipoDaño})` : "";
-          formulaTaleSpire = `!Daño ${sanitizarEtiqueta(hechizo.nombre)}${sanitizarEtiqueta(tipoDano)}:${formulaFinal}`;
-        } else {
-          formulaTaleSpire = `!Lanzar Conjuro:${sanitizarEtiqueta(hechizo.nombre)}`;
-        }
+        const resultadoEspacio = construirFormulaTaleSpireEspacio(
+          hechizo,
+          nivelUpcast,
+          bonoAtaqueMagico,
+          nombrePj
+        );
+        formulaTaleSpire = resultadoEspacio.formulaTaleSpire;
+        etiquetaLog = resultadoEspacio.etiquetaLog;
       }
 
       await lanzarDadosTaleSpire(formulaTaleSpire, etiquetaLog);

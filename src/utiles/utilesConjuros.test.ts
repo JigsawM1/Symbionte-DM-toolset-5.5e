@@ -7,6 +7,8 @@ import {
   esTrucoDeAtaquesMultiples,
   calcularInfoTruco,
   construirFormulaTaleSpireTruco,
+  construirFormulaTaleSpireEspacio,
+  obtenerInfoProyectilesMultiples,
   formatearComponentes
 } from "./utilesConjuros";
 
@@ -43,25 +45,27 @@ describe("utilesConjuros - Sistema de Escalado de Conjuros y Trucos (D&D 5.5e)",
       expect(extraerDadosBaseTruco({ dadosDaño: "2d4", descripcion: "algo" })).toBe("2d4");
     });
 
-    it("extrae dados de la descripción cuando dadosDaño no está explícito", () => {
+    it("devuelve vacío cuando dadosDaño no está presente o es N/A", () => {
+      expect(extraerDadosBaseTruco({})).toBe("");
+      expect(extraerDadosBaseTruco({ dadosDaño: "N/A" })).toBe("");
+      expect(extraerDadosBaseTruco({ dadosDaño: "" })).toBe("");
+    });
+
+    it("nunca extrae dados de la descripción si dadosDaño no está explícito", () => {
       const toqueHelado = {
-        descripcion: "Canalizas un frío sepulcral... el objetivo recibirá 1d10 de daño necrótico. Mejora de truco. El daño aumenta en 1d10 cuando alcanzas..."
+        descripcion: "Canalizas un frío sepulcral... el objetivo recibirá 1d10 de daño necrótico."
       };
-      expect(extraerDadosBaseTruco(toqueHelado)).toBe("1d10");
+      expect(extraerDadosBaseTruco(toqueHelado)).toBe("");
 
       const saetaFuego = {
         descripcion: "Lanzas una mota de fuego que inflige 1d10 de daño ígneo."
       };
-      expect(extraerDadosBaseTruco(saetaFuego)).toBe("1d10");
+      expect(extraerDadosBaseTruco(saetaFuego)).toBe("");
 
       const rayoEscarcha = {
         descripcion: "Un rayo gélido hace 1d8 de daño por frío."
       };
-      expect(extraerDadosBaseTruco(rayoEscarcha)).toBe("1d8");
-    });
-
-    it("devuelve vacío si no hay dados en la descripción ni en dadosDaño", () => {
-      expect(extraerDadosBaseTruco({ descripcion: "Creas una ilusión menor visual o sonora." })).toBe("");
+      expect(extraerDadosBaseTruco(rayoEscarcha)).toBe("");
     });
 
     it("NO extrae dados de trucos utilitarios como Guía (1d4 para tiradas) o Luz", () => {
@@ -266,6 +270,78 @@ describe("utilesConjuros - Sistema de Escalado de Conjuros y Trucos (D&D 5.5e)",
       expect(formatearComponentes({ verbal: false, somatico: false, material: false })).toBe("Ninguno");
       expect(formatearComponentes(undefined)).toBe("Ninguno");
       expect(formatearComponentes(null)).toBe("Ninguno");
+    });
+  });
+
+  describe("Proyectiles Múltiples (Proyectil Mágico, Rayo Abrasador, Descarga Sobrenatural)", () => {
+    const proyectilMagico = {
+      id: "h_proyectil-magico",
+      nombre: "Proyectil mágico",
+      nivel: 1,
+      dadosDaño: "1d4+1",
+      tipoDaño: "fuerza",
+      requiereAtaque: false
+    };
+
+    const rayoAbrasador = {
+      id: "h_rayo-abrasador",
+      nombre: "Rayo abrasador",
+      nivel: 2,
+      dadosDaño: "2d6",
+      tipoDaño: "fuego",
+      requiereAtaque: true
+    };
+
+    it("detecta y calcula correctamente Proyectil Mágico a nivel 1 (3 dardos)", () => {
+      const info = obtenerInfoProyectilesMultiples(proyectilMagico, { nivelLanzamiento: 1 });
+      expect(info).not.toBeNull();
+      expect(info?.cantidadProyectiles).toBe(3);
+      expect(info?.requiereAtaque).toBe(false);
+      expect(info?.formulaPorProyectil).toBe("1d4+1");
+      expect(info?.etiquetaSingular).toBe("Dardo");
+      expect(info?.etiquetaVisual).toBe("3 dardos (1d4+1 c/u)");
+
+      const ts = construirFormulaTaleSpireEspacio(proyectilMagico, 1, 4, "Mago");
+      expect(ts.formulaTaleSpire).toBe(
+        "!Daño Dardo 1 (fuerza):1d4+1/Daño Dardo 2 (fuerza):1d4+1/Daño Dardo 3 (fuerza):1d4+1"
+      );
+      expect(ts.etiquetaLog).toBe("Mago - Proyectil mágico (3 dardos)");
+    });
+
+    it("escala Proyectil Mágico con Upcast a nivel 3 (5 dardos)", () => {
+      const info = obtenerInfoProyectilesMultiples(proyectilMagico, { nivelLanzamiento: 3 });
+      expect(info?.cantidadProyectiles).toBe(5);
+
+      const ts = construirFormulaTaleSpireEspacio(proyectilMagico, 3, 4, "Mago");
+      expect(ts.formulaTaleSpire).toBe(
+        "!Daño Dardo 1 (fuerza):1d4+1/Daño Dardo 2 (fuerza):1d4+1/Daño Dardo 3 (fuerza):1d4+1/Daño Dardo 4 (fuerza):1d4+1/Daño Dardo 5 (fuerza):1d4+1"
+      );
+      expect(ts.etiquetaLog).toBe("Mago - Proyectil mágico (Nv.3 -> 5 dardos)");
+    });
+
+    it("detecta y calcula correctamente Rayo Abrasador a nivel 2 (3 rayos con tirada de ataque individual)", () => {
+      const info = obtenerInfoProyectilesMultiples(rayoAbrasador, { nivelLanzamiento: 2 });
+      expect(info).not.toBeNull();
+      expect(info?.cantidadProyectiles).toBe(3);
+      expect(info?.requiereAtaque).toBe(true);
+      expect(info?.formulaPorProyectil).toBe("2d6");
+      expect(info?.etiquetaSingular).toBe("Rayo");
+      expect(info?.etiquetaVisual).toBe("3 rayos (2d6 c/u)");
+
+      const ts = construirFormulaTaleSpireEspacio(rayoAbrasador, 2, 5, "Hechicero");
+      expect(ts.formulaTaleSpire).toBe(
+        "!Ataque Rayo 1:1d20+5/Daño Rayo 1 (fuego):2d6/Ataque Rayo 2:1d20+5/Daño Rayo 2 (fuego):2d6/Ataque Rayo 3:1d20+5/Daño Rayo 3 (fuego):2d6"
+      );
+      expect(ts.etiquetaLog).toBe("Hechicero - Rayo abrasador (3 rayos)");
+    });
+
+    it("escala Rayo Abrasador con Upcast a nivel 4 (5 rayos independientes)", () => {
+      const info = obtenerInfoProyectilesMultiples(rayoAbrasador, { nivelLanzamiento: 4 });
+      expect(info?.cantidadProyectiles).toBe(5);
+
+      const ts = construirFormulaTaleSpireEspacio(rayoAbrasador, 4, 6, "Hechicero");
+      expect(ts.formulaTaleSpire).toContain("Ataque Rayo 5:1d20+6/Daño Rayo 5 (fuego):2d6");
+      expect(ts.etiquetaLog).toBe("Hechicero - Rayo abrasador (Nv.4 -> 5 rayos)");
     });
   });
 });

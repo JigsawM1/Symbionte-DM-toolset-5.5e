@@ -19,6 +19,64 @@ Este archivo registra reglas globales, errores encontrados, sus causas raíz y l
    - **Bajo ninguna circunstancia** los módulos de lógica de negocio (`servicios/`), gestores de estado (`almacen/`) o constructores (`gestorClases.ts`) deben contener bifurcaciones condicionales por nombre literal de rasgo o clase (`r.nombre === "..."`, `clase.includes("...")`, etc.).
    - Toda mecánica, progresión de dados, escalado de usos, recuperación o desbloqueo dinámico debe resolverse mediante metadatos declarativos (`escaladoFormulaDados`, `escaladoUsos`, `escaladoRecuperacion`, `opcionesDinamicas`, `escaladoMaxSelecciones`, `sincronizarEfectosConFormula`, `heredarDadosPadre`, `gastarDePadre`, `ligadoA`, `efectos`) delegando en funciones puras agnósticas como `resolverEscaladosRasgo`. Esta regla está reforzada en CI vía ESLint `no-restricted-syntax` y la suite `rasgoGenericidad.test.ts`.
 
+## [2026-09-11] Soporte Universal para Conjuros de Proyectiles y Ataques Múltiples Independientes (Descarga Sobrenatural, Proyectil Mágico y Rayo Abrasador)
+
+**Contexto y Requerimientos del Usuario:**
+- Observación del usuario: *"creo que al cambiar esTrucoDeAtaquesMultiples, creo que te cargaste hechizos como rayo abrazador o proyectil magico, que tienen lo mismo que descarga sobrenatural, tanto rayo abrazador y proyectil magico eran 3 de base y en upcast añadian otro rayo/proyectil mas"*.
+- En D&D 5.5e / 5e, existen conjuros cuyos ataques o impactos no se condensan en un único golpe agrupado, sino que generan múltiples proyectiles independientes:
+  - *Descarga sobrenatural* (Truco nivel 0): 1 rayo a nv 1-4, 2 a nv 5-10, 3 a nv 11-16, 4 a nv 17-20. Ataque de conjuro individual por rayo (`1d20+bono`) y daño de fuerza (`1d10`).
+  - *Proyectil mágico* (Nivel 1): 3 dardos base a nivel 1; +1 dardo por cada nivel de espacio superior (`3 + (nivelLanzamiento - 1)`). Impacto automático sin tirada d20, daño de fuerza individual (`1d4+1` por dardo).
+  - *Rayo abrasador* (Nivel 2): 3 rayos base a nivel 2; +1 rayo por cada nivel de espacio superior (`3 + (nivelLanzamiento - 2)`). Ataque de conjuro individual por rayo (`1d20+bono`) y daño de fuego (`2d6`).
+
+**Causas Raíz Identificadas:**
+1. **Foco Limitado a Nivel 0:** `esTrucoDeAtaquesMultiples` estaba concebido únicamente para trucos (`nivel === 0`). Los conjuros de nivel 1+ pasaban por `construirFormulaEspacio`, el cual delegaba en `calcularFormulaEscalada` produciendo sumas concentradas en lugar de grupos individuales de TaleSpire.
+2. **Duplicación de Lógica en la UI:** `usarLanzamientoTarjetaConjuro.ts` y `FichaHechizo.tsx` mantenían implementaciones manuales del cálculo de fórmulas para TaleSpire en lugar de una función centralizada.
+
+**Decisiones Arquitectónicas y Solución Implementada:**
+1. **Abstracción Canónica `InfoProyectilesMultiples` (`src/utiles/utilesConjuros.ts`):**
+   - Interfaz con `esMultiple`, `etiquetaSingular`, `etiquetaPlural`, `cantidadProyectiles`, `formulaPorProyectil`, `requiereAtaque`, `tipoDaño` y `etiquetaVisual`.
+   - Función pura `obtenerInfoProyectilesMultiples(hechizo, { nivelLanzamiento, nivelPersonaje })` que identifica los conjuros canónicos y calcula la cantidad exacta según el nivel del personaje o el nivel de ranura / upcast.
+2. **Función Centralizada `construirFormulaTaleSpireEspacio` (`src/utiles/utilesConjuros.ts`):**
+   - Genera grupos independientes en formato TaleSpire (`!Ataque Rayo 1:1d20+bono/Daño Rayo 1 (fuego):2d6/...` o `!Daño Dardo 1 (fuerza):1d4+1/...`) respetando si el proyectil requiere tirada de ataque o impacta de forma automática.
+   - Maneja el escalado convencional para el resto de conjuros con daño concentrado o de área.
+3. **Consumo Unificado en Facade y Componentes:**
+   - `servicioLanzamientoConjuros.ts`: `construirFormulaEspacio` delega directamente a `construirFormulaTaleSpireEspacio`.
+   - `usarLanzamientoTarjetaConjuro.ts`: Reemplazó la lógica manual duplicada por `construirFormulaTaleSpireEspacio`.
+   - `FichaHechizo.tsx`: Conectado a `obtenerInfoProyectilesMultiples` para mostrar en el botón interactivo de TaleSpire la cantidad exacta de dardos/rayos según la ranura seleccionada (ej. `Tirar 5 dardos (1d4+1 c/u) en TaleSpire`), y despachar los grupos desglosados.
+4. **Verificación y Cobertura:**
+   - Pruebas unitarias completas añadidas a `src/utiles/utilesConjuros.test.ts` y `src/servicios/servicioLanzamientoConjuros.test.ts`.
+   - `pnpm exec tsc --noEmit`: 0 errores.
+   - `pnpm exec vitest run`: 49/49 suites aprobadas, 568/568 pruebas unitarias pasando.
+   - `pnpm run build`: Generación limpia del bundle de producción con Vite.
+
+---
+
+## [2026-09-11] Erradicación Total del Parsing de Descripción en Conjuros: Consumo Exclusivo de la Base de Datos Canónica
+
+**Contexto y Requerimientos del Usuario:**
+- Observación del usuario: *"sigo creyendo que lo de lanzar hechizos sigue priorizando lo de tomar los dados de la descripcion en vez de la base de datos"*.
+- Auditoría profunda reveló que, pese a la migración previa a `componentesSeleccionados`, aún persistían múltiples funciones en runtime que ejecutaban expresiones regulares e inspecciones de texto sobre `hechizo.descripcion`.
+
+**Causas Raíz Identificadas:**
+1. **Fallback con Regex en `extraerDadosBaseTruco`:** En `src/utiles/utilesConjuros.ts`, si `dadosDaño` no estaba presente o en ramas de fallback, ejecutaba `desc.match(/(\d+)[dD](\d+)/)`.
+2. **Escalado de Trucos 100% Acoplado a Texto (`trucoTieneMejora` y `esTrucoDeAtaquesMultiples`):** Buscaban substrings en español e inglés (`"mejora de truco"`, `"el daño aumenta"`, `"crea dos rayos"`) en la descripción en vez de consultar los metadatos estructurados. Si un truco homebrew tenía `dadosDaño` pero una descripción simple, no escalaba.
+3. **Inversión de Prioridad en Salvaciones (`sanearHechizoCD`):** En `src/almacen/sanitizacion.ts`, el Paso 1 escaneaba `descLower.match(/cd\s+salvaci[oó]n:\s*([a-záéíóúüñ]+)/i)` con "máxima prioridad", sobreescribiendo el campo `h.cdSalvacion` de la base de datos.
+4. **Consumo Innecesario en Componentes:** `FilaConjuroCompendio.tsx` y `FichaHechizo.tsx` seguían dependiendo de `extraerDadosBaseTruco`.
+
+**Solución Implementada y Decisiones Arquitectónicas:**
+1. **Consumo Exclusivo de la Base de Datos:**
+   - `extraerDadosBaseTruco`: Lee directamente `hechizo.dadosDaño` (devolviendo `""` si es utilitario o `N/A`). Eliminado todo acceso a `hechizo.descripcion`.
+   - `trucoTieneMejora`: Se basa puramente en los datos estructurados: si el truco tiene `dadosDaño` en la BD (y no es *Garrote* / *Shillelagh*), escala automáticamente por nivel de personaje según las reglas oficiales de D&D 5.5e / 5e.
+   - `esTrucoDeAtaquesMultiples`: Resuelto por identidad canónica (*Descarga sobrenatural* / *Eldritch Blast*) sin parsear la descripción.
+   - `sanearHechizoCD`: Eliminado el escaneo de la descripción como paso prioritario. La base de datos (`h.cdSalvacion`) es la única fuente de la verdad.
+   - `FilaConjuroCompendio.tsx`: Muestra directamente `hechizo.dadosDaño`.
+2. **Validación Integral de Calidad:**
+   - `pnpm exec tsc --noEmit`: 0 errores.
+   - `pnpm exec vitest run`: 49/49 suites aprobadas, 562/562 pruebas pasando (100%).
+   - `pnpm run build`: Compilación limpia de producción con Vite.
+
+---
+
 ## [2026-09-11] Culminación al 100% del Plan de Genericidad Pura: Salvaguardas Preventivas, Regla ESLint, Test de Genericidad y Cierre de Tipado
 
 **Contexto y Requerimientos del Usuario:**

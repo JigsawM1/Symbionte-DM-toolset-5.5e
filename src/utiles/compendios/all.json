@@ -10945,7 +10945,7 @@
     ],
     "ataqueCd": "CD",
     "requiereAtaque": false,
-    "dadosDaño": "1d8",
+    "dadosDaño": "1d12",
     "cdSalvacion": "Sabiduría",
     "agregarModificadorHabilidad": false,
     "tipoDaño": "necrótico"

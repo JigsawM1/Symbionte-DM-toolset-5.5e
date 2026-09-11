@@ -12,7 +12,7 @@ import {
   Star
 } from "lucide-react";
 import type { HechizoBase } from "@/tipos";
-import { extraerDadosBaseTruco, formatearComponentes } from "@/utiles/utilesConjuros";
+import { formatearComponentes } from "@/utiles/utilesConjuros";
 import {
   OrigenConjuroBadge,
   CONFIG_BADGES_ORIGEN_CONJURO
@@ -381,9 +381,7 @@ export const FilaConjuroCompendio: React.FC<FilaConjuroCompendioProps> = ({
         )}
 
         {(() => {
-          const dados = hechizo.dadosDaño && hechizo.dadosDaño !== "N/A"
-            ? hechizo.dadosDaño
-            : extraerDadosBaseTruco(hechizo);
+          const dados = hechizo.dadosDaño && hechizo.dadosDaño !== "N/A" ? hechizo.dadosDaño : undefined;
           if (!dados) return null;
           return (
             <>

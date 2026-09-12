@@ -123,15 +123,21 @@ describe("procesadorDescansos (D&D 5.5e)", () => {
             idInstancia: "inv_vara_1",
             idObjeto: "vara_misiles",
             nombre: "Vara de Proyectiles Mágicos",
-            tipoPrincipal: "Equipo de Aventuras",
+            categoria: "focos-magicos",
+            esConsumible: false,
+            subcategoria: "Vara",
             cantidad: 1,
             pesoLb: 1,
+            equipable: true,
             equipado: true,
+            sintonizacionRequerida: true,
             sintonizado: true,
+            esMagico: true,
+            rareza: "Poco Común",
             cargasMaximas: 7,
             cargasActuales: 2,
             notas: ""
-          } as import("@/tipos").ObjetoInventario
+          }
         ]
       };
 

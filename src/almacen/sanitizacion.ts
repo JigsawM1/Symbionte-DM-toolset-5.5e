@@ -1,6 +1,7 @@
-import { HechizoBase, ObjetoHomebrew, Rareza, Arma, Armadura, EquipoAventuras, TipoBonoDestreza, SubcategoriaEquipo, VelocidadEstructurada, SentidosEstructurados, MonstruoBase, EsquemaPersonajeJugador, PersonajeJugador } from '@/tipos';
+import { HechizoBase, ObjetoHomebrew, Rareza, Arma, Armadura, Escudo, EquipoAventuras, TipoBonoDestreza, VelocidadEstructurada, SentidosEstructurados, MonstruoBase, EsquemaPersonajeJugador, PersonajeJugador } from '@/tipos';
 import { PERSONAJE_POR_DEFECTO } from '@/constantes/personajeConstantes';
 import { resolverGruposYSustitutosCompetencias } from '@/constantes/competenciasConstantes';
+import { resolverCategoriaDesdeSRD, CATEGORIAS_EQUIPO, type CategoriaEquipo } from '@/constantes/categoriasEquipoConstantes';
 import { generarId } from '@/utiles/generarId';
 
 // Normaliza el texto eliminando acentos y convirtiendo a minúsculas
@@ -46,7 +47,8 @@ export function sanearObjetoHomebrew(o: unknown): ObjetoHomebrew {
       valorPO: 0,
       rareza: "Común",
       esMagico: false,
-      tipoPrincipal: "Equipo de Aventuras",
+      categoria: "equipo-aventurero",
+      esConsumible: false,
       subcategoria: "Maravilloso",
       equipable: false
     };
@@ -287,53 +289,25 @@ export function sanearObjetoHomebrew(o: unknown): ObjetoHomebrew {
     };
   }
 
-  // Determinar tipoPrincipal
-  let tipoPrincipalSaneado: "Arma" | "Armadura" | "Equipo de Aventuras" = "Equipo de Aventuras";
-  let catTxt = "";
-  if (Array.isArray(obj.equipment_categories) && obj.equipment_categories.length > 0) {
-    // Buscar en todas las categorías
-    const cats = obj.equipment_categories.map((c: unknown) => {
-      if (c && typeof c === "object") {
-        const cObj = c as Record<string, unknown>;
-        return aplanarValor(cObj.index || cObj.name || "").toUpperCase();
-      }
-      return aplanarValor(c).toUpperCase();
-    });
-    
-    if (cats.some(c => c.includes("ARMOR") || c.includes("ARMADURA"))) {
-      tipoPrincipalSaneado = "Armadura";
-    } else if (cats.some(c => c.includes("WEAPON") || c.includes("ARMA"))) {
-      tipoPrincipalSaneado = "Arma";
-    }
-    
-    // Asignar el primer index/name como catTxt para la subcategoría
-    const firstCat = obj.equipment_categories[0];
-    if (firstCat && typeof firstCat === "object") {
-      const fcObj = firstCat as Record<string, unknown>;
-      catTxt = aplanarValor(fcObj.index || fcObj.name || "").toUpperCase();
-    } else {
-      catTxt = aplanarValor(firstCat).toUpperCase();
-    }
-  } else if (obj.equipment_category && typeof obj.equipment_category === "object") {
-    const ecObj = obj.equipment_category as Record<string, unknown>;
-    catTxt = aplanarValor(ecObj.index || ecObj.name || "").toUpperCase();
-  } else {
-    catTxt = aplanarValor(obj.tipoPrincipal || obj.categoria || "Equipo de Aventuras").toUpperCase();
-  }
+  // Determinar categoria canónica y si es consumible (D&D 5.5e)
+  const resSRD = resolverCategoriaDesdeSRD(obj as Record<string, unknown>);
+  let categoriaSaneada: CategoriaEquipo = resSRD.categoria;
+  let esConsumibleSaneado = resSRD.esConsumible;
 
-  if (catTxt === "ARMADURA" || catTxt === "ARMOR" || catTxt.includes("ARMOR") || catTxt.includes("ARMADURA")) {
-    tipoPrincipalSaneado = "Armadura";
-  } else if (catTxt === "ARMA" || catTxt === "WEAPON" || catTxt.includes("WEAPON") || catTxt.includes("ARMA")) {
-    tipoPrincipalSaneado = "Arma";
+  if (typeof obj.categoria === "string" && (CATEGORIAS_EQUIPO as readonly string[]).includes(obj.categoria)) {
+    categoriaSaneada = obj.categoria as CategoriaEquipo;
+  }
+  if (obj.esConsumible !== undefined) {
+    esConsumibleSaneado = !!obj.esConsumible;
   }
 
   // Conservar propiedades de string
   const propiedadesSaneadas = obj.propiedades && typeof obj.propiedades === "string" ? aplanarValor(obj.propiedades) : undefined;
 
-  // Nuevos campos específicos: equipable y venenos
+  // Equipable y venenos
   const equipableSaneado = obj.equipable !== undefined
     ? !!obj.equipable
-    : (tipoPrincipalSaneado === "Arma" || tipoPrincipalSaneado === "Armadura");
+    : (categoriaSaneada === "armas" || categoriaSaneada === "armaduras" || categoriaSaneada === "escudos");
 
   const esVenenoSaneado = obj.esVeneno !== undefined ? !!obj.esVeneno : undefined;
   const tipoVenenoSaneado = obj.tipoVeneno ? (aplanarValor(obj.tipoVeneno) as "Contacto" | "Ingerido" | "Inhalado" | "Lesión") : undefined;
@@ -405,6 +379,42 @@ export function sanearObjetoHomebrew(o: unknown): ObjetoHomebrew {
     ? Math.round((pesoSaneado / quantitySaneada) * 1000) / 1000
     : (pesoSaneado > 0 ? pesoSaneado : undefined);
 
+  // Inferir subcategoría si no viene especificada directamente
+  let subcategoriaSaneada = aplanarValor(obj.subcategoria || "");
+  if (!subcategoriaSaneada) {
+    let subTxt = aplanarValor(obj.equipment_category || "").toUpperCase();
+    if (Array.isArray(obj.equipment_categories)) {
+      const catsTxt = obj.equipment_categories
+        .map((c: unknown) => {
+          if (c && typeof c === "object") {
+            const cObj = c as Record<string, unknown>;
+            return aplanarValor(cObj.index || cObj.name || "").toUpperCase();
+          }
+          return aplanarValor(c).toUpperCase();
+        })
+        .join(" | ");
+      subTxt = subTxt ? `${subTxt} | ${catsTxt}` : catsTxt;
+    }
+
+    if (categoriaSaneada === "herramientas") {
+      if (subTxt.includes("MUSICAL") || subTxt.includes("INSTRUMENT")) {
+        subcategoriaSaneada = "Instrumento";
+      } else {
+        subcategoriaSaneada = "Herramienta";
+      }
+    } else if (categoriaSaneada === "municion") {
+      subcategoriaSaneada = "Munición";
+    } else if (categoriaSaneada === "contenedores") {
+      subcategoriaSaneada = "Contenedor";
+    } else if (categoriaSaneada === "paquetes-equipo") {
+      subcategoriaSaneada = "Paquete";
+    } else if (categoriaSaneada === "consumibles") {
+      subcategoriaSaneada = "Consumible";
+    } else if (categoriaSaneada === "objetos-magicos") {
+      subcategoriaSaneada = "Maravilloso";
+    }
+  }
+
   // Estructura base común
   const baseObjeto = {
     id: idSaneado,
@@ -418,6 +428,9 @@ export function sanearObjetoHomebrew(o: unknown): ObjetoHomebrew {
     rareza: rarezaSaneada,
     esMagico: esMagicoSaneado,
     costoOriginal: costoOriginalSaneado,
+    categoria: categoriaSaneada,
+    esConsumible: esConsumibleSaneado,
+    subcategoria: subcategoriaSaneada,
     esVeneno: esVenenoSaneado,
     tipoVeneno: tipoVenenoSaneado,
     efectoVeneno: efectoVenenoSaneado,
@@ -438,9 +451,9 @@ export function sanearObjetoHomebrew(o: unknown): ObjetoHomebrew {
     equipment_categories: obj.equipment_categories
   };
 
-  // Saneamiento específico por tipo
-  if (tipoPrincipalSaneado === "Arma") {
-    let subArma: "Sencilla" | "Marcial" | "De Fuego" = "Sencilla";
+  // Saneamiento específico por categoría oficial D&D 5.5e
+  if (categoriaSaneada === "armas") {
+    let subArma = "Sencilla";
     let subTxt = aplanarValor(obj.subcategoria || obj.weapon_category || obj.tipoArma || "").toUpperCase();
     
     if (Array.isArray(obj.equipment_categories)) {
@@ -460,7 +473,6 @@ export function sanearObjetoHomebrew(o: unknown): ObjetoHomebrew {
     else if (subTxt.includes("MARCIAL") || subTxt.includes("MARTIAL")) subArma = "Marcial";
 
     let estiloAtq: "Cuerpo a Cuerpo" | "A Distancia" = "Cuerpo a Cuerpo";
-    // Siempre inferir desde equipment_categories primero (fuente más confiable)
     let estiloInferido = false;
     if (Array.isArray(obj.equipment_categories)) {
       const catTxt = obj.equipment_categories.map((c: unknown) => {
@@ -478,7 +490,6 @@ export function sanearObjetoHomebrew(o: unknown): ObjetoHomebrew {
         estiloInferido = true;
       }
     }
-    // Solo usar el campo almacenado si no se pudo inferir desde categorías
     if (!estiloInferido) {
       const estiloTxt = aplanarValor(obj.tipoAtaque || obj.weapon_range || obj.estiloAtaque || "").toUpperCase();
       if (estiloTxt.includes("DISTANCIA") || estiloTxt.includes("RANGED")) {
@@ -634,7 +645,7 @@ export function sanearObjetoHomebrew(o: unknown): ObjetoHomebrew {
 
     return {
       ...baseObjeto,
-      tipoPrincipal: "Arma",
+      categoria: "armas",
       subcategoria: subArma,
       tipoAtaque: estiloAtq,
       dadoDano: dadoDanoSaneado,
@@ -646,8 +657,8 @@ export function sanearObjetoHomebrew(o: unknown): ObjetoHomebrew {
       danoVersatil: danoVersatilSaneado,
       municionRequerida: municionRequeridaSaneada
     } as Arma;
-  } else if (tipoPrincipalSaneado === "Armadura") {
-    let subArmor: "Ligera" | "Mediana" | "Pesada" | "Escudo" = "Ligera";
+  } else if (categoriaSaneada === "armaduras") {
+    let subArmor = "Ligera";
     let subTxt = aplanarValor(obj.subcategoria || obj.armor_category || "").toUpperCase();
     
     if (Array.isArray(obj.equipment_categories)) {
@@ -663,8 +674,7 @@ export function sanearObjetoHomebrew(o: unknown): ObjetoHomebrew {
       subTxt = subTxt ? `${subTxt} | ${catsTxt}` : catsTxt;
     }
     
-    if (subTxt.includes("ESCUDO") || subTxt.includes("SHIELD")) subArmor = "Escudo";
-    else if (subTxt.includes("PESADA") || subTxt.includes("HEAVY")) subArmor = "Pesada";
+    if (subTxt.includes("PESADA") || subTxt.includes("HEAVY")) subArmor = "Pesada";
     else if (subTxt.includes("MEDIANA") || subTxt.includes("MEDIUM")) subArmor = "Mediana";
 
     let caBaseSaneada = 10;
@@ -722,7 +732,7 @@ export function sanearObjetoHomebrew(o: unknown): ObjetoHomebrew {
     return {
       ...baseObjeto,
       propiedades: propiedadesSaneadas,
-      tipoPrincipal: "Armadura",
+      categoria: "armaduras",
       subcategoria: subArmor,
       caBase: caBaseSaneada,
       requisitoFuerza: reqFuerza,
@@ -730,79 +740,31 @@ export function sanearObjetoHomebrew(o: unknown): ObjetoHomebrew {
       bonoDestreza: bonoDest,
       tiempoEquipar: tiempoEquiparSaneado
     } as Armadura;
-  } else {
-    let subEquipo: SubcategoriaEquipo = "Equipo";
-    let subTxt = aplanarValor(obj.subcategoria || obj.equipment_category || "").toUpperCase();
-    
-    if (Array.isArray(obj.equipment_categories)) {
-      const catsTxt = obj.equipment_categories
-        .map((c: unknown) => {
-          if (c && typeof c === "object") {
-            const cObj = c as Record<string, unknown>;
-            return aplanarValor(cObj.index || cObj.name || "").toUpperCase();
-          }
-          return aplanarValor(c).toUpperCase();
-        })
-        .join(" | ");
-      subTxt = subTxt ? `${subTxt} | ${catsTxt}` : catsTxt;
-    }
-    
-    if (
-      subTxt.includes("CONSUMIBLE") ||
-      subTxt.includes("CONSUMABLE") ||
-      subTxt.includes("POTION") ||
-      subTxt.includes("POCIÓN") ||
-      subTxt.includes("SCROLL") ||
-      subTxt.includes("PERGAMINO") ||
-      subTxt.includes("VENENO") ||
-      subTxt.includes("POISON") ||
-      obj.esVeneno
-    ) {
-      subEquipo = "Consumible";
-    } else if (
-      subTxt.includes("MUNICIÓN") ||
-      subTxt.includes("MUNITION") ||
-      subTxt.includes("AMMUNITION")
-    ) {
-      subEquipo = "Munición";
-    } else if (
-      subTxt.includes("MUSICAL") ||
-      subTxt.includes("INSTRUMENT")
-    ) {
-      subEquipo = "Instrumento";
-    } else if (
-      subTxt.includes("HERRAMIENTA") ||
-      subTxt.includes("TOOL") ||
-      subTxt.includes("ARTISAN") ||
-      subTxt.includes("GAMING") ||
-      subTxt.includes("KIT")
-    ) {
-      subEquipo = "Herramienta";
-    } else if (
-      subTxt.includes("EQUIPMENT-PACK") ||
-      subTxt.includes("EQUIPMENT_PACK") ||
-      subTxt.includes("PAQUETE") ||
-      (subTxt.includes("PACK") && !subTxt.includes("BACKPACK"))
-    ) {
-      subEquipo = "Paquete";
-    } else if (
-      subTxt.includes("MARAVILLOSO") ||
-      subTxt.includes("WONDROUS") ||
-      subTxt.includes("MAGIC-ITEM") ||
-      obj.esMagico
-    ) {
-      subEquipo = "Maravilloso";
-    } else {
-      subEquipo = "Equipo";
+  } else if (categoriaSaneada === "escudos") {
+    let caEscudo = 2;
+    if (obj.armor_class && typeof obj.armor_class === "object") {
+      const acObj = obj.armor_class as Record<string, unknown>;
+      caEscudo = Number(acObj.base) || 2;
+    } else if (obj.caBase || obj.ca) {
+      caEscudo = Number(obj.caBase || obj.ca) || 2;
     }
 
+    return {
+      ...baseObjeto,
+      propiedades: propiedadesSaneadas,
+      categoria: "escudos",
+      subcategoria: "Escudo",
+      caBase: caEscudo,
+      desventajaSigilo: false,
+      equipable: true
+    } as Escudo;
+  } else {
     const cant = obj.cantidad !== undefined ? (Number(obj.cantidad) || undefined) : undefined;
 
     return {
       ...baseObjeto,
       propiedades: propiedadesSaneadas,
-      tipoPrincipal: "Equipo de Aventuras",
-      subcategoria: subEquipo,
+      categoria: categoriaSaneada,
       cantidad: cant
     } as EquipoAventuras;
   }
@@ -1152,8 +1114,26 @@ export function sanearPersonaje(p: unknown): PersonajeJugador {
             ) === idx
         )
       : [{ nombre: (typeof raw.clase === "string" && raw.clase) || "Guerrero", subclase: (typeof raw.subclase === "string" && raw.subclase) || "", nivel: (typeof raw.nivel === "number" && raw.nivel) || 1 }],
-    inventario: Array.isArray(raw.inventario) ? raw.inventario : [],
-    condicionesActivas: Array.isArray(raw.condicionesActivas) ? raw.condicionesActivas : [],
+    inventario: Array.isArray(raw.inventario)
+      ? raw.inventario
+          .map((item: unknown) => {
+            if (!item || typeof item !== "object") return null;
+            const o = item as Record<string, unknown>;
+            const res = resolverCategoriaDesdeSRD(o);
+            const categoria =
+              typeof o.categoria === "string" && (CATEGORIAS_EQUIPO as readonly string[]).includes(o.categoria)
+                ? o.categoria
+                : res.categoria;
+            const esConsumible = o.esConsumible !== undefined ? Boolean(o.esConsumible) : res.esConsumible;
+            return {
+              ...o,
+              categoria,
+              esConsumible,
+              subcategoria: aplanarValor(o.subcategoria || "")
+            };
+          })
+          .filter(Boolean)
+      : [],
     trucosConocidosIds: Array.isArray(raw.trucosConocidosIds) ? raw.trucosConocidosIds : [],
     conjurosConocidosIds: Array.isArray(raw.conjurosConocidosIds) ? raw.conjurosConocidosIds : [],
     conjurosPreparadosIds: Array.isArray(raw.conjurosPreparadosIds) ? raw.conjurosPreparadosIds : [],

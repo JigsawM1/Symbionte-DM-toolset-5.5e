@@ -42,7 +42,9 @@ function crearObjetoMock(parcial: Partial<ObjetoInventario> & { idInstancia: str
     sintonizado: false,
     notas: "",
     pesoLb: 0,
-    tipoPrincipal: "Equipo de Aventuras",
+    categoria: "equipo-aventurero",
+    esConsumible: false,
+    subcategoria: "",
     esMagico: false,
     rareza: "Común",
     equipable: false,
@@ -400,7 +402,8 @@ describe("D&D 5.5e - Bardo, Subclases y Hotfix Bárbaro", () => {
             idInstancia: "escudo-1",
             idObjeto: "escudo",
             nombre: "Escudo",
-            tipoPrincipal: "Armadura",
+            categoria: "escudos",
+            subcategoria: "Escudo",
             equipado: true,
             pesoLb: 6
           })

@@ -92,10 +92,10 @@ export const usarDetalleObjetoInventario = ({
 
   const puedeSintonizar = objeto.sintonizado || totalSintonizados < 3;
 
-  const esArma = objeto.tipoPrincipal === "Arma" || objetoBase?.tipoPrincipal === "Arma";
-  const esArmadura = objeto.tipoPrincipal === "Armadura" || objetoBase?.tipoPrincipal === "Armadura";
-  const armaObj = esArma && objetoBase?.tipoPrincipal === "Arma" ? (objetoBase as Arma) : null;
-  const armaduraObj = esArmadura && objetoBase?.tipoPrincipal === "Armadura" ? (objetoBase as Armadura) : null;
+  const esArma = objeto.categoria === "armas" || objetoBase?.categoria === "armas";
+  const esArmadura = objeto.categoria === "armaduras" || objetoBase?.categoria === "armaduras";
+  const armaObj = esArma && (objetoBase?.categoria === "armas" || (objetoBase as Arma)?.tipoAtaque) ? (objetoBase as Arma) : null;
+  const armaduraObj = esArmadura && (objetoBase?.categoria === "armaduras" || (objetoBase as Armadura)?.caBase !== undefined) ? (objetoBase as Armadura) : null;
   const descripcion = objetoBase?.descripcion || objeto.notas || "";
 
   const manejarGuardarNotas = () => {

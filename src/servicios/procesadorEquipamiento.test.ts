@@ -7,7 +7,9 @@ describe("procesadorEquipamiento", () => {
     idInstancia: "inst_1",
     idObjeto: "obj_1",
     nombre: "Espada Larga",
-    tipoPrincipal: "Arma",
+    categoria: "armas",
+    esConsumible: false,
+    subcategoria: "Marcial",
     pesoLb: 3,
     cantidad: 1,
     equipable: true,
@@ -26,7 +28,9 @@ describe("procesadorEquipamiento", () => {
       crearObjeto({
         idInstancia: "pocion_1",
         nombre: "Poción de Curación",
-        tipoPrincipal: "Equipo de Aventuras",
+        categoria: "consumibles",
+        esConsumible: true,
+        subcategoria: "Poción",
         equipable: false,
         equipado: false
       })
@@ -45,19 +49,22 @@ describe("procesadorEquipamiento", () => {
     const cotaMalla = crearObjeto({
       idInstancia: "cota_1",
       nombre: "Cota de Malla",
-      tipoPrincipal: "Armadura",
+      categoria: "armaduras",
+      subcategoria: "Pesada",
       equipado: true
     });
     const escudo = crearObjeto({
       idInstancia: "escudo_1",
       nombre: "Escudo",
-      tipoPrincipal: "Armadura",
+      categoria: "escudos",
+      subcategoria: "Escudo",
       equipado: true
     });
     const cueroTachonado = crearObjeto({
       idInstancia: "cuero_1",
       nombre: "Cuero Tachonado",
-      tipoPrincipal: "Armadura",
+      categoria: "armaduras",
+      subcategoria: "Ligera",
       equipado: false
     });
 
@@ -77,13 +84,15 @@ describe("procesadorEquipamiento", () => {
     const armaduraPlacas = crearObjeto({
       idInstancia: "placas_1",
       nombre: "Armadura de Placas",
-      tipoPrincipal: "Armadura",
+      categoria: "armaduras",
+      subcategoria: "Pesada",
       equipado: true
     });
     const escudo = crearObjeto({
       idInstancia: "escudo_1",
       nombre: "Escudo",
-      tipoPrincipal: "Armadura",
+      categoria: "escudos",
+      subcategoria: "Escudo",
       equipado: false
     });
 
@@ -101,13 +110,15 @@ describe("procesadorEquipamiento", () => {
     const escudo = crearObjeto({
       idInstancia: "escudo_1",
       nombre: "Escudo",
-      tipoPrincipal: "Armadura",
+      categoria: "escudos",
+      subcategoria: "Escudo",
       equipado: true
     });
     const armaduraCuero = crearObjeto({
       idInstancia: "cuero_1",
       nombre: "Armadura de Cuero",
-      tipoPrincipal: "Armadura",
+      categoria: "armaduras",
+      subcategoria: "Ligera",
       equipado: false
     });
 
@@ -125,19 +136,22 @@ describe("procesadorEquipamiento", () => {
     const armaduraCuero = crearObjeto({
       idInstancia: "cuero_1",
       nombre: "Armadura de Cuero",
-      tipoPrincipal: "Armadura",
+      categoria: "armaduras",
+      subcategoria: "Ligera",
       equipado: true
     });
     const escudoViejo = crearObjeto({
       idInstancia: "escudo_1",
       nombre: "Escudo de Madera",
-      tipoPrincipal: "Armadura",
+      categoria: "escudos",
+      subcategoria: "Escudo",
       equipado: true
     });
     const escudoMagico = crearObjeto({
       idInstancia: "escudo_2",
       nombre: "Escudo +1",
-      tipoPrincipal: "Armadura",
+      categoria: "escudos",
+      subcategoria: "Escudo",
       equipado: false
     });
 

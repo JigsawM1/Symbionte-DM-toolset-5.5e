@@ -6,17 +6,18 @@ import type {
   SubseccionMochilaTipo
 } from "@/tipos";
 import { coincideBusquedaTolerante, compararPorRelevanciaTitulo } from "@/utiles/busquedaTolerante";
-import { esObjetoConsumible } from "@/servicios/procesadorConsumibles";
-import { esContenedorFisicoMunicion } from "@/servicios/gestorMunicion";
 import { CONFIG_CONTENEDORES } from "@/servicios/calculadorInventario";
 import {
   Sparkles,
   Package,
   Swords,
   FlaskConical,
-  Target,
+  Crosshair,
   Shield,
-  Wrench
+  Wrench,
+  PackageOpen,
+  Wand2,
+  Backpack
 } from "lucide-react";
 
 /**
@@ -33,7 +34,7 @@ export function filtrarListaInventarioTolerante(
   const filtrada = lista.filter((obj) => {
     const nombreContenedor = obj.contenedor ? (CONFIG_CONTENEDORES[obj.contenedor]?.nombre || "") : "";
     return coincideBusquedaTolerante(
-      [obj.nombre, obj.tipoPrincipal, obj.notas, obj.rareza, nombreContenedor],
+      [obj.nombre, obj.categoria, obj.subcategoria, obj.notas, obj.rareza, nombreContenedor],
       busquedaMochila
     );
   });
@@ -43,7 +44,7 @@ export function filtrarListaInventarioTolerante(
       (o) => o.nombre,
       busquedaMochila,
       (a, b) => a.nombre.localeCompare(b.nombre, "es"),
-      (o) => [o.tipoPrincipal, o.notas, o.rareza]
+      (o) => [o.categoria, o.subcategoria, o.notas, o.rareza]
     )
   );
 }
@@ -59,94 +60,45 @@ export function obtenerValorPO(obj: ObjetoInventario, baseDatosObjetos: ObjetoJu
 }
 
 /**
- * Determina si un objeto de inventario califica como herramienta, instrumento musical,
- * juego o kit de artesano según su nombre, notas o subcategoría del compendio.
- */
-export function esObjetoHerramienta(nombre: string = "", notas?: string, subcategoria?: string): boolean {
-  const norm = (s: string) => s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
-  const nNorm = norm(nombre);
-  const notNorm = norm(notas || "");
-  const subNorm = norm(subcategoria || "");
-
-  const claves = [
-    "herramienta",
-    "instrumento",
-    "juego",
-    "kit",
-    "utensilio",
-    "suministro",
-    "artesano",
-    "ladron",
-    "thieves",
-    "tools"
-  ];
-
-  return claves.some((k) => nNorm.includes(k) || notNorm.includes(k) || subNorm.includes(k));
-}
-
-/**
- * Clasifica los objetos de la mochila en 7 categorías semánticas para el modo de visualización "Por Tipo".
+ * Clasifica los objetos de la mochila por su categoría oficial de D&D 5.5e
+ * y retorna únicamente las subsecciones que contengan al menos un ítem.
  */
 export function clasificarMochilaPorTipo(
   objetosMochilaFiltrados: ObjetoInventario[],
-  baseDatosObjetos: ObjetoJuego[]
+  _baseDatosObjetos: ObjetoJuego[]
 ): SubseccionMochilaTipo[] {
   const consumibles: ObjetoInventario[] = [];
   const municion: ObjetoInventario[] = [];
   const armas: ObjetoInventario[] = [];
   const armaduras: ObjetoInventario[] = [];
+  const escudos: ObjetoInventario[] = [];
   const herramientas: ObjetoInventario[] = [];
+  const focosMagicos: ObjetoInventario[] = [];
+  const contenedores: ObjetoInventario[] = [];
+  const paquetes: ObjetoInventario[] = [];
   const magicos: ObjetoInventario[] = [];
   const equipo: ObjetoInventario[] = [];
 
   for (const obj of objetosMochilaFiltrados) {
-    const comp = baseDatosObjetos.find(
-      (b) => b.id === obj.idObjeto || b.nombre.toLowerCase().trim() === obj.nombre.toLowerCase().trim()
-    );
-    const sub = (comp?.subcategoria || "").toLowerCase();
-    const nom = obj.nombre.toLowerCase().trim();
-
-    const esMunicionOContenedor =
-      sub.includes("municion") ||
-      comp?.storage !== undefined ||
-      esContenedorFisicoMunicion(nom) ||
-      (obj.idObjeto && esContenedorFisicoMunicion(obj.idObjeto)) ||
-      nom.includes("flecha") ||
-      nom.includes("virote") ||
-      nom.includes("carcaj") ||
-      nom.includes("caja de virotes") ||
-      nom.includes("bolsa de balas") ||
-      nom.includes("cartuchera") ||
-      nom.includes("bolsita") ||
-      nom.includes("estuche de agujas") ||
-      nom.includes("aguja") ||
-      nom.includes("quiver");
-
-    if (esMunicionOContenedor && obj.tipoPrincipal !== "Arma") {
-      municion.push(obj);
-      continue;
-    }
-
-    if (esObjetoConsumible(obj.nombre, obj.notas)) {
-      consumibles.push(obj);
-      continue;
-    }
-
-    if (obj.tipoPrincipal === "Arma") {
+    if (obj.categoria === "armas") {
       armas.push(obj);
-      continue;
-    }
-
-    if (obj.tipoPrincipal === "Armadura") {
+    } else if (obj.categoria === "armaduras") {
       armaduras.push(obj);
-      continue;
-    }
-
-    if (sub.includes("consumible") || sub.includes("pocion")) {
+    } else if (obj.categoria === "escudos") {
+      escudos.push(obj);
+    } else if (obj.categoria === "consumibles" || obj.esConsumible) {
       consumibles.push(obj);
-    } else if (esObjetoHerramienta(obj.nombre, obj.notas, sub)) {
+    } else if (obj.categoria === "municion") {
+      municion.push(obj);
+    } else if (obj.categoria === "herramientas") {
       herramientas.push(obj);
-    } else if (obj.esMagico || obj.rareza !== "Común" || sub.includes("maravilloso")) {
+    } else if (obj.categoria === "focos-magicos") {
+      focosMagicos.push(obj);
+    } else if (obj.categoria === "contenedores") {
+      contenedores.push(obj);
+    } else if (obj.categoria === "paquetes-equipo") {
+      paquetes.push(obj);
+    } else if (obj.categoria === "objetos-magicos" || obj.esMagico) {
       magicos.push(obj);
     } else {
       equipo.push(obj);
@@ -156,7 +108,7 @@ export function clasificarMochilaPorTipo(
   const calcPeso = (lista: ObjetoInventario[]) =>
     Math.round(lista.reduce((acc, o) => acc + (o.pesoLb || 0) * (o.cantidad || 1), 0) * 100) / 100;
 
-  return [
+  const todasSubsecciones: SubseccionMochilaTipo[] = [
     {
       id: "consumibles",
       titulo: "Consumibles y Pociones",
@@ -168,9 +120,9 @@ export function clasificarMochilaPorTipo(
     },
     {
       id: "municion",
-      titulo: "Munición y Contenedores (Carcaj)",
-      icono: React.createElement(Target, { size: 13, color: "#38bdf8" }),
-      color: "#38bdf8",
+      titulo: "Munición",
+      icono: React.createElement(Crosshair, { size: 13, color: "#06b6d4" }),
+      color: "#06b6d4",
       items: municion,
       pesoTotal: calcPeso(municion),
       esContenedorEspecial: false
@@ -186,11 +138,20 @@ export function clasificarMochilaPorTipo(
     },
     {
       id: "armaduras",
-      titulo: "Armaduras y Escudos",
+      titulo: "Armaduras",
       icono: React.createElement(Shield, { size: 13, color: "#60a5fa" }),
       color: "#60a5fa",
       items: armaduras,
       pesoTotal: calcPeso(armaduras),
+      esContenedorEspecial: false
+    },
+    {
+      id: "escudos",
+      titulo: "Escudos",
+      icono: React.createElement(Shield, { size: 13, color: "#38bdf8" }),
+      color: "#38bdf8",
+      items: escudos,
+      pesoTotal: calcPeso(escudos),
       esContenedorEspecial: false
     },
     {
@@ -203,10 +164,37 @@ export function clasificarMochilaPorTipo(
       esContenedorEspecial: false
     },
     {
-      id: "magicos",
-      titulo: "Objetos Mágicos y Maravillosos",
+      id: "focos-magicos",
+      titulo: "Focos Mágicos y Símbolos Sagrados",
       icono: React.createElement(Sparkles, { size: 13, color: "#c084fc" }),
       color: "#c084fc",
+      items: focosMagicos,
+      pesoTotal: calcPeso(focosMagicos),
+      esContenedorEspecial: false
+    },
+    {
+      id: "contenedores",
+      titulo: "Contenedores y Almacenaje",
+      icono: React.createElement(Package, { size: 13, color: "#eab308" }),
+      color: "#eab308",
+      items: contenedores,
+      pesoTotal: calcPeso(contenedores),
+      esContenedorEspecial: false
+    },
+    {
+      id: "paquetes-equipo",
+      titulo: "Paquetes de Equipo",
+      icono: React.createElement(PackageOpen, { size: 13, color: "#a855f7" }),
+      color: "#a855f7",
+      items: paquetes,
+      pesoTotal: calcPeso(paquetes),
+      esContenedorEspecial: false
+    },
+    {
+      id: "magicos",
+      titulo: "Objetos Mágicos y Maravillosos",
+      icono: React.createElement(Wand2, { size: 13, color: "#ec4899" }),
+      color: "#ec4899",
       items: magicos,
       pesoTotal: calcPeso(magicos),
       esContenedorEspecial: false
@@ -214,13 +202,17 @@ export function clasificarMochilaPorTipo(
     {
       id: "equipo",
       titulo: "Equipo de Aventuras y Varios",
-      icono: React.createElement(Package, { size: 13, color: "#94a3b8" }),
+      icono: React.createElement(Backpack, { size: 13, color: "#94a3b8" }),
       color: "#94a3b8",
       items: equipo,
       pesoTotal: calcPeso(equipo),
       esContenedorEspecial: false
     }
   ];
+
+  // Retornar las subsecciones que tengan items
+  const activas = todasSubsecciones.filter((s) => s.items.length > 0);
+  return activas.length > 0 ? activas : [todasSubsecciones[todasSubsecciones.length - 1]];
 }
 
 /**
@@ -256,7 +248,7 @@ export function ordenarInventarioPlano(
         (o) => o.nombre,
         busquedaMochila,
         comparadorDesempate,
-        (o) => [o.tipoPrincipal, o.notas, o.rareza]
+        (o) => [o.categoria, o.subcategoria, o.notas, o.rareza]
       )
     );
   }

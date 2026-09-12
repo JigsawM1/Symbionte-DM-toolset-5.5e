@@ -41,7 +41,9 @@ describe("calculadorInventario", () => {
       idInstancia: "i1",
       idObjeto: "obj_item",
       nombre: "Item",
-      tipoPrincipal: "Equipo de Aventuras",
+      categoria: "equipo-aventurero",
+      esConsumible: false,
+      subcategoria: "",
       pesoLb: 5,
       cantidad: 1,
       equipable: false,
@@ -185,7 +187,9 @@ describe("calculadorInventario", () => {
           idInstancia: "inst_paquete_1",
           idObjeto: "paquete_explorador",
           nombre: "Paquete de Explorador",
-          tipoPrincipal: "Equipo de Aventuras",
+          categoria: "paquetes-equipo",
+          esConsumible: false,
+          subcategoria: "",
           cantidad: 1,
           pesoLb: 15,
           equipado: false,
@@ -221,7 +225,9 @@ describe("calculadorInventario", () => {
         {
           id: "carcaj_flechas",
           nombre: "Carcaj con Flechas",
-          tipoPrincipal: "Equipo de Aventuras",
+          categoria: "paquetes-equipo",
+          esConsumible: false,
+          subcategoria: "",
           contents: [
             { item: { index: "flechas", name: "Flechas" }, quantity: 20 }
           ]
@@ -229,7 +235,9 @@ describe("calculadorInventario", () => {
         {
           id: "flechas",
           nombre: "Flechas",
-          tipoPrincipal: "Equipo de Aventuras",
+          categoria: "municion",
+          esConsumible: true,
+          subcategoria: "Munición",
           pesoLb: 1
         }
       ];
@@ -239,7 +247,9 @@ describe("calculadorInventario", () => {
           idInstancia: "inst_flechas_previa",
           idObjeto: "flechas",
           nombre: "Flechas",
-          tipoPrincipal: "Equipo de Aventuras",
+          categoria: "municion",
+          esConsumible: true,
+          subcategoria: "Munición",
           cantidad: 5,
           pesoLb: 1,
           equipado: false,
@@ -255,7 +265,9 @@ describe("calculadorInventario", () => {
           idInstancia: "inst_carcaj_1",
           idObjeto: "carcaj_flechas",
           nombre: "Carcaj con Flechas",
-          tipoPrincipal: "Equipo de Aventuras",
+          categoria: "paquetes-equipo",
+          esConsumible: false,
+          subcategoria: "",
           cantidad: 1,
           pesoLb: 2,
           equipado: false,

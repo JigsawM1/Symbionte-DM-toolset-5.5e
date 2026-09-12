@@ -16,10 +16,14 @@ if (fs.existsSync(zipFileName)) {
     console.log(`Deleted existing zip file: ${zipFileName}`);
 }
 
-// Ensure the build path exists
-if (!fs.existsSync(buildPath)) {
-    fs.mkdirSync(buildPath, { recursive: true });
+// Clean previous root build directory to avoid orphaned folders
+if (fs.existsSync(rootBuildPath)) {
+    fs.rmSync(rootBuildPath, { recursive: true, force: true });
+    console.log(`Cleaned existing build directory: ${rootBuildPath}`);
 }
+
+// Ensure the build path exists
+fs.mkdirSync(buildPath, { recursive: true });
 
 // Run Vite build with the specified output directory
 execSync(`vite build --outDir "${buildPath}"`, { stdio: 'inherit' });

@@ -19,6 +19,94 @@ Este archivo registra reglas globales, errores encontrados, sus causas raíz y l
    - **Bajo ninguna circunstancia** los módulos de lógica de negocio (`servicios/`), gestores de estado (`almacen/`) o constructores (`gestorClases.ts`) deben contener bifurcaciones condicionales por nombre literal de rasgo o clase (`r.nombre === "..."`, `clase.includes("...")`, etc.).
    - Toda mecánica, progresión de dados, escalado de usos, recuperación o desbloqueo dinámico debe resolverse mediante metadatos declarativos (`escaladoFormulaDados`, `escaladoUsos`, `escaladoRecuperacion`, `opcionesDinamicas`, `escaladoMaxSelecciones`, `sincronizarEfectosConFormula`, `heredarDadosPadre`, `gastarDePadre`, `ligadoA`, `efectos`) delegando en funciones puras agnósticas como `resolverEscaladosRasgo`. Esta regla está reforzada en CI vía ESLint `no-restricted-syntax` y la suite `rasgoGenericidad.test.ts`.
 
+## [2026-09-12] Corrección de Tablas de Progresión y Escalado en Multiclase (Nivel de Clase vs Nivel General)
+
+**Contexto y Requerimientos del Usuario:**
+- Solicitud del usuario: *"las tablas van a nivel general, no al nivel propio de la clase (ejemplo alli hice una multicalse de bardo 5 barbaro 15)"*.
+- En las capturas adjuntas, en un personaje multiclase con Bardo 5 y Bárbaro 15 (nivel total 20):
+  - En el rasgo de Bardo (*Inspiración bárdica*), la tabla de progresión marcaba como `[ACTUAL]` el nivel 15 (Dado de bardo: 1d12) en lugar del nivel 5 (Dado de bardo: 1d8), a pesar de que el botón superior sí lanzaba 1d8 correctamente.
+  - En el rasgo de Bárbaro (*Furia*), la tabla de progresión marcaba como `[ACTUAL]` el nivel 20 (6 veces/día, +4 daño) en lugar del nivel 12 (5 veces/día, +3 daño), a pesar de que la reserva de usos sí indicaba 5 usos.
+
+**Causas Raíz Identificadas:**
+1. **Paso Ciego del Nivel Global en `VistaRasgosJugador.tsx`:** Al abrir `ModalDetalleRasgo`, la propiedad `nivelPersonaje` se alimentaba con `personajeActivo.nivel` (el nivel general acumulado del personaje, en este caso 20), sin discriminar a qué clase o subclase pertenecía el rasgo que se estaba inspeccionando.
+2. **Impacto en Componentes Hijos:** `TablaProgresionRasgo` y `SeccionSelectoresModalRasgo` consumían directamente esa propiedad `nivelPersonaje` para calcular la fila `[ACTUAL]` y los requisitos mínimos de nivel para invocaciones y opciones desbloqueables.
+
+**Solución Implementada y Decisiones Arquitectónicas:**
+1. **Resolver Puro y Determinista `obtenerNivelEfectivoParaRasgo` (`src/componentes/caracteristicas/rasgos/utilidadesProgresionRasgos.ts`):**
+   - Función pura con tipado estricto:
+     - Si el rasgo es de especie, subespecie, dote o trasfondo: retorna el nivel global (`personaje.nivel`).
+     - Si el rasgo es de clase o subclase (o asimilado a una de las clases del personaje por coincidencia de `fuente`, `id` o mediante el catálogo oficial `obtenerClasePorNombre` y sus subclases): extrae e inyecta el **nivel individual de dicha clase** en el personaje (ej. 5 para Bardo, 15 para Bárbaro).
+     - Si el personaje es monoclase, mantiene paridad directa con su nivel único.
+2. **Propagación en Hook y Vista (`usarVistaRasgos.ts` y `VistaRasgosJugador.tsx`):**
+   - Expuesto `obtenerNivelEfectivoParaRasgo` en el hook `usarVistaRasgos`.
+   - `ModalDetalleRasgo` ahora recibe `nivelPersonaje={obtenerNivelEfectivoParaRasgo(rasgoDetalleEfectivo)}`.
+3. **Cobertura Automatizada con Tests:**
+   - Creada suite en `src/componentes/caracteristicas/rasgos/utilidadesProgresionRasgos.test.ts` con 6 pruebas que validan:
+     - Nivel propio de clase (5) para Bardo en multiclase 5/15.
+     - Nivel propio de clase (15) para Bárbaro en multiclase 5/15.
+     - Nivel de subclase (15) para Berserker.
+     - Nivel general (20) para especie y dotes.
+     - Nivel de clase única en monoclase.
+4. **Validación Integral:**
+   - `pnpm exec tsc --noEmit`: 0 errores (Strict mode).
+   - `pnpm exec vitest run`: 50 suites ejecutadas, 597 pruebas pasando al 100%.
+   - `pnpm lint`: 0 errores y 0 advertencias.
+   - `node scripts/verificar-limite-lineas.js`: 0 archivos > 500 líneas.
+
+---
+
+## [2026-09-12] Rework Canónico de Objetos, Equipamiento e Inventario (D&D 5.5e / 2024 PHB)
+
+**Contexto y Requerimientos del Usuario:**
+- Solicitud del usuario: *"ok, ahora hay que plantear el rework de objetos. veo que no se estan consumiento todas las categorias y si se consumieran todas eso se podra aprovechar en lo que es el inventario"*.
+- Mandato explícito e irrevocable: *"no, nada de compatibilidad con el legacy, todo nuevo"*.
+- Mandato para subcategorías: *"realmente los objetos que tienen subcategoria son contados y todos tienen es la subcategoria de 'consumible' asi que to lo reemplazaria por un booleano de esConsumible o rodarlo a una categoria de consumible"*.
+- Reglas globales estrictas:
+  - Sin emojis (uso exclusivo de Lucide-react SVG).
+  - Gestor exclusivo `pnpm`.
+  - Tipado estricto (`strict: true`, cero `any`).
+  - 100% en español en UI, tipos y comentarios.
+  - Memoria técnica actualizada en `agente.md`.
+
+**Causas Raíz y Desafíos Técnicos:**
+1. **Clasificación Legacy Truncada (`tipoPrincipal: "Arma" | "Armadura" | "Equipo de Aventuras"`):**
+   El compendio oficial D&D 5.5e (`Equipo es.json`, 199 objetos) poseía múltiples categorías semánticas ricas (`"tools"`, `"ammunition"`, `"mounts-and-vehicles"`, `"standard-gear"`, etc.), pero la arquitectura antigua forzaba todo a tres únicas familias artificiales (`tipoPrincipal`), agrupando en "Equipo de Aventuras" a pociones, pergaminos, herramientas, monturas, carcajes y focos arcanos.
+2. **Detección Frágil de Escudos:**
+   Los escudos estaban anidados dentro de `Armadura` y su detección dependía de comprobaciones frágiles por expresión regular (`normalizar(nombre).includes("escudo")`), lo que abría la puerta a falsos positivos o fallos si el nombre cambiaba.
+3. **Filtros Limitados en la UI:**
+   El modal de agregar objetos y la mochila solo filtraban por las 3 categorías antiguas o usaban heurísticas de texto ad-hoc para separar pociones y munición.
+4. **Desconexión con el Modelo Canónico 5.5e:**
+   D&D 5.5e clasifica el equipamiento de aventuras con claridad: Armas, Armaduras, Escudos, Herramientas, Focos Mágicos, Consumibles, Munición, Contenedores, Paquetes de Equipo, Objetos Mágicos y Equipo Aventurero.
+
+**Solución Implementada y Decisiones Arquitectónicas:**
+1. **Eliminación Total de `tipoPrincipal` y Creación de `CATEGORIAS_EQUIPO` (`src/constantes/categoriasEquipoConstantes.ts`):**
+   - Se crearon las 11 categorías oficiales canónicas:
+     `"armas" | "armaduras" | "escudos" | "herramientas" | "focos-magicos" | "consumibles" | "municion" | "contenedores" | "paquetes-equipo" | "objetos-magicos" | "equipo-aventurero"`.
+   - Se implementó `DICCIONARIO_CATEGORIAS_EQUIPO` con etiquetas en español, descripciones e iconos semánticos de Lucide-react (ej. `Swords`, `Shield`, `ShieldAlert`, `Wrench`, `Wand2`, `FlaskConical`, `Crosshair`, `Package`, `Boxes`, `Sparkles`, `Backpack`).
+   - Se creó el resolver determinista `resolverCategoriaDesdeSRD(raw)` que mapea los 199 ítems de `Equipo es.json` a la categoría canónica exacta y determina si `esConsumible: true`.
+2. **Refactorización de Tipos (`src/tipos/index.ts` y `src/tipos/personaje.ts`):**
+   - Se eliminó `tipoPrincipal` de `ObjetoBase`, `ObjetoInventario`, `ObjetoHomebrew`, `Arma`, `Armadura`, `Escudo` y `EquipoAventuras`.
+   - Se elevó `Escudo` a entidad de primer nivel con `categoria: "escudos"`, `subcategoria: "Escudo"` y `caBase: 2`.
+   - Se agregó `esConsumible: boolean` tanto al esquema Zod como a las interfaces TypeScript.
+3. **Servicios y Cálculo de Estadísticas:**
+   - `usarEstadoPersonajes.ts`: Cálculo de CA reescrito para evaluar `o.categoria === "armaduras"` y `o.categoria === "escudos"` de forma directa, eliminando regex de nombres.
+   - `procesadorEquipamiento.ts`: Lógica de equipamiento corporal y escudo basada en igualdad estricta de categoría.
+   - `clasificadorInventario.ts`: Mochila organizada dinámicamente en las 11 categorías oficiales de D&D 5.5e, filtrando automáticamente las categorías vacías.
+   - `calculadorAtaquesArmas.ts`: Verificación directa `o.categoria === "armas"`.
+   - `sanitizacion.ts`: Funciones `sanearObjetoHomebrew` y `sanearPersonaje` actualizadas para mapear a las nuevas categorías sin recurrir a código legacy, e infiriendo subcategorías cuando proceda.
+4. **Interfaz de Usuario y Filtros:**
+   - `ModalAgregarObjeto.tsx`: 12 pestañas de filtro (Todas + las 11 categorías oficiales), vista previa dedicada para escudos (mostrando +2 CA) y ordenación inteligente por categoría y clase de armadura.
+   - `TarjetaObjetoInventario.tsx`: Identificación de consumibles mediante `objeto.esConsumible || objeto.categoria === "consumibles"` y renderizado de badges canónicos.
+   - `ModalDetalleObjetoInventario.tsx` y `usarDetalleObjetoInventario.ts`: Visualización del badge oficial de categoría con icono Lucide y color temático.
+   - `FormularioObjeto.tsx` y `ListaHomebrew.tsx`: Adaptados para seleccionar entre las categorías canónicas.
+5. **Verificación Integral y Suite de Pruebas:**
+   - 13 archivos de pruebas unitarias actualizados a los nuevos contratos de datos.
+   - `pnpm exec tsc --noEmit`: 0 errores en modo estricto.
+   - `pnpm exec vitest run`: 49 suites de prueba ejecutadas, 591 pruebas pasando exitosamente (100%).
+   - `pnpm run build`: Compilación de producción con Vite completada con éxito.
+
+---
+
 ## [2026-09-11] Integración de agregarModificadorHabilidad en Conjuros (D&D 5.5e y Fórmulas TaleSpire)
 
 **Contexto y Requerimientos del Usuario:**

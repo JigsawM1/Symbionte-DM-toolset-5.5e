@@ -4,7 +4,8 @@ import type {
   TamanoPersonaje,
   ObjetoJuego,
   Rareza,
-  TipoContenedor
+  TipoContenedor,
+  CategoriaEquipo
 } from "@/tipos";
 import { generarId } from "@/utiles/generarId";
 
@@ -303,7 +304,9 @@ export function crearObjetoInventarioDesdeCompendio(
     notas: "",
     contenedor: contenedor || "mochila",
     pesoLb: pesoUnitarioReal,
-    tipoPrincipal: objetoJuego.tipoPrincipal,
+    categoria: objetoJuego.categoria || "equipo-aventurero",
+    esConsumible: Boolean(objetoJuego.esConsumible || objetoJuego.categoria === "consumibles"),
+    subcategoria: objetoJuego.subcategoria || "",
     esMagico: Boolean(objetoJuego.esMagico),
     rareza: rarezaValida,
     equipable: Boolean(objetoJuego.equipable),
@@ -320,7 +323,9 @@ export function crearObjetoInventarioCustom(datos: {
   nombre: string;
   pesoLb?: number;
   cantidad?: number;
-  tipoPrincipal?: "Arma" | "Armadura" | "Equipo de Aventuras";
+  categoria?: CategoriaEquipo;
+  esConsumible?: boolean;
+  subcategoria?: string;
   equipable?: boolean;
   sintonizacionRequerida?: boolean;
   esMagico?: boolean;
@@ -331,6 +336,8 @@ export function crearObjetoInventarioCustom(datos: {
 }): ObjetoInventario {
   const nombreLimpio = datos.nombre.trim() || "Objeto Personalizado";
   const cargas = datos.cargasMaximas !== undefined ? Math.max(0, datos.cargasMaximas) : undefined;
+  const categoria = datos.categoria || "equipo-aventurero";
+  const esConsumible = Boolean(datos.esConsumible || categoria === "consumibles");
 
   return {
     idInstancia: generarId("inv"),
@@ -342,7 +349,9 @@ export function crearObjetoInventarioCustom(datos: {
     notas: datos.notas || "",
     contenedor: datos.contenedor || "mochila",
     pesoLb: Math.max(0, Number(datos.pesoLb) || 0),
-    tipoPrincipal: datos.tipoPrincipal || "Equipo de Aventuras",
+    categoria,
+    esConsumible,
+    subcategoria: datos.subcategoria || "",
     esMagico: Boolean(datos.esMagico),
     rareza: datos.rareza || "Común",
     equipable: Boolean(datos.equipable),
@@ -422,7 +431,7 @@ export function desempaquetarPaqueteInventario(
           !nuevoObj.idObjeto.startsWith("obj_custom") &&
           o.idObjeto === nuevoObj.idObjeto) ||
           (normalizar(o.nombre) === normalizar(nuevoObj.nombre) &&
-            o.tipoPrincipal === nuevoObj.tipoPrincipal))
+            o.categoria === nuevoObj.categoria))
     );
 
     if (indiceExistente !== -1) {

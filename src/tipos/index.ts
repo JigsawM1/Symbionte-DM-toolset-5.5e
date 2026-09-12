@@ -91,8 +91,12 @@ export type Rareza = z.infer<typeof EsquemaRareza>;
 export const EsquemaTipoBonoDestreza = z.enum(["Completo", "Máximo 2", "Sin Bono"]);
 export type TipoBonoDestreza = z.infer<typeof EsquemaTipoBonoDestreza>;
 
-export const EsquemaSubcategoriaEquipo = z.enum(["Consumible", "Munición", "Herramienta", "Instrumento", "Paquete", "Maravilloso", "Equipo"]);
-export type SubcategoriaEquipo = z.infer<typeof EsquemaSubcategoriaEquipo>;
+import { CATEGORIAS_EQUIPO, type CategoriaEquipo } from "@/constantes/categoriasEquipoConstantes";
+export const EsquemaCategoriaEquipo = z.enum(CATEGORIAS_EQUIPO);
+export type { CategoriaEquipo };
+
+export const EsquemaSubcategoriaEquipo = z.string();
+export type SubcategoriaEquipo = string;
 
 export type TipoMoneda = "PC" | "PP" | "PE" | "PO" | "PPT";
 
@@ -253,13 +257,18 @@ export const EsquemaObjetoBase = z.object({
   id: z.string(),
   nombre: z.string(),
   nombreNormalizado: z.string().optional(),
-  descripcion: z.string(),
+  descripcion: z.string().default(""),
   pesoLb: z.number().default(0),
   valorPO: z.number().default(0),
-  rareza: EsquemaRareza,
+  rareza: EsquemaRareza.default("Común"),
   esMagico: z.boolean().default(false),
   propiedades: z.union([z.string(), z.array(z.string())]).optional(),
   
+  // Categoría oficial y flag de consumible
+  categoria: EsquemaCategoriaEquipo.default("equipo-aventurero"),
+  subcategoria: z.string().default(""),
+  esConsumible: z.boolean().default(false),
+
   // Nuevos campos para costo estructurado, venenos, y equipable
   costoOriginal: z.object({
     cantidad: z.number().default(0),
@@ -300,13 +309,12 @@ export const EsquemaObjetoBase = z.object({
 export type ObjetoBase = z.infer<typeof EsquemaObjetoBase>;
 
 export const EsquemaArma = EsquemaObjetoBase.extend({
-  tipoPrincipal: z.literal("Arma"),
-  subcategoria: z.enum(["Sencilla", "Marcial", "De Fuego"]),
-  tipoAtaque: z.enum(["Cuerpo a Cuerpo", "A Distancia"]),
-  dadoDano: z.string(),
-  tipoDano: z.string(),
-  propiedades: z.array(z.string()),
-  maestria: z.string(),
+  categoria: z.literal("armas").default("armas"),
+  tipoAtaque: z.enum(["Cuerpo a Cuerpo", "A Distancia"]).optional(),
+  dadoDano: z.string().optional(),
+  tipoDano: z.string().optional(),
+  propiedades: z.array(z.string()).default([]),
+  maestria: z.string().optional(),
   alcanceNormal: z.number().optional(),
   alcanceLargo: z.number().optional(),
   danoVersatil: z.string().optional(),
@@ -315,24 +323,29 @@ export const EsquemaArma = EsquemaObjetoBase.extend({
 export type Arma = z.infer<typeof EsquemaArma>;
 
 export const EsquemaArmadura = EsquemaObjetoBase.extend({
-  tipoPrincipal: z.literal("Armadura"),
-  subcategoria: z.enum(["Ligera", "Mediana", "Pesada", "Escudo"]),
-  caBase: z.number(),
+  categoria: z.literal("armaduras").default("armaduras"),
+  caBase: z.number().default(10),
   requisitoFuerza: z.number().optional(),
   desventajaSigilo: z.boolean().default(false),
-  bonoDestreza: EsquemaTipoBonoDestreza,
+  bonoDestreza: EsquemaTipoBonoDestreza.default("Completo"),
   tiempoEquipar: z.union([z.number(), z.string()]).optional()
 });
 export type Armadura = z.infer<typeof EsquemaArmadura>;
 
+export const EsquemaEscudo = EsquemaObjetoBase.extend({
+  categoria: z.literal("escudos").default("escudos"),
+  caBase: z.number().default(2),
+  desventajaSigilo: z.boolean().default(false),
+  equipable: z.literal(true).default(true)
+});
+export type Escudo = z.infer<typeof EsquemaEscudo>;
+
 export const EsquemaEquipoAventuras = EsquemaObjetoBase.extend({
-  tipoPrincipal: z.literal("Equipo de Aventuras"),
-  subcategoria: EsquemaSubcategoriaEquipo,
   cantidad: z.number().optional()
 });
 export type EquipoAventuras = z.infer<typeof EsquemaEquipoAventuras>;
 
-export const EsquemaObjetoJuego = z.union([EsquemaArma, EsquemaArmadura, EsquemaEquipoAventuras]);
+export const EsquemaObjetoJuego = z.union([EsquemaArma, EsquemaArmadura, EsquemaEscudo, EsquemaEquipoAventuras]);
 export type ObjetoJuego = z.infer<typeof EsquemaObjetoJuego>;
 export type ObjetoHomebrew = ObjetoJuego;
 

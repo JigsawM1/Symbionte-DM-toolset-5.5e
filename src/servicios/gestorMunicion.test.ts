@@ -9,22 +9,29 @@ import {
 import type { ObjetoInventario } from "@/tipos";
 
 describe("gestorMunicion - Compatibilidad de Munición y Contenedores D&D 5.5e", () => {
-  const crearItemInv = (nombre: string, cantidad: number = 1): ObjetoInventario => ({
-    idInstancia: `inv-${nombre}`,
-    idObjeto: `obj-${nombre}`,
-    nombre,
-    cantidad,
-    equipado: false,
-    sintonizado: false,
-    notas: "",
-    contenedor: "mochila",
-    pesoLb: 1,
-    tipoPrincipal: "Equipo de Aventuras",
-    esMagico: false,
-    rareza: "Común",
-    equipable: false,
-    sintonizacionRequerida: false
-  });
+  const crearItemInv = (nombre: string, cantidad: number = 1): ObjetoInventario => {
+    const nombreMin = nombre.toLowerCase();
+    const esMun = ["flecha", "virote", "bala", "aguja"].some((t) => nombreMin.includes(t));
+    const esCont = ["carcaj", "bolsa", "bolsita", "estuche", "cartuchera", "mochila"].some((t) => nombreMin.includes(t));
+    return {
+      idInstancia: `inv-${nombre}`,
+      idObjeto: `obj-${nombre}`,
+      nombre,
+      cantidad,
+      equipado: false,
+      sintonizado: false,
+      notas: "",
+      contenedor: "mochila",
+      pesoLb: 1,
+      categoria: esMun ? "municion" : esCont ? "contenedores" : "equipo-aventurero",
+      esConsumible: esMun,
+      subcategoria: esMun ? "Munición" : esCont ? "Contenedor" : "",
+      esMagico: false,
+      rareza: "Común",
+      equipable: false,
+      sintonizacionRequerida: false
+    };
+  };
 
   describe("Compatibilidad Específica Arma vs Munición", () => {
     it("Arco Largo solo es compatible con Flechas y rechaza Virotes o Balas", () => {

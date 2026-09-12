@@ -17,7 +17,8 @@ import {
   calcularProgresionClases,
   obtenerBloqueoToggleRasgo,
   resolverRecursosPadre,
-  agruparRasgosJerarquicos
+  agruparRasgosJerarquicos,
+  obtenerNivelEfectivoParaRasgo
 } from "./utilidadesProgresionRasgos";
 
 export type { SeccionesColapsadas, GrupoClaseJerarquico, DatosJerarquicosRasgos };
@@ -243,6 +244,7 @@ export function usarVistaRasgos() {
     manejarGuardarRasgoModal,
     ...accionesPersonajes,
     obtenerBloqueoToggleRasgo: (r: RasgoPersonaje) => obtenerBloqueoToggleRasgo(r, furiaEstaActiva),
-    resolverRecursosPadre: (r: RasgoPersonaje) => resolverRecursosPadre(personajeActivo, r)
+    resolverRecursosPadre: (r: RasgoPersonaje) => resolverRecursosPadre(personajeActivo, r),
+    obtenerNivelEfectivoParaRasgo: (r: RasgoPersonaje) => obtenerNivelEfectivoParaRasgo(personajeActivo, r)
   };
 }

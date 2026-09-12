@@ -6,11 +6,13 @@ import {
   ObjetoJuego, 
   Rareza, 
   TipoBonoDestreza, 
-  SubcategoriaEquipo, 
   Arma, 
   Armadura, 
-  EquipoAventuras 
+  Escudo,
+  EquipoAventuras,
+  SubcategoriaEquipo
 } from "@/tipos";
+import { type CategoriaEquipo } from "@/constantes/categoriasEquipoConstantes";
 
 export function usarFormularioObjeto(idEnEdicion: string | null, alGuardarExitoso: () => void) {
   const { agregarObjetoHomebrew, actualizarObjetoHomebrew, agregarNotificacion } = usarAlmacenDM();
@@ -253,18 +255,17 @@ export function usarFormularioObjeto(idEnEdicion: string | null, alGuardarExitos
       name: cr.name
     })) : []);
 
-    setOTipoPrincipal(o.tipoPrincipal);
-
     setOEsVeneno(o.esVeneno || false);
     setOTipoVeneno(o.tipoVeneno || "Contacto");
     setOEfectoVeneno(o.efectoVeneno || "");
     setOEquipable(o.equipable || false);
 
-    if (o.tipoPrincipal === "Arma") {
+    if (o.categoria === "armas") {
+      setOTipoPrincipal("Arma");
       const arma = o as Arma;
       // Re-sanitizar para que tipoAtaque y maestria se infieran siempre desde la fuente original
       const reSaneado = sanearObjetoHomebrew(arma) as Arma;
-      setOSubcategoriaArma(reSaneado.subcategoria || "Sencilla");
+      setOSubcategoriaArma((reSaneado.subcategoria as "Sencilla" | "Marcial" | "De Fuego") || "Sencilla");
       setOTipoAtaque(reSaneado.tipoAtaque || "Cuerpo a Cuerpo");
       setODadoDano(reSaneado.dadoDano || "1d6");
       setOTipoDano((reSaneado.tipoDano || "fuerza").toLowerCase());
@@ -275,18 +276,20 @@ export function usarFormularioObjeto(idEnEdicion: string | null, alGuardarExitos
       setODanoVersatil(reSaneado.danoVersatil || "");
       setOMunicionRequerida(reSaneado.municionRequerida || false);
       setOEquipable(true);
-    } else if (o.tipoPrincipal === "Armadura") {
+    } else if (o.categoria === "armaduras" || o.categoria === "escudos") {
+      setOTipoPrincipal("Armadura");
       const armadura = o as Armadura;
-      setOSubcategoriaArmadura(armadura.subcategoria || "Ligera");
-      setOCaBase(armadura.caBase || 10);
+      setOSubcategoriaArmadura(o.categoria === "escudos" ? "Escudo" : ((armadura.subcategoria as "Ligera" | "Mediana" | "Pesada" | "Escudo") || "Ligera"));
+      setOCaBase(armadura.caBase || (o.categoria === "escudos" ? 2 : 10));
       setORequisitoFuerza(armadura.requisitoFuerza !== undefined ? armadura.requisitoFuerza : "");
       setODesventajaSigilo(armadura.desventajaSigilo || false);
-      setOBonoDestreza(armadura.bonoDestreza || "Completo");
+      setOBonoDestreza(armadura.bonoDestreza || (o.categoria === "escudos" ? "Sin Bono" : "Completo"));
       setOTiempoEquipar(armadura.tiempoEquipar !== undefined ? armadura.tiempoEquipar : "");
       setOEquipable(true);
-    } else if (o.tipoPrincipal === "Equipo de Aventuras") {
+    } else {
+      setOTipoPrincipal("Equipo de Aventuras");
       const equipo = o as EquipoAventuras;
-      setOSubcategoriaEquipo(equipo.subcategoria || "Maravilloso");
+      setOSubcategoriaEquipo(equipo.subcategoria || (o.categoria === "consumibles" ? "Consumible" : "Maravilloso"));
       setOCantidad(equipo.cantidad !== undefined ? equipo.cantidad : "");
     }
   }, []);
@@ -430,7 +433,8 @@ export function usarFormularioObjeto(idEnEdicion: string | null, alGuardarExitos
     if (oTipoPrincipal === "Arma") {
       payload = {
         ...basePayload,
-        tipoPrincipal: "Arma",
+        categoria: "armas",
+        esConsumible: false,
         subcategoria: oSubcategoriaArma,
         tipoAtaque: oTipoAtaque,
         dadoDano: oDadoDano.trim() || "1d4",
@@ -444,20 +448,49 @@ export function usarFormularioObjeto(idEnEdicion: string | null, alGuardarExitos
       } as Omit<Arma, "id">;
     } else if (oTipoPrincipal === "Armadura") {
       const tiempoVal = oTiempoEquipar !== "" ? (isNaN(Number(oTiempoEquipar)) ? String(oTiempoEquipar).trim() : Number(oTiempoEquipar)) : undefined;
-      payload = {
-        ...basePayload,
-        tipoPrincipal: "Armadura",
-        subcategoria: oSubcategoriaArmadura,
-        caBase: Number(oCaBase) || 10,
-        requisitoFuerza: oRequisitoFuerza !== "" ? Number(oRequisitoFuerza) : undefined,
-        desventajaSigilo: oDesventajaSigilo,
-        bonoDestreza: oBonoDestreza,
-        tiempoEquipar: tiempoVal
-      } as Omit<Armadura, "id">;
+      if (oSubcategoriaArmadura === "Escudo") {
+        payload = {
+          ...basePayload,
+          categoria: "escudos",
+          esConsumible: false,
+          subcategoria: "Escudo",
+          caBase: Number(oCaBase) || 2,
+          desventajaSigilo: false,
+          equipable: true
+        } as Omit<Escudo, "id">;
+      } else {
+        payload = {
+          ...basePayload,
+          categoria: "armaduras",
+          esConsumible: false,
+          subcategoria: oSubcategoriaArmadura,
+          caBase: Number(oCaBase) || 10,
+          requisitoFuerza: oRequisitoFuerza !== "" ? Number(oRequisitoFuerza) : undefined,
+          desventajaSigilo: oDesventajaSigilo,
+          bonoDestreza: oBonoDestreza,
+          tiempoEquipar: tiempoVal
+        } as Omit<Armadura, "id">;
+      }
     } else {
+      let categoriaEquipo: CategoriaEquipo = "equipo-aventurero";
+      let esConsumible = false;
+      if (oSubcategoriaEquipo === "Consumible") {
+        categoriaEquipo = "consumibles";
+        esConsumible = true;
+      } else if (oSubcategoriaEquipo === "Munición") {
+        categoriaEquipo = "municion";
+      } else if (oSubcategoriaEquipo === "Herramienta") {
+        categoriaEquipo = "herramientas";
+      } else if (oSubcategoriaEquipo === "Paquete") {
+        categoriaEquipo = "paquetes-equipo";
+      } else if (oSubcategoriaEquipo === "Maravilloso") {
+        categoriaEquipo = "objetos-magicos";
+      }
+
       payload = {
         ...basePayload,
-        tipoPrincipal: "Equipo de Aventuras",
+        categoria: categoriaEquipo,
+        esConsumible,
         subcategoria: oSubcategoriaEquipo,
         cantidad: oCantidad !== "" ? Number(oCantidad) : undefined,
         ...(oSubcategoriaEquipo === "Consumible" && oEsVeneno ? {

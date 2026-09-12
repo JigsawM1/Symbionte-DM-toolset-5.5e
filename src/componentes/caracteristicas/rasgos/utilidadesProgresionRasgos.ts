@@ -249,3 +249,96 @@ export function agruparRasgosJerarquicos(
 
   return { especie, subespecie, dotes, personalizados, clases: mapClases, otrosClase };
 }
+
+/**
+ * Obtiene el nivel efectivo que aplica a un rasgo en el contexto de un personaje.
+ * - Para rasgos de clase o subclase (o asociados a una clase específica): retorna el nivel individual de dicha clase.
+ * - Para rasgos de especie, subespecie, dote, trasfondo o personalizados (o si no se identifica la clase): retorna el nivel general del personaje.
+ */
+export function obtenerNivelEfectivoParaRasgo(
+  personaje: PersonajeJugador | null | undefined,
+  rasgo: RasgoPersonaje | null | undefined
+): number {
+  if (!personaje) return 1;
+  const nivelGeneral = Math.max(1, Math.min(20, personaje.nivel || 1));
+  if (!rasgo) return nivelGeneral;
+
+  // Si es claramente un rasgo general no dependiente de clase (especie, dote, trasfondo), aplica el nivel general
+  if (
+    rasgo.origen === "especie" ||
+    rasgo.origen === "subespecie" ||
+    rasgo.origen === "dote" ||
+    rasgo.origen === "trasfondo"
+  ) {
+    return nivelGeneral;
+  }
+
+  // Clases configuradas en el personaje
+  const clasesPersonaje: Array<{ nombre: string; subclase?: string; nivel: number }> =
+    personaje.clases && personaje.clases.length > 0
+      ? personaje.clases
+      : [
+          {
+            nombre: personaje.clase || "Guerrero",
+            subclase: personaje.subclase || "",
+            nivel: personaje.nivel || 1
+          }
+        ];
+
+  // Si el personaje solo cuenta con una clase configurada, su nivel coincide con el general
+  if (clasesPersonaje.length === 1) {
+    return clasesPersonaje[0].nivel || nivelGeneral;
+  }
+
+  const normFuente = normalizar(rasgo.fuente || "");
+  const normId = normalizar(rasgo.id || "");
+  const normNombre = normalizar(rasgo.nombre || "");
+
+  // 1. Búsqueda por coincidencia directa con las clases del personaje
+  for (const c of clasesPersonaje) {
+    const normNombreClase = normalizar(c.nombre);
+    const normSubclaseClase = normalizar(c.subclase || "");
+
+    // Coincidencia con el nombre de la clase en la fuente o en el id
+    if (normNombreClase && (normFuente.includes(normNombreClase) || normId.includes(`_${normNombreClase}_`))) {
+      return c.nivel;
+    }
+
+    // Coincidencia con la subclase configurada
+    if (normSubclaseClase && (normFuente.includes(normSubclaseClase) || normId.includes(`_${normSubclaseClase}_`))) {
+      return c.nivel;
+    }
+  }
+
+  // 2. Búsqueda por catálogo oficial de clases y subclases canónicas
+  for (const c of clasesPersonaje) {
+    const defClase = obtenerClasePorNombre(c.nombre);
+    if (!defClase) continue;
+
+    const idClaseNorm = normalizar(defClase.id);
+    if (normId.includes(`_${idClaseNorm}_`) || normFuente.includes(idClaseNorm)) {
+      return c.nivel;
+    }
+
+    // Comprobar si el rasgo figura en la lista de rasgos de esta clase
+    if (defClase.rasgos.some((r) => normalizar(r.nombre) === normNombre)) {
+      return c.nivel;
+    }
+
+    // Comprobar si pertenece a alguna de las subclases de esta clase
+    for (const sub of defClase.subclases) {
+      const subNombreNorm = normalizar(sub.nombre);
+      const subIdNorm = normalizar(sub.id);
+      if (
+        (subNombreNorm && (normFuente.includes(subNombreNorm) || normId.includes(`_${subNombreNorm}_`))) ||
+        (subIdNorm && normId.includes(`_${subIdNorm}_`)) ||
+        sub.rasgos.some((r) => normalizar(r.nombre) === normNombre)
+      ) {
+        return c.nivel;
+      }
+    }
+  }
+
+  // Fallback seguro: nivel general del personaje si no se detectó vinculación a una clase específica
+  return nivelGeneral;
+}

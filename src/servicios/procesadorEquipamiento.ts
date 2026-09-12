@@ -5,20 +5,7 @@ import { generarId } from "@/utiles/generarId";
  * Determina si un objeto representa un Escudo según las reglas de D&D 5.5e.
  */
 export function esObjetoEscudo(obj: ObjetoInventario): boolean {
-  const normalizar = (s: string) => s.toLowerCase().trim();
-  const nombreNorm = normalizar(obj.nombre || "");
-  const idNorm = normalizar(obj.idObjeto || "");
-  const subcategoria = normalizar((obj as { subcategoria?: string }).subcategoria || "");
-
-  return (
-    subcategoria === "escudo" ||
-    subcategoria === "shields" ||
-    subcategoria === "shield" ||
-    nombreNorm.includes("escudo") ||
-    nombreNorm.includes("shield") ||
-    idNorm.includes("escudo") ||
-    idNorm.includes("shield")
-  );
+  return obj.categoria === "escudos";
 }
 
 /**
@@ -26,7 +13,7 @@ export function esObjetoEscudo(obj: ObjetoInventario): boolean {
  * excluyendo explícitamente los Escudos.
  */
 export function esObjetoArmaduraCorporal(obj: ObjetoInventario): boolean {
-  return obj.tipoPrincipal === "Armadura" && !esObjetoEscudo(obj);
+  return obj.categoria === "armaduras";
 }
 
 /**
@@ -35,9 +22,7 @@ export function esObjetoArmaduraCorporal(obj: ObjetoInventario): boolean {
  */
 export function esObjetoEquipable(obj: ObjetoInventario): boolean {
   if (obj.equipable === true) return true;
-  if (obj.tipoPrincipal === "Arma" || obj.tipoPrincipal === "Armadura") return true;
-  if (esObjetoEscudo(obj) || esObjetoArmaduraCorporal(obj)) return true;
-  return false;
+  return obj.categoria === "armas" || obj.categoria === "armaduras" || obj.categoria === "escudos";
 }
 
 /**
@@ -111,7 +96,7 @@ export function procesarAlternarEquipado(
           !objTarget.idObjeto.startsWith("obj_custom") &&
           o.idObjeto === objTarget.idObjeto) ||
           (normalizar(o.nombre) === normalizar(objTarget.nombre) &&
-            o.tipoPrincipal === objTarget.tipoPrincipal))
+            o.categoria === objTarget.categoria))
     );
 
     if (indiceMochila !== -1) {

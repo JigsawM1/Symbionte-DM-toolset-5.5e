@@ -44,7 +44,8 @@ export const VistaRasgosJugador: React.FC = () => {
     alternarActivoRasgo,
     actualizarSeleccionRasgo,
     obtenerBloqueoToggleRasgo,
-    resolverRecursosPadre
+    resolverRecursosPadre,
+    obtenerNivelEfectivoParaRasgo
   } = usarVistaRasgos();
 
   if (!personajeActivo) {
@@ -175,7 +176,7 @@ export const VistaRasgosJugador: React.FC = () => {
           rasgo={rasgoDetalleEfectivo}
           nombrePersonaje={nombrePj}
           idPersonaje={personajeActivo.id}
-          nivelPersonaje={personajeActivo.nivel}
+          nivelPersonaje={obtenerNivelEfectivoParaRasgo(rasgoDetalleEfectivo)}
           alCerrar={() => setRasgoSeleccionadoDetalle(null)}
           alGastarUso={() => gastarUsoRasgoPersonaje(personajeActivo.id, rasgoDetalleEfectivo.id)}
           alRecuperarUso={() => recuperarUsoRasgoPersonaje(personajeActivo.id, rasgoDetalleEfectivo.id)}

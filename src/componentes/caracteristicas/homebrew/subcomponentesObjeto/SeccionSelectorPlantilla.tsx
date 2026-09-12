@@ -3,6 +3,8 @@ import { ObjetoHomebrew } from "@/tipos";
 import { SelectorDesplegable } from "@/componentes/comunes";
 import { Copy } from "lucide-react";
 
+import { DICCIONARIO_CATEGORIAS_EQUIPO } from "@/constantes/categoriasEquipoConstantes";
+
 interface Props {
   idEnEdicion: string | null;
   listaTodosObjetos: ObjetoHomebrew[];
@@ -20,7 +22,7 @@ export const SeccionSelectorPlantilla: React.FC<Props> = ({
 
   const opcionesPlantillas = listaTodosObjetos.map((obj) => ({
     valor: obj.id,
-    etiqueta: `${obj.nombre} (${obj.tipoPrincipal} - ${obj.rareza})`
+    etiqueta: `${obj.nombre} (${DICCIONARIO_CATEGORIAS_EQUIPO[obj.categoria]?.etiqueta || obj.categoria} - ${obj.rareza})`
   }));
 
   return (

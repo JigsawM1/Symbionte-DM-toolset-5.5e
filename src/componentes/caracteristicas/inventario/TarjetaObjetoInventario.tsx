@@ -86,7 +86,7 @@ export const TarjetaObjetoInventario: React.FC<TarjetaObjetoInventarioProps> = (
   const puedeSintonizarNuevo = objeto.sintonizado || totalSintonizados < 3;
 
   // Detección de consumible / poción D&D 5.5e
-  const esConsumible = esObjetoConsumible(objeto.nombre, objeto.notas);
+  const esConsumible = Boolean(objeto.esConsumible || objeto.categoria === "consumibles" || esObjetoConsumible(objeto.nombre, objeto.notas));
   const infoConsumible = esConsumible
     ? detectarInfoConsumible(objeto.nombre, objeto.notas)
     : null;
@@ -97,10 +97,10 @@ export const TarjetaObjetoInventario: React.FC<TarjetaObjetoInventarioProps> = (
 
   const bonoMagico = objetoBase?.modificadorAtaqueDano;
   const esVeneno = Boolean(objetoBase?.esVeneno || objetoBase?.tipoVeneno);
-  const esArma = objetoBase?.tipoPrincipal === "Arma";
-  const armaObj = esArma ? (objetoBase as Arma) : null;
-  const esArmadura = objetoBase?.tipoPrincipal === "Armadura";
-  const armaduraObj = esArmadura ? (objetoBase as Armadura) : null;
+  const esArma = objeto.categoria === "armas" || objetoBase?.categoria === "armas";
+  const armaObj = esArma && (objetoBase?.categoria === "armas" || (objetoBase as Arma)?.tipoAtaque) ? (objetoBase as Arma) : null;
+  const esArmadura = objeto.categoria === "armaduras" || objetoBase?.categoria === "armaduras";
+  const armaduraObj = esArmadura && (objetoBase?.categoria === "armaduras" || (objetoBase as Armadura)?.caBase !== undefined) ? (objetoBase as Armadura) : null;
   const maestria = armaObj?.maestria;
 
   // 1. Estado detallado de almacenamiento si este ítem es Munición

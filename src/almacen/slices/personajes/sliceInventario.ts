@@ -33,10 +33,10 @@ export const crearSubSliceInventario: StateCreator<
         ) {
           return o.idObjeto === objeto.idObjeto;
         }
-        // Comparación por nombre normalizado y tipo principal
+        // Comparación por nombre normalizado y categoría
         return (
           normalizar(o.nombre) === normalizar(objeto.nombre) &&
-          o.tipoPrincipal === objeto.tipoPrincipal
+          o.categoria === objeto.categoria
         );
       });
 

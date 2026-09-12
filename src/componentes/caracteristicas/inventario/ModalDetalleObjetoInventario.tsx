@@ -10,6 +10,7 @@ import { CabeceraDetalleObjeto } from "./subcomponentes/CabeceraDetalleObjeto";
 import { MetricasPrincipalesObjeto } from "./subcomponentes/MetricasPrincipalesObjeto";
 import { SeccionDetallesEquipo } from "./subcomponentes/SeccionDetallesEquipo";
 import { SeccionMagiaYEfectosObjeto } from "./subcomponentes/SeccionMagiaYEfectosObjeto";
+import { DICCIONARIO_CATEGORIAS_EQUIPO } from "@/constantes/categoriasEquipoConstantes";
 import estilos from "./ModalDetalleObjetoInventario.module.css";
 
 interface ModalDetalleObjetoInventarioProps {
@@ -78,7 +79,7 @@ export const ModalDetalleObjetoInventario: React.FC<ModalDetalleObjetoInventario
         {/* Cabecera del Visor */}
         <CabeceraDetalleObjeto
           nombre={objeto.nombre}
-          tipoPrincipal={objeto.tipoPrincipal}
+          tipoPrincipal={DICCIONARIO_CATEGORIAS_EQUIPO[objeto.categoria]?.etiqueta || objeto.categoria}
           subcategoria={subcategoria}
           rareza={rareza}
           rarezaClass={rarezaClass}

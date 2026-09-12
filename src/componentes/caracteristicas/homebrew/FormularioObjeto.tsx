@@ -192,13 +192,13 @@ export const FormularioObjeto: React.FC<Props> = ({
 
   const resultadosContenido = busquedaContenidoQuery.trim()
     ? listaTodosObjetos
-        .filter((o) => coincideBusquedaTolerante([o.nombre, o.tipoPrincipal, o.subcategoria], busquedaContenidoQuery))
+        .filter((o) => coincideBusquedaTolerante([o.nombre, o.categoria, o.subcategoria], busquedaContenidoQuery))
         .slice(0, 5)
     : [];
 
   const resultadosCraft = busquedaCraftQuery.trim()
     ? listaTodosObjetos
-        .filter((o) => coincideBusquedaTolerante([o.nombre, o.tipoPrincipal, o.subcategoria], busquedaCraftQuery))
+        .filter((o) => coincideBusquedaTolerante([o.nombre, o.categoria, o.subcategoria], busquedaCraftQuery))
         .slice(0, 5)
     : [];
 

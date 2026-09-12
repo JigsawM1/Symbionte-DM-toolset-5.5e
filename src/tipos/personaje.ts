@@ -197,6 +197,9 @@ export type TipoMonedaClave = keyof BolsaMonedas;
 export const EsquemaTipoContenedor = z.enum(["mochila", "bolsa_contencion", "montura", "almacen"]);
 export type TipoContenedor = z.infer<typeof EsquemaTipoContenedor>;
 
+import { CATEGORIAS_EQUIPO } from "@/constantes/categoriasEquipoConstantes";
+export const EsquemaCategoriaEquipoPersonaje = z.enum(CATEGORIAS_EQUIPO);
+
 export const EsquemaObjetoInventario = z.object({
   idInstancia: z.string(),
   idObjeto: z.string(),
@@ -208,7 +211,9 @@ export const EsquemaObjetoInventario = z.object({
   contenedor: EsquemaTipoContenedor.optional(),
 
   pesoLb: z.number().default(0),
-  tipoPrincipal: z.enum(["Arma", "Armadura", "Equipo de Aventuras"]),
+  categoria: EsquemaCategoriaEquipoPersonaje.default("equipo-aventurero"),
+  esConsumible: z.boolean().default(false),
+  subcategoria: z.string().default(""),
   esMagico: z.boolean().default(false),
   rareza: z.enum(["Común", "Poco Común", "Raro", "Muy Raro", "Legendario", "Artefacto"]).default("Común"),
   equipable: z.boolean().default(false),

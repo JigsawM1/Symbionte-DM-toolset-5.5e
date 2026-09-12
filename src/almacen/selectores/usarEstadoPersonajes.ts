@@ -162,7 +162,7 @@ export function calcularEstadisticasPersonaje(pj: PersonajeJugador): Estadistica
     }
 
     const modDirecto = itemConEfectos.modificadorAtaqueDano ?? objetoComp?.modificadorAtaqueDano;
-    if (modDirecto && item.tipoPrincipal === "Armadura") {
+    if (modDirecto && (item.categoria === "armaduras" || item.categoria === "escudos")) {
       bonosModificadorDirectoArmadura += Number(modDirecto) || 0;
     }
   }
@@ -341,10 +341,10 @@ export function calcularEstadisticasPersonaje(pj: PersonajeJugador): Estadistica
 
   // 1. Identificar armadura corporal y escudo equipados
   const armaduraObj = inventario.find(
-    (o) => o.equipado && o.tipoPrincipal === "Armadura" && !normalizar(o.nombre).includes("escudo")
+    (o) => o.equipado && o.categoria === "armaduras"
   );
   const escudoObj = inventario.find(
-    (o) => o.equipado && (normalizar(o.nombre).includes("escudo") || (o.tipoPrincipal === "Armadura" && normalizar(o.nombre).startsWith("escudo")))
+    (o) => o.equipado && o.categoria === "escudos"
   );
 
   let caBase = 10;

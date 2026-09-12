@@ -35,7 +35,6 @@ function crearObjetoInventarioPrueba(
     idInstancia: string;
     idObjeto: string;
     nombre: string;
-    tipoPrincipal: "Arma" | "Armadura" | "Equipo de Aventuras";
   }
 ): PersonajeJugador["inventario"][number] {
   return {
@@ -48,6 +47,9 @@ function crearObjetoInventarioPrueba(
     sintonizacionRequerida: false,
     notas: "",
     pesoLb: 1,
+    categoria: "armaduras",
+    esConsumible: false,
+    subcategoria: "Pesada",
     ...parcial
   };
 }
@@ -161,7 +163,8 @@ describe("Evaluador de Efectos Mecánicos de Rasgos y Sistema de Builds", () => 
           idInstancia: "cota_malla_1",
           idObjeto: "cota_malla",
           nombre: "Cota de malla",
-          tipoPrincipal: "Armadura",
+          categoria: "armaduras",
+          subcategoria: "Pesada",
           equipado: true,
           pesoLb: 55
         })
@@ -215,7 +218,8 @@ describe("Evaluador de Efectos Mecánicos de Rasgos y Sistema de Builds", () => 
           idInstancia: "armadura_placas_1",
           idObjeto: "armadura_placas",
           nombre: "Armadura de placas",
-          tipoPrincipal: "Armadura",
+          categoria: "armaduras",
+          subcategoria: "Pesada",
           equipado: true,
           pesoLb: 65
         })

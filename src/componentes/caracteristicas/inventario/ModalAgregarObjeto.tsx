@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect } from "react";
-import type { ObjetoJuego, ObjetoInventario, Arma, Armadura, TipoContenedor } from "@/tipos";
-import { FileText, X, Plus, Sparkles, Package, Backpack, Box } from "lucide-react";
+import type { ObjetoJuego, ObjetoInventario, Arma, Armadura, Escudo, TipoContenedor } from "@/tipos";
+import { DICCIONARIO_CATEGORIAS_EQUIPO, type CategoriaEquipo } from "@/constantes/categoriasEquipoConstantes";
+import { FileText, X, Plus, Sparkles, Package, Backpack, Box, Shield } from "lucide-react";
 import { SelectorSugerencias, OpcionSugerencia } from "@/componentes/comunes/SelectorSugerencias";
 import { TooltipUniversal } from "@/componentes/comunes/TooltipUniversal";
 import {
@@ -24,7 +25,22 @@ interface ModalAgregarObjetoProps {
   alCerrar: () => void;
 }
 
-type FiltroTipo = "todos" | "Arma" | "Armadura" | "Equipo de Aventuras";
+type FiltroTipo = "todos" | CategoriaEquipo;
+
+const CATEGORIAS_FILTRO: { id: FiltroTipo; etiqueta: string }[] = [
+  { id: "todos", etiqueta: "Todos" },
+  { id: "armas", etiqueta: "Armas" },
+  { id: "armaduras", etiqueta: "Armaduras" },
+  { id: "escudos", etiqueta: "Escudos" },
+  { id: "consumibles", etiqueta: "Consumibles" },
+  { id: "municion", etiqueta: "Munición" },
+  { id: "herramientas", etiqueta: "Herramientas" },
+  { id: "focos-magicos", etiqueta: "Focos" },
+  { id: "contenedores", etiqueta: "Contenedores" },
+  { id: "paquetes-equipo", etiqueta: "Paquetes" },
+  { id: "objetos-magicos", etiqueta: "Mágicos" },
+  { id: "equipo-aventurero", etiqueta: "Varios" }
+];
 
 const OPCIONES_CONTENEDOR_DESTINO: {
   clave: TipoContenedor;
@@ -81,7 +97,7 @@ export const ModalAgregarObjeto: React.FC<ModalAgregarObjetoProps> = ({
   const objetosFiltrados = useMemo(() => {
     const listaBase = desduplicarEntidades(baseDatosObjetos);
     if (filtroTipo === "todos") return listaBase;
-    return listaBase.filter((o) => o.tipoPrincipal === filtroTipo);
+    return listaBase.filter((o) => o.categoria === filtroTipo);
   }, [baseDatosObjetos, filtroTipo]);
 
   // Opciones estructuradas y organizadas por subcategoría con ordenamiento específico
@@ -89,9 +105,9 @@ export const ModalAgregarObjeto: React.FC<ModalAgregarObjetoProps> = ({
     // 1. Clonar y ordenar la lista de objetos
     const listaOrdenada = [...objetosFiltrados].sort((a, b) => {
       // Si ambos son armaduras, ordenar por CA ascendente; si empatan, alfabético
-      if (a.tipoPrincipal === "Armadura" && b.tipoPrincipal === "Armadura") {
-        const caA = a.caBase || 0;
-        const caB = b.caBase || 0;
+      if (a.categoria === "armaduras" && b.categoria === "armaduras") {
+        const caA = (a as Armadura).caBase || 0;
+        const caB = (b as Armadura).caBase || 0;
         if (caA !== caB) return caA - caB;
         return a.nombre.localeCompare(b.nombre, "es");
       }
@@ -115,55 +131,68 @@ export const ModalAgregarObjeto: React.FC<ModalAgregarObjetoProps> = ({
       "Escudos": 23,
       // Equipo
       "Consumibles y Pociones": 30,
-      "Equipo de Aventuras": 31,
+      "Municiones": 31,
       "Herramientas": 32,
-      "Instrumentos Musicales": 33,
-      "Municiones": 34,
-      "Objetos Maravillosos": 35,
-      "Paquetes de Equipo": 36
+      "Focos Mágicos": 33,
+      "Contenedores y Almacenamiento": 34,
+      "Paquetes de Equipo": 35,
+      "Objetos Mágicos y Maravillosos": 36,
+      "Equipo de Aventuras": 37
     };
 
     // 3. Mapear a OpcionSugerencia
     const itemsConPrioridad = listaOrdenada.map((obj) => {
       let grupo = "Equipo de Aventuras";
 
-      if (obj.tipoPrincipal === "Arma") {
-        const sub = obj.subcategoria || "Sencilla";
-        const tipoAtk = (obj as Arma).tipoAtaque ? ` (${(obj as Arma).tipoAtaque})` : "";
+      if (obj.categoria === "armas") {
+        const arma = obj as Arma;
+        const sub = arma.subcategoria || "Sencilla";
+        const tipoAtk = arma.tipoAtaque ? ` (${arma.tipoAtaque})` : "";
         if (sub === "Sencilla") grupo = `Armas Sencillas${tipoAtk}`;
         else if (sub === "Marcial") grupo = `Armas Marciales${tipoAtk}`;
         else if (sub === "De Fuego") grupo = "Armas de Fuego";
         else grupo = `Armas ${sub}`;
-      } else if (obj.tipoPrincipal === "Armadura") {
-        if (obj.subcategoria === "Escudo") {
-          grupo = "Escudos";
-        } else if (obj.subcategoria === "Ligera") {
+      } else if (obj.categoria === "armaduras") {
+        const armadura = obj as Armadura;
+        if (armadura.subcategoria === "Ligera") {
           grupo = "Armaduras Ligeras";
-        } else if (obj.subcategoria === "Mediana") {
+        } else if (armadura.subcategoria === "Mediana") {
           grupo = "Armaduras Medianas";
-        } else if (obj.subcategoria === "Pesada") {
+        } else if (armadura.subcategoria === "Pesada") {
           grupo = "Armaduras Pesadas";
         } else {
-          grupo = `Armaduras ${obj.subcategoria || ""}`;
+          grupo = `Armaduras ${armadura.subcategoria || ""}`.trim();
         }
+      } else if (obj.categoria === "escudos") {
+        grupo = "Escudos";
+      } else if (obj.categoria === "consumibles") {
+        grupo = "Consumibles y Pociones";
+      } else if (obj.categoria === "municion") {
+        grupo = "Municiones";
+      } else if (obj.categoria === "herramientas") {
+        grupo = "Herramientas";
+      } else if (obj.categoria === "focos-magicos") {
+        grupo = "Focos Mágicos";
+      } else if (obj.categoria === "contenedores") {
+        grupo = "Contenedores y Almacenamiento";
+      } else if (obj.categoria === "paquetes-equipo") {
+        grupo = "Paquetes de Equipo";
+      } else if (obj.categoria === "objetos-magicos") {
+        grupo = "Objetos Mágicos y Maravillosos";
       } else {
-        const sub = obj.subcategoria || "Equipo";
-        if (sub === "Consumible") grupo = "Consumibles y Pociones";
-        else if (sub === "Munición") grupo = "Municiones";
-        else if (sub === "Herramienta") grupo = "Herramientas";
-        else if (sub === "Instrumento") grupo = "Instrumentos Musicales";
-        else if (sub === "Paquete") grupo = "Paquetes de Equipo";
-        else if (sub === "Maravilloso") grupo = "Objetos Maravillosos";
-        else grupo = "Equipo de Aventuras";
+        grupo = "Equipo de Aventuras";
       }
 
       let subtitulo = "";
-      if (obj.tipoPrincipal === "Arma") {
+      if (obj.categoria === "armas") {
         const arma = obj as Arma;
         const dano = arma.dadoDano ? `${arma.dadoDano} ${arma.tipoDano || ""}` : "";
         subtitulo = [dano, `${arma.pesoLb || 0} lb`, `${arma.valorPO || 0} PO`].filter(Boolean).join(" • ");
-      } else if (obj.tipoPrincipal === "Armadura") {
-        subtitulo = `CA ${obj.caBase || 0} • ${obj.pesoLb || 0} lb • ${obj.valorPO || 0} PO`;
+      } else if (obj.categoria === "armaduras") {
+        const armadura = obj as Armadura;
+        subtitulo = `CA ${armadura.caBase || 0} • ${armadura.pesoLb || 0} lb • ${armadura.valorPO || 0} PO`;
+      } else if (obj.categoria === "escudos") {
+        subtitulo = `CA +2 • ${obj.pesoLb || 0} lb • ${obj.valorPO || 0} PO`;
       } else {
         subtitulo = `${obj.pesoLb || 0} lb • ${obj.valorPO || 0} PO`;
       }
@@ -240,7 +269,8 @@ export const ModalAgregarObjeto: React.FC<ModalAgregarObjetoProps> = ({
       nombre: nombrePosesion.trim(),
       pesoLb: parseFloat(pesoPosesion) || 0,
       cantidad: Math.max(1, cantidadPosesion || 1),
-      tipoPrincipal: "Equipo de Aventuras",
+      categoria: "equipo-aventurero",
+      esConsumible: false,
       rareza: "Común",
       equipable: false,
       sintonizacionRequerida: false,
@@ -307,26 +337,22 @@ export const ModalAgregarObjeto: React.FC<ModalAgregarObjetoProps> = ({
             }}
           >
             {/* Filtros de categoría */}
-            <div style={{ display: "flex", gap: 4 }}>
-              {(["todos", "Arma", "Armadura", "Equipo de Aventuras"] as FiltroTipo[]).map((tipo) => (
+            <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
+              {CATEGORIAS_FILTRO.map((filtro) => (
                 <button
-                  key={tipo}
+                  key={filtro.id}
                   type="button"
-                  onClick={() => setFiltroTipo(tipo)}
+                  onClick={() => setFiltroTipo(filtro.id)}
                   className={estilos.neoButton}
                   style={{
-                    flex: 1,
                     fontSize: 9.5,
-                    padding: "4px 6px",
-                    backgroundColor: filtroTipo === tipo ? "#1e293b" : "transparent",
-                    borderColor: filtroTipo === tipo ? "#818cf8" : "rgba(148, 163, 184, 0.12)",
-                    color: filtroTipo === tipo ? "#ffffff" : "#94a3b8"
+                    padding: "3px 8px",
+                    backgroundColor: filtroTipo === filtro.id ? "#1e293b" : "transparent",
+                    borderColor: filtroTipo === filtro.id ? "#818cf8" : "rgba(148, 163, 184, 0.12)",
+                    color: filtroTipo === filtro.id ? "#ffffff" : "#94a3b8"
                   }}
                 >
-                  {tipo === "todos" && "Todos"}
-                  {tipo === "Arma" && "Armas"}
-                  {tipo === "Armadura" && "Armaduras"}
-                  {tipo === "Equipo de Aventuras" && "Equipo"}
+                  {filtro.etiqueta}
                 </button>
               ))}
             </div>
@@ -399,7 +425,7 @@ export const ModalAgregarObjeto: React.FC<ModalAgregarObjetoProps> = ({
                     {objetoSeleccionado.nombre}
                   </span>
                   <span className={`${estilos.badgeMeta} ${estilos.rarezaComun}`}>
-                    {objetoSeleccionado.tipoPrincipal}
+                    {DICCIONARIO_CATEGORIAS_EQUIPO[objetoSeleccionado.categoria]?.etiqueta || objetoSeleccionado.categoria}
                   </span>
                 </div>
 
@@ -426,8 +452,8 @@ export const ModalAgregarObjeto: React.FC<ModalAgregarObjetoProps> = ({
                   )}
                 </div>
 
-                {/* Badges de Estadísticas y Propiedades de Arma / Armadura */}
-                {objetoSeleccionado.tipoPrincipal === "Arma" && (() => {
+                {/* Badges de Estadísticas y Propiedades de Arma / Armadura / Escudo */}
+                {objetoSeleccionado.categoria === "armas" && (() => {
                   const armaObj = objetoSeleccionado as Arma;
                   return (
                     <div style={{ display: "flex", gap: 4, flexWrap: "wrap", marginTop: 4 }}>
@@ -485,7 +511,7 @@ export const ModalAgregarObjeto: React.FC<ModalAgregarObjetoProps> = ({
                   );
                 })()}
 
-                {objetoSeleccionado.tipoPrincipal === "Armadura" && (() => {
+                {objetoSeleccionado.categoria === "armaduras" && (() => {
                   const armaduraObj = objetoSeleccionado as Armadura;
                   return (
                     <div style={{ display: "flex", gap: 4, flexWrap: "wrap", marginTop: 4 }}>
@@ -532,6 +558,15 @@ export const ModalAgregarObjeto: React.FC<ModalAgregarObjetoProps> = ({
                     </div>
                   );
                 })()}
+
+                {objetoSeleccionado.categoria === "escudos" && (
+                  <div style={{ display: "flex", gap: 4, flexWrap: "wrap", marginTop: 4 }}>
+                    <span className={estilos.badgeMeta} style={{ backgroundColor: "rgba(16, 185, 129, 0.15)", color: "#6ee7b7", borderColor: "rgba(16, 185, 129, 0.3)" }}>
+                      <Shield size={10} style={{ display: "inline", verticalAlign: "middle", marginRight: 2 }} />
+                      CA +{(objetoSeleccionado as Escudo).caBase || 2}
+                    </span>
+                  </div>
+                )}
 
                 {objetoSeleccionado.descripcion && (
                   <div className={estilos.descripcionPreview}>

@@ -338,7 +338,7 @@ export function generarListaAtaquesFisicos(
 
   // 1. Armas Equipadas
   const armasEquipadas = inventario.filter(
-    (obj) => obj.equipado && obj.tipoPrincipal === "Arma"
+    (obj) => obj.equipado && obj.categoria === "armas"
   );
 
   for (const armaInst of armasEquipadas) {

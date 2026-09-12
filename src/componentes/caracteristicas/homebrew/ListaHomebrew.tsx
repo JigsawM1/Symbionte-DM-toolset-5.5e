@@ -5,7 +5,8 @@ import {
   usarEstadoHomebrew,
   usarAccionesHomebrew,
 } from "@/almacen/selectores";
-import { MonstruoBase, HechizoBase, ObjetoHomebrew, ObjetoJuego } from "@/tipos";
+import { MonstruoBase, HechizoBase, ObjetoHomebrew, ObjetoJuego, Arma, Armadura, Escudo } from "@/tipos";
+import { DICCIONARIO_CATEGORIAS_EQUIPO } from "@/constantes/categoriasEquipoConstantes";
 import { IDS_INICIALES_MONSTRUOS, IDS_INICIALES_HECHIZOS, IDS_INICIALES_OBJETOS } from "@/utiles/datosIniciales";
 import {
   Edit2,
@@ -124,7 +125,7 @@ export const ListaHomebrew: React.FC<Props> = ({
     coincideBusquedaTolerante([h.nombre, h.escuela, h.descripcion], filtroBusqueda)
   );
   const objetosHomebrewFiltrados = objetosHomebrewSinFiltro.filter((o) =>
-    coincideBusquedaTolerante([o.nombre, o.tipoPrincipal, o.subcategoria, o.descripcion], filtroBusqueda)
+    coincideBusquedaTolerante([o.nombre, o.categoria, o.subcategoria, o.descripcion], filtroBusqueda)
   );
 
   // Ordenamiento dinámico priorizando el título
@@ -176,7 +177,7 @@ export const ListaHomebrew: React.FC<Props> = ({
         }
         return a.nombre.localeCompare(b.nombre, "es", { sensitivity: "base" });
       },
-      (o) => [o.tipoPrincipal, o.subcategoria, o.descripcion]
+      (o) => [o.categoria, o.subcategoria, o.descripcion]
     )
   );
 
@@ -589,7 +590,7 @@ export const ListaHomebrew: React.FC<Props> = ({
                 )}
                 <div style={{ display: "flex", flexDirection: "row", gap: "4px" }}>
                   <span className={estilos.objetoNivelOverlay}>
-                    {objeto.tipoPrincipal} {objeto.subcategoria ? `| ${objeto.subcategoria}` : ""}
+                    {DICCIONARIO_CATEGORIAS_EQUIPO[objeto.categoria]?.etiqueta || objeto.categoria} {objeto.subcategoria ? `| ${objeto.subcategoria}` : ""}
                   </span>
                   <span className={estilos.nombreHechizoOverlay}>{objeto.nombre}</span>
                 </div>
@@ -676,13 +677,13 @@ export const ListaHomebrew: React.FC<Props> = ({
                     </div>
                   </div>
                 )}
-                {objeto.tipoPrincipal === "Arma" && objeto.alcanceNormal && (
+                {objeto.categoria === "armas" && (objeto as Arma).alcanceNormal && (
                   <div className={estilos.metaItem}>
                     <MapPin size={12} className={estilos.iconoDetalle} />
                     <div>
                       <div className={estilos.metaLabel}>ALCANCE</div>
                       <div className={estilos.metaValor}>
-                        {objeto.alcanceNormal}/{objeto.alcanceLargo || objeto.alcanceNormal} pies
+                        {(objeto as Arma).alcanceNormal}/{(objeto as Arma).alcanceLargo || (objeto as Arma).alcanceNormal} pies
                       </div>
                     </div>
                   </div>
@@ -701,108 +702,118 @@ export const ListaHomebrew: React.FC<Props> = ({
                      VENENO {objeto.tipoVeneno ? `(${objeto.tipoVeneno.toUpperCase()})` : ""}
                   </span>
                 )}
-                {objeto.tipoPrincipal === "Arma" && (
-                  <span className={estilos.chipRitual}>Arma {objeto.tipoAtaque}</span>
+                {objeto.categoria === "armas" && (
+                  <span className={estilos.chipRitual}>Arma {(objeto as Arma).tipoAtaque}</span>
                 )}
-                {objeto.tipoPrincipal === "Armadura" && (
-                  <span className={estilos.chipRitual}>{objeto.bonoDestreza}</span>
+                {(objeto.categoria === "armaduras" || objeto.categoria === "escudos") && (
+                  <span className={estilos.chipRitual}>{(objeto as Armadura).bonoDestreza || "Escudo"}</span>
                 )}
               </div>
 
               {/* MECÁNICAS DE COMBATE DE ARMA */}
-              {objeto.tipoPrincipal === "Arma" && (
-                <div className={estilos.cajaMecanicasCombateObjeto}>
-                  <div className={estilos.tituloMecanicasObjeto}>
-                    Propiedades de Combate del Arma
+              {objeto.categoria === "armas" && (() => {
+                const arma = objeto as Arma;
+                return (
+                  <div className={estilos.cajaMecanicasCombateObjeto}>
+                    <div className={estilos.tituloMecanicasObjeto}>
+                      Propiedades de Combate del Arma
+                    </div>
+                    <div className={estilos.gridMecanicas}>
+                      {arma.dadoDano && (
+                        <div className={estilos.itemMecanica}>
+                          <span className={estilos.textoEtiquetaMecanica}>Daño base: </span>
+                          <strong className={estilos.valorMecanicaDano}>
+                            {arma.dadoDano} ({arma.tipoDano ? arma.tipoDano.charAt(0).toUpperCase() + arma.tipoDano.slice(1) : ""})
+                          </strong>
+                        </div>
+                      )}
+                      {arma.maestria && (
+                        <div className={estilos.itemMecanica}>
+                          <span className={estilos.textoEtiquetaMecanica}>Maestría: </span>
+                          <strong className={estilos.valorMecanicaCd} style={{ color: "var(--color-advertencia)" }}>
+                            {arma.maestria}
+                          </strong>
+                        </div>
+                      )}
+                      {arma.danoVersatil && (
+                        <div className={estilos.itemMecanica}>
+                          <span className={estilos.textoEtiquetaMecanica}>A dos manos: </span>
+                          <strong className={estilos.valorMecanicaDano}>{arma.danoVersatil}</strong>
+                        </div>
+                      )}
+                      {arma.municionRequerida !== undefined && (
+                        <div className={estilos.itemMecanica}>
+                          <span className={estilos.textoEtiquetaMecanica}>Usa Munición: </span>
+                          <strong className={estilos.valorMecanicaCd}>{arma.municionRequerida ? "Sí" : "No"}</strong>
+                        </div>
+                      )}
+                      {arma.ammunition && (
+                        <div className={estilos.itemMecanica}>
+                          <span className={estilos.textoEtiquetaMecanica}>Munición: </span>
+                          {(() => {
+                            const idDestino = arma.ammunition.index;
+                            const existeDestino = objetosHomebrew.some(o => o.id === idDestino || normalizarTexto(o.nombre) === normalizarTexto(arma.ammunition!.name));
+                            if (existeDestino) {
+                              return (
+                                <strong
+                                  onClick={() => {
+                                    const found = objetosHomebrew.find(o => o.id === idDestino || normalizarTexto(o.nombre) === normalizarTexto(arma.ammunition!.name));
+                                    if (found) navegarAObjeto(found.id);
+                                  }}
+                                  style={{ color: "var(--color-borde-cian)", cursor: "pointer", textDecoration: "underline" }}
+                                >
+                                  {arma.ammunition.name}
+                                </strong>
+                              );
+                            }
+                            return <strong className={estilos.valorMecanicaCd}>{arma.ammunition.name}</strong>;
+                          })()}
+                        </div>
+                      )}
+                    </div>
                   </div>
-                  <div className={estilos.gridMecanicas}>
-                    {objeto.dadoDano && (
-                      <div className={estilos.itemMecanica}>
-                        <span className={estilos.textoEtiquetaMecanica}>Daño base: </span>
-                        <strong className={estilos.valorMecanicaDano}>
-                          {objeto.dadoDano} ({objeto.tipoDano.charAt(0).toUpperCase() + objeto.tipoDano.slice(1)})
-                        </strong>
-                      </div>
-                    )}
-                    {objeto.maestria && (
-                      <div className={estilos.itemMecanica}>
-                        <span className={estilos.textoEtiquetaMecanica}>Maestría: </span>
-                        <strong className={estilos.valorMecanicaCd} style={{ color: "var(--color-advertencia)" }}>
-                          {objeto.maestria}
-                        </strong>
-                      </div>
-                    )}
-                    {objeto.danoVersatil && (
-                      <div className={estilos.itemMecanica}>
-                        <span className={estilos.textoEtiquetaMecanica}>A dos manos: </span>
-                        <strong className={estilos.valorMecanicaDano}>{objeto.danoVersatil}</strong>
-                      </div>
-                    )}
-                    {objeto.municionRequerida !== undefined && (
-                      <div className={estilos.itemMecanica}>
-                        <span className={estilos.textoEtiquetaMecanica}>Usa Munición: </span>
-                        <strong className={estilos.valorMecanicaCd}>{objeto.municionRequerida ? "Sí" : "No"}</strong>
-                      </div>
-                    )}
-                    {objeto.ammunition && (
-                      <div className={estilos.itemMecanica}>
-                        <span className={estilos.textoEtiquetaMecanica}>Munición: </span>
-                        {(() => {
-                          const idDestino = objeto.ammunition.index;
-                          const existeDestino = objetosHomebrew.some(o => o.id === idDestino || normalizarTexto(o.nombre) === normalizarTexto(objeto.ammunition!.name));
-                          if (existeDestino) {
-                            return (
-                              <strong
-                                onClick={() => {
-                                  const found = objetosHomebrew.find(o => o.id === idDestino || normalizarTexto(o.nombre) === normalizarTexto(objeto.ammunition!.name));
-                                  if (found) navegarAObjeto(found.id);
-                                }}
-                                style={{ color: "var(--color-borde-cian)", cursor: "pointer", textDecoration: "underline" }}
-                              >
-                                {objeto.ammunition.name}
-                              </strong>
-                            );
-                          }
-                          return <strong className={estilos.valorMecanicaCd}>{objeto.ammunition.name}</strong>;
-                        })()}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
+                );
+              })()}
 
-              {/* MECÁNICAS DE ARMADURA */}
-              {objeto.tipoPrincipal === "Armadura" && (
-                <div className={estilos.cajaMecanicasCombateObjeto} style={{ borderColor: "rgba(255, 165, 0, 0.25)" }}>
-                  <div className={estilos.tituloMecanicasObjeto} style={{ color: "var(--color-advertencia)" }}>
-                    Protección y Sigilo
-                  </div>
-                  <div className={estilos.gridMecanicas}>
-                    <div className={estilos.itemMecanica}>
-                      <span className={estilos.textoEtiquetaMecanica}>CA Base: </span>
-                      <strong className={estilos.valorMecanicaDano}>{objeto.caBase}</strong>
+              {/* MECÁNICAS DE ARMADURA O ESCUDO */}
+              {(objeto.categoria === "armaduras" || objeto.categoria === "escudos") && (() => {
+                const armadura = objeto as Armadura | Escudo;
+                return (
+                  <div className={estilos.cajaMecanicasCombateObjeto} style={{ borderColor: "rgba(255, 165, 0, 0.25)" }}>
+                    <div className={estilos.tituloMecanicasObjeto} style={{ color: "var(--color-advertencia)" }}>
+                      Protección y Sigilo
                     </div>
-                    {objeto.requisitoFuerza && (
+                    <div className={estilos.gridMecanicas}>
                       <div className={estilos.itemMecanica}>
-                        <span className={estilos.textoEtiquetaMecanica}>FUE Requerida: </span>
-                        <strong className={estilos.valorMecanicaCd}>FUE {objeto.requisitoFuerza}</strong>
+                        <span className={estilos.textoEtiquetaMecanica}>CA Base: </span>
+                        <strong className={estilos.valorMecanicaDano}>
+                          {objeto.categoria === "escudos" ? `+${armadura.caBase}` : armadura.caBase}
+                        </strong>
                       </div>
-                    )}
-                    <div className={estilos.itemMecanica}>
-                      <span className={estilos.textoEtiquetaMecanica}>Desv. Sigilo: </span>
-                      <strong className={objeto.desventajaSigilo ? estilos.valorMecanicaSuperior : estilos.valorMecanicaCd} style={{ color: objeto.desventajaSigilo ? "var(--color-peligro)" : "var(--color-exito)" }}>
-                        {objeto.desventajaSigilo ? "Sí" : "No"}
-                      </strong>
+                      {"requisitoFuerza" in armadura && armadura.requisitoFuerza && (
+                        <div className={estilos.itemMecanica}>
+                          <span className={estilos.textoEtiquetaMecanica}>FUE Requerida: </span>
+                          <strong className={estilos.valorMecanicaCd}>FUE {armadura.requisitoFuerza}</strong>
+                        </div>
+                      )}
+                      {"desventajaSigilo" in armadura && (
+                        <div className={estilos.itemMecanica}>
+                          <span className={estilos.textoEtiquetaMecanica}>Desv. Sigilo: </span>
+                          <strong className={armadura.desventajaSigilo ? estilos.valorMecanicaSuperior : estilos.valorMecanicaCd} style={{ color: armadura.desventajaSigilo ? "var(--color-peligro)" : "var(--color-exito)" }}>
+                            {armadura.desventajaSigilo ? "Sí" : "No"}
+                          </strong>
+                        </div>
+                      )}
+                      {"tiempoEquipar" in armadura && armadura.tiempoEquipar && (
+                        <div className={estilos.itemMecanica}>
+                          <span className={estilos.textoEtiquetaMecanica}>Tiempo Equipar: </span>
+                          <strong className={estilos.valorMecanicaCd}>{armadura.tiempoEquipar}</strong>
+                        </div>
+                      )}
                     </div>
-                    {objeto.tiempoEquipar && (
-                      <div className={estilos.itemMecanica}>
-                        <span className={estilos.textoEtiquetaMecanica}>Tiempo Equipar: </span>
-                        <strong className={estilos.valorMecanicaCd}>{objeto.tiempoEquipar}</strong>
-                      </div>
-                    )}
                   </div>
-                </div>
-              )}
+                );
+              })()}
 
               {/* MECÁNICAS Y EFECTOS DEL VENENO */}
               {(objeto.esVeneno || objeto.tipoVeneno || objeto.efectoVeneno) && (
@@ -953,11 +964,11 @@ export const ListaHomebrew: React.FC<Props> = ({
             })()}
 
               {/* Propiedades del arma en badges */}
-              {objeto.tipoPrincipal === "Arma" && objeto.propiedades && objeto.propiedades.length > 0 && (
+              {objeto.categoria === "armas" && (objeto as Arma).propiedades && (objeto as Arma).propiedades!.length > 0 && (
                 <div className={estilos.seccionDescripcionFichaMargenGrande}>
                   <div className={estilos.descripcionTituloFicha}>PROPIEDADES TÁCTICAS DEL ARMA</div>
                   <div className={estilos.listaBadgesClases}>
-                    {objeto.propiedades.map((prop: string) => (
+                    {(objeto as Arma).propiedades!.map((prop: string) => (
                       <span key={prop} className={estilos.badgeClaseObjeto}>
                         {prop}
                       </span>

@@ -15,7 +15,7 @@ describe("sanearObjetoHomebrew", () => {
       nombre: "Espada de las Sombras",
       rareza: "Raro",
       esMagico: true,
-      tipoPrincipal: "Arma",
+      categoria: "armas" as const,
       sintonizacionRequerida: true,
       condicionSintonizacion: "por un Pícaro",
       cargas: 5,
@@ -37,7 +37,7 @@ describe("sanearObjetoHomebrew", () => {
       nombre: "Vara de Poder",
       rareza: "Muy Raro",
       esMagico: true,
-      tipoPrincipal: "Equipo de Aventuras",
+      categoria: "objetos-magicos" as const,
       bonosMagicos: [
         { categoria: "CA", bono: "CA", valor: 1 },
         { categoria: "SALVACIÓN", bono: "FUE", valor: 2 }
@@ -64,7 +64,7 @@ describe("sanearObjetoHomebrew", () => {
       nombre: "Amuleto de Salud",
       rareza: "Raro",
       esMagico: true,
-      tipoPrincipal: "Equipo de Aventuras",
+      categoria: "objetos-magicos" as const,
       efectosPasivos: [
         { tipo: "CARACTERÍSTICA", bono: "CON", valor: 19, descripcion: "Tu puntuación de Constitución es 19." }
       ]
@@ -85,7 +85,7 @@ describe("sanearObjetoHomebrew", () => {
       nombre: "Anillo de Tres Deseos",
       rareza: "Legendario",
       esMagico: true,
-      tipoPrincipal: "Equipo de Aventuras",
+      categoria: "objetos-magicos" as const,
       hechizosVinculados: [
         { nombre: "Deseo", cd: 18, costeCargas: 1 }
       ],
@@ -111,13 +111,13 @@ describe("sanearObjetoHomebrew", () => {
   it("debe sanear campos específicos de Armas", () => {
     const raw = {
       nombre: "Espada de Mano y Media",
-      tipoPrincipal: "Arma",
+      categoria: "armas" as const,
       danoVersatil: "1d10",
       municionRequerida: false,
     };
 
     const saneado = sanearObjetoHomebrew(raw) as Arma;
-    expect(saneado.tipoPrincipal).toBe("Arma");
+    expect(saneado.categoria).toBe("armas");
     expect(saneado.danoVersatil).toBe("1d10");
     expect(saneado.municionRequerida).toBe(false);
   });
@@ -125,13 +125,13 @@ describe("sanearObjetoHomebrew", () => {
   it("debe sanear campos específicos de Armaduras", () => {
     const raw = {
       nombre: "Cota de Malla",
-      tipoPrincipal: "Armadura",
+      categoria: "armaduras" as const,
       caBase: 16,
       tiempoEquipar: "10 minutos",
     };
 
     const saneado = sanearObjetoHomebrew(raw) as Armadura;
-    expect(saneado.tipoPrincipal).toBe("Armadura");
+    expect(saneado.categoria).toBe("armaduras");
     expect(saneado.caBase).toBe(16);
     expect(saneado.tiempoEquipar).toBe("10 minutos");
   });
@@ -164,7 +164,7 @@ describe("sanearObjetoHomebrew", () => {
     };
 
     const saneado = sanearObjetoHomebrew(raw);
-    expect(saneado.tipoPrincipal).toBe("Equipo de Aventuras");
+    expect(saneado.categoria).toBe("herramientas");
     expect(saneado.subcategoria).toBe("Herramienta"); // Inferido de artisans-tools / tools
     expect(saneado.valorPO).toBe(50);
     expect(saneado.craft).toEqual([
@@ -196,7 +196,7 @@ describe("sanearObjetoHomebrew", () => {
     };
 
     const saneadoArma = sanearObjetoHomebrew(rawArma) as Arma;
-    expect(saneadoArma.tipoPrincipal).toBe("Arma");
+    expect(saneadoArma.categoria).toBe("armas");
     expect(saneadoArma.subcategoria).toBe("Marcial");
     expect(saneadoArma.maestria).toBe("Topple (Derribar)");
     expect(saneadoArma.danoVersatil).toBe("1d10 (cortante)");
@@ -214,7 +214,7 @@ describe("sanearObjetoHomebrew", () => {
     };
 
     const saneadoArmadura = sanearObjetoHomebrew(rawArmadura) as Armadura;
-    expect(saneadoArmadura.tipoPrincipal).toBe("Armadura");
+    expect(saneadoArmadura.categoria).toBe("armaduras");
     expect(saneadoArmadura.subcategoria).toBe("Mediana");
     expect(saneadoArmadura.tiempoEquipar).toBe("5 minutos (Quitar: 1 minuto)");
   });

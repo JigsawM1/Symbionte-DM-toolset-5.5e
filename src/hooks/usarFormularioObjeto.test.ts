@@ -9,7 +9,8 @@ describe("Pruebas de Integración: Formulario y Creación de Objetos (R7)", () =
         {
           id: "item_cimatarra_base",
           nombre: "Cimatarra",
-          tipoPrincipal: "Arma",
+          categoria: "armas",
+          esConsumible: false,
           subcategoria: "Marcial",
           tipoAtaque: "Cuerpo a Cuerpo",
           dadoDano: "1d6",
@@ -32,7 +33,8 @@ describe("Pruebas de Integración: Formulario y Creación de Objetos (R7)", () =
     const estado = usarAlmacenDM.getState();
     const nuevaArma = {
       nombre: "Chuchumaru",
-      tipoPrincipal: "Arma" as const,
+      categoria: "armas" as const,
+      esConsumible: false,
       subcategoria: "Marcial" as const,
       tipoAtaque: "Cuerpo a Cuerpo" as const,
       dadoDano: "1d8",
@@ -70,7 +72,8 @@ describe("Pruebas de Integración: Formulario y Creación de Objetos (R7)", () =
     const estado = usarAlmacenDM.getState();
     const nuevaArmadura = {
       nombre: "Placas del Dragón Dorado",
-      tipoPrincipal: "Armadura" as const,
+      categoria: "armaduras" as const,
+      esConsumible: false,
       subcategoria: "Pesada" as const,
       caBase: 19,
       requisitoFuerza: 15,
@@ -108,7 +111,8 @@ describe("Pruebas de Integración: Formulario y Creación de Objetos (R7)", () =
 
     estado.actualizarObjetoHomebrew(idOriginal, {
       nombre: "Cimatarra Afilada +1",
-      tipoPrincipal: "Arma" as const,
+      categoria: "armas" as const,
+      esConsumible: false,
       subcategoria: "Marcial" as const,
       tipoAtaque: "Cuerpo a Cuerpo" as const,
       dadoDano: "1d6",

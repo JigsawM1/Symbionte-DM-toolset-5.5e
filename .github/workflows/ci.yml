@@ -12,6 +12,9 @@ on:
       - master
       - develop
 
+permissions:
+  contents: read
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -20,6 +23,7 @@ jobs:
   verificacion-calidad:
     name: Verificación de Calidad y Compilación
     runs-on: ubuntu-latest
+    timeout-minutes: 15
 
     steps:
       - name: Clonar Repositorio
@@ -27,8 +31,6 @@ jobs:
 
       - name: Instalar pnpm
         uses: pnpm/action-setup@v4
-        with:
-          version: 9
 
       - name: Configurar Node.js (v20) con caché de pnpm
         uses: actions/setup-node@v4
@@ -52,4 +54,4 @@ jobs:
         run: pnpm run verificar:lineas
 
       - name: Compilación y Empaquetado de Producción (Vite Build)
-        run: pnpm run build
+        run: pnpm exec vite build

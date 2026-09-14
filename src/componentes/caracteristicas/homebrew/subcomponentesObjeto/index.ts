@@ -7,4 +7,5 @@ export * from "./SeccionDatosGenerales";
 export * from "./SeccionArma";
 export * from "./SeccionArmadura";
 export * from "./SeccionEquipoContenedor";
+export * from "./SeccionEscudo";
 export * from "./SeccionEfectosPasivos";

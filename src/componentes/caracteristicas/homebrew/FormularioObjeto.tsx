@@ -23,9 +23,11 @@ import {
   SeccionDatosGenerales,
   SeccionArma,
   SeccionArmadura,
+  SeccionEscudo,
   SeccionEquipoContenedor,
   SeccionEfectosPasivos,
 } from "./subcomponentesObjeto";
+import { DICCIONARIO_CATEGORIAS_EQUIPO } from "@/constantes/categoriasEquipoConstantes";
 
 interface Props {
   idEnEdicion: string | null;
@@ -54,7 +56,12 @@ export const FormularioObjeto: React.FC<Props> = ({
     oCostoUnidad, setOCostoUnidad,
     oEsMagico, setOEsMagico,
     oEfectosPasivos,
-    oTipoPrincipal, setOTipoPrincipal,
+    oCategoria, alCambiarCategoria,
+    oEsConsumible, setOEsConsumible,
+    oSubcategoria, setOSubcategoria,
+    oQuantity, setOQuantity,
+    oPesoUnitario, setOPesoUnitario,
+    oCaEscudo, setOCaEscudo,
 
     oSubcategoriaArma, setOSubcategoriaArma,
     oTipoAtaque, setOTipoAtaque,
@@ -74,7 +81,6 @@ export const FormularioObjeto: React.FC<Props> = ({
     oBonoDestreza, setOBonoDestreza,
     oTiempoEquipar, setOTiempoEquipar,
 
-    oSubcategoriaEquipo, setOSubcategoriaEquipo,
     oCantidad, setOCantidad,
     oSintonizacionRequerida, setOSintonizacionRequerida,
     oCargas, setOCargas,
@@ -231,7 +237,7 @@ export const FormularioObjeto: React.FC<Props> = ({
           onClick={() => setPestanaActiva("atributos")}
           className={`${estilos.pestanaBoton} ${pestanaActiva === "atributos" ? estilos.pestanaBotonActivo : ""}`}
         >
-          [Atributos: {oTipoPrincipal}]
+          [Atributos: {DICCIONARIO_CATEGORIAS_EQUIPO[oCategoria]?.etiqueta || "Atributos"}]
         </button>
         <button
           type="button"
@@ -252,14 +258,20 @@ export const FormularioObjeto: React.FC<Props> = ({
         <SeccionDatosGenerales
           oNombre={oNombre}
           setONombre={setONombre}
-          oTipoPrincipal={oTipoPrincipal}
-          setOTipoPrincipal={setOTipoPrincipal}
+          oCategoria={oCategoria}
+          alCambiarCategoria={alCambiarCategoria}
+          oSubcategoria={oSubcategoria}
+          setOSubcategoria={setOSubcategoria}
           oSubcategoriaArma={oSubcategoriaArma}
           setOSubcategoriaArma={setOSubcategoriaArma}
           oSubcategoriaArmadura={oSubcategoriaArmadura}
           alCambiarSubcategoriaArmadura={alCambiarSubcategoriaArmadura}
-          oSubcategoriaEquipo={oSubcategoriaEquipo}
-          setOSubcategoriaEquipo={setOSubcategoriaEquipo}
+          oEsConsumible={oEsConsumible}
+          setOEsConsumible={setOEsConsumible}
+          oQuantity={oQuantity}
+          setOQuantity={setOQuantity}
+          oPesoUnitario={oPesoUnitario}
+          setOPesoUnitario={setOPesoUnitario}
           oRareza={oRareza}
           alCambiarRareza={alCambiarRareza}
           oPesoLb={oPesoLb}
@@ -288,7 +300,7 @@ export const FormularioObjeto: React.FC<Props> = ({
       {/* SECCIÓN 2: ATRIBUTOS ESPECÍFICOS */}
       {pestanaActiva === "atributos" && (
         <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-          {oTipoPrincipal === "Arma" && (
+          {oCategoria === "armas" && (
             <SeccionArma
               oTipoAtaque={oTipoAtaque}
               setOTipoAtaque={setOTipoAtaque}
@@ -314,7 +326,7 @@ export const FormularioObjeto: React.FC<Props> = ({
             />
           )}
 
-          {oTipoPrincipal === "Armadura" && (
+          {oCategoria === "armaduras" && (
             <SeccionArmadura
               oCaBase={oCaBase}
               setOCaBase={setOCaBase}
@@ -330,11 +342,23 @@ export const FormularioObjeto: React.FC<Props> = ({
             />
           )}
 
-          {oTipoPrincipal === "Equipo de Aventuras" && (
+          {oCategoria === "escudos" && (
+            <SeccionEscudo
+              oCaEscudo={oCaEscudo}
+              setOCaEscudo={setOCaEscudo}
+              oDesventajaSigilo={oDesventajaSigilo}
+              setODesventajaSigilo={setODesventajaSigilo}
+              estilos={estilos}
+            />
+          )}
+
+          {oCategoria !== "armas" && oCategoria !== "armaduras" && oCategoria !== "escudos" && (
             <SeccionEquipoContenedor
               oCantidad={oCantidad}
               setOCantidad={setOCantidad}
-              oSubcategoriaEquipo={oSubcategoriaEquipo}
+              oCategoria={oCategoria}
+              oEsConsumible={oEsConsumible}
+              oSubcategoria={oSubcategoria}
               oEsVeneno={oEsVeneno}
               setOEsVeneno={setOEsVeneno}
               oTipoVeneno={oTipoVeneno}
@@ -430,7 +454,7 @@ export const FormularioObjeto: React.FC<Props> = ({
         <button 
           type="submit" 
           className={estilos.botonStickyGuardar}
-          disabled={!oNombre.trim() || !oTipoPrincipal}
+          disabled={!oNombre.trim() || !oCategoria}
         >
           <Save size={14} />
           {idEnEdicion ? "Guardar Cambios" : "Guardar en Compendio"}

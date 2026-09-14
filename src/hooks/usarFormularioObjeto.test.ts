@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { usarAlmacenDM } from "@/almacen/usarAlmacenDM";
-import type { Arma, Armadura } from "@/tipos";
+import type { Arma, Armadura, Escudo, EquipoAventuras } from "@/tipos";
 
 describe("Pruebas de Integración: Formulario y Creación de Objetos (R7)", () => {
   beforeEach(() => {
@@ -148,4 +148,125 @@ describe("Pruebas de Integración: Formulario y Creación de Objetos (R7)", () =
     const estadoActualizado = usarAlmacenDM.getState();
     expect(estadoActualizado.objetosHomebrew.some((o) => o.id === idOriginal)).toBe(false);
   });
+
+  it("Debe agregar un escudo homebrew como categoría de primera clase", () => {
+    const estado = usarAlmacenDM.getState();
+    const nuevoEscudo = {
+      nombre: "Escudo Torre Pesado",
+      categoria: "escudos" as const,
+      esConsumible: false,
+      subcategoria: "Escudo Torre",
+      caBase: 3,
+      desventajaSigilo: true,
+      rareza: "Poco Común" as const,
+      pesoLb: 10,
+      valorPO: 50,
+      descripcion: "Un gran escudo de madera reforzada que cubre gran parte del cuerpo.",
+      esMagico: false,
+      equipable: true,
+    };
+
+    estado.agregarObjetoHomebrew(nuevoEscudo as unknown as Omit<Escudo, "id">);
+
+    const estadoActualizado = usarAlmacenDM.getState();
+    const escudoGuardado = estadoActualizado.objetosHomebrew.find(
+      (o) => o.nombre === "Escudo Torre Pesado"
+    ) as Escudo | undefined;
+
+    expect(escudoGuardado).toBeDefined();
+    expect(escudoGuardado?.categoria).toBe("escudos");
+    expect(escudoGuardado?.caBase).toBe(3);
+    expect(escudoGuardado?.desventajaSigilo).toBe(true);
+    expect(escudoGuardado?.equipable).toBe(true);
+  });
+
+  it("Debe agregar un consumible con esConsumible=true y efectos de veneno", () => {
+    const estado = usarAlmacenDM.getState();
+    const nuevoVeneno = {
+      nombre: "Veneno de Serpiente Crepuscular",
+      categoria: "consumibles" as const,
+      esConsumible: true,
+      subcategoria: "Veneno",
+      rareza: "Raro" as const,
+      pesoLb: 0.1,
+      valorPO: 200,
+      descripcion: "Toxina extraída de las víboras de la penumbra.",
+      esMagico: false,
+      equipable: false,
+      esVeneno: true,
+      tipoVeneno: "Lesión" as const,
+      efectoVeneno: "El objetivo debe superar una salvación de CON CD 14 o recibir 3d6 daño de veneno y quedar envenenado por 1 hora.",
+    };
+
+    estado.agregarObjetoHomebrew(nuevoVeneno as unknown as Omit<EquipoAventuras, "id">);
+
+    const estadoActualizado = usarAlmacenDM.getState();
+    const venenoGuardado = estadoActualizado.objetosHomebrew.find(
+      (o) => o.nombre === "Veneno de Serpiente Crepuscular"
+    ) as EquipoAventuras | undefined;
+
+    expect(venenoGuardado).toBeDefined();
+    expect(venenoGuardado?.categoria).toBe("consumibles");
+    expect(venenoGuardado?.esConsumible).toBe(true);
+    expect(venenoGuardado?.esVeneno).toBe(true);
+    expect(venenoGuardado?.tipoVeneno).toBe("Lesión");
+  });
+
+  it("Debe agregar munición con metadatos de lote (quantity) y pesoUnitario", () => {
+    const estado = usarAlmacenDM.getState();
+    const nuevoLote = {
+      nombre: "Carcaj con Flechas de Caza",
+      categoria: "municion" as const,
+      esConsumible: true,
+      subcategoria: "Flechas",
+      rareza: "Común" as const,
+      pesoLb: 1,
+      valorPO: 1,
+      descripcion: "Lote de 20 flechas para arco.",
+      esMagico: false,
+      equipable: false,
+      quantity: 20,
+      pesoUnitario: 0.05,
+    };
+
+    estado.agregarObjetoHomebrew(nuevoLote as unknown as Omit<EquipoAventuras, "id">);
+
+    const estadoActualizado = usarAlmacenDM.getState();
+    const loteGuardado = estadoActualizado.objetosHomebrew.find(
+      (o) => o.nombre === "Carcaj con Flechas de Caza"
+    ) as EquipoAventuras | undefined;
+
+    expect(loteGuardado).toBeDefined();
+    expect(loteGuardado?.categoria).toBe("municion");
+    expect(loteGuardado?.quantity).toBe(20);
+    expect(loteGuardado?.pesoUnitario).toBe(0.05);
+    expect(loteGuardado?.esConsumible).toBe(true);
+  });
+
+  it("Debe persistir categorías de focos mágicos y contenedores sin revertir a equipo aventurero genérico", () => {
+    const estado = usarAlmacenDM.getState();
+    const nuevoFoco = {
+      nombre: "Orbe Astral de Cuarzo",
+      categoria: "focos-magicos" as const,
+      esConsumible: false,
+      subcategoria: "Foco Arcano",
+      rareza: "Poco Común" as const,
+      pesoLb: 1,
+      valorPO: 150,
+      descripcion: "Foco de canalización mística para hechiceros y magos.",
+      esMagico: true,
+      equipable: false,
+    };
+
+    estado.agregarObjetoHomebrew(nuevoFoco as unknown as Omit<EquipoAventuras, "id">);
+
+    const estadoActualizado = usarAlmacenDM.getState();
+    const focoGuardado = estadoActualizado.objetosHomebrew.find(
+      (o) => o.nombre === "Orbe Astral de Cuarzo"
+    );
+
+    expect(focoGuardado).toBeDefined();
+    expect(focoGuardado?.categoria).toBe("focos-magicos");
+  });
 });
+

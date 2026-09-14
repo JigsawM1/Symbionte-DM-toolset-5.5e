@@ -748,14 +748,16 @@ export function sanearObjetoHomebrew(o: unknown): ObjetoHomebrew {
     } else if (obj.caBase || obj.ca) {
       caEscudo = Number(obj.caBase || obj.ca) || 2;
     }
+    const desSigilo = !!(obj.stealth_disadvantage !== undefined ? obj.stealth_disadvantage : (obj.desventajaSigilo || obj.desvSigilo));
+    const subEscudo = aplanarValor(obj.subcategoria || "") || "Escudo";
 
     return {
       ...baseObjeto,
       propiedades: propiedadesSaneadas,
       categoria: "escudos",
-      subcategoria: "Escudo",
+      subcategoria: subEscudo,
       caBase: caEscudo,
-      desventajaSigilo: false,
+      desventajaSigilo: desSigilo,
       equipable: true
     } as Escudo;
   } else {

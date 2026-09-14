@@ -19,6 +19,52 @@ Este archivo registra reglas globales, errores encontrados, sus causas raíz y l
    - **Bajo ninguna circunstancia** los módulos de lógica de negocio (`servicios/`), gestores de estado (`almacen/`) o constructores (`gestorClases.ts`) deben contener bifurcaciones condicionales por nombre literal de rasgo o clase (`r.nombre === "..."`, `clase.includes("...")`, etc.).
    - Toda mecánica, progresión de dados, escalado de usos, recuperación o desbloqueo dinámico debe resolverse mediante metadatos declarativos (`escaladoFormulaDados`, `escaladoUsos`, `escaladoRecuperacion`, `opcionesDinamicas`, `escaladoMaxSelecciones`, `sincronizarEfectosConFormula`, `heredarDadosPadre`, `gastarDePadre`, `ligadoA`, `efectos`) delegando en funciones puras agnósticas como `resolverEscaladosRasgo`. Esta regla está reforzada en CI vía ESLint `no-restricted-syntax` y la suite `rasgoGenericidad.test.ts`.
 
+## [2026-09-14] Rework Canónico del Formulario de Objetos Homebrew (11 Categorías D&D 5.5e, Escudos y Consumibles)
+
+**Contexto y Requerimientos del Usuario:**
+- Solicitud del usuario: *"ok, ahora hay que plantear el rework de objetos. veo que no se estan consumiento todas las categorias y si se consumieran todas eso se podra aprovechar en lo que es el inventario"*, *"no, nada de compatibilidad con el legacy, todo nuevo"*, *"realmente los objetos que tienen subcategoria son contados y todos tienen es la subcategoria de 'consumible' asi que to lo reemplazaria por un booleano de esConsumible"*, y *"el FormularioObjeto creo que no tiene todos esos campos que se añadieron al inventario y como se procesan los objetos"*.
+
+**Causas Raíz y Deficiencias del Sistema Previo:**
+1. **Bifurcación Forzada en 3 Tipos Principales Legacy (`tipoPrincipal`):**
+   - El formulario agrupaba todos los objetos en `"Arma"`, `"Armadura"` o `"Equipo de Aventuras"`.
+   - Al editar un objeto con categoría canónica D&D 5.5e (como `"focos-magicos"`, `"contenedores"`, `"paquetes-equipo"` o `"consumibles"`), se convertía forzadamente a `"equipo-aventurero"`, perdiendo su categorización oficial.
+2. **Escudos Subordinados como Armadura Corporal:**
+   - Los escudos estaban anidados como una subcategoría de armaduras, exponiendo erróneamente configuraciones no aplicables (bono de destreza, requisitos de fuerza o tiempos de vestir/desvestir corporales) en lugar de un bonificador directo a la CA (`caBase: 2`, `equipable: true`).
+3. **Confusión entre Subcategoría y Consumible:**
+   - Para marcar un objeto como consumible, dependía de una cadena `"Consumible"` en `subcategoria`, impidiendo clasificar objetos de aventura o municiones especiales como consumibles sin alterar su subcategoría de herramienta o útil.
+4. **Ausencia de Metadatos de Paquetes / Lotes:**
+   - No se podían definir unidades por paquete (`quantity`) ni peso individual por unidad (`pesoUnitario`) para compras por lote como carcajes de flechas o raciones.
+
+**Solución Implementada y Decisiones Arquitectónicas:**
+1. **Catálogo Canónico Oficial y Diccionario Visual (`src/constantes/categoriasEquipoConstantes.ts`):**
+   - Se agregaron `SUBCATEGORIAS_POR_CATEGORIA` (diccionario exhaustivo de subcategorías oficiales sugeridas para las 11 categorías) y `OPCIONES_CATEGORIAS_SELECTOR` con colores y temas específicos.
+2. **Modernización Quirúrgica del Hook (`src/hooks/usarFormularioObjeto.ts`):**
+   - Eliminación completa de `tipoPrincipal`. Introducción de `oCategoria` (`CategoriaEquipo`), `oEsConsumible` (`boolean`), `oSubcategoria` (`string`), `oQuantity`, `oPesoUnitario` y `oCaEscudo`.
+   - `alCambiarCategoria` reactivo: auto-asigna `oEsConsumible = true` para consumibles y munición; auto-asigna `equipable = true` para armas, armaduras y escudos; precarga subcategorías canónicas sugeridas y valores por defecto.
+   - `manejarGuardarObjeto` y `cargarObjeto` construyen y leen cargas limpias compatibles con la unión estricta de Zod (`Arma`, `Armadura`, `Escudo`, `EquipoAventuras`).
+3. **Subcomponente Especializado para Escudos (`SeccionEscudo.tsx`):**
+   - Creado de forma atómica y pura (SRP). Gestiona exclusivamente el bonificador a la CA (`caBase`, estándar 2) y la desventaja en sigilo opcional (p. ej. escudos torre o pavés), con icono vectorial Lucide `Shield` (cero emojis).
+4. **Limpieza de Armaduras (`SeccionArmadura.tsx`):**
+   - Se removió la opción `"Escudo"` de la lista de armaduras, dejando únicamente `"Ligera"`, `"Mediana"` y `"Pesada"`.
+5. **Subcomponente de Datos Generales (`SeccionDatosGenerales.tsx`):**
+   - Selector con las 11 categorías oficiales D&D 5.5e.
+   - Selector reactivo de subcategorías basado en la categoría seleccionada, permitiendo selección o personalización.
+   - Switch directo para `oEsConsumible`.
+   - Entradas numéricas para unidades por lote (`quantity`) y peso unitario (`pesoUnitario`).
+6. **Adaptación de Utilería y Contenedores (`SeccionEquipoContenedor.tsx`):**
+   - Condiciones evaluadas contra `oCategoria` canónica: módulo de venenos visible si es consumible o categoría consumibles; almacenamiento de munición para `municion`; contenidos para `paquetes-equipo` o `contenedores`; recetas de crafteo para `herramientas`.
+7. **Orquestador Principal (`FormularioObjeto.tsx`):**
+   - Renderizado de pestañas reactivas `[Atributos: {DICCIONARIO_CATEGORIAS_EQUIPO[oCategoria].etiqueta}]`.
+   - Despacho condicional limpio a `SeccionArma`, `SeccionArmadura`, `SeccionEscudo` o `SeccionEquipoContenedor`.
+8. **Corrección en la Sanitización del Almacén (`src/almacen/sanitizacion.ts`):**
+   - Descubrimiento y corrección de un fallo donde `sanearObjetoHomebrew` para `escudos` forzaba `desventajaSigilo: false` y `subcategoria: "Escudo"`. Ahora lee fielmente los valores del objeto.
+9. **Verificación Automatizada:**
+   - `pnpm exec tsc --noEmit`: 0 errores (Strict mode).
+   - `pnpm exec vitest run`: 51 suites de prueba ejecutadas, 608 tests pasando al 100%.
+   - `pnpm run build`: Compilación de producción con Vite exitosa en 11.14s.
+
+---
+
 ## [2026-09-14] Desactivación Global del Corrector Ortográfico Nativo (Spellcheck) en Campos de Texto
 
 **Contexto y Requerimientos del Usuario:**

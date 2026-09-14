@@ -272,3 +272,100 @@ export function resolverCategoriaDesdeSRD(item: Record<string, unknown>): {
   // 11. Equipo de Aventurero general por defecto
   return { categoria: "equipo-aventurero", esConsumible: false };
 }
+
+/**
+ * Catálogo canónico de subcategorías sugeridas por cada categoría de equipo (D&D 5.5e).
+ */
+export const SUBCATEGORIAS_POR_CATEGORIA: Record<
+  CategoriaEquipo,
+  readonly { valor: string; etiqueta: string }[]
+> = {
+  armas: [
+    { valor: "Sencilla", etiqueta: "Arma Sencilla" },
+    { valor: "Marcial", etiqueta: "Arma Marcial" },
+    { valor: "De Fuego", etiqueta: "Arma de Fuego" }
+  ],
+  armaduras: [
+    { valor: "Ligera", etiqueta: "Armadura Ligera" },
+    { valor: "Mediana", etiqueta: "Armadura Mediana" },
+    { valor: "Pesada", etiqueta: "Armadura Pesada" }
+  ],
+  escudos: [
+    { valor: "Escudo", etiqueta: "Escudo Estándar" },
+    { valor: "Pavés", etiqueta: "Pavés / Escudo Torre" },
+    { valor: "Broquel", etiqueta: "Broquel" }
+  ],
+  herramientas: [
+    { valor: "Herramientas de Artesano", etiqueta: "Herramientas de Artesano" },
+    { valor: "Instrumento Musical", etiqueta: "Instrumento Musical" },
+    { valor: "Kit de Juego", etiqueta: "Kit de Juego" },
+    { valor: "Útiles de Ladrón", etiqueta: "Útiles de Ladrón" },
+    { valor: "Kit de Navegación", etiqueta: "Kit de Navegación" },
+    { valor: "Kit de Venenos", etiqueta: "Kit de Venenos" },
+    { valor: "Kit de Disfraz", etiqueta: "Kit de Disfraz" },
+    { valor: "Kit de Falsificación", etiqueta: "Kit de Falsificación" },
+    { valor: "Kit de Herboristería", etiqueta: "Kit de Herboristería" }
+  ],
+  "focos-magicos": [
+    { valor: "Foco Arcano", etiqueta: "Foco Arcano (Varita, Bastón, Orbe, Cristal)" },
+    { valor: "Foco Druídico", etiqueta: "Foco Druídico (Muérdago, Tótem)" },
+    { valor: "Símbolo Sagrado", etiqueta: "Símbolo Sagrado (Relicario, Emblema)" }
+  ],
+  consumibles: [
+    { valor: "Poción", etiqueta: "Poción / Elixir" },
+    { valor: "Pergamino", etiqueta: "Pergamino" },
+    { valor: "Veneno", etiqueta: "Veneno" },
+    { valor: "Munición Especial", etiqueta: "Munición Especial" },
+    { valor: "Provisión", etiqueta: "Provisión / Ración" },
+    { valor: "Consumible Mágico", etiqueta: "Consumible Mágico" }
+  ],
+  municion: [
+    { valor: "Flechas", etiqueta: "Flechas" },
+    { valor: "Virotes", etiqueta: "Virotes de Ballesta" },
+    { valor: "Balas", etiqueta: "Balas de Honda / Arma de Fuego" },
+    { valor: "Agujas", etiqueta: "Agujas de Cerbatana" }
+  ],
+  contenedores: [
+    { valor: "Mochila", etiqueta: "Mochila" },
+    { valor: "Carcaj", etiqueta: "Carcaj" },
+    { valor: "Bolsa", etiqueta: "Bolsa / Saquito" },
+    { valor: "Alforja", etiqueta: "Alforja" },
+    { valor: "Cofre", etiqueta: "Cofre / Barril" },
+    { valor: "Estuche", etiqueta: "Estuche (Agujas / Mapas)" }
+  ],
+  "paquetes-equipo": [
+    { valor: "Paquete de Aventurero", etiqueta: "Paquete de Aventurero" },
+    { valor: "Paquete de Explorador", etiqueta: "Paquete de Explorador" },
+    { valor: "Paquete de Diplomático", etiqueta: "Paquete de Diplomático" },
+    { valor: "Paquete de Sacerdote", etiqueta: "Paquete de Sacerdote" },
+    { valor: "Paquete de Erudito", etiqueta: "Paquete de Erudito" },
+    { valor: "Paquete Personalizado", etiqueta: "Paquete Personalizado" }
+  ],
+  "objetos-magicos": [
+    { valor: "Objeto Maravilloso", etiqueta: "Objeto Maravilloso" },
+    { valor: "Anillo", etiqueta: "Anillo Mágico" },
+    { valor: "Vara", etiqueta: "Vara Mágica" },
+    { valor: "Bastón", etiqueta: "Bastón Mágico" },
+    { valor: "Amuleto", etiqueta: "Amuleto / Talismán" },
+    { valor: "Artefacto", etiqueta: "Artefacto" }
+  ],
+  "equipo-aventurero": [
+    { valor: "Equipo Estándar", etiqueta: "Equipo Estándar" },
+    { valor: "Iluminación", etiqueta: "Iluminación (Antorcha, Linterna)" },
+    { valor: "Cuerda y Escalada", etiqueta: "Cuerda y Escalada" },
+    { valor: "Vestimenta", etiqueta: "Vestimenta y Ropa" },
+    { valor: "Documento o Libro", etiqueta: "Documento o Libro" }
+  ]
+};
+
+/**
+ * Opciones preformateadas de categorías para selectores desplegables de UI.
+ */
+export const OPCIONES_CATEGORIAS_SELECTOR = CATEGORIAS_EQUIPO.map((cat) => {
+  const info = DICCIONARIO_CATEGORIAS_EQUIPO[cat];
+  return {
+    valor: cat,
+    etiqueta: info.etiqueta,
+    color: info.color
+  };
+});

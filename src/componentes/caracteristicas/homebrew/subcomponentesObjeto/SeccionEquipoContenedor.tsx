@@ -1,5 +1,5 @@
 import React from "react";
-import { SubcategoriaEquipo } from "@/almacen/usarAlmacenDM";
+import { CategoriaEquipo } from "@/constantes/categoriasEquipoConstantes";
 import { ObjetoHomebrew } from "@/tipos";
 import { SelectorDesplegable } from "@/componentes/comunes";
 import { Backpack, X, FlaskConical, Hammer } from "lucide-react";
@@ -14,7 +14,9 @@ const OPCIONES_TIPO_VENENO = [
 interface Props {
   oCantidad: number | "";
   setOCantidad: (cant: number | "") => void;
-  oSubcategoriaEquipo: SubcategoriaEquipo;
+  oCategoria: CategoriaEquipo;
+  oEsConsumible: boolean;
+  oSubcategoria: string;
   oEsVeneno: boolean;
   setOEsVeneno: (es: boolean) => void;
   oTipoVeneno: "Contacto" | "Ingerido" | "Inhalado" | "Lesión";
@@ -52,7 +54,9 @@ interface Props {
 export const SeccionEquipoContenedor: React.FC<Props> = ({
   oCantidad,
   setOCantidad,
-  oSubcategoriaEquipo,
+  oCategoria,
+  oEsConsumible,
+  oSubcategoria,
   oEsVeneno,
   setOEsVeneno,
   oTipoVeneno,
@@ -108,7 +112,7 @@ export const SeccionEquipoContenedor: React.FC<Props> = ({
       </div>
 
       {/* Módulo de Veneno Condicional */}
-      {oSubcategoriaEquipo === "Consumible" && (
+      {(oCategoria === "consumibles" || oEsConsumible || oSubcategoria.toLowerCase().includes("veneno") || oSubcategoria.toLowerCase().includes("consumible")) && (
         <div style={{ marginTop: "12px", borderTop: "1px dashed rgba(255, 99, 71, 0.2)", paddingTop: "12px" }}>
           <label className={estilos.labelCheckbox} style={{ marginBottom: "8px" }}>
             <input
@@ -162,7 +166,7 @@ export const SeccionEquipoContenedor: React.FC<Props> = ({
       )}
 
       {/* Módulo de Almacenamiento para Municiones */}
-      {oSubcategoriaEquipo === "Munición" && (
+      {(oCategoria === "municion" || oSubcategoria.toLowerCase().includes("munición") || oSubcategoria.toLowerCase().includes("municion")) && (
         <div style={{ marginTop: "12px", borderTop: "1px dashed rgba(255, 99, 71, 0.2)", paddingTop: "12px" }}>
           <div className={estilos.tituloBloqueDinamico} style={{ fontSize: "12px", marginBottom: "8px" }}>
             <span>ALMACENAMIENTO RECOMENDADO</span>
@@ -213,7 +217,7 @@ export const SeccionEquipoContenedor: React.FC<Props> = ({
       )}
 
       {/* Módulo de Contenidos para Paquetes */}
-      {oSubcategoriaEquipo === "Paquete" && (
+      {(oCategoria === "paquetes-equipo" || oCategoria === "contenedores" || oSubcategoria.toLowerCase().includes("paquete") || oSubcategoria.toLowerCase().includes("contenedor") || oSubcategoria.toLowerCase().includes("mochila")) && (
         <div style={{ marginTop: "12px", borderTop: "1px dashed rgba(255, 99, 71, 0.2)", paddingTop: "12px" }}>
           <div className={estilos.tituloBloqueDinamico} style={{ fontSize: "12px", marginBottom: "8px" }}>
             <span>CONTENIDO DEL PAQUETE / CONTENEDOR</span>
@@ -319,7 +323,7 @@ export const SeccionEquipoContenedor: React.FC<Props> = ({
       )}
 
       {/* Módulo de Elaboración (Craft) para Herramientas */}
-      {oSubcategoriaEquipo === "Herramienta" && (
+      {(oCategoria === "herramientas" || oSubcategoria.toLowerCase().includes("herramienta")) && (
         <div style={{ marginTop: "12px", borderTop: "1px dashed rgba(255, 99, 71, 0.2)", paddingTop: "12px" }}>
           <div className={estilos.tituloBloqueDinamico} style={{ fontSize: "12px", marginBottom: "8px" }}>
             <span>OBJETOS QUE PUEDE ELABORAR (RECETAS)</span>

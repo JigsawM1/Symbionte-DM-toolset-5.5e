@@ -12,7 +12,7 @@ import {
   EquipoAventuras,
   SubcategoriaEquipo
 } from "@/tipos";
-import { type CategoriaEquipo } from "@/constantes/categoriasEquipoConstantes";
+import { type CategoriaEquipo, SUBCATEGORIAS_POR_CATEGORIA } from "@/constantes/categoriasEquipoConstantes";
 
 export function usarFormularioObjeto(idEnEdicion: string | null, alGuardarExitoso: () => void) {
   const { agregarObjetoHomebrew, actualizarObjetoHomebrew, agregarNotificacion } = usarAlmacenDM();
@@ -58,8 +58,12 @@ export function usarFormularioObjeto(idEnEdicion: string | null, alGuardarExitos
   // --- ESTADOS DE TIENDA Y EQUIPABILIDAD ---
   const [oEquipable, setOEquipable] = useState(false);
 
-  // Tipo Principal de Objeto
-  const [oTipoPrincipal, setOTipoPrincipal] = useState<"Arma" | "Armadura" | "Equipo de Aventuras">("Arma");
+  // --- CATEGORÍA CANÓNICA OFICIAL D&D 5.5e (11 CATEGORÍAS) ---
+  const [oCategoria, setOCategoria] = useState<CategoriaEquipo>("armas");
+  const [oEsConsumible, setOEsConsumible] = useState<boolean>(false);
+  const [oSubcategoria, setOSubcategoria] = useState<string>("Sencilla");
+  const [oQuantity, setOQuantity] = useState<number | "">("");
+  const [oPesoUnitario, setOPesoUnitario] = useState<number | "">("");
 
   // --- ESTADOS ESPECÍFICOS DE ARMA ---
   const [oSubcategoriaArma, setOSubcategoriaArma] = useState<"Sencilla" | "Marcial" | "De Fuego">("Sencilla");
@@ -74,14 +78,17 @@ export function usarFormularioObjeto(idEnEdicion: string | null, alGuardarExitos
   const [oMunicionRequerida, setOMunicionRequerida] = useState(false);
 
   // --- ESTADOS ESPECÍFICOS DE ARMADURA ---
-  const [oSubcategoriaArmadura, setOSubcategoriaArmadura] = useState<"Ligera" | "Mediana" | "Pesada" | "Escudo">("Ligera");
+  const [oSubcategoriaArmadura, setOSubcategoriaArmadura] = useState<"Ligera" | "Mediana" | "Pesada">("Ligera");
   const [oCaBase, setOCaBase] = useState<number>(10);
   const [oRequisitoFuerza, setORequisitoFuerza] = useState<number | "">("");
   const [oDesventajaSigilo, setODesventajaSigilo] = useState(false);
   const [oBonoDestreza, setOBonoDestreza] = useState<TipoBonoDestreza>("Completo");
   const [oTiempoEquipar, setOTiempoEquipar] = useState<string | number>("");
 
-  // --- ESTADOS ESPECÍFICOS DE EQUIPO DE AVENTURAS ---
+  // --- ESTADOS ESPECÍFICOS DE ESCUDO ---
+  const [oCaEscudo, setOCaEscudo] = useState<number>(2);
+
+  // --- ESTADOS ESPECÍFICOS DE EQUIPO DE AVENTURAS / CONTENEDORES ---
   const [oSubcategoriaEquipo, setOSubcategoriaEquipo] = useState<SubcategoriaEquipo>("Maravilloso");
   const [oCantidad, setOCantidad] = useState<number | "">("");
 
@@ -97,6 +104,36 @@ export function usarFormularioObjeto(idEnEdicion: string | null, alGuardarExitos
   const [oNuevoHechizoBonoAtaque, setONuevoHechizoBonoAtaque] = useState<number | "">("");
   const [oNuevoHechizoCosteCargas, setONuevoHechizoCosteCargas] = useState<number | "">("");
 
+  // Manejar el cambio reactivo de categoría canónica
+  const alCambiarCategoria = useCallback((nuevaCat: CategoriaEquipo) => {
+    setOCategoria(nuevaCat);
+    // Asignar esConsumible por defecto según la naturaleza de la categoría
+    const esCons = nuevaCat === "consumibles" || nuevaCat === "municion";
+    setOEsConsumible(esCons);
+
+    // Sugerir primera subcategoría oficial de la nueva categoría
+    const opcionesSubcat = SUBCATEGORIAS_POR_CATEGORIA[nuevaCat];
+    const primeraSubcat = opcionesSubcat && opcionesSubcat[0] ? opcionesSubcat[0].valor : "";
+    setOSubcategoria(primeraSubcat);
+
+    if (nuevaCat === "armas") {
+      setOEquipable(true);
+      setOSubcategoriaArma(primeraSubcat === "Marcial" || primeraSubcat === "De Fuego" ? primeraSubcat : "Sencilla");
+    } else if (nuevaCat === "armaduras") {
+      setOEquipable(true);
+      setOSubcategoriaArmadura(primeraSubcat === "Mediana" || primeraSubcat === "Pesada" ? primeraSubcat : "Ligera");
+      setOCaBase(primeraSubcat === "Pesada" ? 16 : primeraSubcat === "Mediana" ? 14 : 11);
+      setOBonoDestreza(primeraSubcat === "Pesada" ? "Sin Bono" : primeraSubcat === "Mediana" ? "Máximo 2" : "Completo");
+    } else if (nuevaCat === "escudos") {
+      setOEquipable(true);
+      setOCaEscudo(2);
+      setOSubcategoria("Escudo");
+    } else {
+      setOEquipable(false);
+      setOSubcategoriaEquipo(primeraSubcat);
+    }
+  }, []);
+
   // Manejar el cambio reactivo de rareza
   const alCambiarRareza = useCallback((rareza: Rareza) => {
     setORareza(rareza);
@@ -106,11 +143,19 @@ export function usarFormularioObjeto(idEnEdicion: string | null, alGuardarExitos
   }, []);
 
   // Manejar cambio reactivo de subcategoría de armadura para sugerir Destreza
-  const alCambiarSubcategoriaArmadura = useCallback((sub: "Ligera" | "Mediana" | "Pesada" | "Escudo") => {
+  const alCambiarSubcategoriaArmadura = useCallback((sub: "Ligera" | "Mediana" | "Pesada") => {
     setOSubcategoriaArmadura(sub);
-    if (sub === "Ligera") setOBonoDestreza("Completo");
-    else if (sub === "Mediana") setOBonoDestreza("Máximo 2");
-    else if (sub === "Pesada") setOBonoDestreza("Sin Bono");
+    setOSubcategoria(sub);
+    if (sub === "Ligera") {
+      setOBonoDestreza("Completo");
+      setOCaBase(11);
+    } else if (sub === "Mediana") {
+      setOBonoDestreza("Máximo 2");
+      setOCaBase(14);
+    } else if (sub === "Pesada") {
+      setOBonoDestreza("Sin Bono");
+      setOCaBase(16);
+    }
   }, []);
 
   const limpiarFormulario = useCallback(() => {
@@ -138,7 +183,11 @@ export function usarFormularioObjeto(idEnEdicion: string | null, alGuardarExitos
     setOArtesaniaComponentes([]);
     setONuevoComponente("");
 
-    setOTipoPrincipal("Arma");
+    setOCategoria("armas");
+    setOEsConsumible(false);
+    setOSubcategoria("Sencilla");
+    setOQuantity("");
+    setOPesoUnitario("");
 
     setOSubcategoriaArma("Sencilla");
     setOTipoAtaque("Cuerpo a Cuerpo");
@@ -158,13 +207,15 @@ export function usarFormularioObjeto(idEnEdicion: string | null, alGuardarExitos
     setOBonoDestreza("Completo");
     setOTiempoEquipar("");
 
+    setOCaEscudo(2);
+
     setOSubcategoriaEquipo("Maravilloso");
     setOCantidad("");
 
     setOEsVeneno(false);
     setOTipoVeneno("Contacto");
     setOEfectoVeneno("");
-    setOEquipable(false);
+    setOEquipable(true);
 
     // Reset nuevos campos relacionales
     setOAmmunitionIndex("");
@@ -260,10 +311,15 @@ export function usarFormularioObjeto(idEnEdicion: string | null, alGuardarExitos
     setOEfectoVeneno(o.efectoVeneno || "");
     setOEquipable(o.equipable || false);
 
-    if (o.categoria === "armas") {
-      setOTipoPrincipal("Arma");
+    const cat = o.categoria || "equipo-aventurero";
+    setOCategoria(cat);
+    setOEsConsumible(Boolean(o.esConsumible || cat === "consumibles"));
+    setOSubcategoria(o.subcategoria || "");
+    setOQuantity(o.quantity !== undefined ? o.quantity : "");
+    setOPesoUnitario(o.pesoUnitario !== undefined ? o.pesoUnitario : "");
+
+    if (cat === "armas") {
       const arma = o as Arma;
-      // Re-sanitizar para que tipoAtaque y maestria se infieran siempre desde la fuente original
       const reSaneado = sanearObjetoHomebrew(arma) as Arma;
       setOSubcategoriaArma((reSaneado.subcategoria as "Sencilla" | "Marcial" | "De Fuego") || "Sencilla");
       setOTipoAtaque(reSaneado.tipoAtaque || "Cuerpo a Cuerpo");
@@ -276,20 +332,23 @@ export function usarFormularioObjeto(idEnEdicion: string | null, alGuardarExitos
       setODanoVersatil(reSaneado.danoVersatil || "");
       setOMunicionRequerida(reSaneado.municionRequerida || false);
       setOEquipable(true);
-    } else if (o.categoria === "armaduras" || o.categoria === "escudos") {
-      setOTipoPrincipal("Armadura");
+    } else if (cat === "armaduras") {
       const armadura = o as Armadura;
-      setOSubcategoriaArmadura(o.categoria === "escudos" ? "Escudo" : ((armadura.subcategoria as "Ligera" | "Mediana" | "Pesada" | "Escudo") || "Ligera"));
-      setOCaBase(armadura.caBase || (o.categoria === "escudos" ? 2 : 10));
+      setOSubcategoriaArmadura((armadura.subcategoria as "Ligera" | "Mediana" | "Pesada") || "Ligera");
+      setOCaBase(armadura.caBase || 10);
       setORequisitoFuerza(armadura.requisitoFuerza !== undefined ? armadura.requisitoFuerza : "");
       setODesventajaSigilo(armadura.desventajaSigilo || false);
-      setOBonoDestreza(armadura.bonoDestreza || (o.categoria === "escudos" ? "Sin Bono" : "Completo"));
+      setOBonoDestreza(armadura.bonoDestreza || "Completo");
       setOTiempoEquipar(armadura.tiempoEquipar !== undefined ? armadura.tiempoEquipar : "");
       setOEquipable(true);
+    } else if (cat === "escudos") {
+      const escudo = o as Escudo;
+      setOCaEscudo(escudo.caBase || 2);
+      setODesventajaSigilo(escudo.desventajaSigilo || false);
+      setOEquipable(true);
     } else {
-      setOTipoPrincipal("Equipo de Aventuras");
       const equipo = o as EquipoAventuras;
-      setOSubcategoriaEquipo(equipo.subcategoria || (o.categoria === "consumibles" ? "Consumible" : "Maravilloso"));
+      setOSubcategoriaEquipo(equipo.subcategoria || "");
       setOCantidad(equipo.cantidad !== undefined ? equipo.cantidad : "");
     }
   }, []);
@@ -355,17 +414,21 @@ export function usarFormularioObjeto(idEnEdicion: string | null, alGuardarExitos
     let propTxt = oPropiedades.trim();
     if (!propTxt) {
       const parts: string[] = [];
-      parts.push(oTipoPrincipal);
-      if (oTipoPrincipal === "Arma") {
+      if (oCategoria === "armas") {
+        parts.push("Arma");
         parts.push(oSubcategoriaArma);
         parts.push(oTipoAtaque);
         if (oDadoDano) parts.push(`${oDadoDano} ${oTipoDano}`);
         if (oAlcanceNormal) parts.push(`Alcance ${oAlcanceNormal}/${oAlcanceLargo || oAlcanceNormal}`);
-      } else if (oTipoPrincipal === "Armadura") {
+      } else if (oCategoria === "armaduras") {
+        parts.push("Armadura");
         parts.push(oSubcategoriaArmadura);
         parts.push(`CA ${oCaBase}`);
-      } else if (oTipoPrincipal === "Equipo de Aventuras") {
-        parts.push(oSubcategoriaEquipo);
+      } else if (oCategoria === "escudos") {
+        parts.push("Escudo");
+        parts.push(`CA +${oCaEscudo}`);
+      } else if (oSubcategoria) {
+        parts.push(oSubcategoria);
       }
       propTxt = parts.join(", ");
     }
@@ -393,20 +456,38 @@ export function usarFormularioObjeto(idEnEdicion: string | null, alGuardarExitos
       costeCargas: h.costeCargas !== "" ? Number(h.costeCargas) : undefined
     })) : undefined;
 
+    const cantLote = Number(oQuantity) || 1;
+    const pesoTotal = Number(oPesoLb) || 0;
+    const pesoUnitarioCalculado = oPesoUnitario !== ""
+      ? Number(oPesoUnitario)
+      : (cantLote > 1 && pesoTotal > 0 ? Math.round((pesoTotal / cantLote) * 1000) / 1000 : (pesoTotal > 0 ? pesoTotal : undefined));
+
+    const subcategoriaFinal = oSubcategoria.trim() || (
+      oCategoria === "armas" ? oSubcategoriaArma :
+      oCategoria === "armaduras" ? oSubcategoriaArmadura :
+      oCategoria === "escudos" ? "Escudo" :
+      oSubcategoriaEquipo
+    );
+
     const basePayload = {
       nombre: oNombre.trim(),
       rareza: oRareza,
       propiedades: propTxt,
       descripcion: oDescripcion.trim(),
-      pesoLb: Number(oPesoLb) || 0,
+      pesoLb: pesoTotal,
+      pesoUnitario: pesoUnitarioCalculado,
+      quantity: oQuantity !== "" ? Number(oQuantity) : undefined,
       valorPO: calculadoValorPO,
       costoOriginal: {
         cantidad: Number(oCostoCantidad) || 0,
         unidad: oCostoUnidad
       },
+      categoria: oCategoria,
+      esConsumible: oEsConsumible,
+      subcategoria: subcategoriaFinal,
       esMagico: oEsMagico,
       efectosPasivos: oEfectosPasivos.length > 0 ? oEfectosPasivos : undefined,
-      equipable: oTipoPrincipal === "Arma" || oTipoPrincipal === "Armadura" ? true : oEquipable,
+      equipable: oCategoria === "armas" || oCategoria === "armaduras" || oCategoria === "escudos" ? true : oEquipable,
       
       // Nuevos campos mágicos/narrativos comunes
       sintonizacionRequerida: oSintonizacionRequerida,
@@ -430,11 +511,11 @@ export function usarFormularioObjeto(idEnEdicion: string | null, alGuardarExitos
       craft: oCraft.length > 0 ? oCraft : undefined
     };
 
-    if (oTipoPrincipal === "Arma") {
+    if (oCategoria === "armas") {
       payload = {
         ...basePayload,
         categoria: "armas",
-        esConsumible: false,
+        esConsumible: oEsConsumible,
         subcategoria: oSubcategoriaArma,
         tipoAtaque: oTipoAtaque,
         dadoDano: oDadoDano.trim() || "1d4",
@@ -446,54 +527,37 @@ export function usarFormularioObjeto(idEnEdicion: string | null, alGuardarExitos
         danoVersatil: oDanoVersatil.trim() || undefined,
         municionRequerida: oMunicionRequerida
       } as Omit<Arma, "id">;
-    } else if (oTipoPrincipal === "Armadura") {
+    } else if (oCategoria === "armaduras") {
       const tiempoVal = oTiempoEquipar !== "" ? (isNaN(Number(oTiempoEquipar)) ? String(oTiempoEquipar).trim() : Number(oTiempoEquipar)) : undefined;
-      if (oSubcategoriaArmadura === "Escudo") {
-        payload = {
-          ...basePayload,
-          categoria: "escudos",
-          esConsumible: false,
-          subcategoria: "Escudo",
-          caBase: Number(oCaBase) || 2,
-          desventajaSigilo: false,
-          equipable: true
-        } as Omit<Escudo, "id">;
-      } else {
-        payload = {
-          ...basePayload,
-          categoria: "armaduras",
-          esConsumible: false,
-          subcategoria: oSubcategoriaArmadura,
-          caBase: Number(oCaBase) || 10,
-          requisitoFuerza: oRequisitoFuerza !== "" ? Number(oRequisitoFuerza) : undefined,
-          desventajaSigilo: oDesventajaSigilo,
-          bonoDestreza: oBonoDestreza,
-          tiempoEquipar: tiempoVal
-        } as Omit<Armadura, "id">;
-      }
-    } else {
-      let categoriaEquipo: CategoriaEquipo = "equipo-aventurero";
-      let esConsumible = false;
-      if (oSubcategoriaEquipo === "Consumible") {
-        categoriaEquipo = "consumibles";
-        esConsumible = true;
-      } else if (oSubcategoriaEquipo === "Munición") {
-        categoriaEquipo = "municion";
-      } else if (oSubcategoriaEquipo === "Herramienta") {
-        categoriaEquipo = "herramientas";
-      } else if (oSubcategoriaEquipo === "Paquete") {
-        categoriaEquipo = "paquetes-equipo";
-      } else if (oSubcategoriaEquipo === "Maravilloso") {
-        categoriaEquipo = "objetos-magicos";
-      }
-
       payload = {
         ...basePayload,
-        categoria: categoriaEquipo,
-        esConsumible,
-        subcategoria: oSubcategoriaEquipo,
+        categoria: "armaduras",
+        esConsumible: oEsConsumible,
+        subcategoria: oSubcategoriaArmadura,
+        caBase: Number(oCaBase) || 10,
+        requisitoFuerza: oRequisitoFuerza !== "" ? Number(oRequisitoFuerza) : undefined,
+        desventajaSigilo: oDesventajaSigilo,
+        bonoDestreza: oBonoDestreza,
+        tiempoEquipar: tiempoVal
+      } as Omit<Armadura, "id">;
+    } else if (oCategoria === "escudos") {
+      payload = {
+        ...basePayload,
+        categoria: "escudos",
+        esConsumible: oEsConsumible,
+        subcategoria: oSubcategoria.trim() || "Escudo",
+        caBase: Number(oCaEscudo) || 2,
+        desventajaSigilo: oDesventajaSigilo,
+        equipable: true
+      } as Omit<Escudo, "id">;
+    } else {
+      payload = {
+        ...basePayload,
+        categoria: oCategoria,
+        esConsumible: oEsConsumible,
+        subcategoria: subcategoriaFinal,
         cantidad: oCantidad !== "" ? Number(oCantidad) : undefined,
-        ...(oSubcategoriaEquipo === "Consumible" && oEsVeneno ? {
+        ...(oEsVeneno ? {
           esVeneno: true,
           tipoVeneno: oTipoVeneno,
           efectoVeneno: oEfectoVeneno.trim()
@@ -515,7 +579,8 @@ export function usarFormularioObjeto(idEnEdicion: string | null, alGuardarExitos
     alGuardarExitoso();
   }, [
     oNombre, oRareza, oPropiedades, oDescripcion, oPesoLb, oValorPO, oEsMagico, oEfectosPasivos,
-    oTipoPrincipal, oSubcategoriaArma, oTipoAtaque, oDadoDano, oTipoDano, oPropiedadesArma,
+    oCategoria, oEsConsumible, oSubcategoria, oQuantity, oPesoUnitario, oCaEscudo,
+    oSubcategoriaArma, oTipoAtaque, oDadoDano, oTipoDano, oPropiedadesArma,
     oMaestria, oAlcanceNormal, oAlcanceLargo, oDanoVersatil, oMunicionRequerida, 
     oSubcategoriaArmadura, oCaBase, oRequisitoFuerza, oDesventajaSigilo, oBonoDestreza, oTiempoEquipar,
     oSubcategoriaEquipo, oCantidad, oSintonizacionRequerida, oCargas, oCondicionSintonizacion, 
@@ -537,7 +602,12 @@ export function usarFormularioObjeto(idEnEdicion: string | null, alGuardarExitos
     oCostoUnidad, setOCostoUnidad,
     oEsMagico, setOEsMagico,
     oEfectosPasivos, setOEfectosPasivos,
-    oTipoPrincipal, setOTipoPrincipal,
+    oCategoria, setOCategoria, alCambiarCategoria,
+    oEsConsumible, setOEsConsumible,
+    oSubcategoria, setOSubcategoria,
+    oQuantity, setOQuantity,
+    oPesoUnitario, setOPesoUnitario,
+    oCaEscudo, setOCaEscudo,
 
     oSubcategoriaArma, setOSubcategoriaArma,
     oTipoAtaque, setOTipoAtaque,

@@ -1,15 +1,14 @@
 import React from "react";
-import { Rareza, SubcategoriaEquipo } from "@/almacen/usarAlmacenDM";
+import { Rareza } from "@/almacen/usarAlmacenDM";
 import { TipoMoneda } from "@/tipos";
 import { COLORES_RAREZA_HSL } from "@/constantes/objetoConstantes";
+import {
+  CategoriaEquipo,
+  OPCIONES_CATEGORIAS_SELECTOR,
+  SUBCATEGORIAS_POR_CATEGORIA
+} from "@/constantes/categoriasEquipoConstantes";
 import { SelectorDesplegable } from "@/componentes/comunes";
-import { Scale, Coins, X } from "lucide-react";
-
-const OPCIONES_TIPO_PRINCIPAL = [
-  { valor: "Arma", etiqueta: "Arma" },
-  { valor: "Armadura", etiqueta: "Armadura" },
-  { valor: "Equipo de Aventuras", etiqueta: "Equipo de Aventuras" }
-];
+import { Scale, Coins, X, Package } from "lucide-react";
 
 const OPCIONES_SUBCAT_ARMA = [
   { valor: "Sencilla", etiqueta: "Sencilla" },
@@ -20,17 +19,7 @@ const OPCIONES_SUBCAT_ARMA = [
 const OPCIONES_SUBCAT_ARMADURA = [
   { valor: "Ligera", etiqueta: "Ligera" },
   { valor: "Mediana", etiqueta: "Mediana" },
-  { valor: "Pesada", etiqueta: "Pesada" },
-  { valor: "Escudo", etiqueta: "Escudo" }
-];
-
-const OPCIONES_SUBCAT_EQUIPO = [
-  { valor: "Maravilloso", etiqueta: "Objeto Maravilloso" },
-  { valor: "Consumible", etiqueta: "Consumible / Poción" },
-  { valor: "Munición", etiqueta: "Munición" },
-  { valor: "Herramienta", etiqueta: "Herramienta" },
-  { valor: "Instrumento", etiqueta: "Instrumento" },
-  { valor: "Paquete", etiqueta: "Paquete / Contenedor" }
+  { valor: "Pesada", etiqueta: "Pesada" }
 ];
 
 const OPCIONES_RAREZA = (["Común", "Poco Común", "Raro", "Muy Raro", "Legendario", "Artefacto"] as Rareza[]).map((r) => ({
@@ -50,14 +39,20 @@ const OPCIONES_MONEDA: { valor: TipoMoneda; etiqueta: string; color: string }[] 
 interface Props {
   oNombre: string;
   setONombre: (valor: string) => void;
-  oTipoPrincipal: "Arma" | "Armadura" | "Equipo de Aventuras";
-  setOTipoPrincipal: (tipo: "Arma" | "Armadura" | "Equipo de Aventuras") => void;
+  oCategoria: CategoriaEquipo;
+  alCambiarCategoria: (cat: CategoriaEquipo) => void;
+  oSubcategoria: string;
+  setOSubcategoria: (sub: string) => void;
   oSubcategoriaArma: "Sencilla" | "Marcial" | "De Fuego";
   setOSubcategoriaArma: (sub: "Sencilla" | "Marcial" | "De Fuego") => void;
-  oSubcategoriaArmadura: "Ligera" | "Mediana" | "Pesada" | "Escudo";
-  alCambiarSubcategoriaArmadura: (sub: "Ligera" | "Mediana" | "Pesada" | "Escudo") => void;
-  oSubcategoriaEquipo: SubcategoriaEquipo;
-  setOSubcategoriaEquipo: (sub: SubcategoriaEquipo) => void;
+  oSubcategoriaArmadura: "Ligera" | "Mediana" | "Pesada";
+  alCambiarSubcategoriaArmadura: (sub: "Ligera" | "Mediana" | "Pesada") => void;
+  oEsConsumible: boolean;
+  setOEsConsumible: (esCons: boolean) => void;
+  oQuantity: number | "";
+  setOQuantity: (cant: number | "") => void;
+  oPesoUnitario: number | "";
+  setOPesoUnitario: (peso: number | "") => void;
   oRareza: Rareza;
   alCambiarRareza: (rareza: Rareza) => void;
   oPesoLb: number;
@@ -85,14 +80,20 @@ interface Props {
 export const SeccionDatosGenerales: React.FC<Props> = ({
   oNombre,
   setONombre,
-  oTipoPrincipal,
-  setOTipoPrincipal,
+  oCategoria,
+  alCambiarCategoria,
+  oSubcategoria,
+  setOSubcategoria,
   oSubcategoriaArma,
   setOSubcategoriaArma,
   oSubcategoriaArmadura,
   alCambiarSubcategoriaArmadura,
-  oSubcategoriaEquipo,
-  setOSubcategoriaEquipo,
+  oEsConsumible,
+  setOEsConsumible,
+  oQuantity,
+  setOQuantity,
+  oPesoUnitario,
+  setOPesoUnitario,
   oRareza,
   alCambiarRareza,
   oPesoLb,
@@ -116,6 +117,21 @@ export const SeccionDatosGenerales: React.FC<Props> = ({
   eliminarComponenteArtesaniaIdx,
   estilos,
 }) => {
+  // Construcción reactiva de opciones de subcategoría
+  const opcionesSubcat = React.useMemo(() => {
+    if (oCategoria === "armas") {
+      return OPCIONES_SUBCAT_ARMA;
+    }
+    if (oCategoria === "armaduras") {
+      return OPCIONES_SUBCAT_ARMADURA;
+    }
+    const sugeridas = SUBCATEGORIAS_POR_CATEGORIA[oCategoria] || [];
+    if (oSubcategoria && !sugeridas.some((s) => s.valor === oSubcategoria)) {
+      return [{ valor: oSubcategoria, etiqueta: oSubcategoria }, ...sugeridas];
+    }
+    return sugeridas;
+  }, [oCategoria, oSubcategoria]);
+
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
       <div className={estilos.filaDobleForm}>
@@ -132,11 +148,11 @@ export const SeccionDatosGenerales: React.FC<Props> = ({
         </div>
         
         <div className={estilos.campoForm}>
-          <label className={estilos.labelForm}>Categoría Principal:</label>
+          <label className={estilos.labelForm}>Categoría Canónica (5.5e):</label>
           <SelectorDesplegable
-            valor={oTipoPrincipal}
-            alCambiar={(val) => setOTipoPrincipal(val as "Arma" | "Armadura" | "Equipo de Aventuras")}
-            opciones={OPCIONES_TIPO_PRINCIPAL}
+            valor={oCategoria}
+            alCambiar={(val) => alCambiarCategoria(val as CategoriaEquipo)}
+            opciones={OPCIONES_CATEGORIAS_SELECTOR}
           />
         </div>
       </div>
@@ -144,25 +160,33 @@ export const SeccionDatosGenerales: React.FC<Props> = ({
       <div className={estilos.filaTripleForm}>
         <div className={estilos.campoForm}>
           <label className={estilos.labelForm}>Subcategoría:</label>
-          {oTipoPrincipal === "Arma" && (
+          {opcionesSubcat.length > 0 ? (
             <SelectorDesplegable
-              valor={oSubcategoriaArma}
-              alCambiar={(val) => setOSubcategoriaArma(val as "Sencilla" | "Marcial" | "De Fuego")}
-              opciones={OPCIONES_SUBCAT_ARMA}
+              valor={
+                oCategoria === "armas"
+                  ? oSubcategoriaArma
+                  : oCategoria === "armaduras"
+                  ? oSubcategoriaArmadura
+                  : oSubcategoria
+              }
+              alCambiar={(val) => {
+                const nuevoStr = String(val);
+                setOSubcategoria(nuevoStr);
+                if (oCategoria === "armas") {
+                  setOSubcategoriaArma(nuevoStr as "Sencilla" | "Marcial" | "De Fuego");
+                } else if (oCategoria === "armaduras") {
+                  alCambiarSubcategoriaArmadura(nuevoStr as "Ligera" | "Mediana" | "Pesada");
+                }
+              }}
+              opciones={opcionesSubcat}
             />
-          )}
-          {oTipoPrincipal === "Armadura" && (
-            <SelectorDesplegable
-              valor={oSubcategoriaArmadura}
-              alCambiar={(val) => alCambiarSubcategoriaArmadura(val as "Ligera" | "Mediana" | "Pesada" | "Escudo")}
-              opciones={OPCIONES_SUBCAT_ARMADURA}
-            />
-          )}
-          {oTipoPrincipal === "Equipo de Aventuras" && (
-            <SelectorDesplegable
-              valor={oSubcategoriaEquipo}
-              alCambiar={(val) => setOSubcategoriaEquipo(val as SubcategoriaEquipo)}
-              opciones={OPCIONES_SUBCAT_EQUIPO}
+          ) : (
+            <input
+              type="text"
+              value={oSubcategoria}
+              onChange={(e) => setOSubcategoria(e.target.value)}
+              placeholder="Ej. Herramienta especial"
+              className={estilos.inputForm}
             />
           )}
         </div>
@@ -218,20 +242,68 @@ export const SeccionDatosGenerales: React.FC<Props> = ({
         </div>
       </div>
 
-      <div className={estilos.campoForm} style={{ padding: "4px 0", marginTop: "4px" }}>
-        <label className={estilos.labelCheckbox}>
+      <div className={estilos.filaDobleForm}>
+        <div className={estilos.campoForm} style={{ padding: "4px 0" }}>
+          <label className={estilos.labelCheckbox}>
+            <input
+              type="checkbox"
+              checked={oCategoria === "armas" || oCategoria === "armaduras" || oCategoria === "escudos" ? true : oEquipable}
+              onChange={(e) => setOEquipable(e.target.checked)}
+              disabled={oCategoria === "armas" || oCategoria === "armaduras" || oCategoria === "escudos"}
+              className={estilos.checkMini}
+            />
+            <span style={{ fontSize: "12px" }}>
+              ¿Equipable en Ranura Activa?
+              {(oCategoria === "armas" || oCategoria === "armaduras" || oCategoria === "escudos") && " (Auto)"}
+            </span>
+          </label>
+        </div>
+
+        <div className={estilos.campoForm} style={{ padding: "4px 0" }}>
+          <label className={estilos.labelCheckbox}>
+            <input
+              type="checkbox"
+              checked={oEsConsumible}
+              onChange={(e) => setOEsConsumible(e.target.checked)}
+              className={estilos.checkMini}
+            />
+            <span style={{ fontSize: "12px" }}>
+              ¿Es Consumible / De un solo uso?
+            </span>
+          </label>
+        </div>
+      </div>
+
+      {/* METADATOS DE LOTES / COMPRA EN PAQUETE */}
+      <div className={estilos.filaDobleForm} style={{ backgroundColor: "rgba(255, 255, 255, 0.02)", padding: "8px", borderRadius: "4px", border: "1px dashed rgba(255, 255, 255, 0.1)" }}>
+        <div className={estilos.campoForm}>
+          <label className={estilos.labelForm}>
+            <Package size={12} /> Unidades por Lote (Opcional):
+          </label>
           <input
-            type="checkbox"
-            checked={oTipoPrincipal === "Arma" || oTipoPrincipal === "Armadura" ? true : oEquipable}
-            onChange={(e) => setOEquipable(e.target.checked)}
-            disabled={oTipoPrincipal === "Arma" || oTipoPrincipal === "Armadura"}
-            className={estilos.checkMini}
+            type="number"
+            min="1"
+            value={oQuantity}
+            onChange={(e) => setOQuantity(e.target.value === "" ? "" : Math.max(1, parseInt(e.target.value) || 1))}
+            placeholder="Ej. 20 (flechas), 10 (antorchas)"
+            className={estilos.inputForm}
           />
-          <span style={{ fontSize: "12px" }}>
-             ¿Equipable en Ranura Activa?
-            {(oTipoPrincipal === "Arma" || oTipoPrincipal === "Armadura") && " (Auto para Armas/Armaduras)"}
-          </span>
-        </label>
+        </div>
+
+        <div className={estilos.campoForm}>
+          <label className={estilos.labelForm}>
+            <Scale size={12} /> Peso Individual / Unidad (lb):
+          </label>
+          <input
+            type="number"
+            step="any"
+            min="0"
+            value={oPesoUnitario}
+            onChange={(e) => setOPesoUnitario(e.target.value === "" ? "" : Math.max(0, parseFloat(e.target.value) || 0))}
+            placeholder="Ej. 0.05"
+            className={estilos.inputForm}
+          />
+        </div>
       </div>
 
       {/* DESCRIPCIÓN */}

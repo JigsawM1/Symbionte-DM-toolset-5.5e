@@ -11,6 +11,8 @@ interface CabeceraAtaquesJugadorProps {
   conteoAccion: number;
   conteoAccionAdicional: number;
   conteoReaccion: number;
+  conteoConsumibles: number;
+  conteoActivables: number;
   filtro: FiltroAccion;
   alCambiarFiltro: (nuevoFiltro: FiltroAccion) => void;
   personajes: PersonajeJugador[];
@@ -24,6 +26,8 @@ export const CabeceraAtaquesJugador: React.FC<CabeceraAtaquesJugadorProps> = ({
   conteoAccion,
   conteoAccionAdicional,
   conteoReaccion,
+  conteoConsumibles,
+  conteoActivables,
   filtro,
   alCambiarFiltro,
   personajes,
@@ -31,6 +35,21 @@ export const CabeceraAtaquesJugador: React.FC<CabeceraAtaquesJugadorProps> = ({
   alSeleccionarPersonaje,
   statsCalculadas
 }) => {
+  const pestanasPrincipales: Array<{ id: FiltroAccion; etiqueta: string; conteo: number }> = [
+    { id: "accion", etiqueta: "Acciones", conteo: conteoAccion },
+    { id: "accionAdicional", etiqueta: "Adicionales", conteo: conteoAccionAdicional },
+    { id: "reaccion", etiqueta: "Reacciones", conteo: conteoReaccion }
+  ];
+
+  const opcionesSelector: Array<{ valor: FiltroAccion; etiqueta: string }> = [
+    { valor: "todas", etiqueta: `Todas (${conteoTotal})` },
+    { valor: "consumibles", etiqueta: `Consumibles (${conteoConsumibles})` },
+    { valor: "activables", etiqueta: `Activables (${conteoActivables})` }
+  ];
+
+  const esFiltroEnSelector =
+    filtro === "todas" || filtro === "consumibles" || filtro === "activables";
+
   return (
     <div className={estilos.cabeceraPrincipal}>
       <div className={estilos.filaTitulo}>
@@ -58,41 +77,31 @@ export const CabeceraAtaquesJugador: React.FC<CabeceraAtaquesJugadorProps> = ({
 
       {/* Barra de Filtros Tácticos de Acción */}
       <div className={estilos.barraFiltros}>
-        <button
-          type="button"
-          className={`${estilos.botonFiltro} ${filtro === "todas" ? estilos.botonFiltroActivo : ""}`}
-          onClick={() => alCambiarFiltro("todas")}
-        >
-          <span>Todas</span>
-          <span className={estilos.badgeConteoFiltro}>({conteoTotal})</span>
-        </button>
+        <div className={estilos.grupoPestanasPrincipales}>
+          {pestanasPrincipales.map((op) => (
+            <button
+              key={op.id}
+              type="button"
+              className={`${estilos.botonFiltro} ${filtro === op.id ? estilos.botonFiltroActivo : ""}`}
+              onClick={() => alCambiarFiltro(op.id)}
+            >
+              <span>{op.etiqueta}</span>
+              <span className={estilos.badgeConteoFiltro}>({op.conteo})</span>
+            </button>
+          ))}
+        </div>
 
-        <button
-          type="button"
-          className={`${estilos.botonFiltro} ${filtro === "accion" ? estilos.botonFiltroActivo : ""}`}
-          onClick={() => alCambiarFiltro("accion")}
+        <div
+          className={`${estilos.selectorFiltroWrapper} ${esFiltroEnSelector ? estilos.selectorFiltroActivo : ""}`}
         >
-          <span>Acción</span>
-          <span className={estilos.badgeConteoFiltro}>({conteoAccion})</span>
-        </button>
-
-        <button
-          type="button"
-          className={`${estilos.botonFiltro} ${filtro === "accionAdicional" ? estilos.botonFiltroActivo : ""}`}
-          onClick={() => alCambiarFiltro("accionAdicional")}
-        >
-          <span>Acción Adicional</span>
-          <span className={estilos.badgeConteoFiltro}>({conteoAccionAdicional})</span>
-        </button>
-
-        <button
-          type="button"
-          className={`${estilos.botonFiltro} ${filtro === "reaccion" ? estilos.botonFiltroActivo : ""}`}
-          onClick={() => alCambiarFiltro("reaccion")}
-        >
-          <span>Reacción</span>
-          <span className={estilos.badgeConteoFiltro}>({conteoReaccion})</span>
-        </button>
+          <SelectorDesplegable<FiltroAccion>
+            valor={esFiltroEnSelector ? filtro : ("" as FiltroAccion)}
+            alCambiar={alCambiarFiltro}
+            placeholder="Otros..."
+            tamano="compacto"
+            opciones={opcionesSelector}
+          />
+        </div>
       </div>
 
       {/* Banner de Advertencia: Penalización por Armadura sin Competencia (D&D 5.5e) */}

@@ -4,7 +4,10 @@ import App from './App.tsx';
 import './index.css';
 
 import { procesarResultadosDadosTaleSpire } from './utiles/lanzadorDados';
+import { inicializarDesactivadorSpellcheck } from './utiles/desactivadorSpellcheck';
 
+// Desactivar el corrector ortográfico nativo globalmente para evitar subrayados rojos en TaleSpire
+inicializarDesactivadorSpellcheck();
 
 // Registrar oyentes de eventos de TaleSpire a través del EventBus centralizado
 import { puenteTaleSpire } from './servicios/puenteTaleSpire';

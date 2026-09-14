@@ -1,9 +1,13 @@
 import { describe, it, expect } from "vitest";
-import { resolverConjurosAcciones, verificarHechizoDeSubclase } from "./calculadorAccionesCombate";
+import {
+  resolverConjurosAcciones,
+  verificarHechizoDeSubclase,
+  resolverRasgosAcciones
+} from "./calculadorAccionesCombate";
 import { aplicarEspecieAPersonaje } from "./gestorEspecies";
 import { PERSONAJE_POR_DEFECTO } from "@/constantes/personajeConstantes";
 import { HECHIZOS_INICIALES } from "@/utiles/datosIniciales";
-import type { HechizoBase, PersonajeJugador } from "@/tipos";
+import type { HechizoBase, PersonajeJugador, RasgoPersonaje } from "@/tipos";
 
 describe("calculadorAccionesCombate - Resolución de Conjuros en Acciones de Combate", () => {
   it("resuelve trucos innatos de especie para Aasimar a nivel 1 (Luz)", () => {
@@ -186,4 +190,198 @@ describe("calculadorAccionesCombate - Resolución de Conjuros en Acciones de Com
       expect(verificarHechizoDeSubclase(hechizoBendicion, pj)).toBe(true);
     });
   });
+
+  describe("resolverRasgosAcciones - Integración de Rasgos en Pestaña de Acciones", () => {
+    const crearRasgoMock = (parcial: Partial<RasgoPersonaje> & { id: string; nombre: string }): RasgoPersonaje => ({
+      descripcion: "",
+      origen: "personalizado",
+      fuente: "General",
+      tipoAccion: "pasivo",
+      tieneUsosLimitados: false,
+      recuperacion: "ninguno",
+      personalizado: false,
+      activo: true,
+      notas: "",
+      ...parcial
+    });
+
+    it("clasifica rasgos por economía de acción (acción, adicional, reacción)", () => {
+      const pj: PersonajeJugador = {
+        ...PERSONAJE_POR_DEFECTO,
+        nivel: 3,
+        rasgos: [
+          crearRasgoMock({
+            id: "r1",
+            nombre: "Ataque de Aliento",
+            descripcion: "Exhala fuego en cono",
+            tipoAccion: "accion",
+            origen: "especie",
+            fuente: "Dracónido",
+            activo: true
+          }),
+          crearRasgoMock({
+            id: "r2",
+            nombre: "Segundo Aliento",
+            descripcion: "Recupera 1d10 + nivel",
+            tipoAccion: "accion_adicional",
+            origen: "clase",
+            fuente: "Guerrero",
+            activo: true,
+            tieneUsosLimitados: true,
+            usosMaximos: 1,
+            usosRestantes: 1
+          }),
+          crearRasgoMock({
+            id: "r3",
+            nombre: "Desviar Proyectiles",
+            descripcion: "Atrapa una flecha",
+            tipoAccion: "reaccion",
+            origen: "clase",
+            fuente: "Monje",
+            activo: true
+          })
+        ]
+      };
+
+      const res = resolverRasgosAcciones(pj);
+      expect(res).toHaveLength(3);
+
+      const r1 = res.find((r) => r.rasgo.id === "r1");
+      expect(r1?.categoriasCombate).toContain("accion");
+      expect(r1?.tipoAccionCalculado).toBe("accion");
+
+      const r2 = res.find((r) => r.rasgo.id === "r2");
+      expect(r2?.categoriasCombate).toContain("accionAdicional");
+      expect(r2?.categoriasCombate).toContain("consumible");
+      expect(r2?.tipoAccionCalculado).toBe("accionAdicional");
+      expect(r2?.esConsumible).toBe(true);
+
+      const r3 = res.find((r) => r.rasgo.id === "r3");
+      expect(r3?.categoriasCombate).toContain("reaccion");
+      expect(r3?.tipoAccionCalculado).toBe("reaccion");
+    });
+
+    it("resuelve rasgos activables (toggles) y rasgos multicategoría como Furia", () => {
+      const pj: PersonajeJugador = {
+        ...PERSONAJE_POR_DEFECTO,
+        nivel: 1,
+        rasgos: [
+          crearRasgoMock({
+            id: "rasgo_furia",
+            nombre: "Furia",
+            descripcion: "Entra en furia",
+            tipoAccion: "accion_adicional",
+            origen: "clase",
+            fuente: "Bárbaro",
+            esActivable: true,
+            tieneUsosLimitados: true,
+            usosMaximos: 2,
+            usosRestantes: 2,
+            activo: false
+          })
+        ]
+      };
+
+      const res = resolverRasgosAcciones(pj);
+      expect(res).toHaveLength(1);
+      const furia = res[0];
+      expect(furia.categoriasCombate).toContain("accionAdicional");
+      expect(furia.categoriasCombate).toContain("activable");
+      expect(furia.categoriasCombate).toContain("consumible");
+      expect(furia.esActivable).toBe(true);
+      expect(furia.esConsumible).toBe(true);
+      expect(furia.usosRestantes).toBe(2);
+      expect(furia.usosMaximos).toBe(2);
+    });
+
+    it("excluye rasgos puramente pasivos permanentes sin dados ni conmutadores", () => {
+      const pj: PersonajeJugador = {
+        ...PERSONAJE_POR_DEFECTO,
+        nivel: 1,
+        rasgos: [
+          crearRasgoMock({
+            id: "vision_oscuridad",
+            nombre: "Visión en la Oscuridad",
+            descripcion: "Ves en la oscuridad hasta 60 pies",
+            tipoAccion: "pasivo",
+            origen: "especie",
+            fuente: "Elfo",
+            activo: true,
+            categoriaMecanica: "pasivo_permanente"
+          }),
+          crearRasgoMock({
+            id: "ataque_temerario",
+            nombre: "Ataque Temerario",
+            descripcion: "Ventaja en ataques con Fuerza",
+            tipoAccion: "pasivo",
+            origen: "clase",
+            fuente: "Bárbaro",
+            esActivable: true,
+            activo: false
+          })
+        ]
+      };
+
+      const res = resolverRasgosAcciones(pj);
+      // Solo el rasgo activable debe pasar
+      expect(res).toHaveLength(1);
+      expect(res[0].rasgo.id).toBe("ataque_temerario");
+      expect(res[0].esActivable).toBe(true);
+    });
+
+    it("filtra rasgos cuyo nivel requerido sea superior al nivel del personaje", () => {
+      const pj: PersonajeJugador = {
+        ...PERSONAJE_POR_DEFECTO,
+        nivel: 2,
+        rasgos: [
+          crearRasgoMock({
+            id: "rasgo_nv5",
+            nombre: "Ataque Extra",
+            descripcion: "Atacas dos veces",
+            tipoAccion: "especial",
+            nivelRequerido: 5,
+            origen: "clase",
+            fuente: "Guerrero",
+            activo: true
+          })
+        ]
+      };
+
+      const res = resolverRasgosAcciones(pj);
+      expect(res).toHaveLength(0);
+    });
+
+    it("resuelve Inspiración bárdica y Detectar magia para un Bardo Alto Elfo nivel 3", () => {
+      const pjBardo: PersonajeJugador = {
+        ...PERSONAJE_POR_DEFECTO,
+        clase: "Bardo",
+        nivel: 3,
+        especie: "Elfo",
+        subespecie: "Alto elfo",
+        caracteristicas: { ...PERSONAJE_POR_DEFECTO.caracteristicas, carisma: 16 },
+        rasgos: [] // Simula personaje sin sincronizar previamente en almacenamiento
+      };
+
+      const res = resolverRasgosAcciones(pjBardo);
+      const nombres = res.map((r) => r.rasgo.nombre);
+
+      // Debe contener tanto el rasgo de especie (Detectar magia) como el de clase (Inspiración bárdica)
+      expect(nombres).toContain("Magia de alto elfo: Detectar magia");
+      expect(nombres).toContain("Inspiración bárdica");
+
+      const inspiracion = res.find((r) => r.rasgo.nombre === "Inspiración bárdica");
+      expect(inspiracion).toBeDefined();
+      expect(inspiracion?.categoriasCombate).toContain("accionAdicional");
+      expect(inspiracion?.categoriasCombate).toContain("consumible");
+      expect(inspiracion?.esConsumible).toBe(true);
+      expect(inspiracion?.tieneDados).toBe(true);
+
+      const detectarMagia = res.find((r) => r.rasgo.nombre === "Magia de alto elfo: Detectar magia");
+      expect(detectarMagia).toBeDefined();
+      expect(detectarMagia?.categoriasCombate).toContain("accion");
+      expect(detectarMagia?.categoriasCombate).toContain("consumible");
+      expect(detectarMagia?.esConsumible).toBe(true);
+    });
+  });
 });
+

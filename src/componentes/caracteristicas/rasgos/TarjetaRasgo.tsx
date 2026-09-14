@@ -27,8 +27,8 @@ interface TarjetaRasgoProps {
   alAlternarActivo?: () => void;
   deshabilitadoToggle?: boolean;
   motivoDeshabilitado?: string;
-  alEditar: () => void;
-  alEliminar: () => void;
+  alEditar?: () => void;
+  alEliminar?: () => void;
   alVerDetalle: () => void;
   usosPadre?: { restantes: number; maximos: number; nombre: string };
   formulaDadosEfectiva?: string;
@@ -330,31 +330,35 @@ export const TarjetaRasgo: React.FC<TarjetaRasgoProps> = ({
           </button>
 
           {/* Botones de Editar y Eliminar (para rasgos personalizados / homebrew / dotes) */}
-          {esHomebrewOPersonalizado && (
+          {esHomebrewOPersonalizado && (alEditar || alEliminar) && (
             <>
-              <button
-                type="button"
-                className={estilos.botonIconoAccion}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  alEditar();
-                }}
-                title="Editar rasgo"
-              >
-                <Edit2 size={12} color="#94a3b8" strokeWidth={2} />
-              </button>
+              {alEditar && (
+                <button
+                  type="button"
+                  className={estilos.botonIconoAccion}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    alEditar();
+                  }}
+                  title="Editar rasgo"
+                >
+                  <Edit2 size={12} color="#94a3b8" strokeWidth={2} />
+                </button>
+              )}
 
-              <button
-                type="button"
-                className={`${estilos.botonIconoAccion} ${estilos.botonIconoPeligro}`}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  alEliminar();
-                }}
-                title="Eliminar rasgo"
-              >
-                <Trash2 size={12} color="#f87171" strokeWidth={2} />
-              </button>
+              {alEliminar && (
+                <button
+                  type="button"
+                  className={`${estilos.botonIconoAccion} ${estilos.botonIconoPeligro}`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    alEliminar();
+                  }}
+                  title="Eliminar rasgo"
+                >
+                  <Trash2 size={12} color="#f87171" strokeWidth={2} />
+                </button>
+              )}
             </>
           )}
         </div>

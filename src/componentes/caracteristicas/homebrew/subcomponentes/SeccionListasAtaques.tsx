@@ -388,6 +388,7 @@ export const SeccionListasAtaques: React.FC<SeccionListasAtaquesProps> = ({
             placeholder="Descripción detallada del rasgo..."
             className={estilos.textareaDinamico}
             rows={calcFilas(tRasgoDesc, 3)}
+            spellCheck={false}
           />
           <div style={{ display: "flex", gap: "8px" }}>
             <button
@@ -505,6 +506,7 @@ export const SeccionListasAtaques: React.FC<SeccionListasAtaquesProps> = ({
             placeholder="Descripción detallada de la acción o ataque..."
             className={estilos.textareaDinamico}
             rows={calcFilas(tAccionDesc, 3)}
+            spellCheck={false}
           />
           <div style={{ display: "flex", gap: "8px" }}>
             <button
@@ -625,6 +627,7 @@ export const SeccionListasAtaques: React.FC<SeccionListasAtaquesProps> = ({
             placeholder="Descripción detallada de la acción adicional..."
             className={estilos.textareaDinamico}
             rows={calcFilas(tAccionAdicionalDesc, 3)}
+            spellCheck={false}
           />
           <div style={{ display: "flex", gap: "8px" }}>
             <button
@@ -727,6 +730,7 @@ export const SeccionListasAtaques: React.FC<SeccionListasAtaquesProps> = ({
             placeholder="Descripción detallada de la reacción..."
             className={estilos.textareaDinamico}
             rows={calcFilas(tReaccionDesc, 3)}
+            spellCheck={false}
           />
           <div style={{ display: "flex", gap: "8px" }}>
             <button
@@ -843,6 +847,7 @@ export const SeccionListasAtaques: React.FC<SeccionListasAtaquesProps> = ({
             placeholder="Descripción detallada de la acción legendaria..."
             className={estilos.textareaDinamico}
             rows={calcFilas(tLegendariaDesc, 3)}
+            spellCheck={false}
           />
           <div style={{ display: "flex", gap: "8px" }}>
             <button

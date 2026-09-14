@@ -4,7 +4,8 @@ import type {
   HechizoVinculado,
   ObjetoJuego,
   TipoAccionConsumida,
-  ConsumibleAccionCalculado
+  ConsumibleAccionCalculado,
+  RasgoPersonaje
 } from "@/tipos";
 import { detectarInfoConsumible, esObjetoConsumible } from "@/servicios/procesadorConsumibles";
 import { obtenerConjurosSubclasePersonaje } from "@/servicios/calculadorMagia";
@@ -13,6 +14,7 @@ import { coincideHechizoId } from "@/servicios/comparadorHechizos";
 import { generarIdSlug } from "@/utiles/generarId";
 import { resolverOrigenConjuro } from "@/servicios/resolutorOrigenConjuros";
 import { obtenerEspeciePorNombre, obtenerSubespeciePorNombre } from "@/servicios/gestorEspecies";
+import { sincronizarRasgosAutomaticos } from "@/servicios/compendioRasgos";
 
 export interface HechizoObjetoMagicoAccion {
   objetoInstanciaId: string;
@@ -283,4 +285,120 @@ export function verificarHechizoDeSubclase(
     conjuros.some((cs: string) => normalizar(cs) === idNorm || normalizar(cs) === nomNorm || coincideHechizoId(cs, hechizo.id) || coincideHechizoId(cs, hechizo.nombre)) ||
     trucos.some((ts: string) => normalizar(ts) === idNorm || normalizar(ts) === nomNorm || coincideHechizoId(ts, hechizo.id) || coincideHechizoId(ts, hechizo.nombre))
   );
+}
+
+export type CategoriaCombateRasgo =
+  | "accion"
+  | "accionAdicional"
+  | "reaccion"
+  | "consumible"
+  | "activable"
+  | "especial";
+
+export interface RasgoAccionCombate {
+  rasgo: RasgoPersonaje;
+  categoriasCombate: CategoriaCombateRasgo[];
+  tipoAccionCalculado: TipoAccionConsumida;
+  esConsumible: boolean;
+  esActivable: boolean;
+  tieneDados: boolean;
+  usosRestantes: number;
+  usosMaximos: number;
+}
+
+/**
+ * Clasifica y filtra los rasgos del personaje que tienen relevancia activa en combate:
+ * acciones, acciones adicionales, reacciones, consumibles (con usos limitados) y activables (toggles).
+ * Excluye rasgos puramente pasivos permanentes sin mecánicas activas.
+ */
+export function resolverRasgosAcciones(
+  personajeActivo: PersonajeJugador | null
+): RasgoAccionCombate[] {
+  if (!personajeActivo) return [];
+
+  const listaRasgos =
+    Array.isArray(personajeActivo.rasgos) && personajeActivo.rasgos.length > 0
+      ? personajeActivo.rasgos
+      : sincronizarRasgosAutomaticos(personajeActivo);
+
+  if (!Array.isArray(listaRasgos) || listaRasgos.length === 0) return [];
+
+  const pjNivel = personajeActivo.nivel || 1;
+  const resultado: RasgoAccionCombate[] = [];
+
+  for (const rasgo of listaRasgos) {
+    // 1. Filtrar por nivel mínimo requerido si está definido
+    if (rasgo.nivelRequerido && pjNivel < rasgo.nivelRequerido) {
+      continue;
+    }
+
+    // 2. Determinar categorías de combate según metadatos declarativos
+    const categorias: CategoriaCombateRasgo[] = [];
+
+    // Mapeo de economía de acción
+    if (rasgo.tipoAccion === "accion") {
+      categorias.push("accion");
+    } else if (rasgo.tipoAccion === "accion_adicional") {
+      categorias.push("accionAdicional");
+    } else if (rasgo.tipoAccion === "reaccion") {
+      categorias.push("reaccion");
+    } else if (rasgo.tipoAccion === "especial") {
+      categorias.push("especial");
+    }
+
+    // Activable (toggle táctico ON/OFF)
+    const esActivable = Boolean(rasgo.esActivable || rasgo.categoriaMecanica === "activable");
+    if (esActivable && !categorias.includes("activable")) {
+      categorias.push("activable");
+    }
+
+    // Consumible (recurso con usos limitados, curación o ligado a padre)
+    const tieneUsosPropios = Boolean(rasgo.tieneUsosLimitados && typeof rasgo.usosMaximos === "number");
+    const esConsumible = Boolean(
+      tieneUsosPropios ||
+      rasgo.gastarDePadre ||
+      rasgo.categoriaMecanica === "consumible" ||
+      rasgo.categoriaMecanica === "curacion"
+    );
+    if (esConsumible && !categorias.includes("consumible")) {
+      categorias.push("consumible");
+    }
+
+    const tieneDados = Boolean(rasgo.formulaDados && rasgo.formulaDados.trim() !== "");
+
+    // 3. Excluir si es puramente pasivo permanente sin mecánicas activas
+    const esPasivoPuro =
+      (rasgo.tipoAccion === "pasivo" || !rasgo.tipoAccion) &&
+      !esActivable &&
+      !esConsumible &&
+      !tieneDados;
+
+    if (esPasivoPuro || categorias.length === 0) {
+      continue;
+    }
+
+    // Calcular tipoAccion normalizado para interfaz de combate
+    let tipoAccionCalculado: TipoAccionConsumida = "accion";
+    if (rasgo.tipoAccion === "accion_adicional") {
+      tipoAccionCalculado = "accionAdicional";
+    } else if (rasgo.tipoAccion === "reaccion") {
+      tipoAccionCalculado = "reaccion";
+    }
+
+    const usosMaximos = rasgo.usosMaximos ?? 1;
+    const usosRestantes = rasgo.usosRestantes ?? usosMaximos;
+
+    resultado.push({
+      rasgo,
+      categoriasCombate: categorias,
+      tipoAccionCalculado,
+      esConsumible,
+      esActivable,
+      tieneDados,
+      usosRestantes,
+      usosMaximos
+    });
+  }
+
+  return resultado;
 }

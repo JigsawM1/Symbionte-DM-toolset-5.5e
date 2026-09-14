@@ -230,6 +230,7 @@ export const SeccionMagiaYEfectosObjeto: React.FC<SeccionMagiaYEfectosObjetoProp
           onChange={(e) => setNotasTemp(e.target.value)}
           placeholder="Añade notas sobre el origen, marcas, runas o uso de este objeto..."
           rows={2}
+          spellCheck={false}
         />
         {alActualizarNotas && (
           <button type="button" className={estilos.botonGuardarNotas} onClick={manejarGuardarNotas}>

@@ -413,6 +413,7 @@ export const ConfiguracionDM: React.FC = () => {
               value={modalExport}
               className={estilosClases.modalTextarea}
               onClick={(e) => (e.target as HTMLTextAreaElement).select()}
+              spellCheck={false}
             />
             <div className={estilosClases.modalAcciones}>
               <button onClick={copiarDelModal} className={estilosClases.botonCopiarModal}>

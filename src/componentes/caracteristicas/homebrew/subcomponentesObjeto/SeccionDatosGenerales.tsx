@@ -243,6 +243,7 @@ export const SeccionDatosGenerales: React.FC<Props> = ({
           placeholder="Escribe el lore o los efectos mecánicos..."
           className={estilos.textareaBrutal}
           rows={6}
+          spellCheck={false}
           required
         />
       </div>

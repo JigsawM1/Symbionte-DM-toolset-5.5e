@@ -7,8 +7,10 @@ import { CabeceraAtaquesJugador } from "./CabeceraAtaquesJugador";
 import { SeccionRecursosMagicosAtaque } from "./SeccionRecursosMagicosAtaque";
 import { SeccionAtaquesFisicos } from "./SeccionAtaquesFisicos";
 import { SeccionAtaquesMagicos } from "./SeccionAtaquesMagicos";
+import { SeccionRasgosAtaque } from "./SeccionRasgosAtaque";
 import { SeccionConsumiblesAtaque } from "./SeccionConsumiblesAtaque";
 import { SeccionHechizosObjetosMagicos } from "./SeccionHechizosObjetosMagicos";
+import { ModalDetalleRasgo } from "@/componentes/caracteristicas/rasgos/ModalDetalleRasgo";
 import estilos from "./VistaAtaquesJugador.module.css";
 
 export const VistaAtaquesJugador: React.FC = () => {
@@ -23,6 +25,8 @@ export const VistaAtaquesJugador: React.FC = () => {
     alternarSeccion,
     hechizoDetalle,
     setHechizoDetalle,
+    rasgoDetalle,
+    setRasgoDetalle,
     bonoAtaqueMagico,
     estaBloqueadoPorArmadura,
     motivoBloqueoArmadura,
@@ -31,10 +35,19 @@ export const VistaAtaquesJugador: React.FC = () => {
     conjurosPorNivel,
     consumiblesFiltrados,
     hechizosObjetosFiltrados,
+    listaRasgosCombate: _listaRasgosCombate,
+    rasgosFiltrados,
+    rasgosAcciones,
+    rasgosAccionesAdicionales,
+    rasgosReacciones,
+    rasgosConsumibles,
+    rasgosActivables,
     conteoTotal,
     conteoAccion,
     conteoAccionAdicional,
     conteoReaccion,
+    conteoConsumibles,
+    conteoActivables,
     tieneMagiaEstandar,
     tienePacto,
     esHechizoDeSubclase,
@@ -48,6 +61,12 @@ export const VistaAtaquesJugador: React.FC = () => {
     recuperarTodosPuntosConjuro,
     gastarEspacioPacto,
     recuperarEspaciosPacto,
+    gastarUsoRasgoPersonaje,
+    recuperarUsoRasgoPersonaje,
+    alternarActivoRasgo,
+    obtenerBloqueoToggleRasgo,
+    resolverRecursosPadre,
+    obtenerNivelEfectivoParaRasgo,
     manejarCambiarCaracteristicaArma,
     manejarTirarAtaque,
     manejarTirarDano,
@@ -63,9 +82,18 @@ export const VistaAtaquesJugador: React.FC = () => {
     );
   }
 
+  const rasgoDetalleEfectivo = React.useMemo(() => {
+    if (!rasgoDetalle || !personajeActivo) return null;
+    return (
+      (personajeActivo.rasgos || []).find((r) => r.id === rasgoDetalle.id) ||
+      rasgoDetalle
+    );
+  }, [rasgoDetalle, personajeActivo]);
+
   const hayAcciones =
     ataquesFisicosFiltrados.length > 0 ||
     conjurosFiltrados.length > 0 ||
+    rasgosFiltrados.length > 0 ||
     consumiblesFiltrados.length > 0 ||
     hechizosObjetosFiltrados.length > 0;
 
@@ -77,6 +105,8 @@ export const VistaAtaquesJugador: React.FC = () => {
         conteoAccion={conteoAccion}
         conteoAccionAdicional={conteoAccionAdicional}
         conteoReaccion={conteoReaccion}
+        conteoConsumibles={conteoConsumibles}
+        conteoActivables={conteoActivables}
         filtro={filtro}
         alCambiarFiltro={setFiltro}
         personajes={personajes}
@@ -133,7 +163,27 @@ export const VistaAtaquesJugador: React.FC = () => {
         alLanzar={lanzar}
       />
 
-      {/* Sección 3: Consumibles y Pociones */}
+      {/* Sección 3: Rasgos y Habilidades Tácticas */}
+      <SeccionRasgosAtaque
+        personajeActivo={personajeActivo}
+        filtro={filtro}
+        rasgosFiltrados={rasgosFiltrados}
+        rasgosAcciones={rasgosAcciones}
+        rasgosAccionesAdicionales={rasgosAccionesAdicionales}
+        rasgosReacciones={rasgosReacciones}
+        rasgosConsumibles={rasgosConsumibles}
+        rasgosActivables={rasgosActivables}
+        estaAbierta={seccionesAbiertas.rasgos !== false}
+        alAlternar={() => alternarSeccion("rasgos")}
+        alAbrirDetalle={setRasgoDetalle}
+        alGastarUso={gastarUsoRasgoPersonaje}
+        alRecuperarUso={recuperarUsoRasgoPersonaje}
+        alAlternarActivo={alternarActivoRasgo}
+        obtenerBloqueoToggleRasgo={obtenerBloqueoToggleRasgo}
+        resolverRecursosPadre={resolverRecursosPadre}
+      />
+
+      {/* Sección 4: Consumibles y Pociones */}
       <SeccionConsumiblesAtaque
         consumiblesFiltrados={consumiblesFiltrados}
         estaAbierta={seccionesAbiertas.consumibles !== false}
@@ -141,7 +191,7 @@ export const VistaAtaquesJugador: React.FC = () => {
         alUsarConsumible={manejarUsarConsumible}
       />
 
-      {/* Sección 4: Hechizos de Objetos Mágicos */}
+      {/* Sección 5: Hechizos de Objetos Mágicos */}
       <SeccionHechizosObjetosMagicos
         hechizosObjetosFiltrados={hechizosObjetosFiltrados}
         estaAbierta={seccionesAbiertas.hechizosObjetos !== false}
@@ -207,6 +257,23 @@ export const VistaAtaquesJugador: React.FC = () => {
             />
           </div>
         </div>
+      )}
+
+      {/* Modal de Detalle Completo de Rasgo */}
+      {rasgoDetalleEfectivo && (
+        <ModalDetalleRasgo
+          rasgo={rasgoDetalleEfectivo}
+          nombrePersonaje={personajeActivo.nombre || "Personaje"}
+          idPersonaje={personajeActivo.id}
+          nivelPersonaje={obtenerNivelEfectivoParaRasgo(rasgoDetalleEfectivo)}
+          alCerrar={() => setRasgoDetalle(null)}
+          alGastarUso={() => gastarUsoRasgoPersonaje(personajeActivo.id, rasgoDetalleEfectivo.id)}
+          alRecuperarUso={() => recuperarUsoRasgoPersonaje(personajeActivo.id, rasgoDetalleEfectivo.id)}
+          alAlternarActivo={() => alternarActivoRasgo(personajeActivo.id, rasgoDetalleEfectivo.id)}
+          deshabilitadoToggle={obtenerBloqueoToggleRasgo(rasgoDetalleEfectivo).bloqueado}
+          motivoDeshabilitado={obtenerBloqueoToggleRasgo(rasgoDetalleEfectivo).motivo}
+          {...resolverRecursosPadre(rasgoDetalleEfectivo)}
+        />
       )}
     </div>
   );

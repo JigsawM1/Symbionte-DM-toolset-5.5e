@@ -19,6 +19,117 @@ Este archivo registra reglas globales, errores encontrados, sus causas raíz y l
    - **Bajo ninguna circunstancia** los módulos de lógica de negocio (`servicios/`), gestores de estado (`almacen/`) o constructores (`gestorClases.ts`) deben contener bifurcaciones condicionales por nombre literal de rasgo o clase (`r.nombre === "..."`, `clase.includes("...")`, etc.).
    - Toda mecánica, progresión de dados, escalado de usos, recuperación o desbloqueo dinámico debe resolverse mediante metadatos declarativos (`escaladoFormulaDados`, `escaladoUsos`, `escaladoRecuperacion`, `opcionesDinamicas`, `escaladoMaxSelecciones`, `sincronizarEfectosConFormula`, `heredarDadosPadre`, `gastarDePadre`, `ligadoA`, `efectos`) delegando en funciones puras agnósticas como `resolverEscaladosRasgo`. Esta regla está reforzada en CI vía ESLint `no-restricted-syntax` y la suite `rasgoGenericidad.test.ts`.
 
+## [2026-09-14] Desactivación Global del Corrector Ortográfico Nativo (Spellcheck) en Campos de Texto
+
+**Contexto y Requerimientos del Usuario:**
+- Solicitud del usuario: *"en los campos de texto por que se marca asi en rojo?"* y posteriormente *"ok aplicalo en todos los campos de texto para que no moleste el spellcheck"*.
+- En la captura adjunta por el usuario:
+  - Un campo de texto (`textarea`) con texto en español (*"Entonas una melodía suave y reconfortante..."*) presentaba un subrayado ondulado rojo en prácticamente todas las palabras.
+
+**Causas Raíz Identificadas:**
+1. **Falso Positivo Masivo por Diccionario Inadecuado en Chromium / TaleSpire**:
+   - El entorno de ejecución (CEF en TaleSpire o navegadores con configuración estándar) opera con el diccionario de corrección en inglés por defecto o carece del paquete de corrección en español.
+   - Al evaluar palabras válidas en español contra un diccionario anglosajón, el motor de renderizado marca cada vocablo como un error ortográfico mediante la línea ondulada nativa.
+2. **Comportamiento por Defecto en HTML5 para Elementos de Entrada**:
+   - Los elementos `<textarea>` y campos de texto editables tienen la corrección ortográfica activada por omisión si no se explicita `spellcheck="false"`.
+
+**Solución Implementada y Decisiones Arquitectónicas (Doble Capa Defensiva):**
+1. **Capa Global Reactiva (DOM & Runtime):**
+   - Creación del módulo centralizado `src/utiles/desactivadorSpellcheck.ts` con la función `inicializarDesactivadorSpellcheck()`.
+   - Desactiva `spellcheck = false` en todos los `<input>`, `<textarea>` y elementos `contenteditable` presentes en el DOM.
+   - Implementa un `MutationObserver` sobre `document.body` que asegura que cualquier componente inyectado dinámicamente (modales, desplegables, portales) herede de inmediato `spellcheck = false`.
+   - Registra un oyente `focusin` (`capture: true`) en `document` como red de seguridad adicional ante interacciones del usuario.
+   - Configura `spellcheck="false"` a nivel raíz en `<body>` y `<div id="root">` dentro de `index.html`.
+   - Inicialización en `src/main.tsx` en el ciclo de arranque de la aplicación.
+2. **Capa Declarativa JSX (Edición Quirúrgica de Componentes):**
+   - Se aplicó `spellCheck={false}` explícitamente a los 23 `<textarea>` de la aplicación (`FormularioHechizo.tsx`, `ConstructorRasgoDote.tsx`, `ModalCrearEditarRasgo.tsx`, `ModalAgregarObjeto.tsx`, `SeccionDatosGenerales.tsx`, `SeccionEquipoContenedor.tsx`, `SeccionListasAtaques.tsx`, `NotasDM.tsx`, `ConfiguracionDM.tsx`, `PestanaPersonalizarCaracteristica.tsx`, `GestorPersonajes.tsx`, `ModalDetalleHabilidad.tsx`, `SeccionMagiaYEfectosObjeto.tsx`).
+3. **Pruebas Unitarias Automatizadas:**
+   - Implementación de `src/utiles/desactivadorSpellcheck.test.ts` con soporte tanto para entornos sin DOM (Node.js/SSR) como con DOM simulado (elementos existentes, dinámicos, `contenteditable` y eventos `focusin`).
+4. **Validación Integral del Proyecto:**
+   - `pnpm exec tsc --noEmit`: 0 errores (Strict mode).
+   - `pnpm test`: 51 suites ejecutadas, 604 pruebas pasando al 100%.
+   - `pnpm lint`: 0 errores y 0 advertencias.
+
+---
+
+## [2026-09-12] Corrección de Sincronización de Rasgos Canónicos de Clase y Rediseño de Pestañas de Filtro en Acciones
+
+**Contexto y Requerimientos del Usuario:**
+- Solicitud del usuario: *"no se fueron todos los rasgos, solo se fue la de la subraza ademas, para seleccionar las pestañas quedo horrible. recuerda que se deben cumplir los principios SOLID, KISS, DRY y mantener una arquitectura limpia"*.
+- En la captura adjunta por el usuario:
+  1. Para un personaje como *Zulen (Bardo)* nivel 3, en la sección de rasgos tácticos de combate solo figuraba el rasgo de subespecie (*Nv 3: Magia de alto elfo: Detectar magia*), omitiendo los rasgos canónicos de clase (*Inspiración bárdica*).
+  2. La barra de botones de filtro en la cabecera colapsaba de forma crítica: el texto de los 6 botones se encogía y se solapaba uno encima de otro de forma ilegible (*"ACCIÓN (18ACCIÓN ADICIONAL (REACCIÓN (0) CONSUMIBLES (5)ACTIVABLES (0)"*).
+
+**Causas Raíz Identificadas:**
+1. **Falta de Sincronización Canónica en la Pestaña de Acciones**:
+   - La función `sincronizarRasgosPersonaje` solo se disparaba mediante un `useEffect` dentro de `usarVistaRasgos.ts` (al entrar en la pestaña *Rasgos*).
+   - Si un personaje había sido creado o persistido previamente con solo rasgos de especie en su array `personaje.rasgos`, al abrir la pestaña *Acciones* (`VistaAtaquesJugador`), `resolverRasgosAcciones(personajeActivo)` solo iteraba sobre el array estático local sin integrar los rasgos de clase canónicos.
+2. **Colapso Flexbox y Desbordamiento en la Barra de Filtros (`CabeceraAtaquesJugador.tsx` y `VistaAtaquesJugador.module.css`)**:
+   - `.botonFiltro` utilizaba `flex: 1; min-width: 70px; white-space: nowrap;`.
+   - Con 6 botones en un panel de ancho acotado (como en la ventana webview de TaleSpire), el flex shrink comprimía los botones a 70px.
+   - El texto *"Acción Adicional (0)"* mide ~150px; al no caber en 70px y tener `white-space: nowrap`, el texto se desbordaba horizontalmente y se superponía sobre los botones contiguos (*"Reacción"*, *"Consumibles"*, etc.).
+   - El componente `CabeceraAtaquesJugador.tsx` repetía 6 veces el mismo bloque de botón JSX violando el principio DRY.
+
+**Solución Implementada y Decisiones Arquitectónicas (SOLID, KISS, DRY):**
+1. **Resilience & Auto-Healing en Rasgos de Combate (`usarCalculoAtaquesJugador.ts` y `calculadorAccionesCombate.ts`):**
+   - `listaRasgosCombate` en `usarCalculoAtaquesJugador.ts` ahora evalúa `sincronizarRasgosAutomaticos(personajeActivo)`, garantizando que todos los rasgos canónicos de clase (ej. *Inspiración bárdica* con sus dados d6 y usos por Carisma) y de especie/subespecie aparezcan de inmediato en combate sin desfase de renderizado.
+   - Se incorporó un `useEffect` reactivo en `usarCalculoAtaquesJugador.ts` que compara los IDs canónicos con los IDs actuales del personaje y, si faltan rasgos canónicos en el almacenamiento, invoca `sincronizarRasgosPersonaje(personajeActivo.id)` para actualizar transparentemente el almacén de Zustand.
+   - En `resolverRasgosAcciones` (`src/servicios/calculadorAccionesCombate.ts`), si el personaje no tiene rasgos definidos o su array está vacío, recurre como fallback seguro a `sincronizarRasgosAutomaticos(personajeActivo)`.
+2. **Arquitectura Limpia y Separación Ergonómica en Cabecera (`CabeceraAtaquesJugador.tsx`):**
+   - Las tres pestañas principales corresponden exclusivamente a los pilares de la economía de acciones de combate de D&D 5.5e: `Acciones` (`conteoAccion`), `Adicionales` (`conteoAccionAdicional`) y `Reacciones` (`conteoReaccion`).
+   - Los demás filtros se encapsulan en un componente `SelectorDesplegable` compacto: `Todas (${conteoTotal})`, `Consumibles (${conteoConsumibles})` y `Activables (${conteoActivables})`.
+   - Cuando el filtro activo es una de las tres pestañas principales, el botón respectivo se resalta y el selector muestra `"Otros..."` en estado neutral. Cuando el filtro activo es del selector, el selector adopta el estilo activo de combate y las pestañas permanecen en reposo.
+3. **Diseño de Distribución Flexible sin Solapamiento (`VistaAtaquesJugador.module.css`):**
+   - `.barraFiltros`: distribuida con `justify-content: space-between; gap: 8px; flex-wrap: wrap; overflow: visible;`.
+   - `.grupoPestanasPrincipales`: aloja los 3 botones de pestañas fijas con `flex: 0 0 auto` y sin encogimiento.
+   - `.selectorFiltroWrapper`: altura armónica de 28px (`tamano="compacto"`), matching con los botones principales y elevación `z-index` para flotar limpiamente sobre el contenido sin cortes por overflow.
+   - `.badgeConteoFiltro`: diseño tipo píldora estilizado (`background-color: rgba(255, 255, 255, 0.08); padding: 1px 6px; border-radius: 10px; font-weight: 800;`) que destaca en estado activo (`background-color: rgba(129, 140, 248, 0.25); color: #c7d2fe;`).
+4. **Cobertura Automatizada con Tests Unitarios:**
+   - Se agregó una prueba en `src/servicios/calculadorAccionesCombate.test.ts` que valida que para un personaje Bardo Alto Elfo nivel 3 se resuelven simultáneamente *Inspiración bárdica* (acción adicional consumible con dados) y *Magia de alto elfo: Detectar magia* (acción consumible).
+5. **Validación Integral del Proyecto:**
+   - `pnpm exec tsc --noEmit`: 0 errores (Strict mode).
+   - `pnpm test`: 50 suites ejecutadas, 602 pruebas pasando al 100%.
+   - `pnpm lint`: 0 errores y 0 advertencias.
+   - `node scripts/verificar-limite-lineas.js`: 109 archivos auditados, 0 archivos superan 500 líneas.
+
+---
+
+## [2026-09-12] Integración de Rasgos Tácticos en la Pestaña de Acciones de Combate (D&D 5.5e)
+
+**Contexto y Requerimientos del Usuario:**
+- Solicitud del usuario: *"realiza un plan de implementacion para hacer que los rasgos sean visibles en la pestaña de acciones, que se vean las acciones, las acciones adicionales, reacciones, consumibles, y activables"*.
+- Decisiones de diseño acordadas:
+  - En la vista general ("Todas"), los rasgos se organizan en subsecciones colapsables (*Acciones*, *Acciones Adicionales*, *Reacciones*, *Recursos Tácticos y Consumibles*, *Activables y Modos de Combate*).
+  - Los rasgos con usos limitados se conservan en su propia sección como *Recursos Tácticos con Usos*, manteniéndolos diferenciados de los consumibles del inventario físico (pociones, pergaminos).
+  - Exclusión de rasgos puramente pasivos permanentes sin mecánicas activas para evitar saturar la interfaz de combate.
+
+**Causas Raíz y Desafíos Técnicos:**
+1. **Desconexión entre Rasgos y Economía de Acciones**: Anteriormente, la pestaña de Acciones (`VistaAtaquesJugador`) solo contemplaba ataques físicos, conjuros, consumibles de inventario y objetos mágicos, obligando al jugador a alternar entre pestañas en combate para usar habilidades de clase como *Furia*, *Segundo Aliento*, *Inspiración Bárdica* o *Desviar Proyectiles*.
+2. **Pertenencia Multicategoría**: Habilidades como *Furia* combinan un coste de activación (*Acción Adicional*), un conmutador de estado (*Activable*) y una reserva finita (*Consumible* con usos por día). Se requería una clasificación declarativa que permitiese responder a múltiples filtros simultáneamente.
+
+**Solución Implementada y Decisiones Arquitectónicas:**
+1. **Resolutor Puro Declarativo `resolverRasgosAcciones` (`src/servicios/calculadorAccionesCombate.ts`):**
+   - Función pura agnóstica sin bifurcaciones por nombre (`r.nombre === "..."`), cumpliendo estrictamente con ESLint `no-restricted-syntax`.
+   - Clasifica los rasgos a partir de sus metadatos (`tipoAccion`, `esActivable`, `categoriaMecanica`, `tieneUsosLimitados`, `gastarDePadre`, `formulaDados`).
+   - Verifica el nivel requerido respecto al nivel del personaje y filtra pasivos estáticos sin dados ni conmutadores.
+2. **Ampliación de Tipos y Estado Reactivo (`usarCalculoAtaquesJugador.ts`):**
+   - Se amplió `FiltroAccion` a `"todas" | "accion" | "accionAdicional" | "reaccion" | "consumibles" | "activables"`.
+   - Se conectaron las acciones del almacén `gastarUsoRasgoPersonaje`, `recuperarUsoRasgoPersonaje` y `alternarActivoRasgo`.
+   - Conteos dinámicos consolidados para todas las categorías (`conteoAccion`, `conteoAccionAdicional`, `conteoReaccion`, `conteoConsumibles`, `conteoActivables`, `conteoTotal`).
+3. **Componente de Interfaz `SeccionRasgosAtaque.tsx`:**
+   - Modo "Todas": renderiza 5 subsecciones colapsables independientes con encabezados semánticos, conteos e iconos SVG locales de Lucide-react (sin emojis).
+   - Modo Filtrado: renderiza directamente la lista plana de rasgos coincidentes.
+   - Reutilización limpia de `TarjetaRasgo` haciendo opcionales los callbacks de edición/borrado para modo combate.
+4. **Inspección en Modal (`VistaAtaquesJugador.tsx`):**
+   - Apertura de `ModalDetalleRasgo` al hacer clic en cualquier rasgo, permitiendo inspeccionar descripciones completas, tablas de progresión y notas sin salir de la pestaña de acciones.
+5. **Validación Integral:**
+   - `pnpm exec tsc --noEmit`: 0 errores (Strict mode).
+   - `pnpm exec vitest run`: 50 suites ejecutadas, 601 pruebas pasando al 100%.
+   - `pnpm lint`: 0 errores y 0 advertencias.
+   - `node scripts/verificar-limite-lineas.js`: 0 archivos > 500 líneas.
+
+---
+
 ## [2026-09-12] Corrección de Tablas de Progresión y Escalado en Multiclase (Nivel de Clase vs Nivel General)
 
 **Contexto y Requerimientos del Usuario:**

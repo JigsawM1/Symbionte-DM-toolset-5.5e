@@ -2036,7 +2036,8 @@
         "quantity": 1
       }
     ],
-    "description": "Un Paquete de Animador contiene los siguientes artículos: Mochila, Saco de Dormir, Campana, Linterna Ojo de Buey, 3 Disfraces, Espejo, 8 frascos de Aceite, 9 días de Raciones, Yesquero y Odre."
+    "description": "Un Paquete de Animador contiene los siguientes artículos: Mochila, Saco de Dormir, Campana, Linterna Ojo de Buey, 3 Disfraces, Espejo, 8 frascos de Aceite, 9 días de Raciones, Yesquero y Odre.",
+    "weight": 58
   },
   {
     "index": "explorers-pack",

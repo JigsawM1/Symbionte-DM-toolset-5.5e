@@ -711,6 +711,7 @@ export const ModalAgregarObjeto: React.FC<ModalAgregarObjetoProps> = ({
                 value={notasPosesion}
                 onChange={(e) => setNotasPosesion(e.target.value)}
                 placeholder="Notas de dónde se encontró, pistas, uso, etc..."
+                spellCheck={false}
               />
             </div>
 

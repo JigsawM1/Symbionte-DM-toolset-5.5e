@@ -277,6 +277,7 @@ export const ModalCrearEditarRasgo: React.FC<ModalCrearEditarRasgoProps> = ({
                 placeholder="Explica detalladamente los efectos y reglas del rasgo..."
                 value={descripcion}
                 onChange={(e) => setDescripcion(e.target.value)}
+                spellCheck={false}
               />
             </div>
 

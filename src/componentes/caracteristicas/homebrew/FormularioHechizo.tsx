@@ -374,6 +374,7 @@ export const FormularioHechizo: React.FC<Props> = ({
           placeholder="Escribe la descripción del conjuro..."
           className={estilos.textareaBrutal}
           rows={calcFilas(hDescripcion, 5, 25)}
+          spellCheck={false}
           required
         />
       </div>
@@ -386,6 +387,7 @@ export const FormularioHechizo: React.FC<Props> = ({
           placeholder="Ej. Cuando lanzas este hechizo usando un espacio de conjuro de nivel 4 o superior, el daño aumenta en 1d6 por cada nivel..."
           className={estilos.textareaBrutal}
           rows={calcFilas(hDescNivelSuperior, 3, 12)}
+          spellCheck={false}
         />
       </div>
 

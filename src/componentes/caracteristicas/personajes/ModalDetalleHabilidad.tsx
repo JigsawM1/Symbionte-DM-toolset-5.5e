@@ -389,6 +389,7 @@ export const ModalDetalleHabilidad: React.FC<ModalDetalleHabilidadProps> = ({
                 onChange={(e) => setDescForm(e.target.value)}
                 placeholder="Descripción del uso de la habilidad..."
                 style={{ resize: "vertical", fontSize: 11 }}
+                spellCheck={false}
               />
             </div>
 
@@ -442,6 +443,7 @@ export const ModalDetalleHabilidad: React.FC<ModalDetalleHabilidadProps> = ({
                 onChange={(e) => setNotasForm(e.target.value)}
                 placeholder="Añade notas para que no se te escape nada"
                 style={{ resize: "vertical", fontSize: 11 }}
+                spellCheck={false}
               />
             </div>
 

@@ -406,6 +406,7 @@ export const GestorPersonajes: React.FC<GestorPersonajesProps> = ({
               readOnly
               value={modalJSON.contenido}
               rows={12}
+              spellCheck={false}
               style={{
                 width: "100%",
                 backgroundColor: "var(--color-fondo-panel)",
@@ -529,6 +530,7 @@ export const GestorPersonajes: React.FC<GestorPersonajesProps> = ({
                 if (errorPegado) setErrorPegado(null);
               }}
               rows={9}
+              spellCheck={false}
               style={{
                 width: "100%",
                 backgroundColor: "var(--color-fondo-panel)",

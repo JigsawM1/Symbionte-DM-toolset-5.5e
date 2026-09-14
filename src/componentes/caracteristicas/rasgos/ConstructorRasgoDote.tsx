@@ -657,6 +657,7 @@ export const ConstructorRasgoDote: React.FC<ConstructorRasgoDoteProps> = ({
             rows={3}
             value={descripcion}
             onChange={(e) => setDescripcion(e.target.value)}
+            spellCheck={false}
           />
         </div>
 
@@ -670,6 +671,7 @@ export const ConstructorRasgoDote: React.FC<ConstructorRasgoDoteProps> = ({
             rows={2}
             value={notas}
             onChange={(e) => setNotas(e.target.value)}
+            spellCheck={false}
           />
         </div>
       </div>
@@ -1597,6 +1599,7 @@ export const ConstructorRasgoDote: React.FC<ConstructorRasgoDoteProps> = ({
                 placeholder="ej. Espada larga, Hacha de batalla, Daga, Alabarda..."
                 value={nuevoOpcionesTexto}
                 onChange={(e) => setNuevoOpcionesTexto(e.target.value)}
+                spellCheck={false}
               />
               <p className={estilos.pistaCampo}>
                 Ingresa los nombres de las opciones entre las que el jugador podrá escoger en su hoja.

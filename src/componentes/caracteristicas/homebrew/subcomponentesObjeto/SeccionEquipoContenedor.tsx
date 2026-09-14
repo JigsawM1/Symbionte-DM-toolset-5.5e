@@ -153,6 +153,7 @@ export const SeccionEquipoContenedor: React.FC<Props> = ({
                   placeholder="Describe el daño de veneno y condiciones mecánicas..."
                   className={estilos.textareaBrutal}
                   rows={3}
+                  spellCheck={false}
                 />
               </div>
             </div>

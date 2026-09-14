@@ -131,6 +131,7 @@ export const NotasDM: React.FC = () => {
           onChange={alCambiarTexto}
           placeholder="Escribe tus notas de campaña, ideas, facciones, detalles de la sesión aquí..."
           className={estilos.textarea}
+          spellCheck={false}
         />
       </div>
 

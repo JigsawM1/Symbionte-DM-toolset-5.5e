@@ -32,6 +32,7 @@ describe("sanearPersonaje", () => {
     expect(saneado.nombre).toBe("Thorin");
     expect(saneado.clase).toBe("Guerrero");
     expect(saneado.hpMaximo).toBe(45);
+    expect(saneado.hpMaximoBase).toBe(45);
     expect(saneado.hpActual).toBe(38);
     // Campos rellenados con defaults seguros
     expect(saneado.caracteristicas).toBeDefined();
@@ -58,5 +59,39 @@ describe("sanearPersonaje", () => {
     expect(saneado.id).toBe("pj_completo_1");
     expect(saneado.nombre).toBe("Aleron");
     expect(saneado.bolsaMonedas.po).toBe(50);
+  });
+
+  it("preserva la coherencia de hpMaximoBase y hpMaximo sin inflar bono de rasgos repetidamente", () => {
+    const pjConRasgoHP = {
+      ...PERSONAJE_POR_DEFECTO,
+      id: "pj-enano-saneado",
+      nombre: "Dwalin",
+      nivel: 3,
+      hpMaximoBase: 25,
+      hpMaximo: 25,
+      hpActual: 25,
+      rasgos: [
+        {
+          id: "rasgo-aguante-enano",
+          nombre: "Aguante enano",
+          tipo: "especie",
+          descripcion: "Tu máximo de puntos de golpe aumenta en 1 por cada nivel.",
+          origen: "Enano",
+          efectos: [
+            {
+              tipo: "modificador_hp_maximo",
+              objetivo: "hp_maximo",
+              valor: "1*nivel",
+              descripcion: "+1 HP por nivel"
+            }
+          ]
+        }
+      ]
+    };
+
+    const saneado = sanearPersonaje(pjConRasgoHP);
+    expect(saneado.hpMaximoBase).toBe(25);
+    expect(saneado.hpMaximo).toBe(25);
+    expect(saneado.hpActual).toBe(25);
   });
 });

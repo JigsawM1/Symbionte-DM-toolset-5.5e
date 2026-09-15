@@ -451,8 +451,11 @@ export function aplicarEspecieAPersonaje(
   const deltaHP = bonoNuevoHP - bonoPrevioHP;
 
   if (deltaHP !== 0) {
+    const baseActual = pjResultado.hpMaximoBase || pjResultado.hpMaximo || 10;
+    const nuevoBase = Math.max(1, baseActual + deltaHP);
     const nuevoMaximo = Math.max(1, (pjResultado.hpMaximo || 1) + deltaHP);
     const nuevoActual = Math.max(0, (pjResultado.hpActual ?? nuevoMaximo) + deltaHP);
+    pjResultado.hpMaximoBase = nuevoBase;
     pjResultado.hpMaximo = nuevoMaximo;
     pjResultado.hpActual = Math.min(nuevoActual, nuevoMaximo);
   }

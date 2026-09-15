@@ -1,7 +1,6 @@
 import type { StateCreator } from "zustand";
 import type { EstadoDM } from "@/almacen/usarAlmacenDM";
 import { ejecutarDescansoCorto, ejecutarDescansoLargo } from "@/servicios/procesadorDescansos";
-import { calcularBonoHPMaximoRasgos } from "@/servicios/evaluadorEfectosRasgos";
 import { mutarPersonaje } from "../helpers/mutarPersonaje";
 import type { SubSliceVitalidad } from "./slicePersonajesTipos";
 
@@ -73,13 +72,11 @@ export const crearSubSliceVitalidad: StateCreator<
   modificarHPMaximoBasePersonaje: (id, nuevoBase) => {
     mutarPersonaje(set, id, (pj) => {
       const baseValido = Math.max(1, nuevoBase || 1);
-      const bonoRasgos = calcularBonoHPMaximoRasgos(pj);
-      const maxEfectivo = Math.max(1, baseValido + bonoRasgos);
       return {
         ...pj,
         hpMaximoBase: baseValido,
-        hpMaximo: maxEfectivo,
-        hpActual: Math.min(pj.hpActual, maxEfectivo)
+        hpMaximo: baseValido,
+        hpActual: Math.min(pj.hpActual, baseValido)
       };
     });
   },

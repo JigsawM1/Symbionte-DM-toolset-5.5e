@@ -78,6 +78,17 @@ describe("procesadorAtaques", () => {
       const formula = construirFormulaAtaqueRapido("Dardo", "-1", "1d4-1", "perforante");
       expect(formula).toBe("!Ataque Dardo:1d20-1/Dano Perforante:1d4-1");
     });
+
+    it("debe incluir el nombre de la criatura en la etiqueta de ataque si se suministra", () => {
+      const formula = construirFormulaAtaqueRapido(
+        "Bastón del viento",
+        "+5",
+        "1d6+3 / 2d8",
+        "contundente / relámpago",
+        "Aarakocra aeromante"
+      );
+      expect(formula).toBe("!Aarakocra aeromante - Baston del viento:1d20+5/Dano Contundente:1d6+3/Dano Relampago:2d8");
+    });
   });
 
   describe("formatearDetalleAtaqueRapido", () => {

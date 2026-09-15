@@ -466,9 +466,7 @@ export function calcularBonoHPMaximoRasgos(personaje: PersonajeJugador): number 
  * Calcula los puntos de golpe máximos efectivos de un personaje sumando la base y los bonos de rasgos.
  */
 export function calcularHPMaximoEfectivo(personaje: PersonajeJugador): number {
-  const base = personaje?.hpMaximoBase || 10;
-  const bono = calcularBonoHPMaximoRasgos(personaje);
-  return Math.max(1, base + bono);
+  return personaje?.hpMaximo || personaje?.hpMaximoBase || 10;
 }
 
 /**

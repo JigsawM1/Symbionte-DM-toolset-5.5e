@@ -543,7 +543,7 @@ export function calcularEstadisticasPersonaje(pj: PersonajeJugador): Estadistica
   const bonoDanoFuria = furiaActiva && nivelBarbaro > 0 ? obtenerBonoDanoFuria(nivelBarbaro) : 0;
   const bonoVelocidadRasgos = pj ? calcularBonoVelocidadRasgos(pj) : 0;
   const bonoHPMaximoRasgos = pj ? calcularBonoHPMaximoRasgos(pj) : 0;
-  const hpMaximoEfectivo = pj ? Math.max(1, (pj.hpMaximoBase || 10) + bonoHPMaximoRasgos) : 10;
+  const hpMaximoEfectivo = pj ? (pj.hpMaximo || pj.hpMaximoBase || 10) : 10;
   const competenciasEfectivas = pj
     ? obtenerCompetenciasEfectivasTexto(pj)
     : { armasTexto: "Ninguna", armadurasTexto: "Ninguna" };

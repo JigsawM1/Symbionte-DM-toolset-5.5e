@@ -86,11 +86,12 @@ export const crearSubSlicePersonajesBase: StateCreator<
     const bonoHPInicial = calcularBonoHPMaximoRasgos(nuevoPersonaje);
     if (bonoHPInicial !== 0) {
       const baseHP = nuevoPersonaje.hpMaximoBase || 10;
-      const maxEfectivo = Math.max(1, baseHP + bonoHPInicial);
+      const maxPermanente = Math.max(1, baseHP + bonoHPInicial);
       nuevoPersonaje = {
         ...nuevoPersonaje,
-        hpMaximo: maxEfectivo,
-        hpActual: maxEfectivo
+        hpMaximoBase: maxPermanente,
+        hpMaximo: maxPermanente,
+        hpActual: maxPermanente
       };
     }
 
@@ -195,22 +196,23 @@ export const crearSubSlicePersonajesBase: StateCreator<
 
         // Sincronizar HP máximo si hubo cambios explícitos de hpMaximoBase sin proveer hpMaximo explícito
         if (cambios.hpMaximoBase !== undefined && cambios.hpMaximo === undefined) {
-          const bonoHPRasgos = calcularBonoHPMaximoRasgos(fusionado);
-          const baseHP = fusionado.hpMaximoBase;
-          const nuevoMax = Math.max(1, baseHP + bonoHPRasgos);
+          const baseValido = Math.max(1, cambios.hpMaximoBase);
           fusionado = {
             ...fusionado,
-            hpMaximo: nuevoMax,
-            hpActual: Math.min(fusionado.hpActual, nuevoMax)
+            hpMaximoBase: baseValido,
+            hpMaximo: baseValido,
+            hpActual: Math.min(fusionado.hpActual, baseValido)
           };
         } else if (cambioIdentidadOProgreso || cambios.rasgos !== undefined) {
           const bonoPrevio = calcularBonoHPMaximoRasgos(pj);
           const bonoNuevo = calcularBonoHPMaximoRasgos(fusionado);
           const deltaBono = bonoNuevo - bonoPrevio;
           if (deltaBono !== 0) {
+            const nuevoBase = Math.max(1, (fusionado.hpMaximoBase || fusionado.hpMaximo || 10) + deltaBono);
             const nuevoMax = Math.max(1, (fusionado.hpMaximo || 1) + deltaBono);
             fusionado = {
               ...fusionado,
+              hpMaximoBase: nuevoBase,
               hpMaximo: nuevoMax,
               hpActual: Math.max(0, Math.min(nuevoMax, (fusionado.hpActual ?? nuevoMax) + (deltaBono > 0 ? deltaBono : 0)))
             };

@@ -2,7 +2,6 @@ import { HechizoBase, ObjetoHomebrew, Rareza, Arma, Armadura, Escudo, EquipoAven
 import { PERSONAJE_POR_DEFECTO } from '@/constantes/personajeConstantes';
 import { resolverGruposYSustitutosCompetencias } from '@/constantes/competenciasConstantes';
 import { resolverCategoriaDesdeSRD, CATEGORIAS_EQUIPO, type CategoriaEquipo } from '@/constantes/categoriasEquipoConstantes';
-import { calcularBonoHPMaximoRasgos } from '@/servicios/evaluadorEfectosRasgos';
 import { generarId } from '@/utiles/generarId';
 
 // Normaliza el texto eliminando acentos y convirtiendo a minúsculas
@@ -1089,11 +1088,17 @@ export function sanearPersonaje(p: unknown): PersonajeJugador {
   }
 
   const raw = p as Record<string, unknown>;
+  const rawHPMaximo = typeof raw.hpMaximo === "number" && raw.hpMaximo > 0 ? raw.hpMaximo : undefined;
+  const rawHPMaximoBase = typeof raw.hpMaximoBase === "number" && raw.hpMaximoBase > 0 ? raw.hpMaximoBase : undefined;
+  const hpBaseNormalizado = rawHPMaximoBase ?? rawHPMaximo ?? PERSONAJE_POR_DEFECTO.hpMaximoBase ?? 10;
+  const hpMaxNormalizado = rawHPMaximo ?? rawHPMaximoBase ?? PERSONAJE_POR_DEFECTO.hpMaximo ?? 10;
 
   // Fusionamos con los valores por defecto de primer y segundo nivel
   const fusionado: Record<string, unknown> = {
     ...PERSONAJE_POR_DEFECTO,
     ...raw,
+    hpMaximoBase: hpBaseNormalizado,
+    hpMaximo: hpMaxNormalizado,
     id: typeof raw.id === "string" && raw.id.trim() ? raw.id.trim() : generarId("pj"),
     nombre: typeof raw.nombre === "string" && raw.nombre.trim() ? raw.nombre.trim() : "Nuevo Personaje",
     caracteristicas: {
@@ -1200,8 +1205,15 @@ export function sanearPersonaje(p: unknown): PersonajeJugador {
                 descripcion: "Revelación celestial (+PB daño en conjuros)"
               });
             }
+            const origL = typeof r.origen === "string" ? r.origen.toLowerCase().trim() : "";
+            const ORIGENES_VALIDOS = ["especie", "subespecie", "clase", "subclase", "dote", "trasfondo", "personalizado"];
+            const origenValido = ORIGENES_VALIDOS.includes(origL)
+              ? origL
+              : (origL === "raza" || origL === "subraza" ? (origL === "raza" ? "especie" : "subespecie") : "personalizado");
+
             return {
               ...r,
+              origen: origenValido,
               esActivable,
               activo: typeof r.activo === "boolean" ? r.activo : (esActivable ? false : true),
               efectos
@@ -1243,15 +1255,10 @@ export function sanearPersonaje(p: unknown): PersonajeJugador {
   const resultado = EsquemaPersonajeJugador.safeParse(fusionado);
   if (resultado.success) {
     const pjValido = resultado.data;
-    const bonoHPRasgos = calcularBonoHPMaximoRasgos(pjValido);
-    if (bonoHPRasgos !== 0) {
-      const baseHP = pjValido.hpMaximoBase || 10;
-      const nuevoMax = Math.max(1, baseHP + bonoHPRasgos);
-      pjValido.hpMaximo = nuevoMax;
-      pjValido.hpActual = Math.min(pjValido.hpActual, nuevoMax);
-    }
+    pjValido.hpActual = Math.min(pjValido.hpActual, pjValido.hpMaximo);
     return pjValido;
   }
+
 
   // Fallback si algún campo anidado no pasa Zod
   return {

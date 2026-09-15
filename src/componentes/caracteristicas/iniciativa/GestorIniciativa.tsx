@@ -89,12 +89,13 @@ export const GestorIniciativa: React.FC = () => {
 
   // Lanzar Ataques y Habilidades en TaleSpire 3D
   const lanzarAtaqueRapido = (criaturaNombre: string, ataqueNombre: string, bonoAtaqueStr: string, dadosDaño: string, tipoDaño: string) => {
-    const formulaDados = construirFormulaAtaqueRapido(ataqueNombre, bonoAtaqueStr, dadosDaño, tipoDaño);
+    const formulaDados = construirFormulaAtaqueRapido(ataqueNombre, bonoAtaqueStr, dadosDaño, tipoDaño, criaturaNombre);
     lanzarDadosTaleSpire(formulaDados, `${criaturaNombre} - ${ataqueNombre}`);
   };
 
   const lanzarTiradaD20Interactiva = (criaturaNombre: string, etiqueta: string, bonificador: number) => {
-    const formulaDados = `!${sanitizarEtiqueta(etiqueta)}:1d20${bonificador >= 0 ? "+" : ""}${bonificador}`;
+    const etiquetaCompleta = `${sanitizarEtiqueta(criaturaNombre)} - ${sanitizarEtiqueta(etiqueta)}`;
+    const formulaDados = `!${etiquetaCompleta}:1d20${bonificador >= 0 ? "+" : ""}${bonificador}`;
     lanzarDadosTaleSpire(formulaDados, `${criaturaNombre} - ${etiqueta}`);
   };
 

@@ -117,12 +117,13 @@ class TaleSpireAdapter {
     /**
      * Envía de forma elegante un resultado filtrado al chat del juego.
      */
-    sendDiceResult: async (groups: GrupoResultadosTirada[] | unknown[], rollId: string): Promise<void> => {
+    sendDiceResult: async (groups: GrupoResultadosTirada[] | unknown[], rollId?: string): Promise<void> => {
       const ts = this.tsGlobal;
       if (ts?.dice && typeof ts.dice.sendDiceResult === "function") {
         await ts.dice.sendDiceResult(groups, rollId);
       } else {
         logger.warn("[TS Adapter] dice.sendDiceResult no disponible.");
+        throw new Error("dice.sendDiceResult no disponible en TaleSpire");
       }
     }
   };

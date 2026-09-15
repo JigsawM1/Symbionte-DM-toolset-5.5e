@@ -19,6 +19,139 @@ Este archivo registra reglas globales, errores encontrados, sus causas raíz y l
    - **Bajo ninguna circunstancia** los módulos de lógica de negocio (`servicios/`), gestores de estado (`almacen/`) o constructores (`gestorClases.ts`) deben contener bifurcaciones condicionales por nombre literal de rasgo o clase (`r.nombre === "..."`, `clase.includes("...")`, etc.).
    - Toda mecánica, progresión de dados, escalado de usos, recuperación o desbloqueo dinámico debe resolverse mediante metadatos declarativos (`escaladoFormulaDados`, `escaladoUsos`, `escaladoRecuperacion`, `opcionesDinamicas`, `escaladoMaxSelecciones`, `sincronizarEfectosConFormula`, `heredarDadosPadre`, `gastarDePadre`, `ligadoA`, `efectos`) delegando en funciones puras agnósticas como `resolverEscaladosRasgo`. Esta regla está reforzada en CI vía ESLint `no-restricted-syntax` y la suite `rasgoGenericidad.test.ts`.
 
+## [2026-09-14] Preservación de Combatiente y Sufijo Explícito de Ventaja/Desventaja en la Tarjeta Nativa de TaleSpire (3D)
+
+**Contexto y Requerimientos del Usuario:**
+- El usuario reportó: *"se desplegaron los fallback pero no la etiqueta!!"* adjuntando captura del chat de TaleSpire.
+- En la captura se observó:
+  1. La tarjeta nativa 3D de TaleSpire desplegó:
+     `YOU ROLLED ATAQUE BASTON DEL VIENTO (A)... AND ATAQUE BASTON DEL VIENTO (B)...`
+  2. Debajo se desplegó el mensaje de fallback gris:
+     `[Tirada] Aarakocra aeromante - Bastón del viento. (Desventaja): 8 (Menor de [8, 12])`
+  3. El usuario remarcó que el mensaje de texto gris era el fallback, pero la tarjeta de dados ("la etiqueta") no contenía el nombre del combatiente (`Aarakocra aeromante`) y desplegó `(A)` y `(B)` en lugar del sufijo explícito de Ventaja o Desventaja.
+
+**Causas Raíz Identificadas:**
+1. **Pérdida del Nombre de la Criatura en Fórmulas de Ataques Rápidos:**
+   - `construirFormulaAtaqueRapido` generaba `!Ataque Baston del viento:1d20+5` sin incluir el nombre del combatiente.
+   - Aunque `lanzarAtaqueRapido` en `GestorIniciativa.tsx` pasaba `${criaturaNombre} - ${ataqueNombre}`, `lanzadorDados.ts` analizaba el grupo de la fórmula (`!Ataque Baston del viento:`), detectaba que no era idéntico a `"ataque"` ni `"tirada"` y sobrescribía `nombreBaseGrupo`, borrando el nombre del combatiente (`Aarakocra aeromante`).
+2. **Sufijos `(A)` y `(B)` en Lugar de Nombres Semánticos en los Descriptores de Dados:**
+   - `lanzadorDados.ts` nombraba los grupos para la bandeja de dados como `${nombreBaseGrupo} (A)` y `${nombreBaseGrupo} (B)` asumiendo que `silenceDefaultChatCard` silenciaría la tarjeta nativa.
+   - Dado que TaleSpire genera automáticamente la tarjeta en el chat y en pantalla con los nombres de los descriptores suministrados a `putDiceInTray`, la tarjeta mostraba en grande `ATAQUE BASTON DEL VIENTO (A)` y `(B)`.
+
+**Solución Implementada y Decisiones Arquitectónicas:**
+1. **Inclusión de Combatiente en la Fórmula de Ataque (`procesadorAtaques.ts` y `GestorIniciativa.tsx`):**
+   - `construirFormulaAtaqueRapido` acepta el parámetro opcional `criaturaNombre`. Si se suministra, genera la etiqueta compuesta `${criaturaNombre} - ${ataqueNombre}` (ej. `!Aarakocra aeromante - Baston del viento:1d20+5`).
+   - `GestorIniciativa.tsx` propaga `criaturaNombre` tanto en ataques rápidos como en tiradas interactivas de d20.
+2. **Blindaje de Preservación de Combatiente (`lanzadorDados.ts`):**
+   - En `lanzarDadosTaleSpire`, `nombreEtiquetaBase` solo se sobrescribe si era genérico (`"tirada"` o vacío). Si la fórmula aporta una etiqueta adicional que no está en la base, se concatenan armoniosamente para nunca perder la identidad del combatiente.
+   - En tiradas planas (`tipoTirada === "plano"`), se inyecta `${nombreBase}` en el primer grupo d20 si venía sin el nombre del combatiente.
+3. **Nomenclatura Semántica Explícita en la Tarjeta Nativa 3D (`putDiceInTray`):**
+   - Los grupos d20 de ventaja o desventaja se nombran explícitamente como:
+     `${nombreBaseGrupo} (Ventaja 1)` / `${nombreBaseGrupo} (Ventaja 2)`
+     o
+     `${nombreBaseGrupo} (Desventaja 1)` / `${nombreBaseGrupo} (Desventaja 2)`
+   - De este modo, la tarjeta física 3D y el chat de TaleSpire despliegan de inmediato:
+     `YOU ROLLED AARAKOCRA AEROMANTE - BASTON DEL VIENTO (DESVENTAJA 1)`
+     `AND AARAKOCRA AEROMANTE - BASTON DEL VIENTO (DESVENTAJA 2)`
+5. **Eliminación de Avisos Redundantes (Chat de Texto y Toast Local):**
+   - El usuario solicitó explícitamente: *"ya sale la etiqueta, pero tambien se pasa al chat y sale una notificacion toast, no quiero eso, solo quiero la etiqueta y ya"*.
+   - Una vez que la tarjeta nativa 3D y de dados de TaleSpire (`sendDiceResult`) se publica exitosamente, se suprimió el despacho redundante a `ts.chat.send` y a `state.agregarNotificacion`.
+   - `ts.chat.send` permanece únicamente como red de seguridad en caso de que la publicación de la tarjeta nativa falle por completo.
+
+---
+
+## [2026-09-14] Corrección Crítica: Notificación de Resultados de Ventaja y Desventaja en TaleSpire (API v0.1)
+
+**Contexto y Requerimientos del Usuario:**
+- El usuario reportó el siguiente fallo: *"hola vi un bug con la ventaja y desventaja, no se se tiran los dados, pero no se avisa en talespire el resultado"*.
+- Al tirar con ventaja o desventaja, los dados físicos 3D caían en la mesa de TaleSpire pero no aparecía ninguna tarjeta en el chat ni aviso con el resultado final.
+
+**Causas Raíz Identificadas:**
+1. **Incompatibilidad Estricta de Formato en `procesarResultadosDadosTaleSpire`:**
+   - Para tiradas con ventaja o desventaja, `lanzarDadosTaleSpire` invoca `ts.dice.putDiceInTray(descriptores, true)` con `silenceDefaultChatCard = true`, para que TaleSpire no anuncie ambos d20 por separado y espere la tarjeta filtrada del simbionte vía `ts.dice.sendDiceResult`.
+   - Cuando TaleSpire despacha `onRollResults` a través de `window.manejarResultadosDados`, la API v0.1 de TaleSpire entrega directamente el objeto `ResultadosTirada` (`{ rollId: string, resultsGroups: GrupoResultadosTirada[], clientId: string, ... }`).
+   - Sin embargo, `procesarResultadosDadosTaleSpire` condicionaba estrictamente la ejecución a `if (ev.kind !== "rollResults" || !ev.payload) return false;`. Como `ev.kind` y `ev.payload` eran `undefined` en las llamadas reales de TaleSpire, la función retornaba inmediatamente `false`.
+   - Consecuencia: TaleSpire tenía silenciada la tarjeta por defecto y el simbionte ignoraba el evento sin llamar jamás a `ts.dice.sendDiceResult`.
+2. **Falta de Fallback Proactivo ante Fallos de `sendDiceResult`:**
+   - Si `ts.dice.sendDiceResult` no estaba disponible o fallaba en la versión del motor de TaleSpire, la tirada quedaba completamente silenciada sin una ruta de contingencia hacia `ts.chat.send`.
+3. **Omisión de la Etiqueta Completa en la Fórmula de Ataque y en la Tarjeta 3D:**
+   - En tiradas de daño, la fórmula se enviaba explícitamente con prefijo (`Zulen - Dano Arco Corto:1d6+2`), logrando que TaleSpire mostrara la tarjeta flotante nativa `ROLLED ZULEN - DANO ARCO CORTO`.
+   - En cambio, en las tiradas de ataque la fórmula se enviaba sin etiqueta (`1d20+7`), dejando los dados sin contexto semántico en el motor nativo de TaleSpire.
+   - Además, al procesar ventaja/desventaja, el grupo de dados se nombraba truncado o genérico, y no se reintentaba `sendDiceResult` si fallaba al vincularlo a un `rollId` silenciado.
+
+**Solución Implementada y Decisiones Arquitectónicas:**
+1. **Extractor Normalizador Polimórfico (`extraerPayloadResultadosDados`):**
+   - Soporta de forma transparente y defensiva:
+     - Formato nativo directo de TaleSpire (`{ rollId, resultsGroups }`).
+     - Formatos envueltos (`{ kind: "rollResults", payload }`, `{ payload }`).
+     - Eventos DOM (`detail`).
+     - Cadenas JSON serializadas por CEF.
+2. **Propagación Homogénea de la Etiqueta en la Tarjeta Nativa de TaleSpire:**
+   - En `lanzadorDados.ts`, si una fórmula no trae etiqueta explícita, se inyecta la etiqueta descriptiva completa saneada (`${nombreEtiquetaBase}:${formula}`).
+   - Se sanean y remueven sufijos redundantes de `(Ventaja)`/`(Desventaja)` para evitar duplicaciones.
+   - Los grupos A y B se generan como `${nombreBaseGrupo} (A)` y `${nombreBaseGrupo} (B)` (ej. `"Zulen - Ataque con Arco corto (A)"`).
+   - El grupo ganador se nombra con `${nombreBaseGrupo} (Ventaja)` o `(Desventaja)`, logrando que la tarjeta flotante nativa 3D de TaleSpire muestre con total claridad: `ROLLED ZULEN - ATAQUE CON ARCO CORTO (VENTAJA)`.
+3. **Resiliencia de Publicación 3D y Doble Canal de Aviso:**
+   - Se invoca `ts.dice.sendDiceResult(gruposParaChat, rollId)` y, en caso de fallo por ID de tirada silenciada, se reintenta automáticamente `ts.dice.sendDiceResult(gruposParaChat)` como nueva tirada para desplegar de forma infalible la tarjeta flotante en pantalla.
+   - Se despacha simultáneamente el aviso con la etiqueta completa al chat de texto de TaleSpire (`ts.chat.send`) y como notificación local en la UI del ToolSet.
+2. **Red de Seguridad y Fallback Garantizado en TaleSpire:**
+   - Invocación a `ts.dice.sendDiceResult` a través de la API del adaptador.
+   - En caso de excepción o indisponibilidad en el cliente de TaleSpire, activación automática de un fallback a `ts.chat.send` con el desglose del dado elegido y descartado (ej. `[Tirada] Sigilo (Ventaja): 20 (Mayor de [11, 20])`).
+   - Registro simultáneo de notificación informativa en el estado local de la aplicación (`agregarNotificacion`).
+   - Si por divergencias de serialización los grupos A y B no coinciden exactamente, se normalizan con `toLowerCase()` y, si persisten ausentes, se publican los resultados disponibles para nunca dejar la mesa a ciegas.
+3. **Nombres de Grupo Descriptivos Dinámicos:**
+   - Si la fórmula no incluye prefijo, se extrae el nombre saneado de la etiqueta del contexto (`nombreEtiqueta || "Tirada"`), garantizando nombres coherentes como `"Sigilo (A)"` y `"Sigilo (Ventaja)"`.
+4. **Redundancia CEF en `puenteTaleSpire.ts` y Tipado:**
+   - Declaración y registro de `window.onRollResults` y listeners DOM para evitar pérdida de eventos en cualquier versión de TaleSpire.
+5. **Cumplimiento Estricto de la Regla 1 (Cero Emojis):**
+   - Reemplazo de cualquier emoji por prefijos textuales limpios (`[Tirada]`, `Tirada ...`).
+
+**Métricas de Calidad Verificadas:**
+- `pnpm exec tsc --noEmit`: 0 errores (Strict Mode estricto).
+- `pnpm lint`: 0 errores y 0 advertencias (ESLint limpio).
+- `pnpm test`: 53 suites superadas, 634 de 634 pruebas pasando (100%).
+- `node scripts/verificar-limite-lineas.js`: 109 archivos auditados, 0 archivos con más de 500 líneas.
+
+---
+
+## [2026-09-14] Rasgos Canónicos de Enano y Arquitectura de Vida Máxima Permanente (D&D 5.5e)
+
+**Contexto y Requerimientos del Usuario:**
+- Implementación canónica y declarativa de los rasgos de Enano según D&D 5.5e (`Enano.md`):
+  1. *Resistencia enana*: Pasivo con ventaja en tiradas de salvación contra la condición Envenenado y resistencia a daño por veneno.
+  2. *Aguante enano*: Efecto puramente declarativo `modificador_hp_maximo` que incrementa la vida máxima permanente en `1 * nivel`.
+  3. *Afinidad con la piedra*: Acción adicional activable que otorga sentido ciego sobre piedra a 60 pies durante 100 asaltos, con usos iguales al bonificador por competencia (PB) y recarga en descanso largo.
+  4. Corrección crítica de vida máxima: el usuario remarcó que *"la máxima permanente se define con `alActualizarHPMaximoBase` en `PestanaSentidosSalud.tsx`, con esa se actualiza la verdadera vida máxima"*, por lo que los rasgos permanentes no debían inflar temporalmente `hpMaximo` sino actualizar la base permanente `hpMaximoBase`.
+
+**Causas Raíz y Desafíos Técnicos:**
+1. **Desfasaje entre Vida Máxima Temporal y Permanente:**
+   - Previamente, los rasgos declarativos con `modificador_hp_maximo` sumaban su bono sobre la marcha en selectores o alteraban únicamente `hpMaximo`.
+   - Esto provocaba que `hpMaximoBase` quedara en el valor previo (ej. 10 ó 12) mientras `hpMaximo` se elevaba (ej. 11 ó 13). Como consecuencia, `PanelVitalidadPersonaje.tsx` detectaba `maxBase !== maxEfectivo` y pintaba la barra en verde con tooltip de buff temporal, mientras que `PestanaSentidosSalud.tsx` mostraba el valor desfasado.
+2. **Duplicación del Bono de Rasgos en Sanitización (`sanitizacion.ts`):**
+   - `sanearPersonaje` calculaba `calcularBonoHPMaximoRasgos` y sumaba el bono a `baseHP + bonoHPRasgos` para sobrescribir `hpMaximo`. Si el personaje ya tenía el bono incorporado en su base permanente, la sanitización inflaba de nuevo `hpMaximo` (ej. 13 + 1 = 14).
+3. **Pérdida de Vida en Personajes Antiguos (Legacy):**
+   - Si un personaje importado o guardado solo poseía `hpMaximo` sin `hpMaximoBase`, la sanitización le asignaba el default de 10 a `hpMaximoBase`.
+
+**Solución Implementada y Decisiones Arquitectónicas:**
+1. **Unificación Canónica de Vida Máxima Permanente (`sliceVitalidad.ts` y `slicePersonajesBase.ts`):**
+   - `modificarHPMaximoBasePersonaje` actualiza de forma canónica y limpia tanto `hpMaximoBase: baseValido` como `hpMaximo: baseValido`, manteniendo simetría perfecta en ausencia de efectos temporales de combate.
+   - En `slicePersonajesBase.ts`, al recibir una edición explícita de `hpMaximoBase` (originada desde `PestanaSentidosSalud.tsx` vía `alActualizarHPMaximoBase`), se fija la verdadera vida permanente en ambos campos.
+   - Cuando se modifica la identidad o se cambian rasgos, se calcula el diferencial de bono (`deltaBono = bonoNuevo - bonoPrevio`) y se suma tanto a `hpMaximoBase` como a `hpMaximo`.
+2. **Construcción y Aplicación de Rasgos de Especie (`gestorEspecies.ts` y `sliceRasgos.ts`):**
+   - `aplicarEspecieAPersonaje` calcula el diferencial `deltaHP` y lo aplica a `hpMaximoBase` y `hpMaximo`.
+   - En `sliceRasgos.ts` (`agregarRasgoPersonaje`, `actualizarRasgoPersonaje`, `eliminarRasgoPersonaje`, `alternarActivoRasgo`), las variaciones en rasgos de HP impactan la base permanente mediante `deltaBono`.
+3. **Normalización Idempotente en Saneamiento (`sanitizacion.ts`):**
+   - Se eliminó la re-suma de `calcularBonoHPMaximoRasgos` en `sanearPersonaje`.
+   - Se implementó normalización bidireccional segura para `hpMaximoBase` y `hpMaximo` en personajes legacy (`rawHPMaximoBase ?? rawHPMaximo ?? 10`).
+   - Se reforzó la sanitización de `origen` de rasgos a los valores canónicos del enum de Zod para evitar caídas al fallback por defecto ante valores como `"raza"` o `"Enano"`.
+4. **Simplificación de Selectores Reactivos (`usarEstadoPersonajes.ts` y `evaluadorEfectosRasgos.ts`):**
+   - `calcularHPMaximoEfectivo` y el selector `hpMaximoEfectivo` leen directamente `pj.hpMaximo || pj.hpMaximoBase || 10`, eliminando duplicaciones en tiempo de ejecución.
+5. **Verificación Automatizada:**
+   - 100% de suites pasando (52 suites, 626 tests exitosos).
+   - 0 errores en `tsc --noEmit`, 0 infracciones en `eslint src`, 0 archivos > 500 líneas y `vite build` completado exitosamente.
+
+---
+
 ## [2026-09-14] Resolución de Cargas de Objetos Mágicos y Visualización en Acciones de Combate (D&D 5.5e)
 
 **Contexto y Requerimientos del Usuario:**

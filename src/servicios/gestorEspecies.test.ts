@@ -1092,12 +1092,14 @@ describe("GestorEspecies - Dominio de Razas y Subrazas (D&D 5.5e)", () => {
         id: "pj-enano-1",
         nombre: "Bruenor N1",
         nivel: 1,
+        hpMaximoBase: 12,
         hpMaximo: 12,
         hpActual: 12
       };
 
       const pjAplicadoN1 = aplicarEspecieAPersonaje(pjNivel1, { especieId: "enano" });
-      // HP base 12 + 1 por nivel = 13
+      // HP permanente 12 + 1 por nivel = 13
+      expect(pjAplicadoN1.hpMaximoBase).toBe(13);
       expect(pjAplicadoN1.hpMaximo).toBe(13);
       expect(pjAplicadoN1.hpActual).toBe(13);
 
@@ -1107,12 +1109,14 @@ describe("GestorEspecies - Dominio de Razas y Subrazas (D&D 5.5e)", () => {
         id: "pj-enano-5",
         nombre: "Bruenor N5",
         nivel: 5,
+        hpMaximoBase: 44,
         hpMaximo: 44,
         hpActual: 44
       };
 
       const pjAplicadoN5 = aplicarEspecieAPersonaje(pjNivel5, { especieId: "enano" });
-      // HP base 44 + 5 por nivel = 49
+      // HP permanente 44 + 5 por nivel = 49
+      expect(pjAplicadoN5.hpMaximoBase).toBe(49);
       expect(pjAplicadoN5.hpMaximo).toBe(49);
       expect(pjAplicadoN5.hpActual).toBe(49);
     });

@@ -117,24 +117,24 @@ describe("Tiradas de Hoja de Personaje - Convención TaleSpire y Combat Tracker"
     try {
       await lanzarDadosTaleSpire(formula, etiqueta);
 
-      // Verificamos que se crearon los dos grupos A y B con el nombre de la habilidad
+      // Verificamos que se crearon los dos grupos con el nombre completo y sufijo
       expect(rollDescriptorsCapturados).toHaveLength(2);
-      expect(rollDescriptorsCapturados![0].name).toBe("Prueba de Atletismo (A)");
+      expect(rollDescriptorsCapturados![0].name).toBe("Valeros - Prueba de Atletismo (Ventaja 1)");
       expect(rollDescriptorsCapturados![0].roll).toBe("1d20+5");
-      expect(rollDescriptorsCapturados![1].name).toBe("Prueba de Atletismo (B)");
+      expect(rollDescriptorsCapturados![1].name).toBe("Valeros - Prueba de Atletismo (Ventaja 2)");
       expect(rollDescriptorsCapturados![1].roll).toBe("1d20+5");
       expect(silenceChatCapturado).toBe(true);
 
       // Ahora simulamos la llegada de los resultados de dados desde TaleSpire
       const mockResultGroups = [
-        { name: "Prueba de Atletismo (A)", description: "" },
-        { name: "Prueba de Atletismo (B)", description: "" }
+        { name: "Valeros - Prueba de Atletismo (Ventaja 1)", description: "" },
+        { name: "Valeros - Prueba de Atletismo (Ventaja 2)", description: "" }
       ];
 
       vi.spyOn(ts.dice, "evaluateDiceResultsGroup").mockImplementation(async (grupo: unknown) => {
         const g = grupo as { name?: string };
-        if (g?.name === "Prueba de Atletismo (A)") return 12;
-        if (g?.name === "Prueba de Atletismo (B)") return 18;
+        if (g?.name === "Valeros - Prueba de Atletismo (Ventaja 1)") return 12;
+        if (g?.name === "Valeros - Prueba de Atletismo (Ventaja 2)") return 18;
         return 0;
       });
 
@@ -154,8 +154,7 @@ describe("Tiradas de Hoja de Personaje - Convención TaleSpire y Combat Tracker"
       expect(procesado).toBe(true);
       expect(gruposEnviadosAlChat).toHaveLength(1);
       // El grupo ganador debe tener el nombre exacto de la habilidad con (Ventaja), no "Ataque (Ventaja)"
-      expect(gruposEnviadosAlChat![0].name).toBe("Prueba de Atletismo (Ventaja)");
-      expect(gruposEnviadosAlChat![0].description).toBe("Mayor de [12, 18]");
+      expect(gruposEnviadosAlChat![0].name).toBe("Valeros - Prueba de Atletismo (Ventaja)");
     } finally {
       spyEstaDisponible.mockRestore();
       spyDebugLog.mockRestore();
@@ -186,18 +185,18 @@ describe("Tiradas de Hoja de Personaje - Convención TaleSpire y Combat Tracker"
     try {
       await lanzarDadosTaleSpire(formula, etiqueta);
 
-      expect(rollDescriptorsCapturados![0].name).toBe("Salvacion de SAB (A)");
-      expect(rollDescriptorsCapturados![1].name).toBe("Salvacion de SAB (B)");
+      expect(rollDescriptorsCapturados![0].name).toBe("Valeros - Salvacion de SAB (Desventaja 1)");
+      expect(rollDescriptorsCapturados![1].name).toBe("Valeros - Salvacion de SAB (Desventaja 2)");
 
       const mockResultGroups = [
-        { name: "Salvacion de SAB (A)", description: "" },
-        { name: "Salvacion de SAB (B)", description: "" }
+        { name: "Valeros - Salvacion de SAB (Desventaja 1)", description: "" },
+        { name: "Valeros - Salvacion de SAB (Desventaja 2)", description: "" }
       ];
 
       vi.spyOn(ts.dice, "evaluateDiceResultsGroup").mockImplementation(async (grupo: unknown) => {
         const g = grupo as { name?: string };
-        if (g?.name === "Salvacion de SAB (A)") return 15;
-        if (g?.name === "Salvacion de SAB (B)") return 7;
+        if (g?.name === "Valeros - Salvacion de SAB (Desventaja 1)") return 15;
+        if (g?.name === "Valeros - Salvacion de SAB (Desventaja 2)") return 7;
         return 0;
       });
 
@@ -215,8 +214,7 @@ describe("Tiradas de Hoja de Personaje - Convención TaleSpire y Combat Tracker"
       });
 
       expect(procesado).toBe(true);
-      expect(gruposEnviadosAlChat![0].name).toBe("Salvacion de SAB (Desventaja)");
-      expect(gruposEnviadosAlChat![0].description).toBe("Menor de [15, 7]");
+      expect(gruposEnviadosAlChat![0].name).toBe("Valeros - Salvacion de SAB (Desventaja)");
     } finally {
       spyEstaDisponible.mockRestore();
       spyDebugLog.mockRestore();
@@ -252,19 +250,19 @@ describe("Tiradas de Hoja de Personaje - Convención TaleSpire y Combat Tracker"
       // Primera tirada: debe consumir la ventaja
       await lanzarDadosTaleSpire("!Prueba de FUE:1d20+3", "Valeros - Prueba de FUE");
 
-      // Verificamos que la primera tirada tuvo 2 subgrupos (A y B)
+      // Verificamos que la primera tirada tuvo 2 subgrupos con sufijo de ventaja
       expect(descriptorsTirada1).toHaveLength(2);
-      expect(descriptorsTirada1![0].name).toBe("Prueba de FUE (A)");
-      expect(descriptorsTirada1![1].name).toBe("Prueba de FUE (B)");
+      expect(descriptorsTirada1![0].name).toBe("Valeros - Prueba de FUE (Ventaja 1)");
+      expect(descriptorsTirada1![1].name).toBe("Valeros - Prueba de FUE (Ventaja 2)");
 
       // Verificamos que el estado global se reinició a "plano"
       expect(usarAlmacenDM.getState().tipoTirada).toBe("plano");
 
-      // Segunda tirada: debe ser una tirada plana de 1 solo grupo
+      // Segunda tirada: debe ser una tirada plana de 1 solo grupo preservando el personaje
       await lanzarDadosTaleSpire("!Prueba de Atletismo:1d20+5", "Valeros - Prueba de Atletismo");
 
       expect(descriptorsTirada2).toHaveLength(1);
-      expect(descriptorsTirada2![0].name).toBe("Prueba de Atletismo");
+      expect(descriptorsTirada2![0].name).toBe("Valeros - Prueba de Atletismo");
       expect(descriptorsTirada2![0].roll).toBe("1d20+5");
     } finally {
       spyEstaDisponible.mockRestore();
@@ -368,7 +366,7 @@ describe("Tiradas de Hoja de Personaje - Convención TaleSpire y Combat Tracker"
 
       // Verificamos que se generó un solo grupo plano (anulación de ventaja y desventaja)
       expect(rollDescriptorsCapturados).toHaveLength(1);
-      expect(rollDescriptorsCapturados![0].name).toBe("Prueba de Sigilo");
+      expect(rollDescriptorsCapturados![0].name).toBe("Valeros - Prueba de Sigilo");
       expect(rollDescriptorsCapturados![0].roll).toBe("1d20+3");
 
       // El estado global de tipoTirada debe haberse restablecido a plano

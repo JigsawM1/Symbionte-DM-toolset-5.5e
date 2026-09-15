@@ -83,13 +83,16 @@ export function construirFormulaAtaqueRapido(
   ataqueNombre: string,
   bonoAtaqueStr: string,
   dadosDaño: string,
-  tipoDaño: string
+  tipoDaño: string,
+  criaturaNombre?: string
 ): string {
   try {
     const nombreSaneado = sanitizarEtiqueta(ataqueNombre || "Ataque");
     const bonoNum = parseInt(String(bonoAtaqueStr || "").replace(/[^\d-]/g, ""), 10) || 0;
     const bonoFormateado = `${bonoNum >= 0 ? "+" : ""}${bonoNum}`;
-    const grupoAtaque = `!Ataque ${nombreSaneado}:1d20${bonoFormateado}`;
+    const prefijoCriatura = criaturaNombre ? `${sanitizarEtiqueta(criaturaNombre)} - ` : "";
+    const nombreAtaqueGrupo = criaturaNombre ? nombreSaneado : `Ataque ${nombreSaneado}`;
+    const grupoAtaque = `!${prefijoCriatura}${nombreAtaqueGrupo}:1d20${bonoFormateado}`;
 
     const componentes = desglosarAtaqueRapido(dadosDaño, tipoDaño);
     const gruposDano = componentes.map((comp, idx) => {

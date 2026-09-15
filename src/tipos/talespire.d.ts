@@ -228,7 +228,7 @@ export interface TaleSpireAPI {
     makeRollDescriptors: (rollStr: string) => Promise<DescriptorTirada[]>;
     putDiceInTray: (descriptors: DescriptorTirada[], silenceDefaultChatCard?: boolean) => Promise<string>;
     evaluateDiceResultsGroup: (group: GrupoResultadosTirada | unknown) => Promise<number>;
-    sendDiceResult: (groups: GrupoResultadosTirada[] | unknown[], rollId: string) => Promise<void>;
+    sendDiceResult: (groups: GrupoResultadosTirada[] | unknown[], rollId?: string) => Promise<void>;
     onRollResults?: Suscribible<ResultadosTirada>;
   };
   chat?: {
@@ -298,6 +298,7 @@ declare global {
     manejarCambioEstadoCriatura?: (evento: unknown) => void;
     manejarCambioSeleccionCriatura?: (evento: SeleccionCriaturas) => void;
     manejarResultadosDados?: (resultados: ResultadosTirada) => Promise<void>;
+    onRollResults?: (resultados: ResultadosTirada) => Promise<void>;
     manejarEventoCliente?: (evento: unknown) => void;
   }
 }

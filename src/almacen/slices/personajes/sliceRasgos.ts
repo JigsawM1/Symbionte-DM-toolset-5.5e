@@ -29,13 +29,16 @@ export const crearSubSliceRasgos: StateCreator<
     mutarPersonaje(set, idPj, (pj) => {
       const rasgosActuales = [...(pj.rasgos || []), rasgo];
       const pjTemp = { ...pj, rasgos: rasgosActuales };
-      const bonoHP = calcularBonoHPMaximoRasgos(pjTemp);
-      const baseHP = pj.hpMaximoBase || 10;
-      const hpMaximo = Math.max(1, baseHP + bonoHP);
+      const bonoPrevio = calcularBonoHPMaximoRasgos(pj);
+      const bonoNuevo = calcularBonoHPMaximoRasgos(pjTemp);
+      const deltaBono = bonoNuevo - bonoPrevio;
+      const nuevoBase = Math.max(1, (pj.hpMaximoBase || pj.hpMaximo || 10) + deltaBono);
+      const nuevoMax = Math.max(1, (pj.hpMaximo || 1) + deltaBono);
       return {
         ...pjTemp,
-        hpMaximo,
-        hpActual: Math.min(pj.hpActual, hpMaximo)
+        hpMaximoBase: nuevoBase,
+        hpMaximo: nuevoMax,
+        hpActual: Math.min(pj.hpActual + (deltaBono > 0 ? deltaBono : 0), nuevoMax)
       };
     });
   },
@@ -46,13 +49,16 @@ export const crearSubSliceRasgos: StateCreator<
         r.id === idRasgo ? { ...r, ...cambios } : r
       );
       const pjTemp = { ...pj, rasgos: rasgosActuales };
-      const bonoHP = calcularBonoHPMaximoRasgos(pjTemp);
-      const baseHP = pj.hpMaximoBase || 10;
-      const hpMaximo = Math.max(1, baseHP + bonoHP);
+      const bonoPrevio = calcularBonoHPMaximoRasgos(pj);
+      const bonoNuevo = calcularBonoHPMaximoRasgos(pjTemp);
+      const deltaBono = bonoNuevo - bonoPrevio;
+      const nuevoBase = Math.max(1, (pj.hpMaximoBase || pj.hpMaximo || 10) + deltaBono);
+      const nuevoMax = Math.max(1, (pj.hpMaximo || 1) + deltaBono);
       return {
         ...pjTemp,
-        hpMaximo,
-        hpActual: Math.min(pj.hpActual, hpMaximo)
+        hpMaximoBase: nuevoBase,
+        hpMaximo: nuevoMax,
+        hpActual: Math.min(pj.hpActual + (deltaBono > 0 ? deltaBono : 0), nuevoMax)
       };
     });
   },
@@ -61,13 +67,16 @@ export const crearSubSliceRasgos: StateCreator<
     mutarPersonaje(set, idPj, (pj) => {
       const rasgosFiltrados = (pj.rasgos || []).filter((r) => r.id !== idRasgo);
       const pjTemp = { ...pj, rasgos: rasgosFiltrados };
-      const bonoHP = calcularBonoHPMaximoRasgos(pjTemp);
-      const baseHP = pj.hpMaximoBase || 10;
-      const hpMaximo = Math.max(1, baseHP + bonoHP);
+      const bonoPrevio = calcularBonoHPMaximoRasgos(pj);
+      const bonoNuevo = calcularBonoHPMaximoRasgos(pjTemp);
+      const deltaBono = bonoNuevo - bonoPrevio;
+      const nuevoBase = Math.max(1, (pj.hpMaximoBase || pj.hpMaximo || 10) + deltaBono);
+      const nuevoMax = Math.max(1, (pj.hpMaximo || 1) + deltaBono);
       return {
         ...pjTemp,
-        hpMaximo,
-        hpActual: Math.min(pj.hpActual, hpMaximo)
+        hpMaximoBase: nuevoBase,
+        hpMaximo: nuevoMax,
+        hpActual: Math.min(pj.hpActual, nuevoMax)
       };
     });
   },
@@ -312,15 +321,19 @@ export const crearSubSliceRasgos: StateCreator<
       const tieneEfectoHP = (targetTrait.efectos || []).some((e) => e.tipo === "modificador_hp_maximo");
       let hpMaximo = pj.hpMaximo;
       let hpActual = pj.hpActual;
+      let hpMaximoBase = pj.hpMaximoBase;
       if (tieneEfectoHP) {
-        const bonoHP = calcularBonoHPMaximoRasgos(pjPrevio);
-        const baseHP = pj.hpMaximoBase || 10;
-        hpMaximo = Math.max(1, baseHP + bonoHP);
-        hpActual = Math.min(hpActual, hpMaximo);
+        const bonoPrevio = calcularBonoHPMaximoRasgos(pj);
+        const bonoNuevo = calcularBonoHPMaximoRasgos(pjPrevio);
+        const deltaBono = bonoNuevo - bonoPrevio;
+        hpMaximoBase = Math.max(1, (pj.hpMaximoBase || pj.hpMaximo || 10) + deltaBono);
+        hpMaximo = Math.max(1, (pj.hpMaximo || 1) + deltaBono);
+        hpActual = Math.min(hpActual + (deltaBono > 0 ? deltaBono : 0), hpMaximo);
       }
 
       return {
         ...pjPrevio,
+        hpMaximoBase,
         hpMaximo,
         hpActual,
         gradosHabilidades: gradosActualizados

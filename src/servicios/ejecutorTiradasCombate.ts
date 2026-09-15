@@ -65,12 +65,12 @@ export async function ejecutarTiradaAtaqueFisico(ctx: ContextoTiradaAtaqueFisico
     const sufijoMotivo = motivos ? ` (${motivos})` : "";
 
     const formula = `1d20${bonoStr}`;
-    let etiqueta = `${nombrePj}: Ataque con ${ataque.nombre}${sufijoMotivo}`;
+    let etiqueta = `${nombrePj} - Ataque con ${ataque.nombre}${sufijoMotivo}`;
 
     if (evaluacionCondiciones.modoEfectivo === "ventaja") {
-      etiqueta = `${nombrePj}: Ataque con ${ataque.nombre} (Ventaja)${sufijoMotivo}`;
+      etiqueta = `${nombrePj} - Ataque con ${ataque.nombre} (Ventaja)${sufijoMotivo}`;
     } else if (evaluacionCondiciones.modoEfectivo === "desventaja") {
-      etiqueta = `${nombrePj}: Ataque con ${ataque.nombre} (Desventaja)${sufijoMotivo}`;
+      etiqueta = `${nombrePj} - Ataque con ${ataque.nombre} (Desventaja)${sufijoMotivo}`;
     }
 
     if (ataque.requiereMunicion) {

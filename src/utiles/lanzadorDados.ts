@@ -408,52 +408,57 @@ export async function lanzarDadosTaleSpire(
     establecerTipoTirada("plano");
   }
   
+  // Limpiamos la etiqueta base removiendo ":" y sufijos previos de ventaja/desventaja para evitar duplicaciones
+  const etiquetaLimpiaParam = etiqueta ? etiqueta.replace(/:\s*/g, " - ").trim() : "";
+  const etiquetaSinSufijoTipo = etiquetaLimpiaParam
+    .replace(/\s*\((?:ventaja|desventaja)\)\s*/gi, "")
+    .trim();
+  const nombreEtiquetaBase = sanitizarEtiqueta(etiquetaSinSufijoTipo) || "Tirada";
+
   let formulaProcesada = formula;
   let tiradaEspecial: MetadataTiradaEspecial | null = null;
   
   if (tipoTirada !== "plano") {
     // Si no es tirada plana, procesamos los grupos que tengan d20
+    const sufijoTipo = tipoTirada === "ventaja" ? "Ventaja" : "Desventaja";
     const grupos = formula.split("/");
     let d20Encontrado = false;
     
     const gruposProcesados = grupos.map((grupo) => {
       const matchEtiqueta = grupo.match(/^!?([^:]+):(.*)$/);
+      let formulaDados = grupo.trim();
+      let nombreBaseGrupo = nombreEtiquetaBase;
+
       if (matchEtiqueta) {
-        const etiquetaGrupo = matchEtiqueta[1].trim();
-        const formulaDados = matchEtiqueta[2].trim();
+        const etiquetaEnFormula = sanitizarEtiqueta(matchEtiqueta[1].trim().replace(/\s*\((?:ventaja|desventaja)\)\s*/gi, ""));
+        formulaDados = matchEtiqueta[2].trim();
+        if (nombreBaseGrupo.toLowerCase() === "tirada" || !nombreBaseGrupo) {
+          nombreBaseGrupo = etiquetaEnFormula;
+        } else if (etiquetaEnFormula) {
+          const lowerFormula = etiquetaEnFormula.toLowerCase();
+          const lowerBase = nombreBaseGrupo.toLowerCase();
+          if (lowerFormula.includes(lowerBase)) {
+            nombreBaseGrupo = etiquetaEnFormula;
+          } else if (!lowerBase.includes(lowerFormula) && lowerFormula !== "ataque" && lowerFormula !== "tirada") {
+            nombreBaseGrupo = `${nombreBaseGrupo} - ${etiquetaEnFormula}`;
+          }
+        }
+      }
+
+      if (/\b1?d20\b/i.test(formulaDados)) {
+        d20Encontrado = true;
+        const grupoAName = `${nombreBaseGrupo} (${sufijoTipo} 1)`;
+        const grupoBName = `${nombreBaseGrupo} (${sufijoTipo} 2)`;
         
-        if (/\b1?d20\b/i.test(formulaDados)) {
-          d20Encontrado = true;
-          const etiquetaGrupoSaneada = sanitizarEtiqueta(etiquetaGrupo);
-          const grupoAName = `${etiquetaGrupoSaneada} (A)`;
-          const grupoBName = `${etiquetaGrupoSaneada} (B)`;
-          
-          tiradaEspecial = {
-            tipo: tipoTirada as "ventaja" | "desventaja",
-            etiquetaOriginal: etiqueta,
-            nombreGrupoOriginal: etiquetaGrupoSaneada,
-            grupoAName,
-            grupoBName
-          };
-          
-          return `${grupoAName}:${formulaDados}/${grupoBName}:${formulaDados}`;
-        }
-      } else {
-        if (/\b1?d20\b/i.test(grupo)) {
-          d20Encontrado = true;
-          const grupoAName = `Ataque (A)`;
-          const grupoBName = `Ataque (B)`;
-          
-          tiradaEspecial = {
-            tipo: tipoTirada as "ventaja" | "desventaja",
-            etiquetaOriginal: etiqueta,
-            nombreGrupoOriginal: "Ataque",
-            grupoAName,
-            grupoBName
-          };
-          
-          return `${grupoAName}:${grupo}/${grupoBName}:${grupo}`;
-        }
+        tiradaEspecial = {
+          tipo: tipoTirada as "ventaja" | "desventaja",
+          etiquetaOriginal: etiqueta || nombreBaseGrupo,
+          nombreGrupoOriginal: nombreBaseGrupo,
+          grupoAName,
+          grupoBName
+        };
+        
+        return `${grupoAName}:${formulaDados}/${grupoBName}:${formulaDados}`;
       }
       return grupo;
     });
@@ -462,6 +467,44 @@ export async function lanzarDadosTaleSpire(
       formulaProcesada = gruposProcesados.join("/");
     } else {
       tiradaEspecial = null;
+    }
+  } else {
+    // Si es tirada plana, aseguramos que el primer grupo d20 tenga el nombre completo de la criatura y la acción
+    const grupos = formula.split("/");
+    let d20Modificado = false;
+    const gruposProcesados = grupos.map((grupo) => {
+      if (d20Modificado) return grupo;
+      const matchEtiqueta = grupo.match(/^!?([^:]+):(.*)$/);
+      let formulaDados = grupo.trim();
+      let nombreBase = nombreEtiquetaBase;
+
+      if (matchEtiqueta) {
+        const etiquetaEnFormula = sanitizarEtiqueta(matchEtiqueta[1].trim());
+        formulaDados = matchEtiqueta[2].trim();
+        if (nombreBase.toLowerCase() === "tirada" || !nombreBase) {
+          nombreBase = etiquetaEnFormula;
+        } else if (etiquetaEnFormula) {
+          const lowerFormula = etiquetaEnFormula.toLowerCase();
+          const lowerBase = nombreBase.toLowerCase();
+          if (lowerFormula.includes(lowerBase)) {
+            nombreBase = etiquetaEnFormula;
+          } else if (!lowerBase.includes(lowerFormula) && lowerFormula !== "ataque" && lowerFormula !== "tirada") {
+            nombreBase = `${nombreBase} - ${etiquetaEnFormula}`;
+          }
+        }
+      }
+
+      if (/\b1?d20\b/i.test(formulaDados) && nombreBase && nombreBase.toLowerCase() !== "tirada") {
+        d20Modificado = true;
+        return `${nombreBase}:${formulaDados}`;
+      }
+      return grupo;
+    });
+
+    if (d20Modificado) {
+      formulaProcesada = gruposProcesados.join("/");
+    } else if (!formula.includes(":") && nombreEtiquetaBase && nombreEtiquetaBase.toLowerCase() !== "tirada") {
+      formulaProcesada = `${nombreEtiquetaBase}:${formula.trim()}`;
     }
   }
 
@@ -481,8 +524,14 @@ export async function lanzarDadosTaleSpire(
 
       // Convertimos el string en los descriptores físicos requeridos por TaleSpire
       logger.debug(`[Lanzador Dados] Generando descriptores de tirada para "${formulaLimpia}"`);
-      const descriptores = await ts.dice.makeRollDescriptors(formulaLimpia);
+      let descriptores = await ts.dice.makeRollDescriptors(formulaLimpia);
       
+      // Fallback a construcción manual si la API nativa retorna descriptores vacíos
+      if (!descriptores || descriptores.length === 0) {
+        logger.warn(`[Lanzador Dados] makeRollDescriptors devolvió vacío para "${formulaLimpia}". Generando descriptores manualmente.`);
+        descriptores = crearDescriptoresManualmente(formulaLimpia) as typeof descriptores;
+      }
+
       if (!descriptores || descriptores.length === 0) {
         throw new Error("No se generaron descriptores de dados para la fórmula provista.");
       }
@@ -596,22 +645,64 @@ export async function lanzarDadosTaleSpire(
  * @param evento El evento rollResults nativo de TaleSpire.
  * @returns Promesa que se resuelve a true si el evento fue procesado por nosotros, o false si no nos corresponde.
  */
-interface ResultadosDadosEvento {
-  kind: string;
-  payload?: {
-    rollId: string;
-    resultsGroups: unknown[];
-  };
+export interface PayloadDadosNormalizado {
+  rollId: string;
+  resultsGroups: unknown[];
+}
+
+/**
+ * Extrae y normaliza de forma segura el rollId y resultsGroups de cualquier estructura
+ * de evento de dados que proporcione TaleSpire (objeto directo, wrapper con kind/payload,
+ * detail de CustomEvent o JSON string).
+ */
+export function extraerPayloadResultadosDados(evento: unknown): PayloadDadosNormalizado | null {
+  if (!evento) return null;
+
+  let datos: unknown = evento;
+  if (typeof datos === "string") {
+    try {
+      datos = JSON.parse(datos);
+    } catch {
+      return null;
+    }
+  }
+
+  if (typeof datos !== "object" || datos === null) return null;
+
+  const obj = datos as Record<string, unknown>;
+
+  // Variación 1: CustomEvent o wrapper con detail
+  if (obj.detail && typeof obj.detail === "object") {
+    return extraerPayloadResultadosDados(obj.detail);
+  }
+
+  // Variación 2: Wrapper con payload: { rollId, resultsGroups } o { kind: "rollResults", payload }
+  if (obj.payload && typeof obj.payload === "object") {
+    return extraerPayloadResultadosDados(obj.payload);
+  }
+
+  // Variación 3: Objeto directo estándar de TaleSpire (rollId y resultsGroups en la raíz)
+  const rollId = (obj.rollId || obj.roll_id || obj.id) as string | undefined;
+  const resultsGroups = (obj.resultsGroups || obj.resultGroups || obj.results) as unknown[] | undefined;
+
+  if (typeof rollId === "string" && Array.isArray(resultsGroups)) {
+    return {
+      rollId,
+      resultsGroups
+    };
+  }
+
+  return null;
 }
 
 export async function procesarResultadosDadosTaleSpire(evento: unknown): Promise<boolean> {
-  if (!evento || typeof evento !== "object") return false;
-  const ev = evento as ResultadosDadosEvento;
-  if (ev.kind !== "rollResults" || !ev.payload) {
+  const payload = extraerPayloadResultadosDados(evento);
+  if (!payload) {
+    logger.debug("[Lanzador Dados] Evento de dados descartado (no contiene rollId o resultsGroups válidos):", evento);
     return false;
   }
   
-  const rollId = ev.payload.rollId;
+  const { rollId, resultsGroups } = payload;
   const infoIniciativaPlana = tiradasIniciativaActivas[rollId];
   const infoSalvacionMuertePlana = tiradasSalvacionMuerteActivas[rollId];
   const infoTirada = tiradasEspecialesActivas[rollId];
@@ -619,10 +710,9 @@ export async function procesarResultadosDadosTaleSpire(evento: unknown): Promise
   // Caso 1: Tirada de iniciativa plana nativa (sin ventaja ni desventaja)
   if (!infoTirada && infoIniciativaPlana) {
     logger.debug(`[Lanzador Dados] Procesando resultado de iniciativa plana para rollId: ${rollId}`);
-    const resultGroups = ev.payload.resultsGroups;
-    if (resultGroups && Array.isArray(resultGroups) && resultGroups.length > 0) {
+    if (resultsGroups.length > 0) {
       try {
-        const grupoInic = resultGroups[0];
+        const grupoInic = resultsGroups[0];
         const total = await ts.dice.evaluateDiceResultsGroup(grupoInic);
         logger.debug(`[Lanzador Dados] Iniciativa plana obtenida: ${total}`);
         aplicarResultadoIniciativaEnEstado(infoIniciativaPlana, total);
@@ -637,10 +727,9 @@ export async function procesarResultadosDadosTaleSpire(evento: unknown): Promise
   // Caso 2: Tirada de salvación de muerte plana nativa (esperando a que los dados 3D caigan)
   if (!infoTirada && infoSalvacionMuertePlana) {
     logger.debug(`[Lanzador Dados] Procesando resultado 3D de salvación contra la muerte para rollId: ${rollId}`);
-    const resultGroups = ev.payload.resultsGroups;
-    if (resultGroups && Array.isArray(resultGroups) && resultGroups.length > 0) {
+    if (resultsGroups.length > 0) {
       try {
-        const grupoMuerte = resultGroups[0];
+        const grupoMuerte = resultsGroups[0];
         const total = await ts.dice.evaluateDiceResultsGroup(grupoMuerte);
         logger.debug(`[Lanzador Dados] Resultado 3D de Salvación de Muerte obtenido de la bandeja física: ${total}`);
         aplicarResultadoSalvacionMuerteEnEstado(infoSalvacionMuertePlana.personajeId, total);
@@ -656,10 +745,9 @@ export async function procesarResultadosDadosTaleSpire(evento: unknown): Promise
   const infoCuracionRasgo = tiradasCuracionRasgoActivas[rollId];
   if (!infoTirada && infoCuracionRasgo) {
     logger.debug(`[Lanzador Dados] Procesando resultado 3D de curación de rasgo para rollId: ${rollId}`);
-    const resultGroups = ev.payload.resultsGroups;
-    if (resultGroups && Array.isArray(resultGroups) && resultGroups.length > 0) {
+    if (resultsGroups.length > 0) {
       try {
-        const total = await ts.dice.evaluateDiceResultsGroup(resultGroups[0]);
+        const total = await ts.dice.evaluateDiceResultsGroup(resultsGroups[0]);
         logger.debug(`[Lanzador Dados] Curación de rasgo 3D obtenida: +${total} PV`);
         const state = usarAlmacenDM.getState();
         state.aplicarCuracionPersonaje(infoCuracionRasgo.personajeId, total);
@@ -675,10 +763,9 @@ export async function procesarResultadosDadosTaleSpire(evento: unknown): Promise
   const infoHpTemporalRasgo = tiradasHpTemporalRasgoActivas[rollId];
   if (!infoTirada && infoHpTemporalRasgo) {
     logger.debug(`[Lanzador Dados] Procesando resultado 3D de HP temporal de rasgo para rollId: ${rollId}`);
-    const resultGroups = ev.payload.resultsGroups;
-    if (resultGroups && Array.isArray(resultGroups) && resultGroups.length > 0) {
+    if (resultsGroups.length > 0) {
       try {
-        const total = await ts.dice.evaluateDiceResultsGroup(resultGroups[0]);
+        const total = await ts.dice.evaluateDiceResultsGroup(resultsGroups[0]);
         const mult = infoHpTemporalRasgo.multiplicador ?? 1;
         const hpTemp = total * mult;
         logger.debug(`[Lanzador Dados] HP temporal de rasgo 3D obtenido: +${hpTemp} PV temp (${total} x ${mult})`);
@@ -695,10 +782,9 @@ export async function procesarResultadosDadosTaleSpire(evento: unknown): Promise
   const infoDadoGolpe = tiradasDadoGolpeActivas[rollId];
   if (!infoTirada && infoDadoGolpe) {
     logger.debug(`[Lanzador Dados] Procesando resultado 3D de dado de golpe para rollId: ${rollId}`);
-    const resultGroups = ev.payload.resultsGroups;
-    if (resultGroups && Array.isArray(resultGroups) && resultGroups.length > 0) {
+    if (resultsGroups.length > 0) {
       try {
-        const total = await ts.dice.evaluateDiceResultsGroup(resultGroups[0]);
+        const total = await ts.dice.evaluateDiceResultsGroup(resultsGroups[0]);
         logger.debug(`[Lanzador Dados] Dado de golpe 3D obtenido: ${total}`);
         const state = usarAlmacenDM.getState();
         state.gastarDadoGolpePersonaje(infoDadoGolpe.personajeId);
@@ -718,26 +804,50 @@ export async function procesarResultadosDadosTaleSpire(evento: unknown): Promise
   }
   
   logger.debug(`[Lanzador Dados] Interceptada tirada especial ${rollId} de tipo ${infoTirada.tipo}`);
-  const resultGroups = ev.payload.resultsGroups;
   
-  if (!resultGroups || !Array.isArray(resultGroups)) {
+  if (!resultsGroups || resultsGroups.length === 0) {
     delete tiradasEspecialesActivas[rollId];
     return false;
   }
   
   try {
-    // Buscar los grupos A y B
-    const grupoA = resultGroups.find((g) => {
+    // Buscar los grupos A y B (búsqueda exacta y tolerante por nombre normalizado)
+    const normA = infoTirada.grupoAName.trim().toLowerCase();
+    const normB = infoTirada.grupoBName.trim().toLowerCase();
+
+    const grupoA = resultsGroups.find((g) => {
       const gObj = g as Record<string, unknown>;
-      return gObj.name === infoTirada.grupoAName;
+      const gName = typeof gObj.name === "string" ? gObj.name.trim().toLowerCase() : "";
+      return (
+        gName === normA ||
+        gName.endsWith(" (a)") ||
+        gName.endsWith(" 1)") ||
+        gName.endsWith(" (1)") ||
+        gName.includes("(a)") ||
+        gName.includes(" 1)")
+      );
     });
-    const grupoB = resultGroups.find((g) => {
+    const grupoB = resultsGroups.find((g) => {
       const gObj = g as Record<string, unknown>;
-      return gObj.name === infoTirada.grupoBName;
+      const gName = typeof gObj.name === "string" ? gObj.name.trim().toLowerCase() : "";
+      return (
+        gName === normB ||
+        gName.endsWith(" (b)") ||
+        gName.endsWith(" 2)") ||
+        gName.endsWith(" (2)") ||
+        gName.includes("(b)") ||
+        gName.includes(" 2)")
+      );
     });
     
     if (!grupoA || !grupoB) {
-      logger.warn("[Lanzador Dados] No se encontraron los grupos A o B en los resultados de la tirada.");
+      logger.warn("[Lanzador Dados] No se encontraron los grupos A o B en los resultados de la tirada. Enviando grupos al chat para no silenciar.");
+      try {
+        await ts.dice.sendDiceResult(resultsGroups, rollId);
+      } catch (eEnvio) {
+        logger.error("[Lanzador Dados] Error enviando fallback directo a sendDiceResult:", eEnvio);
+        await ts.chat.send(`[${infoTirada.etiquetaOriginal}] Tirada completada.`);
+      }
       delete tiradasEspecialesActivas[rollId];
       return false;
     }
@@ -758,34 +868,58 @@ export async function procesarResultadosDadosTaleSpire(evento: unknown): Promise
     
     logger.debug(`[Lanzador Dados] Elegido ${grupoElegido.name} (${totalElegido}) - Descartado (${totalDescartado})`);
     
-    // Crear el grupo d20 final clonando el elegido pero con un nombre limpio y descriptivo
+    // Crear el grupo d20 final con la especificación estricta de TaleSpire { name, result }
     const sufijoChat = esVentaja ? " (Ventaja)" : " (Desventaja)";
     const grupoGanadorSaneado = {
-      ...grupoElegido,
       name: `${infoTirada.nombreGrupoOriginal}${sufijoChat}`,
-      description: (grupoElegido.description as string) || `${esVentaja ? "Mayor" : "Menor"} de [${totalA}, ${totalB}]`
+      result: grupoElegido.result
     };
     
     // Construir la lista final de grupos a mostrar en el chat
-    const gruposParaChat = resultGroups
+    const gruposParaChat = resultsGroups
       .filter((g) => {
         const gObj = g as Record<string, unknown>;
-        return gObj.name !== infoTirada.grupoAName && gObj.name !== infoTirada.grupoBName;
+        const gName = typeof gObj.name === "string" ? gObj.name.trim().toLowerCase() : "";
+        return g !== grupoA && g !== grupoB && gName !== normA && gName !== normB;
       })
       .map((g) => {
         const gObj = g as Record<string, unknown>;
         return {
-          ...gObj,
-          description: gObj.description || ""
+          name: typeof gObj.name === "string" ? gObj.name : "Tirada",
+          result: gObj.result
         };
       });
       
     // Colocamos el d20 ganador en primera posición
     gruposParaChat.unshift(grupoGanadorSaneado);
     
-    logger.debug("[Lanzador Dados] Enviando resultado filtrado al chat de TaleSpire:", gruposParaChat);
+    logger.debug("[Lanzador Dados] Enviando resultado filtrado a TaleSpire:", gruposParaChat);
     
-    await ts.dice.sendDiceResult(gruposParaChat, rollId);
+    // Publicar tarjeta nativa en TaleSpire mediante el adaptador
+    let tarjetaEnviada = false;
+    try {
+      try {
+        await ts.dice.sendDiceResult(gruposParaChat, rollId);
+        tarjetaEnviada = true;
+      } catch (errRollId) {
+        logger.warn("[Lanzador Dados] sendDiceResult con rollId falló, reintentando sin rollId:", errRollId);
+        await ts.dice.sendDiceResult(gruposParaChat);
+        tarjetaEnviada = true;
+      }
+    } catch (errSend) {
+      logger.warn("[Lanzador Dados] sendDiceResult no disponible o falló:", errSend);
+    }
+
+    // Únicamente si la tarjeta nativa no pudo ser publicada, recurrimos al chat como contingencia
+    if (!tarjetaEnviada) {
+      try {
+        const etiquetaChat = infoTirada.etiquetaOriginal || infoTirada.nombreGrupoOriginal;
+        const mensajeChat = `[Tirada] ${etiquetaChat}${etiquetaChat.includes("(") ? "" : sufijoChat}: ${totalElegido} (${esVentaja ? "Mayor" : "Menor"} de [${totalA}, ${totalB}])`;
+        await ts.chat.send(mensajeChat);
+      } catch (errChat) {
+        logger.error("[Lanzador Dados] Error enviando mensaje a ts.chat:", errChat);
+      }
+    }
     
     // Si esta tirada especial también era para iniciativa, actualizamos la criatura
     const infoIniciativaEspecial = tiradasIniciativaActivas[rollId];
@@ -807,12 +941,16 @@ export async function procesarResultadosDadosTaleSpire(evento: unknown): Promise
     return true;
   } catch (error) {
     logger.error("[Lanzador Dados] Error al procesar tirada especial:", error);
+    // En caso de fallo crítico en el procesamiento de ventaja, avisar por chat para nunca silenciar
+    try {
+      await ts.chat.send(`[${infoTirada.etiquetaOriginal}] Error al procesar ventaja/desventaja.`);
+    } catch {
+      // Silencioso
+    }
     delete tiradasEspecialesActivas[rollId];
     return false;
   }
 }
-
-
 
 /**
  * Realiza un cálculo matemático rápido en Javascript para propósitos de prueba en navegador

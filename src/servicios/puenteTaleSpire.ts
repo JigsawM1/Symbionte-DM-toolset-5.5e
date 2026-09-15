@@ -154,6 +154,11 @@ class PuenteTaleSpireClass {
       this.emit("resultadosDados", this.deserializarPayload(resultados) as ResultadosTirada);
     };
 
+    window.onRollResults = async (resultados) => {
+      logger.debug("[Puente TaleSpire] Callback onRollResults:", resultados);
+      this.emit("resultadosDados", this.deserializarPayload(resultados) as ResultadosTirada);
+    };
+
     // clients.onClientEvent → clientJoinedBoard | clientLeftBoard | clientModeChanged
     window.manejarEventoCliente = (evento) => {
       logger.debug("[Puente TaleSpire] Callback manejarEventoCliente:", evento);
@@ -167,10 +172,22 @@ class PuenteTaleSpireClass {
       this.emit("iniciativaActualizada", undefined);
     };
 
+    const manejarResultadosDadosDOM = (e: Event) => {
+      logger.debug("[Puente TaleSpire DOM] Capturado evento de dados en el DOM:", e.type);
+      const customEv = e as CustomEvent;
+      if (customEv.detail) {
+        this.emit("resultadosDados", this.deserializarPayload(customEv.detail) as ResultadosTirada);
+      }
+    };
+
     window.addEventListener("initiativeUpdated", manejarEventoIniciativaDOM);
     document.addEventListener("initiativeUpdated", manejarEventoIniciativaDOM);
     window.addEventListener("manejarEventoIniciativa", manejarEventoIniciativaDOM);
     document.addEventListener("manejarEventoIniciativa", manejarEventoIniciativaDOM);
+    window.addEventListener("manejarResultadosDados", manejarResultadosDadosDOM);
+    document.addEventListener("manejarResultadosDados", manejarResultadosDadosDOM);
+    window.addEventListener("onRollResults", manejarResultadosDadosDOM);
+    document.addEventListener("onRollResults", manejarResultadosDadosDOM);
   }
 }
 

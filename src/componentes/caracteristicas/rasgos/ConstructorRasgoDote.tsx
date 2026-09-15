@@ -134,6 +134,7 @@ const TIPOS_EFECTO_DISPONIBLES: { tipo: TipoEfectoMecanico; etiqueta: string; de
   { tipo: "conjuro_otorgado", etiqueta: "Conjuro Siempre Preparado", desc: "Otorga un conjuro siempre preparado por rasgo" },
   { tipo: "conjuro_gratuito", etiqueta: "Lanzamiento Gratuito de Conjuro", desc: "Permite lanzar un conjuro sin gastar espacios de conjuro (ej. Orden imperiosa)" },
   { tipo: "hp_temporal", etiqueta: "Puntos de Golpe Temporales", desc: "Otorga puntos de golpe temporales calculados o con multiplicador" },
+  { tipo: "modificador_hp_maximo", etiqueta: "Modificador de Puntos de Golpe Máximos", desc: "Aumenta o reduce los HP máximos de forma plana o escalada por nivel (ej. 1*nivel, 2*nivel, +5)" },
   { tipo: "restaurar_recurso", etiqueta: "Restaurar Recursos Mecánicos", desc: "Restaura usos o cargas de otro rasgo al activarse (ej. Furia persistente)" },
   { tipo: "competencia", etiqueta: "Competencia en Armas o Armaduras", desc: "Otorga competencia en armas marciales, armaduras medias, etc." }
 ];
@@ -161,6 +162,9 @@ export const ConstructorRasgoDote: React.FC<ConstructorRasgoDoteProps> = ({
   const [autoDesactivar, setAutoDesactivar] = useState<boolean>(rasgoInicial?.autoDesactivar || false);
   const [ligadoA, setLigadoA] = useState<string>(rasgoInicial?.ligadoA || "");
   const [condicionAlActivar, setCondicionAlActivar] = useState<string>(rasgoInicial?.condicionAlActivar || "");
+  const [duracionEfectoAlActivar, setDuracionEfectoAlActivar] = useState<number | undefined>(
+    rasgoInicial?.duracionEfectoAlActivar
+  );
   const [tieneRestauracion, setTieneRestauracion] = useState<boolean>(Boolean(rasgoInicial?.restaurarUsosAlActivar));
   const [idRasgoRestaurar, setIdRasgoRestaurar] = useState<string>(rasgoInicial?.restaurarUsosAlActivar?.idRasgoObjetivo || "");
   const [tipoCantidadRestaurar, setTipoCantidadRestaurar] = useState<"maximo" | "fijo">(
@@ -313,6 +317,10 @@ export const ConstructorRasgoDote: React.FC<ConstructorRasgoDoteProps> = ({
       setNuevoObjetivo("furia");
       setNuevoValor("maximo");
       setNuevaDescripcionEfecto("Restaura usos del recurso al activarse");
+    } else if (t === "modificador_hp_maximo") {
+      setNuevoObjetivo("hp_maximo");
+      setNuevoValor("1*nivel");
+      setNuevaDescripcionEfecto("Aumento de puntos de golpe máximos por nivel");
     }
   };
 
@@ -371,6 +379,9 @@ export const ConstructorRasgoDote: React.FC<ConstructorRasgoDoteProps> = ({
           break;
         case "hp_temporal":
           descFinal = `Puntos de golpe temporales: ${nuevoValor}`;
+          break;
+        case "modificador_hp_maximo":
+          descFinal = `Modificador de HP Máximo: ${nuevoValor}`;
           break;
         case "restaurar_recurso":
           descFinal = `Restaurar ${nuevoValor} uso(s) de ${nuevoObjetivo}`;
@@ -464,6 +475,7 @@ export const ConstructorRasgoDote: React.FC<ConstructorRasgoDoteProps> = ({
         : undefined,
       ligadoA: esActivable && ligadoA.trim() ? ligadoA.trim() : undefined,
       condicionAlActivar: esActivable && condicionAlActivar.trim() ? condicionAlActivar.trim() : undefined,
+      duracionEfectoAlActivar: esActivable && duracionEfectoAlActivar && duracionEfectoAlActivar > 0 ? duracionEfectoAlActivar : undefined,
       restaurarUsosAlActivar: (esActivable && tieneRestauracion && idRasgoRestaurar.trim())
         ? {
             idRasgoObjetivo: idRasgoRestaurar.trim(),
@@ -493,6 +505,7 @@ export const ConstructorRasgoDote: React.FC<ConstructorRasgoDoteProps> = ({
     conjurosOtorgadosTexto,
     ligadoA,
     condicionAlActivar,
+    duracionEfectoAlActivar,
     tieneRestauracion,
     idRasgoRestaurar,
     tipoCantidadRestaurar,
@@ -734,6 +747,26 @@ export const ConstructorRasgoDote: React.FC<ConstructorRasgoDoteProps> = ({
               />
               <p className={estilos.pistaCampo}>
                 Al encender el rasgo, se añadirá esta condición a la barra táctica. Al quitar la condición en TaleSpire, el rasgo se apagará automáticamente.
+              </p>
+            </div>
+
+            <div className={estilos.campoGrupo}>
+              <label className={estilos.labelCampo}>
+                <span>Duración del Efecto / Condición (Asaltos)</span>
+              </label>
+              <input
+                type="number"
+                min={1}
+                className={estilos.inputControl}
+                placeholder="ej. 10 (1 min), 100 (10 min)..."
+                value={duracionEfectoAlActivar ?? ""}
+                onChange={(e) => {
+                  const val = parseInt(e.target.value, 10);
+                  setDuracionEfectoAlActivar(!isNaN(val) && val > 0 ? val : undefined);
+                }}
+              />
+              <p className={estilos.pistaCampo}>
+                Duración en asaltos para el combate y TaleSpire (opcional, ej. 100 asaltos para 10 minutos).
               </p>
             </div>
 
@@ -1399,6 +1432,38 @@ export const ConstructorRasgoDote: React.FC<ConstructorRasgoDoteProps> = ({
                     type="text"
                     className={estilos.inputControl}
                     placeholder="ej. Puntos de golpe temporales a aliados"
+                    value={nuevaDescripcionEfecto}
+                    onChange={(e) => setNuevaDescripcionEfecto(e.target.value)}
+                  />
+                </div>
+              </div>
+            )}
+
+            {nuevoTipoEfecto === "modificador_hp_maximo" && (
+              <div className={estilos.gridDosColumnas}>
+                <div className={estilos.campoGrupo}>
+                  <label className={estilos.labelCampo}>
+                    <span>Fórmula o Valor de Modificador de HP Máximo</span>
+                  </label>
+                  <input
+                    type="text"
+                    className={estilos.inputControl}
+                    placeholder="ej. 1*nivel, 2*nivel, +5, -2..."
+                    value={nuevoValor}
+                    onChange={(e) => setNuevoValor(e.target.value)}
+                  />
+                  <p className={estilos.pistaCampo}>
+                    Expresión aritmética segura soportada: multiplicador por nivel (&quot;1*nivel&quot;, &quot;2*nivel&quot;) o valor plano (+5).
+                  </p>
+                </div>
+                <div className={estilos.campoGrupo}>
+                  <label className={estilos.labelCampo}>
+                    <span>Descripción del Efecto</span>
+                  </label>
+                  <input
+                    type="text"
+                    className={estilos.inputControl}
+                    placeholder="ej. +1 HP máximo por cada nivel del personaje"
                     value={nuevaDescripcionEfecto}
                     onChange={(e) => setNuevaDescripcionEfecto(e.target.value)}
                   />

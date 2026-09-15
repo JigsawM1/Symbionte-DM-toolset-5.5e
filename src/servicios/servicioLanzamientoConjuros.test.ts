@@ -429,5 +429,74 @@ describe("servicioLanzamientoConjuros - Patrón Facade + Strategy", () => {
       expect(preparado.formula.formulaTaleSpire).toBe("!Daño Curar heridas(curacion):2d8+4");
       expect(preparado.formula.etiquetaLog).toContain("Clérigo Sabio - Curar heridas");
     });
+
+    it("Estrategia Objeto Mágico: gasta cargas y adopta CD y bono de ataque del jugador si no los define el objeto", () => {
+      const solicitudObjeto: SolicitudLanzamiento = {
+        modo: "objetoMagico",
+        hechizo: conjuroEjemplo, // Bola de fuego (8d6 de fuego)
+        objetoNombre: "Púa de la Escama Desertora",
+        objetoInstanciaId: "inv-pua-123",
+        costeCargasObjeto: 2,
+        bonoAtaqueMagico: 6,
+        cdSalvacionPersonaje: 14,
+        nombrePersonaje: "Bardo"
+      };
+
+      const preparado = prepararLanzamiento(solicitudObjeto, {
+        ...contextoLimpio,
+        cargasObjetoActuales: 4
+      });
+
+      expect(preparado.gasto).toEqual({
+        tipo: "cargasObjeto",
+        cantidad: 2,
+        objetoInstanciaId: "inv-pua-123"
+      });
+      // Fórmula generada con daño real del compendio para TaleSpire
+      expect(preparado.formula.formulaTaleSpire).toBe("!Daño Bola de fuego(fuego):8d6");
+      expect(preparado.formula.etiquetaLog).toContain("Púa de la Escama Desertora");
+      expect(preparado.formula.etiquetaLog).toContain("[CD 14]");
+    });
+
+    it("Estrategia Objeto Mágico: respeta CD y bono de ataque propios del objeto cuando están definidos", () => {
+      const saetaFuego: HechizoBase = {
+        id: "saeta-de-fuego",
+        nombre: "Saeta de fuego",
+        nivel: 0,
+        escuela: "Evocacion",
+        tiempoLanzamiento: "1 Accion",
+        alcance: "120 pies",
+        componentesSeleccionados: { verbal: true, somatico: true, material: false },
+        duracion: "Instantaneo",
+        concentracion: false,
+        ritual: false,
+        descripcion: "",
+        dadosDaño: "1d10",
+        tipoDaño: "fuego",
+        requiereAtaque: true
+      };
+
+      const solicitudObjeto: SolicitudLanzamiento = {
+        modo: "objetoMagico",
+        hechizo: saetaFuego,
+        objetoNombre: "Varita Mágica Superior",
+        objetoInstanciaId: "inv-varita-456",
+        costeCargasObjeto: 1,
+        bonoAtaqueObjeto: 9, // Objeto con ataque propio
+        cdObjeto: 17,        // Objeto con CD propia
+        bonoAtaqueMagico: 4, // Jugador con menor ataque
+        cdSalvacionPersonaje: 12,
+        nombrePersonaje: "Mago Novato"
+      };
+
+      const preparado = prepararLanzamiento(solicitudObjeto, {
+        ...contextoLimpio,
+        cargasObjetoActuales: 5
+      });
+
+      expect(preparado.formula.formulaTaleSpire).toBe("!Ataque Saeta de fuego:1d20+9/Daño(fuego):1d10");
+      expect(preparado.formula.etiquetaLog).toContain("Varita Mágica Superior");
+      expect(preparado.formula.etiquetaLog).toContain("[CD 17]");
+    });
   });
 });

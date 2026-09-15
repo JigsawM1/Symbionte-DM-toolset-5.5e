@@ -3,7 +3,8 @@ import type { EstadoDM } from "@/almacen/usarAlmacenDM";
 import { sincronizarRasgosAutomaticos } from "@/servicios/compendioRasgos";
 import {
   tieneMedioBonoHabilidades,
-  aplicarAprendizDeMuchoAGradosHabilidades
+  aplicarAprendizDeMuchoAGradosHabilidades,
+  calcularBonoHPMaximoRasgos
 } from "@/servicios/evaluadorEfectosRasgos";
 import { aplicarCondicion } from "@/servicios/procesadorCondiciones";
 import { mutarPersonaje } from "../helpers/mutarPersonaje";
@@ -26,10 +27,15 @@ export const crearSubSliceRasgos: StateCreator<
 > = (set, get) => ({
   agregarRasgoPersonaje: (idPj, rasgo) => {
     mutarPersonaje(set, idPj, (pj) => {
-      const rasgosActuales = pj.rasgos || [];
+      const rasgosActuales = [...(pj.rasgos || []), rasgo];
+      const pjTemp = { ...pj, rasgos: rasgosActuales };
+      const bonoHP = calcularBonoHPMaximoRasgos(pjTemp);
+      const baseHP = pj.hpMaximoBase || 10;
+      const hpMaximo = Math.max(1, baseHP + bonoHP);
       return {
-        ...pj,
-        rasgos: [...rasgosActuales, rasgo]
+        ...pjTemp,
+        hpMaximo,
+        hpActual: Math.min(pj.hpActual, hpMaximo)
       };
     });
   },
@@ -39,9 +45,14 @@ export const crearSubSliceRasgos: StateCreator<
       const rasgosActuales = (pj.rasgos || []).map((r) =>
         r.id === idRasgo ? { ...r, ...cambios } : r
       );
+      const pjTemp = { ...pj, rasgos: rasgosActuales };
+      const bonoHP = calcularBonoHPMaximoRasgos(pjTemp);
+      const baseHP = pj.hpMaximoBase || 10;
+      const hpMaximo = Math.max(1, baseHP + bonoHP);
       return {
-        ...pj,
-        rasgos: rasgosActuales
+        ...pjTemp,
+        hpMaximo,
+        hpActual: Math.min(pj.hpActual, hpMaximo)
       };
     });
   },
@@ -49,9 +60,14 @@ export const crearSubSliceRasgos: StateCreator<
   eliminarRasgoPersonaje: (idPj, idRasgo) => {
     mutarPersonaje(set, idPj, (pj) => {
       const rasgosFiltrados = (pj.rasgos || []).filter((r) => r.id !== idRasgo);
+      const pjTemp = { ...pj, rasgos: rasgosFiltrados };
+      const bonoHP = calcularBonoHPMaximoRasgos(pjTemp);
+      const baseHP = pj.hpMaximoBase || 10;
+      const hpMaximo = Math.max(1, baseHP + bonoHP);
       return {
-        ...pj,
-        rasgos: rasgosFiltrados
+        ...pjTemp,
+        hpMaximo,
+        hpActual: Math.min(pj.hpActual, hpMaximo)
       };
     });
   },
@@ -192,16 +208,18 @@ export const crearSubSliceRasgos: StateCreator<
           if (!yaTieneCond) {
             condicionesActualizadas = aplicarCondicion(condicionesActualizadas, condicionAsociada);
           }
-          if (efectoDef && efectoDef.duracionEstandar > 0) {
-            const nombreLimpioEfecto = efectoDef.nombre.split(" (")[0];
+          const duracionRondas = targetTrait.duracionEfectoAlActivar || efectoDef?.duracionEstandar || 0;
+          if (duracionRondas > 0) {
+            const nombreLimpioEfecto = efectoDef ? efectoDef.nombre.split(" (")[0] : condicionAsociada.split(" (")[0];
             const yaTieneEfecto = efectosActualizados.some((e) => e.nombre.toLowerCase().trim() === nombreLimpioEfecto.toLowerCase().trim());
             if (!yaTieneEfecto) {
               const rondaActual = get().rondaActual || 1;
               const nuevoEfecto = {
                 id: generarId(nombreLimpioEfecto.toLowerCase().replace(/[^a-z0-9]/g, '_').substring(0, 20)),
                 nombre: nombreLimpioEfecto,
-                expiraRonda: rondaActual + efectoDef.duracionEstandar,
-                concentracion: efectoDef.esConcentracion
+                expiraRonda: rondaActual + duracionRondas,
+                duracion: duracionRondas,
+                concentracion: efectoDef?.esConcentracion ?? false
               };
               efectosActualizados = [...efectosActualizados, nuevoEfecto];
             }
@@ -291,8 +309,20 @@ export const crearSubSliceRasgos: StateCreator<
         tieneAprendiz
       );
 
+      const tieneEfectoHP = (targetTrait.efectos || []).some((e) => e.tipo === "modificador_hp_maximo");
+      let hpMaximo = pj.hpMaximo;
+      let hpActual = pj.hpActual;
+      if (tieneEfectoHP) {
+        const bonoHP = calcularBonoHPMaximoRasgos(pjPrevio);
+        const baseHP = pj.hpMaximoBase || 10;
+        hpMaximo = Math.max(1, baseHP + bonoHP);
+        hpActual = Math.min(hpActual, hpMaximo);
+      }
+
       return {
         ...pjPrevio,
+        hpMaximo,
+        hpActual,
         gradosHabilidades: gradosActualizados
       };
     });

@@ -200,6 +200,17 @@ export type TipoContenedor = z.infer<typeof EsquemaTipoContenedor>;
 import { CATEGORIAS_EQUIPO } from "@/constantes/categoriasEquipoConstantes";
 export const EsquemaCategoriaEquipoPersonaje = z.enum(CATEGORIAS_EQUIPO);
 
+export const EsquemaHechizoVinculado = z.object({
+  nombre: z.string(),
+  cd: z.number().optional(),
+  bonoAtaque: z.number().optional(),
+  costeCargas: z.number().optional(),
+  hechizoId: z.string().optional(),
+  nivel: z.number().optional(),
+  tipoAccion: z.enum(["accion", "accionAdicional", "reaccion"]).optional()
+});
+export type HechizoVinculado = z.infer<typeof EsquemaHechizoVinculado>;
+
 export const EsquemaObjetoInventario = z.object({
   idInstancia: z.string(),
   idObjeto: z.string(),
@@ -219,7 +230,9 @@ export const EsquemaObjetoInventario = z.object({
   equipable: z.boolean().default(false),
   sintonizacionRequerida: z.boolean().default(false),
   cargasMaximas: z.number().int().min(0).optional(),
-  cargasActuales: z.number().int().min(0).optional()
+  cargasActuales: z.number().int().min(0).optional(),
+  formulaRecarga: z.string().optional(),
+  hechizosVinculados: z.array(EsquemaHechizoVinculado).optional()
 });
 export type ObjetoInventario = z.infer<typeof EsquemaObjetoInventario>;
 

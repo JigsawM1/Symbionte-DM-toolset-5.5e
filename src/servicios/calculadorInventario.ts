@@ -312,7 +312,9 @@ export function crearObjetoInventarioDesdeCompendio(
     equipable: Boolean(objetoJuego.equipable),
     sintonizacionRequerida: Boolean(objetoJuego.sintonizacionRequerida),
     cargasMaximas: cargas,
-    cargasActuales: cargas
+    cargasActuales: cargas,
+    formulaRecarga: objetoJuego.formulaRecarga,
+    hechizosVinculados: objetoJuego.hechizosVinculados ? [...objetoJuego.hechizosVinculados] : undefined
   };
 }
 
@@ -331,8 +333,10 @@ export function crearObjetoInventarioCustom(datos: {
   esMagico?: boolean;
   rareza?: Rareza;
   cargasMaximas?: number;
+  formulaRecarga?: string;
   notas?: string;
   contenedor?: TipoContenedor;
+  hechizosVinculados?: import("@/tipos").HechizoVinculado[];
 }): ObjetoInventario {
   const nombreLimpio = datos.nombre.trim() || "Objeto Personalizado";
   const cargas = datos.cargasMaximas !== undefined ? Math.max(0, datos.cargasMaximas) : undefined;
@@ -357,7 +361,9 @@ export function crearObjetoInventarioCustom(datos: {
     equipable: Boolean(datos.equipable),
     sintonizacionRequerida: Boolean(datos.sintonizacionRequerida),
     cargasMaximas: cargas,
-    cargasActuales: cargas
+    cargasActuales: cargas,
+    formulaRecarga: datos.formulaRecarga,
+    hechizosVinculados: datos.hechizosVinculados ? [...datos.hechizosVinculados] : undefined
   };
 }
 

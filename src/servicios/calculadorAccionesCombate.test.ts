@@ -2,7 +2,8 @@ import { describe, it, expect } from "vitest";
 import {
   resolverConjurosAcciones,
   verificarHechizoDeSubclase,
-  resolverRasgosAcciones
+  resolverRasgosAcciones,
+  resolverHechizosObjetosMagicos
 } from "./calculadorAccionesCombate";
 import { aplicarEspecieAPersonaje } from "./gestorEspecies";
 import { PERSONAJE_POR_DEFECTO } from "@/constantes/personajeConstantes";
@@ -381,6 +382,174 @@ describe("calculadorAccionesCombate - Resolución de Conjuros en Acciones de Com
       expect(detectarMagia?.categoriasCombate).toContain("accion");
       expect(detectarMagia?.categoriasCombate).toContain("consumible");
       expect(detectarMagia?.esConsumible).toBe(true);
+    });
+  });
+
+  describe("resolverHechizosObjetosMagicos - Objetos Mágicos en Combate (D&D 5.5e)", () => {
+    it("incluye hechizos de un objeto maravilloso en la mochila (no equipado) si está sintonizado", () => {
+      const pj: PersonajeJugador = {
+        ...PERSONAJE_POR_DEFECTO,
+        inventario: [
+          {
+            idInstancia: "inv-pua-1",
+            idObjeto: "o-pua-dragor",
+            nombre: "Púa de la Escama Desertora",
+            cantidad: 1,
+            equipado: false,
+            sintonizado: true,
+            sintonizacionRequerida: true,
+            contenedor: "mochila",
+            categoria: "objetos-magicos",
+            esConsumible: false,
+            subcategoria: "Objeto Maravilloso",
+            esMagico: true,
+            rareza: "Poco Común",
+            equipable: false,
+            cargasMaximas: 4,
+            cargasActuales: 4,
+            hechizosVinculados: [
+              {
+                nombre: "Disfrazarse",
+                costeCargas: 1,
+                hechizoId: "h_disfrazarse",
+                nivel: 1,
+                tipoAccion: "accion"
+              },
+              {
+                nombre: "Silencio",
+                costeCargas: 2,
+                hechizoId: "h_silencio",
+                nivel: 2,
+                tipoAccion: "accion"
+              }
+            ],
+            pesoLb: 0,
+            notas: ""
+          }
+        ]
+      };
+
+      const resultado = resolverHechizosObjetosMagicos(pj, []);
+      expect(resultado).toHaveLength(2);
+      expect(resultado[0].objetoNombre).toBe("Púa de la Escama Desertora");
+      expect(resultado[0].hechizo.nombre).toBe("Disfrazarse");
+      expect(resultado[0].cargasActuales).toBe(4);
+      expect(resultado[0].tipoAccion).toBe("accion");
+      expect(resultado[1].hechizo.nombre).toBe("Silencio");
+    });
+
+    it("excluye objetos que requieren sintonización pero no están sintonizados", () => {
+      const pj: PersonajeJugador = {
+        ...PERSONAJE_POR_DEFECTO,
+        inventario: [
+          {
+            idInstancia: "inv-pua-2",
+            idObjeto: "o-pua-dragor",
+            nombre: "Púa de la Escama Desertora",
+            cantidad: 1,
+            equipado: false,
+            sintonizado: false, // NO sintonizado
+            sintonizacionRequerida: true,
+            contenedor: "mochila",
+            categoria: "objetos-magicos",
+            esConsumible: false,
+            subcategoria: "Objeto Maravilloso",
+            esMagico: true,
+            rareza: "Poco Común",
+            equipable: false,
+            cargasMaximas: 4,
+            cargasActuales: 4,
+            hechizosVinculados: [
+              {
+                nombre: "Disfrazarse",
+                costeCargas: 1,
+                tipoAccion: "accion"
+              }
+            ],
+            pesoLb: 0,
+            notas: ""
+          }
+        ]
+      };
+
+      const resultado = resolverHechizosObjetosMagicos(pj, []);
+      expect(resultado).toHaveLength(0);
+    });
+
+    it("excluye armas mágicas con hechizos vinculados si no están equipadas", () => {
+      const pj: PersonajeJugador = {
+        ...PERSONAJE_POR_DEFECTO,
+        inventario: [
+          {
+            idInstancia: "inv-espada-1",
+            idObjeto: "o-espada-magica",
+            nombre: "Espada de Llamas",
+            cantidad: 1,
+            equipado: false, // Arma NO equipada
+            sintonizado: false,
+            sintonizacionRequerida: false,
+            contenedor: "mochila",
+            categoria: "armas", // Requiere estar equipada
+            esConsumible: false,
+            subcategoria: "Arma Marcial",
+            esMagico: true,
+            rareza: "Raro",
+            equipable: true,
+            cargasMaximas: 3,
+            cargasActuales: 3,
+            hechizosVinculados: [
+              {
+                nombre: "Llama Sagrada",
+                costeCargas: 1,
+                tipoAccion: "accion"
+              }
+            ],
+            pesoLb: 3,
+            notas: ""
+          }
+        ]
+      };
+
+      const resultado = resolverHechizosObjetosMagicos(pj, []);
+      expect(resultado).toHaveLength(0);
+    });
+
+    it("excluye objetos mágicos en contenedor almacen remoto", () => {
+      const pj: PersonajeJugador = {
+        ...PERSONAJE_POR_DEFECTO,
+        inventario: [
+          {
+            idInstancia: "inv-varita-almacen",
+            idObjeto: "o-varita",
+            nombre: "Varita en el Cofre del Campamento",
+            cantidad: 1,
+            equipado: false,
+            sintonizado: true,
+            sintonizacionRequerida: true,
+            contenedor: "almacen", // Almacenamiento remoto
+            categoria: "objetos-magicos",
+            esConsumible: false,
+            subcategoria: "Varita",
+            esMagico: true,
+            rareza: "Poco Común",
+            equipable: false,
+            cargasMaximas: 7,
+            cargasActuales: 7,
+            hechizosVinculados: [
+              {
+                nombre: "Proyectil Mágico",
+                costeCargas: 1,
+                tipoAccion: "accion"
+              }
+            ],
+            pesoLb: 1,
+            notas: ""
+          }
+        ]
+      };
+
+      const resultado = resolverHechizosObjetosMagicos(pj, []);
+      expect(resultado).toHaveLength(0);
     });
   });
 });

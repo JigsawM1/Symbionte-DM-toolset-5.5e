@@ -41,6 +41,7 @@ export interface SolicitudLanzamiento {
   objetoInstanciaId?: string;
   bonoAtaqueObjeto?: number;
   cdObjeto?: number;
+  cdSalvacionPersonaje?: number;
   costeCargasObjeto?: number;
 }
 
@@ -226,26 +227,63 @@ function construirFormulaRitual(
 
 /**
  * Construye la fórmula de dados para un conjuro lanzado desde un objeto mágico.
+ * Si el objeto no especifica CD o bono de ataque, se adoptan los del jugador.
+ * Si el conjuro cuenta con dados de daño o requiere tirada de ataque, se construye
+ * la fórmula completa de TaleSpire.
  */
 function construirFormulaObjetoMagico(
   hechizo: HechizoBase,
   objetoNombre?: string,
   bonoAtaqueObjeto?: number,
-  cdObjeto?: number
+  cdObjeto?: number,
+  bonoAtaqueJugador: number = 0,
+  cdSalvacionJugador?: number,
+  nombrePersonaje: string = "Personaje",
+  nivelLanzamiento: number = 1
 ): FormulaConstruida {
   const nombreFuente = objetoNombre ? ` (${objetoNombre})` : "";
   const etiqueta = sanitizarEtiqueta(`Hechizo ${hechizo.nombre}${nombreFuente}`);
 
+  const bonoAtaqueFinal =
+    bonoAtaqueObjeto !== undefined && !isNaN(Number(bonoAtaqueObjeto))
+      ? bonoAtaqueObjeto
+      : bonoAtaqueJugador;
+
+  const cdFinal =
+    cdObjeto !== undefined && !isNaN(Number(cdObjeto))
+      ? cdObjeto
+      : cdSalvacionJugador;
+
+  const tieneDadosDano = Boolean(hechizo.dadosDaño && hechizo.dadosDaño !== "N/A");
+  const tieneAtaque =
+    hechizo.requiereAtaque === true ||
+    (!!hechizo.ataqueCd &&
+      (hechizo.ataqueCd.toUpperCase().includes("ATAQUE") || hechizo.ataqueCd.toUpperCase().includes("ATTACK")));
+
+  if (tieneDadosDano || tieneAtaque) {
+    const resBase = construirFormulaTaleSpireEspacio(
+      hechizo,
+      nivelLanzamiento,
+      bonoAtaqueFinal,
+      nombrePersonaje
+    );
+    const etiquetaCd = cdFinal !== undefined ? ` [CD ${cdFinal}]` : "";
+    return {
+      formulaTaleSpire: resBase.formulaTaleSpire,
+      etiquetaLog: `${resBase.etiquetaLog}${nombreFuente}${etiquetaCd}`
+    };
+  }
+
   let formulaTaleSpire = "1d20";
   let etiquetaLog = etiqueta;
 
-  if (bonoAtaqueObjeto !== undefined && !isNaN(Number(bonoAtaqueObjeto))) {
-    const signo = bonoAtaqueObjeto >= 0 ? "+" : "";
-    formulaTaleSpire = `1d20${signo}${bonoAtaqueObjeto}`;
+  if (bonoAtaqueFinal !== undefined && !isNaN(Number(bonoAtaqueFinal))) {
+    const signo = bonoAtaqueFinal >= 0 ? "+" : "";
+    formulaTaleSpire = `1d20${signo}${bonoAtaqueFinal}`;
     etiquetaLog = `Ataque Mágico: ${etiqueta}`;
-  } else if (cdObjeto !== undefined && !isNaN(Number(cdObjeto))) {
+  } else if (cdFinal !== undefined && !isNaN(Number(cdFinal))) {
     formulaTaleSpire = "1d20";
-    etiquetaLog = `Salvación vs CD ${cdObjeto} (${etiqueta})`;
+    etiquetaLog = `Salvación vs CD ${cdFinal} (${etiqueta})`;
   }
 
   return { formulaTaleSpire, etiquetaLog };
@@ -324,7 +362,11 @@ export function prepararLanzamiento(
         solicitud.hechizo,
         solicitud.objetoNombre,
         solicitud.bonoAtaqueObjeto,
-        solicitud.cdObjeto
+        solicitud.cdObjeto,
+        bonoAtaqueMagico,
+        solicitud.cdSalvacionPersonaje,
+        nombrePersonaje,
+        nivelLanzamiento
       );
       const coste = solicitud.costeCargasObjeto ?? 0;
       if (coste > 0 && solicitud.objetoInstanciaId) {

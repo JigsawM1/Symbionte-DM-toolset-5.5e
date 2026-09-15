@@ -2,6 +2,7 @@ import React from "react";
 import { Sparkles, Zap, ChevronDown, ChevronRight } from "lucide-react";
 import type { HechizoBase } from "@/tipos";
 import type { HechizoObjetoMagicoAccion } from "./usarCalculoAtaquesJugador";
+import { usarEstadoHomebrew } from "@/almacen/selectores/usarEstadoHomebrew";
 import estilos from "./VistaAtaquesJugador.module.css";
 
 interface SeccionHechizosObjetosMagicosProps {
@@ -10,6 +11,7 @@ interface SeccionHechizosObjetosMagicosProps {
   alAlternar: () => void;
   estaBloqueadoPorArmadura: boolean;
   motivoBloqueoArmadura?: string;
+  cdSalvacionPersonaje?: number;
   alLanzar: (opciones: {
     modo: "objetoMagico";
     hechizo: HechizoBase;
@@ -27,8 +29,11 @@ export const SeccionHechizosObjetosMagicos: React.FC<SeccionHechizosObjetosMagic
   alAlternar,
   estaBloqueadoPorArmadura,
   motivoBloqueoArmadura,
+  cdSalvacionPersonaje,
   alLanzar
 }) => {
+  const { baseDatosHechizos } = usarEstadoHomebrew();
+
   if (hechizosObjetosFiltrados.length === 0) {
     return null;
   }
@@ -57,30 +62,41 @@ export const SeccionHechizosObjetosMagicos: React.FC<SeccionHechizosObjetosMagic
           {hechizosObjetosFiltrados.map((item, idx) => {
             const coste = Number(item.hechizo.costeCargas) || 0;
             const tieneCargas = coste === 0 || item.cargasActuales >= coste;
+
+            // Buscar en compendio si existe el hechizo real
+            const hechizoCompendio = (baseDatosHechizos || []).find(
+              (h) => (item.hechizo.hechizoId && h.id === item.hechizo.hechizoId) ||
+                     h.nombre.toLowerCase().trim() === item.hechizo.nombre.toLowerCase().trim()
+            );
+
+            const cdFinal = item.hechizo.cd !== undefined ? item.hechizo.cd : cdSalvacionPersonaje;
+
             const lanzarHechizo = async () => {
+              const objetoHechizoBase: HechizoBase = hechizoCompendio || {
+                id: item.hechizo.hechizoId || item.hechizo.nombre.toLowerCase().replace(/\s+/g, "-"),
+                nombre: item.hechizo.nombre,
+                nivel: item.hechizo.nivel ?? 1,
+                escuela: "Universal",
+                tiempoLanzamiento: item.tipoAccion === "accionAdicional" ? "1 Accion Adicional" : item.tipoAccion === "reaccion" ? "1 Reaccion" : "1 Accion",
+                alcance: "60 pies",
+                componentesSeleccionados: {
+                  verbal: true,
+                  somatico: true,
+                  material: false
+                },
+                duracion: "Instantaneo",
+                concentracion: false,
+                ritual: false,
+                descripcion: ""
+              };
+
               await alLanzar({
                 modo: "objetoMagico",
-                hechizo: {
-                  id: item.hechizo.nombre.toLowerCase().replace(/\s+/g, "-"),
-                  nombre: item.hechizo.nombre,
-                  nivel: 1,
-                  escuela: "Universal",
-                  tiempoLanzamiento: "1 Accion",
-                  alcance: "60 pies",
-                  componentesSeleccionados: {
-                    verbal: true,
-                    somatico: true,
-                    material: false
-                  },
-                  duracion: "Instantaneo",
-                  concentracion: false,
-                  ritual: false,
-                  descripcion: ""
-                },
+                hechizo: objetoHechizoBase,
                 objetoNombre: item.objetoNombre,
                 objetoInstanciaId: item.objetoInstanciaId,
                 bonoAtaqueObjeto: item.hechizo.bonoAtaque,
-                cdObjeto: item.hechizo.cd,
+                cdObjeto: cdFinal,
                 costeCargasObjeto: coste
               });
             };
@@ -111,13 +127,13 @@ export const SeccionHechizosObjetosMagicos: React.FC<SeccionHechizosObjetosMagic
                 <div className={estilos.filaMetricasAtaque}>
                   <div className={estilos.bloqueBonoImpacto}>
                     <span className={estilos.etiquetaMicro}>
-                      {item.hechizo.bonoAtaque !== undefined ? "Impacto" : item.hechizo.cd !== undefined ? "Salvación" : "Efecto"}
+                      {item.hechizo.bonoAtaque !== undefined ? "Impacto" : cdFinal !== undefined ? "Salvación" : "Efecto"}
                     </span>
                     <span className={estilos.valorBonoImpacto}>
                       {item.hechizo.bonoAtaque !== undefined
                         ? `+${item.hechizo.bonoAtaque}`
-                        : item.hechizo.cd !== undefined
-                        ? `CD ${item.hechizo.cd}`
+                        : cdFinal !== undefined
+                        ? `CD ${cdFinal}`
                         : "Especial"}
                     </span>
                   </div>

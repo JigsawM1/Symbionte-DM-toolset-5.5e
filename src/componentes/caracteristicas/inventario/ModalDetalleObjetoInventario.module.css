@@ -807,6 +807,32 @@
   gap: 3px;
 }
 
+.botonRecargarCargasModal {
+  background: rgba(251, 191, 36, 0.15);
+  border: 1px solid rgba(251, 191, 36, 0.45);
+  color: #fde68a;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.1s ease;
+}
+
+.botonRecargarCargasModal:hover:not(:disabled) {
+  background: rgba(251, 191, 36, 0.3);
+  color: #ffffff;
+  border-color: #f59e0b;
+}
+
+.botonRecargarCargasModal:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
 .badgeMagicoBono {
   background-color: rgba(236, 72, 153, 0.15);
   color: #fbcfe8;

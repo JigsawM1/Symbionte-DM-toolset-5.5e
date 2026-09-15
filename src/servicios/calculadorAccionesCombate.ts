@@ -222,28 +222,50 @@ export function resolverConsumiblesCombate(
 }
 
 /**
- * Resuelve hechizos vinculados a objetos mágicos equipados y sintonizados con control de cargas.
+/**
+ * Resuelve hechizos vinculados a objetos mágicos en posesión activa del personaje
+ * (equipados para armas/armaduras/escudos, o en posesión activa para otros objetos mágicos)
+ * y sintonizados si lo requieren (D&D 5.5e).
  */
 export function resolverHechizosObjetosMagicos(
   personajeActivo: PersonajeJugador | null,
-  objetosHomebrew: ObjetoJuego[]
+  objetosHomebrew: ObjetoJuego[] = []
 ): HechizoObjetoMagicoAccion[] {
   if (!personajeActivo) return [];
   const inventario = personajeActivo.inventario || [];
   const lista: HechizoObjetoMagicoAccion[] = [];
 
   for (const obj of inventario) {
-    if (!obj.equipado) continue;
-    if (obj.sintonizacionRequerida && !obj.sintonizado) continue;
+    // 1. Excluir objetos en almacenamiento remoto (almacén / campamento)
+    if (obj.contenedor === "almacen") continue;
 
+    // 2. Buscar datos en compendio / homebrew para metadatos complementarios
     const objComp =
       objetosHomebrew.find((b) => b.id === obj.idObjeto || normalizar(b.nombre) === normalizar(obj.nombre)) ||
       OBJETOS_INICIALES.find((b) => b.id === obj.idObjeto || normalizar(b.nombre) === normalizar(obj.nombre));
 
-    const hechizos = (obj as Record<string, unknown>).hechizosVinculados || objComp?.hechizosVinculados;
+    // 3. Regla de sintonización
+    const requiereSintonizacion = Boolean(obj.sintonizacionRequerida || objComp?.sintonizacionRequerida);
+    if (requiereSintonizacion && !obj.sintonizado) continue;
+
+    // 4. Regla de equipamiento: Solo armas, armaduras y escudos requieren estar equipados
+    const categoriaEfectiva = obj.categoria || objComp?.categoria;
+    const requiereEstarEquipado =
+      categoriaEfectiva === "armas" ||
+      categoriaEfectiva === "armaduras" ||
+      categoriaEfectiva === "escudos";
+
+    if (requiereEstarEquipado && !obj.equipado) continue;
+
+    // 5. Extraer hechizos vinculados (instancia de inventario o compendio)
+    const hechizos = obj.hechizosVinculados || objComp?.hechizosVinculados;
     if (hechizos && Array.isArray(hechizos)) {
-      const cMax = obj.cargasMaximas ?? ((objComp as Record<string, unknown>)?.cargasMaximas as number | undefined) ?? 0;
-      const cAct = obj.cargasActuales ?? cMax;
+      const cMax =
+        obj.cargasMaximas ??
+        ((objComp as Record<string, unknown>)?.cargasMaximas as number | undefined) ??
+        (objComp?.cargas !== undefined ? Number(objComp.cargas) : 0);
+      const cAct = obj.cargasActuales !== undefined ? obj.cargasActuales : cMax;
+
       for (const h of hechizos as HechizoVinculado[]) {
         let tipoAccion: TipoAccionConsumida = "accion";
         const hTipoAccion = (h as Record<string, unknown>).tipoAccion as string | undefined;

@@ -114,11 +114,13 @@ export function detectarInfoConsumible(nombre: string, descripcion?: string): In
 }
 
 /**
- * Simula y calcula la tirada de dados de una fórmula (ej: "2d4+2", "4d4+4", "10d4+20")
+ * Simula y calcula la tirada de dados de una fórmula (ej: "2d4+2", "1d6 + 1 al amanecer", "Todas", "4d4+4")
  */
 export function evaluarFormulaDados(formula: string): number {
-  const f = formula.trim();
-  const match = f.match(/^(\d+)d(\d+)(?:\+(\d+)|-(\d+))?$/i);
+  const f = formula.trim().toLowerCase();
+
+  // Patrón para dados: detecta "1d6", "1d6 + 1", "1d4-1", etc., ignorando texto circundante como "al amanecer"
+  const match = f.match(/(\d+)d(\d+)(?:\s*([+-])\s*(\d+))?/i);
   if (!match) {
     const num = parseInt(f, 10);
     return isNaN(num) ? 0 : num;
@@ -126,7 +128,9 @@ export function evaluarFormulaDados(formula: string): number {
 
   const cantidad = parseInt(match[1], 10);
   const caras = parseInt(match[2], 10);
-  const bono = match[3] ? parseInt(match[3], 10) : match[4] ? -parseInt(match[4], 10) : 0;
+  const signo = match[3];
+  const bonoVal = match[4] ? parseInt(match[4], 10) : 0;
+  const bono = signo === "-" ? -bonoVal : bonoVal;
 
   let total = bono;
   for (let i = 0; i < cantidad; i++) {
@@ -135,3 +139,37 @@ export function evaluarFormulaDados(formula: string): number {
 
   return Math.max(1, total);
 }
+
+/**
+ * Calcula la nueva cantidad de cargas tras una recarga por fórmula o por descanso largo.
+ * Si la fórmula indica "todas" o "completo", recupera hasta el máximo.
+ * En caso contrario, evalúa la fórmula de dados y suma a las cargas actuales sin superar el máximo.
+ */
+export function recargarCargasItem(
+  cargasActuales: number,
+  cargasMaximas: number,
+  formula?: string
+): { nuevasCargas: number; recuperadas: number } {
+  if (cargasMaximas <= 0) {
+    return { nuevasCargas: 0, recuperadas: 0 };
+  }
+
+  if (!formula || formula.trim() === "") {
+    const faltantes = Math.max(0, cargasMaximas - cargasActuales);
+    return { nuevasCargas: cargasMaximas, recuperadas: faltantes };
+  }
+
+  const f = formula.toLowerCase().trim();
+  if (f.includes("toda") || f.includes("completo") || f.includes("all")) {
+    const faltantes = Math.max(0, cargasMaximas - cargasActuales);
+    return { nuevasCargas: cargasMaximas, recuperadas: faltantes };
+  }
+
+  const tirada = evaluarFormulaDados(formula);
+  const aumento = Math.max(0, tirada);
+  const nuevasCargas = Math.min(cargasMaximas, cargasActuales + aumento);
+  const recuperadas = nuevasCargas - cargasActuales;
+
+  return { nuevasCargas, recuperadas };
+}
+

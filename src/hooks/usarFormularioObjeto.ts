@@ -43,7 +43,15 @@ export function usarFormularioObjeto(idEnEdicion: string | null, alGuardarExitos
   const [oCondicionSintonizacion, setOCondicionSintonizacion] = useState("");
   const [oFormulaRecarga, setOFormulaRecarga] = useState("");
   const [oModificadorAtaqueDano, setOModificadorAtaqueDano] = useState<number | "">("");
-  const [oHechizosVinculados, setOHechizosVinculados] = useState<{ nombre: string; cd?: number | ""; bonoAtaque?: number | ""; costeCargas?: number | "" }[]>([]);
+  const [oHechizosVinculados, setOHechizosVinculados] = useState<{
+    nombre: string;
+    cd?: number | "";
+    bonoAtaque?: number | "";
+    costeCargas?: number | "";
+    hechizoId?: string;
+    nivel?: number;
+    tipoAccion?: "accion" | "accionAdicional" | "reaccion";
+  }[]>([]);
 
   // --- ESTADOS DE ARTESANÍA ---
   const [oArtesaniaTaller, setOArtesaniaTaller] = useState("");
@@ -103,6 +111,9 @@ export function usarFormularioObjeto(idEnEdicion: string | null, alGuardarExitos
   const [oNuevoHechizoCd, setONuevoHechizoCd] = useState<number | "">("");
   const [oNuevoHechizoBonoAtaque, setONuevoHechizoBonoAtaque] = useState<number | "">("");
   const [oNuevoHechizoCosteCargas, setONuevoHechizoCosteCargas] = useState<number | "">("");
+  const [oNuevoHechizoId, setONuevoHechizoId] = useState<string | undefined>(undefined);
+  const [oNuevoHechizoNivel, setONuevoHechizoNivel] = useState<number | undefined>(undefined);
+  const [oNuevoHechizoTipoAccion, setONuevoHechizoTipoAccion] = useState<"accion" | "accionAdicional" | "reaccion" | undefined>(undefined);
 
   // Manejar el cambio reactivo de categoría canónica
   const alCambiarCategoria = useCallback((nuevaCat: CategoriaEquipo) => {
@@ -234,6 +245,9 @@ export function usarFormularioObjeto(idEnEdicion: string | null, alGuardarExitos
     setONuevoHechizoCd("");
     setONuevoHechizoBonoAtaque("");
     setONuevoHechizoCosteCargas("");
+    setONuevoHechizoId(undefined);
+    setONuevoHechizoNivel(undefined);
+    setONuevoHechizoTipoAccion(undefined);
   }, []);
 
   const cargarObjeto = useCallback((o: ObjetoHomebrew) => {
@@ -280,7 +294,10 @@ export function usarFormularioObjeto(idEnEdicion: string | null, alGuardarExitos
       nombre: h.nombre,
       cd: h.cd !== undefined ? h.cd : "",
       bonoAtaque: h.bonoAtaque !== undefined ? h.bonoAtaque : "",
-      costeCargas: h.costeCargas !== undefined ? h.costeCargas : ""
+      costeCargas: h.costeCargas !== undefined ? h.costeCargas : "",
+      hechizoId: h.hechizoId,
+      nivel: h.nivel,
+      tipoAccion: h.tipoAccion
     })) : []);
 
     // Carga de artesanía
@@ -380,14 +397,28 @@ export function usarFormularioObjeto(idEnEdicion: string | null, alGuardarExitos
         nombre: oNuevoHechizoNombre.trim(),
         cd: oNuevoHechizoCd !== "" ? Number(oNuevoHechizoCd) : undefined,
         bonoAtaque: oNuevoHechizoBonoAtaque !== "" ? Number(oNuevoHechizoBonoAtaque) : undefined,
-        costeCargas: oNuevoHechizoCosteCargas !== "" ? Number(oNuevoHechizoCosteCargas) : undefined
+        costeCargas: oNuevoHechizoCosteCargas !== "" ? Number(oNuevoHechizoCosteCargas) : undefined,
+        hechizoId: oNuevoHechizoId,
+        nivel: oNuevoHechizoNivel,
+        tipoAccion: oNuevoHechizoTipoAccion
       }
     ]);
     setONuevoHechizoNombre("");
     setONuevoHechizoCd("");
     setONuevoHechizoBonoAtaque("");
     setONuevoHechizoCosteCargas("");
-  }, [oNuevoHechizoNombre, oNuevoHechizoCd, oNuevoHechizoBonoAtaque, oNuevoHechizoCosteCargas]);
+    setONuevoHechizoId(undefined);
+    setONuevoHechizoNivel(undefined);
+    setONuevoHechizoTipoAccion(undefined);
+  }, [
+    oNuevoHechizoNombre,
+    oNuevoHechizoCd,
+    oNuevoHechizoBonoAtaque,
+    oNuevoHechizoCosteCargas,
+    oNuevoHechizoId,
+    oNuevoHechizoNivel,
+    oNuevoHechizoTipoAccion
+  ]);
 
   const eliminarHechizoVinculadoIdx = useCallback((idx: number) => {
     setOHechizosVinculados((prev) => prev.filter((_, i) => i !== idx));
@@ -453,7 +484,10 @@ export function usarFormularioObjeto(idEnEdicion: string | null, alGuardarExitos
       nombre: h.nombre,
       cd: h.cd !== "" ? Number(h.cd) : undefined,
       bonoAtaque: h.bonoAtaque !== "" ? Number(h.bonoAtaque) : undefined,
-      costeCargas: h.costeCargas !== "" ? Number(h.costeCargas) : undefined
+      costeCargas: h.costeCargas !== "" ? Number(h.costeCargas) : undefined,
+      hechizoId: h.hechizoId,
+      nivel: h.nivel,
+      tipoAccion: h.tipoAccion
     })) : undefined;
 
     const cantLote = Number(oQuantity) || 1;
@@ -655,6 +689,9 @@ export function usarFormularioObjeto(idEnEdicion: string | null, alGuardarExitos
     oNuevoHechizoCd, setONuevoHechizoCd,
     oNuevoHechizoBonoAtaque, setONuevoHechizoBonoAtaque,
     oNuevoHechizoCosteCargas, setONuevoHechizoCosteCargas,
+    oNuevoHechizoId, setONuevoHechizoId,
+    oNuevoHechizoNivel, setONuevoHechizoNivel,
+    oNuevoHechizoTipoAccion, setONuevoHechizoTipoAccion,
 
     // Nuevos campos relacionales
     oAmmunitionIndex, setOAmmunitionIndex,

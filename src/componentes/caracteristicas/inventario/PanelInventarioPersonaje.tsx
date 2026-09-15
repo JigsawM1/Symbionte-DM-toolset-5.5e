@@ -12,6 +12,11 @@ import { SeccionMochilaInventario } from "./subcomponentes/SeccionMochilaInventa
 import { SeccionContenedoresEspeciales } from "./subcomponentes/SeccionContenedoresEspeciales";
 import { ModalInspeccionObjetoFlotante } from "./subcomponentes/ModalInspeccionObjetoFlotante";
 import type { PanelInventarioPersonajeProps } from "./subcomponentes/tiposPanelInventario";
+import {
+  calcularBonoAtaqueConjuro,
+  calcularCDConjuros,
+  obtenerHabilidadConjuroPersonaje
+} from "@/servicios/calculadorMagia";
 import estilos from "@/componentes/caracteristicas/personajes/HojaPersonaje.module.css";
 
 export type { PanelInventarioPersonajeProps };
@@ -40,10 +45,22 @@ export const PanelInventarioPersonaje: React.FC<PanelInventarioPersonajeProps> =
   const [tabModalAgregar, setTabModalAgregar] = useState<"compendio" | "otrasPosesiones">("compendio");
   const [objetoInspeccionadoId, setObjetoInspeccionadoId] = useState<string | null>(null);
 
+  // Estadísticas mágicas del personaje para herencia de CD y Ataque en objetos mágicos
+  const habilidadMagica = obtenerHabilidadConjuroPersonaje(personaje);
+  const modMagico = statsCalculadas ? statsCalculadas.modificadores[habilidadMagica] || 0 : 0;
+  const bonoAtaqueMagico = statsCalculadas
+    ? calcularBonoAtaqueConjuro(statsCalculadas.bonoCompetencia, modMagico)
+    : 0;
+  const cdSalvacionPersonaje = statsCalculadas
+    ? calcularCDConjuros(statsCalculadas.bonoCompetencia, modMagico)
+    : 8 + modMagico;
+
   // Hook centralizado de magia para objetos mágicos
   const { puedeLanzar, motivoBloqueo, lanzar } = usarLanzadorConjuros({
     personaje,
-    penalizacionArmadura: statsCalculadas?.penalizacionArmadura
+    penalizacionArmadura: statsCalculadas?.penalizacionArmadura,
+    bonoAtaqueMagico,
+    cdSalvacionPersonaje
   });
 
   // Hook desacoplado de ordenamiento, filtros y Drag & Drop
@@ -226,6 +243,8 @@ export const PanelInventarioPersonaje: React.FC<PanelInventarioPersonajeProps> =
         alModificarCargas={alModificarCargas}
         puedeLanzar={puedeLanzar}
         motivoBloqueo={motivoBloqueo}
+        cdSalvacionPersonaje={cdSalvacionPersonaje}
+        bonoAtaqueMagico={bonoAtaqueMagico}
         lanzar={lanzar}
       />
     </div>

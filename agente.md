@@ -19,6 +19,137 @@ Este archivo registra reglas globales, errores encontrados, sus causas raíz y l
    - **Bajo ninguna circunstancia** los módulos de lógica de negocio (`servicios/`), gestores de estado (`almacen/`) o constructores (`gestorClases.ts`) deben contener bifurcaciones condicionales por nombre literal de rasgo o clase (`r.nombre === "..."`, `clase.includes("...")`, etc.).
    - Toda mecánica, progresión de dados, escalado de usos, recuperación o desbloqueo dinámico debe resolverse mediante metadatos declarativos (`escaladoFormulaDados`, `escaladoUsos`, `escaladoRecuperacion`, `opcionesDinamicas`, `escaladoMaxSelecciones`, `sincronizarEfectosConFormula`, `heredarDadosPadre`, `gastarDePadre`, `ligadoA`, `efectos`) delegando en funciones puras agnósticas como `resolverEscaladosRasgo`. Esta regla está reforzada en CI vía ESLint `no-restricted-syntax` y la suite `rasgoGenericidad.test.ts`.
 
+## [2026-09-14] Resolución de Cargas de Objetos Mágicos y Visualización en Acciones de Combate (D&D 5.5e)
+
+**Contexto y Requerimientos del Usuario:**
+- Solicitud del usuario (`/grill-me`):
+  1. *"si la uso desde el inventario me sale ese aviso de que no tengo cargas"* (requiere 1, tienes 0) a pesar de tener 4 de 4 cargas en el objeto (ej. *Púa de la Escama Desertora*).
+  2. *"tampoco me sale en acciones el objeto"*.
+  3. Alineación canónica:
+     - En combate, solo armas, armaduras y escudos requieren estar equipados (`equipado: true`). Para objetos maravillosos, varitas, cetros, anillos, etc., basta con que estén en la mochila/posesión activa (no en `almacen` remoto) y sintonizados si lo requieren.
+     - Al lanzar un conjuro de un objeto mágico, si el objeto no especifica su propio CD o Bono de Ataque Mágico, debe tomar los del personaje jugador.
+
+**Causas Raíz y Desafíos Técnicos:**
+1. **Falta de Inyección de Cargas en el Hook Central de Magia (`usarLanzadorConjuros.ts`):**
+   - El hook construía un `ContextoMagicoPersonaje` estático a nivel de hook sin asociarlo a ningún objeto de inventario.
+   - Al llamar a `validarLanzamiento` y `prepararLanzamiento` en modo `objetoMagico`, `contexto.cargasObjetoActuales` era `undefined` (evaluado como 0), provocando que la validación fallase inmediatamente con `"Cargas insuficientes..."` sin importar cuántas cargas tuviera el ítem en la mochila.
+2. **Descarte de Objetos no Equipables en Acciones de Combate (`calculadorAccionesCombate.ts`):**
+   - `resolverHechizosObjetosMagicos` ejecutaba un filtro ciego `if (!obj.equipado) continue;`. Como los objetos maravillosos y varitas son creados con `equipable: false` y añadidos a la mochila con `equipado: false`, quedaban permanentemente ocultos de la pestaña de combate.
+3. **Pérdida de `hechizosVinculados` al Instanciar en Inventario (`calculadorInventario.ts` y `EsquemaObjetoInventario`):**
+   - `crearObjetoInventarioDesdeCompendio` no copiaba `hechizosVinculados` a la instancia resultante en el inventario del personaje, forzando la dependencia exclusiva de búsquedas por compendio en lugar de preservar la autonomía del ítem.
+4. **Fórmulas Incompletas para Objetos Mágicos (`servicioLanzamientoConjuros.ts`):**
+   - `construirFormulaObjetoMagico` solo devolvía `"1d20"` y no consideraba los dados de daño ni las fórmulas de TaleSpire (`!Daño ...`) cuando el conjuro vinculado poseía dados de daño (`dadosDaño`), ni permitía heredar el CD de salvación o el bono de ataque mágico del personaje jugador.
+
+**Solución Implementada y Decisiones Arquitectónicas:**
+1. **Tipado e Integridad de Inventario (`src/tipos/personaje.ts` y `src/servicios/calculadorInventario.ts`):**
+   - Se añadió `hechizosVinculados: z.array(EsquemaHechizoVinculado).optional()` a `EsquemaObjetoInventario`.
+   - Se actualizó `crearObjetoInventarioDesdeCompendio` y `crearObjetoInventarioCustom` para copiar y preservar fielmente `hechizosVinculados`.
+2. **Inyección Reactiva de Cargas y Fallback de CD/Ataque (`src/hooks/usarLanzadorConjuros.ts` y `src/servicios/servicioLanzamientoConjuros.ts`):**
+   - En `usarLanzadorConjuros.ts`: al validar o lanzar en modo `objetoMagico`, se busca el objeto en `personaje.inventario` mediante `solicitud.objetoInstanciaId`, calculando `cargasDisponibles = obj.cargasActuales ?? obj.cargasMaximas ?? 0` e inyectándolo en `contextoEfectivo.cargasObjetoActuales`.
+   - Se añadió `cdSalvacionPersonaje?: number` a `OpcionesLanzadorConjuros` y `SolicitudLanzamiento`.
+   - En `construirFormulaObjetoMagico`: si el objeto no provee `cdObjeto` o `bonoAtaqueObjeto`, se adoptan `cdSalvacionPersonaje` y `bonoAtaqueMagico` del jugador. Si el conjuro tiene dados de daño o tirada de ataque, delega en `construirFormulaTaleSpireEspacio` emitiendo la tirada completa e incorporando `[CD ${cdFinal}]` y el nombre del objeto en la etiqueta del log.
+3. **Discriminación Canónica de Acciones de Combate (`src/servicios/calculadorAccionesCombate.ts`):**
+   - Se actualizó `resolverHechizosObjetosMagicos`:
+     - Excluye contenedores de almacenamiento remoto (`obj.contenedor === "almacen"`).
+     - Exige `obj.sintonizado` únicamente si el objeto requiere sintonización.
+     - Solo exige `obj.equipado` si la categoría efectiva es `"armas"`, `"armaduras"` o `"escudos"`. Para el resto de categorías mágicas (maravillosos, varitas, etc.), se muestran activas en combate.
+     - Resuelve `hechizosVinculados` priorizando la instancia (`obj.hechizosVinculados`) y usando el compendio/homebrew como fallback.
+4. **Sincronización en UI (`PanelInventarioPersonaje.tsx` y `ModalInspeccionObjetoFlotante.tsx`):**
+   - `PanelInventarioPersonaje` calcula `bonoAtaqueMagico` y `cdSalvacionPersonaje` vía `obtenerHabilidadConjuroPersonaje(personaje)` y `statsCalculadas`, pasándolos al lanzador y al modal flotante.
+   - `ModalInspeccionObjetoFlotante` busca en `baseDatosHechizos` para enriquecer el lanzamiento con los datos del compendio real.
+5. **Verificación Automatizada:**
+   - 100% de tests pasando (52 suites, 625 tests), 0 errores en `tsc --noEmit`, `pnpm run ci` completado con éxito.
+
+---
+
+## [2026-09-14] Optimización con Debounce (500 ms) en SelectorSugerencias
+
+**Contexto y Requerimientos del Usuario:**
+- Solicitud del usuario: *"Ok, hay que hacer un arreglo pequeño al selector sugerencia para que tenga un pequeño debounse para que no haga una búsqueda en cada tecleo de letra si no que espere 500 ms después del último carácter escrito"*.
+
+**Causas Raíz y Desafíos Técnicos:**
+1. `SelectorSugerencias.tsx` ejecutaba el filtrado de opciones (`coincideBusquedaTolerante` y ordenación `compararPorRelevanciaTitulo`) de forma síncrona en cada pulsación de tecla (`onChange`), recalculando sobre listas extensas de sugerencias en cada carácter.
+
+**Solución Implementada y Decisiones Arquitectónicas:**
+1. **Debounce Declarativo y Configurable (`SelectorSugerencias.tsx`):**
+   - Se añadió la prop opcional `tiempoEsperaDebounce?: number` con valor por defecto de `500` ms.
+   - Se introdujo el estado `terminoDebounced` sincronizado mediante un `useEffect` con temporizador (`setTimeout`) y limpieza (`clearTimeout`) que espera 500 ms tras el último carácter antes de actualizar el término de filtrado.
+   - Las sugerencias filtradas (`opcionesFiltradas`) se calculan a partir de `terminoDebounced`, evitando re-cálculos pesados durante la escritura continua rápida.
+   - Al seleccionar una opción en el menú (`seleccionarOpcion`), se actualiza inmediatamente `terminoDebounced` sin esperar el temporizador para evitar desfases en reaperturas.
+   - Se reforzó `spellCheck={false}` en el `<input>` para prevenir subrayados de ortografía en navegadores y webviews de TaleSpire.
+2. **Pruebas y Verificación Automatizada:**
+   - Creación de `src/componentes/comunes/SelectorSugerencias.test.tsx` con Vitest.
+   - `pnpm run ci`: 100% de tests pasando (52 suites, 618 tests), 0 errores de TypeScript estricto, 0 errores de linter, 0 archivos con más de 500 líneas y build de Vite exitoso.
+
+---
+
+## [2026-09-14] Modernización del Creador de Objetos Mágicos Homebrew, Recarga Funcional y Hechizos Vinculados Typeahead (D&D 5.5e)
+
+**Contexto y Requerimientos del Usuario:**
+- Creador de objetos homebrew (`FormularioObjeto.tsx` / `SeccionEfectosPasivos.tsx` / `usarFormularioObjeto.ts`):
+  1. **Cargas Máximas / Actuales**: Al crear un objeto nuevo, las cargas actuales asumen automáticamente el valor de las cargas máximas sin solicitar redundantemente ambas. Se limpió el input de cargas eliminando subtítulos explicativos y quitando la duplicación en UI.
+  2. **Fórmula de Recarga Funcional**: Soporte para fórmulas de dados de TaleSpire (`d4`, `d6`, `d8`, `d10`, `d12`, `d20`, `d100` — expresamente sin `1d3`). Presets rápidos con dados de TaleSpire (`[1d4 + 1]`, `[1d6 + 1]`, `[1d8 + 1]`, `[Todas]`).
+  3. **Mecanismo de Recarga Dual**: Recarga manual interactiva en inventario (`TarjetaObjetoInventario` / `SeccionMagiaYEfectosObjeto`) y recarga automática durante el Descanso Largo (`procesarDescansoLargo`) usando la función pura `recargarCargasItem`.
+  4. **Efectos Pasivos Depurados**: Se eliminó `"Foco Arcano"` de la lista de efectos pasivos (al ser ya categoría canónica `"focos-magicos"`). Se mantuvieron los efectos que alteran la ficha en tiempo real (`CA`, `CARACTERÍSTICA`, `SALVACIÓN`, `HABILIDAD`) y los informativos (`Resistencia`, `Inmunidad`, `Otro`).
+  5. **Selector Typeahead de Hechizos Vinculados**:
+     - Se eliminó el campo de texto libre estático.
+     - Se implementó un selector reactivo con menú flotante (`useMemo`) que solo muestra sugerencias cuando el usuario escribe (mínimo 1 carácter).
+     - Busca en `baseDatosHechizos` del compendio, autocompleta nombre, `hechizoId`, infiere el tipo de acción (`accion`, `accionAdicional`, `reaccion`) y nivel.
+     - Si el hechizo no existe en el compendio, se permite guardarlo como efecto homebrew personalizado con coste en cargas.
+     - En combate (`SeccionHechizosObjetosMagicos.tsx`): si el hechizo vinculado no especifica CD propia, se utiliza automáticamente la CD de salvación de conjuros del personaje activo (`cdSalvacionConjuros`).
+  6. **Cumplimiento de Reglas Globales**: Cero emojis (solo iconos Lucide), tipado estricto `strict: true`, cero `any`, exclusivamente `pnpm`.
+
+**Decisiones Técnicas y Correcciones:**
+- `evaluarFormulaDados`: Actualizada para aceptar espacios y expresiones naturales (ej. `"1d6 + 1 al amanecer"`) y cadenas descriptivas de recuperación total (`"todas"`, `"completo"`).
+- `recargarCargasItem`: Función pura exportada en `procesadorConsumibles.ts` utilizada de forma compartida por descansos e inventario.
+- `EsquemaHechizoVinculado` y `sanitizacion.ts`: Enriquecidos con `hechizoId`, `nivel`, y `tipoAccion` opcionales garantizando persistencia íntegra.
+
+---
+
+## [2026-09-14] Implementación Canónica y Declarativa de los Rasgos de Enano (D&D 5.5e) y Builder Universal de Rasgos
+
+**Contexto y Requerimientos del Usuario:**
+- Solicitud del usuario: *"vamos a crear el plan de implementacion para los rasgos de enano. @[dicionario_herramientas/razas/Enano.md] por lo visto la mayoria es informativo. tiene una mecanica que es Aguante enano, esta aumenta la vida maxima 1 x nivel y Afinidad con la piedra crea un nuevo efecto del mismo nombre, el cual es solo informativo y dura 100 asaltos, tiene tantos usos como bonificador por competencia y se recarga cada descanso largo. recuerda que esto se debe hacer desde el builder, con funciones completamente generales."*
+- Restricción crítica (Regla Global 6): Cero bifurcaciones condicionales por nombre literal (`r.nombre === "Aguante enano"`, etc.). Todo debe fluir por contratos de datos declarativos configurables en el Builder (`ConstructorRasgoDote.tsx`).
+
+**Causas Raíz y Desafíos Arquitectónicos:**
+1. **Ausencia de Modificador Declarativo de HP Máximo:**
+   - La aplicación solo contemplaba `hp_temporal` y `modificador_ca`/`modificador_stat`, obligando a cualquier bono de HP máximo a ser un cálculo manual o no reactivo.
+2. **Ausencia de Duración Específica en Asaltos para Rasgos Activables:**
+   - TaleSpire y el combat tracker requerían conocer la duración del efecto o condición generada al encender un rasgo activable (ej. 100 asaltos / 10 minutos para *Afinidad con la piedra*), pero `EsquemaRasgoPersonaje` solo poseía `condicionAlActivar` sin duración numérica configurable.
+3. **Aplastamiento Involuntario de HP Máximo en el Almacén Zustand:**
+   - `actualizarPersonaje` recalculaba `hpMaximo` a partir de `hpMaximoBase` cuando se pasaba cualquier objeto con `hpMaximoBase !== undefined`. Al enviar un personaje con `hpMaximo: 30` que heredaba el `hpMaximoBase: 10` por defecto, sobreescribía erróneamente `hpMaximo` reduciéndolo a 10.
+4. **Colisión de Escalado en Rasgos Base:**
+   - Rasgos como *Manos curativas* (Aasimar) usan `formulaEscalado: "bono_competencia"` para los dados de curación (`formulaDados: "2d4"` -> `PB d4`), pero debían mantener `usosMaximos: 1`, mientras que *Afinidad con la piedra* (Enano) escala sus usos según `PB` sin tener dados asociados.
+
+**Solución Implementada y Decisiones Arquitectónicas:**
+1. **Extensión Estricta de Esquemas Zod y Contratos TypeScript (`src/tipos/rasgos.ts` y `src/constantes/rasgosDND55.ts`):**
+   - Incorporación de `"modificador_hp_maximo"` a `EsquemaTipoEfectoMecanico` y `TIPOS_EFECTO_DISPONIBLES`.
+   - Incorporación de `duracionEfectoAlActivar?: number;` en `EsquemaRasgoPersonaje`, `PlantillaRasgoClase` y `PlantillaRasgoEspecie`.
+2. **Evaluador Aritmético Genérico y Seguro (`src/servicios/evaluadorEfectosRasgos.ts`):**
+   - `evaluarExpresionNumericaSegura(expresion, variables?)`: evaluación aritmética pura de sumas, restas y productos sin `eval`, con soporte para sustitución contextual de variables (`nivel`).
+   - `calcularBonoHPMaximoRasgos(personaje: PersonajeJugador): number`: función agnóstica pura que suma todos los efectos `modificador_hp_maximo` de rasgos activos.
+3. **Sincronización Reactiva por Diferencial (`deltaBono`) en el Almacén (`slicePersonajesBase.ts`, `sliceRasgos.ts`, `sliceVitalidad.ts`):**
+   - En `actualizarPersonaje`: solo se recalcula desde `hpMaximoBase` si no se proporcionó `hpMaximo` explícito (`cambios.hpMaximoBase !== undefined && cambios.hpMaximo === undefined`).
+   - Si cambiaron rasgos o nivel, se calcula `deltaBono = bonoNuevo - bonoPrevio`, ajustando de forma sumativa y reactiva el `hpMaximo` del personaje.
+   - En `sliceRasgos.ts`: encender o apagar un rasgo con `modificador_hp_maximo` recalcula y sincroniza reactivamente `hpMaximo` y `hpActual`.
+   - En `alternarActivoRasgo`: al activar un rasgo con `duracionEfectoAlActivar`, genera el efecto activo con esa duración explícita (ej. 100 asaltos).
+4. **Catálogo Canónico de Enano (`src/constantes/especiesDND55.ts` y `src/utiles/datosIniciales.ts`):**
+   - Especie Enano enriquecida con:
+     - *Aguante enano*: efecto `{ tipo: "modificador_hp_maximo", objetivo: "hp_maximo", valor: "1*nivel" }`.
+     - *Afinidad con la piedra*: `{ esActivable: true, condicionAlActivar: "Afinidad con la piedra", duracionEfectoAlActivar: 100, formulaEscalado: "bono_competencia", recuperacion: "descanso_largo" }`.
+     - *Resistencia enana*: ventaja táctica con `{ tipo: "ventaja", objetivo: "salvacion.envenenado", valor: "true" }`.
+   - Agregado efecto predefinido `"Afinidad con la piedra"` (`duracionEstandar: 100`).
+5. **Builder Visual (`src/componentes/caracteristicas/rasgos/ConstructorRasgoDote.tsx`):**
+   - Nueva interfaz para configurar `modificador_hp_maximo` con inputs para valor/fórmula y descripción sugerida.
+   - Nuevo campo de duración en asaltos cuando el rasgo se marca como activable (`esActivable`).
+6. **Validación Exhaustiva Automatizada:**
+   - `pnpm exec tsc --noEmit`: 0 errores (Strict mode).
+   - `pnpm test`: 51 suites ejecutadas, 615 tests pasando al 100% (incluyendo nuevas suites para Enano y evaluador de HP máximo).
+   - `pnpm lint`: 0 errores y 0 advertencias.
+
+---
+
 ## [2026-09-14] Rework Canónico del Formulario de Objetos Homebrew (11 Categorías D&D 5.5e, Escudos y Consumibles)
 
 **Contexto y Requerimientos del Usuario:**

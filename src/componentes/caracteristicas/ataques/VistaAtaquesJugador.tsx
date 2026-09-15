@@ -28,6 +28,7 @@ export const VistaAtaquesJugador: React.FC = () => {
     rasgoDetalle,
     setRasgoDetalle,
     bonoAtaqueMagico,
+    cdSalvacionConjuros,
     estaBloqueadoPorArmadura,
     motivoBloqueoArmadura,
     ataquesFisicosFiltrados,
@@ -198,6 +199,7 @@ export const VistaAtaquesJugador: React.FC = () => {
         alAlternar={() => alternarSeccion("hechizosObjetos")}
         estaBloqueadoPorArmadura={estaBloqueadoPorArmadura}
         motivoBloqueoArmadura={motivoBloqueoArmadura}
+        cdSalvacionPersonaje={cdSalvacionConjuros}
         alLanzar={lanzar}
       />
 

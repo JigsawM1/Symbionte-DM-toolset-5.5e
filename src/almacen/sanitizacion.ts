@@ -2,6 +2,7 @@ import { HechizoBase, ObjetoHomebrew, Rareza, Arma, Armadura, Escudo, EquipoAven
 import { PERSONAJE_POR_DEFECTO } from '@/constantes/personajeConstantes';
 import { resolverGruposYSustitutosCompetencias } from '@/constantes/competenciasConstantes';
 import { resolverCategoriaDesdeSRD, CATEGORIAS_EQUIPO, type CategoriaEquipo } from '@/constantes/categoriasEquipoConstantes';
+import { calcularBonoHPMaximoRasgos } from '@/servicios/evaluadorEfectosRasgos';
 import { generarId } from '@/utiles/generarId';
 
 // Normaliza el texto eliminando acentos y convirtiendo a minúsculas
@@ -266,15 +267,31 @@ export function sanearObjetoHomebrew(o: unknown): ObjetoHomebrew {
     : undefined;
 
   // Hechizos vinculados
-  let hechizosVinculadosSaneados: { nombre: string; cd?: number; bonoAtaque?: number; costeCargas?: number }[] | undefined = undefined;
+  let hechizosVinculadosSaneados: {
+    nombre: string;
+    cd?: number;
+    bonoAtaque?: number;
+    costeCargas?: number;
+    hechizoId?: string;
+    nivel?: number;
+    tipoAccion?: "accion" | "accionAdicional" | "reaccion";
+  }[] | undefined = undefined;
   if (Array.isArray(obj.hechizosVinculados)) {
     hechizosVinculadosSaneados = obj.hechizosVinculados.map((h) => {
       const hObj = (h && typeof h === "object" ? h : {}) as Record<string, unknown>;
+      const taRaw = aplanarValor(hObj.tipoAccion || "");
+      const tipoAccionSaneado = (["accion", "accionAdicional", "reaccion"].includes(taRaw)
+        ? taRaw
+        : undefined) as "accion" | "accionAdicional" | "reaccion" | undefined;
+
       return {
         nombre: aplanarValor(hObj.nombre || "Hechizo"),
         cd: hObj.cd !== undefined && hObj.cd !== "" ? Number(hObj.cd) || undefined : undefined,
         bonoAtaque: hObj.bonoAtaque !== undefined && hObj.bonoAtaque !== "" ? Number(hObj.bonoAtaque) || undefined : undefined,
-        costeCargas: hObj.costeCargas !== undefined && hObj.costeCargas !== "" ? Number(hObj.costeCargas) || undefined : undefined
+        costeCargas: hObj.costeCargas !== undefined && hObj.costeCargas !== "" ? Number(hObj.costeCargas) || undefined : undefined,
+        hechizoId: hObj.hechizoId ? aplanarValor(hObj.hechizoId) : undefined,
+        nivel: hObj.nivel !== undefined && hObj.nivel !== "" ? Number(hObj.nivel) || undefined : undefined,
+        tipoAccion: tipoAccionSaneado
       };
     });
   }
@@ -1225,7 +1242,15 @@ export function sanearPersonaje(p: unknown): PersonajeJugador {
 
   const resultado = EsquemaPersonajeJugador.safeParse(fusionado);
   if (resultado.success) {
-    return resultado.data;
+    const pjValido = resultado.data;
+    const bonoHPRasgos = calcularBonoHPMaximoRasgos(pjValido);
+    if (bonoHPRasgos !== 0) {
+      const baseHP = pjValido.hpMaximoBase || 10;
+      const nuevoMax = Math.max(1, baseHP + bonoHPRasgos);
+      pjValido.hpMaximo = nuevoMax;
+      pjValido.hpActual = Math.min(pjValido.hpActual, nuevoMax);
+    }
+    return pjValido;
   }
 
   // Fallback si algún campo anidado no pasa Zod

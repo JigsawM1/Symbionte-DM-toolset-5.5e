@@ -16,7 +16,7 @@ export type {
 export type { ConsumibleAccionCalculado } from "./TarjetaConsumibleAccion.tipos";
 import type { AtaquePersonajeCalculado } from "./TarjetaAtaquePersonaje";
 import type { ConsumibleAccionCalculado } from "./TarjetaConsumibleAccion.tipos";
-import { calcularBonoAtaqueConjuro } from "@/servicios/calculadorMagia";
+import { calcularBonoAtaqueConjuro, calcularCDConjuros } from "@/servicios/calculadorMagia";
 import { desduplicarEntidades } from "@/utiles/busquedaTolerante";
 import type { ObjetoJuego, HechizoBase, Caracteristica, RasgoPersonaje } from "@/tipos";
 import { usarEstadoPersistido, usarLanzadorConjuros } from "@/hooks";
@@ -151,6 +151,9 @@ export function usarCalculoAtaquesJugador() {
   const bonoAtaqueMagico = statsCalculadas
     ? calcularBonoAtaqueConjuro(statsCalculadas.bonoCompetencia, modMagico)
     : 0;
+  const cdSalvacionConjuros = statsCalculadas
+    ? calcularCDConjuros(statsCalculadas.bonoCompetencia, modMagico)
+    : 8 + modMagico;
 
   // Hook de lanzamiento de conjuros
   const { puedeLanzar, motivoBloqueo, lanzar } = usarLanzadorConjuros({
@@ -390,6 +393,7 @@ export function usarCalculoAtaquesJugador() {
     setRasgoDetalle,
     habilidadMagica,
     bonoAtaqueMagico,
+    cdSalvacionConjuros,
     estaBloqueadoPorArmadura,
     motivoBloqueoArmadura,
     ataquesFisicosFiltrados,

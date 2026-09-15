@@ -1049,4 +1049,136 @@ describe("GestorEspecies - Dominio de Razas y Subrazas (D&D 5.5e)", () => {
       expect(pjActualizado.conjurosSiemprePreparadosIds).toContain("detectar_magia");
     });
   });
+
+  describe("Enano - Rasgos Canónicos y Mecánicas Declarativas (Enano.md)", () => {
+    it("cumple los campos base canónicos de Enano (D&D 5.5e)", () => {
+      const enano = obtenerEspeciePorId("enano");
+      expect(enano).toBeDefined();
+      expect(enano?.nombre).toBe("Enano");
+      expect(enano?.tipoCriatura).toBe("Humanoide");
+      expect(enano?.tamanoOpciones).toEqual(["Mediano"]);
+      expect(enano?.tamanoPorDefecto).toBe("Mediano");
+      expect(enano?.velocidadBase).toBe(30);
+      expect(enano?.visionOscuridad).toBe(120);
+      expect(enano?.resistenciasDanio).toContain("Veneno");
+    });
+
+    it("modela Resistencia enana con ventaja táctica en salvaciones contra envenenado", () => {
+      const enano = obtenerEspeciePorId("enano")!;
+      const rasgos = construirRasgosEspecie(enano, undefined, 1, 2);
+      const resistenciaEnana = rasgos.find((r) => r.nombre === "Resistencia enana");
+      expect(resistenciaEnana).toBeDefined();
+      expect(resistenciaEnana?.tipoAccion).toBe("pasivo");
+      const efectoVentaja = resistenciaEnana?.efectos?.find((e) => e.tipo === "ventaja");
+      expect(efectoVentaja).toBeDefined();
+      expect(efectoVentaja?.objetivo).toBe("salvacion.envenenado");
+    });
+
+    it("Aguante enano aumenta los puntos de golpe máximos en 1 por nivel de forma declarativa", () => {
+      const enano = obtenerEspeciePorId("enano")!;
+      
+      // A nivel 1
+      const rasgosNivel1 = construirRasgosEspecie(enano, undefined, 1, 2);
+      const aguanteNivel1 = rasgosNivel1.find((r) => r.nombre === "Aguante enano");
+      expect(aguanteNivel1).toBeDefined();
+      const efectoHp1 = aguanteNivel1?.efectos?.find((e) => e.tipo === "modificador_hp_maximo");
+      expect(efectoHp1).toBeDefined();
+      expect(efectoHp1?.objetivo).toBe("hp_maximo");
+      expect(efectoHp1?.valor).toBe("1*nivel");
+
+      // Aplicar especie a un personaje a nivel 1
+      const pjNivel1: PersonajeJugador = {
+        ...PERSONAJE_POR_DEFECTO,
+        id: "pj-enano-1",
+        nombre: "Bruenor N1",
+        nivel: 1,
+        hpMaximo: 12,
+        hpActual: 12
+      };
+
+      const pjAplicadoN1 = aplicarEspecieAPersonaje(pjNivel1, { especieId: "enano" });
+      // HP base 12 + 1 por nivel = 13
+      expect(pjAplicadoN1.hpMaximo).toBe(13);
+      expect(pjAplicadoN1.hpActual).toBe(13);
+
+      // Aplicar especie a un personaje a nivel 5
+      const pjNivel5: PersonajeJugador = {
+        ...PERSONAJE_POR_DEFECTO,
+        id: "pj-enano-5",
+        nombre: "Bruenor N5",
+        nivel: 5,
+        hpMaximo: 44,
+        hpActual: 44
+      };
+
+      const pjAplicadoN5 = aplicarEspecieAPersonaje(pjNivel5, { especieId: "enano" });
+      // HP base 44 + 5 por nivel = 49
+      expect(pjAplicadoN5.hpMaximo).toBe(49);
+      expect(pjAplicadoN5.hpActual).toBe(49);
+    });
+
+    it("Afinidad con la piedra es activable, dura 100 asaltos y escala usos con el bono de competencia", () => {
+      const enano = obtenerEspeciePorId("enano")!;
+
+      // Nivel 1 (PB 2)
+      const rasgosN1 = construirRasgosEspecie(enano, undefined, 1, 2);
+      const afinidadN1 = rasgosN1.find((r) => r.nombre === "Afinidad con la piedra");
+      expect(afinidadN1).toBeDefined();
+      expect(afinidadN1?.esActivable).toBe(true);
+      expect(afinidadN1?.tipoAccion).toBe("accion_adicional");
+      expect(afinidadN1?.tieneUsosLimitados).toBe(true);
+      expect(afinidadN1?.usosMaximos).toBe(2);
+      expect(afinidadN1?.recuperacion).toBe("descanso_largo");
+      expect(afinidadN1?.duracionEfectoAlActivar).toBe(100);
+      expect(afinidadN1?.condicionAlActivar).toBe("Afinidad con la piedra");
+
+      // Nivel 5 (PB 3)
+      const rasgosN5 = construirRasgosEspecie(enano, undefined, 5, 3);
+      const afinidadN5 = rasgosN5.find((r) => r.nombre === "Afinidad con la piedra");
+      expect(afinidadN5?.usosMaximos).toBe(3);
+
+      // Nivel 9 (PB 4)
+      const rasgosN9 = construirRasgosEspecie(enano, undefined, 9, 4);
+      const afinidadN9 = rasgosN9.find((r) => r.nombre === "Afinidad con la piedra");
+      expect(afinidadN9?.usosMaximos).toBe(4);
+    });
+
+    it("integra la condición táctica y duración de 100 asaltos de Afinidad con la piedra al activarse", () => {
+      const almacen = usarAlmacenDM.getState();
+      const pjEnano: PersonajeJugador = {
+        ...PERSONAJE_POR_DEFECTO,
+        id: "pj-enano-test-activacion",
+        nombre: "Thorin",
+        nivel: 3,
+        rasgos: []
+      };
+
+      const pjConfigurado = aplicarEspecieAPersonaje(pjEnano, { especieId: "enano" });
+      const rasgoAfinidad = pjConfigurado.rasgos.find((r) => r.nombre === "Afinidad con la piedra");
+      expect(rasgoAfinidad).toBeDefined();
+
+      expect(resolverCondicionAsociadaRasgo(rasgoAfinidad!)).toBe("Afinidad con la piedra");
+      expect(coincideCondicionConRasgo("Afinidad con la piedra", rasgoAfinidad!)).toBe(true);
+
+      usarAlmacenDM.setState({ personajes: [pjConfigurado] });
+      expect(rasgoAfinidad).toBeDefined();
+      expect(rasgoAfinidad?.activo).toBe(false);
+
+      // Activar el rasgo a través del almacén
+      almacen.alternarActivoRasgo(pjConfigurado.id, rasgoAfinidad!.id);
+
+      const pjActualizado = usarAlmacenDM.getState().personajes.find((p) => p.id === pjConfigurado.id)!;
+      const rasgoEncendido = pjActualizado.rasgos.find((r) => r.id === rasgoAfinidad!.id);
+      expect(rasgoEncendido?.activo).toBe(true);
+
+      // Verificar que el efecto generado tiene 100 asaltos de duración
+      const efectoGenerado = pjActualizado.efectosActivos?.find((e) => e.nombre === "Afinidad con la piedra");
+      expect(efectoGenerado).toBeDefined();
+      expect(efectoGenerado?.duracion).toBe(100);
+
+      // Limpiar personaje del almacén
+      usarAlmacenDM.setState({ personajes: [] });
+    });
+  });
 });
+

@@ -58,6 +58,7 @@ export const EsquemaTipoEfectoMecanico = z.enum([
   "conjuro_otorgado",
   "conjuro_gratuito",
   "hp_temporal",
+  "modificador_hp_maximo",
   "restaurar_recurso",
   "personalizado"
 ]);
@@ -210,6 +211,7 @@ export const EsquemaRasgoPersonaje = z.object({
   gastarDePadre: z.boolean().default(false).optional(), // Descuenta uso de la reserva del rasgo padre
   heredarDadosPadre: z.boolean().default(false).optional(), // Hereda formulaDados del rasgo padre
   condicionAlActivar: z.string().optional(), // Condición táctica a sincronizar en condicionesActivas (ej. "Furia (Rage)")
+  duracionEfectoAlActivar: z.number().int().min(1).optional(), // Duración en asaltos para el efecto activo generado (ej. 100 asaltos para Afinidad con la piedra)
   conjurosOtorgados: z.array(z.string()).default([]).optional(), // Conjuros siempre preparados otorgados por el rasgo
   restaurarUsosAlActivar: z.object({
     idRasgoObjetivo: z.string(),

@@ -239,13 +239,8 @@ export const EsquemaEfectoPasivo = z.object({
 });
 export type EfectoPasivo = z.infer<typeof EsquemaEfectoPasivo>;
 
-export const EsquemaHechizoVinculado = z.object({
-  nombre: z.string(),
-  cd: z.number().optional(),
-  bonoAtaque: z.number().optional(),
-  costeCargas: z.number().optional()
-});
-export type HechizoVinculado = z.infer<typeof EsquemaHechizoVinculado>;
+import { EsquemaHechizoVinculado, type HechizoVinculado } from "./personaje";
+export { EsquemaHechizoVinculado, type HechizoVinculado };
 
 export const EsquemaArtesania = z.object({
   tallerRequerido: z.string(),

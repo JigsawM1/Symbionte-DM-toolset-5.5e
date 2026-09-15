@@ -13,6 +13,7 @@ import {
   DICCIONARIO_ESPECIES_POR_ID,
   DICCIONARIO_ESPECIES_POR_NOMBRE
 } from "@/constantes/especiesDND55";
+import { calcularBonoHPMaximoRasgos } from "./evaluadorEfectosRasgos";
 
 /**
  * Normaliza cadenas para búsquedas tolerantes a mayúsculas, diacríticos y espacios.
@@ -171,7 +172,12 @@ export function construirRasgosEspecie(
   // Mapear rasgos base de la especie (origen: "especie")
   const rasgosBaseProcesados: RasgoPersonaje[] = plantillasBase.map((p) => {
     const id = `rasgo_esp_${normalizarTextoEspecie(especie.id)}_${normalizarTextoEspecie(p.nombre).replace(/\s+/g, "_")}`;
-    const usos = p.tieneUsosLimitados ? p.usosMaximos || 1 : undefined;
+    let usos = p.tieneUsosLimitados ? p.usosMaximos || 1 : undefined;
+    if (p.obtenerUsosMaximos) {
+      usos = p.obtenerUsosMaximos(nivel, bonificadorCompetencia);
+    } else if (p.tieneUsosLimitados && p.formulaEscalado === "bono_competencia" && !p.formulaDados) {
+      usos = bonificadorCompetencia;
+    }
 
     let formulaDados = p.formulaDados;
     if (p.formulaEscalado === "bono_competencia" && p.formulaDados?.endsWith("d4")) {
@@ -208,6 +214,7 @@ export function construirRasgosEspecie(
       autoDesactivar: p.autoDesactivar,
       ligadoA: p.ligadoA,
       condicionAlActivar: p.condicionAlActivar,
+      duracionEfectoAlActivar: p.duracionEfectoAlActivar,
       conjurosOtorgados: p.conjurosOtorgados ? [...p.conjurosOtorgados] : [],
       categoriaMecanica: p.categoriaMecanica,
       formulaEscalado: p.formulaEscalado,
@@ -259,6 +266,7 @@ export function construirRasgosEspecie(
         autoDesactivar: p.autoDesactivar,
         ligadoA: p.ligadoA,
         condicionAlActivar: p.condicionAlActivar,
+        duracionEfectoAlActivar: p.duracionEfectoAlActivar,
         conjurosOtorgados: p.conjurosOtorgados ? [...p.conjurosOtorgados] : [],
         categoriaMecanica: p.categoriaMecanica,
         formulaEscalado: p.formulaEscalado,
@@ -425,7 +433,7 @@ export function aplicarEspecieAPersonaje(
     rasgosFinales = [...rasgosConservados, ...rasgosEspecieFusionados];
   }
 
-  return {
+  const pjResultado: PersonajeJugador = {
     ...personaje,
     especie: especie.nombre,
     subespecie: subespecie ? subespecie.nombre : "",
@@ -437,4 +445,17 @@ export function aplicarEspecieAPersonaje(
     conjurosSiemprePreparadosIds: Array.from(conjurosSiemprePreparados),
     rasgos: rasgosFinales
   };
+
+  const bonoPrevioHP = calcularBonoHPMaximoRasgos(personaje);
+  const bonoNuevoHP = calcularBonoHPMaximoRasgos(pjResultado);
+  const deltaHP = bonoNuevoHP - bonoPrevioHP;
+
+  if (deltaHP !== 0) {
+    const nuevoMaximo = Math.max(1, (pjResultado.hpMaximo || 1) + deltaHP);
+    const nuevoActual = Math.max(0, (pjResultado.hpActual ?? nuevoMaximo) + deltaHP);
+    pjResultado.hpMaximo = nuevoMaximo;
+    pjResultado.hpActual = Math.min(nuevoActual, nuevoMaximo);
+  }
+
+  return pjResultado;
 }

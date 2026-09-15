@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { SeccionContenedorYUbicacion } from "./SeccionContenedorYUbicacion";
 import { ListaHechizosVinculadosObjeto } from "./ListaHechizosVinculadosObjeto";
+import { recargarCargasItem } from "@/servicios/procesadorConsumibles";
 import estilos from "../ModalDetalleObjetoInventario.module.css";
 
 interface SeccionMagiaYEfectosObjetoProps {
@@ -63,11 +64,30 @@ export const SeccionMagiaYEfectosObjeto: React.FC<SeccionMagiaYEfectosObjetoProp
   return (
     <>
       {/* Recarga de Cargas */}
-      {objetoBase?.formulaRecarga && (
+      {(objeto.formulaRecarga || objetoBase?.formulaRecarga) && (
         <div className={estilos.filaBadges}>
           <span className={estilos.badgeRecargaCargas}>
-            <Sparkles size={10} /> Recarga: {objetoBase.formulaRecarga}
+            <Sparkles size={10} /> Recarga: {objeto.formulaRecarga || objetoBase?.formulaRecarga}
           </span>
+          {objeto.cargasMaximas !== undefined && (objeto.cargasActuales ?? objeto.cargasMaximas) < objeto.cargasMaximas && alModificarCargas && (
+            <button
+              type="button"
+              className={estilos.botonRecargarCargasModal}
+              onClick={() => {
+                const formula = objeto.formulaRecarga || objetoBase?.formulaRecarga || "";
+                const max = objeto.cargasMaximas || 0;
+                const act = objeto.cargasActuales ?? max;
+                const { recuperadas } = recargarCargasItem(act, max, formula);
+                if (recuperadas > 0) {
+                  alModificarCargas(recuperadas);
+                }
+              }}
+              title={`Recargar usando la fórmula: ${objeto.formulaRecarga || objetoBase?.formulaRecarga}`}
+            >
+              <Sparkles size={11} />
+              <span>Tirar Recarga</span>
+            </button>
+          )}
         </div>
       )}
 

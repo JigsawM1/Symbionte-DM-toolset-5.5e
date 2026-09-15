@@ -1,19 +1,27 @@
-import React from "react";
+import React, { useState, useMemo } from "react";
 import { Rareza } from "@/almacen/usarAlmacenDM";
-import { EfectoPasivo } from "@/tipos";
+import { EfectoPasivo, HechizoBase } from "@/tipos";
 import { OPCIONES_ATRIBUTOS } from "@/constantes/objetoConstantes";
 import { SelectorDesplegable } from "@/componentes/comunes";
-import { Sparkles, X } from "lucide-react";
+import { Sparkles, X, Wand2 } from "lucide-react";
+import { usarEstadoHomebrew } from "@/almacen/selectores/usarEstadoHomebrew";
 
 const OPCIONES_CATEGORIA_BONO = [
   { valor: "Resistencia", etiqueta: "Resistencia" },
   { valor: "Inmunidad", etiqueta: "Inmunidad" },
-  { valor: "Foco Arcano", etiqueta: "Foco Arcano" },
   { valor: "CA", etiqueta: "Clase de Armadura (CA)" },
   { valor: "CARACTERÍSTICA", etiqueta: "Característica / Atributo" },
   { valor: "SALVACIÓN", etiqueta: "Salvación" },
   { valor: "HABILIDAD", etiqueta: "Pericia / Habilidad" },
   { valor: "Otro", etiqueta: "Otro Efecto" }
+];
+
+// Presets válidos para TaleSpire (d4, d6, d8, etc. Sin d3)
+const PRESETS_RECARGA = [
+  { etiqueta: "1d4 + 1", formula: "1d4 + 1 al amanecer" },
+  { etiqueta: "1d6 + 1", formula: "1d6 + 1 al amanecer" },
+  { etiqueta: "1d8 + 1", formula: "1d8 + 1 al amanecer" },
+  { etiqueta: "Todas", formula: "Todas al amanecer" }
 ];
 
 interface Props {
@@ -43,7 +51,15 @@ interface Props {
   agregarEfectoPasivo: () => void;
   eliminarEfectoPasivoIdx: (idx: number) => void;
   // Hechizos Vinculados
-  oHechizosVinculados: Array<{ nombre: string; cd?: number | ""; bonoAtaque?: number | ""; costeCargas?: number | "" }>;
+  oHechizosVinculados: Array<{
+    nombre: string;
+    cd?: number | "";
+    bonoAtaque?: number | "";
+    costeCargas?: number | "";
+    hechizoId?: string;
+    nivel?: number;
+    tipoAccion?: "accion" | "accionAdicional" | "reaccion";
+  }>;
   oNuevoHechizoNombre: string;
   setONuevoHechizoNombre: (nombre: string) => void;
   oNuevoHechizoCd: number | "";
@@ -52,6 +68,9 @@ interface Props {
   setONuevoHechizoBonoAtaque: (bono: number | "") => void;
   oNuevoHechizoCosteCargas: number | "";
   setONuevoHechizoCosteCargas: (coste: number | "") => void;
+  setONuevoHechizoId: (id?: string) => void;
+  setONuevoHechizoNivel: (nivel?: number) => void;
+  setONuevoHechizoTipoAccion: (tipo?: "accion" | "accionAdicional" | "reaccion") => void;
   agregarHechizoVinculado: () => void;
   eliminarHechizoVinculadoIdx: (idx: number) => void;
   estilos: Record<string, string>;
@@ -91,10 +110,49 @@ export const SeccionEfectosPasivos: React.FC<Props> = ({
   setONuevoHechizoBonoAtaque,
   oNuevoHechizoCosteCargas,
   setONuevoHechizoCosteCargas,
+  setONuevoHechizoId,
+  setONuevoHechizoNivel,
+  setONuevoHechizoTipoAccion,
   agregarHechizoVinculado,
   eliminarHechizoVinculadoIdx,
   estilos,
 }) => {
+  const { baseDatosHechizos } = usarEstadoHomebrew();
+  const [mostrarSugerenciasHechizos, setMostrarSugerenciasHechizos] = useState(false);
+
+  // Filtrado reactivo de hechizos para typeahead: se activa solo cuando el usuario escribe (mínimo 1 caracter)
+  const sugerenciasHechizos = useMemo(() => {
+    const q = oNuevoHechizoNombre.trim().toLowerCase();
+    if (q.length < 1) return [];
+
+    return (baseDatosHechizos || [])
+      .filter((h: HechizoBase) => h.nombre.toLowerCase().includes(q))
+      .slice(0, 8);
+  }, [baseDatosHechizos, oNuevoHechizoNombre]);
+
+  const seleccionarSugerenciaHechizo = (hechizo: HechizoBase) => {
+    setONuevoHechizoNombre(hechizo.nombre);
+    setONuevoHechizoId(hechizo.id);
+    setONuevoHechizoNivel(hechizo.nivel);
+
+    // Inferencia del tipo de acción
+    const tiempo = (hechizo.tiempoLanzamiento || "").toLowerCase();
+    let tipoAccion: "accion" | "accionAdicional" | "reaccion" = "accion";
+    if (tiempo.includes("adicional") || tiempo.includes("bonus")) {
+      tipoAccion = "accionAdicional";
+    } else if (tiempo.includes("reaccion") || tiempo.includes("reacción")) {
+      tipoAccion = "reaccion";
+    }
+    setONuevoHechizoTipoAccion(tipoAccion);
+
+    // Coste de cargas sugerido por nivel de hechizo (mínimo 1)
+    if (oNuevoHechizoCosteCargas === "") {
+      setONuevoHechizoCosteCargas(Math.max(1, hechizo.nivel || 1));
+    }
+
+    setMostrarSugerenciasHechizos(false);
+  };
+
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
       {/* CONTROL ES MÁGICO */}
@@ -116,7 +174,7 @@ export const SeccionEfectosPasivos: React.FC<Props> = ({
       {/* ATRIBUTOS MÁGICOS ADICIONALES */}
       {oEsMagico && (
         <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-          {/* Sintonización, Cargas y Propiedades Narrativas */}
+          {/* Sintonización, Cargas y Fórmula de Recarga */}
           <div className={estilos.bloqueDinamicoForm}>
             <div className={estilos.filaDobleForm}>
               <div className={estilos.campoForm} style={{ justifyContent: "center" }}>
@@ -135,8 +193,9 @@ export const SeccionEfectosPasivos: React.FC<Props> = ({
                 <label className={estilos.labelForm}>Cargas Máximas:</label>
                 <input
                   type="number"
+                  min="0"
                   value={oCargas}
-                  onChange={(e) => setOCargas(e.target.value === "" ? "" : parseInt(e.target.value))}
+                  onChange={(e) => setOCargas(e.target.value === "" ? "" : parseInt(e.target.value) || "")}
                   placeholder="Ej. 7 (Opcional)"
                   className={estilos.inputForm}
                 />
@@ -144,7 +203,7 @@ export const SeccionEfectosPasivos: React.FC<Props> = ({
             </div>
 
             {oSintonizacionRequerida && (
-              <div className={estilos.campoForm} style={{ marginTop: "10px" }}>
+              <div className={estilos.campoForm} style={{ marginTop: "6px" }}>
                 <label className={estilos.labelForm}>Condición de Sintonización:</label>
                 <input
                   type="text"
@@ -155,36 +214,35 @@ export const SeccionEfectosPasivos: React.FC<Props> = ({
                 />
               </div>
             )}
-          </div>
-
-          <div className={estilos.filaDobleForm}>
-            <div className={estilos.campoForm}>
-              <label className={estilos.labelForm}>Cargas Máximas (Opcional):</label>
-              <input
-                type="number"
-                min="0"
-                value={oCargas}
-                onChange={(e) => setOCargas(e.target.value === "" ? "" : parseInt(e.target.value) || "")}
-                placeholder="Ej. 7"
-                className={estilos.inputForm}
-              />
-            </div>
 
             {oCargas !== "" && Number(oCargas) > 0 && (
-              <div className={estilos.campoForm}>
-                <label className={estilos.labelForm}>Fórmula de Recarga (Opcional):</label>
+              <div className={estilos.campoForm} style={{ marginTop: "8px", borderTop: "1px dashed rgba(255,255,255,0.06)", paddingTop: "8px" }}>
+                <label className={estilos.labelForm}>Fórmula de Recarga:</label>
                 <input
                   type="text"
                   value={oFormulaRecarga}
                   onChange={(e) => setOFormulaRecarga(e.target.value)}
-                  placeholder="Ej. 1d6 + 1 cada amanecer"
+                  placeholder="Ej. 1d6 + 1 al amanecer o Todas"
                   className={estilos.inputForm}
                 />
+                <div className={estilos.contenedorPresetsRecarga}>
+                  {PRESETS_RECARGA.map((preset) => (
+                    <button
+                      key={preset.etiqueta}
+                      type="button"
+                      onClick={() => setOFormulaRecarga(preset.formula)}
+                      className={estilos.botonPresetRecarga}
+                    >
+                      {preset.etiqueta}
+                    </button>
+                  ))}
+                </div>
               </div>
             )}
           </div>
 
-          <div className={estilos.campoForm} style={{ marginTop: "10px", borderTop: "1px dashed rgba(255,255,255,0.05)", paddingTop: "10px" }}>
+          {/* Modificador Mágico Directo */}
+          <div className={estilos.campoForm} style={{ marginTop: "4px" }}>
             <label className={estilos.labelForm}>Modificador Mágico Directo (Ataque, Daño o Defensa):</label>
             <input
               type="number"
@@ -296,7 +354,7 @@ export const SeccionEfectosPasivos: React.FC<Props> = ({
             )}
           </div>
 
-          {/* HECHIZOS VINCULADOS */}
+          {/* HECHIZOS VINCULADOS CON TYPEAHEAD */}
           <div className={estilos.bloqueDinamicoForm}>
             <div className={estilos.tituloBloqueDinamico}>
               <span>HECHIZOS VINCULADOS AL OBJETO</span>
@@ -305,16 +363,53 @@ export const SeccionEfectosPasivos: React.FC<Props> = ({
             <div className={estilos.filaAgregarBono}>
               <div className={estilos.campoBonoNombre} style={{ flex: 2 }}>
                 <label className={estilos.labelForm}>Nombre del Hechizo:</label>
-                <input
-                  type="text"
-                  value={oNuevoHechizoNombre}
-                  onChange={(e) => setONuevoHechizoNombre(e.target.value)}
-                  placeholder="Ej. Bola de Fuego, Curar Heridas..."
-                  className={estilos.inputForm}
-                />
+                <div className={estilos.contenedorBuscadorHechizo}>
+                  <input
+                    type="text"
+                    value={oNuevoHechizoNombre}
+                    onChange={(e) => {
+                      setONuevoHechizoNombre(e.target.value);
+                      setONuevoHechizoId(undefined); // Desvincular id si edita manualmente
+                      setMostrarSugerenciasHechizos(true);
+                    }}
+                    onFocus={() => {
+                      if (oNuevoHechizoNombre.trim().length >= 1) {
+                        setMostrarSugerenciasHechizos(true);
+                      }
+                    }}
+                    onBlur={() => {
+                      // Pequeño timeout para permitir clic en la sugerencia antes de cerrar
+                      setTimeout(() => setMostrarSugerenciasHechizos(false), 200);
+                    }}
+                    placeholder="Ej. Bola de Fuego, Curar Heridas..."
+                    className={estilos.inputForm}
+                  />
+
+                  {/* MENÚ FLOTANTE DE SUGERENCIAS */}
+                  {mostrarSugerenciasHechizos && sugerenciasHechizos.length > 0 && (
+                    <div className={estilos.listaSugerenciasHechizos}>
+                      {sugerenciasHechizos.map((hechizo) => (
+                        <div
+                          key={hechizo.id}
+                          className={estilos.itemSugerenciaHechizo}
+                          onMouseDown={() => seleccionarSugerenciaHechizo(hechizo)}
+                        >
+                          <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                            <Wand2 size={13} style={{ color: "var(--color-borde-cian)" }} />
+                            <span>{hechizo.nombre}</span>
+                          </div>
+                          <span className={estilos.itemSugerenciaDetalle}>
+                            {hechizo.nivel === 0 ? "Truco" : `Nivel ${hechizo.nivel}`} • {hechizo.escuela}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
+
               <div className={estilos.campoBonoValor} style={{ flex: 1 }}>
-                <label className={estilos.labelForm}>CD (Opc.):</label>
+                <label className={estilos.labelForm}>CD (Opc. usa la del personaje si esta vacio):</label>
                 <input
                   type="number"
                   value={oNuevoHechizoCd}
@@ -366,9 +461,10 @@ export const SeccionEfectosPasivos: React.FC<Props> = ({
                     <div className={estilos.bonoTextoInfo}>
                       <span className={estilos.bonoTagCategoria}>HECHIZO</span>{" "}
                       <strong>{hechizo.nombre}</strong>
-                      {hechizo.cd !== undefined && hechizo.cd !== "" && ` | CD ${hechizo.cd}`}
-                      {hechizo.bonoAtaque !== undefined && hechizo.bonoAtaque !== "" && ` | Bono Ataque: +${hechizo.bonoAtaque}`}
-                      {hechizo.costeCargas !== undefined && hechizo.costeCargas !== "" && ` | Coste: ${hechizo.costeCargas} c.`}
+                      {hechizo.hechizoId && <span style={{ color: "var(--color-borde-cian)", fontSize: "10px", marginLeft: "4px" }}>(Compendio)</span>}
+                      {hechizo.cd !== undefined && hechizo.cd !== "" ? ` | CD ${hechizo.cd}` : ` | CD Personaje`}
+                      {hechizo.bonoAtaque !== undefined && hechizo.bonoAtaque !== "" ? ` | Bono Ataque: +${hechizo.bonoAtaque}` : ""}
+                      {hechizo.costeCargas !== undefined && hechizo.costeCargas !== "" ? ` | Coste: ${hechizo.costeCargas} c.` : ""}
                     </div>
                     <button
                       type="button"
@@ -393,3 +489,4 @@ export const SeccionEfectosPasivos: React.FC<Props> = ({
     </div>
   );
 };
+

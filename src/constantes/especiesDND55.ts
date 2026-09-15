@@ -442,20 +442,40 @@ export const CATALOGO_ESPECIES_DND55: DefinicionEspecie[] = [
       },
       {
         nombre: "Resistencia enana",
-        descripcion: "Tienes resistencia al daño de veneno y ventaja en tiradas de salvación contra el estado de envenenado.",
+        descripcion: "Tienes resistencia al daño de veneno. También tienes ventaja en las tiradas de salvación para evitar o poner fin al estado de envenenado.",
         tipoAccion: "pasivo",
-        categoriaMecanica: "pasivo_permanente"
+        categoriaMecanica: "pasivo_permanente",
+        efectos: [
+          {
+            tipo: "ventaja",
+            objetivo: "salvacion.envenenado",
+            valor: "true",
+            descripcion: "Ventaja en salvaciones para evitar o poner fin al estado de envenenado"
+          }
+        ]
       },
       {
         nombre: "Aguante enano",
         descripcion: "Tus puntos de golpe máximos se incrementan en 1 y aumentarán en 1 más cada vez que subas un nivel.",
         tipoAccion: "pasivo",
-        categoriaMecanica: "pasivo_permanente"
+        categoriaMecanica: "pasivo_permanente",
+        efectos: [
+          {
+            tipo: "modificador_hp_maximo",
+            objetivo: "hp_maximo",
+            valor: "1*nivel",
+            descripcion: "Aguante enano (+1 HP máx. por nivel)"
+          }
+        ]
       },
       {
         nombre: "Afinidad con la piedra",
-        descripcion: "Como acción adicional, ganas visión de temblor a 60 pies sobre piedra durante 10 minutos (usos igual a PB por descanso largo).",
+        descripcion: "Como acción adicional, ganas la capacidad de sentir vibraciones con un alcance de 60 pies durante 10 minutos (100 asaltos). Debes encontrarte sobre una superficie de piedra o en contacto con una superficie de piedra para usar esta capacidad. La piedra puede ser natural o labrada.\n\nPuedes usar esta acción adicional una cantidad de veces igual a tu bonificador por competencia y recuperas todos los usos tras finalizar un descanso largo.",
         tipoAccion: "accion_adicional",
+        categoriaMecanica: "activable",
+        esActivable: true,
+        condicionAlActivar: "Afinidad con la piedra",
+        duracionEfectoAlActivar: 100,
         tieneUsosLimitados: true,
         usosMaximos: 2,
         recuperacion: "descanso_largo",

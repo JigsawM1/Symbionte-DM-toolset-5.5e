@@ -20,6 +20,7 @@ import {
   calcularModificadoresStatsRasgos,
   calcularDefensaSinArmaduraRasgos,
   calcularBonoVelocidadRasgos,
+  calcularBonoHPMaximoRasgos,
   obtenerBonoDanoFuria,
   obtenerNivelClasePersonaje,
   estaFuriaActiva,
@@ -67,6 +68,8 @@ export interface EstadisticasCalculadasPersonaje {
   penalizacionArmadura: PenalizacionArmadura;
   desventajaSigiloArmadura: boolean;
   bonoVelocidadRasgos: number;
+  bonoHPMaximoRasgos: number;
+  hpMaximoEfectivo: number;
   bonoDanoFuria: number;
   competenciasEfectivas: {
     armasTexto: string;
@@ -539,6 +542,8 @@ export function calcularEstadisticasPersonaje(pj: PersonajeJugador): Estadistica
   const furiaActiva = pj ? estaFuriaActiva(pj) : false;
   const bonoDanoFuria = furiaActiva && nivelBarbaro > 0 ? obtenerBonoDanoFuria(nivelBarbaro) : 0;
   const bonoVelocidadRasgos = pj ? calcularBonoVelocidadRasgos(pj) : 0;
+  const bonoHPMaximoRasgos = pj ? calcularBonoHPMaximoRasgos(pj) : 0;
+  const hpMaximoEfectivo = pj ? Math.max(1, (pj.hpMaximoBase || 10) + bonoHPMaximoRasgos) : 10;
   const competenciasEfectivas = pj
     ? obtenerCompetenciasEfectivasTexto(pj)
     : { armasTexto: "Ninguna", armadurasTexto: "Ninguna" };
@@ -555,6 +560,8 @@ export function calcularEstadisticasPersonaje(pj: PersonajeJugador): Estadistica
     penalizacionArmadura,
     desventajaSigiloArmadura,
     bonoVelocidadRasgos,
+    bonoHPMaximoRasgos,
+    hpMaximoEfectivo,
     bonoDanoFuria,
     competenciasEfectivas
   };

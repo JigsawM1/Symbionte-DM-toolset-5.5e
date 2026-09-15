@@ -543,3 +543,80 @@
   box-shadow: 0 0 0 2px rgba(0, 245, 212, 0.18);
 }
 
+/* PRESETS DE FÓRMULA DE RECARGA */
+.contenedorPresetsRecarga {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.botonPresetRecarga {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--color-borde-brutal);
+  color: var(--color-texto-secundario);
+  padding: 3px 8px;
+  font-size: 11px;
+  font-family: inherit;
+  font-weight: 500;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.12s ease;
+}
+
+.botonPresetRecarga:hover {
+  background: rgba(0, 245, 212, 0.08);
+  border-color: var(--color-borde-cian);
+  color: var(--color-borde-cian);
+}
+
+/* SUGERIDOR DE HECHIZOS (TYPEAHEAD) */
+.contenedorBuscadorHechizo {
+  position: relative;
+  width: 100%;
+}
+
+.listaSugerenciasHechizos {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: rgba(15, 20, 30, 0.98);
+  backdrop-filter: blur(8px);
+  border: 1px solid var(--color-borde-cian);
+  border-radius: 6px;
+  max-height: 220px;
+  overflow-y: auto;
+  z-index: 1050;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+  display: flex;
+  flex-direction: column;
+}
+
+.itemSugerenciaHechizo {
+  padding: 8px 10px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  font-size: 12px;
+  color: var(--color-texto-principal);
+  transition: background 0.1s ease;
+}
+
+.itemSugerenciaHechizo:last-child {
+  border-bottom: none;
+}
+
+.itemSugerenciaHechizo:hover {
+  background: rgba(0, 245, 212, 0.12);
+  color: var(--color-borde-cian);
+}
+
+.itemSugerenciaDetalle {
+  font-size: 10.5px;
+  color: var(--color-texto-secundario);
+}
+
+

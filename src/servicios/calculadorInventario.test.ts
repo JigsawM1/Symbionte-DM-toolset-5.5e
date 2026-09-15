@@ -336,6 +336,28 @@ describe("calculadorInventario", () => {
       expect(resultado.cantidad).toBe(1);
       expect(resultado.pesoLb).toBe(3);
     });
+
+    it("transfiere fielmente hechizosVinculados al crear instancia desde compendio", () => {
+      const objetoCompendio = {
+        id: "pua-dragor",
+        nombre: "Púa de la Escama Desertora",
+        categoria: "objetos-magicos",
+        esMagico: true,
+        cargas: 4,
+        formulaRecarga: "1d4",
+        hechizosVinculados: [
+          { nombre: "Disfrazarse", costeCargas: 1, hechizoId: "h_disfrazarse", nivel: 1, tipoAccion: "accion" },
+          { nombre: "Silencio", costeCargas: 2, hechizoId: "h_silencio", nivel: 2, tipoAccion: "accion" }
+        ]
+      } as unknown as import("@/tipos").ObjetoJuego;
+
+      const resultado = crearObjetoInventarioDesdeCompendio(objetoCompendio, 1);
+      expect(resultado.cargasMaximas).toBe(4);
+      expect(resultado.cargasActuales).toBe(4);
+      expect(resultado.hechizosVinculados).toHaveLength(2);
+      expect(resultado.hechizosVinculados?.[0].nombre).toBe("Disfrazarse");
+      expect(resultado.hechizosVinculados?.[1].nombre).toBe("Silencio");
+    });
   });
 });
 

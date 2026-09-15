@@ -20,6 +20,7 @@ export interface SelectorSugerenciasProps {
   className?: string;
   id?: string;
   disabled?: boolean;
+  tiempoEsperaDebounce?: number;
 }
 
 export const SelectorSugerencias: React.FC<SelectorSugerenciasProps> = ({
@@ -29,10 +30,23 @@ export const SelectorSugerencias: React.FC<SelectorSugerenciasProps> = ({
   placeholder,
   className,
   id,
-  disabled = false
+  disabled = false,
+  tiempoEsperaDebounce = 500
 }) => {
   const [abierto, setAbierto] = useState(false);
+  const [terminoDebounced, setTerminoDebounced] = useState(valor);
   const contenedorRef = useRef<HTMLDivElement>(null);
+
+  // Debounce para retrasar la búsqueda/filtrado 500ms tras el último carácter escrito
+  useEffect(() => {
+    const temporizador = setTimeout(() => {
+      setTerminoDebounced(valor);
+    }, tiempoEsperaDebounce);
+
+    return () => {
+      clearTimeout(temporizador);
+    };
+  }, [valor, tiempoEsperaDebounce]);
 
   // Cerrar al hacer clic fuera del componente
   useEffect(() => {
@@ -61,26 +75,26 @@ export const SelectorSugerencias: React.FC<SelectorSugerenciasProps> = ({
     });
   }, [opciones]);
 
-  // Filtrar sugerencias relevantes en base al texto escrito de forma tolerante y priorizando el título
+  // Filtrar sugerencias relevantes en base al término con debounce de forma tolerante y priorizando el título
   const opcionesFiltradas = useMemo<OpcionSugerencia[]>(() => {
-    if (!valor || !valor.trim()) return opcionesNormalizadas;
+    if (!terminoDebounced || !terminoDebounced.trim()) return opcionesNormalizadas;
 
     const filtradas = opcionesNormalizadas.filter((opcion) => {
       return coincideBusquedaTolerante(
         [opcion.etiqueta || opcion.valor, opcion.subtitulo, opcion.grupo],
-        valor
+        terminoDebounced
       );
     });
 
     return filtradas.sort(
       compararPorRelevanciaTitulo(
         (opt) => opt.etiqueta || opt.valor,
-        valor,
+        terminoDebounced,
         (a, b) => (a.etiqueta || a.valor).localeCompare(b.etiqueta || b.valor, "es"),
         (opt) => [opt.subtitulo, opt.grupo]
       )
     );
-  }, [valor, opcionesNormalizadas]);
+  }, [terminoDebounced, opcionesNormalizadas]);
 
   // Agrupar opciones filtradas por categoría/grupo
   const gruposOpciones = useMemo(() => {
@@ -103,6 +117,7 @@ export const SelectorSugerencias: React.FC<SelectorSugerenciasProps> = ({
   const seleccionarOpcion = (opcionValor: string, e: React.MouseEvent) => {
     e.stopPropagation();
     e.preventDefault();
+    setTerminoDebounced(opcionValor);
     alCambiar(opcionValor);
     setAbierto(false);
   };
@@ -150,6 +165,7 @@ export const SelectorSugerencias: React.FC<SelectorSugerenciasProps> = ({
         disabled={disabled}
         className={estilos.input}
         autoComplete="off"
+        spellCheck={false}
       />
 
       <button

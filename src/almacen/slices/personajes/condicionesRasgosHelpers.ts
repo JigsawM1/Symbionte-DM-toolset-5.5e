@@ -48,6 +48,9 @@ export function resolverCondicionAsociadaRasgo(r: RasgoPersonaje): string | unde
   if (nom.includes("vuelo draconico") || id.includes("vuelo_draconico")) {
     return "Vuelo dracónico";
   }
+  if (nom.includes("afinidad con la piedra") || id.includes("afinidad_con_la_piedra") || nom.includes("stonecunning") || id.includes("stonecunning")) {
+    return "Afinidad con la piedra";
+  }
   return undefined;
 }
 
@@ -108,6 +111,14 @@ export function coincideCondicionConRasgo(condicionTexto: string, r: RasgoPerson
   }
   if (cNorm.includes("vuelo draconico") || cNorm.includes("draconic flight")) {
     return rNom.includes("vuelo draconico") || rId.includes("vuelo_draconico");
+  }
+  if (cNorm.includes("afinidad con la piedra") || cNorm.includes("stonecunning")) {
+    return (
+      rNom.includes("afinidad con la piedra") ||
+      rId.includes("afinidad_con_la_piedra") ||
+      rNom.includes("stonecunning") ||
+      rId.includes("stonecunning")
+    );
   }
 
   return false;

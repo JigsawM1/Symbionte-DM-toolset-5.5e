@@ -5,7 +5,9 @@ import {
   calcularDefensaSinArmaduraRasgos,
   calcularBonoVelocidadRasgos,
   evaluarVentajasDeRasgosEnTirada,
-  obtenerBonoDanoFuria
+  obtenerBonoDanoFuria,
+  evaluarExpresionNumericaSegura,
+  calcularBonoHPMaximoRasgos
 } from "./evaluadorEfectosRasgos";
 import { evaluarFormulaUsos, construirBuildClase, aplicarBuildClaseAPersonaje } from "./gestorClases";
 import { sincronizarRasgosAutomaticos } from "./compendioRasgos";
@@ -621,4 +623,77 @@ describe("Evaluador de Efectos Mecánicos de Rasgos y Sistema de Builds", () => 
     expect(furiaDioses?.usosMaximos).toBe(1);
     expect(furiaDioses?.recuperacion).toBe("descanso_largo");
   });
+
+  describe("Modificador de Puntos de Golpe Máximos (Aguante Enano y Mecánicas de HP)", () => {
+    it("debe evaluar expresiones numéricas seguras con operaciones básicas y variables", () => {
+      expect(evaluarExpresionNumericaSegura("1*nivel", { nivel: 1 })).toBe(1);
+      expect(evaluarExpresionNumericaSegura("1*nivel", { nivel: 5 })).toBe(5);
+      expect(evaluarExpresionNumericaSegura("2*nivel", { nivel: 10 })).toBe(20);
+      expect(evaluarExpresionNumericaSegura("+5", { nivel: 3 })).toBe(5);
+      expect(evaluarExpresionNumericaSegura("-2", { nivel: 3 })).toBe(-2);
+      expect(evaluarExpresionNumericaSegura("10+5", { nivel: 1 })).toBe(15);
+      expect(evaluarExpresionNumericaSegura("texto_invalido", { nivel: 1 })).toBe(0);
+    });
+
+    it("debe calcular el bono de HP máximo acumulado por rasgos activos", () => {
+      const pj: PersonajeJugador = {
+        ...PERSONAJE_POR_DEFECTO,
+        nivel: 6,
+        hpMaximo: 50,
+        hpActual: 50,
+        rasgos: [
+          crearRasgoPrueba({
+            id: "rasgo_aguante_enano",
+            nombre: "Aguante enano",
+            activo: true,
+            efectos: [
+              {
+                id: "ef_aguante",
+                tipo: "modificador_hp_maximo",
+                objetivo: "hp_maximo",
+                valor: "1*nivel",
+                descripcion: "+1 HP por nivel",
+                activo: true
+              }
+            ]
+          }),
+          crearRasgoPrueba({
+            id: "rasgo_dote_dureza",
+            nombre: "Dureza",
+            activo: true,
+            efectos: [
+              {
+                id: "ef_dureza",
+                tipo: "modificador_hp_maximo",
+                objetivo: "hp_maximo",
+                valor: "2*nivel",
+                descripcion: "+2 HP por nivel",
+                activo: true
+              }
+            ]
+          }),
+          crearRasgoPrueba({
+            id: "rasgo_inactivo",
+            nombre: "Rasgo Inactivo",
+            activo: false,
+            efectos: [
+              {
+                id: "ef_inactivo",
+                tipo: "modificador_hp_maximo",
+                objetivo: "hp_maximo",
+                valor: "10",
+                descripcion: "+10 HP inactivo",
+                activo: true
+              }
+            ]
+          })
+        ]
+      };
+
+      // Nivel 6: Aguante enano (1*6 = 6) + Dureza (2*6 = 12) = 18. El inactivo se ignora.
+      const bonoTotal = calcularBonoHPMaximoRasgos(pj);
+      expect(bonoTotal).toBe(18);
+    });
+  });
 });
+

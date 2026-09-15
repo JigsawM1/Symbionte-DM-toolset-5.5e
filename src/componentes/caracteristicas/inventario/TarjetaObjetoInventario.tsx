@@ -4,7 +4,7 @@ import { Swords, Link2, Trash2, Plus, Minus, Zap, Sparkles, Heart, PackageOpen, 
 import { ConfirmDialog } from "@/componentes/comunes/ConfirmDialog";
 import { TooltipUniversal } from "@/componentes/comunes/TooltipUniversal";
 import { esObjetoEquipable } from "@/servicios/procesadorEquipamiento";
-import { detectarInfoConsumible, esObjetoConsumible } from "@/servicios/procesadorConsumibles";
+import { detectarInfoConsumible, esObjetoConsumible, recargarCargasItem } from "@/servicios/procesadorConsumibles";
 import { CONFIG_CONTENEDORES } from "@/servicios/calculadorInventario";
 import {
   calcularAlmacenamientoMunicion,
@@ -499,6 +499,25 @@ export const TarjetaObjetoInventario: React.FC<TarjetaObjetoInventarioProps> = (
                 >
                   <Plus size={9} />
                 </button>
+                {(objeto.formulaRecarga || objetoBase?.formulaRecarga) && (objeto.cargasActuales ?? objeto.cargasMaximas) < objeto.cargasMaximas && (
+                  <button
+                    type="button"
+                    className={estilos.botonMonedaMod}
+                    onClick={() => {
+                      const formula = objeto.formulaRecarga || objetoBase?.formulaRecarga || "";
+                      const max = objeto.cargasMaximas || 0;
+                      const act = objeto.cargasActuales ?? max;
+                      const { recuperadas } = recargarCargasItem(act, max, formula);
+                      if (recuperadas > 0) {
+                        alModificarCargas(recuperadas);
+                      }
+                    }}
+                    title={`Tirar recarga de cargas (${objeto.formulaRecarga || objetoBase?.formulaRecarga})`}
+                    style={{ color: "#fbbf24" }}
+                  >
+                    <Sparkles size={9} />
+                  </button>
+                )}
               </div>
             )}
           </div>

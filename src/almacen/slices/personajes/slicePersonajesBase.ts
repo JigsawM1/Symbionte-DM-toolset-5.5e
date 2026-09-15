@@ -5,6 +5,7 @@ import { PERSONAJE_POR_DEFECTO } from "@/constantes";
 import { generarId } from "@/utiles/generarId";
 import { calcularTodosRecursosMagicos, detectarTipoLanzador } from "@/servicios/calculadorMagia";
 import { sincronizarRasgosAutomaticos } from "@/servicios/compendioRasgos";
+import { calcularBonoHPMaximoRasgos } from "@/servicios/evaluadorEfectosRasgos";
 import { sincronizarConjurosSubclaseHelper } from "@/servicios/sincronizadorConjurosSubclase";
 import { aplicarBuildClaseAPersonaje } from "@/servicios/gestorClases";
 import type { SubSlicePersonajesBase } from "./slicePersonajesTipos";
@@ -78,6 +79,18 @@ export const crearSubSlicePersonajesBase: StateCreator<
       nuevoPersonaje = {
         ...nuevoPersonaje,
         rasgos: sincronizarRasgosAutomaticos(nuevoPersonaje)
+      };
+    }
+
+    // Calcular HP máximo considerando rasgos (ej. Aguante enano)
+    const bonoHPInicial = calcularBonoHPMaximoRasgos(nuevoPersonaje);
+    if (bonoHPInicial !== 0) {
+      const baseHP = nuevoPersonaje.hpMaximoBase || 10;
+      const maxEfectivo = Math.max(1, baseHP + bonoHPInicial);
+      nuevoPersonaje = {
+        ...nuevoPersonaje,
+        hpMaximo: maxEfectivo,
+        hpActual: maxEfectivo
       };
     }
 
@@ -178,6 +191,30 @@ export const crearSubSlicePersonajesBase: StateCreator<
               return r;
             })
           };
+        }
+
+        // Sincronizar HP máximo si hubo cambios explícitos de hpMaximoBase sin proveer hpMaximo explícito
+        if (cambios.hpMaximoBase !== undefined && cambios.hpMaximo === undefined) {
+          const bonoHPRasgos = calcularBonoHPMaximoRasgos(fusionado);
+          const baseHP = fusionado.hpMaximoBase;
+          const nuevoMax = Math.max(1, baseHP + bonoHPRasgos);
+          fusionado = {
+            ...fusionado,
+            hpMaximo: nuevoMax,
+            hpActual: Math.min(fusionado.hpActual, nuevoMax)
+          };
+        } else if (cambioIdentidadOProgreso || cambios.rasgos !== undefined) {
+          const bonoPrevio = calcularBonoHPMaximoRasgos(pj);
+          const bonoNuevo = calcularBonoHPMaximoRasgos(fusionado);
+          const deltaBono = bonoNuevo - bonoPrevio;
+          if (deltaBono !== 0) {
+            const nuevoMax = Math.max(1, (fusionado.hpMaximo || 1) + deltaBono);
+            fusionado = {
+              ...fusionado,
+              hpMaximo: nuevoMax,
+              hpActual: Math.max(0, Math.min(nuevoMax, (fusionado.hpActual ?? nuevoMax) + (deltaBono > 0 ? deltaBono : 0)))
+            };
+          }
         }
 
         // Sincronizar dinámicamente conjuros de subclase

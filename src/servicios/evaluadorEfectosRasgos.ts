@@ -442,6 +442,36 @@ export function calcularBonoVelocidadRasgos(personaje: PersonajeJugador): number
 }
 
 /**
+ * Calcula el bono numérico total a los puntos de golpe máximos otorgado por rasgos activos
+ * (ej. Aguante enano: +1 HP por nivel, Dureza: +2 HP por nivel, Auxilio: +5 HP).
+ * Función GENÉRICA PURA: no depende de nombres literales de rasgos ni razas.
+ */
+export function calcularBonoHPMaximoRasgos(personaje: PersonajeJugador): number {
+  if (!personaje) return 0;
+  const efectos = evaluarEfectosRasgosActivos(personaje);
+  let bonoTotal = 0;
+
+  for (const ef of efectos) {
+    if (ef.tipo === "modificador_hp_maximo") {
+      const formulaResuelta = resolverFormulaDinamica(ef.valor, personaje);
+      const valorNumerico = evaluarExpresionNumericaSegura(formulaResuelta);
+      bonoTotal += valorNumerico;
+    }
+  }
+
+  return bonoTotal;
+}
+
+/**
+ * Calcula los puntos de golpe máximos efectivos de un personaje sumando la base y los bonos de rasgos.
+ */
+export function calcularHPMaximoEfectivo(personaje: PersonajeJugador): number {
+  const base = personaje?.hpMaximoBase || 10;
+  const bono = calcularBonoHPMaximoRasgos(personaje);
+  return Math.max(1, base + bono);
+}
+
+/**
  * Ventajas y desventajas directas otorgadas por rasgos activos del personaje
  * para consultar en tiradas d20 (salvaciones, iniciativa, ataques).
  */
@@ -561,14 +591,23 @@ export function resolverFormulaDinamica(
 }
 
 /**
- * Evalúa expresiones numéricas sencillas y seguras (ej. "3", "+2", "-1", "2+3")
+ * Evalúa expresiones numéricas sencillas y seguras (ej. "3", "+2", "-1", "2+3", "1*5", "2*nivel")
  * sin recurrir a eval(), garantizando rendimiento y seguridad.
  */
-export function evaluarExpresionNumericaSegura(expresion: string | number): number {
+export function evaluarExpresionNumericaSegura(
+  expresion: string | number,
+  variables?: { nivel?: number }
+): number {
   if (typeof expresion === "number") return isNaN(expresion) ? 0 : expresion;
   if (!expresion || typeof expresion !== "string") return 0;
 
-  const limpia = expresion.replace(/\s+/g, "").trim();
+  let textoProcesado = expresion;
+  if (variables && typeof variables.nivel === "number") {
+    textoProcesado = textoProcesado.replace(/\bnivel\b/gi, String(variables.nivel));
+  }
+
+  // Reemplazar 'x' o 'X' utilizada como operador de multiplicación y remover espacios
+  const limpia = textoProcesado.replace(/(\d)\s*[xX]\s*(\d)/g, "$1*$2").replace(/\s+/g, "").trim();
   if (!limpia) return 0;
 
   // Si es un número entero simple o con signo (ej. "4", "+2", "-3")
@@ -576,10 +615,36 @@ export function evaluarExpresionNumericaSegura(expresion: string | number): numb
     return parseInt(limpia, 10);
   }
 
-  // Si es una suma/resta de términos numéricos simples (ej. "2+3", "4-1")
-  const matchTerminos = limpia.match(/[+-]?\d+/g);
-  if (matchTerminos && matchTerminos.join("") === limpia) {
-    return matchTerminos.reduce((acc, t) => acc + parseInt(t, 10), 0);
+  // Si contiene dígitos y operadores válidos (+, -, *)
+  if (/^[+-]?\d+([*+-]\d+)*$/.test(limpia)) {
+    try {
+      const normalizadoParaSuma = limpia
+        .replace(/(.)\+/g, "$1\n+")
+        .replace(/(.)-/g, "$1\n-");
+
+      const lineas = normalizadoParaSuma.split("\n");
+      let total = 0;
+
+      for (const linea of lineas) {
+        if (!linea) continue;
+        const signo = linea.startsWith("-") ? -1 : 1;
+        const sinSigno = linea.replace(/^[+-]/, "");
+
+        if (sinSigno.includes("*")) {
+          const factores = sinSigno.split("*").map((f) => parseInt(f, 10));
+          if (factores.some(isNaN)) return 0;
+          const producto = factores.reduce((acc, val) => acc * val, 1);
+          total += signo * producto;
+        } else {
+          const val = parseInt(sinSigno, 10);
+          if (isNaN(val)) return 0;
+          total += signo * val;
+        }
+      }
+      return total;
+    } catch {
+      return 0;
+    }
   }
 
   const num = parseInt(limpia, 10);

@@ -21,6 +21,7 @@ export interface OpcionesLanzadorConjuros {
   personaje?: PersonajeJugador | null;
   penalizacionArmadura?: PenalizacionArmadura | null;
   bonoAtaqueMagico?: number;
+  cdSalvacionPersonaje?: number;
   permitirUpcastLibre?: boolean;
   sistemaMagia?: "espacios" | "puntos";
 }
@@ -42,6 +43,7 @@ export function usarLanzadorConjuros(opciones: OpcionesLanzadorConjuros): Contro
     personaje,
     penalizacionArmadura,
     bonoAtaqueMagico = 0,
+    cdSalvacionPersonaje,
     sistemaMagia: sistemaMagiaProp
   } = opciones;
 
@@ -115,6 +117,21 @@ export function usarLanzadorConjuros(opciones: OpcionesLanzadorConjuros): Contro
   // 3. Validador reactivo
   const validar = useCallback(
     (solicitudIncompleta: Partial<SolicitudLanzamiento> & { hechizo: HechizoBase; modo: ModoLanzamiento }): ResultadoValidacion => {
+      let contextoEfectivo = contexto;
+      if (solicitudIncompleta.modo === "objetoMagico" && solicitudIncompleta.objetoInstanciaId) {
+        const objEnInventario = (personaje?.inventario || []).find(
+          (o) => o.idInstancia === solicitudIncompleta.objetoInstanciaId
+        );
+        if (objEnInventario) {
+          const cMax = objEnInventario.cargasMaximas ?? 0;
+          const cAct = objEnInventario.cargasActuales !== undefined ? objEnInventario.cargasActuales : cMax;
+          contextoEfectivo = {
+            ...contexto,
+            cargasObjetoActuales: cAct
+          };
+        }
+      }
+
       const bonoDanoMagico = personaje
         ? obtenerBonoDanoConjuroExtra(personaje, {
             esTruco: solicitudIncompleta.hechizo.nivel === 0,
@@ -133,11 +150,12 @@ export function usarLanzadorConjuros(opciones: OpcionesLanzadorConjuros): Contro
         bonoAtaqueMagico,
         bonoDanoMagico,
         modificadorHabilidad,
+        cdSalvacionPersonaje,
         ...solicitudIncompleta
       };
-      return validarLanzamiento(solicitudCompleta, contexto);
+      return validarLanzamiento(solicitudCompleta, contextoEfectivo);
     },
-    [personaje, bonoAtaqueMagico, contexto]
+    [personaje, bonoAtaqueMagico, cdSalvacionPersonaje, contexto]
   );
 
   // 4. Ejecutor central de lanzamiento
@@ -145,6 +163,21 @@ export function usarLanzadorConjuros(opciones: OpcionesLanzadorConjuros): Contro
     async (
       solicitudIncompleta: Partial<SolicitudLanzamiento> & { hechizo: HechizoBase; modo: ModoLanzamiento }
     ): Promise<boolean> => {
+      let contextoEfectivo = contexto;
+      if (solicitudIncompleta.modo === "objetoMagico" && solicitudIncompleta.objetoInstanciaId) {
+        const objEnInventario = (personaje?.inventario || []).find(
+          (o) => o.idInstancia === solicitudIncompleta.objetoInstanciaId
+        );
+        if (objEnInventario) {
+          const cMax = objEnInventario.cargasMaximas ?? 0;
+          const cAct = objEnInventario.cargasActuales !== undefined ? objEnInventario.cargasActuales : cMax;
+          contextoEfectivo = {
+            ...contexto,
+            cargasObjetoActuales: cAct
+          };
+        }
+      }
+
       const bonoDanoMagico = personaje
         ? obtenerBonoDanoConjuroExtra(personaje, {
             esTruco: solicitudIncompleta.hechizo.nivel === 0,
@@ -163,11 +196,12 @@ export function usarLanzadorConjuros(opciones: OpcionesLanzadorConjuros): Contro
         bonoAtaqueMagico,
         bonoDanoMagico,
         modificadorHabilidad,
+        cdSalvacionPersonaje,
         ...solicitudIncompleta
       };
 
       // A. Validar precondiciones
-      const resultadoValidacion = validarLanzamiento(solicitudCompleta, contexto);
+      const resultadoValidacion = validarLanzamiento(solicitudCompleta, contextoEfectivo);
       if (!resultadoValidacion.permitido) {
         if (resultadoValidacion.motivo) {
           agregarNotificacion(resultadoValidacion.motivo, "advertencia");
@@ -177,7 +211,7 @@ export function usarLanzadorConjuros(opciones: OpcionesLanzadorConjuros): Contro
 
       try {
         // B. Preparar fórmula y gasto con la estrategia correspondiente
-        const preparado = prepararLanzamiento(solicitudCompleta, contexto);
+        const preparado = prepararLanzamiento(solicitudCompleta, contextoEfectivo);
 
         // C. Ejecutar deducción garantizada de recursos en Zustand si el personaje existe
         if (personaje) {
@@ -249,6 +283,7 @@ export function usarLanzadorConjuros(opciones: OpcionesLanzadorConjuros): Contro
     [
       personaje,
       bonoAtaqueMagico,
+      cdSalvacionPersonaje,
       contexto,
       agregarNotificacion,
       gastarEspacioConjuro,

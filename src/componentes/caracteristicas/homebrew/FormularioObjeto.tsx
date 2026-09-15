@@ -106,6 +106,9 @@ export const FormularioObjeto: React.FC<Props> = ({
     oNuevoHechizoCd, setONuevoHechizoCd,
     oNuevoHechizoBonoAtaque, setONuevoHechizoBonoAtaque,
     oNuevoHechizoCosteCargas, setONuevoHechizoCosteCargas,
+    setONuevoHechizoId,
+    setONuevoHechizoNivel,
+    setONuevoHechizoTipoAccion,
 
     // Campos relacionales
     oAmmunitionIndex, setOAmmunitionIndex,
@@ -430,6 +433,9 @@ export const FormularioObjeto: React.FC<Props> = ({
           setONuevoHechizoBonoAtaque={setONuevoHechizoBonoAtaque}
           oNuevoHechizoCosteCargas={oNuevoHechizoCosteCargas}
           setONuevoHechizoCosteCargas={setONuevoHechizoCosteCargas}
+          setONuevoHechizoId={setONuevoHechizoId}
+          setONuevoHechizoNivel={setONuevoHechizoNivel}
+          setONuevoHechizoTipoAccion={setONuevoHechizoTipoAccion}
           agregarHechizoVinculado={agregarHechizoVinculado}
           eliminarHechizoVinculadoIdx={eliminarHechizoVinculadoIdx}
           estilos={estilos}

@@ -44,6 +44,7 @@ export interface PlantillaRasgoClase {
   gastarDePadre?: boolean;
   heredarDadosPadre?: boolean;
   condicionAlActivar?: string;
+  duracionEfectoAlActivar?: number;
   conjurosOtorgados?: string[];
   restaurarUsosAlActivar?: { idRasgoObjetivo: string; cantidad: number | "maximo" };
   categoriaMecanica?: "consumible" | "activable" | "selector_informativo" | "pasivo_permanente" | "extension" | "curacion";
@@ -72,6 +73,7 @@ export interface PlantillaRasgoEspecie {
   autoDesactivar?: boolean;
   ligadoA?: string;
   condicionAlActivar?: string;
+  duracionEfectoAlActivar?: number;
   conjurosOtorgados?: string[];
   categoriaMecanica?: "consumible" | "activable" | "selector_informativo" | "pasivo_permanente" | "extension" | "curacion";
   formulaEscalado?: string;

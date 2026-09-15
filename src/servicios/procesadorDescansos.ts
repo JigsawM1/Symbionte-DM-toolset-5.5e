@@ -1,5 +1,5 @@
 import type { PersonajeJugador } from "@/tipos";
-import { evaluarFormulaDados } from "@/servicios/procesadorConsumibles";
+import { recargarCargasItem } from "@/servicios/procesadorConsumibles";
 
 // ==========================================
 // 1. INTERFACES Y CONTRATOS EXTENSIBLES
@@ -244,16 +244,13 @@ export function ejecutarDescansoLargo(personaje: PersonajeJugador): ResultadoDes
     const cargasActuales = obj.cargasActuales ?? obj.cargasMaximas;
     if (cargasActuales >= obj.cargasMaximas) return obj;
 
-    let recarga = obj.cargasMaximas - cargasActuales;
-    const objConRecarga = obj as unknown as { formulaRecarga?: string };
-    if (objConRecarga.formulaRecarga) {
-      const tirada = evaluarFormulaDados(objConRecarga.formulaRecarga);
-      if (tirada > 0) recarga = tirada;
-    }
+    const { nuevasCargas, recuperadas } = recargarCargasItem(
+      cargasActuales,
+      obj.cargasMaximas,
+      obj.formulaRecarga
+    );
 
-    const nuevasCargas = Math.min(obj.cargasMaximas, cargasActuales + recarga);
-    const delta = nuevasCargas - cargasActuales;
-    if (delta > 0) totalCargasRecargadas += delta;
+    if (recuperadas > 0) totalCargasRecargadas += recuperadas;
 
     return { ...obj, cargasActuales: nuevasCargas };
   });

@@ -5,6 +5,7 @@ import type {
   TipoContenedor
 } from "@/tipos";
 import type { SolicitudLanzamiento } from "@/servicios/servicioLanzamientoConjuros";
+import { usarEstadoHomebrew } from "@/almacen/selectores/usarEstadoHomebrew";
 import { ModalDetalleObjetoInventario } from "../ModalDetalleObjetoInventario";
 
 interface ModalInspeccionObjetoFlotanteProps {
@@ -22,6 +23,8 @@ interface ModalInspeccionObjetoFlotanteProps {
   alModificarCargas: (idInstancia: string, delta: number) => void;
   puedeLanzar: boolean;
   motivoBloqueo?: string;
+  cdSalvacionPersonaje?: number;
+  bonoAtaqueMagico?: number;
   lanzar: (solicitud: SolicitudLanzamiento) => Promise<boolean>;
 }
 
@@ -40,8 +43,12 @@ export const ModalInspeccionObjetoFlotante: React.FC<ModalInspeccionObjetoFlotan
   alModificarCargas,
   puedeLanzar,
   motivoBloqueo,
+  cdSalvacionPersonaje,
+  bonoAtaqueMagico,
   lanzar
 }) => {
+  const { baseDatosHechizos } = usarEstadoHomebrew();
+
   if (!objeto) return null;
 
   return (
@@ -59,29 +66,40 @@ export const ModalInspeccionObjetoFlotante: React.FC<ModalInspeccionObjetoFlotan
       alDesempaquetar={() => alDesempaquetar?.(objeto.idInstancia)}
       alModificarCargas={(delta) => alModificarCargas(objeto.idInstancia, delta)}
       alLanzarHechizo={async (hechizo, objetoNombre, coste) => {
+        const hechizoCompendio = (baseDatosHechizos || []).find(
+          (h) => (hechizo.hechizoId && h.id === hechizo.hechizoId) ||
+                 h.nombre.toLowerCase().trim() === hechizo.nombre.toLowerCase().trim()
+        );
+
+        const objetoHechizoBase = hechizoCompendio || {
+          id: hechizo.hechizoId || hechizo.nombre.toLowerCase().replace(/\s+/g, "-"),
+          nombre: hechizo.nombre,
+          nivel: hechizo.nivel ?? 1,
+          escuela: "Universal",
+          tiempoLanzamiento: hechizo.tipoAccion === "accionAdicional" ? "1 Accion Adicional" : hechizo.tipoAccion === "reaccion" ? "1 Reaccion" : "1 Accion",
+          alcance: "60 pies",
+          componentesSeleccionados: {
+            verbal: true,
+            somatico: true,
+            material: false
+          },
+          duracion: "Instantaneo",
+          concentracion: false,
+          ritual: false,
+          descripcion: ""
+        };
+
+        const cdFinal = hechizo.cd !== undefined ? hechizo.cd : cdSalvacionPersonaje;
+        const bonoAtaqueFinal = hechizo.bonoAtaque !== undefined ? hechizo.bonoAtaque : bonoAtaqueMagico;
+
         await lanzar({
           modo: "objetoMagico",
-          hechizo: {
-            id: hechizo.nombre.toLowerCase().replace(/\s+/g, "-"),
-            nombre: hechizo.nombre,
-            nivel: 1,
-            escuela: "Universal",
-            tiempoLanzamiento: "1 Accion",
-            alcance: "60 pies",
-            componentesSeleccionados: {
-              verbal: true,
-              somatico: true,
-              material: false
-            },
-            duracion: "Instantaneo",
-            concentracion: false,
-            ritual: false,
-            descripcion: ""
-          },
+          hechizo: objetoHechizoBase,
           objetoNombre,
           objetoInstanciaId: objeto.idInstancia,
-          bonoAtaqueObjeto: hechizo.bonoAtaque,
-          cdObjeto: hechizo.cd,
+          bonoAtaqueObjeto: bonoAtaqueFinal,
+          cdObjeto: cdFinal,
+          cdSalvacionPersonaje,
           costeCargasObjeto: coste
         });
       }}

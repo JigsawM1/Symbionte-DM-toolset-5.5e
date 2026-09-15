@@ -496,15 +496,28 @@ export function evaluarVentajasDeRasgosEnTirada(
 
     // 1. Tiradas de Salvación
     if (tipoTirada === "salvacion") {
-      if (esVentaja) {
-        if (
-          objNorm === `salvacion.${subtipoNorm}` ||
-          objNorm === `salvacion_${subtipoNorm}` ||
-          (objNorm === "salvacion.fuerza" && subtipoNorm === "fuerza") ||
-          (objNorm === "salvacion.destreza" && subtipoNorm === "destreza")
-        ) {
+      const esMental = subtipoNorm === "inteligencia" || subtipoNorm === "sabiduria" || subtipoNorm === "carisma";
+      const esFisica = subtipoNorm === "fuerza" || subtipoNorm === "destreza" || subtipoNorm === "constitucion";
+      const listaObjetivos = objNorm.split(",").map((o) => o.trim());
+      const coincideSalvacion = listaObjetivos.some((obj) => {
+        return (
+          obj === `salvacion.${subtipoNorm}` ||
+          obj === `salvacion_${subtipoNorm}` ||
+          obj === subtipoNorm ||
+          obj === "salvacion.todas" ||
+          obj === "todas" ||
+          (esMental && (obj === "salvaciones_mentales" || obj === "salvacion.mental" || obj === "salvacion.mentales" || obj === "mentales")) ||
+          (esFisica && (obj === "salvaciones_fisicas" || obj === "salvacion.fisica" || obj === "salvacion.fisicas" || obj === "fisicas"))
+        );
+      });
+
+      if (coincideSalvacion) {
+        if (esVentaja) {
           tieneVentaja = true;
           razones.push(ef.descripcion || `Ventaja en salvación de ${subtipoNorm}`);
+        } else if (ef.tipo === "desventaja") {
+          tieneDesventaja = true;
+          razones.push(ef.descripcion || `Desventaja en salvación de ${subtipoNorm}`);
         }
       }
     }

@@ -8,6 +8,7 @@ import {
   construirRasgosEspecie,
   aplicarEspecieAPersonaje
 } from "./gestorEspecies";
+import { evaluarVentajasDeRasgosEnTirada } from "./evaluadorEfectosRasgos";
 import { resolverOrigenConjuro } from "./resolutorOrigenConjuros";
 import {
   resolverCondicionAsociadaRasgo,
@@ -766,14 +767,16 @@ describe("GestorEspecies - Dominio de Razas y Subrazas (D&D 5.5e)", () => {
       expect(nombresRasgos).toContain("Trance");
     });
 
-    it("modela Linaje élfico y Sentidos agudos como pasivos permanentes descriptivos, y Magia de alto elfo con selector de truco", () => {
+    it("modela Linaje élfico con selector de aptitud mágica, Sentidos agudos como pasivo y Magia de alto elfo con selector de truco", () => {
       const elfo = obtenerEspeciePorId("elfo")!;
       const rasgos = construirRasgosEspecie(elfo, undefined, 1, 2, "Mediano");
 
       const linajeElfico = rasgos.find((r) => r.nombre === "Linaje élfico");
       expect(linajeElfico).toBeDefined();
-      expect(linajeElfico?.categoriaMecanica).toBe("pasivo_permanente");
-      expect(linajeElfico?.selectores).toEqual([]);
+      expect(linajeElfico?.categoriaMecanica).toBe("selector_informativo");
+      expect(linajeElfico?.selectores).toHaveLength(1);
+      expect(linajeElfico?.selectores?.[0].id).toBe("selector_aptitud_magica_elfo");
+      expect(linajeElfico?.selectores?.[0].opciones.map((o) => o.id)).toEqual(["inteligencia", "sabiduria", "carisma"]);
 
       const sentidosAgudos = rasgos.find((r) => r.nombre === "Sentidos agudos");
       expect(sentidosAgudos).toBeDefined();
@@ -1182,6 +1185,217 @@ describe("GestorEspecies - Dominio de Razas y Subrazas (D&D 5.5e)", () => {
 
       // Limpiar personaje del almacén
       usarAlmacenDM.setState({ personajes: [] });
+    });
+  });
+
+  describe("Especie Gnomo y Linajes (D&D 5.5e)", () => {
+    it("carga la especie canónica Gnomo con Astucia gnoma y sus 3 efectos declarativos de ventaja", () => {
+      const gnomo = obtenerEspeciePorId("gnomo");
+      expect(gnomo).toBeDefined();
+      expect(gnomo?.nombre).toBe("Gnomo");
+      expect(gnomo?.tipoCriatura).toBe("Humanoide");
+      expect(gnomo?.tamanoPorDefecto).toBe("Pequeño");
+      expect(gnomo?.velocidadBase).toBe(30);
+      expect(gnomo?.visionOscuridad).toBe(60);
+
+      const astucia = gnomo?.rasgos.find((r) => r.nombre === "Astucia gnoma");
+      expect(astucia).toBeDefined();
+      expect(astucia?.efectos).toHaveLength(3);
+
+      const efInt = astucia?.efectos?.find((e) => e.objetivo === "salvacion.inteligencia");
+      const efSab = astucia?.efectos?.find((e) => e.objetivo === "salvacion.sabiduria");
+      const efCar = astucia?.efectos?.find((e) => e.objetivo === "salvacion.carisma");
+
+      expect(efInt).toBeDefined();
+      expect(efInt?.tipo).toBe("ventaja");
+      expect(efSab).toBeDefined();
+      expect(efSab?.tipo).toBe("ventaja");
+      expect(efCar).toBeDefined();
+      expect(efCar?.tipo).toBe("ventaja");
+
+      // Linaje gnomo contiene el selector de aptitud mágica
+      const linaje = gnomo?.rasgos.find((r) => r.nombre === "Linaje gnomo");
+      expect(linaje).toBeDefined();
+      expect(linaje?.selectores).toHaveLength(1);
+      expect(linaje?.selectores?.[0].id).toBe("selector_aptitud_magica_gnomo");
+      expect(linaje?.selectores?.[0].opciones.map((o) => o.id)).toEqual(["inteligencia", "sabiduria", "carisma"]);
+    });
+
+    it("evaluarVentajasDeRasgosEnTirada activa ventaja en salvaciones de INT, SAB y CAR para un Gnomo", () => {
+      const pjBase: PersonajeJugador = {
+        ...PERSONAJE_POR_DEFECTO,
+        id: "pj-gnomo-astucia",
+        nombre: "Fizban",
+        nivel: 1
+      };
+
+      const pjGnomo = aplicarEspecieAPersonaje(pjBase, { especieId: "gnomo" });
+
+      // Salvaciones que deben tener ventaja
+      const evalInt = evaluarVentajasDeRasgosEnTirada(pjGnomo, { tipoTirada: "salvacion", subtipo: "inteligencia" });
+      const evalSab = evaluarVentajasDeRasgosEnTirada(pjGnomo, { tipoTirada: "salvacion", subtipo: "sabiduria" });
+      const evalCar = evaluarVentajasDeRasgosEnTirada(pjGnomo, { tipoTirada: "salvacion", subtipo: "carisma" });
+
+      expect(evalInt.tieneVentaja).toBe(true);
+      expect(evalInt.razones.some((r) => r.includes("Astucia gnoma"))).toBe(true);
+
+      expect(evalSab.tieneVentaja).toBe(true);
+      expect(evalSab.razones.some((r) => r.includes("Astucia gnoma"))).toBe(true);
+
+      expect(evalCar.tieneVentaja).toBe(true);
+      expect(evalCar.razones.some((r) => r.includes("Astucia gnoma"))).toBe(true);
+
+      // Salvaciones que NO deben tener ventaja
+      const evalFue = evaluarVentajasDeRasgosEnTirada(pjGnomo, { tipoTirada: "salvacion", subtipo: "fuerza" });
+      const evalDes = evaluarVentajasDeRasgosEnTirada(pjGnomo, { tipoTirada: "salvacion", subtipo: "destreza" });
+      const evalCon = evaluarVentajasDeRasgosEnTirada(pjGnomo, { tipoTirada: "salvacion", subtipo: "constitucion" });
+
+      expect(evalFue.tieneVentaja).toBe(false);
+      expect(evalDes.tieneVentaja).toBe(false);
+      expect(evalCon.tieneVentaja).toBe(false);
+    });
+
+    it("evaluarVentajasDeRasgosEnTirada reconoce agrupaciones compuestas salvaciones_mentales y salvaciones_fisicas", () => {
+      const pjMental: PersonajeJugador = {
+        ...PERSONAJE_POR_DEFECTO,
+        id: "pj-mental",
+        rasgos: [
+          {
+            id: "r-mental",
+            nombre: "Mente Inquebrantable",
+            descripcion: "Ventaja mental",
+            origen: "personalizado",
+            fuente: "Custom",
+            tipoAccion: "pasivo",
+            tieneUsosLimitados: false,
+            recuperacion: "ninguno",
+            personalizado: true,
+            notas: "",
+            activo: true,
+            efectos: [{ tipo: "ventaja", objetivo: "salvaciones_mentales", valor: "true", descripcion: "Mente Inquebrantable" }]
+          }
+        ]
+      };
+
+      expect(evaluarVentajasDeRasgosEnTirada(pjMental, { tipoTirada: "salvacion", subtipo: "inteligencia" }).tieneVentaja).toBe(true);
+      expect(evaluarVentajasDeRasgosEnTirada(pjMental, { tipoTirada: "salvacion", subtipo: "sabiduria" }).tieneVentaja).toBe(true);
+      expect(evaluarVentajasDeRasgosEnTirada(pjMental, { tipoTirada: "salvacion", subtipo: "carisma" }).tieneVentaja).toBe(true);
+      expect(evaluarVentajasDeRasgosEnTirada(pjMental, { tipoTirada: "salvacion", subtipo: "fuerza" }).tieneVentaja).toBe(false);
+
+      const pjFisico: PersonajeJugador = {
+        ...PERSONAJE_POR_DEFECTO,
+        id: "pj-fisico",
+        rasgos: [
+          {
+            id: "r-fisico",
+            nombre: "Cuerpo Indómito",
+            descripcion: "Ventaja física",
+            origen: "personalizado",
+            fuente: "Custom",
+            tipoAccion: "pasivo",
+            tieneUsosLimitados: false,
+            recuperacion: "ninguno",
+            personalizado: true,
+            notas: "",
+            activo: true,
+            efectos: [{ tipo: "ventaja", objetivo: "salvaciones_fisicas", valor: "true", descripcion: "Cuerpo Indómito" }]
+          }
+        ]
+      };
+
+      expect(evaluarVentajasDeRasgosEnTirada(pjFisico, { tipoTirada: "salvacion", subtipo: "fuerza" }).tieneVentaja).toBe(true);
+      expect(evaluarVentajasDeRasgosEnTirada(pjFisico, { tipoTirada: "salvacion", subtipo: "destreza" }).tieneVentaja).toBe(true);
+      expect(evaluarVentajasDeRasgosEnTirada(pjFisico, { tipoTirada: "salvacion", subtipo: "constitucion" }).tieneVentaja).toBe(true);
+      expect(evaluarVentajasDeRasgosEnTirada(pjFisico, { tipoTirada: "salvacion", subtipo: "sabiduria" }).tieneVentaja).toBe(false);
+    });
+
+    it("aplica Gnomo de los bosques con Ilusión menor y Hablar con los animales escalado a PB", () => {
+      const pjBase: PersonajeJugador = {
+        ...PERSONAJE_POR_DEFECTO,
+        id: "pj-bosques-1",
+        nombre: "Bimble",
+        nivel: 1
+      };
+
+      const pjN1 = aplicarEspecieAPersonaje(pjBase, {
+        especieId: "gnomo",
+        subespecieId: "gnomo_bosques"
+      });
+
+      expect(pjN1.especie).toBe("Gnomo");
+      expect(pjN1.subespecie).toBe("Gnomo de los bosques");
+      expect(pjN1.tamano).toBe("Pequeño");
+      expect(pjN1.trucosConocidosIds).toContain("ilusion_menor");
+      expect(pjN1.conjurosSiemprePreparadosIds).toContain("hablar_con_los_animales");
+
+      const rasgoHablar = pjN1.rasgos.find((r) => r.nombre.includes("Hablar con los animales"));
+      expect(rasgoHablar).toBeDefined();
+      expect(rasgoHablar?.tieneUsosLimitados).toBe(true);
+      expect(rasgoHablar?.usosMaximos).toBe(2); // PB a nivel 1
+      expect(rasgoHablar?.recuperacion).toBe("descanso_largo");
+
+      // A nivel 5 (PB 3)
+      const pjN5 = aplicarEspecieAPersonaje({ ...pjBase, nivel: 5 }, {
+        especieId: "gnomo",
+        subespecieId: "gnomo_bosques"
+      });
+      const rasgoHablarN5 = pjN5.rasgos.find((r) => r.nombre.includes("Hablar con los animales"));
+      expect(rasgoHablarN5?.usosMaximos).toBe(3);
+    });
+
+    it("aplica Gnomo de las rocas con Prestidigitación, Reparar y rasgo informativo de artilugios", () => {
+      const pjBase: PersonajeJugador = {
+        ...PERSONAJE_POR_DEFECTO,
+        id: "pj-rocas-1",
+        nombre: "Gimble",
+        nivel: 1
+      };
+
+      const pjRocas = aplicarEspecieAPersonaje(pjBase, {
+        especieId: "gnomo",
+        subespecieId: "gnomo_rocas"
+      });
+
+      expect(pjRocas.especie).toBe("Gnomo");
+      expect(pjRocas.subespecie).toBe("Gnomo de las rocas");
+      expect(pjRocas.trucosConocidosIds).toContain("prestidigitacion");
+      expect(pjRocas.trucosConocidosIds).toContain("reparar");
+
+      const rasgoDispositivo = pjRocas.rasgos.find((r) => r.nombre === "Dispositivo mecánico");
+      expect(rasgoDispositivo).toBeDefined();
+      expect(rasgoDispositivo?.tipoAccion).toBe("pasivo");
+      expect(rasgoDispositivo?.categoriaMecanica).toBe("pasivo_permanente");
+      expect(rasgoDispositivo?.efectos || []).toHaveLength(0); // Informativo, sin mecánicas
+    });
+
+    it("conmuta limpiamente entre Gnomo de los bosques y Gnomo de las rocas", () => {
+      const pjBase: PersonajeJugador = {
+        ...PERSONAJE_POR_DEFECTO,
+        id: "pj-gnomo-switch",
+        nombre: "Dimble",
+        nivel: 3
+      };
+
+      // 1. Gnomo de los bosques
+      const pjBosques = aplicarEspecieAPersonaje(pjBase, {
+        especieId: "gnomo",
+        subespecieId: "gnomo_bosques"
+      });
+      expect(pjBosques.trucosConocidosIds).toContain("ilusion_menor");
+      expect(pjBosques.conjurosSiemprePreparadosIds).toContain("hablar_con_los_animales");
+
+      // 2. Conmutar a Gnomo de las rocas
+      const pjRocas = aplicarEspecieAPersonaje(pjBosques, {
+        especieId: "gnomo",
+        subespecieId: "gnomo_rocas"
+      });
+      expect(pjRocas.subespecie).toBe("Gnomo de las rocas");
+      expect(pjRocas.trucosConocidosIds).toContain("prestidigitacion");
+      expect(pjRocas.trucosConocidosIds).toContain("reparar");
+
+      // Los conjuros de bosques deben haberse purgado
+      expect(pjRocas.trucosConocidosIds).not.toContain("ilusion_menor");
+      expect(pjRocas.conjurosSiemprePreparadosIds).not.toContain("hablar_con_los_animales");
     });
   });
 });

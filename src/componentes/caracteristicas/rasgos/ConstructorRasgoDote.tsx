@@ -99,9 +99,20 @@ const OPCIONES_VENTAJA = [
   { valor: "salvacion.fuerza", etiqueta: "Tiradas de Salvación de Fuerza" },
   { valor: "salvacion.destreza", etiqueta: "Tiradas de Salvación de Destreza" },
   { valor: "salvacion.constitucion", etiqueta: "Tiradas de Salvación de Constitución" },
+  { valor: "salvacion.inteligencia", etiqueta: "Tiradas de Salvación de Inteligencia" },
+  { valor: "salvacion.sabiduria", etiqueta: "Tiradas de Salvación de Sabiduría" },
+  { valor: "salvacion.carisma", etiqueta: "Tiradas de Salvación de Carisma" },
+  { valor: "salvaciones_fisicas", etiqueta: "Salvaciones Físicas (FUE, DES, CON)" },
+  { valor: "salvaciones_mentales", etiqueta: "Salvaciones Mentales (INT, SAB, CAR)" },
+  { valor: "salvacion.muerte", etiqueta: "Tiradas de Salvación contra la Muerte" },
   { valor: "ataque_fuerza", etiqueta: "Tiradas de Ataque que usan Fuerza" },
   { valor: "iniciativa", etiqueta: "Tiradas de Iniciativa" },
-  { valor: "prueba.fuerza", etiqueta: "Pruebas de Característica de Fuerza" }
+  { valor: "prueba.fuerza", etiqueta: "Pruebas de Característica de Fuerza" },
+  { valor: "prueba.destreza", etiqueta: "Pruebas de Característica de Destreza" },
+  { valor: "prueba.constitucion", etiqueta: "Pruebas de Característica de Constitución" },
+  { valor: "prueba.inteligencia", etiqueta: "Pruebas de Característica de Inteligencia" },
+  { valor: "prueba.sabiduria", etiqueta: "Pruebas de Característica de Sabiduría" },
+  { valor: "prueba.carisma", etiqueta: "Pruebas de Característica de Carisma" }
 ];
 
 const OPCIONES_SALVACION_OBJETIVO = [
@@ -356,9 +367,11 @@ export const ConstructorRasgoDote: React.FC<ConstructorRasgoDoteProps> = ({
         case "movimiento_especial":
           descFinal = `Movimiento especial: ${nuevoValor}`;
           break;
-        case "ventaja":
-          descFinal = `Ventaja en ${nuevoObjetivo}`;
+        case "ventaja": {
+          const optEncontrada = OPCIONES_VENTAJA.find((o) => o.valor === nuevoObjetivo);
+          descFinal = optEncontrada ? `Ventaja: ${optEncontrada.etiqueta}` : `Ventaja en ${nuevoObjetivo}`;
           break;
+        }
         case "bono_salvacion":
           descFinal = `+${nuevoValor} a salvación de ${nuevoObjetivo}`;
           break;

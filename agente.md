@@ -19,6 +19,43 @@ Este archivo registra reglas globales, errores encontrados, sus causas raíz y l
    - **Bajo ninguna circunstancia** los módulos de lógica de negocio (`servicios/`), gestores de estado (`almacen/`) o constructores (`gestorClases.ts`) deben contener bifurcaciones condicionales por nombre literal de rasgo o clase (`r.nombre === "..."`, `clase.includes("...")`, etc.).
    - Toda mecánica, progresión de dados, escalado de usos, recuperación o desbloqueo dinámico debe resolverse mediante metadatos declarativos (`escaladoFormulaDados`, `escaladoUsos`, `escaladoRecuperacion`, `opcionesDinamicas`, `escaladoMaxSelecciones`, `sincronizarEfectosConFormula`, `heredarDadosPadre`, `gastarDePadre`, `ligadoA`, `efectos`) delegando en funciones puras agnósticas como `resolverEscaladosRasgo`. Esta regla está reforzada en CI vía ESLint `no-restricted-syntax` y la suite `rasgoGenericidad.test.ts`.
 
+## [2026-09-15] Implementación Canónica y Declarativa de Gnomo (D&D 5.5e) y Ventajas de Salvación en el Builder
+
+**Contexto y Requerimientos del Usuario:**
+- Implementación canónica y declarativa de la especie Gnomo a partir de `dicionario_herramientas/razas/Gnomo.md`:
+  1. *Astucia gnoma*: rasgo puramente mecánico que otorga ventaja en tiradas de salvación de Inteligencia, Sabiduría y Carisma.
+  2. *Linaje gnomo*: exclusivamente añade conjuros (Gnomo de los bosques: truco *ilusión menor* y conjuro *hablar con los animales* con usos iguales a PB por descanso largo; Gnomo de las rocas: trucos *prestidigitación* y *reparar*). Las capacidades accesorias (como la creación de artilugios mecánicos con *prestidigitación*) son puramente informativas y sin mecánicas adicionales.
+  3. Todo lo demás es informativo/base: Tipo Humanoide, tamaño Pequeño, velocidad 30 pies y visión en la oscuridad 60 pies.
+  4. Generalización desde el Builder: el constructor (`ConstructorRasgoDote.tsx`) debe permitir configurar ventajas en todas las salvaciones canónicas y agrupaciones compuestas (`salvaciones_mentales` y `salvaciones_fisicas`), reutilizando las funciones puras ya existentes.
+
+**Causas Raíz y Desafíos Técnicos:**
+1. **Opciones Limitadas de Ventaja en el Builder UI (`ConstructorRasgoDote.tsx`):**
+   - Previamente, `OPCIONES_VENTAJA` solo contemplaba salvaciones de Fuerza, Destreza y Constitución, impidiendo que el builder o un usuario configurasen ventajas en salvaciones de Inteligencia, Sabiduría o Carisma, o salvaciones compuestas.
+2. **Evaluación Rígida de Objetivos de Ventaja en Tiradas (`evaluadorEfectosRasgos.ts`):**
+   - `evaluarVentajasDeRasgosEnTirada` evaluaba salvaciones mediante comparaciones estrictas directas y no contemplaba objetivos separados por coma, salvaciones universales ni alias de agrupaciones compuestas como `salvaciones_mentales` (INT, SAB, CAR) o `salvaciones_fisicas` (FUE, DES, CON).
+3. **Ausencia de Efectos Mecánicos Declarativos en Gnomo (`especiesDND55.ts`):**
+   - El catálogo contenía la especie Gnomo pero *Astucia gnoma* carecía del array `efectos`, dejando las tiradas de salvación mental sin ventaja reactiva en la ficha ni en TaleSpire.
+
+**Solución Implementada y Decisiones Arquitectónicas:**
+1. **Generalización del Builder de Rasgos (`ConstructorRasgoDote.tsx`):**
+   - Se extendió `OPCIONES_VENTAJA` con las 6 salvaciones canónicas individuales, `salvaciones_fisicas` ("Salvaciones Físicas (FUE, DES, CON)"), `salvaciones_mentales` ("Salvaciones Mentales (INT, SAB, CAR)") y `salvacion.muerte`.
+   - Se actualizó la generación de `descFinal` para usar las etiquetas humanas legibles.
+2. **Motor de Evaluación Genérico y Agnóstico (`evaluadorEfectosRasgos.ts`):**
+   - En `evaluarVentajasDeRasgosEnTirada`, se implementó parsing para objetivos delimitados por coma, coincidencia con características individuales, salvaciones universales (`salvacion.todas`), agrupaciones mentales (`salvaciones_mentales`) y agrupaciones físicas (`salvaciones_fisicas`), con soporte simétrico para desventaja.
+3. **Catálogo Canónico Oficial D&D 5.5e (`especiesDND55.ts`):**
+   - *Astucia gnoma*: 3 efectos declarativos de `"ventaja"` (`salvacion.inteligencia`, `salvacion.sabiduria`, `salvacion.carisma`).
+   - *Linaje gnomo*: rasgo informativo con selector declarativo (`selector_aptitud_magica_gnomo`).
+   - *Linaje élfico*: rasgo con selector declarativo (`selector_aptitud_magica_elfo`) para elegir Inteligencia, Sabiduría o Carisma según `Elfo.md` D&D 5.5e.
+   - *Gnomo de los bosques*: conjuros innatos *ilusión menor* y *hablar con los animales*, con rasgo consumible escalado al PB (`formulaEscalado: "bono_competencia"`) y recarga en descanso largo.
+   - *Gnomo de las rocas*: trucos innatos *prestidigitación* y *reparar*, y rasgo *Dispositivo mecánico* puramente informativo.
+4. **Reconciliación de Alias de Hechizos (`subclasesConjurosConstantes.ts`):**
+   - Alias agregados para `"hablar con los animales"` <-> `"hablar con animales"` y `"reparar"` <-> `"remendar"`.
+5. **Cobertura Automatizada:**
+   - 6 nuevos tests en `gestorEspecies.test.ts` verificando catálogo, ventajas de INT/SAB/CAR, comodines físicos/mentales, conjuros de linaje y conmutación limpia.
+   - 100% de suites superadas (53/53 suites, 641/641 tests), `tsc --noEmit` con 0 errores y ESLint limpio.
+
+---
+
 ## [2026-09-14] Preservación de Combatiente y Sufijo Explícito de Ventaja/Desventaja en la Tarjeta Nativa de TaleSpire (3D)
 
 **Contexto y Requerimientos del Usuario:**

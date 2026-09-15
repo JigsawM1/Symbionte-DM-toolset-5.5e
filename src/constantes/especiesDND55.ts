@@ -237,9 +237,35 @@ export const CATALOGO_ESPECIES_DND55: DefinicionEspecie[] = [
       },
       {
         nombre: "Linaje élfico",
-        descripcion: "Formas parte de un linaje que te otorga capacidades sobrenaturales. Al elegir tu linaje obtienes su beneficio de nivel 1 (truco innato o beneficio pasivo). Cuando alcanzas los niveles 3 y 5 de personaje, aprendes un conjuro de nivel superior de tu linaje que siempre tienes preparado. Puedes lanzar cada uno de estos conjuros de nivel 1 o superior una vez sin gastar un espacio de conjuro y recuperas la capacidad tras finalizar un descanso largo, o bien lanzarlos gastando espacios de conjuro del nivel apropiado.",
+        descripcion: "Formas parte de un linaje que te otorga capacidades sobrenaturales. Al elegir tu linaje obtienes su beneficio de nivel 1 (truco innato o beneficio pasivo). Cuando alcanzas los niveles 3 y 5 de personaje, aprendes un conjuro de nivel superior de tu linaje que siempre tienes preparado. Puedes lanzar cada uno de estos conjuros de nivel 1 o superior una vez sin gastar un espacio de conjuro y recuperas la capacidad tras finalizar un descanso largo, o bien lanzarlos gastando espacios de conjuro del nivel apropiado. La Inteligencia, la Sabiduría o el Carisma es tu aptitud mágica para los conjuros que lances con este atributo (elige la característica al seleccionar el linaje).",
         tipoAccion: "pasivo",
-        categoriaMecanica: "pasivo_permanente"
+        categoriaMecanica: "selector_informativo",
+        selectores: [
+          {
+            id: "selector_aptitud_magica_elfo",
+            tipo: "unico",
+            etiqueta: "Aptitud Mágica del Linaje",
+            maxSelecciones: 1,
+            opciones: [
+              {
+                id: "inteligencia",
+                nombre: "Inteligencia",
+                descripcion: "Usas Inteligencia como aptitud mágica para los conjuros de tu linaje."
+              },
+              {
+                id: "sabiduria",
+                nombre: "Sabiduría",
+                descripcion: "Usas Sabiduría como aptitud mágica para los conjuros de tu linaje."
+              },
+              {
+                id: "carisma",
+                nombre: "Carisma",
+                descripcion: "Usas Carisma como aptitud mágica para los conjuros de tu linaje."
+              }
+            ],
+            valorActual: ["inteligencia"]
+          }
+        ]
       },
       {
         nombre: "Linaje feérico",
@@ -501,13 +527,59 @@ export const CATALOGO_ESPECIES_DND55: DefinicionEspecie[] = [
         nombre: "Astucia gnoma",
         descripcion: "Tienes ventaja en las tiradas de salvación de Inteligencia, Sabiduría y Carisma.",
         tipoAccion: "pasivo",
-        categoriaMecanica: "pasivo_permanente"
+        categoriaMecanica: "pasivo_permanente",
+        efectos: [
+          {
+            tipo: "ventaja",
+            objetivo: "salvacion.inteligencia",
+            valor: "true",
+            descripcion: "Astucia gnoma (Ventaja en salvaciones de Inteligencia)"
+          },
+          {
+            tipo: "ventaja",
+            objetivo: "salvacion.sabiduria",
+            valor: "true",
+            descripcion: "Astucia gnoma (Ventaja en salvaciones de Sabiduría)"
+          },
+          {
+            tipo: "ventaja",
+            objetivo: "salvacion.carisma",
+            valor: "true",
+            descripcion: "Astucia gnoma (Ventaja en salvaciones de Carisma)"
+          }
+        ]
       },
       {
         nombre: "Linaje gnomo",
-        descripcion: "Formas parte de un linaje que te otorga capacidades sobrenaturales.",
+        descripcion: "Formas parte de un linaje que te otorga capacidades sobrenaturales. Escoge una opción (Gnomo de los bosques o Gnomo de las rocas); elijas la que elijas, la Inteligencia, la Sabiduría o el Carisma es tu aptitud mágica para los conjuros que lances con este atributo (elige la característica al seleccionar el linaje).",
         tipoAccion: "pasivo",
-        categoriaMecanica: "pasivo_permanente"
+        categoriaMecanica: "selector_informativo",
+        selectores: [
+          {
+            id: "selector_aptitud_magica_gnomo",
+            tipo: "unico",
+            etiqueta: "Aptitud Mágica del Linaje",
+            maxSelecciones: 1,
+            opciones: [
+              {
+                id: "inteligencia",
+                nombre: "Inteligencia",
+                descripcion: "Usas Inteligencia como aptitud mágica para los conjuros de tu linaje."
+              },
+              {
+                id: "sabiduria",
+                nombre: "Sabiduría",
+                descripcion: "Usas Sabiduría como aptitud mágica para los conjuros de tu linaje."
+              },
+              {
+                id: "carisma",
+                nombre: "Carisma",
+                descripcion: "Usas Carisma como aptitud mágica para los conjuros de tu linaje."
+              }
+            ],
+            valorActual: ["inteligencia"]
+          }
+        ]
       },
       {
         nombre: "Visión en la oscuridad",
@@ -524,13 +596,26 @@ export const CATALOGO_ESPECIES_DND55: DefinicionEspecie[] = [
         descripcion: "Amigos de los animales silvestres y creadores de ilusiones menores.",
         conjurosInnatos: [
           { hechizoId: "ilusion_menor", nombreHechizo: "Ilusión menor", caracteristica: "elegir", esTruco: true },
-          { hechizoId: "hablar_con_animales", nombreHechizo: "Hablar con los animales", caracteristica: "elegir", esTruco: false, nivelRequerido: 1, usosGratis: "bono_competencia", recuperacion: "descanso_largo" }
+          { hechizoId: "hablar_con_los_animales", nombreHechizo: "Hablar con los animales", caracteristica: "elegir", esTruco: false, nivelRequerido: 1, usosGratis: "bono_competencia", recuperacion: "descanso_largo" }
         ],
         rasgos: [
           {
-            nombre: "Magia del bosque",
-            descripcion: "Conoces el truco ilusión menor y puedes lanzar hablar con los animales tantas veces como tu PB por descanso largo.",
-            tipoAccion: "pasivo"
+            nombre: "Magia de los bosques: Hablar con los animales",
+            descripcion: "Siempre tienes el conjuro *hablar con los animales* preparado. Puedes lanzarlo sin gastar un espacio de conjuro una cantidad de veces igual a tu bonificador por competencia y recuperas todos los usos tras finalizar un descanso largo. También puedes usar cualquier espacio de conjuro que tengas para lanzarlo.",
+            tipoAccion: "accion",
+            nivelRequerido: 1,
+            tieneUsosLimitados: true,
+            usosMaximos: 2,
+            recuperacion: "descanso_largo",
+            formulaEscalado: "bono_competencia",
+            conjurosOtorgados: ["hablar_con_los_animales"],
+            categoriaMecanica: "consumible"
+          },
+          {
+            nombre: "Magia de los bosques",
+            descripcion: "Conoces el truco *ilusión menor*. Además, siempre tienes el conjuro *hablar con los animales* preparado.",
+            tipoAccion: "pasivo",
+            categoriaMecanica: "pasivo_permanente"
           }
         ]
       },
@@ -545,9 +630,10 @@ export const CATALOGO_ESPECIES_DND55: DefinicionEspecie[] = [
         ],
         rasgos: [
           {
-            nombre: "Inventor de artilugios",
-            descripcion: "Conoces prestidigitación y reparar. Puedes crear hasta 3 artilugios Diminutos que ejecutan efectos mágicos al toque.",
-            tipoAccion: "especial"
+            nombre: "Dispositivo mecánico",
+            descripcion: "Conoces los trucos *prestidigitación* y *reparar*. Además, puedes pasar 10 minutos lanzando *prestidigitación* para crear un dispositivo mecánico Diminuto (CA 5, 1 pg), como un juguete, un encendedor o una caja de música. Cuando crees el dispositivo, determinarás su función eligiendo un efecto de *prestidigitación*. El dispositivo producirá ese efecto cada vez que otra criatura o tú empleéis una acción adicional para activarlo con un toque. Si el efecto elegido tiene varias opciones, escoges una de ellas para el dispositivo cuando lo crees. Por ejemplo, si eliges el efecto de encender o apagar del conjuro, determinas si el dispositivo enciende o apaga los fuegos; el dispositivo no hace ambas cosas. Puedes tener tres de estos dispositivos activos al mismo tiempo y se desarman 8 horas después de crearlos o cuando los desmontes con un toque como acción de utilizar.",
+            tipoAccion: "pasivo",
+            categoriaMecanica: "pasivo_permanente"
           }
         ]
       }

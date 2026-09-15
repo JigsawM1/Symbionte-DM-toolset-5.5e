@@ -29,7 +29,11 @@ export const MAPA_ALIAS_HECHIZOS: Record<string, string[]> = {
   "risa horrible de tasha": ["risa espantosa de tasha", "tashas hideous laughter", "risa de tasha"],
   "vinculo telepatico de rary": ["enlace telepatico de rary", "rarys telepathic bond"],
   "enlace telepatico de rary": ["vinculo telepatico de rary", "rarys telepathic bond"],
-  "tentaculos negros de evard": ["evards black tentacles", "tentaculos negros"]
+  "tentaculos negros de evard": ["evards black tentacles", "tentaculos negros"],
+  "hablar con animales": ["hablar con los animales", "speak with animals"],
+  "hablar con los animales": ["hablar con animales", "speak with animals"],
+  "reparar": ["remendar", "mending"],
+  "remendar": ["reparar", "mending"]
 };
 
 /**

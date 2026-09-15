@@ -19,6 +19,131 @@ Este archivo registra reglas globales, errores encontrados, sus causas raíz y l
    - **Bajo ninguna circunstancia** los módulos de lógica de negocio (`servicios/`), gestores de estado (`almacen/`) o constructores (`gestorClases.ts`) deben contener bifurcaciones condicionales por nombre literal de rasgo o clase (`r.nombre === "..."`, `clase.includes("...")`, etc.).
    - Toda mecánica, progresión de dados, escalado de usos, recuperación o desbloqueo dinámico debe resolverse mediante metadatos declarativos (`escaladoFormulaDados`, `escaladoUsos`, `escaladoRecuperacion`, `opcionesDinamicas`, `escaladoMaxSelecciones`, `sincronizarEfectosConFormula`, `heredarDadosPadre`, `gastarDePadre`, `ligadoA`, `efectos`) delegando en funciones puras agnósticas como `resolverEscaladosRasgo`. Esta regla está reforzada en CI vía ESLint `no-restricted-syntax` y la suite `rasgoGenericidad.test.ts`.
 
+## [2026-09-15] Implementación Canónica de Humano (D&D 5.5e), Recuperación Declarativa de Inspiración Heroica y Builder Genérico
+
+**Contexto y Requerimientos del Usuario:**
+- Implementación canónica y declarativa de la especie Humano a partir de `dicionario_herramientas/razas/Humano.md`:
+  1. *Ingenioso*: rasgo mecánico que otorga Inspiración Heroica tras finalizar un descanso largo (`personaje.inspiracion = true`).
+  2. *Diestro*: rasgo puramente informativo (competencia en una habilidad a elección).
+  3. *Versátil*: rasgo puramente informativo (dote de origen a elección).
+  4. Tipo Humanoide, tamaño elegible Mediano o Pequeño, velocidad 30 pies y visión en la oscuridad 0 pies.
+  5. Generalización completa desde el Builder: el constructor (`ConstructorRasgoDote.tsx`) debe permitir configurar la restauración de recursos (`tipo: "restaurar_recurso"`) seleccionando el recurso (con presets para "Inspiración Heroica", "Furia", "Espacios de Pacto", etc.) y el momento de restauración (`descanso_largo`, `descanso_corto`, `al_activar`), sin hardcodear bifurcaciones por nombre de rasgo ni especie en la lógica de negocio (Regla 6).
+
+**Causas Raíz y Desafíos Técnicos:**
+1. **Falta de Evaluación de Inspiración en Descansos (`procesadorDescansos.ts`):**
+   - `ejecutarDescansoLargo` y `ejecutarDescansoCorto` restauraban HP, dados de golpe, cansancio y cargas, pero no contemplaban la restauración declarativa de la propiedad booleana `inspiracion`.
+2. **Ausencia de Función Agnóstica en el Evaluador de Efectos:**
+   - No existía un helper puro que inspeccionara los efectos activos para detectar si algún rasgo confiere inspiración al descansar, obligando a resolverlo mediante arquitectura declarativa (`restaurar_recurso` con objetivo `inspiracion`).
+3. **Falta de Control de Momento y Presets en el Builder UI (`ConstructorRasgoDote.tsx`):**
+   - El formulario de `restaurar_recurso` solo permitía texto libre sin asociar la condición/momento de restauración (`condicion`) ni presets rápidos para `inspiracion`.
+4. **Nombres Desfasados en Catálogo y Compendio:**
+   - El catálogo contenía erróneamente *"Ingenio ingenioso"* en `especiesDND55.ts` y `rasgosDND55.ts`, y `compendioRasgos.test.ts` lo comprobaba con ese texto obsoleto.
+
+**Solución Implementada y Decisiones Arquitectónicas:**
+1. **Función Agnóstica Pura (`evaluadorEfectosRasgos.ts`):**
+   - Se implementó `evaluarRecuperacionInspiracionEnDescanso(personaje, tipoDescanso)`.
+   - Evalúa `evaluarEfectosRasgosActivos(personaje)` buscando `tipo === "restaurar_recurso"` con objetivo `inspiracion`/`inspiracion_heroica` y coincidencia en la condición del descanso (`descanso_largo` o `descanso_corto`).
+2. **Motor de Descansos Reactivo (`procesadorDescansos.ts`):**
+   - En `ejecutarDescansoLargo`, se evalúa `evaluarRecuperacionInspiracionEnDescanso(personaje, "largo")`. Si aplica, se actualiza `inspiracion: true` y se registra la acción en el resumen del descanso (mostrada en `ModalResumenDescanso`).
+   - Soporte simétrico añadido para `ejecutarDescansoCorto`.
+3. **Generalización del Builder (`ConstructorRasgoDote.tsx`):**
+   - Soporte completo para `nuevoCondicion` en los efectos mecánicos.
+   - Presets accesibles mediante `SelectorDesplegable` para `"Inspiración Heroica"`, `"Furia"`, `"Espacios de Pacto"`.
+   - Selector de Momento de Restauración (`descanso_largo`, `descanso_corto`, `al_activar`, `siempre`).
+   - Generación de descripción clara y amigable al configurar el efecto.
+4. **Catálogo Canónico Oficial D&D 5.5e (`especiesDND55.ts`, `rasgosDND55.ts`, `especies.json`):**
+   - Humano: Mediano/Pequeño, Humanoide, velocidad 30 pies.
+   - *Ingenioso*: pasivo con efecto `restaurar_recurso` (objetivo `"inspiracion"`, condición `"descanso_largo"`).
+   - *Diestro*: pasivo informativo.
+   - *Versátil*: pasivo informativo.
+5. **Cobertura Automatizada y Blindaje:**
+   - Tests exhaustivos en `procesadorDescansos.test.ts` y `gestorEspecies.test.ts` verificando catálogo, rasgos, tamaño configurable y restauración efectiva de inspiración en descansos largos y cortos.
+   - 100% de éxito en pipeline CI: 54/54 suites pasando (664 tests), `tsc --noEmit` con 0 errores, ESLint limpio y límite de líneas aprobado.
+
+---
+
+## [2026-09-15] Modernización de ESLint, Blindaje de Reglas de Arquitectura y Erradicación de Strings Mágicos
+
+**Contexto y Requerimientos del Usuario:**
+- El usuario solicitó auditar y activar las reglas pendientes del linter:
+  1. `...js.configs.recommended.rules` (`no-dupe-keys`, `no-unreachable`, `no-fallthrough`, etc.).
+  2. `...reactPlugin.configs.flat.recommended.rules` (`jsx-key`, `no-unstable-nested-components`, etc.).
+  3. `...reactHooksPlugin.configs["recommended-latest"].rules` (`rules-of-hooks` como error, `exhaustive-deps`).
+  4. Codificar en el linter las reglas de `DESIGN.md` y arquitectura: `react/forbid-elements` para `<select>`, aislamiento de `window.TS`, prohibición de `localStorage` en componentes y `no-console`.
+  5. Extender la regla anti-strings mágicos (`r.nombre === "..."`) para cubrir llamadas con `.includes(...)` y `.toLowerCase().includes(...)` sobre `nombre` y `clase`, aplicándola también a `src/componentes/**` y `src/hooks/**`.
+  6. Saneamiento del bloque `globals` utilizando `globals.browser` y eliminando la declaración manual de tipos utilitarios de TS.
+
+**Causas Raíz y Desafíos Técnicos Identificados:**
+1. **Incompatibilidad de Idioma en `rules-of-hooks`:**
+   - `eslint-plugin-react-hooks` v7 hardcodea en su parser que un Custom Hook debe comenzar estrictamente por `use` (`/^use[A-Z0-9]/`). Como el proyecto exige nombres en español (`usar...`), aplicar la regla sobre `**/*.ts` disparaba 285 falsos positivos considerando a los hooks como funciones ordinarias ilegales para hospedar hooks.
+   - **Solución:** Aplicar `rules-of-hooks: "error"` estrictamente a archivos `**/*.tsx` (componentes). Esto detectó de forma quirúrgica un bug condicional real en `VistaAtaquesJugador.tsx` (un early return previo a `React.useMemo`).
+2. **Impacto de Estilos Inline (`react/forbid-dom-props`):**
+   - La base de código heredada contenía 947 ocurrencias de `style={{}}`. Dado que el script `lint` corre con `--max-warnings=0`, activarla como `warn` rompería el CI de inmediato, por lo que se reservó su activación para cuando se realice la migración progresiva a clases CSS.
+3. **Fugas de Aislamiento de TaleSpire (`window.TS`):**
+   - Se detectaron 3 componentes (`BarraControl.tsx`, `BuscadorMonstruos.tsx` y `GestorIniciativa.tsx`) llamando a `window.TS.debug?.log` directamente en vez de utilizar el adaptador o `logger`.
+4. **Bifurcaciones Anti-patrón por Nombre o Clase con `.includes`:**
+   - La auditoría detectó comparaciones por texto literal en `usarCalculoAtaquesJugador.ts`, `usarMagiaPersonaje.ts`, `calculadorMagia.ts`, `procesadorCondiciones.ts`, `ejecutorTiradasCombate.ts`, `resolutorOrigenConjuros.ts` y `sincronizacionIniciativa.ts`.
+
+**Solución Implementada y Decisiones Arquitectónicas:**
+1. **Instalación y Configuración Limpia:**
+   - Adición de `@eslint/js` y `globals` a `devDependencies` vía `pnpm`.
+   - `globals.browser` activado en `eslint.config.js`; tipos TS retirados de las globales de runtime.
+   - Activación de `js.configs.recommended` (con `no-undef: "off"` y `no-useless-assignment: "off"`).
+   - Activación de `react.flat.recommended` (con `react-in-jsx-scope: "off"`, `prop-types: "off"`, `display-name: "off"`, `no-unescaped-entities: "off"`).
+2. **Blindaje de Reglas de Diseño y Arquitectura:**
+   - `react/forbid-elements: ["error", { forbid: [{ element: "select" }] }]` activado.
+   - `no-console: "error"` activado con excepción para `logger.ts`, `editor_hechizos/**` y tests.
+   - `no-restricted-globals`: `localStorage` prohibido en `src/componentes/**`.
+   - `no-restricted-syntax`: `window.TS` prohibido fuera de `TaleSpireAdapter.ts`.
+3. **Erradicación de Strings Mágicos y Centralización Canónica:**
+   - Creación de helpers puros `esLanzadorSabiduria` y `esClaseBarbaro` en `src/constantes/identificadoresDND.ts`.
+   - Migración de todas las comprobaciones de clase y rasgos en combate a IDs canónicos (`r.id === "..."` o `coincideIdRasgo`).
+   - Corrección del hook condicional en `VistaAtaquesJugador.tsx` reubicando `useMemo` incondicionalmente al inicio.
+4. **Verificación Automatizada Exhaustiva:**
+   - `pnpm exec tsc --noEmit`: 0 errores (Strict Mode estricto).
+   - `pnpm run lint`: 0 errores y 0 advertencias bajo `--max-warnings=0`.
+   - `pnpm test`: 54/54 suites superadas, 657/657 tests pasando (100%).
+   - `node scripts/verificar-limite-lineas.js`: 109 archivos auditados, 0 archivos con más de 500 líneas.
+   - `pnpm run ci`: 100% de éxito en pipeline integral.
+
+---
+
+## [2026-09-15] Corrección de Reordenación de Equipados en Inventario y Colapso Directo de Subsecciones de Magia en Acciones
+
+**Contexto y Requerimientos del Usuario:**
+- El usuario reportó dos bugs menores:
+  1. *"en inventario si le hago drag and drop a los objetos equipados automaticamente me los desequipa aunque yo queria era ordenarlos dentro el mismo campo de equipados"*
+  2. *"en acciones los contenedores dentro del contenedor de magia por alguna razon les debo dar doble click para que cierren."*
+
+**Causas Raíz Identificadas:**
+1. **Desequipado Incondicional en Drop de Objetos de Inventario (`usarInventarioOrdenado.ts` y `usarDragAndDropInventario.ts`):**
+   - En `manejarReordenarItems` y `manejarDrop`, la lógica evaluaba:
+     `if (objOrigen?.equipado) { alAlternarEquipado(origen); ... }`
+   - Si el usuario arrastraba un ítem equipado sobre otro ítem que también estaba equipado (`objDestino.equipado === true`), la condición se ejecutaba de todos modos y llamaba a `alAlternarEquipado`, desequipando involuntariamente el objeto en vez de preservar su estado y limitarse a reposicionarlo en la ficha mediante `alReordenarInventario`.
+2. **Evaluación de Estado Booleano Indefinido en `alternarSeccion` de Acciones de Combate (`usarCalculoAtaquesJugador.ts`):**
+   - Las subsecciones de nivel de magia se identifican como `magicos_nv_${nivel}` (ej. `magicos_nv_0`, `magicos_nv_1`). Estas claves no estaban preinicializadas en el estado por defecto de `seccionesAbiertas`.
+   - `SeccionAtaquesMagicos.tsx` evaluaba la apertura con `seccionesAbiertas['magicos_nv_${nivel}'] !== false`, mostrándolas desplegadas por defecto (`undefined !== false` -> `true`).
+   - Al pulsar la cabecera para colapsar, `alternarSeccion` calculaba `[seccion]: !prev[seccion]`. Como `prev[seccion]` era `undefined`, `!undefined` evaluaba a `true`.
+   - En consecuencia, el primer clic fijaba el valor en `true` y la sección permanecía visualmente abierta. Solo tras un segundo clic (`!true` -> `false`) el contenedor se cerraba efectivamente.
+
+**Solución Implementada y Decisiones Arquitectónicas:**
+1. **Condición Estricta de Desequipado en Drag & Drop (`usarInventarioOrdenado.ts` y `usarDragAndDropInventario.ts`):**
+   - Se condicionó el desequipado exclusivamente a `objOrigen?.equipado && !objDestino?.equipado`.
+   - Cuando ambos objetos están equipados (`objOrigen.equipado && objDestino.equipado`), no se llama a `alAlternarEquipado`, no se envían notificaciones espurias y se invoca directamente `alReordenarInventario(origen, destino)`.
+   - La lista reactiva de `objetosEquipados` refleja instantáneamente el nuevo orden relativo de los ítems equipados.
+2. **Normalización Defensiva en `alternarSeccion` (`usarCalculoAtaquesJugador.ts`):**
+   - Se actualizó `alternarSeccion` para resolver el estado efectivo con fallback a abierto: `const estaAbierta = prev[seccion] !== false; return { ...prev, [seccion]: !estaAbierta };`.
+   - Esto garantiza que cualquier clave ausente o `undefined` pase a `false` inmediatamente en el primer clic.
+   - Se preinicializaron declarativamente las claves `magicos_nv_0` hasta `magicos_nv_9` en el estado por defecto de `ts_acciones_secciones`.
+3. **Cobertura Automatizada:**
+   - Creación de `src/componentes/caracteristicas/inventario/reordenacionYColapso.test.ts` con cobertura específica para:
+     - Drag and drop entre equipados sin desequipado accidental.
+     - Drag and drop de equipado a mochila con desequipado correcto.
+     - Cierre inmediato en 1 solo clic de subsecciones no inicializadas vs el bug anterior de doble clic.
+   - 100% de suites superadas (54/54 suites, 657/657 tests), `tsc --noEmit` sin errores, ESLint limpio y verificación de límite de líneas aprobada.
+
+---
+
 ## [2026-09-15] Desbloqueo Estricto por Nivel de Rasgos de Especie (Forma Grande Nivel 5 de Goliat)
 
 **Contexto y Requerimientos del Usuario:**

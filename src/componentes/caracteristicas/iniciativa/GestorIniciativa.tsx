@@ -17,6 +17,7 @@ import { VinculadorPlantilla } from "./VinculadorPlantilla";
 import { Activity, FileText, X } from "lucide-react";
 import estilosClases from "./GestorIniciativa.module.css";
 import { ConfirmDialog } from "@/componentes/comunes";
+import { logger } from "@/utiles/logger";
  
 export const GestorIniciativa: React.FC = () => {
   const { colaIniciativa, indiceTurnoActivo, rondaActual, criaturasSeleccionadas, asociacionesFichas } = usarEstadoIniciativa();
@@ -103,9 +104,7 @@ export const GestorIniciativa: React.FC = () => {
   const aplicarCuracion = (id: string, actual: number, maximo: number, valor: number) => {
     const nuevaVida = Math.min(maximo, actual + valor);
     modificarVidaCriaturaIniciativa(id, nuevaVida);
-    if (window.TS) {
-      window.TS.debug?.log(`[Combat Tracker] Curación aplicada a la criatura ${id}: ${actual} -> ${nuevaVida}`);
-    }
+    logger.debug(`[Combat Tracker] Curación aplicada a la criatura ${id}: ${actual} -> ${nuevaVida}`);
   };
 
   const aplicarDaño = (id: string, actual: number, temporal: number, valor: number) => {

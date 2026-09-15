@@ -1,5 +1,6 @@
 import type { PersonajeJugador } from "@/tipos";
 import { recargarCargasItem } from "@/servicios/procesadorConsumibles";
+import { evaluarRecuperacionInspiracionEnDescanso } from "@/servicios/evaluadorEfectosRasgos";
 
 // ==========================================
 // 1. INTERFACES Y CONTRATOS EXTENSIBLES
@@ -139,13 +140,31 @@ export function ejecutarDescansoCorto(
     });
   }
 
+  // Recuperar Inspiración Heroica si el personaje posee un rasgo que lo otorgue en Descanso Corto
+  let inspiracionNuevaCorto = personaje.inspiracion;
+  if (evaluarRecuperacionInspiracionEnDescanso(personaje, "corto")) {
+    if (!personaje.inspiracion) {
+      inspiracionNuevaCorto = true;
+      acciones.push({
+        tipo: "recurso",
+        descripcion: "Inspiración heroica obtenida tras finalizar el descanso corto."
+      });
+    } else {
+      acciones.push({
+        tipo: "recurso",
+        descripcion: "Inspiración heroica conservada (ya disponías de inspiración heroica)."
+      });
+    }
+  }
+
   const personajeActualizado: PersonajeJugador = {
     ...personaje,
     hpActual: hpNuevo,
     dadosGolpeRestantes: dadosRestantesNuevos,
     salvacionesMuerte: { exitos: 0, fallos: 0 },
     espaciosPactoGastados: espaciosPactoGastadosNuevos,
-    rasgos: rasgosActualizadosCorto
+    rasgos: rasgosActualizadosCorto,
+    inspiracion: inspiracionNuevaCorto
   };
 
   return { personajeActualizado, acciones };
@@ -286,6 +305,23 @@ export function ejecutarDescansoLargo(personaje: PersonajeJugador): ResultadoDes
     });
   }
 
+  // 10. Restaurar Inspiración Heroica si el personaje posee un rasgo que lo otorgue en Descanso Largo
+  let inspiracionNueva = personaje.inspiracion;
+  if (evaluarRecuperacionInspiracionEnDescanso(personaje, "largo")) {
+    if (!personaje.inspiracion) {
+      inspiracionNueva = true;
+      acciones.push({
+        tipo: "recurso",
+        descripcion: "Inspiración heroica obtenida tras finalizar el descanso largo."
+      });
+    } else {
+      acciones.push({
+        tipo: "recurso",
+        descripcion: "Inspiración heroica conservada (ya disponías de inspiración heroica)."
+      });
+    }
+  }
+
   const personajeActualizado: PersonajeJugador = {
     ...personaje,
     hpActual: personaje.hpMaximo,
@@ -300,7 +336,8 @@ export function ejecutarDescansoLargo(personaje: PersonajeJugador): ResultadoDes
     concentracionActiva: null,
     condicionesActivas: condicionesLimpias,
     inventario: inventarioActualizado,
-    rasgos: rasgosActualizadosLargo
+    rasgos: rasgosActualizadosLargo,
+    inspiracion: inspiracionNueva
   };
 
   return { personajeActualizado, acciones };

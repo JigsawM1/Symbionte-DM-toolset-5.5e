@@ -161,14 +161,16 @@ export function usarDragAndDropInventario({
             return;
           }
 
-          if (objActual.equipado) {
+          if (objActual.equipado && !objDestino?.equipado) {
             alAlternarEquipado(idInstancia);
             agregarNotificacion(`"${objActual.nombre}" desequipado.`, "info");
           }
-          if (objActual.contenedor && objActual.contenedor !== "mochila") {
+          if (!objDestino?.equipado && objActual.contenedor && objActual.contenedor !== "mochila") {
             alCambiarContenedor?.(idInstancia, "mochila");
           }
-          alCambiarOrden?.("personalizado");
+          if (!objDestino?.equipado) {
+            alCambiarOrden?.("personalizado");
+          }
           alReordenarInventario(idInstancia, idDestino);
         }
       }

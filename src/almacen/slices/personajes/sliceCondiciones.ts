@@ -35,7 +35,7 @@ function sincronizarCondicionesEnIniciativa(
           const elimNorm = condicionEliminada.toLowerCase().trim();
           const esConcentracion = elimNorm.includes("concentra");
           nuevosEfectos = nuevosEfectos.filter((e) => {
-            if (esConcentracion && (e.concentracion || e.id === "ef_concentracion" || e.nombre.toLowerCase().includes("concentra"))) {
+            if (esConcentracion && (e.concentracion || e.id === "ef_concentracion" || e.id.includes("concentra"))) {
               return false;
             }
             if (e.nombre.toLowerCase().trim() === elimNorm) {
@@ -209,7 +209,7 @@ export const crearSubSliceCondiciones: StateCreator<
     mutarPersonaje(set, id, (pj) => {
       const efecto = (pj.efectosActivos || []).find((e) => e.id === idEfecto);
       nombreEfectoEliminado = efecto?.nombre || "";
-      const eraConcentracion = efecto?.concentracion || efecto?.nombre.toLowerCase().includes("concentra");
+      const eraConcentracion = efecto?.concentracion || efecto?.id.includes("concentra");
       const nuevosEfectos = (pj.efectosActivos || []).filter((e) => e.id !== idEfecto);
 
       let conds = pj.condicionesActivas || [];

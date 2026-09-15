@@ -26,7 +26,7 @@ export const SelectorInvocacionesAcordeon: React.FC<SelectorInvocacionesAcordeon
   nivelPersonaje = 1,
   alActualizarSeleccion
 }) => {
-  const seleccionados = selector.valorActual || [];
+  const seleccionados = useMemo(() => selector.valorActual || [], [selector.valorActual]);
   const max = selector.maxSelecciones || 1;
 
   // Estado local para elementos expandidos

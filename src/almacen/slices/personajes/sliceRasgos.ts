@@ -181,13 +181,13 @@ export const crearSubSliceRasgos: StateCreator<
           (r) => (
             r.id.toLowerCase() === padreKey ||
             r.nombre.toLowerCase().trim() === padreKey ||
-            (padreKey.includes("furia") && (r.nombre.toLowerCase().trim() === "furia" || r.id === "rasgo_cls_barbaro_furia")) ||
-            (padreKey.includes("temerario") && (r.nombre.toLowerCase().includes("temerario") || r.id.includes("temerario") || r.nombre.toLowerCase().includes("reckless") || r.id.includes("reckless")))
+            (padreKey.includes("furia") && (r.id === "furia" || r.id === "rasgo_cls_barbaro_furia")) ||
+            (padreKey.includes("temerario") && (r.id.includes("temerario") || r.id.includes("reckless")))
           ) && r.activo
         ) || (pj.condicionesActivas || []).some(
           (c) => c.toLowerCase().includes(padreKey) || (padreKey.includes("temerario") && (c.toLowerCase().includes("temerario") || c.toLowerCase().includes("reckless")))
         ) || (pj.efectosActivos || []).some(
-          (e) => padreKey.includes("temerario") && (e.nombre.toLowerCase().includes("temerario") || e.nombre.toLowerCase().includes("reckless"))
+          (e) => padreKey.includes("temerario") && (e.id.includes("temerario") || e.id.includes("reckless"))
         );
         if (!padreActivo) {
           return pj; // Bloqueado: rasgo padre requerido no está activo
@@ -261,10 +261,10 @@ export const crearSubSliceRasgos: StateCreator<
               idsHijosADesactivar.add(r.id);
             }
           }
-          if (esFuriaBase && (r.nombre.toLowerCase().includes("furia divina") || r.id.includes("furia_divina") || r.nombre.toLowerCase().includes("furia de los dioses") || r.id.includes("furia_de_los_dioses"))) {
+          if (esFuriaBase && (r.id.includes("furia_divina") || r.id.includes("furia_de_los_dioses"))) {
             idsHijosADesactivar.add(r.id);
           }
-          if (esAtaqueTemerarioApagado && (r.nombre.toLowerCase().includes("golpe brutal") || r.id.includes("golpe_brutal"))) {
+          if (esAtaqueTemerarioApagado && r.id.includes("golpe_brutal")) {
             idsHijosADesactivar.add(r.id);
           }
         }

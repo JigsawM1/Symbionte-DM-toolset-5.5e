@@ -18,6 +18,7 @@ import {
   User
 } from "lucide-react";
 import estilosClases from "./BarraControl.module.css";
+import { logger } from "@/utiles/logger";
 
 export const BarraControl: React.FC = () => {
   const { colaIniciativa, rondaActual } = usarEstadoIniciativa();
@@ -62,9 +63,7 @@ export const BarraControl: React.FC = () => {
 
     autoLanzarIniciativaMonstruos();
     
-    if (window.TS) {
-      window.TS.debug?.log("Auto Roll completado de forma masiva para todos los monstruos de la cola.");
-    }
+    logger.debug("Auto Roll completado de forma masiva para todos los monstruos de la cola.");
   };
 
   return (

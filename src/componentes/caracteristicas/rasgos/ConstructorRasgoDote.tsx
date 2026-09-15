@@ -220,6 +220,7 @@ export const ConstructorRasgoDote: React.FC<ConstructorRasgoDoteProps> = ({
   const [nuevoLimiteMaximo, setNuevoLimiteMaximo] = useState<number>(25);
   const [nuevoPermiteEscudo, setNuevoPermiteEscudo] = useState<boolean>(true);
   const [nuevaDescripcionEfecto, setNuevaDescripcionEfecto] = useState<string>("");
+  const [nuevoCondicion, setNuevoCondicion] = useState<string>("");
 
   // Presets de dotes canónicas
   const manejarSeleccionarDotePreset = (idDote: string) => {
@@ -327,9 +328,10 @@ export const ConstructorRasgoDote: React.FC<ConstructorRasgoDoteProps> = ({
       setNuevoValor("orden_imperiosa");
       setNuevaDescripcionEfecto("Lanzamiento sin consumir espacios");
     } else if (t === "restaurar_recurso") {
-      setNuevoObjetivo("furia");
-      setNuevoValor("maximo");
-      setNuevaDescripcionEfecto("Restaura usos del recurso al activarse");
+      setNuevoObjetivo("inspiracion");
+      setNuevoValor("1");
+      setNuevoCondicion("descanso_largo");
+      setNuevaDescripcionEfecto("Recupera Inspiración Heroica tras finalizar un descanso largo");
     } else if (t === "modificador_hp_maximo") {
       setNuevoObjetivo("hp_maximo");
       setNuevoValor("1*nivel");
@@ -412,9 +414,16 @@ export const ConstructorRasgoDote: React.FC<ConstructorRasgoDoteProps> = ({
         case "modificador_hp_maximo":
           descFinal = `Modificador de HP Máximo: ${nuevoValor}`;
           break;
-        case "restaurar_recurso":
-          descFinal = `Restaurar ${nuevoValor} uso(s) de ${nuevoObjetivo}`;
+        case "restaurar_recurso": {
+          const objNorm = nuevoObjetivo.trim().toLowerCase();
+          if (objNorm === "inspiracion" || objNorm === "inspiracion_heroica" || objNorm.includes("inspiracion")) {
+            const condTexto = nuevoCondicion.includes("corto") ? "un descanso corto" : "un descanso largo";
+            descFinal = `Recupera Inspiración Heroica tras finalizar ${condTexto}`;
+          } else {
+            descFinal = `Restaurar ${nuevoValor} uso(s) de ${nuevoObjetivo}${nuevoCondicion ? ` (${nuevoCondicion})` : ""}`;
+          }
           break;
+        }
         case "competencia":
           descFinal = `Competencia con ${nuevoObjetivo}`;
           break;
@@ -429,6 +438,7 @@ export const ConstructorRasgoDote: React.FC<ConstructorRasgoDoteProps> = ({
       tipo: nuevoTipoEfecto,
       objetivo: nuevoObjetivo.trim() || "general",
       valor: nuevoValor.trim(),
+      condicion: nuevoCondicion.trim() || undefined,
       tipoDano: nuevoTipoEfecto === "dano_secundario" ? nuevoTipoDano.trim() : undefined,
       aplicaA: nuevoAplicaA,
       limiteMaximo: nuevoTipoEfecto === "modificador_stat" ? nuevoLimiteMaximo : undefined,
@@ -440,6 +450,7 @@ export const ConstructorRasgoDote: React.FC<ConstructorRasgoDoteProps> = ({
     setEfectos((prev) => [...prev, nuevoEfecto]);
     setModoCreandoEfecto(false);
     setNuevaDescripcionEfecto("");
+    setNuevoCondicion("");
   };
 
   const manejarEliminarEfecto = (idEf: string) => {
@@ -1621,32 +1632,94 @@ export const ConstructorRasgoDote: React.FC<ConstructorRasgoDoteProps> = ({
             )}
 
             {nuevoTipoEfecto === "restaurar_recurso" && (
-              <div className={estilos.gridDosColumnas}>
-                <div className={estilos.campoGrupo}>
-                  <label className={estilos.labelCampo}>
-                    <span>Rasgo o Recurso a Restaurar</span>
-                  </label>
-                  <input
-                    type="text"
-                    className={estilos.inputControl}
-                    placeholder="ej. furia, inspiracion bardica..."
-                    value={nuevoObjetivo}
-                    onChange={(e) => setNuevoObjetivo(e.target.value)}
-                  />
+              <>
+                <div className={estilos.gridDosColumnas}>
+                  <div className={estilos.campoGrupo}>
+                    <label className={estilos.labelCampo}>
+                      <span>Recurso Predefinido o Rápido</span>
+                    </label>
+                    <SelectorDesplegable
+                      valor={
+                        nuevoObjetivo === "inspiracion"
+                          ? "inspiracion"
+                          : nuevoObjetivo === "furia"
+                          ? "furia"
+                          : nuevoObjetivo === "espacios_pacto"
+                          ? "espacios_pacto"
+                          : "personalizado"
+                      }
+                      opciones={[
+                        { valor: "inspiracion", etiqueta: "Inspiración Heroica" },
+                        { valor: "furia", etiqueta: "Furia" },
+                        { valor: "espacios_pacto", etiqueta: "Espacios de Pacto" },
+                        { valor: "personalizado", etiqueta: "Otro (Especificar)" }
+                      ]}
+                      alCambiar={(val) => {
+                        if (val === "inspiracion") {
+                          setNuevoObjetivo("inspiracion");
+                          setNuevoValor("1");
+                          setNuevoCondicion("descanso_largo");
+                          setNuevaDescripcionEfecto("Recupera Inspiración Heroica tras finalizar un descanso largo");
+                        } else if (val === "furia") {
+                          setNuevoObjetivo("furia");
+                          setNuevoValor("maximo");
+                          setNuevoCondicion("descanso_largo");
+                          setNuevaDescripcionEfecto("Restaura usos de Furia");
+                        } else if (val === "espacios_pacto") {
+                          setNuevoObjetivo("espacios_pacto");
+                          setNuevoValor("maximo");
+                          setNuevoCondicion("descanso_corto");
+                          setNuevaDescripcionEfecto("Restaura Espacios de Pacto");
+                        }
+                      }}
+                      tamano="normal"
+                    />
+                  </div>
+                  <div className={estilos.campoGrupo}>
+                    <label className={estilos.labelCampo}>
+                      <span>Momento de Restauración</span>
+                    </label>
+                    <SelectorDesplegable
+                      valor={nuevoCondicion || "descanso_largo"}
+                      opciones={[
+                        { valor: "descanso_largo", etiqueta: "Descanso Largo" },
+                        { valor: "descanso_corto", etiqueta: "Descanso Corto" },
+                        { valor: "al_activar", etiqueta: "Al Activar el Rasgo" },
+                        { valor: "siempre", etiqueta: "Siempre / Pasivo" }
+                      ]}
+                      alCambiar={(val) => setNuevoCondicion(val)}
+                      tamano="normal"
+                    />
+                  </div>
                 </div>
-                <div className={estilos.campoGrupo}>
-                  <label className={estilos.labelCampo}>
-                    <span>Cantidad Restaurada</span>
-                  </label>
-                  <input
-                    type="text"
-                    className={estilos.inputControl}
-                    placeholder="ej. maximo, 1, 2..."
-                    value={nuevoValor}
-                    onChange={(e) => setNuevoValor(e.target.value)}
-                  />
+
+                <div className={estilos.gridDosColumnas}>
+                  <div className={estilos.campoGrupo}>
+                    <label className={estilos.labelCampo}>
+                      <span>Identificador o Nombre del Recurso</span>
+                    </label>
+                    <input
+                      type="text"
+                      className={estilos.inputControl}
+                      placeholder="ej. inspiracion, furia, nombre de rasgo..."
+                      value={nuevoObjetivo}
+                      onChange={(e) => setNuevoObjetivo(e.target.value)}
+                    />
+                  </div>
+                  <div className={estilos.campoGrupo}>
+                    <label className={estilos.labelCampo}>
+                      <span>Cantidad Restaurada</span>
+                    </label>
+                    <input
+                      type="text"
+                      className={estilos.inputControl}
+                      placeholder="ej. 1, maximo, 2..."
+                      value={nuevoValor}
+                      onChange={(e) => setNuevoValor(e.target.value)}
+                    />
+                  </div>
                 </div>
-              </div>
+              </>
             )}
 
             <div className={estilos.botonesNuevoEfecto}>

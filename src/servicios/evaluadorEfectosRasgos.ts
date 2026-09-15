@@ -516,6 +516,43 @@ export function calcularMultiplicadorCapacidadCarga(personaje: PersonajeJugador)
 }
 
 /**
+ * Evalúa si los rasgos o efectos activos del personaje otorgan o restauran
+ * inspiración heroica durante un descanso (por ejemplo, descanso largo con rasgo Ingenioso).
+ * Función GENÉRICA PURA: no hardcodea nombres de rasgos ni razas.
+ */
+export function evaluarRecuperacionInspiracionEnDescanso(
+  personaje: PersonajeJugador,
+  tipoDescanso: "corto" | "largo"
+): boolean {
+  if (!personaje) return false;
+  const efectos = evaluarEfectosRasgosActivos(personaje);
+  for (const ef of efectos) {
+    if (ef.tipo === "restaurar_recurso") {
+      const objNorm = normalizar(ef.objetivo);
+      const esInspiracion =
+        objNorm === "inspiracion" ||
+        objNorm === "inspiracion_heroica" ||
+        objNorm.includes("inspiracion heroica") ||
+        (objNorm.includes("inspiracion") && !objNorm.includes("bardica"));
+
+      if (esInspiracion) {
+        const condNorm = normalizar(ef.condicion || ef.aplicaA || String(ef.valor) || "");
+        if (tipoDescanso === "largo") {
+          if (!condNorm || condNorm.includes("largo") || condNorm === "siempre") {
+            return true;
+          }
+        } else if (tipoDescanso === "corto") {
+          if (condNorm.includes("corto")) {
+            return true;
+          }
+        }
+      }
+    }
+  }
+  return false;
+}
+
+/**
  * Ventajas y desventajas directas otorgadas por rasgos activos del personaje
  * para consultar en tiradas d20 (salvaciones, iniciativa, ataques).
  */

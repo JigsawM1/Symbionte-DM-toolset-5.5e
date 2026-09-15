@@ -10,6 +10,7 @@
 
 import type { Caracteristica, Habilidad, PersonajeJugador } from "@/tipos";
 import { evaluarVentajasDeRasgosEnTirada, estaAtaqueTemerarioActivo } from "@/servicios/evaluadorEfectosRasgos";
+import { esClaseBarbaro } from "@/constantes";
 
 export const NIVEL_MAXIMO_CANSANCIO = 6;
 
@@ -346,11 +347,11 @@ export function evaluarEfectosCondicionesEnTirada(
   if (contexto.tipo === "salvacion" && contexto.personaje) {
     const pj = contexto.personaje;
     const rasgoEnfoque = (pj.rasgos || []).find(
-      (r) => (r.id.includes("enfoque_fanatico") || r.nombre.toLowerCase().includes("enfoque fanático") || r.nombre.toLowerCase().includes("enfoque fanatico")) && r.activo
+      (r) => r.id.includes("enfoque_fanatico") && r.activo
     );
     if (rasgoEnfoque) {
-      const claseBarbaro = (pj.clases || []).find((c) => c.nombre.toLowerCase().includes("barbaro") || c.nombre.toLowerCase().includes("bárbaro"));
-      const nivelBarbaro = claseBarbaro?.nivel || (pj.clase?.toLowerCase().includes("barbaro") ? pj.nivel || 1 : 1);
+      const claseBarbaro = (pj.clases || []).find((c) => esClaseBarbaro(c.nombre));
+      const nivelBarbaro = claseBarbaro?.nivel || (esClaseBarbaro(pj.clase) ? pj.nivel || 1 : 1);
       const bonoFuria = nivelBarbaro >= 16 ? 4 : nivelBarbaro >= 9 ? 3 : 2;
       motivosModificadores.push(`Enfoque Fanático (+${bonoFuria})`);
     }

@@ -435,7 +435,7 @@ export function calcularEstadisticasPersonaje(pj: PersonajeJugador): Estadistica
 
   // 3. Bonos Mágicos y Efectos Pasivos de CA
   let bonosMagicos = 0;
-  if (armaduraObj?.esMagico && armaduraObj.nombre.includes("+")) {
+  if (armaduraObj?.esMagico && armaduraObj.nombre) {
     const match = armaduraObj.nombre.match(/\+(\d+)/);
     if (match) {
       const b = parseInt(match[1], 10);
@@ -443,7 +443,7 @@ export function calcularEstadisticasPersonaje(pj: PersonajeJugador): Estadistica
       desglosePartes.push(`Magia +${b}`);
     }
   }
-  if (escudoObj?.esMagico && escudoObj.nombre.includes("+")) {
+  if (escudoObj?.esMagico && escudoObj.nombre) {
     const match = escudoObj.nombre.match(/\+(\d+)/);
     if (match) {
       const b = parseInt(match[1], 10);
@@ -466,7 +466,8 @@ export function calcularEstadisticasPersonaje(pj: PersonajeJugador): Estadistica
     desglosePartes.push(`Objetos Mágicos +${bonosPasivosCA}`);
   }
 
-  if (bonosModificadorDirectoArmadura > 0 && !armaduraObj?.nombre.includes("+") && !escudoObj?.nombre.includes("+")) {
+  const tieneBonoEnNombre = /\+(\d+)/.test(armaduraObj?.nombre || "") || /\+(\d+)/.test(escudoObj?.nombre || "");
+  if (bonosModificadorDirectoArmadura > 0 && !tieneBonoEnNombre) {
     bonosMagicos += bonosModificadorDirectoArmadura;
     desglosePartes.push(`Refuerzo Mágico +${bonosModificadorDirectoArmadura}`);
   }

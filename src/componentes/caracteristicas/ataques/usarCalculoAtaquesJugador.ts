@@ -7,7 +7,7 @@ import {
   usarEstadoConfiguracion,
   usarAccionesConfiguracion
 } from "@/almacen/selectores";
-import { esLanzadorCarisma, esClasePacto } from "@/constantes";
+import { esLanzadorCarisma, esLanzadorSabiduria, esClasePacto } from "@/constantes";
 import { OBJETOS_INICIALES } from "@/utiles/datosIniciales";
 export type {
   AtaquePersonajeCalculado,
@@ -88,6 +88,16 @@ export function usarCalculoAtaquesJugador() {
       recursos: true,
       fisicos: true,
       magicos: true,
+      magicos_nv_0: true,
+      magicos_nv_1: true,
+      magicos_nv_2: true,
+      magicos_nv_3: true,
+      magicos_nv_4: true,
+      magicos_nv_5: true,
+      magicos_nv_6: true,
+      magicos_nv_7: true,
+      magicos_nv_8: true,
+      magicos_nv_9: true,
       rasgos: true,
       consumibles: true,
       hechizosObjetos: true
@@ -95,10 +105,13 @@ export function usarCalculoAtaquesJugador() {
   );
 
   const alternarSeccion = useCallback((seccion: string) => {
-    setSeccionesAbiertas((prev) => ({
-      ...prev,
-      [seccion]: !prev[seccion]
-    }));
+    setSeccionesAbiertas((prev) => {
+      const estaAbierta = prev[seccion] !== false;
+      return {
+        ...prev,
+        [seccion]: !estaAbierta
+      };
+    });
   }, [setSeccionesAbiertas]);
 
   // Modal de detalle de conjuro y de rasgo
@@ -140,8 +153,7 @@ export function usarCalculoAtaquesJugador() {
     if (esLanzadorCarisma(clase)) {
       return "carisma";
     }
-    const claseNorm = clase.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-    if (claseNorm.includes("clerigo") || claseNorm.includes("druida") || claseNorm.includes("explorador") || claseNorm.includes("cleric") || claseNorm.includes("ranger")) {
+    if (esLanzadorSabiduria(clase)) {
       return "sabiduria";
     }
     return "inteligencia";
@@ -213,7 +225,7 @@ export function usarCalculoAtaquesJugador() {
   const furiaEstaActiva = useMemo(() => {
     if (!personajeActivo) return false;
     const tieneRasgoFuriaActivo = (personajeActivo.rasgos || []).some(
-      (r) => (r.nombre.toLowerCase().trim() === "furia" || r.id.toLowerCase().trim() === "rasgo_cls_barbaro_furia") && r.activo
+      (r) => (r.id === "rasgo_cls_barbaro_furia" || r.id === "furia") && r.activo
     );
     const tieneCondicionFuria = (personajeActivo.condicionesActivas || []).some(
       (c) => c.toLowerCase().includes("furia (rage)") || (c.toLowerCase().includes("furia") && !c.toLowerCase().includes("furia de los dioses"))

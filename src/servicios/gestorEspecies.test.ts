@@ -11,6 +11,7 @@ import {
 import { evaluarVentajasDeRasgosEnTirada, resolverIdRasgoObjetivoGasto } from "./evaluadorEfectosRasgos";
 import { resolverRasgosAcciones } from "./calculadorAccionesCombate";
 import { resolverOrigenConjuro } from "./resolutorOrigenConjuros";
+import { ejecutarDescansoLargo } from "./procesadorDescansos";
 import {
   resolverCondicionAsociadaRasgo,
   coincideCondicionConRasgo,
@@ -1565,6 +1566,80 @@ describe("GestorEspecies - Dominio de Razas y Subrazas (D&D 5.5e)", () => {
       expect(formaGrandeN5).toBeDefined();
       expect(formaGrandeN5?.nivelRequerido).toBe(5);
       expect(formaGrandeN5?.usosMaximos).toBe(1);
+    });
+  });
+
+  describe("Implementación Canónica de Humano (D&D 5.5e)", () => {
+    it("carga la especie Humano con sus metadatos oficiales de D&D 5.5e", () => {
+      const humano = obtenerEspeciePorId("humano");
+      expect(humano).toBeDefined();
+      expect(humano?.nombre).toBe("Humano");
+      expect(humano?.tipoCriatura).toBe("Humanoide");
+      expect(humano?.velocidadBase).toBe(30);
+      expect(humano?.visionOscuridad).toBe(0);
+      expect(humano?.tamanoPorDefecto).toBe("Mediano");
+      expect(humano?.tamanoOpciones).toEqual(["Mediano", "Pequeño"]);
+    });
+
+    it("construye los rasgos canónicos de Humano: Ingenioso, Diestro y Versátil", () => {
+      const humano = obtenerEspeciePorId("humano")!;
+      const rasgos = construirRasgosEspecie(humano, undefined, 1, 2);
+
+      const nombres = rasgos.map((r) => r.nombre);
+      expect(nombres).toContain("Ingenioso");
+      expect(nombres).toContain("Diestro");
+      expect(nombres).toContain("Versátil");
+
+      // Ingenioso: efecto mecánico restaurar_recurso en descanso largo
+      const rasgoIngenioso = rasgos.find((r) => r.nombre === "Ingenioso");
+      expect(rasgoIngenioso).toBeDefined();
+      expect(rasgoIngenioso?.tipoAccion).toBe("pasivo");
+      expect(rasgoIngenioso?.recuperacion).toBe("descanso_largo");
+      const efInspiracion = rasgoIngenioso?.efectos?.find((e) => e.tipo === "restaurar_recurso");
+      expect(efInspiracion).toBeDefined();
+      expect(efInspiracion?.objetivo).toBe("inspiracion");
+      expect(efInspiracion?.condicion).toBe("descanso_largo");
+
+      // Diestro: pasivo informativo
+      const rasgoDiestro = rasgos.find((r) => r.nombre === "Diestro");
+      expect(rasgoDiestro?.tipoAccion).toBe("pasivo");
+      expect(rasgoDiestro?.efectos).toHaveLength(0);
+
+      // Versátil: pasivo informativo
+      const rasgoVersatil = rasgos.find((r) => r.nombre === "Versátil");
+      expect(rasgoVersatil?.tipoAccion).toBe("pasivo");
+      expect(rasgoVersatil?.efectos).toHaveLength(0);
+    });
+
+    it("aplica la especie Humano al personaje respetando el tamaño elegido y recupera inspiración en descanso largo", () => {
+      const pjBase: PersonajeJugador = {
+        ...PERSONAJE_POR_DEFECTO,
+        id: "pj-humano-test",
+        nombre: "Test Humano",
+        nivel: 1,
+        inspiracion: false
+      };
+
+      // 1. Aplicación con tamaño Pequeño
+      const pjPequeno = aplicarEspecieAPersonaje(pjBase, {
+        especieId: "humano",
+        tamanoElegido: "Pequeño"
+      });
+      expect(pjPequeno.tamano).toBe("Pequeño");
+      expect(pjPequeno.velocidad).toBe("30 pies");
+      expect(pjPequeno.rasgos.some((r) => r.nombre === "Ingenioso")).toBe(true);
+
+      // 2. Aplicación con tamaño por defecto (Mediano)
+      const pjMediano = aplicarEspecieAPersonaje(pjBase, {
+        especieId: "humano"
+      });
+      expect(pjMediano.tamano).toBe("Mediano");
+
+      // 3. Recuperación de Inspiración Heroica al finalizar descanso largo
+      expect(pjMediano.inspiracion).toBe(false);
+      const resDescanso = ejecutarDescansoLargo(pjMediano);
+      expect(resDescanso.personajeActualizado.inspiracion).toBe(true);
+      expect(resDescanso.acciones.some((a) => a.descripcion.includes("Inspiración heroica"))).toBe(true);
     });
   });
 });

@@ -75,14 +75,6 @@ export const VistaAtaquesJugador: React.FC = () => {
     manejarUsarConsumible
   } = usarCalculoAtaquesJugador();
 
-  if (!personajeActivo) {
-    return (
-      <div className={estilos.contenedorGeneral}>
-        <div className={estilos.tarjetaVacia}>No hay un personaje activo seleccionado.</div>
-      </div>
-    );
-  }
-
   const rasgoDetalleEfectivo = React.useMemo(() => {
     if (!rasgoDetalle || !personajeActivo) return null;
     return (
@@ -90,6 +82,14 @@ export const VistaAtaquesJugador: React.FC = () => {
       rasgoDetalle
     );
   }, [rasgoDetalle, personajeActivo]);
+
+  if (!personajeActivo) {
+    return (
+      <div className={estilos.contenedorGeneral}>
+        <div className={estilos.tarjetaVacia}>No hay un personaje activo seleccionado.</div>
+      </div>
+    );
+  }
 
   const hayAcciones =
     ataquesFisicosFiltrados.length > 0 ||

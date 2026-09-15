@@ -11,7 +11,9 @@ import {
   COSTE_PUNTOS_POR_NIVEL,
   TIPO_LANZADOR_POR_CLASE,
   TABLA_PACTO_BRUJO,
-  esLanzadorCarisma
+  esLanzadorCarisma,
+  esLanzadorSabiduria,
+  esClasePacto
 } from "@/constantes";
 import {
   CATALOGO_CONJUROS_SUBCLASES
@@ -194,7 +196,7 @@ export function calcularTodosRecursosMagicos(
 
   // Buscar clase Brujo o tipo "pacto"
   const claseBrujo = clasesLanzadoras.find(
-    (c) => c.tipoLanzador === "pacto" || c.clase.toLowerCase().includes("brujo") || c.clase.toLowerCase().includes("warlock")
+    (c) => c.tipoLanzador === "pacto" || esClasePacto(c.clase)
   );
 
   const pacto = claseBrujo
@@ -743,14 +745,7 @@ export function obtenerHabilidadConjuroPersonaje(pj: PersonajeJugador | null | u
   if (esLanzadorCarisma(clase)) {
     return "carisma";
   }
-  const claseNorm = (clase || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-  if (
-    claseNorm.includes("clerigo") ||
-    claseNorm.includes("druida") ||
-    claseNorm.includes("explorador") ||
-    claseNorm.includes("cleric") ||
-    claseNorm.includes("ranger")
-  ) {
+  if (esLanzadorSabiduria(clase)) {
     return "sabiduria";
   }
   return "inteligencia";

@@ -7,6 +7,7 @@ import {
 } from "@/almacen/selectores";
 import { Skull, Plus } from "lucide-react";
 import estilosClases from "./BuscadorMonstruos.module.css";
+import { logger } from "@/utiles/logger";
 
 export const BuscadorMonstruos: React.FC = () => {
   const { baseDatosMonstruos } = usarEstadoHomebrew();
@@ -46,9 +47,7 @@ export const BuscadorMonstruos: React.FC = () => {
       plantilla.id
     );
 
-    if (window.TS) {
-      window.TS.debug?.log(`Añadido monstruo ${plantilla.nombre} a la iniciativa local. Tirada: ${tiradaInic} + ${plantilla.iniciativaBonificador} = ${totalInic}`);
-    }
+    logger.debug(`Añadido monstruo ${plantilla.nombre} a la iniciativa local. Tirada: ${tiradaInic} + ${plantilla.iniciativaBonificador} = ${totalInic}`);
 
     if (limpiarBuscador) {
       setBusquedaMonstruo("");

@@ -48,7 +48,7 @@ export async function ejecutarTiradaAtaqueFisico(ctx: ContextoTiradaAtaqueFisico
 
     if (ataque.caracteristicaUsada === "fuerza") {
       const rasgoGolpeBrutal = (personajeActivo?.rasgos || []).find(
-        (r) => (r.id.includes("golpe_brutal") || r.nombre.toLowerCase().includes("golpe brutal")) && r.activo
+        (r) => r.id.includes("golpe_brutal") && r.activo
       );
       if (rasgoGolpeBrutal && evaluacionCondiciones.modoEfectivo === "ventaja") {
         evaluacionCondiciones.modoEfectivo = "plano";

@@ -36,6 +36,7 @@ export const VistaJugadores: React.FC = () => {
   // Auto-resolución silenciosa de miniaturas de TaleSpire en segundo plano
   useEffect(() => {
     autoResolverMiniaturasJugador(personajes, vincularMiniaturaTSPersonaje);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [personajes.length, personajeActivo?.nombre]);
 
   return (

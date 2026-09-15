@@ -106,19 +106,33 @@ export const RASGOS_POR_CLASE: Record<string, PlantillaRasgoClase[]> = Object.fr
 export const RASGOS_POR_ESPECIE: Record<string, PlantillaRasgoEspecie[]> = {
   "Humano": [
     {
-      nombre: "Ingenio ingenioso",
-      descripcion: "Ganas una dote de origen adicional de tu elección al nivel 1.",
-      tipoAccion: "pasivo"
+      nombre: "Ingenioso",
+      descripcion: "Obtienes inspiración heroica tras finalizar un descanso largo.",
+      tipoAccion: "pasivo",
+      categoriaMecanica: "pasivo_permanente",
+      recuperacion: "descanso_largo",
+      efectos: [
+        {
+          id: "ef_humano_ingenioso_insp",
+          tipo: "restaurar_recurso",
+          objetivo: "inspiracion",
+          valor: "1",
+          condicion: "descanso_largo",
+          descripcion: "Inspiración heroica tras descanso largo"
+        }
+      ]
+    },
+    {
+      nombre: "Diestro",
+      descripcion: "Ganas competencia en una habilidad de tu elección.",
+      tipoAccion: "pasivo",
+      categoriaMecanica: "pasivo_permanente"
     },
     {
       nombre: "Versátil",
-      descripcion: "Ganas competencia en una habilidad de tu elección.",
-      tipoAccion: "pasivo"
-    },
-    {
-      nombre: "Inspiración heroica",
-      descripcion: "Al finalizar un descanso largo, ganas automáticamente Inspiración heroica si no la tenías.",
-      tipoAccion: "pasivo"
+      descripcion: "Obtienes una dote de origen de tu elección.",
+      tipoAccion: "pasivo",
+      categoriaMecanica: "pasivo_permanente"
     }
   ],
 

@@ -8,6 +8,7 @@ import {
   obtenerNivelesArcanoMisticoDisponibles
 } from "@/servicios/calculadorMagia";
 import { MAPA_ALIAS_HECHIZOS } from "@/constantes/subclasesConjurosConstantes";
+import { esClasePacto } from "@/constantes";
 import { generarIdSlug } from "@/utiles/generarId";
 import { resolverOrigenConjuro, OrigenConjuroBadge } from "@/servicios/resolutorOrigenConjuros";
 
@@ -86,7 +87,7 @@ export function usarMagiaPersonaje(
   const esLanzadorPacto = useMemo(() => {
     if ((personaje?.espaciosPactoMaximos || 0) > 0) return true;
     return (personaje?.clasesLanzadoras || []).some(
-      (c) => c.tipoLanzador === "pacto" || c.clase.toLowerCase().includes("brujo") || c.clase.toLowerCase().includes("warlock")
+      (c) => c.tipoLanzador === "pacto" || esClasePacto(c.clase)
     );
   }, [personaje?.espaciosPactoMaximos, personaje?.clasesLanzadoras]);
 
@@ -96,13 +97,10 @@ export function usarMagiaPersonaje(
   const nivelBrujo = useMemo(() => {
     if (!personaje) return 0;
     const claseBrujo = (personaje.clases || []).find(
-      (c) => c.nombre.toLowerCase().includes("brujo") || c.nombre.toLowerCase().includes("warlock")
+      (c) => esClasePacto(c.nombre)
     );
     if (claseBrujo) return claseBrujo.nivel;
-    if (
-      personaje.clase?.toLowerCase().includes("brujo") ||
-      personaje.clase?.toLowerCase().includes("warlock")
-    ) {
+    if (esClasePacto(personaje.clase)) {
       return personaje.nivel || 1;
     }
     return 0;

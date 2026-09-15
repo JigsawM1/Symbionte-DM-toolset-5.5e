@@ -278,14 +278,17 @@ export function usarInventarioOrdenado({
         return;
       }
 
-      if (objOrigen?.equipado) {
+      // Si se suelta un objeto equipado sobre un objeto NO equipado: DESEQUIPAR y mover a mochila
+      if (objOrigen?.equipado && !objDestino?.equipado) {
         alAlternarEquipado(origen);
         agregarNotificacion(`"${objOrigen.nombre}" desequipado.`, "info");
       }
-      if (objOrigen?.contenedor && objOrigen.contenedor !== "mochila") {
+      if (!objDestino?.equipado && objOrigen?.contenedor && objOrigen.contenedor !== "mochila") {
         alCambiarContenedor?.(origen, "mochila");
       }
-      setCriterioOrden("personalizado");
+      if (!objDestino?.equipado) {
+        setCriterioOrden("personalizado");
+      }
       alReordenarInventario?.(origen, destino);
     },
     multiplicadorTexto,

@@ -73,7 +73,7 @@ describe("Compendio y Sincronizador de Rasgos D&D 5.5e", () => {
 
     // Debe haber añadido los rasgos de Humano y Guerrero
     const nombres = sincronizados.map((r) => r.nombre);
-    expect(nombres).toContain("Ingenio ingenioso");
+    expect(nombres).toContain("Ingenioso");
     expect(nombres).toContain("Tomar aliento");
     expect(nombres).toContain("Acción súbita");
   });

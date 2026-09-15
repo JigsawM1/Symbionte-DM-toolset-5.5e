@@ -112,7 +112,7 @@ export function sincronizarConEstadoLocal(opciones: OpcionesSincronizacion): Res
         condicionesPj = condicionesPj.filter((c) => !c.toLowerCase().includes("concentra"));
 
         const yaTieneEfecto = efectosPj.some(
-          (e) => e.concentracion || e.id === "ef_concentracion" || e.nombre.toLowerCase().includes("concentra")
+          (e) => e.concentracion || e.id === "ef_concentracion" || e.id.includes("concentra")
         );
         if (!yaTieneEfecto) {
           efectosPj.push({
@@ -124,7 +124,7 @@ export function sincronizarConEstadoLocal(opciones: OpcionesSincronizacion): Res
       } else {
         condicionesPj = condicionesPj.filter((c) => !c.toLowerCase().includes("concentra"));
         efectosPj = efectosPj.filter(
-          (e) => !e.concentracion && e.id !== "ef_concentracion" && !e.nombre.toLowerCase().includes("concentra")
+          (e) => !e.concentracion && e.id !== "ef_concentracion" && !e.id.includes("concentra")
         );
       }
 

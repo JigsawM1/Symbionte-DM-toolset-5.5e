@@ -127,6 +127,7 @@ export const FormularioHechizo: React.FC<Props> = ({
     } else {
       limpiarFormulario();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [idEnEdicion, baseDatosHechizos]);
 
   // Detener clics accidentales al lienzo 3D de TaleSpire

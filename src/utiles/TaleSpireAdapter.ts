@@ -204,8 +204,6 @@ class TaleSpireAdapter {
 
         try {
           return await this.getQueuePromise;
-        } catch (error) {
-          throw error;
         } finally {
           // Garantizar la limpieza de la promesa de caché únicamente al finalizar la misma
           this.getQueuePromise = null;

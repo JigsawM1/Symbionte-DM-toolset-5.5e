@@ -86,3 +86,28 @@ export function esLanzadorCarisma(nombreOIdClase: string = ""): boolean {
     norm.includes("paladin")
   );
 }
+
+/**
+ * Determina si una clase lanzadora utiliza Sabiduría como atributo de lanzamiento principal.
+ */
+export function esLanzadorSabiduria(nombreOIdClase: string = ""): boolean {
+  const norm = normalizarIdentificador(nombreOIdClase);
+  return (
+    norm.includes(ID_CLASE.CLERIGO) ||
+    norm.includes(ID_CLASE.DRUIDA) ||
+    norm.includes(ID_CLASE.EXPLORADOR) ||
+    norm.includes("cleric") ||
+    norm.includes("druid") ||
+    norm.includes("ranger")
+  );
+}
+
+/**
+ * Determina si una clase corresponde a Bárbaro.
+ */
+export function esClaseBarbaro(nombreOIdClase: string = ""): boolean {
+  const norm = normalizarIdentificador(nombreOIdClase);
+  return norm.includes(ID_CLASE.BARBARO) || norm.includes("barbarian");
+}
+
+

@@ -128,7 +128,7 @@ export function resolverOrigenConjuro(
     }
 
     // Regla D&D 5.5e: Palabras de creación (Bardo Nv 20)
-    if (!otorga && sinTildes.includes("palabra de poder") && r.nombre.toLowerCase().includes("palabras de creacion")) {
+    if (!otorga && sinTildes.includes("palabra de poder") && (r.id.includes("palabras_creacion") || r.id.includes("palabras_de_creacion") || r.id.includes("creacion"))) {
       otorga = true;
     }
 

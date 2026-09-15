@@ -419,7 +419,7 @@ export const crearSliceIniciativa: StateCreator<
         criaturaAfectadaNombre = c.nombre;
         efectoEliminado = (c.efectos || []).find((e) => e.id === idEfecto);
         const nuevosEfectos = (c.efectos || []).filter((e) => e.id !== idEfecto);
-        const eraConcentracion = efectoEliminado?.concentracion || efectoEliminado?.nombre.toLowerCase().includes("concentra");
+        const eraConcentracion = efectoEliminado?.concentracion || efectoEliminado?.id.includes("concentra");
         let condicionesActualizadas = eraConcentracion
           ? quitarCondicion(c.condiciones, "Concentración")
           : c.condiciones;
@@ -442,7 +442,7 @@ export const crearSliceIniciativa: StateCreator<
         (cNom && (pj.nombre || "").trim().toLowerCase() === cNom);
 
       if (coincide && efectoEliminado) {
-        const eraConcentracion = efectoEliminado.concentracion || efectoEliminado.nombre.toLowerCase().includes("concentra");
+        const eraConcentracion = efectoEliminado.concentracion || efectoEliminado.id.includes("concentra");
         const nuevosEfectosPj = (pj.efectosActivos || []).filter((e) => e.id !== idEfecto && e.nombre !== efectoEliminado!.nombre);
         let conds = pj.condicionesActivas || [];
         if (eraConcentracion) {

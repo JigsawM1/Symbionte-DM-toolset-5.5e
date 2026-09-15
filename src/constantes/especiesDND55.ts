@@ -829,10 +829,21 @@ export const CATALOGO_ESPECIES_DND55: DefinicionEspecie[] = [
     visionOscuridad: 0,
     rasgos: [
       {
-        nombre: "Ingenio ingenioso",
+        nombre: "Ingenioso",
         descripcion: "Obtienes inspiración heroica tras finalizar un descanso largo.",
         tipoAccion: "pasivo",
-        categoriaMecanica: "pasivo_permanente"
+        categoriaMecanica: "pasivo_permanente",
+        recuperacion: "descanso_largo",
+        efectos: [
+          {
+            id: "ef_humano_ingenioso_insp",
+            tipo: "restaurar_recurso",
+            objetivo: "inspiracion",
+            valor: "1",
+            condicion: "descanso_largo",
+            descripcion: "Inspiración heroica tras descanso largo"
+          }
+        ]
       },
       {
         nombre: "Diestro",
@@ -842,7 +853,7 @@ export const CATALOGO_ESPECIES_DND55: DefinicionEspecie[] = [
       },
       {
         nombre: "Versátil",
-        descripcion: "Obtienes una dote de origen de tu elección al nivel 1.",
+        descripcion: "Obtienes una dote de origen de tu elección.",
         tipoAccion: "pasivo",
         categoriaMecanica: "pasivo_permanente"
       }

@@ -3,16 +3,17 @@
   "private": true,
   "version": "1.0.0",
   "type": "module",
+  "packageManager": "pnpm@9.15.4",
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
     "deploy": "tsc && vite build && node deploy_to_ts.js",
     "build-and-zip": "node build_and_zip.js",
     "preview": "vite preview",
-    "lint": "eslint src",
+    "lint": "eslint src --max-warnings=0",
     "test": "vitest run",
     "verificar:lineas": "node scripts/verificar-limite-lineas.js",
-    "ci": "tsc --noEmit && eslint src && vitest run && node scripts/verificar-limite-lineas.js && vite build",
+    "ci": "tsc --noEmit && eslint src --max-warnings=0 && vitest run && node scripts/verificar-limite-lineas.js && vite build",
     "transformar-hechizos": "tsx --tsconfig tsconfig.json src/editor_hechizos/transformar.ts"
   },
   "dependencies": {

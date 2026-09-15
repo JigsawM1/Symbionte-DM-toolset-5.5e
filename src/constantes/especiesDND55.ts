@@ -646,7 +646,7 @@ export const CATALOGO_ESPECIES_DND55: DefinicionEspecie[] = [
   {
     id: "goliat",
     nombre: "Goliat",
-    descripcion: "Descendientes gigantescos que portan la resistencia elemental de las cumbres montañosas.",
+    descripcion: "Descendientes gigantescos que portan la resistencia sobrenatural de los gigantes y la fortaleza de las cumbres montañosas.",
     tipoCriatura: "Humanoide",
     tamanoOpciones: ["Mediano"],
     tamanoPorDefecto: "Mediano",
@@ -655,28 +655,162 @@ export const CATALOGO_ESPECIES_DND55: DefinicionEspecie[] = [
     rasgos: [
       {
         nombre: "Constitución poderosa",
-        descripcion: "Tienes ventaja en pruebas para poner fin al estado de agarrado y cuentas como un tamaño superior para capacidad de carga.",
+        descripcion: "Tienes ventaja en cualquier prueba de característica que hagas para poner fin al estado de agarrado. Además, al determinar tu capacidad de carga, cuentas como si tuvieras un tamaño una categoría superior.",
         tipoAccion: "pasivo",
-        categoriaMecanica: "pasivo_permanente"
+        categoriaMecanica: "pasivo_permanente",
+        efectos: [
+          {
+            tipo: "modificador_capacidad_carga",
+            objetivo: "multiplicador",
+            valor: 2,
+            descripcion: "Cuentas como una categoría de tamaño superior para capacidad de carga (×2)"
+          }
+        ]
+      },
+      {
+        nombre: "Linaje gigante",
+        descripcion: "Desciendes de los gigantes. Elige uno de los beneficios sobrenaturales que te concede tu linaje; podrás usar el beneficio elegido una cantidad de veces igual a tu bonificador por competencia y recuperas todos los usos tras finalizar un descanso largo.",
+        tipoAccion: "especial",
+        tieneUsosLimitados: true,
+        usosMaximos: 2,
+        recuperacion: "descanso_largo",
+        formulaEscalado: "bono_competencia",
+        categoriaMecanica: "consumible"
       },
       {
         nombre: "Forma grande",
-        descripcion: "A partir de nivel 5, puedes cambiar de tamaño a Grande como acción adicional durante 10 minutos (1/descanso largo). Ganas ventaja en pruebas de Fuerza y +10 pies de velocidad.",
+        descripcion: "A partir del nivel 5 de personaje, puedes cambiar de tamaño a Grande como acción adicional si estás en un lugar lo bastante espacioso. Esta transformación dura 10 minutos o hasta que le pongas fin (no requiere acción). Durante ese tiempo, tendrás ventaja en las pruebas de Fuerza y tu velocidad aumentará en 10 pies. Cuando uses este atributo, no podrás volver a hacerlo hasta que finalices un descanso largo.",
         tipoAccion: "accion_adicional",
         nivelRequerido: 5,
         tieneUsosLimitados: true,
         usosMaximos: 1,
         recuperacion: "descanso_largo",
-        esActivable: true
+        esActivable: true,
+        condicionAlActivar: "Forma grande",
+        duracionEfectoAlActivar: 100,
+        categoriaMecanica: "activable",
+        efectos: [
+          {
+            tipo: "ventaja",
+            objetivo: "prueba.fuerza",
+            valor: "true",
+            descripcion: "Ventaja en pruebas de Fuerza por Forma grande"
+          },
+          {
+            tipo: "modificador_velocidad",
+            objetivo: "velocidad_caminar",
+            valor: 10,
+            descripcion: "+10 pies de velocidad por Forma grande"
+          },
+          {
+            tipo: "modificador_tamano",
+            objetivo: "tamano",
+            valor: "Grande",
+            descripcion: "Tamaño aumentado a Grande por Forma grande"
+          }
+        ]
+      }
+    ],
+    subespecies: [
+      {
+        id: "gigante_fuego",
+        especiePadre: "goliat",
+        nombre: "Gigante de fuego",
+        descripcion: "Linaje imbuido con la abrasión ígnea de los gigantes de fuego.",
+        rasgos: [
+          {
+            nombre: "Abrasión del fuego (gigante de fuego)",
+            descripcion: "Cuando aciertes a un objetivo con una tirada de ataque y le causes daño, también puedes causarle 1d10 de daño de fuego.",
+            tipoAccion: "especial",
+            categoriaMecanica: "consumible",
+            formulaDados: "1d10",
+            gastarDePadre: true,
+            ligadoA: "Linaje gigante"
+          }
+        ]
       },
       {
-        nombre: "Linaje gigante",
-        descripcion: "Desciendes de los gigantes. Obtienes un beneficio sobrenatural utilizable tantas veces como tu PB por descanso largo.",
-        tipoAccion: "especial",
-        tieneUsosLimitados: true,
-        usosMaximos: 2,
-        recuperacion: "descanso_largo",
-        formulaEscalado: "bono_competencia"
+        id: "gigante_colinas",
+        especiePadre: "goliat",
+        nombre: "Gigante de las colinas",
+        descripcion: "Linaje imbuido con la fuerza aplastante de los gigantes de las colinas.",
+        rasgos: [
+          {
+            nombre: "Caída de las colinas (gigante de las colinas)",
+            descripcion: "Cuando aciertes a una criatura Grande o más pequeña con una tirada de ataque y le causes daño, también puedes infligirle el estado de derribada.",
+            tipoAccion: "especial",
+            categoriaMecanica: "consumible",
+            gastarDePadre: true,
+            ligadoA: "Linaje gigante"
+          }
+        ]
+      },
+      {
+        id: "gigante_nubes",
+        especiePadre: "goliat",
+        nombre: "Gigante de las nubes",
+        descripcion: "Linaje imbuido con la magia etérea y brumosa de los gigantes de las nubes.",
+        rasgos: [
+          {
+            nombre: "Excursión de las nubes (gigante de las nubes)",
+            descripcion: "Como acción adicional, te teletransportas mágicamente hasta 30 pies a un espacio sin ocupar que puedas ver.",
+            tipoAccion: "accion_adicional",
+            categoriaMecanica: "consumible",
+            gastarDePadre: true,
+            ligadoA: "Linaje gigante"
+          }
+        ]
+      },
+      {
+        id: "gigante_escarcha",
+        especiePadre: "goliat",
+        nombre: "Gigante de escarcha",
+        descripcion: "Linaje imbuido con la helada glacial de los gigantes de escarcha.",
+        rasgos: [
+          {
+            nombre: "Frío de la escarcha (gigante de escarcha)",
+            descripcion: "Cuando aciertes a un objetivo con una tirada de ataque y le causes daño, también puedes causarle 1d6 de daño de frío y reducir su velocidad en 10 pies hasta el principio de tu siguiente turno.",
+            tipoAccion: "especial",
+            categoriaMecanica: "consumible",
+            formulaDados: "1d6",
+            gastarDePadre: true,
+            ligadoA: "Linaje gigante"
+          }
+        ]
+      },
+      {
+        id: "gigante_piedra",
+        especiePadre: "goliat",
+        nombre: "Gigante de piedra",
+        descripcion: "Linaje imbuido con la dureza impenetrable de los gigantes de piedra.",
+        rasgos: [
+          {
+            nombre: "Resistencia de la piedra (gigante de piedra)",
+            descripcion: "Cuando recibas daño, puedes usar una reacción para tirar 1d12. Suma tu modificador por Constitución al resultado y reduce el daño en ese total.",
+            tipoAccion: "reaccion",
+            categoriaMecanica: "consumible",
+            formulaDados: "1d12+constitucion",
+            gastarDePadre: true,
+            ligadoA: "Linaje gigante"
+          }
+        ]
+      },
+      {
+        id: "gigante_tormentas",
+        especiePadre: "goliat",
+        nombre: "Gigante de las tormentas",
+        descripcion: "Linaje imbuido con la tempestad y la cólera estruendosa de los gigantes de las tormentas.",
+        rasgos: [
+          {
+            nombre: "Trueno de la tormenta (gigante de las tormentas)",
+            descripcion: "Cuando una criatura que esté a 60 pies o menos de ti te cause daño, puedes usar una reacción para infligirle 1d8 de daño de trueno.",
+            tipoAccion: "reaccion",
+            categoriaMecanica: "consumible",
+            formulaDados: "1d8",
+            gastarDePadre: true,
+            ligadoA: "Linaje gigante"
+          }
+        ]
       }
     ]
   },

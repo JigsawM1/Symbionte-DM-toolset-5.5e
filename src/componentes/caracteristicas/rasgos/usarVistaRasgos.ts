@@ -167,9 +167,17 @@ export function usarVistaRasgos() {
   const rasgosFiltrados = useMemo(() => {
     if (!personajeActivo || !Array.isArray(personajeActivo.rasgos)) return [];
 
+    const nivelPj = personajeActivo.nivel || 1;
+
     let lista = [...personajeActivo.rasgos].filter((r) => {
       const nom = r.nombre ? r.nombre.toLowerCase().trim() : "";
-      return nom !== "rasgo de subclase" && !nom.includes("rasgo de subclase");
+      if (nom === "rasgo de subclase" || nom.includes("rasgo de subclase")) {
+        return false;
+      }
+      if (r.nivelRequerido && r.nivelRequerido > nivelPj) {
+        return false;
+      }
+      return true;
     });
 
     if (filtroAccion !== "todos") {

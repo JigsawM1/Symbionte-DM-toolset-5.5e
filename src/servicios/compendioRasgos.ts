@@ -158,7 +158,7 @@ export function sincronizarRasgosAutomaticos(personaje: PersonajeJugador): Rasgo
     personaje.tamano,
     nivelPj,
     bonoCompetencia
-  );
+  ).filter((r) => !r.nivelRequerido || r.nivelRequerido <= nivelPj);
   const rasgosClase = obtenerRasgosSugeridosPorClases(clasesCalculo);
 
   const canonicosNuevos = [...rasgosEspecie, ...rasgosClase];

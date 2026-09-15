@@ -78,12 +78,13 @@ export const MULTIPLICADORES_TAMANO: Record<TamanoPersonaje, number> = {
 export function calcularCapacidadCarga(
   fuerzaBase: number,
   overrideFuerza: number | null = null,
-  tamano: TamanoPersonaje = "Mediano"
+  tamano: TamanoPersonaje = "Mediano",
+  multiplicadorExtra: number = 1
 ): number {
   const fuerzaEfectiva =
     overrideFuerza !== null && overrideFuerza !== undefined ? overrideFuerza : fuerzaBase;
   const mult = MULTIPLICADORES_TAMANO[tamano] ?? 1;
-  const capacidad = Math.max(1, fuerzaEfectiva * 15 * mult);
+  const capacidad = Math.max(1, fuerzaEfectiva * 15 * mult * (multiplicadorExtra > 0 ? multiplicadorExtra : 1));
   return Math.round(capacidad * 10) / 10;
 }
 

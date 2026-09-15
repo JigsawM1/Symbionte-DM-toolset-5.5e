@@ -15,6 +15,7 @@ import { generarIdSlug } from "@/utiles/generarId";
 import { resolverOrigenConjuro } from "@/servicios/resolutorOrigenConjuros";
 import { obtenerEspeciePorNombre, obtenerSubespeciePorNombre } from "@/servicios/gestorEspecies";
 import { sincronizarRasgosAutomaticos } from "@/servicios/compendioRasgos";
+import { resolverIdRasgoObjetivoGasto } from "@/servicios/evaluadorEfectosRasgos";
 
 export interface HechizoObjetoMagicoAccion {
   objetoInstanciaId: string;
@@ -407,8 +408,17 @@ export function resolverRasgosAcciones(
       tipoAccionCalculado = "reaccion";
     }
 
-    const usosMaximos = rasgo.usosMaximos ?? 1;
-    const usosRestantes = rasgo.usosRestantes ?? usosMaximos;
+    let usosMaximos = rasgo.usosMaximos ?? 1;
+    let usosRestantes = rasgo.usosRestantes ?? usosMaximos;
+
+    if (rasgo.gastarDePadre) {
+      const idPadre = resolverIdRasgoObjetivoGasto(rasgo, listaRasgos);
+      const rasgoPadre = listaRasgos.find((r) => r.id === idPadre);
+      if (rasgoPadre && rasgoPadre.tieneUsosLimitados) {
+        usosMaximos = rasgoPadre.usosMaximos ?? 1;
+        usosRestantes = rasgoPadre.usosRestantes ?? usosMaximos;
+      }
+    }
 
     resultado.push({
       rasgo,

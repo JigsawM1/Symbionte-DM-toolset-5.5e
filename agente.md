@@ -19,6 +19,98 @@ Este archivo registra reglas globales, errores encontrados, sus causas raíz y l
    - **Bajo ninguna circunstancia** los módulos de lógica de negocio (`servicios/`), gestores de estado (`almacen/`) o constructores (`gestorClases.ts`) deben contener bifurcaciones condicionales por nombre literal de rasgo o clase (`r.nombre === "..."`, `clase.includes("...")`, etc.).
    - Toda mecánica, progresión de dados, escalado de usos, recuperación o desbloqueo dinámico debe resolverse mediante metadatos declarativos (`escaladoFormulaDados`, `escaladoUsos`, `escaladoRecuperacion`, `opcionesDinamicas`, `escaladoMaxSelecciones`, `sincronizarEfectosConFormula`, `heredarDadosPadre`, `gastarDePadre`, `ligadoA`, `efectos`) delegando en funciones puras agnósticas como `resolverEscaladosRasgo`. Esta regla está reforzada en CI vía ESLint `no-restricted-syntax` y la suite `rasgoGenericidad.test.ts`.
 
+## [2026-09-15] Desbloqueo Estricto por Nivel de Rasgos de Especie (Forma Grande Nivel 5 de Goliat)
+
+**Contexto y Requerimientos del Usuario:**
+- El usuario reportó: *"la habilidad NIVEL 5: FORMA GRANDE es a nivel 5, pero me aparece aunque sea nv 1"*.
+- En D&D 5.5e, *Forma grande* de Goliat se desbloquea a partir del nivel 5 de personaje. Un personaje de nivel 1..4 no debe poseer esta habilidad activa en su ficha, no debe verla en la pestaña "Mis Rasgos" de la interfaz ni debe poder activar sus efectos de ventaja y tamaño.
+
+**Causas Raíz Identificadas:**
+1. **Falta de Filtrado por Nivel en la Inyección de Rasgos de Especie:**
+   - En `gestorEspecies.ts`, la función `aplicarEspecieAPersonaje` llamaba a `construirRasgosEspecie`, pero no filtraba los rasgos resultantes comparando `r.nivelRequerido` contra `nivelPj`. En consecuencia, los rasgos de nivel superior (como *Forma grande* Nv 5 de Goliat o *Revelación celestial* Nv 3 de Aasimar) se agregaban directamente a `personaje.rasgos` a nivel 1.
+2. **Falta de Filtrado por Nivel en la Sincronización Automática (`compendioRasgos.ts`):**
+   - `sincronizarRasgosAutomaticos` llamaba a `obtenerRasgosSugeridosPorEspecie` sin validar `!r.nivelRequerido || r.nivelRequerido <= nivelPj`. Al recalcular rasgos canónicos, mantenía los rasgos de nivel superior en personajes de nivel inferior.
+3. **Ausencia de Filtro de Nivel en la Vista de Jugador (`usarVistaRasgos.ts`):**
+   - El hook `usarVistaRasgos.ts` filtraba por búsqueda y tipo de acción, pero no comparaba `r.nivelRequerido` contra `personajeActivo.nivel`, mostrando las tarjetas de rasgos de niveles futuros como si estuvieran disponibles para ser activadas o utilizadas.
+4. **Fuga de Efectos Mecánicos Activos (`evaluadorEfectosRasgos.ts`):**
+   - `evaluarEfectosRasgosActivos` iteraba todos los rasgos sin comprobar `rasgo.nivelRequerido && nivelPj < rasgo.nivelRequerido`.
+
+**Solución Implementada y Decisiones Arquitectónicas:**
+1. **Filtrado por Nivel en Aplicación de Especie (`gestorEspecies.ts`):**
+   - En `aplicarEspecieAPersonaje`, se filtran los rasgos con `filter((r) => !r.nivelRequerido || r.nivelRequerido <= nivelPj)`.
+2. **Filtrado por Nivel en Sincronización Automática (`compendioRasgos.ts`):**
+   - En `sincronizarRasgosAutomaticos`, se filtran los rasgos de especie sugeridos con `filter((r) => !r.nivelRequerido || r.nivelRequerido <= nivelPj)`. Al subir a nivel 5, el sistema inyecta automáticamente *Forma grande*; al estar en nivel 1..4, la excluye.
+3. **Blindaje de la Vista de Jugador (`usarVistaRasgos.ts`):**
+   - Se añadió la condición `if (r.nivelRequerido && r.nivelRequerido > nivelPj) return false;` en `rasgosFiltrados`. La pestaña "Mis Rasgos" solo muestra habilidades que el personaje ya puede utilizar según su nivel actual.
+4. **Protección del Motor de Efectos (`evaluadorEfectosRasgos.ts`):**
+   - En `evaluarEfectosRasgosActivos`, se ignora cualquier rasgo si `rasgo.nivelRequerido && nivelPj < rasgo.nivelRequerido`.
+5. **Cobertura Automatizada:**
+   - Test en `gestorEspecies.test.ts` que valida que un Goliat a nivel 1 tiene `Forma grande === undefined` y a nivel 5 la desbloquea con 1 uso.
+   - 100% de suites superadas (53/53 suites, 653/653 tests), `tsc --noEmit` limpio, ESLint sin advertencias y despliegue exitoso a TaleSpire.
+
+---
+
+## [2026-09-15] Implementación Canónica y Declarativa de Goliat (D&D 5.5e), Linaje Gigante y Efectos de Tamaño / Capacidad de Carga
+
+**Contexto y Requerimientos del Usuario:**
+- Implementación canónica y declarativa de la especie Goliat a partir de `dicionario_herramientas/razas/Goliat.md`:
+  1. *Constitución poderosa*: Rasgo mecánico que duplica la capacidad de carga del inventario ($\times 2$, contando como una criatura Grande). El usuario aclaró que la ventaja para escapar de agarrado no se automatiza por ser contextual/descriptiva (no determinable programáticamente).
+  2. *Forma grande*: Rasgo activable a partir de nivel 5 (1 uso/descanso largo, 10 min / 100 asaltos) que genera un efecto con:
+     - Ventaja estrictamente en pruebas de característica de Fuerza (`prueba.fuerza`), sin extenderse a habilidades derivadas como Atletismo (por indicación expresa del usuario).
+     - $+10$ pies de velocidad de caminata.
+     - Aumento de tamaño a Grande.
+  3. *Linaje gigante*: Rasgo contenedor padre con usos iguales al Bono de Competencia (`formulaEscalado: "bono_competencia"`, PB = 2 a nivel 1-4, 3 a nivel 5) que recarga en descanso largo.
+  4. *6 Subespecies (Linajes de Gigante)*: Hijas vinculadas que consumen usos del rasgo padre (`gastarDePadre: true`, `ligadoA: "Linaje gigante"`):
+     - *Gigante de fuego*: 1d10 daño de fuego.
+     - *Gigante de las colinas*: derribar criatura Grande o menor (descriptivo).
+     - *Gigante de las nubes*: teletransporte mágico de hasta 30 pies como acción adicional (descriptivo).
+     - *Gigante de escarcha*: 1d6 daño de frío y $-10$ pies de velocidad.
+     - *Gigante de piedra*: reacción de 1d12 + CON para reducir daño recibido.
+     - *Gigante de las tormentas*: reacción de 1d8 daño de trueno a criatura a 60 pies o menos.
+  5. *Generalización completa en el Builder*: Todas las mecánicas deben ser declarativas, configurables desde `ConstructorRasgoDote.tsx` y reutilizar funciones puras existentes sin hardcodear bifurcaciones por nombre de rasgo ni especie (Reglas 4, 5 y 6).
+
+**Causas Raíz y Desafíos Técnicos:**
+1. **Falta de Tipos de Efectos Mecánicos para Tamaño y Capacidad de Carga:**
+   - `EsquemaTipoEfectoMecanico` carecía de `"modificador_capacidad_carga"` y `"modificador_tamano"`, impidiendo modelar *Constitución poderosa* y *Forma grande* declarativamente en el compendio y builder.
+2. **Capacidad de Carga Rígida al Tamaño Base de la Ficha:**
+   - `calcularCapacidadCarga` en `calculadorInventario.ts` calculaba la capacidad considerando únicamente el tamaño estático base del personaje, sin aceptar multiplicadores adicionales procedentes de rasgos pasivos ni reflejar transformaciones temporales de tamaño activo.
+3. **Restricción Unidireccional de Capas (Regla 5) con `resolverIdRasgoObjetivoGasto`:**
+   - La función `resolverIdRasgoObjetivoGasto` residía previamente en `almacen/slices/personajes/condicionesRasgosHelpers.ts`. Dado que `calculadorAccionesCombate.ts` pertenece a la capa `servicios/`, importar desde `almacen/` violaba la regla de arquitectura unidireccional estricta y disparaba errores de ESLint (`no-restricted-imports`).
+4. **Visibilidad del Campo `ligadoA` en el Builder UI:**
+   - En `ConstructorRasgoDote.tsx`, el campo para definir el rasgo padre (`ligadoA`) solo se mostraba si el rasgo era de tipo `esActivable`, imposibilitando configurarlo en rasgos de tipo acción/especial que simplemente tuvieran `gastarDePadre: true` o `heredarDadosPadre: true`.
+5. **Evaluación de Fórmulas con Modificadores de Características:**
+   - La fórmula de reducción de daño de *Gigante de piedra* (`1d12+constitucion`) requería resolución dinámica sustituyendo `"constitucion"` por el modificador numérico calculado de la ficha (ej. `1d12+3`).
+
+**Solución Implementada y Decisiones Arquitectónicas:**
+1. **Extensión Declarativa de Tipos y Builder (`tipos/rasgos.ts`, `ConstructorRasgoDote.tsx`):**
+   - Se agregaron `"modificador_capacidad_carga"` y `"modificador_tamano"` a `EsquemaTipoEfectoMecanico` y `TIPOS_EFECTO_DISPONIBLES`.
+   - Se incorporó soporte visual e inputs en el builder para ingresar factores multiplicadores (ej. 2) y tamaños objetivo ("Grande", "Mediano", etc.).
+   - Se desacopló la visibilidad del selector `ligadoA`, mostrándose siempre que se active `gastarDePadre` o `heredarDadosPadre`, tanto en rasgos de combate como en activables.
+2. **Reubicación de `resolverIdRasgoObjetivoGasto` en `servicios/evaluadorEfectosRasgos.ts`:**
+   - Se migró la función pura de resolución de delegación a `evaluadorEfectosRasgos.ts` (capa `servicios/`), haciéndola accesible de forma limpia tanto por `calculadorAccionesCombate.ts` como por los reducers de `almacen/` (mediante re-exportación transparente en `condicionesRasgosHelpers.ts`).
+3. **Cálculo Matemático de Capacidad de Carga Acumulativo (`calculadorInventario.ts`, `usarInventarioOrdenado.ts`):**
+   - `calcularCapacidadCarga` acepta el parámetro opcional `multiplicadorExtra: number = 1`.
+   - `usarInventarioOrdenado` evalúa `obtenerTamanoEfectivo(personaje)` y `calcularMultiplicadorCapacidadCarga(personaje)`. De este modo:
+     - Goliat estándar: tamaño Mediano ($\times 1$) con Constitución poderosa ($\times 2$) = $\times 2$ (300 lb para FUE 10).
+     - Goliat bajo Forma grande: tamaño Grande ($\times 2$) con Constitución poderosa ($\times 2$) = $\times 4$ (600 lb para FUE 10, equivalente a categoría Enorme).
+4. **Evaluación Estricta de Pruebas de Característica (`evaluadorEfectosRasgos.ts`):**
+   - En `evaluarVentajasDeRasgosEnTirada`, se añadió la rama para `tipoTirada === "caracteristica"`, evaluando `prueba.fuerza` estrictamente en pruebas de Fuerza y sin contaminar tiradas de salvación ni habilidades derivadas.
+5. **Resolución Dinámica de Modificadores en Expresiones de Dados:**
+   - Se actualizó `resolverFormulaDinamica` para resolver nombres de características (`constitucion`, `fuerza`, `destreza`, `inteligencia`, `sabiduria`, `carisma`) a su modificador (ej. `1d12+constitucion` -> `1d12+3`).
+6. **Catálogo Canónico Oficial D&D 5.5e (`especiesDND55.ts`, `datosIniciales.ts`):**
+   - Goliat: velocidad 35 pies, Humanoide, Mediano.
+   - *Constitución poderosa*: pasivo permanente con `modificador_capacidad_carga: 2`.
+   - *Forma grande*: nivel 5, 1 uso/descanso largo, condición `"Forma grande"` (100 asaltos).
+   - Efecto predefinido `"Forma grande"` en `datosIniciales.ts`: ventaja en pruebas de Fuerza, $+10$ velocidad, tamaño Grande.
+   - *Linaje gigante*: contenedor con usos escalados a PB (`formulaEscalado: "bono_competencia"`).
+   - 6 Subespecies declarativas completas con `gastarDePadre: true` y `ligadoA: "Linaje gigante"`.
+7. **Cobertura Automatizada Exhaustiva y Blindaje de Tipos:**
+   - Tests en `gestorEspecies.test.ts`, `evaluadorEfectosRasgos.test.ts` y `calculadorInventario.test.ts` verificando catálogo, 6 subespecies, dados de daño, delegación de consumo, multiplicadores de carga y ventajas de Fuerza.
+   - 100% de éxito en Vitest (53/53 suites, 653/653 tests), `tsc --noEmit` limpio y `pnpm lint` con 0 advertencias.
+   - **Lección aprendida / Tipado:** Todo objeto mock de `EfectoMecanicoRasgo` en archivos de test debe incluir explícitamente `valor: string | number` (ej. `valor: "true"` para ventajas), ya que `EsquemaEfectoMecanicoRasgo` no define `valor` como opcional.
+
+---
+
 ## [2026-09-15] Implementación Canónica y Declarativa de Gnomo (D&D 5.5e) y Ventajas de Salvación en el Builder
 
 **Contexto y Requerimientos del Usuario:**

@@ -1,5 +1,6 @@
 import type { PersonajeJugador, RasgoPersonaje } from "@/tipos";
 import { obtenerClasePorNombre, obtenerSubclasePorNombre } from "@/servicios/gestorClases";
+import { resolverFormulaDinamica } from "@/servicios/evaluadorEfectosRasgos";
 import type { BloqueProgresionClase, ItemProgresionClase } from "./VisorProgresionClase";
 import type { GrupoClaseJerarquico, DatosJerarquicosRasgos } from "./tiposRasgosJugador";
 
@@ -51,25 +52,24 @@ export function resolverRecursosPadre(
   usosPadre?: { restantes: number; maximos: number; nombre: string };
   formulaDadosEfectiva?: string;
 } {
-  if (!personaje || (!rasgo.gastarDePadre && !rasgo.heredarDadosPadre)) {
+  if (!personaje) {
     return { usosPadre: undefined, formulaDadosEfectiva: undefined };
   }
 
   let padre: RasgoPersonaje | undefined;
   if (rasgo.ligadoA) {
-    padre = (personaje.rasgos || []).find((r) => r.id === rasgo.ligadoA);
+    const lig = normalizar(rasgo.ligadoA);
+    padre = (personaje.rasgos || []).find((r) =>
+      normalizar(r.id) === lig || normalizar(r.nombre) === lig
+    );
   }
-  if (!padre) {
+  if (!padre && (rasgo.gastarDePadre || rasgo.heredarDadosPadre)) {
     padre = (personaje.rasgos || []).find((r) =>
       normalizar(r.nombre).includes("inspiracion bardica")
     );
   }
 
-  if (!padre) {
-    return { usosPadre: undefined, formulaDadosEfectiva: undefined };
-  }
-
-  const usosPadre = rasgo.gastarDePadre
+  const usosPadre = (rasgo.gastarDePadre && padre)
     ? {
         restantes: padre.usosRestantes ?? (padre.usosMaximos || 1),
         maximos: padre.usosMaximos || 1,
@@ -77,8 +77,12 @@ export function resolverRecursosPadre(
       }
     : undefined;
 
-  const formulaDadosEfectiva = rasgo.heredarDadosPadre
-    ? (padre.formulaDados || rasgo.formulaDados)
+  const formulaBase = rasgo.heredarDadosPadre
+    ? (padre?.formulaDados || rasgo.formulaDados)
+    : rasgo.formulaDados;
+
+  const formulaDadosEfectiva = formulaBase
+    ? resolverFormulaDinamica(formulaBase, personaje)
     : undefined;
 
   return { usosPadre, formulaDadosEfectiva };

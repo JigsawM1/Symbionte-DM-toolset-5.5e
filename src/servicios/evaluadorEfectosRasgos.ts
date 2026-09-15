@@ -1,9 +1,11 @@
 import {
   type PersonajeJugador,
+  type RasgoPersonaje,
   type EfectoMecanicoRasgo,
   type Caracteristica,
   type Habilidad,
   type GradoCompetencia,
+  type TamanoPersonaje,
   GRADOS_HABILIDADES_DEFECTO
 } from "@/tipos";
 import { ARMADURAS_OFICIALES } from "@/constantes/equipoConstantes";
@@ -271,8 +273,12 @@ function cumpleCondicionEfecto(
 export function evaluarEfectosRasgosActivos(personaje: PersonajeJugador): EfectoMecanicoRasgo[] {
   const efectosResultado: EfectoMecanicoRasgo[] = [];
   const rasgos = personaje.rasgos || [];
+  const nivelPj = personaje.nivel || 1;
 
   for (const rasgo of rasgos) {
+    // Si el rasgo exige un nivel mínimo superior al nivel actual del personaje, omitirlo
+    if (rasgo.nivelRequerido && nivelPj < rasgo.nivelRequerido) continue;
+
     const nomNorm = normalizar(rasgo.nombre);
     const idNorm = normalizar(rasgo.id);
     const esRevelacion =
@@ -470,6 +476,46 @@ export function calcularHPMaximoEfectivo(personaje: PersonajeJugador): number {
 }
 
 /**
+ * Determina el tamaño efectivo del personaje considerando modificaciones activas (ej. Forma grande).
+ * Función GENÉRICA PURA: no hardcodea nombres de rasgos ni razas.
+ */
+export function obtenerTamanoEfectivo(personaje: PersonajeJugador): TamanoPersonaje {
+  if (!personaje) return "Mediano";
+  const efectos = evaluarEfectosRasgosActivos(personaje);
+  for (const ef of efectos) {
+    if (ef.tipo === "modificador_tamano" && ef.valor) {
+      const valNorm = normalizar(String(ef.valor));
+      if (valNorm.startsWith("grand")) return "Grande";
+      if (valNorm.startsWith("median")) return "Mediano";
+      if (valNorm.startsWith("pequen")) return "Pequeño";
+      if (valNorm.startsWith("diminut")) return "Diminuto";
+      return ef.valor as TamanoPersonaje;
+    }
+  }
+  return personaje.tamano || "Mediano";
+}
+
+/**
+ * Calcula el multiplicador acumulado de capacidad de carga otorgado por rasgos activos
+ * (ej. Constitución poderosa: cuenta como una categoría de tamaño superior, x2).
+ * Función GENÉRICA PURA: no hardcodea nombres de rasgos ni razas.
+ */
+export function calcularMultiplicadorCapacidadCarga(personaje: PersonajeJugador): number {
+  if (!personaje) return 1;
+  const efectos = evaluarEfectosRasgosActivos(personaje);
+  let mult = 1;
+  for (const ef of efectos) {
+    if (ef.tipo === "modificador_capacidad_carga") {
+      const valNum = Number(ef.valor);
+      if (!Number.isNaN(valNum) && valNum > 0) {
+        mult *= valNum;
+      }
+    }
+  }
+  return mult;
+}
+
+/**
  * Ventajas y desventajas directas otorgadas por rasgos activos del personaje
  * para consultar en tiradas d20 (salvaciones, iniciativa, ataques).
  */
@@ -540,10 +586,16 @@ export function evaluarVentajasDeRasgosEnTirada(
       }
     }
 
-    // 4. Pruebas de Característica / Habilidad
-    if (tipoTirada === "caracteristica" || tipoTirada === "habilidad") {
+    // 4. Pruebas de Característica
+    if (tipoTirada === "caracteristica") {
       if (esVentaja) {
-        if (objNorm === `prueba.${subtipoNorm}` || (objNorm === "prueba.fuerza" && subtipoNorm === "fuerza")) {
+        if (
+          objNorm === `prueba.${subtipoNorm}` ||
+          objNorm === `prueba_${subtipoNorm}` ||
+          objNorm === `caracteristica.${subtipoNorm}` ||
+          objNorm === subtipoNorm ||
+          (objNorm === "prueba.fuerza" && subtipoNorm === "fuerza")
+        ) {
           tieneVentaja = true;
           razones.push(ef.descripcion || `Ventaja en pruebas de ${subtipoNorm}`);
         }
@@ -589,13 +641,30 @@ export function resolverFormulaDinamica(
   const bonoFuria = obtenerBonoDanoFuria(nivelBarbaro);
   const bonoCompetencia = Math.floor((nivelGlobal - 1) / 4) + 2;
 
+  // Modificadores de características para tiradas dinámicas (ej. 1d12+constitucion)
+  const stats = personaje.caracteristicas;
+  const modCon = stats?.constitucion !== undefined ? Math.floor((stats.constitucion - 10) / 2) : 0;
+  const modFue = stats?.fuerza !== undefined ? Math.floor((stats.fuerza - 10) / 2) : 0;
+  const modDes = stats?.destreza !== undefined ? Math.floor((stats.destreza - 10) / 2) : 0;
+  const modInt = stats?.inteligencia !== undefined ? Math.floor((stats.inteligencia - 10) / 2) : 0;
+  const modSab = stats?.sabiduria !== undefined ? Math.floor((stats.sabiduria - 10) / 2) : 0;
+  const modCar = stats?.carisma !== undefined ? Math.floor((stats.carisma - 10) / 2) : 0;
+
   const reemplazado = formula
     .replace(/dano_furia/gi, String(bonoFuria))
     .replace(/mitad_nivel/gi, String(mitadNivel))
     .replace(/bono_competencia/gi, String(bonoCompetencia))
     .replace(/\b(pb|bc)\b/gi, String(bonoCompetencia))
     .replace(/\bnivel\b/gi, String(nivelClase))
+    .replace(/\b(constitucion|con)\b/gi, String(modCon))
+    .replace(/\b(fuerza|fue|str)\b/gi, String(modFue))
+    .replace(/\b(destreza|des|dex)\b/gi, String(modDes))
+    .replace(/\b(inteligencia|int)\b/gi, String(modInt))
+    .replace(/\b(sabiduria|sab|wis)\b/gi, String(modSab))
+    .replace(/\b(carisma|car|cha)\b/gi, String(modCar))
     .replace(/(\d+)\s+d/gi, "$1d")
+    .replace(/\+\s*\+/g, "+")
+    .replace(/\+\s*-/g, "-")
     .trim();
 
   return reemplazado;
@@ -1342,6 +1411,43 @@ export function personajeTieneMaestriaArma(
   }
 
   return false;
+}
+
+/**
+ * Resuelve el ID del rasgo que debe consumir o recuperar el uso cuando se utiliza delegación.
+ * Función GENÉRICA PURA: usa los metadatos declarativos gastarDePadre y ligadoA.
+ */
+export function resolverIdRasgoObjetivoGasto(
+  targetTrait: RasgoPersonaje | undefined,
+  rasgos: RasgoPersonaje[]
+): string {
+  if (!targetTrait) return "";
+  if (!targetTrait.gastarDePadre) return targetTrait.id;
+
+  // 1. Buscar el rasgo padre por ID o nombre usando ligadoA
+  if (targetTrait.ligadoA) {
+    const lig = normalizar(targetTrait.ligadoA);
+    const padre = rasgos.find(
+      (r) => normalizar(r.id) === lig || normalizar(r.nombre) === lig
+    );
+    if (padre) return padre.id;
+  }
+
+  // 2. Fallback de resiliencia si falta ligadoA explícito: buscar rasgo contenedor con usos limitados
+  const padreConUsos = rasgos.find(
+    (r) =>
+      r.id !== targetTrait.id &&
+      r.tieneUsosLimitados &&
+      (normalizar(r.nombre).includes("inspiracion") ||
+        normalizar(r.id).includes("inspiracion") ||
+        normalizar(r.nombre).includes("furia") ||
+        normalizar(r.id).includes("furia") ||
+        normalizar(r.nombre).includes("linaje gigante") ||
+        normalizar(r.id).includes("linaje_gigante"))
+  );
+  if (padreConUsos) return padreConUsos.id;
+
+  return targetTrait.id;
 }
 
 

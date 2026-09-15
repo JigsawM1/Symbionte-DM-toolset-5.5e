@@ -124,38 +124,7 @@ export function coincideCondicionConRasgo(condicionTexto: string, r: RasgoPerson
   return false;
 }
 
-/**
- * Resuelve el ID del rasgo que debe consumir o recuperar el uso.
- * Función GENÉRICA PURA: usa los metadatos declarativos gastarDePadre y ligadoA.
- * No contiene listas hardcoded de nombres de rasgos.
- */
-export function resolverIdRasgoObjetivoGasto(targetTrait: RasgoPersonaje | undefined, rasgos: RasgoPersonaje[]): string {
-  if (!targetTrait) return "";
-
-  if (!targetTrait.gastarDePadre) return targetTrait.id;
-
-  // 1. Buscar el rasgo padre por ID o nombre usando ligadoA
-  if (targetTrait.ligadoA) {
-    const lig = normalizarTextoSeguro(targetTrait.ligadoA);
-    const padre = rasgos.find(
-      (r) => normalizarTextoSeguro(r.id) === lig || normalizarTextoSeguro(r.nombre) === lig
-    );
-    if (padre) return padre.id;
-  }
-
-  // 2. Fallback de resiliencia si falta ligadoA explícito: buscar rasgo contenedor con usos limitados
-  const padreConUsos = rasgos.find(
-    (r) => r.id !== targetTrait.id && r.tieneUsosLimitados && (
-      normalizarTextoSeguro(r.nombre).includes("inspiracion") ||
-      normalizarTextoSeguro(r.id).includes("inspiracion") ||
-      normalizarTextoSeguro(r.nombre).includes("furia") ||
-      normalizarTextoSeguro(r.id).includes("furia")
-    )
-  );
-  if (padreConUsos) return padreConUsos.id;
-
-  return targetTrait.id;
-}
+export { resolverIdRasgoObjetivoGasto } from "@/servicios/evaluadorEfectosRasgos";
 
 
 /**

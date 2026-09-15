@@ -10,6 +10,7 @@ import {
   calcularDesglosePesosPorContenedor,
   MULTIPLICADORES_TAMANO
 } from "@/servicios/calculadorInventario";
+import { obtenerTamanoEfectivo, calcularMultiplicadorCapacidadCarga } from "@/servicios/evaluadorEfectosRasgos";
 import { usarEstadoPersistido } from "@/hooks";
 import { esObjetoEquipable } from "@/servicios/procesadorEquipamiento";
 import {
@@ -116,11 +117,12 @@ export function usarInventarioOrdenado({
 
   const inventario = personaje.inventario || [];
   const bolsaMonedas = personaje.bolsaMonedas || { pc: 0, pp: 0, pe: 0, po: 0, ppt: 0 };
-  const tamano = personaje.tamano || "Mediano";
+  const tamano = obtenerTamanoEfectivo(personaje);
+  const multiplicadorCargaRasgos = calcularMultiplicadorCapacidadCarga(personaje);
 
   // 1. Cálculos de Carga y Peso
   const fuerzaEfectiva = statsCalculadas.puntuacionesEfectivas.fuerza || 10;
-  const capacidadCarga = calcularCapacidadCarga(fuerzaEfectiva, null, tamano);
+  const capacidadCarga = calcularCapacidadCarga(fuerzaEfectiva, null, tamano, multiplicadorCargaRasgos);
   const pesoTotal = calcularPesoTotal(inventario, bolsaMonedas);
   const desglosePesos = useMemo(() => calcularDesglosePesosPorContenedor(inventario), [inventario]);
   const sobrecargado = estaSobrecargado(pesoTotal, capacidadCarga);
@@ -195,7 +197,12 @@ export function usarInventarioOrdenado({
   }, [objetosMochilaFiltrados, criterioOrden, busquedaMochila, baseDatosObjetos]);
 
   const multiplicadorTamano = MULTIPLICADORES_TAMANO[tamano] ?? 1;
-  const multiplicadorTexto = multiplicadorTamano !== 1 ? ` × ${multiplicadorTamano} (${tamano})` : "";
+  const multiplicadorTotal = multiplicadorTamano * multiplicadorCargaRasgos;
+  const partesDetalle = [
+    multiplicadorTamano !== 1 ? `${tamano}` : "",
+    multiplicadorCargaRasgos !== 1 ? `Rasgos ×${multiplicadorCargaRasgos}` : ""
+  ].filter(Boolean).join(", ");
+  const multiplicadorTexto = multiplicadorTotal !== 1 ? ` × ${multiplicadorTotal}${partesDetalle ? ` (${partesDetalle})` : ""}` : "";
 
   // 6. Hook de Drag and Drop
   const {

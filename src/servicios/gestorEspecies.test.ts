@@ -8,7 +8,8 @@ import {
   construirRasgosEspecie,
   aplicarEspecieAPersonaje
 } from "./gestorEspecies";
-import { evaluarVentajasDeRasgosEnTirada } from "./evaluadorEfectosRasgos";
+import { evaluarVentajasDeRasgosEnTirada, resolverIdRasgoObjetivoGasto } from "./evaluadorEfectosRasgos";
+import { resolverRasgosAcciones } from "./calculadorAccionesCombate";
 import { resolverOrigenConjuro } from "./resolutorOrigenConjuros";
 import {
   resolverCondicionAsociadaRasgo,
@@ -1396,6 +1397,174 @@ describe("GestorEspecies - Dominio de Razas y Subrazas (D&D 5.5e)", () => {
       // Los conjuros de bosques deben haberse purgado
       expect(pjRocas.trucosConocidosIds).not.toContain("ilusion_menor");
       expect(pjRocas.conjurosSiemprePreparadosIds).not.toContain("hablar_con_los_animales");
+    });
+  });
+
+  describe("Goliat - Definición Canónica y Linaje Gigante (D&D 5.5e)", () => {
+    it("cumple los campos base de especie: velocidad 35 pies, tamaño Mediano y tipo Humanoide", () => {
+      const goliat = obtenerEspeciePorId("goliat");
+      expect(goliat).toBeDefined();
+      expect(goliat?.nombre).toBe("Goliat");
+      expect(goliat?.tipoCriatura).toBe("Humanoide");
+      expect(goliat?.velocidadBase).toBe(35);
+      expect(goliat?.tamanoPorDefecto).toBe("Mediano");
+      expect(goliat?.tamanoOpciones).toEqual(["Mediano"]);
+    });
+
+    it("modela Constitución poderosa con efecto modificador_capacidad_carga x2", () => {
+      const goliat = obtenerEspeciePorId("goliat")!;
+      const rasgos = construirRasgosEspecie(goliat, undefined, 1, 2);
+      const rasgoConstPoderosa = rasgos.find((r) => r.nombre === "Constitución poderosa");
+
+      expect(rasgoConstPoderosa).toBeDefined();
+      expect(rasgoConstPoderosa?.tipoAccion).toBe("pasivo");
+      const efCarga = rasgoConstPoderosa?.efectos?.find((e) => e.tipo === "modificador_capacidad_carga");
+      expect(efCarga).toBeDefined();
+      expect(efCarga?.valor).toBe(2);
+    });
+
+    it("modela Forma grande con nivelRequerido 5, esActivable y efecto Forma grande", () => {
+      const goliat = obtenerEspeciePorId("goliat")!;
+      const rasgosNivel1 = construirRasgosEspecie(goliat, undefined, 1, 2);
+      const formaGrandeN1 = rasgosNivel1.find((r) => r.nombre === "Forma grande");
+
+      expect(formaGrandeN1).toBeDefined();
+      expect(formaGrandeN1?.nivelRequerido).toBe(5);
+      expect(formaGrandeN1?.esActivable).toBe(true);
+      expect(formaGrandeN1?.tipoAccion).toBe("accion_adicional");
+      expect(formaGrandeN1?.tieneUsosLimitados).toBe(true);
+      expect(formaGrandeN1?.usosMaximos).toBe(1);
+      expect(formaGrandeN1?.recuperacion).toBe("descanso_largo");
+      expect(formaGrandeN1?.condicionAlActivar).toBe("Forma grande");
+    });
+
+    it("modela Linaje gigante con usos equivalentes al Bono de Competencia (PB)", () => {
+      const goliat = obtenerEspeciePorId("goliat")!;
+
+      // Nivel 1: PB = 2 -> 2 usos
+      const rasgosN1 = construirRasgosEspecie(goliat, undefined, 1, 2);
+      const linajeN1 = rasgosN1.find((r) => r.nombre === "Linaje gigante");
+      expect(linajeN1).toBeDefined();
+      expect(linajeN1?.tieneUsosLimitados).toBe(true);
+      expect(linajeN1?.usosMaximos).toBe(2);
+      expect(linajeN1?.formulaEscalado).toBe("bono_competencia");
+      expect(linajeN1?.recuperacion).toBe("descanso_largo");
+
+      // Nivel 5: PB = 3 -> 3 usos
+      const rasgosN5 = construirRasgosEspecie(goliat, undefined, 5, 3);
+      const linajeN5 = rasgosN5.find((r) => r.nombre === "Linaje gigante");
+      expect(linajeN5?.usosMaximos).toBe(3);
+    });
+
+    it("ofrece exactamente las 6 subespecies canónicas de Linaje gigante con delegación al padre", () => {
+      const subespecies = obtenerSubespeciesDeEspecie("goliat");
+      expect(subespecies).toHaveLength(6);
+
+      const nombres = subespecies.map((s) => s.nombre);
+      expect(nombres).toContain("Gigante de fuego");
+      expect(nombres).toContain("Gigante de las colinas");
+      expect(nombres).toContain("Gigante de las nubes");
+      expect(nombres).toContain("Gigante de escarcha");
+      expect(nombres).toContain("Gigante de piedra");
+      expect(nombres).toContain("Gigante de las tormentas");
+
+      // Comprobar que cada rasgo de subespecie tiene gastarDePadre = true y ligadoA = "Linaje gigante"
+      for (const sub of subespecies) {
+        expect(sub.rasgos).toHaveLength(1);
+        const rasgoHijo = sub.rasgos[0];
+        expect(rasgoHijo.gastarDePadre).toBe(true);
+        expect(rasgoHijo.ligadoA).toBe("Linaje gigante");
+      }
+    });
+
+    it("comprueba los dados de daño y categorías específicas de las 6 subespecies", () => {
+      const subFuego = obtenerSubespeciePorNombre("goliat", "Gigante de fuego");
+      expect(subFuego?.rasgos[0].formulaDados).toBe("1d10");
+      expect(subFuego?.rasgos[0].categoriaMecanica).toBe("consumible");
+
+      const subEscarcha = obtenerSubespeciePorNombre("goliat", "Gigante de escarcha");
+      expect(subEscarcha?.rasgos[0].formulaDados).toBe("1d6");
+      expect(subEscarcha?.rasgos[0].categoriaMecanica).toBe("consumible");
+
+      const subPiedra = obtenerSubespeciePorNombre("goliat", "Gigante de piedra");
+      expect(subPiedra?.rasgos[0].formulaDados).toBe("1d12+constitucion");
+      expect(subPiedra?.rasgos[0].tipoAccion).toBe("reaccion");
+      expect(subPiedra?.rasgos[0].categoriaMecanica).toBe("consumible");
+
+      const subTormentas = obtenerSubespeciePorNombre("goliat", "Gigante de las tormentas");
+      expect(subTormentas?.rasgos[0].formulaDados).toBe("1d8");
+      expect(subTormentas?.rasgos[0].tipoAccion).toBe("reaccion");
+      expect(subTormentas?.rasgos[0].categoriaMecanica).toBe("consumible");
+
+      const subNubes = obtenerSubespeciePorNombre("goliat", "Gigante de las nubes");
+      expect(subNubes?.rasgos[0].tipoAccion).toBe("accion_adicional");
+      expect(subNubes?.rasgos[0].categoriaMecanica).toBe("consumible");
+
+      const subColinas = obtenerSubespeciePorNombre("goliat", "Gigante de las colinas");
+      expect(subColinas?.rasgos[0].tipoAccion).toBe("especial");
+      expect(subColinas?.rasgos[0].categoriaMecanica).toBe("consumible");
+    });
+
+    it("aplica Goliat con Gigante de fuego y resuelve delegación de usos hacia Linaje gigante", () => {
+      const pjBase: PersonajeJugador = {
+        ...PERSONAJE_POR_DEFECTO,
+        id: "pj-goliat-1",
+        nombre: "Gorkan",
+        nivel: 1
+      };
+
+      const pjGoliat = aplicarEspecieAPersonaje(pjBase, {
+        especieId: "goliat",
+        subespecieId: "gigante_fuego"
+      });
+
+      expect(pjGoliat.especie).toBe("Goliat");
+      expect(pjGoliat.subespecie).toBe("Gigante de fuego");
+      expect(pjGoliat.velocidad).toBe("35 pies");
+
+      const rasgoPadre = pjGoliat.rasgos.find((r) => r.nombre === "Linaje gigante");
+      const rasgoHijo = pjGoliat.rasgos.find((r) => r.nombre.includes("Abrasión del fuego"));
+
+      expect(rasgoPadre).toBeDefined();
+      expect(rasgoHijo).toBeDefined();
+      expect(rasgoPadre?.usosMaximos).toBe(2);
+      expect(rasgoHijo?.gastarDePadre).toBe(true);
+
+      // Delegación de ID de gasto
+      const idObjetivoGasto = resolverIdRasgoObjetivoGasto(rasgoHijo, pjGoliat.rasgos);
+      expect(idObjetivoGasto).toBe(rasgoPadre?.id);
+
+      // Evaluación en resolverRasgosAcciones
+      const acciones = resolverRasgosAcciones(pjGoliat);
+      const accionHijo = acciones.find((a) => a.rasgo.nombre.includes("Abrasión del fuego"));
+      expect(accionHijo).toBeDefined();
+      expect(accionHijo?.usosRestantes).toBe(2);
+      expect(accionHijo?.usosMaximos).toBe(2);
+      expect(accionHijo?.esConsumible).toBe(true);
+
+      // Si el padre agota sus usos, la acción del hijo debe reflejar 0 usos restantes
+      const pjSinUsos: PersonajeJugador = {
+        ...pjGoliat,
+        rasgos: pjGoliat.rasgos.map((r) =>
+          r.id === rasgoPadre?.id ? { ...r, usosRestantes: 0 } : r
+        )
+      };
+      const accionesSinUsos = resolverRasgosAcciones(pjSinUsos);
+      const accionHijoAgotado = accionesSinUsos.find((a) => a.rasgo.nombre.includes("Abrasión del fuego"));
+      expect(accionHijoAgotado?.usosRestantes).toBe(0);
+
+      // Verificación de desbloqueo por nivel: a nivel 1 Forma grande NO debe aparecer en la ficha
+      expect(pjGoliat.rasgos.find((r) => r.nombre === "Forma grande")).toBeUndefined();
+
+      // A nivel 5 Forma grande SÍ debe desbloquearse en la ficha
+      const pjGoliatN5 = aplicarEspecieAPersonaje({ ...pjBase, nivel: 5 }, {
+        especieId: "goliat",
+        subespecieId: "gigante_fuego"
+      });
+      const formaGrandeN5 = pjGoliatN5.rasgos.find((r) => r.nombre === "Forma grande");
+      expect(formaGrandeN5).toBeDefined();
+      expect(formaGrandeN5?.nivelRequerido).toBe(5);
+      expect(formaGrandeN5?.usosMaximos).toBe(1);
     });
   });
 });

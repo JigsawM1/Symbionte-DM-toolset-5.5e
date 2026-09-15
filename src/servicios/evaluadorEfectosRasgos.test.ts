@@ -7,7 +7,10 @@ import {
   evaluarVentajasDeRasgosEnTirada,
   obtenerBonoDanoFuria,
   evaluarExpresionNumericaSegura,
-  calcularBonoHPMaximoRasgos
+  calcularBonoHPMaximoRasgos,
+  obtenerTamanoEfectivo,
+  calcularMultiplicadorCapacidadCarga,
+  resolverFormulaDinamica
 } from "./evaluadorEfectosRasgos";
 import { evaluarFormulaUsos, construirBuildClase, aplicarBuildClaseAPersonaje } from "./gestorClases";
 import { sincronizarRasgosAutomaticos } from "./compendioRasgos";
@@ -693,6 +696,120 @@ describe("Evaluador de Efectos Mecánicos de Rasgos y Sistema de Builds", () => 
       // Nivel 6: Aguante enano (1*6 = 6) + Dureza (2*6 = 12) = 18. El inactivo se ignora.
       const bonoTotal = calcularBonoHPMaximoRasgos(pj);
       expect(bonoTotal).toBe(18);
+    });
+  });
+
+  describe("Efectos Mecánicos de Rasgos de Especie - Goliat y Tamaños", () => {
+    it("debe evaluar obtenerTamanoEfectivo respetando modificador_tamano activo", () => {
+      const pjBase: PersonajeJugador = {
+        ...PERSONAJE_POR_DEFECTO,
+        tamano: "Mediano",
+        rasgos: []
+      };
+      expect(obtenerTamanoEfectivo(pjBase)).toBe("Mediano");
+
+      const pjFormaGrande: PersonajeJugador = {
+        ...pjBase,
+        rasgos: [
+          crearRasgoPrueba({
+            id: "rasgo_forma_grande",
+            nombre: "Forma grande",
+            activo: true,
+            efectos: [
+              {
+                tipo: "modificador_tamano",
+                objetivo: "tamano",
+                valor: "Grande",
+                descripcion: "Tamaño Grande"
+              }
+            ]
+          })
+        ]
+      };
+      expect(obtenerTamanoEfectivo(pjFormaGrande)).toBe("Grande");
+    });
+
+    it("debe evaluar calcularMultiplicadorCapacidadCarga acumulando modificador_capacidad_carga", () => {
+      const pjNormal: PersonajeJugador = {
+        ...PERSONAJE_POR_DEFECTO,
+        rasgos: []
+      };
+      expect(calcularMultiplicadorCapacidadCarga(pjNormal)).toBe(1);
+
+      const pjConstitucionPoderosa: PersonajeJugador = {
+        ...pjNormal,
+        rasgos: [
+          crearRasgoPrueba({
+            id: "rasgo_constitucion_poderosa",
+            nombre: "Constitución poderosa",
+            activo: true,
+            efectos: [
+              {
+                tipo: "modificador_capacidad_carga",
+                objetivo: "capacidad_carga",
+                valor: 2,
+                descripcion: "Duplica la capacidad de carga"
+              }
+            ]
+          })
+        ]
+      };
+      expect(calcularMultiplicadorCapacidadCarga(pjConstitucionPoderosa)).toBe(2);
+    });
+
+    it("debe otorgar ventaja estrictamente en pruebas de Fuerza con modificador_ventaja en prueba.fuerza", () => {
+      const pj: PersonajeJugador = {
+        ...PERSONAJE_POR_DEFECTO,
+        rasgos: [
+          crearRasgoPrueba({
+            id: "rasgo_forma_grande",
+            nombre: "Forma grande",
+            activo: true,
+            efectos: [
+              {
+                tipo: "ventaja",
+                objetivo: "prueba.fuerza",
+                valor: "true",
+                descripcion: "Ventaja en pruebas de Fuerza"
+              }
+            ]
+          })
+        ]
+      };
+
+      // Prueba de característica: Fuerza -> Ventaja
+      const resFuerza = evaluarVentajasDeRasgosEnTirada(pj, {
+        tipoTirada: "caracteristica",
+        subtipo: "fuerza"
+      });
+      expect(resFuerza.tieneVentaja).toBe(true);
+
+      // Prueba de característica: Destreza -> Sin ventaja
+      const resDestreza = evaluarVentajasDeRasgosEnTirada(pj, {
+        tipoTirada: "caracteristica",
+        subtipo: "destreza"
+      });
+      expect(resDestreza.tieneVentaja).toBe(false);
+
+      // Tirada de salvación: Fuerza -> Sin ventaja (no es prueba de característica)
+      const resSalva = evaluarVentajasDeRasgosEnTirada(pj, {
+        tipoTirada: "salvacion",
+        subtipo: "fuerza"
+      });
+      expect(resSalva.tieneVentaja).toBe(false);
+    });
+
+    it("debe resolver fórmulas dinámicas que incluyan modificadores de características (ej. 1d12+constitucion)", () => {
+      const pj: PersonajeJugador = {
+        ...PERSONAJE_POR_DEFECTO,
+        caracteristicas: {
+          ...PERSONAJE_POR_DEFECTO.caracteristicas,
+          constitucion: 16 // Modificador: +3
+        }
+      };
+
+      const formulaResuelta = resolverFormulaDinamica("1d12+constitucion", pj);
+      expect(formulaResuelta).toBe("1d12+3");
     });
   });
 });

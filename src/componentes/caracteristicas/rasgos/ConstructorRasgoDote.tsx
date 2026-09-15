@@ -146,6 +146,8 @@ const TIPOS_EFECTO_DISPONIBLES: { tipo: TipoEfectoMecanico; etiqueta: string; de
   { tipo: "conjuro_gratuito", etiqueta: "Lanzamiento Gratuito de Conjuro", desc: "Permite lanzar un conjuro sin gastar espacios de conjuro (ej. Orden imperiosa)" },
   { tipo: "hp_temporal", etiqueta: "Puntos de Golpe Temporales", desc: "Otorga puntos de golpe temporales calculados o con multiplicador" },
   { tipo: "modificador_hp_maximo", etiqueta: "Modificador de Puntos de Golpe Máximos", desc: "Aumenta o reduce los HP máximos de forma plana o escalada por nivel (ej. 1*nivel, 2*nivel, +5)" },
+  { tipo: "modificador_capacidad_carga", etiqueta: "Modificador de Capacidad de Carga", desc: "Multiplica o incrementa la capacidad de carga (ej. x2 para Constitución poderosa / categoría de tamaño superior)" },
+  { tipo: "modificador_tamano", etiqueta: "Modificador de Tamaño", desc: "Modifica la categoría de tamaño activa de la criatura (ej. Grande en Forma grande o Agrandar)" },
   { tipo: "restaurar_recurso", etiqueta: "Restaurar Recursos Mecánicos", desc: "Restaura usos o cargas de otro rasgo al activarse (ej. Furia persistente)" },
   { tipo: "competencia", etiqueta: "Competencia en Armas o Armaduras", desc: "Otorga competencia en armas marciales, armaduras medias, etc." }
 ];
@@ -332,6 +334,14 @@ export const ConstructorRasgoDote: React.FC<ConstructorRasgoDoteProps> = ({
       setNuevoObjetivo("hp_maximo");
       setNuevoValor("1*nivel");
       setNuevaDescripcionEfecto("Aumento de puntos de golpe máximos por nivel");
+    } else if (t === "modificador_capacidad_carga") {
+      setNuevoObjetivo("multiplicador");
+      setNuevoValor("2");
+      setNuevaDescripcionEfecto("Capacidad de carga de tamaño superior (×2)");
+    } else if (t === "modificador_tamano") {
+      setNuevoObjetivo("tamano");
+      setNuevoValor("Grande");
+      setNuevaDescripcionEfecto("Transformación a tamaño Grande");
     }
   };
 
@@ -389,6 +399,12 @@ export const ConstructorRasgoDote: React.FC<ConstructorRasgoDoteProps> = ({
           break;
         case "conjuro_gratuito":
           descFinal = `Lanzamiento gratuito: ${nuevoValor}`;
+          break;
+        case "modificador_capacidad_carga":
+          descFinal = `Capacidad de carga ×${nuevoValor}`;
+          break;
+        case "modificador_tamano":
+          descFinal = `Tamaño modificado a ${nuevoValor}`;
           break;
         case "hp_temporal":
           descFinal = `Puntos de golpe temporales: ${nuevoValor}`;
@@ -486,7 +502,7 @@ export const ConstructorRasgoDote: React.FC<ConstructorRasgoDoteProps> = ({
       conjurosOtorgados: conjurosOtorgadosTexto.trim()
         ? conjurosOtorgadosTexto.split(",").map((s) => s.trim()).filter(Boolean)
         : undefined,
-      ligadoA: esActivable && ligadoA.trim() ? ligadoA.trim() : undefined,
+      ligadoA: ligadoA.trim() ? ligadoA.trim() : undefined,
       condicionAlActivar: esActivable && condicionAlActivar.trim() ? condicionAlActivar.trim() : undefined,
       duracionEfectoAlActivar: esActivable && duracionEfectoAlActivar && duracionEfectoAlActivar > 0 ? duracionEfectoAlActivar : undefined,
       restaurarUsosAlActivar: (esActivable && tieneRestauracion && idRasgoRestaurar.trim())
@@ -984,6 +1000,24 @@ export const ConstructorRasgoDote: React.FC<ConstructorRasgoDoteProps> = ({
           </label>
         </div>
 
+        {(gastarDePadre || heredarDadosPadre) && (
+          <div className={estilos.campoGrupo} style={{ marginTop: "8px" }}>
+            <label className={estilos.labelCampo}>
+              <span>Vincular al Rasgo Padre (Nombre o ID)</span>
+            </label>
+            <input
+              type="text"
+              className={estilos.inputControl}
+              placeholder="ej. Linaje gigante, Inspiración bárdica, Furia..."
+              value={ligadoA}
+              onChange={(e) => setLigadoA(e.target.value)}
+            />
+            <p className={estilos.pistaCampo}>
+              Nombre o ID del rasgo que provee los usos o dados de los que depende este rasgo.
+            </p>
+          </div>
+        )}
+
         <div className={estilos.campoGrupo} style={{ marginTop: "8px" }}>
           <label className={estilos.labelCampo}>
             <span>Conjuros Otorgados (Siempre preparados, separados por coma)</span>
@@ -1477,6 +1511,76 @@ export const ConstructorRasgoDote: React.FC<ConstructorRasgoDoteProps> = ({
                     type="text"
                     className={estilos.inputControl}
                     placeholder="ej. +1 HP máximo por cada nivel del personaje"
+                    value={nuevaDescripcionEfecto}
+                    onChange={(e) => setNuevaDescripcionEfecto(e.target.value)}
+                  />
+                </div>
+              </div>
+            )}
+
+            {nuevoTipoEfecto === "modificador_capacidad_carga" && (
+              <div className={estilos.gridDosColumnas}>
+                <div className={estilos.campoGrupo}>
+                  <label className={estilos.labelCampo}>
+                    <span>Multiplicador de Capacidad de Carga</span>
+                  </label>
+                  <input
+                    type="number"
+                    step="0.5"
+                    min="0.5"
+                    className={estilos.inputControl}
+                    placeholder="ej. 2 (doble), 0.5 (mitad)..."
+                    value={nuevoValor}
+                    onChange={(e) => setNuevoValor(e.target.value)}
+                  />
+                  <p className={estilos.pistaCampo}>
+                    Factor multiplicador sobre la carga máxima (ej. 2 para Constitución poderosa / categoría de tamaño superior).
+                  </p>
+                </div>
+                <div className={estilos.campoGrupo}>
+                  <label className={estilos.labelCampo}>
+                    <span>Descripción del Efecto</span>
+                  </label>
+                  <input
+                    type="text"
+                    className={estilos.inputControl}
+                    placeholder="ej. Cuentas como una categoría de tamaño superior para carga (×2)"
+                    value={nuevaDescripcionEfecto}
+                    onChange={(e) => setNuevaDescripcionEfecto(e.target.value)}
+                  />
+                </div>
+              </div>
+            )}
+
+            {nuevoTipoEfecto === "modificador_tamano" && (
+              <div className={estilos.gridDosColumnas}>
+                <div className={estilos.campoGrupo}>
+                  <label className={estilos.labelCampo}>
+                    <span>Categoría de Tamaño Resultante</span>
+                  </label>
+                  <SelectorDesplegable
+                    valor={nuevoValor}
+                    opciones={[
+                      { valor: "Diminuto", etiqueta: "Diminuto" },
+                      { valor: "Pequeño", etiqueta: "Pequeño" },
+                      { valor: "Mediano", etiqueta: "Mediano" },
+                      { valor: "Grande", etiqueta: "Grande" }
+                    ]}
+                    alCambiar={(val) => setNuevoValor(val)}
+                    tamano="normal"
+                  />
+                  <p className={estilos.pistaCampo}>
+                    Tamaño adoptado por la criatura mientras el rasgo o efecto esté activo.
+                  </p>
+                </div>
+                <div className={estilos.campoGrupo}>
+                  <label className={estilos.labelCampo}>
+                    <span>Descripción del Efecto</span>
+                  </label>
+                  <input
+                    type="text"
+                    className={estilos.inputControl}
+                    placeholder="ej. Tu tamaño pasa a ser Grande"
                     value={nuevaDescripcionEfecto}
                     onChange={(e) => setNuevaDescripcionEfecto(e.target.value)}
                   />

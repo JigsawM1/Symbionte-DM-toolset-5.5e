@@ -213,6 +213,8 @@ export function construirRasgosEspecie(
       esActivable: p.esActivable,
       autoDesactivar: p.autoDesactivar,
       ligadoA: p.ligadoA,
+      gastarDePadre: p.gastarDePadre,
+      heredarDadosPadre: p.heredarDadosPadre,
       condicionAlActivar: p.condicionAlActivar,
       duracionEfectoAlActivar: p.duracionEfectoAlActivar,
       conjurosOtorgados: p.conjurosOtorgados ? [...p.conjurosOtorgados] : [],
@@ -265,6 +267,8 @@ export function construirRasgosEspecie(
         esActivable: p.esActivable,
         autoDesactivar: p.autoDesactivar,
         ligadoA: p.ligadoA,
+        gastarDePadre: p.gastarDePadre,
+        heredarDadosPadre: p.heredarDadosPadre,
         condicionAlActivar: p.condicionAlActivar,
         duracionEfectoAlActivar: p.duracionEfectoAlActivar,
         conjurosOtorgados: p.conjurosOtorgados ? [...p.conjurosOtorgados] : [],
@@ -410,7 +414,7 @@ export function aplicarEspecieAPersonaje(
       nivelPj,
       bonoCompetencia,
       tamanoFinal
-    );
+    ).filter((r) => !r.nivelRequerido || r.nivelRequerido <= nivelPj);
 
     // Preservar usos restantes y selecciones previas de rasgos de subespecie/especie
     const mapaRasgosPrevios = new Map((personaje.rasgos || []).map((r) => [r.id, r]));

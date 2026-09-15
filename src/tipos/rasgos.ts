@@ -59,6 +59,8 @@ export const EsquemaTipoEfectoMecanico = z.enum([
   "conjuro_gratuito",
   "hp_temporal",
   "modificador_hp_maximo",
+  "modificador_capacidad_carga",
+  "modificador_tamano",
   "restaurar_recurso",
   "personalizado"
 ]);

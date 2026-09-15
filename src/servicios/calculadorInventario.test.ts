@@ -34,6 +34,14 @@ describe("calculadorInventario", () => {
     it("debe priorizar el override de fuerza si está presente", () => {
       expect(calcularCapacidadCarga(10, 19)).toBe(285); // 19 × 15
     });
+
+    it("debe aplicar multiplicadorExtra acumulativo (ej. Constitución poderosa x2 y Forma grande)", () => {
+      // Base Mediano FUE 10: 150 lb. Con multiplicadorExtra x2 (Constitución poderosa): 300 lb.
+      expect(calcularCapacidadCarga(10, null, "Mediano", 2)).toBe(300);
+
+      // Con Forma grande (tamaño Grande x2) y Constitución poderosa (multiplicadorExtra x2): 600 lb.
+      expect(calcularCapacidadCarga(10, null, "Grande", 2)).toBe(600);
+    });
   });
 
   describe("calcularPesoInventario y Contenedores", () => {

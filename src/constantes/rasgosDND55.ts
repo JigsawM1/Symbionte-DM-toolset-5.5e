@@ -72,6 +72,8 @@ export interface PlantillaRasgoEspecie {
   esActivable?: boolean;
   autoDesactivar?: boolean;
   ligadoA?: string;
+  gastarDePadre?: boolean;
+  heredarDadosPadre?: boolean;
   condicionAlActivar?: string;
   duracionEfectoAlActivar?: number;
   conjurosOtorgados?: string[];

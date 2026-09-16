@@ -238,19 +238,35 @@ export const RASGOS_POR_ESPECIE: Record<string, PlantillaRasgoEspecie[]> = {
 
   "Tiefling": [
     {
+      nombre: "Tipo de criatura",
+      descripcion: "Eres una criatura del tipo Humanoide.",
+      tipoAccion: "pasivo",
+      categoriaMecanica: "pasivo_permanente"
+    },
+    {
+      nombre: "Tamaño",
+      descripcion: "Eres Mediano (entre 4 y 7 pies de altura) o Pequeño (entre 3 y 4 pies de altura), elegido al seleccionar la especie.",
+      tipoAccion: "pasivo",
+      categoriaMecanica: "selector_informativo"
+    },
+    {
       nombre: "Visión en la oscuridad",
-      descripcion: "Puedes ver en la oscuridad hasta 60 pies.",
-      tipoAccion: "pasivo"
+      descripcion: "Tienes visión en la oscuridad hasta 60 pies.",
+      tipoAccion: "pasivo",
+      categoriaMecanica: "pasivo_permanente"
+    },
+    {
+      nombre: "Presencia sobrenatural",
+      descripcion: "Conoces el truco *taumaturgia*. Cuando lo lances con este atributo, el conjuro utiliza la misma aptitud mágica que la de tu atributo Legado infernal.",
+      tipoAccion: "pasivo",
+      conjurosOtorgados: ["taumaturgia"],
+      categoriaMecanica: "pasivo_permanente"
     },
     {
       nombre: "Legado infernal",
-      descripcion: "Obtienes resistencia a un tipo de daño (Fuego, Veneno o Necrótico) y conjuros sobrenaturales innatos según tu linaje (Abisal, Ctónico o Infernal).",
-      tipoAccion: "pasivo"
-    },
-    {
-      nombre: "Taumaturgia innata",
-      descripcion: "Conoces el truco Taumaturgia y lo lanzas usando Carisma o Inteligencia.",
-      tipoAccion: "pasivo"
+      descripcion: "Eres el destinatario de un legado que te otorga capacidades sobrenaturales. Elige un legado de la tabla 'Legados infernales'. Obtienes el beneficio de nivel 1 del legado elegido. Cuando alcanzas los niveles 3 y 5 de personaje, aprendes un conjuro de nivel superior. La Inteligencia, la Sabiduría o el Carisma es tu aptitud mágica para los conjuros que lances con este atributo.",
+      tipoAccion: "pasivo",
+      categoriaMecanica: "selector_informativo"
     }
   ],
 

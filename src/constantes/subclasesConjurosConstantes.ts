@@ -33,7 +33,11 @@ export const MAPA_ALIAS_HECHIZOS: Record<string, string[]> = {
   "hablar con animales": ["hablar con los animales", "speak with animals"],
   "hablar con los animales": ["hablar con animales", "speak with animals"],
   "reparar": ["remendar", "mending"],
-  "remendar": ["reparar", "mending"]
+  "remendar": ["reparar", "mending"],
+  "reprension infernal": ["represion infernal", "hellish rebuke"],
+  "represion infernal": ["reprension infernal", "hellish rebuke"],
+  "descarga de fuego": ["descarga fuego", "fire bolt"],
+  "descarga fuego": ["descarga de fuego", "fire bolt"]
 };
 
 /**

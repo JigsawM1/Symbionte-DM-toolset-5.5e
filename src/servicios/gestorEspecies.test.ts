@@ -1871,6 +1871,303 @@ describe("GestorEspecies - Dominio de Razas y Subrazas (D&D 5.5e)", () => {
       expect(aguantePostLargo?.usosRestantes).toBe(1);
     });
   });
+
+  describe("Tiefling y Legados Infernales (Tiefling.md - D&D 5.5e)", () => {
+    it("cumple los campos base universales y rasgos canónicos del Tiefling", () => {
+      const tiefling = obtenerEspeciePorId("tiefling");
+      expect(tiefling).toBeDefined();
+      expect(tiefling?.tipoCriatura).toBe("Humanoide");
+      expect(tiefling?.tamanoOpciones).toEqual(["Mediano", "Pequeño"]);
+      expect(tiefling?.tamanoPorDefecto).toBe("Mediano");
+      expect(tiefling?.velocidadBase).toBe(30);
+      expect(tiefling?.visionOscuridad).toBe(60);
+
+      // Conjuro innato base: Taumaturgia
+      const conjuros = tiefling?.conjurosInnatos || [];
+      expect(conjuros).toHaveLength(1);
+      expect(conjuros[0].hechizoId).toBe("taumaturgia");
+      expect(conjuros[0].esTruco).toBe(true);
+
+      const nombresRasgos = tiefling?.rasgos.map((r) => r.nombre);
+      expect(nombresRasgos).toContain("Tipo de criatura");
+      expect(nombresRasgos).toContain("Tamaño");
+      expect(nombresRasgos).toContain("Visión en la oscuridad");
+      expect(nombresRasgos).toContain("Presencia sobrenatural");
+      expect(nombresRasgos).toContain("Legado infernal");
+    });
+
+    it("modela Presencia sobrenatural y Legado infernal con selector de aptitud mágica", () => {
+      const tiefling = obtenerEspeciePorId("tiefling")!;
+      const rasgos = construirRasgosEspecie(tiefling, undefined, 1, 2, "Mediano");
+
+      // Presencia sobrenatural
+      const presencia = rasgos.find((r) => r.nombre === "Presencia sobrenatural");
+      expect(presencia).toBeDefined();
+      expect(presencia?.tipoAccion).toBe("pasivo");
+      expect(presencia?.categoriaMecanica).toBe("pasivo_permanente");
+      expect(presencia?.conjurosOtorgados).toContain("taumaturgia");
+
+      // Legado infernal con selector de aptitud mágica
+      const legadoInfernal = rasgos.find((r) => r.nombre === "Legado infernal");
+      expect(legadoInfernal).toBeDefined();
+      expect(legadoInfernal?.categoriaMecanica).toBe("selector_informativo");
+      expect(legadoInfernal?.selectores).toHaveLength(1);
+      expect(legadoInfernal?.selectores?.[0].id).toBe("selector_aptitud_magica_tiefling");
+      expect(legadoInfernal?.selectores?.[0].opciones.map((o) => o.id)).toEqual(["inteligencia", "sabiduria", "carisma"]);
+    });
+
+    it("modela los 3 legados infernales oficiales: Abisal, Ctónico e Infernal con sus resistencias", () => {
+      const subespecies = obtenerSubespeciesDeEspecie("tiefling");
+      expect(subespecies).toHaveLength(3);
+      const nombres = subespecies.map((s) => s.nombre);
+      expect(nombres).toContain("Legado abisal");
+      expect(nombres).toContain("Legado ctónico");
+      expect(nombres).toContain("Legado infernal");
+
+      const abisal = obtenerSubespeciePorNombre("tiefling", "legado_abisal");
+      expect(abisal?.resistenciasDanio).toContain("Veneno");
+
+      const ctonico = obtenerSubespeciePorNombre("tiefling", "legado_ctonico");
+      expect(ctonico?.resistenciasDanio).toContain("Necrótico");
+
+      const infernal = obtenerSubespeciePorNombre("tiefling", "legado_infernal");
+      expect(infernal?.resistenciasDanio).toContain("Fuego");
+    });
+
+    it("Legado abisal: otorga Rociada venenosa (N1), Rayo nauseabundo (N3) e Inmovilizar persona (N5)", () => {
+      const abisal = obtenerSubespeciePorNombre("tiefling", "legado_abisal")!;
+      expect(abisal).toBeDefined();
+
+      const nombresRasgos = abisal.rasgos.map((r) => r.nombre);
+      expect(nombresRasgos).toContain("Resistencia abisal");
+      expect(nombresRasgos).toContain("Magia abisal: Rociada venenosa");
+      expect(nombresRasgos).toContain("Magia abisal: Rayo nauseabundo");
+      expect(nombresRasgos).toContain("Magia abisal: Inmovilizar persona");
+
+      const conjuros = abisal.conjurosInnatos || [];
+      expect(conjuros).toHaveLength(3);
+
+      const rociada = conjuros.find((c) => c.hechizoId === "rociada_venenosa");
+      expect(rociada?.esTruco).toBe(true);
+      expect(rociada?.nivelRequerido).toBe(1);
+
+      const rayo = conjuros.find((c) => c.hechizoId === "rayo_nauseabundo");
+      expect(rayo?.esTruco).toBe(false);
+      expect(rayo?.nivelRequerido).toBe(3);
+      expect(rayo?.usosGratis).toBe(1);
+
+      const inmovilizar = conjuros.find((c) => c.hechizoId === "inmovilizar_persona");
+      expect(inmovilizar?.esTruco).toBe(false);
+      expect(inmovilizar?.nivelRequerido).toBe(5);
+      expect(inmovilizar?.usosGratis).toBe(1);
+    });
+
+    it("Legado ctónico: otorga Toque helado (N1), Falsa vida (N3) y Rayo debilitador (N5)", () => {
+      const ctonico = obtenerSubespeciePorNombre("tiefling", "legado_ctonico")!;
+      expect(ctonico).toBeDefined();
+
+      const nombresRasgos = ctonico.rasgos.map((r) => r.nombre);
+      expect(nombresRasgos).toContain("Resistencia ctónica");
+      expect(nombresRasgos).toContain("Magia ctónica: Toque helado");
+      expect(nombresRasgos).toContain("Magia ctónica: Falsa vida");
+      expect(nombresRasgos).toContain("Magia ctónica: Rayo debilitador");
+
+      const conjuros = ctonico.conjurosInnatos || [];
+      expect(conjuros).toHaveLength(3);
+
+      const toque = conjuros.find((c) => c.hechizoId === "toque_helado");
+      expect(toque?.esTruco).toBe(true);
+      expect(toque?.nivelRequerido).toBe(1);
+
+      const falsaVida = conjuros.find((c) => c.hechizoId === "falsa_vida");
+      expect(falsaVida?.esTruco).toBe(false);
+      expect(falsaVida?.nivelRequerido).toBe(3);
+      expect(falsaVida?.usosGratis).toBe(1);
+
+      const rayoDeb = conjuros.find((c) => c.hechizoId === "rayo_debilitador");
+      expect(rayoDeb?.esTruco).toBe(false);
+      expect(rayoDeb?.nivelRequerido).toBe(5);
+      expect(rayoDeb?.usosGratis).toBe(1);
+    });
+
+    it("Legado infernal: otorga Descarga de fuego (N1), Reprensión infernal (N3) y Oscuridad (N5)", () => {
+      const infernal = obtenerSubespeciePorNombre("tiefling", "legado_infernal")!;
+      expect(infernal).toBeDefined();
+
+      const nombresRasgos = infernal.rasgos.map((r) => r.nombre);
+      expect(nombresRasgos).toContain("Resistencia infernal");
+      expect(nombresRasgos).toContain("Magia infernal: Descarga de fuego");
+      expect(nombresRasgos).toContain("Magia infernal: Reprensión infernal");
+      expect(nombresRasgos).toContain("Magia infernal: Oscuridad");
+
+      const conjuros = infernal.conjurosInnatos || [];
+      expect(conjuros).toHaveLength(3);
+
+      const descarga = conjuros.find((c) => c.hechizoId === "descarga_fuego");
+      expect(descarga?.esTruco).toBe(true);
+      expect(descarga?.nivelRequerido).toBe(1);
+
+      const reprension = conjuros.find((c) => c.hechizoId === "reprension_infernal");
+      expect(reprension?.esTruco).toBe(false);
+      expect(reprension?.nivelRequerido).toBe(3);
+      expect(reprension?.usosGratis).toBe(1);
+
+      const oscuridad = conjuros.find((c) => c.hechizoId === "oscuridad");
+      expect(oscuridad?.esTruco).toBe(false);
+      expect(oscuridad?.nivelRequerido).toBe(5);
+      expect(oscuridad?.usosGratis).toBe(1);
+    });
+
+    it("aplicarEspecieAPersonaje desbloquea progresivamente los conjuros según el nivel del personaje", () => {
+      const pjBase: PersonajeJugador = {
+        ...PERSONAJE_POR_DEFECTO,
+        id: "pj-tiefling-progresion",
+        nombre: "Mephistia"
+      };
+
+      // Nivel 1: truco Taumaturgia + truco Descarga de fuego
+      const pjNivel1 = aplicarEspecieAPersonaje({ ...pjBase, nivel: 1 }, {
+        especieId: "tiefling",
+        subespecieId: "legado_infernal"
+      });
+
+      expect(pjNivel1.especie).toBe("Tiefling");
+      expect(pjNivel1.subespecie).toBe("Legado infernal");
+      expect(pjNivel1.sentidos).toBe("Visión en la oscuridad 60 pies");
+      expect(pjNivel1.trucosConocidosIds).toContain("taumaturgia");
+      expect(pjNivel1.trucosConocidosIds).toContain("descarga_fuego");
+      expect(pjNivel1.conjurosSiemprePreparadosIds).not.toContain("reprension_infernal");
+      expect(pjNivel1.conjurosSiemprePreparadosIds).not.toContain("oscuridad");
+
+      // Nivel 3: trucos + Reprensión infernal (con rasgo de recurso 1/Descanso largo)
+      const pjNivel3 = aplicarEspecieAPersonaje({ ...pjBase, nivel: 3 }, {
+        especieId: "tiefling",
+        subespecieId: "legado_infernal"
+      });
+      expect(pjNivel3.trucosConocidosIds).toContain("taumaturgia");
+      expect(pjNivel3.trucosConocidosIds).toContain("descarga_fuego");
+      expect(pjNivel3.conjurosSiemprePreparadosIds).toContain("reprension_infernal");
+      expect(pjNivel3.conjurosSiemprePreparadosIds).not.toContain("oscuridad");
+
+      const rasgoReprension = pjNivel3.rasgos.find((r) => r.nombre.includes("Reprensión infernal"));
+      expect(rasgoReprension).toBeDefined();
+      expect(rasgoReprension?.tipoAccion).toBe("reaccion");
+      expect(rasgoReprension?.tieneUsosLimitados).toBe(true);
+      expect(rasgoReprension?.usosMaximos).toBe(1);
+      expect(rasgoReprension?.usosRestantes).toBe(1);
+      expect(rasgoReprension?.recuperacion).toBe("descanso_largo");
+
+      // Nivel 5: trucos + Reprensión infernal + Oscuridad (ambos con rasgo de recurso)
+      const pjNivel5 = aplicarEspecieAPersonaje({ ...pjBase, nivel: 5 }, {
+        especieId: "tiefling",
+        subespecieId: "legado_infernal"
+      });
+      expect(pjNivel5.trucosConocidosIds).toContain("taumaturgia");
+      expect(pjNivel5.trucosConocidosIds).toContain("descarga_fuego");
+      expect(pjNivel5.conjurosSiemprePreparadosIds).toContain("reprension_infernal");
+      expect(pjNivel5.conjurosSiemprePreparadosIds).toContain("oscuridad");
+
+      const rasgoOscuridad = pjNivel5.rasgos.find((r) => r.nombre.includes("Oscuridad"));
+      expect(rasgoOscuridad).toBeDefined();
+      expect(rasgoOscuridad?.tipoAccion).toBe("accion");
+      expect(rasgoOscuridad?.tieneUsosLimitados).toBe(true);
+      expect(rasgoOscuridad?.usosMaximos).toBe(1);
+      expect(rasgoOscuridad?.recuperacion).toBe("descanso_largo");
+    });
+
+    it("permite elegir entre tamaño Mediano o Pequeño", () => {
+      const pjBase: PersonajeJugador = {
+        ...PERSONAJE_POR_DEFECTO,
+        id: "pj-tiefling-tamano",
+        nombre: "Azazel"
+      };
+
+      const pjPequeno = aplicarEspecieAPersonaje(pjBase, {
+        especieId: "tiefling",
+        tamanoElegido: "Pequeño"
+      });
+      expect(pjPequeno.tamano).toBe("Pequeño");
+
+      const pjMediano = aplicarEspecieAPersonaje(pjBase, {
+        especieId: "tiefling",
+        tamanoElegido: "Mediano"
+      });
+      expect(pjMediano.tamano).toBe("Mediano");
+    });
+
+    it("conmuta limpiamente entre legados de Tiefling sin duplicar ni dejar conjuros huérfanos", () => {
+      const pjBase: PersonajeJugador = {
+        ...PERSONAJE_POR_DEFECTO,
+        id: "pj-tiefling-conmutar",
+        nombre: "Belial",
+        nivel: 5
+      };
+
+      // 1. Aplicar Legado abisal a nivel 5
+      const pjAbisal = aplicarEspecieAPersonaje(pjBase, {
+        especieId: "tiefling",
+        subespecieId: "legado_abisal"
+      });
+      expect(pjAbisal.subespecie).toBe("Legado abisal");
+      expect(pjAbisal.trucosConocidosIds).toContain("taumaturgia");
+      expect(pjAbisal.trucosConocidosIds).toContain("rociada_venenosa");
+      expect(pjAbisal.conjurosSiemprePreparadosIds).toContain("rayo_nauseabundo");
+      expect(pjAbisal.conjurosSiemprePreparadosIds).toContain("inmovilizar_persona");
+
+      // 2. Conmutar a Legado ctónico
+      const pjCtonico = aplicarEspecieAPersonaje(pjAbisal, {
+        especieId: "tiefling",
+        subespecieId: "legado_ctonico"
+      });
+      expect(pjCtonico.subespecie).toBe("Legado ctónico");
+
+      // Se agregaron los de Legado ctónico
+      expect(pjCtonico.trucosConocidosIds).toContain("toque_helado");
+      expect(pjCtonico.conjurosSiemprePreparadosIds).toContain("falsa_vida");
+      expect(pjCtonico.conjurosSiemprePreparadosIds).toContain("rayo_debilitador");
+
+      // Se purgaron los de Legado abisal
+      expect(pjCtonico.trucosConocidosIds).not.toContain("rociada_venenosa");
+      expect(pjCtonico.conjurosSiemprePreparadosIds).not.toContain("rayo_nauseabundo");
+      expect(pjCtonico.conjurosSiemprePreparadosIds).not.toContain("inmovilizar_persona");
+
+      // Taumaturgia se preserva (es base de Tiefling)
+      expect(pjCtonico.trucosConocidosIds).toContain("taumaturgia");
+    });
+
+    it("resolverOrigenConjuro clasifica los conjuros de linaje de Tiefling como 'legado' y taumaturgia como 'especie'", () => {
+      const pjInfernal = aplicarEspecieAPersonaje({ ...PERSONAJE_POR_DEFECTO, nivel: 5 }, {
+        especieId: "tiefling",
+        subespecieId: "legado_infernal"
+      });
+
+      const origenReprension = resolverOrigenConjuro(pjInfernal, {
+        id: "reprension_infernal",
+        nombre: "Reprensión infernal",
+        nivel: 1,
+        escuela: "Evocación",
+        tiempoLanzamiento: "1 reacción",
+        alcance: "60 pies",
+        componentesSeleccionados: { verbal: true, somatico: true, material: false },
+        duracion: "Instantáneo",
+        descripcion: "Llamas en represalia."
+      });
+      expect(origenReprension).toBe("legado");
+
+      const origenTaumaturgia = resolverOrigenConjuro(pjInfernal, {
+        id: "taumaturgia",
+        nombre: "Taumaturgia",
+        nivel: 0,
+        escuela: "Transmutación",
+        tiempoLanzamiento: "1 acción",
+        alcance: "30 pies",
+        componentesSeleccionados: { verbal: true, somatico: false, material: false },
+        duracion: "Hasta 1 minuto",
+        descripcion: "Manifestación sobrenatural."
+      });
+      expect(origenTaumaturgia).toBe("especie");
+    });
+  });
 });
 
 

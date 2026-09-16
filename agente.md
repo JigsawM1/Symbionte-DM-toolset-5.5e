@@ -19,6 +19,54 @@ Este archivo registra reglas globales, errores encontrados, sus causas raíz y l
    - **Bajo ninguna circunstancia** los módulos de lógica de negocio (`servicios/`), gestores de estado (`almacen/`) o constructores (`gestorClases.ts`) deben contener bifurcaciones condicionales por nombre literal de rasgo o clase (`r.nombre === "..."`, `clase.includes("...")`, etc.).
    - Toda mecánica, progresión de dados, escalado de usos, recuperación o desbloqueo dinámico debe resolverse mediante metadatos declarativos (`escaladoFormulaDados`, `escaladoUsos`, `escaladoRecuperacion`, `opcionesDinamicas`, `escaladoMaxSelecciones`, `sincronizarEfectosConFormula`, `heredarDadosPadre`, `gastarDePadre`, `ligadoA`, `efectos`) delegando en funciones puras agnósticas como `resolverEscaladosRasgo`. Esta regla está reforzada en CI vía ESLint `no-restricted-syntax` y la suite `rasgoGenericidad.test.ts`.
 
+## [2026-09-15] Implementación Canónica y Declarativa de Tiefling (D&D 5.5e), Legados Infernales y Desbloqueo Progresivo en el Builder
+
+**Contexto y Requerimientos del Usuario:**
+- Implementación canónica y declarativa de la especie Tiefling a partir de `dicionario_herramientas/razas/Tiefling.md` para D&D 5.5e (2024):
+  1. *Especie Base*: Tipo Humanoide, tamaño flexible Mediano o Pequeño (con selector declarativo), velocidad 30 pies y visión en la oscuridad 60 pies.
+  2. *Presencia sobrenatural*: Truco *taumaturgia* innato.
+  3. *Legado infernal*: Selector de aptitud mágica elegible entre Inteligencia, Sabiduría o Carisma (`selector_aptitud_magica_tiefling`), compartido por todos los conjuros de la especie.
+  4. *3 Subespecies (Legados Infernales)* estructuradas idénticamente al patrón canónico del Elfo:
+     - **Legado abisal**: Resistencia al daño de veneno, truco *rociada venenosa* (Nv 1), conjuro *rayo nauseabundo* (Nv 3, siempre preparado, 1 uso gratis/descanso largo) y conjuro *inmovilizar persona* (Nv 5, siempre preparado, 1 uso gratis/descanso largo).
+     - **Legado ctónico**: Resistencia al daño necrótico, truco *toque helado* (Nv 1), conjuro *falsa vida* (Nv 3, siempre preparado, 1 uso gratis/descanso largo) y conjuro *rayo debilitador* (Nv 5, siempre preparado, 1 uso gratis/descanso largo).
+     - **Legado infernal**: Resistencia al daño de fuego, truco *descarga de fuego* (Nv 1), conjuro *reprensión infernal* (Nv 3, reacción, siempre preparado, 1 uso gratis/descanso largo) y conjuro *oscuridad* (Nv 5, siempre preparado, 1 uso gratis/descanso largo).
+  5. *Arquitectura Declarativa desde el Builder*: Reutilizar las funciones genéricas y puras existentes (`construirRasgosEspecie`, `aplicarEspecieAPersonaje`, `resolverOrigenConjuro`) sin introducir ninguna bifurcación condicional por nombre de rasgo ni especie en la lógica de negocio (Regla 6).
+
+**Causas Raíz y Desafíos Técnicos Identificados:**
+1. **Definición Parcial Previa en `especiesDND55.ts`:**
+   - La entrada anterior de Tiefling era un borrador que carecía de los rasgos base de Tipo de criatura, Tamaño configurable, y en los legados solo incluía los rasgos de resistencia, omitiendo los rasgos de acción para los conjuros de nivel 1, 3 y 5.
+2. **Divergencias en Traducción de Hechizos (*Hellish Rebuke*):**
+   - En compendios clásicos en español figuraba como *Represión infernal* mientras que en la traducción canónica de 5.5e y en `Tiefling.md` figura como *Reprensión infernal* (con 'n'). Igualmente, *Descarga de fuego* vs *Descarga fuego*.
+   - **Solución:** Se añadieron alias bidireccionales en `MAPA_ALIAS_HECHIZOS` (`subclasesConjurosConstantes.ts`), garantizando resolución perfecta tanto en búsquedas como en clasificación de orígenes.
+3. **Desbloqueo Progresivo y Respeto de Nivel:**
+   - Para cumplir la regla de que a niveles 3 y 5 se desbloquean los conjuros superiores sin contaminar la ficha a nivel 1 o 2, los rasgos de magia N3 y N5 portan `nivelRequerido: 3` y `nivelRequerido: 5`. La función pura `aplicarEspecieAPersonaje` los filtra declarativamente con `!r.nivelRequerido || r.nivelRequerido <= nivelPj`.
+
+**Solución Implementada y Decisiones Arquitectónicas:**
+1. **Reconciliación de Alias de Conjuros (`subclasesConjurosConstantes.ts`):**
+   - Incorporados alias para `"reprension infernal"` <-> `"represion infernal"` y `"descarga de fuego"` <-> `"descarga fuego"`.
+2. **Catálogo Canónico Oficial D&D 5.5e (`especiesDND55.ts`):**
+   - Tiefling completo con rasgos base (`Tipo de criatura`, `Tamaño` Mediano/Pequeño, `Visión en la oscuridad`, `Presencia sobrenatural` con `taumaturgia`, `Legado infernal` con selector `selector_aptitud_magica_tiefling`).
+   - 3 Legados (*Abisal*, *Ctónico*, *Infernal*) con rasgos de resistencia, trucos innatos N1 y conjuros N3 y N5 con `categoriaMecanica: "consumible"`, `usosMaximos: 1` y `recuperacion: "descanso_largo"`.
+3. **Sincronización de Fuentes Complementarias:**
+   - `rasgosDND55.ts`: Actualizados los 5 rasgos base canónicos de Tiefling en `RASGOS_POR_ESPECIE`.
+   - `especies.json`: Sincronizada la entrada con nombre oficial `"Tiefling"` y descripciones canónicas.
+4. **Cobertura Automatizada Exhaustiva (`gestorEspecies.test.ts`):**
+   - Suite `Tiefling y Legados Infernales (Tiefling.md - D&D 5.5e)` con 9 pruebas rigurosas:
+     - Validación de metadatos de especie y tamaño Mediano/Pequeño.
+     - Presencia sobrenatural y selector de aptitud mágica (INT/SAB/CAR).
+     - Validación de los 3 legados y sus resistencias oficiales (Veneno, Necrótico, Fuego).
+     - Validación de rasgos y conjuros innatos de Legado abisal, Legado ctónico y Legado infernal.
+     - Desbloqueo progresivo por nivel: nivel 1 solo trucos; nivel 3 agrega conjuro N3 y rasgo de recurso; nivel 5 agrega conjuro N5 y rasgo de recurso.
+     - Conmutación limpia entre legados: sin duplicados ni residuos huérfanos.
+     - Clasificación de origen de conjuros: `resolverOrigenConjuro` asigna `"legado"` a los hechizos de subraza y `"especie"` a *taumaturgia*.
+5. **Métricas de Calidad Verificadas:**
+   - 100% de éxito en Vitest: 54 suites pasando, 681 pruebas superadas (+10 pruebas nuevas).
+   - `pnpm exec tsc --noEmit`: 0 errores (Strict Mode activo).
+   - `pnpm run lint`: 0 errores y 0 advertencias bajo `--max-warnings=0`.
+   - `node scripts/verificar-limite-lineas.js`: 100% aprobado sin infracciones.
+
+---
+
 ## [2026-09-15] Implementación Canónica y Declarativa de Orco (D&D 5.5e), Soporte Builder para HP Temporal y Consumibles
 
 **Contexto y Requerimientos del Usuario:**

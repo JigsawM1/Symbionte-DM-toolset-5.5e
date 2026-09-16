@@ -61,6 +61,40 @@ const OPCIONES_RECUPERACION: { valor: RecuperacionRasgo; etiqueta: string }[] = 
   { valor: "ninguno", etiqueta: "Ninguno" }
 ];
 
+const OPCIONES_CATEGORIA_MECANICA = [
+  { valor: "consumible", etiqueta: "Consumible (Recurso con usos limitados)" },
+  { valor: "activable", etiqueta: "Activable (Interruptor táctico ON / OFF)" },
+  { valor: "pasivo_permanente", etiqueta: "Pasivo Permanente" },
+  { valor: "selector_informativo", etiqueta: "Selector Informativo" },
+  { valor: "curacion", etiqueta: "Curación" },
+  { valor: "extension", etiqueta: "Extensión" }
+];
+
+const OPCIONES_FORMULA_ESCALADO = [
+  { valor: "", etiqueta: "Fijo (Sin escalado automático)" },
+  { valor: "bono_competencia", etiqueta: "Bono de Competencia (PB: 2 a 6)" },
+  { valor: "nivel", etiqueta: "Nivel del Personaje (1 a 20)" },
+  { valor: "modificador_carisma", etiqueta: "Modificador de Carisma" },
+  { valor: "modificador_constitucion", etiqueta: "Modificador de Constitución" },
+  { valor: "modificador_sabiduria", etiqueta: "Modificador de Sabiduría" }
+];
+
+const OPCIONES_OBJETIVO_HP_TEMPORAL = [
+  { valor: "propio", etiqueta: "El propio personaje (Personal)" },
+  { valor: "aliados", etiqueta: "Criaturas aliadas" },
+  { valor: "general", etiqueta: "General" }
+];
+
+const OPCIONES_PRESETS_HP_TEMPORAL = [
+  { valor: "bono_competencia", etiqueta: "Bono de Competencia (PB)" },
+  { valor: "nivel", etiqueta: "Nivel del Personaje" },
+  { valor: "1*nivel", etiqueta: "1 × Nivel del Personaje" },
+  { valor: "2*nivel", etiqueta: "2 × Nivel del Personaje" },
+  { valor: "constitucion", etiqueta: "Modificador de Constitución" },
+  { valor: "2_veces_dado_inspiracion", etiqueta: "2 × Dado de Inspiración" },
+  { valor: "personalizado", etiqueta: "Personalizado / Otra fórmula" }
+];
+
 const OPCIONES_APLICA_A_ATAQUE = [
   { valor: "arma_fuerza", etiqueta: "Armas con Fuerza" },
   { valor: "arma_cac", etiqueta: "Armas Cuerpo a Cuerpo" },
@@ -195,6 +229,11 @@ export const ConstructorRasgoDote: React.FC<ConstructorRasgoDoteProps> = ({
   const [usosRestantes, setUsosRestantes] = useState<number>(rasgoInicial?.usosRestantes ?? 1);
   const [recuperacion, setRecuperacion] = useState<RecuperacionRasgo>(rasgoInicial?.recuperacion || "descanso_largo");
   const [formulaDados, setFormulaDados] = useState(rasgoInicial?.formulaDados || "");
+  const [formulaEscalado, setFormulaEscalado] = useState<string>(rasgoInicial?.formulaEscalado || "");
+  const [categoriaMecanica, setCategoriaMecanica] = useState<string>(
+    rasgoInicial?.categoriaMecanica ||
+      (rasgoInicial?.esActivable ? "activable" : rasgoInicial?.tieneUsosLimitados ? "consumible" : "pasivo_permanente")
+  );
   const [conjurosOtorgadosTexto, setConjurosOtorgadosTexto] = useState<string>(
     (rasgoInicial?.conjurosOtorgados || []).join(", ")
   );
@@ -320,9 +359,9 @@ export const ConstructorRasgoDote: React.FC<ConstructorRasgoDoteProps> = ({
       setNuevoObjetivo("armas_marciales");
       setNuevoValor("marciales");
     } else if (t === "hp_temporal") {
-      setNuevoObjetivo("hp_temporal");
-      setNuevoValor("2_veces_dado_inspiracion");
-      setNuevaDescripcionEfecto("Puntos de golpe temporales calculados");
+      setNuevoObjetivo("propio");
+      setNuevoValor("bono_competencia");
+      setNuevaDescripcionEfecto("Otorga puntos de golpe temporales iguales al bono de competencia");
     } else if (t === "conjuro_gratuito") {
       setNuevoObjetivo("conjuro");
       setNuevoValor("orden_imperiosa");
@@ -408,9 +447,21 @@ export const ConstructorRasgoDote: React.FC<ConstructorRasgoDoteProps> = ({
         case "modificador_tamano":
           descFinal = `Tamaño modificado a ${nuevoValor}`;
           break;
-        case "hp_temporal":
-          descFinal = `Puntos de golpe temporales: ${nuevoValor}`;
+        case "hp_temporal": {
+          const vNorm = nuevoValor.trim().toLowerCase();
+          if (vNorm === "bono_competencia" || vNorm === "pb" || vNorm === "bc") {
+            descFinal = "Otorga puntos de golpe temporales iguales al bono de competencia";
+          } else if (vNorm === "nivel") {
+            descFinal = "Otorga puntos de golpe temporales iguales al nivel del personaje";
+          } else if (vNorm === "constitucion" || vNorm === "con") {
+            descFinal = "Otorga puntos de golpe temporales iguales al modificador de Constitución";
+          } else if (vNorm === "2_veces_dado_inspiracion") {
+            descFinal = "Puntos de golpe temporales iguales al doble del dado de inspiración";
+          } else {
+            descFinal = `Puntos de golpe temporales: ${nuevoValor}`;
+          }
           break;
+        }
         case "modificador_hp_maximo":
           descFinal = `Modificador de HP Máximo: ${nuevoValor}`;
           break;
@@ -523,6 +574,10 @@ export const ConstructorRasgoDote: React.FC<ConstructorRasgoDoteProps> = ({
           }
         : undefined,
       selectores: selectores.length > 0 ? selectores : undefined,
+      categoriaMecanica: categoriaMecanica
+        ? (categoriaMecanica as RasgoPersonaje["categoriaMecanica"])
+        : undefined,
+      formulaEscalado: formulaEscalado.trim() ? formulaEscalado.trim() : undefined,
       efectos,
       notas: notas.trim()
     };
@@ -538,6 +593,8 @@ export const ConstructorRasgoDote: React.FC<ConstructorRasgoDoteProps> = ({
     usosRestantes,
     recuperacion,
     formulaDados,
+    formulaEscalado,
+    categoriaMecanica,
     esActivable,
     autoDesactivar,
     gastarDePadre,
@@ -698,6 +755,21 @@ export const ConstructorRasgoDote: React.FC<ConstructorRasgoDoteProps> = ({
               onChange={(e) => setNivelRequerido(e.target.value ? parseInt(e.target.value, 10) : undefined)}
             />
           </div>
+        </div>
+
+        <div className={estilos.campoGrupo} style={{ marginTop: "4px" }}>
+          <label className={estilos.labelCampo}>
+            <span>Categoría Mecánica Canónica</span>
+          </label>
+          <SelectorDesplegable<string>
+            valor={categoriaMecanica}
+            opciones={OPCIONES_CATEGORIA_MECANICA}
+            alCambiar={(val) => setCategoriaMecanica(val)}
+            tamano="normal"
+          />
+          <p className={estilos.pistaCampo}>
+            Determina cómo clasifica la ficha y el combate este rasgo (consumible con usos, activable táctico, pasivo permanente, etc.).
+          </p>
         </div>
 
         <div className={estilos.campoGrupo}>
@@ -915,50 +987,67 @@ export const ConstructorRasgoDote: React.FC<ConstructorRasgoDoteProps> = ({
         </div>
 
         {tieneUsosLimitados && (
-          <div className={estilos.gridTresColumnas}>
-            <div className={estilos.campoGrupo}>
-              <label className={estilos.labelCampo}>
-                <span>Usos Máximos</span>
-              </label>
-              <input
-                type="number"
-                min={1}
-                className={estilos.inputControl}
-                value={usosMaximos}
-                onChange={(e) => {
-                  const val = parseInt(e.target.value, 10) || 1;
-                  setUsosMaximos(val);
-                  if (usosRestantes > val) setUsosRestantes(val);
-                }}
-              />
+          <>
+            <div className={estilos.gridTresColumnas}>
+              <div className={estilos.campoGrupo}>
+                <label className={estilos.labelCampo}>
+                  <span>Usos Máximos</span>
+                </label>
+                <input
+                  type="number"
+                  min={1}
+                  className={estilos.inputControl}
+                  value={usosMaximos}
+                  onChange={(e) => {
+                    const val = parseInt(e.target.value, 10) || 1;
+                    setUsosMaximos(val);
+                    if (usosRestantes > val) setUsosRestantes(val);
+                  }}
+                />
+              </div>
+
+              <div className={estilos.campoGrupo}>
+                <label className={estilos.labelCampo}>
+                  <span>Usos Restantes Actuales</span>
+                </label>
+                <input
+                  type="number"
+                  min={0}
+                  max={usosMaximos}
+                  className={estilos.inputControl}
+                  value={usosRestantes}
+                  onChange={(e) => setUsosRestantes(parseInt(e.target.value, 10) || 0)}
+                />
+              </div>
+
+              <div className={estilos.campoGrupo}>
+                <label className={estilos.labelCampo}>
+                  <span>Tipo de Recuperación</span>
+                </label>
+                <SelectorDesplegable<RecuperacionRasgo>
+                  valor={recuperacion}
+                  opciones={OPCIONES_RECUPERACION}
+                  alCambiar={(val) => setRecuperacion(val)}
+                  tamano="normal"
+                />
+              </div>
             </div>
 
-            <div className={estilos.campoGrupo}>
+            <div className={estilos.campoGrupo} style={{ marginTop: "8px" }}>
               <label className={estilos.labelCampo}>
-                <span>Usos Restantes Actuales</span>
+                <span>Escalado Dinámico de Usos Máximos</span>
               </label>
-              <input
-                type="number"
-                min={0}
-                max={usosMaximos}
-                className={estilos.inputControl}
-                value={usosRestantes}
-                onChange={(e) => setUsosRestantes(parseInt(e.target.value, 10) || 0)}
-              />
-            </div>
-
-            <div className={estilos.campoGrupo}>
-              <label className={estilos.labelCampo}>
-                <span>Tipo de Recuperación</span>
-              </label>
-              <SelectorDesplegable<RecuperacionRasgo>
-                valor={recuperacion}
-                opciones={OPCIONES_RECUPERACION}
-                alCambiar={(val) => setRecuperacion(val)}
+              <SelectorDesplegable<string>
+                valor={formulaEscalado}
+                opciones={OPCIONES_FORMULA_ESCALADO}
+                alCambiar={(val) => setFormulaEscalado(val)}
                 tamano="normal"
               />
+              <p className={estilos.pistaCampo}>
+                Permite que los usos escalen de forma automática con el Bonificador por Competencia (PB) o nivel del personaje.
+              </p>
             </div>
-          </div>
+          </>
         )}
 
         <div className={estilos.campoGrupo}>
@@ -1466,32 +1555,47 @@ export const ConstructorRasgoDote: React.FC<ConstructorRasgoDoteProps> = ({
             )}
 
             {nuevoTipoEfecto === "hp_temporal" && (
-              <div className={estilos.gridDosColumnas}>
+              <div className={estilos.gridTresColumnas}>
                 <div className={estilos.campoGrupo}>
                   <label className={estilos.labelCampo}>
-                    <span>Fórmula o Multiplicador de HP Temporal</span>
+                    <span>Objetivo de HP Temporal</span>
                   </label>
-                  <input
-                    type="text"
-                    className={estilos.inputControl}
-                    placeholder="ej. 2_veces_dado_inspiracion, 5, 1d8+carisma..."
-                    value={nuevoValor}
-                    onChange={(e) => setNuevoValor(e.target.value)}
+                  <SelectorDesplegable<string>
+                    valor={nuevoObjetivo}
+                    opciones={OPCIONES_OBJETIVO_HP_TEMPORAL}
+                    alCambiar={(val) => setNuevoObjetivo(val)}
+                    tamano="normal"
                   />
-                  <p className={estilos.pistaCampo}>
-                    Soporta multiplicadores ("2_veces_dado_inspiracion"), fórmulas o números planos.
-                  </p>
                 </div>
                 <div className={estilos.campoGrupo}>
                   <label className={estilos.labelCampo}>
-                    <span>Descripción del Efecto</span>
+                    <span>Preset o Fórmula Dinámica</span>
+                  </label>
+                  <SelectorDesplegable<string>
+                    valor={
+                      OPCIONES_PRESETS_HP_TEMPORAL.some((p) => p.valor === nuevoValor)
+                        ? nuevoValor
+                        : "personalizado"
+                    }
+                    opciones={OPCIONES_PRESETS_HP_TEMPORAL}
+                    alCambiar={(val) => {
+                      if (val !== "personalizado") {
+                        setNuevoValor(val);
+                      }
+                    }}
+                    tamano="normal"
+                  />
+                </div>
+                <div className={estilos.campoGrupo}>
+                  <label className={estilos.labelCampo}>
+                    <span>Valor / Expresión Exacta</span>
                   </label>
                   <input
                     type="text"
                     className={estilos.inputControl}
-                    placeholder="ej. Puntos de golpe temporales a aliados"
-                    value={nuevaDescripcionEfecto}
-                    onChange={(e) => setNuevaDescripcionEfecto(e.target.value)}
+                    placeholder="ej. bono_competencia, nivel, 5..."
+                    value={nuevoValor}
+                    onChange={(e) => setNuevoValor(e.target.value)}
                   />
                 </div>
               </div>

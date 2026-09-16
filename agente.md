@@ -19,6 +19,98 @@ Este archivo registra reglas globales, errores encontrados, sus causas raíz y l
    - **Bajo ninguna circunstancia** los módulos de lógica de negocio (`servicios/`), gestores de estado (`almacen/`) o constructores (`gestorClases.ts`) deben contener bifurcaciones condicionales por nombre literal de rasgo o clase (`r.nombre === "..."`, `clase.includes("...")`, etc.).
    - Toda mecánica, progresión de dados, escalado de usos, recuperación o desbloqueo dinámico debe resolverse mediante metadatos declarativos (`escaladoFormulaDados`, `escaladoUsos`, `escaladoRecuperacion`, `opcionesDinamicas`, `escaladoMaxSelecciones`, `sincronizarEfectosConFormula`, `heredarDadosPadre`, `gastarDePadre`, `ligadoA`, `efectos`) delegando en funciones puras agnósticas como `resolverEscaladosRasgo`. Esta regla está reforzada en CI vía ESLint `no-restricted-syntax` y la suite `rasgoGenericidad.test.ts`.
 
+## [2026-09-15] Implementación Canónica y Declarativa de Orco (D&D 5.5e), Soporte Builder para HP Temporal y Consumibles
+
+**Contexto y Requerimientos del Usuario:**
+- Implementación oficial de la especie Orco a partir de `dicionario_herramientas/razas/Orco.md` según las reglas canónicas de D&D 5.5e (2024):
+  1. *Descarga de adrenalina*: Consumible (acción adicional) que permite usar la acción de Correr y otorga puntos de golpe temporales iguales al Bonificador por Competencia (PB). Usos escalados a PB (`formulaEscalado: "bono_competencia"`), recargables al terminar un descanso corto o largo (`recuperacion: "descanso_corto"`).
+  2. *Aguante incansable*: Consumible informativo (tipo reacción) que al llegar a 0 PG permite caer a 1 PG en su lugar (1 uso por descanso largo).
+  3. *Visión en la oscuridad*: Pasivo que otorga visión en la oscuridad en un radio de 120 pies.
+  4. Metadatos oficiales: Tipo Humanoide, tamaño Mediano, velocidad base 30 pies, visión en la oscuridad 120 pies.
+  5. Generalización desde el Builder: Toda la configuración debe poder construirse desde `ConstructorRasgoDote.tsx` de forma puramente declarativa y reutilizando las funciones y esquemas existentes, sin hardcodear bifurcaciones por nombre o especie en la lógica de negocio (Regla 6).
+  6. Política de Notificaciones de TaleSpire: El usuario indicó explícitamente no enviar avisos al chat de TaleSpire (`ts.chat.send`) para la ganancia de PG temporales.
+
+**Causas Raíz y Desafíos Técnicos:**
+1. **Falta de Selectores de Mecánica y Escalado en el Builder (`ConstructorRasgoDote.tsx`):**
+   - El constructor no exponía `categoriaMecanica` ("consumible", "curacion", etc.) ni `formulaEscalado` ("bono_competencia", "escalado_nivel"), impidiendo configurar desde la interfaz rasgos con recursos que escalan con PB.
+2. **Ausencia de Función Pura de Cálculo de HP Temporal:**
+   - La resolución de efectos mecánicos de tipo `hp_temporal` no disponía de un helper puro y reutilizable que conectara la fórmula o token dinámico (`"bono_competencia"`) con las utilidades de resolución (`resolverFormulaDinamica` y `evaluarExpresionNumericaSegura`).
+3. **Falta de Acción Rápida en TarjetaRasgo para Rasgos de HP Temporal sin Dados:**
+   - Los rasgos con efectos de HP temporal pero sin fórmula de tirada de dados (como *Descarga de adrenalina*) no contaban con un botón rápido para aplicar los puntos temporales y consumir el uso de forma declarativa.
+4. **Límite de Líneas en Componentes (500 líneas):**
+   - `TarjetaRasgo.tsx` requería modificaciones estrictamente quirúrgicas para mantenerse por debajo del límite de 500 líneas impuesto por la auditoría de CI.
+
+**Solución Implementada y Decisiones Arquitectónicas:**
+1. **Funciones Puras y Agnósticas en `evaluadorEfectosRasgos.ts`:**
+   - `calcularHpTemporalDeEfecto(efecto, personaje)`: Evalúa el valor numérico de PG temporales de un efecto, resolviendo de forma segura cadenas directas o tokens dinámicos (`"bono_competencia"`, `"nivel"`, expresiones matemáticas).
+   - `obtenerEfectoHpTemporalRasgo(rasgo)`: Localiza declarativamente el efecto de `hp_temporal` en los efectos del rasgo.
+2. **Generalización Completa en el Builder (`ConstructorRasgoDote.tsx`):**
+   - Agregados estados y controles de UI para `categoriaMecanica` y `formulaEscalado`.
+   - Incorporados presets para efectos de tipo `hp_temporal` ("Bono de Competencia (PB)", "Nivel del Personaje", "Valor Fijo 5 PG", etc.) con selección de objetivo (`"propio"` o `"aliado"`).
+3. **Acción Declarativa en `TarjetaRasgo.tsx`:**
+   - Para rasgos con `tieneUsosLimitados`, `usosRestantes > 0`, sin `formulaDados` y con efecto `hp_temporal` propio, se renderiza el botón de acción rápida `+{valor} PG Temp` (icono Lucide `Shield`).
+   - Al pulsarse, consume 1 uso del rasgo, actualiza los puntos de golpe temporales mediante `aplicarResultadoHpTemporalEnEstado` y despacha una notificación toast local sin emitir mensaje al chat de TaleSpire.
+   - Tamaño final del archivo: 481 líneas (aprobado por CI, umbral < 500).
+4. **Sincronización Canónica Oficial D&D 5.5e:**
+   - `especiesDND55.ts`: Definición oficial de Orco con *Descarga de adrenalina*, *Visión en la oscuridad* (120 pies) y *Aguante incansable*.
+   - `rasgosDND55.ts`: Actualizados nombres canónicos de Orco.
+   - `especies.json`: Sincronizados IDs y descripciones canónicas.
+5. **Suite Exhaustiva de Pruebas Unitarias (`gestorEspecies.test.ts`):**
+   - Validación de metadatos de especie (Humanoide, Mediano, 30 pies, 120 pies de visión en la oscuridad).
+   - Verificación de construcción con escalado por PB (2 usos a nivel 1, 3 usos a nivel 5).
+   - Evaluación pura de puntos de golpe temporales con `calcularHpTemporalDeEfecto` (2 PG a nv 1, 3 PG a nv 5, 4 PG a nv 9).
+   - Ciclo de vida y recuperación en descansos: *Descarga de adrenalina* recupera en descanso corto y largo; *Aguante incansable* solo en descanso largo.
+6. **Métricas de Calidad Verificadas:**
+   - 100% de éxito en Vitest: 54 suites pasando, 671 pruebas superadas.
+   - `pnpm exec tsc --noEmit`: 0 errores (Strict Mode).
+   - `pnpm run lint`: 0 errores y 0 advertencias.
+   - `node scripts/verificar-limite-lineas.js`: 100% conforme.
+
+---
+
+## [2026-09-15] Implementación Canónica e Informativa de Mediano (D&D 5.5e)
+
+**Contexto y Requerimientos del Usuario:**
+- El usuario solicitó la implementación canónica de la especie Mediano a partir de `dicionario_herramientas/razas/Mediano.md`, con la directiva expresa: *"todo aqui es absolutamente informativo"*.
+- Metadatos oficiales canónicos:
+  - Tipo de criatura: Humanoide.
+  - Tamaño: Pequeño (entre 2 y 3 pies de altura).
+  - Velocidad base: 30 pies.
+  - Visión en la oscuridad: 0 pies.
+- Cuatro rasgos oficiales de D&D 5.5e (puramente informativos, `efectos: []`, sin automatizaciones de tiradas ni deducción de recursos):
+  1. *Valiente*: "Tienes ventaja en las tiradas de salvación que hagas para evitar o poner fin al estado de asustado."
+  2. *Agilidad de mediano*: "Puedes moverte a través del espacio ocupado por cualquier criatura de tamaño superior al tuyo, pero no puedes detenerte en el mismo espacio."
+  3. *Fortuna*: "Cuando saques un 1 en una prueba con d20, podrás repetir la tirada y deberás utilizar el nuevo resultado."
+  4. *Sigiloso por naturaleza*: "Puedes llevar a cabo la acción de esconderte incluso tras una criatura cuyo tamaño sea, al menos, una categoría superior al tuyo."
+
+**Causas Raíz y Desfases Identificados:**
+1. **Nombres y Textos Heredados Desactualizados en `rasgosDND55.ts`:**
+   - La clave `"Mediano"` usaba los nombres de 5e clásica *"Afortunado (Mediano)"* y *"Sigilo natural"* en lugar de los canónicos de D&D 5.5e (*Fortuna* y *Sigiloso por naturaleza*).
+   - En *Agilidad de mediano* faltaba la cláusula de restricción canónica: `", pero no puedes detenerte en el mismo espacio."`.
+2. **Incompletitud en `especies.json`:**
+   - La entrada legacy de Mediano tenía id `"halfling"` y carecía del cuarto rasgo *Sigiloso por naturaleza*.
+
+**Solución Implementada y Decisiones Arquitectónicas:**
+1. **Sincronización Canónica en `especiesDND55.ts`:**
+   - Se completaron y alinearon literalmente las descripciones de *Agilidad de mediano* y *Sigiloso por naturaleza* con la fuente de verdad `Mediano.md`.
+   - Se certificó que los 4 rasgos mantienen `efectos: []`, cumpliendo con su naturaleza 100% informativa.
+2. **Normalización del Catálogo Fallback (`rasgosDND55.ts`):**
+   - Actualización de `"Mediano"` en `RASGOS_POR_ESPECIE` con *Fortuna*, *Valiente*, *Agilidad de mediano* y *Sigiloso por naturaleza*, sincronizando textos exactos.
+3. **Actualización de la Base de Datos (`especies.json`):**
+   - Entrada unificada con id `"mediano"`, tipo Humanoide, tamaño Pequeño, velocidad 30 pies y los 4 rasgos canónicos informativos.
+4. **Cobertura Automatizada Exhaustiva (`gestorEspecies.test.ts`):**
+   - Suite `Implementación Canónica e Informativa de Mediano (D&D 5.5e)` con 3 pruebas completas:
+     - Verificación de metadatos oficiales de especie.
+     - Verificación de construcción de rasgos y ausencia de efectos mecánicos (`efectos: []`).
+     - Verificación de aplicación a personaje (`aplicarEspecieAPersonaje`): tamaño Pequeño, velocidad 30 pies e inyección de los rasgos informativos en la ficha.
+5. **Métricas de Calidad Verificadas:**
+   - 100% de éxito en Vitest: 54/54 suites pasando, 667/667 pruebas superadas.
+   - `pnpm exec tsc --noEmit`: 0 errores (Strict Mode activo).
+   - `pnpm run lint`: 0 errores y 0 advertencias.
+   - `node scripts/verificar-limite-lineas.js`: 100% aprobado sin infracciones.
+
+---
+
 ## [2026-09-15] Implementación Canónica de Humano (D&D 5.5e), Recuperación Declarativa de Inspiración Heroica y Builder Genérico
 
 **Contexto y Requerimientos del Usuario:**

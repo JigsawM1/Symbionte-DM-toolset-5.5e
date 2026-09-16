@@ -881,7 +881,7 @@ export const CATALOGO_ESPECIES_DND55: DefinicionEspecie[] = [
       },
       {
         nombre: "Agilidad de mediano",
-        descripcion: "Puedes moverte a través del espacio ocupado por cualquier criatura de tamaño superior al tuyo.",
+        descripcion: "Puedes moverte a través del espacio ocupado por cualquier criatura de tamaño superior al tuyo, pero no puedes detenerte en el mismo espacio.",
         tipoAccion: "pasivo",
         categoriaMecanica: "pasivo_permanente"
       },
@@ -892,7 +892,7 @@ export const CATALOGO_ESPECIES_DND55: DefinicionEspecie[] = [
       },
       {
         nombre: "Sigiloso por naturaleza",
-        descripcion: "Puedes llevar a cabo la acción de esconderte incluso tras una criatura al menos una categoría superior a ti.",
+        descripcion: "Puedes llevar a cabo la acción de esconderte incluso tras una criatura cuyo tamaño sea, al menos, una categoría superior al tuyo.",
         tipoAccion: "pasivo",
         categoriaMecanica: "pasivo_permanente"
       }
@@ -914,12 +914,21 @@ export const CATALOGO_ESPECIES_DND55: DefinicionEspecie[] = [
     rasgos: [
       {
         nombre: "Descarga de adrenalina",
-        descripcion: "Puedes llevar a cabo la acción de correr como acción adicional. Obtienes puntos de golpe temporales iguales a tu bonificador por competencia (usos igual a PB por descanso corto o largo).",
+        descripcion: "Puedes llevar a cabo la acción de correr como acción adicional. Cuando lo hagas, obtendrás una cantidad de puntos de golpe temporales igual a tu bonificador por competencia.\n\nPuedes usar este atributo una cantidad de veces igual a tu bonificador por competencia y recuperas todos los usos tras finalizar un descanso corto o largo.",
         tipoAccion: "accion_adicional",
         tieneUsosLimitados: true,
         usosMaximos: 2,
         recuperacion: "descanso_corto",
-        formulaEscalado: "bono_competencia"
+        formulaEscalado: "bono_competencia",
+        categoriaMecanica: "consumible",
+        efectos: [
+          {
+            tipo: "hp_temporal",
+            objetivo: "propio",
+            valor: "bono_competencia",
+            descripcion: "Otorga puntos de golpe temporales iguales al bono de competencia"
+          }
+        ]
       },
       {
         nombre: "Visión en la oscuridad",
@@ -929,11 +938,12 @@ export const CATALOGO_ESPECIES_DND55: DefinicionEspecie[] = [
       },
       {
         nombre: "Aguante incansable",
-        descripcion: "Cuando tus puntos de golpe se reducen a 0 pero no mueres inmediatamente, puedes recuperar 1 punto de golpe (1/descanso largo).",
+        descripcion: "Cuando tus puntos de golpe se reducen a 0 pero no mueres inmediatamente, puedes recuperar 1 punto de golpe. Cuando uses este atributo, no podrás volver a hacerlo hasta que finalices un descanso largo.",
         tipoAccion: "reaccion",
         tieneUsosLimitados: true,
         usosMaximos: 1,
-        recuperacion: "descanso_largo"
+        recuperacion: "descanso_largo",
+        categoriaMecanica: "consumible"
       }
     ]
   },

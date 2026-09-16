@@ -8,10 +8,15 @@ import {
   construirRasgosEspecie,
   aplicarEspecieAPersonaje
 } from "./gestorEspecies";
-import { evaluarVentajasDeRasgosEnTirada, resolverIdRasgoObjetivoGasto } from "./evaluadorEfectosRasgos";
+import {
+  evaluarVentajasDeRasgosEnTirada,
+  resolverIdRasgoObjetivoGasto,
+  calcularHpTemporalDeEfecto,
+  obtenerEfectoHpTemporalRasgo
+} from "./evaluadorEfectosRasgos";
 import { resolverRasgosAcciones } from "./calculadorAccionesCombate";
 import { resolverOrigenConjuro } from "./resolutorOrigenConjuros";
-import { ejecutarDescansoLargo } from "./procesadorDescansos";
+import { ejecutarDescansoCorto, ejecutarDescansoLargo } from "./procesadorDescansos";
 import {
   resolverCondicionAsociadaRasgo,
   coincideCondicionConRasgo,
@@ -1642,5 +1647,231 @@ describe("GestorEspecies - Dominio de Razas y Subrazas (D&D 5.5e)", () => {
       expect(resDescanso.acciones.some((a) => a.descripcion.includes("Inspiración heroica"))).toBe(true);
     });
   });
+
+  describe("Implementación Canónica e Informativa de Mediano (D&D 5.5e)", () => {
+    it("carga la especie Mediano con sus metadatos oficiales de D&D 5.5e", () => {
+      const mediano = obtenerEspeciePorId("mediano");
+      expect(mediano).toBeDefined();
+      expect(mediano?.nombre).toBe("Mediano");
+      expect(mediano?.tipoCriatura).toBe("Humanoide");
+      expect(mediano?.velocidadBase).toBe(30);
+      expect(mediano?.visionOscuridad).toBe(0);
+      expect(mediano?.tamanoPorDefecto).toBe("Pequeño");
+      expect(mediano?.tamanoOpciones).toEqual(["Pequeño"]);
+    });
+
+    it("construye los rasgos canónicos de Mediano siendo todos 100% informativos", () => {
+      const mediano = obtenerEspeciePorId("mediano")!;
+      const rasgos = construirRasgosEspecie(mediano, undefined, 1, 2);
+
+      const nombres = rasgos.map((r) => r.nombre);
+      expect(nombres).toContain("Valiente");
+      expect(nombres).toContain("Agilidad de mediano");
+      expect(nombres).toContain("Fortuna");
+      expect(nombres).toContain("Sigiloso por naturaleza");
+
+      // Valiente: pasivo permanente puramente informativo
+      const rasgoValiente = rasgos.find((r) => r.nombre === "Valiente");
+      expect(rasgoValiente).toBeDefined();
+      expect(rasgoValiente?.tipoAccion).toBe("pasivo");
+      expect(rasgoValiente?.descripcion).toBe(
+        "Tienes ventaja en las tiradas de salvación que hagas para evitar o poner fin al estado de asustado."
+      );
+      expect(rasgoValiente?.efectos ?? []).toHaveLength(0);
+
+      // Agilidad de mediano: pasivo informativo
+      const rasgoAgilidad = rasgos.find((r) => r.nombre === "Agilidad de mediano");
+      expect(rasgoAgilidad).toBeDefined();
+      expect(rasgoAgilidad?.tipoAccion).toBe("pasivo");
+      expect(rasgoAgilidad?.descripcion).toBe(
+        "Puedes moverte a través del espacio ocupado por cualquier criatura de tamaño superior al tuyo, pero no puedes detenerte en el mismo espacio."
+      );
+      expect(rasgoAgilidad?.efectos ?? []).toHaveLength(0);
+
+      // Fortuna: informativo desencadenado al sacar 1 en d20
+      const rasgoFortuna = rasgos.find((r) => r.nombre === "Fortuna");
+      expect(rasgoFortuna).toBeDefined();
+      expect(rasgoFortuna?.descripcion).toBe(
+        "Cuando saques un 1 en una prueba con d20, podrás repetir la tirada y deberás utilizar el nuevo resultado."
+      );
+      expect(rasgoFortuna?.efectos ?? []).toHaveLength(0);
+
+      // Sigiloso por naturaleza: pasivo informativo
+      const rasgoSigilo = rasgos.find((r) => r.nombre === "Sigiloso por naturaleza");
+      expect(rasgoSigilo).toBeDefined();
+      expect(rasgoSigilo?.tipoAccion).toBe("pasivo");
+      expect(rasgoSigilo?.descripcion).toBe(
+        "Puedes llevar a cabo la acción de esconderte incluso tras una criatura cuyo tamaño sea, al menos, una categoría superior al tuyo."
+      );
+      expect(rasgoSigilo?.efectos ?? []).toHaveLength(0);
+    });
+
+    it("aplica la especie Mediano al personaje fijando tamaño Pequeño, velocidad 30 pies y rasgos informativos", () => {
+      const pjBase: PersonajeJugador = {
+        ...PERSONAJE_POR_DEFECTO,
+        id: "pj-mediano-test",
+        nombre: "Test Mediano",
+        nivel: 1
+      };
+
+      const pjMediano = aplicarEspecieAPersonaje(pjBase, {
+        especieId: "mediano"
+      });
+
+      expect(pjMediano.especie).toBe("Mediano");
+      expect(pjMediano.tamano).toBe("Pequeño");
+      expect(pjMediano.velocidad).toBe("30 pies");
+
+      const nombresRasgos = pjMediano.rasgos.map((r) => r.nombre);
+      expect(nombresRasgos).toContain("Valiente");
+      expect(nombresRasgos).toContain("Agilidad de mediano");
+      expect(nombresRasgos).toContain("Fortuna");
+      expect(nombresRasgos).toContain("Sigiloso por naturaleza");
+
+      // Verificar que todos los rasgos aplicados de especie no tienen efectos mecánicos activos
+      const rasgosEspecie = pjMediano.rasgos.filter((r) => r.origen === "especie");
+      for (const rasgo of rasgosEspecie) {
+        expect(rasgo.efectos ?? []).toHaveLength(0);
+      }
+    });
+  });
+
+  describe("Orco - Definición Canónica y Mecánica Declarativa (Orco.md)", () => {
+    it("cumple los datos base oficiales: Humanoide, Mediano, velocidad 30 pies y visión en la oscuridad 120 pies", () => {
+      const orco = obtenerEspeciePorId("orco");
+      expect(orco).toBeDefined();
+      expect(orco?.tipoCriatura).toBe("Humanoide");
+      expect(orco?.tamanoOpciones).toEqual(["Mediano"]);
+      expect(orco?.tamanoPorDefecto).toBe("Mediano");
+      expect(orco?.velocidadBase).toBe(30);
+      expect(orco?.visionOscuridad).toBe(120);
+      expect(orco?.conjurosInnatos ?? []).toHaveLength(0);
+      expect(orco?.resistenciasDanio ?? []).toHaveLength(0);
+    });
+
+    it("construye rasgos canónicos con escalado de usos por PB y configuración de consumibles", () => {
+      const orco = obtenerEspeciePorId("orco")!;
+      // Nivel 1 (PB = 2)
+      const rasgosNv1 = construirRasgosEspecie(orco, undefined, 1, 2);
+      expect(rasgosNv1).toHaveLength(5); // Tipo de criatura, Tamaño, Descarga de adrenalina, Visión en la oscuridad, Aguante incansable
+
+      const descargaNv1 = rasgosNv1.find((r) => r.nombre === "Descarga de adrenalina");
+      expect(descargaNv1).toBeDefined();
+      expect(descargaNv1?.tipoAccion).toBe("accion_adicional");
+      expect(descargaNv1?.categoriaMecanica).toBe("consumible");
+      expect(descargaNv1?.tieneUsosLimitados).toBe(true);
+      expect(descargaNv1?.formulaEscalado).toBe("bono_competencia");
+      expect(descargaNv1?.usosMaximos).toBe(2);
+      expect(descargaNv1?.usosRestantes).toBe(2);
+      expect(descargaNv1?.recuperacion).toBe("descanso_corto");
+      expect(descargaNv1?.efectos).toHaveLength(1);
+      expect(descargaNv1?.efectos?.[0].tipo).toBe("hp_temporal");
+      expect(descargaNv1?.efectos?.[0].valor).toBe("bono_competencia");
+      expect(descargaNv1?.efectos?.[0].objetivo).toBe("propio");
+
+      const aguanteNv1 = rasgosNv1.find((r) => r.nombre === "Aguante incansable");
+      expect(aguanteNv1).toBeDefined();
+      expect(aguanteNv1?.tipoAccion).toBe("reaccion");
+      expect(aguanteNv1?.categoriaMecanica).toBe("consumible");
+      expect(aguanteNv1?.tieneUsosLimitados).toBe(true);
+      expect(aguanteNv1?.usosMaximos).toBe(1);
+      expect(aguanteNv1?.usosRestantes).toBe(1);
+      expect(aguanteNv1?.recuperacion).toBe("descanso_largo");
+
+      const visionNv1 = rasgosNv1.find((r) => r.nombre === "Visión en la oscuridad");
+      expect(visionNv1).toBeDefined();
+      expect(visionNv1?.tipoAccion).toBe("pasivo");
+
+      // Nivel 5 (PB = 3)
+      const rasgosNv5 = construirRasgosEspecie(orco, undefined, 5, 3);
+      const descargaNv5 = rasgosNv5.find((r) => r.nombre === "Descarga de adrenalina");
+      expect(descargaNv5?.usosMaximos).toBe(3);
+      expect(descargaNv5?.usosRestantes).toBe(3);
+    });
+
+    it("evalúa de forma pura los PG temporales otorgados por Descarga de adrenalina usando PB del personaje", () => {
+      const orco = obtenerEspeciePorId("orco")!;
+      const rasgos = construirRasgosEspecie(orco, undefined, 1, 2);
+      const descarga = rasgos.find((r) => r.nombre === "Descarga de adrenalina")!;
+      const efectoHp = obtenerEfectoHpTemporalRasgo(descarga);
+      expect(efectoHp).toBeDefined();
+
+      const pjNivel1: PersonajeJugador = {
+        ...PERSONAJE_POR_DEFECTO,
+        nivel: 1
+      };
+      expect(calcularHpTemporalDeEfecto(efectoHp!, pjNivel1)).toBe(2);
+
+      const pjNivel5: PersonajeJugador = {
+        ...PERSONAJE_POR_DEFECTO,
+        nivel: 5
+      };
+      expect(calcularHpTemporalDeEfecto(efectoHp!, pjNivel5)).toBe(3);
+
+      const pjNivel9: PersonajeJugador = {
+        ...PERSONAJE_POR_DEFECTO,
+        nivel: 9
+      };
+      expect(calcularHpTemporalDeEfecto(efectoHp!, pjNivel9)).toBe(4);
+    });
+
+    it("aplica la especie Orco al personaje y respeta el ciclo de consumo y recuperación en descansos corto y largo", () => {
+      const pjBase: PersonajeJugador = {
+        ...PERSONAJE_POR_DEFECTO,
+        id: "pj-orco-test",
+        nombre: "Gorok el Fuerte",
+        nivel: 1,
+        hpMaximo: 20,
+        hpActual: 10,
+        dadosGolpeRestantes: 1
+      };
+
+      const pjOrco = aplicarEspecieAPersonaje(pjBase, { especieId: "orco" });
+      expect(pjOrco.especie).toBe("Orco");
+      expect(pjOrco.tamano).toBe("Mediano");
+      expect(pjOrco.velocidad).toBe("30 pies");
+      expect(pjOrco.sentidos).toBe("Visión en la oscuridad 120 pies");
+
+      // Simular consumo de 1 uso en Descarga de adrenalina y 1 uso en Aguante incansable
+      const pjGastado: PersonajeJugador = {
+        ...pjOrco,
+        rasgos: pjOrco.rasgos.map((r) => {
+          if (r.nombre === "Descarga de adrenalina") {
+            return { ...r, usosRestantes: 1 };
+          }
+          if (r.nombre === "Aguante incansable") {
+            return { ...r, usosRestantes: 0 };
+          }
+          return r;
+        })
+      };
+
+      // 1. Descanso Corto: Descarga de adrenalina recarga (recuperacion: "descanso_corto"), Aguante incansable NO (recuperacion: "descanso_largo")
+      const { personajeActualizado: pjPostCorto } = ejecutarDescansoCorto(pjGastado, 0);
+      const descargaPostCorto = pjPostCorto.rasgos.find((r) => r.nombre === "Descarga de adrenalina");
+      const aguantePostCorto = pjPostCorto.rasgos.find((r) => r.nombre === "Aguante incansable");
+
+      expect(descargaPostCorto?.usosRestantes).toBe(2);
+      expect(aguantePostCorto?.usosRestantes).toBe(0);
+
+      // Volver a gastar Descarga de adrenalina
+      const pjParaDescansoLargo: PersonajeJugador = {
+        ...pjPostCorto,
+        rasgos: pjPostCorto.rasgos.map((r) =>
+          r.nombre === "Descarga de adrenalina" ? { ...r, usosRestantes: 0 } : r
+        )
+      };
+
+      // 2. Descanso Largo: Ambos rasgos deben recuperar todos sus usos
+      const { personajeActualizado: pjPostLargo } = ejecutarDescansoLargo(pjParaDescansoLargo);
+      const descargaPostLargo = pjPostLargo.rasgos.find((r) => r.nombre === "Descarga de adrenalina");
+      const aguantePostLargo = pjPostLargo.rasgos.find((r) => r.nombre === "Aguante incansable");
+
+      expect(descargaPostLargo?.usosRestantes).toBe(2);
+      expect(aguantePostLargo?.usosRestantes).toBe(1);
+    });
+  });
 });
+
+
 

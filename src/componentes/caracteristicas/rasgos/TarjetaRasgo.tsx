@@ -1,6 +1,15 @@
 import React from "react";
 import type { RasgoPersonaje, TipoAccionRasgo, OrigenRasgo } from "@/tipos";
-import { lanzarDadosTaleSpire, type MetadataEspecialRasgo } from "@/utiles/lanzadorDados";
+import {
+  lanzarDadosTaleSpire,
+  aplicarResultadoHpTemporalEnEstado,
+  type MetadataEspecialRasgo
+} from "@/utiles/lanzadorDados";
+import {
+  calcularHpTemporalDeEfecto,
+  obtenerEfectoHpTemporalRasgo
+} from "@/servicios/evaluadorEfectosRasgos";
+import { usarAlmacenDM } from "@/almacen/usarAlmacenDM";
 import { limpiarYTruncarTextoMarkdown } from "@/utiles/formatoTextoDND";
 import { logger } from "@/utiles/logger";
 import {
@@ -183,6 +192,47 @@ export const TarjetaRasgo: React.FC<TarjetaRasgoProps> = ({
     }
   };
 
+  const efectoHpTemporal = obtenerEfectoHpTemporalRasgo(rasgo);
+  const esHpTemporalPropio = Boolean(
+    efectoHpTemporal &&
+    (!efectoHpTemporal.objetivo || efectoHpTemporal.objetivo === "propio" || efectoHpTemporal.objetivo === "hp_temporal")
+  );
+
+  const personajeActivoAlmacen = usarAlmacenDM(
+    React.useCallback((s) => s.personajes.find((p) => p.id === idPersonaje), [idPersonaje])
+  );
+  const agregarNotificacion = usarAlmacenDM((s) => s.agregarNotificacion);
+
+  const valorHpTemporalCalculado = React.useMemo(() => {
+    if (!efectoHpTemporal) return 0;
+    if (personajeActivoAlmacen) {
+      return calcularHpTemporalDeEfecto(efectoHpTemporal, personajeActivoAlmacen);
+    }
+    const vStr = String(efectoHpTemporal.valor || "").toLowerCase();
+    if (vStr === "bono_competencia" || vStr === "pb" || vStr === "bc") return 2;
+    return Math.max(0, Number(efectoHpTemporal.valor) || 0);
+  }, [efectoHpTemporal, personajeActivoAlmacen]);
+
+  const manejarAplicarHpTemporal = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (sinUsosDisponibles) return;
+    if (!idPersonaje) return;
+
+    try {
+      if (alGastarUso) {
+        alGastarUso();
+      }
+      const valor = valorHpTemporalCalculado > 0 ? valorHpTemporalCalculado : 1;
+      aplicarResultadoHpTemporalEnEstado(idPersonaje, valor);
+      agregarNotificacion(
+        `Has usado ${rasgo.nombre} y obtenido ${valor} PG temporales.`,
+        "exito"
+      );
+    } catch (error) {
+      logger.error("[TarjetaRasgo] Error al aplicar HP temporal:", error);
+    }
+  };
+
   const claseOrigen = CLASE_ORIGEN_BORDE[rasgo.origen] || estilos.origenPersonalizado;
   const esHomebrewOPersonalizado = rasgo.personalizado || rasgo.origen === "personalizado" || rasgo.origen === "dote";
 
@@ -316,6 +366,24 @@ export const TarjetaRasgo: React.FC<TarjetaRasgoProps> = ({
             >
               {esCuracion ? <Heart size={11} color="#10b981" /> : <Dices size={11} />}
               <span>{esCuracion ? `Curar ${formulaEfectiva}` : formulaEfectiva}</span>
+            </button>
+          )}
+
+          {/* Botón interactivo de HP Temporal (para rasgos sin fórmula de dados, ej. Descarga de adrenalina) */}
+          {!formulaEfectiva && esHpTemporalPropio && (
+            <button
+              type="button"
+              className={estilos.botonTirarDados}
+              onClick={manejarAplicarHpTemporal}
+              disabled={sinUsosDisponibles}
+              title={
+                tieneUsosPropios
+                  ? `Gastar 1 uso (${usosRestantes}/${usosMaximos}) y obtener ${valorHpTemporalCalculado} PG temporales`
+                  : `Obtener ${valorHpTemporalCalculado} PG temporales`
+              }
+            >
+              <Shield size={11} color="#38bdf8" />
+              <span>+{valorHpTemporalCalculado} PG Temp</span>
             </button>
           )}
 

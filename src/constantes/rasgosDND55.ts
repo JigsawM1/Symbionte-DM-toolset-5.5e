@@ -197,23 +197,23 @@ export const RASGOS_POR_ESPECIE: Record<string, PlantillaRasgoEspecie[]> = {
 
   "Mediano": [
     {
-      nombre: "Afortunado (Mediano)",
-      descripcion: "Cuando sacas un 1 en el d20 en una tirada de ataque, prueba de característica o salvación, puedes repetir el dado y debes usar el nuevo resultado.",
-      tipoAccion: "reaccion"
-    },
-    {
       nombre: "Valiente",
-      descripcion: "Tienes ventaja en las tiradas de salvación para evitar o terminar el estado Asustado.",
+      descripcion: "Tienes ventaja en las tiradas de salvación que hagas para evitar o poner fin al estado de asustado.",
       tipoAccion: "pasivo"
     },
     {
       nombre: "Agilidad de mediano",
-      descripcion: "Puedes moverte a través del espacio de cualquier criatura que sea de un tamaño superior al tuyo.",
+      descripcion: "Puedes moverte a través del espacio ocupado por cualquier criatura de tamaño superior al tuyo, pero no puedes detenerte en el mismo espacio.",
       tipoAccion: "pasivo"
     },
     {
-      nombre: "Sigilo natural",
-      descripcion: "Puedes intentar esconderte incluso cuando estés oculto únicamente tras una criatura que sea al menos de un tamaño superior al tuyo.",
+      nombre: "Fortuna",
+      descripcion: "Cuando saques un 1 en una prueba con d20, podrás repetir la tirada y deberás utilizar el nuevo resultado.",
+      tipoAccion: "pasivo"
+    },
+    {
+      nombre: "Sigiloso por naturaleza",
+      descripcion: "Puedes llevar a cabo la acción de esconderte incluso tras una criatura cuyo tamaño sea, al menos, una categoría superior al tuyo.",
       tipoAccion: "pasivo"
     }
   ],
@@ -291,20 +291,23 @@ export const RASGOS_POR_ESPECIE: Record<string, PlantillaRasgoEspecie[]> = {
       tipoAccion: "pasivo"
     },
     {
-      nombre: "Embestida impetuosa",
-      descripcion: "Como acción adicional, puedes moverte hasta tu velocidad hacia un enemigo y ganas puntos de golpe temporales iguales a tu bonificador de competencia (usos iguales a PB).",
+      nombre: "Descarga de adrenalina",
+      descripcion: "Puedes llevar a cabo la acción de correr como acción adicional. Cuando lo hagas, obtendrás una cantidad de puntos de golpe temporales igual a tu bonificador por competencia (usos igual a PB por descanso corto o largo).",
       tipoAccion: "accion_adicional",
       tieneUsosLimitados: true,
       usosMaximos: 2,
-      recuperacion: "descanso_corto"
+      recuperacion: "descanso_corto",
+      formulaEscalado: "bono_competencia",
+      categoriaMecanica: "consumible"
     },
     {
-      nombre: "Resistencia implacable",
-      descripcion: "Cuando tus puntos de golpe se reducen a 0 pero no mueres en el acto, puedes quedar a 1 punto de golpe en su lugar (1/descanso largo).",
+      nombre: "Aguante incansable",
+      descripcion: "Cuando tus puntos de golpe se reducen a 0 pero no mueres inmediatamente, puedes recuperar 1 punto de golpe (1/descanso largo).",
       tipoAccion: "reaccion",
       tieneUsosLimitados: true,
       usosMaximos: 1,
-      recuperacion: "descanso_largo"
+      recuperacion: "descanso_largo",
+      categoriaMecanica: "consumible"
     }
   ],
 

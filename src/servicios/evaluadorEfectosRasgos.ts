@@ -1487,4 +1487,38 @@ export function resolverIdRasgoObjetivoGasto(
   return targetTrait.id;
 }
 
+/**
+ * Evalúa el valor numérico de puntos de golpe temporales otorgados por un efecto mecánico de rasgo,
+ * resolviendo dinámicamente identificadores como "bono_competencia", "nivel", "constitucion" o expresiones numéricas.
+ * Función GENÉRICA PURA: agnóstica de clases y especies.
+ */
+export function calcularHpTemporalDeEfecto(
+  efecto: EfectoMecanicoRasgo | undefined,
+  personaje: PersonajeJugador
+): number {
+  if (!efecto || efecto.tipo !== "hp_temporal") return 0;
+  const valorStr = String(efecto.valor ?? "").trim();
+  if (!valorStr) return 0;
+
+  const numDirecto = Number(valorStr);
+  if (!isNaN(numDirecto) && numDirecto > 0) {
+    return Math.floor(numDirecto);
+  }
+
+  const resuelto = resolverFormulaDinamica(valorStr, personaje);
+  const numFinal = evaluarExpresionNumericaSegura(resuelto, { nivel: personaje.nivel });
+  return Math.max(0, Math.floor(numFinal));
+}
+
+/**
+ * Obtiene el efecto de puntos de golpe temporales de un rasgo si lo posee.
+ * Función GENÉRICA PURA.
+ */
+export function obtenerEfectoHpTemporalRasgo(
+  rasgo: RasgoPersonaje | undefined
+): EfectoMecanicoRasgo | undefined {
+  if (!rasgo || !Array.isArray(rasgo.efectos)) return undefined;
+  return rasgo.efectos.find((ef) => ef.tipo === "hp_temporal");
+}
+
 

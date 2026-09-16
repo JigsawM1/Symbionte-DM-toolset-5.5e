@@ -438,10 +438,14 @@ export const CATALOGO_INVOCACIONES_SOBRENATURALES: InvocacionSobrenatural[] = [
  * Nivel 5-6: 5
  * Nivel 7-8: 6
  * Nivel 9-11: 7
- * Nivel 12-20: 8
+ * Nivel 12-14: 8
+ * Nivel 15-17: 9
+ * Nivel 18-20: 10
  */
 export function obtenerMaxInvocacionesBrujo(nivelBrujo: number): number {
   const n = Math.max(1, Math.min(20, Math.floor(nivelBrujo) || 1));
+  if (n >= 18) return 10;
+  if (n >= 15) return 9;
   if (n >= 12) return 8;
   if (n >= 9) return 7;
   if (n >= 7) return 6;

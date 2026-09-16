@@ -4,6 +4,7 @@ import {
   usarAccionesPersonajes
 } from "@/almacen/selectores/usarEstadoPersonajes";
 import type { RasgoPersonaje, OrigenRasgo } from "@/tipos";
+import { sincronizarRasgosAutomaticos } from "@/servicios/compendioRasgos";
 import { usarEstadoPersistido } from "@/hooks";
 import { calcularRelevanciaBusqueda } from "@/utiles/busquedaTolerante";
 import type { FiltroTipoAccion } from "./CabeceraRasgosJugador";
@@ -82,10 +83,22 @@ export function usarVistaRasgos() {
     const cambioProgresion = firmaPreviaRef.current !== "" && firmaPreviaRef.current !== firmaProgresion;
     firmaPreviaRef.current = firmaProgresion;
 
-    if (noTieneRasgos || cambioProgresion) {
+    const canonicos = sincronizarRasgosAutomaticos(personajeActivo);
+    const mapaActual = new Map((personajeActivo.rasgos || []).map((r) => [r.id, r]));
+    const faltanRasgos = canonicos.some((r) => !mapaActual.has(r.id));
+    const selectoresDesactualizados = canonicos.some((rCan) => {
+      const rAct = mapaActual.get(rCan.id);
+      if (!rAct || !rCan.selectores || !rAct.selectores) return false;
+      return rCan.selectores.some((sCan) => {
+        const sAct = rAct.selectores?.find((s) => s.id === sCan.id);
+        return !sAct || sAct.maxSelecciones !== sCan.maxSelecciones;
+      });
+    });
+
+    if (noTieneRasgos || cambioProgresion || faltanRasgos || selectoresDesactualizados) {
       sincronizarRasgosPersonaje(personajeActivo.id);
     }
-  }, [personajeActivo?.id, firmaProgresion, sincronizarRasgosPersonaje]);
+  }, [personajeActivo?.id, personajeActivo?.rasgos, firmaProgresion, sincronizarRasgosPersonaje]);
 
   const alternarColapso = (clave: string) => {
     setSeccionesColapsadas((prev) => ({

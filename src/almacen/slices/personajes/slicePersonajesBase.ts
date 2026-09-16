@@ -177,6 +177,7 @@ export const crearSubSlicePersonajesBase: StateCreator<
             rasgos: (fusionado.rasgos || []).map((r) => {
               const norm = (r.nombre || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
               if (
+                (r.escaladoUsos?.tipo === "por_modificador" && r.escaladoUsos.modificador === "carisma") ||
                 norm.includes("inspiracion bardica") ||
                 (r.tieneUsosLimitados && (r.formulaEscalado || "").toLowerCase().includes("carisma")) ||
                 (r.tieneUsosLimitados && (r.descripcion || "").toLowerCase().includes("modificador por carisma"))

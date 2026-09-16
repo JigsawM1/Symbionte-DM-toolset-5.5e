@@ -13,6 +13,7 @@ import {
   Search
 } from "lucide-react";
 import { TextoEnriquecidoDND } from "@/componentes/comunes";
+import { obtenerMaxInvocacionesBrujo } from "@/constantes/invocacionesSobrenaturales";
 import estilos from "./SelectorInvocacionesAcordeon.module.css";
 
 interface SelectorInvocacionesAcordeonProps {
@@ -23,11 +24,23 @@ interface SelectorInvocacionesAcordeonProps {
 
 export const SelectorInvocacionesAcordeon: React.FC<SelectorInvocacionesAcordeonProps> = ({
   selector,
-  nivelPersonaje = 1,
+  nivelPersonaje,
   alActualizarSeleccion
 }) => {
   const seleccionados = useMemo(() => selector.valorActual || [], [selector.valorActual]);
-  const max = selector.maxSelecciones || 1;
+
+  const max = useMemo(() => {
+    if (selector.escaladoMaxSelecciones && nivelPersonaje) {
+      const entrada = [...selector.escaladoMaxSelecciones]
+        .sort((a, b) => b.nivelMinimo - a.nivelMinimo)
+        .find((e) => nivelPersonaje >= e.nivelMinimo);
+      if (entrada) return entrada.valor;
+    }
+    if (nivelPersonaje && (selector.id.toLowerCase().includes("invocacion") || selector.etiqueta.toLowerCase().includes("invocaci"))) {
+      return obtenerMaxInvocacionesBrujo(nivelPersonaje);
+    }
+    return selector.maxSelecciones || 1;
+  }, [selector.escaladoMaxSelecciones, selector.maxSelecciones, selector.id, selector.etiqueta, nivelPersonaje]);
 
   // Estado local para elementos expandidos
   const [expandidos, setExpandidos] = useState<Record<string, boolean>>({});
@@ -45,8 +58,11 @@ export const SelectorInvocacionesAcordeon: React.FC<SelectorInvocacionesAcordeon
     if (!alActualizarSeleccion || (bloqueada && !estaActiva)) return;
 
     if (estaActiva) {
-      // Quitar invocación
-      const nuevas = seleccionados.filter((opId) => opId !== id);
+      // Quitar invocación y en cascada aquellas que dependan de esta
+      const dependientes = selector.opciones
+        .filter((op) => op.requisitoInvocacion === id)
+        .map((op) => op.id);
+      const nuevas = seleccionados.filter((opId) => opId !== id && !dependientes.includes(opId));
       alActualizarSeleccion(selector.id, nuevas);
     } else {
       // Agregar invocación
@@ -54,7 +70,7 @@ export const SelectorInvocacionesAcordeon: React.FC<SelectorInvocacionesAcordeon
         alActualizarSeleccion(selector.id, [...seleccionados, id]);
       } else {
         // Si supera el máximo en selección múltiple, reemplaza la primera
-        const nuevas = [...seleccionados.slice(1), id];
+        const nuevas = max === 1 ? [id] : [...seleccionados.slice(1), id];
         alActualizarSeleccion(selector.id, nuevas);
       }
     }
@@ -72,7 +88,10 @@ export const SelectorInvocacionesAcordeon: React.FC<SelectorInvocacionesAcordeon
       if (!coincideBusqueda) return false;
 
       const estaActiva = seleccionados.includes(op.id);
-      const cumpleNivel = op.nivelMinimo === undefined || nivelPersonaje >= op.nivelMinimo;
+      const cumpleNivel =
+        op.nivelMinimo === undefined ||
+        nivelPersonaje === undefined ||
+        nivelPersonaje >= op.nivelMinimo;
       const cumpleInvocacionPrevia = !op.requisitoInvocacion || seleccionados.includes(op.requisitoInvocacion);
       const bloqueada = !estaActiva && (!cumpleNivel || !cumpleInvocacionPrevia);
 
@@ -133,13 +152,16 @@ export const SelectorInvocacionesAcordeon: React.FC<SelectorInvocacionesAcordeon
             const estaActiva = seleccionados.includes(op.id);
             const estaExpandida = !!expandidos[op.id];
 
-            const cumpleNivel = op.nivelMinimo === undefined || nivelPersonaje >= op.nivelMinimo;
+            const cumpleNivel =
+              op.nivelMinimo === undefined ||
+              nivelPersonaje === undefined ||
+              nivelPersonaje >= op.nivelMinimo;
             const cumpleInvocacionPrevia = !op.requisitoInvocacion || seleccionados.includes(op.requisitoInvocacion);
             const bloqueada = !estaActiva && (!cumpleNivel || !cumpleInvocacionPrevia);
 
             let textoMotivoBloqueo = "";
             if (!cumpleNivel) {
-              textoMotivoBloqueo = `Requiere Brujo de nivel ${op.nivelMinimo} (actual: nivel ${nivelPersonaje})`;
+              textoMotivoBloqueo = `Requiere Brujo de nivel ${op.nivelMinimo}${nivelPersonaje !== undefined ? ` (actual: nivel ${nivelPersonaje})` : ""}`;
             } else if (!cumpleInvocacionPrevia) {
               const reqNombre = selector.opciones.find((o) => o.id === op.requisitoInvocacion)?.nombre || op.requisitoInvocacion;
               textoMotivoBloqueo = `Requiere haber aprendido la invocación previa: "${reqNombre}"`;
@@ -213,10 +235,14 @@ export const SelectorInvocacionesAcordeon: React.FC<SelectorInvocacionesAcordeon
                         type="button"
                         className={estilos.botonAccionAgregar}
                         onClick={() => manejarAlternarInvocacion(op.id, false, false)}
-                        title="Agregar esta invocación"
+                        title={
+                          seleccionados.length >= max
+                            ? `Cupo de invocaciones completo (${max}/${max}). Al seleccionarla sustituirás una de las anteriores.`
+                            : "Aprender esta invocación"
+                        }
                       >
                         <Plus size={12} />
-                        <span>Agregar</span>
+                        <span>{seleccionados.length >= max ? "Sustituir" : "Agregar"}</span>
                       </button>
                     )}
                   </div>
@@ -293,7 +319,11 @@ export const SelectorInvocacionesAcordeon: React.FC<SelectorInvocacionesAcordeon
                           onClick={() => manejarAlternarInvocacion(op.id, false, false)}
                         >
                           <Plus size={13} />
-                          <span>Agregar Invocación ({seleccionados.length + 1}/{max})</span>
+                          <span>
+                            {seleccionados.length >= max
+                              ? `Sustituir Invocación (${max}/${max})`
+                              : `Aprender Invocación (${seleccionados.length + 1}/${max})`}
+                          </span>
                         </button>
                       )}
                     </div>

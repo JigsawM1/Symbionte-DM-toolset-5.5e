@@ -1,6 +1,7 @@
-import React from "react";
+import React, { useMemo } from "react";
 import type { RasgoPersonaje } from "@/tipos";
 import { ChevronDown, ChevronRight, Sparkles, Swords, Flame } from "lucide-react";
+import { obtenerMaxInvocacionesBrujo } from "@/constantes/invocacionesSobrenaturales";
 import { SelectorInvocacionesAcordeon } from "./SelectorInvocacionesAcordeon";
 import type { GrupoClaseJerarquico, SeccionesColapsadas } from "./usarVistaRasgos";
 import estilos from "./VistaRasgosJugador.module.css";
@@ -33,7 +34,18 @@ export const GrupoClaseRasgos: React.FC<GrupoClaseRasgosProps> = ({
 
   const selectorInvocaciones = grupo.rasgoInvocaciones?.selectores?.[0];
   const aprendidasInvocaciones = selectorInvocaciones?.valorActual || [];
-  const maxInvocaciones = selectorInvocaciones?.maxSelecciones || 1;
+  const maxInvocaciones = useMemo(() => {
+    if (selectorInvocaciones?.escaladoMaxSelecciones && grupo.clase.nivel) {
+      const entrada = [...selectorInvocaciones.escaladoMaxSelecciones]
+        .sort((a, b) => b.nivelMinimo - a.nivelMinimo)
+        .find((e) => grupo.clase.nivel >= e.nivelMinimo);
+      if (entrada) return entrada.valor;
+    }
+    if (grupo.clase.nivel) {
+      return obtenerMaxInvocacionesBrujo(grupo.clase.nivel);
+    }
+    return selectorInvocaciones?.maxSelecciones || 1;
+  }, [selectorInvocaciones, grupo.clase.nivel]);
 
   return (
     <React.Fragment key={`grupo_clase_${grupo.clase.nombre}`}>

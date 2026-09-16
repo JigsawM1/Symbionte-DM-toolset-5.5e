@@ -1,6 +1,7 @@
 import type { StateCreator } from "zustand";
 import type { EstadoDM } from "@/almacen/usarAlmacenDM";
 import { sincronizarRasgosAutomaticos } from "@/servicios/compendioRasgos";
+import { obtenerMaxInvocacionesBrujo } from "@/constantes/invocacionesSobrenaturales";
 import {
   tieneMedioBonoHabilidades,
   aplicarAprendizDeMuchoAGradosHabilidades,
@@ -410,9 +411,25 @@ export const crearSubSliceRasgos: StateCreator<
             nuevoTrucoAltoElfo = valorActual[0];
           }
 
-          const selectoresActualizados = r.selectores.map((s) =>
-            s.id === idSelector ? { ...s, valorActual } : s
-          );
+          const selectoresActualizados = r.selectores.map((s) => {
+            if (s.id !== idSelector) return s;
+            let maxSel = s.maxSelecciones;
+            if (s.escaladoMaxSelecciones && pj.nivel) {
+              const entrada = [...s.escaladoMaxSelecciones]
+                .sort((a, b) => b.nivelMinimo - a.nivelMinimo)
+                .find((e) => (pj.nivel || 1) >= e.nivelMinimo);
+              if (entrada) maxSel = entrada.valor;
+            } else if (s.id.toLowerCase().includes("invocacion") || s.etiqueta.toLowerCase().includes("invocaci")) {
+              const claseBrujo = (pj.clases || []).find((c) => normalizarTextoSeguro(c.nombre).includes("brujo"));
+              const nivelBrujo = claseBrujo?.nivel || pj.nivel || 1;
+              maxSel = obtenerMaxInvocacionesBrujo(nivelBrujo);
+            }
+            return {
+              ...s,
+              maxSelecciones: maxSel,
+              valorActual
+            };
+          });
 
           // Si cambió el truco del Alto elfo, sincronizar conjurosOtorgados en el rasgo
           let conjurosOtorgadosActualizados = r.conjurosOtorgados;

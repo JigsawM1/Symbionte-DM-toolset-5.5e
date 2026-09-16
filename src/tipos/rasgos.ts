@@ -175,7 +175,7 @@ export type FilaTablaEscalado = z.infer<typeof EsquemaFilaTablaEscalado>;
 export const EsquemaTablaEscaladoRasgo = z.object({
   columnas: z.array(z.string()).default(["Nivel", "Descripción"]),
   filas: z.array(EsquemaFilaTablaEscalado).default([]),
-  notaPie: z.string().default("Cada nivel reemplaza al anterior")
+  notaPie: z.string().default("Cada nivel reemplaza al anterior").optional()
 });
 export type TablaEscaladoRasgo = z.infer<typeof EsquemaTablaEscaladoRasgo>;
 

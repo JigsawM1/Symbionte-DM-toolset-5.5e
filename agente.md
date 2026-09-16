@@ -19,6 +19,121 @@ Este archivo registra reglas globales, errores encontrados, sus causas raíz y l
    - **Bajo ninguna circunstancia** los módulos de lógica de negocio (`servicios/`), gestores de estado (`almacen/`) o constructores (`gestorClases.ts`) deben contener bifurcaciones condicionales por nombre literal de rasgo o clase (`r.nombre === "..."`, `clase.includes("...")`, etc.).
    - Toda mecánica, progresión de dados, escalado de usos, recuperación o desbloqueo dinámico debe resolverse mediante metadatos declarativos (`escaladoFormulaDados`, `escaladoUsos`, `escaladoRecuperacion`, `opcionesDinamicas`, `escaladoMaxSelecciones`, `sincronizarEfectosConFormula`, `heredarDadosPadre`, `gastarDePadre`, `ligadoA`, `efectos`) delegando en funciones puras agnósticas como `resolverEscaladosRasgo`. Esta regla está reforzada en CI vía ESLint `no-restricted-syntax` y la suite `rasgoGenericidad.test.ts`.
 
+---
+
+## [2026-09-16] Corrección Integral del Selector y Escalado de Invocaciones Sobrenaturales del Brujo (D&D 5.5e 2024)
+
+**Contexto y Requerimientos del Usuario:**
+- El usuario reportó que en la vista de personaje y en el modal de rasgos, las Invocaciones Sobrenaturales (*Eldritch Invocations*) no se quedaban marcadas y no permitían seleccionar las que correspondían al nivel del personaje ("no me marcan / dejan seleccionar las que son").
+
+**Causas Raíz Identificadas:**
+1. **Ausencia de `escaladoMaxSelecciones` en `clasesDND55.ts`:**
+   El selector `invocaciones_sobrenaturales_aprendidas` tenía `maxSelecciones: 1` fijo. Al no incluir `escaladoMaxSelecciones`, el motor del Builder (`gestorClases.ts`) mantenía el límite en 1 para cualquier nivel de Brujo (incluso a nivel 2, 5 o 20).
+2. **Reemplazo forzado FIFO en `SelectorInvocacionesAcordeon.tsx`:**
+   Dado que `max` valía 1, cualquier intento de añadir una segunda invocación provocaba que `seleccionados.length < max` fuese falso, ejecutando un slice que descartaba la primera selección inmediatamente, dando la impresión de que "no se marcaba". Además, los botones mostraban textos confusos como `(2/1)`.
+3. **Tabla canónica desactualizada en `invocacionesSobrenaturales.ts`:**
+   `obtenerMaxInvocacionesBrujo` limitaba las invocaciones a un máximo de 8 para niveles 12 a 20, omitiendo los niveles 15 (9 invocaciones) y 18 (10 invocaciones) de la tabla oficial 2024.
+4. **Falta de auto-sincronización reactiva de selectores en caliente:**
+   En `usarVistaRasgos.ts`, si un personaje ya había sido persistido en `localStorage` con un snapshot antiguo que contenía `maxSelecciones: 1`, el almacén no detectaba la discrepancia de límites con respecto a los rasgos canónicos calculados.
+5. **Deselección de requisitos previos:**
+   Si se quitaba una invocación que servía de requisito para otra (ej. *Pacto del filo* para *Filo sediento*), no existía limpieza en cascada.
+
+**Soluciones Aplicadas y Decisiones Arquitectónicas:**
+1. **Catálogo Declarativo (`clasesDND55.ts`):**
+   - Incorporado `escaladoMaxSelecciones` canónico en `invocaciones_sobrenaturales_aprendidas`: Nivel 1 (1), Nv 2 (3), Nv 5 (5), Nv 7 (6), Nv 9 (7), Nv 12 (8), Nv 15 (9), Nv 18 (10).
+   - Llamada general `generarOpcionesSelectorInvocaciones()` sin parámetro limitante.
+2. **Función de Escalado Canónico (`invocacionesSobrenaturales.ts`):**
+   - Actualizado `obtenerMaxInvocacionesBrujo` para cubrir de forma completa 18-20 (10) y 15-17 (9).
+3. **Componentes de Interfaz Resilientes:**
+   - `SelectorInvocacionesAcordeon.tsx`: Calcula `max` dinámicamente evaluando `escaladoMaxSelecciones` o `obtenerMaxInvocacionesBrujo(nivelPersonaje)`. Maneja eliminación en cascada de dependientes al quitar un prerrequisito. Flexibiliza `cumpleNivel` ante `nivelPersonaje === undefined`. Cambia las etiquetas de los botones a "Sustituir" cuando se alcanza el tope máximo.
+   - `GrupoClaseRasgos.tsx`: Calcula `maxInvocaciones` con `useMemo` consultando `obtenerMaxInvocacionesBrujo(grupo.clase.nivel)`.
+4. **Almacén y Sincronización Automática (`sliceRasgos.ts` y `usarVistaRasgos.ts`):**
+   - `sliceRasgos.ts`: En `actualizarSeleccionRasgo`, calibra reactivamente `maxSelecciones` con el nivel contextual del personaje para sanar selectores persistidos con valores obsoletos.
+   - `usarVistaRasgos.ts`: Detecta discrepancias en `maxSelecciones` de selectores entre el estado actual y los canónicos, disparando `sincronizarRasgosPersonaje` automáticamente.
+   - `evaluadorEfectosRasgos.ts`: En `obtenerConjurosOtorgadosPorRasgos`, añade recolección de efectos `conjuro_gratuito` y de opciones seleccionadas en selectores (Invocaciones).
+5. **Verificación Automatizada:**
+   - 30 pruebas en `brujoDND55.test.ts` pasando al 100%.
+   - Suite global de Vitest: 56 suites y 716 pruebas pasando.
+   - `tsc --noEmit` pasando con 0 errores bajo `strict: true`.
+   - `eslint src --max-warnings=0` pasando con 0 advertencias.
+
+---
+
+## [2026-09-16] Sincronización Canónica de Descripciones Oficiales, Erratas y Tablas de Progresión para Rasgos y Subclases del Brujo (D&D 5.5e)
+
+**Contexto y Requerimientos del Usuario:**
+- Actualización de las descripciones de los rasgos de la clase Brujo y sus 4 subclases canónicas utilizando fielmente las descripciones de `cambio_build/brujo.json`, incluyendo correcciones de erratas en Invocaciones sobrenaturales y rasgos de clase base.
+- Adición de tablas de progresión interactivas (`tablaProgresion`) para:
+  1. *Arcano místico* con columnas `["Nivel", "Descripción"]`, niveles 11, 13, 15, 17 y nota al pie `"Se apilan los niveles"`.
+  2. *Conjuros de archihada* (Patrón de los Archihadas), *Conjuros celestiales* (Patrón Celestial), *Conjuros infernales* (Patrón Infernal) y *Conjuros del Gran Primigenio* (Patrón del Gran Primigenio) con columnas `["Nivel de brujo", "Conjuros"]` y niveles 3, 5, 7, 9.
+
+**Causas Raíz y Desafíos Técnicos Identificados:**
+1. **Erratas Textuales y Enlaces Rotos:**
+   - *Invocaciones sobrenaturales* (Nv 1): errata en texto inicial sustituida por el texto oficial fiel `"Obtienes una invocación de tu elección, como Pacto del tomo..."`.
+   - *Magia del pacto* (Nv 1): eliminadas menciones obsoletas a capítulos de manuales físicos externos.
+   - *Mejoras de característica* (Nv 4, 8, 12, 16) y *Don épico* (Nv 19): eliminadas cadenas markdown con enlaces rotos a `feats.html` y corregida la recomendación de dote a *Don del destino* en Nv 19.
+   - *Arcanos Místicos* (Nv 13, 15, 17): diferenciados como *Arcano místico II*, *Arcano místico III* y *Arcano místico IV* conforme a la estructura de `brujo.json`.
+   - Subclases: incorporadas las tablas oficiales markdown en las descripciones de conjuros sin perder los metadatos interactivos de `tablaProgresion`.
+2. **Tipado Estricto de `TablaEscaladoRasgo` (Error TS2741):**
+   - En Zod (`src/tipos/rasgos.ts`), `EsquemaTablaEscaladoRasgo` utilizaba `notaPie: z.string().default("Cada nivel reemplaza al anterior")`.
+   - `z.infer<typeof EsquemaTablaEscaladoRasgo>` infiere `notaPie: string` como propiedad obligatoria.
+   - Solucionado haciendo `.optional()` a `notaPie` en `EsquemaTablaEscaladoRasgo` y asignando `notaPie: ""` a las tablas de conjuros de subclase en `clasesDND55.ts`.
+3. **Métricas y Verificaciones Realizadas:**
+   - Paridad auditada: 100% de coincidencia exacta entre `brujo.json` y `clasesDND55.ts` validada con script de comparación directa.
+   - Vitest: 56 suites pasando, 712 tests superados (26 tests específicos de Brujo en `brujoDND55.test.ts`).
+   - `tsc --noEmit`: 0 errores (`strict: true`).
+   - ESLint: 0 errores, 0 advertencias (`--max-warnings=0`).
+   - Auditoría de líneas: 100% de archivos en límites permitidos.
+
+---
+
+## [2026-09-16] Implementación Canónica y Declarativa del Brujo (Warlock) y sus 4 Subclases (D&D 5.5e 2024) en el Builder
+
+**Contexto y Requerimientos del Usuario:**
+- Implementación de la clase **Brujo (Warlock)** y sus 4 subclases canónicas para D&D 5.5e (2024): **Patrón de los Archihadas**, **Patrón Celestial**, **Patrón Infernal** y **Patrón del Gran Primigenio**.
+- Requisitos estrictos de arquitectura:
+  1. **Builder Declarativo Puro:** Toda la mecánica de dados, escalado de usos, fórmulas y extensiones debe definirse mediante metadatos en el catálogo (`CATALOGO_CLASES_DND55`), prohibiendo categóricamente bifurcaciones por nombre literal (`r.nombre === "..."` o `clase === "brujo"`).
+  2. **Resoluciones Canónicas Acordadas en `/grill-me`:**
+     - *Pasos feéricos* y *Escapada brumosa*: Dos tarjetas vinculadas de forma declarativa. *Pasos feéricos* (Nv 3, acción adicional, dado 1d10, usos = modificador de Carisma) y *Escapada brumosa* (Nv 6, reacción, dado 2d10, `ligadoA: "Pasos feéricos"`, `gastarDePadre: true`).
+     - *Luz sanadora* (Celestial): Botón ágil de 1d6 por uso, con reserva calculada como $1 + \text{nivel}$ por descanso largo.
+     - *Resiliencia celestial* (Celestial Nv 10) y *Bendición del Oscuro* (Infernal Nv 3): Botones interactivos `+X PG Temp` bajo demanda sin límite de usos diarios (`tieneUsosLimitados: false`), evaluando dinámicamente `nivel + carisma` y `max(1, carisma + nivel)`.
+     - *Defensas fascinantes* (Archihadas Nv 10): Reacción consumible 1/1 descanso largo combinada con inmunidad pasiva a la condición `hechizado`.
+     - *Resiliencia infernal* (Infernal Nv 10): Selector interactivo `tipo: "unico"` con las 12 opciones elementales oficiales (excluyendo daño de fuerza), con valor por defecto `"fuego"`.
+
+**Causas Raíz y Desafíos Técnicos Identificados:**
+1. **Evaluación de Fórmulas Dinámicas en Usos y Efectos:**
+   - La función `evaluarFormulaUsos` en `gestorClases.ts` originalmente solo soportaba funciones JS compiladas o funciones flecha string (`(niv) => ...`), fallando ante expresiones textuales como `"1 + nivel"`.
+   - Las expresiones dinámicas de PG temporales (`resolverFormulaDinamica`) no admitían `max(a, b)` ni `min(a, b)` de manera segura sin recurrir al peligroso `eval()`.
+2. **Normalización de Tokens de Atributos:**
+   - En fórmulas como `2d8+carisma` o `modificador_carisma`, los reemplazos por regex podían interferir si los prefijos `modificador_` o `mod_` se duplicaban.
+3. **Consolidación de Rasgos de Subclase Ligados:**
+   - El bucle de rasgos de subclase en `gestorClases.ts` no consolidaba extensiones de rasgos con `ligadoA` de la misma manera que el bucle de clase base.
+4. **Contratos de Tipado Estricto:**
+   - `PlantillaRasgoClase` modela los usos mediante `formulaUsos: string` y `obtenerUsosMaximos?: (nivel: number) => number`, mientras que `RasgoPersonaje` contiene `usosMaximos: number`.
+   - Los selectores en plantillas requieren `tipo: "unico" | "multiple"`, `maxSelecciones: number` y descripciones en cada `OpcionSelector`.
+
+**Solución Implementada y Decisiones Arquitectónicas:**
+1. **Evaluador de Efectos y Fórmulas Numéricas Seguras (`evaluadorEfectosRasgos.ts`):**
+   - Incorporado soporte seguro para `max(a, b)` y `min(a, b)` en el parser recursivo sin `eval()`.
+   - Normalizados los tokens de estadísticas (`modificador_carisma`, `mod_carisma`, `carisma`) para que se sustituyan de forma uniforme por sus valores numéricos antes del cálculo.
+2. **Extensión Genérica en el Builder (`gestorClases.ts`):**
+   - Integrado `evaluarExpresionNumericaSegura` como fallback en `evaluarFormulaUsos` para fórmulas dinámicas tipo `"1 + nivel"`.
+   - Agregada consolidación genérica de rasgos con `categoriaMecanica === "extension"` o `ligadoA` para rasgos provenientes de subclases.
+3. **Catálogo Canónico Oficial (`clasesDND55.ts`):**
+   - Clase base Brujo con *Magia del pacto*, *Invocaciones sobrenaturales* (Nv 1), *Astucia mágica* (Nv 2, consumible 1/1), *Contactar con el patrón* (Nv 9, con conjuro otorgado), *Arcano místico* (Nv 11, 13, 15, 17) y *Maestro sobrenatural* (Nv 20, extensión vinculada a Astucia mágica).
+   - 4 Subclases implementadas al 100%: Archihadas, Celestial, Infernal y Gran Primigenio con todas sus mecánicas, selectores, efectos y pools de dados.
+4. **Reactividad de Atributos (`slicePersonajesBase.ts`):**
+   - Sincronización automática de usos de rasgos dependientes de Carisma mediante comprobación declarativa de `escaladoUsos.tipo === "por_modificador" && escaladoUsos.modificador === "carisma"`.
+5. **Cobertura Automatizada Exhaustiva (`brujoDND55.test.ts`):**
+   - Suite con 21 pruebas unitarias y de integración que validan: catálogo y subclases, progresión Nv 1-20, Pasos feéricos / Escapada brumosa con gasto del padre, reserva de dados de Luz sanadora, resistencia elemental configurable de Resiliencia infernal, fórmulas de PG temporal y reactividad dinámica al modificar Carisma.
+6. **Métricas de Calidad Verificadas:**
+   - 100% de éxito en Vitest: 56 suites pasando, 707 pruebas superadas (+21 pruebas nuevas).
+   - `pnpm exec tsc --noEmit`: 0 errores bajo configuración estricta (`strict: true`).
+   - `pnpm run lint`: 0 errores y 0 advertencias bajo `--max-warnings=0`.
+   - `node scripts/verificar-limite-lineas.js`: 100% conforme sin infracciones de arquitectura.
+
+---
+
 ## [2026-09-15] Selectores de Sugerencias Ricos para Especies y Subrazas / Legados en Configuración de Personajes
 
 **Contexto y Requerimientos del Usuario:**

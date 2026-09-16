@@ -687,7 +687,12 @@ export function resolverFormulaDinamica(
   const modSab = stats?.sabiduria !== undefined ? Math.floor((stats.sabiduria - 10) / 2) : 0;
   const modCar = stats?.carisma !== undefined ? Math.floor((stats.carisma - 10) / 2) : 0;
 
-  const reemplazado = formula
+  // Normalizar prefijos de modificadores (ej. "modificador_carisma", "modificador por carisma", "mod_carisma")
+  const formulaNormalizada = formula
+    .replace(/modificador[_\s]*(de[_\s]+|por[_\s]+)?/gi, "")
+    .replace(/mod[_\s]+/gi, "");
+
+  const reemplazado = formulaNormalizada
     .replace(/dano_furia/gi, String(bonoFuria))
     .replace(/mitad_nivel/gi, String(mitadNivel))
     .replace(/bono_competencia/gi, String(bonoCompetencia))
@@ -708,7 +713,7 @@ export function resolverFormulaDinamica(
 }
 
 /**
- * Evalúa expresiones numéricas sencillas y seguras (ej. "3", "+2", "-1", "2+3", "1*5", "2*nivel")
+ * Evalúa expresiones numéricas sencillas y seguras (ej. "3", "+2", "-1", "2+3", "1*5", "2*nivel", "max(1, carisma)")
  * sin recurrir a eval(), garantizando rendimiento y seguridad.
  */
 export function evaluarExpresionNumericaSegura(
@@ -721,6 +726,23 @@ export function evaluarExpresionNumericaSegura(
   let textoProcesado = expresion;
   if (variables && typeof variables.nivel === "number") {
     textoProcesado = textoProcesado.replace(/\bnivel\b/gi, String(variables.nivel));
+  }
+
+  // Soporte para max(a, b) y min(a, b)
+  const regexMax = /max\s*\(\s*([^,()]+)\s*,\s*([^,()]+)\s*\)/i;
+  let matchMax: RegExpExecArray | null;
+  while ((matchMax = regexMax.exec(textoProcesado)) !== null) {
+    const valA = evaluarExpresionNumericaSegura(matchMax[1], variables);
+    const valB = evaluarExpresionNumericaSegura(matchMax[2], variables);
+    textoProcesado = textoProcesado.replace(matchMax[0], String(Math.max(valA, valB)));
+  }
+
+  const regexMin = /min\s*\(\s*([^,()]+)\s*,\s*([^,()]+)\s*\)/i;
+  let matchMin: RegExpExecArray | null;
+  while ((matchMin = regexMin.exec(textoProcesado)) !== null) {
+    const valA = evaluarExpresionNumericaSegura(matchMin[1], variables);
+    const valB = evaluarExpresionNumericaSegura(matchMin[2], variables);
+    textoProcesado = textoProcesado.replace(matchMin[0], String(Math.min(valA, valB)));
   }
 
   // Reemplazar 'x' o 'X' utilizada como operador de multiplicación y remover espacios
@@ -1188,12 +1210,27 @@ export function obtenerConjurosOtorgadosPorRasgos(personaje: PersonajeJugador): 
             }
           }
         }
+
+        // Extraer conjuros otorgados o gratuitos desde opciones seleccionadas en selectores (ej. Invocaciones)
+        if (Array.isArray(sel.valorActual)) {
+          for (const opId of sel.valorActual) {
+            const opcion = sel.opciones?.find((o) => o.id === opId);
+            if (opcion && Array.isArray(opcion.efectos)) {
+              for (const efOp of opcion.efectos) {
+                if (efOp.tipo === "conjuro_otorgado" || efOp.tipo === "conjuro_gratuito") {
+                  const cNom = String(efOp.objetivo || efOp.valor).trim();
+                  if (cNom) conjuros.add(cNom);
+                }
+              }
+            }
+          }
+        }
       }
     }
 
     if (Array.isArray(r.efectos)) {
       for (const ef of r.efectos) {
-        if (ef.tipo === "conjuro_otorgado") {
+        if (ef.tipo === "conjuro_otorgado" || ef.tipo === "conjuro_gratuito") {
           const cNom = String(ef.valor || ef.objetivo).trim();
           if (cNom) conjuros.add(cNom);
         }

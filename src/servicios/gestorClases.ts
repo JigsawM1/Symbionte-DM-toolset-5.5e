@@ -23,7 +23,8 @@ import { logger } from "@/utiles/logger";
 import {
   tieneMedioBonoHabilidades,
   aplicarAprendizDeMuchoAGradosHabilidades,
-  obtenerCompetenciasExtraRasgos
+  obtenerCompetenciasExtraRasgos,
+  evaluarExpresionNumericaSegura
 } from "@/servicios/evaluadorEfectosRasgos";
 
 
@@ -147,6 +148,9 @@ export function evaluarFormulaUsos(formula: string | null | undefined, nivel: nu
 
       if (cumple) return valor;
     }
+
+    const valorExpr = evaluarExpresionNumericaSegura(cuerpoNormalizado, { nivel: niv });
+    if (valorExpr > 0) return valorExpr;
 
     const partesDosPuntos = cuerpo.split(":");
     if (partesDosPuntos.length > 1) {
@@ -391,6 +395,28 @@ export function obtenerRasgosClaseYSubclase(
     if (subclase) {
       for (const r of subclase.rasgos) {
         if (r.nivel <= nivelSeguro) {
+          // Consolidación orgánica de rasgos de extensión en subclases (Decorator pattern genérico)
+          if (r.categoriaMecanica === "extension" && r.ligadoA) {
+            const ligNorm = normalizarTextoClase(r.ligadoA);
+            const padre = rasgosResultado.find(
+              (x) => normalizarTextoClase(x.id) === ligNorm || normalizarTextoClase(x.nombre) === ligNorm
+            );
+            if (padre) {
+              const nivelesPrevios = padre.notas ? padre.notas.split(",") : [String(padre.nivelRequerido)];
+              if (!nivelesPrevios.includes(String(r.nivel))) {
+                nivelesPrevios.push(String(r.nivel));
+              }
+              padre.notas = nivelesPrevios.join(",");
+              padre.fuente = `${clase.nombre} (${subclase.nombre} - Niveles ${nivelesPrevios.join(", ")})`;
+              padre.descripcion += `\n\n***${r.nombre} (Nv. ${r.nivel}).*** ${r.descripcion}`;
+              if (r.tipoAccion && r.tipoAccion !== "pasivo") {
+                padre.tipoAccion = r.tipoAccion;
+              }
+              if (r.formulaDados) padre.formulaDados = r.formulaDados;
+            }
+            continue;
+          }
+
           const id = `rasgo_sub_${normalizarTextoClase(subclase.id)}_${normalizarTextoClase(r.nombre).replace(/\s+/g, "_")}`;
           const fuente = `${clase.nombre} (${subclase.nombre} - Nivel ${r.nivel})`;
 

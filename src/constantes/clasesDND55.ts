@@ -1163,7 +1163,7 @@ export const CATALOGO_CLASES_DND55: DefinicionClase[] = [
       {
         nivel: 1,
         nombre: "Invocaciones sobrenaturales",
-        descripcion: "Has desenterrado las Invocaciones sobrenaturales, fragmentos de conocimiento prohibido que te imbuyen de una habilidad mágica permanente u otras lecciones. Obtienes invocaciones sobrenaturales de tu elección del catálogo de invocaciones.\n\n***Requisitos previos.*** Si una invocación tiene un requisito previo, debes cumplirlo para aprenderla. Por ejemplo, si una invocación requiere que seas un brujo de nivel 5 o superior, podrás seleccionarla una vez que alcances el nivel 5 de brujo.\n\n***Sustituir y obtener invocaciones.*** Cada vez que subas un nivel de brujo, puedes sustituir una de tus invocaciones por otra para la que cumplas los requisitos. No puedes sustituir una invocación si sirve de requisito previo para otra invocación que poseas.\nCuando alcanzas ciertos niveles de brujo, obtienes más invocaciones de tu elección, como se muestra en la progresión de la clase.\nNo puedes elegir la misma invocación más de una vez a menos que su descripción indique lo contrario.",
+        descripcion: "Has desenterrado las Invocaciones sobrenaturales, fragmentos de conocimiento prohibido que te imbuyen de una habilidad mágica permanente u otras lecciones. Obtienes una invocación de tu elección, como Pacto del tomo.\n\n***Requisitos previos.*** Si una invocación tiene un requisito previo, debes cumplirlo para aprenderla. Por ejemplo, si una invocación requiere que seas un brujo de nivel 5 o superior, podrás seleccionarla una vez que alcances el nivel 5 de brujo.\n\n***Sustituir y obtener invocaciones.*** Cada vez que subas un nivel de brujo, puedes sustituir una de tus invocaciones por otra para la que cumplas los requisitos. No puedes sustituir una invocación si sirve de requisito previo para otra invocación que poseas.\n\nCuando alcanzas ciertos niveles de brujo, obtienes más invocaciones de tu elección.\nNo puedes elegir la misma invocación más de una vez a menos que su descripción indique lo contrario.",
         tipoAccion: "pasivo",
         categoriaMecanica: "selector_informativo",
         selectores: [
@@ -1172,7 +1172,17 @@ export const CATALOGO_CLASES_DND55: DefinicionClase[] = [
             tipo: "multiple",
             etiqueta: "Invocaciones Sobrenaturales Elegidas",
             maxSelecciones: 1,
-            opciones: generarOpcionesSelectorInvocaciones(1),
+            escaladoMaxSelecciones: [
+              { nivelMinimo: 1, valor: 1 },
+              { nivelMinimo: 2, valor: 3 },
+              { nivelMinimo: 5, valor: 5 },
+              { nivelMinimo: 7, valor: 6 },
+              { nivelMinimo: 9, valor: 7 },
+              { nivelMinimo: 12, valor: 8 },
+              { nivelMinimo: 15, valor: 9 },
+              { nivelMinimo: 18, valor: 10 }
+            ],
+            opciones: generarOpcionesSelectorInvocaciones(),
             valorActual: ["pacto_del_grimorio"]
           }
         ],
@@ -1185,9 +1195,8 @@ export const CATALOGO_CLASES_DND55: DefinicionClase[] = [
             { nivel: 7, valores: ["6 invocaciones"] },
             { nivel: 9, valores: ["7 invocaciones"] },
             { nivel: 12, valores: ["8 invocaciones"] },
-            { nivel: 15, valores: ["8 invocaciones"] },
-            { nivel: 17, valores: ["8 invocaciones"] },
-            { nivel: 18, valores: ["8 invocaciones"] }
+            { nivel: 15, valores: ["9 invocaciones"] },
+            { nivel: 18, valores: ["10 invocaciones"] }
           ],
           notaPie: "Cada nivel reemplaza al anterior. Puedes sustituir una invocación al subir de nivel."
         }
@@ -1195,7 +1204,7 @@ export const CATALOGO_CLASES_DND55: DefinicionClase[] = [
       {
         nivel: 1,
         nombre: "Magia del pacto",
-        descripcion: "Mediante una ceremonia oculta, has formado un pacto con una entidad misteriosa para obtener poderes mágicos. La entidad es una voz en las sombras —su identidad no está clara—, pero su don para ti es tangible: la capacidad de lanzar conjuros. Consulta el *capítulo 7* para ver las reglas sobre el lanzamiento de conjuros. La información a continuación detalla cómo usar esas reglas con los conjuros de brujo, que aparecen en la lista de conjuros de brujo más adelante en la descripción de la clase.\n\n***Trucos.*** Conoces dos trucos de tu elección escogidos de entre los de la lista de conjuros de brujo. Se recomiendan *descarga sobrenatural* y *prestidigitación*. Cada vez que subas un nivel de brujo, puedes sustituir uno de los trucos obtenidos por este rasgo por otro truco de tu elección de la lista de conjuros de brujo.\nCuando alcances los niveles 4 y 10 de brujo, aprenderás otro truco de tu elección de la lista de conjuros de brujo, como se muestra en la columna \"Trucos\" de la tabla \"Rasgos de brujo\".\n\n***Espacios de conjuro.*** La tabla \"Rasgos de brujo\" muestra cuántos espacios de conjuro tienes para lanzar tus conjuros de brujo de niveles 1 a 5. La tabla también muestra el nivel de esos espacios, los cuales son todos del mismo nivel. Recuperas todos los espacios de conjuro de Magia del pacto gastados cuando finalizas un descanso corto o largo.\nPor ejemplo, cuando eres un brujo de nivel 5, tienes dos espacios de conjuro de nivel 3. Para lanzar el conjuro de nivel 1 *saeta de bruja*, debes gastar uno de esos espacios, y lo lanzas como un conjuro de nivel 3.\n\n***Conjuros preparados de nivel 1 y superiores.*** Preparas la lista de conjuros de nivel 1 y superiores que tienes disponibles para lanzar con este rasgo. Para empezar, elige dos conjuros de nivel 1 de la lista de conjuros de brujo. Se recomiendan *hechizar persona* y *maldición*.\nEl número de conjuros de tu lista aumenta conforme subes de nivel de brujo, como se muestra en la columna \"Conjuros preparados\" de la tabla \"Rasgos de brujo\". Cada vez que aumente ese número, elige conjuros de brujo adicionales hasta que el número de conjuros de tu lista coincida con el número de la tabla. Los conjuros elegidos deben ser de un nivel no superior al mostrado en la columna \"Nivel del espacio\" de la tabla para tu nivel. Al llegar al nivel 6, por ejemplo, aprendes un nuevo conjuro de brujo, que puede ser de niveles 1 a 3.\nSi otro rasgo de brujo te otorga conjuros que siempre tienes preparados, esos conjuros no cuentan para el total que puedes preparar con este rasgo, pero sí cuentan como conjuros de brujo para ti.\n\n***Cambiar tus conjuros preparados.*** Cada vez que subas un nivel de brujo, puedes sustituir un conjuro de tu lista por otro conjuro de brujo de un nivel elegible.\n\n***Aptitud mágica.*** El Carisma es tu aptitud mágica en lo que respecta a tus conjuros de brujo.\n\n***Canalizador mágico.*** Puedes utilizar un *canalizador arcano* como canalizador mágico para tus conjuros de brujo.",
+        descripcion: "Mediante una ceremonia oculta, has formado un pacto con una entidad misteriosa para obtener poderes mágicos. La entidad es una voz en las sombras —su identidad no está clara—, pero su don para ti es tangible: la capacidad de lanzar conjuros. La información a continuación detalla cómo usar esas reglas con los conjuros de brujo.\n\n***Trucos.*** Conoces dos trucos de tu elección escogidos de entre los de la lista de conjuros de brujo. Se recomiendan *descarga sobrenatural* y *prestidigitación*. Cada vez que subas un nivel de brujo, puedes sustituir uno de los trucos obtenidos por este rasgo por otro truco de tu elección de la lista de conjuros de brujo.\n\nCuando alcances los niveles 4 y 10 de brujo, aprenderás otro truco de tu elección de la lista de conjuros de brujo.\n\n***Recuperación de espacios de conjuro.***  Recuperas todos los espacios de conjuro de Magia del pacto gastados cuando finalizas un descanso corto o largo.\n\n***Conjuros preparados de nivel 1 y superiores.*** Preparas la lista de conjuros de nivel 1 y superiores que tienes disponibles para lanzar con este rasgo. Para empezar, elige dos conjuros de nivel 1 de la lista de conjuros de brujo. Se recomiendan *hechizar persona* y *maldición*.\nEl número de conjuros de tu lista aumenta conforme subes de nivel de brujo. Cada vez que aumente ese número, elige conjuros de brujo adicionales hasta que el número de conjuros de tu lista coincida con el número de la tabla. Los conjuros elegidos deben ser de un nivel no superior al mostrado en la columna \"Nivel del espacio\" de la tabla para tu nivel. Al llegar al nivel 6, por ejemplo, aprendes un nuevo conjuro de brujo, que puede ser de niveles 1 a 3.\n\nSi otro rasgo de brujo te otorga conjuros que siempre tienes preparados, esos conjuros no cuentan para el total que puedes preparar con este rasgo, pero sí cuentan como conjuros de brujo para ti.\n\n***Cambiar tus conjuros preparados.*** Cada vez que subas un nivel de brujo, puedes sustituir un conjuro de tu lista por otro conjuro de brujo de un nivel elegible.\n\n***Aptitud mágica.*** El Carisma es tu aptitud mágica en lo que respecta a tus conjuros de brujo.\n\n***Canalizador mágico.*** Puedes utilizar un *canalizador arcano* como canalizador mágico para tus conjuros de brujo.",
         tipoAccion: "pasivo",
         tieneUsosLimitados: true,
         recuperacion: "descanso_corto"
@@ -1204,8 +1213,10 @@ export const CATALOGO_CLASES_DND55: DefinicionClase[] = [
         nivel: 2,
         nombre: "Astucia mágica",
         descripcion: "Puedes realizar un rito esotérico durante 1 minuto. Al finalizarlo, recuperas espacios de conjuro gastados de Magia del pacto, pero no más de una cantidad igual a la mitad de tu máximo (redondeando hacia arriba). Una vez que uses este rasgo, no podrás volver a hacerlo hasta que finalices un descanso largo.",
-        tipoAccion: "pasivo",
+        tipoAccion: "especial",
+        categoriaMecanica: "consumible",
         tieneUsosLimitados: true,
+        formulaUsos: "1",
         recuperacion: "descanso_largo"
       },
       {
@@ -1217,7 +1228,7 @@ export const CATALOGO_CLASES_DND55: DefinicionClase[] = [
       {
         nivel: 4,
         nombre: "Mejora de característica",
-        descripcion: "Obtienes la dote Mejora de característica u otra [dote](feats.html) de tu elección para la que cumplas las condiciones. Vuelves a obtener este rasgo en los niveles 8, 12 y 16 de brujo.",
+        descripcion: "Obtienes la dote Mejora de característica u otra dote de tu elección para la que cumplas las condiciones. Vuelves a obtener este rasgo en los niveles 8, 12 y 16 de brujo.",
         tipoAccion: "pasivo"
       },
       {
@@ -1229,16 +1240,19 @@ export const CATALOGO_CLASES_DND55: DefinicionClase[] = [
       {
         nivel: 8,
         nombre: "Mejora de característica",
-        descripcion: "Obtienes la dote Mejora de característica u otra [dote](feats.html) de tu elección para la que cumplas las condiciones.",
+        descripcion: "Obtienes la dote Mejora de característica u otra dote de tu elección para la que cumplas las condiciones.",
         tipoAccion: "pasivo"
       },
       {
         nivel: 9,
         nombre: "Contactar con el patrón",
-        descripcion: "En el pasado, solías contactar con tu patrón a través de intermediarios. Ahora puedes comunicarte directamente; siempre tienes preparado el conjuro *contactar con otro plano*. Con este rasgo, puedes lanzar el conjuro sin gastar un espacio de conjuro para contactar con tu patrón, y superas automáticamente la tirada de salvación del conjuro.\nUna vez que lances el conjuro con este rasgo, no podrás volver a hacerlo de esta manera hasta que finalices un descanso largo.",
-        tipoAccion: "pasivo",
+        descripcion: "En el pasado, solías contactar con tu patrón a través de intermediarios. Ahora puedes comunicarte directamente; siempre tienes preparado el conjuro *contactar con otro plano*. Con este rasgo, puedes lanzar el conjuro sin gastar un espacio de conjuro para contactar con tu patrón, y superas automáticamente la tirada de salvación del conjuro.\n\nUna vez que lances el conjuro con este rasgo, no podrás volver a hacerlo de esta manera hasta que finalices un descanso largo.",
+        tipoAccion: "especial",
+        categoriaMecanica: "consumible",
         tieneUsosLimitados: true,
-        recuperacion: "descanso_largo"
+        formulaUsos: "1",
+        recuperacion: "descanso_largo",
+        conjurosOtorgados: ["contactar con otro plano"]
       },
       {
         nivel: 10,
@@ -1249,20 +1263,30 @@ export const CATALOGO_CLASES_DND55: DefinicionClase[] = [
       {
         nivel: 11,
         nombre: "Arcano místico",
-        descripcion: "Tu patrón te concede un secreto mágico llamado arcano. Elige un conjuro de brujo de nivel 6 como este arcano.\nPuedes lanzar tu conjuro de arcano una vez sin gastar un espacio de conjuro, y debes finalizar un descanso largo antes de poder lanzarlo de esta forma de nuevo.\nComo se muestra en la tabla \"Rasgos de brujo\", obtienes otro conjuro de brujo de tu elección que puede lanzarse de esta manera cuando alcanzas los niveles de brujo 13 (conjuro de nivel 7), 15 (conjuro de nivel 8) y 17 (conjuro de nivel 9). Recuperas todos los usos de tu Arcano místico cuando finalizas un descanso largo.\nCada vez que subas un nivel de brujo, puedes sustituir uno de tus conjuros de arcano por otro conjuro de brujo del mismo nivel.",
+        descripcion: "Tu patrón te concede un secreto mágico llamado arcano. Elige un conjuro de brujo de nivel 6 como este arcano.\n\nPuedes lanzar tu conjuro de arcano una vez sin gastar un espacio de conjuro, y debes finalizar un descanso largo antes de poder lanzarlo de esta forma de nuevo.\n\nObtienes otro conjuro de brujo de tu elección que puede lanzarse de esta manera cuando alcanzas los niveles de brujo 13 (conjuro de nivel 7), 15 (conjuro de nivel 8) y 17 (conjuro de nivel 9). Recuperas todos los usos de tu Arcano místico cuando finalizas un descanso largo.\n\nCada vez que subas un nivel de brujo, puedes sustituir uno de tus conjuros de arcano por otro conjuro de brujo del mismo nivel.",
         tipoAccion: "pasivo",
         tieneUsosLimitados: true,
-        recuperacion: "descanso_largo"
+        recuperacion: "descanso_largo",
+        tablaProgresion: {
+          columnas: ["Nivel", "Descripción"],
+          filas: [
+            { nivel: 11, valores: ["Conjuro de nivel 6"] },
+            { nivel: 13, valores: ["Conjuro de nivel 7"] },
+            { nivel: 15, valores: ["Conjuro de nivel 8"] },
+            { nivel: 17, valores: ["Conjuro de nivel 9"] }
+          ],
+          notaPie: "Se apilan los niveles"
+        }
       },
       {
         nivel: 12,
         nombre: "Mejora de característica",
-        descripcion: "Obtienes la dote Mejora de característica u otra [dote](feats.html) de tu elección para la que cumplas las condiciones.",
+        descripcion: "Obtienes la dote Mejora de característica u otra dote de tu elección para la que cumplas las condiciones.",
         tipoAccion: "pasivo"
       },
       {
         nivel: 13,
-        nombre: "Arcano místico",
+        nombre: "Arcano místico II",
         descripcion: "Obtienes un conjuro de brujo de nivel 7 de tu elección.",
         tipoAccion: "pasivo"
       },
@@ -1274,33 +1298,35 @@ export const CATALOGO_CLASES_DND55: DefinicionClase[] = [
       },
       {
         nivel: 15,
-        nombre: "Arcano místico",
+        nombre: "Arcano místico III",
         descripcion: "Obtienes un conjuro de brujo de nivel 8 de tu elección.",
         tipoAccion: "pasivo"
       },
       {
         nivel: 16,
         nombre: "Mejora de característica",
-        descripcion: "Obtienes la dote Mejora de característica u otra [dote](feats.html) de tu elección para la que cumplas las condiciones.",
+        descripcion: "Obtienes la dote Mejora de característica u otra dote de tu elección para la que cumplas las condiciones.",
         tipoAccion: "pasivo"
       },
       {
         nivel: 17,
-        nombre: "Arcano místico",
+        nombre: "Arcano místico IV",
         descripcion: "Obtienes un conjuro de brujo de nivel 9 de tu elección.",
         tipoAccion: "pasivo"
       },
       {
         nivel: 19,
         nombre: "Don épico",
-        descripcion: "Obtienes una dote de don épico u otra [dote](feats.html) de tu elección para la que cumplas las condiciones. Se recomienda Don del destino.",
+        descripcion: "Obtienes una dote de don épico u otra dote de tu elección para la que cumplas las condiciones. Se recomienda Don del destino.",
         tipoAccion: "pasivo"
       },
       {
         nivel: 20,
         nombre: "Maestro sobrenatural",
-        descripcion: "Cuando usas tu rasgo Astucia mágica, recuperas todos tus espacios de conjuro gastados de Magia del pacto.\n---",
-        tipoAccion: "pasivo"
+        descripcion: "Cuando usas tu rasgo Astucia mágica, recuperas todos tus espacios de conjuro gastados de Magia del pacto.",
+        tipoAccion: "pasivo",
+        categoriaMecanica: "pasivo_permanente",
+        ligadoA: "Astucia mágica"
       },
     ],
     subclases: [
@@ -1308,7 +1334,7 @@ export const CATALOGO_CLASES_DND55: DefinicionClase[] = [
         id: "patron_de_los_archihadas",
         clasePadre: "brujo",
         nombre: "Patrón de los Archihadas",
-        descripcion: "Tu pacto extrae poder de Feywild (las Tierras Salvajes de las Hadas). Cuando eliges esta subclase, podrías llegar a un acuerdo con un archihada, como el Príncipe de las Heladas; la Reina del Aire y la Oscuridad, soberana de la Corte Crepuscular; Titania de la Corte del Verano; o una bruja anciana. O bien, podrías recurrir a un espectro de seres feéricos, tejiendo una red de favores y deudas. Sean quienes sean, tu patrón suele ser inescrutable y caprichoso.",
+        descripcion: "Tu pacto extrae poder de Feywild (las Tierras Salvajes de las Hadas). Cuando eliges esta subclase, podrías llegar a un acuerdo con un archihada, como el Príncipe de las escarchas; la Reina del Aire y la Oscuridad, soberana de la Corte Crepuscular; Titania de la Corte del Verano; o una bruja anciana. O bien, podrías recurrir a un espectro de seres feéricos, tejiendo una red de favores y deudas. Sean quienes sean, tu patrón suele ser inescrutable y caprichoso.",
         lema: "Pacta con los caprichosos seres feéricos",
         nivelDesbloqueo: 3,
         progresionConjuros: [{"nivelClase":3,"conjuros":["Fuego feérico","Hechizar persona","Paso brumoso","Calmar emociones"]},{"nivelClase":5,"conjuros":["Parpadeo","Crecimiento vegetal"]},{"nivelClase":7,"conjuros":["Dominar bestia","Invisibilidad mayor"]},{"nivelClase":9,"conjuros":["Dominar persona","Paso arbóreo"]}],
@@ -1318,41 +1344,74 @@ export const CATALOGO_CLASES_DND55: DefinicionClase[] = [
             nombre: "Conjuros de archihada",
             descripcion: "La magia de tu patrón garantiza que siempre tengas ciertos conjuros listos; cuando alcances un nivel de brujo especificado en la tabla \"Conjuros de archihada\", a partir de entonces siempre tendrás preparados los conjuros indicados.\n##### Conjuros de archihada\n| Nivel de brujo | Conjuros preparados                                                          |\n|:--------------:|------------------------------------------------------------------------------|\n|       3        | *calmar emociones*, *fuego feérico*, *paso brumoso*, *fuerza fantasmal*, *dormir* |\n|       5        | *parpadeo*, *crecimiento vegetal*                                            |\n|       7        | *dominar bestia*, *invisibilidad mayor*                                      |\n|       9        | *dominar persona*, *apariencia*                                              |",
             tipoAccion: "pasivo",
-            subclase: "Patrón de los Archihadas"
+            subclase: "Patrón de los Archihadas",
+            tablaProgresion: {
+              columnas: ["Nivel de brujo", "Conjuros"],
+              filas: [
+                { nivel: 3, valores: ["Calmar emociones, Dormir, Fuego feérico, Fuerza fantasmal, Paso brumoso"] },
+                { nivel: 5, valores: ["Crecimiento vegetal, Desplazamiento"] },
+                { nivel: 7, valores: ["Dominar bestia, Invisibilidad mayor"] },
+                { nivel: 9, valores: ["Apariencia, Dominar persona"] }
+              ],
+              notaPie: ""
+            }
           },
           {
             nivel: 3,
             nombre: "Pasos feéricos",
-            descripcion: "Tu patrón te concede la capacidad de desplazarte entre los límites de los planos. Puedes lanzar *paso brumoso* sin gastar un espacio de conjuro una cantidad de veces igual a tu modificador por Carisma (mínimo una vez), y recuperas todos los usos gastados cuando finalizas un descanso largo.\nAdemás, cada vez que lances ese conjuro, puedes elegir uno de los siguientes efectos adicionales:\n\n***Paso refrescante.*** Inmediatamente después de teletransportarte, tú o una criatura que puedas ver a 3 m (10 pies) o menos de ti obtenéis 1d10 puntos de golpe temporales.\n\n***Paso provocador.*** Las criaturas a 1,5 m (5 pies) o menos del espacio que dejaste deben superar una tirada de salvación de Sabiduría contra tu CD de salvación de conjuros o tendrán desventaja en las tiradas de ataque contra criaturas distintas a ti hasta el comienzo de tu siguiente turno.",
-            tipoAccion: "pasivo",
+            descripcion: "Tu patrón te concede la capacidad de desplazarte entre los límites de los planos. Puedes lanzar *paso brumoso* sin gastar un espacio de conjuro una cantidad de veces igual a tu modificador por Carisma (mínimo una vez), y recuperas todos los usos gastados cuando finalizas un descanso largo.\n\nAdemás, cada vez que lances ese conjuro, puedes elegir uno de los siguientes efectos adicionales:\n\n***Paso refrescante.*** Inmediatamente después de teletransportarte, tú o una criatura que puedas ver a 10 pies o menos de ti obtienen 1d10 puntos de golpe temporales.\n\n***Paso provocador.*** Las criaturas a 5 pies o menos del espacio que dejaste deben superar una tirada de salvación de Sabiduría contra tu CD de salvación de conjuros o tendrán desventaja en las tiradas de ataque contra criaturas distintas a ti hasta el comienzo de tu siguiente turno.",
+            tipoAccion: "accion_adicional",
             subclase: "Patrón de los Archihadas",
+            categoriaMecanica: "consumible",
             tieneUsosLimitados: true,
             recuperacion: "descanso_largo",
+            escaladoUsos: {
+              tipo: "por_modificador",
+              modificador: "carisma",
+              minimo: 1
+            },
+            formulaUsos: "Max(1, modificador carisma)",
             formulaDados: "1d10"
           },
           {
             nivel: 6,
             nombre: "Escapada brumosa",
-            descripcion: "Puedes lanzar *paso brumoso* como una reacción en respuesta a recibir daño.\nAdemás, los siguientes efectos se encuentran ahora entre tus opciones de Pasos feéricos:\n\n***Paso evanescente.*** Tienes el estado de invisible hasta el comienzo de tu siguiente turno o hasta inmediatamente después de realizar una tirada de ataque, infligir daño o lanzar un conjuro.\n\n***Paso pavoroso.*** Las criaturas a 1,5 m (5 pies) o menos del espacio que dejaste o del espacio en el que apareces (a tu elección) deben superar una tirada de salvación de Sabiduría contra tu CD de salvación de conjuros o sufrir 2d10 de daño psíquico.",
-            tipoAccion: "pasivo",
+            descripcion: "Puedes lanzar *paso brumoso* como una reacción en respuesta a recibir daño.\n\nAdemás, los siguientes efectos se encuentran ahora entre tus opciones de Pasos feéricos:\n\n***Paso evanescente.*** Tienes el estado de invisible hasta el comienzo de tu siguiente turno o hasta inmediatamente después de realizar una tirada de ataque, infligir daño o lanzar un conjuro.\n\n***Paso pavoroso.*** Las criaturas a 5 pies o menos del espacio que dejaste o del espacio en el que apareces (a tu elección) deben superar una tirada de salvación de Sabiduría contra tu CD de salvación de conjuros o sufrir 2d10 de daño psíquico.",
+            tipoAccion: "reaccion",
             subclase: "Patrón de los Archihadas",
+            categoriaMecanica: "consumible",
+            ligadoA: "Pasos feéricos",
+            gastarDePadre: true,
+            heredarDadosPadre: false,
             formulaDados: "2d10"
           },
           {
             nivel: 10,
             nombre: "Defensas fascinantes",
-            descripcion: "Tu patrón te enseña cómo proteger tu mente y tu cuerpo. Eres inmune al estado de hechizado.\nAdemás, inmediatamente después de que una criatura que puedas ver te acierte con una tirada de ataque, puedes llevar a cabo una reacción para reducir el daño recibido a la mitad (redondeando hacia abajo), y puedes obligar al atacante a hacer una tirada de salvación de Sabiduría contra tu CD de salvación de conjuros. Si falla la tirada, el atacante sufre daño psíquico igual al daño que tú recibes. Una vez que uses esta reacción, no podrás volver a usarla hasta que finalices un descanso largo, a menos que gastes un espacio de conjuro de Magia del pacto (no requiere acción) para restaurar su uso.",
-            tipoAccion: "pasivo",
+            descripcion: "Tu patrón te enseña cómo proteger tu mente y tu cuerpo. Eres inmune al estado de hechizado.\n\nAdemás, inmediatamente después de que una criatura que puedas ver te acierte con una tirada de ataque, puedes llevar a cabo una reacción para reducir el daño recibido a la mitad (redondeando hacia abajo), y puedes obligar al atacante a hacer una tirada de salvación de Sabiduría contra tu CD de salvación de conjuros. Si falla la tirada, el atacante sufre daño psíquico igual al daño que tú recibes. Una vez que uses esta reacción, no podrás volver a usarla hasta que finalizes un descanso largo, a menos que gastes un espacio de conjuro de Magia del pacto (no requiere acción) para restaurar su uso.",
+            tipoAccion: "reaccion",
             subclase: "Patrón de los Archihadas",
+            categoriaMecanica: "consumible",
             tieneUsosLimitados: true,
-            recuperacion: "descanso_largo"
+            formulaUsos: "1",
+            recuperacion: "descanso_largo",
+            efectos: [
+              {
+                tipo: "inmunidad_condicion",
+                objetivo: "hechizado",
+                valor: "inmune",
+                condicion: "",
+                descripcion: "Inmune al estado Hechizado"
+              }
+            ]
           },
           {
             nivel: 14,
             nombre: "Magia embrujadora",
-            descripcion: "Tu patrón te concede la capacidad de entrelazar tu magia con la teletransportación. Inmediatamente después de lanzar un conjuro de Encantamiento o Ilusión usando una acción y un espacio de conjuro, puedes lanzar *paso brumoso* como parte de la misma acción y sin gastar un espacio de conjuro.\n---",
+            descripcion: "Tu patrón te concede la capacidad de entrelazar tu magia con la teletransportación. Inmediatamente después de lanzar un conjuro de Encantamiento o Ilusión usando una acción y un espacio de conjuro, puedes lanzar *paso brumoso* como parte de la misma acción y sin gastar un espacio de conjuro.",
             tipoAccion: "pasivo",
-            subclase: "Patrón de los Archihadas"
+            subclase: "Patrón de los Archihadas",
+            categoriaMecanica: "pasivo_permanente"
           },
         ]
       },
@@ -1370,23 +1429,47 @@ export const CATALOGO_CLASES_DND55: DefinicionClase[] = [
             nombre: "Conjuros celestiales",
             descripcion: "La magia de tu patrón garantiza que siempre tengas ciertos conjuros listos; cuando alcances un nivel de brujo especificado en la tabla \"Conjuros celestiales\", a partir de entonces siempre tendrás preparados los conjuros indicados.\n##### Conjuros celestiales\n| Nivel de brujo | Conjuros preparados                                                              |\n|:--------------:|----------------------------------------------------------------------------------|\n|       3        | *auxilio*, *curar heridas*, *saeta guía*, *restablecimiento menor*, *luz*, *llama sagrada* |\n|       5        | *luz del día*, *revivir*                                                         |\n|       7        | *guardián de la fe*, *muro de fuego*                                             |\n|       9        | *restablecimiento mayor*, *invocar celestial*                                    |",
             tipoAccion: "pasivo",
-            subclase: "Patrón Celestial"
+            subclase: "Patrón Celestial",
+            tablaProgresion: {
+              columnas: ["Nivel de brujo", "Conjuros"],
+              filas: [
+                { nivel: 3, valores: ["Auxilio, Curar heridas, Saeta guía, Restablecimiento menor, Luz, Llama sagrada"] },
+                { nivel: 5, valores: ["Luz del día, Revivir"] },
+                { nivel: 7, valores: ["Guardián de la fe, Muro de fuego"] },
+                { nivel: 9, valores: ["Restablecimiento mayor, Invocar celestial"] }
+              ],
+              notaPie: ""
+            }
           },
           {
             nivel: 3,
             nombre: "Luz sanadora",
-            descripcion: "Obtienes la capacidad de canalizar energía celestial para sanar heridas. Tienes una reserva de d6 para alimentar esta curación. El número de dados en la reserva es igual a 1 más tu nivel de brujo.\nComo acción adicional, puedes curarte a ti mismo o a una criatura que puedas ver a 18 m (60 pies) o menos de ti, gastando dados de la reserva. El número máximo de dados que puedes gastar a la vez es igual a tu modificador por Carisma (mínimo un dado). Tira los dados gastados y restaura una cantidad de puntos de golpe igual al total de la tirada. Tu reserva recupera todos los dados gastados cuando finalizas un descanso largo.",
+            descripcion: "Obtienes la capacidad de canalizar energía celestial para sanar heridas. Tienes una reserva de d6 para alimentar esta curación. El número de dados en la reserva es igual a 1 más tu nivel de brujo.\n\nComo acción adicional, puedes curarte a ti mismo o a una criatura que puedas ver a 60 pies o menos de ti, gastando dados de la reserva. El número máximo de dados que puedes gastar a la vez es igual a tu modificador por Carisma (mínimo un dado). Tira los dados gastados y restaura una cantidad de puntos de golpe igual al total de la tirada. Tu reserva recupera todos los dados gastados cuando finalizas un descanso largo.",
             tipoAccion: "accion_adicional",
             subclase: "Patrón Celestial",
+            categoriaMecanica: "consumible",
             tieneUsosLimitados: true,
-            recuperacion: "descanso_largo"
+            recuperacion: "descanso_largo",
+            formulaUsos: "1 + nivel",
+            obtenerUsosMaximos: (niv: number) => 1 + niv,
+            formulaDados: "1d6"
           },
           {
             nivel: 6,
             nombre: "Alma radiante",
             descripcion: "Tu vínculo con tu patrón te permite actuar como conducto de energía radiante. Tienes resistencia al daño radiante. Una vez por turno, cuando un conjuro que lances inflija daño de fuego o radiante, puedes sumar tu modificador por Carisma al daño de ese conjuro contra uno de los objetivos del mismo.",
             tipoAccion: "pasivo",
-            subclase: "Patrón Celestial"
+            subclase: "Patrón Celestial",
+            categoriaMecanica: "pasivo_permanente",
+            efectos: [
+              {
+                tipo: "personalizado",
+                objetivo: "radiante",
+                valor: "resistencia",
+                condicion: "",
+                descripcion: "Resistencia al daño radiante"
+              }
+            ]
           },
           {
             nivel: 10,
@@ -1394,18 +1477,28 @@ export const CATALOGO_CLASES_DND55: DefinicionClase[] = [
             descripcion: "Obtienes puntos de golpe temporales cada vez que uses tu rasgo Astucia mágica o finalices un descanso corto o largo. Estos puntos de golpe temporales son iguales a tu nivel de brujo más tu modificador por Carisma. Además, elige hasta a cinco criaturas que puedas ver cuando obtengas los puntos. Esas criaturas ganan cada una puntos de golpe temporales iguales a la mitad de tu nivel de brujo más tu modificador por Carisma.",
             tipoAccion: "pasivo",
             subclase: "Patrón Celestial",
-            tieneUsosLimitados: true,
-            recuperacion: "descanso_corto"
+            categoriaMecanica: "pasivo_permanente",
+            efectos: [
+              {
+                tipo: "hp_temporal",
+                objetivo: "propio",
+                valor: "nivel + carisma",
+                condicion: "",
+                descripcion: "Puntos de golpe temporales iguales a nivel de brujo + modificador por Carisma al usar Astucia mágica o terminar un descanso"
+              }
+            ]
           },
           {
             nivel: 14,
             nombre: "Venganza abrasadora",
-            descripcion: "Cuando tú o un aliado a 18 m (60 pies) o menos de ti estéis a punto de hacer una tirada de salvación contra la muerte, puedes desatar energía radiante para salvar a la criatura. La criatura recupera puntos de golpe iguales a la mitad de sus puntos de golpe máximos y puede poner fin al estado de derribado sobre sí misma. Cada criatura de tu elección que esté a 9 m (30 pies) o menos de la criatura sufre daño radiante igual a 2d8 más tu modificador por Carisma, y tiene el estado de cegado hasta el final del turno actual.\nUna vez que uses este rasgo, no podrás volver a hacerlo hasta que finalices un descanso largo.\n---",
-            tipoAccion: "pasivo",
+            descripcion: "Cuando tú o un aliado a 60 pies o menos de ti estén a punto de hacer una tirada de salvación contra la muerte, puedes desatar energía radiante para salvar a la criatura. La criatura recupera puntos de golpe iguales a la mitad de sus puntos de golpe máximos y puede poner fin al estado de derribado sobre sí misma. Cada criatura de tu elección que esté a 30 pies o menos de la criatura sufre daño radiante igual a 2d8 más tu modificador por Carisma, y tiene el estado de cegado hasta el final del turno actual.\n\nUna vez que uses este rasgo, no podrás volver a hacerlo hasta que finalices un descanso largo.",
+            tipoAccion: "especial",
             subclase: "Patrón Celestial",
+            categoriaMecanica: "consumible",
             tieneUsosLimitados: true,
+            formulaUsos: "1",
             recuperacion: "descanso_largo",
-            formulaDados: "2d8"
+            formulaDados: "2d8+carisma"
           },
         ]
       },
@@ -1423,23 +1516,50 @@ export const CATALOGO_CLASES_DND55: DefinicionClase[] = [
             nombre: "Conjuros infernales",
             descripcion: "La magia de tu patrón garantiza que siempre tengas ciertos conjuros listos; cuando alcances un nivel de brujo especificado en la tabla \"Conjuros infernales\", a partir de entonces siempre tendrás preparados los conjuros indicados.\n##### Conjuros infernales\n| Nivel de brujo | Conjuros preparados                                         |\n|:--------------:|-------------------------------------------------------------|\n|       3        | *manos ardientes*, *orden imperiosa*, *rayo abrasador*, *sugestión* |\n|       5        | *bola de fuego*, *nube apestosa*                            |\n|       7        | *escudo de fuego*, *muro de fuego*                          |\n|       9        | *misión*, *plaga de insectos*                               |",
             tipoAccion: "pasivo",
-            subclase: "Patrón Infernal"
+            subclase: "Patrón Infernal",
+            tablaProgresion: {
+              columnas: ["Nivel de brujo", "Conjuros"],
+              filas: [
+                { nivel: 3, valores: ["Manos ardientes, Orden imperiosa, Rayo abrasador, Sugestión"] },
+                { nivel: 5, valores: ["Bola de fuego, Nube apestosa"] },
+                { nivel: 7, valores: ["Escudo de fuego, Muro de fuego"] },
+                { nivel: 9, valores: ["Misión (Geas), Plaga de insectos"] }
+              ],
+              notaPie: ""
+            }
           },
           {
             nivel: 3,
             nombre: "Bendición del Oscuro",
-            descripcion: "Cuando reduzcas a un enemigo a 0 puntos de golpe, obtienes puntos de golpe temporales iguales a tu modificador por Carisma más tu nivel de brujo (mínimo 1 punto de golpe temporal). También obtienes este beneficio si otra persona reduce a un enemigo a 3 m (10 pies) o menos de ti a 0 puntos de golpe.",
+            descripcion: "Cuando reduzcas a un enemigo a 0 puntos de golpe, obtienes puntos de golpe temporales iguales a tu modificador por Carisma más tu nivel de brujo (mínimo 1 punto de golpe temporal). También obtienes este beneficio si otra persona reduce a un enemigo a 10 pies o menos de ti a 0 puntos de golpe.",
             tipoAccion: "pasivo",
-            subclase: "Patrón Infernal"
+            subclase: "Patrón Infernal",
+            categoriaMecanica: "pasivo_permanente",
+            efectos: [
+              {
+                tipo: "hp_temporal",
+                objetivo: "propio",
+                valor: "max(1, carisma + nivel)",
+                condicion: "",
+                descripcion: "Puntos de golpe temporales iguales a modificador por Carisma + nivel de brujo al reducir un enemigo a 0 PG (mínimo 1)"
+              }
+            ]
           },
           {
             nivel: 6,
             nombre: "Propia suerte del Oscuro",
-            descripcion: "Puedes recurrir a tu patrón infernal para alterar el destino a tu favor. Cuando hagas una prueba de característica o una tirada de salvación, puedes usar este rasgo para sumar 1d10 a tu tirada. Puedes hacerlo después de ver la tirada pero antes de que ocurra cualquiera de sus efectos.\nPuedes usar este rasgo una cantidad de veces igual a tu modificador por Carisma (mínimo una vez), pero no puedes usarlo más de una vez por tirada. Recuperas todos los usos gastados cuando finalizas un descanso largo.",
-            tipoAccion: "pasivo",
+            descripcion: "Puedes recurrir a tu patrón infernal para alterar el destino a tu favor. Cuando hagas una prueba de característica o una tirada de salvación, puedes usar este rasgo para sumar 1d10 a tu tirada. Puedes hacerlo después de ver la tirada pero antes de que ocurra cualquiera de sus efectos.\n\nPuedes usar este rasgo una cantidad de veces igual a tu modificador por Carisma (mínimo una vez), pero no puedes usarlo más de una vez por tirada. Recuperas todos los usos gastados cuando finalizas un descanso largo.",
+            tipoAccion: "especial",
             subclase: "Patrón Infernal",
+            categoriaMecanica: "consumible",
             tieneUsosLimitados: true,
             recuperacion: "descanso_largo",
+            escaladoUsos: {
+              tipo: "por_modificador",
+              modificador: "carisma",
+              minimo: 1
+            },
+            formulaUsos: "Max(1, modificador carisma)",
             formulaDados: "1d10"
           },
           {
@@ -1448,16 +1568,40 @@ export const CATALOGO_CLASES_DND55: DefinicionClase[] = [
             descripcion: "Elige un tipo de daño, distinto de fuerza, cada vez que finalices un descanso corto o largo. Tienes resistencia a ese tipo de daño hasta que elijas uno diferente con este rasgo.",
             tipoAccion: "pasivo",
             subclase: "Patrón Infernal",
-            tieneUsosLimitados: true,
-            recuperacion: "descanso_corto"
+            categoriaMecanica: "selector_informativo",
+            selectores: [
+              {
+                id: "resiliencia_infernal_tipo",
+                tipo: "unico",
+                maxSelecciones: 1,
+                etiqueta: "Resistencia elegida",
+                opciones: [
+                  { id: "fuego", nombre: "Fuego", descripcion: "Resistencia al daño de fuego" },
+                  { id: "acido", nombre: "Ácido", descripcion: "Resistencia al daño de ácido" },
+                  { id: "contundente", nombre: "Contundente", descripcion: "Resistencia al daño contundente" },
+                  { id: "cortante", nombre: "Cortante", descripcion: "Resistencia al daño cortante" },
+                  { id: "frio", nombre: "Frío", descripcion: "Resistencia al daño de frío" },
+                  { id: "necrotico", nombre: "Necrótico", descripcion: "Resistencia al daño necrótico" },
+                  { id: "perforante", nombre: "Perforante", descripcion: "Resistencia al daño perforante" },
+                  { id: "psiquico", nombre: "Psíquico", descripcion: "Resistencia al daño psíquico" },
+                  { id: "radiante", nombre: "Radiante", descripcion: "Resistencia al daño radiante" },
+                  { id: "rayo", nombre: "Rayo", descripcion: "Resistencia al daño de rayo" },
+                  { id: "trueno", nombre: "Trueno", descripcion: "Resistencia al daño de trueno" },
+                  { id: "veneno", nombre: "Veneno", descripcion: "Resistencia al daño de veneno" }
+                ],
+                valorActual: ["fuego"]
+              }
+            ]
           },
           {
             nivel: 14,
             nombre: "Arrojar al Infierno",
-            descripcion: "Una vez por turno, cuando aciertes a una criatura con una tirada de ataque, puedes intentar transportar instantáneamente al objetivo a través de los Planos Inferiores. El objetivo debe tener éxito en una tirada de salvación de Carisma contra tu CD de salvación de conjuros o desaparecerá y será arrastrado a través de un paisaje de pesadilla. El objetivo sufre 8d10 de daño psíquico si no es un infernal, y tiene el estado de incapacitado hasta el final de tu siguiente turno, momento en el que regresa al espacio que ocupaba anteriormente o al espacio sin ocupar más cercano.\nUna vez que uses este rasgo, no podrás volver a hacerlo hasta que finalices un descanso largo, a menos que gastes un espacio de conjuro de Magia del pacto (no requiere acción) para restaurar su uso.\n---",
-            tipoAccion: "pasivo",
+            descripcion: "Una vez por turno, cuando aciertes a una criatura con una tirada de ataque, puedes intentar transportar instantáneamente al objetivo a través de los Planos Inferiores. El objetivo debe tener éxito en una tirada de salvación de Carisma contra tu CD de salvación de conjuros o desaparecerá y será arrastrado a través de un paisaje de pesadilla. El objetivo sufre 8d10 de daño psíquico si no es un infernal, y tiene el estado de incapacitado hasta el final de tu siguiente turno, momento en el que regresa al espacio que ocupaba anteriormente o al espacio sin ocupar más cercano.\n\nUna vez que uses este rasgo, no podrás volver a hacerlo hasta que finalizes un descanso largo, a menos que gastes un espacio de conjuro de Magia del pacto (no requiere acción) para restaurar su uso.",
+            tipoAccion: "especial",
             subclase: "Patrón Infernal",
+            categoriaMecanica: "consumible",
             tieneUsosLimitados: true,
+            formulaUsos: "1",
             recuperacion: "descanso_largo",
             formulaDados: "8d10"
           },
@@ -1477,51 +1621,79 @@ export const CATALOGO_CLASES_DND55: DefinicionClase[] = [
             nombre: "Conjuros del Gran Primigenio",
             descripcion: "La magia de tu patrón garantiza que siempre tengas ciertos conjuros listos; cuando alcances un nivel de brujo especificado en la tabla \"Conjuros del Gran Primigenio\", a partir de entonces siempre tendrás preparados los conjuros indicados.\n##### Conjuros del Gran Primigenio\n| Nivel de brujo | Conjuros preparados                                                                  |\n|:--------------:|--------------------------------------------------------------------------------------|\n|       3        | *detectar pensamientos*, *susurros disonantes*, *fuerza fantasmal*, *risa espantosa de Tasha* |\n|       5        | *clarividencia*, *hambre de Hadar*                                                   |\n|       7        | *confusión*, *invocar aberración*                                                    |\n|       9        | *alterar los recuerdos*, *telequinesis*                                              |",
             tipoAccion: "pasivo",
-            subclase: "Patrón del Gran Primigenio"
+            subclase: "Patrón del Gran Primigenio",
+            tablaProgresion: {
+              columnas: ["Nivel de brujo", "Conjuros"],
+              filas: [
+                { nivel: 3, valores: ["Detectar pensamientos, Fuerza fantasmal, Risa horrible de Tasha, Susurros disonantes"] },
+                { nivel: 5, valores: ["Clarividencia, Hambre de Hadar"] },
+                { nivel: 7, valores: ["Confusión, Invocar aberración"] },
+                { nivel: 9, valores: ["Alterar los recuerdos, Telequinesis"] }
+              ],
+              notaPie: ""
+            }
           },
           {
             nivel: 3,
             nombre: "Mente despierta",
-            descripcion: "Puedes formar una conexión telepática entre tu mente y la de otra persona. Como acción adicional, elige a una criatura que puedas ver a 9 m (30 pies) o menos de ti. Tú y la criatura elegida podéis comunicaros telepáticamente entre vosotros mientras ambos os encontréis a una cantidad de kilómetros (millas) el uno del otro igual a tu modificador por Carisma (mínimo 1,5 km / 1 milla). Para entenderse mutuamente, ambos debéis usar mentalmente un idioma que el otro conozca.\nLa conexión telepática dura una cantidad de minutos igual a tu nivel de brujo. Termina antes de tiempo si usas este rasgo para conectarte con una criatura diferente.",
+            descripcion: "Puedes formar una conexión telepática entre tu mente y la de otra persona. Como acción adicional, elige a una criatura que puedas ver a 30 pies o menos de ti. Tú y la criatura elegida podéis comunicaros telepáticamente entre vosotros mientras ambos se encuentren a una cantidad de kilómetros (millas) el uno del otro igual a tu modificador por Carisma (mínimo 1,5 km / 1 milla). Para entenderse mutuamente, ambos debéis usar mentalmente un idioma que el otro conozca.\n\nLa conexión telepática dura una cantidad de minutos igual a tu nivel de brujo. Termina antes de tiempo si usas este rasgo para conectarte con una criatura diferente.",
             tipoAccion: "accion_adicional",
-            subclase: "Patrón del Gran Primigenio"
+            subclase: "Patrón del Gran Primigenio",
+            categoriaMecanica: "pasivo_permanente"
           },
           {
             nivel: 3,
             nombre: "Conjuros psíquicos",
             descripcion: "Cuando lances un conjuro de brujo que inflija daño, puedes cambiar su tipo de daño a psíquico. Además, cuando lances un conjuro de brujo que sea de Encantamiento o Ilusión, puedes lanzarlo sin componentes verbales ni somáticos.",
             tipoAccion: "pasivo",
-            subclase: "Patrón del Gran Primigenio"
+            subclase: "Patrón del Gran Primigenio",
+            categoriaMecanica: "pasivo_permanente"
           },
           {
             nivel: 6,
             nombre: "Combatiente clarividente",
-            descripcion: "Cuando formas un vínculo telepático con una criatura mediante Mente despierta, puedes obligar a esa criatura a hacer una tirada de salvación de Sabiduría contra tu CD de salvación de conjuros. Si falla la tirada, la criatura tendrá desventaja en las tiradas de ataque contra ti, y tú tendrás ventaja en las tiradas de ataque contra esa criatura durante la duración del vínculo.\nUna vez que uses este rasgo, no podrás volver a hacerlo hasta que finalices un descanso corto o largo, a menos que gastes un espacio de conjuro de Magia del pacto (no requiere acción) para restaurar su uso.",
-            tipoAccion: "pasivo",
+            descripcion: "Cuando formas un vínculo telepático con una criatura mediante Mente despierta, puedes obligar a esa criatura a hacer una tirada de salvación de Sabiduría contra tu CD de salvación de conjuros. Si falla la tirada, la criatura tendrá desventaja en las tiradas de ataque contra ti, y tú tendrás ventaja en las tiradas de ataque contra esa criatura durante la duración del vínculo.\n\nUna vez que uses este rasgo, no podrás volver a hacerlo hasta que finalizes un descanso corto o largo, a menos que gastes un espacio de conjuro de Magia del pacto (no requiere acción) para restaurar su uso.",
+            tipoAccion: "especial",
             subclase: "Patrón del Gran Primigenio",
+            categoriaMecanica: "consumible",
             tieneUsosLimitados: true,
-            recuperacion: "descanso_corto"
+            formulaUsos: "1",
+            recuperacion: "descanso_corto",
+            ligadoA: "Mente despierta"
           },
           {
             nivel: 10,
             nombre: "Maldición sobrenatural",
             descripcion: "Tu patrón alienígena te concede una poderosa maldición. Siempre tienes preparado el conjuro *maldición*. Cuando lances *maldición* y elijas una característica, el objetivo también tendrá desventaja en las tiradas de salvación de la característica elegida durante la duración del conjuro.",
             tipoAccion: "pasivo",
-            subclase: "Patrón del Gran Primigenio"
+            subclase: "Patrón del Gran Primigenio",
+            categoriaMecanica: "pasivo_permanente",
+            conjurosOtorgados: ["maldición"]
           },
           {
             nivel: 10,
             nombre: "Escudo de pensamientos",
             descripcion: "Tus pensamientos no pueden leerse mediante telepatía u otros medios a menos que tú lo permitas. También tienes resistencia al daño psíquico, y cada vez que una criatura te inflija daño psíquico, esa criatura sufrirá la misma cantidad de daño que tú recibas.",
             tipoAccion: "pasivo",
-            subclase: "Patrón del Gran Primigenio"
+            subclase: "Patrón del Gran Primigenio",
+            categoriaMecanica: "pasivo_permanente",
+            efectos: [
+              {
+                tipo: "personalizado",
+                objetivo: "psiquico",
+                valor: "resistencia",
+                condicion: "",
+                descripcion: "Resistencia al daño psíquico"
+              }
+            ]
           },
           {
             nivel: 14,
             nombre: "Crear esclavo",
-            descripcion: "Cuando lances *invocar aberración*, puedes modificarlo para que no requiera concentración. Si lo haces, la duración del conjuro pasa a ser de 1 minuto para ese lanzamiento, y al ser invocada, la aberración tiene una cantidad de puntos de golpe temporales igual a tu nivel de brujo más tu modificador por Carisma.\nAdemás, la primera vez en cada turno que la aberración acierte a una criatura bajo el efecto de tu *maldición*, la aberración inflige daño psíquico adicional al objetivo igual al daño adicional de ese conjuro.",
+            descripcion: "Cuando lances *invocar aberración*, puedes modificarlo para que no requiera concentración. Si lo haces, la duración del conjuro pasa a ser de 1 minuto para ese lanzamiento, y al ser invocada, la aberración tiene una cantidad de puntos de golpe temporales igual a tu nivel de brujo más tu modificador por Carisma.\n\nAdemás, la primera vez en cada turno que la aberración acierte a una criatura bajo el efecto de tu *maldición*, la aberración inflige daño psíquico adicional al objetivo igual al daño adicional de ese conjuro.",
             tipoAccion: "pasivo",
-            subclase: "Patrón del Gran Primigenio"
+            subclase: "Patrón del Gran Primigenio",
+            categoriaMecanica: "pasivo_permanente"
           },
         ]
       },

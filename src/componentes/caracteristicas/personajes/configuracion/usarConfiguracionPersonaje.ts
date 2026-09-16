@@ -126,6 +126,28 @@ export function usarConfiguracionPersonaje(
     });
   };
 
+  const manejarCambioEspecie = (nuevaEspecie: string) => {
+    setForm((prev) => {
+      const nuevo: PersonajeJugador = {
+        ...prev,
+        especie: nuevaEspecie
+      };
+      nuevo.rasgos = sincronizarRasgosAutomaticos(nuevo);
+      return nuevo;
+    });
+  };
+
+  const manejarCambioSubespecie = (nuevaSubespecie: string) => {
+    setForm((prev) => {
+      const nuevo: PersonajeJugador = {
+        ...prev,
+        subespecie: nuevaSubespecie
+      };
+      nuevo.rasgos = sincronizarRasgosAutomaticos(nuevo);
+      return nuevo;
+    });
+  };
+
   const manejarDetectarJugadorTaleSpire = async () => {
     try {
       const nombreTS = await obtenerNombreJugadorActivo();
@@ -400,6 +422,8 @@ export function usarConfiguracionPersonaje(
     modalCompetencias,
     setModalCompetencias,
     actualizarCampo,
+    manejarCambioEspecie,
+    manejarCambioSubespecie,
     manejarDetectarJugadorTaleSpire,
     manejarCambioClaseNombre,
     manejarCambioClaseSubclase,

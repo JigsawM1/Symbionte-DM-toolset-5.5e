@@ -49,6 +49,8 @@ export const PanelConfiguracionPersonaje: React.FC<PanelConfiguracionPersonajePr
     modalCompetencias,
     setModalCompetencias,
     actualizarCampo,
+    manejarCambioEspecie,
+    manejarCambioSubespecie,
     manejarDetectarJugadorTaleSpire,
     manejarCambioClaseNombre,
     manejarCambioClaseSubclase,
@@ -144,6 +146,8 @@ export const PanelConfiguracionPersonaje: React.FC<PanelConfiguracionPersonajePr
             alAplicarBuildSugerida={manejarAplicarBuildSugerida}
             alCambiarNivelTotal={manejarCambioNivelTotal}
             alCambiarExperiencia={manejarCambioExperiencia}
+            alCambiarEspecie={manejarCambioEspecie}
+            alCambiarSubespecie={manejarCambioSubespecie}
           />
         )}
 

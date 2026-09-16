@@ -1,8 +1,10 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { Sparkles } from "lucide-react";
 import type { PersonajeJugador } from "@/tipos";
 import { ALINEAMIENTOS_DND, obtenerRangoExperienciaPorNivel } from "@/constantes";
 import { SelectorDesplegable } from "@/componentes/comunes/SelectorDesplegable";
+import { SelectorSugerencias, type OpcionSugerencia } from "@/componentes/comunes/SelectorSugerencias";
+import { obtenerCatalogoEspecies, obtenerSubespeciesDeEspecie } from "@/servicios/gestorEspecies";
 import { SeccionMulticlase } from "./SeccionMulticlase";
 import estilos from "./ConfiguracionPersonaje.module.css";
 
@@ -18,6 +20,8 @@ export interface PestanaIdentidadProps {
   alAplicarBuildSugerida: (index: number) => void;
   alCambiarNivelTotal: (nuevoNivelStr: string) => void;
   alCambiarExperiencia: (nuevaXpStr: string) => void;
+  alCambiarEspecie?: (nuevaEspecie: string) => void;
+  alCambiarSubespecie?: (nuevaSubespecie: string) => void;
 }
 
 /**
@@ -35,12 +39,51 @@ export const PestanaIdentidad: React.FC<PestanaIdentidadProps> = ({
   alAgregarClase,
   alAplicarBuildSugerida,
   alCambiarNivelTotal,
-  alCambiarExperiencia
+  alCambiarExperiencia,
+  alCambiarEspecie,
+  alCambiarSubespecie
 }) => {
   const rangoXP = obtenerRangoExperienciaPorNivel(form.nivel || 1);
   const clasesActuales = form.clases && form.clases.length > 0
     ? form.clases
     : [{ nombre: form.clase || "Guerrero", subclase: form.subclase || "", nivel: form.nivel || 1 }];
+
+  const opcionesEspecies = useMemo<OpcionSugerencia[]>(() => {
+    return obtenerCatalogoEspecies().map((esp) => {
+      const tamanoStr = esp.tamanoOpciones ? esp.tamanoOpciones.join("/") : esp.tamanoPorDefecto || "Mediano";
+      const subtitulo = `${esp.tipoCriatura || "Humanoide"} • ${tamanoStr} • ${esp.velocidadBase} pies`;
+      return {
+        valor: esp.nombre,
+        etiqueta: esp.nombre,
+        subtitulo
+      };
+    });
+  }, []);
+
+  const opcionesSubespecies = useMemo<OpcionSugerencia[]>(() => {
+    const subespecies = obtenerSubespeciesDeEspecie(form.especie);
+    return subespecies.map((sub) => ({
+      valor: sub.nombre,
+      etiqueta: sub.nombre,
+      subtitulo: sub.descripcion || undefined
+    }));
+  }, [form.especie]);
+
+  const manejarEspecieChange = (nuevaEspecie: string) => {
+    if (alCambiarEspecie) {
+      alCambiarEspecie(nuevaEspecie);
+    } else {
+      alActualizarCampo("especie", nuevaEspecie);
+    }
+  };
+
+  const manejarSubespecieChange = (nuevaSub: string) => {
+    if (alCambiarSubespecie) {
+      alCambiarSubespecie(nuevaSub);
+    } else {
+      alActualizarCampo("subespecie", nuevaSub);
+    }
+  };
 
   return (
     <>
@@ -132,23 +175,37 @@ export const PestanaIdentidad: React.FC<PestanaIdentidadProps> = ({
       <div className={estilos.filaFormulario}>
         <div className={estilos.campoFormulario}>
           <label className={estilos.labelFormulario}>Especie / Raza</label>
-          <input
-            type="text"
-            className={estilos.inputFormulario}
-            value={form.especie}
-            onChange={(e) => alActualizarCampo("especie", e.target.value)}
-            placeholder="Ej. Humano, Elfo, Enano..."
+          <SelectorSugerencias
+            valor={form.especie}
+            alCambiar={manejarEspecieChange}
+            opciones={opcionesEspecies}
+            placeholder="Escribe o selecciona una especie..."
           />
         </div>
 
         <div className={estilos.campoFormulario}>
-          <label className={estilos.labelFormulario}>Subespecie / Legado / Linaje</label>
-          <input
-            type="text"
-            className={estilos.inputFormulario}
-            value={form.subespecie || ""}
-            onChange={(e) => alActualizarCampo("subespecie", e.target.value)}
-            placeholder="Ej. Alto elfo, Enano de las colinas, Dracónido rojo..."
+          <label className={estilos.labelFormulario}>
+            {form.especie?.toLowerCase().includes("dracon")
+              ? "Legado Dracónico"
+              : form.especie?.toLowerCase().includes("tiefling")
+              ? "Legado Infernal"
+              : form.especie?.toLowerCase().includes("goliat")
+              ? "Linaje Gigante"
+              : form.especie?.toLowerCase().includes("gnomo")
+              ? "Linaje Gnomo"
+              : form.especie?.toLowerCase().includes("elfo")
+              ? "Linaje Élfico"
+              : "Subespecie / Legado / Linaje"}
+          </label>
+          <SelectorSugerencias
+            valor={form.subespecie || ""}
+            alCambiar={manejarSubespecieChange}
+            opciones={opcionesSubespecies}
+            placeholder={
+              opcionesSubespecies.length > 0
+                ? "Elegir subraza, legado o linaje..."
+                : "Sin subespecies oficiales (escribe personalizada)..."
+            }
           />
         </div>
       </div>

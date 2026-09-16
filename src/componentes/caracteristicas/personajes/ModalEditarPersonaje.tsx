@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import type {
   PersonajeJugador,
   Caracteristica,
@@ -17,7 +17,7 @@ import { obtenerSubclasesDeClase } from "@/servicios/gestorClases";
 import { sincronizarRasgosAutomaticos } from "@/servicios/compendioRasgos";
 import { obtenerCatalogoEspecies, obtenerSubespeciesDeEspecie } from "@/servicios/gestorEspecies";
 import { SelectorDesplegable } from "@/componentes/comunes/SelectorDesplegable";
-import { SelectorSugerencias } from "@/componentes/comunes/SelectorSugerencias";
+import { SelectorSugerencias, type OpcionSugerencia } from "@/componentes/comunes/SelectorSugerencias";
 import { X, Save, Shield, User, Award, Eye } from "lucide-react";
 import estilos from "./HojaPersonaje.module.css";
 
@@ -48,6 +48,27 @@ export const ModalEditarPersonaje: React.FC<ModalEditarPersonajeProps> = ({
     ...personaje,
     hpMaximoBase: personaje.hpMaximoBase || personaje.hpMaximo || 10
   });
+
+  const opcionesEspecies = useMemo<OpcionSugerencia[]>(() => {
+    return obtenerCatalogoEspecies().map((esp) => {
+      const tamanoStr = esp.tamanoOpciones ? esp.tamanoOpciones.join("/") : esp.tamanoPorDefecto || "Mediano";
+      const subtitulo = `${esp.tipoCriatura || "Humanoide"} • ${tamanoStr} • ${esp.velocidadBase} pies`;
+      return {
+        valor: esp.nombre,
+        etiqueta: esp.nombre,
+        subtitulo
+      };
+    });
+  }, []);
+
+  const opcionesSubespecies = useMemo<OpcionSugerencia[]>(() => {
+    const subespecies = obtenerSubespeciesDeEspecie(form.especie);
+    return subespecies.map((sub) => ({
+      valor: sub.nombre,
+      etiqueta: sub.nombre,
+      subtitulo: sub.descripcion || undefined
+    }));
+  }, [form.especie]);
 
   const actualizarCampo = <K extends keyof PersonajeJugador>(campo: K, valor: PersonajeJugador[K]) => {
     setForm((prev) => ({ ...prev, [campo]: valor }));
@@ -277,7 +298,7 @@ export const ModalEditarPersonaje: React.FC<ModalEditarPersonajeProps> = ({
                         actualizarCampo("subespecie", subs[0].nombre);
                       }
                     }}
-                    opciones={obtenerCatalogoEspecies().map((e) => e.nombre)}
+                    opciones={opcionesEspecies}
                     placeholder="Escribe o selecciona una especie..."
                   />
                 </div>
@@ -288,13 +309,23 @@ export const ModalEditarPersonaje: React.FC<ModalEditarPersonajeProps> = ({
                       ? "Legado Dracónico"
                       : form.especie?.toLowerCase().includes("tiefling")
                       ? "Legado Infernal"
-                      : "Subraza / Legado"}
+                      : form.especie?.toLowerCase().includes("goliat")
+                      ? "Linaje Gigante"
+                      : form.especie?.toLowerCase().includes("gnomo")
+                      ? "Linaje Gnomo"
+                      : form.especie?.toLowerCase().includes("elfo")
+                      ? "Linaje Élfico"
+                      : "Subespecie / Legado / Linaje"}
                   </label>
                   <SelectorSugerencias
                     valor={form.subespecie || ""}
                     alCambiar={(nuevaSub) => actualizarCampo("subespecie", nuevaSub)}
-                    opciones={obtenerSubespeciesDeEspecie(form.especie).map((s) => s.nombre)}
-                    placeholder="Elegir o escribir legado/subraza..."
+                    opciones={opcionesSubespecies}
+                    placeholder={
+                      opcionesSubespecies.length > 0
+                        ? "Elegir subraza, legado o linaje..."
+                        : "Sin subespecies oficiales (escribe personalizada)..."
+                    }
                   />
                 </div>
               </div>

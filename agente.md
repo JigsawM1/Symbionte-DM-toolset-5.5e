@@ -19,6 +19,40 @@ Este archivo registra reglas globales, errores encontrados, sus causas raíz y l
    - **Bajo ninguna circunstancia** los módulos de lógica de negocio (`servicios/`), gestores de estado (`almacen/`) o constructores (`gestorClases.ts`) deben contener bifurcaciones condicionales por nombre literal de rasgo o clase (`r.nombre === "..."`, `clase.includes("...")`, etc.).
    - Toda mecánica, progresión de dados, escalado de usos, recuperación o desbloqueo dinámico debe resolverse mediante metadatos declarativos (`escaladoFormulaDados`, `escaladoUsos`, `escaladoRecuperacion`, `opcionesDinamicas`, `escaladoMaxSelecciones`, `sincronizarEfectosConFormula`, `heredarDadosPadre`, `gastarDePadre`, `ligadoA`, `efectos`) delegando en funciones puras agnósticas como `resolverEscaladosRasgo`. Esta regla está reforzada en CI vía ESLint `no-restricted-syntax` y la suite `rasgoGenericidad.test.ts`.
 
+## [2026-09-15] Selectores de Sugerencias Ricos para Especies y Subrazas / Legados en Configuración de Personajes
+
+**Contexto y Requerimientos del Usuario:**
+- El usuario solicitó que en el formulario de configuración de personajes, los campos de especies y legados/subrazas fuesen selectores de sugerencias que brinden las razas y sus respectivas subrazas/legados de forma dinámica y reactiva.
+
+**Causas Raíz y Diagnóstico Técnico:**
+1. **Inputs de Texto Planos en `PestanaIdentidad.tsx`:**
+   - En el panel principal de configuración (`PanelConfiguracionPersonaje` -> `PestanaIdentidad`), los campos `especie` y `subespecie` estaban implementados como simples `<input type="text">`, obligando al usuario a escribir manualmente nombres exactos sin asistencia visual ni descubrimiento interactivo.
+2. **Desacoplamiento de Opciones y Etiquetas Adaptativas:**
+   - No se aprovechaba el componente existente `SelectorSugerencias` con metadatos contextuales (`subtitulo` con tipo de criatura, tamaño, velocidad y descripciones del linaje).
+   - Las etiquetas de formulario eran fijas en vez de adaptarse semánticamente al linaje correspondiente (*Legado Dracónico*, *Legado Infernal*, *Linaje Gigante*, *Linaje Gnomo*, *Linaje Élfico*).
+
+**Solución Implementada y Decisiones Arquitectónicas:**
+1. **Controladores Reactivos en el Hook de Configuración (`usarConfiguracionPersonaje.ts`):**
+   - Se crearon `manejarCambioEspecie` y `manejarCambioSubespecie` que actualizan el formulario y sincronizan automáticamente los rasgos declarativos de la ficha mediante `sincronizarRasgosAutomaticos`.
+2. **Integración de `SelectorSugerencias` en `PestanaIdentidad.tsx` y `ModalEditarPersonaje.tsx`:**
+   - Reemplazo de inputs planos por `SelectorSugerencias` con opciones memoizadas y enriquecidas:
+     - `opcionesEspecies`: todas las razas oficiales del catálogo (`CATALOGO_ESPECIES_DND55`) con subtítulo informativo.
+     - `opcionesSubespecies`: resolución reactiva de subespecies/legados/linajes mediante `obtenerSubespeciesDeEspecie(form.especie)`.
+   - Etiquetas dinámicas y adaptativas según la especie elegida.
+3. **Cobertura Automatizada Exhaustiva (`selectorEspeciesConfiguracion.test.tsx`):**
+   - Verificación de catálogo de 10 especies oficiales.
+   - Resolución de subespecies para Tiefling (3 legados), Dracónido (10 dragones), Goliat (6 gigantes), Elfo (3 linajes) y Gnomo (2 linajes).
+   - Manejo de especies sin subespecies (Humano, Orco, Mediano).
+   - Renderizado y etiquetas adaptativas en `PestanaIdentidad`.
+   - Sincronización automática de rasgos en cambios de especie.
+4. **Métricas de Calidad Verificadas:**
+   - 100% de éxito en Vitest: 55 suites pasando, 686 pruebas superadas (+5 pruebas nuevas).
+   - `pnpm exec tsc --noEmit`: 0 errores (Strict Mode estricto).
+   - `pnpm run lint`: 0 errores y 0 advertencias bajo `--max-warnings=0`.
+   - `node scripts/verificar-limite-lineas.js`: 100% conforme.
+
+---
+
 ## [2026-09-15] Implementación Canónica y Declarativa de Tiefling (D&D 5.5e), Legados Infernales y Desbloqueo Progresivo en el Builder
 
 **Contexto y Requerimientos del Usuario:**

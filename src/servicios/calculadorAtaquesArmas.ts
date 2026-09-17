@@ -14,7 +14,8 @@ import {
   ContextoAtaquePersonaje,
   obtenerCompetenciasExtraRasgos,
   personajeTieneMaestriaArma,
-  estaAtaqueTemerarioActivo
+  estaAtaqueTemerarioActivo,
+  obtenerConfiguracionPactoDelFilo
 } from "@/servicios/evaluadorEfectosRasgos";
 import { inferirAtributosArma } from "@/constantes/armasInferenciaConstantes";
 import {
@@ -77,8 +78,19 @@ export function calcularAtaqueArmaEquipada(
   const esMonje = (personajeActivo.clase || "").toLowerCase().includes("monje");
   const modificadores = statsCalculadas.modificadores;
 
+  const configPactoFilo = obtenerConfiguracionPactoDelFilo(personajeActivo);
+
   let caracDefecto: Caracteristica = "fuerza";
-  if (esDistancia) {
+  if (configPactoFilo.activo && !esDistancia) {
+    const modCar = modificadores.carisma || 0;
+    const modFue = modificadores.fuerza || 0;
+    const modDes = modificadores.destreza || 0;
+    if (modCar >= modFue && modCar >= modDes) {
+      caracDefecto = "carisma";
+    } else if (esSutil) {
+      caracDefecto = modDes > modFue ? "destreza" : "fuerza";
+    }
+  } else if (esDistancia) {
     caracDefecto = "destreza";
   } else if (esSutil) {
     const prefiereFuerzaPorRasgo = furiaEstaActiva || estaAtaqueTemerarioActivo(personajeActivo);
@@ -106,16 +118,17 @@ export function calcularAtaqueArmaEquipada(
 
   const esMagicoReal = armaInst.esMagico || !!objetoCompendio?.esMagico || bonoMagico > 0;
   const subcategoriaArma = objetoCompendio?.subcategoria || inferidos.subcategoria;
-  const esCompetenteArma = esCompetenteConArma(
-    armaInst.nombre,
-    subcategoriaArma,
-    gruposArmasConsolidados,
-    personajeActivo.competenciasArmasLista || []
-  );
+  const esCompetenteArma =
+    (configPactoFilo.activo && !esDistancia) ||
+    esCompetenteConArma(
+      armaInst.nombre,
+      subcategoriaArma,
+      gruposArmasConsolidados,
+      personajeActivo.competenciasArmasLista || []
+    );
 
   const bonoAtaque = (esCompetenteArma ? statsCalculadas.bonoCompetencia : 0) + modAtributo + bonoMagico;
   const dadoDanoBase = objetoCompendio?.dadoDano || inferidos.dadoBase;
-  const tipoDano = objetoCompendio?.tipoDano || inferidos.tipoDano;
 
   const contextoAtaqueArma: ContextoAtaquePersonaje = {
     tipo: "arma",
@@ -124,7 +137,7 @@ export function calcularAtaqueArmaEquipada(
     esDistancia
   };
 
-  const { modDanoTotal, dadosExtra, danosSecundarios } = resolverBonosYDadosExtraCombate({
+  const { modDanoTotal, dadosExtra, danosSecundarios, tiposDanoSecundarios } = resolverBonosYDadosExtraCombate({
     personajeActivo,
     statsCalculadas,
     contextoAtaque: contextoAtaqueArma,
@@ -179,6 +192,19 @@ export function calcularAtaqueArmaEquipada(
     baseDatosObjetos
   );
 
+  let tipoDanoBase = objetoCompendio?.tipoDano || inferidos.tipoDano;
+  if (configPactoFilo.activo && !esDistancia && configPactoFilo.tipoDano !== "propio") {
+    const mapaTipos: Record<string, string> = {
+      necrotico: "Necrótico",
+      psiquico: "Psíquico",
+      radiante: "Radiante"
+    };
+    tipoDanoBase = mapaTipos[configPactoFilo.tipoDano] || tipoDanoBase;
+  }
+  const tipoDanoCompleto = (tiposDanoSecundarios && tiposDanoSecundarios.length > 0)
+    ? `${tipoDanoBase} / ${tiposDanoSecundarios.join(" / ")}`
+    : tipoDanoBase;
+
   return {
     id: armaInst.idInstancia,
     nombre: armaInst.nombre,
@@ -193,7 +219,7 @@ export function calcularAtaqueArmaEquipada(
     esDanoFijo: false,
     danoVersatil: formulaVersatil,
     dadoVersatilBase,
-    tipoDano,
+    tipoDano: tipoDanoCompleto,
     alcance: alcanceStr,
     propiedades,
     maestria:
@@ -255,7 +281,7 @@ export function calcularAtaqueImprovisado(contexto: {
     esDistancia: false
   };
 
-  const { modDanoTotal, dadosExtra, danosSecundarios } = resolverBonosYDadosExtraCombate({
+  const { modDanoTotal, dadosExtra, danosSecundarios, tiposDanoSecundarios } = resolverBonosYDadosExtraCombate({
     personajeActivo,
     statsCalculadas,
     contextoAtaque: contextoImprovisada,
@@ -274,6 +300,10 @@ export function calcularAtaqueImprovisado(contexto: {
     danosSecundarios
   );
 
+  const tipoDanoImprovisada = (tiposDanoSecundarios && tiposDanoSecundarios.length > 0)
+    ? `Contundente / ${tiposDanoSecundarios.join(" / ")}`
+    : "Contundente";
+
   return {
     id: "ataque-arma-improvisada",
     nombre: "Golpe con Arma Improvisada",
@@ -286,7 +316,7 @@ export function calcularAtaqueImprovisado(contexto: {
     dadoDanoBase: dadoDanoTotalBase,
     modificadorDano: modDanoTotal,
     esDanoFijo: false,
-    tipoDano: "Contundente",
+    tipoDano: tipoDanoImprovisada,
     alcance: "5 ft (20/60 ft arrojadiza)",
     propiedades: ["Improvisada", "Arrojadiza (20/60 ft)"],
     tieneTiradaAtaque: true,

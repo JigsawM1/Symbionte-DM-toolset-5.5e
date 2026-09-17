@@ -129,13 +129,15 @@ export async function ejecutarTiradaDanoFisico(
     const formulaRaw = esVersatil && ataque.danoVersatil ? ataque.danoVersatil : ataque.dadoDano;
 
     const subgrupos = formulaRaw.split("/");
+    const subgruposTipos = (ataque.tipoDano || "").split("/").map((t) => t.trim()).filter(Boolean);
     const formulasTaleSpire: string[] = [];
 
     for (let i = 0; i < subgrupos.length; i++) {
       const sub = subgrupos[i].trim();
+      const tipoEspecifico = subgruposTipos[i];
       const etiquetaSub = i === 0
         ? `${nombrePj} - Daño ${ataque.nombre}${esVersatil ? " (A dos manos)" : ""}`
-        : `${nombrePj} - Daño Extra ${ataque.nombre} (Efecto)`;
+        : `${nombrePj} - Daño ${tipoEspecifico || "Extra"} ${ataque.nombre}`;
       const etiquetaLimpia = sanitizarEtiqueta(etiquetaSub);
 
       if (!sub.includes("d")) {
@@ -168,13 +170,15 @@ export async function ejecutarTiradaCritico(
     const mod = ataque.modificadorDano;
 
     const subgruposBase = dadoBaseRaw.split("/");
+    const subgruposTipos = (ataque.tipoDano || "").split("/").map((t) => t.trim()).filter(Boolean);
     const formulasTaleSpire: string[] = [];
 
     for (let i = 0; i < subgruposBase.length; i++) {
       const subBase = subgruposBase[i].trim();
+      const tipoEspecifico = subgruposTipos[i];
       const etiquetaSub = i === 0
         ? `${nombrePj} - CRÍTICO ${ataque.nombre}${esVersatil ? " (A dos manos)" : ""}`
-        : `${nombrePj} - CRÍTICO Extra ${ataque.nombre}`;
+        : `${nombrePj} - CRÍTICO ${tipoEspecifico || "Extra"} ${ataque.nombre}`;
       const etiquetaLimpia = sanitizarEtiqueta(etiquetaSub);
 
       const partesDados = subBase.match(/(\d+)d(\d+)/gi);

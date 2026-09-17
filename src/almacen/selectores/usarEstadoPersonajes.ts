@@ -678,6 +678,7 @@ export function usarAccionesPersonajes() {
       recuperarPuntosConjuro:             s.recuperarPuntosConjuro,
       recuperarTodosPuntosConjuro:        s.recuperarTodosPuntosConjuro,
       gastarEspacioPacto:                 s.gastarEspacioPacto,
+      recuperarEspacioPacto:              s.recuperarEspacioPacto,
       recuperarEspaciosPacto:             s.recuperarEspaciosPacto,
       establecerOverrideEspacios:         s.establecerOverrideEspacios,
       establecerOverridePuntos:           s.establecerOverridePuntos,

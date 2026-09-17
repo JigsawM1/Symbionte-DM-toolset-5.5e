@@ -309,6 +309,14 @@ export const crearSubSliceMagia: StateCreator<
     });
   },
 
+  recuperarEspacioPacto: (id) => {
+    mutarPersonaje(set, id, (pj) => {
+      const gastados = pj.espaciosPactoGastados || 0;
+      if (gastados <= 0) return pj;
+      return { ...pj, espaciosPactoGastados: gastados - 1 };
+    });
+  },
+
   recuperarEspaciosPacto: (id) => {
     mutarPersonaje(set, id, (pj) => ({
       ...pj,

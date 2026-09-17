@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from "react";
 import type { SelectorRasgo } from "@/tipos/rasgos";
+import type { HechizoBase } from "@/tipos";
 import {
   Lock,
   Check,
@@ -10,16 +11,36 @@ import {
   AlertCircle,
   Sparkles,
   ShieldCheck,
-  Search
+  Search,
+  Zap,
+  Flame,
+  Award,
+  Heart
 } from "lucide-react";
-import { TextoEnriquecidoDND } from "@/componentes/comunes";
-import { obtenerMaxInvocacionesBrujo } from "@/constantes/invocacionesSobrenaturales";
+import dotesJson from "@/datos/dotes.json";
+import { TextoEnriquecidoDND, SelectorDesplegable, type OpcionDesplegable } from "@/componentes/comunes";
+import { usarAlmacenDM } from "@/almacen/usarAlmacenDM";
+import { usarEstadoHomebrew } from "@/almacen/selectores/usarEstadoHomebrew";
+import { coincideHechizoId } from "@/servicios/comparadorHechizos";
+import { obtenerMaxInvocacionesBrujo, obtenerNivelEspacioPacto } from "@/constantes/invocacionesSobrenaturales";
+import { aplicarResultadoHpTemporalEnEstado } from "@/utiles/lanzadorDados";
 import estilos from "./SelectorInvocacionesAcordeon.module.css";
 
 interface SelectorInvocacionesAcordeonProps {
   selector: SelectorRasgo;
   nivelPersonaje?: number;
   alActualizarSeleccion?: (idSelector: string, valores: string[]) => void;
+}
+
+/**
+ * Normaliza comparaciones entre IDs registrados en la ficha y el ID base de la invocación.
+ * Soporta sufijos como 'devorador_de_vida:psiquico' o 'descarga_ahuyentadora__123:descarga_sobrenatural'.
+ */
+function coincideInvocacionId(idRegistrado: string, idBase: string): boolean {
+  if (idRegistrado === idBase) return true;
+  if (idRegistrado.startsWith(`${idBase}:`)) return true;
+  if (idRegistrado.startsWith(`${idBase}__`)) return true;
+  return false;
 }
 
 export const SelectorInvocacionesAcordeon: React.FC<SelectorInvocacionesAcordeonProps> = ({
@@ -42,10 +63,108 @@ export const SelectorInvocacionesAcordeon: React.FC<SelectorInvocacionesAcordeon
     return selector.maxSelecciones || 1;
   }, [selector.escaladoMaxSelecciones, selector.maxSelecciones, selector.id, selector.etiqueta, nivelPersonaje]);
 
+  // Obtener personaje activo y compendio de hechizos para consultar trucos de ataque aprendidos
+  const personajeActivo = usarAlmacenDM(
+    React.useCallback((s) => s.personajes.find((p) => p.id === s.idPersonajeActivo) || s.personajes[0] || null, [])
+  );
+  const { baseDatosHechizos: hechizosCompendio } = usarEstadoHomebrew();
+
+  // Trucos con tirada de ataque conocidos por el personaje (para Descarga Ahuyentadora)
+  const trucosAtaqueOpciones: OpcionDesplegable<string>[] = useMemo(() => {
+    const idsConocidos = new Set([
+      ...(personajeActivo?.trucosConocidosIds || []),
+      ...(personajeActivo?.conjurosConocidosIds || [])
+    ]);
+
+    const todosTrucosAtaque = (hechizosCompendio || []).filter((h: HechizoBase) => {
+      const esTruco = h.nivel === 0;
+      const esAtaque = h.requiereAtaque === true || h.ataqueCd === "ATAQUE" || (h.descripcion || "").toLowerCase().includes("ataque de conjuro");
+      return esTruco && esAtaque;
+    });
+
+    const aprendidos = todosTrucosAtaque.filter((h: HechizoBase) =>
+      idsConocidos.has(h.id) ||
+      idsConocidos.has(h.nombre) ||
+      Array.from(idsConocidos).some((cid) => coincideHechizoId(cid, h.id) || coincideHechizoId(cid, h.nombre))
+    );
+
+    const candidatos = aprendidos.length > 0 ? aprendidos : todosTrucosAtaque;
+    return candidatos.map((h: HechizoBase) => ({
+      valor: h.id,
+      etiqueta: `${h.nombre} (${h.tipoDaño || "Fuerza"} • ${h.alcance || "120 ft"})`
+    }));
+  }, [hechizosCompendio, personajeActivo]);
+
+  // Trucos que causan daño (para Descarga Agónica)
+  const trucosDanoOpciones: OpcionDesplegable<string>[] = useMemo(() => {
+    const idsConocidos = new Set([
+      ...(personajeActivo?.trucosConocidosIds || []),
+      ...(personajeActivo?.conjurosConocidosIds || [])
+    ]);
+
+    const todosTrucosDano = (hechizosCompendio || []).filter((h: HechizoBase) => {
+      const esTruco = h.nivel === 0;
+      const tieneDano = Boolean((h.tipoDaño && h.tipoDaño !== "N/A") || h.dadosDaño || (h.descripcion || "").toLowerCase().includes("daño"));
+      return esTruco && tieneDano;
+    });
+
+    const aprendidos = todosTrucosDano.filter((h: HechizoBase) =>
+      idsConocidos.has(h.id) ||
+      idsConocidos.has(h.nombre) ||
+      Array.from(idsConocidos).some((cid) => coincideHechizoId(cid, h.id) || coincideHechizoId(cid, h.nombre))
+    );
+
+    const candidatos = aprendidos.length > 0 ? aprendidos : todosTrucosDano;
+    return candidatos.map((h: HechizoBase) => ({
+      valor: h.id,
+      etiqueta: `${h.nombre} (${h.tipoDaño || "Fuerza"})`
+    }));
+  }, [hechizosCompendio, personajeActivo]);
+
+  // Trucos con daño y alcance de al menos 10 pies (para Lanza Sobrenatural)
+  const trucosAlcanceOpciones: OpcionDesplegable<string>[] = useMemo(() => {
+    const idsConocidos = new Set([
+      ...(personajeActivo?.trucosConocidosIds || []),
+      ...(personajeActivo?.conjurosConocidosIds || [])
+    ]);
+
+    const todosTrucosAlcance = (hechizosCompendio || []).filter((h: HechizoBase) => {
+      if (h.nivel !== 0) return false;
+      const tieneDano = Boolean((h.tipoDaño && h.tipoDaño !== "N/A") || h.dadosDaño || (h.descripcion || "").toLowerCase().includes("daño"));
+      if (!tieneDano) return false;
+      const m = (h.alcance || "").match(/^(\d+)/);
+      const dist = m ? parseInt(m[1], 10) : 0;
+      return dist >= 10;
+    });
+
+    const aprendidos = todosTrucosAlcance.filter((h: HechizoBase) =>
+      idsConocidos.has(h.id) ||
+      idsConocidos.has(h.nombre) ||
+      Array.from(idsConocidos).some((cid) => coincideHechizoId(cid, h.id) || coincideHechizoId(cid, h.nombre))
+    );
+
+    const candidatos = aprendidos.length > 0 ? aprendidos : todosTrucosAlcance;
+    return candidatos.map((h: HechizoBase) => ({
+      valor: h.id,
+      etiqueta: `${h.nombre} (Alcance: ${h.alcance || "120 ft"})`
+    }));
+  }, [hechizosCompendio, personajeActivo]);
+
+  // Dotes canónicas de origen (para Lecciones de los Primeros)
+  const dotesOrigenOpciones: OpcionDesplegable<string>[] = useMemo(() => {
+    const origenes = (dotesJson as Array<{ id: string; nombre: string; categoria: string; descripcion?: string }>).filter(
+      (d) => (d.categoria || "").toLowerCase() === "origen"
+    );
+    return origenes.map((d) => ({
+      valor: d.id,
+      etiqueta: `${d.nombre} (Origen)`
+    }));
+  }, []);
+
   // Estado local para elementos expandidos
   const [expandidos, setExpandidos] = useState<Record<string, boolean>>({});
   const [busqueda, setBusqueda] = useState<string>("");
-  const [filtroEstado, setFiltroEstado] = useState<"todas" | "disponibles" | "aprendidas">("todas");
+  const [filtroEstado, setFiltroEstado] = useState<"todas" | "disponibles" | "aprendidas">("aprendidas");
 
   const alternarExpandido = (id: string) => {
     setExpandidos((prev) => ({
@@ -62,18 +181,293 @@ export const SelectorInvocacionesAcordeon: React.FC<SelectorInvocacionesAcordeon
       const dependientes = selector.opciones
         .filter((op) => op.requisitoInvocacion === id)
         .map((op) => op.id);
-      const nuevas = seleccionados.filter((opId) => opId !== id && !dependientes.includes(opId));
+      const nuevas = seleccionados.filter(
+        (opId) =>
+          !coincideInvocacionId(opId, id) &&
+          !dependientes.some((depId) => coincideInvocacionId(opId, depId))
+      );
       alActualizarSeleccion(selector.id, nuevas);
     } else {
-      // Agregar invocación
+      // Agregar invocación con su valor inicial si requiere subconfiguración
+      let entradaParaAgregar = id;
+      if (id === "devorador_de_vida") {
+        entradaParaAgregar = "devorador_de_vida:necrotico";
+      } else if (id === "pacto_del_filo") {
+        entradaParaAgregar = "pacto_del_filo:propio";
+      } else if (id === "descarga_ahuyentadora") {
+        const primerTruco = trucosAtaqueOpciones[0]?.valor || "descarga_sobrenatural";
+        entradaParaAgregar = `descarga_ahuyentadora:${primerTruco}`;
+      } else if (id === "descarga_agonica") {
+        const primerTruco = trucosDanoOpciones[0]?.valor || "descarga_sobrenatural";
+        entradaParaAgregar = `descarga_agonica:${primerTruco}`;
+      } else if (id === "lanza_sobrenatural") {
+        const primerTruco = trucosAlcanceOpciones[0]?.valor || "descarga_sobrenatural";
+        entradaParaAgregar = `lanza_sobrenatural:${primerTruco}`;
+      } else if (id === "lecciones_de_los_primeros") {
+        const primerDote = dotesOrigenOpciones[0]?.valor || "alert";
+        entradaParaAgregar = `lecciones_de_los_primeros:${primerDote}`;
+      }
+
       if (seleccionados.length < max) {
-        alActualizarSeleccion(selector.id, [...seleccionados, id]);
+        alActualizarSeleccion(selector.id, [...seleccionados, entradaParaAgregar]);
       } else {
         // Si supera el máximo en selección múltiple, reemplaza la primera
-        const nuevas = max === 1 ? [id] : [...seleccionados.slice(1), id];
+        const nuevas = max === 1 ? [entradaParaAgregar] : [...seleccionados.slice(1), entradaParaAgregar];
         alActualizarSeleccion(selector.id, nuevas);
       }
     }
+  };
+
+  // --- Manejador para Pacto del Filo (Selector de tipo de daño del arma) ---
+  const tipoDanoPactoFiloActual = useMemo(() => {
+    const entrada = seleccionados.find((id) => coincideInvocacionId(id, "pacto_del_filo"));
+    if (entrada && entrada.includes(":")) {
+      return entrada.split(":")[1];
+    }
+    return "propio";
+  }, [seleccionados]);
+
+  const manejarCambiarTipoDanoPactoFilo = (tipo: "propio" | "necrotico" | "psiquico" | "radiante") => {
+    if (!alActualizarSeleccion) return;
+    const nuevas = seleccionados.map((item) => {
+      if (coincideInvocacionId(item, "pacto_del_filo")) {
+        return `pacto_del_filo:${tipo}`;
+      }
+      return item;
+    });
+    alActualizarSeleccion(selector.id, nuevas);
+  };
+
+  // --- Manejador para Vigor Infernal (Puntos de Golpe Temporales a Voluntad) ---
+  const agregarNotificacion = usarAlmacenDM((s) => s.agregarNotificacion);
+
+  const nivelEspacioPactoCalculado = useMemo(() => {
+    if (personajeActivo?.nivelEspacioPacto && personajeActivo.nivelEspacioPacto > 0) {
+      return personajeActivo.nivelEspacioPacto;
+    }
+    const nivelBrujo =
+      personajeActivo?.clases?.find((c) => (c.nombre || "").toLowerCase().includes("brujo"))?.nivel ||
+      nivelPersonaje ||
+      1;
+    return obtenerNivelEspacioPacto(nivelBrujo);
+  }, [personajeActivo, nivelPersonaje]);
+
+  const pgTemporalesVigorInfernal = useMemo(() => {
+    return 12 + 5 * (nivelEspacioPactoCalculado - 1);
+  }, [nivelEspacioPactoCalculado]);
+
+  const manejarAplicarVigorInfernal = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!personajeActivo?.id) return;
+    try {
+      aplicarResultadoHpTemporalEnEstado(personajeActivo.id, pgTemporalesVigorInfernal);
+      agregarNotificacion(
+        `Has usado Vigor infernal y obtenido ${pgTemporalesVigorInfernal} PG temporales.`,
+        "exito"
+      );
+    } catch (error) {
+      console.error("[SelectorInvocacionesAcordeon] Error al aplicar Vigor infernal:", error);
+    }
+  };
+
+  // --- Manejadores para Descarga Ahuyentadora (Truco con ataque + repetible) ---
+  const instanciasAhuyentadora = useMemo(() => {
+    return seleccionados.filter((id) => coincideInvocacionId(id, "descarga_ahuyentadora"));
+  }, [seleccionados]);
+
+  const manejarCambiarTrucoAhuyentadora = (indiceInstancia: number, nuevoTrucoId: string) => {
+    if (!alActualizarSeleccion) return;
+    let contador = 0;
+    const nuevas = seleccionados.map((item) => {
+      if (coincideInvocacionId(item, "descarga_ahuyentadora")) {
+        if (contador === indiceInstancia) {
+          contador++;
+          const prefijo = item.includes(":") ? item.split(":")[0] : item;
+          return `${prefijo}:${nuevoTrucoId}`;
+        }
+        contador++;
+      }
+      return item;
+    });
+    alActualizarSeleccion(selector.id, nuevas);
+  };
+
+  const manejarAgregarOtraAhuyentadora = () => {
+    if (!alActualizarSeleccion || seleccionados.length >= max) return;
+    const primerTruco = trucosAtaqueOpciones[0]?.valor || "descarga_sobrenatural";
+    const nuevaClave = `descarga_ahuyentadora__${Date.now()}:${primerTruco}`;
+    alActualizarSeleccion(selector.id, [...seleccionados, nuevaClave]);
+  };
+
+  const manejarQuitarInstanciaAhuyentadora = (indiceInstancia: number) => {
+    if (!alActualizarSeleccion) return;
+    let contador = 0;
+    const nuevas = seleccionados.filter((item) => {
+      if (coincideInvocacionId(item, "descarga_ahuyentadora")) {
+        if (contador === indiceInstancia) {
+          contador++;
+          return false;
+        }
+        contador++;
+      }
+      return true;
+    });
+    alActualizarSeleccion(selector.id, nuevas);
+  };
+
+  // --- Manejador para Devorador de Vida (Selector de tipo de daño) ---
+  const tipoDanoDevoradorActual = useMemo(() => {
+    const entrada = seleccionados.find((id) => coincideInvocacionId(id, "devorador_de_vida"));
+    if (entrada && entrada.includes(":")) {
+      return entrada.split(":")[1];
+    }
+    return "necrotico";
+  }, [seleccionados]);
+
+  const manejarCambiarTipoDanoDevorador = (tipo: "necrotico" | "psiquico" | "radiante") => {
+    if (!alActualizarSeleccion) return;
+    const nuevas = seleccionados.map((item) => {
+      if (coincideInvocacionId(item, "devorador_de_vida")) {
+        return `devorador_de_vida:${tipo}`;
+      }
+      return item;
+    });
+    alActualizarSeleccion(selector.id, nuevas);
+  };
+
+  // --- Manejadores para Descarga Agónica (Truco con daño + Carisma + repetible) ---
+  const instanciasAgonica = useMemo(() => {
+    return seleccionados.filter((id) => coincideInvocacionId(id, "descarga_agonica"));
+  }, [seleccionados]);
+
+  const manejarCambiarTrucoAgonica = (indiceInstancia: number, nuevoTrucoId: string) => {
+    if (!alActualizarSeleccion) return;
+    let contador = 0;
+    const nuevas = seleccionados.map((item) => {
+      if (coincideInvocacionId(item, "descarga_agonica")) {
+        if (contador === indiceInstancia) {
+          contador++;
+          const prefijo = item.includes(":") ? item.split(":")[0] : item;
+          return `${prefijo}:${nuevoTrucoId}`;
+        }
+        contador++;
+      }
+      return item;
+    });
+    alActualizarSeleccion(selector.id, nuevas);
+  };
+
+  const manejarAgregarOtraAgonica = () => {
+    if (!alActualizarSeleccion || seleccionados.length >= max) return;
+    const primerTruco = trucosDanoOpciones[0]?.valor || "descarga_sobrenatural";
+    const nuevaClave = `descarga_agonica__${Date.now()}:${primerTruco}`;
+    alActualizarSeleccion(selector.id, [...seleccionados, nuevaClave]);
+  };
+
+  const manejarQuitarInstanciaAgonica = (indiceInstancia: number) => {
+    if (!alActualizarSeleccion) return;
+    let contador = 0;
+    const nuevas = seleccionados.filter((item) => {
+      if (coincideInvocacionId(item, "descarga_agonica")) {
+        if (contador === indiceInstancia) {
+          contador++;
+          return false;
+        }
+        contador++;
+      }
+      return true;
+    });
+    alActualizarSeleccion(selector.id, nuevas);
+  };
+
+  // --- Manejadores para Lanza Sobrenatural (Truco con alcance + repetible) ---
+  const instanciasLanza = useMemo(() => {
+    return seleccionados.filter((id) => coincideInvocacionId(id, "lanza_sobrenatural"));
+  }, [seleccionados]);
+
+  const manejarCambiarTrucoLanza = (indiceInstancia: number, nuevoTrucoId: string) => {
+    if (!alActualizarSeleccion) return;
+    let contador = 0;
+    const nuevas = seleccionados.map((item) => {
+      if (coincideInvocacionId(item, "lanza_sobrenatural")) {
+        if (contador === indiceInstancia) {
+          contador++;
+          const prefijo = item.includes(":") ? item.split(":")[0] : item;
+          return `${prefijo}:${nuevoTrucoId}`;
+        }
+        contador++;
+      }
+      return item;
+    });
+    alActualizarSeleccion(selector.id, nuevas);
+  };
+
+  const manejarAgregarOtraLanza = () => {
+    if (!alActualizarSeleccion || seleccionados.length >= max) return;
+    const primerTruco = trucosAlcanceOpciones[0]?.valor || "descarga_sobrenatural";
+    const nuevaClave = `lanza_sobrenatural__${Date.now()}:${primerTruco}`;
+    alActualizarSeleccion(selector.id, [...seleccionados, nuevaClave]);
+  };
+
+  const manejarQuitarInstanciaLanza = (indiceInstancia: number) => {
+    if (!alActualizarSeleccion) return;
+    let contador = 0;
+    const nuevas = seleccionados.filter((item) => {
+      if (coincideInvocacionId(item, "lanza_sobrenatural")) {
+        if (contador === indiceInstancia) {
+          contador++;
+          return false;
+        }
+        contador++;
+      }
+      return true;
+    });
+    alActualizarSeleccion(selector.id, nuevas);
+  };
+
+  // --- Manejadores para Lecciones de los Primeros (Dote de origen + repetible) ---
+  const instanciasLecciones = useMemo(() => {
+    return seleccionados.filter((id) => coincideInvocacionId(id, "lecciones_de_los_primeros"));
+  }, [seleccionados]);
+
+  const manejarCambiarDoteLecciones = (indiceInstancia: number, nuevaDoteId: string) => {
+    if (!alActualizarSeleccion) return;
+    let contador = 0;
+    const nuevas = seleccionados.map((item) => {
+      if (coincideInvocacionId(item, "lecciones_de_los_primeros")) {
+        if (contador === indiceInstancia) {
+          contador++;
+          const prefijo = item.includes(":") ? item.split(":")[0] : item;
+          return `${prefijo}:${nuevaDoteId}`;
+        }
+        contador++;
+      }
+      return item;
+    });
+    alActualizarSeleccion(selector.id, nuevas);
+  };
+
+  const manejarAgregarOtraLecciones = () => {
+    if (!alActualizarSeleccion || seleccionados.length >= max) return;
+    const primerDote = dotesOrigenOpciones[0]?.valor || "alert";
+    const nuevaClave = `lecciones_de_los_primeros__${Date.now()}:${primerDote}`;
+    alActualizarSeleccion(selector.id, [...seleccionados, nuevaClave]);
+  };
+
+  const manejarQuitarInstanciaLecciones = (indiceInstancia: number) => {
+    if (!alActualizarSeleccion) return;
+    let contador = 0;
+    const nuevas = seleccionados.filter((item) => {
+      if (coincideInvocacionId(item, "lecciones_de_los_primeros")) {
+        if (contador === indiceInstancia) {
+          contador++;
+          return false;
+        }
+        contador++;
+      }
+      return true;
+    });
+    alActualizarSeleccion(selector.id, nuevas);
   };
 
   // Filtrado y ordenación
@@ -87,12 +481,12 @@ export const SelectorInvocacionesAcordeon: React.FC<SelectorInvocacionesAcordeon
 
       if (!coincideBusqueda) return false;
 
-      const estaActiva = seleccionados.includes(op.id);
+      const estaActiva = seleccionados.some((id) => coincideInvocacionId(id, op.id));
       const cumpleNivel =
         op.nivelMinimo === undefined ||
         nivelPersonaje === undefined ||
         nivelPersonaje >= op.nivelMinimo;
-      const cumpleInvocacionPrevia = !op.requisitoInvocacion || seleccionados.includes(op.requisitoInvocacion);
+      const cumpleInvocacionPrevia = !op.requisitoInvocacion || seleccionados.some((id) => coincideInvocacionId(id, op.requisitoInvocacion || ""));
       const bloqueada = !estaActiva && (!cumpleNivel || !cumpleInvocacionPrevia);
 
       if (filtroEstado === "aprendidas") return estaActiva;
@@ -149,14 +543,16 @@ export const SelectorInvocacionesAcordeon: React.FC<SelectorInvocacionesAcordeon
           </div>
         ) : (
           opcionesProcesadas.map((op) => {
-            const estaActiva = seleccionados.includes(op.id);
+            const estaActiva = seleccionados.some((id) => coincideInvocacionId(id, op.id));
             const estaExpandida = !!expandidos[op.id];
 
             const cumpleNivel =
               op.nivelMinimo === undefined ||
               nivelPersonaje === undefined ||
               nivelPersonaje >= op.nivelMinimo;
-            const cumpleInvocacionPrevia = !op.requisitoInvocacion || seleccionados.includes(op.requisitoInvocacion);
+            const cumpleInvocacionPrevia =
+              !op.requisitoInvocacion ||
+              seleccionados.some((id) => coincideInvocacionId(id, op.requisitoInvocacion || ""));
             const bloqueada = !estaActiva && (!cumpleNivel || !cumpleInvocacionPrevia);
 
             let textoMotivoBloqueo = "";
@@ -289,6 +685,360 @@ export const SelectorInvocacionesAcordeon: React.FC<SelectorInvocacionesAcordeon
                             • {ef.descripcion || `${ef.tipo}: ${ef.objetivo} (${ef.valor})`}
                           </span>
                         ))}
+                      </div>
+                    )}
+
+                    {/* Sección interactiva: Descarga Ahuyentadora */}
+                    {op.id === "descarga_ahuyentadora" && estaActiva && (
+                      <div className={estilos.zonaConfiguracionMecanica}>
+                        <div className={estilos.tituloConfiguracionMecanica}>
+                          <Zap size={14} color="#38bdf8" />
+                          <span>Trucos Vinculados (Empuje de 10 pies por impacto):</span>
+                        </div>
+                        <p style={{ fontSize: 11, color: "#94a3b8", margin: "2px 0 6px 0" }}>
+                          Elige los trucos aprendidos que requieran tirada de ataque. Cada truco vinculado consume 1 ranura de invocación sobrenatural aprendida ({seleccionados.length}/{max}).
+                        </p>
+
+                        {instanciasAhuyentadora.map((instancia, idx) => {
+                          const trucoActualId = instancia.includes(":")
+                            ? instancia.split(":")[1]
+                            : (trucosAtaqueOpciones[0]?.valor || "descarga_sobrenatural");
+
+                          return (
+                            <div key={idx} className={estilos.filaSelectorTrucoAhuyentadora}>
+                              <div style={{ flex: 1 }}>
+                                <SelectorDesplegable
+                                  valor={trucoActualId}
+                                  opciones={trucosAtaqueOpciones}
+                                  alCambiar={(nuevoVal) => manejarCambiarTrucoAhuyentadora(idx, nuevoVal)}
+                                  placeholder="Seleccionar truco con ataque..."
+                                  tamano="compacto"
+                                />
+                              </div>
+                              {instanciasAhuyentadora.length > 1 && (
+                                <button
+                                  type="button"
+                                  className={estilos.botonQuitarInstancia}
+                                  onClick={() => manejarQuitarInstanciaAhuyentadora(idx)}
+                                  title="Eliminar este truco vinculado y liberar 1 ranura de invocación"
+                                >
+                                  <Trash2 size={13} />
+                                </button>
+                              )}
+                            </div>
+                          );
+                        })}
+
+                        <button
+                          type="button"
+                          className={estilos.botonAgregarInstancia}
+                          onClick={manejarAgregarOtraAhuyentadora}
+                          disabled={seleccionados.length >= max}
+                          title={
+                            seleccionados.length >= max
+                              ? `Límite máximo de invocaciones alcanzado (${max}/${max})`
+                              : "Vincular otro truco (consume 1 uso adicional de invocación)"
+                          }
+                        >
+                          <Plus size={13} />
+                          <span>Vincular otro truco (+1 invocación)</span>
+                        </button>
+                      </div>
+                    )}
+
+                    {/* Sección interactiva: Descarga Agónica */}
+                    {op.id === "descarga_agonica" && estaActiva && (
+                      <div className={estilos.zonaConfiguracionMecanica}>
+                        <div className={estilos.tituloConfiguracionMecanica}>
+                          <Sparkles size={14} color="#38bdf8" />
+                          <span>Trucos Vinculados (+Modificador de Carisma al daño):</span>
+                        </div>
+                        <p style={{ fontSize: 11, color: "#94a3b8", margin: "2px 0 6px 0" }}>
+                          Elige los trucos aprendidos que causen daño. Sumas tu modificador de Carisma a sus tiradas de daño (y a cada rayo). Cada truco vinculado consume 1 ranura de invocación ({seleccionados.length}/{max}).
+                        </p>
+
+                        {instanciasAgonica.map((instancia, idx) => {
+                          const trucoActualId = instancia.includes(":")
+                            ? instancia.split(":")[1]
+                            : (trucosDanoOpciones[0]?.valor || "descarga_sobrenatural");
+
+                          return (
+                            <div key={idx} className={estilos.filaSelectorTrucoAhuyentadora}>
+                              <div style={{ flex: 1 }}>
+                                <SelectorDesplegable
+                                  valor={trucoActualId}
+                                  opciones={trucosDanoOpciones}
+                                  alCambiar={(nuevoVal) => manejarCambiarTrucoAgonica(idx, nuevoVal)}
+                                  placeholder="Seleccionar truco con daño..."
+                                  tamano="compacto"
+                                />
+                              </div>
+                              {instanciasAgonica.length > 1 && (
+                                <button
+                                  type="button"
+                                  className={estilos.botonQuitarInstancia}
+                                  onClick={() => manejarQuitarInstanciaAgonica(idx)}
+                                  title="Eliminar este truco vinculado y liberar 1 ranura de invocación"
+                                >
+                                  <Trash2 size={13} />
+                                </button>
+                              )}
+                            </div>
+                          );
+                        })}
+
+                        <button
+                          type="button"
+                          className={estilos.botonAgregarInstancia}
+                          onClick={manejarAgregarOtraAgonica}
+                          disabled={seleccionados.length >= max}
+                          title={
+                            seleccionados.length >= max
+                              ? `Límite máximo de invocaciones alcanzado (${max}/${max})`
+                              : "Vincular otro truco (consume 1 uso adicional de invocación)"
+                          }
+                        >
+                          <Plus size={13} />
+                          <span>Vincular otro truco (+1 invocación)</span>
+                        </button>
+                      </div>
+                    )}
+
+                    {/* Sección interactiva: Lanza Sobrenatural */}
+                    {op.id === "lanza_sobrenatural" && estaActiva && (
+                      <div className={estilos.zonaConfiguracionMecanica}>
+                        <div className={estilos.tituloConfiguracionMecanica}>
+                          <Zap size={14} color="#60a5fa" />
+                          <span>Trucos Vinculados (+10 pies x nivel de Brujo al alcance):</span>
+                        </div>
+                        <p style={{ fontSize: 11, color: "#94a3b8", margin: "2px 0 6px 0" }}>
+                          Elige los trucos aprendidos que causen daño con alcance de al menos 10 pies. Su alcance aumenta en 10 pies por nivel de Brujo (+{(nivelPersonaje || 1) * 10} pies). Cada truco consume 1 ranura ({seleccionados.length}/{max}).
+                        </p>
+
+                        {instanciasLanza.map((instancia, idx) => {
+                          const trucoActualId = instancia.includes(":")
+                            ? instancia.split(":")[1]
+                            : (trucosAlcanceOpciones[0]?.valor || "descarga_sobrenatural");
+
+                          return (
+                            <div key={idx} className={estilos.filaSelectorTrucoAhuyentadora}>
+                              <div style={{ flex: 1 }}>
+                                <SelectorDesplegable
+                                  valor={trucoActualId}
+                                  opciones={trucosAlcanceOpciones}
+                                  alCambiar={(nuevoVal) => manejarCambiarTrucoLanza(idx, nuevoVal)}
+                                  placeholder="Seleccionar truco con alcance..."
+                                  tamano="compacto"
+                                />
+                              </div>
+                              {instanciasLanza.length > 1 && (
+                                <button
+                                  type="button"
+                                  className={estilos.botonQuitarInstancia}
+                                  onClick={() => manejarQuitarInstanciaLanza(idx)}
+                                  title="Eliminar este truco vinculado y liberar 1 ranura de invocación"
+                                >
+                                  <Trash2 size={13} />
+                                </button>
+                              )}
+                            </div>
+                          );
+                        })}
+
+                        <button
+                          type="button"
+                          className={estilos.botonAgregarInstancia}
+                          onClick={manejarAgregarOtraLanza}
+                          disabled={seleccionados.length >= max}
+                          title={
+                            seleccionados.length >= max
+                              ? `Límite máximo de invocaciones alcanzado (${max}/${max})`
+                              : "Vincular otro truco (consume 1 uso adicional de invocación)"
+                          }
+                        >
+                          <Plus size={13} />
+                          <span>Vincular otro truco (+1 invocación)</span>
+                        </button>
+                      </div>
+                    )}
+
+                    {/* Sección interactiva: Lecciones de los Primeros */}
+                    {op.id === "lecciones_de_los_primeros" && estaActiva && (
+                      <div className={estilos.zonaConfiguracionMecanica}>
+                        <div className={estilos.tituloConfiguracionMecanica}>
+                          <Award size={14} color="#f59e0b" />
+                          <span>Dotes de Origen Aprendidas (Multiverso Ancestral):</span>
+                        </div>
+                        <p style={{ fontSize: 11, color: "#94a3b8", margin: "2px 0 6px 0" }}>
+                          Elige una dote canónica de origen (PHB 2024). Cada dote aprendida consume 1 ranura de invocación ({seleccionados.length}/{max}).
+                        </p>
+
+                        {instanciasLecciones.map((instancia, idx) => {
+                          const doteActualId = instancia.includes(":")
+                            ? instancia.split(":")[1]
+                            : (dotesOrigenOpciones[0]?.valor || "alert");
+
+                          return (
+                            <div key={idx} className={estilos.filaSelectorTrucoAhuyentadora}>
+                              <div style={{ flex: 1 }}>
+                                <SelectorDesplegable
+                                  valor={doteActualId}
+                                  opciones={dotesOrigenOpciones}
+                                  alCambiar={(nuevoVal) => manejarCambiarDoteLecciones(idx, nuevoVal)}
+                                  placeholder="Seleccionar dote de origen..."
+                                  tamano="compacto"
+                                />
+                              </div>
+                              {instanciasLecciones.length > 1 && (
+                                <button
+                                  type="button"
+                                  className={estilos.botonQuitarInstancia}
+                                  onClick={() => manejarQuitarInstanciaLecciones(idx)}
+                                  title="Eliminar esta dote y liberar 1 ranura de invocación"
+                                >
+                                  <Trash2 size={13} />
+                                </button>
+                              )}
+                            </div>
+                          );
+                        })}
+
+                        <button
+                          type="button"
+                          className={estilos.botonAgregarInstancia}
+                          onClick={manejarAgregarOtraLecciones}
+                          disabled={seleccionados.length >= max}
+                          title={
+                            seleccionados.length >= max
+                              ? `Límite máximo de invocaciones alcanzado (${max}/${max})`
+                              : "Vincular otra dote (consume 1 uso adicional de invocación)"
+                          }
+                        >
+                          <Plus size={13} />
+                          <span>Vincular otra dote (+1 invocación)</span>
+                        </button>
+                      </div>
+                    )}
+
+                    {/* Sección interactiva: Pacto del Filo */}
+                    {op.id === "pacto_del_filo" && estaActiva && (
+                      <div className={estilos.zonaConfiguracionMecanica}>
+                        <div className={estilos.tituloConfiguracionMecanica}>
+                          <Sparkles size={14} color="#38bdf8" />
+                          <span>Tipo de daño del arma de pacto (Ataca y daña con Carisma):</span>
+                        </div>
+                        <div className={estilos.grupoPillsTipoDano}>
+                          {(["propio", "necrotico", "psiquico", "radiante"] as const).map((tipo) => {
+                            const estaSeleccionado = tipoDanoPactoFiloActual === tipo;
+                            const nombresMap: Record<string, string> = {
+                              propio: "Propio del arma",
+                              necrotico: "Necrótico",
+                              psiquico: "Psíquico",
+                              radiante: "Radiante"
+                            };
+                            return (
+                              <button
+                                key={tipo}
+                                type="button"
+                                className={`${estilos.pillTipoDano} ${estaSeleccionado ? estilos.pillTipoDanoActiva : ""}`}
+                                onClick={() => manejarCambiarTipoDanoPactoFilo(tipo)}
+                              >
+                                {estaSeleccionado && <Check size={11} style={{ marginRight: 4 }} />}
+                                {nombresMap[tipo]}
+                              </button>
+                            );
+                          })}
+                        </div>
+                        <span style={{ fontSize: 11, color: "#94a3b8", margin: "2px 0 0 0" }}>
+                          {tipoDanoPactoFiloActual === "propio"
+                            ? "Arma vinculada: Utiliza Carisma para ataque y daño, conservando el tipo de daño original del arma."
+                            : `Arma vinculada: Utiliza Carisma para ataque y daño, cambiando todo el daño base a daño ${tipoDanoPactoFiloActual}.`}
+                        </span>
+                      </div>
+                    )}
+
+                    {/* Sección interactiva: Vigor Infernal */}
+                    {op.id === "vigor_infernal" && estaActiva && (
+                      <div className={estilos.zonaConfiguracionMecanica}>
+                        <div className={estilos.tituloConfiguracionMecanica}>
+                          <Heart size={14} color="#f43f5e" />
+                          <span>Puntos de Golpe Temporales a Voluntad (Espacio de Pacto Nv {nivelEspacioPactoCalculado}):</span>
+                        </div>
+                        <p style={{ fontSize: 11, color: "#94a3b8", margin: "2px 0 6px 0" }}>
+                          Fórmula: 12 + 5 × ({nivelEspacioPactoCalculado} - 1) = <strong>{pgTemporalesVigorInfernal} PG temporales</strong>. Puedes lanzarlo sobre ti mismo a voluntad.
+                        </p>
+                        <button
+                          type="button"
+                          className={estilos.botonAgregarInstancia}
+                          style={{
+                            background: "rgba(244, 63, 94, 0.15)",
+                            borderColor: "rgba(244, 63, 94, 0.4)",
+                            color: "#fda4af",
+                            width: "auto",
+                            alignSelf: "flex-start",
+                            padding: "6px 14px",
+                            cursor: "pointer"
+                          }}
+                          onClick={manejarAplicarVigorInfernal}
+                          title={`Obtener ${pgTemporalesVigorInfernal} puntos de golpe temporales`}
+                        >
+                          <Heart size={13} style={{ marginRight: 6 }} />
+                          <span>Obtener {pgTemporalesVigorInfernal} PG Temporales (Vigor infernal)</span>
+                        </button>
+                      </div>
+                    )}
+
+                    {/* Sección interactiva: Devorador de Vida */}
+                    {op.id === "devorador_de_vida" && estaActiva && (
+                      <div className={estilos.zonaConfiguracionMecanica}>
+                        <div className={estilos.tituloConfiguracionMecanica}>
+                          <Flame size={14} color="#c084fc" />
+                          <span>Tipo de daño extra (+1d6 con Arma de Pacto):</span>
+                        </div>
+                        <div className={estilos.grupoPillsTipoDano}>
+                          {(["necrotico", "psiquico", "radiante"] as const).map((tipo) => {
+                            const estaSeleccionado = tipoDanoDevoradorActual === tipo;
+                            const nombresMap: Record<string, string> = {
+                              necrotico: "Necrótico",
+                              psiquico: "Psíquico",
+                              radiante: "Radiante"
+                            };
+                            return (
+                              <button
+                                key={tipo}
+                                type="button"
+                                className={`${estilos.pillTipoDano} ${estaSeleccionado ? estilos.pillTipoDanoActiva : ""}`}
+                                onClick={() => manejarCambiarTipoDanoDevorador(tipo)}
+                              >
+                                {estaSeleccionado && <Check size={11} style={{ marginRight: 4 }} />}
+                                {nombresMap[tipo]}
+                              </button>
+                            );
+                          })}
+                        </div>
+                        <span style={{ fontSize: 11, color: "#94a3b8", margin: "2px 0 0 0" }}>
+                          Daño extra activo: +1d6 daño {tipoDanoDevoradorActual} al impactar con tu arma cuerpo a cuerpo.
+                        </span>
+                      </div>
+                    )}
+
+                    {/* Caja informativa de Castigo Arcano */}
+                    {op.id === "castigo_arcano" && (
+                      <div className={estilos.cajaMecanicaConsumible}>
+                        <Zap size={14} color="#f59e0b" style={{ flexShrink: 0 }} />
+                        <span>
+                          <strong>Acción especial de combate:</strong> Gasta 1 espacio de Magia del pacto y lanza dados de fuerza ({op.escaladoFormulaDados?.find(e => (nivelPersonaje || 1) >= e.nivelMinimo)?.valor || op.formulaDados || "4d8"}). Disponible directamente en el Combat Tracker y en la pestaña de Acciones.
+                        </span>
+                      </div>
+                    )}
+
+                    {/* Caja informativa de Don de los Protectores */}
+                    {op.id === "don_de_los_protectores" && (
+                      <div className={estilos.cajaMecanicaConsumible}>
+                        <ShieldCheck size={14} color="#10b981" style={{ flexShrink: 0 }} />
+                        <span>
+                          <strong>Acción de combate (Reacción - Consumible):</strong> 1 uso por descanso largo. Si una criatura con su nombre en el Libro de las Sombras se reduce a 0 HP, en su lugar pasa a tener 1 HP. Disponible directamente en el Combat Tracker y en la pestaña de Acciones.
+                        </span>
                       </div>
                     )}
 

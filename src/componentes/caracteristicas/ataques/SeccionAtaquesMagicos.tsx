@@ -5,7 +5,7 @@ import type { HechizoBase, PersonajeJugador } from "@/tipos";
 import type { SolicitudLanzamiento } from "@/servicios/servicioLanzamientoConjuros";
 import { resolverOrigenConjuro } from "@/servicios/resolutorOrigenConjuros";
 import { coincideHechizoId } from "@/servicios/comparadorHechizos";
-import { obtenerBonoDanoConjuroExtra } from "@/servicios/evaluadorEfectosRasgos";
+import { obtenerBonoDanoConjuroExtra, tieneConjuroGratuitoActivo } from "@/servicios/evaluadorEfectosRasgos";
 import { obtenerModificadorAptitudMagica } from "@/servicios/calculadorMagia";
 import type { ConjuroAccionElemento } from "./usarCalculoAtaquesJugador";
 import estilos from "./VistaAtaquesJugador.module.css";
@@ -112,7 +112,8 @@ export const SeccionAtaquesMagicos: React.FC<SeccionAtaquesMagicosProps> = ({
                           nomHechizoNorm.includes(r.nombre.toLowerCase())
                         );
                       });
-                      const tieneLanzamientoGratisDisponible = Boolean(rasgoInnatoGratuito);
+                      const tieneLanzamientoGratisDisponible =
+                        Boolean(rasgoInnatoGratuito) || tieneConjuroGratuitoActivo(personajeActivo, hechizo.nombre);
                       const modificadorHabilidad = obtenerModificadorAptitudMagica(personajeActivo);
                       const bonoDanoMagico = obtenerBonoDanoConjuroExtra(personajeActivo, {
                         esTruco: hechizo.nivel === 0,

@@ -102,18 +102,32 @@ export const TarjetaRasgo: React.FC<TarjetaRasgoProps> = ({
   usosPadre,
   formulaDadosEfectiva
 }) => {
+  const personajeActivoAlmacen = usarAlmacenDM(
+    React.useCallback((s) => s.personajes.find((p) => p.id === idPersonaje), [idPersonaje])
+  );
+  const esRecursoEspacioPacto = rasgo.recursoGastado === "espacio_pacto";
+  const espaciosPactoMaximos = personajeActivoAlmacen?.espaciosPactoMaximos || 0;
+  const espaciosPactoGastados = personajeActivoAlmacen?.espaciosPactoGastados || 0;
+  const espaciosPactoDisponibles = Math.max(0, espaciosPactoMaximos - espaciosPactoGastados);
+
   const formulaEfectiva = formulaDadosEfectiva || rasgo.formulaDados;
   const tieneUsosPropios = rasgo.tieneUsosLimitados && typeof rasgo.usosMaximos === "number";
   const tieneUsosPadre = !tieneUsosPropios && Boolean(rasgo.gastarDePadre && usosPadre);
 
-  const usosRestantes = tieneUsosPropios
+  const usosRestantes = esRecursoEspacioPacto
+    ? espaciosPactoDisponibles
+    : tieneUsosPropios
     ? (rasgo.usosRestantes ?? (rasgo.usosMaximos || 1))
     : (usosPadre?.restantes ?? 0);
-  const usosMaximos = tieneUsosPropios
+  const usosMaximos = esRecursoEspacioPacto
+    ? espaciosPactoMaximos
+    : tieneUsosPropios
     ? (rasgo.usosMaximos || 1)
     : (usosPadre?.maximos || 1);
 
-  const sinUsosDisponibles = (tieneUsosPropios || tieneUsosPadre) && usosRestantes <= 0;
+  const sinUsosDisponibles =
+    (esRecursoEspacioPacto && espaciosPactoDisponibles <= 0) ||
+    ((tieneUsosPropios || tieneUsosPadre) && usosRestantes <= 0);
   
   const normNombre = rasgo.nombre.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
   const esManosCurativas = normNombre.includes("manos curativas");
@@ -143,7 +157,9 @@ export const TarjetaRasgo: React.FC<TarjetaRasgoProps> = ({
     if (sinUsosDisponibles) return;
 
     try {
-      if (gastaUsoAlTirar && alGastarUso) {
+      if (esRecursoEspacioPacto && idPersonaje) {
+        usarAlmacenDM.getState().gastarEspacioPacto(idPersonaje);
+      } else if (gastaUsoAlTirar && alGastarUso) {
         alGastarUso();
       }
       const formula = `!${rasgo.nombre}:${formulaEfectiva}`;
@@ -198,9 +214,6 @@ export const TarjetaRasgo: React.FC<TarjetaRasgoProps> = ({
     (!efectoHpTemporal.objetivo || efectoHpTemporal.objetivo === "propio" || efectoHpTemporal.objetivo === "hp_temporal")
   );
 
-  const personajeActivoAlmacen = usarAlmacenDM(
-    React.useCallback((s) => s.personajes.find((p) => p.id === idPersonaje), [idPersonaje])
-  );
   const agregarNotificacion = usarAlmacenDM((s) => s.agregarNotificacion);
 
   const valorHpTemporalCalculado = React.useMemo(() => {
@@ -306,12 +319,14 @@ export const TarjetaRasgo: React.FC<TarjetaRasgoProps> = ({
             </button>
           )}
 
-          {/* Contador de Usos (Propios o de Rasgo Padre) */}
-          {(tieneUsosPropios || tieneUsosPadre) && (
+          {/* Contador de Usos (Propios, de Rasgo Padre o Espacios de Pacto) */}
+          {(tieneUsosPropios || tieneUsosPadre || esRecursoEspacioPacto) && (
             <div
               className={estilos.contadorUsos}
               title={
-                tieneUsosPropios
+                esRecursoEspacioPacto
+                  ? `Espacios de Magia del Pacto (${usosRestantes}/${usosMaximos})`
+                  : tieneUsosPropios
                   ? `Recuperación: ${rasgo.recuperacion || "Descanso"}`
                   : `Gasta de: ${usosPadre?.nombre || "Rasgo Principal"} (${usosRestantes}/${usosMaximos})`
               }
@@ -322,10 +337,14 @@ export const TarjetaRasgo: React.FC<TarjetaRasgoProps> = ({
                 className={estilos.botonPasoUso}
                 onClick={(e) => {
                   e.stopPropagation();
-                  alGastarUso();
+                  if (esRecursoEspacioPacto && idPersonaje) {
+                    usarAlmacenDM.getState().gastarEspacioPacto(idPersonaje);
+                  } else {
+                    alGastarUso();
+                  }
                 }}
                 disabled={usosRestantes <= 0}
-                title={tieneUsosPropios ? "Gastar 1 uso" : `Gastar 1 uso de ${usosPadre?.nombre || "padre"}`}
+                title={esRecursoEspacioPacto ? "Gastar 1 espacio de pacto" : tieneUsosPropios ? "Gastar 1 uso" : `Gastar 1 uso de ${usosPadre?.nombre || "padre"}`}
               >
                 -
               </button>
@@ -339,10 +358,14 @@ export const TarjetaRasgo: React.FC<TarjetaRasgoProps> = ({
                 className={estilos.botonPasoUso}
                 onClick={(e) => {
                   e.stopPropagation();
-                  alRecuperarUso();
+                  if (esRecursoEspacioPacto && idPersonaje) {
+                    usarAlmacenDM.getState().recuperarEspacioPacto(idPersonaje);
+                  } else {
+                    alRecuperarUso();
+                  }
                 }}
                 disabled={usosRestantes >= usosMaximos}
-                title={tieneUsosPropios ? "Recuperar 1 uso" : `Recuperar 1 uso de ${usosPadre?.nombre || "padre"}`}
+                title={esRecursoEspacioPacto ? "Recuperar 1 espacio de pacto" : tieneUsosPropios ? "Recuperar 1 uso" : `Recuperar 1 uso de ${usosPadre?.nombre || "padre"}`}
               >
                 +
               </button>
@@ -359,6 +382,8 @@ export const TarjetaRasgo: React.FC<TarjetaRasgoProps> = ({
               title={
                 esCuracion
                   ? `Gastar 1 dado de la reserva (${usosRestantes}/${usosMaximos}) y curar ${formulaEfectiva}`
+                  : esRecursoEspacioPacto
+                  ? `Lanzar ${formulaEfectiva} a TaleSpire (Gasta 1 espacio de pacto: ${usosRestantes}/${usosMaximos})`
                   : rasgo.gastarDePadre && usosPadre
                   ? `Lanzar ${formulaEfectiva} a TaleSpire (Gasta 1 uso de ${usosPadre.nombre}: ${usosRestantes}/${usosMaximos})`
                   : `Lanzar ${formulaEfectiva} a TaleSpire`

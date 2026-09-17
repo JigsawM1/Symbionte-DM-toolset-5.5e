@@ -114,6 +114,7 @@ export interface SubSliceMagia {
   recuperarTodosPuntosConjuro: (id: string) => void;
 
   gastarEspacioPacto: (id: string) => void;
+  recuperarEspacioPacto: (id: string) => void;
   recuperarEspaciosPacto: (id: string) => void;
 
   modificarPuntosHechiceria: (id: string, delta: number) => void;

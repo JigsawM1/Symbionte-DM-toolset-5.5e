@@ -15,7 +15,11 @@ import { generarIdSlug } from "@/utiles/generarId";
 import { resolverOrigenConjuro } from "@/servicios/resolutorOrigenConjuros";
 import { obtenerEspeciePorNombre, obtenerSubespeciePorNombre } from "@/servicios/gestorEspecies";
 import { sincronizarRasgosAutomaticos } from "@/servicios/compendioRasgos";
-import { resolverIdRasgoObjetivoGasto } from "@/servicios/evaluadorEfectosRasgos";
+import {
+  resolverIdRasgoObjetivoGasto,
+  obtenerConjurosOtorgadosPorRasgos,
+  aplicarModificadoresInvocacionesAHechizo
+} from "@/servicios/evaluadorEfectosRasgos";
 
 export interface HechizoObjetoMagicoAccion {
   objetoInstanciaId: string;
@@ -45,12 +49,14 @@ export function resolverConjurosAcciones(
 
   const pjNivel = personajeActivo.nivel || 1;
 
-  // 1. Recopilar candidatos directos de la ficha
+  // 1. Recopilar candidatos directos de la ficha y rasgos otorgados
+  const conjurosOtorgados = obtenerConjurosOtorgadosPorRasgos(personajeActivo);
   const candidatos = new Set<string>([
     ...(personajeActivo.trucosConocidosIds || []),
     ...(personajeActivo.conjurosSiemprePreparadosIds || []),
     ...(personajeActivo.conjurosPreparadosIds || []),
-    ...(personajeActivo.conjurosConocidosIds || [])
+    ...(personajeActivo.conjurosConocidosIds || []),
+    ...conjurosOtorgados
   ]);
 
   // 2. Extraer conjuros otorgados por rasgos activos con nivel cumplido
@@ -182,7 +188,10 @@ export function resolverConjurosAcciones(
         tipoAccion = "reaccion";
       }
 
-      resultado.push({ hechizo: h, tipoAccion });
+      resultado.push({
+        hechizo: aplicarModificadoresInvocacionesAHechizo(h, personajeActivo),
+        tipoAccion
+      });
     }
   }
 
@@ -349,7 +358,53 @@ export function resolverRasgosAcciones(
   const pjNivel = personajeActivo.nivel || 1;
   const resultado: RasgoAccionCombate[] = [];
 
-  for (const rasgo of listaRasgos) {
+  // Extraer rasgos base y sintetizar opciones activas de selectores que tengan mecánicas de combate (ej. Invocaciones como Castigo arcano)
+  const todosLosRasgos: RasgoPersonaje[] = [...listaRasgos];
+  for (const r of listaRasgos) {
+    if (r.activo === false) continue;
+    if (r.nivelRequerido && pjNivel < r.nivelRequerido) continue;
+    if (Array.isArray(r.selectores)) {
+      for (const sel of r.selectores) {
+        if (!Array.isArray(sel.valorActual)) continue;
+        for (const opId of sel.valorActual) {
+          const baseId = opId.includes("__") ? opId.split("__")[0] : opId;
+          const opcion = sel.opciones?.find((o) => o.id === baseId || o.id === opId);
+          if (
+            opcion &&
+            (opcion.categoriaMecanica === "consumible" ||
+              opcion.recursoGastado === "espacio_pacto" ||
+              Boolean(opcion.formulaDados) ||
+              (opcion.tipoAccion && opcion.tipoAccion !== "pasivo"))
+          ) {
+            todosLosRasgos.push({
+              id: `${r.id}_${opId}`,
+              nombre: opcion.nombre,
+              descripcion: opcion.descripcion || "",
+              origen: r.origen,
+              fuente: r.fuente,
+              tipoAccion: opcion.tipoAccion || "especial",
+              nivelRequerido: opcion.nivelMinimo || r.nivelRequerido,
+              tieneUsosLimitados: opcion.tieneUsosLimitados ?? (opcion.categoriaMecanica === "consumible" && opcion.usosMaximos !== undefined),
+              usosMaximos: opcion.usosMaximos ?? 1,
+              usosRestantes: opcion.usosRestantes ?? opcion.usosMaximos ?? 1,
+              recuperacion: opcion.recuperacion || "ninguno",
+              categoriaMecanica: opcion.categoriaMecanica || "consumible",
+              recursoGastado: opcion.recursoGastado,
+              formulaDados: opcion.formulaDados,
+              escaladoFormulaDados: opcion.escaladoFormulaDados,
+              selectores: opcion.selectores,
+              efectos: opcion.efectos,
+              personalizado: false,
+              activo: true,
+              notas: ""
+            });
+          }
+        }
+      }
+    }
+  }
+
+  for (const rasgo of todosLosRasgos) {
     // 1. Filtrar por nivel mínimo requerido si está definido
     if (rasgo.nivelRequerido && pjNivel < rasgo.nivelRequerido) {
       continue;
@@ -375,11 +430,13 @@ export function resolverRasgosAcciones(
       categorias.push("activable");
     }
 
-    // Consumible (recurso con usos limitados, curación o ligado a padre)
+    // Consumible (recurso con usos limitados, curación, ligado a padre o espacio de pacto)
     const tieneUsosPropios = Boolean(rasgo.tieneUsosLimitados && typeof rasgo.usosMaximos === "number");
+    const esEspacioPacto = rasgo.recursoGastado === "espacio_pacto";
     const esConsumible = Boolean(
       tieneUsosPropios ||
       rasgo.gastarDePadre ||
+      esEspacioPacto ||
       rasgo.categoriaMecanica === "consumible" ||
       rasgo.categoriaMecanica === "curacion"
     );
@@ -387,7 +444,17 @@ export function resolverRasgosAcciones(
       categorias.push("consumible");
     }
 
-    const tieneDados = Boolean(rasgo.formulaDados && rasgo.formulaDados.trim() !== "");
+    // Calcular fórmula de dados considerando escaladoFormulaDados
+    let formulaDadosEfectiva = rasgo.formulaDados;
+    if (rasgo.escaladoFormulaDados && rasgo.escaladoFormulaDados.length > 0) {
+      const escalones = [...rasgo.escaladoFormulaDados].sort((a, b) => b.nivelMinimo - a.nivelMinimo);
+      const escalon = escalones.find((e) => pjNivel >= e.nivelMinimo);
+      if (escalon) {
+        formulaDadosEfectiva = escalon.valor;
+      }
+    }
+
+    const tieneDados = Boolean(formulaDadosEfectiva && formulaDadosEfectiva.trim() !== "");
 
     // 3. Excluir si es puramente pasivo permanente sin mecánicas activas
     const esPasivoPuro =
@@ -411,7 +478,12 @@ export function resolverRasgosAcciones(
     let usosMaximos = rasgo.usosMaximos ?? 1;
     let usosRestantes = rasgo.usosRestantes ?? usosMaximos;
 
-    if (rasgo.gastarDePadre) {
+    if (esEspacioPacto) {
+      const maxPacto = personajeActivo.espaciosPactoMaximos || 0;
+      const gastadosPacto = personajeActivo.espaciosPactoGastados || 0;
+      usosMaximos = maxPacto;
+      usosRestantes = Math.max(0, maxPacto - gastadosPacto);
+    } else if (rasgo.gastarDePadre) {
       const idPadre = resolverIdRasgoObjetivoGasto(rasgo, listaRasgos);
       const rasgoPadre = listaRasgos.find((r) => r.id === idPadre);
       if (rasgoPadre && rasgoPadre.tieneUsosLimitados) {
@@ -420,8 +492,12 @@ export function resolverRasgosAcciones(
       }
     }
 
+    const rasgoEfectivo: RasgoPersonaje = formulaDadosEfectiva !== rasgo.formulaDados
+      ? { ...rasgo, formulaDados: formulaDadosEfectiva }
+      : rasgo;
+
     resultado.push({
-      rasgo,
+      rasgo: rasgoEfectivo,
       categoriasCombate: categorias,
       tipoAccionCalculado,
       esConsumible,

@@ -30,6 +30,7 @@ export const CATALOGO_INVOCACIONES_SOBRENATURALES: InvocacionSobrenatural[] = [
     nivelMinimo: 1,
     tipoAccion: "pasivo",
     repetible: false,
+    categoriaMecanica: "pasivo_permanente",
     descripcion: "Tienes ventaja en las tiradas de salvación de Constitución que realices para mantener la concentración.",
     efectos: [
       {
@@ -65,7 +66,22 @@ export const CATALOGO_INVOCACIONES_SOBRENATURALES: InvocacionSobrenatural[] = [
     nivelMinimo: 1,
     tipoAccion: "accion_adicional",
     repetible: false,
-    descripcion: "Como acción adicional, puedes conjurar en tu mano un arma de pacto, un arma cuerpo a cuerpo sencilla o marcial de tu elección con la que estableces un vínculo. Como alternativa, puedes vincularte con un arma mágica que toques, pero no podrás hacerlo si otra criatura está sintonizada con ella o si otro brujo está vinculado con ella. Hasta que termine el vínculo, tendrás competencia con esa arma y podrás usarla como canalizador mágico.\nSiempre que ataques con el arma vinculada, puedes usar tu modificador por Carisma para las tiradas de ataque y de daño en lugar del modificador por Fuerza o Destreza. Además, puedes hacer que cause daño necrótico, psíquico o radiante en lugar de su tipo de daño normal.\nTu vínculo con el arma se rompe si vuelves a usar la acción adicional de este rasgo, si el arma está a más de 5 pies de ti durante 1 minuto o más o si mueres. Un arma conjurada desaparece cuando termina el vínculo.",
+    descripcion: "Como acción adicional, puedes conjurar en tu mano un arma de pacto, un arma cuerpo a cuerpo sencilla o marcial de tu elección con la que estableces un vínculo. Como alternativa, puedes vincularte con un arma mágica que toques, pero no podrás hacerlo si otra criatura está sintonizada con ella o si otro brujo está vinculado con ella. Hasta que termine el vínculo, tendrás competencia con esa arma y podrás usarla como canalizador mágico.\n\nSiempre que ataques con el arma vinculada, puedes usar tu modificador por Carisma para las tiradas de ataque y de daño en lugar del modificador por Fuerza o Destreza. Además, puedes hacer que cause daño necrótico, psíquico o radiante en lugar de su tipo de daño normal.\nTu vínculo con el arma se rompe si vuelves a usar la acción adicional de este rasgo, si el arma está a más de 5 pies de ti durante 1 minuto o más o si mueres. Un arma conjurada desaparece cuando termina el vínculo.",
+    selectores: [
+      {
+        id: "tipo_dano_pacto_del_filo",
+        tipo: "unico",
+        etiqueta: "Tipo de daño del arma de pacto",
+        maxSelecciones: 1,
+        opciones: [
+          { id: "propio", nombre: "Propio del arma", descripcion: "Conserva el tipo de daño nativo del arma" },
+          { id: "necrotico", nombre: "Necrótico", descripcion: "Cambia el daño del arma a daño necrótico" },
+          { id: "psiquico", nombre: "Psíquico", descripcion: "Cambia el daño del arma a daño psíquico" },
+          { id: "radiante", nombre: "Radiante", descripcion: "Cambia el daño del arma a daño radiante" }
+        ],
+        valorActual: ["propio"]
+      }
+    ],
     efectos: [
       {
         tipo: "personalizado",
@@ -81,6 +97,7 @@ export const CATALOGO_INVOCACIONES_SOBRENATURALES: InvocacionSobrenatural[] = [
     nivelMinimo: 1,
     tipoAccion: "pasivo",
     repetible: false,
+    categoriaMecanica: "pasivo_permanente",
     descripcion: "Uniendo hebras de sombras, conjuras un libro en tu mano al terminar un descanso corto o largo. Este Libro de las sombras (tú eliges su aspecto) contiene magia sobrenatural a la que solo tú puedes acceder y que te proporciona los beneficios presentados a continuación. El libro desaparece si conjuras otro con este rasgo o si mueres.\n- **Trucos y rituales.** Cuando aparezca el libro, elige tres trucos y dos conjuros de nivel 1 que estén marcados como “ritual”. Los conjuros pueden ser de la lista de cualquier clase y deben ser conjuros que no tengas ya preparados. Mientras lleves el libro contigo, tendrás preparados los conjuros elegidos y funcionarán como conjuros de brujo para ti.\n- **Canalizador mágico.** Puedes usar el libro como canalizador mágico.",
     efectos: [
       {
@@ -95,9 +112,10 @@ export const CATALOGO_INVOCACIONES_SOBRENATURALES: InvocacionSobrenatural[] = [
     id: "descarga_agonica",
     nombre: "Descarga agónica",
     nivelMinimo: 2,
-    requisitoPrevio: "Brujo nivel 2+, un truco de brujo que cause daño",
+    requisitoPrevio: "Brujo nivel 2+, un truco de brujo que cause daño\n",
     tipoAccion: "pasivo",
     repetible: true,
+    categoriaMecanica: "selector_informativo",
     descripcion: "Elige uno de tus trucos de brujo que conozcas y cause daño. Puedes sumar tu modificador por Carisma a las tiradas de daño del conjuro.\n\n**Repetible.** Puedes obtener esta invocación más de una vez. Cada vez que lo hagas, elige un truco distinto que cumpla las condiciones.",
     efectos: [
       {
@@ -112,34 +130,37 @@ export const CATALOGO_INVOCACIONES_SOBRENATURALES: InvocacionSobrenatural[] = [
     id: "descarga_ahuyentadora",
     nombre: "Descarga ahuyentadora",
     nivelMinimo: 2,
-    requisitoPrevio: "Brujo nivel 2+, un truco de brujo que cause daño mediante tirada de ataque",
+    requisitoPrevio: "Brujo nivel 2+, un truco de brujo que cause daño mediante tirada de ataque\n",
     tipoAccion: "pasivo",
     repetible: true,
-    descripcion: "Elige uno de tus trucos de brujo que conozcas y requiera una tirada de ataque. Cuando aciertes a una criatura Grande o más pequeña con ese truco, puedes empujarla hasta 10 pies respecto a ti en línea recta.\n\n**Repetible.** Puedes obtener esta invocación más de una vez. Cada vez que lo hagas, elige un truco distinto que cumpla las condiciones."
+    categoriaMecanica: "selector_informativo",
+    descripcion: "Elige uno de tus trucos de brujo que conozcas y requiera una tirada de ataque. Cuando aciertes a una criatura Grande o más pequeña con ese truco, puedes empujarla hasta 10 pies respecto a ti en línea recta.\n\n **Repetible.** Puedes obtener esta invocación más de una vez. Cada vez que lo hagas, elige un truco distinto que cumpla las condiciones."
   },
   {
     id: "lanza_sobrenatural",
     nombre: "Lanza sobrenatural",
     nivelMinimo: 2,
-    requisitoPrevio: "Brujo nivel 2+, un truco de brujo que cause daño con alcance de 10 pies o más",
+    requisitoPrevio: "Brujo nivel 2+, un truco de brujo que cause daño con alcance de 10 pies o más\n",
     tipoAccion: "pasivo",
     repetible: true,
+    categoriaMecanica: "selector_informativo",
     descripcion: "Elige uno de tus trucos de brujo que conozcas, cause daño y tenga un alcance de 10 pies o más. Cuando lances ese conjuro, su alcance aumenta una cantidad de pies igual a 10 veces tu nivel de brujo.\n\n**Repetible.** Puedes obtener esta invocación más de una vez. Cada vez que lo hagas, elige un truco distinto que cumpla las condiciones."
   },
   {
     id: "lecciones_de_los_primeros",
     nombre: "Lecciones de los Primeros",
     nivelMinimo: 2,
-    requisitoPrevio: "Brujo nivel 2+",
+    requisitoPrevio: "Brujo nivel 2+\n",
     tipoAccion: "pasivo",
     repetible: true,
+    categoriaMecanica: "selector_informativo",
     descripcion: "Has obtenido conocimientos de un ente anciano del multiverso, lo que te permite obtener una dote de origen de tu elección.\n\n**Repetible.** Puedes obtener esta invocación más de una vez. Cada vez que lo hagas, elige una dote de origen distinta."
   },
   {
     id: "mascara_de_los_mil_rostros",
     nombre: "Máscara de los mil rostros",
     nivelMinimo: 2,
-    requisitoPrevio: "Brujo nivel 2+",
+    requisitoPrevio: "Brujo nivel 2+\n",
     tipoAccion: "accion",
     repetible: false,
     descripcion: "Puedes lanzar *disfrazarse* sin gastar un espacio de conjuro.",
@@ -158,7 +179,7 @@ export const CATALOGO_INVOCACIONES_SOBRENATURALES: InvocacionSobrenatural[] = [
     id: "salto_sobrenatural",
     nombre: "Salto sobrenatural",
     nivelMinimo: 2,
-    requisitoPrevio: "Brujo nivel 2+",
+    requisitoPrevio: "Brujo nivel 2+\n",
     tipoAccion: "accion",
     repetible: false,
     descripcion: "Puedes lanzar *salto* sobre ti sin gastar un espacio de conjuro.",
@@ -177,13 +198,19 @@ export const CATALOGO_INVOCACIONES_SOBRENATURALES: InvocacionSobrenatural[] = [
     id: "vigor_infernal",
     nombre: "Vigor infernal",
     nivelMinimo: 2,
-    requisitoPrevio: "Brujo nivel 2+",
+    requisitoPrevio: "Brujo nivel 2+\n",
     tipoAccion: "accion",
     repetible: false,
     descripcion: "Puedes lanzar *falsa vida* sobre ti sin gastar un espacio de conjuro. Si lanzas el conjuro con este rasgo, no tiras el dado para los puntos de golpe temporales; en su lugar, obtienes automáticamente el número más alto en el dado.",
     conjuroGratuito: "falsa vida",
     recuperacionConjuro: "ilimitado",
     efectos: [
+      {
+        tipo: "hp_temporal",
+        objetivo: "propio",
+        valor: "12 + 5 * (nivel_espacio_pacto - 1)",
+        descripcion: "Vigor infernal: Otorga 12 + 5 * (nivel de espacio del pacto - 1) PG temporales"
+      },
       {
         tipo: "conjuro_gratuito",
         objetivo: "Falsa vida",
@@ -196,7 +223,7 @@ export const CATALOGO_INVOCACIONES_SOBRENATURALES: InvocacionSobrenatural[] = [
     id: "visiones_brumosas",
     nombre: "Visiones brumosas",
     nivelMinimo: 2,
-    requisitoPrevio: "Brujo nivel 2+",
+    requisitoPrevio: "Brujo nivel 2+\n",
     tipoAccion: "accion",
     repetible: false,
     descripcion: "Puedes lanzar *imagen silenciosa* sin gastar un espacio de conjuro.",
@@ -215,26 +242,35 @@ export const CATALOGO_INVOCACIONES_SOBRENATURALES: InvocacionSobrenatural[] = [
     id: "vista_del_diablo",
     nombre: "Vista del diablo",
     nivelMinimo: 2,
-    requisitoPrevio: "Brujo nivel 2+",
+    requisitoPrevio: "Brujo nivel 2+\n",
     tipoAccion: "pasivo",
     repetible: false,
+    categoriaMecanica: "pasivo_permanente",
     descripcion: "Puedes ver con normalidad en luz tenue y en la oscuridad, tanto si son mágicas como si no, a una distancia de 120 pies o menos de ti."
   },
   {
     id: "castigo_arcano",
     nombre: "Castigo arcano",
     nivelMinimo: 5,
-    requisitoPrevio: "Brujo nivel 5+, invocación Pacto del filo",
+    requisitoPrevio: "Brujo nivel 5+, invocación Pacto del filo\n",
     requisitoInvocacion: "pacto_del_filo",
     tipoAccion: "especial",
+    categoriaMecanica: "consumible",
+    recursoGastado: "espacio_pacto",
+    formulaDados: "4d8",
+    escaladoFormulaDados: [
+      { nivelMinimo: 5, valor: "4d8" },
+      { nivelMinimo: 7, valor: "5d8" },
+      { nivelMinimo: 9, valor: "6d8" }
+    ],
     repetible: false,
-    descripcion: "Una vez por turno, cuando aciertes a una criatura con tu arma de pacto, puedes gastar un espacio de conjuro de Magia del pacto para causar 1d8 de daño de fuerza adicional al objetivo más 1d8 por cada nivel del espacio de conjuro. Además, puedes imponerle el estado de derribado al objetivo si es Enorme o más pequeño."
+    descripcion: "Una vez por turno, cuando aciertes a una criatura con tu arma de pacto, puedes gastar un espacio de conjuro de Magia del pacto para causar 1d8 de daño de fuerza adicional al objetivo más 1d8 por cada nivel del espacio de conjuro (4d8 a nivel 5, 5d8 a nivel 7, 6d8 a nivel 9). Además, puedes imponerle el estado de derribado al objetivo si es Enorme o más pequeño."
   },
   {
     id: "don_de_las_profundidades",
     nombre: "Don de las profundidades",
     nivelMinimo: 5,
-    requisitoPrevio: "Brujo nivel 5+",
+    requisitoPrevio: "Brujo nivel 5+\n",
     tipoAccion: "pasivo",
     repetible: false,
     descripcion: "Puedes respirar bajo el agua y obtienes una velocidad nadando igual a tu velocidad.\nTambién puedes lanzar *respirar bajo el agua* una vez sin gastar un espacio de conjuro. Recuperas la capacidad de lanzarlo de este modo tras finalizar un descanso largo.",
@@ -246,6 +282,12 @@ export const CATALOGO_INVOCACIONES_SOBRENATURALES: InvocacionSobrenatural[] = [
         objetivo: "Respirar bajo el agua",
         valor: "sin_espacio",
         descripcion: "Permite lanzar Respirar bajo el agua 1 vez por descanso largo sin gastar espacios de conjuro"
+      },
+      {
+        tipo: "movimiento_especial",
+        objetivo: "velocidad.nadar",
+        valor: "nadar",
+        descripcion: "Velocidad de nado igual a tu velocidad al caminar"
       }
     ]
   },
@@ -253,10 +295,11 @@ export const CATALOGO_INVOCACIONES_SOBRENATURALES: InvocacionSobrenatural[] = [
     id: "filo_sediento",
     nombre: "Filo sediento",
     nivelMinimo: 5,
-    requisitoPrevio: "Brujo nivel 5+, invocación Pacto del filo",
+    requisitoPrevio: "Brujo nivel 5+, invocación Pacto del filo\n",
     requisitoInvocacion: "pacto_del_filo",
     tipoAccion: "pasivo",
     repetible: false,
+    categoriaMecanica: "pasivo_permanente",
     descripcion: "Obtienes el rasgo Ataque adicional, pero solo para tu arma de pacto. Este rasgo te permite hacer dos ataques con esa arma en lugar de uno cuando lleves a cabo la acción de atacar en tu turno.",
     efectos: [
       {
@@ -271,17 +314,18 @@ export const CATALOGO_INVOCACIONES_SOBRENATURALES: InvocacionSobrenatural[] = [
     id: "inversion_del_amo_de_las_cadenas",
     nombre: "Inversión del amo de las cadenas",
     nivelMinimo: 5,
-    requisitoPrevio: "Brujo nivel 5+, invocación Pacto de la cadena",
+    requisitoPrevio: "Brujo nivel 5+, invocación Pacto de la cadena\n",
     requisitoInvocacion: "pacto_de_la_cadena",
     tipoAccion: "pasivo",
     repetible: false,
+    categoriaMecanica: "pasivo_permanente",
     descripcion: "Cuando lanzas *encontrar familiar*, imbuyes al familiar invocado de una cierta cantidad de tu poder sobrenatural, lo que le otorga a la criatura los siguientes beneficios:\n- **Acuático o aéreo.** El familiar obtiene una velocidad nadando o una velocidad volando (a tu elección) de 40 pies.\n- **Ataque rápido.** Como acción adicional, puedes ordenar al familiar que realice la acción de atacar.\n- **Daño necrótico o radiante.** Siempre que el familiar haga daño contundente, cortante o perforante, puedes hacer que cause daño necrótico o radiante en su lugar.\n- **Tu CD de salvación.** Si el familiar obliga a una criatura a realizar una tirada de salvación, esta utiliza tu CD de salvación de conjuros.\n- **Resistencia.** Cuando el familiar recibe daño, puedes usar una reacción para otorgarle resistencia contra ese daño."
   },
   {
     id: "maestro_de_las_formas_innumerables",
     nombre: "Maestro de las formas innumerables",
     nivelMinimo: 5,
-    requisitoPrevio: "Brujo nivel 5+",
+    requisitoPrevio: "Brujo nivel 5+\n",
     tipoAccion: "accion",
     repetible: false,
     descripcion: "Puedes lanzar *alterar el propio aspecto* sin gastar un espacio de conjuro.",
@@ -300,16 +344,17 @@ export const CATALOGO_INVOCACIONES_SOBRENATURALES: InvocacionSobrenatural[] = [
     id: "mirada_de_las_dos_mentes",
     nombre: "Mirada de las dos mentes",
     nivelMinimo: 5,
-    requisitoPrevio: "Brujo nivel 5+",
+    requisitoPrevio: "Brujo nivel 5+\n",
     tipoAccion: "accion_adicional",
     repetible: false,
+    categoriaMecanica: "pasivo_permanente",
     descripcion: "Puedes usar una acción adicional para tocar a una criatura voluntaria y percibir el mundo a través de sus sentidos hasta el final de tu siguiente turno. Mientras la criatura permanezca en el mismo plano de existencia que tú, podrás utilizar una acción adicional en cada uno de los turnos posteriores para mantener esta conexión y alargar la duración de este efecto hasta el final de tu siguiente turno. La conexión termina si no la mantienes de esta forma.\nMientras percibes el mundo a través de los ojos de la otra criatura, te beneficias de cualquier sentido especial que tenga y puedes lanzar conjuros como si estuvieras en tu espacio o en el espacio de la otra criatura si están a 60 pies o menos de distancia."
   },
   {
     id: "paso_ascendente",
     nombre: "Paso ascendente",
     nivelMinimo: 5,
-    requisitoPrevio: "Brujo nivel 5+",
+    requisitoPrevio: "Brujo nivel 5+\n",
     tipoAccion: "accion",
     repetible: false,
     descripcion: "Puedes lanzar *levitar* sobre ti sin gastar un espacio de conjuro.",
@@ -328,7 +373,7 @@ export const CATALOGO_INVOCACIONES_SOBRENATURALES: InvocacionSobrenatural[] = [
     id: "uno_con_las_sombras",
     nombre: "Uno con las sombras",
     nivelMinimo: 5,
-    requisitoPrevio: "Brujo nivel 5+",
+    requisitoPrevio: "Brujo nivel 5+\n",
     tipoAccion: "accion",
     repetible: false,
     descripcion: "Mientras estés en una zona de luz tenue u oscuridad, puedes lanzar *invisibilidad* sobre ti sin gastar un espacio de conjuro.",
@@ -348,7 +393,7 @@ export const CATALOGO_INVOCACIONES_SOBRENATURALES: InvocacionSobrenatural[] = [
     id: "susurros_del_sepulcro",
     nombre: "Susurros del sepulcro",
     nivelMinimo: 7,
-    requisitoPrevio: "Brujo nivel 7+",
+    requisitoPrevio: "Brujo nivel 7+\n",
     tipoAccion: "accion",
     repetible: false,
     descripcion: "Puedes lanzar *hablar con los muertos* sin gastar un espacio de conjuro.",
@@ -367,17 +412,34 @@ export const CATALOGO_INVOCACIONES_SOBRENATURALES: InvocacionSobrenatural[] = [
     id: "devorador_de_vida",
     nombre: "Devorador de vida",
     nivelMinimo: 9,
-    requisitoPrevio: "Brujo nivel 9+, invocación Pacto del filo",
+    requisitoPrevio: "Brujo nivel 9+, invocación Pacto del filo\n",
     requisitoInvocacion: "pacto_del_filo",
     tipoAccion: "pasivo",
     repetible: false,
-    descripcion: "Una vez por turno, cuando aciertes a una criatura con tu arma de pacto, puedes causarle 1d6 de daño necrótico, psíquico o radiante adicional (a tu elección) a esa criatura y gastar uno de tus dados de puntos de golpe para tirarlo y recuperar una cantidad de puntos de golpe igual al resultado más tu modificador por Constitución (mínimo 1 punto de golpe).",
+    categoriaMecanica: "pasivo_permanente",
+    descripcion: "Una vez por turno, cuando aciertes a una criatura con tu arma de pacto, puedes causarle 1d6 de daño necrótico, psíquico o radiante adicional (a tu elección) a esa criatura.",
+    selectores: [
+      {
+        id: "tipo_dano_devorador_de_vida",
+        tipo: "unico",
+        etiqueta: "Tipo de daño de Devorador de vida",
+        maxSelecciones: 1,
+        opciones: [
+          { id: "necrotico", nombre: "Necrótico", descripcion: "1d6 de daño necrótico adicional" },
+          { id: "psiquico", nombre: "Psíquico", descripcion: "1d6 de daño psíquico adicional" },
+          { id: "radiante", nombre: "Radiante", descripcion: "1d6 de daño radiante adicional" }
+        ],
+        valorActual: ["necrotico"]
+      }
+    ],
     efectos: [
       {
-        tipo: "dado_extra_dano",
-        objetivo: "arma_pacto",
+        tipo: "dano_secundario",
+        objetivo: "arma_cac",
+        aplicaA: "arma_cac",
         valor: "1d6",
-        descripcion: "1d6 de daño adicional (necrótico, psíquico o radiante) al acertar con arma de pacto (1/turno)"
+        tipoDano: "Necrótico",
+        descripcion: "Devorador de vida: 1d6 de daño adicional (a elección) al acertar con arma cuerpo a cuerpo"
       }
     ]
   },
@@ -385,17 +447,22 @@ export const CATALOGO_INVOCACIONES_SOBRENATURALES: InvocacionSobrenatural[] = [
     id: "don_de_los_protectores",
     nombre: "Don de los protectores",
     nivelMinimo: 9,
-    requisitoPrevio: "Brujo nivel 9+, invocación Pacto del grimorio",
+    requisitoPrevio: "Brujo nivel 9+, invocación Pacto del grimorio\n",
     requisitoInvocacion: "pacto_del_grimorio",
     tipoAccion: "reaccion",
     repetible: false,
+    categoriaMecanica: "consumible",
+    tieneUsosLimitados: true,
+    usosMaximos: 1,
+    usosRestantes: 1,
+    recuperacion: "descanso_largo",
     descripcion: "Aparece una nueva página en el Libro de las sombras cuando lo conjuras. Con tu permiso, una criatura puede usar una acción para escribir su nombre en esa página, que puede contener una cantidad de nombres igual a tu modificador por Carisma (mínimo un nombre).\nCuando los puntos de golpe de cualquier criatura cuyo nombre esté en la página se reduzcan a 0, pero no muera, en vez de eso pasará a tener 1 punto de golpe mágicamente. Cuando esta magia se active, ninguna criatura podrá beneficiarse de ella hasta que finalices un descanso largo.\nComo acción de magia, puedes borrar un nombre de la página tocándolo."
   },
   {
     id: "visiones_de_reinos_remotos",
     nombre: "Visiones de reinos remotos",
     nivelMinimo: 9,
-    requisitoPrevio: "Brujo nivel 9+",
+    requisitoPrevio: "Brujo nivel 9+\n",
     tipoAccion: "accion",
     repetible: false,
     descripcion: "Puedes lanzar *ojo arcano* sin gastar un espacio de conjuro.",
@@ -414,22 +481,37 @@ export const CATALOGO_INVOCACIONES_SOBRENATURALES: InvocacionSobrenatural[] = [
     id: "hoja_devoradora",
     nombre: "Hoja devoradora",
     nivelMinimo: 12,
-    requisitoPrevio: "Brujo nivel 12+, invocación Filo sediento",
+    requisitoPrevio: "Brujo nivel 12+, invocación Filo sediento\n",
     requisitoInvocacion: "filo_sediento",
     tipoAccion: "pasivo",
     repetible: false,
+    categoriaMecanica: "pasivo_permanente",
     descripcion: "El rasgo Ataque adicional de tu invocación Filo sediento otorga dos ataques adicionales en vez de uno (tres ataques en total)."
   },
   {
     id: "vision_bruja",
     nombre: "Visión bruja",
     nivelMinimo: 15,
-    requisitoPrevio: "Brujo nivel 15+",
+    requisitoPrevio: "Brujo nivel 15+\n",
     tipoAccion: "pasivo",
     repetible: false,
+    categoriaMecanica: "pasivo_permanente",
     descripcion: "Tienes visión verdadera hasta 30 pies."
   }
 ];
+
+/**
+ * Retorna el nivel de los espacios de magia del pacto del Brujo según su nivel (D&D 5.5e):
+ * Nivel 1-2: Nivel 1
+ * Nivel 3-4: Nivel 2
+ * Nivel 5-6: Nivel 3
+ * Nivel 7-8: Nivel 4
+ * Nivel 9-20: Nivel 5
+ */
+export function obtenerNivelEspacioPacto(nivelBrujo: number): number {
+  const n = Math.max(1, Math.min(20, Math.floor(nivelBrujo) || 1));
+  return Math.min(5, Math.ceil(n / 2));
+}
 
 /**
  * Tabla canónica de progresión de invocaciones conocidas del Brujo (D&D 5.5e / 2024).
@@ -473,6 +555,18 @@ export function generarOpcionesSelectorInvocaciones(_nivelBrujo: number = 20): O
       requisito: inv.requisitoPrevio,
       requisitoInvocacion: inv.requisitoInvocacion,
       repetible: inv.repetible,
+      tipoAccion: inv.tipoAccion,
+      categoriaMecanica: inv.categoriaMecanica,
+      recursoGastado: inv.recursoGastado,
+      formulaDados: inv.formulaDados,
+      escaladoFormulaDados: inv.escaladoFormulaDados ? JSON.parse(JSON.stringify(inv.escaladoFormulaDados)) : undefined,
+      tieneUsosLimitados: inv.tieneUsosLimitados,
+      usosMaximos: inv.usosMaximos,
+      usosRestantes: inv.usosRestantes,
+      recuperacion: inv.recuperacion,
+      conjuroGratuito: inv.conjuroGratuito,
+      recuperacionConjuro: inv.recuperacionConjuro,
+      selectores: inv.selectores ? JSON.parse(JSON.stringify(inv.selectores)) : undefined,
       efectos: inv.efectos ? JSON.parse(JSON.stringify(inv.efectos)) : undefined
     };
   });

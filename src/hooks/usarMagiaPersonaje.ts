@@ -11,6 +11,7 @@ import { MAPA_ALIAS_HECHIZOS } from "@/constantes/subclasesConjurosConstantes";
 import { esClasePacto } from "@/constantes";
 import { generarIdSlug } from "@/utiles/generarId";
 import { resolverOrigenConjuro, OrigenConjuroBadge } from "@/servicios/resolutorOrigenConjuros";
+import { aplicarModificadoresInvocacionesAHechizo } from "@/servicios/evaluadorEfectosRasgos";
 
 export interface EstadoMagiaPersonaje {
   habilidadMagica: Caracteristica;
@@ -309,7 +310,7 @@ export function usarMagiaPersonaje(
     for (const h of baseDatosHechizos) {
       if (h.nivel === 0 && estaEnLista(h) && !idsVistos.has(h.id)) {
         idsVistos.add(h.id);
-        encontrados.push(h);
+        encontrados.push(aplicarModificadoresInvocacionesAHechizo(h, personaje));
       }
     }
 

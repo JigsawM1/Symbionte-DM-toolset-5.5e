@@ -15,6 +15,7 @@ export interface ResultadoBonosCombate {
   modDanoTotal: number;
   dadosExtra: string[];
   danosSecundarios: string[];
+  tiposDanoSecundarios: string[];
 }
 
 /**
@@ -57,8 +58,15 @@ export function resolverBonosYDadosExtraCombate(params: {
   }
 
   // Soporte genérico para rasgos activables con formulaDados que no definan efectos mecánicos explícitos
+  // y que no sean consumibles ni gasten recursos de ranuras/pacto por impacto
   for (const r of personajeActivo.rasgos || []) {
-    if (r.activo && r.formulaDados && r.esActivable) {
+    if (
+      r.activo &&
+      r.formulaDados &&
+      r.esActivable &&
+      r.categoriaMecanica !== "consumible" &&
+      r.recursoGastado !== "espacio_pacto"
+    ) {
       const tieneEfectoDeDano = (r.efectos || []).some(
         (e) => e.tipo === "dado_extra_dano" || e.tipo === "dano_secundario"
       );
@@ -72,15 +80,20 @@ export function resolverBonosYDadosExtraCombate(params: {
   }
 
   const danosSecundarios: string[] = [];
+  const tiposDanoSecundarios: string[] = [];
   const danosSecEfectos = obtenerDanosSecundariosAtaque(personajeActivo, contextoAtaque);
   for (const ds of danosSecEfectos) {
     danosSecundarios.push(ds.formula);
+    if (ds.tipoDano) {
+      tiposDanoSecundarios.push(ds.tipoDano);
+    }
   }
 
   return {
     modDanoTotal,
     dadosExtra,
-    danosSecundarios
+    danosSecundarios,
+    tiposDanoSecundarios
   };
 }
 

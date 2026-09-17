@@ -84,6 +84,9 @@ export const EsquemaEfectoMecanicoRasgo = z.object({
 });
 export type EfectoMecanicoRasgo = z.infer<typeof EsquemaEfectoMecanicoRasgo>;
 
+export const EsquemaRecursoGastado = z.enum(["espacio_pacto", "uso_rasgo", "ninguno"]);
+export type RecursoGastado = z.infer<typeof EsquemaRecursoGastado>;
+
 export const EsquemaOpcionSelector = z.object({
   id: z.string(),
   nombre: z.string(),
@@ -92,7 +95,29 @@ export const EsquemaOpcionSelector = z.object({
   nivelMinimo: z.number().int().min(1).max(20).optional(),
   requisitoInvocacion: z.string().optional(),
   repetible: z.boolean().optional(),
-  efectos: z.array(EsquemaEfectoMecanicoRasgo).optional()
+  tipoAccion: EsquemaTipoAccionRasgo.optional(),
+  categoriaMecanica: z.enum([
+    "consumible",
+    "activable",
+    "selector_informativo",
+    "pasivo_permanente",
+    "extension",
+    "curacion"
+  ]).optional(),
+  recursoGastado: EsquemaRecursoGastado.optional(),
+  formulaDados: z.string().optional(),
+  escaladoFormulaDados: z.array(z.object({
+    nivelMinimo: z.number().int().min(1).max(20),
+    valor: z.string()
+  })).optional(),
+  efectos: z.array(EsquemaEfectoMecanicoRasgo).optional(),
+  selectores: z.array(z.any()).optional(),
+  tieneUsosLimitados: z.boolean().optional(),
+  usosMaximos: z.number().int().optional(),
+  usosRestantes: z.number().int().optional(),
+  recuperacion: EsquemaRecuperacionRasgo.optional(),
+  conjuroGratuito: z.string().optional(),
+  recuperacionConjuro: z.enum(["ninguno", "descanso_largo", "ilimitado"]).optional()
 });
 export type OpcionSelector = z.infer<typeof EsquemaOpcionSelector>;
 
@@ -105,7 +130,16 @@ export interface InvocacionSobrenatural {
   requisitoInvocacion?: string;
   tipoAccion: "pasivo" | "accion" | "accion_adicional" | "reaccion" | "especial";
   repetible: boolean;
+  categoriaMecanica?: "consumible" | "activable" | "selector_informativo" | "pasivo_permanente" | "extension" | "curacion";
+  recursoGastado?: RecursoGastado;
+  formulaDados?: string;
+  escaladoFormulaDados?: EscaladoFormulaDados;
+  tieneUsosLimitados?: boolean;
+  usosMaximos?: number;
+  usosRestantes?: number;
+  recuperacion?: RecuperacionRasgo;
   efectos?: EfectoMecanicoRasgo[];
+  selectores?: SelectorRasgo[];
   conjuroGratuito?: string;
   recuperacionConjuro?: "ninguno" | "descanso_largo" | "ilimitado";
 }
@@ -215,6 +249,8 @@ export const EsquemaRasgoPersonaje = z.object({
   condicionAlActivar: z.string().optional(), // Condición táctica a sincronizar en condicionesActivas (ej. "Furia (Rage)")
   duracionEfectoAlActivar: z.number().int().min(1).optional(), // Duración en asaltos para el efecto activo generado (ej. 100 asaltos para Afinidad con la piedra)
   conjurosOtorgados: z.array(z.string()).default([]).optional(), // Conjuros siempre preparados otorgados por el rasgo
+  conjuroGratuito: z.string().optional(),
+  recuperacionConjuro: z.enum(["ninguno", "descanso_largo", "ilimitado"]).optional(),
   restaurarUsosAlActivar: z.object({
     idRasgoObjetivo: z.string(),
     cantidad: z.union([z.literal("maximo"), z.number().int().min(1)])
@@ -228,6 +264,7 @@ export const EsquemaRasgoPersonaje = z.object({
     "curacion"
   ]).optional(),
   formulaEscalado: z.string().optional(),
+  recursoGastado: EsquemaRecursoGastado.default("uso_rasgo").optional(),
 
   // Mecánicas estructuradas
   efectos: z.array(EsquemaEfectoMecanicoRasgo).default([]).optional(),

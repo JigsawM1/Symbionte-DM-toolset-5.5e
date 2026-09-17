@@ -3,6 +3,7 @@ import type { PersonajeJugador } from "@/tipos";
 import type { InformacionCA, PenalizacionArmadura } from "@/almacen/selectores/usarEstadoPersonajes";
 import { Shield, Zap, Footprints, Award, Sparkles, AlertTriangle } from "lucide-react";
 import { TooltipUniversal } from "@/componentes/comunes";
+import { obtenerVelocidadesEfectivas } from "@/servicios/evaluadorEfectosRasgos";
 import estilos from "./HojaPersonaje.module.css";
 
 interface MetricasRapidasPersonajeProps {
@@ -28,15 +29,25 @@ const MetricasRapidasPersonajeComponent: React.FC<MetricasRapidasPersonajeProps>
 }) => {
   const iniciativaTotal = modDestreza + (personaje.iniciativaBono || 0);
   const textoIniciativa = iniciativaTotal >= 0 ? `+${iniciativaTotal}` : `${iniciativaTotal}`;
-  const velocidadBase =
-    typeof personaje.velocidad === "string"
-      ? parseInt(personaje.velocidad, 10) || 30
-      : personaje.velocidad.caminar || 30;
-  const velocidadTotal = velocidadBase + (bonoVelocidad || 0);
+
+  const velocidades = obtenerVelocidadesEfectivas(personaje);
+  const velocidadTotal = velocidades.caminar;
+
+  const partesVelocidad: string[] = [`Caminar: ${velocidadTotal} ft`];
+  if (velocidades.nadar && velocidades.nadar > 0) {
+    partesVelocidad.push(`Nadar: ${velocidades.nadar} ft`);
+  }
+  if (velocidades.volar && velocidades.volar > 0) {
+    partesVelocidad.push(`Volar: ${velocidades.volar} ft`);
+  }
+  if (velocidades.escalar && velocidades.escalar > 0) {
+    partesVelocidad.push(`Escalar: ${velocidades.escalar} ft`);
+  }
+
   const velocidadTooltip =
     bonoVelocidad > 0
-      ? `Velocidad: ${velocidadBase} ft + ${bonoVelocidad} ft (Rasgos de Clase)`
-      : `Velocidad: ${velocidadBase} ft`;
+      ? `Velocidad: ${velocidadTotal} ft (+${bonoVelocidad} ft rasgos)\n${partesVelocidad.join(" • ")}`
+      : partesVelocidad.join(" • ");
 
   const caTotal = claseArmadura?.total ?? personaje.ca ?? 10;
   const avisoNoComp = penalizacionArmadura?.sinCompetencia

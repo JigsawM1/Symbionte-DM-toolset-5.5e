@@ -19,6 +19,154 @@ Este archivo registra reglas globales, errores encontrados, sus causas raíz y l
    - **Bajo ninguna circunstancia** los módulos de lógica de negocio (`servicios/`), gestores de estado (`almacen/`) o constructores (`gestorClases.ts`) deben contener bifurcaciones condicionales por nombre literal de rasgo o clase (`r.nombre === "..."`, `clase.includes("...")`, etc.).
    - Toda mecánica, progresión de dados, escalado de usos, recuperación o desbloqueo dinámico debe resolverse mediante metadatos declarativos (`escaladoFormulaDados`, `escaladoUsos`, `escaladoRecuperacion`, `opcionesDinamicas`, `escaladoMaxSelecciones`, `sincronizarEfectosConFormula`, `heredarDadosPadre`, `gastarDePadre`, `ligadoA`, `efectos`) delegando en funciones puras agnósticas como `resolverEscaladosRasgo`. Esta regla está reforzada en CI vía ESLint `no-restricted-syntax` y la suite `rasgoGenericidad.test.ts`.
 
+## [2026-09-17] Implementación Mecánica de Invocaciones Sobrenaturales (Lote 3 - D&D 5.5e 2024)
+
+**Contexto y Requerimientos del Usuario:**
+- Implementar la funcionalidad mecánica e interactiva canónica para 16 Invocaciones Sobrenaturales de Brujo restantes:
+  1. **MAESTRO DE LAS FORMAS INNUMERABLES**: Permite lanzar *Alterar el propio aspecto* a voluntad de forma gratuita (`conjuroGratuito: "Alterar el propio aspecto"`, `recuperacionConjuro: "ilimitado"`).
+  2. **MÁSCARA DE LOS MIL ROSTROS**: Permite lanzar *Disfrazarse* gratis a voluntad (`conjuroGratuito: "Disfrazarse"`, `recuperacionConjuro: "ilimitado"`).
+  3. **MENTE SOBRENATURAL**: Rasgo pasivo permanente (`categoriaMecanica: "pasivo_permanente"`).
+  4. **MIRADA DE LAS DOS MENTES**: Rasgo pasivo permanente (`categoriaMecanica: "pasivo_permanente"`).
+  5. **PACTO DE LA CADENA**: Permite lanzar *Encontrar familiar* gratis a voluntad (`conjuroGratuito: "Encontrar familiar"`, `recuperacionConjuro: "ilimitado"`).
+  6. **PACTO DEL FILO**: Selector interactivo de daño (`propio`, `necrotico`, `psiquico`, `radiante`). Modifica las armas cuerpo a cuerpo del personaje para otorgar competencia automática, utilizar Carisma en ataque y daño, y alterar el tipo de daño al seleccionado si no es "propio".
+  7. **PACTO DEL GRIMORIO**: Rasgo pasivo permanente (`categoriaMecanica: "pasivo_permanente"`).
+  8. **PASO ASCENDENTE**: Permite lanzar *Levitar* gratis a voluntad (`conjuroGratuito: "Levitar"`, `recuperacionConjuro: "ilimitado"`).
+  9. **SALTO SOBRENATURAL**: Permite lanzar *Salto* gratis a voluntad (`conjuroGratuito: "Salto"`, `recuperacionConjuro: "ilimitado"`).
+  10. **SUSURROS DEL SEPULCRO**: Permite lanzar *Hablar con los muertos* gratis a voluntad (`conjuroGratuito: "Hablar con los muertos"`, `recuperacionConjuro: "ilimitado"`).
+  11. **UNO CON LAS SOMBRAS**: Permite lanzar *Invisibilidad* gratis a voluntad (`conjuroGratuito: "Invisibilidad"`, `recuperacionConjuro: "ilimitado"`).
+  12. **VIGOR INFERNAL**: Botón interactivo que otorga $12 + [5 \times (\text{nivelEspacioPacto} - 1)]$ PG temporales a voluntad. Concede además el conjuro *Falsa vida* gratis.
+  13. **VISIÓN BRUJA**: Rasgo pasivo permanente (`categoriaMecanica: "pasivo_permanente"`).
+  14. **VISIONES BRUMOSAS**: Permite lanzar *Imagen silenciosa* gratis a voluntad (`conjuroGratuito: "Imagen silenciosa"`, `recuperacionConjuro: "ilimitado"`).
+  15. **VISIONES DE REINOS REMOTOS**: Permite lanzar *Ojo arcano* gratis a voluntad (`conjuroGratuito: "Ojo arcano"`, `recuperacionConjuro: "ilimitado"`).
+  16. **VISTA DEL DIABLO**: Rasgo pasivo permanente (`categoriaMecanica: "pasivo_permanente"`).
+
+**Decisiones Técnicas y Arquitectónicas:**
+1. **Soporte de Expresiones Aritméticas con Paréntesis en `evaluadorEfectosRasgos.ts`:**
+   - La función pura `evaluarExpresionNumericaSegura` fue refactorizada para resolver recursivamente subexpresiones entre paréntesis `\(([^()]+)\)` antes de las multiplicaciones y sumas. Esto permite evaluar fórmulas dinámicas como `"12 + 5 * (nivel_espacio_pacto - 1)"` obteniendo valores exactos ($12, 17, 22, 27, 32$) según el nivel de pacto del brujo.
+2. **Cálculo de Ataques y Daño con Pacto del Filo (`calculadorAtaquesArmas.ts`):**
+   - Se añadió `obtenerConfiguracionPactoDelFilo` que detecta si el brujo tiene la invocación seleccionada y el tipo de daño configurado.
+   - En armas cuerpo a cuerpo no a distancia, asigna Carisma como atributo de ataque y daño, concede competencia con el arma (`esCompetenteArma = true`), y sustituye `tipoDanoBase` por el tipo elegido (`Necrótico`, `Psíquico` o `Radiante`) si no es `"propio"`.
+3. **Resolución de Conjuros Otorgados y Origen de Clase (`resolutorOrigenConjuros.ts` y `evaluadorEfectosRasgos.ts`):**
+   - Se unificó la resolución de conjuros otorgados por selecciones de rasgos para considerar `opcion.conjuroGratuito`, efectos tipo `conjuro_gratuito`/`conjuro_otorgado`, y coincidencia normalizada con `baseId`.
+   - `resolverOrigenConjuro` inspecciona las selecciones activas en `r.selectores` para marcar el origen canónico (`"clase"` para invocaciones de brujo), permitiendo que la ficha pinte las insignias de clase y habilite el lanzamiento gratis.
+4. **Interactividad en UI (`SelectorInvocacionesAcordeon.tsx`):**
+   - Selector tipo píldora para `pacto_del_filo` con persistencia reactiva.
+   - Botón interactivo con icono de corazón para `vigor_infernal` mostrando el monto exacto de PG temporales y despachando `aplicarResultadoHpTemporalEnEstado`.
+
+**Errores Encontrados y Soluciones:**
+- **Evaluación errónea de fórmulas dinámicas compuestas:** `evaluarExpresionNumericaSegura` parseaba con `parseInt` directo la cadena con paréntesis, truncando `"12 + 5 * (2 - 1)"` a 12. Se solucionó con evaluación de paréntesis recursiva y precedencia de operadores.
+- **Aserción de prueba en `resolverOrigenConjuro`:** Se esperaba `"rasgos"` en lugar de `"clase"` para una invocación contenida en un rasgo cuyo origen es `"clase"`. Se ajustó la aserción a la semántica canónica de la ficha.
+
+**Verificación:**
+- 24 pruebas unitarias en `src/servicios/invocacionesBrujoMecanicas.test.ts` ejecutadas y aprobadas (100%).
+- Compilación `tsc --noEmit` sin errores bajo `strict: true`.
+
+---
+
+## [2026-09-17] Estandarización de UX: Sustitución de SelectorSugerencias por SelectorDesplegable en Invocaciones Sobrenaturales
+
+**Contexto y Requerimientos del Usuario:**
+- El usuario solicitó reemplazar los componentes de búsqueda/sugerencias autocompletables (`SelectorSugerencias`) por selectores desplegables estándar (`SelectorDesplegable`), manteniendo el diseño dark-fantasy homogéneo y accesible del resto de la ficha.
+
+**Decisiones Técnicas y Arquitectónicas:**
+1. **Adopción de `SelectorDesplegable` con tamaño compacto (`tamano="compacto"`):**
+   - Se integró el componente común `SelectorDesplegable` en `SelectorInvocacionesAcordeon.tsx` para las 4 invocaciones interactivas con trucos y dotes repetibles:
+     - *Descarga ahuyentadora* (trucos con tirada de ataque conocidos o compendio).
+     - *Descarga agónica* (trucos con daño conocidos o compendio).
+     - *Lanza sobrenatural* (trucos con daño y alcance $\ge 10$ pies).
+     - *Lecciones de los Primeros* (dotes de categoría `"origen"` de `dotes.json`).
+2. **Normalización de Listas de Opciones a `OpcionDesplegable<string>[]`:**
+   - Cada fuente memoizada (`trucosAtaqueOpciones`, `trucosDanoOpciones`, `trucosAlcanceOpciones`, `dotesOrigenOpciones`) genera arrays tipados con `valor` (identificador único) y `etiqueta` descriptiva (incluyendo metadatos de daño, alcance o categoría para una lectura clara del jugador).
+3. **Mantenimiento de Contratos y Repetibilidad:**
+   - Se preservó íntegramente la gestión de instancias múltiples (`id:subId` para la primera selección, `id__timestamp:subId` para instancias adicionales mediante el botón `+`).
+   - Los manejadores de eventos `alCambiar` y eliminación con `Trash2` continúan interactuando transparentemente con `alActualizarSeleccion`, actualizando reactivamente el cupo de invocaciones aprendidas y los modificadores de combate.
+
+**Verificación:**
+- `tsc --noEmit` completado sin errores (código 0).
+- Suite unitaria `invocacionesBrujoMecanicas.test.ts` pasando 18/18 pruebas.
+
+---
+
+## [2026-09-17] Implementación Mecánica de Invocaciones Sobrenaturales (Lote 2 - D&D 5.5e 2024)
+
+**Contexto y Requerimientos del Usuario:**
+- Añadir funcionalidad interactiva y mecánicas canónicas a 7 Invocaciones Sobrenaturales adicionales de Brujo:
+  1. **DESCARGA AGÓNICA (*Agonizing Blast*)**: Selector de sugerencias interactivo repetible para trucos conocidos con daño. Activa `agregarModificadorHabilidad: true`, añadiendo el modificador por Carisma al daño (y a cada rayo en ataques múltiples como *Descarga sobrenatural*).
+  2. **DON DE LOS PROTECTORES (*Gift of the Protectors*)**: Acción de reacción consumible con 1 uso recuperable en descanso largo (`tieneUsosLimitados: true`, `usosMaximos: 1`, `recuperacion: "descanso_largo"`).
+  3. **FILO SEDIENTO (*Thirsting Blade*)**: Informativo con `categoriaMecanica: "pasivo_permanente"`.
+  4. **HOJA DEVORADORA (*Devouring Blade*)**: Informativo con `categoriaMecanica: "pasivo_permanente"`.
+  5. **INVERSIÓN DEL AMO DE LAS CADENAS (*Investment of the Chain Master*)**: Informativo con `categoriaMecanica: "pasivo_permanente"`.
+  6. **LANZA SOBRENATURAL (*Eldritch Spear*)**: Selector de sugerencias interactivo repetible para trucos conocidos con daño y alcance $\ge 10$ pies. Aumenta su alcance en $(\text{nivelBrujo} \times 10)$ pies.
+  7. **LECCIONES DE LOS PRIMEROS (*Lessons of the First Ones*)**: Selector de sugerencias interactivo repetible para dotes de categoría `"origen"`, consumiendo ranuras de invocación de la ficha.
+
+**Decisiones Arquitectónicas y Buenas Prácticas:**
+1. **Función Pura Inmutable de Enriquecimiento (`aplicarModificadoresInvocacionesAHechizo`):**
+   - Centralizada en `src/servicios/evaluadorEfectosRasgos.ts`.
+   - Inspecciona selecciones activas en `personaje.rasgos` respetando prefijos canónicos y sufijos repetibles (`id:subId` e `id__timestamp:subId`).
+   - Modifica `agregarModificadorHabilidad: true` para los trucos vinculados a `descarga_agonica`.
+   - Modifica `alcance` sumando $(\text{nivelBrujo} \times 10)$ pies para trucos vinculados a `lanza_sobrenatural` si su alcance base es $\ge 10$ pies.
+   - Integrada en `resolverConjurosAcciones` (pestaña de combate) y `usarMagiaPersonaje` (pestaña de conjuros).
+2. **Propagación Declarativa de Usos Limitados en Selectores (`src/tipos/rasgos.ts` y `calculadorAccionesCombate.ts`):**
+   - Incorporación de `tieneUsosLimitados`, `usosMaximos`, `usosRestantes` y `recuperacion` (`RecuperacionRasgo`) a `EsquemaOpcionSelector` e `InvocacionSobrenatural`.
+   - `resolverRasgosAcciones` sintetiza fielmente las opciones consumibles (`don_de_los_protectores`), permitiendo al usuario rastrear el uso (1/1 descanso largo) directamente en el panel de combate.
+3. **Selector Acordeón Interactivo con Repetibilidad Multirrango (`SelectorInvocacionesAcordeon.tsx`):**
+   - Proveedores de sugerencias dedicados con memoización: `trucosDanoOpciones`, `trucosAlcanceOpciones` y `dotesOrigenOpciones` (filtrando dotes de categoría origen de `dotes.json`).
+   - Botón `+ Vincular otro truco/dote (+1 invocación)` para generar instancias repetidas con timestamp y botón de cesto de basura para desvincularlas liberando ranuras de invocación.
+
+**Errores Encontrados y Correcciones:**
+- **TS2345 en `usarMagiaPersonaje.ts`:** `personaje` podía ser `undefined`. Se flexibilizó la firma de `aplicarModificadoresInvocacionesAHechizo` para recibir `PersonajeJugador | null | undefined`.
+- **TS2322 en `calculadorAccionesCombate.ts`:** `recuperacion` en `EsquemaOpcionSelector` usaba `z.string()`. Se alineó estrictamente con `EsquemaRecuperacionRasgo` (`RecuperacionRasgo`).
+- **TS2339 en `evaluadorEfectosRasgos.ts`:** Se intentó acceder a `c.id` en elementos de `personaje.clases` que solo poseen `{ nombre, subclase, nivel }`. Se corrigió para buscar por `c.nombre`.
+- **TS6133 en `invocacionesBrujoMecanicas.test.ts`:** Se purgó un import no utilizado de `aplicarModificadoresInvocacionesAHechizo`.
+- **Ausencia de trucos en mock de personaje de prueba:** Los personajes simulados en `crearBrujoConInvocaciones` no tenían `trucosConocidosIds`, lo que provocaba que `resolverConjurosAcciones` no los incluyera como candidatos de combate. Se asignaron los trucos correspondientes.
+
+**Verificación Automatizada:**
+- 18 pruebas unitarias específicas en `src/servicios/invocacionesBrujoMecanicas.test.ts` pasando al 100%.
+- Suite global: 57 archivos de prueba, 734 pruebas pasando sin fallos.
+- `tsc --noEmit` completado con 0 errores bajo `strict: true`.
+
+---
+
+## [2026-09-16] Implementación Mecánica Integral de Invocaciones Sobrenaturales del Brujo (D&D 5.5e 2024)
+
+**Contexto y Requerimientos del Usuario:**
+- Añadir funcionalidad mecánica e interactiva completa a 5 Invocaciones Sobrenaturales de Brujo desde `dicionario_herramientas/clases/invocaciones_sobrenaturales.md`:
+  1. **ARMADURA DE SOMBRAS**: Lanzamiento gratuito permanente del conjuro *Armadura de mago* sin consumir espacios de conjuro ni requerir componentes materiales.
+  2. **CASTIGO ARCANO**: Acción consumible de combate que tira dados de daño por fuerza (escalado a 4d8 en niveles 5-6, 5d8 en 7-8 y 6d8 en 9+) y gasta 1 espacio de conjuro de Magia del Pacto.
+  3. **DESCARGA AHUYENTADORA**: Selector de sugerencias interactivo anidado (`SelectorSugerencias`, siguiendo el patrón de Magia de Alto Elfo) para elegir trucos aprendidos que tengan `requiereAtaque: true` o `ataqueCd: "ATAQUE"`. Cuenta con botón `+` para elegir otro truco, consumiendo un uso adicional del cupo de invocaciones sobrenaturales (`maxInvocaciones`). Efecto informativo de empuje de 10 pies al impactar.
+  4. **DEVORADOR DE VIDA**: Añade +1d6 de daño a los ataques cuerpo a cuerpo con armas, con un selector tipo píldora interactivo para elegir el tipo de daño (`Necrótico`, `Psíquico`, `Radiante`).
+  5. **DON DE LAS PROFUNDIDADES**: Concede el conjuro *Respirar bajo el agua* (1 lanzamiento gratuito por descanso largo) y velocidad de natación igual a la velocidad de caminar, reflejada en las métricas rápidas de velocidad y el evaluador de efectos.
+
+**Decisiones Arquitectónicas y Buenas Prácticas:**
+1. **Extensión Declarativa de Esquemas (`src/tipos/rasgos.ts`):**
+   - Introducción de `RecursoGastado` (`"espacio_pacto" | "uso_rasgo" | "ninguno"`) y adición de `tipoAccion`, `recursoGastado`, `formulaDados`, `escaladoFormulaDados`, `selectores` y `efectos` en `EsquemaOpcionSelector` y `EsquemaRasgoPersonaje`.
+   - Cero bifurcaciones rígidas por nombres: los servicios leen directamente las propiedades declarativas del rasgo u opción seleccionada.
+2. **Evaluación Centralizada de Conjuros Gratuitos y Velocidades (`src/servicios/evaluadorEfectosRasgos.ts`):**
+   - Función pura `obtenerNombresConjurosGratuitosActivos(personaje)` que recorre los efectos `conjuro_gratuito` tanto de rasgos base como de opciones seleccionadas en selectores.
+   - Refactorización de `tieneConjuroGratuitoActivo` y del hook `usarLanzadorConjuros` para desacoplar listas cableadas y usar la recolección dinámica.
+   - Función pura `obtenerVelocidadesEfectivas(personaje)` que computa velocidades compuestas (`caminar`, `nadar`, `volar`, `escalar`, `excavar`) y mapea dinámicamente efectos `movimiento_especial` como velocidad de nado igual a caminar.
+3. **Consumo de Recursos en Acciones de Combate (`src/servicios/calculadorAccionesCombate.ts` y `TarjetaRasgo.tsx`):**
+   - El calculador sintetiza opciones de selector activas con dados o acciones de combate (`castigo_arcano`).
+   - Si `recursoGastado === "espacio_pacto"`, se asocian `usosMaximos` a `espaciosPactoMaximos` y `usosActuales` a `max(0, max - gastados)`.
+   - `TarjetaRasgo.tsx` detecta `esRecursoEspacioPacto`, bloqueando la tirada si no quedan espacios y descontando reactivamente un espacio mediante `gastarEspacioPacto(idPersonaje)`.
+   - Se implementó `recuperarEspacioPacto` en `sliceMagia.ts` y se expuso en `usarAccionesPersonajes` para permitir recuperar manualmente espacios desde los botones `+` y `-` de la tarjeta.
+4. **Sub-selecciones y Repetición en Acordeón (`SelectorInvocacionesAcordeon.tsx`):**
+   - Patrón de codificación de claves: `id:subtipo` (ej. `devorador_de_vida:psiquico`) y repeticiones `id__timestamp:trucoId` (ej. `descarga_ahuyentadora__172651:truco_descarga_sobrenatural`).
+   - La función pura `coincideInvocacionId` extrae el prefijo canónico para que las búsquedas, validaciones de dependencias y cálculo de cupo sigan funcionando de manera transparente contra `maxInvocaciones`.
+5. **Métricas Rápidas en Hoja de Personaje (`MetricasRapidasPersonaje.tsx`):**
+   - Integración con `obtenerVelocidadesEfectivas(personaje)` para renderizar el distintivo de nado con icono `Waves` cuando la invocación `don_de_las_profundidades` está activa.
+
+**Errores Encontrados y Correcciones:**
+- **Error TS2353 y TS2322 en tests:** Los objetos simulados en `invocacionesBrujoMecanicas.test.ts` requerían `componentesSeleccionados: { verbal, somatico, material }` en lugar de `componentes`, y `velocidad` requería `planea: false` para respetar `EsquemaVelocidad`. Se reemplazó el mock manual de estadísticas por `calcularEstadisticasPersonaje(pj)`.
+- **Diferenciación de Botones en Armadura de sombras:** Se ajustó `usarLanzadorConjuros.ts` para que `conjurosGratuitosActivos` en el contexto obligatorio solo aplique a reemplazos imperativos (como *Orden imperiosa* bajo *Manto de Majestad*). *Armadura de mago* mantiene el botón **"Gratis"** (`modo: 'gratuitoInnato'`) para lanzarse sobre uno mismo sin coste, mientras que el botón **"Lanzar"** (`modo: 'espacio'`) descuenta debidamente espacios de pacto/conjuro al lanzarse sobre otras criaturas.
+- **Aislamiento de Dados en Castigo arcano:** Se blindó el bucle de rasgos genéricos en `calculadorDanoCombate.ts` con la condición `r.categoriaMecanica !== "consumible" && r.recursoGastado !== "espacio_pacto"` para evitar que acciones de impacto consumibles añadan dados extra pasivos a los ataques estándar con armas.
+- **Propagación de Tipo de Daño en Devorador de vida:** Se extendió `ResultadoBonosCombate` con `tiposDanoSecundarios`, combinando el tipo base del arma con los tipos secundarios en `calculadorAtaquesArmas.ts` (`tipoDano = `${tipoDanoBase} / ${tiposDanoSecundarios.join(" / ")}``). En `ejecutorTiradasCombate.ts` y `procesadorAtaques.ts`, las tiradas ahora adoptan el tipo exacto (`Daño Necrótico`, `Daño Psíquico`, `Daño Radiante`) en vez de recaer en el fallback `Daño Extra`.
+
+**Verificación Automatizada:**
+- 11 pruebas unitarias específicas en `src/servicios/invocacionesBrujoMecanicas.test.ts`.
+- Suite global de pruebas: 57 archivos de prueba, 727 pruebas pasando (100% éxito).
+- `tsc --noEmit` completado con 0 errores bajo configuración estricta.
+
 ---
 
 ## [2026-09-16] Corrección Integral del Selector y Escalado de Invocaciones Sobrenaturales del Brujo (D&D 5.5e 2024)

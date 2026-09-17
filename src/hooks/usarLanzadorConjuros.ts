@@ -82,10 +82,10 @@ export function usarLanzadorConjuros(opciones: OpcionesLanzadorConjuros): Contro
       (personaje.espaciosPactoMaximos || 0) > 0 ||
       (personaje.clasesLanzadoras || []).some((c) => c.tipoLanzador === "pacto");
 
-    // Identificar conjuros que el personaje puede lanzar gratis actualmente (ej: Orden imperiosa con Manto de Majestad)
-    const conjurosGratuitos: string[] = [];
+    // Identificar conjuros que sustituyen obligatoriamente el gasto de espacio al lanzar rápido (ej: Orden imperiosa con Manto de Majestad)
+    const conjurosGratuitosActivos: string[] = [];
     if (tieneConjuroGratuitoActivo(personaje, "Orden imperiosa")) {
-      conjurosGratuitos.push("Orden imperiosa");
+      conjurosGratuitosActivos.push("Orden imperiosa");
     }
 
     return {
@@ -99,7 +99,7 @@ export function usarLanzadorConjuros(opciones: OpcionesLanzadorConjuros): Contro
       espaciosPactoMaximos: personaje.espaciosPactoMaximos || 0,
       espaciosPactoGastados: personaje.espaciosPactoGastados || 0,
       arcanoMisticoGastados: personaje.arcanoMisticoGastados || [],
-      conjurosGratuitosActivos: conjurosGratuitos
+      conjurosGratuitosActivos
     };
   }, [personaje, penalizacionArmadura, sistemaMagiaEfectivo]);
 

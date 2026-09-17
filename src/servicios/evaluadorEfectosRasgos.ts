@@ -2,14 +2,18 @@ import {
   type PersonajeJugador,
   type RasgoPersonaje,
   type EfectoMecanicoRasgo,
+  type HechizoBase,
   type Caracteristica,
   type Habilidad,
   type GradoCompetencia,
   type TamanoPersonaje,
+  type VelocidadEstructurada,
   GRADOS_HABILIDADES_DEFECTO
 } from "@/tipos";
 import { ARMADURAS_OFICIALES } from "@/constantes/equipoConstantes";
 import { CATALOGO_CLASES_DND55 } from "@/constantes/clasesDND55";
+import { coincideHechizoId } from "@/servicios/comparadorHechizos";
+import { obtenerNivelEspacioPacto } from "@/constantes/invocacionesSobrenaturales";
 
 
 /**
@@ -335,13 +339,30 @@ export function evaluarEfectosRasgosActivos(personaje: PersonajeJugador): Efecto
       for (const selector of rasgo.selectores) {
         const selecciones = selector.valorActual || [];
         for (const opId of selecciones) {
-          const opcion = selector.opciones.find((o) => o.id === opId);
+          const baseId = opId.includes(":")
+            ? opId.split(":")[0]
+            : opId.includes("__")
+            ? opId.split("__")[0]
+            : opId;
+          const opcion = selector.opciones.find((o) => o.id === opId || o.id === baseId);
           if (opcion && Array.isArray(opcion.efectos)) {
             for (const efOp of opcion.efectos) {
               if (efOp.activo !== false && cumpleCondicionEfecto(efOp.condicion, personaje)) {
+                let efectoFinal = efOp;
+                if (opId.includes(":") && efOp.tipo === "dano_secundario") {
+                  const subtipo = opId.split(":")[1].toLowerCase();
+                  const mapaTipos: Record<string, string> = {
+                    necrotico: "Necrótico",
+                    psiquico: "Psíquico",
+                    radiante: "Radiante"
+                  };
+                  const tipoDanoFormateado =
+                    mapaTipos[subtipo] || (subtipo.charAt(0).toUpperCase() + subtipo.slice(1));
+                  efectoFinal = { ...efOp, tipoDano: tipoDanoFormateado };
+                }
                 efectosResultado.push({
-                  ...efOp,
-                  descripcion: efOp.descripcion || `${rasgo.nombre} (${opcion.nombre})`
+                  ...efectoFinal,
+                  descripcion: efectoFinal.descripcion || `${rasgo.nombre} (${opcion.nombre})`
                 });
               }
             }
@@ -678,6 +699,15 @@ export function resolverFormulaDinamica(
   const bonoFuria = obtenerBonoDanoFuria(nivelBarbaro);
   const bonoCompetencia = Math.floor((nivelGlobal - 1) / 4) + 2;
 
+  const nivelBrujo =
+    personaje.clases?.find((c) => normalizar(c.nombre) === "brujo")?.nivel ||
+    (normalizar(personaje.clase) === "brujo" ? personaje.nivel : 0) ||
+    1;
+  const nivelEspacioPacto =
+    personaje.nivelEspacioPacto && personaje.nivelEspacioPacto > 0
+      ? personaje.nivelEspacioPacto
+      : obtenerNivelEspacioPacto(nivelBrujo);
+
   // Modificadores de características para tiradas dinámicas (ej. 1d12+constitucion)
   const stats = personaje.caracteristicas;
   const modCon = stats?.constitucion !== undefined ? Math.floor((stats.constitucion - 10) / 2) : 0;
@@ -693,6 +723,8 @@ export function resolverFormulaDinamica(
     .replace(/mod[_\s]+/gi, "");
 
   const reemplazado = formulaNormalizada
+    .replace(/nivel_espacio_pacto/gi, String(nivelEspacioPacto))
+    .replace(/espacio_pacto/gi, String(nivelEspacioPacto))
     .replace(/dano_furia/gi, String(bonoFuria))
     .replace(/mitad_nivel/gi, String(mitadNivel))
     .replace(/bono_competencia/gi, String(bonoCompetencia))
@@ -743,6 +775,14 @@ export function evaluarExpresionNumericaSegura(
     const valA = evaluarExpresionNumericaSegura(matchMin[1], variables);
     const valB = evaluarExpresionNumericaSegura(matchMin[2], variables);
     textoProcesado = textoProcesado.replace(matchMin[0], String(Math.min(valA, valB)));
+  }
+
+  // Resolver paréntesis de expresiones aritméticas internas (ej. "12 + 5 * (2 - 1)")
+  const regexParentesis = /\(([^()]+)\)/;
+  let matchPar: RegExpExecArray | null;
+  while ((matchPar = regexParentesis.exec(textoProcesado)) !== null) {
+    const valInterno = evaluarExpresionNumericaSegura(matchPar[1], variables);
+    textoProcesado = textoProcesado.replace(matchPar[0], String(valInterno));
   }
 
   // Reemplazar 'x' o 'X' utilizada como operador de multiplicación y remover espacios
@@ -1214,12 +1254,22 @@ export function obtenerConjurosOtorgadosPorRasgos(personaje: PersonajeJugador): 
         // Extraer conjuros otorgados o gratuitos desde opciones seleccionadas en selectores (ej. Invocaciones)
         if (Array.isArray(sel.valorActual)) {
           for (const opId of sel.valorActual) {
-            const opcion = sel.opciones?.find((o) => o.id === opId);
-            if (opcion && Array.isArray(opcion.efectos)) {
-              for (const efOp of opcion.efectos) {
-                if (efOp.tipo === "conjuro_otorgado" || efOp.tipo === "conjuro_gratuito") {
-                  const cNom = String(efOp.objetivo || efOp.valor).trim();
-                  if (cNom) conjuros.add(cNom);
+            const baseId = opId.includes(":")
+              ? opId.split(":")[0]
+              : opId.includes("__")
+              ? opId.split("__")[0]
+              : opId;
+            const opcion = sel.opciones?.find((o) => o.id === opId || o.id === baseId);
+            if (opcion) {
+              if (opcion.conjuroGratuito && opcion.conjuroGratuito.trim()) {
+                conjuros.add(opcion.conjuroGratuito.trim());
+              }
+              if (Array.isArray(opcion.efectos)) {
+                for (const efOp of opcion.efectos) {
+                  if (efOp.tipo === "conjuro_otorgado" || efOp.tipo === "conjuro_gratuito") {
+                    const cNom = String(efOp.objetivo || efOp.valor).trim();
+                    if (cNom) conjuros.add(cNom);
+                  }
                 }
               }
             }
@@ -1274,24 +1324,23 @@ export function obtenerCompetenciasExtraRasgos(personaje: PersonajeJugador): {
 }
 
 /**
- * Determina si el personaje tiene una bonificación o rasgo activo que le permita lanzar un conjuro
- * de forma gratuita (sin gastar espacio de conjuro).
- * 
- * Evaluación 100% genérica: interpreta efectos 'conjuro_gratuito' de rasgos activos o de rasgos
- * cuya 'condicionAlActivar' esté presente en condicionesActivas.
+ * Retorna la lista de nombres de conjuros que el personaje puede lanzar de forma gratuita
+ * (sin gastar espacio de conjuro) a partir de sus rasgos activos o condiciones.
  */
-export function tieneConjuroGratuitoActivo(personaje: PersonajeJugador, nombreConjuro: string): boolean {
-  if (!personaje || !nombreConjuro) return false;
-  const nomNorm = normalizar(nombreConjuro);
+export function obtenerNombresConjurosGratuitosActivos(personaje: PersonajeJugador): string[] {
+  if (!personaje) return [];
+  const nombres = new Set<string>();
 
-  // Obtener rasgos del personaje, o resolver del catálogo si la ficha no los tiene instanciados
-  let rasgos: Array<{
-    activo?: boolean;
-    condicionAlActivar?: string;
-    efectos?: EfectoMecanicoRasgo[];
-  }> = personaje.rasgos || [];
+  // 1. Evaluar efectos de rasgos instanciados (incluyendo selectores con efectos)
+  const efectos = evaluarEfectosRasgosActivos(personaje);
+  for (const ef of efectos) {
+    if (ef.tipo === "conjuro_gratuito" && ef.objetivo) {
+      nombres.add(String(ef.objetivo).trim());
+    }
+  }
 
-  if (rasgos.length === 0 && personaje.clase) {
+  // 2. Respaldo para personajes cuyos rasgos aún no están instanciados en ficha pero tienen clase/subclase
+  if (nombres.size === 0 && (!personaje.rasgos || personaje.rasgos.length === 0) && personaje.clase) {
     const claseNorm = normalizar(personaje.clase);
     const defClase = CATALOGO_CLASES_DND55.find(
       (c) => normalizar(c.nombre) === claseNorm || normalizar(c.id) === claseNorm
@@ -1304,33 +1353,97 @@ export function tieneConjuroGratuitoActivo(personaje: PersonajeJugador, nombreCo
         ? defClase.subclases.find((s) => normalizar(s.nombre) === subNorm || normalizar(s.id) === subNorm)
         : undefined;
       const rasgosSub = defSub ? defSub.rasgos.filter((r) => r.nivel <= nivelSeguro) : [];
-      rasgos = [...rasgosClase, ...rasgosSub];
-    }
-  }
+      const condiciones = (personaje.condicionesActivas || []).map(normalizar);
 
-  const condiciones = (personaje.condicionesActivas || []).map(normalizar);
+      for (const r of [...rasgosClase, ...rasgosSub]) {
+        const condActivarNorm = r.condicionAlActivar ? normalizar(r.condicionAlActivar) : null;
+        const estaActivoPorCondicion = Boolean(
+          condActivarNorm &&
+          condiciones.some((c) => c === condActivarNorm || c.includes(condActivarNorm) || condActivarNorm.includes(c))
+        );
+        const estaActivo = !condActivarNorm || estaActivoPorCondicion;
+        if (!estaActivo) continue;
 
-  for (const r of rasgos) {
-    const condActivarNorm = r.condicionAlActivar ? normalizar(r.condicionAlActivar) : null;
-    const estaActivoPorCondicion = Boolean(
-      condActivarNorm &&
-      condiciones.some((c) => c === condActivarNorm || c.includes(condActivarNorm) || condActivarNorm.includes(c))
-    );
-    const estaActivo = r.activo !== false || estaActivoPorCondicion;
-
-    if (!estaActivo) continue;
-
-    for (const ef of r.efectos || []) {
-      if (ef.tipo === "conjuro_gratuito") {
-        const objNorm = normalizar(String(ef.objetivo || ""));
-        if (objNorm === nomNorm || nomNorm.includes(objNorm) || objNorm.includes(nomNorm)) {
-          return true;
+        for (const ef of r.efectos || []) {
+          if (ef.tipo === "conjuro_gratuito" && ef.objetivo) {
+            nombres.add(String(ef.objetivo).trim());
+          }
         }
       }
     }
   }
 
-  return false;
+  return Array.from(nombres);
+}
+
+/**
+ * Determina si el personaje tiene una bonificación o rasgo activo que le permita lanzar un conjuro
+ * de forma gratuita (sin gastar espacio de conjuro).
+ * 
+ * Evaluación 100% genérica: interpreta efectos 'conjuro_gratuito' de rasgos activos o de rasgos
+ * cuya 'condicionAlActivar' esté presente en condicionesActivas.
+ */
+export function tieneConjuroGratuitoActivo(personaje: PersonajeJugador, nombreConjuro: string): boolean {
+  if (!personaje || !nombreConjuro) return false;
+  const nomNorm = normalizar(nombreConjuro);
+  const conjurosGratuitos = obtenerNombresConjurosGratuitosActivos(personaje);
+  return conjurosGratuitos.some((cg) => {
+    const cgNorm = normalizar(cg);
+    return cgNorm === nomNorm || nomNorm.includes(cgNorm) || cgNorm.includes(nomNorm);
+  });
+}
+
+/**
+ * Calcula todas las velocidades de movimiento efectivas del personaje (caminar, nadar, volar, escalar, excavar)
+ * considerando velocidad base, bonos de rasgos y efectos de movimiento especial (ej. Don de las profundidades).
+ */
+export function obtenerVelocidadesEfectivas(personaje: PersonajeJugador): VelocidadEstructurada {
+  const baseCaminar =
+    typeof personaje.velocidad === "string"
+      ? parseInt(personaje.velocidad, 10) || 30
+      : (typeof personaje.velocidad === "number"
+        ? personaje.velocidad
+        : (personaje.velocidad?.caminar || 30));
+
+  const bonoCaminar = calcularBonoVelocidadRasgos(personaje);
+  const caminar = Math.max(0, baseCaminar + bonoCaminar);
+
+  const resultado: VelocidadEstructurada = {
+    caminar,
+    nadar: typeof personaje.velocidad === "object" ? personaje.velocidad?.nadar : undefined,
+    volar: typeof personaje.velocidad === "object" ? personaje.velocidad?.volar : undefined,
+    escalar: typeof personaje.velocidad === "object" ? personaje.velocidad?.escalar : undefined,
+    excavar: typeof personaje.velocidad === "object" ? personaje.velocidad?.excavar : undefined,
+    planea: typeof personaje.velocidad === "object" ? Boolean(personaje.velocidad?.planea) : false
+  };
+
+  const efectos = evaluarEfectosRasgosActivos(personaje);
+  for (const ef of efectos) {
+    if (ef.tipo === "movimiento_especial") {
+      const objetivo = String(ef.objetivo || "").toLowerCase();
+      if (objetivo.includes("nadar")) {
+        const velNadar =
+          ef.valor === "nadar" || ef.valor === "caminar" || ef.valor === "velocidad_caminar"
+            ? caminar
+            : (Number(ef.valor) || caminar);
+        resultado.nadar = Math.max(resultado.nadar || 0, velNadar);
+      } else if (objetivo.includes("volar")) {
+        const velVolar =
+          ef.valor === "volar" || ef.valor === "caminar"
+            ? caminar
+            : (Number(ef.valor) || caminar);
+        resultado.volar = Math.max(resultado.volar || 0, velVolar);
+      } else if (objetivo.includes("escalar")) {
+        const velEscalar =
+          ef.valor === "escalar" || ef.valor === "caminar"
+            ? caminar
+            : (Number(ef.valor) || caminar);
+        resultado.escalar = Math.max(resultado.escalar || 0, velEscalar);
+      }
+    }
+  }
+
+  return resultado;
 }
 
 /**
@@ -1558,4 +1671,131 @@ export function obtenerEfectoHpTemporalRasgo(
   return rasgo.efectos.find((ef) => ef.tipo === "hp_temporal");
 }
 
+/**
+ * Aplica enriquecimientos mecánicos dinámicos provenientes de Invocaciones Sobrenaturales
+ * al hechizo (especialmente trucos modificados como Descarga Agónica o Lanza Sobrenatural).
+ * Función pura: no muta el objeto hechizo original.
+ */
+export function aplicarModificadoresInvocacionesAHechizo(
+  hechizo: HechizoBase,
+  personaje: PersonajeJugador | null | undefined
+): HechizoBase {
+  if (!personaje || hechizo.nivel !== 0) {
+    return hechizo;
+  }
 
+  // 1. Recolectar selecciones activas de invocaciones del personaje
+  const invocacionesActivas: string[] = [];
+  for (const r of personaje.rasgos || []) {
+    if (r.activo === false) continue;
+    if (Array.isArray(r.selectores)) {
+      for (const sel of r.selectores) {
+        if (Array.isArray(sel.valorActual)) {
+          for (const val of sel.valorActual) {
+            if (typeof val === "string" && val.trim()) {
+              invocacionesActivas.push(val.trim());
+            }
+          }
+        }
+      }
+    }
+  }
+
+  let modificado = false;
+  let nuevoAgregarModificadorHabilidad = hechizo.agregarModificadorHabilidad;
+  let nuevoAlcance = hechizo.alcance;
+
+  // 2. Evaluar Descarga Agónica: activa agregarModificadorHabilidad = true
+  const tieneDescargaAgonica = invocacionesActivas.some((inv) => {
+    if (!inv.startsWith("descarga_agonica")) return false;
+    // Formato 'descarga_agonica:trucoId' o 'descarga_agonica__timestamp:trucoId' o fallback 'descarga_agonica'
+    if (inv.includes(":")) {
+      const trucoId = inv.split(":")[1];
+      return coincideHechizoId(trucoId, hechizo.id) || coincideHechizoId(trucoId, hechizo.nombre);
+    }
+    // Si no tiene sufijo de truco específico, aplica a Descarga sobrenatural por defecto canónico
+    return coincideHechizoId("descarga_sobrenatural", hechizo.id) || coincideHechizoId("descarga_sobrenatural", hechizo.nombre);
+  });
+
+  if (tieneDescargaAgonica && !nuevoAgregarModificadorHabilidad) {
+    nuevoAgregarModificadorHabilidad = true;
+    modificado = true;
+  }
+
+  // 3. Evaluar Lanza Sobrenatural: añade (nivelBrujo * 10) pies al alcance si es >= 10 pies
+  const tieneLanzaSobrenatural = invocacionesActivas.some((inv) => {
+    if (!inv.startsWith("lanza_sobrenatural")) return false;
+    if (inv.includes(":")) {
+      const trucoId = inv.split(":")[1];
+      return coincideHechizoId(trucoId, hechizo.id) || coincideHechizoId(trucoId, hechizo.nombre);
+    }
+    return coincideHechizoId("descarga_sobrenatural", hechizo.id) || coincideHechizoId("descarga_sobrenatural", hechizo.nombre);
+  });
+
+  if (tieneLanzaSobrenatural && nuevoAlcance) {
+    // Parsear alcance numérico (ej. "120 pies", "120 ft", "60 pies", "30")
+    const matchAlcance = nuevoAlcance.match(/^(\d+)\s*(pies|ft|m|metros)?$/i);
+    if (matchAlcance) {
+      const valorBase = parseInt(matchAlcance[1], 10);
+      const unidad = matchAlcance[2] || "pies";
+      if (valorBase >= 10) {
+        const nivelBrujo =
+          personaje.clases?.find(
+            (c) => normalizar(c.nombre) === "brujo"
+          )?.nivel ||
+          (normalizar(personaje.clase) === "brujo" ? personaje.nivel : 0) ||
+          1;
+
+        const bonoPies = nivelBrujo * 10;
+        nuevoAlcance = `${valorBase + bonoPies} ${unidad}`;
+        modificado = true;
+      }
+    }
+  }
+
+  if (!modificado) return hechizo;
+
+  return {
+    ...hechizo,
+    agregarModificadorHabilidad: nuevoAgregarModificadorHabilidad,
+    alcance: nuevoAlcance
+  };
+}
+
+export interface ConfiguracionPactoDelFilo {
+  activo: boolean;
+  tipoDano: "propio" | "necrotico" | "psiquico" | "radiante";
+}
+
+/**
+ * Obtiene el estado y configuración de la invocación Pacto del filo para el personaje.
+ * Determina si está activo y el tipo de daño seleccionado ('propio', 'necrotico', 'psiquico', 'radiante').
+ */
+export function obtenerConfiguracionPactoDelFilo(personaje: PersonajeJugador): ConfiguracionPactoDelFilo {
+  if (!personaje) return { activo: false, tipoDano: "propio" };
+
+  for (const r of personaje.rasgos || []) {
+    if (r.activo === false) continue;
+    if (Array.isArray(r.selectores)) {
+      for (const sel of r.selectores) {
+        for (const val of sel.valorActual || []) {
+          if (
+            typeof val === "string" &&
+            (val === "pacto_del_filo" || val.startsWith("pacto_del_filo:") || val.startsWith("pacto_del_filo__"))
+          ) {
+            const subtipo = val.includes(":") ? val.split(":")[1].toLowerCase() : "propio";
+            const tipoValido =
+              subtipo === "necrotico" || subtipo === "psiquico" || subtipo === "radiante"
+                ? subtipo
+                : "propio";
+            return { activo: true, tipoDano: tipoValido };
+          }
+        }
+      }
+    }
+    if (r.id === "pacto_del_filo" || normalizar(r.nombre) === "pacto del filo") {
+      return { activo: true, tipoDano: "propio" };
+    }
+  }
+  return { activo: false, tipoDano: "propio" };
+}

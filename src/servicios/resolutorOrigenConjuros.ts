@@ -112,13 +112,46 @@ export function resolverOrigenConjuro(
             break;
           }
         }
+
+        // Inspección de opciones seleccionadas en selectores (ej. Invocaciones Sobrenaturales)
+        if (Array.isArray(sel.valorActual) && Array.isArray(sel.opciones)) {
+          for (const opVal of sel.valorActual) {
+            const baseId = typeof opVal === "string"
+              ? (opVal.includes(":") ? opVal.split(":")[0] : opVal.includes("__") ? opVal.split("__")[0] : opVal)
+              : "";
+            const op = sel.opciones.find((o) => o.id === opVal || o.id === baseId);
+            if (op) {
+              if (op.conjuroGratuito && coincide(op.conjuroGratuito)) {
+                otorga = true;
+                break;
+              }
+              if (Array.isArray(op.efectos)) {
+                for (const ef of op.efectos) {
+                  if (ef.tipo === "conjuro_gratuito" || ef.tipo === "conjuro_otorgado") {
+                    const cNom = String(ef.objetivo || ef.valor || "");
+                    if (coincide(cNom)) {
+                      otorga = true;
+                      break;
+                    }
+                  }
+                }
+              }
+            }
+            if (otorga) break;
+          }
+        }
+        if (otorga) break;
       }
+    }
+
+    if (!otorga && r.conjuroGratuito && coincide(r.conjuroGratuito)) {
+      otorga = true;
     }
 
     if (!otorga && Array.isArray(r.efectos)) {
       for (const ef of r.efectos) {
-        if (ef.tipo === "conjuro_otorgado") {
-          const val = String(ef.valor || ef.objetivo || "");
+        if (ef.tipo === "conjuro_otorgado" || ef.tipo === "conjuro_gratuito") {
+          const val = String(ef.objetivo || ef.valor || "");
           if (coincide(val)) {
             otorga = true;
             break;

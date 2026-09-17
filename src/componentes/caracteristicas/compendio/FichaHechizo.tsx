@@ -13,7 +13,7 @@ import {
 } from "@/utiles/utilesConjuros";
 import { HechizoBase } from "@/tipos";
 import { obtenerOpcionesLanzamientoConjuro } from "@/servicios/calculadorMagia";
-import { SelectorDesplegable } from "@/componentes/comunes";
+import { SelectorDesplegable, TextoEnriquecidoDND } from "@/componentes/comunes";
 import type { ModoLanzamiento } from "@/servicios/servicioLanzamientoConjuros";
 import estilosClases from "./FichaHechizo.module.css";
 
@@ -541,10 +541,9 @@ export const FichaHechizo: React.FC<FichaHechizoProps> = React.memo(({
         {/* Descripción */}
         <div className={estilosClases.seccionFicha}>
           <div className={estilosClases.seccionTitulo}>DESCRIPCIÓN DEL CONJURO</div>
-          <div 
-            className={estilosClases.textoDescripcion} 
-            dangerouslySetInnerHTML={{ __html: hechizo.descripcion }} 
-          />
+          <div className={estilosClases.textoDescripcion}>
+            <TextoEnriquecidoDND texto={hechizo.descripcion} />
+          </div>
         </div>
 
         {/* Niveles superiores estático informativo si existe */}
@@ -554,8 +553,9 @@ export const FichaHechizo: React.FC<FichaHechizoProps> = React.memo(({
             <div 
               className={estilosClases.textoDescripcion} 
               style={{ fontStyle: "italic" }}
-              dangerouslySetInnerHTML={{ __html: hechizo.descNivelSuperior }}
-            />
+            >
+              <TextoEnriquecidoDND texto={hechizo.descNivelSuperior} />
+            </div>
           </div>
         )}
 

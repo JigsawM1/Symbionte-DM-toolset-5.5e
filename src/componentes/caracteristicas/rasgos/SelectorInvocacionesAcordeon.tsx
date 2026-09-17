@@ -23,6 +23,7 @@ import { usarAlmacenDM } from "@/almacen/usarAlmacenDM";
 import { usarEstadoHomebrew } from "@/almacen/selectores/usarEstadoHomebrew";
 import { coincideHechizoId } from "@/servicios/comparadorHechizos";
 import { obtenerMaxInvocacionesBrujo, obtenerNivelEspacioPacto } from "@/constantes/invocacionesSobrenaturales";
+import { logger } from "@/utiles/logger";
 import { aplicarResultadoHpTemporalEnEstado } from "@/utiles/lanzadorDados";
 import estilos from "./SelectorInvocacionesAcordeon.module.css";
 
@@ -266,7 +267,7 @@ export const SelectorInvocacionesAcordeon: React.FC<SelectorInvocacionesAcordeon
         "exito"
       );
     } catch (error) {
-      console.error("[SelectorInvocacionesAcordeon] Error al aplicar Vigor infernal:", error);
+      logger.error("[SelectorInvocacionesAcordeon] Error al aplicar Vigor infernal:", error);
     }
   };
 

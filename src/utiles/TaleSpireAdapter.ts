@@ -704,8 +704,8 @@ class TaleSpireAdapter {
           try {
             await window.TS.clipboard.copyText(texto);
             return true;
-          } catch {
-            // Silencioso
+          } catch (e) {
+            logger.debug("[TS Adapter] Falló fallback legacy copyText:", e);
           }
         }
         // Nav web clipboard fallback

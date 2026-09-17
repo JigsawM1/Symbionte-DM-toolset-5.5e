@@ -14,6 +14,7 @@ import { ARMADURAS_OFICIALES } from "@/constantes/equipoConstantes";
 import { CATALOGO_CLASES_DND55 } from "@/constantes/clasesDND55";
 import { coincideHechizoId } from "@/servicios/comparadorHechizos";
 import { obtenerNivelEspacioPacto } from "@/constantes/invocacionesSobrenaturales";
+import { logger } from "@/utiles/logger";
 
 
 /**
@@ -821,7 +822,8 @@ export function evaluarExpresionNumericaSegura(
         }
       }
       return total;
-    } catch {
+    } catch (error) {
+      logger.warn(`[evaluadorEfectosRasgos] Error al evaluar expresión matemática "${limpia}":`, error);
       return 0;
     }
   }

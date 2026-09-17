@@ -16,12 +16,12 @@ Este archivo sirve como bitácora de aprendizaje técnico y memoria permanente p
     *   El **código fuente** (desarrollo activo) vive en:  
         `C:\Users\zamor\.gemini\antigravity\worktrees\ToolSet Es 5.5\setup-symbiote-agent-workflow`
     *   La **salida compilada** (distribución que ejecuta TaleSpire) vive en:  
-        `C:\Users\zamor\AppData\LocalLow\BouncyRock Entertainment\TaleSpire\Symbiotes\ToolSet Es 5.5`
+        `C:\Users\zamor\AppData\LocalLow\BouncyRock Entertainment\TaleSpire\Symbiotes\ToolSet_Es_5.5`
 *   **Configuración del Destino (`build_folder_name.json`)**:
     *   Este archivo define la carpeta de salida en TaleSpire. Debe estar configurado **siempre** como:
         ```json
         {
-          "buildFolder": "ToolSet Es 5.5"
+          "buildFolder": "ToolSet_Es_5.5"
         }
         ```
         *(Previamente estaba en `"my-symbiote-folder-name"`, lo que provocaba que los cambios compilados se copiaran en una carpeta errónea que TaleSpire ignoraba).*

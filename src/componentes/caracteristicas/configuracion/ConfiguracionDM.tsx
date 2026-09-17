@@ -116,7 +116,8 @@ export const ConfiguracionDM: React.FC = () => {
       URL.revokeObjectURL(url);
       setCopiado(true);
       setTimeout(() => setCopiado(false), 3000);
-    } catch {
+    } catch (error) {
+      logger.warn("[ConfiguracionDM] Falló la descarga automática por Blob, mostrando modal alternativo:", error);
       setModalExport(jsonStr);
     }
   };

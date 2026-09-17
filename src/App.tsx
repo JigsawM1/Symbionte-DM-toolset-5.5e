@@ -98,7 +98,9 @@ const AppContenido: React.FC = () => {
             </div>
           }
         >
-          {renderContenidoPestaña()}
+          <LimiteError modoModular key={pestañaActiva}>
+            {renderContenidoPestaña()}
+          </LimiteError>
         </Suspense>
       </main>
 

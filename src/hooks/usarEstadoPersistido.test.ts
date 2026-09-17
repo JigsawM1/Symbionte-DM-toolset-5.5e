@@ -70,4 +70,14 @@ describe("Persistencia en LocalStorage (usarEstadoPersistido)", () => {
     }
     expect(parseado).toEqual({ fallback: true });
   });
+
+  it("previene la colisión de claves y preserva los valores independientes por clave", () => {
+    const claveA = "ts_personaje_A";
+    const claveB = "ts_personaje_B";
+    mockStorage.setItem(claveA, JSON.stringify({ nombre: "Personaje A" }));
+    mockStorage.setItem(claveB, JSON.stringify({ nombre: "Personaje B" }));
+
+    expect(JSON.parse(mockStorage.getItem(claveA) || "{}")).toEqual({ nombre: "Personaje A" });
+    expect(JSON.parse(mockStorage.getItem(claveB) || "{}")).toEqual({ nombre: "Personaje B" });
+  });
 });

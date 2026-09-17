@@ -21,7 +21,7 @@ import {
   Dices
 } from "lucide-react";
 import estilos from "./ListaHomebrew.module.css";
-import { ConfirmDialog, SelectorDesplegable } from "@/componentes/comunes";
+import { ConfirmDialog, SelectorDesplegable, TextoEnriquecidoDND } from "@/componentes/comunes";
 import { FichaHechizo } from "@/componentes/caracteristicas/compendio";
 import { PanelFichaDnD } from "@/componentes/caracteristicas/iniciativa";
 import { lanzarDadosTaleSpire, sanitizarEtiqueta } from "@/utiles/lanzadorDados";
@@ -1165,10 +1165,9 @@ export const ListaHomebrew: React.FC<Props> = ({
                 <div className={estilos.descripcionTituloFicha}>
                   DESCRIPCIÓN DEL OBJETO MÁGICO
                 </div>
-                <div 
-                  className={estilos.descripcionCuerpoFicha}
-                  dangerouslySetInnerHTML={{ __html: objeto.descripcion }}
-                />
+                <div className={estilos.descripcionCuerpoFicha}>
+                  <TextoEnriquecidoDND texto={objeto.descripcion} />
+                </div>
               </div>
             </div>
           </div>

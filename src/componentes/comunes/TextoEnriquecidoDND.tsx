@@ -3,12 +3,39 @@ import estilos from "./TextoEnriquecidoDND.module.css";
 
 export interface TextoEnriquecidoDNDProps {
   texto: string;
+  className?: string;
 }
 
-export const TextoEnriquecidoDND: React.FC<TextoEnriquecidoDNDProps> = ({ texto }) => {
+/**
+ * Normaliza texto eliminando scripts y etiquetas peligrosas y convirtiendo
+ * el marcado HTML básico de compendios (br, b, i, em, strong) a formato interpretado por React.
+ */
+function normalizarContenidoSeguro(texto: string): string {
+  if (!texto) return "";
+
+  // 1. Eliminar etiquetas potencialmente peligrosas y sus contenidos
+  let limpio = texto.replace(/<\s*(script|style|iframe|object|embed|applet)[^>]*>[\s\S]*?<\s*\/\s*\1\s*>/gi, "");
+
+  // 2. Normalizar saltos de línea HTML a saltos de línea reales
+  limpio = limpio.replace(/<\s*br\s*\/?>/gi, "\n");
+  limpio = limpio.replace(/<\s*\/p\s*>/gi, "\n\n");
+  limpio = limpio.replace(/<\s*p[^>]*>/gi, "");
+
+  // 3. Normalizar etiquetas de formato estándar HTML a markdown para que el parser las procese
+  limpio = limpio.replace(/<\s*(?:b|strong)[^>]*>([\s\S]*?)<\s*\/\s*(?:b|strong)\s*>/gi, "**$1**");
+  limpio = limpio.replace(/<\s*(?:i|em)[^>]*>([\s\S]*?)<\s*\/\s*(?:i|em)\s*>/gi, "*$1*");
+
+  // 4. Eliminar cualquier otra etiqueta HTML residual para evitar inyecciones
+  limpio = limpio.replace(/<[^>]+>/g, "");
+
+  return limpio;
+}
+
+export const TextoEnriquecidoDND: React.FC<TextoEnriquecidoDNDProps> = React.memo(({ texto, className }) => {
   if (!texto) return null;
 
-  const parrafos = texto.split(/\n\s*\n/);
+  const textoSeguro = normalizarContenidoSeguro(texto);
+  const parrafos = textoSeguro.split(/\n\s*\n/);
 
   return (
     <>
@@ -16,7 +43,7 @@ export const TextoEnriquecidoDND: React.FC<TextoEnriquecidoDNDProps> = ({ texto 
         const lineas = parrafo.split("\n");
 
         return (
-          <p key={pIdx} className={estilos.parrafoModalEnriquecido}>
+          <p key={pIdx} className={className || estilos.parrafoModalEnriquecido}>
             {lineas.map((linea, lIdx) => {
               const partes = linea.split(/(\*\*\*[^*]+?\*\*\*|\*\*[^*]+?\*\*|\*[^*]+?\*)/g);
 
@@ -59,4 +86,6 @@ export const TextoEnriquecidoDND: React.FC<TextoEnriquecidoDNDProps> = ({ texto 
       })}
     </>
   );
-};
+});
+
+TextoEnriquecidoDND.displayName = "TextoEnriquecidoDND";

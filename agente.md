@@ -7576,6 +7576,37 @@ Cualquier nueva mecánica debe modelarse como:
 - **Tests unitarios**: **549/549 tests pasando (100% de éxito, 48 archivos de test)** sin ninguna regresión.
 - **Compilación**: `pnpm build` (`tsc && vite build`) completado con código 0 y cero errores de TypeScript estricto.
 
+---
+
+## [2026-09-17] Auditoría y Refactorización Integral - FASE 1: Seguridad, Bugs Críticos y Resiliencia
+
+### 1. Contexto y Objetivos
+Se llevó a cabo una auditoría estática exhaustiva de 190 archivos de código fuente, detectando 47 hallazgos. Se priorizó y ejecutó la Fase 1 focalizada en erradicar vulnerabilidades de inyección de código, condiciones de carrera en persistencia local y silenciamiento de errores.
+
+### 2. Hallazgos Resueltos y Soluciones Aplicadas
+1. **SEC-01 (XSS vía `dangerouslySetInnerHTML`)**:
+   - *Problema*: `FichaHechizo.tsx` (L546, L557) y `ListaHomebrew.tsx` (L1170) inyectaban directamente descripciones HTML crudas mediante `dangerouslySetInnerHTML`. Al importar datos Homebrew JSON de terceros, scripts maliciosos podían ejecutarse en el entorno Chromium (CEF) de TaleSpire.
+   - *Solución*: Se mejoró `TextoEnriquecidoDND.tsx` para sanitizar proactivamente etiquetas peligrosas (`<script>`, `<iframe>`, `onload=`, etc.) y convertir de forma segura tags de formato estándar de D&D (`<br>`, `<b>`, `<i>`, `<em>`, `<strong>`) a tokens Markdown, renderizándolos puramente como nodos virtuales de React. Se reemplazó el 100% de `dangerouslySetInnerHTML` en todo el codebase por `<TextoEnriquecidoDND />`.
+2. **D-4 (Condición de Carrera en `usarEstadoPersistido`)**:
+   - *Problema*: Al cambiar de personaje, dos `useEffect` desacoplados provocaban que el efecto de escritura guardara el estado desfasado del personaje previo bajo la clave del nuevo personaje antes de que el estado se actualizara, corrompiendo datos en `localStorage`.
+   - *Solución*: Se unificó el ciclo de vida mediante un `useRef` que almacena `clavePrevia`. Si la clave muta, el hook actualiza la referencia, carga el estado de la nueva clave y aborta inmediatamente la escritura para ese ciclo. Se añadió prueba unitaria de aislamiento de claves en `usarEstadoPersistido.test.ts`.
+3. **A-1 a A-4 y ERR-01 (Silenciamiento de Excepciones en Bloques Catch)**:
+   - *Problema*: Bloques `catch` vacíos o comentarios `// Silencioso` en `calculadorMagia.ts`, `evaluadorEfectosRasgos.ts`, `lanzadorDados.ts`, `TaleSpireAdapter.ts`, `puenteTaleSpire.ts`, `usarConexionTaleSpire.ts` y `ConfiguracionDM.tsx` ocultaban anomalías y fallos de integración con TaleSpire.
+   - *Solución*: Se implementó logging explícito utilizando `logger.warn` y `logger.debug` documentando el origen y contexto de cada fallo antes de aplicar los mecanismos de contingencia.
+4. **ERR-02 (Límites de Error Granulares)**:
+   - *Problema*: `LimiteError` solo envolvía la raíz completa de la aplicación, causando que cualquier error de render en una pestaña obligara a una recarga destructiva total.
+   - *Solución*: Se agregó la prop `modoModular` a `LimiteError.tsx` y se encapsuló dinámicamente cada pestaña en `App.tsx` (`<LimiteError modoModular key={pestañaActiva}>`). Si una vista falla, muestra un mensaje contextual con botón "Reintentar módulo" sin interrumpir la barra superior, dados ni otras pestañas.
+5. **H-01 (Alineación de Carpeta de Despliegue)**:
+   - *Decisión*: Confirmada por el usuario como `ToolSet_Es_5.5`. Se actualizó la documentación en `agent.md` para evitar discrepancias.
+6. **Linter Cleanup**:
+   - Se reemplazó una llamada huérfana a `console.error` en `SelectorInvocacionesAcordeon.tsx` por `logger.error`, garantizando 0 advertencias y 0 errores en ESLint.
+
+### 3. Verificación
+- **Tipado estricto**: `tsc --noEmit` completado con **0 errores**.
+- **Tests unitarios**: **741/741 tests aprobados (100% de éxito en 57 archivos de suite)**.
+- **Linter**: `eslint src --max-warnings=0` con **0 errores y 0 advertencias**.
+- **Compilación de producción**: `pnpm run build` generado exitosamente en `dist/`.
+
 
 
 

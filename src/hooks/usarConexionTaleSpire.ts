@@ -47,7 +47,8 @@ export function usarConexionTaleSpire() {
           if (typeof seleccion === "string") {
             try {
               data = JSON.parse(seleccion);
-            } catch {
+            } catch (err) {
+              logger.debug("[usarConexionTaleSpire] Selección no es JSON string válido, usando selección cruda:", err);
               data = seleccion;
             }
           }
@@ -196,7 +197,8 @@ export function usarConexionTaleSpire() {
                     maxHp: c.hp?.max
                   }));
                   actualizarSeleccionCriaturas(seleccionadas);
-                } catch {
+                } catch (error) {
+                  logger.warn("[usarConexionTaleSpire] Error al solicitar información enriquecida de miniaturas a TaleSpire:", error);
                   actualizarSeleccionCriaturas(ids.map((id) => ({ id, name: "Criatura Seleccionada" })));
                 }
               }

@@ -19,6 +19,7 @@ import {
   CATALOGO_CONJUROS_SUBCLASES
 } from "@/constantes/subclasesConjurosConstantes";
 import { calcularEstadisticasPersonaje } from "@/almacen/selectores/usarEstadoPersonajes";
+import { logger } from "@/utiles/logger";
 
 /**
  * Calcula el nivel de lanzador combinado para reglas de multiclase (D&D 5.5e).
@@ -763,8 +764,8 @@ export function obtenerModificadorAptitudMagica(pj: PersonajeJugador | null | un
     if (stats?.modificadores && typeof stats.modificadores[habilidad] === "number") {
       return stats.modificadores[habilidad];
     }
-  } catch {
-    // Fallback defensivo si el personaje carece de estructura completa de estadísticas
+  } catch (error) {
+    logger.warn("[calculadorMagia] Fallo al calcular estadísticas completas para aptitud mágica, aplicando fallback:", error);
   }
   const valorCarac = pj.caracteristicas ? (pj.caracteristicas[habilidad] ?? 10) : 10;
   return Math.floor((valorCarac - 10) / 2);

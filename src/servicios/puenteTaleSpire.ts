@@ -103,7 +103,8 @@ class PuenteTaleSpireClass {
     if (typeof payload === "string") {
       try {
         return JSON.parse(payload);
-      } catch {
+      } catch (err) {
+        logger.debug("[puenteTaleSpire] Payload string no es JSON válido, utilizándolo tal cual:", err);
         return payload;
       }
     }

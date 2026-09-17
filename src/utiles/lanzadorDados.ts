@@ -662,7 +662,8 @@ export function extraerPayloadResultadosDados(evento: unknown): PayloadDadosNorm
   if (typeof datos === "string") {
     try {
       datos = JSON.parse(datos);
-    } catch {
+    } catch (error) {
+      logger.debug("[Lanzador Dados] Falló el parsing JSON de evento como string, descartando:", error);
       return null;
     }
   }
@@ -944,8 +945,8 @@ export async function procesarResultadosDadosTaleSpire(evento: unknown): Promise
     // En caso de fallo crítico en el procesamiento de ventaja, avisar por chat para nunca silenciar
     try {
       await ts.chat.send(`[${infoTirada.etiquetaOriginal}] Error al procesar ventaja/desventaja.`);
-    } catch {
-      // Silencioso
+    } catch (chatError) {
+      logger.debug("[Lanzador Dados] No se pudo enviar el mensaje de error por chat a TaleSpire:", chatError);
     }
     delete tiradasEspecialesActivas[rollId];
     return false;

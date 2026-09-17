@@ -1,4 +1,4 @@
-import { useState, useEffect, Dispatch, SetStateAction } from "react";
+import { useState, useEffect, useRef, Dispatch, SetStateAction } from "react";
 import { logger } from "@/utiles/logger";
 
 /**
@@ -25,27 +25,35 @@ export function usarEstadoPersistido<T>(
     return typeof valorInicial === "function" ? (valorInicial as () => T)() : valorInicial;
   });
 
-  useEffect(() => {
-    // Si la clave cambia (ej. al cambiar de personaje activo), sincronizar el estado con el valor guardado
-    if (typeof localStorage === "undefined") return;
-    try {
-      const guardado = localStorage.getItem(clave);
-      if (guardado !== null) {
-        setEstado(JSON.parse(guardado) as T);
-      }
-    } catch (err) {
-      logger.warn(`[usarEstadoPersistido] Error al recargar la clave "${clave}":`, err);
-    }
-  }, [clave]);
+  const clavePrevia = useRef(clave);
 
   useEffect(() => {
     if (typeof localStorage === "undefined") return;
+
+    // Si la clave cambia (ej. al alternar de personaje activo), sincronizar con la nueva clave
+    // y abortar la persistencia en este ciclo para evitar sobreescribir la clave nueva con el estado previo.
+    if (clavePrevia.current !== clave) {
+      clavePrevia.current = clave;
+      try {
+        const guardado = localStorage.getItem(clave);
+        if (guardado !== null) {
+          setEstado(JSON.parse(guardado) as T);
+        } else {
+          const valorDefecto = typeof valorInicial === "function" ? (valorInicial as () => T)() : valorInicial;
+          setEstado(valorDefecto);
+        }
+      } catch (err) {
+        logger.warn(`[usarEstadoPersistido] Error al recargar la clave "${clave}":`, err);
+      }
+      return;
+    }
+
     try {
       localStorage.setItem(clave, JSON.stringify(estado));
     } catch (err) {
       logger.warn(`[usarEstadoPersistido] Error al guardar la clave "${clave}":`, err);
     }
-  }, [clave, estado]);
+  }, [clave, estado, valorInicial]);
 
   return [estado, setEstado];
 }

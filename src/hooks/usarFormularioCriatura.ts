@@ -336,7 +336,7 @@ export function usarFormularioCriatura(idEnEdicion: string | null, alGuardarExit
       id: idEnEdicion || "",
       velocidad: velocidadEstructurada,
       sentidos: sentidosEstructurados
-    } as unknown as MonstruoBase);
+    }) as MonstruoBase;
 
     if (idEnEdicion) {
       actualizarMonstruoHomebrew(idEnEdicion, monstruoParaGuardar);

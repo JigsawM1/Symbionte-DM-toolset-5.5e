@@ -104,6 +104,7 @@ export interface InfoJugador {
 export interface FragmentoCliente {
   id: string;
   player: FragmentoJugador;
+  playerId?: string;
   playerRights?: DerechosJugador;
 }
 
@@ -265,7 +266,7 @@ export interface TaleSpireAPI {
   clients?: {
     whoAmI?: () => Promise<FragmentoCliente>;
     getMoreInfo?: (clientFragmentsOrIds: FragmentoOId[]) => Promise<InfoCliente[]>;
-    onClientEvent?: Suscribible<EventoClienteTS>;
+    onClientEvent?: Suscribible<EventoClienteTS> | ((listener: (e: unknown) => void) => (() => void) | undefined);
   };
   boards?: {
     whereAmI?: () => Promise<unknown>;

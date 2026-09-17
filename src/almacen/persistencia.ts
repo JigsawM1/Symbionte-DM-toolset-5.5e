@@ -5,6 +5,15 @@ import { logger } from '@/utiles/logger';
 
 let timeoutPersistencia: ReturnType<typeof setTimeout> | null = null;
 
+let cacheMonstruosRef: unknown = null;
+let cacheMonstruosHomebrew: unknown[] = [];
+
+let cacheHechizosRef: unknown = null;
+let cacheHechizosHomebrew: unknown[] = [];
+
+let cacheObjetosRef: unknown = null;
+let cacheObjetosHomebrew: unknown[] = [];
+
 export const persistirEstadoCompleto = (estado: Partial<EstadoDM>) => {
   if (!estado) return;
 
@@ -13,15 +22,30 @@ export const persistirEstadoCompleto = (estado: Partial<EstadoDM>) => {
   }
 
   timeoutPersistencia = setTimeout(() => {
-
     const baseMonstruos = estado.baseDatosMonstruos || [];
     const baseHechizos = estado.baseDatosHechizos || [];
     const baseObjetos = estado.objetosHomebrew || [];
 
+    // Reutilizar caché de filtrado si las referencias de los catálogos no han mutado
+    if (cacheMonstruosRef !== baseMonstruos) {
+      cacheMonstruosRef = baseMonstruos;
+      cacheMonstruosHomebrew = baseMonstruos.filter((m) => m && m.id && !IDS_INICIALES_MONSTRUOS.has(m.id));
+    }
+
+    if (cacheHechizosRef !== baseHechizos) {
+      cacheHechizosRef = baseHechizos;
+      cacheHechizosHomebrew = baseHechizos.filter((h) => h && h.id && !IDS_INICIALES_HECHIZOS.has(h.id));
+    }
+
+    if (cacheObjetosRef !== baseObjetos) {
+      cacheObjetosRef = baseObjetos;
+      cacheObjetosHomebrew = baseObjetos.filter((o) => o && o.id && !IDS_INICIALES_OBJETOS.has(o.id));
+    }
+
     const blob = {
-      monstruos_homebrew:  baseMonstruos.filter((m) => m && m.id && !IDS_INICIALES_MONSTRUOS.has(m.id)),
-      hechizos_homebrew:   baseHechizos.filter((h) => h && h.id && !IDS_INICIALES_HECHIZOS.has(h.id)),
-      objetos_homebrew:    baseObjetos.filter((o) => o && o.id && !IDS_INICIALES_OBJETOS.has(o.id)),
+      monstruos_homebrew:  cacheMonstruosHomebrew,
+      hechizos_homebrew:   cacheHechizosHomebrew,
+      objetos_homebrew:    cacheObjetosHomebrew,
       pendientes:          estado.listaPendientes || [],
       notas:               estado.notasDM || "",
       encuentros:          estado.encuentrosGuardados || [],

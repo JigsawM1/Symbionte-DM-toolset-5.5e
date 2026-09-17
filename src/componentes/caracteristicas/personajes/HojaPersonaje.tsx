@@ -313,6 +313,107 @@ export const HojaPersonaje: React.FC<HojaPersonajeProps> = ({ alAbrirConfiguraci
     );
   }, [personajeActivo]);
 
+  const pjId = personajeActivo?.id;
+
+  // Handlers estables para Vitalidad
+  const alModificarHP = useCallback((delta: number) => {
+    if (pjId) modificarHPPersonaje(pjId, delta);
+  }, [pjId, modificarHPPersonaje]);
+
+  const alEstablecerHPActual = useCallback((valor: number) => {
+    if (pjId) establecerHPActualPersonaje(pjId, valor);
+  }, [pjId, establecerHPActualPersonaje]);
+
+  const alModificarHPMaximoEfectivo = useCallback((valor: number) => {
+    if (pjId) modificarHPMaximoEfectivoPersonaje(pjId, valor);
+  }, [pjId, modificarHPMaximoEfectivoPersonaje]);
+
+  const alModificarHPTemporal = useCallback((valor: number) => {
+    if (pjId) modificarHPTemporalPersonaje(pjId, valor);
+  }, [pjId, modificarHPTemporalPersonaje]);
+
+  const alEstablecerDadosGolpeRestantes = useCallback((val: number) => {
+    if (pjId) establecerDadosGolpeRestantesPersonaje(pjId, val);
+  }, [pjId, establecerDadosGolpeRestantesPersonaje]);
+
+  const alEstablecerSalvacionMuerte = useCallback((tipo: "exitos" | "fallos", valor: number) => {
+    if (pjId) establecerSalvacionesMuertePersonaje(pjId, tipo, valor);
+  }, [pjId, establecerSalvacionesMuertePersonaje]);
+
+  const alReiniciarSalvacionesMuerte = useCallback(() => {
+    if (pjId) reiniciarSalvacionesMuertePersonaje(pjId);
+  }, [pjId, reiniciarSalvacionesMuertePersonaje]);
+
+  const alModificarCansancio = useCallback((delta: number) => {
+    if (pjId) modificarCansancioPersonaje(pjId, delta);
+  }, [pjId, modificarCansancioPersonaje]);
+
+  // Handlers estables para Atributos y Habilidades
+  const alAlternarSalvacion = useCallback((carac: Caracteristica) => {
+    if (pjId) alternarSalvacionPersonaje(pjId, carac);
+  }, [pjId, alternarSalvacionPersonaje]);
+
+  const alModificarCaracteristicaBase = useCallback((carac: Caracteristica, valor: number) => {
+    if (pjId) modificarCaracteristicaBasePersonaje(pjId, carac, valor);
+  }, [pjId, modificarCaracteristicaBasePersonaje]);
+
+  const alCiclarGradoHabilidad = useCallback((hab: Habilidad) => {
+    if (pjId) ciclarGradoHabilidadPersonaje(pjId, hab);
+  }, [pjId, ciclarGradoHabilidadPersonaje]);
+
+  // Handlers estables para Magia
+  const alGastarEspacio = useCallback((niv: number) => {
+    if (pjId) gastarEspacioConjuro(pjId, niv);
+  }, [pjId, gastarEspacioConjuro]);
+
+  const alRecuperarEspacio = useCallback((niv: number) => {
+    if (pjId) recuperarEspacioConjuro(pjId, niv);
+  }, [pjId, recuperarEspacioConjuro]);
+
+  const alRecuperarTodosEspacios = useCallback(() => {
+    if (pjId) recuperarTodosEspaciosConjuro(pjId);
+  }, [pjId, recuperarTodosEspaciosConjuro]);
+
+  const alGastarPuntos = useCallback((cant: number) => {
+    if (pjId) gastarPuntosConjuro(pjId, cant);
+  }, [pjId, gastarPuntosConjuro]);
+
+  const alRecuperarPuntos = useCallback((cant: number) => {
+    if (pjId) recuperarPuntosConjuro(pjId, cant);
+  }, [pjId, recuperarPuntosConjuro]);
+
+  const alRecuperarTodosPuntos = useCallback(() => {
+    if (pjId) recuperarTodosPuntosConjuro(pjId);
+  }, [pjId, recuperarTodosPuntosConjuro]);
+
+  const alGastarEspacioPacto = useCallback(() => {
+    if (pjId) gastarEspacioPacto(pjId);
+  }, [pjId, gastarEspacioPacto]);
+
+  const alRecuperarEspaciosPacto = useCallback(() => {
+    if (pjId) recuperarEspaciosPacto(pjId);
+  }, [pjId, recuperarEspaciosPacto]);
+
+  const alEstablecerConcentracion = useCallback((hId: string, nom: string) => {
+    if (pjId) establecerConcentracion(pjId, hId, nom);
+  }, [pjId, establecerConcentracion]);
+
+  const alRomperConcentracion = useCallback(() => {
+    if (pjId) romperConcentracion(pjId);
+  }, [pjId, romperConcentracion]);
+
+  const alQuitarTruco = useCallback((hId: string) => {
+    if (pjId) quitarTrucoConocido(pjId, hId);
+  }, [pjId, quitarTrucoConocido]);
+
+  const alQuitarConjuro = useCallback((hId: string) => {
+    if (pjId) desprepararConjuroPersonaje(pjId, hId);
+  }, [pjId, desprepararConjuroPersonaje]);
+
+  const alAlternarPreparado = useCallback((hId: string) => {
+    if (pjId) alternarConjuroPreparado(pjId, hId);
+  }, [pjId, alternarConjuroPreparado]);
+
   const totalConjurosYTrucos =
     (personajeActivo?.trucosConocidosIds?.length || 0) +
     (personajeActivo?.conjurosConocidosIds?.length || 0);
@@ -394,17 +495,15 @@ export const HojaPersonaje: React.FC<HojaPersonajeProps> = ({ alAbrirConfiguraci
           {/* Vitalidad y Supervivencia (Apartado C) */}
           <PanelVitalidadPersonaje
             personaje={personajeActivo}
-            alModificarHP={(delta) => modificarHPPersonaje(personajeActivo.id, delta)}
-            alEstablecerHPActual={(valor) => establecerHPActualPersonaje(personajeActivo.id, valor)}
-            alModificarHPMaximoEfectivo={(valor) => modificarHPMaximoEfectivoPersonaje(personajeActivo.id, valor)}
-            alModificarHPTemporal={(valor) => modificarHPTemporalPersonaje(personajeActivo.id, valor)}
+            alModificarHP={alModificarHP}
+            alEstablecerHPActual={alEstablecerHPActual}
+            alModificarHPMaximoEfectivo={alModificarHPMaximoEfectivo}
+            alModificarHPTemporal={alModificarHPTemporal}
             alGastarDadoGolpe={manejarTirarDadoGolpe}
-            alEstablecerDadosGolpeRestantes={(val) => establecerDadosGolpeRestantesPersonaje(personajeActivo.id, val)}
-            alEstablecerSalvacionMuerte={(tipo, valor) =>
-              establecerSalvacionesMuertePersonaje(personajeActivo.id, tipo, valor)
-            }
-            alReiniciarSalvacionesMuerte={() => reiniciarSalvacionesMuertePersonaje(personajeActivo.id)}
-            alModificarCansancio={(delta) => modificarCansancioPersonaje(personajeActivo.id, delta)}
+            alEstablecerDadosGolpeRestantes={alEstablecerDadosGolpeRestantes}
+            alEstablecerSalvacionMuerte={alEstablecerSalvacionMuerte}
+            alReiniciarSalvacionesMuerte={alReiniciarSalvacionesMuerte}
+            alModificarCansancio={alModificarCansancio}
             alTirarSalvacionMuerte3D={manejarTirarSalvacionMuerte3D}
           />
 
@@ -414,10 +513,8 @@ export const HojaPersonaje: React.FC<HojaPersonajeProps> = ({ alAbrirConfiguraci
             statsCalculadas={statsCalculadas}
             alTirarCaracteristica={manejarTirarCaracteristica}
             alTirarSalvacion={manejarTirarSalvacion}
-            alAlternarSalvacion={(carac) => alternarSalvacionPersonaje(personajeActivo.id, carac)}
-            alModificarCaracteristicaBase={(carac, valor) =>
-              modificarCaracteristicaBasePersonaje(personajeActivo.id, carac, valor)
-            }
+            alAlternarSalvacion={alAlternarSalvacion}
+            alModificarCaracteristicaBase={alModificarCaracteristicaBase}
           />
 
           {/* Habilidades y Competencias (Apartado B) */}
@@ -425,7 +522,7 @@ export const HojaPersonaje: React.FC<HojaPersonajeProps> = ({ alAbrirConfiguraci
             personaje={personajeActivo}
             statsCalculadas={statsCalculadas}
             alTirarHabilidad={manejarTirarHabilidad}
-            alCiclarGradoHabilidad={(hab) => ciclarGradoHabilidadPersonaje(personajeActivo.id, hab)}
+            alCiclarGradoHabilidad={alCiclarGradoHabilidad}
             alAbrirSelectorCompetencias={(categoria) => setModalCompetencias(categoria)}
           />
         </>
@@ -438,19 +535,19 @@ export const HojaPersonaje: React.FC<HojaPersonajeProps> = ({ alAbrirConfiguraci
           sistemaMagia={sistemaMagia}
           penalizacionArmadura={statsCalculadas.penalizacionArmadura}
           alAbrirConfiguracion={manejarAbrirEdicion}
-          alGastarEspacio={(niv) => gastarEspacioConjuro(personajeActivo.id, niv)}
-          alRecuperarEspacio={(niv) => recuperarEspacioConjuro(personajeActivo.id, niv)}
-          alRecuperarTodosEspacios={() => recuperarTodosEspaciosConjuro(personajeActivo.id)}
-          alGastarPuntos={(cant) => gastarPuntosConjuro(personajeActivo.id, cant)}
-          alRecuperarPuntos={(cant) => recuperarPuntosConjuro(personajeActivo.id, cant)}
-          alRecuperarTodosPuntos={() => recuperarTodosPuntosConjuro(personajeActivo.id)}
-          alGastarEspacioPacto={() => gastarEspacioPacto(personajeActivo.id)}
-          alRecuperarEspaciosPacto={() => recuperarEspaciosPacto(personajeActivo.id)}
-          alEstablecerConcentracion={(hId, nom) => establecerConcentracion(personajeActivo.id, hId, nom)}
-          alRomperConcentracion={() => romperConcentracion(personajeActivo.id)}
-          alQuitarTruco={(hId) => quitarTrucoConocido(personajeActivo.id, hId)}
-          alQuitarConjuro={(hId) => desprepararConjuroPersonaje(personajeActivo.id, hId)}
-          alAlternarPreparado={(hId) => alternarConjuroPreparado(personajeActivo.id, hId)}
+          alGastarEspacio={alGastarEspacio}
+          alRecuperarEspacio={alRecuperarEspacio}
+          alRecuperarTodosEspacios={alRecuperarTodosEspacios}
+          alGastarPuntos={alGastarPuntos}
+          alRecuperarPuntos={alRecuperarPuntos}
+          alRecuperarTodosPuntos={alRecuperarTodosPuntos}
+          alGastarEspacioPacto={alGastarEspacioPacto}
+          alRecuperarEspaciosPacto={alRecuperarEspaciosPacto}
+          alEstablecerConcentracion={alEstablecerConcentracion}
+          alRomperConcentracion={alRomperConcentracion}
+          alQuitarTruco={alQuitarTruco}
+          alQuitarConjuro={alQuitarConjuro}
+          alAlternarPreparado={alAlternarPreparado}
         />
       )}
 

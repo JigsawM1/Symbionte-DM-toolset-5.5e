@@ -9,8 +9,38 @@
  * como falsos positivos ortográficos.
  */
 
-export function inicializarDesactivadorSpellcheck(): void {
+let yaInicializado = false;
+let observadorActivo: MutationObserver | null = null;
+let manejadorFocusinActivo: ((evento: FocusEvent) => void) | null = null;
+
+/**
+ * Limpia y desconecta el MutationObserver y el listener de focusin.
+ * Permite reiniciar el desactivador y previene memory leaks en entornos reactivos o pruebas.
+ */
+export function limpiarDesactivadorSpellcheck(): void {
   if (typeof document === 'undefined') return;
+
+  if (observadorActivo) {
+    observadorActivo.disconnect();
+    observadorActivo = null;
+  }
+
+  if (manejadorFocusinActivo) {
+    if (typeof document.removeEventListener === 'function') {
+      document.removeEventListener('focusin', manejadorFocusinActivo, true);
+    }
+    manejadorFocusinActivo = null;
+  }
+
+  yaInicializado = false;
+}
+
+export function inicializarDesactivadorSpellcheck(): () => void {
+  if (typeof document === 'undefined') return () => {};
+
+  if (yaInicializado) {
+    return limpiarDesactivadorSpellcheck;
+  }
 
   const desactivarEnElemento = (elemento: Element): void => {
     if (elemento instanceof HTMLInputElement || elemento instanceof HTMLTextAreaElement) {
@@ -39,24 +69,29 @@ export function inicializarDesactivadorSpellcheck(): void {
     procesarSubarbol(document.body);
 
     // 2. Observar dinámicamente nuevos elementos insertados (modales, portales, formularios)
-    const observador = new MutationObserver((mutaciones) => {
-      for (const mutacion of mutaciones) {
-        mutacion.addedNodes.forEach(procesarSubarbol);
-      }
-    });
+    if (typeof MutationObserver !== 'undefined') {
+      observadorActivo = new MutationObserver((mutaciones) => {
+        for (const mutacion of mutaciones) {
+          mutacion.addedNodes.forEach(procesarSubarbol);
+        }
+      });
 
-    observador.observe(document.body, { childList: true, subtree: true });
+      observadorActivo.observe(document.body, { childList: true, subtree: true });
+    }
   }
 
   // 3. Capturar el evento de foco como red de seguridad ante cualquier interacción
-  document.addEventListener(
-    'focusin',
-    (evento: FocusEvent) => {
-      const objetivo = evento.target;
-      if (objetivo instanceof HTMLInputElement || objetivo instanceof HTMLTextAreaElement) {
-        objetivo.spellcheck = false;
-      }
-    },
-    true
-  );
+  manejadorFocusinActivo = (evento: FocusEvent) => {
+    const objetivo = evento.target;
+    if (objetivo instanceof HTMLInputElement || objetivo instanceof HTMLTextAreaElement) {
+      objetivo.spellcheck = false;
+    }
+  };
+
+  if (typeof document.addEventListener === 'function') {
+    document.addEventListener('focusin', manejadorFocusinActivo, true);
+  }
+
+  yaInicializado = true;
+  return limpiarDesactivadorSpellcheck;
 }

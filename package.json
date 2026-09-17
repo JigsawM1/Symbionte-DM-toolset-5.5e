@@ -17,6 +17,7 @@
     "transformar-hechizos": "tsx --tsconfig tsconfig.json src/editor_hechizos/transformar.ts"
   },
   "dependencies": {
+    "@tanstack/react-virtual": "^3.14.13",
     "lucide-react": "^0.395.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",

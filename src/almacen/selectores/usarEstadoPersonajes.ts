@@ -155,8 +155,7 @@ export function calcularEstadisticasPersonaje(pj: PersonajeJugador): Estadistica
       homebrews.find((b) => b.id === item.idObjeto || normalizar(b.nombre) === normalizar(item.nombre)) ||
       OBJETOS_INICIALES.find((b) => b.id === item.idObjeto || normalizar(b.nombre) === normalizar(item.nombre));
 
-    const itemConEfectos = item as unknown as { efectosPasivos?: EfectoPasivo[]; modificadorAtaqueDano?: number };
-    const efectosDirectos = itemConEfectos.efectosPasivos;
+    const efectosDirectos = item.efectosPasivos;
     const efectosComp = objetoComp?.efectosPasivos;
     const listaEfectos = Array.isArray(efectosDirectos) && efectosDirectos.length > 0 ? efectosDirectos : efectosComp;
 
@@ -164,7 +163,7 @@ export function calcularEstadisticasPersonaje(pj: PersonajeJugador): Estadistica
       efectosPasivosActivos.push(...listaEfectos);
     }
 
-    const modDirecto = itemConEfectos.modificadorAtaqueDano ?? objetoComp?.modificadorAtaqueDano;
+    const modDirecto = item.modificadorAtaqueDano ?? objetoComp?.modificadorAtaqueDano;
     if (modDirecto && (item.categoria === "armaduras" || item.categoria === "escudos")) {
       bonosModificadorDirectoArmadura += Number(modDirecto) || 0;
     }

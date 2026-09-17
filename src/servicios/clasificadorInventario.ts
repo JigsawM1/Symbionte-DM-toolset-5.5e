@@ -50,9 +50,43 @@ export function filtrarListaInventarioTolerante(
 }
 
 /**
- * Obtiene el valor monetario en Piezas de Oro (PO) de un objeto buscando en la base de datos de compendio.
+ * Construye un mapa optimizado O(1) indexando objetos por ID y por nombre normalizado
+ * para consultas instantáneas de valor monetario.
  */
-export function obtenerValorPO(obj: ObjetoInventario, baseDatosObjetos: ObjetoJuego[]): number {
+export function construirMapaValoresPO(baseDatosObjetos: ObjetoJuego[]): Map<string, number> {
+  const mapa = new Map<string, number>();
+  for (const b of baseDatosObjetos) {
+    const valor = Number(b.valorPO) || 0;
+    if (b.id) {
+      mapa.set(b.id, valor);
+    }
+    if (b.nombre) {
+      mapa.set(b.nombre.toLowerCase().trim(), valor);
+    }
+  }
+  return mapa;
+}
+
+/**
+ * Obtiene el valor monetario en Piezas de Oro (PO) de un objeto buscando en la base de datos de compendio.
+ * Si se proporciona un mapaValores precalculado, la consulta se resuelve en tiempo O(1).
+ */
+export function obtenerValorPO(
+  obj: ObjetoInventario,
+  baseDatosObjetos: ObjetoJuego[],
+  mapaValores?: Map<string, number>
+): number {
+  if (mapaValores) {
+    if (obj.idObjeto && mapaValores.has(obj.idObjeto)) {
+      return mapaValores.get(obj.idObjeto) || 0;
+    }
+    const norm = obj.nombre.toLowerCase().trim();
+    if (mapaValores.has(norm)) {
+      return mapaValores.get(norm) || 0;
+    }
+    return 0;
+  }
+
   const comp = baseDatosObjetos.find(
     (b) => b.id === obj.idObjeto || b.nombre.toLowerCase().trim() === obj.nombre.toLowerCase().trim()
   );
@@ -225,6 +259,7 @@ export function ordenarInventarioPlano(
   baseDatosObjetos: ObjetoJuego[]
 ): ObjetoInventario[] {
   const lista = [...objetosMochilaFiltrados];
+  const mapaValores = criterioOrden === "valor-desc" ? construirMapaValoresPO(baseDatosObjetos) : undefined;
 
   const comparadorDesempate = (a: ObjetoInventario, b: ObjetoInventario): number => {
     switch (criterioOrden) {
@@ -235,7 +270,7 @@ export function ordenarInventarioPlano(
       case "peso-asc":
         return (a.pesoLb || 0) * (a.cantidad || 1) - (b.pesoLb || 0) * (b.cantidad || 1);
       case "valor-desc":
-        return obtenerValorPO(b, baseDatosObjetos) - obtenerValorPO(a, baseDatosObjetos);
+        return obtenerValorPO(b, baseDatosObjetos, mapaValores) - obtenerValorPO(a, baseDatosObjetos, mapaValores);
       case "nombre-asc":
       default:
         return a.nombre.localeCompare(b.nombre, "es");
@@ -269,7 +304,7 @@ export function ordenarInventarioPlano(
     case "nombre-asc":
       return lista.sort((a, b) => a.nombre.localeCompare(b.nombre, "es"));
     case "valor-desc":
-      return lista.sort((a, b) => obtenerValorPO(b, baseDatosObjetos) - obtenerValorPO(a, baseDatosObjetos));
+      return lista.sort((a, b) => obtenerValorPO(b, baseDatosObjetos, mapaValores) - obtenerValorPO(a, baseDatosObjetos, mapaValores));
     default:
       return lista;
   }

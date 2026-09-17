@@ -982,11 +982,11 @@ export const ListaHomebrew: React.FC<Props> = ({
                 <div className={estilos.seccionDescripcionFichaMargenGrande}>
                   <div className={estilos.descripcionTituloFicha}>EFECTOS PASIVOS Y BONOS AUTOMÁTICOS</div>
                   <div className={estilos.listaBonosMagicos} style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-                    {objeto.efectosPasivos.map((efecto: { tipo: string; bono: string; valor?: number | string; descripcion?: string }, idx: number) => (
+                    {objeto.efectosPasivos.map((efecto, idx: number) => (
                       <div key={idx} className={estilos.cajaBonoMagico} style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", gap: "2px", padding: "8px 12px" }}>
                         <div style={{ display: "flex", justifyContent: "space-between", width: "100%" }}>
                           <span className={estilos.textoEtiquetaMecanica} style={{ color: "var(--color-borde-cian)" }}>
-                            [{efecto.tipo}] <strong>{efecto.bono}</strong>
+                            [{efecto.tipo || "efecto"}] <strong>{efecto.bono}</strong>
                           </span>
                           {efecto.valor !== undefined && efecto.valor !== "" && (
                             <strong className={estilos.valorMecanicaAtaque}>

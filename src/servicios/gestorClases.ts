@@ -7,7 +7,10 @@ import type {
   RasgoPersonaje,
   ClasePersonaje,
   ClaseLanzadora,
-  CompetenciasSalvacion
+  CompetenciasSalvacion,
+  EfectoMecanicoRasgo,
+  SelectorRasgo,
+  RecuperacionRasgo
 } from "@/tipos";
 import {
   CATALOGO_CLASES_DND55,
@@ -185,20 +188,20 @@ function resolverEscaladosRasgo(
     escaladoRecuperacion?: Array<{ nivelMinimo: number; valor: string }>;
   },
   nivel: number,
-  efectosBase: Array<Record<string, unknown>>,
-  selectoresBase: Array<Record<string, unknown>>
+  efectosBase: EfectoMecanicoRasgo[],
+  selectoresBase: SelectorRasgo[]
 ): {
   formulaDados: string | undefined;
   usosEscalados: number | undefined;
   recuperacion: string | undefined;
-  efectos: Array<Record<string, unknown>>;
-  selectores: Array<Record<string, unknown>>;
+  efectos: EfectoMecanicoRasgo[];
+  selectores: SelectorRasgo[];
 } {
   let formulaDados = r.formulaDados;
   let usosEscalados: number | undefined;
   let recuperacion = r.recuperacion;
-  const efectos: Array<Record<string, unknown>> = JSON.parse(JSON.stringify(efectosBase));
-  const selectores: Array<Record<string, unknown>> = JSON.parse(JSON.stringify(selectoresBase));
+  const efectos: EfectoMecanicoRasgo[] = JSON.parse(JSON.stringify(efectosBase));
+  const selectores: SelectorRasgo[] = JSON.parse(JSON.stringify(selectoresBase));
 
   // 1. Escalado de fórmula de dados
   if (r.escaladoFormulaDados?.length) {
@@ -299,8 +302,8 @@ export function obtenerRasgosClaseYSubclase(
       }
     }
 
-    const efectosBase = r.efectos ? (r.efectos as unknown as Array<Record<string, unknown>>) : [];
-    const selectoresBase = r.selectores ? (r.selectores as unknown as Array<Record<string, unknown>>) : [];
+    const efectosBase: EfectoMecanicoRasgo[] = r.efectos ? [...r.efectos] : [];
+    const selectoresBase: SelectorRasgo[] = r.selectores ? [...r.selectores] : [];
 
     const escalados = resolverEscaladosRasgo(r, nivelSeguro, efectosBase, selectoresBase);
 
@@ -318,10 +321,10 @@ export function obtenerRasgosClaseYSubclase(
       tieneUsosLimitados: !!r.tieneUsosLimitados,
       usosMaximos: usosFinales,
       usosRestantes: usosFinales,
-      recuperacion: (escalados.recuperacion ?? r.recuperacion ?? "ninguno") as import("@/tipos/rasgos").RecuperacionRasgo,
+      recuperacion: (escalados.recuperacion ?? r.recuperacion ?? "ninguno") as RecuperacionRasgo,
       formulaDados: escalados.formulaDados,
       escaladoFormulaDados: r.escaladoFormulaDados,
-      escaladoUsos: r.escaladoUsos as import("@/tipos/rasgos").EscaladoUsos | undefined,
+      escaladoUsos: r.escaladoUsos ? { ...r.escaladoUsos, minimo: r.escaladoUsos.minimo ?? 1 } : undefined,
       escaladoRecuperacion: r.escaladoRecuperacion,
       sincronizarEfectosConFormula: !!r.sincronizarEfectosConFormula,
       personalizado: false,
@@ -336,8 +339,8 @@ export function obtenerRasgosClaseYSubclase(
       conjurosOtorgados: r.conjurosOtorgados ? [...r.conjurosOtorgados] : [],
       categoriaMecanica: r.categoriaMecanica,
       formulaEscalado: r.formulaEscalado,
-      efectos: escalados.efectos as import("@/tipos/rasgos").EfectoMecanicoRasgo[],
-      selectores: escalados.selectores as import("@/tipos/rasgos").SelectorRasgo[],
+      efectos: escalados.efectos,
+      selectores: escalados.selectores,
       tablaProgresion: r.tablaProgresion ? JSON.parse(JSON.stringify(r.tablaProgresion)) : undefined,
       notas: ""
     };

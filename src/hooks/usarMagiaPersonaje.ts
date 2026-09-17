@@ -48,6 +48,32 @@ export interface EstadoMagiaPersonaje {
 }
 
 /**
+ * Expande un array de IDs de hechizos pre-insertando variantes normalizadas,
+ * slugs y alias en un Set para garantizar consultas O(1) instantáneas.
+ */
+function expandirSetHechizos(ids: string[] = []): Set<string> {
+  const set = new Set<string>();
+  for (const raw of ids) {
+    if (!raw) continue;
+    set.add(raw);
+    const norm = raw.toLowerCase().trim();
+    set.add(norm);
+    const sinTildes = norm.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    set.add(sinTildes);
+    const slug = generarIdSlug("h", raw);
+    set.add(slug);
+
+    const alias = MAPA_ALIAS_HECHIZOS[sinTildes] || MAPA_ALIAS_HECHIZOS[norm] || [];
+    for (const al of alias) {
+      set.add(al);
+      set.add(al.toLowerCase().trim());
+      set.add(generarIdSlug("h", al));
+    }
+  }
+  return set;
+}
+
+/**
  * Hook universal y reutilizable (DRY) que unifica el cálculo de recursos mágicos,
  * indexación de catálogo, detección de subclase y métricas tanto para la Hoja de Personaje
  * como para el Compendio de Conjuros.
@@ -202,7 +228,7 @@ export function usarMagiaPersonaje(
     return alias.some((al) => setSiemprePreparados.has(al) || setSiemprePreparados.has(generarIdSlug("h", al)));
   }, [setSiemprePreparados]);
 
-  // Función unificada para verificar si un hechizo está en un Set genérico
+  // Función unificada para verificar si un hechizo está en un Set optimizado O(1)
   const estaEnSet = useCallback((setIds: Set<string>, hechizo: HechizoBase): boolean => {
     if (setIds.has(hechizo.id)) return true;
     const slug = generarIdSlug("h", hechizo.nombre);
@@ -217,22 +243,12 @@ export function usarMagiaPersonaje(
       if (setIds.has(al) || setIds.has(generarIdSlug("h", al))) return true;
     }
 
-    for (const elem of setIds) {
-      const elemNorm = elem.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
-      if (elemNorm === sinTildes || elem === hechizo.id || elem === slug) {
-        return true;
-      }
-      const aliasElem = MAPA_ALIAS_HECHIZOS[elemNorm] || [];
-      if (aliasElem.includes(sinTildes) || aliasElem.some((ae) => generarIdSlug("h", ae) === slug)) {
-        return true;
-      }
-    }
     return false;
   }, []);
 
-  const setPreparadosIds = useMemo(() => new Set(personaje?.conjurosPreparadosIds || []), [personaje?.conjurosPreparadosIds]);
-  const setConocidosIds = useMemo(() => new Set(personaje?.conjurosConocidosIds || []), [personaje?.conjurosConocidosIds]);
-  const setTrucosIds = useMemo(() => new Set(personaje?.trucosConocidosIds || []), [personaje?.trucosConocidosIds]);
+  const setPreparadosIds = useMemo(() => expandirSetHechizos(personaje?.conjurosPreparadosIds || []), [personaje?.conjurosPreparadosIds]);
+  const setConocidosIds = useMemo(() => expandirSetHechizos(personaje?.conjurosConocidosIds || []), [personaje?.conjurosConocidosIds]);
+  const setTrucosIds = useMemo(() => expandirSetHechizos(personaje?.trucosConocidosIds || []), [personaje?.trucosConocidosIds]);
 
   // 5.1. Detección profunda de origen de conjuros otorgados (clase, subclase, especie, legado, rasgos)
   const obtenerOrigenConjuro = useCallback(

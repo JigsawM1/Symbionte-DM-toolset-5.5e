@@ -29,7 +29,7 @@ interface TarjetaAtaquePersonajeProps {
   alCambiarCaracteristica?: (ataqueId: string, nuevaCarac: Caracteristica) => void;
 }
 
-export const TarjetaAtaquePersonaje: React.FC<TarjetaAtaquePersonajeProps> = ({
+export const TarjetaAtaquePersonaje: React.FC<TarjetaAtaquePersonajeProps> = React.memo(({
   ataque,
   evaluacionCondiciones,
   alTirarAtaque,
@@ -351,4 +351,6 @@ export const TarjetaAtaquePersonaje: React.FC<TarjetaAtaquePersonajeProps> = ({
       </div>
     </div>
   );
-};
+});
+
+TarjetaAtaquePersonaje.displayName = "TarjetaAtaquePersonaje";

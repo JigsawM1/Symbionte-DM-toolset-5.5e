@@ -53,6 +53,8 @@ type ColeccionOyentes = {
 
 class PuenteTaleSpireClass {
   private oyentes: ColeccionOyentes = {};
+  private manejarEventoIniciativaDOM?: (e: Event) => void;
+  private manejarResultadosDadosDOM?: (e: Event) => void;
 
   constructor() {
     this.registrarCallbacksGlobales();
@@ -167,13 +169,13 @@ class PuenteTaleSpireClass {
     };
 
     // Registrar oyentes de eventos DOM estándar en window y document para redundancia CEF
-    const manejarEventoIniciativaDOM = (e: Event) => {
+    this.manejarEventoIniciativaDOM = (e: Event) => {
       logger.debug("[Puente TaleSpire DOM] Capturado evento de iniciativa en el DOM:", e.type);
       // Los eventos DOM inyectados por CEF no suelen traer el payload completo en details
       this.emit("iniciativaActualizada", undefined);
     };
 
-    const manejarResultadosDadosDOM = (e: Event) => {
+    this.manejarResultadosDadosDOM = (e: Event) => {
       logger.debug("[Puente TaleSpire DOM] Capturado evento de dados en el DOM:", e.type);
       const customEv = e as CustomEvent;
       if (customEv.detail) {
@@ -181,14 +183,47 @@ class PuenteTaleSpireClass {
       }
     };
 
-    window.addEventListener("initiativeUpdated", manejarEventoIniciativaDOM);
-    document.addEventListener("initiativeUpdated", manejarEventoIniciativaDOM);
-    window.addEventListener("manejarEventoIniciativa", manejarEventoIniciativaDOM);
-    document.addEventListener("manejarEventoIniciativa", manejarEventoIniciativaDOM);
-    window.addEventListener("manejarResultadosDados", manejarResultadosDadosDOM);
-    document.addEventListener("manejarResultadosDados", manejarResultadosDadosDOM);
-    window.addEventListener("onRollResults", manejarResultadosDadosDOM);
-    document.addEventListener("onRollResults", manejarResultadosDadosDOM);
+    window.addEventListener("initiativeUpdated", this.manejarEventoIniciativaDOM);
+    document.addEventListener("initiativeUpdated", this.manejarEventoIniciativaDOM);
+    window.addEventListener("manejarEventoIniciativa", this.manejarEventoIniciativaDOM);
+    document.addEventListener("manejarEventoIniciativa", this.manejarEventoIniciativaDOM);
+    window.addEventListener("manejarResultadosDados", this.manejarResultadosDadosDOM);
+    document.addEventListener("manejarResultadosDados", this.manejarResultadosDadosDOM);
+    window.addEventListener("onRollResults", this.manejarResultadosDadosDOM);
+    document.addEventListener("onRollResults", this.manejarResultadosDadosDOM);
+  }
+
+  /**
+   * Limpia y desuscribe todos los event listeners DOM, callbacks globales y suscriptores.
+   * Evita fugas de memoria al recargar o desmontar el puente en pruebas o tiempo de ejecución.
+   */
+  public destruir(): void {
+    if (typeof window !== "undefined") {
+      if (this.manejarEventoIniciativaDOM) {
+        window.removeEventListener("initiativeUpdated", this.manejarEventoIniciativaDOM);
+        document.removeEventListener("initiativeUpdated", this.manejarEventoIniciativaDOM);
+        window.removeEventListener("manejarEventoIniciativa", this.manejarEventoIniciativaDOM);
+        document.removeEventListener("manejarEventoIniciativa", this.manejarEventoIniciativaDOM);
+      }
+
+      if (this.manejarResultadosDadosDOM) {
+        window.removeEventListener("manejarResultadosDados", this.manejarResultadosDadosDOM);
+        document.removeEventListener("manejarResultadosDados", this.manejarResultadosDadosDOM);
+        window.removeEventListener("onRollResults", this.manejarResultadosDadosDOM);
+        document.removeEventListener("onRollResults", this.manejarResultadosDadosDOM);
+      }
+
+      delete window.manejarCambioEstadoSimbionte;
+      delete window.initiativeUpdated;
+      delete window.manejarEventoIniciativa;
+      delete window.manejarCambioEstadoCriatura;
+      delete window.manejarCambioSeleccionCriatura;
+      delete window.manejarResultadosDados;
+      delete window.onRollResults;
+      delete window.manejarEventoCliente;
+    }
+
+    this.oyentes = {};
   }
 }
 

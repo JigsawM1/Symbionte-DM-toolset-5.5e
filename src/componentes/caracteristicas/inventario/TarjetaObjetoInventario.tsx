@@ -47,7 +47,7 @@ const CLASES_RAREZA: Record<Rareza, string> = {
   "Artefacto": estilos.rarezaArtefacto
 };
 
-export const TarjetaObjetoInventario: React.FC<TarjetaObjetoInventarioProps> = ({
+export const TarjetaObjetoInventario: React.FC<TarjetaObjetoInventarioProps> = React.memo(({
   objeto,
   baseDatosObjetos,
   inventarioCompleto,
@@ -613,4 +613,6 @@ export const TarjetaObjetoInventario: React.FC<TarjetaObjetoInventarioProps> = (
       />
     </>
   );
-};
+});
+
+TarjetaObjetoInventario.displayName = "TarjetaObjetoInventario";

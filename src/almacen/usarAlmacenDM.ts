@@ -81,7 +81,7 @@ type PersistenciaMiddleware = (
 
 const persistenciaMiddleware: PersistenciaMiddleware = (configuradorStore) => (set, get, api) => {
   const nuevoSet: typeof set = (...args) => {
-    const estadoPrevio = { ...get() };
+    const estadoPrevio = get();
     set(...args);
     const estadoNuevo = get();
 

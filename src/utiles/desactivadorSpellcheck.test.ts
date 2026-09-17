@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
-import { inicializarDesactivadorSpellcheck } from "./desactivadorSpellcheck";
+import { inicializarDesactivadorSpellcheck, limpiarDesactivadorSpellcheck } from "./desactivadorSpellcheck";
 
 describe("desactivadorSpellcheck - Prevención global de corrector nativo", () => {
   it("no lanza error si se ejecuta en un entorno sin DOM (ej. Node.js o SSR)", () => {
@@ -11,6 +11,7 @@ describe("desactivadorSpellcheck - Prevención global de corrector nativo", () =
     const originalMutationObserver = globalThis.MutationObserver;
 
     afterEach(() => {
+      limpiarDesactivadorSpellcheck();
       // Restaurar globales
       globalThis.document = originalDocument;
       globalThis.MutationObserver = originalMutationObserver;
@@ -24,9 +25,10 @@ describe("desactivadorSpellcheck - Prevención global de corrector nativo", () =
       const oyentes: Record<string, (e: unknown) => void> = {};
 
       const mockObserve = vi.fn();
+      const mockDisconnect = vi.fn();
       const mockObserver = vi.fn().mockImplementation(() => ({
         observe: mockObserve,
-        disconnect: vi.fn()
+        disconnect: mockDisconnect
       }));
 
       // Clases para comprobación instanceof
@@ -71,16 +73,21 @@ describe("desactivadorSpellcheck - Prevención global de corrector nativo", () =
       globalMock.HTMLTextAreaElement = MockHTMLTextAreaElement;
       globalMock.MutationObserver = mockObserver;
 
+      const mockRemoveEventListener = vi.fn((evento: string) => {
+        delete oyentes[evento];
+      });
+
       const mockDocument = {
         body: mockBody,
         addEventListener: vi.fn((evento: string, cb: (e: unknown) => void) => {
           oyentes[evento] = cb;
-        })
+        }),
+        removeEventListener: mockRemoveEventListener
       };
 
       globalMock.document = mockDocument;
 
-      inicializarDesactivadorSpellcheck();
+      const cleanup = inicializarDesactivadorSpellcheck();
 
       // Verificar que los campos encontrados en el DOM tuvieron spellcheck desactivado
       inputs.forEach((campo) => {
@@ -101,6 +108,11 @@ describe("desactivadorSpellcheck - Prevención global de corrector nativo", () =
       editable.setAttribute("contenteditable", "true");
       editable.setAttribute("spellcheck", "true");
       oyentes["focusin"]?.({ target: editable });
+
+      // Verificar desconexión y cleanup
+      cleanup();
+      expect(mockDisconnect).toHaveBeenCalledTimes(1);
+      expect(mockRemoveEventListener).toHaveBeenCalledWith("focusin", expect.any(Function), true);
     });
   });
 });

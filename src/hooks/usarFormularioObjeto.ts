@@ -10,7 +10,8 @@ import {
   Armadura, 
   Escudo,
   EquipoAventuras,
-  SubcategoriaEquipo
+  SubcategoriaEquipo,
+  EfectoPasivo
 } from "@/tipos";
 import { type CategoriaEquipo, SUBCATEGORIAS_POR_CATEGORIA } from "@/constantes/categoriasEquipoConstantes";
 
@@ -27,7 +28,7 @@ export function usarFormularioObjeto(idEnEdicion: string | null, alGuardarExitos
   const [oCostoCantidad, setOCostoCantidad] = useState<number>(0);
   const [oCostoUnidad, setOCostoUnidad] = useState<"PC" | "PP" | "PE" | "PO" | "PPT">("PO");
   const [oEsMagico, setOEsMagico] = useState(false);
-  const [oEfectosPasivos, setOEfectosPasivos] = useState<{ tipo: string; bono: string; valor?: number | string; descripcion?: string }[]>([]);
+  const [oEfectosPasivos, setOEfectosPasivos] = useState<EfectoPasivo[]>([]);
 
   // --- NUEVOS ESTADOS RELACIONALES ---
   const [oAmmunitionIndex, setOAmmunitionIndex] = useState("");

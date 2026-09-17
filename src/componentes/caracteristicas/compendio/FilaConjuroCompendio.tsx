@@ -51,7 +51,7 @@ function formatearNivel(nivel: number): string {
   return `Nivel ${nivel}`;
 }
 
-export const FilaConjuroCompendio: React.FC<FilaConjuroCompendioProps> = ({
+export const FilaConjuroCompendio: React.FC<FilaConjuroCompendioProps> = React.memo(({
   hechizo,
   estaEnLista,
   estaPreparado,
@@ -411,4 +411,6 @@ export const FilaConjuroCompendio: React.FC<FilaConjuroCompendioProps> = ({
       </div>
     </div>
   );
-};
+});
+
+FilaConjuroCompendio.displayName = "FilaConjuroCompendio";

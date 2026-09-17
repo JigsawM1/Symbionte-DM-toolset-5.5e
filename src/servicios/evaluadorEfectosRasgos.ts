@@ -579,7 +579,8 @@ export function evaluarRecuperacionInspiracionEnDescanso(
  * para consultar en tiradas d20 (salvaciones, iniciativa, ataques).
  */
 export interface ConsultaVentajaRasgo {
-  tipoTirada: "salvacion" | "iniciativa" | "ataque" | "caracteristica";
+  tipoTirada?: "salvacion" | "iniciativa" | "ataque" | "caracteristica";
+  tipo?: "salvacion" | "iniciativa" | "ataque" | "caracteristica" | string;
   subtipo?: string; // ej. "destreza", "fuerza", "atletismo"
 }
 
@@ -593,7 +594,7 @@ export function evaluarVentajasDeRasgosEnTirada(
   let tieneDesventaja = false;
 
   const subtipoNorm = normalizar(consulta.subtipo || "");
-  const tipoTirada = normalizar(consulta.tipoTirada || (consulta as unknown as { tipo?: string }).tipo || "");
+  const tipoTirada = normalizar(consulta.tipoTirada || consulta.tipo || "");
 
   for (const ef of efectos) {
     const objNorm = normalizar(ef.objetivo);

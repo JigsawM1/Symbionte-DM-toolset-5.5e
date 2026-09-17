@@ -1,23 +1,37 @@
 import { z } from "zod";
+import {
+  EsquemaCaracteristica,
+  type Caracteristica,
+  EsquemaCaracteristicas,
+  type Caracteristicas,
+  EsquemaVelocidad,
+  type VelocidadEstructurada,
+  EsquemaSentidos,
+  type SentidosEstructurados,
+  EsquemaEfectoPasivo,
+  type EfectoPasivo,
+  EsquemaHechizoVinculado,
+  type HechizoVinculado
+} from "./personaje";
+
+export {
+  EsquemaCaracteristica,
+  type Caracteristica,
+  EsquemaCaracteristicas,
+  type Caracteristicas,
+  EsquemaVelocidad,
+  type VelocidadEstructurada,
+  EsquemaSentidos,
+  type SentidosEstructurados,
+  EsquemaEfectoPasivo,
+  type EfectoPasivo,
+  EsquemaHechizoVinculado,
+  type HechizoVinculado
+};
 
 // ==========================================
 // 1. CARACTERÍSTICAS Y CAPACIDADES DE D&D 2024
 // ==========================================
-
-export const EsquemaCaracteristica = z.enum([
-  "fuerza", "destreza", "constitucion", "inteligencia", "sabiduria", "carisma"
-]);
-export type Caracteristica = z.infer<typeof EsquemaCaracteristica>;
-
-export const EsquemaCaracteristicas = z.object({
-  fuerza: z.number().default(10),
-  destreza: z.number().default(10),
-  constitucion: z.number().default(10),
-  inteligencia: z.number().default(10),
-  sabiduria: z.number().default(10),
-  carisma: z.number().default(10)
-});
-export type Caracteristicas = z.infer<typeof EsquemaCaracteristicas>;
 
 export const EsquemaSalvaciones = z.object({
   fuerza: z.number().optional(),
@@ -103,25 +117,6 @@ export type TipoMoneda = "PC" | "PP" | "PE" | "PO" | "PPT";
 // ==========================================
 // 3. SUBESTRUCTURAS RICAS DE COMBATE Y MONSTRUOS
 // ==========================================
-
-export const EsquemaVelocidad = z.object({
-  caminar: z.number().default(0), // pies
-  nadar: z.number().optional(),
-  volar: z.number().optional(),
-  escalar: z.number().optional(),
-  excavar: z.number().optional(),
-  planea: z.boolean().default(false)
-});
-export type VelocidadEstructurada = z.infer<typeof EsquemaVelocidad>;
-
-export const EsquemaSentidos = z.object({
-  visionOscuridad: z.number().optional(), // pies
-  visionCiega: z.number().optional(),
-  visionVerdadera: z.number().optional(),
-  sentidoSismico: z.number().optional(),
-  percepcionPasiva: z.number().default(10)
-});
-export type SentidosEstructurados = z.infer<typeof EsquemaSentidos>;
 
 export const EsquemaAccionRapida = z.object({
   nombre: z.string(),
@@ -230,17 +225,6 @@ export const EsquemaHechizoBase = z.object({
 export type HechizoBase = z.infer<typeof EsquemaHechizoBase>;
 // 5. EQUIPO Y OBJETOS MÁGICOS
 // ==========================================
-
-export const EsquemaEfectoPasivo = z.object({
-  tipo: z.string(), // "Resistencia", "Inmunidad", "Foco Arcano", "Otro"
-  bono: z.string(), // ej. "Fuego", "Constitución"
-  valor: z.union([z.number(), z.string()]).optional(),
-  descripcion: z.string().optional()
-});
-export type EfectoPasivo = z.infer<typeof EsquemaEfectoPasivo>;
-
-import { EsquemaHechizoVinculado, type HechizoVinculado } from "./personaje";
-export { EsquemaHechizoVinculado, type HechizoVinculado };
 
 export const EsquemaArtesania = z.object({
   tallerRequerido: z.string(),

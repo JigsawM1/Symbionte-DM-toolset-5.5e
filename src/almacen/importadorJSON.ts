@@ -349,10 +349,10 @@ export function importarDesdeJSON(
           vidaNotas: aplanarValor(vidaNotas),
           iniciativaBonificador: inicBonif,
           velocidad: (velRaw && typeof velRaw === "object" && !Array.isArray(velRaw))
-            ? (velRaw as unknown as VelocidadEstructurada)
+            ? (velRaw as VelocidadEstructurada)
             : parsearVelocidad(velocidadStr),
-          sentidos: (m.sentidos && typeof m.sentidos === "object")
-            ? (m.sentidos as unknown as SentidosEstructurados)
+          sentidos: (m.sentidos && typeof m.sentidos === "object" && !Array.isArray(m.sentidos))
+            ? (m.sentidos as SentidosEstructurados)
             : parsearSentidos(aplanarValor(m.sentidos || m.Senses)),
           tamaño: aplanarValor(m.tamaño || m.tamano || m.Size || m.size || ""),
           alineacion: aplanarValor(m.alineacion || m.alineamiento || m.Alignment || m.alignment || ""),
@@ -415,7 +415,7 @@ export function importarDesdeJSON(
           tesoros: aplanarValor(m.tesoros || m.Treasure || m.treasure || m.treasures || m.Treasures || "")
         };
 
-        const monstruoSaneadoConPasiva = sanearMonstruoSentidosYPasiva(monstruoSaneado as unknown as MonstruoBase);
+        const monstruoSaneadoConPasiva = sanearMonstruoSentidosYPasiva(monstruoSaneado);
         const val = EsquemaMonstruoBase.safeParse(monstruoSaneadoConPasiva);
         if (val.success) {
           return val.data;

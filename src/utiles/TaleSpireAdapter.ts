@@ -45,7 +45,7 @@ class TaleSpireAdapter {
    * Obtiene la referencia global de window.TS de forma segura en cualquier entorno.
    */
   private get tsGlobal(): TaleSpireAPI | undefined {
-    return typeof window !== "undefined" ? (window as unknown as { TS?: TaleSpireAPI }).TS : undefined;
+    return typeof window !== "undefined" ? window.TS : undefined;
   }
 
   /**
@@ -517,12 +517,12 @@ class TaleSpireAdapter {
 
       const onClientEvent = window.TS?.clients?.onClientEvent;
       if (onClientEvent) {
-        if (typeof onClientEvent.subscribe === "function") {
+        if (typeof onClientEvent === "object" && "subscribe" in onClientEvent && typeof onClientEvent.subscribe === "function") {
           const sub = onClientEvent.subscribe(listener as (e: EventoClienteTS) => void);
           return { desuscribir: () => sub?.desuscribir?.() };
         }
         if (typeof onClientEvent === "function") {
-          const unsub = (onClientEvent as unknown as (fn: (e: unknown) => void) => (() => void) | undefined)(listener);
+          const unsub = onClientEvent(listener as (e: unknown) => void);
           return { desuscribir: () => (typeof unsub === "function" ? unsub() : undefined) };
         }
       }
@@ -536,7 +536,7 @@ class TaleSpireAdapter {
       if (window.TS?.clients && typeof window.TS.clients.whoAmI === "function") {
         try {
           const yo = await window.TS.clients.whoAmI();
-          return yo.player?.id || (yo as unknown as { playerId?: string }).playerId || null;
+          return yo.player?.id || yo.playerId || null;
         } catch (e) {
           logger.error("[TS Adapter] Error obteniendo ID de jugador:", e);
         }
@@ -596,7 +596,7 @@ class TaleSpireAdapter {
           if (yoCliente?.player?.name && yoCliente.player.name.trim() !== "") {
             return yoCliente.player.name.trim();
           }
-          const pId = yoCliente?.player?.id || (yoCliente as unknown as { playerId?: string })?.playerId;
+          const pId = yoCliente?.player?.id || yoCliente?.playerId;
           if (pId && ts.players && typeof ts.players.getMoreInfo === "function") {
             const info = await ts.players.getMoreInfo([pId]);
             if (info && info[0]?.name) {

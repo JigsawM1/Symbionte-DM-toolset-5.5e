@@ -211,6 +211,25 @@ export const EsquemaHechizoVinculado = z.object({
 });
 export type HechizoVinculado = z.infer<typeof EsquemaHechizoVinculado>;
 
+export const EsquemaEfectoPasivo = z.object({
+  tipo: z.string().optional(),
+  categoria: z.string().optional(),
+  bono: z.string().default(""),
+  operacion: z.string().optional(),
+  valor: z.union([z.string(), z.number()]).optional(),
+  descripcion: z.string().optional()
+});
+export type EfectoPasivo = z.infer<typeof EsquemaEfectoPasivo>;
+
+export const EsquemaItemContenido = z.object({
+  item: z.object({
+    index: z.string().optional(),
+    name: z.string().optional()
+  }).optional(),
+  quantity: z.number().optional()
+});
+export type ItemContenido = z.infer<typeof EsquemaItemContenido>;
+
 export const EsquemaObjetoInventario = z.object({
   idInstancia: z.string(),
   idObjeto: z.string(),
@@ -232,7 +251,10 @@ export const EsquemaObjetoInventario = z.object({
   cargasMaximas: z.number().int().min(0).optional(),
   cargasActuales: z.number().int().min(0).optional(),
   formulaRecarga: z.string().optional(),
-  hechizosVinculados: z.array(EsquemaHechizoVinculado).optional()
+  hechizosVinculados: z.array(EsquemaHechizoVinculado).optional(),
+  efectosPasivos: z.array(EsquemaEfectoPasivo).optional(),
+  modificadorAtaqueDano: z.number().optional(),
+  contents: z.array(EsquemaItemContenido).optional()
 });
 export type ObjetoInventario = z.infer<typeof EsquemaObjetoInventario>;
 

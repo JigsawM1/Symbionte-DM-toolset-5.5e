@@ -119,7 +119,9 @@ export const EsquemaOpcionSelector = z.object({
   conjuroGratuito: z.string().optional(),
   recuperacionConjuro: z.enum(["ninguno", "descanso_largo", "ilimitado"]).optional()
 });
-export type OpcionSelector = z.infer<typeof EsquemaOpcionSelector>;
+export type OpcionSelector = Omit<z.infer<typeof EsquemaOpcionSelector>, "selectores"> & {
+  selectores?: SelectorRasgo[];
+};
 
 export interface InvocacionSobrenatural {
   id: string;

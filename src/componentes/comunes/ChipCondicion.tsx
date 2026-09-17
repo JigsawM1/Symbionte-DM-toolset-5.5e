@@ -22,7 +22,7 @@ export interface ChipCondicionProps {
  * Componente universal para visualizar condiciones y efectos de combate (D&D 5.5e).
  * Incluye variantes cromáticas semánticas y tooltip flotante enriquecido en tiempo real.
  */
-export const ChipCondicion: React.FC<ChipCondicionProps> = ({
+export const ChipCondicion: React.FC<ChipCondicionProps> = React.memo(({
   nombre,
   esDesangrado,
   esAlerta,
@@ -197,4 +197,6 @@ export const ChipCondicion: React.FC<ChipCondicionProps> = ({
       )}
     </div>
   );
-};
+});
+
+ChipCondicion.displayName = "ChipCondicion";

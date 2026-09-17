@@ -1013,10 +1013,10 @@ export function formatearRecargaTexto(recarga?: string, uso?: string): string {
   return texto;
 }
 
-export function sanearMonstruoSentidosYPasiva(m: MonstruoBase): MonstruoBase {
+export function sanearMonstruoSentidosYPasiva<T extends Partial<MonstruoBase>>(m: T): T {
   let sentidosObj: SentidosEstructurados;
   if (m.sentidos && typeof m.sentidos === "object" && !Array.isArray(m.sentidos)) {
-    sentidosObj = { ...(m.sentidos as unknown as SentidosEstructurados) };
+    sentidosObj = { ...(m.sentidos as SentidosEstructurados) };
   } else {
     sentidosObj = parsearSentidos(typeof m.sentidos === "string" ? m.sentidos : "");
   }
@@ -1070,7 +1070,7 @@ export function sanearMonstruoSentidosYPasiva(m: MonstruoBase): MonstruoBase {
       : "3",
     equipo: typeof m.equipo === "string" ? m.equipo.trim() : (m.equipo ? aplanarValor(m.equipo) : ""),
     tesoros: typeof m.tesoros === "string" ? m.tesoros.trim() : (m.tesoros ? aplanarValor(m.tesoros) : ""),
-    nombreNormalizado: normalizarTexto(m.nombre),
+    nombreNormalizado: normalizarTexto(m.nombre || ""),
     sentidos: sentidosObj
   };
 }

@@ -89,19 +89,13 @@ export function usarConexionTaleSpire() {
           }
         };
 
-        // Suscribirse a la selección a través del EventBus global CEF
+        // Suscribirse a la selección exclusivamente a través del EventBus global CEF para evitar doble ejecución
         const subPuente = puenteTaleSpire.on("seleccionCriaturas", (seleccion) => {
           procesarSeleccionRaw(seleccion);
         });
 
-        // Suscribirse también mediante la API directa JS del Adaptador
-        const subNativa = ts.creatures.suscribirASeleccion((datos) => {
-          procesarSeleccionRaw(datos);
-        });
-
         desuscribirSeleccion = () => {
           subPuente();
-          subNativa.desuscribir();
         };
 
         // Suscribirse a los cambios en la cola de iniciativa a través del puente EventBus
@@ -255,12 +249,13 @@ export function usarConexionTaleSpire() {
         if (desuscribirSeleccion) desuscribirSeleccion();
         if (desuscribirIniciativa) desuscribirIniciativa();
         if (desuscribirCliente) desuscribirCliente();
+        puenteTaleSpire.destruir();
       };
     }
 
-    // Si no está listo, sondeamos periódicamente de forma inteligente.
+    // Si no está listo, sondeamos periódicamente con intervalo equilibrado de 250ms (4/s).
     let intentos = 0;
-    const maxIntentos = 300; 
+    const maxIntentos = 60; // 60 intentos x 250ms = 15 segundos
     
     const intervalo = setInterval(() => {
       intentos++;
@@ -270,7 +265,7 @@ export function usarConexionTaleSpire() {
         clearInterval(intervalo);
         logger.error("[TaleSpire Simbionte] CRÍTICO: La API nativa de TaleSpire no apareció tras 15 segundos. Verifica tu instalación del juego.");
       }
-    }, 50);
+    }, 250);
 
     return () => {
       activo = false;
@@ -279,6 +274,7 @@ export function usarConexionTaleSpire() {
       if (desuscribirSeleccion) desuscribirSeleccion();
       if (desuscribirIniciativa) desuscribirIniciativa();
       if (desuscribirCliente) desuscribirCliente();
+      puenteTaleSpire.destruir();
     };
   }, []);
 }

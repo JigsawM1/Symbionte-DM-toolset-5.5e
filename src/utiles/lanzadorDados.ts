@@ -22,6 +22,7 @@ export interface MetadataTiradaEspecial {
   nombreGrupoOriginal: string;
   grupoAName: string;
   grupoBName: string;
+  creadoEn?: number;
 }
 
 // Registro global de tiradas especiales de ventaja/desventaja en memoria
@@ -33,6 +34,7 @@ export interface MetadataIniciativa {
   nombrePersonaje?: string;
   idMiniaturaTS?: string | null;
   idPersonaje?: string;
+  creadoEn?: number;
 }
 
 // Registro global de tiradas de iniciativa activas en memoria
@@ -41,6 +43,7 @@ const tiradasIniciativaActivas: Record<string, MetadataIniciativa> = {};
 export interface MetadataSalvacionMuerte {
   tipo: "salvacionMuerte";
   personajeId: string;
+  creadoEn?: number;
 }
 
 export interface MetadataCuracionRasgo {
@@ -49,6 +52,7 @@ export interface MetadataCuracionRasgo {
   rasgoId?: string;
   nombreRasgo?: string;
   cantidadDadosGastados?: number;
+  creadoEn?: number;
 }
 
 export interface MetadataHpTemporalRasgo {
@@ -57,6 +61,7 @@ export interface MetadataHpTemporalRasgo {
   rasgoId?: string;
   nombreRasgo?: string;
   multiplicador?: number;
+  creadoEn?: number;
 }
 
 export interface MetadataDadoGolpe {
@@ -64,6 +69,7 @@ export interface MetadataDadoGolpe {
   personajeId: string;
   nombrePersonaje?: string;
   tipoDado?: string;
+  creadoEn?: number;
 }
 
 export type MetadataEspecialRasgo = MetadataCuracionRasgo | MetadataHpTemporalRasgo;
@@ -73,6 +79,33 @@ const tiradasSalvacionMuerteActivas: Record<string, MetadataSalvacionMuerte> = {
 const tiradasCuracionRasgoActivas: Record<string, MetadataCuracionRasgo> = {};
 const tiradasHpTemporalRasgoActivas: Record<string, MetadataHpTemporalRasgo> = {};
 const tiradasDadoGolpeActivas: Record<string, MetadataDadoGolpe> = {};
+
+/** TTL máximo de vida para tiradas no resueltas en memoria (10 minutos) */
+const TTL_TIRADAS_EN_MEMORIA_MS = 10 * 60 * 1000;
+
+/**
+ * Purga de memoria tiradas pendientes cuyos callbacks nunca llegaron de TaleSpire.
+ * Previene fugas de memoria por acumulación de promesas o descriptores huérfanos.
+ */
+export function limpiarTiradasExpiradas(
+  ahora: number = Date.now(),
+  ttlMs: number = TTL_TIRADAS_EN_MEMORIA_MS
+): void {
+  const purgar = <T extends { creadoEn?: number }>(registro: Record<string, T>) => {
+    for (const [id, meta] of Object.entries(registro)) {
+      if (meta.creadoEn && ahora - meta.creadoEn > ttlMs) {
+        delete registro[id];
+      }
+    }
+  };
+
+  purgar(tiradasEspecialesActivas);
+  purgar(tiradasIniciativaActivas);
+  purgar(tiradasSalvacionMuerteActivas);
+  purgar(tiradasCuracionRasgoActivas);
+  purgar(tiradasHpTemporalRasgoActivas);
+  purgar(tiradasDadoGolpeActivas);
+}
 
 /**
  * Aplica Puntos de Golpe Temporales calculados al personaje activo.
@@ -542,33 +575,40 @@ export async function lanzarDadosTaleSpire(
       const silenceChat = tiradaEspecial !== null;
       const rollId = await ts.dice.putDiceInTray(descriptores, silenceChat);
       
+      // Purgar tiradas pendientes huérfanas en memoria (>10 min)
+      limpiarTiradasExpiradas();
+
+      const ahora = Date.now();
+
       if (tiradaEspecial && rollId) {
-        tiradasEspecialesActivas[rollId] = tiradaEspecial;
-        logger.debug(`[Lanzador Dados] Registrada tirada especial con rollId: ${rollId}`, tiradaEspecial);
+        const infoEspecial: MetadataTiradaEspecial = tiradaEspecial;
+        infoEspecial.creadoEn = ahora;
+        tiradasEspecialesActivas[rollId] = infoEspecial;
+        logger.debug(`[Lanzador Dados] Registrada tirada especial con rollId: ${rollId}`, infoEspecial);
       }
 
       if (metaIniciativa && rollId) {
-        tiradasIniciativaActivas[rollId] = metaIniciativa;
+        tiradasIniciativaActivas[rollId] = { ...metaIniciativa, creadoEn: ahora };
         logger.debug(`[Lanzador Dados] Registrada tirada de iniciativa nativa con rollId: ${rollId}`, metaIniciativa);
       }
 
       if (metaSalvacionMuerte && rollId) {
-        tiradasSalvacionMuerteActivas[rollId] = metaSalvacionMuerte;
+        tiradasSalvacionMuerteActivas[rollId] = { ...metaSalvacionMuerte, creadoEn: ahora };
         logger.debug(`[Lanzador Dados] Registrada tirada de salvación contra la muerte 3D con rollId: ${rollId}`, metaSalvacionMuerte);
       }
 
       if (metaEspecialRasgo && rollId) {
         if (metaEspecialRasgo.tipo === "curacionRasgo") {
-          tiradasCuracionRasgoActivas[rollId] = metaEspecialRasgo;
+          tiradasCuracionRasgoActivas[rollId] = { ...metaEspecialRasgo, creadoEn: ahora };
           logger.debug(`[Lanzador Dados] Registrada tirada de curación de rasgo 3D con rollId: ${rollId}`, metaEspecialRasgo);
         } else if (metaEspecialRasgo.tipo === "hpTemporalRasgo") {
-          tiradasHpTemporalRasgoActivas[rollId] = metaEspecialRasgo;
+          tiradasHpTemporalRasgoActivas[rollId] = { ...metaEspecialRasgo, creadoEn: ahora };
           logger.debug(`[Lanzador Dados] Registrada tirada de HP temporal de rasgo 3D con rollId: ${rollId}`, metaEspecialRasgo);
         }
       }
 
       if (metaDadoGolpe && rollId) {
-        tiradasDadoGolpeActivas[rollId] = metaDadoGolpe;
+        tiradasDadoGolpeActivas[rollId] = { ...metaDadoGolpe, creadoEn: ahora };
         logger.debug(`[Lanzador Dados] Registrada tirada de dado de golpe con rollId: ${rollId}`, metaDadoGolpe);
       }
 

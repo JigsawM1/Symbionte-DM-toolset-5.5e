@@ -9,6 +9,7 @@
  */
 
 import { Rareza } from "@/almacen/usarAlmacenDM";
+import { HABILIDADES_LISTA } from "./homebrewConstantes";
 
 // Colores HSL para D&D Rareza
 export const COLORES_RAREZA_HSL: Record<Rareza, string> = {
@@ -24,24 +25,5 @@ export const OPCIONES_ATRIBUTOS: Record<string, string[]> = {
   "CA": ["CA"],
   "CARACTERÍSTICA": ["Fuerza", "Destreza", "Constitución", "Inteligencia", "Sabiduría", "Carisma"],
   "SALVACIÓN": ["Fuerza", "Destreza", "Constitución", "Inteligencia", "Sabiduría", "Carisma"],
-  "HABILIDAD": [
-    "Acrobacias",
-    "Atletismo",
-    "Arcana",
-    "Engaño",
-    "Historia",
-    "Perspicacia",
-    "Intimidación",
-    "Investigación",
-    "Medicina",
-    "Naturaleza",
-    "Percepción",
-    "Interpretación",
-    "Persuasión",
-    "Religión",
-    "Juego de Manos",
-    "Sigilo",
-    "Supervivencia",
-    "Trato con Animales"
-  ]
+  "HABILIDAD": HABILIDADES_LISTA.map((h) => h.nombre)
 };

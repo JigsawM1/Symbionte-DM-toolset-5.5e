@@ -159,9 +159,6 @@ export function resolverConjurosAcciones(
   for (const h of baseDatosConjuros) {
     if (idsAgregados.has(h.id)) continue;
 
-    const tieneOrigen = resolverOrigenConjuro(personajeActivo, h) !== null;
-    const esDeSubclase = verificarHechizoDeSubclase(h, personajeActivo);
-
     const hIdNorm = (h.id || "").toLowerCase().trim();
     const hNomNorm = (h.nombre || "").toLowerCase().trim();
     const hSinTildes = hNomNorm.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
@@ -173,11 +170,14 @@ export function resolverConjurosAcciones(
       setRapido.has(hSinTildes) ||
       setRapido.has(hSlug);
 
-    const coincideConCandidato =
+    // Evaluación en cortocircuito: si ya coincide de forma rápida O(1), no ejecutar comprobaciones pesadas
+    const coincide =
       matchRapido ||
-      listaCandidatos.some((c) => coincideHechizoId(c, h.id) || coincideHechizoId(c, h.nombre));
+      listaCandidatos.some((c) => coincideHechizoId(c, h.id) || coincideHechizoId(c, h.nombre)) ||
+      verificarHechizoDeSubclase(h, personajeActivo) ||
+      resolverOrigenConjuro(personajeActivo, h) !== null;
 
-    if (tieneOrigen || esDeSubclase || coincideConCandidato) {
+    if (coincide) {
       idsAgregados.add(h.id);
 
       const tiempo = (h.tiempoLanzamiento || "").toLowerCase();

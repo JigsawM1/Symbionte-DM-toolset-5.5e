@@ -388,21 +388,25 @@ export function desempaquetarPaqueteInventario(
       .replace(/[\u0300-\u036f]/g, "")
       .trim();
 
-  // Buscar objeto en la base de datos compendio
-  const objetoCompendio = baseDatosObjetos.find(
-    (b) =>
-      b.id === objTarget.idObjeto ||
-      normalizar(b.nombre) === normalizar(objTarget.nombre)
-  );
+  // Pre-indexar compendio en Map O(1) por ID y nombre normalizado
+  const mapaCompendio = new Map<string, ObjetoJuego>();
+  for (const b of baseDatosObjetos) {
+    if (b.id) mapaCompendio.set(b.id, b);
+    if (b.nombre) mapaCompendio.set(normalizar(b.nombre), b);
+  }
 
-  const targetConContents = objTarget as unknown as { contents?: Array<{ item?: { index?: string; name?: string }; quantity?: number }> };
-  const contents = objetoCompendio?.contents || targetConContents.contents;
+  // Buscar objeto en la base de datos compendio en O(1)
+  const objetoCompendio =
+    (objTarget.idObjeto && mapaCompendio.get(objTarget.idObjeto)) ||
+    mapaCompendio.get(normalizar(objTarget.nombre));
+
+  const contents = objetoCompendio?.contents || objTarget.contents;
   if (!Array.isArray(contents) || contents.length === 0) {
     return inventarioActual;
   }
 
   const cantidadPaquetes = Math.max(1, objTarget.cantidad || 1);
-  let nuevoInventario = inventarioActual.filter((o) => o.idInstancia !== idInstancia);
+  const nuevoInventario = inventarioActual.filter((o) => o.idInstancia !== idInstancia);
 
   for (const c of contents) {
     if (!c || !c.item) continue;
@@ -410,12 +414,10 @@ export function desempaquetarPaqueteInventario(
     const itemName = c.item.name || "";
     const itemQty = (Number(c.quantity) || 1) * cantidadPaquetes;
 
-    // Buscar si existe el ítem en la base de datos de objetos
-    const itemComp = baseDatosObjetos.find(
-      (b) =>
-        (itemIndex && b.id === itemIndex) ||
-        normalizar(b.nombre) === normalizar(itemName)
-    );
+    // Buscar si existe el ítem en la base de datos de objetos en O(1)
+    const itemComp =
+      (itemIndex && mapaCompendio.get(itemIndex)) ||
+      mapaCompendio.get(normalizar(itemName));
 
     let nuevoObj: ObjetoInventario;
     if (itemComp) {
@@ -442,11 +444,13 @@ export function desempaquetarPaqueteInventario(
     );
 
     if (indiceExistente !== -1) {
-      nuevoInventario = nuevoInventario.map((o, idx) =>
-        idx === indiceExistente
-          ? { ...o, cantidad: (o.cantidad || 1) + itemQty }
-          : o
-      );
+      const itemExistente = nuevoInventario[indiceExistente];
+      if (itemExistente) {
+        nuevoInventario[indiceExistente] = {
+          ...itemExistente,
+          cantidad: (itemExistente.cantidad || 1) + itemQty
+        };
+      }
     } else {
       nuevoInventario.push(nuevoObj);
     }

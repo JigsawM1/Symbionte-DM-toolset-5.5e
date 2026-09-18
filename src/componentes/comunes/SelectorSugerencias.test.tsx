@@ -79,4 +79,36 @@ describe("SelectorSugerencias - Debounce y Filtrado D&D 5.5e", () => {
     const html = renderToStaticMarkup(elemento);
     expect(html).toContain('value="Cimatarra"');
   });
+
+  it("renderiza botón para mostrar sugerencias y estado inicial no estancado", () => {
+    const alCambiar = vi.fn();
+    const html = renderToStaticMarkup(
+      <SelectorSugerencias
+        valor=""
+        alCambiar={alCambiar}
+        opciones={opcionesEjemplo}
+      />
+    );
+
+    expect(html).toContain('title="Mostrar sugerencias"');
+    expect(html).toContain('type="button"');
+  });
+
+  it("resetea término de búsqueda y permite re-renderizar sin filtrar todas las opciones cuando el valor es vacío", () => {
+    const alCambiar = vi.fn();
+    const alSeleccionar = vi.fn();
+
+    const htmlVacio = renderToStaticMarkup(
+      <SelectorSugerencias
+        valor=""
+        alCambiar={alCambiar}
+        alSeleccionar={alSeleccionar}
+        opciones={opcionesEjemplo}
+        placeholder="Añadir Condición o Estado..."
+      />
+    );
+
+    expect(htmlVacio).toContain('placeholder="Añadir Condición o Estado..."');
+    expect(htmlVacio).toContain('value=""');
+  });
 });

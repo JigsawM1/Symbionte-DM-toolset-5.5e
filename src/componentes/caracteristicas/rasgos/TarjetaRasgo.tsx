@@ -1,31 +1,28 @@
 import React from "react";
-import type { RasgoPersonaje, TipoAccionRasgo, OrigenRasgo } from "@/tipos";
-import {
-  lanzarDadosTaleSpire,
-  aplicarResultadoHpTemporalEnEstado,
-  type MetadataEspecialRasgo
-} from "@/utiles/lanzadorDados";
-import {
-  calcularHpTemporalDeEfecto,
-  obtenerEfectoHpTemporalRasgo
-} from "@/servicios/evaluadorEfectosRasgos";
+import type { RasgoPersonaje } from "@/tipos";
 import { usarAlmacenDM } from "@/almacen/usarAlmacenDM";
 import { limpiarYTruncarTextoMarkdown } from "@/utiles/formatoTextoDND";
-import { logger } from "@/utiles/logger";
 import {
-  Sparkles,
-  Zap,
-  Clock,
-  Shield,
   Dices,
   Heart,
+  Shield,
   Edit2,
   Trash2,
   BookOpen,
-  Layers,
-  Maximize2
+  Maximize2,
+  Eye,
+  EyeOff
 } from "lucide-react";
 import estilos from "./VistaRasgosJugador.module.css";
+import {
+  LIMITE_CARACTERES_DESCRIPCION,
+  ICONO_POR_ACCION,
+  CLASE_BADGE_ACCION,
+  ETIQUETA_ACCION,
+  ETIQUETA_ORIGEN,
+  CLASE_ORIGEN_BORDE
+} from "./TarjetaRasgo.constantes";
+import { usarAccionesTarjetaRasgo } from "./usarAccionesTarjetaRasgo";
 
 interface TarjetaRasgoProps {
   rasgo: RasgoPersonaje;
@@ -41,51 +38,9 @@ interface TarjetaRasgoProps {
   alVerDetalle: () => void;
   usosPadre?: { restantes: number; maximos: number; nombre: string };
   formulaDadosEfectiva?: string;
+  esOculto?: boolean;
+  alAlternarOcultar?: () => void;
 }
-
-const ICONO_POR_ACCION: Record<TipoAccionRasgo, React.ReactNode> = {
-  pasivo: <Shield size={10} />,
-  accion: <Zap size={10} />,
-  accion_adicional: <Clock size={10} />,
-  reaccion: <Sparkles size={10} />,
-  especial: <Layers size={10} />
-};
-
-const CLASE_BADGE_ACCION: Record<TipoAccionRasgo, string> = {
-  pasivo: estilos.badgePasivo,
-  accion: estilos.badgeAccionPrincipal,
-  accion_adicional: estilos.badgeAccionAdicional,
-  reaccion: estilos.badgeReaccion,
-  especial: estilos.badgeEspecial
-};
-
-const ETIQUETA_ACCION: Record<TipoAccionRasgo, string> = {
-  pasivo: "Pasivo",
-  accion: "Acción",
-  accion_adicional: "Acción Adicional",
-  reaccion: "Reacción",
-  especial: "Especial"
-};
-
-const ETIQUETA_ORIGEN: Record<OrigenRasgo, string> = {
-  clase: "Clase",
-  subclase: "Subclase",
-  especie: "Especie",
-  subespecie: "Legado / Subraza",
-  dote: "Dote",
-  trasfondo: "Trasfondo",
-  personalizado: "Personalizado / Homebrew"
-};
-
-const CLASE_ORIGEN_BORDE: Record<OrigenRasgo, string> = {
-  clase: estilos.origenClase,
-  subclase: estilos.origenSubclase,
-  especie: estilos.origenEspecie,
-  subespecie: estilos.origenSubclase,
-  dote: estilos.origenDote,
-  trasfondo: estilos.origenDote,
-  personalizado: estilos.origenPersonalizado
-};
 
 export const TarjetaRasgo: React.FC<TarjetaRasgoProps> = ({
   rasgo,
@@ -100,159 +55,38 @@ export const TarjetaRasgo: React.FC<TarjetaRasgoProps> = ({
   alEliminar,
   alVerDetalle,
   usosPadre,
-  formulaDadosEfectiva
+  formulaDadosEfectiva,
+  esOculto = false,
+  alAlternarOcultar
 }) => {
-  const personajeActivoAlmacen = usarAlmacenDM(
-    React.useCallback((s) => s.personajes.find((p) => p.id === idPersonaje), [idPersonaje])
-  );
-  const esRecursoEspacioPacto = rasgo.recursoGastado === "espacio_pacto";
-  const espaciosPactoMaximos = personajeActivoAlmacen?.espaciosPactoMaximos || 0;
-  const espaciosPactoGastados = personajeActivoAlmacen?.espaciosPactoGastados || 0;
-  const espaciosPactoDisponibles = Math.max(0, espaciosPactoMaximos - espaciosPactoGastados);
-
-  const formulaEfectiva = formulaDadosEfectiva || rasgo.formulaDados;
-  const tieneUsosPropios = rasgo.tieneUsosLimitados && typeof rasgo.usosMaximos === "number";
-  const tieneUsosPadre = !tieneUsosPropios && Boolean(rasgo.gastarDePadre && usosPadre);
-
-  const usosRestantes = esRecursoEspacioPacto
-    ? espaciosPactoDisponibles
-    : tieneUsosPropios
-    ? (rasgo.usosRestantes ?? (rasgo.usosMaximos || 1))
-    : (usosPadre?.restantes ?? 0);
-  const usosMaximos = esRecursoEspacioPacto
-    ? espaciosPactoMaximos
-    : tieneUsosPropios
-    ? (rasgo.usosMaximos || 1)
-    : (usosPadre?.maximos || 1);
-
-  const sinUsosDisponibles =
-    (esRecursoEspacioPacto && espaciosPactoDisponibles <= 0) ||
-    ((tieneUsosPropios || tieneUsosPadre) && usosRestantes <= 0);
-  
-  const normNombre = rasgo.nombre.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-  const esManosCurativas = normNombre.includes("manos curativas");
-  const esMantoInspiracion = normNombre.includes("manto de inspiracion");
-  const esInspiracionBardica = normNombre.includes("inspiracion bardica");
-  const esAtaqueAliento = normNombre.includes("ataque de aliento") || normNombre.includes("arma de aliento");
-
-  // La auto-curación y auto-HP temporal solo se aplican a rasgos exclusivamente personales (ej. Guerrero de los dioses).
-  // Rasgos que pueden aplicarse a otras criaturas (como Manos curativas o Manto de inspiración) o consumibles (Ataque de aliento, Inspiración bárdica)
-  // tiran los dados y consumen el uso, pero no alteran automáticamente la vida del propio lanzador.
-  const esCuracion = rasgo.categoriaMecanica === "curacion" || normNombre.includes("guerrero de los dioses");
-  const esCuracionAuto = esCuracion && !esManosCurativas;
-  const tieneEfectoHpTemporalAuto = (rasgo.efectos || []).some((ef) => ef.tipo === "hp_temporal") && !esMantoInspiracion;
-  const gastaUsoAlTirar =
-    esCuracionAuto ||
-    tieneEfectoHpTemporalAuto ||
-    esManosCurativas ||
-    esMantoInspiracion ||
-    esInspiracionBardica ||
-    esAtaqueAliento ||
-    rasgo.categoriaMecanica === "consumible" ||
-    rasgo.gastarDePadre;
-
-  const manejarTirarDados = async (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (!formulaEfectiva) return;
-    if (sinUsosDisponibles) return;
-
-    try {
-      if (esRecursoEspacioPacto && idPersonaje) {
-        usarAlmacenDM.getState().gastarEspacioPacto(idPersonaje);
-      } else if (gastaUsoAlTirar && alGastarUso) {
-        alGastarUso();
-      }
-      const formula = `!${rasgo.nombre}:${formulaEfectiva}`;
-      const etiqueta = `${nombrePersonaje} - ${rasgo.nombre} (${formulaEfectiva})`;
-
-      let metaEspecial: MetadataEspecialRasgo | undefined = undefined;
-      if (esCuracionAuto && idPersonaje) {
-        metaEspecial = {
-          tipo: "curacionRasgo",
-          personajeId: idPersonaje,
-          rasgoId: rasgo.id,
-          nombreRasgo: rasgo.nombre,
-          cantidadDadosGastados: 1
-        };
-      } else if (tieneEfectoHpTemporalAuto && idPersonaje) {
-        const efectoHp = (rasgo.efectos || []).find((ef) => ef.tipo === "hp_temporal");
-        let multiplicador = 1;
-        if (efectoHp?.valor) {
-          if (efectoHp.valor === "2_veces_dado_inspiracion") {
-            multiplicador = 2;
-          } else {
-            const num = Number(efectoHp.valor);
-            if (!Number.isNaN(num) && num > 0) multiplicador = num;
-          }
-        }
-
-        metaEspecial = {
-          tipo: "hpTemporalRasgo",
-          personajeId: idPersonaje,
-          rasgoId: rasgo.id,
-          nombreRasgo: rasgo.nombre,
-          multiplicador
-        };
-      }
-
-      await lanzarDadosTaleSpire(
-        formula,
-        etiqueta,
-        undefined,
-        undefined,
-        undefined,
-        metaEspecial
-      );
-    } catch (error) {
-      logger.error("[TarjetaRasgo] Error al tirar dados:", error);
-    }
-  };
-
-  const efectoHpTemporal = obtenerEfectoHpTemporalRasgo(rasgo);
-  const esHpTemporalPropio = Boolean(
-    efectoHpTemporal &&
-    (!efectoHpTemporal.objetivo || efectoHpTemporal.objetivo === "propio" || efectoHpTemporal.objetivo === "hp_temporal")
-  );
-
-  const agregarNotificacion = usarAlmacenDM((s) => s.agregarNotificacion);
-
-  const valorHpTemporalCalculado = React.useMemo(() => {
-    if (!efectoHpTemporal) return 0;
-    if (personajeActivoAlmacen) {
-      return calcularHpTemporalDeEfecto(efectoHpTemporal, personajeActivoAlmacen);
-    }
-    const vStr = String(efectoHpTemporal.valor || "").toLowerCase();
-    if (vStr === "bono_competencia" || vStr === "pb" || vStr === "bc") return 2;
-    return Math.max(0, Number(efectoHpTemporal.valor) || 0);
-  }, [efectoHpTemporal, personajeActivoAlmacen]);
-
-  const manejarAplicarHpTemporal = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (sinUsosDisponibles) return;
-    if (!idPersonaje) return;
-
-    try {
-      if (alGastarUso) {
-        alGastarUso();
-      }
-      const valor = valorHpTemporalCalculado > 0 ? valorHpTemporalCalculado : 1;
-      aplicarResultadoHpTemporalEnEstado(idPersonaje, valor);
-      agregarNotificacion(
-        `Has usado ${rasgo.nombre} y obtenido ${valor} PG temporales.`,
-        "exito"
-      );
-    } catch (error) {
-      logger.error("[TarjetaRasgo] Error al aplicar HP temporal:", error);
-    }
-  };
+  const {
+    usosRestantes,
+    usosMaximos,
+    sinUsosDisponibles,
+    esRecursoEspacioPacto,
+    tieneUsosPropios,
+    tieneUsosPadre,
+    formulaEfectiva,
+    esCuracion,
+    esHpTemporalPropio,
+    valorHpTemporalCalculado,
+    manejarTirarDados,
+    manejarAplicarHpTemporal
+  } = usarAccionesTarjetaRasgo({
+    rasgo,
+    nombrePersonaje,
+    idPersonaje,
+    alGastarUso,
+    usosPadre,
+    formulaDadosEfectiva
+  });
 
   const claseOrigen = CLASE_ORIGEN_BORDE[rasgo.origen] || estilos.origenPersonalizado;
   const esHomebrewOPersonalizado = rasgo.personalizado || rasgo.origen === "personalizado" || rasgo.origen === "dote";
 
   // Truncado de descripción para tarjeta compacta
-  const LIMITE_CARACTERES = 115;
-  const textoTruncado = limpiarYTruncarTextoMarkdown(rasgo.descripcion, LIMITE_CARACTERES);
-  const esLargo = (rasgo.descripcion || "").length > LIMITE_CARACTERES;
+  const textoTruncado = limpiarYTruncarTextoMarkdown(rasgo.descripcion, LIMITE_CARACTERES_DESCRIPCION);
+  const esLargo = (rasgo.descripcion || "").length > LIMITE_CARACTERES_DESCRIPCION;
 
   return (
     <article className={`${estilos.tarjetaRasgo} ${claseOrigen}`}>
@@ -413,6 +247,21 @@ export const TarjetaRasgo: React.FC<TarjetaRasgoProps> = ({
           >
             <Maximize2 size={12} color="#94a3b8" />
           </button>
+
+          {/* Botón para alternar ocultar/mostrar rasgo */}
+          {alAlternarOcultar && (
+            <button
+              type="button"
+              className={`${estilos.botonIconoAccion} ${esOculto ? estilos.botonIconoOcultoActivo : ""}`}
+              onClick={(e) => {
+                e.stopPropagation();
+                alAlternarOcultar();
+              }}
+              title={esOculto ? "Mostrar rasgo (restaurar a su categoría)" : "Ocultar rasgo"}
+            >
+              {esOculto ? <EyeOff size={12} color="#38bdf8" /> : <Eye size={12} color="#94a3b8" />}
+            </button>
+          )}
 
           {/* Botones de Editar y Eliminar (para rasgos personalizados / homebrew / dotes) */}
           {esHomebrewOPersonalizado && (alEditar || alEliminar) && (

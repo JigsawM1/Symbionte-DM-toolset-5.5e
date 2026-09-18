@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { SelectorSugerencias, ChipCondicion } from "@/componentes/comunes";
 import { CONDICIONES_2024, EFECTOS_PREDEFINIDOS } from "@/utiles/datosIniciales";
 import type { PenalizacionArmadura } from "@/almacen/selectores/usarEstadoPersonajes";
@@ -47,10 +47,10 @@ const BarraTacticaPersonajeComponent: React.FC<BarraTacticaPersonajeProps> = ({
 }) => {
   const [condicionSeleccionada, setCondicionSeleccionada] = useState("");
 
-  const sugerenciasCondiciones = [
+  const sugerenciasCondiciones = useMemo(() => [
     ...CONDICIONES_2024.map((c) => c.nombre),
     ...EFECTOS_PREDEFINIDOS.map((e) => e.nombre)
-  ];
+  ], []);
 
   // Estados automáticos derivados del personaje
   const estaDesangrandose = hpActual > 0 && hpActual < hpMaximo / 2;
@@ -160,13 +160,10 @@ const BarraTacticaPersonajeComponent: React.FC<BarraTacticaPersonajeProps> = ({
         <div>
           <SelectorSugerencias
             valor={condicionSeleccionada}
-            alCambiar={(val) => {
-              if (val && sugerenciasCondiciones.includes(val)) {
-                alAplicarCondicion(val);
-                setCondicionSeleccionada("");
-              } else {
-                setCondicionSeleccionada(val);
-              }
+            alCambiar={setCondicionSeleccionada}
+            alSeleccionar={(opcion) => {
+              alAplicarCondicion(opcion.valor);
+              setCondicionSeleccionada("");
             }}
             opciones={sugerenciasCondiciones}
             placeholder="Añadir Condición o Estado..."

@@ -19,6 +19,75 @@ Este archivo registra reglas globales, errores encontrados, sus causas raíz y l
    - **Bajo ninguna circunstancia** los módulos de lógica de negocio (`servicios/`), gestores de estado (`almacen/`) o constructores (`gestorClases.ts`) deben contener bifurcaciones condicionales por nombre literal de rasgo o clase (`r.nombre === "..."`, `clase.includes("...")`, etc.).
    - Toda mecánica, progresión de dados, escalado de usos, recuperación o desbloqueo dinámico debe resolverse mediante metadatos declarativos (`escaladoFormulaDados`, `escaladoUsos`, `escaladoRecuperacion`, `opcionesDinamicas`, `escaladoMaxSelecciones`, `sincronizarEfectosConFormula`, `heredarDadosPadre`, `gastarDePadre`, `ligadoA`, `efectos`) delegando en funciones puras agnósticas como `resolverEscaladosRasgo`. Esta regla está reforzada en CI vía ESLint `no-restricted-syntax` y la suite `rasgoGenericidad.test.ts`.
 
+## [2026-09-17] Corrección de Estado y Filtrado: SelectorSugerencias y Autocompletado en BarraTacticaPersonaje
+
+**Contexto y Requerimientos del Usuario:**
+- Al escoger una condición en el selector de sugerencias de `src/componentes/caracteristicas/personajes/BarraTacticaPersonaje.tsx`, el componente quedaba bloqueado mostrando permanentemente la última condición seleccionada al reabrir el menú desplegable, impidiendo explorar y escoger otras opciones.
+
+**Causa Raíz:**
+1. **Estancamiento de `terminoDebounced` en `SelectorSugerencias.tsx`:**
+   - La función `seleccionarOpcion` ejecutaba `setTerminoDebounced(opcion.valor)`, forzando el término interno de búsqueda al valor de la opción seleccionada.
+   - En `BarraTacticaPersonaje`, el input se utiliza como disparador de acción ("Añadir Condición o Estado..."), aplicando la condición seleccionada y reiniciando el estado local a cadena vacía (`setCondicionSeleccionada("")`).
+   - Dado que `valor` en `BarraTacticaPersonaje` ya era `""` antes de la selección y volvía a ser `""` tras ella, la propiedad `valor` no cambiaba (`"" === ""`). Por lo tanto, el efecto `useEffect([valor, ...])` nunca se ejecutaba para limpiar `terminoDebounced`.
+   - Al volver a abrir el desplegable (o enfocar el input), `opcionesFiltradas` evaluaba contra el `terminoDebounced` estancado ("Cegado", etc.), reduciendo la lista a solo ese elemento y ocultando las más de 40 condiciones y efectos restantes.
+2. **Falta de Discriminación entre Escritura Activa y Selección Pasiva:**
+   - El componente no distinguía si el usuario estaba activamente tipeando un filtro en el input o si simplemente estaba abriendo el desplegable para explorar las opciones disponibles.
+3. **Desacoplamiento de Contratos en `BarraTacticaPersonaje.tsx`:**
+   - Se utilizaba únicamente `alCambiar` con una verificación manual `sugerenciasCondiciones.includes(val)` en lugar de emplear el callback canónico `alSeleccionar`.
+
+**Decisiones Técnicas y Arquitectónicas:**
+1. **Control de Flujo de Escritura en `SelectorSugerencias.tsx` (`estaEscribiendo`):**
+   - Se introdujo el flag booleano `estaEscribiendo` que se activa únicamente en el evento `onChange` del `<input>`.
+   - Cuando `estaEscribiendo` es `false` o `valor` es una cadena vacía o en blanco, `terminoDebounced` se reinicia inmediatamente a `""` (sin retardo de 500ms), permitiendo que `opcionesFiltradas` devuelva la totalidad del catálogo (`opcionesNormalizadas`) con la opción seleccionada marcada mediante `<Check size={12} />`.
+   - En `seleccionarOpcion`, `alternarDesplegable` y `onFocus`, se resetea `estaEscribiendo` a `false` y `terminoDebounced` a `""`, eliminando cualquier filtro residual al cerrar o reabrir el desplegable.
+   - Soporte accesible de teclado en `manejarKeyDown`: presionar `Enter` selecciona la primera opción filtrada o la coincidencia exacta si el texto coincide con una opción del compendio; `Escape` cierra el desplegable y desactiva `estaEscribiendo`.
+2. **Integración Canónica en `BarraTacticaPersonaje.tsx`:**
+   - Se memoizó `sugerenciasCondiciones` con `useMemo` evitando recrear el arreglo de más de 40 cadenas en cada ciclo de renderizado.
+   - Se conectó `alSeleccionar={(opcion) => { alAplicarCondicion(opcion.valor); setCondicionSeleccionada(""); }}` asegurando que la acción se ejecute con precisión y se limpie el input inmediatamente.
+   - Se asignó `alCambiar={setCondicionSeleccionada}` para actualizar el estado del input de forma reactiva mientras el usuario escribe.
+3. **Validación y Suites de Pruebas Unitarias:**
+   - Se añadieron pruebas en `SelectorSugerencias.test.tsx` verificando el reseteo de términos vacíos y la no persistencia de filtros al abrir el selector.
+   - Se creó la suite completa `BarraTacticaPersonaje.test.tsx` (7 pruebas unitarias con Vitest) validando descansos, tiradas d20, chips de condiciones, efectos automáticos y el selector de sugerencias.
+
+**Verificación Automatizada (`pnpm run ci`):**
+- `tsc --noEmit`: 0 errores bajo `strict: true`.
+- `eslint src --max-warnings=0`: 0 errores y 0 advertencias.
+- `vitest run`: 62 suites aprobadas, 773 pruebas unitarias pasando al 100%.
+- `node scripts/verificar-limite-lineas.js`: 111 archivos auditados, 0 errores críticos.
+- `vite build`: Empaquetado exitoso de producción en 15.39s.
+
+---
+
+## [2026-09-17] Integración de Rasgos Ocultos en SeccionRasgosAtaque y Modularización SRP de TarjetaRasgo
+
+**Contexto y Requerimientos del Usuario:**
+- Añadir a la sección de rasgos y tácticas de combate (`src/componentes/caracteristicas/ataques/SeccionRasgosAtaque.tsx`) la misma funcionalidad de ocultar y desocultar elementos presente en `PanelConjurosPersonaje.tsx` y `SeccionAtaquesMagicos.tsx`.
+- Permitir ocultar rasgos individuales desde la tarjeta de rasgo (`TarjetaRasgo.tsx`) mediante botón interactivo de visibilidad.
+- Omitir de las subcategorías activas (`acciones`, `adicionales`, `reacciones`, `consumibles`, `activables`) los rasgos ocultos y no renderizar subcategorías que queden con 0 elementos visibles.
+- Renderizar una subsección colapsable dedicada "Rasgos Ocultos" con icono `EyeOff`, badge con el total de rasgos ocultos, botón "Mostrar todos" y opción de restaurar cada rasgo de forma individual.
+- Persistir la selección de rasgos ocultos por personaje activo mediante `ts_rasgos_ocultos_${personajeActivo.id || "default"}` con `usarEstadoPersistido`.
+
+**Desafíos Técnicos, Causa Raíz y Modularización Arquitectónica:**
+1. **Exceso de Líneas en `TarjetaRasgo.tsx` Detectado por CI:**
+   - Al añadir las props `esOculto` y `alAlternarOcultar` junto con los botones de alternancia en `TarjetaRasgo.tsx`, el archivo alcanzó 518 líneas, superando el límite de 500 líneas del script de auditoría `scripts/verificar-limite-lineas.js`.
+   - **Solución SRP (Single Responsibility Principle):**
+     - Se creó el hook modular `usarAccionesTarjetaRasgo.ts` (204 líneas) aislando la lógica de detección de recursos (propios, de rasgo padre o pacto de brujo), tiradas de dados 3D en TaleSpire, y cálculo reactivo de PG temporales.
+     - Se creó `TarjetaRasgo.constantes.tsx` (51 líneas) conteniendo los diccionarios de clases, badges e iconos SVG por tipo de acción y origen de rasgo.
+     - `TarjetaRasgo.tsx` se redujo a 338 líneas, cumpliendo holgadamente el umbral estricto de CI con 0 errores críticos.
+2. **Hidratación Estricta de Esquemas Zod en Pruebas Unitarias:**
+   - `RasgoPersonaje` cuenta con campos requeridos estrictos (`notas`, `activo`, `personalizado`, `recuperacion`). En lugar de fabricar mocks parciales propensos a desincronizaciones, se utilizó `EsquemaRasgoPersonaje.parse(parcial)` en la suite `SeccionRasgosAtaque.test.tsx`, garantizando que todos los valores por defecto del contrato Zod queden válidos.
+3. **Cero Latencia en CEF y Cero Estilos Inline:**
+   - Todos los estilos de la subsección de rasgos ocultos y el botón de visibilidad activo se estructuraron en `VistaAtaquesJugador.module.css` y `VistaRasgosJugador.module.css` con `transition: none` para 0ms de latencia en el navegador CEF de TaleSpire.
+
+**Verificación Automatizada (`pnpm run ci`):**
+- `tsc --noEmit`: 0 errores bajo `strict: true`.
+- `eslint src --max-warnings=0`: 0 errores y 0 advertencias.
+- `vitest run`: 62 suites aprobadas, 772 pruebas unitarias pasando al 100%.
+- `node scripts/verificar-limite-lineas.js`: 111 archivos auditados, 0 errores críticos (> 500 líneas).
+- `vite build`: Empaquetado exitoso de producción en 16.05s.
+
+---
+
 ## [2026-09-17] Integración de Ocultación de Conjuros y Subsección de Conjuros Ocultos en SeccionAtaquesMagicos (Modo Combate / Acciones)
 
 **Contexto y Requerimientos del Usuario:**

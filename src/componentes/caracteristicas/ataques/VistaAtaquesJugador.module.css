@@ -881,7 +881,8 @@
    SUBSECCIÓN: CONJUROS OCULTOS EN ACCIONES MÁGICAS
    ========================================================================= */
 
-.seccionOcultosMagicos {
+.seccionOcultosMagicos,
+.seccionOcultosRasgos {
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -892,7 +893,8 @@
   margin-top: 6px;
 }
 
-.cabeceraOcultosMagicos {
+.cabeceraOcultosMagicos,
+.cabeceraOcultosRasgos {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -900,11 +902,13 @@
   user-select: none;
 }
 
-.cabeceraOcultosMagicos:hover .tituloOcultosMagicos {
+.cabeceraOcultosMagicos:hover .tituloOcultosMagicos,
+.cabeceraOcultosRasgos:hover .tituloOcultosRasgos {
   color: var(--pj-texto-secundario-claro, #e2e8f0);
 }
 
-.tituloOcultosMagicos {
+.tituloOcultosMagicos,
+.tituloOcultosRasgos {
   display: flex;
   align-items: center;
   gap: 6px;
@@ -914,7 +918,8 @@
   color: var(--pj-texto-terciario, #94a3b8);
 }
 
-.badgeConteoOcultosMagicos {
+.badgeConteoOcultosMagicos,
+.badgeConteoOcultosRasgos {
   font-size: var(--pj-fuente-micro, 11px);
   background-color: rgba(148, 163, 184, 0.15);
   color: var(--pj-texto-terciario, #94a3b8);
@@ -924,7 +929,8 @@
   font-family: var(--fuente-codigo, 'JetBrains Mono', monospace);
 }
 
-.botonDesocultarTodosMagicos {
+.botonDesocultarTodosMagicos,
+.botonDesocultarTodosRasgos {
   background: none;
   border: 1px solid var(--pj-borde-sutil, rgba(148, 163, 184, 0.2));
   border-radius: 4px;
@@ -936,7 +942,8 @@
   transition: none;
 }
 
-.botonDesocultarTodosMagicos:hover {
+.botonDesocultarTodosMagicos:hover,
+.botonDesocultarTodosRasgos:hover {
   background-color: var(--pj-acento-cian-fondo, rgba(56, 189, 248, 0.12));
   border-color: var(--pj-borde-cian, rgba(56, 189, 248, 0.4));
   color: #ffffff;

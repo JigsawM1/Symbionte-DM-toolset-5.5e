@@ -37,11 +37,23 @@ export const SelectorSugerencias: React.FC<SelectorSugerenciasProps> = ({
   tiempoEsperaDebounce = 500
 }) => {
   const [abierto, setAbierto] = useState(false);
-  const [terminoDebounced, setTerminoDebounced] = useState(valor);
+  const [estaEscribiendo, setEstaEscribiendo] = useState(false);
+  const [terminoDebounced, setTerminoDebounced] = useState("");
   const contenedorRef = useRef<HTMLDivElement>(null);
 
-  // Debounce para retrasar la búsqueda/filtrado 500ms tras el último carácter escrito
+  // Debounce para retrasar la búsqueda/filtrado 500ms tras el último carácter escrito por el usuario
   useEffect(() => {
+    if (!valor || !valor.trim()) {
+      setTerminoDebounced("");
+      setEstaEscribiendo(false);
+      return;
+    }
+
+    if (!estaEscribiendo) {
+      setTerminoDebounced("");
+      return;
+    }
+
     const temporizador = setTimeout(() => {
       setTerminoDebounced(valor);
     }, tiempoEsperaDebounce);
@@ -49,13 +61,14 @@ export const SelectorSugerencias: React.FC<SelectorSugerenciasProps> = ({
     return () => {
       clearTimeout(temporizador);
     };
-  }, [valor, tiempoEsperaDebounce]);
+  }, [valor, tiempoEsperaDebounce, estaEscribiendo]);
 
   // Cerrar al hacer clic fuera del componente
   useEffect(() => {
     const manejarClicFuera = (event: MouseEvent | TouchEvent) => {
       if (contenedorRef.current && !contenedorRef.current.contains(event.target as Node)) {
         setAbierto(false);
+        setEstaEscribiendo(false);
       }
     };
 
@@ -80,7 +93,9 @@ export const SelectorSugerencias: React.FC<SelectorSugerenciasProps> = ({
 
   // Filtrar sugerencias relevantes en base al término con debounce de forma tolerante y priorizando el título
   const opcionesFiltradas = useMemo<OpcionSugerencia[]>(() => {
-    if (!terminoDebounced || !terminoDebounced.trim()) return opcionesNormalizadas;
+    if (!estaEscribiendo || !terminoDebounced || !terminoDebounced.trim()) {
+      return opcionesNormalizadas;
+    }
 
     const filtradas = opcionesNormalizadas.filter((opcion) => {
       return coincideBusquedaTolerante(
@@ -97,7 +112,7 @@ export const SelectorSugerencias: React.FC<SelectorSugerenciasProps> = ({
         (opt) => [opt.subtitulo, opt.grupo]
       )
     );
-  }, [terminoDebounced, opcionesNormalizadas]);
+  }, [estaEscribiendo, terminoDebounced, opcionesNormalizadas]);
 
   // Agrupar opciones filtradas por categoría/grupo
   const gruposOpciones = useMemo(() => {
@@ -122,7 +137,8 @@ export const SelectorSugerencias: React.FC<SelectorSugerenciasProps> = ({
       e.stopPropagation();
       e.preventDefault();
     }
-    setTerminoDebounced(opcion.valor);
+    setEstaEscribiendo(false);
+    setTerminoDebounced("");
     alCambiar(opcion.valor);
     alSeleccionar?.(opcion);
     setAbierto(false);
@@ -132,6 +148,8 @@ export const SelectorSugerencias: React.FC<SelectorSugerenciasProps> = ({
     e.stopPropagation();
     e.preventDefault();
     if (!disabled) {
+      setEstaEscribiendo(false);
+      setTerminoDebounced("");
       setAbierto((prev) => !prev);
     }
   };
@@ -166,9 +184,19 @@ export const SelectorSugerencias: React.FC<SelectorSugerenciasProps> = ({
       e.preventDefault();
       if (abierto && opcionesFiltradas.length > 0) {
         seleccionarOpcion(opcionesFiltradas[0], e);
+      } else if (valor.trim()) {
+        const coincidencia = opcionesNormalizadas.find(
+          (opt) =>
+            opt.valor.toLowerCase() === valor.trim().toLowerCase() ||
+            (opt.etiqueta && opt.etiqueta.toLowerCase() === valor.trim().toLowerCase())
+        );
+        if (coincidencia) {
+          seleccionarOpcion(coincidencia, e);
+        }
       }
     } else if (e.key === "Escape") {
       setAbierto(false);
+      setEstaEscribiendo(false);
     }
   };
 
@@ -179,11 +207,15 @@ export const SelectorSugerencias: React.FC<SelectorSugerenciasProps> = ({
         type="text"
         value={valor}
         onChange={(e) => {
+          setEstaEscribiendo(true);
           alCambiar(e.target.value);
           if (!abierto) setAbierto(true);
         }}
         onKeyDown={manejarKeyDown}
-        onFocus={() => setAbierto(true)}
+        onFocus={() => {
+          setEstaEscribiendo(false);
+          setAbierto(true);
+        }}
         placeholder={placeholder}
         disabled={disabled}
         className={estilos.input}

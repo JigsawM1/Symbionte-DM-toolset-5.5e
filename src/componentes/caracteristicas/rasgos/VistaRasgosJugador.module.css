@@ -668,6 +668,16 @@
   color: #f87171;
 }
 
+.botonIconoOcultoActivo {
+  color: #38bdf8;
+  background: rgba(56, 189, 248, 0.12);
+}
+
+.botonIconoOcultoActivo:hover {
+  background: rgba(56, 189, 248, 0.25);
+  color: #7dd3fc;
+}
+
 /* Descripción compacta del Rasgo */
 .cuerpoTarjetaCompacto {
   padding: 1px 0;

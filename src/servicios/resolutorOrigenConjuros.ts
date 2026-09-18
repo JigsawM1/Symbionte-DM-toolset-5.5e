@@ -171,8 +171,8 @@ export function resolverOrigenConjuro(
       if (fNorm.includes("legado") || fNorm.includes("subespecie") || fNorm.includes("linaje") || fNorm.includes("subraza")) {
         return "legado";
       }
-      if (r.origen === "clase" || fNorm.includes("clase")) return "clase";
       if (r.origen === "subclase" || fNorm.includes("subclase")) return "subclase";
+      if (r.origen === "clase" || fNorm.includes("clase")) return "clase";
       if (r.origen === "especie" || fNorm.includes("especie") || fNorm.includes("raza")) return "especie";
 
       return "rasgos";
@@ -223,9 +223,14 @@ export function resolverOrigenConjuro(
 }
 
 /**
- * Construye un evaluador de origen de conjuros pre-indexado O(1) para el personaje.
- * Extrae todas las fuentes y hechizos otorgados una única vez en un Map optimizado,
- * evitando miles de llamadas a expresiones regulares y normalizaciones Unicode.
+ * Crea un resolutor pre-indexado O(1) para el personaje dado.
+ *
+ * Escanea una única vez todas las fuentes de conjuros del personaje
+ * (rasgos, subclases dinámicas, especie, linaje/legado, conjuros siempre preparados)
+ * e indexa todas las claves (IDs, nombres, slugs, sin tildes, sinónimos) en un Map.
+ *
+ * Cada consulta posterior sobre un hechizo se resuelve en O(1) sin coste
+ * de normalización de strings repetitivo.
  */
 export function crearResolutorOrigenConjuros(
   personaje: PersonajeJugador | null | undefined
@@ -235,22 +240,43 @@ export function crearResolutorOrigenConjuros(
   const mapa = new Map<string, OrigenConjuroBadge>();
   const pjNivel = personaje.nivel || 1;
 
+  const registrarClave = (k: string, b: OrigenConjuroBadge) => {
+    if (!k || mapa.has(k)) return;
+    mapa.set(k, b);
+  };
+
   const registrarCadena = (cadena: string, badge: OrigenConjuroBadge) => {
     if (!cadena) return;
-    mapa.set(cadena, badge);
+    registrarClave(cadena, badge);
     const norm = cadena.toLowerCase().trim();
-    mapa.set(norm, badge);
+    registrarClave(norm, badge);
     const sinTildes = norm.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-    mapa.set(sinTildes, badge);
-    const slug = generarIdSlug("h", cadena);
-    mapa.set(slug, badge);
+    registrarClave(sinTildes, badge);
 
-    const alias = MAPA_ALIAS_HECHIZOS[sinTildes] || MAPA_ALIAS_HECHIZOS[norm] || [];
+    // Despojar prefijo de id (h_ o h-) para indexar tanto la raíz pura como los dos formatos de slug
+    const cuerpo = sinTildes.startsWith("h_") || sinTildes.startsWith("h-")
+      ? sinTildes.substring(2)
+      : sinTildes;
+
+    registrarClave(cuerpo, badge);
+
+    const slugBajo = generarIdSlug("h", cuerpo);
+    registrarClave(slugBajo, badge);
+
+    const slugGuion = `h-${cuerpo.replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "")}`;
+    registrarClave(slugGuion, badge);
+
+    const alias = MAPA_ALIAS_HECHIZOS[cuerpo] || MAPA_ALIAS_HECHIZOS[sinTildes] || MAPA_ALIAS_HECHIZOS[norm] || [];
     for (const al of alias) {
-      mapa.set(al, badge);
+      registrarClave(al, badge);
       const alNorm = al.toLowerCase().trim();
-      mapa.set(alNorm, badge);
-      mapa.set(generarIdSlug("h", al), badge);
+      registrarClave(alNorm, badge);
+      const alSinTildes = alNorm.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+      registrarClave(alSinTildes, badge);
+      const alCuerpo = alSinTildes.startsWith("h_") || alSinTildes.startsWith("h-") ? alSinTildes.substring(2) : alSinTildes;
+      registrarClave(alCuerpo, badge);
+      registrarClave(generarIdSlug("h", alCuerpo), badge);
+      registrarClave(`h-${alCuerpo.replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "")}`, badge);
     }
   };
 
@@ -265,10 +291,10 @@ export function crearResolutorOrigenConjuros(
     let badge: OrigenConjuroBadge = "rasgos";
     if (fNorm.includes("legado") || fNorm.includes("subespecie") || fNorm.includes("linaje") || fNorm.includes("subraza")) {
       badge = "legado";
-    } else if (r.origen === "clase" || fNorm.includes("clase")) {
-      badge = "clase";
     } else if (r.origen === "subclase" || fNorm.includes("subclase")) {
       badge = "subclase";
+    } else if (r.origen === "clase" || fNorm.includes("clase")) {
+      badge = "clase";
     } else if (r.origen === "especie" || fNorm.includes("especie") || fNorm.includes("raza")) {
       badge = "especie";
     }
@@ -383,22 +409,29 @@ export function crearResolutorOrigenConjuros(
       if (nom && mapa.has(nom)) {
         res = mapa.get(nom) ?? null;
       } else {
-        const slug = generarIdSlug("h", nom || "");
-        if (slug && mapa.has(slug)) {
-          res = mapa.get(slug) ?? null;
+        const idNorm = id ? id.toLowerCase().trim() : "";
+        const idSinTildes = idNorm ? idNorm.normalize("NFD").replace(/[\u0300-\u036f]/g, "") : "";
+        const idCuerpo = idSinTildes.startsWith("h_") || idSinTildes.startsWith("h-") ? idSinTildes.substring(2) : idSinTildes;
+        if (idCuerpo && mapa.has(idCuerpo)) {
+          res = mapa.get(idCuerpo) ?? null;
         } else {
-          const norm = (nom || "").toLowerCase().trim();
-          if (norm && mapa.has(norm)) {
-            res = mapa.get(norm) ?? null;
+          const slug = generarIdSlug("h", nom || "");
+          if (slug && mapa.has(slug)) {
+            res = mapa.get(slug) ?? null;
           } else {
-            const sinTildes = norm.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-            if (sinTildes && mapa.has(sinTildes)) {
-              res = mapa.get(sinTildes) ?? null;
-            } else if (tienePalabrasCreacion && sinTildes.includes("palabra de poder")) {
-              res = "rasgos";
+            const norm = (nom || "").toLowerCase().trim();
+            if (norm && mapa.has(norm)) {
+              res = mapa.get(norm) ?? null;
             } else {
-              // Fallback de seguridad al resolutor canónico
-              res = resolverOrigenConjuro(personaje, hechizo);
+              const sinTildes = norm.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+              if (sinTildes && mapa.has(sinTildes)) {
+                res = mapa.get(sinTildes) ?? null;
+              } else if (tienePalabrasCreacion && sinTildes.includes("palabra de poder")) {
+                res = "rasgos";
+              } else {
+                // Fallback de seguridad al resolutor canónico
+                res = resolverOrigenConjuro(personaje, hechizo);
+              }
             }
           }
         }

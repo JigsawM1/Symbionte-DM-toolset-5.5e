@@ -1,4 +1,4 @@
-﻿import { describe, it, expect } from "vitest";
+import { describe, it, expect } from "vitest";
 import {
   crearResolutorOrigenConjuros,
   resolverOrigenConjuro
@@ -180,5 +180,76 @@ describe("crearResolutorOrigenConjuros - Evaluación Pre-indexada O(1)", () => {
     expect(resolutor(hechizo1)).toBe(resolverOrigenConjuro(pj, hechizo1));
     expect(resolutor(hechizo2)).toBe(resolverOrigenConjuro(pj, hechizo2));
     expect(resolutor(hechizo3)).toBe(resolverOrigenConjuro(pj, hechizo3));
+  });
+
+  it("respeta prioridad: rasgo con fuente subclase NO es sobreescrito por conjurosSiemprePreparadosIds", () => {
+    const pj: PersonajeJugador = {
+      ...PERSONAJE_POR_DEFECTO,
+      clase: "Clérigo",
+      subclase: "Dominio de la Vida",
+      clases: [{ nombre: "Clérigo", subclase: "Dominio de la Vida", nivel: 3 }],
+      nivel: 3,
+      rasgos: [
+        crearRasgoPrueba({
+          id: "dominio-vida-conjuros",
+          nombre: "Conjuros de Dominio",
+          origen: "subclase",
+          fuente: "Subclase: Dominio de la Vida",
+          conjurosOtorgados: ["Bendición", "Curar heridas"]
+        })
+      ],
+      conjurosSiemprePreparadosIds: ["h-bendicion", "h-curar-heridas"]
+    };
+
+    const resolutor = crearResolutorOrigenConjuros(pj);
+    const bendicion = dummyHechizo("h-bendicion", "Bendición");
+
+    // El rasgo registra primero con mayor prioridad que conjurosSiemprePreparadosIds
+    const resultado = resolutor(bendicion);
+    const resultadoOriginal = resolverOrigenConjuro(pj, bendicion);
+    expect(resultado).not.toBeNull();
+    // Ambos deben coincidir exactamente
+    expect(resultado).toBe(resultadoOriginal);
+    expect(resultado).toBe("subclase");
+    // No debe caer en "rasgos" del fallback de conjurosSiemprePreparadosIds
+    expect(resultado).not.toBe("rasgos");
+  });
+
+  it("subclase dinámica tiene precedencia sobre conjurosSiemprePreparadosIds", () => {
+    const pj: PersonajeJugador = {
+      ...PERSONAJE_POR_DEFECTO,
+      clases: [{ nombre: "Clérigo", subclase: "Dominio de la Vida", nivel: 5 }],
+      nivel: 5,
+      // En la ficha, el slice de magia suele guardar estos mismos en conjurosSiemprePreparadosIds
+      conjurosSiemprePreparadosIds: ["h-auxilio", "h-revivir", "h-curar-heridas"]
+    };
+
+    const resolutor = crearResolutorOrigenConjuros(pj);
+    const auxilio = dummyHechizo("h-auxilio", "Auxilio", 2);
+    const revivir = dummyHechizo("h_revivir", "Revivir", 3);
+
+    expect(resolutor(auxilio)).toBe("subclase");
+    expect(resolutor(revivir)).toBe("subclase");
+    expect(resolverOrigenConjuro(pj, auxilio)).toBe("subclase");
+    expect(resolverOrigenConjuro(pj, revivir)).toBe("subclase");
+  });
+
+  it("especie y legado tienen precedencia sobre conjurosSiemprePreparadosIds", () => {
+    const pj: PersonajeJugador = {
+      ...PERSONAJE_POR_DEFECTO,
+      especie: "Elfo",
+      subespecie: "Drow",
+      nivel: 5,
+      conjurosSiemprePreparadosIds: ["fuego_feerico", "oscuridad", "luces_danzantes"]
+    };
+
+    const resolutor = crearResolutorOrigenConjuros(pj);
+    const fuegoFeerico = dummyHechizo("h-fuego-feerico", "Fuego feérico", 1);
+    const oscuridad = dummyHechizo("oscuridad", "Oscuridad", 2);
+
+    expect(resolutor(fuegoFeerico)).toBe("legado");
+    expect(resolutor(oscuridad)).toBe("legado");
+    expect(resolutor(fuegoFeerico)).toBe(resolverOrigenConjuro(pj, fuegoFeerico));
+    expect(resolutor(oscuridad)).toBe(resolverOrigenConjuro(pj, oscuridad));
   });
 });

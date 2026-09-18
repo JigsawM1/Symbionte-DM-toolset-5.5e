@@ -19,6 +19,32 @@ Este archivo registra reglas globales, errores encontrados, sus causas raíz y l
    - **Bajo ninguna circunstancia** los módulos de lógica de negocio (`servicios/`), gestores de estado (`almacen/`) o constructores (`gestorClases.ts`) deben contener bifurcaciones condicionales por nombre literal de rasgo o clase (`r.nombre === "..."`, `clase.includes("...")`, etc.).
    - Toda mecánica, progresión de dados, escalado de usos, recuperación o desbloqueo dinámico debe resolverse mediante metadatos declarativos (`escaladoFormulaDados`, `escaladoUsos`, `escaladoRecuperacion`, `opcionesDinamicas`, `escaladoMaxSelecciones`, `sincronizarEfectosConFormula`, `heredarDadosPadre`, `gastarDePadre`, `ligadoA`, `efectos`) delegando en funciones puras agnósticas como `resolverEscaladosRasgo`. Esta regla está reforzada en CI vía ESLint `no-restricted-syntax` y la suite `rasgoGenericidad.test.ts`.
 
+## [2026-09-18] Corrección de Precedencia y Normalización en Resolutor de Origen de Conjuros (Fallback a 'Rasgos')
+
+**Contexto del Problema:**
+- Tras la optimización del resolutor de orígenes pre-indexado (`crearResolutorOrigenConjuros`), varios conjuros otorgados por subclases, clases o linajes/especie aparecían clasificados erróneamente con el badge `"rasgos"` (color naranja) en lugar de su origen específico (`"subclase"`, `"clase"`, `"especie"`, `"legado"`).
+
+**Causa Raíz Diagnosticada:**
+1. **Sobrescritura Incondicional en el Mapa de Pre-indexación:**
+   - La función `registrarCadena` usaba `mapa.set()` directo. El paso 4 registraba `personaje.conjurosSiemprePreparadosIds` (que en fichas activas contiene los conjuros otorgados por subclases como clérigos/paladines) asignándoles la etiqueta de fallback `"rasgos"`. Al sobreescribir las claves previamente registradas en los pasos 1, 2 y 3, convertía conjuros de subclase y linaje en `"rasgos"`.
+2. **Inversión de Precedencia en Identificación de Subclase frente a Clase:**
+   - En la evaluación de `r.fuente`, la comprobación `r.origen === "clase" || fNorm.includes("clase")` precedía a la de `"subclase"`. Dado que la subcadena `"subclase"` contiene a `"clase"`, cualquier fuente como `"Subclase: Dominio de la Vida"` coincidía con la condición de clase primero, provocando fallos en la detección de subclase.
+3. **Discrepancia en Convención de Slugs y Prefijos de ID (`h_` vs `h-`):**
+   - El generador `generarIdSlug("h", ...)` produce slugs con formato `h_<nombre>`, mientras que en el catálogo y compendio de hechizos coexisten IDs con guión medio `h-<nombre>` o sin prefijo. Al no registrar ambas variantes deterministas ni limpiar el prefijo al indexar cadenas ya prefijadas, las búsquedas por `hechizo.id` no encontraban el registro del paso 1 o 2 y caían en el registro del paso 4 o en el fallback de seguridad.
+
+**Solución Aplicada Quirúrgicamente:**
+1. **Protección `First-Match-Wins` vía `registrarClave`:**
+   - Se encapsuló el guardado en el Map mediante `registrarClave(k, badge)` con la condición `if (!mapa.has(k)) mapa.set(k, badge)`. La primera fuente registrada (rasgos > subclase dinámica > especie/legado > conjuros siempre preparados) retiene la prioridad permanentemente.
+2. **Corrección de Orden Jerárquico:**
+   - Se evaluó explícitamente `"subclase"` antes que `"clase"` tanto en `resolverOrigenConjuro` como en `crearResolutorOrigenConjuros`.
+3. **Indexación y Búsqueda Bidireccional de Prefijos:**
+   - `registrarCadena` despoja los prefijos `h_` y `h-` para indexar tanto la raíz pura (`"bendicion"`) como ambas variantes de ID (`"h_bendicion"`, `"h-bendicion"`), así como los sinónimos de `MAPA_ALIAS_HECHIZOS`.
+   - La closure de consulta examina `hechizo.id`, `hechizo.nombre`, el cuerpo sin prefijo (`idCuerpo`), slugs y nombres sin tildes antes de recurrir al resolutor canónico.
+4. **Validación Exhaustiva:**
+   - Se agregaron pruebas unitarias en `resolutorOrigenConjuros.test.ts` que certifican la prioridad estricta de subclase y linaje sobre `conjurosSiemprePreparadosIds`.
+
+---
+
 ## [2026-09-18] Optimización de Rendimiento en Ficha de Personaje: Erradicación del Bloqueo al Cambiar a Subpestaña "Conjuros"
 
 **Contexto y Requerimientos del Usuario:**

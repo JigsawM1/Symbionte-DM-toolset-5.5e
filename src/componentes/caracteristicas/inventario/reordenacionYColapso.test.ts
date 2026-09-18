@@ -34,7 +34,7 @@ describe("Correcciones de Bugs: Reordenación en Inventario y Colapso de Seccion
       const agregarNotificacion = vi.fn();
 
       // Lógica de manejarReordenarItems
-      const manejarReordenarItems = (origen: string, destino: string) => {
+      const manejarReordenarItems = (origen: string, destino: string, criterioOrdenActual: string = "tipo") => {
         const objOrigen = inventario.find((o) => o.idInstancia === origen);
         const objDestino = inventario.find((o) => o.idInstancia === destino);
 
@@ -50,16 +50,17 @@ describe("Correcciones de Bugs: Reordenación en Inventario y Colapso de Seccion
         if (!objDestino?.equipado && objOrigen?.contenedor && objOrigen.contenedor !== "mochila") {
           alCambiarContenedor?.(origen, "mochila");
         }
-        if (!objDestino?.equipado) {
+        if (!objDestino?.equipado && criterioOrdenActual !== "tipo") {
           setCriterioOrden("personalizado");
         }
         alReordenarInventario?.(origen, destino);
       };
 
-      manejarReordenarItems("item-1", "item-2");
+      manejarReordenarItems("item-1", "item-2", "tipo");
 
       expect(alAlternarEquipado).not.toHaveBeenCalled();
       expect(agregarNotificacion).not.toHaveBeenCalled();
+      expect(setCriterioOrden).not.toHaveBeenCalled();
       expect(alReordenarInventario).toHaveBeenCalledWith("item-1", "item-2");
     });
 
@@ -161,6 +162,157 @@ describe("Correcciones de Bugs: Reordenación en Inventario y Colapso de Seccion
       alternarSeccionBug("magicos_nv_1");
       expect(estado["magicos_nv_1"]).toBe(false);
       expect(estado["magicos_nv_1"] !== false).toBe(false); // Recién cerrada
+    });
+  });
+
+  describe("3. Colapso Total de Cajas de la Mochila (usarInventarioOrdenado)", () => {
+    it("colapsarTodasSecciones cierra exhaustivamente todas las cajas de la mochila (incluyendo escudos, focos-magicos, contenedores y paquetes)", () => {
+      let estado: Record<string, boolean> = {
+        recursos: true,
+        equipados: true,
+        consumibles: true,
+        municion: true,
+        armas: true,
+        armaduras: true,
+        escudos: true,
+        herramientas: true,
+        "focos-magicos": true,
+        contenedores: true,
+        "paquetes-equipo": true,
+        magicos: true,
+        equipo: true,
+        bolsa_contencion: true,
+        montura: true,
+        almacen: true,
+        caja_personalizada_extra: true
+      };
+
+      const setSeccionesAbiertas = (actualizador: (prev: Record<string, boolean>) => Record<string, boolean>) => {
+        estado = actualizador(estado);
+      };
+
+      const colapsarTodasSecciones = () => {
+        setSeccionesAbiertas((prev) => {
+          const colapsadas: Record<string, boolean> = {
+            recursos: false,
+            equipados: false,
+            consumibles: false,
+            municion: false,
+            armas: false,
+            armaduras: false,
+            escudos: false,
+            herramientas: false,
+            "focos-magicos": false,
+            contenedores: false,
+            "paquetes-equipo": false,
+            magicos: false,
+            equipo: false,
+            bolsa_contencion: false,
+            montura: false,
+            almacen: false
+          };
+          for (const k of Object.keys(prev)) {
+            colapsadas[k] = false;
+          }
+          return colapsadas;
+        });
+      };
+
+      colapsarTodasSecciones();
+
+      // Ninguna sección debe quedar abierta (todas false)
+      expect(estado.escudos).toBe(false);
+      expect(estado["focos-magicos"]).toBe(false);
+      expect(estado.contenedores).toBe(false);
+      expect(estado["paquetes-equipo"]).toBe(false);
+      expect(estado.armas).toBe(false);
+      expect(estado.caja_personalizada_extra).toBe(false);
+      expect(Object.values(estado).every((v) => v === false)).toBe(true);
+    });
+
+    it("expandirTodasSecciones abre todas las subsecciones de la mochila", () => {
+      let estado: Record<string, boolean> = {
+        escudos: false,
+        "focos-magicos": false,
+        contenedores: false,
+        "paquetes-equipo": false
+      };
+
+      const setSeccionesAbiertas = (actualizador: (prev: Record<string, boolean>) => Record<string, boolean>) => {
+        estado = actualizador(estado);
+      };
+
+      const expandirTodasSecciones = () => {
+        setSeccionesAbiertas((prev) => {
+          const expandidas: Record<string, boolean> = {
+            recursos: true,
+            equipados: true,
+            consumibles: true,
+            municion: true,
+            armas: true,
+            armaduras: true,
+            escudos: true,
+            herramientas: true,
+            "focos-magicos": true,
+            contenedores: true,
+            "paquetes-equipo": true,
+            magicos: true,
+            equipo: true,
+            bolsa_contencion: true,
+            montura: true,
+            almacen: true
+          };
+          for (const k of Object.keys(prev)) {
+            expandidas[k] = true;
+          }
+          return expandidas;
+        });
+      };
+
+      expandirTodasSecciones();
+
+      expect(estado.escudos).toBe(true);
+      expect(estado["focos-magicos"]).toBe(true);
+      expect(estado.contenedores).toBe(true);
+      expect(estado["paquetes-equipo"]).toBe(true);
+      expect(Object.values(estado).every((v) => v === true)).toBe(true);
+    });
+  });
+
+  describe("4. Alternancia de Subsecciones de Acciones (SeccionRasgosAtaque)", () => {
+    it("alterna limpiamente el estado booleano de una subsección sin depender de booleanos implícitos", () => {
+      let estado: Record<string, boolean> = {
+        acciones: true,
+        adicionales: true,
+        reacciones: true,
+        consumibles: true,
+        activables: true
+      };
+
+      const setSubseccionesAbiertas = (actualizador: (prev: Record<string, boolean>) => Record<string, boolean>) => {
+        estado = actualizador(estado);
+      };
+
+      const alternarSubseccion = (clave: string) => {
+        setSubseccionesAbiertas((prev) => {
+          const estaAbierta = prev[clave] !== false;
+          return {
+            ...prev,
+            [clave]: !estaAbierta
+          };
+        });
+      };
+
+      // Inicialmente abierta
+      expect(estado.adicionales).toBe(true);
+
+      // Colapsar
+      alternarSubseccion("adicionales");
+      expect(estado.adicionales).toBe(false);
+
+      // Re-expandir
+      alternarSubseccion("adicionales");
+      expect(estado.adicionales).toBe(true);
     });
   });
 });

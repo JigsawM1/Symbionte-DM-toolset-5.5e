@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import {
   Sparkles,
   Zap,
@@ -11,6 +11,7 @@ import {
 import type { PersonajeJugador, RasgoPersonaje } from "@/tipos";
 import type { RasgoAccionCombate, FiltroAccion } from "./usarCalculoAtaquesJugador";
 import { TarjetaRasgo } from "@/componentes/caracteristicas/rasgos/TarjetaRasgo";
+import { usarEstadoPersistido } from "@/hooks";
 import estilos from "./VistaAtaquesJugador.module.css";
 
 interface SeccionRasgosAtaqueProps {
@@ -53,19 +54,25 @@ export const SeccionRasgosAtaque: React.FC<SeccionRasgosAtaqueProps> = ({
   obtenerBloqueoToggleRasgo,
   resolverRecursosPadre
 }) => {
-  const [subseccionesAbiertas, setSubseccionesAbiertas] = useState<Record<string, boolean>>({
-    acciones: true,
-    adicionales: true,
-    reacciones: true,
-    consumibles: true,
-    activables: true
-  });
+  const [subseccionesAbiertas, setSubseccionesAbiertas] = usarEstadoPersistido<Record<string, boolean>>(
+    "ts_acciones_subsecciones_rasgos",
+    {
+      acciones: true,
+      adicionales: true,
+      reacciones: true,
+      consumibles: true,
+      activables: true
+    }
+  );
 
   const alternarSubseccion = (clave: string) => {
-    setSubseccionesAbiertas((prev) => ({
-      ...prev,
-      [clave]: !prev[clave]
-    }));
+    setSubseccionesAbiertas((prev) => {
+      const estaAbierta = prev[clave] !== false;
+      return {
+        ...prev,
+        [clave]: !estaAbierta
+      };
+    });
   };
 
   if (rasgosFiltrados.length === 0) {

@@ -61,7 +61,11 @@ export function usarInventarioOrdenado({
       municion: true,
       armas: true,
       armaduras: true,
+      escudos: true,
       herramientas: true,
+      "focos-magicos": true,
+      contenedores: true,
+      "paquetes-equipo": true,
       magicos: true,
       equipo: true,
       bolsa_contencion: true,
@@ -82,36 +86,56 @@ export function usarInventarioOrdenado({
   };
 
   const colapsarTodasSecciones = () => {
-    setSeccionesAbiertas({
-      recursos: false,
-      equipados: false,
-      consumibles: false,
-      municion: false,
-      armas: false,
-      armaduras: false,
-      herramientas: false,
-      magicos: false,
-      equipo: false,
-      bolsa_contencion: false,
-      montura: false,
-      almacen: false
+    setSeccionesAbiertas((prev) => {
+      const colapsadas: Record<string, boolean> = {
+        recursos: false,
+        equipados: false,
+        consumibles: false,
+        municion: false,
+        armas: false,
+        armaduras: false,
+        escudos: false,
+        herramientas: false,
+        "focos-magicos": false,
+        contenedores: false,
+        "paquetes-equipo": false,
+        magicos: false,
+        equipo: false,
+        bolsa_contencion: false,
+        montura: false,
+        almacen: false
+      };
+      for (const k of Object.keys(prev)) {
+        colapsadas[k] = false;
+      }
+      return colapsadas;
     });
   };
 
   const expandirTodasSecciones = () => {
-    setSeccionesAbiertas({
-      recursos: true,
-      equipados: true,
-      consumibles: true,
-      municion: true,
-      armas: true,
-      armaduras: true,
-      herramientas: true,
-      magicos: true,
-      equipo: true,
-      bolsa_contencion: true,
-      montura: true,
-      almacen: true
+    setSeccionesAbiertas((prev) => {
+      const expandidas: Record<string, boolean> = {
+        recursos: true,
+        equipados: true,
+        consumibles: true,
+        municion: true,
+        armas: true,
+        armaduras: true,
+        escudos: true,
+        herramientas: true,
+        "focos-magicos": true,
+        contenedores: true,
+        "paquetes-equipo": true,
+        magicos: true,
+        equipo: true,
+        bolsa_contencion: true,
+        montura: true,
+        almacen: true
+      };
+      for (const k of Object.keys(prev)) {
+        expandidas[k] = true;
+      }
+      return expandidas;
     });
   };
 
@@ -219,6 +243,7 @@ export function usarInventarioOrdenado({
     alAlternarEquipado,
     alReordenarInventario,
     alCambiarOrden: setCriterioOrden,
+    criterioOrden,
     agregarNotificacion
   });
 
@@ -286,7 +311,7 @@ export function usarInventarioOrdenado({
       if (!objDestino?.equipado && objOrigen?.contenedor && objOrigen.contenedor !== "mochila") {
         alCambiarContenedor?.(origen, "mochila");
       }
-      if (!objDestino?.equipado) {
+      if (!objDestino?.equipado && criterioOrden !== "tipo") {
         setCriterioOrden("personalizado");
       }
       alReordenarInventario?.(origen, destino);

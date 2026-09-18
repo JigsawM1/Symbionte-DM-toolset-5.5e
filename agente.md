@@ -18,6 +18,93 @@ Este archivo registra reglas globales, errores encontrados, sus causas raíz y l
 6. **PROHIBICIÓN ESTRICTA DE BIFURCACIONES POR NOMBRE DE RASGO O CLASE (CATÁLOGO DECLARATIVO Y BUILDER PURO)**:
    - **Bajo ninguna circunstancia** los módulos de lógica de negocio (`servicios/`), gestores de estado (`almacen/`) o constructores (`gestorClases.ts`) deben contener bifurcaciones condicionales por nombre literal de rasgo o clase (`r.nombre === "..."`, `clase.includes("...")`, etc.).
    - Toda mecánica, progresión de dados, escalado de usos, recuperación o desbloqueo dinámico debe resolverse mediante metadatos declarativos (`escaladoFormulaDados`, `escaladoUsos`, `escaladoRecuperacion`, `opcionesDinamicas`, `escaladoMaxSelecciones`, `sincronizarEfectosConFormula`, `heredarDadosPadre`, `gastarDePadre`, `ligadoA`, `efectos`) delegando en funciones puras agnósticas como `resolverEscaladosRasgo`. Esta regla está reforzada en CI vía ESLint `no-restricted-syntax` y la suite `rasgoGenericidad.test.ts`.
+
+## [2026-09-17] Corrección de Estado y UX: Persistencia en Acciones, Colapso Exhaustivo en Mochila y Preservación de Categorías en Drag & Drop
+
+**Contexto y Requerimientos del Usuario:**
+1. **Acciones / Rasgos Tácticos**: Las cajas internas de rasgos y habilidades tácticas (`SeccionRasgosAtaque.tsx`) no persistían al ser colapsadas, reabriéndose al alternar la sección padre o al cambiar de pestaña en la ficha.
+2. **Inventario / Colapso**: El botón "Colapsar" del inventario no afectaba a varias cajas de la mochila (permanecían abiertas).
+3. **Inventario / Drag & Drop**: Al arrastrar y soltar para organizar objetos dentro de las mismas cajas de la mochila, la interfaz forzaba el cambio a la vista plana "Personalizado (Libre)" en lugar de mantener la vista por categorías.
+
+**Causa Raíz:**
+1. **Pérdida de Estado en `SeccionRasgosAtaque.tsx`**:
+   - `subseccionesAbiertas` utilizaba un `useState` local efímero. Al colapsar la sección principal (`estaAbierta === false`), el bloque condicional desmontaba las subsecciones, reseteando su estado al valor inicial (`true`).
+2. **Omisión de Categorías en `usarInventarioOrdenado.ts`**:
+   - `clasificarMochilaPorTipo` generaba subsecciones como `escudos`, `focos-magicos`, `contenedores` y `paquetes-equipo`. Sin embargo, `colapsarTodasSecciones` y el estado inicial de `seccionesAbiertas` no incluían estas claves. Al ser `undefined`, la evaluación `seccionesAbiertas[sub.id] !== false` resultaba en `true`, impidiendo que se colapsaran.
+3. **Forzado Innecesario a Modo Personalizado en Drag & Drop**:
+   - En `usarInventarioOrdenado.ts` (`manejarReordenarItems`) y `usarDragAndDropInventario.ts`, cualquier soltado sobre un ítem no equipado ejecutaba incondicionalmente `setCriterioOrden("personalizado")`.
+   - En `SeccionMochilaInventario.tsx`, `criterioOrden !== "tipo"` destruye la vista por subsecciones y pasa al modo lista plana, sacando al usuario de sus cajas temáticas organizadas.
+   - Además, `DESTINOS_MOCHILA` en `usarDragAndDropInventario.ts` no reconocía `escudos`, `focos-magicos`, `contenedores` ni `paquetes-equipo` como destinos válidos de mochila.
+
+**Decisiones Técnicas y Arquitectónicas:**
+1. **Persistencia Unificada con `usarEstadoPersistido` en `SeccionRasgosAtaque.tsx`**:
+   - Se migró el estado de subsecciones a `usarEstadoPersistido<Record<string, boolean>>("ts_acciones_subsecciones_rasgos", ...)`, garantizando persistencia entre desmontajes de componentes y sesiones.
+   - Se implementó `alternarSubseccion` con inversión booleana estricta (`prev[clave] !== false ? false : true`).
+2. **Colapso Exhaustivo y Dinámico en `usarInventarioOrdenado.ts`**:
+   - Se incorporaron `escudos`, `focos-magicos`, `contenedores` y `paquetes-equipo` al estado por defecto.
+   - `colapsarTodasSecciones` y `expandirTodasSecciones` ahora barren dinámicamente todas las claves existentes en `prev` además del catálogo canónico, imposibilitando que cajas dinámicas queden desincronizadas.
+   - Se ampliaron `DESTINOS_MOCHILA` en `usarDragAndDropInventario.ts` con todas las categorías oficiales de la mochila.
+3. **Preservación del Criterio de Orden en Drag & Drop**:
+   - Se propagó `criterioOrden` a `usarDragAndDropInventario`.
+   - Si `criterioOrden === "tipo"`, no se invoca `setCriterioOrden("personalizado")`, preservando la vista por categorías. Como el almacén reordena el array de inventario mediante `alReordenarInventario`, la caja de la mochila refleja reactivamente el nuevo orden relativo sin alterar la interfaz.
+4. **Validación y Suite de Pruebas Dedicada (`reordenacionYColapso.test.ts`)**:
+   - Pruebas unitarias que certifican la preservación del modo `tipo` al reordenar, el cierre exhaustivo del 100% de cajas en `colapsarTodasSecciones`, y la alternancia booleana de subsecciones de rasgos.
+
+**Verificación Automatizada (`pnpm run ci`):**
+- `tsc --noEmit`: 0 errores bajo `strict: true`.
+- `eslint src --max-warnings=0`: 0 errores y 0 advertencias.
+- `vitest run`: 60 suites aprobadas, 758 pruebas unitarias pasando al 100%.
+- `vite build`: Empaquetado exitoso de producción en 15.69s.
+
+---
+
+## [2026-09-17] Corrección de UI y Simetría Geométrica en filaMetricasRapidas (Modo Jugador / Ficha)
+
+**Contexto y Requerimientos del Usuario:**
+- Resolver el defecto visual en `.filaMetricasRapidas` donde las tarjetas de métricas no eran simétricas ni tenían la misma apariencia. En particular, las tarjetas que disponían de hover/tooltip (Clase de Armadura y Velocidad) se mostraban con menor altura y ancho reducido (especialmente Velocidad, dejando un hueco asimétrico en la cuadrícula).
+
+**Causa Raíz:**
+1. **Asimetría de Ancho por `width: max-content`:**
+   - En `MetricasRapidasPersonaje.tsx`, únicamente las tarjetas de "Clase de Armadura" y "Velocidad" estaban envueltas en `<TooltipUniversal>`.
+   - `TooltipUniversal` introduce como contenedor un `div` con la clase `.contenedor` de `TooltipUniversal.module.css`, la cual posee `display: inline-flex; width: max-content; max-width: 100%; align-items: center;`.
+   - Al ser hijo directo de la cuadrícula CSS Grid (`repeat(4, 1fr) 58px`), `width: max-content` forzaba a que el elemento se ajustase únicamente al ancho de su texto interno ("Velocidad" + "30 ft"), impidiendo que se expandiera al tamaño de columna `1fr` y dejando un vacío asimétrico en comparación con "Iniciativa" y "Competencia".
+2. **Asimetría de Altura por `align-items: center`:**
+   - La altura de la fila de la cuadrícula está determinada por el elemento más alto (la tarjeta 5 de Inspiración Heroica con botón circular de 28px y etiquetas, ~64px).
+   - Como las tarjetas directas tenían `align-self: stretch` por defecto en CSS Grid, se expandían al 100% de la altura de la fila.
+   - En cambio, dentro de `TooltipUniversal`, `align-items: center` provocaba que la tarjeta hija `.tarjetaMetrica` se centrara verticalmente con su altura intrínseca (~54px), perdiendo ~10px de altura respecto al resto.
+
+**Decisiones Técnicas y Arquitectónicas:**
+1. **Normalización de Cuadrícula en `HojaPersonaje.module.css`:**
+   - Se ajustó `grid-template-columns: repeat(4, minmax(0, 1fr)) 58px;` con `align-items: stretch;` asegurando tracks fraccionarios matemáticamente equivalentes sin colapso por `min-width: auto`.
+   - Se definió `.contenedorTooltipMetrica` con reglas directas que anulan las restricciones inline-flex:
+     ```css
+     .contenedorTooltipMetrica {
+       width: 100% !important;
+       height: 100% !important;
+       display: flex !important;
+       flex-direction: column !important;
+       align-items: stretch !important;
+       justify-content: stretch !important;
+       min-width: 0;
+     }
+     ```
+   - Se reforzó `.tarjetaMetrica` con `width: 100%; height: 100%; box-sizing: border-box; flex: 1;`.
+2. **Estandarización de `TooltipUniversal` en `MetricasRapidasPersonaje.tsx`:**
+   - Se aplicó `className={estilos.contenedorTooltipMetrica}` a todas las instancias de `TooltipUniversal`.
+   - Se homogeneizaron las 5 métricas (Clase de Armadura, Iniciativa, Velocidad, Competencia e Inspiración Heroica) envolviéndolas en `TooltipUniversal` con títulos y descripciones canónicas de D&D 5.5e, erradicando los `title` nativos del navegador.
+   - Se configuraron alineaciones seguras de bordes: `alineacion="inicio"` para la columna 1 (izquierda) y `alineacion="fin"` para la columna 5 (derecha).
+3. **Validación y Suite de Pruebas Dedicada (`MetricasRapidasPersonaje.test.tsx`):**
+   - 4 pruebas unitarias con Vitest y `renderToStaticMarkup` verificando la presencia de las 5 métricas, clase de simetría de tooltip, formato de signos de iniciativa, alertas de no competencia y botón de inspiración activa.
+
+**Verificación Automatizada (`pnpm run ci`):**
+- `tsc --noEmit`: 0 errores bajo configuración estricta (`strict: true`).
+- `eslint src --max-warnings=0`: 0 errores y 0 advertencias.
+- `vitest run`: 60 suites aprobadas, 755 pruebas unitarias pasando al 100%.
+- `node scripts/verificar-limite-lineas.js`: 109 archivos auditados, 0 errores críticos.
+- `vite build`: Empaquetado exitoso de producción en 15.87s.
+
+---
+
 ## [2026-09-17] Integración de BannerConcentracionActiva en SeccionRecursosMagicosAtaque (Modo Combate / Jugador)
 
 **Contexto y Requerimientos:**

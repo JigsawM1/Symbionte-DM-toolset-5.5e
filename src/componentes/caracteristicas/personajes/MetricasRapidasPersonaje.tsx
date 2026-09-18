@@ -62,6 +62,8 @@ const MetricasRapidasPersonajeComponent: React.FC<MetricasRapidasPersonajeProps>
         titulo={penalizacionArmadura?.sinCompetencia ? "Clase de Armadura (Sin Competencia)" : "Clase de Armadura"}
         contenido={caTooltip}
         posicion="abajo"
+        alineacion="inicio"
+        className={estilos.contenedorTooltipMetrica}
       >
         <div className={`${estilos.neoRaised} ${estilos.tarjetaMetrica}`}>
           <Shield size={13} className={estilos.iconoMetricaDecorativo} />
@@ -76,21 +78,28 @@ const MetricasRapidasPersonajeComponent: React.FC<MetricasRapidasPersonajeProps>
       </TooltipUniversal>
 
       {/* 2. Iniciativa */}
-      <div
-        className={`${estilos.neoRaised} ${estilos.tarjetaMetrica} ${estilos.tarjetaMetricaInteractiva}`}
-        onClick={alTirarIniciativa}
-        title="Haz clic para tirar iniciativa en TaleSpire"
+      <TooltipUniversal
+        titulo="Iniciativa"
+        contenido={`Tirada de Iniciativa: 1d20 ${textoIniciativa} (Destreza).\nHaz clic para tirar iniciativa en TaleSpire.`}
+        posicion="abajo"
+        className={estilos.contenedorTooltipMetrica}
       >
-        <Zap size={13} className={estilos.iconoMetricaDecorativo} />
-        <span className={estilos.etiquetaMetrica}>Iniciativa</span>
-        <span className={`${estilos.valorMetrica} ${estilos.valorMetricaAcento}`}>{textoIniciativa}</span>
-      </div>
+        <div
+          className={`${estilos.neoRaised} ${estilos.tarjetaMetrica} ${estilos.tarjetaMetricaInteractiva}`}
+          onClick={alTirarIniciativa}
+        >
+          <Zap size={13} className={estilos.iconoMetricaDecorativo} />
+          <span className={estilos.etiquetaMetrica}>Iniciativa</span>
+          <span className={`${estilos.valorMetrica} ${estilos.valorMetricaAcento}`}>{textoIniciativa}</span>
+        </div>
+      </TooltipUniversal>
 
       {/* 3. Velocidad */}
       <TooltipUniversal
         titulo="Velocidad de Movimiento"
         contenido={velocidadTooltip}
         posicion="abajo"
+        className={estilos.contenedorTooltipMetrica}
       >
         <div className={`${estilos.neoRaised} ${estilos.tarjetaMetrica}`}>
           <Footprints size={13} className={estilos.iconoMetricaDecorativo} />
@@ -103,23 +112,41 @@ const MetricasRapidasPersonajeComponent: React.FC<MetricasRapidasPersonajeProps>
       </TooltipUniversal>
 
       {/* 4. Competencia */}
-      <div className={`${estilos.neoRaised} ${estilos.tarjetaMetrica}`}>
-        <Award size={13} className={estilos.iconoMetricaDecorativo} />
-        <span className={estilos.etiquetaMetrica}>Competencia</span>
-        <span className={`${estilos.valorMetrica} ${estilos.valorMetricaAcento}`}>+{bonoCompetencia}</span>
-      </div>
+      <TooltipUniversal
+        titulo="Bonificador por Competencia"
+        contenido={`Bono de Competencia: +${bonoCompetencia}\nSe suma a tiradas de ataque con armas competentes, tiradas de salvación y habilidades competentes, y a la CD de salvación de conjuros.`}
+        posicion="abajo"
+        className={estilos.contenedorTooltipMetrica}
+      >
+        <div className={`${estilos.neoRaised} ${estilos.tarjetaMetrica}`}>
+          <Award size={13} className={estilos.iconoMetricaDecorativo} />
+          <span className={estilos.etiquetaMetrica}>Competencia</span>
+          <span className={`${estilos.valorMetrica} ${estilos.valorMetricaAcento}`}>+{bonoCompetencia}</span>
+        </div>
+      </TooltipUniversal>
 
       {/* 5. Inspiración Heroica */}
-      <div
-        className={`${estilos.neoRaised} ${estilos.tarjetaMetrica} ${estilos.tarjetaMetricaInteractiva}`}
-        onClick={alAlternarInspiracion}
-        title={personaje.inspiracion ? "Inspiración Heroica activa. Clic para gastarla." : "Inspiración Heroica. Clic para activar."}
+      <TooltipUniversal
+        titulo="Inspiración Heroica"
+        contenido={
+          personaje.inspiracion
+            ? "Inspiración Heroica activa.\nHaz clic para gastarla (permite repetir cualquier tirada de d20)."
+            : "Inspiración Heroica inactiva.\nHaz clic para activarla."
+        }
+        posicion="abajo"
+        alineacion="fin"
+        className={estilos.contenedorTooltipMetrica}
       >
-        <span className={estilos.etiquetaMetrica}>Insp.</span>
-        <div className={`${estilos.botonInspiracion} ${personaje.inspiracion ? estilos.botonInspiracionActiva : ""}`}>
-          <Sparkles size={12} color={personaje.inspiracion ? "#000" : "var(--color-texto-apagado, #64748b)"} />
+        <div
+          className={`${estilos.neoRaised} ${estilos.tarjetaMetrica} ${estilos.tarjetaMetricaInteractiva}`}
+          onClick={alAlternarInspiracion}
+        >
+          <span className={estilos.etiquetaMetrica}>Insp.</span>
+          <div className={`${estilos.botonInspiracion} ${personaje.inspiracion ? estilos.botonInspiracionActiva : ""}`}>
+            <Sparkles size={12} color={personaje.inspiracion ? "#000" : "var(--color-texto-apagado, #64748b)"} />
+          </div>
         </div>
-      </div>
+      </TooltipUniversal>
     </section>
   );
 };

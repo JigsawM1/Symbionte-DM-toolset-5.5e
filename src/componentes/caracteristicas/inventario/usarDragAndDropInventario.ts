@@ -10,6 +10,7 @@ interface ParametrosDragAndDropInventario {
   alAlternarEquipado: (idInstancia: string) => void;
   alReordenarInventario?: (idInstanciaOrigen: string, idInstanciaDestino: string) => void;
   alCambiarOrden?: (orden: CriterioOrdenMochila) => void;
+  criterioOrden?: CriterioOrdenMochila;
   agregarNotificacion: (mensaje: string, tipo?: "info" | "exito" | "advertencia" | "error") => void;
 }
 
@@ -19,7 +20,11 @@ const DESTINOS_MOCHILA = new Set([
   "municion",
   "armas",
   "armaduras",
+  "escudos",
   "herramientas",
+  "focos-magicos",
+  "contenedores",
+  "paquetes-equipo",
   "magicos",
   "equipo"
 ]);
@@ -30,6 +35,7 @@ export function usarDragAndDropInventario({
   alAlternarEquipado,
   alReordenarInventario,
   alCambiarOrden,
+  criterioOrden,
   agregarNotificacion
 }: ParametrosDragAndDropInventario) {
   const [zonaDropActiva, setZonaDropActiva] = useState<string | null>(null);
@@ -168,7 +174,7 @@ export function usarDragAndDropInventario({
           if (!objDestino?.equipado && objActual.contenedor && objActual.contenedor !== "mochila") {
             alCambiarContenedor?.(idInstancia, "mochila");
           }
-          if (!objDestino?.equipado) {
+          if (!objDestino?.equipado && criterioOrden !== "tipo") {
             alCambiarOrden?.("personalizado");
           }
           alReordenarInventario(idInstancia, idDestino);

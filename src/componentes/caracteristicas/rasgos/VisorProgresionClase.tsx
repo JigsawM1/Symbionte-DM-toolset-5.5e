@@ -36,20 +36,20 @@ export const VisorProgresionClase: React.FC<VisorProgresionClaseProps> = ({
         return (
           <div
             key={bloqueClase.clase.nombre}
-            style={{ display: "flex", flexDirection: "column", gap: 6 }}
+            className={estilos.bloqueProgresionClase}
           >
             {/* Cabecera de la Clase */}
             <div className={estilos.cabeceraCompendioClase}>
               <h2 className={estilos.tituloCompendioClase}>
                 <Swords size={16} color="#d4af37" />
                 <span>{bloqueClase.defClase.nombre}</span>
-                <span style={{ fontSize: 11, color: "#94a3b8", fontWeight: 600, textTransform: "none" }}>
+                <span className={estilos.metaCompendioClase}>
                   (Dado: {bloqueClase.defClase.dadoGolpe} · Nivel Actual: {bloqueClase.clase.nivel})
                 </span>
               </h2>
 
               {bloqueClase.subDef && (
-                <span style={{ fontSize: 11, color: "#38bdf8", fontWeight: 700 }}>
+                <span className={estilos.subDefNombre}>
                   {bloqueClase.subDef.nombre}
                 </span>
               )}
@@ -84,7 +84,7 @@ export const VisorProgresionClase: React.FC<VisorProgresionClaseProps> = ({
                     className={`${estilos.itemProgresion} ${!item.alcanzado ? estilos.itemNivelFuturo : ""}`}
                   >
                     <div className={estilos.filaTituloProgresion}>
-                      <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                      <div className={estilos.filaTituloIzquierda}>
                         <span
                           className={
                             esSubclase
@@ -97,7 +97,7 @@ export const VisorProgresionClase: React.FC<VisorProgresionClaseProps> = ({
 
                         {item.alcanzado ? (
                           <span className={estilos.badgeNivelAlcanzado} title="Desbloqueado">
-                            <CheckCircle2 size={8} style={{ marginRight: 2, display: "inline" }} />
+                            <CheckCircle2 size={8} className={estilos.iconoBadgeAlcanzado} />
                             Activo
                           </span>
                         ) : (
@@ -119,7 +119,7 @@ export const VisorProgresionClase: React.FC<VisorProgresionClaseProps> = ({
 
                     {/* Tabla de Progresión y Escalado por Nivel */}
                     {item.tablaProgresion && (
-                      <div style={{ marginTop: 8 }} onClick={(e) => e.stopPropagation()}>
+                      <div className={estilos.contenedorTablaProgresion} onClick={(e) => e.stopPropagation()}>
                         <TablaProgresionRasgo
                           tabla={item.tablaProgresion}
                           nivelPersonaje={bloqueClase.clase.nivel}

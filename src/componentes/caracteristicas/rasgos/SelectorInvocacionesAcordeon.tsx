@@ -500,7 +500,7 @@ export const SelectorInvocacionesAcordeon: React.FC<SelectorInvocacionesAcordeon
     <div className={estilos.contenedorAcordeonInvocaciones}>
       {/* Barra de herramientas con buscador y filtros */}
       <div className={estilos.barraHerramientasInvocaciones}>
-        <div style={{ display: "flex", alignItems: "center", gap: 6, flex: 1 }}>
+        <div className={estilos.contenedorBuscador}>
           <Search size={14} color="#94a3b8" />
           <input
             type="text"
@@ -539,7 +539,7 @@ export const SelectorInvocacionesAcordeon: React.FC<SelectorInvocacionesAcordeon
       {/* Lista de cajas colapsables */}
       <div className={estilos.listaCajasInvocaciones}>
         {opcionesProcesadas.length === 0 ? (
-          <div style={{ padding: 20, textAlign: "center", color: "#94a3b8", fontSize: 13 }}>
+          <div className={estilos.mensajeVacio}>
             No se encontraron invocaciones con los criterios de búsqueda actuales.
           </div>
         ) : (
@@ -653,14 +653,14 @@ export const SelectorInvocacionesAcordeon: React.FC<SelectorInvocacionesAcordeon
                       <div className={bloqueada ? estilos.alertaRequisito : estilos.alertaRequisitoCumplido}>
                         {bloqueada ? (
                           <>
-                            <AlertCircle size={15} style={{ flexShrink: 0, marginTop: 1 }} />
+                            <AlertCircle size={15} className={estilos.iconoAlertaRequisito} />
                             <div>
                               <strong>Requisitos pendientes:</strong> {textoMotivoBloqueo}
                             </div>
                           </>
                         ) : (
                           <>
-                            <ShieldCheck size={15} style={{ flexShrink: 0, marginTop: 1 }} />
+                            <ShieldCheck size={15} className={estilos.iconoAlertaRequisito} />
                             <div>
                               <strong>Requisitos cumplidos:</strong> {op.requisito}
                             </div>
@@ -678,7 +678,7 @@ export const SelectorInvocacionesAcordeon: React.FC<SelectorInvocacionesAcordeon
                     {Array.isArray(op.efectos) && op.efectos.length > 0 && (
                       <div className={estilos.seccionEfectosInvocacion}>
                         <span className={estilos.tituloEfectosInvocacion}>
-                          <Sparkles size={12} style={{ display: "inline", verticalAlign: "middle", marginRight: 4 }} />
+                          <Sparkles size={12} className={estilos.iconoTituloEfectos} />
                           Efectos y Mecánicas Activas:
                         </span>
                         {op.efectos.map((ef, efIdx) => (
@@ -696,7 +696,7 @@ export const SelectorInvocacionesAcordeon: React.FC<SelectorInvocacionesAcordeon
                           <Zap size={14} color="#38bdf8" />
                           <span>Trucos Vinculados (Empuje de 10 pies por impacto):</span>
                         </div>
-                        <p style={{ fontSize: 11, color: "#94a3b8", margin: "2px 0 6px 0" }}>
+                        <p className={estilos.pistaMecanica}>
                           Elige los trucos aprendidos que requieran tirada de ataque. Cada truco vinculado consume 1 ranura de invocación sobrenatural aprendida ({seleccionados.length}/{max}).
                         </p>
 
@@ -707,7 +707,7 @@ export const SelectorInvocacionesAcordeon: React.FC<SelectorInvocacionesAcordeon
 
                           return (
                             <div key={idx} className={estilos.filaSelectorTrucoAhuyentadora}>
-                              <div style={{ flex: 1 }}>
+                              <div className={estilos.contenedorDesplegableMecanica}>
                                 <SelectorDesplegable
                                   valor={trucoActualId}
                                   opciones={trucosAtaqueOpciones}
@@ -754,7 +754,7 @@ export const SelectorInvocacionesAcordeon: React.FC<SelectorInvocacionesAcordeon
                           <Sparkles size={14} color="#38bdf8" />
                           <span>Trucos Vinculados (+Modificador de Carisma al daño):</span>
                         </div>
-                        <p style={{ fontSize: 11, color: "#94a3b8", margin: "2px 0 6px 0" }}>
+                        <p className={estilos.pistaMecanica}>
                           Elige los trucos aprendidos que causen daño. Sumas tu modificador de Carisma a sus tiradas de daño (y a cada rayo). Cada truco vinculado consume 1 ranura de invocación ({seleccionados.length}/{max}).
                         </p>
 
@@ -765,7 +765,7 @@ export const SelectorInvocacionesAcordeon: React.FC<SelectorInvocacionesAcordeon
 
                           return (
                             <div key={idx} className={estilos.filaSelectorTrucoAhuyentadora}>
-                              <div style={{ flex: 1 }}>
+                              <div className={estilos.contenedorDesplegableMecanica}>
                                 <SelectorDesplegable
                                   valor={trucoActualId}
                                   opciones={trucosDanoOpciones}
@@ -812,7 +812,7 @@ export const SelectorInvocacionesAcordeon: React.FC<SelectorInvocacionesAcordeon
                           <Zap size={14} color="#60a5fa" />
                           <span>Trucos Vinculados (+10 pies x nivel de Brujo al alcance):</span>
                         </div>
-                        <p style={{ fontSize: 11, color: "#94a3b8", margin: "2px 0 6px 0" }}>
+                        <p className={estilos.pistaMecanica}>
                           Elige los trucos aprendidos que causen daño con alcance de al menos 10 pies. Su alcance aumenta en 10 pies por nivel de Brujo (+{(nivelPersonaje || 1) * 10} pies). Cada truco consume 1 ranura ({seleccionados.length}/{max}).
                         </p>
 
@@ -823,7 +823,7 @@ export const SelectorInvocacionesAcordeon: React.FC<SelectorInvocacionesAcordeon
 
                           return (
                             <div key={idx} className={estilos.filaSelectorTrucoAhuyentadora}>
-                              <div style={{ flex: 1 }}>
+                              <div className={estilos.contenedorDesplegableMecanica}>
                                 <SelectorDesplegable
                                   valor={trucoActualId}
                                   opciones={trucosAlcanceOpciones}
@@ -870,7 +870,7 @@ export const SelectorInvocacionesAcordeon: React.FC<SelectorInvocacionesAcordeon
                           <Award size={14} color="#f59e0b" />
                           <span>Dotes de Origen Aprendidas (Multiverso Ancestral):</span>
                         </div>
-                        <p style={{ fontSize: 11, color: "#94a3b8", margin: "2px 0 6px 0" }}>
+                        <p className={estilos.pistaMecanica}>
                           Elige una dote canónica de origen (PHB 2024). Cada dote aprendida consume 1 ranura de invocación ({seleccionados.length}/{max}).
                         </p>
 
@@ -881,7 +881,7 @@ export const SelectorInvocacionesAcordeon: React.FC<SelectorInvocacionesAcordeon
 
                           return (
                             <div key={idx} className={estilos.filaSelectorTrucoAhuyentadora}>
-                              <div style={{ flex: 1 }}>
+                              <div className={estilos.contenedorDesplegableMecanica}>
                                 <SelectorDesplegable
                                   valor={doteActualId}
                                   opciones={dotesOrigenOpciones}
@@ -944,13 +944,13 @@ export const SelectorInvocacionesAcordeon: React.FC<SelectorInvocacionesAcordeon
                                 className={`${estilos.pillTipoDano} ${estaSeleccionado ? estilos.pillTipoDanoActiva : ""}`}
                                 onClick={() => manejarCambiarTipoDanoPactoFilo(tipo)}
                               >
-                                {estaSeleccionado && <Check size={11} style={{ marginRight: 4 }} />}
+                                {estaSeleccionado && <Check size={11} className={estilos.iconoPillCheck} />}
                                 {nombresMap[tipo]}
                               </button>
                             );
                           })}
                         </div>
-                        <span style={{ fontSize: 11, color: "#94a3b8", margin: "2px 0 0 0" }}>
+                        <span className={estilos.notaMecanica}>
                           {tipoDanoPactoFiloActual === "propio"
                             ? "Arma vinculada: Utiliza Carisma para ataque y daño, conservando el tipo de daño original del arma."
                             : `Arma vinculada: Utiliza Carisma para ataque y daño, cambiando todo el daño base a daño ${tipoDanoPactoFiloActual}.`}
@@ -965,25 +965,16 @@ export const SelectorInvocacionesAcordeon: React.FC<SelectorInvocacionesAcordeon
                           <Heart size={14} color="#f43f5e" />
                           <span>Puntos de Golpe Temporales a Voluntad (Espacio de Pacto Nv {nivelEspacioPactoCalculado}):</span>
                         </div>
-                        <p style={{ fontSize: 11, color: "#94a3b8", margin: "2px 0 6px 0" }}>
+                        <p className={estilos.pistaMecanica}>
                           Fórmula: 12 + 5 × ({nivelEspacioPactoCalculado} - 1) = <strong>{pgTemporalesVigorInfernal} PG temporales</strong>. Puedes lanzarlo sobre ti mismo a voluntad.
                         </p>
                         <button
                           type="button"
-                          className={estilos.botonAgregarInstancia}
-                          style={{
-                            background: "rgba(244, 63, 94, 0.15)",
-                            borderColor: "rgba(244, 63, 94, 0.4)",
-                            color: "#fda4af",
-                            width: "auto",
-                            alignSelf: "flex-start",
-                            padding: "6px 14px",
-                            cursor: "pointer"
-                          }}
+                          className={estilos.botonVigorInfernal}
                           onClick={manejarAplicarVigorInfernal}
                           title={`Obtener ${pgTemporalesVigorInfernal} puntos de golpe temporales`}
                         >
-                          <Heart size={13} style={{ marginRight: 6 }} />
+                          <Heart size={13} className={estilos.iconoHeartVigor} />
                           <span>Obtener {pgTemporalesVigorInfernal} PG Temporales (Vigor infernal)</span>
                         </button>
                       </div>
@@ -1011,13 +1002,13 @@ export const SelectorInvocacionesAcordeon: React.FC<SelectorInvocacionesAcordeon
                                 className={`${estilos.pillTipoDano} ${estaSeleccionado ? estilos.pillTipoDanoActiva : ""}`}
                                 onClick={() => manejarCambiarTipoDanoDevorador(tipo)}
                               >
-                                {estaSeleccionado && <Check size={11} style={{ marginRight: 4 }} />}
+                                {estaSeleccionado && <Check size={11} className={estilos.iconoPillCheck} />}
                                 {nombresMap[tipo]}
                               </button>
                             );
                           })}
                         </div>
-                        <span style={{ fontSize: 11, color: "#94a3b8", margin: "2px 0 0 0" }}>
+                        <span className={estilos.notaMecanica}>
                           Daño extra activo: +1d6 daño {tipoDanoDevoradorActual} al impactar con tu arma cuerpo a cuerpo.
                         </span>
                       </div>
@@ -1026,7 +1017,7 @@ export const SelectorInvocacionesAcordeon: React.FC<SelectorInvocacionesAcordeon
                     {/* Caja informativa de Castigo Arcano */}
                     {op.id === "castigo_arcano" && (
                       <div className={estilos.cajaMecanicaConsumible}>
-                        <Zap size={14} color="#f59e0b" style={{ flexShrink: 0 }} />
+                        <Zap size={14} color="#f59e0b" className={estilos.iconoConsumible} />
                         <span>
                           <strong>Acción especial de combate:</strong> Gasta 1 espacio de Magia del pacto y lanza dados de fuerza ({op.escaladoFormulaDados?.find(e => (nivelPersonaje || 1) >= e.nivelMinimo)?.valor || op.formulaDados || "4d8"}). Disponible directamente en el Combat Tracker y en la pestaña de Acciones.
                         </span>
@@ -1036,7 +1027,7 @@ export const SelectorInvocacionesAcordeon: React.FC<SelectorInvocacionesAcordeon
                     {/* Caja informativa de Don de los Protectores */}
                     {op.id === "don_de_los_protectores" && (
                       <div className={estilos.cajaMecanicaConsumible}>
-                        <ShieldCheck size={14} color="#10b981" style={{ flexShrink: 0 }} />
+                        <ShieldCheck size={14} color="#10b981" className={estilos.iconoConsumible} />
                         <span>
                           <strong>Acción de combate (Reacción - Consumible):</strong> 1 uso por descanso largo. Si una criatura con su nombre en el Libro de las Sombras se reduce a 0 HP, en su lugar pasa a tener 1 HP. Disponible directamente en el Combat Tracker y en la pestaña de Acciones.
                         </span>

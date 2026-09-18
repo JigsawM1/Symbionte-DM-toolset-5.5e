@@ -152,13 +152,13 @@ export const GestorPersonajes: React.FC<GestorPersonajesProps> = ({
   };
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 12, padding: "8px 0" }}>
+    <div className={estilos.contenedorGestor}>
       {/* Input oculto para importación de archivos JSON */}
       <input
         ref={refInputArchivo}
         type="file"
         accept=".json"
-        style={{ display: "none" }}
+        className={estilos.inputArchivoOculto}
         onChange={manejarArchivoImportar}
       />
 
@@ -166,19 +166,19 @@ export const GestorPersonajes: React.FC<GestorPersonajesProps> = ({
       <div className={estilos.cabeceraGestor}>
         <div>
           <h2 className={estilos.tituloGestor}>Mis Personajes Guardados</h2>
-          <p style={{ fontSize: 11, color: "var(--color-texto-apagado)", margin: "2px 0 0 0" }}>
+          <p className={estilos.subtituloGestor}>
             Administra tus héroes, copia su JSON al portapapeles o importa nuevos.
           </p>
         </div>
 
-        <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+        <div className={estilos.filaAccionesGestor}>
           {personajes.length > 0 && (
             <button
               type="button"
-              className={estilos.neoButton}
+              className={`${estilos.neoButton} ${estilos.botonAccionGestor}`}
               onClick={manejarExportarGrupo}
               title={`Copiar todo el grupo (${personajes.length} personajes) al portapapeles`}
-              style={grupoCopiado ? { borderColor: "var(--color-borde-cian)", color: "var(--color-borde-cian)" } : {}}
+              data-copiado={grupoCopiado ? "true" : "false"}
             >
               {grupoCopiado ? <Check size={14} /> : <Download size={14} />}
               {grupoCopiado ? "¡Grupo Copiado!" : `Exportar Grupo (${personajes.length})`}
@@ -197,9 +197,8 @@ export const GestorPersonajes: React.FC<GestorPersonajesProps> = ({
 
           <button
             type="button"
-            className={estilos.neoButton}
+            className={`${estilos.neoButton} ${estilos.botonNuevoPersonaje}`}
             onClick={alCrearNuevo}
-            style={{ backgroundColor: "var(--color-primario)", color: "#fff", borderColor: "var(--color-borde-cian)" }}
           >
             <Plus size={14} />
             Nuevo Personaje
@@ -222,20 +221,10 @@ export const GestorPersonajes: React.FC<GestorPersonajesProps> = ({
             >
               <div className={estilos.filaPjCabeceraGaleria}>
                 <div>
-                  <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                  <div className={estilos.filaNombrePj}>
                     <span className={estilos.nombrePjGaleria}>{pj.nombre}</span>
                     {esActivo && (
-                      <span
-                        style={{
-                          fontSize: 9,
-                          fontWeight: 700,
-                          color: "var(--color-borde-cian)",
-                          backgroundColor: "rgba(0, 245, 212, 0.12)",
-                          border: "1px solid var(--color-borde-cian)",
-                          padding: "1px 5px",
-                          borderRadius: 10
-                        }}
-                      >
+                      <span className={estilos.badgePjActivo}>
                         ACTIVO
                       </span>
                     )}
@@ -245,24 +234,9 @@ export const GestorPersonajes: React.FC<GestorPersonajesProps> = ({
                   </span>
                 </div>
 
-                <div
-                  style={{
-                    width: 32,
-                    height: 32,
-                    borderRadius: "50%",
-                    backgroundColor: "var(--color-fondo-tarjeta)",
-                    border: "1px solid var(--color-borde-brutal)",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    fontWeight: 700,
-                    fontSize: 14,
-                    color: "var(--color-primario-brillante)",
-                    overflow: "hidden"
-                  }}
-                >
+                <div className={estilos.avatarCirculoPj}>
                   {pj.avatarUrl ? (
-                    <img src={pj.avatarUrl} alt={pj.nombre} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                    <img src={pj.avatarUrl} alt={pj.nombre} className={estilos.avatarImagen} />
                   ) : (
                     (pj.nombre || "P")[0].toUpperCase()
                   )}
@@ -270,24 +244,20 @@ export const GestorPersonajes: React.FC<GestorPersonajesProps> = ({
               </div>
 
               {/* Barra de Salud Resumen */}
-              <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, color: "var(--color-texto-apagado)" }}>
+              <div className={estilos.seccionSaludPj}>
+                <div className={estilos.filaEtiquetaSaludPj}>
                   <span>Puntos de Golpe</span>
                   <span>{pj.hpActual} / {pj.hpMaximo} HP</span>
                 </div>
                 <div
-                  className={estilos.neoPressed}
-                  style={{ height: 6, borderRadius: 3, position: "relative", overflow: "hidden" }}
+                  className={`${estilos.neoPressed} ${estilos.pistaSaludPj}`}
                 >
                   <div
+                    // eslint-disable-next-line react/forbid-dom-props -- Ancho porcentual dinámico continuo en tiempo de ejecución (0-100%)
                     style={{
-                      position: "absolute",
-                      left: 0,
-                      top: 0,
-                      bottom: 0,
-                      width: `${porcentajeVida}%`,
-                      backgroundColor: "var(--color-primario)"
+                      width: `${porcentajeVida}%`
                     }}
+                    className={estilos.rellenoSaludPj}
                   />
                 </div>
               </div>
@@ -307,10 +277,9 @@ export const GestorPersonajes: React.FC<GestorPersonajesProps> = ({
                 ) : (
                   <button
                     type="button"
-                    className={estilos.neoButton}
+                    className={`${estilos.neoButton} ${estilos.botonVerFicha}`}
                     onClick={alAbrirFicha}
                     title="Ver ficha completa"
-                    style={{ borderColor: "var(--color-borde-cian)", color: "var(--color-borde-cian)" }}
                   >
                     <User size={12} />
                     Ver Ficha
@@ -328,21 +297,20 @@ export const GestorPersonajes: React.FC<GestorPersonajesProps> = ({
 
                 <button
                   type="button"
-                  className={estilos.neoButton}
+                  className={`${estilos.neoButton} ${estilos.botonAccionGestor}`}
                   onClick={() => manejarExportarPersonaje(pj)}
                   title="Copiar JSON de la ficha al portapapeles"
-                  style={copiadoPjId === pj.id ? { borderColor: "var(--color-borde-cian)", color: "var(--color-borde-cian)" } : {}}
+                  data-copiado={copiadoPjId === pj.id ? "true" : "false"}
                 >
                   {copiadoPjId === pj.id ? <Check size={12} /> : <Clipboard size={12} />}
                 </button>
 
                 <button
                   type="button"
-                  className={estilos.neoButton}
+                  className={`${estilos.neoButton} ${estilos.botonEliminarPj}`}
                   onClick={() => setIdPjAEliminar(pj.id)}
                   disabled={personajes.length <= 1}
                   title={personajes.length <= 1 ? "No puedes eliminar el único personaje" : "Eliminar personaje"}
-                  style={{ color: "var(--color-peligro)" }}
                 >
                   <Trash2 size={12} />
                 </button>
@@ -355,50 +323,28 @@ export const GestorPersonajes: React.FC<GestorPersonajesProps> = ({
       {/* Modal para Visualizar / Copiar JSON Manualmente */}
       {modalJSON && (
         <div
-          style={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: "rgba(0,0,0,0.75)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            zIndex: 9999,
-            padding: 16
-          }}
+          className={estilos.overlayModalJSON}
           onClick={() => setModalJSON(null)}
         >
           <div
-            className={estilos.neoRaised}
-            style={{
-              width: "100%",
-              maxWidth: 540,
-              padding: 16,
-              display: "flex",
-              flexDirection: "column",
-              gap: 12,
-              maxHeight: "85vh"
-            }}
+            className={`${estilos.neoRaised} ${estilos.cajaModalJSON}`}
             onClick={(e) => e.stopPropagation()}
           >
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                <FileText size={16} style={{ color: "var(--color-borde-cian)" }} />
-                <h3 style={{ margin: 0, fontSize: 14 }}>{modalJSON.titulo}</h3>
+            <div className={estilos.cabeceraModalJSON}>
+              <div className={estilos.filaTituloModalJSON}>
+                <FileText size={16} className={estilos.iconoModalCian} />
+                <h3 className={estilos.tituloModalJSON}>{modalJSON.titulo}</h3>
               </div>
               <button
                 type="button"
-                className={estilos.neoButton}
+                className={`${estilos.neoButton} ${estilos.botonCerrarModalCompacto}`}
                 onClick={() => setModalJSON(null)}
-                style={{ minHeight: 24, padding: "2px 6px" }}
               >
                 <X size={14} />
               </button>
             </div>
 
-            <p style={{ margin: 0, fontSize: 11, color: "var(--color-texto-apagado)" }}>
+            <p className={estilos.textoInstruccionModal}>
               Copia el código JSON a continuación para compartir o respaldar la ficha:
             </p>
 
@@ -407,29 +353,17 @@ export const GestorPersonajes: React.FC<GestorPersonajesProps> = ({
               value={modalJSON.contenido}
               rows={12}
               spellCheck={false}
-              style={{
-                width: "100%",
-                backgroundColor: "var(--color-fondo-panel)",
-                border: "1px solid var(--color-borde-brutal)",
-                borderRadius: 6,
-                color: "#e2e8f0",
-                fontSize: 11,
-                fontFamily: "monospace",
-                padding: 8,
-                resize: "vertical",
-                boxSizing: "border-box"
-              }}
+              className={estilos.textareaCodigoJSON}
             />
 
-            <div style={{ display: "flex", justifyContent: "flex-end", gap: 8 }}>
+            <div className={estilos.filaAccionesPieModal}>
               <button
                 type="button"
-                className={estilos.neoButton}
+                className={`${estilos.neoButton} ${estilos.botonAccionPrimarioModal}`}
                 onClick={async () => {
                   await copiarAlPortapapeles(modalJSON.contenido);
                   agregarNotificacion("¡Texto JSON copiado al portapapeles!", "exito");
                 }}
-                style={{ backgroundColor: "var(--color-primario)", color: "#fff", borderColor: "var(--color-borde-cian)" }}
               >
                 <Clipboard size={14} />
                 Copiar al Portapapeles
@@ -449,76 +383,52 @@ export const GestorPersonajes: React.FC<GestorPersonajesProps> = ({
       {/* Modal para Pegar e Importar JSON */}
       {modalPegarAbierto && (
         <div
-          style={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: "rgba(0,0,0,0.75)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            zIndex: 9999,
-            padding: 16
-          }}
+          className={estilos.overlayModalJSON}
           onClick={() => setModalPegarAbierto(false)}
         >
           <div
-            className={estilos.neoRaised}
-            style={{
-              width: "100%",
-              maxWidth: 540,
-              padding: 16,
-              display: "flex",
-              flexDirection: "column",
-              gap: 12,
-              maxHeight: "85vh"
-            }}
+            className={`${estilos.neoRaised} ${estilos.cajaModalJSON}`}
             onClick={(e) => e.stopPropagation()}
           >
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                <Upload size={16} style={{ color: "var(--color-borde-cian)" }} />
-                <h3 style={{ margin: 0, fontSize: 14 }}>Importar Ficha o Grupo JSON</h3>
+            <div className={estilos.cabeceraModalJSON}>
+              <div className={estilos.filaTituloModalJSON}>
+                <Upload size={16} className={estilos.iconoModalCian} />
+                <h3 className={estilos.tituloModalJSON}>Importar Ficha o Grupo JSON</h3>
               </div>
               <button
                 type="button"
-                className={estilos.neoButton}
+                className={`${estilos.neoButton} ${estilos.botonCerrarModalCompacto}`}
                 onClick={() => setModalPegarAbierto(false)}
-                style={{ minHeight: 24, padding: "2px 6px" }}
               >
                 <X size={14} />
               </button>
             </div>
 
-            <div style={{ display: "flex", gap: 8 }}>
+            <div className={estilos.filaBotonesPegar}>
               <button
                 type="button"
-                className={estilos.neoButton}
+                className={`${estilos.neoButton} ${estilos.botonFlex1}`}
                 onClick={() => {
                   refInputArchivo.current?.click();
                   setModalPegarAbierto(false);
                 }}
                 title="Seleccionar archivo .json del equipo"
-                style={{ flex: 1 }}
               >
                 <Upload size={14} />
                 Seleccionar Archivo .JSON
               </button>
               <button
                 type="button"
-                className={estilos.neoButton}
+                className={`${estilos.neoButton} ${estilos.botonFlex1}`}
                 onClick={manejarPegarDesdePortapapeles}
                 title="Pegar contenido del portapapeles"
-                style={{ flex: 1 }}
               >
                 <Clipboard size={14} />
                 Pegar Portapapeles
               </button>
             </div>
 
-            <p style={{ margin: 0, fontSize: 11, color: "var(--color-texto-apagado)" }}>
+            <p className={estilos.textoInstruccionModal}>
               O pega el texto JSON de la ficha o grupo directamente en el siguiente campo:
             </p>
 
@@ -531,33 +441,22 @@ export const GestorPersonajes: React.FC<GestorPersonajesProps> = ({
               }}
               rows={9}
               spellCheck={false}
-              style={{
-                width: "100%",
-                backgroundColor: "var(--color-fondo-panel)",
-                border: errorPegado ? "1px solid var(--color-peligro)" : "1px solid var(--color-borde-brutal)",
-                borderRadius: 6,
-                color: "#e2e8f0",
-                fontSize: 11,
-                fontFamily: "monospace",
-                padding: 8,
-                resize: "vertical",
-                boxSizing: "border-box"
-              }}
+              className={estilos.textareaPegarJSON}
+              data-error={errorPegado ? "true" : "false"}
             />
 
             {errorPegado && (
-              <span style={{ color: "var(--color-peligro)", fontSize: 11, fontWeight: 600 }}>
+              <span className={estilos.mensajeErrorPegado}>
                 {errorPegado}
               </span>
             )}
 
-            <div style={{ display: "flex", justifyContent: "flex-end", gap: 8 }}>
+            <div className={estilos.filaAccionesPieModal}>
               <button
                 type="button"
-                className={estilos.neoButton}
+                className={`${estilos.neoButton} ${estilos.botonAccionPrimarioModal}`}
                 disabled={!textoJSONPegado.trim()}
                 onClick={() => procesarTextoJSON(textoJSONPegado)}
-                style={{ backgroundColor: "var(--color-primario)", color: "#fff", borderColor: "var(--color-borde-cian)" }}
               >
                 <Check size={14} />
                 Importar Personajes

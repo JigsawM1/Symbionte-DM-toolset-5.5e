@@ -28,16 +28,16 @@ export const TarjetaResumenCompetencia: React.FC<TarjetaResumenCompetenciaProps>
   return (
     <div className={estilos.tarjetaCompetencia}>
       <div>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+        <div className={estilos.cabeceraTarjetaCompetencia}>
+          <div className={estilos.tituloConIconoCompetencia}>
             {icono}
-            <strong style={{ fontSize: 12, color: "#f1f5f9" }}>{titulo}</strong>
+            <strong className={estilos.textoTituloCompetencia}>{titulo}</strong>
           </div>
           <span className={estilos.badgeConteoCompetencias}>
             {conteo} {etiquetaConteo}
           </span>
         </div>
-        <p style={{ fontSize: 11, color: "#cbd5e1", margin: 0, lineHeight: 1.4 }}>
+        <p className={estilos.descripcionCompetencia}>
           {descripcion || "Sin competencias seleccionadas"}
         </p>
       </div>

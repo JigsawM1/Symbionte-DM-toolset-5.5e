@@ -57,7 +57,7 @@ export const CabeceraRasgosJugador: React.FC<CabeceraRasgosJugadorProps> = ({
         </div>
 
         {/* Botones de Acción Rápida */}
-        <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+        <div className="u-flex u-items-center u-gap-1">
           <button
             type="button"
             className={`${estilos.botonHerramienta} ${estilos.botonHerramientaPrimario}`}

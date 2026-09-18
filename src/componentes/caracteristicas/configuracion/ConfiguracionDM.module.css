@@ -551,3 +551,49 @@
   border-color: var(--color-texto-secundario, #888);
   color: var(--color-texto-principal, #fff);
 }
+
+.tarjetaConfigHPSeparada {
+  margin-top: 12px;
+}
+
+.cabeceraConfigHP {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+
+.iconoTituloConfig {
+  color: var(--color-borde-cian);
+  margin-right: 6px;
+  vertical-align: middle;
+}
+
+.iconoUpload {
+  color: var(--color-texto-secundario);
+}
+
+.iconoUploadArrastrando {
+  color: var(--color-borde-cian);
+}
+
+.extensionJson {
+  color: var(--color-borde-cian);
+  font-family: var(--fuente-codigo);
+}
+
+.inputOculto {
+  display: none;
+}
+
+.iconoOjo {
+  color: #818cf8;
+}
+
+.iconoMagia {
+  color: #c084fc;
+}
+
+.numeroTextoPrincipal {
+  color: var(--color-texto-principal);
+}

@@ -118,3 +118,61 @@
   margin: 0;
   font-style: italic;
 }
+
+.contenedorModular {
+  padding: 24px;
+  margin: 16px;
+  background-color: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 8px;
+  color: var(--pj-texto-primario, #f8fafc);
+}
+
+.cabeceraModular {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.iconoModular {
+  color: #ef4444;
+  flex-shrink: 0;
+}
+
+.tituloModular {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: #ef4444;
+}
+
+.descripcionModular {
+  font-size: 13px;
+  color: var(--color-texto-apagado, #94a3b8);
+  margin-bottom: 12px;
+}
+
+.codigoModular {
+  font-size: 11px;
+  padding: 8px 12px;
+  background-color: rgba(0, 0, 0, 0.4);
+  border-radius: 4px;
+  overflow-x: auto;
+  color: #fca5a5;
+  margin-bottom: 16px;
+}
+
+.botonModular {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background-color: rgba(239, 68, 68, 0.2);
+  border: 1px solid #ef4444;
+  border-radius: 4px;
+  color: #ffffff;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 13px;
+}

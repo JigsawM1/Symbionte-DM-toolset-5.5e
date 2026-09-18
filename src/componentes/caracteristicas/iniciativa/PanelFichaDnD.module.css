@@ -83,6 +83,9 @@
   font-size: 14px;
   font-weight: bold;
   color: var(--color-texto-principal);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .atributoModSign {
@@ -110,6 +113,34 @@
   color: var(--color-texto-principal);
   border-bottom: 1px dashed hsl(222, 15%, 15%);
   padding-bottom: 4px;
+}
+
+.etiquetaDefensa {
+  color: var(--color-exito);
+}
+
+.valorDesafio {
+  color: var(--color-advertencia);
+}
+
+.valorIniciativa {
+  color: #ffcc00;
+}
+
+.valorPercepcion {
+  color: var(--color-borde-cian);
+}
+
+.etiquetaMetaSecundaria {
+  color: var(--color-texto-secundario);
+}
+
+.valorMetaCian {
+  color: var(--color-borde-cian);
+}
+
+.nombreRasgoPasivo {
+  color: #ffcc00;
 }
 
 .subtituloFichaSection {

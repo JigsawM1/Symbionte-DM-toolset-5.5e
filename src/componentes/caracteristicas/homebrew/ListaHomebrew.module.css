@@ -358,3 +358,312 @@
   justify-content: space-evenly;
 }
 
+.contenedorSelectorOrden {
+  min-width: 165px;
+}
+
+.contenedorMostrarMas {
+  text-align: center;
+  padding: 12px 0;
+}
+
+.botonMostrarMas {
+  padding: 8px 20px;
+  font-size: 12px;
+  width: auto;
+  cursor: pointer;
+}
+
+.badgeVenenoObjeto {
+  font-size: 10px;
+  font-weight: bold;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: rgba(168, 85, 247, 0.18);
+  border: 1px solid rgba(168, 85, 247, 0.4);
+  color: hsl(270, 95%, 80%);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.cuerpoDetalleFicha {
+  padding: 12px;
+  overflow-y: auto;
+}
+
+.botonNavegarAtras {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: var(--color-texto-principal);
+  cursor: pointer;
+  padding: 4px 10px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  font-size: 12px;
+  font-weight: bold;
+  gap: 4px;
+}
+
+.botonPlantillaDetalle {
+  background: rgba(0, 245, 212, 0.08);
+  border: 1px solid var(--color-borde-cian);
+  color: var(--color-borde-cian);
+  cursor: pointer;
+  padding: 4px 10px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  font-size: 12px;
+  font-weight: bold;
+  gap: 6px;
+}
+
+.metaValorRareza {
+  font-weight: bold;
+}
+
+.metaValorRareza[data-rareza="Común"] {
+  color: hsl(0, 0%, 75%);
+}
+
+.metaValorRareza[data-rareza="Poco Común"] {
+  color: hsl(120, 60%, 45%);
+}
+
+.metaValorRareza[data-rareza="Raro"] {
+  color: hsl(210, 85%, 50%);
+}
+
+.metaValorRareza[data-rareza="Muy Raro"] {
+  color: hsl(280, 75%, 60%);
+}
+
+.metaValorRareza[data-rareza="Legendario"] {
+  color: hsl(32, 95%, 50%);
+}
+
+.metaValorRareza[data-rareza="Artefacto"] {
+  color: hsl(0, 75%, 40%);
+}
+
+.textoPurpuraVeneno {
+  color: hsl(270, 95%, 80%) !important;
+  font-weight: bold;
+}
+
+.chipConcentracionMagico {
+  background-color: rgba(0, 245, 212, 0.12);
+  color: var(--color-borde-cian);
+  border: 1px solid var(--color-borde-cian);
+}
+
+.chipConcentracionVeneno {
+  background-color: rgba(168, 85, 247, 0.18);
+  color: hsl(270, 95%, 85%);
+  border: 1px solid rgba(168, 85, 247, 0.5);
+}
+
+.textoAdvertencia {
+  color: var(--color-advertencia) !important;
+}
+
+.enlaceObjetoCompendio {
+  color: var(--color-borde-cian);
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.cajaMecanicasArmadura {
+  border-color: rgba(255, 165, 0, 0.25);
+}
+
+.tituloMecanicasArmadura {
+  color: var(--color-advertencia);
+}
+
+.valorDesventajaSigilo[data-desventaja="true"] {
+  color: var(--color-peligro) !important;
+}
+
+.valorDesventajaSigilo[data-desventaja="false"] {
+  color: var(--color-exito) !important;
+}
+
+.cajaMecanicasVeneno {
+  border-color: rgba(168, 85, 247, 0.4);
+  background: rgba(168, 85, 247, 0.05);
+}
+
+.tituloMecanicasVeneno {
+  color: hsl(270, 95%, 80%);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.botonTirarDanoVeneno {
+  background: rgba(239, 68, 68, 0.2);
+  border: 1px solid rgba(239, 68, 68, 0.55);
+  color: #fca5a5;
+  border-radius: 4px;
+  padding: 3px 9px;
+  font-size: 11px;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.itemMecanicaFullGrid {
+  grid-column: 1 / -1;
+}
+
+.textoTextoPrincipal {
+  color: var(--color-texto-principal);
+}
+
+.cajaMecanicasMagicas {
+  border-color: var(--color-borde-cian);
+}
+
+.tituloMecanicasMagicas {
+  color: var(--color-borde-cian);
+}
+
+.textoCian {
+  color: var(--color-borde-cian);
+}
+
+.cajaMecanicasMunicion {
+  border-color: rgba(0, 245, 212, 0.25);
+}
+
+.tituloMecanicasMunicion {
+  color: var(--color-borde-cian);
+}
+
+.cajaBonoMagicoVertical {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: 8px 12px;
+}
+
+.textoDescBono {
+  font-size: 11px;
+  color: var(--color-texto-secundario);
+  margin-top: 2px;
+}
+
+.cajaHechizoVinculado {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+}
+
+.nombreHechizoVinculado {
+  color: var(--color-texto-principal);
+}
+
+.subDetallesHechizoVinculado {
+  display: flex;
+  gap: 8px;
+  font-size: 10px;
+  color: var(--color-texto-secundario);
+  margin-top: 2px;
+}
+
+.badgeCosteCargas {
+  font-size: 11px;
+  font-weight: bold;
+  background: rgba(0, 0, 0, 0.2);
+  padding: 2px 6px;
+  border-radius: 4px;
+  color: var(--color-advertencia);
+}
+
+.cajaMecanicasArtesania {
+  border-color: rgba(168, 85, 247, 0.25);
+  margin: 0;
+}
+
+.textoTallerPrincipal {
+  color: var(--color-texto-principal);
+}
+
+.labelComponentesBlock {
+  display: block;
+  margin-bottom: 4px;
+}
+
+.chipComponenteArtesania {
+  font-size: 11px;
+  background: rgba(168, 85, 247, 0.15);
+  border: 1px solid hsl(270, 70%, 50%);
+  color: hsl(270, 100%, 85%);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.filaContenidoPaquete {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.textoItemPaquete {
+  font-size: 12px;
+  color: var(--color-texto-principal);
+}
+
+.botonVerObjetoContenido {
+  background: rgba(0, 245, 212, 0.12);
+  border: 1px solid var(--color-borde-cian);
+  color: var(--color-borde-cian);
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 10px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.textoNoDisponible {
+  font-size: 10px;
+  color: var(--color-texto-secundario);
+  font-style: italic;
+}
+
+.botonCraftDisponible {
+  font-size: 11px;
+  background: rgba(168, 85, 247, 0.15);
+  border: 1px solid hsl(270, 70%, 50%);
+  color: hsl(270, 100%, 85%);
+  padding: 4px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.chipCraftNoDisponible {
+  font-size: 11px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--color-texto-secundario);
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+

@@ -1,0 +1,407 @@
+/* ModalDetalleCaracteristica.module.css
+ * Módulo de estilos para el Modal de Detalle de Característica y sus submódulos
+ * Optimizado para TaleSpire CEF: 0ms latencia, sin transiciones ni keyframes.
+ */
+
+.modalContenedorCaracteristica {
+  max-width: 480px;
+  width: 95%;
+}
+
+.cabeceraModalCaracteristica {
+  padding-bottom: 10px;
+}
+
+.infoCabeceraContenedor {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.abreviaturaBadge {
+  width: 36px;
+  height: 36px;
+  border-radius: 6px;
+  background-color: #18202e;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #cbd5e1;
+  font-weight: 800;
+  font-size: 12px;
+  flex-shrink: 0;
+}
+
+.tituloModalCaracteristica {
+  margin: 0;
+}
+
+.subtextoPuntuacion {
+  font-size: 11px;
+  color: #94a3b8;
+}
+
+.valorEfectivoResaltado {
+  color: #f1f5f9;
+}
+
+.modPreviewPositivo {
+  color: #60a5fa;
+}
+
+.modPreviewNegativo {
+  color: #fca5a5;
+}
+
+.badgeOverrideFijo {
+  margin-left: 6px;
+  font-size: 10px;
+  background-color: #201335;
+  color: #d8b4fe;
+  border: 1px solid rgba(168, 85, 247, 0.3);
+  padding: 1px 5px;
+  border-radius: 4px;
+  font-weight: 700;
+}
+
+/* PestanaInfoCaracteristica */
+.cajaDescripcionSalvacion {
+  padding: 10px 12px;
+  border-radius: 6px;
+  border-left: 3px solid #334155;
+  background-color: #0d131f;
+  border: 1px solid rgba(148, 163, 184, 0.1);
+}
+
+.cabeceraCajaSalvacion {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 3px;
+}
+
+.tituloCajaSalvacion {
+  font-size: 11px;
+  font-weight: 700;
+  color: #cbd5e1;
+}
+
+.textoDescripcionSalvacion {
+  margin: 0;
+  font-size: 12px;
+  color: #f1f5f9;
+  line-height: 1.4;
+}
+
+.cajaDesgloseMatematico {
+  padding: 12px 14px;
+  border-radius: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background-color: #0a0e16;
+}
+
+.tituloDesgloseMatematico {
+  margin: 0;
+  color: #94a3b8;
+}
+
+.listaDesgloseFilas {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 11px;
+}
+
+.filaDesglose {
+  display: flex;
+  justify-content: space-between;
+  color: #94a3b8;
+}
+
+.filaDesgloseDestacada {
+  display: flex;
+  justify-content: space-between;
+  color: #f1f5f9;
+  border-top: 1px solid rgba(148, 163, 184, 0.12);
+  padding-top: 4px;
+  font-weight: 700;
+}
+
+.filaDesglosePB {
+  display: flex;
+  justify-content: space-between;
+  color: #94a3b8;
+  border-top: 1px solid rgba(148, 163, 184, 0.12);
+  padding-top: 4px;
+  margin-top: 2px;
+}
+
+.filaDesgloseTotalSalvacion {
+  display: flex;
+  justify-content: space-between;
+  border-top: 1px solid rgba(148, 163, 184, 0.16);
+  padding-top: 6px;
+  margin-top: 2px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.valorModPositivo {
+  color: #60a5fa;
+}
+
+.valorModNegativo {
+  color: #fca5a5;
+}
+
+.valorBonoSalvacionPositivo {
+  color: #93c5fd;
+}
+
+.valorBonoSalvacionNegativo {
+  color: #fca5a5;
+}
+
+.valorOverrideActivo {
+  color: #d8b4fe;
+}
+
+.valorOverrideInactivo {
+  color: #64748b;
+}
+
+.valorSalvacionCompetente {
+  color: #93c5fd;
+  font-weight: 600;
+}
+
+.valorSalvacionIncompetente {
+  color: #64748b;
+  font-weight: 600;
+}
+
+.cajaNotasCaracteristica {
+  font-size: 11px;
+  color: #94a3b8;
+  padding: 8px 10px;
+  border-radius: 4px;
+  background-color: #0d121c;
+  border: 1px dashed rgba(148, 163, 184, 0.2);
+}
+
+.etiquetaNotasResaltada {
+  color: #cbd5e1;
+}
+
+.filaBotonesTirada {
+  display: flex;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.botonTiradaPrueba {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 10px;
+  font-size: 11px;
+  color: #cbd5e1;
+  border-color: rgba(148, 163, 184, 0.2);
+}
+
+.botonTiradaSalvacion {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 10px;
+  font-size: 11px;
+  color: #93c5fd;
+  border-color: rgba(96, 165, 250, 0.3);
+}
+
+/* EditorPuntuacionYOverride */
+.cabeceraCampoFlex {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.labelColorBlanco {
+  color: #f1f5f9;
+}
+
+.subtextoModBase {
+  font-size: 11px;
+  color: #93c5fd;
+  font-weight: 700;
+}
+
+.filaDeltaPuntuacion {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.botonDelta {
+  width: 36px;
+  height: 34px;
+  border-radius: 4px;
+  background-color: #18202f;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  color: #cbd5e1;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.inputBasePuntuacion {
+  text-align: center;
+  font-size: 15px;
+  font-weight: 800;
+  color: #f1f5f9;
+  background-color: #0b0f16;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 4px;
+  padding: 6px 10px;
+  flex: 1;
+}
+
+.badgeOverrideActivo {
+  font-size: 10px;
+  color: #d8b4fe;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.inputOverrideFijo {
+  flex: 1;
+  font-size: 12px;
+  background-color: #0b0f16;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  color: #f1f5f9;
+  border-radius: 4px;
+  padding: 6px 10px;
+}
+
+.inputOverrideFijo[data-activo="true"] {
+  border-color: rgba(168, 85, 247, 0.4);
+  color: #d8b4fe;
+}
+
+.botonQuitarOverride {
+  padding: 6px 10px;
+  font-size: 11px;
+  background-color: #18202f;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  color: #fca5a5;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.filaPresetsOverride {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+  margin-top: 2px;
+}
+
+.etiquetaPresets {
+  font-size: 10px;
+  color: #94a3b8;
+  margin-right: 2px;
+}
+
+.botonPreset {
+  padding: 2px 6px;
+  font-size: 10px;
+  background-color: #18202e;
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  color: #cbd5e1;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+/* PestanaPersonalizarCaracteristica */
+.formularioPersonalizarContenedor {
+  gap: 12px;
+}
+
+.textoAyudaPersonalizar {
+  font-size: 11px;
+  color: #94a3b8;
+  margin: 0;
+}
+
+.textareaPersonalizada {
+  resize: vertical;
+  font-size: 11px;
+}
+
+.cajaCompetenciaSalvacion {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  background-color: #0d121c;
+  border: 1px solid rgba(148, 163, 184, 0.14);
+}
+
+.cajaCompetenciaSalvacion[data-competente="true"] {
+  background-color: #132135;
+  border-color: rgba(96, 165, 250, 0.3);
+}
+
+.infoCheckboxCompetencia {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.textoCompetenciaSalvacion {
+  font-size: 12px;
+  font-weight: 600;
+  color: #cbd5e1;
+}
+
+.textoCompetenciaSalvacion[data-competente="true"] {
+  color: #93c5fd;
+}
+
+.badgeCompetenciaSalvacion {
+  font-size: 10px;
+  color: #94a3b8;
+  font-weight: 700;
+}
+
+.badgeCompetenciaSalvacion[data-competente="true"] {
+  color: #93c5fd;
+}
+
+.pieModalMargenTop {
+  margin-top: 4px;
+}
+
+.botonGuardarPersonalizacion {
+  background-color: #1e293b;
+  border-color: rgba(96, 165, 250, 0.4);
+  color: #93c5fd;
+}
+
+.iconoGuardarInline {
+  margin-right: 4px;
+}

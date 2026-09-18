@@ -361,10 +361,10 @@ export const FichaHechizo: React.FC<FichaHechizoProps> = React.memo(({
                 </div>
               )}
               {tieneDano && (
-                <div className={estilosClases.combateItem} style={{ gridColumn: (esEscalable || esTruco) ? "1 / -1" : "auto" }}>
+                <div className={`${estilosClases.combateItem} ${(esEscalable || esTruco) ? estilosClases.combateItemSpanCompleto : ""}`}>
                   <span className={estilosClases.combateLabel}>
                     {esTruco && infoTruco?.esAtaqueMultiple && infoTruco.cantidadAtaques > 1
-                      ? "Ataques de Rayos: "
+                       ? "Ataques de Rayos: "
                       : esTruco
                       ? "Daño del Truco: "
                       : "Daño Base: "}
@@ -374,7 +374,7 @@ export const FichaHechizo: React.FC<FichaHechizoProps> = React.memo(({
                       <>
                         {infoTruco.etiquetaVisual}
                         {infoTruco.multiplicador > 1 && !infoTruco.esAtaqueMultiple && (
-                          <span style={{ fontSize: 11, color: "#93c5fd", fontWeight: 600, marginLeft: 6 }}>
+                          <span className={estilosClases.textoMultiplicadorTruco}>
                             ({infoTruco.multiplicador}x dado base {infoTruco.base} • Nv.{nivelPersonaje})
                           </span>
                         )}
@@ -395,7 +395,7 @@ export const FichaHechizo: React.FC<FichaHechizoProps> = React.memo(({
                 <div className={estilosClases.upcastSelectContenedor}>
                   <span className={estilosClases.upcastLabel}>Lanzar con Ranura:</span>
                   {opcionesLanzamiento.length > 1 ? (
-                    <div style={{ minWidth: "140px" }}>
+                    <div className={estilosClases.selectorUpcastWrapper}>
                       <SelectorDesplegable
                         valor={String(nivelLanzamiento)}
                         alCambiar={(val) => setNivelLanzamiento(Number(val))}
@@ -408,23 +408,15 @@ export const FichaHechizo: React.FC<FichaHechizoProps> = React.memo(({
                     </div>
                   ) : (
                     <div
-                      style={{
-                        fontSize: 12,
-                        fontWeight: 700,
-                        backgroundColor: opcionesLanzamiento[0]?.tipo === "pacto"
-                          ? "rgba(168, 85, 247, 0.15)"
-                          : "rgba(148, 163, 184, 0.1)",
-                        color: opcionesLanzamiento[0]?.tipo === "pacto" ? "#d8b4fe" : "#cbd5e1",
-                        border: opcionesLanzamiento[0]?.tipo === "pacto"
-                          ? "1px solid rgba(168, 85, 247, 0.35)"
-                          : "1px solid rgba(148, 163, 184, 0.2)",
-                        borderRadius: 4,
-                        padding: "4px 8px"
-                      }}
+                      className={`${estilosClases.badgeRanuraUnica} ${
+                        opcionesLanzamiento[0]?.tipo === "pacto"
+                          ? estilosClases.badgeRanuraPacto
+                          : estilosClases.badgeRanuraEstandar
+                      }`}
                       title={
                         opcionesLanzamiento[0]?.tipo === "pacto"
-                          ? "Lanzamiento automático con ranura de Pacto de nivel fijo (Brujo)"
-                          : `Lanzamiento con ranura de Nivel ${opcionesLanzamiento[0]?.nivel || nivelBase}`
+                          ? "Ranura de Pacto de Brujo (Nivel fijo, recuperación en descanso corto)"
+                          : `Ranura Estándar de Nivel ${nivelBase}`
                       }
                     >
                       {opcionesLanzamiento[0]?.etiqueta || `Nivel ${nivelBase}`}
@@ -442,22 +434,8 @@ export const FichaHechizo: React.FC<FichaHechizoProps> = React.memo(({
 
             {/* Banner de Advertencia por Armadura sin Competencia */}
             {bloqueadoPorArmadura && (
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 8,
-                  padding: "8px 12px",
-                  backgroundColor: "rgba(239, 68, 68, 0.15)",
-                  border: "1px solid rgba(239, 68, 68, 0.4)",
-                  borderRadius: 6,
-                  color: "#fca5a5",
-                  fontSize: 12,
-                  fontWeight: 600,
-                  marginBottom: 8
-                }}
-              >
-                <AlertTriangle size={15} color="#ef4444" style={{ flexShrink: 0 }} />
+              <div className={estilosClases.bannerBloqueoArmadura}>
+                <AlertTriangle size={15} color="#ef4444" className="u-flex-shrink-0" />
                 <span>
                   {motivoBloqueoArmadura || "No puedes lanzar conjuros mientras vistas armadura o portes escudo sin competencia."}
                 </span>
@@ -468,15 +446,15 @@ export const FichaHechizo: React.FC<FichaHechizoProps> = React.memo(({
             <button
               onClick={manejarLanzamientoDados}
               disabled={bloqueadoPorArmadura}
-              className={nivelLanzamiento > nivelBase && esEscalable ? estilosClases.botonTirarUpcast : estilosClases.botonTirarCombate}
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: "6px",
-                opacity: bloqueadoPorArmadura ? 0.45 : 1,
-                cursor: bloqueadoPorArmadura ? "not-allowed" : "pointer"
-              }}
+              className={`${
+                nivelLanzamiento > nivelBase && esEscalable
+                  ? estilosClases.botonTirarUpcast
+                  : estilosClases.botonTirarCombate
+              } ${
+                bloqueadoPorArmadura
+                  ? estilosClases.botonLanzarBloqueado
+                  : estilosClases.botonLanzarHabilitado
+              }`}
               title={bloqueadoPorArmadura ? (motivoBloqueoArmadura || "Bloqueado por armadura sin competencia") : undefined}
               type="button"
             >
@@ -505,30 +483,10 @@ export const FichaHechizo: React.FC<FichaHechizoProps> = React.memo(({
               <button
                 onClick={manejarLanzamientoRitual}
                 disabled={bloqueadoPorArmadura}
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  gap: "6px",
-                  backgroundColor: "rgba(168, 85, 247, 0.15)",
-                  border: "1px solid rgba(168, 85, 247, 0.4)",
-                  borderRadius: 6,
-                  color: "#d8b4fe",
-                  fontSize: 13,
-                  fontWeight: 700,
-                  padding: "8px 14px",
-                  cursor: bloqueadoPorArmadura ? "not-allowed" : "pointer",
-                  opacity: bloqueadoPorArmadura ? 0.45 : 1,
-                  marginTop: 6,
-                  width: "100%"
-                }}
+                className={`${estilosClases.botonRitual} ${
+                  bloqueadoPorArmadura ? estilosClases.botonLanzarBloqueado : ""
+                }`}
                 title={bloqueadoPorArmadura ? (motivoBloqueoArmadura || "Bloqueado por armadura sin competencia") : undefined}
-                onMouseEnter={(e) => {
-                  if (!bloqueadoPorArmadura) e.currentTarget.style.backgroundColor = "rgba(168, 85, 247, 0.25)";
-                }}
-                onMouseLeave={(e) => {
-                  if (!bloqueadoPorArmadura) e.currentTarget.style.backgroundColor = "rgba(168, 85, 247, 0.15)";
-                }}
                 type="button"
               >
                 <Sparkles size={15} />
@@ -551,8 +509,7 @@ export const FichaHechizo: React.FC<FichaHechizoProps> = React.memo(({
           <div className={estilosClases.seccionFicha}>
             <div className={estilosClases.seccionTitulo}>EFECTO A NIVELES SUPERIORES</div>
             <div 
-              className={estilosClases.textoDescripcion} 
-              style={{ fontStyle: "italic" }}
+              className={`${estilosClases.textoDescripcion} ${estilosClases.textoItalica}`}
             >
               <TextoEnriquecidoDND texto={hechizo.descNivelSuperior} />
             </div>

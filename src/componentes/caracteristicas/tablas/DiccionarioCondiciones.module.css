@@ -185,3 +185,20 @@
   align-items: flex-start;
   gap: 4px;
 }
+
+.bulletEfecto {
+  color: var(--color-borde-cian);
+  margin-right: 5px;
+  font-weight: bold;
+}
+
+.duracionEfectoTexto {
+  color: #d8b4fe;
+}
+
+.descripcionReglasEfecto {
+  padding: 4px 2px;
+  font-size: 11px;
+  color: var(--color-texto-principal);
+  line-height: 1.45;
+}

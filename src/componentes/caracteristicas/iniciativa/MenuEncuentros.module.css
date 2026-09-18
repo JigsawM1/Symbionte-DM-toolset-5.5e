@@ -29,6 +29,17 @@
   color: #ffffff !important;
 }
 
+.contenedorBotonMenu {
+  position: relative;
+}
+
+.formularioGuardar {
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
 .menuDesplegable {
   position: absolute;
   top: 32px;
@@ -36,7 +47,7 @@
   background-color: var(--color-fondo-tarjeta);
   border: 1px solid var(--color-borde-neon);
   padding: 4px;
-  width: 220px;
+  width: 230px;
   z-index: 9999;
   box-shadow: 0 4px 8px rgba(0,0,0,0.5);
 }

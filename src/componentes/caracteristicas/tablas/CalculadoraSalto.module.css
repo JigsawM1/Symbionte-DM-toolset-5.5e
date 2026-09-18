@@ -86,7 +86,7 @@
 }
 
 .resultadoCalculoValor {
-  font-size: 18px;
+  font-size: 14px;
   color: var(--color-borde-cian);
   font-family: var(--fuente-codigo);
   font-weight: bold;
@@ -102,4 +102,19 @@
   font-style: italic;
   line-height: 1.2;
   margin-top: 2px;
+}
+
+.iconoTitulo {
+  color: var(--color-advertencia);
+  margin-right: 4px;
+}
+
+.contenedorSelector {
+  width: 200px;
+}
+
+.filaResultados {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 4px;
 }

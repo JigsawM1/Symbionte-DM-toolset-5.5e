@@ -179,7 +179,7 @@
   align-items: center;
   gap: 6px;
   height: 36px;
-  transition: all 0.1s ease;
+  transition: none;
 }
 
 .botonStickyGuardar:hover:not(:disabled) {
@@ -211,11 +211,15 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.1s ease;
+  transition: none;
 }
 
 .botonStickyCancelar:hover {
   background-color: rgba(255, 255, 255, 0.04);
   color: var(--color-texto-principal);
   border-color: var(--color-texto-secundario);
+}
+
+.bloqueDinamicoCombate {
+  border-color: rgba(0, 245, 212, 0.25);
 }

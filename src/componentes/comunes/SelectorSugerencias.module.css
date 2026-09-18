@@ -52,6 +52,25 @@
   transform: translateY(-50%) rotate(180deg);
 }
 
+.contenedorBotonesDerecha {
+  position: absolute;
+  right: 4px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.botonDesplegableEstatico {
+  position: static;
+  transform: none;
+}
+
+.botonDesplegableEstatico.botonDesplegableAbierto {
+  transform: rotate(180deg);
+}
+
 .dropdown {
   position: absolute;
   top: calc(100% + 4px);

@@ -39,7 +39,7 @@ export const ConversorDivisas: React.FC = () => {
   return (
     <div className={estilosClases.tarjetaCalculadora}>
       <div className={estilosClases.tituloCalculadora}>
-        <Coins size={12} style={{ color: "var(--color-oro)", marginRight: "4px" }} />
+        <Coins size={12} className={estilosClases.iconoTitulo} />
         <span>Conversor de Divisas</span>
       </div>
 
@@ -57,7 +57,7 @@ export const ConversorDivisas: React.FC = () => {
 
         <div className={estilosClases.filaFormulario}>
           <label className={estilosClases.labelForm}>Moneda Origen:</label>
-          <div style={{ width: "200px" }}>
+          <div className={estilosClases.contenedorSelector}>
             <SelectorDesplegable
               valor={monedaOrigen}
               alCambiar={(val) => setMonedaOrigen(val as "PC" | "PP" | "PE" | "PO" | "PPT")}
@@ -76,15 +76,16 @@ export const ConversorDivisas: React.FC = () => {
           {(() => {
             const cambios = calcularCambioDivisas();
             const monedas = [
-              { clave: "PPT", nombre: "Platino (PPT)", color: "#cdd6f4", desc: "1 PPT = 10 PO" },
-              { clave: "PO", nombre: "Oro (PO)", color: "#f9e2af", desc: "1 PO = 10 PP" },
-              { clave: "PE", nombre: "Electro (PE)", color: "#a6e3a1", desc: "1 PE = 5 PP" },
-              { clave: "PP", nombre: "Plata (PP)", color: "#bac2de", desc: "1 PP = 10 PC" },
-              { clave: "PC", nombre: "Cobre (PC)", color: "#fab387", desc: "Moneda Base" }
+              { clave: "PPT", nombre: "Platino (PPT)", desc: "1 PPT = 10 PO" },
+              { clave: "PO", nombre: "Oro (PO)", desc: "1 PO = 10 PP" },
+              { clave: "PE", nombre: "Electro (PE)", desc: "1 PE = 5 PP" },
+              { clave: "PP", nombre: "Plata (PP)", desc: "1 PP = 10 PC" },
+              { clave: "PC", nombre: "Cobre (PC)", desc: "Moneda Base" }
             ];
 
             return monedas.map((m) => {
               const esOrigen = m.clave === monedaOrigen;
+              const claseColorMoneda = estilosClases[`moneda_${m.clave}` as keyof typeof estilosClases] || "";
               return (
                 <div
                   key={m.clave}
@@ -92,12 +93,12 @@ export const ConversorDivisas: React.FC = () => {
                     esOrigen ? estilosClases.filaCambioOrigen : ""
                   }`}
                 >
-                  <div style={{ display: "flex", flexDirection: "column" }}>
-                    <span style={{ fontSize: "11px", fontWeight: "bold", color: m.color, display: "inline-flex", alignItems: "center", gap: "4px" }}>
+                  <div className={estilosClases.columnaInfoMoneda}>
+                    <span className={`${estilosClases.nombreMoneda} ${claseColorMoneda}`}>
                       <span>{m.nombre}</span>
-                      {esOrigen && <Star size={11} fill="#eab308" color="#eab308" style={{ display: "inline-block" }} />}
+                      {esOrigen && <Star size={11} fill="#eab308" color="#eab308" className={estilosClases.iconoEstrella} />}
                     </span>
-                    <span style={{ fontSize: "8px", color: "var(--color-texto-secundario)" }}>
+                    <span className={estilosClases.descMoneda}>
                       {m.desc}
                     </span>
                   </div>

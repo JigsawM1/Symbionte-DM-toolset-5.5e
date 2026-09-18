@@ -143,9 +143,8 @@ export const TarjetaAtaquePersonaje: React.FC<TarjetaAtaquePersonajeProps> = Rea
           )}
           {evaluacionCondiciones?.tieneDesventaja && (
             <span
-              className={estilos.badgeNoCompetente}
+              className={`${estilos.badgeNoCompetente} ${estilos.badgeDesventajaAtaque}`}
               title={`Desventaja en ataque por: ${motivosAtaque}`}
-              style={{ backgroundColor: "rgba(245, 158, 11, 0.15)", borderColor: "rgba(245, 158, 11, 0.5)", color: "#f59e0b" }}
             >
               <AlertTriangle size={10} /> Desventaja
             </span>

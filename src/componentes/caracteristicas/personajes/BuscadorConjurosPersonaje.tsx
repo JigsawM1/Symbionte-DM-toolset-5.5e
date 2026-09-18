@@ -4,6 +4,7 @@ import type { HechizoBase } from "@/tipos";
 import { SelectorDesplegable } from "@/componentes/comunes";
 import { generarIdSlug } from "@/utiles/generarId";
 import { coincideBusquedaTolerante, compararPorRelevanciaTitulo } from "@/utiles/busquedaTolerante";
+import styles from "./PanelConjurosPersonaje.module.css";
 
 interface BuscadorConjurosPersonajeProps {
   baseDatosHechizos: HechizoBase[];
@@ -78,30 +79,12 @@ export const BuscadorConjurosPersonaje: React.FC<BuscadorConjurosPersonajeProps>
   }, [trucosActualesIds, conjurosActualesIds]);
 
   return (
-    <div
-      style={{
-        backgroundColor: "#111622",
-        border: "1px solid rgba(148, 163, 184, 0.16)",
-        borderRadius: 8,
-        padding: "14px 16px",
-        display: "flex",
-        flexDirection: "column",
-        gap: 12
-      }}
-    >
+    <div className={styles.contenedorBuscadorConjuros}>
       {/* Barra de Búsqueda y Filtros */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+      <div className={styles.cabeceraBuscadorConjuros}>
+        <div className={styles.tituloBuscadorFila}>
           <BookOpen size={15} color="#60a5fa" />
-          <span
-            style={{
-              fontSize: 12,
-              fontWeight: 700,
-              letterSpacing: "0.05em",
-              textTransform: "uppercase",
-              color: "#f1f5f9"
-            }}
-          >
+          <span className={styles.tituloBuscadorTexto}>
             Añadir Conjuros del Compendio
           </span>
         </div>
@@ -110,13 +93,7 @@ export const BuscadorConjurosPersonaje: React.FC<BuscadorConjurosPersonajeProps>
           <button
             type="button"
             onClick={alCerrar}
-            style={{
-              background: "none",
-              border: "none",
-              color: "#94a3b8",
-              cursor: "pointer",
-              padding: 2
-            }}
+            className={styles.botonCerrarBuscador}
           >
             <X size={14} />
           </button>
@@ -124,40 +101,22 @@ export const BuscadorConjurosPersonaje: React.FC<BuscadorConjurosPersonajeProps>
       </div>
 
       {/* Controles de Búsqueda */}
-      <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+      <div className={styles.filaControlesBuscador}>
         {/* Input de Búsqueda */}
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 6,
-            backgroundColor: "#0b0f16",
-            border: "1px solid rgba(148, 163, 184, 0.2)",
-            borderRadius: 4,
-            padding: "4px 8px",
-            flex: "1 1 180px"
-          }}
-        >
+        <div className={styles.cajaInputBuscador}>
           <Search size={13} color="#64748b" />
           <input
             type="text"
             placeholder="Buscar por nombre o descripción..."
             value={busqueda}
             onChange={(e) => setBusqueda(e.target.value)}
-            style={{
-              background: "none",
-              border: "none",
-              outline: "none",
-              color: "#f1f5f9",
-              fontSize: 11,
-              width: "100%"
-            }}
+            className={styles.inputTextoBuscador}
           />
           {busqueda && (
             <button
               type="button"
               onClick={() => setBusqueda("")}
-              style={{ background: "none", border: "none", color: "#64748b", cursor: "pointer", padding: 0 }}
+              className={styles.botonLimpiarBusqueda}
             >
               <X size={12} />
             </button>
@@ -165,7 +124,7 @@ export const BuscadorConjurosPersonaje: React.FC<BuscadorConjurosPersonajeProps>
         </div>
 
         {/* Filtro por Nivel */}
-        <div style={{ width: 140 }}>
+        <div className={styles.filtroNivelAncho}>
           <SelectorDesplegable
             valor={filtroNivel}
             alCambiar={(val) => setFiltroNivel(val)}
@@ -182,7 +141,7 @@ export const BuscadorConjurosPersonaje: React.FC<BuscadorConjurosPersonajeProps>
         </div>
 
         {/* Filtro por Escuela */}
-        <div style={{ width: 150 }}>
+        <div className={styles.filtroEscuelaAncho}>
           <SelectorDesplegable
             valor={filtroEscuela}
             alCambiar={(val) => setFiltroEscuela(val)}
@@ -199,25 +158,9 @@ export const BuscadorConjurosPersonaje: React.FC<BuscadorConjurosPersonajeProps>
       </div>
 
       {/* Lista de Resultados con Scroll */}
-      <div
-        style={{
-          maxHeight: 240,
-          overflowY: "auto",
-          display: "flex",
-          flexDirection: "column",
-          gap: 4,
-          paddingRight: 4
-        }}
-      >
+      <div className={styles.listaResultadosScroll}>
         {resultados.length === 0 ? (
-          <div
-            style={{
-              padding: 16,
-              textAlign: "center",
-              color: "#64748b",
-              fontSize: 11
-            }}
-          >
+          <div className={styles.mensajeSinResultados}>
             No se encontraron conjuros con los filtros aplicados.
           </div>
         ) : (
@@ -232,21 +175,13 @@ export const BuscadorConjurosPersonaje: React.FC<BuscadorConjurosPersonajeProps>
             return (
               <div
                 key={`res-h-${hechizo.id}`}
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  backgroundColor: "#161e2c",
-                  border: "1px solid rgba(148, 163, 184, 0.08)",
-                  borderRadius: 4,
-                  padding: "5px 8px"
-                }}
+                className={styles.tarjetaResultadoConjuro}
               >
-                <div style={{ display: "flex", flexDirection: "column" }}>
-                  <span style={{ fontSize: 11, fontWeight: 600, color: "#f1f5f9" }}>
+                <div className={styles.infoResultadoConjuro}>
+                  <span className={styles.nombreResultadoConjuro}>
                     {hechizo.nombre}
                   </span>
-                  <span style={{ fontSize: 10, color: "#64748b" }}>
+                  <span className={styles.metaResultadoConjuro}>
                     {esTruco ? "Truco" : `Nivel ${hechizo.nivel}`} • {hechizo.escuela}
                     {hechizo.concentracion ? " • [C]" : ""}
                     {hechizo.ritual ? " • [R]" : ""}
@@ -255,16 +190,7 @@ export const BuscadorConjurosPersonaje: React.FC<BuscadorConjurosPersonajeProps>
 
                 <div>
                   {yaAgregado ? (
-                    <span
-                      style={{
-                        display: "inline-flex",
-                        alignItems: "center",
-                        gap: 3,
-                        fontSize: 10,
-                        color: "#10b981",
-                        fontWeight: 600
-                      }}
-                    >
+                    <span className={styles.badgeYaAnadido}>
                       <Check size={11} /> Añadido
                     </span>
                   ) : (
@@ -277,19 +203,7 @@ export const BuscadorConjurosPersonaje: React.FC<BuscadorConjurosPersonajeProps>
                           alAgregarConjuro(hechizo.id);
                         }
                       }}
-                      style={{
-                        display: "inline-flex",
-                        alignItems: "center",
-                        gap: 3,
-                        backgroundColor: "#1e293b",
-                        border: "1px solid rgba(96, 165, 250, 0.3)",
-                        borderRadius: 3,
-                        color: "#93c5fd",
-                        fontSize: 10,
-                        fontWeight: 600,
-                        padding: "2px 6px",
-                        cursor: "pointer"
-                      }}
+                      className={styles.botonAnadirConjuroBuscador}
                     >
                       <Plus size={10} /> Añadir
                     </button>
@@ -302,7 +216,7 @@ export const BuscadorConjurosPersonaje: React.FC<BuscadorConjurosPersonajeProps>
       </div>
 
       {resultados.length > 50 && (
-        <span style={{ fontSize: 10, color: "#64748b", textAlign: "center" }}>
+        <span className={styles.textoAvisoLimiteResultados}>
           Mostrando los primeros 50 resultados de {resultados.length}. Refina tu búsqueda para encontrar conjuros específicos.
         </span>
       )}

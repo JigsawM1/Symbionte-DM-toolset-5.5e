@@ -300,8 +300,8 @@ export const FormularioHechizo: React.FC<Props> = ({
       </div>
 
       {/* MECÁNICAS DE COMBATE */}
-      <div className={estilos.bloqueDinamicoForm} style={{ borderColor: "rgba(0,245,212,0.25)" }}>
-        <div className={estilos.tituloBloqueDinamico} style={{ color: "var(--color-borde-cian)" }}>
+      <div className={`${estilos.bloqueDinamicoForm} ${estilos.bloqueDinamicoCombate}`}>
+        <div className={estilos.tituloBloqueDinamico}>
           MECÁNICAS DE COMBATE
         </div>
 

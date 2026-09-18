@@ -56,8 +56,8 @@ export const BuscadorMonstruos: React.FC = () => {
   };
 
   return (
-    <div className={estilosClases.campoBusqueda} style={{ position: "relative" }}>
-      <Skull size={13} style={{ color: "var(--color-peligro)" }} />
+    <div className={estilosClases.campoBusqueda}>
+      <Skull size={13} className={estilosClases.iconoCalavera} />
       <input
         type="text"
         value={busquedaMonstruo}

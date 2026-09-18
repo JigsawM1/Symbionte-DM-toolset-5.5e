@@ -585,7 +585,7 @@
   align-items: center;
   gap: 6px;
   height: 36px;
-  transition: all 0.1s ease;
+  transition: none;
 }
 
 .botonStickyGuardar:hover:not(:disabled) {
@@ -617,11 +617,121 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.1s ease;
+  transition: none;
 }
 
 .botonStickyCancelar:hover {
   background-color: rgba(255, 255, 255, 0.04);
   color: var(--color-texto-principal);
   border-color: var(--color-texto-secundario);
+}
+
+.selectorDanoCompacto {
+  min-width: 125px;
+}
+
+.botonGuardarEdicion {
+  background-color: var(--color-exito) !important;
+}
+
+.botonCancelarEdicionMini {
+  background-color: var(--color-daño);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.contenedorDanosExtra {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.filaDanoExtraQA {
+  padding-left: 10px;
+  border-left: 2px solid var(--color-borde-cian);
+  background: rgba(0, 245, 212, 0.02);
+  border-radius: 0 4px 4px 0;
+  padding-top: 2px;
+  padding-bottom: 2px;
+}
+
+.etiquetaDanoExtra {
+  font-size: 11px;
+  color: var(--color-borde-cian);
+  font-weight: 600;
+  min-width: 80px;
+}
+
+.filaBotonDanoExtra {
+  margin-top: 6px;
+  display: flex;
+  align-items: center;
+}
+
+.botonAgregarDanoExtra {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 600;
+  background: rgba(0, 245, 212, 0.08);
+  color: var(--color-borde-cian);
+  border: 1px dashed var(--color-borde-cian);
+  padding: 4px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: none;
+}
+
+.botonAgregarCompletoNormal {
+  flex: 1;
+}
+
+.botonAgregarCompletoGuardar {
+  flex: 1;
+  background-color: var(--color-exito);
+}
+
+.botonCancelarEdicionAccion {
+  width: 100px;
+  background-color: var(--color-daño);
+}
+
+.itemVisualCuerpo {
+  flex: 1;
+  margin-right: 10px;
+}
+
+.itemVisualDescripcion {
+  font-size: 11px;
+  color: var(--color-texto-secundario);
+  white-space: pre-wrap;
+}
+
+.itemVisualMetricasAtaque {
+  font-size: 11px;
+  margin-left: 5px;
+  color: var(--color-borde-cian);
+}
+
+.botonEditarItemVisual {
+  color: var(--color-borde-cian);
+}
+
+.filaLegendariasTotal {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.labelLegendariasTotal {
+  margin: 0;
+  font-size: 11.5px;
+}
+
+.inputLegendariasTotal {
+  max-width: 160px;
 }

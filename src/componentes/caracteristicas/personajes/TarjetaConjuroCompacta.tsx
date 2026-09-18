@@ -161,7 +161,6 @@ export const TarjetaConjuroCompacta: React.FC<TarjetaConjuroCompactaProps> = ({
               onClick={() => alAbrirDetalleCompleto(hechizo)}
               title="Ver descripción y ficha completa del conjuro"
               className={`${estilos.nombreConjuro} ${!estaPreparado && mostrarTogglePreparado && !esOtorgado ? estilos.nombreConjuroInactivo : ""}`}
-              style={{ background: "none", border: "none", padding: 0, cursor: "pointer", textAlign: "left" }}
             >
               {hechizo.nombre}
             </button>
@@ -188,7 +187,7 @@ export const TarjetaConjuroCompacta: React.FC<TarjetaConjuroCompactaProps> = ({
             {bloqueadoPorArmadura && (
               <span
                 title={motivoBloqueoArmadura || "Lanzamiento bloqueado por armadura sin competencia"}
-                style={{ display: "inline-flex", alignItems: "center" }}
+                className={estilos.iconoAlertaArmadura}
               >
                 <AlertTriangle size={11} color="#ef4444" />
               </span>
@@ -198,7 +197,10 @@ export const TarjetaConjuroCompacta: React.FC<TarjetaConjuroCompactaProps> = ({
           <span className={estilos.filaMetadatos}>
             {hechizo.escuela} {hechizo.alcance ? `• ${hechizo.alcance}` : ""}
             {esTruco && infoTruco?.etiquetaVisual ? (
-              <strong style={{ color: infoTruco.multiplicador > 1 ? "#93c5fd" : "#cbd5e1", marginLeft: 4 }}>
+              <strong
+                className={estilos.trucoEscalado}
+                data-potenciado={infoTruco.multiplicador > 1}
+              >
                 • {infoTruco.etiquetaVisual} {infoTruco.multiplicador > 1 ? `(Nv.${nivelPersonaje})` : ""}
               </strong>
             ) : hechizo.dadosDaño ? (
@@ -213,16 +215,12 @@ export const TarjetaConjuroCompacta: React.FC<TarjetaConjuroCompactaProps> = ({
           </span>
 
           {/* Badge de Origen dinámico (clase, subclase, especie, legado, rasgos) */}
-          {esOtorgado && configBadge && (
+          {esOtorgado && configBadge && origenEfectivo && (
             <div className={estilos.filaSubclaseInferior}>
               <span
                 title={configBadge.tooltip}
                 className={estilos.badgeSubclaseTexto}
-                style={{
-                  color: configBadge.colorTexto,
-                  backgroundColor: configBadge.colorFondo,
-                  borderColor: configBadge.colorBorde
-                }}
+                data-origen={origenEfectivo}
               >
                 <Sparkles size={8} /> {configBadge.etiqueta}
               </span>

@@ -1,5 +1,5 @@
 import { Dices, X } from "lucide-react";
-import { usarBandejaDados, DadosBandeja } from "@/hooks/usarBandejaDados";
+import { usarBandejaDados } from "@/hooks/usarBandejaDados";
 import estilosClases from "./PanelDados.module.css";
 
 export function PanelDados() {
@@ -19,17 +19,6 @@ export function PanelDados() {
     manejarLanzamiento
   } = usarBandejaDados();
 
-  // Colores HSL estilizados para cada dado
-  const coloresDados: Record<keyof DadosBandeja, string> = {
-    d4: "hsl(343, 81%, 65%)",    // Rosa vibrante
-    d6: "hsl(32, 95%, 60%)",     // Naranja cálido
-    d8: "hsl(142, 70%, 55%)",    // Verde esmeralda
-    d10: "hsl(190, 90%, 50%)",   // Cyan brillante
-    d12: "hsl(271, 81%, 66%)",   // Púrpura místico
-    d20: "hsl(43, 96%, 56%)",    // Amarillo oro
-    d100: "hsl(160, 84%, 42%)",  // Turquesa profundo
-  };
-
   const formulaActual = construirFormula();
 
   // Renderizar el botón flotante si está minimizado
@@ -40,7 +29,6 @@ export function PanelDados() {
         className={estilosClases.botonFlotante}
         title="Abrir Panel de Dados"
         type="button"
-        style={{ display: "flex", alignItems: "center", justifyContent: "center" }}
       >
         <Dices size={20} />
       </button>
@@ -51,8 +39,8 @@ export function PanelDados() {
     <div className={estilosClases.contenedorPanel}>
       {/* Cabecera del Panel */}
       <div className={estilosClases.cabecera}>
-        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-          <Dices size={18} style={{ color: "#60a5fa" }} />
+        <div className="u-flex u-alinear-centro u-gap-lg">
+          <Dices size={18} className={estilosClases.iconoBandeja} />
           <span className={estilosClases.titulo}>Bandeja de Dados</span>
         </div>
         <button onClick={() => setMinimizado(true)} className={estilosClases.botonMinimizar} type="button" title="Minimizar panel">
@@ -77,29 +65,23 @@ export function PanelDados() {
         <div className={estilosClases.grillaDados}>
           {tiposDados.map((tipo) => {
             const cantidad = dados[tipo];
-            const color = coloresDados[tipo];
+            const claseTipoDado = estilosClases[`tarjetaDado_${tipo}` as keyof typeof estilosClases] || "";
+            const claseEstado = cantidad > 0 ? estilosClases.tarjetaDadoActivo : estilosClases.tarjetaDadoInactivo;
             return (
               <button
                 key={tipo}
                 onClick={() => agregarDado(tipo)}
                 onContextMenu={(e) => removerDado(tipo, e)}
-                className={estilosClases.tarjetaDado}
-                style={{
-                  border: cantidad > 0 ? `2px solid ${color}` : "2px solid hsl(240, 5%, 26%)",
-                  boxShadow: cantidad > 0 ? `0 0 10px ${color}33` : "none",
-                }}
+                className={`${estilosClases.tarjetaDado} ${claseTipoDado} ${claseEstado}`}
                 title={`Click izquierdo: Añadir ${tipo.toUpperCase()} | Click derecho: Quitar`}
                 type="button"
               >
                 {cantidad > 0 && (
-                  <span className={estilosClases.contadorDado} style={{ backgroundColor: color }}>
+                  <span className={estilosClases.contadorDado}>
                     {cantidad}
                   </span>
                 )}
-                <span
-                  className={estilosClases.nombreDado}
-                  style={{ color: cantidad > 0 ? color : "hsl(240, 5%, 75%)" }}
-                >
+                <span className={estilosClases.nombreDado}>
                   {tipo.toUpperCase()}
                 </span>
               </button>
@@ -146,12 +128,9 @@ export function PanelDados() {
           <button
             onClick={manejarLanzamiento}
             disabled={!formulaActual}
-            className={estilosClases.botonLanzar}
-            style={{
-              opacity: formulaActual ? 1 : 0.5,
-              cursor: formulaActual ? "pointer" : "not-allowed",
-              boxShadow: formulaActual ? "0 4px 15px hsl(43, 96%, 56%)33" : "none",
-            }}
+            className={`${estilosClases.botonLanzar} ${
+              formulaActual ? estilosClases.botonLanzarHabilitado : estilosClases.botonLanzarDeshabilitado
+            }`}
             type="button"
           >
             Lanzar en TaleSpire

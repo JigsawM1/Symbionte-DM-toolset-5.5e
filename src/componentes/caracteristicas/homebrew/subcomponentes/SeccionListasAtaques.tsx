@@ -209,7 +209,7 @@ export const SeccionListasAtaques: React.FC<SeccionListasAtaquesProps> = ({
               placeholder="Dados (1d6+3)"
               className={estilos.inputDinamicoMini}
             />
-            <div style={{ minWidth: "125px" }}>
+            <div className={estilos.selectorDanoCompacto}>
               <SelectorDesplegable
                 valor={tQTipo}
                 alCambiar={setTQTipo}
@@ -220,10 +220,7 @@ export const SeccionListasAtaques: React.FC<SeccionListasAtaquesProps> = ({
             <button
               type="button"
               onClick={agregarQuickAction}
-              className={estilos.botonAgregarDinamico}
-              style={{
-                backgroundColor: quickActionEdicionIdx !== null ? "var(--color-exito)" : undefined
-              }}
+              className={`${estilos.botonAgregarDinamico} ${quickActionEdicionIdx !== null ? estilos.botonGuardarEdicion : ""}`}
               title={quickActionEdicionIdx !== null ? "Guardar Cambios" : "Agregar Ataque Rápido"}
             >
               <Plus size={16} />
@@ -232,13 +229,7 @@ export const SeccionListasAtaques: React.FC<SeccionListasAtaquesProps> = ({
               <button
                 type="button"
                 onClick={cancelarEditarQuickAction}
-                className={estilos.botonAgregarDinamico}
-                style={{
-                  backgroundColor: "var(--color-daño)",
-                  display: "inline-flex",
-                  alignItems: "center",
-                  justifyContent: "center"
-                }}
+                className={`${estilos.botonAgregarDinamico} ${estilos.botonCancelarEdicionMini}`}
                 title="Cancelar Edición"
               >
                 <X size={14} />
@@ -248,21 +239,13 @@ export const SeccionListasAtaques: React.FC<SeccionListasAtaquesProps> = ({
 
           {/* Filas de daños adicionales */}
           {danyosExtraQA && danyosExtraQA.length > 0 && (
-            <div style={{ display: "flex", flexDirection: "column", gap: "6px", marginTop: "4px" }}>
+            <div className={estilos.contenedorDanosExtra}>
               {danyosExtraQA.map((dExtra, dIdx) => (
                 <div
                   key={`d_extra_${dIdx}`}
-                  className={estilos.filaCamposAlineados}
-                  style={{
-                    paddingLeft: "10px",
-                    borderLeft: "2px solid var(--color-borde-cian)",
-                    background: "rgba(0, 245, 212, 0.02)",
-                    borderRadius: "0 4px 4px 0",
-                    paddingTop: "2px",
-                    paddingBottom: "2px"
-                  }}
+                  className={`${estilos.filaCamposAlineados} ${estilos.filaDanoExtraQA}`}
                 >
-                  <span style={{ fontSize: "11px", color: "var(--color-borde-cian)", fontWeight: "600", minWidth: "80px" }}>
+                  <span className={estilos.etiquetaDanoExtra}>
                     + Daño #{dIdx + 2}:
                   </span>
                   <input
@@ -272,7 +255,7 @@ export const SeccionListasAtaques: React.FC<SeccionListasAtaquesProps> = ({
                     placeholder="Dados (ej. 2d4)"
                     className={estilos.inputDinamicoMini}
                   />
-                  <div style={{ minWidth: "125px" }}>
+                  <div className={estilos.selectorDanoCompacto}>
                     <SelectorDesplegable
                       valor={dExtra.tipo}
                       alCambiar={(v) => actualizarDanoExtraQA?.(dIdx, "tipo", v)}
@@ -294,24 +277,11 @@ export const SeccionListasAtaques: React.FC<SeccionListasAtaquesProps> = ({
           )}
 
           {/* Botón para añadir más dados de daño */}
-          <div style={{ marginTop: "6px", display: "flex", alignItems: "center" }}>
+          <div className={estilos.filaBotonDanoExtra}>
             <button
               type="button"
               onClick={agregarDanoExtraQA}
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "5px",
-                fontSize: "11px",
-                fontWeight: "600",
-                background: "rgba(0, 245, 212, 0.08)",
-                color: "var(--color-borde-cian)",
-                border: "1px dashed var(--color-borde-cian)",
-                padding: "4px 10px",
-                borderRadius: "4px",
-                cursor: "pointer",
-                transition: "all 0.15s ease"
-              }}
+              className={estilos.botonAgregarDanoExtra}
               title="Añadir más dados de daño (ej. 2d4 de fuego)"
             >
               <Plus size={12} />
@@ -333,12 +303,11 @@ export const SeccionListasAtaques: React.FC<SeccionListasAtaquesProps> = ({
                     <span>
                       <strong>{qa.nombre}</strong>: {qa.bonificadorAtaque} | {desgloseTexto}
                     </span>
-                    <div style={{ display: "flex", gap: "6px" }}>
+                    <div className="u-flex u-gap-xs">
                       <button
                         type="button"
                         onClick={() => iniciarEditarQuickAction(idx)}
-                        className={estilos.botonEliminarDinamico}
-                        style={{ color: "var(--color-borde-cian)" }}
+                        className={`${estilos.botonEliminarDinamico} ${estilos.botonEditarItemVisual}`}
                         title="Editar Ataque Rápido"
                       >
                         <Edit2 size={12} />
@@ -390,15 +359,11 @@ export const SeccionListasAtaques: React.FC<SeccionListasAtaquesProps> = ({
             rows={calcFilas(tRasgoDesc, 3)}
             spellCheck={false}
           />
-          <div style={{ display: "flex", gap: "8px" }}>
+          <div className="u-flex u-gap-sm">
             <button
               type="button"
               onClick={agregarRasgo}
-              className={estilos.botonAgregarCompleto}
-              style={{
-                flex: 1,
-                backgroundColor: rasgoEdicionIdx !== null ? "var(--color-exito)" : undefined
-              }}
+              className={`${estilos.botonAgregarCompleto} ${rasgoEdicionIdx !== null ? estilos.botonAgregarCompletoGuardar : estilos.botonAgregarCompletoNormal}`}
             >
               {rasgoEdicionIdx !== null ? "Guardar Cambios del Rasgo" : "Agregar Rasgo"}
             </button>
@@ -406,11 +371,7 @@ export const SeccionListasAtaques: React.FC<SeccionListasAtaquesProps> = ({
               <button
                 type="button"
                 onClick={cancelarEditarRasgo}
-                className={estilos.botonAgregarCompleto}
-                style={{
-                  width: "100px",
-                  backgroundColor: "var(--color-daño)"
-                }}
+                className={`${estilos.botonAgregarCompleto} ${estilos.botonCancelarEdicionAccion}`}
               >
                 Cancelar
               </button>
@@ -422,27 +383,20 @@ export const SeccionListasAtaques: React.FC<SeccionListasAtaquesProps> = ({
           <div className={estilos.listaDinamicaVisual}>
             {monstruoForm.rasgos.map((r, idx) => (
               <div key={`r_v_${idx}`} className={estilos.itemDinamicoVisual}>
-                <div style={{ flex: 1, marginRight: "10px" }}>
+                <div className={estilos.itemVisualCuerpo}>
                   <strong>
                     {r.nombre} {(r.recarga || r.uso) ? `(${formatearRecargaTexto(r.recarga, r.uso)})` : ""}
                   </strong>
                   :
-                  <div
-                    style={{
-                      fontSize: "11px",
-                      color: "var(--color-texto-secundario)",
-                      whiteSpace: "pre-wrap"
-                    }}
-                  >
+                  <div className={estilos.itemVisualDescripcion}>
                     {r.descripcion}
                   </div>
                 </div>
-                <div style={{ display: "flex", gap: "6px" }}>
+                <div className="u-flex u-gap-xs">
                   <button
                     type="button"
                     onClick={() => iniciarEditarRasgo(idx)}
-                    className={estilos.botonEliminarDinamico}
-                    style={{ color: "var(--color-borde-cian)" }}
+                    className={`${estilos.botonEliminarDinamico} ${estilos.botonEditarItemVisual}`}
                     title="Editar Rasgo"
                   >
                     <Edit2 size={12} />
@@ -508,15 +462,11 @@ export const SeccionListasAtaques: React.FC<SeccionListasAtaquesProps> = ({
             rows={calcFilas(tAccionDesc, 3)}
             spellCheck={false}
           />
-          <div style={{ display: "flex", gap: "8px" }}>
+          <div className="u-flex u-gap-sm">
             <button
               type="button"
               onClick={agregarAccion}
-              className={estilos.botonAgregarCompleto}
-              style={{
-                flex: 1,
-                backgroundColor: accionEdicionIdx !== null ? "var(--color-exito)" : undefined
-              }}
+              className={`${estilos.botonAgregarCompleto} ${accionEdicionIdx !== null ? estilos.botonAgregarCompletoGuardar : estilos.botonAgregarCompletoNormal}`}
             >
               {accionEdicionIdx !== null ? "Guardar Cambios de la Acción" : "Agregar Acción"}
             </button>
@@ -524,11 +474,7 @@ export const SeccionListasAtaques: React.FC<SeccionListasAtaquesProps> = ({
               <button
                 type="button"
                 onClick={cancelarEditarAccion}
-                className={estilos.botonAgregarCompleto}
-                style={{
-                  width: "100px",
-                  backgroundColor: "var(--color-daño)"
-                }}
+                className={`${estilos.botonAgregarCompleto} ${estilos.botonCancelarEdicionAccion}`}
               >
                 Cancelar
               </button>
@@ -540,30 +486,23 @@ export const SeccionListasAtaques: React.FC<SeccionListasAtaquesProps> = ({
           <div className={estilos.listaDinamicaVisual}>
             {monstruoForm.acciones.map((a, idx) => (
               <div key={`a_v_${idx}`} className={estilos.itemDinamicoVisual}>
-                <div style={{ flex: 1, marginRight: "10px" }}>
+                <div className={estilos.itemVisualCuerpo}>
                   <strong>
                     {a.nombre} {(a.recarga || a.uso) ? `(${formatearRecargaTexto(a.recarga, a.uso)})` : ""}
                   </strong>
                   :
-                  <span style={{ fontSize: "11px", marginLeft: "5px", color: "var(--color-borde-cian)" }}>
+                  <span className={estilos.itemVisualMetricasAtaque}>
                     {a.bonificadorAtaque ? `+${a.bonificadorAtaque}` : ""} {a.daño ? `| ${a.daño}` : ""}
                   </span>
-                  <div
-                    style={{
-                      fontSize: "11px",
-                      color: "var(--color-texto-secundario)",
-                      whiteSpace: "pre-wrap"
-                    }}
-                  >
+                  <div className={estilos.itemVisualDescripcion}>
                     {a.descripcion}
                   </div>
                 </div>
-                <div style={{ display: "flex", gap: "6px" }}>
+                <div className="u-flex u-gap-xs">
                   <button
                     type="button"
                     onClick={() => iniciarEditarAccion(idx)}
-                    className={estilos.botonEliminarDinamico}
-                    style={{ color: "var(--color-borde-cian)" }}
+                    className={`${estilos.botonEliminarDinamico} ${estilos.botonEditarItemVisual}`}
                     title="Editar Acción"
                   >
                     <Edit2 size={12} />
@@ -629,15 +568,11 @@ export const SeccionListasAtaques: React.FC<SeccionListasAtaquesProps> = ({
             rows={calcFilas(tAccionAdicionalDesc, 3)}
             spellCheck={false}
           />
-          <div style={{ display: "flex", gap: "8px" }}>
+          <div className="u-flex u-gap-sm">
             <button
               type="button"
               onClick={agregarAccionAdicional}
-              className={estilos.botonAgregarCompleto}
-              style={{
-                flex: 1,
-                backgroundColor: accionAdicionalEdicionIdx !== null ? "var(--color-exito)" : undefined
-              }}
+              className={`${estilos.botonAgregarCompleto} ${accionAdicionalEdicionIdx !== null ? estilos.botonAgregarCompletoGuardar : estilos.botonAgregarCompletoNormal}`}
             >
               {accionAdicionalEdicionIdx !== null ? "Guardar Cambios Acción Adicional" : "Agregar Acción Adicional"}
             </button>
@@ -645,11 +580,7 @@ export const SeccionListasAtaques: React.FC<SeccionListasAtaquesProps> = ({
               <button
                 type="button"
                 onClick={cancelarEditarAccionAdicional}
-                className={estilos.botonAgregarCompleto}
-                style={{
-                  width: "100px",
-                  backgroundColor: "var(--color-daño)"
-                }}
+                className={`${estilos.botonAgregarCompleto} ${estilos.botonCancelarEdicionAccion}`}
               >
                 Cancelar
               </button>
@@ -661,30 +592,23 @@ export const SeccionListasAtaques: React.FC<SeccionListasAtaquesProps> = ({
           <div className={estilos.listaDinamicaVisual}>
             {monstruoForm.accionesAdicionales.map((a, idx) => (
               <div key={`aa_v_${idx}`} className={estilos.itemDinamicoVisual}>
-                <div style={{ flex: 1, marginRight: "10px" }}>
+                <div className={estilos.itemVisualCuerpo}>
                   <strong>
                     {a.nombre} {(a.recarga || a.uso) ? `(${formatearRecargaTexto(a.recarga, a.uso)})` : ""}
                   </strong>
                   :
-                  <span style={{ fontSize: "11px", marginLeft: "5px", color: "var(--color-borde-cian)" }}>
+                  <span className={estilos.itemVisualMetricasAtaque}>
                     {a.bonificadorAtaque ? `+${a.bonificadorAtaque}` : ""} {a.daño ? `| ${a.daño}` : ""}
                   </span>
-                  <div
-                    style={{
-                      fontSize: "11px",
-                      color: "var(--color-texto-secundario)",
-                      whiteSpace: "pre-wrap"
-                    }}
-                  >
+                  <div className={estilos.itemVisualDescripcion}>
                     {a.descripcion}
                   </div>
                 </div>
-                <div style={{ display: "flex", gap: "6px" }}>
+                <div className="u-flex u-gap-xs">
                   <button
                     type="button"
                     onClick={() => iniciarEditarAccionAdicional(idx)}
-                    className={estilos.botonEliminarDinamico}
-                    style={{ color: "var(--color-borde-cian)" }}
+                    className={`${estilos.botonEliminarDinamico} ${estilos.botonEditarItemVisual}`}
                     title="Editar Acción Adicional"
                   >
                     <Edit2 size={12} />
@@ -732,15 +656,11 @@ export const SeccionListasAtaques: React.FC<SeccionListasAtaquesProps> = ({
             rows={calcFilas(tReaccionDesc, 3)}
             spellCheck={false}
           />
-          <div style={{ display: "flex", gap: "8px" }}>
+          <div className="u-flex u-gap-sm">
             <button
               type="button"
               onClick={agregarReaccion}
-              className={estilos.botonAgregarCompleto}
-              style={{
-                flex: 1,
-                backgroundColor: reaccionEdicionIdx !== null ? "var(--color-exito)" : undefined
-              }}
+              className={`${estilos.botonAgregarCompleto} ${reaccionEdicionIdx !== null ? estilos.botonAgregarCompletoGuardar : estilos.botonAgregarCompletoNormal}`}
             >
               {reaccionEdicionIdx !== null ? "Guardar Cambios de la Reacción" : "Agregar Reacción"}
             </button>
@@ -748,11 +668,7 @@ export const SeccionListasAtaques: React.FC<SeccionListasAtaquesProps> = ({
               <button
                 type="button"
                 onClick={cancelarEditarReaccion}
-                className={estilos.botonAgregarCompleto}
-                style={{
-                  width: "100px",
-                  backgroundColor: "var(--color-daño)"
-                }}
+                className={`${estilos.botonAgregarCompleto} ${estilos.botonCancelarEdicionAccion}`}
               >
                 Cancelar
               </button>
@@ -764,27 +680,20 @@ export const SeccionListasAtaques: React.FC<SeccionListasAtaquesProps> = ({
           <div className={estilos.listaDinamicaVisual}>
             {monstruoForm.reacciones.map((r, idx) => (
               <div key={`rec_v_${idx}`} className={estilos.itemDinamicoVisual}>
-                <div style={{ flex: 1, marginRight: "10px" }}>
+                <div className={estilos.itemVisualCuerpo}>
                   <strong>
                     {r.nombre} {(r.recarga || r.uso) ? `(${formatearRecargaTexto(r.recarga, r.uso)})` : ""}
                   </strong>
                   :
-                  <div
-                    style={{
-                      fontSize: "11px",
-                      color: "var(--color-texto-secundario)",
-                      whiteSpace: "pre-wrap"
-                    }}
-                  >
+                  <div className={estilos.itemVisualDescripcion}>
                     {r.descripcion}
                   </div>
                 </div>
-                <div style={{ display: "flex", gap: "6px" }}>
+                <div className="u-flex u-gap-xs">
                   <button
                     type="button"
                     onClick={() => iniciarEditarReaccion(idx)}
-                    className={estilos.botonEliminarDinamico}
-                    style={{ color: "var(--color-borde-cian)" }}
+                    className={`${estilos.botonEliminarDinamico} ${estilos.botonEditarItemVisual}`}
                     title="Editar Reacción"
                   >
                     <Edit2 size={12} />
@@ -813,8 +722,8 @@ export const SeccionListasAtaques: React.FC<SeccionListasAtaquesProps> = ({
         </div>
         <div className={estilos.camposDinamicosGrupo}>
           {/* Input para el total de acciones legendarias por ronda */}
-          <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "4px" }}>
-            <label className={estilos.labelForm} style={{ margin: 0, fontSize: "11.5px" }}>
+          <div className={estilos.filaLegendariasTotal}>
+            <label className={`${estilos.labelForm} ${estilos.labelLegendariasTotal}`}>
               Total de Acciones Legendarias (por ronda):
             </label>
             <input
@@ -822,8 +731,7 @@ export const SeccionListasAtaques: React.FC<SeccionListasAtaquesProps> = ({
               value={monstruoForm.accionesLegendariasTotal ?? "3"}
               onChange={(e) => actualizarGeneral && actualizarGeneral("accionesLegendariasTotal", e.target.value)}
               placeholder="Ej. 3 o 3 (4 en guarida)"
-              className={estilos.inputDinamicoMediano}
-              style={{ maxWidth: "160px" }}
+              className={`${estilos.inputDinamicoMediano} ${estilos.inputLegendariasTotal}`}
             />
           </div>
 
@@ -849,15 +757,11 @@ export const SeccionListasAtaques: React.FC<SeccionListasAtaquesProps> = ({
             rows={calcFilas(tLegendariaDesc, 3)}
             spellCheck={false}
           />
-          <div style={{ display: "flex", gap: "8px" }}>
+          <div className="u-flex u-gap-sm">
             <button
               type="button"
               onClick={agregarLegendaria}
-              className={estilos.botonAgregarCompleto}
-              style={{
-                flex: 1,
-                backgroundColor: legendariaEdicionIdx !== null ? "var(--color-exito)" : undefined
-              }}
+              className={`${estilos.botonAgregarCompleto} ${legendariaEdicionIdx !== null ? estilos.botonAgregarCompletoGuardar : estilos.botonAgregarCompletoNormal}`}
             >
               {legendariaEdicionIdx !== null ? "Guardar Cambios Legendaria" : "Agregar Acción Legendaria"}
             </button>
@@ -865,11 +769,7 @@ export const SeccionListasAtaques: React.FC<SeccionListasAtaquesProps> = ({
               <button
                 type="button"
                 onClick={cancelarEditarLegendaria}
-                className={estilos.botonAgregarCompleto}
-                style={{
-                  width: "100px",
-                  backgroundColor: "var(--color-daño)"
-                }}
+                className={`${estilos.botonAgregarCompleto} ${estilos.botonCancelarEdicionAccion}`}
               >
                 Cancelar
               </button>
@@ -881,27 +781,20 @@ export const SeccionListasAtaques: React.FC<SeccionListasAtaquesProps> = ({
           <div className={estilos.listaDinamicaVisual}>
             {monstruoForm.accionesLegendarias.map((l, idx) => (
               <div key={`leg_v_${idx}`} className={estilos.itemDinamicoVisual}>
-                <div style={{ flex: 1, marginRight: "10px" }}>
+                <div className={estilos.itemVisualCuerpo}>
                   <strong>
                     {l.nombre} {(l.recarga || l.uso) ? `(Costo: ${formatearRecargaTexto(l.recarga, l.uso)})` : ""}
                   </strong>
                   :
-                  <div
-                    style={{
-                      fontSize: "11px",
-                      color: "var(--color-texto-secundario)",
-                      whiteSpace: "pre-wrap"
-                    }}
-                  >
+                  <div className={estilos.itemVisualDescripcion}>
                     {l.descripcion}
                   </div>
                 </div>
-                <div style={{ display: "flex", gap: "6px" }}>
+                <div className="u-flex u-gap-xs">
                   <button
                     type="button"
                     onClick={() => iniciarEditarLegendaria(idx)}
-                    className={estilos.botonEliminarDinamico}
-                    style={{ color: "var(--color-borde-cian)" }}
+                    className={`${estilos.botonEliminarDinamico} ${estilos.botonEditarItemVisual}`}
                     title="Editar Acción Legendaria"
                   >
                     <Edit2 size={12} />

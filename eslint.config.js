@@ -71,6 +71,19 @@ export default [
         }
       ],
 
+      // Erradicación de estilos inline en favor de CSS Modules y utilidades
+      "react/forbid-dom-props": [
+        "error",
+        {
+          forbid: [
+            {
+              propName: "style",
+              message: "Prohibido el uso de estilos inline (style={{...}}). Modulariza en CSS Modules (*.module.css) o clases utilitarias de src/estilos/utilidades.css."
+            }
+          ]
+        }
+      ],
+
       // Restricción de consola (permitido solo en logger y scripts CLI/test)
       "no-console": "error",
 

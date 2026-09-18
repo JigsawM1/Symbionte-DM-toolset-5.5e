@@ -134,7 +134,7 @@ export const ModalCrearEditarRasgo: React.FC<ModalCrearEditarRasgoProps> = ({
         </div>
 
         {/* Formulario */}
-        <form onSubmit={manejarEnvio} style={{ display: "flex", flexDirection: "column", flex: 1, overflow: "hidden" }}>
+        <form onSubmit={manejarEnvio} className={estilos.formularioModal}>
           <div className={estilos.cuerpoModal}>
             {/* Opcional: Cargar desde Dotes Canónicas */}
             {!esEdicion && origen === "dote" && (

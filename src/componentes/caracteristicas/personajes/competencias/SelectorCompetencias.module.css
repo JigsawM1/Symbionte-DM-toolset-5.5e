@@ -1,0 +1,155 @@
+/* ==========================================
+   SELECTOR DE COMPETENCIAS (MODAL Y PESTAÑAS)
+   Sin transiciones para 0ms latencia en TaleSpire CEF
+   ========================================= */
+
+.cuerpoModalCompetencias {
+  max-width: 620px;
+  width: 95%;
+  height: 82vh;
+  transition: none;
+}
+
+.cabeceraModalTitulo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.iconoPestana {
+  margin-right: 4px;
+}
+
+.barraBuscadorCompetencias {
+  padding: 8px 14px;
+  background-color: #0e131d;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+}
+
+.contenedorInputBuscador {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.iconoBuscadorLupa {
+  position: absolute;
+  left: 10px;
+  pointer-events: none;
+}
+
+.inputBuscadorCompetencias {
+  width: 100%;
+  padding-left: 30px;
+  font-size: 11px;
+}
+
+.botonLimpiarBuscador {
+  position: absolute;
+  right: 8px;
+  background: transparent;
+  border: none;
+  color: #64748b;
+  cursor: pointer;
+  padding: 2px;
+  display: flex;
+  align-items: center;
+  transition: none;
+}
+
+.cuerpoContenidoModal {
+  gap: 14px;
+}
+
+.botonGuardarModal {
+  background-color: #1e293b;
+  border: 1px solid rgba(96, 165, 250, 0.4);
+  color: #93c5fd;
+  font-weight: 700;
+  transition: none;
+}
+
+
+/* ==========================================
+   PESTAÑAS DE COMPETENCIAS (ARMAS, ARMADURAS, IDIOMAS, ETC.)
+   ========================================= */
+
+.contenedorPestana {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.bloqueSeccion {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.labelSeccion {
+  font-size: 11px;
+  font-weight: 700;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.grupoBotonesMaestros {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.botonGrupoMaestro {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 600;
+  color: #94a3b8;
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  background-color: #111622;
+  transition: none;
+}
+
+.botonGrupoMaestro[data-check="true"] {
+  color: #f1f5f9;
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  background-color: #18202e;
+}
+
+.gridItemsCompetencias {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 6px;
+  padding: 8px;
+  background-color: #0d121c;
+  border-radius: 6px;
+  border: 1px solid rgba(148, 163, 184, 0.12);
+}
+
+.gridItemsCompetenciasArmaduras {
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+}
+
+.itemCompetenciaLabel {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 6px;
+  border-radius: 4px;
+  background-color: transparent;
+  color: #94a3b8;
+  cursor: pointer;
+  font-size: 11px;
+  user-select: none;
+  transition: none;
+}
+
+.itemCompetenciaLabel[data-check="true"] {
+  background-color: rgba(148, 163, 184, 0.08);
+  color: #f1f5f9;
+}

@@ -82,8 +82,7 @@ export const FiltrosAccionRasgos: React.FC<FiltrosAccionRasgosProps> = ({
       {hayFiltrosActivos && (
         <button
           type="button"
-          className={estilos.chipFiltroMini}
-          style={{ marginLeft: "auto", color: "#f87171" }}
+          className={`${estilos.chipFiltroMini} ${estilos.chipFiltroLimpiar}`}
           onClick={alLimpiarFiltros}
         >
           Limpiar

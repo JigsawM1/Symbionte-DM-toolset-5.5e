@@ -164,12 +164,12 @@ export const SeccionMagiaYEfectosObjeto: React.FC<SeccionMagiaYEfectosObjetoProp
           </span>
           {objetoBase.artesania?.tallerRequerido && (
             <div className={estilos.filaArtesaniaMeta}>
-              <div><span>Taller: </span><strong style={{ color: "#f8fafc" }}>{objetoBase.artesania.tallerRequerido}</strong></div>
+              <div><span>Taller: </span><strong className={estilos.valorArtesaniaTaller}>{objetoBase.artesania.tallerRequerido}</strong></div>
             </div>
           )}
           {objetoBase.craft && objetoBase.craft.length > 0 && (
             <div>
-              <span style={{ fontSize: "10.5px", color: "#94a3b8", display: "block", marginBottom: 3 }}>Herramientas Requeridas:</span>
+              <span className={estilos.etiquetaCraftHerramientas}>Herramientas Requeridas:</span>
               <div className={estilos.listaComponentesChips}>
                 {objetoBase.craft.map((c: { name: string; index: string }, idx: number) => (
                   <span key={idx} className={estilos.chipHerramientaCraft}>{c.name}</span>

@@ -33,14 +33,14 @@ export const CalculadoraViaje: React.FC = () => {
   return (
     <div className={estilosClases.tarjetaCalculadora}>
       <div className={estilosClases.tituloCalculadora}>
-        <Compass size={12} style={{ color: "var(--color-borde-cian)", marginRight: "4px" }} />
+        <Compass size={12} className={estilosClases.iconoTitulo} />
         <span>Calculadora de Viaje</span>
       </div>
       
       <div className={estilosClases.cuerpoCalculadora}>
         <div className={estilosClases.filaFormulario}>
           <label className={estilosClases.labelForm}>Paso del Viaje:</label>
-          <div style={{ width: "200px" }}>
+          <div className={estilosClases.contenedorSelector}>
             <SelectorDesplegable
               valor={pasoViaje}
               alCambiar={(val) => setPasoViaje(val as "lento" | "normal" | "rapido")}

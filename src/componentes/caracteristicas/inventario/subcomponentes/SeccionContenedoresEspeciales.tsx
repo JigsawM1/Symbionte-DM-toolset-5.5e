@@ -53,7 +53,7 @@ export const SeccionContenedoresEspeciales: React.FC<SeccionContenedoresEspecial
                 onClick={() => alAlternarSeccion(cont.id)}
                 title={`Haz clic para colapsar o expandir (o arrastra aquí para mover a ${cont.titulo})`}
               >
-                <div className={estilos.tituloGrupoInventario} style={{ color: cont.color }}>
+                <div className={estilos.tituloGrupoInventario} data-caja={cont.id}>
                   <span className={estilos.iconoChevronColapso}>
                     {abierta ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
                   </span>

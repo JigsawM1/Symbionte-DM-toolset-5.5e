@@ -154,10 +154,10 @@ export const SeccionEfectosPasivos: React.FC<Props> = ({
   };
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+    <div className="u-flex u-flex-col u-gap-md">
       {/* CONTROL ES MÁGICO */}
-      <div className={estilos.bloqueDinamicoForm} style={{ backgroundColor: "rgba(0, 245, 212, 0.02)", borderColor: "var(--color-borde-cian)" }}>
-        <label className={estilos.labelCheckbox} style={{ fontSize: "14px", fontWeight: "bold" }}>
+      <div className={`${estilos.bloqueDinamicoForm} ${estilos.bloqueDinamicoMagico}`}>
+        <label className={`${estilos.labelCheckbox} ${estilos.labelCheckboxDestacado}`}>
           <input
             type="checkbox"
             checked={oEsMagico}
@@ -165,7 +165,7 @@ export const SeccionEfectosPasivos: React.FC<Props> = ({
             className={estilos.checkMini}
             disabled={oRareza !== "Común"}
           />
-          <span style={{ color: "var(--color-borde-cian)", display: "flex", alignItems: "center", gap: "4px" }}>
+          <span className={estilos.textoMagicoActivo}>
             <Sparkles size={14} /> Este Objeto es Mágico {oRareza !== "Común" ? "(Auto-activado por Rareza)" : ""}
           </span>
         </label>
@@ -173,11 +173,11 @@ export const SeccionEfectosPasivos: React.FC<Props> = ({
 
       {/* ATRIBUTOS MÁGICOS ADICIONALES */}
       {oEsMagico && (
-        <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+        <div className="u-flex u-flex-col u-gap-md">
           {/* Sintonización, Cargas y Fórmula de Recarga */}
           <div className={estilos.bloqueDinamicoForm}>
             <div className={estilos.filaDobleForm}>
-              <div className={estilos.campoForm} style={{ justifyContent: "center" }}>
+              <div className={`${estilos.campoForm} ${estilos.campoFormCentrado}`}>
                 <label className={estilos.labelCheckbox}>
                   <input
                     type="checkbox"
@@ -203,7 +203,7 @@ export const SeccionEfectosPasivos: React.FC<Props> = ({
             </div>
 
             {oSintonizacionRequerida && (
-              <div className={estilos.campoForm} style={{ marginTop: "6px" }}>
+              <div className={`${estilos.campoForm} u-mt-xs`}>
                 <label className={estilos.labelForm}>Condición de Sintonización:</label>
                 <input
                   type="text"
@@ -216,7 +216,7 @@ export const SeccionEfectosPasivos: React.FC<Props> = ({
             )}
 
             {oCargas !== "" && Number(oCargas) > 0 && (
-              <div className={estilos.campoForm} style={{ marginTop: "8px", borderTop: "1px dashed rgba(255,255,255,0.06)", paddingTop: "8px" }}>
+              <div className={`${estilos.campoForm} ${estilos.campoRecargaCargas}`}>
                 <label className={estilos.labelForm}>Fórmula de Recarga:</label>
                 <input
                   type="text"
@@ -242,7 +242,7 @@ export const SeccionEfectosPasivos: React.FC<Props> = ({
           </div>
 
           {/* Modificador Mágico Directo */}
-          <div className={estilos.campoForm} style={{ marginTop: "4px" }}>
+          <div className={`${estilos.campoForm} u-mt-xs`}>
             <label className={estilos.labelForm}>Modificador Mágico Directo (Ataque, Daño o Defensa):</label>
             <input
               type="number"
@@ -307,16 +307,15 @@ export const SeccionEfectosPasivos: React.FC<Props> = ({
               </div>
             </div>
 
-            <div className={estilos.campoForm} style={{ marginTop: "10px" }}>
+            <div className={`${estilos.campoForm} u-mt-sm`}>
               <label className={estilos.labelForm}>Descripción del Efecto (Opcional):</label>
-              <div style={{ display: "flex", gap: "6px" }}>
+              <div className="u-flex u-gap-xs">
                 <input
                   type="text"
                   value={oNuevoBonoDesc}
                   onChange={(e) => setONuevoBonoDesc(e.target.value)}
                   placeholder="Ej. El portador gana resistencia al daño de fuego..."
-                  className={estilos.inputForm}
-                  style={{ flex: 1 }}
+                  className={`${estilos.inputForm} u-flex-1`}
                 />
                 <button
                   type="button"
@@ -330,7 +329,7 @@ export const SeccionEfectosPasivos: React.FC<Props> = ({
 
             {/* LISTA DE EFECTOS PASIVOS */}
             {oEfectosPasivos.length > 0 && (
-              <div className={estilos.listaDinamicaVisual} style={{ marginTop: "10px" }}>
+              <div className={`${estilos.listaDinamicaVisual} u-mt-sm`}>
                 {oEfectosPasivos.map((efecto, idx) => (
                   <div key={`efecto_${idx}`} className={estilos.itemDinamicoVisual}>
                     <div className={estilos.bonoTextoInfo}>
@@ -361,7 +360,7 @@ export const SeccionEfectosPasivos: React.FC<Props> = ({
             </div>
 
             <div className={estilos.filaAgregarBono}>
-              <div className={estilos.campoBonoNombre} style={{ flex: 2 }}>
+              <div className={`${estilos.campoBonoNombre} ${estilos.campoBonoFlex2}`}>
                 <label className={estilos.labelForm}>Nombre del Hechizo:</label>
                 <div className={estilos.contenedorBuscadorHechizo}>
                   <input
@@ -394,8 +393,8 @@ export const SeccionEfectosPasivos: React.FC<Props> = ({
                           className={estilos.itemSugerenciaHechizo}
                           onMouseDown={() => seleccionarSugerenciaHechizo(hechizo)}
                         >
-                          <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                            <Wand2 size={13} style={{ color: "var(--color-borde-cian)" }} />
+                          <div className="u-flex u-items-center u-gap-xs">
+                            <Wand2 size={13} className={estilos.textoCianAcento} />
                             <span>{hechizo.nombre}</span>
                           </div>
                           <span className={estilos.itemSugerenciaDetalle}>
@@ -408,7 +407,7 @@ export const SeccionEfectosPasivos: React.FC<Props> = ({
                 </div>
               </div>
 
-              <div className={estilos.campoBonoValor} style={{ flex: 1 }}>
+              <div className={`${estilos.campoBonoValor} ${estilos.campoBonoFlex1}`}>
                 <label className={estilos.labelForm}>CD (Opc. usa la del personaje si esta vacio):</label>
                 <input
                   type="number"
@@ -420,7 +419,7 @@ export const SeccionEfectosPasivos: React.FC<Props> = ({
               </div>
             </div>
 
-            <div className={estilos.filaTripleForm} style={{ marginTop: "10px" }}>
+            <div className={`${estilos.filaTripleForm} u-mt-sm`}>
               <div className={estilos.campoForm}>
                 <label className={estilos.labelForm}>Bono Ataque (Opc.):</label>
                 <input
@@ -441,12 +440,11 @@ export const SeccionEfectosPasivos: React.FC<Props> = ({
                   className={estilos.inputForm}
                 />
               </div>
-              <div className={estilos.campoForm} style={{ justifyContent: "flex-end" }}>
+              <div className={`${estilos.campoForm} ${estilos.campoFormFin}`}>
                 <button
                   type="button"
                   onClick={agregarHechizoVinculado}
-                  className={estilos.botonAgregarDinamico}
-                  style={{ width: "100%", height: "36px", marginTop: "16px" }}
+                  className={`${estilos.botonAgregarDinamico} ${estilos.botonAgregarConjuroPasivo}`}
                 >
                   + Añadir Hechizo
                 </button>
@@ -455,13 +453,13 @@ export const SeccionEfectosPasivos: React.FC<Props> = ({
 
             {/* LISTA DE HECHIZOS VINCULADOS */}
             {oHechizosVinculados.length > 0 && (
-              <div className={estilos.listaDinamicaVisual} style={{ marginTop: "10px" }}>
+              <div className={`${estilos.listaDinamicaVisual} u-mt-sm`}>
                 {oHechizosVinculados.map((hechizo, idx) => (
                   <div key={`hechizo_${idx}`} className={estilos.itemDinamicoVisual}>
                     <div className={estilos.bonoTextoInfo}>
                       <span className={estilos.bonoTagCategoria}>HECHIZO</span>{" "}
                       <strong>{hechizo.nombre}</strong>
-                      {hechizo.hechizoId && <span style={{ color: "var(--color-borde-cian)", fontSize: "10px", marginLeft: "4px" }}>(Compendio)</span>}
+                      {hechizo.hechizoId && <span className={estilos.etiquetaCompendioCian}>(Compendio)</span>}
                       {hechizo.cd !== undefined && hechizo.cd !== "" ? ` | CD ${hechizo.cd}` : ` | CD Personaje`}
                       {hechizo.bonoAtaque !== undefined && hechizo.bonoAtaque !== "" ? ` | Bono Ataque: +${hechizo.bonoAtaque}` : ""}
                       {hechizo.costeCargas !== undefined && hechizo.costeCargas !== "" ? ` | Coste: ${hechizo.costeCargas} c.` : ""}
@@ -482,7 +480,7 @@ export const SeccionEfectosPasivos: React.FC<Props> = ({
       )}
 
       {!oEsMagico && (
-        <div className={estilos.textoListaVacia} style={{ padding: "20px", border: "1px dashed rgba(255,255,255,0.05)" }}>
+        <div className={`${estilos.textoListaVacia} ${estilos.contenedorListaVaciaDashed}`}>
           Este objeto está configurado como no mágico. Selecciona una rareza superior a "Común" para habilitar las propiedades mágicas.
         </div>
       )}

@@ -4,6 +4,7 @@ import type { ModoLanzamiento } from "@/servicios/servicioLanzamientoConjuros";
 import { obtenerBonoDanoConjuroExtra } from "@/servicios/evaluadorEfectosRasgos";
 import { obtenerModificadorAptitudMagica } from "@/servicios/calculadorMagia";
 import { FichaHechizo } from "@/componentes/caracteristicas/compendio/FichaHechizo";
+import estilos from "./ModalFichaHechizoFlotante.module.css";
 
 interface ModalFichaHechizoFlotanteProps {
   hechizoModal: HechizoBase | null;
@@ -44,33 +45,8 @@ export const ModalFichaHechizoFlotante: React.FC<ModalFichaHechizoFlotanteProps>
   });
 
   return (
-    <div
-      style={{
-        position: "fixed",
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        backgroundColor: "rgba(0, 0, 0, 0.75)",
-        zIndex: 1000,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: 16
-      }}
-      onClick={alCerrar}
-    >
-      <div
-        style={{
-          maxWidth: 550,
-          width: "100%",
-          maxHeight: "90vh",
-          overflowY: "auto",
-          backgroundColor: "#161b22",
-          borderRadius: 8
-        }}
-        onClick={(e) => e.stopPropagation()}
-      >
+    <div className={estilos.overlayModal} onClick={alCerrar}>
+      <div className={estilos.contenedorModal} onClick={(e) => e.stopPropagation()}>
         <FichaHechizo
           hechizo={hechizoModal}
           nombrePersonaje={personaje.nombre}

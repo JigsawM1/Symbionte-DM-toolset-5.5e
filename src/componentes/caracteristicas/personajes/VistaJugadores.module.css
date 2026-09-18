@@ -245,3 +245,52 @@
   line-height: 1.4;
 }
 
+.barraNavegacionSuperior {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: var(--color-fondo-panel);
+  border: 1px solid var(--color-borde-brutal);
+  border-radius: 6px;
+  padding: 4px 8px;
+}
+
+.grupoSubPestanas {
+  display: flex;
+  gap: 4px;
+}
+
+.botonSubPestana {
+  background-color: transparent;
+  border: 1px solid transparent;
+  color: var(--color-texto-secundario);
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 700;
+  border-radius: 4px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  transition: none;
+}
+
+.botonSubPestana[data-activa="true"] {
+  background-color: var(--color-primario);
+  border-color: var(--color-borde-cian);
+  color: #ffffff;
+}
+
+.iconoSubPestana {
+  margin-right: 4px;
+}
+
+.indicadorRolJugador {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  color: var(--color-texto-apagado);
+  text-transform: uppercase;
+}
+
+

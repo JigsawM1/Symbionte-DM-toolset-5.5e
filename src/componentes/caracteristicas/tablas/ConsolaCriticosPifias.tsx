@@ -114,7 +114,6 @@ export const ConsolaCriticosPifias: React.FC = () => {
                 className={`${estilosClases.botonToggleChico} ${
                   tipoCombate === "melee" ? estilosClases.botonToggleChicoActivo : ""
                 }`}
-                style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 4 }}
               >
                 <Swords size={12} /> Melee
               </button>
@@ -126,7 +125,6 @@ export const ConsolaCriticosPifias: React.FC = () => {
                 className={`${estilosClases.botonToggleChico} ${
                   tipoCombate === "distancia" ? estilosClases.botonToggleChicoActivo : ""
                 }`}
-                style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 4 }}
               >
                 <Crosshair size={12} /> Rango
               </button>
@@ -138,7 +136,6 @@ export const ConsolaCriticosPifias: React.FC = () => {
                 className={`${estilosClases.botonToggleChico} ${
                   tipoCombate === "magico" ? estilosClases.botonToggleChicoActivo : ""
                 }`}
-                style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 4 }}
               >
                 <Sparkles size={12} /> Mágico
               </button>
@@ -157,7 +154,6 @@ export const ConsolaCriticosPifias: React.FC = () => {
                 className={`${estilosClases.botonToggleChico} ${
                   sentidoTirada === "critico" ? estilosClases.toggleCriticoActivo : ""
                 }`}
-                style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 4 }}
               >
                 <Flame size={12} /> Crítico (20 Nat)
               </button>
@@ -169,7 +165,6 @@ export const ConsolaCriticosPifias: React.FC = () => {
                 className={`${estilosClases.botonToggleChico} ${
                   sentidoTirada === "pifia" ? estilosClases.togglePifiaActivo : ""
                 }`}
-                style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 4 }}
               >
                 <AlertTriangle size={12} /> Pifia (1 Nat)
               </button>
@@ -188,7 +183,6 @@ export const ConsolaCriticosPifias: React.FC = () => {
               className={`${estilosClases.botonLanzarDadoCustom} ${
                 sentidoTirada === "critico" ? estilosClases.botonLanzarD20Critico : estilosClases.botonLanzarD20Pifia
               }`}
-              style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 6 }}
             >
               <Dices size={14} /> Tirar d20 (Estándar)
             </button>
@@ -202,7 +196,6 @@ export const ConsolaCriticosPifias: React.FC = () => {
               className={`${estilosClases.botonLanzarDadoCustom} ${
                 sentidoTirada === "critico" ? estilosClases.botonLanzarD4Critico : estilosClases.botonLanzarD4Pifia
               }`}
-              style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 6 }}
             >
               <Flame size={14} /> Tirar d4 (Severo)
             </button>
@@ -232,7 +225,7 @@ export const ConsolaCriticosPifias: React.FC = () => {
               onClick={enviarConsolaAlChat}
               className={estilosClases.botonEnviarConsolaChat}
             >
-              <MessageSquare size={11} style={{ marginRight: "4px" }} />
+              <MessageSquare size={11} className={estilosClases.iconoChat} />
               Enviar a TaleSpire Chat
             </button>
           </div>
@@ -265,14 +258,14 @@ export const ConsolaCriticosPifias: React.FC = () => {
           </div>
 
           {/* Listado de efectos d4 */}
-          <div className={estilosClases.subtituloDiccionarioSeccion} style={{ marginTop: "10px" }}>Efectos Severos (Tirada d4)</div>
+          <div className={`${estilosClases.subtituloDiccionarioSeccion} ${estilosClases.subtituloDiccionarioEspaciado}`}>Efectos Severos (Tirada d4)</div>
           <div className={estilosClases.listaItemsDiccionario}>
             {(sentidoTirada === "critico" 
               ? TABLAS_CRITICOS_55E[tipoCombate].superCriticos 
               : TABLAS_CRITICOS_55E[tipoCombate].superPifias
             ).map((item) => (
               <div key={item.numero} className={estilosClases.filaItemDiccionario}>
-                <span className={estilosClases.diccItemNumero} style={{ backgroundColor: "#7b2cbf", borderColor: "#a29bfe" }}>{item.numero}</span>
+                <span className={`${estilosClases.diccItemNumero} ${estilosClases.diccItemNumeroSevero}`}>{item.numero}</span>
                 <span className={estilosClases.diccItemTexto}>{item.resultado}</span>
               </div>
             ))}

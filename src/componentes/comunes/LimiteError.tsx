@@ -48,52 +48,25 @@ export class LimiteError extends Component<Props, State> {
     if (this.state.tieneError) {
       if (this.props.modoModular) {
         return (
-          <div style={{
-            padding: "24px",
-            margin: "16px",
-            backgroundColor: "rgba(239, 68, 68, 0.08)",
-            border: "1px solid rgba(239, 68, 68, 0.3)",
-            borderRadius: "8px",
-            color: "var(--pj-texto-primario, #f8fafc)"
-          }}>
-            <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "12px" }}>
-              <AlertOctagon size={24} style={{ color: "#ef4444" }} />
-              <h3 style={{ margin: 0, fontSize: "16px", fontWeight: 700, color: "#ef4444" }}>
+          <div className={estilos.contenedorModular}>
+            <div className={estilos.cabeceraModular}>
+              <AlertOctagon size={24} className={estilos.iconoModular} />
+              <h3 className={estilos.tituloModular}>
                 {this.props.titulo || "Error en el módulo actual"}
               </h3>
             </div>
-            <p style={{ fontSize: "13px", color: "var(--color-texto-apagado, #94a3b8)", marginBottom: "12px" }}>
+            <p className={estilos.descripcionModular}>
               {this.props.descripcion || "Se produjo una excepción aislada al renderizar esta sección. El resto de la aplicación continúa funcionando normalmente."}
             </p>
             {this.state.error?.message && (
-              <pre style={{
-                fontSize: "11px",
-                padding: "8px 12px",
-                backgroundColor: "rgba(0,0,0,0.4)",
-                borderRadius: "4px",
-                overflowX: "auto",
-                color: "#fca5a5",
-                marginBottom: "16px"
-              }}>
+              <pre className={estilos.codigoModular}>
                 {this.state.error.message}
               </pre>
             )}
             <button
               type="button"
               onClick={() => this.setState({ tieneError: false, error: null })}
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "8px",
-                padding: "8px 16px",
-                backgroundColor: "rgba(239, 68, 68, 0.2)",
-                border: "1px solid #ef4444",
-                borderRadius: "4px",
-                color: "#ffffff",
-                cursor: "pointer",
-                fontWeight: 600,
-                fontSize: "13px"
-              }}
+              className={estilos.botonModular}
             >
               <RotateCcw size={14} />
               Reintentar módulo

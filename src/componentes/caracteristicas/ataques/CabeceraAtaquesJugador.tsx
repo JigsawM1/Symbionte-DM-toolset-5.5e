@@ -107,7 +107,7 @@ export const CabeceraAtaquesJugador: React.FC<CabeceraAtaquesJugadorProps> = ({
       {/* Banner de Advertencia: Penalización por Armadura sin Competencia (D&D 5.5e) */}
       {statsCalculadas?.penalizacionArmadura?.sinCompetencia && (
         <div className={estilos.bannerPenalizacionArmadura}>
-          <AlertTriangle size={16} color="#ef4444" style={{ flexShrink: 0, marginTop: 1 }} />
+          <AlertTriangle size={16} color="#ef4444" className={estilos.bannerPenalizacionIcono} />
           <div>
             <strong>Penalización por Armadura sin Competencia:</strong>
             {statsCalculadas.penalizacionArmadura.armaduraNoCompetente && (

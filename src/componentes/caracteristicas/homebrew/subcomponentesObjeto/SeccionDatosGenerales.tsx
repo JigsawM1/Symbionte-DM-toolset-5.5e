@@ -133,7 +133,7 @@ export const SeccionDatosGenerales: React.FC<Props> = ({
   }, [oCategoria, oSubcategoria]);
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+    <div className="u-flex-col u-gap-md">
       <div className={estilos.filaDobleForm}>
         <div className={estilos.campoForm}>
           <label className={estilos.labelForm}>Nombre del Objeto:</label>
@@ -220,17 +220,16 @@ export const SeccionDatosGenerales: React.FC<Props> = ({
           <label className={estilos.labelForm}>
             <Coins size={12} /> Valor / Costo:
           </label>
-          <div style={{ display: "flex", gap: "6px", width: "100%" }}>
+          <div className={`u-flex u-gap-sm ${estilos.anchoCompleto}`}>
             <input
               type="number"
               min="0"
               value={oCostoCantidad}
               onChange={(e) => setOCostoCantidad(Math.max(0, parseFloat(e.target.value) || 0))}
               placeholder="0"
-              className={estilos.inputForm}
-              style={{ flex: 1 }}
+              className={`${estilos.inputForm} u-flex-1`}
             />
-            <div style={{ width: "115px" }}>
+            <div className={estilos.ancho115}>
               <SelectorDesplegable
                 valor={oCostoUnidad}
                 alCambiar={(val) => setOCostoUnidad(val as TipoMoneda)}
@@ -243,7 +242,7 @@ export const SeccionDatosGenerales: React.FC<Props> = ({
       </div>
 
       <div className={estilos.filaDobleForm}>
-        <div className={estilos.campoForm} style={{ padding: "4px 0" }}>
+        <div className={`${estilos.campoForm} ${estilos.campoFormPaddingVertical}`}>
           <label className={estilos.labelCheckbox}>
             <input
               type="checkbox"
@@ -252,14 +251,14 @@ export const SeccionDatosGenerales: React.FC<Props> = ({
               disabled={oCategoria === "armas" || oCategoria === "armaduras" || oCategoria === "escudos"}
               className={estilos.checkMini}
             />
-            <span style={{ fontSize: "12px" }}>
+            <span className={estilos.textoFuente12}>
               ¿Equipable en Ranura Activa?
               {(oCategoria === "armas" || oCategoria === "armaduras" || oCategoria === "escudos") && " (Auto)"}
             </span>
           </label>
         </div>
 
-        <div className={estilos.campoForm} style={{ padding: "4px 0" }}>
+        <div className={`${estilos.campoForm} ${estilos.campoFormPaddingVertical}`}>
           <label className={estilos.labelCheckbox}>
             <input
               type="checkbox"
@@ -267,7 +266,7 @@ export const SeccionDatosGenerales: React.FC<Props> = ({
               onChange={(e) => setOEsConsumible(e.target.checked)}
               className={estilos.checkMini}
             />
-            <span style={{ fontSize: "12px" }}>
+            <span className={estilos.textoFuente12}>
               ¿Es Consumible / De un solo uso?
             </span>
           </label>
@@ -275,7 +274,7 @@ export const SeccionDatosGenerales: React.FC<Props> = ({
       </div>
 
       {/* METADATOS DE LOTES / COMPRA EN PAQUETE */}
-      <div className={estilos.filaDobleForm} style={{ backgroundColor: "rgba(255, 255, 255, 0.02)", padding: "8px", borderRadius: "4px", border: "1px dashed rgba(255, 255, 255, 0.1)" }}>
+      <div className={`${estilos.filaDobleForm} ${estilos.filaDobleTranslúcida}`}>
         <div className={estilos.campoForm}>
           <label className={estilos.labelForm}>
             <Package size={12} /> Unidades por Lote (Opcional):
@@ -332,12 +331,12 @@ export const SeccionDatosGenerales: React.FC<Props> = ({
       </div>
 
       {/* MÓDULO DE CRAFTEO / ARTESANÍA */}
-      <div className={estilos.bloqueDinamicoForm} style={{ borderColor: "rgba(168, 85, 247, 0.25)", marginTop: "8px" }}>
+      <div className={`${estilos.bloqueDinamicoForm} ${estilos.bloqueDinamicoArtesania}`}>
         <div className={estilos.tituloBloqueDinamico}>
           <span>RECETA DE CRAFTEO / ARTESANÍA (OPCIONAL)</span>
         </div>
         
-        <div className={estilos.campoForm} style={{ marginBottom: "10px" }}>
+        <div className={`${estilos.campoForm} ${estilos.margenBottom10}`}>
           <label className={estilos.labelForm}>Taller Requerido:</label>
           <input
             type="text"
@@ -350,14 +349,13 @@ export const SeccionDatosGenerales: React.FC<Props> = ({
 
         <div className={estilos.campoForm}>
           <label className={estilos.labelForm}>Componentes y Materiales Requeridos:</label>
-          <div style={{ display: "flex", gap: "6px", marginBottom: "8px" }}>
+          <div className={`u-flex u-gap-sm ${estilos.margenBottom8}`}>
             <input
               type="text"
               value={oNuevoComponente}
               onChange={(e) => setONuevoComponente(e.target.value)}
               placeholder="Ej. 1x Lingote de Hierro, 2x Colmillo de Lobo..."
-              className={estilos.inputForm}
-              style={{ flex: 1 }}
+              className={`${estilos.inputForm} u-flex-1`}
               onKeyDown={(e) => {
                 if (e.key === "Enter") {
                   e.preventDefault();
@@ -368,35 +366,20 @@ export const SeccionDatosGenerales: React.FC<Props> = ({
             <button
               type="button"
               onClick={agregarComponenteArtesania}
-              className={estilos.botonAgregarDinamico}
-              style={{ padding: "4px 12px", height: "auto" }}
+              className={`${estilos.botonAgregarDinamico} ${estilos.botonAgregarChipForm}`}
             >
               + Añadir
             </button>
           </div>
 
           {oArtesaniaComponentes.length > 0 && (
-            <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", marginTop: "4px" }}>
+            <div className={`u-flex u-flex-wrap u-gap-sm ${estilos.margenTop4}`}>
               {oArtesaniaComponentes.map((comp, idx) => (
-                <span
-                  key={idx}
-                  style={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: "6px",
-                    background: "rgba(168, 85, 247, 0.15)",
-                    border: "1px solid hsl(270, 70%, 60%)",
-                    color: "hsl(270, 100%, 85%)",
-                    padding: "3px 8px",
-                    borderRadius: "4px",
-                    fontSize: "11px",
-                    fontWeight: "500"
-                  }}
-                >
+                <span key={idx} className={estilos.chipPurpuraRemovible}>
                   {comp}
                   <X
                     size={12}
-                    style={{ cursor: "pointer", color: "var(--color-borde-cian)" }}
+                    className={estilos.iconoRemoverChip}
                     onClick={() => eliminarComponenteArtesaniaIdx(idx)}
                   />
                 </span>

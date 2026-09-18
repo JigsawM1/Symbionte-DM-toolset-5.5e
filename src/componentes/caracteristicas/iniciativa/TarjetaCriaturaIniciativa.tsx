@@ -57,25 +57,6 @@ export const TarjetaCriaturaIniciativa: React.FC<TarjetaCriaturaIniciativaProps>
   const iniciativaOriginalRef = useRef<number>(criatura.iniciativa);
 
   const estaMuerto = criatura.vidaActual === 0;
-  const colorNombre = esTurnoActivo ? "var(--color-borde-cian)" : "var(--color-texto-principal)";
-
-  const colorBorde = (esTurnoActivo && estaSeleccionadaEnTS)
-    ? "2px solid #ffcc00"
-    : estaSeleccionadaEnTS
-      ? "2px solid var(--color-advertencia)"
-      : esTurnoActivo
-        ? "1px solid var(--color-borde-cian)"
-        : "1px solid var(--color-borde-brutal)";
-
-  const sombraTarjeta = estaSeleccionadaEnTS
-    ? "0 0 10px rgba(224, 169, 109, 0.45)"
-    : esTurnoActivo
-      ? "0 0 8px rgba(0, 245, 212, 0.2)"
-      : "0 1px 3px rgba(0, 0, 0, 0.2)";
-
-  const fondoTarjeta = esTurnoActivo
-    ? "linear-gradient(90deg, hsl(172, 90%, 4%) 0%, hsl(222, 18%, 11%) 100%)"
-    : "var(--color-fondo-tarjeta)";
 
   const ejecutarCuracion = () => {
     const valor = parseInt(hpInput, 10);
@@ -136,29 +117,21 @@ export const TarjetaCriaturaIniciativa: React.FC<TarjetaCriaturaIniciativaProps>
   return (
     <div
       className={estilosClases.tarjetaCriaturaBrutal}
-      style={{
-        border: colorBorde,
-        boxShadow: sombraTarjeta,
-        background: fondoTarjeta,
-        opacity: estaMuerto ? 0.55 : 1
-      }}
+      data-turno-activo={esTurnoActivo}
+      data-seleccionada-ts={estaSeleccionadaEnTS}
+      data-muerto={estaMuerto}
     >
       {/* Barra de Color Estática Lateral */}
       <div
         className={estilosClases.barraLateralRol}
-        style={{
-          backgroundColor: criatura.esMonstruo ? "#7b2cbf" : "var(--color-borde-cian)"
-        }}
+        data-es-monstruo={criatura.esMonstruo}
         title={criatura.esMonstruo ? "Monstruo / Enemigo" : "Jugador / Aliado"}
       />
 
       {/* Caja de Iniciativa — Editable al clic + botón de dado separado */}
       <div
         className={estilosClases.bloqueIniciativaIzquierda}
-        style={{
-          borderColor: esTurnoActivo ? "var(--color-borde-cian)" : "var(--color-borde-brutal)",
-          backgroundColor: esTurnoActivo ? "rgba(0, 245, 212, 0.05)" : "hsl(222, 25%, 5%)"
-        }}
+        data-turno-activo={esTurnoActivo}
       >
         {/* Botón de dado en la parte superior */}
         <button
@@ -185,18 +158,13 @@ export const TarjetaCriaturaIniciativa: React.FC<TarjetaCriaturaIniciativaProps>
               if (e.key === "Escape") cancelarEdicionIniciativa();
             }}
             className={estilosClases.inputIniciativaEditable}
-            style={{
-              color: esTurnoActivo ? "var(--color-borde-cian)" : "#ffcc00"
-            }}
+            data-turno-activo={esTurnoActivo}
           />
         ) : (
           <span
             onClick={activarEdicionIniciativa}
             className={estilosClases.valorInicGigante}
-            style={{
-              color: esTurnoActivo ? "var(--color-borde-cian)" : "#ffcc00",
-              cursor: "text"
-            }}
+            data-turno-activo={esTurnoActivo}
             title="Clic para editar iniciativa manualmente"
           >
             {criatura.iniciativa}
@@ -211,15 +179,12 @@ export const TarjetaCriaturaIniciativa: React.FC<TarjetaCriaturaIniciativaProps>
             <span
               onClick={onSeleccionar}
               className={estilosClases.nombreCriaturaLink}
-              style={{
-                color: colorNombre,
-                textDecoration: estaMuerto ? "line-through" : "none",
-                fontWeight: esTurnoActivo ? "800" : "700"
-              }}
+              data-turno-activo={esTurnoActivo}
+              data-muerto={estaMuerto}
               title="Ver bloque de estadísticas"
             >
               {esNombreVacioODot(criatura.nombre) ? (
-                <span style={{ fontStyle: "italic", opacity: 0.65 }}>
+                <span className={estilosClases.textoMiniSinNombre}>
                   [Mini sin nombre: {criatura.id.slice(-4)}]
                 </span>
               ) : (
@@ -229,10 +194,10 @@ export const TarjetaCriaturaIniciativa: React.FC<TarjetaCriaturaIniciativaProps>
               {estaSeleccionadaEnTS && <span className={estilosClases.tagSeleccionTS}>SEL</span>}
             </span>
             <span className={estilosClases.subtituloCriatura}>
-              CA: <strong style={{ color: "var(--color-borde-cian)", fontFamily: "var(--fuente-codigo)" }}>{criatura.ca}</strong> | Inic: <strong style={{ color: "#ffcc00", fontFamily: "var(--fuente-codigo)" }}>{(criatura.bonificadorIniciativa ?? 0) >= 0 ? `+${criatura.bonificadorIniciativa ?? 0}` : criatura.bonificadorIniciativa}</strong> <br /> Vel: {formatearVelocidad(criatura.velocidad)}
+              CA: <strong className={estilosClases.valorMetaCianFuente}>{criatura.ca}</strong> | Inic: <strong className={estilosClases.valorMetaAmarilloFuente}>{(criatura.bonificadorIniciativa ?? 0) >= 0 ? `+${criatura.bonificadorIniciativa ?? 0}` : criatura.bonificadorIniciativa}</strong> <br /> Vel: {formatearVelocidad(criatura.velocidad)}
               {plantilla && (
                 <>
-                  <br />  PP: <strong style={{ color: "var(--color-borde-cian)", fontFamily: "var(--fuente-codigo)" }}>{obtenerPercepcionPasiva(plantilla)}</strong>
+                  <br />  PP: <strong className={estilosClases.valorMetaCianFuente}>{obtenerPercepcionPasiva(plantilla)}</strong>
                 </>
               )}
             </span>
@@ -271,7 +236,7 @@ export const TarjetaCriaturaIniciativa: React.FC<TarjetaCriaturaIniciativaProps>
           )}
 
           {/* Mini Selector Directo para añadir condiciones */}
-          <div style={{ position: "relative", display: "inline-block" }}>
+          <div className={estilosClases.contenedorMiniSelector}>
             <button
               onClick={() => setDropdownAbierto(
                 dropdownAbierto === "condicion" ? null : "condicion"
@@ -306,7 +271,7 @@ export const TarjetaCriaturaIniciativa: React.FC<TarjetaCriaturaIniciativaProps>
         </div>
 
         {/* Chips de Efectos Activos y Selector de Efectos */}
-        <div className={estilosClases.filaCondicionesChips} style={{ marginTop: "4px" }}>
+        <div className={`${estilosClases.filaCondicionesChips} ${estilosClases.filaEfectosMargen}`}>
           {criatura.efectos && criatura.efectos.length > 0 ? (
             criatura.efectos.map((ef) => {
               const rondasRestantes = (ef.expiraRonda !== undefined && rondaActual !== undefined)
@@ -326,7 +291,7 @@ export const TarjetaCriaturaIniciativa: React.FC<TarjetaCriaturaIniciativaProps>
           ) : null}
 
           {/* Mini Selector Directo para añadir efectos */}
-          <div style={{ position: "relative", display: "inline-block" }}>
+          <div className={estilosClases.contenedorMiniSelector}>
             <button
               onClick={() => setDropdownAbierto(
                 dropdownAbierto === "efecto" ? null : "efecto"
@@ -372,7 +337,7 @@ export const TarjetaCriaturaIniciativa: React.FC<TarjetaCriaturaIniciativaProps>
                 className={estilosClases.botonAccionRapidaMedieval}
                 title={formatearDetalleAtaqueRapido(acc.bonificadorAtaque, acc.dadosDaño, acc.tipoDaño)}
               >
-                <Swords size={10} style={{ color: "var(--color-peligro)" }} />
+                <Swords size={10} className={estilosClases.iconoEspadasPeligro} />
                 <span>{acc.nombre}</span>
               </button>
             ))}
@@ -387,9 +352,9 @@ export const TarjetaCriaturaIniciativa: React.FC<TarjetaCriaturaIniciativaProps>
       {/* Salud e Inputs de Alta Densidad */}
       <div className={estilosClases.cajaControlesSaludTarjetas}>
         <div className={estilosClases.filaHPArea}>
-          <Heart size={12} fill={estaMuerto ? "none" : "var(--color-peligro)"} style={{ color: "var(--color-peligro)" }} />
+          <Heart size={12} fill={estaMuerto ? "none" : "var(--color-peligro)"} className={estilosClases.iconoCorazonPeligro} />
           <span className={estilosClases.hpGiganteTexto}>
-            {criatura.vidaActual} <span style={{ color: "var(--color-texto-apagado)", fontSize: "10px" }}>/ {criatura.vidaMaxima}</span>
+            {criatura.vidaActual} <span className={estilosClases.textoVidaMaxima}>/ {criatura.vidaMaxima}</span>
           </span>
           {criatura.vidaTemporal && criatura.vidaTemporal > 0 ? (
             <span className={estilosClases.tagHPTemporal}>+{criatura.vidaTemporal}</span>

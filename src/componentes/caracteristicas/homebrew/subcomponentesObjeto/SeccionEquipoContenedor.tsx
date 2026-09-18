@@ -89,11 +89,11 @@ export const SeccionEquipoContenedor: React.FC<Props> = ({
   estilos,
 }) => {
   return (
-    <div className={estilos.bloqueDinamicoForm} style={{ borderColor: "rgba(255, 99, 71, 0.25)" }}>
+    <div className={`${estilos.bloqueDinamicoForm} ${estilos.bloqueDinamicoContenedor}`}>
       <div className={estilos.tituloBloqueDinamico}>
         <span>PROPIEDADES DE UTILERÍA Y EQUIPO</span>
         <span className={estilos.subtituloInformacion}>
-          <Backpack size={12} style={{ display: "inline", marginRight: "2px" }} /> Inventario
+          <Backpack size={12} className={estilos.iconoEnTexto} /> Inventario
         </span>
       </div>
 
@@ -113,34 +113,22 @@ export const SeccionEquipoContenedor: React.FC<Props> = ({
 
       {/* Módulo de Veneno Condicional */}
       {(oCategoria === "consumibles" || oEsConsumible || oSubcategoria.toLowerCase().includes("veneno") || oSubcategoria.toLowerCase().includes("consumible")) && (
-        <div style={{ marginTop: "12px", borderTop: "1px dashed rgba(255, 99, 71, 0.2)", paddingTop: "12px" }}>
-          <label className={estilos.labelCheckbox} style={{ marginBottom: "8px" }}>
+        <div className={estilos.separadorContenedorForm}>
+          <label className={`${estilos.labelCheckbox} u-mb-xs`}>
             <input
               type="checkbox"
               checked={oEsVeneno}
               onChange={(e) => setOEsVeneno(e.target.checked)}
               className={estilos.checkMini}
             />
-            <span style={{ color: "hsl(120, 100%, 40%)", fontWeight: "bold", textShadow: "0 0 5px rgba(0,255,0,0.15)", display: "inline-flex", alignItems: "center", gap: "5px" }}>
+            <span className={estilos.textoVerdeVeneno}>
               <FlaskConical size={14} />
               <span>¿Es un Veneno (Poison)?</span>
             </span>
           </label>
 
           {oEsVeneno && (
-            <div 
-              style={{ 
-                border: "1px solid hsl(120, 80%, 40%)", 
-                boxShadow: "inset 0 0 10px rgba(0, 255, 0, 0.05), 0 0 10px rgba(0, 255, 0, 0.1)",
-                borderRadius: "6px",
-                padding: "12px",
-                marginTop: "8px",
-                backgroundColor: "rgba(0, 40, 0, 0.15)",
-                display: "flex",
-                flexDirection: "column",
-                gap: "10px"
-              }}
-            >
+            <div className={estilos.bloqueVenenoHomebrew}>
               <div className={estilos.campoForm}>
                 <label className={estilos.labelForm}>Tipo de Veneno:</label>
                 <SelectorDesplegable
@@ -167,13 +155,13 @@ export const SeccionEquipoContenedor: React.FC<Props> = ({
 
       {/* Módulo de Almacenamiento para Municiones */}
       {(oCategoria === "municion" || oSubcategoria.toLowerCase().includes("munición") || oSubcategoria.toLowerCase().includes("municion")) && (
-        <div style={{ marginTop: "12px", borderTop: "1px dashed rgba(255, 99, 71, 0.2)", paddingTop: "12px" }}>
-          <div className={estilos.tituloBloqueDinamico} style={{ fontSize: "12px", marginBottom: "8px" }}>
+        <div className={estilos.separadorContenedorForm}>
+          <div className={`${estilos.tituloBloqueDinamico} ${estilos.tituloBloqueDinamicoMini}`}>
             <span>ALMACENAMIENTO RECOMENDADO</span>
           </div>
           <div className={estilos.campoForm}>
-            <label className={estilos.labelForm} style={{ marginBottom: "6px" }}>¿Dónde se almacena esta munición?:</label>
-            <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+            <label className={`${estilos.labelForm} u-mb-xs`}>¿Dónde se almacena esta munición?:</label>
+            <div className="u-flex u-gap-xs u-flex-wrap">
               {[
                 { id: "quiver", label: "Carcaj" },
                 { id: "case-crossbow-bolt", label: "Caja de Virotes" },
@@ -193,19 +181,7 @@ export const SeccionEquipoContenedor: React.FC<Props> = ({
                         setOStorageName(item.label);
                       }
                     }}
-                    className={estilos.botonAlternadorProp}
-                    style={{
-                      flex: 1,
-                      minWidth: "100px",
-                      padding: "6px 10px",
-                      fontSize: "11px",
-                      textAlign: "center",
-                      border: estaSeleccionado ? "1.5px solid var(--color-borde-naranja)" : "1px solid var(--color-borde-brutal)",
-                      background: estaSeleccionado ? "rgba(255, 165, 0, 0.15)" : "transparent",
-                      color: estaSeleccionado ? "var(--color-texto-principal)" : "var(--color-texto-secundario)",
-                      borderRadius: "4px",
-                      cursor: "pointer",
-                    }}
+                    className={`${estilos.botonAlternadorNaranja} ${estaSeleccionado ? estilos.botonAlternadorNaranjaActivo : ""}`}
                   >
                     {item.label}
                   </button>
@@ -218,36 +194,22 @@ export const SeccionEquipoContenedor: React.FC<Props> = ({
 
       {/* Módulo de Contenidos para Paquetes */}
       {(oCategoria === "paquetes-equipo" || oCategoria === "contenedores" || oSubcategoria.toLowerCase().includes("paquete") || oSubcategoria.toLowerCase().includes("contenedor") || oSubcategoria.toLowerCase().includes("mochila")) && (
-        <div style={{ marginTop: "12px", borderTop: "1px dashed rgba(255, 99, 71, 0.2)", paddingTop: "12px" }}>
-          <div className={estilos.tituloBloqueDinamico} style={{ fontSize: "12px", marginBottom: "8px" }}>
+        <div className={estilos.separadorContenedorForm}>
+          <div className={`${estilos.tituloBloqueDinamico} ${estilos.tituloBloqueDinamicoMini}`}>
             <span>CONTENIDO DEL PAQUETE / CONTENEDOR</span>
           </div>
           
-          <div style={{ display: "flex", gap: "6px", marginBottom: "10px", alignItems: "center", position: "relative" }}>
-            <div style={{ flex: 3, position: "relative" }}>
+          <div className={estilos.filaBuscadorContenido}>
+            <div className={estilos.contenedorBuscadorRelativo}>
               <input
                 type="text"
                 placeholder="Buscar objeto en el compendio..."
                 value={busquedaContenidoQuery}
                 onChange={(e) => setBusquedaContenidoQuery(e.target.value)}
-                className={estilos.inputForm}
-                style={{ fontSize: "11px", width: "100%" }}
+                className={`${estilos.inputForm} ${estilos.inputBuscadorCompendio}`}
               />
               {resultadosContenido.length > 0 && (
-                <div style={{
-                  position: "absolute",
-                  top: "100%",
-                  left: 0,
-                  right: 0,
-                  backgroundColor: "var(--color-fondo-panel)",
-                  border: "1.5px solid var(--color-borde-brutal)",
-                  borderRadius: "4px",
-                  zIndex: 50,
-                  maxHeight: "180px",
-                  overflowY: "auto",
-                  boxShadow: "0 4px 12px rgba(0,0,0,0.5)",
-                  marginTop: "2px"
-                }}>
+                <div className={estilos.menuDesplegableSugerencias}>
                   {resultadosContenido.map((o) => (
                     <div
                       key={o.id}
@@ -256,17 +218,9 @@ export const SeccionEquipoContenedor: React.FC<Props> = ({
                         setNuevoContenidoName(o.nombre);
                         setBusquedaContenidoQuery(o.nombre);
                       }}
-                      style={{
-                        padding: "6px 10px",
-                        fontSize: "11px",
-                        cursor: "pointer",
-                        borderBottom: "1px solid rgba(255,255,255,0.03)",
-                        color: nuevoContenidoIndex === o.id ? "var(--color-activo)" : "var(--color-texto-principal)"
-                      }}
-                      onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.05)"}
-                      onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "transparent"}
+                      className={`${estilos.itemSugerenciaCompendio} ${nuevoContenidoIndex === o.id ? estilos.itemSugerenciaCompendioActivo : ""}`}
                     >
-                      {o.nombre} <span style={{ color: "var(--color-texto-secundario)", fontSize: "9px" }}>({o.id})</span>
+                      {o.nombre} <span className={estilos.subtextoIdGris}>({o.id})</span>
                     </div>
                   ))}
                 </div>
@@ -278,13 +232,11 @@ export const SeccionEquipoContenedor: React.FC<Props> = ({
               placeholder="Cant"
               value={nuevoContenidoQty}
               onChange={(e) => setNuevoContenidoQty(parseInt(e.target.value) || 1)}
-              className={estilos.inputForm}
-              style={{ width: "65px", fontSize: "11px" }}
+              className={`${estilos.inputForm} ${estilos.ancho65} ${estilos.textoMini}`}
             />
             <button
               type="button"
-              className={estilos.botonAgregarDinamico}
-              style={{ fontSize: "11px", padding: "4px 10px" }}
+              className={`${estilos.botonAgregarDinamico} ${estilos.botonAgregarChipCompacto}`}
               onClick={() => {
                 if (nuevoContenidoIndex.trim() && nuevoContenidoName.trim()) {
                   setOContents((prev) => [
@@ -306,13 +258,13 @@ export const SeccionEquipoContenedor: React.FC<Props> = ({
           </div>
 
           {oContents.length > 0 && (
-            <div style={{ display: "flex", flexDirection: "column", gap: "4px", backgroundColor: "rgba(0,0,0,0.15)", padding: "8px", borderRadius: "5px" }}>
+            <div className={estilos.listaItemsContenido}>
               {oContents.map((c, idx) => (
-                <div key={idx} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "11px", borderBottom: "1px solid rgba(255,255,255,0.03)", paddingBottom: "2px" }}>
-                  <span>{c.quantity}x {c.item.name} <span style={{ color: "var(--color-texto-secundario)", fontSize: "9px" }}>({c.item.index})</span></span>
+                <div key={idx} className={estilos.filaItemContenido}>
+                  <span>{c.quantity}x {c.item.name} <span className={estilos.subtextoIdGris}>({c.item.index})</span></span>
                   <X
                     size={12}
-                    style={{ cursor: "pointer", color: "var(--color-peligro)" }}
+                    className={estilos.iconoEliminarPeligro}
                     onClick={() => setOContents((prev) => prev.filter((_, i) => i !== idx))}
                   />
                 </div>
@@ -324,36 +276,22 @@ export const SeccionEquipoContenedor: React.FC<Props> = ({
 
       {/* Módulo de Elaboración (Craft) para Herramientas */}
       {(oCategoria === "herramientas" || oSubcategoria.toLowerCase().includes("herramienta")) && (
-        <div style={{ marginTop: "12px", borderTop: "1px dashed rgba(255, 99, 71, 0.2)", paddingTop: "12px" }}>
-          <div className={estilos.tituloBloqueDinamico} style={{ fontSize: "12px", marginBottom: "8px" }}>
+        <div className={estilos.separadorContenedorForm}>
+          <div className={`${estilos.tituloBloqueDinamico} ${estilos.tituloBloqueDinamicoMini}`}>
             <span>OBJETOS QUE PUEDE ELABORAR (RECETAS)</span>
           </div>
           
-          <div style={{ display: "flex", gap: "6px", marginBottom: "10px", alignItems: "center", position: "relative" }}>
-            <div style={{ flex: 3, position: "relative" }}>
+          <div className={estilos.filaBuscadorContenido}>
+            <div className={estilos.contenedorBuscadorRelativo}>
               <input
                 type="text"
                 placeholder="Buscar receta elaborable..."
                 value={busquedaCraftQuery}
                 onChange={(e) => setBusquedaCraftQuery(e.target.value)}
-                className={estilos.inputForm}
-                style={{ fontSize: "11px", width: "100%" }}
+                className={`${estilos.inputForm} ${estilos.inputBuscadorCompendio}`}
               />
               {resultadosCraft.length > 0 && (
-                <div style={{
-                  position: "absolute",
-                  top: "100%",
-                  left: 0,
-                  right: 0,
-                  backgroundColor: "var(--color-fondo-panel)",
-                  border: "1.5px solid var(--color-borde-brutal)",
-                  borderRadius: "4px",
-                  zIndex: 50,
-                  maxHeight: "180px",
-                  overflowY: "auto",
-                  boxShadow: "0 4px 12px rgba(0,0,0,0.5)",
-                  marginTop: "2px"
-                }}>
+                <div className={estilos.menuDesplegableSugerencias}>
                   {resultadosCraft.map((o) => (
                     <div
                       key={o.id}
@@ -362,17 +300,9 @@ export const SeccionEquipoContenedor: React.FC<Props> = ({
                         setNuevoCraftName(o.nombre);
                         setBusquedaCraftQuery(o.nombre);
                       }}
-                      style={{
-                        padding: "6px 10px",
-                        fontSize: "11px",
-                        cursor: "pointer",
-                        borderBottom: "1px solid rgba(255,255,255,0.03)",
-                        color: nuevoCraftIndex === o.id ? "var(--color-activo)" : "var(--color-texto-principal)"
-                      }}
-                      onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.05)"}
-                      onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "transparent"}
+                      className={`${estilos.itemSugerenciaCompendio} ${nuevoCraftIndex === o.id ? estilos.itemSugerenciaCompendioActivo : ""}`}
                     >
-                      {o.nombre} <span style={{ color: "var(--color-texto-secundario)", fontSize: "9px" }}>({o.id})</span>
+                      {o.nombre} <span className={estilos.subtextoIdGris}>({o.id})</span>
                     </div>
                   ))}
                 </div>
@@ -380,8 +310,7 @@ export const SeccionEquipoContenedor: React.FC<Props> = ({
             </div>
             <button
               type="button"
-              className={estilos.botonAgregarDinamico}
-              style={{ fontSize: "11px", padding: "4px 10px" }}
+              className={`${estilos.botonAgregarDinamico} ${estilos.botonAgregarChipCompacto}`}
               onClick={() => {
                 if (nuevoCraftIndex.trim() && nuevoCraftName.trim()) {
                   setOCraft((prev) => [
@@ -402,14 +331,14 @@ export const SeccionEquipoContenedor: React.FC<Props> = ({
           </div>
 
           {oCraft.length > 0 && (
-            <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
+            <div className={estilos.contenedorChipsCustom}>
               {oCraft.map((c, idx) => (
-                <span key={idx} style={{ display: "inline-flex", alignItems: "center", gap: "6px", background: "rgba(168, 85, 247, 0.15)", border: "1px solid hsl(270, 70%, 60%)", color: "hsl(270, 100%, 85%)", padding: "3px 8px", borderRadius: "4px", fontSize: "11px" }}>
+                <span key={idx} className={estilos.chipPurpuraRemovible}>
                   <Hammer size={12} />
                   <span>{c.name}</span>
                   <X
                     size={12}
-                    style={{ cursor: "pointer", color: "var(--color-borde-cian)" }}
+                    className={estilos.iconoRemoverChip}
                     onClick={() => setOCraft((prev) => prev.filter((_, i) => i !== idx))}
                   />
                 </span>

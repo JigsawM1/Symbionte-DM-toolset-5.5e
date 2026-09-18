@@ -35,7 +35,7 @@ export const BarraSuperior: React.FC = () => {
       {/* Fila Superior: Título y Configuración / Campaña */}
       <div className={estilosClases.filaSuperior}>
         <div className={estilosClases.tituloSeccion}>
-          <div style={{ position: "relative" }}>
+          <div className="u-pos-relativo">
             <button
               onClick={() => setMostrarMenuHomebrew(!mostrarMenuHomebrew)}
               className={`${estilosClases.botonHamburguesa} ${

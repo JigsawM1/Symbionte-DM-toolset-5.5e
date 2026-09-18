@@ -92,17 +92,16 @@ export const SeccionMulticlase: React.FC<SeccionMulticlaseProps> = ({
                   </label>
                   <input
                     type="number"
-                    className={estilos.inputFormulario}
+                    className={`${estilos.inputFormulario} ${estilos.inputNivelClase}`}
                     value={claseItem.nivel}
                     onChange={(e) => alCambiarClaseNivel(index, e.target.value)}
                     min="1"
                     max={maxNivelClase}
                     required
-                    style={{ height: 34, textAlign: "center", fontWeight: 700, fontSize: 12 }}
                   />
                 </div>
 
-                <div style={{ paddingTop: 16 }}>
+                <div className={estilos.contenedorBotonEliminarClase}>
                   {clases.length > 1 ? (
                     <button
                       type="button"
@@ -123,16 +122,16 @@ export const SeccionMulticlase: React.FC<SeccionMulticlaseProps> = ({
                 <div className={estilos.barraInfoClase}>
                   <div className={estilos.infoClaseTags}>
                     <span>
-                      Dado: <strong style={{ color: "#38bdf8" }}>{infoClase.dadoGolpe}</strong>
+                      Dado: <strong className={estilos.textoDadoGolpeInfo}>{infoClase.dadoGolpe}</strong>
                     </span>
                     <span>
                       Salvaciones:{" "}
-                      <strong style={{ color: "#a78bfa" }}>
+                      <strong className={estilos.textoSalvacionesInfo}>
                         {infoClase.salvacionesCompetentes.map((s) => s.slice(0, 3).toUpperCase()).join(", ")}
                       </strong>
                     </span>
                     {infoClase.configuracionMagica && (
-                      <span style={{ color: "#fbbf24" }}>
+                      <span className={estilos.textoMagiaInfo}>
                         Magia: {infoClase.configuracionMagica.habilidadConjuro.slice(0, 3).toUpperCase()} ({infoClase.configuracionMagica.tipoLanzador})
                       </span>
                     )}
@@ -155,7 +154,7 @@ export const SeccionMulticlase: React.FC<SeccionMulticlaseProps> = ({
 
       {/* Botón para Añadir Multiclase */}
       <div className={estilos.pieMulticlase}>
-        <span style={{ fontSize: 11, color: "#94a3b8" }}>
+        <span className={estilos.textoPieMulticlase}>
           {esNivelMaximo
             ? "Alcanzaste el nivel máximo total de 20."
             : `Puedes asignar hasta ${20 - nivelGlobal} niveles más en otras clases.`}

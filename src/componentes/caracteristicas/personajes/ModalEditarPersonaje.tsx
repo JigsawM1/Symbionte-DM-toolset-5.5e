@@ -357,21 +357,14 @@ export const ModalEditarPersonaje: React.FC<ModalEditarPersonajeProps> = ({
                 <div className={estilos.campoFormulario}>
                   <label className={estilos.labelFormulario}>Miniatura 3D en Tablero</label>
                   <div
-                    style={{
-                      height: 38,
-                      fontSize: 11,
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 6,
-                      padding: "0 10px",
-                      borderRadius: 4,
-                      backgroundColor: form.idMiniaturaTS ? "rgba(16, 185, 129, 0.1)" : "rgba(255, 255, 255, 0.03)",
-                      border: form.idMiniaturaTS ? "1px solid #10b981" : "1px solid var(--color-borde-brutal)",
-                      color: form.idMiniaturaTS ? "#10b981" : "var(--color-texto-apagado)"
-                    }}
+                    className={estilos.indicadorMiniaturaTablero}
+                    data-detectada={form.idMiniaturaTS ? "true" : "false"}
                     title="Auto-detectada automáticamente si la miniatura en el tablero tiene el mismo nombre que tu personaje"
                   >
-                    <span style={{ width: 8, height: 8, borderRadius: "50%", backgroundColor: form.idMiniaturaTS ? "#10b981" : "#64748b" }} />
+                    <span
+                      className={estilos.puntoMiniaturaTablero}
+                      data-detectada={form.idMiniaturaTS ? "true" : "false"}
+                    />
                     {form.idMiniaturaTS ? "Auto-detectada en Tablero" : "Sin Miniatura en Tablero"}
                   </div>
                 </div>
@@ -379,22 +372,23 @@ export const ModalEditarPersonaje: React.FC<ModalEditarPersonajeProps> = ({
 
               <div className={estilos.campoFormulario}>
                 <label className={estilos.labelFormulario}>URL de Imagen de Avatar (Ilustración / Token)</label>
-                <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+                <div className={estilos.filaAvatarEdicion}>
                   {form.avatarUrl ? (
                     <img
                       src={form.avatarUrl}
                       alt="Vista previa"
-                      style={{ width: 38, height: 38, borderRadius: "50%", objectFit: "cover", flexShrink: 0, border: "1px solid #818cf8" }}
-                      onError={(e) => { (e.target as HTMLElement).style.display = "none"; }}
+                      className={estilos.avatarEdicionImg}
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).classList.add(estilos.inputArchivoOculto);
+                      }}
                     />
                   ) : null}
                   <input
                     type="url"
-                    className={estilos.inputFormulario}
+                    className={`${estilos.inputFormulario} ${estilos.inputAvatarEdicion}`}
                     value={form.avatarUrl || ""}
                     onChange={(e) => actualizarCampo("avatarUrl", e.target.value)}
                     placeholder="https://ejemplo.com/retrato-mi-personaje.png"
-                    style={{ flexGrow: 1 }}
                   />
                 </div>
               </div>
@@ -404,41 +398,40 @@ export const ModalEditarPersonaje: React.FC<ModalEditarPersonajeProps> = ({
           {/* PESTAÑA 2: ATRIBUTOS Y MODIFICADORES */}
           {pestañaActiva === "atributos" && (
             <>
-              <p style={{ fontSize: 12, color: "#cbd5e1", margin: 0 }}>
+              <p className={estilos.textoInstruccionAtributos}>
                 Establece las puntuaciones base de tu personaje. Si posees un objeto mágico que fija una puntuación (ej. <em>Cinturón de Fuerza de Gigante</em>), ingrésalo en el campo <strong>Override Fijo</strong>.
               </p>
 
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+              <div className={estilos.gridAtributosEdicion}>
                 {CARACTERISTICAS_CLAVES.map(({ clave, etiqueta }) => {
                   const carac = clave as Caracteristica;
                   const valorBase = form.caracteristicas?.[carac] || 10;
                   const override = form.overridesFijos?.[carac];
 
                   return (
-                    <div key={carac} className={`${estilos.neoPressed}`} style={{ padding: 10, borderRadius: 6 }}>
-                      <span style={{ fontSize: 12, fontWeight: 700, color: "#a5b4fc" }}>
+                    <div key={carac} className={`${estilos.neoPressed} ${estilos.tarjetaAtributoEdicion}`}>
+                      <span className={estilos.etiquetaAtributoEdicion}>
                         {etiqueta}
                       </span>
 
-                      <div style={{ display: "flex", gap: 8, marginTop: 4 }}>
-                        <div style={{ flex: 1 }}>
-                          <label style={{ fontSize: 10, color: "#94a3b8", display: "block" }}>Base</label>
+                      <div className={estilos.filaInputsAtributoEdicion}>
+                        <div className={estilos.columnaInputAtributo}>
+                          <label className={estilos.labelMicroAtributo}>Base</label>
                           <input
                             type="number"
-                            className={estilos.inputFormulario}
+                            className={`${estilos.inputFormulario} ${estilos.inputAtributoNumerico}`}
                             value={valorBase}
                             onChange={(e) => actualizarCaracteristicaBase(carac, parseInt(e.target.value, 10))}
                             min="1"
                             max="30"
-                            style={{ width: "100%", padding: "4px 8px" }}
                           />
                         </div>
 
-                        <div style={{ flex: 1 }}>
-                          <label style={{ fontSize: 10, color: "#94a3b8", display: "block" }}>Override Fijo</label>
+                        <div className={estilos.columnaInputAtributo}>
+                          <label className={estilos.labelMicroAtributo}>Override Fijo</label>
                           <input
                             type="number"
-                            className={estilos.inputFormulario}
+                            className={`${estilos.inputFormulario} ${estilos.inputAtributoNumerico}`}
                             value={override !== null && override !== undefined ? override : ""}
                             onChange={(e) => {
                               const val = e.target.value.trim() === "" ? null : parseInt(e.target.value, 10);
@@ -447,7 +440,6 @@ export const ModalEditarPersonaje: React.FC<ModalEditarPersonajeProps> = ({
                             placeholder="Ninguno"
                             min="1"
                             max="30"
-                            style={{ width: "100%", padding: "4px 8px" }}
                           />
                         </div>
                       </div>
@@ -464,23 +456,14 @@ export const ModalEditarPersonaje: React.FC<ModalEditarPersonajeProps> = ({
               {/* Salvaciones */}
               <div className={estilos.campoFormulario}>
                 <label className={estilos.labelFormulario}>Competencias en Tiradas de Salvación</label>
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 8, marginTop: 2 }}>
+                <div className={estilos.gridSalvacionesEdicion}>
                   {CARACTERISTICAS_CLAVES.map(({ clave, etiqueta }) => {
                     const carac = clave as Caracteristica;
                     const checked = form.competenciasSalvacion?.[carac] || false;
                     return (
                       <label
                         key={carac}
-                        className={`${estilos.neoPressed}`}
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: 8,
-                          padding: "6px 10px",
-                          borderRadius: 6,
-                          cursor: "pointer",
-                          fontSize: 12
-                        }}
+                        className={`${estilos.neoPressed} ${estilos.labelCheckboxSalvacion}`}
                       >
                         <input
                           type="checkbox"
@@ -497,14 +480,14 @@ export const ModalEditarPersonaje: React.FC<ModalEditarPersonajeProps> = ({
               {/* Habilidades */}
               <div className={estilos.campoFormulario}>
                 <label className={estilos.labelFormulario}>Grado de Competencia en Habilidades</label>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginTop: 2, maxHeight: 240, overflowY: "auto" }}>
+                <div className={estilos.gridHabilidadesEdicion}>
                   {HABILIDADES_LISTA.map(({ clave, nombre }) => {
                     const hab = clave as Habilidad;
                     const grado = form.gradosHabilidades?.[hab] || "ninguna";
 
                     return (
-                      <div key={hab} style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                        <span style={{ fontSize: 11, color: "#cbd5e1" }}>{nombre}</span>
+                      <div key={hab} className={estilos.columnaHabilidadEdicion}>
+                        <span className={estilos.nombreHabilidadEdicion}>{nombre}</span>
                         <SelectorDesplegable
                           valor={grado}
                           alCambiar={(val) => actualizarGradoHabilidad(hab, val as GradoCompetencia)}
@@ -674,10 +657,9 @@ export const ModalEditarPersonaje: React.FC<ModalEditarPersonajeProps> = ({
             </button>
             <button
               type="submit"
-              className={`${estilos.neoButton}`}
-              style={{ backgroundColor: "#3730a3", color: "#fff", borderColor: "#818cf8" }}
+              className={`${estilos.neoButton} ${estilos.botonGuardarEdicionPj}`}
             >
-              <Save size={14} style={{ marginRight: 4 }} />
+              <Save size={14} className={estilos.iconoGuardarMargen} />
               Guardar Cambios
             </button>
           </div>

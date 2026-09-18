@@ -59,7 +59,7 @@ export const PanelFichaDnD: React.FC<PanelFichaDnDProps> = ({
     if (filtrados.length === 0) return null;
     return (
       <div className={estilosClases.lineaMetaFicha}>
-        <strong style={{ color: "var(--color-exito)" }}>{etiqueta.toUpperCase()}:</strong> {filtrados.join(", ")}
+        <strong className={estilosClases.etiquetaDefensa}>{etiqueta.toUpperCase()}:</strong> {filtrados.join(", ")}
       </div>
     );
   };
@@ -79,12 +79,12 @@ export const PanelFichaDnD: React.FC<PanelFichaDnDProps> = ({
             {formatearSubtituloCriatura(plantilla.tipo, plantilla.tamaño, plantilla.alineacion)}
           </span>
           <span className={estilosClases.tipoMonstruoFicha}>
-            CR: <strong style={{ color: "var(--color-advertencia)" }}>{plantilla.desafio}</strong> | INIC: <strong style={{ color: "#ffcc00" }}>{(plantilla.iniciativaBonificador ?? 0) >= 0 ? `+${plantilla.iniciativaBonificador ?? 0}` : plantilla.iniciativaBonificador}</strong> | PP: <strong style={{ color: "var(--color-borde-cian)" }}>{obtenerPercepcionPasiva(plantilla)}</strong>
+            CR: <strong className={estilosClases.valorDesafio}>{plantilla.desafio}</strong> | INIC: <strong className={estilosClases.valorIniciativa}>{(plantilla.iniciativaBonificador ?? 0) >= 0 ? `+${plantilla.iniciativaBonificador ?? 0}` : plantilla.iniciativaBonificador}</strong> | PP: <strong className={estilosClases.valorPercepcion}>{obtenerPercepcionPasiva(plantilla)}</strong>
           </span>
         </div>
         
         {/* Rejilla de Características */}
-        <div className={`${estilosClases.subtituloFichaSection} ${estilosClases.subtituloPruebas}`} style={{ marginTop: "4px" }}>
+        <div className={`${estilosClases.subtituloFichaSection} ${estilosClases.subtituloPruebas}`}>
           PRUEBAS DE CARACTERÍSTICA
         </div>
         <div className={estilosClases.cajaAtributosGrid}>
@@ -107,7 +107,7 @@ export const PanelFichaDnD: React.FC<PanelFichaDnDProps> = ({
         </div>
 
         {/* Rejilla de Tiradas de Salvación */}
-        <div className={`${estilosClases.subtituloFichaSection} ${estilosClases.subtituloSalvaciones}`} style={{ marginTop: "4px" }}>
+        <div className={`${estilosClases.subtituloFichaSection} ${estilosClases.subtituloSalvaciones}`}>
           TIRADAS DE SALVACIÓN
         </div>
         <div className={estilosClases.cajaAtributosGrid}>
@@ -141,7 +141,7 @@ export const PanelFichaDnD: React.FC<PanelFichaDnDProps> = ({
                 >
                   {etiqueta}
                 </span>
-                <span className={estilosClases.atributoValorNum} style={{ display: "inline-flex", alignItems: "center", justifyContent: "center" }}>
+                <span className={estilosClases.atributoValorNum}>
                   {tieneSalvacionEspecial ? <Star size={10} fill="currentColor" /> : " "}
                 </span>
                 <span
@@ -163,7 +163,7 @@ export const PanelFichaDnD: React.FC<PanelFichaDnDProps> = ({
           if (habilidadesFiltradas.length === 0) return null;
           return (
             <>
-              <div className={estilosClases.subtituloFichaSection} style={{ marginTop: "4px" }}>
+              <div className={estilosClases.subtituloFichaSection}>
                 HABILIDADES
               </div>
               <div className={estilosClases.cajaHabilidadesGrid}>
@@ -190,29 +190,29 @@ export const PanelFichaDnD: React.FC<PanelFichaDnDProps> = ({
         {/* Datos Básicos y Defensas */}
         <div className={estilosClases.cajaMetadatosFichaExtra}>
           <div className={estilosClases.lineaMetaFicha}>
-            <strong style={{ color: "var(--color-texto-secundario)" }}>ARMADURA (CA):</strong> <strong style={{ color: "var(--color-borde-cian)" }}>{plantilla.ca}</strong> {plantilla.caNotas ? `(${plantilla.caNotas})` : ""}
+            <strong className={estilosClases.etiquetaMetaSecundaria}>ARMADURA (CA):</strong> <strong className={estilosClases.valorMetaCian}>{plantilla.ca}</strong> {plantilla.caNotas ? `(${plantilla.caNotas})` : ""}
           </div>
           <div className={estilosClases.lineaMetaFicha}>
-            <strong style={{ color: "var(--color-texto-secundario)" }}>VELOCIDAD:</strong> {formatearVelocidad(plantilla.velocidad)}
+            <strong className={estilosClases.etiquetaMetaSecundaria}>VELOCIDAD:</strong> {formatearVelocidad(plantilla.velocidad)}
           </div>
           {plantilla.sentidos && (
             <div className={estilosClases.lineaMetaFicha}>
-              <strong style={{ color: "var(--color-texto-secundario)" }}>SENTIDOS:</strong> {formatearSentidos(plantilla.sentidos)}
+              <strong className={estilosClases.etiquetaMetaSecundaria}>SENTIDOS:</strong> {formatearSentidos(plantilla.sentidos)}
             </div>
           )}
           {plantilla.idiomas && (
             <div className={estilosClases.lineaMetaFicha}>
-              <strong style={{ color: "var(--color-texto-secundario)" }}>IDIOMAS:</strong> {plantilla.idiomas}
+              <strong className={estilosClases.etiquetaMetaSecundaria}>IDIOMAS:</strong> {plantilla.idiomas}
             </div>
           )}
           {plantilla.equipo && (
             <div className={estilosClases.lineaMetaFicha}>
-              <strong style={{ color: "var(--color-texto-secundario)" }}>EQUIPO:</strong> {plantilla.equipo}
+              <strong className={estilosClases.etiquetaMetaSecundaria}>EQUIPO:</strong> {plantilla.equipo}
             </div>
           )}
           {plantilla.tesoros && (
             <div className={estilosClases.lineaMetaFicha}>
-              <strong style={{ color: "var(--color-texto-secundario)" }}>TESOROS:</strong> {plantilla.tesoros}
+              <strong className={estilosClases.etiquetaMetaSecundaria}>TESOROS:</strong> {plantilla.tesoros}
             </div>
           )}
           {renderizarDefensa("Vulnerabilidades", plantilla.vulnerabilidades)}
@@ -229,7 +229,7 @@ export const PanelFichaDnD: React.FC<PanelFichaDnDProps> = ({
               const recargaTexto = formatearRecargaTexto(rasgo.recarga, rasgo.uso);
               return (
                 <div key={i} className={estilosClases.itemRasgoFichaTexto}>
-                  <strong style={{ color: "#ffcc00" }}>
+                  <strong className={estilosClases.nombreRasgoPasivo}>
                     {rasgo.nombre}
                     {recargaTexto ? ` (${recargaTexto})` : ""}:
                   </strong>{" "}

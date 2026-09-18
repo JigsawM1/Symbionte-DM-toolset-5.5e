@@ -34,10 +34,10 @@ export const PestanaMagia: React.FC<PestanaMagiaProps> = ({
       {/* Interruptor de Lanzador */}
       <div className={estilos.tarjetaMagiaCaja}>
         <div>
-          <span style={{ fontSize: 13, fontWeight: 700, color: "#f1f5f9" }}>
+          <span className={estilos.tituloInterruptorMagia}>
             Habilitar Lanzamiento de Conjuros
           </span>
-          <p style={{ margin: 0, fontSize: 11, color: "#94a3b8" }}>
+          <p className={estilos.descripcionInterruptorMagia}>
             Activa la pestaña de conjuros, espacios de magia y reserva de maná.
           </p>
         </div>
@@ -46,7 +46,7 @@ export const PestanaMagia: React.FC<PestanaMagiaProps> = ({
           type="checkbox"
           checked={form.esLanzador}
           onChange={(e) => alAlternarEsLanzador(e.target.checked)}
-          style={{ width: 18, height: 18, cursor: "pointer" }}
+          className={estilos.checkboxInterruptorMagia}
         />
       </div>
 
@@ -54,23 +54,15 @@ export const PestanaMagia: React.FC<PestanaMagiaProps> = ({
         <>
           {/* Configuración de Clases Lanzadoras */}
           <div className={estilos.seccionClasesLanzadoras}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <span style={{ fontSize: 12, fontWeight: 700, color: "#f1f5f9", textTransform: "uppercase" }}>
+            <div className={estilos.cabeceraClasesLanzadoras}>
+              <span className={estilos.tituloClasesLanzadoras}>
                 Clases Lanzadoras de Magia
               </span>
 
               <button
                 type="button"
                 onClick={alAgregarClaseLanzadora}
-                style={{
-                  backgroundColor: "#1e293b",
-                  border: "1px solid rgba(96, 165, 250, 0.3)",
-                  borderRadius: 4,
-                  color: "#93c5fd",
-                  fontSize: 11,
-                  padding: "3px 8px",
-                  cursor: "pointer"
-                }}
+                className={estilos.botonAnadirClaseLanzadora}
               >
                 + Añadir Clase
               </button>
@@ -84,8 +76,7 @@ export const PestanaMagia: React.FC<PestanaMagiaProps> = ({
                   value={claseItem.clase}
                   onChange={(e) => alActualizarClaseLanzadora(idx, "clase", e.target.value)}
                   placeholder="Clase"
-                  className={estilos.inputFormulario}
-                  style={{ height: 32, fontSize: 11 }}
+                  className={`${estilos.inputFormulario} ${estilos.inputClaseLanzadora}`}
                 />
 
                 {/* Nivel en la clase */}
@@ -97,8 +88,7 @@ export const PestanaMagia: React.FC<PestanaMagiaProps> = ({
                   onChange={(e) =>
                     alActualizarClaseLanzadora(idx, "nivel", parseInt(e.target.value, 10) || 1)
                   }
-                  className={estilos.inputFormulario}
-                  style={{ height: 32, fontSize: 11, textAlign: "center" }}
+                  className={`${estilos.inputFormulario} ${estilos.inputNivelLanzador}`}
                 />
 
                 {/* Tipo de lanzador */}
@@ -130,13 +120,7 @@ export const PestanaMagia: React.FC<PestanaMagiaProps> = ({
                 <button
                   type="button"
                   onClick={() => alEliminarClaseLanzadora(idx)}
-                  style={{
-                    background: "none",
-                    border: "none",
-                    color: "#ef4444",
-                    cursor: "pointer",
-                    padding: 4
-                  }}
+                  className={estilos.botonEliminarClaseLanzadora}
                   title="Eliminar clase"
                 >
                   <X size={14} />
@@ -147,10 +131,10 @@ export const PestanaMagia: React.FC<PestanaMagiaProps> = ({
 
           {/* Overrides Manuales de Espacios */}
           <div className={estilos.seccionOverridesEspacios}>
-            <span style={{ fontSize: 12, fontWeight: 700, color: "#f1f5f9", textTransform: "uppercase" }}>
+            <span className={estilos.tituloOverridesEspacios}>
               Overrides Manuales de Espacios de Conjuro
             </span>
-            <p style={{ margin: 0, fontSize: 11, color: "#94a3b8" }}>
+            <p className={estilos.descripcionOverridesEspacios}>
               Establece cantidades fijas por nivel si juegas con reglas caseras o deseas modificar los calculados.
             </p>
 
@@ -164,7 +148,7 @@ export const PestanaMagia: React.FC<PestanaMagiaProps> = ({
 
                 return (
                   <div key={`override-nv-${nv}`} className={estilos.itemOverrideEspacio}>
-                    <span style={{ fontSize: 10, color: "#94a3b8", textAlign: "center" }}>
+                    <span className={estilos.etiquetaNivelOverride}>
                       Nivel {nv}
                     </span>
                     <input
@@ -176,8 +160,7 @@ export const PestanaMagia: React.FC<PestanaMagiaProps> = ({
                         const cant = parseInt(e.target.value, 10) || 0;
                         alActualizarOverrideEspacios(nv, cant);
                       }}
-                      className={estilos.inputFormulario}
-                      style={{ height: 30, fontSize: 11, padding: 4, textAlign: "center" }}
+                      className={`${estilos.inputFormulario} ${estilos.inputCantidadOverride}`}
                     />
                   </div>
                 );

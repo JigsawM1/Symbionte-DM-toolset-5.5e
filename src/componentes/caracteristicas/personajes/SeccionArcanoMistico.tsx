@@ -4,6 +4,7 @@ import type { HechizoBase } from "@/tipos";
 import { SelectorDesplegable } from "@/componentes/comunes";
 import { lanzarDadosTaleSpire } from "@/utiles/lanzadorDados";
 import { logger } from "@/utiles/logger";
+import styles from "./PanelConjurosPersonaje.module.css";
 
 interface SeccionArcanoMisticoProps {
   arcanoMisticoIds: string[];
@@ -109,49 +110,22 @@ export const SeccionArcanoMistico: React.FC<SeccionArcanoMisticoProps> = ({
   };
 
   return (
-    <div
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        gap: 10,
-        backgroundColor: "#111622",
-        border: "1px solid rgba(168, 85, 247, 0.3)",
-        borderRadius: 8,
-        padding: "12px 14px",
-        boxShadow: "0 2px 8px rgba(0, 0, 0, 0.25)"
-      }}
-    >
+    <div className={styles.contenedorArcanoMistico}>
       {/* Cabecera */}
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          borderBottom: "1px solid rgba(168, 85, 247, 0.15)",
-          paddingBottom: 8
-        }}
-      >
-        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+      <div className={styles.cabeceraArcanoMistico}>
+        <div className={styles.tituloArcanoFila}>
           <Sparkles size={15} color="#c084fc" />
-          <span
-            style={{
-              fontSize: 12,
-              fontWeight: 700,
-              letterSpacing: "0.06em",
-              textTransform: "uppercase",
-              color: "#f3e8ff"
-            }}
-          >
+          <span className={styles.tituloArcanoTexto}>
             Arcano Místico (Brujo)
           </span>
         </div>
-        <span style={{ fontSize: 10, color: "#a855f7", fontStyle: "italic" }}>
+        <span className={styles.subtextoReglaArcano}>
           Lanzamiento gratuito 1/día por arcano • Se recupera en descanso largo
         </span>
       </div>
 
       {/* Lista de Arcanos por Nivel Desbloqueado */}
-      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+      <div className={styles.listaArcanosNivel}>
         {nivelesDisponibles.map((nivel) => {
           const hechizo = arcanosPorNivel[nivel];
           const estaGastado = arcanoMisticoGastados.includes(String(nivel));
@@ -168,31 +142,14 @@ export const SeccionArcanoMistico: React.FC<SeccionArcanoMisticoProps> = ({
           return (
             <div
               key={`arcano-nivel-${nivel}`}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                backgroundColor: "#161e2c",
-                border: estaGastado
-                  ? "1px dashed rgba(148, 163, 184, 0.2)"
-                  : "1px solid rgba(192, 132, 252, 0.25)",
-                borderRadius: 6,
-                padding: "8px 10px",
-                gap: 8
-              }}
+              className={styles.tarjetaFilaArcano}
+              data-gastado={estaGastado ? "true" : "false"}
             >
               {/* Badge de Nivel */}
-              <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 90 }}>
+              <div className={styles.contenedorBadgeNivelArcano}>
                 <span
-                  style={{
-                    fontSize: 10,
-                    fontWeight: 800,
-                    color: estaGastado ? "#94a3b8" : "#e9d5ff",
-                    backgroundColor: estaGastado ? "#1e293b" : "rgba(168, 85, 247, 0.25)",
-                    border: "1px solid rgba(192, 132, 252, 0.35)",
-                    borderRadius: 4,
-                    padding: "2px 6px"
-                  }}
+                  className={styles.badgeNivelArcano}
+                  data-gastado={estaGastado ? "true" : "false"}
                 >
                   ARCANO NV. {nivel}
                 </span>
@@ -200,68 +157,36 @@ export const SeccionArcanoMistico: React.FC<SeccionArcanoMisticoProps> = ({
 
               {/* Información del Conjuro Asignado o Selector */}
               {hechizo ? (
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    flex: 1,
-                    justifyContent: "space-between",
-                    gap: 8
-                  }}
-                >
+                <div className={styles.cajaContenidoArcanoAsignado}>
                   <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 6,
-                      cursor: alAbrirFichaHechizo ? "pointer" : "default"
-                    }}
+                    className={styles.triggerFichaArcano}
                     onClick={() => alAbrirFichaHechizo && alAbrirFichaHechizo(hechizo)}
                     title="Clic para ver ficha completa"
                   >
                     <BookOpen size={13} color="#93c5fd" />
                     <span
-                      style={{
-                        fontSize: 12,
-                        fontWeight: 600,
-                        color: estaGastado ? "#94a3b8" : "#f1f5f9",
-                        textDecoration: estaGastado ? "line-through" : "none"
-                      }}
+                      className={styles.nombreConjuroArcano}
+                      data-gastado={estaGastado ? "true" : "false"}
                     >
                       {hechizo.nombre}
                     </span>
-                    <span style={{ fontSize: 10, color: "#64748b" }}>
+                    <span className={styles.metaEscuelaArcano}>
                       ({hechizo.escuela || "Magia"})
                     </span>
                   </div>
 
                   {/* Acciones de Lanzamiento y Estado */}
-                  <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                  <div className={styles.accionesArcanoFila}>
                     {estaGastado ? (
-                      <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                        <span
-                          style={{
-                            fontSize: 10,
-                            fontWeight: 700,
-                            color: "#ef4444",
-                            backgroundColor: "rgba(239, 68, 68, 0.15)",
-                            borderRadius: 4,
-                            padding: "2px 6px"
-                          }}
-                        >
+                      <div className={styles.grupoEstadoGastadoArcano}>
+                        <span className={styles.badgeGastadoHoy}>
                           Gastado hoy
                         </span>
                         <button
                           type="button"
                           onClick={() => alRecuperarArcano(nivel)}
                           title="Restaurar uso manualmente"
-                          style={{
-                            background: "transparent",
-                            border: "none",
-                            color: "#94a3b8",
-                            cursor: "pointer",
-                            padding: 2
-                          }}
+                          className={styles.botonRestaurarArcano}
                         >
                           <RotateCcw size={12} />
                         </button>
@@ -272,26 +197,7 @@ export const SeccionArcanoMistico: React.FC<SeccionArcanoMisticoProps> = ({
                         onClick={() => lanzarArcano(nivel, hechizo)}
                         disabled={bloqueadoPorArmadura}
                         title={bloqueadoPorArmadura ? (motivoBloqueoArmadura || "Bloqueado por armadura sin competencia") : undefined}
-                        style={{
-                          display: "inline-flex",
-                          alignItems: "center",
-                          gap: 4,
-                          backgroundColor: bloqueadoPorArmadura ? "rgba(239, 68, 68, 0.15)" : "#7e22ce",
-                          border: bloqueadoPorArmadura ? "1px solid rgba(239, 68, 68, 0.35)" : "1px solid #c084fc",
-                          borderRadius: 4,
-                          color: bloqueadoPorArmadura ? "#f87171" : "#ffffff",
-                          fontSize: 11,
-                          fontWeight: 700,
-                          padding: "4px 8px",
-                          cursor: bloqueadoPorArmadura ? "not-allowed" : "pointer",
-                          opacity: bloqueadoPorArmadura ? 0.5 : 1
-                        }}
-                        onMouseEnter={(e) => {
-                          if (!bloqueadoPorArmadura) e.currentTarget.style.backgroundColor = "#9333ea";
-                        }}
-                        onMouseLeave={(e) => {
-                          if (!bloqueadoPorArmadura) e.currentTarget.style.backgroundColor = "#7e22ce";
-                        }}
+                        className={styles.botonLanzarArcano}
                       >
                         <Zap size={11} />
                         <span>Lanzar (1/día)</span>
@@ -302,35 +208,15 @@ export const SeccionArcanoMistico: React.FC<SeccionArcanoMisticoProps> = ({
                       type="button"
                       onClick={() => alQuitarArcano(nivel)}
                       title="Cambiar o desasignar conjuro de arcano"
-                      style={{
-                        background: "transparent",
-                        border: "none",
-                        color: "#64748b",
-                        cursor: "pointer",
-                        padding: 2
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.color = "#ef4444";
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.color = "#64748b";
-                      }}
+                      className={styles.botonQuitarArcano}
                     >
                       <X size={13} />
                     </button>
                   </div>
                 </div>
               ) : (
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    flex: 1,
-                    justifyContent: "space-between",
-                    gap: 8
-                  }}
-                >
-                  <div style={{ flex: 1, maxWidth: 280 }}>
+                <div className={styles.cajaArcanoSinAsignar}>
+                  <div className={styles.contenedorSelectorArcano}>
                     <SelectorDesplegable<string>
                       opciones={opcionesHechizosNivel}
                       valor=""
@@ -343,7 +229,7 @@ export const SeccionArcanoMistico: React.FC<SeccionArcanoMisticoProps> = ({
                       tamano="compacto"
                     />
                   </div>
-                  <span style={{ fontSize: 10, color: "#64748b", fontStyle: "italic" }}>
+                  <span className={styles.textoSinConjuroAsignado}>
                     Sin conjuro asignado
                   </span>
                 </div>

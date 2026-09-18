@@ -189,8 +189,7 @@ export const PanelConfiguracionPersonaje: React.FC<PanelConfiguracionPersonajePr
         <div className={estilos.barraAccionesPie}>
           <button
             type="button"
-            className={estilos.botonPestana}
-            style={{ border: "1px solid rgba(148, 163, 184, 0.2)", width: "auto", padding: "8px 14px" }}
+            className={`${estilos.botonPestana} ${estilos.botonCancelarVolver}`}
             onClick={alVolverAFicha}
           >
             Cancelar y Volver

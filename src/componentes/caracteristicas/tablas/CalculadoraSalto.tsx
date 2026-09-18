@@ -26,7 +26,7 @@ export const CalculadoraSalto: React.FC = () => {
   return (
     <div className={estilos.tarjetaCalculadora}>
       <div className={estilos.tituloCalculadora}>
-        <ArrowUp size={12} style={{ color: "var(--color-advertencia)", marginRight: "4px" }} />
+        <ArrowUp size={12} className={estilos.iconoTitulo} />
         <span>Calculadora de Salto</span>
       </div>
 
@@ -45,7 +45,7 @@ export const CalculadoraSalto: React.FC = () => {
 
         <div className={estilos.filaFormulario}>
           <label className={estilos.labelForm}>¿Carrera previa (10+ pies)?:</label>
-          <div style={{ width: "200px" }}>
+          <div className={estilos.contenedorSelector}>
             <SelectorDesplegable
               valor={conCarrera ? "si" : "no"}
               alCambiar={(val) => setConCarrera(val === "si")}
@@ -56,16 +56,16 @@ export const CalculadoraSalto: React.FC = () => {
         </div>
 
         <div className={estilos.resultadoCalculoBox}>
-          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "4px" }}>
+          <div className={estilos.filaResultados}>
             <div>
               <div className={estilos.resultadoCalculoTexto}>Salto de Longitud:</div>
-              <div className={`${estilos.resultadoCalculoValor} dato-numerico`} style={{ fontSize: "14px" }}>
+              <div className={`${estilos.resultadoCalculoValor} dato-numerico`}>
                 {calcularSaltoLongitud()} pies
               </div>
             </div>
             <div>
               <div className={estilos.resultadoCalculoTexto}>Salto de Altura:</div>
-              <div className={`${estilos.resultadoCalculoValor} ${estilos.resultadoCalculoValorAdvertencia} dato-numerico`} style={{ fontSize: "14px" }}>
+              <div className={`${estilos.resultadoCalculoValor} ${estilos.resultadoCalculoValorAdvertencia} dato-numerico`}>
                 {calcularSaltoAltura()} pies
               </div>
             </div>

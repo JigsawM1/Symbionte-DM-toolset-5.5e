@@ -229,6 +229,20 @@
   color: #9ca3af;
 }
 
+.saludTextoValor {
+  font-weight: bold;
+}
+
+.saludTextoValor[data-salud="saludable"] {
+  color: #34d399;
+}
+.saludTextoValor[data-salud="herido"] {
+  color: #fbbf24;
+}
+.saludTextoValor[data-salud="critico"] {
+  color: #ef4444;
+}
+
 .barraVidaContenedor {
   width: 100%;
   height: 8px;
@@ -240,6 +254,16 @@
 .barraVidaRelleno {
   height: 100%;
   transition: none;
+}
+
+.barraVidaRelleno[data-salud="saludable"] {
+  background-color: #34d399;
+}
+.barraVidaRelleno[data-salud="herido"] {
+  background-color: #fbbf24;
+}
+.barraVidaRelleno[data-salud="critico"] {
+  background-color: #ef4444;
 }
 
 .seccionCondiciones {

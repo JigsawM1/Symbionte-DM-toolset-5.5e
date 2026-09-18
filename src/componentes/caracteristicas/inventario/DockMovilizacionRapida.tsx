@@ -35,10 +35,7 @@ export const DockMovilizacionRapida: React.FC<DockMovilizacionRapidaProps> = ({
             <div
               key={caja.id}
               className={`${estilos.cajaMovilizacionRapida} ${estaSobrevolada ? estilos.cajaMovilizacionSobrevolada : ""}`}
-              style={{
-                borderColor: estaSobrevolada ? caja.color : `${caja.color}60`,
-                backgroundColor: estaSobrevolada ? `${caja.color}35` : `${caja.color}15`
-              }}
+              data-caja={caja.id}
               onDragOver={(e) => alDragOver(e, caja.id)}
               onDragLeave={(e) => alDragLeave(e, caja.id)}
               onDrop={(e) => alDrop(e, caja.id)}
@@ -46,7 +43,7 @@ export const DockMovilizacionRapida: React.FC<DockMovilizacionRapidaProps> = ({
             >
               <div className={estilos.iconoCajaMovilizacion}>{caja.icono}</div>
               <div className={estilos.infoCajaMovilizacion}>
-                <span className={estilos.nombreCajaMovilizacion} style={{ color: caja.color }}>
+                <span className={estilos.nombreCajaMovilizacion}>
                   {caja.titulo}
                 </span>
                 <span className={estilos.subtituloCajaMovilizacion}>

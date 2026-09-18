@@ -116,18 +116,18 @@ export const BarraMetricasInventario: React.FC<BarraMetricasInventarioProps> = (
         </div>
         <div className={estilos.resumenCabeceraRecursos}>
           <span className={estilos.badgeResumenRecursoPO} title="Total en oro">
-            <Coins size={10} color="#fbbf24" style={{ marginRight: 3, verticalAlign: "middle" }} />
+            <Coins size={10} color="#fbbf24" className={estilos.iconoBadgeResumen} />
             {totalPOEquivalente.toLocaleString("es-ES")} PO
           </span>
           <span
             className={`${estilos.badgeResumenRecursoCarga} ${sobrecargado ? estilos.badgeResumenCargaSobrecargado : ""}`}
             title="Peso total vs capacidad de carga"
           >
-            <Weight size={10} color={sobrecargado ? "#ef4444" : "#10b981"} style={{ marginRight: 3, verticalAlign: "middle" }} />
+            <Weight size={10} color={sobrecargado ? "#ef4444" : "#10b981"} className={estilos.iconoBadgeResumen} />
             {pesoTotal} / {capacidadCarga} lb
           </span>
           <span className={estilos.badgeResumenRecursoSintonizacion} title="Ranuras sintonizadas ocupadas">
-            <Link2 size={10} color="#c084fc" style={{ marginRight: 3, verticalAlign: "middle" }} />
+            <Link2 size={10} color="#c084fc" className={estilos.iconoBadgeResumen} />
             {totalSintonizados}/3
           </span>
         </div>
@@ -183,6 +183,7 @@ export const BarraMetricasInventario: React.FC<BarraMetricasInventarioProps> = (
                 className={`${estilos.barraCargaProgreso} ${
                   sobrecargado ? estilos.cargaSobrecargado : estilos.cargaNormal
                 }`}
+                // eslint-disable-next-line react/forbid-dom-props -- Ancho continuo dinámico según el porcentaje de peso cargado
                 style={{ width: `${porcentajeCarga}%` }}
               />
               <div className={estilos.barraCargaTexto}>

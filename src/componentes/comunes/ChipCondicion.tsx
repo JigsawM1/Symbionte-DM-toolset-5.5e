@@ -15,7 +15,6 @@ export interface ChipCondicionProps {
   alineacionTooltip?: "izquierda" | "derecha";
   onQuitar?: () => void;
   className?: string;
-  style?: React.CSSProperties;
 }
 
 /**
@@ -34,8 +33,7 @@ export const ChipCondicion: React.FC<ChipCondicionProps> = React.memo(({
   tooltipCustom,
   alineacionTooltip,
   onQuitar,
-  className = "",
-  style
+  className = ""
 }) => {
   const detalle = obtenerDetalleCondicion(nombre);
   const nombreMin = nombre.toLowerCase();
@@ -147,31 +145,30 @@ export const ChipCondicion: React.FC<ChipCondicionProps> = React.memo(({
   return (
     <div
       className={`chip-condicion-universal ${claseVariante} ${claseAncla} ${className}`}
-      style={style}
     >
-      <span style={{ display: "inline-flex", alignItems: "center", gap: "4px" }}>
+      <span className="u-flex-inline u-alinear-centro u-gap-sm">
         {esBloodied && (
           <Droplets
             size={11}
-            style={{ color: "#ef4444", display: "inline-block", flexShrink: 0 }}
+            className="u-texto-peligro u-flex-shrink-0"
           />
         )}
         {esPenalizacionArmadura && !esBloodied && (
           <AlertTriangle
             size={11}
-            style={{ color: "#f59e0b", display: "inline-block", flexShrink: 0 }}
+            className="u-texto-advertencia u-flex-shrink-0"
           />
         )}
         {esDesventajaSigilo && !esBloodied && !esPenalizacionArmadura && (
           <Footprints
             size={11}
-            style={{ color: "#c084fc", display: "inline-block", flexShrink: 0 }}
+            className="u-texto-acento u-flex-shrink-0"
           />
         )}
         {esFuriaDeLosDioses && !esBloodied && !esPenalizacionArmadura && !esDesventajaSigilo && (
           <Sparkles
             size={11}
-            style={{ color: "#fbbf24", display: "inline-block", flexShrink: 0 }}
+            className="u-texto-oro u-flex-shrink-0"
           />
         )}
         <span>{textoAMostrar}</span>

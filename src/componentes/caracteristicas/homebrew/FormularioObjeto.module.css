@@ -24,7 +24,7 @@
   letter-spacing: 0.05em;
   text-transform: uppercase;
   border-bottom: 2.5px solid transparent;
-  transition: all 0.15s ease;
+  transition: none;
 }
 
 .pestanaBoton:hover {
@@ -366,7 +366,7 @@
   align-items: center;
   gap: 6px;
   height: 36px;
-  transition: all 0.1s ease;
+  transition: none;
 }
 
 .botonStickyGuardar:hover:not(:disabled) {
@@ -398,7 +398,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.1s ease;
+  transition: none;
 }
 
 .botonStickyCancelar:hover {
@@ -431,7 +431,6 @@
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.55), 0 0 12px rgba(0, 245, 212, 0.08);
   z-index: 9999;
   pointer-events: none;
-  animation: tooltipFadeIn 0.15s ease-out;
   flex-direction: column;
   gap: 4px;
 }
@@ -479,18 +478,6 @@
 .tooltipMaestria::after {
   top: auto;
   bottom: 100%;
-  border-color: transparent transparent rgba(0, 245, 212, 0.3) transparent;
-}
-
-@keyframes tooltipFadeIn {
-  from {
-    opacity: 0;
-    transform: translateX(-50%) translateY(4px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(-50%) translateY(0);
-  }
 }
 
 .textoListaVacia {
@@ -561,7 +548,7 @@
   font-weight: 500;
   border-radius: 4px;
   cursor: pointer;
-  transition: all 0.12s ease;
+  transition: none;
 }
 
 .botonPresetRecarga:hover {
@@ -602,7 +589,7 @@
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
   font-size: 12px;
   color: var(--color-texto-principal);
-  transition: background 0.1s ease;
+  transition: none;
 }
 
 .itemSugerenciaHechizo:last-child {
@@ -619,4 +606,490 @@
   color: var(--color-texto-secundario);
 }
 
+/* ==========================================================================
+   CLASES MODULARES PARA SUBCOMPONENTES OBJETO HOMEBREW
+   ========================================================================== */
 
+.bloqueDinamicoArma {
+  border-color: rgba(0, 245, 212, 0.25);
+}
+
+.bloqueDinamicoArmadura {
+  border-color: rgba(255, 165, 0, 0.25);
+}
+
+.bloqueDinamicoEscudo {
+  border-color: rgba(56, 189, 248, 0.25);
+}
+
+.bloqueDinamicoContenedor {
+  border-color: rgba(255, 99, 71, 0.25);
+}
+
+.bloqueDinamicoEfectosPasivos {
+  background-color: rgba(0, 245, 212, 0.02);
+  border-color: var(--color-borde-cian);
+}
+
+.bloqueDinamicoArtesania {
+  border-color: rgba(168, 85, 247, 0.25);
+  margin-top: 8px;
+}
+
+.iconoInline2px {
+  display: inline;
+  margin-right: 2px;
+}
+
+.campoFormCentrado {
+  justify-content: center;
+}
+
+.campoFormFlexEnd {
+  justify-content: flex-end;
+}
+
+.labelCheckboxConMargen {
+  margin-top: 16px;
+}
+
+.labelCheckboxBold14 {
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.separadorArmaduraForm {
+  margin-top: 12px;
+  border-top: 1px dashed rgba(255, 165, 0, 0.1);
+  padding-top: 12px;
+}
+
+.separadorContenedorForm {
+  margin-top: 12px;
+  border-top: 1px dashed rgba(255, 99, 71, 0.2);
+  padding-top: 12px;
+}
+
+.separadorArmaForm {
+  margin-top: 12px;
+  border-top: 1px dashed rgba(0, 245, 212, 0.1);
+  padding-top: 12px;
+}
+
+.separadorSeccionDashed {
+  margin-top: 12px;
+  border-top: 1px dashed rgba(255, 255, 255, 0.05);
+  padding-top: 12px;
+}
+
+.separadorSuaveDashed {
+  margin-top: 8px;
+  border-top: 1px dashed rgba(255, 255, 255, 0.06);
+  padding-top: 8px;
+}
+
+.filaDobleTranslúcida {
+  background-color: rgba(255, 255, 255, 0.02);
+  padding: 8px;
+  border-radius: 4px;
+  border: 1px dashed rgba(255, 255, 255, 0.1);
+}
+
+.filaDobleArmaTranslúcida {
+  background-color: rgba(255, 255, 255, 0.02);
+  padding: 10px;
+  border-radius: 5px;
+  border: 1px dashed rgba(255, 255, 255, 0.06);
+}
+
+.campoFormPaddingVertical {
+  padding: 4px 0;
+}
+
+.margenTop4 {
+  margin-top: 4px;
+}
+
+.margenTop6 {
+  margin-top: 6px;
+}
+
+.margenTop8 {
+  margin-top: 8px;
+}
+
+.margenTop10 {
+  margin-top: 10px;
+}
+
+.margenBottom6 {
+  margin-bottom: 6px;
+}
+
+.margenBottom8 {
+  margin-bottom: 8px;
+}
+
+.margenBottom10 {
+  margin-bottom: 10px;
+}
+
+.textoFuente12 {
+  font-size: 12px;
+}
+
+.textoFuente11 {
+  font-size: 11px;
+}
+
+.textoFuente10 {
+  font-size: 10px;
+}
+
+.ancho115 {
+  width: 115px;
+}
+
+.ancho65 {
+  width: 65px;
+}
+
+.anchoCompleto {
+  width: 100%;
+}
+
+.botonAgregarChipForm {
+  padding: 4px 12px;
+  height: auto;
+}
+
+.botonAgregarChipCompacto {
+  padding: 4px 10px;
+  font-size: 11px;
+  height: auto;
+}
+
+.chipPurpuraRemovible {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(168, 85, 247, 0.15);
+  border: 1px solid hsl(270, 70%, 60%);
+  color: hsl(270, 100%, 85%);
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.iconoRemoverChip {
+  cursor: pointer;
+  color: var(--color-borde-cian);
+}
+
+.iconoEliminarPeligro {
+  cursor: pointer;
+  color: var(--color-peligro);
+}
+
+.cajaMunicionVinculadaArma {
+  margin-top: 10px;
+  background-color: rgba(0, 245, 212, 0.03);
+  padding: 10px;
+  border-radius: 5px;
+  border: 1px dashed rgba(0, 245, 212, 0.15);
+}
+
+.gridMunicionesVinculadas {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 8px;
+}
+
+.chipPropiedadArma {
+  background-color: transparent;
+  border: 1px solid var(--color-borde-brutal);
+  padding: 5px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.chipPropiedadArmaActivo {
+  background-color: rgba(0, 245, 212, 0.08);
+  border: 1px solid var(--color-borde-cian);
+}
+
+.checkOculto {
+  display: none;
+}
+
+.textoChipActivo {
+  font-size: 11px;
+  color: var(--color-texto-principal);
+}
+
+.textoChipInactivo {
+  font-size: 11px;
+  color: var(--color-texto-secundario);
+}
+
+.botonAlternadorProp {
+  padding: 6px 8px;
+  font-size: 11px;
+  text-align: center;
+  border: 1px solid var(--color-borde-brutal);
+  background: transparent;
+  color: var(--color-texto-secundario);
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.botonAlternadorPropActivo {
+  border: 1.5px solid var(--color-borde-cian);
+  background: rgba(0, 245, 212, 0.12);
+  color: var(--color-texto-principal);
+}
+
+.botonAlternadorNaranja {
+  flex: 1;
+  min-width: 100px;
+  padding: 6px 10px;
+  font-size: 11px;
+  text-align: center;
+  border: 1px solid var(--color-borde-brutal);
+  background: transparent;
+  color: var(--color-texto-secundario);
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.botonAlternadorNaranjaActivo {
+  border: 1.5px solid var(--color-borde-naranja);
+  background: rgba(255, 165, 0, 0.15);
+  color: var(--color-texto-principal);
+}
+
+.bloqueVenenoHomebrew {
+  border: 1px solid hsl(120, 80%, 40%);
+  box-shadow: inset 0 0 10px rgba(0, 255, 0, 0.05), 0 0 10px rgba(0, 255, 0, 0.1);
+  border-radius: 6px;
+  padding: 12px;
+  margin-top: 8px;
+  background-color: rgba(0, 40, 0, 0.15);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.textoVerdeVeneno {
+  color: hsl(120, 100%, 40%);
+  font-weight: bold;
+  text-shadow: 0 0 5px rgba(0, 255, 0, 0.15);
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.menuDesplegableSugerencias {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background-color: var(--color-fondo-panel);
+  border: 1.5px solid var(--color-borde-brutal);
+  border-radius: 4px;
+  z-index: 50;
+  max-height: 180px;
+  overflow-y: auto;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  margin-top: 2px;
+}
+
+.itemSugerenciaCompendio {
+  padding: 6px 10px;
+  font-size: 11px;
+  cursor: pointer;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+  color: var(--color-texto-principal);
+}
+
+.itemSugerenciaCompendio:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.itemSugerenciaCompendioActivo {
+  color: var(--color-activo);
+}
+
+.subtextoIdGris {
+  color: var(--color-texto-secundario);
+  font-size: 9px;
+}
+
+.listaItemsContenido {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background-color: rgba(0, 0, 0, 0.15);
+  padding: 8px;
+  border-radius: 5px;
+}
+
+.filaItemContenido {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 11px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+  padding-bottom: 2px;
+}
+
+.contenedorListaVaciaDashed {
+  padding: 20px;
+  border: 1px dashed rgba(255, 255, 255, 0.05);
+}
+
+.textoCianAcento {
+  color: var(--color-borde-cian);
+}
+
+.botonAgregarConjuroPasivo {
+  width: 100%;
+  height: 36px;
+  margin-top: 16px;
+}
+
+.seccionPropiedadesArma {
+  margin-top: 6px;
+}
+
+.separadorPropiedadesCustom {
+  margin-top: 12px;
+  border-top: 1px dashed rgba(255, 255, 255, 0.05);
+  padding-top: 12px;
+}
+
+.filaPropiedadCustom {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.inputPropiedadCustom {
+  flex: 1;
+  font-size: 12px;
+}
+
+.contenedorChipsCustom {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.separadorArmaForm {
+  margin-top: 12px;
+  border-top: 1px dashed rgba(0, 245, 212, 0.1);
+  padding-top: 12px;
+}
+
+.bloqueDinamicoMagico {
+  background-color: rgba(0, 245, 212, 0.02);
+  border-color: var(--color-borde-cian);
+}
+
+.labelCheckboxDestacado {
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.textoMagicoActivo {
+  color: var(--color-borde-cian);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.campoFormCentrado {
+  justify-content: center;
+}
+
+.campoRecargaCargas {
+  margin-top: 8px;
+  border-top: 1px dashed rgba(255, 255, 255, 0.06);
+  padding-top: 8px;
+}
+
+.campoBonoFlex2 {
+  flex: 2;
+}
+
+.campoBonoFlex1 {
+  flex: 1;
+}
+
+.campoFormFin {
+  justify-content: flex-end;
+}
+
+.etiquetaCompendioCian {
+  color: var(--color-borde-cian);
+  font-size: 10px;
+  margin-left: 4px;
+}
+
+.bloqueDinamicoContenedor {
+  border-color: rgba(255, 99, 71, 0.25);
+}
+
+.iconoEnTexto {
+  display: inline;
+  margin-right: 2px;
+}
+
+.separadorContenedorForm {
+  margin-top: 12px;
+  border-top: 1px dashed rgba(255, 99, 71, 0.2);
+  padding-top: 12px;
+}
+
+.tituloBloqueDinamicoMini {
+  font-size: 12px;
+  margin-bottom: 8px;
+}
+
+.filaBuscadorContenido {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 10px;
+  align-items: center;
+  position: relative;
+}
+
+.contenedorBuscadorRelativo {
+  flex: 3;
+  position: relative;
+}
+
+.inputBuscadorCompendio {
+  font-size: 11px;
+  width: 100%;
+}
+
+.textoMini {
+  font-size: 11px;
+}
+
+.pestanaBotonMagia {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.iconoMagiaDorado {
+  color: hsl(50, 100%, 65%);
+  display: inline-block;
+}

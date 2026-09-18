@@ -17,6 +17,7 @@ import {
   OrigenConjuroBadge,
   CONFIG_BADGES_ORIGEN_CONJURO
 } from "@/servicios/resolutorOrigenConjuros";
+import estilos from "./FilaConjuroCompendio.module.css";
 
 interface FilaConjuroCompendioProps {
   hechizo: HechizoBase;
@@ -97,35 +98,12 @@ export const FilaConjuroCompendio: React.FC<FilaConjuroCompendioProps> = React.m
   return (
     <div
       onClick={() => alAbrirDetalle(hechizo)}
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        gap: 5,
-        padding: "8px 12px",
-        backgroundColor: "#111622",
-        borderBottom: "1px solid rgba(148, 163, 184, 0.08)",
-        cursor: "pointer",
-        transition: "background-color 0.15s ease",
-        userSelect: "none"
-      }}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.backgroundColor = "#161e2e";
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.backgroundColor = "#111622";
-      }}
+      className={estilos.filaContenedor}
     >
       {/* Línea 1: Controles, Icono, Nombre y Badges de Nivel/Escuela */}
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: 6,
-          justifyContent: "space-between"
-        }}
-      >
+      <div className={estilos.lineaSuperior}>
         {/* Lado izquierdo: Estrella + Checkbox + Icono + Nombre */}
-        <div style={{ display: "flex", alignItems: "center", gap: 6, minWidth: 0, flex: 1 }}>
+        <div className={estilos.ladoIzquierdo}>
           {/* 1. Estrella: Preparar (solo si mostrarEstrella es true) */}
           {mostrarEstrella && (
             <button
@@ -140,34 +118,14 @@ export const FilaConjuroCompendio: React.FC<FilaConjuroCompendioProps> = React.m
                   ? "Conjuro preparado (clic para desmarcar)"
                   : "Conjuro no preparado (clic para preparar)"
               }
-              style={{
-                width: 22,
-                height: 22,
-                padding: 0,
-                margin: 0,
-                background: "transparent",
-                border: "none",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                cursor: hechizo.nivel === 0 || esDeSubclase ? "default" : "pointer",
-                borderRadius: 4,
-                transition: "all 0.15s ease",
-                flexShrink: 0
-              }}
-              onMouseEnter={(e) => {
-                if (hechizo.nivel > 0 && !esDeSubclase) e.currentTarget.style.backgroundColor = "rgba(245, 158, 11, 0.15)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = "transparent";
-              }}
+              className={`${estilos.botonControl} ${estilos.botonEstrella} ${hechizo.nivel === 0 || esDeSubclase ? estilos.botonControlDeshabilitado : ""}`}
             >
               <Star
                 size={16}
                 fill={estaMarcadoPreparado ? "#f59e0b" : "transparent"}
                 color={estaMarcadoPreparado ? "#f59e0b" : "#64748b"}
                 strokeWidth={estaMarcadoPreparado ? 1 : 1.75}
-                style={{ pointerEvents: "none" }}
+                className={estilos.iconoSinEventos}
               />
             </button>
           )}
@@ -183,96 +141,32 @@ export const FilaConjuroCompendio: React.FC<FilaConjuroCompendioProps> = React.m
                 ? "En tu lista/grimorio (clic para quitar)"
                 : "Añadir a tu lista/grimorio"
             }
-            style={{
-              width: 22,
-              height: 22,
-              padding: 0,
-              margin: 0,
-              background: "transparent",
-              border: "none",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              cursor: esOtorgado ? "default" : "pointer",
-              borderRadius: 4,
-              transition: "all 0.15s ease",
-              flexShrink: 0
-            }}
-            onMouseEnter={(e) => {
-              if (!esOtorgado) e.currentTarget.style.backgroundColor = "rgba(59, 130, 246, 0.15)";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = "transparent";
-            }}
+            className={`${estilos.botonControl} ${estilos.botonCheckbox} ${esOtorgado ? estilos.botonControlDeshabilitado : ""}`}
           >
             <div
-              style={{
-                width: 16,
-                height: 16,
-                borderRadius: 3,
-                border: estaMarcadoEnLista
-                  ? esOtorgado && configBadge ? `1px solid ${configBadge.colorBorde}` : "1px solid #3b82f6"
-                  : "1px solid rgba(148, 163, 184, 0.35)",
-                backgroundColor: estaMarcadoEnLista
-                  ? esOtorgado && configBadge ? configBadge.colorFondo : "#2563eb"
-                  : "rgba(15, 23, 42, 0.6)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                pointerEvents: "none"
-              }}
+              className={`${estilos.cajaCheckbox} ${estaMarcadoEnLista && !esOtorgado ? estilos.cajaCheckboxMarcado : ""}`}
+              data-origen={esOtorgado && origenEfectivo ? origenEfectivo : undefined}
             >
               {estaMarcadoEnLista && <Check size={10} color={esOtorgado && configBadge ? configBadge.colorTexto : "#ffffff"} strokeWidth={3} />}
             </div>
           </button>
 
           {/* Icono de la Escuela */}
-          <div
-            style={{
-              width: 20,
-              height: 20,
-              borderRadius: 4,
-              backgroundColor: "rgba(15, 23, 42, 0.8)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              flexShrink: 0
-            }}
-          >
+          <div className={estilos.cajaIconoEscuela}>
             {obtenerIconoEscuela(hechizo.escuela)}
           </div>
 
           {/* Nombre del Conjuro + Badge Origen */}
-          <div style={{ display: "flex", alignItems: "center", gap: 6, minWidth: 0 }}>
-            <span
-              style={{
-                fontWeight: 700,
-                color: "#f8fafc",
-                fontSize: 13,
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-                whiteSpace: "nowrap"
-              }}
-            >
+          <div className={estilos.contenedorNombre}>
+            <span className={estilos.textoNombre}>
               {hechizo.nombre}
             </span>
 
             {esOtorgado && configBadge && (
               <span
                 title={configBadge.tooltip}
-                style={{
-                  fontSize: 9,
-                  fontWeight: 700,
-                  backgroundColor: configBadge.colorFondo,
-                  color: configBadge.colorTexto,
-                  border: `1px solid ${configBadge.colorBorde}`,
-                  borderRadius: 3,
-                  padding: "1px 4px",
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: 3,
-                  flexShrink: 0
-                }}
+                className={estilos.badgeOrigen}
+                data-origen={origenEfectivo}
               >
                 <Sparkles size={8} /> {configBadge.etiqueta}
               </span>
@@ -281,29 +175,12 @@ export const FilaConjuroCompendio: React.FC<FilaConjuroCompendioProps> = React.m
         </div>
 
         {/* Lado derecho: Nivel y Escuela */}
-        <div style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}>
-          <span
-            style={{
-              fontSize: 10,
-              fontWeight: 700,
-              color: "#93c5fd",
-              backgroundColor: "rgba(59, 130, 246, 0.12)",
-              padding: "1px 6px",
-              borderRadius: 4,
-              whiteSpace: "nowrap"
-            }}
-          >
+        <div className={estilos.ladoDerecho}>
+          <span className={estilos.badgeNivel}>
             {formatearNivel(hechizo.nivel)}
           </span>
           {hechizo.escuela && (
-            <span
-              style={{
-                fontSize: 11,
-                color: "#94a3b8",
-                textTransform: "capitalize",
-                whiteSpace: "nowrap"
-              }}
-            >
+            <span className={estilos.textoEscuela}>
               {hechizo.escuela}
             </span>
           )}
@@ -312,61 +189,35 @@ export const FilaConjuroCompendio: React.FC<FilaConjuroCompendioProps> = React.m
 
       {/* Línea 2: Metadatos compactos con separadores circulares */}
       <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: 6,
-          fontSize: 11,
-          color: "#cbd5e1",
-          flexWrap: "wrap",
-          paddingLeft: mostrarEstrella ? 56 : 28
-        }}
+        className={`${estilos.lineaMetadatos} ${!mostrarEstrella ? estilos.lineaMetadatosSinEstrella : ""}`}
       >
         {/* Tiempo + Ritual */}
-        <div style={{ display: "inline-flex", alignItems: "center", gap: 3 }}>
+        <div className={estilos.itemMetadato}>
           <span>{hechizo.tiempoLanzamiento || "-"}</span>
           {hechizo.ritual && (
             <span
               title="Lanzamiento Ritual: puede lanzarse añadiendo 10 minutos sin consumir ranuras de conjuro"
-              style={{
-                fontSize: 8,
-                fontWeight: 800,
-                color: "#c084fc",
-                backgroundColor: "rgba(168, 85, 247, 0.15)",
-                border: "1px solid rgba(168, 85, 247, 0.35)",
-                padding: "0 4px",
-                borderRadius: 3,
-                lineHeight: "12px"
-              }}
+              className={estilos.badgeRitual}
             >
               RITUAL
             </span>
           )}
         </div>
 
-        <span style={{ color: "rgba(148, 163, 184, 0.3)" }}>•</span>
+        <span className={estilos.separadorPunto}>•</span>
 
         {/* Alcance */}
         <span>{hechizo.alcance || "-"}</span>
 
-        <span style={{ color: "rgba(148, 163, 184, 0.3)" }}>•</span>
+        <span className={estilos.separadorPunto}>•</span>
 
         {/* Duración + Concentración */}
-        <div style={{ display: "inline-flex", alignItems: "center", gap: 3 }}>
+        <div className={estilos.itemMetadato}>
           <span>{hechizo.duracion || "Instantáneo"}</span>
           {hechizo.concentracion && (
             <span
               title="Concentración"
-              style={{
-                fontSize: 8,
-                fontWeight: 800,
-                color: "#f59e0b",
-                backgroundColor: "rgba(245, 158, 11, 0.15)",
-                border: "1px solid rgba(245, 158, 11, 0.3)",
-                padding: "0 3px",
-                borderRadius: 3,
-                lineHeight: "12px"
-              }}
+              className={estilos.badgeConcentracion}
             >
               C
             </span>
@@ -375,8 +226,8 @@ export const FilaConjuroCompendio: React.FC<FilaConjuroCompendioProps> = React.m
 
         {hechizo.componentesSeleccionados && (
           <>
-            <span style={{ color: "rgba(148, 163, 184, 0.3)" }}>•</span>
-            <span style={{ color: "#94a3b8" }}>{formatearComponentes(hechizo.componentesSeleccionados)}</span>
+            <span className={estilos.separadorPunto}>•</span>
+            <span className={estilos.textoComponentes}>{formatearComponentes(hechizo.componentesSeleccionados)}</span>
           </>
         )}
 
@@ -385,8 +236,8 @@ export const FilaConjuroCompendio: React.FC<FilaConjuroCompendioProps> = React.m
           if (!dados) return null;
           return (
             <>
-              <span style={{ color: "rgba(148, 163, 184, 0.3)" }}>•</span>
-              <strong style={{ color: "#93c5fd", fontWeight: 700 }}>
+              <span className={estilos.separadorPunto}>•</span>
+              <strong className={estilos.textoDano}>
                 {dados} {hechizo.tipoDaño ? `(${hechizo.tipoDaño})` : ""}
               </strong>
             </>
@@ -396,16 +247,7 @@ export const FilaConjuroCompendio: React.FC<FilaConjuroCompendioProps> = React.m
 
       {/* Línea 3: Resumen de la Descripción */}
       <div
-        style={{
-          paddingLeft: mostrarEstrella ? 56 : 28,
-          fontSize: 11,
-          color: "#94a3b8",
-          lineHeight: "1.35",
-          display: "-webkit-box",
-          WebkitLineClamp: 2,
-          WebkitBoxOrient: "vertical",
-          overflow: "hidden"
-        }}
+        className={`${estilos.resumenDescripcion} ${!mostrarEstrella ? estilos.resumenDescripcionSinEstrella : ""}`}
       >
         {descripcionLimpia}
       </div>

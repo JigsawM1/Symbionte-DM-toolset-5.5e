@@ -57,7 +57,7 @@ export const SeccionSelectoresModalRasgo: React.FC<SeccionSelectoresModalRasgoPr
                 <span className={estilos.tituloSelectorModal}>{sel.etiqueta}</span>
                 <span className={estilos.limiteSelectorModal}>Sustituible tras descanso largo</span>
               </div>
-              <div style={{ marginTop: 4 }}>
+              <div className="u-mt-1">
                 <SelectorTrucoAltoElfo
                   idSelector={sel.id}
                   trucoIdActual={trucoIdActual}
@@ -137,10 +137,7 @@ export const SeccionSelectoresModalRasgo: React.FC<SeccionSelectoresModalRasgoPr
                         }
                       }}
                     >
-                      <span
-                        className={estilos.nombreOpcionSelector}
-                        style={{ display: "inline-flex", alignItems: "center", gap: 4 }}
-                      >
+                      <span className={estilos.nombreOpcionSelector}>
                         {op.nombre}
                         {estaActiva && <Check size={12} color="#38bdf8" />}
                         {bloqueada && <Lock size={12} color="#f87171" />}

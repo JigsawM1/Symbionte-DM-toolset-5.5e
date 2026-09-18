@@ -183,7 +183,7 @@ export const SelectorCondiciones: React.FC = () => {
           title="Objetivo del daño / condición / efecto / salvación"
         >
           <span>{obtenerEtiquetaTarget()}</span>
-          <span style={{ fontSize: "8px", marginLeft: "3px" }}>▼</span>
+          <span className={estilosClases.flechaDropdown}>▼</span>
         </button>
 
         {dropdownTargetAbierto && (
@@ -229,7 +229,7 @@ export const SelectorCondiciones: React.FC = () => {
                 }`}
               >
                 <span>{cri.nombre.length > 12 ? cri.nombre.substring(0, 12) + "..." : cri.nombre}</span>
-                <span style={{ fontSize: "8px", opacity: 0.6 }}>
+                <span className={estilosClases.etiquetaTipoCriatura}>
                   {cri.esMonstruo ? "MON" : "PJ"}
                 </span>
               </div>
@@ -343,7 +343,7 @@ export const SelectorCondiciones: React.FC = () => {
             title="Característica para la salvación"
           >
             <span>{caracteristicaSalvacion.substring(0, 3).toUpperCase()}</span>
-            <span style={{ fontSize: "8px", marginLeft: "2px" }}>▼</span>
+            <span className={estilosClases.flechaDropdown}>▼</span>
           </button>
 
           {dropdownCaracAbierto && (
@@ -390,11 +390,11 @@ export const SelectorCondiciones: React.FC = () => {
             title="Regla de daño si supera la salvación"
           >
             <span>{mitigacionSalvacion === "mitad" ? "1/2 DAÑO" : "0 DAÑO"}</span>
-            <span style={{ fontSize: "8px", marginLeft: "2px" }}>▼</span>
+            <span className={estilosClases.flechaDropdown}>▼</span>
           </button>
 
           {dropdownMitigAbierto && (
-            <div className={estilosClases.dropdownCustomMenu} style={{ width: "120px" }}>
+            <div className={`${estilosClases.dropdownCustomMenu} ${estilosClases.dropdownMitigMenu}`}>
               <div
                 onClick={() => {
                   setMitigacionSalvacion("mitad");
@@ -426,7 +426,7 @@ export const SelectorCondiciones: React.FC = () => {
           className={estilosClases.botonSalvacion}
           title="Ejecutar salvación en área (aplica daño mitigado a éxito y condición/efecto a fallo)"
         >
-          <ShieldAlert size={11} style={{ marginRight: "3px" }} />
+          <ShieldAlert size={11} className={estilosClases.iconoShield} />
           TIRAR
         </button>
       </div>
@@ -447,7 +447,7 @@ export const SelectorCondiciones: React.FC = () => {
             {resultadoSalvacion.resultados.map((r) => (
               <div key={r.id} className={estilosClases.filaResultadoSalvacion}>
                 <span className={estilosClases.nombreResumen}>{r.nombre}:</span>
-                <span style={{ fontFamily: "var(--fuente-codigo)", fontSize: "9.5px" }}>
+                <span className={estilosClases.formulaTirada}>
                   d20({r.d20}){r.bono >= 0 ? `+${r.bono}` : r.bono} = <strong>{r.total}</strong>
                 </span>
                 <span
@@ -456,12 +456,12 @@ export const SelectorCondiciones: React.FC = () => {
                   {r.exito ? "ÉXITO" : "FALLO"}
                 </span>
                 {r.dañoSufrido !== undefined && (
-                  <span style={{ fontSize: "9px", color: "#ff6b6b" }}>
+                  <span className={estilosClases.textoDanoSalvacion}>
                     (-{r.dañoSufrido} HP)
                   </span>
                 )}
                 {r.condicionAplicada && (
-                  <span style={{ fontSize: "9px", color: "#e0a96d" }}>
+                  <span className={estilosClases.textoEfectoSalvacion}>
                     [EFECTO]
                   </span>
                 )}

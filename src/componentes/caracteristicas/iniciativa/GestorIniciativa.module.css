@@ -230,12 +230,33 @@
   color: var(--color-texto-apagado);
   cursor: pointer;
   padding: 1px;
-  display: flex;
+  display: inline-flex;
   align-items: center;
   margin-left: 4px;
 }
 
 .botonDesvincularMini:hover {
   color: var(--color-peligro);
+}
+
+.iconoActividadVacio {
+  color: var(--color-borde-cian);
+  margin-bottom: 8px;
+}
+
+.iconoBoton {
+  margin-right: 4px;
+}
+
+.iconoFicha {
+  color: var(--color-borde-cian);
+  margin-right: 5px;
+}
+
+.contenedorDesvincular {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  margin-left: 4px;
 }
 

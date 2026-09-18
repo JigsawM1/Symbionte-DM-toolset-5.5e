@@ -75,7 +75,7 @@ export const BarraControl: React.FC = () => {
 
         {/* Añadir Jugador Rápido */}
         <div className={estilosClases.campoBusqueda}>
-          <User size={13} style={{ color: "var(--color-borde-cian)" }} />
+          <User size={13} className={estilosClases.iconoUsuario} />
           <input
             type="text"
             value={nombreJugadorRapido}
@@ -96,7 +96,7 @@ export const BarraControl: React.FC = () => {
       {/* 3. Botones de Acción */}
       <div className={estilosClases.grupoAcciones}>
         <button onClick={manejarAutoRollIniciativaMonstruos} className={estilosClases.botonAccionPrincipal} title="Lanzar iniciativa masiva de monstruos">
-          <AlertTriangle size={13} style={{ color: "var(--color-advertencia)", marginRight: "4px" }} />
+          <AlertTriangle size={13} className={estilosClases.iconoAlerta} />
           Auto Roll
         </button>
 
@@ -144,7 +144,7 @@ export const BarraControl: React.FC = () => {
       <div className={estilosClases.indicadorRonda}>
         <button onClick={retrocederRonda} className={estilosClases.botonRondaPaso}>-</button>
         <span className={estilosClases.rondaTexto}>
-          RONDA: <span className="dato-numerico" style={{ color: "var(--color-borde-cian)" }}>{rondaActual}</span>
+          RONDA: <span className={`dato-numerico ${estilosClases.numeroRonda}`}>{rondaActual}</span>
         </span>
         <button onClick={avanzarRonda} className={estilosClases.botonRondaPaso}>+</button>
       </div>

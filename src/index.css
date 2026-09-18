@@ -1,6 +1,7 @@
 /* Sistema de Diseño Brutalista Tecnológico Premium - VISUAL_DENSITY: 10 */
 /* TOTALMENTE LIBRE DE TRANSICIONES Y ANIMACIONES PARA EVITAR LAG EN TALESPIRE */
 @import './estilos/temaJugador.css';
+@import './estilos/utilidades.css';
 
 :root {
   /* Fondos Premium (Fondo negro azulado profundo HSL) */

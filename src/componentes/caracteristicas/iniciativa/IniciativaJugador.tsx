@@ -44,7 +44,7 @@ export const IniciativaJugador: React.FC = () => {
               const hpActual = item.vidaActual ?? item.vidaMaxima ?? 100;
               const hpMaximo = item.vidaMaxima ?? 100;
               const porcentaje = Math.max(0, Math.min(100, Math.round((hpActual / hpMaximo) * 100)));
-              const colorVida = porcentaje > 50 ? "#34d399" : porcentaje > 25 ? "#fbbf24" : "#ef4444";
+              const estadoSalud: "saludable" | "herido" | "critico" = porcentaje > 50 ? "saludable" : porcentaje > 25 ? "herido" : "critico";
               const estadoTexto = porcentaje > 50 ? "Saludable" : porcentaje > 0 ? "Herido" : "Inconsciente";
 
               const tieneEfectoConcentracion = (item.efectos || []).some(
@@ -91,7 +91,7 @@ export const IniciativaJugador: React.FC = () => {
                       <span className={estilos.saludEtiqueta}>
                         <Heart size={12} /> Estado de Salud
                       </span>
-                      <strong style={{ color: colorVida }}>
+                      <strong className={estilos.saludTextoValor} data-salud={estadoSalud}>
                         {mostrarPorcentajeVidaAJugadores ? `${porcentaje}%` : estadoTexto}
                       </strong>
                     </div>
@@ -100,7 +100,9 @@ export const IniciativaJugador: React.FC = () => {
                       <div className={estilos.barraVidaContenedor}>
                         <div
                           className={estilos.barraVidaRelleno}
-                          style={{ width: `${porcentaje}%`, backgroundColor: colorVida }}
+                          data-salud={estadoSalud}
+                          // eslint-disable-next-line react/forbid-dom-props -- Ancho continuo dinámico (0-100%) para barra de vida en tiempo de ejecución
+                          style={{ width: `${porcentaje}%` }}
                         />
                       </div>
                     )}

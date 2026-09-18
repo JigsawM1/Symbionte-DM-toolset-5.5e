@@ -711,6 +711,11 @@
   flex-shrink: 0;
 }
 
+.badgeDesventajaAtaque {
+  border-color: rgba(245, 158, 11, 0.5);
+  color: #f59e0b;
+}
+
 .bannerPenalizacionArmadura {
   background: linear-gradient(90deg, rgba(239, 68, 68, 0.15) 0%, rgba(220, 38, 38, 0.08) 100%);
   border: 1px solid rgba(239, 68, 68, 0.35);
@@ -728,6 +733,11 @@
 
 .bannerPenalizacionArmadura strong {
   color: #fee2e2;
+}
+
+.bannerPenalizacionIcono {
+  flex-shrink: 0;
+  margin-top: 1px;
 }
 
 .subtextoContenedorMunicion {

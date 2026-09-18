@@ -18,6 +18,16 @@
   font-family: var(--fuente-principal, 'Inter', system-ui, sans-serif);
 }
 
+.cajaSinPersonaje {
+  padding: 24px;
+  text-align: center;
+}
+
+.textoSinPersonaje {
+  color: var(--pj-texto-terciario, #94a3b8);
+  margin: 0;
+}
+
 /* ==========================================
    SUPERFICIES, PANELES Y TARJETAS TÁCTICAS
    ========================================= */
@@ -1367,6 +1377,227 @@
   margin-top: 4px;
 }
 
+.contenedorGestor {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 8px 0;
+}
+
+.inputArchivoOculto {
+  display: none;
+}
+
+.subtituloGestor {
+  font-size: var(--pj-fuente-micro, 11px);
+  color: var(--color-texto-apagado, #94a3b8);
+  margin: 2px 0 0 0;
+}
+
+.filaAccionesGestor {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.botonAccionGestor[data-copiado="true"] {
+  border-color: var(--color-borde-cian, #00f5d4);
+  color: var(--color-borde-cian, #00f5d4);
+}
+
+.botonNuevoPersonaje {
+  background-color: var(--color-primario, #6366f1);
+  color: #ffffff;
+  border-color: var(--color-borde-cian, #00f5d4);
+}
+
+.filaNombrePj {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.badgePjActivo {
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--color-borde-cian, #00f5d4);
+  background-color: rgba(0, 245, 212, 0.12);
+  border: 1px solid var(--color-borde-cian, #00f5d4);
+  padding: 1px 5px;
+  border-radius: 10px;
+}
+
+.avatarCirculoPj {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: var(--color-fondo-tarjeta, #121722);
+  border: 1px solid var(--color-borde-brutal, rgba(148, 163, 184, 0.2));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--color-primario-brillante, #818cf8);
+  overflow: hidden;
+}
+
+.avatarImagen {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.seccionSaludPj {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.filaEtiquetaSaludPj {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  color: var(--color-texto-apagado, #94a3b8);
+}
+
+.pistaSaludPj {
+  height: 6px;
+  border-radius: 3px;
+  position: relative;
+  overflow: hidden;
+}
+
+.rellenoSaludPj {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  background-color: var(--color-primario, #6366f1);
+}
+
+.botonVerFicha {
+  border-color: var(--color-borde-cian, #00f5d4);
+  color: var(--color-borde-cian, #00f5d4);
+}
+
+.botonEliminarPj {
+  color: var(--color-peligro, #ef4444);
+}
+
+.overlayModalJSON {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.75);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 16px;
+}
+
+.cajaModalJSON {
+  width: 100%;
+  max-width: 540px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 85vh;
+}
+
+.cabeceraModalJSON {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.filaTituloModalJSON {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.iconoModalCian {
+  color: var(--color-borde-cian, #00f5d4);
+}
+
+.tituloModalJSON {
+  margin: 0;
+  font-size: 14px;
+}
+
+.botonCerrarModalCompacto {
+  min-height: 24px;
+  padding: 2px 6px;
+}
+
+.textoInstruccionModal {
+  margin: 0;
+  font-size: 11px;
+  color: var(--color-texto-apagado, #94a3b8);
+}
+
+.textareaCodigoJSON {
+  width: 100%;
+  background-color: var(--color-fondo-panel, #0b0f16);
+  border: 1px solid var(--color-borde-brutal, rgba(148, 163, 184, 0.2));
+  border-radius: 6px;
+  color: #e2e8f0;
+  font-size: 11px;
+  font-family: monospace;
+  padding: 8px;
+  resize: vertical;
+  box-sizing: border-box;
+}
+
+.filaAccionesPieModal {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.botonAccionPrimarioModal {
+  background-color: var(--color-primario, #6366f1);
+  color: #ffffff;
+  border-color: var(--color-borde-cian, #00f5d4);
+}
+
+.filaBotonesPegar {
+  display: flex;
+  gap: 8px;
+}
+
+.botonFlex1 {
+  flex: 1;
+}
+
+.textareaPegarJSON {
+  width: 100%;
+  background-color: var(--color-fondo-panel, #0b0f16);
+  border: 1px solid var(--color-borde-brutal, rgba(148, 163, 184, 0.2));
+  border-radius: 6px;
+  color: #e2e8f0;
+  font-size: 11px;
+  font-family: monospace;
+  padding: 8px;
+  resize: vertical;
+  box-sizing: border-box;
+}
+
+.textareaPegarJSON[data-error="true"] {
+  border-color: var(--color-peligro, #ef4444);
+}
+
+.mensajeErrorPegado {
+  color: var(--color-peligro, #ef4444);
+  font-size: 11px;
+  font-weight: 600;
+}
+
 /* ==========================================
    8. MODAL DE EDICIÓN
    ========================================= */
@@ -1506,6 +1737,152 @@
   display: flex;
   justify-content: flex-end;
   gap: 8px;
+}
+
+.indicadorMiniaturaTablero {
+  height: 38px;
+  font-size: 11px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 10px;
+  border-radius: 4px;
+  background-color: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--color-borde-brutal, rgba(148, 163, 184, 0.2));
+  color: var(--color-texto-apagado, #94a3b8);
+}
+
+.indicadorMiniaturaTablero[data-detectada="true"] {
+  background-color: rgba(16, 185, 129, 0.1);
+  border-color: #10b981;
+  color: #10b981;
+}
+
+.puntoMiniaturaTablero {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #64748b;
+  flex-shrink: 0;
+}
+
+.puntoMiniaturaTablero[data-detectada="true"] {
+  background-color: #10b981;
+}
+
+.filaAvatarEdicion {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.avatarEdicionImg {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+  border: 1px solid #818cf8;
+}
+
+.inputAvatarEdicion {
+  flex-grow: 1;
+}
+
+.textoInstruccionAtributos {
+  font-size: 12px;
+  color: #cbd5e1;
+  margin: 0;
+}
+
+.gridAtributosEdicion {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.tarjetaAtributoEdicion {
+  padding: 10px;
+  border-radius: 6px;
+}
+
+.etiquetaAtributoEdicion {
+  font-size: 12px;
+  font-weight: 700;
+  color: #a5b4fc;
+}
+
+.filaInputsAtributoEdicion {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.columnaInputAtributo {
+  flex: 1;
+}
+
+.labelMicroAtributo {
+  font-size: 10px;
+  color: #94a3b8;
+  display: block;
+}
+
+.inputAtributoNumerico {
+  width: 100%;
+  padding: 4px 8px;
+  box-sizing: border-box;
+}
+
+.gridSalvacionesEdicion {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-top: 2px;
+}
+
+.labelCheckboxSalvacion {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.gridHabilidadesEdicion {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 2px;
+  max-height: 240px;
+  overflow-y: auto;
+}
+
+.columnaHabilidadEdicion {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.nombreHabilidadEdicion {
+  font-size: 11px;
+  color: #cbd5e1;
+}
+
+.botonGuardarEdicionPj {
+  background-color: #3730a3;
+  color: #ffffff;
+  border-color: #818cf8;
+}
+
+.botonGuardarEdicionPj:hover {
+  background-color: #4338ca;
+}
+
+.iconoGuardarMargen {
+  margin-right: 4px;
 }
 
 /* ==========================================
@@ -2129,6 +2506,100 @@
   color: #cbd5e1;
 }
 
+.badgeBonoMagico {
+  background-color: rgba(236, 72, 153, 0.15);
+  color: #fbcfe8;
+  border: 1px solid rgba(236, 72, 153, 0.3);
+  cursor: help;
+}
+
+.badgeVeneno {
+  background-color: rgba(16, 185, 129, 0.15);
+  color: #6ee7b7;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  cursor: help;
+}
+
+.badgeMaestria {
+  background-color: rgba(168, 85, 247, 0.15);
+  color: #d8b4fe;
+  border: 1px solid rgba(168, 85, 247, 0.3);
+  cursor: help;
+}
+
+.badgePropiedadArma {
+  background-color: rgba(99, 102, 241, 0.15);
+  color: #c7d2fe;
+  border: 1px solid rgba(99, 102, 241, 0.3);
+  cursor: help;
+}
+
+.badgeDesventajaSigilo {
+  background-color: rgba(239, 68, 68, 0.15);
+  color: #fca5a5;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  cursor: help;
+}
+
+.badgeRequisitoFuerza {
+  background-color: rgba(245, 158, 11, 0.15);
+  color: #fcd34d;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  cursor: help;
+}
+
+.badgeMunicionGuardada {
+  background-color: rgba(56, 189, 248, 0.15);
+  color: #7dd3fc;
+  border: 1px solid rgba(56, 189, 248, 0.3);
+}
+
+.badgeMunicionExceso {
+  background-color: rgba(245, 158, 11, 0.15);
+  color: #fcd34d;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.badgeMunicionSuelta {
+  background-color: rgba(148, 163, 184, 0.1);
+  color: #94a3b8;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+}
+
+.badgeContenedorConContenido {
+  background-color: rgba(16, 185, 129, 0.15);
+  color: #6ee7b7;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.badgeContenedorEspecial {
+  border-radius: 3px;
+}
+
+.badgeContenedorEspecial[data-contenedor="bolsa_contencion"] {
+  background-color: rgba(192, 132, 252, 0.1);
+  border: 1px solid rgba(192, 132, 252, 0.35);
+  color: #c084fc;
+}
+
+.badgeContenedorEspecial[data-contenedor="montura"] {
+  background-color: rgba(56, 189, 248, 0.1);
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  color: #38bdf8;
+}
+
+.badgeContenedorEspecial[data-contenedor="almacen"] {
+  background-color: rgba(148, 163, 184, 0.1);
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  color: #94a3b8;
+}
+
+.iconoBadgeInline {
+  display: inline;
+  vertical-align: middle;
+  margin-right: 2px;
+}
+
 /* Badges de Rareza */
 .rarezaComun {
   background-color: #1a2230;
@@ -2256,6 +2727,22 @@
 .textoPesoEfectivo {
   font-size: 11px;
   font-weight: 700;
+}
+
+.textoPesoEfectivo[data-contenedor="bolsa_contencion"] {
+  color: #c084fc;
+}
+
+.textoPesoEfectivo[data-contenedor="montura"] {
+  color: #38bdf8;
+}
+
+.textoPesoEfectivo[data-contenedor="almacen"] {
+  color: #94a3b8;
+}
+
+.botonRecargaCargas {
+  color: #fbbf24;
 }
 
 .textoPesoSimple {
@@ -2514,6 +3001,11 @@
   font-family: var(--fuente-codigo, 'JetBrains Mono', monospace);
 }
 
+.iconoBadgeResumen {
+  margin-right: 3px;
+  vertical-align: middle;
+}
+
 .cuerpoSeccionRecursos {
   display: flex;
   flex-direction: column;
@@ -2662,6 +3154,67 @@
   box-shadow: 0 0 10px rgba(56, 189, 248, 0.3);
 }
 
+/* Modificadores de color por tipo de contenedor rápido */
+.cajaMovilizacionRapida[data-caja="mochila"] {
+  border-color: rgba(245, 158, 11, 0.4);
+  background: rgba(245, 158, 11, 0.08);
+}
+.cajaMovilizacionRapida[data-caja="mochila"] .nombreCajaMovilizacion {
+  color: #f59e0b;
+}
+.cajaMovilizacionRapida[data-caja="mochila"].cajaMovilizacionSobrevolada {
+  border-color: #f59e0b;
+  background: rgba(245, 158, 11, 0.22);
+}
+
+.cajaMovilizacionRapida[data-caja="bolsa_contencion"] {
+  border-color: rgba(192, 132, 252, 0.4);
+  background: rgba(192, 132, 252, 0.08);
+}
+.cajaMovilizacionRapida[data-caja="bolsa_contencion"] .nombreCajaMovilizacion {
+  color: #c084fc;
+}
+.cajaMovilizacionRapida[data-caja="bolsa_contencion"].cajaMovilizacionSobrevolada {
+  border-color: #c084fc;
+  background: rgba(192, 132, 252, 0.22);
+}
+
+.cajaMovilizacionRapida[data-caja="montura"] {
+  border-color: rgba(56, 189, 248, 0.4);
+  background: rgba(56, 189, 248, 0.08);
+}
+.cajaMovilizacionRapida[data-caja="montura"] .nombreCajaMovilizacion {
+  color: #38bdf8;
+}
+.cajaMovilizacionRapida[data-caja="montura"].cajaMovilizacionSobrevolada {
+  border-color: #38bdf8;
+  background: rgba(56, 189, 248, 0.22);
+}
+
+.cajaMovilizacionRapida[data-caja="almacen"] {
+  border-color: rgba(148, 163, 184, 0.4);
+  background: rgba(148, 163, 184, 0.08);
+}
+.cajaMovilizacionRapida[data-caja="almacen"] .nombreCajaMovilizacion {
+  color: #94a3b8;
+}
+.cajaMovilizacionRapida[data-caja="almacen"].cajaMovilizacionSobrevolada {
+  border-color: #94a3b8;
+  background: rgba(148, 163, 184, 0.22);
+}
+
+.cajaMovilizacionRapida[data-caja="equipados"] {
+  border-color: rgba(96, 165, 250, 0.4);
+  background: rgba(96, 165, 250, 0.08);
+}
+.cajaMovilizacionRapida[data-caja="equipados"] .nombreCajaMovilizacion {
+  color: #60a5fa;
+}
+.cajaMovilizacionRapida[data-caja="equipados"].cajaMovilizacionSobrevolada {
+  border-color: #60a5fa;
+  background: rgba(96, 165, 250, 0.22);
+}
+
 .iconoCajaMovilizacion {
   display: flex;
   align-items: center;
@@ -2746,5 +3299,449 @@
   box-shadow: 0 0 0 1px #38bdf8, 0 4px 8px rgba(56, 189, 248, 0.15) !important;
   background: rgba(56, 189, 248, 0.06) !important;
 }
+
+/* ==========================================
+   MODAL AGREGAR OBJETO - CLASES MODULARES
+   ========================================== */
+
+.modalAgregarObjeto {
+  max-width: 520px;
+  overflow: visible;
+}
+
+.cabeceraModalRedondeada {
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+}
+
+.formularioCompendioModal {
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  overflow: visible;
+  min-height: 260px;
+}
+
+.filaFiltrosCategoria {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.chipFiltroCategoria {
+  font-size: 9.5px;
+  padding: 3px 8px;
+  background-color: transparent;
+  border-color: rgba(148, 163, 184, 0.12);
+  color: #94a3b8;
+}
+
+.chipFiltroCategoriaActivo {
+  background-color: #1e293b;
+  border-color: #818cf8;
+  color: #ffffff;
+}
+
+/* Reglas temáticas de selectores de destino en Modal */
+.botonSelectorDestino {
+  border-color: rgba(148, 163, 184, 0.2);
+  background-color: rgba(15, 23, 42, 0.5);
+}
+
+.botonSelectorDestino[data-caja="mochila"].botonSelectorDestinoActivo {
+  border-color: #f59e0b;
+  background-color: rgba(245, 158, 11, 0.15);
+}
+.botonSelectorDestino[data-caja="mochila"].botonSelectorDestinoActivo .nombreSelectorDestino {
+  color: #f59e0b;
+}
+
+.botonSelectorDestino[data-caja="bolsa_contencion"].botonSelectorDestinoActivo {
+  border-color: #c084fc;
+  background-color: rgba(192, 132, 252, 0.15);
+}
+.botonSelectorDestino[data-caja="bolsa_contencion"].botonSelectorDestinoActivo .nombreSelectorDestino {
+  color: #c084fc;
+}
+
+.botonSelectorDestino[data-caja="montura"].botonSelectorDestinoActivo {
+  border-color: #38bdf8;
+  background-color: rgba(56, 189, 248, 0.15);
+}
+.botonSelectorDestino[data-caja="montura"].botonSelectorDestinoActivo .nombreSelectorDestino {
+  color: #38bdf8;
+}
+
+.botonSelectorDestino[data-caja="almacen"].botonSelectorDestinoActivo {
+  border-color: #94a3b8;
+  background-color: rgba(148, 163, 184, 0.15);
+}
+.botonSelectorDestino[data-caja="almacen"].botonSelectorDestinoActivo .nombreSelectorDestino {
+  color: #94a3b8;
+}
+
+.botonSelectorDestino[data-caja="equipados"].botonSelectorDestinoActivo {
+  border-color: #60a5fa;
+  background-color: rgba(96, 165, 250, 0.15);
+}
+.botonSelectorDestino[data-caja="equipados"].botonSelectorDestinoActivo .nombreSelectorDestino {
+  color: #60a5fa;
+}
+
+/* Vista previa de objeto seleccionado */
+.cabeceraPreviewObjeto {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.nombrePreviewObjeto {
+  font-size: 13px;
+  font-weight: 800;
+  color: #f1f5f9;
+}
+
+.filaMetadatosPreview {
+  display: flex;
+  gap: 10px;
+  font-size: 10px;
+  color: #94a3b8;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.textoBlancoResaltado {
+  color: #f1f5f9;
+}
+
+.textoPesoUnitario {
+  color: #38bdf8;
+  margin-left: 4px;
+}
+
+.textoValorPO {
+  color: #fbbf24;
+}
+
+.avisoLoteCantidad {
+  color: #34d399;
+  font-weight: 700;
+}
+
+.avisoSintonizacionReq {
+  color: #c084fc;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.filaBadgesPreview {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+
+.badgeDanoArma {
+  background-color: rgba(239, 68, 68, 0.15);
+  color: #fca5a5;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.badgeVersatil {
+  background-color: rgba(99, 102, 241, 0.15);
+  color: #c7d2fe;
+  border: 1px solid rgba(99, 102, 241, 0.3);
+  cursor: help;
+}
+
+.badgeCaArmadura {
+  background-color: rgba(16, 185, 129, 0.15);
+  color: #6ee7b7;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.badgeBonoDes {
+  cursor: help;
+}
+
+/* Desglose de contenido de paquetes */
+.cajaPaqueteContenido {
+  margin-top: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background-color: rgba(16, 185, 129, 0.08);
+  padding: 8px 10px;
+  border-radius: 4px;
+  border: 1px solid rgba(16, 185, 129, 0.25);
+}
+
+.tituloPaqueteContenido {
+  font-size: 10.5px;
+  font-weight: 700;
+  color: #34d399;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.listaItemsPaquete {
+  max-height: 80px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.filaItemPaquete {
+  font-size: 10px;
+  color: #cbd5e1;
+  display: flex;
+  justify-content: space-between;
+}
+
+.multiplicadorItemPaquete {
+  color: #38bdf8;
+}
+
+.avisoSeleccionarObjeto {
+  font-size: 11px;
+  color: #64748b;
+  font-style: italic;
+  text-align: center;
+  padding: 8px;
+}
+
+.pieModalAjustado {
+  margin: -14px;
+  margin-top: 10px;
+  padding: 10px 14px;
+}
+
+.botonConfirmarAgregarItem {
+  background-color: #1a2230;
+  border-color: transparent;
+  color: #ffffff;
+}
+
+.botonConfirmarAgregarItemActivo {
+  background-color: #b45309;
+  border-color: #f59e0b;
+  color: #ffffff;
+}
+
+.iconoBotonAccion {
+  margin-right: 4px;
+}
+
+/* Posesiones personalizadas */
+.formularioPosesionesModal {
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.bannerInformativoPosesiones {
+  font-size: 11px;
+  color: #94a3b8;
+  line-height: 1.4;
+  background-color: rgba(15, 23, 42, 0.6);
+  padding: 8px 10px;
+  border-radius: 4px;
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.iconoBannerPosesiones {
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.gridDosColumnasPosesion {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.textareaNotasPosesion {
+  height: 60px;
+  resize: none;
+}
+
+.filaBadgesColumna {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+/* Colores de cabecera de contenedores especiales por data-caja */
+.tituloGrupoInventario[data-caja="mochila"] {
+  color: #f59e0b;
+}
+.tituloGrupoInventario[data-caja="bolsa_contencion"] {
+  color: #c084fc;
+}
+.tituloGrupoInventario[data-caja="montura"] {
+  color: #38bdf8;
+}
+.tituloGrupoInventario[data-caja="almacen"] {
+  color: #94a3b8;
+}
+.tituloGrupoInventario[data-caja="equipados"] {
+  color: #60a5fa;
+}
+
+/* Colores temáticos de subsecciones de mochila por data-subseccion */
+.tituloSubseccionMochila[data-subseccion="consumibles"] {
+  color: #10b981;
+}
+.tituloSubseccionMochila[data-subseccion="municion"] {
+  color: #06b6d4;
+}
+.tituloSubseccionMochila[data-subseccion="armas"] {
+  color: #f87171;
+}
+.tituloSubseccionMochila[data-subseccion="armaduras"] {
+  color: #60a5fa;
+}
+.tituloSubseccionMochila[data-subseccion="escudos"] {
+  color: #38bdf8;
+}
+.tituloSubseccionMochila[data-subseccion="herramientas"] {
+  color: #f59e0b;
+}
+.tituloSubseccionMochila[data-subseccion="focos-magicos"] {
+  color: #c084fc;
+}
+.tituloSubseccionMochila[data-subseccion="contenedores"] {
+  color: #eab308;
+}
+.tituloSubseccionMochila[data-subseccion="paquetes-equipo"] {
+  color: #a855f7;
+}
+.tituloSubseccionMochila[data-subseccion="magicos"] {
+  color: #ec4899;
+}
+.tituloSubseccionMochila[data-subseccion="equipo"] {
+  color: #94a3b8;
+}
+
+.alertaSinCompetenciaArmadura {
+  margin-left: 3px;
+  vertical-align: middle;
+}
+
+.tarjetaMetricaInteractiva {
+  cursor: pointer;
+}
+
+.cabeceraAtributo {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  justify-content: center;
+}
+
+.badgePuntuacionBase[data-bono="true"] {
+  border-color: rgba(56, 189, 248, 0.7);
+  color: #7dd3fc;
+}
+
+.iconoInlineSalvacion {
+  margin-left: 3px;
+  vertical-align: middle;
+}
+
+.iconoDescanso {
+  margin-right: 2px;
+}
+
+.cabeceraCondicionesActivas {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  margin-bottom: 4px;
+}
+
+.textoRondaActual {
+  font-size: 10px;
+  color: var(--color-texto-apagado);
+  font-weight: 700;
+}
+
+.tituloGrupoCompetencia {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.iconoInlineHabilidad {
+  margin-left: 2px;
+}
+
+/* Clases para PanelVitalidadPersonaje */
+.textoHpBase {
+  font-size: 10px;
+  color: #94a3b8;
+}
+
+.separadorHp {
+  opacity: 0.6;
+}
+
+.inputTempFull {
+  width: 100%;
+  height: 100%;
+  font-size: 18px;
+}
+
+.filaDadosGolpeValores {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.textoDadosGolpeTotal {
+  font-size: 11px;
+  opacity: 0.7;
+}
+
+.botonGastarDado {
+  padding: 2px 6px;
+  font-size: 11px;
+  min-height: 24px;
+}
+
+.botonReiniciarSalvaciones {
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  padding: 0;
+}
+
+.grupoIconosMuerte {
+  display: flex;
+  gap: 3px;
+}
+
+.separadorMuerte {
+  font-size: 11px;
+  color: #64748b;
+  margin: 0 2px;
+}
+
+.filaPuntosCansancio {
+  gap: 4px;
+}
+
+
+
 
 

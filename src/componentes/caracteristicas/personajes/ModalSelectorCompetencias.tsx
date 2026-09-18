@@ -18,6 +18,7 @@ import { PestanaArmasCompetencias } from "./competencias/PestanaArmasCompetencia
 import { PestanaArmadurasCompetencias } from "./competencias/PestanaArmadurasCompetencias";
 import { PestanaListaSimpleCompetencias } from "./competencias/PestanaListaSimpleCompetencias";
 import estilos from "./HojaPersonaje.module.css";
+import estilosCompetencias from "./competencias/SelectorCompetencias.module.css";
 
 export type { CategoriaCompetencia, EstadoCompetenciasModal };
 
@@ -62,13 +63,12 @@ export const ModalSelectorCompetencias: React.FC<ModalSelectorCompetenciasProps>
   return (
     <div className={estilos.overlayModal} onClick={alCerrar}>
       <div
-        className={estilos.contenedorModal}
-        style={{ maxWidth: 620, width: "95%", height: "82vh" }}
+        className={`${estilos.contenedorModal} ${estilosCompetencias.cuerpoModalCompetencias}`}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Cabecera del Modal */}
         <div className={estilos.cabeceraModal}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <div className={estilosCompetencias.cabeceraModalTitulo}>
             <h3 className={estilos.tituloModal}>Selector de Competencias</h3>
           </div>
           <button
@@ -90,7 +90,7 @@ export const ModalSelectorCompetencias: React.FC<ModalSelectorCompetenciasProps>
             }`}
             onClick={() => setPestaña("armas")}
           >
-            <Swords size={13} style={{ marginRight: 4 }} />
+            <Swords size={13} className={estilosCompetencias.iconoPestana} />
             Armas ({armasLista.length})
           </button>
 
@@ -101,7 +101,7 @@ export const ModalSelectorCompetencias: React.FC<ModalSelectorCompetenciasProps>
             }`}
             onClick={() => setPestaña("armaduras")}
           >
-            <Shield size={13} style={{ marginRight: 4 }} />
+            <Shield size={13} className={estilosCompetencias.iconoPestana} />
             Armaduras ({armadurasLista.length})
           </button>
 
@@ -112,7 +112,7 @@ export const ModalSelectorCompetencias: React.FC<ModalSelectorCompetenciasProps>
             }`}
             onClick={() => setPestaña("idiomas")}
           >
-            <Languages size={13} style={{ marginRight: 4 }} />
+            <Languages size={13} className={estilosCompetencias.iconoPestana} />
             Idiomas ({idiomas.length})
           </button>
 
@@ -123,35 +123,27 @@ export const ModalSelectorCompetencias: React.FC<ModalSelectorCompetenciasProps>
             }`}
             onClick={() => setPestaña("herramientas")}
           >
-            <Wrench size={13} style={{ marginRight: 4 }} />
+            <Wrench size={13} className={estilosCompetencias.iconoPestana} />
             Herramientas ({herramientas.length})
           </button>
         </div>
 
         {/* Buscador / Filtro Rápido */}
-        <div style={{ padding: "8px 14px", backgroundColor: "#0e131d", borderBottom: "1px solid rgba(148, 163, 184, 0.1)" }}>
-          <div style={{ position: "relative", display: "flex", alignItems: "center" }}>
-            <Search size={14} color="#64748b" style={{ position: "absolute", left: 10 }} />
+        <div className={estilosCompetencias.barraBuscadorCompetencias}>
+          <div className={estilosCompetencias.contenedorInputBuscador}>
+            <Search size={14} color="#64748b" className={estilosCompetencias.iconoBuscadorLupa} />
             <input
               type="text"
-              className={estilos.inputFormulario}
+              className={`${estilos.inputFormulario} ${estilosCompetencias.inputBuscadorCompetencias}`}
               value={filtroTexto}
               onChange={(e) => setFiltroTexto(e.target.value)}
               placeholder="Buscar en esta categoría..."
-              style={{ width: "100%", paddingLeft: 30, fontSize: 11 }}
             />
             {filtroTexto && (
               <button
                 type="button"
                 onClick={() => setFiltroTexto("")}
-                style={{
-                  position: "absolute",
-                  right: 8,
-                  background: "transparent",
-                  border: "none",
-                  color: "#94a3b8",
-                  cursor: "pointer"
-                }}
+                className={estilosCompetencias.botonLimpiarBuscador}
               >
                 <X size={14} />
               </button>
@@ -160,7 +152,7 @@ export const ModalSelectorCompetencias: React.FC<ModalSelectorCompetenciasProps>
         </div>
 
         {/* Contenido según la Pestaña Activa */}
-        <div className={estilos.contenidoPestañaModal} style={{ gap: 14 }}>
+        <div className={`${estilos.contenidoPestañaModal} ${estilosCompetencias.cuerpoContenidoModal}`}>
           {pestaña === "armas" && (
             <PestanaArmasCompetencias
               armasGrupos={armasGrupos}
@@ -216,14 +208,8 @@ export const ModalSelectorCompetencias: React.FC<ModalSelectorCompetenciasProps>
           </button>
           <button
             type="button"
-            className={estilos.neoButton}
+            className={`${estilos.neoButton} ${estilosCompetencias.botonGuardarModal}`}
             onClick={manejarGuardar}
-            style={{
-              backgroundColor: "#1e293b",
-              borderColor: "rgba(96, 165, 250, 0.4)",
-              color: "#93c5fd",
-              fontWeight: 700
-            }}
           >
             Aplicar Cambios
           </button>

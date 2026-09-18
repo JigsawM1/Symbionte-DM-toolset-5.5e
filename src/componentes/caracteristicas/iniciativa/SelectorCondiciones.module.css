@@ -523,3 +523,36 @@
   padding: 1px 4px;
   border-radius: 2px;
 }
+
+.flechaDropdown {
+  font-size: 8px;
+  margin-left: 3px;
+}
+
+.etiquetaTipoCriatura {
+  font-size: 8px;
+  opacity: 0.6;
+}
+
+.dropdownMitigMenu {
+  width: 120px;
+}
+
+.iconoShield {
+  margin-right: 3px;
+}
+
+.formulaTirada {
+  font-family: var(--fuente-codigo);
+  font-size: 9.5px;
+}
+
+.textoDanoSalvacion {
+  font-size: 9px;
+  color: #ff6b6b;
+}
+
+.textoEfectoSalvacion {
+  font-size: 9px;
+  color: #e0a96d;
+}

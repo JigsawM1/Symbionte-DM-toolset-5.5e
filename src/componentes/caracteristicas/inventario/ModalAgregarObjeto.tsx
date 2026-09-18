@@ -286,12 +286,11 @@ export const ModalAgregarObjeto: React.FC<ModalAgregarObjetoProps> = ({
   return (
     <div className={estilos.overlayModal} onClick={alCerrar}>
       <div
-        className={estilos.cuerpoModal}
+        className={`${estilos.cuerpoModal} ${estilos.modalAgregarObjeto}`}
         onClick={(e) => e.stopPropagation()}
-        style={{ maxWidth: 520, overflow: "visible" }}
       >
         {/* Cabecera del Modal */}
-        <div className={estilos.cabeceraModal} style={{ borderTopLeftRadius: 8, borderTopRightRadius: 8 }}>
+        <div className={`${estilos.cabeceraModal} ${estilos.cabeceraModalRedondeada}`}>
           <span className={estilos.tituloModal}>Añadir Objeto al Inventario</span>
           <button
             type="button"
@@ -327,30 +326,18 @@ export const ModalAgregarObjeto: React.FC<ModalAgregarObjetoProps> = ({
         {tabActiva === "compendio" ? (
           <form
             onSubmit={manejarAgregarDesdeCompendio}
-            style={{
-              padding: 14,
-              display: "flex",
-              flexDirection: "column",
-              gap: 10,
-              overflow: "visible",
-              minHeight: 260
-            }}
+            className={estilos.formularioCompendioModal}
           >
             {/* Filtros de categoría */}
-            <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
+            <div className={estilos.filaFiltrosCategoria}>
               {CATEGORIAS_FILTRO.map((filtro) => (
                 <button
                   key={filtro.id}
                   type="button"
                   onClick={() => setFiltroTipo(filtro.id)}
-                  className={estilos.neoButton}
-                  style={{
-                    fontSize: 9.5,
-                    padding: "3px 8px",
-                    backgroundColor: filtroTipo === filtro.id ? "#1e293b" : "transparent",
-                    borderColor: filtroTipo === filtro.id ? "#818cf8" : "rgba(148, 163, 184, 0.12)",
-                    color: filtroTipo === filtro.id ? "#ffffff" : "#94a3b8"
-                  }}
+                  className={`${estilos.neoButton} ${estilos.chipFiltroCategoria} ${
+                    filtroTipo === filtro.id ? estilos.chipFiltroCategoriaActivo : ""
+                  }`}
                 >
                   {filtro.etiqueta}
                 </button>
@@ -391,10 +378,7 @@ export const ModalAgregarObjeto: React.FC<ModalAgregarObjetoProps> = ({
                       key={opc.clave}
                       type="button"
                       className={`${estilos.botonSelectorDestino} ${activo ? estilos.botonSelectorDestinoActivo : ""}`}
-                      style={{
-                        borderColor: activo ? opc.color : undefined,
-                        backgroundColor: activo ? `${opc.color}15` : undefined
-                      }}
+                      data-caja={opc.clave}
                       onClick={() => setContenedorDestino(opc.clave)}
                     >
                       <div className={estilos.iconoSelectorDestino}>
@@ -404,7 +388,7 @@ export const ModalAgregarObjeto: React.FC<ModalAgregarObjetoProps> = ({
                         {opc.clave === "almacen" && <Package size={13} color={opc.color} />}
                       </div>
                       <div className={estilos.infoSelectorDestino}>
-                        <span className={estilos.nombreSelectorDestino} style={{ color: activo ? opc.color : "#cbd5e1" }}>
+                        <span className={estilos.nombreSelectorDestino}>
                           {opc.nombre}
                         </span>
                         <span className={estilos.subtituloSelectorDestino}>
@@ -420,8 +404,8 @@ export const ModalAgregarObjeto: React.FC<ModalAgregarObjetoProps> = ({
             {/* Vista Previa del Objeto Seleccionado */}
             {objetoSeleccionado ? (
               <div className={estilos.cajaPreviewObjeto}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <span style={{ fontSize: 13, fontWeight: 800, color: "#f1f5f9" }}>
+                <div className={estilos.cabeceraPreviewObjeto}>
+                  <span className={estilos.nombrePreviewObjeto}>
                     {objetoSeleccionado.nombre}
                   </span>
                   <span className={`${estilos.badgeMeta} ${estilos.rarezaComun}`}>
@@ -429,23 +413,23 @@ export const ModalAgregarObjeto: React.FC<ModalAgregarObjetoProps> = ({
                   </span>
                 </div>
 
-                <div style={{ display: "flex", gap: 10, fontSize: 10, color: "#94a3b8", alignItems: "center", flexWrap: "wrap" }}>
+                <div className={estilos.filaMetadatosPreview}>
                   <span>
-                    Peso: <strong style={{ color: "#f1f5f9" }}>{objetoSeleccionado.pesoLb || 0} lb</strong>
+                    Peso: <strong className={estilos.textoBlancoResaltado}>{objetoSeleccionado.pesoLb || 0} lb</strong>
                     {objetoSeleccionado.quantity && objetoSeleccionado.quantity > 1 && (
-                      <span style={{ color: "#38bdf8", marginLeft: 4 }}>
+                      <span className={estilos.textoPesoUnitario}>
                         ({objetoSeleccionado.pesoUnitario || Math.round(((objetoSeleccionado.pesoLb || 0) / objetoSeleccionado.quantity) * 1000) / 1000} lb c/u)
                       </span>
                     )}
                   </span>
-                  <span>Valor: <strong style={{ color: "#fbbf24" }}>{objetoSeleccionado.valorPO || 0} PO</strong></span>
+                  <span>Valor: <strong className={estilos.textoValorPO}>{objetoSeleccionado.valorPO || 0} PO</strong></span>
                   {objetoSeleccionado.quantity && objetoSeleccionado.quantity > 1 && (
-                    <span style={{ color: "#34d399", fontWeight: 700 }}>
+                    <span className={estilos.avisoLoteCantidad}>
                       Viene en lote de {objetoSeleccionado.quantity} uds (Se añadirán: {objetoSeleccionado.quantity * (cantidadCompendio || 1)})
                     </span>
                   )}
                   {objetoSeleccionado.sintonizacionRequerida && (
-                    <span style={{ color: "#c084fc", display: "inline-flex", alignItems: "center", gap: 3 }}>
+                    <span className={estilos.avisoSintonizacionReq}>
                       <Sparkles size={11} />
                       Requiere Sintonización
                     </span>
@@ -456,14 +440,14 @@ export const ModalAgregarObjeto: React.FC<ModalAgregarObjetoProps> = ({
                 {objetoSeleccionado.categoria === "armas" && (() => {
                   const armaObj = objetoSeleccionado as Arma;
                   return (
-                    <div style={{ display: "flex", gap: 4, flexWrap: "wrap", marginTop: 4 }}>
+                    <div className={estilos.filaBadgesPreview}>
                       {armaObj.tipoAtaque && (
                         <span className={`${estilos.badgeMeta} ${estilos.badgeArmaAtaque}`}>
                           {armaObj.tipoAtaque}
                         </span>
                       )}
                       {armaObj.dadoDano && (
-                        <span className={estilos.badgeMeta} style={{ backgroundColor: "rgba(239, 68, 68, 0.15)", color: "#fca5a5", borderColor: "rgba(239, 68, 68, 0.3)" }}>
+                        <span className={`${estilos.badgeMeta} ${estilos.badgeDanoArma}`}>
                           {armaObj.dadoDano} {armaObj.tipoDano}
                         </span>
                       )}
@@ -473,7 +457,7 @@ export const ModalAgregarObjeto: React.FC<ModalAgregarObjetoProps> = ({
                           contenido={`Inflige ${armaObj.danoVersatil} de daño al empuñarse con dos manos.`}
                           posicion="arriba"
                         >
-                          <span className={estilos.badgeMeta} style={{ backgroundColor: "rgba(99, 102, 241, 0.15)", color: "#c7d2fe", borderColor: "rgba(99, 102, 241, 0.3)", cursor: "help" }}>
+                          <span className={`${estilos.badgeMeta} ${estilos.badgeVersatil}`}>
                             Versátil ({armaObj.danoVersatil})
                           </span>
                         </TooltipUniversal>
@@ -486,7 +470,7 @@ export const ModalAgregarObjeto: React.FC<ModalAgregarObjetoProps> = ({
                             contenido={infoM.descripcion}
                             posicion="arriba"
                           >
-                            <span className={estilos.badgeMeta} style={{ backgroundColor: "rgba(168, 85, 247, 0.15)", color: "#d8b4fe", borderColor: "rgba(168, 85, 247, 0.3)", cursor: "help" }}>
+                            <span className={`${estilos.badgeMeta} ${estilos.badgeMaestria}`}>
                               Maestría: {armaObj.maestria}
                             </span>
                           </TooltipUniversal>
@@ -501,7 +485,7 @@ export const ModalAgregarObjeto: React.FC<ModalAgregarObjetoProps> = ({
                             contenido={infoP.descripcion}
                             posicion="arriba"
                           >
-                            <span className={estilos.badgeMeta} style={{ backgroundColor: "rgba(99, 102, 241, 0.15)", color: "#c7d2fe", borderColor: "rgba(99, 102, 241, 0.3)", cursor: "help" }}>
+                            <span className={`${estilos.badgeMeta} ${estilos.badgePropiedadArma}`}>
                               {p}
                             </span>
                           </TooltipUniversal>
@@ -514,8 +498,8 @@ export const ModalAgregarObjeto: React.FC<ModalAgregarObjetoProps> = ({
                 {objetoSeleccionado.categoria === "armaduras" && (() => {
                   const armaduraObj = objetoSeleccionado as Armadura;
                   return (
-                    <div style={{ display: "flex", gap: 4, flexWrap: "wrap", marginTop: 4 }}>
-                      <span className={estilos.badgeMeta} style={{ backgroundColor: "rgba(16, 185, 129, 0.15)", color: "#6ee7b7", borderColor: "rgba(16, 185, 129, 0.3)" }}>
+                    <div className={estilos.filaBadgesPreview}>
+                      <span className={`${estilos.badgeMeta} ${estilos.badgeCaArmadura}`}>
                         CA {armaduraObj.caBase}
                       </span>
                       {(() => {
@@ -529,7 +513,7 @@ export const ModalAgregarObjeto: React.FC<ModalAgregarObjetoProps> = ({
                         const infoDes = obtenerInfoPropiedadArmadura("bonoDestreza", bonoDestReal);
                         return (
                           <TooltipUniversal titulo={infoDes.titulo} contenido={infoDes.descripcion} posicion="arriba">
-                            <span className={estilos.badgeMeta} style={{ cursor: "help" }}>
+                            <span className={`${estilos.badgeMeta} ${estilos.badgeBonoDes}`}>
                               Bono Des: {bonoDestReal}
                             </span>
                           </TooltipUniversal>
@@ -539,7 +523,7 @@ export const ModalAgregarObjeto: React.FC<ModalAgregarObjetoProps> = ({
                         const infoFue = obtenerInfoPropiedadArmadura("requisitoFuerza", armaduraObj.requisitoFuerza);
                         return (
                           <TooltipUniversal titulo={infoFue.titulo} contenido={infoFue.descripcion} posicion="arriba">
-                            <span className={estilos.badgeMeta} style={{ backgroundColor: "rgba(245, 158, 11, 0.15)", color: "#fcd34d", borderColor: "rgba(245, 158, 11, 0.3)", cursor: "help" }}>
+                            <span className={`${estilos.badgeMeta} ${estilos.badgeRequisitoFuerza}`}>
                               FUE {armaduraObj.requisitoFuerza}
                             </span>
                           </TooltipUniversal>
@@ -549,7 +533,7 @@ export const ModalAgregarObjeto: React.FC<ModalAgregarObjetoProps> = ({
                         const infoSigilo = obtenerInfoPropiedadArmadura("desventajaSigilo");
                         return (
                           <TooltipUniversal titulo={infoSigilo.titulo} contenido={infoSigilo.descripcion} posicion="arriba">
-                            <span className={estilos.badgeMeta} style={{ backgroundColor: "rgba(239, 68, 68, 0.15)", color: "#fca5a5", borderColor: "rgba(239, 68, 68, 0.3)", cursor: "help" }}>
+                            <span className={`${estilos.badgeMeta} ${estilos.badgeDesventajaSigilo}`}>
                               Sigilo (Desv.)
                             </span>
                           </TooltipUniversal>
@@ -560,9 +544,9 @@ export const ModalAgregarObjeto: React.FC<ModalAgregarObjetoProps> = ({
                 })()}
 
                 {objetoSeleccionado.categoria === "escudos" && (
-                  <div style={{ display: "flex", gap: 4, flexWrap: "wrap", marginTop: 4 }}>
-                    <span className={estilos.badgeMeta} style={{ backgroundColor: "rgba(16, 185, 129, 0.15)", color: "#6ee7b7", borderColor: "rgba(16, 185, 129, 0.3)" }}>
-                      <Shield size={10} style={{ display: "inline", verticalAlign: "middle", marginRight: 2 }} />
+                  <div className={estilos.filaBadgesPreview}>
+                    <span className={`${estilos.badgeMeta} ${estilos.badgeCaArmadura}`}>
+                      <Shield size={10} className={estilos.iconoBadgeInline} />
                       CA +{(objetoSeleccionado as Escudo).caBase || 2}
                     </span>
                   </div>
@@ -576,15 +560,15 @@ export const ModalAgregarObjeto: React.FC<ModalAgregarObjetoProps> = ({
 
                 {/* Desglose de contenido del paquete */}
                 {objetoSeleccionado.contents && objetoSeleccionado.contents.length > 0 && (
-                  <div style={{ marginTop: 6, display: "flex", flexDirection: "column", gap: 4, backgroundColor: "rgba(16, 185, 129, 0.08)", padding: "8px 10px", borderRadius: 4, border: "1px solid rgba(16, 185, 129, 0.25)" }}>
-                    <span style={{ fontSize: 10.5, fontWeight: 700, color: "#34d399", display: "flex", alignItems: "center", gap: 4 }}>
+                  <div className={estilos.cajaPaqueteContenido}>
+                    <span className={estilos.tituloPaqueteContenido}>
                       <Package size={12} /> Paquete con {objetoSeleccionado.contents.length} objetos (Podrás abrirlo o desempaquetarlo desde tu inventario):
                     </span>
-                    <div style={{ maxHeight: 80, overflowY: "auto", display: "flex", flexDirection: "column", gap: 2 }}>
+                    <div className={estilos.listaItemsPaquete}>
                       {objetoSeleccionado.contents.map((item, idx) => (
-                        <div key={idx} style={{ fontSize: 10, color: "#cbd5e1", display: "flex", justifyContent: "space-between" }}>
+                        <div key={idx} className={estilos.filaItemPaquete}>
                           <span>• {item.item.name}</span>
-                          <strong style={{ color: "#38bdf8" }}>×{item.quantity * (cantidadCompendio || 1)}</strong>
+                          <strong className={estilos.multiplicadorItemPaquete}>×{item.quantity * (cantidadCompendio || 1)}</strong>
                         </div>
                       ))}
                     </div>
@@ -592,35 +576,30 @@ export const ModalAgregarObjeto: React.FC<ModalAgregarObjetoProps> = ({
                 )}
               </div>
             ) : (
-              <div style={{ fontSize: 11, color: "#64748b", fontStyle: "italic", textAlign: "center", padding: 8 }}>
+              <div className={estilos.avisoSeleccionarObjeto}>
                 Selecciona un objeto del buscador para ver sus detalles.
               </div>
             )}
 
             {/* Pie del Modal */}
-            <div className={estilos.pieModal} style={{ margin: "-14px", marginTop: 10, padding: "10px 14px" }}>
+            <div className={`${estilos.pieModal} ${estilos.pieModalAjustado}`}>
               <button type="button" className={estilos.neoButton} onClick={alCerrar}>
                 Cancelar
               </button>
               <button
                 type="submit"
-                className={estilos.neoButton}
+                className={`${estilos.neoButton} ${objetoSeleccionado ? estilos.botonConfirmarAgregarItemActivo : estilos.botonConfirmarAgregarItem}`}
                 disabled={!objetoSeleccionado}
-                style={{
-                  backgroundColor: objetoSeleccionado ? "#b45309" : "#1a2230",
-                  borderColor: objetoSeleccionado ? "#f59e0b" : "transparent",
-                  color: "#ffffff"
-                }}
               >
-                <Plus size={14} style={{ marginRight: 4 }} />
+                <Plus size={14} className={estilos.iconoBotonAccion} />
                 Añadir al Inventario
               </button>
             </div>
           </form>
         ) : (
-          <form onSubmit={manejarCrearOtrasPosesiones} style={{ padding: 14, display: "flex", flexDirection: "column", gap: 10 }}>
-            <div style={{ fontSize: 11, color: "#94a3b8", lineHeight: 1.4, backgroundColor: "rgba(15, 23, 42, 0.6)", padding: "8px 10px", borderRadius: 4, border: "1px solid rgba(148, 163, 184, 0.12)", display: "flex", alignItems: "flex-start", gap: 6 }}>
-              <FileText size={14} color="#38bdf8" style={{ flexShrink: 0, marginTop: 1 }} />
+          <form onSubmit={manejarCrearOtrasPosesiones} className={estilos.formularioPosesionesModal}>
+            <div className={estilos.bannerInformativoPosesiones}>
+              <FileText size={14} color="#38bdf8" className={estilos.iconoBannerPosesiones} />
               <span>Anota rápidamente pertenencias, llaves, cartas, gemas u objetos varios. Podrás configurar estadísticas detalladas más adelante desde el creador Homebrew.</span>
             </div>
 
@@ -639,7 +618,7 @@ export const ModalAgregarObjeto: React.FC<ModalAgregarObjetoProps> = ({
             </div>
 
             {/* Cantidad y Peso */}
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+            <div className={estilos.gridDosColumnasPosesion}>
               <div className={estilos.campoFormulario}>
                 <label className={estilos.labelFormulario}>Cantidad</label>
                 <input
@@ -676,10 +655,7 @@ export const ModalAgregarObjeto: React.FC<ModalAgregarObjetoProps> = ({
                       key={opc.clave}
                       type="button"
                       className={`${estilos.botonSelectorDestino} ${activo ? estilos.botonSelectorDestinoActivo : ""}`}
-                      style={{
-                        borderColor: activo ? opc.color : undefined,
-                        backgroundColor: activo ? `${opc.color}15` : undefined
-                      }}
+                      data-caja={opc.clave}
                       onClick={() => setContenedorDestino(opc.clave)}
                     >
                       <div className={estilos.iconoSelectorDestino}>
@@ -689,7 +665,7 @@ export const ModalAgregarObjeto: React.FC<ModalAgregarObjetoProps> = ({
                         {opc.clave === "almacen" && <Package size={13} color={opc.color} />}
                       </div>
                       <div className={estilos.infoSelectorDestino}>
-                        <span className={estilos.nombreSelectorDestino} style={{ color: activo ? opc.color : "#cbd5e1" }}>
+                        <span className={estilos.nombreSelectorDestino}>
                           {opc.nombre}
                         </span>
                         <span className={estilos.subtituloSelectorDestino}>
@@ -706,8 +682,7 @@ export const ModalAgregarObjeto: React.FC<ModalAgregarObjetoProps> = ({
             <div className={estilos.campoFormulario}>
               <label className={estilos.labelFormulario}>Notas o Descripción (Opcional)</label>
               <textarea
-                className={estilos.inputFormulario}
-                style={{ height: 60, resize: "none" }}
+                className={`${estilos.inputFormulario} ${estilos.textareaNotasPosesion}`}
                 value={notasPosesion}
                 onChange={(e) => setNotasPosesion(e.target.value)}
                 placeholder="Notas de dónde se encontró, pistas, uso, etc..."
@@ -716,21 +691,16 @@ export const ModalAgregarObjeto: React.FC<ModalAgregarObjetoProps> = ({
             </div>
 
             {/* Pie del Modal */}
-            <div className={estilos.pieModal} style={{ margin: "-14px", marginTop: 10, padding: "10px 14px" }}>
+            <div className={`${estilos.pieModal} ${estilos.pieModalAjustado}`}>
               <button type="button" className={estilos.neoButton} onClick={alCerrar}>
                 Cancelar
               </button>
               <button
                 type="submit"
-                className={estilos.neoButton}
+                className={`${estilos.neoButton} ${nombrePosesion.trim() ? estilos.botonConfirmarAgregarItemActivo : estilos.botonConfirmarAgregarItem}`}
                 disabled={!nombrePosesion.trim()}
-                style={{
-                  backgroundColor: nombrePosesion.trim() ? "#b45309" : "#1a2230",
-                  borderColor: nombrePosesion.trim() ? "#f59e0b" : "transparent",
-                  color: "#ffffff"
-                }}
               >
-                <Plus size={14} style={{ marginRight: 4 }} />
+                <Plus size={14} className={estilos.iconoBotonAccion} />
                 Añadir a Posesiones
               </button>
             </div>

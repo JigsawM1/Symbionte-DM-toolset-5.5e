@@ -205,7 +205,7 @@ export const ListaHomebrew: React.FC<Props> = ({
       </div>
 
       {/* BUSCADOR Y ORDENAMIENTO EN EL PANEL */}
-      <div className={estilos.cajaBuscadorHomebrew} style={{ display: "flex", gap: "6px", alignItems: "center" }}>
+      <div className={`${estilos.cajaBuscadorHomebrew} u-items-center`}>
         <input
           type="text"
           value={filtroBusqueda}
@@ -218,7 +218,6 @@ export const ListaHomebrew: React.FC<Props> = ({
               : "objetos"
           }...`}
           className={estilos.inputBuscadorHomebrew}
-          style={{ flex: 1 }}
         />
         {filtroBusqueda && (
           <button
@@ -229,7 +228,7 @@ export const ListaHomebrew: React.FC<Props> = ({
             Limpiar
           </button>
         )}
-        <div style={{ minWidth: "165px" }}>
+        <div className={estilos.contenedorSelectorOrden}>
           <SelectorDesplegable
             valor={criterioOrden}
             alCambiar={(val) => setCriterioOrden(val as typeof criterioOrden)}
@@ -302,11 +301,10 @@ export const ListaHomebrew: React.FC<Props> = ({
                 </div>
               ))}
               {monstruosHomebrew.length > limiteVista && (
-                <div style={{ textAlign: "center", padding: "12px 0" }}>
+                <div className={estilos.contenedorMostrarMas}>
                   <button
                     onClick={() => setLimiteVista((prev) => prev + LIMITE_PASO)}
-                    className={estilos.botonBuscadorLimpiarHomebrew}
-                    style={{ padding: "8px 20px", fontSize: "12px", width: "auto", cursor: "pointer" }}
+                    className={`${estilos.botonBuscadorLimpiarHomebrew} ${estilos.botonMostrarMas}`}
                     type="button"
                   >
                     Mostrar más criaturas ({monstruosHomebrew.length - limiteVista} restantes)...
@@ -368,11 +366,10 @@ export const ListaHomebrew: React.FC<Props> = ({
                 </div>
               ))}
               {hechizosHomebrew.length > limiteVista && (
-                <div style={{ textAlign: "center", padding: "12px 0" }}>
+                <div className={estilos.contenedorMostrarMas}>
                   <button
                     onClick={() => setLimiteVista((prev) => prev + LIMITE_PASO)}
-                    className={estilos.botonBuscadorLimpiarHomebrew}
-                    style={{ padding: "8px 20px", fontSize: "12px", width: "auto", cursor: "pointer" }}
+                    className={`${estilos.botonBuscadorLimpiarHomebrew} ${estilos.botonMostrarMas}`}
                     type="button"
                   >
                     Mostrar más hechizos ({hechizosHomebrew.length - limiteVista} restantes)...
@@ -397,23 +394,10 @@ export const ListaHomebrew: React.FC<Props> = ({
                     }}
                     title="Ver detalles del objeto mágico"
                   >
-                    <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
+                    <div className="u-flex u-items-center u-gap-sm u-flex-wrap">
                       <span className={estilos.itemNombre}>{o.nombre}</span>
                       {(o.esVeneno || o.tipoVeneno) && (
-                        <span
-                          style={{
-                            fontSize: "10px",
-                            fontWeight: "bold",
-                            padding: "1px 6px",
-                            borderRadius: "4px",
-                            background: "rgba(168, 85, 247, 0.18)",
-                            border: "1px solid rgba(168, 85, 247, 0.4)",
-                            color: "hsl(270, 95%, 80%)",
-                            display: "inline-flex",
-                            alignItems: "center",
-                            gap: "4px"
-                          }}
-                        >
+                        <span className={estilos.badgeVenenoObjeto}>
                           <Skull size={10} />
                           <span>VENENO {o.tipoVeneno ? `(${o.tipoVeneno})` : ""}</span>
                         </span>
@@ -470,11 +454,10 @@ export const ListaHomebrew: React.FC<Props> = ({
                 </div>
               ))}
               {objetosHomebrewFiltrados.length > limiteVista && (
-                <div style={{ textAlign: "center", padding: "12px 0" }}>
+                <div className={estilos.contenedorMostrarMas}>
                   <button
                     onClick={() => setLimiteVista((prev) => prev + LIMITE_PASO)}
-                    className={estilos.botonBuscadorLimpiarHomebrew}
-                    style={{ padding: "8px 20px", fontSize: "12px", width: "auto", cursor: "pointer" }}
+                    className={`${estilos.botonBuscadorLimpiarHomebrew} ${estilos.botonMostrarMas}`}
                     type="button"
                   >
                     Mostrar más objetos ({objetosHomebrewFiltrados.length - limiteVista} restantes)...
@@ -506,7 +489,7 @@ export const ListaHomebrew: React.FC<Props> = ({
                 <X size={15} />
               </button>
             </div>
-            <div className={estilos.cuerpoDetalle} style={{ padding: "12px", overflowY: "auto" }}>
+            <div className={`${estilos.cuerpoDetalle} ${estilos.cuerpoDetalleFicha}`}>
               <PanelFichaDnD
                 criaturaNombre={m.nombre}
                 plantilla={m}
@@ -553,49 +536,28 @@ export const ListaHomebrew: React.FC<Props> = ({
         const oRaw = objetosHomebrew.find((o) => o.id === idObjetoDetalle);
         if (!oRaw) return null;
         const objeto = oRaw as ObjetoJuego;
-        
-        const coloresRareza: Record<string, string> = {
-          "Común": "hsl(0, 0%, 75%)",
-          "Poco Común": "hsl(120, 60%, 45%)",
-          "Raro": "hsl(210, 85%, 50%)",
-          "Muy Raro": "hsl(280, 75%, 60%)",
-          "Legendario": "hsl(32, 95%, 50%)",
-          "Artefacto": "hsl(0, 75%, 40%)"
-        };
 
         return (
           <div className={estilos.panelDetalleOverlay}>
             <div className={estilos.cabeceraDetalle}>
-              <div className={estilos.cabeceraDetalleIzquierda} style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+              <div className={`${estilos.cabeceraDetalleIzquierda} u-flex u-items-center u-gap-md`}>
                 {historialDetalle.length > 0 && (
                   <button
                     onClick={navegarAtras}
-                    style={{
-                      background: "rgba(255,255,255,0.08)",
-                      border: "1px solid rgba(255,255,255,0.15)",
-                      color: "var(--color-texto-principal)",
-                      cursor: "pointer",
-                      padding: "4px 10px",
-                      borderRadius: "6px",
-                      display: "flex",
-                      alignItems: "center",
-                      fontSize: "12px",
-                      fontWeight: "bold",
-                      gap: "4px"
-                    }}
+                    className={estilos.botonNavegarAtras}
                     type="button"
                   >
                     ⬅ Atrás
                   </button>
                 )}
-                <div style={{ display: "flex", flexDirection: "row", gap: "4px" }}>
+                <div className="u-flex u-gap-xs">
                   <span className={estilos.objetoNivelOverlay}>
                     {DICCIONARIO_CATEGORIAS_EQUIPO[objeto.categoria]?.etiqueta || objeto.categoria} {objeto.subcategoria ? `| ${objeto.subcategoria}` : ""}
                   </span>
                   <span className={estilos.nombreHechizoOverlay}>{objeto.nombre}</span>
                 </div>
               </div>
-              <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+              <div className="u-flex u-items-center u-gap-sm">
                 <button
                   onClick={() => {
                     const targetObj = oRaw;
@@ -603,19 +565,7 @@ export const ListaHomebrew: React.FC<Props> = ({
                     setHistorialDetalle([]);
                     funcionPlantilla(targetObj);
                   }}
-                  style={{
-                    background: "rgba(0, 245, 212, 0.08)",
-                    border: "1px solid var(--color-borde-cian)",
-                    color: "var(--color-borde-cian)",
-                    cursor: "pointer",
-                    padding: "4px 10px",
-                    borderRadius: "6px",
-                    display: "flex",
-                    alignItems: "center",
-                    fontSize: "12px",
-                    fontWeight: "bold",
-                    gap: "6px"
-                  }}
+                  className={estilos.botonPlantillaDetalle}
                   type="button"
                   title="Usar como plantilla para crear un nuevo objeto"
                 >
@@ -641,7 +591,10 @@ export const ListaHomebrew: React.FC<Props> = ({
                   <Sparkles size={12} className={estilos.iconoDetalle} />
                   <div>
                     <div className={estilos.metaLabel}>RAREZA</div>
-                    <div className={estilos.metaValor} style={{ color: coloresRareza[objeto.rareza] || "var(--color-texto-principal)", fontWeight: "bold" }}>
+                    <div
+                      className={`${estilos.metaValor} ${estilos.metaValorRareza}`}
+                      data-rareza={objeto.rareza || "Común"}
+                    >
                       {objeto.rareza || "Común"}
                     </div>
                   </div>
@@ -668,10 +621,10 @@ export const ListaHomebrew: React.FC<Props> = ({
                 )}
                 {objeto.tipoVeneno && (
                   <div className={estilos.metaItem}>
-                    <Skull size={12} className={estilos.iconoDetalle} style={{ color: "hsl(270, 95%, 80%)" }} />
+                    <Skull size={12} className={`${estilos.iconoDetalle} ${estilos.textoPurpuraVeneno}`} />
                     <div>
                       <div className={estilos.metaLabel}>EXPOSICIÓN</div>
-                      <div className={estilos.metaValor} style={{ color: "hsl(270, 95%, 80%)", fontWeight: "bold" }}>
+                      <div className={`${estilos.metaValor} ${estilos.textoPurpuraVeneno}`}>
                         {objeto.tipoVeneno}
                       </div>
                     </div>
@@ -693,12 +646,12 @@ export const ListaHomebrew: React.FC<Props> = ({
               {/* Fila de propiedades visuales adicionales */}
               <div className={estilos.filaPropiedadesEspeciales}>
                 {objeto.esMagico && (
-                  <span className={estilos.chipConcentracion} style={{ backgroundColor: "rgba(0, 245, 212, 0.12)", color: "var(--color-borde-cian)", border: "1px solid var(--color-borde-cian)" }}>
+                  <span className={`${estilos.chipConcentracion} ${estilos.chipConcentracionMagico}`}>
                      MÁGICO
                   </span>
                 )}
                 {(objeto.esVeneno || objeto.tipoVeneno) && (
-                  <span className={estilos.chipConcentracion} style={{ backgroundColor: "rgba(168, 85, 247, 0.18)", color: "hsl(270, 95%, 85%)", border: "1px solid rgba(168, 85, 247, 0.5)" }}>
+                  <span className={`${estilos.chipConcentracion} ${estilos.chipConcentracionVeneno}`}>
                      VENENO {objeto.tipoVeneno ? `(${objeto.tipoVeneno.toUpperCase()})` : ""}
                   </span>
                 )}
@@ -730,7 +683,7 @@ export const ListaHomebrew: React.FC<Props> = ({
                       {arma.maestria && (
                         <div className={estilos.itemMecanica}>
                           <span className={estilos.textoEtiquetaMecanica}>Maestría: </span>
-                          <strong className={estilos.valorMecanicaCd} style={{ color: "var(--color-advertencia)" }}>
+                          <strong className={`${estilos.valorMecanicaCd} ${estilos.textoAdvertencia}`}>
                             {arma.maestria}
                           </strong>
                         </div>
@@ -760,7 +713,7 @@ export const ListaHomebrew: React.FC<Props> = ({
                                     const found = objetosHomebrew.find(o => o.id === idDestino || normalizarTexto(o.nombre) === normalizarTexto(arma.ammunition!.name));
                                     if (found) navegarAObjeto(found.id);
                                   }}
-                                  style={{ color: "var(--color-borde-cian)", cursor: "pointer", textDecoration: "underline" }}
+                                  className={estilos.enlaceObjetoCompendio}
                                 >
                                   {arma.ammunition.name}
                                 </strong>
@@ -779,8 +732,8 @@ export const ListaHomebrew: React.FC<Props> = ({
               {(objeto.categoria === "armaduras" || objeto.categoria === "escudos") && (() => {
                 const armadura = objeto as Armadura | Escudo;
                 return (
-                  <div className={estilos.cajaMecanicasCombateObjeto} style={{ borderColor: "rgba(255, 165, 0, 0.25)" }}>
-                    <div className={estilos.tituloMecanicasObjeto} style={{ color: "var(--color-advertencia)" }}>
+                  <div className={`${estilos.cajaMecanicasCombateObjeto} ${estilos.cajaMecanicasArmadura}`}>
+                    <div className={`${estilos.tituloMecanicasObjeto} ${estilos.tituloMecanicasArmadura}`}>
                       Protección y Sigilo
                     </div>
                     <div className={estilos.gridMecanicas}>
@@ -799,7 +752,10 @@ export const ListaHomebrew: React.FC<Props> = ({
                       {"desventajaSigilo" in armadura && (
                         <div className={estilos.itemMecanica}>
                           <span className={estilos.textoEtiquetaMecanica}>Desv. Sigilo: </span>
-                          <strong className={armadura.desventajaSigilo ? estilos.valorMecanicaSuperior : estilos.valorMecanicaCd} style={{ color: armadura.desventajaSigilo ? "var(--color-peligro)" : "var(--color-exito)" }}>
+                          <strong
+                            className={`${armadura.desventajaSigilo ? estilos.valorMecanicaSuperior : estilos.valorMecanicaCd} ${estilos.valorDesventajaSigilo}`}
+                            data-desventaja={armadura.desventajaSigilo ? "true" : "false"}
+                          >
                             {armadura.desventajaSigilo ? "Sí" : "No"}
                           </strong>
                         </div>
@@ -817,13 +773,13 @@ export const ListaHomebrew: React.FC<Props> = ({
 
               {/* MECÁNICAS Y EFECTOS DEL VENENO */}
               {(objeto.esVeneno || objeto.tipoVeneno || objeto.efectoVeneno) && (
-                <div className={estilos.cajaMecanicasCombateObjeto} style={{ borderColor: "rgba(168, 85, 247, 0.4)", background: "rgba(168, 85, 247, 0.05)" }}>
-                  <div className={estilos.tituloMecanicasObjeto} style={{ color: "hsl(270, 95%, 80%)", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "8px" }}>
-                    <span style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}>
+                <div className={`${estilos.cajaMecanicasCombateObjeto} ${estilos.cajaMecanicasVeneno}`}>
+                  <div className={`${estilos.tituloMecanicasObjeto} ${estilos.tituloMecanicasVeneno}`}>
+                    <span className="u-inline-flex u-items-center u-gap-xs">
                       <Skull size={14} />
                       <span>Propiedades y Mecánicas del Veneno</span>
                     </span>
-                    <div style={{ display: "flex", gap: "6px", alignItems: "center" }}>
+                    <div className="u-flex u-items-center u-gap-xs">
                       {(() => {
                         const textoCompleto = `${objeto.descripcion || ""} ${objeto.efectoVeneno || ""}`;
                         const matchDado = textoCompleto.match(/(\d+d\d+(?:\s*[+-]\s*\d+)?)/i);
@@ -835,19 +791,7 @@ export const ListaHomebrew: React.FC<Props> = ({
                                 const label = sanitizarEtiqueta(`Dano Veneno (${formulaDado}) - ${objeto.nombre}`);
                                 lanzarDadosTaleSpire(formulaDado, label);
                               }}
-                              style={{
-                                background: "rgba(239, 68, 68, 0.2)",
-                                border: "1px solid rgba(239, 68, 68, 0.55)",
-                                color: "#fca5a5",
-                                borderRadius: "4px",
-                                padding: "3px 9px",
-                                fontSize: "11px",
-                                fontWeight: "bold",
-                                cursor: "pointer",
-                                display: "flex",
-                                alignItems: "center",
-                                gap: "4px"
-                              }}
+                              className={estilos.botonTirarDanoVeneno}
                               type="button"
                               title={`Lanzar daño de veneno (${formulaDado}) en TaleSpire`}
                             >
@@ -865,15 +809,15 @@ export const ListaHomebrew: React.FC<Props> = ({
                     {objeto.tipoVeneno && (
                       <div className={estilos.itemMecanica}>
                         <span className={estilos.textoEtiquetaMecanica}>Tipo de Exposición: </span>
-                        <strong className={estilos.valorMecanicaDano} style={{ color: "hsl(270, 95%, 78%)" }}>
+                        <strong className={`${estilos.valorMecanicaDano} ${estilos.textoPurpuraVeneno}`}>
                           {objeto.tipoVeneno}
                         </strong>
                       </div>
                     )}
                     {objeto.efectoVeneno && (
-                      <div className={estilos.itemMecanica} style={{ gridColumn: "1 / -1" }}>
+                      <div className={`${estilos.itemMecanica} ${estilos.itemMecanicaFullGrid}`}>
                         <span className={estilos.textoEtiquetaMecanica}>Efecto Adicional: </span>
-                        <strong className={estilos.valorMecanicaCd} style={{ color: "var(--color-texto-principal)" }}>
+                        <strong className={`${estilos.valorMecanicaCd} ${estilos.textoTextoPrincipal}`}>
                           {objeto.efectoVeneno}
                         </strong>
                       </div>
@@ -884,8 +828,8 @@ export const ListaHomebrew: React.FC<Props> = ({
 
               {/* PROPIEDADES MÁGICAS Y NARRATIVAS COMUNES */}
               {(objeto.cargas || objeto.sintonizacionRequerida || (objeto.modificadorAtaqueDano !== undefined && objeto.modificadorAtaqueDano !== null)) && (
-                <div className={estilos.cajaMecanicasCombateObjeto} style={{ borderColor: "var(--color-borde-cian)" }}>
-                  <div className={estilos.tituloMecanicasObjeto} style={{ color: "var(--color-borde-cian)" }}>
+                <div className={`${estilos.cajaMecanicasCombateObjeto} ${estilos.cajaMecanicasMagicas}`}>
+                  <div className={`${estilos.tituloMecanicasObjeto} ${estilos.tituloMecanicasMagicas}`}>
                     Propiedades Mágicas y Narrativas
                   </div>
 
@@ -902,7 +846,7 @@ export const ListaHomebrew: React.FC<Props> = ({
                     {objeto.sintonizacionRequerida && (
                       <div className={estilos.itemMecanica}>
                         <span className={estilos.textoEtiquetaMecanica}>Sintonización: </span>
-                        <strong className={estilos.valorMecanicaCd} style={{ color: "var(--color-borde-cian)" }}>
+                        <strong className={`${estilos.valorMecanicaCd} ${estilos.textoCian}`}>
                           Requerida
                           {objeto.condicionSintonizacion && ` (${objeto.condicionSintonizacion})`}
                         </strong>
@@ -924,8 +868,8 @@ export const ListaHomebrew: React.FC<Props> = ({
                 if (!objeto.storage && cantidadItem === undefined) return null;
                 
                 return (
-                  <div className={estilos.cajaMecanicasCombateObjeto} style={{ borderColor: "rgba(0, 245, 212, 0.25)" }}>
-                    <div className={estilos.tituloMecanicasObjeto} style={{ color: "var(--color-borde-cian)" }}>
+                  <div className={`${estilos.cajaMecanicasCombateObjeto} ${estilos.cajaMecanicasMunicion}`}>
+                    <div className={`${estilos.tituloMecanicasObjeto} ${estilos.tituloMecanicasMunicion}`}>
                       Propiedades de Munición y Almacenamiento
                     </div>
                     <div className={estilos.gridMecanicas}>
@@ -948,7 +892,7 @@ export const ListaHomebrew: React.FC<Props> = ({
                                   const found = objetosHomebrew.find(o => o.id === idDestino || normalizarTexto(o.nombre) === normalizarTexto(objeto.storage!.name));
                                   if (found) navegarAObjeto(found.id);
                                 }}
-                                style={{ color: "var(--color-borde-cian)", cursor: "pointer", textDecoration: "underline" }}
+                                className={estilos.enlaceObjetoCompendio}
                               >
                                 {objeto.storage.name}
                               </strong>
@@ -981,11 +925,11 @@ export const ListaHomebrew: React.FC<Props> = ({
               {objeto.efectosPasivos && objeto.efectosPasivos.length > 0 && (
                 <div className={estilos.seccionDescripcionFichaMargenGrande}>
                   <div className={estilos.descripcionTituloFicha}>EFECTOS PASIVOS Y BONOS AUTOMÁTICOS</div>
-                  <div className={estilos.listaBonosMagicos} style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                  <div className={`${estilos.listaBonosMagicos} u-flex u-flex-col u-gap-xs`}>
                     {objeto.efectosPasivos.map((efecto, idx: number) => (
-                      <div key={idx} className={estilos.cajaBonoMagico} style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", gap: "2px", padding: "8px 12px" }}>
-                        <div style={{ display: "flex", justifyContent: "space-between", width: "100%" }}>
-                          <span className={estilos.textoEtiquetaMecanica} style={{ color: "var(--color-borde-cian)" }}>
+                      <div key={idx} className={`${estilos.cajaBonoMagico} ${estilos.cajaBonoMagicoVertical}`}>
+                        <div className="u-flex u-justify-between u-w-full">
+                          <span className={`${estilos.textoEtiquetaMecanica} ${estilos.textoCian}`}>
                             [{efecto.tipo || "efecto"}] <strong>{efecto.bono}</strong>
                           </span>
                           {efecto.valor !== undefined && efecto.valor !== "" && (
@@ -995,7 +939,7 @@ export const ListaHomebrew: React.FC<Props> = ({
                           )}
                         </div>
                         {efecto.descripcion && (
-                          <span style={{ fontSize: "11px", color: "var(--color-texto-secundario)", marginTop: "2px" }}>
+                          <span className={estilos.textoDescBono}>
                             {efecto.descripcion}
                           </span>
                         )}
@@ -1009,18 +953,18 @@ export const ListaHomebrew: React.FC<Props> = ({
               {objeto.hechizosVinculados && objeto.hechizosVinculados.length > 0 && (
                 <div className={estilos.seccionDescripcionFichaMargenGrande}>
                   <div className={estilos.descripcionTituloFicha}>HECHIZOS VINCULADOS AL OBJETO</div>
-                  <div className={estilos.listaBonosMagicos} style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                  <div className={`${estilos.listaBonosMagicos} u-flex u-flex-col u-gap-xs`}>
                     {objeto.hechizosVinculados.map((hechizo: { nombre: string; cd?: number; bonoAtaque?: number; costeCargas?: number }, idx: number) => (
-                      <div key={idx} className={estilos.cajaBonoMagico} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 12px" }}>
+                      <div key={idx} className={`${estilos.cajaBonoMagico} ${estilos.cajaHechizoVinculado}`}>
                         <div>
-                          <strong style={{ color: "var(--color-texto-principal)" }}>{hechizo.nombre}</strong>
-                          <div style={{ display: "flex", gap: "8px", fontSize: "10px", color: "var(--color-texto-secundario)", marginTop: "2px" }}>
+                          <strong className={estilos.nombreHechizoVinculado}>{hechizo.nombre}</strong>
+                          <div className={estilos.subDetallesHechizoVinculado}>
                             {hechizo.cd !== undefined && <span>CD {hechizo.cd}</span>}
                             {hechizo.bonoAtaque !== undefined && <span>Ataque: +{hechizo.bonoAtaque}</span>}
                           </div>
                         </div>
                         {hechizo.costeCargas !== undefined && (
-                          <span style={{ fontSize: "11px", fontWeight: "bold", background: "rgba(0,0,0,0.2)", padding: "2px 6px", borderRadius: "4px", color: "var(--color-advertencia)" }}>
+                          <span className={estilos.badgeCosteCargas}>
                             Coste: {hechizo.costeCargas} carga{hechizo.costeCargas > 1 ? "s" : ""}
                           </span>
                         )}
@@ -1034,19 +978,19 @@ export const ListaHomebrew: React.FC<Props> = ({
               {objeto.artesania && (objeto.artesania.tallerRequerido || (objeto.artesania.componentes && objeto.artesania.componentes.length > 0)) && (
                 <div className={estilos.seccionDescripcionFichaMargenGrande}>
                   <div className={estilos.descripcionTituloFicha}>RECETA DE ARTESANÍA Y CRAFTEO</div>
-                  <div className={estilos.cajaMecanicasCombateObjeto} style={{ borderColor: "rgba(168, 85, 247, 0.25)", margin: 0 }}>
+                  <div className={`${estilos.cajaMecanicasCombateObjeto} ${estilos.cajaMecanicasArtesania}`}>
                     {objeto.artesania.tallerRequerido && (
-                      <div style={{ marginBottom: "8px" }}>
+                      <div className="u-mb-xs">
                         <span className={estilos.textoEtiquetaMecanica}>Taller de Trabajo: </span>
-                        <strong style={{ color: "var(--color-texto-principal)" }}>{objeto.artesania.tallerRequerido}</strong>
+                        <strong className={estilos.textoTallerPrincipal}>{objeto.artesania.tallerRequerido}</strong>
                       </div>
                     )}
                     {objeto.artesania.componentes && objeto.artesania.componentes.length > 0 && (
                       <div>
-                        <span className={estilos.textoEtiquetaMecanica} style={{ display: "block", marginBottom: "4px" }}>Materiales y Componentes:</span>
-                        <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
+                        <span className={`${estilos.textoEtiquetaMecanica} ${estilos.labelComponentesBlock}`}>Materiales y Componentes:</span>
+                        <div className="u-flex u-flex-wrap u-gap-xs">
                           {objeto.artesania.componentes.map((comp: string, idx: number) => (
-                            <span key={idx} style={{ fontSize: "11px", background: "rgba(168, 85, 247, 0.15)", border: "1px solid hsl(270, 70%, 50%)", color: "hsl(270, 100%, 85%)", padding: "2px 6px", borderRadius: "4px" }}>
+                            <span key={idx} className={estilos.chipComponenteArtesania}>
                               {comp}
                             </span>
                           ))}
@@ -1061,14 +1005,14 @@ export const ListaHomebrew: React.FC<Props> = ({
               {objeto.contents && objeto.contents.length > 0 && (
                 <div className={estilos.seccionDescripcionFichaMargenGrande}>
                   <div className={estilos.descripcionTituloFicha}>CONTENIDO DEL PAQUETE</div>
-                  <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                  <div className="u-flex u-flex-col u-gap-xs">
                     {objeto.contents.map((c: { item: { index: string; name: string }; quantity: number }, idx: number) => {
                       const idDestino = c.item.index;
                       const existeDestino = objetosHomebrew.some(o => o.id === idDestino || normalizarTexto(o.nombre) === normalizarTexto(c.item.name));
                       
                       return (
-                        <div key={idx} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 12px", background: "rgba(255,255,255,0.04)", borderRadius: "6px", border: "1px solid rgba(255,255,255,0.06)" }}>
-                          <span style={{ fontSize: "12px", color: "var(--color-texto-principal)" }}>
+                        <div key={idx} className={estilos.filaContenidoPaquete}>
+                          <span className={estilos.textoItemPaquete}>
                             {c.quantity}x {c.item.name}
                           </span>
                           {existeDestino ? (
@@ -1078,21 +1022,12 @@ export const ListaHomebrew: React.FC<Props> = ({
                                 const found = objetosHomebrew.find(o => o.id === idDestino || normalizarTexto(o.nombre) === normalizarTexto(c.item.name));
                                 if (found) navegarAObjeto(found.id);
                               }}
-                              style={{
-                                background: "rgba(0, 245, 212, 0.12)",
-                                border: "1px solid var(--color-borde-cian)",
-                                color: "var(--color-borde-cian)",
-                                padding: "2px 8px",
-                                borderRadius: "4px",
-                                fontSize: "10px",
-                                cursor: "pointer",
-                                fontWeight: "bold"
-                              }}
+                              className={estilos.botonVerObjetoContenido}
                             >
                               Ver Objeto 
                             </button>
                           ) : (
-                            <span style={{ fontSize: "10px", color: "var(--color-texto-secundario)", fontStyle: "italic" }}>
+                            <span className={estilos.textoNoDisponible}>
                               No disponible
                             </span>
                           )}
@@ -1107,7 +1042,7 @@ export const ListaHomebrew: React.FC<Props> = ({
               {objeto.craft && objeto.craft.length > 0 && (
                 <div className={estilos.seccionDescripcionFichaMargenGrande}>
                   <div className={estilos.descripcionTituloFicha}>OBJETOS QUE PUEDE ELABORAR</div>
-                  <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
+                  <div className="u-flex u-flex-wrap u-gap-xs">
                     {objeto.craft.map((c: { index: string; name: string }, idx: number) => {
                       const idDestino = c.index;
                       const existeDestino = objetosHomebrew.some(o => o.id === idDestino || normalizarTexto(o.nombre) === normalizarTexto(c.name));
@@ -1121,19 +1056,7 @@ export const ListaHomebrew: React.FC<Props> = ({
                               const found = objetosHomebrew.find(o => o.id === idDestino || normalizarTexto(o.nombre) === normalizarTexto(c.name));
                               if (found) navegarAObjeto(found.id);
                             }}
-                            style={{
-                              fontSize: "11px",
-                              background: "rgba(168, 85, 247, 0.15)",
-                              border: "1px solid hsl(270, 70%, 50%)",
-                              color: "hsl(270, 100%, 85%)",
-                              padding: "4px 8px",
-                              borderRadius: "4px",
-                              cursor: "pointer",
-                              fontWeight: "bold",
-                              display: "flex",
-                              alignItems: "center",
-                              gap: "4px"
-                            }}
+                            className={estilos.botonCraftDisponible}
                           >
                              {c.name}
                           </button>
@@ -1143,14 +1066,7 @@ export const ListaHomebrew: React.FC<Props> = ({
                       return (
                         <span
                           key={idx}
-                          style={{
-                            fontSize: "11px",
-                            background: "rgba(255,255,255,0.05)",
-                            border: "1px solid rgba(255,255,255,0.1)",
-                            color: "var(--color-texto-secundario)",
-                            padding: "4px 8px",
-                            borderRadius: "4px"
-                          }}
+                          className={estilos.chipCraftNoDisponible}
                         >
                           {c.name}
                         </span>

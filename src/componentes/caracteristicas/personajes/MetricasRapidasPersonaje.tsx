@@ -68,7 +68,7 @@ const MetricasRapidasPersonajeComponent: React.FC<MetricasRapidasPersonajeProps>
           <span className={estilos.etiquetaMetrica}>
             Clase Armadura
             {penalizacionArmadura?.sinCompetencia && (
-              <AlertTriangle size={10} color="#ef4444" style={{ marginLeft: 3, verticalAlign: "middle" }} />
+              <AlertTriangle size={10} color="#ef4444" className={estilos.alertaSinCompetenciaArmadura} />
             )}
           </span>
           <span className={estilos.valorMetrica}>{caTotal}</span>
@@ -79,7 +79,6 @@ const MetricasRapidasPersonajeComponent: React.FC<MetricasRapidasPersonajeProps>
       <div
         className={`${estilos.neoRaised} ${estilos.tarjetaMetrica} ${estilos.tarjetaMetricaInteractiva}`}
         onClick={alTirarIniciativa}
-        style={{ cursor: "pointer" }}
         title="Haz clic para tirar iniciativa en TaleSpire"
       >
         <Zap size={13} className={estilos.iconoMetricaDecorativo} />
@@ -114,7 +113,6 @@ const MetricasRapidasPersonajeComponent: React.FC<MetricasRapidasPersonajeProps>
       <div
         className={`${estilos.neoRaised} ${estilos.tarjetaMetrica} ${estilos.tarjetaMetricaInteractiva}`}
         onClick={alAlternarInspiracion}
-        style={{ cursor: "pointer" }}
         title={personaje.inspiracion ? "Inspiración Heroica activa. Clic para gastarla." : "Inspiración Heroica. Clic para activar."}
       >
         <span className={estilos.etiquetaMetrica}>Insp.</span>

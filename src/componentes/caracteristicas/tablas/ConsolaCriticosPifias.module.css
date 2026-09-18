@@ -92,6 +92,10 @@
   color: var(--color-texto-secundario);
   border-radius: 3px;
   transition: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
 }
 
 .botonToggleChico:hover {
@@ -322,4 +326,17 @@
   font-size: 10px;
   color: var(--color-texto-principal);
   line-height: 1.3;
+}
+
+.iconoChat {
+  margin-right: 4px;
+}
+
+.subtituloDiccionarioEspaciado {
+  margin-top: 10px;
+}
+
+.diccItemNumeroSevero {
+  background-color: #7b2cbf !important;
+  border-color: #a29bfe !important;
 }

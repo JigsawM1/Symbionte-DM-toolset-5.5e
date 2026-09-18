@@ -106,7 +106,7 @@ export const SeccionMochilaInventario: React.FC<SeccionMochilaInventarioProps> =
                     onClick={() => alAlternarSeccion(sub.id)}
                     title="Haz clic para colapsar o expandir (o arrastra aquí para mover)"
                   >
-                    <div className={estilos.tituloSubseccionMochila} style={{ color: sub.color }}>
+                    <div className={estilos.tituloSubseccionMochila} data-subseccion={sub.id}>
                       <span className={estilos.iconoChevronColapso}>
                         {abierta ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
                       </span>

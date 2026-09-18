@@ -2,6 +2,7 @@ import React from "react";
 import type { PersonajeJugador, Caracteristica, PersonalizacionCaracteristica } from "@/tipos";
 import { X, Info, Edit3 } from "lucide-react";
 import estilos from "./HojaPersonaje.module.css";
+import estilosModal from "./ModalDetalleCaracteristica.module.css";
 import { usarModalCaracteristica } from "./caracteristica/usarModalCaracteristica";
 import { PestanaInfoCaracteristica } from "./caracteristica/PestanaInfoCaracteristica";
 import { PestanaPersonalizarCaracteristica } from "./caracteristica/PestanaPersonalizarCaracteristica";
@@ -86,53 +87,27 @@ export const ModalDetalleCaracteristica: React.FC<ModalDetalleCaracteristicaProp
   return (
     <div className={estilos.overlayModal} onClick={alCerrar}>
       <div
-        className={`${estilos.modalContenedor} ${estilos.neoRaised}`}
+        className={`${estilos.modalContenedor} ${estilos.neoRaised} ${estilosModal.modalContenedorCaracteristica}`}
         onClick={(e) => e.stopPropagation()}
-        style={{ maxWidth: 480, width: "95%" }}
       >
         {/* Cabecera del Modal */}
-        <div className={estilos.cabeceraModal} style={{ paddingBottom: 10 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <div
-              style={{
-                width: 36,
-                height: 36,
-                borderRadius: 6,
-                backgroundColor: "#18202e",
-                border: "1px solid rgba(148, 163, 184, 0.2)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                color: "#cbd5e1",
-                fontWeight: 800,
-                fontSize: 12
-              }}
-            >
+        <div className={`${estilos.cabeceraModal} ${estilosModal.cabeceraModalCaracteristica}`}>
+          <div className={estilosModal.infoCabeceraContenedor}>
+            <div className={estilosModal.abreviaturaBadge}>
               {abrev}
             </div>
             <div>
-              <h3 className={estilos.tituloModal} style={{ margin: 0 }}>
+              <h3 className={`${estilos.tituloModal} ${estilosModal.tituloModalCaracteristica}`}>
                 {tituloMostrar}
               </h3>
-              <span style={{ fontSize: 11, color: "#94a3b8" }}>
-                Puntuación: <strong style={{ color: "#f1f5f9" }}>{valorEfectivoPreview}</strong> (Mod:{" "}
-                <strong style={{ color: modTotalPreview >= 0 ? "#60a5fa" : "#fca5a5" }}>
+              <span className={estilosModal.subtextoPuntuacion}>
+                Puntuación: <strong className={estilosModal.valorEfectivoResaltado}>{valorEfectivoPreview}</strong> (Mod:{" "}
+                <strong className={modTotalPreview >= 0 ? estilosModal.modPreviewPositivo : estilosModal.modPreviewNegativo}>
                   {modTotalPreview >= 0 ? `+${modTotalPreview}` : modTotalPreview}
                 </strong>
                 )
                 {overrideValidoPreview !== null && (
-                  <span
-                    style={{
-                      marginLeft: 6,
-                      fontSize: 10,
-                      backgroundColor: "#201335",
-                      color: "#d8b4fe",
-                      border: "1px solid rgba(168, 85, 247, 0.3)",
-                      padding: "1px 5px",
-                      borderRadius: 4,
-                      fontWeight: 700
-                    }}
-                  >
+                  <span className={estilosModal.badgeOverrideFijo}>
                     Fijo: {overrideValidoPreview}
                   </span>
                 )}

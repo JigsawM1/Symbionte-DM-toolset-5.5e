@@ -160,7 +160,6 @@ export const SeccionHechizosObjetosMagicos: React.FC<SeccionHechizosObjetosMagic
                           ? "Cargas insuficientes para lanzar este conjuro"
                           : "Lanzar conjuro desde el objeto"
                       }
-                      style={estaBloqueadoPorArmadura ? { opacity: 0.5, cursor: "not-allowed" } : undefined}
                     >
                       <Sparkles size={11} />
                       <span>{coste > 0 ? `Lanzar (-${coste})` : "Lanzar"}</span>

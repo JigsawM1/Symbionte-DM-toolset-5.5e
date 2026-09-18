@@ -51,7 +51,7 @@ export const MenuEncuentros: React.FC = () => {
   return (
     <div className={estilosClases.grupoGuardar}>
       {/* Botón Guardar */}
-      <div style={{ position: "relative" }}>
+      <div className={estilosClases.contenedorBotonMenu}>
         <button 
           onClick={() => {
             setMostrarMenuGuardar(!mostrarMenuGuardar);
@@ -73,14 +73,14 @@ export const MenuEncuentros: React.FC = () => {
         </button>
 
         {mostrarMenuGuardar && (
-          <div className={estilosClases.menuDesplegable} style={{ width: "230px", left: 0 }}>
+          <div className={estilosClases.menuDesplegable}>
             <div className={estilosClases.cabeceraDesplegable}>GUARDAR ENCUENTRO ACTUAL</div>
             {colaIniciativa.length === 0 ? (
-              <div className={estilosClases.itemVacioAlerta}>
+               <div className={estilosClases.itemVacioAlerta}>
                 La iniciativa está vacía. Añade criaturas antes de guardar.
               </div>
             ) : (
-              <div style={{ padding: "8px", display: "flex", flexDirection: "column", gap: "6px" }}>
+              <div className={estilosClases.formularioGuardar}>
                 <input
                   type="text"
                   value={nombreEncuentroNuevo}
@@ -112,7 +112,7 @@ export const MenuEncuentros: React.FC = () => {
       </div>
 
       {/* Botón Cargar */}
-      <div style={{ position: "relative" }}>
+      <div className={estilosClases.contenedorBotonMenu}>
         <button
           onClick={() => {
             setMostrarMenuCargar(!mostrarMenuCargar);

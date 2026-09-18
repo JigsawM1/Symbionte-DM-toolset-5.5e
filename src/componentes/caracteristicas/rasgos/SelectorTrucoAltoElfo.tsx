@@ -138,14 +138,13 @@ export const SelectorTrucoAltoElfo: React.FC<SelectorTrucoAltoElfoProps> = ({
         autoComplete="off"
       />
 
-      <div style={{ position: "absolute", right: 4, top: "50%", transform: "translateY(-50%)", display: "flex", alignItems: "center", gap: 2 }}>
+      <div className={estilos.contenedorBotonesDerecha}>
         {texto && (
           <button
             type="button"
             onClick={limpiarCampo}
             tabIndex={-1}
-            className={estilos.botonDesplegable}
-            style={{ position: "static", transform: "none" }}
+            className={`${estilos.botonDesplegable} ${estilos.botonDesplegableEstatico}`}
             title="Borrar texto para buscar"
           >
             <X size={13} />
@@ -156,8 +155,7 @@ export const SelectorTrucoAltoElfo: React.FC<SelectorTrucoAltoElfoProps> = ({
           type="button"
           onClick={alternarDesplegable}
           tabIndex={-1}
-          className={`${estilos.botonDesplegable} ${estaAbierto ? estilos.botonDesplegableAbierto : ""}`}
-          style={{ position: "static", transform: "none" }}
+          className={`${estilos.botonDesplegable} ${estilos.botonDesplegableEstatico} ${estaAbierto ? estilos.botonDesplegableAbierto : ""}`}
           title="Mostrar todos los trucos de mago"
         >
           <ChevronDown size={14} />

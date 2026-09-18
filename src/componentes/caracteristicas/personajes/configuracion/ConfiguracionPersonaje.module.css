@@ -596,3 +596,350 @@
   font-weight: 700;
   cursor: pointer;
 }
+
+.botonCancelarVolver {
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  width: auto;
+  padding: 8px 14px;
+}
+
+/* TarjetaResumenCompetencia */
+.tarjetaCompetencia {
+  background-color: #0d121c;
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  border-radius: 6px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.cabeceraTarjetaCompetencia {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.tituloConIconoCompetencia {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.textoTituloCompetencia {
+  font-size: 12px;
+  color: #f1f5f9;
+}
+
+.descripcionCompetencia {
+  font-size: 11px;
+  color: #cbd5e1;
+  margin: 0;
+  line-height: 1.4;
+}
+
+/* SeccionMulticlase */
+.inputNivelClase {
+  height: 34px;
+  text-align: center;
+  font-weight: 700;
+  font-size: 12px;
+}
+
+.contenedorBotonEliminarClase {
+  padding-top: 16px;
+}
+
+.textoDadoGolpeInfo {
+  color: #38bdf8;
+}
+
+.textoSalvacionesInfo {
+  color: #a78bfa;
+}
+
+.textoMagiaInfo {
+  color: #fbbf24;
+}
+
+.textoPieMulticlase {
+  font-size: 11px;
+  color: #94a3b8;
+}
+
+/* PestanaIdentidad */
+.inputDetectarJugador {
+  flex: 1;
+}
+
+.inputNivelGlobal {
+  font-weight: 800;
+  color: #60a5fa;
+}
+
+.cabeceraCampoConBadge {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.labelFormularioSinMargen {
+  margin: 0;
+}
+
+.inputExperiencia {
+  font-weight: 700;
+}
+
+.puntoMiniatura {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #64748b;
+  flex-shrink: 0;
+}
+
+.indicadorMiniaturaDetectada .puntoMiniatura {
+  background-color: #10b981;
+}
+
+.indicadorMiniaturaAusente .puntoMiniatura {
+  background-color: #64748b;
+}
+
+.inputAvatarUrl {
+  flex-grow: 1;
+}
+
+/* PestanaCompetencias */
+.contenedorPestanaCompetencias {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.seccionHabilidadesConfig {
+  margin-top: 6px;
+}
+
+.cabeceraHabilidades {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.labelHabilidades {
+  margin: 0;
+  font-size: 11px;
+  color: #f1f5f9;
+}
+
+.textoAyudaHabilidades {
+  font-size: 10px;
+  color: #94a3b8;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.iconoSettingsInline {
+  display: inline-block;
+}
+
+.columnaTextoHabilidad {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.nombreHabilidad {
+  font-weight: 700;
+  color: #f1f5f9;
+}
+
+.etiquetaGradoHabilidad {
+  font-size: 9px;
+  font-weight: 600;
+  color: #64748b;
+}
+
+.etiquetaGradoHabilidad[data-grado="pericia"] {
+  color: #d8b4fe;
+}
+
+.etiquetaGradoHabilidad[data-grado="competente"] {
+  color: #93c5fd;
+}
+
+.etiquetaGradoHabilidad[data-grado="medio"] {
+  color: #86efac;
+}
+
+.etiquetaGradoHabilidad[data-grado="ninguna"] {
+  color: #64748b;
+}
+
+/* PestanaAtributos */
+.contenedorPestanaAtributos {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.textoBannerAtributos {
+  font-size: 11px;
+  color: #94a3b8;
+  line-height: 1.4;
+}
+
+.badgePBAtributos {
+  font-size: 11px;
+  background-color: #161f2e;
+  color: #cbd5e1;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.cabeceraTarjetaAtributo {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.infoAtributoContenedor {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tituloAtributo {
+  font-size: 13px;
+  color: #f1f5f9;
+  display: block;
+}
+
+.subtextoBaseAtributo {
+  font-size: 10px;
+  color: #94a3b8;
+}
+
+.valorBaseResaltado {
+  color: #cbd5e1;
+}
+
+.valorEfectivoScore {
+  font-size: 11px;
+  color: #94a3b8;
+  font-weight: 600;
+}
+
+.contenedorBadgesAtributo {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.textoUsoSalvacion {
+  font-size: 11px;
+  color: #cbd5e1;
+  line-height: 1.35;
+  display: block;
+}
+
+/* PestanaMagia */
+.tituloInterruptorMagia {
+  font-size: 13px;
+  font-weight: 700;
+  color: #f1f5f9;
+}
+
+.descripcionInterruptorMagia {
+  margin: 0;
+  font-size: 11px;
+  color: #94a3b8;
+}
+
+.checkboxInterruptorMagia {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+}
+
+.cabeceraClasesLanzadoras {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.tituloClasesLanzadoras {
+  font-size: 12px;
+  font-weight: 700;
+  color: #f1f5f9;
+  text-transform: uppercase;
+}
+
+.botonAnadirClaseLanzadora {
+  background-color: #1e293b;
+  border: 1px solid rgba(96, 165, 250, 0.3);
+  border-radius: 4px;
+  color: #93c5fd;
+  font-size: 11px;
+  padding: 3px 8px;
+  cursor: pointer;
+}
+
+.inputClaseLanzadora {
+  height: 32px;
+  font-size: 11px;
+}
+
+.inputNivelLanzador {
+  height: 32px;
+  font-size: 11px;
+  text-align: center;
+}
+
+.botonEliminarClaseLanzadora {
+  background: none;
+  border: none;
+  color: #ef4444;
+  cursor: pointer;
+  padding: 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tituloOverridesEspacios {
+  font-size: 12px;
+  font-weight: 700;
+  color: #f1f5f9;
+  text-transform: uppercase;
+}
+
+.descripcionOverridesEspacios {
+  margin: 0;
+  font-size: 11px;
+  color: #94a3b8;
+}
+
+.etiquetaNivelOverride {
+  font-size: 10px;
+  color: #94a3b8;
+  text-align: center;
+}
+
+.inputCantidadOverride {
+  height: 30px;
+  font-size: 11px;
+  padding: 4px;
+  text-align: center;
+}

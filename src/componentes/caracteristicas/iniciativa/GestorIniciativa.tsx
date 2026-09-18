@@ -273,7 +273,7 @@ export const GestorIniciativa: React.FC = () => {
       {colaIniciativa.length === 0 ? (
         <div className={estilosClases.estadoVacio}>
           <div className={estilosClases.cajaVacia}>
-            <Activity size={36} style={{ color: "var(--color-borde-cian)", marginBottom: "8px" }} />
+            <Activity size={36} className={estilosClases.iconoActividadVacio} />
             <span className={estilosClases.textoVacioTitulo}>COLA DE INICIATIVA VACÍA</span>
             <span className={estilosClases.textoVacioSub}>
               Selecciona criaturas físicas en la mesa de TaleSpire y pulsa "Añadir a la Iniciativa" o búscalas arriba.
@@ -286,7 +286,7 @@ export const GestorIniciativa: React.FC = () => {
               }}
               className={estilosClases.botonImportarGrande}
             >
-              <Activity size={12} style={{ marginRight: "4px" }} />
+              <Activity size={12} className={estilosClases.iconoBoton} />
               CARGAR INICIATIVA DE TALESPIRE
             </button>
           </div>
@@ -308,7 +308,7 @@ export const GestorIniciativa: React.FC = () => {
                 className={estilosClases.botonSincronizarTS}
                 title="Sincronizar e importar la iniciativa nativa de TaleSpire en caliente"
               >
-                <Activity size={10} style={{ marginRight: "4px" }} />
+                <Activity size={10} className={estilosClases.iconoBoton} />
                 SINCRONIZAR TALESPIRE
               </button>
             </div>
@@ -351,14 +351,14 @@ export const GestorIniciativa: React.FC = () => {
             <div className={estilosClases.panelDetalleInferior}>
               <div className={estilosClases.cabeceraDetalleFicha}>
                 <div className={estilosClases.tituloFichaIzquierda}>
-                  <FileText size={13} style={{ color: "var(--color-borde-cian)", marginRight: "5px" }} />
+                  <FileText size={13} className={estilosClases.iconoFicha} />
                   <span className={estilosClases.nombreFichaCabecera}>
                     {esNombreVacioODot(criaturaSeleccionadaDetalle.nombre) 
                       ? `[MINI SIN NOMBRE: ${criaturaSeleccionadaDetalle.id.slice(-4).toUpperCase()}]`
                       : criaturaSeleccionadaDetalle.nombre.toUpperCase()}
                   </span>
                   {plantillaDeDetalle && (
-                    <div style={{ display: "flex", alignItems: "center", gap: "2px", marginLeft: "4px" }}>
+                    <div className={estilosClases.contenedorDesvincular}>
                       <span className={estilosClases.subFichaAsociada}>
                         [ {plantillaDeDetalle.nombre.toUpperCase()} ]
                       </span>
@@ -374,7 +374,6 @@ export const GestorIniciativa: React.FC = () => {
                         }}
                         className={estilosClases.botonDesvincularMini}
                         title="Desvincular plantilla"
-                        style={{ display: "inline-flex" }}
                       >
                         <X size={10} />
                       </button>

@@ -59,7 +59,7 @@ export const CabeceraYRecursosMagicos: React.FC<CabeceraYRecursosMagicosProps> =
       {/* Banner de Bloqueo por Armadura sin Competencia */}
       {estaBloqueadoPorArmadura && (
         <div className={estilos.bannerBloqueoMagia}>
-          <AlertTriangle size={18} color="#ef4444" style={{ flexShrink: 0 }} />
+          <AlertTriangle size={18} color="#ef4444" className={estilos.iconoAlertaArmaduraShrink} />
           <div>
             <strong>Lanzamiento de Conjuros Bloqueado:</strong>
             {" "}Vistes {penalizacionArmadura?.armaduraNoCompetente || penalizacionArmadura?.escudoNoCompetente} sin competencia.
@@ -104,30 +104,20 @@ export const CabeceraYRecursosMagicos: React.FC<CabeceraYRecursosMagicosProps> =
             estaBloqueadoPorArmadura ? estilos.tarjetaAtaqueMagicoBloqueada : ""
           }`}
         >
-          <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+          <div className={estilos.cabeceraAtaqueMagicoFila}>
             {estaBloqueadoPorArmadura ? (
               <AlertTriangle size={11} color="#ef4444" />
             ) : (
               <Zap size={11} color="#a78bfa" />
             )}
             <span
-              className={estaBloqueadoPorArmadura ? undefined : estilos.estadisticaEtiquetaMorada}
-              style={
-                estaBloqueadoPorArmadura
-                  ? { color: "#f87171", fontSize: 10, fontWeight: 700, textTransform: "uppercase" }
-                  : undefined
-              }
+              className={estaBloqueadoPorArmadura ? estilos.etiquetaAtaqueMagicoBloqueado : estilos.estadisticaEtiquetaMorada}
             >
               Ataque Mágico
             </span>
           </div>
           <span
-            className={estaBloqueadoPorArmadura ? undefined : estilos.estadisticaNumeroMorado}
-            style={
-              estaBloqueadoPorArmadura
-                ? { color: "#fca5a5", fontSize: 18, fontWeight: 800 }
-                : undefined
-            }
+            className={estaBloqueadoPorArmadura ? estilos.valorAtaqueMagicoBloqueado : estilos.estadisticaNumeroMorado}
           >
             {bonoAtaqueMagico >= 0 ? `+${bonoAtaqueMagico}` : bonoAtaqueMagico}
           </span>

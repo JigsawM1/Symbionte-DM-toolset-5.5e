@@ -114,6 +114,7 @@ export function SelectorDesplegable<T extends string = string>({
           {opcionActual?.color && (
             <span
               className={estilos.indicadorColor}
+              // eslint-disable-next-line react/forbid-dom-props -- color de opción dinámico provisto por props
               style={{ backgroundColor: opcionActual.color }}
             />
           )}
@@ -144,6 +145,7 @@ export function SelectorDesplegable<T extends string = string>({
                     {op.color && (
                       <span
                         className={estilos.indicadorColor}
+                        // eslint-disable-next-line react/forbid-dom-props -- color de opción dinámico provisto por props
                         style={{ backgroundColor: op.color }}
                       />
                     )}

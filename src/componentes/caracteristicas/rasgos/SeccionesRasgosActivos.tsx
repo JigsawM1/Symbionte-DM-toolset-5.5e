@@ -68,10 +68,7 @@ export const SeccionesRasgosActivos: React.FC<SeccionesRasgosActivosProps> = ({
 
       {/* BLOQUE 1B: LEGADO / SUBRAZA (CAJA INDEPENDIENTE SIMILAR A SUBCLASES) */}
       {datosJerarquicos.subespecie && datosJerarquicos.subespecie.length > 0 && (
-        <div
-          className={estilos.seccionPrincipal}
-          style={{ borderLeft: "3px solid #10b981" }}
-        >
+        <div className={`${estilos.seccionPrincipal} ${estilos.seccionSubespecie}`}>
           <div
             className={estilos.cabeceraSeccionPrincipal}
             onClick={() => alternarColapso("subespecie")}
@@ -79,7 +76,7 @@ export const SeccionesRasgosActivos: React.FC<SeccionesRasgosActivosProps> = ({
             <div className={estilos.ladoIzquierdoCabecera}>
               {seccionesColapsadas.subespecie ? <ChevronRight size={15} /> : <ChevronDown size={15} />}
               <Sparkles size={13} color="#10b981" />
-              <span className={estilos.tituloSeccion} style={{ color: "#34d399" }}>
+              <span className={`${estilos.tituloSeccion} ${estilos.tituloSubespecie}`}>
                 {personajeActivo.especie?.toLowerCase().includes("dracon")
                   ? "Legado Dracónico"
                   : personajeActivo.especie?.toLowerCase().includes("tiefling")
@@ -131,8 +128,7 @@ export const SeccionesRasgosActivos: React.FC<SeccionesRasgosActivosProps> = ({
 
             <button
               type="button"
-              className={estilos.botonHerramienta}
-              style={{ padding: "2px 6px", fontSize: 10.5 }}
+              className={`${estilos.botonHerramienta} ${estilos.botonHerramientaCompacto}`}
               onClick={(e) => {
                 e.stopPropagation();
                 abrirModalCreacion("dote");
@@ -171,8 +167,7 @@ export const SeccionesRasgosActivos: React.FC<SeccionesRasgosActivosProps> = ({
 
           <button
             type="button"
-            className={`${estilos.botonHerramienta} ${estilos.botonHerramientaPrimario}`}
-            style={{ padding: "2px 6px", fontSize: 10.5 }}
+            className={`${estilos.botonHerramienta} ${estilos.botonHerramientaPrimario} ${estilos.botonHerramientaCompacto}`}
             onClick={(e) => {
               e.stopPropagation();
               abrirModalCreacion("personalizado");
@@ -187,7 +182,7 @@ export const SeccionesRasgosActivos: React.FC<SeccionesRasgosActivosProps> = ({
         {!seccionesColapsadas.personalizados && (
           <div className={estilos.cuerpoSeccionPrincipal}>
             {datosJerarquicos.personalizados.length === 0 ? (
-              <div style={{ textAlign: "center", padding: "12px 6px", color: "#64748b", fontSize: 11.5 }}>
+              <div className={estilos.avisoVacioHomebrew}>
                 No has añadido rasgos personalizados o homebrew. Pulsa en "+ Crear Homebrew" para agregar uno.
               </div>
             ) : (

@@ -115,3 +115,40 @@
 .cambioValorOrigen {
   color: var(--color-borde-cian) !important;
 }
+
+.iconoTitulo {
+  color: var(--color-oro);
+  margin-right: 4px;
+}
+
+.contenedorSelector {
+  width: 200px;
+}
+
+.columnaInfoMoneda {
+  display: flex;
+  flex-direction: column;
+}
+
+.nombreMoneda {
+  font-size: 11px;
+  font-weight: bold;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.moneda_PPT { color: #cdd6f4; }
+.moneda_PO { color: #f9e2af; }
+.moneda_PE { color: #a6e3a1; }
+.moneda_PP { color: #bac2de; }
+.moneda_PC { color: #fab387; }
+
+.iconoEstrella {
+  display: inline-block;
+}
+
+.descMoneda {
+  font-size: 8px;
+  color: var(--color-texto-secundario);
+}

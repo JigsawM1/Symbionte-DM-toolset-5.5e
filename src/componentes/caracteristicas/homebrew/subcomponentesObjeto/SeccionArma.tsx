@@ -69,7 +69,7 @@ export const SeccionArma: React.FC<Props> = ({
   estilos,
 }) => {
   return (
-    <div className={estilos.bloqueDinamicoForm} style={{ borderColor: "rgba(0, 245, 212, 0.25)" }}>
+    <div className={`${estilos.bloqueDinamicoForm} ${estilos.bloqueDinamicoArma}`}>
       <div className={estilos.tituloBloqueDinamico}>
         <span>PROPIEDADES DEL ARMA</span>
       </div>
@@ -86,7 +86,7 @@ export const SeccionArma: React.FC<Props> = ({
 
         <div className={estilos.campoForm}>
           <label className={estilos.labelForm}>Maestría de Arma:</label>
-          <div className={estilos.tooltipContenedor} style={{ width: "100%" }}>
+          <div className={`${estilos.tooltipContenedor} ${estilos.anchoCompleto}`}>
             <SelectorDesplegable
               valor={oMaestria}
               alCambiar={(val) => setOMaestria(val)}
@@ -127,7 +127,7 @@ export const SeccionArma: React.FC<Props> = ({
 
       {/* RANGOS DE ALCANCE */}
       {(oTipoAtaque === "A Distancia" || oPropiedadesArma.includes("Arrojadiza (Thrown)")) && (
-        <div className={estilos.filaDobleForm} style={{ backgroundColor: "rgba(255,255,255,0.02)", padding: "10px", borderRadius: "5px", border: "1px dashed rgba(255,255,255,0.06)" }}>
+        <div className={`${estilos.filaDobleForm} ${estilos.filaDobleArmaTranslúcida}`}>
           <div className={estilos.campoForm}>
             <label className={estilos.labelForm}>Alcance Normal (pies):</label>
             <input
@@ -152,23 +152,15 @@ export const SeccionArma: React.FC<Props> = ({
       )}
 
       {/* PROPIEDADES DE ARMA CON TOOLTIPS */}
-      <div style={{ marginTop: "6px" }}>
-        <div className={estilos.labelForm} style={{ marginBottom: "8px" }}>Propiedades del Arma:</div>
+      <div className={estilos.seccionPropiedadesArma}>
+        <div className={`${estilos.labelForm} u-mb-xs`}>Propiedades del Arma:</div>
         <div className={estilos.gridClasesDnd}>
           {PROPIEDADES_ARMAS_DND.map((prop) => {
             const estaChecked = oPropiedadesArma.includes(prop);
             return (
               <div key={prop} className={estilos.tooltipContenedor}>
                 <label 
-                  className={estilos.labelCheckbox}
-                  style={{
-                    backgroundColor: estaChecked ? "rgba(0, 245, 212, 0.08)" : "transparent",
-                    border: estaChecked ? "1px solid var(--color-borde-cian)" : "1px solid var(--color-borde-brutal)",
-                    padding: "5px 8px",
-                    borderRadius: "4px",
-                    cursor: "pointer",
-                    position: "relative"
-                  }}
+                  className={`${estilos.labelCheckbox} ${estilos.chipPropiedadArma} ${estaChecked ? estilos.chipPropiedadArmaActivo : ""}`}
                 >
                   <input
                     type="checkbox"
@@ -180,10 +172,9 @@ export const SeccionArma: React.FC<Props> = ({
                         setOPropiedadesArma((prev) => prev.filter((p) => p !== prop));
                       }
                     }}
-                    className={estilos.checkMini}
-                    style={{ display: "none" }}
+                    className={`${estilos.checkMini} ${estilos.checkOculto}`}
                   />
-                  <span style={{ fontSize: "11px", color: estaChecked ? "var(--color-texto-principal)" : "var(--color-texto-secundario)" }}>
+                  <span className={estaChecked ? estilos.textoChipActivo : estilos.textoChipInactivo}>
                     {prop.split("(")[0].trim()}
                   </span>
                 </label>
@@ -199,15 +190,14 @@ export const SeccionArma: React.FC<Props> = ({
         </div>
 
         {/* Propiedades Personalizadas */}
-        <div style={{ marginTop: "12px", borderTop: "1px dashed rgba(255, 255, 255, 0.05)", paddingTop: "12px" }}>
-          <div className={estilos.labelForm} style={{ marginBottom: "6px" }}>Propiedades Personalizadas:</div>
-          <div style={{ display: "flex", gap: "6px", marginBottom: "8px" }}>
+        <div className={estilos.separadorPropiedadesCustom}>
+          <div className={`${estilos.labelForm} u-mb-xs`}>Propiedades Personalizadas:</div>
+          <div className={estilos.filaPropiedadCustom}>
             <input
               type="text"
               id="input-propiedad-custom"
               placeholder="Ej. Recarga 6, Fuego Rápido..."
-              className={estilos.inputForm}
-              style={{ flex: 1, fontSize: "12px" }}
+              className={`${estilos.inputForm} ${estilos.inputPropiedadCustom}`}
               onKeyDown={(e) => {
                 if (e.key === "Enter") {
                   e.preventDefault();
@@ -221,8 +211,7 @@ export const SeccionArma: React.FC<Props> = ({
             />
             <button
               type="button"
-              className={estilos.botonAgregarDinamico}
-              style={{ padding: "4px 10px", fontSize: "11px", height: "auto" }}
+              className={`${estilos.botonAgregarDinamico} ${estilos.botonAgregarChipCompacto}`}
               onClick={() => {
                 const input = document.getElementById("input-propiedad-custom") as HTMLInputElement;
                 const val = input?.value.trim();
@@ -237,27 +226,16 @@ export const SeccionArma: React.FC<Props> = ({
           </div>
 
           {oPropiedadesArma.filter(p => !PROPIEDADES_ARMAS_DND.includes(p)).length > 0 && (
-            <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
+            <div className={estilos.contenedorChipsCustom}>
               {oPropiedadesArma.filter(p => !PROPIEDADES_ARMAS_DND.includes(p)).map((prop) => (
                 <span 
                   key={prop} 
-                  style={{ 
-                    display: "inline-flex", 
-                    alignItems: "center", 
-                    gap: "6px", 
-                    background: "rgba(168, 85, 247, 0.15)", 
-                    border: "1px solid hsl(270, 70%, 60%)", 
-                    color: "hsl(270, 100%, 85%)",
-                    padding: "3px 8px",
-                    borderRadius: "4px",
-                    fontSize: "11px",
-                    fontWeight: "500"
-                  }}
+                  className={estilos.chipPurpuraRemovible}
                 >
                   {prop}
                   <X 
                     size={12} 
-                    style={{ cursor: "pointer", color: "var(--color-borde-cian)" }} 
+                    className={estilos.iconoRemoverChip}
                     onClick={() => setOPropiedadesArma((prev) => prev.filter((p) => p !== prop))} 
                   />
                 </span>
@@ -268,7 +246,7 @@ export const SeccionArma: React.FC<Props> = ({
       </div>
 
       {/* Daño Versátil y Munición Requerida */}
-      <div style={{ marginTop: "12px", borderTop: "1px dashed rgba(0, 245, 212, 0.1)", paddingTop: "12px" }}>
+      <div className={estilos.separadorArmaForm}>
         <div className={estilos.campoForm}>
           <label className={estilos.labelForm}>Daño Versátil (A dos manos):</label>
           <input
@@ -281,9 +259,9 @@ export const SeccionArma: React.FC<Props> = ({
         </div>
         
         {oMunicionRequerida && (
-          <div className={estilos.campoForm} style={{ marginTop: "10px", backgroundColor: "rgba(0, 245, 212, 0.03)", padding: "10px", borderRadius: "5px", border: "1px dashed rgba(0, 245, 212, 0.15)" }}>
-            <label className={estilos.labelForm} style={{ marginBottom: "8px" }}>Seleccionar Munición Vinculada:</label>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))", gap: "8px" }}>
+          <div className={`${estilos.campoForm} ${estilos.cajaMunicionVinculadaArma}`}>
+            <label className={`${estilos.labelForm} u-mb-xs`}>Seleccionar Munición Vinculada:</label>
+            <div className={estilos.gridMunicionesVinculadas}>
               {[
                 { id: "arrows", label: "Flechas" },
                 { id: "bolts", label: "Virotes" },
@@ -305,17 +283,7 @@ export const SeccionArma: React.FC<Props> = ({
                         setOAmmunitionName(item.label);
                       }
                     }}
-                    className={estilos.botonAlternadorProp}
-                    style={{
-                      padding: "6px 8px",
-                      fontSize: "11px",
-                      textAlign: "center",
-                      border: estaSeleccionado ? "1.5px solid var(--color-borde-cian)" : "1px solid var(--color-borde-brutal)",
-                      background: estaSeleccionado ? "rgba(0, 245, 212, 0.12)" : "transparent",
-                      color: estaSeleccionado ? "var(--color-texto-principal)" : "var(--color-texto-secundario)",
-                      borderRadius: "4px",
-                      cursor: "pointer",
-                    }}
+                    className={`${estilos.botonAlternadorProp} ${estaSeleccionado ? estilos.botonAlternadorPropActivo : ""}`}
                   >
                     {item.label}
                   </button>

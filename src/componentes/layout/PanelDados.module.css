@@ -243,3 +243,50 @@
   font-weight: bold;
   border-radius: 8px;
 }
+
+.tarjetaDado {
+  position: relative;
+  aspect-ratio: 1/1;
+  border: 2px solid hsl(240, 5%, 26%);
+}
+
+.tarjetaDado_d4 { --color-dado: hsl(343, 81%, 65%); }
+.tarjetaDado_d6 { --color-dado: hsl(32, 95%, 60%); }
+.tarjetaDado_d8 { --color-dado: hsl(142, 70%, 55%); }
+.tarjetaDado_d10 { --color-dado: hsl(190, 90%, 50%); }
+.tarjetaDado_d12 { --color-dado: hsl(271, 81%, 66%); }
+.tarjetaDado_d20 { --color-dado: hsl(43, 96%, 56%); }
+.tarjetaDado_d100 { --color-dado: hsl(160, 84%, 42%); }
+
+.tarjetaDadoActivo {
+  border-color: var(--color-dado) !important;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+}
+
+.tarjetaDadoActivo .contadorDado {
+  background-color: var(--color-dado);
+}
+
+.tarjetaDadoActivo .nombreDado {
+  color: var(--color-dado);
+}
+
+.tarjetaDadoInactivo .nombreDado {
+  color: hsl(240, 5%, 75%);
+}
+
+.iconoBandeja {
+  color: #60a5fa;
+}
+
+.botonLanzarHabilitado {
+  opacity: 1;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(245, 158, 11, 0.25);
+}
+
+.botonLanzarDeshabilitado {
+  opacity: 0.5;
+  cursor: not-allowed;
+  box-shadow: none;
+}

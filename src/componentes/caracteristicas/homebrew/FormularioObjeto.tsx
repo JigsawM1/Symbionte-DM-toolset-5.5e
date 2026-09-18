@@ -245,12 +245,11 @@ export const FormularioObjeto: React.FC<Props> = ({
         <button
           type="button"
           onClick={() => setPestanaActiva("magia")}
-          className={`${estilos.pestanaBoton} ${pestanaActiva === "magia" ? estilos.pestanaBotonActivo : ""}`}
-          style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "4px" }}
+          className={`${estilos.pestanaBoton} ${estilos.pestanaBotonMagia} ${pestanaActiva === "magia" ? estilos.pestanaBotonActivo : ""}`}
         >
           <span>[Propiedades Mágicas</span>
           {tieneDatosMagicos && (
-            <Sparkles size={13} style={{ color: "hsl(50, 100%, 65%)", display: "inline-block" }} />
+            <Sparkles size={13} className={estilos.iconoMagiaDorado} />
           )}
           <span>]</span>
         </button>
@@ -302,7 +301,7 @@ export const FormularioObjeto: React.FC<Props> = ({
 
       {/* SECCIÓN 2: ATRIBUTOS ESPECÍFICOS */}
       {pestanaActiva === "atributos" && (
-        <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+        <div className="u-flex u-flex-col u-gap-md">
           {oCategoria === "armas" && (
             <SeccionArma
               oTipoAtaque={oTipoAtaque}

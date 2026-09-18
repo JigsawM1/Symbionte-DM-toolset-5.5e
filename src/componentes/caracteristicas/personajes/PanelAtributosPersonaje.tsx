@@ -119,7 +119,7 @@ const PanelAtributosPersonajeComponent: React.FC<PanelAtributosPersonajeProps> =
               onClick={() => alTirarCaracteristica(carac, etiqueta, mod)}
               title={tooltipAtributo}
             >
-              <div style={{ display: "flex", alignItems: "center", gap: 3, justifyContent: "center" }}>
+              <div className={estilos.cabeceraAtributo}>
                 <span className={estilos.nombreAtributo}>{etiqueta}</span>
                 {evalCarac.tieneDesventaja && (
                   <span title={`Desventaja en pruebas por: ${motivosCarac}`}>
@@ -161,11 +161,7 @@ const PanelAtributosPersonajeComponent: React.FC<PanelAtributosPersonajeProps> =
                   <input
                     type="number"
                     className={estilos.badgePuntuacionBase}
-                    style={
-                      tieneBono && (override === null || override === undefined)
-                        ? { borderColor: "rgba(56, 189, 248, 0.7)", color: "#7dd3fc" }
-                        : undefined
-                    }
+                    data-bono={tieneBono && (override === null || override === undefined)}
                     value={valorMostrar}
                     onClick={(e) => e.stopPropagation()}
                     onMouseDown={(e) => e.stopPropagation()}
@@ -239,10 +235,10 @@ const PanelAtributosPersonajeComponent: React.FC<PanelAtributosPersonajeProps> =
                 >
                   {salvTexto} Salv.
                   {evalSalv.tieneDesventaja && (
-                    <AlertTriangle size={10} color="#f59e0b" style={{ marginLeft: 3, verticalAlign: "middle" }} />
+                    <AlertTriangle size={10} color="#f59e0b" className={estilos.iconoInlineSalvacion} />
                   )}
                   {evalSalv.tieneVentaja && !evalSalv.tieneDesventaja && (
-                    <Sparkles size={10} color="#38bdf8" style={{ marginLeft: 3, verticalAlign: "middle" }} />
+                    <Sparkles size={10} color="#38bdf8" className={estilos.iconoInlineSalvacion} />
                   )}
                 </button>
               </div>

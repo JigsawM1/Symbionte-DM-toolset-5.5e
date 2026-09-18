@@ -67,9 +67,8 @@ export const ListaHechizosVinculadosObjeto: React.FC<ListaHechizosVinculadosObje
                 type="button"
                 onClick={lanzarHechizoVinculado}
                 disabled={!tieneCargasSuficientes || bloqueadoPorArmadura}
-                className={estilos.botonLanzarHechizoModal}
+                className={`${estilos.botonLanzarHechizoModal} ${bloqueadoPorArmadura ? estilos.botonLanzarHechizoBloqueado : ""}`}
                 title={bloqueadoPorArmadura ? (motivoBloqueoArmadura || "Bloqueado por armadura") : undefined}
-                style={bloqueadoPorArmadura ? { opacity: 0.5, cursor: "not-allowed" } : undefined}
               >
                 <Dices size={11} />
                 <span>Lanzar {coste > 0 ? `(-${coste})` : ""}</span>

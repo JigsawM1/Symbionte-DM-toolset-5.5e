@@ -1,6 +1,7 @@
 import React from "react";
 import { Save } from "lucide-react";
 import estilos from "../HojaPersonaje.module.css";
+import estilosModal from "../ModalDetalleCaracteristica.module.css";
 import { EditorPuntuacionYOverride } from "./EditorPuntuacionYOverride";
 
 interface PestanaPersonalizarCaracteristicaProps {
@@ -61,8 +62,8 @@ export const PestanaPersonalizarCaracteristica: React.FC<PestanaPersonalizarCara
   alCerrar
 }) => {
   return (
-    <form onSubmit={manejarGuardar} className={estilos.contenidoPestañaModal} style={{ gap: 12 }}>
-      <p style={{ fontSize: 11, color: "#94a3b8", margin: 0 }}>
+    <form onSubmit={manejarGuardar} className={`${estilos.contenidoPestañaModal} ${estilosModal.formularioPersonalizarContenedor}`}>
+      <p className={estilosModal.textoAyudaPersonalizar}>
         Personaliza el nombre a mostrar, descripción, puntuaciones base, overrides y bonificadores especiales.
       </p>
 
@@ -82,12 +83,11 @@ export const PestanaPersonalizarCaracteristica: React.FC<PestanaPersonalizarCara
       <div className={estilos.campoFormulario}>
         <label className={estilos.labelFormulario}>Descripción de Usos y Salvaciones</label>
         <textarea
-          className={estilos.inputFormulario}
+          className={`${estilos.inputFormulario} ${estilosModal.textareaPersonalizada}`}
           rows={2}
           value={descForm}
           onChange={(e) => setDescForm(e.target.value)}
           placeholder="Descripción del uso de la característica..."
-          style={{ resize: "vertical", fontSize: 11 }}
           spellCheck={false}
         />
       </div>
@@ -131,32 +131,30 @@ export const PestanaPersonalizarCaracteristica: React.FC<PestanaPersonalizarCara
 
       {/* Competencia en Salvación */}
       <div className={estilos.campoFormulario}>
-        <label className={estilos.labelFormulario} style={{ color: "#f1f5f9" }}>
+        <label className={`${estilos.labelFormulario} ${estilosModal.labelColorBlanco}`}>
           Competencia en Tiradas de Salvación
         </label>
         <label
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            padding: "8px 12px",
-            borderRadius: 4,
-            cursor: "pointer",
-            backgroundColor: competenteSalvacionForm ? "#132135" : "#0d121c",
-            border: competenteSalvacionForm ? "1px solid rgba(96, 165, 250, 0.3)" : "1px solid rgba(148, 163, 184, 0.14)"
-          }}
+          className={estilosModal.cajaCompetenciaSalvacion}
+          data-competente={competenteSalvacionForm ? "true" : undefined}
         >
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <div className={estilosModal.infoCheckboxCompetencia}>
             <input
               type="checkbox"
               checked={competenteSalvacionForm}
               onChange={(e) => setCompetenteSalvacionForm(e.target.checked)}
             />
-            <span style={{ fontSize: 12, fontWeight: 600, color: competenteSalvacionForm ? "#93c5fd" : "#cbd5e1" }}>
+            <span
+              className={estilosModal.textoCompetenciaSalvacion}
+              data-competente={competenteSalvacionForm ? "true" : undefined}
+            >
               Competente con Salvaciones de {abrev}
             </span>
           </div>
-          <span style={{ fontSize: 10, color: competenteSalvacionForm ? "#93c5fd" : "#94a3b8", fontWeight: 700 }}>
+          <span
+            className={estilosModal.badgeCompetenciaSalvacion}
+            data-competente={competenteSalvacionForm ? "true" : undefined}
+          >
             {competenteSalvacionForm ? `+${pb} PB (Total: ${bonoSalvacionPreview >= 0 ? `+${bonoSalvacionPreview}` : bonoSalvacionPreview})` : "Sin bono"}
           </span>
         </label>
@@ -166,27 +164,25 @@ export const PestanaPersonalizarCaracteristica: React.FC<PestanaPersonalizarCara
       <div className={estilos.campoFormulario}>
         <label className={estilos.labelFormulario}>Notas y Rasgos Especiales</label>
         <textarea
-          className={estilos.inputFormulario}
+          className={`${estilos.inputFormulario} ${estilosModal.textareaPersonalizada}`}
           rows={2}
           value={notasForm}
           onChange={(e) => setNotasForm(e.target.value)}
           placeholder="Añade notas para que no se te escape nada sobre este atributo..."
-          style={{ resize: "vertical", fontSize: 11 }}
           spellCheck={false}
         />
       </div>
 
       {/* Botones de Pie */}
-      <div className={estilos.pieModal} style={{ marginTop: 4 }}>
+      <div className={`${estilos.pieModal} ${estilosModal.pieModalMargenTop}`}>
         <button type="button" className={estilos.neoButton} onClick={alCerrar}>
           Cancelar
         </button>
         <button
           type="submit"
-          className={estilos.neoButton}
-          style={{ backgroundColor: "#1e293b", borderColor: "rgba(96, 165, 250, 0.4)", color: "#93c5fd" }}
+          className={`${estilos.neoButton} ${estilosModal.botonGuardarPersonalizacion}`}
         >
-          <Save size={14} style={{ marginRight: 4 }} />
+          <Save size={14} className={estilosModal.iconoGuardarInline} />
           Guardar Personalización
         </button>
       </div>

@@ -193,7 +193,7 @@ const PanelVitalidadPersonajeComponent: React.FC<PanelVitalidadPersonajeProps> =
                 <Minus size={14} />
               </button>
             </div>
-            <span style={{ fontSize: 10, color: "#94a3b8" }} title="HP Máximo Base fijado en configuración">
+            <span className={estilos.textoHpBase} title="HP Máximo Base fijado en configuración">
               Base: {maxBase}
             </span>
           </div>
@@ -201,6 +201,7 @@ const PanelVitalidadPersonajeComponent: React.FC<PanelVitalidadPersonajeProps> =
           <div className={`${estilos.barraVidaFondo} ${estilos.neoPressed}`}>
             <div
               className={`${estilos.barraVidaProgreso} ${claseGradienteVida}`}
+              // eslint-disable-next-line react/forbid-dom-props -- Ancho porcentual dinámico continuo en tiempo de ejecución (0-100%)
               style={{ width: `${porcentajeHp}%` }}
             />
             <div className={estilos.barraVidaTexto}>
@@ -214,7 +215,7 @@ const PanelVitalidadPersonajeComponent: React.FC<PanelVitalidadPersonajeProps> =
                 onKeyDown={(e) => e.key === "Enter" && manejarGuardarHpActualDirecto()}
                 title="Haz clic para editar HP actual directamente"
               />
-              <span style={{ opacity: 0.6 }}>/</span>
+              <span className={estilos.separadorHp}>/</span>
               {/* HP Máximo Efectivo editable directamente (discreto) */}
               <input
                 type="number"
@@ -238,9 +239,8 @@ const PanelVitalidadPersonajeComponent: React.FC<PanelVitalidadPersonajeProps> =
         <div className={estilos.cajaHpTemporal}>
           <span className={estilos.tituloHp}>Temporal</span>
           <div
-            className={`${estilos.barraTempFondo} ${estilos.neoPressed}`}
+            className={`${estilos.barraTempFondo} ${estilos.neoPressed} ${estilos.tarjetaMetricaInteractiva}`}
             onClick={() => setEditandoTemp(true)}
-            style={{ cursor: "pointer" }}
             title="Haz clic para editar HP Temporal"
           >
             {editandoTemp ? (
@@ -251,8 +251,7 @@ const PanelVitalidadPersonajeComponent: React.FC<PanelVitalidadPersonajeProps> =
                 onBlur={manejarGuardarTemp}
                 onKeyDown={(e) => e.key === "Enter" && manejarGuardarTemp()}
                 autoFocus
-                className={estilos.inputHpMod}
-                style={{ width: "100%", height: "100%", fontSize: 18 }}
+                className={`${estilos.inputHpMod} ${estilos.inputTempFull}`}
                 min="0"
               />
             ) : (
@@ -270,7 +269,7 @@ const PanelVitalidadPersonajeComponent: React.FC<PanelVitalidadPersonajeProps> =
             <span className={estilos.tituloRecursoSalud}>Dados Golpe</span>
           </div>
           <div className={estilos.valorDadosGolpe}>
-            <div style={{ display: "flex", alignItems: "center", gap: 2 }}>
+            <div className={estilos.filaDadosGolpeValores}>
               <input
                 type="number"
                 className={estilos.inputDadosGolpeDirecto}
@@ -290,15 +289,14 @@ const PanelVitalidadPersonajeComponent: React.FC<PanelVitalidadPersonajeProps> =
                 title="Editar cantidad de dados de golpe disponibles"
               />
               <span>{personaje.tipoDadoGolpe}{" "}</span>
-              <span style={{ fontSize: 11, opacity: 0.7 }}>/ {personaje.dadosGolpeTotal}{personaje.tipoDadoGolpe}</span>
+              <span className={estilos.textoDadosGolpeTotal}>/ {personaje.dadosGolpeTotal}{personaje.tipoDadoGolpe}</span>
             </div>
             <button
               type="button"
-              className={estilos.neoButton}
+              className={`${estilos.neoButton} ${estilos.botonGastarDado}`}
               onClick={alGastarDadoGolpe}
               disabled={personaje.dadosGolpeRestantes <= 0}
               title="Gastar 1 dado de golpe para curarte"
-              style={{ padding: "2px 6px", fontSize: 11, minHeight: 24 }}
             >
               <Dices size={12} />
             </button>
@@ -320,7 +318,7 @@ const PanelVitalidadPersonajeComponent: React.FC<PanelVitalidadPersonajeProps> =
               type="button"
               onClick={alReiniciarSalvacionesMuerte}
               title="Reiniciar salvaciones de muerte"
-              style={{ background: "transparent", border: "none", color: "#94a3b8", cursor: "pointer", padding: 0 }}
+              className={estilos.botonReiniciarSalvaciones}
             >
               <RotateCcw size={12} />
             </button>
@@ -328,7 +326,7 @@ const PanelVitalidadPersonajeComponent: React.FC<PanelVitalidadPersonajeProps> =
 
           <div className={estilos.filaPuntosMuerte}>
             {/* 3 Corazones (Éxitos) */}
-            <div style={{ display: "flex", gap: 3 }}>
+            <div className={estilos.grupoIconosMuerte}>
               {[1, 2, 3].map((i) => {
                 const activo = (personaje.salvacionesMuerte?.exitos || 0) >= i;
                 return (
@@ -353,10 +351,10 @@ const PanelVitalidadPersonajeComponent: React.FC<PanelVitalidadPersonajeProps> =
               })}
             </div>
 
-            <span style={{ fontSize: 11, color: "#64748b", margin: "0 2px" }}>/</span>
+            <span className={estilos.separadorMuerte}>/</span>
 
             {/* 3 Calaveras (Fallos) - Cambio de color del trazo sin llenado distorsionado */}
-            <div style={{ display: "flex", gap: 3 }}>
+            <div className={estilos.grupoIconosMuerte}>
               {[1, 2, 3].map((i) => {
                 const activo = (personaje.salvacionesMuerte?.fallos || 0) >= i;
                 return (
@@ -389,7 +387,7 @@ const PanelVitalidadPersonajeComponent: React.FC<PanelVitalidadPersonajeProps> =
               Cansancio {personaje.cansancio > 0 ? `(${personaje.cansancio})` : ""}
             </span>
           </div>
-          <div className={estilos.filaPuntosMuerte} style={{ gap: 4 }}>
+          <div className={`${estilos.filaPuntosMuerte} ${estilos.filaPuntosCansancio}`}>
             {[1, 2, 3, 4, 5, 6].map((nivel) => {
               const activo = personaje.cansancio >= nivel;
               return (

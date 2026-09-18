@@ -25,24 +25,13 @@ export const PestanaAtributos: React.FC<PestanaAtributosProps> = ({
   const pb = obtenerBonoCompetenciaPorNivel(form.nivel || 1);
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+    <div className={estilos.contenedorPestanaAtributos}>
       {/* Banner Informativo Superior */}
       <div className={estilos.bannerInformativoAtributos}>
-        <span style={{ fontSize: 11, color: "#94a3b8", lineHeight: 1.4 }}>
+        <span className={estilos.textoBannerAtributos}>
           Puntuaciones base, <strong>Overrides Fijos</strong> y <strong>Personalización</strong> de atributos.
         </span>
-        <span
-          style={{
-            fontSize: 11,
-            backgroundColor: "#161f2e",
-            color: "#cbd5e1",
-            border: "1px solid rgba(148, 163, 184, 0.2)",
-            padding: "2px 8px",
-            borderRadius: 4,
-            fontWeight: 700,
-            whiteSpace: "nowrap"
-          }}
-        >
+        <span className={estilos.badgePBAtributos}>
           PB: +{pb}
         </span>
       </div>
@@ -102,17 +91,17 @@ export const PestanaAtributos: React.FC<PestanaAtributosProps> = ({
             >
               <div>
                 {/* Cabecera de la Tarjeta */}
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <div className={estilos.cabeceraTarjetaAtributo}>
+                  <div className={estilos.infoAtributoContenedor}>
                     <span className={estilos.abreviaturaAtributo}>
                       {abreviatura}
                     </span>
                     <div>
-                      <strong style={{ fontSize: 13, color: "#f1f5f9", display: "block" }}>
+                      <strong className={estilos.tituloAtributo}>
                         {tituloMostrar}
                       </strong>
-                      <span style={{ fontSize: 10, color: "#94a3b8" }}>
-                        Base: <strong style={{ color: "#cbd5e1" }}>{valorBase}</strong>
+                      <span className={estilos.subtextoBaseAtributo}>
+                        Base: <strong className={estilos.valorBaseResaltado}>{valorBase}</strong>
                       </span>
                     </div>
                   </div>
@@ -128,14 +117,14 @@ export const PestanaAtributos: React.FC<PestanaAtributosProps> = ({
                     >
                       {modTotal >= 0 ? `+${modTotal}` : modTotal}
                     </span>
-                    <span style={{ fontSize: 11, color: "#94a3b8", fontWeight: 600 }}>
+                    <span className={estilos.valorEfectivoScore}>
                       ({valorEfectivo})
                     </span>
                   </div>
                 </div>
 
                 {/* Badges de Salvación, Mod Extra y Override */}
-                <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 6 }}>
+                <div className={estilos.contenedorBadgesAtributo}>
                   {override !== null && (
                     <span className={estilos.badgeOverrideFijo}>
                       Fijo: {override}
@@ -161,7 +150,7 @@ export const PestanaAtributos: React.FC<PestanaAtributosProps> = ({
 
                 {/* Caja de Uso de Salvación */}
                 <div className={estilos.cajaUsoSalvacion}>
-                  <span style={{ fontSize: 11, color: "#cbd5e1", lineHeight: 1.35, display: "block" }}>
+                  <span className={estilos.textoUsoSalvacion}>
                     {descripcionSalvacion}
                   </span>
                 </div>

@@ -23,7 +23,7 @@ export const PestanaCompetencias: React.FC<PestanaCompetenciasProps> = ({
   alAbrirDetalleHabilidad
 }) => {
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+    <div className={estilos.contenedorPestanaCompetencias}>
       {/* Grid 2x2 de Tarjetas Resumen de Competencias */}
       <div className={estilos.gridCompetenciasResumen}>
         {/* Tarjeta Armas */}
@@ -80,16 +80,16 @@ export const PestanaCompetencias: React.FC<PestanaCompetenciasProps> = ({
       </div>
 
       {/* SECCIÓN HABILIDADES (18) */}
-      <div className={estilos.campoFormulario} style={{ marginTop: 6 }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+      <div className={`${estilos.campoFormulario} ${estilos.seccionHabilidadesConfig}`}>
+        <div className={estilos.cabeceraHabilidades}>
+          <div className={estilos.tituloIconoFila}>
             <Sliders size={14} color="#94a3b8" />
-            <label className={estilos.labelFormulario} style={{ margin: 0, fontSize: 11, color: "#f1f5f9" }}>
+            <label className={`${estilos.labelFormulario} ${estilos.labelHabilidades}`}>
               Habilidades e Inspector de Desglose (18)
             </label>
           </div>
-          <span style={{ fontSize: 10, color: "#94a3b8", display: "inline-flex", alignItems: "center", gap: 3 }}>
-            Clic en <Settings size={10} style={{ display: "inline-block" }} /> para ver desglose matemático o personalizar
+          <span className={estilos.textoAyudaHabilidades}>
+            Clic en <Settings size={10} className={estilos.iconoSettingsInline} /> para ver desglose matemático o personalizar
           </span>
         </div>
 
@@ -99,15 +99,6 @@ export const PestanaCompetencias: React.FC<PestanaCompetenciasProps> = ({
             const custom = form.personalizacionesHabilidades?.[hab];
             const grado = form.gradosHabilidades?.[hab] || "ninguna";
             const titulo = custom?.nombrePersonalizado || nombre;
-
-            const colorGrado =
-              grado === "pericia"
-                ? "#d8b4fe"
-                : grado === "competente"
-                ? "#93c5fd"
-                : grado === "medio"
-                ? "#86efac"
-                : "#64748b";
 
             const etiquetaGrado =
               grado === "pericia"
@@ -120,9 +111,9 @@ export const PestanaCompetencias: React.FC<PestanaCompetenciasProps> = ({
 
             return (
               <div key={hab} className={estilos.tarjetaHabilidadItem}>
-                <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                  <span style={{ fontWeight: 700, color: "#f1f5f9" }}>{titulo}</span>
-                  <span style={{ fontSize: 9, color: colorGrado, fontWeight: 600 }}>
+                <div className={estilos.columnaTextoHabilidad}>
+                  <span className={estilos.nombreHabilidad}>{titulo}</span>
+                  <span className={estilos.etiquetaGradoHabilidad} data-grado={grado}>
                     {etiquetaGrado}
                     {custom?.modificadorExtra ? ` (+${custom.modificadorExtra})` : ""}
                     {custom?.valorFijo !== null && custom?.valorFijo !== undefined ? ` [Fijo: ${custom.valorFijo}]` : ""}

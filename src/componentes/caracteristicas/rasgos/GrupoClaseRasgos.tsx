@@ -78,10 +78,7 @@ export const GrupoClaseRasgos: React.FC<GrupoClaseRasgosProps> = ({
 
       {/* Rasgos de Subclase */}
       {grupo.rasgosSubclase.length > 0 && (
-        <div
-          className={estilos.seccionPrincipal}
-          style={{ borderLeft: "3px solid #38bdf8" }}
-        >
+        <div className={`${estilos.seccionPrincipal} ${estilos.seccionSubclase}`}>
           <div
             className={estilos.cabeceraSeccionPrincipal}
             onClick={() => alternarColapso(grupo.claveColapsoSubclase)}
@@ -89,7 +86,7 @@ export const GrupoClaseRasgos: React.FC<GrupoClaseRasgosProps> = ({
             <div className={estilos.ladoIzquierdoCabecera}>
               {subclaseColapsada ? <ChevronRight size={15} /> : <ChevronDown size={15} />}
               <Sparkles size={13} color="#38bdf8" />
-              <span className={estilos.tituloSeccion} style={{ color: "#38bdf8" }}>
+              <span className={`${estilos.tituloSeccion} ${estilos.tituloSubclase}`}>
                 Subclase: {grupo.clase.subclase || "Especialización"} ({grupo.clase.nombre})
               </span>
               <span className={estilos.badgeConteoSeccion}>
@@ -108,10 +105,7 @@ export const GrupoClaseRasgos: React.FC<GrupoClaseRasgosProps> = ({
 
       {/* Invocaciones Sobrenaturales */}
       {grupo.rasgoInvocaciones && selectorInvocaciones && (
-        <div
-          className={estilos.seccionPrincipal}
-          style={{ borderLeft: "3px solid #a855f7" }}
-        >
+        <div className={`${estilos.seccionPrincipal} ${estilos.seccionInvocaciones}`}>
           <div
             className={estilos.cabeceraSeccionPrincipal}
             onClick={() => alternarColapso(grupo.claveColapsoInvocaciones)}
@@ -119,20 +113,17 @@ export const GrupoClaseRasgos: React.FC<GrupoClaseRasgosProps> = ({
             <div className={estilos.ladoIzquierdoCabecera}>
               {invocacionesColapsada ? <ChevronRight size={15} /> : <ChevronDown size={15} />}
               <Flame size={13} color="#a855f7" />
-              <span className={estilos.tituloSeccion} style={{ color: "#c084fc" }}>
+              <span className={`${estilos.tituloSeccion} ${estilos.tituloInvocaciones}`}>
                 Invocaciones Sobrenaturales ({grupo.clase.nombre})
               </span>
-              <span
-                className={estilos.badgeConteoSeccion}
-                style={{ background: "rgba(168, 85, 247, 0.2)", color: "#e9d5ff", borderColor: "#a855f7" }}
-              >
+              <span className={`${estilos.badgeConteoSeccion} ${estilos.badgeInvocaciones}`}>
                 {aprendidasInvocaciones.length} / {maxInvocaciones}
               </span>
             </div>
           </div>
 
           {!invocacionesColapsada && (
-            <div className={estilos.cuerpoSeccionPrincipal} style={{ padding: "8px 12px 14px 12px" }}>
+            <div className={`${estilos.cuerpoSeccionPrincipal} ${estilos.cuerpoInvocaciones}`}>
               <SelectorInvocacionesAcordeon
                 selector={selectorInvocaciones}
                 nivelPersonaje={grupo.clase.nivel}

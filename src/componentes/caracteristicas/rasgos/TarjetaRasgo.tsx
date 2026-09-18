@@ -254,9 +254,6 @@ export const TarjetaRasgo: React.FC<TarjetaRasgoProps> = ({
   const textoTruncado = limpiarYTruncarTextoMarkdown(rasgo.descripcion, LIMITE_CARACTERES);
   const esLargo = (rasgo.descripcion || "").length > LIMITE_CARACTERES;
 
-  const esClase = rasgo.origen === "clase";
-  const esSubclase = rasgo.origen === "subclase";
-
   return (
     <article className={`${estilos.tarjetaRasgo} ${claseOrigen}`}>
       {/* Fila Superior: Título, Badges y Acciones */}
@@ -264,15 +261,9 @@ export const TarjetaRasgo: React.FC<TarjetaRasgoProps> = ({
         <div
           className={estilos.tituloYBadges}
           onClick={alVerDetalle}
-          style={{ cursor: "pointer", flex: 1 }}
           title="Ver detalle completo del rasgo"
         >
-          <span
-            className={estilos.nombreRasgo}
-            style={{
-              color: esClase ? "#d4af37" : esSubclase ? "#38bdf8" : "#f8fafc"
-            }}
-          >
+          <span className={estilos.nombreRasgo}>
             {rasgo.nivelRequerido && rasgo.nivelRequerido > 0 ? `Nv ${rasgo.nivelRequerido}: ` : ""}
             {rasgo.nombre}
           </span>
@@ -298,14 +289,15 @@ export const TarjetaRasgo: React.FC<TarjetaRasgoProps> = ({
           {rasgo.esActivable && alAlternarActivo && (
             <button
               type="button"
-              className={`${estilos.botonToggleRasgo} ${rasgo.activo ? estilos.botonToggleRasgoActivo : estilos.botonToggleRasgoInactivo}`}
+              className={`${estilos.botonToggleRasgo} ${
+                rasgo.activo ? estilos.botonToggleRasgoActivo : estilos.botonToggleRasgoInactivo
+              } ${deshabilitadoToggle ? estilos.botonToggleRasgoDeshabilitado : ""}`}
               onClick={(e) => {
                 e.stopPropagation();
                 if (deshabilitadoToggle) return;
                 alAlternarActivo();
               }}
               disabled={deshabilitadoToggle}
-              style={deshabilitadoToggle ? { opacity: 0.5, cursor: "not-allowed" } : undefined}
               title={
                 deshabilitadoToggle
                   ? motivoDeshabilitado || "Acción no disponible"
@@ -462,7 +454,6 @@ export const TarjetaRasgo: React.FC<TarjetaRasgoProps> = ({
         <div
           className={estilos.cuerpoTarjetaCompacto}
           onClick={alVerDetalle}
-          style={{ cursor: "pointer" }}
         >
           <p className={estilos.descripcionRasgoCompacta}>
             {textoTruncado}

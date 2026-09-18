@@ -8,7 +8,7 @@ import {
   ESCUDOS
 } from "@/constantes";
 import { coincideBusquedaTolerante } from "@/utiles/busquedaTolerante";
-import estilos from "../HojaPersonaje.module.css";
+import estilos from "./SelectorCompetencias.module.css";
 
 interface PestanaArmadurasCompetenciasProps {
   armadurasGrupos: ("ligeras" | "medias" | "pesadas" | "escudos")[];
@@ -28,13 +28,13 @@ export const PestanaArmadurasCompetencias: React.FC<PestanaArmadurasCompetencias
   const filtro = filtroTexto.trim().toLowerCase();
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+    <div className={estilos.contenedorPestana}>
       {/* Checkboxes maestros */}
-      <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-        <span className={estilos.labelFormulario} style={{ color: "#94a3b8" }}>
+      <div className={estilos.bloqueSeccion}>
+        <span className={estilos.labelSeccion}>
           Categorías Maestras de Armadura
         </span>
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+        <div className={estilos.grupoBotonesMaestros}>
           {GRUPOS_ARMADURAS.map((g) => {
             const check = armadurasGrupos.includes(g.id as ("ligeras" | "medias" | "pesadas" | "escudos"));
             return (
@@ -42,19 +42,8 @@ export const PestanaArmadurasCompetencias: React.FC<PestanaArmadurasCompetencias
                 key={g.id}
                 type="button"
                 onClick={() => alternarGrupoArmaduras(g.id as ("ligeras" | "medias" | "pesadas" | "escudos"))}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 6,
-                  padding: "6px 12px",
-                  borderRadius: 4,
-                  cursor: "pointer",
-                  fontSize: 11,
-                  fontWeight: 600,
-                  color: check ? "#f1f5f9" : "#94a3b8",
-                  border: check ? "1px solid rgba(148, 163, 184, 0.3)" : "1px solid rgba(148, 163, 184, 0.12)",
-                  backgroundColor: check ? "#18202e" : "#111622"
-                }}
+                className={estilos.botonGrupoMaestro}
+                data-check={check}
               >
                 {check ? <CheckSquare size={14} color="#93c5fd" /> : <Square size={14} color="#64748b" />}
                 <span>{g.etiqueta}</span>
@@ -65,21 +54,11 @@ export const PestanaArmadurasCompetencias: React.FC<PestanaArmadurasCompetencias
       </div>
 
       {/* Lista de Armaduras Individuales */}
-      <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-        <span className={estilos.labelFormulario} style={{ color: "#94a3b8" }}>
+      <div className={estilos.bloqueSeccion}>
+        <span className={estilos.labelSeccion}>
           Armaduras y Escudos ({armadurasLista.length} seleccionadas)
         </span>
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(170px, 1fr))",
-            gap: 6,
-            padding: 8,
-            backgroundColor: "#0d121c",
-            borderRadius: 6,
-            border: "1px solid rgba(148, 163, 184, 0.12)"
-          }}
-        >
+        <div className={`${estilos.gridItemsCompetencias} ${estilos.gridItemsCompetenciasArmaduras}`}>
           {[...ARMADURAS_LIGERAS, ...ARMADURAS_MEDIAS, ...ARMADURAS_PESADAS, ...ESCUDOS]
             .filter((a) => coincideBusquedaTolerante(a, filtro))
             .map((armadura) => {
@@ -87,18 +66,8 @@ export const PestanaArmadurasCompetencias: React.FC<PestanaArmadurasCompetencias
               return (
                 <label
                   key={armadura}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 6,
-                    padding: "4px 6px",
-                    borderRadius: 4,
-                    backgroundColor: check ? "rgba(148, 163, 184, 0.08)" : "transparent",
-                    color: check ? "#f1f5f9" : "#94a3b8",
-                    cursor: "pointer",
-                    fontSize: 11,
-                    userSelect: "none"
-                  }}
+                  className={estilos.itemCompetenciaLabel}
+                  data-check={check}
                 >
                   <input
                     type="checkbox"

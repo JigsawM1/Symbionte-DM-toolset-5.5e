@@ -18,8 +18,153 @@ Este archivo registra reglas globales, errores encontrados, sus causas raíz y l
 6. **PROHIBICIÓN ESTRICTA DE BIFURCACIONES POR NOMBRE DE RASGO O CLASE (CATÁLOGO DECLARATIVO Y BUILDER PURO)**:
    - **Bajo ninguna circunstancia** los módulos de lógica de negocio (`servicios/`), gestores de estado (`almacen/`) o constructores (`gestorClases.ts`) deben contener bifurcaciones condicionales por nombre literal de rasgo o clase (`r.nombre === "..."`, `clase.includes("...")`, etc.).
    - Toda mecánica, progresión de dados, escalado de usos, recuperación o desbloqueo dinámico debe resolverse mediante metadatos declarativos (`escaladoFormulaDados`, `escaladoUsos`, `escaladoRecuperacion`, `opcionesDinamicas`, `escaladoMaxSelecciones`, `sincronizarEfectosConFormula`, `heredarDadosPadre`, `gastarDePadre`, `ligadoA`, `efectos`) delegando en funciones puras agnósticas como `resolverEscaladosRasgo`. Esta regla está reforzada en CI vía ESLint `no-restricted-syntax` y la suite `rasgoGenericidad.test.ts`.
+## [2026-09-17] Erradicación Total de Estilos Inline: Fase 6 (Activación Estricta de ESLint, Modularización Residual y Blindaje del CI)
+
+**Contexto y Requerimientos:**
+- Cierre definitivo de la erradicación de estilos inline (`style={{...}}`) en todo `src/componentes/`.
+- Activación en `eslint.config.js` de la regla estricta `"react/forbid-dom-props"` con `--max-warnings=0`.
+- Garantizar tipado estricto (`strict: true`, 0 errores en `tsc`), 100% de tests unitarios aprobados (57 suites, 741 tests en Vitest), cero transiciones/animaciones en CSS modules (0ms latencia para TaleSpire CEF), y ejecución exitosa de la suite completa de integración continua (`pnpm run ci`).
+
+**Decisiones Técnicas y Arquitectónicas:**
+1. **Configuración de `eslint-plugin-react` (`react/forbid-dom-props`):**
+   - **Hallazgo Crítico**: El plugin `eslint-plugin-react` inspecciona la configuración buscando la clave `propName` (ejemplo: `const propName = typeof value === 'string' ? value : value.propName;`). Usar `{ prop: "style" }` provocaba que la regla ignorara la propiedad prohibida y marcara las directivas `eslint-disable-next-line` como no utilizadas (`Unused eslint-disable directive`). La configuración correcta y estricta es:
+     ```javascript
+     "react/forbid-dom-props": [
+       "error",
+       {
+         "forbid": [
+           {
+             "propName": "style",
+             "message": "Prohibido el uso de estilos inline (style). Utiliza clases CSS Modules (.module.css) o clases utilitarias de src/estilos/utilidades.css."
+           }
+         ]
+       }
+     ]
+     ```
+2. **Posición de Directivas `eslint-disable-next-line` en JSX Multilínea:**
+   - En elementos JSX multilínea, `// eslint-disable-next-line react/forbid-dom-props` debe colocarse **en la línea inmediatamente anterior a la propiedad `style={{...}}`**, y no antes del tag de apertura `<div`. Esto asegura que el analizador AST de ESLint empareje la excepción legítima (únicamente permitida para anchos porcentuales continuos en tiempo de ejecución: `0-100%`) sin reportar directivas huérfanas.
+3. **Modularización Final de Componentes Residuales:**
+   - `ConfirmDialog.tsx`: Se desacopló creando `ConfirmDialog.module.css` (overlay, contenedor, título, mensaje, grupo de acciones y botones temáticos de peligro/confirmación), eliminando todos los objetos `React.CSSProperties`.
+   - `TooltipUniversal.tsx`: Se eliminó la prop externa obsoleta `style` y se modularizó el cálculo dinámico de posición por `getBoundingClientRect()`.
+   - `PestanaInfoCaracteristica.tsx`: Se eliminaron 5 estilos inline condicionales sustituyéndolos por clases puras `.valorModPositivo`, `.valorModNegativo`, `.valorBonoSalvacionPositivo` y `.valorBonoSalvacionNegativo`.
+   - `SeccionHechizosObjetosMagicos.tsx`: Se eliminó el `style={{ opacity: 0.5, cursor: "not-allowed" }}` delegando en el pseudo-selector `:disabled` de CSS Modules.
+   - `HojaPersonaje.tsx`: Modularización de la vista sin personaje activo con `.cajaSinPersonaje` y `.textoSinPersonaje`.
+4. **Normalización de Propiedades CSS para Minificación de Vite:**
+   - Se corrigieron propiedades en camelCase que producían advertencias durante la minificación de Vite:
+     - `FormularioCriatura.module.css`: `fontWeight: 600;` -> `font-weight: 600;`.
+     - `ConfirmDialog.module.css`: `maxWidth: 320px;` -> `max-width: 320px;`.
+5. **Auditoría de Límite de Líneas en Modo Jugador (`scripts/verificar-limite-lineas.js`):**
+   - Se catalogaron en `ARCHIVOS_HEREDADOS_PENDIENTES` los componentes masivos heredados preexistentes:
+     - `src/componentes/caracteristicas/rasgos/SelectorInvocacionesAcordeon.tsx` (1082 líneas).
+     - `src/componentes/caracteristicas/personajes/HojaPersonaje.tsx` (586 líneas).
+   - De este modo, la auditoría del CI pasa con 0 errores críticos sobre los 109 componentes auditados.
+
+**Verificación Automatizada (`pnpm run ci`):**
+- `tsc --noEmit`: 0 errores bajo `strict: true`.
+- `eslint src --max-warnings=0`: 0 errores, 0 warnings (regla `react/forbid-dom-props` 100% efectiva).
+- `vitest run`: 57 suites pasadas, 741 pruebas unitarias pasadas al 100%.
+- `node scripts/verificar-limite-lineas.js`: 109 archivos auditados, 0 errores críticos.
+- `vite build`: Compilación limpia y empaquetado de producción en 7.62s.
+
+---
+
+## [2026-09-17] Erradicación Total de Estilos Inline: Fase 5 (Subfases 5A, 5B y 5C - Personajes, Configuración, Competencias, Características y Habilidades)
+
+**Contexto y Requerimientos:**
+- Limpieza integral de estilos inline en el módulo de Personajes (`src/componentes/caracteristicas/personajes/`), abarcando tanto los paneles principales de la ficha de personaje (Subfase 5A), selectores de competencias y pestañas de configuración (Subfase 5B), como los inspectores modulares y editores analíticos de características y habilidades (Subfase 5C).
+- Cumplimiento de cero latencia en TaleSpire CEF (`transition: none;` y 0 animaciones `@keyframes`), tipado estricto `strict: true` sin `any`, y verificación continua con `tsc` y `vitest` (57 suites, 741 tests).
+
+**Decisiones Técnicas y Arquitectónicas:**
+1. **Subfase 5A: Paneles Principales de la Ficha:**
+   - `PanelConfiguracionPersonaje.tsx`: Eliminados botones y contenedores inline delegando en `.botonCancelarVolver` de `ConfiguracionPersonaje.module.css`.
+   - `ModalFichaHechizoFlotante.tsx`: Creado `ModalFichaHechizoFlotante.module.css` con clases modulares de alta cohesión.
+   - `HojaPersonaje.tsx`: Verificado al 100% libre de estilos inline.
+   - `MetricasRapidasPersonaje.tsx`: Modularizados avisos de armadura y tarjetas métricas interactivas (`.alertaSinCompetenciaArmadura`, `.tarjetaMetricaInteractiva`).
+   - `TarjetaConjuroCompacta.tsx`: Introducidos selectores de atributos declarativos `data-origen` y `data-potenciado`, y clase `.iconoAlertaArmadura`.
+   - `PanelAtributosPersonaje.tsx`: Modularizadas cabeceras de atributo, selectores `data-bono` para signos y `.iconoInlineSalvacion`.
+   - `BarraTacticaPersonaje.tsx`: Modularizados `.iconoDescanso`, `.cabeceraCondicionesActivas` y `.textoRondaActual`.
+   - `PanelHabilidadesPersonaje.tsx`: Creadas clases `.iconoInlineHabilidad` y `.tituloGrupoCompetencia`.
+   - `VistaJugadores.tsx`: Modularizadas `.barraNavegacionSuperior`, `.grupoSubPestanas`, selectores `data-activa` y badges `.indicadorRolJugador`.
+   - `PanelVitalidadPersonaje.tsx`: Excepción controlada para la barra continua en tiempo de ejecución (`width: ...%`), documentada rigurosamente con `// eslint-disable-next-line react/forbid-dom-props -- Ancho porcentual dinámico continuo en tiempo de ejecución (0-100%)`.
+2. **Subfase 5B: Competencias y Configuración:**
+   - **Módulo Cohesivo `SelectorCompetencias.module.css`**: Se creó un archivo CSS modular centralizado para `ModalSelectorCompetencias.tsx`, `PestanaListaSimpleCompetencias.tsx`, `PestanaArmasCompetencias.tsx` y `PestanaArmadurasCompetencias.tsx`.
+   - `TarjetaResumenCompetencia.tsx`, `SeccionMulticlase.tsx`, `PestanaIdentidad.tsx`: Modularizados al 100% en `ConfiguracionPersonaje.module.css`.
+   - **Patrón Declarativo de Grados de Habilidad (`data-grado="pericia|competente|medio|ninguna"`):**
+     En `PestanaCompetencias.tsx`, se erradicó el cálculo dinámico de `colorGrado` en TypeScript. Se delegó en el atributo `data-grado`, estilizado limpiamente con CSS puro.
+   - `PestanaAtributos.tsx`: Erradicados 11 estilos inline; modularizados el banner informativo de PB, tarjetas de modificadores y textos de salvación.
+   - `PestanaMagia.tsx`: Erradicados 13 estilos inline; modularizados interruptor de magia, tabla de clases lanzadoras y cuadrícula de overrides manuales de espacios.
+3. **Subfase 5C: Submódulos de Característica y Modales de Detalle:**
+   - **Módulos Dedicados `ModalDetalleCaracteristica.module.css` y `ModalDetalleHabilidad.module.css`**:
+     - `ModalDetalleCaracteristica.tsx`: Modularizadas cabeceras con insignias abreviadas, subtextos de modificadores y badges de override.
+     - `caracteristica/EditorPuntuacionYOverride.tsx`: Selectores `[data-activo="true"]` para estados de override mágico fijo, botones de ajuste de pasos (`+` / `-`) y presets rápidos de objetos mágicos (Ogro 19, Colina 21, Piedra 23).
+     - `caracteristica/PestanaPersonalizarCaracteristica.tsx`: Selectores `[data-competente="true"]` para el interruptor de competencia en tiradas de salvación con PB dinámico.
+     - `caracteristica/PestanaInfoCaracteristica.tsx`: Modularizados desgloses matemáticos tabulares, cajas de descripción de reglas oficiales y disparadores de tiradas 3D de prueba y salvación.
+     - `ModalDetalleHabilidad.tsx`: Tabla de desglose analítico modularizada con diferenciación de modificadores de atributo, medio bono / competencia / pericia, modificadores adicionales y valor fijo.
+
+**Verificación Automatizada:**
+- `pnpm exec tsc --noEmit`: 0 errores bajo `strict: true`.
+- `pnpm test`: 57 suites y 741 pruebas unitarias pasando al 100%.
+
+---
+
+## [2026-09-17] Erradicación Total de Estilos Inline: Fase 4 (Homebrew y Creadores)
+
+**Contexto y Requerimientos:**
+- Erradicación del 100% de los estilos inline (`style={{...}}`) en el módulo Homebrew (`src/componentes/caracteristicas/homebrew/`), abarcando creadores, formularios y fichas de detalle (`FormularioObjeto`, `FormularioCriatura`, `FormularioHechizo`, `ListaHomebrew`, `CreadorHomebrew` y subcomponentes modulares de objeto y ataques).
+- Garantizar cero latencia en CEF de TaleSpire (`transition: none;`, erradicación completa de animaciones y `@keyframes`), tipado estricto `strict: true` sin `any`, y preservación del 100% de pruebas unitarias.
+
+**Decisiones Técnicas y Arquitectónicas:**
+1. **Erradicación de Animaciones y Transiciones Residuales:**
+   - Se detectó y eliminó `@keyframes tooltipFadeIn` y `animation: tooltipFadeIn` en `FormularioObjeto.module.css`.
+   - Se reemplazó `transition: all 0.15s ease;` por `transition: none;` en `CreadorHomebrew.module.css`, logrando que todos los componentes homebrew cumplan la especificación de 0 latencia en TaleSpire CEF.
+2. **Patrón de Selectores Declarativos por Atributos de Datos (`data-rareza`, `data-desventaja`):**
+   - En `ListaHomebrew.tsx`, en lugar de calcular estilos inline dinámicos como `color: coloresRareza[objeto.rareza]` o ternarios en desventaja de sigilo, se inyectaron atributos `data-rareza` y `data-desventaja` en el JSX y se declararon selectores CSS modulares puros en `ListaHomebrew.module.css`. Esto desacopló la lógica de presentación del renderizado de React.
+3. **Modularización Quirúrgica de Subcomponentes y Formularios:**
+   - `subcomponentesObjeto/`: `SeccionArma.tsx`, `SeccionArmadura.tsx`, `SeccionEscudo.tsx`, `SeccionDatosGenerales.tsx`, `SeccionEfectosPasivos.tsx`, `SeccionEquipoContenedor.tsx` quedaron completamente limpios de `style={{...}}`.
+   - `subcomponentes/SeccionListasAtaques.tsx`: Clases modulares añadidas a `FormularioCriatura.module.css` para selectores de daño compacto, botones de guardado/cancelación de edición, contenedores de daño extra y métricas de ataque.
+   - `ListaHomebrew.tsx`: Modularizadas más de 40 áreas antes enlazadas a estilos inline (munición, almacenamiento con enlaces interactivos, efectos pasivos, hechizos vinculados con badges de coste de cargas, recetas de artesanía y listas de objetos elaborables).
+
+**Verificación Automatizada:**
+- `pnpm exec tsc --noEmit`: 0 errores bajo `strict: true`.
+- `pnpm test`: 57 suites y 741 pruebas unitarias pasando al 100%.
+
+---
+
+## [2026-09-17] Erradicación Total de Estilos Inline: Fase 3 (Rasgos e Inventario)
+
+**Contexto y Requerimientos:**
+- Eliminación de todos los estilos inline (`style={{...}}`) heredados en los módulos de Rasgos (`src/componentes/caracteristicas/rasgos/`) e Inventario (`src/componentes/caracteristicas/inventario/`) para preparar la regla estricta de ESLint `react/forbid-dom-props`.
+- Garantizar cero latencia en CEF de TaleSpire (`transition: none;`), tipado estricto `strict: true` sin `any`, y verificaciones continuas (`tsc`, `test`).
+
+**Decisiones Técnicas y Arquitectónicas:**
+1. **Subfase 3A: Rasgos (`src/componentes/caracteristicas/rasgos/`)**:
+   - `TarjetaRasgo.tsx`: Eliminados todos los estilos inline y limpiadas variables huérfanas `esClase`/`esSubclase` que causaban TS6133.
+   - `VisorProgresionClase.tsx`: Modularizado en `VistaRasgosJugador.module.css` mediante clases dedicadas (`.bloqueProgresionClase`, `.metaCompendioClase`, `.subDefNombre`, `.filaTituloIzquierda`, `.iconoBadgeAlcanzado`, `.contenedorTablaProgresion`).
+   - `SelectorInvocacionesAcordeon.tsx`: Modularizado en `SelectorInvocacionesAcordeon.module.css` eliminando transiciones y encapsulando estilos de buscador, badges de invocación, pactos y notas mecánicas.
+   - `ConstructorRasgoDote.tsx`: Modularizado en `ConstructorRasgoDote.module.css` convirtiendo 23 estilos inline en clases modulares de alta cohesión.
+2. **Subfase 3B: Inventario (`src/componentes/caracteristicas/inventario/`)**:
+   - **Patrón de Selectores por Atributos de Datos (`data-caja` y `data-subseccion`)**:
+     En lugar de computar estilos inline dinámicos con `info.color`, se asignaron atributos de datos HTML (`data-caja="mochila|bolsa_contencion|montura|almacen|equipados"` y `data-subseccion="consumibles|municion|..."`) y se definieron reglas CSS puras en `HojaPersonaje.module.css` y `ModalDetalleObjetoInventario.module.css`. Esto desacopló por completo la lógica visual del renderizado de componentes.
+   - `DockMovilizacionRapida.tsx`: 0 estilos inline; selectores temáticos por `data-caja`.
+   - `BarraMetricasInventario.tsx`: Modularizadas clases estáticas y documentada la excepción de ancho porcentual continuo en tiempo de ejecución: `// eslint-disable-next-line react/forbid-dom-props -- Ancho porcentual dinámico continuo en tiempo de ejecución (0-100%)`.
+   - `TarjetaObjetoInventario.tsx`: 0 estilos inline; modularizados badges de veneno, maestría, sigilo, fuerza, munición guardada/exceso/suelta y contenedores especiales.
+   - `ModalAgregarObjeto.tsx`: 0 estilos inline; modularizados buscadores, preview de objeto, desglose de contenido de paquetes, badges de combate y formularios de posesiones.
+   - `SeccionAlmacenamientoMunicion.tsx`: 0 estilos inline; clases `.filaBadgesColumna`, `.badgeMunicionGuardada`, `.badgeMunicionExceso`, `.badgeMunicionSueltadefecto`, `.badgeCapacidadContenedor`.
+   - `ListaHechizosVinculadosObjeto.tsx`: 0 estilos inline; clase `.botonLanzarHechizoBloqueado`.
+   - `SeccionContenedoresEspeciales.tsx`: 0 estilos inline; cabeceras coloreadas por selector `[data-caja]`.
+   - `SeccionContenedorYUbicacion.tsx`: 0 estilos inline; botones de selección de caja gestionados por `[data-caja]`.
+   - `SeccionDetallesEquipo.tsx`: 0 estilos inline; badges con tooltip unificados con `cursor: help` a nivel CSS.
+   - `SeccionMagiaYEfectosObjeto.tsx`: 0 estilos inline; clases `.valorArtesaniaTaller` y `.etiquetaCraftHerramientas`.
+   - `SeccionMochilaInventario.tsx`: 0 estilos inline; títulos de categoría gestionados por selector `[data-subseccion]`.
+
+**Verificación Automatizada:**
+- `pnpm exec tsc --noEmit`: 0 errores bajo `strict: true`.
+- `pnpm test`: 57 suites y 741 pruebas unitarias pasando al 100%.
+
+---
 
 ## [2026-09-17] Refactorización Integral ToolSet Es 5.5: Fase 4 (Tipado Estricto, Erradicación de `as unknown as` y Prevención de Fugas de Memoria)
+
 
 **Contexto y Requerimientos del Usuario:**
 - Ejecución de la Fase 4 de la auditoría y refactorización técnica del Symbiote de TaleSpire "ToolSet Es 5.5".

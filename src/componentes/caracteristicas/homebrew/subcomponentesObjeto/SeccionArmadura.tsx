@@ -37,11 +37,11 @@ export const SeccionArmadura: React.FC<Props> = ({
   estilos,
 }) => {
   return (
-    <div className={estilos.bloqueDinamicoForm} style={{ borderColor: "rgba(255, 165, 0, 0.25)" }}>
+    <div className={`${estilos.bloqueDinamicoForm} ${estilos.bloqueDinamicoArmadura}`}>
       <div className={estilos.tituloBloqueDinamico}>
         <span>ATRIBUTOS DE PROTECCIÓN</span>
         <span className={estilos.subtituloInformacion}>
-          <Shield size={12} style={{ display: "inline", marginRight: "2px" }} /> Ficha de Armadura
+          <Shield size={12} className={estilos.iconoInline2px} /> Ficha de Armadura
         </span>
       </div>
 
@@ -80,8 +80,8 @@ export const SeccionArmadura: React.FC<Props> = ({
           />
         </div>
 
-        <div className={estilos.campoForm} style={{ justifyContent: "center" }}>
-          <label className={estilos.labelCheckbox} style={{ marginTop: "16px" }}>
+        <div className={`${estilos.campoForm} ${estilos.campoFormCentrado}`}>
+          <label className={`${estilos.labelCheckbox} ${estilos.labelCheckboxConMargen}`}>
             <input
               type="checkbox"
               checked={oDesventajaSigilo}
@@ -94,7 +94,7 @@ export const SeccionArmadura: React.FC<Props> = ({
       </div>
 
       {/* Tiempo para Equipar */}
-      <div style={{ marginTop: "12px", borderTop: "1px dashed rgba(255, 165, 0, 0.1)", paddingTop: "12px" }}>
+      <div className={estilos.separadorArmaduraForm}>
         <div className={estilos.campoForm}>
           <label className={estilos.labelForm}>Tiempo para Equipar (Don/Doff):</label>
           <input

@@ -48,7 +48,7 @@ export const SeccionDetallesEquipo: React.FC<SeccionDetallesEquipoProps> = ({
                 contenido={`Inflige ${armaObj.danoVersatil} de daño cuando se empuña a dos manos para realizar un ataque cuerpo a cuerpo.`}
                 posicion="arriba"
               >
-                <span className={`${estilos.badgeMeta} ${estilos.badgeArmaVersatil}`} style={{ cursor: "help" }}>
+                <span className={`${estilos.badgeMeta} ${estilos.badgeArmaVersatil}`}>
                   Versátil ({armaObj.danoVersatil})
                 </span>
               </TooltipUniversal>
@@ -59,7 +59,7 @@ export const SeccionDetallesEquipo: React.FC<SeccionDetallesEquipoProps> = ({
                 contenido={`Alcance normal de ${armaObj.alcanceNormal} pies${armaObj.alcanceLargo ? ` y alcance largo hasta ${armaObj.alcanceLargo} pies.` : "."}`}
                 posicion="arriba"
               >
-                <span className={`${estilos.badgeMeta} ${estilos.badgeArmaAlcance}`} style={{ cursor: "help" }}>
+                <span className={`${estilos.badgeMeta} ${estilos.badgeArmaAlcance}`}>
                   Alcance {armaObj.alcanceNormal}/{armaObj.alcanceLargo || armaObj.alcanceNormal} pies
                 </span>
               </TooltipUniversal>
@@ -72,7 +72,7 @@ export const SeccionDetallesEquipo: React.FC<SeccionDetallesEquipoProps> = ({
                   contenido={infoM.descripcion}
                   posicion="arriba"
                 >
-                  <span className={`${estilos.badgeMeta} ${estilos.badgeArmaMaestria}`} style={{ cursor: "help" }}>
+                  <span className={`${estilos.badgeMeta} ${estilos.badgeArmaMaestria}`}>
                     {armaObj.maestria}
                   </span>
                 </TooltipUniversal>
@@ -84,7 +84,7 @@ export const SeccionDetallesEquipo: React.FC<SeccionDetallesEquipoProps> = ({
                 contenido="Esta arma requiere proyectiles compatibles listos en tu inventario para poder disparar en combate."
                 posicion="arriba"
               >
-                <span className={`${estilos.badgeMeta} ${estilos.badgeAmmunition}`} style={{ cursor: "help" }}>
+                <span className={`${estilos.badgeMeta} ${estilos.badgeAmmunition}`}>
                   <Target size={10} /> Munición: {armaObj.ammunition.name}
                 </span>
               </TooltipUniversal>
@@ -95,7 +95,7 @@ export const SeccionDetallesEquipo: React.FC<SeccionDetallesEquipoProps> = ({
                 contenido={`Otorga un bono de +${objetoBase.modificadorAtaqueDano} a las tiradas de ataque y daño con esta arma.`}
                 posicion="arriba"
               >
-                <span className={`${estilos.badgeMeta} ${estilos.badgeMagicoBono}`} style={{ cursor: "help" }}>
+                <span className={`${estilos.badgeMeta} ${estilos.badgeMagicoBono}`}>
                   <Sparkles size={10} /> Bono: +{objetoBase.modificadorAtaqueDano}
                 </span>
               </TooltipUniversal>
@@ -123,7 +123,7 @@ export const SeccionDetallesEquipo: React.FC<SeccionDetallesEquipoProps> = ({
                     contenido={infoP.descripcion}
                     posicion="arriba"
                   >
-                    <span className={estilos.badgePropiedad} style={{ cursor: "help" }}>
+                    <span className={estilos.badgePropiedad}>
                       {p}
                     </span>
                   </TooltipUniversal>
@@ -153,7 +153,7 @@ export const SeccionDetallesEquipo: React.FC<SeccionDetallesEquipoProps> = ({
                   contenido={infoDes.descripcion}
                   posicion="arriba"
                 >
-                  <span className={`${estilos.badgeMeta} ${estilos.badgeArmaduraDes}`} style={{ cursor: "help" }}>
+                  <span className={`${estilos.badgeMeta} ${estilos.badgeArmaduraDes}`}>
                     Bono Destreza: {bonoDestReal}
                   </span>
                 </TooltipUniversal>
@@ -167,7 +167,7 @@ export const SeccionDetallesEquipo: React.FC<SeccionDetallesEquipoProps> = ({
                   contenido={infoFue.descripcion}
                   posicion="arriba"
                 >
-                  <span className={`${estilos.badgeMeta} ${estilos.badgeArmaduraFue}`} style={{ cursor: "help" }}>
+                  <span className={`${estilos.badgeMeta} ${estilos.badgeArmaduraFue}`}>
                     Fuerza Requerida: {armaduraObj.requisitoFuerza}
                   </span>
                 </TooltipUniversal>
@@ -181,7 +181,7 @@ export const SeccionDetallesEquipo: React.FC<SeccionDetallesEquipoProps> = ({
                   contenido={infoSigilo.descripcion}
                   posicion="arriba"
                 >
-                  <span className={`${estilos.badgeMeta} ${estilos.badgeArmaduraSigilo}`} style={{ cursor: "help" }}>
+                  <span className={`${estilos.badgeMeta} ${estilos.badgeArmaduraSigilo}`}>
                     Desventaja en Sigilo
                   </span>
                 </TooltipUniversal>

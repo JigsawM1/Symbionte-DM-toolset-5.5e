@@ -48,7 +48,7 @@ export const DiccionarioCondiciones: React.FC = () => {
               <ul className={estilos.listaEfectos}>
                 {condicionSeleccionada.efectos.map((efecto, i) => (
                   <li key={i} className={estilos.itemEfectoLista}>
-                    <span style={{ color: "var(--color-borde-cian)", marginRight: "5px", fontWeight: "bold" }}>›</span>
+                    <span className={estilos.bulletEfecto}>›</span>
                     {efecto}
                   </li>
                 ))}
@@ -60,7 +60,7 @@ export const DiccionarioCondiciones: React.FC = () => {
         <div className={estilos.seccionCondiciones}>
           <div className={estilos.listaCondicionesLateral}>
             {EFECTOS_PREDEFINIDOS.map((ef) => (
-              <div
+               <div
                 key={ef.nombre}
                 onClick={() => setEfectoSeleccionado(ef)}
                 className={`${estilos.itemCondicionLista} ${efectoSeleccionado.nombre === ef.nombre ? estilos.itemCondicionEfectosActivo : ""}`}
@@ -74,7 +74,7 @@ export const DiccionarioCondiciones: React.FC = () => {
             <h3 className={`${estilos.tituloCondicion} ${estilos.tituloCondicionEfecto}`}>{efectoSeleccionado.nombre}</h3>
             <span className={estilos.origenCondicion}>
               DURACIÓN ESTÁNDAR:{" "}
-              <strong style={{ color: "#d8b4fe" }}>
+              <strong className={estilos.duracionEfectoTexto}>
                 {efectoSeleccionado.duracionEstandar > 0
                   ? `${efectoSeleccionado.duracionEstandar} RONDAS`
                   : "AUTOMÁTICA / HASTA SANAR (>50% HP)"}
@@ -83,7 +83,7 @@ export const DiccionarioCondiciones: React.FC = () => {
             
             <div className={`${estilos.bloqueEfectosCondicion} ${estilos.bloqueEfectosEfecto}`}>
               <div className={`${estilos.cabeceraBloqueEfectos} ${estilos.cabeceraBloqueEfectosEfecto}`}>DESCRIPCIÓN Y REGLAS DEL EFECTO:</div>
-              <div style={{ padding: "4px 2px", fontSize: "11px", color: "var(--color-texto-principal)", lineHeight: "1.45" }}>
+              <div className={estilos.descripcionReglasEfecto}>
                 {efectoSeleccionado.descripcion}
               </div>
             </div>

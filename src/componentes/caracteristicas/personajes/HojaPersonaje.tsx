@@ -421,8 +421,8 @@ export const HojaPersonaje: React.FC<HojaPersonajeProps> = ({ alAbrirConfiguraci
   if (!personajeActivo || !statsCalculadas) {
     return (
       <div className={estilos.contenedorPrincipal}>
-        <div className={`${estilos.neoRaised}`} style={{ padding: 24, textAlign: "center" }}>
-          <p style={{ color: "#94a3b8", margin: 0 }}>
+        <div className={`${estilos.neoRaised} ${estilos.cajaSinPersonaje}`}>
+          <p className={estilos.textoSinPersonaje}>
             No hay ningún personaje activo seleccionado. Ve a la pestaña "Mis Personajes" para crear o activar uno.
           </p>
         </div>

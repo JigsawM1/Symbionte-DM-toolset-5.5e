@@ -174,3 +174,16 @@
   white-space: nowrap;
   color: var(--color-texto-principal);
 }
+
+.iconoUsuario {
+  color: var(--color-borde-cian);
+}
+
+.iconoAlerta {
+  color: var(--color-advertencia);
+  margin-right: 4px;
+}
+
+.numeroRonda {
+  color: var(--color-borde-cian);
+}

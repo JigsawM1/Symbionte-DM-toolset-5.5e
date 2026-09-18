@@ -31,13 +31,10 @@ export const SeccionContenedorYUbicacion: React.FC<SeccionContenedorYUbicacionPr
               onClick={() => alCambiarContenedor?.(contClave)}
               disabled={equipado && contClave !== "mochila"}
               className={`${estilos.botonContenedor} ${seleccionado ? estilos.botonContenedorActivo : ""}`}
-              style={{
-                backgroundColor: seleccionado ? `${info.color}22` : undefined,
-                borderColor: seleccionado ? info.color : undefined
-              }}
+              data-caja={contClave}
               title={info.descripcion}
             >
-              <span className={estilos.nombreContenedor} style={{ color: seleccionado ? info.color : undefined }}>
+              <span className={estilos.nombreContenedor}>
                 {info.nombreCorto}
               </span>
               <span className={info.sumaCargaPersonaje ? estilos.subtextoContenedor : `${estilos.subtextoContenedor} ${estilos.subtextoContenedorExento}`}>

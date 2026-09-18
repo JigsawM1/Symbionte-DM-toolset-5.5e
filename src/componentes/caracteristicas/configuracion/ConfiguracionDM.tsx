@@ -140,7 +140,7 @@ export const ConfiguracionDM: React.FC = () => {
     <div className={estilosClases.contenedor}>
       <h3 className={estilosClases.titulo}>
         <span className={estilosClases.tituloTextoPrincipal}>
-          <Settings size={16} style={{ color: "var(--color-borde-cian)", marginRight: "6px", verticalAlign: "middle" }} />
+          <Settings size={16} className={estilosClases.iconoTituloConfig} />
           CONFIGURACIÓN Y MANTENIMIENTO DEL COMPENDIO
         </span>
       </h3>
@@ -162,10 +162,10 @@ export const ConfiguracionDM: React.FC = () => {
             }`}
           >
             <div className={estilosClases.cajaIconoUpload}>
-              <Upload size={24} style={{ color: arrastrando ? "var(--color-borde-cian)" : "var(--color-texto-secundario)" }} />
+              <Upload size={24} className={arrastrando ? estilosClases.iconoUploadArrastrando : estilosClases.iconoUpload} />
             </div>
             <p className={estilosClases.textoDrop}>
-              Arrastra tu archivo <strong style={{ color: "var(--color-borde-cian)", fontFamily: "var(--fuente-codigo)" }}>.json</strong> aquí o haz clic para examinar
+              Arrastra tu archivo <strong className={estilosClases.extensionJson}>.json</strong> aquí o haz clic para examinar
             </p>
             <span className={estilosClases.ayudaDrop}>Soporta colecciones de monstruos, hechizos y objetos</span>
             
@@ -174,20 +174,20 @@ export const ConfiguracionDM: React.FC = () => {
               ref={fileInputRef}
               onChange={alSeleccionarArchivoManual}
               accept=".json"
-              style={{ display: "none" }}
+              className={estilosClases.inputOculto}
             />
           </div>
 
           {estadoImportacion === "exito" && (
             <div className={estilosClases.alertaExito}>
-              <CheckCircle size={15} style={{ flexShrink: 0 }} />
+              <CheckCircle size={15} className="u-flex-shrink-0" />
               <span>¡Base de Datos importada con éxito y fusionada con la persistencia local!</span>
             </div>
           )}
 
           {estadoImportacion === "error" && (
             <div className={estilosClases.alertaError}>
-              <ShieldAlert size={15} style={{ flexShrink: 0 }} />
+              <ShieldAlert size={15} className="u-flex-shrink-0" />
               <span>Error de Validación: {mensajeError}</span>
             </div>
           )}
@@ -220,8 +220,8 @@ export const ConfiguracionDM: React.FC = () => {
 
           {/* NUEVO PANEL PREMIUM: DADOS DE VIDA DE MONSTRUOS */}
           <div className={estilosClases.tarjetaConfigHP}>
-            <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "4px" }}>
-              <Heart size={14} style={{ color: "var(--color-borde-cian)" }} />
+            <div className={estilosClases.cabeceraConfigHP}>
+              <Heart size={14} className="u-texto-cian" />
               <span className={estilosClases.tituloConfigHP}>CÁLCULO DE VIDA (HP) AL INICIAR COMBATE</span>
             </div>
             <p className={estilosClases.descripcionConfigHP}>
@@ -250,9 +250,9 @@ export const ConfiguracionDM: React.FC = () => {
           </div>
 
           {/* NUEVO PANEL: MOSTRAR PORCENTAJE DE VIDA A JUGADORES */}
-          <div className={estilosClases.tarjetaConfigHP} style={{ marginTop: "12px" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "4px" }}>
-              <Eye size={14} style={{ color: "#818cf8" }} />
+          <div className={`${estilosClases.tarjetaConfigHP} ${estilosClases.tarjetaConfigHPSeparada}`}>
+            <div className={estilosClases.cabeceraConfigHP}>
+              <Eye size={14} className={estilosClases.iconoOjo} />
               <span className={estilosClases.tituloConfigHP}>BARRA DE SALUD EN VISTA JUGADOR (%)</span>
             </div>
             <p className={estilosClases.descripcionConfigHP}>
@@ -281,9 +281,9 @@ export const ConfiguracionDM: React.FC = () => {
           </div>
 
           {/* PANEL: SISTEMA DE MAGIA DE LA CAMPAÑA */}
-          <div className={estilosClases.tarjetaConfigHP} style={{ marginTop: "12px" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "4px" }}>
-              <Sparkles size={14} style={{ color: "#c084fc" }} />
+          <div className={`${estilosClases.tarjetaConfigHP} ${estilosClases.tarjetaConfigHPSeparada}`}>
+            <div className={estilosClases.cabeceraConfigHP}>
+              <Sparkles size={14} className={estilosClases.iconoMagia} />
               <span className={estilosClases.tituloConfigHP}>SISTEMA DE MAGIA DE LA CAMPAÑA</span>
             </div>
             <p className={estilosClases.descripcionConfigHP}>
@@ -327,15 +327,15 @@ export const ConfiguracionDM: React.FC = () => {
             </div>
             <div className={estilosClases.filaEstadistica}>
               <span className={estilosClases.labelEstadistica}>Total Criaturas en Sistema:</span>
-              <strong className={estilosClases.numero} style={{ color: "var(--color-texto-principal)" }}>{baseDatosMonstruos.length}</strong>
+              <strong className={`${estilosClases.numero} ${estilosClases.numeroTextoPrincipal}`}>{baseDatosMonstruos.length}</strong>
             </div>
             <div className={estilosClases.filaEstadistica}>
               <span className={estilosClases.labelEstadistica}>Total Conjuros en Sistema:</span>
-              <strong className={estilosClases.numero} style={{ color: "var(--color-texto-principal)" }}>{baseDatosHechizos.length}</strong>
+              <strong className={`${estilosClases.numero} ${estilosClases.numeroTextoPrincipal}`}>{baseDatosHechizos.length}</strong>
             </div>
             <div className={estilosClases.filaEstadistica}>
               <span className={estilosClases.labelEstadistica}>Total Objetos en Sistema:</span>
-              <strong className={estilosClases.numero} style={{ color: "var(--color-texto-principal)" }}>{objetosHomebrew.length}</strong>
+              <strong className={`${estilosClases.numero} ${estilosClases.numeroTextoPrincipal}`}>{objetosHomebrew.length}</strong>
             </div>
           </div>
 

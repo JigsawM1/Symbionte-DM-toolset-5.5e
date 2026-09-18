@@ -9,6 +9,8 @@ import { calcularEstadisticasPersonaje } from "@/almacen/selectores/usarEstadoPe
 import { SelectorDesplegable } from "@/componentes/comunes/SelectorDesplegable";
 import { X, Info, Edit3, Dices, Save } from "lucide-react";
 import estilos from "./HojaPersonaje.module.css";
+import estilosHab from "./ModalDetalleHabilidad.module.css";
+import estilosModalCarac from "./ModalDetalleCaracteristica.module.css";
 
 interface ModalDetalleHabilidadProps {
   habilidadClave: Habilidad;
@@ -139,8 +141,7 @@ export const ModalDetalleHabilidad: React.FC<ModalDetalleHabilidadProps> = ({
   return (
     <div className={estilos.overlayModal} onClick={alCerrar}>
       <div
-        className={estilos.cuerpoModal}
-        style={{ maxWidth: 460 }}
+        className={`${estilos.cuerpoModal} ${estilosHab.cuerpoModalHabilidad}`}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Cabecera del Inspector */}
@@ -167,7 +168,7 @@ export const ModalDetalleHabilidad: React.FC<ModalDetalleHabilidadProps> = ({
             }`}
             onClick={() => setPestanaActiva("info")}
           >
-            <Info size={13} style={{ marginRight: 4 }} />
+            <Info size={13} className={estilosHab.iconoPestanaHabilidad} />
             Información
           </button>
 
@@ -178,112 +179,55 @@ export const ModalDetalleHabilidad: React.FC<ModalDetalleHabilidadProps> = ({
             }`}
             onClick={() => setPestanaActiva("personalizar")}
           >
-            <Edit3 size={13} style={{ marginRight: 4 }} />
+            <Edit3 size={13} className={estilosHab.iconoPestanaHabilidad} />
             Personalizar
           </button>
         </div>
 
         {/* PESTAÑA 1: INFORMACIÓN */}
         {pestanaActiva === "info" && (
-          <div className={estilos.contenidoPestañaModal} style={{ gap: 12 }}>
+          <div className={`${estilos.contenidoPestañaModal} ${estilosModalCarac.formularioPersonalizarContenedor}`}>
             {/* Cuadro de Descripción */}
-            <div
-              style={{
-                padding: "10px 12px",
-                borderRadius: 6,
-                fontSize: 12,
-                lineHeight: 1.45,
-                color: "#cbd5e1",
-                backgroundColor: "#0d131f",
-                borderLeft: "3px solid #334155",
-                border: "1px solid rgba(148, 163, 184, 0.1)"
-              }}
-            >
+            <div className={estilosHab.cajaDescripcionHabilidad}>
               {descripcionMostrar}
             </div>
 
-            <p style={{ fontSize: 11, color: "#94a3b8", margin: "2px 0 0 0" }}>
+            <p className={estilosHab.textoDesgloseIntro}>
               Desglose de modificadores que afectan a {tituloMostrar} ({abrevCarac}):
             </p>
 
             {/* Tabla de Desglose de Modificadores */}
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                gap: 2,
-                backgroundColor: "#0a0e16",
-                border: "1px solid rgba(148, 163, 184, 0.12)",
-                borderRadius: 6,
-                overflow: "hidden"
-              }}
-            >
+            <div className={estilosHab.tablaDesgloseHabilidad}>
               {tieneValorFijo ? (
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    padding: "8px 12px",
-                    fontSize: 12,
-                    color: "#d8b4fe",
-                    backgroundColor: "#201335"
-                  }}
-                >
+                <div className={estilosHab.filaValorFijo}>
                   <span>Valor fijo personalizado</span>
-                  <span style={{ fontWeight: 700, fontFamily: "monospace" }}>
+                  <span className={estilosHab.valorFijoNumero}>
                     {totalCalculado}
                   </span>
                 </div>
               ) : (
                 <>
                   {/* Fila Modificador de Característica */}
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      padding: "8px 12px",
-                      fontSize: 12,
-                      color: "#cbd5e1",
-                      backgroundColor: "rgba(255, 255, 255, 0.02)"
-                    }}
-                  >
+                  <div className={estilosHab.filaModCarac}>
                     <span>Modificador {nombreCarac}</span>
-                    <span style={{ fontWeight: 700, fontFamily: "monospace", color: modCarac >= 0 ? "#60a5fa" : "#fca5a5" }}>
+                    <span className={modCarac >= 0 ? estilosHab.valorModCaracPositivo : estilosHab.valorModCaracNegativo}>
                       {modCarac >= 0 ? `+${modCarac}` : `${modCarac}`}
                     </span>
                   </div>
 
                   {/* Fila Grado de Competencia */}
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      padding: "8px 12px",
-                      fontSize: 12,
-                      color: "#cbd5e1",
-                      borderTop: "1px solid rgba(148, 163, 184, 0.1)"
-                    }}
-                  >
+                  <div className={estilosHab.filaCompetenciaHab}>
                     <span>{etiquetaCompetencia}</span>
-                    <span style={{ fontWeight: 700, fontFamily: "monospace", color: bonoCompetenciaValor > 0 ? "#93c5fd" : "#94a3b8" }}>
+                    <span className={bonoCompetenciaValor > 0 ? estilosHab.valorCompetenciaConBono : estilosHab.valorCompetenciaSinBono}>
                       {bonoCompetenciaValor >= 0 ? `+${bonoCompetenciaValor}` : `${bonoCompetenciaValor}`}
                     </span>
                   </div>
 
                   {/* Fila Modificador Extra (si aplica) */}
                   {modExtraNum !== 0 && (
-                    <div
-                      style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        padding: "8px 12px",
-                        fontSize: 12,
-                        color: "#cbd5e1",
-                        borderTop: "1px solid rgba(148, 163, 184, 0.1)"
-                      }}
-                    >
+                    <div className={estilosHab.filaModAdicionalHab}>
                       <span>Modificador Adicional</span>
-                      <span style={{ fontWeight: 700, fontFamily: "monospace", color: modExtraNum >= 0 ? "#60a5fa" : "#fca5a5" }}>
+                      <span className={modExtraNum >= 0 ? estilosHab.valorModAdicionalPositivo : estilosHab.valorModAdicionalNegativo}>
                         {modExtraNum >= 0 ? `+${modExtraNum}` : `${modExtraNum}`}
                       </span>
                     </div>
@@ -292,20 +236,9 @@ export const ModalDetalleHabilidad: React.FC<ModalDetalleHabilidadProps> = ({
               )}
 
               {/* Fila Total */}
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  padding: "8px 12px",
-                  fontSize: 13,
-                  fontWeight: 800,
-                  color: "#f1f5f9",
-                  backgroundColor: "#18202e",
-                  borderTop: "1px solid rgba(148, 163, 184, 0.18)"
-                }}
-              >
+              <div className={estilosHab.filaTotalHabilidad}>
                 <span>Total Habilidad</span>
-                <span style={{ color: totalCalculado >= 0 ? "#93c5fd" : "#fca5a5", fontFamily: "monospace" }}>
+                <span className={totalCalculado >= 0 ? estilosHab.valorTotalHabPositivo : estilosHab.valorTotalHabNegativo}>
                   {totalCalculado >= 0 ? `+${totalCalculado}` : `${totalCalculado}`}
                 </span>
               </div>
@@ -313,39 +246,18 @@ export const ModalDetalleHabilidad: React.FC<ModalDetalleHabilidadProps> = ({
 
             {/* Notas opcionales si existen */}
             {customExistente?.notas && (
-              <div
-                style={{
-                  fontSize: 11,
-                  color: "#94a3b8",
-                  padding: "6px 10px",
-                  borderRadius: 4,
-                  backgroundColor: "#0d121c",
-                  border: "1px dashed rgba(148, 163, 184, 0.2)"
-                }}
-              >
-                <strong style={{ color: "#cbd5e1" }}>Notas: </strong>
+              <div className={estilosHab.cajaNotasHabilidad}>
+                <strong className={estilosHab.etiquetaNotasHab}>Notas: </strong>
                 {customExistente.notas}
               </div>
             )}
 
             {/* Botón de Tirada 3D */}
             {alTirarHabilidad && (
-              <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 4 }}>
+              <div className={estilosHab.filaBotonTiradaHabilidad}>
                 <button
                   type="button"
-                  style={{
-                    backgroundColor: "#18202f",
-                    border: "1px solid rgba(148, 163, 184, 0.2)",
-                    color: "#cbd5e1",
-                    padding: "6px 12px",
-                    borderRadius: 4,
-                    fontSize: 11,
-                    fontWeight: 600,
-                    cursor: "pointer",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 6
-                  }}
+                  className={estilosHab.botonLanzarTiradaHab}
                   onClick={() => {
                     alTirarHabilidad(habilidadClave, tituloMostrar, totalCalculado);
                     alCerrar();
@@ -362,8 +274,8 @@ export const ModalDetalleHabilidad: React.FC<ModalDetalleHabilidadProps> = ({
 
         {/* PESTAÑA 2: PERSONALIZAR */}
         {pestanaActiva === "personalizar" && (
-          <form onSubmit={manejarGuardar} className={estilos.contenidoPestañaModal} style={{ gap: 10 }}>
-            <p style={{ fontSize: 11, color: "#94a3b8", margin: 0 }}>
+          <form onSubmit={manejarGuardar} className={`${estilos.contenidoPestañaModal} ${estilosModalCarac.formularioPersonalizarContenedor}`}>
+            <p className={estilosHab.textoIntroPersonalizarHab}>
               Puedes personalizar el nombre y la descripción a mostrar.
             </p>
 
@@ -383,17 +295,16 @@ export const ModalDetalleHabilidad: React.FC<ModalDetalleHabilidadProps> = ({
             <div className={estilos.campoFormulario}>
               <label className={estilos.labelFormulario}>Descripción</label>
               <textarea
-                className={estilos.inputFormulario}
+                className={`${estilos.inputFormulario} ${estilosHab.textareaPersonalizarHab}`}
                 rows={3}
                 value={descForm}
                 onChange={(e) => setDescForm(e.target.value)}
                 placeholder="Descripción del uso de la habilidad..."
-                style={{ resize: "vertical", fontSize: 11 }}
                 spellCheck={false}
               />
             </div>
 
-            <p style={{ fontSize: 11, color: "#94a3b8", margin: "4px 0 0 0" }}>
+            <p className={estilosHab.textoIntroValoresHab}>
               Ajusta el valor añadiendo un modificador o estableciendo un valor fijo.
             </p>
 
@@ -437,27 +348,25 @@ export const ModalDetalleHabilidad: React.FC<ModalDetalleHabilidadProps> = ({
             <div className={estilos.campoFormulario}>
               <label className={estilos.labelFormulario}>Notas</label>
               <textarea
-                className={estilos.inputFormulario}
+                className={`${estilos.inputFormulario} ${estilosHab.textareaPersonalizarHab}`}
                 rows={2}
                 value={notasForm}
                 onChange={(e) => setNotasForm(e.target.value)}
                 placeholder="Añade notas para que no se te escape nada"
-                style={{ resize: "vertical", fontSize: 11 }}
                 spellCheck={false}
               />
             </div>
 
             {/* Botones de Pie */}
-            <div className={estilos.pieModal} style={{ marginTop: 4 }}>
+            <div className={`${estilos.pieModal} ${estilosModalCarac.pieModalMargenTop}`}>
               <button type="button" className={estilos.neoButton} onClick={alCerrar}>
                 Cancelar
               </button>
               <button
                 type="submit"
-                className={estilos.neoButton}
-                style={{ backgroundColor: "#1e293b", borderColor: "rgba(96, 165, 250, 0.4)", color: "#93c5fd" }}
+                className={`${estilos.neoButton} ${estilosHab.botonGuardarHab}`}
               >
-                <Save size={14} style={{ marginRight: 4 }} />
+                <Save size={14} className={estilosHab.iconoPestanaHabilidad} />
                 Guardar
               </button>
             </div>

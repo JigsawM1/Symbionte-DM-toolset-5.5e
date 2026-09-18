@@ -100,7 +100,7 @@ export const ListaHechizos: React.FC = () => {
           />
         </div>
 
-        <div style={{ minWidth: "140px", flex: 1 }}>
+        <div className={estilosClases.filtroDesplegableNivel}>
           <SelectorDesplegable
             valor={String(nivelFiltro)}
             alCambiar={(val) => setNivelFiltro(val === "todos" ? "todos" : Number(val))}
@@ -109,7 +109,7 @@ export const ListaHechizos: React.FC = () => {
           />
         </div>
 
-        <div style={{ minWidth: "150px", flex: 1 }}>
+        <div className={estilosClases.filtroDesplegableEscuela}>
           <SelectorDesplegable
             valor={escuelaFiltro}
             alCambiar={(val) => setEscuelaFiltro(val)}
@@ -148,7 +148,7 @@ export const ListaHechizos: React.FC = () => {
                   <span className={estilosClases.hechizoNombre}>{hechizo.nombre}</span>
                   <span className={estilosClases.hechizoEscuela}>{hechizo.escuela}</span>
                   <span className={estilosClases.indicadorExpansion}>
-                    <Info size={11} style={{ marginRight: "3px", display: "inline", verticalAlign: "middle" }} />
+                    <Info size={11} className={estilosClases.iconoInfoDetalles} />
                     Detalles
                   </span>
                 </div>

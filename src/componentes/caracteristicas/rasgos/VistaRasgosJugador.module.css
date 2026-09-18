@@ -235,6 +235,17 @@
   font-weight: 700;
 }
 
+.chipFiltroLimpiar {
+  margin-left: auto;
+  color: #f87171;
+}
+
+.chipFiltroLimpiar:hover {
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.12);
+  border-color: rgba(239, 68, 68, 0.3);
+}
+
 /* ==========================================
    2. SECCIONES Y CONTENEDORES JERÁRQUICOS
    ========================================== */
@@ -296,6 +307,52 @@
   gap: 6px;
   padding: 8px;
   box-sizing: border-box;
+}
+
+.seccionSubclase {
+  border-left: 3px solid #38bdf8;
+}
+
+.tituloSubclase {
+  color: #38bdf8;
+}
+
+.seccionInvocaciones {
+  border-left: 3px solid #a855f7;
+}
+
+.tituloInvocaciones {
+  color: #c084fc;
+}
+
+.badgeInvocaciones {
+  background: rgba(168, 85, 247, 0.2);
+  color: #e9d5ff;
+  border-color: #a855f7;
+}
+
+.cuerpoInvocaciones {
+  padding: 8px 12px 14px 12px;
+}
+
+.seccionSubespecie {
+  border-left: 3px solid #10b981;
+}
+
+.tituloSubespecie {
+  color: #34d399;
+}
+
+.botonHerramientaCompacto {
+  padding: 2px 6px;
+  font-size: 10.5px;
+}
+
+.avisoVacioHomebrew {
+  text-align: center;
+  padding: 12px 6px;
+  color: #64748b;
+  font-size: 11.5px;
 }
 
 /* Bloque individual de Clase */
@@ -420,12 +477,22 @@
   align-items: center;
   gap: 5px;
   flex-wrap: wrap;
+  cursor: pointer;
+  flex: 1;
 }
 
 .nombreRasgo {
   font-size: 12.5px;
   font-weight: 700;
-  color: #ffffff;
+  color: #f8fafc;
+}
+
+.origenClase .nombreRasgo {
+  color: #d4af37;
+}
+
+.origenSubclase .nombreRasgo {
+  color: #38bdf8;
 }
 
 /* Badges de Tipo de Acción */
@@ -604,6 +671,7 @@
 /* Descripción compacta del Rasgo */
 .cuerpoTarjetaCompacto {
   padding: 1px 0;
+  cursor: pointer;
 }
 
 .descripcionRasgoCompacta {
@@ -702,6 +770,12 @@
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
 }
 
+.bloqueProgresionClase {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
 .cabeceraCompendioClase {
   display: flex;
   justify-content: space-between;
@@ -721,6 +795,19 @@
   display: flex;
   align-items: center;
   gap: 6px;
+}
+
+.metaCompendioClase {
+  font-size: 11px;
+  color: #94a3b8;
+  font-weight: 600;
+  text-transform: none;
+}
+
+.subDefNombre {
+  font-size: 11px;
+  color: #38bdf8;
+  font-weight: 700;
 }
 
 .itemProgresion {
@@ -848,6 +935,21 @@
   border: 1px solid rgba(148, 163, 184, 0.15);
 }
 
+.filaTituloIzquierda {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.iconoBadgeAlcanzado {
+  margin-right: 2px;
+  display: inline;
+}
+
+.contenedorTablaProgresion {
+  margin-top: 8px;
+}
+
 /* ==========================================
    5. MODAL DE DETALLE DE RASGO
    ========================================== */
@@ -870,6 +972,7 @@
 .contenedorModalDetalle {
   background: #0f1624;
   border: 1px solid rgba(255, 255, 255, 0.14);
+  border-top: 3px solid #38bdf8;
   border-radius: 8px;
   width: 100%;
   max-width: 540px;
@@ -878,6 +981,26 @@
   flex-direction: column;
   box-shadow: 0 16px 40px rgba(0, 0, 0, 0.7);
   color: #f8fafc;
+  overflow: hidden;
+}
+
+.contenedorModalDetalle[data-tipo-origen="clase"] {
+  border-top-color: #d4af37;
+}
+.contenedorModalDetalle[data-tipo-origen="subclase"] {
+  border-top-color: #38bdf8;
+}
+.contenedorModalDetalle[data-tipo-origen="especie"] {
+  border-top-color: #10b981;
+}
+.contenedorModalDetalle[data-tipo-origen="dote"] {
+  border-top-color: #a78bfa;
+}
+
+.formularioModal {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
   overflow: hidden;
 }
 
@@ -897,11 +1020,26 @@
   gap: 5px;
 }
 
+.lineaTituloModal {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
 .tituloRasgoModal {
   font-size: 14px;
   font-weight: 800;
   letter-spacing: 0.4px;
   margin: 0;
+  color: #ffffff;
+}
+
+.contenedorModalDetalle[data-tipo-origen="clase"] .tituloRasgoModal {
+  color: #d4af37;
+}
+.contenedorModalDetalle[data-tipo-origen="subclase"] .tituloRasgoModal {
+  color: #38bdf8;
 }
 
 .badgesModalDetalle {
@@ -1101,6 +1239,19 @@
   cursor: pointer;
 }
 
+.tituloNotasModal {
+  color: #cbd5e1;
+  display: block;
+  margin-bottom: 3px;
+  font-weight: 700;
+}
+
+.textoNotasModal {
+  margin: 0;
+  color: #ffffff;
+  font-size: 12px;
+}
+
 .botonCerrarModalSecundario {
   padding: 4px 12px;
   font-size: 11px;
@@ -1110,6 +1261,7 @@
   border: 1px solid rgba(255, 255, 255, 0.15);
   color: #f8fafc;
   cursor: pointer;
+  margin-left: auto;
 }
 
 /* ==========================================
@@ -1275,6 +1427,12 @@
   cursor: pointer;
   transition: none;
   border: 1px solid transparent;
+  margin-left: 6px;
+}
+
+.botonToggleRasgoDeshabilitado {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .botonToggleRasgoActivo {
@@ -1415,6 +1573,9 @@
   font-size: 11.5px;
   font-weight: 600;
   color: #f8fafc;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
 }
 
 .descripcionOpcionSelector {

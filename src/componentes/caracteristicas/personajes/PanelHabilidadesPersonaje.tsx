@@ -132,12 +132,12 @@ const PanelHabilidadesPersonajeComponent: React.FC<PanelHabilidadesPersonajeProp
                   <span className={estilos.caracAbrevHabilidad}>({abrevCarac})</span>
                   {evalHab.tieneDesventaja && (
                     <span title={`Desventaja en ${nombreMostrar} por: ${motivosHab}`}>
-                      <AlertTriangle size={10} color="#f59e0b" style={{ marginLeft: 2 }} />
+                      <AlertTriangle size={10} color="#f59e0b" className={estilos.iconoInlineHabilidad} />
                     </span>
                   )}
                   {evalHab.tieneVentaja && !evalHab.tieneDesventaja && (
                     <span title={`Ventaja en ${nombreMostrar} por: ${motivosHab}`}>
-                      <Sparkles size={10} color="#38bdf8" style={{ marginLeft: 2 }} />
+                      <Sparkles size={10} color="#38bdf8" className={estilos.iconoInlineHabilidad} />
                     </span>
                   )}
                 </div>
@@ -160,7 +160,7 @@ const PanelHabilidadesPersonajeComponent: React.FC<PanelHabilidadesPersonajeProp
         <span className={estilos.tituloPanelLateral}>Competencias</span>
 
         <div className={estilos.grupoCompetenciaItem}>
-          <span className={estilos.tituloGrupoCompetencia} style={{ display: "flex", alignItems: "center", gap: 4 }}>
+          <span className={estilos.tituloGrupoCompetencia}>
             <Swords size={11} color="#94a3b8" /> Armas
           </span>
           <div
@@ -175,7 +175,7 @@ const PanelHabilidadesPersonajeComponent: React.FC<PanelHabilidadesPersonajeProp
         </div>
 
         <div className={estilos.grupoCompetenciaItem}>
-          <span className={estilos.tituloGrupoCompetencia} style={{ display: "flex", alignItems: "center", gap: 4 }}>
+          <span className={estilos.tituloGrupoCompetencia}>
             <Shield size={11} color="#94a3b8" /> Armaduras
           </span>
           <div
@@ -190,7 +190,7 @@ const PanelHabilidadesPersonajeComponent: React.FC<PanelHabilidadesPersonajeProp
         </div>
 
         <div className={estilos.grupoCompetenciaItem}>
-          <span className={estilos.tituloGrupoCompetencia} style={{ display: "flex", alignItems: "center", gap: 4 }}>
+          <span className={estilos.tituloGrupoCompetencia}>
             <Languages size={11} color="#94a3b8" /> Idiomas
           </span>
           <div
@@ -205,7 +205,7 @@ const PanelHabilidadesPersonajeComponent: React.FC<PanelHabilidadesPersonajeProp
         </div>
 
         <div className={estilos.grupoCompetenciaItem}>
-          <span className={estilos.tituloGrupoCompetencia} style={{ display: "flex", alignItems: "center", gap: 4 }}>
+          <span className={estilos.tituloGrupoCompetencia}>
             <Wrench size={11} color="#94a3b8" /> Herramientas
           </span>
           <div

@@ -657,13 +657,13 @@ export const ConstructorRasgoDote: React.FC<ConstructorRasgoDoteProps> = ({
       </div>
 
       {/* Selector Rápido de Dotes Oficiales */}
-      <div className={estilos.seccionCard} style={{ background: "rgba(30, 41, 59, 0.4)" }}>
+      <div className={`${estilos.seccionCard} ${estilos.seccionCardTranslúcida}`}>
         <div className={estilos.filaToggle}>
           <div className={estilos.infoToggle}>
             <span className={estilos.labelToggle}>Cargar Plantilla de Dote Oficial (PHB 2024)</span>
             <span className={estilos.pistaToggle}>Rellena automáticamente el nombre, categoría y descripción oficial</span>
           </div>
-          <div style={{ width: "260px" }}>
+          <div className={estilos.selectorDoteAnchoFijo}>
             <SelectorDesplegable
               valor=""
               opciones={opcionesDotesOficiales}
@@ -757,7 +757,7 @@ export const ConstructorRasgoDote: React.FC<ConstructorRasgoDoteProps> = ({
           </div>
         </div>
 
-        <div className={estilos.campoGrupo} style={{ marginTop: "4px" }}>
+        <div className={`${estilos.campoGrupo} ${estilos.margenTop4}`}>
           <label className={estilos.labelCampo}>
             <span>Categoría Mecánica Canónica</span>
           </label>
@@ -829,7 +829,7 @@ export const ConstructorRasgoDote: React.FC<ConstructorRasgoDoteProps> = ({
         </div>
 
         {esActivable && (
-          <div className={estilos.gridDosColumnas} style={{ marginTop: "4px" }}>
+          <div className={`${estilos.gridDosColumnas} ${estilos.margenTop4}`}>
             <div className={estilos.campoGrupo}>
               <label className={estilos.labelCampo}>
                 <span>Rasgo Padre Requerido (ligadoA)</span>
@@ -882,7 +882,7 @@ export const ConstructorRasgoDote: React.FC<ConstructorRasgoDoteProps> = ({
               </p>
             </div>
 
-            <div className={estilos.filaToggle} style={{ gridColumn: "1 / -1", marginTop: "6px" }}>
+            <div className={`${estilos.filaToggle} ${estilos.filaToggleSpanCompleto}`}>
               <div className={estilos.infoToggle}>
                 <span className={estilos.labelToggle}>¿Auto-desactivar inmediatamente tras su uso?</span>
                 <span className={estilos.pistaToggle}>
@@ -899,7 +899,7 @@ export const ConstructorRasgoDote: React.FC<ConstructorRasgoDoteProps> = ({
               </label>
             </div>
 
-            <div className={estilos.filaToggle} style={{ gridColumn: "1 / -1", marginTop: "6px" }}>
+            <div className={`${estilos.filaToggle} ${estilos.filaToggleSpanCompleto}`}>
               <div className={estilos.infoToggle}>
                 <span className={estilos.labelToggle}>¿Restaurar usos de otro rasgo al activarse?</span>
                 <span className={estilos.pistaToggle}>
@@ -917,7 +917,7 @@ export const ConstructorRasgoDote: React.FC<ConstructorRasgoDoteProps> = ({
             </div>
 
             {tieneRestauracion && (
-              <div className={estilos.gridDosColumnas} style={{ gridColumn: "1 / -1", marginTop: "4px" }}>
+              <div className={`${estilos.gridDosColumnas} ${estilos.gridDosColumnasSpanCompleto}`}>
                 <div className={estilos.campoGrupo}>
                   <label className={estilos.labelCampo}>
                     <span>Rasgo Objetivo a Recargar</span>
@@ -934,7 +934,7 @@ export const ConstructorRasgoDote: React.FC<ConstructorRasgoDoteProps> = ({
                   <label className={estilos.labelCampo}>
                     <span>Cantidad a Restaurar</span>
                   </label>
-                  <div style={{ display: "flex", gap: "8px" }}>
+                  <div className={estilos.filaCamposCompacta}>
                     <SelectorDesplegable<"maximo" | "fijo">
                       valor={tipoCantidadRestaurar}
                       opciones={[
@@ -947,8 +947,7 @@ export const ConstructorRasgoDote: React.FC<ConstructorRasgoDoteProps> = ({
                       <input
                         type="number"
                         min={1}
-                        className={estilos.inputControl}
-                        style={{ width: "80px" }}
+                        className={`${estilos.inputControl} ${estilos.inputNumeroAncho80}`}
                         value={cantidadRestaurarFija}
                         onChange={(e) => setCantidadRestaurarFija(Math.max(1, parseInt(e.target.value, 10) || 1))}
                       />
@@ -1033,7 +1032,7 @@ export const ConstructorRasgoDote: React.FC<ConstructorRasgoDoteProps> = ({
               </div>
             </div>
 
-            <div className={estilos.campoGrupo} style={{ marginTop: "8px" }}>
+            <div className={`${estilos.campoGrupo} ${estilos.margenTop8}`}>
               <label className={estilos.labelCampo}>
                 <span>Escalado Dinámico de Usos Máximos</span>
               </label>
@@ -1066,7 +1065,7 @@ export const ConstructorRasgoDote: React.FC<ConstructorRasgoDoteProps> = ({
           </p>
         </div>
 
-        <div className={estilos.filaToggle} style={{ marginTop: "8px" }}>
+        <div className={`${estilos.filaToggle} ${estilos.margenTop8}`}>
           <div className={estilos.infoToggle}>
             <span className={estilos.labelToggle}>¿Gastar usos del rasgo padre?</span>
             <span className={estilos.pistaToggle}>
@@ -1083,7 +1082,7 @@ export const ConstructorRasgoDote: React.FC<ConstructorRasgoDoteProps> = ({
           </label>
         </div>
 
-        <div className={estilos.filaToggle} style={{ marginTop: "8px" }}>
+        <div className={`${estilos.filaToggle} ${estilos.margenTop8}`}>
           <div className={estilos.infoToggle}>
             <span className={estilos.labelToggle}>¿Heredar dados de escala del rasgo padre?</span>
             <span className={estilos.pistaToggle}>
@@ -1101,7 +1100,7 @@ export const ConstructorRasgoDote: React.FC<ConstructorRasgoDoteProps> = ({
         </div>
 
         {(gastarDePadre || heredarDadosPadre) && (
-          <div className={estilos.campoGrupo} style={{ marginTop: "8px" }}>
+          <div className={`${estilos.campoGrupo} ${estilos.margenTop8}`}>
             <label className={estilos.labelCampo}>
               <span>Vincular al Rasgo Padre (Nombre o ID)</span>
             </label>
@@ -1118,7 +1117,7 @@ export const ConstructorRasgoDote: React.FC<ConstructorRasgoDoteProps> = ({
           </div>
         )}
 
-        <div className={estilos.campoGrupo} style={{ marginTop: "8px" }}>
+        <div className={`${estilos.campoGrupo} ${estilos.margenTop8}`}>
           <label className={estilos.labelCampo}>
             <span>Conjuros Otorgados (Siempre preparados, separados por coma)</span>
           </label>
@@ -1174,7 +1173,7 @@ export const ConstructorRasgoDote: React.FC<ConstructorRasgoDoteProps> = ({
             ))}
           </div>
         ) : (
-          <p className={estilos.pistaCampo} style={{ fontStyle: "italic" }}>
+          <p className={`${estilos.pistaCampo} ${estilos.pistaCampoCursiva}`}>
             No hay efectos mecánicos añadidos aún. Este rasgo será solo informativo a menos que agregues efectos interactivos.
           </p>
         )}
@@ -1343,13 +1342,13 @@ export const ConstructorRasgoDote: React.FC<ConstructorRasgoDoteProps> = ({
                   />
                 </div>
 
-                <div className={estilos.campoGrupo} style={{ justifyContent: "center" }}>
+                <div className={`${estilos.campoGrupo} ${estilos.campoGrupoCentrado}`}>
                   <label className={estilos.labelCampo}>
                     <input
                       type="checkbox"
                       checked={nuevoPermiteEscudo}
                       onChange={(e) => setNuevoPermiteEscudo(e.target.checked)}
-                      style={{ marginRight: "8px" }}
+                      className={estilos.checkboxConMargen}
                     />
                     <span>Permite usar Escudo (ej. Bárbaro sí, Monje no)</span>
                   </label>
@@ -1461,7 +1460,7 @@ export const ConstructorRasgoDote: React.FC<ConstructorRasgoDoteProps> = ({
 
             {nuevoTipoEfecto === "medio_bono_habilidades" && (
               <div className={estilos.campoGrupo}>
-                <p className={estilos.pistaCampo} style={{ color: "#38bdf8" }}>
+                <p className={`${estilos.pistaCampo} ${estilos.pistaCampoCian}`}>
                   Aplica la regla canónica de Aprendiz de mucho: suma la mitad de la competencia (redondeada hacia abajo) a cualquier habilidad en la que el personaje no sea competente.
                 </p>
               </div>
@@ -1893,7 +1892,7 @@ export const ConstructorRasgoDote: React.FC<ConstructorRasgoDoteProps> = ({
             ))}
           </div>
         ) : (
-          <p className={estilos.pistaCampo} style={{ fontStyle: "italic" }}>
+          <p className={`${estilos.pistaCampo} ${estilos.pistaCampoCursiva}`}>
             No hay selectores de opciones configurados para este rasgo.
           </p>
         )}
@@ -1923,7 +1922,7 @@ export const ConstructorRasgoDote: React.FC<ConstructorRasgoDoteProps> = ({
                 <label className={estilos.labelCampo}>
                   <span>Tipo de Selección</span>
                 </label>
-                <div style={{ display: "flex", gap: "8px" }}>
+                <div className={estilos.filaCamposCompacta}>
                   <SelectorDesplegable<"unico" | "multiple">
                     valor={nuevoSelectorTipo}
                     opciones={[
@@ -1936,8 +1935,7 @@ export const ConstructorRasgoDote: React.FC<ConstructorRasgoDoteProps> = ({
                     <input
                       type="number"
                       min={1}
-                      className={estilos.inputControl}
-                      style={{ width: "80px" }}
+                      className={`${estilos.inputControl} ${estilos.inputNumeroAncho80}`}
                       title="Máximo de selecciones"
                       placeholder="Máx."
                       value={nuevoSelectorMax}
@@ -1948,7 +1946,7 @@ export const ConstructorRasgoDote: React.FC<ConstructorRasgoDoteProps> = ({
               </div>
             </div>
 
-            <div className={estilos.campoGrupo} style={{ marginTop: "8px" }}>
+            <div className={`${estilos.campoGrupo} ${estilos.margenTop8}`}>
               <label className={estilos.labelCampo}>
                 <span>Opciones disponibles (separadas por comas o saltos de línea)</span>
               </label>
@@ -2001,7 +1999,7 @@ export const ConstructorRasgoDote: React.FC<ConstructorRasgoDoteProps> = ({
           <span>Vista Previa en Vivo (Cómo se verá en tu lista de juego)</span>
         </div>
 
-        <div style={{ maxWidth: "420px", margin: "0 auto", width: "100%" }}>
+        <div className={estilos.contenedorPrevisualizacionCentrado}>
           <TarjetaRasgo
             rasgo={rasgoPrevisualizado}
             nombrePersonaje={personaje.nombre || "Personaje"}

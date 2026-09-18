@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Sparkles, RotateCcw, ChevronDown, ChevronUp } from "lucide-react";
 import { COSTE_PUNTOS_POR_NIVEL } from "@/constantes";
+import styles from "./PanelConjurosPersonaje.module.css";
 
 interface TrackerPuntosConjuroProps {
   puntosMaximos: number;
@@ -46,50 +47,19 @@ export const TrackerPuntosConjuro: React.FC<TrackerPuntosConjuroProps> = ({
   };
 
   return (
-    <div
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        gap: 12,
-        backgroundColor: "#111622",
-        border: "1px solid rgba(148, 163, 184, 0.14)",
-        borderRadius: 8,
-        padding: "14px 16px"
-      }}
-    >
+    <div className={styles.contenedorTrackerPuntos}>
       {/* Cabecera y Resumen */}
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          borderBottom: "1px solid rgba(148, 163, 184, 0.1)",
-          paddingBottom: 8
-        }}
-      >
-        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+      <div className={styles.cabeceraTrackerPuntos}>
+        <div className={styles.tituloPuntosFila}>
           <Sparkles size={15} color="#38bdf8" />
-          <span
-            style={{
-              fontSize: 12,
-              fontWeight: 700,
-              letterSpacing: "0.06em",
-              textTransform: "uppercase",
-              color: "#f1f5f9"
-            }}
-          >
+          <span className={styles.tituloPuntosTexto}>
             Puntos de Conjuro (Variante)
           </span>
         </div>
 
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <span
-            style={{
-              fontSize: 11,
-              color: "#94a3b8"
-            }}
-          >
-            Nivel Máx: <strong style={{ color: "#38bdf8" }}>{nivelMaximo}</strong>
+        <div className={styles.ladoDerechoCabeceraPuntos}>
+          <span className={styles.textoNivelMaxPuntos}>
+            Nivel Máx: <strong className={styles.resaltadoNivelMax}>{nivelMaximo}</strong>
           </span>
 
           {mostrarBotonRestablecer && alRecuperarTodosPuntos && (
@@ -97,18 +67,7 @@ export const TrackerPuntosConjuro: React.FC<TrackerPuntosConjuroProps> = ({
               type="button"
               onClick={alRecuperarTodosPuntos}
               title="Restablecer todos los puntos de conjuro"
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 4,
-                background: "#18202f",
-                border: "1px solid rgba(148, 163, 184, 0.2)",
-                borderRadius: 4,
-                color: "#94a3b8",
-                fontSize: 11,
-                padding: "3px 8px",
-                cursor: "pointer"
-              }}
+              className={styles.botonRestablecerPuntos}
             >
               <RotateCcw size={11} />
               <span>Restablecer</span>
@@ -119,55 +78,33 @@ export const TrackerPuntosConjuro: React.FC<TrackerPuntosConjuroProps> = ({
 
       {/* Barra de Progreso y Marcador Numérico */}
       <div>
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "baseline",
-            marginBottom: 6
-          }}
-        >
-          <span style={{ fontSize: 11, color: "#94a3b8" }}>Reserva de Maná</span>
-          <div style={{ fontFamily: "JetBrains Mono, monospace", fontSize: 16, fontWeight: 700 }}>
-            <span style={{ color: puntosDisponibles > 0 ? "#38bdf8" : "#ef4444" }}>
+        <div className={styles.cabeceraBarraPuntos}>
+          <span className={styles.etiquetaReservaMana}>Reserva de Maná</span>
+          <div className={styles.marcadorNumericoPuntos}>
+            <span className={puntosDisponibles > 0 ? styles.puntosDisponiblesPositivos : styles.puntosDisponiblesAgotados}>
               {puntosDisponibles}
             </span>
-            <span style={{ color: "#64748b", fontSize: 13 }}> / {puntosMaximos} pts</span>
+            <span className={styles.textoPuntosMaximos}> / {puntosMaximos} pts</span>
           </div>
         </div>
 
         {/* Barra visual */}
-        <div
-          style={{
-            height: 10,
-            backgroundColor: "rgba(15, 23, 42, 0.8)",
-            borderRadius: 5,
-            overflow: "hidden",
-            border: "1px solid rgba(148, 163, 184, 0.15)"
-          }}
-        >
+        <div className={styles.pistaBarraPuntos}>
           <div
+            // eslint-disable-next-line react/forbid-dom-props -- Ancho porcentual dinámico continuo en tiempo de ejecución (0-100%)
             style={{
-              height: "100%",
-              width: `${Math.min(100, Math.max(0, porcentaje))}%`,
-              backgroundColor: porcentaje > 25 ? "#0284c7" : "#ef4444"
+              width: `${Math.min(100, Math.max(0, porcentaje))}%`
             }}
+            className={styles.rellenoBarraPuntos}
+            data-alerta={porcentaje <= 25 ? "true" : "false"}
           />
         </div>
       </div>
 
       {/* Control Personalizado (Opcional) y Tabla de Referencia */}
-      <div
-        style={{
-          display: "flex",
-          justifyContent: mostrarGastoManual ? "space-between" : "flex-end",
-          alignItems: "center",
-          paddingTop: 8,
-          borderTop: "1px solid rgba(148, 163, 184, 0.1)"
-        }}
-      >
+      <div className={styles.filaAccionesPuntos}>
         {mostrarGastoManual && (
-          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+          <div className={styles.grupoGastoManualPuntos}>
             <input
               type="number"
               min={1}
@@ -178,44 +115,19 @@ export const TrackerPuntosConjuro: React.FC<TrackerPuntosConjuroProps> = ({
               onKeyDown={(e) => {
                 if (e.key === "Enter") manejarGastoPersonalizado();
               }}
-              style={{
-                width: 55,
-                padding: "3px 6px",
-                backgroundColor: "#0b0f16",
-                border: "1px solid rgba(148, 163, 184, 0.2)",
-                borderRadius: 4,
-                color: "#f1f5f9",
-                fontSize: 11,
-                textAlign: "center"
-              }}
+              className={styles.inputGastoManualPuntos}
             />
             <button
               type="button"
               onClick={manejarGastoPersonalizado}
-              style={{
-                padding: "3px 8px",
-                backgroundColor: "#1e293b",
-                border: "1px solid rgba(148, 163, 184, 0.2)",
-                borderRadius: 4,
-                color: "#94a3b8",
-                fontSize: 11,
-                cursor: "pointer"
-              }}
+              className={styles.botonGastarPuntos}
             >
               Gastar
             </button>
             <button
               type="button"
               onClick={manejarRecuperacionPersonalizada}
-              style={{
-                padding: "3px 8px",
-                backgroundColor: "#1e293b",
-                border: "1px solid rgba(56, 189, 248, 0.2)",
-                borderRadius: 4,
-                color: "#38bdf8",
-                fontSize: 11,
-                cursor: "pointer"
-              }}
+              className={styles.botonRecuperarPuntos}
             >
               +Recuperar
             </button>
@@ -225,16 +137,7 @@ export const TrackerPuntosConjuro: React.FC<TrackerPuntosConjuroProps> = ({
         <button
           type="button"
           onClick={() => setMostrarTablaCostes(!mostrarTablaCostes)}
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 4,
-            background: "none",
-            border: "none",
-            color: "#64748b",
-            fontSize: 11,
-            cursor: "pointer"
-          }}
+          className={styles.botonAlternarTablaCostes}
         >
           <span>Tabla de Costes</span>
           {mostrarTablaCostes ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
@@ -243,27 +146,12 @@ export const TrackerPuntosConjuro: React.FC<TrackerPuntosConjuroProps> = ({
 
       {/* Tabla Colapsable de Costes */}
       {mostrarTablaCostes && (
-        <div
-          style={{
-            backgroundColor: "#0b0f16",
-            border: "1px solid rgba(148, 163, 184, 0.1)",
-            borderRadius: 6,
-            padding: 10,
-            fontSize: 11
-          }}
-        >
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(3, 1fr)",
-              gap: 6,
-              color: "#94a3b8"
-            }}
-          >
+        <div className={styles.cajaTablaCostesPuntos}>
+          <div className={styles.gridCostesPuntos}>
             {Object.entries(COSTE_PUNTOS_POR_NIVEL).map(([nv, coste]) => (
-              <div key={`coste-${nv}`} style={{ display: "flex", justifyContent: "space-between" }}>
+              <div key={`coste-${nv}`} className={styles.itemCosteNivel}>
                 <span>Nivel {nv}:</span>
-                <strong style={{ color: "#38bdf8" }}>{coste} pts</strong>
+                <strong className={styles.valorCosteResaltado}>{coste} pts</strong>
               </div>
             ))}
           </div>

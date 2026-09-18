@@ -31,7 +31,7 @@ export const TarjetaConsumibleAccion: React.FC<TarjetaConsumibleAccionProps> = (
     <div className={`${estilos.tarjetaAtaque} ${estilos.tarjetaConsumible}`}>
       {/* Fila Superior: Nombre + Cantidad + Badge Acción */}
       <div className={estilos.filaSuperiorAtaque}>
-        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+        <div className="u-flex u-alinear-centro u-gap-md">
           {consumible.esPocion ? (
             <FlaskConical size={14} color="#10b981" />
           ) : (
@@ -41,7 +41,7 @@ export const TarjetaConsumibleAccion: React.FC<TarjetaConsumibleAccionProps> = (
           <span className={estilos.badgeCantidadConsumible}>×{consumible.cantidad}</span>
         </div>
 
-        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+        <div className="u-flex u-alinear-centro u-gap-md">
           <span className={`${estilos.badgeAccionTipo} ${claseBadgeAccion}`}>
             {textoBadgeAccion}
           </span>
@@ -53,9 +53,9 @@ export const TarjetaConsumibleAccion: React.FC<TarjetaConsumibleAccionProps> = (
 
       {/* Fila de Efecto y Botón Usar */}
       <div className={estilos.filaMetricasConsumible}>
-        <div style={{ display: "flex", alignItems: "center", gap: 6, flex: 1 }}>
+        <div className="u-flex u-alinear-centro u-gap-md u-flex-1">
           {consumible.esCurativo ? (
-            <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
+            <div className="u-flex u-alinear-centro u-gap-md">
               <Heart size={13} color="#ef4444" />
               <span className={estilos.textoEfectoCuracion}>
                 Recupera {consumible.formulaCuracion} PV

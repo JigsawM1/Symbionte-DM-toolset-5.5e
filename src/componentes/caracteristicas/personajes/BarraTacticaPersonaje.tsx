@@ -107,7 +107,7 @@ const BarraTacticaPersonajeComponent: React.FC<BarraTacticaPersonajeProps> = ({
               onClick={alEjecutarDescansoCorto}
               title="Descanso Corto (Gastar dados de golpe para curar)"
             >
-              <Moon size={11} style={{ marginRight: 2 }} />
+              <Moon size={11} className={estilos.iconoDescanso} />
               Corto
             </button>
             <button
@@ -116,7 +116,7 @@ const BarraTacticaPersonajeComponent: React.FC<BarraTacticaPersonajeProps> = ({
               onClick={alEjecutarDescansoLargo}
               title="Descanso Largo (Restaurar HP, dados y reducir cansancio)"
             >
-              <Sunrise size={11} style={{ marginRight: 2 }} />
+              <Sunrise size={11} className={estilos.iconoDescanso} />
               Largo
             </button>
           </div>
@@ -176,10 +176,10 @@ const BarraTacticaPersonajeComponent: React.FC<BarraTacticaPersonajeProps> = ({
 
       {/* Columna Derecha: Condiciones Activas y Efectos Automáticos */}
       <div className={`${estilos.columnaCondicionesActivas} ${estilos.neoPressed}`}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%", marginBottom: "4px" }}>
+        <div className={estilos.cabeceraCondicionesActivas}>
           <span className={estilos.tituloCondicionesActivas}>Condiciones y Efectos</span>
           {rondaActual !== undefined && rondaActual > 0 && (
-            <span style={{ fontSize: "10px", color: "var(--color-texto-apagado)", fontWeight: 700 }}>
+            <span className={estilos.textoRondaActual}>
               Ronda {rondaActual}
             </span>
           )}

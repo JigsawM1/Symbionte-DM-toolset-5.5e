@@ -17,11 +17,11 @@ export const SeccionEscudo: React.FC<Props> = ({
   estilos,
 }) => {
   return (
-    <div className={estilos.bloqueDinamicoForm} style={{ borderColor: "rgba(56, 189, 248, 0.25)" }}>
+    <div className={`${estilos.bloqueDinamicoForm} ${estilos.bloqueDinamicoEscudo}`}>
       <div className={estilos.tituloBloqueDinamico}>
         <span>ATRIBUTOS DEFENSIVOS DEL ESCUDO</span>
         <span className={estilos.subtituloInformacion}>
-          <Shield size={12} style={{ display: "inline", marginRight: "2px" }} /> Escudo Protector
+          <Shield size={12} className={estilos.iconoInline2px} /> Escudo Protector
         </span>
       </div>
 
@@ -38,8 +38,8 @@ export const SeccionEscudo: React.FC<Props> = ({
           />
         </div>
 
-        <div className={estilos.campoForm} style={{ justifyContent: "center" }}>
-          <label className={estilos.labelCheckbox} style={{ marginTop: "16px" }}>
+        <div className={`${estilos.campoForm} ${estilos.campoFormCentrado}`}>
+          <label className={`${estilos.labelCheckbox} ${estilos.labelCheckboxConMargen}`}>
             <input
               type="checkbox"
               checked={oDesventajaSigilo}

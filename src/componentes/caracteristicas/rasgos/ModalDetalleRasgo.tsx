@@ -169,33 +169,27 @@ export const ModalDetalleRasgo: React.FC<ModalDetalleRasgoProps> = ({
   const esEspecie = rasgo.origen === "especie";
   const esDote = rasgo.origen === "dote";
 
-  let colorAcento = "#38bdf8";
-  if (esClase) colorAcento = "#d4af37";
-  else if (esSubclase) colorAcento = "#38bdf8";
-  else if (esEspecie) colorAcento = "#10b981";
-  else if (esDote) colorAcento = "#a78bfa";
+  const tipoOrigen: "clase" | "subclase" | "especie" | "dote" | "default" =
+    esClase ? "clase" : esSubclase ? "subclase" : esEspecie ? "especie" : esDote ? "dote" : "default";
 
   return (
     <div className={estilos.overlayModalDetalle} onClick={alCerrar}>
       <div
         className={estilos.contenedorModalDetalle}
-        style={{ borderTopColor: colorAcento }}
+        data-tipo-origen={tipoOrigen}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Cabecera del Modal */}
         <div className={estilos.cabeceraModalDetalle}>
           <div className={estilos.infoTituloModal}>
-            <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+            <div className={estilos.lineaTituloModal}>
               {esClase && <Swords size={15} color="#d4af37" />}
               {esSubclase && <Sparkles size={15} color="#38bdf8" />}
               {esEspecie && <User size={15} color="#10b981" />}
               {esDote && <Award size={15} color="#a78bfa" />}
               {!esClase && !esSubclase && !esEspecie && !esDote && <Layers size={15} color="#38bdf8" />}
 
-              <h2
-                className={estilos.tituloRasgoModal}
-                style={{ color: esClase ? "#d4af37" : esSubclase ? "#38bdf8" : "#ffffff" }}
-              >
+              <h2 className={estilos.tituloRasgoModal}>
                 {rasgo.nivelRequerido && rasgo.nivelRequerido > 0 ? `NIVEL ${rasgo.nivelRequerido}: ` : ""}
                 {rasgo.nombre.toUpperCase()}
               </h2>
@@ -204,7 +198,9 @@ export const ModalDetalleRasgo: React.FC<ModalDetalleRasgoProps> = ({
               {rasgo.esActivable && alAlternarActivo && (
                 <button
                   type="button"
-                  className={`${estilos.botonToggleRasgo} ${rasgo.activo ? estilos.botonToggleRasgoActivo : estilos.botonToggleRasgoInactivo}`}
+                  className={`${estilos.botonToggleRasgo} ${
+                    rasgo.activo ? estilos.botonToggleRasgoActivo : estilos.botonToggleRasgoInactivo
+                  } ${deshabilitadoToggle ? estilos.botonToggleRasgoDeshabilitado : ""}`}
                   onClick={deshabilitadoToggle ? undefined : alAlternarActivo}
                   disabled={deshabilitadoToggle}
                   title={
@@ -214,10 +210,6 @@ export const ModalDetalleRasgo: React.FC<ModalDetalleRasgoProps> = ({
                       ? "Rasgo activo (clic para desactivar)"
                       : "Rasgo inactivo (clic para activar)"
                   }
-                  style={{
-                    marginLeft: 6,
-                    ...(deshabilitadoToggle ? { opacity: 0.5, cursor: "not-allowed" } : {})
-                  }}
                 >
                   <span className={estilos.puntoToggle} />
                   <span>{rasgo.activo ? "ACTIVO" : "INACTIVO"}</span>
@@ -351,8 +343,8 @@ export const ModalDetalleRasgo: React.FC<ModalDetalleRasgoProps> = ({
 
           {rasgo.notas && (
             <div className={estilos.seccionNotasModal}>
-              <strong style={{ color: "#cbd5e1", display: "block", marginBottom: 3 }}>Notas y Modificadores:</strong>
-              <p style={{ margin: 0, color: "#ffffff", fontSize: 12 }}>{rasgo.notas}</p>
+              <strong className={estilos.tituloNotasModal}>Notas y Modificadores:</strong>
+              <p className={estilos.textoNotasModal}>{rasgo.notas}</p>
             </div>
           )}
         </div>
@@ -360,7 +352,7 @@ export const ModalDetalleRasgo: React.FC<ModalDetalleRasgoProps> = ({
         {/* Pie del Modal */}
         <div className={estilos.pieModalDetalle}>
           {esHomebrewOPersonalizado && (
-            <div style={{ display: "flex", gap: 6 }}>
+            <div className="u-flex u-gap-1">
               {alEditar && (
                 <button
                   type="button"
@@ -394,7 +386,6 @@ export const ModalDetalleRasgo: React.FC<ModalDetalleRasgoProps> = ({
             type="button"
             className={estilos.botonCerrarModalSecundario}
             onClick={alCerrar}
-            style={{ marginLeft: "auto" }}
           >
             Cerrar
           </button>

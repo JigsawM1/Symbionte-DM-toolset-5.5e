@@ -87,20 +87,20 @@ export const SeccionAlmacenamientoMunicion: React.FC<SeccionAlmacenamientoMunici
 
       {/* Regla de Almacenamiento / Capacidad de Munición */}
       {infoMunicion && (
-        <div className={estilos.filaBadges} style={{ flexDirection: "column", alignItems: "flex-start", gap: 6 }}>
+        <div className={`${estilos.filaBadges} ${estilos.filaBadgesColumna}`}>
           {infoMunicion.tieneContenedor ? (
             <>
-              <span className={`${estilos.badgeMeta} ${estilos.badgeStorage}`} style={{ backgroundColor: "rgba(56, 189, 248, 0.15)", color: "#7dd3fc", borderColor: "rgba(56, 189, 248, 0.35)" }}>
+              <span className={`${estilos.badgeMeta} ${estilos.badgeMunicionGuardada}`}>
                 <Check size={10} /> Almacenamiento: {infoMunicion.almacenadasEnContenedor} de {infoMunicion.totalMunicion} en {infoMunicion.nombreContenedor} (Capacidad: {infoMunicion.capacidadTotal})
               </span>
               {infoMunicion.sueltasEnMochila > 0 && (
-                <span className={`${estilos.badgeMeta}`} style={{ backgroundColor: "rgba(245, 158, 11, 0.15)", color: "#fcd34d", borderColor: "rgba(245, 158, 11, 0.35)", display: "inline-flex", alignItems: "center", gap: 4 }}>
+                <span className={`${estilos.badgeMeta} ${estilos.badgeMunicionExceso}`}>
                   <AlertTriangle size={10} /> {infoMunicion.sueltasEnMochila} proyectiles exceden la capacidad de tu {infoMunicion.nombreContenedor} y van sueltos en la mochila
                 </span>
               )}
             </>
           ) : (
-            <span className={`${estilos.badgeMeta} ${estilos.badgeStorage}`} style={{ backgroundColor: "rgba(148, 163, 184, 0.1)", color: "#94a3b8", borderColor: "rgba(148, 163, 184, 0.2)" }}>
+            <span className={`${estilos.badgeMeta} ${estilos.badgeMunicionSueltadefecto}`}>
               <Package size={10} /> Suelto en mochila. Requiere: {infoMunicion.nombreContenedor} (Capacidad: {infoMunicion.capacidadUnitaria} uds)
             </span>
           )}
@@ -108,8 +108,8 @@ export const SeccionAlmacenamientoMunicion: React.FC<SeccionAlmacenamientoMunici
       )}
 
       {infoContenedor && (
-        <div className={estilos.filaBadges} style={{ flexDirection: "column", alignItems: "flex-start", gap: 6 }}>
-          <span className={`${estilos.badgeMeta}`} style={{ backgroundColor: "rgba(16, 185, 129, 0.15)", color: "#6ee7b7", borderColor: "rgba(16, 185, 129, 0.35)" }}>
+        <div className={`${estilos.filaBadges} ${estilos.filaBadgesColumna}`}>
+          <span className={`${estilos.badgeMeta} ${estilos.badgeCapacidadContenedor}`}>
             <Target size={10} /> Capacidad de Munición: {infoContenedor.totalAlmacenado} / {infoContenedor.capacidadTotal} {infoContenedor.tipoProyectil} ({infoContenedor.capacidadUnitaria} por unidad)
             {infoContenedor.estaLleno && " • Completo"}
           </span>

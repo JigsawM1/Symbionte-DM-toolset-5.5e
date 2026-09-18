@@ -11,7 +11,6 @@ export interface TooltipUniversalProps {
   deshabilitado?: boolean;
   children: ReactNode;
   className?: string;
-  style?: React.CSSProperties;
 }
 
 /**
@@ -27,8 +26,7 @@ export const TooltipUniversal: React.FC<TooltipUniversalProps> = ({
   anchoMax,
   deshabilitado = false,
   children,
-  className = "",
-  style
+  className = ""
 }) => {
   const [estaVisible, setEstaVisible] = useState(false);
   const [coords, setCoords] = useState<{
@@ -147,7 +145,6 @@ export const TooltipUniversal: React.FC<TooltipUniversalProps> = ({
     <div
       ref={contenedorRef}
       className={`${estilos.contenedor} ${className}`}
-      style={style}
       onMouseEnter={manejarEntradaRaton}
       onMouseLeave={manejarSalidaRaton}
     >
@@ -158,6 +155,7 @@ export const TooltipUniversal: React.FC<TooltipUniversalProps> = ({
         createPortal(
           <div
             className={`${estilos.flotantePortal} ${clasePosicion} ${claseAlineacion}`}
+            // eslint-disable-next-line react/forbid-dom-props -- Posicionamiento absoluto dinámico (top/left) calculado en runtime mediante getBoundingClientRect
             style={estiloFlotante}
           >
             {titulo && <div className={estilos.titulo}>{titulo}</div>}

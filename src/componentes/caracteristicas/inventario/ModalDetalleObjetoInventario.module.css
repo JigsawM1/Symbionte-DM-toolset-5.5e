@@ -254,36 +254,42 @@
   background-color: rgba(251, 191, 36, 0.15);
   color: #fde047;
   border: 1px solid rgba(251, 191, 36, 0.3);
+  cursor: help;
 }
 
 .badgeArmaAlcance {
   background-color: rgba(56, 189, 248, 0.15);
   color: #7dd3fc;
   border: 1px solid rgba(56, 189, 248, 0.3);
+  cursor: help;
 }
 
 .badgeArmaMaestria {
   background-color: rgba(168, 85, 247, 0.15);
   color: #d8b4fe;
   border: 1px solid rgba(168, 85, 247, 0.3);
+  cursor: help;
 }
 
 .badgeArmaduraDes {
   background-color: rgba(96, 165, 250, 0.15);
   color: #93c5fd;
   border: 1px solid rgba(96, 165, 250, 0.3);
+  cursor: help;
 }
 
 .badgeArmaduraFue {
   background-color: rgba(245, 158, 11, 0.15);
   color: #fcd34d;
   border: 1px solid rgba(245, 158, 11, 0.3);
+  cursor: help;
 }
 
 .badgeArmaduraSigilo {
   background-color: rgba(239, 68, 68, 0.15);
   color: #fca5a5;
   border: 1px solid rgba(239, 68, 68, 0.3);
+  cursor: help;
 }
 
 .filaPropiedadesLista {
@@ -300,6 +306,7 @@
   background-color: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.1);
   color: #cbd5e1;
+  cursor: help;
 }
 
 /* Sintonización y Cargas Interactivas */
@@ -446,6 +453,38 @@
 
 .botonContenedorActivo {
   color: #ffffff;
+}
+
+.botonContenedor[data-caja="mochila"].botonContenedorActivo {
+  background-color: rgba(245, 158, 11, 0.13);
+  border-color: #f59e0b;
+}
+.botonContenedor[data-caja="mochila"].botonContenedorActivo .nombreContenedor {
+  color: #f59e0b;
+}
+
+.botonContenedor[data-caja="bolsa_contencion"].botonContenedorActivo {
+  background-color: rgba(192, 132, 252, 0.13);
+  border-color: #c084fc;
+}
+.botonContenedor[data-caja="bolsa_contencion"].botonContenedorActivo .nombreContenedor {
+  color: #c084fc;
+}
+
+.botonContenedor[data-caja="montura"].botonContenedorActivo {
+  background-color: rgba(56, 189, 248, 0.13);
+  border-color: #38bdf8;
+}
+.botonContenedor[data-caja="montura"].botonContenedorActivo .nombreContenedor {
+  color: #38bdf8;
+}
+
+.botonContenedor[data-caja="almacen"].botonContenedorActivo {
+  background-color: rgba(148, 163, 184, 0.13);
+  border-color: #94a3b8;
+}
+.botonContenedor[data-caja="almacen"].botonContenedorActivo .nombreContenedor {
+  color: #94a3b8;
 }
 
 .nombreContenedor {
@@ -819,7 +858,7 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  transition: all 0.1s ease;
+  transition: none;
 }
 
 .botonRecargarCargasModal:hover:not(:disabled) {
@@ -837,6 +876,7 @@
   background-color: rgba(236, 72, 153, 0.15);
   color: #fbcfe8;
   border: 1px solid rgba(236, 72, 153, 0.4);
+  cursor: help;
 }
 
 .badgeTiempoEquipar {
@@ -849,6 +889,7 @@
   background-color: rgba(56, 189, 248, 0.15);
   color: #7dd3fc;
   border: 1px solid rgba(56, 189, 248, 0.3);
+  cursor: help;
 }
 
 .badgeStorage {
@@ -900,4 +941,55 @@
   color: #94a3b8;
   line-height: 1.35;
 }
+
+.valorArtesaniaTaller {
+  color: #f8fafc;
+}
+
+.etiquetaCraftHerramientas {
+  font-size: 10.5px;
+  color: #94a3b8;
+  display: block;
+  margin-bottom: 3px;
+}
+
+.botonLanzarHechizoBloqueado {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.filaBadgesColumna {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.badgeMunicionGuardada {
+  background-color: rgba(56, 189, 248, 0.15);
+  color: #7dd3fc;
+  border: 1px solid rgba(56, 189, 248, 0.35);
+}
+
+.badgeMunicionExceso {
+  background-color: rgba(245, 158, 11, 0.15);
+  color: #fcd34d;
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.badgeMunicionSueltadefecto {
+  background-color: rgba(148, 163, 184, 0.1);
+  color: #94a3b8;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+}
+
+.badgeCapacidadContenedor {
+  background-color: rgba(16, 185, 129, 0.15);
+  color: #6ee7b7;
+  border: 1px solid rgba(16, 185, 129, 0.35);
+}
+
+
 

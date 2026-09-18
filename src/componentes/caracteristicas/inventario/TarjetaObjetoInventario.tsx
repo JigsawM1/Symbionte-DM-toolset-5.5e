@@ -216,15 +216,7 @@ export const TarjetaObjetoInventario: React.FC<TarjetaObjetoInventarioProps> = R
                 contenido={`Otorga +${bonoMagico} a las tiradas de ataque y daño (o a la CA).`}
                 posicion="arriba"
               >
-                <span
-                  className={estilos.badgeMeta}
-                  style={{
-                    backgroundColor: "rgba(236, 72, 153, 0.15)",
-                    color: "#fbcfe8",
-                    borderColor: "rgba(236, 72, 153, 0.3)",
-                    cursor: "help"
-                  }}
-                >
+                <span className={`${estilos.badgeMeta} ${estilos.badgeBonoMagico}`}>
                   +{bonoMagico}
                 </span>
               </TooltipUniversal>
@@ -235,16 +227,8 @@ export const TarjetaObjetoInventario: React.FC<TarjetaObjetoInventarioProps> = R
                 contenido="Objeto impregnado con sustancia venenosa que añade efectos especiales o daño por veneno."
                 posicion="arriba"
               >
-                <span
-                  className={estilos.badgeMeta}
-                  style={{
-                    backgroundColor: "rgba(16, 185, 129, 0.15)",
-                    color: "#6ee7b7",
-                    borderColor: "rgba(16, 185, 129, 0.3)",
-                    cursor: "help"
-                  }}
-                >
-                  <FlaskConical size={9} style={{ display: "inline", verticalAlign: "middle", marginRight: 2 }} />
+                <span className={`${estilos.badgeMeta} ${estilos.badgeVeneno}`}>
+                  <FlaskConical size={9} className={estilos.iconoBadgeInline} />
                   Veneno
                 </span>
               </TooltipUniversal>
@@ -257,15 +241,7 @@ export const TarjetaObjetoInventario: React.FC<TarjetaObjetoInventarioProps> = R
                   contenido={infoM.descripcion}
                   posicion="arriba"
                 >
-                  <span
-                    className={estilos.badgeMeta}
-                    style={{
-                      backgroundColor: "rgba(168, 85, 247, 0.15)",
-                      color: "#d8b4fe",
-                      borderColor: "rgba(168, 85, 247, 0.3)",
-                      cursor: "help"
-                    }}
-                  >
+                  <span className={`${estilos.badgeMeta} ${estilos.badgeMaestria}`}>
                     {maestria}
                   </span>
                 </TooltipUniversal>
@@ -280,15 +256,7 @@ export const TarjetaObjetoInventario: React.FC<TarjetaObjetoInventarioProps> = R
                   contenido={infoP.descripcion}
                   posicion="arriba"
                 >
-                  <span
-                    className={estilos.badgeMeta}
-                    style={{
-                      backgroundColor: "rgba(99, 102, 241, 0.15)",
-                      color: "#c7d2fe",
-                      borderColor: "rgba(99, 102, 241, 0.3)",
-                      cursor: "help"
-                    }}
-                  >
+                  <span className={`${estilos.badgeMeta} ${estilos.badgePropiedadArma}`}>
                     {p}
                   </span>
                 </TooltipUniversal>
@@ -302,15 +270,7 @@ export const TarjetaObjetoInventario: React.FC<TarjetaObjetoInventarioProps> = R
                   contenido={infoSigilo.descripcion}
                   posicion="arriba"
                 >
-                  <span
-                    className={estilos.badgeMeta}
-                    style={{
-                      backgroundColor: "rgba(239, 68, 68, 0.15)",
-                      color: "#fca5a5",
-                      borderColor: "rgba(239, 68, 68, 0.3)",
-                      cursor: "help"
-                    }}
-                  >
+                  <span className={`${estilos.badgeMeta} ${estilos.badgeDesventajaSigilo}`}>
                     Sigilo (Desv.)
                   </span>
                 </TooltipUniversal>
@@ -324,15 +284,7 @@ export const TarjetaObjetoInventario: React.FC<TarjetaObjetoInventarioProps> = R
                   contenido={infoFue.descripcion}
                   posicion="arriba"
                 >
-                  <span
-                    className={estilos.badgeMeta}
-                    style={{
-                      backgroundColor: "rgba(245, 158, 11, 0.15)",
-                      color: "#fcd34d",
-                      borderColor: "rgba(245, 158, 11, 0.3)",
-                      cursor: "help"
-                    }}
-                  >
+                  <span className={`${estilos.badgeMeta} ${estilos.badgeRequisitoFuerza}`}>
                     FUE {armaduraObj.requisitoFuerza}
                   </span>
                 </TooltipUniversal>
@@ -344,17 +296,15 @@ export const TarjetaObjetoInventario: React.FC<TarjetaObjetoInventarioProps> = R
               infoAlmacenamientoMunicion.tieneContenedor ? (
                 <>
                   <span
-                    className={estilos.badgeMeta}
-                    style={{ backgroundColor: "rgba(56, 189, 248, 0.15)", color: "#7dd3fc", borderColor: "rgba(56, 189, 248, 0.3)" }}
+                    className={`${estilos.badgeMeta} ${estilos.badgeMunicionGuardada}`}
                     title={`${infoAlmacenamientoMunicion.almacenadasEnContenedor} de ${infoAlmacenamientoMunicion.totalMunicion} proyectiles guardados en ${infoAlmacenamientoMunicion.nombreContenedor}`}
                   >
-                    <Target size={9} style={{ display: "inline", verticalAlign: "middle", marginRight: 2 }} />
+                    <Target size={9} className={estilos.iconoBadgeInline} />
                     {infoAlmacenamientoMunicion.almacenadasEnContenedor}/{infoAlmacenamientoMunicion.capacidadTotal} en {infoAlmacenamientoMunicion.nombreContenedor}
                   </span>
                   {infoAlmacenamientoMunicion.sueltasEnMochila > 0 && (
                     <span
-                      className={estilos.badgeMeta}
-                      style={{ backgroundColor: "rgba(245, 158, 11, 0.15)", color: "#fcd34d", borderColor: "rgba(245, 158, 11, 0.3)" }}
+                      className={`${estilos.badgeMeta} ${estilos.badgeMunicionExceso}`}
                       title={`${infoAlmacenamientoMunicion.sueltasEnMochila} proyectiles exceden la capacidad de tu ${infoAlmacenamientoMunicion.nombreContenedor} y van sueltos en la mochila`}
                     >
                       +{infoAlmacenamientoMunicion.sueltasEnMochila} en mochila
@@ -363,8 +313,7 @@ export const TarjetaObjetoInventario: React.FC<TarjetaObjetoInventarioProps> = R
                 </>
               ) : (
                 <span
-                  className={estilos.badgeMeta}
-                  style={{ backgroundColor: "rgba(148, 163, 184, 0.1)", color: "#94a3b8", borderColor: "rgba(148, 163, 184, 0.2)" }}
+                  className={`${estilos.badgeMeta} ${estilos.badgeMunicionSuelta}`}
                   title={`Transportas esta munición suelta en la mochila. Recomendado: ${infoAlmacenamientoMunicion.nombreContenedor}`}
                 >
                   Sueltas en mochila
@@ -375,19 +324,18 @@ export const TarjetaObjetoInventario: React.FC<TarjetaObjetoInventarioProps> = R
             {/* Badge para el Contenedor Físico (ej. Carcaj, Caja de Virotes, Bolsa de Balas) */}
             {infoContenedorFisico && (
               <span
-                className={estilos.badgeMeta}
-                style={{
-                  backgroundColor: infoContenedorFisico.totalAlmacenado > 0 ? "rgba(16, 185, 129, 0.15)" : "rgba(148, 163, 184, 0.1)",
-                  color: infoContenedorFisico.totalAlmacenado > 0 ? "#6ee7b7" : "#94a3b8",
-                  borderColor: infoContenedorFisico.totalAlmacenado > 0 ? "rgba(16, 185, 129, 0.3)" : "rgba(148, 163, 184, 0.2)"
-                }}
+                className={`${estilos.badgeMeta} ${
+                  infoContenedorFisico.totalAlmacenado > 0
+                    ? estilos.badgeContenedorConContenido
+                    : estilos.badgeMunicionSuelta
+                }`}
                 title={
                   infoContenedorFisico.totalAlmacenado > 0
                     ? `Alberga ${infoContenedorFisico.totalAlmacenado} de su capacidad máxima de ${infoContenedorFisico.capacidadTotal} ${infoContenedorFisico.tipoProyectil}`
                     : `Capacidad para ${infoContenedorFisico.capacidadTotal} ${infoContenedorFisico.tipoProyectil} (Actualmente vacío)`
                 }
               >
-                <Target size={9} style={{ display: "inline", verticalAlign: "middle", marginRight: 2 }} />
+                <Target size={9} className={estilos.iconoBadgeInline} />
                 {infoContenedorFisico.totalAlmacenado}/{infoContenedorFisico.capacidadTotal} {infoContenedorFisico.tipoProyectil}
                 {infoContenedorFisico.estaLleno && " (Lleno)"}
               </span>
@@ -397,12 +345,8 @@ export const TarjetaObjetoInventario: React.FC<TarjetaObjetoInventarioProps> = R
           <div className={estilos.filaAccionesDerecha}>
             {estaEnContenedorEspecial && (
               <span
-                className={estilos.badgeMeta}
-                style={{
-                  backgroundColor: `${infoContenedor.color}18`,
-                  borderColor: `${infoContenedor.color}50`,
-                  color: infoContenedor.color
-                }}
+                className={`${estilos.badgeMeta} ${estilos.badgeContenedorEspecial}`}
+                data-contenedor={objeto.contenedor}
                 title={infoContenedor.descripcion}
               >
                 {infoContenedor.nombreCorto}
@@ -438,7 +382,7 @@ export const TarjetaObjetoInventario: React.FC<TarjetaObjetoInventarioProps> = R
                   <span className={estilos.textoPesoTachado}>
                     {pesoTotal} lb
                   </span>
-                  <span className={estilos.textoPesoEfectivo} style={{ color: infoContenedor.color }}>
+                  <span className={estilos.textoPesoEfectivo} data-contenedor={objeto.contenedor}>
                     0 lb
                   </span>
                 </div>
@@ -502,7 +446,7 @@ export const TarjetaObjetoInventario: React.FC<TarjetaObjetoInventarioProps> = R
                 {(objeto.formulaRecarga || objetoBase?.formulaRecarga) && (objeto.cargasActuales ?? objeto.cargasMaximas) < objeto.cargasMaximas && (
                   <button
                     type="button"
-                    className={estilos.botonMonedaMod}
+                    className={`${estilos.botonMonedaMod} ${estilos.botonRecargaCargas}`}
                     onClick={() => {
                       const formula = objeto.formulaRecarga || objetoBase?.formulaRecarga || "";
                       const max = objeto.cargasMaximas || 0;
@@ -513,7 +457,6 @@ export const TarjetaObjetoInventario: React.FC<TarjetaObjetoInventarioProps> = R
                       }
                     }}
                     title={`Tirar recarga de cargas (${objeto.formulaRecarga || objetoBase?.formulaRecarga})`}
-                    style={{ color: "#fbbf24" }}
                   >
                     <Sparkles size={9} />
                   </button>

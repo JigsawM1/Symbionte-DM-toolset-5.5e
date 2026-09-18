@@ -1,0 +1,272 @@
+.filaContenedor {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 8px 12px;
+  background-color: #111622;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.08);
+  cursor: pointer;
+  user-select: none;
+}
+
+.filaContenedor:hover {
+  background-color: #161e2e;
+}
+
+.lineaSuperior {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  justify-content: space-between;
+}
+
+.ladoIzquierdo {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  flex: 1;
+}
+
+.botonControl {
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  margin: 0;
+  background: transparent;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+.botonControlDeshabilitado {
+  cursor: default;
+}
+
+.botonEstrella:not(.botonControlDeshabilitado):hover {
+  background-color: rgba(245, 158, 11, 0.15);
+}
+
+.botonCheckbox:not(.botonControlDeshabilitado):hover {
+  background-color: rgba(59, 130, 246, 0.15);
+}
+
+.iconoSinEventos {
+  pointer-events: none;
+}
+
+.cajaCheckbox {
+  width: 16px;
+  height: 16px;
+  border-radius: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  background-color: rgba(15, 23, 42, 0.6);
+}
+
+.cajaCheckboxMarcado {
+  border-color: #3b82f6;
+  background-color: #2563eb;
+}
+
+/* Checkbox con orígenes otorgados */
+.cajaCheckbox[data-origen="clase"] {
+  border-color: rgba(59, 130, 246, 0.35);
+  background-color: rgba(59, 130, 246, 0.18);
+  color: #93c5fd;
+}
+
+.cajaCheckbox[data-origen="subclase"] {
+  border-color: rgba(168, 85, 247, 0.35);
+  background-color: rgba(168, 85, 247, 0.18);
+  color: #c084fc;
+}
+
+.cajaCheckbox[data-origen="especie"] {
+  border-color: rgba(234, 179, 8, 0.35);
+  background-color: rgba(234, 179, 8, 0.18);
+  color: #fde047;
+}
+
+.cajaCheckbox[data-origen="legado"] {
+  border-color: rgba(6, 182, 212, 0.35);
+  background-color: rgba(6, 182, 212, 0.18);
+  color: #67e8f9;
+}
+
+.cajaCheckbox[data-origen="rasgos"] {
+  border-color: rgba(249, 115, 22, 0.35);
+  background-color: rgba(249, 115, 22, 0.18);
+  color: #fb923c;
+}
+
+.cajaIconoEscuela {
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  background-color: rgba(15, 23, 42, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.contenedorNombre {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.textoNombre {
+  font-weight: 700;
+  color: #f8fafc;
+  font-size: 13px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.badgeOrigen {
+  font-size: 9px;
+  font-weight: 700;
+  border-radius: 3px;
+  padding: 1px 4px;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  flex-shrink: 0;
+  border-width: 1px;
+  border-style: solid;
+}
+
+.badgeOrigen[data-origen="clase"] {
+  color: #93c5fd;
+  background-color: rgba(59, 130, 246, 0.18);
+  border-color: rgba(59, 130, 246, 0.35);
+}
+
+.badgeOrigen[data-origen="subclase"] {
+  color: #c084fc;
+  background-color: rgba(168, 85, 247, 0.18);
+  border-color: rgba(168, 85, 247, 0.35);
+}
+
+.badgeOrigen[data-origen="especie"] {
+  color: #fde047;
+  background-color: rgba(234, 179, 8, 0.18);
+  border-color: rgba(234, 179, 8, 0.35);
+}
+
+.badgeOrigen[data-origen="legado"] {
+  color: #67e8f9;
+  background-color: rgba(6, 182, 212, 0.18);
+  border-color: rgba(6, 182, 212, 0.35);
+}
+
+.badgeOrigen[data-origen="rasgos"] {
+  color: #fb923c;
+  background-color: rgba(249, 115, 22, 0.18);
+  border-color: rgba(249, 115, 22, 0.35);
+}
+
+.ladoDerecho {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.badgeNivel {
+  font-size: 10px;
+  font-weight: 700;
+  color: #93c5fd;
+  background-color: rgba(59, 130, 246, 0.12);
+  padding: 1px 6px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+.textoEscuela {
+  font-size: 11px;
+  color: #94a3b8;
+  text-transform: capitalize;
+  white-space: nowrap;
+}
+
+.lineaMetadatos {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: #cbd5e1;
+  flex-wrap: wrap;
+  padding-left: 56px;
+}
+
+.lineaMetadatosSinEstrella {
+  padding-left: 28px;
+}
+
+.itemMetadato {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.badgeRitual {
+  font-size: 8px;
+  font-weight: 800;
+  color: #c084fc;
+  background-color: rgba(168, 85, 247, 0.15);
+  border: 1px solid rgba(168, 85, 247, 0.35);
+  padding: 0 4px;
+  border-radius: 3px;
+  line-height: 12px;
+}
+
+.badgeConcentracion {
+  font-size: 8px;
+  font-weight: 800;
+  color: #f59e0b;
+  background-color: rgba(245, 158, 11, 0.15);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  padding: 0 3px;
+  border-radius: 3px;
+  line-height: 12px;
+}
+
+.separadorPunto {
+  color: rgba(148, 163, 184, 0.3);
+}
+
+.textoComponentes {
+  color: #94a3b8;
+}
+
+.textoDano {
+  color: #93c5fd;
+  font-weight: 700;
+}
+
+.resumenDescripcion {
+  padding-left: 56px;
+  font-size: 11px;
+  color: #94a3b8;
+  line-height: 1.35;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.resumenDescripcionSinEstrella {
+  padding-left: 28px;
+}

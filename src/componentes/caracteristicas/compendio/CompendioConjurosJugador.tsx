@@ -217,14 +217,14 @@ export const CompendioConjurosJugador: React.FC = () => {
     <div className={estilos.contenedorGeneral}>
       <div className={estilos.cabeceraPrincipal}>
         <div className={estilos.filaTitulo}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <div className="u-flex u-alinear-centro u-gap-lg">
             <h2 className={estilos.tituloTexto}>Listado de conjuros</h2>
-            <span style={{ fontSize: 11, color: "#64748b" }}>
+            <span className={estilos.contadorConjurosTexto}>
               ({conjurosFiltrados.length} {conjurosFiltrados.length === 1 ? "conjuro" : "conjuros"})
             </span>
           </div>
           {personajes.length > 1 && (
-            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            <div className="u-flex u-alinear-centro u-gap-md">
               <User size={13} color="#94a3b8" />
               <SelectorDesplegable<string>
                 valor={personajeActivo?.id || ""}
@@ -318,7 +318,7 @@ export const CompendioConjurosJugador: React.FC = () => {
       {/* Panel Desplegable de Filtros */}
       {mostrarFiltros && (
         <div className={estilos.panelFiltros}>
-          <div style={{ display: "flex", alignItems: "center", gap: 6, flex: 1, minWidth: 200 }}>
+          <div className={estilos.contenedorBuscadorFiltro}>
             <Search size={13} color="#94a3b8" />
             <input
               type="text"
@@ -329,7 +329,7 @@ export const CompendioConjurosJugador: React.FC = () => {
             />
           </div>
 
-          <div style={{ minWidth: 150 }}>
+          <div className={estilos.selectorNivelWrapper}>
             <SelectorDesplegable<string>
               valor={String(nivelFiltro)}
               alCambiar={(v) => setNivelFiltro(v === "todos" ? "todos" : Number(v))}
@@ -338,7 +338,7 @@ export const CompendioConjurosJugador: React.FC = () => {
             />
           </div>
 
-          <div style={{ minWidth: 160 }}>
+          <div className={estilos.selectorEscuelaWrapper}>
             <SelectorDesplegable<string>
               valor={escuelaFiltro}
               alCambiar={(v) => setEscuelaFiltro(v)}
@@ -387,31 +387,11 @@ export const CompendioConjurosJugador: React.FC = () => {
       {/* Modal de FichaHechizo Completa */}
       {hechizoModal && (
         <div
-          style={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: "rgba(0, 0, 0, 0.75)",
-            zIndex: 1000,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            padding: 16
-          }}
+          className={estilos.modalOverlay}
           onClick={() => setHechizoModal(null)}
         >
           <div
-            style={{
-              maxWidth: 550,
-              width: "100%",
-              maxHeight: "90vh",
-              overflowY: "auto",
-              backgroundColor: "#161b22",
-              borderRadius: 8,
-              border: "1px solid rgba(148, 163, 184, 0.2)"
-            }}
+            className={estilos.modalContenido}
             onClick={(e) => e.stopPropagation()}
           >
             <FichaHechizo

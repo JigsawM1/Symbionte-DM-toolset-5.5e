@@ -104,11 +104,10 @@ export const PestanaIdentidad: React.FC<PestanaIdentidadProps> = ({
           <div className={estilos.cajaDetectarJugador}>
             <input
               type="text"
-              className={estilos.inputFormulario}
+              className={`${estilos.inputFormulario} ${estilos.inputDetectarJugador}`}
               value={form.jugador}
               onChange={(e) => alActualizarCampo("jugador", e.target.value)}
               placeholder="Ej. Nombre del Jugador"
-              style={{ flex: 1 }}
             />
             <button
               type="button"
@@ -141,19 +140,18 @@ export const PestanaIdentidad: React.FC<PestanaIdentidadProps> = ({
           <label className={estilos.labelFormulario}>Nivel Global Total (1 - 20)</label>
           <input
             type="number"
-            className={estilos.inputFormulario}
+            className={`${estilos.inputFormulario} ${estilos.inputNivelGlobal}`}
             value={form.nivel}
             onChange={(e) => alCambiarNivelTotal(e.target.value)}
             min="1"
             max="20"
             required
-            style={{ fontWeight: 800, color: "#60a5fa" }}
           />
         </div>
 
         <div className={estilos.campoFormulario}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <label className={estilos.labelFormulario} style={{ margin: 0 }}>
+          <div className={estilos.cabeceraCampoConBadge}>
+            <label className={`${estilos.labelFormulario} ${estilos.labelFormularioSinMargen}`}>
               Puntos de Experiencia (PX)
             </label>
             <span className={estilos.badgeRangoXP}>
@@ -162,11 +160,10 @@ export const PestanaIdentidad: React.FC<PestanaIdentidadProps> = ({
           </div>
           <input
             type="number"
-            className={estilos.inputFormulario}
+            className={`${estilos.inputFormulario} ${estilos.inputExperiencia}`}
             value={form.experiencia}
             onChange={(e) => alCambiarExperiencia(e.target.value)}
             min="0"
-            style={{ fontWeight: 700 }}
           />
         </div>
       </div>
@@ -244,10 +241,7 @@ export const PestanaIdentidad: React.FC<PestanaIdentidadProps> = ({
             }`}
             title="Auto-detectada automáticamente si la miniatura en el tablero tiene el mismo nombre que tu personaje"
           >
-            <span
-              className={estilos.puntoMiniatura}
-              style={{ backgroundColor: form.idMiniaturaTS ? "#10b981" : "#64748b" }}
-            />
+            <span className={estilos.puntoMiniatura} />
             {form.idMiniaturaTS ? "Auto-detectada en Tablero" : "Sin Miniatura en Tablero"}
           </div>
         </div>
@@ -267,11 +261,10 @@ export const PestanaIdentidad: React.FC<PestanaIdentidadProps> = ({
             ) : null}
             <input
               type="url"
-              className={estilos.inputFormulario}
+              className={`${estilos.inputFormulario} ${estilos.inputAvatarUrl}`}
               value={form.avatarUrl || ""}
               onChange={(e) => alActualizarCampo("avatarUrl", e.target.value)}
               placeholder="https://ejemplo.com/retrato.png"
-              style={{ flexGrow: 1 }}
             />
           </div>
         </div>

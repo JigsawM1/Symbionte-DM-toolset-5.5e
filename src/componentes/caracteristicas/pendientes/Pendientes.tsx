@@ -33,9 +33,8 @@ export const Pendientes: React.FC = () => {
       <div className={estilos.barraProgresoContenedor}>
         <div
           className={estilos.barraProgreso}
-          style={{
-            width: `${porcentaje}%`
-          }}
+          // eslint-disable-next-line react/forbid-dom-props -- ancho porcentual dinámico de barra de progreso
+          style={{ width: `${porcentaje}%` }}
         />
       </div>
 
@@ -70,9 +69,9 @@ export const Pendientes: React.FC = () => {
                 title={pendiente.completado ? "Marcar como pendiente" : "Marcar como completada"}
               >
                 {pendiente.completado ? (
-                  <CheckSquare size={14} style={{ color: "var(--color-exito)" }} />
+                  <CheckSquare size={14} className="u-texto-exito" />
                 ) : (
-                  <Square size={14} style={{ color: "var(--color-texto-secundario)" }} />
+                  <Square size={14} className="u-texto-secundario" />
                 )}
               </button>
 

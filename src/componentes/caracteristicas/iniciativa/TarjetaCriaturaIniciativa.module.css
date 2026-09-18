@@ -8,6 +8,28 @@
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
   position: relative;
   overflow: visible;
+  border: 1px solid var(--color-borde-brutal);
+  background: var(--color-fondo-tarjeta);
+}
+
+.tarjetaCriaturaBrutal[data-muerto="true"] {
+  opacity: 0.55;
+}
+
+.tarjetaCriaturaBrutal[data-turno-activo="true"] {
+  border: 1px solid var(--color-borde-cian);
+  box-shadow: 0 0 8px rgba(0, 245, 212, 0.2);
+  background: linear-gradient(90deg, hsl(172, 90%, 4%) 0%, hsl(222, 18%, 11%) 100%);
+}
+
+.tarjetaCriaturaBrutal[data-seleccionada-ts="true"] {
+  border: 2px solid var(--color-advertencia);
+  box-shadow: 0 0 10px rgba(224, 169, 109, 0.45);
+}
+
+.tarjetaCriaturaBrutal[data-turno-activo="true"][data-seleccionada-ts="true"] {
+  border: 2px solid #ffcc00;
+  box-shadow: 0 0 10px rgba(224, 169, 109, 0.45);
 }
 
 .barraLateralRol {
@@ -19,6 +41,11 @@
   flex-shrink: 0;
   border-top-left-radius: 4px;
   border-bottom-left-radius: 4px;
+  background-color: var(--color-borde-cian);
+}
+
+.barraLateralRol[data-es-monstruo="true"] {
+  background-color: #7b2cbf;
 }
 
 .bloqueIniciativaIzquierda {
@@ -33,6 +60,12 @@
   flex-shrink: 0;
   margin-left: 2px;
   position: relative;
+  background-color: hsl(222, 25%, 5%);
+}
+
+.bloqueIniciativaIzquierda[data-turno-activo="true"] {
+  border-color: var(--color-borde-cian);
+  background-color: rgba(0, 245, 212, 0.05);
 }
 
 .etiquetaInicMini {
@@ -48,6 +81,13 @@
   font-weight: 800;
   font-family: var(--fuente-codigo);
   line-height: 1.1;
+  color: #ffcc00;
+  cursor: text;
+}
+
+.valorInicGigante[data-turno-activo="true"],
+.inputIniciativaEditable[data-turno-activo="true"] {
+  color: var(--color-borde-cian);
 }
 
 .botonDadoIniciativa {
@@ -138,6 +178,18 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
+  color: var(--color-texto-principal);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.nombreCriaturaLink[data-turno-activo="true"] {
+  color: var(--color-borde-cian);
+  font-weight: 800;
+}
+
+.nombreCriaturaLink[data-muerto="true"] {
+  text-decoration: line-through;
 }
 
 .tagTurnoActivo {
@@ -533,4 +585,41 @@
   margin-left: 4px;
   border: 1px solid rgba(255, 255, 255, 0.1);
   color: hsla(0, 0%, 100%, 0.85);
+}
+
+.textoMiniSinNombre {
+  font-style: italic;
+  opacity: 0.65;
+}
+
+.valorMetaCianFuente {
+  color: var(--color-borde-cian);
+  font-family: var(--fuente-codigo);
+}
+
+.valorMetaAmarilloFuente {
+  color: #ffcc00;
+  font-family: var(--fuente-codigo);
+}
+
+.contenedorMiniSelector {
+  position: relative;
+  display: inline-block;
+}
+
+.filaEfectosMargen {
+  margin-top: 4px;
+}
+
+.iconoEspadasPeligro {
+  color: var(--color-peligro);
+}
+
+.iconoCorazonPeligro {
+  color: var(--color-peligro);
+}
+
+.textoVidaMaxima {
+  color: var(--color-texto-apagado);
+  font-size: 10px;
 }

@@ -1,0 +1,227 @@
+/* ==========================================================================
+   utilidades.css — Clases Utilitarias Cero-Overhead para Layout y Tipografía
+   ToolSet D&D 5.5e (TaleSpire Symbiote)
+   
+   Proporciona utilidades atómicas de alta frecuencia para evitar estilos inline
+   manteniendo estricta la regla de cero animaciones y latencia 0ms en CEF.
+   ========================================================================== */
+
+/* === FLEXBOX Y GRID === */
+.u-flex {
+  display: flex;
+}
+
+.u-flex-inline {
+  display: inline-flex;
+}
+
+.u-flex-col {
+  display: flex;
+  flex-direction: column;
+}
+
+.u-flex-fila {
+  display: flex;
+  flex-direction: row;
+}
+
+.u-flex-wrap {
+  flex-wrap: wrap;
+}
+
+.u-flex-nowrap {
+  flex-wrap: nowrap;
+}
+
+.u-flex-1 {
+  flex: 1 1 0%;
+  min-width: 0;
+}
+
+.u-flex-auto {
+  flex: 1 1 auto;
+}
+
+.u-flex-none {
+  flex: none;
+}
+
+.u-flex-shrink-0 {
+  flex-shrink: 0;
+}
+
+/* === ALINEACIÓN Y JUSTIFICACIÓN === */
+.u-alinear-centro {
+  align-items: center;
+}
+
+.u-alinear-inicio {
+  align-items: flex-start;
+}
+
+.u-alinear-fin {
+  align-items: flex-end;
+}
+
+.u-alinear-estirar {
+  align-items: stretch;
+}
+
+.u-justificar-centro {
+  justify-content: center;
+}
+
+.u-justificar-entre {
+  justify-content: space-between;
+}
+
+.u-justificar-inicio {
+  justify-content: flex-start;
+}
+
+.u-justificar-fin {
+  justify-content: flex-end;
+}
+
+.u-justificar-alrededor {
+  justify-content: space-around;
+}
+
+.u-centrado {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* === ESPACIADO / GAPS === */
+.u-gap-xs {
+  gap: 2px;
+}
+
+.u-gap-sm {
+  gap: 4px;
+}
+
+.u-gap-md {
+  gap: 6px;
+}
+
+.u-gap-lg {
+  gap: 8px;
+}
+
+.u-gap-xl {
+  gap: 12px;
+}
+
+.u-gap-2xl {
+  gap: 16px;
+}
+
+/* === DIMENSIONAMIENTO === */
+.u-w-full {
+  width: 100%;
+}
+
+.u-w-auto {
+  width: auto;
+}
+
+.u-h-full {
+  height: 100%;
+}
+
+.u-min-w-0 {
+  min-width: 0;
+}
+
+/* === TIPOGRAFÍA Y ALINEACIÓN DE TEXTO === */
+.u-texto-centro {
+  text-align: center;
+}
+
+.u-texto-derecha {
+  text-align: right;
+}
+
+.u-texto-izquierda {
+  text-align: left;
+}
+
+.u-texto-negrita {
+  font-weight: 700;
+}
+
+.u-texto-seminegrita {
+  font-weight: 600;
+}
+
+.u-texto-normal {
+  font-weight: 400;
+}
+
+/* === COLORES SEMÁNTICOS DE TEXTO === */
+.u-texto-cian {
+  color: var(--color-borde-cian);
+}
+
+.u-texto-oro {
+  color: var(--pj-texto-oro, #fde047);
+}
+
+.u-texto-advertencia {
+  color: var(--color-advertencia);
+}
+
+.u-texto-peligro {
+  color: var(--color-peligro);
+}
+
+.u-texto-exito {
+  color: var(--color-exito);
+}
+
+.u-texto-apagado {
+  color: var(--color-texto-apagado);
+}
+
+.u-texto-secundario {
+  color: var(--color-texto-secundario);
+}
+
+.u-texto-principal {
+  color: var(--color-texto-principal);
+}
+
+.u-texto-acento {
+  color: var(--pj-texto-acento, hsl(265, 90%, 65%));
+}
+
+/* === POSICIÓN Y COMPORTAMIENTO === */
+.u-pos-relativo {
+  position: relative;
+}
+
+.u-cursor-pointer {
+  cursor: pointer;
+}
+
+.u-cursor-not-allowed {
+  cursor: not-allowed;
+}
+
+.u-overflow-y-auto {
+  overflow-y: auto;
+}
+
+.u-overflow-hidden {
+  overflow: hidden;
+}
+
+.u-sin-borde {
+  border: none;
+}
+
+.u-sin-fondo {
+  background: transparent;
+}

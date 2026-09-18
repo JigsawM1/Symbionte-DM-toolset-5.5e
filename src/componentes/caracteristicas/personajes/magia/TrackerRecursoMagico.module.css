@@ -1,0 +1,185 @@
+/* TrackerRecursoMagico.module.css
+ * Módulo de estilos para el Tracker genérico de recursos mágicos (ranuras y pacto)
+ * Optimizado para TaleSpire CEF: 0ms latencia, sin transiciones ni keyframes.
+ */
+
+.contenedorTracker {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background-color: #111622;
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  border-radius: 8px;
+  padding: 14px 16px;
+}
+
+.contenedorTracker[data-pacto="true"] {
+  border-color: rgba(192, 132, 252, 0.25);
+}
+
+.cabeceraTracker {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+  padding-bottom: 8px;
+}
+
+.tituloFilaTracker {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.tituloTextoTracker {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #f1f5f9;
+}
+
+.badgeGrupoUnico {
+  font-size: 10px;
+  font-weight: 800;
+  color: #e9d5ff;
+  background-color: rgba(168, 85, 247, 0.2);
+  border: 1px solid rgba(192, 132, 252, 0.4);
+  border-radius: 4px;
+  padding: 1px 6px;
+}
+
+.ladoDerechoCabecera {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.marcadorRanurasUnico {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.ranurasDisponiblesTexto {
+  color: #38bdf8;
+}
+
+.ranurasDisponiblesPactoTexto {
+  color: #c084fc;
+}
+
+.ranurasAgotadasTexto {
+  color: #ef4444;
+}
+
+.ranurasMaxTexto {
+  color: #64748b;
+  font-size: 11px;
+}
+
+.botonRestablecerRanuras {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: #18202f;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 4px;
+  color: #94a3b8;
+  font-size: 11px;
+  padding: 3px 8px;
+  cursor: pointer;
+}
+
+.contenedorGruposGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 10px;
+}
+
+.contenedorGruposFlex {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.tarjetaGrupoRanura {
+  background-color: #161e2c;
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  border-radius: 6px;
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.cabeceraGrupoRanura {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 11px;
+}
+
+.etiquetaGrupoRanura {
+  font-weight: 700;
+  color: #c7d2fe;
+}
+
+.conteoGrupoRanura {
+  font-weight: 700;
+  font-family: "JetBrains Mono", monospace;
+  color: #38bdf8;
+}
+
+.conteoGrupoRanura[data-disponible="false"] {
+  color: #ef4444;
+}
+
+.conteoGrupoRanura[data-pacto="true"] {
+  color: #c084fc;
+}
+
+.conteoGrupoRanura[data-pacto="true"][data-disponible="false"] {
+  color: #ef4444;
+}
+
+.filaRanurasCirculares {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.botonRanuraCircular {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 1px dashed rgba(148, 163, 184, 0.3);
+  background-color: transparent;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+}
+
+.botonRanuraCircular[data-disponible="true"] {
+  border: 2px solid #818cf8;
+  background-color: #4338ca;
+}
+
+.botonRanuraCircular[data-disponible="true"][data-pacto="true"] {
+  border: 2px solid #c084fc;
+  background-color: #7e22ce;
+}
+
+.botonRanuraCircular[data-readonly="true"] {
+  cursor: default;
+}
+
+.pieDePaginaTexto {
+  font-size: 10px;
+  color: #94a3b8;
+  font-style: italic;
+}

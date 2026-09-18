@@ -1,0 +1,194 @@
+/* ModalDetalleHabilidad.module.css
+ * Módulo de estilos para el Modal de Detalle de Habilidad (desglose analítico y personalización)
+ * Optimizado para TaleSpire CEF: 0ms latencia, sin transiciones ni keyframes.
+ */
+
+.cuerpoModalHabilidad {
+  max-width: 460px;
+}
+
+.iconoPestanaHabilidad {
+  margin-right: 4px;
+}
+
+.cajaDescripcionHabilidad {
+  padding: 10px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  line-height: 1.45;
+  color: #cbd5e1;
+  background-color: #0d131f;
+  border-left: 3px solid #334155;
+  border: 1px solid rgba(148, 163, 184, 0.1);
+}
+
+.textoDesgloseIntro {
+  font-size: 11px;
+  color: #94a3b8;
+  margin: 2px 0 0 0;
+}
+
+.tablaDesgloseHabilidad {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  background-color: #0a0e16;
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.filaValorFijo {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 12px;
+  font-size: 12px;
+  color: #d8b4fe;
+  background-color: #201335;
+}
+
+.valorFijoNumero {
+  font-weight: 700;
+  font-family: monospace;
+}
+
+.filaModCarac {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 12px;
+  font-size: 12px;
+  color: #cbd5e1;
+  background-color: rgba(255, 255, 255, 0.02);
+}
+
+.valorModCaracPositivo {
+  font-weight: 700;
+  font-family: monospace;
+  color: #60a5fa;
+}
+
+.valorModCaracNegativo {
+  font-weight: 700;
+  font-family: monospace;
+  color: #fca5a5;
+}
+
+.filaCompetenciaHab {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 12px;
+  font-size: 12px;
+  color: #cbd5e1;
+  border-top: 1px solid rgba(148, 163, 184, 0.1);
+}
+
+.valorCompetenciaConBono {
+  font-weight: 700;
+  font-family: monospace;
+  color: #93c5fd;
+}
+
+.valorCompetenciaSinBono {
+  font-weight: 700;
+  font-family: monospace;
+  color: #94a3b8;
+}
+
+.filaModAdicionalHab {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 12px;
+  font-size: 12px;
+  color: #cbd5e1;
+  border-top: 1px solid rgba(148, 163, 184, 0.1);
+}
+
+.valorModAdicionalPositivo {
+  font-weight: 700;
+  font-family: monospace;
+  color: #60a5fa;
+}
+
+.valorModAdicionalNegativo {
+  font-weight: 700;
+  font-family: monospace;
+  color: #fca5a5;
+}
+
+.filaTotalHabilidad {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 12px;
+  font-size: 13px;
+  font-weight: 800;
+  color: #f1f5f9;
+  background-color: #18202e;
+  border-top: 1px solid rgba(148, 163, 184, 0.18);
+}
+
+.valorTotalHabPositivo {
+  color: #93c5fd;
+  font-family: monospace;
+}
+
+.valorTotalHabNegativo {
+  color: #fca5a5;
+  font-family: monospace;
+}
+
+.cajaNotasHabilidad {
+  font-size: 11px;
+  color: #94a3b8;
+  padding: 6px 10px;
+  border-radius: 4px;
+  background-color: #0d121c;
+  border: 1px dashed rgba(148, 163, 184, 0.2);
+}
+
+.etiquetaNotasHab {
+  color: #cbd5e1;
+}
+
+.filaBotonTiradaHabilidad {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 4px;
+}
+
+.botonLanzarTiradaHab {
+  background-color: #18202f;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  color: #cbd5e1;
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Sub-pestaña Personalizar */
+.textoIntroPersonalizarHab {
+  font-size: 11px;
+  color: #94a3b8;
+  margin: 0;
+}
+
+.textoIntroValoresHab {
+  font-size: 11px;
+  color: #94a3b8;
+  margin: 4px 0 0 0;
+}
+
+.textareaPersonalizarHab {
+  resize: vertical;
+  font-size: 11px;
+}
+
+.botonGuardarHab {
+  background-color: #1e293b;
+  border-color: rgba(96, 165, 250, 0.4);
+  color: #93c5fd;
+}

@@ -10,7 +10,7 @@ import {
 import { MAPA_ALIAS_HECHIZOS } from "@/constantes/subclasesConjurosConstantes";
 import { esClasePacto } from "@/constantes";
 import { generarIdSlug } from "@/utiles/generarId";
-import { resolverOrigenConjuro, OrigenConjuroBadge } from "@/servicios/resolutorOrigenConjuros";
+import { crearResolutorOrigenConjuros, OrigenConjuroBadge } from "@/servicios/resolutorOrigenConjuros";
 import { aplicarModificadoresInvocacionesAHechizo } from "@/servicios/evaluadorEfectosRasgos";
 
 export interface EstadoMagiaPersonaje {
@@ -131,7 +131,7 @@ export function usarMagiaPersonaje(
       return personaje.nivel || 1;
     }
     return 0;
-  }, [personaje]);
+  }, [personaje?.clases, personaje?.clase, personaje?.nivel]);
 
   const nivelesArcanoDisponibles = useMemo(() => {
     const disponibles = obtenerNivelesArcanoMisticoDisponibles(nivelBrujo);
@@ -175,7 +175,7 @@ export function usarMagiaPersonaje(
       personaje.subclase,
       personaje.nivel
     );
-  }, [personaje]);
+  }, [personaje?.clases, personaje?.clase, personaje?.subclase, personaje?.nivel]);
 
   // Set exhaustivo de identificadores de subclase
   const setSiemprePreparados = useMemo(() => {
@@ -209,69 +209,91 @@ export function usarMagiaPersonaje(
     return s;
   }, [personaje?.conjurosSiemprePreparadosIds, conjurosSubclaseDinamicos]);
 
-  // Función unificada para determinar si un hechizo es de subclase
-  const esHechizoDeSubclase = useCallback((hechizo: HechizoBase): boolean => {
-    const nombreNorm = hechizo.nombre.toLowerCase().trim();
-    const sinTildes = nombreNorm.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-    const slug = generarIdSlug("h", hechizo.nombre);
+  // Pre-computar variantes normalizadas de cada hechizo una sola vez para O(1) permanente
+  const clavesLookupPorHechizo = useMemo(() => {
+    const mapa = new Map<string, string[]>();
+    for (const h of baseDatosHechizos) {
+      const claves: string[] = [h.id];
+      const norm = h.nombre.toLowerCase().trim();
+      claves.push(norm);
+      const sinTildes = norm.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+      if (sinTildes !== norm) claves.push(sinTildes);
+      const slug = generarIdSlug("h", h.nombre);
+      claves.push(slug);
 
-    if (
-      setSiemprePreparados.has(hechizo.id) ||
-      setSiemprePreparados.has(nombreNorm) ||
-      setSiemprePreparados.has(sinTildes) ||
-      setSiemprePreparados.has(slug)
-    ) {
-      return true;
+      const alias = MAPA_ALIAS_HECHIZOS[sinTildes] || MAPA_ALIAS_HECHIZOS[norm] || [];
+      for (const al of alias) {
+        claves.push(al);
+        const alNorm = al.toLowerCase().trim();
+        if (alNorm !== al) claves.push(alNorm);
+        claves.push(generarIdSlug("h", al));
+      }
+      mapa.set(h.id, claves);
     }
+    return mapa;
+  }, [baseDatosHechizos]);
 
-    const alias = MAPA_ALIAS_HECHIZOS[sinTildes] || [];
-    return alias.some((al) => setSiemprePreparados.has(al) || setSiemprePreparados.has(generarIdSlug("h", al)));
-  }, [setSiemprePreparados]);
+  // Función interna de consulta en sets optimizada con claves pre-calculadas
+  const estaEnSetOptimizado = useCallback(
+    (setIds: Set<string>, hechizoId: string): boolean => {
+      const claves = clavesLookupPorHechizo.get(hechizoId);
+      if (!claves) return setIds.has(hechizoId);
+      for (let i = 0; i < claves.length; i++) {
+        if (setIds.has(claves[i])) return true;
+      }
+      return false;
+    },
+    [clavesLookupPorHechizo]
+  );
 
-  // Función unificada para verificar si un hechizo está en un Set optimizado O(1)
-  const estaEnSet = useCallback((setIds: Set<string>, hechizo: HechizoBase): boolean => {
-    if (setIds.has(hechizo.id)) return true;
-    const slug = generarIdSlug("h", hechizo.nombre);
-    if (setIds.has(slug)) return true;
-    const norm = hechizo.nombre.toLowerCase().trim();
-    if (setIds.has(norm)) return true;
-    const sinTildes = norm.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-    if (setIds.has(sinTildes)) return true;
-
-    const aliasHechizo = MAPA_ALIAS_HECHIZOS[sinTildes] || [];
-    for (const al of aliasHechizo) {
-      if (setIds.has(al) || setIds.has(generarIdSlug("h", al))) return true;
-    }
-
-    return false;
-  }, []);
+  // Función unificada para determinar si un hechizo es de subclase O(1)
+  const esHechizoDeSubclase = useCallback(
+    (hechizo: HechizoBase): boolean => {
+      return estaEnSetOptimizado(setSiemprePreparados, hechizo.id);
+    },
+    [estaEnSetOptimizado, setSiemprePreparados]
+  );
 
   const setPreparadosIds = useMemo(() => expandirSetHechizos(personaje?.conjurosPreparadosIds || []), [personaje?.conjurosPreparadosIds]);
   const setConocidosIds = useMemo(() => expandirSetHechizos(personaje?.conjurosConocidosIds || []), [personaje?.conjurosConocidosIds]);
   const setTrucosIds = useMemo(() => expandirSetHechizos(personaje?.trucosConocidosIds || []), [personaje?.trucosConocidosIds]);
 
-  // 5.1. Detección profunda de origen de conjuros otorgados (clase, subclase, especie, legado, rasgos)
+  // 5.1. Detección profunda de origen de conjuros otorgados pre-indexada O(1)
+  const resolutorOrigen = useMemo(
+    () => crearResolutorOrigenConjuros(personaje),
+    [
+      personaje?.rasgos,
+      personaje?.clases,
+      personaje?.clase,
+      personaje?.subclase,
+      personaje?.nivel,
+      personaje?.especie,
+      personaje?.subespecie,
+      personaje?.conjurosSiemprePreparadosIds
+    ]
+  );
+
   const obtenerOrigenConjuro = useCallback(
     (hechizo: HechizoBase): OrigenConjuroBadge | null => {
-      return resolverOrigenConjuro(personaje, hechizo);
+      return resolutorOrigen(hechizo);
     },
-    [personaje]
+    [resolutorOrigen]
   );
 
   const esHechizoOtorgado = useCallback(
     (hechizo: HechizoBase): boolean => {
-      return obtenerOrigenConjuro(hechizo) !== null || esHechizoDeSubclase(hechizo);
+      return resolutorOrigen(hechizo) !== null || esHechizoDeSubclase(hechizo);
     },
-    [obtenerOrigenConjuro, esHechizoDeSubclase]
+    [resolutorOrigen, esHechizoDeSubclase]
   );
 
   const estaPreparado = useCallback(
     (hechizo: HechizoBase): boolean => {
-      if (hechizo.nivel === 0) return estaEnSet(setTrucosIds, hechizo) || esHechizoOtorgado(hechizo);
+      if (hechizo.nivel === 0) return estaEnSetOptimizado(setTrucosIds, hechizo.id) || esHechizoOtorgado(hechizo);
       if (esHechizoOtorgado(hechizo)) return true;
-      return estaEnSet(setPreparadosIds, hechizo);
+      return estaEnSetOptimizado(setPreparadosIds, hechizo.id);
     },
-    [estaEnSet, setTrucosIds, esHechizoOtorgado, setPreparadosIds]
+    [estaEnSetOptimizado, setTrucosIds, esHechizoOtorgado, setPreparadosIds]
   );
 
   // 6. Límites máximos
@@ -285,99 +307,112 @@ export function usarMagiaPersonaje(
 
   const estaEnLista = useCallback(
     (hechizo: HechizoBase): boolean => {
-      if (hechizo.nivel === 0) return estaEnSet(setTrucosIds, hechizo) || esHechizoOtorgado(hechizo);
+      if (hechizo.nivel === 0) return estaEnSetOptimizado(setTrucosIds, hechizo.id) || esHechizoOtorgado(hechizo);
       if (esHechizoOtorgado(hechizo)) return true;
       if (maximos.modelo === "preparados") {
-        return estaEnSet(setPreparadosIds, hechizo);
+        return estaEnSetOptimizado(setPreparadosIds, hechizo.id);
       }
-      return estaEnSet(setConocidosIds, hechizo) || estaEnSet(setPreparadosIds, hechizo);
+      return estaEnSetOptimizado(setConocidosIds, hechizo.id) || estaEnSetOptimizado(setPreparadosIds, hechizo.id);
     },
-    [estaEnSet, setTrucosIds, esHechizoOtorgado, maximos.modelo, setConocidosIds, setPreparadosIds]
+    [estaEnSetOptimizado, setTrucosIds, esHechizoOtorgado, maximos.modelo, setConocidosIds, setPreparadosIds]
   );
 
-  // 7. Lista agrupada de conjuros por nivel y trucos
-  const conjurosPorNivel = useMemo(() => {
+  // 7 y 8. Recorrido unificado O(N) que agrupa conjuros por nivel, trucos conocidos y calcula el conteo efectivo
+  const { conjurosPorNivel, trucosConocidos, conteoEfectivo } = useMemo(() => {
     const grupos: Record<number, HechizoBase[]> = {
       1: [], 2: [], 3: [], 4: [], 5: [], 6: [], 7: [], 8: [], 9: []
     };
+    const trucos: HechizoBase[] = [];
+    const idsTrucosVistos = new Set<string>();
 
-    const agregadosPorNivel = new Set<string>();
-
-    for (const h of baseDatosHechizos) {
-      if (h.nivel >= 1 && h.nivel <= 9) {
-        const enLista = estaEnLista(h);
-        if (enLista && !agregadosPorNivel.has(h.id)) {
-          agregadosPorNivel.add(h.id);
-          grupos[h.nivel].push(h);
-        }
-      }
-    }
-
-    for (let niv = 1; niv <= 9; niv++) {
-      grupos[niv].sort((a, b) => a.nombre.localeCompare(b.nombre, "es"));
-    }
-    return grupos;
-  }, [baseDatosHechizos, estaEnLista]);
-
-  const trucosConocidos = useMemo(() => {
-    const encontrados: HechizoBase[] = [];
-    const idsVistos = new Set<string>();
-
-    for (const h of baseDatosHechizos) {
-      if (h.nivel === 0 && estaEnLista(h) && !idsVistos.has(h.id)) {
-        idsVistos.add(h.id);
-        encontrados.push(aplicarModificadoresInvocacionesAHechizo(h, personaje));
-      }
-    }
-
-    return encontrados.sort((a, b) => a.nombre.localeCompare(b.nombre, "es"));
-  }, [baseDatosHechizos, estaEnLista]);
-
-  // 8. Conteo efectivo unificado
-  const conteoEfectivo = useMemo(() => {
     let cLibres = 0;
     let cSubclase = 0;
     let tLibres = 0;
     let tSubclase = 0;
 
+    const esModeloPreparados = maximos.modelo === "preparados";
+
     for (const h of baseDatosHechizos) {
-      const esOtorgado = esHechizoOtorgado(h);
+      const hId = h.id;
+      const claves = clavesLookupPorHechizo.get(hId);
+
+      const chequeoEnSet = (setIds: Set<string>): boolean => {
+        if (!claves) return setIds.has(hId);
+        for (let i = 0; i < claves.length; i++) {
+          if (setIds.has(claves[i])) return true;
+        }
+        return false;
+      };
+
+      const esSubclase = chequeoEnSet(setSiemprePreparados);
+      const origen = resolutorOrigen(h);
+      const otorgado = origen !== null || esSubclase;
 
       if (h.nivel === 0) {
-        const enLista = estaEnLista(h);
-        if (esOtorgado) {
+        const enLista = chequeoEnSet(setTrucosIds) || otorgado;
+        if (otorgado) {
           tSubclase++;
         } else if (enLista) {
           tLibres++;
         }
-      } else {
-        if (maximos.modelo === "preparados") {
-          const preparado = estaPreparado(h);
-          if (esOtorgado) {
+
+        if (enLista && !idsTrucosVistos.has(hId)) {
+          idsTrucosVistos.add(hId);
+          trucos.push(aplicarModificadoresInvocacionesAHechizo(h, personaje));
+        }
+      } else if (h.nivel >= 1 && h.nivel <= 9) {
+        const preparado = otorgado || chequeoEnSet(setPreparadosIds);
+        const enLista = esModeloPreparados ? preparado : (chequeoEnSet(setConocidosIds) || preparado);
+
+        if (esModeloPreparados) {
+          if (otorgado) {
             cSubclase++;
           } else if (preparado) {
             cLibres++;
           }
         } else {
-          // Modelo "conocidos"
-          const enLista = estaEnLista(h);
-          if (esOtorgado) {
+          if (otorgado) {
             cSubclase++;
           } else if (enLista) {
             cLibres++;
           }
         }
+
+        if (enLista) {
+          grupos[h.nivel].push(h);
+        }
+      }
+    }
+
+    trucos.sort((a, b) => a.nombre.localeCompare(b.nombre, "es"));
+    for (let niv = 1; niv <= 9; niv++) {
+      if (grupos[niv].length > 1) {
+        grupos[niv].sort((a, b) => a.nombre.localeCompare(b.nombre, "es"));
       }
     }
 
     return {
-      libres: cLibres,
-      subclase: cSubclase,
-      total: cLibres + cSubclase,
-      trucosLibres: tLibres,
-      trucosSubclase: tSubclase
+      conjurosPorNivel: grupos,
+      trucosConocidos: trucos,
+      conteoEfectivo: {
+        libres: cLibres,
+        subclase: cSubclase,
+        total: cLibres + cSubclase,
+        trucosLibres: tLibres,
+        trucosSubclase: tSubclase
+      }
     };
-  }, [baseDatosHechizos, esHechizoOtorgado, estaEnLista, estaPreparado, maximos.modelo]);
+  }, [
+    baseDatosHechizos,
+    clavesLookupPorHechizo,
+    setSiemprePreparados,
+    resolutorOrigen,
+    setTrucosIds,
+    setPreparadosIds,
+    setConocidosIds,
+    maximos.modelo,
+    personaje
+  ]);
 
   return {
     habilidadMagica,

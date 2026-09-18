@@ -3,6 +3,7 @@ import { generarIdSlug } from "@/utiles/generarId";
 import { coincideHechizoId } from "./comparadorHechizos";
 import { obtenerConjurosSubclasePersonaje } from "./calculadorMagia";
 import { obtenerEspeciePorNombre, obtenerSubespeciePorNombre } from "./gestorEspecies";
+import { MAPA_ALIAS_HECHIZOS } from "@/constantes/subclasesConjurosConstantes";
 
 export type OrigenConjuroBadge = "clase" | "subclase" | "especie" | "legado" | "rasgos";
 
@@ -220,3 +221,192 @@ export function resolverOrigenConjuro(
 
   return null;
 }
+
+/**
+ * Construye un evaluador de origen de conjuros pre-indexado O(1) para el personaje.
+ * Extrae todas las fuentes y hechizos otorgados una única vez en un Map optimizado,
+ * evitando miles de llamadas a expresiones regulares y normalizaciones Unicode.
+ */
+export function crearResolutorOrigenConjuros(
+  personaje: PersonajeJugador | null | undefined
+): (hechizo: HechizoBase | null | undefined) => OrigenConjuroBadge | null {
+  if (!personaje) return () => null;
+
+  const mapa = new Map<string, OrigenConjuroBadge>();
+  const pjNivel = personaje.nivel || 1;
+
+  const registrarCadena = (cadena: string, badge: OrigenConjuroBadge) => {
+    if (!cadena) return;
+    mapa.set(cadena, badge);
+    const norm = cadena.toLowerCase().trim();
+    mapa.set(norm, badge);
+    const sinTildes = norm.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    mapa.set(sinTildes, badge);
+    const slug = generarIdSlug("h", cadena);
+    mapa.set(slug, badge);
+
+    const alias = MAPA_ALIAS_HECHIZOS[sinTildes] || MAPA_ALIAS_HECHIZOS[norm] || [];
+    for (const al of alias) {
+      mapa.set(al, badge);
+      const alNorm = al.toLowerCase().trim();
+      mapa.set(alNorm, badge);
+      mapa.set(generarIdSlug("h", al), badge);
+    }
+  };
+
+  let tienePalabrasCreacion = false;
+
+  // 1. Rasgos del personaje
+  for (const r of personaje.rasgos || []) {
+    if (r.activo === false) continue;
+    if (r.nivelRequerido && pjNivel < r.nivelRequerido) continue;
+
+    const fNorm = (r.fuente || "").toLowerCase();
+    let badge: OrigenConjuroBadge = "rasgos";
+    if (fNorm.includes("legado") || fNorm.includes("subespecie") || fNorm.includes("linaje") || fNorm.includes("subraza")) {
+      badge = "legado";
+    } else if (r.origen === "clase" || fNorm.includes("clase")) {
+      badge = "clase";
+    } else if (r.origen === "subclase" || fNorm.includes("subclase")) {
+      badge = "subclase";
+    } else if (r.origen === "especie" || fNorm.includes("especie") || fNorm.includes("raza")) {
+      badge = "especie";
+    }
+
+    if (Array.isArray(r.conjurosOtorgados)) {
+      for (const c of r.conjurosOtorgados) registrarCadena(c, badge);
+    }
+
+    if (Array.isArray(r.selectores)) {
+      for (const sel of r.selectores) {
+        const idLower = sel.id.toLowerCase();
+        const esMagico =
+          idLower.includes("truco") ||
+          idLower.includes("conjuro") ||
+          idLower.includes("hechizo") ||
+          idLower.includes("spell") ||
+          idLower.includes("cantrip");
+
+        if (esMagico && Array.isArray(sel.valorActual)) {
+          for (const v of sel.valorActual) registrarCadena(v, badge);
+        }
+
+        if (Array.isArray(sel.valorActual) && Array.isArray(sel.opciones)) {
+          for (const opVal of sel.valorActual) {
+            const baseId = typeof opVal === "string"
+              ? (opVal.includes(":") ? opVal.split(":")[0] : opVal.includes("__") ? opVal.split("__")[0] : opVal)
+              : "";
+            const op = sel.opciones.find((o) => o.id === opVal || o.id === baseId);
+            if (op) {
+              if (op.conjuroGratuito) registrarCadena(op.conjuroGratuito, badge);
+              if (Array.isArray(op.efectos)) {
+                for (const ef of op.efectos) {
+                  if (ef.tipo === "conjuro_gratuito" || ef.tipo === "conjuro_otorgado") {
+                    const cNom = String(ef.objetivo || ef.valor || "");
+                    if (cNom) registrarCadena(cNom, badge);
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
+    if (r.conjuroGratuito) registrarCadena(r.conjuroGratuito, badge);
+
+    if (Array.isArray(r.efectos)) {
+      for (const ef of r.efectos) {
+        if (ef.tipo === "conjuro_otorgado" || ef.tipo === "conjuro_gratuito") {
+          const val = String(ef.objetivo || ef.valor || "");
+          if (val) registrarCadena(val, badge);
+        }
+      }
+    }
+
+    if (r.id.includes("palabras_creacion") || r.id.includes("palabras_de_creacion") || r.id.includes("creacion")) {
+      tienePalabrasCreacion = true;
+    }
+  }
+
+  // 2. Subclase dinámica
+  const resSubclase = obtenerConjurosSubclasePersonaje(
+    personaje.clases,
+    personaje.clase,
+    personaje.subclase,
+    personaje.nivel
+  );
+  for (const c of resSubclase.conjuros) registrarCadena(c, "subclase");
+  for (const t of resSubclase.trucos) registrarCadena(t, "subclase");
+
+  // 3. Especie o Subespecie / Legado
+  if (personaje.especie) {
+    const espDef = obtenerEspeciePorNombre(personaje.especie);
+    if (espDef) {
+      for (const ci of espDef.conjurosInnatos || []) {
+        if (!ci.nivelRequerido || pjNivel >= ci.nivelRequerido) {
+          if (ci.hechizoId) registrarCadena(ci.hechizoId, "especie");
+          if (ci.nombreHechizo) registrarCadena(ci.nombreHechizo, "especie");
+        }
+      }
+      if (personaje.subespecie) {
+        const subDef = obtenerSubespeciePorNombre(espDef.id, personaje.subespecie);
+        for (const ci of subDef?.conjurosInnatos || []) {
+          if (!ci.nivelRequerido || pjNivel >= ci.nivelRequerido) {
+            if (ci.hechizoId) registrarCadena(ci.hechizoId, "legado");
+            if (ci.nombreHechizo) registrarCadena(ci.nombreHechizo, "legado");
+          }
+        }
+      }
+    }
+  }
+
+  // 4. Conjuros siempre preparados configurados en ficha
+  for (const c of personaje.conjurosSiemprePreparadosIds || []) {
+    registrarCadena(c, "rasgos");
+  }
+
+  const cacheConsultas = new Map<string, OrigenConjuroBadge | null>();
+
+  return (hechizo: HechizoBase | null | undefined): OrigenConjuroBadge | null => {
+    if (!hechizo) return null;
+    const id = hechizo.id;
+    if (cacheConsultas.has(id)) {
+      return cacheConsultas.get(id) ?? null;
+    }
+
+    let res: OrigenConjuroBadge | null = null;
+    if (mapa.has(id)) {
+      res = mapa.get(id) ?? null;
+    } else {
+      const nom = hechizo.nombre;
+      if (nom && mapa.has(nom)) {
+        res = mapa.get(nom) ?? null;
+      } else {
+        const slug = generarIdSlug("h", nom || "");
+        if (slug && mapa.has(slug)) {
+          res = mapa.get(slug) ?? null;
+        } else {
+          const norm = (nom || "").toLowerCase().trim();
+          if (norm && mapa.has(norm)) {
+            res = mapa.get(norm) ?? null;
+          } else {
+            const sinTildes = norm.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+            if (sinTildes && mapa.has(sinTildes)) {
+              res = mapa.get(sinTildes) ?? null;
+            } else if (tienePalabrasCreacion && sinTildes.includes("palabra de poder")) {
+              res = "rasgos";
+            } else {
+              // Fallback de seguridad al resolutor canónico
+              res = resolverOrigenConjuro(personaje, hechizo);
+            }
+          }
+        }
+      }
+    }
+
+    cacheConsultas.set(id, res);
+    return res;
+  };
+}
+

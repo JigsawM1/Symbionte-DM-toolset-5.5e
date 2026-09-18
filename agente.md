@@ -19,6 +19,45 @@ Este archivo registra reglas globales, errores encontrados, sus causas raíz y l
    - **Bajo ninguna circunstancia** los módulos de lógica de negocio (`servicios/`), gestores de estado (`almacen/`) o constructores (`gestorClases.ts`) deben contener bifurcaciones condicionales por nombre literal de rasgo o clase (`r.nombre === "..."`, `clase.includes("...")`, etc.).
    - Toda mecánica, progresión de dados, escalado de usos, recuperación o desbloqueo dinámico debe resolverse mediante metadatos declarativos (`escaladoFormulaDados`, `escaladoUsos`, `escaladoRecuperacion`, `opcionesDinamicas`, `escaladoMaxSelecciones`, `sincronizarEfectosConFormula`, `heredarDadosPadre`, `gastarDePadre`, `ligadoA`, `efectos`) delegando en funciones puras agnósticas como `resolverEscaladosRasgo`. Esta regla está reforzada en CI vía ESLint `no-restricted-syntax` y la suite `rasgoGenericidad.test.ts`.
 
+## [2026-09-18] Optimización de Rendimiento en Ficha de Personaje: Erradicación del Bloqueo al Cambiar a Subpestaña "Conjuros"
+
+**Contexto y Requerimientos del Usuario:**
+- Al cambiar de la subpestaña "Combate y Atributos" (general) a "Conjuros y Magia" en la Hoja de Personaje (`src/componentes/caracteristicas/personajes/HojaPersonaje.tsx`), la interfaz sufría un retardo de al menos 1 segundo (congelamiento de UI).
+
+**Causa Raíz:**
+1. **Múltiples Recorridos O(N) no Memoizados sobre el Compendio Completo de Hechizos:**
+   - Al montar `PanelConjurosPersonaje`, el hook `usarMagiaPersonaje` ejecutaba 3 iteraciones independientes sobre los 391 hechizos de `baseDatosHechizos` (`conjurosPorNivel`, `trucosConocidos` y `conteoEfectivo`).
+2. **Avalancha de Expresiones Regulares y Normalizaciones Unicode NFD:**
+   - En cada iteración y para cada uno de los 391 hechizos, se invocaba `resolverOrigenConjuro(personaje, hechizo)`.
+   - Cuando un hechizo no era otorgado por ningún rasgo (el 95% de los casos), la función evaluaba hasta 80 comparaciones individuales llamando a `toLowerCase()`, `String.prototype.normalize("NFD")`, 3 expresiones regulares de reemplazo en `generarIdSlug`, y búsquedas de alias.
+   - Esto desencadenaba entre **30.000 y 80.000 operaciones Unicode NFD** y más de **100.000 ejecuciones de expresiones regulares** en el hilo principal de JavaScript durante el render sincrónico.
+3. **Dependencia Innecesaria en la Referencia Completa del Objeto `[personaje]`:**
+   - Varios `useMemo` (`conjurosSubclaseDinamicos`, `nivelBrujo`) dependían de `[personaje]`, provocando invalidación y re-cálculos masivos ante mutaciones independientes (puntos de golpe, rondas o condiciones).
+
+**Decisiones Técnicas y Arquitectónicas:**
+1. **Pre-indexación O(1) de Orígenes de Conjuros (`crearResolutorOrigenConjuros`):**
+   - En `src/servicios/resolutorOrigenConjuros.ts`, se creó la función de fábrica pura `crearResolutorOrigenConjuros(personaje)`.
+   - En vez de evaluar todos los rasgos del personaje para cada uno de los 391 hechizos, se invierte la relación: se extraen una única vez las fuentes otorgadas por el personaje (~10-20 cadenas) y se registran en un `Map<string, OrigenConjuroBadge>` con sus variantes (ID, nombre, sin tildes, slug y alias de `MAPA_ALIAS_HECHIZOS`).
+   - Las consultas por hechizo pasan de costar $O(\text{rasgos} \times \text{Unicode/Regex})$ a un acceso directo en memoria $O(1)$.
+2. **Pre-cálculo de Claves Lookup por Hechizo (`clavesLookupPorHechizo`):**
+   - En `usarMagiaPersonaje.ts`, se memoizó un diccionario que calcula una sola vez por base de datos las claves de consulta de cada hechizo (`h.id`, `slug`, `norm`, `sinTildes`, alias).
+   - Se implementó `estaEnSetOptimizado` para consultar la presencia de un hechizo en cualquier `Set<string>` sin realizar llamadas a `generarIdSlug` ni transformaciones de strings en tiempo de iteración.
+3. **Fusión en un Único Recorrido O(N) Unificado:**
+   - Se integraron `conjurosPorNivel`, `trucosConocidos` y `conteoEfectivo` en un único `useMemo` sobre `baseDatosHechizos`, clasificando y contabilizando todos los recursos mágicos en una sola pasada.
+4. **Refinamiento de Dependencias de Ciclo de Vida:**
+   - Se ajustaron las dependencias de `conjurosSubclaseDinamicos` y `nivelBrujo` a campos específicos (`clases`, `clase`, `subclase`, `nivel`), protegiendo el panel de re-renders innecesarios.
+5. **Validación y Suite de Pruebas Dedicada (`resolutorOrigenConjuros.test.ts`):**
+   - Se creó una nueva suite de 9 pruebas unitarias verificando clasificación de orígenes (clase, subclase, especie, linaje, rasgos, palabras de creación) y consistencia del 100% con el evaluador canónico.
+
+**Verificación Automatizada (`pnpm run ci`):**
+- `tsc --noEmit`: 0 errores bajo `strict: true`.
+- `eslint src --max-warnings=0`: 0 errores y 0 advertencias.
+- `vitest run`: 64 suites aprobadas, 790 pruebas unitarias pasando al 100%.
+- `node scripts/verificar-limite-lineas.js`: 111 archivos auditados, 0 errores críticos.
+- `vite build`: Empaquetado exitoso de producción en 15.09s.
+
+---
+
 ## [2026-09-17] Corrección de Estado y Filtrado: SelectorSugerencias y Autocompletado en BarraTacticaPersonaje
 
 **Contexto y Requerimientos del Usuario:**

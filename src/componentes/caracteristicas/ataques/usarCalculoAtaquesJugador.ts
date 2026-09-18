@@ -99,6 +99,7 @@ export function usarCalculoAtaquesJugador() {
       magicos_nv_7: true,
       magicos_nv_8: true,
       magicos_nv_9: true,
+      magicos_ocultos: true,
       rasgos: true,
       consumibles: true,
       hechizosObjetos: true

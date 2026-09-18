@@ -19,6 +19,37 @@ Este archivo registra reglas globales, errores encontrados, sus causas raíz y l
    - **Bajo ninguna circunstancia** los módulos de lógica de negocio (`servicios/`), gestores de estado (`almacen/`) o constructores (`gestorClases.ts`) deben contener bifurcaciones condicionales por nombre literal de rasgo o clase (`r.nombre === "..."`, `clase.includes("...")`, etc.).
    - Toda mecánica, progresión de dados, escalado de usos, recuperación o desbloqueo dinámico debe resolverse mediante metadatos declarativos (`escaladoFormulaDados`, `escaladoUsos`, `escaladoRecuperacion`, `opcionesDinamicas`, `escaladoMaxSelecciones`, `sincronizarEfectosConFormula`, `heredarDadosPadre`, `gastarDePadre`, `ligadoA`, `efectos`) delegando en funciones puras agnósticas como `resolverEscaladosRasgo`. Esta regla está reforzada en CI vía ESLint `no-restricted-syntax` y la suite `rasgoGenericidad.test.ts`.
 
+## [2026-09-17] Integración de Ocultación de Conjuros y Subsección de Conjuros Ocultos en SeccionAtaquesMagicos (Modo Combate / Acciones)
+
+**Contexto y Requerimientos del Usuario:**
+- Añadir a la sección de conjuros y acciones mágicas de combate (`src/componentes/caracteristicas/ataques/SeccionAtaquesMagicos.tsx`) la misma funcionalidad de ocultar conjuros presente en el panel de magia (`PanelConjurosPersonaje.tsx`).
+
+**Decisiones Técnicas y Arquitectónicas:**
+1. **Sincronización y Persistencia de Estado de Ocultación:**
+   - Se conectó la clave canónica persistente `ts_conjuros_ocultos_${personajeActivo.id || "default"}` mediante el hook `usarEstadoPersistido`, logrando sincronización reactiva y bidireccional entre `PanelConjurosPersonaje` y `SeccionAtaquesMagicos`.
+   - Si el jugador oculta un conjuro en la vista de magia, queda automáticamente oculto en la vista de acciones de combate, y viceversa.
+2. **Discriminación de Conjuros Visibles vs Ocultos:**
+   - Se implementó la partición reactiva de `conjurosFiltrados` en $O(1)$ por elemento mediante un `Set<string>`.
+   - Los niveles 0 a 9 discriminan sus elementos para omitir los IDs ocultos; si un nivel queda sin conjuros visibles, su bloque no se renderiza.
+   - Los conjuros ocultos se ordenan por nivel y alfabéticamente.
+3. **Subsección Dinámica de Conjuros Ocultos:**
+   - Si existen conjuros ocultos, se renderiza la subsección `.seccionOcultosMagicos` con cabecera interactiva colapsable (`EyeOff`, badge de conteo, botón "Mostrar todos" para restaurar todos y selector de colapso con clave persistente `magicos_ocultos`).
+   - Cada tarjeta se renderiza mediante `TarjetaConjuroCompacta` con `esOculto={true}` y `alAlternarOcultar={() => alternarOculto(hechizo.id)}`, permitiendo restaurar conjuros individualmente.
+4. **Erradicación de Duplicación (DRY) y Cero Estilos Inline:**
+   - Se encapsuló la lógica de renderizado en `renderizarTarjetaConjuro(hechizo, esOculto)`, preservando el cálculo de rasgos innatos gratuitos, bonos de daño mágico, pactos y slots sin duplicar código.
+   - Se añadieron estilos limpios en `VistaAtaquesJugador.module.css` sin estilos inline ni transiciones (0ms latencia para TaleSpire CEF).
+5. **Validación y Suite de Pruebas Dedicada (`SeccionAtaquesMagicos.test.tsx`):**
+   - 7 pruebas unitarias con Vitest y `renderToStaticMarkup` verificando visibilidad, botones de alternancia, subsección de ocultos, omisión de niveles vacíos, persistencia y colapsos.
+
+**Verificación Automatizada (`pnpm run ci`):**
+- `tsc --noEmit`: 0 errores bajo `strict: true`.
+- `eslint src --max-warnings=0`: 0 errores y 0 advertencias.
+- `vitest run`: 61 suites aprobadas, 765 pruebas unitarias pasando al 100%.
+- `node scripts/verificar-limite-lineas.js`: 109 archivos auditados, 0 errores críticos.
+- `vite build`: Empaquetado exitoso de producción en 16.72s.
+
+---
+
 ## [2026-09-17] Corrección de Estado y UX: Persistencia en Acciones, Colapso Exhaustivo en Mochila y Preservación de Categorías en Drag & Drop
 
 **Contexto y Requerimientos del Usuario:**

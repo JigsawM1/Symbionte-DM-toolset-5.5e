@@ -62,6 +62,7 @@ export const VistaAtaquesJugador: React.FC = () => {
     recuperarTodosPuntosConjuro,
     gastarEspacioPacto,
     recuperarEspaciosPacto,
+    romperConcentracion,
     gastarUsoRasgoPersonaje,
     recuperarUsoRasgoPersonaje,
     alternarActivoRasgo,
@@ -132,6 +133,7 @@ export const VistaAtaquesJugador: React.FC = () => {
         alRecuperarTodosPuntosConjuro={recuperarTodosPuntosConjuro}
         alGastarEspacioPacto={gastarEspacioPacto}
         alRecuperarEspaciosPacto={recuperarEspaciosPacto}
+        alRomperConcentracion={romperConcentracion}
       />
 
       {/* Sección 1: Ataques con Armas y Desarmado */}

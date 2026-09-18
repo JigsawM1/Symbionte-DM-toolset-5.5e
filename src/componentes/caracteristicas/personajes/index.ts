@@ -17,6 +17,7 @@ export * from "./TarjetaConjuroCompacta";
 export * from "./BuscadorConjurosPersonaje";
 export * from "./PanelConjurosPersonaje";
 export * from "./SeccionArcanoMistico";
+export * from "./BannerConcentracionActiva";
 
 export * from "@/componentes/caracteristicas/inventario";
 

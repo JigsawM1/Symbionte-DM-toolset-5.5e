@@ -58,4 +58,25 @@ describe("SelectorSugerencias - Debounce y Filtrado D&D 5.5e", () => {
     );
     expect(elemento.props.tiempoEsperaDebounce).toBe(300);
   });
+
+  it("acepta callback alSeleccionar y opciones con clave", () => {
+    const alCambiar = vi.fn();
+    const alSeleccionar = vi.fn();
+    const opcionesConClave = [
+      { clave: "item-1", valor: "Cimatarra", etiqueta: "Cimatarra", grupo: "Armas", subtitulo: "Arma • Común" }
+    ];
+
+    const elemento = (
+      <SelectorSugerencias
+        valor="Cimatarra"
+        alCambiar={alCambiar}
+        alSeleccionar={alSeleccionar}
+        opciones={opcionesConClave}
+      />
+    );
+
+    expect(elemento.props.alSeleccionar).toBe(alSeleccionar);
+    const html = renderToStaticMarkup(elemento);
+    expect(html).toContain('value="Cimatarra"');
+  });
 });

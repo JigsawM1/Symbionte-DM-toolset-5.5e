@@ -193,18 +193,6 @@
   color: #ffffff;
 }
 
-.botonEnlaceAjustes {
-  background: none;
-  border: none;
-  color: var(--pj-texto-terciario, #94a3b8);
-  font-size: var(--pj-fuente-micro, 11.5px);
-  cursor: pointer;
-  text-decoration: underline;
-}
-
-.botonEnlaceAjustes:hover {
-  color: #ffffff;
-}
 
 .contenedorTrackers {
   display: flex;

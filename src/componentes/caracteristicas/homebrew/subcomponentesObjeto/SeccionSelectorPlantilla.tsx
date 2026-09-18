@@ -1,6 +1,6 @@
-import React from "react";
+import React, { useState, useMemo } from "react";
 import { ObjetoHomebrew } from "@/tipos";
-import { SelectorDesplegable } from "@/componentes/comunes";
+import { SelectorSugerencias, type OpcionSugerencia } from "@/componentes/comunes";
 import { Copy } from "lucide-react";
 
 import { DICCIONARIO_CATEGORIAS_EQUIPO } from "@/constantes/categoriasEquipoConstantes";
@@ -18,12 +18,36 @@ export const SeccionSelectorPlantilla: React.FC<Props> = ({
   alSeleccionarPlantilla,
   estilos
 }) => {
+  const [busquedaPlantilla, setBusquedaPlantilla] = useState("");
+
+  const opcionesPlantillas = useMemo<OpcionSugerencia[]>(() => {
+    return listaTodosObjetos.map((obj) => {
+      const categoriaEtiqueta =
+        DICCIONARIO_CATEGORIAS_EQUIPO[obj.categoria]?.etiqueta || obj.categoria;
+      return {
+        clave: obj.id,
+        valor: obj.nombre,
+        etiqueta: obj.nombre,
+        subtitulo: `${categoriaEtiqueta} • ${obj.rareza}`,
+        grupo: categoriaEtiqueta
+      };
+    });
+  }, [listaTodosObjetos]);
+
   if (idEnEdicion) return null;
 
-  const opcionesPlantillas = listaTodosObjetos.map((obj) => ({
-    valor: obj.id,
-    etiqueta: `${obj.nombre} (${DICCIONARIO_CATEGORIAS_EQUIPO[obj.categoria]?.etiqueta || obj.categoria} - ${obj.rareza})`
-  }));
+  const manejarSeleccionar = (opcion: OpcionSugerencia) => {
+    const idObjetivo =
+      opcion.clave ||
+      listaTodosObjetos.find(
+        (o) => o.nombre.toLowerCase() === opcion.valor.trim().toLowerCase()
+      )?.id;
+
+    if (idObjetivo) {
+      setBusquedaPlantilla(opcion.etiqueta || opcion.valor);
+      alSeleccionarPlantilla(idObjetivo);
+    }
+  };
 
   return (
     <div className={estilos.contenedorPlantillaBase}>
@@ -31,11 +55,12 @@ export const SeccionSelectorPlantilla: React.FC<Props> = ({
         <Copy size={13} />
         Usar objeto base como plantilla:
       </label>
-      <SelectorDesplegable
-        valor=""
-        alCambiar={(id) => id && alSeleccionarPlantilla(id)}
+      <SelectorSugerencias
+        valor={busquedaPlantilla}
+        alCambiar={setBusquedaPlantilla}
+        alSeleccionar={manejarSeleccionar}
         opciones={opcionesPlantillas}
-        placeholder="-- Seleccionar objeto base (ej. Cimatarra, Escudo, Poción) --"
+        placeholder="-- Buscar objeto base como plantilla (ej. Cimatarra, Escudo, Poción) --"
       />
     </div>
   );

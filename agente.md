@@ -18,6 +18,74 @@ Este archivo registra reglas globales, errores encontrados, sus causas raíz y l
 6. **PROHIBICIÓN ESTRICTA DE BIFURCACIONES POR NOMBRE DE RASGO O CLASE (CATÁLOGO DECLARATIVO Y BUILDER PURO)**:
    - **Bajo ninguna circunstancia** los módulos de lógica de negocio (`servicios/`), gestores de estado (`almacen/`) o constructores (`gestorClases.ts`) deben contener bifurcaciones condicionales por nombre literal de rasgo o clase (`r.nombre === "..."`, `clase.includes("...")`, etc.).
    - Toda mecánica, progresión de dados, escalado de usos, recuperación o desbloqueo dinámico debe resolverse mediante metadatos declarativos (`escaladoFormulaDados`, `escaladoUsos`, `escaladoRecuperacion`, `opcionesDinamicas`, `escaladoMaxSelecciones`, `sincronizarEfectosConFormula`, `heredarDadosPadre`, `gastarDePadre`, `ligadoA`, `efectos`) delegando en funciones puras agnósticas como `resolverEscaladosRasgo`. Esta regla está reforzada en CI vía ESLint `no-restricted-syntax` y la suite `rasgoGenericidad.test.ts`.
+## [2026-09-17] Integración de BannerConcentracionActiva en SeccionRecursosMagicosAtaque (Modo Combate / Jugador)
+
+**Contexto y Requerimientos:**
+- Integrar el componente `BannerConcentracionActiva` en `src/componentes/caracteristicas/ataques/SeccionRecursosMagicosAtaque.tsx` para visibilizar y permitir romper la concentración activa directamente desde el panel de recursos mágicos de combate.
+- Preservar el flujo unidireccional de estados y contratos estrictos en TypeScript (`strict: true`), con cobertura de pruebas unitarias al 100%.
+
+**Decisiones Técnicas y Arquitectónicas:**
+1. **Extensión No Disruptiva de `SeccionRecursosMagicosAtaque.tsx`**:
+   - Se incorporó la prop opcional `alRomperConcentracion?: (pjId: string) => void` a `SeccionRecursosMagicosAtaqueProps`.
+   - Se integró `BannerConcentracionActiva` en la cima de `.listaAtaques`, condicionada a la presencia de `personajeActivo.concentracionActiva`.
+   - Resiliencia en la condición de visualización de la sección: Se calculó `tieneConcentracion = Boolean(personajeActivo.concentracionActiva)`. Si el personaje no posee espacios estándar ni de pacto pero mantiene una concentración activa (ej. procedente de un objeto mágico, pergamino, rasgo o dote), la sección no se oculta silenciosamente.
+2. **Propagación en Hook `usarCalculoAtaquesJugador` y Vista `VistaAtaquesJugador`**:
+   - Se desestructuró la acción `romperConcentracion` desde `usarAccionesPersonajes()` en `usarCalculoAtaquesJugador.ts` y se expuso en su objeto de retorno.
+   - En `VistaAtaquesJugador.tsx`, se conectó `alRomperConcentracion={romperConcentracion}` a `SeccionRecursosMagicosAtaque`.
+3. **Reexportación en Barril de Personajes (`src/componentes/caracteristicas/personajes/index.ts`)**:
+   - Se reexportó `BannerConcentracionActiva` facilitando su reutilización y homogeneidad arquitectónica en capas superiores.
+4. **Validación y Suite de Pruebas Dedicada (`SeccionRecursosMagicosAtaque.test.tsx`)**:
+   - Creación de 6 pruebas unitarias con `vitest` y `renderToStaticMarkup`:
+     1. Renderizado de `BannerConcentracionActiva` con nombre del hechizo activo.
+     2. No renderizado del banner si `concentracionActiva` es null.
+     3. Ocultamiento total de la sección si no hay espacios, no hay pacto y no hay concentración.
+     4. Visibilidad de la sección si no hay espacios pero sí hay concentración activa.
+     5. Colapso de contenido cuando `estaAbierta = false`.
+     6. Invocación de `alRomperConcentracion` con el ID del personaje activo.
+
+**Errores Encontrados y Correcciones:**
+- **TS6133 (Import/Variable no utilizada en prueba y componente):**
+  - Se eliminó el import innecesario de `React` en el nuevo archivo de tests (`jsx: react-jsx`).
+  - Se prefijó `_alAbrirConfiguracion` en `CabeceraYRecursosMagicos.tsx` donde no se utilizaba en el template JSX.
+- **TS2724 (Identificador exportado en constantes):**
+  - Se utilizó `PERSONAJE_POR_DEFECTO` en lugar de la referencia errónea `PERSONAJE_BASE_DEFECTO`.
+
+**Verificación Automatizada (`pnpm run ci`):**
+- `tsc --noEmit`: 0 errores bajo configuración estricta (`strict: true`).
+- `eslint src --max-warnings=0`: 0 errores y 0 advertencias.
+- `vitest run`: 59 suites aprobadas, 751 pruebas unitarias pasando al 100%.
+- `node scripts/verificar-limite-lineas.js`: 109 archivos auditados, 0 errores críticos.
+- `vite build`: Empaquetado exitoso de producción en 16.34s.
+
+---
+
+## [2026-09-17] Modernización de UX: Migración de Selector Desplegable a SelectorSugerencias en SeccionSelectorPlantilla
+
+**Contexto y Requerimientos:**
+- Transformación del selector estático `SelectorDesplegable` en `src/componentes/caracteristicas/homebrew/subcomponentesObjeto/SeccionSelectorPlantilla.tsx` a un buscador interactivo con autocompletado y debounce tolerante (`SelectorSugerencias`).
+- Soporte para catálogos masivos de objetos base (armas, armaduras, pociones, equipo de aventurero) agrupados por categoría.
+
+**Decisiones Técnicas y Arquitectónicas:**
+1. **Extensión No Disruptiva de `SelectorSugerencias.tsx`**:
+   - Se añadió `clave?: string` a `OpcionSugerencia` para permitir transportar identificadores únicos (`id` de compendio o UUID) sin alterar el valor textual que el `<input>` presenta al usuario.
+   - Se incorporó `alSeleccionar?: (opcion: OpcionSugerencia) => void` a `SelectorSugerenciasProps`. Al hacer clic o confirmar mediante teclado (`Enter`), se dispara este callback explícito evitando sobreescrituras accidentales del formulario durante la escritura de prefijos comunes.
+   - Resiliencia en el indicador de selección: `estaSeleccionada` evalúa coincidencias con `opcion.valor`, `opcion.clave` y `opcion.etiqueta`.
+   - Accesibilidad por teclado: Manejo de `Enter` (selecciona la primera opción filtrada y previene el submit accidental del formulario padre) y `Escape` (cierra el desplegable).
+2. **Reexportación en Barril Común (`src/componentes/comunes/index.ts`)**:
+   - Reexportados los tipos `OpcionSugerencia` y `SelectorSugerenciasProps` reforzando la unidireccionalidad de capas de la arquitectura.
+3. **Mapeo Categorizado y Desacoplado en `SeccionSelectorPlantilla.tsx`**:
+   - Estructuración de opciones mediante `useMemo` con `clave: obj.id`, `valor: obj.nombre`, `etiqueta: obj.nombre`, `grupo: categoriaEtiqueta` y `subtitulo: ${categoriaEtiqueta} • ${obj.rareza}`.
+   - Manejador `manejarSeleccionar` que resuelve el ID por `opcion.clave` o búsqueda tolerante por nombre, actualiza el valor del input y delega en `alSeleccionarPlantilla(idObjetivo)`.
+
+**Verificación Automatizada (`pnpm run ci`):**
+- `tsc --noEmit`: 0 errores bajo configuración estricta (`strict: true`).
+- `eslint src --max-warnings=0`: 0 errores y 0 advertencias.
+- `vitest run`: 58 suites aprobadas, 745 pruebas unitarias pasando al 100% (incluyendo nueva suite `SeccionSelectorPlantilla.test.tsx`).
+- `node scripts/verificar-limite-lineas.js`: 109 archivos auditados, 0 errores críticos.
+- `vite build`: Empaquetado exitoso de producción en 14.02s.
+
+---
+
 ## [2026-09-17] Erradicación Total de Estilos Inline: Fase 6 (Activación Estricta de ESLint, Modularización Residual y Blindaje del CI)
 
 **Contexto y Requerimientos:**

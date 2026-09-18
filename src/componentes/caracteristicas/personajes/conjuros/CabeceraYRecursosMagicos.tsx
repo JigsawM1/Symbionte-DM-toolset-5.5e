@@ -1,6 +1,5 @@
 import React from "react";
 import { Zap, BookOpen, AlertTriangle } from "lucide-react";
-import { BannerConcentracionActiva } from "../BannerConcentracionActiva";
 import { TarjetasMetricasMagia } from "../TarjetasMetricasMagia";
 import { TrackerEspaciosConjuro } from "../TrackerEspaciosConjuro";
 import { TrackerEspaciosPacto } from "../TrackerEspaciosPacto";
@@ -18,7 +17,6 @@ export const CabeceraYRecursosMagicos: React.FC<CabeceraYRecursosMagicosProps> =
   penalizacionArmadura,
   estaBloqueadoPorArmadura,
   motivoBloqueoArmadura,
-  alRomperConcentracion,
   etiquetaHabilidad,
   modHabilidad,
   cdConjuros,
@@ -26,7 +24,6 @@ export const CabeceraYRecursosMagicos: React.FC<CabeceraYRecursosMagicosProps> =
   manejarTiradaAtaqueMagico,
   conteoEfectivo,
   maximos,
-  alAbrirConfiguracion,
   alAbrirCompendio,
   esLanzadorPacto,
   nivelEspacioPacto,
@@ -66,14 +63,6 @@ export const CabeceraYRecursosMagicos: React.FC<CabeceraYRecursosMagicosProps> =
             {" "}Las reglas impiden lanzar conjuros y rituales bajo esta condición.
           </div>
         </div>
-      )}
-
-      {/* Banner de Concentración Activa */}
-      {personaje.concentracionActiva && (
-        <BannerConcentracionActiva
-          nombreHechizo={personaje.concentracionActiva.nombreHechizo}
-          alRomperConcentracion={alRomperConcentracion}
-        />
       )}
 
       {/* Tarjetas de Estadísticas Mágicas */}
@@ -145,16 +134,6 @@ export const CabeceraYRecursosMagicos: React.FC<CabeceraYRecursosMagicosProps> =
           <BookOpen size={13} />
           <span>Compendio de Conjuros</span>
         </button>
-
-        {alAbrirConfiguracion && (
-          <button
-            type="button"
-            onClick={alAbrirConfiguracion}
-            className={estilos.botonEnlaceAjustes}
-          >
-            Ajustar Clases y Magia
-          </button>
-        )}
       </div>
 
       {/* Trackers de Recursos Mágicos */}

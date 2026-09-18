@@ -3,6 +3,7 @@ import { Sparkles, ChevronDown, ChevronRight } from "lucide-react";
 import { TrackerEspaciosConjuro } from "@/componentes/caracteristicas/personajes/TrackerEspaciosConjuro";
 import { TrackerEspaciosPacto } from "@/componentes/caracteristicas/personajes/TrackerEspaciosPacto";
 import { TrackerPuntosConjuro } from "@/componentes/caracteristicas/personajes/TrackerPuntosConjuro";
+import { BannerConcentracionActiva } from "@/componentes/caracteristicas/personajes/BannerConcentracionActiva";
 import type { PersonajeJugador } from "@/tipos";
 import estilos from "./VistaAtaquesJugador.module.css";
 
@@ -21,6 +22,7 @@ interface SeccionRecursosMagicosAtaqueProps {
   alRecuperarTodosPuntosConjuro: (pjId: string) => void;
   alGastarEspacioPacto: (pjId: string) => void;
   alRecuperarEspaciosPacto: (pjId: string) => void;
+  alRomperConcentracion?: (pjId: string) => void;
 }
 
 export const SeccionRecursosMagicosAtaque: React.FC<SeccionRecursosMagicosAtaqueProps> = ({
@@ -37,9 +39,12 @@ export const SeccionRecursosMagicosAtaque: React.FC<SeccionRecursosMagicosAtaque
   alRecuperarPuntosConjuro,
   alRecuperarTodosPuntosConjuro,
   alGastarEspacioPacto,
-  alRecuperarEspaciosPacto
+  alRecuperarEspaciosPacto,
+  alRomperConcentracion
 }) => {
-  if (!tieneMagiaEstandar && !tienePacto) {
+  const tieneConcentracion = Boolean(personajeActivo.concentracionActiva);
+
+  if (!tieneMagiaEstandar && !tienePacto && !tieneConcentracion) {
     return null;
   }
 
@@ -63,6 +68,13 @@ export const SeccionRecursosMagicosAtaque: React.FC<SeccionRecursosMagicosAtaque
 
       {estaAbierta && (
         <div className={estilos.listaAtaques}>
+          {personajeActivo.concentracionActiva && (
+            <BannerConcentracionActiva
+              nombreHechizo={personajeActivo.concentracionActiva.nombreHechizo}
+              alRomperConcentracion={() => alRomperConcentracion?.(personajeActivo.id)}
+            />
+          )}
+
           {tieneMagiaEstandar &&
             (sistemaMagia === "puntos" ? (
               <TrackerPuntosConjuro

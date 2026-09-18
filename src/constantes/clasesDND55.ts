@@ -1342,7 +1342,7 @@ export const CATALOGO_CLASES_DND55: DefinicionClase[] = [
           {
             nivel: 3,
             nombre: "Conjuros de archihada",
-            descripcion: "La magia de tu patrón garantiza que siempre tengas ciertos conjuros listos; cuando alcances un nivel de brujo especificado en la tabla \"Conjuros de archihada\", a partir de entonces siempre tendrás preparados los conjuros indicados.\n##### Conjuros de archihada\n| Nivel de brujo | Conjuros preparados                                                          |\n|:--------------:|------------------------------------------------------------------------------|\n|       3        | *calmar emociones*, *fuego feérico*, *paso brumoso*, *fuerza fantasmal*, *dormir* |\n|       5        | *parpadeo*, *crecimiento vegetal*                                            |\n|       7        | *dominar bestia*, *invisibilidad mayor*                                      |\n|       9        | *dominar persona*, *apariencia*                                              |",
+            descripcion: "La magia de tu patrón garantiza que siempre tengas ciertos conjuros listos; cuando alcances un nivel de brujo especificado en la tabla \"Conjuros de archihada\", a partir de entonces siempre tendrás preparados los conjuros indicados.\n",
             tipoAccion: "pasivo",
             subclase: "Patrón de los Archihadas",
             tablaProgresion: {
@@ -1427,7 +1427,7 @@ export const CATALOGO_CLASES_DND55: DefinicionClase[] = [
           {
             nivel: 3,
             nombre: "Conjuros celestiales",
-            descripcion: "La magia de tu patrón garantiza que siempre tengas ciertos conjuros listos; cuando alcances un nivel de brujo especificado en la tabla \"Conjuros celestiales\", a partir de entonces siempre tendrás preparados los conjuros indicados.\n##### Conjuros celestiales\n| Nivel de brujo | Conjuros preparados                                                              |\n|:--------------:|----------------------------------------------------------------------------------|\n|       3        | *auxilio*, *curar heridas*, *saeta guía*, *restablecimiento menor*, *luz*, *llama sagrada* |\n|       5        | *luz del día*, *revivir*                                                         |\n|       7        | *guardián de la fe*, *muro de fuego*                                             |\n|       9        | *restablecimiento mayor*, *invocar celestial*                                    |",
+            descripcion: "La magia de tu patrón garantiza que siempre tengas ciertos conjuros listos; cuando alcances un nivel de brujo especificado en la tabla \"Conjuros celestiales\", a partir de entonces siempre tendrás preparados los conjuros indicados.\n",
             tipoAccion: "pasivo",
             subclase: "Patrón Celestial",
             tablaProgresion: {
@@ -1514,7 +1514,7 @@ export const CATALOGO_CLASES_DND55: DefinicionClase[] = [
           {
             nivel: 3,
             nombre: "Conjuros infernales",
-            descripcion: "La magia de tu patrón garantiza que siempre tengas ciertos conjuros listos; cuando alcances un nivel de brujo especificado en la tabla \"Conjuros infernales\", a partir de entonces siempre tendrás preparados los conjuros indicados.\n##### Conjuros infernales\n| Nivel de brujo | Conjuros preparados                                         |\n|:--------------:|-------------------------------------------------------------|\n|       3        | *manos ardientes*, *orden imperiosa*, *rayo abrasador*, *sugestión* |\n|       5        | *bola de fuego*, *nube apestosa*                            |\n|       7        | *escudo de fuego*, *muro de fuego*                          |\n|       9        | *misión*, *plaga de insectos*                               |",
+            descripcion: "La magia de tu patrón garantiza que siempre tengas ciertos conjuros listos; cuando alcances un nivel de brujo especificado en la tabla \"Conjuros infernales\", a partir de entonces siempre tendrás preparados los conjuros indicados.\n",
             tipoAccion: "pasivo",
             subclase: "Patrón Infernal",
             tablaProgresion: {
@@ -1619,7 +1619,7 @@ export const CATALOGO_CLASES_DND55: DefinicionClase[] = [
           {
             nivel: 3,
             nombre: "Conjuros del Gran Primigenio",
-            descripcion: "La magia de tu patrón garantiza que siempre tengas ciertos conjuros listos; cuando alcances un nivel de brujo especificado en la tabla \"Conjuros del Gran Primigenio\", a partir de entonces siempre tendrás preparados los conjuros indicados.\n##### Conjuros del Gran Primigenio\n| Nivel de brujo | Conjuros preparados                                                                  |\n|:--------------:|--------------------------------------------------------------------------------------|\n|       3        | *detectar pensamientos*, *susurros disonantes*, *fuerza fantasmal*, *risa espantosa de Tasha* |\n|       5        | *clarividencia*, *hambre de Hadar*                                                   |\n|       7        | *confusión*, *invocar aberración*                                                    |\n|       9        | *alterar los recuerdos*, *telequinesis*                                              |",
+            descripcion: "La magia de tu patrón garantiza que siempre tengas ciertos conjuros listos; cuando alcances un nivel de brujo especificado en la tabla \"Conjuros del Gran Primigenio\", a partir de entonces siempre tendrás preparados los conjuros indicados.\n",
             tipoAccion: "pasivo",
             subclase: "Patrón del Gran Primigenio",
             tablaProgresion: {

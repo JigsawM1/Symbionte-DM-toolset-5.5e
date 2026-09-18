@@ -204,7 +204,7 @@
 }
 
 .textoMateriales {
-  font-size: 12px;
+  font-size: 12.5px;
   font-style: italic;
   color: var(--color-texto-secundario);
   padding-left: 4px;
@@ -212,7 +212,7 @@
 }
 
 .textoDescripcion {
-  font-size: 12px;
+  font-size: 12.5px;
   line-height: 1.45;
   color: var(--color-texto-principal);
   white-space: pre-wrap;

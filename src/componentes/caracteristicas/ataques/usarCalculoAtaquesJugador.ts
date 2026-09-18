@@ -72,7 +72,8 @@ export function usarCalculoAtaquesJugador() {
     gastarUsoRasgoPersonaje,
     recuperarUsoRasgoPersonaje,
     alternarActivoRasgo,
-    sincronizarRasgosPersonaje
+    sincronizarRasgosPersonaje,
+    romperConcentracion
   } = usarAccionesPersonajes();
 
   const { objetosHomebrew, baseDatosHechizos } = usarEstadoHomebrew();
@@ -439,6 +440,7 @@ export function usarCalculoAtaquesJugador() {
     recuperarTodosPuntosConjuro,
     gastarEspacioPacto,
     recuperarEspaciosPacto,
+    romperConcentracion,
     gastarUsoRasgoPersonaje,
     recuperarUsoRasgoPersonaje,
     alternarActivoRasgo,

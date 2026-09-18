@@ -1,6 +1,7 @@
 .parrafoModalEnriquecido {
   margin: 0;
   color: var(--pj-texto-primario, #ffffff);
+  text-indent: 10px;
 }
 
 .subtituloRasgoModal {

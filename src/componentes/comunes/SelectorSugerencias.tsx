@@ -8,6 +8,7 @@ export interface OpcionSugerencia {
   etiqueta?: string;
   grupo?: string;
   subtitulo?: string;
+  clave?: string;
 }
 
 export type OpcionEntradaSugerencia = string | OpcionSugerencia;
@@ -15,6 +16,7 @@ export type OpcionEntradaSugerencia = string | OpcionSugerencia;
 export interface SelectorSugerenciasProps {
   valor: string;
   alCambiar: (nuevoValor: string) => void;
+  alSeleccionar?: (opcion: OpcionSugerencia) => void;
   opciones: readonly OpcionEntradaSugerencia[] | OpcionEntradaSugerencia[];
   placeholder?: string;
   className?: string;
@@ -26,6 +28,7 @@ export interface SelectorSugerenciasProps {
 export const SelectorSugerencias: React.FC<SelectorSugerenciasProps> = ({
   valor,
   alCambiar,
+  alSeleccionar,
   opciones,
   placeholder,
   className,
@@ -114,11 +117,14 @@ export const SelectorSugerencias: React.FC<SelectorSugerenciasProps> = ({
     return { gruposMap, sinGrupo, tieneGrupos: gruposMap.size > 0 };
   }, [opcionesFiltradas]);
 
-  const seleccionarOpcion = (opcionValor: string, e: React.MouseEvent) => {
-    e.stopPropagation();
-    e.preventDefault();
-    setTerminoDebounced(opcionValor);
-    alCambiar(opcionValor);
+  const seleccionarOpcion = (opcion: OpcionSugerencia, e?: React.SyntheticEvent) => {
+    if (e) {
+      e.stopPropagation();
+      e.preventDefault();
+    }
+    setTerminoDebounced(opcion.valor);
+    alCambiar(opcion.valor);
+    alSeleccionar?.(opcion);
     setAbierto(false);
   };
 
@@ -131,12 +137,17 @@ export const SelectorSugerencias: React.FC<SelectorSugerenciasProps> = ({
   };
 
   const renderFilaOpcion = (opcion: OpcionSugerencia) => {
-    const estaSeleccionada = opcion.valor.toLowerCase() === valor.trim().toLowerCase();
+    const valorLimpio = valor.trim().toLowerCase();
+    const estaSeleccionada =
+      opcion.valor.toLowerCase() === valorLimpio ||
+      (opcion.clave !== undefined && opcion.clave.toLowerCase() === valorLimpio) ||
+      (Boolean(opcion.etiqueta) && opcion.etiqueta!.toLowerCase() === valorLimpio);
+
     return (
       <button
-        key={opcion.valor}
+        key={opcion.clave || opcion.valor}
         type="button"
-        onClick={(e) => seleccionarOpcion(opcion.valor, e)}
+        onClick={(e) => seleccionarOpcion(opcion, e)}
         className={`${estilos.opcion} ${estaSeleccionada ? estilos.opcionSeleccionada : ""}`}
       >
         <div className={estilos.infoOpcion}>
@@ -150,6 +161,17 @@ export const SelectorSugerencias: React.FC<SelectorSugerenciasProps> = ({
     );
   };
 
+  const manejarKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      if (abierto && opcionesFiltradas.length > 0) {
+        seleccionarOpcion(opcionesFiltradas[0], e);
+      }
+    } else if (e.key === "Escape") {
+      setAbierto(false);
+    }
+  };
+
   return (
     <div ref={contenedorRef} className={`${estilos.contenedor} ${className || ""}`}>
       <input
@@ -160,6 +182,7 @@ export const SelectorSugerencias: React.FC<SelectorSugerenciasProps> = ({
           alCambiar(e.target.value);
           if (!abierto) setAbierto(true);
         }}
+        onKeyDown={manejarKeyDown}
         onFocus={() => setAbierto(true)}
         placeholder={placeholder}
         disabled={disabled}

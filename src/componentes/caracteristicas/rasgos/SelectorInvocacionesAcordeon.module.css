@@ -315,6 +315,7 @@
 
 .textoDescripcionInvocacion {
   font-size: 12.5px;
+  margin: 2px;
   color: #e2e8f0;
   line-height: 1.55;
 }

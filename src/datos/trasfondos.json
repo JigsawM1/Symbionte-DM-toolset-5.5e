@@ -1,0 +1,184 @@
+[
+  {
+    "id": "acolyte",
+    "nombre": "Acólito",
+    "mejoraCaracteristicas": {
+      "opciones": ["inteligencia", "sabiduria", "carisma"],
+      "regla": "+2 a una y +1 a otra, o +1 a las tres"
+    },
+    "doteOrigen": "magic-initiate-cleric",
+    "nombreDoteOrigen": "Iniciado en la Magia (Clérigo)",
+    "competenciasHabilidades": ["perspicacia", "religion"],
+    "competenciasHerramientas": ["Suministros de Calígrafo"],
+    "equipoInicial": "Suministros de Calígrafo, Libro de oraciones, Símbolo Sagrado, 10 Pergaminos, Túnica y 8 PO (o 50 PO)."
+  },
+  {
+    "id": "criminal",
+    "nombre": "Criminal",
+    "mejoraCaracteristicas": {
+      "opciones": ["destreza", "constitucion", "inteligencia"],
+      "regla": "+2 a una y +1 a otra, o +1 a las tres"
+    },
+    "doteOrigen": "alert",
+    "nombreDoteOrigen": "Alerta",
+    "competenciasHabilidades": ["juegoManos", "sigilo"],
+    "competenciasHerramientas": ["Herramientas de Ladrón"],
+    "equipoInicial": "Herramientas de Ladrón, Palanqueta, 2 Dagas, 2 Bolsas, Ropa de viajero y 16 PO (o 50 PO)."
+  },
+  {
+    "id": "sage",
+    "nombre": "Sabio",
+    "mejoraCaracteristicas": {
+      "opciones": ["constitucion", "inteligencia", "sabiduria"],
+      "regla": "+2 a una y +1 a otra, o +1 a las tres"
+    },
+    "doteOrigen": "magic-initiate-wizard",
+    "nombreDoteOrigen": "Iniciado en la Magia (Mago)",
+    "competenciasHabilidades": ["arcanos", "historia"],
+    "competenciasHerramientas": ["Suministros de Calígrafo"],
+    "equipoInicial": "Bastón, Suministros de Calígrafo, Libro de historia, 8 Pergaminos, Túnica y 8 PO (o 50 PO)."
+  },
+  {
+    "id": "soldier",
+    "nombre": "Soldado",
+    "mejoraCaracteristicas": {
+      "opciones": ["fuerza", "destreza", "constitucion"],
+      "regla": "+2 a una y +1 a otra, o +1 a las tres"
+    },
+    "doteOrigen": "savage-attacker",
+    "nombreDoteOrigen": "Atacante Salvaje",
+    "competenciasHabilidades": ["atletismo", "intimidacion"],
+    "competenciasHerramientas": ["Juego de Cartas o Dados"],
+    "equipoInicial": "Lanza, Arco corto con 20 flechas, Juego de Dados, Botiquín de Curandero, Carcaj, Ropa de viajero y 14 PO (o 50 PO)."
+  },
+  {
+    "id": "artisan",
+    "nombre": "Artesano de Gremio",
+    "mejoraCaracteristicas": {
+      "opciones": ["fuerza", "destreza", "inteligencia"],
+      "regla": "+2 a una y +1 a otra, o +1 a las tres"
+    },
+    "doteOrigen": "crafter",
+    "nombreDoteOrigen": "Artesano (Crafter)",
+    "competenciasHabilidades": ["investigacion", "persuasion"],
+    "competenciasHerramientas": ["Herramientas de Artesano (a elección)"],
+    "equipoInicial": "Herramientas de Artesano, Carta de presentación del gremio, Ropa de viaje y 15 PO (o 50 PO)."
+  },
+  {
+    "id": "charlatan",
+    "nombre": "Charlatán",
+    "mejoraCaracteristicas": {
+      "opciones": ["destreza", "constitucion", "carisma"],
+      "regla": "+2 a una y +1 a otra, o +1 a las tres"
+    },
+    "doteOrigen": "skilled",
+    "nombreDoteOrigen": "Habilidoso (Skilled)",
+    "competenciasHabilidades": ["engano", "juegoManos"],
+    "competenciasHerramientas": ["Estuche de Disfraces"],
+    "equipoInicial": "Estuche de Disfraces, Ropa fina, Herramientas de timador y 15 PO (o 50 PO)."
+  },
+  {
+    "id": "entertainer",
+    "nombre": "Entretenedor",
+    "mejoraCaracteristicas": {
+      "opciones": ["destreza", "constitucion", "carisma"],
+      "regla": "+2 a una y +1 a otra, o +1 a las tres"
+    },
+    "doteOrigen": "musician",
+    "nombreDoteOrigen": "Músico",
+    "competenciasHabilidades": ["acrobacias", "interpretacion"],
+    "competenciasHerramientas": ["Instrumento Musical (a elección)"],
+    "equipoInicial": "Instrumento Musical, Disfraz, Favor de un admirador y 18 PO (o 50 PO)."
+  },
+  {
+    "id": "farmer",
+    "nombre": "Granjero",
+    "mejoraCaracteristicas": {
+      "opciones": ["fuerza", "constitucion", "sabiduria"],
+      "regla": "+2 a una y +1 a otra, o +1 a las tres"
+    },
+    "doteOrigen": "tough",
+    "nombreDoteOrigen": "Duro (Tough)",
+    "competenciasHabilidades": ["manejoAnimales", "naturaleza"],
+    "competenciasHerramientas": ["Herramientas de Carpintero"],
+    "equipoInicial": "Hoz, Herramientas de Carpintero, Ropa de trabajo y 15 PO (o 50 PO)."
+  },
+  {
+    "id": "guard",
+    "nombre": "Guardia",
+    "mejoraCaracteristicas": {
+      "opciones": ["fuerza", "inteligencia", "sabiduria"],
+      "regla": "+2 a una y +1 a otra, o +1 a las tres"
+    },
+    "doteOrigen": "alert",
+    "nombreDoteOrigen": "Alerta",
+    "competenciasHabilidades": ["intimidacion", "percepcion"],
+    "competenciasHerramientas": ["Juego de Cartas o Dados"],
+    "equipoInicial": "Chuzo o Lanza, Silbato, Ropa de uniforme y 12 PO (o 50 PO)."
+  },
+  {
+    "id": "guide",
+    "nombre": "Guía",
+    "mejoraCaracteristicas": {
+      "opciones": ["destreza", "constitucion", "sabiduria"],
+      "regla": "+2 a una y +1 a otra, o +1 a las tres"
+    },
+    "doteOrigen": "magic-initiate-druid",
+    "nombreDoteOrigen": "Iniciado en la Magia (Druida)",
+    "competenciasHabilidades": ["percepcion", "supervivencia"],
+    "competenciasHerramientas": ["Suministros de Cartógrafo"],
+    "equipoInicial": "Arco corto, Suministros de Cartógrafo, Tienda de campaña y 10 PO (o 50 PO)."
+  },
+  {
+    "id": "hermit",
+    "nombre": "Hermitaño",
+    "mejoraCaracteristicas": {
+      "opciones": ["constitucion", "inteligencia", "sabiduria"],
+      "regla": "+2 a una y +1 a otra, o +1 a las tres"
+    },
+    "doteOrigen": "healer",
+    "nombreDoteOrigen": "Curandero (Healer)",
+    "competenciasHabilidades": ["medicina", "religion"],
+    "competenciasHerramientas": ["Estuche de Herbalismo"],
+    "equipoInicial": "Estuche de Herbalismo, Libro de notas, Manta pesada y 15 PO (o 50 PO)."
+  },
+  {
+    "id": "noble",
+    "nombre": "Noble",
+    "mejoraCaracteristicas": {
+      "opciones": ["fuerza", "inteligencia", "carisma"],
+      "regla": "+2 a una y +1 a otra, o +1 a las tres"
+    },
+    "doteOrigen": "skilled",
+    "nombreDoteOrigen": "Habilidoso (Skilled)",
+    "competenciasHabilidades": ["historia", "persuasion"],
+    "competenciasHerramientas": ["Juego de Ajedrez Dracónico"],
+    "equipoInicial": "Ropa fina, Anillo de sello, Carta de nobleza y 25 PO (o 50 PO)."
+  },
+  {
+    "id": "sailor",
+    "nombre": "Marinero",
+    "mejoraCaracteristicas": {
+      "opciones": ["fuerza", "destreza", "wisdom"],
+      "regla": "+2 a una y +1 a otra, o +1 a las tres"
+    },
+    "doteOrigen": "tavern-brawler",
+    "nombreDoteOrigen": "Peleador de Taberna",
+    "competenciasHabilidades": ["atletismo", "percepcion"],
+    "competenciasHerramientas": ["Herramientas de Navegante"],
+    "equipoInicial": "Daga, Herramientas de Navegante, Cuerda de seda (50 pies) y 10 PO (o 50 PO)."
+  },
+  {
+    "id": "urchin",
+    "nombre": "Vagabundo / Huérfano",
+    "mejoraCaracteristicas": {
+      "opciones": ["destreza", "constitucion", "carisma"],
+      "regla": "+2 a una y +1 a otra, o +1 a las tres"
+    },
+    "doteOrigen": "lucky",
+    "nombreDoteOrigen": "Afortunado (Lucky)",
+    "competenciasHabilidades": ["juegoManos", "sigilo"],
+    "competenciasHerramientas": ["Estuche de Disfraces"],
+    "equipoInicial": "Daga, Estuche de Disfraces, Mapa de la ciudad natal y 15 PO (o 50 PO)."
+  }
+]

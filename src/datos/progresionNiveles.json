@@ -1,0 +1,22 @@
+[
+  { "nivel": 1, "bonoCompetencia": 2, "espaciosConjurosMagos": [2, 0, 0, 0, 0, 0, 0, 0, 0] },
+  { "nivel": 2, "bonoCompetencia": 2, "espaciosConjurosMagos": [3, 0, 0, 0, 0, 0, 0, 0, 0] },
+  { "nivel": 3, "bonoCompetencia": 2, "espaciosConjurosMagos": [4, 2, 0, 0, 0, 0, 0, 0, 0] },
+  { "nivel": 4, "bonoCompetencia": 2, "espaciosConjurosMagos": [4, 3, 0, 0, 0, 0, 0, 0, 0] },
+  { "nivel": 5, "bonoCompetencia": 3, "espaciosConjurosMagos": [4, 3, 2, 0, 0, 0, 0, 0, 0] },
+  { "nivel": 6, "bonoCompetencia": 3, "espaciosConjurosMagos": [4, 3, 3, 0, 0, 0, 0, 0, 0] },
+  { "nivel": 7, "bonoCompetencia": 3, "espaciosConjurosMagos": [4, 3, 3, 1, 0, 0, 0, 0, 0] },
+  { "nivel": 8, "bonoCompetencia": 3, "espaciosConjurosMagos": [4, 3, 3, 2, 0, 0, 0, 0, 0] },
+  { "nivel": 9, "bonoCompetencia": 4, "espaciosConjurosMagos": [4, 3, 3, 3, 1, 0, 0, 0, 0] },
+  { "nivel": 10, "bonoCompetencia": 4, "espaciosConjurosMagos": [4, 3, 3, 3, 2, 0, 0, 0, 0] },
+  { "nivel": 11, "bonoCompetencia": 4, "espaciosConjurosMagos": [4, 3, 3, 3, 2, 1, 0, 0, 0] },
+  { "nivel": 12, "bonoCompetencia": 4, "espaciosConjurosMagos": [4, 3, 3, 3, 2, 1, 0, 0, 0] },
+  { "nivel": 13, "bonoCompetencia": 5, "espaciosConjurosMagos": [4, 3, 3, 3, 2, 1, 1, 0, 0] },
+  { "nivel": 14, "bonoCompetencia": 5, "espaciosConjurosMagos": [4, 3, 3, 3, 2, 1, 1, 0, 0] },
+  { "nivel": 15, "bonoCompetencia": 5, "espaciosConjurosMagos": [4, 3, 3, 3, 2, 1, 1, 1, 0] },
+  { "nivel": 16, "bonoCompetencia": 5, "espaciosConjurosMagos": [4, 3, 3, 3, 2, 1, 1, 1, 0] },
+  { "nivel": 17, "bonoCompetencia": 6, "espaciosConjurosMagos": [4, 3, 3, 3, 2, 1, 1, 1, 1] },
+  { "nivel": 18, "bonoCompetencia": 6, "espaciosConjurosMagos": [4, 3, 3, 3, 3, 1, 1, 1, 1] },
+  { "nivel": 19, "bonoCompetencia": 6, "espaciosConjurosMagos": [4, 3, 3, 3, 3, 2, 1, 1, 1] },
+  { "nivel": 20, "bonoCompetencia": 6, "espaciosConjurosMagos": [4, 3, 3, 3, 3, 2, 2, 1, 1] }
+]

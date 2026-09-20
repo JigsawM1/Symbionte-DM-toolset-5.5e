@@ -1,0 +1,218 @@
+[
+  {
+    "id": "barbarian",
+    "nombre": "Bárbaro",
+    "dadoGolpe": 12,
+    "caracteristicaPrimaria": ["fuerza"],
+    "salvacionesCompetentes": ["fuerza", "constitucion"],
+    "competenciasArmaduras": ["Armaduras Ligeras", "Armaduras Medianas", "Escudos"],
+    "competenciasArmas": ["Armas Sencillas", "Armas Marciales"],
+    "opcionesHabilidades": {
+      "cantidad": 2,
+      "opciones": ["manejoAnimales", "atletismo", "intimidacion", "naturaleza", "percepcion", "supervivencia"]
+    },
+    "equipoInicial": {
+      "descripcion": "Elige la opción (A) o (B):",
+      "opcionA": "(A) Gran hacha, 4 hachas de mano, Paquete de Explorador y 15 PO",
+      "opcionB": "(B) 75 PO en monedas para comprar equipo"
+    }
+  },
+  {
+    "id": "bard",
+    "nombre": "Bardo",
+    "dadoGolpe": 8,
+    "caracteristicaPrimaria": ["carisma"],
+    "salvacionesCompetentes": ["destreza", "carisma"],
+    "competenciasArmaduras": ["Armaduras Ligeras"],
+    "competenciasArmas": ["Armas Sencillas"],
+    "opcionesHabilidades": {
+      "cantidad": 3,
+      "opciones": ["acrobacias", "atletismo", "arcanos", "engano", "historia", "perspicacia", "intimidacion", "investigacion", "medicina", "naturaleza", "percepcion", "interpretacion", "persuasion", "religion", "juegoManos", "sigilo", "supervivencia", "manejoAnimales"]
+    },
+    "equipoInicial": {
+      "descripcion": "Elige la opción (A) o (B):",
+      "opcionA": "(A) Armadura de cuero, 2 Dagas, Instrumento Musical (a elección), Paquete de Artista y 18 PO",
+      "opcionB": "(B) 90 PO en monedas para comprar equipo"
+    }
+  },
+  {
+    "id": "cleric",
+    "nombre": "Clérigo",
+    "dadoGolpe": 8,
+    "caracteristicaPrimaria": ["sabiduria"],
+    "salvacionesCompetentes": ["sabiduria", "carisma"],
+    "competenciasArmaduras": ["Armaduras Ligeras", "Armaduras Medianas", "Escudos"],
+    "competenciasArmas": ["Armas Sencillas"],
+    "opcionesHabilidades": {
+      "cantidad": 2,
+      "opciones": ["historia", "perspicacia", "medicina", "persuasion", "religion"]
+    },
+    "equipoInicial": {
+      "descripcion": "Elige la opción (A) o (B):",
+      "opcionA": "(A) Cota de malla (si eres competente en pesada) o Cuero, Escudo, Maza, Símbolo Sagrado, Paquete de Sacerdote y 7 PO",
+      "opcionB": "(B) 110 PO en monedas para comprar equipo"
+    }
+  },
+  {
+    "id": "druid",
+    "nombre": "Druida",
+    "dadoGolpe": 8,
+    "caracteristicaPrimaria": ["sabiduria"],
+    "salvacionesCompetentes": ["inteligencia", "sabiduria"],
+    "competenciasArmaduras": ["Armaduras Ligeras", "Armaduras Medianas", "Escudos (no metálicos)"],
+    "competenciasArmas": ["Armas Sencillas"],
+    "opcionesHabilidades": {
+      "cantidad": 2,
+      "opciones": ["arcanos", "manejoAnimales", "perspicacia", "medicina", "naturaleza", "percepcion", "religion", "supervivencia"]
+    },
+    "equipoInicial": {
+      "descripcion": "Elige la opción (A) o (B):",
+      "opcionA": "(A) Armadura de cuero, Escudo de madera, Hoz, Enfoque Druídico (muérdago/báculo), Paquete de Explorador y 9 PO",
+      "opcionB": "(B) 50 PO en monedas para comprar equipo"
+    }
+  },
+  {
+    "id": "fighter",
+    "nombre": "Guerrero",
+    "dadoGolpe": 10,
+    "caracteristicaPrimaria": ["fuerza", "destreza"],
+    "salvacionesCompetentes": ["fuerza", "constitucion"],
+    "competenciasArmaduras": ["Armaduras Ligeras", "Armaduras Medianas", "Armaduras Pesadas", "Escudos"],
+    "competenciasArmas": ["Armas Sencillas", "Armas Marciales"],
+    "opcionesHabilidades": {
+      "cantidad": 2,
+      "opciones": ["acrobacias", "manejoAnimales", "atletismo", "historia", "perspicacia", "intimidacion", "percepcion", "supervivencia"]
+    },
+    "equipoInicial": {
+      "descripcion": "Elige la opción (A) o (B):",
+      "opcionA": "(A) Cota de malla (o Cuero tachonado), Gran Espada (o Arco largo con 20 flechas), Paquete de Calabozo y 11 PO",
+      "opcionB": "(B) 155 PO en monedas para comprar equipo"
+    }
+  },
+  {
+    "id": "monk",
+    "nombre": "Monje",
+    "dadoGolpe": 8,
+    "caracteristicaPrimaria": ["destreza", "sabiduria"],
+    "salvacionesCompetentes": ["fuerza", "destreza"],
+    "competenciasArmaduras": [],
+    "competenciasArmas": ["Armas Sencillas", "Espadas Cortas"],
+    "opcionesHabilidades": {
+      "cantidad": 2,
+      "opciones": ["acrobacias", "atletismo", "historia", "perspicacia", "religion", "sigilo"]
+    },
+    "equipoInicial": {
+      "descripcion": "Elige la opción (A) o (B):",
+      "opcionA": "(A) Lanza, 5 Dagas, Paquete de Explorador y 11 PO",
+      "opcionB": "(B) 50 PO en monedas para comprar equipo"
+    }
+  },
+  {
+    "id": "paladin",
+    "nombre": "Paladín",
+    "dadoGolpe": 10,
+    "caracteristicaPrimaria": ["fuerza", "carisma"],
+    "salvacionesCompetentes": ["sabiduria", "carisma"],
+    "competenciasArmaduras": ["Armaduras Ligeras", "Armaduras Medianas", "Armaduras Pesadas", "Escudos"],
+    "competenciasArmas": ["Armas Sencillas", "Armas Marciales"],
+    "opcionesHabilidades": {
+      "cantidad": 2,
+      "opciones": ["atletismo", "perspicacia", "intimidacion", "medicina", "persuasion", "religion"]
+    },
+    "equipoInicial": {
+      "descripcion": "Elige la opción (A) o (B):",
+      "opcionA": "(A) Cota de malla, Escudo, Espada Larga, Símbolo Sagrado, Paquete de Sacerdote y 9 PO",
+      "opcionB": "(B) 150 PO en monedas para comprar equipo"
+    }
+  },
+  {
+    "id": "ranger",
+    "nombre": "Explorador",
+    "dadoGolpe": 10,
+    "caracteristicaPrimaria": ["destreza", "sabiduria"],
+    "salvacionesCompetentes": ["fuerza", "destreza"],
+    "competenciasArmaduras": ["Armaduras Ligeras", "Armaduras Medianas", "Escudos"],
+    "competenciasArmas": ["Armas Sencillas", "Armas Marciales"],
+    "opcionesHabilidades": {
+      "cantidad": 3,
+      "opciones": ["manejoAnimales", "atletismo", "perspicacia", "investigacion", "naturaleza", "percepcion", "sigilo", "supervivencia"]
+    },
+    "equipoInicial": {
+      "descripcion": "Elige la opción (A) o (B):",
+      "opcionA": "(A) Armadura de cuero, 2 Espadas Cortas, Arco Largo con carcaj y 20 flechas, Paquete de Explorador y 11 PO",
+      "opcionB": "(B) 150 PO en monedas para comprar equipo"
+    }
+  },
+  {
+    "id": "rogue",
+    "nombre": "Pícaro",
+    "dadoGolpe": 8,
+    "caracteristicaPrimaria": ["destreza"],
+    "salvacionesCompetentes": ["destreza", "inteligencia"],
+    "competenciasArmaduras": ["Armaduras Ligeras"],
+    "competenciasArmas": ["Armas Sencillas", "Armas Marciales con Sutileza o Ligera"],
+    "opcionesHabilidades": {
+      "cantidad": 4,
+      "opciones": ["acrobacias", "atletismo", "engano", "intimidacion", "investigacion", "juegoManos", "percepcion", "perspicacia", "persuasion", "sigilo"]
+    },
+    "equipoInicial": {
+      "descripcion": "Elige la opción (A) o (B):",
+      "opcionA": "(A) Armadura de cuero, 2 Dagas, Estoque, Herramientas de Ladrón, Paquete de Ladrones y 8 PO",
+      "opcionB": "(B) 110 PO en monedas para comprar equipo"
+    }
+  },
+  {
+    "id": "sorcerer",
+    "nombre": "Hechicero",
+    "dadoGolpe": 6,
+    "caracteristicaPrimaria": ["carisma"],
+    "salvacionesCompetentes": ["constitucion", "carisma"],
+    "competenciasArmaduras": [],
+    "competenciasArmas": ["Armas Sencillas"],
+    "opcionesHabilidades": {
+      "cantidad": 2,
+      "opciones": ["arcanos", "engano", "perspicacia", "intimidacion", "persuasion", "religion"]
+    },
+    "equipoInicial": {
+      "descripcion": "Elige la opción (A) o (B):",
+      "opcionA": "(A) 2 Dagas, Enfoque Arcano, Paquete de Calabozo y 28 PO",
+      "opcionB": "(B) 50 PO en monedas para comprar equipo"
+    }
+  },
+  {
+    "id": "warlock",
+    "nombre": "Brujo",
+    "dadoGolpe": 8,
+    "caracteristicaPrimaria": ["carisma"],
+    "salvacionesCompetentes": ["sabiduria", "carisma"],
+    "competenciasArmaduras": ["Armaduras Ligeras"],
+    "competenciasArmas": ["Armas Sencillas"],
+    "opcionesHabilidades": {
+      "cantidad": 2,
+      "opciones": ["arcanos", "engano", "historia", "intimidacion", "investigacion", "naturaleza", "religion"]
+    },
+    "equipoInicial": {
+      "descripcion": "Elige la opción (A) o (B):",
+      "opcionA": "(A) Armadura de cuero, 2 Dagas, Enfoque Arcano, Libro con invocaciones arcanas, Paquete de Erudito y 15 PO",
+      "opcionB": "(B) 100 PO en monedas para comprar equipo"
+    }
+  },
+  {
+    "id": "wizard",
+    "nombre": "Mago",
+    "dadoGolpe": 6,
+    "caracteristicaPrimaria": ["inteligencia"],
+    "salvacionesCompetentes": ["inteligencia", "sabiduria"],
+    "competenciasArmaduras": [],
+    "competenciasArmas": ["Armas Sencillas"],
+    "opcionesHabilidades": {
+      "cantidad": 2,
+      "opciones": ["arcanos", "historia", "investigacion", "medicina", "naturaleza", "religion", "perspicacia"]
+    },
+    "equipoInicial": {
+      "descripcion": "Elige la opción (A) o (B):",
+      "opcionA": "(A) Bastón, Libro de Conjuros, Enfoque Arcano, Paquete de Erudito y 5 PO",
+      "opcionB": "(B) 55 PO en monedas para comprar equipo"
+    }
+  }
+]

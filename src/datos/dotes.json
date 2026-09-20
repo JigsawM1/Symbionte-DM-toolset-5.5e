@@ -1,0 +1,86 @@
+[
+  {
+    "id": "magic-initiate-cleric",
+    "nombre": "Iniciado en la Magia (Clérigo)",
+    "categoria": "Origen",
+    "prerrequisitos": "Ninguno",
+    "descripcion": "Aprendes 2 trucos y 1 conjuro de Nivel 1 de la lista de Clérigo. Puedes lanzarlo una vez por Descanso Largo gratis o usando tus espacios."
+  },
+  {
+    "id": "magic-initiate-druid",
+    "nombre": "Iniciado en la Magia (Druida)",
+    "categoria": "Origen",
+    "prerrequisitos": "Ninguno",
+    "descripcion": "Aprendes 2 trucos y 1 conjuro de Nivel 1 de la lista de Druida."
+  },
+  {
+    "id": "magic-initiate-wizard",
+    "nombre": "Iniciado en la Magia (Mago)",
+    "categoria": "Origen",
+    "prerrequisitos": "Ninguno",
+    "descripcion": "Aprendes 2 trucos y 1 conjuro de Nivel 1 de la lista de Mago."
+  },
+  {
+    "id": "alert",
+    "nombre": "Alerta",
+    "categoria": "Origen",
+    "prerrequisitos": "Ninguno",
+    "descripcion": "Sumas tu Bonificador de Competencia a las tiradas de Iniciativa e intercambias el resultado con un aliado al tirar."
+  },
+  {
+    "id": "crafter",
+    "nombre": "Artesano",
+    "categoria": "Origen",
+    "prerrequisitos": "Ninguno",
+    "descripcion": "Ganas competencia en 3 Herramientas de Artesano y descuentador de 20% al comprar equipo no mágico."
+  },
+  {
+    "id": "healer",
+    "nombre": "Curandero",
+    "categoria": "Origen",
+    "prerrequisitos": "Ninguno",
+    "descripcion": "Al usar un Botiquín de Curandero para estabilizar, la criatura recupera 1 Punto de Vida. Además puedes gastar un uso para curar 1d6 + Bono de Competencia Puntos de Vida."
+  },
+  {
+    "id": "lucky",
+    "nombre": "Afortunado",
+    "categoria": "Origen",
+    "prerrequisitos": "Ninguno",
+    "descripcion": "Puntos de suerte igual a tu Bonificador de Competencia para darte ventaja o imponer desventaja."
+  },
+  {
+    "id": "musician",
+    "nombre": "Músico",
+    "categoria": "Origen",
+    "prerrequisitos": "Ninguno",
+    "descripcion": "Tras un descanso, tocas música para otorgar Inspiración Heroica a un número de aliados igual a tu Bono de Competencia."
+  },
+  {
+    "id": "savage-attacker",
+    "nombre": "Atacante Salvaje",
+    "categoria": "Origen",
+    "prerrequisitos": "Ninguno",
+    "descripcion": "Una vez por turno, al tirar daño con un ataque con arma, puedes tirar los dados de daño dos veces y usar el resultado mayor."
+  },
+  {
+    "id": "skilled",
+    "nombre": "Habilidoso",
+    "categoria": "Origen",
+    "prerrequisitos": "Ninguno",
+    "descripcion": "Ganas competencia en 3 habilidades o herramientas a tu elección."
+  },
+  {
+    "id": "tavern-brawler",
+    "nombre": "Peleador de Taberna",
+    "categoria": "Origen",
+    "prerrequisitos": "Ninguno",
+    "descripcion": "Tus ataques sin armas causan 1d4 + FUE de daño, puedes relanzar 1s en daño sin armas y empujar 5 pies al golpear."
+  },
+  {
+    "id": "tough",
+    "nombre": "Duro",
+    "categoria": "Origen",
+    "prerrequisitos": "Ninguno",
+    "descripcion": "+2 Puntos de Vida máximos por cada nivel que poseas."
+  }
+]

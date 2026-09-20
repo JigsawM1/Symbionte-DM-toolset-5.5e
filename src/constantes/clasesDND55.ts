@@ -924,6 +924,7 @@ export const CATALOGO_CLASES_DND55: DefinicionClase[] = [
             descripcion: "Cuando un enemigo que puedas ver termine su turno a 15 pies o menos de ti, puedes usar una reacción y gastar un uso de tu Inspiración bárdica para moverte hasta la mitad de tu velocidad. Luego, un aliado de tu elección a 30 pies o menos de ti también puede moverse hasta la mitad de su velocidad usando su reacción.\n\nNinguno de los movimientos de este rasgo provoca ataques de oportunidad.",
             tipoAccion: "reaccion",
             subclase: "Colegio de la Danza",
+            ligadoA: "rasgo_cls_bardo_inspiracion_bardica",
             gastarDePadre: true,
             heredarDadosPadre: true,
             categoriaMecanica: "consumible"
@@ -934,6 +935,7 @@ export const CATALOGO_CLASES_DND55: DefinicionClase[] = [
             descripcion: "Cuando tiras iniciativa, puedes gastar un uso de tu Inspiración bárdica si no tienes el estado de Incapacitado. Al hacerlo, tira tu dado de Inspiración bárdica; tú y cada aliado a 30 pies o menos de ti que pueda verte u oírte gana un bonificador a la iniciativa igual al número que hayas sacado.",
             tipoAccion: "especial",
             subclase: "Colegio de la Danza",
+            ligadoA: "rasgo_cls_bardo_inspiracion_bardica",
             gastarDePadre: true,
             heredarDadosPadre: true,
             autoDesactivar: true,
@@ -982,6 +984,7 @@ export const CATALOGO_CLASES_DND55: DefinicionClase[] = [
             descripcion: "Puedes tejer magia feérica en una canción o danza para llenar a otros de vigor. Como acción adicional, puedes gastar un uso de Inspiración bárdica, tirando un dado de Inspiración bárdica. Al hacerlo, elige una cantidad de criaturas adicionales a 60 pies o menos de ti, hasta un número igual a tu modificador por Carisma (mínimo de una criatura). Cada una de esas criaturas obtiene una cantidad de Puntos de golpe temporales igual al doble del número sacado en el dado de Inspiración bárdica, y luego cada una puede usar su reacción para moverse hasta su velocidad sin provocar ataques de oportunidad.",
             tipoAccion: "accion_adicional",
             subclase: "Colegio del Glamour",
+            ligadoA: "rasgo_cls_bardo_inspiracion_bardica",
             gastarDePadre: true,
             heredarDadosPadre: true,
             categoriaMecanica: "consumible",
@@ -1062,6 +1065,7 @@ export const CATALOGO_CLASES_DND55: DefinicionClase[] = [
             descripcion: "Aprendes a usar tu ingenio para distraer de forma sobrenatural, confundir y de otro modo minar la confianza y la competencia de los demás. Cuando una criatura que puedas ver a 60 pies o menos de ti haga una tirada de daño o tenga éxito en una prueba de característica o tirada de ataque, puedes usar una reacción para gastar un uso de tu Inspiración bárdica; tira tu dado de Inspiración bárdica y resta el número sacado de la tirada de la criatura, reduciendo el daño o potencialmente convirtiendo el éxito en un fracaso.",
             tipoAccion: "reaccion",
             subclase: "Colegio del Conocimiento",
+            ligadoA: "rasgo_cls_bardo_inspiracion_bardica",
             gastarDePadre: true,
             heredarDadosPadre: true,
             categoriaMecanica: "consumible"
@@ -1079,6 +1083,7 @@ export const CATALOGO_CLASES_DND55: DefinicionClase[] = [
             descripcion: "Cuando hagas una prueba de característica o una tirada de ataque y falles, puedes gastar un uso de Inspiración bárdica; tira el dado de Inspiración bárdica y suma el número sacado al d20, potencialmente convirtiendo un fracaso en un éxito. En caso de fallo, la Inspiración bárdica no se gasta.",
             tipoAccion: "pasivo",
             subclase: "Colegio del Conocimiento",
+            ligadoA: "rasgo_cls_bardo_inspiracion_bardica",
             gastarDePadre: true,
             heredarDadosPadre: true,
             categoriaMecanica: "consumible"

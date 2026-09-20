@@ -536,6 +536,7 @@ describe("D&D 5.5e - Bardo, Subclases y Hotfix Bárbaro", () => {
             descripcion: "Usa 1 inspiración bárdica",
             origen: "subclase",
             tipoAccion: "accion_adicional",
+            ligadoA: "rasgo_cls_bardo_inspiracion_bardica",
             gastarDePadre: true,
             heredarDadosPadre: true
           })

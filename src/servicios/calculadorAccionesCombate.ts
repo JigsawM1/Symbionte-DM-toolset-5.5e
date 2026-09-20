@@ -5,21 +5,26 @@ import type {
   ObjetoJuego,
   TipoAccionConsumida,
   ConsumibleAccionCalculado,
-  RasgoPersonaje
+  RasgoPersonaje,
+  ModeloConjuros
 } from "@/tipos";
 import { detectarInfoConsumible, esObjetoConsumible } from "@/servicios/procesadorConsumibles";
-import { obtenerConjurosSubclasePersonaje } from "@/servicios/calculadorMagia";
+import { calcularMaximosConjurosYTrucos } from "@/servicios/calculadorMagia";
 import { OBJETOS_INICIALES } from "@/utiles/datosIniciales";
-import { coincideHechizoId } from "@/servicios/comparadorHechizos";
-import { generarIdSlug } from "@/utiles/generarId";
-import { resolverOrigenConjuro } from "@/servicios/resolutorOrigenConjuros";
-import { obtenerEspeciePorNombre, obtenerSubespeciePorNombre } from "@/servicios/gestorEspecies";
+import { crearResolutorOrigenConjuros } from "@/servicios/resolutorOrigenConjuros";
 import { sincronizarRasgosAutomaticos } from "@/servicios/compendioRasgos";
 import {
   resolverIdRasgoObjetivoGasto,
-  obtenerConjurosOtorgadosPorRasgos,
   aplicarModificadoresInvocacionesAHechizo
 } from "@/servicios/evaluadorEfectosRasgos";
+import {
+  crearClavesLookupHechizos,
+  crearSetsPertenencia,
+  crearPredicadosPertenencia,
+  clasificarTipoAccion
+} from "@/servicios/logicaPertenenciaConjuros";
+
+export { verificarHechizoDeSubclase } from "@/servicios/logicaPertenenciaConjuros";
 
 export interface HechizoObjetoMagicoAccion {
   objetoInstanciaId: string;
@@ -43,156 +48,39 @@ const normalizar = (s: string): string => s.toLowerCase().trim();
  */
 export function resolverConjurosAcciones(
   personajeActivo: PersonajeJugador | null,
-  baseDatosConjuros: HechizoBase[]
+  baseDatosConjuros: HechizoBase[],
+  modeloOverride?: ModeloConjuros
 ): ConjuroAccionElemento[] {
   if (!personajeActivo) return [];
 
   const pjNivel = personajeActivo.nivel || 1;
+  const modelo = modeloOverride ?? calcularMaximosConjurosYTrucos(
+    personajeActivo.clasesLanzadoras || [],
+    pjNivel
+  ).modelo;
 
-  // 1. Recopilar candidatos directos de la ficha y rasgos otorgados
-  const conjurosOtorgados = obtenerConjurosOtorgadosPorRasgos(personajeActivo);
-  const candidatos = new Set<string>([
-    ...(personajeActivo.trucosConocidosIds || []),
-    ...(personajeActivo.conjurosSiemprePreparadosIds || []),
-    ...(personajeActivo.conjurosPreparadosIds || []),
-    ...(personajeActivo.conjurosConocidosIds || []),
-    ...conjurosOtorgados
-  ]);
-
-  // 2. Extraer conjuros otorgados por rasgos activos con nivel cumplido
-  for (const r of personajeActivo.rasgos || []) {
-    if (r.activo === false) continue;
-    if (r.nivelRequerido && pjNivel < r.nivelRequerido) continue;
-
-    if (Array.isArray(r.conjurosOtorgados)) {
-      for (const c of r.conjurosOtorgados) {
-        if (c && c.trim()) candidatos.add(c.trim());
-      }
-    }
-
-    if (Array.isArray(r.selectores)) {
-      for (const sel of r.selectores) {
-        const idLower = sel.id.toLowerCase();
-        if (
-          idLower.includes("truco") ||
-          idLower.includes("conjuro") ||
-          idLower.includes("hechizo") ||
-          idLower.includes("spell") ||
-          idLower.includes("cantrip")
-        ) {
-          if (Array.isArray(sel.valorActual)) {
-            for (const val of sel.valorActual) {
-              if (val && val.trim()) candidatos.add(val.trim());
-            }
-          }
-        }
-      }
-    }
-
-    if (Array.isArray(r.efectos)) {
-      for (const ef of r.efectos) {
-        if (ef.tipo === "conjuro_otorgado") {
-          const val = String(ef.valor || ef.objetivo || "").trim();
-          if (val) candidatos.add(val);
-        }
-      }
-    }
-
-    const nomNorm = (r.nombre || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-    if (nomNorm.includes("palabras de creacion")) {
-      candidatos.add("Palabra de poder: sanar");
-      candidatos.add("Palabra de poder: matar");
-    }
-  }
-
-  // 3. Extraer conjuros innatos de especie y subespecie por catálogo oficial D&D 5.5e
-  if (personajeActivo.especie) {
-    const espDef = obtenerEspeciePorNombre(personajeActivo.especie);
-    if (espDef) {
-      for (const ci of espDef.conjurosInnatos || []) {
-        if (!ci.nivelRequerido || pjNivel >= ci.nivelRequerido) {
-          if (ci.hechizoId) candidatos.add(ci.hechizoId);
-          if (ci.nombreHechizo) candidatos.add(ci.nombreHechizo);
-        }
-      }
-      if (personajeActivo.subespecie) {
-        const subDef = obtenerSubespeciePorNombre(espDef.id, personajeActivo.subespecie);
-        if (subDef) {
-          for (const ci of subDef.conjurosInnatos || []) {
-            if (!ci.nivelRequerido || pjNivel >= ci.nivelRequerido) {
-              if (ci.hechizoId) candidatos.add(ci.hechizoId);
-              if (ci.nombreHechizo) candidatos.add(ci.nombreHechizo);
-            }
-          }
-        }
-      }
-    }
-  }
-
-  // 4. Extraer conjuros y trucos dinámicos de subclase
-  const resSubclase = obtenerConjurosSubclasePersonaje(
-    personajeActivo.clases,
-    personajeActivo.clase,
-    personajeActivo.subclase,
-    personajeActivo.nivel
-  );
-  for (const c of resSubclase.conjuros) {
-    if (c) candidatos.add(c);
-  }
-  for (const t of resSubclase.trucos) {
-    if (t) candidatos.add(t);
-  }
-
-  // Índice rápido O(1) para búsqueda inicial de candidatos
-  const setRapido = new Set<string>();
-  const listaCandidatos = Array.from(candidatos);
-  for (const cand of listaCandidatos) {
-    const norm = cand.toLowerCase().trim();
-    setRapido.add(norm);
-    setRapido.add(norm.normalize("NFD").replace(/[\u0300-\u036f]/g, ""));
-    setRapido.add(generarIdSlug("h", cand));
-  }
+  const sets = crearSetsPertenencia(personajeActivo);
+  const clavesLookup = crearClavesLookupHechizos(baseDatosConjuros);
+  const resolutor = crearResolutorOrigenConjuros(personajeActivo);
+  const predicados = crearPredicadosPertenencia({
+    sets,
+    clavesLookup,
+    modelo,
+    resolutorOrigen: resolutor
+  });
 
   const idsAgregados = new Set<string>();
   const resultado: ConjuroAccionElemento[] = [];
 
   for (const h of baseDatosConjuros) {
     if (idsAgregados.has(h.id)) continue;
+    if (!predicados.estaEnLista(h)) continue;
 
-    const hIdNorm = (h.id || "").toLowerCase().trim();
-    const hNomNorm = (h.nombre || "").toLowerCase().trim();
-    const hSinTildes = hNomNorm.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-    const hSlug = generarIdSlug("h", h.nombre);
-
-    const matchRapido =
-      setRapido.has(hIdNorm) ||
-      setRapido.has(hNomNorm) ||
-      setRapido.has(hSinTildes) ||
-      setRapido.has(hSlug);
-
-    // Evaluación en cortocircuito: si ya coincide de forma rápida O(1), no ejecutar comprobaciones pesadas
-    const coincide =
-      matchRapido ||
-      listaCandidatos.some((c) => coincideHechizoId(c, h.id) || coincideHechizoId(c, h.nombre)) ||
-      verificarHechizoDeSubclase(h, personajeActivo) ||
-      resolverOrigenConjuro(personajeActivo, h) !== null;
-
-    if (coincide) {
-      idsAgregados.add(h.id);
-
-      const tiempo = (h.tiempoLanzamiento || "").toLowerCase();
-      let tipoAccion: TipoAccionConsumida = "accion";
-      if (tiempo.includes("adicional") || tiempo.includes("bonus")) {
-        tipoAccion = "accionAdicional";
-      } else if (tiempo.includes("reacci")) {
-        tipoAccion = "reaccion";
-      }
-
-      resultado.push({
-        hechizo: aplicarModificadoresInvocacionesAHechizo(h, personajeActivo),
-        tipoAccion
-      });
-    }
+    idsAgregados.add(h.id);
+    resultado.push({
+      hechizo: aplicarModificadoresInvocacionesAHechizo(h, personajeActivo),
+      tipoAccion: clasificarTipoAccion(h.tiempoLanzamiento || "")
+    });
   }
 
   resultado.sort((a, b) => a.hechizo.nivel - b.hechizo.nivel || a.hechizo.nombre.localeCompare(b.hechizo.nombre, "es"));
@@ -297,27 +185,6 @@ export function resolverHechizosObjetosMagicos(
   return lista;
 }
 
-/**
- * Determina si un conjuro específico proviene de la subclase del personaje.
- */
-export function verificarHechizoDeSubclase(
-  hechizo: HechizoBase,
-  personajeActivo: PersonajeJugador | null
-): boolean {
-  if (!personajeActivo) return false;
-  const { conjuros, trucos } = obtenerConjurosSubclasePersonaje(
-    personajeActivo.clases,
-    personajeActivo.clase,
-    personajeActivo.subclase,
-    personajeActivo.nivel
-  );
-  const idNorm = normalizar(hechizo.id);
-  const nomNorm = normalizar(hechizo.nombre);
-  return (
-    conjuros.some((cs: string) => normalizar(cs) === idNorm || normalizar(cs) === nomNorm || coincideHechizoId(cs, hechizo.id) || coincideHechizoId(cs, hechizo.nombre)) ||
-    trucos.some((ts: string) => normalizar(ts) === idNorm || normalizar(ts) === nomNorm || coincideHechizoId(ts, hechizo.id) || coincideHechizoId(ts, hechizo.nombre))
-  );
-}
 
 export type CategoriaCombateRasgo =
   | "accion"

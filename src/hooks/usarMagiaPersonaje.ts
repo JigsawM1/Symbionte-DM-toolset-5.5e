@@ -4,12 +4,9 @@ import {
   calcularCDConjuros,
   calcularBonoAtaqueConjuro,
   calcularMaximosConjurosYTrucos,
-  obtenerConjurosSubclasePersonaje,
   obtenerNivelesArcanoMisticoDisponibles
 } from "@/servicios/calculadorMagia";
-import { MAPA_ALIAS_HECHIZOS } from "@/constantes/subclasesConjurosConstantes";
 import { esClasePacto } from "@/constantes";
-import { generarIdSlug } from "@/utiles/generarId";
 import { crearResolutorOrigenConjuros, OrigenConjuroBadge } from "@/servicios/resolutorOrigenConjuros";
 import { aplicarModificadoresInvocacionesAHechizo } from "@/servicios/evaluadorEfectosRasgos";
 
@@ -47,31 +44,11 @@ export interface EstadoMagiaPersonaje {
   trucosConocidos: HechizoBase[];
 }
 
-/**
- * Expande un array de IDs de hechizos pre-insertando variantes normalizadas,
- * slugs y alias en un Set para garantizar consultas O(1) instantáneas.
- */
-function expandirSetHechizos(ids: string[] = []): Set<string> {
-  const set = new Set<string>();
-  for (const raw of ids) {
-    if (!raw) continue;
-    set.add(raw);
-    const norm = raw.toLowerCase().trim();
-    set.add(norm);
-    const sinTildes = norm.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-    set.add(sinTildes);
-    const slug = generarIdSlug("h", raw);
-    set.add(slug);
-
-    const alias = MAPA_ALIAS_HECHIZOS[sinTildes] || MAPA_ALIAS_HECHIZOS[norm] || [];
-    for (const al of alias) {
-      set.add(al);
-      set.add(al.toLowerCase().trim());
-      set.add(generarIdSlug("h", al));
-    }
-  }
-  return set;
-}
+import {
+  crearClavesLookupHechizos,
+  crearSetsPertenencia,
+  crearPredicadosPertenencia
+} from "@/servicios/logicaPertenenciaConjuros";
 
 /**
  * Hook universal y reutilizable (DRY) que unifica el cálculo de recursos mágicos,
@@ -144,119 +121,41 @@ export function usarMagiaPersonaje(
     return disponibles.sort((a, b) => a - b);
   }, [nivelBrujo, personaje?.arcanoMisticoIds]);
 
+  // Pre-computar variantes normalizadas de cada hechizo una sola vez para O(1) permanente
+  const clavesLookupPorHechizo = useMemo(() => {
+    return crearClavesLookupHechizos(baseDatosHechizos);
+  }, [baseDatosHechizos]);
+
   // 4. Mapa de hechizos por ID, slug, nombres normalizados y sinónimos de traducción
   const mapaHechizos = useMemo(() => {
     const m = new Map<string, HechizoBase>();
     for (const h of baseDatosHechizos) {
       m.set(h.id, h);
-      const slug = generarIdSlug("h", h.nombre);
-      m.set(slug, h);
-      const nombreNorm = h.nombre.toLowerCase().trim();
-      m.set(nombreNorm, h);
-      const sinTildes = nombreNorm.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-      m.set(sinTildes, h);
-
-      // Registrar alias sinónimos (ej. Susurros disonantes <-> Susurros discordantes)
-      const alias = MAPA_ALIAS_HECHIZOS[sinTildes] || [];
-      for (const al of alias) {
-        m.set(al, h);
-        m.set(generarIdSlug("h", al), h);
+      const claves = clavesLookupPorHechizo.get(h.id);
+      if (claves) {
+        for (const clave of claves) {
+          m.set(clave, h);
+        }
       }
     }
     return m;
-  }, [baseDatosHechizos]);
+  }, [baseDatosHechizos, clavesLookupPorHechizo]);
 
-  // 5. Conjuros y Trucos de Subclase canónicos calculados dinámicamente
-  const conjurosSubclaseDinamicos = useMemo(() => {
-    if (!personaje) return { conjuros: [], trucos: [] };
-    return obtenerConjurosSubclasePersonaje(
-      personaje.clases,
-      personaje.clase,
-      personaje.subclase,
-      personaje.nivel
-    );
-  }, [personaje?.clases, personaje?.clase, personaje?.subclase, personaje?.nivel]);
+  // 5. Conjuntos de pertenencia pre-expandidos para O(1)
+  const setsPertenencia = useMemo(() => {
+    return crearSetsPertenencia(personaje);
+  }, [
+    personaje?.conjurosPreparadosIds,
+    personaje?.conjurosConocidosIds,
+    personaje?.trucosConocidosIds,
+    personaje?.conjurosSiemprePreparadosIds,
+    personaje?.clases,
+    personaje?.clase,
+    personaje?.subclase,
+    personaje?.nivel
+  ]);
 
-  // Set exhaustivo de identificadores de subclase
-  const setSiemprePreparados = useMemo(() => {
-    const s = new Set<string>();
-
-    const registrarEntrada = (texto: string) => {
-      const norm = texto.toLowerCase().trim();
-      const sinTildes = norm.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-      s.add(norm);
-      s.add(sinTildes);
-      s.add(generarIdSlug("h", texto));
-      s.add(texto);
-
-      const alias = MAPA_ALIAS_HECHIZOS[sinTildes] || [];
-      for (const al of alias) {
-        s.add(al);
-        s.add(generarIdSlug("h", al));
-      }
-    };
-
-    for (const c of personaje?.conjurosSiemprePreparadosIds || []) {
-      registrarEntrada(c);
-    }
-    for (const c of conjurosSubclaseDinamicos.conjuros) {
-      registrarEntrada(c);
-    }
-    for (const t of conjurosSubclaseDinamicos.trucos) {
-      registrarEntrada(t);
-    }
-
-    return s;
-  }, [personaje?.conjurosSiemprePreparadosIds, conjurosSubclaseDinamicos]);
-
-  // Pre-computar variantes normalizadas de cada hechizo una sola vez para O(1) permanente
-  const clavesLookupPorHechizo = useMemo(() => {
-    const mapa = new Map<string, string[]>();
-    for (const h of baseDatosHechizos) {
-      const claves: string[] = [h.id];
-      const norm = h.nombre.toLowerCase().trim();
-      claves.push(norm);
-      const sinTildes = norm.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-      if (sinTildes !== norm) claves.push(sinTildes);
-      const slug = generarIdSlug("h", h.nombre);
-      claves.push(slug);
-
-      const alias = MAPA_ALIAS_HECHIZOS[sinTildes] || MAPA_ALIAS_HECHIZOS[norm] || [];
-      for (const al of alias) {
-        claves.push(al);
-        const alNorm = al.toLowerCase().trim();
-        if (alNorm !== al) claves.push(alNorm);
-        claves.push(generarIdSlug("h", al));
-      }
-      mapa.set(h.id, claves);
-    }
-    return mapa;
-  }, [baseDatosHechizos]);
-
-  // Función interna de consulta en sets optimizada con claves pre-calculadas
-  const estaEnSetOptimizado = useCallback(
-    (setIds: Set<string>, hechizoId: string): boolean => {
-      const claves = clavesLookupPorHechizo.get(hechizoId);
-      if (!claves) return setIds.has(hechizoId);
-      for (let i = 0; i < claves.length; i++) {
-        if (setIds.has(claves[i])) return true;
-      }
-      return false;
-    },
-    [clavesLookupPorHechizo]
-  );
-
-  // Función unificada para determinar si un hechizo es de subclase O(1)
-  const esHechizoDeSubclase = useCallback(
-    (hechizo: HechizoBase): boolean => {
-      return estaEnSetOptimizado(setSiemprePreparados, hechizo.id);
-    },
-    [estaEnSetOptimizado, setSiemprePreparados]
-  );
-
-  const setPreparadosIds = useMemo(() => expandirSetHechizos(personaje?.conjurosPreparadosIds || []), [personaje?.conjurosPreparadosIds]);
-  const setConocidosIds = useMemo(() => expandirSetHechizos(personaje?.conjurosConocidosIds || []), [personaje?.conjurosConocidosIds]);
-  const setTrucosIds = useMemo(() => expandirSetHechizos(personaje?.trucosConocidosIds || []), [personaje?.trucosConocidosIds]);
+  const { setPreparadosIds, setConocidosIds, setTrucosIds, setSiemprePreparados } = setsPertenencia;
 
   // 5.1. Detección profunda de origen de conjuros otorgados pre-indexada O(1)
   const resolutorOrigen = useMemo(
@@ -280,22 +179,6 @@ export function usarMagiaPersonaje(
     [resolutorOrigen]
   );
 
-  const esHechizoOtorgado = useCallback(
-    (hechizo: HechizoBase): boolean => {
-      return resolutorOrigen(hechizo) !== null || esHechizoDeSubclase(hechizo);
-    },
-    [resolutorOrigen, esHechizoDeSubclase]
-  );
-
-  const estaPreparado = useCallback(
-    (hechizo: HechizoBase): boolean => {
-      if (hechizo.nivel === 0) return estaEnSetOptimizado(setTrucosIds, hechizo.id) || esHechizoOtorgado(hechizo);
-      if (esHechizoOtorgado(hechizo)) return true;
-      return estaEnSetOptimizado(setPreparadosIds, hechizo.id);
-    },
-    [estaEnSetOptimizado, setTrucosIds, esHechizoOtorgado, setPreparadosIds]
-  );
-
   // 6. Límites máximos
   const maximos = useMemo(() => {
     return calcularMaximosConjurosYTrucos(
@@ -305,16 +188,34 @@ export function usarMagiaPersonaje(
     );
   }, [personaje?.clasesLanzadoras, personaje?.nivel, modHabilidad]);
 
+  // Predicados puros unificados de pertenencia y preparación
+  const predicados = useMemo(() => {
+    return crearPredicadosPertenencia({
+      sets: setsPertenencia,
+      clavesLookup: clavesLookupPorHechizo,
+      modelo: maximos.modelo,
+      resolutorOrigen
+    });
+  }, [setsPertenencia, clavesLookupPorHechizo, maximos.modelo, resolutorOrigen]);
+
+  const esHechizoDeSubclase = useCallback(
+    (hechizo: HechizoBase): boolean => predicados.esHechizoDeSubclase(hechizo),
+    [predicados]
+  );
+
+  const esHechizoOtorgado = useCallback(
+    (hechizo: HechizoBase): boolean => predicados.esHechizoOtorgado(hechizo),
+    [predicados]
+  );
+
+  const estaPreparado = useCallback(
+    (hechizo: HechizoBase): boolean => predicados.estaPreparado(hechizo),
+    [predicados]
+  );
+
   const estaEnLista = useCallback(
-    (hechizo: HechizoBase): boolean => {
-      if (hechizo.nivel === 0) return estaEnSetOptimizado(setTrucosIds, hechizo.id) || esHechizoOtorgado(hechizo);
-      if (esHechizoOtorgado(hechizo)) return true;
-      if (maximos.modelo === "preparados") {
-        return estaEnSetOptimizado(setPreparadosIds, hechizo.id);
-      }
-      return estaEnSetOptimizado(setConocidosIds, hechizo.id) || estaEnSetOptimizado(setPreparadosIds, hechizo.id);
-    },
-    [estaEnSetOptimizado, setTrucosIds, esHechizoOtorgado, maximos.modelo, setConocidosIds, setPreparadosIds]
+    (hechizo: HechizoBase): boolean => predicados.estaEnLista(hechizo),
+    [predicados]
   );
 
   // 7 y 8. Recorrido unificado O(N) que agrupa conjuros por nivel, trucos conocidos y calcula el conteo efectivo

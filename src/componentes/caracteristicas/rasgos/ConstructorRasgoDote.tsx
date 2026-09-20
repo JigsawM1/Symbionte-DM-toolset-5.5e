@@ -25,7 +25,8 @@ import {
   Eye,
   Settings2,
   Dice5,
-  ListFilter
+  ListFilter,
+  AlertTriangle
 } from "lucide-react";
 import estilos from "./ConstructorRasgoDote.module.css";
 
@@ -1102,17 +1103,23 @@ export const ConstructorRasgoDote: React.FC<ConstructorRasgoDoteProps> = ({
         {(gastarDePadre || heredarDadosPadre) && (
           <div className={`${estilos.campoGrupo} ${estilos.margenTop8}`}>
             <label className={estilos.labelCampo}>
-              <span>Vincular al Rasgo Padre (Nombre o ID)</span>
+              <span>Vincular al Rasgo Padre (ligadoA)</span>
             </label>
-            <input
-              type="text"
-              className={estilos.inputControl}
-              placeholder="ej. Linaje gigante, Inspiración bárdica, Furia..."
-              value={ligadoA}
-              onChange={(e) => setLigadoA(e.target.value)}
+            <SelectorDesplegable
+              valor={ligadoA}
+              opciones={opcionesRasgosPadre}
+              alCambiar={(val) => setLigadoA(val)}
+              placeholder="-- Seleccionar Rasgo Padre --"
+              tamano="normal"
             />
+            {!ligadoA.trim() && (
+              <p className={estilos.advertenciaPadreRequerido}>
+                <AlertTriangle size={14} />
+                Se requiere seleccionar el rasgo padre para que los usos o dados se deleguen correctamente por metadatos declarativos.
+              </p>
+            )}
             <p className={estilos.pistaCampo}>
-              Nombre o ID del rasgo que provee los usos o dados de los que depende este rasgo.
+              Rasgo padre del que se descuentan los usos o se heredan los dados de escala.
             </p>
           </div>
         )}

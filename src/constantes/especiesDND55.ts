@@ -42,6 +42,12 @@ function crearSubespeciesDraconidas(): DefinicionSubespecie[] {
         usosMaximos: 2,
         recuperacion: "descanso_largo",
         formulaDados: "1d10",
+        escaladoFormulaDados: [
+          { nivelMinimo: 1, valor: "1d10" },
+          { nivelMinimo: 5, valor: "2d10" },
+          { nivelMinimo: 11, valor: "3d10" },
+          { nivelMinimo: 17, valor: "4d10" }
+        ],
         formulaEscalado: "bono_competencia",
         categoriaMecanica: "consumible"
       }

@@ -1,8 +1,12 @@
 import { describe, it, expect } from "vitest";
 import { readFileSync } from "fs";
 import { resolve } from "path";
-import { EsquemaRasgoPersonaje } from "@/tipos/rasgos";
+import { EsquemaRasgoPersonaje, type RasgoPersonaje } from "@/tipos/rasgos";
+import type { PersonajeJugador } from "@/tipos";
+import { PERSONAJE_POR_DEFECTO } from "@/constantes";
 import { obtenerRasgosClaseYSubclase } from "@/servicios/gestorClases";
+import { resolverIdRasgoObjetivoGasto } from "@/servicios/evaluadorEfectosRasgos";
+import { obtenerEspeciePorId, aplicarEspecieAPersonaje } from "@/servicios/gestorEspecies";
 
 describe("Genericidad Arquitectónica de Rasgos (D&D 5.5e PHB 2024)", () => {
   describe("Regla 3: Auditoría Estática Anti-Bifurcaciones por Nombre en Servicios", () => {
@@ -10,7 +14,8 @@ describe("Genericidad Arquitectónica de Rasgos (D&D 5.5e PHB 2024)", () => {
       const archivosServicio = [
         resolve(process.cwd(), "src/servicios/gestorClases.ts"),
         resolve(process.cwd(), "src/servicios/evaluadorEfectosRasgos.ts"),
-        resolve(process.cwd(), "src/servicios/compendioRasgos.ts")
+        resolve(process.cwd(), "src/servicios/compendioRasgos.ts"),
+        resolve(process.cwd(), "src/servicios/gestorEspecies.ts")
       ];
 
       const patronProhibido = /r\.nombre\s*===?\s*["']/g;
@@ -36,6 +41,21 @@ describe("Genericidad Arquitectónica de Rasgos (D&D 5.5e PHB 2024)", () => {
       expect(contenido).not.toMatch(/if\s*\([^)]*===?\s*["']Guerrero de los dioses["']/i);
       expect(contenido).not.toMatch(/if\s*\([^)]*===?\s*["']Furia divina["']/i);
       expect(contenido).not.toMatch(/includes\(["']inspiracion bardica["']\)/i);
+    });
+
+    it("gestorEspecies.ts no debe contener bifurcaciones por 'ataque de aliento'", () => {
+      const contenido = readFileSync(resolve(process.cwd(), "src/servicios/gestorEspecies.ts"), "utf-8");
+      expect(contenido).not.toMatch(/includes\(["']ataque de aliento["']\)/i);
+    });
+
+    it("resolverIdRasgoObjetivoGasto no debe contener fallbacks por nombres de rasgos", () => {
+      const contenido = readFileSync(resolve(process.cwd(), "src/servicios/evaluadorEfectosRasgos.ts"), "utf-8");
+      const fnIdx = contenido.indexOf("function resolverIdRasgoObjetivoGasto");
+      expect(fnIdx).toBeGreaterThan(-1);
+      const fnCuerpo = contenido.slice(fnIdx, fnIdx + 1200);
+      expect(fnCuerpo).not.toMatch(/includes\(["']inspiracion["']\)/i);
+      expect(fnCuerpo).not.toMatch(/includes\(["']furia["']\)/i);
+      expect(fnCuerpo).not.toMatch(/includes\(["']linaje gigante["']\)/i);
     });
   });
 
@@ -173,6 +193,125 @@ describe("Genericidad Arquitectónica de Rasgos (D&D 5.5e PHB 2024)", () => {
 
       const resultadoValidacion = EsquemaRasgoPersonaje.safeParse(rasgoHomebrew);
       expect(resultadoValidacion.success).toBe(true);
+    });
+  });
+
+function crearRasgoMock(parcial: Partial<RasgoPersonaje> & { id: string; nombre: string }): RasgoPersonaje {
+  return {
+    descripcion: "",
+    origen: "personalizado",
+    fuente: "Homebrew",
+    tipoAccion: "pasivo",
+    tieneUsosLimitados: false,
+    recuperacion: "ninguno",
+    personalizado: true,
+    activo: true,
+    notas: "",
+    ...parcial
+  };
+}
+
+  describe("Resolución Genérica Declarativa Padre-Hijo y Escalados de Especie", () => {
+    it("resuelve el rasgo padre en rasgos homebrew mediante ligadoA sin importar el nombre", () => {
+      const rasgoPadreHomebrew = crearRasgoMock({
+        id: "rasgo_hb_padre_123",
+        nombre: "Fuente Cósmica Personalizada",
+        descripcion: "Otorga maná cósmico",
+        tieneUsosLimitados: true,
+        usosMaximos: 5,
+        usosRestantes: 5,
+        recuperacion: "descanso_largo"
+      });
+
+      const rasgoHijoHomebrew = crearRasgoMock({
+        id: "rasgo_hb_hijo_456",
+        nombre: "Descarga Cósmica",
+        descripcion: "Gasta maná cósmico",
+        tipoAccion: "accion",
+        gastarDePadre: true,
+        ligadoA: "rasgo_hb_padre_123"
+      });
+
+      const idObjetivo = resolverIdRasgoObjetivoGasto(rasgoHijoHomebrew, [rasgoPadreHomebrew, rasgoHijoHomebrew]);
+      expect(idObjetivo).toBe("rasgo_hb_padre_123");
+    });
+
+    it("no resuelve por nombres hardcodeados si falta ligadoA y existen múltiples candidatos", () => {
+      const rasgo1 = crearRasgoMock({
+        id: "rasgo_1",
+        nombre: "Inspiración del Abismo",
+        tieneUsosLimitados: true,
+        usosMaximos: 3
+      });
+
+      const rasgo2 = crearRasgoMock({
+        id: "rasgo_2",
+        nombre: "Furia Espectral",
+        tieneUsosLimitados: true,
+        usosMaximos: 2
+      });
+
+      const rasgoHijoSinLigado = crearRasgoMock({
+        id: "rasgo_hijo_huerfano",
+        nombre: "Poder Misterioso",
+        tipoAccion: "accion",
+        gastarDePadre: true
+      });
+
+      // Al no haber ligadoA y haber más de 1 candidato con usos en la misma fuente, devuelve su propio ID de forma segura
+      const idObjetivo = resolverIdRasgoObjetivoGasto(rasgoHijoSinLigado, [rasgo1, rasgo2, rasgoHijoSinLigado]);
+      expect(idObjetivo).toBe("rasgo_hijo_huerfano");
+    });
+
+    it("escala Ataque de aliento de dracónido declarativamente a niveles 1, 5, 11 y 17", () => {
+      const especieDraconido = obtenerEspeciePorId("draconido");
+      expect(especieDraconido).toBeDefined();
+
+      const pjBase: PersonajeJugador = {
+        ...PERSONAJE_POR_DEFECTO,
+        id: "pj_draconido_test",
+        nombre: "Dracon Test",
+        nivel: 1,
+        especie: "draconido",
+        subespecie: "draconido_oro",
+        rasgos: []
+      };
+
+      const config = { especieId: "draconido", subespecieId: "draconido_oro" };
+
+      const pjNv1 = aplicarEspecieAPersonaje({ ...pjBase, nivel: 1 }, config);
+      const alientoNv1 = pjNv1.rasgos?.find((r) => r.nombre === "Ataque de aliento");
+      expect(alientoNv1?.formulaDados).toBe("1d10");
+      expect(alientoNv1?.usosMaximos).toBe(2); // PB nv 1 es 2
+
+      const pjNv5 = aplicarEspecieAPersonaje({ ...pjBase, nivel: 5 }, config);
+      const alientoNv5 = pjNv5.rasgos?.find((r) => r.nombre === "Ataque de aliento");
+      expect(alientoNv5?.formulaDados).toBe("2d10");
+      expect(alientoNv5?.usosMaximos).toBe(3); // PB nv 5 es 3
+
+      const pjNv11 = aplicarEspecieAPersonaje({ ...pjBase, nivel: 11 }, config);
+      const alientoNv11 = pjNv11.rasgos?.find((r) => r.nombre === "Ataque de aliento");
+      expect(alientoNv11?.formulaDados).toBe("3d10");
+      expect(alientoNv11?.usosMaximos).toBe(4); // PB nv 11 es 4
+
+      const pjNv17 = aplicarEspecieAPersonaje({ ...pjBase, nivel: 17 }, config);
+      const alientoNv17 = pjNv17.rasgos?.find((r) => r.nombre === "Ataque de aliento");
+      expect(alientoNv17?.formulaDados).toBe("4d10");
+      expect(alientoNv17?.usosMaximos).toBe(6); // PB nv 17 es 6
+    });
+
+    it("los rasgos de subclase del Bardo definen ligadoA apuntando a rasgo_cls_bardo_inspiracion_bardica", () => {
+      const bardoGlamourNv3 = obtenerRasgosClaseYSubclase("Bardo", 3, "Colegio del Glamour");
+      const manto = bardoGlamourNv3.find((r) => r.nombre === "Manto de inspiración");
+      expect(manto).toBeDefined();
+      expect(manto?.gastarDePadre).toBe(true);
+      expect(manto?.ligadoA).toBe("rasgo_cls_bardo_inspiracion_bardica");
+
+      const bardoConocimientoNv3 = obtenerRasgosClaseYSubclase("Bardo", 3, "Colegio del Conocimiento");
+      const palabras = bardoConocimientoNv3.find((r) => r.nombre === "Palabras cortantes");
+      expect(palabras).toBeDefined();
+      expect(palabras?.gastarDePadre).toBe(true);
+      expect(palabras?.ligadoA).toBe("rasgo_cls_bardo_inspiracion_bardica");
     });
   });
 });

@@ -173,7 +173,7 @@ export function evaluarFormulaUsos(formula: string | null | undefined, nivel: nu
  * Esta función es GENÉRICA PURA: no conoce nombres de rasgos ni clases.
  * Reemplaza los bloques condicionales por nombre que existían en el builder.
  */
-function resolverEscaladosRasgo(
+export function resolverEscaladosRasgo(
   r: {
     formulaDados?: string;
     recuperacion?: string;

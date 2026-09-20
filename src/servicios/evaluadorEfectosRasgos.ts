@@ -1623,19 +1623,19 @@ export function resolverIdRasgoObjetivoGasto(
     if (padre) return padre.id;
   }
 
-  // 2. Fallback de resiliencia si falta ligadoA explícito: buscar rasgo contenedor con usos limitados
-  const padreConUsos = rasgos.find(
-    (r) =>
-      r.id !== targetTrait.id &&
-      r.tieneUsosLimitados &&
-      (normalizar(r.nombre).includes("inspiracion") ||
-        normalizar(r.id).includes("inspiracion") ||
-        normalizar(r.nombre).includes("furia") ||
-        normalizar(r.id).includes("furia") ||
-        normalizar(r.nombre).includes("linaje gigante") ||
-        normalizar(r.id).includes("linaje_gigante"))
-  );
-  if (padreConUsos) return padreConUsos.id;
+  // 2. Heurística estructural agnóstica: si falta ligadoA explícito, buscar un candidato
+  // con usos limitados que comparta exactamente el mismo origen y fuente.
+  // Solo se resuelve si el candidato es inequívoco (exactamente 1 coincidencia).
+  if (targetTrait.fuente) {
+    const candidatos = rasgos.filter(
+      (r) =>
+        r.id !== targetTrait.id &&
+        r.tieneUsosLimitados &&
+        r.origen === targetTrait.origen &&
+        r.fuente === targetTrait.fuente
+    );
+    if (candidatos.length === 1) return candidatos[0].id;
+  }
 
   return targetTrait.id;
 }

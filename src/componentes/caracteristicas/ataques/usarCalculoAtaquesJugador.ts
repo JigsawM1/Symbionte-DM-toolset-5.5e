@@ -26,13 +26,13 @@ import {
   resolverConjurosAcciones,
   resolverConsumiblesCombate,
   resolverHechizosObjetosMagicos,
-  verificarHechizoDeSubclase,
   resolverRasgosAcciones,
   HechizoObjetoMagicoAccion,
   ConjuroAccionElemento,
   RasgoAccionCombate,
   CategoriaCombateRasgo
 } from "@/servicios/calculadorAccionesCombate";
+import { verificarHechizoDeSubclase } from "@/servicios/logicaPertenenciaConjuros";
 import {
   obtenerBloqueoToggleRasgo,
   resolverRecursosPadre,

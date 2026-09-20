@@ -19,6 +19,36 @@ Este archivo registra reglas globales, errores encontrados, sus causas raíz y l
    - **Bajo ninguna circunstancia** los módulos de lógica de negocio (`servicios/`), gestores de estado (`almacen/`) o constructores (`gestorClases.ts`) deben contener bifurcaciones condicionales por nombre literal de rasgo o clase (`r.nombre === "..."`, `clase.includes("...")`, etc.).
    - Toda mecánica, progresión de dados, escalado de usos, recuperación o desbloqueo dinámico debe resolverse mediante metadatos declarativos (`escaladoFormulaDados`, `escaladoUsos`, `escaladoRecuperacion`, `opcionesDinamicas`, `escaladoMaxSelecciones`, `sincronizarEfectosConFormula`, `heredarDadosPadre`, `gastarDePadre`, `ligadoA`, `efectos`) delegando en funciones puras agnósticas como `resolverEscaladosRasgo`. Esta regla está reforzada en CI vía ESLint `no-restricted-syntax` y la suite `rasgoGenericidad.test.ts`.
 
+## [2026-09-20] Eliminación de Fallbacks por Nombre Literal y Resolución Padre-Hijo 100% Declarativa
+
+**Contexto del Problema y Tensión con KISS:**
+- En la auditoría de sobreingeniería y principios KISS / Regla 6, se identificó que aunque existía un motor declarativo genérico de escalados (`resolverEscaladosRasgo`), sobrevivían fallbacks condicionales por subcadenas literales (`includes("ataque de aliento")`, `includes("inspiracion")`, `includes("furia")`, `includes("linaje gigante")`, `includes("inspiracion bardica")`).
+- Estos fallbacks violaban la Regla 6 y representaban deuda técnica que perjudicaba al sistema homebrew: un rasgo homebrew dependiente de un padre inventado (por ejemplo, con ID `rasgo_hb_...`) fallaba silenciosamente si no contenía una de las palabras canónicas hardcodeadas.
+- Además, 5 rasgos de subclase del Bardo (*Movimiento inspirador*, *Juego de pies en tándem*, *Manto de inspiración*, *Palabras cortantes* y *Habilidad inigualable*) carecían de `ligadoA` en el catálogo oficial, dependiendo forzadamente de estos fallbacks por nombre.
+
+**Causa Raíz Diagnosticada:**
+1. **Omisión de `ligadoA` en Rasgos Canónicos:** En `clasesDND55.ts`, los rasgos que delegaban consumo (`gastarDePadre: true`) no declaraban su enlace explícito al ID de *Inspiración bárdica* (`rasgo_cls_bardo_inspiracion_bardica`).
+2. **Escalado Inline por Nombre en Especies:** `gestorEspecies.ts` calculaba inline la fórmula de dados (`1d10` a `4d10`) del Ataque de aliento mediante `includes("ataque de aliento")`, en lugar de consumir metadatos declarativos (`escaladoFormulaDados`).
+3. **Fallbacks de Resiliencia con Strings Mágicos:** `resolverIdRasgoObjetivoGasto` (`evaluadorEfectosRasgos.ts`), `resolverRecursosPadre` y `obtenerBloqueoToggleRasgo` (`utilidadesProgresionRasgos.ts`) contenían búsquedas por nombres literales.
+
+**Solución Aplicada Quirúrgicamente:**
+1. **Catálogo Canónico y Tipado de Especies:**
+   - Se extendió `PlantillaRasgoEspecie` en `src/constantes/rasgosDND55.ts` para soportar `escaladoFormulaDados`, `escaladoUsos`, `escaladoRecuperacion` y `sincronizarEfectosConFormula`.
+   - Se declaró formalmente `escaladoFormulaDados` (`1d10`, `2d10`, `3d10`, `4d10` a niveles 1, 5, 11, 17) en el rasgo "Ataque de aliento" en `src/constantes/especiesDND55.ts`.
+   - Se añadió `ligadoA: "rasgo_cls_bardo_inspiracion_bardica"` a los 5 rasgos de subclase del Bardo en `src/constantes/clasesDND55.ts`.
+2. **Motor de Escalado Compartido:**
+   - Se exportó `resolverEscaladosRasgo` en `src/servicios/gestorClases.ts`.
+   - En `src/servicios/gestorEspecies.ts`, se eliminó toda comprobación por nombre y se delegó el cálculo dinámico a `resolverEscaladosRasgo`, propagando los metadatos de escalado en rasgos base y de subespecie.
+3. **Resolución Padre-Hijo Agnóstica y Estructural:**
+   - En `src/servicios/evaluadorEfectosRasgos.ts` (`resolverIdRasgoObjetivoGasto`) y `src/componentes/caracteristicas/rasgos/utilidadesProgresionRasgos.ts` (`resolverRecursosPadre`), se eliminaron las búsquedas por subcadenas y se implementó una heurística estructural pura: si falta `ligadoA`, busca un único candidato inequívoco con usos limitados que comparta `origen` y `fuente`.
+   - En `obtenerBloqueoToggleRasgo`, se reemplazó la comprobación por nombre del rasgo hijo por la verificación de `ligadoA`.
+4. **Constructor Homebrew (`ConstructorRasgoDote.tsx`):**
+   - Se sustituyó el campo de texto libre para vincular al padre por `SelectorDesplegable` conectado a `opcionesRasgosPadre`.
+   - Se añadió advertencia visual con `AlertTriangle` y clase CSS modular `.advertenciaPadreRequerido` para orientar al usuario cuando falta seleccionar el padre.
+5. **Suite de Pruebas y Certificación CI:**
+   - Se agregaron auditorías estáticas y tests funcionales en `src/servicios/rasgoGenericidad.test.ts` que certifican la resolución homebrew por ID arbitrario, el escalado de Dracónido y la presencia de `ligadoA` en Bardo.
+   - Ejecución exitosa de `pnpm run ci` con 816 tests pasando, 0 advertencias de ESLint y 0 violaciones de límite de líneas.
+
 ## [2026-09-18] Sincronización del Botón "Gratis" en Conjuros de la Hoja de Personaje (Manto de la Majestad e Invocaciones Sobrenaturales)
 
 **Contexto del Problema:**
@@ -8315,6 +8345,43 @@ Optimizar la complejidad temporal (Big O) en las operaciones de búsqueda, orden
   - Se delega la resolución canónica del slug a `generarIdSlug("h", cadena)`, y se extrae el cuerpo limpio directamente desde el slug generado para registrar tanto la clave canónica como las variantes `cuerpo` y `h-${cuerpo}`.
   - El mismo patrón simplificado y limpio se aplicó al bucle que recorre `MAPA_ALIAS_HECHIZOS`.
 - *Validación*: 13/13 pruebas en `resolutorOrigenConjuros.test.ts` aprobadas, **810/810 pruebas globales aprobadas** y `pnpm tsc --noEmit` con **0 errores**.
+
+---
+
+## [2026-09-20] Unificación de la Fuente de Verdad de Conjuros entre la Caja de Acciones, Subpestaña y Compendio
+
+### 1. Contexto y Problemas Detectados
+- **Discrepancia y Fuga de Conjuros (Bug en Caja de Acciones)**: `resolverConjurosAcciones` en `calculadorAccionesCombate.ts` unía indiscriminadamente `conjurosPreparadosIds` y `conjurosConocidosIds` en un único conjunto sin evaluar el modelo de lanzamiento (`maximos.modelo`). En clases preparadoras como el Clérigo o el Druida, un conjuro conocido pero no preparado se mostraba en la caja de acciones de combate, contradiciendo a la subpestaña de conjuros y al compendio.
+- **Normalización y Algoritmos Divergentes**: `usarMagiaPersonaje.ts` empleaba `expandirSetHechizos` con precarga de alias de `MAPA_ALIAS_HECHIZOS` ($O(1)$), mientras que `resolverConjurosAcciones` construía un `setRapido` sin alias y dependía de un fallback $O(N)$ con `coincideHechizoId`.
+- **Duplicación de Consultas Pesadas**: `verificarHechizoDeSubclase` en `calculadorAccionesCombate.ts` volvía a invocar `obtenerConjurosSubclasePersonaje` por cada conjuro del catálogo ($O(N \times M)$), mientras que `usarMagiaPersonaje.ts` lo pre-indexaba en un set hash $O(1)$.
+
+### 2. Decisiones Arquitectónicas Implementadas
+1. **Nuevo Módulo de Funciones Puras (`src/servicios/logicaPertenenciaConjuros.ts`)**:
+   - Centraliza las funciones puras sin dependencias de React:
+     - `expandirSetHechizos(ids)`: Expande variantes normalizadas, sin tildes, slugs con guión y guión bajo, y sinónimos de `MAPA_ALIAS_HECHIZOS`.
+     - `crearClavesLookupHechizos(baseDatos)`: Genera un mapa $O(1)$ de claves pre-computadas para cada hechizo del compendio.
+     - `crearSetsPertenencia(personaje)`: Extrae y expande los 4 conjuntos clave: `setPreparadosIds`, `setConocidosIds`, `setTrucosIds` y `setSiemprePreparados` (con conjuros de subclase dinámicos).
+     - `verificarEnSet(setIds, hechizoId, clavesLookup)`: Consulta eficiente $O(1)$ tolerante a variantes.
+     - `crearPredicadosPertenencia(params)`: Factory pura que produce los predicados unificados: `esHechizoDeSubclase`, `esHechizoOtorgado`, `estaPreparado` y `estaEnLista` respetando estrictamente el modelo (`"preparados"` vs `"conocidos"`).
+     - `clasificarTipoAccion(tiempoLanzamiento)`: Clasifica la economía de acción (`accion`, `accionAdicional`, `reaccion`).
+     - `verificarHechizoDeSubclase(hechizo, personaje)`: Helper puro desacoplado.
+2. **Refactorización de `usarMagiaPersonaje.ts`**:
+   - Mantiene al 100% su contrato público (`EstadoMagiaPersonaje`).
+   - Delega la construcción de sets y predicados en las funciones puras de `logicaPertenenciaConjuros`, envueltas en `useMemo` y `useCallback`.
+   - Optimiza `mapaHechizos` reutilizando `clavesLookupPorHechizo`.
+3. **Refactorización de `resolverConjurosAcciones` en `calculadorAccionesCombate.ts`**:
+   - Utiliza `crearPredicadosPertenencia` determinando automáticamente el modelo de la clase (`calcularMaximosConjurosYTrucos`) o aceptando `modeloOverride`.
+   - Evalúa `predicados.estaEnLista(h)`, corrigiendo la fuga de conjuros no preparados en clases preparadoras.
+   - Aplica `aplicarModificadoresInvocacionesAHechizo` y `clasificarTipoAccion`.
+4. **Migración Directa (Opción B)**:
+   - Los consumidores de `verificarHechizoDeSubclase` (`usarCalculoAtaquesJugador.ts` y suites de test) importan la función directamente desde `@/servicios/logicaPertenenciaConjuros`.
+   - Se mantiene la re-exportación en `calculadorAccionesCombate.ts` para retrocompatibilidad defensiva.
+
+### 3. Métricas de Validación
+- **Tests unitarios**: **86+ tests específicos pasando sin un solo fallo** (13 en `logicaPertenenciaConjuros.test.ts`, 21 en `calculadorAccionesCombate.test.ts`, 19 en `integracionConjuros.test.ts`, 24 en `invocacionesBrujoMecanicas.test.ts`, 13 en `resolutorOrigenConjuros.test.ts`).
+- **Suite global de servicios**: **31 archivos de prueba superados, 479/479 tests pasando (100%)**.
+- **TypeScript**: `pnpm tsc --noEmit` completado con **0 errores** (Strict Mode estricto).
+
 
 
 

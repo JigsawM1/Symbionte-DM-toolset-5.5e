@@ -6,7 +6,8 @@ import type {
   DefinicionSubespecie,
   ConfiguracionEspeciePersonaje,
   OpcionesAplicarEspecie,
-  ConjuroInnatoEspecie
+  ConjuroInnatoEspecie,
+  RecuperacionRasgo
 } from "@/tipos";
 import {
   CATALOGO_ESPECIES_DND55,
@@ -14,6 +15,7 @@ import {
   DICCIONARIO_ESPECIES_POR_NOMBRE
 } from "@/constantes/especiesDND55";
 import { calcularBonoHPMaximoRasgos } from "./evaluadorEfectosRasgos";
+import { resolverEscaladosRasgo } from "./gestorClases";
 
 /**
  * Normaliza cadenas para búsquedas tolerantes a mayúsculas, diacríticos y espacios.
@@ -220,6 +222,10 @@ export function construirRasgosEspecie(
       conjurosOtorgados: p.conjurosOtorgados ? [...p.conjurosOtorgados] : [],
       categoriaMecanica: p.categoriaMecanica,
       formulaEscalado: p.formulaEscalado,
+      escaladoFormulaDados: p.escaladoFormulaDados,
+      escaladoUsos: p.escaladoUsos ? { ...p.escaladoUsos, minimo: p.escaladoUsos.minimo ?? 1 } : undefined,
+      escaladoRecuperacion: p.escaladoRecuperacion,
+      sincronizarEfectosConFormula: p.sincronizarEfectosConFormula,
       efectos: p.efectos ? [...p.efectos] : [],
       selectores: selectoresProcesados,
       tablaProgresion: p.tablaProgresion,
@@ -234,20 +240,34 @@ export function construirRasgosEspecie(
 
   const rasgosSubespecieProcesados: RasgoPersonaje[] = (subespecie?.rasgos || []).map((p) => {
       const id = `rasgo_sub_${normalizarTextoEspecie(especie.id)}_${normalizarTextoEspecie(subespecie?.id || "")}_${normalizarTextoEspecie(p.nombre).replace(/\s+/g, "_")}`;
-      const pNomNorm = normalizarTextoEspecie(p.nombre);
 
-      // Escalado dinámico de dados de Ataque de aliento según nivel (1d10, 2d10 a niv 5, 3d10 a niv 11, 4d10 a niv 17)
-      let formulaDados = p.formulaDados;
-      if (pNomNorm.includes("ataque de aliento") || p.formulaEscalado === "escalado_nivel") {
-        const numDados = nivel < 5 ? 1 : nivel < 11 ? 2 : nivel < 17 ? 3 : 4;
-        formulaDados = `${numDados}d10`;
-      }
-
-      // Escalado de usos según bonificador de competencia (Ataque de aliento = PB veces)
+      // Escalado de usos según bonificador de competencia o función dedicada
       let usos = p.tieneUsosLimitados ? p.usosMaximos || 1 : undefined;
-      if (p.tieneUsosLimitados && (pNomNorm.includes("ataque de aliento") || p.formulaEscalado === "bono_competencia")) {
+      if (p.obtenerUsosMaximos) {
+        usos = p.obtenerUsosMaximos(nivel, bonificadorCompetencia);
+      } else if (p.tieneUsosLimitados && p.formulaEscalado === "bono_competencia") {
         usos = bonificadorCompetencia;
       }
+
+      const efectosBase = p.efectos ? [...p.efectos] : [];
+      const selectoresBase = p.selectores ? JSON.parse(JSON.stringify(p.selectores)) : [];
+
+      const escalados = resolverEscaladosRasgo(
+        {
+          formulaDados: p.formulaDados,
+          recuperacion: p.recuperacion,
+          sincronizarEfectosConFormula: p.sincronizarEfectosConFormula,
+          escaladoFormulaDados: p.escaladoFormulaDados,
+          escaladoUsos: p.escaladoUsos,
+          escaladoRecuperacion: p.escaladoRecuperacion
+        },
+        nivel,
+        efectosBase,
+        selectoresBase
+      );
+
+      const formulaDados = escalados.formulaDados;
+      const usosFinales = escalados.usosEscalados ?? usos;
 
       return {
         id,
@@ -258,10 +278,14 @@ export function construirRasgosEspecie(
         tipoAccion: p.tipoAccion,
         nivelRequerido: p.nivelRequerido,
         tieneUsosLimitados: !!p.tieneUsosLimitados,
-        usosMaximos: usos,
-        usosRestantes: usos,
-        recuperacion: p.recuperacion || "ninguno",
+        usosMaximos: usosFinales,
+        usosRestantes: usosFinales,
+        recuperacion: (escalados.recuperacion || p.recuperacion || "ninguno") as RecuperacionRasgo,
         formulaDados,
+        escaladoFormulaDados: p.escaladoFormulaDados,
+        escaladoUsos: p.escaladoUsos ? { ...p.escaladoUsos, minimo: p.escaladoUsos.minimo ?? 1 } : undefined,
+        escaladoRecuperacion: p.escaladoRecuperacion,
+        sincronizarEfectosConFormula: p.sincronizarEfectosConFormula,
         personalizado: false,
         activo: p.esActivable ? false : true,
         esActivable: p.esActivable,
@@ -274,8 +298,8 @@ export function construirRasgosEspecie(
         conjurosOtorgados: p.conjurosOtorgados ? [...p.conjurosOtorgados] : [],
         categoriaMecanica: p.categoriaMecanica,
         formulaEscalado: p.formulaEscalado,
-        efectos: p.efectos ? [...p.efectos] : [],
-        selectores: p.selectores ? JSON.parse(JSON.stringify(p.selectores)) : [],
+        efectos: escalados.efectos,
+        selectores: escalados.selectores,
         tablaProgresion: p.tablaProgresion,
         notas: ""
       };

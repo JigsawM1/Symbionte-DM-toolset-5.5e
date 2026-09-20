@@ -24,13 +24,10 @@ export function obtenerBloqueoToggleRasgo(
   r: RasgoPersonaje,
   furiaEstaActiva: boolean
 ): { bloqueado: boolean; motivo?: string } {
-  const nom = r.nombre.toLowerCase().trim();
-  const id = r.id.toLowerCase().trim();
-  const requiereFuria =
-    nom.includes("furia divina") ||
-    id.includes("furia_divina") ||
-    nom.includes("frenesí") ||
-    id.includes("frenesi");
+  const requiereFuria = Boolean(
+    r.ligadoA &&
+    (normalizar(r.ligadoA) === "furia" || normalizar(r.ligadoA).includes("furia"))
+  );
 
   if (requiereFuria && !furiaEstaActiva && !r.activo) {
     return {
@@ -63,10 +60,16 @@ export function resolverRecursosPadre(
       normalizar(r.id) === lig || normalizar(r.nombre) === lig
     );
   }
-  if (!padre && (rasgo.gastarDePadre || rasgo.heredarDadosPadre)) {
-    padre = (personaje.rasgos || []).find((r) =>
-      normalizar(r.nombre).includes("inspiracion bardica")
+  // Heurística estructural agnóstica si no se especificó ligadoA
+  if (!padre && (rasgo.gastarDePadre || rasgo.heredarDadosPadre) && rasgo.fuente) {
+    const candidatos = (personaje.rasgos || []).filter(
+      (r) =>
+        r.id !== rasgo.id &&
+        r.tieneUsosLimitados &&
+        r.origen === rasgo.origen &&
+        r.fuente === rasgo.fuente
     );
+    if (candidatos.length === 1) padre = candidatos[0];
   }
 
   const usosPadre = (rasgo.gastarDePadre && padre)

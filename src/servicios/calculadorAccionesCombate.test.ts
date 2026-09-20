@@ -1,10 +1,10 @@
 import { describe, it, expect } from "vitest";
 import {
   resolverConjurosAcciones,
-  verificarHechizoDeSubclase,
   resolverRasgosAcciones,
   resolverHechizosObjetosMagicos
 } from "./calculadorAccionesCombate";
+import { verificarHechizoDeSubclase } from "./logicaPertenenciaConjuros";
 import { aplicarEspecieAPersonaje } from "./gestorEspecies";
 import { PERSONAJE_POR_DEFECTO } from "@/constantes/personajeConstantes";
 import { HECHIZOS_INICIALES } from "@/utiles/datosIniciales";
@@ -550,6 +550,125 @@ describe("calculadorAccionesCombate - Resolución de Conjuros en Acciones de Com
 
       const resultado = resolverHechizosObjetosMagicos(pj, []);
       expect(resultado).toHaveLength(0);
+    });
+  });
+
+  describe("Paridad de Modelo de Conjuros: Preparados vs Conocidos (Corrección de Bug)", () => {
+    const baseDatosPrueba: HechizoBase[] = [
+      {
+        id: "h_bendicion",
+        nombre: "Bendición",
+        nivel: 1,
+        escuela: "Encantamiento",
+        tiempoLanzamiento: "1 acción",
+        alcance: "30 pies",
+        componentesSeleccionados: { verbal: true, somatico: true, material: true },
+        duracion: "Concentración, hasta 1 minuto",
+        descripcion: "Bendices hasta a tres criaturas.",
+        ritual: false,
+        concentracion: true,
+        clases: ["Clérigo", "Paladín"]
+      },
+      {
+        id: "h_curar_heridas",
+        nombre: "Curar heridas",
+        nivel: 1,
+        escuela: "Evocación",
+        tiempoLanzamiento: "1 acción",
+        alcance: "Contacto",
+        componentesSeleccionados: { verbal: true, somatico: true, material: false },
+        duracion: "Instantánea",
+        descripcion: "Una criatura recupera puntos de golpe.",
+        ritual: false,
+        concentracion: false,
+        clases: ["Bardo", "Clérigo", "Druida", "Paladín", "Explorador"]
+      }
+    ];
+
+    it("un Clérigo (modelo preparados) NO muestra en acciones un conjuro conocido si no está preparado", () => {
+      const pjClerigo: PersonajeJugador = {
+        ...PERSONAJE_POR_DEFECTO,
+        id: "pj-clerigo",
+        nombre: "Hermano Tomás",
+        clase: "Clérigo",
+        nivel: 3,
+        clasesLanzadoras: [
+          {
+            clase: "Clérigo",
+            nivel: 3,
+            habilidadConjuro: "sabiduria",
+            tipoLanzador: "completo",
+            modeloConjuros: "preparados"
+          }
+        ],
+        // El conjuro está en conocidos (ej. libreta/historial) pero NO en preparados
+        conjurosConocidosIds: ["h_curar_heridas"],
+        conjurosPreparadosIds: ["h_bendicion"],
+        trucosConocidosIds: []
+      };
+
+      const resultado = resolverConjurosAcciones(pjClerigo, baseDatosPrueba);
+      const nombres = resultado.map((c) => c.hechizo.nombre);
+
+      // Bendición está preparado -> debe aparecer
+      expect(nombres).toContain("Bendición");
+      // Curar heridas solo está conocido pero NO preparado -> NO debe aparecer en combate
+      expect(nombres).not.toContain("Curar heridas");
+    });
+
+    it("un Clérigo sí muestra el conjuro en cuanto se añade a conjurosPreparadosIds", () => {
+      const pjClerigo: PersonajeJugador = {
+        ...PERSONAJE_POR_DEFECTO,
+        id: "pj-clerigo-2",
+        nombre: "Hermano Tomás",
+        clase: "Clérigo",
+        nivel: 3,
+        clasesLanzadoras: [
+          {
+            clase: "Clérigo",
+            nivel: 3,
+            habilidadConjuro: "sabiduria",
+            tipoLanzador: "completo",
+            modeloConjuros: "preparados"
+          }
+        ],
+        conjurosPreparadosIds: ["h_bendicion", "h_curar_heridas"],
+        trucosConocidosIds: []
+      };
+
+      const resultado = resolverConjurosAcciones(pjClerigo, baseDatosPrueba);
+      const nombres = resultado.map((c) => c.hechizo.nombre);
+
+      expect(nombres).toContain("Bendición");
+      expect(nombres).toContain("Curar heridas");
+    });
+
+    it("un Bardo (modelo conocidos) muestra los conjuros de conjurosConocidosIds directamente", () => {
+      const pjBardo: PersonajeJugador = {
+        ...PERSONAJE_POR_DEFECTO,
+        id: "pj-bardo",
+        nombre: "Jilguero",
+        clase: "Bardo",
+        nivel: 3,
+        clasesLanzadoras: [
+          {
+            clase: "Bardo",
+            nivel: 3,
+            habilidadConjuro: "carisma",
+            tipoLanzador: "completo",
+            modeloConjuros: "conocidos"
+          }
+        ],
+        conjurosConocidosIds: ["h_curar_heridas"],
+        conjurosPreparadosIds: [],
+        trucosConocidosIds: []
+      };
+
+      const resultado = resolverConjurosAcciones(pjBardo, baseDatosPrueba);
+      const nombres = resultado.map((c) => c.hechizo.nombre);
+
+      // En modelo conocidos, estar en conjurosConocidosIds es suficiente para estar en combate
+      expect(nombres).toContain("Curar heridas");
     });
   });
 });

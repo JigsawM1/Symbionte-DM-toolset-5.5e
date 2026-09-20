@@ -68,6 +68,17 @@ export interface PlantillaRasgoEspecie {
   recuperacion?: "descanso_corto" | "descanso_largo" | "manual" | "ninguno";
   formulaDados?: string;
   
+  // ── ESCALADOS GENÉRICOS (reemplazan bifurcaciones por nombre en el builder) ──
+  escaladoFormulaDados?: Array<{ nivelMinimo: number; valor: string }>;
+  escaladoUsos?: {
+    tipo: "por_nivel" | "por_modificador";
+    tabla?: Array<{ nivelMinimo: number; valor: number }>;
+    modificador?: string;
+    minimo?: number;
+  };
+  escaladoRecuperacion?: Array<{ nivelMinimo: number; valor: "descanso_corto" | "descanso_largo" | "manual" | "ninguno" }>;
+  sincronizarEfectosConFormula?: boolean;
+  
   // Mecánicas estructuradas
   esActivable?: boolean;
   autoDesactivar?: boolean;

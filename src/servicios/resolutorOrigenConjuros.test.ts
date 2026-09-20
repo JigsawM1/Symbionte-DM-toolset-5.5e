@@ -252,4 +252,28 @@ describe("crearResolutorOrigenConjuros - Evaluación Pre-indexada O(1)", () => {
     expect(resolutor(fuegoFeerico)).toBe(resolverOrigenConjuro(pj, fuegoFeerico));
     expect(resolutor(oscuridad)).toBe(resolverOrigenConjuro(pj, oscuridad));
   });
+
+  it("resuelve orígenes correctamente cuando los conjuros otorgados usan prefijos heterogéneos (h_, h- o nombres)", () => {
+    const rasgoMagia = crearRasgoPrueba({
+      id: "rasgo-mistico",
+      nombre: "Místico",
+      origen: "dote",
+      fuente: "Iniciado en la Magia",
+      conjurosOtorgados: ["h_bendicion", "h-detectar-magia", "Curación rápida"]
+    });
+
+    const pj: PersonajeJugador = {
+      ...PERSONAJE_POR_DEFECTO,
+      rasgos: [rasgoMagia]
+    };
+
+    const resolutor = crearResolutorOrigenConjuros(pj);
+
+    // Consulta con nombre legible
+    expect(resolutor(dummyHechizo("h-bendicion", "Bendición"))).toBe("rasgos");
+    // Consulta con slug guion bajo
+    expect(resolutor(dummyHechizo("h_detectar-magia", "Detectar Magia"))).toBe("rasgos");
+    // Consulta con slug guion medio
+    expect(resolutor(dummyHechizo("h-curacion-rapida", "Curación Rápida"))).toBe("rasgos");
+  });
 });

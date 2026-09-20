@@ -253,18 +253,14 @@ export function crearResolutorOrigenConjuros(
     const sinTildes = norm.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
     registrarClave(sinTildes, badge);
 
-    // Despojar prefijo de id (h_ o h-) para indexar tanto la raíz pura como los dos formatos de slug
-    const cuerpo = sinTildes.startsWith("h_") || sinTildes.startsWith("h-")
-      ? sinTildes.substring(2)
-      : sinTildes;
+    // Slug canónico determinista e idempotente (maneja h_, h- o nombres sin prefijo)
+    const slug = generarIdSlug("h", cadena);
+    registrarClave(slug, badge);
 
+    // Raíz limpia y formato de guion alternativo derivados del slug ya saneado
+    const cuerpo = slug.startsWith("h_") ? slug.substring(2) : sinTildes;
     registrarClave(cuerpo, badge);
-
-    const slugBajo = generarIdSlug("h", cuerpo);
-    registrarClave(slugBajo, badge);
-
-    const slugGuion = `h-${cuerpo.replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "")}`;
-    registrarClave(slugGuion, badge);
+    registrarClave(`h-${cuerpo}`, badge);
 
     const alias = MAPA_ALIAS_HECHIZOS[cuerpo] || MAPA_ALIAS_HECHIZOS[sinTildes] || MAPA_ALIAS_HECHIZOS[norm] || [];
     for (const al of alias) {
@@ -273,10 +269,12 @@ export function crearResolutorOrigenConjuros(
       registrarClave(alNorm, badge);
       const alSinTildes = alNorm.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
       registrarClave(alSinTildes, badge);
-      const alCuerpo = alSinTildes.startsWith("h_") || alSinTildes.startsWith("h-") ? alSinTildes.substring(2) : alSinTildes;
+
+      const alSlug = generarIdSlug("h", al);
+      registrarClave(alSlug, badge);
+      const alCuerpo = alSlug.startsWith("h_") ? alSlug.substring(2) : alSinTildes;
       registrarClave(alCuerpo, badge);
-      registrarClave(generarIdSlug("h", alCuerpo), badge);
-      registrarClave(`h-${alCuerpo.replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "")}`, badge);
+      registrarClave(`h-${alCuerpo}`, badge);
     }
   };
 

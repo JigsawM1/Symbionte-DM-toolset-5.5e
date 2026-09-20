@@ -8279,6 +8279,43 @@ Optimizar la complejidad temporal (Big O) en las operaciones de búsqueda, orden
 - **Linter**: **0 errores y 0 advertencias**.
 - **Producción**: Build limpio y empaquetado en `dist/`.
 
+## [2026-09-20] Normalización de Slugs de Hechizos: Idempotencia en `generarIdSlug`
+
+### 1. Causa Raíz y Diagnóstico
+- *Problema*: `generarIdSlug` slugificaba de manera ciega cualquier texto recibido. Cuando los callers le suministraban identificadores que ya contaban con un prefijo preexistente (por ejemplo `"h_bendicion"`, `"h-detectar-magia"` o entradas compuestas históricas), el generador procesaba el prefijo como parte del cuerpo textual, produciendo identificadores con doble prefijo como `"h_h-bendicion"` o `"h_h-detectar-magia"`.
+- *Puntos afectados*: La discrepancia requería que puntos de consumo específicos (como `coincideHechizoId` en `comparadorHechizos.ts` o `asociar` en `resolutorOrigenConjuros.ts`) tuvieran que aplicar funciones locales de saneamiento (`limpiarPrefijo`) para compensar el defecto aguas abajo en lugar de resolverlo en la raíz.
+
+### 2. Solución Arquitectónica Aplicada
+1. **Idempotencia Centralizada en `generarIdSlug` (`src/utiles/generarId.ts`)**:
+   - Se incorporó un saneamiento previo iterativo que detecta y remueve prefijos preexistentes tanto con guion bajo (`prefijo_`) como con guion medio (`prefijo-`) antes de la normalización Unicode NFD y el reemplazo por guiones.
+   - Si una cadena ya comienza con el prefijo especificado (incluso repeticiones históricas encadenadas como `h_h-`), se extrae el cuerpo limpio.
+   - De este modo, las tres variantes colapsan de manera determinista al mismo identificador canónico:
+     - `generarIdSlug("h", "Bendición")` $\rightarrow$ `"h_bendicion"`
+     - `generarIdSlug("h", "h_bendicion")` $\rightarrow$ `"h_bendicion"`
+     - `generarIdSlug("h", "h-bendicion")` $\rightarrow$ `"h_bendicion"`
+     - `generarIdSlug("h", "h_h-bendicion")` $\rightarrow$ `"h_bendicion"`
+   - Se mantiene el fallback a UUID nativo (`generarId`) si la entrada resultante queda vacía.
+2. **Defensa en Profundidad en `coincideHechizoId` (`src/servicios/comparadorHechizos.ts`)**:
+   - Se mantuvo la función de apoyo `limpiarPrefijo` en el comparador para la fase de comparación directa por cadenas antes de slugificar, manteniendo la resiliencia en lecturas legacy sin duplicar la responsabilidad de slugging.
+3. **Suite de Pruebas Unitarias Dedicada (`src/utiles/generarId.test.ts`)**:
+   - Creados 8 tests que verifican: generación estándar con diacríticos, idempotencia con `_` y `-`, prefijos encadenados históricos, tolerancia a espacios y mayúsculas, soporte multi-prefijo (`raza`, `m`, `o`) y fallback seguro.
+4. **Casos Adicionales en `comparadorHechizos.test.ts`**:
+   - Casos para compatibilidad de doble-prefijo histórico y deduplicación de variantes de prefijo.
+
+### 3. Impacto en Persistencia y Compatibilidad
+- **localStorage**: Los identificadores almacenados en los personajes (en `conjurosConocidos` y `conjurosPreparados`) se conservan intactos; la unificación opera en tiempo de ejecución al indexar y comparar, evitando la creación de entradas divergentes en los Sets de `expandirSetHechizos` y garantizando que ningún hechizo guardado previamente pierda su estado de preparación o aprendizaje.
+
+### 4. Métricas de Validación
+- **Tests unitarios**: **809/809 tests pasados (100% de éxito en 66 archivos de prueba)**.
+- **TypeScript**: `pnpm tsc --noEmit` completado con **0 errores**.
+
+### 5. Fase 2: Simplificación de Indexación en `resolutorOrigenConjuros.ts`
+- *Refactorización*: En la función interna `asociar` de `construirMapaOrigenesConjuros` ([src/servicios/resolutorOrigenConjuros.ts](file:///c:/Users/zamor/OneDrive/Documentos/Programas/ToolSet%20Es%205.5/src/servicios/resolutorOrigenConjuros.ts#L256-L281)):
+  - Se eliminaron las verificaciones manuales de prefijo (`sinTildes.startsWith("h_") ... ? sinTildes.substring(2) : ...`) y las transformaciones repetitivas con regex (`cuerpo.replace(/[^a-z0-9]+/g, "-")`).
+  - Se delega la resolución canónica del slug a `generarIdSlug("h", cadena)`, y se extrae el cuerpo limpio directamente desde el slug generado para registrar tanto la clave canónica como las variantes `cuerpo` y `h-${cuerpo}`.
+  - El mismo patrón simplificado y limpio se aplicó al bucle que recorre `MAPA_ALIAS_HECHIZOS`.
+- *Validación*: 13/13 pruebas en `resolutorOrigenConjuros.test.ts` aprobadas, **810/810 pruebas globales aprobadas** y `pnpm tsc --noEmit` con **0 errores**.
+
 
 
 

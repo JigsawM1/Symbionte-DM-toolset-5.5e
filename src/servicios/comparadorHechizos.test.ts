@@ -23,6 +23,12 @@ describe("comparadorHechizos", () => {
       expect(coincideHechizoId("h_descarga-sobrenatural", "Descarga Sobrenatural")).toBe(true);
     });
 
+    it("debe emparejar variantes con prefijos en guion medio y doble-prefijo histórico", () => {
+      expect(coincideHechizoId("h-detectar-magia", "Detectar magia")).toBe(true);
+      expect(coincideHechizoId("h-detectar-magia", "h_detectar-magia")).toBe(true);
+      expect(coincideHechizoId("h_h-bendicion", "Bendición")).toBe(true);
+    });
+
     it("debe reconocer sinónimos y variantes oficiales de traducción", () => {
       expect(coincideHechizoId("Susurros disonantes", "Susurros discordantes")).toBe(true);
       expect(coincideHechizoId("Risa espantosa de Tasha", "Risa horrible de Tasha")).toBe(true);
@@ -46,6 +52,12 @@ describe("comparadorHechizos", () => {
       const entrada = ["h_luz", "h_guia", "h_fuego"];
       const resultado = deduplicarListaIds(entrada);
       expect(resultado).toEqual(["h_luz", "h_guia", "h_fuego"]);
+    });
+
+    it("debe deduplicar listas con variantes de prefijo guion medio y guion bajo", () => {
+      const entrada = ["h-detectar-magia", "h_detectar-magia", "Detectar magia"];
+      const resultado = deduplicarListaIds(entrada);
+      expect(resultado).toEqual(["h-detectar-magia"]);
     });
   });
 });

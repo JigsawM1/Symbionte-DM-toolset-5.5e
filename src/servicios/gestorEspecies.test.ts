@@ -1771,7 +1771,7 @@ describe("GestorEspecies - Dominio de Razas y Subrazas (D&D 5.5e)", () => {
 
       const aguanteNv1 = rasgosNv1.find((r) => r.nombre === "Aguante incansable");
       expect(aguanteNv1).toBeDefined();
-      expect(aguanteNv1?.tipoAccion).toBe("reaccion");
+      expect(aguanteNv1?.tipoAccion).toBe("pasivo");
       expect(aguanteNv1?.categoriaMecanica).toBe("consumible");
       expect(aguanteNv1?.tieneUsosLimitados).toBe(true);
       expect(aguanteNv1?.usosMaximos).toBe(1);
@@ -2051,7 +2051,7 @@ describe("GestorEspecies - Dominio de Razas y Subrazas (D&D 5.5e)", () => {
 
       const rasgoReprension = pjNivel3.rasgos.find((r) => r.nombre.includes("Reprensión infernal"));
       expect(rasgoReprension).toBeDefined();
-      expect(rasgoReprension?.tipoAccion).toBe("reaccion");
+      expect(rasgoReprension?.tipoAccion).toBe("pasivo");
       expect(rasgoReprension?.tieneUsosLimitados).toBe(true);
       expect(rasgoReprension?.usosMaximos).toBe(1);
       expect(rasgoReprension?.usosRestantes).toBe(1);
@@ -2069,7 +2069,7 @@ describe("GestorEspecies - Dominio de Razas y Subrazas (D&D 5.5e)", () => {
 
       const rasgoOscuridad = pjNivel5.rasgos.find((r) => r.nombre.includes("Oscuridad"));
       expect(rasgoOscuridad).toBeDefined();
-      expect(rasgoOscuridad?.tipoAccion).toBe("accion");
+      expect(rasgoOscuridad?.tipoAccion).toBe("pasivo");
       expect(rasgoOscuridad?.tieneUsosLimitados).toBe(true);
       expect(rasgoOscuridad?.usosMaximos).toBe(1);
       expect(rasgoOscuridad?.recuperacion).toBe("descanso_largo");

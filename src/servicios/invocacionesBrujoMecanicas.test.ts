@@ -408,7 +408,7 @@ describe("D&D 5.5e - Mecánicas de Invocaciones Sobrenaturales del Brujo", () =>
 
       expect(invocacionFilo?.tipoAccion).toBe("pasivo");
       expect(invocacionHoja?.tipoAccion).toBe("pasivo");
-      expect(invocacionAmo?.tipoAccion).toBe("pasivo");
+      expect(invocacionAmo?.tipoAccion).toBe("accion_adicional");
     });
   });
 

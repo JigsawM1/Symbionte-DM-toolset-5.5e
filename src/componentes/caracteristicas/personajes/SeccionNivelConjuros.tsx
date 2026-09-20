@@ -3,7 +3,8 @@ import { ChevronDown, ChevronRight, BookOpen } from "lucide-react";
 import type { PersonajeJugador, HechizoBase } from "@/tipos";
 import type { ModoLanzamiento } from "@/servicios/servicioLanzamientoConjuros";
 import type { OrigenConjuroBadge } from "@/servicios/resolutorOrigenConjuros";
-import { obtenerBonoDanoConjuroExtra } from "@/servicios/evaluadorEfectosRasgos";
+import { obtenerBonoDanoConjuroExtra, tieneConjuroGratuitoActivo } from "@/servicios/evaluadorEfectosRasgos";
+import { coincideHechizoId } from "@/servicios/comparadorHechizos";
 import { obtenerModificadorAptitudMagica } from "@/servicios/calculadorMagia";
 import { TarjetaConjuroCompacta } from "./TarjetaConjuroCompacta";
 import estilos from "./PanelConjurosPersonaje.module.css";
@@ -138,12 +139,13 @@ export const SeccionNivelConjuros: React.FC<SeccionNivelConjurosProps> = ({
                   if (r.nivelRequerido && (personaje.nivel || 1) < r.nivelRequerido) return false;
                   const cOtorgados = r.conjurosOtorgados || [];
                   return (
-                    cOtorgados.includes(hechizo.id) ||
+                    cOtorgados.some((c) => coincideHechizoId(c, hechizo.id) || coincideHechizoId(c, hechizo.nombre)) ||
                     r.nombre.toLowerCase().includes(nomHechizoNorm) ||
                     nomHechizoNorm.includes(r.nombre.toLowerCase())
                   );
                 });
-                const tieneLanzamientoGratisDisponible = Boolean(rasgoInnatoGratuito);
+                const tieneLanzamientoGratisDisponible =
+                  Boolean(rasgoInnatoGratuito) || tieneConjuroGratuitoActivo(personaje, hechizo.nombre);
                 const modificadorHabilidad = obtenerModificadorAptitudMagica(personaje);
                 const bonoDanoMagico = obtenerBonoDanoConjuroExtra(personaje, {
                   esTruco,

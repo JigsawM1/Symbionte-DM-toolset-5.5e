@@ -19,6 +19,95 @@ Este archivo registra reglas globales, errores encontrados, sus causas raíz y l
    - **Bajo ninguna circunstancia** los módulos de lógica de negocio (`servicios/`), gestores de estado (`almacen/`) o constructores (`gestorClases.ts`) deben contener bifurcaciones condicionales por nombre literal de rasgo o clase (`r.nombre === "..."`, `clase.includes("...")`, etc.).
    - Toda mecánica, progresión de dados, escalado de usos, recuperación o desbloqueo dinámico debe resolverse mediante metadatos declarativos (`escaladoFormulaDados`, `escaladoUsos`, `escaladoRecuperacion`, `opcionesDinamicas`, `escaladoMaxSelecciones`, `sincronizarEfectosConFormula`, `heredarDadosPadre`, `gastarDePadre`, `ligadoA`, `efectos`) delegando en funciones puras agnósticas como `resolverEscaladosRasgo`. Esta regla está reforzada en CI vía ESLint `no-restricted-syntax` y la suite `rasgoGenericidad.test.ts`.
 
+## [2026-09-18] Sincronización del Botón "Gratis" en Conjuros de la Hoja de Personaje (Manto de la Majestad e Invocaciones Sobrenaturales)
+
+**Contexto del Problema:**
+- En la vista de acciones de combate (`SeccionAtaquesMagicos.tsx`), los conjuros que cuentan con lanzamientos gratuitos ilimitados (como *Orden imperiosa* otorgada por el *Manto de la Majestad* del Bardo o *Armadura de mago* por *Armadura de Sombras* del Brujo) mostraban correctamente el botón interactivo "Gratis".
+- Sin embargo, en la pestaña dedicada de Conjuros de la Hoja de Personaje (`HojaPersonaje.tsx` -> `PanelConjurosPersonaje.tsx` -> `SeccionNivelConjuros.tsx`), dichos conjuros no mostraban el botón "Gratis", requiriendo gastar ranuras de conjuro o puntos de magia de forma forzada.
+- Asimismo, en la sección de conjuros ocultos (`SeccionConjurosOcultos.tsx`), las tarjetas nunca recibían las props `tieneLanzamientoGratisDisponible` ni `alLanzarGratis`.
+
+**Causa Raíz Diagnosticada:**
+1. **Divergencia Lógica entre Vistas de Magia:**
+   - En `SeccionAtaquesMagicos.tsx`, la disponibilidad se evaluaba como:
+     `Boolean(rasgoInnatoGratuito) || tieneConjuroGratuitoActivo(personajeActivo, hechizo.nombre)`.
+   - En cambio, en `SeccionNivelConjuros.tsx` únicamente se evaluaba `Boolean(rasgoInnatoGratuito)`, ignorando los efectos de rasgos y condiciones activas (`tieneConjuroGratuitoActivo`).
+   - Además, la búsqueda de rasgos otorgados en `SeccionNivelConjuros.tsx` empleaba `cOtorgados.includes(hechizo.id)` directo en lugar del comparador semántico tolerante `coincideHechizoId(c, id) || coincideHechizoId(c, nombre)`.
+2. **Omisión de Props en Conjuros Ocultos (`SeccionConjurosOcultos.tsx`):**
+   - El mapeo de conjuros ocultos nunca calculaba la disponibilidad gratuita ni delegaba el callback `alLanzarGratis` a `TarjetaConjuroCompacta`.
+
+**Solución Aplicada Quirúrgicamente:**
+1. **Armonización de `SeccionNivelConjuros.tsx`:**
+   - Se importaron `tieneConjuroGratuitoActivo` de `@/servicios/evaluadorEfectosRasgos` y `coincideHechizoId` de `@/servicios/comparadorHechizos`.
+   - Se unificó la comprobación a: `Boolean(rasgoInnatoGratuito) || tieneConjuroGratuitoActivo(personaje, hechizo.nombre)`.
+2. **Integración Completa en `SeccionConjurosOcultos.tsx`:**
+   - Se calcularon `rasgoInnatoGratuito` y `tieneLanzamientoGratisDisponible` idénticos a las demás vistas.
+   - Se conectaron las props `tieneLanzamientoGratisDisponible` y `alLanzarGratis` a cada `TarjetaConjuroCompacta`.
+3. **Suite de Pruebas Automatizadas Dedicada (`conjurosGratuitosHoja.test.tsx`):**
+   - 6 pruebas unitarias verificando la renderización del botón "Gratis" bajo condiciones activas (*Manto de la Majestad*), rasgos innatos con usos limitados (*EsquemaRasgoPersonaje.parse*), y ausencia del botón para conjuros no bonificados, tanto en niveles estándar como en conjuros ocultos.
+4. **Corrección de Aserción en `invocacionesBrujoMecanicas.test.ts`:**
+   - Se actualizó la aserción de `inversion_del_amo_de_las_cadenas` a `accion_adicional` coincidiendo con la especificación canónica del rasgo (Ataque rápido: ordenar atacar al familiar como acción adicional).
+
+**Verificación Automatizada (`pnpm run ci`):**
+- `tsc --noEmit`: 0 errores bajo configuración estricta (`strict: true`).
+- `eslint src --max-warnings=0`: 0 errores y 0 advertencias.
+- `vitest run`: 65 suites aprobadas, 800 pruebas unitarias pasando al 100%.
+- `node scripts/verificar-limite-lineas.js`: 111 archivos auditados, 0 errores críticos.
+- `vite build`: Empaquetado exitoso de producción en 11.98s.
+
+---
+
+## [2026-09-18] Distinción Arquitectónica entre categoriasCombate y rasgo.tipoAccion en Rasgos de Combate
+
+**Contexto del Problema:**
+- Tras ajustar el tipo de acción a `"pasivo"` en varios rasgos del compendio/especies (ej. *Magia de alto elfo: Detectar magia*, *Aguante incansable*, etc.), la prueba unitaria en `src/servicios/calculadorAccionesCombate.test.ts` fallaba con:
+  `AssertionError: expected [ 'consumible' ] to include 'pasivo'`.
+
+**Causa Raíz Diagnosticada:**
+1. **Divergencia entre Economía de Combate (`categoriasCombate`) y Naturaleza del Rasgo (`rasgo.tipoAccion`):**
+   - El tipo `CategoriaCombateRasgo` está restringido estrictamente a las cubetas interactivas de la vista de combate (`"accion" | "accionAdicional" | "reaccion" | "consumible" | "activable" | "especial"`).
+   - `"pasivo"` **no es una categoría de acción en combate**: los rasgos pasivos no representan una economía de acción ejecutable. Si un rasgo pasivo tiene usos limitados (como conjuros raciales que otorgan 1 uso gratuito por descanso largo), `resolverRasgosAcciones` lo clasifica únicamente dentro de la subsección **"Recursos Tácticos y Consumibles"** (`categoriasCombate = ["consumible"]`).
+2. **Confusión en la Aserción del Test:**
+   - La prueba esperaba erróneamente `expect(detectarMagia?.categoriasCombate).toContain("pasivo")` en vez de comprobar el tipo de acción en el contrato del rasgo: `expect(detectarMagia?.rasgo.tipoAccion).toBe("pasivo")`.
+
+**Solución Aplicada:**
+- Se corrigió la prueba en `calculadorAccionesCombate.test.ts` para verificar `detectarMagia?.rasgo.tipoAccion === "pasivo"` y certificar que sus categorías de combate contienen únicamente `["consumible"]` (excluyendo `"accion"`).
+- Se validó la suite completa con 64 suites y 793 pruebas unitarias aprobadas al 100%.
+
+---
+
+## [2026-09-18] Rediseño Cromático y Jerarquía Visual en Invocaciones Sobrenaturales del Brujo ("Pacto Arcano")
+
+**Contexto del Problema:**
+- La sección de Invocaciones Sobrenaturales del Brujo en la vista de rasgos presentaba una paleta genérica (cyan `#38bdf8`) que generaba conflicto visual, fatiga y saturación cromática:
+  1. El badge "Nivel X+" y las tarjetas bloqueadas se percibían con bordes rojos de error/peligro en vez de un indicador informativo o condicional neutro.
+  2. El borde de tarjeta activa (`#38bdf8`) competía con el badge "Aprendida" (`#10b981`), saturando con múltiples tonos brillantes simultáneos.
+  3. El badge "Repetible" usaba púrpura de forma aislada sin correspondencia semántica.
+  4. El botón "QUITAR" en rojo intenso (`#ef4444`) dominaba visualmente cada fila en reposo, robándole protagonismo al contenido.
+  5. En el panel expandido, las distintas cajas y secciones mecánicas usaban colores dispares (cyan, verde, púrpura) sin un sistema unificado.
+  6. La paleta carecía de identidad temática con la fantasía arcana y oscura del Brujo de D&D 5.5e.
+
+**Causa Raíz Diagnosticada:**
+- Ausencia de un subsistema semántico de tokens de color específico para la clase Brujo y sus invocaciones pactuales.
+- Uso de colores de acción destructiva (`#ef4444`) en estado de reposo en lugar de limitarlos al estado `:hover`.
+- Uso de estados de alerta de error (`alertaRequisito` con bordes y fondos rojos) para requisitos de nivel no cumplidos, cuando semánticamente representan condiciones pendientes de progresión, no fallos del sistema.
+
+**Solución Aplicada Quirúrgicamente (Sistema "Pacto Arcano"):**
+1. **Unificación Temática en Violeta/Púrpura Arcano:**
+   - Color primario temático: `#a78bfa` (violeta) para tarjetas activas, bordes de herramientas, buscador enfocado, títulos de mecánicas expandidas e iconos representativos (`Zap`, `Sparkles`, `Flame`).
+2. **Jerarquía Semántica de Badges:**
+   - `Aprendida`: Verde esmeralda suave (`#34d399`) con fondo tenue y sin borde sólido pesado.
+   - `Repetible`: Ámbar (`#fbbf24` / fondo `rgba(251, 191, 36, 0.12)`), indicando versatilidad y reutilización de ranuras.
+   - `Bloqueada`: Gris pizarra neutro (`#94a3b8` / fondo slate), eliminando el rojo erróneo.
+   - `Nivel X+`: Gris neutro informativo (`#cbd5e1` / slate suave).
+3. **Atenuación del Botón Quitar:**
+   - En reposo se muestra con fondo translúcido suave (`rgba(248, 113, 113, 0.08)`) y texto rosa sutil (`#fca5a5`), activándose en rojo intenso (`#ef4444`) únicamente al interactuar mediante `:hover`.
+4. **Armonización de Requisitos Pendientes:**
+   - La caja de requisitos pendientes pasa a tono ámbar cálido (`rgba(245, 158, 11, 0.08)`, borde `rgba(245, 158, 11, 0.3)`), comunicando advertencia/progresión sin connotación de error destructivo.
+5. **Alineación de Sección Padre e Hijos:**
+   - `VistaRasgosJugador.module.css` y `GrupoClaseRasgos.tsx` unifican el borde lateral, el icono `Flame` y el badge de conteo al tono violeta `#a78bfa`.
+
+---
+
 ## [2026-09-18] Corrección de Precedencia y Normalización en Resolutor de Origen de Conjuros (Fallback a 'Rasgos')
 
 **Contexto del Problema:**

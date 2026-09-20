@@ -693,7 +693,7 @@ export const SelectorInvocacionesAcordeon: React.FC<SelectorInvocacionesAcordeon
                     {op.id === "descarga_ahuyentadora" && estaActiva && (
                       <div className={estilos.zonaConfiguracionMecanica}>
                         <div className={estilos.tituloConfiguracionMecanica}>
-                          <Zap size={14} color="#38bdf8" />
+                          <Zap size={14} color="#a78bfa" />
                           <span>Trucos Vinculados (Empuje de 10 pies por impacto):</span>
                         </div>
                         <p className={estilos.pistaMecanica}>
@@ -751,7 +751,7 @@ export const SelectorInvocacionesAcordeon: React.FC<SelectorInvocacionesAcordeon
                     {op.id === "descarga_agonica" && estaActiva && (
                       <div className={estilos.zonaConfiguracionMecanica}>
                         <div className={estilos.tituloConfiguracionMecanica}>
-                          <Sparkles size={14} color="#38bdf8" />
+                          <Sparkles size={14} color="#a78bfa" />
                           <span>Trucos Vinculados (+Modificador de Carisma al daño):</span>
                         </div>
                         <p className={estilos.pistaMecanica}>
@@ -809,7 +809,7 @@ export const SelectorInvocacionesAcordeon: React.FC<SelectorInvocacionesAcordeon
                     {op.id === "lanza_sobrenatural" && estaActiva && (
                       <div className={estilos.zonaConfiguracionMecanica}>
                         <div className={estilos.tituloConfiguracionMecanica}>
-                          <Zap size={14} color="#60a5fa" />
+                          <Zap size={14} color="#a78bfa" />
                           <span>Trucos Vinculados (+10 pies x nivel de Brujo al alcance):</span>
                         </div>
                         <p className={estilos.pistaMecanica}>
@@ -925,7 +925,7 @@ export const SelectorInvocacionesAcordeon: React.FC<SelectorInvocacionesAcordeon
                     {op.id === "pacto_del_filo" && estaActiva && (
                       <div className={estilos.zonaConfiguracionMecanica}>
                         <div className={estilos.tituloConfiguracionMecanica}>
-                          <Sparkles size={14} color="#38bdf8" />
+                          <Sparkles size={14} color="#a78bfa" />
                           <span>Tipo de daño del arma de pacto (Ataca y daña con Carisma):</span>
                         </div>
                         <div className={estilos.grupoPillsTipoDano}>
@@ -984,7 +984,7 @@ export const SelectorInvocacionesAcordeon: React.FC<SelectorInvocacionesAcordeon
                     {op.id === "devorador_de_vida" && estaActiva && (
                       <div className={estilos.zonaConfiguracionMecanica}>
                         <div className={estilos.tituloConfiguracionMecanica}>
-                          <Flame size={14} color="#c084fc" />
+                          <Flame size={14} color="#a78bfa" />
                           <span>Tipo de daño extra (+1d6 con Arma de Pacto):</span>
                         </div>
                         <div className={estilos.grupoPillsTipoDano}>

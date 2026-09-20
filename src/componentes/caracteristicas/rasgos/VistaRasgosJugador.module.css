@@ -318,17 +318,17 @@
 }
 
 .seccionInvocaciones {
-  border-left: 3px solid #a855f7;
+  border-left: 3px solid #a78bfa;
 }
 
 .tituloInvocaciones {
-  color: #c084fc;
+  color: #c4b5fd;
 }
 
 .badgeInvocaciones {
-  background: rgba(168, 85, 247, 0.2);
-  color: #e9d5ff;
-  border-color: #a855f7;
+  background: rgba(167, 139, 250, 0.15);
+  color: #ddd6fe;
+  border-color: rgba(167, 139, 250, 0.4);
 }
 
 .cuerpoInvocaciones {

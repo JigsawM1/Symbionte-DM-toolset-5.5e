@@ -310,7 +310,7 @@ export const CATALOGO_ESPECIES_DND55: DefinicionEspecie[] = [
           {
             nombre: "Magia drow: Fuego feérico",
             descripcion: "Siempre tienes preparado el conjuro *fuego feérico*. Puedes lanzarlo una vez sin gastar un espacio de conjuro y recuperas la capacidad tras un descanso largo. También puedes lanzarlo usando espacios de conjuro del nivel apropiado.",
-            tipoAccion: "accion",
+            tipoAccion: "pasivo",
             nivelRequerido: 3,
             tieneUsosLimitados: true,
             usosMaximos: 1,
@@ -321,7 +321,7 @@ export const CATALOGO_ESPECIES_DND55: DefinicionEspecie[] = [
           {
             nombre: "Magia drow: Oscuridad",
             descripcion: "Siempre tienes preparado el conjuro *oscuridad*. Puedes lanzarlo una vez sin gastar un espacio de conjuro y recuperas la capacidad tras un descanso largo. También puedes lanzarlo usando espacios de conjuro del nivel apropiado.",
-            tipoAccion: "accion",
+            tipoAccion: "pasivo",
             nivelRequerido: 5,
             tieneUsosLimitados: true,
             usosMaximos: 1,
@@ -368,7 +368,7 @@ export const CATALOGO_ESPECIES_DND55: DefinicionEspecie[] = [
           {
             nombre: "Magia de alto elfo: Detectar magia",
             descripcion: "Siempre tienes preparado el conjuro *detectar magia*. Puedes lanzarlo una vez sin gastar un espacio de conjuro y recuperas la capacidad tras un descanso largo. También puedes lanzarlo usando espacios de conjuro del nivel apropiado.",
-            tipoAccion: "accion",
+            tipoAccion: "pasivo",
             nivelRequerido: 3,
             tieneUsosLimitados: true,
             usosMaximos: 1,
@@ -379,7 +379,7 @@ export const CATALOGO_ESPECIES_DND55: DefinicionEspecie[] = [
           {
             nombre: "Magia de alto elfo: Paso brumoso",
             descripcion: "Siempre tienes preparado el conjuro *paso brumoso*. Puedes lanzarlo una vez sin gastar un espacio de conjuro y recuperas la capacidad tras un descanso largo. También puedes lanzarlo usando espacios de conjuro del nivel apropiado.",
-            tipoAccion: "accion_adicional",
+            tipoAccion: "pasivo",
             nivelRequerido: 5,
             tieneUsosLimitados: true,
             usosMaximos: 1,
@@ -417,7 +417,7 @@ export const CATALOGO_ESPECIES_DND55: DefinicionEspecie[] = [
           {
             nombre: "Magia de elfo de los bosques: Zancada prodigiosa",
             descripcion: "Siempre tienes preparado el conjuro *zancada prodigiosa*. Puedes lanzarlo una vez sin gastar un espacio de conjuro y recuperas la capacidad tras un descanso largo. También puedes lanzarlo usando espacios de conjuro del nivel apropiado.",
-            tipoAccion: "accion_adicional",
+            tipoAccion: "pasivo",
             nivelRequerido: 3,
             tieneUsosLimitados: true,
             usosMaximos: 1,
@@ -428,7 +428,7 @@ export const CATALOGO_ESPECIES_DND55: DefinicionEspecie[] = [
           {
             nombre: "Magia de elfo de los bosques: Pasar sin rastro",
             descripcion: "Siempre tienes preparado el conjuro *pasar sin rastro*. Puedes lanzarlo una vez sin gastar un espacio de conjuro y recuperas la capacidad tras un descanso largo. También puedes lanzarlos usando espacios de conjuro del nivel apropiado.",
-            tipoAccion: "accion",
+            tipoAccion: "pasivo",
             nivelRequerido: 5,
             tieneUsosLimitados: true,
             usosMaximos: 1,
@@ -602,7 +602,7 @@ export const CATALOGO_ESPECIES_DND55: DefinicionEspecie[] = [
           {
             nombre: "Magia de los bosques: Hablar con los animales",
             descripcion: "Siempre tienes el conjuro *hablar con los animales* preparado. Puedes lanzarlo sin gastar un espacio de conjuro una cantidad de veces igual a tu bonificador por competencia y recuperas todos los usos tras finalizar un descanso largo. También puedes usar cualquier espacio de conjuro que tengas para lanzarlo.",
-            tipoAccion: "accion",
+            tipoAccion: "pasivo",
             nivelRequerido: 1,
             tieneUsosLimitados: true,
             usosMaximos: 2,
@@ -939,7 +939,7 @@ export const CATALOGO_ESPECIES_DND55: DefinicionEspecie[] = [
       {
         nombre: "Aguante incansable",
         descripcion: "Cuando tus puntos de golpe se reducen a 0 pero no mueres inmediatamente, puedes recuperar 1 punto de golpe. Cuando uses este atributo, no podrás volver a hacerlo hasta que finalices un descanso largo.",
-        tipoAccion: "reaccion",
+        tipoAccion: "pasivo",
         tieneUsosLimitados: true,
         usosMaximos: 1,
         recuperacion: "descanso_largo",
@@ -1073,7 +1073,7 @@ export const CATALOGO_ESPECIES_DND55: DefinicionEspecie[] = [
           {
             nombre: "Magia abisal: Rayo nauseabundo",
             descripcion: "Siempre tienes preparado el conjuro *rayo nauseabundo*. Puedes lanzarlo una vez sin gastar un espacio de conjuro y recuperas la capacidad tras un descanso largo. También puedes lanzarlo usando espacios de conjuro del nivel apropiado.",
-            tipoAccion: "accion",
+            tipoAccion: "pasivo",
             nivelRequerido: 3,
             tieneUsosLimitados: true,
             usosMaximos: 1,
@@ -1084,7 +1084,7 @@ export const CATALOGO_ESPECIES_DND55: DefinicionEspecie[] = [
           {
             nombre: "Magia abisal: Inmovilizar persona",
             descripcion: "Siempre tienes preparado el conjuro *inmovilizar persona*. Puedes lanzarlo una vez sin gastar un espacio de conjuro y recuperas la capacidad tras un descanso largo. También puedes lanzarlo usando espacios de conjuro del nivel apropiado.",
-            tipoAccion: "accion",
+            tipoAccion: "pasivo",
             nivelRequerido: 5,
             tieneUsosLimitados: true,
             usosMaximos: 1,
@@ -1122,7 +1122,7 @@ export const CATALOGO_ESPECIES_DND55: DefinicionEspecie[] = [
           {
             nombre: "Magia ctónica: Falsa vida",
             descripcion: "Siempre tienes preparado el conjuro *falsa vida*. Puedes lanzarlo una vez sin gastar un espacio de conjuro y recuperas la capacidad tras un descanso largo. También puedes lanzarlo usando espacios de conjuro del nivel apropiado.",
-            tipoAccion: "accion",
+            tipoAccion: "pasivo",
             nivelRequerido: 3,
             tieneUsosLimitados: true,
             usosMaximos: 1,
@@ -1133,7 +1133,7 @@ export const CATALOGO_ESPECIES_DND55: DefinicionEspecie[] = [
           {
             nombre: "Magia ctónica: Rayo debilitador",
             descripcion: "Siempre tienes preparado el conjuro *rayo debilitador*. Puedes lanzarlo una vez sin gastar un espacio de conjuro y recuperas la capacidad tras un descanso largo. También puedes lanzarlo usando espacios de conjuro del nivel apropiado.",
-            tipoAccion: "accion",
+            tipoAccion: "pasivo",
             nivelRequerido: 5,
             tieneUsosLimitados: true,
             usosMaximos: 1,
@@ -1171,7 +1171,7 @@ export const CATALOGO_ESPECIES_DND55: DefinicionEspecie[] = [
           {
             nombre: "Magia infernal: Reprensión infernal",
             descripcion: "Siempre tienes preparado el conjuro *reprensión infernal*. Puedes lanzarlo una vez sin gastar un espacio de conjuro y recuperas la capacidad tras un descanso largo. También puedes lanzarlo usando espacios de conjuro del nivel apropiado.",
-            tipoAccion: "reaccion",
+            tipoAccion: "pasivo",
             nivelRequerido: 3,
             tieneUsosLimitados: true,
             usosMaximos: 1,
@@ -1182,7 +1182,7 @@ export const CATALOGO_ESPECIES_DND55: DefinicionEspecie[] = [
           {
             nombre: "Magia infernal: Oscuridad",
             descripcion: "Siempre tienes preparado el conjuro *oscuridad*. Puedes lanzarlo una vez sin gastar un espacio de conjuro y recuperas la capacidad tras un descanso largo. También puedes lanzarlo usando espacios de conjuro del nivel apropiado.",
-            tipoAccion: "accion",
+            tipoAccion: "pasivo",
             nivelRequerido: 5,
             tieneUsosLimitados: true,
             usosMaximos: 1,

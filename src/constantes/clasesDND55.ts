@@ -193,7 +193,7 @@ export const CATALOGO_CLASES_DND55: DefinicionClase[] = [
         nivel: 5,
         nombre: "Ataque adicional",
         descripcion: "Cuando lleves a cabo la acción de atacar en tu turno, podrás hacer dos ataques en lugar de uno.",
-        tipoAccion: "accion"
+        tipoAccion: "pasivo"
       },
       {
         nivel: 5,
@@ -237,7 +237,7 @@ export const CATALOGO_CLASES_DND55: DefinicionClase[] = [
         nivel: 7,
         nombre: "Salto instintivo",
         descripcion: "Como parte de la acción adicional que usas para entrar en tu Furia, puedes moverte hasta la mitad de tu velocidad.",
-        tipoAccion: "accion_adicional"
+        tipoAccion: "especial"
       },
       {
         nivel: 8,
@@ -478,7 +478,7 @@ export const CATALOGO_CLASES_DND55: DefinicionClase[] = [
             nivel: 3,
             nombre: "Furia de las tierras salvajes",
             descripcion: "Tu Furia recurre al poder primigenio de los animales. Siempre que actives tu Furia, obtienes una de las siguientes opciones a tu elección.\n\n***Oso.*** Mientras tu Furia esté activa, tienes resistencia a todos los tipos de daño excepto fuerza, necrótico, psíquico y radiante.\n\n***Águila.*** Cuando actives tu Furia, puedes llevar a cabo las acciones de destrabarse y correr como parte de esa acción adicional. Mientras tu Furia esté activa, puedes gastar una acción adicional para llevar a cabo ambas acciones.\n\n***Lobo.*** Mientras tu Furia esté activa, tus aliados tienen ventaja en las tiradas de ataque contra cualquier enemigo tuyo a 5 pies o menos de ti.",
-            tipoAccion: "accion_adicional",
+            tipoAccion: "especial",
             subclase: "Senda del Corazón Salvaje",
             categoriaMecanica: "selector_informativo",
             ligadoA: "rasgo_cls_barbaro_furia",
@@ -1132,14 +1132,14 @@ export const CATALOGO_CLASES_DND55: DefinicionClase[] = [
             nivel: 6,
             nombre: "Ataque adicional",
             descripcion: "Puedes atacar dos veces en lugar de una cada vez que realices la acción de Atacar en tu turno.\n\nAdemás, puedes lanzar uno de tus trucos que tenga un tiempo de lanzamiento de una acción en lugar de uno de esos ataques.",
-            tipoAccion: "accion",
+            tipoAccion: "pasivo",
             subclase: "Colegio del Valor"
           },
           {
             nivel: 14,
             nombre: "Magia de batalla",
             descripcion: "Después de lanzar un conjuro que tenga un tiempo de lanzamiento de una acción, puedes hacer un ataque con un arma como acción adicional.",
-            tipoAccion: "accion_adicional",
+            tipoAccion: "pasivo",
             subclase: "Colegio del Valor"
           },
         ]
@@ -1247,7 +1247,7 @@ export const CATALOGO_CLASES_DND55: DefinicionClase[] = [
         nivel: 9,
         nombre: "Contactar con el patrón",
         descripcion: "En el pasado, solías contactar con tu patrón a través de intermediarios. Ahora puedes comunicarte directamente; siempre tienes preparado el conjuro *contactar con otro plano*. Con este rasgo, puedes lanzar el conjuro sin gastar un espacio de conjuro para contactar con tu patrón, y superas automáticamente la tirada de salvación del conjuro.\n\nUna vez que lances el conjuro con este rasgo, no podrás volver a hacerlo de esta manera hasta que finalices un descanso largo.",
-        tipoAccion: "especial",
+        tipoAccion: "pasivo",
         categoriaMecanica: "consumible",
         tieneUsosLimitados: true,
         formulaUsos: "1",
@@ -1360,7 +1360,7 @@ export const CATALOGO_CLASES_DND55: DefinicionClase[] = [
             nivel: 3,
             nombre: "Pasos feéricos",
             descripcion: "Tu patrón te concede la capacidad de desplazarte entre los límites de los planos. Puedes lanzar *paso brumoso* sin gastar un espacio de conjuro una cantidad de veces igual a tu modificador por Carisma (mínimo una vez), y recuperas todos los usos gastados cuando finalizas un descanso largo.\n\nAdemás, cada vez que lances ese conjuro, puedes elegir uno de los siguientes efectos adicionales:\n\n***Paso refrescante.*** Inmediatamente después de teletransportarte, tú o una criatura que puedas ver a 10 pies o menos de ti obtienen 1d10 puntos de golpe temporales.\n\n***Paso provocador.*** Las criaturas a 5 pies o menos del espacio que dejaste deben superar una tirada de salvación de Sabiduría contra tu CD de salvación de conjuros o tendrán desventaja en las tiradas de ataque contra criaturas distintas a ti hasta el comienzo de tu siguiente turno.",
-            tipoAccion: "accion_adicional",
+            tipoAccion: "especial",
             subclase: "Patrón de los Archihadas",
             categoriaMecanica: "consumible",
             tieneUsosLimitados: true,

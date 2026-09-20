@@ -379,7 +379,7 @@ describe("calculadorAccionesCombate - Resolución de Conjuros en Acciones de Com
 
       const detectarMagia = res.find((r) => r.rasgo.nombre === "Magia de alto elfo: Detectar magia");
       expect(detectarMagia).toBeDefined();
-      expect(detectarMagia?.categoriasCombate).toContain("accion");
+      expect(detectarMagia?.rasgo.tipoAccion).toBe("pasivo");
       expect(detectarMagia?.categoriasCombate).toContain("consumible");
       expect(detectarMagia?.esConsumible).toBe(true);
     });

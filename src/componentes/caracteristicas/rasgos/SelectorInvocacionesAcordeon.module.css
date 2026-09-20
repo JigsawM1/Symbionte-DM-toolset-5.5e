@@ -19,7 +19,7 @@
   background: rgba(15, 23, 42, 0.6);
   padding: 8px 12px;
   border-radius: 6px;
-  border: 1px solid rgba(56, 189, 248, 0.15);
+  border: 1px solid rgba(167, 139, 250, 0.2);
 }
 
 .contenedorBuscador {
@@ -43,7 +43,7 @@
 }
 
 .inputBuscadorInvocaciones:focus {
-  border-color: #38bdf8;
+  border-color: #a78bfa;
 }
 
 .filtrosEstadoInvocaciones {
@@ -68,9 +68,9 @@
 }
 
 .botonFiltroEstadoActivo {
-  background: rgba(56, 189, 248, 0.15);
-  border-color: #38bdf8;
-  color: #38bdf8;
+  background: rgba(167, 139, 250, 0.15);
+  border-color: #a78bfa;
+  color: #c4b5fd;
   font-weight: 600;
 }
 
@@ -103,19 +103,19 @@
 }
 
 .tarjetaInvocacionCaja:hover {
-  border-color: rgba(56, 189, 248, 0.35);
+  border-color: rgba(167, 139, 250, 0.35);
 }
 
 .tarjetaInvocacionCajaActiva {
-  background: #132738;
-  border-color: #38bdf8;
-  box-shadow: 0 0 10px rgba(56, 189, 248, 0.12);
+  background: rgba(167, 139, 250, 0.08);
+  border-color: #a78bfa;
+  box-shadow: 0 0 10px rgba(167, 139, 250, 0.15);
 }
 
 .tarjetaInvocacionCajaBloqueada {
-  opacity: 0.75;
+  opacity: 0.65;
   background: #0f172a;
-  border-color: rgba(239, 68, 68, 0.25);
+  border-color: rgba(100, 116, 139, 0.25);
 }
 
 /* Cabecera Colapsable */
@@ -179,8 +179,8 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  background: rgba(16, 185, 129, 0.15);
-  border: 1px solid #10b981;
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.3);
   color: #34d399;
   font-size: 11px;
   font-weight: 600;
@@ -192,9 +192,9 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  background: rgba(239, 68, 68, 0.12);
-  border: 1px solid rgba(239, 68, 68, 0.4);
-  color: #f87171;
+  background: rgba(100, 116, 139, 0.15);
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  color: #94a3b8;
   font-size: 11px;
   font-weight: 600;
   padding: 2px 6px;
@@ -202,12 +202,12 @@
 }
 
 .badgeRepetible {
-  background: rgba(168, 85, 247, 0.12);
-  border: 1px solid rgba(168, 85, 247, 0.3);
-  color: #c084fc;
+  background: rgba(251, 191, 36, 0.12);
+  border: 1px solid rgba(251, 191, 36, 0.35);
+  color: #fbbf24;
   font-size: 11px;
-  font-weight: 500;
-  padding: 1px 5px;
+  font-weight: 600;
+  padding: 1px 6px;
   border-radius: 3px;
 }
 
@@ -222,9 +222,9 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  background: rgba(56, 189, 248, 0.12);
-  border: 1px solid #38bdf8;
-  color: #38bdf8;
+  background: rgba(167, 139, 250, 0.12);
+  border: 1px solid #a78bfa;
+  color: #c4b5fd;
   font-size: 11.5px;
   font-weight: 600;
   padding: 4px 10px;
@@ -234,7 +234,7 @@
 }
 
 .botonAccionAgregar:hover:not(:disabled) {
-  background: #38bdf8;
+  background: #a78bfa;
   color: #0f172a;
 }
 
@@ -242,9 +242,9 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  background: rgba(239, 68, 68, 0.12);
-  border: 1px solid #ef4444;
-  color: #f87171;
+  background: rgba(248, 113, 113, 0.08);
+  border: 1px solid rgba(248, 113, 113, 0.25);
+  color: #fca5a5;
   font-size: 11.5px;
   font-weight: 600;
   padding: 4px 10px;
@@ -255,6 +255,7 @@
 
 .botonAccionQuitar:hover {
   background: #ef4444;
+  border-color: #ef4444;
   color: #ffffff;
 }
 
@@ -288,11 +289,11 @@
   display: flex;
   align-items: flex-start;
   gap: 8px;
-  background: rgba(239, 68, 68, 0.08);
-  border: 1px solid rgba(239, 68, 68, 0.3);
+  background: rgba(245, 158, 11, 0.08);
+  border: 1px solid rgba(245, 158, 11, 0.3);
   padding: 8px 12px;
   border-radius: 4px;
-  color: #fca5a5;
+  color: #fde68a;
   font-size: 11.5px;
 }
 
@@ -321,8 +322,8 @@
 }
 
 .seccionEfectosInvocacion {
-  background: rgba(56, 189, 248, 0.05);
-  border-left: 3px solid #38bdf8;
+  background: rgba(167, 139, 250, 0.06);
+  border-left: 3px solid #a78bfa;
   padding: 8px 12px;
   border-radius: 0 4px 4px 0;
   display: flex;
@@ -334,7 +335,7 @@
   font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
-  color: #38bdf8;
+  color: #c4b5fd;
   letter-spacing: 0.5px;
 }
 
@@ -358,7 +359,7 @@
 /* Zona de Configuración Interactiva Mecánica (Descarga ahuyentadora, Devorador de vida, etc.) */
 .zonaConfiguracionMecanica {
   background: rgba(30, 41, 59, 0.6);
-  border: 1px solid rgba(56, 189, 248, 0.2);
+  border: 1px solid rgba(167, 139, 250, 0.25);
   border-radius: 6px;
   padding: 10px 12px;
   display: flex;
@@ -369,14 +370,14 @@
 .tituloConfiguracionMecanica {
   font-size: 11.5px;
   font-weight: 700;
-  color: #38bdf8;
+  color: #c4b5fd;
   display: flex;
   align-items: center;
   gap: 6px;
 }
 
 .pistaMecanica {
-  font-size: 11px;
+  font-size: 12.5px;
   color: #94a3b8;
   margin: 2px 0 6px 0;
 }
@@ -420,9 +421,9 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background: rgba(56, 189, 248, 0.12);
-  border: 1px dashed rgba(56, 189, 248, 0.35);
-  color: #38bdf8;
+  background: rgba(167, 139, 250, 0.12);
+  border: 1px dashed rgba(167, 139, 250, 0.4);
+  color: #c4b5fd;
   padding: 6px 12px;
   border-radius: 4px;
   font-size: 11.5px;
@@ -433,8 +434,8 @@
 }
 
 .botonAgregarInstancia:hover:not(:disabled) {
-  background: rgba(56, 189, 248, 0.22);
-  border-color: #38bdf8;
+  background: rgba(167, 139, 250, 0.22);
+  border-color: #a78bfa;
   color: #ffffff;
 }
 

@@ -112,7 +112,7 @@ export const GrupoClaseRasgos: React.FC<GrupoClaseRasgosProps> = ({
           >
             <div className={estilos.ladoIzquierdoCabecera}>
               {invocacionesColapsada ? <ChevronRight size={15} /> : <ChevronDown size={15} />}
-              <Flame size={13} color="#a855f7" />
+              <Flame size={13} color="#a78bfa" />
               <span className={`${estilos.tituloSeccion} ${estilos.tituloInvocaciones}`}>
                 Invocaciones Sobrenaturales ({grupo.clase.nombre})
               </span>

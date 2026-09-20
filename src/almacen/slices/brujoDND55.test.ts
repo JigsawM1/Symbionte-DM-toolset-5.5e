@@ -152,7 +152,7 @@ describe("D&D 5.5e - Brujo (Warlock) y Subclases Canónicas", () => {
 
       expect(pasos).toBeDefined();
       expect(pasos?.categoriaMecanica).toBe("consumible");
-      expect(pasos?.tipoAccion).toBe("accion_adicional");
+      expect(pasos?.tipoAccion).toBe("especial");
       expect(pasos?.formulaDados).toBe("1d10");
       expect(pasos?.usosMaximos).toBe(3);
     });

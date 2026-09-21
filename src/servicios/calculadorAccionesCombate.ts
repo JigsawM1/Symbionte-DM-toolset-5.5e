@@ -74,7 +74,7 @@ export function resolverConjurosAcciones(
 
   for (const h of baseDatosConjuros) {
     if (idsAgregados.has(h.id)) continue;
-    if (!predicados.estaEnLista(h)) continue;
+    if (!predicados.estaPreparado(h)) continue;
 
     idsAgregados.add(h.id);
     resultado.push({

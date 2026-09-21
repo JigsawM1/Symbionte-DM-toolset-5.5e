@@ -26,6 +26,7 @@ interface FilaConjuroCompendioProps {
   esDeSubclase?: boolean;
   origenBadge?: OrigenConjuroBadge | null;
   requierePreparacion: boolean;
+  esModeloConocidos?: boolean;
   mostrarEstrella?: boolean;
   alAlternarEnLista: () => void;
   alAlternarPreparado: () => void;
@@ -59,6 +60,7 @@ export const FilaConjuroCompendio: React.FC<FilaConjuroCompendioProps> = React.m
   esDeSubclase = false,
   origenBadge,
   requierePreparacion: _requierePreparacion,
+  esModeloConocidos = false,
   mostrarEstrella = true,
   alAlternarEnLista,
   alAlternarPreparado,
@@ -94,6 +96,17 @@ export const FilaConjuroCompendio: React.FC<FilaConjuroCompendioProps> = React.m
 
   const estaMarcadoPreparado = hechizo.nivel === 0 || esOtorgado ? true : estaPreparado;
   const estaMarcadoEnLista = esOtorgado ? true : estaEnLista;
+  const estrellaVisible = mostrarEstrella && !esModeloConocidos;
+
+  const tituloCheckbox = esOtorgado && configBadge
+    ? `${configBadge.tooltip} (permanente)`
+    : esModeloConocidos
+    ? estaMarcadoEnLista
+      ? "Conjuro conocido (clic para desaprender/quitar)"
+      : "Aprender conjuro (marcar como conocido)"
+    : estaMarcadoEnLista
+    ? "En tu lista/grimorio (clic para quitar)"
+    : "Añadir a tu lista/grimorio";
 
   return (
     <div
@@ -104,8 +117,8 @@ export const FilaConjuroCompendio: React.FC<FilaConjuroCompendioProps> = React.m
       <div className={estilos.lineaSuperior}>
         {/* Lado izquierdo: Estrella + Checkbox + Icono + Nombre */}
         <div className={estilos.ladoIzquierdo}>
-          {/* 1. Estrella: Preparar (solo si mostrarEstrella es true) */}
-          {mostrarEstrella && (
+          {/* 1. Estrella: Preparar (solo si estrellaVisible es true) */}
+          {estrellaVisible && (
             <button
               type="button"
               onClick={manejarClickEstrella}
@@ -130,17 +143,11 @@ export const FilaConjuroCompendio: React.FC<FilaConjuroCompendioProps> = React.m
             </button>
           )}
 
-          {/* 2. Checkbox: Mi Lista / Grimorio */}
+          {/* 2. Checkbox: Mi Lista / Conocidos / Grimorio */}
           <button
             type="button"
             onClick={manejarClickCheckbox}
-            title={
-              esOtorgado && configBadge
-                ? `${configBadge.tooltip} (permanente)`
-                : estaMarcadoEnLista
-                ? "En tu lista/grimorio (clic para quitar)"
-                : "Añadir a tu lista/grimorio"
-            }
+            title={tituloCheckbox}
             className={`${estilos.botonControl} ${estilos.botonCheckbox} ${esOtorgado ? estilos.botonControlDeshabilitado : ""}`}
           >
             <div

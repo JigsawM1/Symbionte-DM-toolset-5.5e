@@ -96,10 +96,10 @@ describe("logicaPertenenciaConjuros", () => {
     const baseDatos = [trucoLuz, hechizoEscudo, hechizoPasoBrumoso];
     const clavesLookup = crearClavesLookupHechizos(baseDatos);
 
-    it("modelo 'preparados': si un conjuro está conocido pero no preparado, NO está en lista", () => {
+    it("modelo 'preparados': si un conjuro está en conocidos/grimorio pero no preparado, está en lista pero NO preparado", () => {
       const sets = {
         setPreparadosIds: expandirSetHechizos([]), // Nada preparado
-        setConocidosIds: expandirSetHechizos(["h_escudo"]), // Pero está en conocidos
+        setConocidosIds: expandirSetHechizos(["h_escudo"]), // Pero está en grimorio/conocidos
         setTrucosIds: expandirSetHechizos([]),
         setSiemprePreparados: expandirSetHechizos([])
       };
@@ -111,8 +111,8 @@ describe("logicaPertenenciaConjuros", () => {
         resolutorOrigen: () => null
       });
 
-      // En modelo preparados, el conjuro conocido sin preparar debe ser rechazado
-      expect(predicados.estaEnLista(hechizoEscudo)).toBe(false);
+      // Está en la lista (grimorio/aprendido), pero no está preparado para el día
+      expect(predicados.estaEnLista(hechizoEscudo)).toBe(true);
       expect(predicados.estaPreparado(hechizoEscudo)).toBe(false);
     });
 
@@ -132,6 +132,7 @@ describe("logicaPertenenciaConjuros", () => {
       });
 
       expect(predicados.estaEnLista(hechizoEscudo)).toBe(true);
+      expect(predicados.estaPreparado(hechizoEscudo)).toBe(true);
     });
 
     it("conjuros otorgados por subclase/rasgos siempre están preparados y en lista", () => {

@@ -19,6 +19,43 @@ Este archivo registra reglas globales, errores encontrados, sus causas raíz y l
    - **Bajo ninguna circunstancia** los módulos de lógica de negocio (`servicios/`), gestores de estado (`almacen/`) o constructores (`gestorClases.ts`) deben contener bifurcaciones condicionales por nombre literal de rasgo o clase (`r.nombre === "..."`, `clase.includes("...")`, etc.).
    - Toda mecánica, progresión de dados, escalado de usos, recuperación o desbloqueo dinámico debe resolverse mediante metadatos declarativos (`escaladoFormulaDados`, `escaladoUsos`, `escaladoRecuperacion`, `opcionesDinamicas`, `escaladoMaxSelecciones`, `sincronizarEfectosConFormula`, `heredarDadosPadre`, `gastarDePadre`, `ligadoA`, `efectos`) delegando en funciones puras agnósticas como `resolverEscaladosRasgo`. Esta regla está reforzada en CI vía ESLint `no-restricted-syntax` y la suite `rasgoGenericidad.test.ts`.
 
+## [2026-09-20] Unificación de Lógica de Conjuros (Fase 1 y Fase 2): Pertenencia O(1), Paridad Acciones-Compendio y UX de Clases de Conocidos/Preparadores
+
+**Contexto del Problema:**
+- Existía duplicación y asimetría en cómo se determinaba la presencia y preparación de conjuros en la aplicación:
+  1. `usarMagiaPersonaje.ts` implementaba un sistema de Sets pre-expandidos con normalización de IDs, slugs y alias para el compendio y la hoja de personaje.
+  2. `calculadorAccionesCombate.ts` (`resolverConjurosAcciones`) mantenía un algoritmo $O(N)$ iterando arreglos nativos del personaje, pero ignoraba el `modeloConjuros` ("preparados" vs "conocidos"). En consecuencia, las clases de modelo "preparados" (ej. Clérigo o Mago) mostraban conjuros que estaban en la libreta o conocidos sin haber sido preparados para el día.
+  3. En el Compendio de Conjuros (`CompendioConjurosJugador.tsx`), los personajes con modelo de conocidos (Bardo, Hechicero, Brujo, Explorador) estaban forzados a un flujo incoherente de dos pasos ("Mi lista" -> "Preparar"), cuando según las reglas de D&D 5.5 los conjuros conocidos están intrínsecamente listos para lanzarse sin preparación previa.
+
+**Causa Raíz Diagnosticada:**
+1. **Falta de Fuente Única de Verdad en Lógica Pura:** Los predicados de pertenencia (`estaPreparado`, `estaEnLista`, `esHechizoDeSubclase`, `esHechizoOtorgado`) estaban acoplados a hooks de React en lugar de residir en un servicio puro agnóstico y reutilizable.
+2. **Confusión entre Repertorio Registrado y Preparación Diaria:**
+   - `estaEnLista`: Representa si el conjuro pertenece al repertorio personal registrado del personaje (el libro de conjuros de un Mago, los conjuros conocidos de un Bardo, trucos o conjuros concedidos).
+   - `estaPreparado`: Representa si el conjuro está listo para lanzarse en combate. Para un Bardo o Hechicero, estar conocido implica automáticamente estar listo. Para un Clérigo o Mago, requiere preparación diaria en `conjurosPreparadosIds`.
+3. **Filtro Inadecuado en Combate:** `calculadorAccionesCombate.ts` evaluaba `estaEnLista` en vez de `estaPreparado`, lo que rompía la economía de conjuros preparados en combate.
+
+**Solución Aplicada Quirúrgicamente:**
+1. **Nuevo Servicio Puro (`src/servicios/logicaPertenenciaConjuros.ts`):**
+   - Funciones puras: `expandirSetHechizos`, `crearClavesLookupHechizos`, `crearSetsPertenencia`, `verificarEnSet` ($O(1)$) y la factoría `crearPredicadosPertenencia`.
+   - Migración de `verificarHechizoDeSubclase` (Opción B aprobada por el usuario) consolidando la normalización de subclases.
+   - Clasificador puro `clasificarTipoAccion` ("accion" | "accionAdicional" | "reaccion" | "especial").
+2. **Refactorización de `usarMagiaPersonaje.ts` y `calculadorAccionesCombate.ts`:**
+   - Ambos módulos consumen ahora la misma factoría de predicados puros.
+   - En combate, solo se incluyen conjuros donde `predicados.estaPreparado(h)` es verdadero.
+3. **Rediseño de UX en el Compendio del Jugador (`CompendioConjurosJugador.tsx` y `FilaConjuroCompendio.tsx`):**
+   - **Clases de Conocidos (Bardo, Hechicero, Brujo, Explorador):**
+     - Pestaña "Preparados" oculta por redundante.
+     - Pestaña "Conocidos" directa (icono `Sparkles`).
+     - En las filas, la estrella de preparación se oculta automáticamente. El botón de aprendizaje marca/desmarca directamente como conocido con tooltip contextualizado.
+   - **Preparadores Divinos (Clérigo, Druida, Paladín):**
+     - Pestaña "Mi lista" oculta (preparan directamente de toda su lista de clase en "Disponibles" o "Todos").
+     - Estrella interactiva de preparación visible en todas las pestañas.
+   - **Magos con Grimorio:**
+     - Pestaña "Libro de conjuros" dedicada (icono `BookMarked`) donde ven todos los conjuros inscritos en su libro y pueden marcar con estrella cuáles preparan para el día.
+4. **Pruebas y Verificación:**
+   - Suites de pruebas dedicadas: `logicaPertenenciaConjuros.test.ts` (13 tests) y tests adicionales en `calculadorAccionesCombate.test.ts` (22 tests) validando Bardo, Clérigo y Mago con grimorio.
+   - 482/482 pruebas de servicios pasando al 100%, compilación TypeScript estricta con 0 errores y ESLint con 0 advertencias.
+
 ## [2026-09-20] Eliminación de Fallbacks por Nombre Literal y Resolución Padre-Hijo 100% Declarativa
 
 **Contexto del Problema y Tensión con KISS:**

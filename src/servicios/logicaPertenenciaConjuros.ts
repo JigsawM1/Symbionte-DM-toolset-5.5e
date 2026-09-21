@@ -197,6 +197,12 @@ export function crearPredicadosPertenencia(params: ParametrosPertenencia): Predi
       );
     }
     if (esHechizoOtorgado(hechizo)) return true;
+    if (modelo === "conocidos") {
+      return (
+        verificarEnSet(sets.setConocidosIds, hechizo.id, clavesLookup) ||
+        verificarEnSet(sets.setPreparadosIds, hechizo.id, clavesLookup)
+      );
+    }
     return verificarEnSet(sets.setPreparadosIds, hechizo.id, clavesLookup);
   };
 
@@ -208,9 +214,6 @@ export function crearPredicadosPertenencia(params: ParametrosPertenencia): Predi
       );
     }
     if (esHechizoOtorgado(hechizo)) return true;
-    if (modelo === "preparados") {
-      return verificarEnSet(sets.setPreparadosIds, hechizo.id, clavesLookup);
-    }
     return (
       verificarEnSet(sets.setConocidosIds, hechizo.id, clavesLookup) ||
       verificarEnSet(sets.setPreparadosIds, hechizo.id, clavesLookup)

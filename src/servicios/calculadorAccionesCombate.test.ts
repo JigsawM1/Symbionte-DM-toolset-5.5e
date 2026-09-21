@@ -670,6 +670,37 @@ describe("calculadorAccionesCombate - Resolución de Conjuros en Acciones de Com
       // En modelo conocidos, estar en conjurosConocidosIds es suficiente para estar en combate
       expect(nombres).toContain("Curar heridas");
     });
+
+    it("un Mago con conjuros en su grimorio (conocidos) solo muestra en combate los que ha preparado", () => {
+      const pjMago: PersonajeJugador = {
+        ...PERSONAJE_POR_DEFECTO,
+        id: "pj-mago-1",
+        nombre: "Albus",
+        clase: "Mago",
+        nivel: 3,
+        clasesLanzadoras: [
+          {
+            clase: "Mago",
+            nivel: 3,
+            habilidadConjuro: "inteligencia",
+            tipoLanzador: "completo",
+            modeloConjuros: "preparados"
+          }
+        ],
+        // Tiene Bendición y Curar heridas en su grimorio, pero solo preparó Bendición
+        conjurosConocidosIds: ["h_bendicion", "h_curar_heridas"],
+        conjurosPreparadosIds: ["h_bendicion"],
+        trucosConocidosIds: []
+      };
+
+      const resultado = resolverConjurosAcciones(pjMago, baseDatosPrueba);
+      const nombres = resultado.map((c) => c.hechizo.nombre);
+
+      // Bendición está preparado -> debe estar en combate
+      expect(nombres).toContain("Bendición");
+      // Curar heridas está en su libro de conjuros pero no preparado -> no debe estar en combate
+      expect(nombres).not.toContain("Curar heridas");
+    });
   });
 });
 

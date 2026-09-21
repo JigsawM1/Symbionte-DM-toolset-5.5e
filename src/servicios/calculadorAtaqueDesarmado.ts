@@ -92,7 +92,7 @@ export function calcularAtaqueDesarmado(contexto: {
     };
   }
 
-  // 2. Ataque desarmado especial (Bardo u otro)
+  // 2. Ataque desarmado especial (Bardo, Matón de Taberna u otro)
   if (ataqueDesarmadoEsp.aplica) {
     const dadoBaseEsp = ataqueDesarmadoEsp.dadoDanoBase || "1d6";
     const formulaEsp =
@@ -100,9 +100,12 @@ export function calcularAtaqueDesarmado(contexto: {
         ? `${dadoBaseEsp}${modDesarmado >= 0 ? `+${modDesarmado}` : modDesarmado}`
         : dadoBaseEsp;
 
+    const propiedades = ataqueDesarmadoEsp.propiedades || ["Golpe sin Armas Especial"];
+    const tienePropiedadSutil = propiedades.includes("Sutil");
+
     return {
       id: "ataque-desarmado",
-      nombre: ataqueDesarmadoEsp.nombreAtaque || "Daño Bárdico",
+      nombre: ataqueDesarmadoEsp.nombreAtaque || "Golpe sin Armas Especial",
       tipo: "Desarmado",
       subtipo: "Cuerpo a Cuerpo",
       tipoAccion: "accion",
@@ -114,10 +117,10 @@ export function calcularAtaqueDesarmado(contexto: {
       esDanoFijo: false,
       tipoDano: "Contundente",
       alcance: "5 ft",
-      propiedades: ataqueDesarmadoEsp.propiedades || ["Daño Bárdico", "Sutil"],
+      propiedades,
       tieneTiradaAtaque: true,
       esCompetenteConArma: esCompetenteDesarmado,
-      esSutil: true,
+      esSutil: tienePropiedadSutil,
       esDistancia: false
     };
   }

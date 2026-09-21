@@ -90,12 +90,16 @@ export const ModalDetalleRasgo: React.FC<ModalDetalleRasgoProps> = ({
   const tieneUsosPropios = rasgo.tieneUsosLimitados && typeof rasgo.usosMaximos === "number";
   const tieneUsosPadre = !tieneUsosPropios && Boolean(rasgo.gastarDePadre && usosPadre);
 
-  const usosRestantes = tieneUsosPropios
-    ? (rasgo.usosRestantes ?? (rasgo.usosMaximos || 1))
-    : (usosPadre?.restantes ?? 0);
+  const nivelPj = nivelPersonaje || 1;
+  const bonoCompetenciaCalculado = Math.floor((Math.max(1, nivelPj) - 1) / 4) + 2;
+  const escalaPorBonoCompetencia = rasgo.formulaEscalado === "bono_competencia";
+
   const usosMaximos = tieneUsosPropios
-    ? (rasgo.usosMaximos || 1)
+    ? (escalaPorBonoCompetencia ? bonoCompetenciaCalculado : (rasgo.usosMaximos || 1))
     : (usosPadre?.maximos || 1);
+  const usosRestantes = tieneUsosPropios
+    ? (rasgo.usosRestantes ?? usosMaximos)
+    : (usosPadre?.restantes ?? 0);
 
   const sinUsosDisponibles = (tieneUsosPropios || tieneUsosPadre) && usosRestantes <= 0;
   const normNombre = rasgo.nombre.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");

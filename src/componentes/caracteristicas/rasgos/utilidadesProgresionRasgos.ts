@@ -3,6 +3,7 @@ import { obtenerClasePorNombre, obtenerSubclasePorNombre } from "@/servicios/ges
 import { resolverFormulaDinamica } from "@/servicios/evaluadorEfectosRasgos";
 import type { BloqueProgresionClase, ItemProgresionClase } from "./VisorProgresionClase";
 import type { GrupoClaseJerarquico, DatosJerarquicosRasgos } from "./tiposRasgosJugador";
+import { DOTES_ORIGEN_DND55 } from "@/constantes/dotesConstantes";
 
 export type { GrupoClaseJerarquico, DatosJerarquicosRasgos };
 
@@ -255,6 +256,88 @@ export function agruparRasgosJerarquicos(
   }
 
   return { especie, subespecie, dotes, personalizados, clases: mapClases, otrosClase };
+}
+
+/**
+ * Extrae y sintetiza los rasgos correspondientes a las dotes de origen seleccionadas
+ * en la invocación sobrenatural 'Lecciones de los Primeros' del Brujo.
+ * Permite proyectar sus tarjetas visuales directamente en el bloque 'Dotes' de la ficha.
+ */
+export function resolverDotesDesdeInvocaciones(rasgos: RasgoPersonaje[]): RasgoPersonaje[] {
+  if (!Array.isArray(rasgos)) return [];
+  const dotesSinteticas: RasgoPersonaje[] = [];
+  const idsVistos = new Set<string>();
+
+  for (const rasgo of rasgos) {
+    if (rasgo.activo === false) continue;
+    if (!Array.isArray(rasgo.selectores)) continue;
+
+    for (const selector of rasgo.selectores) {
+      for (const opId of selector.valorActual || []) {
+        if (typeof opId !== "string") continue;
+        const baseSinArg = opId.includes(":") ? opId.split(":")[0] : opId;
+        const baseId = baseSinArg.includes("__") ? baseSinArg.split("__")[0] : baseSinArg;
+
+        if (baseId === "lecciones_de_los_primeros" && opId.includes(":")) {
+          const doteId = opId.split(":")[1];
+          const doteNorm = normalizar(doteId);
+          const dotePlantilla = DOTES_ORIGEN_DND55.find(
+            (d) =>
+              d.id === doteId ||
+              normalizar(d.id) === doteNorm ||
+              normalizar(d.id).replace(/^dote_/, "") === doteNorm.replace(/^dote_/, "") ||
+              normalizar(d.nombre) === doteNorm ||
+              (doteNorm === "alert" && d.id === "dote_alerta") ||
+              (doteNorm === "crafter" && d.id === "dote_fabricante") ||
+              (doteNorm === "healer" && d.id === "dote_sanador") ||
+              (doteNorm === "musician" && d.id === "dote_musico") ||
+              (doteNorm === "lucky" && d.id === "dote_afortunado") ||
+              (doteNorm === "savage-attacker" && d.id === "dote_atacante_salvaje") ||
+              (doteNorm === "skilled" && d.id === "dote_habilidoso") ||
+              (doteNorm === "tough" && d.id === "dote_duro") ||
+              (doteNorm === "tavern-brawler" && d.id === "dote_maton_taberna")
+          );
+
+          if (dotePlantilla) {
+            const yaExisteEnRasgos = (rasgos || []).some(
+              (r) =>
+                r.id === dotePlantilla.id ||
+                r.id === `dote_invocacion_${dotePlantilla.id}` ||
+                (r.origen === "dote" && normalizar(r.nombre) === normalizar(dotePlantilla.nombre))
+            );
+            if (yaExisteEnRasgos) continue;
+
+            const idSintetico = `dote_invocacion_${opId.replace(/[^a-zA-Z0-9_-]/g, "_")}`;
+            if (!idsVistos.has(idSintetico)) {
+              idsVistos.add(idSintetico);
+              dotesSinteticas.push({
+                id: idSintetico,
+                nombre: dotePlantilla.nombre,
+                descripcion: dotePlantilla.descripcion,
+                origen: "dote",
+                fuente: "Lecciones de los Primeros (Brujo)",
+                tipoAccion: dotePlantilla.tipoAccion || "pasivo",
+                nivelRequerido: 1,
+                tieneUsosLimitados: Boolean(dotePlantilla.tieneUsosLimitados),
+                usosMaximos: dotePlantilla.usosMaximos,
+                usosRestantes: dotePlantilla.usosMaximos,
+                recuperacion: dotePlantilla.recuperacion || "ninguno",
+                formulaDados: dotePlantilla.formulaDados,
+                categoriaMecanica: dotePlantilla.categoriaMecanica,
+                efectos: dotePlantilla.efectos,
+                selectores: dotePlantilla.selectores,
+                activo: true,
+                personalizado: false,
+                notas: "Dote de origen otorgada por la invocación sobrenatural Lecciones de los Primeros."
+              });
+            }
+          }
+        }
+      }
+    }
+  }
+
+  return dotesSinteticas;
 }
 
 /**

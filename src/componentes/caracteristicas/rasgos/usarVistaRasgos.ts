@@ -19,7 +19,8 @@ import {
   obtenerBloqueoToggleRasgo,
   resolverRecursosPadre,
   agruparRasgosJerarquicos,
-  obtenerNivelEfectivoParaRasgo
+  obtenerNivelEfectivoParaRasgo,
+  resolverDotesDesdeInvocaciones
 } from "./utilidadesProgresionRasgos";
 
 export type { SeccionesColapsadas, GrupoClaseJerarquico, DatosJerarquicosRasgos };
@@ -177,12 +178,20 @@ export function usarVistaRasgos() {
     return calcularProgresionClases(personajeActivo, clasesPersonaje);
   }, [personajeActivo, clasesPersonaje]);
 
+  const dotesInvocacion = useMemo(() => {
+    if (!personajeActivo || !Array.isArray(personajeActivo.rasgos)) return [];
+    return resolverDotesDesdeInvocaciones(personajeActivo.rasgos);
+  }, [personajeActivo]);
+
+  const totalRasgosPj = (personajeActivo?.rasgos?.length || 0) + dotesInvocacion.length;
+
   const rasgosFiltrados = useMemo(() => {
     if (!personajeActivo || !Array.isArray(personajeActivo.rasgos)) return [];
 
     const nivelPj = personajeActivo.nivel || 1;
+    const todosLosRasgos = [...personajeActivo.rasgos, ...dotesInvocacion];
 
-    let lista = [...personajeActivo.rasgos].filter((r) => {
+    let lista = todosLosRasgos.filter((r) => {
       const nom = r.nombre ? r.nombre.toLowerCase().trim() : "";
       if (nom === "rasgo de subclase" || nom.includes("rasgo de subclase")) {
         return false;
@@ -213,7 +222,7 @@ export function usarVistaRasgos() {
     }
 
     return lista;
-  }, [personajeActivo, filtroAccion, consultaBusqueda]);
+  }, [personajeActivo, dotesInvocacion, filtroAccion, consultaBusqueda]);
 
   const datosJerarquicos = useMemo<DatosJerarquicosRasgos>(() => {
     return agruparRasgosJerarquicos(rasgosFiltrados, clasesPersonaje);
@@ -259,6 +268,7 @@ export function usarVistaRasgos() {
     furiaEstaActiva,
     datosProgresionClases,
     rasgosFiltrados,
+    totalRasgosPj,
     datosJerarquicos,
     abrirModalCreacion,
     abrirModalEdicion,

@@ -2,6 +2,7 @@ import React from "react";
 import { Dices } from "lucide-react";
 import { usarAlmacenDM, type CriaturaIniciativa } from "@/almacen/usarAlmacenDM";
 import { calcularEstadisticasPersonaje } from "@/almacen/selectores/usarEstadoPersonajes";
+import { calcularBonoIniciativaRasgos } from "@/servicios/evaluadorEfectosRasgos";
 import { ts } from "./TaleSpireAdapter";
 import { logger } from '@/utiles/logger';
 
@@ -206,7 +207,10 @@ export function aplicarResultadoIniciativaEnEstado(
       ca: caCalculada,
       condiciones: pj.condicionesActivas || [],
       efectos: [],
-      bonificadorIniciativa: statsPj.modificadores.destreza + (pj.iniciativaBono || 0),
+      bonificadorIniciativa:
+        statsPj.modificadores.destreza +
+        (pj.iniciativaBono || 0) +
+        calcularBonoIniciativaRasgos(pj),
       esMonstruo: false,
       velocidad: `${pj.velocidad || "30 pies"}`
     };

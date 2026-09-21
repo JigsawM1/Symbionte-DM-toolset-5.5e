@@ -1,5 +1,4 @@
 import type {
-  DotePersonaje,
   EfectoMecanicoRasgo,
   SelectorRasgo,
   TablaEscaladoRasgo
@@ -397,89 +396,10 @@ export const RASGOS_POR_ESPECIE: Record<string, PlantillaRasgoEspecie[]> = {
 // 3. DOTES CANÓNICAS DE D&D 5.5e (PHB 2024)
 // -------------------------------------------------------
 
-export const DOTES_CANONICAS_DND55: DotePersonaje[] = [
-  {
-    id: "dote_alerta",
-    nombre: "Alerta",
-    categoria: "origen",
-    descripcion: "Siempre estás atento al peligro. Sumas tu bonificador de competencia a la iniciativa y puedes intercambiar tu tirada de iniciativa con la de un aliado voluntario.",
-    beneficios: ["+PB a iniciativa", "Intercambio de iniciativa"],
-    fuente: "PHB 2024"
-  },
-  {
-    id: "dote_iniciativa_magica",
-    nombre: "Iniciado en la Magia",
-    categoria: "origen",
-    descripcion: "Aprendes dos trucos y un conjuro de nivel 1 de la lista de Clérigo, Druida o Mago. Puedes lanzar el conjuro de nivel 1 una vez al día sin gastar espacio.",
-    beneficios: ["2 Trucos elegidos", "1 Conjuro de Nivel 1 (1/descanso largo)"],
-    fuente: "PHB 2024"
-  },
-  {
-    id: "dote_suerte",
-    nombre: "Afortunado",
-    categoria: "origen",
-    descripcion: "Tienes puntos de suerte iguales a tu bonificador de competencia. Puedes gastar un punto para ganar ventaja en un d20 o imponer desventaja a un atacante contra ti.",
-    beneficios: ["Puntos de suerte iguales a PB", "Ventaja propia o desventaja a atacante"],
-    fuente: "PHB 2024"
-  },
-  {
-    id: "dote_musico",
-    nombre: "Músico",
-    categoria: "origen",
-    descripcion: "Al finalizar un descanso corto o largo, tocas música para inspirar a tus aliados. Otorgas Inspiración heroica a tantos compañeros como tu bonificador de competencia.",
-    beneficios: ["Inspiración heroica para aliados tras descanso"],
-    fuente: "PHB 2024"
-  },
-  {
-    id: "dote_duro",
-    nombre: "Duro / Robusto",
-    categoria: "origen",
-    descripcion: "Tus puntos de golpe máximos aumentan en una cantidad igual al doble de tu nivel.",
-    beneficios: ["+2 HP por nivel"],
-    fuente: "PHB 2024"
-  },
-  {
-    id: "dote_tirador_primera",
-    nombre: "Tirador de Primera (Sharpshooter)",
-    categoria: "general",
-    requisito: "Destreza 13+",
-    descripcion: "Dominas el combate a distancia: disparar a alcance largo no te impone desventaja, tus ataques a distancia ignoran cobertura media y tres cuartos, y no tienes desventaja al disparar cuerpo a cuerpo.",
-    beneficios: ["Ignora cobertura media y 3/4", "Sin desventaja a alcance largo", "Sin penalización cuerpo a cuerpo"],
-    fuente: "PHB 2024"
-  },
-  {
-    id: "dote_maestro_armas_pesadas",
-    nombre: "Maestro en Armas Pesadas (Great Weapon Master)",
-    categoria: "general",
-    requisito: "Fuerza 13+",
-    descripcion: "Cuando asestes un crítico o reduzcas a 0 HP a una criatura con un arma cuerpo a cuerpo pesada, puedes hacer otro ataque como acción adicional. Sumas tu PB al daño de armas pesadas.",
-    beneficios: ["Ataque extra tras crítico/muerte", "+PB al daño con armas pesadas"],
-    fuente: "PHB 2024"
-  },
-  {
-    id: "dote_combatiente_dos_armas",
-    nombre: "Combatiente con Dos Armas (Dual Wielder)",
-    categoria: "general",
-    requisito: "Fuerza o Destreza 13+",
-    descripcion: "Puedes usar combate con dos armas incluso con armas que no sean ligeras. Puedes hacer un ataque adicional extra como acción adicional.",
-    beneficios: ["Uso con armas no ligeras", "Ataque adicional secundario"],
-    fuente: "PHB 2024"
-  },
-  {
-    id: "dote_resiliente",
-    nombre: "Resiliente",
-    categoria: "general",
-    descripcion: "Aumentas una puntuación de característica en +1 y ganas competencia en las tiradas de salvación con esa característica.",
-    beneficios: ["+1 a característica", "Competencia en salvación elegida"],
-    fuente: "PHB 2024"
-  },
-  {
-    id: "dote_don_pericia_combate",
-    nombre: "Don de la Pericia en Combate",
-    categoria: "don_epico",
-    requisito: "Nivel 19+",
-    descripcion: "Aumentas una característica en +1 (máx 30). Si fallas una tirada de ataque, puedes convertirla en un acierto una vez por turno.",
-    beneficios: ["+1 característica (máx 30)", "Convertir fallo en acierto (1/turno)"],
-    fuente: "PHB 2024"
-  }
-];
+export {
+  DOTES_ORIGEN_DND55,
+  DOTES_GENERALES_Y_EPICAS_DND55,
+  TODAS_LAS_DOTES_CANONICAS_DND55,
+  TODAS_LAS_DOTES_CANONICAS_DND55 as DOTES_CANONICAS_DND55
+} from "./dotesConstantes";
+

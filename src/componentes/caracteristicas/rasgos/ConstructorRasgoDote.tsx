@@ -249,6 +249,7 @@ export const ConstructorRasgoDote: React.FC<ConstructorRasgoDoteProps> = ({
   const [nuevoSelectorEtiqueta, setNuevoSelectorEtiqueta] = useState<string>("");
   const [nuevoSelectorTipo, setNuevoSelectorTipo] = useState<"unico" | "multiple">("unico");
   const [nuevoSelectorMax, setNuevoSelectorMax] = useState<number>(1);
+  const [nuevoSelectorVisualizacion, setNuevoSelectorVisualizacion] = useState<"normal" | "lista">("normal");
   const [nuevoOpcionesTexto, setNuevoOpcionesTexto] = useState<string>("");
 
   // Estado temporal para el nuevo efecto
@@ -271,7 +272,21 @@ export const ConstructorRasgoDote: React.FC<ConstructorRasgoDoteProps> = ({
       setDescripcion(dote.descripcion);
       setOrigen("dote");
       setFuente(dote.fuente || "PHB 2024");
-      setTipoAccion("pasivo");
+      setTipoAccion(dote.tipoAccion || "pasivo");
+      setTieneUsosLimitados(Boolean(dote.tieneUsosLimitados));
+      const pbPersonaje = Math.floor((Math.max(1, personaje.nivel || 1) - 1) / 4) + 2;
+      const formulaEsc = dote.formulaEscalado || dote.formulaUsos || "";
+      const maxCalculado = formulaEsc === "bono_competencia" ? pbPersonaje : (dote.usosMaximos || 1);
+      setUsosMaximos(maxCalculado);
+      setUsosRestantes(maxCalculado);
+      setRecuperacion(dote.recuperacion || (dote.tieneUsosLimitados ? "descanso_largo" : "ninguno"));
+      setFormulaEscalado(formulaEsc);
+      setCategoriaMecanica(dote.categoriaMecanica || (dote.tieneUsosLimitados ? "consumible" : "pasivo_permanente"));
+      setEfectos(dote.efectos ? JSON.parse(JSON.stringify(dote.efectos)) : []);
+      setSelectores(dote.selectores ? JSON.parse(JSON.stringify(dote.selectores)) : []);
+      if (dote.conjurosOtorgados?.length) {
+        setConjurosOtorgadosTexto(dote.conjurosOtorgados.join(", "));
+      }
     }
   };
 
@@ -525,6 +540,7 @@ export const ConstructorRasgoDote: React.FC<ConstructorRasgoDoteProps> = ({
       id: generarId("sel"),
       etiqueta: nuevoSelectorEtiqueta.trim(),
       tipo: nuevoSelectorTipo,
+      visualizacion: nuevoSelectorVisualizacion,
       maxSelecciones: nuevoSelectorTipo === "multiple" ? Math.max(1, nuevoSelectorMax) : 1,
       opciones,
       valorActual: []
@@ -534,6 +550,7 @@ export const ConstructorRasgoDote: React.FC<ConstructorRasgoDoteProps> = ({
     setNuevoOpcionesTexto("");
     setNuevoSelectorTipo("unico");
     setNuevoSelectorMax(1);
+    setNuevoSelectorVisualizacion("normal");
     setModoCreandoSelector(false);
   };
 
@@ -1880,7 +1897,9 @@ export const ConstructorRasgoDote: React.FC<ConstructorRasgoDoteProps> = ({
               <div key={sel.id} className={estilos.tarjetaEfectoItem}>
                 <div className={estilos.cuerpoEfectoItem}>
                   <div className={estilos.filaBadgeEfecto}>
-                    <span className={estilos.badgeEfectoTipo}>Selector {sel.tipo === "multiple" ? `Múltiple (Hasta ${sel.maxSelecciones})` : "Único"}</span>
+                    <span className={estilos.badgeEfectoTipo}>
+                      Selector {sel.visualizacion === "lista" ? "Lista" : "Normal"} ({sel.tipo === "multiple" ? `Múltiple: hasta ${sel.maxSelecciones}` : "Único"})
+                    </span>
                     <span className={estilos.badgeEfectoValor}>{sel.opciones.length} opciones</span>
                   </div>
                   <span className={estilos.descripcionEfectoItem}>
@@ -1911,7 +1930,7 @@ export const ConstructorRasgoDote: React.FC<ConstructorRasgoDoteProps> = ({
               <span className={estilos.tituloNuevoEfecto}>Nuevo Selector de Opciones</span>
             </div>
 
-            <div className={estilos.gridDosColumnas}>
+            <div className={estilos.gridTresColumnas}>
               <div className={estilos.campoGrupo}>
                 <label className={estilos.labelCampo}>
                   <span>Etiqueta del Selector</span>
@@ -1950,6 +1969,20 @@ export const ConstructorRasgoDote: React.FC<ConstructorRasgoDoteProps> = ({
                     />
                   )}
                 </div>
+              </div>
+
+              <div className={estilos.campoGrupo}>
+                <label className={estilos.labelCampo}>
+                  <span>Formato de Visualización</span>
+                </label>
+                <SelectorDesplegable<"normal" | "lista">
+                  valor={nuevoSelectorVisualizacion}
+                  opciones={[
+                    { valor: "normal", etiqueta: "Selector Normal (Chips)" },
+                    { valor: "lista", etiqueta: "Selector Lista (Vertical)" }
+                  ]}
+                  alCambiar={(val) => setNuevoSelectorVisualizacion(val)}
+                />
               </div>
             </div>
 

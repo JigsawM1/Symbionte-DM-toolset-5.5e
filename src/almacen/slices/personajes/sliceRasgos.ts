@@ -5,7 +5,8 @@ import { obtenerMaxInvocacionesBrujo } from "@/constantes/invocacionesSobrenatur
 import {
   tieneMedioBonoHabilidades,
   aplicarAprendizDeMuchoAGradosHabilidades,
-  calcularBonoHPMaximoRasgos
+  calcularBonoHPMaximoRasgos,
+  calcularUsosMaximosRasgo
 } from "@/servicios/evaluadorEfectosRasgos";
 import { aplicarCondicion } from "@/servicios/procesadorCondiciones";
 import { mutarPersonaje } from "../helpers/mutarPersonaje";
@@ -28,7 +29,18 @@ export const crearSubSliceRasgos: StateCreator<
 > = (set, get) => ({
   agregarRasgoPersonaje: (idPj, rasgo) => {
     mutarPersonaje(set, idPj, (pj) => {
-      const rasgosActuales = [...(pj.rasgos || []), rasgo];
+      let rasgoAjustado = rasgo;
+      if (rasgo.tieneUsosLimitados) {
+        const maxUsos = rasgo.formulaEscalado
+          ? calcularUsosMaximosRasgo(rasgo, pj)
+          : (rasgo.usosMaximos ?? 1);
+        rasgoAjustado = {
+          ...rasgo,
+          usosMaximos: maxUsos,
+          usosRestantes: rasgo.usosRestantes !== undefined ? rasgo.usosRestantes : maxUsos
+        };
+      }
+      const rasgosActuales = [...(pj.rasgos || []), rasgoAjustado];
       const pjTemp = { ...pj, rasgos: rasgosActuales };
       const bonoPrevio = calcularBonoHPMaximoRasgos(pj);
       const bonoNuevo = calcularBonoHPMaximoRasgos(pjTemp);
@@ -66,8 +78,61 @@ export const crearSubSliceRasgos: StateCreator<
 
   eliminarRasgoPersonaje: (idPj, idRasgo) => {
     mutarPersonaje(set, idPj, (pj) => {
+      const rasgoAEliminar = (pj.rasgos || []).find((r) => r.id === idRasgo);
       const rasgosFiltrados = (pj.rasgos || []).filter((r) => r.id !== idRasgo);
       const pjTemp = { ...pj, rasgos: rasgosFiltrados };
+
+      // Purgar conjuros y trucos que otorgaba exclusivamente este rasgo
+      let conjurosSiempre = [...(pj.conjurosSiemprePreparadosIds || [])];
+      let conjurosPrep = [...(pj.conjurosPreparadosIds || [])];
+      let conjurosConoc = [...(pj.conjurosConocidosIds || [])];
+      let trucosConoc = [...(pj.trucosConocidosIds || [])];
+
+      if (rasgoAEliminar) {
+        const conjurosDelRasgo = new Set<string>();
+        if (Array.isArray(rasgoAEliminar.conjurosOtorgados)) {
+          rasgoAEliminar.conjurosOtorgados.forEach((c) => c && conjurosDelRasgo.add(c.toLowerCase().trim()));
+        }
+        if (Array.isArray(rasgoAEliminar.selectores)) {
+          rasgoAEliminar.selectores.forEach((s) => {
+            (s.valorActual || []).forEach((v) => v && conjurosDelRasgo.add(v.toLowerCase().trim()));
+          });
+        }
+        if (Array.isArray(rasgoAEliminar.efectos)) {
+          rasgoAEliminar.efectos.forEach((ef) => {
+            if (ef.tipo === "conjuro_otorgado" || ef.tipo === "conjuro_gratuito") {
+              const val = String(ef.objetivo || ef.valor || "").toLowerCase().trim();
+              if (val) conjurosDelRasgo.add(val);
+            }
+          });
+        }
+
+        if (conjurosDelRasgo.size > 0) {
+          // Verificar qué conjuros siguen otorgados por los rasgos restantes
+          const conjurosRestantes = new Set<string>();
+          for (const r of rasgosFiltrados) {
+            if (Array.isArray(r.conjurosOtorgados)) {
+              r.conjurosOtorgados.forEach((c) => c && conjurosRestantes.add(c.toLowerCase().trim()));
+            }
+            if (Array.isArray(r.selectores)) {
+              r.selectores.forEach((s) => {
+                (s.valorActual || []).forEach((v) => v && conjurosRestantes.add(v.toLowerCase().trim()));
+              });
+            }
+          }
+
+          const debeEliminarse = (idOTexto: string) => {
+            const norm = idOTexto.toLowerCase().trim();
+            return conjurosDelRasgo.has(norm) && !conjurosRestantes.has(norm);
+          };
+
+          conjurosSiempre = conjurosSiempre.filter((c) => !debeEliminarse(c));
+          conjurosPrep = conjurosPrep.filter((c) => !debeEliminarse(c));
+          conjurosConoc = conjurosConoc.filter((c) => !debeEliminarse(c));
+          trucosConoc = trucosConoc.filter((t) => !debeEliminarse(t));
+        }
+      }
+
       const bonoPrevio = calcularBonoHPMaximoRasgos(pj);
       const bonoNuevo = calcularBonoHPMaximoRasgos(pjTemp);
       const deltaBono = bonoNuevo - bonoPrevio;
@@ -77,7 +142,11 @@ export const crearSubSliceRasgos: StateCreator<
         ...pjTemp,
         hpMaximoBase: nuevoBase,
         hpMaximo: nuevoMax,
-        hpActual: Math.min(pj.hpActual, nuevoMax)
+        hpActual: Math.min(pj.hpActual, nuevoMax),
+        conjurosSiemprePreparadosIds: conjurosSiempre,
+        conjurosPreparadosIds: conjurosPrep,
+        conjurosConocidosIds: conjurosConoc,
+        trucosConocidosIds: trucosConoc
       };
     });
   },
@@ -89,10 +158,13 @@ export const crearSubSliceRasgos: StateCreator<
 
       const rasgosActualizados = (pj.rasgos || []).map((r) => {
         if (r.id === idObjetivoGasto && r.tieneUsosLimitados) {
-          const maxUsos = r.usosMaximos ?? 1;
+          const maxUsos = r.formulaEscalado
+            ? calcularUsosMaximosRasgo(r, pj)
+            : (r.usosMaximos ?? 1);
           const restantes = r.usosRestantes ?? maxUsos;
           return {
             ...r,
+            usosMaximos: maxUsos,
             usosRestantes: Math.max(0, restantes - 1)
           };
         }
@@ -109,10 +181,13 @@ export const crearSubSliceRasgos: StateCreator<
 
       const rasgosActualizados = (pj.rasgos || []).map((r) => {
         if (r.id === idObjetivoGasto && r.tieneUsosLimitados) {
-          const maxUsos = r.usosMaximos ?? 1;
+          const maxUsos = r.formulaEscalado
+            ? calcularUsosMaximosRasgo(r, pj)
+            : (r.usosMaximos ?? 1);
           const restantes = r.usosRestantes ?? 0;
           return {
             ...r,
+            usosMaximos: maxUsos,
             usosRestantes: Math.min(maxUsos, restantes + 1)
           };
         }
@@ -126,9 +201,12 @@ export const crearSubSliceRasgos: StateCreator<
     mutarPersonaje(set, idPj, (pj) => {
       const rasgosActualizados = (pj.rasgos || []).map((r) => {
         if (r.id === idRasgo && r.tieneUsosLimitados) {
-          const maxUsos = r.usosMaximos ?? 1;
+          const maxUsos = r.formulaEscalado
+            ? calcularUsosMaximosRasgo(r, pj)
+            : (r.usosMaximos ?? 1);
           return {
             ...r,
+            usosMaximos: maxUsos,
             usosRestantes: Math.max(0, Math.min(maxUsos, usos))
           };
         }
@@ -140,7 +218,18 @@ export const crearSubSliceRasgos: StateCreator<
 
   sincronizarRasgosPersonaje: (idPj) => {
     mutarPersonaje(set, idPj, (pj) => {
-      const rasgosSincronizados = sincronizarRasgosAutomaticos(pj);
+      const rasgosBase = sincronizarRasgosAutomaticos(pj);
+      const rasgosSincronizados = rasgosBase.map((r) => {
+        if (r.tieneUsosLimitados && r.formulaEscalado) {
+          const maxUsos = calcularUsosMaximosRasgo(r, pj);
+          return {
+            ...r,
+            usosMaximos: maxUsos,
+            usosRestantes: r.usosRestantes !== undefined ? Math.min(r.usosRestantes, maxUsos) : maxUsos
+          };
+        }
+        return r;
+      });
       const pjConRasgos = { ...pj, rasgos: rasgosSincronizados };
       const tieneAprendiz = tieneMedioBonoHabilidades(pjConRasgos);
       const gradosActualizados = aplicarAprendizDeMuchoAGradosHabilidades(
@@ -431,18 +520,45 @@ export const crearSubSliceRasgos: StateCreator<
             };
           });
 
-          // Si cambió el truco del Alto elfo, sincronizar conjurosOtorgados en el rasgo
-          let conjurosOtorgadosActualizados = r.conjurosOtorgados;
+          // Sincronizar reactivamente conjurosOtorgados a partir de los selectores de magia/conjuros
+          const esRasgoConMagia =
+            r.conjurosOtorgados !== undefined ||
+            r.selectores.some((s) => {
+              const sid = s.id.toLowerCase();
+              return sid.includes("truco") || sid.includes("conjuro") || sid.includes("hechizo");
+            });
+
+          let conjurosOtorgadosActualizados = r.conjurosOtorgados ? [...r.conjurosOtorgados] : [];
+
           if (nuevoTrucoAltoElfo) {
             conjurosOtorgadosActualizados = [
               nuevoTrucoAltoElfo,
-              ...(r.conjurosOtorgados || []).filter((id) => id !== trucoPrevioAltoElfo && id !== nuevoTrucoAltoElfo)
+              ...conjurosOtorgadosActualizados.filter((id) => id !== trucoPrevioAltoElfo && id !== nuevoTrucoAltoElfo)
             ];
+          } else if (esRasgoConMagia) {
+            const nuevosMagicos: string[] = [];
+            for (const s of selectoresActualizados) {
+              const sid = s.id.toLowerCase();
+              if (sid.includes("truco") || sid.includes("conjuro") || sid.includes("hechizo")) {
+                for (const v of s.valorActual || []) {
+                  if (v && !nuevosMagicos.includes(v)) {
+                    nuevosMagicos.push(v);
+                  }
+                }
+              }
+            }
+            conjurosOtorgadosActualizados = nuevosMagicos;
           }
+
+          const usosRestantesActualizados =
+            r.tieneUsosLimitados && r.usosRestantes === undefined
+              ? (r.usosMaximos ?? 1)
+              : r.usosRestantes;
 
           return {
             ...r,
             conjurosOtorgados: conjurosOtorgadosActualizados,
+            usosRestantes: usosRestantesActualizados,
             selectores: selectoresActualizados
           };
         }
@@ -456,6 +572,45 @@ export const crearSubSliceRasgos: StateCreator<
         if (!trucosConocidosActualizados.includes(nuevoTrucoAltoElfo)) {
           trucosConocidosActualizados = [...trucosConocidosActualizados, nuevoTrucoAltoElfo];
         }
+      }
+
+      // Sincronizar selectores de trucos y conjuros (ej. Iniciado en la Magia)
+      const selectorModificadoLower = idSelector.toLowerCase();
+      const esSelectorTruco = selectorModificadoLower.includes("truco") || selectorModificadoLower.includes("cantrip");
+      const esSelectorConjuro = selectorModificadoLower.includes("conjuro") || selectorModificadoLower.includes("hechizo") || selectorModificadoLower.includes("spell");
+
+      if (esSelectorTruco && Array.isArray(valorActual)) {
+        const rasgoPrevio = (pj.rasgos || []).find((r) => r.id === idRasgo);
+        const selectorPrevio = rasgoPrevio?.selectores?.find((s) => s.id === idSelector);
+        const valoresViejos = selectorPrevio?.valorActual || [];
+        trucosConocidosActualizados = trucosConocidosActualizados.filter((t) => !valoresViejos.includes(t) || valorActual.includes(t));
+        valorActual.forEach((v) => {
+          if (v && !trucosConocidosActualizados.includes(v)) {
+            trucosConocidosActualizados.push(v);
+          }
+        });
+      }
+
+      let conjurosSiempreActualizados = pj.conjurosSiemprePreparadosIds || [];
+      let conjurosPreparadosActualizados = pj.conjurosPreparadosIds || [];
+      let conjurosConocidosActualizados = pj.conjurosConocidosIds || [];
+
+      if (esSelectorConjuro && !esSelectorTruco && Array.isArray(valorActual)) {
+        const rasgoPrevio = (pj.rasgos || []).find((r) => r.id === idRasgo);
+        const selectorPrevio = rasgoPrevio?.selectores?.find((s) => s.id === idSelector);
+        const valoresViejos = selectorPrevio?.valorActual || [];
+
+        conjurosSiempreActualizados = conjurosSiempreActualizados.filter((c) => !valoresViejos.includes(c) || valorActual.includes(c));
+        conjurosPreparadosActualizados = conjurosPreparadosActualizados.filter((c) => !valoresViejos.includes(c) || valorActual.includes(c));
+        conjurosConocidosActualizados = conjurosConocidosActualizados.filter((c) => !valoresViejos.includes(c) || valorActual.includes(c));
+
+        valorActual.forEach((v) => {
+          if (v) {
+            if (!conjurosSiempreActualizados.includes(v)) conjurosSiempreActualizados.push(v);
+            if (!conjurosPreparadosActualizados.includes(v)) conjurosPreparadosActualizados.push(v);
+            if (!conjurosConocidosActualizados.includes(v)) conjurosConocidosActualizados.push(v);
+          }
+        });
       }
 
       let efectosActualizados = pj.efectosActivos || [];
@@ -516,6 +671,9 @@ export const crearSubSliceRasgos: StateCreator<
         ...pj,
         tamano: tamanoActualizado,
         trucosConocidosIds: trucosConocidosActualizados,
+        conjurosSiemprePreparadosIds: conjurosSiempreActualizados,
+        conjurosPreparadosIds: conjurosPreparadosActualizados,
+        conjurosConocidosIds: conjurosConocidosActualizados,
         rasgos: rasgosActualizados,
         efectosActivos: efectosActualizados,
         condicionesActivas: condicionesActualizadas

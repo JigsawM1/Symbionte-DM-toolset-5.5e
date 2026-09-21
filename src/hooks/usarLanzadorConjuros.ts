@@ -16,6 +16,7 @@ import { usarAlmacenDM } from "@/almacen/usarAlmacenDM";
 import { usarAccionesConfiguracion, usarEstadoConfiguracion } from "@/almacen/selectores/usarEstadoConfiguracion";
 import { tieneConjuroGratuitoActivo, obtenerBonoDanoConjuroExtra } from "@/servicios/evaluadorEfectosRasgos";
 import { obtenerModificadorAptitudMagica } from "@/servicios/calculadorMagia";
+import { coincideHechizoId } from "@/servicios/comparadorHechizos";
 
 export interface OpcionesLanzadorConjuros {
   personaje?: PersonajeJugador | null;
@@ -236,9 +237,9 @@ export function usarLanzadorConjuros(opciones: OpcionesLanzadorConjuros): Contro
               const hNomNorm = (solicitudCompleta.hechizo.nombre || "").toLowerCase().trim();
               const rasgoAsociado = (personaje.rasgos || []).find((r) =>
                 r.tieneUsosLimitados &&
-                (r.usosRestantes || 0) > 0 &&
+                (r.usosRestantes !== undefined ? r.usosRestantes : (r.usosMaximos ?? 1)) > 0 &&
                 (
-                  (r.conjurosOtorgados || []).includes(hId) ||
+                  (r.conjurosOtorgados || []).some((c) => coincideHechizoId(c, hId) || coincideHechizoId(c, solicitudCompleta.hechizo.nombre)) ||
                   r.nombre.toLowerCase().includes(hNomNorm) ||
                   hNomNorm.includes(r.nombre.toLowerCase())
                 )

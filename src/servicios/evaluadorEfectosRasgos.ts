@@ -14,6 +14,7 @@ import { ARMADURAS_OFICIALES } from "@/constantes/equipoConstantes";
 import { CATALOGO_CLASES_DND55 } from "@/constantes/clasesDND55";
 import { coincideHechizoId } from "@/servicios/comparadorHechizos";
 import { obtenerNivelEspacioPacto } from "@/constantes/invocacionesSobrenaturales";
+import { DOTES_ORIGEN_DND55 } from "@/constantes/dotesConstantes";
 import { logger } from "@/utiles/logger";
 
 
@@ -340,11 +341,8 @@ export function evaluarEfectosRasgosActivos(personaje: PersonajeJugador): Efecto
       for (const selector of rasgo.selectores) {
         const selecciones = selector.valorActual || [];
         for (const opId of selecciones) {
-          const baseId = opId.includes(":")
-            ? opId.split(":")[0]
-            : opId.includes("__")
-            ? opId.split("__")[0]
-            : opId;
+          const baseSinArg = opId.includes(":") ? opId.split(":")[0] : opId;
+          const baseId = baseSinArg.includes("__") ? baseSinArg.split("__")[0] : baseSinArg;
           const opcion = selector.opciones.find((o) => o.id === opId || o.id === baseId);
           if (opcion && Array.isArray(opcion.efectos)) {
             for (const efOp of opcion.efectos) {
@@ -365,6 +363,47 @@ export function evaluarEfectosRasgosActivos(personaje: PersonajeJugador): Efecto
                   ...efectoFinal,
                   descripcion: efectoFinal.descripcion || `${rasgo.nombre} (${opcion.nombre})`
                 });
+              }
+            }
+          }
+
+          // Soporte de efectos mecánicos para Lecciones de los Primeros (Dotes de origen canónicas)
+          if (baseId === "lecciones_de_los_primeros" && opId.includes(":")) {
+            const doteId = opId.split(":")[1];
+            const doteNorm = normalizar(doteId);
+            const dote = DOTES_ORIGEN_DND55.find(
+              (d) =>
+                d.id === doteId ||
+                normalizar(d.id) === doteNorm ||
+                normalizar(d.id).replace(/^dote_/, "") === doteNorm.replace(/^dote_/, "") ||
+                normalizar(d.nombre) === doteNorm ||
+                (doteNorm === "alert" && d.id === "dote_alerta") ||
+                (doteNorm === "crafter" && d.id === "dote_fabricante") ||
+                (doteNorm === "healer" && d.id === "dote_sanador") ||
+                (doteNorm === "musician" && d.id === "dote_musico") ||
+                (doteNorm === "lucky" && d.id === "dote_afortunado") ||
+                (doteNorm === "savage-attacker" && d.id === "dote_atacante_salvaje") ||
+                (doteNorm === "skilled" && d.id === "dote_habilidoso") ||
+                (doteNorm === "tough" && d.id === "dote_duro") ||
+                (doteNorm === "tavern-brawler" && d.id === "dote_maton_taberna")
+            );
+
+            if (dote && Array.isArray(dote.efectos)) {
+              const yaExisteEnRasgos = (personaje.rasgos || []).some(
+                (r) =>
+                  r.id === dote.id ||
+                  r.id === `dote_invocacion_${dote.id}` ||
+                  (r.origen === "dote" && normalizar(r.nombre) === normalizar(dote.nombre))
+              );
+              if (yaExisteEnRasgos) continue;
+
+              for (const efDote of dote.efectos) {
+                if (efDote.activo !== false && cumpleCondicionEfecto(efDote.condicion, personaje)) {
+                  efectosResultado.push({
+                    ...efDote,
+                    descripcion: efDote.descripcion || `Lecciones de los Primeros (${dote.nombre})`
+                  });
+                }
               }
             }
           }
@@ -463,6 +502,27 @@ export function calcularBonoVelocidadRasgos(personaje: PersonajeJugador): number
     if (ef.tipo === "modificador_velocidad") {
       const valNum = Number(ef.valor) || 0;
       bonoTotal += valNum;
+    }
+  }
+
+  return bonoTotal;
+}
+
+/**
+ * Calcula el bono numérico total a la iniciativa otorgado por rasgos activos
+ * (ej. Dote Alerta: +PB a la tirada de iniciativa).
+ * Función GENÉRICA PURA: no depende de nombres literales de rasgos ni razas.
+ */
+export function calcularBonoIniciativaRasgos(personaje: PersonajeJugador): number {
+  if (!personaje) return 0;
+  const efectos = evaluarEfectosRasgosActivos(personaje);
+  let bonoTotal = 0;
+
+  for (const ef of efectos) {
+    if (ef.tipo === "modificador_stat" && ef.objetivo === "iniciativa") {
+      const formulaResuelta = resolverFormulaDinamica(ef.valor, personaje);
+      const valorNumerico = evaluarExpresionNumericaSegura(formulaResuelta);
+      bonoTotal += valorNumerico;
     }
   }
 
@@ -1188,35 +1248,72 @@ export interface InfoAtaqueDesarmadoEspecial {
  * Evalúa si el personaje posee un rasgo activo que modifique el ataque sin armas
  * (ej. Daño bárdico del Colegio de la Danza, o rasgos Homebrew de combate desarmado).
  */
+function obtenerPesoDadoDesarmado(valorDado: string, nivelBardo: number): number {
+  if (valorDado === "dado_inspiracion" || valorDado === "dado_padre") {
+    if (nivelBardo >= 15) return 12;
+    if (nivelBardo >= 10) return 10;
+    if (nivelBardo >= 5) return 8;
+    return 6;
+  }
+  const match = valorDado.match(/(\d*)d(\d+)/i);
+  if (match) {
+    const cant = parseInt(match[1] || "1", 10);
+    const caras = parseInt(match[2], 10);
+    return cant * caras;
+  }
+  const num = Number(valorDado);
+  return isNaN(num) ? 0 : num;
+}
+
+/**
+ * Evalúa si el personaje posee un rasgo activo que modifique el ataque sin armas
+ * (ej. Daño bárdico del Colegio de la Danza, Matón de Taberna, o rasgos Homebrew de combate desarmado).
+ * Aplica precedencia por peso de modificación para que ataques marciales superiores prevalezcan sobre 1d4.
+ */
 export function evaluarAtaqueDesarmadoEspecial(personaje: PersonajeJugador): InfoAtaqueDesarmadoEspecial {
   const armadura = tieneArmaduraEquipada(personaje);
   const tieneEscudo = tieneEscudoEquipado(personaje);
   const sinArmaduraNiEscudo = !armadura.tieneArmadura && !tieneEscudo;
 
   const efectos = evaluarEfectosRasgosActivos(personaje);
-  for (const ef of efectos) {
-    if (ef.tipo === "ataque_desarmado") {
-      const exigeSinArmadura = ef.condicion === "sin_armadura" || ef.condicion === "sin_armadura_ni_escudo";
-      if (exigeSinArmadura && !sinArmaduraNiEscudo) continue;
+  const efectosDesarmadosValidos = efectos.filter((ef) => {
+    if (ef.tipo !== "ataque_desarmado") return false;
+    const exigeSinArmadura = ef.condicion === "sin_armadura" || ef.condicion === "sin_armadura_ni_escudo";
+    if (exigeSinArmadura && !sinArmaduraNiEscudo) return false;
+    return true;
+  });
 
-      let dadoDano = String(ef.valor || "1d6");
-      if (dadoDano === "dado_inspiracion" || dadoDano === "dado_padre") {
-        const nivelBardo = obtenerNivelClasePersonaje(personaje, "bardo") || personaje.nivel || 1;
-        dadoDano = obtenerDadoInspiracionBardica(nivelBardo);
-      }
-
-      const nombreAtaque = ef.descripcion || "Golpe sin Armas Especial";
-      return {
-        aplica: true,
-        caracteristicaSugerida: (ef.objetivo as Caracteristica) || "destreza",
-        dadoDanoBase: dadoDano,
-        nombreAtaque,
-        propiedades: [nombreAtaque, "Sutil"]
-      };
-    }
+  if (efectosDesarmadosValidos.length === 0) {
+    return { aplica: false };
   }
 
-  return { aplica: false };
+  const nivelBardo = obtenerNivelClasePersonaje(personaje, "bardo") || personaje.nivel || 1;
+
+  // Ordenar por peso de modificación descendente para que ataques mayores (Daño Bárdico 1d6-1d12)
+  // prevalezcan sobre opciones con menor peso de modificación (como Matón de Taberna 1d4)
+  const efectosOrdenados = [...efectosDesarmadosValidos].sort((a, b) => {
+    const pesoA = obtenerPesoDadoDesarmado(String(a.valor || "1d4"), nivelBardo);
+    const pesoB = obtenerPesoDadoDesarmado(String(b.valor || "1d4"), nivelBardo);
+    return pesoB - pesoA;
+  });
+
+  const ef = efectosOrdenados[0];
+  let dadoDano = String(ef.valor || "1d4");
+  if (dadoDano === "dado_inspiracion" || dadoDano === "dado_padre") {
+    dadoDano = obtenerDadoInspiracionBardica(nivelBardo);
+  }
+
+  const nombreAtaque = ef.descripcion || "Golpe sin Armas Especial";
+  const caracSugerida = (ef.objetivo as Caracteristica) || (dadoDano === "1d4" ? "fuerza" : "destreza");
+  const propiedades = caracSugerida === "fuerza" ? [nombreAtaque] : [nombreAtaque, "Sutil"];
+
+  return {
+    aplica: true,
+    caracteristicaSugerida: caracSugerida,
+    dadoDanoBase: dadoDano,
+    nombreAtaque,
+    propiedades
+  };
 }
 
 /**
@@ -1301,9 +1398,11 @@ export function obtenerConjurosOtorgadosPorRasgos(personaje: PersonajeJugador): 
 export function obtenerCompetenciasExtraRasgos(personaje: PersonajeJugador): {
   armasGrupos: ("sencillas" | "marciales" | "fuego")[];
   armadurasGrupos: ("ligeras" | "medias" | "pesadas" | "escudos")[];
+  armasImprovisadas?: boolean;
 } {
   const armas = new Set<"sencillas" | "marciales" | "fuego">();
   const armaduras = new Set<"ligeras" | "medias" | "pesadas" | "escudos">();
+  let armasImprovisadas = false;
 
   const efectos = evaluarEfectosRasgosActivos(personaje);
   for (const ef of efectos) {
@@ -1312,6 +1411,7 @@ export function obtenerCompetenciasExtraRasgos(personaje: PersonajeJugador): {
       if (texto.includes("marcial")) armas.add("marciales");
       if (texto.includes("sencill")) armas.add("sencillas");
       if (texto.includes("fuego")) armas.add("fuego");
+      if (texto.includes("improvisad")) armasImprovisadas = true;
 
       if (texto.includes("media") || texto.includes("mediana")) armaduras.add("medias");
       if (texto.includes("escudo")) armaduras.add("escudos");
@@ -1322,7 +1422,8 @@ export function obtenerCompetenciasExtraRasgos(personaje: PersonajeJugador): {
 
   return {
     armasGrupos: Array.from(armas),
-    armadurasGrupos: Array.from(armaduras)
+    armadurasGrupos: Array.from(armaduras),
+    armasImprovisadas
   };
 }
 
@@ -1394,6 +1495,36 @@ export function tieneConjuroGratuitoActivo(personaje: PersonajeJugador, nombreCo
     const cgNorm = normalizar(cg);
     return cgNorm === nomNorm || nomNorm.includes(cgNorm) || cgNorm.includes(nomNorm);
   });
+}
+
+/**
+ * Calcula dinámicamente los usos máximos de un rasgo considerando su fórmula de escalado
+ * (ej. "bono_competencia", "nivel", modificadores de característica).
+ * Si no posee escalado dinámico, retorna rasgo.usosMaximos ?? 1.
+ */
+export function calcularUsosMaximosRasgo(
+  rasgo: RasgoPersonaje,
+  personaje: PersonajeJugador
+): number {
+  if (!rasgo.tieneUsosLimitados) return 1;
+
+  const formula = (rasgo.formulaEscalado || "").toLowerCase().trim();
+  const nivelPj = Math.max(1, personaje.nivel || 1);
+
+  if (formula === "bono_competencia") {
+    return Math.floor((nivelPj - 1) / 4) + 2;
+  }
+  if (formula === "nivel") {
+    return nivelPj;
+  }
+  if (formula.startsWith("modificador_")) {
+    const stat = formula.replace("modificador_", "") as Caracteristica;
+    const score = personaje.overridesFijos?.[stat] ?? personaje.caracteristicas?.[stat] ?? 10;
+    const mod = Math.floor((score - 10) / 2);
+    return Math.max(1, mod);
+  }
+
+  return rasgo.usosMaximos ?? 1;
 }
 
 /**

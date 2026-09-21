@@ -19,6 +19,162 @@ Este archivo registra reglas globales, errores encontrados, sus causas raíz y l
    - **Bajo ninguna circunstancia** los módulos de lógica de negocio (`servicios/`), gestores de estado (`almacen/`) o constructores (`gestorClases.ts`) deben contener bifurcaciones condicionales por nombre literal de rasgo o clase (`r.nombre === "..."`, `clase.includes("...")`, etc.).
    - Toda mecánica, progresión de dados, escalado de usos, recuperación o desbloqueo dinámico debe resolverse mediante metadatos declarativos (`escaladoFormulaDados`, `escaladoUsos`, `escaladoRecuperacion`, `opcionesDinamicas`, `escaladoMaxSelecciones`, `sincronizarEfectosConFormula`, `heredarDadosPadre`, `gastarDePadre`, `ligadoA`, `efectos`) delegando en funciones puras agnósticas como `resolverEscaladosRasgo`. Esta regla está reforzada en CI vía ESLint `no-restricted-syntax` y la suite `rasgoGenericidad.test.ts`.
 
+## [2026-09-21] Soporte Declarativo de Visualización en el Builder de Rasgos: Selector Lista y Selector Normal
+
+**Contexto del Problema:**
+- En la interfaz del jugador, los selectores de opciones para rasgos extensos (como los conjuros de nivel 1 de *Iniciado en la Magia*) se renderizaban como una cuadrícula de pastillas/chips horizontales poco ergonómica para listas con descripciones ricas.
+- Se requería dar control total al creador/builder de rasgos y dotes (`ConstructorRasgoDote.tsx`) para elegir explícitamente entre el formato de "Selector Normal" (cuadrícula de tarjetas/chips) y "Selector Lista" (lista vertical completa con descripciones y scroll), eliminando cualquier heurística frágil por nombre.
+
+**Solución Aplicada Declarativamente:**
+1. **Contrato de Tipos (`src/tipos/rasgos.ts`)**:
+   - Se extendió `EsquemaSelectorRasgo` con `visualizacion: z.enum(["normal", "lista"]).default("normal").optional()`, garantizando tipado estricto sin romper retrocompatibilidad.
+2. **Builder de Rasgos y Dotes (`ConstructorRasgoDote.tsx`)**:
+   - Se incorporó en el formulario de nuevos selectores el campo "Formato de Visualización" (`SelectorDesplegable<"normal" | "lista">`) permitiendo escoger entre `Selector Normal (Chips)` y `Selector Lista (Vertical)`.
+   - Se persistió en el estado de `selectores` y se añadió el badge descriptivo en la lista de selectores creados.
+3. **Catálogo Declarativo Canónico (`dotesConstantes.ts`)**:
+   - Se asignó explícitamente `visualizacion: "lista"` a los selectores de conjuro de nivel 1 de *Iniciado en la Magia* (Clérigo, Druida y Mago).
+4. **Renderizado en Hoja del Jugador (`SeccionSelectoresModalRasgo.tsx` y `VistaRasgosJugador.module.css`)**:
+   - Se implementó la visualización en lista vertical (`.listaOpcionesSelectorModal`, `.itemListaSelectorModal`) que presenta el nombre en negrita, detalles o descripción visible (`Escuela • Tiempo • Alcance`), aviso de requisitos/bloqueo y check/candado a la derecha, acompañado de su buscador integrado.
+5. **Verificación y Pruebas**:
+   - `dotesOrigenMecanicas.test.ts` actualizado con aserciones para `visualizacion: "lista"`.
+   - 862/862 tests pasando en Vitest, compilación limpia en TypeScript `strict: true` y 0 advertencias en ESLint.
+
+## [2026-09-21] Escalado Dinámico de Usos por PB en Afortunado, Purga Limpia de Conjuros de Dotes y Lista Interactiva con Botón Gratis en Iniciado en la Magia
+
+**Contexto del Problema:**
+1. *Afortunado*: A nivel 9 (donde el bono de competencia es +PB = 4), la tarjeta y el modal mostraban `[- 2 / 4 +]`, pero al pulsar `+` el valor no subía de 2 y tras un descanso largo seguía restaurando únicamente 2/2 en lugar de 4/4.
+2. *Iniciado en la Magia*:
+   - El conjuro de nivel 1 se presentaba en un `<select>` desplegable nativo en lugar de una lista interactiva de tarjetas.
+   - Solo se disponía de un selector para trucos en lugar de 2 selectores independientes.
+   - El conjuro de nivel 1 no generaba el botón interactivo "Gratis" (1 lanzamiento gratuito por descanso largo) como ocurre en *Magia de alto elfo*.
+   - Al eliminar la dote tras haber seleccionado trucos y conjuros, estos quedaban atascados en `conjurosSiemprePreparadosIds`, `conjurosPreparadosIds` y `trucosConocidosIds`, bloqueando los checkboxes del compendio al considerarse permanentemente otorgados.
+
+**Causa Raíz Diagnosticada:**
+1. **Límite Estático en Store y Descansos:**
+   - Aunque la UI calculaba visualmente el límite en 4, `r.usosMaximos` persistido en el JSON del personaje era 2.
+   - En `sliceRasgos.ts`, `gastarUsoRasgoPersonaje`, `recuperarUsoRasgoPersonaje` y `establecerUsosRestantesRasgoPersonaje` usaban `Math.min(r.usosMaximos ?? 1, restantes + 1)`. Con `r.usosMaximos = 2`, `Math.min(2, 3)` devolvía 2, impidiendo incrementar el contador.
+   - En `procesadorDescansos.ts`, `ejecutarDescansoCorto` y `ejecutarDescansoLargo` restauraban `usosRestantes: rasgo.usosMaximos`, limitando la recarga a 2.
+   - En `ConstructorRasgoDote.tsx` y `SelectorInvocacionesAcordeon.tsx`, al instanciar el dote no se calculaba el PB actual del personaje.
+2. **Desincronización y Retención Huérfana de Conjuros al Eliminar Rasgos:**
+   - `eliminarRasgoPersonaje` filtraba `pj.rasgos`, pero no purgaba las listas globales de conjuros de la ficha. Dado que `resolutorOrigenConjuros.ts` indexa `conjurosSiemprePreparadosIds` bajo el badge `"rasgos"`, el sistema consideraba que seguían otorgados e impedía desmarcarlos.
+3. **Dropdown Forzado y Detección Estricta de Usos Restantes en Conjuros:**
+   - `SeccionSelectoresModalRasgo.tsx` forzaba `SelectorDesplegable` en cualquier selector con más de 8 opciones.
+   - En `SeccionNivelConjuros.tsx`, la detección de `rasgoInnatoGratuito` descartaba el rasgo si `typeof r.usosRestantes !== "number"`, de modo que si un rasgo recién agregado tenía `usosRestantes: undefined`, no se mostraba el botón "Gratis".
+
+**Solución Aplicada Quirúrgicamente:**
+1. **Servicio y Store de Usos Dinámicos (`evaluadorEfectosRasgos.ts`, `sliceRasgos.ts` y `procesadorDescansos.ts`):**
+   - Se implementó la función pura `calcularUsosMaximosRasgo(rasgo, personaje)` para resolver dinámicamente `"bono_competencia"` ($\lfloor(\text{nivel} - 1) / 4\rfloor + 2$), `"nivel"` y modificadores de característica.
+   - En `sliceRasgos.ts`, `gastarUsoRasgoPersonaje`, `recuperarUsoRasgoPersonaje` y `establecerUsosRestantesRasgoPersonaje` calculan dinámicamente `maxUsos` con `calcularUsosMaximosRasgo(r, pj)` y actualizan tanto `usosMaximos` como `usosRestantes`, desbloqueando el incremento hasta 4 a nivel 9.
+   - En `procesadorDescansos.ts`, tanto el descanso corto como el descanso largo evalúan `calcularUsosMaximosRasgo(rasgo, personaje)` para recargar completamente a 4/4.
+2. **Purga Limpia al Eliminar Rasgos (`sliceRasgos.ts`):**
+   - En `eliminarRasgoPersonaje`, se extraen todos los IDs de conjuros y trucos del rasgo eliminado (de `conjurosOtorgados`, `selectores` y `efectos`) y se purgan de `conjurosSiemprePreparadosIds`, `conjurosPreparadosIds`, `conjurosConocidosIds` y `trucosConocidosIds` siempre que ningún otro rasgo activo ni la subclase los sigan otorgando.
+3. **Lista Interactiva y Buscador en Selectores (`SeccionSelectoresModalRasgo.tsx` y `VistaRasgosJugador.module.css`):**
+   - Se excluyó el conjuro de nivel 1 de `esSelectorDesplegable`, presentándolo en la vista de lista/tarjetas interactivas (`gridOpcionesSelectorModal`).
+   - Se modularizó un buscador rápido con clases CSS `.contenedorBuscadorSelectorModal` e `.inputBuscadorSelectorModal` (cero estilos inline) para filtrar fácilmente opciones en listas largas.
+4. **Disponibilidad del Botón "Gratis" (`SeccionNivelConjuros.tsx`, `SeccionConjurosOcultos.tsx`, `SeccionAtaquesMagicos.tsx` y `usarLanzadorConjuros.ts`):**
+   - Se flexibilizó la detección evaluando `const restantes = r.usosRestantes !== undefined ? r.usosRestantes : (r.usosMaximos ?? 1)`.
+   - En `usarLanzadorConjuros.ts`, se incorporó `coincideHechizoId` para vincular de forma infalible el lanzamiento en modo `"gratuitoInnato"` con el rasgo otorgante y descontar su uso en la ficha.
+5. **Verificación y Pruebas Unitarias:**
+   - Nuevos tests de integración en `src/almacen/rasgosPersonaje.test.ts`, asegurando el cumplimiento estricto de la interfaz `OpcionSelector` con la propiedad obligatoria `descripcion`.
+   - 862/862 tests pasando al 100% en Vitest.
+   - 0 errores de compilación TypeScript (`strict: true`).
+   - 0 advertencias de ESLint.
+   - 111 componentes auditados bajo el límite de 500 líneas.
+
+## [2026-09-21] Corrección de Dotes de Origen: Selectores en Lista, Escalado PB en Afortunado y Flujo Canónico de Invocación "Lecciones de los Primeros"
+
+**Contexto del Problema:**
+- Se identificaron tres deficiencias tras la implementación inicial de las dotes de origen e invocaciones:
+  1. *Iniciado en la Magia*: La interfaz mostraba los hechizos de nivel 1 en chips de botones masivos en vez de una lista desplegable con buscador (`SelectorDesplegable`), solo permitía elegir un único truco (cuando la regla oficial otorga 2 trucos independientes), y el conjuro de nivel 1 seleccionado no se habilitaba con el botón interactivo "Gratis" (1 uso por descanso largo) como ocurre en *Magia de alto elfo*.
+  2. *Afortunado*: Los puntos de suerte/usos se mostraban fijos en 2 en la tarjeta de rasgo en lugar de escalar dinámicamente según el Bono de Competencia (+PB: 2 a 6 según el nivel del personaje).
+  3. *Lecciones de los Primeros*: La invocación requería un botón interactivo explícito que incorporara la dote seleccionada a la ficha del personaje (`personaje.rasgos`), aplicando de inmediato sus efectos reales (+2 HP/nv con Duro, +PB iniciativa con Alerta, armas improvisadas con Matón de taberna, etc.), sin duplicación mecánica y con posibilidad de removerla limpiamente.
+
+**Causa Raíz Diagnosticada:**
+1. **Chips vs Selectores Desplegables y Selectores Múltiples:** La plantilla de *Iniciado en la Magia* agrupaba los 2 trucos en un único selector de tipo `"multiple"` (`maxSelecciones: 2`), lo que forzaba a `SeccionSelectoresModalRasgo.tsx` a renderizar una nube de botones sin buscador y sin control independiente de cada selección. Además, los selectores de conjuro no activaban la integración con `SelectorDesplegable`.
+2. **Desajuste de Nomenclatura en Metadatos y Hook:** En `dotesConstantes.ts`, *Afortunado* se definió con `formulaUsos: "bono_competencia"` en vez del campo canónico `formulaEscalado: "bono_competencia"` de `EsquemaDotePersonaje`. Asimismo, en `usarAccionesTarjetaRasgo.ts`, la resolución de usos máximos no calculaba el bono de competencia para dotes cuando `formulaEscalado === "bono_competencia"`.
+3. **Desacoplamiento entre Invocación y Rasgos Canónicos:** Las dotes proyectadas por la invocación eran puramente sintéticas en la UI y carecían de integración con el flujo nativo de `agregarRasgoPersonaje`. Dado que `agregarRasgoPersonaje` ya recalcula de forma nativa los puntos de golpe máximos con `calcularBonoHPMaximoRasgos`, bastaba proveer un botón directo de incorporación/remoción que opere con la dote canónica en `personaje.rasgos`.
+
+**Solución Aplicada Quirúrgicamente:**
+1. **Ajuste de Plantillas de Iniciado en la Magia (`src/constantes/dotesConstantes.ts` y `src/tipos/rasgos.ts`):**
+   - Se agregaron dos selectores independientes de tipo `"unico"` (`selector_truco_1_...` y `selector_truco_2_...`) y un selector para el conjuro nivel 1 (`selector_conjuro_nv1_...`).
+   - Se corrigió `formulaEscalado: "bono_competencia"` en la dote *Afortunado*.
+   - Se agregó `formulaEscalado: z.string().optional()` en `EsquemaDotePersonaje`.
+2. **Renderizado de Selectores con Buscador (`SeccionSelectoresModalRasgo.tsx`):**
+   - Se integró `SelectorDesplegable` existente para selectores de conjuros y trucos únicos (`sel.id.includes("conjuro") || sel.id.includes("hechizo")`), reutilizando directamente `sel.opciones` con búsqueda y filtrado rápido sin duplicar componentes.
+3. **Cálculo Dinámico de Usos por PB (`usarAccionesTarjetaRasgo.ts`):**
+   - Se calculó `escalaPorBonoCompetencia = rasgo.formulaEscalado === "bono_competencia"` evaluando `bonoCompetenciaCalculado = Math.floor(((nivel - 1) / 4)) + 2` para determinar reactivamente los usos máximos.
+4. **Botón Interactivo en Selector de Invocaciones (`SelectorInvocacionesAcordeon.tsx` y `.module.css`):**
+   - Se añadió un botón "Agregar dote a la ficha" (con icono `Plus` de `lucide-react`) que despacha `agregarRasgoPersonaje` con la plantilla canónica completa.
+   - Si la dote ya reside en la ficha, se muestra el indicador "Dote en ficha" y el botón para removerla con `eliminarRasgoPersonaje`.
+   - Se aplicaron estilos CSS sin transiciones (0ms latencia TaleSpire CEF) y deduplicación en `utilidadesProgresionRasgos.ts` y `evaluadorEfectosRasgos.ts`.
+5. **Activación Automática de Lanzamiento Gratuito (`sliceRasgos.ts`):**
+   - En `actualizarSeleccionRasgo`, cuando se seleccionan conjuros en un rasgo con selectores de magia, se sincroniza reactivamente `conjurosOtorgados` y se inicializa `usosRestantes: 1` si el rasgo otorga lanzamientos gratuitos, permitiendo a `SeccionNivelConjuros.tsx` habilitar inmediatamente el botón "Gratis".
+
+## [2026-09-21] Proyección Reactiva de Tarjetas de Dotes de "Lecciones de los Primeros" en el Bloque de Dotes
+
+**Contexto del Problema:**
+- Aunque la invocación sobrenatural *Lecciones de los Primeros* aplicaba reactivamente sus beneficios mecánicos a los atributos del personaje (como +PB a iniciativa con Alerta o +2 HP/nv con Duro), en la pestaña de rasgos de la hoja del jugador (`VistaRasgosJugador.tsx`), las dotes seleccionadas no aparecían en el bloque visual de "Dotes" (`SeccionesRasgosActivos.tsx`).
+- Se requería que la invocación proyectara la tarjeta correspondiente a cada dote seleccionada en dicho bloque de Dotes, manteniendo la coherencia con el compendio y las reglas oficiales.
+
+**Causa Raíz Diagnosticada:**
+- El bloque visual de Dotes (`datosJerarquicos.dotes`) se nutrías exclusivamente de aquellos elementos en `personaje.rasgos` cuyo `origen === "dote"`.
+- Persistir manualmente copias de las dotes directamente en el arreglo `personaje.rasgos` resultaría en duplicación de efectos mecánicos (ya que `evaluadorEfectosRasgos.ts` ya resuelve `lecciones_de_los_primeros:${doteId}`) y generaría dotes huérfanas o desincronizadas al cambiar o desmarcar la invocación en el acordeón de clase.
+
+**Solución Aplicada Quirúrgicamente:**
+1. **Función Pura de Resolución Reactiva (`src/componentes/caracteristicas/rasgos/utilidadesProgresionRasgos.ts`):**
+   - Implementada `resolverDotesDesdeInvocaciones(rasgos: RasgoPersonaje[])`.
+   - Inspecciona los selectores de rasgos activos buscando selecciones `lecciones_de_los_primeros` (soportando claves directas `lecciones_de_los_primeros:id` e instancias repetibles `lecciones_de_los_primeros__timestamp:id`).
+   - Resuelve la plantilla canónica desde `DOTES_ORIGEN_DND55` y genera un `RasgoPersonaje` sintético tipado con `origen: "dote"`, fuente `"Lecciones de los Primeros (Brujo)"`, metadatos y descripción completa oficial.
+2. **Integración en el Hook de la Vista (`src/componentes/caracteristicas/rasgos/usarVistaRasgos.ts`):**
+   - `rasgosFiltrados` combina los rasgos del personaje con las dotes sintetizadas, permitiendo que la búsqueda por texto y los filtros por tipo de acción apliquen naturalmente a estas dotes.
+   - `agruparRasgosJerarquicos` clasifica de forma automática estas dotes en `datosJerarquicos.dotes` gracias a su `origen === "dote"`.
+   - Se expone `totalRasgosPj` considerando la cantidad de dotes de invocación.
+3. **Seguridad y Consistencia en la UI (`src/componentes/caracteristicas/rasgos/VistaRasgosJugador.tsx`):**
+   - Para las dotes originadas por invocación (`id.startsWith("dote_invocacion_")`), se pasan `alEditar={undefined}` y `alEliminar={undefined}` en `renderizarTarjetaRasgo`. Esto oculta los botones de lápiz y papelera, garantizando que el usuario gestione sus dotes de brujo a través del selector reglamentario en la sección de su clase y evitando desincronizaciones accidentales.
+4. **Pruebas y Verificación:**
+   - Pruebas unitarias dedicadas en `utilidadesProgresionRasgos.test.ts` (9 tests pasando).
+   - 856/856 tests globales pasando al 100% en Vitest.
+   - 0 errores en TypeScript estricto y 0 advertencias de ESLint.
+
+## [2026-09-21] Implementación Canónica de Dotes de Origen D&D 5.5e y Conexión de Invocación "Lecciones de los Primeros"
+
+**Contexto del Problema:**
+- Se requería implementar las 12 dotes de origen oficiales de D&D 5.5e a partir del compendio canónico en `dicionario_herramientas/dotes/origen/` (descartando el archivo provisional `dotes.json`).
+- Entre los requerimientos mecánicos específicos:
+  1. *Alerta*: Suma el bono de competencia (+PB) a la tirada de iniciativa.
+  2. *Duro*: Suma +2 HP máximos por nivel (mecánica idéntica al escalado de Aguante Enano).
+  3. *Matón de taberna*: Modifica el ataque desarmado a 1d4 + Fuerza y otorga competencia con armas improvisadas, debiendo tener el menor peso de modificación frente a otras habilidades marciales (ej. Daño Bárdico 1d6-1d12).
+  4. *Iniciado en la magia*: Separado en 3 variantes oficiales (*Clérigo*, *Druida*, *Mago*), cada una permitiendo seleccionar 2 trucos y 1 conjuro de nivel 1 de su lista respectiva.
+  5. *Fabricante*, *Sanador*, *Músico*, *Afortunado*, *Atacante salvaje*, *Habilidoso*: Informativos y consumibles según sus reglas PHB 2024.
+- Además, la invocación sobrenatural de Brujo *Lecciones de los Primeros* (`lecciones_de_los_primeros`) utilizaba un archivo obsoleto `dotes.json` y claves en inglés (`alert`, `crafter`), sin propagar reactivamente los beneficios mecánicos de la dote elegida a la hoja del brujo.
+
+**Causa Raíz Diagnosticada:**
+1. **Ausencia de Catálogo Canónico Tipado:** No existía un módulo TypeScript que expusiera las 12 dotes de origen estructuradas según `EsquemaDotePersonaje`.
+2. **Desconexión en el Evaluador de Rasgos:** La invocación *Lecciones de los Primeros* guardaba la selección en `selector.valorActual` (`lecciones_de_los_primeros:id`), pero `evaluarEfectosRasgosActivos` en `evaluadorEfectosRasgos.ts` no extraía los efectos mecánicos de la dote seleccionada para inyectarlos en el personaje.
+3. **Cálculo de Iniciativa Acoplado:** La iniciativa se calculaba únicamente con la Destreza y bonos fijos de configuración sin una función pura que evaluara dinámicamente los efectos `modificador_stat` con objetivo `iniciativa`.
+4. **Falta de Ponderación en Ataque Desarmado:** `evaluarAtaqueDesarmadoEspecial` tomaba el primer rasgo encontrado sin verificar si un rasgo de clase superior (como el Virtuoso de la Danza) debía tener precedencia sobre un 1d4 de dote.
+
+**Solución Aplicada Quirúrgicamente:**
+1. **Módulo de Dotes Oficiales (`src/constantes/dotesConstantes.ts`):**
+   - Implementadas las 12 dotes con descripciones oficiales en español, prerrequisitos de nivel 1 (Origen) y efectos declarativos.
+   - Las 3 variantes de *Iniciado en la Magia* incluyen selectores tipados con trucos y conjuros de nivel 1 extraídos automáticamente de `all.json` para Clérigo, Druida y Mago.
+   - Reexportado limpiamente en `src/constantes/rasgosDND55.ts` manteniendo el archivo principal bajo el límite de 500 líneas.
+2. **Servicio de Evaluación Mecánica (`src/servicios/evaluadorEfectosRasgos.ts`):**
+   - Implementada la función pura `calcularBonoIniciativaRasgos(personaje)` que resuelve dinámicamente fórmulas tipo `bono_competencia` (+PB).
+   - Actualizada la función `evaluarAtaqueDesarmadoEspecial` incorporando `obtenerPesoDadoDesarmado`, garantizando que ataques desarmados de mayor peso (1d6 a 1d12 de Bardo o Monje) prevalezcan sobre el 1d4 de Matón de taberna.
+   - Conectada la competencia con armas improvisadas (`armasImprovisadas: true`) en `obtenerCompetenciasExtraRasgos`.
+   - Soporte reactivo en `evaluarEfectosRasgosActivos` para `lecciones_de_los_primeros:${doteId}`, buscando la dote canónica en `DOTES_ORIGEN_DND55` (con retrocompatibilidad para IDs antiguos) e inyectando sus efectos mecánicos directamente al brujo.
+3. **Selector de Invocaciones (`SelectorInvocacionesAcordeon.tsx`):**
+   - Eliminada la importación del provisional `dotes.json`.
+   - `dotesOrigenOpciones` ahora mapea directamente `DOTES_ORIGEN_DND55`, mostrando las 12 dotes con nombres y fuentes oficiales. Fallbacks actualizados a `dote_alerta`.
+4. **Integración en la Vista y Hoja de Personaje:**
+   - `MetricasRapidasPersonaje.tsx`, `HojaPersonaje.tsx` y `lanzadorDados.ts` integran `calcularBonoIniciativaRasgos`.
+   - `calculadorAtaquesArmas.ts` y `calculadorAtaqueDesarmado.ts` consumen las nuevas competencias y ataques desarmados.
+5. **Pruebas y Verificación:**
+   - Creada suite `dotesOrigenMecanicas.test.ts` (16 tests) y ampliada `invocacionesBrujoMecanicas.test.ts` (28 tests).
+   - 853/853 tests pasando en verde en todo el proyecto.
+   - TypeScript estricto con 0 errores y ESLint con 0 advertencias.
+
 ## [2026-09-20] Unificación de Lógica de Conjuros (Fase 1 y Fase 2): Pertenencia O(1), Paridad Acciones-Compendio y UX de Clases de Conocidos/Preparadores
 
 **Contexto del Problema:**
@@ -8418,6 +8574,54 @@ Optimizar la complejidad temporal (Big O) en las operaciones de búsqueda, orden
 - **Tests unitarios**: **86+ tests específicos pasando sin un solo fallo** (13 en `logicaPertenenciaConjuros.test.ts`, 21 en `calculadorAccionesCombate.test.ts`, 19 en `integracionConjuros.test.ts`, 24 en `invocacionesBrujoMecanicas.test.ts`, 13 en `resolutorOrigenConjuros.test.ts`).
 - **Suite global de servicios**: **31 archivos de prueba superados, 479/479 tests pasando (100%)**.
 - **TypeScript**: `pnpm tsc --noEmit` completado con **0 errores** (Strict Mode estricto).
+
+---
+
+## [2026-09-21] Implementación Canónica de Dotes de Origen (D&D 5.5e / PHB 2024)
+
+### 1. Contexto y Objetivos
+- Se implementaron las 12 dotes de origen oficiales derivadas directamente de `dicionario_herramientas/dotes/origen/*.md`:
+  1. `dote_alerta`: Alerta (+PB a la tirada de iniciativa, intercambio de iniciativa informativo).
+  2. `dote_fabricante`: Fabricante (informativa con competencias en herramientas y descuentos).
+  3. `dote_sanador`: Sanador (informativa con Médico de batalla y relanzar 1s).
+  4. `dote_iniciado_magia_clerigo`: Iniciado en la Magia (Clérigo) (2 trucos clérigo, 1 conjuro nivel 1 clérigo, selector de aptitud mágica, 1 uso gratis/descanso largo).
+  5. `dote_iniciado_magia_druida`: Iniciado en la Magia (Druida) (2 trucos druida, 1 conjuro nivel 1 druida, selector de aptitud mágica, 1 uso gratis/descanso largo).
+  6. `dote_iniciado_magia_mago`: Iniciado en la Magia (Mago) (2 trucos mago, 1 conjuro nivel 1 mago, selector de aptitud mágica, 1 uso gratis/descanso largo).
+  7. `dote_musico`: Músico (informativa con competencias en instrumentos y Canción alentadora).
+  8. `dote_afortunado`: Afortunado (recurso consumible táctico con usos iguales a PB y recuperación en descanso largo).
+  9. `dote_atacante_salvaje`: Atacante Salvaje (informativa con repetición de daño de arma 1 vez/turno).
+  10. `dote_habilidoso`: Habilidoso (informativa con 3 competencias en habilidades/herramientas, repetible).
+  11. `dote_duro`: Duro (+2 HP máximos por nivel de personaje con fórmula `2*nivel`).
+  12. `dote_maton_taberna`: Matón de Taberna (ataque desarmado 1d4 + FUE con menor peso de modificación + competencia con armas improvisadas).
+- Se descartó el archivo provisional `dotes.json` y se migraron todos los consumidores al catálogo canónico estructurado.
+
+### 2. Decisiones Arquitectónicas y Patrones
+1. **Modularización y Control de Líneas (`src/constantes/dotesConstantes.ts`)**:
+   - Para no sobrepasar el umbral estricto de 500 líneas en `rasgosDND55.ts`, se creó `src/constantes/dotesConstantes.ts` conteniendo `DOTES_ORIGEN_DND55`, `DOTES_GENERALES_Y_EPICAS_DND55` y `TODAS_LAS_DOTES_CANONICAS_DND55`.
+   - `rasgosDND55.ts` reexporta estas constantes, reduciendo su longitud a ~407 líneas y cumpliendo 100% el script `verificar-limite-lineas.js`.
+2. **Tipado Enriquecido y Retrocompatible (`src/tipos/rasgos.ts`)**:
+   - Se extendió `EsquemaDotePersonaje` con campos opcionales (`efectos`, `selectores`, `tieneUsosLimitados`, `usosMaximos`, `formulaUsos`, `recuperacion`, `categoriaMecanica`, `tipoAccion`, `repetible`).
+3. **Función Genérica Pura para Iniciativa (`calcularBonoIniciativaRasgos`)**:
+   - Siguiendo la **Regla 6**, no se bifurca por nombre del rasgo `"Alerta"`. La función evalúa efectos activos con `tipo === "modificador_stat"` y `objetivo === "iniciativa"`, resolviendo la fórmula dinámica (`bono_competencia`, `pb`, etc.) de forma agnóstica.
+   - Se conectó en `MetricasRapidasPersonaje.tsx`, `HojaPersonaje.tsx` y `lanzadorDados.ts`.
+4. **Precedencia por Peso de Modificación en Ataque Desarmado**:
+   - `evaluarAtaqueDesarmadoEspecial` evalúa los efectos de `ataque_desarmado` activos y los ordena descendentemente según el peso del dado (`dado_inspiracion` / Daño Bárdico 6-12 > `1d6` 6 > `1d4` 4 de Matón de Taberna).
+   - De esta forma, Matón de Taberna actúa como un suelo/modificador de menor peso que no aplasta opciones marciales superiores.
+   - `obtenerCompetenciasExtraRasgos` detecta `armasImprovisadas` y `calcularAtaqueImprovisado` otorga competencia al ataque improvisado.
+5. **Builder de Rasgos Reactivo e Integrado**:
+   - Tanto `ConstructorRasgoDote.tsx` como `ModalCrearEditarRasgo.tsx` precargan automáticamente la configuración mecánica completa al elegir un preset oficial (efectos, selectores, usos, categoría y recuperación).
+6. **Migración de `SelectorInvocacionesAcordeon.tsx`**:
+   - Se reemplazó la lectura de `dotes.json` por `DOTES_ORIGEN_DND55`, eliminando dependencias de datos provisionales obsoletos.
+
+### 3. Errores Detectados y Correcciones
+- **Error TS6196 en `rasgosDND55.ts`**: Al reexportar `DOTES_CANONICAS_DND55`, quedó una importación huérfana de `DotePersonaje`. Se eliminó de inmediato.
+- **Error ESLint `no-explicit-any` en `dotesOrigenMecanicas.test.ts`**: Dos aserciones usaban `as any` para simular estadísticas. Se importó `EstadisticasCalculadasPersonaje` y se tipó estrictamente con `unknown as EstadisticasCalculadasPersonaje`.
+
+### 4. Métricas de Validación
+- **Tests Unitarios**: **68 suites superadas, 849/849 tests pasando (100%)**, incluyendo los 16 tests específicos de `src/servicios/dotesOrigenMecanicas.test.ts`.
+- **TypeScript**: `pnpm exec tsc --noEmit` completado con **0 errores** (Strict Mode estricto).
+- **ESLint**: `pnpm exec eslint src --max-warnings=0` con **0 errores y 0 advertencias**.
+- **Control de Líneas**: `node scripts/verificar-limite-lineas.js` con **0 errores críticos**.
 
 
 

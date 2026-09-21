@@ -1608,3 +1608,108 @@
   background: #131b26;
 }
 
+.contenedorBuscadorSelectorModal {
+  margin-top: 6px;
+  margin-bottom: 8px;
+}
+
+.inputBuscadorSelectorModal {
+  width: 100%;
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 4px;
+  padding: 4px 8px;
+  font-size: 12px;
+  color: #f8fafc;
+  outline: none;
+}
+
+.inputBuscadorSelectorModal:focus {
+  border-color: #38bdf8;
+}
+
+/* Lista vertical de opciones para selectores en modal (Formato Lista) */
+.listaOpcionesSelectorModal {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 240px;
+  overflow-y: auto;
+  padding-right: 4px;
+  margin-top: 6px;
+}
+
+.itemListaSelectorModal {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 8px 12px;
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(148, 163, 184, 0.15);
+  border-radius: 6px;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  gap: 12px;
+}
+
+.itemListaSelectorModal:hover:not(:disabled) {
+  background: rgba(56, 189, 248, 0.12);
+  border-color: rgba(56, 189, 248, 0.4);
+}
+
+.itemListaSelectorModalActivo {
+  background: rgba(56, 189, 248, 0.2) !important;
+  border-color: #38bdf8 !important;
+  box-shadow: 0 0 8px rgba(56, 189, 248, 0.25);
+}
+
+.itemListaSelectorModalBloqueado {
+  opacity: 0.45;
+  cursor: not-allowed;
+  background: rgba(15, 23, 42, 0.3);
+  border-color: rgba(239, 68, 68, 0.25);
+}
+
+.infoItemListaSelector {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.nombreItemListaSelector {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #f8fafc;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.descripcionItemListaSelector {
+  font-size: 0.75rem;
+  color: #94a3b8;
+  line-height: 1.25;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.avisoBloqueoItemLista {
+  font-size: 0.72rem;
+  color: #f87171;
+  font-weight: 500;
+}
+
+.iconoCheckListaSelector {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #38bdf8;
+  flex-shrink: 0;
+}
+

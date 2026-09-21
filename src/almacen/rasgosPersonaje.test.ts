@@ -156,4 +156,139 @@ describe("Gestión de Rasgos en el Store Zustand y Descansos", () => {
     expect(rCortoLargo?.usosRestantes).toBe(1);
     expect(rLargoLargo?.usosRestantes).toBe(1);
   });
+
+  it("dote Afortunado a nivel 9 escala sus usos a 4 (+PB), permite gastar/recuperar hasta 4 y descanso largo lo restaura a 4", () => {
+    const store = usarAlmacenDM.getState();
+    // Subir personaje a nivel 9 (PB = 4)
+    usarAlmacenDM.setState((s) => ({
+      personajes: s.personajes.map((p) =>
+        p.id === "pj_test_rasgos" ? { ...p, nivel: 9 } : p
+      )
+    }));
+
+    const doteAfortunado: RasgoPersonaje = {
+      id: "dote_afortunado",
+      nombre: "Afortunado",
+      descripcion: "Puntos de suerte iguales a PB",
+      origen: "dote",
+      fuente: "PHB 2024",
+      tipoAccion: "reaccion",
+      tieneUsosLimitados: true,
+      usosMaximos: 2, // Plantilla estática base
+      formulaEscalado: "bono_competencia",
+      recuperacion: "descanso_largo",
+      personalizado: false,
+      activo: true,
+      notas: ""
+    };
+
+    // 1. Al agregar en personaje nivel 9, debe arrancar en 4 usos
+    store.agregarRasgoPersonaje("pj_test_rasgos", doteAfortunado);
+    let pj = usarAlmacenDM.getState().personajes.find((p) => p.id === "pj_test_rasgos");
+    let rasgo = pj?.rasgos.find((r) => r.id === "dote_afortunado");
+    expect(rasgo?.usosMaximos).toBe(4);
+    expect(rasgo?.usosRestantes).toBe(4);
+
+    // 2. Gastar 1 uso -> 3
+    store.gastarUsoRasgoPersonaje("pj_test_rasgos", "dote_afortunado");
+    pj = usarAlmacenDM.getState().personajes.find((p) => p.id === "pj_test_rasgos");
+    rasgo = pj?.rasgos.find((r) => r.id === "dote_afortunado");
+    expect(rasgo?.usosRestantes).toBe(3);
+
+    // 3. Recuperar uso (botón '+') -> Debe permitir subir a 4 y no atascarse en 2
+    store.recuperarUsoRasgoPersonaje("pj_test_rasgos", "dote_afortunado");
+    pj = usarAlmacenDM.getState().personajes.find((p) => p.id === "pj_test_rasgos");
+    rasgo = pj?.rasgos.find((r) => r.id === "dote_afortunado");
+    expect(rasgo?.usosRestantes).toBe(4);
+
+    // Intentar recuperar más allá del PB -> No debe superar 4
+    store.recuperarUsoRasgoPersonaje("pj_test_rasgos", "dote_afortunado");
+    pj = usarAlmacenDM.getState().personajes.find((p) => p.id === "pj_test_rasgos");
+    rasgo = pj?.rasgos.find((r) => r.id === "dote_afortunado");
+    expect(rasgo?.usosRestantes).toBe(4);
+
+    // 4. Vaciar a 0 y descansar -> Descanso largo debe restaurar a 4/4
+    store.establecerUsosRestantesRasgoPersonaje("pj_test_rasgos", "dote_afortunado", 0);
+    pj = usarAlmacenDM.getState().personajes.find((p) => p.id === "pj_test_rasgos");
+    rasgo = pj?.rasgos.find((r) => r.id === "dote_afortunado");
+    expect(rasgo?.usosRestantes).toBe(0);
+
+    const resDescanso = ejecutarDescansoLargo(pj!);
+    const rasgoTrasDescanso = resDescanso.personajeActualizado.rasgos.find((r) => r.id === "dote_afortunado");
+    expect(rasgoTrasDescanso?.usosMaximos).toBe(4);
+    expect(rasgoTrasDescanso?.usosRestantes).toBe(4);
+  });
+
+  it("al eliminar una dote mágica (Iniciado en la Magia), se purgan limpiamente sus conjuros y trucos de la ficha", () => {
+    const store = usarAlmacenDM.getState();
+
+    const doteMagia: RasgoPersonaje = {
+      id: "dote_iniciado_magia_clerigo",
+      nombre: "Iniciado en la Magia (Clérigo)",
+      descripcion: "Aprendes 2 trucos y 1 conjuro.",
+      origen: "dote",
+      fuente: "PHB 2024",
+      tipoAccion: "pasivo",
+      tieneUsosLimitados: true,
+      usosMaximos: 1,
+      usosRestantes: 1,
+      recuperacion: "descanso_largo",
+      conjurosOtorgados: ["guia", "bendicion"],
+      selectores: [
+        {
+          id: "selector_truco_1_iniciado_clerigo",
+          tipo: "unico",
+          etiqueta: "Primer Truco",
+          maxSelecciones: 1,
+          opciones: [{ id: "guia", nombre: "Guía", descripcion: "Truco de clérigo" }],
+          valorActual: ["guia"]
+        },
+        {
+          id: "selector_conjuro_nv1_iniciado_clerigo",
+          tipo: "unico",
+          etiqueta: "1 Conjuro Nv1",
+          maxSelecciones: 1,
+          opciones: [{ id: "bendicion", nombre: "Bendición", descripcion: "Conjuro de nivel 1" }],
+          valorActual: ["bendicion"]
+        }
+      ],
+      personalizado: false,
+      activo: true,
+      notas: ""
+    };
+
+    store.agregarRasgoPersonaje("pj_test_rasgos", doteMagia);
+
+    // Simular que el selector sincronizó los conjuros en la ficha
+    usarAlmacenDM.setState((s) => ({
+      personajes: s.personajes.map((p) =>
+        p.id === "pj_test_rasgos"
+          ? {
+              ...p,
+              trucosConocidosIds: ["guia", "prestidigitacion"],
+              conjurosSiemprePreparadosIds: ["bendicion", "escudo"],
+              conjurosPreparadosIds: ["bendicion", "escudo"],
+              conjurosConocidosIds: ["bendicion", "escudo"]
+            }
+          : p
+      )
+    }));
+
+    // Eliminar el dote
+    store.eliminarRasgoPersonaje("pj_test_rasgos", "dote_iniciado_magia_clerigo");
+
+    const pjTrasEliminar = usarAlmacenDM.getState().personajes.find((p) => p.id === "pj_test_rasgos");
+
+    // 'guia' y 'bendicion' deben haberse purgado
+    expect(pjTrasEliminar?.trucosConocidosIds).not.toContain("guia");
+    expect(pjTrasEliminar?.conjurosSiemprePreparadosIds).not.toContain("bendicion");
+    expect(pjTrasEliminar?.conjurosPreparadosIds).not.toContain("bendicion");
+    expect(pjTrasEliminar?.conjurosConocidosIds).not.toContain("bendicion");
+
+    // Los conjuros ajenos no relacionados deben preservarse intactos
+    expect(pjTrasEliminar?.trucosConocidosIds).toContain("prestidigitacion");
+    expect(pjTrasEliminar?.conjurosSiemprePreparadosIds).toContain("escudo");
+    expect(pjTrasEliminar?.conjurosPreparadosIds).toContain("escudo");
+    expect(pjTrasEliminar?.conjurosConocidosIds).toContain("escudo");
+  });
 });

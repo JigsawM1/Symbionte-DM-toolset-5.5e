@@ -1,5 +1,12 @@
 import React, { useState, useEffect } from "react";
-import type { RasgoPersonaje, OrigenRasgo, TipoAccionRasgo, RecuperacionRasgo } from "@/tipos";
+import type {
+  RasgoPersonaje,
+  OrigenRasgo,
+  TipoAccionRasgo,
+  RecuperacionRasgo,
+  EfectoMecanicoRasgo,
+  SelectorRasgo
+} from "@/tipos";
 import { DOTES_CANONICAS_DND55 } from "@/constantes/rasgosDND55";
 import { generarId } from "@/utiles/generarId";
 import { Plus, Edit2, X, Check } from "lucide-react";
@@ -57,6 +64,11 @@ export const ModalCrearEditarRasgo: React.FC<ModalCrearEditarRasgoProps> = ({
   const [recuperacion, setRecuperacion] = useState<RecuperacionRasgo>(rasgoInicial?.recuperacion || "descanso_largo");
   const [formulaDados, setFormulaDados] = useState(rasgoInicial?.formulaDados || "");
   const [notas, setNotas] = useState(rasgoInicial?.notas || "");
+  const [efectosDote, setEfectosDote] = useState<EfectoMecanicoRasgo[]>(rasgoInicial?.efectos || []);
+  const [selectoresDote, setSelectoresDote] = useState<SelectorRasgo[]>(rasgoInicial?.selectores || []);
+  const [categoriaMecanicaDote, setCategoriaMecanicaDote] = useState<
+    "consumible" | "activable" | "selector_informativo" | "pasivo_permanente" | "extension" | "curacion" | undefined
+  >(rasgoInicial?.categoriaMecanica);
 
   // Selector de plantillas de dotes
   const [dotePredefinidaSeleccionada, setDotePredefinidaSeleccionada] = useState<string>("");
@@ -77,7 +89,13 @@ export const ModalCrearEditarRasgo: React.FC<ModalCrearEditarRasgoProps> = ({
       setDescripcion(dote.descripcion);
       setOrigen("dote");
       setFuente(dote.fuente || "PHB 2024");
-      setTipoAccion("pasivo");
+      setTipoAccion(dote.tipoAccion || "pasivo");
+      setTieneUsosLimitados(Boolean(dote.tieneUsosLimitados));
+      setUsosMaximos(dote.usosMaximos || 1);
+      setRecuperacion(dote.recuperacion || (dote.tieneUsosLimitados ? "descanso_largo" : "ninguno"));
+      setEfectosDote(dote.efectos ? JSON.parse(JSON.stringify(dote.efectos)) : []);
+      setSelectoresDote(dote.selectores ? JSON.parse(JSON.stringify(dote.selectores)) : []);
+      setCategoriaMecanicaDote(dote.categoriaMecanica);
     }
   };
 
@@ -102,7 +120,10 @@ export const ModalCrearEditarRasgo: React.FC<ModalCrearEditarRasgoProps> = ({
       formulaDados: formulaDados.trim() || undefined,
       personalizado: true,
       activo: true,
-      notas: notas.trim()
+      notas: notas.trim(),
+      categoriaMecanica: categoriaMecanicaDote,
+      efectos: efectosDote.length > 0 ? efectosDote : undefined,
+      selectores: selectoresDote.length > 0 ? selectoresDote : undefined
     };
 
     alGuardar(rasgoFinal);

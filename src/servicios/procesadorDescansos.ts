@@ -1,6 +1,9 @@
 import type { PersonajeJugador } from "@/tipos";
 import { recargarCargasItem } from "@/servicios/procesadorConsumibles";
-import { evaluarRecuperacionInspiracionEnDescanso } from "@/servicios/evaluadorEfectosRasgos";
+import {
+  evaluarRecuperacionInspiracionEnDescanso,
+  calcularUsosMaximosRasgo
+} from "@/servicios/evaluadorEfectosRasgos";
 
 // ==========================================
 // 1. INTERFACES Y CONTRATOS EXTENSIBLES
@@ -122,13 +125,16 @@ export function ejecutarDescansoCorto(
   const rasgosActualizadosCorto = (personaje.rasgos || []).map((rasgo) => {
     if (
       rasgo.tieneUsosLimitados &&
-      rasgo.recuperacion === "descanso_corto" &&
-      typeof rasgo.usosMaximos === "number" &&
-      typeof rasgo.usosRestantes === "number" &&
-      rasgo.usosRestantes < rasgo.usosMaximos
+      rasgo.recuperacion === "descanso_corto"
     ) {
-      rasgosRecargadosCorto++;
-      return { ...rasgo, usosRestantes: rasgo.usosMaximos };
+      const maxUsos = rasgo.formulaEscalado
+        ? calcularUsosMaximosRasgo(rasgo, personaje)
+        : (rasgo.usosMaximos ?? 1);
+      const restantesActuales = rasgo.usosRestantes ?? 0;
+      if (restantesActuales < maxUsos || rasgo.usosMaximos !== maxUsos) {
+        rasgosRecargadosCorto++;
+        return { ...rasgo, usosMaximos: maxUsos, usosRestantes: maxUsos };
+      }
     }
     return rasgo;
   });
@@ -287,13 +293,16 @@ export function ejecutarDescansoLargo(personaje: PersonajeJugador): ResultadoDes
   const rasgosActualizadosLargo = (personaje.rasgos || []).map((rasgo) => {
     if (
       rasgo.tieneUsosLimitados &&
-      (rasgo.recuperacion === "descanso_corto" || rasgo.recuperacion === "descanso_largo") &&
-      typeof rasgo.usosMaximos === "number" &&
-      typeof rasgo.usosRestantes === "number" &&
-      rasgo.usosRestantes < rasgo.usosMaximos
+      (rasgo.recuperacion === "descanso_corto" || rasgo.recuperacion === "descanso_largo")
     ) {
-      rasgosRecargadosLargo++;
-      return { ...rasgo, usosRestantes: rasgo.usosMaximos };
+      const maxUsos = rasgo.formulaEscalado
+        ? calcularUsosMaximosRasgo(rasgo, personaje)
+        : (rasgo.usosMaximos ?? 1);
+      const restantesActuales = rasgo.usosRestantes ?? 0;
+      if (restantesActuales < maxUsos || rasgo.usosMaximos !== maxUsos) {
+        rasgosRecargadosLargo++;
+        return { ...rasgo, usosMaximos: maxUsos, usosRestantes: maxUsos };
+      }
     }
     return rasgo;
   });

@@ -95,7 +95,9 @@ export const SeccionAtaquesMagicos: React.FC<SeccionAtaquesMagicosProps> = ({
   const renderizarTarjetaConjuro = (hechizo: HechizoBase, esOculto: boolean) => {
     const nomHechizoNorm = hechizo.nombre.toLowerCase().trim();
     const rasgoInnatoGratuito = (personajeActivo.rasgos || []).find((r) => {
-      if (!r.tieneUsosLimitados || typeof r.usosRestantes !== "number" || r.usosRestantes <= 0) return false;
+      if (!r.tieneUsosLimitados) return false;
+      const restantes = r.usosRestantes !== undefined ? r.usosRestantes : (r.usosMaximos ?? 1);
+      if (restantes <= 0) return false;
       if (r.nivelRequerido && (personajeActivo.nivel || 1) < r.nivelRequerido) return false;
       const cOtorgados = r.conjurosOtorgados || [];
       return (

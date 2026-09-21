@@ -264,12 +264,15 @@ export function calcularAtaqueImprovisado(contexto: {
     yaIncluyeFuriaEnEfectos
   } = contexto;
 
-  const esCompetenteImprovisada = esCompetenteConArma(
-    "Armas improvisadas",
-    "Improvisada",
-    gruposArmasConsolidados,
-    personajeActivo.competenciasArmasLista || []
-  );
+  const compExtra = obtenerCompetenciasExtraRasgos(personajeActivo);
+  const esCompetenteImprovisada =
+    Boolean(compExtra.armasImprovisadas) ||
+    esCompetenteConArma(
+      "Armas improvisadas",
+      "Improvisada",
+      gruposArmasConsolidados,
+      personajeActivo.competenciasArmasLista || []
+    );
 
   const modificadores = statsCalculadas.modificadores;
   const caracImprovisada: Caracteristica = caracteristicasArmas["ataque-arma-improvisada"] || "fuerza";

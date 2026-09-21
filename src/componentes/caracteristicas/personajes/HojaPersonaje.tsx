@@ -15,6 +15,7 @@ import { lanzarDadosTaleSpire, sanitizarEtiqueta, type MetadataIniciativa } from
 import { logger } from "@/utiles/logger";
 import { MAPA_HABILIDAD_A_CARACTERISTICA } from "@/constantes";
 import { evaluarEfectosCondicionesEnTirada } from "@/servicios/procesadorCondiciones";
+import { calcularBonoIniciativaRasgos } from "@/servicios/evaluadorEfectosRasgos";
 import type { Caracteristica, Habilidad } from "@/tipos";
 
 import { CabeceraPersonaje } from "./CabeceraPersonaje";
@@ -272,7 +273,10 @@ export const HojaPersonaje: React.FC<HojaPersonajeProps> = ({ alAbrirConfiguraci
       condicionesActivas: personajeActivo.condicionesActivas,
       personaje: personajeActivo
     });
-    const bonoBase = statsCalculadas.modificadores.destreza + (personajeActivo.iniciativaBono || 0);
+    const bonoBase =
+      statsCalculadas.modificadores.destreza +
+      (personajeActivo.iniciativaBono || 0) +
+      calcularBonoIniciativaRasgos(personajeActivo);
     const bonoFinal = bonoBase + evaluacion.penalizadorD20;
     const metaInic: MetadataIniciativa = {
       tipo: "iniciativa",

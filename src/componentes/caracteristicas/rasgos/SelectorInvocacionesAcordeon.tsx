@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from "react";
-import type { SelectorRasgo } from "@/tipos/rasgos";
+import type { SelectorRasgo, RasgoPersonaje } from "@/tipos/rasgos";
 import type { HechizoBase } from "@/tipos";
 import {
   Lock,
@@ -17,7 +17,7 @@ import {
   Award,
   Heart
 } from "lucide-react";
-import dotesJson from "@/datos/dotes.json";
+import { DOTES_ORIGEN_DND55 } from "@/constantes/rasgosDND55";
 import { TextoEnriquecidoDND, SelectorDesplegable, type OpcionDesplegable } from "@/componentes/comunes";
 import { usarAlmacenDM } from "@/almacen/usarAlmacenDM";
 import { usarEstadoHomebrew } from "@/almacen/selectores/usarEstadoHomebrew";
@@ -64,10 +64,11 @@ export const SelectorInvocacionesAcordeon: React.FC<SelectorInvocacionesAcordeon
     return selector.maxSelecciones || 1;
   }, [selector.escaladoMaxSelecciones, selector.maxSelecciones, selector.id, selector.etiqueta, nivelPersonaje]);
 
-  // Obtener personaje activo y compendio de hechizos para consultar trucos de ataque aprendidos
   const personajeActivo = usarAlmacenDM(
     React.useCallback((s) => s.personajes.find((p) => p.id === s.idPersonajeActivo) || s.personajes[0] || null, [])
   );
+  const agregarRasgoPersonaje = usarAlmacenDM((s) => s.agregarRasgoPersonaje);
+  const eliminarRasgoPersonaje = usarAlmacenDM((s) => s.eliminarRasgoPersonaje);
   const { baseDatosHechizos: hechizosCompendio } = usarEstadoHomebrew();
 
   // Trucos con tirada de ataque conocidos por el personaje (para Descarga Ahuyentadora)
@@ -153,10 +154,7 @@ export const SelectorInvocacionesAcordeon: React.FC<SelectorInvocacionesAcordeon
 
   // Dotes canónicas de origen (para Lecciones de los Primeros)
   const dotesOrigenOpciones: OpcionDesplegable<string>[] = useMemo(() => {
-    const origenes = (dotesJson as Array<{ id: string; nombre: string; categoria: string; descripcion?: string }>).filter(
-      (d) => (d.categoria || "").toLowerCase() === "origen"
-    );
-    return origenes.map((d) => ({
+    return DOTES_ORIGEN_DND55.map((d) => ({
       valor: d.id,
       etiqueta: `${d.nombre} (Origen)`
     }));
@@ -205,7 +203,7 @@ export const SelectorInvocacionesAcordeon: React.FC<SelectorInvocacionesAcordeon
         const primerTruco = trucosAlcanceOpciones[0]?.valor || "descarga_sobrenatural";
         entradaParaAgregar = `lanza_sobrenatural:${primerTruco}`;
       } else if (id === "lecciones_de_los_primeros") {
-        const primerDote = dotesOrigenOpciones[0]?.valor || "alert";
+        const primerDote = dotesOrigenOpciones[0]?.valor || "dote_alerta";
         entradaParaAgregar = `lecciones_de_los_primeros:${primerDote}`;
       }
 
@@ -450,7 +448,7 @@ export const SelectorInvocacionesAcordeon: React.FC<SelectorInvocacionesAcordeon
 
   const manejarAgregarOtraLecciones = () => {
     if (!alActualizarSeleccion || seleccionados.length >= max) return;
-    const primerDote = dotesOrigenOpciones[0]?.valor || "alert";
+    const primerDote = dotesOrigenOpciones[0]?.valor || "dote_alerta";
     const nuevaClave = `lecciones_de_los_primeros__${Date.now()}:${primerDote}`;
     alActualizarSeleccion(selector.id, [...seleccionados, nuevaClave]);
   };
@@ -877,7 +875,19 @@ export const SelectorInvocacionesAcordeon: React.FC<SelectorInvocacionesAcordeon
                         {instanciasLecciones.map((instancia, idx) => {
                           const doteActualId = instancia.includes(":")
                             ? instancia.split(":")[1]
-                            : (dotesOrigenOpciones[0]?.valor || "alert");
+                            : (dotesOrigenOpciones[0]?.valor || "dote_alerta");
+
+                          const dotePlantilla = DOTES_ORIGEN_DND55.find(
+                            (d) => d.id === doteActualId || d.nombre.toLowerCase() === doteActualId.toLowerCase()
+                          );
+
+                          const doteEnFicha = (personajeActivo?.rasgos || []).find(
+                            (r) =>
+                              r.id === `dote_invocacion_${doteActualId}` ||
+                              r.id === doteActualId ||
+                              (r.fuente?.includes("Lecciones de los Primeros") &&
+                                r.nombre.toLowerCase().trim() === dotePlantilla?.nombre.toLowerCase().trim())
+                          );
 
                           return (
                             <div key={idx} className={estilos.filaSelectorTrucoAhuyentadora}>
@@ -890,11 +900,76 @@ export const SelectorInvocacionesAcordeon: React.FC<SelectorInvocacionesAcordeon
                                   tamano="compacto"
                                 />
                               </div>
+
+                              {doteEnFicha ? (
+                                <div className={estilos.filaEstadoDoteAgregada}>
+                                  <div className={estilos.badgeDoteAgregada}>
+                                    <Check size={12} color="#10b981" />
+                                    <span>Dote en ficha</span>
+                                  </div>
+                                  <button
+                                    type="button"
+                                    className={estilos.botonQuitarDoteFicha}
+                                    onClick={() => {
+                                      if (personajeActivo && doteEnFicha) {
+                                        eliminarRasgoPersonaje(personajeActivo.id, doteEnFicha.id);
+                                      }
+                                    }}
+                                    title="Quitar dote de la ficha del personaje"
+                                  >
+                                    <Trash2 size={12} />
+                                    <span>Quitar</span>
+                                  </button>
+                                </div>
+                              ) : (
+                                <button
+                                  type="button"
+                                  className={estilos.botonAgregarDoteFicha}
+                                  onClick={() => {
+                                    if (!personajeActivo || !dotePlantilla) return;
+                                    const pbPersonaje = Math.floor((Math.max(1, nivelPersonaje || 1) - 1) / 4) + 2;
+                                    const maxUsos = dotePlantilla.formulaEscalado === "bono_competencia" ? pbPersonaje : (dotePlantilla.usosMaximos || 1);
+                                    const nuevoRasgoDote: RasgoPersonaje = {
+                                      id: `dote_invocacion_${dotePlantilla.id}`,
+                                      nombre: dotePlantilla.nombre,
+                                      descripcion: dotePlantilla.descripcion,
+                                      origen: "dote",
+                                      fuente: "Lecciones de los Primeros (Brujo)",
+                                      tipoAccion: dotePlantilla.tipoAccion || "pasivo",
+                                      nivelRequerido: 1,
+                                      tieneUsosLimitados: Boolean(dotePlantilla.tieneUsosLimitados),
+                                      usosMaximos: maxUsos,
+                                      usosRestantes: maxUsos,
+                                      formulaEscalado: dotePlantilla.formulaEscalado,
+                                      recuperacion: dotePlantilla.recuperacion || "ninguno",
+                                      formulaDados: dotePlantilla.formulaDados,
+                                      categoriaMecanica: dotePlantilla.categoriaMecanica,
+                                      efectos: dotePlantilla.efectos,
+                                      selectores: dotePlantilla.selectores,
+                                      conjurosOtorgados: dotePlantilla.conjurosOtorgados,
+                                      activo: true,
+                                      notas: "Otorgado por Invocación Sobrenatural: Lecciones de los Primeros",
+                                      personalizado: false
+                                    };
+                                    agregarRasgoPersonaje(personajeActivo.id, nuevoRasgoDote);
+                                  }}
+                                  title={`Agregar ${dotePlantilla?.nombre || "dote"} como dote a la ficha`}
+                                >
+                                  <Plus size={13} />
+                                  <span>Agregar dote a la ficha</span>
+                                </button>
+                              )}
+
                               {instanciasLecciones.length > 1 && (
                                 <button
                                   type="button"
                                   className={estilos.botonQuitarInstancia}
-                                  onClick={() => manejarQuitarInstanciaLecciones(idx)}
+                                  onClick={() => {
+                                    if (doteEnFicha && personajeActivo) {
+                                      eliminarRasgoPersonaje(personajeActivo.id, doteEnFicha.id);
+                                    }
+                                    manejarQuitarInstanciaLecciones(idx);
+                                  }}
                                   title="Eliminar esta dote y liberar 1 ranura de invocación"
                                 >
                                   <Trash2 size={13} />

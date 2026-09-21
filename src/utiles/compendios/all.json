@@ -2929,11 +2929,11 @@
     ],
     "ataqueCd": "ATAQUE",
     "requiereAtaque": true,
-    "dadosDaño": "1d10",
+    "dadosDaño": "1d10 / 2d6",
     "dadosDañoNivelSuperior": "1d6",
     "cdSalvacion": "Destreza",
     "agregarModificadorHabilidad": false,
-    "tipoDaño": "perforante"
+    "tipoDaño": "perforante / frio"
   },
   {
     "id": "h_curar",

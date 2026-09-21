@@ -56,17 +56,21 @@ export function usarAccionesTarjetaRasgo({
   const tieneUsosPropios = rasgo.tieneUsosLimitados && typeof rasgo.usosMaximos === "number";
   const tieneUsosPadre = !tieneUsosPropios && Boolean(rasgo.gastarDePadre && usosPadre);
 
-  const usosRestantes = esRecursoEspacioPacto
-    ? espaciosPactoDisponibles
-    : tieneUsosPropios
-    ? (rasgo.usosRestantes ?? (rasgo.usosMaximos || 1))
-    : (usosPadre?.restantes ?? 0);
+  const nivelPersonaje = personajeActivoAlmacen?.nivel || 1;
+  const bonoCompetenciaCalculado = Math.floor((Math.max(1, nivelPersonaje) - 1) / 4) + 2;
+  const escalaPorBonoCompetencia = rasgo.formulaEscalado === "bono_competencia";
 
   const usosMaximos = esRecursoEspacioPacto
     ? espaciosPactoMaximos
     : tieneUsosPropios
-    ? (rasgo.usosMaximos || 1)
+    ? (escalaPorBonoCompetencia ? bonoCompetenciaCalculado : (rasgo.usosMaximos || 1))
     : (usosPadre?.maximos || 1);
+
+  const usosRestantes = esRecursoEspacioPacto
+    ? espaciosPactoDisponibles
+    : tieneUsosPropios
+    ? (rasgo.usosRestantes ?? usosMaximos)
+    : (usosPadre?.restantes ?? 0);
 
   const sinUsosDisponibles =
     (esRecursoEspacioPacto && espaciosPactoDisponibles <= 0) ||

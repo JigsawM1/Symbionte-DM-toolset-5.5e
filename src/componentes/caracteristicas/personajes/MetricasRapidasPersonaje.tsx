@@ -3,7 +3,7 @@ import type { PersonajeJugador } from "@/tipos";
 import type { InformacionCA, PenalizacionArmadura } from "@/almacen/selectores/usarEstadoPersonajes";
 import { Shield, Zap, Footprints, Award, Sparkles, AlertTriangle } from "lucide-react";
 import { TooltipUniversal } from "@/componentes/comunes";
-import { obtenerVelocidadesEfectivas } from "@/servicios/evaluadorEfectosRasgos";
+import { obtenerVelocidadesEfectivas, calcularBonoIniciativaRasgos } from "@/servicios/evaluadorEfectosRasgos";
 import estilos from "./HojaPersonaje.module.css";
 
 interface MetricasRapidasPersonajeProps {
@@ -27,7 +27,8 @@ const MetricasRapidasPersonajeComponent: React.FC<MetricasRapidasPersonajeProps>
   alTirarIniciativa,
   alAlternarInspiracion
 }) => {
-  const iniciativaTotal = modDestreza + (personaje.iniciativaBono || 0);
+  const bonoIniciativaRasgos = calcularBonoIniciativaRasgos(personaje);
+  const iniciativaTotal = modDestreza + (personaje.iniciativaBono || 0) + bonoIniciativaRasgos;
   const textoIniciativa = iniciativaTotal >= 0 ? `+${iniciativaTotal}` : `${iniciativaTotal}`;
 
   const velocidades = obtenerVelocidadesEfectivas(personaje);

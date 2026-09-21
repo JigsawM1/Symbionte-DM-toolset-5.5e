@@ -8,7 +8,11 @@ import {
   obtenerConjurosOtorgadosPorRasgos,
   obtenerVelocidadesEfectivas,
   calcularHpTemporalDeEfecto,
-  obtenerConfiguracionPactoDelFilo
+  obtenerConfiguracionPactoDelFilo,
+  calcularBonoIniciativaRasgos,
+  calcularBonoHPMaximoRasgos,
+  evaluarAtaqueDesarmadoEspecial,
+  obtenerCompetenciasExtraRasgos
 } from "@/servicios/evaluadorEfectosRasgos";
 import {
   resolverRasgosAcciones,
@@ -438,15 +442,46 @@ describe("D&D 5.5e - Mecánicas de Invocaciones Sobrenaturales del Brujo", () =>
   describe("10. LECCIONES DE LOS PRIMEROS", () => {
     it("admite registrar dotes de origen canónicas en las selecciones de la ficha de manera repetible", () => {
       const pj = crearBrujoConInvocaciones(2, [
-        "lecciones_de_los_primeros:alert",
-        "lecciones_de_los_primeros__timestamp:crafter"
+        "lecciones_de_los_primeros:dote_alerta",
+        "lecciones_de_los_primeros__timestamp:dote_fabricante"
       ]);
 
       const rasgoInvocacion = pj.rasgos?.find((r) => r.selectores?.some((s) => s.id.includes("invocacion")));
       const selector = rasgoInvocacion?.selectores?.find((s) => s.id.includes("invocacion"));
 
-      expect(selector?.valorActual).toContain("lecciones_de_los_primeros:alert");
-      expect(selector?.valorActual).toContain("lecciones_de_los_primeros__timestamp:crafter");
+      expect(selector?.valorActual).toContain("lecciones_de_los_primeros:dote_alerta");
+      expect(selector?.valorActual).toContain("lecciones_de_los_primeros__timestamp:dote_fabricante");
+    });
+
+    it("aplica reactivamente el bono a iniciativa de Alerta (+PB) al brujo", () => {
+      // Nivel 2: PB = +2
+      const pjNivel2 = crearBrujoConInvocaciones(2, ["lecciones_de_los_primeros:dote_alerta"]);
+      expect(calcularBonoIniciativaRasgos(pjNivel2)).toBe(2);
+
+      // Nivel 5: PB = +3
+      const pjNivel5 = crearBrujoConInvocaciones(5, ["lecciones_de_los_primeros:dote_alerta"]);
+      expect(calcularBonoIniciativaRasgos(pjNivel5)).toBe(3);
+    });
+
+    it("aplica reactivamente el bono de vida de Duro (+2 HP por nivel) al brujo", () => {
+      const pjNivel4 = crearBrujoConInvocaciones(4, ["lecciones_de_los_primeros:dote_duro"]);
+      expect(calcularBonoHPMaximoRasgos(pjNivel4)).toBe(8);
+    });
+
+    it("aplica las mecánicas de Matón de Taberna (ataque desarmado 1d4 y armas improvisadas)", () => {
+      const pj = crearBrujoConInvocaciones(2, ["lecciones_de_los_primeros:dote_maton_taberna"]);
+      const desarmado = evaluarAtaqueDesarmadoEspecial(pj);
+      expect(desarmado.aplica).toBe(true);
+      expect(desarmado.dadoDanoBase).toBe("1d4");
+      expect(desarmado.caracteristicaSugerida).toBe("fuerza");
+
+      const comp = obtenerCompetenciasExtraRasgos(pj);
+      expect(comp.armasImprovisadas).toBe(true);
+    });
+
+    it("mantiene compatibilidad con selecciones legadas (ej. 'alert', 'crafter')", () => {
+      const pjLegacy = crearBrujoConInvocaciones(2, ["lecciones_de_los_primeros:alert"]);
+      expect(calcularBonoIniciativaRasgos(pjLegacy)).toBe(2);
     });
   });
 

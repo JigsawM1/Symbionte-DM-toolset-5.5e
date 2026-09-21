@@ -190,6 +190,7 @@ export const EsquemaSelectorRasgo = z.object({
   opciones: z.array(EsquemaOpcionSelector).default([]),
   maxSelecciones: z.number().int().min(1).default(1),
   valorActual: z.array(z.string()).default([]),
+  visualizacion: z.enum(["normal", "lista"]).default("normal").optional(),
   // ── NUEVO: opciones que se desbloquean por nivel ──
   opcionesDinamicas: z.array(EsquemaOpcionesDinamicas).optional(),
   // ── NUEVO: max selecciones escalado por nivel ──
@@ -286,7 +287,26 @@ export const EsquemaDotePersonaje = z.object({
   requisito: z.string().optional(),
   descripcion: z.string(),
   beneficios: z.array(z.string()).default([]),
-  fuente: z.string().default("PHB 2024")
+  fuente: z.string().default("PHB 2024"),
+  tipoAccion: EsquemaTipoAccionRasgo.optional(),
+  tieneUsosLimitados: z.boolean().optional(),
+  usosMaximos: z.number().int().optional(),
+  formulaEscalado: z.string().optional(),
+  formulaUsos: z.string().nullable().optional(),
+  formulaDados: z.string().optional(),
+  recuperacion: EsquemaRecuperacionRasgo.optional(),
+  categoriaMecanica: z.enum([
+    "consumible",
+    "activable",
+    "selector_informativo",
+    "pasivo_permanente",
+    "extension",
+    "curacion"
+  ]).optional(),
+  efectos: z.array(EsquemaEfectoMecanicoRasgo).optional(),
+  selectores: z.array(EsquemaSelectorRasgo).optional(),
+  repetible: z.boolean().optional(),
+  conjurosOtorgados: z.array(z.string()).optional()
 });
 
 export type DotePersonaje = z.infer<typeof EsquemaDotePersonaje>;

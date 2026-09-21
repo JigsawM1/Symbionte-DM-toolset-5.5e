@@ -1,6 +1,10 @@
 import { describe, it, expect } from "vitest";
 import type { PersonajeJugador, RasgoPersonaje } from "@/tipos";
-import { obtenerNivelEfectivoParaRasgo } from "./utilidadesProgresionRasgos";
+import {
+  obtenerNivelEfectivoParaRasgo,
+  resolverDotesDesdeInvocaciones,
+  agruparRasgosJerarquicos
+} from "./utilidadesProgresionRasgos";
 
 describe("obtenerNivelEfectivoParaRasgo - Nivel contextual de clase vs nivel general (Multiclase)", () => {
   const personajeMulticlaseBardoBarbaro: PersonajeJugador = {
@@ -258,5 +262,111 @@ describe("obtenerNivelEfectivoParaRasgo - Nivel contextual de clase vs nivel gen
 
     const nivelEfectivo = obtenerNivelEfectivoParaRasgo(personajeMonoclase, rasgoMago);
     expect(nivelEfectivo).toBe(8);
+  });
+});
+
+describe("resolverDotesDesdeInvocaciones - Proyección de dotes en el bloque de dotes", () => {
+  it("extrae la dote canónica seleccionada en Lecciones de los Primeros y genera un rasgo con origen 'dote'", () => {
+    const rasgoInvocaciones: RasgoPersonaje = {
+      id: "rasgo_cls_brujo_invocaciones_sobrenaturales",
+      nombre: "Invocaciones sobrenaturales",
+      descripcion: "En tus estudios sobre el saber arcano...",
+      origen: "clase",
+      fuente: "Brujo (Nivel 1)",
+      tipoAccion: "pasivo",
+      tieneUsosLimitados: false,
+      recuperacion: "ninguno",
+      personalizado: false,
+      activo: true,
+      notas: "",
+      selectores: [
+        {
+          id: "selector_invocaciones_brujo",
+          tipo: "multiple",
+          etiqueta: "Invocaciones Sobrenaturales",
+          maxSelecciones: 2,
+          opciones: [],
+          valorActual: ["lecciones_de_los_primeros:dote_alerta"]
+        }
+      ]
+    };
+
+    const dotesExtraidas = resolverDotesDesdeInvocaciones([rasgoInvocaciones]);
+    expect(dotesExtraidas).toHaveLength(1);
+    expect(dotesExtraidas[0].nombre).toBe("Alerta");
+    expect(dotesExtraidas[0].origen).toBe("dote");
+    expect(dotesExtraidas[0].fuente).toContain("Lecciones de los Primeros");
+    expect(dotesExtraidas[0].efectos).toBeDefined();
+    expect(dotesExtraidas[0].efectos?.some((e) => e.objetivo === "iniciativa")).toBe(true);
+  });
+
+  it("ubica la dote sintetizada en el bloque 'dotes' mediante agruparRasgosJerarquicos", () => {
+    const rasgoInvocaciones: RasgoPersonaje = {
+      id: "rasgo_cls_brujo_invocaciones_sobrenaturales",
+      nombre: "Invocaciones sobrenaturales",
+      descripcion: "...",
+      origen: "clase",
+      fuente: "Brujo (Nivel 1)",
+      tipoAccion: "pasivo",
+      tieneUsosLimitados: false,
+      recuperacion: "ninguno",
+      personalizado: false,
+      activo: true,
+      notas: "",
+      selectores: [
+        {
+          id: "selector_invocaciones_brujo",
+          tipo: "multiple",
+          etiqueta: "Invocaciones Sobrenaturales",
+          maxSelecciones: 3,
+          opciones: [],
+          valorActual: [
+            "lecciones_de_los_primeros:dote_duro",
+            "lecciones_de_los_primeros__timestamp2:dote_maton_taberna"
+          ]
+        }
+      ]
+    };
+
+    const dotesExtraidas = resolverDotesDesdeInvocaciones([rasgoInvocaciones]);
+    expect(dotesExtraidas).toHaveLength(2);
+
+    const todosLosRasgos = [rasgoInvocaciones, ...dotesExtraidas];
+    const datosJerarquicos = agruparRasgosJerarquicos(todosLosRasgos, [
+      { nombre: "Brujo", nivel: 2 }
+    ]);
+
+    expect(datosJerarquicos.dotes).toHaveLength(2);
+    expect(datosJerarquicos.dotes.map((d) => d.nombre)).toContain("Duro");
+    expect(datosJerarquicos.dotes.map((d) => d.nombre)).toContain("Matón de Taberna");
+  });
+
+  it("no extrae dotes si el rasgo de invocaciones está desactivado", () => {
+    const rasgoInvocacionesInactivo: RasgoPersonaje = {
+      id: "rasgo_cls_brujo_invocaciones_sobrenaturales",
+      nombre: "Invocaciones sobrenaturales",
+      descripcion: "...",
+      origen: "clase",
+      fuente: "Brujo (Nivel 1)",
+      tipoAccion: "pasivo",
+      tieneUsosLimitados: false,
+      recuperacion: "ninguno",
+      personalizado: false,
+      activo: false,
+      notas: "",
+      selectores: [
+        {
+          id: "selector_invocaciones_brujo",
+          tipo: "multiple",
+          etiqueta: "Invocaciones",
+          maxSelecciones: 1,
+          opciones: [],
+          valorActual: ["lecciones_de_los_primeros:dote_alerta"]
+        }
+      ]
+    };
+
+    const dotesExtraidas = resolverDotesDesdeInvocaciones([rasgoInvocacionesInactivo]);
+    expect(dotesExtraidas).toHaveLength(0);
   });
 });

@@ -80,6 +80,18 @@ function generarOpcionesConjurosPorEscuelas(escuelas: string[], nivel: number): 
 }
 
 const conjuros1AdivinacionOEncantamiento = generarOpcionesConjurosPorEscuelas(["adivinación", "encantamiento"], 1);
+const conjuros1IlusionONigromancia = generarOpcionesConjurosPorEscuelas(["ilusión", "ilusionismo", "nigromancia"], 1);
+
+export const OPCIONES_PROPIEDADES_MAESTRIA: OpcionSelector[] = [
+  { id: "cleave", nombre: "Cleave (Hender)", descripcion: "Si impactas a una criatura con un ataque cuerpo a cuerpo, puedes hacer una tirada de ataque contra una segunda criatura a 5 pies de la primera y dentro de tu alcance. Si impactas, la segunda criatura recibe el daño del arma sin tu modificador de característica. Solo una vez por turno." },
+  { id: "graze", nombre: "Graze (Rozar)", descripcion: "Si tu tirada de ataque falla, puedes infligir daño igual al modificador de característica usado. El daño es del mismo tipo que el arma, y solo puede incrementarse aumentando el modificador." },
+  { id: "nick", nombre: "Nick (Mellar)", descripcion: "Cuando haces el ataque extra de la propiedad Ligera, puedes hacerlo como parte de la acción de Atacar en vez de como Acción Adicional. Solo una vez por turno." },
+  { id: "push", nombre: "Push (Empujar)", descripcion: "Si impactas a una criatura, puedes empujarla hasta 10 pies en línea recta lejos de ti si es Grande o menor." },
+  { id: "sap", nombre: "Sap (Debilitar)", descripcion: "Si impactas a una criatura, esa criatura tiene Desventaja en su siguiente tirada de ataque antes del inicio de tu próximo turno." },
+  { id: "slow", nombre: "Slow (Ralentizar)", descripcion: "Si impactas a una criatura e infliges daño, puedes reducir su Velocidad en 10 pies hasta el inicio de tu próximo turno. Múltiples impactos con armas Slow no acumulan la reducción." },
+  { id: "topple", nombre: "Topple (Derribar)", descripcion: "Si impactas a una criatura, puedes forzar una tirada de salvación de Constitución (CD 8 + modificador de característica + bonificador de competencia). Si falla, la criatura queda Derribada." },
+  { id: "vex", nombre: "Vex (Molestar)", descripcion: "Si impactas a una criatura e infliges daño, tienes Ventaja en tu siguiente tirada de ataque contra esa criatura antes del final de tu próximo turno." }
+];
 
 const OPCIONES_ELEMENTOS_VERSADO: OpcionSelector[] = [
   { id: "acido", nombre: "Ácido", descripcion: "Ignora resistencia al daño de ácido y trata cualquier 1 en dados de daño como un 2" },
@@ -1055,6 +1067,294 @@ export const DOTES_GENERALES_Y_EPICAS_DND55: DotePersonaje[] = [
     ],
     fuente: "PHB 2024",
     tipoAccion: "accion_adicional",
+    categoriaMecanica: "pasivo_permanente"
+  },
+  {
+    id: "dote_centinela",
+    nombre: "Centinela",
+    categoria: "general",
+    requisito: "Nivel 4 o más, Fuerza o Destreza 13 o más",
+    descripcion:
+      "*Mejora de característica:* aumenta tu puntuación de Fuerza o Destreza en 1, hasta un máximo de 20.\n\n*Guardián:* cuando una criatura dentro de tu alcance realiza un ataque contra un objetivo que no seas tú, puedes usar tu reacción para realizar un ataque con arma cuerpo a cuerpo contra esa criatura.\n\n*Detener:* cuando impactas a una criatura con un ataque de oportunidad, el movimiento de la criatura se convierte en 0 para el resto del turno. Las criaturas provocan tus ataques de oportunidad incluso si realizan la acción de Destrabarse antes de salir de tu alcance.",
+    beneficios: [
+      "+1 Fuerza o Destreza (máx 20)",
+      "Guardián (reacción para contraatacar si atacan a un aliado a tu alcance)",
+      "Detener (ataque de oportunidad reduce movimiento a 0 e ignora Destrabarse)"
+    ],
+    fuente: "PHB 2024",
+    tipoAccion: "reaccion",
+    categoriaMecanica: "pasivo_permanente"
+  },
+  {
+    id: "dote_influencia_sombria",
+    nombre: "Influencia Sombría",
+    categoria: "general",
+    requisito: "Nivel 4 o más",
+    descripcion:
+      "*Mejora de característica:* aumenta tu puntuación de Inteligencia, Sabiduría o Carisma en 1, hasta un máximo de 20.\n\n*Magia sombría:* aprendes el conjuro Invisibilidad y un conjuro de nivel 1 de tu elección de las escuelas de Ilusión o Nigromancia. Puedes lanzar cada uno de estos conjuros una vez sin gastar un espacio de conjuro, y recuperas la capacidad de hacerlo cuando terminas un descanso largo. También puedes lanzar estos conjuros usando espacios de conjuro del nivel apropiado. Tu aptitud mágica para estos conjuros es la característica que aumentaste con esta dote.",
+    beneficios: [
+      "+1 Inteligencia, Sabiduría o Carisma (máx 20)",
+      "Magia sombría (Invisibilidad y un conjuro nv1 Ilusión/Nigromancia gratis 1 vez c/u por descanso largo)",
+      "Uso libre de espacios de conjuro propios para relanzarlos"
+    ],
+    fuente: "PHB 2024",
+    tipoAccion: "especial",
+    tieneUsosLimitados: true,
+    usosMaximos: 2,
+    recuperacion: "descanso_largo",
+    categoriaMecanica: "consumible",
+    conjurosOtorgados: ["h_invisibilidad"],
+    selectores: [
+      {
+        id: "selector_aptitud_influencia_sombria",
+        tipo: "unico",
+        etiqueta: "Aptitud Mágica (Influencia Sombría)",
+        maxSelecciones: 1,
+        opciones: OPCIONES_APTITUD_MAGICA,
+        valorActual: ["carisma"]
+      },
+      {
+        id: "selector_conjuro_nv1_influencia_sombria",
+        tipo: "unico",
+        visualizacion: "lista",
+        etiqueta: "Conjuro de Nivel 1 (Ilusión o Nigromancia)",
+        maxSelecciones: 1,
+        opciones: conjuros1IlusionONigromancia,
+        valorActual: []
+      }
+    ]
+  },
+  {
+    id: "dote_tirador_primera",
+    nombre: "Tirador de Primera",
+    categoria: "general",
+    requisito: "Nivel 4 o más, Destreza 13 o más",
+    descripcion:
+      "*Mejora de característica:* aumenta tu puntuación de Destreza en 1, hasta un máximo de 20.\n\n*Sortear cobertura:* tus ataques a distancia con armas ignoran la cobertura media y tres cuartos.\n\n*Disparar cuerpo a cuerpo:* estar a 5 pies de un enemigo no impone desventaja en tus tiradas de ataque a distancia con armas.\n\n*Tiros lejanos:* atacar a largo alcance no impone desventaja en tus tiradas de ataque a distancia con armas.",
+    beneficios: [
+      "+1 Destreza (máx 20)",
+      "Sortear cobertura (ignora media y tres cuartos de cobertura a distancia)",
+      "Disparar cuerpo a cuerpo (sin desventaja por tener enemigos a 5 pies)",
+      "Tiros lejanos (sin desventaja a largo alcance)"
+    ],
+    fuente: "PHB 2024",
+    tipoAccion: "pasivo",
+    categoriaMecanica: "pasivo_permanente"
+  },
+  {
+    id: "dote_maestro_escudos",
+    nombre: "Maestro en Escudos",
+    categoria: "general",
+    requisito: "Nivel 4 o más, competencia con escudos",
+    descripcion:
+      "*Mejora de característica:* aumenta tu puntuación de Fuerza en 1, hasta un máximo de 20.\n\n*Golpe con escudo:* si impactas a una criatura con un ataque de arma cuerpo a cuerpo durante tu turno mientras empuñas un escudo, puedes forzar inmediatamente a esa criatura a realizar una tirada de salvación de Fuerza (CD 8 + bonificador de competencia + modificador de Fuerza). Si falla, puedes derribarla o empujarla 5 pies de ti.\n\n*Interponer escudo:* si eres sometido a un efecto que te permite hacer una tirada de salvación de Destreza para sufrir solo la mitad de daño, puedes usar tu reacción para no sufrir daño si superas la salvación, interponiendo tu escudo.",
+    beneficios: [
+      "+1 Fuerza (máx 20)",
+      "Golpe con escudo (salvación FUE CD 8+PB+FUE al impactar cuerpo a cuerpo para derribar o empujar 5 pies)",
+      "Interponer escudo (reacción para no sufrir daño en salvación exitosa de Destreza a daño reducido)"
+    ],
+    fuente: "PHB 2024",
+    tipoAccion: "reaccion",
+    categoriaMecanica: "pasivo_permanente"
+  },
+  {
+    id: "dote_experto_habilidades",
+    nombre: "Experto en Habilidades",
+    categoria: "general",
+    requisito: "Nivel 4 o más",
+    descripcion:
+      "*Mejora de característica:* aumenta una puntuación de característica de tu elección en 1, hasta un máximo de 20.\n\n*Competencia en habilidad:* obtienes competencia en una habilidad de tu elección.\n\n*Pericia:* obtienes pericia en una habilidad de tu elección en la que ya seas competente.",
+    beneficios: [
+      "+1 a una característica a tu elección (máx 20)",
+      "1 competencia en habilidad a tu elección",
+      "1 pericia en una habilidad en la que ya seas competente"
+    ],
+    fuente: "PHB 2024",
+    tipoAccion: "pasivo",
+    categoriaMecanica: "pasivo_permanente"
+  },
+  {
+    id: "dote_rebanador",
+    nombre: "Rebanador",
+    categoria: "general",
+    requisito: "Nivel 4 o más, Fuerza o Destreza 13 o más",
+    descripcion:
+      "*Mejora de característica:* aumenta tu puntuación de Fuerza o Destreza en 1, hasta un máximo de 20.\n\n*Lacerar:* una vez por turno, cuando infliges daño cortante a una criatura con un ataque, puedes reducir su velocidad en 10 pies hasta el comienzo de tu siguiente turno.\n\n*Crítico potenciado:* cuando obtienes un golpe crítico que inflige daño cortante a una criatura, infliges heridas graves y la criatura tiene desventaja en todas las tiradas de ataque hasta el comienzo de tu siguiente turno.",
+    beneficios: [
+      "+1 Fuerza o Destreza (máx 20)",
+      "Lacerar (1 vez/turno daño cortante reduce velocidad 10 pies)",
+      "Crítico potenciado (crítico con daño cortante impone desventaja en tiradas de ataque al objetivo)"
+    ],
+    fuente: "PHB 2024",
+    tipoAccion: "pasivo",
+    categoriaMecanica: "pasivo_permanente"
+  },
+  {
+    id: "dote_lanzador_preciso",
+    nombre: "Lanzador Preciso",
+    categoria: "general",
+    requisito: "Nivel 4 o más, aptitud para lanzar al menos un conjuro",
+    descripcion:
+      "*Mejora de característica:* aumenta tu puntuación de Inteligencia, Sabiduría o Carisma en 1, hasta un máximo de 20.\n\n*Alcance incrementado:* cuando lanzas un conjuro con tirada de ataque que tiene un alcance de al menos 10 pies, su alcance aumenta en 60 pies.\n\n*Ignorar cobertura:* tus tiradas de ataque de conjuro a distancia ignoran cobertura media y tres cuartos.\n\n*Disparar en melé:* estar a 5 pies de un enemigo no impone desventaja en tus tiradas de ataque de conjuros a distancia.",
+    beneficios: [
+      "+1 Inteligencia, Sabiduría o Carisma (máx 20)",
+      "Alcance incrementado (+60 pies a conjuros con tirada de ataque de al menos 10 pies)",
+      "Ignorar cobertura (ignora cobertura media y 3/4 en ataques de conjuro)",
+      "Lanzar cuerpo a cuerpo (sin desventaja a 5 pies)"
+    ],
+    fuente: "PHB 2024",
+    tipoAccion: "pasivo",
+    categoriaMecanica: "pasivo_permanente"
+  },
+  {
+    id: "dote_telequinetico",
+    nombre: "Telequinético",
+    categoria: "general",
+    requisito: "Nivel 4 o más",
+    descripcion:
+      "*Mejora de característica:* aumenta tu puntuación de Inteligencia, Sabiduría o Carisma en 1, hasta un máximo de 20.\n\n*Mano de mago menor:* aprendes el truco Mano de Mago. Puedes lanzarlo sin componentes verbales ni somáticos, puedes hacer que la mano sea invisible, y su alcance aumenta en 30 pies si ya lo conocías.\n\n*Empellón telequinético:* como acción adicional, puedes intentar mover telequinéticamente a una criatura a 30 pies que puedas ver. El objetivo debe superar una tirada de salvación de Fuerza (CD 8 + PB + mod de la característica aumentada) o ser empujado o atraído 5 pies hacia ti o lejos de ti. Una criatura puede fallar voluntariamente esta salvación.",
+    beneficios: [
+      "+1 Inteligencia, Sabiduría o Carisma (máx 20)",
+      "Truco Mano de Mago (invisible, sin componentes y alcance extendido)",
+      "Empellón telequinético (acción adicional salvación FUE CD 8+PB+Aptitud para mover 5 pies a una criatura a 30 pies)"
+    ],
+    fuente: "PHB 2024",
+    tipoAccion: "accion_adicional",
+    categoriaMecanica: "pasivo_permanente",
+    conjurosOtorgados: ["h_mano-de-mago"],
+    selectores: [
+      {
+        id: "selector_aptitud_telequinetico",
+        tipo: "unico",
+        etiqueta: "Aptitud Mágica (Telequinético)",
+        maxSelecciones: 1,
+        opciones: OPCIONES_APTITUD_MAGICA,
+        valorActual: ["inteligencia"]
+      }
+    ]
+  },
+  {
+    id: "dote_maestro_de_armas",
+    nombre: "Maestro de Armas",
+    categoria: "general",
+    requisito: "Nivel 4 o más",
+    descripcion:
+      "*Mejora de característica:* aumenta tu puntuación de Fuerza o Destreza en 1, hasta un máximo de 20.\n\n*Propiedad de maestría:* obtienes el beneficio de la propiedad de maestría de un tipo de arma cuerpo a cuerpo o a distancia de tu elección con la que tengas competencia, como Despejar, Empujar o Derribar. Cada vez que termines un descanso largo, puedes cambiar el tipo de arma elegido a otro con el que tengas competencia.",
+    beneficios: [
+      "+1 Fuerza o Destreza (máx 20)",
+      "Propiedad de maestría (desbloquea la maestría de un arma competente, intercambiable en descanso largo)"
+    ],
+    fuente: "PHB 2024",
+    tipoAccion: "pasivo",
+    categoriaMecanica: "pasivo_permanente",
+    selectores: [
+      {
+        id: "maestrias_aprendidas",
+        tipo: "unico",
+        etiqueta: "Maestría de Arma Aprendida",
+        maxSelecciones: 1,
+        opciones: OPCIONES_PROPIEDADES_MAESTRIA,
+        valorActual: []
+      }
+    ]
+  },
+  {
+    id: "dote_lanzador_en_combate",
+    nombre: "Lanzador en Combate",
+    categoria: "general",
+    requisito: "Nivel 4 o más, aptitud para lanzar al menos un conjuro",
+    descripcion:
+      "*Mejora de característica:* aumenta tu puntuación de Constitución, Inteligencia, Sabiduría o Carisma en 1, hasta un máximo de 20.\n\n*Concentración enfocada:* tienes ventaja en las tiradas de salvación de Constitución que realizas para mantener la concentración en un conjuro.\n\n*Hechizo reactivo:* cuando una criatura hostil provoca un ataque de oportunidad tuyo al salir de tu alcance, puedes usar tu reacción para lanzar un conjuro a la criatura en lugar de realizar un ataque de oportunidad. El conjuro debe tener un tiempo de lanzamiento de 1 acción y debe tener como único objetivo a esa criatura.\n\n*Componentes somáticos:* puedes realizar los componentes somáticos de los conjuros incluso cuando tienes armas o un escudo en una o ambas manos.",
+    beneficios: [
+      "+1 Constitución, Inteligencia, Sabiduría o Carisma (máx 20)",
+      "Ventaja en salvaciones de CON para mantener concentración",
+      "Hechizo reactivo (reacción para lanzar conjuro de 1 acción a objetivo único como ataque de oportunidad)",
+      "Componentes somáticos permitidos con manos ocupadas por armas/escudo"
+    ],
+    fuente: "PHB 2024",
+    tipoAccion: "reaccion",
+    categoriaMecanica: "pasivo_permanente",
+    efectos: [
+      {
+        tipo: "ventaja",
+        objetivo: "salvacion.constitucion.concentracion",
+        valor: "ventaja",
+        condicion: "concentracion",
+        descripcion: "Ventaja en tiradas de salvación de Constitución para mantener la concentración"
+      }
+    ]
+  },
+  {
+    id: "dote_telepatico",
+    nombre: "Telepático",
+    categoria: "general",
+    requisito: "Nivel 4 o más",
+    descripcion:
+      "*Mejora de característica:* aumenta tu puntuación de Inteligencia, Sabiduría o Carisma en 1, hasta un máximo de 20.\n\n*Habla telepática:* puedes comunicarte telepáticamente con cualquier criatura que puedas ver a 60 pies o menos de ti. La criatura comprende tu comunicación telepática solo si conoce el idioma que estás usando.\n\n*Detectar pensamientos:* puedes lanzar el conjuro Detectar Pensamientos sin gastar un espacio de conjuro ni requerir componentes verbales, somáticos ni materiales. Recuperas la capacidad de lanzarlo de esta forma cuando terminas un descanso largo. También puedes lanzarlo usando espacios de conjuro propios. Tu aptitud mágica es la característica que aumentaste con esta dote.",
+    beneficios: [
+      "+1 Inteligencia, Sabiduría o Carisma (máx 20)",
+      "Habla telepática (comunicación mental a 60 pies con criaturas visibles que compartan idioma)",
+      "Detectar pensamientos gratis 1 vez por descanso largo sin espacios ni componentes",
+      "Uso libre de espacios propios para relanzarlo"
+    ],
+    fuente: "PHB 2024",
+    tipoAccion: "accion",
+    tieneUsosLimitados: true,
+    usosMaximos: 1,
+    recuperacion: "descanso_largo",
+    categoriaMecanica: "consumible",
+    conjurosOtorgados: ["h_detectar-pensamientos"],
+    selectores: [
+      {
+        id: "selector_aptitud_telepatico",
+        tipo: "unico",
+        etiqueta: "Aptitud Mágica (Telepático)",
+        maxSelecciones: 1,
+        opciones: OPCIONES_APTITUD_MAGICA,
+        valorActual: ["inteligencia"]
+      }
+    ]
+  },
+  {
+    id: "dote_veloz",
+    nombre: "Veloz",
+    categoria: "general",
+    requisito: "Nivel 4 o más, Destreza o Constitución 13 o más",
+    descripcion:
+      "*Mejora de característica:* aumenta tu puntuación de Destreza o Constitución en 1, hasta un máximo de 20.\n\n*Aumento de velocidad:* tu velocidad aumenta en 10 pies.\n\n*Corredor tenaz:* cuando realizas la acción de Correr, el terreno difícil no te cuesta movimiento adicional durante ese turno.\n\n*Movimiento ágil:* cuando realizas un ataque cuerpo a cuerpo contra una criatura, no provocas ataques de oportunidad de esa criatura durante el resto del turno, hayas impactado o no.",
+    beneficios: [
+      "+1 Destreza o Constitución (máx 20)",
+      "+10 pies a la velocidad de movimiento a pie",
+      "Corredor tenaz (ignora terreno difícil al usar la acción de Correr)",
+      "Movimiento ágil (atacar cuerpo a cuerpo a un enemigo evita que provoque ataques de oportunidad suyos en ese turno)"
+    ],
+    fuente: "PHB 2024",
+    tipoAccion: "pasivo",
+    categoriaMecanica: "pasivo_permanente",
+    efectos: [
+      {
+        tipo: "modificador_velocidad",
+        objetivo: "velocidad.caminar",
+        valor: 10,
+        descripcion: "+10 pies a la velocidad de movimiento a pie"
+      }
+    ]
+  },
+  {
+    id: "dote_acechador",
+    nombre: "Acechador",
+    categoria: "general",
+    requisito: "Nivel 4 o más, Destreza 13 o más",
+    descripcion:
+      "*Mejora de característica:* aumenta tu puntuación de Destreza en 1, hasta un máximo de 20.\n\n*Visión ciega:* obtienes visión ciega con un alcance de 10 pies.\n\n*Niebla de guerra:* explotando la distracción de la batalla, tienes ventaja en las pruebas de Destreza (Sigilo) realizadas como parte de la acción de Esconderte mientras estés en combate.\n\n*En la sombra:* si estás escondido y realizas un ataque a distancia con arma que falla, realizar el ataque no revela tu posición.",
+    beneficios: [
+      "+1 Destreza (máx 20)",
+      "Visión ciega (10 pies)",
+      "Niebla de guerra (ventaja en pruebas de Sigilo al Esconderte durante el combate)",
+      "En la sombra (fallar un ataque a distancia con arma mientras estás escondido no revela tu posición)"
+    ],
+    fuente: "PHB 2024",
+    tipoAccion: "pasivo",
     categoriaMecanica: "pasivo_permanente"
   }
 ];

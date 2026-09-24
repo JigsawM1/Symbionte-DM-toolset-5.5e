@@ -19,6 +19,43 @@ Este archivo registra reglas globales, errores encontrados, sus causas raíz y l
    - **Bajo ninguna circunstancia** los módulos de lógica de negocio (`servicios/`), gestores de estado (`almacen/`) o constructores (`gestorClases.ts`) deben contener bifurcaciones condicionales por nombre literal de rasgo o clase (`r.nombre === "..."`, `clase.includes("...")`, etc.).
    - Toda mecánica, progresión de dados, escalado de usos, recuperación o desbloqueo dinámico debe resolverse mediante metadatos declarativos (`escaladoFormulaDados`, `escaladoUsos`, `escaladoRecuperacion`, `opcionesDinamicas`, `escaladoMaxSelecciones`, `sincronizarEfectosConFormula`, `heredarDadosPadre`, `gastarDePadre`, `ligadoA`, `efectos`) delegando en funciones puras agnósticas como `resolverEscaladosRasgo`. Esta regla está reforzada en CI vía ESLint `no-restricted-syntax` y la suite `rasgoGenericidad.test.ts`.
 
+## [2026-09-24] Implementación Canónica D&D 5.5e (PHB 2024): Dotes Generales Lote 4/4 y Compendio Completo de Dotes Oficiales
+
+**Contexto y Alcance:**
+- Se implementó el cuarto y último lote de dotes generales del Player's Handbook 2024, completando las 43 dotes generales canónicas del sistema:
+  1. *Centinela* (`dote_centinela`): Informativo táctico (reacción Guardián, ataque de oportunidad Detener).
+  2. *Influencia Sombría* (`dote_influencia_sombria`): Consumible 2 usos/descanso largo, *Invisibilidad* gratis, selector nv1 Ilusión/Nigromancia (`conjuros1IlusionONigromancia`), selector aptitud mágica (`OPCIONES_APTITUD_MAGICA`).
+  3. *Tirador de Primera* (`dote_tirador_primera`): Informativo táctico (ignorar coberturas, sin desventaja a 5 pies, disparos lejanos).
+  4. *Maestro en Escudos* (`dote_maestro_escudos`): Reacción e informativo táctico (golpe con escudo derribar/empujar con CD 8+PB+FUE, interponer escudo reacción a salvación Destreza).
+  5. *Experto en Habilidades* (`dote_experto_habilidades`): Informativo canónico (+1 característica, 1 competencia, 1 pericia).
+  6. *Rebanador* (`dote_rebanador`): Informativo táctico (lacerar -10 pies velocidad con daño cortante 1 vez/turno, crítico potenciado con desventaja en ataques).
+  7. *Lanzador Preciso* (`dote_lanzador_preciso`): Informativo táctico (+60 pies alcance a ataques de conjuro >= 10 pies, ignorar coberturas, lanzar a 5 pies sin desventaja).
+  8. *Telequinético* (`dote_telequinetico`): Truco *Mano de mago* otorgado (`h_mano-de-mago`), empellón telequinético como acción adicional con CD 8+PB+Aptitud, selector de aptitud mágica.
+  9. *Maestro de Armas* (`dote_maestro_de_armas`): Selector declarativo `maestrias_aprendidas` configurado con las 8 maestrías canónicas (`OPCIONES_PROPIEDADES_MAESTRIA`), integración 100% nativa con `obtenerMaestriasArmasAprendidas` sin tocar el motor de combate ni violar la Regla 20.
+  10. *Lanzador en Combate* (`dote_lanzador_en_combate`): Efecto declarativo de ventaja `{ tipo: "ventaja", objetivo: "salvacion.constitucion.concentracion", valor: "ventaja", condicion: "concentracion" }`, tipo de acción reacción para conjuro reactivo y componentes somáticos con manos ocupadas.
+  11. *Telepático* (`dote_telepatico`): Consumible 1 uso/descanso largo, *Detectar pensamientos* gratis (`h_detectar-pensamientos`), habla telepática 60 pies, selector de aptitud mágica.
+  12. *Veloz* (`dote_veloz`): Efecto mecánico declarativo `{ tipo: "modificador_velocidad", objetivo: "velocidad.caminar", valor: 10 }`, evaluado limpiamente por `calcularBonoVelocidadRasgos`. Corredor tenaz y movimiento ágil informativos.
+  13. *Acechador* (`dote_acechador`): Informativo táctico (visión ciega 10 pies, niebla de guerra ventaja sigilo en combate, en la sombra).
+
+**Decisiones de Diseño y Aprendizajes Técnicos:**
+1. **Genericidad y Reutilización de Selectores:**
+   - La propiedad de maestría de *Maestro de Armas* se integró utilizando el ID de selector canónico `maestrias_aprendidas` y la lista declarativa `OPCIONES_PROPIEDADES_MAESTRIA`. El evaluador de combate `obtenerMaestriasArmasAprendidas` ya poseía la lógica genérica para mapear selecciones de identificadores (`topple`, `cleave`, etc.) junto con sus sinónimos en español (`derribar`, `hender`), por lo que no se requirieron modificaciones ad-hoc.
+2. **Consistencia de Firmas en Evaluadores:**
+   - `obtenerConjurosOtorgadosPorRasgos` recibe el objeto `PersonajeJugador` completo y no `RasgoPersonaje[]`. Garantizar siempre que los tests instancien el personaje correctamente antes de interrogar los servicios de dominio.
+   - `resolverOrigenConjuro` toma `(personaje, hechizo: HechizoBase)` y devuelve una categoría de badge (`"rasgos"` para dotes y rasgos).
+3. **Cero `any` y Tipado Estricto de Mocks:**
+   - En mocks de personaje, la propiedad `velocidad` debe respetar el tipo `VelocidadPersonaje` (`{ caminar: 30, planea: false }`) en lugar de números planos para evitar desajustes con `tsc --noEmit`.
+   - Se erradicó por completo el uso de `any` en los tests sustituyéndolo por castings seguros de interfaz (`as unknown as HechizoBase`).
+
+4. **Paginación Universal en Modo Lista (`SeccionSelectoresModalRasgo.tsx`):**
+   - Anteriormente, la paginación a 4 elementos con `ControlPaginacion` estaba restringida por una condición que requería `sel.tipo === "multiple"`. Esto causaba que los selectores de tipo `"unico"` con `visualizacion: "lista"` (como el de *Influencia Sombría* e *Influencia Feérica* para elegir 1 conjuro de nivel 1 entre un catálogo de más de 15 opciones) renderizaran todas las opciones verticalmente sin paginar.
+   - Se generalizó el comportamiento para que **todos los selectores en modo lista (`esModoLista`)** apliquen paginación a 4 elementos (`ELEMENTOS_POR_PAGINA_SELECTOR = 4`), ocultándose automáticamente si la cantidad de opciones es 4 o menor gracias a la lógica nativa de `ControlPaginacion`.
+
+**Resultados de Verificación:**
+- Pruebas Unitarias: 75 archivos de prueba ejecutados y 988/988 tests pasando al 100%.
+- TypeScript: `pnpm exec tsc --noEmit` completado con 0 errores bajo configuración estricta.
+- Linter: `pnpm exec eslint` ejecutado con 0 errores y 0 advertencias.
+
 ## [2026-09-24] Refactorización Integral ToolSet Es 5.5 — Fase 5: Arquitectura, Modularización, Batching de Estado y Optimización Vite
 
 **Contexto del Problema:**

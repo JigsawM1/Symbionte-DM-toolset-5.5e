@@ -180,14 +180,11 @@ export const SeccionSelectoresModalRasgo: React.FC<SeccionSelectoresModalRasgoPr
 
             {esModoLista ? (
               (() => {
-                const esSelectorMultipleLista = sel.tipo === "multiple";
                 const paginaActual = paginas[sel.id] || 1;
-                const opcionesListaRender = esSelectorMultipleLista
-                  ? opcionesFiltradas.slice(
-                      (paginaActual - 1) * ELEMENTOS_POR_PAGINA_SELECTOR,
-                      paginaActual * ELEMENTOS_POR_PAGINA_SELECTOR
-                    )
-                  : opcionesFiltradas;
+                const opcionesListaRender = opcionesFiltradas.slice(
+                  (paginaActual - 1) * ELEMENTOS_POR_PAGINA_SELECTOR,
+                  paginaActual * ELEMENTOS_POR_PAGINA_SELECTOR
+                );
 
                 return (
                   <>
@@ -242,18 +239,16 @@ export const SeccionSelectoresModalRasgo: React.FC<SeccionSelectoresModalRasgoPr
                       })}
                     </div>
 
-                    {esSelectorMultipleLista && (
-                      <ControlPaginacion
-                        paginaActual={paginaActual}
-                        totalElementos={opcionesFiltradas.length}
-                        elementosPorPagina={ELEMENTOS_POR_PAGINA_SELECTOR}
-                        alCambiarPagina={(nueva) =>
-                          setPaginas((prev) => ({ ...prev, [sel.id]: nueva }))
-                        }
-                        tamano="compacto"
-                        etiquetaElementos="opciones"
-                      />
-                    )}
+                    <ControlPaginacion
+                      paginaActual={paginaActual}
+                      totalElementos={opcionesFiltradas.length}
+                      elementosPorPagina={ELEMENTOS_POR_PAGINA_SELECTOR}
+                      alCambiarPagina={(nueva) =>
+                        setPaginas((prev) => ({ ...prev, [sel.id]: nueva }))
+                      }
+                      tamano="compacto"
+                      etiquetaElementos="opciones"
+                    />
                   </>
                 );
               })()

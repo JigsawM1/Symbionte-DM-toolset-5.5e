@@ -64,10 +64,26 @@ const deleteBuildElement = (itemPath) => {
     }
 };
 
+// Validar existencia de directorio de build previo al despliegue
+if (!fs.existsSync(buildDir)) {
+    console.error(`[Error de despliegue] No existe el directorio de compilación: ${buildDir}`);
+    console.error(`-> Ejecuta primero 'pnpm run build' antes de desplegar.`);
+    process.exit(1);
+}
+
 // Asegurar que el directorio de destino existe y limpiar compilaciones anteriores
 if (!fs.existsSync(targetDir)) {
     fs.mkdirSync(targetDir, { recursive: true });
 } else {
+    // Purgar archivos de backup antiguos (.old.*) que hayan quedado de despliegues previos
+    try {
+        fs.readdirSync(targetDir).forEach((file) => {
+            if (file.includes('.old.')) {
+                try { fs.unlinkSync(path.join(targetDir, file)); } catch (_) {}
+            }
+        });
+    } catch (_) {}
+
     deleteBuildElement(path.join(targetDir, 'assets'));
     deleteBuildElement(path.join(targetDir, 'index.html'));
     deleteBuildElement(path.join(targetDir, 'manifest.json'));

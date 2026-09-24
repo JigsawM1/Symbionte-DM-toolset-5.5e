@@ -29,13 +29,12 @@ fs.mkdirSync(buildPath, { recursive: true });
 execSync(`vite build --outDir "${buildPath}"`, { stdio: 'inherit' });
 
 // Zip the build folder
-const zipBuildFolder = async () => {
+try {
     await zip(rootBuildPath, zipFileName, {
         includeBasePath: true
     });
     console.log(`Build folder zipped as ${zipFileName}`);
-};
-
-zipBuildFolder().catch(err => {
+} catch (err) {
     console.error('Error zipping the build folder:', err);
-});
+    process.exit(1);
+}

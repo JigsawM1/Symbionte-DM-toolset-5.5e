@@ -11,7 +11,7 @@ import {
   obtenerConjurosSubclasePersonaje
 } from "@/servicios/calculadorMagia";
 import { construirBuildClase } from "@/servicios/gestorClases";
-import { coincideHechizoId } from "@/almacen/slices/slicePersonajes";
+import { coincideHechizoId } from "@/servicios/comparadorHechizos";
 
 /**
  * Servicio puro de dominio para el cálculo, sincronización y mutación inmutable

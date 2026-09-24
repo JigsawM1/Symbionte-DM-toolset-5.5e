@@ -19,6 +19,45 @@ Este archivo registra reglas globales, errores encontrados, sus causas raíz y l
    - **Bajo ninguna circunstancia** los módulos de lógica de negocio (`servicios/`), gestores de estado (`almacen/`) o constructores (`gestorClases.ts`) deben contener bifurcaciones condicionales por nombre literal de rasgo o clase (`r.nombre === "..."`, `clase.includes("...")`, etc.).
    - Toda mecánica, progresión de dados, escalado de usos, recuperación o desbloqueo dinámico debe resolverse mediante metadatos declarativos (`escaladoFormulaDados`, `escaladoUsos`, `escaladoRecuperacion`, `opcionesDinamicas`, `escaladoMaxSelecciones`, `sincronizarEfectosConFormula`, `heredarDadosPadre`, `gastarDePadre`, `ligadoA`, `efectos`) delegando en funciones puras agnósticas como `resolverEscaladosRasgo`. Esta regla está reforzada en CI vía ESLint `no-restricted-syntax` y la suite `rasgoGenericidad.test.ts`.
 
+## [2026-09-24] Refactorización Integral ToolSet Es 5.5 — Fase 5: Arquitectura, Modularización, Batching de Estado y Optimización Vite
+
+**Contexto del Problema:**
+- Tras culminar con éxito las Fases 1, 2, 3 y 4 (seguridad y sanitización, optimizaciones algorítmicas Big O en selectores y hot paths, memoización de componentes React y erradicación de `as unknown as` / memory leaks), la base de código presentaba deuda técnica arquitectónica:
+  1. **Monolito en Lógica de Rasgos:** `evaluadorEfectosRasgos.ts` excedía las 2.080 líneas conteniendo múltiples responsabilidades acopladas (expresiones matemáticas, vitalidad y CA, movilidad, ventajas/salvaciones, combate y daño, conjuros y recursos).
+  2. **Renders en Cascada en Creación de Objetos:** `usarFormularioObjeto.ts` contenía más de 45 estados atómicos independientes (`useState`), provocando ráfagas de 20 a 35 re-renders secuenciales al cargar plantillas, cambiar categorías o resetear el formulario.
+  3. **Megabundle en Vite:** La distribución generaba un único bundle monolítico de JavaScript de 2.88 MB sin separación de dependencias ni compendios estáticos.
+  4. **Inversión de Capas y Código Muerto:** Módulos de servicios importando slices de almacén (`sincronizadorMulticlase.ts`), archivos plantilla no utilizados (`App.css`, `hechizos_transformados.json` de 877 KB) y CSS nativo redundante.
+
+**Soluciones Técnicas Aplicadas:**
+1. **Modularización con Patrón Fachada (`src/servicios/rasgos/` y `evaluadorEfectosRasgos.ts`):**
+   - Se descompuso el monolito en 6 submódulos especializados de alta cohesión:
+     - `utilidadesRasgos.ts`: Normalización lingüística, detección de rasgos y condiciones activas (furia, temerario, revelación), y verificación física de armaduras y escudos.
+     - `evaluadorExpresionesRasgos.ts`: Evaluación matemática segura sin `eval()`, resolución de fórmulas dinámicas y filtrado de efectos mecánicos activos.
+     - `evaluadorVitalidadRasgos.ts`: Bonos de características, defensa sin armadura, límites de Destreza, HP máximo y HP temporal.
+     - `evaluadorMovilidadRasgos.ts`: Velocidades de desplazamiento efectivas (caminar, volar, nadar, trepar), tamaño y capacidad de carga.
+     - `evaluadorSalvacionesRasgos.ts`: Ventajas/desventajas d20, bonos de salvación, dados de inspiración y competencias efectivas en herramientas.
+     - `evaluadorCombateRasgos.ts`: Dados extra de ataque, dados de crítico, pacto del filo, maestrías de armas y modificadores de invocaciones a hechizos.
+     - `evaluadorConjurosRasgos.ts`: Conjuros concedidos, lanzamientos gratuitos y resolución de ID de recurso objetivo de gasto.
+   - Se implementó `src/servicios/rasgos/index.ts` y se convirtió `evaluadorEfectosRasgos.ts` en una **Fachada Transparente** (`export * from "./rasgos";`), logrando compatibilidad retroactiva absoluta sin romper ninguna de las 20+ referencias del proyecto ni alterar contratos externos.
+2. **Optimización de Estado con Batching Atómico (`src/hooks/usarFormularioObjeto.ts`):**
+   - Se agrupó la totalidad de los campos en una interfaz de estado inmutable `EstadoFormularioObjeto` con su constante `ESTADO_INICIAL_FORMULARIO`.
+   - Se transformaron `limpiarFormulario`, `cargarObjeto`, `alCambiarCategoria` y `alCambiarSubcategoriaArmadura` en actualizaciones atómicas de un solo paso (`batch updates`), eliminando los re-renders en cascada.
+   - Se preservó la firma de retorno idéntica (setters y propiedades individuales memoizadas) garantizando cero fricción para los componentes consumidores.
+3. **Optimización de Rollup y Chunks en Vite (`vite.config.ts`):**
+   - Se configuró `rollupOptions.output.manualChunks` fragmentando las dependencias externas en chunks especializados: `vendor-react` (187 KB), `vendor-zod` (71 KB), `vendor-icons` y `vendor-state`.
+   - Se extrajeron las bases de datos de compendios de D&D 5.5e (`src/constantes/`) al chunk dedicado `datos-compendio` (1.28 MB), aligerando el runtime principal a 1.41 MB y reduciendo el tiempo de build a 6.18s.
+4. **Patrón Strategy en Sanitización (`src/almacen/sanitizacion.ts`):**
+   - Se desacopló la función monolítica `sanearObjetoHomebrew` en estrategias puras por categoría: `sanearPropiedadesArma`, `sanearPropiedadesArmadura`, `sanearPropiedadesEscudo` y `sanearPropiedadesEquipoAventuras`.
+5. **Limpieza y Scripts:**
+   - Eliminados `App.css` y `hechizos_transformados.json`. Purgado CSS zombi en `index.css` y variables en `App.module.css`.
+   - Asegurados scripts de despliegue (`build_and_zip.js` y `deploy_to_ts.js`) con manejo de errores asíncronos y purga de versiones obsoletas.
+
+**Verificación y Resultados:**
+- TypeScript: `tsc --noEmit` completado con 0 errores bajo `strict: true`.
+- Linter: ESLint con `--max-warnings=0` superado sin advertencias.
+- Suite de Pruebas: 74 archivos de prueba ejecutados y 955/955 tests aprobados (100% de éxito).
+- Build de Producción: Vite build completado en 6.18s con chunks modulares y source maps activos.
+
 ## [2026-09-23] Corrección Canónica: Asignación y Propagación Reactiva de Conjuros Rituales de la Dote "Lanzador Ritual"
 
 **Contexto del Problema:**

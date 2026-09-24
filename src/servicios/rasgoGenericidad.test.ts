@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { readFileSync } from "fs";
+import { readFileSync, existsSync } from "fs";
 import { resolve } from "path";
 import { EsquemaRasgoPersonaje, type RasgoPersonaje } from "@/tipos/rasgos";
 import type { PersonajeJugador } from "@/tipos";
@@ -49,7 +49,10 @@ describe("Genericidad Arquitectónica de Rasgos (D&D 5.5e PHB 2024)", () => {
     });
 
     it("resolverIdRasgoObjetivoGasto no debe contener fallbacks por nombres de rasgos", () => {
-      const contenido = readFileSync(resolve(process.cwd(), "src/servicios/evaluadorEfectosRasgos.ts"), "utf-8");
+      const rutaArchivo = existsSync(resolve(process.cwd(), "src/servicios/rasgos/evaluadorConjurosRasgos.ts"))
+        ? resolve(process.cwd(), "src/servicios/rasgos/evaluadorConjurosRasgos.ts")
+        : resolve(process.cwd(), "src/servicios/evaluadorEfectosRasgos.ts");
+      const contenido = readFileSync(rutaArchivo, "utf-8");
       const fnIdx = contenido.indexOf("function resolverIdRasgoObjetivoGasto");
       expect(fnIdx).toBeGreaterThan(-1);
       const fnCuerpo = contenido.slice(fnIdx, fnIdx + 1200);

@@ -20,7 +20,7 @@ import {
 import { obtenerConjurosSubclasePersonaje } from "@/servicios/calculadorMagia";
 import { usarMagiaPersonaje } from "@/hooks/usarMagiaPersonaje";
 import { TarjetasMetricasMagia } from "@/componentes/caracteristicas/personajes/TarjetasMetricasMagia";
-import { SelectorDesplegable } from "@/componentes/comunes";
+import { SelectorDesplegable, ControlPaginacion } from "@/componentes/comunes";
 import { usarAlmacenDM } from "@/almacen/usarAlmacenDM";
 import { FilaConjuroCompendio } from "./FilaConjuroCompendio";
 import { FichaHechizo } from "./FichaHechizo";
@@ -42,6 +42,8 @@ const OPCIONES_NIVEL_FILTRO = [
   { valor: "9", etiqueta: "Nivel 9" }
 ];
 
+const CONJUROS_POR_PAGINA = 50;
+
 export const CompendioConjurosJugador: React.FC = () => {
   const [pestañaActiva, setPestañaActiva] = useState<TipoPestañaConjuros>("miLista");
   const [mostrarFiltros, setMostrarFiltros] = useState<boolean>(false);
@@ -50,6 +52,7 @@ export const CompendioConjurosJugador: React.FC = () => {
   const [nivelFiltro, setNivelFiltro] = useState<string | number>("todos");
   const [escuelaFiltro, setEscuelaFiltro] = useState<string>("todas");
   const [hechizoModal, setHechizoModal] = useState<HechizoBase | null>(null);
+  const [paginaActual, setPaginaActual] = useState<number>(1);
 
   const { baseDatosHechizos } = usarEstadoHomebrew();
   const { personajes, idPersonajeActivo } = usarEstadoPersonajes();
@@ -198,6 +201,15 @@ export const CompendioConjurosJugador: React.FC = () => {
       )
     );
   }, [conjurosPestaña, busquedaDiferida, nivelFiltro, escuelaFiltro]);
+
+  React.useEffect(() => {
+    setPaginaActual(1);
+  }, [pestañaActiva, busquedaDiferida, nivelFiltro, escuelaFiltro, idPersonajeActivo]);
+
+  const conjurosPaginados = useMemo(() => {
+    const inicio = (paginaActual - 1) * CONJUROS_POR_PAGINA;
+    return conjurosFiltrados.slice(inicio, inicio + CONJUROS_POR_PAGINA);
+  }, [conjurosFiltrados, paginaActual]);
 
   const manejarAlternarEnLista = (hechizo: HechizoBase) => {
     if (!personajeActivo) return;
@@ -414,7 +426,7 @@ export const CompendioConjurosJugador: React.FC = () => {
             {pestañaActiva === "todos" && "No se encontraron conjuros en el compendio con los filtros seleccionados."}
           </div>
         ) : (
-          conjurosFiltrados.map((hechizo) => {
+          conjurosPaginados.map((hechizo) => {
             const esSubclase = esHechizoDeSubclase(hechizo);
             const origenBadge = obtenerOrigenConjuro(hechizo);
             const enLista = estaEnLista(hechizo);
@@ -442,6 +454,16 @@ export const CompendioConjurosJugador: React.FC = () => {
           })
         )}
       </div>
+
+      {conjurosFiltrados.length > CONJUROS_POR_PAGINA && (
+        <ControlPaginacion
+          paginaActual={paginaActual}
+          totalElementos={conjurosFiltrados.length}
+          elementosPorPagina={CONJUROS_POR_PAGINA}
+          alCambiarPagina={(nueva) => setPaginaActual(nueva)}
+          etiquetaElementos="conjuros"
+        />
+      )}
 
       {/* Modal de FichaHechizo Completa */}
       {hechizoModal && (

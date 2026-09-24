@@ -633,7 +633,14 @@ export async function lanzarDadosTaleSpire(
 
     // Si es una salvación de muerte en entorno de prueba local fuera de TaleSpire
     if (metaSalvacionMuerte) {
-      const d20 = Math.floor(Math.random() * 20) + 1;
+      let d20 = Math.floor(Math.random() * 20) + 1;
+      if (tipoTirada === "ventaja") {
+        const d20Extra = Math.floor(Math.random() * 20) + 1;
+        d20 = Math.max(d20, d20Extra);
+      } else if (tipoTirada === "desventaja") {
+        const d20Extra = Math.floor(Math.random() * 20) + 1;
+        d20 = Math.min(d20, d20Extra);
+      }
       aplicarResultadoSalvacionMuerteEnEstado(metaSalvacionMuerte.personajeId, d20);
     }
 

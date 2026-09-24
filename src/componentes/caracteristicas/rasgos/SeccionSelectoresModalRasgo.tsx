@@ -1,7 +1,7 @@
 import React from "react";
 import type { SelectorRasgo } from "@/tipos";
 import { Check, Lock } from "lucide-react";
-import { SelectorDesplegable, TooltipUniversal } from "@/componentes/comunes";
+import { SelectorDesplegable, TooltipUniversal, ControlPaginacion } from "@/componentes/comunes";
 import { SelectorInvocacionesAcordeon } from "./SelectorInvocacionesAcordeon";
 import { SelectorTrucoAltoElfo, type OpcionTrucoMago } from "./SelectorTrucoAltoElfo";
 import estilos from "./VistaRasgosJugador.module.css";
@@ -13,6 +13,8 @@ interface SeccionSelectoresModalRasgoProps {
   alActualizarSeleccion?: (idSelector: string, valores: string[]) => void;
 }
 
+const ELEMENTOS_POR_PAGINA_SELECTOR = 4;
+
 export const SeccionSelectoresModalRasgo: React.FC<SeccionSelectoresModalRasgoProps> = ({
   selectores,
   nivelPersonaje,
@@ -20,6 +22,7 @@ export const SeccionSelectoresModalRasgo: React.FC<SeccionSelectoresModalRasgoPr
   alActualizarSeleccion
 }) => {
   const [busquedas, setBusquedas] = React.useState<Record<string, string>>({});
+  const [paginas, setPaginas] = React.useState<Record<string, number>>({});
 
   return (
     <div className={estilos.seccionSelectoresModal}>
@@ -166,64 +169,94 @@ export const SeccionSelectoresModalRasgo: React.FC<SeccionSelectoresModalRasgoPr
                   className={estilos.inputBuscadorSelectorModal}
                   placeholder={`Buscar en ${sel.etiqueta.toLowerCase()}...`}
                   value={busquedas[sel.id] || ""}
-                  onChange={(e) =>
-                    setBusquedas((prev) => ({ ...prev, [sel.id]: e.target.value }))
-                  }
+                  onChange={(e) => {
+                    const nuevoTexto = e.target.value;
+                    setBusquedas((prev) => ({ ...prev, [sel.id]: nuevoTexto }));
+                    setPaginas((prev) => ({ ...prev, [sel.id]: 1 }));
+                  }}
                 />
               </div>
             )}
 
             {esModoLista ? (
-              <div className={estilos.listaOpcionesSelectorModal}>
-                {opcionesFiltradas.map((op) => {
-                  const estaActiva = seleccionados.includes(op.id);
-                  const cumpleNivel =
-                    op.nivelMinimo === undefined ||
-                    nivelPersonaje === undefined ||
-                    nivelPersonaje >= op.nivelMinimo;
-                  const cumpleInvocacionPrevia =
-                    !op.requisitoInvocacion || seleccionados.includes(op.requisitoInvocacion);
-                  const bloqueada = !estaActiva && (!cumpleNivel || !cumpleInvocacionPrevia);
+              (() => {
+                const esSelectorMultipleLista = sel.tipo === "multiple";
+                const paginaActual = paginas[sel.id] || 1;
+                const opcionesListaRender = esSelectorMultipleLista
+                  ? opcionesFiltradas.slice(
+                      (paginaActual - 1) * ELEMENTOS_POR_PAGINA_SELECTOR,
+                      paginaActual * ELEMENTOS_POR_PAGINA_SELECTOR
+                    )
+                  : opcionesFiltradas;
 
-                  let avisoBloqueo = "";
-                  if (!cumpleNivel) {
-                    avisoBloqueo = `[Bloqueado: Requiere nivel ${op.nivelMinimo}] `;
-                  } else if (!cumpleInvocacionPrevia) {
-                    avisoBloqueo = `[Bloqueado: Requiere requisito previo] `;
-                  }
+                return (
+                  <>
+                    <div className={estilos.listaOpcionesSelectorModal}>
+                      {opcionesListaRender.map((op) => {
+                        const estaActiva = seleccionados.includes(op.id);
+                        const cumpleNivel =
+                          op.nivelMinimo === undefined ||
+                          nivelPersonaje === undefined ||
+                          nivelPersonaje >= op.nivelMinimo;
+                        const cumpleInvocacionPrevia =
+                          !op.requisitoInvocacion || seleccionados.includes(op.requisitoInvocacion);
+                        const bloqueada = !estaActiva && (!cumpleNivel || !cumpleInvocacionPrevia);
 
-                  return (
-                    <button
-                      key={op.id}
-                      type="button"
-                      disabled={bloqueada}
-                      className={`${estilos.itemListaSelectorModal} ${
-                        estaActiva ? estilos.itemListaSelectorModalActivo : ""
-                      } ${bloqueada ? estilos.itemListaSelectorModalBloqueado : ""}`}
-                      onClick={() => manejarClickOpcion(op.id, bloqueada)}
-                      title={bloqueada ? `${avisoBloqueo}${op.nombre}` : op.nombre}
-                    >
-                      <div className={estilos.infoItemListaSelector}>
-                        <span className={estilos.nombreItemListaSelector}>{op.nombre}</span>
-                        {op.descripcion && (
-                          <span className={estilos.descripcionItemListaSelector}>
-                            {op.descripcion}
-                          </span>
-                        )}
-                        {bloqueada && (
-                          <span className={estilos.avisoBloqueoItemLista}>
-                            {avisoBloqueo}
-                          </span>
-                        )}
-                      </div>
-                      <div className={estilos.iconoCheckListaSelector}>
-                        {estaActiva && <Check size={16} />}
-                        {bloqueada && <Lock size={14} />}
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
+                        let avisoBloqueo = "";
+                        if (!cumpleNivel) {
+                          avisoBloqueo = `[Bloqueado: Requiere nivel ${op.nivelMinimo}] `;
+                        } else if (!cumpleInvocacionPrevia) {
+                          avisoBloqueo = `[Bloqueado: Requiere requisito previo] `;
+                        }
+
+                        return (
+                          <button
+                            key={op.id}
+                            type="button"
+                            disabled={bloqueada}
+                            className={`${estilos.itemListaSelectorModal} ${
+                              estaActiva ? estilos.itemListaSelectorModalActivo : ""
+                            } ${bloqueada ? estilos.itemListaSelectorModalBloqueado : ""}`}
+                            onClick={() => manejarClickOpcion(op.id, bloqueada)}
+                            title={bloqueada ? `${avisoBloqueo}${op.nombre}` : op.nombre}
+                          >
+                            <div className={estilos.infoItemListaSelector}>
+                              <span className={estilos.nombreItemListaSelector}>{op.nombre}</span>
+                              {op.descripcion && (
+                                <span className={estilos.descripcionItemListaSelector}>
+                                  {op.descripcion}
+                                </span>
+                              )}
+                              {bloqueada && (
+                                <span className={estilos.avisoBloqueoItemLista}>
+                                  {avisoBloqueo}
+                                </span>
+                              )}
+                            </div>
+                            <div className={estilos.iconoCheckListaSelector}>
+                              {estaActiva && <Check size={16} />}
+                              {bloqueada && <Lock size={14} />}
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    {esSelectorMultipleLista && (
+                      <ControlPaginacion
+                        paginaActual={paginaActual}
+                        totalElementos={opcionesFiltradas.length}
+                        elementosPorPagina={ELEMENTOS_POR_PAGINA_SELECTOR}
+                        alCambiarPagina={(nueva) =>
+                          setPaginas((prev) => ({ ...prev, [sel.id]: nueva }))
+                        }
+                        tamano="compacto"
+                        etiquetaElementos="opciones"
+                      />
+                    )}
+                  </>
+                );
+              })()
             ) : (
               <div className={estilos.gridOpcionesSelectorModal}>
                 {opcionesFiltradas.map((op) => {

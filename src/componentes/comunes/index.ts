@@ -10,4 +10,6 @@ export type { ChipCondicionProps } from "./ChipCondicion";
 export { TooltipUniversal } from "./TooltipUniversal";
 export type { TooltipUniversalProps } from "./TooltipUniversal";
 export { TextoEnriquecidoDND } from "./TextoEnriquecidoDND";
+export { ControlPaginacion } from "./ControlPaginacion";
+export type { ControlPaginacionProps } from "./ControlPaginacion";
 

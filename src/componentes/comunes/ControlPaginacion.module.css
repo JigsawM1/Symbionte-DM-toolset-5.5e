@@ -1,0 +1,107 @@
+.contenedorPaginacion {
+  display: flex;
+  align-items: center;
+  justify-content: space-evenly;
+  gap: 0.5rem;
+  padding: 0.5rem 0.25rem;
+  user-select: none;
+}
+
+.contenedorPaginacionCompacto {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.35rem;
+  padding: 0.35rem 0.15rem;
+  user-select: none;
+  font-size: 0.75rem;
+}
+
+.infoRango {
+  color: #94a3b8;
+  font-size: 0.75rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.infoRangoCompacto {
+  color: #94a3b8;
+  font-size: 0.7rem;
+  font-weight: 500;
+}
+
+.grupoControles {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.botonPaginacion {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 0.25rem;
+  background-color: #1e293b;
+  border: 1px solid #334155;
+  color: #cbd5e1;
+  cursor: pointer;
+  padding: 0;
+  transition: none;
+}
+
+.botonPaginacion:hover:not(:disabled) {
+  background-color: #334155;
+  color: #f8fafc;
+  border-color: #475569;
+}
+
+.botonPaginacion:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.botonPaginacionCompacto {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.4rem;
+  height: 1.4rem;
+  border-radius: 0.25rem;
+  background-color: #1e293b;
+  border: 1px solid #334155;
+  color: #cbd5e1;
+  cursor: pointer;
+  padding: 0;
+  transition: none;
+}
+
+.botonPaginacionCompacto:hover:not(:disabled) {
+  background-color: #334155;
+  color: #f8fafc;
+  border-color: #475569;
+}
+
+.botonPaginacionCompacto:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.textoPaginaActual {
+  color: #e2e8f0;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0 0.4rem;
+  min-width: 4rem;
+  text-align: center;
+}
+
+.textoPaginaActualCompacto {
+  color: #e2e8f0;
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 0 0.25rem;
+  min-width: 3.2rem;
+  text-align: center;
+}

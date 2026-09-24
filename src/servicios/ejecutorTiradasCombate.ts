@@ -10,6 +10,7 @@ import { lanzarDadosTaleSpire, sanitizarEtiqueta } from "@/utiles/lanzadorDados"
 import { evaluarEfectosCondicionesEnTirada } from "@/servicios/procesadorCondiciones";
 import { esMunicionCompatibleConArma } from "@/servicios/gestorMunicion";
 import { evaluarFormulaDados } from "@/servicios/procesadorConsumibles";
+import { obtenerDadosExtraCriticoArma } from "@/servicios/evaluadorEfectosRasgos";
 import { logger } from "@/utiles/logger";
 
 export interface ContextoTiradaAtaqueFisico {
@@ -185,10 +186,18 @@ export async function ejecutarTiradaCritico(
 
       if (partesDados && partesDados.length > 0) {
         let formulaDadosDuplicados = subBase;
+        let dadosExtraCriticoDisponibles = (i === 0 && personajeActivo)
+          ? obtenerDadosExtraCriticoArma(personajeActivo, tipoEspecifico || ataque.tipoDano || "")
+          : 0;
+
         for (const p of partesDados) {
           const m = p.match(/(\d+)d(\d+)/i);
           if (m) {
-            const cant = parseInt(m[1], 10) * 2;
+            let cant = parseInt(m[1], 10) * 2;
+            if (dadosExtraCriticoDisponibles > 0) {
+              cant += dadosExtraCriticoDisponibles;
+              dadosExtraCriticoDisponibles = 0;
+            }
             const caras = m[2];
             formulaDadosDuplicados = formulaDadosDuplicados.replace(p, `${cant}d${caras}`);
           }

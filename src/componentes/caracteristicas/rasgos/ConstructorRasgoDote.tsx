@@ -100,6 +100,7 @@ const OPCIONES_APLICA_A_ATAQUE = [
   { valor: "arma_fuerza", etiqueta: "Armas con Fuerza" },
   { valor: "arma_cac", etiqueta: "Armas Cuerpo a Cuerpo" },
   { valor: "arma_distancia", etiqueta: "Armas a Distancia" },
+  { valor: "arma_pesada", etiqueta: "Armas Pesadas" },
   { valor: "desarmado", etiqueta: "Golpe sin Armas (Desarmado)" },
   { valor: "todos_ataques", etiqueta: "Todos los Ataques" }
 ] as const;
@@ -184,7 +185,9 @@ const TIPOS_EFECTO_DISPONIBLES: { tipo: TipoEfectoMecanico; etiqueta: string; de
   { tipo: "modificador_capacidad_carga", etiqueta: "Modificador de Capacidad de Carga", desc: "Multiplica o incrementa la capacidad de carga (ej. x2 para Constitución poderosa / categoría de tamaño superior)" },
   { tipo: "modificador_tamano", etiqueta: "Modificador de Tamaño", desc: "Modifica la categoría de tamaño activa de la criatura (ej. Grande en Forma grande o Agrandar)" },
   { tipo: "restaurar_recurso", etiqueta: "Restaurar Recursos Mecánicos", desc: "Restaura usos o cargas de otro rasgo al activarse (ej. Furia persistente)" },
-  { tipo: "competencia", etiqueta: "Competencia en Armas o Armaduras", desc: "Otorga competencia en armas marciales, armaduras medias, etc." }
+  { tipo: "competencia", etiqueta: "Competencia en Armas, Armaduras o Útiles", desc: "Otorga competencia en armas marciales, armaduras medias, útiles, etc." },
+  { tipo: "limite_des_armadura_media", etiqueta: "Límite de Destreza en Armadura Media", desc: "Aumenta el tope de Destreza aplicable a la CA con armadura media (ej. 3 para Maestro en armaduras medias)" },
+  { tipo: "dado_extra_critico", etiqueta: "Dados Extra en Crítico", desc: "Añade dados adicionales al crítico del arma (ej. +1 dado para armas perforantes de Perforador)" }
 ];
 
 export const ConstructorRasgoDote: React.FC<ConstructorRasgoDoteProps> = ({
@@ -281,7 +284,9 @@ export const ConstructorRasgoDote: React.FC<ConstructorRasgoDoteProps> = ({
       setUsosRestantes(maxCalculado);
       setRecuperacion(dote.recuperacion || (dote.tieneUsosLimitados ? "descanso_largo" : "ninguno"));
       setFormulaEscalado(formulaEsc);
-      setCategoriaMecanica(dote.categoriaMecanica || (dote.tieneUsosLimitados ? "consumible" : "pasivo_permanente"));
+      setCategoriaMecanica(dote.categoriaMecanica || (dote.esActivable ? "activable" : dote.tieneUsosLimitados ? "consumible" : "pasivo_permanente"));
+      setEsActivable(Boolean(dote.esActivable));
+      setAutoDesactivar(Boolean(dote.autoDesactivar));
       setEfectos(dote.efectos ? JSON.parse(JSON.stringify(dote.efectos)) : []);
       setSelectores(dote.selectores ? JSON.parse(JSON.stringify(dote.selectores)) : []);
       if (dote.conjurosOtorgados?.length) {
@@ -352,6 +357,9 @@ export const ConstructorRasgoDote: React.FC<ConstructorRasgoDoteProps> = ({
     } else if (t === "modificador_velocidad") {
       setNuevoValor("10");
       setNuevoObjetivo("velocidad.caminar");
+    } else if (t === "movimiento_especial") {
+      setNuevoObjetivo("velocidad.escalar");
+      setNuevoValor("caminar");
     } else if (t === "ventaja") {
       setNuevoObjetivo("salvacion.fuerza");
       setNuevoValor("true");
@@ -399,6 +407,15 @@ export const ConstructorRasgoDote: React.FC<ConstructorRasgoDoteProps> = ({
       setNuevoObjetivo("tamano");
       setNuevoValor("Grande");
       setNuevaDescripcionEfecto("Transformación a tamaño Grande");
+    } else if (t === "limite_des_armadura_media") {
+      setNuevoObjetivo("limite_des_armadura_media");
+      setNuevoValor("3");
+      setNuevaDescripcionEfecto("Límite de Destreza en armadura media aumentado a 3");
+    } else if (t === "dado_extra_critico") {
+      setNuevoObjetivo("dano_perforante");
+      setNuevoValor("1");
+      setNuevoAplicaA("perforante");
+      setNuevaDescripcionEfecto("+1 dado de daño adicional en impactos críticos (perforante)");
     }
   };
 
@@ -417,7 +434,9 @@ export const ConstructorRasgoDote: React.FC<ConstructorRasgoDoteProps> = ({
           break;
         case "bono_dano_ataque":
         case "bono_dano_fuerza":
-          descFinal = `+${nuevoValor} al daño físico`;
+          descFinal = nuevoAplicaA === "arma_pesada"
+            ? `+${nuevoValor} al daño (Armas Pesadas)`
+            : `+${nuevoValor} al daño físico`;
           break;
         case "bono_dano_conjuro":
           descFinal = `+${nuevoValor} al daño mágico (${nuevoAplicaA})`;
@@ -431,9 +450,18 @@ export const ConstructorRasgoDote: React.FC<ConstructorRasgoDoteProps> = ({
         case "modificador_velocidad":
           descFinal = `+${nuevoValor} pies de velocidad`;
           break;
-        case "movimiento_especial":
-          descFinal = `Movimiento especial: ${nuevoValor}`;
+        case "movimiento_especial": {
+          const esIgualVelocidad = nuevoValor === "caminar" || nuevoValor === "velocidad_caminar";
+          const tipoMov = nuevoObjetivo.includes("escalar") || nuevoObjetivo.includes("trepar")
+            ? "trepando"
+            : nuevoObjetivo.includes("nadar")
+              ? "de nado"
+              : "volando";
+          descFinal = esIgualVelocidad
+            ? `Velocidad ${tipoMov} igual a tu velocidad`
+            : `Velocidad ${tipoMov}: ${nuevoValor} pies`;
           break;
+        }
         case "ventaja": {
           const optEncontrada = OPCIONES_VENTAJA.find((o) => o.valor === nuevoObjetivo);
           descFinal = optEncontrada ? `Ventaja: ${optEncontrada.etiqueta}` : `Ventaja en ${nuevoObjetivo}`;
@@ -493,6 +521,12 @@ export const ConstructorRasgoDote: React.FC<ConstructorRasgoDoteProps> = ({
         }
         case "competencia":
           descFinal = `Competencia con ${nuevoObjetivo}`;
+          break;
+        case "limite_des_armadura_media":
+          descFinal = `Límite de Destreza en armadura media: ${nuevoValor}`;
+          break;
+        case "dado_extra_critico":
+          descFinal = `+${nuevoValor} dado extra en crítico (${nuevoAplicaA || nuevoObjetivo})`;
           break;
         default:
           descFinal = `${nuevoTipoEfecto}: ${nuevoValor}`;
@@ -1423,6 +1457,55 @@ export const ConstructorRasgoDote: React.FC<ConstructorRasgoDoteProps> = ({
               </div>
             )}
 
+            {nuevoTipoEfecto === "modificador_velocidad" && (
+              <div className={estilos.campoGrupo}>
+                <label className={estilos.labelCampo}>
+                  <span>Incremento de Velocidad (Pies)</span>
+                </label>
+                <input
+                  type="number"
+                  min={5}
+                  step={5}
+                  className={estilos.inputControl}
+                  value={nuevoValor}
+                  onChange={(e) => setNuevoValor(e.target.value)}
+                  placeholder="10"
+                />
+              </div>
+            )}
+
+            {nuevoTipoEfecto === "movimiento_especial" && (
+              <div className={estilos.gridDosColumnas}>
+                <div className={estilos.campoGrupo}>
+                  <label className={estilos.labelCampo}>
+                    <span>Tipo de Movimiento Especial</span>
+                  </label>
+                  <SelectorDesplegable
+                    valor={nuevoObjetivo}
+                    opciones={[
+                      { valor: "velocidad.escalar", etiqueta: "Escalada / Trepar" },
+                      { valor: "velocidad.volar", etiqueta: "Vuelo" },
+                      { valor: "velocidad.nadar", etiqueta: "Nado" }
+                    ]}
+                    alCambiar={(val) => setNuevoObjetivo(val)}
+                    tamano="normal"
+                  />
+                </div>
+                <div className={estilos.campoGrupo}>
+                  <label className={estilos.labelCampo}>
+                    <span>Velocidad Otorgada</span>
+                  </label>
+                  <input
+                    type="text"
+                    className={estilos.inputControl}
+                    value={nuevoValor}
+                    onChange={(e) => setNuevoValor(e.target.value)}
+                    placeholder="caminar (o pies, ej. 30)"
+                  />
+                </div>
+              </div>
+            )}
+
             {nuevoTipoEfecto === "ventaja" && (
               <div className={estilos.campoGrupo}>
                 <label className={estilos.labelCampo}>
@@ -1551,28 +1634,52 @@ export const ConstructorRasgoDote: React.FC<ConstructorRasgoDoteProps> = ({
                     opciones={[
                       { valor: "armas_marciales", etiqueta: "Armas Marciales" },
                       { valor: "armas_sencillas", etiqueta: "Armas Sencillas" },
+                      { valor: "armas_improvisadas", etiqueta: "Armas Improvisadas" },
                       { valor: "armaduras_medias", etiqueta: "Armaduras Medias" },
                       { valor: "armaduras_pesadas", etiqueta: "Armaduras Pesadas" },
                       { valor: "armaduras_ligeras", etiqueta: "Armaduras Ligeras" },
-                      { valor: "escudos", etiqueta: "Escudos" }
+                      { valor: "escudos", etiqueta: "Escudos" },
+                      { valor: "herramientas", etiqueta: "Herramientas / Útiles" }
                     ]}
                     alCambiar={(val) => {
                       setNuevoObjetivo(val);
-                      setNuevoValor(val.replace("armas_", "").replace("armaduras_", ""));
+                      if (val === "herramientas") {
+                        setNuevoValor("Útiles de cocinero");
+                      } else if (val === "armas_improvisadas") {
+                        setNuevoValor("improvisadas");
+                      } else {
+                        setNuevoValor(val.replace("armas_", "").replace("armaduras_", ""));
+                      }
                     }}
                     tamano="normal"
                   />
                 </div>
                 <div className={estilos.campoGrupo}>
                   <label className={estilos.labelCampo}>
-                    <span>Descripción de la Competencia</span>
+                    <span>{nuevoObjetivo === "herramientas" ? "Tipo de Útiles / Herramientas" : "Descripción de la Competencia"}</span>
                   </label>
-                  <input
-                    type="text"
-                    className={estilos.inputControl}
-                    value={nuevoValor}
-                    onChange={(e) => setNuevoValor(e.target.value)}
-                  />
+                  {nuevoObjetivo === "herramientas" ? (
+                    <SelectorDesplegable
+                      valor={nuevoValor}
+                      opciones={[
+                        { valor: "Útiles de envenenador", etiqueta: "Útiles de envenenador (Envenenador)" },
+                        { valor: "Útiles de cocinero", etiqueta: "Útiles de cocinero (Chef)" },
+                        { valor: "Herramientas de ladrón", etiqueta: "Herramientas de ladrón" },
+                        { valor: "Herramientas de artesano", etiqueta: "Herramientas de artesano" },
+                        { valor: "Útiles de herborista", etiqueta: "Útiles de herborista" },
+                        { valor: "Instrumento musical", etiqueta: "Instrumento musical" }
+                      ]}
+                      alCambiar={(val) => setNuevoValor(val)}
+                      tamano="normal"
+                    />
+                  ) : (
+                    <input
+                      type="text"
+                      className={estilos.inputControl}
+                      value={nuevoValor}
+                      onChange={(e) => setNuevoValor(e.target.value)}
+                    />
+                  )}
                 </div>
               </div>
             )}
@@ -1847,6 +1954,77 @@ export const ConstructorRasgoDote: React.FC<ConstructorRasgoDoteProps> = ({
                   </div>
                 </div>
               </>
+            )}
+
+            {nuevoTipoEfecto === "limite_des_armadura_media" && (
+              <div className={estilos.gridDosColumnas}>
+                <div className={estilos.campoGrupo}>
+                  <label className={estilos.labelCampo}>
+                    <span>Límite Máximo de Destreza</span>
+                  </label>
+                  <SelectorDesplegable
+                    valor={nuevoValor}
+                    opciones={[
+                      { valor: "3", etiqueta: "+3 a la CA (Maestro en Armaduras Medias)" },
+                      { valor: "4", etiqueta: "+4 a la CA (Especial / Homebrew)" },
+                      { valor: "99", etiqueta: "Sin límite de Destreza (Todo el mod DES)" }
+                    ]}
+                    alCambiar={(val) => setNuevoValor(val)}
+                    tamano="normal"
+                  />
+                </div>
+                <div className={estilos.campoGrupo}>
+                  <label className={estilos.labelCampo}>
+                    <span>Descripción del Beneficio</span>
+                  </label>
+                  <input
+                    type="text"
+                    className={estilos.inputControl}
+                    value={nuevaDescripcionEfecto}
+                    onChange={(e) => setNuevaDescripcionEfecto(e.target.value)}
+                    placeholder="Límite de Destreza en armadura media aumentado a 3"
+                  />
+                </div>
+              </div>
+            )}
+
+            {nuevoTipoEfecto === "dado_extra_critico" && (
+              <div className={estilos.gridDosColumnas}>
+                <div className={estilos.campoGrupo}>
+                  <label className={estilos.labelCampo}>
+                    <span>Tipo de Daño Aplicable</span>
+                  </label>
+                  <SelectorDesplegable
+                    valor={nuevoAplicaA}
+                    opciones={[
+                      { valor: "perforante", etiqueta: "Daño Perforante (Perforador)" },
+                      { valor: "cortante", etiqueta: "Daño Cortante" },
+                      { valor: "contundente", etiqueta: "Daño Contundente" },
+                      { valor: "todos", etiqueta: "Cualquier arma (Universal)" }
+                    ]}
+                    alCambiar={(val) => {
+                      setNuevoAplicaA(val);
+                      setNuevoObjetivo(`dano_${val}`);
+                    }}
+                    tamano="normal"
+                  />
+                </div>
+                <div className={estilos.campoGrupo}>
+                  <label className={estilos.labelCampo}>
+                    <span>Cantidad de Dados Extra</span>
+                  </label>
+                  <SelectorDesplegable
+                    valor={nuevoValor}
+                    opciones={[
+                      { valor: "1", etiqueta: "+1 Dado de daño adicional (Crítico x2 + 1)" },
+                      { valor: "2", etiqueta: "+2 Dados de daño adicionales" },
+                      { valor: "3", etiqueta: "+3 Dados de daño adicionales" }
+                    ]}
+                    alCambiar={(val) => setNuevoValor(val)}
+                    tamano="normal"
+                  />
+                </div>
+              </div>
             )}
 
             <div className={estilos.botonesNuevoEfecto}>

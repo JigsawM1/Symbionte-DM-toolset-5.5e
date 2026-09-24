@@ -19,6 +19,163 @@ Este archivo registra reglas globales, errores encontrados, sus causas raíz y l
    - **Bajo ninguna circunstancia** los módulos de lógica de negocio (`servicios/`), gestores de estado (`almacen/`) o constructores (`gestorClases.ts`) deben contener bifurcaciones condicionales por nombre literal de rasgo o clase (`r.nombre === "..."`, `clase.includes("...")`, etc.).
    - Toda mecánica, progresión de dados, escalado de usos, recuperación o desbloqueo dinámico debe resolverse mediante metadatos declarativos (`escaladoFormulaDados`, `escaladoUsos`, `escaladoRecuperacion`, `opcionesDinamicas`, `escaladoMaxSelecciones`, `sincronizarEfectosConFormula`, `heredarDadosPadre`, `gastarDePadre`, `ligadoA`, `efectos`) delegando en funciones puras agnósticas como `resolverEscaladosRasgo`. Esta regla está reforzada en CI vía ESLint `no-restricted-syntax` y la suite `rasgoGenericidad.test.ts`.
 
+## [2026-09-23] Corrección Canónica: Asignación y Propagación Reactiva de Conjuros Rituales de la Dote "Lanzador Ritual"
+
+**Contexto del Problema:**
+- Los conjuros rituales elegidos en el selector interactivo de la dote *Lanzador Ritual* (`selector_rituales_nv1`) no se estaban asignando a la hoja del personaje, permaneciendo invisibles en el panel de conjuros y en el compendio de hechizos preparados.
+
+**Causa Raíz:**
+1. Los filtros de coincidencia de selectores mágicos en `sliceRasgos.ts`, `evaluadorEfectosRasgos.ts` y `resolutorOrigenConjuros.ts` buscaban subcadenas como `"truco"`, `"conjuro"`, `"hechizo"`, `"spell"` o `"cantrip"`, omitiendo `"ritual"`. En consecuencia:
+   - `esRasgoConMagia` y `esSelectorConjuro` evaluaban en falso para `selector_rituales_nv1`.
+   - `r.conjurosOtorgados` no recibía los IDs de los rituales elegidos.
+   - `pj.conjurosSiemprePreparadosIds`, `pj.conjurosPreparadosIds` y `pj.conjurosConocidosIds` nunca se alimentaban con los rituales seleccionados.
+   - `obtenerConjurosOtorgadosPorRasgos` y `resolverOrigenConjuro` no identificaban los rituales elegidos como otorgados por el rasgo.
+2. La definición canónica de `dote_lanzador_ritual` en `src/constantes/dotesConstantes.ts` no tenía inicializada la propiedad `conjurosOtorgados: []`.
+3. `agregarRasgoPersonaje` en `sliceRasgos.ts` no sincronizaba los conjuros en caso de que un rasgo o dote ya incluyera opciones o conjuros previamente asignados en su plantilla.
+
+**Solución Aplicada Quirúrgicamente:**
+1. **Dotes Canónicas (`src/constantes/dotesConstantes.ts`):** Se añadió explícitamente `conjurosOtorgados: []` a `dote_lanzador_ritual`.
+2. **Evaluador de Efectos (`src/servicios/evaluadorEfectosRasgos.ts`):** En `obtenerConjurosOtorgadosPorRasgos`, se incorporó `idLower.includes("ritual")` a los predicados de selectores de magia.
+3. **Resolución de Origen y Badges (`src/servicios/resolutorOrigenConjuros.ts`):** En `resolverOrigenConjuro` y `crearResolutorOrigenConjuros`, se agregó `idLower.includes("ritual")` asignando el badge `"rasgos"` a los rituales seleccionados.
+4. **Sincronización en Zustand (`src/almacen/slices/personajes/sliceRasgos.ts`):**
+   - En `actualizarSeleccionRasgo`, se incluyó `"ritual"` en `esRasgoConMagia`, en el bucle recolector de conjuros y en `esSelectorConjuro`, sincronizando reactivamente `r.conjurosOtorgados`, `conjurosSiemprePreparadosIds`, `conjurosPreparadosIds` y `conjurosConocidosIds`.
+   - En `agregarRasgoPersonaje`, se aseguró que cualquier conjuro preconfigurado o selector con `valorActual` se registre en las listas del personaje.
+5. **Ajuste de Paginación en Selector (`SeccionSelectoresModalRasgo.tsx`):** Se fijó `ELEMENTOS_POR_PAGINA_SELECTOR = 4` con cobertura de tests actualizada en `SeccionSelectoresModalRasgo.test.tsx` (exhibición de 4 elementos por página, navegación accesible y ocultamiento automático de paginación con 4 o menos opciones).
+6. **Validación:** Se añadieron pruebas exhaustivas en `dotesGeneralesLote3Mecanicas.test.ts` comprobando la asignación reactiva, extracción por evaluadores y badges de origen, junto con la suite de paginación a 4 elementos (955+ pruebas superadas al 100%).
+
+## [2026-09-23] Paginación en Selectores Múltiples y Compendios de Hechizos, y Activación Canónica de Competencias en Herramientas por Dotes (Chef y Envenenador)
+
+**Contexto del Problema:**
+1. **Paginación en Selectores Múltiples de Rasgos:** En los modales de configuración de rasgos y dotes, cuando un selector era múltiple y se mostraba en formato lista (`visualizacion === "lista"` / `esModoLista`), se renderizaban todas las opciones de golpe saturando verticalmente el modal. Se requería paginación de a 5 elementos por página, preservando las selecciones existentes a través de las páginas.
+2. **Paginación en Compendio de Conjuros (Jugador y Master):** Tanto en `CompendioConjurosJugador.tsx` como en el compendio DM `ListaHechizos.tsx`, el renderizado de cientos de hechizos sin paginar degradaba la fluidez y usabilidad. Se requería paginación de 50 hechizos por página con controles accesibles y reseteo reactivo de página al cambiar filtros o términos de búsqueda.
+3. **Falta de Reflejo de Competencias en Herramientas por Dotes:** Dotes como *Chef* ("Útiles de cocinero") y *Envenenador* ("Útiles de envenenador" / "Kit de venenos") otorgaban competencias declarativas en sus efectos (`{ tipo: "competencia", objetivo: "herramientas", valor: "..." }`), pero estas no se reflejaban en la tarjeta de herramientas de la hoja del personaje (`PanelHabilidadesPersonaje.tsx`), en la tarjeta de configuración (`PestanaCompetencias.tsx`), ni se marcaban en el modal selector de competencias (`ModalSelectorCompetencias.tsx`).
+
+**Causas Raíz:**
+1. No existía un componente atómico y reutilizable de paginación conforme a las pautas de accesibilidad y sin emojis.
+2. `obtenerCompetenciasEfectivasTexto` en `src/servicios/evaluadorEfectosRasgos.ts` solo consolidaba texto de armas y armaduras, ignorando las herramientas de `obtenerCompetenciasExtraRasgos`.
+3. `EstadisticasCalculadasPersonaje.competenciasEfectivas` en `usarEstadoPersonajes.ts` solo exponía `armasTexto` y `armadurasTexto`.
+4. Existía disparidad léxica entre nombres oficiales del PHB 2024 ("Útiles de envenenador", "Útiles de cocinero") y sinónimos comúnmente utilizados ("Kit de venenos", "Utensilios de cocinero", "Kit de cocinero"), causando que no se reconocieran como equivalentes.
+5. `PanelHabilidadesPersonaje.tsx` consultaba únicamente `personaje.herramientas`, ignorando el cálculo reactivo de rasgos.
+
+**Solución Aplicada Quirúrgicamente:**
+1. **Componente Reutilizable `ControlPaginacion` (`src/componentes/comunes/ControlPaginacion.tsx`):**
+   - Soporte para modos `"normal"` y `"compacto"`.
+   - Cero emojis: navegación con iconos Lucide (`ChevronLeft`, `ChevronRight`).
+   - Accesibilidad con `aria-label`, estados deshabilitados y estilos CSS encapsulados (`ControlPaginacion.module.css`).
+   - Exportado desde `src/componentes/comunes/index.ts`.
+2. **Paginación en `SeccionSelectoresModalRasgo.tsx`:**
+   - Para selectores múltiples en modo lista (`esModoLista && esMultiple`), se introdujo paginación de 5 en 5 (`ITEMS_POR_PAGINA = 5`).
+   - El filtrado por texto resetea automáticamente a la página 1 (`useEffect` reactivo).
+   - Preservación íntegra de elementos seleccionados entre transiciones de páginas.
+3. **Paginación en Compendios (`CompendioConjurosJugador.tsx` y `ListaHechizos.tsx`):**
+   - Límite de 50 elementos por página (`CONJUROS_POR_PAGINA = 50`).
+   - Reseteo automático de página al cambiar buscador, escuelas, clases o filtros rápidos.
+   - Integración visual limpia con `ControlPaginacion` encima o debajo de las rejillas de conjuros.
+4. **Normalización de Alias y Equivalencias (`src/servicios/evaluadorEfectosRasgos.ts`):**
+   - Implementado `MAPA_ALIAS_HERRAMIENTAS` con relaciones canónicas bidireccionales ("kit de venenos" <-> "útiles de envenenador", "utensilios de cocinero" <-> "útiles de cocinero", etc.).
+   - Creada función pura `sonHerramientasEquivalentes(a, b)` tolerante a mayúsculas y diacríticos.
+   - Extendida `obtenerCompetenciasEfectivasTexto` para retornar `herramientasTexto` y `herramientasLista` deduplicadas según equivalencias.
+5. **Propagación en Estado y Vistas:**
+   - `usarEstadoPersonajes.ts`: `competenciasEfectivas` ahora incluye `herramientasTexto: string` y `herramientasLista: string[]`.
+   - `PanelHabilidadesPersonaje.tsx`: La tarjeta de herramientas muestra `statsCalculadas.competenciasEfectivas.herramientasTexto || personaje.herramientas`.
+   - `PestanaCompetencias.tsx`: La tarjeta de herramientas utiliza el conteo y texto efectivo integrando dotes y rasgos.
+   - `HojaPersonaje.tsx` y `PestanaListaSimpleCompetencias.tsx`: `ModalSelectorCompetencias` recibe las herramientas efectivas y valida `check` con `sonHerramientasEquivalentes`.
+   - `usarSelectorCompetencias.ts`: `alternarHerramienta` utiliza `sonHerramientasEquivalentes` para evitar duplicaciones por sinónimos.
+
+**Lecciones Aprendidas:**
+- En Vitest sin DOM completo emulado en algunos entornos, las pruebas unitarias de componentes React se benefician del uso de `renderToStaticMarkup` de `react-dom/server` para verificar renderizado estático y atributos accesibles de forma instantánea y determinista.
+- Al escribir archivos `.test.tsx` con `jsx: "react-jsx"`, no se debe importar `React` explícitamente sin usarlo, ya que TypeScript con `noUnusedLocals` arroja `TS6133`.
+- En sistemas con equivalencias léxicas (sinónimos de equipo y herramientas), la deduplicación debe efectuarse siempre mediante comparación canónica normalizada en lugar de `Set` o `.includes` directo.
+
+## [2026-09-22] Integración Canónica de Dotes Generales (Lote 2/4) D&D 5.5e y Soporte Genérico de Armas Pesadas y Magia Feérica
+
+**Contexto del Problema:**
+- Se requería implementar el segundo lote de 10 dotes generales oficiales (PHB 2024 / D&D 5.5e) a partir del compendio canónico en `dicionario_herramientas/dotes/general/`:
+  1. *Versado en un elemento*: Selector informativo con los tipos de daño elemental (repetible).
+  2. *Influencia feérica*: Consumible (2 lanzamientos gratuitos por descanso largo), con *Paso brumoso* y selector de 1 conjuro de nivel 1 de Adivinación o Encantamiento.
+  3. *Apresador*: Informativo.
+  4. *Maestro en armas pesadas*: +PB al daño del arma si tiene la propiedad pesada.
+  5. *Muy acorazado*: Competencia con armaduras pesadas.
+  6. *Maestro en armaduras pesadas*: Informativo (-PB daño físico).
+  7. *Líder inspirador*: Informativo (puntos de golpe temporales).
+  8. *Mente aguda*: Informativo (sabiduría popular y acción de estudiar).
+  9. *Ligeramente acorazado*: Competencia con armaduras ligeras y escudos.
+  10. *Azote de magos*: Consumible (Mente robusta, 1 uso por descanso corto o largo, reacción), anticoncentración informativo.
+- Todo debía resolverse sin bifurcaciones por nombre literal (cumplimiento estricto de la Regla 20) y proveyendo soporte genérico en el builder de rasgos y dotes (`ConstructorRasgoDote.tsx`).
+
+**Causa Raíz y Faltantes en el Sistema Genérico:**
+1. **Falta de Reconocimiento de Armas Pesadas en Daño Declarativo:** Aunque `aplicaA` aceptaba `arma_fuerza`, `arma_cac`, `arma_distancia` y `desarmado`, no existía `arma_pesada` ni `ContextoAtaquePersonaje` transmitía si el arma equipada poseía la propiedad pesada, impidiendo que *Maestro en armas pesadas* sumara `+PB` declarativamente.
+2. **Pérdida de Conjuros Fijos al Sincronizar Selectores Mágicos:** En `sliceRasgos.ts`, la sincronización de selectores de magia sobrescribía el array `conjurosOtorgados` únicamente con los valores seleccionados dinámicamente, borrando los conjuros base predefinidos en la plantilla del rasgo (como *Paso brumoso* en *Influencia feérica*).
+3. **Faltante de Compendio Oficial:** Las dotes *Versado en un elemento* e *Influencia feérica* no contaban con archivo Markdown en `dicionario_herramientas/dotes/general/`.
+
+**Solución Aplicada Quirúrgicamente:**
+1. **Contratos de Tipos (`src/tipos/rasgos.ts`):**
+   - Se extendió el enum `aplicaA` en `EsquemaEfectoMecanicoRasgo` incorporando `"arma_pesada"`.
+2. **Evaluador de Efectos y Combate (`src/servicios/evaluadorEfectosRasgos.ts` y `calculadorAtaquesArmas.ts`):**
+   - En `ContextoAtaquePersonaje`, se añadieron `propiedades?: string[]` y `esPesada?: boolean`.
+   - En `aplicaEfectoAAtaque`, se validó declarativamente `criterio === "arma_pesada" || criterio === "pesada"`.
+   - En `calcularAtaqueArmaEquipada`, se detecta `esPesada` a partir de las propiedades del arma y se propaga en el contexto. Dado que `resolverFormulaDinamica` ya soportaba `"bono_competencia"`, el cálculo sumó automáticamente `+PB`.
+3. **Constructor de Rasgos y Dotes (`ConstructorRasgoDote.tsx`):**
+   - Se añadió `{ valor: "arma_pesada", etiqueta: "Armas Pesadas" }` en `OPCIONES_APLICA_A_ATAQUE`.
+   - Se adaptó la descripción automática para mostrar `+${nuevoValor} al daño (Armas Pesadas)`.
+4. **Preservación en Almacén (`src/almacen/slices/personajes/sliceRasgos.ts`):**
+   - En `actualizarSeleccionRasgo`, se filtran los conjuros otorgados preexistentes que no pertenecen a las opciones dinámicas del selector y se unen sin duplicados a los nuevos conjuros elegidos.
+5. **Catálogo Canónico Oficial (`src/constantes/dotesConstantes.ts`):**
+   - Se implementó la función auxiliar `generarOpcionesConjurosPorEscuelas` para filtrar de `all.json` conjuros de nivel 1 de Adivinación y Encantamiento.
+   - Se crearon las opciones del selector elemental para *Versado en un elemento*.
+   - Se incorporaron las 10 dotes canónicas completas con requisitos, textos PHB 2024 en español, selectores y efectos.
+6. **Compendio de Herramientas (`dicionario_herramientas/dotes/general/`):**
+   - Creados `Versado en un elemento.md` e `Influencia feérica.md`.
+7. **Verificación y Pruebas Unitarias:**
+   - Creada suite `src/servicios/dotesGeneralesLote2Mecanicas.test.ts` con 22 pruebas dedicadas pasando al 100%.
+   - Total de pruebas en Vitest: 916/916 aprobadas (0 fallos).
+   - Verificación TypeScript `strict: true` (`tsc --noEmit`) con 0 errores.
+   - Verificación ESLint con 0 errores y 0 advertencias.
+
+## [2026-09-22] Integración Canónica de Dotes Generales (Lote 1/4) D&D 5.5e y Capacidades Genéricas en el Builder de Rasgos
+
+**Contexto del Problema:**
+- Se requería implementar el primer lote de 10 dotes generales oficiales (PHB 2024 / D&D 5.5e) a partir del compendio canónico en `dicionario_herramientas/dotes/general/`:
+  1. *Mejora de característica*: Informativa (repetible).
+  2. *Actor*: Informativo.
+  3. *Atleta*: Velocidad trepando activa, lo demás informativo.
+  4. *Atacante a la carga*: Activable (+1d8 de daño en armas cuerpo a cuerpo).
+  5. *Chef*: Competencia en útiles de cocinero, lo demás informativo.
+  6. *Experto en ballestas*: Informativo.
+  7. *Triturador*: Informativo.
+  8. *Duelista defensivo*: Informativo (tipo acción: reacción).
+  9. *Combatiente con dos armas*: Informativo (actualización canónica completa PHB 2024).
+  10. *Resistente*: Ventaja en tiradas de salvación contra la muerte, lo demás informativo.
+- Todo debía resolverse sin bifurcaciones por nombre literal (cumplimiento estricto de la Regla 20) y proveyendo soporte genérico en el builder de rasgos y dotes (`ConstructorRasgoDote.tsx`).
+
+**Causa Raíz y Faltantes en el Sistema Genérico:**
+1. **Preservación de Activables en Presets del Builder:** En `ConstructorRasgoDote.tsx`, `manejarSeleccionarDotePreset` no asignaba `esActivable` ni `autoDesactivar`, lo que impedía que dotes con conmutador táctico ON/OFF (como *Atacante a la Carga*) se instanciaran con su funcionalidad activable desde el preset.
+2. **Ausencia de Formulario UI para Movimiento Especial en el Builder:** Aunque `movimiento_especial` estaba en el catálogo de tipos de efectos, el JSX del builder carecía de campos para configurar escalada/trepar, vuelo o nado y su velocidad.
+3. **Opciones Limitadas en el Selector de Competencias:** El formulario de tipo `competencia` solo permitía armas y armaduras fijas, impidiendo agregar competencias de herramientas o armas improvisadas desde el builder.
+4. **Falta de Reconocimiento de Muerte en Ventajas de Salvación:** `evaluarVentajasDeRasgosEnTirada` no evaluaba `subtipo === "muerte"` ni objetivos como `salvacion.muerte`, impidiendo que dotes como *Resistente* concedieran ventaja en la ficha o al tirar en TaleSpire.
+5. **Falta de Extracción de Herramientas:** `obtenerCompetenciasExtraRasgos` no exponía la lista de herramientas otorgadas por rasgos.
+
+**Solución Aplicada Quirúrgicamente:**
+1. **Contratos de Tipos (`src/tipos/rasgos.ts`):**
+   - Se extendió `EsquemaDotePersonaje` con `esActivable` y `autoDesactivar`.
+2. **Catálogo Oficial Canónico (`src/constantes/dotesConstantes.ts`):**
+   - Incorporadas las 10 dotes del Lote 1/4 con textos completos en español, requisitos oficiales y efectos declarativos genéricos.
+3. **Constructor de Rasgos y Dotes (`ConstructorRasgoDote.tsx`):**
+   - Sincronización de `esActivable`, `autoDesactivar` y `categoriaMecanica` en presets.
+   - Implementado el formulario interactivo para `movimiento_especial` (Escalada/Trepar, Vuelo, Nado) y `modificador_velocidad`.
+   - Incorporadas las opciones de "Herramientas / Útiles" y "Armas Improvisadas" en el selector de competencias.
+4. **Servicios de Evaluación Genérica (`src/servicios/evaluadorEfectosRasgos.ts`):**
+   - En `evaluarVentajasDeRasgosEnTirada`: soporte genérico para `salvacion.muerte` cuando el subtipo es `"muerte"` o el tipo es `"salvacion_muerte"`.
+   - En `calcularVelocidadPersonaje`: soporte unificado para `"escalar"` o `"trepar"` en `objetivo` y `valor`.
+   - En `obtenerCompetenciasExtraRasgos`: extracción declarativa de `herramientas: string[]`.
+5. **Integración en Hoja del Jugador y Lanzador 3D:**
+   - En `HojaPersonaje.tsx`, `manejarTirarSalvacionMuerte3D` evalúa genéricamente las ventajas de rasgos y despacha la tirada con `tipoTiradaForzado: "ventaja"`.
+   - En `lanzadorDados.ts`, el fallback local matemático simula la ventaja de salvación contra la muerte (`Math.max(d20_1, d20_2)`).
+6. **Verificación y Pruebas Unitarias:**
+   - Creada suite `src/servicios/dotesGeneralesLote1Mecanicas.test.ts` con 32 pruebas pasando al 100%.
+   - 894/894 pruebas globales aprobadas en Vitest.
+   - 0 errores TypeScript (`strict: true`) y 0 advertencias ESLint.
+
 ## [2026-09-21] Soporte Declarativo de Visualización en el Builder de Rasgos: Selector Lista y Selector Normal
 
 **Contexto del Problema:**
@@ -8622,6 +8779,50 @@ Optimizar la complejidad temporal (Big O) en las operaciones de búsqueda, orden
 - **TypeScript**: `pnpm exec tsc --noEmit` completado con **0 errores** (Strict Mode estricto).
 - **ESLint**: `pnpm exec eslint src --max-warnings=0` con **0 errores y 0 advertencias**.
 - **Control de Líneas**: `node scripts/verificar-limite-lineas.js` con **0 errores críticos**.
+
+---
+
+## [2026-09-23] Implementación Canónica de Dotes Generales (Lote 3/4 — D&D 5.5e / PHB 2024)
+
+### 1. Contexto y Objetivos
+- Se implementaron las 10 dotes generales oficiales del tercer lote de D&D 5.5e derivadas de `dicionario_herramientas/dotes/general/`:
+  1. `dote_entrenamiento_armas_marciales`: Entrenamiento con Armas Marciales (competencia con armas marciales vía `{ tipo: "competencia", objetivo: "armas_marciales", valor: "marciales" }`).
+  2. `dote_maestro_armaduras_medias`: Maestro en Armaduras Medias (beneficio *Portador diestro* que eleva de 2 a 3 el tope de Destreza aplicable a la CA si DES es 16 o más, vía `{ tipo: "limite_des_armadura_media", valor: 3 }`).
+  3. `dote_moderadamente_acorazado`: Moderadamente Acorazado (competencia con armaduras medias vía `{ tipo: "competencia", objetivo: "armaduras_medias", valor: "medias" }`).
+  4. `dote_combatiente_montado`: Combatiente Montado (informativa táctica con *Golpe montado*, *Esquivar de un salto* y *Girar bruscamente*).
+  5. `dote_observador`: Observador (informativa táctica con *Observador perspicaz* y *Búsqueda rápida* como acción adicional).
+  6. `dote_perforador`: Perforador (beneficio *Crítico potenciado* que suma 1 dado adicional exclusivamente al daño perforante del arma \(2 \times \text{dados} + 1\), sin alterar bonos de daño secundario ni de otros rasgos, vía `{ tipo: "dado_extra_critico", objetivo: "dano_perforante", aplicaA: "perforante", valor: 1 }`, más *Horadar* informativo).
+  7. `dote_envenenador`: Envenenador (competencia activa con *Útiles de envenenador*, más *Veneno potente* y creación/aplicación de dosis informativas tácticas).
+  8. `dote_resiliente`: Resiliente (informativa permanente con +1 característica y competencia en salvación a marcar en la hoja).
+  9. `dote_lanzador_ritual`: Lanzador Ritual (selector múltiple en lista con todos los rituales de nivel 1 de `all.json` filtrados dinámicamente con `generarOpcionesRituales`, escalado de selecciones `escaladoMaxSelecciones` igual a PB según el nivel del personaje, selector de aptitud mágica INT/SAB/CAR, y 1 uso de *Ritual rápido* por descanso largo).
+  10. `dote_maestro_armas_asta`: Maestro en Armas de Asta (informativa táctica con *Golpe con asta* como acción adicional de 1d4 contundente y *Golpe reactivo* como reacción de oportunidad).
+
+### 2. Decisiones Arquitectónicas y Regla 20 (Cero Bifurcaciones por Nombre Literal)
+1. **Límite Dinámico de Destreza en Armaduras Medias (`limite_des_armadura_media`)**:
+   - Se extendió `EsquemaTipoEfectoMecanico` en `src/tipos/rasgos.ts`.
+   - Se creó la función pura `obtenerLimiteDesArmaduraMedia(personaje)` en `src/servicios/evaluadorEfectosRasgos.ts`, evaluando efectos activos sin nombres literales.
+   - En `src/almacen/selectores/usarEstadoPersonajes.ts`, se sustituyó el límite duro `Math.min(2, ...)` por `Math.min(obtenerLimiteDesArmaduraMedia(pj), ...)`, garantizando que si el personaje tiene la dote y DES 16+, sume +3 a la CA.
+2. **Dados Extra en Crítico (`dado_extra_critico`)**:
+   - Se añadió `dado_extra_critico` a los tipos y se creó `obtenerDadosExtraCriticoArma(personaje, tipoDano)` en `evaluadorEfectosRasgos.ts`.
+   - En `src/servicios/ejecutorTiradasCombate.ts` (`ejecutarTiradaCritico`), la posición `i === 0` (el daño principal del arma) consulta `obtenerDadosExtraCriticoArma`. Si hay dados extra y el tipo de daño coincide (o aplica a "todos"), añade exactamente el dado extra al primer grupo de dados del arma, dejando intactos los dados extra de otros rasgos (\(i > 0\)).
+3. **Selector Dinámico y Escalado por PB (`Lanzador Ritual`)**:
+   - Se implementó `generarOpcionesRituales(nivel: number)` en `dotesConstantes.ts` filtrando hechizos en `all.json` con `nivel === 1 && ritual === true`.
+   - El selector `selector_rituales_nv1` usa `visualizacion: "lista"`, `maxSelecciones: 2` y la tabla canónica `escaladoMaxSelecciones` ([1:2, 5:3, 9:4, 13:5, 17:6]).
+4. **Builder de Rasgos (`ConstructorRasgoDote.tsx`)**:
+   - Integradas las opciones visuales para configurar `limite_des_armadura_media` y `dado_extra_critico`.
+   - Integrado el selector de herramientas en competencias para seleccionar fácilmente "Útiles de envenenador" o "Útiles de cocinero".
+
+### 3. Errores Detectados y Correcciones
+- **Aserción en `dotesGeneralesLote3Mecanicas.test.ts`**: `comp.armaduras` era undefined porque la propiedad en `obtenerCompetenciasExtraRasgos` se llama `armadurasGrupos`. Corregido de inmediato.
+- **Invocación de `ejecutarDescansoLargo`**: Se intentó invocar con un string ID en vez del objeto `PersonajeJugador` que espera el servicio. Corregido para pasar el objeto y leer `resultado.personajeActualizado`.
+- **Falta de propiedades en mocks de `AtaquePersonajeCalculado`**: Faltaban `tipo`, `tipoAccion`, `caracteristicaUsada`, `dadoDano`, `esDanoFijo` y `tieneTiradaAtaque`. Tipado estrictamente conforme a `src/tipos/combate.ts`.
+- **Dote antigua en `compendioRasgos.test.ts`**: Esperaba `"Tirador de Primera (Sharpshooter)"` de un mock provisional eliminado. Actualizado a `"Maestro en Armas Pesadas"`.
+
+### 4. Métricas de Validación
+- **Tests Unitarios**: **71 suites superadas, 939/939 tests pasando (100%)**, incluyendo los 23 tests de `src/servicios/dotesGeneralesLote3Mecanicas.test.ts`.
+- **TypeScript**: `pnpm exec tsc --noEmit` con **0 errores** (Strict Mode estricto).
+- **ESLint**: `pnpm exec eslint` con **0 errores y 0 advertencias**.
+
 
 
 

@@ -10,6 +10,7 @@ import {
   formatearResumenCompetenciasArmas,
   formatearResumenCompetenciasArmaduras
 } from "@/constantes";
+import { sonHerramientasEquivalentes } from "@/servicios/evaluadorEfectosRasgos";
 
 export type CategoriaCompetencia = "armas" | "armaduras" | "idiomas" | "herramientas";
 
@@ -201,9 +202,12 @@ export const usarSelectorCompetencias = ({
   };
 
   const alternarHerramienta = (herramienta: string) => {
-    setHerramientas((prev) =>
-      prev.includes(herramienta) ? prev.filter((h) => h !== herramienta) : [...prev, herramienta]
-    );
+    setHerramientas((prev) => {
+      const existe = prev.some((h) => sonHerramientasEquivalentes(h, herramienta));
+      return existe
+        ? prev.filter((h) => !sonHerramientasEquivalentes(h, herramienta))
+        : [...prev, herramienta];
+    });
   };
 
   const manejarGuardar = () => {

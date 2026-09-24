@@ -28,7 +28,8 @@ import {
   obtenerHabilidadesConFuerzaRasgos,
   tieneMedioBonoHabilidades,
   obtenerCompetenciasExtraRasgos,
-  obtenerCompetenciasEfectivasTexto
+  obtenerCompetenciasEfectivasTexto,
+  obtenerLimiteDesArmaduraMedia
 } from '@/servicios/evaluadorEfectosRasgos';
 import { ARMADURAS_OFICIALES } from '@/constantes/equipoConstantes';
 
@@ -74,6 +75,8 @@ export interface EstadisticasCalculadasPersonaje {
   competenciasEfectivas: {
     armasTexto: string;
     armadurasTexto: string;
+    herramientasTexto: string;
+    herramientasLista: string[];
   };
 }
 
@@ -371,7 +374,8 @@ export function calcularEstadisticasPersonaje(pj: PersonajeJugador): Estadistica
       if (refOficial.limiteDes === null) {
         modDesAplicado = modificadores.destreza;
       } else if (refOficial.limiteDes === 2) {
-        modDesAplicado = Math.min(2, Math.max(0, modificadores.destreza));
+        const limiteDesEfectivo = pj ? obtenerLimiteDesArmaduraMedia(pj) : 2;
+        modDesAplicado = Math.min(limiteDesEfectivo, Math.max(0, modificadores.destreza));
       } else {
         modDesAplicado = 0;
       }
@@ -546,7 +550,7 @@ export function calcularEstadisticasPersonaje(pj: PersonajeJugador): Estadistica
   const hpMaximoEfectivo = pj ? (pj.hpMaximo || pj.hpMaximoBase || 10) : 10;
   const competenciasEfectivas = pj
     ? obtenerCompetenciasEfectivasTexto(pj)
-    : { armasTexto: "Ninguna", armadurasTexto: "Ninguna" };
+    : { armasTexto: "Ninguna", armadurasTexto: "Ninguna", herramientasTexto: "Ninguna", herramientasLista: [] };
 
   const resultado: EstadisticasCalculadasPersonaje = {
     bonoCompetencia,

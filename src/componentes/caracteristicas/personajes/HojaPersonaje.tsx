@@ -15,7 +15,10 @@ import { lanzarDadosTaleSpire, sanitizarEtiqueta, type MetadataIniciativa } from
 import { logger } from "@/utiles/logger";
 import { MAPA_HABILIDAD_A_CARACTERISTICA } from "@/constantes";
 import { evaluarEfectosCondicionesEnTirada } from "@/servicios/procesadorCondiciones";
-import { calcularBonoIniciativaRasgos } from "@/servicios/evaluadorEfectosRasgos";
+import {
+  calcularBonoIniciativaRasgos,
+  evaluarVentajasDeRasgosEnTirada
+} from "@/servicios/evaluadorEfectosRasgos";
 import type { Caracteristica, Habilidad } from "@/tipos";
 
 import { CabeceraPersonaje } from "./CabeceraPersonaje";
@@ -296,10 +299,26 @@ export const HojaPersonaje: React.FC<HojaPersonajeProps> = ({ alAbrirConfiguraci
   const manejarTirarSalvacionMuerte3D = useCallback(async () => {
     if (!personajeActivo) return;
     const nombrePj = personajeActivo.nombre?.trim() || "Personaje";
-    await lanzarDadosTaleSpire("!Salvacion Muerte:1d20", `${nombrePj} - Salvación Muerte`, undefined, {
-      tipo: "salvacionMuerte",
-      personajeId: personajeActivo.id
+    const resVentaja = evaluarVentajasDeRasgosEnTirada(personajeActivo, {
+      tipoTirada: "salvacion",
+      subtipo: "muerte"
     });
+    const modoForzado = resVentaja.tieneVentaja && !resVentaja.tieneDesventaja
+      ? "ventaja"
+      : resVentaja.tieneDesventaja && !resVentaja.tieneVentaja
+        ? "desventaja"
+        : undefined;
+
+    await lanzarDadosTaleSpire(
+      "!Salvacion Muerte:1d20",
+      `${nombrePj} - Salvación Muerte`,
+      undefined,
+      {
+        tipo: "salvacionMuerte",
+        personajeId: personajeActivo.id
+      },
+      modoForzado
+    );
   }, [personajeActivo]);
 
   const manejarTirarDadoGolpe = useCallback(async () => {
@@ -565,7 +584,7 @@ export const HojaPersonaje: React.FC<HojaPersonajeProps> = ({ alAbrirConfiguraci
             competenciasArmadurasGrupos: (personajeActivo.competenciasArmadurasGrupos || []) as ("ligeras" | "medias" | "pesadas" | "escudos")[],
             competenciasArmadurasLista: personajeActivo.competenciasArmadurasLista || [],
             idiomasLista: personajeActivo.idiomasLista || [],
-            herramientasLista: personajeActivo.herramientasLista || []
+            herramientasLista: statsCalculadas?.competenciasEfectivas?.herramientasLista || personajeActivo.herramientasLista || []
           }}
           alGuardar={(nuevas) => {
             actualizarPersonaje(personajeActivo.id, nuevas);

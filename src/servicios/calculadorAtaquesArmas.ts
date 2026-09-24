@@ -68,6 +68,7 @@ export function calcularAtaqueArmaEquipada(
   const inferidos = inferirAtributosArma(normalizar(armaInst.nombre));
 
   const propiedades = objetoCompendio?.propiedades || inferidos.propiedades;
+  const esPesada = propiedades.some((p) => normalizar(p).includes("pesada") || normalizar(p).includes("heavy"));
   const esSutil = propiedades.some((p) => normalizar(p).includes("sutil") || normalizar(p).includes("finesse"));
   const esDistancia =
     objetoCompendio?.tipoAtaque === "A Distancia" ||
@@ -134,7 +135,9 @@ export function calcularAtaqueArmaEquipada(
     tipo: "arma",
     caracteristica: caracUsada,
     esCuerpoACuerpo,
-    esDistancia
+    esDistancia,
+    propiedades,
+    esPesada
   };
 
   const { modDanoTotal, dadosExtra, danosSecundarios, tiposDanoSecundarios } = resolverBonosYDadosExtraCombate({

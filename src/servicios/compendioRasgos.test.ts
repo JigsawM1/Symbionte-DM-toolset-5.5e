@@ -84,6 +84,6 @@ describe("Compendio y Sincronizador de Rasgos D&D 5.5e", () => {
     const nombres = dotes.map((d) => d.nombre);
     expect(nombres).toContain("Alerta");
     expect(nombres).toContain("Afortunado");
-    expect(nombres).toContain("Tirador de Primera (Sharpshooter)");
+    expect(nombres).toContain("Maestro en Armas Pesadas");
   });
 });

@@ -661,7 +661,8 @@ export function evaluarVentajasDeRasgosEnTirada(
     const esVentaja = ef.tipo === "ventaja" || (ef.tipo as string) === "ventaja_tirada";
 
     // 1. Tiradas de Salvación
-    if (tipoTirada === "salvacion") {
+    if (tipoTirada === "salvacion" || tipoTirada === "salvacion_muerte") {
+      const esMuerte = subtipoNorm === "muerte" || tipoTirada === "salvacion_muerte" || subtipoNorm === "salvacion.muerte";
       const esMental = subtipoNorm === "inteligencia" || subtipoNorm === "sabiduria" || subtipoNorm === "carisma";
       const esFisica = subtipoNorm === "fuerza" || subtipoNorm === "destreza" || subtipoNorm === "constitucion";
       const listaObjetivos = objNorm.split(",").map((o) => o.trim());
@@ -672,6 +673,7 @@ export function evaluarVentajasDeRasgosEnTirada(
           obj === subtipoNorm ||
           obj === "salvacion.todas" ||
           obj === "todas" ||
+          (esMuerte && (obj === "salvacion.muerte" || obj === "salvacion_muerte" || obj === "muerte" || obj === "salvaciones_muerte")) ||
           (esMental && (obj === "salvaciones_mentales" || obj === "salvacion.mental" || obj === "salvacion.mentales" || obj === "mentales")) ||
           (esFisica && (obj === "salvaciones_fisicas" || obj === "salvacion.fisica" || obj === "salvacion.fisicas" || obj === "fisicas"))
         );
@@ -680,10 +682,10 @@ export function evaluarVentajasDeRasgosEnTirada(
       if (coincideSalvacion) {
         if (esVentaja) {
           tieneVentaja = true;
-          razones.push(ef.descripcion || `Ventaja en salvación de ${subtipoNorm}`);
+          razones.push(ef.descripcion || (esMuerte ? "Ventaja en salvación contra la muerte" : `Ventaja en salvación de ${subtipoNorm}`));
         } else if (ef.tipo === "desventaja") {
           tieneDesventaja = true;
-          razones.push(ef.descripcion || `Desventaja en salvación de ${subtipoNorm}`);
+          razones.push(ef.descripcion || (esMuerte ? "Desventaja en salvación contra la muerte" : `Desventaja en salvación de ${subtipoNorm}`));
         }
       }
     }
@@ -734,6 +736,8 @@ export interface ContextoAtaquePersonaje {
   caracteristica: Caracteristica;
   esCuerpoACuerpo: boolean;
   esDistancia: boolean;
+  propiedades?: string[];
+  esPesada?: boolean;
 }
 
 /**
@@ -914,6 +918,15 @@ function aplicaEfectoAAtaque(
   }
   if (criterio === "arma_distancia" || criterio === "distancia") {
     return contexto.esDistancia;
+  }
+  if (criterio === "arma_pesada" || criterio === "pesada") {
+    return Boolean(
+      contexto.esPesada ||
+      contexto.propiedades?.some((p) => {
+        const norm = normalizar(p);
+        return norm.includes("pesada") || norm.includes("heavy");
+      })
+    );
   }
   if (criterio === "desarmado") {
     return contexto.tipo === "desarmado";
@@ -1342,7 +1355,8 @@ export function obtenerConjurosOtorgadosPorRasgos(personaje: PersonajeJugador): 
           idLower.includes("conjuro") ||
           idLower.includes("hechizo") ||
           idLower.includes("spell") ||
-          idLower.includes("cantrip")
+          idLower.includes("cantrip") ||
+          idLower.includes("ritual")
         ) {
           if (Array.isArray(sel.valorActual)) {
             for (const val of sel.valorActual) {
@@ -1399,9 +1413,11 @@ export function obtenerCompetenciasExtraRasgos(personaje: PersonajeJugador): {
   armasGrupos: ("sencillas" | "marciales" | "fuego")[];
   armadurasGrupos: ("ligeras" | "medias" | "pesadas" | "escudos")[];
   armasImprovisadas?: boolean;
+  herramientas: string[];
 } {
   const armas = new Set<"sencillas" | "marciales" | "fuego">();
   const armaduras = new Set<"ligeras" | "medias" | "pesadas" | "escudos">();
+  const herramientas = new Set<string>();
   let armasImprovisadas = false;
 
   const efectos = evaluarEfectosRasgosActivos(personaje);
@@ -1417,13 +1433,27 @@ export function obtenerCompetenciasExtraRasgos(personaje: PersonajeJugador): {
       if (texto.includes("escudo")) armaduras.add("escudos");
       if (texto.includes("pesada")) armaduras.add("pesadas");
       if (texto.includes("ligera")) armaduras.add("ligeras");
+
+      if (
+        texto.includes("herramienta") ||
+        texto.includes("utiles") ||
+        texto.includes("veneno") ||
+        texto.includes("cocin") ||
+        texto.includes("kit") ||
+        ef.objetivo === "herramientas"
+      ) {
+        if (ef.valor && ef.valor !== "herramientas") {
+          herramientas.add(String(ef.valor).trim());
+        }
+      }
     }
   }
 
   return {
     armasGrupos: Array.from(armas),
     armadurasGrupos: Array.from(armaduras),
-    armasImprovisadas
+    armasImprovisadas,
+    herramientas: Array.from(herramientas)
   };
 }
 
@@ -1567,9 +1597,9 @@ export function obtenerVelocidadesEfectivas(personaje: PersonajeJugador): Veloci
             ? caminar
             : (Number(ef.valor) || caminar);
         resultado.volar = Math.max(resultado.volar || 0, velVolar);
-      } else if (objetivo.includes("escalar")) {
+      } else if (objetivo.includes("escalar") || objetivo.includes("trepar")) {
         const velEscalar =
-          ef.valor === "escalar" || ef.valor === "caminar"
+          ef.valor === "escalar" || ef.valor === "trepar" || ef.valor === "caminar" || ef.valor === "velocidad_caminar"
             ? caminar
             : (Number(ef.valor) || caminar);
         resultado.escalar = Math.max(resultado.escalar || 0, velEscalar);
@@ -1580,13 +1610,61 @@ export function obtenerVelocidadesEfectivas(personaje: PersonajeJugador): Veloci
   return resultado;
 }
 
+export const calcularVelocidadPersonaje = obtenerVelocidadesEfectivas;
+
 /**
- * Retorna las cadenas legibles de competencias en armas y armaduras integrando
- * las competencias base del personaje y las otorgadas por rasgos de clase/subclase (ej. Colegio del Valor).
+ * Diccionario de sinónimos canónicos para herramientas y útiles (D&D 5.5e y 5e).
+ */
+export const MAPA_ALIAS_HERRAMIENTAS: Record<string, string[]> = {
+  "utiles de envenenador": ["kit de venenos", "kit de envenenador", "utiles de envenenador", "herramientas de envenenador"],
+  "kit de venenos": ["utiles de envenenador", "kit de envenenador", "kit de venenos"],
+  "utiles de cocinero": ["utensilios de cocinero", "utiles de cocinero", "herramientas de cocinero", "kit de cocinero"],
+  "utensilios de cocinero": ["utiles de cocinero", "utensilios de cocinero", "kit de cocinero"],
+  "kit de cocinero": ["utiles de cocinero", "utensilios de cocinero", "herramientas de cocinero"],
+  "utiles de herborista": ["kit de herboristeria", "kit de herboristería", "estuche de herbalismo", "utiles de herborista"],
+  "kit de herboristeria": ["utiles de herborista", "estuche de herbalismo", "kit de herboristería"],
+  "kit de herboristería": ["utiles de herborista", "estuche de herbalismo", "kit de herboristeria"],
+  "herramientas de ladron": ["utiles de ladron", "herramientas de ladron", "útiles de ladrón", "kit de ladron", "kit de ladrón"],
+  "utiles de ladron": ["herramientas de ladron", "utiles de ladron", "herramientas de ladrón", "kit de ladron", "kit de ladrón"],
+  "kit de ladron": ["herramientas de ladron", "utiles de ladron", "útiles de ladrón"],
+  "kit de ladrón": ["herramientas de ladron", "utiles de ladron", "útiles de ladrón"],
+  "utiles para disfrazarse": ["kit de disfraz", "estuche de disfraces", "utiles para disfrazarse"],
+  "kit de disfraz": ["utiles para disfrazarse", "estuche de disfraces", "kit de disfraz"],
+  "utiles para falsificar": ["kit de falsificacion", "kit de falsificación", "utiles para falsificar"],
+  "kit de falsificacion": ["utiles para falsificar", "kit de falsificación"],
+  "kit de falsificación": ["utiles para falsificar", "kit de falsificacion"],
+  "herramientas de navegante": ["kit de navegacion", "kit de navegación", "herramientas de navegante"],
+  "kit de navegacion": ["herramientas de navegante", "kit de navegación"],
+  "kit de navegación": ["herramientas de navegante", "kit de navegacion"]
+};
+
+/**
+ * Comprueba si dos nombres de herramientas son idénticos o equivalentes semánticos.
+ */
+export function sonHerramientasEquivalentes(a: string, b: string): boolean {
+  if (!a || !b) return false;
+  const normA = normalizar(a);
+  const normB = normalizar(b);
+  if (normA === normB) return true;
+
+  const aliasA = MAPA_ALIAS_HERRAMIENTAS[normA] || [];
+  if (aliasA.some((al) => normalizar(al) === normB)) return true;
+
+  const aliasB = MAPA_ALIAS_HERRAMIENTAS[normB] || [];
+  if (aliasB.some((al) => normalizar(al) === normA)) return true;
+
+  return false;
+}
+
+/**
+ * Retorna las cadenas legibles de competencias en armas, armaduras y herramientas integrando
+ * las competencias base del personaje y las otorgadas por rasgos de clase/subclase y dotes.
  */
 export function obtenerCompetenciasEfectivasTexto(personaje: PersonajeJugador): {
   armasTexto: string;
   armadurasTexto: string;
+  herramientasTexto: string;
+  herramientasLista: string[];
 } {
   const compExtra = obtenerCompetenciasExtraRasgos(personaje);
   
@@ -1626,9 +1704,33 @@ export function obtenerCompetenciasEfectivasTexto(personaje: PersonajeJugador): 
     partesArmaduras.add("Escudos");
   }
 
+  // Procesar herramientas integrando base y dotes/rasgos declarativos
+  const listaHerramientasBase: string[] = [
+    ...(personaje.herramientasLista || []),
+    ...(personaje.herramientas && personaje.herramientas !== "Ninguna"
+      ? personaje.herramientas.split(",").map((p) => p.trim()).filter(Boolean)
+      : [])
+  ];
+
+  const herramientasConsolidadas: string[] = [];
+  const agregarSiNoExiste = (nombre: string) => {
+    if (!nombre || nombre === "Ninguna") return;
+    const yaExiste = herramientasConsolidadas.some((existente) =>
+      sonHerramientasEquivalentes(existente, nombre)
+    );
+    if (!yaExiste) {
+      herramientasConsolidadas.push(nombre);
+    }
+  };
+
+  listaHerramientasBase.forEach(agregarSiNoExiste);
+  compExtra.herramientas.forEach(agregarSiNoExiste);
+
   return {
     armasTexto: partesArmas.size > 0 ? Array.from(partesArmas).join(", ") : "Ninguna",
-    armadurasTexto: partesArmaduras.size > 0 ? Array.from(partesArmaduras).join(", ") : "Ninguna"
+    armadurasTexto: partesArmaduras.size > 0 ? Array.from(partesArmaduras).join(", ") : "Ninguna",
+    herramientasTexto: herramientasConsolidadas.length > 0 ? herramientasConsolidadas.join(", ") : "Ninguna",
+    herramientasLista: herramientasConsolidadas
   };
 }
 
@@ -1933,3 +2035,49 @@ export function obtenerConfiguracionPactoDelFilo(personaje: PersonajeJugador): C
   }
   return { activo: false, tipoDano: "propio" };
 }
+
+/**
+ * Obtiene el límite máximo de Destreza aplicable a la CA con armaduras medias.
+ * Por defecto según reglas D&D 5.5e es 2, pero rasgos/dotes como "Maestro en armaduras medias"
+ * pueden elevarlo (ej. a 3).
+ */
+export function obtenerLimiteDesArmaduraMedia(personaje: PersonajeJugador): number {
+  if (!personaje) return 2;
+  const efectos = evaluarEfectosRasgosActivos(personaje);
+  let limite = 2;
+  for (const ef of efectos) {
+    if (
+      ef.tipo === "limite_des_armadura_media" ||
+      (ef.tipo === "modificador_ca" && ef.objetivo === "limite_des_armadura_media")
+    ) {
+      const val = Number(ef.valor);
+      if (!isNaN(val) && val > limite) {
+        limite = val;
+      }
+    }
+  }
+  return limite;
+}
+
+/**
+ * Obtiene la cantidad de dados extra que se suman al daño del arma en caso de golpe crítico.
+ * Por defecto en un crítico los dados del arma se multiplican x2.
+ * Efectos declarativos tipo "dado_extra_critico" (como Perforador) suman dados adicionales (+1)
+ * si el tipo de daño coincide (ej. "perforante") o aplica a "todos".
+ */
+export function obtenerDadosExtraCriticoArma(personaje: PersonajeJugador, tipoDano: string): number {
+  if (!personaje) return 0;
+  const efectos = evaluarEfectosRasgosActivos(personaje);
+  let extra = 0;
+  const tipoDanoNorm = normalizar(tipoDano);
+  for (const ef of efectos) {
+    if (ef.tipo === "dado_extra_critico") {
+      const criterio = normalizar(ef.aplicaA || ef.objetivo || "todos");
+      if (criterio === "todos" || criterio === "arma" || tipoDanoNorm.includes(criterio)) {
+        extra += Number(ef.valor) || 1;
+      }
+    }
+  }
+  return extra;
+}
+

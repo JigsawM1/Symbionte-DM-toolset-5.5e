@@ -62,6 +62,8 @@ export const EsquemaTipoEfectoMecanico = z.enum([
   "modificador_capacidad_carga",
   "modificador_tamano",
   "restaurar_recurso",
+  "limite_des_armadura_media",
+  "dado_extra_critico",
   "personalizado"
 ]);
 export type TipoEfectoMecanico = z.infer<typeof EsquemaTipoEfectoMecanico>;
@@ -74,7 +76,7 @@ export const EsquemaEfectoMecanicoRasgo = z.object({
   condicion: z.string().nullable().optional(), // ej. "furia_activa", "sin_armadura_pesada", "sin_armadura", "siempre"
   tipoDano: z.string().optional(), // ej. "Radiante o Necrótico", "Fuego", "Fuerza", etc.
   aplicaA: z.union([
-    z.enum(["arma_fuerza", "arma_cac", "arma_distancia", "desarmado", "todos_ataques", "todos_conjuros", "trucos", "espacios"]),
+    z.enum(["arma_fuerza", "arma_cac", "arma_distancia", "arma_pesada", "desarmado", "todos_ataques", "todos_conjuros", "trucos", "espacios"]),
     z.string()
   ]).optional(),
   limiteMaximo: z.number().int().optional(), // ej. 25 para modificador_stat
@@ -306,6 +308,8 @@ export const EsquemaDotePersonaje = z.object({
   efectos: z.array(EsquemaEfectoMecanicoRasgo).optional(),
   selectores: z.array(EsquemaSelectorRasgo).optional(),
   repetible: z.boolean().optional(),
+  esActivable: z.boolean().default(false).optional(),
+  autoDesactivar: z.boolean().default(false).optional(),
   conjurosOtorgados: z.array(z.string()).optional()
 });
 

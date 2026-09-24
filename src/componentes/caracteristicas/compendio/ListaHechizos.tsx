@@ -3,8 +3,10 @@ import { coincideBusquedaTolerante, compararPorRelevanciaTitulo } from "@/utiles
 import { usarEstadoHomebrew } from "@/almacen/selectores";
 import { Search, Info } from "lucide-react";
 import { FichaHechizo } from "./FichaHechizo";
-import { SelectorDesplegable } from "@/componentes/comunes";
+import { SelectorDesplegable, ControlPaginacion } from "@/componentes/comunes";
 import estilosClases from "./ListaHechizos.module.css";
+
+const CONJUROS_POR_PAGINA_MASTER = 50;
 
 const OPCIONES_NIVEL_FILTRO = [
   { valor: "todos", etiqueta: "Todos los Niveles" },
@@ -27,6 +29,7 @@ export const ListaHechizos: React.FC = () => {
   const [nivelFiltro, setNivelFiltro] = useState<number | "todos">("todos");
   const [escuelaFiltro, setEscuelaFiltro] = useState<string | "todas">("todas");
   const [idHechizoDetalle, setIdHechizoDetalle] = useState<string | null>(null);
+  const [paginaActual, setPaginaActual] = useState(1);
 
   // Obtener escuelas de magia únicas para el filtro
   const escuelasDisponibles = useMemo(() => {
@@ -73,6 +76,15 @@ export const ListaHechizos: React.FC = () => {
       )
     );
   }, [baseDatosHechizos, busqueda, nivelFiltro, escuelaFiltro]);
+
+  React.useEffect(() => {
+    setPaginaActual(1);
+  }, [busqueda, nivelFiltro, escuelaFiltro]);
+
+  const hechizosPaginados = useMemo(() => {
+    const inicio = (paginaActual - 1) * CONJUROS_POR_PAGINA_MASTER;
+    return hechizosFiltrados.slice(inicio, inicio + CONJUROS_POR_PAGINA_MASTER);
+  }, [hechizosFiltrados, paginaActual]);
 
   const hechizoSeleccionado = useMemo(() => {
     return baseDatosHechizos.find((h) => h.id === idHechizoDetalle) || null;
@@ -126,7 +138,7 @@ export const ListaHechizos: React.FC = () => {
             No se encontraron conjuros con los filtros aplicados.
           </div>
         ) : (
-          hechizosFiltrados.map((hechizo) => {
+          hechizosPaginados.map((hechizo) => {
             const esSeleccionado = idHechizoDetalle === hechizo.id;
             return (
               <div
@@ -157,6 +169,16 @@ export const ListaHechizos: React.FC = () => {
           })
         )}
       </div>
+
+      {hechizosFiltrados.length > CONJUROS_POR_PAGINA_MASTER && (
+        <ControlPaginacion
+          paginaActual={paginaActual}
+          totalElementos={hechizosFiltrados.length}
+          elementosPorPagina={CONJUROS_POR_PAGINA_MASTER}
+          alCambiarPagina={(nueva) => setPaginaActual(nueva)}
+          etiquetaElementos="conjuros"
+        />
+      )}
 
       {/* Panel Detalle Absoluto (Overlay) de Gran Formato */}
       {hechizoSeleccionado && (

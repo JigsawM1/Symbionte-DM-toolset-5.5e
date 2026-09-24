@@ -215,7 +215,7 @@ const PanelHabilidadesPersonajeComponent: React.FC<PanelHabilidadesPersonajeProp
             role={alAbrirSelectorCompetencias ? "button" : undefined}
             tabIndex={alAbrirSelectorCompetencias ? 0 : undefined}
           >
-            {personaje.herramientas || "Ninguna"}
+            {statsCalculadas?.competenciasEfectivas?.herramientasTexto || personaje.herramientas || "Ninguna"}
           </div>
         </div>
       </div>

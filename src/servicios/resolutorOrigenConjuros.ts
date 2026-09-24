@@ -106,7 +106,8 @@ export function resolverOrigenConjuro(
           idLower.includes("conjuro") ||
           idLower.includes("hechizo") ||
           idLower.includes("spell") ||
-          idLower.includes("cantrip")
+          idLower.includes("cantrip") ||
+          idLower.includes("ritual")
         ) {
           if (Array.isArray(sel.valorActual) && sel.valorActual.some(coincide)) {
             otorga = true;
@@ -309,7 +310,8 @@ export function crearResolutorOrigenConjuros(
           idLower.includes("conjuro") ||
           idLower.includes("hechizo") ||
           idLower.includes("spell") ||
-          idLower.includes("cantrip");
+          idLower.includes("cantrip") ||
+          idLower.includes("ritual");
 
         if (esMagico && Array.isArray(sel.valorActual)) {
           for (const v of sel.valorActual) registrarCadena(v, badge);

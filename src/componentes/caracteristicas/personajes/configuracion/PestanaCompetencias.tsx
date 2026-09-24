@@ -4,6 +4,7 @@ import type { PersonajeJugador, Habilidad } from "@/tipos";
 import { HABILIDADES_LISTA } from "@/constantes";
 import type { CategoriaCompetencia } from "../ModalSelectorCompetencias";
 import { TarjetaResumenCompetencia } from "./TarjetaResumenCompetencia";
+import { obtenerCompetenciasEfectivasTexto } from "@/servicios/evaluadorEfectosRasgos";
 import estilos from "./ConfiguracionPersonaje.module.css";
 
 export interface PestanaCompetenciasProps {
@@ -22,6 +23,12 @@ export const PestanaCompetencias: React.FC<PestanaCompetenciasProps> = ({
   alAbrirModalCompetencias,
   alAbrirDetalleHabilidad
 }) => {
+  const compEfectivas = React.useMemo(() => obtenerCompetenciasEfectivasTexto(form), [form]);
+  const herramientasListaEfectiva = compEfectivas.herramientasLista;
+  const descripcionHerramientas =
+    compEfectivas.herramientasTexto !== "Ninguna"
+      ? compEfectivas.herramientasTexto
+      : form.herramientas || "Sin herramientas seleccionadas";
   return (
     <div className={estilos.contenedorPestanaCompetencias}>
       {/* Grid 2x2 de Tarjetas Resumen de Competencias */}
@@ -32,7 +39,11 @@ export const PestanaCompetencias: React.FC<PestanaCompetenciasProps> = ({
           titulo="Competencias con Armas"
           conteo={form.competenciasArmasLista?.length || 0}
           etiquetaConteo="armas"
-          descripcion={form.competenciasArmas || "Sin competencias seleccionadas"}
+          descripcion={
+            compEfectivas.armasTexto !== "Ninguna"
+              ? compEfectivas.armasTexto
+              : form.competenciasArmas || "Sin competencias seleccionadas"
+          }
           textoBoton="Gestionar Armas"
           alAbrir={() => alAbrirModalCompetencias("armas")}
         />
@@ -43,7 +54,11 @@ export const PestanaCompetencias: React.FC<PestanaCompetenciasProps> = ({
           titulo="Competencias con Armaduras"
           conteo={form.competenciasArmadurasLista?.length || 0}
           etiquetaConteo="armaduras"
-          descripcion={form.competenciasArmaduras || "Sin competencias seleccionadas"}
+          descripcion={
+            compEfectivas.armadurasTexto !== "Ninguna"
+              ? compEfectivas.armadurasTexto
+              : form.competenciasArmaduras || "Sin competencias seleccionadas"
+          }
           textoBoton="Gestionar Armaduras"
           alAbrir={() => alAbrirModalCompetencias("armaduras")}
         />
@@ -67,13 +82,9 @@ export const PestanaCompetencias: React.FC<PestanaCompetenciasProps> = ({
         <TarjetaResumenCompetencia
           icono={<Wrench size={14} color="#94a3b8" />}
           titulo="Herramientas y Kits"
-          conteo={form.herramientasLista?.length || 0}
+          conteo={herramientasListaEfectiva.length}
           etiquetaConteo="herramientas"
-          descripcion={
-            form.herramientasLista && form.herramientasLista.length > 0
-              ? form.herramientasLista.join(", ")
-              : form.herramientas || "Sin herramientas seleccionadas"
-          }
+          descripcion={descripcionHerramientas}
           textoBoton="Gestionar Herramientas"
           alAbrir={() => alAbrirModalCompetencias("herramientas")}
         />

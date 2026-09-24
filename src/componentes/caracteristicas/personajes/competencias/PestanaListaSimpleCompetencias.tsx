@@ -1,5 +1,6 @@
 import React from "react";
 import { coincideBusquedaTolerante } from "@/utiles/busquedaTolerante";
+import { sonHerramientasEquivalentes } from "@/servicios/evaluadorEfectosRasgos";
 import estilos from "./SelectorCompetencias.module.css";
 
 interface PestanaListaSimpleCompetenciasProps {
@@ -34,7 +35,7 @@ export const PestanaListaSimpleCompetencias: React.FC<PestanaListaSimpleCompeten
           {itemsDisponibles
             .filter((item) => coincideBusquedaTolerante(item, filtro))
             .map((item) => {
-              const check = itemsSeleccionados.includes(item);
+              const check = itemsSeleccionados.some((sel) => sonHerramientasEquivalentes(sel, item));
               return (
                 <label
                   key={item}

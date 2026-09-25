@@ -1,0 +1,159 @@
+{
+  "id": "gnomo",
+  "nombre": "Gnomo",
+  "descripcion": "Pequeños seres de aguda inteligencia, curiosidad insaciable y afinidad natural con la ilusión y los inventos.",
+  "tipoCriatura": "Humanoide",
+  "tamanoOpciones": [
+    "Pequeño"
+  ],
+  "tamanoPorDefecto": "Pequeño",
+  "velocidadBase": 30,
+  "visionOscuridad": 60,
+  "rasgos": [
+    {
+      "nombre": "Astucia gnoma",
+      "descripcion": "Tienes ventaja en las tiradas de salvación de Inteligencia, Sabiduría y Carisma.",
+      "tipoAccion": "pasivo",
+      "categoriaMecanica": "pasivo_permanente",
+      "efectos": [
+        {
+          "tipo": "ventaja",
+          "objetivo": "salvacion.inteligencia",
+          "valor": "true",
+          "descripcion": "Astucia gnoma (Ventaja en salvaciones de Inteligencia)",
+          "activo": true
+        },
+        {
+          "tipo": "ventaja",
+          "objetivo": "salvacion.sabiduria",
+          "valor": "true",
+          "descripcion": "Astucia gnoma (Ventaja en salvaciones de Sabiduría)",
+          "activo": true
+        },
+        {
+          "tipo": "ventaja",
+          "objetivo": "salvacion.carisma",
+          "valor": "true",
+          "descripcion": "Astucia gnoma (Ventaja en salvaciones de Carisma)",
+          "activo": true
+        }
+      ]
+    },
+    {
+      "nombre": "Linaje gnomo",
+      "descripcion": "Formas parte de un linaje que te otorga capacidades sobrenaturales. Escoge una opción (Gnomo de los bosques o Gnomo de las rocas); elijas la que elijas, la Inteligencia, la Sabiduría o el Carisma es tu aptitud mágica para los conjuros que lances con este atributo (elige la característica al seleccionar el linaje).",
+      "tipoAccion": "pasivo",
+      "categoriaMecanica": "selector_informativo",
+      "selectores": [
+        {
+          "id": "selector_aptitud_magica_gnomo",
+          "tipo": "unico",
+          "etiqueta": "Aptitud Mágica del Linaje",
+          "opciones": [
+            {
+              "id": "inteligencia",
+              "nombre": "Inteligencia",
+              "descripcion": "Usas Inteligencia como aptitud mágica para los conjuros de tu linaje."
+            },
+            {
+              "id": "sabiduria",
+              "nombre": "Sabiduría",
+              "descripcion": "Usas Sabiduría como aptitud mágica para los conjuros de tu linaje."
+            },
+            {
+              "id": "carisma",
+              "nombre": "Carisma",
+              "descripcion": "Usas Carisma como aptitud mágica para los conjuros de tu linaje."
+            }
+          ],
+          "maxSelecciones": 1,
+          "valorActual": [
+            "inteligencia"
+          ],
+          "visualizacion": "normal"
+        }
+      ]
+    },
+    {
+      "nombre": "Visión en la oscuridad",
+      "descripcion": "Tienes visión en la oscuridad hasta 60 pies.",
+      "tipoAccion": "pasivo",
+      "categoriaMecanica": "pasivo_permanente"
+    }
+  ],
+  "subespecies": [
+    {
+      "id": "gnomo_bosques",
+      "especiePadre": "gnomo",
+      "nombre": "Gnomo de los bosques",
+      "descripcion": "Amigos de los animales silvestres y creadores de ilusiones menores.",
+      "rasgos": [
+        {
+          "nombre": "Magia de los bosques: Hablar con los animales",
+          "descripcion": "Siempre tienes el conjuro *hablar con los animales* preparado. Puedes lanzarlo sin gastar un espacio de conjuro una cantidad de veces igual a tu bonificador por competencia y recuperas todos los usos tras finalizar un descanso largo. También puedes usar cualquier espacio de conjuro que tengas para lanzarlo.",
+          "tipoAccion": "pasivo",
+          "nivelRequerido": 1,
+          "tieneUsosLimitados": true,
+          "usosMaximos": 2,
+          "recuperacion": "descanso_largo",
+          "conjurosOtorgados": [
+            "hablar_con_los_animales"
+          ],
+          "categoriaMecanica": "consumible",
+          "formulaEscalado": "bono_competencia"
+        },
+        {
+          "nombre": "Magia de los bosques",
+          "descripcion": "Conoces el truco *ilusión menor*. Además, siempre tienes el conjuro *hablar con los animales* preparado.",
+          "tipoAccion": "pasivo",
+          "categoriaMecanica": "pasivo_permanente"
+        }
+      ],
+      "conjurosInnatos": [
+        {
+          "hechizoId": "ilusion_menor",
+          "nombreHechizo": "Ilusión menor",
+          "caracteristica": "elegir",
+          "esTruco": true
+        },
+        {
+          "hechizoId": "hablar_con_los_animales",
+          "nombreHechizo": "Hablar con los animales",
+          "caracteristica": "elegir",
+          "esTruco": false,
+          "nivelRequerido": 1,
+          "usosGratis": "bono_competencia",
+          "recuperacion": "descanso_largo"
+        }
+      ]
+    },
+    {
+      "id": "gnomo_rocas",
+      "especiePadre": "gnomo",
+      "nombre": "Gnomo de las rocas",
+      "descripcion": "Ingenieros innatos que fabrican dispositivos mecánicos y juguetes animados.",
+      "rasgos": [
+        {
+          "nombre": "Dispositivo mecánico",
+          "descripcion": "Conoces los trucos *prestidigitación* y *reparar*. Además, puedes pasar 10 minutos lanzando *prestidigitación* para crear un dispositivo mecánico Diminuto (CA 5, 1 pg), como un juguete, un encendedor o una caja de música. Cuando crees el dispositivo, determinarás su función eligiendo un efecto de *prestidigitación*. El dispositivo producirá ese efecto cada vez que otra criatura o tú empleéis una acción adicional para activarlo con un toque. Si el efecto elegido tiene varias opciones, escoges una de ellas para el dispositivo cuando lo crees. Por ejemplo, si eliges el efecto de encender o apagar del conjuro, determinas si el dispositivo enciende o apaga los fuegos; el dispositivo no hace ambas cosas. Puedes tener tres de estos dispositivos activos al mismo tiempo y se desarman 8 horas después de crearlos o cuando los desmontes con un toque como acción de utilizar.",
+          "tipoAccion": "pasivo",
+          "categoriaMecanica": "pasivo_permanente"
+        }
+      ],
+      "conjurosInnatos": [
+        {
+          "hechizoId": "prestidigitacion",
+          "nombreHechizo": "Prestidigitación",
+          "caracteristica": "elegir",
+          "esTruco": true
+        },
+        {
+          "hechizoId": "reparar",
+          "nombreHechizo": "Reparar",
+          "caracteristica": "elegir",
+          "esTruco": true
+        }
+      ]
+    }
+  ]
+}

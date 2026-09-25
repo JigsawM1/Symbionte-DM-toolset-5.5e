@@ -65,7 +65,27 @@ export const EsquemaHabilidades = z.object({
 });
 export type Habilidades = z.infer<typeof EsquemaHabilidades>;
 
-export type Habilidad = keyof Habilidades;
+export const EsquemaHabilidad = z.enum([
+  "acrobacias",
+  "manejoAnimales",
+  "arcanos",
+  "atletismo",
+  "engaño",
+  "historia",
+  "perspicacia",
+  "intimidacion",
+  "investigacion",
+  "medicina",
+  "naturaleza",
+  "percepcion",
+  "interpretacion",
+  "persuasion",
+  "religion",
+  "juegoManos",
+  "sigilo",
+  "supervivencia"
+]);
+export type Habilidad = z.infer<typeof EsquemaHabilidad>;
 
 // ==========================================
 // 2. ENUMERACIONES CORE EN ESPAÑOL (D&D 5.5e)

@@ -168,6 +168,7 @@ export const EsquemaEscaladoUsos = z.object({
     valor: z.number().int()
   })).optional(),
   modificador: z.string().optional(), // "carisma", "sabiduria", etc.
+  formula: z.string().optional(), // "nivel", "nivel_x5", "nivel_mas_1"
   minimo: z.number().int().default(1)
 });
 export type EscaladoUsos = z.infer<typeof EsquemaEscaladoUsos>;
@@ -193,6 +194,8 @@ export const EsquemaSelectorRasgo = z.object({
   maxSelecciones: z.number().int().min(1).default(1),
   valorActual: z.array(z.string()).default([]),
   visualizacion: z.enum(["normal", "lista"]).default("normal").optional(),
+  // ── Identificador de fuente dinámica para hidratación (ej. "invocaciones_brujo", "trucos_clerigo") ──
+  claveOpcionesDinamicas: z.string().optional(),
   // ── NUEVO: opciones que se desbloquean por nivel ──
   opcionesDinamicas: z.array(EsquemaOpcionesDinamicas).optional(),
   // ── NUEVO: max selecciones escalado por nivel ──
@@ -202,6 +205,93 @@ export const EsquemaSelectorRasgo = z.object({
   })).optional()
 });
 export type SelectorRasgo = z.infer<typeof EsquemaSelectorRasgo>;
+
+// ==========================================
+// CONTRATOS DE PLANTILLAS DE RASGOS (CLASES Y ESPECIES)
+// ==========================================
+
+export interface PlantillaRasgoClase {
+  nivel: number;
+  nombre: string;
+  descripcion: string;
+  tipoAccion: "pasivo" | "accion" | "accion_adicional" | "reaccion" | "especial";
+  subclase?: string;
+  tieneUsosLimitados?: boolean;
+  usosMaximos?: number;
+  obtenerUsosMaximos?: (nivel: number) => number;
+  formulaUsos?: string | null;
+  recuperacion?: RecuperacionRasgo;
+  formulaDados?: string;
+
+  // Escalados genéricos
+  escaladoFormulaDados?: Array<{ nivelMinimo: number; valor: string }>;
+  escaladoUsos?: {
+    tipo: "por_nivel" | "por_modificador";
+    tabla?: Array<{ nivelMinimo: number; valor: number }>;
+    modificador?: string;
+    minimo?: number;
+    formula?: string;
+  };
+  escaladoRecuperacion?: Array<{ nivelMinimo: number; valor: RecuperacionRasgo }>;
+  sincronizarEfectosConFormula?: boolean;
+
+  // Mecánicas estructuradas
+  esActivable?: boolean;
+  autoDesactivar?: boolean;
+  ligadoA?: string;
+  gastarDePadre?: boolean;
+  heredarDadosPadre?: boolean;
+  condicionAlActivar?: string;
+  duracionEfectoAlActivar?: number;
+  conjurosOtorgados?: string[];
+  restaurarUsosAlActivar?: { idRasgoObjetivo: string; cantidad: number | "maximo" };
+  categoriaMecanica?: "consumible" | "activable" | "selector_informativo" | "pasivo_permanente" | "extension" | "curacion";
+  formulaEscalado?: string;
+  efectos?: EfectoMecanicoRasgo[];
+  selectores?: SelectorRasgo[];
+  tablaProgresion?: TablaEscaladoRasgo;
+}
+
+export interface PlantillaRasgoEspecie {
+  nombre: string;
+  descripcion: string;
+  subespecie?: string;
+  tipoAccion: "pasivo" | "accion" | "accion_adicional" | "reaccion" | "especial";
+  nivelRequerido?: number;
+  tieneUsosLimitados?: boolean;
+  usosMaximos?: number;
+  obtenerUsosMaximos?: (nivel: number, bonificadorCompetencia?: number) => number;
+  formulaUsos?: string | null;
+  recuperacion?: RecuperacionRasgo;
+  formulaDados?: string;
+  
+  // Escalados genéricos
+  escaladoFormulaDados?: Array<{ nivelMinimo: number; valor: string }>;
+  escaladoUsos?: {
+    tipo: "por_nivel" | "por_modificador";
+    tabla?: Array<{ nivelMinimo: number; valor: number }>;
+    modificador?: string;
+    minimo?: number;
+    formula?: string;
+  };
+  escaladoRecuperacion?: Array<{ nivelMinimo: number; valor: RecuperacionRasgo }>;
+  sincronizarEfectosConFormula?: boolean;
+  
+  // Mecánicas estructuradas
+  esActivable?: boolean;
+  autoDesactivar?: boolean;
+  ligadoA?: string;
+  gastarDePadre?: boolean;
+  heredarDadosPadre?: boolean;
+  condicionAlActivar?: string;
+  duracionEfectoAlActivar?: number;
+  conjurosOtorgados?: string[];
+  categoriaMecanica?: "consumible" | "activable" | "selector_informativo" | "pasivo_permanente" | "extension" | "curacion";
+  formulaEscalado?: string;
+  efectos?: EfectoMecanicoRasgo[];
+  selectores?: SelectorRasgo[];
+  tablaProgresion?: TablaEscaladoRasgo;
+}
 
 
 // Tablas de escalado/progresión por nivel en el rasgo

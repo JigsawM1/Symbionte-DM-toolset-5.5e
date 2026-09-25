@@ -1,0 +1,163 @@
+{
+  "id": "aasimar",
+  "nombre": "Aasimar",
+  "descripcion": "Los aasimar son seres imbuidos con la chispa divina de los Planos Superiores, manifestando dones celestiales de luz, curación y alas espirituales.",
+  "tipoCriatura": "Humanoide",
+  "tamanoOpciones": [
+    "Mediano",
+    "Pequeño"
+  ],
+  "tamanoPorDefecto": "Mediano",
+  "velocidadBase": 30,
+  "visionOscuridad": 60,
+  "rasgos": [
+    {
+      "nombre": "Tipo de criatura",
+      "descripcion": "Eres una criatura del tipo Humanoide.",
+      "tipoAccion": "pasivo",
+      "categoriaMecanica": "pasivo_permanente"
+    },
+    {
+      "nombre": "Tamaño",
+      "descripcion": "Eres Mediano o Pequeño. Eliges el tamaño cuando seleccionas esta especie.",
+      "tipoAccion": "pasivo",
+      "categoriaMecanica": "selector_informativo",
+      "selectores": [
+        {
+          "id": "selector_tamano_especie",
+          "tipo": "unico",
+          "etiqueta": "Tamaño",
+          "opciones": [
+            {
+              "id": "mediano",
+              "nombre": "Mediano",
+              "descripcion": "Tu personaje es de tamaño Mediano."
+            },
+            {
+              "id": "pequeno",
+              "nombre": "Pequeño",
+              "descripcion": "Tu personaje es de tamaño Pequeño."
+            }
+          ],
+          "maxSelecciones": 1,
+          "valorActual": [
+            "mediano"
+          ],
+          "visualizacion": "normal"
+        }
+      ]
+    },
+    {
+      "nombre": "Resistencia celestial",
+      "descripcion": "Tienes resistencia al daño necrótico y al radiante.",
+      "tipoAccion": "pasivo",
+      "categoriaMecanica": "pasivo_permanente"
+    },
+    {
+      "nombre": "Visión en la oscuridad",
+      "descripcion": "Tienes visión en la oscuridad hasta 60 pies.",
+      "tipoAccion": "pasivo",
+      "categoriaMecanica": "pasivo_permanente"
+    },
+    {
+      "nombre": "Portador de luz",
+      "descripcion": "Conoces el truco luz. El Carisma es tu aptitud mágica para lanzarlo.",
+      "tipoAccion": "pasivo",
+      "conjurosOtorgados": [
+        "luz"
+      ],
+      "categoriaMecanica": "pasivo_permanente"
+    },
+    {
+      "nombre": "Manos curativas",
+      "descripcion": "Como acción de magia, tocas a una criatura y tiras una cantidad de d4 igual a tu bonificador por competencia. La criatura recupera una cantidad de puntos de golpe igual al resultado total de la tirada. Cuando uses este atributo, no podrás volver a hacerlo hasta que finalices un descanso largo.",
+      "tipoAccion": "accion",
+      "tieneUsosLimitados": true,
+      "usosMaximos": 1,
+      "recuperacion": "descanso_largo",
+      "formulaDados": "2d4",
+      "categoriaMecanica": "curacion",
+      "formulaEscalado": "bono_competencia"
+    },
+    {
+      "nombre": "Revelación celestial",
+      "descripcion": "Cuando alcanzas el nivel 3 de personaje, puedes transformarte como acción adicional y usar una de las opciones que aparecen a continuación (elige la opción cada vez que te transformes). La transformación dura 1 minuto o hasta que le pongas fin (no requiere acción). Cuando te transformes, no podrás volver a hacerlo hasta que finalices un descanso largo.\n\nUna vez en cada uno de tus turnos hasta que finalice la transformación, puedes infligir daño adicional a un objetivo cuando le hagas daño con un ataque o un conjuro. El daño adicional es igual a tu bonificador por competencia y el tipo es necrótico para Mortaja necrótica o radiante para Alas celestiales y Fulgor interior.\n\nEstas son las opciones de transformación:\n\n - *Alas celestiales:* Dos alas espectrales brotan temporalmente de tu espalda. Hasta que la transformación termine, tienes una velocidad volando igual a tu velocidad.\n\n - *Fulgor interior:* De tus ojos y tu boca surge temporalmente una luz abrasadora. Durante este tiempo, emites luz brillante en un radio de 10 pies y luz tenue 10 pies más allá y, al final de cada uno de tus turnos, cada criatura a 10 pies o menos de ti recibirá una cantidad de daño radiante igual a tu bonificador por competencia.\n\n - *Mortaja necrótica:* Tus ojos se vuelven brevemente pozos de oscuridad y unas alas que no te permiten volar brotan temporalmente de tu espalda. Las criaturas que no sean tus aliados y estén a 10 pies o menos de ti deberán superar una tirada de salvación de Carisma (CD 8 más tu modificador por Carisma y tu bonificador por competencia) o tendrán el estado de asustadas hasta el final de tu siguiente turno.",
+      "tipoAccion": "accion_adicional",
+      "nivelRequerido": 3,
+      "tieneUsosLimitados": true,
+      "usosMaximos": 1,
+      "recuperacion": "descanso_largo",
+      "esActivable": true,
+      "categoriaMecanica": "selector_informativo",
+      "efectos": [
+        {
+          "tipo": "bono_dano_ataque",
+          "objetivo": "todos_ataques",
+          "valor": "bono_competencia",
+          "aplicaA": "todos_ataques",
+          "descripcion": "Revelación celestial (+PB daño en ataques)",
+          "activo": true
+        },
+        {
+          "tipo": "bono_dano_conjuro",
+          "objetivo": "todos_conjuros",
+          "valor": "bono_competencia",
+          "aplicaA": "todos_conjuros",
+          "descripcion": "Revelación celestial (+PB daño en conjuros)",
+          "activo": true
+        }
+      ],
+      "selectores": [
+        {
+          "id": "opcion_revelacion_celestial",
+          "tipo": "unico",
+          "etiqueta": "Opción de Revelación Celestial",
+          "opciones": [
+            {
+              "id": "alas_celestiales",
+              "nombre": "Alas celestiales",
+              "descripcion": "Dos alas espectrales brotan temporalmente de tu espalda. Hasta que la transformación termine, tienes una velocidad volando igual a tu velocidad. Daño extra radiante igual a tu PB una vez por turno.",
+              "efectos": [
+                {
+                  "tipo": "movimiento_especial",
+                  "objetivo": "velocidad.volar",
+                  "valor": "volar",
+                  "descripcion": "Velocidad de vuelo igual a tu velocidad",
+                  "activo": true
+                }
+              ]
+            },
+            {
+              "id": "fulgor_interior",
+              "nombre": "Fulgor interior",
+              "descripcion": "De tus ojos y tu boca surge una luz abrasadora. Emites luz brillante en 10 pies y tenue otros 10 pies. Al final de cada uno de tus turnos, cada criatura a 10 pies o menos recibe daño radiante igual a tu PB. Daño extra radiante igual a tu PB una vez por turno."
+            },
+            {
+              "id": "mortaja_necrotica",
+              "nombre": "Mortaja necrótica",
+              "descripcion": "Tus ojos se vuelven pozos de oscuridad y brotan alas que no vuelan. Las criaturas no aliadas a 10 pies o menos deben superar una salvación de Carisma (CD 8 + mod CAR + PB) o estarán asustadas hasta el final de tu siguiente turno. Daño extra necrótico igual a tu PB una vez por turno."
+            }
+          ],
+          "maxSelecciones": 1,
+          "valorActual": [
+            "alas_celestiales"
+          ],
+          "visualizacion": "normal"
+        }
+      ]
+    }
+  ],
+  "conjurosInnatos": [
+    {
+      "hechizoId": "luz",
+      "nombreHechizo": "Luz",
+      "caracteristica": "carisma",
+      "esTruco": true,
+      "descripcion": "Conoces el truco luz. El Carisma es tu aptitud mágica para lanzarlo."
+    }
+  ],
+  "resistenciasDanio": [
+    "Necrótico",
+    "Radiante"
+  ]
+}

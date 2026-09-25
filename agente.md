@@ -19,6 +19,28 @@ Este archivo registra reglas globales, errores encontrados, sus causas raíz y l
    - **Bajo ninguna circunstancia** los módulos de lógica de negocio (`servicios/`), gestores de estado (`almacen/`) o constructores (`gestorClases.ts`) deben contener bifurcaciones condicionales por nombre literal de rasgo o clase (`r.nombre === "..."`, `clase.includes("...")`, etc.).
    - Toda mecánica, progresión de dados, escalado de usos, recuperación o desbloqueo dinámico debe resolverse mediante metadatos declarativos (`escaladoFormulaDados`, `escaladoUsos`, `escaladoRecuperacion`, `opcionesDinamicas`, `escaladoMaxSelecciones`, `sincronizarEfectosConFormula`, `heredarDadosPadre`, `gastarDePadre`, `ligadoA`, `efectos`) delegando en funciones puras agnósticas como `resolverEscaladosRasgo`. Esta regla está reforzada en CI vía ESLint `no-restricted-syntax` y la suite `rasgoGenericidad.test.ts`.
 
+## [2026-09-25] Corrección de CI: Sincronización de `pnpm-lock.yaml` tras Reubicación de Dependencias (`ERR_PNPM_OUTDATED_LOCKFILE`)
+
+**Contexto del Problema:**
+- El pipeline de GitHub Actions (`CI - Integración Continua`) falló en el paso `Instalar Dependencias` al ejecutar `pnpm install --frozen-lockfile`, arrojando el error:
+  `ERR_PNPM_OUTDATED_LOCKFILE Cannot install with "frozen-lockfile" because pnpm-lock.yaml is not up to date with <ROOT>/package.json`.
+
+**Causa Raíz:**
+- En un commit previo (`5a5d08f`), el paquete `zip-a-folder` fue trasladado de `dependencies` a `devDependencies` en `package.json`, pero el archivo `pnpm-lock.yaml` no fue actualizado ni sincronizado en el commit.
+- Al ejecutar en entornos de CI, pnpm exige por defecto `--frozen-lockfile` para garantizar reproducibilidad exacta. Al detectar que el lockfile aún registraba `zip-a-folder` bajo `dependencies`, pnpm abortó la ejecución para prevenir inconsistencias.
+
+**Solución Aplicada:**
+1. **Regeneración de Bloqueo con pnpm**:
+   - Se ejecutó `pnpm install` de forma local, actualizando `pnpm-lock.yaml` quirúrgicamente para ubicar `zip-a-folder` dentro de `devDependencies` y alinear las versiones exactas.
+2. **Validación Simulada de CI**:
+   - Se ejecutó `pnpm install --frozen-lockfile`, confirmando el mensaje `Lockfile is up to date, resolution step is skipped` con salida limpia (código de retorno 0).
+3. **Verificación de Integridad de la Cadena CI**:
+   - Verificación de tipos: `pnpm exec tsc --noEmit` completado con 0 errores bajo `strict: true`.
+   - Linter: `pnpm run lint` superado con 0 errores y 0 advertencias.
+   - Pruebas automatizadas: 77 archivos de pruebas y 1032 tests aprobados al 100%.
+   - Auditoría de límites de líneas: 111 componentes auditados sin errores críticos.
+   - Compilación de producción: `pnpm exec vite build` generado con éxito en 6.22s.
+
 ## [2026-09-24] Corrección Arquitectónica: Unificación de Selección con `rasgosAdicionales` y Restauración de `formulaDados` en Presets de Dotes
 
 **Contexto y Problema:**
@@ -8958,7 +8980,52 @@ Optimizar la complejidad temporal (Big O) en las operaciones de búsqueda, orden
 ### 4. Métricas de Validación
 - **Tests Unitarios**: **71 suites superadas, 939/939 tests pasando (100%)**, incluyendo los 23 tests de `src/servicios/dotesGeneralesLote3Mecanicas.test.ts`.
 - **TypeScript**: `pnpm exec tsc --noEmit` con **0 errores** (Strict Mode estricto).
-- **ESLint**: `pnpm exec eslint` con **0 errores y 0 advertencias**.
+---
+
+## 103. Migración Canónica de Catálogos de Clases, Especies, Dotes y Rasgos a JSON Modulares con Hidratación TypeScript (D&D 5.5e)
+
+### 1. Diagnóstico y Contexto
+- Los catálogos principales de D&D 5.5e estaban contenidos en 4 archivos monolíticos de TypeScript que combinaban datos y lógica ejecutable (más de 8.200 líneas de código):
+  - `clasesDND55.ts` (4.989 líneas): 12 clases, 48 subclases, 19 funciones `obtenerUsosMaximos` embebidas y 1 invocación a generador de opciones.
+  - `especiesDND55.ts` (1.274 líneas): 10 especies y 24 subespecies con fábrica procedural de dracónidos.
+  - `dotesConstantes.ts` (1.635 líneas): 67 dotes con filtrado en tiempo de importación de `all.json`.
+  - `rasgosDND55.ts` (406 líneas): Re-exports, derivaciones dinámicas y contratos de plantillas.
+- Existía además un acoplamiento circular inverso donde `src/tipos/clases.ts` importaba de `src/constantes/rasgosDND55.ts`.
+
+### 2. Decisiones Arquitectónicas Aplicadas
+1. **Separación Estricta entre Datos Planos e Hidratadores (Patrón Repository / Hydrator)**:
+   - Todos los datos declarativos residen ahora en `src/datos/`:
+     - `src/datos/clases/`: 12 archivos JSON (`barbaro.json`, `bardo.json`, ..., `picaro.json`).
+     - `src/datos/especies/`: 10 archivos JSON (`aasimar.json`, `draconido.json`, ..., `tiefling.json`), con las 10 subespecies de dragones expandidas declarativamente.
+     - `src/datos/dotes/`: 3 archivos JSON (`origen.json` [12], `generales.json` [43], `epicas.json` [12]).
+     - `src/datos/rasgos-especie.json`: catálogo estático de rasgos por especie.
+     - Archivos legacy archivados en `src/datos/_obsoletos/`.
+2. **Eliminación Total de Funciones no Serializables (`obtenerUsosMaximos`)**:
+   - Se extendió el sistema de tipos y la función pura `resolverEscaladosRasgo` en `src/servicios/gestorClases.ts` para admitir `escaladoUsos.formula` declarativa (`"nivel"`, `"nivel_x5"`, `"nivel_mas_1"`) y tablas escalonadas.
+   - Todos los rasgos con usos fijos o escalados fueron reescritos a estructuras serializables JSON puras.
+3. **Selectores Dinámicos Reactivos (`claveOpcionesDinamicas`)**:
+   - Los selectores dependientes de compendios (`invocaciones_brujo`, `trucos_clerigo`, `conjuros1_mago`, `rituales_nivel_1`) declaran su identificador semántico en JSON y son hidratados reactivamente por `hidratadorClases.ts` e `hidratadorDotes.ts`.
+4. **Desacoplamiento de Tipos y Ruptura de Dependencia Circular**:
+   - `PlantillaRasgoClase` y `PlantillaRasgoEspecie` fueron reubicadas en `src/tipos/rasgos.ts`.
+   - `src/tipos/clases.ts` y `src/tipos/especies.ts` consumen directamente de `@/tipos/rasgos`.
+5. **Barrels de Compatibilidad 100%**:
+   - `src/constantes/clasesDND55.ts`, `src/constantes/especiesDND55.ts` y `src/constantes/dotesConstantes.ts` se redujeron a barrels transparentes de 15 a 45 líneas, preservando intacta la API pública para los consumidores.
+6. **Esquemas Zod Estrictos y Nueva Suite de Integridad**:
+   - Creado `src/tipos/esquemasCatalogos.ts` y `src/servicios/cargadorCatalogos.ts` con manejo de errores proactivo y logging estructurado.
+   - Creado `src/servicios/integridadCatalogos.test.ts` con 14 pruebas de integridad que validan la completitud del catálogo en CI.
+
+### 3. Errores Detectados y Correcciones Durante la Migración
+- **Filtrado de modificadores en Zod**: `EsquemaModificadoresSubespecieJSON` tenía `velocidadExtra` en vez de `velocidad`, descartando la velocidad de 35 pies del Elfo de los bosques. Corregido y regenerado.
+- **Falta de propiedad en esquema Zod**: `EsquemaEscaladoUsos` no admitía `formula`, por lo que Zod filtraba `"formula": "nivel_mas_1"` de Luz sanadora del Brujo Celestial. Añadido `formula: z.string().optional()` al esquema en `src/tipos/rasgos.ts`.
+- **Enum de modelo de conjuros**: Se corrigió el valor `"grimorio"` en `EsquemaConfiguracionMagicaClaseJSON` conforme a `EsquemaModeloConjuros`.
+- **Precedencia en `evaluarFormulaUsos`**: Se priorizó la resolución del valor por defecto en expresiones ternarias (`partesDosPuntos`) antes de la evaluación aritmética directa, evitando que ternarios con `<` devolvieran valores erróneos en casos límites.
+- **Reglas ESLint y tipado estricto**: Se reemplazaron llamadas `console` por `logger`, se añadió `{ cause: error }` en excepciones y se tipó estrictamente con `PlantillaRasgoClase` y `SelectorRasgo` eliminando `any`.
+
+### 4. Métricas de Validación
+- **Tests Unitarios**: **77 suites superadas, 1032/1032 tests pasando (100% éxito)**.
+- **TypeScript**: `pnpm tsc --noEmit` completado con **0 errores** (Strict Mode estricto).
+- **ESLint**: `pnpm lint` completado con **0 errores y 0 advertencias**.
+- **Control de Líneas**: `pnpm verificar:lineas` con **0 errores críticos**, reduciendo los archivos monolíticos en un 98%.
 
 
 

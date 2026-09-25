@@ -1,0 +1,422 @@
+{
+  "id": "picaro",
+  "nombre": "Pícaro",
+  "descripcion": "Un especialista en la precisión, la infiltración, el sigilo y el ingenio rápido, maestro en infligir letales Ataques Furtivos.",
+  "dadoGolpe": "d8",
+  "caracteristicasPrimarias": [
+    "destreza",
+    "inteligencia",
+    "carisma"
+  ],
+  "salvacionesCompetentes": [
+    "destreza",
+    "inteligencia"
+  ],
+  "competenciasArmaduras": [
+    "Armaduras Ligeras"
+  ],
+  "competenciasArmas": [
+    "Armas Sencillas",
+    "Armas Marciales con la propiedad Sutil o Ligera"
+  ],
+  "competenciasHerramientas": [
+    "Herramientas de ladrón"
+  ],
+  "opcionesHabilidades": {
+    "cantidad": 4,
+    "opciones": [
+      "acrobacias",
+      "atletismo",
+      "engaño",
+      "perspicacia",
+      "intimidacion",
+      "investigacion",
+      "percepcion",
+      "interpretacion",
+      "persuasion",
+      "juegoManos",
+      "sigilo"
+    ]
+  },
+  "equipoInicial": {
+    "descripcion": "Elige la opción (A) o (B):",
+    "opcionA": "(A) Armadura de cuero, 2 Dagas, Espada corta, Arco corto con 20 flechas, Herramientas de ladrón, Paquete de Ladrón y 8 PO",
+    "opcionB": "(B) 110 PO en monedas para comprar equipo"
+  },
+  "rasgos": [
+    {
+      "nivel": 1,
+      "nombre": "Pericia",
+      "descripcion": "Ganas pericia en dos de tus competencias en habilidades de tu elección. Se recomiendan Juego de manos y Sigilo si tienes competencia en ellas.\nA nivel 6 de pícaro, ganas pericia en dos más de tus competencias en habilidades de tu elección.",
+      "tipoAccion": "pasivo"
+    },
+    {
+      "nivel": 1,
+      "nombre": "Ataque furtivo",
+      "descripcion": "Sabes cómo atacar sutilmente y aprovechar la distracción de un enemigo. Una vez por turno, puedes infligir 1d6 de daño adicional a una criatura que aciertes con una tirada de ataque si tienes ventaja en la tirada y el ataque usa un arma sutil o un arma a distancia. El tipo de daño adicional es el mismo que el tipo del arma.\nNo necesitas ventaja en la tirada de ataque si al menos uno de tus aliados está a 1,5 m (5 pies) o menos del objetivo, el aliado no tiene el estado de incapacitado y tú no tienes desventaja en la tirada de ataque.\nEl daño adicional aumenta a medida que ganas niveles de pícaro, como se muestra en la columna \"Ataque furtivo\" de la tabla de rasgos del pícaro.",
+      "tipoAccion": "pasivo",
+      "formulaDados": "1d6"
+    },
+    {
+      "nivel": 1,
+      "nombre": "Jerga de ladrones",
+      "descripcion": "Has aprendido varios idiomas en las comunidades donde ejerciste tus talentos picarescos. Conoces la jerga de ladrones y otro idioma de tu elección, que eliges de las tablas de idiomas del *capítulo 2*.",
+      "tipoAccion": "pasivo"
+    },
+    {
+      "nivel": 1,
+      "nombre": "Maestría con armas",
+      "descripcion": "Tu entrenamiento con armas te permite utilizar las propiedades de maestría de dos tipos de armas de tu elección con las que tengas competencia, como *Dagas* y *Arcos cortos*.\nSiempre que finalices un descanso largo, puedes cambiar los tipos de armas que elegiste. Por ejemplo, podrías cambiar para usar las propiedades de maestría de las *Cimitarras* y las *Espadas cortas*.",
+      "tipoAccion": "pasivo",
+      "tieneUsosLimitados": true,
+      "recuperacion": "descanso_largo"
+    },
+    {
+      "nivel": 2,
+      "nombre": "Acción astuta",
+      "descripcion": "Tu rapidez mental y agilidad te permiten moverte y actuar rápidamente. En tu turno, puedes llevar a cabo una de las siguientes acciones como acción adicional: correr, destrabarse o esconderse.",
+      "tipoAccion": "accion_adicional"
+    },
+    {
+      "nivel": 3,
+      "nombre": "Subclase de pícaro",
+      "descripcion": "Consigues una subclase de pícaro de tu elección. Una subclase es una especialización que te proporciona rasgos a ciertos niveles de pícaro. De aquí en adelante, obtienes todos los rasgos de tu subclase que sean de tu nivel de pícaro e inferiores.",
+      "tipoAccion": "pasivo"
+    },
+    {
+      "nivel": 3,
+      "nombre": "Puntería estable",
+      "descripcion": "Como acción adicional, te otorgas ventaja en tu próxima tirada de ataque en el turno actual. Puedes usar este rasgo solo si no te has movido durante este turno, y después de usarlo, tu velocidad se reduce a 0 hasta el final del turno actual.",
+      "tipoAccion": "accion_adicional"
+    },
+    {
+      "nivel": 4,
+      "nombre": "Mejora de característica",
+      "descripcion": "Obtienes la dote Mejora de característica u otra [dote](feats.html) de tu elección para la que cumplas las condiciones. Vuelves a obtener este rasgo en los niveles 8, 10, 12 y 16 de pícaro.",
+      "tipoAccion": "pasivo"
+    },
+    {
+      "nivel": 5,
+      "nombre": "Golpe astuto",
+      "descripcion": "Has desarrollado formas astutas de utilizar tu Ataque furtivo. Cuando infliges daño de Ataque furtivo, puedes añadir uno de los siguientes efectos de Golpe astuto. Cada efecto tiene un coste en dados, que es el número de dados de daño de Ataque furtivo a los que debes renunciar para añadir el efecto. Retiras el dado antes de tirar, y el efecto ocurre inmediatamente después de infligir el daño del ataque. Por ejemplo, si añades el efecto de Veneno, retira 1d6 del daño del Ataque furtivo antes de tirar.\nSi un efecto de Golpe astuto requiere una tirada de salvación, la CD es igual a 8 más tu modificador por Destreza y tu bonificador por competencia.\n\n***Veneno (Coste: 1d6).*** Añades una toxina a tu golpe, obligando al objetivo a hacer una tirada de salvación de Constitución. Si falla la tirada, el objetivo tiene el estado de envenenado durante 1 minuto. Al final de cada uno de sus turnos, el objetivo envenenado repite la tirada de salvación, terminando el efecto sobre sí mismo si tiene éxito.\nPara usar este efecto, debes llevar unos *Útiles de envenenador* contigo.\n\n***Derribar (Coste: 1d6).*** Si el objetivo es Grande o más pequeño, debe tener éxito en una tirada de salvación de Destreza o sufrirá el estado de derribado.\n\n***Retirarse (Coste: 1d6).*** Inmediatamente después del ataque, te mueves hasta la mitad de tu velocidad sin provocar ataques de oportunidad.",
+      "tipoAccion": "pasivo",
+      "formulaDados": "1d6"
+    },
+    {
+      "nivel": 5,
+      "nombre": "Esquiva asombrosa",
+      "descripcion": "Cuando un atacante que puedes ver te acierta con una tirada de ataque, puedes usar una reacción para reducir a la mitad el daño del ataque contra ti (redondeando hacia abajo).",
+      "tipoAccion": "pasivo"
+    },
+    {
+      "nivel": 6,
+      "nombre": "Pericia",
+      "descripcion": "Ganas pericia en dos de tus competencias en habilidades de tu elección.",
+      "tipoAccion": "pasivo"
+    },
+    {
+      "nivel": 7,
+      "nombre": "Evasión",
+      "descripcion": "Puedes esquivar ágilmente ciertos peligros. Cuando estés sujeto a un efecto que te permita hacer una tirada de salvación de Destreza para sufrir solo la mitad de daño, en su lugar no sufrirás ningún daño si tienes éxito en la tirada de salvación y solo la mitad si la fallas. No puedes usar este rasgo si tienes el estado de incapacitado.",
+      "tipoAccion": "pasivo"
+    },
+    {
+      "nivel": 7,
+      "nombre": "Talento fiable",
+      "descripcion": "Siempre que hagas una prueba de característica que use una de tus competencias en habilidades o herramientas, puedes tratar una tirada de d20 de 9 o menos como un 10.",
+      "tipoAccion": "pasivo"
+    },
+    {
+      "nivel": 8,
+      "nombre": "Mejora de característica",
+      "descripcion": "Obtienes la dote Mejora de característica u otra [dote](feats.html) de tu elección para la que cumplas las condiciones.",
+      "tipoAccion": "pasivo"
+    },
+    {
+      "nivel": 9,
+      "nombre": "Rasgo de subclase",
+      "descripcion": "Obtienes un rasgo de tu subclase de pícaro.",
+      "tipoAccion": "pasivo"
+    },
+    {
+      "nivel": 10,
+      "nombre": "Mejora de característica",
+      "descripcion": "Obtienes la dote Mejora de característica u otra [dote](feats.html) de tu elección para la que cumplas las condiciones.",
+      "tipoAccion": "pasivo"
+    },
+    {
+      "nivel": 11,
+      "nombre": "Golpe astuto mejorado",
+      "descripcion": "Puedes usar hasta dos efectos de Golpe astuto cuando infliges daño de Ataque furtivo, pagando el coste en dados de cada efecto.",
+      "tipoAccion": "pasivo"
+    },
+    {
+      "nivel": 12,
+      "nombre": "Mejora de característica",
+      "descripcion": "Obtienes la dote Mejora de característica u otra [dote](feats.html) de tu elección para la que cumplas las condiciones.",
+      "tipoAccion": "pasivo"
+    },
+    {
+      "nivel": 13,
+      "nombre": "Rasgo de subclase",
+      "descripcion": "Obtienes un rasgo de tu subclase de pícaro.",
+      "tipoAccion": "pasivo"
+    },
+    {
+      "nivel": 14,
+      "nombre": "Golpes taimados",
+      "descripcion": "Has practicado nuevas formas de usar tu Ataque furtivo de forma taimada. Los siguientes efectos se encuentran ahora entre tus opciones de Golpe astuto.\n\n***Aturdir (Coste: 2d6).*** El objetivo debe superar una tirada de salvación de Constitución, o en su siguiente turno solo podrá hacer una de las siguientes cosas: moverse, llevar a cabo una acción o una acción adicional.\n\n***Noquear (Coste: 6d6).*** El objetivo debe superar una tirada de salvación de Constitución, o sufrirá el estado de inconsciente durante 1 minuto o hasta que sufra algún daño. El objetivo inconsciente repite la tirada de salvación al final de cada uno de sus turnos, terminando el efecto sobre sí mismo si tiene éxito.\n\n***Oscurecer (Coste: 3d6).*** El objetivo debe superar una tirada de salvación de Destreza, o sufrirá el estado de cegado hasta el final de su siguiente turno.",
+      "tipoAccion": "accion_adicional",
+      "formulaDados": "2d6"
+    },
+    {
+      "nivel": 15,
+      "nombre": "Mente escurridiza",
+      "descripcion": "Tu mente astuta es excepcionalmente difícil de controlar. Ganas competencia en las tiradas de salvación de Sabiduría y Carisma.",
+      "tipoAccion": "pasivo"
+    },
+    {
+      "nivel": 16,
+      "nombre": "Mejora de característica",
+      "descripcion": "Obtienes la dote Mejora de característica u otra [dote](feats.html) de tu elección para la que cumplas las condiciones.",
+      "tipoAccion": "pasivo"
+    },
+    {
+      "nivel": 17,
+      "nombre": "Rasgo de subclase",
+      "descripcion": "Obtienes un rasgo de tu subclase de pícaro.",
+      "tipoAccion": "pasivo"
+    },
+    {
+      "nivel": 18,
+      "nombre": "Escurridizo",
+      "descripcion": "Eres tan evasivo que los atacantes rara vez tienen ventaja contra ti. Ninguna tirada de ataque puede tener ventaja contra ti a menos que tengas el estado de incapacitado.",
+      "tipoAccion": "pasivo"
+    },
+    {
+      "nivel": 19,
+      "nombre": "Don épico",
+      "descripcion": "Obtienes una dote de don épico u otra [dote](feats.html) de tu elección para la que cumplas las condiciones. Se recomienda Don del espíritu nocturno.",
+      "tipoAccion": "pasivo"
+    },
+    {
+      "nivel": 20,
+      "nombre": "Golpe de suerte",
+      "descripcion": "Tienes un don maravilloso para tener éxito cuando lo necesitas. Si fallas una prueba de d20, puedes convertir la tirada en un 20.\nUna vez que uses este rasgo, no podrás volver a hacerlo hasta que finalices un descanso corto o largo.\n---",
+      "tipoAccion": "pasivo",
+      "tieneUsosLimitados": true,
+      "recuperacion": "descanso_corto"
+    }
+  ],
+  "subclases": [
+    {
+      "id": "embaucador_arcano",
+      "clasePadre": "picaro",
+      "nombre": "Embaucador Arcano",
+      "descripcion": "Algunos pícaros mejoran sus afiladas habilidades de sigilo y agilidad con conjuros, aprendiendo trucos mágicos para ayudarse en su oficio. Algunos embaucadores arcanos usan sus talentos como carteristas y ladrones, mientras que otros son bromistas.",
+      "lema": "Mejora el sigilo con conjuros arcanos",
+      "nivelDesbloqueo": 3,
+      "rasgos": [
+        {
+          "nivel": 3,
+          "nombre": "Lanzamiento de conjuros",
+          "descripcion": "Has aprendido a lanzar conjuros. Consulta el *capítulo 7* para ver las reglas sobre el lanzamiento de conjuros. La información a continuación detalla cómo usas esas reglas como embaucador arcano.\n\n***Trucos.*** Conoces tres trucos: *Mano de mago* y otros dos trucos de tu elección de la lista de conjuros de mago (consulta la sección de esa clase para ver su lista). Se recomiendan *Astilla mental* e *Ilusión menor*.\nCada vez que subes un nivel de pícaro, puedes reemplazar uno de tus trucos, excepto *Mano de mago*, por otro truco de mago de tu elección.\nCuando alcanzas el nivel 10 de pícaro, aprendes otro truco de mago de tu elección.\n\n***Espacios de conjuro.*** La tabla de Lanzamiento de conjuros del embaucador arcano muestra cuántos espacios de conjuro tienes para lanzar tus conjuros de nivel 1 y superiores. Recuperas todos los espacios de conjuro gastados cuando finalizas un descanso largo.\n\n***Conjuros preparados de nivel 1 y superiores.*** Preparas la lista de conjuros de nivel 1 y superiores que están disponibles para lanzar con este rasgo. Para empezar, elige tres conjuros de mago de nivel 1. Se recomiendan *Hechizar persona*, *Disfrazarse* y *Nube de oscurecimiento*.\nEl número de conjuros de tu lista aumenta conforme subes de nivel de pícaro, como se muestra en la columna \"Conjuros preparados\" de la tabla de Lanzamiento de conjuros del embaucador arcano. Cuando ese número aumenta, elige conjuros de mago adicionales hasta que el número de conjuros de tu lista coincida con el número de la tabla. Los conjuros elegidos deben ser de un nivel para el que tengas espacios de conjuro. Por ejemplo, si eres un pícaro de nivel 7, tu lista de conjuros preparados puede incluir cinco conjuros de mago de nivel 1 o 2 en cualquier combinación.\n\n***Cambiar tus conjuros preparados.*** Siempre que subas un nivel de pícaro, puedes reemplazar un conjuro de tu lista por otro conjuro de mago para el que tengas espacios de conjuro.\n\n***Aptitud mágica.*** La Inteligencia es tu aptitud mágica en lo que respecta a tus conjuros de mago.\n\n***Canalizador mágico.*** Puedes utilizar un *Canalizador arcano* como canalizador mágico para tus conjuros de mago.",
+          "tipoAccion": "pasivo",
+          "subclase": "Embaucador Arcano",
+          "tieneUsosLimitados": true,
+          "recuperacion": "descanso_largo"
+        },
+        {
+          "nivel": 3,
+          "nombre": "Prestidigitación con Mano de mago",
+          "descripcion": "Cuando lanzas *Mano de mago*, puedes lanzarlo como acción adicional, y puedes hacer que la mano espectral tenga el estado de invisible. Puedes controlar la mano como acción adicional, y a través de ella, puedes realizar pruebas de Destreza (Juego de manos).",
+          "tipoAccion": "accion_adicional",
+          "subclase": "Embaucador Arcano"
+        },
+        {
+          "nivel": 9,
+          "nombre": "Emboscada mágica",
+          "descripcion": "Si tienes el estado de invisible cuando lanzas un conjuro sobre una criatura, esta tiene desventaja en cualquier tirada de salvación que haga contra el conjuro en ese mismo turno.",
+          "tipoAccion": "pasivo",
+          "subclase": "Embaucador Arcano"
+        },
+        {
+          "nivel": 13,
+          "nombre": "Embaucador versátil",
+          "descripcion": "Ganas la capacidad de distraer a los objetivos con tu *Mano de mago*. Cuando usas la opción Derribar de tu Golpe astuto en una criatura, también puedes usar esa opción en otra criatura que esté a 1,5 m (5 pies) o menos de la mano espectral.",
+          "tipoAccion": "pasivo",
+          "subclase": "Embaucador Arcano"
+        },
+        {
+          "nivel": 17,
+          "nombre": "Ladrón de conjuros",
+          "descripcion": "Ganas la capacidad de robar mágicamente el conocimiento de cómo lanzar un conjuro de otro lanzador de conjuros.\nInmediatamente después de que una criatura lance un conjuro que te tenga como objetivo o te incluya en su área de efecto, puedes usar una reacción para obligar a la criatura a hacer una tirada de salvación de Inteligencia. La CD es igual a tu CD de salvación de conjuros. Si falla la tirada de salvación, anulas el efecto del conjuro contra ti, y robas el conocimiento del conjuro si es de al menos nivel 1 y de un nivel que puedas lanzar (no es necesario que sea un conjuro de mago). Durante las siguientes 8 horas, tienes el conjuro preparado. La criatura no puede lanzarlo hasta que hayan pasado las 8 horas.\nUna vez que robas un conjuro con este rasgo, no podrás volver a hacerlo hasta que finalices un descanso largo.\n---",
+          "tipoAccion": "pasivo",
+          "subclase": "Embaucador Arcano",
+          "tieneUsosLimitados": true,
+          "recuperacion": "descanso_largo"
+        }
+      ],
+      "progresionConjuros": [
+        {
+          "nivelClase": 3,
+          "trucos": [
+            "Mano de mago",
+            "2 trucos de Mago a elección"
+          ]
+        }
+      ],
+      "configuracionMagica": {
+        "tipoLanzador": "tercio",
+        "habilidadConjuro": "inteligencia",
+        "modeloConjuros": "preparados",
+        "nivelInicio": 3
+      }
+    },
+    {
+      "id": "asesino",
+      "clasePadre": "picaro",
+      "nombre": "Asesino",
+      "descripcion": "El entrenamiento de un Asesino se centra en el uso del sigilo, el veneno y el disfraz para eliminar a los enemigos con una eficacia letal. Si bien algunos pícaros que siguen este camino son asesinos a sueldo, espías o cazarrecompensas, las capacidades de esta subclase son igualmente útiles para aventureros que se enfrentan a una variedad de enemigos monstruosos.",
+      "lema": "Practica el lúgubre arte de la muerte",
+      "nivelDesbloqueo": 3,
+      "rasgos": [
+        {
+          "nivel": 3,
+          "nombre": "Asesinato",
+          "descripcion": "Eres experto en emboscar a un objetivo, lo que te otorga los siguientes beneficios.\n\n***Iniciativa.*** Tienes ventaja en las tiradas de iniciativa.\n\n***Golpes sorpresivos.*** Durante la primera ronda de cualquier combate, tienes ventaja en las tiradas de ataque contra cualquier criatura que aún no haya tenido su turno. Si tu Ataque furtivo acierta a algún objetivo durante esa ronda, el objetivo sufre daño adicional del tipo del arma igual a tu nivel de pícaro.",
+          "tipoAccion": "pasivo",
+          "subclase": "Asesino"
+        },
+        {
+          "nivel": 3,
+          "nombre": "Herramientas de asesino",
+          "descripcion": "Ganas unos *Útiles de disfraz* y unos *Útiles de envenenador*, y tienes competencia con ellos.",
+          "tipoAccion": "pasivo",
+          "subclase": "Asesino"
+        },
+        {
+          "nivel": 9,
+          "nombre": "Pericia en infiltración",
+          "descripcion": "Eres experto en las siguientes técnicas que ayudan a tus infiltraciones.\n\n***Mímica magistral.*** Puedes imitar infaliblemente el habla, la escritura o ambas de otra persona si has pasado al menos 1 hora estudiándola.\n\n***Puntería itinerante.*** Tu velocidad no se reduce a 0 al usar Puntería estable.",
+          "tipoAccion": "pasivo",
+          "subclase": "Asesino"
+        },
+        {
+          "nivel": 13,
+          "nombre": "Envenenar armas",
+          "descripcion": "Cuando usas la opción de Veneno de tu Golpe astuto, el objetivo también sufre 2d6 de daño de veneno siempre que falle la tirada de salvación. Este daño ignora la resistencia al daño de veneno.",
+          "tipoAccion": "pasivo",
+          "subclase": "Asesino",
+          "formulaDados": "2d6"
+        },
+        {
+          "nivel": 17,
+          "nombre": "Golpe mortal",
+          "descripcion": "Cuando aciertas con tu Ataque furtivo en la primera ronda de un combate, el objetivo debe superar una tirada de salvación de Constitución (CD 8 más tu modificador por Destreza y bonificador por competencia), o el daño del ataque se duplica contra ese objetivo.\n---",
+          "tipoAccion": "pasivo",
+          "subclase": "Asesino"
+        }
+      ]
+    },
+    {
+      "id": "filo_del_alma",
+      "clasePadre": "picaro",
+      "nombre": "Filo del Alma",
+      "descripcion": "Un Filo del Alma ataca con la mente, atravesando barreras tanto físicas como psíquicas. Estos pícaros descubren un poder psiónico dentro de sí mismos y lo canalizan para realizar su trabajo picaresco. Como Filo del Alma, tus habilidades psiónicas pueden haberte atormentado desde la infancia, revelando todo su potencial solo cuando experimentaste el estrés de la aventura. O tal vez buscaste una orden de adeptos psíquicos y pasaste años aprendiendo a manifestar tu poder.",
+      "lema": "Ataca a los enemigos con hojas psiónicas",
+      "nivelDesbloqueo": 3,
+      "rasgos": [
+        {
+          "nivel": 3,
+          "nombre": "Poder psiónico",
+          "descripcion": "Albergas un manantial de energía psiónica dentro de ti. Está representado por tus Dados de energía psiónica, que alimentan ciertos poderes que tienes de esta subclase. La tabla de Dados de energía del Filo del Alma muestra la cantidad de estos dados que tienes cuando alcanzas ciertos niveles de pícaro, y el tamaño del dado.\n##### Dados de energía del Filo del Alma\n| Nivel de pícaro | Tamaño del dado | Cantidad |\n|:-----------:|:--------:|:------:|\n|      3      |    D6    |    4   |\n|      5      |    D8    |    6   |\n|      9      |    D8    |    8   |\n|      11     |    D10   |    8   |\n|      13     |    D10   |   10   |\n|      17     |    D12   |   12   |\nCualquier rasgo de esta subclase que use un Dado de energía psiónica utiliza únicamente los dados de esta subclase. Algunos de tus poderes gastan un Dado de energía psiónica, tal y como se especifica en la descripción del poder, y no podrás usar un poder si requiere que utilices un dado y todos tus Dados de energía psiónica están gastados.\nRecuperas uno de tus Dados de energía psiónica gastados cuando finalizas un descanso corto, y los recuperas todos cuando finalizas un descanso largo.\n\n***Habilidad reforzada psiónicamente.*** Si fallas una prueba de característica usando una habilidad o herramienta con la que tengas competencia, puedes tirar un Dado de energía psiónica y sumar el número obtenido a la prueba, pudiendo convertir un fracaso en un éxito. El dado se gasta únicamente si la tirada tiene éxito.\n\n***Susurros psíquicos.*** Puedes establecer comunicación telepática entre ti y otros. Como acción de magia, elige una o más criaturas que puedas ver, hasta un número de criaturas igual a tu bonificador por competencia, y luego tira un Dado de energía psiónica. Durante un número de horas igual al resultado obtenido, las criaturas elegidas podrán hablar telepáticamente contigo, y tú con ellas. Para enviar o recibir un mensaje (no requiere acción), la otra criatura y tú debéis estar a 1,6 km (1 milla) o menos de distancia el uno del otro. Una criatura puede finalizar la conexión telepática en cualquier momento (no requiere acción).\nLa primera vez que uses este poder después de cada descanso largo, no gastarás el Dado de energía psiónica. El resto de las veces que uses el poder, gastarás el dado.",
+          "tipoAccion": "accion",
+          "subclase": "Filo del Alma",
+          "tieneUsosLimitados": true,
+          "recuperacion": "descanso_corto"
+        },
+        {
+          "nivel": 3,
+          "nombre": "Hojas psíquicas",
+          "descripcion": "Puedes manifestar hojas brillantes de energía psíquica. Siempre que lleves a cabo la acción de atacar o hagas un ataque de oportunidad, puedes manifestar una *Hoja psíquica* en tu mano libre y hacer el ataque con esa hoja. La hoja desaparece inmediatamente después de que acierte o falle a su objetivo, y no deja marca si inflige daño.\nDespués de que ataques con la hoja en tu turno, puedes hacer un ataque cuerpo a cuerpo o a distancia con una segunda hoja psíquica como acción adicional en el mismo turno si tu otra mano está libre para crearla. El dado de daño de este ataque adicional es 1d4 en lugar de 1d6.",
+          "tipoAccion": "accion_adicional",
+          "subclase": "Filo del Alma",
+          "formulaDados": "1d4"
+        },
+        {
+          "nivel": 9,
+          "nombre": "Hojas del alma",
+          "descripcion": "Ahora puedes usar los siguientes poderes con tus Hojas psíquicas.\n\n***Golpes teledirigidos.*** Si haces una tirada de ataque con tu *Hoja psíquica* y fallas al objetivo, puedes tirar un Dado de energía psiónica y sumar el número obtenido a la tirada de ataque. Si esto hace que el ataque acierte, el dado se gasta.\n\n***Teletransporte psíquico.*** Como acción adicional, manifiestas una *Hoja psíquica*, gastas un Dado de energía psiónica y lo tiras, y lanzas la hoja a un espacio sin ocupar que puedas ver a una distancia de hasta un número de metros igual a 3 veces (10 pies) el número obtenido. Luego te teletransportas a ese espacio, y la hoja desaparece.",
+          "tipoAccion": "accion_adicional",
+          "subclase": "Filo del Alma"
+        },
+        {
+          "nivel": 13,
+          "nombre": "Velo psíquico",
+          "descripcion": "Puedes tejer un velo de estática psíquica para enmascararte. Como acción de magia, obtienes el estado de invisible durante 1 hora o hasta que disipes este efecto (no requiere acción). Esta invisibilidad termina antes de tiempo inmediatamente después de que inflijas daño a una criatura o de que obligues a una criatura a hacer una tirada de salvación.\nUna vez que uses este rasgo, no podrás volver a hacerlo hasta que finalices un descanso largo, a menos que gastes un Dado de energía psiónica (no requiere acción) para recuperar su uso.",
+          "tipoAccion": "accion",
+          "subclase": "Filo del Alma",
+          "tieneUsosLimitados": true,
+          "recuperacion": "descanso_largo"
+        },
+        {
+          "nivel": 17,
+          "nombre": "Desgarrar la mente",
+          "descripcion": "Puedes barrer la mente de una criatura con tus Hojas psíquicas. Cuando usas tus Hojas psíquicas para infligir daño de Ataque furtivo a una criatura, puedes obligar a ese objetivo a hacer una tirada de salvación de Sabiduría (CD 8 más tu modificador por Destreza y bonificador por competencia). Si la tirada falla, el objetivo tiene el estado de aturdido durante 1 minuto. El objetivo aturdido repite la tirada de salvación al final de cada uno de sus turnos, terminando el efecto sobre sí mismo si tiene éxito.\nUna vez que uses este rasgo, no podrás volver a hacerlo hasta que finalices un descanso largo a menos que gastes tres Dados de energía psiónica (no requiere acción) para recuperar su uso.\n---",
+          "tipoAccion": "pasivo",
+          "subclase": "Filo del Alma",
+          "tieneUsosLimitados": true,
+          "recuperacion": "descanso_largo"
+        }
+      ]
+    },
+    {
+      "id": "ladron",
+      "clasePadre": "picaro",
+      "nombre": "Ladrón",
+      "descripcion": "Una mezcla de ladrón, buscador de tesoros y explorador, eres el epítome de un aventurero. Además de mejorar tu agilidad y sigilo, adquieres habilidades útiles para adentrarte en las ruinas y obtener el máximo beneficio de los objetos mágicos que encuentres en ellas.",
+      "lema": "Busca tesoros como un aventurero clásico",
+      "nivelDesbloqueo": 3,
+      "rasgos": [
+        {
+          "nivel": 3,
+          "nombre": "Manos rápidas",
+          "descripcion": "Como acción adicional, puedes hacer una de las siguientes cosas.\n\n***Juego de manos.*** Hacer una prueba de Destreza (Juego de manos) para forzar una cerradura o desarmar una trampa con *Herramientas de ladrón* o para vaciar un bolsillo.\n\n***Usar un objeto.*** Llevar a cabo la acción de utilizar, o llevar a cabo la acción de magia para usar un objeto mágico que requiera esa acción.",
+          "tipoAccion": "accion_adicional",
+          "subclase": "Ladrón"
+        },
+        {
+          "nivel": 3,
+          "nombre": "Trabajo de segunda planta",
+          "descripcion": "Te has entrenado para llegar a lugares especialmente difíciles de alcanzar, lo que te otorga los siguientes beneficios.\n\n***Escalador.*** Ganas una velocidad trepando igual a tu velocidad.\n\n***Saltador.*** Puedes determinar la distancia de tu salto usando tu Destreza en lugar de tu Fuerza.",
+          "tipoAccion": "pasivo",
+          "subclase": "Ladrón"
+        },
+        {
+          "nivel": 9,
+          "nombre": "Sigilo supremo",
+          "descripcion": "Obtienes la siguiente opción de Golpe astuto.\n\n***Ataque sigiloso (Coste: 1d6).*** Si tienes el estado de invisible de la acción de esconderse, este ataque no termina ese estado en ti si terminas tu turno tras cobertura tres cuartos o cobertura total.",
+          "tipoAccion": "accion",
+          "subclase": "Ladrón",
+          "formulaDados": "1d6"
+        },
+        {
+          "nivel": 13,
+          "nombre": "Usar objeto mágico",
+          "descripcion": "Has aprendido cómo maximizar el uso de los objetos mágicos, lo que te otorga los siguientes beneficios.\n\n***Sintonización.*** Puedes sintonizarte con hasta cuatro objetos mágicos a la vez.\n\n***Cargas.*** Siempre que uses una propiedad de un objeto mágico que gaste cargas, tira 1d6. Con un resultado de 6, usas la propiedad sin gastar las cargas.\n\n***Pergaminos.*** Puedes usar cualquier *Pergamino de conjuro*, usando Inteligencia como tu aptitud mágica para el conjuro. Si el conjuro es un truco o un conjuro de nivel 1, puedes lanzarlo de forma fiable. Si el pergamino contiene un conjuro de mayor nivel, primero debes tener éxito en una prueba de Inteligencia (Conocimiento arcano) (CD 10 más el nivel del conjuro). Si tienes éxito en la prueba, lanzas el conjuro desde el pergamino. Si fallas la prueba, el pergamino se desintegra.",
+          "tipoAccion": "pasivo",
+          "subclase": "Ladrón",
+          "formulaDados": "1d6"
+        },
+        {
+          "nivel": 17,
+          "nombre": "Reflejos de ladrón",
+          "descripcion": "Eres un experto en tender emboscadas y escapar rápidamente del peligro. Puedes jugar dos turnos durante la primera ronda de cualquier combate. Juegas tu primer turno con tu iniciativa normal y tu segundo turno con tu iniciativa menos 10.",
+          "tipoAccion": "pasivo",
+          "subclase": "Ladrón"
+        }
+      ]
+    }
+  ]
+}

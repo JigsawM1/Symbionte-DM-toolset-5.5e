@@ -6,7 +6,7 @@ import type {
   RasgoPersonaje,
   EfectoMecanicoRasgo
 } from "./index";
-import type { PlantillaRasgoClase } from "@/constantes/rasgosDND55";
+import type { PlantillaRasgoClase } from "./rasgos";
 
 /**
  * Progresión de conjuros o trucos otorgados por nivel de clase.

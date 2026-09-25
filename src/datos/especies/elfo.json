@@ -1,0 +1,334 @@
+{
+  "id": "elfo",
+  "nombre": "Elfo",
+  "descripcion": "Criaturas longevas y mágicas vinculadas al reino feérico, con sentidos sobrenaturales y linajes ancestrales.",
+  "tipoCriatura": "Humanoide",
+  "tamanoOpciones": [
+    "Mediano"
+  ],
+  "tamanoPorDefecto": "Mediano",
+  "velocidadBase": 30,
+  "visionOscuridad": 60,
+  "rasgos": [
+    {
+      "nombre": "Tipo de criatura",
+      "descripcion": "Eres una criatura del tipo Humanoide.",
+      "tipoAccion": "pasivo",
+      "categoriaMecanica": "pasivo_permanente"
+    },
+    {
+      "nombre": "Tamaño",
+      "descripcion": "Eres de tamaño Mediano (entre 5 y 6 pies de altura).",
+      "tipoAccion": "pasivo",
+      "categoriaMecanica": "pasivo_permanente"
+    },
+    {
+      "nombre": "Visión en la oscuridad",
+      "descripcion": "Tienes visión en la oscuridad hasta 60 pies.",
+      "tipoAccion": "pasivo",
+      "categoriaMecanica": "pasivo_permanente"
+    },
+    {
+      "nombre": "Linaje élfico",
+      "descripcion": "Formas parte de un linaje que te otorga capacidades sobrenaturales. Al elegir tu linaje obtienes su beneficio de nivel 1 (truco innato o beneficio pasivo). Cuando alcanzas los niveles 3 y 5 de personaje, aprendes un conjuro de nivel superior de tu linaje que siempre tienes preparado. Puedes lanzar cada uno de estos conjuros de nivel 1 o superior una vez sin gastar un espacio de conjuro y recuperas la capacidad tras finalizar un descanso largo, o bien lanzarlos gastando espacios de conjuro del nivel apropiado. La Inteligencia, la Sabiduría o el Carisma es tu aptitud mágica para los conjuros que lances con este atributo (elige la característica al seleccionar el linaje).",
+      "tipoAccion": "pasivo",
+      "categoriaMecanica": "selector_informativo",
+      "selectores": [
+        {
+          "id": "selector_aptitud_magica_elfo",
+          "tipo": "unico",
+          "etiqueta": "Aptitud Mágica del Linaje",
+          "opciones": [
+            {
+              "id": "inteligencia",
+              "nombre": "Inteligencia",
+              "descripcion": "Usas Inteligencia como aptitud mágica para los conjuros de tu linaje."
+            },
+            {
+              "id": "sabiduria",
+              "nombre": "Sabiduría",
+              "descripcion": "Usas Sabiduría como aptitud mágica para los conjuros de tu linaje."
+            },
+            {
+              "id": "carisma",
+              "nombre": "Carisma",
+              "descripcion": "Usas Carisma como aptitud mágica para los conjuros de tu linaje."
+            }
+          ],
+          "maxSelecciones": 1,
+          "valorActual": [
+            "inteligencia"
+          ],
+          "visualizacion": "normal"
+        }
+      ]
+    },
+    {
+      "nombre": "Linaje feérico",
+      "descripcion": "Tienes ventaja en las tiradas de salvación para evitar o poner fin al estado de hechizado.",
+      "tipoAccion": "pasivo",
+      "categoriaMecanica": "pasivo_permanente"
+    },
+    {
+      "nombre": "Sentidos agudos",
+      "descripcion": "Tienes competencia en la habilidad de Percepción, Perspicacia o Supervivencia.",
+      "tipoAccion": "pasivo",
+      "categoriaMecanica": "pasivo_permanente"
+    },
+    {
+      "nombre": "Trance",
+      "descripcion": "No necesitas dormir y la magia no puede dormirte. Puedes finalizar un descanso largo en 4 horas si las pasas en una meditación similar a un trance, tiempo durante el cual conservas la consciencia.",
+      "tipoAccion": "pasivo",
+      "categoriaMecanica": "pasivo_permanente"
+    }
+  ],
+  "subespecies": [
+    {
+      "id": "drow",
+      "especiePadre": "elfo",
+      "nombre": "Drow",
+      "descripcion": "Adaptados a las profundidades con visión en la oscuridad superior de 120 pies y la magia de luces danzantes, fuego feérico y oscuridad.",
+      "rasgos": [
+        {
+          "nombre": "Visión en la oscuridad superior (120 pies)",
+          "descripcion": "El alcance de tu visión en la oscuridad aumenta a 120 pies.",
+          "tipoAccion": "pasivo",
+          "categoriaMecanica": "pasivo_permanente"
+        },
+        {
+          "nombre": "Magia drow: Luces danzantes",
+          "descripcion": "Conoces el truco *luces danzantes* como truco innato de tu linaje drow.",
+          "tipoAccion": "pasivo",
+          "conjurosOtorgados": [
+            "luces_danzantes"
+          ],
+          "categoriaMecanica": "pasivo_permanente"
+        },
+        {
+          "nombre": "Magia drow: Fuego feérico",
+          "descripcion": "Siempre tienes preparado el conjuro *fuego feérico*. Puedes lanzarlo una vez sin gastar un espacio de conjuro y recuperas la capacidad tras un descanso largo. También puedes lanzarlo usando espacios de conjuro del nivel apropiado.",
+          "tipoAccion": "pasivo",
+          "nivelRequerido": 3,
+          "tieneUsosLimitados": true,
+          "usosMaximos": 1,
+          "recuperacion": "descanso_largo",
+          "conjurosOtorgados": [
+            "fuego_feerico"
+          ],
+          "categoriaMecanica": "consumible"
+        },
+        {
+          "nombre": "Magia drow: Oscuridad",
+          "descripcion": "Siempre tienes preparado el conjuro *oscuridad*. Puedes lanzarlo una vez sin gastar un espacio de conjuro y recuperas la capacidad tras un descanso largo. También puedes lanzarlo usando espacios de conjuro del nivel apropiado.",
+          "tipoAccion": "pasivo",
+          "nivelRequerido": 5,
+          "tieneUsosLimitados": true,
+          "usosMaximos": 1,
+          "recuperacion": "descanso_largo",
+          "conjurosOtorgados": [
+            "oscuridad"
+          ],
+          "categoriaMecanica": "consumible"
+        }
+      ],
+      "modificadores": {
+        "visionOscuridad": 120
+      },
+      "conjurosInnatos": [
+        {
+          "hechizoId": "luces_danzantes",
+          "nombreHechizo": "Luces danzantes",
+          "caracteristica": "elegir",
+          "esTruco": true,
+          "nivelRequerido": 1
+        },
+        {
+          "hechizoId": "fuego_feerico",
+          "nombreHechizo": "Fuego feérico",
+          "caracteristica": "elegir",
+          "esTruco": false,
+          "nivelRequerido": 3,
+          "usosGratis": 1,
+          "recuperacion": "descanso_largo"
+        },
+        {
+          "hechizoId": "oscuridad",
+          "nombreHechizo": "Oscuridad",
+          "caracteristica": "elegir",
+          "esTruco": false,
+          "nivelRequerido": 5,
+          "usosGratis": 1,
+          "recuperacion": "descanso_largo"
+        }
+      ]
+    },
+    {
+      "id": "alto_elfo",
+      "especiePadre": "elfo",
+      "nombre": "Alto elfo",
+      "descripcion": "Eruditos arcanos con gracia sobrenatural, capaces de manipular trucos de mago y dominar detectar magia y paso brumoso.",
+      "rasgos": [
+        {
+          "nombre": "Magia de alto elfo",
+          "descripcion": "Conoces un truco de tu elección de la lista de conjuros de mago (por defecto *prestidigitación*). Tras finalizar un descanso largo, puedes sustituir ese truco por otro truco diferente de la lista de conjuros de mago.",
+          "tipoAccion": "pasivo",
+          "conjurosOtorgados": [
+            "prestidigitacion"
+          ],
+          "categoriaMecanica": "selector_informativo",
+          "selectores": [
+            {
+              "id": "selector_truco_alto_elfo",
+              "tipo": "unico",
+              "etiqueta": "Truco de Mago (Sustituible tras descanso largo)",
+              "opciones": [
+                {
+                  "id": "prestidigitacion",
+                  "nombre": "Prestidigitación",
+                  "descripcion": "Efectos mágicos menores útiles para practicar magia."
+                }
+              ],
+              "maxSelecciones": 1,
+              "valorActual": [
+                "prestidigitacion"
+              ],
+              "visualizacion": "normal"
+            }
+          ]
+        },
+        {
+          "nombre": "Magia de alto elfo: Detectar magia",
+          "descripcion": "Siempre tienes preparado el conjuro *detectar magia*. Puedes lanzarlo una vez sin gastar un espacio de conjuro y recuperas la capacidad tras un descanso largo. También puedes lanzarlo usando espacios de conjuro del nivel apropiado.",
+          "tipoAccion": "pasivo",
+          "nivelRequerido": 3,
+          "tieneUsosLimitados": true,
+          "usosMaximos": 1,
+          "recuperacion": "descanso_largo",
+          "conjurosOtorgados": [
+            "detectar_magia"
+          ],
+          "categoriaMecanica": "consumible"
+        },
+        {
+          "nombre": "Magia de alto elfo: Paso brumoso",
+          "descripcion": "Siempre tienes preparado el conjuro *paso brumoso*. Puedes lanzarlo una vez sin gastar un espacio de conjuro y recuperas la capacidad tras un descanso largo. También puedes lanzarlo usando espacios de conjuro del nivel apropiado.",
+          "tipoAccion": "pasivo",
+          "nivelRequerido": 5,
+          "tieneUsosLimitados": true,
+          "usosMaximos": 1,
+          "recuperacion": "descanso_largo",
+          "conjurosOtorgados": [
+            "paso_brumoso"
+          ],
+          "categoriaMecanica": "consumible"
+        }
+      ],
+      "conjurosInnatos": [
+        {
+          "hechizoId": "prestidigitacion",
+          "nombreHechizo": "Prestidigitación",
+          "caracteristica": "elegir",
+          "esTruco": true,
+          "nivelRequerido": 1
+        },
+        {
+          "hechizoId": "detectar_magia",
+          "nombreHechizo": "Detectar magia",
+          "caracteristica": "elegir",
+          "esTruco": false,
+          "nivelRequerido": 3,
+          "usosGratis": 1,
+          "recuperacion": "descanso_largo"
+        },
+        {
+          "hechizoId": "paso_brumoso",
+          "nombreHechizo": "Paso brumoso",
+          "caracteristica": "elegir",
+          "esTruco": false,
+          "nivelRequerido": 5,
+          "usosGratis": 1,
+          "recuperacion": "descanso_largo"
+        }
+      ]
+    },
+    {
+      "id": "elfo_bosques",
+      "especiePadre": "elfo",
+      "nombre": "Elfo de los bosques",
+      "descripcion": "Ágiles habitantes de las espesuras con velocidad aumentada a 35 pies y magia druídica de saber druídico, zancada prodigiosa y pasar sin rastro.",
+      "rasgos": [
+        {
+          "nombre": "Pies veloces",
+          "descripcion": "Tu velocidad base aumenta a 35 pies.",
+          "tipoAccion": "pasivo",
+          "categoriaMecanica": "pasivo_permanente"
+        },
+        {
+          "nombre": "Magia de elfo de los bosques: Saber druídico",
+          "descripcion": "Conoces el truco *saber druídico* como truco innato de tu linaje del bosque.",
+          "tipoAccion": "pasivo",
+          "conjurosOtorgados": [
+            "saber_druidico"
+          ],
+          "categoriaMecanica": "pasivo_permanente"
+        },
+        {
+          "nombre": "Magia de elfo de los bosques: Zancada prodigiosa",
+          "descripcion": "Siempre tienes preparado el conjuro *zancada prodigiosa*. Puedes lanzarlo una vez sin gastar un espacio de conjuro y recuperas la capacidad tras un descanso largo. También puedes lanzarlo usando espacios de conjuro del nivel apropiado.",
+          "tipoAccion": "pasivo",
+          "nivelRequerido": 3,
+          "tieneUsosLimitados": true,
+          "usosMaximos": 1,
+          "recuperacion": "descanso_largo",
+          "conjurosOtorgados": [
+            "zancada_prodigiosa"
+          ],
+          "categoriaMecanica": "consumible"
+        },
+        {
+          "nombre": "Magia de elfo de los bosques: Pasar sin rastro",
+          "descripcion": "Siempre tienes preparado el conjuro *pasar sin rastro*. Puedes lanzarlo una vez sin gastar un espacio de conjuro y recuperas la capacidad tras un descanso largo. También puedes lanzarlos usando espacios de conjuro del nivel apropiado.",
+          "tipoAccion": "pasivo",
+          "nivelRequerido": 5,
+          "tieneUsosLimitados": true,
+          "usosMaximos": 1,
+          "recuperacion": "descanso_largo",
+          "conjurosOtorgados": [
+            "pasar_sin_rastro"
+          ],
+          "categoriaMecanica": "consumible"
+        }
+      ],
+      "modificadores": {
+        "velocidad": 35
+      },
+      "conjurosInnatos": [
+        {
+          "hechizoId": "saber_druidico",
+          "nombreHechizo": "Saber druídico",
+          "caracteristica": "elegir",
+          "esTruco": true,
+          "nivelRequerido": 1
+        },
+        {
+          "hechizoId": "zancada_prodigiosa",
+          "nombreHechizo": "Zancada prodigiosa",
+          "caracteristica": "elegir",
+          "esTruco": false,
+          "nivelRequerido": 3,
+          "usosGratis": 1,
+          "recuperacion": "descanso_largo"
+        },
+        {
+          "hechizoId": "pasar_sin_rastro",
+          "nombreHechizo": "Pasar sin rastro",
+          "caracteristica": "elegir",
+          "esTruco": false,
+          "nivelRequerido": 5,
+          "usosGratis": 1,
+          "recuperacion": "descanso_largo"
+        }
+      ]
+    }
+  ]
+}

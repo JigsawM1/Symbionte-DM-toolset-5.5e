@@ -1,0 +1,458 @@
+{
+  "id": "hechicero",
+  "nombre": "Hechicero",
+  "descripcion": "Un canalizador nato de la magia pura cuya hechicería brota de un linaje dracónico, toque caótico o influencia planar.",
+  "dadoGolpe": "d6",
+  "caracteristicasPrimarias": [
+    "carisma",
+    "constitucion"
+  ],
+  "salvacionesCompetentes": [
+    "constitucion",
+    "carisma"
+  ],
+  "competenciasArmaduras": [],
+  "competenciasArmas": [
+    "Armas Sencillas"
+  ],
+  "competenciasHerramientas": [],
+  "opcionesHabilidades": {
+    "cantidad": 2,
+    "opciones": [
+      "arcanos",
+      "engaño",
+      "perspicacia",
+      "intimidacion",
+      "persuasion",
+      "religion"
+    ]
+  },
+  "equipoInicial": {
+    "descripcion": "Elige la opción (A) o (B):",
+    "opcionA": "(A) Foco arcano, 2 Dagas, Paquete de Dungeoneer y 28 PO",
+    "opcionB": "(B) 70 PO en monedas para comprar equipo"
+  },
+  "configuracionMagica": {
+    "tipoLanzador": "completo",
+    "habilidadConjuro": "carisma",
+    "modeloConjuros": "preparados",
+    "nivelInicio": 1
+  },
+  "rasgos": [
+    {
+      "nivel": 1,
+      "nombre": "Lanzamiento de conjuros",
+      "descripcion": "Recurriendo a tu magia innata, puedes lanzar conjuros. Consulta el *capítulo 7* para ver las reglas sobre el lanzamiento de conjuros. La información presentada a continuación detalla cómo usar esas reglas con los conjuros de hechicero, que encontrarás más adelante en la lista de conjuros de hechicero de la descripción de la clase.\n\n***Trucos.*** Conoces cuatro trucos de tu elección escogidos de entre los de la lista de conjuros de hechicero. Se recomiendan *luz*, *prestidigitación*, *agarre electrizante* y *estallido hechicero*. Cada vez que subas un nivel de hechicero, puedes sustituir uno de tus trucos por otro truco de tu elección de la lista de conjuros de hechicero.\nCuando alcances los niveles 4 y 10 de hechicero, aprenderás otro truco de tu elección de la lista de conjuros de hechicero, como se muestra en la columna \"Trucos\" de la tabla \"Rasgos de hechicero\".\n\n***Espacios de conjuro.*** La tabla \"Rasgos de hechicero\" muestra cuántos espacios de conjuro tienes para lanzar tus conjuros de nivel 1 y superiores. Recuperas todos los espacios utilizados tras finalizar un descanso largo.\n\n***Conjuros preparados de nivel 1 y superiores.*** Preparas la lista de conjuros de nivel 1 y superiores que están disponibles para que los lances con este rasgo. Para empezar, elige dos conjuros de nivel 1 de la lista de conjuros de hechicero. Se recomiendan *manos ardientes* y *detectar magia*.\nEl número de conjuros de tu lista aumenta conforme subes de nivel de hechicero, como se muestra en la columna \"Conjuros preparados\" de la tabla \"Rasgos de hechicero\". Cuando ese número aumente, elige conjuros adicionales de la lista de conjuros de hechicero hasta que el número de conjuros de tu lista coincida con el número de la tabla. Los conjuros elegidos deben ser de un nivel para el que tengas espacios de conjuro. Por ejemplo, si eres un hechicero de nivel 3, tu lista de conjuros preparados puede incluir seis conjuros de hechicero de niveles 1 o 2 en cualquier combinación.\nSi otro rasgo de hechicero te proporciona conjuros que siempre tienes preparados, esos conjuros no cuentan para el total que puedes preparar con este rasgo, pero sí que cuentan como conjuros de hechicero para ti.\n\n***Cambiar los conjuros preparados.*** Cada vez que subas un nivel de hechicero, puedes reemplazar un conjuro de tu lista por otro conjuro de hechicero para el que tengas espacios de conjuro.\n\n***Aptitud mágica.*** El Carisma es tu aptitud mágica en lo que respecta a tus conjuros de hechicero.\n\n***Canalizador mágico.*** Puedes utilizar un *canalizador arcano* como canalizador mágico para tus conjuros de hechicero.",
+      "tipoAccion": "pasivo",
+      "tieneUsosLimitados": true,
+      "recuperacion": "descanso_largo"
+    },
+    {
+      "nivel": 1,
+      "nombre": "Hechicería innata",
+      "descripcion": "Un suceso en tu pasado dejó una marca indeleble en ti, infundiéndote una magia latente. Como acción adicional, puedes desatar esa magia durante 1 minuto, tiempo durante el cual obtienes los siguientes beneficios:\n- La CD de salvación de tus conjuros de hechicero aumenta en 1.\n- Tienes ventaja en las tiradas de ataque de los conjuros de hechicero que lances.\nPuedes usar este rasgo dos veces y recuperas todos los usos gastados tras finalizar un descanso largo.",
+      "tipoAccion": "accion_adicional",
+      "tieneUsosLimitados": true,
+      "recuperacion": "descanso_largo"
+    },
+    {
+      "nivel": 2,
+      "nombre": "Fuente de magia",
+      "descripcion": "Puedes recurrir al manantial de magia de tu interior. Este manantial se representa mediante los puntos de hechicería, que te permiten crear una variedad de efectos mágicos.\nTienes 2 puntos de hechicería y obtienes más a medida que alcanzas niveles superiores, como se muestra en la columna \"Puntos de hechicería\" de la tabla \"Rasgos de hechicero\". No puedes tener más puntos de hechicería que el número mostrado en la tabla para tu nivel. Recuperas todos los puntos de hechicería gastados tras finalizar un descanso largo.\nPuedes usar tus puntos de hechicería para alimentar las opciones a continuación, junto con otros rasgos, como Metamagia, que emplean dichos puntos.\n\n***Convertir espacios de conjuro en puntos de hechicería.*** Puedes gastar un espacio de conjuro para obtener una cantidad de puntos de hechicería igual al nivel del espacio (no requiere acción).\n\n***Crear espacios de conjuro.*** Como acción adicional, puedes transformar puntos de hechicería no gastados en un espacio de conjuro. La tabla \"Crear espacios de conjuro\" muestra el coste de crear un espacio de conjuro de un nivel determinado y detalla el nivel mínimo de hechicero que debes tener para crearlo. No puedes crear un espacio de conjuro de nivel superior a 5.\nCualquier espacio de conjuro que crees con este rasgo desaparece cuando finalizas un descanso largo.\n##### Crear espacios de conjuro\n| Nivel del espacio de conjuro | Coste en puntos de hechicería | Nivel mín. de hechicero |\n|:----------------------------:|:-----------------------------:|:-----------------------:|\n|              1               |               2               |            2            |\n|              2               |               3               |            3            |\n|              3               |               5               |            5            |\n|              4               |               6               |            7            |\n|              5               |               7               |            9            |",
+      "tipoAccion": "accion_adicional",
+      "tieneUsosLimitados": true,
+      "recuperacion": "descanso_largo",
+      "escaladoUsos": {
+        "tipo": "por_nivel",
+        "minimo": 2
+      }
+    },
+    {
+      "nivel": 2,
+      "nombre": "Metamagia",
+      "descripcion": "Dado que tu magia fluye desde tu interior, puedes alterar tus conjuros para adaptarlos a tus necesidades; ganas dos opciones de Metamagia de tu elección de \"Opciones de metamagia\", más adelante en la descripción de esta clase. Usas las opciones elegidas para modificar temporalmente los conjuros que lanzas. Para usar una opción, debes gastar la cantidad de puntos de hechicería que cuesta.\nSolo puedes utilizar una opción de Metamagia en un conjuro cuando lo lanzas, a menos que se indique lo contrario en una de esas opciones.\nCada vez que subas un nivel de hechicero, puedes sustituir una de tus opciones de Metamagia por otra que no conozcas. Obtienes dos opciones más en el nivel 10 de hechicero y otras dos en el nivel 17.",
+      "tipoAccion": "pasivo"
+    },
+    {
+      "nivel": 2,
+      "nombre": "Opciones de metamagia",
+      "descripcion": "Las siguientes opciones están disponibles para tu rasgo Metamagia. Las opciones se presentan en orden alfabético.\n\n***Conjuro acelerado.*** *Coste: 2 puntos de hechicería*\nCuando lances un conjuro que tenga un tiempo de lanzamiento de una acción, puedes gastar 2 puntos de hechicería para cambiar el tiempo de lanzamiento a una acción adicional para este lanzamiento. No puedes modificar un conjuro de esta manera si ya has lanzado un conjuro de nivel 1 o superior en el turno actual, ni puedes lanzar un conjuro de nivel 1 o superior en este turno tras modificar un conjuro de esta forma.\n\n***Conjuro ampliado.*** *Coste: 2 puntos de hechicería*\nCuando lances un conjuro que obligue a una criatura a hacer una tirada de salvación, puedes gastar 2 puntos de hechicería para imponer desventaja a un objetivo del conjuro en las salvaciones contra el conjuro.\n\n***Conjuro buscador.*** *Coste: 1 punto de hechicería*\nSi haces una tirada de ataque para un conjuro y fallas, puedes gastar 1 punto de hechicería para repetir el d20, y deberás usar el nuevo resultado .\nPuedes usar Conjuro buscador incluso si ya has utilizado una opción de Metamagia diferente durante el lanzamiento del conjuro.\n\n***Conjuro cauto.*** *Coste: 1 punto de hechicería*\nCuando lances un conjuro que obligue a otras criaturas a hacer una tirada de salvación, puedes proteger a algunas de esas criaturas de toda la fuerza del conjuro. Para hacerlo, gasta 1 punto de hechicería y elige una cantidad de esas criaturas hasta tu modificador por Carisma (mínimo una criatura). Una criatura elegida supera automáticamente su tirada de salvación contra el conjuro y no sufre ningún daño si normalmente sufriría la mitad de daño tras una salvación exitosa.\n\n***Conjuro distante.*** *Coste: 1 punto de hechicería*\nCuando lances un conjuro que tenga un alcance de al menos 1,5 m (5 pies), puedes gastar 1 punto de hechicería para duplicar el alcance del conjuro. O bien, cuando lances un conjuro que tenga un alcance de Toque, puedes gastar 1 punto de hechicería para hacer que el alcance del conjuro sea de 9 m (30 pies).\n\n***Conjuro duplicado.*** *Coste: 1 punto de hechicería*\nCuando lances un conjuro, como *hechizar persona*, que pueda lanzarse con un espacio de conjuro de nivel superior para tener como objetivo a una criatura adicional, puedes gastar 1 punto de hechicería para aumentar el nivel efectivo del conjuro en 1.\n\n***Conjuro extendido.*** *Coste: 1 punto de hechicería*\nCuando lances un conjuro que tenga una duración de 1 minuto o más, puedes gastar 1 punto de hechicería para duplicar su duración hasta una duración máxima de 24 horas.\nSi el conjuro afectado requiere concentración, tienes ventaja en cualquier tirada de salvación que hagas para mantener esa concentración.\n\n***Conjuro potenciado.*** *Coste: 1 punto de hechicería*\nCuando tires el daño de un conjuro, puedes gastar 1 punto de hechicería para volver a tirar una cantidad de dados de daño hasta tu modificador por Carisma (mínimo de uno), y deberás usar las nuevas tiradas.\nPuedes usar Conjuro potenciado incluso si ya has utilizado una opción de Metamagia diferente durante el lanzamiento del conjuro.\n\n***Conjuro sutil.*** *Coste: 1 punto de hechicería*\nCuando lances un conjuro, puedes gastar 1 punto de hechicería para lanzarlo sin componentes verbales, somáticos ni materiales, salvo aquellos componentes materiales que sean consumidos por el conjuro o que tengan un coste especificado en el mismo.\n\n***Conjuro transmutado.*** *Coste: 1 punto de hechicería*\nCuando lances un conjuro que inflija un tipo de daño de la siguiente lista, puedes gastar 1 punto de hechicería para cambiar ese tipo de daño por otro de los tipos indicados: ácido, frío, fuego, relámpago, veneno o trueno.",
+      "tipoAccion": "accion_adicional"
+    },
+    {
+      "nivel": 3,
+      "nombre": "Subclase de hechicero",
+      "descripcion": "Consigues una subclase de hechicero de tu elección. Una subclase es una especialización que te proporciona rasgos cuando alcanzas ciertos niveles de hechicero. De aquí en adelante, obtienes todos los rasgos de tu subclase que sean de tu nivel de hechicero e inferiores.",
+      "tipoAccion": "pasivo"
+    },
+    {
+      "nivel": 4,
+      "nombre": "Mejora de característica",
+      "descripcion": "Obtienes la dote Mejora de característica u otra [dote](feats.html) de tu elección para la que cumplas las condiciones. Vuelves a obtener este rasgo en los niveles 8, 12 y 16 de hechicero.",
+      "tipoAccion": "pasivo"
+    },
+    {
+      "nivel": 5,
+      "nombre": "Restauración hechicera",
+      "descripcion": "Cuando finalices un descanso corto, puedes recuperar puntos de hechicería gastados, pero no más de una cantidad igual a la mitad de tu nivel de hechicero (redondeando hacia abajo). Una vez que uses este rasgo, no podrás volver a hacerlo hasta que finalices un descanso largo.",
+      "tipoAccion": "pasivo",
+      "tieneUsosLimitados": true,
+      "recuperacion": "descanso_corto"
+    },
+    {
+      "nivel": 6,
+      "nombre": "Rasgo de subclase",
+      "descripcion": "Obtienes un rasgo de tu subclase de hechicero.",
+      "tipoAccion": "pasivo"
+    },
+    {
+      "nivel": 7,
+      "nombre": "Hechicería encarnada",
+      "descripcion": "Si no te quedan usos de Hechicería innata, puedes usarla si gastas 2 puntos de hechicería al realizar la acción adicional para activarla.\nAdemás, mientras tu rasgo Hechicería innata esté activo, puedes usar hasta dos de tus opciones de Metamagia en cada conjuro que lances.",
+      "tipoAccion": "accion_adicional"
+    },
+    {
+      "nivel": 8,
+      "nombre": "Mejora de característica",
+      "descripcion": "Obtienes la dote Mejora de característica u otra [dote](feats.html) de tu elección para la que cumplas las condiciones.",
+      "tipoAccion": "pasivo"
+    },
+    {
+      "nivel": 10,
+      "nombre": "Metamagia",
+      "descripcion": "Dado que tu magia fluye desde tu interior, puedes alterar tus conjuros para adaptarlos a tus necesidades; ganas dos opciones de Metamagia de tu elección de la sección \"Opciones de metamagia\", más adelante en la descripción de esta clase.\nSolo puedes utilizar una opción de Metamagia en un conjuro cuando lo lanzas, a menos que se indique lo contrario en una de esas opciones.\nCada vez que subas un nivel de hechicero, puedes sustituir una de tus opciones de Metamagia por otra que no conozcas.",
+      "tipoAccion": "pasivo"
+    },
+    {
+      "nivel": 12,
+      "nombre": "Mejora de característica",
+      "descripcion": "Obtienes la dote Mejora de característica u otra [dote](feats.html) de tu elección para la que cumplas las condiciones.",
+      "tipoAccion": "pasivo"
+    },
+    {
+      "nivel": 14,
+      "nombre": "Rasgo de subclase",
+      "descripcion": "Obtienes un rasgo de tu subclase de hechicero.",
+      "tipoAccion": "pasivo"
+    },
+    {
+      "nivel": 16,
+      "nombre": "Mejora de característica",
+      "descripcion": "Obtienes la dote Mejora de característica u otra [dote](feats.html) de tu elección para la que cumplas las condiciones.",
+      "tipoAccion": "pasivo"
+    },
+    {
+      "nivel": 17,
+      "nombre": "Metamagia",
+      "descripcion": "Dado que tu magia fluye desde tu interior, puedes alterar tus conjuros para adaptarlos a tus necesidades; ganas dos opciones de Metamagia de tu elección de la sección \"Opciones de metamagia\", más adelante en la descripción de esta clase.\nSolo puedes utilizar una opción de Metamagia en un conjuro cuando lo lanzas, a menos que se indique lo contrario en una de esas opciones.\nCada vez que subas un nivel de hechicero, puedes sustituir una de tus opciones de Metamagia por otra que no conozcas.",
+      "tipoAccion": "pasivo"
+    },
+    {
+      "nivel": 18,
+      "nombre": "Rasgo de subclase",
+      "descripcion": "Obtienes un rasgo de tu subclase de hechicero.",
+      "tipoAccion": "pasivo"
+    },
+    {
+      "nivel": 19,
+      "nombre": "Don épico",
+      "descripcion": "Obtienes una dote de don épico u otra [dote](feats.html) de tu elección para la que cumplas las condiciones. Se recomienda Don del viaje dimensional.",
+      "tipoAccion": "pasivo"
+    },
+    {
+      "nivel": 20,
+      "nombre": "Apoteosis arcana",
+      "descripcion": "Mientras tu rasgo Hechicería innata esté activo, puedes usar una opción de Metamagia en cada uno de tus turnos sin gastar puntos de hechicería en ella.",
+      "tipoAccion": "pasivo"
+    }
+  ],
+  "subclases": [
+    {
+      "id": "hechiceria_aberrante",
+      "clasePadre": "hechicero",
+      "nombre": "Hechicería Aberrante",
+      "descripcion": "Una influencia alienígena ha envuelto sus tentáculos alrededor de tu mente, otorgándote poder psiónico. Ahora puedes tocar otras mentes con ese poder y alterar el mundo a tu alrededor. ¿Brillará este poder desde tu interior como un faro de esperanza para los demás? ¿O serás un terror para aquellos que sientan la punzada de tu mente?\nQuizás un viento psíquico del Plano Astral llevó energía psiónica hacia ti, o estuviste expuesto a la influencia deformadora del Reino Lejano. De manera alternativa, te implantaron un renacuajo de azotamentes, pero tu transformación en uno nunca ocurrió; ahora el poder psiónico del renacuajo es tuyo. De cualquier forma en que hayas adquirido este poder, tu mente arde con él.",
+      "lema": "Empuña un poder psiónico antinatural",
+      "nivelDesbloqueo": 3,
+      "rasgos": [
+        {
+          "nivel": 3,
+          "nombre": "Conjuros psiónicos",
+          "descripcion": "Cuando alcances un nivel de hechicero especificado en la tabla \"Conjuros psiónicos\", a partir de entonces siempre tendrás preparados los conjuros indicados.\n##### Conjuros psiónicos\n| Nivel de hechicero | Conjuros preparados                                                                               |\n|:------------------:|---------------------------------------------------------------------------------------------------|\n|         3          | *brazos de Hadar*, *calmar emociones*, *detectar pensamientos*, *susurros disonantes*, *astilla mental* |\n|         5          | *hambre de Hadar*, *enviar mensaje*                                                               |\n|         7          | *tentáculos negros de Evard*, *invocar aberración*                                                |\n|         9          | *vínculo telepático de Rary*, *telequinesis*                                                      |",
+          "tipoAccion": "pasivo",
+          "subclase": "Hechicería Aberrante"
+        },
+        {
+          "nivel": 3,
+          "nombre": "Habla telepática",
+          "descripcion": "Puedes formar una conexión telepática entre tu mente y la de otra persona. Como acción adicional, elige a una criatura que puedas ver a 9 m (30 pies) o menos de ti. Tú y la criatura elegida podéis comunicaros telepáticamente mientras os encontréis a una cantidad de kilómetros (millas) de distancia igual a tu modificador por Carisma (mínimo 1,5 km / 1 milla). Para entenderse mutuamente, ambos debéis usar mentalmente un idioma que el otro conozca.\nLa conexión telepática dura una cantidad de minutos igual a tu nivel de hechicero. Termina antes de tiempo si usas esta aptitud para formar una conexión con una criatura diferente.",
+          "tipoAccion": "accion_adicional",
+          "subclase": "Hechicería Aberrante"
+        },
+        {
+          "nivel": 6,
+          "nombre": "Hechicería psiónica",
+          "descripcion": "Cuando lances cualquier conjuro de nivel 1 o superior de tu rasgo Conjuros psiónicos, puedes lanzarlo gastando un espacio de conjuro como de costumbre o gastando una cantidad de puntos de hechicería igual al nivel del conjuro. Si lanzas el conjuro usando puntos de hechicería, no requiere componentes verbales ni somáticos, y no requiere componentes materiales a menos que sean consumidos por el conjuro o tengan un coste especificado en él.",
+          "tipoAccion": "pasivo",
+          "subclase": "Hechicería Aberrante"
+        },
+        {
+          "nivel": 6,
+          "nombre": "Defensas psíquicas",
+          "descripcion": "Tienes resistencia al daño psíquico, y tienes ventaja en las tiradas de salvación para evitar o poner fin a los estados de hechizado o asustado.",
+          "tipoAccion": "pasivo",
+          "subclase": "Hechicería Aberrante"
+        },
+        {
+          "nivel": 14,
+          "nombre": "Revelación de la carne",
+          "descripcion": "Puedes desatar la verdad aberrante oculta en tu interior. Como acción adicional, puedes gastar 1 o más puntos de hechicería para alterar mágicamente tu cuerpo durante 10 minutos. Por cada punto de hechicería que gastes, obtienes uno de los siguientes beneficios de tu elección, cuyos efectos duran hasta que termine la alteración.\n\n***Adaptación acuática.*** Obtienes una velocidad nadando igual al doble de tu velocidad y puedes respirar bajo el agua. Te crecen branquias en el cuello o tras las orejas, y tus dedos se vuelven palmeados o te crecen cilios ondulantes.\n\n***Vuelo reluciente.*** Obtienes una velocidad volando igual a tu velocidad y puedes flotar. Mientras vuelas, tu piel brilla con mucosidad o una luz de otro mundo.\n\n***Ver lo invisible.*** Puedes ver a cualquier criatura invisible a 18 m (60 pies) o menos de ti que no esté tras cobertura completa. Tus ojos también se vuelven negros o se convierten en tentáculos sensoriales serpenteantes.\n\n***Movimiento vermiforme.*** Tu cuerpo, junto con cualquier equipo que lleves puesto o transportes, se vuelve viscoso y maleable. Puedes moverte a través de cualquier espacio tan estrecho como 2,5 cm (1 pulgada), y puedes gastar 1,5 m (5 pies) de movimiento para escapar de ataduras no mágicas o del estado de agarrado.",
+          "tipoAccion": "accion_adicional",
+          "subclase": "Hechicería Aberrante"
+        },
+        {
+          "nivel": 18,
+          "nombre": "Implosión deformadora",
+          "descripcion": "Puedes desatar una anomalía que deforma el espacio. Como acción de magia, te teletransportas a un espacio sin ocupar que puedas ver a 36 m (120 pies) o menos de ti. Inmediatamente después de que desaparezcas, cada criatura a 9 m (30 pies) o menos del espacio que dejaste debe hacer una tirada de salvación de Fuerza contra tu CD de salvación de conjuros. Si falla la tirada, la criatura sufre 3d10 de daño de fuerza y es arrastrada en línea recta hacia el espacio que dejaste, terminando en un espacio sin ocupar lo más cerca posible de tu posición anterior. Si la supera, sufrirá solo la mitad de daño.\nUna vez que uses este rasgo, no podrás volver a hacerlo hasta que finalices un descanso largo, a menos que gastes 5 puntos de hechicería (no requiere acción) para restaurar su uso.",
+          "tipoAccion": "accion",
+          "subclase": "Hechicería Aberrante",
+          "tieneUsosLimitados": true,
+          "recuperacion": "descanso_largo",
+          "formulaDados": "3d10"
+        }
+      ],
+      "progresionConjuros": [
+        {
+          "nivelClase": 3,
+          "conjuros": [
+            "Brazos de Hadar",
+            "Susurros disonantes",
+            "Calmar emociones",
+            "Detectar pensamientos"
+          ],
+          "trucos": [
+            "Astilla mental"
+          ]
+        },
+        {
+          "nivelClase": 5,
+          "conjuros": [
+            "Hambre de Hadar",
+            "Envío"
+          ]
+        },
+        {
+          "nivelClase": 7,
+          "conjuros": [
+            "Tentáculos negros de Evard",
+            "Transformar"
+          ]
+        },
+        {
+          "nivelClase": 9,
+          "conjuros": [
+            "Contacto extraplanar",
+            "Enlace telepático de Rary"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "hechiceria_del_mecanismo_de_relojeria",
+      "clasePadre": "hechicero",
+      "nombre": "Hechicería del Mecanismo de Relojería",
+      "descripcion": "La fuerza cósmica del orden te ha impregnado de magia. Ese poder surge de Mechanus o de un reino similar: un plano de existencia moldeado enteramente por la eficiencia del mecanismo de relojería. Tú o alguien de tu linaje podríais haberos visto envueltos en las maquinaciones de los modrons, los seres ordenados que habitan Mechanus. Quizás tu antepasado incluso participó en la Gran Marcha de los Modrons. Sea cual sea su origen en tu interior, el poder del orden puede parecer extraño a los demás, pero para ti, es parte de un sistema vasto y glorioso.",
+      "lema": "Canaliza las fuerzas cósmicas del orden",
+      "nivelDesbloqueo": 3,
+      "rasgos": [
+        {
+          "nivel": 3,
+          "nombre": "Conjuros de relojería",
+          "descripcion": "Cuando alcances un nivel de hechicero especificado en la tabla \"Conjuros de relojería\", a partir de entonces siempre tendrás preparados los conjuros indicados.\n##### Conjuros de relojería\n| Nivel de hechicero | Conjuros preparados                                                    |\n|:------------------:|------------------------------------------------------------------------|\n|         3          | *auxilio*, *alarma*, *restablecimiento menor*, *protección contra el mal y el bien* |\n|         5          | *disipar magia*, *protección contra energía*                          |\n|         7          | *libertad de movimiento*, *invocar constructo*                         |\n|         9          | *restablecimiento mayor*, *muro de fuerza*                             |\nAdemás, consulta la tabla \"Manifestaciones del orden\" y elige o determina al azar una forma en que se manifiesta tu conexión con el orden mientras lanzas cualquiera de tus conjuros de hechicero.\n##### Manifestaciones del orden\n| 1d6 | Manifestación                                                                                        |\n|:---:|------------------------------------------------------------------------------------------------------|\n|  1  | Ruedas dentadas espectrales flotan detrás de ti.                                                              |\n|  2  | Las manecillas de un reloj giran en tus ojos.                                                                 |\n|  3  | Tu piel brilla con un brillo cobrizo.                                                                         |\n|  4  | Ecuaciones flotantes y objetos geométricos se superponen a tu cuerpo.                                         |\n|  5  | Tu canalizador mágico adopta temporalmente la forma de un mecanismo de relojería diminuto.                    |\n|  6  | El tictac de engranajes o el tañido de un reloj pueden ser escuchados por ti y los afectados por tu magia.     |",
+          "tipoAccion": "pasivo",
+          "subclase": "Hechicería del Mecanismo de Relojería",
+          "formulaDados": "1d6"
+        },
+        {
+          "nivel": 3,
+          "nombre": "Restaurar equilibrio",
+          "descripcion": "Tu conexión con el plano del orden absoluto te permite igualar momentos caóticos. Cuando una criatura que puedas ver a 18 m (60 pies) o menos de ti esté a punto de hacer una prueba de d20 con ventaja o desventaja, puedes llevar a cabo una reacción para evitar que la tirada se vea afectada por la ventaja o la desventaja.\nPuedes usar este rasgo una cantidad de veces igual a tu modificador por Carisma (mínimo una vez), y recuperas todos los usos gastados tras finalizar un descanso largo.",
+          "tipoAccion": "pasivo",
+          "subclase": "Hechicería del Mecanismo de Relojería",
+          "tieneUsosLimitados": true,
+          "recuperacion": "descanso_largo"
+        },
+        {
+          "nivel": 6,
+          "nombre": "Bastión de la ley",
+          "descripcion": "Puedes recurrir a la gran ecuación de la existencia para imbuir a una criatura con un escudo resplandeciente de orden. Como acción de magia, puedes gastar de 1 a 5 puntos de hechicería para crear una salvaguarda mágica alrededor de ti o de otra criatura que puedas ver a 9 m (30 pies) o menos de ti. La salvaguarda está representada por una cantidad de d8 igual a la cantidad de puntos de hechicería gastados para crearla. Cuando la criatura protegida sufra daño, puede gastar una cantidad de esos dados, tirarlos y reducir el daño sufrido en el total obtenido en esos dados.\nLa salvaguarda dura hasta que finalices un descanso largo o hasta que vuelvas a usar este rasgo.",
+          "tipoAccion": "accion",
+          "subclase": "Hechicería del Mecanismo de Relojería",
+          "tieneUsosLimitados": true,
+          "recuperacion": "descanso_largo"
+        },
+        {
+          "nivel": 14,
+          "nombre": "Trance del orden",
+          "descripcion": "Ganas la capacidad de alinear tu consciencia con los cálculos interminables de Mechanus. Como acción adicional, puedes entrar en este estado durante 1 minuto. Mientras dure, las tiradas de ataque contra ti no pueden beneficiarse de ventaja, y siempre que hagas una prueba de d20, puedes tratar una tirada de 9 o inferior en el d20 como un 10.\nUna vez que uses este rasgo, no podrás volver a hacerlo hasta que finalices un descanso largo, a menos que gastes 5 puntos de hechicería (no requiere acción) para restaurar su uso.",
+          "tipoAccion": "accion_adicional",
+          "subclase": "Hechicería del Mecanismo de Relojería",
+          "tieneUsosLimitados": true,
+          "recuperacion": "descanso_largo"
+        },
+        {
+          "nivel": 18,
+          "nombre": "Cabalgata de relojería",
+          "descripcion": "Invocas momentáneamente espíritus del orden para purgar el desorden a tu alrededor. Como acción de magia, invocas a los espíritus en un cubo de 9 m (30 pies) que se origina en ti. Los espíritus parecen modrons u otros constructos de tu elección. Los espíritus son intangibles e invulnerables, y generan los efectos a continuación dentro del cubo antes de desaparecer. Una vez que uses esta acción, no podrás volver a hacerlo hasta que finalices un descanso largo, a menos que gastes 7 puntos de hechicería (no requiere acción) para restaurar su uso.\n\n***Sanar.*** Los espíritus restauran hasta 100 puntos de golpe, divididos como elijas entre cualquier cantidad de criaturas de tu elección en el cubo.\n\n***Reparar.*** Cualquier objeto dañado que se encuentre enteramente dentro del cubo se repara instantáneamente.\n\n***Disipar.*** Todo conjuro de nivel 6 o inferior finaliza en las criaturas y objetos de tu elección en el cubo.",
+          "tipoAccion": "accion",
+          "subclase": "Hechicería del Mecanismo de Relojería",
+          "tieneUsosLimitados": true,
+          "recuperacion": "descanso_largo"
+        }
+      ],
+      "progresionConjuros": [
+        {
+          "nivelClase": 3,
+          "conjuros": [
+            "Alarma",
+            "Armadura de Agathys",
+            "Auxilio",
+            "Restablecimiento menor"
+          ]
+        },
+        {
+          "nivelClase": 5,
+          "conjuros": [
+            "Disipar magia",
+            "Glifo de protección"
+          ]
+        },
+        {
+          "nivelClase": 7,
+          "conjuros": [
+            "Libertad de movimiento",
+            "Invulnerabilidad de Otiluke"
+          ]
+        },
+        {
+          "nivelClase": 9,
+          "conjuros": [
+            "Restablecimiento mayor",
+            "Muro de fuerza"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "hechiceria_draconica",
+      "clasePadre": "hechicero",
+      "nombre": "Hechicería Dracónica",
+      "descripcion": "Tu magia innata proviene del don de un dragón. Quizás un dragón anciano que encaraba la muerte legó parte de su poder mágico a ti o a tu antepasado. Podrías haber absorbido magia de un lugar imbuido del poder de los dragones. O quizás manipulaste un tesoro del tesoro acumulado de un dragón impregnado de poder dracónico. O podrías descender directamente de un dragón.",
+      "lema": "Respira la magia de los dragones",
+      "nivelDesbloqueo": 3,
+      "rasgos": [
+        {
+          "nivel": 3,
+          "nombre": "Resiliencia dracónica",
+          "descripcion": "La magia de tu cuerpo manifiesta rasgos físicos de tu don dracónico. Tus puntos de golpe máximos aumentan en 3, y aumentan en 1 cada vez que obtienes otro nivel de hechicero.\nPartes de tu cuerpo también se cubren de escamas similares a las de un dragón. Mientras no lleves armadura, tu clase de armadura base es igual a 10 más tus modificadores por Destreza y Carisma.",
+          "tipoAccion": "pasivo",
+          "subclase": "Hechicería Dracónica"
+        },
+        {
+          "nivel": 3,
+          "nombre": "Conjuros dracónicos",
+          "descripcion": "Cuando alcances un nivel de hechicero especificado en la tabla \"Conjuros dracónicos\", a partir de entonces siempre tendrás preparados los conjuros indicados.\n##### Conjuros dracónicos\n| Nivel de hechicero | Conjuros preparados                                              |\n|:------------------:|------------------------------------------------------------------|\n|         3          | *alterar el propio aspecto*, *orbe cromático*, *orden imperiosa*, *aliento de dragón* |\n|         5          | *miedo*, *volar*                                                 |\n|         7          | *ojo arcano*, *hechizar monstruo*                                |\n|         9          | *sabiduría popular*, *invocar dragón*                            |",
+          "tipoAccion": "pasivo",
+          "subclase": "Hechicería Dracónica"
+        },
+        {
+          "nivel": 6,
+          "nombre": "Afinidad elemental",
+          "descripcion": "Tu magia dracónica posee afinidad con un tipo de daño asociado con los dragones. Elige uno de esos tipos: ácido, frío, fuego, relámpago o veneno.\nTienes resistencia a ese tipo de daño y, cuando lances un conjuro que inflija daño de ese tipo, puedes sumar tu modificador por Carisma a una tirada de daño de ese conjuro.",
+          "tipoAccion": "pasivo",
+          "subclase": "Hechicería Dracónica"
+        },
+        {
+          "nivel": 14,
+          "nombre": "Alas de dragón",
+          "descripcion": "Como acción adicional, puedes hacer que alas dracónicas broten de tu espalda. Las alas duran 1 hora o hasta que las disipes (no requiere acción). Mientras duren, tienes una velocidad volando de 18 m (60 pies).\nUna vez que uses este rasgo, no podrás volver a hacerlo hasta que finalices un descanso largo, a menos que gastes 3 puntos de hechicería (no requiere acción) para restaurar su uso.",
+          "tipoAccion": "accion_adicional",
+          "subclase": "Hechicería Dracónica",
+          "tieneUsosLimitados": true,
+          "recuperacion": "descanso_largo"
+        },
+        {
+          "nivel": 18,
+          "nombre": "Compañero dragón",
+          "descripcion": "Puedes lanzar *invocar dragón* sin componentes materiales. También puedes lanzarlo una vez sin gastar un espacio de conjuro, y recuperas la capacidad de lanzarlo de esta forma cuando finalices un descanso largo.\nSiempre que comiences a lanzar el conjuro, puedes modificarlo para que no requiera concentración. Si lo haces, la duración del conjuro pasa a ser de 1 minuto para ese lanzamiento.",
+          "tipoAccion": "pasivo",
+          "subclase": "Hechicería Dracónica",
+          "tieneUsosLimitados": true,
+          "recuperacion": "descanso_largo"
+        }
+      ],
+      "progresionConjuros": [
+        {
+          "nivelClase": 3,
+          "conjuros": [
+            "Manos ardientes",
+            "Rayo de hechicería",
+            "Escudo de fuego",
+            "Muro de fuego"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "hechiceria_de_magia_salvaje",
+      "clasePadre": "hechicero",
+      "nombre": "Hechicería de Magia Salvaje",
+      "descripcion": "Tu magia innata surge de las fuerzas del caos que subyacen al orden de la creación. Tú o un antepasado podríais haber soportado la exposición a la magia en estado puro, quizás a través de un portal planar que conducía al Limbo o a los Planos Elementales. Quizás fuiste bendecido por un ser feérico o marcado por un demonio. O tu magia podría ser un golpe del azar sin causa aparente. Sea cual sea su fuente, esta magia se agita en tu interior, esperando cualquier vía de escape.",
+      "lema": "Desata la magia caótica",
+      "nivelDesbloqueo": 3,
+      "rasgos": [
+        {
+          "nivel": 3,
+          "nombre": "Oleada de magia salvaje",
+          "descripcion": "El lanzamiento de tus conjuros puede desatar oleadas de magia indómita. Una vez por turno, puedes tirar 1d20 inmediatamente después de lanzar un conjuro de hechicero con un espacio de conjuro. Si sacas un 20, tira en la tabla \"Oleada de magia salvaje\" para crear un efecto mágico.\nSi el efecto mágico es un conjuro, es demasiado salvaje para verse afectado por tu Metamagia.\n##### Oleada de magia salvaje\n| 1d100 | Efecto |\n|:-----:|--------|\n| 01–04 | Tira en esta tabla al principio de cada uno de tus turnos durante el próximo minuto, ignorando este resultado en tiradas posteriores. |\n| 05–08 | Una criatura que sea amistosa hacia ti aparece en un espacio sin ocupar al azar a 18 m (60 pies) o menos de ti. La criatura está bajo el control del DM y desaparece 1 minuto después. Tira 1d4 para determinar la criatura: con un 1, aparece un modron duodron; con un 2, aparece un flumph; con un 3, aparece un modron monodron; con un 4, aparece un unicornio. Consulta el *Manual de monstruos* para ver el perfil de la criatura. |\n| 09–12 | Durante el próximo minuto, recuperas 5 puntos de golpe al principio de cada uno de tus turnos. |\n| 13–16 | Las criaturas tienen desventaja en las tiradas de salvación contra el siguiente conjuro que lances en el próximo minuto que requiera una tirada de salvación. |\n| 17–20 | Quedas sujeto a un efecto que dura 1 minuto a menos que su descripción indique lo contrario. Tira 1d8 para determinar el efecto: con un 1, te rodea una música etérea y tenue que solo tú y las criaturas a 1,5 m (5 pies) o menos de ti podéis oír; con un 2, tu tamaño aumenta en una categoría de tamaño; con un 3, te crece una larga barba hecha de plumas que permanece hasta que estornudes, momento en el cual las plumas explotan de tu rostro y desaparecen; con un 4, debes gritar cuando hables; con un 5, mariposas ilusorias revolotean en el aire a 3 m (10 pies) o menos de ti; con un 6, un ojo aparece en tu frente, otorgándote ventaja en las pruebas de Sabiduría (Percepción); con un 7, burbujas rosadas flotan fuera de tu boca cada vez que hablas; con un 8, tu piel se vuelve de un tono azul vibrante durante 24 horas o hasta que el efecto sea terminado por un conjuro de *eliminar maldición*. |\n| 21–24 | Durante el próximo minuto, todos tus conjuros con un tiempo de lanzamiento de una acción tienen un tiempo de lanzamiento de una acción adicional. |\n| 25–28 | Eres transportado al Plano Astral hasta el final de tu siguiente turno. Luego regresas al espacio que ocupabas anteriormente o al espacio sin ocupar más cercano si ese espacio está ocupado. |\n| 29–32 | La próxima vez que lances un conjuro que inflija daño dentro del próximo minuto, no tires los dados de daño del conjuro. En su lugar, usa el número más alto posible para cada dado de daño. |\n| 33–36 | Tienes resistencia a todo el daño durante el próximo minuto. |\n| 37–40 | Te conviertes en una planta en maceta hasta el comienzo de tu siguiente turno. Mientras eres una planta, tienes el estado de incapacitado y tienes vulnerabilidad a todo el daño. Si caes a 0 puntos de golpe, tu maceta se rompe y reviertes a tu forma habitual. |\n| 41–44 | Durante el próximo minuto, puedes teletransportarte hasta 6 m (20 pies) como acción adicional en cada uno de tus turnos. |\n| 45–48 | Tú y hasta tres criaturas de tu elección a 9 m (30 pies) o menos de ti tenéis el estado de invisible durante 1 minuto. Esta invisibilidad termina en una criatura inmediatamente después de que realice una tirada de ataque, inflija daño o lance un conjuro. |\n| 49–52 | Un escudo espectral flota cerca de ti durante el próximo minuto, otorgándote un bonificador de +2 a la CA e inmunidad a *proyectil mágico*. |\n| 53–56 | Puedes llevar a cabo una acción adicional en este turno. |\n| 57–60 | Lanzas un conjuro al azar. Si el conjuro normalmente requiere concentración, en este caso no la requiere; el conjuro dura toda su duración. Tira 1d10 para determinar el conjuro: con un 1, *confusión*; con un 2, *bola de fuego*; con un 3, *nube de oscurecimiento*; con un 4, *volar* (lanzado sobre una criatura al azar a 18 m / 60 pies o menos de ti); con un 5, *grasa*; con un 6, *levitar* (lanzado sobre ti mismo); con un 7, *proyectil mágico* (lanzado como conjuro de nivel 5); con un 8, *reflejo exacto*; con un 9, *polimorfar* (lanzado sobre ti mismo), y si fallas la tirada de salvación, te conviertes en una cabra (ver apéndice B); con un 10, *ver invisibilidad*. |\n| 61–64 | Durante el próximo minuto, cualquier objeto no mágico e inflamable que toques y que no esté siendo llevado puesto ni transportado por otra criatura estalla en llamas, sufre 1d4 de daño de fuego y arde. |\n| 65–68 | Si mueres dentro de la próxima hora, revives inmediatamente como por el conjuro *reencarnar*. |\n| 69–72 | Tienes el estado de asustado hasta el final de tu siguiente turno. El DM determina la fuente de tu miedo. |\n| 73–76 | Te teletransportas hasta 18 m (60 pies) a un espacio sin ocupar que puedas ver. |\n| 77–80 | Una criatura al azar a 18 m (60 pies) o menos de ti tiene el estado de envenenado durante 1d4 horas. |\n| 81–84 | Emites luz brillante en un radio de 9 m (30 pies) durante el próximo minuto. Cualquier criatura que termine su turno a 1,5 m (5 pies) o menos de ti tiene el estado de cegado hasta el final de su siguiente turno. |\n| 85–88 | Hasta tres criaturas de tu elección que puedas ver a 9 m (30 pies) o menos de ti sufren 1d10 de daño necrótico. Recuperas una cantidad de puntos de golpe igual a la suma del daño necrótico infligido. |\n| 89–92 | Hasta tres criaturas de tu elección que puedas ver a 9 m (30 pies) o menos de ti sufren 4d10 de daño de relámpago. |\n| 93–96 | Tú y todas las criaturas a 9 m (30 pies) o menos de ti tenéis vulnerabilidad al daño perforante durante el próximo minuto. |\n| 97–00 | Tira 1d6. Con un 1, recuperas 2d10 puntos de golpe; con un 2, un aliado de tu elección a 90 m (300 pies) o menos de ti recupera 2d10 puntos de golpe; con un 3, recuperas tu espacio de conjuro gastado de nivel más bajo; con un 4, un aliado de tu elección a 90 m (300 pies) o menos de ti recupera su espacio de conjuro gastado de nivel más bajo; con un 5, recuperas todos tus puntos de hechicería gastados; con un 6, todos los efectos de la fila 17–20 te afectan simultáneamente. |",
+          "tipoAccion": "accion_adicional",
+          "subclase": "Hechicería de Magia Salvaje",
+          "formulaDados": "1d20"
+        },
+        {
+          "nivel": 3,
+          "nombre": "Mareas de caos",
+          "descripcion": "Puedes manipular el caos mismo para otorgarte ventaja en una prueba de d20 antes de tirar el d20. Una vez que lo hagas, debes lanzar un conjuro de hechicero con un espacio de conjuro o finalizar un descanso largo antes de poder volver a usar este rasgo.\nSi lanzas un conjuro de hechicero con un espacio de conjuro antes de finalizar un descanso largo, tiras automáticamente en la tabla \"Oleada de magia salvaje\".",
+          "tipoAccion": "pasivo",
+          "subclase": "Hechicería de Magia Salvaje",
+          "tieneUsosLimitados": true,
+          "recuperacion": "descanso_largo"
+        },
+        {
+          "nivel": 6,
+          "nombre": "Torcer la suerte",
+          "descripcion": "Tienes la capacidad de alterar el destino usando tu magia salvaje. Inmediatamente después de que otra criatura que puedas ver tire el d20 para una prueba de d20, puedes llevar a cabo una reacción y gastar 1 punto de hechicería para tirar 1d4 y aplicar el número obtenido como bonificador o penalizador (a tu elección) a la tirada del d20.",
+          "tipoAccion": "pasivo",
+          "subclase": "Hechicería de Magia Salvaje",
+          "formulaDados": "1d4"
+        },
+        {
+          "nivel": 14,
+          "nombre": "Caos controlado",
+          "descripcion": "Obtienes una pizca de control sobre las oleadas de tu magia salvaje. Siempre que tires en la tabla \"Oleada de magia salvaje\", puedes tirar dos veces y usar cualquiera de los dos resultados.",
+          "tipoAccion": "pasivo",
+          "subclase": "Hechicería de Magia Salvaje"
+        },
+        {
+          "nivel": 18,
+          "nombre": "Oleada domada",
+          "descripcion": "Inmediatamente después de lanzar un conjuro de hechicero con un espacio de conjuro, puedes crear un efecto de tu elección de la tabla \"Oleada de magia salvaje\" en lugar de tirar en dicha tabla. Puedes elegir cualquier efecto de la tabla excepto el de la última fila, y si el efecto elegido requiere una tirada, debes realizarla.\nUna vez que uses este rasgo, no podrás volver a hacerlo hasta que finalices un descanso largo.",
+          "tipoAccion": "pasivo",
+          "subclase": "Hechicería de Magia Salvaje",
+          "tieneUsosLimitados": true,
+          "recuperacion": "descanso_largo"
+        }
+      ]
+    }
+  ]
+}

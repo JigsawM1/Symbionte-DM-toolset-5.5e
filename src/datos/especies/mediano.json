@@ -1,0 +1,37 @@
+{
+  "id": "mediano",
+  "nombre": "Mediano",
+  "descripcion": "Amables, ágiles y afortunados supervivientes capaces de deslizarse entre el peligro.",
+  "tipoCriatura": "Humanoide",
+  "tamanoOpciones": [
+    "Pequeño"
+  ],
+  "tamanoPorDefecto": "Pequeño",
+  "velocidadBase": 30,
+  "visionOscuridad": 0,
+  "rasgos": [
+    {
+      "nombre": "Valiente",
+      "descripcion": "Tienes ventaja en las tiradas de salvación que hagas para evitar o poner fin al estado de asustado.",
+      "tipoAccion": "pasivo",
+      "categoriaMecanica": "pasivo_permanente"
+    },
+    {
+      "nombre": "Agilidad de mediano",
+      "descripcion": "Puedes moverte a través del espacio ocupado por cualquier criatura de tamaño superior al tuyo, pero no puedes detenerte en el mismo espacio.",
+      "tipoAccion": "pasivo",
+      "categoriaMecanica": "pasivo_permanente"
+    },
+    {
+      "nombre": "Fortuna",
+      "descripcion": "Cuando saques un 1 en una prueba con d20, podrás repetir la tirada y deberás utilizar el nuevo resultado.",
+      "tipoAccion": "reaccion"
+    },
+    {
+      "nombre": "Sigiloso por naturaleza",
+      "descripcion": "Puedes llevar a cabo la acción de esconderte incluso tras una criatura cuyo tamaño sea, al menos, una categoría superior al tuyo.",
+      "tipoAccion": "pasivo",
+      "categoriaMecanica": "pasivo_permanente"
+    }
+  ]
+}

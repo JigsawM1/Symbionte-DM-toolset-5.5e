@@ -1,0 +1,48 @@
+{
+  "id": "orco",
+  "nombre": "Orco",
+  "descripcion": "Poderosos combatientes con resistencia inquebrantable e impulsos de adrenalina frente a la batalla.",
+  "tipoCriatura": "Humanoide",
+  "tamanoOpciones": [
+    "Mediano"
+  ],
+  "tamanoPorDefecto": "Mediano",
+  "velocidadBase": 30,
+  "visionOscuridad": 120,
+  "rasgos": [
+    {
+      "nombre": "Descarga de adrenalina",
+      "descripcion": "Puedes llevar a cabo la acción de correr como acción adicional. Cuando lo hagas, obtendrás una cantidad de puntos de golpe temporales igual a tu bonificador por competencia.\n\nPuedes usar este atributo una cantidad de veces igual a tu bonificador por competencia y recuperas todos los usos tras finalizar un descanso corto o largo.",
+      "tipoAccion": "accion_adicional",
+      "tieneUsosLimitados": true,
+      "usosMaximos": 2,
+      "recuperacion": "descanso_corto",
+      "categoriaMecanica": "consumible",
+      "formulaEscalado": "bono_competencia",
+      "efectos": [
+        {
+          "tipo": "hp_temporal",
+          "objetivo": "propio",
+          "valor": "bono_competencia",
+          "descripcion": "Otorga puntos de golpe temporales iguales al bono de competencia",
+          "activo": true
+        }
+      ]
+    },
+    {
+      "nombre": "Visión en la oscuridad",
+      "descripcion": "Tienes visión en la oscuridad hasta 120 pies.",
+      "tipoAccion": "pasivo",
+      "categoriaMecanica": "pasivo_permanente"
+    },
+    {
+      "nombre": "Aguante incansable",
+      "descripcion": "Cuando tus puntos de golpe se reducen a 0 pero no mueres inmediatamente, puedes recuperar 1 punto de golpe. Cuando uses este atributo, no podrás volver a hacerlo hasta que finalices un descanso largo.",
+      "tipoAccion": "pasivo",
+      "tieneUsosLimitados": true,
+      "usosMaximos": 1,
+      "recuperacion": "descanso_largo",
+      "categoriaMecanica": "consumible"
+    }
+  ]
+}

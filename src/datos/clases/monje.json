@@ -1,0 +1,421 @@
+{
+  "id": "monje",
+  "nombre": "Monje",
+  "descripcion": "Un artista marcial disciplinado que canaliza la energía espiritual y el poder corporal para realizar proezas de velocidad, defensa y combate sin armas.",
+  "dadoGolpe": "d8",
+  "caracteristicasPrimarias": [
+    "destreza",
+    "sabiduria",
+    "constitucion"
+  ],
+  "salvacionesCompetentes": [
+    "fuerza",
+    "destreza"
+  ],
+  "competenciasArmaduras": [],
+  "competenciasArmas": [
+    "Armas Sencillas",
+    "Armas Marciales con la propiedad Ligera"
+  ],
+  "competenciasHerramientas": [
+    "1 Herramienta de artesano o Instrumento musical"
+  ],
+  "opcionesHabilidades": {
+    "cantidad": 2,
+    "opciones": [
+      "acrobacias",
+      "atletismo",
+      "historia",
+      "perspicacia",
+      "religion",
+      "sigilo"
+    ]
+  },
+  "equipoInicial": {
+    "descripcion": "Elige la opción (A) o (B):",
+    "opcionA": "(A) Lanza, 5 Dagas, Herramientas de Artesano o Instrumento, Paquete de Explorador y 11 PO",
+    "opcionB": "(B) 65 PO en monedas para comprar equipo"
+  },
+  "rasgos": [
+    {
+      "nivel": 1,
+      "nombre": "Artes marciales",
+      "descripcion": "La práctica de las artes marciales te ha otorgado un dominio de los estilos de combate que emplean ataques sin armas y armas de monje, que son las siguientes:\n- Armas cuerpo a cuerpo sencillas\n- Armas cuerpo a cuerpo marciales que tengan la propiedad \"ligera\"\nObtienes los siguientes beneficios mientras no lleves armadura ni portes un *escudo* y estés desarmado o empuñes únicamente armas de monje:\n\n***Ataque sin armas adicional.*** Puedes hacer un ataque sin armas como acción adicional.\n\n***Dado de Artes marciales.*** Puedes tirar 1d6 en lugar del daño normal de tus ataques sin armas o tus armas de monje. Este dado cambia conforme subes de nivel de monje, como se muestra en la columna \"Artes marciales\" de la tabla \"Rasgos de monje\".\n\n***Ataques diestros.*** Puedes usar tu modificador por Destreza en lugar de tu modificador por Fuerza para las tiradas de ataque y de daño de tus ataques sin armas y tus armas de monje. Además, cuando uses las opciones de agarre o empujón de tu ataque sin armas, puedes usar tu modificador por Destreza en lugar de tu modificador por Fuerza para determinar la CD de salvación.",
+      "tipoAccion": "accion_adicional",
+      "formulaDados": "1d6"
+    },
+    {
+      "nivel": 1,
+      "nombre": "Defensa sin armadura",
+      "descripcion": "Mientras no lleves armadura ni portes un *escudo*, tu clase de armadura base será igual a 10 más tus modificadores por Destreza y Sabiduría.",
+      "tipoAccion": "pasivo"
+    },
+    {
+      "nivel": 2,
+      "nombre": "Concentración de monje",
+      "descripcion": "Tu concentración y tu entrenamiento marcial te permiten utilizar una reserva interna de energía extraordinaria. Esta energía se representa mediante los puntos de concentración. Tu nivel de monje determina cuántos de estos puntos posees, como se muestra en la columna \"Puntos de concentración\" de la tabla \"Rasgos de monje\".\nPuedes gastar estos puntos para mejorar o alimentar determinados rasgos de monje. Empiezas con tres de estos rasgos: Ráfaga de golpes, Defensa paciente y Paso del viento, que se detallan a continuación.\nCuando gastes un punto de concentración, no estará disponible hasta que finalices un descanso corto o largo, tras el cual recuperarás todos los puntos gastados.\nAlgunos rasgos que usan puntos de concentración requieren que tu objetivo haga una tirada de salvación. La CD de salvación es igual a 8 más tu modificador por Sabiduría y tu bonificador por competencia.\n\n***Ráfaga de golpes.*** Puedes gastar 1 punto de concentración para hacer dos ataques sin armas como acción adicional.\n\n***Defensa paciente.*** Puedes llevar a cabo la acción de destrabarse como acción adicional. De manera alternativa, puedes gastar 1 punto de concentración para llevar a cabo tanto la acción de destrabarse como la de esquivar como acción adicional.\n\n***Paso del viento.*** Puedes llevar a cabo la acción de correr como acción adicional. De manera alternativa, puedes gastar 1 punto de concentración para llevar a cabo tanto la acción de destrabarse como la de correr como acción adicional, y tu distancia de salto se duplicará durante el turno.",
+      "tipoAccion": "accion_adicional",
+      "tieneUsosLimitados": true,
+      "recuperacion": "descanso_corto",
+      "escaladoUsos": {
+        "tipo": "por_nivel",
+        "minimo": 2
+      }
+    },
+    {
+      "nivel": 2,
+      "nombre": "Movimiento sin armadura",
+      "descripcion": "Tu velocidad aumenta en 3 m (10 pies) si no llevas armadura ni portas un *escudo*. Esta bonificación aumenta cuando alcanzas ciertos niveles de monje, como se muestra en la tabla \"Rasgos de monje\".",
+      "tipoAccion": "pasivo"
+    },
+    {
+      "nivel": 2,
+      "nombre": "Metabolismo asombroso",
+      "descripcion": "Cuando tires iniciativa, puedes recuperar todos los puntos de concentración gastados. Cuando lo hagas, tira tu dado de Artes marciales y recupera una cantidad de puntos de golpe igual a tu nivel de monje más el resultado obtenido.\nCuando uses este rasgo, no podrás volver a hacerlo hasta que finalices un descanso largo.",
+      "tipoAccion": "pasivo",
+      "tieneUsosLimitados": true,
+      "recuperacion": "descanso_largo"
+    },
+    {
+      "nivel": 3,
+      "nombre": "Desviar ataques",
+      "descripcion": "Cuando una tirada de ataque te acierte y su daño incluya los tipos contundente, cortante o perforante, puedes usar una reacción para reducir el daño total que sufras del ataque. Se reducirá en 1d10 más tu modificador por Destreza y nivel de monje.\nSi reduces el daño a 0, puedes gastar 1 punto de concentración para redirigir una parte de la fuerza del ataque. Si lo haces, elige una criatura que puedas ver a 1,5 m (5 pies) o menos de ti si el ataque fue cuerpo a cuerpo o una criatura que puedas ver a 18 m (60 pies) o menos de ti que no esté tras cobertura completa si el ataque fue a distancia. Esa criatura deberá superar una tirada de salvación de Destreza o sufrirá una cantidad de daño igual al resultado de dos tiradas de tu dado de Artes marciales más tu modificador por Destreza. El daño será del mismo tipo que inflija el ataque.",
+      "tipoAccion": "pasivo",
+      "formulaDados": "1d10"
+    },
+    {
+      "nivel": 3,
+      "nombre": "Subclase de monje",
+      "descripcion": "Consigues una subclase de monje de tu elección. Una subclase es una especialización que te proporciona rasgos cuando alcanzas ciertos niveles de monje. De aquí en adelante, obtienes todos los rasgos de tu subclase que sean de tu nivel de monje e inferiores.",
+      "tipoAccion": "pasivo"
+    },
+    {
+      "nivel": 4,
+      "nombre": "Mejora de característica",
+      "descripcion": "Obtienes la dote Mejora de característica u otra [dote](feats.html) de tu elección para la que cumplas las condiciones. Vuelves a obtener este rasgo en los niveles 8, 12 y 16 de monje.",
+      "tipoAccion": "pasivo"
+    },
+    {
+      "nivel": 4,
+      "nombre": "Caída lenta",
+      "descripcion": "Puedes utilizar tu reacción cuando caigas para reducir el daño de caída que sufras en una cantidad igual a cinco veces tu nivel de monje.",
+      "tipoAccion": "reaccion"
+    },
+    {
+      "nivel": 5,
+      "nombre": "Ataque adicional",
+      "descripcion": "Puedes atacar dos veces en lugar de una cada vez que realices la acción de atacar en tu turno.",
+      "tipoAccion": "accion"
+    },
+    {
+      "nivel": 5,
+      "nombre": "Golpe aturdidor",
+      "descripcion": "Una vez por turno, cuando aciertes a una criatura con un arma de monje o un ataque sin armas, puedes gastar 1 punto de concentración para intentar asestar un golpe aturdidor. El objetivo debe hacer una tirada de salvación de Constitución. Si falla la tirada, el objetivo tendrá el estado de aturdido hasta el comienzo de tu siguiente turno. Si la supera, la velocidad del objetivo se reduce a la mitad hasta el comienzo de tu siguiente turno, y la siguiente tirada de ataque que se haga contra el objetivo antes de ese momento tendrá ventaja.",
+      "tipoAccion": "pasivo"
+    },
+    {
+      "nivel": 6,
+      "nombre": "Golpes potenciados",
+      "descripcion": "Siempre que causes daño con tu ataque sin armas, este podrá infligir daño de fuerza o su tipo de daño normal (a tu elección).",
+      "tipoAccion": "pasivo"
+    },
+    {
+      "nivel": 6,
+      "nombre": "Rasgo de subclase",
+      "descripcion": "Obtienes un rasgo de tu subclase de monje.",
+      "tipoAccion": "pasivo"
+    },
+    {
+      "nivel": 7,
+      "nombre": "Evasión",
+      "descripcion": "Cuando estés sujeto a un efecto que te permita hacer una tirada de salvación de Destreza para sufrir solo la mitad de daño, en su lugar no sufrirás ningún daño si tienes éxito en la tirada de salvación y solo la mitad si la fallas.\nNo te beneficias de este rasgo si tienes el estado de incapacitado.",
+      "tipoAccion": "pasivo"
+    },
+    {
+      "nivel": 8,
+      "nombre": "Mejora de característica",
+      "descripcion": "Obtienes la dote Mejora de característica u otra [dote](feats.html) de tu elección para la que cumplas las condiciones.",
+      "tipoAccion": "pasivo"
+    },
+    {
+      "nivel": 9,
+      "nombre": "Movimiento acrobático",
+      "descripcion": "Mientras no lleves armadura ni portes un *escudo*, obtienes la capacidad de moverte a lo largo de superficies verticales y sobre líquidos en tu turno sin caer durante el movimiento.",
+      "tipoAccion": "pasivo"
+    },
+    {
+      "nivel": 10,
+      "nombre": "Concentración agudizada",
+      "descripcion": "Tu Ráfaga de golpes, Defensa paciente y Paso del viento obtienen los siguientes beneficios.\n\n***Ráfaga de golpes.*** Puedes gastar 1 punto de concentración para usar Ráfaga de golpes y hacer tres ataques sin armas con ella en lugar de dos.\n\n***Defensa paciente.*** Cuando gastes un punto de concentración para usar Defensa paciente, obtendrás una cantidad de puntos de golpe temporales igual al resultado de dos tiradas de tu dado de Artes marciales.\n\n***Paso del viento.*** Cuando gastes un punto de concentración para usar Paso del viento, puedes elegir a una criatura voluntaria a 1,5 m (5 pies) o menos de ti que sea Grande o más pequeña. Mueves a la criatura contigo hasta el final de tu turno. El movimiento de la criatura no provoca ataques de oportunidad.",
+      "tipoAccion": "pasivo"
+    },
+    {
+      "nivel": 10,
+      "nombre": "Autorrestablecimiento",
+      "descripcion": "A base de pura fuerza de voluntad, puedes eliminar uno de los siguientes estados de ti mismo al final de cada uno de tus turnos: asustado, envenenado o hechizado.\nAdemás, privarte de comida y bebida no te da niveles de agotamiento.",
+      "tipoAccion": "pasivo"
+    },
+    {
+      "nivel": 11,
+      "nombre": "Rasgo de subclase",
+      "descripcion": "Obtienes un rasgo de tu subclase de monje.",
+      "tipoAccion": "pasivo"
+    },
+    {
+      "nivel": 12,
+      "nombre": "Mejora de característica",
+      "descripcion": "Obtienes la dote Mejora de característica u otra [dote](feats.html) de tu elección para la que cumplas las condiciones.",
+      "tipoAccion": "pasivo"
+    },
+    {
+      "nivel": 13,
+      "nombre": "Desviar energía",
+      "descripcion": "Ahora puedes usar tu rasgo Desviar ataques contra ataques que inflijan cualquier tipo de daño, no solo contundente, perforante o cortante.",
+      "tipoAccion": "pasivo"
+    },
+    {
+      "nivel": 14,
+      "nombre": "Superviviente disciplinado",
+      "descripcion": "Tu disciplina física y mental te otorga competencia en todas las tiradas de salvación.\nAdemás, cada vez que hagas una tirada de salvación y falles, puedes gastar 1 punto de concentración para volver a tirarla, y deberás usar el nuevo resultado.",
+      "tipoAccion": "pasivo"
+    },
+    {
+      "nivel": 15,
+      "nombre": "Concentración perfecta",
+      "descripcion": "Cuando tires iniciativa y no uses Metabolismo asombroso, recuperarás puntos de concentración gastados hasta tener 4 si tienes 3 o menos.",
+      "tipoAccion": "pasivo"
+    },
+    {
+      "nivel": 16,
+      "nombre": "Mejora de característica",
+      "descripcion": "Obtienes la dote Mejora de característica u otra [dote](feats.html) de tu elección para la que cumplas las condiciones.",
+      "tipoAccion": "pasivo"
+    },
+    {
+      "nivel": 17,
+      "nombre": "Rasgo de subclase",
+      "descripcion": "Obtienes un rasgo de tu subclase de monje.",
+      "tipoAccion": "pasivo"
+    },
+    {
+      "nivel": 18,
+      "nombre": "Defensa superior",
+      "descripcion": "Al comienzo de tu turno, puedes gastar 3 puntos de concentración para fortalecerte contra el daño durante 1 minuto o hasta que tengas el estado de incapacitado. Durante ese tiempo, tienes resistencia a todo el daño excepto al daño de fuerza.",
+      "tipoAccion": "pasivo"
+    },
+    {
+      "nivel": 19,
+      "nombre": "Don épico",
+      "descripcion": "Obtienes una dote de don épico u otra [dote](feats.html) de tu elección para la que cumplas las condiciones. Se recomienda Don de la ofensiva irresistible.",
+      "tipoAccion": "pasivo"
+    },
+    {
+      "nivel": 20,
+      "nombre": "Cuerpo y mente",
+      "descripcion": "Has desarrollado tu cuerpo y tu mente hasta alcanzar nuevas cotas. Tus puntuaciones de Destreza y Sabiduría aumentan en 4, hasta un máximo de 25.",
+      "tipoAccion": "pasivo"
+    }
+  ],
+  "subclases": [
+    {
+      "id": "guerrero_de_la_misericordia",
+      "clasePadre": "monje",
+      "nombre": "Guerrero de la misericordia",
+      "descripcion": "Los guerreros de la misericordia manipulan la fuerza vital de otros. Estos monjes son médicos errantes, pero dan un final rápido a sus enemigos. A menudo usan máscaras, presentándose como portadores sin rostro de la vida y la muerte.",
+      "lema": "Curar o dañar con un simple contacto",
+      "nivelDesbloqueo": 3,
+      "rasgos": [
+        {
+          "nivel": 3,
+          "nombre": "Mano del daño",
+          "descripcion": "Una vez por turno, cuando aciertes a una criatura con un ataque sin armas y causes daño, puedes gastar 1 punto de concentración para infligir daño necrótico adicional igual al resultado de una tirada de tu dado de Artes marciales más tu modificador por Sabiduría.",
+          "tipoAccion": "pasivo",
+          "subclase": "Guerrero de la misericordia"
+        },
+        {
+          "nivel": 3,
+          "nombre": "Mano curativa",
+          "descripcion": "Como acción de magia, puedes gastar 1 punto de concentración para tocar a una criatura y restaurar una cantidad de puntos de golpe igual al resultado de una tirada de tu dado de Artes marciales más tu modificador por Sabiduría. Cuando uses tu Ráfaga de golpes, puedes sustituir uno de los ataques sin armas por un uso de este rasgo sin gastar un punto de concentración para la curación.",
+          "tipoAccion": "accion",
+          "subclase": "Guerrero de la misericordia"
+        },
+        {
+          "nivel": 3,
+          "nombre": "Implementos de misericordia",
+          "descripcion": "Ganas competencia en las habilidades de Medicina y Perspicacia y competencia con *útiles de herborista*.",
+          "tipoAccion": "pasivo",
+          "subclase": "Guerrero de la misericordia"
+        },
+        {
+          "nivel": 6,
+          "nombre": "Toque del médico",
+          "descripcion": "Tu Mano del daño y tu Mano curativa mejoran, como se detalla a continuación.\n\n***Mano del daño.*** Cuando uses Mano del daño en una criatura, también puedes causarle el estado de envenenado hasta el final de tu siguiente turno.\n\n***Mano curativa.*** Cuando uses Mano curativa, también puedes poner fin a uno de los siguientes estados en la criatura que curas: aturdido, cegado, ensordecido, envenenado o paralizado.",
+          "tipoAccion": "pasivo",
+          "subclase": "Guerrero de la misericordia"
+        },
+        {
+          "nivel": 11,
+          "nombre": "Ráfaga de curación y daño",
+          "descripcion": "Cuando uses Ráfaga de golpes, puedes sustituir cada uno de los ataques sin armas por un uso de Mano curativa sin gastar puntos de concentración para la curación.\nAdemás, cuando hagas un ataque sin armas con Ráfaga de golpes y causes daño, puedes usar Mano del daño con ese golpe sin gastar un punto de concentración para Mano del daño. Solo puedes seguir usando Mano del daño una vez por turno.\nPuedes usar estos beneficios una cantidad total de veces igual a tu modificador por Sabiduría (mínimo una vez). Recuperas todos los usos gastados cuando finalices un descanso largo.",
+          "tipoAccion": "pasivo",
+          "subclase": "Guerrero de la misericordia",
+          "tieneUsosLimitados": true,
+          "recuperacion": "descanso_largo"
+        },
+        {
+          "nivel": 17,
+          "nombre": "Mano de la misericordia definitiva",
+          "descripcion": "Tu dominio de la energía vital abre la puerta a la misericordia definitiva. Como acción de magia, puedes tocar el cadáver de una criatura que haya muerto en las últimas 24 horas y gastar 5 puntos de concentración. La criatura vuelve entonces a la vida con una cantidad de puntos de golpe igual a 4d10 más tu modificador por Sabiduría. Si la criatura murió con cualquiera de los siguientes estados, revivirá con los estados eliminados: aturdido, cegado, ensordecido, envenenado y paralizado.\nUna vez que uses este rasgo, no podrás volver a hacerlo hasta que finalices un descanso largo.",
+          "tipoAccion": "accion",
+          "subclase": "Guerrero de la misericordia",
+          "tieneUsosLimitados": true,
+          "recuperacion": "descanso_largo",
+          "formulaDados": "4d10"
+        }
+      ]
+    },
+    {
+      "id": "guerrero_de_la_sombra",
+      "clasePadre": "monje",
+      "nombre": "Guerrero de la sombra",
+      "descripcion": "Los guerreros de la sombra practican el sigilo y el subterfugio, aprovechando el poder del Páramo Sombrío. Se sienten como en casa en la oscuridad, son capaces de atraer la penumbra a su alrededor para esconderse, saltar de sombra en sombra y adoptar una forma espectral.",
+      "lema": "Emplear las sombras como herramientas de subterfugio",
+      "nivelDesbloqueo": 3,
+      "rasgos": [
+        {
+          "nivel": 3,
+          "nombre": "Artes de la sombra",
+          "descripcion": "Has aprendido a extraer el poder del Páramo Sombrío, obteniendo los siguientes beneficios.\n\n***Oscuridad.*** Puedes gastar 1 punto de concentración para lanzar el conjuro *oscuridad* sin componentes de conjuro. Puedes ver dentro del área del conjuro cuando lo lanzas con este rasgo. Mientras el conjuro persiste, puedes mover su área de oscuridad a un espacio a 18 m (60 pies) o menos de ti al comienzo de cada uno de tus turnos.\n\n***Visión en la oscuridad.*** Ganas visión en la oscuridad a una distancia de 18 m (60 pies). Si ya tienes visión en la oscuridad, su alcance aumenta en 18 m (60 pies).\n\n***Ficciones sombrías.*** Conoces el conjuro *ilusión menor*. La Sabiduría es tu aptitud mágica para este.",
+          "tipoAccion": "pasivo",
+          "subclase": "Guerrero de la sombra"
+        },
+        {
+          "nivel": 6,
+          "nombre": "Paso de la sombra",
+          "descripcion": "Mientras estés completamente en luz tenue u oscuridad, puedes usar una acción adicional para teletransportarte hasta 18 m (60 pies) a un espacio sin ocupar que puedas ver que también esté en luz tenue u oscuridad. Tendrás ventaja en el siguiente ataque cuerpo a cuerpo que hagas antes de que acabe el turno en curso.",
+          "tipoAccion": "accion_adicional",
+          "subclase": "Guerrero de la sombra"
+        },
+        {
+          "nivel": 11,
+          "nombre": "Paso de la sombra mejorado",
+          "descripcion": "Puedes recurrir a tu conexión con el Páramo Sombrío para potenciar tu teletransporte. Cuando uses tu Paso de la sombra, puedes gastar 1 punto de concentración para eliminar el requisito de tener que empezar y terminar en luz tenue u oscuridad para ese uso del rasgo. Como parte de esta acción adicional, puedes hacer un ataque sin armas inmediatamente después de teletransportarte.",
+          "tipoAccion": "accion_adicional",
+          "subclase": "Guerrero de la sombra"
+        },
+        {
+          "nivel": 17,
+          "nombre": "Manto de sombras",
+          "descripcion": "Como acción de magia mientras estés completamente en luz tenue u oscuridad, puedes gastar 3 puntos de concentración para envolverte en sombras durante 1 minuto, hasta que tengas el estado de incapacitado, o hasta que termines tu turno en luz brillante. Mientras estés envuelto por estas sombras, obtienes los siguientes beneficios.\n\n***Invisibilidad.*** Tienes el estado de invisible.\n\n***Parcialmente incorpóreo.*** Puedes moverte a través de espacios ocupados como si fuesen terreno difícil. Si terminas tu turno en uno de esos espacios, serás desplazado al último espacio sin ocupar en el que estuviste.\n\n***Ráfaga de sombras.*** Puedes usar tu Ráfaga de golpes sin gastar ningún punto de concentración.",
+          "tipoAccion": "accion",
+          "subclase": "Guerrero de la sombra"
+        }
+      ],
+      "progresionConjuros": [
+        {
+          "nivelClase": 3,
+          "conjuros": [
+            "Oscuridad"
+          ],
+          "trucos": [
+            "Ilusión menor"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "guerrero_de_los_elementos",
+      "clasePadre": "monje",
+      "nombre": "Guerrero de los elementos",
+      "descripcion": "Los guerreros de los elementos recurren al poder de los Planos Elementales. Aprovechando su concentración sobrenatural, estos monjes doman momentáneamente la energía del Caos Elemental para empoderarse dentro y fuera de la batalla.",
+      "lema": "Hacer uso de la energía elemental",
+      "nivelDesbloqueo": 3,
+      "rasgos": [
+        {
+          "nivel": 3,
+          "nombre": "Sintonía elemental",
+          "descripcion": "Al comienzo de tu turno, puedes gastar 1 punto de concentración para imbuirte de energía elemental. La energía dura 10 minutos o hasta que tengas el estado de incapacitado. Obtienes los siguientes beneficios mientras este rasgo esté activo.\n\n***Alcance.*** Cuando hagas un ataque sin armas, tu alcance será 3 m (10 pies) mayor de lo normal, a medida que la energía elemental se extiende desde ti.\n\n***Golpes elementales.*** Siempre que aciertes con tu ataque sin armas, puedes hacer que inflija daño de ácido, fuego, frío, relámpago o trueno (a tu elección) en lugar de su tipo de daño normal. Cuando inflijas uno de estos tipos con él, también puedes obligar al objetivo a hacer una tirada de salvación de Fuerza. Si falla la tirada, puedes mover al objetivo hasta 3 m (10 pies) hacia ti o alejándolo de ti, a medida que la energía elemental se arremolina a su alrededor.",
+          "tipoAccion": "pasivo",
+          "subclase": "Guerrero de los elementos"
+        },
+        {
+          "nivel": 3,
+          "nombre": "Manipular elementos",
+          "descripcion": "Conoces el conjuro *elementalismo*. La Sabiduría es tu aptitud mágica para este.",
+          "tipoAccion": "pasivo",
+          "subclase": "Guerrero de los elementos"
+        },
+        {
+          "nivel": 6,
+          "nombre": "Estallido elemental",
+          "descripcion": "Como acción de magia, puedes gastar 2 puntos de concentración para provocar un estallido de energía elemental en una esfera de 6 m (20 pies) de radio centrada en un punto a 36 m (120 pies) o menos de ti. Elige un tipo de daño: ácido, fuego, frío, relámpago o trueno.\nCada criatura en la esfera deberá hacer una tirada de salvación de Destreza. Si falla la tirada, la criatura sufrirá una cantidad de daño del tipo elegido igual al resultado de tres tiradas de tu dado de Artes marciales. Si la supera, sufrirá la mitad de daño.",
+          "tipoAccion": "accion",
+          "subclase": "Guerrero de los elementos"
+        },
+        {
+          "nivel": 11,
+          "nombre": "Zancada de los elementos",
+          "descripcion": "Mientras tu Sintonía elemental esté activa, también tienes una velocidad volando y una velocidad nadando iguales a tu velocidad.",
+          "tipoAccion": "pasivo",
+          "subclase": "Guerrero de los elementos"
+        },
+        {
+          "nivel": 17,
+          "nombre": "Epítome elemental",
+          "descripcion": "Mientras tu Sintonía elemental esté activa, también obtienes los siguientes beneficios.\n\n***Resistencia al daño.*** Ganas resistencia a uno de los siguientes tipos de daño de tu elección: ácido, fuego, frío, relámpago o trueno. Al comienzo de cada uno de tus turnos, puedes cambiar esta elección.\n\n***Zancada destructiva.*** Cuando uses tu Paso del viento, tu velocidad aumentará en 6 m (20 pies) hasta el final del turno. Durante esa duración, cualquier criatura de tu elección sufrirá una cantidad de daño igual al resultado de una tirada de tu dado de Artes marciales cuando entres en un espacio a 1,5 m (5 pies) o menos de ella. El tipo de daño será de ácido, fuego, frío, relámpago o trueno (a tu elección). Una criatura solo puede sufrir este daño una vez por turno.\n\n***Golpes potenciados.*** Una vez en cada uno de tus turnos, puedes infligir daño adicional a un objetivo igual al resultado de una tirada de tu dado de Artes marciales cuando le aciertes con un ataque sin armas. El daño adicional es del mismo tipo que el infligido por ese golpe.",
+          "tipoAccion": "pasivo",
+          "subclase": "Guerrero de los elementos"
+        }
+      ],
+      "progresionConjuros": [
+        {
+          "nivelClase": 3,
+          "trucos": [
+            "Elementalismo"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "guerrero_de_la_mano_abierta",
+      "clasePadre": "monje",
+      "nombre": "Guerrero de la mano abierta",
+      "descripcion": "Los guerreros de la mano abierta son maestros del combate sin armas. Aprenden técnicas para empujar y derribar a sus oponentes y manipular su propia energía para protegerse del daño.",
+      "lema": "Dominar el combate sin armas",
+      "nivelDesbloqueo": 3,
+      "rasgos": [
+        {
+          "nivel": 3,
+          "nombre": "Técnica de la mano abierta",
+          "descripcion": "Siempre que aciertes a una criatura con un ataque otorgado por tu Ráfaga de golpes, puedes imponer uno de los siguientes efectos a ese objetivo.\n\n***Confundir.*** El objetivo no podrá hacer ataques de oportunidad hasta el comienzo de su siguiente turno.\n\n***Empujar.*** El objetivo deberá superar una tirada de salvación de Fuerza o será empujado hasta 4,5 m (15 pies) alejándolo de ti.\n\n***Derribar.*** El objetivo deberá superar una tirada de salvación de Destreza o tendrá el estado de derribado.",
+          "tipoAccion": "pasivo",
+          "subclase": "Guerrero de la mano abierta"
+        },
+        {
+          "nivel": 6,
+          "nombre": "Plenitud corporal",
+          "descripcion": "Ganas la capacidad de curarte a ti mismo. Como acción adicional, puedes tirar tu dado de Artes marciales. Recuperas una cantidad de puntos de golpe igual al resultado obtenido más tu modificador por Sabiduría (mínimo 1 punto de golpe recuperado).\nPuedes usar este rasgo una cantidad de veces igual a tu modificador por Sabiduría (mínimo una vez), y recuperas todos los usos gastados cuando finalices un descanso largo.",
+          "tipoAccion": "accion_adicional",
+          "subclase": "Guerrero de la mano abierta",
+          "tieneUsosLimitados": true,
+          "recuperacion": "descanso_largo"
+        },
+        {
+          "nivel": 11,
+          "nombre": "Paso veloz",
+          "descripcion": "Cuando lleves a cabo una acción adicional que no sea Paso del viento, también podrás usar Paso del viento inmediatamente después de esa acción adicional.",
+          "tipoAccion": "accion_adicional",
+          "subclase": "Guerrero de la mano abierta"
+        },
+        {
+          "nivel": 17,
+          "nombre": "Palma trémula",
+          "descripcion": "Ganas la capacidad de provocar vibraciones letales en el cuerpo de alguien. Cuando aciertes a una criatura con un ataque sin armas, podrás gastar 4 puntos de concentración para iniciar estas vibraciones imperceptibles, las cuales durarán una cantidad de días igual a tu nivel de monje. Las vibraciones serán inofensivas a menos que utilices una acción para ponerles fin. De manera alternativa, cuando lleves a cabo la acción de atacar en tu turno, podrás renunciar a uno de los ataques para poner fin a las vibraciones. Para ponerles fin, tú y el objetivo deberéis estar en el mismo plano de existencia. Cuando les pongas fin, el objetivo deberá hacer una tirada de salvación de Constitución, sufriendo 10d12 de daño de fuerza si falla la tirada o la mitad de daño si la supera.\nSolo puedes tener a una criatura bajo los efectos de este rasgo a la vez. Puedes poner fin a las vibraciones de forma inofensiva (no requiere acción).",
+          "tipoAccion": "accion",
+          "subclase": "Guerrero de la mano abierta",
+          "formulaDados": "10d12"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,512 @@
+{
+  "id": "draconido",
+  "nombre": "Dracónido",
+  "descripcion": "Orgullosos guerreros que canalizan el poder elemental y la furia destructiva de sus ancestros dragones.",
+  "tipoCriatura": "Humanoide",
+  "tamanoOpciones": [
+    "Mediano"
+  ],
+  "tamanoPorDefecto": "Mediano",
+  "velocidadBase": 30,
+  "visionOscuridad": 60,
+  "rasgos": [
+    {
+      "nombre": "Tipo de criatura",
+      "descripcion": "Eres una criatura del tipo Humanoide.",
+      "tipoAccion": "pasivo",
+      "categoriaMecanica": "pasivo_permanente"
+    },
+    {
+      "nombre": "Tamaño",
+      "descripcion": "Eres de tamaño Mediano (entre 5 y 7 pies de altura).",
+      "tipoAccion": "pasivo",
+      "categoriaMecanica": "pasivo_permanente"
+    },
+    {
+      "nombre": "Visión en la oscuridad",
+      "descripcion": "Tienes visión en la oscuridad con un alcance de 60 pies.",
+      "tipoAccion": "pasivo",
+      "categoriaMecanica": "pasivo_permanente"
+    },
+    {
+      "nombre": "Linaje dracónico",
+      "descripcion": "Tu linaje proviene de un progenitor dragón. Tu elección determina tu resistencia al daño, la energía elemental de tu ataque de aliento y tus rasgos físicos.",
+      "tipoAccion": "pasivo",
+      "categoriaMecanica": "pasivo_permanente"
+    },
+    {
+      "nombre": "Vuelo dracónico",
+      "descripcion": "Cuando alcanzas el nivel 5 de personaje, puedes canalizar la magia dracónica para volar de forma temporal. Como acción adicional, haces que en la espalda te broten unas alas espectrales que duran 10 minutos o hasta que las repliegues (no requiere acción) o tengas el estado de incapacitado. Durante ese tiempo, tendrás una velocidad volando igual a tu velocidad. Tus alas parecen hechas de la misma energía que tu ataque de aliento. Cuando uses este atributo, no podrás volver a hacerlo hasta que finalices un descanso largo.",
+      "tipoAccion": "accion_adicional",
+      "nivelRequerido": 5,
+      "tieneUsosLimitados": true,
+      "usosMaximos": 1,
+      "recuperacion": "descanso_largo",
+      "esActivable": true,
+      "condicionAlActivar": "Vuelo dracónico",
+      "categoriaMecanica": "activable"
+    }
+  ],
+  "subespecies": [
+    {
+      "id": "draconido_negro",
+      "especiePadre": "draconido",
+      "nombre": "Dragón Negro",
+      "descripcion": "Linaje de dragón negro imbuido con la corrosión del ácido.",
+      "rasgos": [
+        {
+          "nombre": "Resistencia al daño",
+          "descripcion": "Tienes resistencia al daño de *ácido* determinado por tu linaje dracónico *(Dragón Negro)*.",
+          "tipoAccion": "pasivo",
+          "categoriaMecanica": "pasivo_permanente"
+        },
+        {
+          "nombre": "Ataque de aliento",
+          "descripcion": "Cuando lleves a cabo la acción de atacar en tu turno, puedes sustituir uno de tus ataques por una exhalación de energía mágica en un cono de 15 pies o en una línea de 30 pies de largo y 5 pies de ancho (elige la forma cada vez). Todas las criaturas situadas en esa zona deberán hacer una tirada de salvación de Destreza (CD 8 más tu modificador por Constitución y tu bonificador por competencia). Si la fallan, sufrirán 1d10 de daño de *ácido* (*Dragón Negro*). Si la superan, recibirán la mitad de ese daño. El daño aumenta en 1d10 cuando alcanzas los niveles 5 (2d10), 11 (3d10) y 17 (4d10) de personaje.\n\nPuedes utilizar este ataque de aliento una cantidad de veces igual a tu bonificador por competencia y recuperas todos los usos tras finalizar un descanso largo.",
+          "tipoAccion": "accion",
+          "tieneUsosLimitados": true,
+          "usosMaximos": 2,
+          "recuperacion": "descanso_largo",
+          "formulaDados": "1d10",
+          "escaladoFormulaDados": [
+            {
+              "nivelMinimo": 1,
+              "valor": "1d10"
+            },
+            {
+              "nivelMinimo": 5,
+              "valor": "2d10"
+            },
+            {
+              "nivelMinimo": 11,
+              "valor": "3d10"
+            },
+            {
+              "nivelMinimo": 17,
+              "valor": "4d10"
+            }
+          ],
+          "categoriaMecanica": "consumible",
+          "formulaEscalado": "bono_competencia"
+        }
+      ],
+      "resistenciasDanio": [
+        "Ácido"
+      ]
+    },
+    {
+      "id": "draconido_azul",
+      "especiePadre": "draconido",
+      "nombre": "Dragón Azul",
+      "descripcion": "Linaje de dragón azul imbuido con la energía del relámpago.",
+      "rasgos": [
+        {
+          "nombre": "Resistencia al daño",
+          "descripcion": "Tienes resistencia al daño de *relámpago* determinado por tu linaje dracónico *(Dragón Azul)*.",
+          "tipoAccion": "pasivo",
+          "categoriaMecanica": "pasivo_permanente"
+        },
+        {
+          "nombre": "Ataque de aliento",
+          "descripcion": "Cuando lleves a cabo la acción de atacar en tu turno, puedes sustituir uno de tus ataques por una exhalación de energía mágica en un cono de 15 pies o en una línea de 30 pies de largo y 5 pies de ancho (elige la forma cada vez). Todas las criaturas situadas en esa zona deberán hacer una tirada de salvación de Destreza (CD 8 más tu modificador por Constitución y tu bonificador por competencia). Si la fallan, sufrirán 1d10 de daño de *relámpago* (*Dragón Azul*). Si la superan, recibirán la mitad de ese daño. El daño aumenta en 1d10 cuando alcanzas los niveles 5 (2d10), 11 (3d10) y 17 (4d10) de personaje.\n\nPuedes utilizar este ataque de aliento una cantidad de veces igual a tu bonificador por competencia y recuperas todos los usos tras finalizar un descanso largo.",
+          "tipoAccion": "accion",
+          "tieneUsosLimitados": true,
+          "usosMaximos": 2,
+          "recuperacion": "descanso_largo",
+          "formulaDados": "1d10",
+          "escaladoFormulaDados": [
+            {
+              "nivelMinimo": 1,
+              "valor": "1d10"
+            },
+            {
+              "nivelMinimo": 5,
+              "valor": "2d10"
+            },
+            {
+              "nivelMinimo": 11,
+              "valor": "3d10"
+            },
+            {
+              "nivelMinimo": 17,
+              "valor": "4d10"
+            }
+          ],
+          "categoriaMecanica": "consumible",
+          "formulaEscalado": "bono_competencia"
+        }
+      ],
+      "resistenciasDanio": [
+        "Relámpago"
+      ]
+    },
+    {
+      "id": "draconido_oropel",
+      "especiePadre": "draconido",
+      "nombre": "Dragón de Oropel",
+      "descripcion": "Linaje de dragón de oropel imbuido con el calor abrasador del fuego.",
+      "rasgos": [
+        {
+          "nombre": "Resistencia al daño",
+          "descripcion": "Tienes resistencia al daño de *fuego* determinado por tu linaje dracónico *(Dragón de Oropel)*.",
+          "tipoAccion": "pasivo",
+          "categoriaMecanica": "pasivo_permanente"
+        },
+        {
+          "nombre": "Ataque de aliento",
+          "descripcion": "Cuando lleves a cabo la acción de atacar en tu turno, puedes sustituir uno de tus ataques por una exhalación de energía mágica en un cono de 15 pies o en una línea de 30 pies de largo y 5 pies de ancho (elige la forma cada vez). Todas las criaturas situadas en esa zona deberán hacer una tirada de salvación de Destreza (CD 8 más tu modificador por Constitución y tu bonificador por competencia). Si la fallan, sufrirán 1d10 de daño de *fuego* (*Dragón de Oropel*). Si la superan, recibirán la mitad de ese daño. El daño aumenta en 1d10 cuando alcanzas los niveles 5 (2d10), 11 (3d10) y 17 (4d10) de personaje.\n\nPuedes utilizar este ataque de aliento una cantidad de veces igual a tu bonificador por competencia y recuperas todos los usos tras finalizar un descanso largo.",
+          "tipoAccion": "accion",
+          "tieneUsosLimitados": true,
+          "usosMaximos": 2,
+          "recuperacion": "descanso_largo",
+          "formulaDados": "1d10",
+          "escaladoFormulaDados": [
+            {
+              "nivelMinimo": 1,
+              "valor": "1d10"
+            },
+            {
+              "nivelMinimo": 5,
+              "valor": "2d10"
+            },
+            {
+              "nivelMinimo": 11,
+              "valor": "3d10"
+            },
+            {
+              "nivelMinimo": 17,
+              "valor": "4d10"
+            }
+          ],
+          "categoriaMecanica": "consumible",
+          "formulaEscalado": "bono_competencia"
+        }
+      ],
+      "resistenciasDanio": [
+        "Fuego"
+      ]
+    },
+    {
+      "id": "draconido_bronce",
+      "especiePadre": "draconido",
+      "nombre": "Dragón de Bronce",
+      "descripcion": "Linaje de dragón de bronce imbuido con las chispas del relámpago.",
+      "rasgos": [
+        {
+          "nombre": "Resistencia al daño",
+          "descripcion": "Tienes resistencia al daño de *relámpago* determinado por tu linaje dracónico *(Dragón de Bronce)*.",
+          "tipoAccion": "pasivo",
+          "categoriaMecanica": "pasivo_permanente"
+        },
+        {
+          "nombre": "Ataque de aliento",
+          "descripcion": "Cuando lleves a cabo la acción de atacar en tu turno, puedes sustituir uno de tus ataques por una exhalación de energía mágica en un cono de 15 pies o en una línea de 30 pies de largo y 5 pies de ancho (elige la forma cada vez). Todas las criaturas situadas en esa zona deberán hacer una tirada de salvación de Destreza (CD 8 más tu modificador por Constitución y tu bonificador por competencia). Si la fallan, sufrirán 1d10 de daño de *relámpago* (*Dragón de Bronce*). Si la superan, recibirán la mitad de ese daño. El daño aumenta en 1d10 cuando alcanzas los niveles 5 (2d10), 11 (3d10) y 17 (4d10) de personaje.\n\nPuedes utilizar este ataque de aliento una cantidad de veces igual a tu bonificador por competencia y recuperas todos los usos tras finalizar un descanso largo.",
+          "tipoAccion": "accion",
+          "tieneUsosLimitados": true,
+          "usosMaximos": 2,
+          "recuperacion": "descanso_largo",
+          "formulaDados": "1d10",
+          "escaladoFormulaDados": [
+            {
+              "nivelMinimo": 1,
+              "valor": "1d10"
+            },
+            {
+              "nivelMinimo": 5,
+              "valor": "2d10"
+            },
+            {
+              "nivelMinimo": 11,
+              "valor": "3d10"
+            },
+            {
+              "nivelMinimo": 17,
+              "valor": "4d10"
+            }
+          ],
+          "categoriaMecanica": "consumible",
+          "formulaEscalado": "bono_competencia"
+        }
+      ],
+      "resistenciasDanio": [
+        "Relámpago"
+      ]
+    },
+    {
+      "id": "draconido_cobre",
+      "especiePadre": "draconido",
+      "nombre": "Dragón de Cobre",
+      "descripcion": "Linaje de dragón de cobre imbuido con la acidez disolvente.",
+      "rasgos": [
+        {
+          "nombre": "Resistencia al daño",
+          "descripcion": "Tienes resistencia al daño de *ácido* determinado por tu linaje dracónico *(Dragón de Cobre)*.",
+          "tipoAccion": "pasivo",
+          "categoriaMecanica": "pasivo_permanente"
+        },
+        {
+          "nombre": "Ataque de aliento",
+          "descripcion": "Cuando lleves a cabo la acción de atacar en tu turno, puedes sustituir uno de tus ataques por una exhalación de energía mágica en un cono de 15 pies o en una línea de 30 pies de largo y 5 pies de ancho (elige la forma cada vez). Todas las criaturas situadas en esa zona deberán hacer una tirada de salvación de Destreza (CD 8 más tu modificador por Constitución y tu bonificador por competencia). Si la fallan, sufrirán 1d10 de daño de *ácido* (*Dragón de Cobre*). Si la superan, recibirán la mitad de ese daño. El daño aumenta en 1d10 cuando alcanzas los niveles 5 (2d10), 11 (3d10) y 17 (4d10) de personaje.\n\nPuedes utilizar este ataque de aliento una cantidad de veces igual a tu bonificador por competencia y recuperas todos los usos tras finalizar un descanso largo.",
+          "tipoAccion": "accion",
+          "tieneUsosLimitados": true,
+          "usosMaximos": 2,
+          "recuperacion": "descanso_largo",
+          "formulaDados": "1d10",
+          "escaladoFormulaDados": [
+            {
+              "nivelMinimo": 1,
+              "valor": "1d10"
+            },
+            {
+              "nivelMinimo": 5,
+              "valor": "2d10"
+            },
+            {
+              "nivelMinimo": 11,
+              "valor": "3d10"
+            },
+            {
+              "nivelMinimo": 17,
+              "valor": "4d10"
+            }
+          ],
+          "categoriaMecanica": "consumible",
+          "formulaEscalado": "bono_competencia"
+        }
+      ],
+      "resistenciasDanio": [
+        "Ácido"
+      ]
+    },
+    {
+      "id": "draconido_oro",
+      "especiePadre": "draconido",
+      "nombre": "Dragón de Oro",
+      "descripcion": "Linaje de dragón de oro imbuido con la llama solar purificadora del fuego.",
+      "rasgos": [
+        {
+          "nombre": "Resistencia al daño",
+          "descripcion": "Tienes resistencia al daño de *fuego* determinado por tu linaje dracónico *(Dragón de Oro)*.",
+          "tipoAccion": "pasivo",
+          "categoriaMecanica": "pasivo_permanente"
+        },
+        {
+          "nombre": "Ataque de aliento",
+          "descripcion": "Cuando lleves a cabo la acción de atacar en tu turno, puedes sustituir uno de tus ataques por una exhalación de energía mágica en un cono de 15 pies o en una línea de 30 pies de largo y 5 pies de ancho (elige la forma cada vez). Todas las criaturas situadas en esa zona deberán hacer una tirada de salvación de Destreza (CD 8 más tu modificador por Constitución y tu bonificador por competencia). Si la fallan, sufrirán 1d10 de daño de *fuego* (*Dragón de Oro*). Si la superan, recibirán la mitad de ese daño. El daño aumenta en 1d10 cuando alcanzas los niveles 5 (2d10), 11 (3d10) y 17 (4d10) de personaje.\n\nPuedes utilizar este ataque de aliento una cantidad de veces igual a tu bonificador por competencia y recuperas todos los usos tras finalizar un descanso largo.",
+          "tipoAccion": "accion",
+          "tieneUsosLimitados": true,
+          "usosMaximos": 2,
+          "recuperacion": "descanso_largo",
+          "formulaDados": "1d10",
+          "escaladoFormulaDados": [
+            {
+              "nivelMinimo": 1,
+              "valor": "1d10"
+            },
+            {
+              "nivelMinimo": 5,
+              "valor": "2d10"
+            },
+            {
+              "nivelMinimo": 11,
+              "valor": "3d10"
+            },
+            {
+              "nivelMinimo": 17,
+              "valor": "4d10"
+            }
+          ],
+          "categoriaMecanica": "consumible",
+          "formulaEscalado": "bono_competencia"
+        }
+      ],
+      "resistenciasDanio": [
+        "Fuego"
+      ]
+    },
+    {
+      "id": "draconido_verde",
+      "especiePadre": "draconido",
+      "nombre": "Dragón Verde",
+      "descripcion": "Linaje de dragón verde imbuido con la toxicidad letal del veneno.",
+      "rasgos": [
+        {
+          "nombre": "Resistencia al daño",
+          "descripcion": "Tienes resistencia al daño de *veneno* determinado por tu linaje dracónico *(Dragón Verde)*.",
+          "tipoAccion": "pasivo",
+          "categoriaMecanica": "pasivo_permanente"
+        },
+        {
+          "nombre": "Ataque de aliento",
+          "descripcion": "Cuando lleves a cabo la acción de atacar en tu turno, puedes sustituir uno de tus ataques por una exhalación de energía mágica en un cono de 15 pies o en una línea de 30 pies de largo y 5 pies de ancho (elige la forma cada vez). Todas las criaturas situadas en esa zona deberán hacer una tirada de salvación de Destreza (CD 8 más tu modificador por Constitución y tu bonificador por competencia). Si la fallan, sufrirán 1d10 de daño de *veneno* (*Dragón Verde*). Si la superan, recibirán la mitad de ese daño. El daño aumenta en 1d10 cuando alcanzas los niveles 5 (2d10), 11 (3d10) y 17 (4d10) de personaje.\n\nPuedes utilizar este ataque de aliento una cantidad de veces igual a tu bonificador por competencia y recuperas todos los usos tras finalizar un descanso largo.",
+          "tipoAccion": "accion",
+          "tieneUsosLimitados": true,
+          "usosMaximos": 2,
+          "recuperacion": "descanso_largo",
+          "formulaDados": "1d10",
+          "escaladoFormulaDados": [
+            {
+              "nivelMinimo": 1,
+              "valor": "1d10"
+            },
+            {
+              "nivelMinimo": 5,
+              "valor": "2d10"
+            },
+            {
+              "nivelMinimo": 11,
+              "valor": "3d10"
+            },
+            {
+              "nivelMinimo": 17,
+              "valor": "4d10"
+            }
+          ],
+          "categoriaMecanica": "consumible",
+          "formulaEscalado": "bono_competencia"
+        }
+      ],
+      "resistenciasDanio": [
+        "Veneno"
+      ]
+    },
+    {
+      "id": "draconido_rojo",
+      "especiePadre": "draconido",
+      "nombre": "Dragón Rojo",
+      "descripcion": "Linaje de dragón rojo imbuido con la furia ardiente del fuego.",
+      "rasgos": [
+        {
+          "nombre": "Resistencia al daño",
+          "descripcion": "Tienes resistencia al daño de *fuego* determinado por tu linaje dracónico *(Dragón Rojo)*.",
+          "tipoAccion": "pasivo",
+          "categoriaMecanica": "pasivo_permanente"
+        },
+        {
+          "nombre": "Ataque de aliento",
+          "descripcion": "Cuando lleves a cabo la acción de atacar en tu turno, puedes sustituir uno de tus ataques por una exhalación de energía mágica en un cono de 15 pies o en una línea de 30 pies de largo y 5 pies de ancho (elige la forma cada vez). Todas las criaturas situadas en esa zona deberán hacer una tirada de salvación de Destreza (CD 8 más tu modificador por Constitución y tu bonificador por competencia). Si la fallan, sufrirán 1d10 de daño de *fuego* (*Dragón Rojo*). Si la superan, recibirán la mitad de ese daño. El daño aumenta en 1d10 cuando alcanzas los niveles 5 (2d10), 11 (3d10) y 17 (4d10) de personaje.\n\nPuedes utilizar este ataque de aliento una cantidad de veces igual a tu bonificador por competencia y recuperas todos los usos tras finalizar un descanso largo.",
+          "tipoAccion": "accion",
+          "tieneUsosLimitados": true,
+          "usosMaximos": 2,
+          "recuperacion": "descanso_largo",
+          "formulaDados": "1d10",
+          "escaladoFormulaDados": [
+            {
+              "nivelMinimo": 1,
+              "valor": "1d10"
+            },
+            {
+              "nivelMinimo": 5,
+              "valor": "2d10"
+            },
+            {
+              "nivelMinimo": 11,
+              "valor": "3d10"
+            },
+            {
+              "nivelMinimo": 17,
+              "valor": "4d10"
+            }
+          ],
+          "categoriaMecanica": "consumible",
+          "formulaEscalado": "bono_competencia"
+        }
+      ],
+      "resistenciasDanio": [
+        "Fuego"
+      ]
+    },
+    {
+      "id": "draconido_plata",
+      "especiePadre": "draconido",
+      "nombre": "Dragón de Plata",
+      "descripcion": "Linaje de dragón de plata imbuido con el aliento gélido del frío.",
+      "rasgos": [
+        {
+          "nombre": "Resistencia al daño",
+          "descripcion": "Tienes resistencia al daño de *frío* determinado por tu linaje dracónico *(Dragón de Plata)*.",
+          "tipoAccion": "pasivo",
+          "categoriaMecanica": "pasivo_permanente"
+        },
+        {
+          "nombre": "Ataque de aliento",
+          "descripcion": "Cuando lleves a cabo la acción de atacar en tu turno, puedes sustituir uno de tus ataques por una exhalación de energía mágica en un cono de 15 pies o en una línea de 30 pies de largo y 5 pies de ancho (elige la forma cada vez). Todas las criaturas situadas en esa zona deberán hacer una tirada de salvación de Destreza (CD 8 más tu modificador por Constitución y tu bonificador por competencia). Si la fallan, sufrirán 1d10 de daño de *frío* (*Dragón de Plata*). Si la superan, recibirán la mitad de ese daño. El daño aumenta en 1d10 cuando alcanzas los niveles 5 (2d10), 11 (3d10) y 17 (4d10) de personaje.\n\nPuedes utilizar este ataque de aliento una cantidad de veces igual a tu bonificador por competencia y recuperas todos los usos tras finalizar un descanso largo.",
+          "tipoAccion": "accion",
+          "tieneUsosLimitados": true,
+          "usosMaximos": 2,
+          "recuperacion": "descanso_largo",
+          "formulaDados": "1d10",
+          "escaladoFormulaDados": [
+            {
+              "nivelMinimo": 1,
+              "valor": "1d10"
+            },
+            {
+              "nivelMinimo": 5,
+              "valor": "2d10"
+            },
+            {
+              "nivelMinimo": 11,
+              "valor": "3d10"
+            },
+            {
+              "nivelMinimo": 17,
+              "valor": "4d10"
+            }
+          ],
+          "categoriaMecanica": "consumible",
+          "formulaEscalado": "bono_competencia"
+        }
+      ],
+      "resistenciasDanio": [
+        "Frío"
+      ]
+    },
+    {
+      "id": "draconido_blanco",
+      "especiePadre": "draconido",
+      "nombre": "Dragón Blanco",
+      "descripcion": "Linaje de dragón blanco imbuido con la helada invernal del frío.",
+      "rasgos": [
+        {
+          "nombre": "Resistencia al daño",
+          "descripcion": "Tienes resistencia al daño de *frío* determinado por tu linaje dracónico *(Dragón Blanco)*.",
+          "tipoAccion": "pasivo",
+          "categoriaMecanica": "pasivo_permanente"
+        },
+        {
+          "nombre": "Ataque de aliento",
+          "descripcion": "Cuando lleves a cabo la acción de atacar en tu turno, puedes sustituir uno de tus ataques por una exhalación de energía mágica en un cono de 15 pies o en una línea de 30 pies de largo y 5 pies de ancho (elige la forma cada vez). Todas las criaturas situadas en esa zona deberán hacer una tirada de salvación de Destreza (CD 8 más tu modificador por Constitución y tu bonificador por competencia). Si la fallan, sufrirán 1d10 de daño de *frío* (*Dragón Blanco*). Si la superan, recibirán la mitad de ese daño. El daño aumenta en 1d10 cuando alcanzas los niveles 5 (2d10), 11 (3d10) y 17 (4d10) de personaje.\n\nPuedes utilizar este ataque de aliento una cantidad de veces igual a tu bonificador por competencia y recuperas todos los usos tras finalizar un descanso largo.",
+          "tipoAccion": "accion",
+          "tieneUsosLimitados": true,
+          "usosMaximos": 2,
+          "recuperacion": "descanso_largo",
+          "formulaDados": "1d10",
+          "escaladoFormulaDados": [
+            {
+              "nivelMinimo": 1,
+              "valor": "1d10"
+            },
+            {
+              "nivelMinimo": 5,
+              "valor": "2d10"
+            },
+            {
+              "nivelMinimo": 11,
+              "valor": "3d10"
+            },
+            {
+              "nivelMinimo": 17,
+              "valor": "4d10"
+            }
+          ],
+          "categoriaMecanica": "consumible",
+          "formulaEscalado": "bono_competencia"
+        }
+      ],
+      "resistenciasDanio": [
+        "Frío"
+      ]
+    }
+  ]
+}

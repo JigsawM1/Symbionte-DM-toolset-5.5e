@@ -1,0 +1,369 @@
+{
+  "id": "mago",
+  "nombre": "Mago",
+  "descripcion": "El erudito definitivo de las artes arcanas, capaz de alterar la realidad mediante el estudio meticuloso y el dominio de su libro de conjuros.",
+  "dadoGolpe": "d6",
+  "caracteristicasPrimarias": [
+    "inteligencia",
+    "constitucion",
+    "destreza"
+  ],
+  "salvacionesCompetentes": [
+    "inteligencia",
+    "sabiduria"
+  ],
+  "competenciasArmaduras": [],
+  "competenciasArmas": [
+    "Armas Sencillas"
+  ],
+  "competenciasHerramientas": [],
+  "opcionesHabilidades": {
+    "cantidad": 2,
+    "opciones": [
+      "arcanos",
+      "historia",
+      "perspicacia",
+      "investigacion",
+      "medicina",
+      "religion"
+    ]
+  },
+  "equipoInicial": {
+    "descripcion": "Elige la opción (A) o (B):",
+    "opcionA": "(A) Libro de conjuros, Foco arcano, 2 Dagas, Paquete de Erudito y 5 PO",
+    "opcionB": "(B) 85 PO en monedas para comprar equipo"
+  },
+  "configuracionMagica": {
+    "tipoLanzador": "completo",
+    "habilidadConjuro": "inteligencia",
+    "modeloConjuros": "grimorio",
+    "nivelInicio": 1
+  },
+  "rasgos": [
+    {
+      "nivel": 1,
+      "nombre": "Lanzamiento de conjuros",
+      "descripcion": "Como estudiante de la magia arcana, has aprendido a lanzar conjuros. Consulta el *capítulo 7* para ver las reglas sobre el lanzamiento de conjuros. La información presentada a continuación detalla cómo usas esas reglas con los conjuros de mago, que encontrarás más adelante en la lista de conjuros de mago de la descripción de la clase.\n\n***Trucos.*** Conoces tres trucos de mago de tu elección 2,. Se recomiendan *luz*, *mano de mago* y *rayo de escarcha*. Cada vez que finalices un descanso largo, puedes sustituir uno de tus trucos de este rasgo por otro truco de mago de tu elección.\nCuando alcances los niveles 4 y 10 de mago, aprenderás otro truco de mago de tu elección, como se muestra en la columna \"Trucos\" de la tabla \"Rasgos de mago\".\n\n***Libro de conjuros.*** Tu aprendizaje mágico culminó con la creación de un libro único: tu libro de conjuros. Es un objeto Diminuto que pesa 1,5 kg (3 libras), contiene 100 páginas y solo puedes leerlo tú o alguien que lance *identificar*. Tú determinas la apariencia y los materiales del libro, como un tomo con cantos dorados o una colección de vitela atada con cordel.\nEl libro contiene los conjuros de nivel 1 y superiores que conoces. Empieza con seis conjuros de mago de nivel 1 de tu elección. Se recomiendan *detectar magia*, *caída de pluma*, *armadura de mago*, *proyectil mágico*, *dormir* y *ola atronadora*.\nCada vez que subas un nivel de mago tras el primero, añade dos conjuros de mago de tu elección a tu libro de conjuros. Cada uno de estos conjuros debe ser de un nivel para el que tengas espacios de conjuro, como se muestra en la tabla \"Rasgos de mago\". Los conjuros son la culminación de la investigación arcana que realizas regularmente.\n\n***Espacios de conjuro.*** La tabla \"Rasgos de mago\" muestra cuántos espacios de conjuro tienes para lanzar tus conjuros de nivel 1 y superiores. Recuperas todos los espacios utilizados tras finalizar un descanso largo.\n\n***Conjuros preparados de nivel 1 y superiores.*** Preparas la lista de conjuros de nivel 1 y superiores que están disponibles para que los lances con este rasgo. Para hacerlo, elige cuatro conjuros de tu libro de conjuros. Los conjuros elegidos deben ser de un nivel para el que tengas espacios de conjuro.\nEl número de conjuros de tu lista aumenta conforme subes de nivel de mago, como se muestra en la columna \"Conjuros preparados\" de la tabla \"Rasgos de mago\". Cada vez que ese número aumente, elige conjuros de mago adicionales hasta que el número de conjuros de tu lista coincida con el número de la tabla. Los conjuros elegidos deben ser de un nivel para el que tengas espacios de conjuro. Por ejemplo, si eres un mago de nivel 3, tu lista de conjuros preparados puede incluir seis conjuros de niveles 1 y 2 en cualquier combinación, elegidos de tu libro de conjuros.\nSi otro rasgo de mago te proporciona conjuros que siempre tienes preparados, esos conjuros no cuentan para el número de conjuros que puedes preparar con este rasgo, pero por lo demás cuentan como conjuros de mago para ti.\n\n***Cambiar tus conjuros preparados.*** Cada vez que finalices un descanso largo, puedes cambiar tu lista de conjuros preparados, reemplazando cualquiera de los conjuros de ella por conjuros de tu libro de conjuros.\n\n***Aptitud mágica.*** La Inteligencia es tu aptitud mágica en lo que respecta a tus conjuros de mago.\n\n***Canalizador mágico.*** Puedes utilizar un *canalizador arcano* o tu libro de conjuros como canalizador mágico para tus conjuros de mago.\n> ##### Ampliar y sustituir un libro de conjuros\n>\n> Los conjuros que añades a tu libro de conjuros conforme subes de nivel reflejan tus investigaciones mágicas continuas, pero podrías encontrar otros conjuros durante tus aventuras que puedes añadir al libro. Por ejemplo, podrías descubrir un conjuro de mago en un *pergamino de conjuro* y luego copiarlo en tu libro de conjuros.\n>\n> ***Copiar un conjuro en el libro.*** Cuando encuentres un conjuro de mago de nivel 1 o superior, puedes copiarlo en tu libro de conjuros si es de un nivel que puedas preparar y tienes tiempo para copiarlo. Por cada nivel del conjuro, la transcripción lleva 2 horas y cuesta 50 po. Después podrás preparar el conjuro como los demás conjuros de tu libro de conjuros.\n>\n> ***Copiar el libro.*** Puedes copiar un conjuro de tu libro de conjuros en otro libro. Es como copiar un nuevo conjuro en tu libro de conjuros pero más rápido, ya que ya sabes cómo lanzarlo. Solo necesitas gastar 1 hora y 10 po por cada nivel del conjuro copiado.\n>\n> Si pierdes tu libro de conjuros, puedes usar el mismo procedimiento para transcribir los conjuros de mago que tengas preparados en un nuevo libro de conjuros. Completar el resto del nuevo libro requerirá que encuentres nuevos conjuros para hacerlo. Por esta razón, muchos magos conservan un libro de conjuros de reserva.",
+      "tipoAccion": "pasivo",
+      "tieneUsosLimitados": true,
+      "recuperacion": "descanso_largo"
+    },
+    {
+      "nivel": 1,
+      "nombre": "Adepto ritual",
+      "descripcion": "Puedes lanzar cualquier conjuro como un ritual si tiene la etiqueta \"Ritual\" y está en tu libro de conjuros. No es necesario que tengas el conjuro preparado, pero debes leer del libro para lanzarlo de esta manera.",
+      "tipoAccion": "pasivo"
+    },
+    {
+      "nivel": 1,
+      "nombre": "Recuperación arcana",
+      "descripcion": "Puedes recuperar parte de tu energía mágica estudiando tu libro de conjuros. Cuando finalices un descanso corto, puedes elegir espacios de conjuro gastados para recuperarlos. Los espacios de conjuro pueden tener un nivel combinado que sea igual o inferior a la mitad de tu nivel de mago (redondeando hacia arriba), y ninguno de ellos puede ser de nivel 6 o superior. Por ejemplo, si eres un mago de nivel 4, puedes recuperar hasta dos niveles de espacios de conjuro, recuperando un espacio de conjuro de nivel 2 o dos espacios de conjuro de nivel 1.\nUna vez que uses este rasgo, no podrás volver a hacerlo hasta que finalices un descanso largo.",
+      "tipoAccion": "pasivo",
+      "tieneUsosLimitados": true,
+      "recuperacion": "descanso_corto"
+    },
+    {
+      "nivel": 2,
+      "nombre": "Erudito",
+      "descripcion": "Mientras estudiabas magia, también te especializaste en otro campo de estudio. Elige una de las siguientes habilidades en las que tengas competencia: Conocimiento arcano, Historia, Investigación, Medicina, Naturaleza o Religión. Tienes Pericia en la habilidad elegida.",
+      "tipoAccion": "pasivo"
+    },
+    {
+      "nivel": 3,
+      "nombre": "Subclase de mago",
+      "descripcion": "Consigues una subclase de mago de tu elección. Una subclase es una especialización que te proporciona rasgos cuando alcanzas ciertos niveles de mago. De aquí en adelante, obtienes todos los rasgos de tu subclase que sean de tu nivel de mago e inferiores.",
+      "tipoAccion": "pasivo"
+    },
+    {
+      "nivel": 4,
+      "nombre": "Mejora de característica",
+      "descripcion": "Obtienes la dote Mejora de característica u otra [dote](feats.html) de tu elección para la que cumplas las condiciones. Vuelves a obtener este rasgo en los niveles 8, 12 y 16 de mago.",
+      "tipoAccion": "pasivo"
+    },
+    {
+      "nivel": 5,
+      "nombre": "Memorizar conjuro",
+      "descripcion": "Cada vez que finalices un descanso corto, puedes estudiar tu libro de conjuros y reemplazar uno de los conjuros de mago de nivel 1 o superior que tengas preparados para tu rasgo Lanzamiento de conjuros por otro conjuro de nivel 1 o superior del libro.",
+      "tipoAccion": "pasivo",
+      "tieneUsosLimitados": true,
+      "recuperacion": "descanso_corto"
+    },
+    {
+      "nivel": 6,
+      "nombre": "Rasgo de subclase",
+      "descripcion": "Obtienes un rasgo de tu subclase de mago.",
+      "tipoAccion": "pasivo"
+    },
+    {
+      "nivel": 8,
+      "nombre": "Mejora de característica",
+      "descripcion": "Obtienes la dote Mejora de característica u otra [dote](feats.html) de tu elección para la que cumplas las condiciones.",
+      "tipoAccion": "pasivo"
+    },
+    {
+      "nivel": 10,
+      "nombre": "Rasgo de subclase",
+      "descripcion": "Obtienes un rasgo de tu subclase de mago.",
+      "tipoAccion": "pasivo"
+    },
+    {
+      "nivel": 12,
+      "nombre": "Mejora de característica",
+      "descripcion": "Obtienes la dote Mejora de característica u otra [dote](feats.html) de tu elección para la que cumplas las condiciones.",
+      "tipoAccion": "pasivo"
+    },
+    {
+      "nivel": 14,
+      "nombre": "Rasgo de subclase",
+      "descripcion": "Obtienes un rasgo de tu subclase de mago.",
+      "tipoAccion": "pasivo"
+    },
+    {
+      "nivel": 16,
+      "nombre": "Mejora de característica",
+      "descripcion": "Obtienes la dote Mejora de característica u otra [dote](feats.html) de tu elección para la que cumplas las condiciones.",
+      "tipoAccion": "pasivo"
+    },
+    {
+      "nivel": 18,
+      "nombre": "Maestría en conjuros",
+      "descripcion": "Has alcanzado tal dominio sobre ciertos conjuros que puedes lanzarlos a voluntad. Elige un conjuro de nivel 1 y otro de nivel 2 de tu libro de conjuros que tengan un tiempo de lanzamiento de una acción. Siempre tienes esos conjuros preparados y puedes lanzarlos en su nivel más bajo sin gastar un espacio de conjuro. Para lanzar cualquiera de los dos conjuros a un nivel superior, debes gastar un espacio de conjuro.\nCada vez que finalices un descanso largo, puedes estudiar tu libro de conjuros y reemplazar uno de esos conjuros por otro conjuro elegible del mismo nivel del libro.",
+      "tipoAccion": "pasivo",
+      "tieneUsosLimitados": true,
+      "recuperacion": "descanso_largo"
+    },
+    {
+      "nivel": 19,
+      "nombre": "Don épico",
+      "descripcion": "Obtienes una dote de don épico u otra [dote](feats.html) de tu elección para la que cumplas las condiciones. Se recomienda Don de la recuperación de conjuros.",
+      "tipoAccion": "pasivo"
+    },
+    {
+      "nivel": 20,
+      "nombre": "Conjuros predilectos",
+      "descripcion": "Elige dos conjuros de nivel 3 de tu libro de conjuros como tus conjuros predilectos. Siempre tienes estos conjuros preparados y puedes lanzar cada uno de ellos una vez a nivel 3 sin gastar un espacio de conjuro. Cuando lo hagas, no podrás volver a lanzarlos de esta manera hasta que finalices un descanso corto o largo. Para lanzar cualquiera de los dos conjuros a un nivel superior, debes gastar un espacio de conjuro.",
+      "tipoAccion": "pasivo",
+      "tieneUsosLimitados": true,
+      "recuperacion": "descanso_corto"
+    }
+  ],
+  "subclases": [
+    {
+      "id": "abjurador",
+      "clasePadre": "mago",
+      "nombre": "Abjurador",
+      "descripcion": "Tu estudio de la magia se centra en conjuros que bloquean, expulsan o protegen: terminando con efectos dañinos, expulsando influencias malignas y protegiendo a los débiles. Se recurre a los abjuradores cuando espíritus funestos requieren un exorcismo, cuando los lugares deben protegerse del espionaje mágico y cuando los portales a otros planos de existencia deben cerrarse. Los grupos de aventureros valoran a los abjuradores por la protección que proporcionan frente a una variedad de magia hostil y otros ataques.",
+      "lema": "Protege a tus compañeros y expulsa a los enemigos.",
+      "nivelDesbloqueo": 3,
+      "rasgos": [
+        {
+          "nivel": 3,
+          "nombre": "Erudito en abjuración",
+          "descripcion": "Elige dos conjuros de mago de la escuela de Abjuración, ninguno de los cuales puede ser de nivel superior a 2, y añádelos a tu libro de conjuros de forma gratuita.\nAdemás, cada vez que obtengas acceso a un nuevo nivel de espacios de conjuro en esta clase, puedes añadir un conjuro de mago de la escuela de Abjuración a tu libro de conjuros de forma gratuita. El conjuro elegido debe ser de un nivel para el que tengas espacios de conjuro.",
+          "tipoAccion": "pasivo",
+          "subclase": "Abjurador"
+        },
+        {
+          "nivel": 3,
+          "nombre": "Salvaguarda arcana",
+          "descripcion": "Puedes tejer magia a tu alrededor para protegerte. Cuando lanzas un conjuro de Abjuración con un espacio de conjuro, puedes usar simultáneamente una hebra de la magia del conjuro para crear una salvaguarda mágica sobre ti que dura hasta que finalices un descanso largo. La salvaguarda tiene unos puntos de golpe máximos iguales al doble de tu nivel de mago más tu modificador por Inteligencia. Cada vez que sufras daño, la salvaguarda sufre el daño en tu lugar, y si tienes alguna resistencia o vulnerabilidad, aplícalas antes de reducir los puntos de golpe de la salvaguarda. Si el daño reduce la salvaguarda a 0 puntos de golpe, sufres el daño restante. Mientras la salvaguarda tenga 0 puntos de golpe, no puede absorber daño, pero su magia permanece.\nCada vez que lanzas un conjuro de Abjuración con un espacio de conjuro, la salvaguarda recupera una cantidad de puntos de golpe igual al doble del nivel del espacio de conjuro. Como alternativa, como acción adicional, puedes gastar un espacio de conjuro y la salvaguarda recuperará una cantidad de puntos de golpe igual al doble del nivel del espacio de conjuro gastado.\nUna vez que crees la salvaguarda, no podrás volver a crearla hasta que finalices un descanso largo.",
+          "tipoAccion": "accion_adicional",
+          "subclase": "Abjurador",
+          "tieneUsosLimitados": true,
+          "recuperacion": "descanso_largo"
+        },
+        {
+          "nivel": 6,
+          "nombre": "Salvaguarda proyectada",
+          "descripcion": "Cuando una criatura que puedas ver a 9 m (30 pies) o menos de ti sufra daño, puedes llevar a cabo una reacción para hacer que tu Salvaguarda arcana absorba ese daño. Si este daño reduce la salvaguarda a 0 puntos de golpe, la criatura protegida sufre el daño restante. Si esa criatura tiene alguna resistencia o vulnerabilidad, aplícalas antes de reducir los puntos de golpe de la salvaguarda.",
+          "tipoAccion": "pasivo",
+          "subclase": "Abjurador"
+        },
+        {
+          "nivel": 10,
+          "nombre": "Rompedor de conjuros",
+          "descripcion": "Siempre tienes los conjuros *contrahechizo* y *disipar magia* preparados. Además, puedes lanzar *disipar magia* como acción adicional y puedes sumar tu bonificador por competencia a su prueba de característica.\nCuando lances cualquiera de los dos conjuros con un espacio de conjuro, ese espacio no se gasta si el conjuro no logra detener un conjuro.",
+          "tipoAccion": "accion_adicional",
+          "subclase": "Abjurador"
+        },
+        {
+          "nivel": 14,
+          "nombre": "Resistencia a conjuros",
+          "descripcion": "Tienes ventaja en las tiradas de salvación contra conjuros y tienes resistencia al daño de los conjuros.",
+          "tipoAccion": "pasivo",
+          "subclase": "Abjurador"
+        }
+      ],
+      "progresionConjuros": [
+        {
+          "nivelClase": 10,
+          "conjuros": [
+            "Contrahechizo",
+            "Disipar magia"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "adivino",
+      "clasePadre": "mago",
+      "nombre": "Adivino",
+      "descripcion": "El consejo de un adivino es buscado por aquellos que desean una comprensión más clara del pasado, el presente y el futuro. Como adivino, te esfuerzas por descorrer los velos del espacio, el tiempo y la consciencia. Trabajas para dominar conjuros de discernimiento, visión remota, conocimiento sobrenatural y previsión.",
+      "lema": "Conoce los secretos del multiverso.",
+      "nivelDesbloqueo": 3,
+      "rasgos": [
+        {
+          "nivel": 3,
+          "nombre": "Erudito en adivinación",
+          "descripcion": "Elige dos conjuros de mago de la escuela de Adivinación, ninguno de los cuales puede ser de nivel superior a 2, y añádelos a tu libro de conjuros de forma gratuita.\nAdemás, cada vez que obtengas acceso a un nuevo nivel de espacios de conjuro en esta clase, puedes añadir un conjuro de mago de la escuela de Adivinación a tu libro de conjuros de forma gratuita. El conjuro elegido debe ser de un nivel para el que tengas espacios de conjuro.",
+          "tipoAccion": "pasivo",
+          "subclase": "Adivino"
+        },
+        {
+          "nivel": 3,
+          "nombre": "Portento",
+          "descripcion": "Atisbos del futuro comienzan a hacerse presentes en tu percepción. Cada vez que finalices un descanso largo, tira dos d20 y anota los números sacados. Puedes sustituir cualquier tirada de d20 que hagas tú o una criatura que puedas ver por una de estas tiradas de presagio. Debes elegir hacerlo antes de la tirada, y solo puedes reemplazar una tirada de esta forma una vez por turno.\nCada tirada de presagio solo se puede usar una vez. Cuando finalices un descanso largo, pierdes cualquier tirada de presagio que no hayas utilizado.",
+          "tipoAccion": "pasivo",
+          "subclase": "Adivino",
+          "tieneUsosLimitados": true,
+          "recuperacion": "descanso_largo"
+        },
+        {
+          "nivel": 6,
+          "nombre": "Adivinación experta",
+          "descripcion": "Lanzar conjuros de Adivinación te resulta tan fácil que solo gasta una fracción de tu esfuerzo mágico. Cuando lanzas un conjuro de Adivinación utilizando un espacio de conjuro de nivel 2 o superior, recuperas un espacio de conjuro gastado. El espacio que recuperes debe ser de un nivel inferior al espacio que gastaste y no puede ser superior a nivel 5.",
+          "tipoAccion": "pasivo",
+          "subclase": "Adivino"
+        },
+        {
+          "nivel": 10,
+          "nombre": "El tercer ojo",
+          "descripcion": "Puedes aumentar tus poderes de percepción. Como acción adicional, elige uno de los siguientes beneficios, el cual durará hasta que comiences un descanso corto o largo. No puedes volver a usar este rasgo hasta que finalices un descanso corto o largo.\n\n***Visión en la oscuridad.*** Ganas visión en la oscuridad con un alcance de 36 m (120 pies).\n\n***Comprensión superior.*** Puedes leer cualquier idioma.\n\n***Ver invisibilidad.*** Puedes lanzar *ver invisibilidad* sin gastar un espacio de conjuro.",
+          "tipoAccion": "accion_adicional",
+          "subclase": "Adivino",
+          "tieneUsosLimitados": true,
+          "recuperacion": "descanso_corto"
+        },
+        {
+          "nivel": 14,
+          "nombre": "Portento mayor",
+          "descripcion": "Las visiones de tus sueños se intensifican y pintan una imagen más precisa en tu mente de lo que está por venir. Tira tres d20 para tu rasgo Portento en lugar de dos.",
+          "tipoAccion": "pasivo",
+          "subclase": "Adivino"
+        }
+      ]
+    },
+    {
+      "id": "evocador",
+      "clasePadre": "mago",
+      "nombre": "Evocador",
+      "descripcion": "Tus estudios se centran en la magia que crea poderosos efectos elementales como frío cortante, llamas abrasadoras, truenos resonantes, relámpagos crepitantes y ácido ardiente. Algunos evocadores encuentran empleo en fuerzas militares, sirviendo como artillería para arrasar ejércitos desde la distancia. Otros usan su poder para proteger a los demás, mientras que algunos buscan su propio beneficio.",
+      "lema": "Crea efectos elementales explosivos.",
+      "nivelDesbloqueo": 3,
+      "rasgos": [
+        {
+          "nivel": 3,
+          "nombre": "Erudito en evocación",
+          "descripcion": "Elige dos conjuros de mago de la escuela de Evocación, ninguno de los cuales puede ser de nivel superior a 2, y añádelos a tu libro de conjuros de forma gratuita.\nAdemás, cada vez que obtengas acceso a un nuevo nivel de espacios de conjuro en esta clase, puedes añadir un conjuro de mago de la escuela de Evocación a tu libro de conjuros de forma gratuita. El conjuro elegido debe ser de un nivel para el que tengas espacios de conjuro.",
+          "tipoAccion": "pasivo",
+          "subclase": "Evocador"
+        },
+        {
+          "nivel": 3,
+          "nombre": "Truco potente",
+          "descripcion": "Tus trucos dañinos afectan incluso a las criaturas que evitan la peor parte del efecto. Cuando lanzas un truco a una criatura y fallas con la tirada de ataque o el objetivo supera una tirada de salvación contra el truco, el objetivo sufre la mitad del daño del truco (si lo tiene), pero no sufre ningún efecto adicional del truco.",
+          "tipoAccion": "pasivo",
+          "subclase": "Evocador"
+        },
+        {
+          "nivel": 6,
+          "nombre": "Esculpir conjuros",
+          "descripcion": "Puedes crear bolsas de relativa seguridad dentro de los efectos de tus evocaciones. Cuando lanzas un conjuro de Evocación que afecte a otras criaturas que puedas ver, puedes elegir una cantidad de ellas igual a 1 más el nivel del conjuro. Las criaturas elegidas superan automáticamente sus tiradas de salvación contra el conjuro y no sufren daño si normalmente sufrirían la mitad de daño tras una salvación exitosa.",
+          "tipoAccion": "pasivo",
+          "subclase": "Evocador"
+        },
+        {
+          "nivel": 10,
+          "nombre": "Evocación potenciada",
+          "descripcion": "Cada vez que lances un conjuro de mago de la escuela de Evocación, puedes sumar tu modificador por Inteligencia a una tirada de daño de ese conjuro.",
+          "tipoAccion": "pasivo",
+          "subclase": "Evocador"
+        },
+        {
+          "nivel": 14,
+          "nombre": "Sobrecarga",
+          "descripcion": "Puedes aumentar el poder de tus conjuros. Cuando lanzas un conjuro de mago con un espacio de conjuro de niveles 1 a 5 que inflija daño, puedes infligir el daño máximo con ese conjuro en el turno en que lo lanzas.\nLa primera vez que lo hagas, no sufres ningún efecto adverso. Si vuelves a usar este rasgo antes de finalizar un descanso largo, sufres 2d12 de daño necrótico por cada nivel del espacio de conjuro inmediatamente después de lanzarlo. Este daño ignora la resistencia y la inmunidad.\nCada vez que vuelvas a usar este rasgo antes de finalizar un descanso largo, el daño necrótico por nivel de conjuro aumenta en 1d12.",
+          "tipoAccion": "pasivo",
+          "subclase": "Evocador",
+          "tieneUsosLimitados": true,
+          "recuperacion": "descanso_largo",
+          "formulaDados": "2d12"
+        }
+      ]
+    },
+    {
+      "id": "ilusionista",
+      "clasePadre": "mago",
+      "nombre": "Ilusionista",
+      "descripcion": "Te especializas en la magia que deslumbra los sentidos y engaña a la mente, y las ilusiones que elaboras hacen que lo imposible parezca real.",
+      "lema": "Teje sutiles conjuros de engaño.",
+      "nivelDesbloqueo": 3,
+      "rasgos": [
+        {
+          "nivel": 3,
+          "nombre": "Erudito en ilusión",
+          "descripcion": "Elige dos conjuros de mago de la escuela de Ilusión, ninguno de los cuales puede ser de nivel superior a 2, y añádelos a tu libro de conjuros de forma gratuita.\nAdemás, cada vez que obtengas acceso a un nuevo nivel de espacios de conjuro en esta clase, puedes añadir un conjuro de mago de la escuela de Ilusión a tu libro de conjuros de forma gratuita. El conjuro elegido debe ser de un nivel para el que tengas espacios de conjuro.",
+          "tipoAccion": "pasivo",
+          "subclase": "Ilusionista"
+        },
+        {
+          "nivel": 3,
+          "nombre": "Ilusiones mejoradas",
+          "descripcion": "Puedes lanzar conjuros de Ilusión sin proporcionar componentes verbales, y si un conjuro de Ilusión que lanzas tiene un alcance de 3 m (10 pies) o más, el alcance aumenta en 18 m (60 pies).\nTambién conoces el truco *ilusión menor*. Si ya lo conoces, aprendes un truco de mago diferente de tu elección. El truco no cuenta para tu cantidad de trucos conocidos. Puedes crear tanto un sonido como una imagen con un solo lanzamiento de *ilusión menor*, y puedes lanzarlo como acción adicional.",
+          "tipoAccion": "accion_adicional",
+          "subclase": "Ilusionista"
+        },
+        {
+          "nivel": 6,
+          "nombre": "Criaturas fantasmales",
+          "descripcion": "Siempre tienes los conjuros *invocar bestia* e *invocar feérico* preparados. Cada vez que lances cualquiera de los dos conjuros, puedes cambiar su escuela a Ilusión, lo que hace que la criatura invocada parezca espectral. Puedes lanzar la versión de Ilusión de cada conjuro sin gastar un espacio de conjuro, pero lanzarlo sin un espacio reduce a la mitad los puntos de golpe de la criatura. Una vez que lances cualquiera de los dos conjuros sin un espacio de conjuro, debes finalizar un descanso largo antes de poder volver a lanzarlo de esa manera.",
+          "tipoAccion": "pasivo",
+          "subclase": "Ilusionista",
+          "tieneUsosLimitados": true,
+          "recuperacion": "descanso_largo"
+        },
+        {
+          "nivel": 10,
+          "nombre": "Yo ilusorio",
+          "descripcion": "Cuando una criatura te acierte con una tirada de ataque, puedes llevar a cabo una reacción para interponer un duplicado ilusorio de ti mismo entre el atacante y tú. El ataque falla automáticamente contra ti y luego la ilusión se disipa.\nUna vez que uses este rasgo, no podrás volver a hacerlo hasta que finalices un descanso corto o largo. También puedes restablecer su uso gastando un espacio de conjuro de nivel 2 o superior (no requiere acción).",
+          "tipoAccion": "pasivo",
+          "subclase": "Ilusionista",
+          "tieneUsosLimitados": true,
+          "recuperacion": "descanso_corto"
+        },
+        {
+          "nivel": 14,
+          "nombre": "Realidad ilusoria",
+          "descripcion": "Has aprendido a tejer magia de sombras en tus ilusiones para darles una semirrealidad. Cuando lanzas un conjuro de Ilusión con un espacio de conjuro, puedes elegir un objeto inanimado y no mágico que sea parte de la ilusión y hacer que ese objeto sea real. Puedes hacerlo en tu turno como acción adicional mientras el conjuro continúe activo. El objeto permanece real durante 1 minuto, tiempo durante el cual no puede infligir daño ni imponer ningún estado. Por ejemplo, puedes crear la ilusión de un puente sobre un abismo y luego hacerlo real para cruzarlo.",
+          "tipoAccion": "accion_adicional",
+          "subclase": "Ilusionista"
+        }
+      ],
+      "progresionConjuros": [
+        {
+          "nivelClase": 3,
+          "trucos": [
+            "Ilusión menor"
+          ]
+        },
+        {
+          "nivelClase": 6,
+          "conjuros": [
+            "Invocar bestia",
+            "Invocar feérico"
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,349 @@
+{
+  "id": "tiefling",
+  "nombre": "Tiefling",
+  "descripcion": "Portadores de un legado de los Planos Inferiores manifestado en astucia, cuernos y magia flamígera o sombría.",
+  "tipoCriatura": "Humanoide",
+  "tamanoOpciones": [
+    "Mediano",
+    "Pequeño"
+  ],
+  "tamanoPorDefecto": "Mediano",
+  "velocidadBase": 30,
+  "visionOscuridad": 60,
+  "rasgos": [
+    {
+      "nombre": "Tipo de criatura",
+      "descripcion": "Eres una criatura del tipo Humanoide.",
+      "tipoAccion": "pasivo",
+      "categoriaMecanica": "pasivo_permanente"
+    },
+    {
+      "nombre": "Tamaño",
+      "descripcion": "Eres Mediano (entre 4 y 7 pies de altura) o Pequeño (entre 3 y 4 pies de altura), elegido al seleccionar la especie.",
+      "tipoAccion": "pasivo",
+      "categoriaMecanica": "selector_informativo",
+      "selectores": [
+        {
+          "id": "selector_tamano_especie",
+          "tipo": "unico",
+          "etiqueta": "Tamaño",
+          "opciones": [
+            {
+              "id": "mediano",
+              "nombre": "Mediano",
+              "descripcion": "Tu personaje es de tamaño Mediano (entre 4 y 7 pies de altura)."
+            },
+            {
+              "id": "pequeno",
+              "nombre": "Pequeño",
+              "descripcion": "Tu personaje es de tamaño Pequeño (entre 3 y 4 pies de altura)."
+            }
+          ],
+          "maxSelecciones": 1,
+          "valorActual": [
+            "mediano"
+          ],
+          "visualizacion": "normal"
+        }
+      ]
+    },
+    {
+      "nombre": "Visión en la oscuridad",
+      "descripcion": "Tienes visión en la oscuridad hasta 60 pies.",
+      "tipoAccion": "pasivo",
+      "categoriaMecanica": "pasivo_permanente"
+    },
+    {
+      "nombre": "Presencia sobrenatural",
+      "descripcion": "Conoces el truco *taumaturgia*. Cuando lo lances con este atributo, el conjuro utiliza la misma aptitud mágica que la de tu atributo Legado infernal.",
+      "tipoAccion": "pasivo",
+      "conjurosOtorgados": [
+        "taumaturgia"
+      ],
+      "categoriaMecanica": "pasivo_permanente"
+    },
+    {
+      "nombre": "Legado infernal",
+      "descripcion": "Eres el destinatario de un legado que te otorga capacidades sobrenaturales. Elige un legado de la tabla 'Legados infernales'. Obtienes el beneficio de nivel 1 del legado elegido.\n\nCuando alcanzas los niveles 3 y 5 de personaje, aprendes un conjuro de nivel superior, como se muestra en la tabla. Siempre tienes ese conjuro preparado. Puedes lanzarlo una vez sin gastar un espacio de conjuro y recuperas la capacidad de hacerlo de esta forma tras finalizar un descanso largo. También puedes lanzar el conjuro usando cualquier espacio de conjuro que tengas del nivel apropiado.\n\nLa Inteligencia, la Sabiduría o el Carisma es tu aptitud mágica para los conjuros que lances con este atributo (elige la característica al seleccionar el legado).",
+      "tipoAccion": "pasivo",
+      "categoriaMecanica": "selector_informativo",
+      "selectores": [
+        {
+          "id": "selector_aptitud_magica_tiefling",
+          "tipo": "unico",
+          "etiqueta": "Aptitud Mágica del Legado",
+          "opciones": [
+            {
+              "id": "inteligencia",
+              "nombre": "Inteligencia",
+              "descripcion": "Usas Inteligencia como aptitud mágica para los conjuros de tu legado."
+            },
+            {
+              "id": "sabiduria",
+              "nombre": "Sabiduría",
+              "descripcion": "Usas Sabiduría como aptitud mágica para los conjuros de tu legado."
+            },
+            {
+              "id": "carisma",
+              "nombre": "Carisma",
+              "descripcion": "Usas Carisma como aptitud mágica para los conjuros de tu legado."
+            }
+          ],
+          "maxSelecciones": 1,
+          "valorActual": [
+            "carisma"
+          ],
+          "visualizacion": "normal"
+        }
+      ]
+    }
+  ],
+  "subespecies": [
+    {
+      "id": "legado_abisal",
+      "especiePadre": "tiefling",
+      "nombre": "Legado abisal",
+      "descripcion": "Vinculado al caos del Abismo con resistencia al daño de veneno y magia entálpica.",
+      "rasgos": [
+        {
+          "nombre": "Resistencia abisal",
+          "descripcion": "Tienes resistencia al daño de veneno.",
+          "tipoAccion": "pasivo",
+          "categoriaMecanica": "pasivo_permanente"
+        },
+        {
+          "nombre": "Magia abisal: Rociada venenosa",
+          "descripcion": "Conoces el truco *rociada venenosa* como truco innato de tu legado abisal.",
+          "tipoAccion": "pasivo",
+          "conjurosOtorgados": [
+            "rociada_venenosa"
+          ],
+          "categoriaMecanica": "pasivo_permanente"
+        },
+        {
+          "nombre": "Magia abisal: Rayo nauseabundo",
+          "descripcion": "Siempre tienes preparado el conjuro *rayo nauseabundo*. Puedes lanzarlo una vez sin gastar un espacio de conjuro y recuperas la capacidad tras un descanso largo. También puedes lanzarlo usando espacios de conjuro del nivel apropiado.",
+          "tipoAccion": "pasivo",
+          "nivelRequerido": 3,
+          "tieneUsosLimitados": true,
+          "usosMaximos": 1,
+          "recuperacion": "descanso_largo",
+          "conjurosOtorgados": [
+            "rayo_nauseabundo"
+          ],
+          "categoriaMecanica": "consumible"
+        },
+        {
+          "nombre": "Magia abisal: Inmovilizar persona",
+          "descripcion": "Siempre tienes preparado el conjuro *inmovilizar persona*. Puedes lanzarlo una vez sin gastar un espacio de conjuro y recuperas la capacidad tras un descanso largo. También puedes lanzarlo usando espacios de conjuro del nivel apropiado.",
+          "tipoAccion": "pasivo",
+          "nivelRequerido": 5,
+          "tieneUsosLimitados": true,
+          "usosMaximos": 1,
+          "recuperacion": "descanso_largo",
+          "conjurosOtorgados": [
+            "inmovilizar_persona"
+          ],
+          "categoriaMecanica": "consumible"
+        }
+      ],
+      "conjurosInnatos": [
+        {
+          "hechizoId": "rociada_venenosa",
+          "nombreHechizo": "Rociada venenosa",
+          "caracteristica": "elegir",
+          "esTruco": true,
+          "nivelRequerido": 1
+        },
+        {
+          "hechizoId": "rayo_nauseabundo",
+          "nombreHechizo": "Rayo nauseabundo",
+          "caracteristica": "elegir",
+          "esTruco": false,
+          "nivelRequerido": 3,
+          "usosGratis": 1,
+          "recuperacion": "descanso_largo"
+        },
+        {
+          "hechizoId": "inmovilizar_persona",
+          "nombreHechizo": "Inmovilizar persona",
+          "caracteristica": "elegir",
+          "esTruco": false,
+          "nivelRequerido": 5,
+          "usosGratis": 1,
+          "recuperacion": "descanso_largo"
+        }
+      ],
+      "resistenciasDanio": [
+        "Veneno"
+      ]
+    },
+    {
+      "id": "legado_ctonico",
+      "especiePadre": "tiefling",
+      "nombre": "Legado ctónico",
+      "descripcion": "Vinculado al inframundo con resistencia al daño necrótico y magia fúnebre.",
+      "rasgos": [
+        {
+          "nombre": "Resistencia ctónica",
+          "descripcion": "Tienes resistencia al daño necrótico.",
+          "tipoAccion": "pasivo",
+          "categoriaMecanica": "pasivo_permanente"
+        },
+        {
+          "nombre": "Magia ctónica: Toque helado",
+          "descripcion": "Conoces el truco *toque helado* como truco innato de tu legado ctónico.",
+          "tipoAccion": "pasivo",
+          "conjurosOtorgados": [
+            "toque_helado"
+          ],
+          "categoriaMecanica": "pasivo_permanente"
+        },
+        {
+          "nombre": "Magia ctónica: Falsa vida",
+          "descripcion": "Siempre tienes preparado el conjuro *falsa vida*. Puedes lanzarlo una vez sin gastar un espacio de conjuro y recuperas la capacidad tras un descanso largo. También puedes lanzarlo usando espacios de conjuro del nivel apropiado.",
+          "tipoAccion": "pasivo",
+          "nivelRequerido": 3,
+          "tieneUsosLimitados": true,
+          "usosMaximos": 1,
+          "recuperacion": "descanso_largo",
+          "conjurosOtorgados": [
+            "falsa_vida"
+          ],
+          "categoriaMecanica": "consumible"
+        },
+        {
+          "nombre": "Magia ctónica: Rayo debilitador",
+          "descripcion": "Siempre tienes preparado el conjuro *rayo debilitador*. Puedes lanzarlo una vez sin gastar un espacio de conjuro y recuperas la capacidad tras un descanso largo. También puedes lanzarlo usando espacios de conjuro del nivel apropiado.",
+          "tipoAccion": "pasivo",
+          "nivelRequerido": 5,
+          "tieneUsosLimitados": true,
+          "usosMaximos": 1,
+          "recuperacion": "descanso_largo",
+          "conjurosOtorgados": [
+            "rayo_debilitador"
+          ],
+          "categoriaMecanica": "consumible"
+        }
+      ],
+      "conjurosInnatos": [
+        {
+          "hechizoId": "toque_helado",
+          "nombreHechizo": "Toque helado",
+          "caracteristica": "elegir",
+          "esTruco": true,
+          "nivelRequerido": 1
+        },
+        {
+          "hechizoId": "falsa_vida",
+          "nombreHechizo": "Falsa vida",
+          "caracteristica": "elegir",
+          "esTruco": false,
+          "nivelRequerido": 3,
+          "usosGratis": 1,
+          "recuperacion": "descanso_largo"
+        },
+        {
+          "hechizoId": "rayo_debilitador",
+          "nombreHechizo": "Rayo debilitador",
+          "caracteristica": "elegir",
+          "esTruco": false,
+          "nivelRequerido": 5,
+          "usosGratis": 1,
+          "recuperacion": "descanso_largo"
+        }
+      ],
+      "resistenciasDanio": [
+        "Necrótico"
+      ]
+    },
+    {
+      "id": "legado_infernal",
+      "especiePadre": "tiefling",
+      "nombre": "Legado infernal",
+      "descripcion": "Vinculado a los Nueve Infiernos con resistencia al daño de fuego y llamas punitivas.",
+      "rasgos": [
+        {
+          "nombre": "Resistencia infernal",
+          "descripcion": "Tienes resistencia al daño de fuego.",
+          "tipoAccion": "pasivo",
+          "categoriaMecanica": "pasivo_permanente"
+        },
+        {
+          "nombre": "Magia infernal: Descarga de fuego",
+          "descripcion": "Conoces el truco *descarga de fuego* como truco innato de tu legado infernal.",
+          "tipoAccion": "pasivo",
+          "conjurosOtorgados": [
+            "descarga_fuego"
+          ],
+          "categoriaMecanica": "pasivo_permanente"
+        },
+        {
+          "nombre": "Magia infernal: Reprensión infernal",
+          "descripcion": "Siempre tienes preparado el conjuro *reprensión infernal*. Puedes lanzarlo una vez sin gastar un espacio de conjuro y recuperas la capacidad tras un descanso largo. También puedes lanzarlo usando espacios de conjuro del nivel apropiado.",
+          "tipoAccion": "pasivo",
+          "nivelRequerido": 3,
+          "tieneUsosLimitados": true,
+          "usosMaximos": 1,
+          "recuperacion": "descanso_largo",
+          "conjurosOtorgados": [
+            "reprension_infernal"
+          ],
+          "categoriaMecanica": "consumible"
+        },
+        {
+          "nombre": "Magia infernal: Oscuridad",
+          "descripcion": "Siempre tienes preparado el conjuro *oscuridad*. Puedes lanzarlo una vez sin gastar un espacio de conjuro y recuperas la capacidad tras un descanso largo. También puedes lanzarlo usando espacios de conjuro del nivel apropiado.",
+          "tipoAccion": "pasivo",
+          "nivelRequerido": 5,
+          "tieneUsosLimitados": true,
+          "usosMaximos": 1,
+          "recuperacion": "descanso_largo",
+          "conjurosOtorgados": [
+            "oscuridad"
+          ],
+          "categoriaMecanica": "consumible"
+        }
+      ],
+      "conjurosInnatos": [
+        {
+          "hechizoId": "descarga_fuego",
+          "nombreHechizo": "Descarga de fuego",
+          "caracteristica": "elegir",
+          "esTruco": true,
+          "nivelRequerido": 1
+        },
+        {
+          "hechizoId": "reprension_infernal",
+          "nombreHechizo": "Reprensión infernal",
+          "caracteristica": "elegir",
+          "esTruco": false,
+          "nivelRequerido": 3,
+          "usosGratis": 1,
+          "recuperacion": "descanso_largo"
+        },
+        {
+          "hechizoId": "oscuridad",
+          "nombreHechizo": "Oscuridad",
+          "caracteristica": "elegir",
+          "esTruco": false,
+          "nivelRequerido": 5,
+          "usosGratis": 1,
+          "recuperacion": "descanso_largo"
+        }
+      ],
+      "resistenciasDanio": [
+        "Fuego"
+      ]
+    }
+  ],
+  "conjurosInnatos": [
+    {
+      "hechizoId": "taumaturgia",
+      "nombreHechizo": "Taumaturgia",
+      "caracteristica": "elegir",
+      "esTruco": true,
+      "descripcion": "Conoces el truco taumaturgia usando tu aptitud mágica elegida."
+    }
+  ]
+}

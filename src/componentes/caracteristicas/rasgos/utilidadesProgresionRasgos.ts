@@ -1,5 +1,5 @@
 import type { PersonajeJugador, RasgoPersonaje } from "@/tipos";
-import { obtenerClasePorNombre, obtenerSubclasePorNombre } from "@/servicios/gestorClases";
+import { obtenerClasePorNombre, obtenerSubclasePorNombre, resolverEscaladosRasgo } from "@/servicios/gestorClases";
 import { resolverFormulaDinamica } from "@/servicios/evaluadorEfectosRasgos";
 import type { BloqueProgresionClase, ItemProgresionClase } from "./VisorProgresionClase";
 import type { GrupoClaseJerarquico, DatosJerarquicosRasgos } from "./tiposRasgosJugador";
@@ -92,6 +92,14 @@ export function resolverRecursosPadre(
   return { usosPadre, formulaDadosEfectiva };
 }
 
+function calcularUsosItemProgresion(r: import("@/tipos/rasgos").PlantillaRasgoClase, nivelPj: number): number | undefined {
+  if (!r.tieneUsosLimitados) return undefined;
+  const escalado = resolverEscaladosRasgo(r, nivelPj, [], []);
+  if (escalado.usosEscalados !== undefined) return escalado.usosEscalados;
+  if (typeof r.obtenerUsosMaximos === "function") return r.obtenerUsosMaximos(nivelPj);
+  return r.usosMaximos;
+}
+
 /**
  * Calcula la progresión de niveles 1 a 20 para todas las clases y subclases del personaje.
  */
@@ -122,8 +130,8 @@ export function calcularProgresionClases(
         nivelRequerido: r.nivel,
         nivel: r.nivel,
         tieneUsosLimitados: !!r.tieneUsosLimitados,
-        usosMaximos: r.tieneUsosLimitados && r.obtenerUsosMaximos ? r.obtenerUsosMaximos(nivelPj) : undefined,
-        usosRestantes: r.tieneUsosLimitados && r.obtenerUsosMaximos ? r.obtenerUsosMaximos(nivelPj) : undefined,
+        usosMaximos: calcularUsosItemProgresion(r, nivelPj),
+        usosRestantes: calcularUsosItemProgresion(r, nivelPj),
         recuperacion: r.recuperacion || "ninguno",
         formulaDados: r.formulaDados,
         personalizado: false,
@@ -148,8 +156,8 @@ export function calcularProgresionClases(
       nivelRequerido: r.nivel,
       nivel: r.nivel,
       tieneUsosLimitados: !!r.tieneUsosLimitados,
-      usosMaximos: r.tieneUsosLimitados && r.obtenerUsosMaximos ? r.obtenerUsosMaximos(nivelPj) : undefined,
-      usosRestantes: r.tieneUsosLimitados && r.obtenerUsosMaximos ? r.obtenerUsosMaximos(nivelPj) : undefined,
+      usosMaximos: calcularUsosItemProgresion(r, nivelPj),
+      usosRestantes: calcularUsosItemProgresion(r, nivelPj),
       recuperacion: r.recuperacion || "ninguno",
       formulaDados: r.formulaDados,
       personalizado: false,

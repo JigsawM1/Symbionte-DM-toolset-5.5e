@@ -3,7 +3,7 @@ import type {
   Caracteristica,
   TamanoPersonaje
 } from "./index";
-import type { PlantillaRasgoEspecie } from "@/constantes/rasgosDND55";
+import type { PlantillaRasgoEspecie } from "./rasgos";
 
 /**
  * Representación de un conjuro o truco innato otorgado por una especie o linaje.

@@ -152,15 +152,16 @@ export function evaluarFormulaUsos(formula: string | null | undefined, nivel: nu
       if (cumple) return valor;
     }
 
-    const valorExpr = evaluarExpresionNumericaSegura(cuerpoNormalizado, { nivel: niv });
-    if (valorExpr > 0) return valorExpr;
-
     const partesDosPuntos = cuerpo.split(":");
     if (partesDosPuntos.length > 1) {
       const ultimo = partesDosPuntos[partesDosPuntos.length - 1].replace(/[()]/g, "").trim();
       const valDefecto = parseInt(ultimo, 10);
       if (!isNaN(valDefecto)) return valDefecto;
     }
+
+    const exprConNivel = cuerpoNormalizado.replace(/\bniv\b/g, "nivel");
+    const valorExpr = evaluarExpresionNumericaSegura(exprConNivel, { nivel: niv });
+    if (valorExpr > 0) return valorExpr;
   } catch (error) {
     logger.warn(`[gestorClases] Error al evaluar formulaUsos: "${formula}"`, error);
   }
@@ -184,6 +185,7 @@ export function resolverEscaladosRasgo(
       tabla?: Array<{ nivelMinimo: number; valor: number }>;
       modificador?: string;
       minimo?: number;
+      formula?: string;
     };
     escaladoRecuperacion?: Array<{ nivelMinimo: number; valor: string }>;
   },
@@ -211,13 +213,23 @@ export function resolverEscaladosRasgo(
     if (entrada) formulaDados = entrada.valor;
   }
 
-  // 2. Escalado de usos por tabla de nivel
-  if (r.escaladoUsos?.tipo === "por_nivel" && r.escaladoUsos.tabla?.length) {
+  // 2. Escalado de usos por tabla de nivel o fórmula semántica
+  if (r.escaladoUsos?.tipo === "por_nivel") {
     const minimo = r.escaladoUsos.minimo ?? 1;
-    const entrada = [...r.escaladoUsos.tabla]
-      .sort((a, b) => b.nivelMinimo - a.nivelMinimo)
-      .find((e) => nivel >= e.nivelMinimo);
-    if (entrada) usosEscalados = Math.max(minimo, entrada.valor);
+    if (r.escaladoUsos.tabla?.length) {
+      const entrada = [...r.escaladoUsos.tabla]
+        .sort((a, b) => b.nivelMinimo - a.nivelMinimo)
+        .find((e) => nivel >= e.nivelMinimo);
+      if (entrada) usosEscalados = Math.max(minimo, entrada.valor);
+    } else if (r.escaladoUsos.formula) {
+      if (r.escaladoUsos.formula === "nivel") {
+        usosEscalados = Math.max(minimo, nivel);
+      } else if (r.escaladoUsos.formula === "nivel_x5") {
+        usosEscalados = Math.max(minimo, nivel * 5);
+      } else if (r.escaladoUsos.formula === "nivel_mas_1") {
+        usosEscalados = Math.max(minimo, nivel + 1);
+      }
+    }
   }
 
   // 3. Escalado de recuperación

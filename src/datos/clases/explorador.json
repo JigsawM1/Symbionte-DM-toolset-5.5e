@@ -1,0 +1,471 @@
+{
+  "id": "explorador",
+  "nombre": "Explorador",
+  "descripcion": "Un maestro del rastreo y la supervivencia en los confines del mundo, combinando destreza marcial letal con magia de la naturaleza.",
+  "dadoGolpe": "d10",
+  "caracteristicasPrimarias": [
+    "destreza",
+    "sabiduria"
+  ],
+  "salvacionesCompetentes": [
+    "fuerza",
+    "destreza"
+  ],
+  "competenciasArmaduras": [
+    "Armaduras Ligeras",
+    "Armaduras Medianas",
+    "Escudos"
+  ],
+  "competenciasArmas": [
+    "Armas Sencillas",
+    "Armas Marciales"
+  ],
+  "competenciasHerramientas": [],
+  "opcionesHabilidades": {
+    "cantidad": 3,
+    "opciones": [
+      "manejoAnimales",
+      "atletismo",
+      "perspicacia",
+      "investigacion",
+      "naturaleza",
+      "percepcion",
+      "sigilo",
+      "supervivencia"
+    ]
+  },
+  "equipoInicial": {
+    "descripcion": "Elige la opción (A) o (B):",
+    "opcionA": "(A) Cuero tachonado, 2 Espadas cortas, Arco largo con 20 flechas, Paquete de Explorador y 7 PO",
+    "opcionB": "(B) 150 PO en monedas para comprar equipo"
+  },
+  "configuracionMagica": {
+    "tipoLanzador": "medio",
+    "habilidadConjuro": "sabiduria",
+    "modeloConjuros": "preparados",
+    "nivelInicio": 1
+  },
+  "rasgos": [
+    {
+      "nivel": 1,
+      "nombre": "Lanzamiento de conjuros",
+      "descripcion": "Has aprendido a canalizar la esencia mágica de la naturaleza para lanzar conjuros. Consulta el *capítulo 7* para ver las reglas sobre el lanzamiento de conjuros. La información presentada a continuación detalla cómo usas esas reglas con los conjuros de explorador, que aparecen en la lista de conjuros de explorador más adelante en la descripción de la clase.\n\n***Espacios de conjuro.*** La tabla \"Rasgos de explorador\" muestra cuántos espacios de conjuro tienes para lanzar tus conjuros de nivel 1 y superiores. Recuperas todos los espacios utilizados tras finalizar un descanso largo.\n\n***Conjuros preparados de nivel 1 y superiores.*** Preparas la lista de conjuros de nivel 1 y superiores que están disponibles para que los lances con este rasgo. Para empezar, elige dos conjuros de explorador de nivel 1. Se recomiendan *curar heridas* y *golpe apresador*.\nEl número de conjuros de tu lista aumenta conforme subes de nivel de explorador, como se muestra en la columna \"Conjuros preparados\" de la tabla \"Rasgos de explorador\". Cada vez que ese número aumente, elige conjuros de explorador adicionales hasta que el número de conjuros de tu lista coincida con el número en la tabla \"Rasgos de explorador\". Los conjuros elegidos deben ser de un nivel para el que tengas espacios de conjuro. Por ejemplo, si eres un explorador de nivel 5, tu lista de conjuros preparados puede incluir seis conjuros de explorador de nivel 1 o 2 en cualquier combinación.\nSi otro rasgo de explorador te proporciona conjuros que siempre tienes preparados, esos conjuros no cuentan para el número de conjuros que puedes preparar con este rasgo, pero por lo demás cuentan como conjuros de explorador para ti.\n\n***Cambiar tus conjuros preparados.*** Cada vez que finalices un descanso largo, puedes reemplazar un conjuro de tu lista por otro conjuro de explorador para el que tengas espacios de conjuro.\n\n***Aptitud mágica.*** La Sabiduría es tu aptitud mágica en lo que respecta a tus conjuros de explorador.\n\n***Canalizador mágico.*** Puedes utilizar un *canalizador druídico* como canalizador mágico para tus conjuros de explorador.",
+      "tipoAccion": "pasivo",
+      "tieneUsosLimitados": true,
+      "recuperacion": "descanso_largo"
+    },
+    {
+      "nivel": 1,
+      "nombre": "Enemigo predilecto",
+      "descripcion": "Siempre tienes el conjuro *marca del cazador* preparado. Puedes lanzarlo dos veces sin gastar un espacio de conjuro, y recuperas todos los usos gastados de esta capacidad cuando finalizas un descanso largo.\nEl número de veces que puedes lanzar el conjuro sin un espacio de conjuro aumenta cuando alcanzas ciertos niveles de explorador, como se muestra en la columna \"Enemigo predilecto\" de la tabla \"Rasgos de explorador\".",
+      "tipoAccion": "pasivo",
+      "tieneUsosLimitados": true,
+      "recuperacion": "descanso_largo"
+    },
+    {
+      "nivel": 1,
+      "nombre": "Maestría con armas",
+      "descripcion": "Tu entrenamiento con armas te permite utilizar las propiedades de maestría de dos tipos de armas de tu elección con las que tengas competencia, como los *arcos largos* y las *espadas cortas*.\nCada vez que finalices un descanso largo, puedes cambiar los tipos de armas que elegiste. Por ejemplo, podrías cambiar para usar las propiedades de maestría de las *cimitarras* y las *espadas largas*.",
+      "tipoAccion": "pasivo",
+      "tieneUsosLimitados": true,
+      "recuperacion": "descanso_largo"
+    },
+    {
+      "nivel": 2,
+      "nombre": "Explorador diestro",
+      "descripcion": "Gracias a tus viajes, obtienes los siguientes beneficios.\n\n***Pericia.*** Elige una de tus competencias en habilidades en la que no tengas Pericia. Ganas Pericia en esa habilidad.\n\n***Idiomas.*** Conoces dos idiomas de tu elección de las tablas de idiomas del *capítulo 2*.",
+      "tipoAccion": "pasivo"
+    },
+    {
+      "nivel": 2,
+      "nombre": "Estilo de combate",
+      "descripcion": "Ganas una dote de Estilo de combate de tu elección. En lugar de elegir una de esas dotes, puedes elegir la opción a continuación.\n\n***Guerrero druídico.*** Aprendes dos trucos de druida de tu elección. Se recomiendan *guía* y *fuego fatuo estelar*. Los trucos elegidos cuentan como conjuros de explorador para ti, y la Sabiduría es tu aptitud mágica para ellos. Cada vez que subas un nivel de explorador, puedes reemplazar uno de estos trucos por otro truco de druida.",
+      "tipoAccion": "pasivo"
+    },
+    {
+      "nivel": 3,
+      "nombre": "Subclase de explorador",
+      "descripcion": "Consigues una subclase de explorador de tu elección. Una subclase es una especialización que te proporciona rasgos cuando alcanzas ciertos niveles de explorador. De aquí en adelante, obtienes todos los rasgos de tu subclase que sean de tu nivel de explorador e inferiores.",
+      "tipoAccion": "pasivo"
+    },
+    {
+      "nivel": 4,
+      "nombre": "Mejora de característica",
+      "descripcion": "Obtienes la dote Mejora de característica u otra [dote](feats.html) de tu elección para la que cumplas las condiciones. Vuelves a obtener este rasgo en los niveles 8, 12 y 16 de explorador.",
+      "tipoAccion": "pasivo"
+    },
+    {
+      "nivel": 5,
+      "nombre": "Ataque adicional",
+      "descripcion": "Puedes atacar dos veces en lugar de una cada vez que realices la acción de atacar en tu turno.",
+      "tipoAccion": "accion"
+    },
+    {
+      "nivel": 6,
+      "nombre": "Trotamundos",
+      "descripcion": "Tu velocidad aumenta en 3 m (10 pies) mientras no lleves armadura pesada. También tienes una velocidad escalando y una velocidad nadando iguales a tu velocidad.",
+      "tipoAccion": "pasivo"
+    },
+    {
+      "nivel": 7,
+      "nombre": "Rasgo de subclase",
+      "descripcion": "Obtienes un rasgo de tu subclase de explorador.",
+      "tipoAccion": "pasivo"
+    },
+    {
+      "nivel": 8,
+      "nombre": "Mejora de característica",
+      "descripcion": "Obtienes la dote Mejora de característica u otra [dote](feats.html) de tu elección para la que cumplas las condiciones.",
+      "tipoAccion": "pasivo"
+    },
+    {
+      "nivel": 9,
+      "nombre": "Pericia",
+      "descripcion": "Elige dos de tus competencias en habilidades en las que no tengas Pericia. Ganas Pericia en esas habilidades.",
+      "tipoAccion": "pasivo"
+    },
+    {
+      "nivel": 10,
+      "nombre": "Incansable",
+      "descripcion": "Las fuerzas primigenias ahora te ayudan a impulsarte en tus viajes, otorgándote los siguientes beneficios.\n\n***Puntos de golpe temporales.*** Como acción de magia, puedes otorgarte una cantidad de puntos de golpe temporales igual a 1d8 más tu modificador por Sabiduría (mínimo de 1). Puedes usar esta acción una cantidad de veces igual a tu modificador por Sabiduría (mínimo una vez), y recuperas todos los usos gastados cuando finalizas un descanso largo.\n\n***Disminuir agotamiento.*** Cada vez que finalices un descanso corto, tu nivel de agotamiento, si tienes alguno, disminuye en 1.",
+      "tipoAccion": "accion",
+      "tieneUsosLimitados": true,
+      "recuperacion": "descanso_corto",
+      "formulaDados": "1d8"
+    },
+    {
+      "nivel": 11,
+      "nombre": "Rasgo de subclase",
+      "descripcion": "Obtienes un rasgo de tu subclase de explorador.",
+      "tipoAccion": "pasivo"
+    },
+    {
+      "nivel": 12,
+      "nombre": "Mejora de característica",
+      "descripcion": "Obtienes la dote Mejora de característica u otra [dote](feats.html) de tu elección para la que cumplas las condiciones.",
+      "tipoAccion": "pasivo"
+    },
+    {
+      "nivel": 13,
+      "nombre": "Cazador implacable",
+      "descripcion": "Sufrir daño no puede romper tu concentración en *marca del cazador*.",
+      "tipoAccion": "pasivo"
+    },
+    {
+      "nivel": 14,
+      "nombre": "Velo de la naturaleza",
+      "descripcion": "Invocas a los espíritus de la naturaleza para que te oculten mágicamente. Como acción adicional, puedes obtener el estado de invisible hasta el final de tu siguiente turno.\nPuedes usar este rasgo una cantidad de veces igual a tu modificador por Sabiduría (mínimo una vez), y recuperas todos los usos gastados cuando finalizas un descanso largo.",
+      "tipoAccion": "accion_adicional",
+      "tieneUsosLimitados": true,
+      "recuperacion": "descanso_largo"
+    },
+    {
+      "nivel": 15,
+      "nombre": "Rasgo de subclase",
+      "descripcion": "Obtienes un rasgo de tu subclase de explorador.",
+      "tipoAccion": "pasivo"
+    },
+    {
+      "nivel": 16,
+      "nombre": "Mejora de característica",
+      "descripcion": "Obtienes la dote Mejora de característica u otra [dote](feats.html) de tu elección para la que cumplas las condiciones.",
+      "tipoAccion": "pasivo"
+    },
+    {
+      "nivel": 17,
+      "nombre": "Cazador preciso",
+      "descripcion": "Tienes ventaja en las tiradas de ataque contra la criatura que esté actualmente marcada por tu *marca del cazador*.",
+      "tipoAccion": "pasivo"
+    },
+    {
+      "nivel": 18,
+      "nombre": "Sentidos salvajes",
+      "descripcion": "Tu conexión con las fuerzas de la naturaleza te otorga vista ciega con un alcance de 9 m (30 pies).",
+      "tipoAccion": "pasivo"
+    },
+    {
+      "nivel": 19,
+      "nombre": "Don épico",
+      "descripcion": "Obtienes una dote de don épico u otra [dote](feats.html) de tu elección para la que cumplas las condiciones. Se recomienda Don del viaje dimensional.",
+      "tipoAccion": "pasivo"
+    },
+    {
+      "nivel": 20,
+      "nombre": "Asesino de enemigos",
+      "descripcion": "El dado de daño de tu *marca del cazador* es un d10 en lugar de un d6.",
+      "tipoAccion": "pasivo"
+    }
+  ],
+  "subclases": [
+    {
+      "id": "senor_de_las_bestias",
+      "clasePadre": "explorador",
+      "nombre": "Señor de las Bestias",
+      "descripcion": "Un Señor de las Bestias forma un vínculo místico con un animal especial, extrayendo magia primigenia y una profunda conexión con el mundo natural.",
+      "lema": "Estrecha lazos con una bestia primigenia",
+      "nivelDesbloqueo": 3,
+      "rasgos": [
+        {
+          "nivel": 3,
+          "nombre": "Compañero primigenio",
+          "descripcion": "Invocas mágicamente a una bestia primigenia, que extrae su fuerza de tu vínculo con la naturaleza. Elige su bloque de estadísticas: **Bestia de la tierra**, **Bestia del mar** o **Bestia del cielo**. También determinas el tipo de animal que es, eligiendo un tipo apropiado para el bloque de estadísticas. Independientemente de la bestia que elijas, esta posee marcas primigenias que indican su origen sobrenatural.\nLa bestia es amistosa contigo y con tus aliados, y obedece tus órdenes. Desaparece si mueres.\n\n***La bestia en combate.*** En combate, la bestia actúa durante tu turno. Puede moverse y usar su reacción por sí sola, pero la única acción que lleva a cabo es la acción de esquivar a menos que uses una acción adicional para ordenarle que lleve a cabo una acción de su bloque de estadísticas o alguna otra acción. También puedes sacrificar uno de tus ataques cuando realizas la acción de atacar para ordenarle a la bestia que lleve a cabo la acción de Golpe de la bestia. Si tienes el estado de incapacitado, la bestia actúa por sí sola y no se limita a la acción de esquivar.\n\n***Restaurar o reemplazar a la bestia.*** Si la bestia ha muerto en la última hora, puedes llevar a cabo una acción de magia para tocarla y gastar un espacio de conjuro. La bestia vuelve a la vida después de 1 minuto con todos sus puntos de golpe restaurados.\nCada vez que finalices un descanso largo, puedes invocar a una bestia primigenia diferente, la cual aparece en un espacio sin ocupar a 1,5 m (5 pies) o menos de ti. Tú eliges su bloque de estadísticas y apariencia. Si ya tienes una bestia proveniente de este rasgo, la antigua desaparecerá cuando la nueva aparezca.",
+          "tipoAccion": "accion_adicional",
+          "subclase": "Señor de las Bestias",
+          "tieneUsosLimitados": true,
+          "recuperacion": "descanso_largo"
+        },
+        {
+          "nivel": 7,
+          "nombre": "Entrenamiento excepcional",
+          "descripcion": "Cuando uses una acción adicional para ordenarle a tu bestia Compañero primigenio que lleve a cabo una acción, también puedes ordenarle que lleve a cabo la acción de correr, destrabarse, esquivar o ayudar utilizando su acción adicional.\nAdemás, cada vez que acierte con una tirada de ataque y cause daño, puede infligir daño de fuerza o su tipo de daño normal (a tu elección).",
+          "tipoAccion": "accion_adicional",
+          "subclase": "Señor de las Bestias"
+        },
+        {
+          "nivel": 11,
+          "nombre": "Furia bestial",
+          "descripcion": "Cuando le ordenas a tu bestia Compañero primigenio que lleve a cabo la acción de Golpe de la bestia, la bestia puede usarla dos veces.\nAdemás, la primera vez en cada turno que acierte a una criatura bajo el efecto de tu conjuro *marca del cazador*, la bestia infligirá daño de fuerza adicional igual al daño adicional de ese conjuro.",
+          "tipoAccion": "accion",
+          "subclase": "Señor de las Bestias"
+        },
+        {
+          "nivel": 15,
+          "nombre": "Compartir conjuros",
+          "descripcion": "Cuando lances un conjuro que te tenga a ti como objetivo, también podrás afectar a tu bestia Compañero primigenio con el conjuro si esta se encuentra a 9 m (30 pies) o menos de ti.",
+          "tipoAccion": "pasivo",
+          "subclase": "Señor de las Bestias"
+        }
+      ]
+    },
+    {
+      "id": "errante_feerico",
+      "clasePadre": "explorador",
+      "nombre": "Errante Feérico",
+      "descripcion": "Una mística feérica te rodea, gracias a la bendición de un archifeérico o a un lugar en los Parajes Feéricos que te transformó. Independientemente de cómo hayas obtenido tu magia feérica, ahora eres un Errante Feérico. Tu risa alegre ilumina los corazones de los oprimidos, y tu destreza marcial infunde terror en tus enemigos, pues grande es el júbilo de las fatas y terrible es su furia.",
+      "lema": "Manifiesta el júbilo y la furia feéricos",
+      "nivelDesbloqueo": 3,
+      "rasgos": [
+        {
+          "nivel": 3,
+          "nombre": "Golpes terroríficos",
+          "descripcion": "Puedes aumentar tus ataques con armas con magia que deja cicatrices en la mente, extraída de las hondonadas tenebrosas de los Parajes Feéricos. Cuando aciertes a una criatura con un arma, puedes infligir 1d4 de daño psíquico adicional al objetivo, el cual solo puede sufrir este daño adicional una vez por turno. El daño adicional aumenta a 1d6 cuando alcanzas el nivel 11 de explorador.",
+          "tipoAccion": "pasivo",
+          "subclase": "Errante Feérico",
+          "formulaDados": "1d4"
+        },
+        {
+          "nivel": 3,
+          "nombre": "Conjuros del Errante Feérico",
+          "descripcion": "Cuando alcanzas un nivel de explorador especificado en la tabla \"Conjuros del Errante Feérico\", a partir de entonces siempre tendrás preparados los conjuros que se indican.\n##### Conjuros del Errante Feérico\n| Nivel de explorador | Conjuros |\n|:---:|---|\n| 3 | *hechizar persona* |\n| 5 | *paso brumoso* |\n| 9 | *invocar feérico* |\n| 13 | *puerta dimensional* |\n| 17 | *desorientar* |\nTambién posees una bendición feérica. Elígela de la tabla \"Dones de los Parajes Feéricos\" o determínala al azar.\n##### Dones de los Parajes Feéricos\n| 1d6 | Don |\n|:---:|---|\n| 1 | Mariposas ilusorias revolotean a tu alrededor mientras realizas un descanso corto o largo. |\n| 2 | Flores brotan de tu cabello cada amanecer. |\n| 3 | Tienes un ligero olor a canela, lavanda, nuez moscada u otra hierba o especia reconfortante. |\n| 4 | Tu sombra baila cuando nadie la mira directamente. |\n| 5 | Cuernos o astas brotan de tu cabeza. |\n| 6 | Tu piel y cabello cambian de color cada amanecer. |",
+          "tipoAccion": "pasivo",
+          "subclase": "Errante Feérico",
+          "tieneUsosLimitados": true,
+          "recuperacion": "descanso_corto",
+          "formulaDados": "1d6"
+        },
+        {
+          "nivel": 3,
+          "nombre": "Glamur de otro mundo",
+          "descripcion": "Cada vez que hagas una prueba de Carisma, obtendrás un bonificador a la prueba igual a tu modificador por Sabiduría (mínimo de +1).\nTambién ganas competencia en una de estas habilidades de tu elección: Engaño, Interpretación o Persuasión.",
+          "tipoAccion": "pasivo",
+          "subclase": "Errante Feérico"
+        },
+        {
+          "nivel": 7,
+          "nombre": "Giro seductor",
+          "descripcion": "La magia de los Parajes Feéricos protege tu mente. Tienes ventaja en las tiradas de salvación para evitar o poner fin al estado de hechizado o asustado.\nAdemás, cada vez que tú o una criatura que puedas ver a 36 m (120 pies) o menos de ti tenga éxito en una tirada de salvación para evitar o poner fin al estado de hechizado o asustado, puedes utilizar una reacción para obligar a una criatura diferente que puedas ver a 36 m (120 pies) o menos de ti a hacer una tirada de salvación de Sabiduría contra tu CD de salvación de conjuros. Si falla la tirada, el objetivo tendrá el estado de hechizado o asustado (a tu elección) durante 1 minuto. El objetivo repetirá la tirada de salvación al final de cada uno de sus turnos, poniendo fin al efecto sobre sí mismo si tiene éxito.",
+          "tipoAccion": "pasivo",
+          "subclase": "Errante Feérico"
+        },
+        {
+          "nivel": 11,
+          "nombre": "Refuerzos feéricos",
+          "descripcion": "Puedes lanzar *invocar feérico* sin componentes materiales. También puedes lanzarlo una vez sin gastar un espacio de conjuro, y recuperas la capacidad de lanzarlo de esta forma cuando finalizas un descanso largo.\nCada vez que comiences a lanzar el conjuro, puedes modificarlo para que no requiera concentración. Si lo haces, la duración del conjuro pasará a ser de 1 minuto para ese lanzamiento.",
+          "tipoAccion": "pasivo",
+          "subclase": "Errante Feérico",
+          "tieneUsosLimitados": true,
+          "recuperacion": "descanso_largo"
+        },
+        {
+          "nivel": 15,
+          "nombre": "Errante brumoso",
+          "descripcion": "Puedes lanzar *paso brumoso* sin gastar un espacio de conjuro. Puedes hacerlo una cantidad de veces igual a tu modificador por Sabiduría (mínimo una vez), y recuperas todos los usos gastados cuando finalizas un descanso largo.\nAdemás, cada vez que lances *paso brumoso*, puedes llevar contigo a una criatura voluntaria que puedas ver a 1,5 m (5 pies) o menos de ti. Esa criatura se teletransportará a un espacio sin ocupar de tu elección que esté a 1,5 m (5 pies) o menos de tu espacio de destino.",
+          "tipoAccion": "pasivo",
+          "subclase": "Errante Feérico",
+          "tieneUsosLimitados": true,
+          "recuperacion": "descanso_largo"
+        }
+      ],
+      "progresionConjuros": [
+        {
+          "nivelClase": 3,
+          "conjuros": [
+            "Hechizar persona"
+          ]
+        },
+        {
+          "nivelClase": 5,
+          "conjuros": [
+            "Paso brumoso"
+          ]
+        },
+        {
+          "nivelClase": 9,
+          "conjuros": [
+            "Disipar magia"
+          ]
+        },
+        {
+          "nivelClase": 13,
+          "conjuros": [
+            "Puerta dimensional"
+          ]
+        },
+        {
+          "nivelClase": 17,
+          "conjuros": [
+            "Engaño"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "acechador_en_la_penumbra",
+      "clasePadre": "explorador",
+      "nombre": "Acechador en la Penumbra",
+      "descripcion": "Los Acechadores en la Penumbra se sienten como en casa en los lugares más oscuros, esgrimiendo magia extraída del Páramo Sombrío para combatir a los enemigos que acechan en la oscuridad.",
+      "lema": "Persigue a los enemigos que moran en la oscuridad",
+      "nivelDesbloqueo": 3,
+      "rasgos": [
+        {
+          "nivel": 3,
+          "nombre": "Emboscador terrorífico",
+          "descripcion": "Has dominado el arte de crear emboscadas temibles, otorgándote los siguientes beneficios.\n\n***Salto del emboscador.*** Al comienzo de tu primer turno de cada combate, tu velocidad aumenta en 3 m (10 pies) hasta el final de ese turno.\n\n***Golpe terrorífico.*** Cuando ataques a una criatura y la aciertes con un arma, puedes infligirle 2d6 de daño psíquico adicional. Solo puedes usar este beneficio una vez por turno, puedes usarlo una cantidad de veces igual a tu modificador por Sabiduría (mínimo una vez), y recuperas todos los usos gastados cuando finalizas un descanso largo.\n\n***Bonificador de iniciativa.*** Cuando tires iniciativa, puedes sumar tu modificador por Sabiduría a la tirada.",
+          "tipoAccion": "pasivo",
+          "subclase": "Acechador en la Penumbra",
+          "tieneUsosLimitados": true,
+          "recuperacion": "descanso_largo",
+          "formulaDados": "2d6"
+        },
+        {
+          "nivel": 3,
+          "nombre": "Conjuros del Acechador en la Penumbra",
+          "descripcion": "Cuando alcanzas un nivel de explorador especificado en la tabla \"Conjuros del Acechador en la Penumbra\", a partir de entonces siempre tendrás preparados los conjuros que se indican.\n##### Conjuros del Acechador en la Penumbra\n| Nivel de explorador | Conjuros |\n|:---:|---|\n| 3 | *disfrazarse* |\n| 5 | *truco de la cuerda* |\n| 9 | *miedo* |\n| 13 | *invisibilidad mayor* |\n| 17 | *apariencia* |",
+          "tipoAccion": "pasivo",
+          "subclase": "Acechador en la Penumbra"
+        },
+        {
+          "nivel": 3,
+          "nombre": "Visión en la penumbra",
+          "descripcion": "Ganas visión en la oscuridad con un alcance de 18 m (60 pies). Si ya tienes visión en la oscuridad cuando adquieres este rasgo, su alcance aumenta en 18 m (60 pies).\nTambién eres experto en evadir a las criaturas que dependen de la visión en la oscuridad. Mientras te encuentres completamente en la oscuridad, tendrás el estado de invisible para cualquier criatura que dependa de la visión en la oscuridad para verte en esa oscuridad.",
+          "tipoAccion": "pasivo",
+          "subclase": "Acechador en la Penumbra"
+        },
+        {
+          "nivel": 7,
+          "nombre": "Mente de hierro",
+          "descripcion": "Has perfeccionado tu capacidad para resistir poderes que alteran la mente. Ganas competencia en las tiradas de salvación de Sabiduría. Si ya tienes esta competencia, en su lugar ganas competencia en las tiradas de salvación de Inteligencia o Carisma (a tu elección).",
+          "tipoAccion": "pasivo",
+          "subclase": "Acechador en la Penumbra"
+        },
+        {
+          "nivel": 11,
+          "nombre": "Aluvión del acechador",
+          "descripcion": "El daño psíquico de tu Golpe terrorífico pasa a ser 2d8. Además, cuando uses el efecto de Golpe terrorífico de tu rasgo Emboscador terrorífico, puedes provocar uno de los siguientes efectos adicionales.\n\n***Golpe súbito.*** Puedes hacer otro ataque con la misma arma contra una criatura diferente que se encuentre a 1,5 m (5 pies) o menos del objetivo original y que esté dentro del alcance del arma.\n\n***Miedo en masa.*** El objetivo y cada criatura a 3 m (10 pies) o menos de él deberán hacer una tirada de salvación de Sabiduría contra tu CD de salvación de conjuros. Si falla la tirada, la criatura tendrá el estado de asustado hasta el comienzo de tu siguiente turno.",
+          "tipoAccion": "pasivo",
+          "subclase": "Acechador en la Penumbra",
+          "formulaDados": "2d8"
+        },
+        {
+          "nivel": 15,
+          "nombre": "Esquiva sombría",
+          "descripcion": "Cuando una criatura haga una tirada de ataque contra ti, puedes utilizar una reacción para imponer desventaja en esa tirada. Independientemente de si el ataque acierta o falla, puedes teletransportarte hasta 9 m (30 pies) a un espacio sin ocupar que puedas ver.",
+          "tipoAccion": "pasivo",
+          "subclase": "Acechador en la Penumbra"
+        }
+      ],
+      "progresionConjuros": [
+        {
+          "nivelClase": 3,
+          "conjuros": [
+            "Disfrazarse"
+          ]
+        },
+        {
+          "nivelClase": 5,
+          "conjuros": [
+            "Truco de la cuerda"
+          ]
+        },
+        {
+          "nivelClase": 9,
+          "conjuros": [
+            "Miedo"
+          ]
+        },
+        {
+          "nivelClase": 13,
+          "conjuros": [
+            "Invisibilidad mayor"
+          ]
+        },
+        {
+          "nivelClase": 17,
+          "conjuros": [
+            "Pasmosa apariencia"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cazador",
+      "clasePadre": "explorador",
+      "nombre": "Cazador",
+      "descripcion": "Acechas a tus presas en la naturaleza y en otros lugares, utilizando tus habilidades como Cazador para proteger tanto a la naturaleza como a las personas de cualquier lugar contra las fuerzas que intentarían destruirlas.",
+      "lema": "Protege la naturaleza con tu versatilidad marcial",
+      "nivelDesbloqueo": 3,
+      "rasgos": [
+        {
+          "nivel": 3,
+          "nombre": "Presa del cazador",
+          "descripcion": "Obtienes una de las siguientes opciones de rasgo de tu elección. Cada vez que finalices un descanso corto o largo, puedes reemplazar la opción elegida por la otra.\n\n***Asesino de colosos.*** Tu tenacidad puede desgastar incluso a los enemigos más resistentes. Cuando aciertes a una criatura con un arma, esta infligirá 1d8 de daño adicional al objetivo si a este le falta alguno de sus puntos de golpe. Solo puedes infligir este daño adicional una vez por turno.\n\n***Rompehordas.*** Una vez en cada uno de tus turnos, cuando realices un ataque con un arma, podrás hacer otro ataque con la misma arma contra una criatura diferente que se encuentre a 1,5 m (5 pies) o menos del objetivo original, que esté dentro del alcance del arma y a la que no hayas atacado este turno.",
+          "tipoAccion": "pasivo",
+          "subclase": "Cazador",
+          "tieneUsosLimitados": true,
+          "recuperacion": "descanso_corto",
+          "formulaDados": "1d8"
+        },
+        {
+          "nivel": 3,
+          "nombre": "Sabiduría del cazador",
+          "descripcion": "Puedes apelar a las fuerzas de la naturaleza para revelar ciertas fortalezas y debilidades de tu presa. Mientras una criatura esté marcada por tu *marca del cazador*, sabrás si esa criatura tiene inmunidades, resistencias o vulnerabilidades, y de tenerlas, sabrás cuáles son.",
+          "tipoAccion": "pasivo",
+          "subclase": "Cazador"
+        },
+        {
+          "nivel": 7,
+          "nombre": "Tácticas defensivas",
+          "descripcion": "Obtienes una de las siguientes opciones de rasgo de tu elección. Cada vez que finalices un descanso corto o largo, puedes reemplazar la opción elegida por la otra.\n\n***Escapar de la horda.*** Los ataques de oportunidad tienen desventaja contra ti.\n\n***Defensa contra ataques múltiples.*** Cuando una criatura te acierte con una tirada de ataque, dicha criatura tendrá desventaja en todas las demás tiradas de ataque contra ti este turno.",
+          "tipoAccion": "pasivo",
+          "subclase": "Cazador",
+          "tieneUsosLimitados": true,
+          "recuperacion": "descanso_corto"
+        },
+        {
+          "nivel": 11,
+          "nombre": "Presa del cazador superior",
+          "descripcion": "Una vez por turno, cuando inflijas daño a una criatura marcada por tu *marca del cazador*, también podrás infligir el daño adicional de ese conjuro a una criatura diferente que puedas ver a 9 m (30 pies) o menos de la primera criatura.",
+          "tipoAccion": "pasivo",
+          "subclase": "Cazador"
+        },
+        {
+          "nivel": 15,
+          "nombre": "Defensa del cazador superior",
+          "descripcion": "Cuando sufras daño, podrás utilizar una reacción para otorgarte resistencia a ese daño y a cualquier otro daño del mismo tipo hasta el final del turno en curso.",
+          "tipoAccion": "pasivo",
+          "subclase": "Cazador"
+        }
+      ]
+    }
+  ]
+}

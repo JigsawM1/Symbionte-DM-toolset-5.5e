@@ -1,0 +1,271 @@
+{
+  "Humano": [
+    {
+      "nombre": "Ingenioso",
+      "descripcion": "Obtienes inspiración heroica tras finalizar un descanso largo.",
+      "tipoAccion": "pasivo",
+      "categoriaMecanica": "pasivo_permanente",
+      "recuperacion": "descanso_largo",
+      "efectos": [
+        {
+          "id": "ef_humano_ingenioso_insp",
+          "tipo": "restaurar_recurso",
+          "objetivo": "inspiracion",
+          "valor": "1",
+          "condicion": "descanso_largo",
+          "descripcion": "Inspiración heroica tras descanso largo"
+        }
+      ]
+    },
+    {
+      "nombre": "Diestro",
+      "descripcion": "Ganas competencia en una habilidad de tu elección.",
+      "tipoAccion": "pasivo",
+      "categoriaMecanica": "pasivo_permanente"
+    },
+    {
+      "nombre": "Versátil",
+      "descripcion": "Obtienes una dote de origen de tu elección.",
+      "tipoAccion": "pasivo",
+      "categoriaMecanica": "pasivo_permanente"
+    }
+  ],
+  "Elfo": [
+    {
+      "nombre": "Visión en la oscuridad",
+      "descripcion": "Tienes visión en la oscuridad hasta 60 pies.",
+      "tipoAccion": "pasivo",
+      "categoriaMecanica": "pasivo_permanente"
+    },
+    {
+      "nombre": "Linaje élfico",
+      "descripcion": "Formas parte de un linaje que te otorga capacidades sobrenaturales y conjuros a tus respectivos niveles.",
+      "tipoAccion": "pasivo",
+      "categoriaMecanica": "pasivo_permanente"
+    },
+    {
+      "nombre": "Linaje feérico",
+      "descripcion": "Tienes ventaja en las tiradas de salvación para evitar o poner fin al estado de hechizado.",
+      "tipoAccion": "pasivo",
+      "categoriaMecanica": "pasivo_permanente"
+    },
+    {
+      "nombre": "Sentidos agudos",
+      "descripcion": "Tienes competencia en la habilidad de Percepción, Perspicacia o Supervivencia.",
+      "tipoAccion": "pasivo",
+      "categoriaMecanica": "pasivo_permanente"
+    },
+    {
+      "nombre": "Trance",
+      "descripcion": "No necesitas dormir y la magia no puede dormirte. Puedes finalizar un descanso largo en 4 horas si las pasas en meditación.",
+      "tipoAccion": "pasivo",
+      "categoriaMecanica": "pasivo_permanente"
+    }
+  ],
+  "Enano": [
+    {
+      "nombre": "Visión en la oscuridad",
+      "descripcion": "Puedes ver en la oscuridad hasta 60 pies (o 120 pies con linaje profundo).",
+      "tipoAccion": "pasivo"
+    },
+    {
+      "nombre": "Resistencia enana",
+      "descripcion": "Tienes resistencia al daño por veneno y ventaja en tiradas de salvación contra el estado Envenenado.",
+      "tipoAccion": "pasivo"
+    },
+    {
+      "nombre": "Dureza enana",
+      "descripcion": "Tus puntos de golpe máximos aumentan en 1 por cada nivel que tengas.",
+      "tipoAccion": "pasivo"
+    },
+    {
+      "nombre": "Sentido de la piedra",
+      "descripcion": "Como acción adicional, ganas visión de temblor (sentido sísmico) a 60 pies sobre piedra durante 10 minutos (3 usos/descanso largo).",
+      "tipoAccion": "accion_adicional",
+      "tieneUsosLimitados": true,
+      "usosMaximos": 3,
+      "recuperacion": "descanso_largo"
+    }
+  ],
+  "Mediano": [
+    {
+      "nombre": "Valiente",
+      "descripcion": "Tienes ventaja en las tiradas de salvación que hagas para evitar o poner fin al estado de asustado.",
+      "tipoAccion": "pasivo"
+    },
+    {
+      "nombre": "Agilidad de mediano",
+      "descripcion": "Puedes moverte a través del espacio ocupado por cualquier criatura de tamaño superior al tuyo, pero no puedes detenerte en el mismo espacio.",
+      "tipoAccion": "pasivo"
+    },
+    {
+      "nombre": "Fortuna",
+      "descripcion": "Cuando saques un 1 en una prueba con d20, podrás repetir la tirada y deberás utilizar el nuevo resultado.",
+      "tipoAccion": "pasivo"
+    },
+    {
+      "nombre": "Sigiloso por naturaleza",
+      "descripcion": "Puedes llevar a cabo la acción de esconderte incluso tras una criatura cuyo tamaño sea, al menos, una categoría superior al tuyo.",
+      "tipoAccion": "pasivo"
+    }
+  ],
+  "Gnomo": [
+    {
+      "nombre": "Visión en la oscuridad",
+      "descripcion": "Puedes ver en la oscuridad hasta 60 pies.",
+      "tipoAccion": "pasivo"
+    },
+    {
+      "nombre": "Astucia gnómica",
+      "descripcion": "Tienes ventaja en todas las tiradas de salvación de Inteligencia, Sabiduría y Carisma contra magia.",
+      "tipoAccion": "pasivo"
+    },
+    {
+      "nombre": "Linaje gnómico",
+      "descripcion": "Gnomo del bosque (conoce el truco Ilusión menor y habla con bestias) o Gnomo de las rocas (conoce Prestidigitación e inventa artilugios).",
+      "tipoAccion": "pasivo"
+    }
+  ],
+  "Tiefling": [
+    {
+      "nombre": "Tipo de criatura",
+      "descripcion": "Eres una criatura del tipo Humanoide.",
+      "tipoAccion": "pasivo",
+      "categoriaMecanica": "pasivo_permanente"
+    },
+    {
+      "nombre": "Tamaño",
+      "descripcion": "Eres Mediano (entre 4 y 7 pies de altura) o Pequeño (entre 3 y 4 pies de altura), elegido al seleccionar la especie.",
+      "tipoAccion": "pasivo",
+      "categoriaMecanica": "selector_informativo"
+    },
+    {
+      "nombre": "Visión en la oscuridad",
+      "descripcion": "Tienes visión en la oscuridad hasta 60 pies.",
+      "tipoAccion": "pasivo",
+      "categoriaMecanica": "pasivo_permanente"
+    },
+    {
+      "nombre": "Presencia sobrenatural",
+      "descripcion": "Conoces el truco *taumaturgia*. Cuando lo lances con este atributo, el conjuro utiliza la misma aptitud mágica que la de tu atributo Legado infernal.",
+      "tipoAccion": "pasivo",
+      "conjurosOtorgados": [
+        "taumaturgia"
+      ],
+      "categoriaMecanica": "pasivo_permanente"
+    },
+    {
+      "nombre": "Legado infernal",
+      "descripcion": "Eres el destinatario de un legado que te otorga capacidades sobrenaturales. Elige un legado de la tabla 'Legados infernales'. Obtienes el beneficio de nivel 1 del legado elegido. Cuando alcanzas los niveles 3 y 5 de personaje, aprendes un conjuro de nivel superior. La Inteligencia, la Sabiduría o el Carisma es tu aptitud mágica para los conjuros que lances con este atributo.",
+      "tipoAccion": "pasivo",
+      "categoriaMecanica": "selector_informativo"
+    }
+  ],
+  "Dracónido": [
+    {
+      "nombre": "Arma de aliento",
+      "descripcion": "Cuando lleves a cabo la acción de atacar, puedes sustituir uno de tus ataques por una exhalación mágica destructiva (cono de 15 pies o línea de 30 pies) de tu tipo de dragón (usos iguales a tu bonificador de competencia).",
+      "tipoAccion": "accion",
+      "tieneUsosLimitados": true,
+      "usosMaximos": 2,
+      "recuperacion": "descanso_largo",
+      "formulaDados": "1d10"
+    },
+    {
+      "nombre": "Resistencia a daño dracónico",
+      "descripcion": "Tienes resistencia al tipo de daño asociado con tu linaje dracónico (Fuego, Frío, Ácido, Relámpago o Veneno).",
+      "tipoAccion": "pasivo"
+    },
+    {
+      "nombre": "Visión en la oscuridad",
+      "descripcion": "Puedes ver en la oscuridad hasta 60 pies.",
+      "tipoAccion": "pasivo"
+    },
+    {
+      "nombre": "Vuelo dracónico (Nivel 5)",
+      "descripcion": "A partir de nivel 5, puedes desplegar alas espectrales como acción adicional durante 10 minutos (1/descanso largo).",
+      "tipoAccion": "accion_adicional",
+      "tieneUsosLimitados": true,
+      "usosMaximos": 1,
+      "recuperacion": "descanso_largo"
+    }
+  ],
+  "Orco": [
+    {
+      "nombre": "Visión en la oscuridad",
+      "descripcion": "Puedes ver en la oscuridad hasta 120 pies.",
+      "tipoAccion": "pasivo"
+    },
+    {
+      "nombre": "Descarga de adrenalina",
+      "descripcion": "Puedes llevar a cabo la acción de correr como acción adicional. Cuando lo hagas, obtendrás una cantidad de puntos de golpe temporales igual a tu bonificador por competencia (usos igual a PB por descanso corto o largo).",
+      "tipoAccion": "accion_adicional",
+      "tieneUsosLimitados": true,
+      "usosMaximos": 2,
+      "recuperacion": "descanso_corto",
+      "formulaEscalado": "bono_competencia",
+      "categoriaMecanica": "consumible"
+    },
+    {
+      "nombre": "Aguante incansable",
+      "descripcion": "Cuando tus puntos de golpe se reducen a 0 pero no mueres inmediatamente, puedes recuperar 1 punto de golpe (1/descanso largo).",
+      "tipoAccion": "reaccion",
+      "tieneUsosLimitados": true,
+      "usosMaximos": 1,
+      "recuperacion": "descanso_largo",
+      "categoriaMecanica": "consumible"
+    }
+  ],
+  "Goliat": [
+    {
+      "nombre": "Ascendencia de gigantes",
+      "descripcion": "Obtienes un poder sobrenatural de gigante (Gigante de fuego, escarcha, colina, piedra, tormenta o nubes) utilizable tantas veces como tu bonificador de competencia.",
+      "tipoAccion": "accion_adicional",
+      "tieneUsosLimitados": true,
+      "usosMaximos": 2,
+      "recuperacion": "descanso_largo"
+    },
+    {
+      "nombre": "Forma gigantesca (Nivel 5)",
+      "descripcion": "A nivel 5, puedes hacerte de tamaño Grande durante 10 minutos como acción adicional (1/descanso largo).",
+      "tipoAccion": "accion_adicional",
+      "tieneUsosLimitados": true,
+      "usosMaximos": 1,
+      "recuperacion": "descanso_largo"
+    },
+    {
+      "nombre": "Poderosa complexión",
+      "descripcion": "Cuentas como un tamaño superior para determinar tu capacidad de carga y peso que puedes empujar, arrastrar o levantar.",
+      "tipoAccion": "pasivo"
+    }
+  ],
+  "Aasimar": [
+    {
+      "nombre": "Visión en la oscuridad",
+      "descripcion": "Puedes ver en la oscuridad hasta 60 pies.",
+      "tipoAccion": "pasivo"
+    },
+    {
+      "nombre": "Manos sanadoras",
+      "descripcion": "Como acción de magia, tocas a una criatura y tiras tantos d4 como tu bonificador de competencia, curándole esa cantidad de HP (1/descanso largo).",
+      "tipoAccion": "accion",
+      "tieneUsosLimitados": true,
+      "usosMaximos": 1,
+      "recuperacion": "descanso_largo",
+      "formulaDados": "2d4"
+    },
+    {
+      "nombre": "Resistencia celestial",
+      "descripcion": "Tienes resistencia al daño radiante y necrótico.",
+      "tipoAccion": "pasivo"
+    },
+    {
+      "nombre": "Revelación celestial (Nivel 3)",
+      "descripcion": "Como acción adicional, desatas tu poder divino durante 1 minuto (Alas radiantes, Consunción radiante o Velo necrótico).",
+      "tipoAccion": "accion_adicional",
+      "tieneUsosLimitados": true,
+      "usosMaximos": 1,
+      "recuperacion": "descanso_largo"
+    }
+  ]
+}

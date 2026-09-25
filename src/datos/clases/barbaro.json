@@ -1,0 +1,1034 @@
+{
+  "id": "barbaro",
+  "nombre": "Bárbaro",
+  "descripcion": "Un feroz guerrero que puede entrar en una furia impulsada por el poder primigenio para destrozar a sus enemigos y soportar heridas mortales.",
+  "dadoGolpe": "d12",
+  "caracteristicasPrimarias": [
+    "fuerza",
+    "constitucion"
+  ],
+  "salvacionesCompetentes": [
+    "fuerza",
+    "constitucion"
+  ],
+  "competenciasArmaduras": [
+    "Armaduras Ligeras",
+    "Armaduras Medianas",
+    "Escudos"
+  ],
+  "competenciasArmas": [
+    "Armas Sencillas",
+    "Armas Marciales"
+  ],
+  "competenciasHerramientas": [],
+  "opcionesHabilidades": {
+    "cantidad": 2,
+    "opciones": [
+      "manejoAnimales",
+      "atletismo",
+      "intimidacion",
+      "naturaleza",
+      "percepcion",
+      "supervivencia"
+    ]
+  },
+  "equipoInicial": {
+    "descripcion": "Elige la opción (A) o (B):",
+    "opcionA": "(A) Gran hacha, 4 hachas de mano, Paquete de Explorador y 15 PO",
+    "opcionB": "(B) 75 PO en monedas para comprar equipo"
+  },
+  "rasgos": [
+    {
+      "nivel": 1,
+      "nombre": "Furia",
+      "descripcion": "Puedes imbuirte de un poder primigenio llamado Furia, una fuerza que te otorga un poder y una resistencia extraordinarios. Puedes entrar en ella como acción adicional si no llevas armadura pesada.\nRecuperas un uso gastado cuando finalizas un descanso corto y recuperas todos los usos gastados cuando finalizas un descanso largo.\n\nMientras está activa, tu Furia sigue las siguientes reglas:\n\n***Resistencia al daño.*** Tienes resistencia al daño contundente, perforante y cortante.\n\n***Daño de Furia.*** Cuando haces un ataque usando Fuerza (ya sea con un arma o un ataque sin armas) y causas daño al objetivo, obtienes un bonificador al daño que aumenta a medida que ganas niveles como bárbaro.\n\n***Ventaja de Fuerza.*** Tienes ventaja en las pruebas de Fuerza y en las tiradas de salvación de Fuerza.\n\n***Sin concentración ni conjuros.*** No puedes mantener la concentración y no puedes lanzar conjuros.\n\n***Duración.*** La Furia dura hasta el final de tu siguiente turno, y termina antes si te pones una armadura pesada o si tienes el estado de incapacitado. Si tu Furia sigue activa en tu siguiente turno, puedes extenderla durante otra ronda haciendo una de las siguientes acciones:\n- Hacer una tirada de ataque contra un enemigo.\n- Obligar a un enemigo a hacer una tirada de salvación.\n- Usar una acción adicional para extender tu Furia.\nCada vez que se extiende la Furia, dura hasta el final de tu siguiente turno. Puedes mantener una Furia hasta un máximo de 10 minutos.",
+      "tipoAccion": "accion_adicional",
+      "tieneUsosLimitados": true,
+      "formulaUsos": "(niv) => (niv >= 17 ? 6 : niv >= 12 ? 5 : niv >= 6 ? 4 : niv >= 3 ? 3 : 2)",
+      "recuperacion": "descanso_largo",
+      "escaladoUsos": {
+        "tipo": "por_nivel",
+        "tabla": [
+          {
+            "nivelMinimo": 1,
+            "valor": 2
+          },
+          {
+            "nivelMinimo": 3,
+            "valor": 3
+          },
+          {
+            "nivelMinimo": 6,
+            "valor": 4
+          },
+          {
+            "nivelMinimo": 12,
+            "valor": 5
+          },
+          {
+            "nivelMinimo": 17,
+            "valor": 6
+          }
+        ],
+        "minimo": 2
+      },
+      "esActivable": true,
+      "condicionAlActivar": "Furia (Rage)",
+      "categoriaMecanica": "consumible",
+      "efectos": [
+        {
+          "tipo": "bono_dano_fuerza",
+          "objetivo": "ataque_fuerza",
+          "valor": "dano_furia",
+          "condicion": "furia_activa",
+          "aplicaA": "arma_fuerza",
+          "descripcion": "Daño de Furia (+2 nv 1-8, +3 nv 9-15, +4 nv 16-20)",
+          "activo": true
+        },
+        {
+          "tipo": "ventaja",
+          "objetivo": "prueba.fuerza",
+          "valor": "ventaja",
+          "condicion": "furia_activa",
+          "descripcion": "Ventaja en pruebas de Fuerza",
+          "activo": true
+        },
+        {
+          "tipo": "ventaja",
+          "objetivo": "salvacion.fuerza",
+          "valor": "ventaja",
+          "condicion": "furia_activa",
+          "descripcion": "Ventaja en tiradas de salvación de Fuerza",
+          "activo": true
+        }
+      ],
+      "tablaProgresion": {
+        "columnas": [
+          "Nivel",
+          "Descripción"
+        ],
+        "filas": [
+          {
+            "nivel": 1,
+            "valores": [
+              "2 veces/día, +2 daño"
+            ]
+          },
+          {
+            "nivel": 3,
+            "valores": [
+              "3 veces/día, +2 daño"
+            ]
+          },
+          {
+            "nivel": 6,
+            "valores": [
+              "4 veces/día, +2 daño"
+            ]
+          },
+          {
+            "nivel": 9,
+            "valores": [
+              "4 veces/día, +3 daño"
+            ]
+          },
+          {
+            "nivel": 12,
+            "valores": [
+              "5 veces/día, +3 daño"
+            ]
+          },
+          {
+            "nivel": 16,
+            "valores": [
+              "5 veces/día, +4 daño"
+            ]
+          },
+          {
+            "nivel": 17,
+            "valores": [
+              "6 veces/día, +4 daño"
+            ]
+          },
+          {
+            "nivel": 20,
+            "valores": [
+              "6 veces/día, +4 daño"
+            ]
+          }
+        ],
+        "notaPie": "Cada nivel reemplaza al anterior"
+      }
+    },
+    {
+      "nivel": 1,
+      "nombre": "Defensa sin armadura",
+      "descripcion": "Mientras no lleves armadura, tu Clase de Armadura base es igual a 10 más tus modificadores por Destreza y Constitución. Puedes usar un *Escudo* y seguir obteniendo este beneficio.",
+      "tipoAccion": "pasivo",
+      "categoriaMecanica": "pasivo_permanente",
+      "efectos": [
+        {
+          "tipo": "modificador_ca",
+          "objetivo": "defensa_sin_armadura",
+          "valor": "constitucion",
+          "condicion": "sin_armadura",
+          "descripcion": "Defensa sin armadura (10 + DES + CON)",
+          "activo": true
+        }
+      ]
+    },
+    {
+      "nivel": 1,
+      "nombre": "Maestría con armas",
+      "descripcion": "Tu entrenamiento con armas te permite utilizar las propiedades de maestría con dos tipos de armas cuerpo a cuerpo sencillas o marciales de tu elección, como *Hachas a dos manos* y *Hachas de mano*. Siempre que finalices un descanso largo, puedes practicar tácticas con armas y cambiar una de esas armas elegidas.\nCuando alcanzas ciertos niveles de bárbaro, obtienes la capacidad de usar las propiedades de maestría de más tipos de armas.",
+      "tipoAccion": "pasivo",
+      "categoriaMecanica": "selector_informativo",
+      "selectores": [
+        {
+          "id": "maestrias_aprendidas",
+          "tipo": "multiple",
+          "etiqueta": "Propiedades de Maestría Elegidas",
+          "opciones": [
+            {
+              "id": "cleave",
+              "nombre": "Cleave (Hender)",
+              "descripcion": "Si impactas a una criatura con un ataque cuerpo a cuerpo, puedes hacer una tirada de ataque contra una segunda criatura a 5 pies de la primera y dentro de tu alcance. Si impactas, la segunda criatura recibe el daño del arma sin tu modificador de característica. Solo una vez por turno."
+            },
+            {
+              "id": "graze",
+              "nombre": "Graze (Rozar)",
+              "descripcion": "Si tu tirada de ataque falla, puedes infligir daño igual al modificador de característica usado. El daño es del mismo tipo que el arma, y solo puede incrementarse aumentando el modificador."
+            },
+            {
+              "id": "nick",
+              "nombre": "Nick (Mellar)",
+              "descripcion": "Cuando haces el ataque extra de la propiedad Ligera, puedes hacerlo como parte de la acción de Atacar en vez de como Acción Adicional. Solo una vez por turno."
+            },
+            {
+              "id": "push",
+              "nombre": "Push (Empujar)",
+              "descripcion": "Si impactas a una criatura, puedes empujarla hasta 10 pies en línea recta lejos de ti si es Grande o menor."
+            },
+            {
+              "id": "sap",
+              "nombre": "Sap (Debilitar)",
+              "descripcion": "Si impactas a una criatura, esa criatura tiene Desventaja en su siguiente tirada de ataque antes del inicio de tu próximo turno."
+            },
+            {
+              "id": "slow",
+              "nombre": "Slow (Ralentizar)",
+              "descripcion": "Si impactas a una criatura e infliges daño, puedes reducir su Velocidad en 10 pies hasta el inicio de tu próximo turno. Múltiples impactos con armas Slow no acumulan la reducción."
+            },
+            {
+              "id": "topple",
+              "nombre": "Topple (Derribar)",
+              "descripcion": "Si impactas a una criatura, puedes forzar una tirada de salvación de Constitución (CD 8 + modificador de característica + bonificador de competencia). Si falla, la criatura queda Derribada."
+            },
+            {
+              "id": "vex",
+              "nombre": "Vex (Molestar)",
+              "descripcion": "Si impactas a una criatura e infliges daño, tienes Ventaja en tu siguiente tirada de ataque contra esa criatura antes del final de tu próximo turno."
+            }
+          ],
+          "maxSelecciones": 2,
+          "valorActual": [
+            "cleave",
+            "graze"
+          ],
+          "visualizacion": "normal",
+          "escaladoMaxSelecciones": [
+            {
+              "nivelMinimo": 1,
+              "valor": 2
+            },
+            {
+              "nivelMinimo": 4,
+              "valor": 3
+            },
+            {
+              "nivelMinimo": 10,
+              "valor": 4
+            }
+          ]
+        }
+      ],
+      "tablaProgresion": {
+        "columnas": [
+          "Nivel",
+          "Descripción"
+        ],
+        "filas": [
+          {
+            "nivel": 1,
+            "valores": [
+              "2 tipos de armas elegidas"
+            ]
+          },
+          {
+            "nivel": 4,
+            "valores": [
+              "3 tipos de armas elegidas"
+            ]
+          },
+          {
+            "nivel": 10,
+            "valores": [
+              "4 tipos de armas elegidas"
+            ]
+          }
+        ],
+        "notaPie": "Cada nivel reemplaza al anterior"
+      }
+    },
+    {
+      "nivel": 2,
+      "nombre": "Sentido del peligro",
+      "descripcion": "Obtienes un sentido asombroso para notar cuándo las cosas no son como deberían ser, dándote ventaja al esquivar peligros. Tienes ventaja en las tiradas de salvación de Destreza a menos que tengas el estado de incapacitado.",
+      "tipoAccion": "pasivo",
+      "categoriaMecanica": "pasivo_permanente",
+      "efectos": [
+        {
+          "tipo": "ventaja",
+          "objetivo": "salvacion.destreza",
+          "valor": "ventaja",
+          "condicion": "siempre",
+          "descripcion": "Sentido del peligro (Ventaja en tiradas de salvación de Destreza)",
+          "activo": true
+        }
+      ]
+    },
+    {
+      "nivel": 2,
+      "nombre": "Ataque temerario",
+      "descripcion": "Puedes dejar de lado toda preocupación por la defensa para atacar con mayor ferocidad. Cuando hagas tu primera tirada de ataque en tu turno, puedes decidir atacar de forma temeraria. Hacerlo te da ventaja en las tiradas de ataque que usen Fuerza hasta el comienzo de tu siguiente turno, pero las tiradas de ataque contra ti tienen ventaja durante ese tiempo.",
+      "tipoAccion": "pasivo",
+      "esActivable": true,
+      "condicionAlActivar": "Ataque Temerario",
+      "categoriaMecanica": "activable",
+      "efectos": [
+        {
+          "tipo": "ventaja",
+          "objetivo": "ataque_fuerza",
+          "valor": "ventaja",
+          "condicion": "ataque_temerario_activo",
+          "descripcion": "Ataque temerario (Ventaja en tiradas de ataque con Fuerza)",
+          "activo": true
+        }
+      ]
+    },
+    {
+      "nivel": 3,
+      "nombre": "Subclase de bárbaro",
+      "descripcion": "Consigues una subclase de bárbaro de tu elección. Una subclase es una especialización que te proporciona rasgos cuando alcanzas ciertos niveles de bárbaro. De aquí en adelante, obtienes todos los rasgos de tu subclase que sean de tu nivel de bárbaro e inferiores.",
+      "tipoAccion": "pasivo"
+    },
+    {
+      "nivel": 3,
+      "nombre": "Conocimiento primigenio",
+      "descripcion": "Ganas competencia en otra habilidad de tu elección de la lista de habilidades disponible para los bárbaros a nivel 1.\nAdemás, mientras tu Furia esté activa, puedes canalizar el poder primigenio cuando intentes ciertas tareas; siempre que hagas una prueba de característica usando una de las siguientes habilidades, puedes hacerla como una prueba de Fuerza incluso si normalmente utiliza una característica diferente: Acrobacias, Intimidación, Percepción, Sigilo o Supervivencia. Cuando usas esta capacidad, tu Fuerza representa el poder primigenio fluyendo a través de ti, afinando tu agilidad, tu presencia y tus sentidos.",
+      "tipoAccion": "pasivo",
+      "categoriaMecanica": "pasivo_permanente",
+      "efectos": [
+        {
+          "tipo": "habilidad_con_fuerza",
+          "objetivo": "acrobacias,intimidacion,percepcion,sigilo,supervivencia",
+          "valor": "fuerza",
+          "condicion": "furia_activa",
+          "descripcion": "Conocimiento primigenio (Usa Fuerza en Acrobacias, Intimidación, Percepción, Sigilo o Supervivencia si FUE es mayor)",
+          "activo": true
+        }
+      ]
+    },
+    {
+      "nivel": 4,
+      "nombre": "Mejora de característica",
+      "descripcion": "Obtienes la dote Mejora de característica u otra dote de tu elección para la que cumplas las condiciones. Vuelves a obtener este rasgo en los niveles 8, 12 y 16 de bárbaro.",
+      "tipoAccion": "pasivo"
+    },
+    {
+      "nivel": 5,
+      "nombre": "Ataque adicional",
+      "descripcion": "Cuando lleves a cabo la acción de atacar en tu turno, podrás hacer dos ataques en lugar de uno.",
+      "tipoAccion": "pasivo"
+    },
+    {
+      "nivel": 5,
+      "nombre": "Movimiento rápido",
+      "descripcion": "Tu velocidad aumenta en 10 pies mientras no lleves armadura pesada.",
+      "tipoAccion": "pasivo",
+      "categoriaMecanica": "pasivo_permanente",
+      "efectos": [
+        {
+          "tipo": "modificador_velocidad",
+          "objetivo": "velocidad.caminar",
+          "valor": 10,
+          "condicion": "sin_armadura_pesada",
+          "descripcion": "Movimiento rápido (+10 pies sin armadura pesada)",
+          "activo": true
+        }
+      ]
+    },
+    {
+      "nivel": 6,
+      "nombre": "Rasgo de subclase",
+      "descripcion": "Obtienes un rasgo de tu subclase de bárbaro.",
+      "tipoAccion": "pasivo"
+    },
+    {
+      "nivel": 7,
+      "nombre": "Instinto salvaje",
+      "descripcion": "Tus instintos están tan afinados que tienes ventaja en las tiradas de iniciativa.",
+      "tipoAccion": "pasivo",
+      "categoriaMecanica": "pasivo_permanente",
+      "efectos": [
+        {
+          "tipo": "ventaja",
+          "objetivo": "iniciativa",
+          "valor": "ventaja",
+          "condicion": "siempre",
+          "descripcion": "Instinto salvaje (Ventaja en iniciativa)",
+          "activo": true
+        }
+      ]
+    },
+    {
+      "nivel": 7,
+      "nombre": "Salto instintivo",
+      "descripcion": "Como parte de la acción adicional que usas para entrar en tu Furia, puedes moverte hasta la mitad de tu velocidad.",
+      "tipoAccion": "especial"
+    },
+    {
+      "nivel": 8,
+      "nombre": "Mejora de característica",
+      "descripcion": "Obtienes la dote Mejora de característica u otra dote de tu elección para la que cumplas las condiciones.",
+      "tipoAccion": "pasivo"
+    },
+    {
+      "nivel": 9,
+      "nombre": "Golpe brutal",
+      "descripcion": "Si usas Ataque temerario, puedes renunciar a cualquier ventaja en una tirada de ataque basada en Fuerza de tu elección en tu turno. La tirada de ataque elegida no debe tener desventaja. Si la tirada de ataque elegida acierta, el objetivo sufre 1d10 de daño adicional del mismo tipo que inflige el arma o el ataque sin armas, y puedes causar un efecto de Golpe brutal de tu elección. Tienes las siguientes opciones de efectos:\n\n***Golpe contundente.*** El objetivo es empujado 15 pies en línea recta lejos de ti. Luego puedes moverte hasta la mitad de tu velocidad directamente hacia el objetivo sin provocar ataques de oportunidad.\n\n***Golpe inmovilizador.*** La velocidad del objetivo se reduce en 15 pies hasta el comienzo de tu siguiente turno. Un objetivo solo puede verse afectado por un Golpe inmovilizador a la vez (el más reciente).\n\n***Golpe brutal mejorado (II) (Nv. 17).*** El daño adicional que infliges con él aumenta a 2d10. Además, puedes aplicar hasta dos efectos diferentes de Golpe brutal a la vez en lugar de uno.",
+      "tipoAccion": "pasivo",
+      "formulaDados": "1d10",
+      "escaladoFormulaDados": [
+        {
+          "nivelMinimo": 9,
+          "valor": "1d10"
+        },
+        {
+          "nivelMinimo": 17,
+          "valor": "2d10"
+        }
+      ],
+      "sincronizarEfectosConFormula": true,
+      "esActivable": true,
+      "ligadoA": "rasgo_cls_barbaro_ataque_temerario",
+      "categoriaMecanica": "activable",
+      "efectos": [
+        {
+          "tipo": "dado_extra_dano",
+          "objetivo": "arma_fuerza",
+          "valor": "1d10",
+          "aplicaA": "arma_fuerza",
+          "descripcion": "Golpe brutal (+1d10 al daño con armas de Fuerza)",
+          "activo": true
+        }
+      ],
+      "selectores": [
+        {
+          "id": "efecto_golpe_brutal",
+          "tipo": "unico",
+          "etiqueta": "Efecto de Golpe Brutal",
+          "opciones": [
+            {
+              "id": "golpe_contundente",
+              "nombre": "Golpe contundente",
+              "descripcion": "El objetivo es empujado 15 pies en línea recta lejos de ti. Puedes moverte hasta la mitad de tu velocidad hacia él sin provocar ataques de oportunidad."
+            },
+            {
+              "id": "golpe_inmovilizador",
+              "nombre": "Golpe inmovilizador",
+              "descripcion": "La velocidad del objetivo se reduce en 15 pies hasta el comienzo de tu siguiente turno."
+            }
+          ],
+          "maxSelecciones": 1,
+          "valorActual": [
+            "golpe_contundente"
+          ],
+          "visualizacion": "normal",
+          "opcionesDinamicas": [
+            {
+              "nivelMinimo": 13,
+              "opciones": [
+                {
+                  "id": "golpe_desestabilizador",
+                  "nombre": "Golpe desestabilizador (Nv. 13)",
+                  "descripcion": "El objetivo tiene desventaja en la siguiente tirada de salvación que haga, y no puede hacer ataques de oportunidad hasta el principio de tu siguiente turno."
+                },
+                {
+                  "id": "golpe_desgarrador",
+                  "nombre": "Golpe desgarrador (Nv. 13)",
+                  "descripcion": "Antes del principio de tu siguiente turno, la siguiente tirada de ataque realizada por otra criatura contra el objetivo obtiene un bonificador de +5 a la tirada. Una tirada de ataque solo puede obtener un bonificador de Golpe desgarrador."
+                }
+              ]
+            }
+          ],
+          "escaladoMaxSelecciones": [
+            {
+              "nivelMinimo": 9,
+              "valor": 1
+            },
+            {
+              "nivelMinimo": 17,
+              "valor": 2
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "nivel": 10,
+      "nombre": "Rasgo de subclase",
+      "descripcion": "Obtienes un rasgo de tu subclase de bárbaro.",
+      "tipoAccion": "pasivo"
+    },
+    {
+      "nivel": 11,
+      "nombre": "Furia implacable",
+      "descripcion": "Tu Furia puede mantenerte luchando a pesar de heridas graves. Si tus puntos de golpe se reducen a 0 mientras tu Furia está activa y no mueres en el acto, puedes hacer una tirada de salvación de Constitución CD 10. Si tienes éxito, tus puntos de golpe pasan a ser una cantidad igual al doble de tu nivel de bárbaro.\nCada vez que uses este rasgo después de la primera, la CD aumenta en 5. Cuando finalizas un descanso corto o largo, la CD se reinicia a 10.",
+      "tipoAccion": "pasivo",
+      "tieneUsosLimitados": true,
+      "recuperacion": "descanso_corto"
+    },
+    {
+      "nivel": 12,
+      "nombre": "Mejora de característica",
+      "descripcion": "Obtienes la dote Mejora de característica u otra dote de tu elección para la que cumplas las condiciones.",
+      "tipoAccion": "pasivo"
+    },
+    {
+      "nivel": 13,
+      "nombre": "Golpe brutal mejorado",
+      "descripcion": "Has perfeccionado nuevas formas de atacar furiosamente. Los siguientes efectos se encuentran ahora entre tus opciones de Golpe brutal:\n\n***Golpe desestabilizador.*** El objetivo tiene desventaja en la siguiente tirada de salvación que haga, y no puede hacer ataques de oportunidad hasta el principio de tu siguiente turno.\n\n***Golpe desgarrador.*** Antes del principio de tu siguiente turno, la siguiente tirada de ataque realizada por otra criatura contra el objetivo obtiene un bonificador de +5 a la tirada. Una tirada de ataque solo puede obtener un bonificador de Golpe desgarrador.",
+      "tipoAccion": "pasivo",
+      "ligadoA": "rasgo_cls_barbaro_golpe_brutal",
+      "categoriaMecanica": "extension"
+    },
+    {
+      "nivel": 14,
+      "nombre": "Rasgo de subclase",
+      "descripcion": "Obtienes un rasgo de tu subclase de bárbaro.",
+      "tipoAccion": "pasivo"
+    },
+    {
+      "nivel": 15,
+      "nombre": "Furia persistente",
+      "descripcion": "Cuando tires iniciativa, puedes recuperar todos los usos gastados de Furia. Después de recuperar usos de Furia de esta manera, no podrás volver a hacerlo hasta que finalices un descanso largo.\nAdemás, tu Furia es tan feroz que ahora dura 10 minutos sin necesidad de que hagas nada para extenderla ronda a ronda. Tu Furia termina antes si tienes el estado de inconsciente (no solo el estado de incapacitado) o si te pones una armadura pesada.",
+      "tipoAccion": "pasivo",
+      "tieneUsosLimitados": true,
+      "formulaUsos": "1",
+      "recuperacion": "descanso_largo",
+      "esActivable": true,
+      "autoDesactivar": true,
+      "restaurarUsosAlActivar": {
+        "idRasgoObjetivo": "rasgo_cls_barbaro_furia",
+        "cantidad": "maximo"
+      },
+      "categoriaMecanica": "activable"
+    },
+    {
+      "nivel": 16,
+      "nombre": "Mejora de característica",
+      "descripcion": "Obtienes la dote Mejora de característica u otra dote de tu elección para la que cumplas las condiciones.",
+      "tipoAccion": "pasivo"
+    },
+    {
+      "nivel": 17,
+      "nombre": "Golpe brutal mejorado (II)",
+      "descripcion": "El daño adicional de tu Golpe brutal aumenta a 2d10. Además, puedes usar dos efectos diferentes de Golpe brutal siempre que uses tu rasgo Golpe brutal.",
+      "tipoAccion": "pasivo",
+      "formulaDados": "2d10",
+      "ligadoA": "rasgo_cls_barbaro_golpe_brutal",
+      "categoriaMecanica": "extension"
+    },
+    {
+      "nivel": 18,
+      "nombre": "Poderío indómito",
+      "descripcion": "Si tu total en una prueba de Fuerza o tirada de salvación de Fuerza es menor que tu puntuación de Fuerza, puedes usar esa puntuación en lugar del total.",
+      "tipoAccion": "pasivo"
+    },
+    {
+      "nivel": 19,
+      "nombre": "Don épico",
+      "descripcion": "Obtienes una dote de don épico u otra dote de tu elección para la que cumplas las condiciones. Se recomienda Don de la ofensiva irresistible.",
+      "tipoAccion": "pasivo"
+    },
+    {
+      "nivel": 20,
+      "nombre": "Campeón primigenio",
+      "descripcion": "Encarnas el poder primigenio. Tus puntuaciones de Fuerza y Constitución aumentan en 4, hasta un máximo de 25.",
+      "tipoAccion": "pasivo",
+      "categoriaMecanica": "pasivo_permanente",
+      "efectos": [
+        {
+          "tipo": "modificador_stat",
+          "objetivo": "fuerza",
+          "valor": 4,
+          "condicion": "siempre",
+          "descripcion": "Campeón primigenio (+4 Fuerza, máx 25)",
+          "activo": true
+        },
+        {
+          "tipo": "modificador_stat",
+          "objetivo": "constitucion",
+          "valor": 4,
+          "condicion": "siempre",
+          "descripcion": "Campeón primigenio (+4 Constitución, máx 25)",
+          "activo": true
+        }
+      ]
+    }
+  ],
+  "subclases": [
+    {
+      "id": "senda_del_berserker",
+      "clasePadre": "barbaro",
+      "nombre": "Senda del Berserker",
+      "descripcion": "Los bárbaros que recorren la Senda del Berserker dirigen su Furia principalmente hacia la violencia. Su senda es una de furia desenfrenada, y se emocionan en el caos de la batalla mientras permiten que su Furia se apodere de ellos y los fortalezca.",
+      "lema": "Canaliza la furia en una violencia frenética",
+      "nivelDesbloqueo": 3,
+      "rasgos": [
+        {
+          "nivel": 3,
+          "nombre": "Frenesí",
+          "descripcion": "Si usas Ataque temerario mientras tu Furia está activa, infliges daño adicional al primer objetivo que aciertes en tu turno con un ataque basado en Fuerza. Para determinar el daño adicional, tira una cantidad de d6 igual a tu bonificador de Daño de Furia y súmalos. El daño tiene el mismo tipo que el arma o ataque sin armas utilizado para el ataque.",
+          "tipoAccion": "pasivo",
+          "subclase": "Senda del Berserker",
+          "formulaDados": "2d6",
+          "escaladoFormulaDados": [
+            {
+              "nivelMinimo": 1,
+              "valor": "2d6"
+            },
+            {
+              "nivelMinimo": 9,
+              "valor": "3d6"
+            },
+            {
+              "nivelMinimo": 16,
+              "valor": "4d6"
+            }
+          ],
+          "sincronizarEfectosConFormula": true,
+          "esActivable": true,
+          "ligadoA": "rasgo_cls_barbaro_ataque_temerario",
+          "categoriaMecanica": "activable",
+          "efectos": [
+            {
+              "tipo": "dado_extra_dano",
+              "objetivo": "arma_fuerza",
+              "valor": "2d6",
+              "condicion": "furia_y_temerario_activos",
+              "aplicaA": "arma_fuerza",
+              "descripcion": "Frenesí",
+              "activo": true
+            }
+          ]
+        },
+        {
+          "nivel": 6,
+          "nombre": "Furia ciega",
+          "descripcion": "Tienes inmunidad a los estados de hechizado y asustado mientras tu Furia esté activa. Si estás hechizado o asustado cuando entras en Furia, el estado termina en ti.",
+          "tipoAccion": "pasivo",
+          "subclase": "Senda del Berserker"
+        },
+        {
+          "nivel": 10,
+          "nombre": "Represalia",
+          "descripcion": "Cuando recibes daño de una criatura que está a 5 pies o menos de ti, puedes usar tu reacción para hacer un ataque cuerpo a cuerpo contra esa criatura, usando un arma o un ataque sin armas.",
+          "tipoAccion": "reaccion",
+          "subclase": "Senda del Berserker"
+        },
+        {
+          "nivel": 14,
+          "nombre": "Presencia intimidante",
+          "descripcion": "Como acción adicional, puedes infundir terror en otros con tu presencia amenazante y tu poder primigenio. Cuando lo hagas, cada criatura de tu elección en una emanación de 30 pies centrada en ti debe hacer una tirada de salvación de Sabiduría (CD 8 más tu modificador por Fuerza y tu bonificador por competencia). Si falla la tirada, la criatura tendrá el estado de asustado durante 1 minuto. Al final de cada uno de los turnos de la criatura asustada, esta repite la tirada de salvación, terminando el efecto sobre sí misma si tiene éxito.\nUna vez que uses este rasgo, no podrás volver a hacerlo hasta que finalices un descanso largo, a menos que gastes un uso de tu Furia (no requiere acción) para recuperar su uso.",
+          "tipoAccion": "accion_adicional",
+          "subclase": "Senda del Berserker",
+          "tieneUsosLimitados": true,
+          "formulaUsos": "1",
+          "recuperacion": "descanso_largo"
+        }
+      ]
+    },
+    {
+      "id": "senda_del_corazon_salvaje",
+      "clasePadre": "barbaro",
+      "nombre": "Senda del Corazón Salvaje",
+      "descripcion": "Los bárbaros que siguen la Senda del Corazón Salvaje se consideran parientes de los animales. Estos bárbaros aprenden medios mágicos para comunicarse con los animales, y su Furia intensifica su conexión con la naturaleza al llenarlos de poder sobrenatural.",
+      "lema": "Camina en comunión con el mundo animal",
+      "nivelDesbloqueo": 3,
+      "rasgos": [
+        {
+          "nivel": 3,
+          "nombre": "Hablante de los animales",
+          "descripcion": "Puedes lanzar los conjuros *Sentidos de la bestia* y *Hablar con los animales*, pero solo como rituales. La Sabiduría es tu aptitud mágica para lanzarlos.",
+          "tipoAccion": "pasivo",
+          "subclase": "Senda del Corazón Salvaje"
+        },
+        {
+          "nivel": 3,
+          "nombre": "Furia de las tierras salvajes",
+          "descripcion": "Tu Furia recurre al poder primigenio de los animales. Siempre que actives tu Furia, obtienes una de las siguientes opciones a tu elección.\n\n***Oso.*** Mientras tu Furia esté activa, tienes resistencia a todos los tipos de daño excepto fuerza, necrótico, psíquico y radiante.\n\n***Águila.*** Cuando actives tu Furia, puedes llevar a cabo las acciones de destrabarse y correr como parte de esa acción adicional. Mientras tu Furia esté activa, puedes gastar una acción adicional para llevar a cabo ambas acciones.\n\n***Lobo.*** Mientras tu Furia esté activa, tus aliados tienen ventaja en las tiradas de ataque contra cualquier enemigo tuyo a 5 pies o menos de ti.",
+          "tipoAccion": "especial",
+          "subclase": "Senda del Corazón Salvaje",
+          "ligadoA": "rasgo_cls_barbaro_furia",
+          "categoriaMecanica": "selector_informativo",
+          "selectores": [
+            {
+              "id": "furia_tierras_salvajes_opcion",
+              "tipo": "unico",
+              "etiqueta": "Aspecto de Furia Primigenia",
+              "opciones": [
+                {
+                  "id": "oso",
+                  "nombre": "Oso",
+                  "descripcion": "Resistencia a todo daño excepto fuerza, necrótico, psíquico y radiante durante Furia"
+                },
+                {
+                  "id": "aguila",
+                  "nombre": "Águila",
+                  "descripcion": "Destrabarse y Correr como acción adicional durante Furia"
+                },
+                {
+                  "id": "lobo",
+                  "nombre": "Lobo",
+                  "descripcion": "Tus aliados tienen ventaja al atacar a enemigos a 5 pies de ti durante Furia"
+                }
+              ],
+              "maxSelecciones": 1,
+              "valorActual": [
+                "oso"
+              ],
+              "visualizacion": "normal"
+            }
+          ]
+        },
+        {
+          "nivel": 6,
+          "nombre": "Aspecto de las tierras salvajes",
+          "descripcion": "Obtienes una de las siguientes opciones de tu elección. Siempre que finalices un descanso largo, puedes cambiar tu elección.\n\n***Búho.*** Tienes visión en la oscuridad a una distancia de 60 pies. Si ya posees visión en la oscuridad, su alcance aumenta en 60 pies.\n\n***Pantera.*** Tienes una velocidad trepando igual a tu velocidad.\n\n***Salmón.*** Tienes una velocidad nadando igual a tu velocidad.",
+          "tipoAccion": "pasivo",
+          "subclase": "Senda del Corazón Salvaje",
+          "categoriaMecanica": "selector_informativo",
+          "selectores": [
+            {
+              "id": "aspecto_tierras_salvajes_opcion",
+              "tipo": "unico",
+              "etiqueta": "Aspecto de las Tierras Salvajes",
+              "opciones": [
+                {
+                  "id": "buho",
+                  "nombre": "Búho",
+                  "descripcion": "+60 pies de visión en la oscuridad"
+                },
+                {
+                  "id": "pantera",
+                  "nombre": "Pantera",
+                  "descripcion": "Velocidad trepando igual a tu velocidad al caminar"
+                },
+                {
+                  "id": "salmon",
+                  "nombre": "Salmón",
+                  "descripcion": "Velocidad nadando igual a tu velocidad al caminar"
+                }
+              ],
+              "maxSelecciones": 1,
+              "valorActual": [
+                "buho"
+              ],
+              "visualizacion": "normal"
+            }
+          ]
+        },
+        {
+          "nivel": 10,
+          "nombre": "Hablante de la naturaleza",
+          "descripcion": "Puedes lanzar el conjuro *Comunión con la naturaleza*, pero solo como ritual. La Sabiduría es tu aptitud mágica para lanzarlo.",
+          "tipoAccion": "pasivo",
+          "subclase": "Senda del Corazón Salvaje"
+        },
+        {
+          "nivel": 14,
+          "nombre": "Poder de las tierras salvajes",
+          "descripcion": "Siempre que actives tu Furia, obtienes una de las siguientes opciones a tu elección.\n\n***Halcón.*** Mientras tu Furia esté activa, tienes una velocidad volando igual a tu velocidad si no llevas armadura.\n\n***León.*** Mientras tu Furia esté activa, cualquiera de tus enemigos a 5 pies o menos de ti tiene desventaja en las tiradas de ataque contra objetivos que no sean tú u otro bárbaro que tenga esta opción activa.\n\n***Carnero.*** Mientras tu Furia esté activa, puedes hacer que una criatura Grande o más pequeña tenga el estado de derribado cuando la aciertes con un ataque cuerpo a cuerpo.",
+          "tipoAccion": "pasivo",
+          "subclase": "Senda del Corazón Salvaje",
+          "ligadoA": "rasgo_cls_barbaro_furia",
+          "categoriaMecanica": "selector_informativo",
+          "selectores": [
+            {
+              "id": "poder_tierras_salvajes_opcion",
+              "tipo": "unico",
+              "etiqueta": "Poder de las Tierras Salvajes",
+              "opciones": [
+                {
+                  "id": "halcon",
+                  "nombre": "Halcón",
+                  "descripcion": "Velocidad volando igual a tu velocidad si no llevas armadura durante Furia"
+                },
+                {
+                  "id": "leon",
+                  "nombre": "León",
+                  "descripcion": "Enemigos a 5 pies tienen desventaja al atacar a tus aliados durante Furia"
+                },
+                {
+                  "id": "carnero",
+                  "nombre": "Carnero",
+                  "descripcion": "Derriba a criaturas Grandes o menores al acertar ataque cuerpo a cuerpo durante Furia"
+                }
+              ],
+              "maxSelecciones": 1,
+              "valorActual": [
+                "halcon"
+              ],
+              "visualizacion": "normal"
+            }
+          ]
+        }
+      ],
+      "progresionConjuros": [
+        {
+          "nivelClase": 3,
+          "conjuros": [
+            "Sentidos de la bestia",
+            "Hablar con los animales"
+          ]
+        },
+        {
+          "nivelClase": 10,
+          "conjuros": [
+            "Comunión con la naturaleza"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "senda_del_arbol_del_mundo",
+      "clasePadre": "barbaro",
+      "nombre": "Senda del Árbol del Mundo",
+      "descripcion": "Los bárbaros que siguen la Senda del Árbol del Mundo se conectan con el árbol cósmico Yggdrasil a través de su Furia. Este árbol crece entre los Planos Exteriores, conectándolos entre sí y con el Plano Material. Estos bárbaros se sirven de la magia del árbol para obtener vitalidad y como un medio para el viaje dimensional.",
+      "lema": "Rastrea las raíces y ramas del multiverso",
+      "nivelDesbloqueo": 3,
+      "rasgos": [
+        {
+          "nivel": 3,
+          "nombre": "Vitalidad del Árbol",
+          "descripcion": "Tu Furia recurre a la fuerza vital del Árbol del Mundo. Obtienes los siguientes beneficios.\n\n***Oleada de vitalidad.*** Cuando activas tu Furia, obtienes una cantidad de puntos de golpe temporales igual a tu nivel de bárbaro.\n\n***Fuerza dadora de vida.*** Al principio de cada uno de tus turnos mientras tu Furia esté activa, puedes elegir a otra criatura a 10 pies o menos de ti para que gane puntos de golpe temporales. Para determinar la cantidad de puntos de golpe temporales, tira una cantidad de d6 igual a tu bonificador de Daño de Furia y súmalos. Si cualquiera de estos puntos de golpe temporales permanece cuando tu Furia termine, desaparecerá.",
+          "tipoAccion": "pasivo",
+          "subclase": "Senda del Árbol del Mundo",
+          "ligadoA": "rasgo_cls_barbaro_furia",
+          "categoriaMecanica": "selector_informativo",
+          "selectores": [
+            {
+              "id": "vitalidad_arbol_opcion",
+              "tipo": "unico",
+              "etiqueta": "Efecto de Vitalidad del Árbol",
+              "opciones": [
+                {
+                  "id": "oleada_vitalidad",
+                  "nombre": "Oleada de vitalidad",
+                  "descripcion": "Gana PV temporales iguales a tu nivel de bárbaro al entrar en Furia"
+                },
+                {
+                  "id": "fuerza_dadora_vida",
+                  "nombre": "Fuerza dadora de vida",
+                  "descripcion": "Otorga PV temporales (d6 igual a daño de Furia) a un aliado a 10 pies al inicio de tu turno"
+                }
+              ],
+              "maxSelecciones": 1,
+              "valorActual": [
+                "oleada_vitalidad"
+              ],
+              "visualizacion": "normal"
+            }
+          ]
+        },
+        {
+          "nivel": 6,
+          "nombre": "Ramas del Árbol",
+          "descripcion": "Siempre que una criatura que puedas ver empiece su turno a 30 pies o menos de ti mientras tu Furia esté activa, puedes usar tu reacción para conjurar ramas espectrales del Árbol del Mundo a su alrededor. El objetivo debe tener éxito en una tirada de salvación de Fuerza (CD 8 más tu modificador por Fuerza y bonificador por competencia) o ser teletransportado a un espacio sin ocupar que puedas ver a 5 pies o menos de ti, o en el espacio sin ocupar más cercano que puedas ver. Después de que el objetivo se teletransporte, puedes reducir su velocidad a 0 hasta el final del turno actual.",
+          "tipoAccion": "reaccion",
+          "subclase": "Senda del Árbol del Mundo"
+        },
+        {
+          "nivel": 10,
+          "nombre": "Raíces golpeadoras",
+          "descripcion": "Durante tu turno, tu alcance es 10 pies mayor con cualquier arma cuerpo a cuerpo que tenga la propiedad pesada o versátil, ya que los zarcillos del Árbol del Mundo se extienden desde ti. Cuando aciertas con tal arma en tu turno, puedes activar la propiedad de maestría Empujar o Derribar además de una propiedad de maestría diferente que estés usando con esa arma.",
+          "tipoAccion": "pasivo",
+          "subclase": "Senda del Árbol del Mundo"
+        },
+        {
+          "nivel": 14,
+          "nombre": "Viaje por el Árbol",
+          "descripcion": "Cuando activas tu Furia y como acción adicional mientras tu Furia está activa, puedes teletransportarte hasta 60 pies a un espacio sin ocupar que puedas ver.\nAdemás, una vez por Furia, puedes aumentar el alcance de ese teletransporte a 150 pies. Cuando lo hagas, también puedes llevar contigo hasta a seis criaturas voluntarias que estén a 10 pies o menos de ti. Cada criatura se teletransporta a un espacio sin ocupar de tu elección a 10 pies o menos de tu espacio de destino.",
+          "tipoAccion": "accion_adicional",
+          "subclase": "Senda del Árbol del Mundo"
+        }
+      ]
+    },
+    {
+      "id": "senda_del_fanatico",
+      "clasePadre": "barbaro",
+      "nombre": "Senda del Fanático",
+      "descripcion": "Los bárbaros que recorren la Senda del Fanático reciben bendiciones de un dios o un panteón. Estos bárbaros experimentan su Furia como un episodio extático de unión divina que les infunde poder. A menudo son aliados de los sacerdotes y otros seguidores de su dios o panteón.",
+      "lema": "Furia en extática unión con un dios",
+      "nivelDesbloqueo": 3,
+      "rasgos": [
+        {
+          "nivel": 3,
+          "nombre": "Furia divina",
+          "descripcion": "Puedes canalizar poder divino en tus golpes. En cada uno de tus turnos mientras tu Furia esté activa, la primera criatura que aciertes con un arma o un ataque sin armas sufrirá daño adicional igual a 1d6 más la mitad de tu nivel de bárbaro (redondeando hacia abajo). El daño adicional es necrótico o radiante; tú eliges el tipo cada vez que causas el daño.",
+          "tipoAccion": "pasivo",
+          "subclase": "Senda del Fanático",
+          "formulaDados": "1d6+1",
+          "escaladoFormulaDados": [
+            {
+              "nivelMinimo": 3,
+              "valor": "1d6+1"
+            },
+            {
+              "nivelMinimo": 4,
+              "valor": "1d6+2"
+            },
+            {
+              "nivelMinimo": 6,
+              "valor": "1d6+3"
+            },
+            {
+              "nivelMinimo": 8,
+              "valor": "1d6+4"
+            },
+            {
+              "nivelMinimo": 10,
+              "valor": "1d6+5"
+            },
+            {
+              "nivelMinimo": 12,
+              "valor": "1d6+6"
+            },
+            {
+              "nivelMinimo": 14,
+              "valor": "1d6+7"
+            },
+            {
+              "nivelMinimo": 16,
+              "valor": "1d6+8"
+            },
+            {
+              "nivelMinimo": 18,
+              "valor": "1d6+9"
+            },
+            {
+              "nivelMinimo": 20,
+              "valor": "1d6+10"
+            }
+          ],
+          "sincronizarEfectosConFormula": true,
+          "esActivable": true,
+          "ligadoA": "rasgo_cls_barbaro_furia",
+          "categoriaMecanica": "activable",
+          "efectos": [
+            {
+              "tipo": "dano_secundario",
+              "objetivo": "arma_fuerza",
+              "valor": "1d6+mitad_nivel",
+              "tipoDano": "Radiante o Necrótico",
+              "aplicaA": "arma_fuerza",
+              "descripcion": "Furia divina (1d6 + mitad nivel bárbaro Radiante o Necrótico)",
+              "activo": true
+            }
+          ]
+        },
+        {
+          "nivel": 3,
+          "nombre": "Guerrero de los dioses",
+          "descripcion": "Una entidad divina te ayuda a asegurar que puedas continuar la lucha. Tienes una reserva de cuatro d12 que puedes gastar para curarte a ti mismo. Como acción adicional, puedes gastar dados de la reserva, tirarlos y recuperar una cantidad de puntos de golpe igual al total de la tirada.\nTu reserva recupera todos los dados gastados cuando finalizas un descanso largo.\nLa cantidad máxima de dados de la reserva aumenta en uno cuando alcanzas los niveles de bárbaro 6 (5 dados), 12 (6 dados) y 17 (7 dados).",
+          "tipoAccion": "accion_adicional",
+          "subclase": "Senda del Fanático",
+          "tieneUsosLimitados": true,
+          "formulaUsos": "(niv) => (niv >= 17 ? 7 : niv >= 12 ? 6 : niv >= 6 ? 5 : 4)",
+          "recuperacion": "descanso_largo",
+          "formulaDados": "1d12",
+          "escaladoUsos": {
+            "tipo": "por_nivel",
+            "tabla": [
+              {
+                "nivelMinimo": 3,
+                "valor": 4
+              },
+              {
+                "nivelMinimo": 6,
+                "valor": 5
+              },
+              {
+                "nivelMinimo": 12,
+                "valor": 6
+              },
+              {
+                "nivelMinimo": 17,
+                "valor": 7
+              }
+            ],
+            "minimo": 4
+          },
+          "esActivable": false,
+          "categoriaMecanica": "curacion"
+        },
+        {
+          "nivel": 6,
+          "nombre": "Enfoque fanático",
+          "descripcion": "Una vez por cada Furia activa, si fallas una tirada de salvación, puedes repetirla con un bonificador igual a tu bonificador de Daño de Furia, y debes quedarte con el nuevo resultado.",
+          "tipoAccion": "especial",
+          "subclase": "Senda del Fanático",
+          "esActivable": true,
+          "ligadoA": "rasgo_cls_barbaro_furia",
+          "categoriaMecanica": "activable",
+          "efectos": [
+            {
+              "tipo": "bono_salvacion",
+              "objetivo": "todas",
+              "valor": "dano_furia",
+              "condicion": "furia_activa",
+              "descripcion": "Enfoque fanático (Bono a salvación igual al daño de furia)",
+              "activo": true
+            }
+          ]
+        },
+        {
+          "nivel": 10,
+          "nombre": "Presencia fervorosa",
+          "descripcion": "Como acción adicional, desatas un grito de batalla imbuido de energía divina. Hasta otras diez criaturas de tu elección a 60 pies o menos de ti obtienen ventaja en las tiradas de ataque y tiradas de salvación hasta el principio de tu siguiente turno.\nUna vez que uses este rasgo, no podrás volver a hacerlo hasta que finalices un descanso largo, a menos que gastes un uso de tu Furia (no requiere acción) para recuperar su uso.",
+          "tipoAccion": "accion_adicional",
+          "subclase": "Senda del Fanático",
+          "tieneUsosLimitados": true,
+          "formulaUsos": "1",
+          "recuperacion": "descanso_largo"
+        },
+        {
+          "nivel": 14,
+          "nombre": "Furia de los dioses",
+          "descripcion": "Cuando activas tu Furia, puedes adoptar la forma de un guerrero divino. Esta forma dura 1 minuto (10 asaltos) o hasta que tus puntos de golpe se reduzcan a 0. Una vez que uses este rasgo, no podrás volver a hacerlo hasta que finalices un descanso largo.\nMientras estés en esta forma, obtienes los siguientes beneficios:\n\n***Vuelo.*** Tienes una velocidad volando igual a tu velocidad y puedes flotar.\n\n***Resistencia.*** Tienes resistencia al daño necrótico, psíquico y radiante.\n\n***Revivificación.*** Cuando una criatura a 30 pies o menos de ti fuera a reducir sus puntos de golpe a 0, puedes usar tu reacción para gastar un uso de tu Furia y, en su lugar, cambiar los puntos de golpe del objetivo a una cantidad igual a tu nivel de bárbaro.",
+          "tipoAccion": "especial",
+          "subclase": "Senda del Fanático",
+          "tieneUsosLimitados": true,
+          "formulaUsos": "1",
+          "recuperacion": "descanso_largo",
+          "esActivable": true,
+          "ligadoA": "rasgo_cls_barbaro_furia",
+          "condicionAlActivar": "Furia de los Dioses (Rage of the Gods)",
+          "categoriaMecanica": "activable"
+        }
+      ]
+    }
+  ]
+}

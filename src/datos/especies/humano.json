@@ -1,0 +1,45 @@
+{
+  "id": "humano",
+  "nombre": "Humano",
+  "descripcion": "Adaptables, tenaces e inventivos, los humanos prosperan en cualquier entorno con versatilidad inigualable.",
+  "tipoCriatura": "Humanoide",
+  "tamanoOpciones": [
+    "Mediano",
+    "Pequeño"
+  ],
+  "tamanoPorDefecto": "Mediano",
+  "velocidadBase": 30,
+  "visionOscuridad": 0,
+  "rasgos": [
+    {
+      "nombre": "Ingenioso",
+      "descripcion": "Obtienes inspiración heroica tras finalizar un descanso largo.",
+      "tipoAccion": "pasivo",
+      "recuperacion": "descanso_largo",
+      "categoriaMecanica": "pasivo_permanente",
+      "efectos": [
+        {
+          "id": "ef_humano_ingenioso_insp",
+          "tipo": "restaurar_recurso",
+          "objetivo": "inspiracion",
+          "valor": "1",
+          "condicion": "descanso_largo",
+          "descripcion": "Inspiración heroica tras descanso largo",
+          "activo": true
+        }
+      ]
+    },
+    {
+      "nombre": "Diestro",
+      "descripcion": "Ganas competencia en una habilidad de tu elección.",
+      "tipoAccion": "pasivo",
+      "categoriaMecanica": "pasivo_permanente"
+    },
+    {
+      "nombre": "Versátil",
+      "descripcion": "Obtienes una dote de origen de tu elección.",
+      "tipoAccion": "pasivo",
+      "categoriaMecanica": "pasivo_permanente"
+    }
+  ]
+}

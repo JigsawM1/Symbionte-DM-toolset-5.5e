@@ -101,6 +101,18 @@ const OPCIONES_ELEMENTOS_VERSADO: OpcionSelector[] = [
   { id: "trueno", nombre: "Trueno", descripcion: "Ignora resistencia al daño de trueno y trata cualquier 1 en dados de daño como un 2" }
 ];
 
+export const OPCIONES_DANOS_RESISTENCIA_ENERGIAS: OpcionSelector[] = [
+  { id: "acido", nombre: "Ácido", descripcion: "Resistencia al daño de ácido" },
+  { id: "frio", nombre: "Frío", descripcion: "Resistencia al daño de frío" },
+  { id: "fuego", nombre: "Fuego", descripcion: "Resistencia al daño de fuego" },
+  { id: "relampago", nombre: "Relámpago", descripcion: "Resistencia al daño de relámpago" },
+  { id: "necrotico", nombre: "Necrótico", descripcion: "Resistencia al daño necrótico" },
+  { id: "veneno", nombre: "Veneno", descripcion: "Resistencia al daño de veneno" },
+  { id: "psiquico", nombre: "Psíquico", descripcion: "Resistencia al daño psíquico" },
+  { id: "radiante", nombre: "Radiante", descripcion: "Resistencia al daño radiante" },
+  { id: "trueno", nombre: "Trueno", descripcion: "Resistencia al daño de trueno" }
+];
+
 // =======================================================
 // CATÁLOGO CANÓNICO DE DOTES D&D 5.5e (PHB 2024)
 // =======================================================
@@ -413,7 +425,7 @@ export const DOTES_ORIGEN_DND55: DotePersonaje[] = [
   }
 ];
 
-export const DOTES_GENERALES_Y_EPICAS_DND55: DotePersonaje[] = [
+export const DOTES_GENERALES_DND55: DotePersonaje[] = [
   // ── LOTE 1/4 DE DOTES GENERALES (PHB 2024) ──
   {
     id: "dote_mejora_caracteristica",
@@ -1357,6 +1369,263 @@ export const DOTES_GENERALES_Y_EPICAS_DND55: DotePersonaje[] = [
     tipoAccion: "pasivo",
     categoriaMecanica: "pasivo_permanente"
   }
+];
+
+// =======================================================
+// CATÁLOGO CANÓNICO DE DOTES ÉPICAS (EPIC BOONS) D&D 5.5e
+// =======================================================
+
+export const DOTES_EPICAS_DND55: DotePersonaje[] = [
+  {
+    id: "dote_don_pericia_combate",
+    nombre: "Don de la Pericia en Combate",
+    categoria: "don_epico",
+    requisito: "Nivel 19 o más",
+    descripcion:
+      "*Mejora de característica:* aumenta una puntuación de característica de tu elección en 1, hasta un máximo de 30.\n\n*Puntería inigualable:* cuando falles con una tirada de ataque, puedes acertar en su lugar. Una vez que uses este beneficio, no puedes volver a utilizarlo hasta el comienzo de tu siguiente turno.",
+    beneficios: [
+      "+1 a una característica a tu elección (máx 30)",
+      "Puntería inigualable (convertir fallo de ataque en acierto 1 vez por asalto/turno)"
+    ],
+    fuente: "PHB 2024",
+    tipoAccion: "especial",
+    tieneUsosLimitados: true,
+    usosMaximos: 1,
+    recuperacion: "manual",
+    categoriaMecanica: "consumible"
+  },
+  {
+    id: "dote_don_viaje_dimensional",
+    nombre: "Don del Viaje Dimensional",
+    categoria: "don_epico",
+    requisito: "Nivel 19 o más",
+    descripcion:
+      "*Mejora de característica:* aumenta una puntuación de característica de tu elección en 1, hasta un máximo de 30.\n\n*Pasos intermitentes:* inmediatamente después de que realices la acción de atacar o la acción de magia, puedes teletransportarte hasta 30 pies a un espacio desocupado que puedas ver.",
+    beneficios: [
+      "+1 a una característica a tu elección (máx 30)",
+      "Pasos intermitentes (teletransporte hasta 30 pies tras realizar la acción de atacar o magia)"
+    ],
+    fuente: "PHB 2024",
+    tipoAccion: "especial",
+    categoriaMecanica: "pasivo_permanente"
+  },
+  {
+    id: "dote_don_resistencia_energias",
+    nombre: "Don de la Resistencia a Energías",
+    categoria: "don_epico",
+    requisito: "Nivel 19 o más",
+    descripcion:
+      "*Mejora de característica:* aumenta una puntuación de característica de tu elección en 1, hasta un máximo de 30.\n\n*Resistencias a energías:* obtienes resistencia a dos tipos de daño a tu elección entre ácido, frío, fuego, relámpago, necrótico, veneno, psíquico, radiante o trueno. Cada vez que finalices un descanso largo, puedes cambiar tus elecciones.\n\n*Redirigir energía:* cuando recibas daño de uno de los tipos elegidos para el beneficio de Resistencias a energías, puedes usar una reacción para dirigir daño del mismo tipo hacia otra criatura que puedas ver a 60 pies o menos de ti y que no esté tras cobertura total. Si lo haces, esa criatura debe superar una tirada de salvación de Destreza (CD 8 más tu modificador de Constitución y tu bonificador por competencia) o recibirá una cantidad de daño igual a 2d12 más tu modificador de Constitución.",
+    beneficios: [
+      "+1 a una característica a tu elección (máx 30)",
+      "Resistencia a 2 tipos de energía a tu elección (intercambiables en descanso largo)",
+      "Redirigir energía (reacción para infligir 2d12 + CON a una criatura a 60 pies al recibir daño de tu tipo resistente, salvación DES CD 8+PB+CON)"
+    ],
+    fuente: "PHB 2024",
+    tipoAccion: "reaccion",
+    formulaDados: "2d12",
+    categoriaMecanica: "pasivo_permanente",
+    selectores: [
+      {
+        id: "selector_resistencias_energias",
+        tipo: "multiple",
+        etiqueta: "Resistencias Elementales Elegidas",
+        maxSelecciones: 2,
+        opciones: OPCIONES_DANOS_RESISTENCIA_ENERGIAS,
+        valorActual: []
+      }
+    ]
+  },
+  {
+    id: "dote_don_destino",
+    nombre: "Don del Destino",
+    categoria: "don_epico",
+    requisito: "Nivel 19 o más",
+    descripcion:
+      "*Mejora de característica:* aumenta una puntuación de característica de tu elección en 1, hasta un máximo de 30.\n\n*Mejorar el destino:* cuando tú u otra criatura a 60 pies o menos de ti tenga éxito o falle en una prueba de D20, puedes tirar 2d4 y aplicar el total obtenido como bonificador o penalizador a la tirada de d20. Una vez que uses este beneficio, no puedes volver a utilizarlo hasta que tires iniciativa o finalices un descanso corto o largo.",
+    beneficios: [
+      "+1 a una característica a tu elección (máx 30)",
+      "Mejorar el destino (tirar 2d4 para sumar o restar a una prueba de d20 a 60 pies, 1 uso, recarga con iniciativa o descanso)"
+    ],
+    fuente: "PHB 2024",
+    tipoAccion: "especial",
+    tieneUsosLimitados: true,
+    usosMaximos: 1,
+    recuperacion: "descanso_corto",
+    formulaDados: "2d4",
+    categoriaMecanica: "consumible"
+  },
+  {
+    id: "dote_don_fortaleza",
+    nombre: "Don de la Fortaleza",
+    categoria: "don_epico",
+    requisito: "Nivel 19 o más",
+    descripcion:
+      "*Mejora de característica:* aumenta una puntuación de característica de tu elección en 1, hasta un máximo de 30.\n\n*Salud fortalecida:* tus puntos de golpe máximos aumentan en 40. Además, cada vez que recuperes puntos de golpe, puedes recuperar puntos de golpe adicionales iguales a tu modificador de Constitución. Una vez que hayas recuperado estos puntos de golpe adicionales, no puedes volver a hacerlo hasta el comienzo de tu siguiente turno.",
+    beneficios: [
+      "+1 a una característica a tu elección (máx 30)",
+      "+40 puntos de golpe máximos",
+      "Curación fortalecida (+CON a la curación recibida 1 vez por turno)"
+    ],
+    fuente: "PHB 2024",
+    tipoAccion: "pasivo",
+    categoriaMecanica: "pasivo_permanente",
+    efectos: [
+      {
+        tipo: "modificador_hp_maximo",
+        objetivo: "hp_maximo",
+        valor: 40,
+        descripcion: "+40 puntos de golpe máximos (Salud fortalecida)"
+      }
+    ]
+  },
+  {
+    id: "dote_don_ataque_imparable",
+    nombre: "Don del Ataque Imparable",
+    categoria: "don_epico",
+    requisito: "Nivel 19 o más, Fuerza o Destreza 19 o más",
+    descripcion:
+      "*Mejora de característica:* aumenta tu puntuación de Fuerza o Destreza en 1, hasta un máximo de 30.\n\n*Superar defensas:* el daño contundente, perforante y cortante que inflijas siempre ignora la resistencia.\n\n*Golpe arrollador:* cuando saques un 20 en el d20 en una tirada de ataque, puedes infligir daño adicional al objetivo igual a la puntuación de característica aumentada por esta dote. El tipo de este daño adicional es el mismo que el del ataque.",
+    beneficios: [
+      "+1 Fuerza o Destreza (máx 30)",
+      "Superar defensas (ignora resistencias a daño contundente, perforante y cortante)",
+      "Golpe arrollador (con 20 natural en ataque suma el valor total de tu característica aumentada al daño)"
+    ],
+    fuente: "PHB 2024",
+    tipoAccion: "pasivo",
+    categoriaMecanica: "pasivo_permanente"
+  },
+  {
+    id: "dote_don_recuperacion",
+    nombre: "Don de la Recuperación",
+    categoria: "don_epico",
+    requisito: "Nivel 19 o más",
+    descripcion:
+      "*Mejora de característica:* aumenta una puntuación de característica de tu elección en 1, hasta un máximo de 30.\n\n*Último bastión:* cuando fueses a ser reducido a 0 puntos de golpe, puedes quedar a 1 punto de golpe en su lugar y recuperar una cantidad de puntos de golpe igual a la mitad de tus puntos de golpe máximos. Una vez que uses este beneficio, no puedes volver a utilizarlo hasta que finalices un descanso largo.\n\n*Recuperar vitalidad:* tienes una reserva de diez d10. Como acción adicional, puedes gastar dados de la reserva, tirarlos y recuperar una cantidad de puntos de golpe igual al total de la tirada. Recuperas todos los dados gastados cuando finalizas un descanso largo.",
+    beneficios: [
+      "+1 a una característica a tu elección (máx 30)",
+      "Último bastión (al llegar a 0 PG quedas a 1 y curas la mitad de tus PG máximos, 1 vez por descanso largo)",
+      "Vitalidad (reserva de 10d10 para autocuración como acción adicional, recarga en descanso largo)"
+    ],
+    fuente: "PHB 2024",
+    tipoAccion: "reaccion",
+    tieneUsosLimitados: true,
+    usosMaximos: 1,
+    recuperacion: "descanso_largo",
+    categoriaMecanica: "consumible",
+    rasgosAdicionales: [
+      {
+        id: "dote_don_recuperacion_vitalidad",
+        nombre: "Don de la Recuperación: Vitalidad",
+        categoria: "don_epico",
+        requisito: "Nivel 19 o más",
+        descripcion:
+          "*Recuperar vitalidad:* tienes una reserva de diez d10. Como acción adicional, puedes gastar dados de la reserva, tirarlos y recuperar una cantidad de puntos de golpe igual al total de la tirada. Recuperas todos los dados gastados cuando finalizas un descanso largo.",
+        beneficios: [
+          "Reserva de 10d10 de vitalidad (acción adicional para gastar dados y autocurarse, recarga en descanso largo)"
+        ],
+        fuente: "PHB 2024",
+        tipoAccion: "accion_adicional",
+        tieneUsosLimitados: true,
+        usosMaximos: 10,
+        recuperacion: "descanso_largo",
+        formulaDados: "1d10",
+        categoriaMecanica: "curacion"
+      }
+    ]
+  },
+  {
+    id: "dote_don_habilidad",
+    nombre: "Don de la Habilidad",
+    categoria: "don_epico",
+    requisito: "Nivel 19 o más",
+    descripcion:
+      "*Mejora de característica:* aumenta una puntuación de característica de tu elección en 1, hasta un máximo de 30.\n\n*Competencia total:* obtienes competencia en todas las habilidades.\n\n*Pericia:* elige una habilidad en la que carezcas de pericia. Obtienes pericia en esa habilidad.",
+    beneficios: [
+      "+1 a una característica a tu elección (máx 30)",
+      "Competencia total (competencia en todas las habilidades)",
+      "Pericia en 1 habilidad donde no la tengas"
+    ],
+    fuente: "PHB 2024",
+    tipoAccion: "pasivo",
+    categoriaMecanica: "pasivo_permanente"
+  },
+  {
+    id: "dote_don_velocidad",
+    nombre: "Don de la Velocidad",
+    categoria: "don_epico",
+    requisito: "Nivel 19 o más",
+    descripcion:
+      "*Mejora de característica:* aumenta una puntuación de característica de tu elección en 1, hasta un máximo de 30.\n\n*Celeridad:* tu velocidad aumenta en 30 pies.\n\n*Artista del escape:* como acción adicional, puedes realizar la acción de Destrabarse, lo que también termina la condición de agarrado sobre ti.",
+    beneficios: [
+      "+1 a una característica a tu elección (máx 30)",
+      "+30 pies a la velocidad de movimiento a pie",
+      "Artista del escape (acción adicional para Destrabarse y librarse de agarrado)"
+    ],
+    fuente: "PHB 2024",
+    tipoAccion: "pasivo",
+    categoriaMecanica: "pasivo_permanente",
+    efectos: [
+      {
+        tipo: "modificador_velocidad",
+        objetivo: "velocidad.caminar",
+        valor: 30,
+        descripcion: "+30 pies a la velocidad de movimiento a pie (Celeridad)"
+      }
+    ]
+  },
+  {
+    id: "dote_don_recuerdo_conjuros",
+    nombre: "Don del Recuerdo de Conjuros",
+    categoria: "don_epico",
+    requisito: "Nivel 19 o más, rasgo Lanzamiento de conjuros o Magia del pacto",
+    descripcion:
+      "*Mejora de característica:* aumenta tu puntuación de Inteligencia, Sabiduría o Carisma en 1, hasta un máximo de 30.\n\n*Lanzamiento gratuito:* cada vez que lances un conjuro con un espacio de conjuro de nivel 1 a 4, tira 1d4. Si el número que obtienes es igual al nivel del espacio, dicho espacio no se gasta.",
+    beneficios: [
+      "+1 Inteligencia, Sabiduría o Carisma (máx 30)",
+      "Lanzamiento gratuito (tira 1d4 al gastar espacio de nv 1-4; si coincide con el nivel, el espacio no se gasta)"
+    ],
+    fuente: "PHB 2024",
+    tipoAccion: "especial",
+    formulaDados: "1d4",
+    categoriaMecanica: "pasivo_permanente"
+  },
+  {
+    id: "dote_don_espiritu_noche",
+    nombre: "Don del Espíritu de la Noche",
+    categoria: "don_epico",
+    requisito: "Nivel 19 o más",
+    descripcion:
+      "*Mejora de característica:* aumenta una puntuación de característica de tu elección en 1, hasta un máximo de 30.\n\n*Fundirse con las sombras:* mientras estés bajo luz tenue o en oscuridad, puedes otorgarte la condición de invisible como una acción adicional. Esta condición termina en ti inmediatamente después de que realices una acción, una acción adicional o una reacción.\n\n*Forma sombría:* mientras estés bajo luz tenue o en oscuridad, tienes resistencia a todo el daño excepto al daño psíquico y radiante.",
+    beneficios: [
+      "+1 a una característica a tu elección (máx 30)",
+      "Fundirse con las sombras (invisibilidad como acción adicional en luz tenue u oscuridad)",
+      "Forma sombría (resistencia a todo daño excepto psíquico y radiante en luz tenue u oscuridad)"
+    ],
+    fuente: "PHB 2024",
+    tipoAccion: "accion_adicional",
+    categoriaMecanica: "pasivo_permanente"
+  },
+  {
+    id: "dote_don_vision_verdadera",
+    nombre: "Don de la Visión Verdadera",
+    categoria: "don_epico",
+    requisito: "Nivel 19 o más",
+    descripcion:
+      "*Mejora de característica:* aumenta una puntuación de característica de tu elección en 1, hasta un máximo de 30.\n\n*Visión verdadera:* tienes visión verdadera con un alcance de 60 pies.",
+    beneficios: [
+      "+1 a una característica a tu elección (máx 30)",
+      "Visión verdadera (alcance 60 pies)"
+    ],
+    fuente: "PHB 2024",
+    tipoAccion: "pasivo",
+    categoriaMecanica: "pasivo_permanente"
+  }
+];
+
+export const DOTES_GENERALES_Y_EPICAS_DND55: DotePersonaje[] = [
+  ...DOTES_GENERALES_DND55,
+  ...DOTES_EPICAS_DND55
 ];
 
 export const TODAS_LAS_DOTES_CANONICAS_DND55: DotePersonaje[] = [

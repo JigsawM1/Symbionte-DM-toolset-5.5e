@@ -40,7 +40,7 @@ const OPCIONES_RECUPERACION: { valor: RecuperacionRasgo; etiqueta: string }[] = 
 interface ModalCrearEditarRasgoProps {
   rasgoInicial?: RasgoPersonaje | null;
   origenPredeterminado?: OrigenRasgo;
-  alGuardar: (rasgo: RasgoPersonaje) => void;
+  alGuardar: (rasgo: RasgoPersonaje, rasgosAdicionales?: RasgoPersonaje[]) => void;
   alCerrar: () => void;
 }
 
@@ -69,6 +69,7 @@ export const ModalCrearEditarRasgo: React.FC<ModalCrearEditarRasgoProps> = ({
   const [categoriaMecanicaDote, setCategoriaMecanicaDote] = useState<
     "consumible" | "activable" | "selector_informativo" | "pasivo_permanente" | "extension" | "curacion" | undefined
   >(rasgoInicial?.categoriaMecanica);
+  const [rasgosAdicionales, setRasgosAdicionales] = useState<RasgoPersonaje[]>([]);
 
   // Selector de plantillas de dotes
   const [dotePredefinidaSeleccionada, setDotePredefinidaSeleccionada] = useState<string>("");
@@ -93,9 +94,35 @@ export const ModalCrearEditarRasgo: React.FC<ModalCrearEditarRasgoProps> = ({
       setTieneUsosLimitados(Boolean(dote.tieneUsosLimitados));
       setUsosMaximos(dote.usosMaximos || 1);
       setRecuperacion(dote.recuperacion || (dote.tieneUsosLimitados ? "descanso_largo" : "ninguno"));
+      setFormulaDados(dote.formulaDados || "");
       setEfectosDote(dote.efectos ? JSON.parse(JSON.stringify(dote.efectos)) : []);
       setSelectoresDote(dote.selectores ? JSON.parse(JSON.stringify(dote.selectores)) : []);
       setCategoriaMecanicaDote(dote.categoriaMecanica);
+
+      if (dote.rasgosAdicionales && dote.rasgosAdicionales.length > 0) {
+        const adicionales: RasgoPersonaje[] = dote.rasgosAdicionales.map((rad) => ({
+          id: rad.id || generarId("rasgo_hb"),
+          nombre: rad.nombre,
+          descripcion: rad.descripcion,
+          origen: "dote",
+          fuente: rad.fuente || "PHB 2024",
+          tipoAccion: rad.tipoAccion || "accion_adicional",
+          tieneUsosLimitados: Boolean(rad.tieneUsosLimitados),
+          usosMaximos: rad.usosMaximos || 1,
+          usosRestantes: rad.usosMaximos || 1,
+          recuperacion: rad.recuperacion || "descanso_largo",
+          formulaDados: rad.formulaDados,
+          categoriaMecanica: rad.categoriaMecanica,
+          personalizado: true,
+          activo: true,
+          efectos: rad.efectos ? JSON.parse(JSON.stringify(rad.efectos)) : undefined,
+          selectores: rad.selectores ? JSON.parse(JSON.stringify(rad.selectores)) : undefined,
+          notas: ""
+        }));
+        setRasgosAdicionales(adicionales);
+      } else {
+        setRasgosAdicionales([]);
+      }
     }
   };
 
@@ -126,7 +153,7 @@ export const ModalCrearEditarRasgo: React.FC<ModalCrearEditarRasgoProps> = ({
       selectores: selectoresDote.length > 0 ? selectoresDote : undefined
     };
 
-    alGuardar(rasgoFinal);
+    alGuardar(rasgoFinal, rasgosAdicionales.length > 0 ? rasgosAdicionales : undefined);
   };
 
   return (

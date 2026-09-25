@@ -19,6 +19,67 @@ Este archivo registra reglas globales, errores encontrados, sus causas raíz y l
    - **Bajo ninguna circunstancia** los módulos de lógica de negocio (`servicios/`), gestores de estado (`almacen/`) o constructores (`gestorClases.ts`) deben contener bifurcaciones condicionales por nombre literal de rasgo o clase (`r.nombre === "..."`, `clase.includes("...")`, etc.).
    - Toda mecánica, progresión de dados, escalado de usos, recuperación o desbloqueo dinámico debe resolverse mediante metadatos declarativos (`escaladoFormulaDados`, `escaladoUsos`, `escaladoRecuperacion`, `opcionesDinamicas`, `escaladoMaxSelecciones`, `sincronizarEfectosConFormula`, `heredarDadosPadre`, `gastarDePadre`, `ligadoA`, `efectos`) delegando en funciones puras agnósticas como `resolverEscaladosRasgo`. Esta regla está reforzada en CI vía ESLint `no-restricted-syntax` y la suite `rasgoGenericidad.test.ts`.
 
+## [2026-09-24] Corrección Arquitectónica: Unificación de Selección con `rasgosAdicionales` y Restauración de `formulaDados` en Presets de Dotes
+
+**Contexto y Problema:**
+1. *Unificación de Don de la Recuperación*: El usuario solicitó que en la lista de selección aparezca como una única dote en el catálogo ("Don de la Recuperación"), pero que al seleccionarla y guardarla se creen automáticamente los dos rasgos mecánicos independientes (Último Bastión y Vitalidad) para no desbalancear sus contadores.
+2. *Ausencia de Tirada y Autocuración en Vitalidad*: "Don de la Recuperación: Vitalidad" no mostraba el botón para tirar dados ni autocurar.
+3. *Ausencia de Tirada en Resistencia a Energías*: "Don de la Resistencia a Energías" no mostraba el botón para tirar los 2d12 de la reacción *Redirigir energía*.
+
+**Causa Raíz:**
+- En `ConstructorRasgoDote.tsx` y `ModalCrearEditarRasgo.tsx`, la función `manejarSeleccionarDotePreset` asignaba nombre, descripción, usos, acciones, efectos y selectores, pero **omitía por completo la llamada a `setFormulaDados(dote.formulaDados || "")`**. Al quedar `formulaDados` como cadena vacía, los componentes `TarjetaRasgo` y `ModalDetalleRasgo` evaluaban `formulaEfectiva` como `undefined`, ocultando el botón interactivo de dados y evitando disparar los metadatos de `curacionRasgo`.
+- Además, `DOTES_EPICAS_DND55` exponía `dote_don_recuperacion_vitalidad` como un ítem de nivel superior en el catálogo, mostrándose duplicado/dividido en el desplegable en lugar de una única dote canónica.
+
+**Solución Implementada:**
+1. **Esquema Recursivo con `rasgosAdicionales`**:
+   - Se actualizó `EsquemaDotePersonaje` y el tipo `DotePersonaje` en `src/tipos/rasgos.ts` para admitir `rasgosAdicionales?: DotePersonaje[]` de forma recursiva y con tipado estricto (`strict: true`, 0 `any`).
+   - En `src/constantes/dotesConstantes.ts`, se unificó "Don de la Recuperación" como un único elemento en `DOTES_EPICAS_DND55` que declara a Vitalidad dentro de `rasgosAdicionales`.
+2. **Propagación de `formulaDados` y `rasgosAdicionales` en el Constructor y Modal**:
+   - En `ConstructorRasgoDote.tsx` y `ModalCrearEditarRasgo.tsx`, `manejarSeleccionarDotePreset` ahora invoca explícitamente `setFormulaDados(dote.formulaDados || "")` e instancia los `rasgosAdicionales` si la dote los declara.
+   - `alGuardar` ahora recibe `(rasgoFinal, rasgosAdicionales)` opcionales.
+   - En `usarVistaRasgos.ts`, `manejarGuardarRasgoModal` persiste tanto `rasgoFinal` como cada uno de los `rasgosAdicionales` en el estado del personaje activo.
+   - En `ConstructorRasgoDote.module.css`, se añadió la clase `.bannerRasgoAdicional` para presentar un aviso limpio y accesible al usuario sobre los rasgos complementarios creados, sin estilos inline.
+3. **Validación de Mecánicas**:
+   - Al preservarse `formulaDados: "1d10"` y `categoriaMecanica: "curacion"`, `TarjetaRasgo` renderiza `<Heart /> Curar 1d10` y ejecuta `lanzarDadosTaleSpire` con `metaEspecial: { tipo: "curacionRasgo", ... }`, aplicando la curación de forma reactiva al personaje.
+   - Al preservarse `formulaDados: "2d12"` en "Don de la Resistencia a Energías", se renderiza el botón de tirada para la reacción de redirigir daño.
+
+**Resultados de Verificación:**
+- Pruebas Unitarias: 76 archivos de prueba pasados (1017 tests pasando al 100%).
+- TypeScript: `pnpm exec tsc --noEmit` completado con 0 errores bajo configuración estricta.
+- Linter: `pnpm exec eslint` ejecutado con 0 errores y 0 advertencias.
+
+## [2026-09-24] Implementación Canónica D&D 5.5e (PHB 2024): Dotes Épicas (Epic Boons) y División Pura de Recursos
+
+**Contexto y Alcance:**
+- Se implementaron las 12 dotes épicas canónicas (*Epic Boons*) del Player's Handbook 2024 (categoría `don_epico`, requisito Nivel 19+, aumento de característica máx 30):
+  1. *Don de la Pericia en Combate* (`dote_don_pericia_combate`): Consumible informativo de 1 uso para *Puntería inigualable* (convertir fallo en acierto 1 vez/turno).
+  2. *Don del Viaje Dimensional* (`dote_don_viaje_dimensional`): Informativo táctico para *Pasos intermitentes* (teletransporte 30 pies tras atacar o magia).
+  3. *Don de la Resistencia a Energías* (`dote_don_resistencia_energias`): Selector interactivo de 2 resistencias entre los 9 tipos elementales (`OPCIONES_DANOS_RESISTENCIA_ENERGIAS`) y reacción *Redirigir energía* con tirada `formulaDados: "2d12"` (+ mod. CON).
+  4. *Don del Destino* (`dote_don_destino`): Consumible de 1 uso (`recuperacion: "descanso_corto"`) con `formulaDados: "2d4"` para modificar pruebas de d20 a 60 pies.
+  5. *Don de la Fortaleza* (`dote_don_fortaleza`): Efecto activo `{ tipo: "modificador_hp_maximo", objetivo: "hp_maximo", valor: 40 }` evaluado limpiamente por `calcularBonoHPMaximoRasgos`. Curación fortalecida (+CON) informativa.
+  6. *Don del Ataque Imparable* (`dote_don_ataque_imparable`): Informativo táctico (*Superar defensas* e ignorar resistencias; *Golpe arrollador* para sumar stat en 20 natural). Requisito: FUE o DES 19+.
+  7. *Don de la Recuperación* (División Pura en 2 Recursos):
+     - *Último Bastión* (`dote_don_recuperacion`): Reacción consumible con 1 uso por descanso largo (al llegar a 0 PG quedas a 1 y curas la mitad de tus PG máximos).
+     - *Vitalidad* (`dote_don_recuperacion_vitalidad`): Acción adicional con categoría `curacion`, reserva de 10 dados d10 por descanso largo (`formulaDados: "1d10"`).
+  8. *Don de la Habilidad* (`dote_don_habilidad`): Informativo canónico (*Competencia total* en todas las habilidades y *Pericia* en 1 habilidad).
+  9. *Don de la Velocidad* (`dote_don_velocidad`): Efecto activo `{ tipo: "modificador_velocidad", objetivo: "velocidad.caminar", valor: 30 }` sumado por `calcularBonoVelocidadRasgos`. Acción adicional *Artista del escape* (destrabarse y terminar agarrado).
+  10. *Don del Recuerdo de Conjuros* (`dote_don_recuerdo_conjuros`): Informativo táctico con `formulaDados: "1d4"` para *Lanzamiento gratuito* (al gastar espacio de nv 1-4, si el d4 coincide con el nivel no se gasta). Requisito: Nivel 19+, Lanzamiento de conjuros o Magia del pacto.
+  11. *Don del Espíritu de la Noche* (`dote_don_espiritu_noche`): Informativo táctico con acción adicional (*Fundirse con las sombras* e invisibilidad en luz tenue/oscuridad; *Forma sombría* con resistencia a todo daño excepto psíquico y radiante).
+  12. *Don de la Visión Verdadera* (`dote_don_vision_verdadera`): Informativo (*Visión verdadera* a 60 pies).
+
+**Decisiones de Diseño y Aprendizajes Técnicos:**
+1. **Desacoplamiento de Contadores de Recursos en Don de la Recuperación:**
+   - La estructura `RasgoPersonaje` gestiona un único par `usosMaximos` / `usosRestantes`. Al poseer *Don de la Recuperación* dos mecánicas de recursos con cadencias y tipos dispares (un recurso de supervivencia de 1 uso/descanso largo y una reserva de 10 dados d10 de curación como acción adicional), unificarlos en un solo rasgo degradaría la experiencia del usuario y causaría colisiones de gasto. La separación arquitectónica en dos rasgos complementarios resuelve el problema de forma 100% limpia y compatible con el descanso largo y el lanzador de dados.
+2. **Reutilización de Motores de Efectos:**
+   - Sin modificar el núcleo de `evaluadorVitalidadRasgos.ts` ni `evaluadorMovilidadRasgos.ts`, los efectos `{ tipo: "modificador_hp_maximo", valor: 40 }` y `{ tipo: "modificador_velocidad", valor: 30 }` fueron resueltos de inmediato por los evaluadores existentes, demostrando la solidez de la arquitectura declarativa (Regla 20).
+3. **Organización Limpia de Colecciones Canónicas:**
+   - Se estructuraron las colecciones en `DOTES_GENERALES_DND55` (43 dotes), `DOTES_EPICAS_DND55` (12 dotes), `DOTES_GENERALES_Y_EPICAS_DND55` (composición de ambas) y `TODAS_LAS_DOTES_CANONICAS_DND55` (origen + generales + épicas), garantizando retrocompatibilidad y consultas específicas según el nivel del personaje.
+
+**Resultados de Verificación:**
+- Pruebas Unitarias: 76 archivos de prueba ejecutados y 1013/1013 tests pasando al 100%.
+- TypeScript: `pnpm exec tsc --noEmit` completado con 0 errores bajo configuración estricta.
+- Linter: `pnpm exec eslint` ejecutado con 0 errores y 0 advertencias.
+
 ## [2026-09-24] Implementación Canónica D&D 5.5e (PHB 2024): Dotes Generales Lote 4/4 y Compendio Completo de Dotes Oficiales
 
 **Contexto y Alcance:**

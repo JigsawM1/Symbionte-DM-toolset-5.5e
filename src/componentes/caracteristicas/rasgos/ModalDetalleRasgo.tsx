@@ -142,8 +142,9 @@ export const ModalDetalleRasgo: React.FC<ModalDetalleRasgoProps> = ({
       if (gastaUsoAlTirar && alGastarUso) {
         alGastarUso();
       }
-      const formula = `!${rasgo.nombre}:${formulaEfectiva}`;
-      const etiqueta = `${nombrePersonaje} - ${rasgo.nombre} (${formulaEfectiva})`;
+      const nombreLimpioRasgo = rasgo.nombre.replace(/:/g, " -");
+      const formula = `!${nombreLimpioRasgo}:${formulaEfectiva}`;
+      const etiqueta = `${nombrePersonaje} - ${nombreLimpioRasgo} (${formulaEfectiva})`;
       await lanzarDadosTaleSpire(
         formula,
         etiqueta,

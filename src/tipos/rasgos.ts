@@ -282,7 +282,7 @@ export const EsquemaRasgoPersonaje = z.object({
 
 export type RasgoPersonaje = z.infer<typeof EsquemaRasgoPersonaje>;
 
-export const EsquemaDotePersonaje = z.object({
+const EsquemaDotePersonajeBase = z.object({
   id: z.string(),
   nombre: z.string(),
   categoria: z.enum(["origen", "general", "estilo_combate", "don_epico", "personalizado"]).default("general"),
@@ -313,4 +313,10 @@ export const EsquemaDotePersonaje = z.object({
   conjurosOtorgados: z.array(z.string()).optional()
 });
 
-export type DotePersonaje = z.infer<typeof EsquemaDotePersonaje>;
+export type DotePersonaje = z.infer<typeof EsquemaDotePersonajeBase> & {
+  rasgosAdicionales?: DotePersonaje[];
+};
+
+export const EsquemaDotePersonaje: z.ZodType<DotePersonaje> = EsquemaDotePersonajeBase.extend({
+  rasgosAdicionales: z.lazy(() => z.array(EsquemaDotePersonaje)).optional()
+});

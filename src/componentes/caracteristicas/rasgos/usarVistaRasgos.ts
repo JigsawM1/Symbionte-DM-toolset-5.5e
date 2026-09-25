@@ -240,12 +240,23 @@ export function usarVistaRasgos() {
     setModoVista("creador_homebrew");
   };
 
-  const manejarGuardarRasgoModal = (rasgoGuardado: RasgoPersonaje) => {
+  const manejarGuardarRasgoModal = (
+    rasgoGuardado: RasgoPersonaje,
+    rasgosAdicionales?: RasgoPersonaje[]
+  ) => {
     if (!personajeActivo) return;
     if (rasgoParaEditar) {
       actualizarRasgoPersonaje(personajeActivo.id, rasgoGuardado.id, rasgoGuardado);
     } else {
       agregarRasgoPersonaje(personajeActivo.id, rasgoGuardado);
+      if (rasgosAdicionales && rasgosAdicionales.length > 0) {
+        for (const rAdicional of rasgosAdicionales) {
+          const yaExiste = (personajeActivo.rasgos || []).some((r) => r.id === rAdicional.id);
+          if (!yaExiste) {
+            agregarRasgoPersonaje(personajeActivo.id, rAdicional);
+          }
+        }
+      }
     }
     setRasgoParaEditar(null);
     setModoVista("mis_rasgos");

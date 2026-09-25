@@ -34,7 +34,7 @@ interface ConstructorRasgoDoteProps {
   personaje: PersonajeJugador;
   rasgoInicial?: RasgoPersonaje | null;
   origenPredeterminado?: OrigenRasgo;
-  alGuardar: (rasgo: RasgoPersonaje) => void;
+  alGuardar: (rasgo: RasgoPersonaje, rasgosAdicionales?: RasgoPersonaje[]) => void;
   alVolver: () => void;
 }
 
@@ -265,6 +265,7 @@ export const ConstructorRasgoDote: React.FC<ConstructorRasgoDoteProps> = ({
   const [nuevoPermiteEscudo, setNuevoPermiteEscudo] = useState<boolean>(true);
   const [nuevaDescripcionEfecto, setNuevaDescripcionEfecto] = useState<string>("");
   const [nuevoCondicion, setNuevoCondicion] = useState<string>("");
+  const [rasgosAdicionales, setRasgosAdicionales] = useState<RasgoPersonaje[]>([]);
 
   // Presets de dotes canónicas
   const manejarSeleccionarDotePreset = (idDote: string) => {
@@ -283,6 +284,7 @@ export const ConstructorRasgoDote: React.FC<ConstructorRasgoDoteProps> = ({
       setUsosMaximos(maxCalculado);
       setUsosRestantes(maxCalculado);
       setRecuperacion(dote.recuperacion || (dote.tieneUsosLimitados ? "descanso_largo" : "ninguno"));
+      setFormulaDados(dote.formulaDados || "");
       setFormulaEscalado(formulaEsc);
       setCategoriaMecanica(dote.categoriaMecanica || (dote.esActivable ? "activable" : dote.tieneUsosLimitados ? "consumible" : "pasivo_permanente"));
       setEsActivable(Boolean(dote.esActivable));
@@ -291,6 +293,31 @@ export const ConstructorRasgoDote: React.FC<ConstructorRasgoDoteProps> = ({
       setSelectores(dote.selectores ? JSON.parse(JSON.stringify(dote.selectores)) : []);
       if (dote.conjurosOtorgados?.length) {
         setConjurosOtorgadosTexto(dote.conjurosOtorgados.join(", "));
+      }
+
+      if (dote.rasgosAdicionales && dote.rasgosAdicionales.length > 0) {
+        const adicionales: RasgoPersonaje[] = dote.rasgosAdicionales.map((rad) => ({
+          id: rad.id || generarId("rasgo_hb"),
+          nombre: rad.nombre,
+          descripcion: rad.descripcion,
+          origen: "dote",
+          fuente: rad.fuente || "PHB 2024",
+          tipoAccion: rad.tipoAccion || "accion_adicional",
+          tieneUsosLimitados: Boolean(rad.tieneUsosLimitados),
+          usosMaximos: rad.usosMaximos || 1,
+          usosRestantes: rad.usosMaximos || 1,
+          recuperacion: rad.recuperacion || "descanso_largo",
+          formulaDados: rad.formulaDados,
+          categoriaMecanica: rad.categoriaMecanica,
+          personalizado: true,
+          activo: true,
+          efectos: rad.efectos ? JSON.parse(JSON.stringify(rad.efectos)) : undefined,
+          selectores: rad.selectores ? JSON.parse(JSON.stringify(rad.selectores)) : undefined,
+          notas: ""
+        }));
+        setRasgosAdicionales(adicionales);
+      } else {
+        setRasgosAdicionales([]);
       }
     }
   };
@@ -675,7 +702,7 @@ export const ConstructorRasgoDote: React.FC<ConstructorRasgoDoteProps> = ({
       id: rasgoInicial?.id || generarId("rasgo_hb")
     };
 
-    alGuardar(rasgoFinal);
+    alGuardar(rasgoFinal, rasgosAdicionales.length > 0 ? rasgosAdicionales : undefined);
   };
 
   return (
@@ -727,6 +754,16 @@ export const ConstructorRasgoDote: React.FC<ConstructorRasgoDoteProps> = ({
             />
           </div>
         </div>
+
+        {rasgosAdicionales.length > 0 && (
+          <div className={estilos.bannerRasgoAdicional}>
+            <Sparkles size={14} color="#10b981" />
+            <span>
+              Esta dote incluye {rasgosAdicionales.length} rasgo(s) complementario(s) que se añadirá(n) automáticamente al guardar:{" "}
+              <strong>{rasgosAdicionales.map((r) => `${r.nombre} (${r.formulaDados ? `Dados: ${r.formulaDados}` : ""}${r.categoriaMecanica === "curacion" ? " - Curación" : ""})`).join(", ")}</strong>
+            </span>
+          </div>
+        )}
       </div>
 
       {/* 2. Sección de Identidad y Reglas Básicas */}

@@ -280,7 +280,7 @@ export function normalizarFormulaDados(formula: string): string {
     const trimmedGrupo = grupo.trim();
     
     // Comprobar si el grupo tiene un prefijo de etiqueta nativo de TaleSpire (ej: "Nombre:" o "!Nombre:")
-    const matchEtiqueta = trimmedGrupo.match(/^!?([^:]+):(.*)$/);
+    const matchEtiqueta = trimmedGrupo.match(/^!?(.+):([^:]+)$/);
     
     if (matchEtiqueta) {
       const etiqueta = matchEtiqueta[1].trim();
@@ -365,7 +365,7 @@ export function crearDescriptoresManualmente(formula: string): unknown[] {
   }
   
   return partes.map((p) => {
-    const match = p.trim().match(/^([^:]+):(.*)$/);
+    const match = p.trim().match(/^(.+):([^:]+)$/);
     if (match) {
       return {
         name: match[1].trim(),
@@ -462,7 +462,7 @@ export async function lanzarDadosTaleSpire(
     let d20Encontrado = false;
     
     const gruposProcesados = grupos.map((grupo) => {
-      const matchEtiqueta = grupo.match(/^!?([^:]+):(.*)$/);
+      const matchEtiqueta = grupo.match(/^!?(.+):([^:]+)$/);
       let formulaDados = grupo.trim();
       let nombreBaseGrupo = nombreEtiquetaBase;
 
@@ -511,7 +511,7 @@ export async function lanzarDadosTaleSpire(
     let d20Modificado = false;
     const gruposProcesados = grupos.map((grupo) => {
       if (d20Modificado) return grupo;
-      const matchEtiqueta = grupo.match(/^!?([^:]+):(.*)$/);
+      const matchEtiqueta = grupo.match(/^!?(.+):([^:]+)$/);
       let formulaDados = grupo.trim();
       let nombreBase = nombreEtiquetaBase;
 
@@ -1020,7 +1020,7 @@ function ejecutarTiradaFallbackLocal(
       let formulaDados = grupo;
       let etiquetaGrupo = `Grupo ${idx + 1}`;
 
-      const matchEtiqueta = grupo.match(/^!?([^:]+):(.*)$/);
+      const matchEtiqueta = grupo.match(/^!?(.+):([^:]+)$/);
       if (matchEtiqueta) {
         etiquetaGrupo = matchEtiqueta[1];
         formulaDados = matchEtiqueta[2];

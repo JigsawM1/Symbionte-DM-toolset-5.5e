@@ -12,7 +12,9 @@ import {
   EsquemaTablaEscaladoRasgo,
   EsquemaEscaladoFormulaDados,
   EsquemaEscaladoUsos,
-  EsquemaEscaladoRecuperacion
+  EsquemaEscaladoRecuperacion,
+  EsquemaRecursoGastado,
+  EsquemaRecuperacionRasgo
 } from "./rasgos";
 import { EsquemaConjuroInnatoEspecie } from "./especies";
 
@@ -194,3 +196,39 @@ export const EsquemaDefinicionEspecieJSON = z.object({
   conjurosInnatos: z.array(EsquemaConjuroInnatoEspecie).optional(),
   resistenciasDanio: z.array(z.string()).optional()
 });
+
+// =======================================================
+// ESQUEMAS ZOD PARA INVOCACIONES SOBRENATURALES EN JSON
+// =======================================================
+
+export const EsquemaInvocacionSobrenaturalJSON = z.object({
+  id: z.string().min(1),
+  nombre: z.string().min(1),
+  descripcion: z.string(),
+  nivelMinimo: z.number().int().min(1).max(20),
+  requisitoPrevio: z.string().optional(),
+  requisitoInvocacion: z.string().optional(),
+  tipoAccion: EsquemaTipoAccionRasgo,
+  repetible: z.boolean(),
+  categoriaMecanica: z.enum([
+    "consumible",
+    "activable",
+    "selector_informativo",
+    "pasivo_permanente",
+    "extension",
+    "curacion"
+  ]).optional(),
+  recursoGastado: EsquemaRecursoGastado.optional(),
+  formulaDados: z.string().optional(),
+  escaladoFormulaDados: EsquemaEscaladoFormulaDados.optional(),
+  tieneUsosLimitados: z.boolean().optional(),
+  usosMaximos: z.number().int().optional(),
+  usosRestantes: z.number().int().optional(),
+  recuperacion: EsquemaRecuperacionRasgo.optional(),
+  efectos: z.array(EsquemaEfectoMecanicoRasgo).optional(),
+  selectores: z.array(EsquemaSelectorRasgo).optional(),
+  conjuroGratuito: z.string().optional(),
+  recuperacionConjuro: z.enum(["ninguno", "descanso_largo", "ilimitado"]).optional()
+});
+
+export type InvocacionSobrenaturalJSON = z.infer<typeof EsquemaInvocacionSobrenaturalJSON>;

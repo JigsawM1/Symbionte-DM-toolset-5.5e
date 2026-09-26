@@ -116,7 +116,7 @@ export const ChipCondicion: React.FC<ChipCondicionProps> = React.memo(({
         nombreEfectivo.toLowerCase() === "concentración" ||
         nombreEfectivo.toLowerCase() === "concentracion";
       const spellLabel = !esSoloConcentracion ? ` (${nombreEfectivo})` : "";
-      contenidoBase = `Concentración${spellLabel}\n\n• Requiere mantener la concentración activa.\n• Al recibir daño: Salvación de Constitución CD 10 o la mitad del daño recibido (la que sea mayor).\n• Quedar incapacitado o lanzar otro conjuro de concentración rompe este efecto inmediatamente (D&D 5.5e).`;
+      contenidoBase = `Concentración${spellLabel}\n\n• Requiere mantener la concentración activa.\n• Al recibir daño: Salvación de Constitución CD 10 o la mitad del daño recibido (la que sea mayor).\n• Quedar incapacitado o lanzar otro conjuro de concentración rompe este efecto inmediatamente.`;
     } else if (detalle.efectos && detalle.efectos.length > 0) {
       contenidoBase = `${detalle.titulo}\n\n${detalle.efectos.map((e) => `• ${e}`).join("\n")}`;
     } else {

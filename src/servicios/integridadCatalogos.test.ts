@@ -8,6 +8,7 @@ import {
   TODAS_LAS_DOTES_CANONICAS_DND55
 } from "@/constantes/dotesConstantes";
 import { RASGOS_POR_ESPECIE, RASGOS_POR_CLASE } from "@/constantes/rasgosDND55";
+import { CATALOGO_INVOCACIONES_SOBRENATURALES } from "@/constantes/invocacionesSobrenaturales";
 
 describe("Integridad de Catálogos D&D 5.5e (JSON Modular e Hidratación)", () => {
   describe("1. Catálogo de Clases y Subclases", () => {
@@ -116,6 +117,136 @@ describe("Integridad de Catálogos D&D 5.5e (JSON Modular e Hidratación)", () =
       for (const nombreClase of clases) {
         expect(RASGOS_POR_CLASE[nombreClase].length).toBeGreaterThan(15);
       }
+    });
+  });
+
+  describe("5. Validación Funcional de Bárbaro, Bardo, Brujo, Invocaciones y Dotes", () => {
+    it("Bárbaro: calcula correctamente los usos de Furia según el nivel", async () => {
+      const { construirBuildClase } = await import("./gestorClases");
+      const nivelesFuria: Array<{ nivel: number; usosEsperados: number }> = [
+        { nivel: 1, usosEsperados: 2 },
+        { nivel: 2, usosEsperados: 2 },
+        { nivel: 3, usosEsperados: 3 },
+        { nivel: 5, usosEsperados: 3 },
+        { nivel: 6, usosEsperados: 4 },
+        { nivel: 11, usosEsperados: 4 },
+        { nivel: 12, usosEsperados: 5 },
+        { nivel: 16, usosEsperados: 5 },
+        { nivel: 17, usosEsperados: 6 },
+        { nivel: 20, usosEsperados: 6 }
+      ];
+
+      for (const { nivel, usosEsperados } of nivelesFuria) {
+        const build = construirBuildClase("Bárbaro", nivel);
+        expect(build).not.toBeNull();
+        if (!build) return;
+        const furia = build.rasgos.find((r) => r.nombre === "Furia");
+        expect(furia, `Furia debe existir en nivel ${nivel}`).toBeDefined();
+        expect(furia?.usosMaximos).toBe(usosEsperados);
+      }
+    });
+
+    it("Bárbaro (Fanático): escala Guerrero de los dioses y calcula Furia persistente", async () => {
+      const { construirBuildClase } = await import("./gestorClases");
+      const buildNv15 = construirBuildClase("Bárbaro", 15, "senda_del_fanatico");
+      expect(buildNv15).not.toBeNull();
+      if (!buildNv15) return;
+      
+      const guerreroDioses = buildNv15.rasgos.find((r) => r.nombre === "Guerrero de los dioses");
+      expect(guerreroDioses?.usosMaximos).toBe(6); // >= 12 -> 6
+
+      const furiaPersistente = buildNv15.rasgos.find((r) => r.nombre === "Furia persistente");
+      expect(furiaPersistente?.usosMaximos).toBe(1);
+    });
+
+    it("Bardo (Glamour): Manto de majestad y Majestad inquebrantable resuelven 1 uso", async () => {
+      const { construirBuildClase } = await import("./gestorClases");
+      const buildNv14 = construirBuildClase("Bardo", 14, "colegio_del_glamour");
+      expect(buildNv14).not.toBeNull();
+      if (!buildNv14) return;
+
+      const manto = buildNv14.rasgos.find((r) => r.nombre === "Manto de majestad");
+      expect(manto?.usosMaximos).toBe(1);
+
+      const majestad = buildNv14.rasgos.find((r) => r.nombre === "Majestad inquebrantable");
+      expect(majestad?.usosMaximos).toBe(1);
+
+      const inspiracion = buildNv14.rasgos.find((r) => r.nombre === "Inspiración bárdica");
+      expect(inspiracion?.escaladoUsos).toEqual({
+        tipo: "por_modificador",
+        modificador: "carisma",
+        minimo: 1
+      });
+    });
+
+    it("Brujo (Celestial): Luz sanadora escala dinámicamente como (nivel + 1)", async () => {
+      const { construirBuildClase } = await import("./gestorClases");
+      const nivelesBrujo = [3, 7, 14, 20];
+      for (const nivel of nivelesBrujo) {
+        const build = construirBuildClase("Brujo", nivel, "patron_celestial");
+        expect(build).not.toBeNull();
+        if (!build) return;
+        const luz = build.rasgos.find((r) => r.nombre === "Luz sanadora");
+        expect(luz, `Luz sanadora debe existir en nivel ${nivel}`).toBeDefined();
+        expect(luz?.usosMaximos).toBe(nivel + 1);
+      }
+    });
+
+    it("Brujo: Invocaciones sobrenaturales tiene opciones reales y escala selecciones", async () => {
+      const { construirBuildClase } = await import("./gestorClases");
+      const buildNv2 = construirBuildClase("Brujo", 2);
+      expect(buildNv2).not.toBeNull();
+      if (!buildNv2) return;
+      const rasgoInvocaciones = buildNv2.rasgos.find((r) => r.nombre === "Invocaciones sobrenaturales");
+      const selector = rasgoInvocaciones?.selectores?.find((s) => s.id === "invocaciones_sobrenaturales_aprendidas");
+
+      expect(selector).toBeDefined();
+      expect(selector?.opciones.length).toBeGreaterThan(15);
+      // Nivel 2 -> escaladoMaxSelecciones debe resolver 3
+      expect(selector?.maxSelecciones).toBe(3);
+
+      const buildNv5 = construirBuildClase("Brujo", 5);
+      expect(buildNv5).not.toBeNull();
+      if (!buildNv5) return;
+      const selectorNv5 = buildNv5.rasgos.find((r) => r.nombre === "Invocaciones sobrenaturales")
+        ?.selectores?.find((s) => s.id === "invocaciones_sobrenaturales_aprendidas");
+      expect(selectorNv5?.maxSelecciones).toBe(5);
+    });
+
+    it("Dotes: Iniciado en la Magia posee conjuros de nivel 0 y nivel 1 reales", () => {
+      const mago = DOTES_ORIGEN_DND55.find((d) => d.id === "dote_iniciado_magia_mago");
+      expect(mago).toBeDefined();
+      const selectorTruco = mago?.selectores?.find((s) => s.id === "selector_truco_1_iniciado_mago");
+      const selectorNv1 = mago?.selectores?.find((s) => s.id === "selector_conjuro_nv1_iniciado_mago");
+      expect(selectorTruco?.opciones.length).toBeGreaterThan(0);
+      expect(selectorNv1?.opciones.length).toBeGreaterThan(0);
+    });
+  });
+
+  describe("6. Catálogo de Invocaciones Sobrenaturales (JSON Modular)", () => {
+    it("carga exactamente las 28 invocaciones oficiales de D&D 5.5e", () => {
+      expect(CATALOGO_INVOCACIONES_SOBRENATURALES).toHaveLength(28);
+    });
+
+    it("no existen IDs duplicados entre las invocaciones sobrenaturales", () => {
+      const ids = CATALOGO_INVOCACIONES_SOBRENATURALES.map((i) => i.id);
+      expect(new Set(ids).size).toBe(28);
+    });
+
+    it("todas las invocaciones poseen niveles mínimos válidos (1 a 20)", () => {
+      for (const inv of CATALOGO_INVOCACIONES_SOBRENATURALES) {
+        expect(inv.nivelMinimo).toBeGreaterThanOrEqual(1);
+        expect(inv.nivelMinimo).toBeLessThanOrEqual(20);
+        expect(inv.nombre.length).toBeGreaterThan(0);
+        expect(inv.descripcion.length).toBeGreaterThan(0);
+      }
+    });
+
+    it("Pacto del filo conserva su selector interactivo de tipo de daño", () => {
+      const pactoFilo = CATALOGO_INVOCACIONES_SOBRENATURALES.find((i) => i.id === "pacto_del_filo");
+      expect(pactoFilo).toBeDefined();
+      expect(pactoFilo?.selectores?.[0].id).toBe("tipo_dano_pacto_del_filo");
+      expect(pactoFilo?.selectores?.[0].opciones).toHaveLength(4);
     });
   });
 });

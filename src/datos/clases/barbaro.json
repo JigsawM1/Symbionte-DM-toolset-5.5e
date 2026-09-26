@@ -406,7 +406,7 @@
     {
       "nivel": 9,
       "nombre": "Golpe brutal",
-      "descripcion": "Si usas Ataque temerario, puedes renunciar a cualquier ventaja en una tirada de ataque basada en Fuerza de tu elección en tu turno. La tirada de ataque elegida no debe tener desventaja. Si la tirada de ataque elegida acierta, el objetivo sufre 1d10 de daño adicional del mismo tipo que inflige el arma o el ataque sin armas, y puedes causar un efecto de Golpe brutal de tu elección. Tienes las siguientes opciones de efectos:\n\n***Golpe contundente.*** El objetivo es empujado 15 pies en línea recta lejos de ti. Luego puedes moverte hasta la mitad de tu velocidad directamente hacia el objetivo sin provocar ataques de oportunidad.\n\n***Golpe inmovilizador.*** La velocidad del objetivo se reduce en 15 pies hasta el comienzo de tu siguiente turno. Un objetivo solo puede verse afectado por un Golpe inmovilizador a la vez (el más reciente).\n\n***Golpe brutal mejorado (II) (Nv. 17).*** El daño adicional que infliges con él aumenta a 2d10. Además, puedes aplicar hasta dos efectos diferentes de Golpe brutal a la vez en lugar de uno.",
+      "descripcion": "Si usas Ataque temerario, puedes renunciar a cualquier ventaja en una tirada de ataque basada en Fuerza de tu elección en tu turno. La tirada de ataque elegida no debe tener desventaja. Si la tirada de ataque elegida acierta, el objetivo sufre 1d10 de daño adicional del mismo tipo que inflige el arma o el ataque sin armas, y puedes causar un efecto de Golpe brutal de tu elección. Tienes las siguientes opciones de efectos:\n\n***Golpe contundente.*** El objetivo es empujado 15 pies en línea recta lejos de ti. Luego puedes moverte hasta la mitad de tu velocidad directamente hacia el objetivo sin provocar ataques de oportunidad.\n\n***Golpe inmovilizador.*** La velocidad del objetivo se reduce en 15 pies hasta el comienzo de tu siguiente turno. Un objetivo solo puede verse afectado por un Golpe inmovilizador a la vez (el más reciente).",
       "tipoAccion": "pasivo",
       "formulaDados": "1d10",
       "escaladoFormulaDados": [
@@ -468,6 +468,16 @@
                   "id": "golpe_desgarrador",
                   "nombre": "Golpe desgarrador (Nv. 13)",
                   "descripcion": "Antes del principio de tu siguiente turno, la siguiente tirada de ataque realizada por otra criatura contra el objetivo obtiene un bonificador de +5 a la tirada. Una tirada de ataque solo puede obtener un bonificador de Golpe desgarrador."
+                }
+              ]
+            },
+            {
+              "nivelMinimo": 17,
+              "opciones": [
+                {
+                  "id": "golpe_brutal_mejorado",
+                  "nombre": "Golpe brutal mejorado II (Nv. 17)",
+                  "descripcion": "El daño adicional que infliges con él aumenta a 2d10. Además, puedes aplicar hasta dos efectos diferentes de Golpe brutal a la vez en lugar de uno."
                 }
               ]
             }

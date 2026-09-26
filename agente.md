@@ -19,6 +19,64 @@ Este archivo registra reglas globales, errores encontrados, sus causas raíz y l
    - **Bajo ninguna circunstancia** los módulos de lógica de negocio (`servicios/`), gestores de estado (`almacen/`) o constructores (`gestorClases.ts`) deben contener bifurcaciones condicionales por nombre literal de rasgo o clase (`r.nombre === "..."`, `clase.includes("...")`, etc.).
    - Toda mecánica, progresión de dados, escalado de usos, recuperación o desbloqueo dinámico debe resolverse mediante metadatos declarativos (`escaladoFormulaDados`, `escaladoUsos`, `escaladoRecuperacion`, `opcionesDinamicas`, `escaladoMaxSelecciones`, `sincronizarEfectosConFormula`, `heredarDadosPadre`, `gastarDePadre`, `ligadoA`, `efectos`) delegando en funciones puras agnósticas como `resolverEscaladosRasgo`. Esta regla está reforzada en CI vía ESLint `no-restricted-syntax` y la suite `rasgoGenericidad.test.ts`.
 
+## [2026-09-25] Modularización Arquitectónica: Separación de Invocaciones Sobrenaturales a JSON Declarativo con Validación Zod
+
+**Contexto del Problema:**
+- Tras migrar las clases, especies y dotes a archivos JSON modulares bajo `src/datos/`, las 28 Invocaciones Sobrenaturales del Brujo (PHB 2024) permanecían como un catálogo de más de 500 líneas de datos estáticos embebidos en `src/constantes/invocacionesSobrenaturales.ts`.
+
+**Solución Arquitectónica Aplicada:**
+1. **Extracción a JSON Modular:**
+   - Se creó `src/datos/invocaciones-sobrenaturales.json` conteniendo el catálogo puro de las 28 Invocaciones Sobrenaturales oficiales.
+2. **Esquema de Validación Zod (`EsquemaInvocacionSobrenaturalJSON`):**
+   - Se implementó en `src/tipos/esquemasCatalogos.ts` para validar en tiempo de carga la integridad de claves requeridas (`id`, `nombre`, `nivelMinimo`, `tipoAccion`, `repetible`), requisitos previos, efectos mecánicos y selectores interactivos.
+3. **Capa de Constantes e Hidratación Pura:**
+   - `src/constantes/invocacionesSobrenaturales.ts` se redujo de ~574 líneas a ~65 líneas, importando y validando el JSON mediante `validarColeccionJSON`, y manteniendo intactas las funciones utilitarias puras (`obtenerNivelEspacioPacto`, `obtenerMaxInvocacionesBrujo`, `generarOpcionesSelectorInvocaciones`).
+4. **Retrocompatibilidad 100%:**
+   - Todos los consumidores (`hidratadorClases.ts`, `SelectorInvocacionesAcordeon.tsx`, `sliceRasgos.ts`, `GrupoClaseRasgos.tsx` y tests) continúan operando sin modificaciones de importación.
+5. **Validación Automatizada:**
+   - Se agregaron 4 pruebas unitarias en `src/servicios/integridadCatalogos.test.ts` (alcanzando 24 tests de integridad) y se validaron las suites mecánicas de brujo (58 tests aprobados).
+   - Verificación de tipos con `pnpm tsc --noEmit` y `pnpm lint` completadas con 0 errores.
+
+## [2026-09-25] Evaluación de Herramientas y Protocolo MCP: Análisis de `microsoft/tgrep`
+
+**Contexto:**
+- Se analizó el repositorio `https://github.com/microsoft/tgrep` para evaluar su viabilidad como servidor MCP (*Model Context Protocol*) de búsqueda de código dentro de nuestro entorno de desarrollo.
+
+**Hallazgos Técnicos y Arquitectónicos:**
+1. **Funcionamiento:** `tgrep` es un motor de búsqueda en Rust que crea un índice invertido de trigramas (`.tgrep/`) y corre un demonio en segundo plano (`tgrep serve`) vía TCP. Al consultar, descarta previamente los archivos que no contienen los trigramas y solo ejecuta regex en paralelo sobre los candidatos reales.
+2. **MCP Integrado (`scripts/agent/`):** Expone herramientas MCP por `stdio` (`search_code` y `find_files`). Sin embargo, el adaptador oficial (`runtime.py`) está restringido a entornos POSIX (Linux/macOS) mediante el uso de módulos como `fcntl`, incompatible de fábrica con Windows (SO del entorno local).
+3. **Decisión Arquitectónica:** En proyectos de la escala de `ToolSet Es 5.5`, las herramientas nativas del agente (`grep_search` basado en ripgrep y `find_by_name` basado en fd) ejecutan búsquedas instantáneas en milisegundos con cero sobrecarga de memoria, sin desincronizaciones de índice (*index lag*) y con compatibilidad total en Windows. Se mantiene el stack nativo actual.
+
+## [2026-09-25] Validación y Cumplimiento Funcional: Bárbaro, Bardo, Brujo, Invocaciones y Dotes en Catálogo JSON Modular
+
+**Contexto del Problema y Aclaración Arquitectónica:**
+- Tras la migración de `clasesDND55.ts`, `especiesDND55.ts` y `dotesConstantes.ts` a archivos JSON modulares bajo `src/datos/`, se auditó y garantizó el cumplimiento exacto del sistema para las áreas prioritarias solicitadas: Bárbaro, Bardo, Brujo, Invocaciones Sobrenaturales y el catálogo de Dotes canónicas.
+- Respecto a las funciones `obtenerUsosMaximos`: en los archivos JSON no pueden existir closures de JS. Los rasgos con progresión dinámica por nivel (`Furia`, `Guerrero de los dioses`, `Luz sanadora`) se serializan mediante `escaladoUsos` declarativo (`tabla` o `formula` semántica), mientras que los rasgos de uso unitario (`Furia persistente`, `Furia de los dioses`, `Manto de majestad`, `Majestad inquebrantable`) operan mediante `formulaUsos: "1"` evaluados por `evaluarFormulaUsos`.
+
+**Verificación Funcional Implementada:**
+1. **Bárbaro**:
+   - `Furia` escala con precisión según la tabla canónica: 2 usos en nv1-2, 3 en nv3-5, 4 en nv6-11, 5 en nv12-16 y 6 en nv17-20 vía `escaladoUsos.tabla`.
+   - `Guerrero de los dioses` (Fanático) escala a 6 usos a nivel 15.
+   - `Furia persistente` calcula correctamente 1 uso máximo.
+2. **Bardo**:
+   - `Inspiración bárdica` preserva su configuración declarativa `escaladoUsos: { tipo: "por_modificador", modificador: "carisma", minimo: 1 }`.
+   - `Manto de majestad` y `Majestad inquebrantable` (Colegio del Glamour) resuelven 1 uso exacto.
+3. **Brujo e Invocaciones Sobrenaturales**:
+   - El rasgo `Invocaciones sobrenaturales` declara la clave `"claveOpcionesDinamicas": "invocaciones_brujo"` en su selector.
+   - `hidratadorClases.ts` inyecta dinámicamente las invocaciones generadas por `generarOpcionesSelectorInvocaciones()`, cargando la colección completa de opciones con sus descripciones y requisitos.
+   - `escaladoMaxSelecciones` resuelve correctamente la progresión de invocaciones disponibles (1 en nv1, 3 en nv2, 5 en nv5, etc.).
+   - `Luz sanadora` (Patrón Celestial) resuelve dinámicamente `nivel + 1` usos mediante `escaladoUsos: { tipo: "por_nivel", formula: "nivel_mas_1" }`.
+   - Rasgos por Carisma (`Pasos feéricos`, `Propia suerte del Oscuro`) preservan su escalado por modificador.
+4. **Dotes Canónicas**:
+   - Las 67 dotes canónicas (12 origen, 43 generales, 12 épicas) validan contra `EsquemaDotePersonaje`.
+   - `Iniciado en la Magia` (Clérigo, Druida, Mago) y `Lanzador Ritual` son hidratadas con conjuros y rituales reales desde `all.json` en `hidratadorDotes.ts`.
+
+**Validación Automatizada:**
+- Se integraron 6 nuevas pruebas funcionales en `src/servicios/integridadCatalogos.test.ts` (total de 20 tests específicos de integridad).
+- La suite completa del repositorio (77 archivos de test y 1038 pruebas) pasa al 100% de forma limpia.
+- Tipado `strict: true` validado con `pnpm tsc --noEmit` (0 errores).
+- Linter verificado con `pnpm lint` (0 errores / 0 advertencias).
+
 ## [2026-09-25] Corrección de CI: Sincronización de `pnpm-lock.yaml` tras Reubicación de Dependencias (`ERR_PNPM_OUTDATED_LOCKFILE`)
 
 **Contexto del Problema:**

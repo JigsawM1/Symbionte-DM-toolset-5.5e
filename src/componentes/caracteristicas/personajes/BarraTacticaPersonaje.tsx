@@ -225,7 +225,7 @@ const BarraTacticaPersonajeComponent: React.FC<BarraTacticaPersonajeProps> = ({
                   nombre="Concentración"
                   concentracion
                   textoCustom={`[CON] ${concentracionActiva.nombreHechizo.toUpperCase()}`}
-                  tooltipCustom={`Concentración Activa\n\n• Manteniendo conjuro: ${concentracionActiva.nombreHechizo}.\n• Si sufres daño, debes superar una salvación de Constitución (CD 10 o mitad del daño recibido).\n• Quedar incapacitado o lanzar otro conjuro de concentración rompe este efecto inmediatamente (D&D 5.5e).`}
+                  tooltipCustom={`Concentración Activa\n\n• Manteniendo conjuro: ${concentracionActiva.nombreHechizo}.\n• Si sufres daño, debes superar una salvación de Constitución (CD 10 o mitad del daño recibido).\n• Quedar incapacitado o lanzar otro conjuro de concentración rompe este efecto inmediatamente.`}
                   alineacionTooltip="derecha"
                   onQuitar={alRomperConcentracion}
                 />

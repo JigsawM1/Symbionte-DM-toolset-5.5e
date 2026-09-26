@@ -40,7 +40,11 @@ Este archivo registra reglas globales, errores encontrados, sus causas raíz y l
    - `DADO_GOLPE_POR_CLASE` en `src/constantes/personajeConstantes.ts` se transformó en una proyección pura derivada de `CATALOGO_CLASES_DND55`.
 
 **Decisión de Diseño y Ajuste de Pruebas:**
-- **Opciones dinámicas de Golpe Brutal en `barbaro.json`**: Se confirmó que la entrada `golpe_brutal_mejorado` dentro de `opcionesDinamicas` con `nivelMinimo: 17` fue incorporada intencionalmente para que el mensaje y efecto informativo de *Golpe brutal mejorado II* solo se desbloquee y visualice a partir del nivel 17 (evitando que se exponga prematuramente a nivel 9). Se actualizó la prueba `rasgoGenericidad.test.ts` para validar formalmente que a nivel 17 el selector contiene 5 opciones (las 2 base + 2 de nivel 13 + 1 de nivel 17), preservando intacta la configuración deseada.
+- **Separación Limpia entre Selector Táctico y Extensión Descriptiva en Golpe Brutal (`barbaro.json`)**:
+  - *Causa raíz*: El mensaje informativo de *Golpe brutal mejorado II (Nv. 17)* se había introducido en `opcionesDinamicas` del selector de maniobras, provocando que apareciera como una opción interactiva seleccionable falsa.
+  - *Corrección arquitectónica*: Se eliminó `golpe_brutal_mejorado` de `opcionesDinamicas`. El selector interactivo conserva exclusivamente las 4 maniobras tácticas reales (Contundente e Inmovilizador a nv 9; Desestabilizador y Desgarrador a nv 13).
+  - *Comportamiento a nivel 17*: `escaladoMaxSelecciones` eleva `maxSelecciones` a 2 (`tipo: "multiple"`), permitiendo elegir 2 de las 4 opciones según las reglas D&D 2024. Simultáneamente, el mecanismo de Decorator de `gestorClases.ts` detecta el rasgo a nivel 17 con `categoriaMecanica: "extension"` y `ligadoA: "rasgo_cls_barbaro_golpe_brutal"` y anexa de forma orgánica el texto `***Golpe brutal mejorado (II) (Nv. 17).***` a la descripción del rasgo padre (y escala `formulaDados` a `2d10`), únicamente si el personaje tiene nivel 17 o superior. A nivel 9 no se visualiza dicho texto ni selector alterado.
+  - *Ajuste en tests*: `src/servicios/rasgoGenericidad.test.ts` valida que a nv 17 el selector contiene exactamente 4 opciones, `maxSelecciones` es 2, no existe la opción informativa falsa en el selector, y la descripción del rasgo incorpora el texto de nv 17 sin afectar a nv 9.
 
 **Resultados y Métricas de Validación:**
 - 10 nuevas pruebas unitarias añadidas a `src/servicios/integridadCatalogos.test.ts` (34 tests de integridad en total).

@@ -130,8 +130,15 @@ describe("Genericidad Arquitectónica de Rasgos (D&D 5.5e PHB 2024)", () => {
 
       expect(selectorNv17?.maxSelecciones).toBe(2);
       expect(selectorNv17?.tipo).toBe("multiple");
-      expect(selectorNv17?.opciones.length).toBe(5); // 2 base + 2 dinámicas a nv 13 + 1 dinámica a nv 17
-      expect(selectorNv17?.opciones.some((o) => o.id === "golpe_brutal_mejorado")).toBe(true);
+      expect(selectorNv17?.opciones.length).toBe(4); // 2 base + 2 dinámicas a nv 13
+      expect(selectorNv17?.opciones.some((o) => o.id === "golpe_brutal_mejorado")).toBe(false);
+
+      // Verificación de descripción: solo se anexa a nivel 17 vía categoría extensión
+      const rasgoGbNv9 = barbaroNv9.find((r) => r.id.includes("golpe_brutal"));
+      const rasgoGbNv17 = barbaroNv17.find((r) => r.id.includes("golpe_brutal"));
+      expect(rasgoGbNv9?.descripcion).not.toContain("Golpe brutal mejorado (II)");
+      expect(rasgoGbNv17?.descripcion).toContain("Golpe brutal mejorado (II) (Nv. 17)");
+      expect(rasgoGbNv17?.formulaDados).toBe("2d10");
     });
 
     it("valida correctamente rasgos personalizados homebrew creados según el nuevo esquema declarativo", () => {

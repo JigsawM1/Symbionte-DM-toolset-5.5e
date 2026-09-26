@@ -470,16 +470,6 @@
                   "descripcion": "Antes del principio de tu siguiente turno, la siguiente tirada de ataque realizada por otra criatura contra el objetivo obtiene un bonificador de +5 a la tirada. Una tirada de ataque solo puede obtener un bonificador de Golpe desgarrador."
                 }
               ]
-            },
-            {
-              "nivelMinimo": 17,
-              "opciones": [
-                {
-                  "id": "golpe_brutal_mejorado",
-                  "nombre": "Golpe brutal mejorado II (Nv. 17)",
-                  "descripcion": "El daño adicional que infliges con él aumenta a 2d10. Además, puedes aplicar hasta dos efectos diferentes de Golpe brutal a la vez en lugar de uno."
-                }
-              ]
             }
           ],
           "escaladoMaxSelecciones": [

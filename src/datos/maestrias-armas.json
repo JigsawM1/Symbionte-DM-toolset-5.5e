@@ -1,0 +1,66 @@
+[
+  {
+    "id": "cleave",
+    "titulo": "Hender",
+    "etiquetaSelector": "Cleave (Hender)",
+    "aliases": ["cleave", "hender", "tajo"],
+    "descripcion": "Si impactas a una criatura con un ataque cuerpo a cuerpo, puedes realizar otro ataque contra una segunda criatura a 5 pies de la primera que esté a tu alcance. Si impactas, la segunda criatura recibe el daño del arma (sin sumar tu modificador de característica a menos que sea negativo). Máximo una vez por turno.",
+    "explicacionSelector": "Si impactas a una criatura con un ataque cuerpo a cuerpo, puedes hacer una tirada de ataque contra una segunda criatura a 5 pies de la primera y dentro de tu alcance. Si impactas, la segunda criatura recibe el daño del arma sin tu modificador de característica. Solo una vez por turno."
+  },
+  {
+    "id": "graze",
+    "titulo": "Rozar",
+    "etiquetaSelector": "Graze (Rozar)",
+    "aliases": ["graze", "rozar", "roce"],
+    "descripcion": "Si fallas una tirada de ataque contra una criatura, aun así le infliges daño igual al modificador de la característica que usaste para el ataque. Este daño es del mismo tipo que el arma y no se puede incrementar salvo aumentando dicho modificador.",
+    "explicacionSelector": "Si tu tirada de ataque falla, puedes infligir daño igual al modificador de característica usado. El daño es del mismo tipo que el arma, y solo puede incrementarse aumentando el modificador."
+  },
+  {
+    "id": "nick",
+    "titulo": "Mellar",
+    "etiquetaSelector": "Nick (Mellar)",
+    "aliases": ["nick", "corte", "golpe rapido", "mellar"],
+    "descripcion": "Puedes realizar el ataque adicional otorgado por la propiedad Ligera como parte de la misma Acción de Atacar en lugar de consumir tu Acción Adicional. Solo puedes realizar este ataque extra una vez por turno.",
+    "explicacionSelector": "Cuando haces el ataque extra de la propiedad Ligera, puedes hacerlo como parte de la acción de Atacar en vez de como Acción Adicional. Solo una vez por turno."
+  },
+  {
+    "id": "push",
+    "titulo": "Empujar",
+    "etiquetaSelector": "Push (Empujar)",
+    "aliases": ["push", "empuje", "empujar"],
+    "descripcion": "Si impactas a una criatura con este ataque, puedes empujarla hasta 10 pies en línea recta lejos de ti (siempre que la criatura sea de tamaño Grande o menor).",
+    "explicacionSelector": "Si impactas a una criatura, puedes empujarla hasta 10 pies en línea recta lejos de ti si es Grande o menor."
+  },
+  {
+    "id": "sap",
+    "titulo": "Debilitar",
+    "etiquetaSelector": "Sap (Debilitar)",
+    "aliases": ["sap", "aturdir", "debilitar", "menoscabo"],
+    "descripcion": "Si impactas a una criatura, esta sufrirá Desventaja en su siguiente tirada de ataque realizada antes del inicio de tu siguiente turno.",
+    "explicacionSelector": "Si impactas a una criatura, esa criatura tiene Desventaja en su siguiente tirada de ataque antes del inicio de tu próximo turno."
+  },
+  {
+    "id": "slow",
+    "titulo": "Ralentizar",
+    "etiquetaSelector": "Slow (Ralentizar)",
+    "aliases": ["slow", "ralentizar", "frenar", "lentitud"],
+    "descripcion": "Si impactas a una criatura y le infliges daño, su velocidad se reduce en 10 pies hasta el inicio de tu siguiente turno. Impactos sucesivos no acumulan la reducción de velocidad más allá de 10 pies.",
+    "explicacionSelector": "Si impactas a una criatura e infliges daño, puedes reducir su Velocidad en 10 pies hasta el inicio de tu próximo turno. Múltiples impactos con armas Slow no acumulan la reducción."
+  },
+  {
+    "id": "topple",
+    "titulo": "Derribar",
+    "etiquetaSelector": "Topple (Derribar)",
+    "aliases": ["topple", "derribar", "derribo"],
+    "descripcion": "Si impactas a una criatura, puedes forzarla a superar una tirada de salvación de Constitución (CD 8 + tu bono de competencia + mod de característica) o caer en condición de Derribada (Prone).",
+    "explicacionSelector": "Si impactas a una criatura, puedes forzar una tirada de salvación de Constitución (CD 8 + tu modificador de característica + tu bonificador de competencia). Si falla, la criatura queda Derribada."
+  },
+  {
+    "id": "vex",
+    "titulo": "Molestar",
+    "etiquetaSelector": "Vex (Molestar)",
+    "aliases": ["vex", "hostigar", "irritar", "acoso", "molestar"],
+    "descripcion": "Si impactas a una criatura y le infliges daño, obtienes Ventaja en tu siguiente tirada de ataque contra esa misma criatura antes del final de tu siguiente turno.",
+    "explicacionSelector": "Si impactas a una criatura e infliges daño, tienes Ventaja en tu siguiente tirada de ataque contra esa criatura antes del final de tu próximo turno."
+  }
+]

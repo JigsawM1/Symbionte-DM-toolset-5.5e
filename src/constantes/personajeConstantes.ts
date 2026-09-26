@@ -3,6 +3,7 @@ import type {
   Caracteristica,
   Habilidad
 } from "@/tipos";
+import { CATALOGO_CLASES_DND55 } from "./clasesDND55";
 
 // ==========================================
 // 1. TABLAS DE PROGRESIÓN Y DADOS D&D 5.5e
@@ -39,20 +40,11 @@ export const TABLA_EXPERIENCIA: Record<number, number> = {
   20: 355000
 };
 
-export const DADO_GOLPE_POR_CLASE: Record<string, "d6" | "d8" | "d10" | "d12"> = {
-  "Bárbaro": "d12",
-  "Explorador": "d10",
-  "Guerrero": "d10",
-  "Paladín": "d10",
-  "Bardo": "d8",
-  "Brujo": "d8",
-  "Clérigo": "d8",
-  "Druida": "d8",
-  "Monje": "d8",
-  "Pícaro": "d8",
-  "Hechicero": "d6",
-  "Mago": "d6"
-};
+/** Derivado dinámicamente de los JSONs de clases — fuente única de verdad */
+export const DADO_GOLPE_POR_CLASE: Record<string, "d6" | "d8" | "d10" | "d12"> =
+  Object.fromEntries(
+    CATALOGO_CLASES_DND55.map((c) => [c.nombre, c.dadoGolpe as "d6" | "d8" | "d10" | "d12"])
+  ) as Record<string, "d6" | "d8" | "d10" | "d12">;
 
 export const MAPA_HABILIDAD_A_CARACTERISTICA: Record<Habilidad, Caracteristica> = {
   acrobacias: "destreza",

@@ -1,0 +1,198 @@
+[
+  {
+    "nombre": "Desangrándose",
+    "descripcion": "Esta criatura o personaje está por debajo del 50% de sus puntos de golpe máximos. Se aplica automáticamente cuando la salud cae por debajo de la mitad y desaparece cuando se recupera por encima de dicho umbral.",
+    "duracionEstandar": 0,
+    "aliases": ["bloodied", "desangrandose"]
+  },
+  {
+    "nombre": "Armadura sin Competencia",
+    "descripcion": "Vistes armadura o portas escudo sin entrenamiento.",
+    "duracionEstandar": 0,
+    "aliases": ["sin competencia", "incompetencia"],
+    "efectos": [
+      "Desventaja en cualquier tirada de ataque que use Fuerza o Destreza.",
+      "Desventaja en pruebas de característica y tiradas de salvación de Fuerza y Destreza.",
+      "Incapacidad total para lanzar conjuros y realizar rituales."
+    ]
+  },
+  {
+    "nombre": "Desventaja en Sigilo",
+    "tituloVisual": "Desventaja en Sigilo (Armadura)",
+    "descripcion": "La armadura corporal equipada es pesada o ruidosa.",
+    "duracionEstandar": 0,
+    "aliases": ["desventaja en sigilo", "sigilo ruidoso", "desventaja en sigilo (armadura)"],
+    "efectos": [
+      "La armadura corporal equipada impone Desventaja automática en todas las pruebas de Sigilo (Destreza)."
+    ]
+  },
+  {
+    "nombre": "Bendecir",
+    "descripcion": "Añade 1d4 a las tiradas de ataque y salvaciones.",
+    "duracionEstandar": 10,
+    "aliases": ["bless"]
+  },
+  {
+    "nombre": "Furia",
+    "descripcion": "Ventaja en tiradas de Fuerza, daño extra en ataques de Fuerza, resistencia a daño contundente, perforante y cortante.",
+    "duracionEstandar": 100,
+    "aliases": ["rage"]
+  },
+  {
+    "nombre": "Ataque Temerario",
+    "descripcion": "Ventaja en tiradas de ataque que usen Fuerza durante tu turno, pero los ataques contra ti tienen ventaja hasta el inicio de tu siguiente turno.",
+    "duracionEstandar": 1,
+    "aliases": ["reckless attack"]
+  },
+  {
+    "nombre": "Auxilio",
+    "descripcion": "Aumenta los puntos de golpe máximos y actuales en 5 por nivel de espacio.",
+    "duracionEstandar": 800,
+    "aliases": ["aid"]
+  },
+  {
+    "nombre": "Concentración",
+    "descripcion": "La criatura se está concentrando en mantener un conjuro activo.",
+    "duracionEstandar": 100,
+    "esConcentracion": true,
+    "aliases": ["concentration"]
+  },
+  {
+    "nombre": "Escudo",
+    "descripcion": "+5 a la CA y no sufre daño de Proyectil Mágico.",
+    "duracionEstandar": 1,
+    "aliases": ["shield"]
+  },
+  {
+    "nombre": "Heroísmo",
+    "descripcion": "Inmune al miedo y recibe puntos de golpe temporales al inicio de cada turno.",
+    "duracionEstandar": 10,
+    "aliases": ["heroism"]
+  },
+  {
+    "nombre": "Inspirado",
+    "descripcion": "Puede añadir un dado de inspiración (d6/d8/d10/d12) a una tirada de d20.",
+    "duracionEstandar": 100,
+    "aliases": ["inspiracion", "inspiracion bardica", "bardic inspiration"]
+  },
+  {
+    "nombre": "Maldición",
+    "descripcion": "El objetivo sufre desventaja en pruebas y salvaciones de una característica, o daño extra.",
+    "duracionEstandar": 10,
+    "aliases": ["bestow curse"]
+  },
+  {
+    "nombre": "Maleficio",
+    "descripcion": "Daño extra al golpear al objetivo y desventaja en pruebas de una característica.",
+    "duracionEstandar": 100,
+    "aliases": ["hex"]
+  },
+  {
+    "nombre": "Perdición",
+    "descripcion": "Resta 1d4 a las tiradas de ataque y salvaciones del objetivo.",
+    "duracionEstandar": 10,
+    "aliases": ["bane"]
+  },
+  {
+    "nombre": "Prisa",
+    "descripcion": "CA +2, ventaja en salvaciones de Destreza, acción adicional en cada turno. Al terminar, no puede moverse ni actuar durante 1 turno.",
+    "duracionEstandar": 10,
+    "aliases": ["haste"]
+  },
+  {
+    "nombre": "Recargando",
+    "descripcion": "La habilidad especial o aliento está recargando para poder usarse nuevamente.",
+    "duracionEstandar": 1,
+    "aliases": ["recharge", "recarga"]
+  },
+  {
+    "nombre": "Ralentizar",
+    "descripcion": "Velocidad a la mitad, CA -2, -2 a salvaciones de Destreza, no puede realizar reacciones.",
+    "duracionEstandar": 10,
+    "aliases": ["slow"]
+  },
+  {
+    "nombre": "Santuario",
+    "descripcion": "Cualquier criatura que intente atacar al objetivo debe superar una salvación de Sabiduría.",
+    "duracionEstandar": 10,
+    "aliases": ["sanctuary"]
+  },
+  {
+    "nombre": "Hechicería Innata",
+    "descripcion": "Como acción adicional, obtienes ventaja en tiradas de ataque de conjuro y tu CD de salvación aumenta en 1.",
+    "duracionEstandar": 10,
+    "aliases": ["innate sorcery"]
+  },
+  {
+    "nombre": "Furia de los Dioses",
+    "tituloVisual": "Furia de los Dioses (Rage of the Gods)",
+    "descripcion": "Forma de guerrero divino (1 min / 10 turnos): Velocidad de vuelo con flotación, resistencia a daño necrótico, psíquico y radiante, y revivificación de aliados.",
+    "duracionEstandar": 10,
+    "aliases": ["furia de los dioses (rage of the gods)", "rage of the gods", "furia de los dioses"],
+    "efectos": [
+      "Vuelo: Tienes una velocidad volando igual a tu velocidad de movimiento y puedes flotar.",
+      "Resistencias Divinas: Tienes resistencia al daño Necrótico, Psíquico y Radiante.",
+      "Revivificación (Reacción): Si un aliado a 30 pies fuera a caer a 0 HP, gastas 1 uso de Furia y sus HP se vuelven iguales a tu nivel de bárbaro."
+    ]
+  },
+  {
+    "nombre": "Manto de Majestad",
+    "tituloVisual": "Manto de Majestad (Mantle of Majesty)",
+    "descripcion": "Adoptas una apariencia mágica sobrenatural durante 1 minuto (10 turnos) o hasta que pierdas la concentración.",
+    "duracionEstandar": 10,
+    "esConcentracion": true,
+    "aliases": ["manto de majestad (mantle of majesty)", "mantle of majesty", "manto de majestad"],
+    "efectos": [
+      "Orden imperiosa gratuita: Puedes lanzar Orden imperiosa como acción adicional sin gastar un espacio de conjuro.",
+      "Fallo automático: Cualquier criatura Hechizada por ti falla automáticamente su tirada de salvación contra la Orden imperiosa que lances.",
+      "Concentración: Requiere mantener concentración activa durante su duración."
+    ]
+  },
+  {
+    "nombre": "Majestad Inquebrantable",
+    "tituloVisual": "Majestad Inquebrantable (Unbreakable Majesty)",
+    "descripcion": "Asumes una presencia mágicamente majestuosa durante 1 minuto (10 turnos) o hasta quedar incapacitado.",
+    "duracionEstandar": 10,
+    "aliases": ["majestad inquebrantable (unbreakable majesty)", "unbreakable majesty", "majestad inquebrantable"],
+    "efectos": [
+      "Protección regia: Cuando una criatura te impacta por primera vez en un turno, debe superar una salvación de Carisma contra tu CD de conjuros.",
+      "Desvío de impacto: Si el atacante falla la salvación, el ataque falla automáticamente y retrocede ante tu majestad."
+    ]
+  },
+  {
+    "nombre": "Alas Celestiales",
+    "descripcion": "Velocidad de vuelo igual a tu velocidad de movimiento. Una vez en cada uno de tus turnos, al infligir daño con ataque o conjuro, infliges daño radiante adicional igual a tu bonificador por competencia.",
+    "duracionEstandar": 10,
+    "aliases": ["celestial revelation - heavenly wings", "alas celestiales"]
+  },
+  {
+    "nombre": "Fulgor Interior",
+    "descripcion": "Emites luz brillante en 10 pies y tenue 10 pies adicionales. Al final de tus turnos, criaturas a 10 pies reciben daño radiante igual a tu PB. Una vez en cada turno, al infligir daño con ataque o conjuro, infliges daño radiante adicional igual a tu bonificador por competencia.",
+    "duracionEstandar": 10,
+    "aliases": ["inner radiance", "fulgor interior"]
+  },
+  {
+    "nombre": "Mortaja Necrótica",
+    "descripcion": "Criaturas no aliadas a 10 pies deben superar una salvación de Carisma (CD 8 + Carisma + PB) o estarán asustadas hasta el final de tu siguiente turno. Una vez en cada turno, al infligir daño con ataque o conjuro, infliges daño necrótico adicional igual a tu bonificador por competencia.",
+    "duracionEstandar": 10,
+    "aliases": ["necrotic shroud", "mortaja necrotica"]
+  },
+  {
+    "nombre": "Vuelo dracónico",
+    "descripcion": "Alas espectrales brotan de tu espalda durante 10 minutos (100 rondas) o hasta que las repliegues o tengas el estado de incapacitado. Durante ese tiempo, tienes una velocidad volando igual a tu velocidad de movimiento.",
+    "duracionEstandar": 100,
+    "aliases": ["draconic flight", "vuelo draconico"]
+  },
+  {
+    "nombre": "Afinidad con la piedra",
+    "descripcion": "Como acción adicional, ganas la capacidad de sentir vibraciones con un alcance de 60 pies durante 10 minutos (100 asaltos) mientras estés en contacto con una superficie de piedra (natural o labrada).",
+    "duracionEstandar": 100,
+    "aliases": ["stonecunning", "afinidad con la piedra"]
+  },
+  {
+    "nombre": "Forma grande",
+    "descripcion": "Transformación en tamaño Grande durante 10 minutos (100 asaltos). Tienes ventaja en pruebas de Fuerza, tu velocidad aumenta en 10 pies y tu tamaño pasa a Grande.",
+    "duracionEstandar": 100,
+    "aliases": ["large form", "forma grande"]
+  }
+]

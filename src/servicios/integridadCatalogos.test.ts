@@ -9,6 +9,17 @@ import {
 } from "@/constantes/dotesConstantes";
 import { RASGOS_POR_ESPECIE, RASGOS_POR_CLASE } from "@/constantes/rasgosDND55";
 import { CATALOGO_INVOCACIONES_SOBRENATURALES } from "@/constantes/invocacionesSobrenaturales";
+import { CONDICIONES_2024, EFECTOS_PREDEFINIDOS } from "@/utiles/datosIniciales";
+import {
+  DICCIONARIO_MAESTRIAS,
+  DICCIONARIO_PROPIEDADES_ARMAS,
+  EXPLICACIONES_MAESTRIAS,
+  EXPLICACIONES_PROPIEDADES
+} from "@/constantes/equipoConstantes";
+import {
+  DADO_GOLPE_POR_CLASE,
+  obtenerDadoGolpePorClase
+} from "@/constantes/personajeConstantes";
 
 describe("Integridad de Catálogos D&D 5.5e (JSON Modular e Hidratación)", () => {
   describe("1. Catálogo de Clases y Subclases", () => {
@@ -249,4 +260,105 @@ describe("Integridad de Catálogos D&D 5.5e (JSON Modular e Hidratación)", () =
       expect(pactoFilo?.selectores?.[0].opciones).toHaveLength(4);
     });
   });
+
+  describe("7. Catálogo de Condiciones D&D 2024 (JSON Modular)", () => {
+    it("carga exactamente las 15 condiciones oficiales de D&D 2024", () => {
+      expect(CONDICIONES_2024).toHaveLength(15);
+    });
+
+    it("cada condición tiene nombre, descripción y al menos 1 efecto", () => {
+      for (const c of CONDICIONES_2024) {
+        expect(c.nombre.length).toBeGreaterThan(0);
+        expect(c.descripcion.length).toBeGreaterThan(0);
+        expect(c.efectos.length).toBeGreaterThan(0);
+      }
+    });
+  });
+
+  describe("8. Catálogo de Efectos Predefinidos (JSON Modular)", () => {
+    it("carga exactamente los 28 efectos predefinidos", () => {
+      expect(EFECTOS_PREDEFINIDOS).toHaveLength(28);
+    });
+
+    it("los 5 efectos enriquecidos tienen viñetas efectos[]", () => {
+      const enriquecidos = [
+        "Armadura sin Competencia",
+        "Desventaja en Sigilo",
+        "Furia de los Dioses",
+        "Manto de Majestad",
+        "Majestad Inquebrantable"
+      ];
+      for (const nombre of enriquecidos) {
+        const ef = EFECTOS_PREDEFINIDOS.find((e) => e.nombre === nombre);
+        expect(ef, `Falta el efecto enriquecido: ${nombre}`).toBeDefined();
+        expect(ef?.efectos?.length).toBeGreaterThan(0);
+      }
+    });
+
+    it("los efectos con alias bilingües los contienen en el catálogo", () => {
+      const furiaDioses = EFECTOS_PREDEFINIDOS.find((e) => e.nombre === "Furia de los Dioses");
+      expect(furiaDioses?.aliases).toContain("rage of the gods");
+
+      const desangrado = EFECTOS_PREDEFINIDOS.find((e) => e.nombre === "Desangrándose");
+      expect(desangrado?.aliases).toContain("bloodied");
+    });
+  });
+
+  describe("9. Maestrías y Propiedades de Armas (JSON Modular)", () => {
+    it("DICCIONARIO_MAESTRIAS indexa todos los aliases de las 8 maestrías canónicas", () => {
+      expect(DICCIONARIO_MAESTRIAS["cleave"].titulo).toBe("Hender");
+      expect(DICCIONARIO_MAESTRIAS["hender"].titulo).toBe("Hender");
+      expect(DICCIONARIO_MAESTRIAS["tajo"].titulo).toBe("Hender");
+      expect(DICCIONARIO_MAESTRIAS["graze"].titulo).toBe("Rozar");
+      expect(DICCIONARIO_MAESTRIAS["nick"].titulo).toBe("Mellar");
+      expect(DICCIONARIO_MAESTRIAS["push"].titulo).toBe("Empujar");
+      expect(DICCIONARIO_MAESTRIAS["sap"].titulo).toBe("Debilitar");
+      expect(DICCIONARIO_MAESTRIAS["slow"].titulo).toBe("Ralentizar");
+      expect(DICCIONARIO_MAESTRIAS["topple"].titulo).toBe("Derribar");
+      expect(DICCIONARIO_MAESTRIAS["vex"].titulo).toBe("Molestar");
+    });
+
+    it("DICCIONARIO_PROPIEDADES_ARMAS indexa todos los aliases canónicos", () => {
+      expect(DICCIONARIO_PROPIEDADES_ARMAS["sutil"].titulo).toBe("Sutil");
+      expect(DICCIONARIO_PROPIEDADES_ARMAS["finesse"].titulo).toBe("Sutil");
+      expect(DICCIONARIO_PROPIEDADES_ARMAS["ligera"].titulo).toBe("Ligera");
+      expect(DICCIONARIO_PROPIEDADES_ARMAS["light"].titulo).toBe("Ligera");
+      expect(DICCIONARIO_PROPIEDADES_ARMAS["versatil"].titulo).toBe("Versátil");
+      expect(DICCIONARIO_PROPIEDADES_ARMAS["pesada"].titulo).toBe("Pesada");
+      expect(DICCIONARIO_PROPIEDADES_ARMAS["alcance"].titulo).toBe("Alcance");
+      expect(DICCIONARIO_PROPIEDADES_ARMAS["carga"].titulo).toBe("Recarga");
+    });
+
+    it("EXPLICACIONES_MAESTRIAS y EXPLICACIONES_PROPIEDADES conservan claves de selector", () => {
+      expect(EXPLICACIONES_MAESTRIAS["Ninguna"]).toBe("");
+      expect(EXPLICACIONES_MAESTRIAS["Cleave (Hender)"].length).toBeGreaterThan(0);
+      expect(EXPLICACIONES_MAESTRIAS["Vex (Molestar)"].length).toBeGreaterThan(0);
+      expect(EXPLICACIONES_PROPIEDADES["Sutil"].length).toBeGreaterThan(0);
+      expect(EXPLICACIONES_PROPIEDADES["Versátil"].length).toBeGreaterThan(0);
+    });
+  });
+
+  describe("10. Dado de Golpe por Clase (Derivado Dinámico)", () => {
+    it("deriva correctamente el dado de golpe para las 12 clases oficiales", () => {
+      expect(DADO_GOLPE_POR_CLASE["Bárbaro"]).toBe("d12");
+      expect(DADO_GOLPE_POR_CLASE["Guerrero"]).toBe("d10");
+      expect(DADO_GOLPE_POR_CLASE["Paladín"]).toBe("d10");
+      expect(DADO_GOLPE_POR_CLASE["Explorador"]).toBe("d10");
+      expect(DADO_GOLPE_POR_CLASE["Bardo"]).toBe("d8");
+      expect(DADO_GOLPE_POR_CLASE["Clérigo"]).toBe("d8");
+      expect(DADO_GOLPE_POR_CLASE["Druida"]).toBe("d8");
+      expect(DADO_GOLPE_POR_CLASE["Monje"]).toBe("d8");
+      expect(DADO_GOLPE_POR_CLASE["Pícaro"]).toBe("d8");
+      expect(DADO_GOLPE_POR_CLASE["Brujo"]).toBe("d8");
+      expect(DADO_GOLPE_POR_CLASE["Mago"]).toBe("d6");
+      expect(DADO_GOLPE_POR_CLASE["Hechicero"]).toBe("d6");
+    });
+
+    it("obtenerDadoGolpePorClase retorna el dado correspondiente con fallback d8", () => {
+      expect(obtenerDadoGolpePorClase("Bárbaro")).toBe("d12");
+      expect(obtenerDadoGolpePorClase("Mago")).toBe("d6");
+      expect(obtenerDadoGolpePorClase("ClaseDesconocidaHomebrew")).toBe("d8");
+    });
+  });
 });
+

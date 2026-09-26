@@ -130,7 +130,8 @@ describe("Genericidad Arquitectónica de Rasgos (D&D 5.5e PHB 2024)", () => {
 
       expect(selectorNv17?.maxSelecciones).toBe(2);
       expect(selectorNv17?.tipo).toBe("multiple");
-      expect(selectorNv17?.opciones.length).toBe(4);
+      expect(selectorNv17?.opciones.length).toBe(5); // 2 base + 2 dinámicas a nv 13 + 1 dinámica a nv 17
+      expect(selectorNv17?.opciones.some((o) => o.id === "golpe_brutal_mejorado")).toBe(true);
     });
 
     it("valida correctamente rasgos personalizados homebrew creados según el nuevo esquema declarativo", () => {

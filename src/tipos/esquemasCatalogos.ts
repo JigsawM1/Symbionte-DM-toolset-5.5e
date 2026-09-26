@@ -232,3 +232,53 @@ export const EsquemaInvocacionSobrenaturalJSON = z.object({
 });
 
 export type InvocacionSobrenaturalJSON = z.infer<typeof EsquemaInvocacionSobrenaturalJSON>;
+
+// =======================================================
+// ESQUEMAS ZOD PARA CONDICIONES Y EFECTOS EN JSON
+// =======================================================
+
+export const EsquemaCondicionJSON = z.object({
+  nombre: z.string().min(1),
+  descripcion: z.string(),
+  efectos: z.array(z.string()).min(1)
+});
+
+export type CondicionJSON = z.infer<typeof EsquemaCondicionJSON>;
+
+export const EsquemaEfectoJSON = z.object({
+  nombre: z.string().min(1),
+  descripcion: z.string(),
+  duracionEstandar: z.number().int().min(0),
+  esConcentracion: z.boolean().optional(),
+  aliases: z.array(z.string()).optional(),
+  efectos: z.array(z.string()).optional(),
+  tituloVisual: z.string().optional()
+});
+
+export type EfectoJSON = z.infer<typeof EsquemaEfectoJSON>;
+
+// =======================================================
+// ESQUEMAS ZOD PARA MAESTRÍAS Y PROPIEDADES DE ARMAS EN JSON
+// =======================================================
+
+export const EsquemaMaestriaArmaJSON = z.object({
+  id: z.string().min(1),
+  titulo: z.string().min(1),
+  etiquetaSelector: z.string().optional(),
+  aliases: z.array(z.string()).min(1),
+  descripcion: z.string().min(1),
+  explicacionSelector: z.string().optional()
+});
+
+export type MaestriaArmaJSON = z.infer<typeof EsquemaMaestriaArmaJSON>;
+
+export const EsquemaPropiedadArmaJSON = z.object({
+  id: z.string().min(1),
+  titulo: z.string().min(1),
+  etiquetaSelector: z.string().optional(),
+  aliases: z.array(z.string()).min(1),
+  descripcion: z.string().min(1),
+  explicacionSelector: z.string().optional()
+});
+
+export type PropiedadArmaJSON = z.infer<typeof EsquemaPropiedadArmaJSON>;

@@ -363,6 +363,9 @@ export interface EfectoPredefinido {
   descripcion: string;
   duracionEstandar: number; // en rondas
   esConcentracion?: boolean;
+  aliases?: string[];
+  efectos?: string[];
+  tituloVisual?: string;
 }
 
 // ==========================================

@@ -19,6 +19,35 @@ Este archivo registra reglas globales, errores encontrados, sus causas raíz y l
    - **Bajo ninguna circunstancia** los módulos de lógica de negocio (`servicios/`), gestores de estado (`almacen/`) o constructores (`gestorClases.ts`) deben contener bifurcaciones condicionales por nombre literal de rasgo o clase (`r.nombre === "..."`, `clase.includes("...")`, etc.).
    - Toda mecánica, progresión de dados, escalado de usos, recuperación o desbloqueo dinámico debe resolverse mediante metadatos declarativos (`escaladoFormulaDados`, `escaladoUsos`, `escaladoRecuperacion`, `opcionesDinamicas`, `escaladoMaxSelecciones`, `sincronizarEfectosConFormula`, `heredarDadosPadre`, `gastarDePadre`, `ligadoA`, `efectos`) delegando en funciones puras agnósticas como `resolverEscaladosRasgo`. Esta regla está reforzada en CI vía ESLint `no-restricted-syntax` y la suite `rasgoGenericidad.test.ts`.
 
+## [2026-09-26] Resolución Arquitectónica de Duplicación: Condiciones, Efectos, Maestrías, Propiedades de Armas y Dados de Golpe
+
+**Contexto del Problema:**
+- Se detectó duplicación de datos y asimetría arquitectónica en 3 vectores principales:
+  1. **Shadowing de Condiciones y Efectos**: 5 efectos (`Armadura sin Competencia`, `Desventaja en Sigilo`, `Furia de los Dioses`, `Manto de Majestad`, `Majestad Inquebrantable`) coexistían con descripciones distintas y bifurcaciones condicionales hardcodeadas en `src/servicios/resolutorCondiciones.ts`, omitiendo las definiciones de `src/utiles/datosIniciales.ts`.
+  2. **Duplicación Interna en Maestrías y Propiedades de Armas**: En `src/constantes/equipoConstantes.ts` existían más de 240 líneas de descripciones literales repetidas en diccionarios multi-alias (`DICCIONARIO_MAESTRIAS` con 25 entradas para 8 maestrías, y `DICCIONARIO_PROPIEDADES_ARMAS` con 27 entradas para 12 propiedades), además de repetir textos en `EXPLICACIONES_*`.
+  3. **Redundancia en Dados de Golpe**: `DADO_GOLPE_POR_CLASE` en `src/constantes/personajeConstantes.ts` duplicaba de forma estática los dados de golpe que ya residían en los archivos JSON de cada clase.
+
+**Solución Arquitectónica Aplicada:**
+1. **Fase 1: Catálogos Modulares de Condiciones y Efectos con Zod:**
+   - Se crearon `src/datos/condiciones-dnd55.json` (15 condiciones) y `src/datos/efectos-predefinidos.json` (28 efectos), enriqueciendo los efectos ensombrecidos con viñetas `efectos[]`, títulos bilingües `tituloVisual` y `aliases`.
+   - Se tiparon y validaron mediante `EsquemaCondicionJSON` y `EsquemaEfectoJSON` en `src/tipos/esquemasCatalogos.ts`.
+   - `src/servicios/resolutorCondiciones.ts` se redujo de ~153 líneas a ~70 líneas puras, consultando directamente los datos canónicos sin condicionales manuales.
+2. **Fase 2: Catálogos Modulares de Maestrías y Propiedades de Armas:**
+   - Se crearon `src/datos/maestrias-armas.json` y `src/datos/propiedades-armas.json`, estructurando cada concepto con `{ id, titulo, etiquetaSelector, aliases, descripcion, explicacionSelector }`.
+   - Se validaron mediante `EsquemaMaestriaArmaJSON` y `EsquemaPropiedadArmaJSON`.
+   - `src/constantes/equipoConstantes.ts` ahora genera dinámicamente `DICCIONARIO_MAESTRIAS`, `DICCIONARIO_PROPIEDADES_ARMAS`, `EXPLICACIONES_MAESTRIAS` y `EXPLICACIONES_PROPIEDADES` mediante proyecciones funcionales (`flatMap` / `Object.fromEntries`), eliminando ~240 líneas duplicadas manteniendo 100% retrocompatible la API pública.
+3. **Fase 3: Fuente Única de Verdad para Dados de Golpe:**
+   - `DADO_GOLPE_POR_CLASE` en `src/constantes/personajeConstantes.ts` se transformó en una proyección pura derivada de `CATALOGO_CLASES_DND55`.
+
+**Decisión de Diseño y Ajuste de Pruebas:**
+- **Opciones dinámicas de Golpe Brutal en `barbaro.json`**: Se confirmó que la entrada `golpe_brutal_mejorado` dentro de `opcionesDinamicas` con `nivelMinimo: 17` fue incorporada intencionalmente para que el mensaje y efecto informativo de *Golpe brutal mejorado II* solo se desbloquee y visualice a partir del nivel 17 (evitando que se exponga prematuramente a nivel 9). Se actualizó la prueba `rasgoGenericidad.test.ts` para validar formalmente que a nivel 17 el selector contiene 5 opciones (las 2 base + 2 de nivel 13 + 1 de nivel 17), preservando intacta la configuración deseada.
+
+**Resultados y Métricas de Validación:**
+- 10 nuevas pruebas unitarias añadidas a `src/servicios/integridadCatalogos.test.ts` (34 tests de integridad en total).
+- Suite completa aprobada: 77 archivos de test y 1052 pruebas exitosas (`pnpm test`).
+- Tipado estricto verificado: 0 errores en `pnpm tsc --noEmit`.
+- Linter verificado: 0 errores y 0 advertencias en `pnpm lint`.
+
 ## [2026-09-25] Modularización Arquitectónica: Separación de Invocaciones Sobrenaturales a JSON Declarativo con Validación Zod
 
 **Contexto del Problema:**

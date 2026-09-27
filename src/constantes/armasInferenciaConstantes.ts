@@ -81,6 +81,50 @@ const REGLAS_INFERENCIA_ARMAS: ReglaInferenciaArma[] = [
     }
   },
   {
+    patrones: ["jabalina", "javelin"],
+    atributos: {
+      dadoBase: "1d6",
+      tipoDano: "Perforante",
+      alcance: "30/120 ft",
+      tipoAtaque: "Cuerpo a Cuerpo",
+      subcategoria: "Sencilla",
+      propiedades: ["Arrojadiza"]
+    }
+  },
+  {
+    patrones: ["hacha de mano", "handaxe"],
+    atributos: {
+      dadoBase: "1d6",
+      tipoDano: "Cortante",
+      alcance: "20/60 ft",
+      tipoAtaque: "Cuerpo a Cuerpo",
+      subcategoria: "Sencilla",
+      propiedades: ["Ligera", "Arrojadiza"]
+    }
+  },
+  {
+    patrones: ["dardo", "dart"],
+    atributos: {
+      dadoBase: "1d4",
+      tipoDano: "Perforante",
+      alcance: "20/60 ft",
+      tipoAtaque: "A Distancia",
+      subcategoria: "Sencilla",
+      propiedades: ["Sutil", "Arrojadiza"]
+    }
+  },
+  {
+    patrones: ["martillo ligero", "light hammer"],
+    atributos: {
+      dadoBase: "1d4",
+      tipoDano: "Contundente",
+      alcance: "20/60 ft",
+      tipoAtaque: "Cuerpo a Cuerpo",
+      subcategoria: "Sencilla",
+      propiedades: ["Ligera", "Arrojadiza"]
+    }
+  },
+  {
     patrones: ["espada corta", "shortsword"],
     atributos: {
       dadoBase: "1d6",

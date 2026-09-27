@@ -7,6 +7,7 @@ import HECHIZOS_JSON from "@/utiles/compendios/all.json";
 import origenJson from "@/datos/dotes/origen.json";
 import generalesJson from "@/datos/dotes/generales.json";
 import epicasJson from "@/datos/dotes/epicas.json";
+import estiloCombateJson from "@/datos/dotes/estilo_combate.json";
 
 // =======================================================
 // UTILIDADES PURAS DE BÚSQUEDA Y FILTRADO DE CONJUROS
@@ -160,6 +161,11 @@ export const DOTES_EPICAS_DND55: DotePersonaje[] = cargarEhidratarDotes(
   "DotesEpicasDND55"
 );
 
+export const DOTES_ESTILO_COMBATE_DND55: DotePersonaje[] = cargarEhidratarDotes(
+  estiloCombateJson as unknown[],
+  "DotesEstiloCombateDND55"
+);
+
 export const DOTES_GENERALES_Y_EPICAS_DND55: DotePersonaje[] = [
   ...DOTES_GENERALES_DND55,
   ...DOTES_EPICAS_DND55
@@ -167,7 +173,8 @@ export const DOTES_GENERALES_Y_EPICAS_DND55: DotePersonaje[] = [
 
 export const TODAS_LAS_DOTES_CANONICAS_DND55: DotePersonaje[] = [
   ...DOTES_ORIGEN_DND55,
-  ...DOTES_GENERALES_Y_EPICAS_DND55
+  ...DOTES_GENERALES_Y_EPICAS_DND55,
+  ...DOTES_ESTILO_COMBATE_DND55
 ];
 
 export const DOTES_CANONICAS_DND55: DotePersonaje[] = TODAS_LAS_DOTES_CANONICAS_DND55;

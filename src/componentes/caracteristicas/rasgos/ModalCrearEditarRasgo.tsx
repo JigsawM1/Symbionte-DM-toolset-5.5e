@@ -196,7 +196,7 @@ export const ModalCrearEditarRasgo: React.FC<ModalCrearEditarRasgoProps> = ({
                     { valor: "", etiqueta: "-- Seleccionar de la lista canónica --" },
                     ...DOTES_CANONICAS_DND55.map((d) => ({
                       valor: d.id,
-                      etiqueta: `${d.nombre} (${d.categoria.toUpperCase()})`
+                      etiqueta: `${d.nombre} (${d.categoria === "estilo_combate" ? "Estilo de combate" : d.categoria === "don_epico" ? "Don épico" : d.categoria.charAt(0).toUpperCase() + d.categoria.slice(1)})`
                     }))
                   ]}
                   alCambiar={(val) => manejarSeleccionarDotePreset(val)}

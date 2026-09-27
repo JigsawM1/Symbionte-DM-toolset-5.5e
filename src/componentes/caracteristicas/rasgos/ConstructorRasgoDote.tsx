@@ -101,9 +101,32 @@ const OPCIONES_APLICA_A_ATAQUE = [
   { valor: "arma_cac", etiqueta: "Armas Cuerpo a Cuerpo" },
   { valor: "arma_distancia", etiqueta: "Armas a Distancia" },
   { valor: "arma_pesada", etiqueta: "Armas Pesadas" },
+  { valor: "arma_arrojadiza", etiqueta: "Armas Arrojadizas" },
+  { valor: "arma_duelo", etiqueta: "Armas a Una Mano (Duelo)" },
   { valor: "desarmado", etiqueta: "Golpe sin Armas (Desarmado)" },
   { valor: "todos_ataques", etiqueta: "Todos los Ataques" }
 ] as const;
+
+const OPCIONES_CONDICION_DESARMADO = [
+  { valor: "", etiqueta: "Siempre activo (sin requisitos)" },
+  { valor: "sin_escudo", etiqueta: "Sin Escudo embrazado (ej. 1d8 en Combate sin armas)" },
+  { valor: "con_escudo", etiqueta: "Con Escudo embrazado" },
+  { valor: "sin_armadura", etiqueta: "Sin Armadura puesta" },
+  { valor: "sin_armadura_ni_escudo", etiqueta: "Sin Armadura ni Escudo (ej. Danza bárdica)" },
+  { valor: "con_armadura", etiqueta: "Con Armadura puesta" }
+];
+
+const OPCIONES_MODO_CA = [
+  { valor: "defensa_sin_armadura", etiqueta: "Defensa sin Armadura (10 + DES + Atributo)" },
+  { valor: "ca", etiqueta: "Bonificador Numérico a la CA (ej. +1 Defensa)" }
+];
+
+const OPCIONES_CONDICION_CA = [
+  { valor: "con_armadura", etiqueta: "Con Armadura puesta (ligera, media o pesada)" },
+  { valor: "siempre", etiqueta: "Siempre activo (Incondicional)" },
+  { valor: "sin_armadura", etiqueta: "Sin Armadura puesta" },
+  { valor: "con_escudo", etiqueta: "Con Escudo embrazado" }
+];
 
 const OPCIONES_APLICA_A_CONJURO = [
   { valor: "todos_conjuros", etiqueta: "Todos los Conjuros y Trucos" },
@@ -165,6 +188,7 @@ const TIPOS_EFECTO_DISPONIBLES: { tipo: TipoEfectoMecanico; etiqueta: string; de
   { tipo: "dado_extra_dano", etiqueta: "Dados Extra de Daño", desc: "Añade dados al arma o ataque (ej. 1d10 de Golpe Brutal o 2d6 de Frenesí)" },
   { tipo: "dano_secundario", etiqueta: "Daño Secundario con Tipo (/)", desc: "Grupo de daño independiente con tipo separado (ej. 1d6+mitad_nivel Radiante/Necrótico)" },
   { tipo: "bono_dano_ataque", etiqueta: "Bono Numérico de Daño a Ataques", desc: "Suma daño plano (+PB, +2, dano_furia, mitad_nivel) a ataques seleccionados" },
+  { tipo: "bono_ataque", etiqueta: "Bono Numérico a Tiradas de Ataque", desc: "Suma un bono (+2, +PB) a tiradas de ataque (ej. Tiro con arco)" },
   { tipo: "bono_dano_conjuro", etiqueta: "Bono Numérico de Daño a Conjuros", desc: "Suma daño plano (+PB, +3, carisma, inteligencia) a conjuros o trucos" },
   { tipo: "bono_dano_fuerza", etiqueta: "Bono Numérico de Daño (Fuerza)", desc: "Suma daño plano (+2, dano_furia, mitad_nivel) a ataques con Fuerza" },
   { tipo: "modificador_ca", etiqueta: "Defensa sin Armadura / CA", desc: "Calcula CA sumando Constitución, Sabiduría o bono plano" },
@@ -322,11 +346,21 @@ export const ConstructorRasgoDote: React.FC<ConstructorRasgoDoteProps> = ({
     }
   };
 
+  const formatearCategoriaDote = (cat: string): string => {
+    switch (cat) {
+      case "estilo_combate": return "Estilo de combate";
+      case "origen": return "Origen";
+      case "general": return "General";
+      case "don_epico": return "Don épico";
+      default: return cat;
+    }
+  };
+
   const opcionesDotesOficiales = useMemo(() => [
     { valor: "", etiqueta: "-- Elegir Dote Oficial --" },
     ...DOTES_CANONICAS_DND55.map((d) => ({
       valor: d.id,
-      etiqueta: `${d.nombre} (${d.categoria})`
+      etiqueta: `${d.nombre} (${formatearCategoriaDote(d.categoria)})`
     }))
   ], []);
 
@@ -365,6 +399,10 @@ export const ConstructorRasgoDote: React.FC<ConstructorRasgoDoteProps> = ({
       setNuevoValor("bono_competencia");
       setNuevoObjetivo("todos_ataques");
       setNuevoAplicaA("todos_ataques");
+    } else if (t === "bono_ataque") {
+      setNuevoValor("2");
+      setNuevoObjetivo("arma_distancia");
+      setNuevoAplicaA("arma_distancia");
     } else if (t === "bono_dano_conjuro") {
       setNuevoValor("bono_competencia");
       setNuevoObjetivo("todos_conjuros");
@@ -377,6 +415,7 @@ export const ConstructorRasgoDote: React.FC<ConstructorRasgoDoteProps> = ({
       setNuevoValor("constitucion");
       setNuevoObjetivo("defensa_sin_armadura");
       setNuevoPermiteEscudo(true);
+      setNuevoCondicion("");
     } else if (t === "modificador_stat") {
       setNuevoObjetivo("fuerza");
       setNuevoValor("4");
@@ -459,17 +498,29 @@ export const ConstructorRasgoDote: React.FC<ConstructorRasgoDoteProps> = ({
         case "dano_secundario":
           descFinal = `/${nuevoValor} [${nuevoTipoDano}]`;
           break;
+        case "bono_ataque":
+          descFinal = `+${nuevoValor} a tiradas de ataque (${nuevoAplicaA})`;
+          break;
         case "bono_dano_ataque":
         case "bono_dano_fuerza":
           descFinal = nuevoAplicaA === "arma_pesada"
             ? `+${nuevoValor} al daño (Armas Pesadas)`
+            : nuevoAplicaA === "arma_arrojadiza"
+            ? `+${nuevoValor} al daño (Armas Arrojadizas)`
+            : nuevoAplicaA === "arma_duelo"
+            ? `+${nuevoValor} al daño (Armas a Una Mano)`
             : `+${nuevoValor} al daño físico`;
           break;
         case "bono_dano_conjuro":
           descFinal = `+${nuevoValor} al daño mágico (${nuevoAplicaA})`;
           break;
         case "modificador_ca":
-          descFinal = `Defensa sin armadura (${nuevoValor})`;
+          if (nuevoObjetivo === "defensa_sin_armadura") {
+            descFinal = `Defensa sin armadura (${nuevoValor})`;
+          } else {
+            const condTexto = nuevoCondicion === "con_armadura" ? "con armadura" : nuevoCondicion || "incondicional";
+            descFinal = `+${nuevoValor} a la CA (${condTexto})`;
+          }
           break;
         case "modificador_stat":
           descFinal = `+${nuevoValor} a ${nuevoObjetivo} (Límite ${nuevoLimiteMaximo})`;
@@ -1364,16 +1415,16 @@ export const ConstructorRasgoDote: React.FC<ConstructorRasgoDoteProps> = ({
               </div>
             )}
 
-            {(nuevoTipoEfecto === "bono_dano_fuerza" || nuevoTipoEfecto === "bono_dano_ataque") && (
+            {(nuevoTipoEfecto === "bono_dano_fuerza" || nuevoTipoEfecto === "bono_dano_ataque" || nuevoTipoEfecto === "bono_ataque") && (
               <div className={estilos.gridDosColumnas}>
                 <div className={estilos.campoGrupo}>
                   <label className={estilos.labelCampo}>
-                    <span>Valor del Bono</span>
+                    <span>{nuevoTipoEfecto === "bono_ataque" ? "Bono a la Tirada de Ataque" : "Valor del Bono de Daño"}</span>
                   </label>
                   <input
                     type="text"
                     className={estilos.inputControl}
-                    placeholder="ej. +2, bono_competencia, dano_furia, mitad_nivel..."
+                    placeholder={nuevoTipoEfecto === "bono_ataque" ? "ej. 2, +2, bono_competencia..." : "ej. +2, bono_competencia, dano_furia, mitad_nivel..."}
                     value={nuevoValor}
                     onChange={(e) => setNuevoValor(e.target.value)}
                   />
@@ -1385,7 +1436,10 @@ export const ConstructorRasgoDote: React.FC<ConstructorRasgoDoteProps> = ({
                   <SelectorDesplegable
                     valor={nuevoAplicaA}
                     opciones={OPCIONES_APLICA_A_ATAQUE}
-                    alCambiar={(val) => setNuevoAplicaA(val)}
+                    alCambiar={(val) => {
+                      setNuevoAplicaA(val);
+                      if (nuevoTipoEfecto === "bono_ataque") setNuevoObjetivo(val);
+                    }}
                     tamano="normal"
                   />
                 </div>
@@ -1424,30 +1478,81 @@ export const ConstructorRasgoDote: React.FC<ConstructorRasgoDoteProps> = ({
             )}
 
             {nuevoTipoEfecto === "modificador_ca" && (
-              <div className={estilos.gridDosColumnas}>
-                <div className={estilos.campoGrupo}>
-                  <label className={estilos.labelCampo}>
-                    <span>Atributo para Defensa sin Armadura</span>
-                  </label>
-                  <SelectorDesplegable
-                    valor={nuevoValor}
-                    opciones={OPCIONES_ATRIBUTO_CA}
-                    alCambiar={(val) => setNuevoValor(val)}
-                    tamano="normal"
-                  />
+              <div>
+                <div className={estilos.gridDosColumnas}>
+                  <div className={estilos.campoGrupo}>
+                    <label className={estilos.labelCampo}>
+                      <span>Modalidad de Modificador de CA</span>
+                    </label>
+                    <SelectorDesplegable
+                      valor={nuevoObjetivo === "ca" ? "ca" : "defensa_sin_armadura"}
+                      opciones={OPCIONES_MODO_CA}
+                      alCambiar={(val) => {
+                        setNuevoObjetivo(val);
+                        if (val === "ca") {
+                          setNuevoValor("1");
+                          setNuevoCondicion("con_armadura");
+                        } else {
+                          setNuevoValor("constitucion");
+                          setNuevoCondicion("");
+                        }
+                      }}
+                      tamano="normal"
+                    />
+                  </div>
+                  {nuevoObjetivo === "defensa_sin_armadura" ? (
+                    <div className={estilos.campoGrupo}>
+                      <label className={estilos.labelCampo}>
+                        <span>Atributo para Defensa sin Armadura</span>
+                      </label>
+                      <SelectorDesplegable
+                        valor={nuevoValor}
+                        opciones={OPCIONES_ATRIBUTO_CA}
+                        alCambiar={(val) => setNuevoValor(val)}
+                        tamano="normal"
+                      />
+                    </div>
+                  ) : (
+                    <div className={estilos.campoGrupo}>
+                      <label className={estilos.labelCampo}>
+                        <span>Bono Plano a la CA</span>
+                      </label>
+                      <input
+                        type="text"
+                        className={estilos.inputControl}
+                        placeholder="ej. 1, 2"
+                        value={nuevoValor}
+                        onChange={(e) => setNuevoValor(e.target.value)}
+                      />
+                    </div>
+                  )}
                 </div>
 
-                <div className={`${estilos.campoGrupo} ${estilos.campoGrupoCentrado}`}>
-                  <label className={estilos.labelCampo}>
-                    <input
-                      type="checkbox"
-                      checked={nuevoPermiteEscudo}
-                      onChange={(e) => setNuevoPermiteEscudo(e.target.checked)}
-                      className={estilos.checkboxConMargen}
+                {nuevoObjetivo === "defensa_sin_armadura" ? (
+                  <div className={`${estilos.campoGrupo} ${estilos.campoGrupoCentrado}`}>
+                    <label className={estilos.labelCampo}>
+                      <input
+                        type="checkbox"
+                        checked={nuevoPermiteEscudo}
+                        onChange={(e) => setNuevoPermiteEscudo(e.target.checked)}
+                        className={estilos.checkboxConMargen}
+                      />
+                      <span>Permite usar Escudo (ej. Bárbaro sí, Monje no)</span>
+                    </label>
+                  </div>
+                ) : (
+                  <div className={estilos.campoGrupo}>
+                    <label className={estilos.labelCampo}>
+                      <span>Condición de Aplicación</span>
+                    </label>
+                    <SelectorDesplegable
+                      valor={nuevoCondicion || "con_armadura"}
+                      opciones={OPCIONES_CONDICION_CA}
+                      alCambiar={(val) => setNuevoCondicion(val === "siempre" ? "" : val)}
+                      tamano="normal"
                     />
-                    <span>Permite usar Escudo (ej. Bárbaro sí, Monje no)</span>
-                  </label>
-                </div>
+                  </div>
+                )}
               </div>
             )}
 
@@ -1640,6 +1745,20 @@ export const ConstructorRasgoDote: React.FC<ConstructorRasgoDoteProps> = ({
                   />
                   <p className={estilos.pistaCampo}>
                     Usa "dado_inspiracion" para escalar automáticamente con la tabla de Inspiración del bardo.
+                  </p>
+                </div>
+                <div className={`${estilos.campoGrupo} ${estilos.columnaCompleta}`}>
+                  <label className={estilos.labelCampo}>
+                    <span>Condición de Armadura / Escudo</span>
+                  </label>
+                  <SelectorDesplegable
+                    valor={nuevoCondicion}
+                    opciones={OPCIONES_CONDICION_DESARMADO}
+                    alCambiar={(val) => setNuevoCondicion(val)}
+                    tamano="normal"
+                  />
+                  <p className={estilos.pistaCampo}>
+                    Permite limitar el dado especial a situaciones como no portar escudo o no vestir armadura.
                   </p>
                 </div>
               </div>

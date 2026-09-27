@@ -5,6 +5,7 @@ import {
   DOTES_ORIGEN_DND55,
   DOTES_GENERALES_DND55,
   DOTES_EPICAS_DND55,
+  DOTES_ESTILO_COMBATE_DND55,
   TODAS_LAS_DOTES_CANONICAS_DND55
 } from "@/constantes/dotesConstantes";
 import { RASGOS_POR_ESPECIE, RASGOS_POR_CLASE } from "@/constantes/rasgosDND55";
@@ -86,16 +87,17 @@ describe("Integridad de Catálogos D&D 5.5e (JSON Modular e Hidratación)", () =
   });
 
   describe("3. Catálogo de Dotes Canónicas", () => {
-    it("carga 12 dotes de origen, 43 generales y 12 dones épicos (total 67 dotes)", () => {
+    it("carga 12 dotes de origen, 43 generales, 12 dones épicos y 12 estilos de combate (total 79 dotes)", () => {
       expect(DOTES_ORIGEN_DND55).toHaveLength(12);
       expect(DOTES_GENERALES_DND55).toHaveLength(43);
       expect(DOTES_EPICAS_DND55).toHaveLength(12);
-      expect(TODAS_LAS_DOTES_CANONICAS_DND55).toHaveLength(67);
+      expect(DOTES_ESTILO_COMBATE_DND55).toHaveLength(12);
+      expect(TODAS_LAS_DOTES_CANONICAS_DND55).toHaveLength(79);
     });
 
-    it("no existen IDs duplicados entre las 67 dotes canónicas", () => {
+    it("no existen IDs duplicados entre las 79 dotes canónicas", () => {
       const idsDotes = TODAS_LAS_DOTES_CANONICAS_DND55.map((d) => d.id);
-      expect(new Set(idsDotes).size).toBe(67);
+      expect(new Set(idsDotes).size).toBe(79);
     });
 
     it("Iniciado en la Magia (Clérigo, Druida, Mago) posee sus opciones de conjuros hidratadas", () => {
@@ -106,6 +108,14 @@ describe("Integridad de Catálogos D&D 5.5e (JSON Modular e Hidratación)", () =
       expect(clerigo?.selectores?.[0].opciones.length).toBeGreaterThan(0);
       expect(druida?.selectores?.[0].opciones.length).toBeGreaterThan(0);
       expect(mago?.selectores?.[0].opciones.length).toBeGreaterThan(0);
+    });
+
+    it("Guerrero bendito y Guerrero druídico poseen sus opciones de trucos hidratadas", () => {
+      const bendito = DOTES_ESTILO_COMBATE_DND55.find((d) => d.id === "dote_estilo_guerrero_bendito");
+      const druidico = DOTES_ESTILO_COMBATE_DND55.find((d) => d.id === "dote_estilo_guerrero_druidico");
+
+      expect(bendito?.selectores?.[0].opciones.length).toBeGreaterThan(0);
+      expect(druidico?.selectores?.[0].opciones.length).toBeGreaterThan(0);
     });
 
     it("Lanzador Ritual posee los conjuros rituales de nivel 1 hidratados", () => {

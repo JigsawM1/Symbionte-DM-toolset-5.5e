@@ -15,7 +15,8 @@ import {
   obtenerCompetenciasExtraRasgos,
   personajeTieneMaestriaArma,
   estaAtaqueTemerarioActivo,
-  obtenerConfiguracionPactoDelFilo
+  obtenerConfiguracionPactoDelFilo,
+  obtenerBonoAtaqueExtra
 } from "@/servicios/evaluadorEfectosRasgos";
 import { inferirAtributosArma } from "@/constantes/armasInferenciaConstantes";
 import {
@@ -128,7 +129,6 @@ export function calcularAtaqueArmaEquipada(
       personajeActivo.competenciasArmasLista || []
     );
 
-  const bonoAtaque = (esCompetenteArma ? statsCalculadas.bonoCompetencia : 0) + modAtributo + bonoMagico;
   const dadoDanoBase = objetoCompendio?.dadoDano || inferidos.dadoBase;
 
   const contextoAtaqueArma: ContextoAtaquePersonaje = {
@@ -139,6 +139,9 @@ export function calcularAtaqueArmaEquipada(
     propiedades,
     esPesada
   };
+
+  const bonoAtaqueExtraRasgos = obtenerBonoAtaqueExtra(personajeActivo, contextoAtaqueArma);
+  const bonoAtaque = (esCompetenteArma ? statsCalculadas.bonoCompetencia : 0) + modAtributo + bonoMagico + bonoAtaqueExtraRasgos;
 
   const { modDanoTotal, dadosExtra, danosSecundarios, tiposDanoSecundarios } = resolverBonosYDadosExtraCombate({
     personajeActivo,
@@ -163,23 +166,44 @@ export function calcularAtaqueArmaEquipada(
   const esPropiedadVersatil = propiedades.some((p) => normalizar(p).includes("versat") || normalizar(p).includes("versatile"));
   const rawVersatil = objetoCompendio?.danoVersatil || inferidos.danoVersatil;
 
-  if (rawVersatil) {
-    const matchDadosV = rawVersatil.match(/(\d+d\d+)/i);
-    const dadoV = matchDadosV ? matchDadosV[1] : rawVersatil.trim();
-    const resV = componerFormulasDano(dadoV, modDanoTotal, dadosExtra, danosSecundarios);
-    dadoVersatilBase = resV.dadoDanoTotalBase;
-    formulaVersatil = resV.formulaDano;
-  } else if (esPropiedadVersatil) {
-    let dadoV: string | undefined;
-    if (dadoDanoBase.includes("1d6")) dadoV = "1d8";
-    else if (dadoDanoBase.includes("1d8")) dadoV = "1d10";
-    else if (dadoDanoBase.includes("1d10")) dadoV = "1d12";
-    else if (dadoDanoBase.includes("1d4")) dadoV = "1d6";
+  if (rawVersatil || esPropiedadVersatil) {
+    const contextoAtaqueVersatil: ContextoAtaquePersonaje = {
+      ...contextoAtaqueArma,
+      aDosManos: true
+    };
+    const {
+      modDanoTotal: modDanoTotalV,
+      dadosExtra: dadosExtraV,
+      danosSecundarios: danosSecundariosV
+    } = resolverBonosYDadosExtraCombate({
+      personajeActivo,
+      statsCalculadas,
+      contextoAtaque: contextoAtaqueVersatil,
+      caracUsada,
+      modAtributo,
+      bonoMagico,
+      furiaEstaActiva,
+      yaIncluyeFuriaEnEfectos
+    });
 
-    if (dadoV) {
-      const resV = componerFormulasDano(dadoV, modDanoTotal, dadosExtra, danosSecundarios);
+    if (rawVersatil) {
+      const matchDadosV = rawVersatil.match(/(\d+d\d+)/i);
+      const dadoV = matchDadosV ? matchDadosV[1] : rawVersatil.trim();
+      const resV = componerFormulasDano(dadoV, modDanoTotalV, dadosExtraV, danosSecundariosV);
       dadoVersatilBase = resV.dadoDanoTotalBase;
       formulaVersatil = resV.formulaDano;
+    } else if (esPropiedadVersatil) {
+      let dadoV: string | undefined;
+      if (dadoDanoBase.includes("1d6")) dadoV = "1d8";
+      else if (dadoDanoBase.includes("1d8")) dadoV = "1d10";
+      else if (dadoDanoBase.includes("1d10")) dadoV = "1d12";
+      else if (dadoDanoBase.includes("1d4")) dadoV = "1d6";
+
+      if (dadoV) {
+        const resV = componerFormulasDano(dadoV, modDanoTotalV, dadosExtraV, danosSecundariosV);
+        dadoVersatilBase = resV.dadoDanoTotalBase;
+        formulaVersatil = resV.formulaDano;
+      }
     }
   }
 
@@ -298,7 +322,8 @@ export function calcularAtaqueImprovisado(contexto: {
     yaIncluyeFuriaEnEfectos
   });
 
-  const bonoAtaqueImprovisada = (esCompetenteImprovisada ? statsCalculadas.bonoCompetencia : 0) + modImprovisada;
+  const bonoExtraImprovisada = obtenerBonoAtaqueExtra(personajeActivo, contextoImprovisada);
+  const bonoAtaqueImprovisada = (esCompetenteImprovisada ? statsCalculadas.bonoCompetencia : 0) + modImprovisada + bonoExtraImprovisada;
   const { dadoDanoTotalBase, formulaDano } = componerFormulasDano(
     "1d4",
     modDanoTotal,

@@ -93,6 +93,64 @@ export function calcularDefensaSinArmaduraRasgos(
   return null;
 }
 
+export interface ResultadoBonoCARasgos {
+  bonoTotal: number;
+  fuentes: Array<{ nombre: string; valor: number }>;
+}
+
+/**
+ * Obtiene los bonificadores a la Clase de Armadura (CA) procedentes de rasgos activos
+ * con efecto `modificador_ca` de forma 100% genérica (ej. Defensa: +1 a la CA mientras lleva armadura).
+ */
+export function obtenerBonoCARasgos(personaje: PersonajeJugador): ResultadoBonoCARasgos {
+  if (!personaje) {
+    return { bonoTotal: 0, fuentes: [] };
+  }
+
+  const armadura = tieneArmaduraEquipada(personaje);
+  const tieneEscudo = tieneEscudoEquipado(personaje);
+  const efectos = evaluarEfectosRasgosActivos(personaje);
+  let bonoTotal = 0;
+  const fuentes: Array<{ nombre: string; valor: number }> = [];
+
+  for (const ef of efectos) {
+    if (ef.tipo === "modificador_ca") {
+      const objNorm = normalizar(ef.objetivo);
+      // Omitir si es configuración de defensa sin armadura
+      if (objNorm.includes("defensa_sin_armadura")) {
+        continue;
+      }
+
+      // Evaluar condiciones de armadura y escudo
+      const condNorm = normalizar(ef.condicion || "");
+      if (condNorm === "con_armadura" && !armadura.tieneArmadura) {
+        continue;
+      }
+      if (condNorm === "sin_armadura" && armadura.tieneArmadura) {
+        continue;
+      }
+      if (condNorm === "con_escudo" && !tieneEscudo) {
+        continue;
+      }
+      if (condNorm === "sin_escudo" && tieneEscudo) {
+        continue;
+      }
+
+      const formulaResuelta = resolverFormulaDinamica(ef.valor, personaje);
+      const valorNumerico = evaluarExpresionNumericaSegura(formulaResuelta);
+      if (valorNumerico !== 0) {
+        bonoTotal += valorNumerico;
+        fuentes.push({
+          nombre: ef.descripcion || "Rasgo",
+          valor: valorNumerico
+        });
+      }
+    }
+  }
+
+  return { bonoTotal, fuentes };
+}
+
 /**
  * Calcula el bono numérico total a los puntos de golpe máximos otorgado por rasgos activos
  * (ej. Aguante enano: +1 HP por nivel, Dureza: +2 HP por nivel, Auxilio: +5 HP).

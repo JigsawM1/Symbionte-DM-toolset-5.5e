@@ -29,7 +29,8 @@ import {
   tieneMedioBonoHabilidades,
   obtenerCompetenciasExtraRasgos,
   obtenerCompetenciasEfectivasTexto,
-  obtenerLimiteDesArmaduraMedia
+  obtenerLimiteDesArmaduraMedia,
+  obtenerBonoCARasgos
 } from '@/servicios/evaluadorEfectosRasgos';
 import { ARMADURAS_OFICIALES } from '@/constantes/equipoConstantes';
 
@@ -473,6 +474,15 @@ export function calcularEstadisticasPersonaje(pj: PersonajeJugador): Estadistica
   if (bonosModificadorDirectoArmadura > 0 && !tieneBonoEnNombre) {
     bonosMagicos += bonosModificadorDirectoArmadura;
     desglosePartes.push(`Refuerzo Mágico +${bonosModificadorDirectoArmadura}`);
+  }
+
+  // Bonos a la CA procedentes de rasgos mecánicos (ej. Defensa +1)
+  const bonosCARasgos = pj ? obtenerBonoCARasgos(pj) : { bonoTotal: 0, fuentes: [] };
+  if (bonosCARasgos.bonoTotal !== 0) {
+    bonosMagicos += bonosCARasgos.bonoTotal;
+    for (const f of bonosCARasgos.fuentes) {
+      desglosePartes.push(`${f.nombre} ${f.valor >= 0 ? `+${f.valor}` : f.valor}`);
+    }
   }
 
   let desventajaSigiloArmadura = false;

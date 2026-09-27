@@ -29,6 +29,7 @@ export interface ContextoAtaquePersonaje {
   esDistancia: boolean;
   propiedades?: string[];
   esPesada?: boolean;
+  aDosManos?: boolean;
 }
 
 /**
@@ -50,8 +51,26 @@ function aplicaEfectoAAtaque(
   if (criterio === "arma_cac" || criterio === "cuerpo_a_cuerpo") {
     return contexto.esCuerpoACuerpo;
   }
-  if (criterio === "arma_distancia" || criterio === "distancia") {
+  if (criterio === "arma_distancia" || criterio === "distancia" || criterio === "ataque_distancia") {
     return contexto.esDistancia;
+  }
+  if (criterio === "arma_arrojadiza" || criterio === "arrojadiza") {
+    return Boolean(
+      contexto.propiedades?.some((p) => {
+        const norm = normalizar(p);
+        return norm.includes("arrojadiz") || norm.includes("thrown");
+      })
+    );
+  }
+  if (criterio === "arma_duelo" || criterio === "duelo") {
+    const esADosManos = Boolean(
+      contexto.aDosManos ||
+      contexto.propiedades?.some((p) => {
+        const norm = normalizar(p);
+        return norm.includes("a dos manos") || norm.includes("two-handed");
+      })
+    );
+    return contexto.esCuerpoACuerpo && !esADosManos;
   }
   if (criterio === "arma_pesada" || criterio === "pesada") {
     return Boolean(
@@ -177,6 +196,30 @@ export function obtenerBonoDanoFuerzaExtra(
   return obtenerBonoDanoAtaqueExtra(personaje, contexto);
 }
 
+/**
+ * Obtiene bonificadores numéricos extra a las tiradas de ataque procedentes de rasgos activos
+ * con efecto `bono_ataque` de forma 100% genérica (ej. Tiro con arco: +2 a distancia).
+ */
+export function obtenerBonoAtaqueExtra(
+  personaje: PersonajeJugador,
+  contexto: ContextoAtaquePersonaje
+): number {
+  let bonoTotal = 0;
+  const efectos = evaluarEfectosRasgosActivos(personaje);
+
+  for (const ef of efectos) {
+    if (ef.tipo === "bono_ataque") {
+      if (aplicaEfectoAAtaque(ef.aplicaA, ef.objetivo, contexto)) {
+        const formulaResuelta = resolverFormulaDinamica(ef.valor, personaje);
+        const valorNumerico = evaluarExpresionNumericaSegura(formulaResuelta);
+        bonoTotal += valorNumerico;
+      }
+    }
+  }
+
+  return bonoTotal;
+}
+
 export interface ContextoDanoConjuro {
   esTruco?: boolean;
   nivelLanzamiento?: number;
@@ -289,8 +332,12 @@ export function evaluarAtaqueDesarmadoEspecial(personaje: PersonajeJugador): Inf
   const efectos = evaluarEfectosRasgosActivos(personaje);
   const efectosDesarmadosValidos = efectos.filter((ef) => {
     if (ef.tipo !== "ataque_desarmado") return false;
-    const exigeSinArmadura = ef.condicion === "sin_armadura" || ef.condicion === "sin_armadura_ni_escudo";
-    if (exigeSinArmadura && !sinArmaduraNiEscudo) return false;
+    const condNorm = normalizar(ef.condicion || "");
+    if (condNorm === "sin_armadura" && armadura.tieneArmadura) return false;
+    if (condNorm === "sin_escudo" && tieneEscudo) return false;
+    if (condNorm === "sin_armadura_ni_escudo" && !sinArmaduraNiEscudo) return false;
+    if (condNorm === "con_armadura" && !armadura.tieneArmadura) return false;
+    if (condNorm === "con_escudo" && !tieneEscudo) return false;
     return true;
   });
 

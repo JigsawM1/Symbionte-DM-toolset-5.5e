@@ -190,6 +190,7 @@ export const ARMADURAS_OFICIALES: Record<string, ReferenciaArmadura> = {
 
   "cota de anillas": { caBase: 14, tipo: "Pesada", limiteDes: 0, desventajaSigilo: true },
   "cota de malla": { caBase: 16, tipo: "Pesada", limiteDes: 0, desventajaSigilo: true },
+  "cota de mallas": { caBase: 16, tipo: "Pesada", limiteDes: 0, desventajaSigilo: true },
   "bandas": { caBase: 17, tipo: "Pesada", limiteDes: 0, desventajaSigilo: true },
   "cota de bandas": { caBase: 17, tipo: "Pesada", limiteDes: 0, desventajaSigilo: true },
   "placas": { caBase: 18, tipo: "Pesada", limiteDes: 0, desventajaSigilo: true },

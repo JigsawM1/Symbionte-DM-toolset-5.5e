@@ -19,6 +19,81 @@ Este archivo registra reglas globales, errores encontrados, sus causas raíz y l
    - **Bajo ninguna circunstancia** los módulos de lógica de negocio (`servicios/`), gestores de estado (`almacen/`) o constructores (`gestorClases.ts`) deben contener bifurcaciones condicionales por nombre literal de rasgo o clase (`r.nombre === "..."`, `clase.includes("...")`, etc.).
    - Toda mecánica, progresión de dados, escalado de usos, recuperación o desbloqueo dinámico debe resolverse mediante metadatos declarativos (`escaladoFormulaDados`, `escaladoUsos`, `escaladoRecuperacion`, `opcionesDinamicas`, `escaladoMaxSelecciones`, `sincronizarEfectosConFormula`, `heredarDadosPadre`, `gastarDePadre`, `ligadoA`, `efectos`) delegando en funciones puras agnósticas como `resolverEscaladosRasgo`. Esta regla está reforzada en CI vía ESLint `no-restricted-syntax` y la suite `rasgoGenericidad.test.ts`.
 
+## [2026-09-27] Ajustes Mecánicos de Estilo de Combate: Armas Arrojadizas y Escala Dinámica en Combate sin Armas (1d8/1d6)
+
+**Contexto del Problema:**
+- Se detectó que el bonificador de +2 al daño de *Combate con armas arrojadizas* no se aplicaba al equipar armas arrojadizas comunes (ej. dagas, jabalinas, hachas de mano).
+  - *Causa raíz*: En el compendio y en las reglas de D&D, casi todas las armas arrojadizas poseen `tipoAtaque: "Cuerpo a Cuerpo"`, por lo que `esDistancia` resultaba falso en `calcularAtaqueArmaEquipada`. Al exigir `contexto.esDistancia && tienePropArrojadiza` en `evaluadorCombateRasgos.ts`, ninguna arma arrojadiza cuerpo a cuerpo recibía el bono.
+- En la dote *Combate sin armas*, el daño debía ajustarse de acuerdo a las reglas oficiales y la solicitud del usuario: si el personaje no porta escudo (o ambas manos libres), el dado de ataque desarmado debe escalar a 1d8 en lugar de 1d6, y reducirse a 1d6 si embraza un escudo.
+- La función `tieneEscudoEquipado` en `utilidadesRasgos.ts` solo comprobaba `o.categoria === "escudos"`, sin considerar posibles escudos catalogados en inventario bajo la categoría de armaduras o por su denominación literal.
+
+**Solución Arquitectónica Aplicada:**
+1. **Evaluación de Armas Arrojadizas (`src/servicios/rasgos/evaluadorCombateRasgos.ts`):**
+   - En `aplicaEfectoAAtaque`, se desacopló el criterio `arma_arrojadiza` de `contexto.esDistancia`, comprobando directamente la presencia de la propiedad arrojadiza (`norm.includes("arrojadiz") || norm.includes("thrown")`) en las propiedades del arma activa o inferida.
+2. **Inferencia de Armas Arrojadizas (`src/constantes/armasInferenciaConstantes.ts`):**
+   - Se incorporaron reglas de inferencia para armas arrojadizas comunes (`jabalina`, `hacha de mano`, `dardo`, `martillo ligero`) para garantizar que mantengan sus propiedades arrojadizas incluso si se ingresan manualmente en el inventario sin referencia directa en compendio.
+3. **Escala Condicional Genérica en Ataque Desarmado:**
+   - En `evaluarAtaqueDesarmadoEspecial` (`evaluadorCombateRasgos.ts`), se amplió la validación genérica de condiciones: `sin_escudo`, `con_escudo`, `sin_armadura`, `con_armadura` y `sin_armadura_ni_escudo`.
+   - En `src/datos/dotes/estilo_combate.json`, se definieron dos efectos ordenados para `dote_estilo_combate_sin_armas`:
+     - Efecto 1: `valor: "1d8"`, `condicion: "sin_escudo"`, `descripcion: "Golpe sin Armas (Combate sin armas)"`.
+     - Efecto 2: `valor: "1d6"`, `descripcion: "Golpe sin Armas (Combate sin armas)"`.
+     Gracias al algoritmo de ordenamiento por peso de dado (`obtenerPesoDadoDesarmado`), cuando el personaje no tiene escudo, el efecto de 1d8 (peso 8) toma precedencia sobre 1d6 (peso 6). Si embraza un escudo, el efecto de 1d8 se descalifica por su condición y se aplica limpiamente el 1d6.
+4. **Cálculo de Ataque Desarmado Especial (`src/servicios/calculadorAtaqueDesarmado.ts`):**
+   - Se integraron `resolverBonosYDadosExtraCombate` y `componerFormulasDano` en la rama de ataque desarmado especial, asegurando que bonos adicionales de daño o dados secundarios también se sumen adecuadamente a los golpes desarmados especiales.
+5. **Detección Robusta de Escudos (`src/servicios/rasgos/utilidadesRasgos.ts`):**
+   - `tieneEscudoEquipado` ahora reconoce escudos tanto por `categoria === "escudos"` como por coincidencia normalizada de nombre (`"escudo"` / `"shield"`).
+   - `tieneArmaduraEquipada` excluye explícitamente cualquier ítem cuyo nombre sea un escudo.
+6. **Constructor de Rasgos (`ConstructorRasgoDote.tsx`):**
+   - Se añadió un selector de condición de armadura/escudo (`OPCIONES_CONDICION_DESARMADO`) en la configuración del efecto `ataque_desarmado`.
+   - Se simplificó la etiqueta en el selector de alcance de ataque a `"Armas Arrojadizas"`.
+
+**Resultados y Métricas de Validación:**
+- 2 nuevas pruebas unitarias añadidas en `src/servicios/dotesEstiloCombateMecanicas.test.ts`.
+- Suite completa del proyecto aprobada al 100%: 78 archivos de prueba y 1066 tests aprobados (`pnpm test`).
+- Tipado estricto: 0 errores en `pnpm exec tsc --noEmit`.
+- Linter: 0 advertencias y 0 errores en `pnpm lint`.
+- Verificación de límites de líneas: 111 archivos auditados, 0 errores críticos (`pnpm run verificar:lineas`).
+- Build de producción: completado con éxito en 7.06s (`pnpm build`).
+
+## [2026-09-27] Implementación Canónica D&D 5.5e (PHB 2024): Dotes de Estilo de Combate y Extensión Genérica del Constructor de Rasgos
+
+**Contexto del Problema:**
+- Se requería incorporar las 12 dotes canónicas de Estilo de Combate de D&D 5.5e (PHB 2024 / compendio en `dicionario_herramientas/dotes/Estilo_de_combate/`) garantizando su resolución 100% genérica desde el builder de rasgos y el motor de combate sin ninguna bifurcación por nombre literal de rasgo o clase (Reglas 6 y 20).
+- El sistema presentaba carencias mecánicas genéricas:
+  1. No existía un tipo de efecto para bonificadores numéricos a tiradas de ataque (`bono_ataque`), impidiendo que *Tiro con arco* sumara +2 al ataque de forma declarativa.
+  2. `modificador_ca` en `evaluadorVitalidadRasgos.ts` únicamente contemplaba la fórmula de Defensa sin armadura, sin permitir bonos numéricos planos a la CA condicionados a llevar armadura (*Defensa*).
+  3. No se distinguía el daño versátil a dos manos del daño a una mano al evaluar bonificadores exclusivos de una mano (*Duelo*), causando que armas versátiles recibieran erróneamente el bono de daño al empuñarse a dos manos.
+  4. La tabla `ARMADURAS_OFICIALES` solo indexaba `"cota de malla"` en singular, causando que referencias en plural como `"cota de mallas"` recurrieran al fallback de armadura ligera de CA 11.
+
+**Solución Arquitectónica Aplicada:**
+1. **Catálogo Declarativo Zod (`src/datos/dotes/estilo_combate.json`):**
+   - Se crearon las 12 dotes oficiales de estilo de combate: *Tiro con arco*, *Lucha a ciegas*, *Defensa*, *Combate con armas a dos manos*, *Intercepción*, *Combate con armas arrojadizas*, *Protección*, *Combate con dos armas*, *Duelo*, *Guerrero bendito*, *Guerrero druídico* y *Combate sin armas*.
+   - Todas validan contra `EsquemaDotePersonaje` con `categoria: "estilo_combate"` y `requisito: "Rasgo Estilo de combate"`.
+2. **Hidratación y Catálogos Modulares (`src/servicios/hidratadorDotes.ts` y `dotesConstantes.ts`):**
+   - Hidratadas mediante `cargarEhidratarDotes`, inyectando dinámicamente trucos para *Guerrero bendito* (`trucos_clerigo`) y *Guerrero druídico* (`trucos_druida`).
+   - Se exportó `DOTES_ESTILO_COMBATE_DND55` y se consolidó en `TODAS_LAS_DOTES_CANONICAS_DND55` (elevando el catálogo oficial a 79 dotes canónicas).
+3. **Mecánicas Genéricas de Ataque y CA en el Motor de Reglas:**
+   - **Bono a Tiradas de Ataque (`obtenerBonoAtaqueExtra`)**: Nueva función pura en `evaluadorCombateRasgos.ts` que evalúa efectos `bono_ataque` con `aplicaA: "arma_distancia"`, integrada en `calculadorAtaquesArmas.ts` e improvisadas/desarmadas.
+   - **Bono a la CA por Rasgos (`obtenerBonoCARasgos`)**: Nueva función pura en `evaluadorVitalidadRasgos.ts` que evalúa `modificador_ca` con condiciones (`con_armadura`, `sin_armadura`, `con_escudo`, etc.), integrada reactivamente en `usarEstadoPersonajes.ts`.
+   - **Ataques Arrojadizos (`arma_arrojadiza`)**: Criterio en `aplicaA` que comprueba ataque a distancia y propiedad arrojadiza.
+   - **Duelo Activable y Protección de Daño Versátil a Dos Manos**:
+     - *Duelo* se modeló como `categoriaMecanica: "activable"` con conmutador táctico ON/OFF para resolver la ausencia de ranuras fijas de mano torpe en el inventario.
+     - En `calculadorAtaquesArmas.ts`, la resolución de `formulaVersatil` se ejecuta con el contexto `{ ...contextoAtaqueArma, aDosManos: true }`, garantizando que `aplicaA: "arma_duelo"` excluya el daño a dos manos y solo aplique a una mano.
+4. **Extensión del Constructor de Rasgos y Dotes (`ConstructorRasgoDote.tsx`):**
+   - Incorporado `"bono_ataque"` a `TIPOS_EFECTO_DISPONIBLES` con controles de valor y ámbito de ataque.
+   - Extendido `modificador_ca` en la UI para permitir alternar entre "Defensa sin armadura" y "Bono Plano a la CA" con selector de condición ("Con armadura puesta", "Siempre", etc.).
+   - Añadidas opciones `"arma_arrojadiza"` y `"arma_duelo"` a `OPCIONES_APLICA_A_ATAQUE`.
+   - Formateada la categoría de dote en el selector de presets para exhibir `(Estilo de combate)`.
+5. **Corrección Léxica de Equipo:**
+   - Se añadió el alias `"cota de mallas"` a `ARMADURAS_OFICIALES` en `src/constantes/equipoConstantes.ts`.
+
+**Resultados y Métricas de Validación:**
+- 11 nuevas pruebas unitarias en `src/servicios/dotesEstiloCombateMecanicas.test.ts`.
+- Suite completa del proyecto aprobada al 100%: 78 archivos de prueba y 1064 tests aprobados (`pnpm test`).
+- Tipado estricto verificado: 0 errores en `pnpm exec tsc --noEmit`.
+- Linter verificado: 0 errores y 0 advertencias en `pnpm lint`.
+- Build de producción: `pnpm build` completado en 6.52s.
+
 ## [2026-09-26] Resolución Arquitectónica de Duplicación: Condiciones, Efectos, Maestrías, Propiedades de Armas y Dados de Golpe
 
 **Contexto del Problema:**

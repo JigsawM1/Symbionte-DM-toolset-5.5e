@@ -176,7 +176,11 @@ export function tieneArmaduraEquipada(personaje: PersonajeJugador): {
 } {
   const inventario = personaje.inventario || [];
   const armaduraObj = inventario.find(
-    (o) => o.equipado && o.categoria === "armaduras"
+    (o) =>
+      o.equipado &&
+      o.categoria === "armaduras" &&
+      !normalizar(o.nombre).includes("escudo") &&
+      !normalizar(o.nombre).includes("shield")
   );
 
   if (!armaduraObj) {
@@ -197,6 +201,10 @@ export function tieneArmaduraEquipada(personaje: PersonajeJugador): {
 export function tieneEscudoEquipado(personaje: PersonajeJugador): boolean {
   const inventario = personaje.inventario || [];
   return inventario.some(
-    (o) => o.equipado && o.categoria === "escudos"
+    (o) =>
+      o.equipado &&
+      (o.categoria === "escudos" ||
+        normalizar(o.nombre).includes("escudo") ||
+        normalizar(o.nombre).includes("shield"))
   );
 }

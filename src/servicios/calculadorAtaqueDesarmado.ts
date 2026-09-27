@@ -7,7 +7,8 @@ import type { EstadisticasCalculadasPersonaje } from "@/almacen/selectores/usarE
 import { esCompetenteConArma } from "@/constantes/competenciasConstantes";
 import {
   evaluarAtaqueDesarmadoEspecial,
-  ContextoAtaquePersonaje
+  ContextoAtaquePersonaje,
+  obtenerBonoAtaqueExtra
 } from "@/servicios/evaluadorEfectosRasgos";
 import {
   resolverBonosYDadosExtraCombate,
@@ -55,7 +56,14 @@ export function calcularAtaqueDesarmado(contexto: {
 
   const caracDesarmado: Caracteristica = caracteristicasArmas["ataque-desarmado"] || caracDefectoDesarmado;
   const modDesarmado = modificadores[caracDesarmado] || 0;
-  const bonoAtaqueDesarmado = (esCompetenteDesarmado ? statsCalculadas.bonoCompetencia : 0) + modDesarmado;
+  const contextoDesarmadoBase: ContextoAtaquePersonaje = {
+    tipo: "desarmado",
+    caracteristica: caracDesarmado,
+    esCuerpoACuerpo: true,
+    esDistancia: false
+  };
+  const bonoExtraDesarmado = obtenerBonoAtaqueExtra(personajeActivo, contextoDesarmadoBase);
+  const bonoAtaqueDesarmado = (esCompetenteDesarmado ? statsCalculadas.bonoCompetencia : 0) + modDesarmado + bonoExtraDesarmado;
 
   // 1. Monje (Artes Marciales)
   if (esMonje) {
@@ -92,13 +100,32 @@ export function calcularAtaqueDesarmado(contexto: {
     };
   }
 
-  // 2. Ataque desarmado especial (Bardo, Matón de Taberna u otro)
+  // 2. Ataque desarmado especial (Bardo, Matón de Taberna, Combate sin armas u otro)
   if (ataqueDesarmadoEsp.aplica) {
-    const dadoBaseEsp = ataqueDesarmadoEsp.dadoDanoBase || "1d6";
-    const formulaEsp =
-      modDesarmado !== 0
-        ? `${dadoBaseEsp}${modDesarmado >= 0 ? `+${modDesarmado}` : modDesarmado}`
-        : dadoBaseEsp;
+    const contextoDesarmadoEsp: ContextoAtaquePersonaje = {
+      tipo: "desarmado",
+      caracteristica: caracDesarmado,
+      esCuerpoACuerpo: true,
+      esDistancia: false
+    };
+
+    const { modDanoTotal, dadosExtra, danosSecundarios } = resolverBonosYDadosExtraCombate({
+      personajeActivo,
+      statsCalculadas,
+      contextoAtaque: contextoDesarmadoEsp,
+      caracUsada: caracDesarmado,
+      modAtributo: modDesarmado,
+      bonoMagico: 0,
+      furiaEstaActiva,
+      yaIncluyeFuriaEnEfectos
+    });
+
+    const { dadoDanoTotalBase, formulaDano } = componerFormulasDano(
+      ataqueDesarmadoEsp.dadoDanoBase || "1d6",
+      modDanoTotal,
+      dadosExtra,
+      danosSecundarios
+    );
 
     const propiedades = ataqueDesarmadoEsp.propiedades || ["Golpe sin Armas Especial"];
     const tienePropiedadSutil = propiedades.includes("Sutil");
@@ -111,9 +138,9 @@ export function calcularAtaqueDesarmado(contexto: {
       tipoAccion: "accion",
       caracteristicaUsada: caracDesarmado,
       bonoAtaque: bonoAtaqueDesarmado,
-      dadoDano: formulaEsp,
-      dadoDanoBase: dadoBaseEsp,
-      modificadorDano: modDesarmado,
+      dadoDano: formulaDano,
+      dadoDanoBase: dadoDanoTotalBase,
+      modificadorDano: modDanoTotal,
       esDanoFijo: false,
       tipoDano: "Contundente",
       alcance: "5 ft",

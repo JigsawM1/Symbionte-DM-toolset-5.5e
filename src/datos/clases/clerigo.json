@@ -160,7 +160,7 @@
             "valor": 2
           },
           {
-            "nivelMinimo": 11,
+            "nivelMinimo": 6,
             "valor": 3
           },
           {
@@ -169,6 +169,33 @@
           }
         ],
         "minimo": 2
+      },
+      "tablaProgresion": {
+        "columnas": [
+          "Nivel",
+          "Descripción"
+        ],
+        "filas": [
+          {
+            "nivel": 2,
+            "valores": [
+              "2/descanso"
+            ]
+          },
+          {
+            "nivel": 6,
+            "valores": [
+              "3/descanso"
+            ]
+          },
+          {
+            "nivel": 18,
+            "valores": [
+              "4/descanso"
+            ]
+          }
+        ],
+        "notaPie": "Cada nivel reemplaza al anterior"
       }
     },
     {
@@ -198,7 +225,40 @@
           "nivelMinimo": 18,
           "valor": "4d8+sabiduria"
         }
-      ]
+      ],
+      "tablaProgresion": {
+        "columnas": [
+          "Nivel",
+          "Descripción"
+        ],
+        "filas": [
+          {
+            "nivel": 2,
+            "valores": [
+              "1d8"
+            ]
+          },
+          {
+            "nivel": 7,
+            "valores": [
+              "2d8"
+            ]
+          },
+          {
+            "nivel": 13,
+            "valores": [
+              "3d8"
+            ]
+          },
+          {
+            "nivel": 18,
+            "valores": [
+              "4d8"
+            ]
+          }
+        ],
+        "notaPie": "Cada nivel reemplaza al anterior"
+      }
     },
     {
       "id": "rasgo_cls_clerigo_expulsar_muertos_vivientes",
@@ -315,7 +375,28 @@
           "maxSelecciones": 1,
           "valorActual": ["radiante"]
         }
-      ]
+      ],
+      "tablaProgresion": {
+        "columnas": [
+          "Nivel",
+          "Descripción"
+        ],
+        "filas": [
+          {
+            "nivel": 7,
+            "valores": [
+              "1d8"
+            ]
+          },
+          {
+            "nivel": 14,
+            "valores": [
+              "2d8"
+            ]
+          }
+        ],
+        "notaPie": "Cada nivel reemplaza al anterior"
+      }
     },
     {
       "id": "rasgo_cls_clerigo_lanzamiento_potente",
@@ -333,7 +414,28 @@
           "objetivo": "agregar_modificador_habilidad",
           "valor": "sabiduria"
         }
-      ]
+      ],
+      "tablaProgresion": {
+        "columnas": [
+          "Nivel",
+          "Descripción"
+        ],
+        "filas": [
+          {
+            "nivel": 7,
+            "valores": [
+              "Trucos + Sabiduría"
+            ]
+          },
+          {
+            "nivel": 14,
+            "valores": [
+              "Trucos recuperan PG Temporales"
+            ]
+          }
+        ],
+        "notaPie": "Se apilan los niveles"
+      }
     },
     {
       "id": "rasgo_cls_clerigo_mejora_caracteristica_8",
@@ -429,10 +531,42 @@
           "id": "rasgo_sub_vida_conjuros",
           "nivel": 3,
           "nombre": "Conjuros del dominio de la vida",
-          "descripcion": "Tu conexión con este dominio divino garantiza que siempre tengas ciertos conjuros preparados. Cuando alcances un nivel de clérigo especificado en la tabla \"Conjuros del dominio de la vida\", a partir de entonces siempre tendrás preparados los conjuros que se indican.\n##### Conjuros del dominio de la vida\n| Nivel de clérigo | Conjuros preparados                                     |\n|:------------:|-----------------------------------------------------|\n|      3     | *auxilio*, *bendición*, *curar heridas*, *restablecimiento menor* |\n|      5     | *palabra de curación en masa*, *revivir*                     |\n|      7     | *aura de vida*, *guarda contra la muerte*                        |\n|      9     | *restablecimiento mayor*, *curar heridas en masa*           |",
+          "descripcion": "El dominio de la vida se centra en la energía positiva que ayuda a sustentar la vida en el multiverso. Los clérigos que acceden a este dominio son maestros de la curación y emplean la fuerza vital para sanar el sufrimiento.",
           "tipoAccion": "pasivo",
           "categoriaMecanica": "pasivo_permanente",
-          "subclase": "Dominio de la Vida"
+          "subclase": "Dominio de la Vida",
+          "tablaProgresion": {
+            "columnas": [
+              "Nivel de clérigo",
+              "Conjuros preparados"
+            ],
+            "filas": [
+              {
+                "nivel": 3,
+                "valores": [
+                  "Auxilio, Bendición, Curar heridas, Restablecimiento menor"
+                ]
+              },
+              {
+                "nivel": 5,
+                "valores": [
+                  "Palabra de curación en masa, Revivir"
+                ]
+              },
+              {
+                "nivel": 7,
+                "valores": [
+                  "Aura de vida, Guardia contra la muerte"
+                ]
+              },
+              {
+                "nivel": 9,
+                "valores": [
+                  "Curar heridas en masa, Restablecimiento mayor"
+                ]
+              }
+            ]
+          }
         },
         {
           "id": "rasgo_sub_vida_discipulo_vida",
@@ -519,10 +653,42 @@
           "id": "rasgo_sub_luz_conjuros",
           "nivel": 3,
           "nombre": "Conjuros del dominio de la luz",
-          "descripcion": "Tu conexión con este dominio divino garantiza que siempre tengas ciertos conjuros preparados. Cuando alcances un nivel de clérigo especificado en la tabla \"Conjuros del dominio de la luz\", a partir de entonces siempre tendrás preparados los conjuros que se indican.\n##### Conjuros del dominio de la luz\n| Nivel de clérigo | Conjuros preparados                                                     |\n|:------------:|---------------------------------------------------------------------|\n|      3     | *manos ardientes*, *fuego feérico*, *rayo abrasador*, *ver invisibilidad* |\n|      5     | *luz del día*, *bola de fuego*                                              |\n|      7     | *ojo arcano*, *muro de fuego*                                        |\n|      9     | *columna de llamas*, *escrudiñar*                                           |",
+          "descripcion": "Tu conexión con este dominio divino garantiza que siempre tengas ciertos conjuros preparados. Cuando alcances un nivel de clérigo especificado en la tabla \"Conjuros del dominio de la luz\", a partir de entonces siempre tendrás preparados los conjuros que se indican.",
           "tipoAccion": "pasivo",
           "categoriaMecanica": "pasivo_permanente",
-          "subclase": "Dominio de la Luz"
+          "subclase": "Dominio de la Luz",
+          "tablaProgresion": {
+            "columnas": [
+              "Nivel de clérigo",
+              "Conjuros preparados"
+            ],
+            "filas": [
+              {
+                "nivel": 3,
+                "valores": [
+                  "Fuego feérico, Manos ardientes, Rayo abrasador, Ver invisibilidad"
+                ]
+              },
+              {
+                "nivel": 5,
+                "valores": [
+                  "Bola de fuego, Luz del día"
+                ]
+              },
+              {
+                "nivel": 7,
+                "valores": [
+                  "Muro de fuego, Ojo arcano"
+                ]
+              },
+              {
+                "nivel": 9,
+                "valores": [
+                  "Escudriñar, Golpe flamígero"
+                ]
+              }
+            ]
+          }
         },
         {
           "id": "rasgo_sub_luz_resplandor_del_alba",
@@ -540,7 +706,7 @@
           "id": "rasgo_sub_luz_fulgor_protector",
           "nivel": 3,
           "nombre": "Fulgor protector",
-          "descripcion": "Cuando una criatura que puedas ver a 30 pies o menos de ti haga una tirada de ataque, puedes usar una reacción para imponer desventaja a la tirada de ataque, causando que una luz resplandezca antes de que acierte o falle.\nPuedes usar este rasgo una cantidad de veces igual a tu modificador por Sabiduría (mínimo una vez). Recuperas todos los usos gastados tras finalizar un descanso largo.",
+          "descripcion": "Cuando una criatura que puedas ver a 30 pies o menos de ti haga una tirada de ataque, puedes llevar a cabo una reacción para imponer desventaja a su tirada de ataque haciendo que una luz resplandezca ante ella antes de que acierte o falle.\n\nPuedes utilizar este rasgo una cantidad de veces igual a tu modificador por Sabiduría (mínimo una vez). Recuperas todos los usos tras finalizar un descanso largo.",
           "tipoAccion": "reaccion",
           "categoriaMecanica": "consumible",
           "tieneUsosLimitados": true,
@@ -551,7 +717,22 @@
             "modificador": "sabiduria",
             "minimo": 1
           },
-          "subclase": "Dominio de la Luz"
+          "subclase": "Dominio de la Luz",
+          "tablaProgresion": {
+            "columnas": [
+              "Nivel",
+              "Descripción"
+            ],
+            "filas": [
+              {
+                "nivel": 6,
+                "valores": [
+                  "Recuperas todos los usos de tu Fulgor protector tras finalizar un descanso corto o largo. Puedes conceder al objetivo del ataque al que reaccionas una cantidad de PG temporales igual a 2d6 más tu MOD de SAB"
+                ]
+              }
+            ],
+            "notaPie": "Se apilan los niveles"
+          }
         },
         {
           "id": "rasgo_sub_luz_fulgor_protector_mejorado",
@@ -628,10 +809,42 @@
           "id": "rasgo_sub_engano_conjuros",
           "nivel": 3,
           "nombre": "Conjuros del dominio del engaño",
-          "descripcion": "Tu conexión con este dominio divino garantiza que siempre tengas ciertos conjuros preparados. Cuando alcances un nivel de clérigo especificado en la tabla \"Conjuros del dominio del engaño\", a partir de entonces siempre tendrás preparados los conjuros que se indican.\n##### Conjuros del dominio del engaño\n| Nivel de clérigo | Conjuros preparados                                                       |\n|:------------:|-----------------------------------------------------------------------|\n|      3     | *hechizar persona*, *disfrazarse*, *invisibilidad*, *pasar sin rastro* |\n|      5     | *patrón hipnótico*, *indetectable*                                    |\n|      7     | *confusión*, *puerta dimensional*                                         |\n|      9     | *dominar persona*, *alterar los recuerdos*                                    |",
+          "descripcion": "Tu conexión con este dominio divino garantiza que siempre tengas ciertos conjuros preparados. Cuando alcances un nivel de clérigo especificado en la tabla \"Conjuros del dominio del engaño\", a partir de entonces siempre tendrás preparados los conjuros que se indican.",
           "tipoAccion": "pasivo",
           "categoriaMecanica": "pasivo_permanente",
-          "subclase": "Dominio del Engaño"
+          "subclase": "Dominio del Engaño",
+          "tablaProgresion": {
+            "columnas": [
+              "Nivel de clérigo",
+              "Conjuros preparados"
+            ],
+            "filas": [
+              {
+                "nivel": 3,
+                "valores": [
+                  "Disfrazarse, Hechizar persona, Invisibilidad, Pasar sin rastro"
+                ]
+              },
+              {
+                "nivel": 5,
+                "valores": [
+                  "Indetectable, Patrón hipnótico"
+                ]
+              },
+              {
+                "nivel": 7,
+                "valores": [
+                  "Confusión, Puerta dimensional"
+                ]
+              },
+              {
+                "nivel": 9,
+                "valores": [
+                  "Alterar los recuerdos, Dominar persona"
+                ]
+              }
+            ]
+          }
         },
         {
           "id": "rasgo_sub_engano_bendicion_embaucador",
@@ -719,10 +932,42 @@
           "id": "rasgo_sub_guerra_conjuros",
           "nivel": 3,
           "nombre": "Conjuros del dominio de la guerra",
-          "descripcion": "Tu conexión con este dominio divino garantiza que siempre tengas ciertos conjuros preparados. Cuando alcances un nivel de clérigo especificado en la tabla \"Conjuros del dominio de la guerra\", a partir de entonces siempre tendrás preparados los conjuros que se indican.\n##### Conjuros del dominio de la guerra\n| Nivel de clérigo | Conjuros preparados                                                       |\n|:------------:|-----------------------------------------------------------------------|\n|      3     | *saeta guía*, *arma mágica*, *escudo de fe*, *arma espiritual* |\n|      5     | *manto del cruzado*, *espíritus guardianes*                               |\n|      7     | *escudo de fuego*, *libertad de movimiento*                                  |\n|      9     | *inmovilizar monstruo*, *golpe de viento acerado*                                   |",
+          "descripcion": "Tu conexión con este dominio divino garantiza que siempre tengas ciertos conjuros preparados. Cuando alcances un nivel de clérigo especificado en la tabla \"Conjuros del dominio de la guerra\", a partir de entonces siempre tendrás preparados los conjuros que se indican.",
           "tipoAccion": "pasivo",
           "categoriaMecanica": "pasivo_permanente",
-          "subclase": "Dominio de la Guerra"
+          "subclase": "Dominio de la Guerra",
+          "tablaProgresion": {
+            "columnas": [
+              "Nivel de clérigo",
+              "Conjuros preparados"
+            ],
+            "filas": [
+              {
+                "nivel": 3,
+                "valores": [
+                  "Arma espiritual, Arma mágica, Escudo de fe, Saeta guiada"
+                ]
+              },
+              {
+                "nivel": 5,
+                "valores": [
+                  "Espíritus guardianes, El manto del cruzado"
+                ]
+              },
+              {
+                "nivel": 7,
+                "valores": [
+                  "Escudo de fuego, Libertad de movimiento"
+                ]
+              },
+              {
+                "nivel": 9,
+                "valores": [
+                  "Golpe de viento acerado, Inmovilizar monstruo"
+                ]
+              }
+            ]
+          }
         },
         {
           "id": "rasgo_sub_guerra_sacerdote_guerrero",

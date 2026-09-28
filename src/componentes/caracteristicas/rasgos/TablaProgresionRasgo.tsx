@@ -26,10 +26,13 @@ export const TablaProgresionRasgo: React.FC<TablaProgresionRasgoProps> = ({
     }
   }
 
-  const esTablaNivelDescripcion =
+  const esTablaDosColumnasNivel =
     tabla.columnas.length === 2 &&
-    tabla.columnas[0].toLowerCase() === "nivel" &&
-    tabla.columnas[1].toLowerCase().startsWith("descrip");
+    tabla.columnas[0].toLowerCase().includes("nivel");
+
+  const esColumnaConjuros =
+    tabla.columnas.length === 2 &&
+    tabla.columnas[1].toLowerCase().includes("conjuro");
 
   return (
     <div className={estilos.contenedorTablaProgresion}>
@@ -37,7 +40,7 @@ export const TablaProgresionRasgo: React.FC<TablaProgresionRasgoProps> = ({
         <thead className={estilos.encabezadoTabla}>
           <tr>
             {tabla.columnas.map((col, idx) => {
-              if (esTablaNivelDescripcion) {
+              if (esTablaDosColumnasNivel) {
                 return idx === 0 ? (
                   <th key={idx} className={estilos.thNivel}>
                     {col}
@@ -66,10 +69,10 @@ export const TablaProgresionRasgo: React.FC<TablaProgresionRasgoProps> = ({
                 key={idx}
                 className={`${estilos.filaProgresion} ${esActual ? estilos.filaNivelActual : esAlcanzado ? estilos.filaNivelAlcanzado : ""}`}
               >
-                {esTablaNivelDescripcion ? (
+                {esTablaDosColumnasNivel ? (
                   <>
                     <td className={estilos.celdaNivel}>{fila.nivel}</td>
-                    <td className={estilos.celdaDescripcion}>
+                    <td className={esColumnaConjuros ? estilos.celdaConjuros : estilos.celdaDescripcion}>
                       <span>{fila.valores[0] || ""}</span>
                       {esActual && <span className={estilos.badgeActual}>Actual</span>}
                     </td>

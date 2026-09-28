@@ -335,6 +335,20 @@
   padding: 8px 12px 14px 12px;
 }
 
+.seccionCanalizarDivinidad {
+  border-left: 3px solid #f59e0b;
+}
+
+.tituloCanalizarDivinidad {
+  color: #fbbf24;
+}
+
+.badgeCanalizarDivinidad {
+  background: rgba(245, 158, 11, 0.15);
+  color: #fef3c7;
+  border-color: rgba(245, 158, 11, 0.4);
+}
+
 .seccionSubespecie {
   border-left: 3px solid #10b981;
 }
@@ -464,6 +478,10 @@
   border-left-color: #06b6d4;
 }
 
+.origenSelector {
+  border-left-color: #6366f1;
+}
+
 .filaSuperiorTarjeta {
   display: flex;
   align-items: center;
@@ -493,6 +511,10 @@
 
 .origenSubclase .nombreRasgo {
   color: #38bdf8;
+}
+
+.origenSelector .nombreRasgo {
+  color: #818cf8;
 }
 
 /* Badges de Tipo de Acción */
@@ -1007,6 +1029,9 @@
 .contenedorModalDetalle[data-tipo-origen="dote"] {
   border-top-color: #a78bfa;
 }
+.contenedorModalDetalle[data-tipo-origen="selector"] {
+  border-top-color: #6366f1;
+}
 
 .formularioModal {
   display: flex;
@@ -1051,6 +1076,9 @@
 }
 .contenedorModalDetalle[data-tipo-origen="subclase"] .tituloRasgoModal {
   color: #38bdf8;
+}
+.contenedorModalDetalle[data-tipo-origen="selector"] .tituloRasgoModal {
+  color: #818cf8;
 }
 
 .badgesModalDetalle {

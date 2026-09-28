@@ -13,8 +13,10 @@ export interface GrupoClaseJerarquico {
   claveColapsoClase: string;
   claveColapsoSubclase: string;
   claveColapsoInvocaciones: string;
+  claveColapsoCanalizarDivinidad: string;
   rasgosBase: RasgoPersonaje[];
   rasgosSubclase: RasgoPersonaje[];
+  rasgosCanalizarDivinidad: RasgoPersonaje[];
   rasgoInvocaciones?: RasgoPersonaje;
   total: number;
 }

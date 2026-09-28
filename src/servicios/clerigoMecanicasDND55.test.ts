@@ -192,7 +192,10 @@ describe("Clérigo D&D 5.5 (2024) - Reglas y Mecánicas Base", () => {
       agregarModificadorHabilidad: false
     };
 
-    const modificado = aplicarModificadoresInvocacionesAHechizo(hechizoTruco as any, personajeMock);
+    const modificado = aplicarModificadoresInvocacionesAHechizo(
+      hechizoTruco as unknown as Parameters<typeof aplicarModificadoresInvocacionesAHechizo>[0],
+      personajeMock
+    );
     expect(modificado.agregarModificadorHabilidad).toBe(true);
   });
 
@@ -206,10 +209,10 @@ describe("Clérigo D&D 5.5 (2024) - Reglas y Mecánicas Base", () => {
     expect(intercesion?.recuperacion).toBe("descanso_largo");
   });
 
-  it("Nivel 11: Canalizar divinidad escala a 3 usos", () => {
-    const rasgosNv11 = obtenerRasgosClaseYSubclase("Clérigo", 11);
+  it("Nivel 6: Canalizar divinidad escala a 3 usos según la tabla canónica 5.5e", () => {
+    const rasgosNv6 = obtenerRasgosClaseYSubclase("Clérigo", 6);
 
-    const canalizar = rasgosNv11.find((r) => r.nombre === "Canalizar divinidad");
+    const canalizar = rasgosNv6.find((r) => r.nombre === "Canalizar divinidad");
     expect(canalizar?.usosMaximos).toBe(3);
   });
 
@@ -527,5 +530,89 @@ describe("Clérigo D&D 5.5 (2024) - Reglas y Mecánicas Base", () => {
       expect(golpeDivinoHabilitado?.categoriasCombate).toContain("activable");
     });
   });
+
+  describe("Tablas de Progresión Declarativas del Clérigo (D&D 5.5e)", () => {
+    it("Canalizar divinidad contiene tabla de progresión de usos por nivel (2, 6, 18)", () => {
+      const rasgosNv2 = obtenerRasgosClaseYSubclase("Clérigo", 2);
+      const canalizar = rasgosNv2.find((r) => r.id === "rasgo_cls_clerigo_canalizar_divinidad");
+      expect(canalizar?.tablaProgresion).toBeDefined();
+      expect(canalizar?.tablaProgresion?.columnas).toEqual(["Nivel", "Descripción"]);
+      expect(canalizar?.tablaProgresion?.notaPie).toBe("Cada nivel reemplaza al anterior");
+      expect(canalizar?.tablaProgresion?.filas).toEqual([
+        { nivel: 2, valores: ["2/descanso"] },
+        { nivel: 6, valores: ["3/descanso"] },
+        { nivel: 18, valores: ["4/descanso"] }
+      ]);
+    });
+
+    it("Chispa divina contiene tabla de progresión de dados por nivel (2, 7, 13, 18)", () => {
+      const rasgosNv2 = obtenerRasgosClaseYSubclase("Clérigo", 2);
+      const chispa = rasgosNv2.find((r) => r.id === "rasgo_cls_clerigo_chispa_divina");
+      expect(chispa?.tablaProgresion).toBeDefined();
+      expect(chispa?.tablaProgresion?.columnas).toEqual(["Nivel", "Descripción"]);
+      expect(chispa?.tablaProgresion?.notaPie).toBe("Cada nivel reemplaza al anterior");
+      expect(chispa?.tablaProgresion?.filas).toEqual([
+        { nivel: 2, valores: ["1d8"] },
+        { nivel: 7, valores: ["2d8"] },
+        { nivel: 13, valores: ["3d8"] },
+        { nivel: 18, valores: ["4d8"] }
+      ]);
+    });
+
+    it("Golpe divino contiene tabla de progresión de dados de daño por nivel (7, 14)", () => {
+      const rasgosNv7 = obtenerRasgosClaseYSubclase("Clérigo", 7);
+      const golpeDivino = rasgosNv7.find((r) => r.id === "rasgo_cls_clerigo_golpe_divino");
+      expect(golpeDivino?.tablaProgresion).toBeDefined();
+      expect(golpeDivino?.tablaProgresion?.columnas).toEqual(["Nivel", "Descripción"]);
+      expect(golpeDivino?.tablaProgresion?.notaPie).toBe("Cada nivel reemplaza al anterior");
+      expect(golpeDivino?.tablaProgresion?.filas).toEqual([
+        { nivel: 7, valores: ["1d8"] },
+        { nivel: 14, valores: ["2d8"] }
+      ]);
+    });
+
+    it("Lanzamiento potente contiene tabla de progresión apilable por nivel (7, 14)", () => {
+      const rasgosNv7 = obtenerRasgosClaseYSubclase("Clérigo", 7);
+      const lanzamiento = rasgosNv7.find((r) => r.id === "rasgo_cls_clerigo_lanzamiento_potente");
+      expect(lanzamiento?.tablaProgresion).toBeDefined();
+      expect(lanzamiento?.tablaProgresion?.columnas).toEqual(["Nivel", "Descripción"]);
+      expect(lanzamiento?.tablaProgresion?.notaPie).toBe("Se apilan los niveles");
+      expect(lanzamiento?.tablaProgresion?.filas).toEqual([
+        { nivel: 7, valores: ["Trucos + Sabiduría"] },
+        { nivel: 14, valores: ["Trucos recuperan PG Temporales"] }
+      ]);
+    });
+
+    it("Conjuros de dominio de Vida, Luz, Engaño y Guerra contienen tablas con [Nivel de clérigo, Conjuros preparados]", () => {
+      const dominios = [
+        { nombre: "Dominio de la Vida", id: "rasgo_sub_vida_conjuros", primerConjuro: "Auxilio" },
+        { nombre: "Dominio de la Luz", id: "rasgo_sub_luz_conjuros", primerConjuro: "Fuego feérico" },
+        { nombre: "Dominio del Engaño", id: "rasgo_sub_engano_conjuros", primerConjuro: "Disfrazarse" },
+        { nombre: "Dominio de la Guerra", id: "rasgo_sub_guerra_conjuros", primerConjuro: "Arma espiritual" }
+      ];
+
+      for (const d of dominios) {
+        const rasgos = obtenerRasgosClaseYSubclase("Clérigo", 9, d.nombre);
+        const rConjuros = rasgos.find((r) => r.id === d.id);
+        expect(rConjuros, `No encontrado rasgo ${d.id}`).toBeDefined();
+        expect(rConjuros?.tablaProgresion?.columnas).toEqual(["Nivel de clérigo", "Conjuros preparados"]);
+        expect(rConjuros?.tablaProgresion?.filas.length).toBe(4);
+        expect(rConjuros?.tablaProgresion?.filas[0].nivel).toBe(3);
+        expect(rConjuros?.tablaProgresion?.filas[0].valores[0]).toContain(d.primerConjuro);
+      }
+    });
+
+    it("Fulgor protector contiene tabla de progresión apilable a nivel 6", () => {
+      const rasgos = obtenerRasgosClaseYSubclase("Clérigo", 3, "Dominio de la Luz");
+      const fulgor = rasgos.find((r) => r.id === "rasgo_sub_luz_fulgor_protector");
+      expect(fulgor?.tablaProgresion).toBeDefined();
+      expect(fulgor?.tablaProgresion?.columnas).toEqual(["Nivel", "Descripción"]);
+      expect(fulgor?.tablaProgresion?.notaPie).toBe("Se apilan los niveles");
+      expect(fulgor?.tablaProgresion?.filas[0].nivel).toBe(6);
+      expect(fulgor?.tablaProgresion?.filas[0].valores[0]).toContain("Recuperas todos los usos de tu Fulgor protector");
+    });
+  });
 });
+
+
 

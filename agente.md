@@ -19,6 +19,71 @@ Este archivo registra reglas globales, errores encontrados, sus causas raíz y l
    - **Bajo ninguna circunstancia** los módulos de lógica de negocio (`servicios/`), gestores de estado (`almacen/`) o constructores (`gestorClases.ts`) deben contener bifurcaciones condicionales por nombre literal de rasgo o clase (`r.nombre === "..."`, `clase.includes("...")`, etc.).
    - Toda mecánica, progresión de dados, escalado de usos, recuperación o desbloqueo dinámico debe resolverse mediante metadatos declarativos (`escaladoFormulaDados`, `escaladoUsos`, `escaladoRecuperacion`, `opcionesDinamicas`, `escaladoMaxSelecciones`, `sincronizarEfectosConFormula`, `heredarDadosPadre`, `gastarDePadre`, `ligadoA`, `efectos`) delegando en funciones puras agnósticas como `resolverEscaladosRasgo`. Esta regla está reforzada en CI vía ESLint `no-restricted-syntax` y la suite `rasgoGenericidad.test.ts`.
 
+## [2026-09-28] Implementación Canónica D&D 5.5e (PHB 2024): Tablas Declarativas de Progresión por Nivel para el Clérigo
+
+**Contexto del Problema:**
+- El usuario solicitó la incorporación de las tablas de progresión visuales y mecánicas para los rasgos principales del Clérigo en base a las capturas oficiales del compendio:
+  1. *Canalizar divinidad* (`rasgo_cls_clerigo_canalizar_divinidad`): Progresión de usos por nivel.
+  2. *Canalizar divinidad: Chispa divina* (`rasgo_cls_clerigo_chispa_divina`): Progresión de dados de curación/daño.
+  3. *Golpes benditos: Golpe divino* (`rasgo_cls_clerigo_golpe_divino`): Progresión de dados de daño por arma.
+  4. *Golpes benditos: Lanzamiento potente* (`rasgo_cls_clerigo_lanzamiento_potente`): Progresión de mejoras acumulativas sobre trucos.
+
+**Solución Arquitectónica Aplicada:**
+1. **Configuración Declarativa en Catálogo JSON (`src/datos/clases/clerigo.json`):**
+   - **Canalizar divinidad**:
+     - Se añadió `tablaProgresion` con columnas `["Nivel", "Descripción"]`, filas `[{ nivel: 2, valores: ["2/descanso"] }, { nivel: 6, valores: ["3/descanso"] }, { nivel: 18, valores: ["4/descanso"] }]` y nota `"Cada nivel reemplaza al anterior"`.
+     - Se ajustó `escaladoUsos.tabla` para alinear canónicamente la progresión a nivel 6 (3 usos) y nivel 18 (4 usos), corrigiendo el desfase previo que situaba el 3er uso a nivel 11.
+   - **Chispa divina**:
+     - Se incorporó `tablaProgresion` con filas en niveles 2 (`"1d8"`), 7 (`"2d8"`), 13 (`"3d8"`) y 18 (`"4d8"`), con nota `"Cada nivel reemplaza al anterior"`.
+   - **Golpe divino**:
+     - Se incorporó `tablaProgresion` con filas en nivel 7 (`"1d8"`) y nivel 14 (`"2d8"`), con nota `"Cada nivel reemplaza al anterior"`.
+   - **Lanzamiento potente**:
+     - Se incorporó `tablaProgresion` con filas en nivel 7 (`"Trucos + Sabiduría"`) y nivel 14 (`"Trucos recuperan PG Temporales"`), con nota `"Se apilan los niveles"`.
+   - **Conjuros de Dominio (Vida, Luz, Engaño, Guerra)**:
+     - En `rasgo_sub_vida_conjuros`, `rasgo_sub_luz_conjuros`, `rasgo_sub_engano_conjuros` y `rasgo_sub_guerra_conjuros` se configuró `tablaProgresion` con columnas `["Nivel de clérigo", "Conjuros preparados"]` y las filas canónicas de niveles 3, 5, 7 y 9.
+     - Se sustituyeron las tablas estáticas en markdown por descripciones limpias, delegando la visualización en la tabla interactiva de la UI.
+   - **Fulgor protector (Dominio de la Luz)**:
+     - En `rasgo_sub_luz_fulgor_protector` se configuró `tablaProgresion` con nivel 6 (recuperación en descanso corto/largo y PG temporales de `2d6+sabiduria`) y nota `"Se apilan los niveles"`.
+
+2. **Renderizado Especializado y Fidelidad Visual (`TablaProgresionRasgo.tsx` y `.module.css`):**
+   - Se generalizó la detección de dos columnas para cualquier tabla cuyo primer encabezado contenga `"nivel"` (`esTablaDosColumnasNivel`), ajustando `thNivel` con `white-space: nowrap; width: 1%; min-width: 80px`.
+   - Para tablas con columna de conjuros (`esColumnaConjuros`), se diseñó `.celdaConjuros` con tono cobrizo cálido temático (`#e07a5f`), reproduciendo con precisión el aspecto de las capturas del compendio oficial.
+
+**Resultados y Métricas de Validación:**
+- 6 nuevas pruebas unitarias añadidas en `src/servicios/clerigoMecanicasDND55.test.ts` (29 pruebas en la suite aprobadas al 100%).
+- 35 pruebas en `src/servicios/integridadCatalogos.test.ts` aprobadas al 100%.
+- Tipado estricto `strict: true`: 0 errores en TypeScript (`pnpm exec tsc --noEmit`).
+
+## [2026-09-28] Ajustes de UI: Diferenciación de Color para Rasgos Padres con Selector y Caja Colapsable de Canalizar Divinidad (Clérigo)
+
+**Contexto del Problema:**
+- El usuario solicitó dos mejoras de UI en la vista de rasgos del jugador:
+  1. Diferenciar mediante otro color los rasgos que actúan como selectores/configuradores de opciones (como "Golpes benditos" u "Orden divina"), para evitar que se confundan visualmente con los rasgos derivados u otorgados por la opción elegida (como "Golpes benditos: Lanzamiento potente" u "Orden divina: Protector").
+  2. En la clase Clérigo, agrupar todos los rasgos que utilizan la mecánica de "Canalizar divinidad" (tanto el recurso base con sus usos, como los efectos que consumen dichos usos: Chispa divina, Expulsar muertos vivientes, Abrasar muertos vivientes y las opciones de dominio de subclase como Preservar la vida, Resplandor del alba, Invocar duplicidad, Golpe guiado, etc.) en su propia caja colapsable dedicada.
+
+**Decisiones de Diseño y Arquitectura:**
+1. **Diferenciación de Rasgos Padres con Selector**:
+   - Se estableció la regla de detección: `esRasgoSelector = rasgo.categoriaMecanica === "selector_informativo" || (Array.isArray(rasgo.selectores) && rasgo.selectores.length > 0 && !rasgo.requiereOpcion)`.
+   - Se implementó la clase CSS `.origenSelector` en `VistaRasgosJugador.module.css` con borde izquierdo índigo/azul vibrante (`#6366f1`) y título en `#818cf8`, tanto en la tarjeta de lista (`TarjetaRasgo.tsx`) como en el modal de detalle (`ModalDetalleRasgo.tsx` con `data-tipo-origen="selector"` e icono temático `SlidersHorizontal`).
+   - Los rasgos hijos que otorgan beneficios de combate directos (e.g. "Golpes benditos: Lanzamiento potente") mantienen su color de clase base (`#f59e0b` / `#d4af37`), generando un contraste visual inmediato y natural.
+
+2. **Caja Colapsable de Canalizar Divinidad (Clérigo)**:
+   - Se extendió el contrato `GrupoClaseJerarquico` en `tiposRasgosJugador.ts` incorporando `claveColapsoCanalizarDivinidad: string` y `rasgosCanalizarDivinidad: RasgoPersonaje[]`.
+   - Se creó la función clasificadora pura `esRasgoCanalizarDivinidad(rasgo: RasgoPersonaje): boolean` en `utilidadesProgresionRasgos.ts`, identificando por nombre, ID o `ligadoA` cualquier rasgo vinculado a la mecánica.
+   - En `agruparRasgosJerarquicos`, si la clase es Clérigo y el rasgo pertenece a Canalizar Divinidad, se enruta a `rasgosCanalizarDivinidad`, excluyéndolo de `rasgosBase` y `rasgosSubclase` para evitar duplicaciones.
+   - Se ordenan los elementos para que el rasgo principal de recurso ("Canalizar divinidad" con sus usos 2/2 o escalados) se sitúe en la primera posición, seguido de las opciones ordenadas por nivel requerido.
+   - Se integró la sección colapsable en `GrupoClaseRasgos.tsx` con icono sacro `Sun`, cabecera dorada, badge de conteo y persistencia de colapso en `usarVistaRasgos.ts`.
+
+**Errores Detectados y Corregidos Durante la Verificación:**
+- En `src/servicios/clerigoMecanicasDND55.test.ts:195`, ESLint detectó un uso explícito de `any` (`hechizoTruco as any`). Se corrigió a `hechizoTruco as unknown as Parameters<typeof aplicarModificadoresInvocacionesAHechizo>[0]`, eliminando `any` y cumpliendo con la regla de tipado estricto.
+
+**Resultados de Validación:**
+- **Tests Unitarios**: 79 suites superadas, **1094/1094 tests pasando (100% de éxito)**, incluyendo pruebas unitarias añadidas para la agrupación de Canalizar Divinidad.
+- **TypeScript**: `pnpm exec tsc --noEmit` con **0 errores** (Strict Mode estricto).
+- **ESLint**: `pnpm lint` con **0 errores y 0 advertencias**.
+- **Límites de Líneas**: `pnpm verificar:lineas` con **0 errores críticos**.
+- **Producción**: `pnpm build` completado exitosamente.
+
 ## [2026-09-28] Corrección de Propagación de Tipo de Daño Secundario y Sanitización de Etiquetas de Combate (Golpe Divino y Devorador de Vida)
 
 **Contexto del Problema:**

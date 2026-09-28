@@ -81,7 +81,13 @@ export const TarjetaRasgo: React.FC<TarjetaRasgoProps> = ({
     formulaDadosEfectiva
   });
 
-  const claseOrigen = CLASE_ORIGEN_BORDE[rasgo.origen] || estilos.origenPersonalizado;
+  const esRasgoSelector =
+    rasgo.categoriaMecanica === "selector_informativo" ||
+    (Array.isArray(rasgo.selectores) && rasgo.selectores.length > 0 && !rasgo.requiereOpcion);
+
+  const claseOrigen = esRasgoSelector
+    ? estilos.origenSelector
+    : CLASE_ORIGEN_BORDE[rasgo.origen] || estilos.origenPersonalizado;
   const esHomebrewOPersonalizado = rasgo.personalizado || rasgo.origen === "personalizado" || rasgo.origen === "dote";
 
   // Truncado de descripción para tarjeta compacta

@@ -188,6 +188,22 @@ export function calcularProgresionClases(
 }
 
 /**
+ * Determina si un rasgo pertenece a la mecánica de Canalizar Divinidad (recurso o efecto que lo consume).
+ */
+export function esRasgoCanalizarDivinidad(rasgo: RasgoPersonaje): boolean {
+  const nomNorm = normalizar(rasgo.nombre);
+  const idNorm = normalizar(rasgo.id);
+  const ligadoNorm = rasgo.ligadoA ? normalizar(rasgo.ligadoA) : "";
+
+  return (
+    nomNorm === "canalizar divinidad" ||
+    nomNorm.includes("canalizar divinidad") ||
+    idNorm.includes("canalizar_divinidad") ||
+    ligadoNorm.includes("canalizar divinidad")
+  );
+}
+
+/**
  * Clasifica y agrupa los rasgos filtrados en la jerarquía visual: Especie, Dotes, Personalizados y Clases.
  */
 export function agruparRasgosJerarquicos(
@@ -204,8 +220,10 @@ export function agruparRasgosJerarquicos(
     claveColapsoClase: `clase_${idx}_${normalizar(c.nombre)}`,
     claveColapsoSubclase: `subclase_${idx}_${normalizar(c.nombre)}_${normalizar(c.subclase || "sin_subclase")}`,
     claveColapsoInvocaciones: `invocaciones_${idx}_${normalizar(c.nombre)}`,
+    claveColapsoCanalizarDivinidad: `canalizar_${idx}_${normalizar(c.nombre)}`,
     rasgosBase: [],
     rasgosSubclase: [],
+    rasgosCanalizarDivinidad: [],
     rasgoInvocaciones: undefined,
     total: 0
   }));
@@ -246,6 +264,8 @@ export function agruparRasgosJerarquicos(
             rasgo.selectores.length > 0
           ) {
             mc.rasgoInvocaciones = rasgo;
+          } else if (normNombreClase.includes("clerigo") && esRasgoCanalizarDivinidad(rasgo)) {
+            mc.rasgosCanalizarDivinidad.push(rasgo);
           } else if (rasgo.origen === "subclase" || (normSubClasePj && normFuente.includes(normSubClasePj))) {
             mc.rasgosSubclase.push(rasgo);
           } else {
@@ -260,6 +280,18 @@ export function agruparRasgosJerarquicos(
       if (!asignado) {
         otrosClase.push(rasgo);
       }
+    }
+  }
+
+  for (const mc of mapClases) {
+    if (mc.rasgosCanalizarDivinidad.length > 0) {
+      mc.rasgosCanalizarDivinidad.sort((a, b) => {
+        const esPadreA = normalizar(a.nombre) === "canalizar divinidad";
+        const esPadreB = normalizar(b.nombre) === "canalizar divinidad";
+        if (esPadreA && !esPadreB) return -1;
+        if (!esPadreA && esPadreB) return 1;
+        return (a.nivelRequerido || 0) - (b.nivelRequerido || 0);
+      });
     }
   }
 

@@ -1,6 +1,6 @@
 import React, { useMemo } from "react";
 import type { RasgoPersonaje } from "@/tipos";
-import { ChevronDown, ChevronRight, Sparkles, Swords, Flame } from "lucide-react";
+import { ChevronDown, ChevronRight, Sparkles, Swords, Flame, Sun } from "lucide-react";
 import { obtenerMaxInvocacionesBrujo } from "@/constantes/invocacionesSobrenaturales";
 import { SelectorInvocacionesAcordeon } from "./SelectorInvocacionesAcordeon";
 import type { GrupoClaseJerarquico, SeccionesColapsadas } from "./usarVistaRasgos";
@@ -31,6 +31,7 @@ export const GrupoClaseRasgos: React.FC<GrupoClaseRasgosProps> = ({
   const claseColapsada = !!seccionesColapsadas[grupo.claveColapsoClase];
   const subclaseColapsada = !!seccionesColapsadas[grupo.claveColapsoSubclase];
   const invocacionesColapsada = !!seccionesColapsadas[grupo.claveColapsoInvocaciones];
+  const canalizarColapsada = !!seccionesColapsadas[grupo.claveColapsoCanalizarDivinidad];
 
   const selectorInvocaciones = grupo.rasgoInvocaciones?.selectores?.[0];
   const aprendidasInvocaciones = selectorInvocaciones?.valorActual || [];
@@ -71,6 +72,33 @@ export const GrupoClaseRasgos: React.FC<GrupoClaseRasgosProps> = ({
           {!claseColapsada && (
             <div className={estilos.cuerpoSeccionPrincipal}>
               {grupo.rasgosBase.map(renderizarTarjetaRasgo)}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Rasgos de Canalizar Divinidad (Clérigo) */}
+      {grupo.rasgosCanalizarDivinidad && grupo.rasgosCanalizarDivinidad.length > 0 && (
+        <div className={`${estilos.seccionPrincipal} ${estilos.seccionCanalizarDivinidad}`}>
+          <div
+            className={estilos.cabeceraSeccionPrincipal}
+            onClick={() => alternarColapso(grupo.claveColapsoCanalizarDivinidad)}
+          >
+            <div className={estilos.ladoIzquierdoCabecera}>
+              {canalizarColapsada ? <ChevronRight size={15} /> : <ChevronDown size={15} />}
+              <Sun size={13} color="#f59e0b" />
+              <span className={`${estilos.tituloSeccion} ${estilos.tituloCanalizarDivinidad}`}>
+                Canalizar Divinidad ({grupo.clase.nombre})
+              </span>
+              <span className={`${estilos.badgeConteoSeccion} ${estilos.badgeCanalizarDivinidad}`}>
+                {grupo.rasgosCanalizarDivinidad.length}
+              </span>
+            </div>
+          </div>
+
+          {!canalizarColapsada && (
+            <div className={estilos.cuerpoSeccionPrincipal}>
+              {grupo.rasgosCanalizarDivinidad.map(renderizarTarjetaRasgo)}
             </div>
           )}
         </div>

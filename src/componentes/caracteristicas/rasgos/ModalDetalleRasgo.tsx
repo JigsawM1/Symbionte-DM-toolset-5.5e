@@ -16,7 +16,8 @@ import {
   Trash2,
   User,
   Swords,
-  Award
+  Award,
+  SlidersHorizontal
 } from "lucide-react";
 import { TablaProgresionRasgo } from "./TablaProgresionRasgo";
 import type { OpcionTrucoMago } from "./SelectorTrucoAltoElfo";
@@ -169,13 +170,26 @@ export const ModalDetalleRasgo: React.FC<ModalDetalleRasgoProps> = ({
   const esHomebrewOPersonalizado = rasgo.personalizado || rasgo.origen === "personalizado" || rasgo.origen === "dote";
 
   // Color temático de borde superior según origen
+  const esRasgoSelector =
+    rasgo.categoriaMecanica === "selector_informativo" ||
+    (Array.isArray(rasgo.selectores) && rasgo.selectores.length > 0 && !rasgo.requiereOpcion);
   const esSubclase = rasgo.origen === "subclase";
   const esClase = rasgo.origen === "clase";
   const esEspecie = rasgo.origen === "especie";
   const esDote = rasgo.origen === "dote";
 
-  const tipoOrigen: "clase" | "subclase" | "especie" | "dote" | "default" =
-    esClase ? "clase" : esSubclase ? "subclase" : esEspecie ? "especie" : esDote ? "dote" : "default";
+  const tipoOrigen: "selector" | "clase" | "subclase" | "especie" | "dote" | "default" =
+    esRasgoSelector
+      ? "selector"
+      : esClase
+      ? "clase"
+      : esSubclase
+      ? "subclase"
+      : esEspecie
+      ? "especie"
+      : esDote
+      ? "dote"
+      : "default";
 
   return (
     <div className={estilos.overlayModalDetalle} onClick={alCerrar}>
@@ -188,11 +202,12 @@ export const ModalDetalleRasgo: React.FC<ModalDetalleRasgoProps> = ({
         <div className={estilos.cabeceraModalDetalle}>
           <div className={estilos.infoTituloModal}>
             <div className={estilos.lineaTituloModal}>
-              {esClase && <Swords size={15} color="#d4af37" />}
-              {esSubclase && <Sparkles size={15} color="#38bdf8" />}
-              {esEspecie && <User size={15} color="#10b981" />}
-              {esDote && <Award size={15} color="#a78bfa" />}
-              {!esClase && !esSubclase && !esEspecie && !esDote && <Layers size={15} color="#38bdf8" />}
+              {esRasgoSelector && <SlidersHorizontal size={15} color="#818cf8" />}
+              {!esRasgoSelector && esClase && <Swords size={15} color="#d4af37" />}
+              {!esRasgoSelector && esSubclase && <Sparkles size={15} color="#38bdf8" />}
+              {!esRasgoSelector && esEspecie && <User size={15} color="#10b981" />}
+              {!esRasgoSelector && esDote && <Award size={15} color="#a78bfa" />}
+              {!esRasgoSelector && !esClase && !esSubclase && !esEspecie && !esDote && <Layers size={15} color="#38bdf8" />}
 
               <h2 className={estilos.tituloRasgoModal}>
                 {rasgo.nivelRequerido && rasgo.nivelRequerido > 0 ? `NIVEL ${rasgo.nivelRequerido}: ` : ""}

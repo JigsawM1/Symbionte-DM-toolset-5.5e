@@ -3,7 +3,8 @@ import type { PersonajeJugador, RasgoPersonaje } from "@/tipos";
 import {
   obtenerNivelEfectivoParaRasgo,
   resolverDotesDesdeInvocaciones,
-  agruparRasgosJerarquicos
+  agruparRasgosJerarquicos,
+  esRasgoCanalizarDivinidad
 } from "./utilidadesProgresionRasgos";
 
 describe("obtenerNivelEfectivoParaRasgo - Nivel contextual de clase vs nivel general (Multiclase)", () => {
@@ -368,5 +369,77 @@ describe("resolverDotesDesdeInvocaciones - Proyección de dotes en el bloque de 
 
     const dotesExtraidas = resolverDotesDesdeInvocaciones([rasgoInvocacionesInactivo]);
     expect(dotesExtraidas).toHaveLength(0);
+  });
+});
+
+describe("Agrupación de Canalizar Divinidad en Clérigo (D&D 5.5e)", () => {
+  const crearRasgoMock = (
+    id: string,
+    nombre: string,
+    origen: "clase" | "subclase",
+    fuente: string,
+    ligadoA?: string,
+    nivelRequerido = 2
+  ): RasgoPersonaje => ({
+    id,
+    nombre,
+    descripcion: `Descripción de ${nombre}`,
+    origen,
+    fuente,
+    tipoAccion: "accion",
+    tieneUsosLimitados: false,
+    recuperacion: "ninguno",
+    personalizado: false,
+    activo: true,
+    notas: "",
+    ligadoA,
+    nivelRequerido
+  });
+
+  it("esRasgoCanalizarDivinidad detecta correctamente el recurso padre, efectos y opciones de subclase", () => {
+    const padre = crearRasgoMock("rasgo_cls_clerigo_canalizar_divinidad", "Canalizar divinidad", "clase", "Clérigo (Nivel 2)");
+    const chispa = crearRasgoMock("rasgo_cls_clerigo_chispa_divina", "Canalizar divinidad: Chispa divina", "clase", "Clérigo (Nivel 2)", "Canalizar divinidad");
+    const abrasar = crearRasgoMock("rasgo_cls_clerigo_abrasar_muertos_vivientes", "Abrasar muertos vivientes", "clase", "Clérigo (Nivel 5)", "Canalizar divinidad: Expulsar muertos vivientes", 5);
+    const preservar = crearRasgoMock("rasgo_sub_vida_preservar_vida", "Canalizar divinidad: Preservar la vida", "subclase", "Clérigo (Dominio de la Vida - Nivel 3)", "Canalizar divinidad", 3);
+    const ordenDivina = crearRasgoMock("rasgo_cls_clerigo_orden_divina", "Orden divina", "clase", "Clérigo (Nivel 1)", undefined, 1);
+    const discipulo = crearRasgoMock("rasgo_sub_vida_discipulo_de_la_vida", "Discípulo de la vida", "subclase", "Clérigo (Dominio de la Vida - Nivel 3)", undefined, 3);
+
+    expect(esRasgoCanalizarDivinidad(padre)).toBe(true);
+    expect(esRasgoCanalizarDivinidad(chispa)).toBe(true);
+    expect(esRasgoCanalizarDivinidad(abrasar)).toBe(true);
+    expect(esRasgoCanalizarDivinidad(preservar)).toBe(true);
+    expect(esRasgoCanalizarDivinidad(ordenDivina)).toBe(false);
+    expect(esRasgoCanalizarDivinidad(discipulo)).toBe(false);
+  });
+
+  it("agrupa todos los rasgos de Canalizar divinidad en mc.rasgosCanalizarDivinidad y los excluye de base y subclase", () => {
+    const padre = crearRasgoMock("rasgo_cls_clerigo_canalizar_divinidad", "Canalizar divinidad", "clase", "Clérigo (Nivel 2)", undefined, 2);
+    const chispa = crearRasgoMock("rasgo_cls_clerigo_chispa_divina", "Canalizar divinidad: Chispa divina", "clase", "Clérigo (Nivel 2)", "Canalizar divinidad", 2);
+    const expulsar = crearRasgoMock("rasgo_cls_clerigo_expulsar_muertos_vivientes", "Canalizar divinidad: Expulsar muertos vivientes", "clase", "Clérigo (Nivel 2)", "Canalizar divinidad", 2);
+    const preservar = crearRasgoMock("rasgo_sub_vida_preservar_vida", "Canalizar divinidad: Preservar la vida", "subclase", "Clérigo (Dominio de la Vida - Nivel 3)", "Canalizar divinidad", 3);
+    const ordenDivina = crearRasgoMock("rasgo_cls_clerigo_orden_divina", "Orden divina", "clase", "Clérigo (Nivel 1)", undefined, 1);
+    const discipulo = crearRasgoMock("rasgo_sub_vida_discipulo_de_la_vida", "Discípulo de la vida", "subclase", "Clérigo (Dominio de la Vida - Nivel 3)", undefined, 3);
+
+    const todosLosRasgos = [ordenDivina, chispa, padre, expulsar, discipulo, preservar];
+    const datosJerarquicos = agruparRasgosJerarquicos(todosLosRasgos, [
+      { nombre: "Clérigo", subclase: "Dominio de la Vida", nivel: 3 }
+    ]);
+
+    const grupoClerigo = datosJerarquicos.clases[0];
+    expect(grupoClerigo).toBeDefined();
+
+    // 4 rasgos de Canalizar Divinidad (padre + chispa + expulsar + preservar)
+    expect(grupoClerigo.rasgosCanalizarDivinidad).toHaveLength(4);
+
+    // El recurso principal "Canalizar divinidad" debe estar primero en el array
+    expect(grupoClerigo.rasgosCanalizarDivinidad[0].nombre).toBe("Canalizar divinidad");
+
+    // Los rasgos de clase base no deben contener rasgos de Canalizar Divinidad
+    expect(grupoClerigo.rasgosBase).toHaveLength(1);
+    expect(grupoClerigo.rasgosBase[0].nombre).toBe("Orden divina");
+
+    // Los rasgos de subclase no deben contener rasgos de Canalizar Divinidad
+    expect(grupoClerigo.rasgosSubclase).toHaveLength(1);
+    expect(grupoClerigo.rasgosSubclase[0].nombre).toBe("Discípulo de la vida");
   });
 });

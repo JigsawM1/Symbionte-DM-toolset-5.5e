@@ -130,11 +130,13 @@ export function usarVistaRasgos() {
         colapsadas[`clase_${idx}_${normalizar(c.nombre)}`] = true;
         colapsadas[`subclase_${idx}_${normalizar(c.nombre)}_${normalizar(c.subclase || "sin_subclase")}`] = true;
         colapsadas[`invocaciones_${idx}_${normalizar(c.nombre)}`] = true;
+        colapsadas[`canalizar_${idx}_${normalizar(c.nombre)}`] = true;
       });
     } else {
       colapsadas["clase_0_principal"] = true;
       colapsadas["subclase_0_principal"] = true;
       colapsadas["invocaciones_0_principal"] = true;
+      colapsadas["canalizar_0_principal"] = true;
     }
     setSeccionesColapsadas(colapsadas);
   };

@@ -22,6 +22,7 @@ import {
   obtenerNivelEfectivoParaRasgo,
   resolverDotesDesdeInvocaciones
 } from "./utilidadesProgresionRasgos";
+import { esRasgoHabilitadoPorOpcion } from "@/servicios/evaluadorEfectosRasgos";
 
 export type { SeccionesColapsadas, GrupoClaseJerarquico, DatosJerarquicosRasgos };
 
@@ -197,6 +198,9 @@ export function usarVistaRasgos() {
         return false;
       }
       if (r.nivelRequerido && r.nivelRequerido > nivelPj) {
+        return false;
+      }
+      if (r.requiereOpcion && !esRasgoHabilitadoPorOpcion(r, todosLosRasgos)) {
         return false;
       }
       return true;

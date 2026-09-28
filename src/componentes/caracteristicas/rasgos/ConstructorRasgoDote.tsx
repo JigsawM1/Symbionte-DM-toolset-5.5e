@@ -211,7 +211,8 @@ const TIPOS_EFECTO_DISPONIBLES: { tipo: TipoEfectoMecanico; etiqueta: string; de
   { tipo: "restaurar_recurso", etiqueta: "Restaurar Recursos Mecánicos", desc: "Restaura usos o cargas de otro rasgo al activarse (ej. Furia persistente)" },
   { tipo: "competencia", etiqueta: "Competencia en Armas, Armaduras o Útiles", desc: "Otorga competencia en armas marciales, armaduras medias, útiles, etc." },
   { tipo: "limite_des_armadura_media", etiqueta: "Límite de Destreza en Armadura Media", desc: "Aumenta el tope de Destreza aplicable a la CA con armadura media (ej. 3 para Maestro en armaduras medias)" },
-  { tipo: "dado_extra_critico", etiqueta: "Dados Extra en Crítico", desc: "Añade dados adicionales al crítico del arma (ej. +1 dado para armas perforantes de Perforador)" }
+  { tipo: "dado_extra_critico", etiqueta: "Dados Extra en Crítico", desc: "Añade dados adicionales al crítico del arma (ej. +1 dado para armas perforantes de Perforador)" },
+  { tipo: "bono_habilidad", etiqueta: "Bono Numérico a Habilidades", desc: "Suma un bonificador (+MOD Sabiduría, etc.) a pruebas de habilidades seleccionadas (ej. Taumaturgo)" }
 ];
 
 export const ConstructorRasgoDote: React.FC<ConstructorRasgoDoteProps> = ({
@@ -618,7 +619,7 @@ export const ConstructorRasgoDote: React.FC<ConstructorRasgoDoteProps> = ({
       objetivo: nuevoObjetivo.trim() || "general",
       valor: nuevoValor.trim(),
       condicion: nuevoCondicion.trim() || undefined,
-      tipoDano: nuevoTipoEfecto === "dano_secundario" ? nuevoTipoDano.trim() : undefined,
+      tipoDano: nuevoTipoEfecto === "dano_secundario" ? (nuevoTipoDano.trim() || "Radiante") : undefined,
       aplicaA: nuevoAplicaA,
       limiteMaximo: nuevoTipoEfecto === "modificador_stat" ? nuevoLimiteMaximo : undefined,
       permiteEscudo: nuevoTipoEfecto === "modificador_ca" ? nuevoPermiteEscudo : undefined,

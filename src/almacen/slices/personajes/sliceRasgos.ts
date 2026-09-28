@@ -6,7 +6,8 @@ import {
   tieneMedioBonoHabilidades,
   aplicarAprendizDeMuchoAGradosHabilidades,
   calcularBonoHPMaximoRasgos,
-  calcularUsosMaximosRasgo
+  calcularUsosMaximosRasgo,
+  esRasgoHabilitadoPorOpcion
 } from "@/servicios/evaluadorEfectosRasgos";
 import { aplicarCondicion } from "@/servicios/procesadorCondiciones";
 import { mutarPersonaje } from "../helpers/mutarPersonaje";
@@ -283,8 +284,29 @@ export const crearSubSliceRasgos: StateCreator<
         pj.gradosHabilidades,
         tieneAprendiz
       );
+
+      // Sincronizar trucos de rasgos habilitados
+      let trucosActualizados = [...(pj.trucosConocidosIds || [])];
+      for (const r of rasgosSincronizados) {
+        if (r.activo !== false && esRasgoHabilitadoPorOpcion(r, rasgosSincronizados)) {
+          if (Array.isArray(r.selectores)) {
+            for (const s of r.selectores) {
+              const sid = s.id.toLowerCase();
+              if (sid.includes("truco") || sid.includes("cantrip")) {
+                for (const v of s.valorActual || []) {
+                  if (v && !trucosActualizados.includes(v)) {
+                    trucosActualizados.push(v);
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+
       return {
         ...pjConRasgos,
+        trucosConocidosIds: trucosActualizados,
         gradosHabilidades: gradosActualizados
       };
     });
@@ -331,13 +353,16 @@ export const crearSubSliceRasgos: StateCreator<
         }
       }
 
+      if (nuevoActivo && targetTrait.requiereOpcion && !esRasgoHabilitadoPorOpcion(targetTrait, pj.rasgos || [])) {
+        return pj; // Bloqueado: opción requerida en rasgo padre no está seleccionada
+      }
 
-      const esFuriaPersistente = nomObjetivo.includes("furia persistente") || idObjetivo.includes("furia_persistente");
-      const esFuriaBase = (nomObjetivo === "furia" || idObjetivo === "rasgo_cls_barbaro_furia") && !esFuriaDeLosDioses && !esFuriaPersistente;
+
+      const esFuriaBase = (nomObjetivo === "furia" || idObjetivo === "rasgo_cls_barbaro_furia") && !esFuriaDeLosDioses;
 
       // Sincronización de condición asociada (personalizada o canónica)
       const condicionAsociada = resolverCondicionAsociadaRasgo(targetTrait);
-      const debeAutoDesactivarTarget = Boolean(nuevoActivo && (targetTrait.autoDesactivar || esFuriaPersistente));
+      const debeAutoDesactivarTarget = Boolean(nuevoActivo && targetTrait.autoDesactivar);
 
       let efectosActualizados = pj.efectosActivos || [];
       if (condicionAsociada && !debeAutoDesactivarTarget) {
@@ -407,9 +432,12 @@ export const crearSubSliceRasgos: StateCreator<
         }
       }
 
-      // Restauración de recursos al activar (declarativa vía restaurarUsosAlActivar)
+      // Restauración de recursos al activar (declarativa vía restaurarUsosAlActivar con fallback retrocompatible)
+      const esFuriaPersistenteLegacy = !targetTrait.restaurarUsosAlActivar &&
+        (idObjetivo.includes("furia_persistente") || nomObjetivo.includes("furia persistente"));
+
       const restauracion = targetTrait?.restaurarUsosAlActivar || (
-        esFuriaPersistente ? { idRasgoObjetivo: "rasgo_cls_barbaro_furia", cantidad: "maximo" as const } : undefined
+        esFuriaPersistenteLegacy ? { idRasgoObjetivo: "rasgo_cls_barbaro_furia", cantidad: "maximo" as const } : undefined
       );
 
       const rasgosActualizados = (pj.rasgos || []).map((r) => {
@@ -432,7 +460,7 @@ export const crearSubSliceRasgos: StateCreator<
           if (nuevoActivo && r.tieneUsosLimitados && typeof r.usosRestantes === "number") {
             usosRest = Math.max(0, r.usosRestantes - 1);
           }
-          const debeAutoDesactivar = !!(nuevoActivo && (r.autoDesactivar || esFuriaPersistente));
+          const debeAutoDesactivar = !!(nuevoActivo && (r.autoDesactivar || (esFuriaPersistenteLegacy && r.id === idRasgo)));
           return {
             ...r,
             activo: debeAutoDesactivar ? false : nuevoActivo,
@@ -685,6 +713,49 @@ export const crearSubSliceRasgos: StateCreator<
             if (!conjurosConocidosActualizados.includes(v)) conjurosConocidosActualizados.push(v);
           }
         });
+      }
+
+      // Sincronizar reactivamente trucos y conjuros procedentes de rasgos hijos condicionados por requiereOpcion
+      for (const r of rasgosActualizados) {
+        if (r.requiereOpcion && r.ligadoA) {
+          const estaHabilitado = esRasgoHabilitadoPorOpcion(r, rasgosActualizados);
+          if (!estaHabilitado && r.activo) {
+            r.activo = false;
+          }
+          if (Array.isArray(r.selectores)) {
+            for (const s of r.selectores) {
+              const sid = s.id.toLowerCase();
+              const esTruco = sid.includes("truco") || sid.includes("cantrip");
+              const esConjuro = sid.includes("conjuro") || sid.includes("hechizo") || sid.includes("spell") || sid.includes("ritual");
+              if (esTruco && Array.isArray(s.valorActual)) {
+                if (estaHabilitado) {
+                  s.valorActual.forEach((v) => {
+                    if (v && !trucosConocidosActualizados.includes(v)) {
+                      trucosConocidosActualizados.push(v);
+                    }
+                  });
+                } else {
+                  trucosConocidosActualizados = trucosConocidosActualizados.filter((t) => !s.valorActual.includes(t));
+                }
+              }
+              if (esConjuro && !esTruco && Array.isArray(s.valorActual)) {
+                if (estaHabilitado) {
+                  s.valorActual.forEach((v) => {
+                    if (v) {
+                      if (!conjurosSiempreActualizados.includes(v)) conjurosSiempreActualizados.push(v);
+                      if (!conjurosPreparadosActualizados.includes(v)) conjurosPreparadosActualizados.push(v);
+                      if (!conjurosConocidosActualizados.includes(v)) conjurosConocidosActualizados.push(v);
+                    }
+                  });
+                } else {
+                  conjurosSiempreActualizados = conjurosSiempreActualizados.filter((c) => !s.valorActual.includes(c));
+                  conjurosPreparadosActualizados = conjurosPreparadosActualizados.filter((c) => !s.valorActual.includes(c));
+                  conjurosConocidosActualizados = conjurosConocidosActualizados.filter((c) => !s.valorActual.includes(c));
+                }
+              }
+            }
+          }
+        }
       }
 
       let efectosActualizados = pj.efectosActivos || [];

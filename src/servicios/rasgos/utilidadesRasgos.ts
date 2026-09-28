@@ -1,4 +1,4 @@
-import type { PersonajeJugador } from "@/tipos";
+import type { PersonajeJugador, RasgoPersonaje } from "@/tipos";
 import { ARMADURAS_OFICIALES } from "@/constantes/equipoConstantes";
 
 /**
@@ -10,6 +10,34 @@ export function normalizar(texto: string = ""): string {
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
     .trim();
+}
+
+/**
+ * Determina si un rasgo que depende de una opción de un selector padre (requiereOpcion y ligadoA)
+ * está habilitado por la selección actual del padre.
+ */
+export function esRasgoHabilitadoPorOpcion(
+  rasgo: RasgoPersonaje,
+  todosLosRasgos: RasgoPersonaje[]
+): boolean {
+  if (!rasgo.requiereOpcion || !rasgo.ligadoA) return true;
+  const ligNorm = normalizar(rasgo.ligadoA);
+  const padre = todosLosRasgos.find((p) => {
+    const pIdNorm = normalizar(p.id);
+    const pNomNorm = normalizar(p.nombre);
+    return (
+      pIdNorm === ligNorm ||
+      pIdNorm.includes(ligNorm) ||
+      pNomNorm === ligNorm ||
+      pNomNorm.includes(ligNorm)
+    );
+  });
+  if (!padre || !Array.isArray(padre.selectores)) return false;
+
+  const reqNorm = normalizar(rasgo.requiereOpcion);
+  return padre.selectores.some((s) =>
+    (s.valorActual || []).some((v) => normalizar(v) === reqNorm)
+  );
 }
 
 /**
@@ -29,7 +57,9 @@ export function estaRasgoActivo(personaje: PersonajeJugador, rasgoIdONombre: str
     );
   });
   if (!rasgo) return false;
-  return rasgo.activo !== false;
+  if (rasgo.activo === false) return false;
+  if (!esRasgoHabilitadoPorOpcion(rasgo, personaje.rasgos || [])) return false;
+  return true;
 }
 
 /**

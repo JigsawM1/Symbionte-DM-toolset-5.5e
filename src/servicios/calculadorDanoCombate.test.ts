@@ -554,5 +554,148 @@ describe("Servicio Calculador de Daño en Combate (calculadorDanoCombate.ts)", (
       expect(resultado.modDanoTotal).toBe(5);
     });
   });
+
+  describe("Propagación y Selección de Tipo de Daño Secundario (Golpe Divino y Devorador de Vida)", () => {
+    it("debe resolver daño secundario de Golpe Divino como Radiante por defecto y reaccionar al selector Necrótico", () => {
+      const pj = aplicarBuildClaseAPersonaje(PERSONAJE_POR_DEFECTO, "Clérigo", 7);
+      const rasgoGolpe = pj.rasgos?.find((r) => r.id === "rasgo_cls_clerigo_golpe_divino");
+      expect(rasgoGolpe).toBeDefined();
+      if (rasgoGolpe) {
+        rasgoGolpe.activo = true;
+      }
+      const stats = calcularEstadisticasPersonaje(pj);
+
+      // 1. Selector por defecto en Radiante
+      const resRadiante = resolverBonosYDadosExtraCombate({
+        personajeActivo: pj,
+        statsCalculadas: stats,
+        contextoAtaque: { tipo: "arma", caracteristica: "fuerza", esCuerpoACuerpo: true, esDistancia: false },
+        caracUsada: "fuerza",
+        modAtributo: 3,
+        bonoMagico: 0,
+        furiaEstaActiva: false,
+        yaIncluyeFuriaEnEfectos: false
+      });
+      expect(resRadiante.danosSecundarios).toContain("1d8");
+      expect(resRadiante.tiposDanoSecundarios).toContain("Radiante");
+      expect(resRadiante.tiposDanoSecundarios).not.toContain("Adicional");
+
+      // 2. Jugador cambia selector a Necrótico
+      const sel = rasgoGolpe?.selectores?.find((s) => s.id === "selector_tipo_dano_golpe_divino");
+      if (sel) {
+        sel.valorActual = ["necrotico"];
+      }
+      const resNecrotico = resolverBonosYDadosExtraCombate({
+        personajeActivo: pj,
+        statsCalculadas: stats,
+        contextoAtaque: { tipo: "arma", caracteristica: "fuerza", esCuerpoACuerpo: true, esDistancia: false },
+        caracUsada: "fuerza",
+        modAtributo: 3,
+        bonoMagico: 0,
+        furiaEstaActiva: false,
+        yaIncluyeFuriaEnEfectos: false
+      });
+      expect(resNecrotico.danosSecundarios).toContain("1d8");
+      expect(resNecrotico.tiposDanoSecundarios).toContain("Necrótico");
+      expect(resNecrotico.tiposDanoSecundarios).not.toContain("Radiante");
+    });
+
+    it("debe resolver Devorador de vida en Brujo como Necrótico por defecto y respetar sufijos o selectores", () => {
+      const pj = aplicarBuildClaseAPersonaje(PERSONAJE_POR_DEFECTO, "Brujo", 9);
+      const rasgoInv = pj.rasgos?.find((r) => r.selectores?.some((s) => s.id.includes("invocacion")));
+      const sel = rasgoInv?.selectores?.find((s) => s.id.includes("invocacion"));
+      if (sel) {
+        sel.valorActual = ["devorador_de_vida"];
+      }
+      const stats = calcularEstadisticasPersonaje(pj);
+      const resDefault = resolverBonosYDadosExtraCombate({
+        personajeActivo: pj,
+        statsCalculadas: stats,
+        contextoAtaque: { tipo: "arma", caracteristica: "fuerza", esCuerpoACuerpo: true, esDistancia: false },
+        caracUsada: "fuerza",
+        modAtributo: 3,
+        bonoMagico: 0,
+        furiaEstaActiva: false,
+        yaIncluyeFuriaEnEfectos: false
+      });
+      expect(resDefault.danosSecundarios).toContain("1d6");
+      expect(resDefault.tiposDanoSecundarios).toContain("Necrótico");
+
+      if (sel) {
+        sel.valorActual = ["devorador_de_vida:psiquico"];
+      }
+      const resPsiquico = resolverBonosYDadosExtraCombate({
+        personajeActivo: pj,
+        statsCalculadas: stats,
+        contextoAtaque: { tipo: "arma", caracteristica: "fuerza", esCuerpoACuerpo: true, esDistancia: false },
+        caracUsada: "fuerza",
+        modAtributo: 3,
+        bonoMagico: 0,
+        furiaEstaActiva: false,
+        yaIncluyeFuriaEnEfectos: false
+      });
+      expect(resPsiquico.tiposDanoSecundarios).toContain("Psíquico");
+    });
+
+    it("debe sincronizar tipoDano en rasgo directo de Devorador de vida cuando se modifica su selector interactivo", () => {
+      const pj: PersonajeJugador = {
+        ...PERSONAJE_POR_DEFECTO,
+        rasgos: [
+          {
+            id: "devorador_de_vida",
+            nombre: "Devorador de vida",
+            descripcion: "Devorador de vida: 1d6 de daño adicional",
+            origen: "clase",
+            fuente: "Brujo",
+            tipoAccion: "pasivo",
+            activo: true,
+            tieneUsosLimitados: false,
+            recuperacion: "descanso_largo",
+            personalizado: false,
+            notas: "",
+            efectos: [
+              {
+                tipo: "dano_secundario",
+                objetivo: "arma_cac",
+                aplicaA: "arma_cac",
+                valor: "1d6",
+                tipoDano: "Necrótico",
+                descripcion: "Devorador de vida: 1d6 de daño adicional (a elección) al acertar con arma cuerpo a cuerpo"
+              }
+            ],
+            selectores: [
+              {
+                id: "tipo_dano_devorador_de_vida",
+                tipo: "unico",
+                etiqueta: "Tipo de daño de Devorador de vida",
+                maxSelecciones: 1,
+                opciones: [
+                  { id: "necrotico", nombre: "Necrótico", descripcion: "Daño necrótico adicional" },
+                  { id: "psiquico", nombre: "Psíquico", descripcion: "Daño psíquico adicional" },
+                  { id: "radiante", nombre: "Radiante", descripcion: "Daño radiante adicional" }
+                ],
+                valorActual: ["radiante"]
+              }
+            ]
+          }
+        ]
+      };
+      const stats = calcularEstadisticasPersonaje(pj);
+      const res = resolverBonosYDadosExtraCombate({
+        personajeActivo: pj,
+        statsCalculadas: stats,
+        contextoAtaque: { tipo: "improvisada", caracteristica: "fuerza", esCuerpoACuerpo: true, esDistancia: false },
+        caracUsada: "fuerza",
+        modAtributo: 3,
+        bonoMagico: 0,
+        furiaEstaActiva: false,
+        yaIncluyeFuriaEnEfectos: false
+      });
+      expect(res.danosSecundarios).toContain("1d6");
+      expect(res.tiposDanoSecundarios).toContain("Radiante");
+      expect(res.tiposDanoSecundarios).not.toContain("Necrótico");
+      expect(res.tiposDanoSecundarios).not.toContain("Adicional");
+    });
+  });
 });
 

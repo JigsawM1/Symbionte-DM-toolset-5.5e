@@ -136,9 +136,16 @@ export async function ejecutarTiradaDanoFisico(
     for (let i = 0; i < subgrupos.length; i++) {
       const sub = subgrupos[i].trim();
       const tipoEspecifico = subgruposTipos[i];
-      const etiquetaSub = i === 0
-        ? `${nombrePj} - Daño ${ataque.nombre}${esVersatil ? " (A dos manos)" : ""}`
-        : `${nombrePj} - Daño ${tipoEspecifico || "Extra"} ${ataque.nombre}`;
+      let etiquetaSub: string;
+      if (i === 0) {
+        etiquetaSub = `${nombrePj} - Daño ${ataque.nombre}${esVersatil ? " (A dos manos)" : ""}`;
+      } else {
+        const tipoTexto = tipoEspecifico?.trim() || "Extra";
+        const prefijo = tipoTexto.toLowerCase().startsWith("daño") || tipoTexto.toLowerCase().startsWith("dano")
+          ? tipoTexto
+          : `Daño ${tipoTexto}`;
+        etiquetaSub = `${nombrePj} - ${prefijo} ${ataque.nombre}`;
+      }
       const etiquetaLimpia = sanitizarEtiqueta(etiquetaSub);
 
       if (!sub.includes("d")) {
@@ -177,9 +184,16 @@ export async function ejecutarTiradaCritico(
     for (let i = 0; i < subgruposBase.length; i++) {
       const subBase = subgruposBase[i].trim();
       const tipoEspecifico = subgruposTipos[i];
-      const etiquetaSub = i === 0
-        ? `${nombrePj} - CRÍTICO ${ataque.nombre}${esVersatil ? " (A dos manos)" : ""}`
-        : `${nombrePj} - CRÍTICO ${tipoEspecifico || "Extra"} ${ataque.nombre}`;
+      let etiquetaSub: string;
+      if (i === 0) {
+        etiquetaSub = `${nombrePj} - CRÍTICO ${ataque.nombre}${esVersatil ? " (A dos manos)" : ""}`;
+      } else {
+        const tipoTexto = tipoEspecifico?.trim() || "Extra";
+        const prefijoCrit = tipoTexto.toLowerCase().startsWith("daño") || tipoTexto.toLowerCase().startsWith("dano")
+          ? `CRÍTICO ${tipoTexto.replace(/^daño\s+/i, "").replace(/^dano\s+/i, "")}`
+          : `CRÍTICO ${tipoTexto}`;
+        etiquetaSub = `${nombrePj} - ${prefijoCrit} ${ataque.nombre}`;
+      }
       const etiquetaLimpia = sanitizarEtiqueta(etiquetaSub);
 
       const partesDados = subBase.match(/(\d+)d(\d+)/gi);

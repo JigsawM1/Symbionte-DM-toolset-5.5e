@@ -15,7 +15,8 @@ import { crearResolutorOrigenConjuros } from "@/servicios/resolutorOrigenConjuro
 import { sincronizarRasgosAutomaticos } from "@/servicios/compendioRasgos";
 import {
   resolverIdRasgoObjetivoGasto,
-  aplicarModificadoresInvocacionesAHechizo
+  aplicarModificadoresInvocacionesAHechizo,
+  esRasgoHabilitadoPorOpcion
 } from "@/servicios/evaluadorEfectosRasgos";
 import {
   crearClavesLookupHechizos,
@@ -230,6 +231,7 @@ export function resolverRasgosAcciones(
   for (const r of listaRasgos) {
     if (r.activo === false) continue;
     if (r.nivelRequerido && pjNivel < r.nivelRequerido) continue;
+    if (r.requiereOpcion && !esRasgoHabilitadoPorOpcion(r, listaRasgos)) continue;
     if (Array.isArray(r.selectores)) {
       for (const sel of r.selectores) {
         if (!Array.isArray(sel.valorActual)) continue;
@@ -277,7 +279,12 @@ export function resolverRasgosAcciones(
       continue;
     }
 
-    // 2. Determinar categorías de combate según metadatos declarativos
+    // 2. Filtrar si el rasgo depende de una opción no seleccionada en su rasgo padre
+    if (rasgo.requiereOpcion && !esRasgoHabilitadoPorOpcion(rasgo, todosLosRasgos)) {
+      continue;
+    }
+
+    // 3. Determinar categorías de combate según metadatos declarativos
     const categorias: CategoriaCombateRasgo[] = [];
 
     // Mapeo de economía de acción

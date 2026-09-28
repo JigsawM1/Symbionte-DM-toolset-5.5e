@@ -109,7 +109,7 @@ export function calcularAtaqueDesarmado(contexto: {
       esDistancia: false
     };
 
-    const { modDanoTotal, dadosExtra, danosSecundarios } = resolverBonosYDadosExtraCombate({
+    const { modDanoTotal, dadosExtra, danosSecundarios, tiposDanoSecundarios } = resolverBonosYDadosExtraCombate({
       personajeActivo,
       statsCalculadas,
       contextoAtaque: contextoDesarmadoEsp,
@@ -129,6 +129,10 @@ export function calcularAtaqueDesarmado(contexto: {
 
     const propiedades = ataqueDesarmadoEsp.propiedades || ["Golpe sin Armas Especial"];
     const tienePropiedadSutil = propiedades.includes("Sutil");
+    const tipoDanoEsp =
+      tiposDanoSecundarios.length > 0
+        ? `Contundente / ${tiposDanoSecundarios.join(" / ")}`
+        : "Contundente";
 
     return {
       id: "ataque-desarmado",
@@ -142,7 +146,7 @@ export function calcularAtaqueDesarmado(contexto: {
       dadoDanoBase: dadoDanoTotalBase,
       modificadorDano: modDanoTotal,
       esDanoFijo: false,
-      tipoDano: "Contundente",
+      tipoDano: tipoDanoEsp,
       alcance: "5 ft",
       propiedades,
       tieneTiradaAtaque: true,
@@ -160,7 +164,7 @@ export function calcularAtaqueDesarmado(contexto: {
     esDistancia: false
   };
 
-  const { modDanoTotal, dadosExtra, danosSecundarios } = resolverBonosYDadosExtraCombate({
+  const { modDanoTotal, dadosExtra, danosSecundarios, tiposDanoSecundarios } = resolverBonosYDadosExtraCombate({
     personajeActivo,
     statsCalculadas,
     contextoAtaque: contextoDesarmado,
@@ -175,7 +179,10 @@ export function calcularAtaqueDesarmado(contexto: {
   let formulaDesarmado: string;
   let dadoBaseDesarmado: string;
   let esDanoFijoDesarmado: boolean;
-  let tipoDanoDesarmado = "Contundente";
+  let tipoDanoDesarmado =
+    tiposDanoSecundarios.length > 0
+      ? `Contundente / ${tiposDanoSecundarios.join(" / ")}`
+      : "Contundente";
   let modDanoDesarmadoFinal = modDanoTotal;
 
   if (hayDanoSec) {
@@ -189,12 +196,11 @@ export function calcularAtaqueDesarmado(contexto: {
       dadoPrincipalSec,
       modDanoDesarmadoFinal,
       dadosExtra,
-      []
+      danosSecundarios.slice(1)
     );
     formulaDesarmado = formulaDano;
     dadoBaseDesarmado = dadoDanoTotalBase;
     esDanoFijoDesarmado = false;
-    tipoDanoDesarmado = "Contundente (Extra)";
   } else if (dadosExtra.length > 0) {
     const { dadoDanoTotalBase, formulaDano } = componerFormulasDano(
       dadosExtra[0],

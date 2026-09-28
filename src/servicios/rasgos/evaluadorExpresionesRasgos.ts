@@ -4,12 +4,16 @@ import {
   type EfectoMecanicoRasgo,
   type Caracteristica
 } from "@/tipos";
-import { obtenerNivelEspacioPacto } from "@/constantes/invocacionesSobrenaturales";
+import {
+  obtenerNivelEspacioPacto,
+  CATALOGO_INVOCACIONES_SOBRENATURALES
+} from "@/constantes/invocacionesSobrenaturales";
 import { DOTES_ORIGEN_DND55 } from "@/constantes/dotesConstantes";
 import { logger } from "@/utiles/logger";
 import {
   normalizar,
   estaRasgoActivo,
+  esRasgoHabilitadoPorOpcion,
   estaFuriaActiva,
   estaAtaqueTemerarioActivo,
   estaRevelacionCelestialActiva,
@@ -104,6 +108,11 @@ export function evaluarEfectosRasgosActivos(personaje: PersonajeJugador): Efecto
       if (!padreActivo) continue;
     }
 
+    // Si requiere una opción específica del rasgo padre, verificar que esté seleccionada
+    if (rasgo.requiereOpcion && !esRasgoHabilitadoPorOpcion(rasgo, rasgos)) {
+      continue;
+    }
+
     // Efectos base del rasgo (con hidratación de respaldo si proviene de un snapshot antiguo de localStorage)
     let efectosBase = rasgo.efectos;
     if (esRevelacion && (!Array.isArray(efectosBase) || efectosBase.length === 0)) {
@@ -127,11 +136,59 @@ export function evaluarEfectosRasgosActivos(personaje: PersonajeJugador): Efecto
 
     // 1. Efectos base del rasgo
     if (Array.isArray(efectosBase)) {
+      // Detección de selector de tipo de daño asociado al rasgo (ej. Golpe divino, Devorador de vida)
+      let tipoDanoSelector: string | undefined;
+      if (Array.isArray(rasgo.selectores)) {
+        for (const sel of rasgo.selectores) {
+          const idLower = sel.id.toLowerCase();
+          const etiqLower = (sel.etiqueta || "").toLowerCase();
+          const esSelectorTipoDano =
+            idLower.includes("tipo_dano") ||
+            idLower.includes("damage_type") ||
+            etiqLower.includes("tipo de daño") ||
+            etiqLower.includes("tipo de dano") ||
+            sel.opciones?.some((o) =>
+              ["radiante", "necrotico", "psiquico", "fuego", "frio", "acido", "relampago", "trueno", "veneno", "fuerza"].includes(
+                o.id.toLowerCase()
+              )
+            );
+
+          if (esSelectorTipoDano && sel.valorActual && sel.valorActual.length > 0) {
+            const val = sel.valorActual[0];
+            const opEncontrada = sel.opciones?.find(
+              (o) => o.id.toLowerCase() === val.toLowerCase() || normalizar(o.nombre) === normalizar(val)
+            );
+            const mapaTipos: Record<string, string> = {
+              necrotico: "Necrótico",
+              psiquico: "Psíquico",
+              radiante: "Radiante",
+              fuego: "Fuego",
+              frio: "Frío",
+              acido: "Ácido",
+              relampago: "Relámpago",
+              trueno: "Trueno",
+              veneno: "Veneno",
+              fuerza: "Fuerza"
+            };
+            const claveNorm = val.toLowerCase().replace(/[\u0300-\u036f]/g, "");
+            tipoDanoSelector = opEncontrada?.nombre || mapaTipos[claveNorm] || (val.charAt(0).toUpperCase() + val.slice(1));
+            break;
+          }
+        }
+      }
+
       for (const efecto of efectosBase) {
         if (efecto.activo !== false && cumpleCondicionEfecto(efecto.condicion, personaje)) {
+          let efFinal = efecto;
+          if (efecto.tipo === "dano_secundario" && tipoDanoSelector) {
+            efFinal = {
+              ...efecto,
+              tipoDano: tipoDanoSelector
+            };
+          }
           efectosResultado.push({
-            ...efecto,
-            descripcion: efecto.descripcion || `${rasgo.nombre}`
+            ...efFinal,
+            descripcion: efFinal.descripcion || `${rasgo.nombre}`
           });
         }
       }
@@ -144,21 +201,55 @@ export function evaluarEfectosRasgosActivos(personaje: PersonajeJugador): Efecto
         for (const opId of selecciones) {
           const baseSinArg = opId.includes(":") ? opId.split(":")[0] : opId;
           const baseId = baseSinArg.includes("__") ? baseSinArg.split("__")[0] : baseSinArg;
-          const opcion = selector.opciones.find((o) => o.id === opId || o.id === baseId);
+          let opcion = selector.opciones?.find((o) => o.id === opId || o.id === baseId);
+
+          // Respaldo dinámico para catálogo de invocaciones si selector.opciones no viene hidratado
+          if (!opcion && selector.claveOpcionesDinamicas === "invocaciones_brujo") {
+            const invCatalogo = CATALOGO_INVOCACIONES_SOBRENATURALES.find(
+              (i) => i.id === baseId || i.id === opId
+            );
+            if (invCatalogo) {
+              opcion = {
+                id: invCatalogo.id,
+                nombre: invCatalogo.nombre,
+                descripcion: invCatalogo.descripcion,
+                selectores: invCatalogo.selectores,
+                efectos: invCatalogo.efectos
+              } as import("@/tipos/rasgos").OpcionSelector;
+            }
+          }
+
           if (opcion && Array.isArray(opcion.efectos)) {
             for (const efOp of opcion.efectos) {
               if (efOp.activo !== false && cumpleCondicionEfecto(efOp.condicion, personaje)) {
                 let efectoFinal = efOp;
-                if (opId.includes(":") && efOp.tipo === "dano_secundario") {
-                  const subtipo = opId.split(":")[1].toLowerCase();
+                if (efOp.tipo === "dano_secundario") {
+                  let tipoDanoResuelto = efOp.tipoDano;
                   const mapaTipos: Record<string, string> = {
                     necrotico: "Necrótico",
                     psiquico: "Psíquico",
-                    radiante: "Radiante"
+                    radiante: "Radiante",
+                    fuego: "Fuego",
+                    frio: "Frío",
+                    acido: "Ácido",
+                    relampago: "Relámpago",
+                    trueno: "Trueno",
+                    veneno: "Veneno",
+                    fuerza: "Fuerza"
                   };
-                  const tipoDanoFormateado =
-                    mapaTipos[subtipo] || (subtipo.charAt(0).toUpperCase() + subtipo.slice(1));
-                  efectoFinal = { ...efOp, tipoDano: tipoDanoFormateado };
+
+                  if (opId.includes(":")) {
+                    const subtipo = opId.split(":")[1].toLowerCase().replace(/[\u0300-\u036f]/g, "");
+                    tipoDanoResuelto = mapaTipos[subtipo] || (subtipo.charAt(0).toUpperCase() + subtipo.slice(1));
+                  } else if (opcion.selectores && opcion.selectores.length > 0) {
+                    const selHijo = opcion.selectores[0];
+                    if (selHijo.valorActual && selHijo.valorActual.length > 0) {
+                      const v = selHijo.valorActual[0].toLowerCase().replace(/[\u0300-\u036f]/g, "");
+                      tipoDanoResuelto = mapaTipos[v] || tipoDanoResuelto;
+                    }
+                  }
+
+                  efectoFinal = { ...efOp, tipoDano: tipoDanoResuelto };
                 }
                 efectosResultado.push({
                   ...efectoFinal,
@@ -253,7 +344,7 @@ export function resolverFormulaDinamica(
       : obtenerNivelEspacioPacto(nivelBrujo);
 
   // Modificadores de características para tiradas dinámicas (ej. 1d12+constitucion)
-  const stats = personaje.caracteristicas;
+  const stats = personaje.caracteristicas || (personaje as { estadisticas?: Record<Caracteristica, number> }).estadisticas;
   const modCon = stats?.constitucion !== undefined ? Math.floor((stats.constitucion - 10) / 2) : 0;
   const modFue = stats?.fuerza !== undefined ? Math.floor((stats.fuerza - 10) / 2) : 0;
   const modDes = stats?.destreza !== undefined ? Math.floor((stats.destreza - 10) / 2) : 0;
@@ -280,6 +371,13 @@ export function resolverFormulaDinamica(
     .replace(/\b(inteligencia|int)\b/gi, String(modInt))
     .replace(/\b(sabiduria|sab|wis)\b/gi, String(modSab))
     .replace(/\b(carisma|car|cha)\b/gi, String(modCar))
+    .replace(/max\s*\(\s*(\d+)\s*,\s*(-?\d+)\s*\)\s*d(\d+)/gi, (_m, minStr, valStr, caraStr) => {
+      const cantDados = Math.max(parseInt(minStr, 10), parseInt(valStr, 10));
+      return `${cantDados}d${caraStr}`;
+    })
+    .replace(/max\s*\(\s*(\d+)\s*,\s*(-?\d+)\s*\)/gi, (_m, minStr, valStr) => {
+      return String(Math.max(parseInt(minStr, 10), parseInt(valStr, 10)));
+    })
     .replace(/(\d+)\s+d/gi, "$1d")
     .replace(/\+\s*\+/g, "+")
     .replace(/\+\s*-/g, "-")

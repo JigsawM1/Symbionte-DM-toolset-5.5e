@@ -18,7 +18,7 @@ import type { AtaquePersonajeCalculado } from "./TarjetaAtaquePersonaje";
 import type { ConsumibleAccionCalculado } from "./TarjetaConsumibleAccion.tipos";
 import { calcularBonoAtaqueConjuro, calcularCDConjuros } from "@/servicios/calculadorMagia";
 import { desduplicarEntidades } from "@/utiles/busquedaTolerante";
-import type { ObjetoJuego, HechizoBase, Caracteristica, RasgoPersonaje } from "@/tipos";
+import type { ObjetoJuego, HechizoBase, Caracteristica, RasgoPersonaje, PersonajeJugador } from "@/tipos";
 import { usarEstadoPersistido, usarLanzadorConjuros } from "@/hooks";
 import { generarListaAtaquesFisicos } from "@/servicios/calculadorAtaquesArmas";
 import { sincronizarRasgosAutomaticos } from "@/servicios/compendioRasgos";
@@ -247,13 +247,24 @@ export function usarCalculoAtaquesJugador() {
     });
   }, [personajeActivo, statsCalculadas, baseDatosObjetos, modificarCantidadObjeto, agregarNotificacion]);
 
+  const desactivarRasgosDeImpactoDano = useCallback((pj: PersonajeJugador | null) => {
+    if (!pj || !Array.isArray(pj.rasgos)) return;
+    for (const r of pj.rasgos) {
+      if (r.activo && r.autoDesactivarAlTirarDano) {
+        alternarActivoRasgo(pj.id, r.id);
+      }
+    }
+  }, [alternarActivoRasgo]);
+
   const manejarTirarDano = useCallback(async (ataque: AtaquePersonajeCalculado, esVersatil: boolean = false) => {
     await ejecutarTiradaDanoFisico(ataque, personajeActivo, esVersatil);
-  }, [personajeActivo]);
+    desactivarRasgosDeImpactoDano(personajeActivo);
+  }, [personajeActivo, desactivarRasgosDeImpactoDano]);
 
   const manejarTirarCritico = useCallback(async (ataque: AtaquePersonajeCalculado, esVersatil: boolean = false) => {
     await ejecutarTiradaCritico(ataque, personajeActivo, esVersatil);
-  }, [personajeActivo]);
+    desactivarRasgosDeImpactoDano(personajeActivo);
+  }, [personajeActivo, desactivarRasgosDeImpactoDano]);
 
   const manejarUsarConsumible = useCallback(async (consumible: ConsumibleAccionCalculado) => {
     await ejecutarUsoConsumible({

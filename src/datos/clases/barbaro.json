@@ -529,6 +529,7 @@
       "recuperacion": "descanso_largo",
       "esActivable": true,
       "autoDesactivar": true,
+      "dispararAlTirarIniciativa": true,
       "restaurarUsosAlActivar": {
         "idRasgoObjetivo": "rasgo_cls_barbaro_furia",
         "cantidad": "maximo"

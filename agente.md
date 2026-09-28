@@ -19,6 +19,220 @@ Este archivo registra reglas globales, errores encontrados, sus causas raíz y l
    - **Bajo ninguna circunstancia** los módulos de lógica de negocio (`servicios/`), gestores de estado (`almacen/`) o constructores (`gestorClases.ts`) deben contener bifurcaciones condicionales por nombre literal de rasgo o clase (`r.nombre === "..."`, `clase.includes("...")`, etc.).
    - Toda mecánica, progresión de dados, escalado de usos, recuperación o desbloqueo dinámico debe resolverse mediante metadatos declarativos (`escaladoFormulaDados`, `escaladoUsos`, `escaladoRecuperacion`, `opcionesDinamicas`, `escaladoMaxSelecciones`, `sincronizarEfectosConFormula`, `heredarDadosPadre`, `gastarDePadre`, `ligadoA`, `efectos`) delegando en funciones puras agnósticas como `resolverEscaladosRasgo`. Esta regla está reforzada en CI vía ESLint `no-restricted-syntax` y la suite `rasgoGenericidad.test.ts`.
 
+## [2026-09-28] Corrección de Propagación de Tipo de Daño Secundario y Sanitización de Etiquetas de Combate (Golpe Divino y Devorador de Vida)
+
+**Contexto del Problema:**
+- El usuario reportó que la etiqueta del daño secundario adicional no se mostraba adecuadamente (aparecía en TaleSpire como `AND NUEVO PERSONAJE - DANO ADICIONAL GOLPE CON ARMA IMPROVISADA` o con la etiqueta genérica `Daño Adicional` en lugar de reflejar el tipo de daño específico o el nombre del rasgo que lo otorgaba), afectando directamente a `rasgo_cls_clerigo_golpe_divino` y a `devorador_de_vida` (Invocación sobrenatural de Brujo con selector o sufijo de daño).
+- Se requería que cualquier daño secundario (`dano_secundario`) proveniente de rasgos activos propagara su tipo de daño exacto (`Necrótico`, `Radiante`, `Psíquico`, etc.) tanto a la fórmula del ataque del personaje, como a la tarjeta de combate en la interfaz y a la etiqueta 3D enviada a TaleSpire.
+
+**Causa Raíz:**
+1. **Falta de sincronización reactiva de selectores en el evaluador de expresiones**:
+   - En `src/servicios/rasgos/evaluadorExpresionesRasgos.ts`, `evaluarEfectosRasgosActivos` proyectaba los efectos del rasgo sin verificar si el rasgo poseía un selector de tipo de daño (`selector_tipo_dano_golpe_divino`, `tipo_dano_devorador_de_vida`, etc.). Al no actualizar el efecto clonado con la opción elegida en el selector, el efecto conservaba `tipoDano: undefined`.
+   - En `src/datos/clases/clerigo.json`, el efecto `dano_secundario` de `rasgo_cls_clerigo_golpe_divino` no declaraba `tipoDano` por defecto.
+2. **Fallback genérico en el evaluador de combate**:
+   - En `src/servicios/rasgos/evaluadorCombateRasgos.ts` (`obtenerDanosSecundariosAtaque`), ante un `ef.tipoDano` indefinido o vacío, se asignaba rígidamente `tipoDano: ef.tipoDano || "Adicional"`.
+3. **Redundancia y duplicación de prefijos en TaleSpire**:
+   - En `src/servicios/ejecutorTiradasCombate.ts`, la construcción de etiquetas de daño secundario en tiradas normales y críticas realizaba concatenaciones del estilo `${nombrePj} - Daño ${tipoEspecifico || "Extra"} ${ataque.nombre}`. Al recibir `"Adicional"`, generaba la etiqueta redundante `... - Daño Adicional ...`, formateada en mayúsculas como `DANO ADICIONAL`.
+4. **Desconexión en invocaciones sobrenaturales con sufijo o variantes**:
+   - Para `devorador_de_vida` (Invocación de Brujo D&D 2024), cuando la invocación se seleccionaba mediante sufijo (e.g., `devorador_de_vida:psiquico`) o cuando sus opciones venían hidratadas desde el catálogo global `CATALOGO_INVOCACIONES_SOBRENATURALES`, el selector dinámico no lograba sincronizarse si las opciones no estaban presentes en el árbol local del rasgo.
+5. **Pérdida de tipos secundarios en ataques desarmados**:
+   - En `src/servicios/calculadorAtaqueDesarmado.ts`, el ataque desarmado estándar y el especial asignaban `tipoDano: "Contundente"` fijo, sin concatenar los `tiposDanoSecundarios` (`Contundente / Radiante`).
+
+**Solución Arquitectónica Aplicada:**
+1. **Sincronización Reactiva de Selectores (`src/servicios/rasgos/evaluadorExpresionesRasgos.ts`):**
+   - En `evaluarEfectosRasgosActivos`, se implementó la resolución automática de `tipoDano` para efectos `dano_secundario`: busca en los selectores del rasgo (o en selecciones con sufijo `id:opcion` y catálogo `CATALOGO_INVOCACIONES_SOBRENATURALES`) la opción elegida por el jugador e inyecta dinámicamente el `tipoDano` correspondiente al efecto evaluado.
+2. **Inferencia Semántica Pura en Combate (`src/servicios/rasgos/evaluadorCombateRasgos.ts`):**
+   - En `obtenerDanosSecundariosAtaque`, antes de recurrir a cualquier fallback, se analiza la descripción del efecto, la descripción del rasgo y el nombre del rasgo contra un diccionario semántico de tipos de daño canónicos (Radiante, Necrótico, Psíquico, Fuego, Frío, Relámpago, Trueno, Ácido, Veneno, Fuerza). Si el tipo de daño aún no está definido, se toma el nombre del rasgo en lugar del término genérico "Adicional".
+3. **Catálogo Declarativo Canónico (`src/datos/clases/clerigo.json`):**
+   - Se configuró `tipoDano: "Radiante"` como valor inicial en el efecto `dano_secundario` de `rasgo_cls_clerigo_golpe_divino`, asegurando coherencia desde el momento de selección del rasgo.
+4. **Sanitización y Formateo Limpio de Etiquetas TaleSpire (`src/servicios/ejecutorTiradasCombate.ts`):**
+   - Se normalizó la generación de etiquetas secundarias para evitar repeticiones como "Daño Daño...". Si el tipo ya incluye "Daño", se respeta; en caso contrario, se formatea elegantemente como `${nombrePj} - ${tipoFormateado} - ${nombreAtaque}`.
+5. **Composición de Tipos de Daño en Ataque Desarmado (`src/servicios/calculadorAtaqueDesarmado.ts`):**
+   - Se unificó el cálculo de `tipoDano` en ataques desarmados para reflejar `tiposDanoSecundarios` (ej. `Contundente / Radiante` o `Contundente / Necrótico`).
+6. **Robustez en Constructor de Rasgos (`ConstructorRasgoDote.tsx`):**
+   - Se añadió un fallback seguro para evitar almacenar cadenas vacías en `tipoDano` al configurar efectos `dano_secundario`.
+
+**Resultados y Métricas de Validación:**
+- 3 pruebas de regresión añadidas en `src/servicios/calculadorDanoCombate.test.ts` (18 tests en la suite aprobados al 100%).
+- Suite de `ejecutorTiradasCombate.test.ts` (5 tests) e `invocacionesBrujoMecanicas.test.ts` (28 tests) aprobadas al 100%.
+- Tipado estricto `strict: true`: 0 errores en TypeScript.
+
+## [2026-09-27] Implementación Canónica D&D 5.5e (PHB 2024): Clérigo Base y Motor Genérico de Habilidades y Extensiones (Fases 0 y 1)
+
+**Contexto del Problema:**
+- Se requería actualizar la clase Clérigo a las reglas 2024 (D&D 5.5e / PHB 2024) y sus 4 subclases basándose en `dicionario_herramientas/sugerencias_cambios/clerigo_sugerencia.json`.
+- El sistema presentaba carencias en la infraestructura genérica:
+  1. No existía el tipo de efecto mecánico `bono_habilidad` en los esquemas de Zod ni en el cálculo reactivo del estado del personaje, impidiendo que *Orden divina (Taumaturgo)* sumara de forma declarativa el modificador de Sabiduría a pruebas de Inteligencia (*Conocimiento arcano* o *Religión*).
+  2. Las expresiones dinámicas de dados no reconocían sintaxis con funciones como `max(1, sabiduria)d8` (*Abrasar muertos vivientes*).
+  3. Los rasgos de extensión (Decorator pattern en `gestorClases.ts`) no propagaban cambios en la cadencia de recuperación (`recuperacion`, necesario para extensiones que convierten descanso largo en corto) ni anexaban nuevos efectos mecánicos (`efectos`, necesario para *Golpes benditos mejorados* al otorgar puntos de golpe temporales).
+  4. Los catálogos de clases JSON exigían validación estricta con Zod (`categoriaMecanica` con enum `"consumible" | "activable" | "selector_informativo" | "pasivo_permanente" | "extension" | "curacion"`, `selectores` con propiedad `etiqueta` y tipo `"unico"` / `"multiple"`, y `escaladoFormulaDados`).
+
+**Solución Arquitectónica Aplicada:**
+1. **Infraestructura Genérica de Habilidades (`bono_habilidad`):**
+   - Agregado `"bono_habilidad"` a `EsquemaTipoEfectoMecanico` (`src/tipos/rasgos.ts`) y al constructor de rasgos en UI (`ConstructorRasgoDote.tsx`).
+   - Creado `obtenerBonosHabilidadesRasgos` en `evaluadorSalvacionesRasgos.ts`, con normalización y mapa canónico de habilidades (`MAPA_OBJETIVO_A_HABILIDAD`), integrándolo reactivamente en `usarEstadoPersonajes.ts`.
+2. **Potenciación de Fórmulas Dinámicas (`evaluadorExpresionesRasgos.ts`):**
+   - Incorporado soporte regex para expresiones tipo `max(min, val)d{caras}` y funciones `max(min, val)`.
+   - Añadido fallback seguro para soportar tanto `personaje.caracteristicas` como `personaje.estadisticas`.
+3. **Robustecimiento del Decorador de Rasgos (`gestorClases.ts`):**
+   - Extensiones de clase y subclase ahora propagan `r.recuperacion` y concatenan `r.efectos` al rasgo padre original.
+   - Soporte para preservar `r.id` explícito definido en el catálogo JSON.
+4. **Catálogo Declarativo del Clérigo Base (`src/datos/clases/clerigo.json`):**
+   - *Orden divina (Nv. 1)*: selector informativo con opciones `protector` (competencia con armas marciales y armaduras pesadas) y `taumaturgo` (`bono_habilidad` dinámico `max(1, sabiduria)` en *conocimiento_arcano* y *religion*).
+   - *Canalizar divinidad (Nv. 2)*: consumible con recuperación en descanso corto y tabla de escalado por nivel (2 usos nv 2, 3 usos nv 11, 4 usos nv 18).
+   - *Chispa divina (Nv. 2)*: ligado a Canalizar divinidad con `gastarDePadre: true` y escalado de dados de 1d8 a 4d8 + Sabiduría.
+   - *Expulsar muertos vivientes (Nv. 2)*: ligado a Canalizar divinidad con `gastarDePadre: true`.
+   - *Abrasar muertos vivientes (Nv. 5)*: rasgo de extensión decorador que actualiza Expulsar muertos vivientes con `formulaDados: "max(1, sabiduria)d8"`.
+   - *Golpes benditos (Nv. 7)*: activable con selector interactivo entre Golpe divino (`dano_secundario: "1d8"`) y Lanzamiento potente (`bono_dano_conjuro` que inyecta Sabiduría a los trucos).
+   - *Intercesión divina (Nv. 10)*: consumible de 1 uso por descanso largo.
+   - *Golpes benditos mejorados (Nv. 14)*: extensión decoradora con dados `2d8` y efecto `hp_temporal: "2*sabiduria"`.
+   - *Intercesión divina mayor (Nv. 20)*: extensión decoradora con dado `2d4` de descanso.
+5. **Alineación con Esquemas Zod (`src/tipos/esquemasCatalogos.ts`):**
+   - Añadido `id: z.string().optional()` a `EsquemaPlantillaRasgoClaseJSON`.
+   - Validados todos los enums de `categoriaMecanica`, selectores con `etiqueta` y `tipo: "unico"`, y efectos con `valor: "competente"`.
+
+**Resultados y Métricas de Validación:**
+- 11 nuevas pruebas unitarias añadidas en `src/servicios/clerigoMecanicasDND55.test.ts` (100% aprobadas).
+- Suite completa del proyecto validada: 79 archivos de prueba y 1077 tests aprobados (`pnpm test`).
+- Tipado estricto verificado: 0 errores en `pnpm exec tsc --noEmit`.
+
+## [2026-09-27] Clérigo D&D 5.5e (Fase 1.1): Separación de Rasgos de Comportamiento Opuesto, Generalización de autoDesactivar y Automatización Declarativa de Combate
+
+**Contexto del Problema:**
+1. **Fricción por agrupar comportamientos opuestos:** Al intentar unificar en una sola entidad `Golpes benditos` las dos opciones canónicas (*Golpe divino*, marcial activable por turno con dados `1d8` y selector de daño radiante/necrótico; frente a *Lanzamiento potente*, pasivo permanente mágico que suma Sabiduría a trucos), la tarjeta de rasgo en la UI mostraba botones de activación y dados inadecuados para el clérigo que optaba por Lanzamiento potente.
+2. **Hardcodes y bloqueo de `autoDesactivar`:** En `sliceRasgos.ts` existían comprobaciones directas por string como `esFuriaPersistente = nomObjetivo.includes("furia persistente")`. Al haberle asignado `autoDesactivar: true` estático a Golpes benditos, el botón toggle se auto-apagaba instantáneamente impidiendo que se mantuviera activo.
+3. **Selección de truco en Taumaturgo:** La opción *Taumaturgo* de *Orden divina* no proporcionaba un selector desplegable para escoger el truco canónico adicional de clérigo ni lo sincronizaba con `trucosConocidosIds`.
+4. **Automatización de combate:**
+   - *Golpe divino* debía auto-desactivarse al realizar la tirada de daño con un arma, permitiendo un ciclo de uso transparente (activar -> golpear/tirar daño -> auto-apagado).
+   - *Furia persistente* debía conservar su recarga automática de usos de Furia al tirar iniciativa además del disparador manual.
+
+**Solución Arquitectónica Aplicada:**
+1. **Separación Declarativa de Rasgos en el Catálogo (`src/datos/clases/clerigo.json`):**
+   - `rasgo_cls_clerigo_golpes_benditos` (Nv. 7): Contenedor `selector_informativo` con `selector_golpes_benditos`.
+   - `rasgo_cls_clerigo_golpe_divino` (Nv. 7): `categoriaMecanica: "activable"`, `esActivable: true`, `autoDesactivarAlTirarDano: true`, `formulaDados: "1d8"`, selector `selector_tipo_dano_golpe_divino` (Radiante / Necrótico), ligado al padre.
+   - `rasgo_cls_clerigo_lanzamiento_potente` (Nv. 7): `categoriaMecanica: "pasivo_permanente"`, `esActivable: false`, efecto `bono_dano_conjuro`, ligado al padre.
+   - Nivel 14: Extensiones decoradoras independientes (`Golpes benditos mejorados (Golpe divino)` con `formulaDados: "2d8"` y `Golpes benditos mejorados (Lanzamiento potente)` con `hp_temporal: "2*sabiduria"`).
+2. **Selector de Truco en Taumaturgo:**
+   - Añadido `selector_truco_taumaturgo` a la opción `taumaturgo` con los 9 trucos canónicos oficiales de clérigo (`h_guia`, `h_llama-sagrada`, `h_luz`, etc.). Al contener `truco` en su ID, `sliceRasgos.ts` sincroniza de forma nativa con `pj.trucosConocidosIds` y se renderiza en la UI como un desplegable con buscador.
+3. **Erradicación de Hardcodes y Generalización de `autoDesactivar` (`sliceRasgos.ts`):**
+   - Eliminadas las dependencias de nombres fijos en `debeAutoDesactivarTarget` y en el mapeo de activación. El apagado inmediato solo ocurre si el rasgo declara `autoDesactivar: true`, y la recarga se basa en el contrato `restaurarUsosAlActivar`.
+4. **Automatización Declarativa de Combate e Iniciativa:**
+   - `autoDesactivarAlTirarDano: true`: Añadido a esquemas y conectado en `usarCalculoAtaquesJugador.ts` en `manejarTirarDano` y `manejarTirarCritico`. Cualquier rasgo activo con esta bandera se desactiva automáticamente tras la tirada de daño con arma.
+   - `dispararAlTirarIniciativa: true`: Añadido a esquemas y procesado en `HojaPersonaje.tsx` en `manejarTirarIniciativa`, recargando los usos del rasgo objetivo declarativo (ej. Furia) y consumiendo 1 uso del rasgo disparador.
+
+**Resultados y Métricas de Validación:**
+- 79 archivos de prueba y 1078 tests aprobados en Vitest (`pnpm test`).
+- 0 errores de compilación ni tipado estricto con `pnpm exec tsc --noEmit`.
+
+## [2026-09-27] Clérigo D&D 5.5e (Fase 1.2): Condicionalidad Jerárquica Declarativa (`requiereOpcion`), Separación de Orden Divina y Filtrado Reactivo de Rasgos
+
+**Contexto del Problema:**
+1. **Visualización simultánea de rasgos mutuamente excluyentes:** En la vista de rasgos (`VistaRasgosJugador.tsx`), al alcanzar el nivel de desbloqueo (ej. Nivel 7 para *Golpes benditos*), se mostraban simultáneamente en la lista tanto el contenedor padre (*Golpes benditos*) como los dos rasgos hijos con comportamientos opuestos (*Golpes benditos: Golpe divino* y *Golpes benditos: Lanzamiento potente*), en lugar de renderizar únicamente el rasgo derivado de la opción seleccionada.
+2. **Selector de truco de Taumaturgo no visible:** En *Orden divina* (Nivel 1), al haberse modelado las opciones (*Protector* y *Taumaturgo*) como efectos internos del selector en lugar de rasgos hijos independientes, la tarjeta en la interfaz no mostraba el rasgo *Taumaturgo* ni su selector de truco adicional (`selector_truco_taumaturgo`), impidiendo al usuario elegir de forma interactiva el truco extra canónico.
+3. **Falta de sincronización mágica reactiva:** Al cambiar una opción del selector padre (ej. de Protector a Taumaturgo), el estado de `trucosConocidosIds` no se actualizaba automáticamente con el truco asociado al hijo que pasaba a estar habilitado.
+
+**Solución Arquitectónica Aplicada:**
+1. **Contrato de Condicionalidad Declarativa (`requiereOpcion`):**
+   - Incorporado el campo opcional `requiereOpcion?: string` en `PlantillaRasgoClase`, `EsquemaPlantillaRasgoClaseJSON` y `EsquemaRasgoPersonaje`.
+   - Propagado en el builder agnóstico `construirRasgo` (`src/servicios/gestorClases.ts`).
+2. **Evaluadores Puros y Agnósticos (`src/servicios/rasgos/utilidadesRasgos.ts` y `evaluadorExpresionesRasgos.ts`):**
+   - Creada la función pura `esRasgoHabilitadoPorOpcion(rasgo, todosLosRasgos)`: si el rasgo declara `requiereOpcion` y `ligadoA`, busca al padre y valida que algún selector de este contenga la opción en su `valorActual`.
+   - Conectado en `estaRasgoActivo`: un rasgo condicionado solo se considera activo si su opción requerida está seleccionada en el padre.
+   - Conectado en `evaluarEfectosRasgosActivos`: se ignoran los efectos mecánicos (competencias, bonos de habilidad, daño) de rasgos cuya opción no esté activa.
+3. **Filtrado Reactivo en la Interfaz (`src/componentes/caracteristicas/rasgos/usarVistaRasgos.ts`):**
+   - En `rasgosFiltrados`, se excluyen de la vista del jugador los rasgos donde `r.requiereOpcion && !esRasgoHabilitadoPorOpcion(r, todosLosRasgos)`.
+   - Resultado: si se elige *Protector*, sólo aparece la tarjeta de *Protector*. Si se conmuta a *Taumaturgo*, desaparece *Protector* y emerge inmediatamente la tarjeta de *Taumaturgo* con su selector de truco adicional (`selector_truco_taumaturgo`). Lo mismo para *Golpe divino* frente a *Lanzamiento potente*.
+4. **Sincronización Reactiva de Magia en el Almacén (`src/almacen/slices/personajes/sliceRasgos.ts`):**
+   - En `actualizarSeleccionRasgo`, tras cambiar cualquier selector, se recorren los rasgos con `requiereOpcion`: si un hijo pasa a estar habilitado, se incorporan sus trucos a `trucosConocidosIds`; si queda inhabilitado, se depuran de la lista.
+   - En `sincronizarRasgosPersonaje`, se garantiza la presencia de los trucos de todos los rasgos habilitados.
+5. **Catálogo Canónico (`src/datos/clases/clerigo.json`):**
+   - *Orden divina*: Separado en contenedor `rasgo_cls_clerigo_orden_divina` (selector informativo con `protector` y `taumaturgo`), `rasgo_cls_clerigo_protector` (`requiereOpcion: "protector"`, competencias marciales y pesadas) y `rasgo_cls_clerigo_taumaturgo` (`requiereOpcion: "taumaturgo"`, `bono_habilidad` Sabiduría a Arcano y Religión, y selector `selector_truco_taumaturgo` con 9 opciones oficiales).
+   - *Golpes benditos*: `rasgo_cls_clerigo_golpe_divino` con `requiereOpcion: "golpe_divino"` y `rasgo_cls_clerigo_lanzamiento_potente` con `requiereOpcion: "lanzamiento_potente"`.
+
+**Resultados y Métricas de Validación:**
+- 13 pruebas unitarias específicas aprobadas en `src/servicios/clerigoMecanicasDND55.test.ts`.
+- Suite global completa: 79 archivos de prueba y 1079 tests aprobados (`pnpm test`).
+- 0 errores de compilación estricta en TypeScript (`pnpm exec tsc --noEmit`).
+
+## [2026-09-27] Adaptación Dinámica de Altura de Modales con Selectores Desplegables (`enFlujo`)
+
+**Contexto del Problema:**
+- En los modales de detalle de rasgos con descripciones cortas (como *Orden divina: Taumaturgo*), el componente [`SelectorDesplegable`](file:///c:/Users/zamor/OneDrive/Documentos/Programas/ToolSet%20Es%205.5/src/componentes/comunes/SelectorDesplegable.tsx) posicionaba la lista de opciones con `position: absolute; top: calc(100% + 4px)`.
+- Al estar fuera del flujo normal del documento, la apertura de la lista de opciones no aumentaba la altura del contenedor padre. Debido a que el cuerpo del modal (`.cuerpoModalDetalle`) tiene `overflow-y: auto` y el contenedor exterior tiene `overflow: hidden`, la lista de opciones quedaba cortada abruptamente contra el pie del modal (`.pieModalDetalle` con el botón "CERRAR"), impidiendo visualizar cómodamente opciones como *Llama sagrada*, *Luz*, etc.
+
+**Solución Arquitectónica Aplicada:**
+1. **Prop `enFlujo?: boolean` en `SelectorDesplegable`:**
+   - Permite indicar al componente si la lista desplegable debe comportarse como elemento de bloque en flujo normal (`position: static`) en lugar de superponerse de forma flotante absoluta.
+2. **Estilos Flexibles en `SelectorDesplegable.module.css`:**
+   - Creada `.contenedorEnFlujo` con `display: flex; flex-direction: column; width: 100%`.
+   - Creada `.dropdownEnFlujo` con `position: static !important; width: 100% !important; max-width: 100% !important; max-height: 260px !important; margin-top: 6px`.
+3. **Integración en `SeccionSelectoresModalRasgo.tsx`:**
+   - Invocación de `SelectorDesplegable` con `enFlujo={true}` para selectores de rasgos dentro del modal.
+4. **Respuesta Elástica del Modal (`VistaRasgosJugador.module.css`):**
+   - Asignado `flex: 1 1 auto` a `.cuerpoModalDetalle`. Al abrirse el selector, el modal completo adapta y expande su altura de forma suave, desplazando el pie del modal y el botón "CERRAR" hacia abajo sin recortar ninguna opción.
+
+**Resultados y Métricas de Validación:**
+- 0 errores de tipos en `pnpm exec tsc --noEmit`.
+- Pruebas de integración aprobadas (`SeccionSelectoresModalRasgo.test.tsx` y `clerigoMecanicasDND55.test.ts`).
+
+## [2026-09-28] Implementación Canónica D&D 5.5e (PHB 2024): Subclases del Clérigo (Vida, Luz, Engaño y Guerra) y Consumo Delegado de Canalizar Divinidad (Fases 2 a 5)
+
+**Contexto del Problema:**
+- Se requería completar la sincronización oficial de la clase Clérigo conforme a las reglas canónicas del *Player's Handbook 2024* implementando sus 4 subclases oficiales: **Dominio de la Vida**, **Dominio de la Luz**, **Dominio del Engaño** y **Dominio de la Guerra**.
+- Requerimientos clave de integración mecánica:
+  1. Las manifestaciones de *Canalizar divinidad* de las subclases (*Preservar vida*, *Resplandor del alba*, *Invocar duplicidad*, *Golpe guiado* y *Bendición del dios de la guerra*) debían descontar usos de la reserva común del clérigo de forma declarativa, sin duplicar contadores ni requerir lógica ad-hoc.
+  2. Los rasgos con usos finitos dependientes de Sabiduría (*Fulgor protector*, *Corona de luz*, *Sacerdote guerrero*) debían escalar automáticamente con el modificador de Sabiduría y actualizarse si este cambia.
+  3. Los rasgos de mejora de nivel 6 y 17 (*Fulgor protector mejorado*, *Duplicidad mejorada*) debían actuar como extensiones orgánicas (Decorator pattern) sin generar entradas redundantes.
+  4. En nivel 14 de la clase base, *Golpes benditos mejorados (Lanzamiento potente)* debía ser puramente descriptivo para evitar contaminar o duplicar fórmulas de daño sobre trucos mágicos.
+
+**Solución Arquitectónica Aplicada:**
+1. **Dominio de la Vida (`clerigo.json`):**
+   - `rasgo_sub_vida_conjuros` (Nv. 3): Pasivo permanente con la tabla oficial de conjuros siempre preparados.
+   - `rasgo_sub_vida_discipulo_vida` (Nv. 3): Pasivo permanente (+2 + nivel de espacio al curar).
+   - `rasgo_sub_vida_preservar_vida` (Nv. 3): Categorizado como `"curacion"`, con `ligadoA: "Canalizar divinidad"`, `gastarDePadre: true` y `formulaDados: "5*nivel"`. En la UI genera el botón interactivo de curación que deduce de la reserva de Canalizar divinidad.
+   - `rasgo_sub_vida_sanador_bendito` (Nv. 6) y `rasgo_sub_vida_sanacion_suprema` (Nv. 17): Pasivos permanentes descriptivos.
+2. **Dominio de la Luz (`clerigo.json`):**
+   - `rasgo_sub_luz_conjuros` (Nv. 3): Conjuros oficiales de la luz siempre preparados.
+   - `rasgo_sub_luz_resplandor_del_alba` (Nv. 3): Ligado a *Canalizar divinidad*, `gastarDePadre: true`, `formulaDados: "2d10+nivel"`, acción de magia.
+   - `rasgo_sub_luz_fulgor_protector` (Nv. 3): Consumible de reacción con `escaladoUsos: { tipo: "por_modificador", modificador: "sabiduria", minimo: 1 }` y recuperación en descanso largo.
+   - `rasgo_sub_luz_fulgor_protector_mejorado` (Nv. 6): Extensión decoradora ligada a *Fulgor protector* que muta la recuperación a descanso corto e inyecta la fórmula de puntos de golpe temporales (`2d6+sabiduria`).
+   - `rasgo_sub_luz_corona_de_luz` (Nv. 17): Consumible de acción con escalado por Sabiduría.
+3. **Dominio del Engaño (`clerigo.json`):**
+   - `rasgo_sub_engano_conjuros` (Nv. 3): Conjuros oficiales del engaño siempre preparados.
+   - `rasgo_sub_engano_bendicion_embaucador` (Nv. 3): Acción de magia con ventaja en Sigilo.
+   - `rasgo_sub_engano_invocar_duplicidad` (Nv. 3): Acción adicional ligada a *Canalizar divinidad*, `gastarDePadre: true`.
+   - `rasgo_sub_engano_transposicion_embaucador` (Nv. 6): Acción adicional para teletransportarse e intercambiar lugares con la ilusión.
+   - `rasgo_sub_engano_duplicidad_mejorada` (Nv. 17): Extensión decoradora ligada a *Invocar duplicidad* con `formulaDados: "nivel"` para curación al expirar la ilusión.
+4. **Dominio de la Guerra (`clerigo.json`):**
+   - `rasgo_sub_guerra_conjuros` (Nv. 3): Conjuros oficiales de guerra siempre preparados.
+   - `rasgo_sub_guerra_sacerdote_guerrero` (Nv. 3): Acción adicional consumible con recuperación en descanso corto y `escaladoUsos` por modificador de Sabiduría (`minimo: 1`).
+   - `rasgo_sub_guerra_golpe_guiado` (Nv. 3): Reacción ligada a *Canalizar divinidad*, `gastarDePadre: true` (+10 a ataque).
+   - `rasgo_sub_guerra_bendicion_dios_guerra` (Nv. 6): Rasgo ligado a *Canalizar divinidad*, `gastarDePadre: true`, para lanzar *escudo de fe* o *arma espiritual* sin concentración por 1 minuto.
+   - `rasgo_sub_guerra_avatar_batalla` (Nv. 17): Pasivo permanente de resistencias físicas.
+
+**Resultados y Métricas de Validación:**
+- 22 pruebas unitarias dedicadas en `src/servicios/clerigoMecanicasDND55.test.ts` (100% aprobadas).
+- Tipado estricto verificado: 0 errores en `pnpm exec tsc --noEmit`.
+
+## [2026-09-28] Filtrado Reactivo de Acciones y Activables de Combate por `requiereOpcion` (Pestaña Acciones)
+
+**Contexto del Problema:**
+- En la pestaña de *Acciones* (`VistaAtaquesJugador.tsx`), dentro de la subsección *Activables y Modos de Combate* (`SeccionRasgosAtaque.tsx`), se mostraba el rasgo *Golpes benditos: Golpe divino* incluso cuando el jugador había seleccionado *Lanzamiento potente* en el selector del rasgo padre *Golpes benditos*.
+- *Causa raíz*: Mientras que la vista de rasgos (`usarVistaRasgos.ts`) filtraba los rasgos mediante `esRasgoHabilitadoPorOpcion`, el servicio que alimenta las acciones de combate (`resolverRasgosAcciones` en `calculadorAccionesCombate.ts`) no validaba la condición `requiereOpcion` al sintetizar y clasificar los rasgos en `todosLosRasgos`. Al tener `categoriaMecanica: "activable"`, *Golpe divino* era clasificado como activable y se presentaba erróneamente en combate.
+
+**Solución Arquitectónica Aplicada:**
+1. **Filtrado en el Motor de Combate (`src/servicios/calculadorAccionesCombate.ts`):**
+   - En `resolverRasgosAcciones`, se incorporó la comprobación declarativa `esRasgoHabilitadoPorOpcion(rasgo, todosLosRasgos)`.
+   - Cualquier rasgo que declare `requiereOpcion` cuya opción requerida no esté seleccionada en el padre queda inmediatamente omitido del cálculo táctico de acciones, acciones adicionales, reacciones y activables de combate.
+2. **Defensa en Profundidad en el Almacén (`src/almacen/slices/personajes/sliceRasgos.ts`):**
+   - En `alternarActivoRasgo`: se bloquea cualquier intento de activación si el rasgo declara `requiereOpcion` y no está habilitado por la selección del padre.
+   - En `actualizarSeleccionRasgo`: al cambiar la selección en un selector padre, cualquier rasgo hijo con `requiereOpcion` que quede inhabilitado se apaga de forma reactiva (`r.activo = false`).
+
+**Resultados y Métricas de Validación:**
+- Nueva prueba unitaria en `src/servicios/clerigoMecanicasDND55.test.ts` verificando que al seleccionar *Lanzamiento potente*, `resolverRasgosAcciones` excluye totalmente a *Golpe divino* de las acciones de combate y de los activables.
+- 23 tests aprobados en `clerigoMecanicasDND55.test.ts`.
+- Pruebas de integración aprobadas (`SeccionRasgosAtaque.test.tsx`).
+
 ## [2026-09-27] Ajustes Mecánicos de Estilo de Combate: Armas Arrojadizas y Escala Dinámica en Combate sin Armas (1d8/1d6)
 
 **Contexto del Problema:**

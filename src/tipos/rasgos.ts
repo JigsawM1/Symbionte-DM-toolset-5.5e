@@ -65,6 +65,7 @@ export const EsquemaTipoEfectoMecanico = z.enum([
   "restaurar_recurso",
   "limite_des_armadura_media",
   "dado_extra_critico",
+  "bono_habilidad",
   "personalizado"
 ]);
 export type TipoEfectoMecanico = z.infer<typeof EsquemaTipoEfectoMecanico>;
@@ -212,6 +213,7 @@ export type SelectorRasgo = z.infer<typeof EsquemaSelectorRasgo>;
 // ==========================================
 
 export interface PlantillaRasgoClase {
+  id?: string;
   nivel: number;
   nombre: string;
   descripcion: string;
@@ -239,7 +241,10 @@ export interface PlantillaRasgoClase {
   // Mecánicas estructuradas
   esActivable?: boolean;
   autoDesactivar?: boolean;
+  autoDesactivarAlTirarDano?: boolean;
+  dispararAlTirarIniciativa?: boolean;
   ligadoA?: string;
+  requiereOpcion?: string;
   gastarDePadre?: boolean;
   heredarDadosPadre?: boolean;
   condicionAlActivar?: string;
@@ -339,7 +344,10 @@ export const EsquemaRasgoPersonaje = z.object({
   activo: z.boolean().default(true),
   esActivable: z.boolean().default(false).optional(), // Toggle on/off
   autoDesactivar: z.boolean().default(false).optional(), // Si es true, vuelve a activo: false tras ejecutarse
+  autoDesactivarAlTirarDano: z.boolean().default(false).optional(), // Si es true, vuelve a activo: false tras tirar daño con arma
+  dispararAlTirarIniciativa: z.boolean().default(false).optional(), // Si es true, ejecuta su efecto al tirar iniciativa
   ligadoA: z.string().optional(), // ID o nombre de rasgo padre requerido activo
+  requiereOpcion: z.string().optional(), // ID de la opción del selector del rasgo padre requerida
   gastarDePadre: z.boolean().default(false).optional(), // Descuenta uso de la reserva del rasgo padre
   heredarDadosPadre: z.boolean().default(false).optional(), // Hereda formulaDados del rasgo padre
   condicionAlActivar: z.string().optional(), // Condición táctica a sincronizar en condicionesActivas (ej. "Furia (Rage)")

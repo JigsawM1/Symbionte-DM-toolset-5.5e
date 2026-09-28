@@ -23,6 +23,7 @@ export interface SelectorDesplegableProps<T extends string = string> {
   tamano?: "normal" | "compacto" | "mini";
   titulo?: string;
   id?: string;
+  enFlujo?: boolean;
 }
 
 export function SelectorDesplegable<T extends string = string>({
@@ -34,7 +35,8 @@ export function SelectorDesplegable<T extends string = string>({
   disabled = false,
   tamano = "normal",
   titulo,
-  id
+  id,
+  enFlujo = false
 }: SelectorDesplegableProps<T>) {
   const [abierto, setAbierto] = useState(false);
   const contenedorRef = useRef<HTMLDivElement>(null);
@@ -100,7 +102,10 @@ export function SelectorDesplegable<T extends string = string>({
       : "";
 
   return (
-    <div ref={contenedorRef} className={`${estilos.contenedor} ${className || ""}`}>
+    <div
+      ref={contenedorRef}
+      className={`${estilos.contenedor} ${enFlujo ? estilos.contenedorEnFlujo : ""} ${className || ""}`}
+    >
       <button
         id={id}
         type="button"
@@ -129,7 +134,7 @@ export function SelectorDesplegable<T extends string = string>({
       </button>
 
       {abierto && !disabled && (
-        <div className={estilos.dropdown}>
+        <div className={`${estilos.dropdown} ${enFlujo ? estilos.dropdownEnFlujo : ""}`}>
           {opcionesNormalizadas.length > 0 ? (
             opcionesNormalizadas.map((op) => {
               const estaSeleccionada = op.valor === valor;

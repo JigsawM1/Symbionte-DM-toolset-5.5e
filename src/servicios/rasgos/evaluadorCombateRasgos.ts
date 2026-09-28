@@ -137,9 +137,27 @@ export function obtenerDanosSecundariosAtaque(
       if (aplicaEfectoAAtaque(ef.aplicaA, ef.objetivo, contexto)) {
         const formulaResuelta = resolverFormulaDinamica(ef.valor, personaje);
         if (formulaResuelta) {
+          let tipoDanoFinal = ef.tipoDano?.trim();
+          if (!tipoDanoFinal || tipoDanoFinal.toLowerCase() === "adicional") {
+            const descNorm = normalizar(ef.descripcion || "");
+            if (descNorm.includes("necrotic")) tipoDanoFinal = "Necrótico";
+            else if (descNorm.includes("radiant")) tipoDanoFinal = "Radiante";
+            else if (descNorm.includes("psiquic")) tipoDanoFinal = "Psíquico";
+            else if (descNorm.includes("fuego")) tipoDanoFinal = "Fuego";
+            else if (descNorm.includes("frio")) tipoDanoFinal = "Frío";
+            else if (descNorm.includes("veneno")) tipoDanoFinal = "Veneno";
+            else if (descNorm.includes("acido")) tipoDanoFinal = "Ácido";
+            else if (descNorm.includes("fuerza")) tipoDanoFinal = "Fuerza";
+            else if (descNorm.includes("relampag")) tipoDanoFinal = "Relámpago";
+            else if (descNorm.includes("trueno")) tipoDanoFinal = "Trueno";
+            else if (descNorm.includes("golpe divino")) tipoDanoFinal = "Radiante";
+            else if (descNorm.includes("devorador de vida")) tipoDanoFinal = "Necrótico";
+            else tipoDanoFinal = "Adicional";
+          }
+
           resultado.push({
             formula: formulaResuelta,
-            tipoDano: ef.tipoDano || "Adicional",
+            tipoDano: tipoDanoFinal,
             origen: ef.descripcion || "Rasgo activo"
           });
         }
@@ -616,6 +634,28 @@ export function aplicarModificadoresInvocacionesAHechizo(
         modificado = true;
       }
     }
+  }
+
+  // 4. Evaluar potenciador de trucos por rasgos activos (ej. Lanzamiento potente de Clérigo)
+  // Mediante efectos declarativos tipo bono_dano_conjuro con objetivo agregar_modificador_habilidad
+  const efectosRasgosActivos = evaluarEfectosRasgosActivos(personaje);
+  const tienePotenciadorTrucos = efectosRasgosActivos.some((ef) => {
+    if (ef.tipo === "bono_dano_conjuro") {
+      const objNorm = normalizar(ef.objetivo || "");
+      const aplNorm = normalizar(ef.aplicaA || "");
+      return (
+        objNorm === "agregar_modificador_habilidad" ||
+        objNorm.includes("modificador_habilidad") ||
+        aplNorm === "trucos_clerigo" ||
+        aplNorm === "trucos"
+      );
+    }
+    return false;
+  });
+
+  if (tienePotenciadorTrucos && !nuevoAgregarModificadorHabilidad) {
+    nuevoAgregarModificadorHabilidad = true;
+    modificado = true;
   }
 
   if (!modificado) return hechizo;

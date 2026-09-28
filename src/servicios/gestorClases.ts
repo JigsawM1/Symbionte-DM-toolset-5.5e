@@ -345,7 +345,10 @@ export function obtenerRasgosClaseYSubclase(
       condicionAlActivar: r.condicionAlActivar,
       restaurarUsosAlActivar: r.restaurarUsosAlActivar ? { ...r.restaurarUsosAlActivar } : undefined,
       autoDesactivar: !!r.autoDesactivar,
+      autoDesactivarAlTirarDano: !!r.autoDesactivarAlTirarDano,
+      dispararAlTirarIniciativa: !!r.dispararAlTirarIniciativa,
       ligadoA: r.ligadoA,
+      requiereOpcion: r.requiereOpcion,
       gastarDePadre: !!r.gastarDePadre,
       heredarDadosPadre: !!r.heredarDadosPadre,
       conjurosOtorgados: r.conjurosOtorgados ? [...r.conjurosOtorgados] : [],
@@ -391,13 +394,18 @@ export function obtenerRasgosClaseYSubclase(
           padre.fuente = `${clase.nombre} (Niveles ${nivelesPrevios.join(", ")})`;
           padre.descripcion += `\n\n***${r.nombre} (Nv. ${r.nivel}).*** ${r.descripcion}`;
           if (r.formulaDados) padre.formulaDados = r.formulaDados;
+          if (r.recuperacion) padre.recuperacion = r.recuperacion as RecuperacionRasgo;
+          if (r.tipoAccion && r.tipoAccion !== "pasivo") padre.tipoAccion = r.tipoAccion;
+          if (Array.isArray(r.efectos) && r.efectos.length > 0) {
+            padre.efectos = [...(padre.efectos || []), ...JSON.parse(JSON.stringify(r.efectos))];
+          }
         }
         continue;
       }
       const nombreNorm = r.nombre.toLowerCase().trim();
       if (nombreNorm === "rasgo de subclase" || nombreNorm.includes("rasgo de subclase")) continue;
 
-      const id = `rasgo_cls_${normalizarTextoClase(clase.id)}_${normalizarTextoClase(r.nombre).replace(/\s+/g, "_")}`;
+      const id = r.id || `rasgo_cls_${normalizarTextoClase(clase.id)}_${normalizarTextoClase(r.nombre).replace(/\s+/g, "_")}`;
       const fuente = `${clase.nombre} (Nivel ${r.nivel})`;
 
       rasgosResultado.push(construirRasgo(r, id, fuente, "clase"));
@@ -428,11 +436,15 @@ export function obtenerRasgosClaseYSubclase(
                 padre.tipoAccion = r.tipoAccion;
               }
               if (r.formulaDados) padre.formulaDados = r.formulaDados;
+              if (r.recuperacion) padre.recuperacion = r.recuperacion as RecuperacionRasgo;
+              if (Array.isArray(r.efectos) && r.efectos.length > 0) {
+                padre.efectos = [...(padre.efectos || []), ...JSON.parse(JSON.stringify(r.efectos))];
+              }
             }
             continue;
           }
 
-          const id = `rasgo_sub_${normalizarTextoClase(subclase.id)}_${normalizarTextoClase(r.nombre).replace(/\s+/g, "_")}`;
+          const id = r.id || `rasgo_sub_${normalizarTextoClase(subclase.id)}_${normalizarTextoClase(r.nombre).replace(/\s+/g, "_")}`;
           const fuente = `${clase.nombre} (${subclase.nombre} - Nivel ${r.nivel})`;
 
           rasgosResultado.push(construirRasgo(r, id, fuente, "subclase"));

@@ -10,7 +10,11 @@ import {
   obtenerNivelClasePersonaje,
   obtenerBonoDanoFuria
 } from "./utilidadesRasgos";
-import { evaluarEfectosRasgosActivos } from "./evaluadorExpresionesRasgos";
+import {
+  evaluarEfectosRasgosActivos,
+  resolverFormulaDinamica,
+  evaluarExpresionNumericaSegura
+} from "./evaluadorExpresionesRasgos";
 
 /**
  * Evalúa si los rasgos o efectos activos del personaje otorgan o restauran
@@ -451,4 +455,82 @@ export function obtenerCompetenciasEfectivasTexto(personaje: PersonajeJugador): 
     herramientasTexto: herramientasConsolidadas.length > 0 ? herramientasConsolidadas.join(", ") : "Ninguna",
     herramientasLista: herramientasConsolidadas
   };
+}
+
+/**
+  * Diccionario de normalización para mapear objetivos de habilidades a identificadores canónicos Habilidad.
+  */
+const MAPA_OBJETIVO_A_HABILIDAD: Record<string, Habilidad> = {
+  acrobacias: "acrobacias",
+  atletismo: "atletismo",
+  conocimiento_arcano: "arcanos",
+  "conocimiento arcano": "arcanos",
+  arcano: "arcanos",
+  arcanos: "arcanos",
+  arcana: "arcanos",
+  engano: "engaño",
+  engaño: "engaño",
+  historia: "historia",
+  interpretacion: "interpretacion",
+  interpretación: "interpretacion",
+  intimidacion: "intimidacion",
+  intimidación: "intimidacion",
+  investigacion: "investigacion",
+  investigación: "investigacion",
+  juego_de_manos: "juegoManos",
+  "juego de manos": "juegoManos",
+  juegomanos: "juegoManos",
+  medicina: "medicina",
+  naturaleza: "naturaleza",
+  percepcion: "percepcion",
+  percepción: "percepcion",
+  perspicacia: "perspicacia",
+  persuasion: "persuasion",
+  persuasión: "persuasion",
+  religion: "religion",
+  religión: "religion",
+  sigilo: "sigilo",
+  supervivencia: "supervivencia",
+  trato_con_animales: "manejoAnimales",
+  "trato con animales": "manejoAnimales",
+  manejoanimales: "manejoAnimales",
+  animales: "manejoAnimales"
+};
+
+/**
+ * Obtiene los bonificadores numéricos extra a habilidades procedentes de rasgos activos
+ * con efecto `bono_habilidad` de forma 100% genérica y declarativa (ej. Taumaturgo: +MOD SAB a Religión y Arcano).
+ */
+export function obtenerBonosHabilidadesRasgos(
+  personaje: PersonajeJugador
+): Partial<Record<Habilidad, number>> {
+  const bonos: Partial<Record<Habilidad, number>> = {};
+  if (!personaje) return bonos;
+
+  const efectos = evaluarEfectosRasgosActivos(personaje);
+  for (const ef of efectos) {
+    if (ef.tipo === "bono_habilidad") {
+      const objLimpio = normalizar(ef.objetivo || "").replace(/^habilidad[._]/, "");
+      const formulaResuelta = resolverFormulaDinamica(ef.valor, personaje);
+      const valorNumerico = evaluarExpresionNumericaSegura(formulaResuelta);
+      if (valorNumerico <= 0) continue;
+
+      if (objLimpio === "todas" || objLimpio === "universal" || objLimpio === "") {
+        const todasHabs: Habilidad[] = [
+          "acrobacias", "atletismo", "arcanos", "engaño", "historia",
+          "interpretacion", "intimidacion", "investigacion", "juegoManos",
+          "medicina", "naturaleza", "percepcion", "perspicacia", "persuasion",
+          "religion", "sigilo", "supervivencia", "manejoAnimales"
+        ];
+        for (const h of todasHabs) {
+          bonos[h] = (bonos[h] || 0) + valorNumerico;
+        }
+      } else {
+        const habCanonica = MAPA_OBJETIVO_A_HABILIDAD[objLimpio] || (objLimpio as Habilidad);
+        bonos[habCanonica] = (bonos[habCanonica] || 0) + valorNumerico;
+      }
+    }
+  }
+
+  return bonos;
 }

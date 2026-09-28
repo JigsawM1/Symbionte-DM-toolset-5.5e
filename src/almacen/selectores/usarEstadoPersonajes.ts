@@ -30,7 +30,8 @@ import {
   obtenerCompetenciasExtraRasgos,
   obtenerCompetenciasEfectivasTexto,
   obtenerLimiteDesArmaduraMedia,
-  obtenerBonoCARasgos
+  obtenerBonoCARasgos,
+  obtenerBonosHabilidadesRasgos
 } from '@/servicios/evaluadorEfectosRasgos';
 import { ARMADURAS_OFICIALES } from '@/constantes/equipoConstantes';
 
@@ -316,7 +317,7 @@ export function calcularEstadisticasPersonaje(pj: PersonajeJugador): Estadistica
     }
   }
 
-  // Aplicar bonos pasivos a habilidades
+  // Aplicar bonos pasivos a habilidades procedentes de equipo
   for (const efecto of efectosPasivosActivos) {
     const tipoNorm = normalizar(efecto.tipo || "");
     if (tipoNorm.includes("habilidad") || tipoNorm.includes("pericia")) {
@@ -331,6 +332,16 @@ export function calcularEstadisticasPersonaje(pj: PersonajeJugador): Estadistica
         if (matchHab) {
           habilidades[matchHab] += valNum;
         }
+      }
+    }
+  }
+
+  // Bonos a habilidades procedentes de efectos mecánicos de rasgos (bono_habilidad)
+  if (pj) {
+    const bonosHabsRasgos = obtenerBonosHabilidadesRasgos(pj);
+    for (const [hab, bono] of Object.entries(bonosHabsRasgos)) {
+      if (hab in habilidades && typeof bono === "number") {
+        habilidades[hab as Habilidad] += bono;
       }
     }
   }

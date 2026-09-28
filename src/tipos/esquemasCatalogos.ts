@@ -23,6 +23,7 @@ import { EsquemaConjuroInnatoEspecie } from "./especies";
 // =======================================================
 
 export const EsquemaPlantillaRasgoClaseJSON = z.object({
+  id: z.string().optional(),
   nivel: z.number().int().min(1).max(20),
   nombre: z.string().min(1),
   descripcion: z.string(),
@@ -42,7 +43,10 @@ export const EsquemaPlantillaRasgoClaseJSON = z.object({
   // Mecánicas estructuradas
   esActivable: z.boolean().optional(),
   autoDesactivar: z.boolean().optional(),
+  autoDesactivarAlTirarDano: z.boolean().optional(),
+  dispararAlTirarIniciativa: z.boolean().optional(),
   ligadoA: z.string().optional(),
+  requiereOpcion: z.string().optional(),
   gastarDePadre: z.boolean().optional(),
   heredarDadosPadre: z.boolean().optional(),
   condicionAlActivar: z.string().optional(),

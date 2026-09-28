@@ -112,6 +112,7 @@ export const SeccionSelectoresModalRasgo: React.FC<SeccionSelectoresModalRasgoPr
                   opciones={opcionesDesplegable}
                   alCambiar={(nuevoVal) => alActualizarSeleccion?.(sel.id, [nuevoVal])}
                   placeholder={`Seleccionar ${sel.etiqueta.toLowerCase()}...`}
+                  enFlujo={true}
                 />
               </div>
             </div>

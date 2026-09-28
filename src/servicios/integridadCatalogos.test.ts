@@ -286,8 +286,8 @@ describe("Integridad de Catálogos D&D 5.5e (JSON Modular e Hidratación)", () =
   });
 
   describe("8. Catálogo de Efectos Predefinidos (JSON Modular)", () => {
-    it("carga exactamente los 28 efectos predefinidos", () => {
-      expect(EFECTOS_PREDEFINIDOS).toHaveLength(28);
+    it("carga exactamente los 29 efectos predefinidos", () => {
+      expect(EFECTOS_PREDEFINIDOS).toHaveLength(29);
     });
 
     it("los 5 efectos enriquecidos tienen viñetas efectos[]", () => {

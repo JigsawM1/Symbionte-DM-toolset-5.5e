@@ -7,7 +7,8 @@ import type {
   ConfiguracionEspeciePersonaje,
   OpcionesAplicarEspecie,
   ConjuroInnatoEspecie,
-  RecuperacionRasgo
+  RecuperacionRasgo,
+  SelectorRasgo
 } from "@/tipos";
 import {
   CATALOGO_ESPECIES_DND55,
@@ -16,6 +17,8 @@ import {
 } from "@/constantes/especiesDND55";
 import { calcularBonoHPMaximoRasgos } from "./evaluadorEfectosRasgos";
 import { resolverEscaladosRasgo } from "./gestorClases";
+import { obtenerOpcionesDinamicas } from "./hidratadorDotes";
+import { DOTES_ORIGEN_DND55 } from "@/constantes/dotesConstantes";
 
 /**
  * Normaliza cadenas para búsquedas tolerantes a mayúsculas, diacríticos y espacios.
@@ -186,10 +189,20 @@ export function construirRasgosEspecie(
       formulaDados = `${bonificadorCompetencia}d4`;
     }
 
-    let selectoresProcesados = p.selectores ? JSON.parse(JSON.stringify(p.selectores)) : [];
+    let selectoresProcesados: SelectorRasgo[] = (p.selectores ? JSON.parse(JSON.stringify(p.selectores)) : []).map(
+      (s: SelectorRasgo) => {
+        if (s.claveOpcionesDinamicas && (!s.opciones || s.opciones.length === 0)) {
+          return {
+            ...s,
+            opciones: obtenerOpcionesDinamicas(s.claveOpcionesDinamicas)
+          };
+        }
+        return s;
+      }
+    );
     if (normalizarTextoEspecie(p.nombre) === "tamano" && selectoresProcesados.length > 0) {
       const valorTamano = normalizarTextoEspecie(tamanoElegido || especie.tamanoPorDefecto || "mediano");
-      selectoresProcesados = selectoresProcesados.map((s: { id: string; valorActual: string[] }) => {
+      selectoresProcesados = selectoresProcesados.map((s: SelectorRasgo) => {
         if (s.id === "selector_tamano_especie" || s.id.includes("tamano")) {
           return { ...s, valorActual: [valorTamano] };
         }
@@ -250,7 +263,17 @@ export function construirRasgosEspecie(
       }
 
       const efectosBase = p.efectos ? [...p.efectos] : [];
-      const selectoresBase = p.selectores ? JSON.parse(JSON.stringify(p.selectores)) : [];
+      const selectoresBase: SelectorRasgo[] = (p.selectores ? JSON.parse(JSON.stringify(p.selectores)) : []).map(
+        (s: SelectorRasgo) => {
+          if (s.claveOpcionesDinamicas && (!s.opciones || s.opciones.length === 0)) {
+            return {
+              ...s,
+              opciones: obtenerOpcionesDinamicas(s.claveOpcionesDinamicas)
+            };
+          }
+          return s;
+        }
+      );
 
       const escalados = resolverEscaladosRasgo(
         {
@@ -489,4 +512,50 @@ export function aplicarEspecieAPersonaje(
   }
 
   return pjResultado;
+}
+
+/**
+ * Determina de forma tolerante si un nombre de rasgo corresponde a "Versátil" de Humano.
+ */
+export function esRasgoVersatil(nombre: string): boolean {
+  if (!nombre) return false;
+  const norm = normalizarTextoEspecie(nombre);
+  return norm === "versatil" || norm.includes("versatil");
+}
+
+/**
+ * Construye la dote de origen asociada al rasgo de especie "Versátil" del Humano
+ * para ser incorporada y renderizada en la sección de dotes de la ficha.
+ */
+export function construirDoteDeVersatil(
+  rasgoVersatil: RasgoPersonaje,
+  idDoteSeleccionada: string = "dote_alerta"
+): RasgoPersonaje {
+  const normId = normalizarTextoEspecie(idDoteSeleccionada);
+  const plantillaDote =
+    DOTES_ORIGEN_DND55.find(
+      (d) => d.id === idDoteSeleccionada || normalizarTextoEspecie(d.id) === normId || normalizarTextoEspecie(d.nombre) === normId
+    ) || DOTES_ORIGEN_DND55.find((d) => d.id === "dote_alerta")!;
+
+  return {
+    id: `dote_origen_${normalizarTextoEspecie(rasgoVersatil.id)}`,
+    nombre: plantillaDote.nombre,
+    descripcion: plantillaDote.descripcion,
+    origen: "dote",
+    fuente: rasgoVersatil.fuente || "Especie (Humano: Versátil)",
+    tipoAccion: plantillaDote.tipoAccion || "pasivo",
+    nivelRequerido: 1,
+    tieneUsosLimitados: Boolean(plantillaDote.tieneUsosLimitados),
+    usosMaximos: plantillaDote.usosMaximos,
+    usosRestantes: plantillaDote.usosMaximos,
+    recuperacion: plantillaDote.recuperacion || "ninguno",
+    formulaDados: plantillaDote.formulaDados,
+    categoriaMecanica: plantillaDote.categoriaMecanica || "pasivo_permanente",
+    efectos: plantillaDote.efectos ? JSON.parse(JSON.stringify(plantillaDote.efectos)) : [],
+    selectores: plantillaDote.selectores ? JSON.parse(JSON.stringify(plantillaDote.selectores)) : [],
+    activo: true,
+    personalizado: false,
+    ligadoA: rasgoVersatil.id,
+    notas: `Dote de Origen otorgada por el rasgo Versátil (${rasgoVersatil.fuente || "Humano"}).`
+  };
 }

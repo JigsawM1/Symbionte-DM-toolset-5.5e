@@ -90,13 +90,22 @@ const OPCIONES_DINAMICAS_MAP: Record<string, () => OpcionSelector[]> = {
   conjuros1_druida: () => generarOpcionesConjuros("druida", 1),
   trucos_mago: () => generarOpcionesConjuros("mago", 0),
   conjuros1_mago: () => generarOpcionesConjuros("mago", 1),
-  rituales_nivel_1: () => generarOpcionesRituales(1)
+  rituales_nivel_1: () => generarOpcionesRituales(1),
+  dotes_origen: () =>
+    (origenJson as unknown as DotePersonaje[])
+      .map((d) => ({
+        id: d.id,
+        nombre: d.nombre,
+        descripcion: d.descripcion,
+        requisito: d.requisito || "Dote de origen"
+      }))
+      .sort((a, b) => a.nombre.localeCompare(b.nombre, "es"))
 };
 
 // Cache en memoria para no recalcular en cada acceso
 const CACHE_OPCIONES_DINAMICAS: Record<string, OpcionSelector[]> = {};
 
-function obtenerOpcionesDinamicas(clave: string): OpcionSelector[] {
+export function obtenerOpcionesDinamicas(clave: string): OpcionSelector[] {
   if (!CACHE_OPCIONES_DINAMICAS[clave]) {
     const fn = OPCIONES_DINAMICAS_MAP[clave];
     if (fn) {

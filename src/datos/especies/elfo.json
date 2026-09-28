@@ -181,18 +181,12 @@
               "id": "selector_truco_alto_elfo",
               "tipo": "unico",
               "etiqueta": "Truco de Mago (Sustituible tras descanso largo)",
-              "opciones": [
-                {
-                  "id": "prestidigitacion",
-                  "nombre": "Prestidigitación",
-                  "descripcion": "Efectos mágicos menores útiles para practicar magia."
-                }
-              ],
               "maxSelecciones": 1,
+              "opciones": [],
               "valorActual": [
                 "prestidigitacion"
               ],
-              "visualizacion": "normal"
+              "claveOpcionesDinamicas": "trucos_mago"
             }
           ]
         },

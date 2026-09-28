@@ -53,25 +53,19 @@ export function importarDesdeJSON(
     const datosObj = (datosJSON && typeof datosJSON === "object" ? datosJSON : {}) as Record<string, unknown>;
 
     // 1. Si viene con el formato de backup o estructura agrupada o global.json
-    if (datosObj.monstruos) {
-      monstruosCandidatos = Array.isArray(datosObj.monstruos) ? datosObj.monstruos : Object.values(datosObj.monstruos);
-    }
-    if (datosObj["Custom Monsters"]) {
-      monstruosCandidatos = Array.isArray(datosObj["Custom Monsters"]) ? (datosObj["Custom Monsters"] as unknown[]) : Object.values(datosObj["Custom Monsters"] as Record<string, unknown>);
+    const fuenteMonstruos = datosObj.monstruos || datosObj["Custom Monsters"] || datosObj.monstruosHomebrew || datosObj.monstruos_homebrew || datosObj.baseDatosMonstruos;
+    if (fuenteMonstruos) {
+      monstruosCandidatos = Array.isArray(fuenteMonstruos) ? fuenteMonstruos : Object.values(fuenteMonstruos as Record<string, unknown>);
     }
 
-    if (datosObj.hechizos) {
-      hechizosCandidatos = Array.isArray(datosObj.hechizos) ? datosObj.hechizos : Object.values(datosObj.hechizos);
-    }
-    if (datosObj["Custom Spells"]) {
-      hechizosCandidatos = Array.isArray(datosObj["Custom Spells"]) ? (datosObj["Custom Spells"] as unknown[]) : Object.values(datosObj["Custom Spells"] as Record<string, unknown>);
+    const fuenteHechizos = datosObj.hechizos || datosObj["Custom Spells"] || datosObj.hechizosHomebrew || datosObj.hechizos_homebrew || datosObj.baseDatosHechizos;
+    if (fuenteHechizos) {
+      hechizosCandidatos = Array.isArray(fuenteHechizos) ? fuenteHechizos : Object.values(fuenteHechizos as Record<string, unknown>);
     }
 
-    if (datosObj.objetos) {
-      objetosCandidatos = Array.isArray(datosObj.objetos) ? datosObj.objetos : Object.values(datosObj.objetos);
-    }
-    if (datosObj["Custom Equipment"]) {
-      objetosCandidatos = Array.isArray(datosObj["Custom Equipment"]) ? (datosObj["Custom Equipment"] as unknown[]) : Object.values(datosObj["Custom Equipment"] as Record<string, unknown>);
+    const fuenteObjetos = datosObj.objetos || datosObj["Custom Equipment"] || datosObj.objetosHomebrew || datosObj.objetos_homebrew || datosObj.objetosHomebrewSolo;
+    if (fuenteObjetos) {
+      objetosCandidatos = Array.isArray(fuenteObjetos) ? fuenteObjetos : Object.values(fuenteObjetos as Record<string, unknown>);
     }
 
     // 2. Si el archivo JSON es en sí mismo una lista o diccionario plano

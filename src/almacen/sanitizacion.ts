@@ -3,6 +3,7 @@ import { PERSONAJE_POR_DEFECTO } from '@/constantes/personajeConstantes';
 import { resolverGruposYSustitutosCompetencias } from '@/constantes/competenciasConstantes';
 import { resolverCategoriaDesdeSRD, CATEGORIAS_EQUIPO, type CategoriaEquipo } from '@/constantes/categoriasEquipoConstantes';
 import { generarId } from '@/utiles/generarId';
+import { logger } from '@/utiles/logger';
 
 // Normaliza el texto eliminando acentos y convirtiendo a minúsculas
 export function normalizarTexto(texto: string): string {
@@ -1294,13 +1295,14 @@ export function sanearPersonaje(p: unknown): PersonajeJugador {
     return pjValido;
   }
 
-
-  // Fallback si algún campo anidado no pasa Zod
-  return {
-    ...PERSONAJE_POR_DEFECTO,
-    id: typeof raw.id === "string" && raw.id.trim() ? raw.id.trim() : generarId("pj"),
-    nombre: typeof raw.nombre === "string" && raw.nombre.trim() ? raw.nombre.trim() : "Nuevo Personaje"
-  };
+  // Fallback tolerante si algún campo anidado no pasa Zod estricto:
+  // Preservamos la integridad de los datos del personaje fusionado con los valores por defecto
+  // para evitar la destrucción accidental de fichas de usuario.
+  logger.warn(
+    `[sanearPersonaje] Advertencia de validación Zod en personaje "${fusionado.nombre}" (${fusionado.id}):`,
+    resultado.error.issues
+  );
+  return fusionado as unknown as PersonajeJugador;
 }
 
 

@@ -6,6 +6,7 @@ import { estaRasgoActivo, esRasgoHabilitadoPorOpcion } from "./rasgos/utilidades
 import { evaluarEfectosRasgosActivos } from "./rasgos/evaluadorExpresionesRasgos";
 import { resolverRasgosAcciones } from "./calculadorAccionesCombate";
 import type { PersonajeJugador } from "@/tipos/personaje";
+import { EFECTOS_PREDEFINIDOS } from "@/utiles/datosIniciales";
 
 describe("Clérigo D&D 5.5 (2024) - Reglas y Mecánicas Base", () => {
   it("Nivel 1: Obtiene Lanzamiento de conjuros y Orden divina con rasgos hijos separados y condicionados", () => {
@@ -610,6 +611,29 @@ describe("Clérigo D&D 5.5 (2024) - Reglas y Mecánicas Base", () => {
       expect(fulgor?.tablaProgresion?.notaPie).toBe("Se apilan los niveles");
       expect(fulgor?.tablaProgresion?.filas[0].nivel).toBe(6);
       expect(fulgor?.tablaProgresion?.filas[0].valores[0]).toContain("Recuperas todos los usos de tu Fulgor protector");
+    });
+
+    it("Corona de luz (Dominio de la Luz Nv. 17) es un consumible activable de 10 turnos vinculado al efecto predefinido informativo", () => {
+      const rasgosNv17 = obtenerRasgosClaseYSubclase("Clérigo", 17, "Dominio de la Luz");
+      const corona = rasgosNv17.find((r) => r.id === "rasgo_sub_luz_corona_de_luz");
+      expect(corona).toBeDefined();
+      expect(corona?.categoriaMecanica).toBe("consumible");
+      expect(corona?.esActivable).toBe(true);
+      expect(corona?.tieneUsosLimitados).toBe(true);
+      expect(corona?.condicionAlActivar).toBe("Corona de luz");
+      expect(corona?.duracionEfectoAlActivar).toBe(10);
+      expect(corona?.recuperacion).toBe("descanso_largo");
+      expect(corona?.escaladoUsos).toEqual({
+        tipo: "por_modificador",
+        modificador: "sabiduria",
+        minimo: 1
+      });
+
+      // Validar presencia y duración en el catálogo de efectos predefinidos
+      const efectoCorona = EFECTOS_PREDEFINIDOS.find((e) => e.nombre === "Corona de luz");
+      expect(efectoCorona).toBeDefined();
+      expect(efectoCorona?.duracionEstandar).toBe(10);
+      expect(efectoCorona?.aliases).toContain("corona de luz");
     });
   });
 });

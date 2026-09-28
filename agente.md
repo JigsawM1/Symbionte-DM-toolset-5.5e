@@ -19,6 +19,220 @@ Este archivo registra reglas globales, errores encontrados, sus causas raíz y l
    - **Bajo ninguna circunstancia** los módulos de lógica de negocio (`servicios/`), gestores de estado (`almacen/`) o constructores (`gestorClases.ts`) deben contener bifurcaciones condicionales por nombre literal de rasgo o clase (`r.nombre === "..."`, `clase.includes("...")`, etc.).
    - Toda mecánica, progresión de dados, escalado de usos, recuperación o desbloqueo dinámico debe resolverse mediante metadatos declarativos (`escaladoFormulaDados`, `escaladoUsos`, `escaladoRecuperacion`, `opcionesDinamicas`, `escaladoMaxSelecciones`, `sincronizarEfectosConFormula`, `heredarDadosPadre`, `gastarDePadre`, `ligadoA`, `efectos`) delegando en funciones puras agnósticas como `resolverEscaladosRasgo`. Esta regla está reforzada en CI vía ESLint `no-restricted-syntax` y la suite `rasgoGenericidad.test.ts`.
 
+
+## [2026-09-28] Corrección Crítica de Persistencia, Condición de Carrera en Arranque y Pérdida de Datos
+
+**Problema Reportado por el Usuario:**
+- "emmmm, por alguna razon ya no se guardan las cosas :/ y si introduzco mi copia de los datso que tenia se eliminan automaticamente :/"
+
+**Causas Raíz Diagnosticadas:**
+1. **Condición de Carrera en Arranque (Cold Boot Race Condition):**
+   - El estado de Zustand iniciaba con `cargandoDatos: false`.
+   - Al montar la aplicación en la pestaña de `jugadores`, `VistaJugadores.tsx` llamaba a `autoResolverMiniaturasJugador(personajes, vincularMiniaturaTSPersonaje)`.
+   - Como la llamada asíncrona a `cargarDatosPersistidos()` en TaleSpire tiene un retardo de 500 ms (para evitar el fallo `outOfOrderMessage` de la mensajería interna CEF), el almacén sólo contenía el estado inicial en memoria (`PERSONAJE_POR_DEFECTO`: "Nuevo Personaje").
+   - `autoResolverMiniaturasJugador` vinculaba inmediatamente la miniatura activa en TaleSpire con este personaje temporal por defecto. Esta mutación disparaba el `persistenciaMiddleware` (con debounce de 250 ms), el cual sobrescribía el archivo `.localStorage/global` en TaleSpire con los datos vacíos por defecto **antes** de que `cargarDatosPersistidos()` leyera el blob almacenado.
+2. **Ausencia de Fallback en Navegador Estándar:**
+   - En `TaleSpireAdapter.ts`, si `window.TS` no existía (ej. ejecutando pruebas, previsualizaciones locales o entornos desconectados), `guardarBlob`, `leerBlob` y `eliminarBlob` no realizaban ninguna operación en `window.localStorage`.
+   - Adicionalmente, el hook `usarConexionTaleSpire.ts` no ejecutaba `cargarDatosPersistidos()` si la API nativa de TaleSpire no respondía, bloqueando la carga en modo desconectado.
+3. **Validación Zod Destructiva en `sanearPersonaje`:**
+   - Si `EsquemaPersonajeJugador.safeParse` encontraba la más mínima discrepancia o campo anidado no conforme en una ficha de personaje, el bloque de fallback descartaba todos los datos (nombre, clase, nivel, estadísticas, inventario, conjuros) y devolvía `PERSONAJE_POR_DEFECTO`, destruyendo silenciosamente fichas válidas de usuario.
+4. **Falta de Exportación/Importación de Campaña Completa:**
+   - La función de exportación en `ConfiguracionDM.tsx` únicamente exportaba catálogos homebrew (`monstruosHomebrew`, `hechizosHomebrew`, `objetosHomebrewSolo`), omitiendo los personajes (`personajes`), notas del DM (`notasDM`), lista de tareas pendientes (`listaPendientes`), encuentros guardados (`encuentrosGuardados`) y cola de iniciativa (`colaIniciativa`).
+   - Al importar el archivo de respaldo, `importarBaseDatosJSONCompleta` no integraba personajes ni notas, provocando que el usuario sintiera que sus datos "se eliminaban".
+
+**Soluciones Arquitectónicas Aplicadas:**
+1. **Blindaje de Carga y Flag `datosInicialesCargados`:**
+   - Se añadió la propiedad booleana `datosInicialesCargados` a `SliceConfiguracion` (iniciando en `false`), y `cargandoDatos` inicia en `true`.
+   - `persistenciaMiddleware` bloquea cualquier guardado hacia I/O si `estadoNuevo.cargandoDatos || !estadoNuevo.datosInicialesCargados`.
+   - `cargarDatosPersistidos()` se encarga de marcar `cargandoDatos: false` y `datosInicialesCargados: true` al finalizar la lectura.
+   - En `VistaJugadores.tsx`, el `useEffect` de auto-resolución de miniaturas comprueba `if (!datosInicialesCargados) return;`, imposibilitando cualquier emparejamiento con el personaje por defecto al arrancar.
+2. **Fallback Completo a `window.localStorage` en `TaleSpireAdapter.ts`:**
+   - Implementada persistencia en `window.localStorage` bajo la clave `ts_global_storage_fallback` cuando `!ts.estaDisponible`.
+   - En `usarConexionTaleSpire.ts`, se configuró un timeout de 4 segundos que invoca `cargarDatosPersistidos()` en modo desconectado si no se detecta la API CEF nativa.
+3. **Saneamiento Tolerante de Personajes:**
+   - En `src/almacen/sanitizacion.ts`, ante fallos en `EsquemaPersonajeJugador.safeParse`, se registran los `resultado.error.issues` con `logger.warn` y se retorna el personaje fusionado (`fusionado as unknown as PersonajeJugador`) con sus campos por defecto asegurados, preservando el 100% de la información del usuario.
+4. **Exportación e Importación Integral de Campaña:**
+   - `exportarBaseDatosCompletaJSON` en `ConfiguracionDM.tsx` ahora incluye la lista completa de personajes, personaje activo, notas del DM, lista de tareas pendientes, encuentros guardados y cola de iniciativa junto a las creaciones homebrew.
+   - `importarBaseDatosJSONCompleta` en `sliceConfiguracion.ts` procesa y fusiona automáticamente todos estos campos desde cualquier JSON de respaldo completo.
+
+## [2026-09-28] Auditoría Integral de Código Legacy y Deuda Técnica del Repositorio
+
+**Contexto y Solicitud:**
+- El usuario solicitó auditar la cantidad y naturaleza de código heredado (*legacy*) existente en el proyecto.
+
+**Hallazgos Clave y Métricas Registradas:**
+1. **Datos Huérfanos en `src/datos/_obsoletos/`**:
+   - `clases_legacy.json` (185 líneas) y `dotes_legacy.json` (121 líneas) con 0 importaciones en el proyecto.
+2. **Componentes Gigantes en Backlog (`scripts/verificar-limite-lineas.js`)**:
+   - 7 componentes reconocidos formalmente con excepción `[HEREDADO]`: `ConstructorRasgoDote.tsx` (2,393 lín), `SelectorInvocacionesAcordeon.tsx` (1,201 lín), `ModalAgregarObjeto.tsx` (713 lín), `ModalEditarPersonaje.tsx` (671 lín), `HojaPersonaje.tsx` (630 lín), `TarjetaObjetoInventario.tsx` (562 lín) y `GestorPersonajes.tsx` (491 lín). Total: 6,661 líneas (9.6% de `src/`).
+3. **Scripts de Migración en `src/`**:
+   - `src/editor_hechizos/` (528 líneas): Transformador CLI de compendio crudo `all.json`.
+4. **Capas de Retrocompatibilidad en Producción**:
+   - `importadorJSON.ts` (785 lín) mantenido para soportar backups históricos con claves en inglés (`"Custom Monsters"`, etc.).
+   - Adaptaciones menores en `sanitizacion.ts`, `usarFormularioObjeto.ts`, `sliceRasgos.ts`, `TaleSpireAdapter.ts` y `lanzadorDados.ts` (~920 lín en total).
+5. **Archivos Residuales en Raíz (Fuera de `src/`)**:
+   - `ejemplos_de_tipos/` (30,245 lín de esquemas SRD 2014 en inglés), `scratch/` (16,467 lín de scripts y volcados de linter antiguos), `agent.md` (32 KB, desfasado del 17/09), `Documentacion API v0.1.md` (59.6 KB) y `mod-io-build/` (~5.5 MB de bundles antiguos).
+
+**Decisiones y Hoja de Ruta:**
+- Siguiendo la instrucción del usuario, se preservaron intactos los 7 componentes clasificados como `[HEREDADO]` en backlog de mantenimiento.
+- Se ejecutó la purga y eliminación definitiva de todos los demás elementos obsoletos y residuales:
+  - Eliminado el directorio `src/datos/_obsoletos/` (`clases_legacy.json` y `dotes_legacy.json`).
+  - Eliminado el archivo desfasado `agent.md` (unificado en `agente.md`).
+  - Eliminado el documento preliminar `Documentacion API v0.1.md`.
+  - Eliminados los archivos de soporte y pruebas obsoletas de `scratch/` (`append-agente.js`, `test-import-real.ts`, `test-perception.js` y ficheros temporales).
+  - Eliminado el directorio externo `ejemplos_de_tipos/` (30,245 líneas de JSONs SRD 2014 en inglés).
+  - Eliminado el directorio temporal de builds `mod-io-build/` y el archivo zip raíz `ToolSet_Es_5.5.zip`.
+- **Validación Post-Limpieza**:
+  - Tests: **1,143/1,143 tests aprobados al 100%** (83 suites ejecutadas sin fallos).
+  - TypeScript: `pnpm exec tsc --noEmit` completado con 0 errores bajo `strict: true`.
+  - ESLint: `pnpm run lint` con 0 errores y 0 advertencias (`--max-warnings=0`).
+  - Auditoría de líneas: `pnpm run verificar:lineas` superado exitosamente (0 errores críticos).
+  - Build: `pnpm run build` completado exitosamente en 10.65s sin anomalías.
+
+## [2026-09-28] Exportación Exclusiva de Creaciones Homebrew en ConfiguracionDM, Integración Real de Portapapeles y Resiliencia en Importador JSON
+
+**Contexto del Problema:**
+- Al utilizar la función de exportación de base de datos en `ConfiguracionDM.tsx` ("EXPORTAR COPIA DE SEGURIDAD (.JSON)"), el payload serializaba directamente los arreglos globales de estado (`baseDatosMonstruos`, `baseDatosHechizos`, `objetosHomebrew`), exportando todo el compendio canónico oficial de D&D 5.5e (más de 300 criaturas, casi 400 conjuros y todo el equipo estándar del sistema) en lugar de limitarse a las creaciones Homebrew del Dungeon Master.
+- Además, al pulsar el botón de exportación, la interfaz mostraba *"¡COPIADO AL PORTAPAPELES!"*, pero la función `exportarBaseDatosCompletaJSON` **nunca invocaba** `copiarAlPortapapeles(jsonStr)`, por lo que el portapapeles del usuario permanecía vacío tras el clic.
+
+**Solución Arquitectónica Aplicada:**
+1. **Aislamiento Estricto de Homebrew en la Exportación (`ConfiguracionDM.tsx`):**
+   - Se conectaron las colecciones puras de Homebrew ya computadas mediante los filtros de exclusión `IDS_INICIALES_MONSTRUOS`, `IDS_INICIALES_HECHIZOS` e `IDS_INICIALES_OBJETOS` (`monstruosHomebrew`, `hechizosHomebrew` y `objetosHomebrewSolo`).
+   - El payload `datosExportacion` ahora estructura canónicamente:
+     - `monstruos: monstruosHomebrew`
+     - `hechizos: hechizosHomebrew`
+     - `objetos: objetosHomebrewSolo`
+   - Se actualizaron las etiquetas del botón a *"EXPORTAR HOMEBREW (.JSON)"* y el modal de copiado manual para mantener coherencia semántica en la UI.
+2. **Copia Real al Portapapeles y Descarga Desacoplada (`sistemaTaleSpire.ts` y `ConfiguracionDM.tsx`):**
+   - En `ConfiguracionDM.tsx`, se importaron e invocaron de forma orquestada `copiarAlPortapapeles(jsonStr)` y `descargarArchivoJSON(jsonStr, nombreArchivo)` (alineándose con el estándar establecido en `GestorPersonajes.tsx`).
+   - Se reforzó `copiarAlPortapapeles` en `sistemaTaleSpire.ts` con una cascada de 3 niveles:
+     1. API nativa de TaleSpire (`ts.system.clipboard.setText`).
+     2. API estándar moderna del navegador (`navigator.clipboard.writeText`).
+     3. Fallback con elemento `<textarea>` temporal y `document.execCommand("copy")` para contextos HTTP locales, iframes o entornos sin permisos directos de portapapeles.
+   - El estado `copiado` en el botón solo se activa si la copia fue efectivamente completada con éxito.
+3. **Resiliencia y Compatibilidad Multiversión en el Importador (`importadorJSON.ts`):**
+   - Se ampliaron las fuentes de entidades candidatas en `importarDesdeJSON` para admitir tanto las claves canónicas (`monstruos`, `hechizos`, `objetos`) como claves heredadas (`baseDatosMonstruos`, `baseDatosHechizos`, `objetosHomebrew`) o nombres del blob TaleSpire (`monstruos_homebrew`, etc.), asegurando interoperabilidad sin pérdida de datos.
+4. **Pruebas de Regresión (`src/almacen/importadorExportadorHomebrew.test.ts`):**
+   - Se implementó una suite que verifica que los registros oficiales son excluidos de la exportación, que únicamente las entidades custom persisten en el backup y que el importador las fusiona y desduplica correctamente.
+
+**Resultados de Validación:**
+- **Tests**: 83 suites ejecutadas, **1143/1143 tests aprobados al 100%** (`pnpm test`).
+- **TypeScript**: `pnpm exec tsc --noEmit` completado con 0 errores bajo `strict: true`.
+- **ESLint**: `pnpm lint` con 0 errores y 0 advertencias (`--max-warnings=0`).
+- **Límites de Líneas**: `pnpm run verificar:lineas` superado exitosamente (0 errores críticos).
+- **Compilación de Producción**: `pnpm run build` generado exitosamente en 13.7s.
+
+## [2026-09-28] Implementación Canónica e Interactiva del Rasgo "Versátil" (Especie: Humano - D&D 5.5e / PHB 2024)
+
+**Contexto y Requerimiento:**
+- El usuario solicitó que el rasgo **"Versátil"** de la especie **Humano** otorgue por defecto una **Dote de Origen** (recomendada canónicamente: *"Alerta"*), de forma interactiva con selector visual en lista tipo acordeón con filtrado de requisitos cumplidos (`SelectorDotesAcordeon`), permitiendo cambiarla reactivamente por cualquier otra dote de origen oficial e inyectándola directamente en la sección de dotes de la ficha.
+
+**Decisiones de Diseño y Arquitectura:**
+1. **Catálogo Declarativo sin Hardcodeo (`humano.json` y `rasgos-especie.json`)**:
+   - En lugar de bifurcar por nombre en el builder de especies (`gestorEspecies.ts`), se configuró declarativamente el rasgo `Versátil` con:
+     - `categoriaMecanica: "selector_informativo"`
+     - `selectores`: un selector con `id: "selector_dote_origen_humano_versatil"`, `tipo: "unico"`, `etiqueta: "Dote de Origen elegida"`, `maxSelecciones: 1`, `valorActual: ["dote_alerta"]` y `claveOpcionesDinamicas: "dotes_origen"`.
+2. **Hidratación Automática (`hidratadorDotes.ts`)**:
+   - Se integró el generador `dotes_origen` en `OPCIONES_DINAMICAS_MAP` que mapea las 12 dotes de origen canónicas (PHB 2024) ordenadas alfabéticamente con su metadata de requisitos.
+3. **Construcción e Inyección Reactiva de Dotes Ligadas (`gestorEspecies.ts`, `compendioRasgos.ts`, `sliceRasgos.ts`)**:
+   - Se definieron y exportaron `esRasgoVersatil` y `construirDoteDeVersatil`.
+   - La dote construida porta `id: "dote_origen_" + normalizarTextoEspecie(rasgoVersatil.id)`, `origen: "dote"`, `ligadoA: rasgoVersatil.id` y `fuente: "Especie (Humano: Versátil)"`.
+   - En `compendioRasgos.ts`, `sincronizarRasgosAutomaticos` detecta el rasgo Versátil e inyecta la dote de origen vinculada respetando usos y notas.
+   - `esDoteLigadaSintetica` en `compendioRasgos.ts` y `esDoteLigada` en `VistaRasgosJugador.tsx` protegen la dote ligada (`dote_origen_`) para que no pueda ser eliminada ni editada manualmente fuera de su selector maestro.
+   - En `sliceRasgos.ts` (`actualizarSeleccionRasgo`), cambiar la dote en el selector actualiza en caliente (`O(1)`) la dote vinculada en `personaje.rasgos`.
+
+**Validación y Métricas de Calidad:**
+- **Tests**: 82 suites pasando, **1141/1141 tests aprobados al 100%** (incluyendo suite exhaustiva de Versátil).
+- **TypeScript**: `pnpm exec tsc --noEmit` completado con 0 errores bajo `strict: true`.
+- **ESLint**: `pnpm lint` con 0 errores y 0 advertencias (`--max-warnings=0`).
+- **Auditoría de Líneas**: `pnpm run verificar:lineas` superado con 0 archivos que superen los umbrales.
+- **Build**: `pnpm run build` generado exitosamente en 6.8s.
+
+## [2026-09-28] Ordenación Alfabética Canónica de los Catálogos JSON de Dotes
+
+**Contexto del Problema:**
+- El usuario solicitó organizar el contenido de los archivos JSON del directorio `src/datos/dotes` por orden alfabético.
+- Los catálogos correspondientes comprenden:
+  - `src/datos/dotes/epicas.json` (12 dotes épicas)
+  - `src/datos/dotes/estilo_combate.json` (12 estilos de combate)
+  - `src/datos/dotes/generales.json` (43 dotes generales)
+  - `src/datos/dotes/origen.json` (12 dotes de origen)
+
+**Solución Implementada:**
+- Se ordenaron los arreglos de cada archivo JSON alfabéticamente por la propiedad `nombre` utilizando la función de colación en español `a.nombre.localeCompare(b.nombre, 'es')`, garantizando una ordenación natural (respetando tildes y preposiciones).
+- Se preservó estrictamente la estructura interna de propiedades de cada objeto dote (`id`, `nombre`, `categoria`, `requisito`, `descripcion`, `beneficios`, `selectores`, `efectos`, etc.) y el formato estándar JSON (2 espacios de indentación con salto de línea final).
+- Dado que los servicios consumidores (como `src/servicios/hidratadorDotes.ts`) cargan e hidratan las colecciones directamente desde estos JSON, las dotes quedan inmediatamente ordenadas de forma alfabética tanto en los selectores de creación/edición de personajes como en las vistas del compendio.
+
+**Resultados de Validación:**
+- **Tests**: 80 suites ejecutadas, **1112/1112 tests aprobados al 100%** (`pnpm test`).
+- **TypeScript**: `pnpm exec tsc --noEmit` con 0 errores (`strict: true`).
+- **ESLint**: `pnpm lint` con 0 errores y 0 advertencias (`--max-warnings=0`).
+
+## [2026-09-28] No Prohibición de Ataques con Armas de Proyectiles sin Contenedor ni Munición (Advertencia No Bloqueante)
+
+
+**Contexto del Problema:**
+- Al utilizar un arma que requiere munición (por ejemplo, el Arco Largo o Ballesta), el sistema impedía ejecutar la tirada de ataque si el personaje no contaba con un contenedor de munición (como Carcaj o Caja de Virotes) o si no tenía municiones preparadas.
+- El usuario solicitó que esta condición no impida ni prohíba el lanzamiento del ataque, sino que emita una advertencia informativa permitiendo siempre ejecutar la tirada hacia TaleSpire.
+
+**Causa Raíz y Análisis:**
+1. **Bloqueo Estricto con `return` en el Ejecutor de Combate**:
+   En `src/servicios/ejecutorTiradasCombate.ts` (`ejecutarTiradaAtaqueFisico`), la verificación `if (!ataque.puedeDisparar)` emitía una notificación con tipo `"error"` y ejecutaba inmediatamente `return;`, cortando el flujo y evitando que `lanzarDadosTaleSpire` fuese invocado.
+2. **Desconexión con la Intención de Juego Libre**:
+   En situaciones de mesa de rol, un personaje puede disparar proyectiles improvisados, flechas recogidas del suelo o simplemente el jugador puede no haber cargado aún su Carcaj a la hoja. La regla de la aplicación debe avisar al jugador de la falta de equipo pero nunca bloquear de forma coercitiva la acción táctica.
+
+**Solución Implementada:**
+1. **Eliminación del Bloqueo Coercitivo (`src/servicios/ejecutorTiradasCombate.ts`):**
+   - Se removió el `return;` y el tipo `"error"`. Ahora ante `!ataque.puedeDisparar` se emite una notificación de tipo `"advertencia"` (`agregarNotificacion(aviso, "advertencia")`).
+   - El flujo continúa sin interrupción hacia la ejecución de la tirada física de ataque en TaleSpire (`lanzarDadosTaleSpire`).
+2. **Consumo Seguro y Tolerante de Proyectiles:**
+   - Se busca si existen proyectiles compatibles en la mochila (`it.contenedor === "mochila"` y `(it.cantidad || 0) > 0`).
+   - Si existen proyectiles en la mochila (incluso si el personaje no tiene el contenedor configurado), se descuenta 1 proyectil y se notifica el remanente.
+   - Si no hay proyectiles o la reserva está en 0, no se descuenta ningún objeto y se previene que las cantidades caigan en números negativos.
+3. **Pruebas Unitarias de Regresión (`src/servicios/ejecutorTiradasCombate.test.ts`):**
+   - Se crearon 4 casos de prueba específicos que validan el comportamiento:
+     - Sin contenedor ni flechas: emite advertencia, no descuenta nada y lanza los dados en TaleSpire.
+     - Con contenedor vacío (0 flechas): emite advertencia de carcaj vacío y lanza los dados en TaleSpire.
+     - Con contenedor y flechas: descuenta 1 flecha, notifica info y lanza los dados sin advertencia.
+     - Con flechas en mochila pero sin contenedor: emite advertencia de falta de carcaj, descuenta 1 flecha y lanza los dados.
+
+**Resultados de Validación:**
+- **Tests**: 80 suites ejecutadas, **1109/1109 tests aprobados al 100%**.
+- **TypeScript**: `pnpm exec tsc --noEmit` con 0 errores (`strict: true`).
+- **ESLint**: `pnpm lint` con 0 errores y 0 advertencias (`--max-warnings=0`).
+- **Límites de Líneas**: `pnpm run verificar:lineas` con 0 errores críticos.
+
+## [2026-09-28] Configuración Canónica de Corona de Luz (Clérigo Dominio de la Luz Nv. 17) como Consumible Activable e Integración de Efecto Predefinido Modular
+
+**Contexto del Problema:**
+- El usuario solicitó configurar el rasgo `rasgo_sub_luz_corona_de_luz` (Clérigo - Dominio de la Luz, Nivel 17) como un consumible activable que añade la condición/efecto homónimo registrado en `src/datos/efectos-predefinidos.json`.
+- La duración requerida es de 10 turnos (1 minuto) y de propósito meramente informativo (sin alteraciones mecánicas numéricas sobre tiradas o estadísticas).
+
+**Causa Raíz y Análisis Arquitectónico:**
+1. **Configuración en Catálogo de Clases**: El rasgo `rasgo_sub_luz_corona_de_luz` en `src/datos/clases/clerigo.json` estaba categorizado como consumible con usos limitados, pero carecía de los metadatos declarativos `esActivable: true`, `condicionAlActivar: "Corona de luz"` y `duracionEfectoAlActivar: 10`.
+2. **Ausencia en Catálogo Modular de Efectos**: No existía una ficha canónica para `"Corona de luz"` en `src/datos/efectos-predefinidos.json`.
+3. **Mapeo Bidireccional de Condiciones y Rasgos**: Las funciones `resolverCondicionAsociadaRasgo` y `coincideCondicionConRasgo` en `src/almacen/slices/personajes/condicionesRasgosHelpers.ts` no contemplaban la vinculación para `"Corona de luz"` / `"Crown of Light"`.
+4. **Omisión en el Constructor Puro de Rasgos de Clase**: En `src/servicios/gestorClases.ts`, la función agnóstica `construirRasgo` proyectaba `condicionAlActivar: r.condicionAlActivar,` pero omitía la asignación de `duracionEfectoAlActivar: r.duracionEfectoAlActivar,`, lo que provocaba que los rasgos de clase construidos devolvieran `duracionEfectoAlActivar: undefined`.
+5. **Aserción de Integridad de Catálogo**: La suite `src/servicios/integridadCatalogos.test.ts` verificaba rígidamente 28 efectos predefinidos, por lo que la adición del efecto número 29 requería actualizar la expectativa correspondiente.
+
+**Solución Implementada:**
+1. **Catálogo Modular de Efectos (`src/datos/efectos-predefinidos.json`):**
+   - Se añadió la definición de `"Corona de luz"` con `tituloVisual: "Corona de luz (Crown of Light)"`, `duracionEstandar: 10`, `aliases: ["corona de luz", "corona de la luz", "corona of light", "crown of light"]` y viñetas descriptivas informativas en `efectos[]`.
+2. **Declaración en la Subclase del Clérigo (`src/datos/clases/clerigo.json`):**
+   - En `rasgo_sub_luz_corona_de_luz` se añadieron `"esActivable": true`, `"condicionAlActivar": "Corona de luz"` y `"duracionEfectoAlActivar": 10`.
+3. **Mapeo en Helpers de Condiciones (`src/almacen/slices/personajes/condicionesRasgosHelpers.ts`):**
+   - En `resolverCondicionAsociadaRasgo` y `coincideCondicionConRasgo` se añadió el reconocimiento tolerante para "corona de luz" y "crown of light".
+4. **Propagación en Constructor Agnóstico (`src/servicios/gestorClases.ts`):**
+   - Se asignó `duracionEfectoAlActivar: r.duracionEfectoAlActivar,` dentro de `construirRasgo`, garantizando la paridad con `gestorEspecies.ts`.
+5. **Verificación y Pruebas Unitarias (`src/servicios/clerigoMecanicasDND55.test.ts` e `integridadCatalogos.test.ts`):**
+   - Se añadió un test unitario dedicado que comprueba que a nivel 17 el rasgo es un consumible activable con `duracionEfectoAlActivar: 10`, `condicionAlActivar: "Corona de luz"` y que el efecto predefinido existe en el catálogo.
+   - Se actualizó el conteo canónico de efectos a 29 en `integridadCatalogos.test.ts`.
+
+**Resultados de Validación:**
+- **Tests**: 79 suites ejecutadas, **1101/1101 tests aprobados al 100%**.
+- **TypeScript**: `pnpm exec tsc --noEmit` con 0 errores (`strict: true`).
+- **ESLint**: `pnpm lint` con 0 errores y 0 advertencias (`--max-warnings=0`).
+
 ## [2026-09-28] Implementación Canónica D&D 5.5e (PHB 2024): Tablas Declarativas de Progresión por Nivel para el Clérigo
 
 **Contexto del Problema:**
@@ -9472,6 +9686,36 @@ Optimizar la complejidad temporal (Big O) en las operaciones de búsqueda, orden
 - **ESLint**: `pnpm lint` completado con **0 errores y 0 advertencias**.
 - **Control de Líneas**: `pnpm verificar:lineas` con **0 errores críticos**, reduciendo los archivos monolíticos en un 98%.
 
+---
+
+## Sesión: Paginación en Caja Colapsable de Invocaciones Sobrenaturales (D&D 5.5e)
+
+### 1. Contexto y Requerimiento
+- **Solicitud**: Añadir paginación a la caja colapsable de Invocaciones Sobrenaturales (`SelectorInvocacionesAcordeon.tsx`), alojada en la sección colapsable de la clase Brujo dentro de `GrupoClaseRasgos.tsx` y en el modal de edición de rasgos.
+- **Problema previo**: El catálogo canónico de invocaciones (28 elementos con cajas expandibles ricas e interactivas) se renderizaba completamente en un único listado vertical sin límite de página, generando scroll excesivo y saturación visual.
+
+### 2. Decisiones Arquitectónicas y Solución Implementada
+1. **Reutilización de `ControlPaginacion`**:
+   - Integrado directamente desde `@/componentes/comunes` con soporte para temas oscuro/zafiro táctico.
+   - Definida constante `ELEMENTOS_POR_PAGINA_INVOCACIONES = 6` con prop opcional `elementosPorPagina` y `tamanoPaginacion` en `SelectorInvocacionesAcordeonProps`.
+2. **Ciclo de Vida y Reseteo Reactivo**:
+   - Estado `paginaActual` inicializado en 1.
+   - Efecto reactivo que resetea la página a 1 cuando cambian los criterios de búsqueda (`busqueda`) o el filtro de estado (`"todas" | "disponibles" | "aprendidas"`).
+   - Efecto reactivo de contención (*clamping*) para reajustar `paginaActual` a `totalPaginas` en caso de que la lista filtrada reduzca su volumen tras eliminar selecciones.
+3. **Segmentación Eficiente (`slice`)**:
+   - Computada `opcionesPaginadas` memorizada a partir de `opcionesProcesadas` y el tamaño de página activo.
+   - Renderizado condicional de `<ControlPaginacion />` al pie de la lista únicamente cuando `opcionesProcesadas.length > elementosPorPagina`.
+4. **Suite de Pruebas Automatizadas**:
+   - Creado `src/componentes/caracteristicas/rasgos/SelectorInvocacionesAcordeon.test.tsx` con 4 tests unitarios que verifican la segmentación en página 1, la ocultación del control en listas cortas (<= 6), el soporte de `elementosPorPagina` personalizada y el filtrado por invocaciones aprendidas.
+
+### 3. Errores Detectados y Correcciones
+- **Incompatibilidad de tipo en mock de pruebas**: En `SelectorInvocacionesAcordeon.test.tsx`, el campo `visualizacion` de `SelectorRasgo` solo admite `"normal" | "lista" | undefined` en `src/tipos/rasgos.ts`. Se corrigió el valor `"acordeon"` por `"lista"`, eliminando 4 errores de TypeScript estricto.
+
+### 4. Métricas de Validación Final
+- **Tests Unitarios**: **80 suites superadas, 1105/1105 tests pasando (100% éxito)**.
+- **TypeScript**: `pnpm tsc --noEmit` completado con **0 errores** (Strict Mode estricto).
+- **ESLint**: `pnpm lint` completado con **0 errores y 0 advertencias**.
+- **Control de Líneas**: `pnpm verificar:lineas` completado con **0 errores críticos**.
 
 
 
@@ -9499,3 +9743,178 @@ Optimizar la complejidad temporal (Big O) en las operaciones de búsqueda, orden
 
 
 
+
+
+
+---
+
+## Sesión: Unificación Declarativa y Reutilización DRY del Selector de Truco de "Magia de Alto Elfo" (D&D 5.5e)
+
+### 1. Contexto y Requerimiento
+- **Solicitud**: Cambiar el rasgo "Magia de alto elfo" para que utilice el mismo selector de truco que usa la dote "Iniciado en la Magia: Mago" (`dote_iniciado_magia_mago`), reutilizando la infraestructura existente bajo el principio DRY (Don't Repeat Yourself), puesto que ambos proporcionan exactamente un truco de la lista de mago.
+- **Diagnóstico previo**: "Magia de alto elfo" dependía de un componente ad-hoc (`SelectorTrucoAltoElfo.tsx`), un caso especial cableado en `SeccionSelectoresModalRasgo.tsx` (`if (esSelectorAltoElfo)`), cálculo de opciones en `ModalDetalleRasgo.tsx` dependiente de `usarEstadoHomebrew`, y variables condicionales exclusivas en `sliceRasgos.ts` (`trucoPrevioAltoElfo`, `nuevoTrucoAltoElfo`). A nivel de datos (`elfo.json`), solo contenía una opción fija ("prestidigitación") sin `claveOpcionesDinamicas`.
+
+### 2. Decisiones Arquitectónicas y Solución Implementada
+1. **Definición Canónica y Declarativa en Datos (`src/datos/especies/elfo.json`)**:
+   - Se configuró el selector `selector_truco_alto_elfo` con `"claveOpcionesDinamicas": "trucos_mago"`, `"opciones": []`, `"tipo": "unico"`, `"maxSelecciones": 1` y `"valorActual": ["prestidigitacion"]`.
+   - Idéntico a `selector_truco_1_iniciado_mago` de `dote_iniciado_magia_mago` (`src/datos/dotes/origen.json`), manteniendo el valor por defecto de las reglas oficiales de D&D 5.5e.
+2. **Exportación e Hidratación de Opciones Dinámicas (`obtenerOpcionesDinamicas`)**:
+   - Se exportó `obtenerOpcionesDinamicas` en `src/servicios/hidratadorDotes.ts` para fungir como servicio unificado de opciones calculadas desde el compendio de conjuros (`all.json`).
+   - Se integró la hidratación automática de selectores en `src/constantes/especiesDND55.ts` (`CATALOGO_ESPECIES_DND55`) y en `src/servicios/gestorEspecies.ts` (`construirRasgosEspecie`).
+3. **Reutilización del Selector Desplegable en la Interfaz (DRY Total)**:
+   - En `src/componentes/caracteristicas/rasgos/SeccionSelectoresModalRasgo.tsx`:
+     - Se eliminó el caso especial `esSelectorAltoElfo`.
+     - `selector_truco_alto_elfo` se procesa automáticamente en `esSelectorDesplegable` renderizando `<SelectorDesplegable />`, exactamente igual a "Iniciado en la Magia: Mago".
+     - Se añadió tolerancia en la resolución de `valorActual` y en `TarjetaRasgo.tsx` para aceptar tanto IDs con prefijo canónico `"h_"` como sin él (`h_prestidigitacion` / `prestidigitacion`).
+   - En `src/componentes/caracteristicas/rasgos/ModalDetalleRasgo.tsx`:
+     - Se eliminó el cálculo de `opcionesTrucosMago` y las importaciones de `OpcionTrucoMago` y `usarEstadoHomebrew`.
+   - Se eliminó el componente redundante `src/componentes/caracteristicas/rasgos/SelectorTrucoAltoElfo.tsx`.
+4. **Limpieza y Unificación en Redux Store (`src/almacen/slices/personajes/sliceRasgos.ts`)**:
+   - Al tener las opciones de trucos de mago pobladas en `opciones`, el flujo genérico `esRasgoConMagia` y `esSelectorTruco` gestiona la conmutación y sincronización de `trucosConocidosIds` y `conjurosOtorgados` de manera limpia, permitiendo eliminar las variables y ramas de código especiales para Alto Elfo.
+5. **Suite de Pruebas**:
+   - Se actualizaron las pruebas en `src/servicios/gestorEspecies.test.ts` para certificar que el catálogo canónico hidrata dinámicamente las opciones de mago en el rasgo de especie.
+   - Se añadieron pruebas en `src/componentes/caracteristicas/rasgos/SeccionSelectoresModalRasgo.test.tsx` comprobando que tanto "Magia de alto elfo" como "Iniciado en la Magia" renderizan idéntica estructura y comportamiento con `<SelectorDesplegable />`.
+
+### 3. Errores Detectados y Correcciones
+- **Prefijo canónico de conjuros en el compendio**: Los identificadores de conjuros en `src/utiles/compendios/all.json` usan el prefijo `h_` (`h_prestidigitacion`, `h_rayo-de-escarcha`). Se implementó coincidencia tolerante en `SeccionSelectoresModalRasgo.tsx` y `TarjetaRasgo.tsx` para normalizar y sincronizar con valores almacenados tanto con prefijo como sin él.
+
+### 4. Métricas de Validación Final
+- **Tests Unitarios**: **80 suites superadas, 1110/1110 tests pasando (100% Éxito)**.
+- **TypeScript**: `pnpm tsc --noEmit` completado con **0 errores** (Strict Mode estricto).
+- **ESLint**: `pnpm lint` completado con **0 errores y 0 advertencias**.
+- **Control de Líneas**: `pnpm verificar:lineas` completado con **0 errores críticos**.
+
+---
+
+## Sesión: Inversión de Vista Inicial a Modo Jugador por Defecto
+
+### 1. Contexto y Requerimiento
+- **Solicitud**: Hacer que la vista de inicio del Simbionte sea la de Jugador en vez de la de DM (esGM: false y pestañaActiva: "jugadores"), ya que en cualquier mesa de juego siempre habrá múltiples jugadores y solo 1 o 2 DMs, evitando que la mayoría de los usuarios abran la herramienta viendo la pantalla de DM o experimenten destellos/desajustes antes de la sincronización de roles.
+
+### 2. Decisiones Arquitectónicas y Solución Implementada
+1. **Valores Iniciales del Estado (src/almacen/slices/sliceConfiguracion.ts)**:
+   - Se modificó pestañaActiva de "iniciativa" a "jugadores".
+   - Se modificó esGM de 	rue a alse.
+   - Se añadió la acción establecerEsGM(esGM: boolean) a la interfaz SliceConfiguracion y a su implementación, gestionando la caché física de TaleSpire (establecerCacheEsGM) y asegurando transiciones coherentes de pestañas:
+     - Al cambiar a DM (esGM: true), si se estaba en "jugadores", la pestaña se reajusta automáticamente a "iniciativa".
+     - Al cambiar a Jugador (esGM: false), si se estaba en pestañas exclusivas de DM ("tablas" o "pendientes"), la pestaña se reajusta a "jugadores".
+   - Se integró la misma lógica de transición inteligente en establecerDatosCampaña.
+2. **Fachada de Selectores (src/almacen/selectores/usarEstadoConfiguracion.ts)**:
+   - Se expuso la acción establecerEsGM en el hook usarAccionesConfiguracion.
+3. **Adaptador Nativo y Desarrollo Local (src/utiles/TaleSpireAdapter.ts)**:
+   - En ausencia de window.TS (entorno local o Vitest), 	s.clients.esGM() ahora retorna alse por defecto en vez de 	rue, respetando además cualquier asignación previa en cacheEsGM.
+   - Se protegió el acceso a window.TS con 	ypeof window === "undefined" || !window.TS para evitar excepciones ReferenceError: window is not defined en entornos Node.js / pruebas unitarias.
+4. **Sincronización en Tiempo Real (src/hooks/usarConexionTaleSpire.ts)**:
+   - Se sustituyeron las mutaciones directas setState({ esGM }) por invocaciones a establecerEsGM(...) tanto en la detección inicial (	s.clients.esGM()) como en los eventos de cambio de modo cliente (subPuenteCliente y subNativaCliente), centralizando las transiciones de rol y eliminando importaciones redundantes (establecerCacheEsGM).
+5. **Selector de Rol en Interfaz de Usuario (src/componentes/caracteristicas/configuracion/ConfiguracionDM.tsx)**:
+   - Se añadió una tarjeta táctica de selección de rol ("MODO DE VISTA (ROL DE SESIÓN)") que permite al usuario o desarrollador alternar de forma explícita e interactiva entre la "Ficha de Jugador" y la "Pantalla DM".
+6. **Validación y Pruebas Unitarias (src/almacen/selectores/selectores.test.ts)**:
+   - Se añadieron pruebas unitarias para certificar:
+     - Que el estado inicial del slice arranca con esGM: false y pestañaActiva: "jugadores".
+     - Que fuera de TaleSpire esGM() retorna alse por defecto.
+     - Que la navegación de pestañas transiciona coherentemente entre roles con establecerEsGM y establecerDatosCampaña.
+
+### 3. Errores Detectados y Correcciones
+- **ReferenceError: window is not defined en Node/Vitest**: Al evaluar 	s.clients.esGM() en pruebas unitarias, el acceso directo a window.TS arrojaba error. Se corrigió verificando primero 	ypeof window === "undefined".
+- **TS6133: 'establecerCacheEsGM' is declared but never read**: Al delegar la sincronización de caché dentro de establecerEsGM, la importación directa en usarConexionTaleSpire.ts quedó sin uso. Se eliminó limpiamente.
+- **Tipado estricto (no ny)**: Se evitó y eliminó cualquier uso de ny en las pruebas unitarias utilizando tipos derivados explícitos (EstadoDM y StoreApi).
+
+### 4. Métricas de Validación Final
+- **Tests Unitarios**: **80 suites superadas, 1112/1112 tests pasando (100% de éxito)**.
+- **TypeScript**: pnpm tsc --noEmit completado con **0 errores** (Strict Mode estricto).
+- **ESLint**: pnpm lint completado con **0 errores y 0 advertencias**.
+- **Control de Líneas**: pnpm verificar:lineas completado con **0 errores críticos**.
+- **Build de Producción**: pnpm build generado exitosamente en 12.11s.
+
+---
+
+## [2026-09-28] Comportamiento Canónico de Rasgos: Filtrado de Marcadores de Subclase y Dotes Automáticas por Nivel en Mejora de Característica
+
+### 1. Contexto del Problema y Requerimientos del Usuario
+1. **Ocultación de rasgos marcadores de Subclase**:
+   - En la lista de rasgos de clase se mostraban entradas genéricas redundantes como `"Subclase de brujo"`, `"Subclase de bárbaro"`, `"Rasgo de subclase"`.
+   - Dado que la subclase seleccionada ya provee sus propios rasgos canónicos especializados en el nivel correspondiente (e.g. Nv. 3 de Brujo con sus rasgos de Patrón), el usuario solicitó que dicho rasgo marcador no sea visible.
+2. **Rasgo "Mejora de Característica" (Ability Score Improvement)**:
+   - Anteriormente, el builder consolidaba todas las mejoras de nivel en un único bloque de texto estático sin añadir ninguna dote a la ficha.
+   - El usuario solicitó que para cada nivel en que la clase gana el rasgo (e.g. niveles 4, 8, 12, 16 de Brujo; o 4, 6, 8, 12, 14, 16 de Guerrero), se agregue por defecto la dote homónima *"Mejora de Característica"*, y que dicha dote pueda ser cambiada de forma interactiva por otra dote oficial de elección del jugador.
+
+### 2. Decisiones de Diseño y Arquitectura Aplicada
+1. **Identificador Declarativo y Filtro de Subclase (`esRasgoPlaceholderSubclase`)**:
+   - Se creó la función clasificadora pura y tolerante `esRasgoPlaceholderSubclase(nombre: string): boolean` en `src/servicios/gestorClases.ts`.
+   - Se aplicó el filtro en:
+     - `obtenerRasgosClaseYSubclase`: omitiendo los placeholders de la construcción de rasgos de clase base.
+     - `sincronizarRasgosAutomaticos` (`src/servicios/compendioRasgos.ts`): purgando marcadores de subclase tanto en personajes existentes como en nuevos cánones.
+     - `usarVistaRasgos.ts`: filtrando de forma reactiva cualquier rasgo marcador en `rasgosFiltrados`.
+     - `utilidadesProgresionRasgos.ts`: ocultando el placeholder en el visor de progresión 1-20 cuando hay subclase seleccionada.
+2. **Generación Individual por Nivel de Mejora de Característica con Selector Canónico**:
+   - En `gestorClases.ts`, se eliminó la consolidación monolítica en un único rasgo y se generan rasgos individuales de clase con categoría `selector_informativo` para cada nivel alcanzado (`r.nivel`).
+   - Cada rasgo incorpora el selector `selector_dote_asi_[clase]_nv[nivel]` con:
+     - Etiqueta `"Dote elegida"`.
+     - `valorActual: ["dote_mejora_caracteristica"]` por defecto.
+     - `opciones`: catálogo completo de dotes canónicas D&D 5.5e (`TODAS_LAS_DOTES_CANONICAS_DND55`), situando la dote homónima en primera posición y ordenando el resto alfabéticamente.
+3. **Inyección y Sincronización Automática de Dotes Homónimas**:
+   - Se implementó `construirDoteDeMejoraCaracteristica(rasgoMejora, idDoteSeleccionada)` para materializar la dote correspondiente con `origen: "dote"`, fuente de la clase/nivel y ligada mediante `ligadoA`.
+   - En `sincronizarRasgosAutomaticos`, cada rasgo de mejora de característica activo genera y mantiene en `personaje.rasgos` su dote homónima (o la seleccionada previamente).
+   - En `sliceRasgos.ts` (`actualizarSeleccionRasgo`), al cambiar la opción del selector en la tarjeta de clase o en su modal de detalle, la dote vinculada en el bloque *"Dotes"* se transforma reactivamente en la nueva dote elegida, recalculando al vuelo cualquier alteración de puntos de golpe (`calcularBonoHPMaximoRasgos`) o bonificadores de combate.
+   - En `VistaRasgosJugador.tsx`, se protegió la dote ligada (`esDoteLigada = rasgo.id.startsWith("dote_invocacion_") || rasgo.id.startsWith("dote_asi_")`) para que no se intente eliminar como rasgo huérfano, delegando su gestión en el selector interactivo del rasgo de clase.
+
+### 3. Errores Detectados y Correcciones Durante el Proceso
+- **Missing properties en mocks de prueba (TS2739)**:
+  - En los mocks de `mejoraCaracteristicaYSubclase.test.ts`, TypeScript estricto requería explícitamente `tieneUsosLimitados` y `recuperacion`. Se agregaron `tieneUsosLimitados: false, recuperacion: "ninguno"`.
+- **Violación de Arquitectura de Capas detectada por ESLint (`no-restricted-imports`)**:
+  - `mejoraCaracteristicaYSubclase.test.ts` (ubicado en `src/servicios/`) importaba `agruparRasgosJerarquicos` de `src/componentes/`.
+  - Se eliminó dicha importación para mantener el blindaje unidireccional estricto entre UI y servicios.
+
+### 4. Métricas de Validación Final
+- **Tests Unitarios**: **81 suites superadas, 1120/1120 tests pasando (100% de éxito)**.
+- **TypeScript**: `pnpm exec tsc --noEmit` completado con **0 errores** (Strict Mode estricto).
+- **ESLint**: `pnpm lint` completado con **0 errores y 0 advertencias**.
+- **Control de Líneas**: `pnpm verificar:lineas` completado con **0 errores críticos**.
+- **Build de Producción**: `pnpm build` generado exitosamente.
+
+---
+
+## [2026-09-28] Selector de Dotes Tipo Lista con Filtrado de Requisitos y Soporte de Don Épico (PHB 2024)
+
+### 1. Contexto del Problema y Requerimientos del Usuario
+1. **Selector de Dotes Tipo Lista con Requisitos**:
+   - Para rasgos que otorgan dotes (como Mejora de Característica o Don Épico), el selector desplegable tradicional resultaba limitado y no validaba si el personaje cumplía con las condiciones de cada dote.
+   - El usuario solicitó un selector tipo lista/acordeón (similar a la interfaz de *Invocaciones Sobrenaturales*), que muestre únicamente las dotes cuyos requisitos cumple el personaje.
+2. **Rasgo Don Épico a Nivel 19**:
+   - En D&D 5.5e (2024), todas las clases a nivel 19 obtienen el rasgo *Don épico*.
+   - El usuario solicitó que este rasgo también otorgue una dote canónica a la ficha, priorizando en el selector las dotes de la categoría *Don Épico* (ubicándolas al inicio de la lista y seleccionando la recomendada por defecto para la clase).
+
+### 2. Decisiones de Diseño y Arquitectura Aplicada
+1. **Servicio Puro de Evaluación de Requisitos (`src/servicios/evaluadorRequisitosDotes.ts`)**:
+   - Se diseñó la función pura `evaluarRequisitoDote(requisito, personaje, nivelEfectivo)` para parsear y contrastar de forma tolerante:
+     - **Nivel mínimo**: `Nivel X o más` contra el nivel de la clase o personaje.
+     - **Puntuaciones de Características**: Evaluaciones compuestas (`Fuerza o Destreza 19 o más`, `Destreza o Constitución 13 o más`, `Inteligencia, Sabiduría o Carisma 13 o más`) e individuales.
+     - **Aptitud Mágica**: Verificación de aptitud para lanzar conjuros o rasgo Magia del pacto (`esLanzador`, espacios normales/pacto, trucos o conjuros conocidos/preparados).
+     - **Competencias de Armaduras y Escudos**: Verificación de entrenamiento con armaduras ligeras, medias, pesadas y escudos.
+     - **Estilo de Combate**: Verificación del rasgo de clase o progresión marcial.
+   - Retorna `{ cumple: boolean, motivo?: string }` indicando la razón exacta del bloqueo.
+2. **Componente Táctico `SelectorDotesAcordeon` (`SelectorDotesAcordeon.tsx` y `.module.css`)**:
+   - Diseñado con estética Dark Fantasy Zafiro Táctico (< 270 líneas).
+   - **Pestaña `Disponibles` activa por defecto**: Filtra el catálogo para que el usuario visualice únicamente las dotes que cumple (cumpliendo con la solicitud `"que solo se vean los que cumplen los requisitos"`).
+   - Pestaña `Elegida` para enfocar la dote activa y `Todas` para consultar el compendio completo con candados explicativos.
+   - Buscador en tiempo real por nombre, descripción o requisitos, y paginación táctica con `ControlPaginacion`.
+   - Cero emojis: representaciones gráficas exclusivas con `lucide-react`.
+3. **Integración en Modales (`SeccionSelectoresModalRasgo.tsx`)**:
+   - Se identifican selectores de dotes (`esSelectorDotes`) y se delega su renderizado en `SelectorDotesAcordeon`.
+4. **Soporte Canónico de Don Épico (`gestorClases.ts`, `compendioRasgos.ts`, `sliceRasgos.ts`, `VistaRasgosJugador.tsx`)**:
+   - En `gestorClases.ts`: funciones declarativas `esRasgoDonEpico`, `resolverDoteDonEpicoRecomendada`, `obtenerOpcionesDotesDonEpicoParaSelector`, `crearSelectorDoteDonEpico` y `construirDoteDeDonEpico`.
+   - Se priorizan las dotes de categoría `don_epico` al principio de las opciones, con la dote recomendada de la clase en primera posición.
+   - En `compendioRasgos.ts`: inyección automática en `personaje.rasgos` con `origen: "dote"` y `ligadoA: rasgoDonEpico.id`.
+   - En `sliceRasgos.ts`: mutación reactiva con actualización instantánea de beneficios y recálculo de HP máximo (ej. +40 HP con *Don de la Fortaleza*).
+   - En `VistaRasgosJugador.tsx`: protección de `dote_don_` en `esDoteLigada`.
+
+### 3. Errores Detectados y Correcciones Durante el Proceso
+- **Importación omitida en `sliceRasgos.ts`**: Al editar los imports para añadir `construirDoteDeDonEpico`, se omitió temporalmente `sincronizarRasgosAutomaticos`. TypeScript lo alertó de inmediato en `tsc --noEmit` y se restauró la importación.
+- **Regla ESLint `no-non-null-asserted-optional-chain`**: En una prueba unitaria se utilizó `?.id!`. Se reemplazó por un operador de coalescencia seguro `?.id || "fallback"`.
+
+### 4. Métricas de Validación Final
+- **Tests Unitarios**: **82 suites superadas, 1136/1136 tests pasando (100% de éxito)**.
+- **TypeScript**: `pnpm exec tsc --noEmit` completado con **0 errores** (Strict Mode estricto).
+- **ESLint**: `pnpm lint` completado con **0 errores y 0 advertencias** (`--max-warnings=0`).
+- **Control de Líneas**: `pnpm verificar:lineas` completado con **0 errores críticos**.
+- **Build de Producción**: `pnpm build` generado exitosamente.

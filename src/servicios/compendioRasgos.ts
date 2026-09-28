@@ -3,12 +3,21 @@ import {
   RASGOS_POR_ESPECIE,
   DOTES_CANONICAS_DND55
 } from "@/constantes/rasgosDND55";
-import { obtenerRasgosClaseYSubclase } from "@/servicios/gestorClases";
+import {
+  obtenerRasgosClaseYSubclase,
+  esRasgoPlaceholderSubclase,
+  esRasgoMejoraCaracteristica,
+  esRasgoDonEpico,
+  construirDoteDeMejoraCaracteristica,
+  construirDoteDeDonEpico
+} from "@/servicios/gestorClases";
 
 import {
   obtenerEspeciePorNombre,
   obtenerSubespeciePorNombre,
-  construirRasgosEspecie
+  construirRasgosEspecie,
+  esRasgoVersatil,
+  construirDoteDeVersatil
 } from "@/servicios/gestorEspecies";
 
 /**
@@ -118,11 +127,24 @@ export function obtenerTodasDotesCanonicas(): DotePersonaje[] {
 export function sincronizarRasgosAutomaticos(personaje: PersonajeJugador): RasgoPersonaje[] {
   const rasgosExistentes = Array.isArray(personaje.rasgos) ? personaje.rasgos : [];
 
-  // 1. Conservar rasgos personalizados, dotes y de trasfondo creados por el jugador (purgando marcadores obsoletos)
+  // 1. Conservar rasgos personalizados, dotes y de trasfondo creados por el jugador (purgando marcadores obsoletos y dotes ligadas a resincronizar)
+  const esDoteLigadaSintetica = (r: RasgoPersonaje) =>
+    r.id.startsWith("dote_asi_") ||
+    r.id.startsWith("dote_don_") ||
+    r.id.startsWith("dote_origen_") ||
+    (r.origen === "dote" &&
+      Boolean(
+        r.ligadoA &&
+          (r.ligadoA.includes("mejora_de_caracteristica") ||
+            r.ligadoA.includes("don_epico") ||
+            r.ligadoA.includes("versatil"))
+      ));
+
   const rasgosPersonalizados = rasgosExistentes.filter(
     (r) =>
       (r.personalizado || r.origen === "personalizado" || r.origen === "dote" || r.origen === "trasfondo") &&
-      !r.nombre.toLowerCase().includes("rasgo de subclase")
+      !esRasgoPlaceholderSubclase(r.nombre) &&
+      !esDoteLigadaSintetica(r)
   );
 
   // 2. Resolver rasgos canónicos según Especie y Clases
@@ -167,7 +189,7 @@ export function sincronizarRasgosAutomaticos(personaje: PersonajeJugador): Rasgo
   const idsVistosNuevos = new Set<string>();
   const canonicosNuevosUnicos: RasgoPersonaje[] = [];
   for (const r of canonicosNuevos) {
-    if (!r.nombre.toLowerCase().includes("rasgo de subclase") && !idsVistosNuevos.has(r.id)) {
+    if (!esRasgoPlaceholderSubclase(r.nombre) && !idsVistosNuevos.has(r.id)) {
       idsVistosNuevos.add(r.id);
       canonicosNuevosUnicos.push(r);
     }
@@ -175,6 +197,8 @@ export function sincronizarRasgosAutomaticos(personaje: PersonajeJugador): Rasgo
 
   // 3. Fusionar respetando el estado de usos restantes previo si ya existía el rasgo
   const mapaExistentes = new Map(rasgosExistentes.map((r) => [r.id, r]));
+
+  const dotesAsiGeneradas: RasgoPersonaje[] = [];
 
   const canonicosFusionados = canonicosNuevosUnicos.map((nuevoRaw) => {
     let nuevo = nuevoRaw;
@@ -192,18 +216,17 @@ export function sincronizarRasgosAutomaticos(personaje: PersonajeJugador): Rasgo
       };
     }
 
-
     const existente = mapaExistentes.get(nuevo.id);
     if (existente) {
       const selectoresSincronizados = nuevo.selectores?.map((sNuevo) => {
         const sExistente = existente.selectores?.find((s) => s.id === sNuevo.id);
         return {
           ...sNuevo,
-          valorActual: sExistente?.valorActual ?? sNuevo.valorActual ?? []
+          valorActual: sExistente?.valorActual && sExistente.valorActual.length > 0 ? sExistente.valorActual : sNuevo.valorActual ?? []
         };
       }) ?? existente.selectores;
 
-      return {
+      nuevo = {
         ...nuevo,
         selectores: selectoresSincronizados,
         condicionAlActivar: nuevo.condicionAlActivar ?? existente.condicionAlActivar,
@@ -215,16 +238,76 @@ export function sincronizarRasgosAutomaticos(personaje: PersonajeJugador): Rasgo
         activo: existente.activo !== undefined ? existente.activo : (nuevo.esActivable ? false : true),
         notas: existente.notas || nuevo.notas
       };
+    } else {
+      nuevo = {
+        ...nuevo,
+        activo: nuevo.esActivable ? false : (nuevo.activo ?? true)
+      };
     }
-    return {
-      ...nuevo,
-      activo: nuevo.esActivable ? false : (nuevo.activo ?? true)
-    };
+
+    // Si es un rasgo de Mejora de Característica o Don Épico, generar/sincronizar la dote asociada en el bloque de dotes
+    if (esRasgoMejoraCaracteristica(nuevo.nombre)) {
+      const selectorDote = nuevo.selectores?.find((s) => s.id.includes("dote_asi"));
+      const idDoteSeleccionada = selectorDote?.valorActual?.[0] || "dote_mejora_caracteristica";
+      let doteConstruida = construirDoteDeMejoraCaracteristica(nuevo, idDoteSeleccionada);
+
+      const doteExistente = mapaExistentes.get(doteConstruida.id);
+      if (doteExistente) {
+        doteConstruida = {
+          ...doteConstruida,
+          usosRestantes:
+            typeof doteExistente.usosRestantes === "number" && doteConstruida.usosMaximos
+              ? Math.min(doteExistente.usosRestantes, doteConstruida.usosMaximos)
+              : doteConstruida.usosRestantes,
+          activo: doteExistente.activo !== undefined ? doteExistente.activo : true,
+          notas: doteExistente.notas || doteConstruida.notas
+        };
+      }
+      dotesAsiGeneradas.push(doteConstruida);
+    } else if (esRasgoDonEpico(nuevo.nombre)) {
+      const selectorDote = nuevo.selectores?.find((s) => s.id.includes("dote_don_epico") || s.id.includes("don_epico"));
+      const idDoteSeleccionada = selectorDote?.valorActual?.[0];
+      let doteConstruida = construirDoteDeDonEpico(nuevo, idDoteSeleccionada);
+
+      const doteExistente = mapaExistentes.get(doteConstruida.id);
+      if (doteExistente) {
+        doteConstruida = {
+          ...doteConstruida,
+          usosRestantes:
+            typeof doteExistente.usosRestantes === "number" && doteConstruida.usosMaximos
+              ? Math.min(doteExistente.usosRestantes, doteConstruida.usosMaximos)
+              : doteConstruida.usosRestantes,
+          activo: doteExistente.activo !== undefined ? doteExistente.activo : true,
+          notas: doteExistente.notas || doteConstruida.notas
+        };
+      }
+      dotesAsiGeneradas.push(doteConstruida);
+    } else if (esRasgoVersatil(nuevo.nombre)) {
+      const selectorDote = nuevo.selectores?.find((s) => s.id.includes("dote_origen") || s.id.includes("versatil"));
+      const idDoteSeleccionada = selectorDote?.valorActual?.[0] || "dote_alerta";
+      let doteConstruida = construirDoteDeVersatil(nuevo, idDoteSeleccionada);
+
+      const doteExistente = mapaExistentes.get(doteConstruida.id);
+      if (doteExistente) {
+        doteConstruida = {
+          ...doteConstruida,
+          usosRestantes:
+            typeof doteExistente.usosRestantes === "number" && doteConstruida.usosMaximos
+              ? Math.min(doteExistente.usosRestantes, doteConstruida.usosMaximos)
+              : doteConstruida.usosRestantes,
+          activo: doteExistente.activo !== undefined ? doteExistente.activo : true,
+          notas: doteExistente.notas || doteConstruida.notas
+        };
+      }
+      dotesAsiGeneradas.push(doteConstruida);
+    }
+
+    return nuevo;
   });
 
   // 4. Garantizar deduplicación estricta por ID único en el array consolidado final
   const mapaFinal = new Map<string, RasgoPersonaje>();
-  for (const r of [...canonicosFusionados, ...rasgosPersonalizados]) {
+  for (const r of [...canonicosFusionados, ...dotesAsiGeneradas, ...rasgosPersonalizados]) {
     if (!mapaFinal.has(r.id)) {
       mapaFinal.set(r.id, r);
     }

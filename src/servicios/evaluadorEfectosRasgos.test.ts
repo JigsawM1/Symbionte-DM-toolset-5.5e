@@ -468,10 +468,14 @@ describe("Evaluador de Efectos Mecánicos de Rasgos y Sistema de Builds", () => 
     expect(golpeBrutal17?.selectores?.[0].maxSelecciones).toBe(2);
     expect(golpeBrutal17?.selectores?.[0].tipo).toBe("multiple");
 
-    // Mejora de Característica consolidada
+    // Mejora de Característica por nivel con selector interactivo
     const mejoras = buildNiv17?.rasgos.filter((r) => r.nombre === "Mejora de característica");
-    expect(mejoras?.length).toBe(1);
-    expect(mejoras?.[0].fuente).toContain("Niveles 4, 8, 12, 16");
+    expect(mejoras?.length).toBe(4);
+    expect(mejoras?.map((m) => m.nivelRequerido)).toEqual([4, 8, 12, 16]);
+    mejoras?.forEach((m) => {
+      expect(m.categoriaMecanica).toBe("selector_informativo");
+      expect(m.selectores?.[0].valorActual).toEqual(["dote_mejora_caracteristica"]);
+    });
   });
 
   it("debe escalar dinámicamente el daño de Frenesí y los dados curativos de Guerrero de los Dioses", () => {

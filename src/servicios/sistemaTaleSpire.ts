@@ -40,7 +40,30 @@ export async function copiarAlPortapapeles(texto: string): Promise<boolean> {
       logger.debug("[Sistema TaleSpire] Texto copiado exitosamente con navigator.clipboard.");
       return true;
     } catch (errorNav) {
-      logger.error("[Sistema TaleSpire] Error al copiar texto mediante navigator.clipboard:", errorNav);
+      logger.warn("[Sistema TaleSpire] Error al copiar texto mediante navigator.clipboard. Intentando execCommand:", errorNav);
+    }
+  }
+
+  // 3. Fallback con textarea y document.execCommand para entornos sin HTTPS o restricciones de foco/permisos
+  if (typeof document !== "undefined") {
+    try {
+      const textarea = document.createElement("textarea");
+      textarea.value = texto;
+      textarea.style.position = "fixed";
+      textarea.style.left = "-999999px";
+      textarea.style.top = "-999999px";
+      textarea.setAttribute("readonly", "");
+      document.body.appendChild(textarea);
+      textarea.focus();
+      textarea.select();
+      const exitoExec = document.execCommand("copy");
+      document.body.removeChild(textarea);
+      if (exitoExec) {
+        logger.debug("[Sistema TaleSpire] Texto copiado exitosamente con document.execCommand.");
+        return true;
+      }
+    } catch (errorExec) {
+      logger.error("[Sistema TaleSpire] Error al copiar texto mediante document.execCommand:", errorExec);
     }
   }
 

@@ -18,7 +18,12 @@ import {
   Heart
 } from "lucide-react";
 import { DOTES_ORIGEN_DND55 } from "@/constantes/rasgosDND55";
-import { TextoEnriquecidoDND, SelectorDesplegable, type OpcionDesplegable } from "@/componentes/comunes";
+import {
+  TextoEnriquecidoDND,
+  SelectorDesplegable,
+  ControlPaginacion,
+  type OpcionDesplegable
+} from "@/componentes/comunes";
 import { usarAlmacenDM } from "@/almacen/usarAlmacenDM";
 import { usarEstadoHomebrew } from "@/almacen/selectores/usarEstadoHomebrew";
 import { coincideHechizoId } from "@/servicios/comparadorHechizos";
@@ -27,10 +32,14 @@ import { logger } from "@/utiles/logger";
 import { aplicarResultadoHpTemporalEnEstado } from "@/utiles/lanzadorDados";
 import estilos from "./SelectorInvocacionesAcordeon.module.css";
 
+export const ELEMENTOS_POR_PAGINA_INVOCACIONES = 6;
+
 interface SelectorInvocacionesAcordeonProps {
   selector: SelectorRasgo;
   nivelPersonaje?: number;
   alActualizarSeleccion?: (idSelector: string, valores: string[]) => void;
+  elementosPorPagina?: number;
+  tamanoPaginacion?: "compacto" | "normal";
 }
 
 /**
@@ -47,7 +56,9 @@ function coincideInvocacionId(idRegistrado: string, idBase: string): boolean {
 export const SelectorInvocacionesAcordeon: React.FC<SelectorInvocacionesAcordeonProps> = ({
   selector,
   nivelPersonaje,
-  alActualizarSeleccion
+  alActualizarSeleccion,
+  elementosPorPagina = ELEMENTOS_POR_PAGINA_INVOCACIONES,
+  tamanoPaginacion = "normal"
 }) => {
   const seleccionados = useMemo(() => selector.valorActual || [], [selector.valorActual]);
 
@@ -160,10 +171,11 @@ export const SelectorInvocacionesAcordeon: React.FC<SelectorInvocacionesAcordeon
     }));
   }, []);
 
-  // Estado local para elementos expandidos
+  // Estado local para elementos expandidos y paginación
   const [expandidos, setExpandidos] = useState<Record<string, boolean>>({});
   const [busqueda, setBusqueda] = useState<string>("");
   const [filtroEstado, setFiltroEstado] = useState<"todas" | "disponibles" | "aprendidas">("aprendidas");
+  const [paginaActual, setPaginaActual] = useState<number>(1);
 
   const alternarExpandido = (id: string) => {
     setExpandidos((prev) => ({
@@ -494,6 +506,26 @@ export const SelectorInvocacionesAcordeon: React.FC<SelectorInvocacionesAcordeon
     });
   }, [selector.opciones, busqueda, filtroEstado, seleccionados, nivelPersonaje]);
 
+  // Reiniciar a la primera página cuando cambian los filtros o la búsqueda
+  React.useEffect(() => {
+    setPaginaActual(1);
+  }, [busqueda, filtroEstado]);
+
+  const totalPaginas = Math.max(1, Math.ceil(opcionesProcesadas.length / elementosPorPagina));
+
+  // Ajustar página si la lista filtrada se reduce
+  React.useEffect(() => {
+    if (paginaActual > totalPaginas) {
+      setPaginaActual(totalPaginas);
+    }
+  }, [paginaActual, totalPaginas]);
+
+  // Invocaciones segmentadas para la página activa
+  const opcionesPaginadas = useMemo(() => {
+    const inicio = (paginaActual - 1) * elementosPorPagina;
+    return opcionesProcesadas.slice(inicio, inicio + elementosPorPagina);
+  }, [opcionesProcesadas, paginaActual, elementosPorPagina]);
+
   return (
     <div className={estilos.contenedorAcordeonInvocaciones}>
       {/* Barra de herramientas con buscador y filtros */}
@@ -541,7 +573,7 @@ export const SelectorInvocacionesAcordeon: React.FC<SelectorInvocacionesAcordeon
             No se encontraron invocaciones con los criterios de búsqueda actuales.
           </div>
         ) : (
-          opcionesProcesadas.map((op) => {
+          opcionesPaginadas.map((op) => {
             const estaActiva = seleccionados.some((id) => coincideInvocacionId(id, op.id));
             const estaExpandida = !!expandidos[op.id];
 
@@ -1151,6 +1183,18 @@ export const SelectorInvocacionesAcordeon: React.FC<SelectorInvocacionesAcordeon
           })
         )}
       </div>
+
+      {/* Control de paginación para la lista de invocaciones */}
+      {opcionesProcesadas.length > elementosPorPagina && (
+        <ControlPaginacion
+          paginaActual={paginaActual}
+          totalElementos={opcionesProcesadas.length}
+          elementosPorPagina={elementosPorPagina}
+          alCambiarPagina={(nueva) => setPaginaActual(nueva)}
+          tamano={tamanoPaginacion}
+          etiquetaElementos="invocaciones"
+        />
+      )}
     </div>
   );
 };

@@ -5,21 +5,23 @@ import {
   usarEstadoConfiguracion,
   usarAccionesConfiguracion,
 } from "@/almacen/selectores";
-import { Upload, Download, Trash2, ShieldAlert, CheckCircle, Heart, Copy, X, Eye, Settings, Sparkles } from "lucide-react";
+import { Upload, Download, Trash2, ShieldAlert, CheckCircle, Heart, Copy, X, Eye, Settings, Sparkles, UserCheck } from "lucide-react";
 import { IDS_INICIALES_MONSTRUOS, IDS_INICIALES_HECHIZOS, IDS_INICIALES_OBJETOS } from "@/utiles/datosIniciales";
+import { usarAlmacenDM } from "@/almacen/usarAlmacenDM";
 import { logger } from '@/utiles/logger';
-import { copiarAlPortapapeles } from "@/servicios/sistemaTaleSpire";
+import { copiarAlPortapapeles, descargarArchivoJSON } from "@/servicios/sistemaTaleSpire";
 import estilosClases from "./ConfiguracionDM.module.css";
 
 export const ConfiguracionDM: React.FC = () => {
   const { baseDatosMonstruos, baseDatosHechizos, objetosHomebrew } = usarEstadoHomebrew();
   const { importarBaseDatosJSONCompleta } = usarAccionesHomebrew();
-  const { metodoVidaMonstruo, mostrarPorcentajeVidaAJugadores, sistemaMagia } = usarEstadoConfiguracion();
+  const { metodoVidaMonstruo, mostrarPorcentajeVidaAJugadores, sistemaMagia, esGM } = usarEstadoConfiguracion();
   const {
     restablecerDatosDeFabrica,
     establecerMetodoVidaMonstruo,
     establecerMostrarPorcentajeVidaAJugadores,
     establecerSistemaMagia,
+    establecerEsGM,
   } = usarAccionesConfiguracion();
 
   const [estadoImportacion, setEstadoImportacion] = useState<"inactivo" | "exito" | "error">("inactivo");
@@ -94,30 +96,37 @@ export const ConfiguracionDM: React.FC = () => {
   };
 
   const exportarBaseDatosCompletaJSON = async () => {
+    const estadoActual = usarAlmacenDM.getState();
     const datosExportacion = {
       version: "5.5",
       fechaExportacion: new Date().toISOString(),
-      baseDatosMonstruos,
-      baseDatosHechizos,
-      objetosHomebrew
+      monstruos: monstruosHomebrew,
+      hechizos: hechizosHomebrew,
+      objetos: objetosHomebrewSolo,
+      personajes: estadoActual.personajes,
+      idPersonajeActivo: estadoActual.idPersonajeActivo,
+      notasDM: estadoActual.notasDM,
+      listaPendientes: estadoActual.listaPendientes,
+      encuentrosGuardados: estadoActual.encuentrosGuardados,
+      colaIniciativa: estadoActual.colaIniciativa,
     };
 
     const jsonStr = JSON.stringify(datosExportacion, null, 2);
+    const nombreArchivo = `backup_dm_completo_${new Date().toISOString().slice(0, 10)}.json`;
 
-    try {
-      const blob = new Blob([jsonStr], { type: "application/json" });
-      const url = URL.createObjectURL(blob);
-      const enlace = document.createElement("a");
-      enlace.href = url;
-      enlace.download = `backup_dm_homebrew_${new Date().toISOString().slice(0, 10)}.json`;
-      document.body.appendChild(enlace);
-      enlace.click();
-      document.body.removeChild(enlace);
-      URL.revokeObjectURL(url);
+    // 1. Copiar al portapapeles
+    const exitoCopiado = await copiarAlPortapapeles(jsonStr);
+
+    // 2. Descargar archivo en navegador / cliente CEF si está soportado
+    const exitoDescarga = descargarArchivoJSON(jsonStr, nombreArchivo);
+
+    if (exitoCopiado) {
       setCopiado(true);
       setTimeout(() => setCopiado(false), 3000);
-    } catch (error) {
-      logger.warn("[ConfiguracionDM] Falló la descarga automática por Blob, mostrando modal alternativo:", error);
+    }
+
+    if (!exitoCopiado && !exitoDescarga) {
+      logger.warn("[ConfiguracionDM] Falló la copia al portapapeles y la descarga automática, mostrando modal alternativo.");
       setModalExport(jsonStr);
     }
   };
@@ -218,8 +227,39 @@ export const ConfiguracionDM: React.FC = () => {
             <h4 className={estilosClases.subtitulo}>CONFIGURACIÓN DM Y BACKUPS</h4>
           </div>
 
-          {/* NUEVO PANEL PREMIUM: DADOS DE VIDA DE MONSTRUOS */}
+          {/* PANEL: MODO DE VISTA (ROL DE SESIÓN) */}
           <div className={estilosClases.tarjetaConfigHP}>
+            <div className={estilosClases.cabeceraConfigHP}>
+              <UserCheck size={14} className="u-texto-cian" />
+              <span className={estilosClases.tituloConfigHP}>MODO DE VISTA (ROL DE SESIÓN)</span>
+            </div>
+            <p className={estilosClases.descripcionConfigHP}>
+              Define la interfaz activa entre la Ficha de Jugador (por defecto) y la Pantalla del Dungeon Master.
+            </p>
+            <div className={estilosClases.selectorHPGrid}>
+              <button
+                type="button"
+                onClick={() => establecerEsGM(false)}
+                className={`${estilosClases.botonHPBrutal} ${
+                  !esGM ? estilosClases.botonHPBrutalActivo : ""
+                }`}
+              >
+                MODO JUGADOR
+              </button>
+              <button
+                type="button"
+                onClick={() => establecerEsGM(true)}
+                className={`${estilosClases.botonHPBrutal} ${
+                  esGM ? estilosClases.botonHPBrutalActivo : ""
+                }`}
+              >
+                MODO DM (MASTER)
+              </button>
+            </div>
+          </div>
+
+          {/* PANEL PREMIUM: DADOS DE VIDA DE MONSTRUOS */}
+          <div className={`${estilosClases.tarjetaConfigHP} ${estilosClases.tarjetaConfigHPSeparada}`}>
             <div className={estilosClases.cabeceraConfigHP}>
               <Heart size={14} className="u-texto-cian" />
               <span className={estilosClases.tituloConfigHP}>CÁLCULO DE VIDA (HP) AL INICIAR COMBATE</span>
@@ -343,7 +383,7 @@ export const ConfiguracionDM: React.FC = () => {
             <button
               onClick={exportarBaseDatosCompletaJSON}
               className={`${estilosClases.botonDescargar} ${copiado ? estilosClases.botonDescargarExito : ""}`}
-              title="Exportar JSON al portapapeles o descarga"
+              title="Exportar copia de seguridad completa (Homebrew, personajes, notas y configuración) en formato JSON al portapapeles o descarga"
             >
               {copiado ? <CheckCircle size={14} /> : <Download size={14} />}
               <span>{copiado ? "¡COPIADO AL PORTAPAPELES!" : "EXPORTAR COPIA DE SEGURIDAD (.JSON)"}</span>
@@ -401,7 +441,7 @@ export const ConfiguracionDM: React.FC = () => {
         <div className={estilosClases.modalOverlay} onClick={() => setModalExport(null)}>
           <div className={estilosClases.modalExport} onClick={(e) => e.stopPropagation()}>
             <div className={estilosClases.modalHeader}>
-              <span> EXPORTAR DATOS — Copia el JSON manualmente</span>
+              <span> EXPORTAR COPIA DE SEGURIDAD — Copia el JSON manualmente</span>
               <button onClick={() => setModalExport(null)} className={estilosClases.botonCerrarModal}>
                 <X size={16} />
               </button>

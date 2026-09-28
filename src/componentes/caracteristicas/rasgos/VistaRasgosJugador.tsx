@@ -65,7 +65,11 @@ export const VistaRasgosJugador: React.FC = () => {
 
   const renderizarTarjetaRasgo = (rasgo: RasgoPersonaje, idx: number) => {
     const bloqueo = obtenerBloqueoToggleRasgo(rasgo);
-    const esDoteDeInvocacion = rasgo.id.startsWith("dote_invocacion_");
+    const esDoteLigada =
+      rasgo.id.startsWith("dote_invocacion_") ||
+      rasgo.id.startsWith("dote_asi_") ||
+      rasgo.id.startsWith("dote_don_") ||
+      rasgo.id.startsWith("dote_origen_");
     return (
       <TarjetaRasgo
         key={`${rasgo.id}_${rasgo.nivelRequerido || 0}_${idx}`}
@@ -77,8 +81,8 @@ export const VistaRasgosJugador: React.FC = () => {
         alAlternarActivo={() => alternarActivoRasgo(personajeActivo.id, rasgo.id)}
         deshabilitadoToggle={bloqueo.bloqueado}
         motivoDeshabilitado={bloqueo.motivo}
-        alEditar={esDoteDeInvocacion ? undefined : () => abrirModalEdicion(rasgo)}
-        alEliminar={esDoteDeInvocacion ? undefined : () => eliminarRasgoPersonaje(personajeActivo.id, rasgo.id)}
+        alEditar={esDoteLigada ? undefined : () => abrirModalEdicion(rasgo)}
+        alEliminar={esDoteLigada ? undefined : () => eliminarRasgoPersonaje(personajeActivo.id, rasgo.id)}
         alVerDetalle={() => setRasgoSeleccionadoDetalle(rasgo)}
         {...resolverRecursosPadre(rasgo)}
       />

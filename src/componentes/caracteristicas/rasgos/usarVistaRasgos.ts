@@ -23,6 +23,7 @@ import {
   resolverDotesDesdeInvocaciones
 } from "./utilidadesProgresionRasgos";
 import { esRasgoHabilitadoPorOpcion } from "@/servicios/evaluadorEfectosRasgos";
+import { esRasgoPlaceholderSubclase } from "@/servicios/gestorClases";
 
 export type { SeccionesColapsadas, GrupoClaseJerarquico, DatosJerarquicosRasgos };
 
@@ -195,8 +196,7 @@ export function usarVistaRasgos() {
     const todosLosRasgos = [...personajeActivo.rasgos, ...dotesInvocacion];
 
     let lista = todosLosRasgos.filter((r) => {
-      const nom = r.nombre ? r.nombre.toLowerCase().trim() : "";
-      if (nom === "rasgo de subclase" || nom.includes("rasgo de subclase")) {
+      if (esRasgoPlaceholderSubclase(r.nombre)) {
         return false;
       }
       if (r.nivelRequerido && r.nivelRequerido > nivelPj) {

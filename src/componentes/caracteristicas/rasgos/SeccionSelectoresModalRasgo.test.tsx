@@ -93,4 +93,60 @@ describe("SeccionSelectoresModalRasgo - Paginación en Modo Lista", () => {
     expect(html).toContain("1 / 3");
     expect(html).toContain("1-4 de 12 opciones");
   });
+
+  describe("Reutilización de Selector Desplegable (DRY) - Magia de Alto Elfo e Iniciado en la Magia", () => {
+    const opcionesTrucosMago = [
+      { id: "prestidigitacion", nombre: "Prestidigitación", descripcion: "Truco menor arcano" },
+      { id: "rayo_de_escarcha", nombre: "Rayo de escarcha", descripcion: "Ataque de frío" },
+      { id: "descarga_de_fuego", nombre: "Descarga de fuego", descripcion: "Ataque ardiente" }
+    ];
+
+    const selectorIniciadoMago: SelectorRasgo = {
+      id: "selector_truco_1_iniciado_mago",
+      tipo: "unico",
+      etiqueta: "Primer Truco de Mago",
+      maxSelecciones: 1,
+      opciones: opcionesTrucosMago,
+      valorActual: ["prestidigitacion"],
+      claveOpcionesDinamicas: "trucos_mago"
+    };
+
+    const selectorAltoElfo: SelectorRasgo = {
+      id: "selector_truco_alto_elfo",
+      tipo: "unico",
+      etiqueta: "Truco de Mago (Sustituible tras descanso largo)",
+      maxSelecciones: 1,
+      opciones: opcionesTrucosMago,
+      valorActual: ["prestidigitacion"],
+      claveOpcionesDinamicas: "trucos_mago"
+    };
+
+    it("renderiza el selector de Magia de alto elfo usando la misma estructura de SelectorDesplegable que Iniciado en la magia", () => {
+      const htmlAltoElfo = renderToStaticMarkup(
+        <SeccionSelectoresModalRasgo
+          selectores={[selectorAltoElfo]}
+          alActualizarSeleccion={vi.fn()}
+        />
+      );
+
+      const htmlIniciado = renderToStaticMarkup(
+        <SeccionSelectoresModalRasgo
+          selectores={[selectorIniciadoMago]}
+          alActualizarSeleccion={vi.fn()}
+        />
+      );
+
+      // Ambos deben contener el título de su etiqueta
+      expect(htmlAltoElfo).toContain("Truco de Mago (Sustituible tras descanso largo)");
+      expect(htmlIniciado).toContain("Primer Truco de Mago");
+
+      // Ambos deben indicar 1 seleccionada
+      expect(htmlAltoElfo).toContain("1 seleccionada");
+      expect(htmlIniciado).toContain("1 seleccionada");
+
+      // Ambos deben renderizar el botón del desplegable común mostrando la opción seleccionada
+      expect(htmlAltoElfo).toContain("Prestidigitación");
+      expect(htmlIniciado).toContain("Prestidigitación");
+    });
+  });
 });

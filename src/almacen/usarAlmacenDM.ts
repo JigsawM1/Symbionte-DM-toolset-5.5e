@@ -85,8 +85,8 @@ const persistenciaMiddleware: PersistenciaMiddleware = (configuradorStore) => (s
     set(...args);
     const estadoNuevo = get();
 
-    // Si está cargando datos persistidos o restableciendo de fábrica, ignoramos la persistencia instantánea para evitar I/O redundante
-    if (estadoNuevo.cargandoDatos) {
+    // Si está cargando datos persistidos o aún no ha completado la carga inicial en frío, ignoramos la persistencia para no sobreescribir el almacenamiento con valores por defecto
+    if (estadoNuevo.cargandoDatos || !estadoNuevo.datosInicialesCargados) {
       return;
     }
 

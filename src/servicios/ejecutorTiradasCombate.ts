@@ -76,29 +76,31 @@ export async function ejecutarTiradaAtaqueFisico(ctx: ContextoTiradaAtaqueFisico
 
     if (ataque.requiereMunicion) {
       if (!ataque.puedeDisparar) {
-        agregarNotificacion(
-          ataque.motivoBloqueo || `No puedes disparar con ${ataque.nombre}. Falta munición lista.`,
-          "error"
-        );
-        return;
+        const aviso =
+          ataque.motivoBloqueo ||
+          `Advertencia: No tienes ${ataque.municionNombre || "munición"} lista en tu equipo para disparar con ${ataque.nombre}.`;
+        agregarNotificacion(aviso, "advertencia");
       }
 
-      const inventarioActual = personajeActivo?.inventario || [];
-      const municionEncontrada = inventarioActual.find((it) =>
-        esMunicionCompatibleConArma(ataque.nombre, it, ataque.propiedades, baseDatosObjetos)
+      const inv = personajeActivo?.inventario || [];
+      const municion = inv.find(
+        (it) =>
+          (it.contenedor || "mochila") === "mochila" &&
+          (it.cantidad || 0) > 0 &&
+          esMunicionCompatibleConArma(ataque.nombre, it, ataque.propiedades, baseDatosObjetos)
       );
 
-      if (municionEncontrada && personajeActivo) {
-        modificarCantidadObjeto(personajeActivo.id, municionEncontrada.idInstancia, -1);
-        const cantidadRestante = municionEncontrada.cantidad - 1;
-        const avisoMunicion =
-          cantidadRestante > 0
-            ? `Quedan ${cantidadRestante} ${municionEncontrada.nombre}.`
-            : `¡Has agotado tu reserva de ${municionEncontrada.nombre}!`;
+      if (municion && personajeActivo) {
+        modificarCantidadObjeto(personajeActivo.id, municion.idInstancia, -1);
+        const restante = municion.cantidad - 1;
+        const detalle =
+          restante > 0
+            ? `Quedan ${restante} ${municion.nombre}.`
+            : `¡Has agotado tu reserva de ${municion.nombre}!`;
 
         agregarNotificacion(
-          `Has disparado 1 ${municionEncontrada.nombre}. ${avisoMunicion}`,
-          cantidadRestante > 0 ? "info" : "advertencia"
+          `Has disparado 1 ${municion.nombre}. ${detalle}`,
+          restante > 0 ? "info" : "advertencia"
         );
       }
     }

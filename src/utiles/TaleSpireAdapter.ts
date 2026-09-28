@@ -412,13 +412,13 @@ class TaleSpireAdapter {
      * Utiliza un caché en memoria para evitar llamadas redundantes a la API de TaleSpire.
      */
     esGM: async (forzarRefresco = false): Promise<boolean> => {
-      // 0. Si no existe window.TS (desarrollo local fuera de TaleSpire), por defecto es DM para pruebas
-      if (!window.TS) return true;
-
       // Si ya tenemos el rol en caché y no pedimos refresco forzado, retornarlo de inmediato
       if (cacheEsGM !== null && !forzarRefresco) {
         return cacheEsGM;
       }
+
+      // 0. Si no existe window.TS (desarrollo local fuera de TaleSpire o entorno Node/Vitest), por defecto es Jugador (false)
+      if (typeof window === "undefined" || !window.TS) return false;
 
       logger.debug("[TS Adapter esGM] Evaluando modo de vista cliente en TaleSpire...");
 
@@ -634,6 +634,18 @@ class TaleSpireAdapter {
           return false;
         }
       }
+
+      // Fallback a almacenamiento local del navegador (desarrollo local / entorno Web)
+      if (typeof window !== "undefined" && window.localStorage) {
+        try {
+          window.localStorage.setItem(_clave, datos);
+          return true;
+        } catch (error) {
+          logger.error("[TS Adapter] Error al guardar en localStorage de navegador:", error);
+          return false;
+        }
+      }
+
       logger.warn("[TS Adapter] localStorage.guardarBlob no disponible.");
       return false;
     },
@@ -652,6 +664,17 @@ class TaleSpireAdapter {
           return null;
         }
       }
+
+      // Fallback a almacenamiento local del navegador (desarrollo local / entorno Web)
+      if (typeof window !== "undefined" && window.localStorage) {
+        try {
+          return window.localStorage.getItem(_clave);
+        } catch (error) {
+          logger.error("[TS Adapter] Error al leer de localStorage de navegador:", error);
+          return null;
+        }
+      }
+
       logger.warn("[TS Adapter] localStorage.leerBlob no disponible.");
       return null;
     },
@@ -676,6 +699,18 @@ class TaleSpireAdapter {
           return false;
         }
       }
+
+      // Fallback a almacenamiento local del navegador (desarrollo local / entorno Web)
+      if (typeof window !== "undefined" && window.localStorage) {
+        try {
+          window.localStorage.removeItem(_clave);
+          return true;
+        } catch (error) {
+          logger.error("[TS Adapter] Error al eliminar de localStorage de navegador:", error);
+          return false;
+        }
+      }
+
       logger.warn("[TS Adapter] localStorage.eliminarBlob no disponible.");
       return false;
     }

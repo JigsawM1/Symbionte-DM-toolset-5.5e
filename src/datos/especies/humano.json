@@ -37,9 +37,20 @@
     },
     {
       "nombre": "Versátil",
-      "descripcion": "Obtienes una dote de origen de tu elección.",
+      "descripcion": "Obtienes una dote de origen de tu elección. Se recomienda Alerta.",
       "tipoAccion": "pasivo",
-      "categoriaMecanica": "pasivo_permanente"
+      "categoriaMecanica": "selector_informativo",
+      "selectores": [
+        {
+          "id": "selector_dote_origen_humano_versatil",
+          "tipo": "unico",
+          "etiqueta": "Dote de origen elegida",
+          "maxSelecciones": 1,
+          "valorActual": ["dote_alerta"],
+          "claveOpcionesDinamicas": "dotes_origen",
+          "opciones": []
+        }
+      ]
     }
   ]
 }

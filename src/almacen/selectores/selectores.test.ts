@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import { usarAlmacenDM } from "@/almacen/usarAlmacenDM";
+import { usarAlmacenDM, type EstadoDM } from "@/almacen/usarAlmacenDM";
 
 describe("Selectores y Acciones de Zustand (R6)", () => {
   beforeEach(() => {
@@ -199,5 +199,53 @@ describe("Selectores y Acciones de Zustand (R6)", () => {
     };
     const statsPlacasEscudo = calcularEstadisticasPersonaje(pjPlacasConEscudo);
     expect(statsPlacasEscudo.claseArmadura.total).toBe(20); // 18 + 0 + 2
+  });
+
+  it("Rol inicial por defecto: la aplicación debe iniciar en vista de Jugador", async () => {
+    const { crearSliceConfiguracion } = await import("@/almacen/slices/sliceConfiguracion");
+    const { ts } = await import("@/utiles/TaleSpireAdapter");
+
+    // Comprobar estado inicial del slice de configuración
+    const sliceConfig = crearSliceConfiguracion(
+      () => {},
+      () => ({} as unknown as EstadoDM),
+      {} as unknown as import("zustand").StoreApi<EstadoDM>
+    );
+
+    expect(sliceConfig.esGM).toBe(false);
+    expect(sliceConfig.pestañaActiva).toBe("jugadores");
+
+    // Comprobar que fuera de TaleSpire (window.TS no presente) esGM() retorna false por defecto
+    const soyGmPorDefecto = await ts.clients.esGM(true);
+    expect(soyGmPorDefecto).toBe(false);
+  });
+
+  it("Transición de rol: cambiar a DM o Jugador navega coherentemente entre pestañas", () => {
+    const estado = usarAlmacenDM.getState();
+
+    // Inicia en modo jugador con pestaña 'jugadores'
+    estado.establecerEsGM(false);
+    estado.establecerPestaña("jugadores");
+    expect(usarAlmacenDM.getState().esGM).toBe(false);
+    expect(usarAlmacenDM.getState().pestañaActiva).toBe("jugadores");
+
+    // Al ascender a DM, la pestaña cambia automáticamente a 'iniciativa'
+    estado.establecerEsGM(true);
+    expect(usarAlmacenDM.getState().esGM).toBe(true);
+    expect(usarAlmacenDM.getState().pestañaActiva).toBe("iniciativa");
+
+    // En DM se encuentra en 'tablas'
+    estado.establecerPestaña("tablas");
+    expect(usarAlmacenDM.getState().pestañaActiva).toBe("tablas");
+
+    // Al regresar a jugador, 'tablas' (exclusiva de DM) se reajusta a 'jugadores'
+    estado.establecerEsGM(false);
+    expect(usarAlmacenDM.getState().esGM).toBe(false);
+    expect(usarAlmacenDM.getState().pestañaActiva).toBe("jugadores");
+
+    // Sincronización mediante establecerDatosCampaña
+    estado.establecerDatosCampaña("Campaña de Prueba", true);
+    expect(usarAlmacenDM.getState().esGM).toBe(true);
+    expect(usarAlmacenDM.getState().pestañaActiva).toBe("iniciativa");
   });
 });

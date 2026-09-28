@@ -1,5 +1,10 @@
 import type { PersonajeJugador, RasgoPersonaje } from "@/tipos";
-import { obtenerClasePorNombre, obtenerSubclasePorNombre, resolverEscaladosRasgo } from "@/servicios/gestorClases";
+import {
+  obtenerClasePorNombre,
+  obtenerSubclasePorNombre,
+  resolverEscaladosRasgo,
+  esRasgoPlaceholderSubclase
+} from "@/servicios/gestorClases";
 import { resolverFormulaDinamica } from "@/servicios/evaluadorEfectosRasgos";
 import type { BloqueProgresionClase, ItemProgresionClase } from "./VisorProgresionClase";
 import type { GrupoClaseJerarquico, DatosJerarquicosRasgos } from "./tiposRasgosJugador";
@@ -119,7 +124,7 @@ export function calcularProgresionClases(
     const nivelPj = claseItem.nivel || 1;
 
     const rasgosClase1a20: ItemProgresionClase[] = defClase.rasgos
-      .filter((r) => !(subDef && r.nombre.toLowerCase().includes("rasgo de subclase")))
+      .filter((r) => !(subDef && esRasgoPlaceholderSubclase(r.nombre)))
       .map((r) => ({
         id: `prog_cls_${r.nivel}_${normalizar(r.nombre)}`,
         nombre: r.nombre,

@@ -194,5 +194,16 @@
     "descripcion": "Transformación en tamaño Grande durante 10 minutos (100 asaltos). Tienes ventaja en pruebas de Fuerza, tu velocidad aumenta en 10 pies y tu tamaño pasa a Grande.",
     "duracionEstandar": 100,
     "aliases": ["large form", "forma grande"]
+  },
+  {
+    "nombre": "Corona de luz",
+    "tituloVisual": "Corona de luz (Crown of Light)",
+    "descripcion": "Emites un aura de luz solar durante 1 minuto (10 turnos) o hasta que la disipes (no requiere acción). Emites luz brillante en un radio de 60 pies y luz tenue durante otros 30 pies. Tus enemigos en la luz brillante tienen desventaja en las tiradas de salvación contra tu Resplandor del alba y cualquier conjuro que cause daño de fuego o radiante.",
+    "duracionEstandar": 10,
+    "aliases": ["corona de luz", "corona de la luz", "corona of light", "crown of light"],
+    "efectos": [
+      "Aura solar: Emites luz brillante en un radio de 60 pies y luz tenue durante otros 30 pies.",
+      "Desventaja a enemigos: Los enemigos dentro de la luz brillante tienen desventaja en las tiradas de salvación contra tu Resplandor del alba y cualquier conjuro que cause daño de fuego o radiante."
+    ]
   }
 ]

@@ -871,6 +871,20 @@ describe("GestorEspecies - Dominio de Razas y Subrazas (D&D 5.5e)", () => {
       expect(pasoBrumoso?.esTruco).toBe(false);
       expect(pasoBrumoso?.nivelRequerido).toBe(5);
       expect(pasoBrumoso?.usosGratis).toBe(1);
+
+      // Verificación de reutilización del selector dinámico de trucos de mago (DRY con Iniciado en la Magia: Mago)
+      const rasgoMagiaAltoElfo = altoElfo.rasgos.find((r) => r.nombre === "Magia de alto elfo")!;
+      expect(rasgoMagiaAltoElfo).toBeDefined();
+      const selectorTruco = rasgoMagiaAltoElfo.selectores?.find((s) => s.id === "selector_truco_alto_elfo");
+      expect(selectorTruco).toBeDefined();
+      expect(selectorTruco?.claveOpcionesDinamicas).toBe("trucos_mago");
+      expect(selectorTruco?.tipo).toBe("unico");
+      expect(selectorTruco?.maxSelecciones).toBe(1);
+      expect(selectorTruco?.valorActual).toEqual(["prestidigitacion"]);
+      expect(selectorTruco?.opciones.length).toBeGreaterThan(10);
+      expect(selectorTruco?.opciones.some((o) => o.id === "h_prestidigitacion" || o.id === "prestidigitacion")).toBe(true);
+      expect(selectorTruco?.opciones.some((o) => o.id === "h_rayo-de-escarcha" || o.id === "rayo_de_escarcha")).toBe(true);
+      expect(selectorTruco?.opciones.some((o) => o.id === "h_descarga-de-fuego" || o.id === "descarga_de_fuego")).toBe(true);
     });
 
     it("Elfo de los bosques: incrementa velocidad a 35 pies y otorga Saber druídico (N1), Zancada prodigiosa (N3) y Pasar sin rastro (N5)", () => {

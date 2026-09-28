@@ -12,7 +12,7 @@
 
 import { useEffect } from "react";
 import { usarAlmacenDM } from "@/almacen/usarAlmacenDM";
-import { ts, establecerCacheEsGM } from "@/utiles/TaleSpireAdapter";
+import { ts } from "@/utiles/TaleSpireAdapter";
 import { puenteTaleSpire } from "@/servicios/puenteTaleSpire";
 import type { EventoClienteTS } from "@/tipos/talespire";
 import { logger } from "@/utiles/logger";
@@ -25,7 +25,8 @@ export function usarConexionTaleSpire() {
     cargarDatosPersistidos,
     actualizarSeleccionCriaturas,
     actualizarColaIniciativaDesdeTaleSpire,
-    establecerDatosCampaña
+    establecerDatosCampaña,
+    establecerEsGM
   } = usarAlmacenDM.getState();
 
   useEffect(() => {
@@ -124,14 +125,12 @@ export function usarConexionTaleSpire() {
           logger.debug("[TaleSpire Simbionte] Modo detectado en evento de cliente:", modo);
           
           if (modo === "gm") {
-            establecerCacheEsGM(true);
-            usarAlmacenDM.setState({ esGM: true });
+            establecerEsGM(true);
           } else if (modo === "player" || modo === "spectator") {
-            establecerCacheEsGM(false);
-            usarAlmacenDM.setState({ esGM: false });
+            establecerEsGM(false);
           } else {
             ts.clients.esGM(true).then((soyGm) => {
-              if (activo) usarAlmacenDM.setState({ esGM: soyGm });
+              if (activo) establecerEsGM(soyGm);
             });
           }
         };
@@ -140,9 +139,7 @@ export function usarConexionTaleSpire() {
         const subNativaCliente = ts.clients.suscribirACambioModoCliente((modo) => {
           if (activo) {
             logger.debug("[TaleSpire Simbionte] Cambio de modo nativo detectado:", modo);
-            const esGm = modo === "gm";
-            establecerCacheEsGM(esGm);
-            usarAlmacenDM.setState({ esGM: esGm });
+            establecerEsGM(modo === "gm");
           }
         });
 
@@ -166,7 +163,7 @@ export function usarConexionTaleSpire() {
             .then((soyGm) => {
               if (activo) {
                 logger.info(`[TaleSpire Simbionte] Rol cliente detectado al iniciar: ${soyGm ? "Dungeon Master (GM)" : "Jugador"}`);
-                usarAlmacenDM.setState({ esGM: soyGm });
+                establecerEsGM(soyGm);
               }
             })
             .catch((e: unknown) => {
@@ -255,7 +252,7 @@ export function usarConexionTaleSpire() {
 
     // Si no está listo, sondeamos periódicamente con intervalo equilibrado de 250ms (4/s).
     let intentos = 0;
-    const maxIntentos = 60; // 60 intentos x 250ms = 15 segundos
+    const maxIntentos = 16; // 16 intentos x 250ms = 4 segundos de espera máxima para inyección CEF
     
     const intervalo = setInterval(() => {
       intentos++;
@@ -263,7 +260,10 @@ export function usarConexionTaleSpire() {
         clearInterval(intervalo);
       } else if (intentos >= maxIntentos) {
         clearInterval(intervalo);
-        logger.error("[TaleSpire Simbionte] CRÍTICO: La API nativa de TaleSpire no apareció tras 15 segundos. Verifica tu instalación del juego.");
+        logger.warn("[TaleSpire Simbionte] La API nativa de TaleSpire no apareció. Operando en modo desconectado o navegador estándar. Cargando datos desde almacenamiento local...");
+        if (activo) {
+          cargarDatosPersistidos();
+        }
       }
     }, 250);
 

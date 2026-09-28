@@ -1,5 +1,23 @@
 [
   {
+    "id": "dote_afortunado",
+    "nombre": "Afortunado",
+    "categoria": "origen",
+    "descripcion": "Tienes una suerte inexplicable que parece activarse en los momentos más adecuados. \n\n*Puntos de suerte:* tienes una cantidad de puntos de suerte igual a tu bonificador por competencia. \n\n*Ventaja:* al tirar un d20 para una prueba con d20, puedes gastar 1 punto de suerte para darte ventaja. \n\n*Desventaja:* cuando una criatura tire un d20 en una tirada de ataque contra ti, puedes gastar 1 punto de suerte para imponerle desventaja. \n\n*Recuperación:* recuperas todos los puntos de suerte tras un descanso largo.",
+    "beneficios": [
+      "Puntos de suerte iguales a tu PB",
+      "Ventaja propia o desventaja al atacante (1 punto)",
+      "Recuperación en descanso largo"
+    ],
+    "fuente": "PHB 2024",
+    "tipoAccion": "reaccion",
+    "tieneUsosLimitados": true,
+    "usosMaximos": 2,
+    "formulaEscalado": "bono_competencia",
+    "recuperacion": "descanso_largo",
+    "categoriaMecanica": "consumible"
+  },
+  {
     "id": "dote_alerta",
     "nombre": "Alerta",
     "categoria": "origen",
@@ -21,6 +39,38 @@
     ]
   },
   {
+    "id": "dote_atacante_salvaje",
+    "nombre": "Atacante Salvaje",
+    "categoria": "origen",
+    "descripcion": "Te has entrenado para asestar golpes especialmente destructivos. Una vez por turno, cuando impactes a un objetivo con un arma, puedes tirar los dados de daño del arma dos veces y usar cualquiera de los dos resultados contra el objetivo.",
+    "beneficios": [
+      "Tirar dos veces dados de daño de arma 1 vez/turno"
+    ],
+    "fuente": "PHB 2024",
+    "tipoAccion": "pasivo",
+    "categoriaMecanica": "pasivo_permanente"
+  },
+  {
+    "id": "dote_duro",
+    "nombre": "Duro",
+    "categoria": "origen",
+    "descripcion": "Eres excepcionalmente resistente. Tus puntos de golpe máximos aumentan en una cantidad igual al doble del nivel de tu personaje en el momento de obtener esta dote. A partir de entonces, cada vez que subas un nivel de personaje, tus puntos de golpe máximos aumentan en 2 puntos de golpe adicionales.",
+    "beneficios": [
+      "+2 HP máximos por nivel de personaje"
+    ],
+    "fuente": "PHB 2024",
+    "tipoAccion": "pasivo",
+    "categoriaMecanica": "pasivo_permanente",
+    "efectos": [
+      {
+        "tipo": "modificador_hp_maximo",
+        "objetivo": "hp_maximo",
+        "valor": "2*nivel",
+        "descripcion": "Duro (+2 HP máx. por nivel)"
+      }
+    ]
+  },
+  {
     "id": "dote_fabricante",
     "nombre": "Fabricante",
     "categoria": "origen",
@@ -35,16 +85,17 @@
     "categoriaMecanica": "pasivo_permanente"
   },
   {
-    "id": "dote_sanador",
-    "nombre": "Sanador",
+    "id": "dote_habilidoso",
+    "nombre": "Habilidoso",
     "categoria": "origen",
-    "descripcion": "Posees la aptitud para reparar heridas en combate. \n\n*Médico de batalla*: como acción de utilizar, puedes gastar un uso de un estuche de sanador para atender a una criatura a 5 pies o menos; esa criatura puede gastar uno de sus dados de golpe y recupera puntos de golpe iguales a la tirada más tu bonificador por competencia. \n\n*Repetir tiradas de curación*: al tirar dados para determinar cuántos PG restableces con un conjuro o con Médico de batalla, puedes volver a tirar si obtienes un 1 (usando el nuevo resultado).",
+    "descripcion": "Has desarrollado un amplio abanico de talentos. Obtienes competencia en cualquier combinación de tres habilidades o herramientas de tu elección. Puedes elegir esta dote más de una vez.",
     "beneficios": [
-      "Médico de batalla (curar dado de golpe + PB con estuche)",
-      "Relanzar 1s en tiradas de curación"
+      "Competencia en 3 habilidades o herramientas a elección",
+      "Repetible"
     ],
     "fuente": "PHB 2024",
-    "tipoAccion": "accion",
+    "repetible": true,
+    "tipoAccion": "pasivo",
     "categoriaMecanica": "pasivo_permanente"
   },
   {
@@ -270,83 +321,6 @@
     ]
   },
   {
-    "id": "dote_musico",
-    "nombre": "Músico",
-    "categoria": "origen",
-    "descripcion": "Tienes un talento natural para la interpretación musical. Obtienes competencia con tres instrumentos musicales a tu elección. \n\n*Canción alentadora:* al finalizar un descanso corto o largo, puedes tocar una melodía con un instrumento con el que tengas competencia para otorgar Inspiración heroica a tantos aliados que escuchen la música como tu bonificador por competencia.",
-    "beneficios": [
-      "Competencia con 3 instrumentos musicales",
-      "Canción alentadora (Inspiración heroica a PB aliados tras descanso)"
-    ],
-    "fuente": "PHB 2024",
-    "tipoAccion": "pasivo",
-    "categoriaMecanica": "pasivo_permanente"
-  },
-  {
-    "id": "dote_afortunado",
-    "nombre": "Afortunado",
-    "categoria": "origen",
-    "descripcion": "Tienes una suerte inexplicable que parece activarse en los momentos más adecuados. \n\n*Puntos de suerte:* tienes una cantidad de puntos de suerte igual a tu bonificador por competencia. \n\n*Ventaja:* al tirar un d20 para una prueba con d20, puedes gastar 1 punto de suerte para darte ventaja. \n\n*Desventaja:* cuando una criatura tire un d20 en una tirada de ataque contra ti, puedes gastar 1 punto de suerte para imponerle desventaja. \n\n*Recuperación:* recuperas todos los puntos de suerte tras un descanso largo.",
-    "beneficios": [
-      "Puntos de suerte iguales a tu PB",
-      "Ventaja propia o desventaja al atacante (1 punto)",
-      "Recuperación en descanso largo"
-    ],
-    "fuente": "PHB 2024",
-    "tipoAccion": "reaccion",
-    "tieneUsosLimitados": true,
-    "usosMaximos": 2,
-    "formulaEscalado": "bono_competencia",
-    "recuperacion": "descanso_largo",
-    "categoriaMecanica": "consumible"
-  },
-  {
-    "id": "dote_atacante_salvaje",
-    "nombre": "Atacante Salvaje",
-    "categoria": "origen",
-    "descripcion": "Te has entrenado para asestar golpes especialmente destructivos. Una vez por turno, cuando impactes a un objetivo con un arma, puedes tirar los dados de daño del arma dos veces y usar cualquiera de los dos resultados contra el objetivo.",
-    "beneficios": [
-      "Tirar dos veces dados de daño de arma 1 vez/turno"
-    ],
-    "fuente": "PHB 2024",
-    "tipoAccion": "pasivo",
-    "categoriaMecanica": "pasivo_permanente"
-  },
-  {
-    "id": "dote_habilidoso",
-    "nombre": "Habilidoso",
-    "categoria": "origen",
-    "descripcion": "Has desarrollado un amplio abanico de talentos. Obtienes competencia en cualquier combinación de tres habilidades o herramientas de tu elección. Puedes elegir esta dote más de una vez.",
-    "beneficios": [
-      "Competencia en 3 habilidades o herramientas a elección",
-      "Repetible"
-    ],
-    "fuente": "PHB 2024",
-    "repetible": true,
-    "tipoAccion": "pasivo",
-    "categoriaMecanica": "pasivo_permanente"
-  },
-  {
-    "id": "dote_duro",
-    "nombre": "Duro",
-    "categoria": "origen",
-    "descripcion": "Eres excepcionalmente resistente. Tus puntos de golpe máximos aumentan en una cantidad igual al doble del nivel de tu personaje en el momento de obtener esta dote. A partir de entonces, cada vez que subas un nivel de personaje, tus puntos de golpe máximos aumentan en 2 puntos de golpe adicionales.",
-    "beneficios": [
-      "+2 HP máximos por nivel de personaje"
-    ],
-    "fuente": "PHB 2024",
-    "tipoAccion": "pasivo",
-    "categoriaMecanica": "pasivo_permanente",
-    "efectos": [
-      {
-        "tipo": "modificador_hp_maximo",
-        "objetivo": "hp_maximo",
-        "valor": "2*nivel",
-        "descripcion": "Duro (+2 HP máx. por nivel)"
-      }
-    ]
-  },
-  {
     "id": "dote_maton_taberna",
     "nombre": "Matón de Taberna",
     "categoria": "origen",
@@ -374,5 +348,31 @@
         "descripcion": "Competencia con Armas Improvisadas"
       }
     ]
+  },
+  {
+    "id": "dote_musico",
+    "nombre": "Músico",
+    "categoria": "origen",
+    "descripcion": "Tienes un talento natural para la interpretación musical. Obtienes competencia con tres instrumentos musicales a tu elección. \n\n*Canción alentadora:* al finalizar un descanso corto o largo, puedes tocar una melodía con un instrumento con el que tengas competencia para otorgar Inspiración heroica a tantos aliados que escuchen la música como tu bonificador por competencia.",
+    "beneficios": [
+      "Competencia con 3 instrumentos musicales",
+      "Canción alentadora (Inspiración heroica a PB aliados tras descanso)"
+    ],
+    "fuente": "PHB 2024",
+    "tipoAccion": "pasivo",
+    "categoriaMecanica": "pasivo_permanente"
+  },
+  {
+    "id": "dote_sanador",
+    "nombre": "Sanador",
+    "categoria": "origen",
+    "descripcion": "Posees la aptitud para reparar heridas en combate. \n\n*Médico de batalla*: como acción de utilizar, puedes gastar un uso de un estuche de sanador para atender a una criatura a 5 pies o menos; esa criatura puede gastar uno de sus dados de golpe y recupera puntos de golpe iguales a la tirada más tu bonificador por competencia. \n\n*Repetir tiradas de curación*: al tirar dados para determinar cuántos PG restableces con un conjuro o con Médico de batalla, puedes volver a tirar si obtienes un 1 (usando el nuevo resultado).",
+    "beneficios": [
+      "Médico de batalla (curar dado de golpe + PB con estuche)",
+      "Relanzar 1s en tiradas de curación"
+    ],
+    "fuente": "PHB 2024",
+    "tipoAccion": "accion",
+    "categoriaMecanica": "pasivo_permanente"
   }
 ]

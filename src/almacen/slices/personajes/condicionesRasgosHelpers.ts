@@ -51,6 +51,9 @@ export function resolverCondicionAsociadaRasgo(r: RasgoPersonaje): string | unde
   if (nom.includes("afinidad con la piedra") || id.includes("afinidad_con_la_piedra") || nom.includes("stonecunning") || id.includes("stonecunning")) {
     return "Afinidad con la piedra";
   }
+  if (nom.includes("corona de luz") || id.includes("corona_de_luz")) {
+    return "Corona de luz";
+  }
   return undefined;
 }
 
@@ -119,6 +122,9 @@ export function coincideCondicionConRasgo(condicionTexto: string, r: RasgoPerson
       rNom.includes("stonecunning") ||
       rId.includes("stonecunning")
     );
+  }
+  if (cNorm.includes("corona de luz") || cNorm.includes("crown of light")) {
+    return rNom.includes("corona de luz") || rId.includes("corona_de_luz");
   }
 
   return false;

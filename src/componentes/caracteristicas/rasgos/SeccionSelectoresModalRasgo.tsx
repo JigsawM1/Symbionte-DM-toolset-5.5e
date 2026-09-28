@@ -3,13 +3,13 @@ import type { SelectorRasgo } from "@/tipos";
 import { Check, Lock } from "lucide-react";
 import { SelectorDesplegable, TooltipUniversal, ControlPaginacion } from "@/componentes/comunes";
 import { SelectorInvocacionesAcordeon } from "./SelectorInvocacionesAcordeon";
-import { SelectorTrucoAltoElfo, type OpcionTrucoMago } from "./SelectorTrucoAltoElfo";
+import { SelectorDotesAcordeon } from "./SelectorDotesAcordeon";
 import estilos from "./VistaRasgosJugador.module.css";
 
 interface SeccionSelectoresModalRasgoProps {
   selectores: SelectorRasgo[];
   nivelPersonaje?: number;
-  opcionesTrucosMago: OpcionTrucoMago[];
+  opcionesTrucosMago?: unknown[];
   alActualizarSeleccion?: (idSelector: string, valores: string[]) => void;
 }
 
@@ -18,7 +18,6 @@ const ELEMENTOS_POR_PAGINA_SELECTOR = 4;
 export const SeccionSelectoresModalRasgo: React.FC<SeccionSelectoresModalRasgoProps> = ({
   selectores,
   nivelPersonaje,
-  opcionesTrucosMago,
   alActualizarSeleccion
 }) => {
   const [busquedas, setBusquedas] = React.useState<Record<string, string>>({});
@@ -52,25 +51,26 @@ export const SeccionSelectoresModalRasgo: React.FC<SeccionSelectoresModalRasgoPr
           );
         }
 
-        // Para selector específico de truco de mago sustituible (Alto elfo)
-        const esSelectorAltoElfo = sel.id === "selector_truco_alto_elfo";
-        if (esSelectorAltoElfo) {
-          const trucoIdActual = seleccionados[0] || "prestidigitacion";
+        // Para Dotes (Mejora de Característica, Don Épico, etc.), usar vista de acordeón con filtrado de requisitos
+        const esSelectorDotes =
+          sel.id.toLowerCase().includes("dote") ||
+          sel.etiqueta.toLowerCase().includes("dote") ||
+          sel.opciones.some((op) => op.id.startsWith("dote_"));
+
+        if (esSelectorDotes) {
           return (
             <div key={sel.id} className={estilos.tarjetaSelectorModal}>
               <div className={estilos.cabeceraSelectorModal}>
                 <span className={estilos.tituloSelectorModal}>{sel.etiqueta}</span>
-                <span className={estilos.limiteSelectorModal}>Sustituible tras descanso largo</span>
+                <span className={estilos.limiteSelectorModal}>
+                  {seleccionados.length > 0 ? "1 dote seleccionada" : "Selecciona 1 dote"}
+                </span>
               </div>
-              <div className="u-mt-1">
-                <SelectorTrucoAltoElfo
-                  idSelector={sel.id}
-                  trucoIdActual={trucoIdActual}
-                  opciones={opcionesTrucosMago}
-                  alActualizarSeleccion={alActualizarSeleccion}
-                  placeholder="Buscar truco de mago..."
-                />
-              </div>
+              <SelectorDotesAcordeon
+                selector={sel}
+                nivelPersonaje={nivelPersonaje}
+                alActualizarSeleccion={alActualizarSeleccion}
+              />
             </div>
           );
         }
@@ -92,7 +92,12 @@ export const SeccionSelectoresModalRasgo: React.FC<SeccionSelectoresModalRasgoPr
             sel.opciones.length > 8);
 
         if (esSelectorDesplegable) {
-          const valorActual = seleccionados[0] || "";
+          const valorEncontrado = sel.opciones.find((op) =>
+            (seleccionados || []).some(
+              (v) => v === op.id || v === op.id.replace(/^h_/, "") || op.id === `h_${v}`
+            )
+          )?.id;
+          const valorActual = valorEncontrado || seleccionados[0] || "";
           const opcionesDesplegable = sel.opciones.map((op) => ({
             valor: op.id,
             etiqueta: op.nombre

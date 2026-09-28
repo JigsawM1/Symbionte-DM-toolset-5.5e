@@ -323,7 +323,11 @@ export const TarjetaRasgo: React.FC<TarjetaRasgoProps> = ({
       {Array.isArray(rasgo.selectores) && rasgo.selectores.length > 0 && (
         <div className={estilos.contenedorChipsSelectores}>
           {rasgo.selectores.map((sel) => {
-            const opcionesElegidas = sel.opciones.filter((o) => (sel.valorActual || []).includes(o.id));
+            const opcionesElegidas = sel.opciones.filter((o) =>
+              (sel.valorActual || []).some(
+                (v) => v === o.id || v === o.id.replace(/^h_/, "") || o.id === `h_${v}`
+              )
+            );
             if (opcionesElegidas.length === 0) return null;
             return (
               <div key={sel.id} className={estilos.filaChipsSelector}>

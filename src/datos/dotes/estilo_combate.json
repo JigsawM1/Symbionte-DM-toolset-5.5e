@@ -1,62 +1,5 @@
 [
   {
-    "id": "dote_estilo_tiro_con_arco",
-    "nombre": "Tiro con arco",
-    "categoria": "estilo_combate",
-    "requisito": "Rasgo Estilo de combate",
-    "descripcion": "Recibes un bonificador de +2 a las tiradas de ataque con armas a distancia.",
-    "beneficios": [
-      "+2 a tiradas de ataque con armas a distancia"
-    ],
-    "fuente": "PHB 2024",
-    "tipoAccion": "pasivo",
-    "categoriaMecanica": "pasivo_permanente",
-    "efectos": [
-      {
-        "tipo": "bono_ataque",
-        "objetivo": "ataque_distancia",
-        "valor": 2,
-        "aplicaA": "arma_distancia",
-        "descripcion": "+2 a tiradas de ataque con armas a distancia"
-      }
-    ]
-  },
-  {
-    "id": "dote_estilo_lucha_a_ciegas",
-    "nombre": "Lucha a ciegas",
-    "categoria": "estilo_combate",
-    "requisito": "Rasgo Estilo de combate",
-    "descripcion": "Tienes visión ciega con un alcance de 10 pies.",
-    "beneficios": [
-      "Visión ciega con un alcance de 10 pies"
-    ],
-    "fuente": "PHB 2024",
-    "tipoAccion": "pasivo",
-    "categoriaMecanica": "pasivo_permanente"
-  },
-  {
-    "id": "dote_estilo_defensa",
-    "nombre": "Defensa",
-    "categoria": "estilo_combate",
-    "requisito": "Rasgo Estilo de combate",
-    "descripcion": "Mientras lleves puesta una armadura ligera, media o pesada, recibes un bonificador de +1 a la clase de armadura.",
-    "beneficios": [
-      "+1 a la Clase de Armadura mientras lleves puesta armadura"
-    ],
-    "fuente": "PHB 2024",
-    "tipoAccion": "pasivo",
-    "categoriaMecanica": "pasivo_permanente",
-    "efectos": [
-      {
-        "tipo": "modificador_ca",
-        "objetivo": "ca",
-        "valor": 1,
-        "condicion": "con_armadura",
-        "descripcion": "Dote defensa"
-      }
-    ]
-  },
-  {
     "id": "dote_estilo_combate_armas_dos_manos",
     "nombre": "Combate con armas a dos manos",
     "categoria": "estilo_combate",
@@ -68,20 +11,6 @@
     "fuente": "PHB 2024",
     "tipoAccion": "pasivo",
     "categoriaMecanica": "pasivo_permanente"
-  },
-  {
-    "id": "dote_estilo_intercepcion",
-    "nombre": "Intercepción",
-    "categoria": "estilo_combate",
-    "requisito": "Rasgo Estilo de combate",
-    "descripcion": "Cuando una criatura que puedas ver acierte a otra criatura que esté a 5 pies o menos de ti con una tirada de ataque, puedes llevar a cabo una reacción para reducir el daño causado al objetivo en 1d10 más tu bonificador por competencia. Para usar esta reacción, debes estar embrazando un escudo o empuñando un arma sencilla o marcial.",
-    "beneficios": [
-      "Reacción para reducir el daño en 1d10 + PB a un aliado a 5 pies con escudo o arma"
-    ],
-    "fuente": "PHB 2024",
-    "tipoAccion": "reaccion",
-    "categoriaMecanica": "activable",
-    "formulaDados": "1d10 + bono_competencia"
   },
   {
     "id": "dote_estilo_combate_armas_arrojadizas",
@@ -106,19 +35,6 @@
     ]
   },
   {
-    "id": "dote_estilo_proteccion",
-    "nombre": "Protección",
-    "categoria": "estilo_combate",
-    "requisito": "Rasgo Estilo de combate",
-    "descripcion": "Cuando una criatura que puedas ver ataque a un objetivo que no seas tú y esté a 5 pies o menos de ti, puedes llevar a cabo una reacción para interponer tu escudo si estás embrazando uno. Impones desventaja a la tirada de ataque desencadenante y al resto de tiradas de ataque contra el objetivo hasta el principio de tu siguiente turno si permaneces a 5 pies o menos del objetivo.",
-    "beneficios": [
-      "Reacción para imponer desventaja a ataques contra un aliado a 5 pies embrazando escudo"
-    ],
-    "fuente": "PHB 2024",
-    "tipoAccion": "reaccion",
-    "categoriaMecanica": "pasivo_permanente"
-  },
-  {
     "id": "dote_estilo_combate_dos_armas",
     "nombre": "Combate con dos armas",
     "categoria": "estilo_combate",
@@ -130,6 +46,57 @@
     "fuente": "PHB 2024",
     "tipoAccion": "pasivo",
     "categoriaMecanica": "pasivo_permanente"
+  },
+  {
+    "id": "dote_estilo_combate_sin_armas",
+    "nombre": "Combate sin armas",
+    "categoria": "estilo_combate",
+    "requisito": "Rasgo Estilo de combate",
+    "descripcion": "Cuando aciertes con tu ataque sin armas y causes daño, puedes infligir una cantidad de daño contundente igual a 1d6 más tu modificador por Fuerza en lugar del daño habitual de un ataque sin armas. Si no estás empuñando armas ni embrazando un escudo al hacer la tirada de ataque, el d6 se convierte en un d8. Al principio de cada uno de tus turnos, puedes infligir 1d4 de daño contundente a una criatura a la que tengas agarrada.",
+    "beneficios": [
+      "Ataque desarmado inflige 1d6 + FUE (o 1d8 + FUE sin armas ni escudo)",
+      "1d4 de daño contundente a criatura agarrada al inicio de cada turno"
+    ],
+    "fuente": "PHB 2024",
+    "tipoAccion": "pasivo",
+    "categoriaMecanica": "pasivo_permanente",
+    "efectos": [
+      {
+        "tipo": "ataque_desarmado",
+        "objetivo": "fuerza",
+        "valor": "1d8",
+        "condicion": "sin_escudo",
+        "descripcion": "Golpe sin Armas (Combate sin armas)"
+      },
+      {
+        "tipo": "ataque_desarmado",
+        "objetivo": "fuerza",
+        "valor": "1d6",
+        "descripcion": "Golpe sin Armas (Combate sin armas)"
+      }
+    ]
+  },
+  {
+    "id": "dote_estilo_defensa",
+    "nombre": "Defensa",
+    "categoria": "estilo_combate",
+    "requisito": "Rasgo Estilo de combate",
+    "descripcion": "Mientras lleves puesta una armadura ligera, media o pesada, recibes un bonificador de +1 a la clase de armadura.",
+    "beneficios": [
+      "+1 a la Clase de Armadura mientras lleves puesta armadura"
+    ],
+    "fuente": "PHB 2024",
+    "tipoAccion": "pasivo",
+    "categoriaMecanica": "pasivo_permanente",
+    "efectos": [
+      {
+        "tipo": "modificador_ca",
+        "objetivo": "ca",
+        "valor": 1,
+        "condicion": "con_armadura",
+        "descripcion": "Dote defensa"
+      }
+    ]
   },
   {
     "id": "dote_estilo_duelo",
@@ -201,31 +168,64 @@
     ]
   },
   {
-    "id": "dote_estilo_combate_sin_armas",
-    "nombre": "Combate sin armas",
+    "id": "dote_estilo_intercepcion",
+    "nombre": "Intercepción",
     "categoria": "estilo_combate",
     "requisito": "Rasgo Estilo de combate",
-    "descripcion": "Cuando aciertes con tu ataque sin armas y causes daño, puedes infligir una cantidad de daño contundente igual a 1d6 más tu modificador por Fuerza en lugar del daño habitual de un ataque sin armas. Si no estás empuñando armas ni embrazando un escudo al hacer la tirada de ataque, el d6 se convierte en un d8. Al principio de cada uno de tus turnos, puedes infligir 1d4 de daño contundente a una criatura a la que tengas agarrada.",
+    "descripcion": "Cuando una criatura que puedas ver acierte a otra criatura que esté a 5 pies o menos de ti con una tirada de ataque, puedes llevar a cabo una reacción para reducir el daño causado al objetivo en 1d10 más tu bonificador por competencia. Para usar esta reacción, debes estar embrazando un escudo o empuñando un arma sencilla o marcial.",
     "beneficios": [
-      "Ataque desarmado inflige 1d6 + FUE (o 1d8 + FUE sin armas ni escudo)",
-      "1d4 de daño contundente a criatura agarrada al inicio de cada turno"
+      "Reacción para reducir el daño en 1d10 + PB a un aliado a 5 pies con escudo o arma"
+    ],
+    "fuente": "PHB 2024",
+    "tipoAccion": "reaccion",
+    "categoriaMecanica": "activable",
+    "formulaDados": "1d10 + bono_competencia"
+  },
+  {
+    "id": "dote_estilo_lucha_a_ciegas",
+    "nombre": "Lucha a ciegas",
+    "categoria": "estilo_combate",
+    "requisito": "Rasgo Estilo de combate",
+    "descripcion": "Tienes visión ciega con un alcance de 10 pies.",
+    "beneficios": [
+      "Visión ciega con un alcance de 10 pies"
+    ],
+    "fuente": "PHB 2024",
+    "tipoAccion": "pasivo",
+    "categoriaMecanica": "pasivo_permanente"
+  },
+  {
+    "id": "dote_estilo_proteccion",
+    "nombre": "Protección",
+    "categoria": "estilo_combate",
+    "requisito": "Rasgo Estilo de combate",
+    "descripcion": "Cuando una criatura que puedas ver ataque a un objetivo que no seas tú y esté a 5 pies o menos de ti, puedes llevar a cabo una reacción para interponer tu escudo si estás embrazando uno. Impones desventaja a la tirada de ataque desencadenante y al resto de tiradas de ataque contra el objetivo hasta el principio de tu siguiente turno si permaneces a 5 pies o menos del objetivo.",
+    "beneficios": [
+      "Reacción para imponer desventaja a ataques contra un aliado a 5 pies embrazando escudo"
+    ],
+    "fuente": "PHB 2024",
+    "tipoAccion": "reaccion",
+    "categoriaMecanica": "pasivo_permanente"
+  },
+  {
+    "id": "dote_estilo_tiro_con_arco",
+    "nombre": "Tiro con arco",
+    "categoria": "estilo_combate",
+    "requisito": "Rasgo Estilo de combate",
+    "descripcion": "Recibes un bonificador de +2 a las tiradas de ataque con armas a distancia.",
+    "beneficios": [
+      "+2 a tiradas de ataque con armas a distancia"
     ],
     "fuente": "PHB 2024",
     "tipoAccion": "pasivo",
     "categoriaMecanica": "pasivo_permanente",
     "efectos": [
       {
-        "tipo": "ataque_desarmado",
-        "objetivo": "fuerza",
-        "valor": "1d8",
-        "condicion": "sin_escudo",
-        "descripcion": "Golpe sin Armas (Combate sin armas)"
-      },
-      {
-        "tipo": "ataque_desarmado",
-        "objetivo": "fuerza",
-        "valor": "1d6",
-        "descripcion": "Golpe sin Armas (Combate sin armas)"
+        "tipo": "bono_ataque",
+        "objetivo": "ataque_distancia",
+        "valor": 2,
+        "aplicaA": "arma_distancia",
+        "descripcion": "+2 a tiradas de ataque con armas a distancia"
       }
     ]
   }

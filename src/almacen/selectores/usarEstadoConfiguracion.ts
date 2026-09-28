@@ -43,6 +43,7 @@ export function usarEstadoConfiguracion() {
       pestañaActiva:                 s.pestañaActiva,
       campañaNombre:                 s.campañaNombre,
       cargandoDatos:                 s.cargandoDatos,
+      datosInicialesCargados:        s.datosInicialesCargados,
       metodoVidaMonstruo:            s.metodoVidaMonstruo,
       sistemaMagia:                  s.sistemaMagia,
       mostrarPorcentajeVidaAJugadores: s.mostrarPorcentajeVidaAJugadores,
@@ -57,6 +58,7 @@ export function usarAccionesConfiguracion() {
   return usarAlmacenDM(
     useShallow((s) => ({
       establecerPestaña:                          s.establecerPestaña,
+      establecerEsGM:                             s.establecerEsGM,
       establecerDatosCampaña:                     s.establecerDatosCampaña,
       establecerMetodoVidaMonstruo:               s.establecerMetodoVidaMonstruo,
       establecerSistemaMagia:                     s.establecerSistemaMagia,

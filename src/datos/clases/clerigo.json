@@ -754,6 +754,9 @@
           "tipoAccion": "accion",
           "categoriaMecanica": "consumible",
           "tieneUsosLimitados": true,
+          "esActivable": true,
+          "condicionAlActivar": "Corona de luz",
+          "duracionEfectoAlActivar": 10,
           "formulaUsos": "modificador de sabiduria (minimo 1)",
           "recuperacion": "descanso_largo",
           "escaladoUsos": {

@@ -16,7 +16,7 @@ import estilos from "./VistaJugadores.module.css";
 type SubPestanaJugador = "ficha" | "configuracion" | "personajes";
 
 export const VistaJugadores: React.FC = () => {
-  const { esGM } = usarEstadoConfiguracion();
+  const { esGM, datosInicialesCargados } = usarEstadoConfiguracion();
   const { agregarNotificacion } = usarAccionesConfiguracion();
   const { personajes, idPersonajeActivo, personajeActivo } = usarEstadoPersonajes();
   const {
@@ -34,10 +34,13 @@ export const VistaJugadores: React.FC = () => {
   );
 
   // Auto-resolución silenciosa de miniaturas de TaleSpire en segundo plano
+  // Se bloquea estrictamente hasta que datosInicialesCargados sea true para no vincular
+  // miniaturas al personaje por defecto temporal antes de leer la persistencia real.
   useEffect(() => {
+    if (!datosInicialesCargados) return;
     autoResolverMiniaturasJugador(personajes, vincularMiniaturaTSPersonaje);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [personajes.length, personajeActivo?.nombre]);
+  }, [datosInicialesCargados, personajes.length, personajeActivo?.nombre]);
 
   return (
     <div className={estilos.contenedorGeneral}>

@@ -1,15 +1,16 @@
 import { StateCreator } from 'zustand';
 import { ElementoPendiente, EncuentroGuardado, CriaturaIniciativa, NotificacionUI } from '@/almacen/usarAlmacenDM';
-import { MonstruoBase, HechizoBase, ObjetoHomebrew } from '@/tipos';
+import { MonstruoBase, HechizoBase, ObjetoHomebrew, PersonajeJugador } from '@/tipos';
 import { PERSONAJE_POR_DEFECTO } from '@/constantes';
 import { MONSTRUOS_INICIALES, HECHIZOS_INICIALES, OBJETOS_INICIALES } from '@/utiles/datosIniciales';
 import { leerBlobGlobal, limpiarBlobGlobal } from '@/utiles/almacenamientoTaleSpire';
 import { sanearObjetoHomebrew, sanearHechizoCD, sanearMonstruoSentidosYPasiva, sanearPersonaje } from '@/almacen/sanitizacion';
-import { importarDesdeJSON } from '@/almacen/importadorJSON';
+import { importarDesdeJSON, importarPersonajesDesdeJSON } from '@/almacen/importadorJSON';
 import { desduplicarEntidades } from '@/utiles/busquedaTolerante';
 import type { EstadoDM } from '@/almacen/usarAlmacenDM';
 import { generarId } from '@/utiles/generarId';
 import { logger } from '@/utiles/logger';
+import { establecerCacheEsGM } from '@/utiles/TaleSpireAdapter';
 
 export interface SliceConfiguracion {
   pestañaActiva: string;
@@ -25,6 +26,7 @@ export interface SliceConfiguracion {
   encuentrosGuardados: EncuentroGuardado[];
   notificaciones: NotificacionUI[];
   cargandoDatos: boolean;
+  datosInicialesCargados: boolean;
 
   agregarNotificacion: (mensaje: string, tipo?: "exito" | "error" | "info" | "advertencia") => void;
   eliminarNotificacion: (id: string) => void;
@@ -34,6 +36,7 @@ export interface SliceConfiguracion {
   establecerTipoHomebrew: (tipo: "criatura" | "hechizo" | "objeto") => void;
   establecerMetodoVidaMonstruo: (metodo: "estandar" | "maximo" | "azar") => void;
   establecerSistemaMagia: (sistema: "espacios" | "puntos") => void;
+  establecerEsGM: (esGM: boolean) => void;
   establecerDatosCampaña: (nombre: string, esGM: boolean) => void;
   establecerMostrarPorcentajeVidaAJugadores: (permitir: boolean) => void;
 
@@ -58,13 +61,13 @@ export const crearSliceConfiguracion: StateCreator<
   [],
   SliceConfiguracion
 > = (set, get) => ({
-  pestañaActiva: "iniciativa",
+  pestañaActiva: "jugadores",
   modoHomebrew: "crear" as const,
   tipoHomebrewActivo: "criatura" as const,
   metodoVidaMonstruo: "azar" as const,
   sistemaMagia: "espacios" as const,
   campañaNombre: "Cargando campaña de TaleSpire...",
-  esGM: true,
+  esGM: false,
   mostrarPorcentajeVidaAJugadores: typeof localStorage !== "undefined" ? localStorage.getItem("ts_mostrar_porcentaje_vida") !== "false" : true,
   listaPendientes: [
     { id: "p_1", texto: "Revisar hojas de personaje de los jugadores", completado: false },
@@ -74,7 +77,8 @@ export const crearSliceConfiguracion: StateCreator<
   notasDM: "Escribe aquí las notas de tu sesión...",
   encuentrosGuardados: [],
   notificaciones: [],
-  cargandoDatos: false,
+  cargandoDatos: true,
+  datosInicialesCargados: false,
 
   establecerPestaña: (pestaña: string) => set({ pestañaActiva: pestaña }),
   establecerModoHomebrew: (modo: "crear" | "lista") => set({ modoHomebrew: modo }),
@@ -85,7 +89,29 @@ export const crearSliceConfiguracion: StateCreator<
   establecerSistemaMagia: (sistema: "espacios" | "puntos") => {
     set({ sistemaMagia: sistema });
   },
-  establecerDatosCampaña: (nombre: string, esGM: boolean) => set({ campañaNombre: nombre, esGM }),
+  establecerEsGM: (esGM: boolean) => {
+    establecerCacheEsGM(esGM);
+    set((state) => ({
+      esGM,
+      pestañaActiva: esGM && state.pestañaActiva === "jugadores"
+        ? "iniciativa"
+        : !esGM && (state.pestañaActiva === "tablas" || state.pestañaActiva === "pendientes")
+        ? "jugadores"
+        : state.pestañaActiva
+    }));
+  },
+  establecerDatosCampaña: (nombre: string, esGM: boolean) => {
+    establecerCacheEsGM(esGM);
+    set((state) => ({
+      campañaNombre: nombre,
+      esGM,
+      pestañaActiva: esGM && state.pestañaActiva === "jugadores"
+        ? "iniciativa"
+        : !esGM && (state.pestañaActiva === "tablas" || state.pestañaActiva === "pendientes")
+        ? "jugadores"
+        : state.pestañaActiva
+    }));
+  },
   establecerMostrarPorcentajeVidaAJugadores: (permitir: boolean) => {
     if (typeof localStorage !== "undefined") {
       localStorage.setItem("ts_mostrar_porcentaje_vida", String(permitir));
@@ -160,6 +186,7 @@ export const crearSliceConfiguracion: StateCreator<
 
 
   cargarDatosPersistidos: () => {
+    set({ cargandoDatos: true });
     const ejecutarCarga = async () => {
       logger.info("[TS Storage] Iniciando carga de datos persistidos...");
       const blob = await leerBlobGlobal();
@@ -261,17 +288,17 @@ export const crearSliceConfiguracion: StateCreator<
         }
 
         logger.info("[TS Storage] Carga completa desde blob oficial de TaleSpire.");
-        set({ cargandoDatos: false });
+        set({ cargandoDatos: false, datosInicialesCargados: true });
         return;
       }
 
       logger.info("[TS Storage] Primera sesión limpia. Comenzando desde cero.");
-      set({ cargandoDatos: false });
+      set({ cargandoDatos: false, datosInicialesCargados: true });
     };
 
     ejecutarCarga().catch((error) => {
       logger.error("[TS Storage] Error crítico al cargar datos:", error);
-      set({ cargandoDatos: false });
+      set({ cargandoDatos: false, datosInicialesCargados: true });
     });
   },
 
@@ -283,15 +310,73 @@ export const crearSliceConfiguracion: StateCreator<
       objetosHomebrew: estado.objetosHomebrew
     });
 
+    let modificado = result.modificado;
+    const cambiosParciales: Partial<EstadoDM> = {};
+
     if (result.modificado) {
-      set({
-        baseDatosMonstruos: result.baseDatosMonstruos,
-        baseDatosHechizos: result.baseDatosHechizos,
-        objetosHomebrew: result.objetosHomebrew
-      });
+      cambiosParciales.baseDatosMonstruos = result.baseDatosMonstruos;
+      cambiosParciales.baseDatosHechizos = result.baseDatosHechizos;
+      cambiosParciales.objetosHomebrew = result.objetosHomebrew;
     }
 
-    return result.modificado;
+    if (datosJSON && typeof datosJSON === "object") {
+      const datosObj = datosJSON as Record<string, unknown>;
+
+      // 1. Personajes (Ficha individual o Party Backup)
+      if (Array.isArray(datosObj.personajes) || datosObj.personaje) {
+        const pjsImportados = importarPersonajesDesdeJSON(datosJSON);
+        if (pjsImportados.length > 0) {
+          const mapaPjs = new Map<string, PersonajeJugador>();
+          estado.personajes.forEach((pj) => mapaPjs.set(pj.id, pj));
+          if (
+            estado.personajes.length === 1 &&
+            estado.personajes[0].id === PERSONAJE_POR_DEFECTO.id &&
+            estado.personajes[0].nombre === PERSONAJE_POR_DEFECTO.nombre
+          ) {
+            mapaPjs.clear();
+          }
+          pjsImportados.forEach((pj) => mapaPjs.set(pj.id, pj));
+          const nuevaListaPjs = Array.from(mapaPjs.values());
+          cambiosParciales.personajes = nuevaListaPjs;
+          cambiosParciales.idPersonajeActivo = nuevaListaPjs[0]?.id || null;
+          modificado = true;
+        }
+      }
+
+      // 2. Notas del DM
+      const notas = datosObj.notas ?? datosObj.notasDM ?? datosObj.notes;
+      if (typeof notas === "string" && notas.trim()) {
+        cambiosParciales.notasDM = notas;
+        modificado = true;
+      }
+
+      // 3. Tareas Pendientes
+      const pendientes = datosObj.pendientes ?? datosObj.listaPendientes;
+      if (Array.isArray(pendientes) && pendientes.length > 0) {
+        cambiosParciales.listaPendientes = pendientes as ElementoPendiente[];
+        modificado = true;
+      }
+
+      // 4. Encuentros guardados
+      const encuentros = datosObj.encuentros ?? datosObj.encuentrosGuardados;
+      if (Array.isArray(encuentros) && encuentros.length > 0) {
+        cambiosParciales.encuentrosGuardados = encuentros as EncuentroGuardado[];
+        modificado = true;
+      }
+
+      // 5. Cola de iniciativa
+      const cola = datosObj.cola_iniciativa ?? datosObj.colaIniciativa;
+      if (Array.isArray(cola) && cola.length > 0) {
+        cambiosParciales.colaIniciativa = cola as CriaturaIniciativa[];
+        modificado = true;
+      }
+    }
+
+    if (modificado) {
+      set(cambiosParciales);
+    }
+
+    return modificado;
   },
 
   restablecerDatosDeFabrica: () => {

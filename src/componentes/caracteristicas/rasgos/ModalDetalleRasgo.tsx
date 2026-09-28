@@ -20,10 +20,8 @@ import {
   SlidersHorizontal
 } from "lucide-react";
 import { TablaProgresionRasgo } from "./TablaProgresionRasgo";
-import type { OpcionTrucoMago } from "./SelectorTrucoAltoElfo";
 import { SeccionSelectoresModalRasgo } from "./SeccionSelectoresModalRasgo";
 import { TextoEnriquecidoDND } from "@/componentes/comunes";
-import { usarEstadoHomebrew } from "@/almacen/selectores";
 import estilos from "./VistaRasgosJugador.module.css";
 
 interface ModalDetalleRasgoProps {
@@ -105,22 +103,6 @@ export const ModalDetalleRasgo: React.FC<ModalDetalleRasgoProps> = ({
   const sinUsosDisponibles = (tieneUsosPropios || tieneUsosPadre) && usosRestantes <= 0;
   const normNombre = rasgo.nombre.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
   const esCuracion = rasgo.categoriaMecanica === "curacion" || normNombre.includes("guerrero de los dioses");
-  const { baseDatosHechizos } = usarEstadoHomebrew();
-
-  const opcionesTrucosMago: OpcionTrucoMago[] = React.useMemo(() => {
-    return (baseDatosHechizos || [])
-      .filter((h) => {
-        if (h.nivel !== 0) return false;
-        if (!h.clases || h.clases.length === 0) return true;
-        return h.clases.some((c) => c.toLowerCase().includes("mago") || c.toLowerCase().includes("wizard"));
-      })
-      .map((h) => ({
-        id: h.id,
-        nombre: h.nombre,
-        subtitulo: `${h.escuela} • ${h.tiempoLanzamiento} • ${h.alcance}`
-      }))
-      .sort((a, b) => (a.nombre || "").localeCompare(b.nombre || "", "es"));
-  }, [baseDatosHechizos]);
   const esManosCurativas = normNombre.includes("manos curativas");
   const esMantoInspiracion = normNombre.includes("manto de inspiracion");
   const esInspiracionBardica = normNombre.includes("inspiracion bardica");
@@ -334,7 +316,7 @@ export const ModalDetalleRasgo: React.FC<ModalDetalleRasgoProps> = ({
                   {esCuracion
                     ? `Curar ${formulaEfectiva} (Gasta 1 dado)`
                     : rasgo.gastarDePadre && usosPadre
-                    ? `Lanzar ${formulaEfectiva} (Gasta 1 Inspiración)`
+                    ? `Lanzar ${formulaEfectiva} (Gasta 1 dado)`
                     : `Lanzar ${formulaEfectiva}`}
                 </span>
               </button>
@@ -356,7 +338,6 @@ export const ModalDetalleRasgo: React.FC<ModalDetalleRasgoProps> = ({
             <SeccionSelectoresModalRasgo
               selectores={rasgo.selectores}
               nivelPersonaje={nivelPersonaje}
-              opcionesTrucosMago={opcionesTrucosMago}
               alActualizarSeleccion={alActualizarSeleccion}
             />
           )}

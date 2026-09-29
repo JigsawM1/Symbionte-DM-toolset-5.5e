@@ -732,7 +732,8 @@ export function usarAccionesPersonajes() {
       establecerUsosRestantesRasgoPersonaje: s.establecerUsosRestantesRasgoPersonaje,
       sincronizarRasgosPersonaje:         s.sincronizarRasgosPersonaje,
       alternarActivoRasgo:                s.alternarActivoRasgo,
-      actualizarSeleccionRasgo:           s.actualizarSeleccionRasgo
+      actualizarSeleccionRasgo:           s.actualizarSeleccionRasgo,
+      dispararRasgosIniciativaPersonaje:  s.dispararRasgosIniciativaPersonaje
     }))
   );
 }

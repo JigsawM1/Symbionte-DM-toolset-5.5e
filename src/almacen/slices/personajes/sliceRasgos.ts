@@ -441,13 +441,9 @@ export const crearSubSliceRasgos: StateCreator<
         }
       }
 
-      // Restauración de recursos al activar (declarativa vía restaurarUsosAlActivar con fallback retrocompatible)
-      const esFuriaPersistenteLegacy = !targetTrait.restaurarUsosAlActivar &&
-        (idObjetivo.includes("furia_persistente") || nomObjetivo.includes("furia persistente"));
-
-      const restauracion = targetTrait?.restaurarUsosAlActivar || (
-        esFuriaPersistenteLegacy ? { idRasgoObjetivo: "rasgo_cls_barbaro_furia", cantidad: "maximo" as const } : undefined
-      );
+      // Si el rasgo se dispara al tirar iniciativa, no debe restaurar ni auto-desactivarse en este toggle manual
+      const esDiferidoAIniciativa = Boolean(targetTrait.dispararAlTirarIniciativa);
+      const restauracion = !esDiferidoAIniciativa ? targetTrait?.restaurarUsosAlActivar : undefined;
 
       const rasgosActualizados = (pj.rasgos || []).map((r) => {
         const rNom = r.nombre.toLowerCase().trim();
@@ -466,10 +462,10 @@ export const crearSubSliceRasgos: StateCreator<
 
         if (r.id === idRasgo) {
           let usosRest = r.usosRestantes;
-          if (nuevoActivo && r.tieneUsosLimitados && typeof r.usosRestantes === "number") {
+          if (nuevoActivo && !esDiferidoAIniciativa && r.tieneUsosLimitados && typeof r.usosRestantes === "number") {
             usosRest = Math.max(0, r.usosRestantes - 1);
           }
-          const debeAutoDesactivar = !!(nuevoActivo && (r.autoDesactivar || (esFuriaPersistenteLegacy && r.id === idRasgo)));
+          const debeAutoDesactivar = !!(nuevoActivo && !esDiferidoAIniciativa && r.autoDesactivar);
           return {
             ...r,
             activo: debeAutoDesactivar ? false : nuevoActivo,
@@ -921,5 +917,75 @@ export const crearSubSliceRasgos: StateCreator<
         set({ colaIniciativa: nuevaCola });
       }
     }
+  },
+
+  dispararRasgosIniciativaPersonaje: (idPj: string) => {
+    mutarPersonaje(set, idPj, (pj) => {
+      if (!Array.isArray(pj.rasgos) || pj.rasgos.length === 0) return pj;
+
+      let huboCambios = false;
+      const rasgosActualizados = pj.rasgos.map((r) => {
+        if (!r.dispararAlTirarIniciativa) {
+          return r;
+        }
+
+        // Si es activable, solo se dispara si está actualmente activo
+        const estaHabilitado = r.esActivable ? r.activo : true;
+        const tieneUsos = !r.tieneUsosLimitados || (typeof r.usosRestantes === "number" && r.usosRestantes > 0);
+
+        if (!estaHabilitado || !tieneUsos) {
+          return r;
+        }
+
+        huboCambios = true;
+
+        let usosRest = r.usosRestantes;
+        if (r.tieneUsosLimitados && typeof r.usosRestantes === "number") {
+          usosRest = Math.max(0, r.usosRestantes - 1);
+        }
+
+        const debeAutoDesactivar = Boolean(r.autoDesactivar || r.esActivable);
+
+        return {
+          ...r,
+          activo: debeAutoDesactivar ? false : r.activo,
+          usosRestantes: usosRest
+        };
+      });
+
+      if (!huboCambios) return pj;
+
+      // Aplicar restauraciones declarativas de recursos para los rasgos que se dispararon
+      const rasgosDisparados = pj.rasgos.filter((r) => {
+        if (!r.dispararAlTirarIniciativa) return false;
+        const estaHabilitado = r.esActivable ? r.activo : true;
+        const tieneUsos = !r.tieneUsosLimitados || (typeof r.usosRestantes === "number" && r.usosRestantes > 0);
+        return estaHabilitado && tieneUsos && r.restaurarUsosAlActivar;
+      });
+
+      for (const rd of rasgosDisparados) {
+        if (rd.restaurarUsosAlActivar) {
+          const targetId = rd.restaurarUsosAlActivar.idRasgoObjetivo.toLowerCase().trim();
+          for (let i = 0; i < rasgosActualizados.length; i++) {
+            const tr = rasgosActualizados[i];
+            if (tr.id.toLowerCase().trim() === targetId || tr.nombre.toLowerCase().trim() === targetId) {
+              const max = typeof tr.usosMaximos === "number" ? tr.usosMaximos : (tr.usosRestantes ?? 1);
+              const cantRestaurar = rd.restaurarUsosAlActivar.cantidad === "maximo"
+                ? max
+                : Math.min(max, (tr.usosRestantes || 0) + rd.restaurarUsosAlActivar.cantidad);
+              rasgosActualizados[i] = {
+                ...tr,
+                usosRestantes: cantRestaurar
+              };
+            }
+          }
+        }
+      }
+
+      return {
+        ...pj,
+        rasgos: rasgosActualizados
+      };
+    });
   }
 });

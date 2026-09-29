@@ -163,6 +163,7 @@ export interface SubSliceRasgos {
   sincronizarRasgosPersonaje: (idPj: string) => void;
   alternarActivoRasgo: (idPj: string, idRasgo: string) => void;
   actualizarSeleccionRasgo: (idPj: string, idRasgo: string, idSelector: string, valorActual: string[]) => void;
+  dispararRasgosIniciativaPersonaje: (idPj: string) => void;
 }
 
 // ==========================================

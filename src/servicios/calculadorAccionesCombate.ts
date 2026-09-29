@@ -330,6 +330,11 @@ export function resolverRasgosAcciones(
 
     const tieneDados = Boolean(formulaDadosEfectiva && formulaDadosEfectiva.trim() !== "");
 
+    // Si tiene tirada de dados pero carece de categoría de acción explícita, se clasifica como acción táctica
+    if (tieneDados && categorias.length === 0) {
+      categorias.push("accion");
+    }
+
     // 3. Excluir si es puramente pasivo permanente sin mecánicas activas
     const esPasivoPuro =
       (rasgo.tipoAccion === "pasivo" || !rasgo.tipoAccion) &&

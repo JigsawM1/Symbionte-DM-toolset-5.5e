@@ -1,7 +1,8 @@
 import {
   type PersonajeJugador,
   type TamanoPersonaje,
-  type VelocidadEstructurada
+  type VelocidadEstructurada,
+  type SentidosEstructurados
 } from "@/tipos";
 import { normalizar } from "./utilidadesRasgos";
 import {
@@ -143,3 +144,63 @@ export function obtenerVelocidadesEfectivas(personaje: PersonajeJugador): Veloci
 }
 
 export const calcularVelocidadPersonaje = obtenerVelocidadesEfectivas;
+
+/**
+ * Calcula los sentidos efectivos del personaje (visión en la oscuridad, percepción pasiva, etc.)
+ * considerando valores base de especie/ficha y modificaciones otorgadas por rasgos activos
+ * (ej. Aspecto de las tierras salvajes: Búho).
+ * En D&D 5.5e: Si ya posee visión en la oscuridad, suma el bono; si no poseía, obtiene el valor mínimo indicado.
+ */
+export function obtenerSentidosEfectivos(personaje: PersonajeJugador): SentidosEstructurados {
+  let visionBase = 0;
+  let percepcionPasiva = 10;
+
+  if (typeof personaje.sentidos === "string") {
+    const match = personaje.sentidos.match(/visi[oó]n en la oscuridad\s*(\d+)/i);
+    if (match) {
+      visionBase = parseInt(match[1], 10) || 0;
+    }
+    const matchPP = personaje.sentidos.match(/percepci[oó]n pasiva\s*(\d+)/i);
+    if (matchPP) {
+      percepcionPasiva = parseInt(matchPP[1], 10) || 10;
+    }
+  } else if (personaje.sentidos && typeof personaje.sentidos === "object") {
+    visionBase = personaje.sentidos.visionOscuridad || 0;
+    percepcionPasiva = personaje.sentidos.percepcionPasiva ?? 10;
+  }
+
+  const efectos = evaluarEfectosRasgosActivos(personaje);
+  let bonoVision = 0;
+  let visionMinima = 0;
+
+  for (const ef of efectos) {
+    if (
+      (ef.tipo === "modificador_stat" || ef.tipo === "personalizado") &&
+      (ef.objetivo === "vision_oscuridad" || ef.objetivo === "sentidos.vision_oscuridad")
+    ) {
+      const valNum = Number(ef.valor) || 0;
+      if (valNum > 0) {
+        if (visionBase > 0) {
+          bonoVision += valNum;
+        } else {
+          visionMinima = Math.max(visionMinima, valNum);
+        }
+      }
+    }
+  }
+
+  const visionFinal = visionBase > 0 ? (visionBase + bonoVision) : visionMinima;
+
+  const resultado: SentidosEstructurados = {
+    percepcionPasiva,
+    visionOscuridad: visionFinal > 0 ? visionFinal : undefined,
+    visionCiega: typeof personaje.sentidos === "object" ? personaje.sentidos?.visionCiega : undefined,
+    visionVerdadera: typeof personaje.sentidos === "object" ? personaje.sentidos?.visionVerdadera : undefined,
+    sentidoSismico: typeof personaje.sentidos === "object" ? personaje.sentidos?.sentidoSismico : undefined
+  };
+
+  return resultado;
+}
+
+export const calcularSentidosPersonaje = obtenerSentidosEfectivos;
+

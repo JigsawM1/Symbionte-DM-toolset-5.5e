@@ -621,6 +621,7 @@
           ],
           "sincronizarEfectosConFormula": true,
           "esActivable": true,
+          "autoDesactivarAlTirarDano": true,
           "ligadoA": "rasgo_cls_barbaro_ataque_temerario",
           "categoriaMecanica": "activable",
           "efectos": [
@@ -730,17 +731,44 @@
                 {
                   "id": "buho",
                   "nombre": "Búho",
-                  "descripcion": "+60 pies de visión en la oscuridad"
+                  "descripcion": "+60 pies de visión en la oscuridad",
+                  "efectos": [
+                    {
+                      "tipo": "modificador_stat",
+                      "objetivo": "vision_oscuridad",
+                      "valor": 60,
+                      "descripcion": "+60 pies de visión en la oscuridad",
+                      "activo": true
+                    }
+                  ]
                 },
                 {
                   "id": "pantera",
                   "nombre": "Pantera",
-                  "descripcion": "Velocidad trepando igual a tu velocidad al caminar"
+                  "descripcion": "Velocidad trepando igual a tu velocidad al caminar",
+                  "efectos": [
+                    {
+                      "tipo": "movimiento_especial",
+                      "objetivo": "velocidad.escalar",
+                      "valor": "caminar",
+                      "descripcion": "Velocidad trepando igual a tu velocidad al caminar",
+                      "activo": true
+                    }
+                  ]
                 },
                 {
                   "id": "salmon",
                   "nombre": "Salmón",
-                  "descripcion": "Velocidad nadando igual a tu velocidad al caminar"
+                  "descripcion": "Velocidad nadando igual a tu velocidad al caminar",
+                  "efectos": [
+                    {
+                      "tipo": "movimiento_especial",
+                      "objetivo": "velocidad.nadar",
+                      "valor": "caminar",
+                      "descripcion": "Velocidad nadando igual a tu velocidad al caminar",
+                      "activo": true
+                    }
+                  ]
                 }
               ],
               "maxSelecciones": 1,
@@ -828,31 +856,22 @@
           "tipoAccion": "pasivo",
           "subclase": "Senda del Árbol del Mundo",
           "ligadoA": "rasgo_cls_barbaro_furia",
-          "categoriaMecanica": "selector_informativo",
-          "selectores": [
+          "formulaDados": "2d6",
+          "escaladoFormulaDados": [
             {
-              "id": "vitalidad_arbol_opcion",
-              "tipo": "unico",
-              "etiqueta": "Efecto de Vitalidad del Árbol",
-              "opciones": [
-                {
-                  "id": "oleada_vitalidad",
-                  "nombre": "Oleada de vitalidad",
-                  "descripcion": "Gana PV temporales iguales a tu nivel de bárbaro al entrar en Furia"
-                },
-                {
-                  "id": "fuerza_dadora_vida",
-                  "nombre": "Fuerza dadora de vida",
-                  "descripcion": "Otorga PV temporales (d6 igual a daño de Furia) a un aliado a 10 pies al inicio de tu turno"
-                }
-              ],
-              "maxSelecciones": 1,
-              "valorActual": [
-                "oleada_vitalidad"
-              ],
-              "visualizacion": "normal"
+              "nivelMinimo": 1,
+              "valor": "2d6"
+            },
+            {
+              "nivelMinimo": 9,
+              "valor": "3d6"
+            },
+            {
+              "nivelMinimo": 16,
+              "valor": "4d6"
             }
-          ]
+          ],
+          "categoriaMecanica": "pasivo_permanente"
         },
         {
           "nivel": 6,

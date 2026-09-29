@@ -664,7 +664,7 @@ describe("SlicePersonajes - Daño y Escudo (HP Temporal)", () => {
   });
 
   describe("Sincronización de Rasgos y Condiciones (Furia Persistente, Furia de los Dioses)", () => {
-    it("al activar Furia Persistente debe recargar los usos de Furia base a su máximo", () => {
+    it("al activar Furia Persistente permanece activa esperando iniciativa para recargar Furia y auto-desactivarse", () => {
       usarAlmacenDM.setState({
         personajes: [
           {
@@ -707,6 +707,12 @@ describe("SlicePersonajes - Daño y Escudo (HP Temporal)", () => {
                 activo: false,
                 notas: "",
                 esActivable: true,
+                autoDesactivar: true,
+                dispararAlTirarIniciativa: true,
+                restaurarUsosAlActivar: {
+                  idRasgoObjetivo: "rasgo_cls_barbaro_furia",
+                  cantidad: "maximo"
+                },
                 efectos: [],
                 selectores: []
               }
@@ -716,14 +722,26 @@ describe("SlicePersonajes - Daño y Escudo (HP Temporal)", () => {
         ]
       });
 
-      const { alternarActivoRasgo } = usarAlmacenDM.getState();
+      const { alternarActivoRasgo, dispararRasgosIniciativaPersonaje } = usarAlmacenDM.getState();
+
+      // 1. Activar rasgo: debe permanecer activo sin auto-desactivarse inmediatamente
       alternarActivoRasgo("pj-barbaro", "rasgo_cls_barbaro_furia_persistente");
 
-      const pj = usarAlmacenDM.getState().personajes.find((p) => p.id === "pj-barbaro");
-      const furiaBase = pj?.rasgos.find((r) => r.id === "rasgo_cls_barbaro_furia");
-      const furiaPersistente = pj?.rasgos.find((r) => r.id === "rasgo_cls_barbaro_furia_persistente");
+      let pj = usarAlmacenDM.getState().personajes.find((p) => p.id === "pj-barbaro");
+      let furiaBase = pj?.rasgos.find((r) => r.id === "rasgo_cls_barbaro_furia");
+      let furiaPersistente = pj?.rasgos.find((r) => r.id === "rasgo_cls_barbaro_furia_persistente");
 
-      // Furia persistente se auto-desactiva inmediatamente tras su activación (activo: false)
+      expect(furiaPersistente?.activo).toBe(true);
+      expect(furiaPersistente?.usosRestantes).toBe(1);
+      expect(furiaBase?.usosRestantes).toBe(0);
+
+      // 2. Disparar iniciativa: se restaura la furia, se descuenta el uso y se auto-desactiva
+      dispararRasgosIniciativaPersonaje("pj-barbaro");
+
+      pj = usarAlmacenDM.getState().personajes.find((p) => p.id === "pj-barbaro");
+      furiaBase = pj?.rasgos.find((r) => r.id === "rasgo_cls_barbaro_furia");
+      furiaPersistente = pj?.rasgos.find((r) => r.id === "rasgo_cls_barbaro_furia_persistente");
+
       expect(furiaPersistente?.activo).toBe(false);
       expect(furiaPersistente?.usosRestantes).toBe(0);
       expect(furiaBase?.usosRestantes).toBe(5); // Rellenado a su máximo

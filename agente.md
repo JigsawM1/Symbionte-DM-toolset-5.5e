@@ -20,6 +20,67 @@ Este archivo registra reglas globales, errores encontrados, sus causas raíz y l
    - Toda mecánica, progresión de dados, escalado de usos, recuperación o desbloqueo dinámico debe resolverse mediante metadatos declarativos (`escaladoFormulaDados`, `escaladoUsos`, `escaladoRecuperacion`, `opcionesDinamicas`, `escaladoMaxSelecciones`, `sincronizarEfectosConFormula`, `heredarDadosPadre`, `gastarDePadre`, `ligadoA`, `efectos`) delegando en funciones puras agnósticas como `resolverEscaladosRasgo`. Esta regla está reforzada en CI vía ESLint `no-restricted-syntax` y la suite `rasgoGenericidad.test.ts`.
 
 
+## [2026-09-29] Corrección Furia Persistente (Bárbaro): Autodesactivación y Recarga Diferidas a la Tirada de Iniciativa
+
+**Problema Reportado por el Usuario:**
+- "tambien otra cosa con el barbaro FURIA PERSISTENTE se esta autodesactivando no esta esperando a que tire iniciatia para autodesactivarse"
+
+**Causa Raíz Diagnosticada:**
+- En `sliceRasgos.ts`, dentro de `alternarActivoRasgo`, cualquier rasgo con `autoDesactivar: true` o `restaurarUsosAlActivar` aplicaba inmediatamente la recarga de recursos del rasgo objetivo (Furia), consumía un uso y se autodesactivaba al instante (`activo: false`) en el momento en que el usuario pulsaba el interruptor manual en la interfaz.
+- Esto impedía que el rasgo permaneciera activo (`activo: true`) como toggle preparado esperando la tirada de iniciativa. Además, existía código legado con bifurcaciones por nombre literal (`esFuriaPersistenteLegacy`), vulnerando el principio de catálogo declarativo.
+
+**Soluciones Arquitectónicas Aplicadas:**
+1. **Diferimiento de la Autodesactivación y Consumo en `alternarActivoRasgo`:**
+   - Si `targetTrait.dispararAlTirarIniciativa` es `true`, `alternarActivoRasgo` conmuta el estado a `activo: nuevoActivo` sin consumir usos de forma prematura, sin restaurar recursos antes de tiempo y sin autodesactivarse.
+   - Purgada la comprobación hardcodeada por nombre (`esFuriaPersistenteLegacy`), manteniendo la resolución 100% declarativa.
+2. **Acción Centralizada `dispararRasgosIniciativaPersonaje` en Zustand (`sliceRasgos.ts` / `slicePersonajesTipos.ts`):**
+   - Creado el método `dispararRasgosIniciativaPersonaje(idPj: string)` en `SubSliceRasgos`.
+   - Al lanzarse la iniciativa, recorre inmutablemente los rasgos del personaje: si un rasgo tiene `dispararAlTirarIniciativa: true`, está habilitado (`r.esActivable ? r.activo : true`) y posee usos disponibles, restaura los recursos del rasgo objetivo (`restaurarUsosAlActivar`), descuenta 1 uso y se autodesactiva (`activo: false`).
+3. **Integración en la Vista (`HojaPersonaje.tsx` y `usarAccionesPersonajes`):**
+   - En `manejarTirarIniciativa`, se sustituyó el bucle manual local por la llamada directa a `dispararRasgosIniciativaPersonaje(personajeActivo.id)`.
+4. **Pruebas y Verificación:**
+   - Actualizados los tests unitarios en `bardoYBarbaroDND55.test.ts` y `slicePersonajes.test.ts` para verificar la secuencia completa (toggle activa y mantiene el rasgo sin gastar; la tirada de iniciativa recarga la Furia base, gasta el uso y auto-desactiva el rasgo).
+   - 1,180 pruebas pasando al 100% (86 suites), `tsc --noEmit` completado con 0 errores, ESLint 0 errores/warnings, verificación de límites de línea aprobada.
+
+## [2026-09-29] Hotfix Mecánico D&D 5.5e: Bárbaro (Vitalidad del Árbol, Aspecto Tierras Salvajes, Frenesí) y Bardo (Movimiento Inspirador)
+
+**Problemas Reportados por el Usuario:**
+1. `barbaro.json`:
+   - "Senda del Árbol del Mundo: VITALIDAD DEL ÁRBOL, me di cuenta que no es un selector, es un mejora pasiva, es un tirar dados"
+   - "añadir las respectivas mejoras de NIVEL 6: ASPECTO DE LAS TIERRAS SALVAJES según su selector"
+   - "Aplicar autodesactivar al tirar daño a FRENESÍ"
+2. `bardo.json`:
+   - "MOVIMIENTO INSPIRADOR, no tira dado, solo es un consumible gastar padre"
+
+**Causas Raíz Diagnosticadas:**
+1. **Vitalidad del Árbol mal categorizado como selector informativo:**
+   - En `barbaro.json`, el rasgo poseía un array `selectores` artificial con las dos facetas del rasgo (*Oleada de vitalidad* y *Fuerza dadora de vida*). La mecánica canónica es pasiva permanente: al activar Furia se gana HP temporal igual al nivel de bárbaro (oleada), y al inicio de cada turno con furia activa se tiran dados de curación/HP temporal (tantos d6 como el bonificador de Daño de Furia: 2d6 en nv 3, 3d6 en nv 9, 4d6 en nv 16).
+   - En el calculador de acciones de combate (`calculadorAccionesCombate.ts`), los rasgos clasificados con `tipoAccion: "pasivo"` eran descartados si no tenían acciones ni activables, impidiendo ejecutar tiradas de dados desde el panel de acciones si el rasgo era un pasivo con fórmula de tirada.
+2. **Aspecto de las Tierras Salvajes con opciones informativas sin efectos mecánicos:**
+   - Las tres opciones del selector (*Búho*, *Pantera* y *Salmón*) carecían de bloques `efectos` mecánicos, impidiendo que el motor de movilidad o sentidos actualizara la visión en la oscuridad o las velocidades de trepar/nadar.
+3. **Frenesí sin bandera de auto-desactivación táctica:**
+   - La función `desactivarRasgosDeImpactoDano` en `usarCalculoAtaquesJugador.ts` ya buscaba y alternaba rasgos con `autoDesactivarAlTirarDano: true`, pero a `Frenesí` en la Senda del Berserker le faltaba declarar dicha propiedad en su JSON.
+4. **Movimiento Inspirador del Bardo heredando dados del padre incorrectamente:**
+   - En el Colegio de la Danza (nv 6), el rasgo `Movimiento inspirador` tenía configurado `"heredarDadosPadre": true`. Esto provocaba que en la tarjeta del rasgo y en la interfaz de combate se renderizara un botón para tirar el dado de Inspiración bárdica, cuando la regla oficial solo utiliza una reacción y gasta un uso de Inspiración bárdica para permitir desplazamientos sin provocar ataques de oportunidad (no efectúa tirada de dado).
+
+**Soluciones Arquitectónicas Aplicadas:**
+1. **Reestructuración de Vitalidad del Árbol (`barbaro.json` y `calculadorAccionesCombate.ts`):**
+   - Eliminado el selector redundante. Asignado `"categoriaMecanica": "pasivo_permanente"`, `"formulaDados": "2d6"` y `"escaladoFormulaDados"` (nv 1: 2d6, nv 9: 3d6, nv 16: 4d6).
+   - En `calculadorAccionesCombate.ts`, se incorporó la regla declarativa genérica: si un rasgo tiene tirada de dados (`tieneDados`) pero carece de economía explícita, se clasifica como `"accion"` para que no se descarte y el jugador pueda lanzar sus dados directamente desde el panel de combate.
+2. **Efectos Mecánicos en Aspecto de las Tierras Salvajes (`barbaro.json` y `evaluadorMovilidadRasgos.ts`):**
+   - Configurados efectos mecánicos para cada opción:
+     - `buho`: `modificador_stat`, objetivo `vision_oscuridad`, valor `60`.
+     - `pantera`: `movimiento_especial`, objetivo `velocidad.escalar`, valor `caminar`.
+     - `salmon`: `movimiento_especial`, objetivo `velocidad.nadar`, valor `caminar`.
+   - Creada y expuesta la función pura `obtenerSentidosEfectivos(personaje: PersonajeJugador): SentidosEstructurados` (con alias `calcularSentidosPersonaje`) en `evaluadorMovilidadRasgos.ts` para evaluar bonos numéricos a la visión en la oscuridad respetando la arquitectura unidireccional sin importar módulos de capas superiores.
+3. **Autodesactivación en Frenesí (`barbaro.json`):**
+   - Añadida la propiedad `"autoDesactivarAlTirarDano": true` a Frenesí en la Senda del Berserker, integrándolo orgánicamente con el sistema de ataques del jugador.
+4. **Corrección de Movimiento Inspirador (`bardo.json`):**
+   - Retirado `"heredarDadosPadre": true` de `Movimiento inspirador` manteniendo `"gastarDePadre": true`. Ahora consume el recurso padre sin habilitar botón de tirada.
+5. **Verificación y Pruebas:**
+   - Creada suite de pruebas en `src/almacen/slices/bardoYBarbaroDND55.test.ts` validando exhaustivamente las 4 correcciones (escalado de dados, clasificación de combate, efectos de sentidos/velocidad, autodesactivación y consumo sin dados).
+   - 1,180 pruebas unitarias aprobadas (86 suites), `tsc --noEmit` completado con 0 errores, ESLint 0 errores/warnings (`--max-warnings=0`), verificación de límites de línea exitosa.
+
 ## [2026-09-29] Ajuste de UI: Eliminación del Selector de Personaje en Acciones, Compendio e Inventario y Supresión del Checkbox de Preparación en Hoja de Personaje
 
 **Problema Reportado por el Usuario:**

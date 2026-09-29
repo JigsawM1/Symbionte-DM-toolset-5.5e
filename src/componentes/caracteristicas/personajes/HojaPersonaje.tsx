@@ -83,8 +83,7 @@ export const HojaPersonaje: React.FC<HojaPersonajeProps> = ({ alAbrirConfiguraci
     alternarConjuroPreparado,
     desprepararConjuroPersonaje,
     quitarEfectoPersonaje,
-    establecerUsosRestantesRasgoPersonaje,
-    gastarUsoRasgoPersonaje
+    dispararRasgosIniciativaPersonaje
   } = usarAccionesPersonajes();
 
   const { establecerTipoTirada } = usarAccionesIniciativa();
@@ -298,24 +297,8 @@ export const HojaPersonaje: React.FC<HojaPersonajeProps> = ({ alAbrirConfiguraci
     );
 
     // Procesar rasgos declarativos automáticos al tirar iniciativa (ej. Furia persistente)
-    if (Array.isArray(personajeActivo.rasgos)) {
-      for (const r of personajeActivo.rasgos) {
-        if (r.dispararAlTirarIniciativa && r.tieneUsosLimitados && (r.usosRestantes ?? 0) > 0) {
-          if (r.restaurarUsosAlActivar) {
-            const targetId = r.restaurarUsosAlActivar.idRasgoObjetivo;
-            const targetTrait = personajeActivo.rasgos.find(
-              (t) => t.id === targetId || t.nombre.toLowerCase().trim() === targetId.toLowerCase().trim()
-            );
-            if (targetTrait) {
-              const maxUsos = targetTrait.usosMaximos ?? 1;
-              establecerUsosRestantesRasgoPersonaje(personajeActivo.id, targetTrait.id, maxUsos);
-              gastarUsoRasgoPersonaje(personajeActivo.id, r.id);
-            }
-          }
-        }
-      }
-    }
-  }, [personajeActivo, statsCalculadas, penalizacionSinComp, desventajaSigiloArmadura, lanzarTiradaD20Personaje, establecerUsosRestantesRasgoPersonaje, gastarUsoRasgoPersonaje]);
+    dispararRasgosIniciativaPersonaje(personajeActivo.id);
+  }, [personajeActivo, statsCalculadas, penalizacionSinComp, desventajaSigiloArmadura, lanzarTiradaD20Personaje, dispararRasgosIniciativaPersonaje]);
 
   const manejarTirarSalvacionMuerte3D = useCallback(async () => {
     if (!personajeActivo) return;

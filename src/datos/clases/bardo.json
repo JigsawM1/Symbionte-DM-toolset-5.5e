@@ -296,7 +296,6 @@
           "subclase": "Colegio de la Danza",
           "ligadoA": "rasgo_cls_bardo_inspiracion_bardica",
           "gastarDePadre": true,
-          "heredarDadosPadre": true,
           "categoriaMecanica": "consumible"
         },
         {

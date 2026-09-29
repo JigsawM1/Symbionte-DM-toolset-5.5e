@@ -10,12 +10,15 @@ import {
   tieneConjuroGratuitoActivo,
   obtenerCompetenciasEfectivasTexto,
   obtenerMaestriasArmasAprendidas,
-  personajeTieneMaestriaArma
+  personajeTieneMaestriaArma,
+  obtenerVelocidadesEfectivas,
+  obtenerSentidosEfectivos
 } from "@/servicios/evaluadorEfectosRasgos";
 import { EFECTOS_PREDEFINIDOS } from "@/utiles/datosIniciales";
 import { calcularEstadisticasPersonaje } from "@/almacen/selectores/usarEstadoPersonajes";
 import { sincronizarRasgosAutomaticos } from "@/servicios/compendioRasgos";
-import { aplicarBuildClaseAPersonaje } from "@/servicios/gestorClases";
+import { aplicarBuildClaseAPersonaje, obtenerRasgosClaseYSubclase } from "@/servicios/gestorClases";
+import { resolverRasgosAcciones } from "@/servicios/calculadorAccionesCombate";
 import { aplicarResultadoHpTemporalEnEstado } from "@/utiles/lanzadorDados";
 import { prepararLanzamiento, type SolicitudLanzamiento } from "@/servicios/servicioLanzamientoConjuros";
 import type { PersonajeJugador, RasgoPersonaje, ObjetoInventario, HechizoBase } from "@/tipos";
@@ -62,7 +65,7 @@ describe("D&D 5.5e - Bardo, Subclases y Hotfix Bárbaro", () => {
   });
 
   describe("Hotfix Bárbaro: Furia Persistente", () => {
-    it("al activar Furia Persistente restaura los usos de Furia y se auto-desactiva inmediatamente", () => {
+    it("al activar Furia Persistente permanece activa esperando a tirar iniciativa para restaurar Furia y auto-desactivarse", () => {
       const pjBarbaro: PersonajeJugador = {
         ...PERSONAJE_POR_DEFECTO,
         id: "pj-barbaro-15",
@@ -86,13 +89,18 @@ describe("D&D 5.5e - Bardo, Subclases y Hotfix Bárbaro", () => {
             id: "rasgo_cls_barbaro_furia_persistente",
             nombre: "Furia persistente",
             descripcion: "Restaura los usos de furia",
-            tipoAccion: "especial",
+            tipoAccion: "pasivo",
             tieneUsosLimitados: true,
             usosMaximos: 1,
             usosRestantes: 1,
             recuperacion: "descanso_largo",
             esActivable: true,
             autoDesactivar: true,
+            dispararAlTirarIniciativa: true,
+            restaurarUsosAlActivar: {
+              idRasgoObjetivo: "rasgo_cls_barbaro_furia",
+              cantidad: "maximo"
+            },
             activo: false
           })
         ]
@@ -103,18 +111,33 @@ describe("D&D 5.5e - Bardo, Subclases y Hotfix Bárbaro", () => {
         idPersonajeActivo: "pj-barbaro-15"
       });
 
-      const { alternarActivoRasgo } = usarAlmacenDM.getState();
+      const { alternarActivoRasgo, dispararRasgosIniciativaPersonaje } = usarAlmacenDM.getState();
+
+      // 1. Activar Furia Persistente: NO debe autodesactivarse inmediatamente, debe quedar activa esperando iniciativa
       alternarActivoRasgo("pj-barbaro-15", "rasgo_cls_barbaro_furia_persistente");
 
-      const pjActualizado = usarAlmacenDM.getState().personajes[0];
-      const rasgoFuria = pjActualizado.rasgos?.find((r) => r.id === "rasgo_cls_barbaro_furia");
-      const rasgoPersistente = pjActualizado.rasgos?.find((r) => r.id === "rasgo_cls_barbaro_furia_persistente");
+      let pjActualizado = usarAlmacenDM.getState().personajes[0];
+      let rasgoFuria = pjActualizado.rasgos?.find((r) => r.id === "rasgo_cls_barbaro_furia");
+      let rasgoPersistente = pjActualizado.rasgos?.find((r) => r.id === "rasgo_cls_barbaro_furia_persistente");
+
+      // Permanece activo esperando la tirada de iniciativa
+      expect(rasgoPersistente?.activo).toBe(true);
+      expect(rasgoPersistente?.usosRestantes).toBe(1);
+      // Furia aún no se restaura porque no se ha tirado iniciativa
+      expect(rasgoFuria?.usosRestantes).toBe(0);
+
+      // 2. Tirar Iniciativa: ahora sí se ejecuta la restauración, se descuenta el uso y se auto-desactiva
+      dispararRasgosIniciativaPersonaje("pj-barbaro-15");
+
+      pjActualizado = usarAlmacenDM.getState().personajes[0];
+      rasgoFuria = pjActualizado.rasgos?.find((r) => r.id === "rasgo_cls_barbaro_furia");
+      rasgoPersistente = pjActualizado.rasgos?.find((r) => r.id === "rasgo_cls_barbaro_furia_persistente");
 
       // Furia debe haber recuperado sus usos máximos
       expect(rasgoFuria?.usosRestantes).toBe(5);
       // Furia persistente debe haber consumido 1 uso
       expect(rasgoPersistente?.usosRestantes).toBe(0);
-      // Furia persistente debe haberse auto-desactivado inmediatamente (activo: false)
+      // Furia persistente debe haberse auto-desactivado tras la iniciativa (activo: false)
       expect(rasgoPersistente?.activo).toBe(false);
     });
   });
@@ -930,4 +953,129 @@ describe("D&D 5.5e - Bardo, Subclases y Hotfix Bárbaro", () => {
       expect(rasgoActual?.activo).toBe(false);
     });
   });
+
+  describe("Hotfix Bárbaro y Bardo (Vitalidad del Árbol, Aspecto Tierras Salvajes, Frenesí y Movimiento Inspirador)", () => {
+    it("Vitalidad del Árbol es pasivo permanente con fórmula de dados escalable y sin selectores", () => {
+      const rasgosNv3 = obtenerRasgosClaseYSubclase("Bárbaro", 3, "Senda del Árbol del Mundo");
+      const vitalidad = rasgosNv3.find((r) => r.nombre === "Vitalidad del Árbol");
+
+      expect(vitalidad).toBeDefined();
+      expect(vitalidad?.categoriaMecanica).toBe("pasivo_permanente");
+      expect(vitalidad?.formulaDados).toBe("2d6");
+      expect(vitalidad?.selectores ?? []).toHaveLength(0);
+
+      // Escalado a nivel 9 -> 3d6
+      const rasgosNv9 = obtenerRasgosClaseYSubclase("Bárbaro", 9, "Senda del Árbol del Mundo");
+      const vitalidadNv9 = rasgosNv9.find((r) => r.nombre === "Vitalidad del Árbol");
+      expect(vitalidadNv9?.formulaDados).toBe("3d6");
+
+      // Escalado a nivel 16 -> 4d6
+      const rasgosNv16 = obtenerRasgosClaseYSubclase("Bárbaro", 16, "Senda del Árbol del Mundo");
+      const vitalidadNv16 = rasgosNv16.find((r) => r.nombre === "Vitalidad del Árbol");
+      expect(vitalidadNv16?.formulaDados).toBe("4d6");
+
+      // Al tener dados, es clasificado en combate como accion ejecutable
+      if (vitalidad) {
+        const pjConVitalidad: PersonajeJugador = {
+          ...PERSONAJE_POR_DEFECTO,
+          nivel: 3,
+          rasgos: [vitalidad]
+        };
+        const acciones = resolverRasgosAcciones(pjConVitalidad);
+        const accionEncontrada = acciones.find((a) => a.rasgo.id === vitalidad.id);
+        expect(accionEncontrada).toBeDefined();
+        expect(accionEncontrada?.categoriasCombate).toContain("accion");
+        expect(accionEncontrada?.tieneDados).toBe(true);
+      }
+    });
+
+    it("Aspecto de las Tierras Salvajes otorga visión en la oscuridad o velocidades según el selector", () => {
+      const rasgosNv6 = obtenerRasgosClaseYSubclase("Bárbaro", 6, "Senda del Corazón Salvaje");
+      const aspecto = rasgosNv6.find((r) => r.nombre === "Aspecto de las tierras salvajes");
+
+      expect(aspecto).toBeDefined();
+      expect(aspecto?.selectores).toBeDefined();
+      const sel = aspecto?.selectores?.[0];
+      expect(sel).toBeDefined();
+      expect(sel?.opciones.some((o) => o.id === "buho")).toBe(true);
+      expect(sel?.opciones.some((o) => o.id === "pantera")).toBe(true);
+      expect(sel?.opciones.some((o) => o.id === "salmon")).toBe(true);
+
+      const idPj = "pj-barbaro-tierras-salvajes";
+      const pjBase: PersonajeJugador = {
+        ...PERSONAJE_POR_DEFECTO,
+        id: idPj,
+        nombre: "Bárbaro Bestial",
+        clase: "Bárbaro",
+        nivel: 6,
+        subclase: "Senda del Corazón Salvaje",
+        velocidad: "30",
+        sentidos: "Visión en la oscuridad 60 pies",
+        rasgos: [
+          {
+            ...aspecto!,
+            selectores: aspecto!.selectores?.map((s) =>
+              s.id === sel!.id ? { ...s, valorActual: ["buho"] } : s
+            )
+          }
+        ]
+      };
+
+      // Caso Búho: +60 pies a visión en la oscuridad (60 base + 60 = 120)
+      const sentidosBuho = obtenerSentidosEfectivos(pjBase);
+      expect(sentidosBuho.visionOscuridad).toBe(120);
+
+      // Caso Pantera: trepar igual a caminar (30 pies)
+      const pjPantera: PersonajeJugador = {
+        ...pjBase,
+        rasgos: [
+          {
+            ...aspecto!,
+            selectores: aspecto!.selectores?.map((s) =>
+              s.id === sel!.id ? { ...s, valorActual: ["pantera"] } : s
+            )
+          }
+        ]
+      };
+      const velPantera = obtenerVelocidadesEfectivas(pjPantera);
+      expect(velPantera.escalar).toBe(30);
+
+      // Caso Salmón: nadar igual a caminar (30 pies)
+      const pjSalmon: PersonajeJugador = {
+        ...pjBase,
+        rasgos: [
+          {
+            ...aspecto!,
+            selectores: aspecto!.selectores?.map((s) =>
+              s.id === sel!.id ? { ...s, valorActual: ["salmon"] } : s
+            )
+          }
+        ]
+      };
+      const velSalmon = obtenerVelocidadesEfectivas(pjSalmon);
+      expect(velSalmon.nadar).toBe(30);
+    });
+
+    it("Frenesí de Senda del Berserker tiene autoDesactivarAlTirarDano activo", () => {
+      const rasgosBerserker = obtenerRasgosClaseYSubclase("Bárbaro", 3, "Senda del Berserker");
+      const frenesi = rasgosBerserker.find((r) => r.nombre === "Frenesí");
+
+      expect(frenesi).toBeDefined();
+      expect(frenesi?.autoDesactivarAlTirarDano).toBe(true);
+    });
+
+    it("Movimiento Inspirador del Bardo del Colegio de la Danza gasta del padre pero no hereda ni tira dados", () => {
+      const rasgosDanza = obtenerRasgosClaseYSubclase("Bardo", 6, "Colegio de la Danza");
+      const movInspirador = rasgosDanza.find(
+        (r) => r.nombre === "Movimiento inspirador"
+      );
+
+      expect(movInspirador).toBeDefined();
+      expect(movInspirador?.gastarDePadre).toBe(true);
+      expect(movInspirador?.heredarDadosPadre).toBeFalsy();
+      expect(movInspirador?.formulaDados).toBeUndefined();
+    });
+  });
 });
+
+

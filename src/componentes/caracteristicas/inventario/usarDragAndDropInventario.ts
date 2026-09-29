@@ -63,6 +63,7 @@ export function usarDragAndDropInventario({
 
   const manejarDragOver = (e: React.DragEvent, idSeccion: string) => {
     e.preventDefault();
+    e.stopPropagation();
     e.dataTransfer.dropEffect = "move";
     if (zonaDropActiva !== idSeccion) {
       setZonaDropActiva(idSeccion);
@@ -70,6 +71,7 @@ export function usarDragAndDropInventario({
   };
 
   const manejarDragLeave = (e: React.DragEvent, idSeccion: string) => {
+    e.stopPropagation();
     if (e.currentTarget.contains(e.relatedTarget as Node)) return;
     if (zonaDropActiva === idSeccion) {
       setZonaDropActiva(null);
@@ -78,6 +80,7 @@ export function usarDragAndDropInventario({
 
   const manejarDrop = (e: React.DragEvent, destino: string) => {
     e.preventDefault();
+    e.stopPropagation();
     setZonaDropActiva(null);
     setArrastrandoItem(false);
     try {

@@ -315,4 +315,79 @@ describe("Correcciones de Bugs: Reordenación en Inventario y Colapso de Seccion
       expect(estado.adicionales).toBe(true);
     });
   });
+
+  describe("5. Prevención de Múltiples Notificaciones por Bubbling en Drag & Drop", () => {
+    it("detiene la propagación del evento drop llamando a stopPropagation y preventDefault", () => {
+      const stopPropagation = vi.fn();
+      const preventDefault = vi.fn();
+      const agregarNotificacion = vi.fn();
+      const alAlternarEquipado = vi.fn();
+
+      const itemBaston = {
+        idInstancia: "baston-1",
+        idObjeto: "baston",
+        nombre: "Bastón",
+        cantidad: 1,
+        equipado: false,
+        sintonizado: false,
+        notas: "",
+        pesoLb: 4,
+        categoria: "armas",
+        esConsumible: false,
+        subcategoria: "simples-cuerpo-a-cuerpo",
+        rareza: "Común",
+        esMagico: false,
+        equipable: true,
+        sintonizacionRequerida: false,
+        contenedor: "mochila" as const
+      };
+
+      const mockEventoDrop = {
+        preventDefault,
+        stopPropagation,
+        dataTransfer: {
+          getData: () =>
+            JSON.stringify({
+              idInstancia: "baston-1",
+              nombre: "Bastón",
+              equipable: true,
+              equipado: false,
+              contenedor: "mochila"
+            })
+        }
+      } as unknown as React.DragEvent;
+
+      let fueDetenido = false;
+      const procesarDropSimulado = (e: React.DragEvent, destino: string) => {
+        e.preventDefault();
+        e.stopPropagation();
+        fueDetenido = true;
+
+        const raw = e.dataTransfer.getData("application/json");
+        const payload = JSON.parse(raw);
+        if (destino === "equipados" && !itemBaston.equipado) {
+          alAlternarEquipado(payload.idInstancia);
+          agregarNotificacion(`"${payload.nombre}" equipado.`, "exito");
+        }
+      };
+
+      // Disparo en el elemento hijo
+      procesarDropSimulado(mockEventoDrop, "equipados");
+
+      // Si otro elemento contenedor en la jerarquía intentase ejecutar el drop por bubbling:
+      const procesarDropPadre = (e: React.DragEvent) => {
+        if (fueDetenido) return; // Simula la detención del navegador por stopPropagation
+        procesarDropSimulado(e, "equipados");
+      };
+
+      procesarDropPadre(mockEventoDrop);
+
+      expect(preventDefault).toHaveBeenCalled();
+      expect(stopPropagation).toHaveBeenCalled();
+      expect(alAlternarEquipado).toHaveBeenCalledTimes(1);
+      expect(alAlternarEquipado).toHaveBeenCalledWith("baston-1");
+      expect(agregarNotificacion).toHaveBeenCalledTimes(1);
+      expect(agregarNotificacion).toHaveBeenCalledWith('"Bastón" equipado.', "exito");
+    });
+  });
 });

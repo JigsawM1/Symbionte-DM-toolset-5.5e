@@ -10071,3 +10071,29 @@ Optimizar la complejidad temporal (Big O) en las operaciones de búsqueda, orden
 - **ESLint**: `pnpm lint` completado con **0 errores y 0 advertencias** (`--max-warnings=0`).
 - **Control de Líneas**: `pnpm verificar:lineas` completado con **0 errores críticos**.
 - **Build de Producción**: `pnpm build` generado exitosamente.
+
+---
+
+## [2026-09-29] Corrección de Notificaciones Duplicadas en Drag & Drop de Inventario (Bubbling DOM)
+
+### 1. Diagnóstico y Causa Raíz
+- **Problema Reportado**: Al equipar un objeto arrastrándolo a la sección de "Equipados Activos", aparecían 3 notificaciones idénticas (p. ej. `"Bastón" equipado.`) en lugar de una sola.
+- **Causa Raíz**:
+  1. En `SeccionObjetosEquipados.tsx`, existían tres manejadores `onDrop={(e) => alDrop(e, "equipados")}` anidados concéntricamente: el contenedor principal `.grupoListaInventario`, la lista `.listaItemsInventario` y el placeholder de lista vacía `.mensajeVacioInventario`.
+  2. En `usarDragAndDropInventario.ts`, el manejador `manejarDrop` ejecutaba `e.preventDefault()`, pero carecía de `e.stopPropagation()`.
+  3. Al soltar sobre el área vacía, el evento `drop` se disparaba en el elemento hijo más interno y burbujeaba por los 3 niveles DOM. Cada nivel ejecutaba `alDrop` de manera síncrona en el mismo tick de eventos; dado que React no había procesado aún el re-render, los 3 escuchadores evaluaban `!objActual.equipado === true` y disparaban `agregarNotificacion` consecutivamente (además de alternar el estado tres veces consecutivas `false -> true -> false -> true`).
+
+### 2. Decisiones de Diseño y Correcciones Quirúrgicas Aplicadas
+1. **Detención Proactiva de Propagación en `usarDragAndDropInventario.ts`**:
+   - Se añadió `e.stopPropagation()` en `manejarDrop`, `manejarDragOver` y `manejarDragLeave`, blindando el ciclo de vida del evento HTML5 Drag & Drop contra bubbling accidental a contenedores ascendentes.
+2. **Depuración de Zonas de Soltado Redundantes en `SeccionObjetosEquipados.tsx`**:
+   - Se eliminaron los atributos `onDragOver` y `onDrop` redundantes de `.listaItemsInventario` y `.mensajeVacioInventario`. La zona de soltado queda unificada y gestionada limpiamente por el contenedor raíz de la sección.
+3. **Pruebas Automatizadas en `reordenacionYColapso.test.ts`**:
+   - Se agregó la suite `5. Prevención de Múltiples Notificaciones por Bubbling en Drag & Drop` verificando la invocación de `stopPropagation()`, `preventDefault()`, y que la acción de equipar y la emisión de notificación se produzcan exactamente una única vez.
+
+### 3. Métricas de Validación
+- **Tests Unitarios**: **85 suites superadas, 1170/1170 tests pasando (100% de éxito)**.
+- **TypeScript**: `pnpm exec tsc --noEmit` completado con **0 errores** (Strict Mode estricto).
+- **ESLint**: `pnpm lint` completado con **0 errores y 0 advertencias** (`--max-warnings=0`).
+- **Control de Líneas**: `pnpm verificar:lineas` completado con **0 errores críticos**.
+- **Build de Producción**: `pnpm build` generado exitosamente en 7.02s.

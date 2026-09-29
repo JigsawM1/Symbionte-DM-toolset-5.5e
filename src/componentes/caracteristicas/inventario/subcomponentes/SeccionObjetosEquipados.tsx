@@ -51,17 +51,9 @@ export const SeccionObjetosEquipados: React.FC<SeccionObjetosEquipadosProps> = (
       </div>
 
       {estaAbierta && (
-        <div
-          className={estilos.listaItemsInventario}
-          onDragOver={(e) => alDragOver(e, "equipados")}
-          onDrop={(e) => alDrop(e, "equipados")}
-        >
+        <div className={estilos.listaItemsInventario}>
           {objetosEquipados.length === 0 ? (
-            <div
-              className={estilos.mensajeVacioInventario}
-              onDragOver={(e) => alDragOver(e, "equipados")}
-              onDrop={(e) => alDrop(e, "equipados")}
-            >
+            <div className={estilos.mensajeVacioInventario}>
               No hay armas o armaduras equipadas actualmente. Arrastra objetos aquí para equiparlos.
             </div>
           ) : (

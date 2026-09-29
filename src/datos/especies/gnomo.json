@@ -1,6 +1,7 @@
 {
   "id": "gnomo",
   "nombre": "Gnomo",
+  "etiquetaSubespecie": "Linaje Gnomo",
   "descripcion": "Pequeños seres de aguda inteligencia, curiosidad insaciable y afinidad natural con la ilusión y los inventos.",
   "tipoCriatura": "Humanoide",
   "tamanoOpciones": [

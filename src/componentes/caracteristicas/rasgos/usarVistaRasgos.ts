@@ -23,6 +23,7 @@ import {
   resolverDotesDesdeInvocaciones
 } from "./utilidadesProgresionRasgos";
 import { esRasgoHabilitadoPorOpcion } from "@/servicios/evaluadorEfectosRasgos";
+import { esCondicionFuria } from "@/servicios/procesadorCondiciones";
 import { esRasgoPlaceholderSubclase } from "@/servicios/gestorClases";
 
 export type { SeccionesColapsadas, GrupoClaseJerarquico, DatosJerarquicosRasgos };
@@ -172,7 +173,7 @@ export function usarVistaRasgos() {
       (r) => (r.nombre.toLowerCase().trim() === "furia" || r.id.toLowerCase().trim() === "rasgo_cls_barbaro_furia") && r.activo
     );
     const tieneCondicionFuria = (personajeActivo.condicionesActivas || []).some(
-      (c) => c.toLowerCase().includes("furia (rage)") || (c.toLowerCase().includes("furia") && !c.toLowerCase().includes("furia de los dioses"))
+      (c) => esCondicionFuria(c)
     );
     return tieneRasgoFuriaActivo || tieneCondicionFuria;
   }, [personajeActivo]);

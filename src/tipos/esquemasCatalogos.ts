@@ -196,6 +196,7 @@ export const EsquemaDefinicionEspecieJSON = z.object({
   velocidadBase: z.number().int().min(0),
   visionOscuridad: z.number().int().min(0),
   rasgos: z.array(EsquemaPlantillaRasgoEspecieJSON),
+  etiquetaSubespecie: z.string().optional(),
   subespecies: z.array(EsquemaDefinicionSubespecieJSON).optional(),
   conjurosInnatos: z.array(EsquemaConjuroInnatoEspecie).optional(),
   resistenciasDanio: z.array(z.string()).optional()

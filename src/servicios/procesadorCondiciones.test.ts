@@ -6,7 +6,10 @@ import {
   NIVEL_MAXIMO_CANSANCIO,
   EstrategiaCansancio,
   EstrategiaCondicionSimple,
-  evaluarEfectosCondicionesEnTirada
+  evaluarEfectosCondicionesEnTirada,
+  esCondicionFuria,
+  esCondicionFuriaDioses,
+  esCondicionConcentracion
 } from "./procesadorCondiciones";
 
 describe("procesadorCondiciones — Strategy Pattern", () => {
@@ -182,6 +185,44 @@ describe("procesadorCondiciones — Strategy Pattern", () => {
     it("EstrategiaCondicionSimple aplicaPara acepta cualquier condición", () => {
       const estrategia = new EstrategiaCondicionSimple();
       expect(estrategia.aplicaPara("Cualquier")).toBe(true);
+    });
+  });
+
+  describe("Predicados semánticos de condiciones", () => {
+    describe("esCondicionFuriaDioses", () => {
+      it("detecta variantes en español e inglés", () => {
+        expect(esCondicionFuriaDioses("Furia de los Dioses")).toBe(true);
+        expect(esCondicionFuriaDioses("furia de los dioses (resistencia)")).toBe(true);
+        expect(esCondicionFuriaDioses("Rage of the Gods")).toBe(true);
+        expect(esCondicionFuriaDioses("Furia")).toBe(false);
+        expect(esCondicionFuriaDioses("")).toBe(false);
+      });
+    });
+
+    describe("esCondicionFuria", () => {
+      it("detecta Furia base pero excluye Furia de los Dioses", () => {
+        expect(esCondicionFuria("Furia")).toBe(true);
+        expect(esCondicionFuria("furia (rage)")).toBe(true);
+        expect(esCondicionFuria("Rage")).toBe(true);
+        expect(esCondicionFuria("Furia (+2 daño)")).toBe(true);
+        expect(esCondicionFuria("Furia de los Dioses")).toBe(false);
+        expect(esCondicionFuria("Rage of the Gods")).toBe(false);
+        expect(esCondicionFuria("Cegado")).toBe(false);
+      });
+    });
+
+    describe("esCondicionConcentracion", () => {
+      it("detecta concentración por flag booleana, id canónico y variantes de texto", () => {
+        expect(esCondicionConcentracion("Cualquier Efecto", "ef_1", true)).toBe(true);
+        expect(esCondicionConcentracion(undefined, "ef_concentracion")).toBe(true);
+        expect(esCondicionConcentracion(undefined, "concentracion")).toBe(true);
+        expect(esCondicionConcentracion("Concentración")).toBe(true);
+        expect(esCondicionConcentracion("concentracion")).toBe(true);
+        expect(esCondicionConcentracion("Escudo de la Fe (Concentración)")).toBe(true);
+        expect(esCondicionConcentracion("Bendición (concentracion)")).toBe(true);
+        expect(esCondicionConcentracion("Envenenado")).toBe(false);
+        expect(esCondicionConcentracion("")).toBe(false);
+      });
     });
   });
 });

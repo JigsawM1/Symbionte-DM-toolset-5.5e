@@ -5,6 +5,7 @@ import {
   obtenerEspeciePorNombre,
   obtenerSubespeciesDeEspecie,
   obtenerSubespeciePorNombre,
+  obtenerEtiquetaSubespecie,
   construirRasgosEspecie,
   aplicarEspecieAPersonaje
 } from "./gestorEspecies";
@@ -57,6 +58,17 @@ describe("GestorEspecies - Dominio de Razas y Subrazas (D&D 5.5e)", () => {
 
       const porNombreConAcento = obtenerEspeciePorNombre("Dracónido");
       expect(porNombreConAcento?.id).toBe("draconido");
+    });
+
+    it("obtiene la etiqueta canónica declarativa de subespecie para cada raza", () => {
+      expect(obtenerEtiquetaSubespecie("draconido")).toBe("Legado Dracónico");
+      expect(obtenerEtiquetaSubespecie("tiefling")).toBe("Legado Infernal");
+      expect(obtenerEtiquetaSubespecie("goliat")).toBe("Linaje Gigante");
+      expect(obtenerEtiquetaSubespecie("gnomo")).toBe("Linaje Gnomo");
+      expect(obtenerEtiquetaSubespecie("elfo")).toBe("Linaje Élfico");
+      expect(obtenerEtiquetaSubespecie("enano")).toBe("Subespecie / Legado / Linaje");
+      expect(obtenerEtiquetaSubespecie("humano")).toBe("Subespecie / Legado / Linaje");
+      expect(obtenerEtiquetaSubespecie(undefined)).toBe("Subespecie / Legado / Linaje");
     });
   });
 

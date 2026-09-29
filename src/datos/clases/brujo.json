@@ -52,6 +52,7 @@
         {
           "id": "invocaciones_sobrenaturales_aprendidas",
           "tipo": "multiple",
+          "tipoSelector": "invocacion",
           "etiqueta": "Invocaciones Sobrenaturales Elegidas",
           "opciones": [],
           "maxSelecciones": 1,

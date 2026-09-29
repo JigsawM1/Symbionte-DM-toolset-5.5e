@@ -1,6 +1,7 @@
 {
   "id": "tiefling",
   "nombre": "Tiefling",
+  "etiquetaSubespecie": "Legado Infernal",
   "descripcion": "Portadores de un legado de los Planos Inferiores manifestado en astucia, cuernos y magia flamígera o sombría.",
   "tipoCriatura": "Humanoide",
   "tamanoOpciones": [

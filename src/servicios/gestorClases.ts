@@ -93,7 +93,8 @@ export function obtenerOpcionesDotesParaSelector(): import("@/tipos").OpcionSele
       id: doteMejora.id,
       nombre: doteMejora.nombre,
       descripcion: doteMejora.descripcion,
-      requisito: doteMejora.requisito
+      requisito: doteMejora.requisito,
+      categoria: doteMejora.categoria
     });
   }
   for (const d of otras) {
@@ -101,7 +102,8 @@ export function obtenerOpcionesDotesParaSelector(): import("@/tipos").OpcionSele
       id: d.id,
       nombre: d.nombre,
       descripcion: d.descripcion,
-      requisito: d.requisito
+      requisito: d.requisito,
+      categoria: d.categoria
     });
   }
   cacheOpcionesDotesSelector = opciones;
@@ -115,6 +117,7 @@ export function crearSelectorDoteMejoraCaracteristica(claseId: string, nivel: nu
   return {
     id: `selector_dote_asi_${normalizarTextoClase(claseId)}_nv${nivel}`,
     tipo: "unico",
+    tipoSelector: "dote",
     etiqueta: "Dote elegida",
     maxSelecciones: 1,
     valorActual: ["dote_mejora_caracteristica"],
@@ -160,37 +163,54 @@ export function construirDoteDeMejoraCaracteristica(
 }
 
 /**
+ * Mapeo canónico O(1) de la dote de don épico recomendada por clase oficial (D&D 5.5e).
+ */
+export const MAPA_DON_EPICO_RECOMENDADO_POR_CLASE: Readonly<Record<string, string>> = {
+  barbaro: "dote_don_ataque_imparable",
+  monje: "dote_don_ataque_imparable",
+  bardo: "dote_don_recuerdo_conjuros",
+  guerrero: "dote_don_pericia_combate",
+  druida: "dote_don_viaje_dimensional",
+  explorador: "dote_don_viaje_dimensional",
+  hechicero: "dote_don_viaje_dimensional",
+  mago: "dote_don_recuperacion",
+  paladin: "dote_don_vision_verdadera",
+  picaro: "dote_don_espiritu_noche",
+  brujo: "dote_don_destino",
+  clerigo: "dote_don_destino"
+};
+
+/**
+ * Patrones textuales declarativos para identificar la dote de don épico desde la descripción del rasgo.
+ */
+const PATRONES_DON_EPICO_DESCRIPCION: readonly { readonly coincidencia: string; readonly doteId: string }[] = [
+  { coincidencia: "ofensiva irresistible", doteId: "dote_don_ataque_imparable" },
+  { coincidencia: "ataque imparable", doteId: "dote_don_ataque_imparable" },
+  { coincidencia: "recuerdo de conjuros", doteId: "dote_don_recuerdo_conjuros" },
+  { coincidencia: "pericia en combate", doteId: "dote_don_pericia_combate" },
+  { coincidencia: "viaje dimensional", doteId: "dote_don_viaje_dimensional" },
+  { coincidencia: "recuperacion", doteId: "dote_don_recuperacion" },
+  { coincidencia: "vision verdadera", doteId: "dote_don_vision_verdadera" },
+  { coincidencia: "espiritu", doteId: "dote_don_espiritu_noche" },
+  { coincidencia: "destino", doteId: "dote_don_destino" }
+];
+
+/**
  * Resuelve el ID de la dote de don épico recomendada para la clase a partir
- * de la descripción o del identificador de la clase.
+ * del identificador de la clase o de la descripción del rasgo.
  */
 export function resolverDoteDonEpicoRecomendada(descripcion?: string, claseId?: string): string {
-  const descNorm = normalizarTextoClase(descripcion || "");
   const cidNorm = normalizarTextoClase(claseId || "");
+  if (cidNorm && MAPA_DON_EPICO_RECOMENDADO_POR_CLASE[cidNorm]) {
+    return MAPA_DON_EPICO_RECOMENDADO_POR_CLASE[cidNorm];
+  }
 
-  if (descNorm.includes("ofensiva irresistible") || descNorm.includes("ataque imparable") || cidNorm === "barbaro" || cidNorm === "monje") {
-    return "dote_don_ataque_imparable";
+  const descNorm = normalizarTextoClase(descripcion || "");
+  if (descNorm) {
+    const coincidencia = PATRONES_DON_EPICO_DESCRIPCION.find((p) => descNorm.includes(p.coincidencia));
+    if (coincidencia) return coincidencia.doteId;
   }
-  if (descNorm.includes("recuerdo de conjuros") || cidNorm === "bardo") {
-    return "dote_don_recuerdo_conjuros";
-  }
-  if (descNorm.includes("pericia en combate") || cidNorm === "guerrero") {
-    return "dote_don_pericia_combate";
-  }
-  if (descNorm.includes("viaje dimensional") || cidNorm === "druida" || cidNorm === "explorador" || cidNorm === "hechicero") {
-    return "dote_don_viaje_dimensional";
-  }
-  if (descNorm.includes("recuperacion") || cidNorm === "mago") {
-    return "dote_don_recuperacion";
-  }
-  if (descNorm.includes("vision verdadera") || cidNorm === "paladin") {
-    return "dote_don_vision_verdadera";
-  }
-  if (descNorm.includes("espiritu") || cidNorm === "picaro") {
-    return "dote_don_espiritu_noche";
-  }
-  if (descNorm.includes("destino") || cidNorm === "brujo" || cidNorm === "clerigo") {
-    return "dote_don_destino";
-  }
+
   return "dote_don_destino";
 }
 
@@ -249,6 +269,7 @@ export function crearSelectorDoteDonEpico(claseId: string, nivel: number, descri
   return {
     id: `selector_dote_don_epico_${normalizarTextoClase(claseId)}_nv${nivel}`,
     tipo: "unico",
+    tipoSelector: "dote",
     etiqueta: "Don épico elegido",
     maxSelecciones: 1,
     valorActual: [dotePorDefectoId],

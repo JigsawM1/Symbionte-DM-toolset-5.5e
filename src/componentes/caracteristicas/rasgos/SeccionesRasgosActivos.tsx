@@ -10,6 +10,7 @@ import {
   Plus
 } from "lucide-react";
 import type { DatosJerarquicosRasgos, SeccionesColapsadas } from "./usarVistaRasgos";
+import { obtenerEtiquetaSubespecie } from "@/servicios/gestorEspecies";
 import { GrupoClaseRasgos } from "./GrupoClaseRasgos";
 import estilos from "./VistaRasgosJugador.module.css";
 
@@ -77,11 +78,7 @@ export const SeccionesRasgosActivos: React.FC<SeccionesRasgosActivosProps> = ({
               {seccionesColapsadas.subespecie ? <ChevronRight size={15} /> : <ChevronDown size={15} />}
               <Sparkles size={13} color="#10b981" />
               <span className={`${estilos.tituloSeccion} ${estilos.tituloSubespecie}`}>
-                {personajeActivo.especie?.toLowerCase().includes("dracon")
-                  ? "Legado Dracónico"
-                  : personajeActivo.especie?.toLowerCase().includes("tiefling")
-                  ? "Legado Infernal"
-                  : "Subraza / Linaje"}: {personajeActivo.subespecie || "Especialización"} ({personajeActivo.especie})
+                {obtenerEtiquetaSubespecie(personajeActivo.especie)}: {personajeActivo.subespecie || "Especialización"} ({personajeActivo.especie})
               </span>
               <span className={estilos.badgeConteoSeccion}>
                 {datosJerarquicos.subespecie.length}

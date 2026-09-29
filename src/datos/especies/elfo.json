@@ -1,6 +1,7 @@
 {
   "id": "elfo",
   "nombre": "Elfo",
+  "etiquetaSubespecie": "Linaje Élfico",
   "descripcion": "Criaturas longevas y mágicas vinculadas al reino feérico, con sentidos sobrenaturales y linajes ancestrales.",
   "tipoCriatura": "Humanoide",
   "tamanoOpciones": [

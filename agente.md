@@ -20,6 +20,118 @@ Este archivo registra reglas globales, errores encontrados, sus causas raíz y l
    - Toda mecánica, progresión de dados, escalado de usos, recuperación o desbloqueo dinámico debe resolverse mediante metadatos declarativos (`escaladoFormulaDados`, `escaladoUsos`, `escaladoRecuperacion`, `opcionesDinamicas`, `escaladoMaxSelecciones`, `sincronizarEfectosConFormula`, `heredarDadosPadre`, `gastarDePadre`, `ligadoA`, `efectos`) delegando en funciones puras agnósticas como `resolverEscaladosRasgo`. Esta regla está reforzada en CI vía ESLint `no-restricted-syntax` y la suite `rasgoGenericidad.test.ts`.
 
 
+## [2026-09-28] Saneamiento Fase 4: Analizador Estructurado y Declarativo de Requisitos de Dotes
+
+**Problema Identificado:**
+1. **Comprobaciones Manuales y Exclusiones Negativas de Características:**
+   - En `evaluadorRequisitosDotes.ts`, las características se evaluaban mediante 10 bloques `if` rígidos con condiciones negativas frágiles (`!reqNorm.includes("o destreza")`, `!reqNorm.includes("inteligencia,")`, etc.). No existía soporte dinámico para requisitos como "Constitución 13 o más", "Fuerza 15 o más", ni combinaciones arbitrarias de Homebrew.
+2. **Heurística Repetida en Armaduras y Escudos:**
+   - Verificaciones dispersas con cadenas sueltas para cada nivel de armadura (`pesadas/pesada/heavy`, `medias/mediana/media`, etc.).
+3. **Bifurcación Hardcodeada en Estilo de Combate:**
+   - Cálculo del nivel mínimo para el rasgo Estilo de combate mediante ternario quemado `normalizar(c.nombre) === "guerrero" ? 1 : 2`.
+
+**Soluciones Arquitectónicas Aplicadas:**
+1. **Analizador Léxico Estructurado de Cláusulas de Características:**
+   - Definido `REGEX_REQUISITO_CARACTERISTICAS = /(?:(?:fuerza|destreza|constitucion|inteligencia|sabiduria|carisma)(?:,\s*|\s+o\s+)?)+\s*(\d+)\s*o\s*mas/gi`.
+   - Creada función pura `extraerCaracteristicasDeTexto` para extraer las estadísticas requeridas de cada fragmento.
+   - Evaluación dinámica de puntuaciones máximas y generación semántica de mensajes de error con abreviaturas oficiales (`FUE`, `DES`, `CON`, `INT`, `SAB`, `CAR`) para requisitos individuales o compuestos.
+2. **Tabla Declarativa de Requisitos de Armaduras:**
+   - Creada la constante inmutable `REQUISITOS_ARMADURAS: readonly RequisitoArmaduraDef[]` agrupando patrones, variantes normalizadas y mensajes de error.
+3. **Tabla Declarativa de Progresión de Estilo de Combate:**
+   - Extraída la tabla `NIVEL_MINIMO_ESTILO_COMBATE_POR_CLASE: Readonly<Record<string, number>>` (Guerrero niv. 1, Paladín/Explorador niv. 2).
+4. **Pruebas y Verificación:**
+   - Añadidas pruebas a `src/servicios/evaluadorRequisitosDotes.test.ts` verificando requisitos no estándar (Constitución 13+, Fuerza 15+) y progresión marcial de Paladín (niv. 1 bloqueado vs niv. 2 permitido).
+   - 1,167 tests unitarios aprobados (85 suites), `tsc --noEmit` completado con 0 errores, ESLint 0 errores/warnings, límite de líneas verificado con éxito.
+
+## [2026-09-28] Saneamiento Fase 3: Dones Épicos Declarativos y Atributos de Magia Desacoplados
+
+**Problema Identificado:**
+1. **Bifurcaciones Encadenadas en Dones Épicos:**
+   - La función `resolverDoteDonEpicoRecomendada` en `gestorClases.ts` utilizaba 8 bloques `if` con comprobaciones mixtas de subcadenas (`descNorm.includes(...)`) e identificadores de clase (`cidNorm === "..."`).
+2. **Listas Bilingües Hardcodeadas en Predicados de Magia:**
+   - Las funciones `esLanzadorCarisma` y `esLanzadorSabiduria` en `identificadoresDND.ts` utilizaban cadenas de `includes` con variantes en inglés quemadas en el cuerpo de las funciones, sin abstracción para Inteligencia ni una resolución canónica directa.
+
+**Soluciones Arquitectónicas Aplicadas:**
+1. **Tabla Declarativa de Dones Épicos:**
+   - Extraída la constante inmutable `MAPA_DON_EPICO_RECOMENDADO_POR_CLASE: Readonly<Record<string, string>>` para las 12 clases oficiales de D&D 5.5e en `gestorClases.ts`.
+   - Creado el array de patrones declarativos `PATRONES_DON_EPICO_DESCRIPCION` para resolución por texto de rasgos heredados o homebrew.
+   - Refactorizada `resolverDoteDonEpicoRecomendada` para resolver prioritariamente por clase en $O(1)$ con fallback ordenado a patrones descriptivos.
+2. **Conjuntos Declarativos y Resolutor de Magia:**
+   - Definidos en `identificadoresDND.ts` los conjuntos inmutables `CLASES_LANZADORAS_CARISMA`, `CLASES_LANZADORAS_SABIDURIA`, `CLASES_LANZADORAS_INTELIGENCIA`, `CLASES_PACTO` y `CLASES_BARBARO` como `ReadonlySet<string>`.
+   - Creada y exportada la función declarativa pura `resolverAtributoConjuroClase(nombreOIdClase): Caracteristica | null`.
+   - Desacoplada `obtenerHabilidadConjuroPersonaje` en `calculadorMagia.ts` para delegar en `resolverAtributoConjuroClase`, eliminando bifurcaciones de bajo nivel.
+3. **Pruebas y Verificación:**
+   - Creado `src/constantes/identificadoresDND.test.ts` con cobertura completa para todas las funciones y conjuntos declarativos.
+   - Añadidas pruebas a `src/servicios/gestorClases.test.ts` para verificar la tabla de dones épicos y la resolución por clase/descripción.
+   - 1,165 tests unitarios aprobados (85 suites), `tsc --noEmit` completado con 0 errores, ESLint 0 errores/warnings, límite de líneas verificado con éxito.
+
+## [2026-09-28] Saneamiento Fase 2: Predicados Semánticos de Condiciones y Mapeo Declarativo de Invocaciones
+
+**Problema Identificado:**
+1. **Comprobaciones Negativas Frágiles de Furia:**
+   - La condición de Furia base de Bárbaro se comprobaba mediante cadenas repetidas `(c.toLowerCase().includes("furia") && !c.toLowerCase().includes("furia de los dioses"))` en múltiples componentes y hooks (`usarVistaRasgos.ts`, `usarCalculoAtaquesJugador.ts`, `procesadorCondiciones.ts`).
+2. **Detección Textual Ad-Hoc de Concentración:**
+   - La concentración en `BarraTacticaPersonaje.tsx` e `IniciativaJugador.tsx` utilizaba `ef.nombre.toLowerCase().startsWith("concentra")` o `includes("concentra")`, omitiendo el flag booleano o el ID canónico de manera dispersa.
+3. **Mapeo Hardcodeado de Slugs en Invocaciones de Brujo:**
+   - En `evaluadorExpresionesRasgos.ts` (líneas 272-280), existía una cadena de 9 `||` comparando directamente slugs en inglés (`alert`, `crafter`, `healer`, `musician`, `lucky`, etc.) contra IDs en español.
+
+**Soluciones Arquitectónicas Aplicadas:**
+1. **Predicados Semánticos Puros en `procesadorCondiciones.ts`:**
+   - Creadas y exportadas tres funciones puras:
+     - `esCondicionFuriaDioses(condicion: string): boolean`
+     - `esCondicionFuria(condicion: string): boolean` (discrimina formalmente contra furia de los dioses)
+     - `esCondicionConcentracion(nombreOTexto?: string, id?: string, concentracionFlag?: boolean): boolean`
+   - Reemplazadas todas las comprobaciones ad-hoc en `procesadorCondiciones.ts`, `usarVistaRasgos.ts`, `usarCalculoAtaquesJugador.ts`, `BarraTacticaPersonaje.tsx` e `IniciativaJugador.tsx`.
+2. **Diccionario Declarativo $O(1)$ de Slugs:**
+   - Extraído `MAPA_SLUG_INGLES_A_DOTE_ID: Readonly<Record<string, string>>` en `evaluadorExpresionesRasgos.ts`.
+   - Búsqueda simplificada a `d.id === idMapeado` eliminando las 9 comparaciones individuales en línea.
+3. **Pruebas y Verificación:**
+   - Creados tests unitarios en `procesadorCondiciones.test.ts` para los tres predicados semánticos cubriendo variantes en español, inglés y flags booleanas.
+   - 1,152 tests unitarios aprobados (84 suites), TypeScript 0 errores, ESLint 0 errores/warnings, límite de líneas verificado con éxito.
+
+## [2026-09-28] Saneamiento Fase 1: Linajes de Especie y Selectores Declarativos UI
+
+**Problema Identificado:**
+1. Cadenas de ternarios repetidas en `ModalEditarPersonaje.tsx`, `PestanaIdentidad.tsx` y `SeccionesRasgosActivos.tsx` que buscaban subcadenas (`dracon`, `tiefling`, `goliat`, `gnomo`, `elfo`) para etiquetar los campos de subespecie.
+2. Inferencia de widgets en `SeccionSelectoresModalRasgo.tsx` mediante inspección de subcadenas en los IDs o etiquetas (`includes("dote")`, `includes("invocacion")`, `includes("conjuro_nv1")`).
+
+**Soluciones Arquitectónicas Aplicadas:**
+1. **Linajes Declarativos:**
+   - Incorporado el campo `etiquetaSubespecie` en `DefinicionEspecie`, `EsquemaDefinicionEspecieJSON` y en los compendios canónicos (`draconido.json`, `tiefling.json`, `goliat.json`, `gnomo.json`, `elfo.json`).
+   - Creada función pura `obtenerEtiquetaSubespecie(especieIdONombre)` en `gestorEspecies.ts` con fallback canónico `"Subespecie / Legado / Linaje"`.
+   - Eliminadas todas las cadenas de ternarios en los componentes de la interfaz.
+2. **Discriminación Declarativa de Selectores:**
+   - Añadido `tipoSelector: z.enum(["general", "dote", "invocacion", "conjuro"])` a `EsquemaSelectorRasgo`.
+   - Actualizados constructores en `gestorClases.ts` (`crearSelectorDoteMejoraCaracteristica`, `crearSelectorDoteDonEpico`), `brujo.json`, `humano.json` y `rasgos-especie.json`.
+   - `SeccionSelectoresModalRasgo.tsx` ahora discrimina el tipo de widget prioritariamente mediante `sel.tipoSelector`.
+3. **Verificación:**
+   - 1,149 / 1,149 pruebas unitarias aprobadas, `tsc --noEmit` completado con 0 errores y ESLint sin advertencias.
+
+## [2026-09-28] Refactorización Declarativa de Categorías de Dotes en SelectorDotesAcordeon
+
+**Problema Reportado por el Usuario:**
+- "con respecto a function resolverClaseCategoria de @[src/componentes/caracteristicas/rasgos/SelectorDotesAcordeon.tsx] su forma de resolver la calse no es una basura? lit cada dote ya tiene 'categoria': que te dice cual es su categoria"
+
+**Causas Raíz Diagnosticadas:**
+1. **Desconexión con el Modelo de Datos (SSOT):**
+   - Aunque todo el compendio oficial de dotes (`src/datos/dotes/*.json`) y el esquema tipado `EsquemaDotePersonaje` definían formalmente `categoria: "origen" | "general" | "estilo_combate" | "don_epico" | "personalizado"`, la función constructora `obtenerOpcionesDotesParaSelector()` en `gestorClases.ts` descartaba la propiedad `categoria` al generar `OpcionSelector[]`.
+2. **Heurística Frágil y Fallas de Clasificación en UI:**
+   - En `SelectorDotesAcordeon.tsx`, `resolverClaseCategoria` intentaba adivinar la categoría inspeccionando subcadenas del `id` y del texto `requisito`.
+   - Para dotes de origen, se limitaba a una lista quemada (*hardcodeada*) de 4 IDs (`dote_alerta`, `dote_iniciado_magia`, `dote_afortunado`, `dote_musico`).
+   - Las demás dotes canónicas de origen (`dote_duro`, `dote_maton_taberna`, `dote_sanador`, `dote_habilidoso`, `dote_fabricante`, `dote_atacante_salvaje`) y las variantes de iniciado en magia caían en el fallback por defecto y se mostraban incorrectamente con la etiqueta "General".
+
+**Soluciones Arquitectónicas Aplicadas:**
+1. **Extensión del Contrato de Tipos:**
+   - Se añadió `categoria: z.string().optional()` a `EsquemaOpcionSelector` en `src/tipos/rasgos.ts`.
+2. **Propagación Canónica:**
+   - En `gestorClases.ts` (`obtenerOpcionesDotesParaSelector`) e `hidratadorDotes.ts` (`dotes_origen`), se incluyó la propiedad `categoria: d.categoria` al instanciar las opciones del selector.
+3. **Mapeo Declarativo $O(1)$ y Fallback Robusto:**
+   - En `SelectorDotesAcordeon.tsx`, se reemplazó la heurística por un diccionario de metadatos `METADATOS_CATEGORIA_DOTE` y un `Map` indexado con `TODAS_LAS_DOTES_CANONICAS_DND55`.
+   - La función `resolverClaseCategoria(opcion: OpcionSelector)` resuelve la categoría en $O(1)$ leyendo directamente `opcion.categoria` o, como salvaguarda, consultando el mapa canónico por su ID.
+4. **Verificación y Pruebas Automatizadas:**
+   - Creado `src/componentes/caracteristicas/rasgos/SelectorDotesAcordeon.test.tsx` cubriendo la resolución explícita, la resolución por compendio y la presencia de `categoria` en `obtenerOpcionesDotesParaSelector()`.
+   - 1,146 tests aprobados (84 suites), 0 errores TypeScript (`strict: true`) y 0 advertencias ESLint.
+
 ## [2026-09-28] Corrección Crítica de Persistencia, Condición de Carrera en Arranque y Pérdida de Datos
 
 **Problema Reportado por el Usuario:**

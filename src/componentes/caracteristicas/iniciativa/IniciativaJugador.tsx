@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from "react";
 import { usarEstadoIniciativa, usarEstadoConfiguracion } from "@/almacen/selectores";
 import { ChipCondicion } from "@/componentes/comunes";
+import { esCondicionConcentracion } from "@/servicios/procesadorCondiciones";
 import { Users, Swords, Heart } from "lucide-react";
 import estilos from "./IniciativaJugador.module.css";
 
@@ -48,7 +49,7 @@ export const IniciativaJugador: React.FC = () => {
               const estadoTexto = porcentaje > 50 ? "Saludable" : porcentaje > 0 ? "Herido" : "Inconsciente";
 
               const tieneEfectoConcentracion = (item.efectos || []).some(
-                (ef) => ef.concentracion || ef.nombre.toLowerCase().startsWith("concentra")
+                (ef) => esCondicionConcentracion(ef.nombre, ef.id, ef.concentracion)
               );
               const nombresEfectosSet = new Set<string>();
               (item.efectos || []).forEach((ef) => {
@@ -58,7 +59,7 @@ export const IniciativaJugador: React.FC = () => {
               const condicionesVisibles = (item.condiciones || []).filter((c) => {
                 const cMin = c.toLowerCase().trim();
                 const cBase = c.split(" (")[0].toLowerCase().trim();
-                if (tieneEfectoConcentracion && cMin.includes("concentra")) return false;
+                if (tieneEfectoConcentracion && esCondicionConcentracion(cMin)) return false;
                 if (nombresEfectosSet.has(cMin) || nombresEfectosSet.has(cBase)) return false;
                 return true;
               });

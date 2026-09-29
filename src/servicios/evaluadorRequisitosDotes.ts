@@ -32,6 +32,83 @@ function obtenerPuntuacionCaracteristica(
   return personaje.caracteristicas?.[stat] ?? 10;
 }
 
+const NOMBRES_CARACTERISTICAS: Readonly<Record<Caracteristica, string>> = {
+  fuerza: "Fuerza",
+  destreza: "Destreza",
+  constitucion: "Constitución",
+  inteligencia: "Inteligencia",
+  sabiduria: "Sabiduría",
+  carisma: "Carisma"
+};
+
+const ABREV_CARACTERISTICAS: Readonly<Record<Caracteristica, string>> = {
+  fuerza: "FUE",
+  destreza: "DES",
+  constitucion: "CON",
+  inteligencia: "INT",
+  sabiduria: "SAB",
+  carisma: "CAR"
+};
+
+const CARACTERISTICAS_CANONICAS: readonly Caracteristica[] = [
+  "fuerza",
+  "destreza",
+  "constitucion",
+  "inteligencia",
+  "sabiduria",
+  "carisma"
+];
+
+const REGEX_REQUISITO_CARACTERISTICAS =
+  /(?:(?:fuerza|destreza|constitucion|inteligencia|sabiduria|carisma)(?:,\s*|\s+o\s+)?)+\s*(\d+)\s*o\s*mas/gi;
+
+function extraerCaracteristicasDeTexto(texto: string): Caracteristica[] {
+  const encontradas: Caracteristica[] = [];
+  for (const c of CARACTERISTICAS_CANONICAS) {
+    if (new RegExp(`\\b${c}\\b`, "i").test(texto)) {
+      encontradas.push(c);
+    }
+  }
+  return encontradas;
+}
+
+interface RequisitoArmaduraDef {
+  readonly patron: string;
+  readonly claves: readonly string[];
+  readonly motivo: string;
+}
+
+const REQUISITOS_ARMADURAS: readonly RequisitoArmaduraDef[] = [
+  {
+    patron: "entrenamiento con armaduras pesadas",
+    claves: ["pesadas", "pesada", "heavy"],
+    motivo: "Requiere entrenamiento con armaduras pesadas"
+  },
+  {
+    patron: "entrenamiento con armaduras medias",
+    claves: ["medias", "mediana", "media", "medium"],
+    motivo: "Requiere entrenamiento con armaduras medias"
+  },
+  {
+    patron: "entrenamiento con armaduras ligeras",
+    claves: ["ligeras", "ligera", "light"],
+    motivo: "Requiere entrenamiento con armaduras ligeras"
+  },
+  {
+    patron: "competencia con escudos",
+    claves: ["escudos", "escudo", "shield"],
+    motivo: "Requiere competencia con escudos"
+  }
+];
+
+const NIVEL_MINIMO_ESTILO_COMBATE_POR_CLASE: Readonly<Record<string, number>> = {
+  guerrero: 1,
+  fighter: 1,
+  paladin: 2,
+  explorador: 2,
+  ranger: 2
+};
+
 /**
  * Evalúa si un personaje cumple con los requisitos declarados en una dote (PHB 2024 / D&D 5.5e).
  * Si no se especifica requisito o está vacío, retorna cumple: true.
@@ -69,94 +146,36 @@ export function evaluarRequisitoDote(
     return { cumple: true };
   }
 
-  const fue = obtenerPuntuacionCaracteristica(personaje, "fuerza");
-  const des = obtenerPuntuacionCaracteristica(personaje, "destreza");
-  const con = obtenerPuntuacionCaracteristica(personaje, "constitucion");
-  const int = obtenerPuntuacionCaracteristica(personaje, "inteligencia");
-  const sab = obtenerPuntuacionCaracteristica(personaje, "sabiduria");
-  const car = obtenerPuntuacionCaracteristica(personaje, "carisma");
+  // 2. Verificaciones dinámicas de características (individuales y compuestas)
+  for (const match of reqNorm.matchAll(REGEX_REQUISITO_CARACTERISTICAS)) {
+    const fragmento = match[0];
+    const minimo = parseInt(match[1], 10);
+    const stats = extraerCaracteristicasDeTexto(fragmento);
+    if (stats.length === 0) continue;
 
-  // 2. Verificaciones compuestas de características
-  if (reqNorm.includes("fuerza o destreza 19 o mas")) {
-    const maxVal = Math.max(fue, des);
-    if (maxVal < 19) {
+    const valores = stats.map((s) => ({
+      stat: s,
+      valor: obtenerPuntuacionCaracteristica(personaje, s)
+    }));
+    const maximo = Math.max(...valores.map((v) => v.valor));
+
+    if (maximo < minimo) {
+      if (stats.length === 1) {
+        return {
+          cumple: false,
+          motivo: `Requiere ${NOMBRES_CARACTERISTICAS[stats[0]]} ${minimo} o más (actual: ${valores[0].valor})`
+        };
+      }
+
+      const textoRequerido = stats.length === 2
+        ? `${NOMBRES_CARACTERISTICAS[stats[0]]} o ${NOMBRES_CARACTERISTICAS[stats[1]]}`
+        : `${stats.slice(0, -1).map((s) => NOMBRES_CARACTERISTICAS[s]).join(", ")} o ${NOMBRES_CARACTERISTICAS[stats[stats.length - 1]]}`;
+
+      const desgloseActual = valores.map((v) => `${ABREV_CARACTERISTICAS[v.stat]} ${v.valor}`).join(", ");
       return {
         cumple: false,
-        motivo: `Requiere Fuerza o Destreza 19 o más (actual: FUE ${fue}, DES ${des})`
+        motivo: `Requiere ${textoRequerido} ${minimo} o más (actual: ${desgloseActual})`
       };
-    }
-  } else if (reqNorm.includes("fuerza o destreza 13 o mas")) {
-    const maxVal = Math.max(fue, des);
-    if (maxVal < 13) {
-      return {
-        cumple: false,
-        motivo: `Requiere Fuerza o Destreza 13 o más (actual: FUE ${fue}, DES ${des})`
-      };
-    }
-  }
-
-  if (reqNorm.includes("destreza o constitucion 13 o mas")) {
-    const maxVal = Math.max(des, con);
-    if (maxVal < 13) {
-      return {
-        cumple: false,
-        motivo: `Requiere Destreza o Constitución 13 o más (actual: DES ${des}, CON ${con})`
-      };
-    }
-  }
-
-  if (reqNorm.includes("inteligencia, sabiduria o carisma 13 o mas")) {
-    const maxVal = Math.max(int, sab, car);
-    if (maxVal < 13) {
-      return {
-        cumple: false,
-        motivo: `Requiere Inteligencia, Sabiduría o Carisma 13 o más (actual: INT ${int}, SAB ${sab}, CAR ${car})`
-      };
-    }
-  }
-
-  if (reqNorm.includes("sabiduria o carisma 13 o mas")) {
-    const maxVal = Math.max(sab, car);
-    if (maxVal < 13) {
-      return {
-        cumple: false,
-        motivo: `Requiere Sabiduría o Carisma 13 o más (actual: SAB ${sab}, CAR ${car})`
-      };
-    }
-  }
-
-  if (reqNorm.includes("inteligencia o sabiduria 13 o mas")) {
-    const maxVal = Math.max(int, sab);
-    if (maxVal < 13) {
-      return {
-        cumple: false,
-        motivo: `Requiere Inteligencia o Sabiduría 13 o más (actual: INT ${int}, SAB ${sab})`
-      };
-    }
-  }
-
-  // Verificaciones individuales de características
-  if (reqNorm.includes("fuerza 13 o mas") && !reqNorm.includes("fuerza o destreza")) {
-    if (fue < 13) {
-      return { cumple: false, motivo: `Requiere Fuerza 13 o más (actual: ${fue})` };
-    }
-  }
-
-  if (reqNorm.includes("destreza 13 o mas") && !reqNorm.includes("o destreza") && !reqNorm.includes("destreza o")) {
-    if (des < 13) {
-      return { cumple: false, motivo: `Requiere Destreza 13 o más (actual: ${des})` };
-    }
-  }
-
-  if (reqNorm.includes("inteligencia 13 o mas") && !reqNorm.includes("inteligencia,") && !reqNorm.includes("inteligencia o")) {
-    if (int < 13) {
-      return { cumple: false, motivo: `Requiere Inteligencia 13 o más (actual: ${int})` };
-    }
-  }
-
-  if (reqNorm.includes("carisma 13 o mas") && !reqNorm.includes("o carisma")) {
-    if (car < 13) {
-      return { cumple: false, motivo: `Requiere Carisma 13 o más (actual: ${car})` };
     }
   }
 
@@ -194,7 +213,7 @@ export function evaluarRequisitoDote(
     }
   }
 
-  // 4. Verificación de Armaduras y Escudos
+  // 4. Verificación declarativa de Armaduras y Escudos
   const gruposArmadura = new Set(
     (personaje.competenciasArmadurasGrupos || []).map((g) => normalizar(String(g)))
   );
@@ -207,39 +226,25 @@ export function evaluarRequisitoDote(
     return listaArmaduras.some((a) => a.includes(clave));
   };
 
-  if (reqNorm.includes("entrenamiento con armaduras pesadas")) {
-    if (!tieneCompetenciaGrupo("pesadas") && !tieneCompetenciaGrupo("pesada")) {
-      return { cumple: false, motivo: "Requiere entrenamiento con armaduras pesadas" };
-    }
-  }
-
-  if (reqNorm.includes("entrenamiento con armaduras medias")) {
-    if (!tieneCompetenciaGrupo("medias") && !tieneCompetenciaGrupo("mediana") && !tieneCompetenciaGrupo("media")) {
-      return { cumple: false, motivo: "Requiere entrenamiento con armaduras medias" };
-    }
-  }
-
-  if (reqNorm.includes("entrenamiento con armaduras ligeras")) {
-    if (!tieneCompetenciaGrupo("ligeras") && !tieneCompetenciaGrupo("ligera")) {
-      return { cumple: false, motivo: "Requiere entrenamiento con armaduras ligeras" };
-    }
-  }
-
-  if (reqNorm.includes("competencia con escudos")) {
-    if (!tieneCompetenciaGrupo("escudos") && !tieneCompetenciaGrupo("escudo")) {
-      return { cumple: false, motivo: "Requiere competencia con escudos" };
+  for (const def of REQUISITOS_ARMADURAS) {
+    if (reqNorm.includes(def.patron)) {
+      const tieneCompetencia = def.claves.some((k) => tieneCompetenciaGrupo(k));
+      if (!tieneCompetencia) {
+        return { cumple: false, motivo: def.motivo };
+      }
     }
   }
 
   // 5. Verificación de Rasgo Estilo de Combate
-  if (reqNorm.includes("rasgo estilo de combate")) {
+  if (reqNorm.includes("rasgo estilo de combate") || reqNorm.includes("estilo de combate")) {
     const tieneRasgoEstilo = (personaje.rasgos || []).some((r) =>
-      normalizar(r.nombre).includes("estilo de combate")
+      normalizar(r.nombre).includes("estilo de combate") || normalizar(r.id).includes("estilo_combate")
     );
-    const clasesConEstilo = ["guerrero", "paladin", "explorador"];
-    const tieneClaseMarcial = (personaje.clases || []).some((c) =>
-      clasesConEstilo.includes(normalizar(c.nombre)) && (c.nivel || 1) >= (normalizar(c.nombre) === "guerrero" ? 1 : 2)
-    );
+    const tieneClaseMarcial = (personaje.clases || []).some((c) => {
+      const cNorm = normalizar(c.nombre);
+      const nivelMinimo = NIVEL_MINIMO_ESTILO_COMBATE_POR_CLASE[cNorm];
+      return nivelMinimo !== undefined && (c.nivel || 1) >= nivelMinimo;
+    });
 
     if (!tieneRasgoEstilo && !tieneClaseMarcial) {
       return { cumple: false, motivo: "Requiere el rasgo Estilo de combate" };

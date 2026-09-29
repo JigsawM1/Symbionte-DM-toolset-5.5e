@@ -147,12 +147,59 @@ describe("evaluadorRequisitosDotes", () => {
       };
       expect(evaluarRequisitoDote("Rasgo Estilo de combate", pjGuerrero).cumple).toBe(true);
 
+      const pjPaladinNv2: PersonajeJugador = {
+        ...PERSONAJE_POR_DEFECTO,
+        clases: [{ nombre: "Paladín", subclase: "", nivel: 2 }]
+      };
+      expect(evaluarRequisitoDote("Rasgo Estilo de combate", pjPaladinNv2).cumple).toBe(true);
+
+      const pjPaladinNv1: PersonajeJugador = {
+        ...PERSONAJE_POR_DEFECTO,
+        clases: [{ nombre: "Paladín", subclase: "", nivel: 1 }],
+        rasgos: []
+      };
+      expect(evaluarRequisitoDote("Rasgo Estilo de combate", pjPaladinNv1).cumple).toBe(false);
+
       const pjMago: PersonajeJugador = {
         ...PERSONAJE_POR_DEFECTO,
         clases: [{ nombre: "Mago", subclase: "", nivel: 4 }],
         rasgos: []
       };
       expect(evaluarRequisitoDote("Rasgo Estilo de combate", pjMago).cumple).toBe(false);
+    });
+  });
+
+  describe("Requisitos dinámicos generales de características", () => {
+    it("evalúa requisitos no estándar como Constitución 13 o más", () => {
+      const pjBajoCon: PersonajeJugador = {
+        ...PERSONAJE_POR_DEFECTO,
+        caracteristicas: { ...PERSONAJE_POR_DEFECTO.caracteristicas, constitucion: 11 }
+      };
+      const res = evaluarRequisitoDote("Constitución 13 o más", pjBajoCon);
+      expect(res.cumple).toBe(false);
+      expect(res.motivo).toContain("Requiere Constitución 13 o más");
+
+      const pjAltoCon: PersonajeJugador = {
+        ...PERSONAJE_POR_DEFECTO,
+        caracteristicas: { ...PERSONAJE_POR_DEFECTO.caracteristicas, constitucion: 14 }
+      };
+      expect(evaluarRequisitoDote("Constitución 13 o más", pjAltoCon).cumple).toBe(true);
+    });
+
+    it("evalúa umbrales distintos como Fuerza 15 o más", () => {
+      const pjMedioFue: PersonajeJugador = {
+        ...PERSONAJE_POR_DEFECTO,
+        caracteristicas: { ...PERSONAJE_POR_DEFECTO.caracteristicas, fuerza: 14 }
+      };
+      const res = evaluarRequisitoDote("Fuerza 15 o más", pjMedioFue);
+      expect(res.cumple).toBe(false);
+      expect(res.motivo).toContain("Requiere Fuerza 15 o más (actual: 14)");
+
+      const pjAltoFue: PersonajeJugador = {
+        ...PERSONAJE_POR_DEFECTO,
+        caracteristicas: { ...PERSONAJE_POR_DEFECTO.caracteristicas, fuerza: 16 }
+      };
+      expect(evaluarRequisitoDote("Fuerza 15 o más", pjAltoFue).cumple).toBe(true);
     });
   });
 });

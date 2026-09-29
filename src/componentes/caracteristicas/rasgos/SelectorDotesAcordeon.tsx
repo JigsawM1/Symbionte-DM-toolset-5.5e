@@ -12,9 +12,22 @@ import {
 import { ControlPaginacion, TextoEnriquecidoDND } from "@/componentes/comunes";
 import { usarAlmacenDM } from "@/almacen/usarAlmacenDM";
 import { evaluarRequisitoDote } from "@/servicios/evaluadorRequisitosDotes";
+import { TODAS_LAS_DOTES_CANONICAS_DND55 } from "@/constantes/dotesConstantes";
 import estilos from "./SelectorDotesAcordeon.module.css";
 
 export const ELEMENTOS_POR_PAGINA_DOTES = 5;
+
+const MAPA_DOTES_CANONICAS = new Map<string, string>(
+  TODAS_LAS_DOTES_CANONICAS_DND55.map((d) => [d.id, d.categoria])
+);
+
+const METADATOS_CATEGORIA_DOTE: Record<string, { etiqueta: string; claseCss: string }> = {
+  origen: { etiqueta: "Origen", claseCss: estilos.badgeCategoriaOrigen },
+  general: { etiqueta: "General", claseCss: estilos.badgeCategoriaGeneral },
+  don_epico: { etiqueta: "Don épico", claseCss: estilos.badgeCategoriaEpica },
+  estilo_combate: { etiqueta: "Estilo", claseCss: estilos.badgeCategoriaEstilo },
+  personalizado: { etiqueta: "Personalizado", claseCss: estilos.badgeCategoriaGeneral }
+};
 
 interface SelectorDotesAcordeonProps {
   selector: SelectorRasgo;
@@ -31,28 +44,12 @@ function normalizar(texto: string = ""): string {
     .trim();
 }
 
-function resolverClaseCategoria(id: string, requisito: string = ""): {
+function resolverClaseCategoria(opcion: OpcionSelector): {
   etiqueta: string;
   claseCss: string;
 } {
-  const normId = normalizar(id);
-  const normReq = normalizar(requisito);
-  if (normId.startsWith("dote_don_") || normReq.includes("nivel 19")) {
-    return { etiqueta: "Don épico", claseCss: estilos.badgeCategoriaEpica };
-  }
-  if (normId.includes("estilo_combate") || normReq.includes("estilo de combate")) {
-    return { etiqueta: "Estilo", claseCss: estilos.badgeCategoriaEstilo };
-  }
-  if (
-    normId.includes("origen") ||
-    normId === "dote_alerta" ||
-    normId === "dote_iniciado_magia" ||
-    normId === "dote_afortunado" ||
-    normId === "dote_musico"
-  ) {
-    return { etiqueta: "Origen", claseCss: estilos.badgeCategoriaOrigen };
-  }
-  return { etiqueta: "General", claseCss: estilos.badgeCategoriaGeneral };
+  const cat = opcion.categoria || MAPA_DOTES_CANONICAS.get(opcion.id) || "general";
+  return METADATOS_CATEGORIA_DOTE[cat] || METADATOS_CATEGORIA_DOTE.general;
 }
 
 export const SelectorDotesAcordeon: React.FC<SelectorDotesAcordeonProps> = ({
@@ -199,7 +196,7 @@ export const SelectorDotesAcordeon: React.FC<SelectorDotesAcordeonProps> = ({
           opcionesPaginadas.map((op) => {
             const estaExpandida = Boolean(expandidos[op.id]);
             const bloqueada = !op.cumpleRequisitos && !op.estaActiva;
-            const catInfo = resolverClaseCategoria(op.id, op.requisito);
+            const catInfo = resolverClaseCategoria(op);
 
             return (
               <div

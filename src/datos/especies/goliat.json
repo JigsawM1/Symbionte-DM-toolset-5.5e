@@ -1,6 +1,7 @@
 {
   "id": "goliat",
   "nombre": "Goliat",
+  "etiquetaSubespecie": "Linaje Gigante",
   "descripcion": "Descendientes gigantescos que portan la resistencia sobrenatural de los gigantes y la fortaleza de las cumbres montañosas.",
   "tipoCriatura": "Humanoide",
   "tamanoOpciones": [

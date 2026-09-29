@@ -23,6 +23,7 @@ import {
   tieneEscudoEquipado
 } from "./utilidadesRasgos";
 
+
 /**
  * Evalúa las condiciones contextuales de un efecto mecánico de rasgo.
  */
@@ -263,21 +264,13 @@ export function evaluarEfectosRasgosActivos(personaje: PersonajeJugador): Efecto
           if (baseId === "lecciones_de_los_primeros" && opId.includes(":")) {
             const doteId = opId.split(":")[1];
             const doteNorm = normalizar(doteId);
+
             const dote = DOTES_ORIGEN_DND55.find(
               (d) =>
                 d.id === doteId ||
                 normalizar(d.id) === doteNorm ||
                 normalizar(d.id).replace(/^dote_/, "") === doteNorm.replace(/^dote_/, "") ||
-                normalizar(d.nombre) === doteNorm ||
-                (doteNorm === "alert" && d.id === "dote_alerta") ||
-                (doteNorm === "crafter" && d.id === "dote_fabricante") ||
-                (doteNorm === "healer" && d.id === "dote_sanador") ||
-                (doteNorm === "musician" && d.id === "dote_musico") ||
-                (doteNorm === "lucky" && d.id === "dote_afortunado") ||
-                (doteNorm === "savage-attacker" && d.id === "dote_atacante_salvaje") ||
-                (doteNorm === "skilled" && d.id === "dote_habilidoso") ||
-                (doteNorm === "tough" && d.id === "dote_duro") ||
-                (doteNorm === "tavern-brawler" && d.id === "dote_maton_taberna")
+                normalizar(d.nombre) === doteNorm
             );
 
             if (dote && Array.isArray(dote.efectos)) {

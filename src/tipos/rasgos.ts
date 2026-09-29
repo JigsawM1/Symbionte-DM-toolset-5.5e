@@ -96,6 +96,7 @@ export const EsquemaOpcionSelector = z.object({
   nombre: z.string(),
   descripcion: z.string().default(""),
   requisito: z.string().optional(),
+  categoria: z.string().optional(),
   nivelMinimo: z.number().int().min(1).max(20).optional(),
   requisitoInvocacion: z.string().optional(),
   repetible: z.boolean().optional(),
@@ -191,6 +192,7 @@ export type OpcionesDinamicas = z.infer<typeof EsquemaOpcionesDinamicas>;
 export const EsquemaSelectorRasgo = z.object({
   id: z.string(),
   tipo: z.enum(["unico", "multiple"]).default("unico"),
+  tipoSelector: z.enum(["general", "dote", "invocacion", "conjuro"]).default("general").optional(),
   etiqueta: z.string(),
   opciones: z.array(EsquemaOpcionSelector).default([]),
   maxSelecciones: z.number().int().min(1).default(1),

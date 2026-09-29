@@ -73,6 +73,16 @@ export function obtenerSubespeciesDeEspecie(especieNombreOId: string): Definicio
 }
 
 /**
+ * Obtiene la etiqueta canónica declarativa de la subespecie para una especie (ej. "Legado Dracónico", "Legado Infernal").
+ * Si la especie no define una etiqueta particular, devuelve el valor genérico "Subespecie / Linaje".
+ */
+export function obtenerEtiquetaSubespecie(especieNombreOId?: string): string {
+  if (!especieNombreOId) return "Subespecie / Legado / Linaje";
+  const esp = obtenerEspeciePorId(especieNombreOId) || obtenerEspeciePorNombre(especieNombreOId);
+  return esp?.etiquetaSubespecie || "Subespecie / Legado / Linaje";
+}
+
+/**
  * Busca una subespecie o linaje específico por nombre o ID con búsqueda tolerante.
  */
 export function obtenerSubespeciePorNombre(
@@ -247,8 +257,8 @@ export function construirRasgosEspecie(
   });
 
   // Mapear rasgos de la subespecie / legado (origen: "subespecie")
-  const prefijoFuente = normalizarTextoEspecie(especie.id).includes("dracon") || normalizarTextoEspecie(especie.id).includes("tiefling")
-    ? "Legado"
+  const prefijoFuente = especie.etiquetaSubespecie
+    ? especie.etiquetaSubespecie.split(" ")[0]
     : "Subespecie";
 
   const rasgosSubespecieProcesados: RasgoPersonaje[] = (subespecie?.rasgos || []).map((p) => {

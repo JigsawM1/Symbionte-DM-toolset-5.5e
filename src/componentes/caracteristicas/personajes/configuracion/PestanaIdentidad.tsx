@@ -4,7 +4,7 @@ import type { PersonajeJugador } from "@/tipos";
 import { ALINEAMIENTOS_DND, obtenerRangoExperienciaPorNivel } from "@/constantes";
 import { SelectorDesplegable } from "@/componentes/comunes/SelectorDesplegable";
 import { SelectorSugerencias, type OpcionSugerencia } from "@/componentes/comunes/SelectorSugerencias";
-import { obtenerCatalogoEspecies, obtenerSubespeciesDeEspecie } from "@/servicios/gestorEspecies";
+import { obtenerCatalogoEspecies, obtenerSubespeciesDeEspecie, obtenerEtiquetaSubespecie } from "@/servicios/gestorEspecies";
 import { SeccionMulticlase } from "./SeccionMulticlase";
 import estilos from "./ConfiguracionPersonaje.module.css";
 
@@ -182,17 +182,7 @@ export const PestanaIdentidad: React.FC<PestanaIdentidadProps> = ({
 
         <div className={estilos.campoFormulario}>
           <label className={estilos.labelFormulario}>
-            {form.especie?.toLowerCase().includes("dracon")
-              ? "Legado Dracónico"
-              : form.especie?.toLowerCase().includes("tiefling")
-              ? "Legado Infernal"
-              : form.especie?.toLowerCase().includes("goliat")
-              ? "Linaje Gigante"
-              : form.especie?.toLowerCase().includes("gnomo")
-              ? "Linaje Gnomo"
-              : form.especie?.toLowerCase().includes("elfo")
-              ? "Linaje Élfico"
-              : "Subespecie / Legado / Linaje"}
+            {obtenerEtiquetaSubespecie(form.especie)}
           </label>
           <SelectorSugerencias
             valor={form.subespecie || ""}

@@ -1,6 +1,7 @@
 {
   "id": "draconido",
   "nombre": "Dracónido",
+  "etiquetaSubespecie": "Legado Dracónico",
   "descripcion": "Orgullosos guerreros que canalizan el poder elemental y la furia destructiva de sus ancestros dragones.",
   "tipoCriatura": "Humanoide",
   "tamanoOpciones": [

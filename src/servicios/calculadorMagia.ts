@@ -11,8 +11,7 @@ import {
   COSTE_PUNTOS_POR_NIVEL,
   TIPO_LANZADOR_POR_CLASE,
   TABLA_PACTO_BRUJO,
-  esLanzadorCarisma,
-  esLanzadorSabiduria,
+  resolverAtributoConjuroClase,
   esClasePacto
 } from "@/constantes";
 import {
@@ -743,13 +742,8 @@ export function obtenerHabilidadConjuroPersonaje(pj: PersonajeJugador | null | u
     return pj.clasesLanzadoras[0].habilidadConjuro as Caracteristica;
   }
   const clase = pj?.clase || "";
-  if (esLanzadorCarisma(clase)) {
-    return "carisma";
-  }
-  if (esLanzadorSabiduria(clase)) {
-    return "sabiduria";
-  }
-  return "inteligencia";
+  const atributoResuelto = resolverAtributoConjuroClase(clase);
+  return atributoResuelto || "inteligencia";
 }
 
 /**

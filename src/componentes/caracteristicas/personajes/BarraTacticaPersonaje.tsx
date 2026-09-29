@@ -3,6 +3,7 @@ import { SelectorSugerencias, ChipCondicion } from "@/componentes/comunes";
 import { CONDICIONES_2024, EFECTOS_PREDEFINIDOS } from "@/utiles/datosIniciales";
 import type { PenalizacionArmadura } from "@/almacen/selectores/usarEstadoPersonajes";
 import type { ConcentracionActiva, EfectoActivoPj } from "@/tipos";
+import { esCondicionConcentracion } from "@/servicios/procesadorCondiciones";
 import { Moon, Sunrise } from "lucide-react";
 import estilos from "./HojaPersonaje.module.css";
 
@@ -60,7 +61,7 @@ const BarraTacticaPersonajeComponent: React.FC<BarraTacticaPersonajeProps> = ({
 
   // Filtrar efectos para no duplicar el chip de concentración si ya se muestra arriba
   const efectosFiltrados = efectosActivos.filter((ef) => {
-    if (tieneConcentracion && (ef.concentracion || ef.id === "ef_concentracion" || ef.nombre.toLowerCase().startsWith("concentra"))) {
+    if (tieneConcentracion && esCondicionConcentracion(ef.nombre, ef.id, ef.concentracion)) {
       return false;
     }
     return true;
@@ -78,7 +79,7 @@ const BarraTacticaPersonajeComponent: React.FC<BarraTacticaPersonajeProps> = ({
   const condicionesManuales = condicionesActivas.filter((cond) => {
     const min = cond.toLowerCase().trim();
     const base = cond.split(" (")[0].toLowerCase().trim();
-    if (min.includes("concentra")) return false;
+    if (esCondicionConcentracion(min)) return false;
     if (min.includes("desangr") || min.includes("bloodied")) return false;
     if (tienePenalizacionArmadura && (min.includes("sin competencia") || min.includes("incompetencia"))) return false;
     if (tieneDesventajaSigilo && (min.includes("desventaja en sigilo") || min.includes("sigilo ruidoso"))) return false;

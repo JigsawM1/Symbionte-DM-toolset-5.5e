@@ -15,6 +15,54 @@ import { esClaseBarbaro } from "@/constantes";
 export const NIVEL_MAXIMO_CANSANCIO = 6;
 
 /**
+ * Determina si una condición corresponde a "Furia de los Dioses" (Zealot / Guerrero Divino).
+ */
+export function esCondicionFuriaDioses(condicion: string): boolean {
+  if (!condicion) return false;
+  const normalizada = condicion.toLowerCase().trim();
+  return normalizada.includes("furia de los dioses") || normalizada.includes("rage of the gods");
+}
+
+/**
+ * Determina si una condición corresponde a la "Furia" base de Bárbaro.
+ * Discrimina de forma semántica frente a "Furia de los Dioses".
+ */
+export function esCondicionFuria(condicion: string): boolean {
+  if (!condicion) return false;
+  const normalizada = condicion.toLowerCase().trim();
+  if (esCondicionFuriaDioses(normalizada)) return false;
+  return (
+    normalizada.includes("furia (rage)") ||
+    normalizada.startsWith("furia") ||
+    normalizada.startsWith("rage") ||
+    normalizada.includes("furia")
+  );
+}
+
+/**
+ * Determina si una condición o efecto corresponde a Concentración.
+ * Soporta banderas booleanas explícitas, identificadores canónicos y variantes textuales.
+ */
+export function esCondicionConcentracion(
+  nombreOTexto?: string,
+  id?: string,
+  concentracionFlag?: boolean
+): boolean {
+  if (concentracionFlag) return true;
+  if (id === "ef_concentracion" || id === "concentracion") return true;
+  if (!nombreOTexto) return false;
+  const normalizada = nombreOTexto.toLowerCase().trim();
+  return (
+    normalizada === "concentración" ||
+    normalizada === "concentracion" ||
+    normalizada.startsWith("concentra") ||
+    normalizada.includes("(concentración)") ||
+    normalizada.includes("(concentracion)") ||
+    normalizada.includes("concentra")
+  );
+}
+
+/**
  * Contrato que debe implementar cualquier estrategia de condición.
  */
 export interface EstrategiaCondicion {
@@ -290,13 +338,13 @@ export function evaluarEfectosCondicionesEnTirada(
     }
 
     // Furia de los Dioses (Rage of the Gods): Forma de guerrero divino
-    const esFuriaDioses = cond.includes("furia de los dioses") || cond.includes("rage of the gods");
-    if (esFuriaDioses && !motivosModificadores.some((m) => m.toLowerCase().includes("furia de los dioses"))) {
+    const esFuriaDioses = esCondicionFuriaDioses(cond);
+    if (esFuriaDioses && !motivosModificadores.some((m) => esCondicionFuriaDioses(m))) {
       motivosModificadores.push("Furia de los Dioses (Vuelo + Resistencias)");
     }
 
     // Furia (Rage): Ventaja en pruebas y salvaciones de Fuerza (solo para Furia base, no Furia de los Dioses)
-    const esFuriaBase = (cond.startsWith("furia") || cond.startsWith("rage")) && !esFuriaDioses;
+    const esFuriaBase = esCondicionFuria(cond);
     if (esFuriaBase && !motivosVentaja.some((m) => m.toLowerCase().includes("fuerza"))) {
       if (contexto.tipo === "caracteristica" && contexto.caracteristica === "fuerza") {
         motivosVentaja.push("Furia (Fuerza)");

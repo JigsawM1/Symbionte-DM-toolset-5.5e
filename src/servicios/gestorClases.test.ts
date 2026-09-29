@@ -9,7 +9,9 @@ import {
   obtenerRasgosClaseYSubclase,
   obtenerConjurosSubclaseBuild,
   construirBuildClase,
-  aplicarBuildClaseAPersonaje
+  aplicarBuildClaseAPersonaje,
+  resolverDoteDonEpicoRecomendada,
+  MAPA_DON_EPICO_RECOMENDADO_POR_CLASE
 } from "./gestorClases";
 import { PERSONAJE_POR_DEFECTO } from "@/constantes";
 import type { PersonajeJugador } from "@/tipos";
@@ -217,5 +219,38 @@ describe("Servicio Gestor de Clases y Subclases D&D 5.5e (2024)", () => {
     const gb17 = rasgosNv17.find((r) => r.nombre === "Golpe brutal");
     expect(gb17?.formulaDados).toBe("2d10");
     expect(gb17?.efectos?.[0]?.valor).toBe("2d10");
+  });
+
+  describe("resolverDoteDonEpicoRecomendada", () => {
+    it("posee configuración canónica para las 12 clases oficiales", () => {
+      expect(Object.keys(MAPA_DON_EPICO_RECOMENDADO_POR_CLASE)).toHaveLength(12);
+      expect(MAPA_DON_EPICO_RECOMENDADO_POR_CLASE.barbaro).toBe("dote_don_ataque_imparable");
+    });
+
+    it("resuelve la dote recomendada por identificador de clase oficial", () => {
+      expect(resolverDoteDonEpicoRecomendada("", "barbaro")).toBe("dote_don_ataque_imparable");
+      expect(resolverDoteDonEpicoRecomendada("", "monje")).toBe("dote_don_ataque_imparable");
+      expect(resolverDoteDonEpicoRecomendada("", "bardo")).toBe("dote_don_recuerdo_conjuros");
+      expect(resolverDoteDonEpicoRecomendada("", "guerrero")).toBe("dote_don_pericia_combate");
+      expect(resolverDoteDonEpicoRecomendada("", "druida")).toBe("dote_don_viaje_dimensional");
+      expect(resolverDoteDonEpicoRecomendada("", "explorador")).toBe("dote_don_viaje_dimensional");
+      expect(resolverDoteDonEpicoRecomendada("", "hechicero")).toBe("dote_don_viaje_dimensional");
+      expect(resolverDoteDonEpicoRecomendada("", "mago")).toBe("dote_don_recuperacion");
+      expect(resolverDoteDonEpicoRecomendada("", "paladin")).toBe("dote_don_vision_verdadera");
+      expect(resolverDoteDonEpicoRecomendada("", "picaro")).toBe("dote_don_espiritu_noche");
+      expect(resolverDoteDonEpicoRecomendada("", "brujo")).toBe("dote_don_destino");
+      expect(resolverDoteDonEpicoRecomendada("", "clerigo")).toBe("dote_don_destino");
+    });
+
+    it("resuelve la dote recomendada mediante coincidencia textual en la descripción", () => {
+      expect(resolverDoteDonEpicoRecomendada("Obtienes la dote Don épico: Ofensiva irresistible.")).toBe("dote_don_ataque_imparable");
+      expect(resolverDoteDonEpicoRecomendada("Se recomienda Pericia en combate para tu guerrero.")).toBe("dote_don_pericia_combate");
+      expect(resolverDoteDonEpicoRecomendada("Don de recuperación para canalizar energía.")).toBe("dote_don_recuperacion");
+    });
+
+    it("aplica el fallback por defecto si no hay coincidencia", () => {
+      expect(resolverDoteDonEpicoRecomendada("", "clase_desconocida")).toBe("dote_don_destino");
+      expect(resolverDoteDonEpicoRecomendada("")).toBe("dote_don_destino");
+    });
   });
 });

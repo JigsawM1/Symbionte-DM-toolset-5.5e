@@ -33,6 +33,7 @@ import {
   CategoriaCombateRasgo
 } from "@/servicios/calculadorAccionesCombate";
 import { verificarHechizoDeSubclase } from "@/servicios/logicaPertenenciaConjuros";
+import { esCondicionFuria } from "@/servicios/procesadorCondiciones";
 import {
   obtenerBloqueoToggleRasgo,
   resolverRecursosPadre,
@@ -230,7 +231,7 @@ export function usarCalculoAtaquesJugador() {
       (r) => (r.id === "rasgo_cls_barbaro_furia" || r.id === "furia") && r.activo
     );
     const tieneCondicionFuria = (personajeActivo.condicionesActivas || []).some(
-      (c) => c.toLowerCase().includes("furia (rage)") || (c.toLowerCase().includes("furia") && !c.toLowerCase().includes("furia de los dioses"))
+      (c) => esCondicionFuria(c)
     );
     return tieneRasgoFuriaActivo || tieneCondicionFuria;
   }, [personajeActivo]);

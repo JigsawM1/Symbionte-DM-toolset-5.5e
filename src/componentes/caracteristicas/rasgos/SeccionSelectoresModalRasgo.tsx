@@ -29,6 +29,7 @@ export const SeccionSelectoresModalRasgo: React.FC<SeccionSelectoresModalRasgoPr
         const seleccionados = sel.valorActual || [];
         const max = sel.maxSelecciones || 1;
         const esSelectorInvocaciones =
+          sel.tipoSelector === "invocacion" ||
           sel.id.toLowerCase().includes("invocacion") ||
           sel.etiqueta.toLowerCase().includes("invocaci");
 
@@ -53,6 +54,7 @@ export const SeccionSelectoresModalRasgo: React.FC<SeccionSelectoresModalRasgoPr
 
         // Para Dotes (Mejora de Característica, Don Épico, etc.), usar vista de acordeón con filtrado de requisitos
         const esSelectorDotes =
+          sel.tipoSelector === "dote" ||
           sel.id.toLowerCase().includes("dote") ||
           sel.etiqueta.toLowerCase().includes("dote") ||
           sel.opciones.some((op) => op.id.startsWith("dote_"));
@@ -86,7 +88,8 @@ export const SeccionSelectoresModalRasgo: React.FC<SeccionSelectoresModalRasgoPr
         const esSelectorDesplegable =
           !esModoLista &&
           sel.tipo === "unico" &&
-          (sel.id.toLowerCase().includes("conjuro") ||
+          (sel.tipoSelector === "conjuro" ||
+            sel.id.toLowerCase().includes("conjuro") ||
             sel.id.toLowerCase().includes("hechizo") ||
             sel.id.toLowerCase().includes("truco") ||
             sel.opciones.length > 8);

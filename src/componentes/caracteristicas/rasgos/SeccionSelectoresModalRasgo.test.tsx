@@ -149,4 +149,67 @@ describe("SeccionSelectoresModalRasgo - Paginación en Modo Lista", () => {
       expect(htmlIniciado).toContain("Prestidigitación");
     });
   });
+
+  describe("Resolución Declarativa con tipoSelector", () => {
+    it("renderiza el acordeón de dotes cuando tipoSelector es 'dote', independientemente del nombre del ID", () => {
+      const selectorDoteDeclarativo: SelectorRasgo = {
+        id: "selector_talento_marcial_personalizado",
+        tipo: "unico",
+        tipoSelector: "dote",
+        etiqueta: "Talento Especial de Guerrero",
+        maxSelecciones: 1,
+        opciones: [
+          {
+            id: "talento_1",
+            nombre: "Talento Uno",
+            descripcion: "Efecto uno",
+            categoria: "general"
+          }
+        ],
+        valorActual: []
+      };
+
+      const html = renderToStaticMarkup(
+        <SeccionSelectoresModalRasgo
+          selectores={[selectorDoteDeclarativo]}
+          alActualizarSeleccion={vi.fn()}
+        />
+      );
+
+      // Debe renderizar la estructura del SelectorDotesAcordeon
+      expect(html).toContain("Talento Especial de Guerrero");
+      expect(html).toContain("Talento Uno");
+      expect(html).toContain("General");
+    });
+
+    it("renderiza el acordeón de invocaciones cuando tipoSelector es 'invocacion'", () => {
+      const selectorInvocacionDeclarativo: SelectorRasgo = {
+        id: "selector_poder_oculto",
+        tipo: "multiple",
+        tipoSelector: "invocacion",
+        etiqueta: "Poder Oculto de Pacto",
+        maxSelecciones: 2,
+        opciones: [
+          {
+            id: "invocacion_custom",
+            nombre: "Visión Extraña",
+            descripcion: "Puedes ver lo invisible",
+            categoriaMecanica: "pasivo_permanente"
+          }
+        ],
+        valorActual: ["invocacion_custom"]
+      };
+
+      const html = renderToStaticMarkup(
+        <SeccionSelectoresModalRasgo
+          selectores={[selectorInvocacionDeclarativo]}
+          alActualizarSeleccion={vi.fn()}
+        />
+      );
+
+      expect(html).toContain("Poder Oculto de Pacto");
+      expect(html).toContain("Invocaciones conocidas: 1 / 2");
+      expect(html).toContain("Visión Extraña");
+    });
+  });
 });

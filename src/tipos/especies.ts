@@ -69,6 +69,7 @@ export interface DefinicionEspecie {
   velocidadBase: number; // en pies, ej. 30
   visionOscuridad: number; // en pies, ej. 60 o 120 (0 si no tiene)
   rasgos: PlantillaRasgoEspecie[];
+  etiquetaSubespecie?: string; // ej. "Legado Dracónico", "Legado Infernal", "Linaje Gigante"
   subespecies?: DefinicionSubespecie[];
   conjurosInnatos?: ConjuroInnatoEspecie[];
   resistenciasDanio?: string[];

@@ -22,7 +22,7 @@ interface SeccionConjurosOcultosProps {
   estaPreparado: (hechizo: HechizoBase) => boolean;
   esHechizoDeSubclase: (hechizo: HechizoBase) => boolean;
   obtenerOrigenConjuro?: (hechizo: HechizoBase) => OrigenConjuroBadge | null;
-  requierePreparacion: boolean;
+  requierePreparacion?: boolean;
   estaBloqueadoPorArmadura: boolean;
   motivoBloqueoArmadura?: string;
   alAlternarPreparado: (hechizoId: string) => void;
@@ -48,7 +48,7 @@ export const SeccionConjurosOcultos: React.FC<SeccionConjurosOcultosProps> = ({
   estaPreparado,
   esHechizoDeSubclase,
   obtenerOrigenConjuro,
-  requierePreparacion,
+  requierePreparacion: _requierePreparacion,
   estaBloqueadoPorArmadura,
   motivoBloqueoArmadura,
   alAlternarPreparado,
@@ -143,7 +143,6 @@ export const SeccionConjurosOcultos: React.FC<SeccionConjurosOcultosProps> = ({
                     estaPreparado={esTruco ? true : estaPreparado(hechizo)}
                     esDeSubclase={esHechizoDeSubclase(hechizo)}
                     origenBadge={obtenerOrigenConjuro ? obtenerOrigenConjuro(hechizo) : (esHechizoDeSubclase(hechizo) ? "subclase" : null)}
-                    mostrarTogglePreparado={!esTruco && requierePreparacion}
                     esConcentracionActual={personaje.concentracionActiva?.hechizoId === hechizo.id}
                     esOculto={true}
                     alAlternarOcultar={() => alternarOculto(hechizo.id)}

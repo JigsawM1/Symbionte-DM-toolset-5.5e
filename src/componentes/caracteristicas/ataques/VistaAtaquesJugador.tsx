@@ -15,7 +15,6 @@ import estilos from "./VistaAtaquesJugador.module.css";
 
 export const VistaAtaquesJugador: React.FC = () => {
   const {
-    personajes,
     personajeActivo,
     statsCalculadas,
     sistemaMagia,
@@ -23,6 +22,8 @@ export const VistaAtaquesJugador: React.FC = () => {
     setFiltro,
     seccionesAbiertas,
     alternarSeccion,
+    colapsarTodasSecciones,
+    expandirTodasSecciones,
     hechizoDetalle,
     setHechizoDetalle,
     rasgoDetalle,
@@ -53,7 +54,6 @@ export const VistaAtaquesJugador: React.FC = () => {
     tienePacto,
     esHechizoDeSubclase,
     lanzar,
-    seleccionarPersonajeActivo,
     gastarEspacioConjuro,
     recuperarEspacioConjuro,
     recuperarTodosEspaciosConjuro,
@@ -111,10 +111,9 @@ export const VistaAtaquesJugador: React.FC = () => {
         conteoActivables={conteoActivables}
         filtro={filtro}
         alCambiarFiltro={setFiltro}
-        personajes={personajes}
-        personajeActivo={personajeActivo}
-        alSeleccionarPersonaje={seleccionarPersonajeActivo}
         statsCalculadas={statsCalculadas}
+        alColapsarTodas={colapsarTodasSecciones}
+        alExpandirTodas={expandirTodasSecciones}
       />
 
       {/* Trackers de Recursos Mágicos */}

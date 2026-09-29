@@ -1,5 +1,5 @@
 import React from "react";
-import { Zap, Eye, EyeOff, Trash2, Check, Sparkles, AlertTriangle } from "lucide-react";
+import { Zap, Eye, EyeOff, Trash2, Sparkles, AlertTriangle } from "lucide-react";
 import type { HechizoBase } from "@/tipos";
 import { calcularInfoTruco, aplicarBonoNumericoAFormulaDados } from "@/utiles/utilesConjuros";
 import type { ModoLanzamiento } from "@/servicios/servicioLanzamientoConjuros";
@@ -55,14 +55,14 @@ export const TarjetaConjuroCompacta: React.FC<TarjetaConjuroCompactaProps> = ({
   bonoAtaqueMagico,
   bonoDanoMagico = 0,
   modificadorHabilidad = 0,
-  estaPreparado,
+  estaPreparado: _estaPreparado,
   esDeSubclase = false,
   origenBadge,
-  mostrarTogglePreparado = false,
+  mostrarTogglePreparado: _mostrarTogglePreparado = false,
   esConcentracionActual = false,
   esOculto = false,
   alAlternarOcultar,
-  alAlternarPreparado,
+  alAlternarPreparado: _alAlternarPreparado,
   alQuitarDeLista,
   alAbrirDetalleCompleto,
   alLanzar,
@@ -125,42 +125,19 @@ export const TarjetaConjuroCompacta: React.FC<TarjetaConjuroCompactaProps> = ({
 
   const claseEstadoTarjeta = esConcentracionActual
     ? estilos.tarjetaConcentracion
-    : estaPreparado || !mostrarTogglePreparado
-    ? estilos.tarjetaPreparada
-    : estilos.tarjetaNoPreparada;
+    : estilos.tarjetaPreparada;
 
   return (
     <div className={`${estilos.tarjeta} ${claseEstadoTarjeta}`}>
-      {/* Lado Izquierdo: Checkbox (si aplica) + Nombre y Badges */}
+      {/* Lado Izquierdo: Nombre y Badges */}
       <div className={estilos.ladoIzquierdo}>
-        {mostrarTogglePreparado && !esTruco && (
-          <button
-            type="button"
-            onClick={esOtorgado ? undefined : alAlternarPreparado}
-            title={
-              esOtorgado && configBadge
-                ? `${configBadge.tooltip} (no consume cupo diario)`
-                : estaPreparado
-                ? "Conjuro preparado (clic para desmarcar)"
-                : "Conjuro no preparado (clic para preparar)"
-            }
-            className={
-              esOtorgado
-                ? estilos.checkboxSubclase
-                : `${estilos.checkboxPreparado} ${estaPreparado ? estilos.checkboxPreparadoActivo : ""}`
-            }
-          >
-            {(estaPreparado || esOtorgado) && <Check size={12} />}
-          </button>
-        )}
-
         <div className={estilos.bloqueNombre}>
           <div className={estilos.filaTitulo}>
             <button
               type="button"
               onClick={() => alAbrirDetalleCompleto(hechizo)}
               title="Ver descripción y ficha completa del conjuro"
-              className={`${estilos.nombreConjuro} ${!estaPreparado && mostrarTogglePreparado && !esOtorgado ? estilos.nombreConjuroInactivo : ""}`}
+              className={estilos.nombreConjuro}
             >
               {hechizo.nombre}
             </button>

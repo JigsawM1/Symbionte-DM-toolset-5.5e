@@ -20,6 +20,58 @@ Este archivo registra reglas globales, errores encontrados, sus causas raíz y l
    - Toda mecánica, progresión de dados, escalado de usos, recuperación o desbloqueo dinámico debe resolverse mediante metadatos declarativos (`escaladoFormulaDados`, `escaladoUsos`, `escaladoRecuperacion`, `opcionesDinamicas`, `escaladoMaxSelecciones`, `sincronizarEfectosConFormula`, `heredarDadosPadre`, `gastarDePadre`, `ligadoA`, `efectos`) delegando en funciones puras agnósticas como `resolverEscaladosRasgo`. Esta regla está reforzada en CI vía ESLint `no-restricted-syntax` y la suite `rasgoGenericidad.test.ts`.
 
 
+## [2026-09-29] Ajuste de UI: Eliminación del Selector de Personaje en Acciones, Compendio e Inventario y Supresión del Checkbox de Preparación en Hoja de Personaje
+
+**Problema Reportado por el Usuario:**
+- "ajuste de UI, elimina el selector de personaje de aciones, compendio de conjuros e inventario"
+- "2. eliminacion del checkbox de cuando una clase es conjuros preparados en @[src/componentes/caracteristicas/personajes/HojaPersonaje.tsx]"
+
+**Causas Raíz Diagnosticadas:**
+1. **Redundancia del Selector de Personaje en Subvistas:**
+   - Existían selectores desplegables locales de personaje en las cabeceras de *Acciones* (`CabeceraAtaquesJugador.tsx`), *Compendio de Conjuros* (`CompendioConjurosJugador.tsx`) e *Inventario* (`VistaInventarioJugador.tsx`). La selección canónica del personaje activo se realiza en la barra superior o en la vista dedicada de personajes (`VistaJugadores.tsx`), por lo que estos selectores locales generaban ruido visual y redundancia en el flujo de interacción.
+2. **Checkbox Innecesario de Conjuros Preparados en la Hoja de Personaje:**
+   - Cuando un personaje pertenecía a una clase que prepara conjuros (`requierePreparacion = true`), la vista de la hoja (`HojaPersonaje.tsx` -> `PanelConjurosPersonaje` -> `SeccionNivelConjuros` / `SeccionConjurosOcultos` -> `TarjetaConjuroCompacta`) renderizaba un botón con icono de `Check` (`.checkboxPreparado`) en cada tarjeta de conjuro para marcarlo o desmarcarlo como preparado.
+   - La preparación y aprendizaje de conjuros se gestiona formalmente desde el *Compendio de Conjuros* (donde se utiliza la estrella y los controles de repertorio); tener un checkbox interactivo por cada conjuro en la hoja de combate/magia resultaba intrusivo e innecesario para el uso diario de la ficha.
+
+**Soluciones Arquitectónicas Aplicadas:**
+1. **Eliminación Quirúrgica de los Selectores de Personaje:**
+   - **Acciones:** Removido el bloque `.selectorPersonaje` y el icono `UserCheck` en `CabeceraAtaquesJugador.tsx`. Desacoplada la callback `alSeleccionarPersonaje` en `VistaAtaquesJugador.tsx`. Eliminada la clase CSS `.selectorPersonaje` en `VistaAtaquesJugador.module.css`.
+   - **Compendio de Conjuros:** Removido el bloque condicional del selector en `CompendioConjurosJugador.tsx`, purgando los imports no utilizados de `User` y `seleccionarPersonajeActivo`.
+   - **Inventario:** Removido el bloque `.filaSelectorPersonajeCompacto` en `VistaInventarioJugador.tsx`, limpiando `User`, `SelectorDesplegable` y `seleccionarPersonajeActivo`. Eliminada la regla CSS huérfana `.filaSelectorPersonajeCompacto` en `VistaInventarioJugador.module.css`.
+2. **Supresión del Checkbox de Preparación en la Hoja de Personaje:**
+   - En `SeccionNivelConjuros.tsx` y `SeccionConjurosOcultos.tsx`, se retiró el pase de `mostrarTogglePreparado={!esTruco && requierePreparacion}`.
+   - En `TarjetaConjuroCompacta.tsx`, se eliminó el botón del checkbox de preparación `{mostrarTogglePreparado && !esTruco && <button ... />}` y se ajustó `claseEstadoTarjeta` para mostrar las tarjetas siempre activas (`estilos.tarjetaPreparada`), suprimiendo además el estilo `.nombreConjuroInactivo` y limpiando la importación de `Check` de `lucide-react`.
+   - En `TarjetaConjuroCompacta.module.css`, se depuraron las clases huérfanas `.checkboxPreparado`, `.checkboxPreparadoActivo`, `.checkboxSubclase` y `.nombreConjuroInactivo`.
+3. **Pruebas y Verificación Integral:**
+   - 1,176 pruebas unitarias pasando al 100% (86 suites), `tsc --noEmit` completado con 0 errores bajo `strict: true`, ESLint sin errores ni advertencias (`--max-warnings=0`), verificación de límites de línea aprobada y compilación de producción con Vite exitosa.
+
+
+## [2026-09-29] Incorporación de Controles Globales de Colapso y Expansión en la Pestaña de Acciones de Combate
+
+**Problema Reportado por el Usuario:**
+- "falta un boton de contraer todo en acciones."
+
+**Causas Raíz Diagnosticadas:**
+1. **Asimetría de Usabilidad entre Pestañas:**
+   - Mientras que las secciones de *Inventario* (`BarraHerramientasInventario.tsx`) y *Conjuros* (`BarraFiltrosConjuros.tsx`) contaban con controles para expandir y colapsar masivamente todas sus subsecciones, y *Rasgos* (`CabeceraRasgosJugador.tsx`) disponía de un botón alternador de colapso global, la pestaña de *Acciones* (`CabeceraAtaquesJugador.tsx` / `VistaAtaquesJugador.tsx`) carecía por completo de controles globales de colapso.
+   - En hojas de personaje de niveles medios o altos con múltiples armas, decenas de conjuros repartidos por nivel, rasgos tácticos y consumibles, la vista de combate requería desplazamientos prolongados sin opción de contraer todas las secciones simultáneamente.
+
+**Soluciones Arquitectónicas Aplicadas:**
+1. **Funciones Puras de Colapso en `usarCalculoAtaquesJugador.ts`:**
+   - Definida la constante declarativa inmutable `SECCIONES_COMBATE_POR_DEFECTO: Readonly<Record<string, boolean>>` agrupando todas las secciones principales (`recursos`, `fisicos`, `magicos`, `rasgos`, `consumibles`, `hechizosObjetos`) y subsecciones por nivel de conjuro (`magicos_nv_0` a `magicos_nv_9` y `magicos_ocultos`).
+   - Implementadas y expuestas `colapsarTodasSecciones`, `expandirTodasSecciones`, `estanTodasSeccionesColapsadas` y `alternarTodasSecciones` con mutación inmutable y segura del estado persistido (`ts_acciones_secciones`).
+   - Compactados los selectores de conteo numérico con el helper puro `contarPorTipoAccion`, asegurando que `usarCalculoAtaquesJugador.ts` permanezca estricto por debajo de las 500 líneas (485 líneas).
+2. **Controles en la Interfaz (`CabeceraAtaquesJugador.tsx`):**
+   - Incorporado el bloque `.accionesCabeceraDerecha` que alberga el selector de personaje y el grupo `.grupoControlesColapso`.
+   - Agregados los botones declarativos "Expandir" y "Contraer" con títulos descriptivos accesibles (`title="Contraer todas las secciones de combate"` y `title="Expandir todas las secciones de combate"`).
+   - Uso estricto de iconos SVG locales de `lucide-react` (`ChevronsDownUp` y `ChevronsUpDown`), cumpliendo al 100% la directiva de cero emojis.
+3. **Estilos CSS Modulares (`VistaAtaquesJugador.module.css`):**
+   - Creados `.accionesCabeceraDerecha`, `.grupoControlesColapso` y `.botonControlColapso` con diseño interactivo coherente, bordes sutiles, variables de color temáticas y estados `:hover`.
+4. **Pruebas y Verificación Integral:**
+   - Creada suite `src/componentes/caracteristicas/ataques/CabeceraAtaquesColapso.test.tsx` testeando renderizado estático, presencia de botones, títulos accesibles y mutación exhaustiva del diccionario de estado.
+   - Ampliada suite `src/componentes/caracteristicas/inventario/reordenacionYColapso.test.ts` con caso de prueba para colapso global de acciones.
+   - 1,175 pruebas aprobadas (86 suites), `pnpm exec tsc --noEmit` con 0 errores, ESLint con 0 errores/warnings (`--max-warnings=0`), verificación de límite de líneas aprobada sin errores críticos y build de producción de Vite exitoso.
+
 ## [2026-09-28] Saneamiento Fase 4: Analizador Estructurado y Declarativo de Requisitos de Dotes
 
 **Problema Identificado:**
@@ -10097,3 +10149,82 @@ Optimizar la complejidad temporal (Big O) en las operaciones de búsqueda, orden
 - **ESLint**: `pnpm lint` completado con **0 errores y 0 advertencias** (`--max-warnings=0`).
 - **Control de Líneas**: `pnpm verificar:lineas` completado con **0 errores críticos**.
 - **Build de Producción**: `pnpm build` generado exitosamente en 7.02s.
+
+---
+
+## [2026-09-29] Corrección de Duplicación de Daño en Lanzamiento Potente de Clérigo (D&D 5.5e)
+
+### 1. Diagnóstico y Causa Raíz
+- **Problema Reportado**: Al activar *Golpes benditos: Lanzamiento potente* (`rasgo_cls_clerigo_lanzamiento_potente`), los trucos de clérigo (ej. *Llama sagrada*) sumaban el modificador de Sabiduría dos veces (`daño del truco + Sabiduría * 2`), devolviendo e.g. `2d8 + 8` en lugar de `2d8 + 4`.
+- **Causa Raíz Identificada**:
+  1. En `src/servicios/rasgos/evaluadorCombateRasgos.ts`, la función pura `aplicarModificadoresInvocacionesAHechizo` detectaba el efecto declarativo del rasgo (`objNorm === "agregar_modificador_habilidad"`) y encendía reactivamente en el truco la bandera mecánica `agregarModificadorHabilidad = true`.
+  2. En los renderizadores y constructores de macros (`calcularInfoTruco`, `construirFormulaTaleSpireTruco`, `TarjetaConjuroCompacta`, `FichaHechizo`), al estar activa dicha bandera, se inyectaba el modificador de aptitud mágica (`modificadorHabilidad`, que para el clérigo es Sabiduría) en la fórmula del truco como `modHab` (1x Sabiduría).
+  3. De forma simultánea y redundante, `obtenerBonoDanoConjuroExtra` recorría todos los efectos de tipo `bono_dano_conjuro`. Como no omitía los efectos cuyo objetivo es delegar en la habilidad (`agregar_modificador_habilidad`), resolvía la fórmula dinámica `"sabiduria"` y aportaba numéricamente el modificador de Sabiduría a `bonoDanoMagico` (otra 1x Sabiduría).
+  4. Al combinarse ambos en la fórmula final (`bonoTotal = bonoDanoMagico + modHab`), el daño final sumaba Sabiduría dos veces (`+4 + 4 = +8`).
+  5. Además, en `src/datos/clases/clerigo.json`, el efecto del rasgo carecía de `"aplicaA": "trucos"`, por lo que el evaluador genérico no restringía su alcance declarativo a los trucos.
+
+### 2. Decisiones de Diseño y Correcciones Quirúrgicas Aplicadas
+1. **Discriminación en `obtenerBonoDanoConjuroExtra` (`evaluadorCombateRasgos.ts`)**:
+   - Se añadió una exclusión explícita: si `ef.objetivo === "agregar_modificador_habilidad"` o incluye `"modificador_habilidad"`, `obtenerBonoDanoConjuroExtra` omite el efecto (`continue`). Su rol semántico exclusivo es activar la bandera del hechizo/truco, dejando que `modificadorHabilidad` aporte la característica una única vez de forma limpia.
+2. **Refinamiento en `tienePotenciadorTrucos` (`evaluadorCombateRasgos.ts`)**:
+   - Se eliminó la condición genérica `aplNorm === "trucos"` para evitar que cualquier bono plano futuro sobre trucos active accidentalmente `agregarModificadorHabilidad`.
+3. **Delimitación Declarativa en `clerigo.json`**:
+   - Se añadió `"aplicaA": "trucos"` en `efectos[0]` de `rasgo_cls_clerigo_lanzamiento_potente`, garantizando coherencia con el esquema de datos y las reglas oficiales D&D 5.5e (PHB 2024).
+4. **Modularización de Control de Secciones de Combate (`usarSeccionesColapsablesAtaque.ts`)**:
+   - Para mantener el cumplimiento estricto del límite de líneas en CI (`scripts/verificar-limite-lineas.js`), se extrajo el estado de secciones colapsables persistentes de `usarCalculoAtaquesJugador.ts` a un hook dedicado `usarSeccionesColapsablesAtaque.ts`, reduciendo `usarCalculoAtaquesJugador.ts` a 409 líneas.
+5. **Pruebas Automatizadas Unitarias (`clerigoMecanicasDND55.test.ts`)**:
+   - Se incorporó la suite `Precisión de Cálculo de Daño: Lanzamiento Potente (1x Sabiduría)` verificando que:
+     - `obtenerBonoDanoConjuroExtra` devuelve 0 para el truco.
+     - `calcularInfoTruco` escala correctamente y produce exactamente `2d8 + 4` (con Sabiduría 18).
+     - La macro para TaleSpire (`construirFormulaTaleSpireTruco`) genera `!Daño Llama sagrada (radiante):2d8+4`.
+     - Conjuros de nivel 1+ (como *Saeta guiada*) no reciben Sabiduría extra.
+
+### 3. Métricas de Validación
+- **Tests Unitarios**: **85 suites superadas, 1171/1171 tests pasando (100% de éxito)**.
+- **TypeScript**: `pnpm exec tsc --noEmit` completado con **0 errores** (Strict Mode estricto).
+- **ESLint**: `pnpm lint` completado con **0 errores y 0 advertencias** (`--max-warnings=0`).
+- **Control de Líneas**: `pnpm verificar:lineas` completado con **0 errores críticos** (112 archivos auditados).
+- **Build de Producción**: `pnpm build` generado exitosamente en 21.07s.
+
+---
+
+## [2026-09-29] Unificación Arquitectónica DRY de Modificadores de Habilidad en Trucos (Brujo & Clérigo)
+
+### 1. Diagnóstico y Deuda Técnica Detectada
+- **Problema de Arquitectura (Violación de DRY)**:
+  - *Lanzamiento Potente* (Clérigo) utilizaba un efecto declarativo canónico en JSON (`tipo: "bono_dano_conjuro"`, `objetivo: "agregar_modificador_habilidad"`).
+  - En contraste, *Descarga Agónica* (Brujo) utilizaba un efecto ad-hoc huérfano (`tipo: "personalizado"`, `objetivo: "truco_dano_carisma"`), y la activación de su mecánica estaba acoplada con bifurcaciones imperativas e inspecciones manuales de cadenas de texto (`inv.startsWith("descarga_agonica")`) en `aplicarModificadoresInvocacionesAHechizo`.
+  - Esta duplicación divergente generaba dos caminos de código paralelos para el mismo objetivo semántico: activar la bandera mecánica `agregarModificadorHabilidad: true` en el truco correspondiente.
+
+### 2. Decisiones de Diseño y Solución Aplicada
+1. **Estandarización Declarativa en `src/datos/invocaciones-sobrenaturales.json`**:
+   - Se migró el efecto de `descarga_agonica` al estándar declarativo del motor de combate:
+     ```json
+     {
+       "tipo": "bono_dano_conjuro",
+       "objetivo": "agregar_modificador_habilidad",
+       "valor": "carisma",
+       "aplicaA": "descarga_sobrenatural",
+       "descripcion": "Suma tu modificador por Carisma a las tiradas de daño del truco de brujo elegido"
+     }
+     ```
+2. **Parametrización Dinámica de Argumentos en `evaluadorExpresionesRasgos.ts`**:
+   - En `evaluarEfectosRasgosActivos`, al iterar sobre selecciones con argumentos dinámicos (e.g. `descarga_agonica:rayo_de_escarcha` o selecciones repetibles `descarga_agonica__timestamp:toque_helado`), si el efecto es `bono_dano_conjuro` con `agregar_modificador_habilidad`, se asigna dinámicamente el truco seleccionado a `efectoFinal.aplicaA`.
+   - Se compactaron constructores de condiciones y subtipos de daño, asegurando que `evaluadorExpresionesRasgos.ts` se mantenga holgadamente bajo el límite de tamaño CI (489 líneas, límite < 500).
+3. **Unificación de Evaluación en `evaluadorCombateRasgos.ts`**:
+   - Se eliminaron las ramas duplicadas en `aplicarModificadoresInvocacionesAHechizo`. Ahora, una única lógica declarativa evalúa `efectosRasgosActivos`:
+     - Global (`"trucos"`, `"todos_conjuros"`, `""`): aplica a todos los trucos (ej. Lanzamiento Potente general).
+     - Específico por clase (`"trucos_clerigo"`, `"trucos_brujo"`): valida pertenencia a la clase.
+     - Específico por truco: valida coincidencia exacta con `hechizo.id` o `hechizo.nombre` mediante `coincideHechizoId` con tipado estricto seguro (`ef.aplicaA && ...`).
+   - Se preservó un respaldo directo para invocaciones en caso de selecciones sin catálogo hidratado en mocks unitarios.
+4. **Protección Contra Duplicación de Daño**:
+   - Gracias a la exclusión en `obtenerBonoDanoConjuroExtra` (`ef.objetivo === "agregar_modificador_habilidad"`), el Carisma de Descarga Agónica tampoco se suma como bono plano estático, garantizando que el daño sea `1d10 + CAR` y nunca `1d10 + CAR * 2`.
+5. **Pruebas Automatizadas Unitarias**:
+   - Se amplió `src/servicios/invocacionesBrujoMecanicas.test.ts` con un test explícito verificando que el efecto declarativo se resuelve correctamente en `evaluarEfectosRasgosActivos` y que `obtenerBonoDanoConjuroExtra` devuelve 0 para el truco.
+
+### 3. Métricas de Validación
+- **Tests Unitarios**: **86 suites superadas, 1176/1176 tests pasando (100% de éxito)**.
+- **TypeScript**: `pnpm exec tsc --noEmit` completado con **0 errores** (Strict Mode estricto).
+- **ESLint**: `pnpm lint` completado con **0 errores y 0 advertencias** (`--max-warnings=0`).
+- **Control de Líneas**: `pnpm verificar:lineas` completado con **0 errores críticos** (112 archivos auditados).
+- **Build de Producción**: `pnpm build` generado exitosamente en 15.79s.

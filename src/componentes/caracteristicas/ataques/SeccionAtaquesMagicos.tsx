@@ -127,7 +127,6 @@ export const SeccionAtaquesMagicos: React.FC<SeccionAtaquesMagicosProps> = ({
         bonoDanoMagico={bonoDanoMagico}
         modificadorHabilidad={modificadorHabilidad}
         estaPreparado={true}
-        mostrarTogglePreparado={false}
         esDeSubclase={esHechizoDeSubclase(hechizo)}
         origenBadge={resolverOrigenConjuro(personajeActivo, hechizo)}
         esConcentracionActual={personajeActivo.concentracionActiva?.hechizoId === hechizo.id}

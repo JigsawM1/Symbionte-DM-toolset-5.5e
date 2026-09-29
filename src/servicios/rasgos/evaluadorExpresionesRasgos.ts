@@ -37,33 +37,19 @@ export function cumpleCondicionEfecto(
   const estadoArmadura = tieneArmaduraEquipada(personaje);
   const tieneEscudo = tieneEscudoEquipado(personaje);
 
-  if (condNorm === "furia_activa") {
-    return estaFuriaActiva(personaje);
-  }
+  if (condNorm === "furia_activa") return estaFuriaActiva(personaje);
   if (
-    condNorm === "ataque_temerario_activo" ||
-    condNorm === "ataque_temerario" ||
-    condNorm === "ataque temerario" ||
-    condNorm === "reckless" ||
-    condNorm === "reckless_attack"
+    condNorm === "ataque_temerario_activo" || condNorm === "ataque_temerario" ||
+    condNorm === "ataque temerario" || condNorm === "reckless" || condNorm === "reckless_attack"
   ) {
     return estaAtaqueTemerarioActivo(personaje);
   }
-  if (
-    condNorm === "furia_y_temerario_activos" ||
-    condNorm === "furia_y_ataque_temerario_activos"
-  ) {
+  if (condNorm === "furia_y_temerario_activos" || condNorm === "furia_y_ataque_temerario_activos") {
     return estaFuriaActiva(personaje) && estaAtaqueTemerarioActivo(personaje);
   }
-  if (condNorm === "sin_armadura") {
-    return !estadoArmadura.tieneArmadura;
-  }
-  if (condNorm === "sin_armadura_ni_escudo") {
-    return !estadoArmadura.tieneArmadura && !tieneEscudo;
-  }
-  if (condNorm === "sin_armadura_pesada") {
-    return !estadoArmadura.esPesada;
-  }
+  if (condNorm === "sin_armadura") return !estadoArmadura.tieneArmadura;
+  if (condNorm === "sin_armadura_ni_escudo") return !estadoArmadura.tieneArmadura && !tieneEscudo;
+  if (condNorm === "sin_armadura_pesada") return !estadoArmadura.esPesada;
 
   // Si coincide con alguna condición activa del personaje
   if ((personaje.condicionesActivas || []).some((c) => normalizar(c) === condNorm || normalizar(c).includes(condNorm))) {
@@ -205,7 +191,12 @@ export function evaluarEfectosRasgosActivos(personaje: PersonajeJugador): Efecto
           let opcion = selector.opciones?.find((o) => o.id === opId || o.id === baseId);
 
           // Respaldo dinámico para catálogo de invocaciones si selector.opciones no viene hidratado
-          if (!opcion && selector.claveOpcionesDinamicas === "invocaciones_brujo") {
+          if (
+            !opcion &&
+            (selector.claveOpcionesDinamicas === "invocaciones_brujo" ||
+              selector.tipoSelector === "invocacion" ||
+              selector.id?.includes("invocacion"))
+          ) {
             const invCatalogo = CATALOGO_INVOCACIONES_SOBRENATURALES.find(
               (i) => i.id === baseId || i.id === opId
             );
@@ -227,30 +218,30 @@ export function evaluarEfectosRasgosActivos(personaje: PersonajeJugador): Efecto
                 if (efOp.tipo === "dano_secundario") {
                   let tipoDanoResuelto = efOp.tipoDano;
                   const mapaTipos: Record<string, string> = {
-                    necrotico: "Necrótico",
-                    psiquico: "Psíquico",
-                    radiante: "Radiante",
-                    fuego: "Fuego",
-                    frio: "Frío",
-                    acido: "Ácido",
-                    relampago: "Relámpago",
-                    trueno: "Trueno",
-                    veneno: "Veneno",
-                    fuerza: "Fuerza"
+                    necrotico: "Necrótico", psiquico: "Psíquico", radiante: "Radiante",
+                    fuego: "Fuego", frio: "Frío", acido: "Ácido",
+                    relampago: "Relámpago", trueno: "Trueno", veneno: "Veneno", fuerza: "Fuerza"
                   };
 
                   if (opId.includes(":")) {
                     const subtipo = opId.split(":")[1].toLowerCase().replace(/[\u0300-\u036f]/g, "");
                     tipoDanoResuelto = mapaTipos[subtipo] || (subtipo.charAt(0).toUpperCase() + subtipo.slice(1));
-                  } else if (opcion.selectores && opcion.selectores.length > 0) {
-                    const selHijo = opcion.selectores[0];
-                    if (selHijo.valorActual && selHijo.valorActual.length > 0) {
-                      const v = selHijo.valorActual[0].toLowerCase().replace(/[\u0300-\u036f]/g, "");
-                      tipoDanoResuelto = mapaTipos[v] || tipoDanoResuelto;
+                  } else if (opcion.selectores?.[0]?.valorActual?.[0]) {
+                    const v = opcion.selectores[0].valorActual[0].toLowerCase().replace(/[\u0300-\u036f]/g, "");
+                    tipoDanoResuelto = mapaTipos[v] || tipoDanoResuelto;
+                  }
+                  efectoFinal = { ...efOp, tipoDano: tipoDanoResuelto };
+                } else if (
+                  efOp.tipo === "bono_dano_conjuro" &&
+                  (normalizar(efOp.objetivo) === "agregar_modificador_habilidad" ||
+                    normalizar(efOp.objetivo).includes("modificador_habilidad"))
+                ) {
+                  if (opId.includes(":")) {
+                    const trucoTarget = opId.split(":")[1].trim();
+                    if (trucoTarget) {
+                      efectoFinal = { ...efOp, aplicaA: trucoTarget };
                     }
                   }
-
-                  efectoFinal = { ...efOp, tipoDano: tipoDanoResuelto };
                 }
                 efectosResultado.push({
                   ...efectoFinal,

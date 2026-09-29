@@ -1,5 +1,5 @@
 import React from "react";
-import { Swords, UserCheck, AlertTriangle } from "lucide-react";
+import { Swords, AlertTriangle, ChevronsDownUp, ChevronsUpDown } from "lucide-react";
 import { SelectorDesplegable } from "@/componentes/comunes";
 import type { PersonajeJugador } from "@/tipos";
 import type { EstadisticasCalculadasPersonaje } from "@/almacen/selectores/usarEstadoPersonajes";
@@ -15,10 +15,12 @@ interface CabeceraAtaquesJugadorProps {
   conteoActivables: number;
   filtro: FiltroAccion;
   alCambiarFiltro: (nuevoFiltro: FiltroAccion) => void;
-  personajes: PersonajeJugador[];
-  personajeActivo: PersonajeJugador;
-  alSeleccionarPersonaje: (id: string) => void;
+  personajes?: PersonajeJugador[];
+  personajeActivo?: PersonajeJugador;
+  alSeleccionarPersonaje?: (id: string) => void;
   statsCalculadas: EstadisticasCalculadasPersonaje | null;
+  alColapsarTodas?: () => void;
+  alExpandirTodas?: () => void;
 }
 
 export const CabeceraAtaquesJugador: React.FC<CabeceraAtaquesJugadorProps> = ({
@@ -30,10 +32,9 @@ export const CabeceraAtaquesJugador: React.FC<CabeceraAtaquesJugadorProps> = ({
   conteoActivables,
   filtro,
   alCambiarFiltro,
-  personajes,
-  personajeActivo,
-  alSeleccionarPersonaje,
-  statsCalculadas
+  statsCalculadas,
+  alColapsarTodas,
+  alExpandirTodas
 }) => {
   const pestanasPrincipales: Array<{ id: FiltroAccion; etiqueta: string; conteo: number }> = [
     { id: "accion", etiqueta: "Acciones", conteo: conteoAccion },
@@ -59,20 +60,34 @@ export const CabeceraAtaquesJugador: React.FC<CabeceraAtaquesJugadorProps> = ({
           <span className={estilos.contadorBadge}>{conteoTotal}</span>
         </div>
 
-        {personajes.length > 1 && (
-          <div className={estilos.selectorPersonaje}>
-            <UserCheck size={14} color="#94a3b8" />
-            <SelectorDesplegable<string>
-              valor={personajeActivo.id}
-              alCambiar={alSeleccionarPersonaje}
-              tamano="compacto"
-              opciones={personajes.map((pj) => ({
-                valor: pj.id,
-                etiqueta: `${pj.nombre} (${pj.clase || "PJ"})`
-              }))}
-            />
-          </div>
-        )}
+        <div className={estilos.accionesCabeceraDerecha}>
+          {(alColapsarTodas || alExpandirTodas) && (
+            <div className={estilos.grupoControlesColapso}>
+              {alExpandirTodas && (
+                <button
+                  type="button"
+                  className={estilos.botonControlColapso}
+                  onClick={alExpandirTodas}
+                  title="Expandir todas las secciones de combate"
+                >
+                  <ChevronsUpDown size={12} />
+                  <span>Expandir</span>
+                </button>
+              )}
+              {alColapsarTodas && (
+                <button
+                  type="button"
+                  className={estilos.botonControlColapso}
+                  onClick={alColapsarTodas}
+                  title="Contraer todas las secciones de combate"
+                >
+                  <ChevronsDownUp size={12} />
+                  <span>Contraer</span>
+                </button>
+              )}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Barra de Filtros Tácticos de Acción */}

@@ -12,7 +12,8 @@ import {
   calcularBonoIniciativaRasgos,
   calcularBonoHPMaximoRasgos,
   evaluarAtaqueDesarmadoEspecial,
-  obtenerCompetenciasExtraRasgos
+  obtenerCompetenciasExtraRasgos,
+  obtenerBonoDanoConjuroExtra
 } from "@/servicios/evaluadorEfectosRasgos";
 import {
   resolverRasgosAcciones,
@@ -381,6 +382,25 @@ describe("D&D 5.5e - Mecánicas de Invocaciones Sobrenaturales del Brujo", () =>
       // Truco no seleccionado no recibe el modificador
       const toque = conjurosAcciones.find((c) => c.hechizo.id === "toque_helado");
       expect(toque?.hechizo.agregarModificadorHabilidad).toBeUndefined();
+    });
+
+    it("expone el efecto declarativo bono_dano_conjuro y no duplica el bono en obtenerBonoDanoConjuroExtra", () => {
+      const pj = crearBrujoConInvocaciones(2, ["descarga_agonica:descarga_sobrenatural"]);
+      const efectos = evaluarEfectosRasgosActivos(pj);
+
+      const efDescarga = efectos.find(
+        (e) => e.tipo === "bono_dano_conjuro" && e.objetivo === "agregar_modificador_habilidad"
+      );
+      expect(efDescarga).toBeDefined();
+      expect(efDescarga?.valor).toBe("carisma");
+      expect(efDescarga?.aplicaA).toBe("descarga_sobrenatural");
+
+      // Debe retornar 0 en obtenerBonoDanoConjuroExtra para evitar daño + CAR * 2
+      const bonoDanoExtra = obtenerBonoDanoConjuroExtra(pj, {
+        esTruco: true,
+        nombreConjuro: "Descarga sobrenatural"
+      });
+      expect(bonoDanoExtra).toBe(0);
     });
   });
 

@@ -24,7 +24,7 @@ interface SeccionNivelConjurosProps {
   estaPreparado: (hechizo: HechizoBase) => boolean;
   esHechizoDeSubclase: (hechizo: HechizoBase) => boolean;
   obtenerOrigenConjuro?: (hechizo: HechizoBase) => OrigenConjuroBadge | null;
-  requierePreparacion: boolean;
+  requierePreparacion?: boolean;
   esLanzadorPacto: boolean;
   nivelEspacioPacto: number;
   sistemaMagia: "espacios" | "puntos";
@@ -58,7 +58,7 @@ export const SeccionNivelConjuros: React.FC<SeccionNivelConjurosProps> = ({
   estaPreparado,
   esHechizoDeSubclase,
   obtenerOrigenConjuro,
-  requierePreparacion,
+  requierePreparacion: _requierePreparacion,
   esLanzadorPacto,
   nivelEspacioPacto,
   sistemaMagia,
@@ -169,7 +169,6 @@ export const SeccionNivelConjuros: React.FC<SeccionNivelConjurosProps> = ({
                     estaPreparado={esTruco ? true : estaPreparado(hechizo)}
                     esDeSubclase={esHechizoDeSubclase(hechizo)}
                     origenBadge={obtenerOrigenConjuro ? obtenerOrigenConjuro(hechizo) : (esHechizoDeSubclase(hechizo) ? "subclase" : null)}
-                    mostrarTogglePreparado={!esTruco && requierePreparacion}
                     esConcentracionActual={personaje.concentracionActiva?.hechizoId === hechizo.id}
                     esOculto={false}
                     alAlternarOcultar={() => alAlternarOcultar(hechizo.id)}

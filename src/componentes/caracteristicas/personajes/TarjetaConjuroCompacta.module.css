@@ -30,39 +30,6 @@
   min-width: 0;
 }
 
-.checkboxPreparado {
-  width: 20px;
-  height: 20px;
-  border-radius: 4px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
-  cursor: pointer;
-  flex-shrink: 0;
-  border: 1px solid var(--pj-borde-medio, rgba(148, 163, 184, 0.35));
-  background-color: var(--pj-fondo-hundido, #080c14);
-}
-
-.checkboxPreparadoActivo {
-  border-color: var(--pj-texto-cian, #38bdf8);
-  background-color: rgba(2, 132, 199, 0.3);
-}
-
-.checkboxSubclase {
-  width: 20px;
-  height: 20px;
-  border-radius: 4px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
-  flex-shrink: 0;
-  border: 1px solid var(--pj-texto-oro, #fde047);
-  background-color: rgba(202, 138, 4, 0.35);
-  cursor: default;
-}
-
 .bloqueNombre {
   display: flex;
   flex-direction: column;
@@ -87,10 +54,6 @@
   padding: 0;
   cursor: pointer;
   text-align: left;
-}
-
-.nombreConjuroInactivo {
-  color: var(--pj-texto-terciario, #94a3b8);
 }
 
 .filaSubclaseInferior {

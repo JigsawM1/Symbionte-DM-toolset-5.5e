@@ -1,5 +1,4 @@
 import React, { useMemo, useCallback } from "react";
-import { User } from "lucide-react";
 import type { PersonajeJugador, ObjetoJuego, ObjetoInventario } from "@/tipos";
 import {
   usarEstadoPersonajes,
@@ -9,7 +8,6 @@ import {
 import { usarEstadoHomebrew } from "@/almacen/selectores/usarEstadoHomebrew";
 import { usarAccionesConfiguracion } from "@/almacen/selectores/usarEstadoConfiguracion";
 import { OBJETOS_INICIALES } from "@/utiles/datosIniciales";
-import { SelectorDesplegable } from "@/componentes/comunes/SelectorDesplegable";
 import { PanelInventarioPersonaje } from "./PanelInventarioPersonaje";
 import { detectarInfoConsumible, evaluarFormulaDados } from "@/servicios/procesadorConsumibles";
 import { lanzarDadosTaleSpire, sanitizarEtiqueta } from "@/utiles/lanzadorDados";
@@ -22,7 +20,6 @@ export const VistaInventarioJugador: React.FC = () => {
   const { objetosHomebrew } = usarEstadoHomebrew();
   const { agregarNotificacion } = usarAccionesConfiguracion();
   const {
-    seleccionarPersonajeActivo,
     agregarObjetoInventario,
     quitarObjetoInventario,
     modificarCantidadObjeto,
@@ -101,22 +98,6 @@ export const VistaInventarioJugador: React.FC = () => {
 
   return (
     <div className={estilos.contenedorGeneral}>
-      {/* Selector de personaje si hay más de 1 */}
-      {personajes.length > 1 && (
-        <div className={estilos.filaSelectorPersonajeCompacto}>
-          <User size={13} color="#94a3b8" />
-          <SelectorDesplegable<string>
-            valor={personajeActivo.id}
-            alCambiar={(id) => seleccionarPersonajeActivo(id)}
-            tamano="compacto"
-            opciones={personajes.map((p: PersonajeJugador) => ({
-              valor: p.id,
-              etiqueta: `${p.nombre} (${p.clase || "PJ"})`
-            }))}
-          />
-        </div>
-      )}
-
       {/* Panel táctico de Inventario */}
       <PanelInventarioPersonaje
         personaje={personajeActivo}

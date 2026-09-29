@@ -412,7 +412,8 @@
         {
           "tipo": "bono_dano_conjuro",
           "objetivo": "agregar_modificador_habilidad",
-          "valor": "sabiduria"
+          "valor": "sabiduria",
+          "aplicaA": "trucos"
         }
       ],
       "tablaProgresion": {

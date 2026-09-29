@@ -67,10 +67,41 @@
   font-family: var(--fuente-codigo, 'JetBrains Mono', monospace);
 }
 
-.selectorPersonaje {
+.accionesCabeceraDerecha {
   display: flex;
   align-items: center;
   gap: 6px;
+  flex-wrap: wrap;
+}
+
+.grupoControlesColapso {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.botonControlColapso {
+  background: transparent;
+  border: 1px solid var(--pj-borde-sutil, rgba(148, 163, 184, 0.16));
+  border-radius: 6px;
+  color: var(--pj-texto-terciario, #94a3b8);
+  font-size: var(--pj-fuente-micro, 11px);
+  font-weight: 700;
+  padding: 3px 6px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.botonControlColapso:hover {
+  background-color: rgba(255, 255, 255, 0.08);
+  border-color: #38bdf8;
+  color: #ffffff;
 }
 
 /* Barra de Filtros Tácticos de Acción */

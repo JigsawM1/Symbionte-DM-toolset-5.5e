@@ -288,6 +288,15 @@ export function obtenerBonoDanoConjuroExtra(
 
   for (const ef of efectos) {
     if (ef.tipo === "bono_dano_conjuro") {
+      const objNorm = normalizar(ef.objetivo || "");
+      // Los efectos de tipo 'agregar_modificador_habilidad' (ej. Lanzamiento potente de Clérigo)
+      // están destinados a activar la bandera mecánica `agregarModificadorHabilidad: true` en el
+      // hechizo/truco, la cual ya suma directamente el modificador de característica (Sabiduría)
+      // al daño. Si se sumaran numéricamente aquí también, el modificador se duplicaría (daño + SAB * 2).
+      if (objNorm === "agregar_modificador_habilidad" || objNorm.includes("modificador_habilidad")) {
+        continue;
+      }
+
       if (aplicaEfectoAConjuro(ef.aplicaA, ef.objetivo, contexto)) {
         const formulaResuelta = resolverFormulaDinamica(ef.valor, personaje);
         const valorNumerico = evaluarExpresionNumericaSegura(formulaResuelta);
@@ -588,19 +597,53 @@ export function aplicarModificadoresInvocacionesAHechizo(
   let nuevoAgregarModificadorHabilidad = hechizo.agregarModificadorHabilidad;
   let nuevoAlcance = hechizo.alcance;
 
-  // 2. Evaluar Descarga Agónica: activa agregarModificadorHabilidad = true
-  const tieneDescargaAgonica = invocacionesActivas.some((inv) => {
-    if (!inv.startsWith("descarga_agonica")) return false;
-    // Formato 'descarga_agonica:trucoId' o 'descarga_agonica__timestamp:trucoId' o fallback 'descarga_agonica'
-    if (inv.includes(":")) {
-      const trucoId = inv.split(":")[1];
-      return coincideHechizoId(trucoId, hechizo.id) || coincideHechizoId(trucoId, hechizo.nombre);
+  // 2. Evaluar bonificación de daño por modificador de característica para trucos
+  // (Lanzamiento Potente de Clérigo, Descarga Agónica de Brujo, etc.)
+  // Unificado mediante el efecto declarativo bono_dano_conjuro + agregar_modificador_habilidad
+  const efectosRasgosActivos = evaluarEfectosRasgosActivos(personaje);
+  const tieneBonoHabilidadTruco = efectosRasgosActivos.some((ef) => {
+    if (ef.tipo !== "bono_dano_conjuro") return false;
+    const objNorm = normalizar(ef.objetivo || "");
+    if (objNorm !== "agregar_modificador_habilidad" && !objNorm.includes("modificador_habilidad")) {
+      return false;
     }
-    // Si no tiene sufijo de truco específico, aplica a Descarga sobrenatural por defecto canónico
-    return coincideHechizoId("descarga_sobrenatural", hechizo.id) || coincideHechizoId("descarga_sobrenatural", hechizo.nombre);
+
+    const aplNorm = normalizar(ef.aplicaA || "");
+    // Si aplica a todos los trucos/conjuros o sin restricción
+    if (!aplNorm || aplNorm === "trucos" || aplNorm === "todos_conjuros" || aplNorm === "todos") {
+      return true;
+    }
+
+    // Si aplica a trucos específicos de una clase
+    if (aplNorm === "trucos_clerigo") {
+      const clasesNorm = (hechizo.clases || []).map(normalizar);
+      return clasesNorm.length === 0 || clasesNorm.includes("clerigo") || clasesNorm.includes("clérigo");
+    }
+    if (aplNorm === "trucos_brujo") {
+      const clasesNorm = (hechizo.clases || []).map(normalizar);
+      return clasesNorm.length === 0 || clasesNorm.includes("brujo");
+    }
+
+    // Si aplica a un truco específico por id o nombre (ej. 'descarga_sobrenatural', 'rayo_de_escarcha')
+    return Boolean(
+      ef.aplicaA &&
+      (coincideHechizoId(ef.aplicaA, hechizo.id) || coincideHechizoId(ef.aplicaA, hechizo.nombre))
+    );
   });
 
-  if (tieneDescargaAgonica && !nuevoAgregarModificadorHabilidad) {
+  // Respaldo de compatibilidad directa para selecciones de invocaciones en mocks unitarios
+  const coincideInvocacionDirecta =
+    !tieneBonoHabilidadTruco &&
+    invocacionesActivas.some((inv) => {
+      if (!inv.startsWith("descarga_agonica")) return false;
+      if (inv.includes(":")) {
+        const trucoId = inv.split(":")[1];
+        return coincideHechizoId(trucoId, hechizo.id) || coincideHechizoId(trucoId, hechizo.nombre);
+      }
+      return coincideHechizoId("descarga_sobrenatural", hechizo.id) || coincideHechizoId("descarga_sobrenatural", hechizo.nombre);
+    });
+
+  if ((tieneBonoHabilidadTruco || coincideInvocacionDirecta) && !nuevoAgregarModificadorHabilidad) {
     nuevoAgregarModificadorHabilidad = true;
     modificado = true;
   }
@@ -634,28 +677,6 @@ export function aplicarModificadoresInvocacionesAHechizo(
         modificado = true;
       }
     }
-  }
-
-  // 4. Evaluar potenciador de trucos por rasgos activos (ej. Lanzamiento potente de Clérigo)
-  // Mediante efectos declarativos tipo bono_dano_conjuro con objetivo agregar_modificador_habilidad
-  const efectosRasgosActivos = evaluarEfectosRasgosActivos(personaje);
-  const tienePotenciadorTrucos = efectosRasgosActivos.some((ef) => {
-    if (ef.tipo === "bono_dano_conjuro") {
-      const objNorm = normalizar(ef.objetivo || "");
-      const aplNorm = normalizar(ef.aplicaA || "");
-      return (
-        objNorm === "agregar_modificador_habilidad" ||
-        objNorm.includes("modificador_habilidad") ||
-        aplNorm === "trucos_clerigo" ||
-        aplNorm === "trucos"
-      );
-    }
-    return false;
-  });
-
-  if (tienePotenciadorTrucos && !nuevoAgregarModificadorHabilidad) {
-    nuevoAgregarModificadorHabilidad = true;
-    modificado = true;
   }
 
   if (!modificado) return hechizo;

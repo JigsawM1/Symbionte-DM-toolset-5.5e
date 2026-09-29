@@ -130,9 +130,10 @@
     "descripcion": "Elige uno de tus trucos de brujo que conozcas y cause daño. Puedes sumar tu modificador por Carisma a las tiradas de daño del conjuro.\n\n**Repetible.** Puedes obtener esta invocación más de una vez. Cada vez que lo hagas, elige un truco distinto que cumpla las condiciones.",
     "efectos": [
       {
-        "tipo": "personalizado",
-        "objetivo": "truco_dano_carisma",
+        "tipo": "bono_dano_conjuro",
+        "objetivo": "agregar_modificador_habilidad",
         "valor": "carisma",
+        "aplicaA": "descarga_sobrenatural",
         "descripcion": "Suma tu modificador por Carisma a las tiradas de daño del truco de brujo elegido"
       }
     ]

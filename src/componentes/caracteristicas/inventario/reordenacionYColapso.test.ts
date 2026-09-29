@@ -163,6 +163,52 @@ describe("Correcciones de Bugs: Reordenación en Inventario y Colapso de Seccion
       expect(estado["magicos_nv_1"]).toBe(false);
       expect(estado["magicos_nv_1"] !== false).toBe(false); // Recién cerrada
     });
+
+    it("colapsarTodasSecciones y expandirTodasSecciones mutan exhaustivamente todas las secciones de combate", () => {
+      const SECCIONES_DEFECTO = {
+        recursos: true,
+        fisicos: true,
+        magicos: true,
+        magicos_nv_0: true,
+        magicos_nv_1: true,
+        magicos_nv_2: true,
+        magicos_nv_3: true,
+        magicos_nv_4: true,
+        magicos_nv_5: true,
+        magicos_nv_6: true,
+        magicos_nv_7: true,
+        magicos_nv_8: true,
+        magicos_nv_9: true,
+        magicos_ocultos: true,
+        rasgos: true,
+        consumibles: true,
+        hechizosObjetos: true
+      };
+
+      let estado: Record<string, boolean> = { ...SECCIONES_DEFECTO };
+
+      const colapsarTodasSecciones = () => {
+        const colapsadas: Record<string, boolean> = {};
+        for (const k of Object.keys({ ...SECCIONES_DEFECTO, ...estado })) {
+          colapsadas[k] = false;
+        }
+        estado = colapsadas;
+      };
+
+      const expandirTodasSecciones = () => {
+        const expandidas: Record<string, boolean> = {};
+        for (const k of Object.keys({ ...SECCIONES_DEFECTO, ...estado })) {
+          expandidas[k] = true;
+        }
+        estado = expandidas;
+      };
+
+      colapsarTodasSecciones();
+      expect(Object.values(estado).every((v) => v === false)).toBe(true);
+
+      expandirTodasSecciones();
+      expect(Object.values(estado).every((v) => v === true)).toBe(true);
+    });
   });
 
   describe("3. Colapso Total de Cajas de la Mochila (usarInventarioOrdenado)", () => {

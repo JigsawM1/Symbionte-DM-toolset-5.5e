@@ -22,6 +22,7 @@ import type { ObjetoJuego, HechizoBase, Caracteristica, RasgoPersonaje, Personaj
 import { usarEstadoPersistido, usarLanzadorConjuros } from "@/hooks";
 import { generarListaAtaquesFisicos } from "@/servicios/calculadorAtaquesArmas";
 import { sincronizarRasgosAutomaticos } from "@/servicios/compendioRasgos";
+import { usarSeccionesColapsablesAtaque } from "./usarSeccionesColapsablesAtaque";
 import {
   resolverConjurosAcciones,
   resolverConsumiblesCombate,
@@ -84,38 +85,14 @@ export function usarCalculoAtaquesJugador() {
   const [filtro, setFiltro] = usarEstadoPersistido<FiltroAccion>("ts_acciones_filtro", "todas");
 
   // Control de secciones colapsables persistente
-  const [seccionesAbiertas, setSeccionesAbiertas] = usarEstadoPersistido<Record<string, boolean>>(
-    "ts_acciones_secciones",
-    {
-      recursos: true,
-      fisicos: true,
-      magicos: true,
-      magicos_nv_0: true,
-      magicos_nv_1: true,
-      magicos_nv_2: true,
-      magicos_nv_3: true,
-      magicos_nv_4: true,
-      magicos_nv_5: true,
-      magicos_nv_6: true,
-      magicos_nv_7: true,
-      magicos_nv_8: true,
-      magicos_nv_9: true,
-      magicos_ocultos: true,
-      rasgos: true,
-      consumibles: true,
-      hechizosObjetos: true
-    }
-  );
-
-  const alternarSeccion = useCallback((seccion: string) => {
-    setSeccionesAbiertas((prev) => {
-      const estaAbierta = prev[seccion] !== false;
-      return {
-        ...prev,
-        [seccion]: !estaAbierta
-      };
-    });
-  }, [setSeccionesAbiertas]);
+  const {
+    seccionesAbiertas,
+    alternarSeccion,
+    colapsarTodasSecciones,
+    expandirTodasSecciones,
+    estanTodasSeccionesColapsadas,
+    alternarTodasSecciones
+  } = usarSeccionesColapsablesAtaque();
 
   // Modal de detalle de conjuro y de rasgo
   const [hechizoDetalle, setHechizoDetalle] = useState<HechizoBase | null>(null);
@@ -330,56 +307,26 @@ export function usarCalculoAtaquesJugador() {
     return listaRasgosCombate;
   }, [listaRasgosCombate, filtro]);
 
-  const rasgosAcciones = useMemo(() => {
-    return listaRasgosCombate.filter((r) => r.categoriasCombate.includes("accion"));
-  }, [listaRasgosCombate]);
-
-  const rasgosAccionesAdicionales = useMemo(() => {
-    return listaRasgosCombate.filter((r) => r.categoriasCombate.includes("accionAdicional"));
-  }, [listaRasgosCombate]);
-
-  const rasgosReacciones = useMemo(() => {
-    return listaRasgosCombate.filter((r) => r.categoriasCombate.includes("reaccion"));
-  }, [listaRasgosCombate]);
-
-  const rasgosConsumibles = useMemo(() => {
-    return listaRasgosCombate.filter((r) => r.categoriasCombate.includes("consumible"));
-  }, [listaRasgosCombate]);
-
-  const rasgosActivables = useMemo(() => {
-    return listaRasgosCombate.filter((r) => r.categoriasCombate.includes("activable"));
-  }, [listaRasgosCombate]);
+  const rasgosAcciones = useMemo(() => listaRasgosCombate.filter((r) => r.categoriasCombate.includes("accion")), [listaRasgosCombate]);
+  const rasgosAccionesAdicionales = useMemo(() => listaRasgosCombate.filter((r) => r.categoriasCombate.includes("accionAdicional")), [listaRasgosCombate]);
+  const rasgosReacciones = useMemo(() => listaRasgosCombate.filter((r) => r.categoriasCombate.includes("reaccion")), [listaRasgosCombate]);
+  const rasgosConsumibles = useMemo(() => listaRasgosCombate.filter((r) => r.categoriasCombate.includes("consumible")), [listaRasgosCombate]);
+  const rasgosActivables = useMemo(() => listaRasgosCombate.filter((r) => r.categoriasCombate.includes("activable")), [listaRasgosCombate]);
 
   // Conteos numéricos consolidados por tipo de acción
-  const conteoAccion = useMemo(() => {
+  const contarPorTipoAccion = useCallback((tipo: "accion" | "accionAdicional" | "reaccion") => {
     return (
-      listaAtaquesFisicos.filter((a) => a.tipoAccion === "accion").length +
-      conjurosAcciones.filter((c) => c.tipoAccion === "accion").length +
-      listaConsumibles.filter((c) => c.tipoAccion === "accion").length +
-      hechizosObjetosMagicos.filter((h) => h.tipoAccion === "accion").length +
-      listaRasgosCombate.filter((r) => r.categoriasCombate.includes("accion")).length
+      listaAtaquesFisicos.filter((a) => a.tipoAccion === tipo).length +
+      conjurosAcciones.filter((c) => c.tipoAccion === tipo).length +
+      listaConsumibles.filter((c) => c.tipoAccion === tipo).length +
+      hechizosObjetosMagicos.filter((h) => h.tipoAccion === tipo).length +
+      listaRasgosCombate.filter((r) => r.categoriasCombate.includes(tipo)).length
     );
   }, [listaAtaquesFisicos, conjurosAcciones, listaConsumibles, hechizosObjetosMagicos, listaRasgosCombate]);
 
-  const conteoAccionAdicional = useMemo(() => {
-    return (
-      listaAtaquesFisicos.filter((a) => a.tipoAccion === "accionAdicional").length +
-      conjurosAcciones.filter((c) => c.tipoAccion === "accionAdicional").length +
-      listaConsumibles.filter((c) => c.tipoAccion === "accionAdicional").length +
-      hechizosObjetosMagicos.filter((h) => h.tipoAccion === "accionAdicional").length +
-      listaRasgosCombate.filter((r) => r.categoriasCombate.includes("accionAdicional")).length
-    );
-  }, [listaAtaquesFisicos, conjurosAcciones, listaConsumibles, hechizosObjetosMagicos, listaRasgosCombate]);
-
-  const conteoReaccion = useMemo(() => {
-    return (
-      listaAtaquesFisicos.filter((a) => a.tipoAccion === "reaccion").length +
-      conjurosAcciones.filter((c) => c.tipoAccion === "reaccion").length +
-      listaConsumibles.filter((c) => c.tipoAccion === "reaccion").length +
-      hechizosObjetosMagicos.filter((h) => h.tipoAccion === "reaccion").length +
-      listaRasgosCombate.filter((r) => r.categoriasCombate.includes("reaccion")).length
-    );
-  }, [listaAtaquesFisicos, conjurosAcciones, listaConsumibles, hechizosObjetosMagicos, listaRasgosCombate]);
+  const conteoAccion = useMemo(() => contarPorTipoAccion("accion"), [contarPorTipoAccion]);
+  const conteoAccionAdicional = useMemo(() => contarPorTipoAccion("accionAdicional"), [contarPorTipoAccion]);
+  const conteoReaccion = useMemo(() => contarPorTipoAccion("reaccion"), [contarPorTipoAccion]);
 
   const conteoConsumibles = useMemo(() => {
     return (
@@ -413,6 +360,10 @@ export function usarCalculoAtaquesJugador() {
     setFiltro,
     seccionesAbiertas,
     alternarSeccion,
+    colapsarTodasSecciones,
+    expandirTodasSecciones,
+    estanTodasSeccionesColapsadas,
+    alternarTodasSecciones,
     hechizoDetalle,
     setHechizoDetalle,
     rasgoDetalle,

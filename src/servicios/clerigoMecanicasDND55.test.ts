@@ -1,7 +1,8 @@
 import { describe, it, expect } from "vitest";
 import { obtenerRasgosClaseYSubclase } from "./gestorClases";
 import { obtenerBonosHabilidadesRasgos } from "./rasgos/evaluadorSalvacionesRasgos";
-import { aplicarModificadoresInvocacionesAHechizo } from "./rasgos/evaluadorCombateRasgos";
+import { aplicarModificadoresInvocacionesAHechizo, obtenerBonoDanoConjuroExtra } from "./rasgos/evaluadorCombateRasgos";
+import { calcularInfoTruco, construirFormulaTaleSpireTruco } from "@/utiles/utilesConjuros";
 import { estaRasgoActivo, esRasgoHabilitadoPorOpcion } from "./rasgos/utilidadesRasgos";
 import { evaluarEfectosRasgosActivos } from "./rasgos/evaluadorExpresionesRasgos";
 import { resolverRasgosAcciones } from "./calculadorAccionesCombate";
@@ -769,7 +770,89 @@ describe("Clérigo D&D 5.5 (2024) - Reglas y Mecánicas Base", () => {
       expect(efectos.some((e) => e.tipo === "dano_secundario")).toBe(true);
     });
   });
+
+  describe("Precisión de Cálculo de Daño: Lanzamiento Potente (1x Sabiduría)", () => {
+    it("Lanzamiento potente aplica exactamente el modificador de Sabiduría (1x) y no lo duplica", () => {
+      const rasgosNv7 = obtenerRasgosClaseYSubclase("Clérigo", 7);
+      const pjClerigo = {
+        id: "pj-clerigo-lanzamiento-test",
+        nombre: "Hermano Tomás",
+        nivel: 7,
+        bonoCompetencia: 3,
+        clase: "Clérigo",
+        estadisticas: { sabiduria: 18 }, // Modificador +4
+        rasgos: rasgosNv7.map((r) => {
+          if (r.id === "rasgo_cls_clerigo_golpes_benditos") {
+            return {
+              ...r,
+              selectores: [
+                {
+                  id: "selector_golpes_benditos",
+                  tipo: "unico" as const,
+                  etiqueta: "Opción de Golpes benditos",
+                  opciones: r.selectores?.[0]?.opciones || [],
+                  valorActual: ["lanzamiento_potente"]
+                }
+              ]
+            };
+          }
+          return r;
+        })
+      } as unknown as PersonajeJugador;
+
+      // 1. Verificar que obtenerBonoDanoConjuroExtra no suma Sabiduría indebidamente
+      const bonoDanoExtra = obtenerBonoDanoConjuroExtra(pjClerigo, {
+        esTruco: true,
+        nivelLanzamiento: 0,
+        nombreConjuro: "Llama sagrada"
+      });
+      expect(bonoDanoExtra).toBe(0);
+
+      // 2. Verificar que aplicarModificadoresInvocacionesAHechizo marca agregarModificadorHabilidad = true
+      const hechizoBaseTruco = {
+        id: "h_llama-sagrada",
+        nombre: "Llama sagrada",
+        nivel: 0,
+        esTruco: true,
+        dadosDaño: "1d8",
+        tipoDaño: "radiante",
+        clases: ["Clérigo"],
+        agregarModificadorHabilidad: false
+      };
+      const trucoModificado = aplicarModificadoresInvocacionesAHechizo(
+        hechizoBaseTruco as unknown as Parameters<typeof aplicarModificadoresInvocacionesAHechizo>[0],
+        pjClerigo
+      );
+      expect(trucoModificado.agregarModificadorHabilidad).toBe(true);
+
+      // 3. Verificar que calcularInfoTruco produce 2d8+4 (nivel 7 escala 1d8 -> 2d8, y suma +4 de Sabiduría una sola vez)
+      const modificadorHabilidad = 4; // Modificador de Sabiduría 18
+      const infoTruco = calcularInfoTruco(trucoModificado, 7, bonoDanoExtra, modificadorHabilidad);
+      expect(infoTruco.formula).toBe("2d8+4");
+      expect(infoTruco.etiquetaVisual).toBe("2d8+4");
+
+      // 4. Verificar macro para TaleSpire
+      const macroTS = construirFormulaTaleSpireTruco(
+        trucoModificado,
+        7,
+        undefined,
+        pjClerigo.nombre,
+        bonoDanoExtra,
+        modificadorHabilidad
+      );
+      expect(macroTS.formulaTaleSpire).toBe("!Daño Llama sagrada (radiante):2d8+4");
+
+      // 5. Un conjuro de nivel 1 (e.g. Saeta guiada) no debe recibir el bono de truco
+      const bonoDanoConjuroNv1 = obtenerBonoDanoConjuroExtra(pjClerigo, {
+        esTruco: false,
+        nivelLanzamiento: 1,
+        nombreConjuro: "Saeta guiada"
+      });
+      expect(bonoDanoConjuroNv1).toBe(0);
+    });
+  });
 });
+
 
 
 

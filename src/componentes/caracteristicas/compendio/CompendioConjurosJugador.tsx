@@ -7,10 +7,9 @@ import {
   Filter,
   Search,
   BookMarked,
-  Sparkles,
-  User
+  Sparkles
 } from "lucide-react";
-import type { HechizoBase, PersonajeJugador, ClaseLanzadora } from "@/tipos";
+import type { HechizoBase, ClaseLanzadora } from "@/tipos";
 import { coincideBusquedaTolerante, compararPorRelevanciaTitulo } from "@/utiles/busquedaTolerante";
 import {
   usarEstadoHomebrew,
@@ -57,7 +56,6 @@ export const CompendioConjurosJugador: React.FC = () => {
   const { baseDatosHechizos } = usarEstadoHomebrew();
   const { personajes, idPersonajeActivo } = usarEstadoPersonajes();
   const {
-    seleccionarPersonajeActivo,
     agregarTrucoConocido,
     quitarTrucoConocido,
     agregarConjuroConocido,
@@ -271,20 +269,6 @@ export const CompendioConjurosJugador: React.FC = () => {
               ({conjurosFiltrados.length} {conjurosFiltrados.length === 1 ? "conjuro" : "conjuros"})
             </span>
           </div>
-          {personajes.length > 1 && (
-            <div className="u-flex u-alinear-centro u-gap-md">
-              <User size={13} color="#94a3b8" />
-              <SelectorDesplegable<string>
-                valor={personajeActivo?.id || ""}
-                alCambiar={(id) => seleccionarPersonajeActivo(id)}
-                tamano="compacto"
-                opciones={personajes.map((p: PersonajeJugador) => ({
-                  valor: p.id,
-                  etiqueta: `${p.nombre} (${p.clase || "PJ"})`
-                }))}
-              />
-            </div>
-          )}
         </div>
 
         {personajeActivo && (

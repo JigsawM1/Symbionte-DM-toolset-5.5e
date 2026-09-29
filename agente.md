@@ -10030,3 +10030,44 @@ Optimizar la complejidad temporal (Big O) en las operaciones de búsqueda, orden
 - **ESLint**: `pnpm lint` completado con **0 errores y 0 advertencias** (`--max-warnings=0`).
 - **Control de Líneas**: `pnpm verificar:lineas` completado con **0 errores críticos**.
 - **Build de Producción**: `pnpm build` generado exitosamente.
+
+---
+
+## [2026-09-28] Corrección Crítica de Reactividad en Selectores de Rasgos de Clérigo (Orden Divina y Golpes Benditos)
+
+### 1. Contexto del Problema y Requerimientos del Usuario
+- **Bug reportado por el usuario**: Al cambiar el selector de *Orden divina* de *Taumaturgo* a *Protector* y de vuelta de *Protector* a *Taumaturgo*, el rasgo dejaba de aplicar tanto los efectos de *Taumaturgo* como los de *Protector*. Ocurría el mismo comportamiento al alternar entre *Golpe divino* y *Lanzamiento potente* en el selector de *Golpes benditos*.
+- **Impacto detectado**:
+  1. Al cambiar de opción, el rasgo hijo no seleccionado recibía `r.activo = false`. Al conmutar de vuelta a la opción original, el estado `r.activo = false` permanecía congelado porque no existía una rama que restaurara `r.activo = true` para rasgos pasivos permanentes. En una segunda conmutación, ambos rasgos hermanos quedaban permanentemente con `activo: false`.
+  2. En `utilidadesRasgos.ts`, `esRasgoHabilitadoPorOpcion` y `estaRasgoActivo` usaban `.includes()` directamente en la búsqueda del rasgo padre sin excluir el ID propio del rasgo evaluado ni priorizar coincidencia exacta (`===`). Dado que los rasgos hijos llevan el nombre del padre como prefijo (`Orden divina: Protector`, `Golpes benditos: Golpe divino`), la búsqueda resolvía al hijo en lugar del padre. Si dicho hijo tenía selector propio (ej. tipo de daño en *Golpe divino* o truco en *Taumaturgo*), no encontraba la opción requerida y retornaba `false`.
+  3. En `alternarActivoRasgo`, la comprobación de `padreActivo` exigía `&& r.activo`. Para rasgos padre pasivos o compendios donde `r.activo` es `undefined`, la activación de conmutadores hijos (como *Golpe divino*) quedaba bloqueada.
+
+### 2. Decisiones de Diseño y Correcciones Quirúrgicas Aplicadas
+1. **Normalización y Priorización Exacta en `utilidadesRasgos.ts`**:
+   - `esRasgoHabilitadoPorOpcion`:
+     - Se excluye explícitamente el rasgo analizado (`p.id !== rasgo.id`) para evitar auto-referencias.
+     - Se filtran candidatos a aquellos que posean selectores (`p.selectores.length > 0`).
+     - Se prioriza coincidencia exacta (`===`) de ID o Nombre con `ligadoA`.
+     - Si se recurre a coincidencia parcial, se valida que el candidato ofrezca la opción requerida (`contieneOpcionRequerida`).
+   - `estaRasgoActivo`:
+     - Se prioriza coincidencia exacta (`idNorm === busqueda || nomNorm === busqueda`) antes de evaluar coincidencias parciales por `includes`, blindando la comprobación de estado de padres canónicos.
+2. **Restauración Reactiva de Estado en `sliceRasgos.ts`**:
+   - En `actualizarSeleccionRasgo`:
+     - Si `!estaHabilitado`, se desactiva (`r.activo = false`).
+     - Si `estaHabilitado` y el rasgo es pasivo permanente (`!r.esActivable`), se reactiva automáticamente (`r.activo = true`).
+   - En `alternarActivoRasgo`:
+     - Si el padre `esActivable` (como *Furia* o *Ataque temerario*), se exige `r.activo === true`.
+     - Si el padre es un rasgo pasivo o permanente de clase (como *Golpes benditos* u *Orden divina*), se considera activo mientras `r.activo !== false`.
+3. **Saneamiento Automático en `compendioRasgos.ts`**:
+   - En `sincronizarRasgosAutomaticos`, se añade un paso final que asegura que cualquier rasgo pasivo dependiente de `requiereOpcion` sincronice su estado `activo` según la opción seleccionada actualmente, reparando fichas persistidas con datos degradados.
+4. **Validación con Pruebas Unitarias (`clerigoMecanicasDND55.test.ts`)**:
+   - Se crearon dos pruebas de integración completas en Zustand que alternan repetidamente selectores:
+     - *Taumaturgo* ↔ *Protector*: verifica aplicación y reactivación de competencias de armas marciales/armaduras pesadas vs bonos a Conocimiento arcano/Religión y trucos.
+     - *Golpe divino* ↔ *Lanzamiento potente*: verifica reactivación de bonos de daño a trucos vs disponibilidad, conmutación táctica ON/OFF y cálculo de daño secundario de 1d8.
+
+### 3. Métricas de Validación Final
+- **Tests Unitarios**: **85 suites superadas, 1169/1169 tests pasando (100% de éxito)**.
+- **TypeScript**: `pnpm exec tsc --noEmit` completado con **0 errores** (Strict Mode estricto).
+- **ESLint**: `pnpm lint` completado con **0 errores y 0 advertencias** (`--max-warnings=0`).
+- **Control de Líneas**: `pnpm verificar:lineas` completado con **0 errores críticos**.
+- **Build de Producción**: `pnpm build` generado exitosamente.

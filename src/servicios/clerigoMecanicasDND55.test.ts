@@ -5,6 +5,8 @@ import { aplicarModificadoresInvocacionesAHechizo } from "./rasgos/evaluadorComb
 import { estaRasgoActivo, esRasgoHabilitadoPorOpcion } from "./rasgos/utilidadesRasgos";
 import { evaluarEfectosRasgosActivos } from "./rasgos/evaluadorExpresionesRasgos";
 import { resolverRasgosAcciones } from "./calculadorAccionesCombate";
+import { sincronizarRasgosAutomaticos } from "./compendioRasgos";
+import { usarAlmacenDM } from "@/almacen/usarAlmacenDM";
 import type { PersonajeJugador } from "@/tipos/personaje";
 import { EFECTOS_PREDEFINIDOS } from "@/utiles/datosIniciales";
 
@@ -634,6 +636,137 @@ describe("Clérigo D&D 5.5 (2024) - Reglas y Mecánicas Base", () => {
       expect(efectoCorona).toBeDefined();
       expect(efectoCorona?.duracionEstandar).toBe(10);
       expect(efectoCorona?.aliases).toContain("corona de luz");
+    });
+  });
+
+  describe("Conmutación Reactiva de Selectores de Clérigo en Zustand (Orden divina y Golpes benditos)", () => {
+    it("Alternar selector entre Taumaturgo y Protector múltiples veces no desactiva permanentemente sus efectos ni sus trucos", () => {
+      const personajeInicial = {
+        id: "pj-clerigo-selector-test",
+        nombre: "Clérigo Reactivo",
+        clase: "Clérigo",
+        nivel: 1,
+        clases: [{ nombre: "Clérigo", nivel: 1, subclase: "" }],
+        caracteristicas: { sabiduria: 16, inteligencia: 10, fuerza: 10, destreza: 10, constitucion: 10, carisma: 10 },
+        rasgos: [],
+        trucosConocidosIds: []
+      } as unknown as PersonajeJugador;
+
+      const sincronizados = sincronizarRasgosAutomaticos(personajeInicial);
+      usarAlmacenDM.setState({
+        personajes: [{ ...personajeInicial, rasgos: sincronizados }],
+        idPersonajeActivo: "pj-clerigo-selector-test"
+      });
+
+      const store = usarAlmacenDM.getState();
+      const rasgoOrden = sincronizados.find((r) => r.id === "rasgo_cls_clerigo_orden_divina")!;
+      expect(rasgoOrden).toBeDefined();
+
+      // 1. Estado inicial: Orden divina por defecto es Protector
+      let pj = usarAlmacenDM.getState().personajes.find((p) => p.id === "pj-clerigo-selector-test")!;
+      expect(estaRasgoActivo(pj, "Orden divina: Protector")).toBe(true);
+      expect(estaRasgoActivo(pj, "Orden divina: Taumaturgo")).toBe(false);
+      let efectos = evaluarEfectosRasgosActivos(pj);
+      expect(efectos.some((e) => e.objetivo === "armaduras_pesadas")).toBe(true);
+      expect(efectos.some((e) => e.objetivo === "conocimiento_arcano")).toBe(false);
+
+      // 2. Conmutar selector a Taumaturgo
+      store.actualizarSeleccionRasgo("pj-clerigo-selector-test", rasgoOrden.id, "selector_orden_divina", ["taumaturgo"]);
+      pj = usarAlmacenDM.getState().personajes.find((p) => p.id === "pj-clerigo-selector-test")!;
+      expect(estaRasgoActivo(pj, "Orden divina: Protector")).toBe(false);
+      expect(estaRasgoActivo(pj, "Orden divina: Taumaturgo")).toBe(true);
+      efectos = evaluarEfectosRasgosActivos(pj);
+      expect(efectos.some((e) => e.objetivo === "armaduras_pesadas")).toBe(false);
+      expect(efectos.some((e) => e.objetivo === "conocimiento_arcano")).toBe(true);
+      expect(efectos.some((e) => e.objetivo === "religion")).toBe(true);
+
+      // 3. Conmutar selector de vuelta a Protector
+      store.actualizarSeleccionRasgo("pj-clerigo-selector-test", rasgoOrden.id, "selector_orden_divina", ["protector"]);
+      pj = usarAlmacenDM.getState().personajes.find((p) => p.id === "pj-clerigo-selector-test")!;
+      expect(estaRasgoActivo(pj, "Orden divina: Protector")).toBe(true);
+      expect(estaRasgoActivo(pj, "Orden divina: Taumaturgo")).toBe(false);
+      efectos = evaluarEfectosRasgosActivos(pj);
+      expect(efectos.some((e) => e.objetivo === "armaduras_pesadas")).toBe(true);
+      expect(efectos.some((e) => e.objetivo === "conocimiento_arcano")).toBe(false);
+
+      // 4. Conmutar selector OTRA VEZ a Taumaturgo (caso exacto reportado por el usuario)
+      store.actualizarSeleccionRasgo("pj-clerigo-selector-test", rasgoOrden.id, "selector_orden_divina", ["taumaturgo"]);
+      pj = usarAlmacenDM.getState().personajes.find((p) => p.id === "pj-clerigo-selector-test")!;
+      expect(estaRasgoActivo(pj, "Orden divina: Protector")).toBe(false);
+      expect(estaRasgoActivo(pj, "Orden divina: Taumaturgo")).toBe(true);
+      efectos = evaluarEfectosRasgosActivos(pj);
+      expect(efectos.some((e) => e.objetivo === "armaduras_pesadas")).toBe(false);
+      expect(efectos.some((e) => e.objetivo === "conocimiento_arcano")).toBe(true);
+      expect(efectos.some((e) => e.objetivo === "religion")).toBe(true);
+    });
+
+    it("Alternar selector entre Golpe Divino y Lanzamiento Potente múltiples veces preserva la reactividad mecánica", () => {
+      const personajeNv7 = {
+        id: "pj-clerigo-golpes-test",
+        nombre: "Clérigo Nv7",
+        clase: "Clérigo",
+        nivel: 7,
+        clases: [{ nombre: "Clérigo", nivel: 7, subclase: "" }],
+        caracteristicas: { sabiduria: 18, fuerza: 14, destreza: 10, constitucion: 12, inteligencia: 10, carisma: 10 },
+        rasgos: []
+      } as unknown as PersonajeJugador;
+
+      const sincronizados = sincronizarRasgosAutomaticos(personajeNv7);
+      usarAlmacenDM.setState({
+        personajes: [{ ...personajeNv7, rasgos: sincronizados }],
+        idPersonajeActivo: "pj-clerigo-golpes-test"
+      });
+
+      const store = usarAlmacenDM.getState();
+      const rasgoGolpes = sincronizados.find((r) => r.id === "rasgo_cls_clerigo_golpes_benditos")!;
+      expect(rasgoGolpes).toBeDefined();
+
+      // 1. Conmutar a Lanzamiento Potente
+      store.actualizarSeleccionRasgo("pj-clerigo-golpes-test", rasgoGolpes.id, "selector_golpes_benditos", ["lanzamiento_potente"]);
+      let pj = usarAlmacenDM.getState().personajes.find((p) => p.id === "pj-clerigo-golpes-test")!;
+      expect(estaRasgoActivo(pj, "Golpes benditos: Lanzamiento potente")).toBe(true);
+      expect(esRasgoHabilitadoPorOpcion(pj.rasgos.find((r) => r.id === "rasgo_cls_clerigo_golpe_divino")!, pj.rasgos)).toBe(false);
+      let efectos = evaluarEfectosRasgosActivos(pj);
+      expect(efectos.some((e) => e.tipo === "bono_dano_conjuro")).toBe(true);
+
+      // 2. Conmutar a Golpe Divino
+      store.actualizarSeleccionRasgo("pj-clerigo-golpes-test", rasgoGolpes.id, "selector_golpes_benditos", ["golpe_divino"]);
+      pj = usarAlmacenDM.getState().personajes.find((p) => p.id === "pj-clerigo-golpes-test")!;
+      expect(estaRasgoActivo(pj, "Golpes benditos: Lanzamiento potente")).toBe(false);
+      expect(esRasgoHabilitadoPorOpcion(pj.rasgos.find((r) => r.id === "rasgo_cls_clerigo_golpe_divino")!, pj.rasgos)).toBe(true);
+      efectos = evaluarEfectosRasgosActivos(pj);
+      expect(efectos.some((e) => e.tipo === "bono_dano_conjuro")).toBe(false);
+
+      // Activar Golpe Divino con alternarActivoRasgo y verificar daño secundario
+      store.alternarActivoRasgo("pj-clerigo-golpes-test", "rasgo_cls_clerigo_golpe_divino");
+      pj = usarAlmacenDM.getState().personajes.find((p) => p.id === "pj-clerigo-golpes-test")!;
+      expect(estaRasgoActivo(pj, "Golpes benditos: Golpe divino")).toBe(true);
+      efectos = evaluarEfectosRasgosActivos(pj);
+      expect(efectos.some((e) => e.tipo === "dano_secundario")).toBe(true);
+
+      // 3. Conmutar OTRA VEZ a Lanzamiento Potente (ida y vuelta reportada por el usuario)
+      store.actualizarSeleccionRasgo("pj-clerigo-golpes-test", rasgoGolpes.id, "selector_golpes_benditos", ["lanzamiento_potente"]);
+      pj = usarAlmacenDM.getState().personajes.find((p) => p.id === "pj-clerigo-golpes-test")!;
+      expect(estaRasgoActivo(pj, "Golpes benditos: Lanzamiento potente")).toBe(true);
+      expect(estaRasgoActivo(pj, "Golpes benditos: Golpe divino")).toBe(false);
+      efectos = evaluarEfectosRasgosActivos(pj);
+      expect(efectos.some((e) => e.tipo === "bono_dano_conjuro")).toBe(true);
+      expect(efectos.some((e) => e.tipo === "dano_secundario")).toBe(false);
+
+      // 4. Conmutar OTRA VEZ a Golpe Divino
+      store.actualizarSeleccionRasgo("pj-clerigo-golpes-test", rasgoGolpes.id, "selector_golpes_benditos", ["golpe_divino"]);
+      pj = usarAlmacenDM.getState().personajes.find((p) => p.id === "pj-clerigo-golpes-test")!;
+      expect(estaRasgoActivo(pj, "Golpes benditos: Lanzamiento potente")).toBe(false);
+      expect(esRasgoHabilitadoPorOpcion(pj.rasgos.find((r) => r.id === "rasgo_cls_clerigo_golpe_divino")!, pj.rasgos)).toBe(true);
+      efectos = evaluarEfectosRasgosActivos(pj);
+      expect(efectos.some((e) => e.tipo === "bono_dano_conjuro")).toBe(false);
+
+      // Y reactivar Golpe Divino funciona fluidamente
+      store.alternarActivoRasgo("pj-clerigo-golpes-test", "rasgo_cls_clerigo_golpe_divino");
+      pj = usarAlmacenDM.getState().personajes.find((p) => p.id === "pj-clerigo-golpes-test")!;
+      expect(estaRasgoActivo(pj, "Golpes benditos: Golpe divino")).toBe(true);
+      efectos = evaluarEfectosRasgosActivos(pj);
+      expect(efectos.some((e) => e.tipo === "dano_secundario")).toBe(true);
     });
   });
 });

@@ -341,14 +341,18 @@ export const crearSubSliceRasgos: StateCreator<
             : (esGolpeBrutal ? "rasgo_cls_barbaro_ataque_temerario" : undefined));
 
       if (nuevoActivo && padreKey) {
-        const padreActivo = (pj.rasgos || []).some(
-          (r) => (
-            r.id.toLowerCase() === padreKey ||
-            r.nombre.toLowerCase().trim() === padreKey ||
+        const padreActivo = (pj.rasgos || []).some((r) => {
+          const rId = r.id.toLowerCase().trim();
+          const rNom = r.nombre.toLowerCase().trim();
+          const coincide =
+            rId === padreKey ||
+            rNom === padreKey ||
             (padreKey.includes("furia") && (r.id === "furia" || r.id === "rasgo_cls_barbaro_furia")) ||
-            (padreKey.includes("temerario") && (r.id.includes("temerario") || r.id.includes("reckless")))
-          ) && r.activo
-        ) || (pj.condicionesActivas || []).some(
+            (padreKey.includes("temerario") && (r.id.includes("temerario") || r.id.includes("reckless")));
+          if (!coincide) return false;
+          if (r.esActivable) return r.activo === true;
+          return r.activo !== false;
+        }) || (pj.condicionesActivas || []).some(
           (c) => c.toLowerCase().includes(padreKey) || (padreKey.includes("temerario") && (c.toLowerCase().includes("temerario") || c.toLowerCase().includes("reckless")))
         ) || (pj.efectosActivos || []).some(
           (e) => padreKey.includes("temerario") && (e.id.includes("temerario") || e.id.includes("reckless"))
@@ -764,12 +768,14 @@ export const crearSubSliceRasgos: StateCreator<
         });
       }
 
-      // Sincronizar reactivamente trucos y conjuros procedentes de rasgos hijos condicionados por requiereOpcion
+      // Sincronizar reactivamente estado activo, trucos y conjuros procedentes de rasgos hijos condicionados por requiereOpcion
       for (const r of rasgosActualizados) {
         if (r.requiereOpcion && r.ligadoA) {
           const estaHabilitado = esRasgoHabilitadoPorOpcion(r, rasgosActualizados);
-          if (!estaHabilitado && r.activo) {
+          if (!estaHabilitado) {
             r.activo = false;
+          } else if (!r.esActivable) {
+            r.activo = true;
           }
           if (Array.isArray(r.selectores)) {
             for (const s of r.selectores) {

@@ -19,6 +19,7 @@ import {
   esRasgoVersatil,
   construirDoteDeVersatil
 } from "@/servicios/gestorEspecies";
+import { esRasgoHabilitadoPorOpcion } from "@/servicios/rasgos/utilidadesRasgos";
 
 /**
  * Normaliza nombres para comparación tolerante e insensible a mayúsculas/acentos
@@ -313,5 +314,13 @@ export function sincronizarRasgosAutomaticos(personaje: PersonajeJugador): Rasgo
     }
   }
 
-  return Array.from(mapaFinal.values());
+  // 5. Sincronizar estado activo de rasgos dependientes de opciones en selectores (pasivos permanentes)
+  const listaFinal = Array.from(mapaFinal.values());
+  for (const r of listaFinal) {
+    if (r.requiereOpcion && r.ligadoA && !r.esActivable) {
+      r.activo = esRasgoHabilitadoPorOpcion(r, listaFinal);
+    }
+  }
+
+  return listaFinal;
 }

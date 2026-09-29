@@ -22,19 +22,48 @@ export function esRasgoHabilitadoPorOpcion(
 ): boolean {
   if (!rasgo.requiereOpcion || !rasgo.ligadoA) return true;
   const ligNorm = normalizar(rasgo.ligadoA);
-  const padre = todosLosRasgos.find((p) => {
+  const reqNorm = normalizar(rasgo.requiereOpcion);
+
+  // 1. Filtrar candidatos que no sean el propio rasgo analizado y que tengan selectores
+  const candidatosConSelectores = todosLosRasgos.filter(
+    (p) => p.id !== rasgo.id && Array.isArray(p.selectores) && p.selectores.length > 0
+  );
+
+  // 2. Priorizar coincidencia exacta por ID o por Nombre del padre
+  let padre = candidatosConSelectores.find((p) => {
     const pIdNorm = normalizar(p.id);
     const pNomNorm = normalizar(p.nombre);
-    return (
-      pIdNorm === ligNorm ||
-      pIdNorm.includes(ligNorm) ||
-      pNomNorm === ligNorm ||
-      pNomNorm.includes(ligNorm)
-    );
+    return pIdNorm === ligNorm || pNomNorm === ligNorm;
   });
+
+  // 3. Fallback: buscar coincidencia parcial que ofrezca la opción requerida
+  if (!padre) {
+    padre = candidatosConSelectores.find((p) => {
+      const pIdNorm = normalizar(p.id);
+      const pNomNorm = normalizar(p.nombre);
+      const coincideNombre =
+        pIdNorm.includes(ligNorm) ||
+        pNomNorm.includes(ligNorm) ||
+        ligNorm.includes(pIdNorm) ||
+        ligNorm.includes(pNomNorm);
+      const contieneOpcionRequerida = (p.selectores || []).some((s) =>
+        (s.opciones || []).some((o) => normalizar(o.id) === reqNorm)
+      );
+      return coincideNombre && contieneOpcionRequerida;
+    });
+  }
+
+  // 4. Último fallback: cualquier rasgo con selector que contenga explícitamente la opción requerida
+  if (!padre) {
+    padre = candidatosConSelectores.find((p) =>
+      (p.selectores || []).some((s) =>
+        (s.opciones || []).some((o) => normalizar(o.id) === reqNorm)
+      )
+    );
+  }
+
   if (!padre || !Array.isArray(padre.selectores)) return false;
 
-  const reqNorm = normalizar(rasgo.requiereOpcion);
   return padre.selectores.some((s) =>
     (s.valorActual || []).some((v) => normalizar(v) === reqNorm)
   );
@@ -46,19 +75,27 @@ export function esRasgoHabilitadoPorOpcion(
 export function estaRasgoActivo(personaje: PersonajeJugador, rasgoIdONombre: string): boolean {
   const busqueda = normalizar(rasgoIdONombre);
   if (!busqueda) return false;
-  const rasgo = (personaje.rasgos || []).find((r) => {
+  const rasgos = personaje.rasgos || [];
+
+  // 1. Priorizar coincidencia exacta de ID o Nombre para evitar falsos positivos con rasgos hijos prefijados
+  let rasgo = rasgos.find((r) => {
     const idNorm = normalizar(r.id);
     const nomNorm = normalizar(r.nombre);
-    return (
-      idNorm === busqueda ||
-      idNorm.includes(busqueda) ||
-      nomNorm === busqueda ||
-      nomNorm.includes(busqueda)
-    );
+    return idNorm === busqueda || nomNorm === busqueda;
   });
+
+  // 2. Si no hay coincidencia exacta, recurrir a coincidencia parcial
+  if (!rasgo) {
+    rasgo = rasgos.find((r) => {
+      const idNorm = normalizar(r.id);
+      const nomNorm = normalizar(r.nombre);
+      return idNorm.includes(busqueda) || nomNorm.includes(busqueda);
+    });
+  }
+
   if (!rasgo) return false;
   if (rasgo.activo === false) return false;
-  if (!esRasgoHabilitadoPorOpcion(rasgo, personaje.rasgos || [])) return false;
+  if (!esRasgoHabilitadoPorOpcion(rasgo, rasgos)) return false;
   return true;
 }
 

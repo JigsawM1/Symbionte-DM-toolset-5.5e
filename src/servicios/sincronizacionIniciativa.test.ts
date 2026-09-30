@@ -364,6 +364,149 @@ describe("Gestión de Iniciativa sin Auto-ordenación Numérica (Almacén y Tira
     expect(colaActual[0].iniciativa).toBe(30);
     expect(colaActual[1].id).toBe("mini-b");
   });
+
+  it("autoLanzarIniciativaMonstruos debe lanzar iniciativa SOLO a monstruos y no a jugadores", () => {
+    const pjMock = {
+      id: "pj-1",
+      nombre: "Thorin",
+      idMiniaturaTS: "mini-thorin",
+      clase: "Guerrero",
+      nivel: 3,
+      hpMaximo: 30,
+      hpActual: 30,
+      hpTemporal: 0,
+      iniciativaBono: 2,
+    } as unknown as PersonajeJugador;
+
+    usarAlmacenDM.setState({
+      personajes: [pjMock],
+      colaIniciativa: [
+        {
+          id: "mini-thorin",
+          nombre: "Thorin",
+          iniciativa: 0, // Jugador aún no ha tirado
+          vidaActual: 30,
+          vidaMaxima: 30,
+          vidaTemporal: 0,
+          ca: 18,
+          condiciones: [],
+          efectos: [],
+          bonificadorIniciativa: 2,
+          esMonstruo: false, // Jugador
+          velocidad: "30 pies",
+        },
+        {
+          id: "mini-orco-1",
+          nombre: "Orco Guerrero",
+          iniciativa: 0, // Monstruo por tirar
+          vidaActual: 15,
+          vidaMaxima: 15,
+          vidaTemporal: 0,
+          ca: 13,
+          condiciones: [],
+          efectos: [],
+          bonificadorIniciativa: 1,
+          esMonstruo: true, // Monstruo
+          velocidad: "30 pies",
+        },
+      ],
+    });
+
+    // Ejecutar Auto Roll masivo
+    usarAlmacenDM.getState().autoLanzarIniciativaMonstruos();
+
+    const colaActual = usarAlmacenDM.getState().colaIniciativa;
+    const jugador = colaActual.find((c) => c.id === "mini-thorin");
+    const orco = colaActual.find((c) => c.id === "mini-orco-1");
+
+    // El jugador DEBE conservar su iniciativa intacta (0)
+    expect(jugador?.iniciativa).toBe(0);
+    expect(jugador?.esMonstruo).toBe(false);
+
+    // El orco DEBE haber recibido una tirada automática (entre 1+1=2 y 20+1=21)
+    expect(orco?.iniciativa).toBeGreaterThanOrEqual(2);
+    expect(orco?.iniciativa).toBeLessThanOrEqual(21);
+    expect(orco?.esMonstruo).toBe(true);
+  });
+
+  it("autoLanzarIniciativaMonstruos debe proteger a un jugador incluso si estaba erróneamente marcado como monstruo", () => {
+    const pjMock = {
+      id: "pj-2",
+      nombre: "Legolas",
+      idMiniaturaTS: "mini-legolas",
+      clase: "Explorador",
+      nivel: 5,
+      hpMaximo: 40,
+      hpActual: 40,
+    } as unknown as PersonajeJugador;
+
+    usarAlmacenDM.setState({
+      personajes: [pjMock],
+      colaIniciativa: [
+        {
+          id: "mini-legolas",
+          nombre: "Legolas (Explorador)",
+          iniciativa: 12, // Iniciativa fijada por el jugador
+          vidaActual: 40,
+          vidaMaxima: 40,
+          vidaTemporal: 0,
+          ca: 16,
+          condiciones: [],
+          efectos: [],
+          bonificadorIniciativa: 3,
+          esMonstruo: true, // Erróneamente marcado como monstruo
+          velocidad: "30 pies",
+        },
+      ],
+    });
+
+    // Ejecutar Auto Roll
+    usarAlmacenDM.getState().autoLanzarIniciativaMonstruos();
+
+    const legolas = usarAlmacenDM.getState().colaIniciativa[0];
+    // Debe preservar la iniciativa del jugador (12) y corregir su bandera esMonstruo a false
+    expect(legolas.iniciativa).toBe(12);
+    expect(legolas.esMonstruo).toBe(false);
+  });
+
+  it("agregarCriaturasSeleccionadasAIniciativa no debe hacer auto-roll para jugadores", () => {
+    const pjMock = {
+      id: "pj-3",
+      nombre: "Gandalf",
+      idMiniaturaTS: "mini-gandalf",
+      clase: "Mago",
+      nivel: 10,
+      hpMaximo: 60,
+      hpActual: 60,
+      ca: 12,
+      iniciativaBono: 2,
+    } as unknown as PersonajeJugador;
+
+    usarAlmacenDM.setState({
+      personajes: [pjMock],
+      colaIniciativa: [],
+      criaturasSeleccionadas: [
+        { id: "mini-gandalf", name: "Gandalf" },
+        { id: "mini-goblin", name: "Goblin 1" },
+      ],
+    });
+
+    usarAlmacenDM.getState().agregarCriaturasSeleccionadasAIniciativa();
+
+    const colaActual = usarAlmacenDM.getState().colaIniciativa;
+    const gandalf = colaActual.find((c) => c.id === "mini-gandalf");
+    const goblin = colaActual.find((c) => c.id === "mini-goblin");
+
+    expect(gandalf).toBeDefined();
+    // Jugador: iniciativa 0 (sin auto-roll) y esMonstruo false
+    expect(gandalf?.iniciativa).toBe(0);
+    expect(gandalf?.esMonstruo).toBe(false);
+
+    expect(goblin).toBeDefined();
+    // Monstruo: recibe auto-roll y esMonstruo true
+    expect(goblin?.iniciativa).toBeGreaterThan(0);
+    expect(goblin?.esMonstruo).toBe(true);
+  });
 });
 
 

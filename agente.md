@@ -20,6 +20,100 @@ Este archivo registra reglas globales, errores encontrados, sus causas raíz y l
    - Toda mecánica, progresión de dados, escalado de usos, recuperación o desbloqueo dinámico debe resolverse mediante metadatos declarativos (`escaladoFormulaDados`, `escaladoUsos`, `escaladoRecuperacion`, `opcionesDinamicas`, `escaladoMaxSelecciones`, `sincronizarEfectosConFormula`, `heredarDadosPadre`, `gastarDePadre`, `ligadoA`, `efectos`) delegando en funciones puras agnósticas como `resolverEscaladosRasgo`. Esta regla está reforzada en CI vía ESLint `no-restricted-syntax` y la suite `rasgoGenericidad.test.ts`.
 
 
+## [2026-09-30] Sincronización de Condiciones, Efectos y Vitalidad desde el DM a la Hoja de Características del Jugador
+
+**Problema Reportado por el Usuario:**
+- *"las condiciones que agrega el master se agregan a la lista de iniciativa la vista del personaje, pero no se le agregan a su panel de condiciones de "caracteristicas""*
+
+**Causa Raíz Diagnosticada:**
+1. **Desconexión entre `colaIniciativa` y `personajes` en el Cliente del Jugador:**
+   - Cuando el DM aplicaba una condición a la criatura en su tracker de combate y transmitía `ESTADO_INICIATIVA_DM`, `aplicarIniciativaDesdeSync` en `sliceSync.ts` actualizaba exclusivamente `colaIniciativa: datos.cola`.
+   - La hoja de personaje del jugador (`HojaPersonaje.tsx` y su subcomponente `BarraTacticaPersonaje`) no lee de `colaIniciativa`, sino de `personajeActivo.condicionesActivas`, `personajeActivo.efectosActivos` y `personajeActivo.hpActual`.
+   - Al no actualizarse el arreglo `personajes` en el cliente del jugador, las condiciones aplicadas por el DM se veían en la vista de lista de iniciativa, pero no aparecían en el panel de condiciones de la pestaña "Características" ni afectaban las mecánicas de la hoja (desventajas, salvaciones, etc.).
+2. **Riesgo de Bucle de Eco al Mutar `personajes` en Sync:**
+   - Si `aplicarIniciativaDesdeSync` actualizaba `personajes`, en el microtask posterior al desactivar `aplicandoSync: false`, el observador del jugador (`inicializarObservadoresStoreSync`) detectaría que `pjActivo.condicionesActivas` era distinto al snapshot previo (`prevCondicionesStr`), disparando un falso positivo de edición local que enviaría un mensaje `PJ` de vuelta al DM.
+
+**Soluciones Técnicas Aplicadas:**
+1. **Actualización Reactiva de Personajes en `aplicarIniciativaDesdeSync` (`sliceSync.ts`):**
+   - Se mapean los `personajes` locales buscando su contraparte en `datos.cola` (por ID, `idMiniaturaTS` o `normalizarNombreTaleSpire`).
+   - Se sincronizan inmutablemente `condicionesActivas: criaturaEnCola.condiciones || []`, `efectosActivos: criaturaEnCola.efectos || []`, `hpActual`, `hpMaximo` y `hpTemporal`.
+   - Se inyecta `personajes: personajesActualizados` en el mismo `set({ aplicandoSync: true, ... })`.
+2. **Blindaje contra Bucle de Eco en `inicializarObservadoresStoreSync` (`sincronizacionSimbiote.ts`):**
+   - Cuando `estadoActual.aplicandoSync === true`, el observador actualiza proactivamente sus referencias previas (`prevCondicionesStr`, `prevEfectosStr`, `prevHpActual`, `prevHpTemporal`, `prevIniciativa`, etc.) con el estado recién aplicado.
+   - Al desactivarse `aplicandoSync` en la microtarea siguiente, las referencias previas coinciden exactamente con el estado actual, suprimiendo cualquier emisión espuria hacia el DM.
+3. **Validación Integral y Despliegue:**
+   - Actualizado el test unitario en `sincronizacionSimbiote.test.ts` verificando que `personajes[0].condicionesActivas` y `hpActual` se actualizan al recibir el mensaje `DM`.
+   - 1,203 / 1,203 pruebas unitarias aprobadas al 100% (88 suites).
+   - `tsc --noEmit` completado con 0 errores bajo `strict: true`.
+   - Desplegado exitosamente en TaleSpire mediante `pnpm run deploy`.
+
+## [2026-09-30] Restricción Exclusiva de Auto Roll a Monstruos y Protección Absoluta de Jugadores
+
+**Problema Reportado por el Usuario:**
+- *"haz que el auto roll no se aplique a los jugadores, solo a los mounstros"*
+
+**Causas Raíz Diagnosticadas:**
+1. **Falso Positivo de Clasificación `esMonstruo` por ID en TaleSpire:**
+   - En `agregarCriaturasSeleccionadasAIniciativa` y `sincronizarConEstadoLocal`, se asignaba `esMonstruo: !cTS.id.startsWith("c_jugador")`.
+   - Dado que las miniaturas de jugadores en TaleSpire poseen identificadores UUID nativos (ej. `2f87a810-098e-4a6c-9419-f53bc44efb60`), evaluaban siempre a `true` al no comenzar por `c_jugador`.
+   - Además, la búsqueda por nombre en `personajes` no contemplaba sufijos frecuentes en TaleSpire (como " (1)" o " (Guerrero)"), provocando que jugadores se registraran como monstruos.
+2. **Auto Roll Indiscriminado al Seleccionar Miniaturas:**
+   - En `agregarCriaturasSeleccionadasAIniciativa`, al seleccionar miniaturas en TaleSpire y añadirlas a la cola, se calculaba `Math.floor(Math.random() * 20) + 1` para todos los combatientes sin distinguir personajes jugadores.
+3. **Auto Roll en Creación Rápida de Jugadores:**
+   - En `BarraControl.tsx`, `manejarAñadirJugadorRapido` generaba `const tiradaInic = Math.floor(Math.random() * 20) + 1`, sobrescribiendo la iniciativa del jugador con un valor aleatorio automático.
+4. **Vulnerabilidad en `autoLanzarIniciativaMonstruos`:**
+   - La acción de botón "Auto Roll" (`autoLanzarIniciativaMonstruos`) solo comprobaba `if (c.esMonstruo)`. Al arrastrar jugadores mal clasificados, sus iniciativas se re-lanzaban aleatoriamente.
+
+**Soluciones Técnicas Aplicadas:**
+1. **Discriminación Estricta y Protección en `autoLanzarIniciativaMonstruos` (`sliceIniciativa.ts`):**
+   - Se implementó una verificación exhaustiva para detectar si una criatura es un jugador (`!c.esMonstruo || c.id.startsWith("c_jugador") || state.personajes.some(...)` mediante coincidencia de ID, `idMiniaturaTS` y nombres normalizados con `normalizarNombreTaleSpire`).
+   - El auto roll ignora por completo a cualquier combatiente de jugador, y si estaba erróneamente marcado como monstruo, normaliza su bandera a `esMonstruo: false` preservando su iniciativa intacta.
+2. **Supresión de Auto Roll en `agregarCriaturasSeleccionadasAIniciativa` (`sliceIniciativa.ts`):**
+   - Si la miniatura seleccionada corresponde a un personaje jugador en `state.personajes`, se añade con `iniciativa: 0` (esperando su tirada manual) y `esMonstruo: false`.
+   - Solo a las miniaturas de monstruos se les aplica la tirada de dados aleatoria con su bonificador correspondiente.
+3. **Eliminación de Auto Roll en `manejarAñadirJugadorRapido` (`BarraControl.tsx`):**
+   - La iniciativa de jugadores añadidos rápidamente se inicializa en `0` en lugar de una tirada `d20` aleatoria.
+4. **Robustez en la Detección de Miniaturas en `sincronizacionIniciativa.ts`:**
+   - `pjAsociado` compara tanto el nombre exacto como el nombre base normalizado (`normalizarNombreTaleSpire`), garantizando que las fichas de jugadores se vinculen correctamente y tengan siempre `esMonstruo: false`.
+5. **Validación Integral y Despliegue:**
+   - Añadidas pruebas unitarias en `sincronizacionIniciativa.test.ts` verificando que `autoLanzarIniciativaMonstruos` y `agregarCriaturasSeleccionadasAIniciativa` no alteren la iniciativa de los jugadores.
+   - 1,203 / 1,203 pruebas pasando al 100% (88 suites).
+   - `tsc --noEmit` con 0 errores bajo `strict: true`.
+   - ESLint con 0 errores y 0 advertencias (`--max-warnings=0`).
+   - `pnpm run deploy` ejecutado con éxito en TaleSpire.
+
+## [2026-09-30] Sincronización Bidireccional de Combate (TS.sync): Poda Estricta de Monstruos y Sincronización Reactiva de Iniciativa Jugador -> DM
+
+**Problemas y Solicitudes del Usuario:**
+1. *"de los mounstro solo debes pasar Identificación: ID único y nombre del combatiente, Iniciativa, Salud y Vitalidad, Condiciones Activas, Efectos Mágicos y Temporales. Omitir ca, plant, vel, bon"*.
+2. *"Turno Activo: Índice de qué combatiente tiene el turno en curso (hace que la tarjeta se ilumine y se auto-desplace en la pantalla del jugador). eso ya lo toma directamente el symbionte de la cola de talespire no?"*.
+3. *"De jugador a DM te falta sincronizar la iniciativa, lo demas creo que perfecto"*.
+
+**Causas Raíz Diagnosticadas:**
+1. **Sobrecarga de Datos en Monstruos (`serializarIniciativaDM`):**
+   - Para las criaturas con `esMonstruo: true`, el serializador incluía campos auxiliares como `ca`, `idPlantillaAsociada` (`plant`), `velocidad` (`vel`) y `bonificadorIniciativa` (`bon`).
+   - Estos datos son redundantes en la vista del jugador (`IniciativaJugador.tsx`), consumiendo caracteres críticos del límite estricto de red de 500 bytes de TaleSpire.
+2. **Desconexión de la Iniciativa Tirada por el Jugador hacia el DM:**
+   - En `proyectarEstadoCombatePJ`: Solo calculaba estáticamente `DES + iniciativaBono` en lugar de consultar si el combatiente ya tenía un valor tirado en `colaIniciativa`.
+   - En `inicializarObservadoresStoreSync`: El observador del jugador solo rastreaba `hpActual`, `hpTemporal`, condiciones, efectos y concentración. Si el jugador tiraba dados 3D de iniciativa en TaleSpire (vía `aplicarResultadoIniciativaEnEstado`) o editaba su iniciativa, el cambio no disparaba `emitirMiPersonaje()`.
+   - En `sliceSync.ts` (`actualizarPersonajeDesdeSync`): Al recibir el DTO del jugador en el DM, mapeaba vida, CA, condiciones y efectos, pero omitía actualizar `iniciativa: dto.iniciativa` en la criatura de `colaIniciativa`.
+
+**Soluciones Técnicas Aplicadas:**
+1. **Poda Estricta de Monstruos en `src/tipos/sync.ts`:**
+   - En `serializarIniciativaDM`, si `criatura.esMonstruo === true`, únicamente se transmiten `id`, nombre (`n`), iniciativa (`i`), vida (`va`, `vm`, `vt`), `m: true`, condiciones (`c`) y efectos (`e`). Se omiten por completo `ca`, `plant`, `vel` y `bon`.
+   - Esto reduce el tamaño de los monstruos en el wire a ~40-60 bytes por criatura.
+2. **Propagación de Iniciativa Activa (Jugador -> DM):**
+   - En `proyectarEstadoCombatePJ` (`src/servicios/sincronizacionSimbiote.ts`), se consulta `colaIniciativa` mediante `id`, `idMiniaturaTS` o `normalizarNombreTaleSpire(nombre)`; si existe un valor asignado, se proyecta con prioridad sobre el cálculo pasivo.
+   - En `inicializarObservadoresStoreSync`, se incluye `prevIniciativa` e `inicActual` en la suscripción del jugador. Cualquier cambio en la iniciativa local dispara inmediatamente `emitirMiPersonaje()`.
+   - En `actualizarPersonajeDesdeSync` (`src/almacen/slices/sliceSync.ts`), se asigna `iniciativa: dto.iniciativa !== undefined ? dto.iniciativa : criatura.iniciativa` en la cola del DM, la cual a su vez retransmite el consolidado a la mesa vía `emitirEstadoComoGM()`.
+3. **Clarificación sobre Turno Activo Nativo:**
+   - Se corroboró que TaleSpire despacha `onInitiativeEvent` con `activeItemIndex` a todos los clientes simultáneamente, por lo que el turno activo y el desplazamiento de miniaturas se actualizan nativamente en tiempo real en todos los jugadores. Nuestro canal `TS.sync` además suministra `t` y `r` para garantizar sincronía redundante.
+4. **Validación y Despliegue:**
+   - 1,200 / 1,200 pruebas unitarias aprobadas al 100% (88 suites).
+   - `tsc --noEmit` completado con 0 errores bajo `strict: true`.
+   - Límite de líneas verificado con 0 errores críticos.
+   - Desplegado exitosamente en TaleSpire (`pnpm run deploy`).
+
 ## [2026-09-30] Fuente Única de la Verdad (SSOT) en Cola de Iniciativa: Eliminación de la Auto-ordenación Numérica en DM y Jugador
 
 **Problema Reportado por el Usuario:**

@@ -36,9 +36,39 @@ export const crearSliceSync: StateCreator<
   aplicarIniciativaDesdeSync: (datos: EstadoIniciativaDM) => {
     logger.debug("[SliceSync] Aplicando estado de combate desde sync:", datos);
 
+    const { personajes } = get();
+
+    // Actualizar condiciones, efectos y vitalidad de los personajes locales que estén en la iniciativa del DM
+    const personajesActualizados = personajes.map((pj) => {
+      const criaturaEnCola = datos.cola.find(
+        (c) =>
+          c.id === pj.id ||
+          (pj.idMiniaturaTS && c.id === pj.idMiniaturaTS) ||
+          normalizarNombreTaleSpire(c.nombre) === normalizarNombreTaleSpire(pj.nombre)
+      );
+
+      if (!criaturaEnCola) {
+        return pj;
+      }
+
+      return {
+        ...pj,
+        condicionesActivas: criaturaEnCola.condiciones || [],
+        efectosActivos: criaturaEnCola.efectos || [],
+        hpActual: typeof criaturaEnCola.vidaActual === "number" ? criaturaEnCola.vidaActual : pj.hpActual,
+        hpMaximo:
+          typeof criaturaEnCola.vidaMaxima === "number" && criaturaEnCola.vidaMaxima > 0
+            ? criaturaEnCola.vidaMaxima
+            : pj.hpMaximo,
+        hpTemporal:
+          typeof criaturaEnCola.vidaTemporal === "number" ? criaturaEnCola.vidaTemporal : pj.hpTemporal,
+      };
+    });
+
     // Activamos flag para evitar reemisiones cíclicas
     set({
       aplicandoSync: true,
+      personajes: personajesActualizados,
       colaIniciativa: datos.cola,
       indiceTurnoActivo: datos.indiceTurnoActivo,
       rondaActual: datos.rondaActual,
@@ -115,6 +145,7 @@ export const crearSliceSync: StateCreator<
       if (coincidePorId || coincidePorNombre) {
         return {
           ...criatura,
+          iniciativa: dto.iniciativa !== undefined ? dto.iniciativa : criatura.iniciativa,
           vidaActual: dto.hpActual,
           vidaMaxima: dto.hpMaximo,
           vidaTemporal: dto.hpTemporal,

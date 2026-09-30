@@ -10,7 +10,7 @@ import type { ColaIniciativaTS } from "@/tipos/talespire";
 import type { CriaturaIniciativa } from "@/almacen/usarAlmacenDM";
 import type { PersonajeJugador } from "@/tipos";
 import { formatearVelocidad } from "@/almacen/sanitizacion";
-import { resolverPlantillaPorCriatura, calcularVidaInicial } from "./resolutorCriaturas";
+import { resolverPlantillaPorCriatura, calcularVidaInicial, normalizarNombreTaleSpire } from "./resolutorCriaturas";
 import { calcularEstadisticasPersonaje } from "@/almacen/selectores/usarEstadoPersonajes";
 import type { IndiceMonstruos } from "./indiceMonstruos";
 import { logger } from "@/utiles/logger";
@@ -87,8 +87,12 @@ export function sincronizarConEstadoLocal(opciones: OpcionesSincronizacion): Res
 
     // Comprobar si esta miniatura corresponde a un Personaje Jugador
     const nombreNorm = cTS.name ? cTS.name.trim().toLowerCase() : "";
+    const baseNombreTS = cTS.name ? normalizarNombreTaleSpire(cTS.name).base : "";
     const pjAsociado = personajes.find(
-      (pj) => (pj.idMiniaturaTS && pj.idMiniaturaTS === cTS.id) || (pj.nombre && pj.nombre.trim().toLowerCase() === nombreNorm)
+      (pj) =>
+        (pj.idMiniaturaTS && pj.idMiniaturaTS === cTS.id) ||
+        (pj.nombre && pj.nombre.trim().toLowerCase() === nombreNorm) ||
+        (pj.nombre && baseNombreTS && normalizarNombreTaleSpire(pj.nombre).base === baseNombreTS)
     );
 
     if (pjAsociado) {
@@ -179,7 +183,7 @@ export function sincronizarConEstadoLocal(opciones: OpcionesSincronizacion): Res
       ca: plantillaMonstruo ? plantillaMonstruo.ca : 10,
       condiciones: [],
       bonificadorIniciativa: plantillaMonstruo ? plantillaMonstruo.iniciativaBonificador : 0,
-      esMonstruo: !cTS.id.startsWith("c_jugador"),
+      esMonstruo: !cTS.id.startsWith("c_jugador") && !pjAsociado,
       velocidad: plantillaMonstruo ? formatearVelocidad(plantillaMonstruo.velocidad) : "30 pies",
       vidaTemporal: 0,
       idPlantillaAsociada: plantillaMonstruo ? plantillaMonstruo.id : undefined

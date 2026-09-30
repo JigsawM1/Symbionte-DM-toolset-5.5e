@@ -22,6 +22,7 @@ import {
   dividirEnChunksIniciativa,
 } from "@/tipos/sync";
 import { calcularEstadisticasPersonaje } from "@/almacen/selectores/usarEstadoPersonajes";
+import { normalizarNombreTaleSpire } from "@/servicios/resolutorCriaturas";
 import { logger } from "@/utiles/logger";
 
 const RETARDO_DEBOUNCE_MS = 400;
@@ -40,12 +41,26 @@ let timerLimpiezaBuffer: ReturnType<typeof setTimeout> | null = null;
  */
 export function proyectarEstadoCombatePJ(pj: PersonajeJugador): EstadoCombatePJ {
   const stats = calcularEstadisticasPersonaje(pj);
+  const estado = usarAlmacenDM.getState();
+
+  // Buscar si el combatiente ya tiene un valor de iniciativa registrado en la cola
+  const criaturaCola = estado.colaIniciativa.find(
+    (c) =>
+      c.id === pj.id ||
+      (pj.idMiniaturaTS && c.id === pj.idMiniaturaTS) ||
+      normalizarNombreTaleSpire(c.nombre) === normalizarNombreTaleSpire(pj.nombre)
+  );
+
+  const iniciativaFinal =
+    criaturaCola?.iniciativa !== undefined
+      ? criaturaCola.iniciativa
+      : (stats.modificadores?.destreza || 0) + (pj.iniciativaBono || 0);
 
   return {
     id: pj.id,
     idMiniaturaTS: pj.idMiniaturaTS,
     nombre: pj.nombre,
-    iniciativa: (stats.modificadores?.destreza || 0) + (pj.iniciativaBono || 0),
+    iniciativa: iniciativaFinal,
     hpActual: pj.hpActual,
     hpMaximo: pj.hpMaximo,
     hpTemporal: pj.hpTemporal,
@@ -269,7 +284,20 @@ export function inicializarObservadoresStoreSync(): () => void {
     estadoInicial.personajes.find((p) => p.id === estadoInicial.idPersonajeActivo) ||
     estadoInicial.personajes[0];
 
+  const criaturaInicial = estadoInicial.colaIniciativa.find(
+    (c) =>
+      (pjInicial && c.id === pjInicial.id) ||
+      (pjInicial?.idMiniaturaTS && c.id === pjInicial.idMiniaturaTS) ||
+      (pjInicial && normalizarNombreTaleSpire(c.nombre) === normalizarNombreTaleSpire(pjInicial.nombre))
+  );
+
   let prevIdPj = pjInicial?.id ?? "";
+  let prevIniciativa =
+    criaturaInicial?.iniciativa ??
+    (pjInicial
+      ? (calcularEstadisticasPersonaje(pjInicial).modificadores?.destreza || 0) +
+        (pjInicial.iniciativaBono || 0)
+      : 0);
   let prevHpActual = pjInicial?.hpActual ?? 0;
   let prevHpTemporal = pjInicial?.hpTemporal ?? 0;
   let prevCondicionesStr = (pjInicial?.condicionesActivas || []).join(",");
@@ -278,6 +306,38 @@ export function inicializarObservadoresStoreSync(): () => void {
 
   const unsub = usarAlmacenDM.subscribe((estadoActual) => {
     if (estadoActual.aplicandoSync) {
+      // Sincronizar referencias previas para evitar falsos positivos de cambio local al liberarse el flag
+      const pjActivo =
+        estadoActual.personajes.find((p) => p.id === estadoActual.idPersonajeActivo) ||
+        estadoActual.personajes[0];
+
+      if (pjActivo) {
+        const criaturaActiva = estadoActual.colaIniciativa.find(
+          (c) =>
+            c.id === pjActivo.id ||
+            (pjActivo.idMiniaturaTS && c.id === pjActivo.idMiniaturaTS) ||
+            normalizarNombreTaleSpire(c.nombre) === normalizarNombreTaleSpire(pjActivo.nombre)
+        );
+        const stats = calcularEstadisticasPersonaje(pjActivo);
+        prevIdPj = pjActivo.id;
+        prevIniciativa =
+          criaturaActiva?.iniciativa !== undefined
+            ? criaturaActiva.iniciativa
+            : (stats.modificadores?.destreza || 0) + (pjActivo.iniciativaBono || 0);
+        prevHpActual = pjActivo.hpActual;
+        prevHpTemporal = pjActivo.hpTemporal;
+        prevCondicionesStr = (pjActivo.condicionesActivas || []).join(",");
+        prevEfectosStr = (pjActivo.efectosActivos || []).map((e) => `${e.id}:${e.expiraRonda}`).join(",");
+        prevConcentracionStr = pjActivo.concentracionActiva ? pjActivo.concentracionActiva.hechizoId : "";
+      }
+
+      if (estadoActual.esGM) {
+        prevCola = estadoActual.colaIniciativa;
+        prevTurno = estadoActual.indiceTurnoActivo;
+        prevRonda = estadoActual.rondaActual;
+        prevMostrarVida = estadoActual.mostrarPorcentajeVidaAJugadores;
+        prevMetodoVida = estadoActual.metodoVidaMonstruo;
+      }
       return;
     }
 
@@ -305,12 +365,25 @@ export function inicializarObservadoresStoreSync(): () => void {
         estadoActual.personajes[0];
 
       if (pjActivo) {
+        const criaturaActiva = estadoActual.colaIniciativa.find(
+          (c) =>
+            c.id === pjActivo.id ||
+            (pjActivo.idMiniaturaTS && c.id === pjActivo.idMiniaturaTS) ||
+            normalizarNombreTaleSpire(c.nombre) === normalizarNombreTaleSpire(pjActivo.nombre)
+        );
+        const stats = calcularEstadisticasPersonaje(pjActivo);
+        const inicActual =
+          criaturaActiva?.iniciativa !== undefined
+            ? criaturaActiva.iniciativa
+            : (stats.modificadores?.destreza || 0) + (pjActivo.iniciativaBono || 0);
+
         const condStr = (pjActivo.condicionesActivas || []).join(",");
         const efStr = (pjActivo.efectosActivos || []).map((e) => `${e.id}:${e.expiraRonda}`).join(",");
         const concStr = pjActivo.concentracionActiva ? pjActivo.concentracionActiva.hechizoId : "";
 
         const haCambiadoPJ =
           pjActivo.id !== prevIdPj ||
+          inicActual !== prevIniciativa ||
           pjActivo.hpActual !== prevHpActual ||
           pjActivo.hpTemporal !== prevHpTemporal ||
           condStr !== prevCondicionesStr ||
@@ -319,6 +392,7 @@ export function inicializarObservadoresStoreSync(): () => void {
 
         if (haCambiadoPJ) {
           prevIdPj = pjActivo.id;
+          prevIniciativa = inicActual;
           prevHpActual = pjActivo.hpActual;
           prevHpTemporal = pjActivo.hpTemporal;
           prevCondicionesStr = condStr;

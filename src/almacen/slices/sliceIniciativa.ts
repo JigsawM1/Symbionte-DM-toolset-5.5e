@@ -581,7 +581,18 @@ export const crearSliceIniciativa: StateCreator<
   autoLanzarIniciativaMonstruos: () => set((state) => {
     const indiceMonstruos = crearIndiceMonstruos(state.baseDatosMonstruos);
     const nuevaCola = state.colaIniciativa.map((c) => {
-      if (c.esMonstruo) {
+      // Discriminación estricta: el auto roll NUNCA se aplica a jugadores
+      const esJugador =
+        !c.esMonstruo ||
+        c.id.startsWith("c_jugador") ||
+        state.personajes.some((pj) => {
+          if (pj.id === c.id || (pj.idMiniaturaTS && pj.idMiniaturaTS === c.id)) return true;
+          const nomC = normalizarNombreTaleSpire(c.nombre).base;
+          const nomPj = normalizarNombreTaleSpire(pj.nombre).base;
+          return Boolean(nomC && nomPj && nomC === nomPj);
+        });
+
+      if (!esJugador && c.esMonstruo) {
         let bonoInic = c.bonificadorIniciativa || 0;
         if (bonoInic === 0) {
           const plantilla = resolverPlantillaPorCriatura(c.id, c.nombre, state.asociacionesFichas, indiceMonstruos);
@@ -591,8 +602,14 @@ export const crearSliceIniciativa: StateCreator<
         }
         const tirada = Math.floor(Math.random() * 20) + 1;
         const total = tirada + bonoInic;
-        return { ...c, iniciativa: total, bonificadorIniciativa: bonoInic };
+        return { ...c, iniciativa: total, bonificadorIniciativa: bonoInic, esMonstruo: true };
       }
+
+      // Si es jugador pero estaba marcado erróneamente con esMonstruo, normalizar la bandera sin alterar iniciativa
+      if (esJugador && c.esMonstruo) {
+        return { ...c, esMonstruo: false };
+      }
+
       return c;
     });
     // No auto-ordenar por iniciativa: se preserva el orden de turnos de TaleSpire
@@ -758,6 +775,37 @@ export const crearSliceIniciativa: StateCreator<
     state.criaturasSeleccionadas.forEach((cTS) => {
       if (state.colaIniciativa.some((c) => c.id === cTS.id)) return;
 
+      // Comprobar si esta miniatura corresponde a un Personaje Jugador
+      const baseNombreTS = cTS.name ? normalizarNombreTaleSpire(cTS.name).base : "";
+      const pjAsociado = state.personajes.find(
+        (pj) =>
+          pj.id === cTS.id ||
+          (pj.idMiniaturaTS && pj.idMiniaturaTS === cTS.id) ||
+          (pj.nombre && pj.nombre.trim().toLowerCase() === cTS.name?.trim().toLowerCase()) ||
+          (pj.nombre && baseNombreTS && normalizarNombreTaleSpire(pj.nombre).base === baseNombreTS)
+      );
+
+      if (pjAsociado) {
+        // Para jugadores: NUNCA se aplica auto-roll de iniciativa
+        nuevasCriaturas.push({
+          id: cTS.id,
+          nombre: pjAsociado.nombre,
+          iniciativa: 0,
+          vidaMaxima: pjAsociado.hpMaximo || 10,
+          vidaActual: pjAsociado.hpActual !== undefined ? pjAsociado.hpActual : (pjAsociado.hpMaximo || 10),
+          ca: pjAsociado.ca || 10,
+          condiciones: pjAsociado.condicionesActivas || [],
+          efectos: pjAsociado.efectosActivos || [],
+          bonificadorIniciativa: pjAsociado.iniciativaBono || 0,
+          esMonstruo: false,
+          velocidad: `${pjAsociado.velocidad || "30 pies"}`,
+          vidaTemporal: pjAsociado.hpTemporal || 0,
+          idPlantillaAsociada: undefined
+        });
+        return;
+      }
+
+      // Si no es jugador, es un monstruo: calcular estadísticas y aplicar auto roll
       const plantillaMonstruo = resolverPlantillaPorCriatura(
         cTS.id,
         cTS.name,
@@ -784,7 +832,7 @@ export const crearSliceIniciativa: StateCreator<
         ca: plantillaMonstruo ? plantillaMonstruo.ca : 10,
         condiciones: [],
         bonificadorIniciativa: plantillaMonstruo ? plantillaMonstruo.iniciativaBonificador : 0,
-        esMonstruo: !cTS.id.startsWith("c_jugador"),
+        esMonstruo: true,
         velocidad: plantillaMonstruo ? formatearVelocidad(plantillaMonstruo.velocidad) : "30 pies",
         vidaTemporal: 0,
         idPlantillaAsociada: plantillaMonstruo ? plantillaMonstruo.id : undefined

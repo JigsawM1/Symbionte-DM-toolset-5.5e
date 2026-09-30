@@ -39,9 +39,8 @@ export const BarraControl: React.FC = () => {
   const manejarAñadirJugadorRapido = () => {
     if (!nombreJugadorRapido.trim()) return;
 
-    // Tirada de iniciativa para jugador
-    const tiradaInic = Math.floor(Math.random() * 20) + 1;
-    const totalInic = tiradaInic; // sin bonificador por defecto en rápido
+    // Los jugadores no reciben auto roll: inician en 0 hasta su propia tirada de iniciativa
+    const totalInic = 0;
 
     agregarCriaturaAIniciativa(
       nombreJugadorRapido.trim(),

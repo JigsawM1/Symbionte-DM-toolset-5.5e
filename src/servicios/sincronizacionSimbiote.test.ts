@@ -53,6 +53,39 @@ describe("Sincronización Simbiote - Wire Format y DTOs", () => {
     expect(dto.pasivas).toHaveProperty("perspicacia");
   });
 
+  it("proyectarEstadoCombatePJ toma la iniciativa activa de la cola de combate si existe", () => {
+    usarAlmacenDM.setState({
+      colaIniciativa: [
+        {
+          id: "pj-1",
+          nombre: "Gandalf el Gris",
+          iniciativa: 19,
+          vidaActual: 24,
+          vidaMaxima: 30,
+          vidaTemporal: 0,
+          ca: 15,
+          esMonstruo: false,
+          condiciones: [],
+          efectos: [],
+          bonificadorIniciativa: 2,
+          velocidad: "30 pies",
+        },
+      ],
+    });
+
+    const pjMock = {
+      ...PERSONAJE_POR_DEFECTO,
+      id: "pj-1",
+      nombre: "Gandalf el Gris",
+      hpActual: 24,
+      hpMaximo: 30,
+      iniciativaBono: 0,
+    };
+
+    const dto = proyectarEstadoCombatePJ(pjMock);
+    expect(dto.iniciativa).toBe(19);
+  });
+
   it("serializar y deserializar EstadoCombatePJ preserva la fidelidad de los datos", () => {
     const dtoOriginal: EstadoCombatePJ = {
       id: "pj-42",
@@ -133,6 +166,21 @@ describe("Sincronización Simbiote - Wire Format y DTOs", () => {
     };
 
     const wire = serializarIniciativaDM(dmOriginal);
+
+    // Verificar que para monstruos se omiten expresamente CA, plantilla, velocidad y bonificador
+    const wireMonstruo = wire.c[0];
+    expect(wireMonstruo.m).toBe(true);
+    expect(wireMonstruo.ca).toBeUndefined();
+    expect(wireMonstruo.plant).toBeUndefined();
+    expect(wireMonstruo.vel).toBeUndefined();
+    expect(wireMonstruo.bon).toBeUndefined();
+
+    // Verificar que para héroes o aliados se preservan los datos
+    const wireHeroe = wire.c[1];
+    expect(wireHeroe.m).toBeUndefined();
+    expect(wireHeroe.ca).toBe(18);
+    expect(wireHeroe.bon).toBe(2);
+
     const dmReconstruido = deserializarIniciativaDM(wire);
 
     expect(dmReconstruido.indiceTurnoActivo).toBe(1);
@@ -211,7 +259,7 @@ describe("Sincronización Simbiote - Manejo de Mensajes en Store", () => {
     });
   });
 
-  it("jugador aplica mensaje DM actualizando la cola y la configuración del Master", () => {
+  it("jugador aplica mensaje DM actualizando la cola, configuración del Master y condiciones del personaje", () => {
     const mensajeDM = {
       v: 1,
       t: "DM",
@@ -224,9 +272,18 @@ describe("Sincronización Simbiote - Manejo de Mensajes en Store", () => {
             va: 250,
             vm: 250,
             vt: 0,
-            ca: 19,
             m: true,
             c: [],
+          },
+          {
+            id: "pj-test-1",
+            n: "Bárbaro Enano",
+            i: 14,
+            va: 38,
+            vm: 50,
+            vt: 0,
+            m: false,
+            c: ["Envenenado", "Cegado"],
           },
         ],
         t: 0,
@@ -242,12 +299,36 @@ describe("Sincronización Simbiote - Manejo de Mensajes en Store", () => {
     expect(estadoFinal.rondaActual).toBe(3);
     expect(estadoFinal.mostrarPorcentajeVidaAJugadores).toBe(true);
     expect(estadoFinal.metodoVidaMonstruo).toBe("maximo");
-    expect(estadoFinal.colaIniciativa).toHaveLength(1);
+    expect(estadoFinal.colaIniciativa).toHaveLength(2);
     expect(estadoFinal.colaIniciativa[0].nombre).toBe("Dragón Rojo");
+
+    // Verificar que la hoja del personaje jugador en "Características" sincronizó las condiciones y salud del DM
+    const pjSincronizado = estadoFinal.personajes.find((p) => p.id === "pj-test-1");
+    expect(pjSincronizado).toBeDefined();
+    expect(pjSincronizado?.condicionesActivas).toEqual(["Envenenado", "Cegado"]);
+    expect(pjSincronizado?.hpActual).toBe(38);
   });
 
-  it("DM actualiza personaje de jugador al recibir mensaje PJ", () => {
-    usarAlmacenDM.setState({ esGM: true });
+  it("DM actualiza personaje de jugador y cola de iniciativa al recibir mensaje PJ", () => {
+    usarAlmacenDM.setState({
+      esGM: true,
+      colaIniciativa: [
+        {
+          id: "pj-test-1",
+          nombre: "Bárbaro Enano",
+          iniciativa: 0,
+          vidaActual: 50,
+          vidaMaxima: 50,
+          vidaTemporal: 0,
+          ca: 10,
+          esMonstruo: false,
+          condiciones: [],
+          efectos: [],
+          bonificadorIniciativa: 2,
+          velocidad: "30 pies",
+        },
+      ],
+    });
 
     const mensajePJ = {
       v: 1,
@@ -275,5 +356,7 @@ describe("Sincronización Simbiote - Manejo de Mensajes en Store", () => {
     expect(pjActualizado?.hpActual).toBe(35);
     expect(pjActualizado?.hpTemporal).toBe(10);
     expect(pjActualizado?.condicionesActivas).toEqual(["furia"]);
+    expect(estadoFinal.colaIniciativa[0].iniciativa).toBe(12);
+    expect(estadoFinal.colaIniciativa[0].vidaActual).toBe(35);
   });
 });

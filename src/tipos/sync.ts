@@ -348,8 +348,17 @@ export function serializarIniciativaDM(dm: EstadoIniciativaDM): WireEstadoInicia
         vm: criatura.vidaMaxima ?? 0,
       };
       if (criatura.vidaTemporal) item.vt = criatura.vidaTemporal;
-      if (criatura.ca !== undefined && criatura.ca !== 10) item.ca = criatura.ca;
-      if (criatura.esMonstruo) item.m = true;
+
+      if (criatura.esMonstruo) {
+        item.m = true;
+        // Para monstruos: no transmitir CA, plantilla, velocidad ni bonificador para optimizar ancho de banda
+      } else {
+        if (criatura.ca !== undefined && criatura.ca !== 10) item.ca = criatura.ca;
+        if (criatura.idPlantillaAsociada) item.plant = criatura.idPlantillaAsociada;
+        if (criatura.velocidad && criatura.velocidad !== "30 pies") item.vel = criatura.velocidad;
+        if (criatura.bonificadorIniciativa) item.bon = criatura.bonificadorIniciativa;
+      }
+
       if (criatura.condiciones && criatura.condiciones.length > 0) item.c = criatura.condiciones;
       if (criatura.efectos && criatura.efectos.length > 0) {
         item.e = criatura.efectos.map((ef) => ({
@@ -360,9 +369,6 @@ export function serializarIniciativaDM(dm: EstadoIniciativaDM): WireEstadoInicia
           d: ef.duracion,
         }));
       }
-      if (criatura.idPlantillaAsociada) item.plant = criatura.idPlantillaAsociada;
-      if (criatura.velocidad && criatura.velocidad !== "30 pies") item.vel = criatura.velocidad;
-      if (criatura.bonificadorIniciativa) item.bon = criatura.bonificadorIniciativa;
       return item;
     }),
     t: dm.indiceTurnoActivo ?? 0,

@@ -46,6 +46,11 @@
   font-family: var(--fuente-codigo);
 }
 
+.tituloTextoClickable {
+  cursor: pointer;
+  user-select: none;
+}
+
 .zonaDerecha {
   display: flex;
   flex-direction: row;

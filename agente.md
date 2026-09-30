@@ -20,6 +20,42 @@ Este archivo registra reglas globales, errores encontrados, sus causas raíz y l
    - Toda mecánica, progresión de dados, escalado de usos, recuperación o desbloqueo dinámico debe resolverse mediante metadatos declarativos (`escaladoFormulaDados`, `escaladoUsos`, `escaladoRecuperacion`, `opcionesDinamicas`, `escaladoMaxSelecciones`, `sincronizarEfectosConFormula`, `heredarDadosPadre`, `gastarDePadre`, `ligadoA`, `efectos`) delegando en funciones puras agnósticas como `resolverEscaladosRasgo`. Esta regla está reforzada en CI vía ESLint `no-restricted-syntax` y la suite `rasgoGenericidad.test.ts`.
 
 
+## [2026-09-30] Fuente Única de la Verdad (SSOT) en Cola de Iniciativa: Eliminación de la Auto-ordenación Numérica en DM y Jugador
+
+**Problema Reportado por el Usuario:**
+- *"en el traker de iniciativa (tanto master como jugador) no auto ordenes segun el valor numerico de su iniciativa, que la fuente de la verdad sea la iniciativa de talespire"*
+
+**Causas Raíz Diagnosticadas:**
+1. **Ruptura del Orden Nativo en `sincronizarConEstadoLocal` (`sincronizacionIniciativa.ts`):**
+   - Al sincronizar con la API de TaleSpire (`TS.initiative.getQueue()`), el servicio mapeaba los elementos nativos pero luego ejecutaba: `colaCombinada.sort((a, b) => b.iniciativa - a.iniciativa);`.
+   - Esto destruía el orden de turnos establecido por TaleSpire (reordenaciones manuales del DM por drag-and-drop, empates, acciones preparadas, retrasos o combatientes sin iniciativa tirada), forzando una ordenación matemática artificial.
+2. **Reordenación Impulsiva en Acciones del Estado Global (`sliceIniciativa.ts`):**
+   - En `agregarCriaturaAIniciativa`, `establecerIniciativaCriatura`, `autoLanzarIniciativaMonstruos` y `agregarCriaturasSeleccionadasTS`, existían llamadas imperativas a `.sort((a, b) => b.iniciativa - a.iniciativa)`.
+   - Modificar manualmente la iniciativa o añadir un combatiente provocaba que las tarjetas saltaran de posición en la interfaz.
+3. **Reordenación tras Tiradas de Dados 3D (`lanzadorDados.ts`):**
+   - En `aplicarResultadoIniciativaEnEstado`, cuando un jugador o monstruo lanzaba iniciativa con dados 3D, el callback ejecutaba `.sort((a, b) => b.iniciativa - a.iniciativa)` reorganizando inmediatamente la lista antes de que TaleSpire actualizara su secuencia nativa.
+
+**Soluciones Técnicas Aplicadas:**
+1. **TaleSpire como Fuente Única de la Verdad (SSOT) en `sincronizacionIniciativa.ts`:**
+   - Se eliminó completamente la ordenación numérica `colaCombinada.sort((a, b) => b.iniciativa - a.iniciativa)`.
+   - Las miniaturas nativas conservan el orden exacto de `colaTS.items` (`let colaCombinada = [...nuevasCriaturasNativas, ...criaturasLocales];`).
+   - Las criaturas puramente locales se preservan al final de la cola sin perturbar el orden nativo.
+   - Fallback de iniciativa física simplificado a `cTSConPropiedades.initiative ?? (existente ? existente.iniciativa : 0)` suprimiendo números artificiales.
+   - Sincronización del índice activo nativo respetando los límites de la cola combinada.
+2. **Saneamiento en `sliceIniciativa.ts` y `lanzadorDados.ts`:**
+   - En `establecerIniciativaCriatura`, se actualiza el valor numérico conservando la posición de la criatura y el índice del turno activo.
+   - En `autoLanzarIniciativaMonstruos`, se actualizan los valores de dados calculados para los monstruos sin mutar el orden de turnos.
+   - En `aplicarResultadoIniciativaEnEstado`, se actualiza o añade el combatiente respetando la posición actual de la cola.
+3. **Saneamiento de Regla ESLint en `BarraSuperior.tsx` / `BarraSuperior.module.css`:**
+   - Modularizado el estilo condicional de alternancia de rol en la clase `.tituloTextoClickable`, eliminando la infracción `react/forbid-dom-props`.
+4. **Validación Integral y Despliegue:**
+   - Actualizadas y añadidas pruebas unitarias en `sincronizacionIniciativa.test.ts` verificando que el orden de TaleSpire se respeta 100% y que las acciones del store no auto-ordenan numéricamente.
+   - 1,199 / 1,199 pruebas unitarias aprobadas al 100% (88 suites).
+   - `pnpm exec tsc --noEmit` completado con 0 errores bajo `strict: true`.
+   - ESLint con 0 errores y 0 advertencias (`--max-warnings=0`).
+   - `node scripts/verificar-limite-lineas.js` con 0 errores críticos.
+   - `pnpm run deploy` completado exitosamente, desplegando el nuevo bundle en TaleSpire.
+
 ## [2026-09-30] Canal de Sincronización Bidireccional (TS.sync): Diagnóstico y Solución de Errores de Transmisión y Detección de Roles
 
 **Problema Reportado por el Usuario:**

@@ -180,7 +180,7 @@ export function aplicarResultadoIniciativaEnEstado(
   });
 
   if (encontrada) {
-    colaActualizada.sort((a, b) => b.iniciativa - a.iniciativa);
+    // No auto-ordenar por iniciativa: TaleSpire es la fuente de la verdad para el orden
     usarAlmacenDM.setState({ colaIniciativa: colaActualizada });
     logger.info(`[Lanzador Dados] Iniciativa actualizada para criatura existente a ${totalIniciativa}`);
     return;
@@ -216,7 +216,6 @@ export function aplicarResultadoIniciativaEnEstado(
     };
 
     const nuevaCola = [...state.colaIniciativa, nuevaCriatura];
-    nuevaCola.sort((a, b) => b.iniciativa - a.iniciativa);
     usarAlmacenDM.setState({ colaIniciativa: nuevaCola });
     logger.info(`[Lanzador Dados] Héroe ${pj.nombre} añadido a la cola de iniciativa con valor ${totalIniciativa}`);
   } else {
@@ -235,7 +234,6 @@ export function aplicarResultadoIniciativaEnEstado(
       vidaTemporal: 0
     };
     const nuevaCola = [...state.colaIniciativa, nuevaCriatura];
-    nuevaCola.sort((a, b) => b.iniciativa - a.iniciativa);
     usarAlmacenDM.setState({ colaIniciativa: nuevaCola });
   }
 }

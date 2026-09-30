@@ -230,7 +230,6 @@ export const crearSliceIniciativa: StateCreator<
     }
 
     const nuevaCola = [...state.colaIniciativa, nuevaCriatura];
-    nuevaCola.sort((a, b) => b.iniciativa - a.iniciativa);
     return { 
       colaIniciativa: nuevaCola,
       asociacionesFichas: nuevasAsociaciones
@@ -244,15 +243,9 @@ export const crearSliceIniciativa: StateCreator<
       }
       return c;
     });
-    nuevaCola.sort((a, b) => b.iniciativa - a.iniciativa);
-    // Recalcular el índice del turno activo para que apunte a la misma criatura
-    const criaturaActivaId = state.colaIniciativa[state.indiceTurnoActivo]?.id;
-    const nuevoIndice = criaturaActivaId
-      ? nuevaCola.findIndex((c) => c.id === criaturaActivaId)
-      : state.indiceTurnoActivo;
+    // No auto-ordenar por iniciativa: TaleSpire es la fuente de la verdad para el orden
     return {
-      colaIniciativa: nuevaCola,
-      indiceTurnoActivo: nuevoIndice >= 0 ? nuevoIndice : 0
+      colaIniciativa: nuevaCola
     };
   }),
 
@@ -602,8 +595,8 @@ export const crearSliceIniciativa: StateCreator<
       }
       return c;
     });
-    nuevaCola.sort((a, b) => b.iniciativa - a.iniciativa);
-    return { colaIniciativa: nuevaCola, indiceTurnoActivo: 0 };
+    // No auto-ordenar por iniciativa: se preserva el orden de turnos de TaleSpire
+    return { colaIniciativa: nuevaCola };
   }),
 
   ejecutarSalvacionEnArea: (caracteristica, cd, dañoBruto, condicionOEfecto, mitigacion = "mitad", idsObjetivo) => {
@@ -801,7 +794,6 @@ export const crearSliceIniciativa: StateCreator<
     if (nuevasCriaturas.length === 0) return {};
 
     const colaCombinada = [...state.colaIniciativa, ...nuevasCriaturas];
-    colaCombinada.sort((a, b) => b.iniciativa - a.iniciativa);
     return { colaIniciativa: colaCombinada };
   }),
 

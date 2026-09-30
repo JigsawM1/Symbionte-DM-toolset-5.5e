@@ -82,8 +82,7 @@ export const BarraSuperior: React.FC = () => {
             )}
           </div>
           <span
-            className={estilosClases.tituloTexto}
-            style={typeof window !== "undefined" && !window.TS ? { cursor: "pointer", userSelect: "none" } : undefined}
+            className={`${estilosClases.tituloTexto} ${typeof window !== "undefined" && !window.TS ? estilosClases.tituloTextoClickable : ""}`}
             onClick={() => {
               if (typeof window !== "undefined" && !window.TS) {
                 establecerEsGM(!esGM);

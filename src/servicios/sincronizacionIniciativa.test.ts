@@ -1,9 +1,10 @@
 import { describe, it, expect } from "vitest";
 import { filtrarEfectosExpirados, sincronizarConEstadoLocal } from "./sincronizacionIniciativa";
 import { crearIndiceMonstruos } from "./indiceMonstruos";
-import type { CriaturaIniciativa, MonstruoBase } from "@/almacen/usarAlmacenDM";
+import { usarAlmacenDM, type CriaturaIniciativa, type MonstruoBase } from "@/almacen/usarAlmacenDM";
 import type { ColaIniciativaTS, ItemIniciativaTS } from "@/tipos/talespire";
 import type { PersonajeJugador } from "@/tipos";
+import { aplicarResultadoIniciativaEnEstado } from "@/utiles/lanzadorDados";
 
 describe("sincronizacionIniciativa - filtrarEfectosExpirados", () => {
   it("debe retornar la criatura idéntica si no tiene efectos", () => {
@@ -120,16 +121,18 @@ describe("sincronizacionIniciativa - sincronizarConEstadoLocal", () => {
     expect(resultado.colaIniciativa[0].id).toBe("c_local_1");
   });
 
-  it("debe ordenar la cola combinada por iniciativa de forma descendente", () => {
+  it("debe respetar el orden nativo de TaleSpire como fuente de la verdad y no auto-ordenar por valor numérico", () => {
     const colaTS: ColaIniciativaTS = {
       items: [
-        { id: "mini-ts-1", name: "Trasgo", kind: "creature" }, // Iniciativa simulada abajo
+        { id: "mini-ts-1", name: "Trasgo", kind: "creature" },
+        { id: "mini-ts-2", name: "Dragón", kind: "creature" },
       ],
-      activeItemIndex: 0,
+      activeItemIndex: 1,
     };
 
-    // Añadir iniciativa física usando custom properties que consume el adaptador
-    (colaTS.items[0] as ItemIniciativaTS & { initiative?: number }).initiative = 10;
+    // Mini 1 tiene iniciativa menor (5) y Mini 2 tiene iniciativa mayor (25), pero en TaleSpire Mini 1 está primero
+    (colaTS.items[0] as ItemIniciativaTS & { initiative?: number }).initiative = 5;
+    (colaTS.items[1] as ItemIniciativaTS & { initiative?: number }).initiative = 25;
 
     const colaLocal: CriaturaIniciativa[] = [
       { id: "c_local_1", nombre: "Aliado Local", iniciativa: 15 } as unknown as CriaturaIniciativa,
@@ -145,9 +148,12 @@ describe("sincronizacionIniciativa - sincronizarConEstadoLocal", () => {
       rondaActual: 1,
     });
 
-    expect(resultado.colaIniciativa).toHaveLength(2);
-    expect(resultado.colaIniciativa[0].id).toBe("c_local_1"); // Iniciativa 15
-    expect(resultado.colaIniciativa[1].id).toBe("mini-ts-1"); // Iniciativa 10
+    expect(resultado.colaIniciativa).toHaveLength(3);
+    // Debe respetar el orden de TaleSpire sin auto-ordenar por iniciativa descendente
+    expect(resultado.colaIniciativa[0].id).toBe("mini-ts-1"); // Inic 5 (primero en TaleSpire)
+    expect(resultado.colaIniciativa[1].id).toBe("mini-ts-2"); // Inic 25 (segundo en TaleSpire)
+    expect(resultado.colaIniciativa[2].id).toBe("c_local_1"); // Local al final
+    expect(resultado.indiceTurnoActivo).toBe(1); // Turno activo nativo de TaleSpire
   });
 
   it("debe detectar wrap-around e incrementar la ronda al pasar del último al primer turno", () => {
@@ -285,5 +291,79 @@ describe("sincronizacionIniciativa - sincronizarConEstadoLocal", () => {
     expect(heroe.vidaMaxima).toBe(14);
     expect(heroe.ca).toBe(11); // 10 + mod DES (12 -> +1)
   });
+
+  it("debe preservar el orden de múltiples criaturas de TaleSpire sin importar valores de iniciativa mayores o menores", () => {
+    const colaTS: ColaIniciativaTS = {
+      items: [
+        { id: "mini-1", name: "Bárbaro", kind: "creature" },
+        { id: "mini-2", name: "Pícaro", kind: "creature" },
+        { id: "mini-3", name: "Clérigo", kind: "creature" },
+      ],
+      activeItemIndex: 2,
+    };
+
+    (colaTS.items[0] as ItemIniciativaTS & { initiative?: number }).initiative = 8;
+    (colaTS.items[1] as ItemIniciativaTS & { initiative?: number }).initiative = 22;
+    (colaTS.items[2] as ItemIniciativaTS & { initiative?: number }).initiative = 14;
+
+    const resultado = sincronizarConEstadoLocal({
+      colaTS,
+      colaLocal: [],
+      asociacionesFichas: {},
+      indiceMonstruos: indice,
+      metodoVidaMonstruo: "estandar",
+      indiceTurnoActivo: 0,
+      rondaActual: 1,
+    });
+
+    expect(resultado.colaIniciativa).toHaveLength(3);
+    // Orden exacto de TaleSpire: Bárbaro (8), Pícaro (22), Clérigo (14)
+    expect(resultado.colaIniciativa[0].id).toBe("mini-1");
+    expect(resultado.colaIniciativa[0].iniciativa).toBe(8);
+    expect(resultado.colaIniciativa[1].id).toBe("mini-2");
+    expect(resultado.colaIniciativa[1].iniciativa).toBe(22);
+    expect(resultado.colaIniciativa[2].id).toBe("mini-3");
+    expect(resultado.colaIniciativa[2].iniciativa).toBe(14);
+    expect(resultado.indiceTurnoActivo).toBe(2);
+  });
 });
+
+describe("Gestión de Iniciativa sin Auto-ordenación Numérica (Almacén y Tiradas)", () => {
+  it("establecerIniciativaCriatura no debe alterar el orden posicional de las criaturas", () => {
+    usarAlmacenDM.setState({
+      colaIniciativa: [
+        { id: "c1", nombre: "Primero", iniciativa: 10, vidaActual: 20, vidaMaxima: 20, vidaTemporal: 0, ca: 10, condiciones: [], efectos: [], bonificadorIniciativa: 0, esMonstruo: false, velocidad: "30 pies" },
+        { id: "c2", nombre: "Segundo", iniciativa: 15, vidaActual: 20, vidaMaxima: 20, vidaTemporal: 0, ca: 10, condiciones: [], efectos: [], bonificadorIniciativa: 0, esMonstruo: false, velocidad: "30 pies" },
+      ],
+      indiceTurnoActivo: 0,
+    });
+
+    // Cambiar la iniciativa de 'Primero' a 25 (mayor que 'Segundo' con 15)
+    usarAlmacenDM.getState().establecerIniciativaCriatura("c1", 25);
+
+    const colaActual = usarAlmacenDM.getState().colaIniciativa;
+    expect(colaActual[0].id).toBe("c1");
+    expect(colaActual[0].iniciativa).toBe(25);
+    expect(colaActual[1].id).toBe("c2");
+    expect(colaActual[1].iniciativa).toBe(15);
+  });
+
+  it("aplicarResultadoIniciativaEnEstado no debe reordenar la cola existente", () => {
+    usarAlmacenDM.setState({
+      colaIniciativa: [
+        { id: "mini-a", nombre: "A", iniciativa: 5, vidaActual: 10, vidaMaxima: 10, vidaTemporal: 0, ca: 10, condiciones: [], efectos: [], bonificadorIniciativa: 0, esMonstruo: false, velocidad: "30 pies" },
+        { id: "mini-b", nombre: "B", iniciativa: 20, vidaActual: 10, vidaMaxima: 10, vidaTemporal: 0, ca: 10, condiciones: [], efectos: [], bonificadorIniciativa: 0, esMonstruo: false, velocidad: "30 pies" },
+      ],
+    });
+
+    aplicarResultadoIniciativaEnEstado({ tipo: "iniciativa", criaturaId: "mini-a" }, 30);
+
+    const colaActual = usarAlmacenDM.getState().colaIniciativa;
+    // 'mini-a' conserva su posición 0 a pesar de tener iniciativa 30 > 20
+    expect(colaActual[0].id).toBe("mini-a");
+    expect(colaActual[0].iniciativa).toBe(30);
+    expect(colaActual[1].id).toBe("mini-b");
+  });
+});
+
 

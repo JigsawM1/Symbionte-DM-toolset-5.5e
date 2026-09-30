@@ -77,13 +77,13 @@ export function sincronizarConEstadoLocal(opciones: OpcionesSincronizacion): Res
   const mapaLocal = new Map(colaLocal.map(c => [c.id, c]));
 
   // 3. Procesar ítems de TaleSpire (O(N) gracias al Map)
-  const nuevasCriaturasNativas = colaTSItems.map((cTS, index) => {
+  const nuevasCriaturasNativas = colaTSItems.map((cTS) => {
     // Reemplaza el .find() lento por una lectura directa
     const existente = mapaLocal.get(cTS.id);
     const cTSConPropiedades = cTS as typeof cTS & { initiative?: number; maxHp?: number; hp?: number };
     
     // Simplificado usando Nullish Coalescing (??)
-    const iniciativaFisica = cTSConPropiedades.initiative ?? (existente ? existente.iniciativa : (colaTSItems.length - index));
+    const iniciativaFisica = cTSConPropiedades.initiative ?? (existente ? existente.iniciativa : 0);
 
     // Comprobar si esta miniatura corresponde a un Personaje Jugador
     const nombreNorm = cTS.name ? cTS.name.trim().toLowerCase() : "";
@@ -186,9 +186,9 @@ export function sincronizarConEstadoLocal(opciones: OpcionesSincronizacion): Res
     } as CriaturaIniciativa;
   });
 
-  // Combinar y ordenar
-  let colaCombinada = [...criaturasLocales, ...nuevasCriaturasNativas];
-  colaCombinada.sort((a, b) => b.iniciativa - a.iniciativa);
+  // Combinar preservando a TaleSpire como Fuente Única de la Verdad (SSOT) para el orden de turnos.
+  // NO se auto-ordena por valor numérico: las miniaturas nativas conservan su orden posicional exacto de TaleSpire.
+  let colaCombinada = [...nuevasCriaturasNativas, ...criaturasLocales];
 
   let nuevoIndice = indiceTurnoActivo;
   let nuevaRonda = rondaActual;
@@ -196,12 +196,12 @@ export function sincronizarConEstadoLocal(opciones: OpcionesSincronizacion): Res
   const nativeActiveIndex = colaTS.activeItemIndex;
   logger.debug("[TaleSpire Sincronismo] Leyendo turno activo nativo:", nativeActiveIndex, "de la cola:", colaTSItems);
 
-  if (typeof nativeActiveIndex === "number") {
+  if (typeof nativeActiveIndex === "number" && nativeActiveIndex >= 0 && nativeActiveIndex < colaTSItems.length) {
     const criaturaActivaTS = colaTSItems[nativeActiveIndex];
     if (criaturaActivaTS) {
       const activeTurnId = criaturaActivaTS.id;
       
-      // OPTIMIZACIÓN: Buscamos el índice en la cola ya ordenada
+      // Buscamos el índice en la cola combinada preservada
       let indiceEncontrado = colaCombinada.findIndex((c) => c.id === activeTurnId);
       if (indiceEncontrado === -1) {
         const nombreBuscado = criaturaActivaTS.name.toLowerCase().trim();
@@ -217,11 +217,18 @@ export function sincronizarConEstadoLocal(opciones: OpcionesSincronizacion): Res
     }
   }
 
-  // 4. DETECCIÓN DE BUG DE RONDA: 
-  // Antes comparabas colaLocal.length para ver el "ultimoIndice". 
-  // Sin embargo, la lista activa ahora es 'colaCombinada'. Debes usar su longitud.
-  if (colaCombinada.length > 1) {
-    const ultimoIndice = colaCombinada.length - 1;
+  // Asegurar que el índice del turno no exceda los límites de la cola
+  if (colaCombinada.length === 0) {
+    nuevoIndice = 0;
+  } else if (nuevoIndice >= colaCombinada.length) {
+    nuevoIndice = Math.max(0, colaCombinada.length - 1);
+  }
+
+  // DETECCIÓN DE AVANCE / RETROCESO DE RONDA POR WRAP-AROUND:
+  const totalItemsTaleSpire = colaTSItems.length;
+  const longitudRelevante = totalItemsTaleSpire > 1 ? totalItemsTaleSpire : colaCombinada.length;
+  if (longitudRelevante > 1) {
+    const ultimoIndice = longitudRelevante - 1;
     if (indiceTurnoActivo === ultimoIndice && nuevoIndice === 0) {
       nuevaRonda = rondaActual + 1;
     } else if (indiceTurnoActivo === 0 && nuevoIndice === ultimoIndice) {

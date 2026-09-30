@@ -101,15 +101,19 @@ export const ModalDetalleRasgo: React.FC<ModalDetalleRasgoProps> = ({
     : (usosPadre?.restantes ?? 0);
 
   const sinUsosDisponibles = (tieneUsosPropios || tieneUsosPadre) && usosRestantes <= 0;
+  const tieneDadosReales = Boolean(formulaEfectiva && formulaEfectiva.toLowerCase().includes("d"));
+  const etiquetaGasto = (rasgo.gastarDePadre && usosPadre) || !tieneDadosReales ? "Gasta 1 uso" : "Gasta 1 dado";
   const normNombre = rasgo.nombre.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
   const esCuracion = rasgo.categoriaMecanica === "curacion" || normNombre.includes("guerrero de los dioses");
   const esManosCurativas = normNombre.includes("manos curativas");
+  const esPreservarVida = normNombre.includes("preservar vida");
   const esMantoInspiracion = normNombre.includes("manto de inspiracion");
   const esInspiracionBardica = normNombre.includes("inspiracion bardica");
   const esAtaqueAliento = normNombre.includes("ataque de aliento") || normNombre.includes("arma de aliento");
-  const esCuracionAuto = esCuracion && !esManosCurativas;
+  const esCuracionAuto = esCuracion && !esManosCurativas && !esPreservarVida;
   const gastaUsoAlTirar =
     esCuracionAuto ||
+    esPreservarVida ||
     esManosCurativas ||
     esMantoInspiracion ||
     esInspiracionBardica ||
@@ -305,7 +309,11 @@ export const ModalDetalleRasgo: React.FC<ModalDetalleRasgoProps> = ({
                 disabled={sinUsosDisponibles}
                 title={
                   esCuracion
-                    ? `Gastar 1 dado de la reserva (${usosRestantes}/${usosMaximos}) y curar ${formulaEfectiva}`
+                    ? esPreservarVida && usosPadre
+                      ? `Gastar 1 uso de ${usosPadre.nombre} (${usosRestantes}/${usosMaximos}) y disponer de ${formulaEfectiva} PV para repartir`
+                      : rasgo.gastarDePadre && usosPadre
+                      ? `Gastar 1 uso de ${usosPadre.nombre} (${usosRestantes}/${usosMaximos}) y curar ${formulaEfectiva}`
+                      : `Gastar 1 ${tieneDadosReales ? "dado" : "uso"} de la reserva (${usosRestantes}/${usosMaximos}) y curar ${formulaEfectiva}`
                     : rasgo.gastarDePadre && usosPadre
                     ? `Lanzar ${formulaEfectiva} a TaleSpire (Gasta 1 uso de ${usosPadre.nombre}: ${usosRestantes}/${usosMaximos})`
                     : `Lanzar tirada de ${formulaEfectiva} a TaleSpire`
@@ -314,9 +322,9 @@ export const ModalDetalleRasgo: React.FC<ModalDetalleRasgoProps> = ({
                 {esCuracion ? <Heart size={14} color="#10b981" /> : <Dices size={14} />}
                 <span>
                   {esCuracion
-                    ? `Curar ${formulaEfectiva} (Gasta 1 dado)`
+                    ? `Curar ${formulaEfectiva} (${etiquetaGasto})`
                     : rasgo.gastarDePadre && usosPadre
-                    ? `Lanzar ${formulaEfectiva} (Gasta 1 dado)`
+                    ? `Lanzar ${formulaEfectiva} (${etiquetaGasto})`
                     : `Lanzar ${formulaEfectiva}`}
                 </span>
               </button>

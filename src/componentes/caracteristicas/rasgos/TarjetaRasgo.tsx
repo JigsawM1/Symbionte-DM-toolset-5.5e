@@ -89,6 +89,7 @@ export const TarjetaRasgo: React.FC<TarjetaRasgoProps> = ({
     ? estilos.origenSelector
     : CLASE_ORIGEN_BORDE[rasgo.origen] || estilos.origenPersonalizado;
   const esHomebrewOPersonalizado = rasgo.personalizado || rasgo.origen === "personalizado" || rasgo.origen === "dote";
+  const esPreservarVida = (rasgo.nombre || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").includes("preservar vida");
 
   // Truncado de descripción para tarjeta compacta
   const textoTruncado = limpiarYTruncarTextoMarkdown(rasgo.descripcion, LIMITE_CARACTERES_DESCRIPCION);
@@ -213,7 +214,11 @@ export const TarjetaRasgo: React.FC<TarjetaRasgoProps> = ({
               disabled={sinUsosDisponibles}
               title={
                 esCuracion
-                  ? `Gastar 1 dado de la reserva (${usosRestantes}/${usosMaximos}) y curar ${formulaEfectiva}`
+                  ? esPreservarVida && usosPadre
+                    ? `Gastar 1 uso de ${usosPadre.nombre} (${usosRestantes}/${usosMaximos}) y disponer de ${formulaEfectiva} PV para repartir`
+                    : rasgo.gastarDePadre && usosPadre
+                    ? `Gastar 1 uso de ${usosPadre.nombre} (${usosRestantes}/${usosMaximos}) y curar ${formulaEfectiva}`
+                    : `Gastar 1 ${formulaEfectiva.toLowerCase().includes("d") ? "dado" : "uso"} de la reserva (${usosRestantes}/${usosMaximos}) y curar ${formulaEfectiva}`
                   : esRecursoEspacioPacto
                   ? `Lanzar ${formulaEfectiva} a TaleSpire (Gasta 1 espacio de pacto: ${usosRestantes}/${usosMaximos})`
                   : rasgo.gastarDePadre && usosPadre

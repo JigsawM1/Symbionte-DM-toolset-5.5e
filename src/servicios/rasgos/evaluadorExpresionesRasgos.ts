@@ -315,6 +315,8 @@ export function resolverFormulaDinamica(
     : nivelGlobal;
   const mitadNivel = Math.max(1, Math.floor(nivelClase / 2));
   const nivelBarbaro = obtenerNivelClasePersonaje(personaje, "barbaro") || nivelGlobal;
+  const nivelClerigo = obtenerNivelClasePersonaje(personaje, "clerigo") || nivelClase;
+  const nivelPaladin = obtenerNivelClasePersonaje(personaje, "paladin") || nivelClase;
   const bonoFuria = obtenerBonoDanoFuria(nivelBarbaro);
   const bonoCompetencia = Math.floor((nivelGlobal - 1) / 4) + 2;
 
@@ -348,6 +350,10 @@ export function resolverFormulaDinamica(
     .replace(/mitad_nivel/gi, String(mitadNivel))
     .replace(/bono_competencia/gi, String(bonoCompetencia))
     .replace(/\b(pb|bc)\b/gi, String(bonoCompetencia))
+    .replace(/nivel_clerigo/gi, String(nivelClerigo))
+    .replace(/nivel_paladin/gi, String(nivelPaladin))
+    .replace(/nivel_barbaro/gi, String(nivelBarbaro))
+    .replace(/nivel_brujo/gi, String(nivelBrujo))
     .replace(/\bnivel\b/gi, String(nivelClase))
     .replace(/\b(constitucion|con)\b/gi, String(modCon))
     .replace(/\b(fuerza|fue|str)\b/gi, String(modFue))
@@ -366,6 +372,19 @@ export function resolverFormulaDinamica(
     .replace(/\+\s*\+/g, "+")
     .replace(/\+\s*-/g, "-")
     .trim();
+
+  // Si no contiene notación de dados ('d' o 'D') y contiene únicamente elementos aritméticos evaluables,
+  // resolvemos la operación automáticamente para entregar el resultado numérico plano (ej. "5*20" -> "100", "5*3" -> "15").
+  if (!/[dD]/.test(reemplazado) && /^[0-9+\-*\/()\s]+$/.test(reemplazado)) {
+    try {
+      const resultadoNumerico = evaluarExpresionNumericaSegura(reemplazado);
+      if (!Number.isNaN(resultadoNumerico)) {
+        return String(resultadoNumerico);
+      }
+    } catch {
+      // Si ocurre algún fallo de parsing, retornar el reemplazo textual de contingencia
+    }
+  }
 
   return reemplazado;
 }

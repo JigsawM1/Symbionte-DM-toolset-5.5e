@@ -4,7 +4,8 @@ import {
   obtenerNivelEfectivoParaRasgo,
   resolverDotesDesdeInvocaciones,
   agruparRasgosJerarquicos,
-  esRasgoCanalizarDivinidad
+  esRasgoCanalizarDivinidad,
+  resolverRecursosPadre
 } from "./utilidadesProgresionRasgos";
 
 describe("obtenerNivelEfectivoParaRasgo - Nivel contextual de clase vs nivel general (Multiclase)", () => {
@@ -441,5 +442,64 @@ describe("Agrupación de Canalizar Divinidad en Clérigo (D&D 5.5e)", () => {
     // Los rasgos de subclase no deben contener rasgos de Canalizar Divinidad
     expect(grupoClerigo.rasgosSubclase).toHaveLength(1);
     expect(grupoClerigo.rasgosSubclase[0].nombre).toBe("Discípulo de la vida");
+  });
+
+  describe("resolverRecursosPadre - Preservar vida dinámico (D&D 5.5)", () => {
+    it("resuelve 5 * nivel dinámicamente como 15 y 100 según el nivel de Clérigo", () => {
+      const rasgoPreservarVida: RasgoPersonaje = {
+        id: "rasgo_sub_vida_preservar_vida",
+        nombre: "Canalizar divinidad: Preservar vida",
+        descripcion: "Restaura 5*nivel puntos de golpe.",
+        tipoAccion: "accion",
+        categoriaMecanica: "curacion",
+        ligadoA: "Canalizar divinidad",
+        gastarDePadre: true,
+        formulaDados: "5*nivel",
+        fuente: "Clérigo",
+        origen: "subclase",
+        tieneUsosLimitados: false,
+        recuperacion: "ninguno",
+        personalizado: false,
+        activo: true,
+        notas: ""
+      };
+
+      const rasgoCanalizar: RasgoPersonaje = {
+        id: "rasgo_cls_clerigo_canalizar_divinidad",
+        nombre: "Canalizar divinidad",
+        descripcion: "Canalizas energía divina.",
+        tipoAccion: "accion",
+        categoriaMecanica: "consumible",
+        tieneUsosLimitados: true,
+        usosMaximos: 2,
+        usosRestantes: 2,
+        origen: "clase",
+        fuente: "Clérigo",
+        recuperacion: "descanso_corto",
+        personalizado: false,
+        activo: true,
+        notas: ""
+      };
+
+      const pjNv3 = {
+        id: "pj-3",
+        nivel: 3,
+        clase: "Clérigo",
+        rasgos: [rasgoCanalizar, rasgoPreservarVida]
+      } as unknown as PersonajeJugador;
+
+      const resNv3 = resolverRecursosPadre(pjNv3, rasgoPreservarVida);
+      expect(resNv3.formulaDadosEfectiva).toBe("15");
+
+      const pjNv20 = {
+        id: "pj-20",
+        nivel: 20,
+        clase: "Clérigo",
+        rasgos: [rasgoCanalizar, rasgoPreservarVida]
+      } as unknown as PersonajeJugador;
+
+      const resNv20 = resolverRecursosPadre(pjNv20, rasgoPreservarVida);
+      expect(resNv20.formulaDadosEfectiva).toBe("100");
+    });
   });
 });

@@ -4,11 +4,13 @@ import { obtenerBonosHabilidadesRasgos } from "./rasgos/evaluadorSalvacionesRasg
 import { aplicarModificadoresInvocacionesAHechizo, obtenerBonoDanoConjuroExtra } from "./rasgos/evaluadorCombateRasgos";
 import { calcularInfoTruco, construirFormulaTaleSpireTruco } from "@/utiles/utilesConjuros";
 import { estaRasgoActivo, esRasgoHabilitadoPorOpcion } from "./rasgos/utilidadesRasgos";
-import { evaluarEfectosRasgosActivos } from "./rasgos/evaluadorExpresionesRasgos";
+import { evaluarEfectosRasgosActivos, resolverFormulaDinamica } from "./rasgos/evaluadorExpresionesRasgos";
+import { lanzarDadosTaleSpire } from "@/utiles/lanzadorDados";
 import { resolverRasgosAcciones } from "./calculadorAccionesCombate";
 import { sincronizarRasgosAutomaticos } from "./compendioRasgos";
 import { usarAlmacenDM } from "@/almacen/usarAlmacenDM";
 import type { PersonajeJugador } from "@/tipos/personaje";
+import type { RasgoPersonaje } from "@/tipos/rasgos";
 import { EFECTOS_PREDEFINIDOS } from "@/utiles/datosIniciales";
 
 describe("Clérigo D&D 5.5 (2024) - Reglas y Mecánicas Base", () => {
@@ -849,6 +851,109 @@ describe("Clérigo D&D 5.5 (2024) - Reglas y Mecánicas Base", () => {
         nombreConjuro: "Saeta guiada"
       });
       expect(bonoDanoConjuroNv1).toBe(0);
+    });
+  });
+
+  describe("Canalizar divinidad: Preservar vida - Dominio de la Vida (D&D 5.5)", () => {
+    it("Calcula dinámicamente 5 * nivel sin exigir cálculo manual (nivel 3 -> 15, nivel 10 -> 50, nivel 20 -> 100)", () => {
+      const rasgoPreservarVida: RasgoPersonaje = {
+        id: "rasgo_sub_vida_preservar_vida",
+        nombre: "Canalizar divinidad: Preservar vida",
+        descripcion: "Restaura una cantidad de puntos de golpe igual a cinco veces tu nivel de clérigo.",
+        tipoAccion: "accion",
+        categoriaMecanica: "curacion",
+        ligadoA: "Canalizar divinidad",
+        gastarDePadre: true,
+        formulaDados: "5*nivel",
+        fuente: "Clérigo",
+        origen: "subclase",
+        tieneUsosLimitados: false,
+        recuperacion: "ninguno",
+        personalizado: false,
+        activo: true,
+        notas: ""
+      };
+
+      const rasgoCanalizar: RasgoPersonaje = {
+        id: "rasgo_cls_clerigo_canalizar_divinidad",
+        nombre: "Canalizar divinidad",
+        descripcion: "Canalizas la energía divina de tu deidad.",
+        tipoAccion: "accion",
+        categoriaMecanica: "consumible",
+        tieneUsosLimitados: true,
+        usosMaximos: 2,
+        usosRestantes: 2,
+        origen: "clase",
+        fuente: "Clérigo",
+        recuperacion: "descanso_corto",
+        personalizado: false,
+        activo: true,
+        notas: ""
+      };
+
+      // Nivel 3 (5 * 3 = 15)
+      const pjNv3 = {
+        id: "pj-clerigo-nv3",
+        nombre: "Clérigo Nv 3",
+        clase: "Clérigo",
+        nivel: 3,
+        rasgos: [rasgoCanalizar, rasgoPreservarVida]
+      } as unknown as PersonajeJugador;
+
+      expect(resolverFormulaDinamica(rasgoPreservarVida.formulaDados || "5*nivel", pjNv3, "Clérigo")).toBe("15");
+
+      // Nivel 10 (5 * 10 = 50)
+      const pjNv10 = {
+        id: "pj-clerigo-nv10",
+        nombre: "Clérigo Nv 10",
+        clase: "Clérigo",
+        nivel: 10,
+        rasgos: [rasgoCanalizar, rasgoPreservarVida]
+      } as unknown as PersonajeJugador;
+
+      expect(resolverFormulaDinamica(rasgoPreservarVida.formulaDados || "5*nivel", pjNv10, "Clérigo")).toBe("50");
+
+      // Nivel 20 (5 * 20 = 100)
+      const pjNv20 = {
+        id: "pj-clerigo-nv20",
+        nombre: "Clérigo Nv 20",
+        clase: "Clérigo",
+        nivel: 20,
+        rasgos: [rasgoCanalizar, rasgoPreservarVida]
+      } as unknown as PersonajeJugador;
+
+      expect(resolverFormulaDinamica(rasgoPreservarVida.formulaDados || "5*nivel", pjNv20, "Clérigo")).toBe("100");
+    });
+
+    it("No aplica autocuración sobre el clérigo al activar Preservar vida (es un pool para repartir)", async () => {
+      const pjId = "pj-test-preservar-vida";
+
+      usarAlmacenDM.setState({
+        personajes: [
+          {
+            id: pjId,
+            nombre: "Clérigo Sanador",
+            clase: "Clérigo",
+            nivel: 20,
+            hpMaximo: 150,
+            hpActual: 30,
+            hpTemporal: 0,
+            dadosGolpeRestantes: 20,
+            dadosGolpeMaximos: 20,
+            condicionesActivas: []
+          } as unknown as PersonajeJugador
+        ]
+      });
+
+      // Se ejecuta el lanzamiento/activación del rasgo (sin metadatos de autocuración)
+      await lanzarDadosTaleSpire(
+        "!Canalizar divinidad - Preservar vida:100",
+        "Clérigo Sanador - Canalizar divinidad - Preservar vida (100)"
+      );
+
+      const pjActualizado = usarAlmacenDM.getState().personajes.find((p) => p.id === pjId);
+      // Los puntos de vida del clérigo NO deben mutar automáticamente
+      expect(pjActualizado?.hpActual).toBe(30);
     });
   });
 });

@@ -78,15 +78,17 @@ export function usarAccionesTarjetaRasgo({
 
   const normNombre = rasgo.nombre.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
   const esManosCurativas = normNombre.includes("manos curativas");
+  const esPreservarVida = normNombre.includes("preservar vida");
   const esMantoInspiracion = normNombre.includes("manto de inspiracion");
   const esInspiracionBardica = normNombre.includes("inspiracion bardica");
   const esAtaqueAliento = normNombre.includes("ataque de aliento") || normNombre.includes("arma de aliento");
 
   const esCuracion = rasgo.categoriaMecanica === "curacion" || normNombre.includes("guerrero de los dioses");
-  const esCuracionAuto = esCuracion && !esManosCurativas;
+  const esCuracionAuto = esCuracion && !esManosCurativas && !esPreservarVida;
   const tieneEfectoHpTemporalAuto = (rasgo.efectos || []).some((ef) => ef.tipo === "hp_temporal") && !esMantoInspiracion;
   const gastaUsoAlTirar =
     esCuracionAuto ||
+    esPreservarVida ||
     tieneEfectoHpTemporalAuto ||
     esManosCurativas ||
     esMantoInspiracion ||

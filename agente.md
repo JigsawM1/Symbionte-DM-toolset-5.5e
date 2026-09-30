@@ -10357,3 +10357,41 @@ Optimizar la complejidad temporal (Big O) en las operaciones de búsqueda, orden
 - **Tests Unitarios**: **87 suites superadas, 1187/1187 tests pasando (100% de éxito)**.
 - **TypeScript**: `pnpm exec tsc --noEmit` completado con **0 errores** (Strict Mode estricto).
 - **Control de Líneas**: `pnpm verificar:lineas` completado con **0 errores críticos** (112 archivos auditados).
+
+---
+
+## [2026-09-30] Evaluación Aritmética Dinámica para Rasgos de Curación (Clérigo: Preservar Vida) y Ajuste de Etiquetas de Recursos
+
+### 1. Diagnóstico y Causa Raíz
+- **Problema Reportado**:
+  - En la subclase Dominio de la Vida del Clérigo (`src/datos/clases/clerigo.json`), el rasgo de nivel 3 *Canalizar divinidad: Preservar vida* (`formulaDados: "5*nivel"`) presentaba un botón que renderizaba literalmente `CURAR 5*20 (GASTA 1 DADO)` para un clérigo de nivel 20 (o `CURAR 5*3` a nivel 3).
+  - El usuario debía realizar mentalmente la multiplicación en vez de ver el total de puntos de golpe (`CURAR 100` o `CURAR 15`).
+  - Además, la etiqueta del botón decía erróneamente `(GASTA 1 DADO)`, cuando *Preservar vida* no consume dados físicos de una reserva, sino que consume 1 uso de la reserva padre (*Canalizar divinidad*).
+- **Causas Raíz Identificadas**:
+  1. `resolverFormulaDinamica` (`src/servicios/rasgos/evaluadorExpresionesRasgos.ts`) reemplazaba el token `\bnivel\b` por el número de nivel (quedando `"5*20"`), pero al no detectar la letra `d`, devolvía la cadena tal cual sin evaluar operaciones aritméticas seguras.
+  2. `resolverRecursosPadre` (`src/componentes/caracteristicas/rasgos/utilidadesProgresionRasgos.ts`) no transmitía la clase del rasgo (`rasgo.fuente`) a `resolverFormulaDinamica`, lo que en situaciones multiclase podría derivar en el uso del nivel global en vez del nivel específico de Clérigo.
+  3. En `ModalDetalleRasgo.tsx` y `TarjetaRasgo.tsx`, el sufijo de gasto `(Gasta 1 dado)` estaba hardcodeado para todas las curaciones, ignorando si el rasgo gasta de un recurso padre (`gastarDePadre`) o si su fórmula carece de dados físicos.
+  4. En `lanzadorDados.ts`, si una fórmula carecía de dados (`!contieneExpresionDados(formula)`), retornaba anticipadamente sin procesar `metaEspecialRasgo.tipo === "curacionRasgo"`, impidiendo la aplicación directa de la curación en el personaje cuando la fórmula era un número plano (ej. 100 PV). Asimismo, su fallback matemático asumía por defecto 1d6.
+
+### 2. Solución Implementada y Decisiones de Diseño
+1. **Evaluación Aritmética Automática en `resolverFormulaDinamica`**:
+   - Se añadió soporte explícito para tokens de clase (`nivel_clerigo`, `nivel_paladin`, `nivel_barbaro`, etc.).
+   - Si la cadena resultante no contiene dados (`!/[dD]/.test(reemplazado)`) y se compone exclusivamente de caracteres y operadores aritméticos válidos (`/^[0-9+\-*\/()\s]+$/`), se evalúa mediante `evaluarExpresionNumericaSegura` y se retorna el resultado numérico plano (ej. `"5*20"` -> `"100"`, `"5*3"` -> `"15"`).
+2. **Contexto de Clase en `resolverRecursosPadre`**:
+   - Se inyecta `rasgo.fuente` como `nombreClaseContexto` en la llamada a `resolverFormulaDinamica`.
+3. **Discriminación Dinámica de Etiquetas (`ModalDetalleRasgo.tsx` y `TarjetaRasgo.tsx`)**:
+   - Se introdujo `tieneDadosReales = formulaEfectiva.toLowerCase().includes("d")`.
+   - Si el rasgo gasta de un padre o no tiene dados, la etiqueta y los tooltips indican limpiamente `(Gasta 1 uso)`. Si tiene dados propios (como reservas de dados de sanación o manos curativas), conserva `(Gasta 1 dado)`.
+4. **Exclusión de Autocuración en Preservar Vida (Pool para Repartir)**:
+   - Al igual que *Manos curativas*, *Canalizar divinidad: Preservar vida* no es una habilidad de auto-sanación personal (como *Segundo aliento*), sino una reserva curativa para repartir entre criaturas elegidas a 30 pies (sin superar la mitad de sus PV).
+   - Se añadió `esPreservarVida` tanto en `ModalDetalleRasgo.tsx` como en `usarAccionesTarjetaRasgo.ts` y `TarjetaRasgo.tsx`, excluyéndolo de `esCuracionAuto`.
+   - Al pulsar el botón, se descuenta 1 uso de Canalizar divinidad (`gastarDePadre`), se anuncia la disponibilidad de los PV curativos en ToolSet y en el chat de TaleSpire, pero se preservan intactos los puntos de vida del clérigo sin mutación automática.
+5. **Pruebas Automatizadas Unitarias**:
+   - Se incorporó en `src/servicios/clerigoMecanicasDND55.test.ts` la validación de la resolución matemática de la fórmula a niveles 3, 10 y 20 (15, 50 y 100 PV) y la confirmación de que la salud del clérigo permanece inalterada tras la activación.
+   - Se incorporó en `src/componentes/caracteristicas/rasgos/utilidadesProgresionRasgos.test.ts` la prueba de integración con `resolverRecursosPadre`.
+
+### 3. Métricas de Validación
+- **Tests Unitarios**: **87 suites superadas, 1190/1190 tests pasando (100% de éxito)**.
+- **TypeScript**: `pnpm exec tsc --noEmit` completado con **0 errores** (Strict Mode estricto).
+- **ESLint**: `pnpm run lint` completado con **0 errores y 0 advertencias** (`--max-warnings=0`).
+- **Control de Líneas**: `node scripts/verificar-limite-lineas.js` completado con **0 errores críticos** (112 archivos auditados).

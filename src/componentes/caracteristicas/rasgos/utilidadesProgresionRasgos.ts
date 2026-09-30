@@ -90,8 +90,10 @@ export function resolverRecursosPadre(
     ? (padre?.formulaDados || rasgo.formulaDados)
     : rasgo.formulaDados;
 
+  const claseContexto = rasgo.fuente;
+
   const formulaDadosEfectiva = formulaBase
-    ? resolverFormulaDinamica(formulaBase, personaje)
+    ? resolverFormulaDinamica(formulaBase, personaje, claseContexto)
     : undefined;
 
   return { usosPadre, formulaDadosEfectiva };

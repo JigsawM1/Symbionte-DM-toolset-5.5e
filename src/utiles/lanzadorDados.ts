@@ -415,10 +415,35 @@ export async function lanzarDadosTaleSpire(
 ): Promise<void> {
   const nombreEtiqueta = sanitizarEtiqueta(etiqueta.trim() || "Tirada");
 
-  // Si la fórmula no contiene ninguna expresión de dados real (ej. conjuro utilitario/buff/narrativo),
-  // omitimos enviar tiradas físicas a la bandeja 3D y omitimos enviar mensajes al chat de TaleSpire.
+  // Si la fórmula no contiene ninguna expresión de dados real (ej. conjuro utilitario/buff/narrativo o rasgo de pool numérico como Preservar vida),
+  // procesamos de forma proactiva efectos de rasgos directos y omitimos enviar tiradas físicas a la bandeja 3D.
   if (!contieneExpresionDados(formula)) {
-    logger.debug(`[Lanzador Dados] Fórmula no contiene dados ("${formula}"). Omitiendo tirada física y chat.`);
+    const state = usarAlmacenDM.getState();
+    if (metaEspecialRasgo) {
+      const partes = formula.split(":");
+      const parteNumerica = partes.length > 1 ? partes[1] : formula;
+      const valorNum = parseInt(parteNumerica.replace(/[^0-9]/g, ""), 10) || 0;
+      if (metaEspecialRasgo.tipo === "curacionRasgo" && valorNum > 0) {
+        state.aplicarCuracionPersonaje(metaEspecialRasgo.personajeId, valorNum);
+        state.agregarNotificacion(`¡${metaEspecialRasgo.nombreRasgo} aplicado! Curación: +${valorNum} PV.`, "exito");
+        logger.info(`[Lanzador Dados] Curación directa de rasgo aplicada: +${valorNum} PV.`);
+      } else if (metaEspecialRasgo.tipo === "hpTemporalRasgo" && valorNum > 0) {
+        aplicarResultadoHpTemporalEnEstado(metaEspecialRasgo.personajeId, valorNum);
+        state.agregarNotificacion(`¡${metaEspecialRasgo.nombreRasgo} aplicado! +${valorNum} PV temporales.`, "exito");
+        logger.info(`[Lanzador Dados] HP temporal directo aplicado: +${valorNum} PV temp.`);
+      }
+    } else {
+      state.agregarNotificacion(`¡${etiqueta || formula}!`, "info");
+      if (ts.estaDisponible) {
+        try {
+          const mensajeChat = `**${sanitizarEtiqueta(etiqueta)}**: ${formula.replace(/^!/, "")}`;
+          await ts.chat.send(mensajeChat);
+        } catch (errChat) {
+          logger.warn("[Lanzador Dados] Error al enviar mensaje informativo al chat de TaleSpire:", errChat);
+        }
+      }
+    }
+    logger.debug(`[Lanzador Dados] Fórmula no contiene dados ("${formula}"). Omitiendo tirada física.`);
     return;
   }
 
@@ -656,11 +681,16 @@ export async function lanzarDadosTaleSpire(
     // Si es una curación o HP temporal de rasgo en entorno local fuera de TaleSpire
     if (metaEspecialRasgo) {
       const matchDados = formulaLimpia.match(/(\d+)d(\d+)/i);
-      const numDados = matchDados ? parseInt(matchDados[1], 10) : 1;
-      const caraDado = matchDados ? parseInt(matchDados[2], 10) : 6;
       let totalDado = 0;
-      for (let i = 0; i < numDados; i++) {
-        totalDado += Math.floor(Math.random() * caraDado) + 1;
+      if (matchDados) {
+        const numDados = parseInt(matchDados[1], 10);
+        const caraDado = parseInt(matchDados[2], 10);
+        for (let i = 0; i < numDados; i++) {
+          totalDado += Math.floor(Math.random() * caraDado) + 1;
+        }
+      } else {
+        const matchNum = formulaLimpia.match(/\b\d+\b/);
+        totalDado = matchNum ? parseInt(matchNum[0], 10) : 0;
       }
       if (metaEspecialRasgo.tipo === "curacionRasgo") {
         state.aplicarCuracionPersonaje(metaEspecialRasgo.personajeId, totalDado);

@@ -288,6 +288,17 @@ export interface TaleSpireAPI {
   clipboard?: {
     copyText: (text: string) => Promise<void>;
   };
+  /** API de sincronización bidireccional entre Simbiotes */
+  sync?: {
+    send: (message: string, target?: string | FragmentoCliente) => Promise<void>;
+    multiSend?: (message: string, targets: Array<string | FragmentoCliente>) => Promise<void>;
+    getClientsConnected?: () => Promise<FragmentoCliente[]>;
+  };
+}
+
+export interface PayloadMensajeSync {
+  str: string;
+  fromClient?: FragmentoCliente;
 }
 
 declare global {
@@ -301,5 +312,8 @@ declare global {
     manejarResultadosDados?: (resultados: ResultadosTirada) => Promise<void>;
     onRollResults?: (resultados: ResultadosTirada) => Promise<void>;
     manejarEventoCliente?: (evento: unknown) => void;
+    manejarMensajeSync?: (evento: unknown) => void;
+    manejarEventoClienteSync?: (evento: unknown) => void;
   }
 }
+

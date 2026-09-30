@@ -20,7 +20,8 @@ import type {
   ResultadosTirada,
   EventoClienteTS,
   EventoCriaturaTS,
-  EventoEstadoSimbionte
+  EventoEstadoSimbionte,
+  FragmentoCliente
 } from "@/tipos/talespire";
 import { logger } from "@/utiles/logger";
 
@@ -41,6 +42,10 @@ export interface MapaEventosPuente {
   estadoCriatura:        EventoCriaturaTS;
   /** clients.onClientEvent → clientJoinedBoard | clientLeftBoard | clientModeChanged */
   eventoCliente:         EventoClienteTS;
+  /** sync.onSyncMessage → syncMessageReceived { str, fromClient } */
+  mensajeSync:           { datos: unknown; strCrudo: string; fromClient?: FragmentoCliente };
+  /** sync.onClientEvent → eventoClienteSync */
+  eventoClienteSync:     EventoClienteTS;
 }
 
 type NombreEvento = keyof MapaEventosPuente;
@@ -168,6 +173,45 @@ class PuenteTaleSpireClass {
       this.emit("eventoCliente", this.deserializarPayload(evento) as EventoClienteTS);
     };
 
+    // sync.onSyncMessage → syncMessageReceived { str, fromClient }
+    window.manejarMensajeSync = (evento) => {
+      logger.debug("[Puente TaleSpire] Callback manejarMensajeSync:", evento);
+      const payloadCrudo = this.deserializarPayload(evento) as {
+        kind?: string;
+        payload?: { str?: string; fromClient?: FragmentoCliente };
+        str?: string;
+        fromClient?: FragmentoCliente;
+      } | null;
+
+      let str = "";
+      let fromClient: FragmentoCliente | undefined;
+
+      if (payloadCrudo?.kind === "syncMessageReceived" && payloadCrudo.payload) {
+        str = payloadCrudo.payload.str || "";
+        fromClient = payloadCrudo.payload.fromClient;
+      } else if (payloadCrudo?.str !== undefined) {
+        str = payloadCrudo.str;
+        fromClient = payloadCrudo.fromClient;
+      }
+
+      let datos: unknown = null;
+      if (str) {
+        try {
+          datos = JSON.parse(str);
+        } catch (e) {
+          logger.warn("[Puente TaleSpire] Error parseando JSON en mensajeSync:", e);
+        }
+      }
+
+      this.emit("mensajeSync", { datos, strCrudo: str, fromClient });
+    };
+
+    // sync.onClientEvent → manejarEventoClienteSync
+    window.manejarEventoClienteSync = (evento) => {
+      logger.debug("[Puente TaleSpire] Callback manejarEventoClienteSync:", evento);
+      this.emit("eventoClienteSync", this.deserializarPayload(evento) as EventoClienteTS);
+    };
+
     // Registrar oyentes de eventos DOM estándar en window y document para redundancia CEF
     this.manejarEventoIniciativaDOM = (e: Event) => {
       logger.debug("[Puente TaleSpire DOM] Capturado evento de iniciativa en el DOM:", e.type);
@@ -221,6 +265,8 @@ class PuenteTaleSpireClass {
       delete window.manejarResultadosDados;
       delete window.onRollResults;
       delete window.manejarEventoCliente;
+      delete window.manejarMensajeSync;
+      delete window.manejarEventoClienteSync;
     }
 
     this.oyentes = {};

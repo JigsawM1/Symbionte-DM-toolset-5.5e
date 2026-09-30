@@ -10289,3 +10289,33 @@ Optimizar la complejidad temporal (Big O) en las operaciones de búsqueda, orden
 - **ESLint**: `pnpm lint` completado con **0 errores y 0 advertencias** (`--max-warnings=0`).
 - **Control de Líneas**: `pnpm verificar:lineas` completado con **0 errores críticos** (112 archivos auditados).
 - **Build de Producción**: `pnpm build` generado exitosamente en 15.79s.
+
+---
+
+## [2026-09-29] Canal de Sincronización Bidireccional de Combate en Tiempo Real (`TS.sync`)
+
+### 1. Diagnóstico y Correcciones de la API
+- **Métodos Reales de la API TaleSpire v0.1**:
+  - `TS.sync.send(message: string, target: string)` es la firma oficial, NO `sendSyncMessage`. `target` acepta `"board"`, `"gms"` o client IDs específicos.
+  - Se requiere obligatoriamente `api.interop.id` (UUID v4) en `manifest.json`. Sin él, cualquier llamada arroja `symbioteManifestMissingInteropId`.
+  - El límite seguro de paquete de `TS.sync` es de 500-1000 caracteres (~1 KB).
+
+### 2. Decisiones Arquitectónicas
+1. **Wire Format Compacto con Claves Abreviadas (`src/tipos/sync.ts`)**:
+   - `WireEstadoCombatePJ` y `WireEstadoIniciativaDM` reducen entre un 50% y 65% el tamaño de la carga útil en red mediante claves cortas (`va` para `vidaActual`, `vm` para `vidaMaxima`, `c` para condiciones, `p` para pasivas, etc.).
+   - Se implementó particionado automático de emergencia (`dividirEnChunksIniciativa` / `DM_CHUNK`) si la cola consolidada del DM excede los 850 bytes.
+   - Validación estricta con esquemas discriminados de Zod (`EsquemaWireMensajeSync.safeParse`) para descartar mensajes corruptos sin lanzar excepciones.
+2. **Slice Efímero (`src/almacen/slices/sliceSync.ts`)**:
+   - Aísla la bandera `aplicandoSync` y marcas de tiempo fuera de `CLAVES_PERSISTIBLES` para que no se escriban en disco ni generen desincronizaciones locales al reiniciar.
+   - Aplica `queueMicrotask` al restablecer `aplicandoSync: false` para evitar ciclos de reemisión reactiva en suscriptores síncronos de Zustand.
+3. **Servicio Centralizado (`src/servicios/sincronizacionSimbiote.ts`)**:
+   - Debounce simétrico de 400ms (`emitirEstadoComoGM` y `emitirMiPersonaje`).
+   - El DM actúa como única autoridad del estado de combate compartido; los jugadores únicamente emiten proyecciones delgadas de su personaje activo.
+   - Al recibir `ESTADO_PJ`, el DM actualiza la colección de personajes (matching por ID, ID de miniatura o nombre normalizado), actualiza la cola de iniciativa activa y redistribuye de inmediato el snapshot consolidado.
+4. **Adaptación de la Interfaz (`ConfiguracionDM.tsx`)**:
+   - Las opciones globales que difunde el Master (Cálculo de Vida y Barra de Salud en Vista Jugador) se ocultan cuando `!esGM` para garantizar coherencia visual.
+
+### 3. Métricas de Validación
+- **Tests Unitarios**: **87 suites superadas, 1187/1187 tests pasando (100% de éxito)**.
+- **TypeScript**: `pnpm exec tsc --noEmit` completado con **0 errores** (Strict Mode estricto).
+- **Control de Líneas**: `pnpm verificar:lineas` completado con **0 errores críticos** (112 archivos auditados).

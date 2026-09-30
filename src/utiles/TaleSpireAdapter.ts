@@ -759,6 +759,65 @@ class TaleSpireAdapter {
   };
 
   // ==========================================
+  // --- SINCRONIZACIÓN (SYNC API) ---
+  // ==========================================
+
+  sync = {
+    /**
+     * Envía un mensaje string en tiempo real a través del canal backend de TaleSpire.
+     * @param message Cadena serializada (máximo 500-1000 caracteres).
+     * @param target Destino: "board" (todos), "gms" (Dungeon Masters), o clientId específico.
+     */
+    send: async (message: string, target = "board"): Promise<boolean> => {
+      const ts = this.tsGlobal;
+      if (ts?.sync && typeof ts.sync.send === "function") {
+        try {
+          await ts.sync.send(message, target);
+          return true;
+        } catch (error) {
+          logger.error("[TS Adapter] Error en sync.send nativo:", error);
+          return false;
+        }
+      }
+      logger.debug("[TS Adapter] sync.send no disponible en este entorno.");
+      return false;
+    },
+
+    /**
+     * Envía un mensaje a una lista de clientes específicos (máximo 20).
+     */
+    multiSend: async (message: string, targets: string[]): Promise<boolean> => {
+      const ts = this.tsGlobal;
+      if (ts?.sync && typeof ts.sync.multiSend === "function") {
+        try {
+          await ts.sync.multiSend(message, targets);
+          return true;
+        } catch (error) {
+          logger.error("[TS Adapter] Error en sync.multiSend nativo:", error);
+          return false;
+        }
+      }
+      logger.debug("[TS Adapter] sync.multiSend no disponible en este entorno.");
+      return false;
+    },
+
+    /**
+     * Retorna el listado de clientes actualmente conectados al canal de sync.
+     */
+    getClientsConnected: async (): Promise<FragmentoCliente[]> => {
+      const ts = this.tsGlobal;
+      if (ts?.sync && typeof ts.sync.getClientsConnected === "function") {
+        try {
+          return await ts.sync.getClientsConnected();
+        } catch (error) {
+          logger.error("[TS Adapter] Error en sync.getClientsConnected nativo:", error);
+        }
+      }
+      return [];
+    }
+  };
+
+  // ==========================================
   // --- DEPURACIÓN (DEBUG API) ---
   // ==========================================
 

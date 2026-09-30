@@ -16,6 +16,11 @@ import { ts } from "@/utiles/TaleSpireAdapter";
 import { puenteTaleSpire } from "@/servicios/puenteTaleSpire";
 import type { EventoClienteTS } from "@/tipos/talespire";
 import { logger } from "@/utiles/logger";
+import {
+  procesarMensajeSyncEntrante,
+  solicitarEstadoInicial,
+  inicializarObservadoresStoreSync
+} from "@/servicios/sincronizacionSimbiote";
 
 export function usarConexionTaleSpire() {
   // Extraemos las acciones del store Zustand mediante .getState() ya que son funciones
@@ -33,6 +38,8 @@ export function usarConexionTaleSpire() {
     let desuscribirSeleccion: (() => void) | null = null;
     let desuscribirIniciativa: (() => void) | null = null;
     let desuscribirCliente: (() => void) | null = null;
+    let desuscribirSync: (() => void) | null = null;
+    let desuscribirObservadoresSync: (() => void) | null = null;
     let timerInicializacion: ReturnType<typeof setTimeout> | null = null;
     let activo = true;
 
@@ -148,6 +155,17 @@ export function usarConexionTaleSpire() {
           subNativaCliente.desuscribir();
         };
 
+        // Suscribirse a mensajes del canal de sincronización bidireccional TS.sync
+        const subPuenteSync = puenteTaleSpire.on("mensajeSync", (payload) => {
+          if (activo) {
+            procesarMensajeSyncEntrante(payload);
+          }
+        });
+
+        desuscribirSync = () => {
+          subPuenteSync();
+        };
+
         //  IMPORTANTE: Las llamadas "get" iniciales y la carga del blob nativo se retardan 500ms para que el canal
         // de mensajería del Simbionte quede completamente registrado antes de enviar mensajes.
         // Enviarlos de forma inmediata causa el error "outOfOrderMessage" de TaleSpire.
@@ -229,6 +247,23 @@ export function usarConexionTaleSpire() {
             .catch((e: unknown) => {
               logger.warn("[TaleSpire Simbionte] Error al obtener datos de campaña:", e);
             });
+
+          // Inicializar observadores reactivos de sincronización de combate
+          if (desuscribirObservadoresSync) {
+            desuscribirObservadoresSync();
+          }
+          desuscribirObservadoresSync = inicializarObservadoresStoreSync();
+
+          // Si el cliente es jugador, solicita snapshot inicial de combate al DM
+          ts.clients.esGM()
+            .then((soyGm) => {
+              if (activo && !soyGm) {
+                solicitarEstadoInicial();
+              }
+            })
+            .catch((e: unknown) => {
+              logger.debug("[TaleSpire Simbionte] Error verificando rol para solicitud inicial:", e);
+            });
         }, 500);
 
         return true;
@@ -246,6 +281,8 @@ export function usarConexionTaleSpire() {
         if (desuscribirSeleccion) desuscribirSeleccion();
         if (desuscribirIniciativa) desuscribirIniciativa();
         if (desuscribirCliente) desuscribirCliente();
+        if (desuscribirSync) desuscribirSync();
+        if (desuscribirObservadoresSync) desuscribirObservadoresSync();
         puenteTaleSpire.destruir();
       };
     }
@@ -274,6 +311,8 @@ export function usarConexionTaleSpire() {
       if (desuscribirSeleccion) desuscribirSeleccion();
       if (desuscribirIniciativa) desuscribirIniciativa();
       if (desuscribirCliente) desuscribirCliente();
+      if (desuscribirSync) desuscribirSync();
+      if (desuscribirObservadoresSync) desuscribirObservadoresSync();
       puenteTaleSpire.destruir();
     };
   }, []);

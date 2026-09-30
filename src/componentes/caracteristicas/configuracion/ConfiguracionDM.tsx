@@ -258,67 +258,72 @@ export const ConfiguracionDM: React.FC = () => {
             </div>
           </div>
 
-          {/* PANEL PREMIUM: DADOS DE VIDA DE MONSTRUOS */}
-          <div className={`${estilosClases.tarjetaConfigHP} ${estilosClases.tarjetaConfigHPSeparada}`}>
-            <div className={estilosClases.cabeceraConfigHP}>
-              <Heart size={14} className="u-texto-cian" />
-              <span className={estilosClases.tituloConfigHP}>CÁLCULO DE VIDA (HP) AL INICIAR COMBATE</span>
-            </div>
-            <p className={estilosClases.descripcionConfigHP}>
-              Define cómo se instancian los Puntos de Vida de los monstruos cuando son agregados a la iniciativa.
-            </p>
-            <div className={estilosClases.selectorHPGrid}>
-              {(["estandar", "maximo", "azar"] as const).map((metodo) => {
-                const activo = metodoVidaMonstruo === metodo;
-                return (
-                  <button
-                    key={metodo}
-                    onClick={() => establecerMetodoVidaMonstruo(metodo)}
-                    className={`${estilosClases.botonHPBrutal} ${
-                      activo ? estilosClases.botonHPBrutalActivo : ""
-                    }`}
-                  >
-                    {metodo === "estandar"
-                      ? "ESTÁNDAR (Fijo)"
-                      : metodo === "maximo"
-                      ? "MÁXIMO (Dados)"
-                      : "AZAR (Tirada Real)"}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
+          {/* PANELES DE COMBATE GOBERNADOS POR EL DM (Transmitidos vía TS.sync) */}
+          {esGM && (
+            <>
+              {/* PANEL PREMIUM: DADOS DE VIDA DE MONSTRUOS */}
+              <div className={`${estilosClases.tarjetaConfigHP} ${estilosClases.tarjetaConfigHPSeparada}`}>
+                <div className={estilosClases.cabeceraConfigHP}>
+                  <Heart size={14} className="u-texto-cian" />
+                  <span className={estilosClases.tituloConfigHP}>CÁLCULO DE VIDA (HP) AL INICIAR COMBATE</span>
+                </div>
+                <p className={estilosClases.descripcionConfigHP}>
+                  Define cómo se instancian los Puntos de Vida de los monstruos cuando son agregados a la iniciativa.
+                </p>
+                <div className={estilosClases.selectorHPGrid}>
+                  {(["estandar", "maximo", "azar"] as const).map((metodo) => {
+                    const activo = metodoVidaMonstruo === metodo;
+                    return (
+                      <button
+                        key={metodo}
+                        onClick={() => establecerMetodoVidaMonstruo(metodo)}
+                        className={`${estilosClases.botonHPBrutal} ${
+                          activo ? estilosClases.botonHPBrutalActivo : ""
+                        }`}
+                      >
+                        {metodo === "estandar"
+                          ? "ESTÁNDAR (Fijo)"
+                          : metodo === "maximo"
+                          ? "MÁXIMO (Dados)"
+                          : "AZAR (Tirada Real)"}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
 
-          {/* NUEVO PANEL: MOSTRAR PORCENTAJE DE VIDA A JUGADORES */}
-          <div className={`${estilosClases.tarjetaConfigHP} ${estilosClases.tarjetaConfigHPSeparada}`}>
-            <div className={estilosClases.cabeceraConfigHP}>
-              <Eye size={14} className={estilosClases.iconoOjo} />
-              <span className={estilosClases.tituloConfigHP}>BARRA DE SALUD EN VISTA JUGADOR (%)</span>
-            </div>
-            <p className={estilosClases.descripcionConfigHP}>
-              Controla si los jugadores ven el porcentaje (%) de vida restante de las criaturas en combate.
-            </p>
-            <div className={estilosClases.selectorHPGrid}>
-              <button
-                onClick={() => establecerMostrarPorcentajeVidaAJugadores(true)}
-                className={`${estilosClases.botonHPBrutal} ${
-                  mostrarPorcentajeVidaAJugadores ? estilosClases.botonHPBrutalActivo : ""
-                }`}
-                type="button"
-              >
-                MOSTRAR % DE VIDA
-              </button>
-              <button
-                onClick={() => establecerMostrarPorcentajeVidaAJugadores(false)}
-                className={`${estilosClases.botonHPBrutal} ${
-                  !mostrarPorcentajeVidaAJugadores ? estilosClases.botonHPBrutalActivo : ""
-                }`}
-                type="button"
-              >
-                OCULTAR % DE VIDA
-              </button>
-            </div>
-          </div>
+              {/* PANEL: MOSTRAR PORCENTAJE DE VIDA A JUGADORES */}
+              <div className={`${estilosClases.tarjetaConfigHP} ${estilosClases.tarjetaConfigHPSeparada}`}>
+                <div className={estilosClases.cabeceraConfigHP}>
+                  <Eye size={14} className={estilosClases.iconoOjo} />
+                  <span className={estilosClases.tituloConfigHP}>BARRA DE SALUD EN VISTA JUGADOR (%)</span>
+                </div>
+                <p className={estilosClases.descripcionConfigHP}>
+                  Controla si los jugadores ven el porcentaje (%) de vida restante de las criaturas en combate.
+                </p>
+                <div className={estilosClases.selectorHPGrid}>
+                  <button
+                    onClick={() => establecerMostrarPorcentajeVidaAJugadores(true)}
+                    className={`${estilosClases.botonHPBrutal} ${
+                      mostrarPorcentajeVidaAJugadores ? estilosClases.botonHPBrutalActivo : ""
+                    }`}
+                    type="button"
+                  >
+                    MOSTRAR % DE VIDA
+                  </button>
+                  <button
+                    onClick={() => establecerMostrarPorcentajeVidaAJugadores(false)}
+                    className={`${estilosClases.botonHPBrutal} ${
+                      !mostrarPorcentajeVidaAJugadores ? estilosClases.botonHPBrutalActivo : ""
+                    }`}
+                    type="button"
+                  >
+                    OCULTAR % DE VIDA
+                  </button>
+                </div>
+              </div>
+            </>
+          )}
 
           {/* PANEL: SISTEMA DE MAGIA DE LA CAMPAÑA */}
           <div className={`${estilosClases.tarjetaConfigHP} ${estilosClases.tarjetaConfigHPSeparada}`}>

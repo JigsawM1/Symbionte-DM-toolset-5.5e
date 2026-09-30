@@ -293,6 +293,9 @@ export interface TaleSpireAPI {
     send: (message: string, target?: string | FragmentoCliente) => Promise<void>;
     multiSend?: (message: string, targets: Array<string | FragmentoCliente>) => Promise<void>;
     getClientsConnected?: () => Promise<FragmentoCliente[]>;
+    onSyncMessage?: {
+      subscribe: (callback: (payload: PayloadMensajeSync) => void) => { unsubscribe: () => void };
+    };
   };
 }
 
@@ -312,7 +315,9 @@ declare global {
     manejarResultadosDados?: (resultados: ResultadosTirada) => Promise<void>;
     onRollResults?: (resultados: ResultadosTirada) => Promise<void>;
     manejarEventoCliente?: (evento: unknown) => void;
-    manejarMensajeSync?: (evento: unknown) => void;
+    manejarMensajeSync?: (evento: unknown, clienteParam?: unknown) => void;
+    syncMessageReceived?: (evento: unknown, clienteParam?: unknown) => void;
+    onSyncMessage?: (evento: unknown, clienteParam?: unknown) => void;
     manejarEventoClienteSync?: (evento: unknown) => void;
   }
 }

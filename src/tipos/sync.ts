@@ -81,11 +81,11 @@ export interface WireEstadoCombatePJ {
   i: number; // iniciativa
   va: number; // vidaActual
   vm: number; // vidaMaxima
-  vt: number; // vidaTemporal
-  ca: number; // clase de armadura
-  c: string[]; // condiciones
-  e: WireEfecto[]; // efectos
-  p: [number, number, number]; // [percepcion, investigacion, perspicacia]
+  vt?: number; // vidaTemporal (se omite si es 0)
+  ca?: number; // clase de armadura (se omite si es 10)
+  c?: string[]; // condiciones (se omite si está vacío)
+  e?: WireEfecto[]; // efectos (se omite si está vacío)
+  p?: [number, number, number]; // [percepcion, investigacion, perspicacia]
   cj?: {
     em: Record<string, number>; // espaciosMaximos
     eg: Record<string, number>; // espaciosGastados
@@ -102,14 +102,14 @@ export interface WireCriaturaIniciativa {
   i: number;
   va: number;
   vm: number;
-  vt: number;
-  ca: number;
-  m: boolean; // esMonstruo
-  c: string[]; // condiciones
-  e?: WireEfecto[]; // efectos
+  vt?: number; // vidaTemporal (se omite si es 0)
+  ca?: number; // clase de armadura (se omite si es 10)
+  m?: boolean; // esMonstruo (se omite si es false)
+  c?: string[]; // condiciones (se omite si está vacío)
+  e?: WireEfecto[]; // efectos (se omite si está vacío)
   plant?: string; // idPlantillaAsociada
-  vel?: string; // velocidad
-  bon?: number; // bonificadorIniciativa
+  vel?: string; // velocidad (se omite si es "30 pies")
+  bon?: number; // bonificadorIniciativa (se omite si es 0)
 }
 
 export interface WireEstadoIniciativaDM {
@@ -145,15 +145,15 @@ const EsquemaWireEfecto = z.object({
 const EsquemaWireEstadoCombatePJ = z.object({
   id: z.string(),
   m: z.string().nullable().optional(),
-  n: z.string(),
-  i: z.number(),
-  va: z.number(),
-  vm: z.number(),
-  vt: z.number(),
-  ca: z.number(),
+  n: z.string().default("Personaje"),
+  i: z.number().default(0),
+  va: z.number().nullable().optional().transform((v) => v ?? 0),
+  vm: z.number().nullable().optional().transform((v) => v ?? 0),
+  vt: z.number().nullable().optional().transform((v) => v ?? 0),
+  ca: z.number().nullable().optional().transform((v) => v ?? 10),
   c: z.array(z.string()).default([]),
   e: z.array(EsquemaWireEfecto).default([]),
-  p: z.tuple([z.number(), z.number(), z.number()]),
+  p: z.tuple([z.number(), z.number(), z.number()]).default([10, 10, 10]),
   cj: z
     .object({
       em: z.record(z.string(), z.number()).default({}),
@@ -174,18 +174,18 @@ const EsquemaWireEstadoCombatePJ = z.object({
 
 const EsquemaWireCriaturaIniciativa = z.object({
   id: z.string(),
-  n: z.string(),
-  i: z.number(),
-  va: z.number(),
-  vm: z.number(),
-  vt: z.number().default(0),
-  ca: z.number().default(10),
+  n: z.string().default("Criatura"),
+  i: z.number().default(0),
+  va: z.number().nullable().optional().transform((v) => v ?? 0),
+  vm: z.number().nullable().optional().transform((v) => v ?? 0),
+  vt: z.number().nullable().optional().transform((v) => v ?? 0),
+  ca: z.number().nullable().optional().transform((v) => v ?? 10),
   m: z.boolean().default(false),
   c: z.array(z.string()).default([]),
-  e: z.array(EsquemaWireEfecto).optional(),
-  plant: z.string().optional(),
-  vel: z.string().optional(),
-  bon: z.number().optional(),
+  e: z.array(EsquemaWireEfecto).optional().default([]),
+  plant: z.string().nullable().optional().transform((v) => v ?? undefined),
+  vel: z.string().nullable().optional().transform((v) => v ?? undefined),
+  bon: z.number().nullable().optional().transform((v) => v ?? undefined),
 });
 
 const EsquemaWireEstadoIniciativaDM = z.object({
@@ -237,28 +237,37 @@ export type WireMensajeSync = z.infer<typeof EsquemaWireMensajeSync>;
 export function serializarEstadoCombatePJ(pj: EstadoCombatePJ): WireEstadoCombatePJ {
   const wire: WireEstadoCombatePJ = {
     id: pj.id,
-    m: pj.idMiniaturaTS ?? undefined,
-    n: pj.nombre,
-    i: pj.iniciativa,
-    va: pj.hpActual,
-    vm: pj.hpMaximo,
-    vt: pj.hpTemporal,
-    ca: pj.ca,
-    c: pj.condiciones,
-    e: pj.efectos.map((ef) => ({
+    n: (pj.nombre || "Personaje").slice(0, 32),
+    i: pj.iniciativa ?? 0,
+    va: pj.hpActual ?? 0,
+    vm: pj.hpMaximo ?? 0,
+  };
+
+  if (pj.idMiniaturaTS) wire.m = pj.idMiniaturaTS;
+  if (pj.hpTemporal) wire.vt = pj.hpTemporal;
+  if (pj.ca !== undefined && pj.ca !== 10) wire.ca = pj.ca;
+  if (pj.condiciones && pj.condiciones.length > 0) wire.c = pj.condiciones;
+  if (pj.efectos && pj.efectos.length > 0) {
+    wire.e = pj.efectos.map((ef) => ({
       id: ef.id,
       n: ef.nombre,
       r: ef.expiraRonda,
       c: ef.concentracion,
       d: ef.duracion,
-    })),
-    p: [pj.pasivas.percepcion, pj.pasivas.investigacion, pj.pasivas.perspicacia],
-  };
+    }));
+  }
+  if (pj.pasivas) {
+    wire.p = [
+      pj.pasivas.percepcion ?? 10,
+      pj.pasivas.investigacion ?? 10,
+      pj.pasivas.perspicacia ?? 10,
+    ];
+  }
 
-  if (pj.conjuros) {
+  if (pj.conjuros && Object.keys(pj.conjuros.espaciosMaximos || {}).length > 0) {
     wire.cj = {
       em: pj.conjuros.espaciosMaximos,
-      eg: pj.conjuros.espaciosGastados,
+      eg: pj.conjuros.espaciosGastados || {},
       pm: pj.conjuros.puntosMaximos,
       pg: pj.conjuros.puntosGastados,
       pc: pj.conjuros.pacto
@@ -283,14 +292,14 @@ export function deserializarEstadoCombatePJ(wire: WireEstadoCombatePJ): EstadoCo
   return {
     id: wire.id,
     idMiniaturaTS: wire.m ?? null,
-    nombre: wire.n,
-    iniciativa: wire.i,
-    hpActual: wire.va,
-    hpMaximo: wire.vm,
-    hpTemporal: wire.vt,
-    ca: wire.ca,
-    condiciones: wire.c,
-    efectos: wire.e.map((ef) => ({
+    nombre: wire.n || "Personaje",
+    iniciativa: wire.i ?? 0,
+    hpActual: wire.va ?? 0,
+    hpMaximo: wire.vm ?? 0,
+    hpTemporal: wire.vt ?? 0,
+    ca: wire.ca ?? 10,
+    condiciones: wire.c || [],
+    efectos: (wire.e || []).map((ef) => ({
       id: ef.id,
       nombre: ef.n,
       expiraRonda: ef.r,
@@ -298,14 +307,14 @@ export function deserializarEstadoCombatePJ(wire: WireEstadoCombatePJ): EstadoCo
       duracion: ef.d,
     })),
     pasivas: {
-      percepcion: wire.p[0],
-      investigacion: wire.p[1],
-      perspicacia: wire.p[2],
+      percepcion: wire.p ? wire.p[0] : 10,
+      investigacion: wire.p ? wire.p[1] : 10,
+      perspicacia: wire.p ? wire.p[2] : 10,
     },
     conjuros: wire.cj
       ? {
-          espaciosMaximos: wire.cj.em,
-          espaciosGastados: wire.cj.eg,
+          espaciosMaximos: wire.cj.em || {},
+          espaciosGastados: wire.cj.eg || {},
           puntosMaximos: wire.cj.pm,
           puntosGastados: wire.cj.pg,
           pacto: wire.cj.pc
@@ -330,46 +339,51 @@ export function deserializarEstadoCombatePJ(wire: WireEstadoCombatePJ): EstadoCo
 
 export function serializarIniciativaDM(dm: EstadoIniciativaDM): WireEstadoIniciativaDM {
   return {
-    c: dm.cola.map((criatura) => ({
-      id: criatura.id,
-      n: criatura.nombre,
-      i: criatura.iniciativa,
-      va: criatura.vidaActual,
-      vm: criatura.vidaMaxima,
-      vt: criatura.vidaTemporal ?? 0,
-      ca: criatura.ca,
-      m: criatura.esMonstruo,
-      c: criatura.condiciones || [],
-      e: (criatura.efectos || []).map((ef) => ({
-        id: ef.id,
-        n: ef.nombre,
-        r: ef.expiraRonda,
-        c: ef.concentracion,
-        d: ef.duracion,
-      })),
-      plant: criatura.idPlantillaAsociada,
-      vel: criatura.velocidad,
-      bon: criatura.bonificadorIniciativa,
-    })),
-    t: dm.indiceTurnoActivo,
-    r: dm.rondaActual,
-    v: dm.mostrarPorcentajeVidaAJugadores,
-    mv: dm.metodoVidaMonstruo,
+    c: (dm.cola || []).map((criatura) => {
+      const item: WireCriaturaIniciativa = {
+        id: criatura.id,
+        n: (criatura.nombre || "Criatura").slice(0, 32),
+        i: criatura.iniciativa ?? 0,
+        va: criatura.vidaActual ?? 0,
+        vm: criatura.vidaMaxima ?? 0,
+      };
+      if (criatura.vidaTemporal) item.vt = criatura.vidaTemporal;
+      if (criatura.ca !== undefined && criatura.ca !== 10) item.ca = criatura.ca;
+      if (criatura.esMonstruo) item.m = true;
+      if (criatura.condiciones && criatura.condiciones.length > 0) item.c = criatura.condiciones;
+      if (criatura.efectos && criatura.efectos.length > 0) {
+        item.e = criatura.efectos.map((ef) => ({
+          id: ef.id,
+          n: ef.nombre,
+          r: ef.expiraRonda,
+          c: ef.concentracion,
+          d: ef.duracion,
+        }));
+      }
+      if (criatura.idPlantillaAsociada) item.plant = criatura.idPlantillaAsociada;
+      if (criatura.velocidad && criatura.velocidad !== "30 pies") item.vel = criatura.velocidad;
+      if (criatura.bonificadorIniciativa) item.bon = criatura.bonificadorIniciativa;
+      return item;
+    }),
+    t: dm.indiceTurnoActivo ?? 0,
+    r: dm.rondaActual ?? 1,
+    v: Boolean(dm.mostrarPorcentajeVidaAJugadores),
+    mv: dm.metodoVidaMonstruo || "estandar",
   };
 }
 
 export function deserializarIniciativaDM(wire: WireEstadoIniciativaDM): EstadoIniciativaDM {
   return {
-    cola: wire.c.map((w) => ({
+    cola: (wire.c || []).map((w) => ({
       id: w.id,
-      nombre: w.n,
-      iniciativa: w.i,
-      vidaActual: w.va,
-      vidaMaxima: w.vm,
-      vidaTemporal: w.vt,
-      ca: w.ca,
-      esMonstruo: w.m,
-      condiciones: w.c,
+      nombre: w.n || "Criatura",
+      iniciativa: w.i ?? 0,
+      vidaActual: w.va ?? 0,
+      vidaMaxima: w.vm ?? 0,
+      vidaTemporal: w.vt ?? 0,
+      ca: w.ca ?? 10,
+      esMonstruo: Boolean(w.m),
+      condiciones: w.c || [],
       efectos: (w.e || []).map((ef) => ({
         id: ef.id,
         nombre: ef.n,
@@ -377,41 +391,78 @@ export function deserializarIniciativaDM(wire: WireEstadoIniciativaDM): EstadoIn
         concentracion: ef.c,
         duracion: ef.d,
       })),
-      idPlantillaAsociada: w.plant,
+      idPlantillaAsociada: w.plant ?? undefined,
       velocidad: w.vel || "30 pies",
       bonificadorIniciativa: w.bon ?? 0,
     })),
-    indiceTurnoActivo: wire.t,
-    rondaActual: wire.r,
-    mostrarPorcentajeVidaAJugadores: wire.v,
-    metodoVidaMonstruo: wire.mv,
+    indiceTurnoActivo: wire.t ?? 0,
+    rondaActual: wire.r ?? 1,
+    mostrarPorcentajeVidaAJugadores: Boolean(wire.v),
+    metodoVidaMonstruo: wire.mv || "estandar",
   };
 }
 
 /**
- * Divide el WireEstadoIniciativaDM en dos chunks si la cola excede el límite seguro.
+ * Divide el WireEstadoIniciativaDM dinámicamente en N chunks si la cola excede el límite seguro.
+ * Garantiza que cada chunk serializado quede estrictamente por debajo de maxBytesPorChunk (por defecto 420).
  */
 export function dividirEnChunksIniciativa(
-  wire: WireEstadoIniciativaDM
+  wire: WireEstadoIniciativaDM,
+  maxBytesPorChunk = 420
 ): WireChunkIniciativa[] {
-  const mitad = Math.ceil(wire.c.length / 2);
-  const chunk1: WireChunkIniciativa = {
-    chunk: 1,
-    total: 2,
+  const todasCriaturas = wire.c || [];
+  if (todasCriaturas.length === 0) {
+    return [];
+  }
+
+  // Agrupar criaturas de modo que ningún chunk serializado exceda maxBytesPorChunk
+  const MAX_CRIATURAS_POR_CHUNK = 4;
+  const grupos: WireCriaturaIniciativa[][] = [];
+  let grupoActual: WireCriaturaIniciativa[] = [];
+
+  for (const criatura of todasCriaturas) {
+    const pruebaGrupo = [...grupoActual, criatura];
+    const pruebaWire: WireChunkIniciativa = {
+      chunk: 1,
+      total: 99,
+      t: wire.t,
+      r: wire.r,
+      v: wire.v,
+      mv: wire.mv,
+      c: pruebaGrupo,
+    };
+    const longitudSerializada = JSON.stringify({ v: 1, t: "DM_CHUNK", d: pruebaWire }).length;
+
+    if (
+      (longitudSerializada > maxBytesPorChunk || grupoActual.length >= MAX_CRIATURAS_POR_CHUNK) &&
+      grupoActual.length > 0
+    ) {
+      grupos.push(grupoActual);
+      grupoActual = [criatura];
+    } else {
+      grupoActual.push(criatura);
+    }
+  }
+
+  if (grupoActual.length > 0) {
+    grupos.push(grupoActual);
+  }
+
+  if (grupos.length === 1 && todasCriaturas.length > 1) {
+    const mitad = Math.ceil(todasCriaturas.length / 2);
+    grupos[0] = todasCriaturas.slice(0, mitad);
+    grupos.push(todasCriaturas.slice(mitad));
+  }
+
+  const total = grupos.length;
+
+  return grupos.map((g, idx) => ({
+    chunk: idx + 1,
+    total,
     t: wire.t,
     r: wire.r,
     v: wire.v,
     mv: wire.mv,
-    c: wire.c.slice(0, mitad),
-  };
-  const chunk2: WireChunkIniciativa = {
-    chunk: 2,
-    total: 2,
-    t: wire.t,
-    r: wire.r,
-    v: wire.v,
-    mv: wire.mv,
-    c: wire.c.slice(mitad),
-  };
-  return [chunk1, chunk2];
+    c: g,
+  }));
 }

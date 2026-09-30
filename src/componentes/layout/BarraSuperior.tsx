@@ -25,7 +25,7 @@ import estilosClases from "./BarraSuperior.module.css";
 
 export const BarraSuperior: React.FC = () => {
   const { pestañaActiva, campañaNombre, esGM } = usarEstadoConfiguracion();
-  const { establecerPestaña } = usarAccionesConfiguracion();
+  const { establecerPestaña, establecerEsGM } = usarAccionesConfiguracion();
   const { modoHomebrew } = usarEstadoHomebrew();
   const { establecerModoHomebrew } = usarAccionesHomebrew();
   const [mostrarMenuHomebrew, setMostrarMenuHomebrew] = useState(false);
@@ -81,7 +81,16 @@ export const BarraSuperior: React.FC = () => {
               </div>
             )}
           </div>
-          <span className={estilosClases.tituloTexto}>
+          <span
+            className={estilosClases.tituloTexto}
+            style={typeof window !== "undefined" && !window.TS ? { cursor: "pointer", userSelect: "none" } : undefined}
+            onClick={() => {
+              if (typeof window !== "undefined" && !window.TS) {
+                establecerEsGM(!esGM);
+              }
+            }}
+            title={typeof window !== "undefined" && !window.TS ? "Haz clic para alternar rol (DM / Jugador) en modo desarrollo local" : undefined}
+          >
             {!esGM ? "PLAYER SHEET" : "DM SCREEN"}
           </span>
         </div>

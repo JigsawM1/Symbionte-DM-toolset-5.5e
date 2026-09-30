@@ -173,29 +173,82 @@ class PuenteTaleSpireClass {
       this.emit("eventoCliente", this.deserializarPayload(evento) as EventoClienteTS);
     };
 
-    // sync.onSyncMessage → syncMessageReceived { str, fromClient }
-    window.manejarMensajeSync = (evento) => {
-      logger.debug("[Puente TaleSpire] Callback manejarMensajeSync:", evento);
-      const payloadCrudo = this.deserializarPayload(evento) as {
-        kind?: string;
-        payload?: { str?: string; fromClient?: FragmentoCliente };
-        str?: string;
-        fromClient?: FragmentoCliente;
-      } | null;
+    // sync.onSyncMessage → syncMessageReceived { str, fromClient } (con extracción robusta multiformato)
+    const procesarMensajeSyncExtraccion = (evento: unknown, clienteParam?: unknown) => {
+      logger.debug("[Puente TaleSpire] Mensaje sync recibido en puente:", evento, clienteParam);
 
       let str = "";
-      let fromClient: FragmentoCliente | undefined;
+      let datos: unknown = null;
+      let fromClient: FragmentoCliente | undefined =
+        clienteParam && typeof clienteParam === "object" ? (clienteParam as FragmentoCliente) : undefined;
 
-      if (payloadCrudo?.kind === "syncMessageReceived" && payloadCrudo.payload) {
-        str = payloadCrudo.payload.str || "";
-        fromClient = payloadCrudo.payload.fromClient;
-      } else if (payloadCrudo?.str !== undefined) {
-        str = payloadCrudo.str;
-        fromClient = payloadCrudo.fromClient;
+      // 1. Si el primer argumento es un string JSON o plano
+      if (typeof evento === "string") {
+        str = evento;
+        try {
+          datos = JSON.parse(str);
+        } catch {
+          datos = null;
+        }
+      } else if (evento && typeof evento === "object") {
+        const ev = evento as Record<string, unknown>;
+
+        // 2. Si ya es un objeto de TaleSpire con propiedad "str"
+        if (typeof ev.str === "string") {
+          str = ev.str;
+          if (ev.fromClient && typeof ev.fromClient === "object") {
+            fromClient = ev.fromClient as FragmentoCliente;
+          }
+          try {
+            datos = JSON.parse(str);
+          } catch {
+            datos = null;
+          }
+        }
+        // 3. Wrapper de evento { kind: "syncMessageReceived", payload: ... }
+        else if (ev.kind === "syncMessageReceived" && ev.payload) {
+          if (typeof ev.payload === "string") {
+            str = ev.payload;
+            try {
+              datos = JSON.parse(str);
+            } catch {
+              datos = null;
+            }
+          } else if (typeof ev.payload === "object") {
+            const p = ev.payload as Record<string, unknown>;
+            if (typeof p.str === "string") {
+              str = p.str;
+              if (p.fromClient && typeof p.fromClient === "object") {
+                fromClient = p.fromClient as FragmentoCliente;
+              }
+              try {
+                datos = JSON.parse(str);
+              } catch {
+                datos = null;
+              }
+            } else {
+              datos = p;
+              try {
+                str = JSON.stringify(p);
+              } catch {
+                str = "";
+              }
+            }
+          }
+        }
+        // 4. Payload deserializado directamente con estructura { t, v }
+        else if ("t" in ev && "v" in ev) {
+          datos = ev;
+          try {
+            str = JSON.stringify(ev);
+          } catch {
+            str = "";
+          }
+        }
       }
 
-      let datos: unknown = null;
-      if (str) {
+      // Si tenemos datos como objeto que aún no se parsearon pero tenemos str
+      if (!datos && str) {
         try {
           datos = JSON.parse(str);
         } catch (e) {
@@ -203,8 +256,33 @@ class PuenteTaleSpireClass {
         }
       }
 
-      this.emit("mensajeSync", { datos, strCrudo: str, fromClient });
+      if (datos) {
+        this.emit("mensajeSync", { datos, strCrudo: str, fromClient });
+      } else {
+        logger.warn("[Puente TaleSpire] Mensaje sync recibido sin datos interpretables:", evento);
+      }
     };
+
+    window.manejarMensajeSync = procesarMensajeSyncExtraccion;
+    (window as unknown as Record<string, unknown>).syncMessageReceived = procesarMensajeSyncExtraccion;
+    (window as unknown as Record<string, unknown>).onSyncMessage = procesarMensajeSyncExtraccion;
+
+    // Escuchar también en BroadcastChannel para sincronización entre pestañas o desarrollo local
+    if (typeof BroadcastChannel !== "undefined") {
+      try {
+        const canalSync = new BroadcastChannel("talespire-simbiote-sync");
+        canalSync.onmessage = (ev) => {
+          logger.debug("[Puente TaleSpire BroadcastChannel] Mensaje recibido:", ev.data);
+          if (ev.data && typeof ev.data === "object" && "str" in ev.data) {
+            procesarMensajeSyncExtraccion(ev.data.str, ev.data.fromClient);
+          } else {
+            procesarMensajeSyncExtraccion(ev.data);
+          }
+        };
+      } catch (e) {
+        logger.debug("[Puente TaleSpire] No se pudo inicializar BroadcastChannel:", e);
+      }
+    }
 
     // sync.onClientEvent → manejarEventoClienteSync
     window.manejarEventoClienteSync = (evento) => {
@@ -266,6 +344,8 @@ class PuenteTaleSpireClass {
       delete window.onRollResults;
       delete window.manejarEventoCliente;
       delete window.manejarMensajeSync;
+      delete (window as unknown as Record<string, unknown>).syncMessageReceived;
+      delete (window as unknown as Record<string, unknown>).onSyncMessage;
       delete window.manejarEventoClienteSync;
     }
 

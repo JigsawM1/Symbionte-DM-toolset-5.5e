@@ -25,7 +25,7 @@ import { calcularEstadisticasPersonaje } from "@/almacen/selectores/usarEstadoPe
 import { logger } from "@/utiles/logger";
 
 const RETARDO_DEBOUNCE_MS = 400;
-const LIMITE_TAMANO_SEGURO_BYTES = 850;
+const LIMITE_TAMANO_SEGURO_BYTES = 420;
 
 let timerDebounceGM: ReturnType<typeof setTimeout> | null = null;
 let timerDebouncePJ: ReturnType<typeof setTimeout> | null = null;
@@ -114,10 +114,12 @@ export function emitirEstadoComoGM(): void {
       void ts.sync.send(mensajeJSON, "board");
     } else {
       logger.warn(`[Sync] Cola excede tamaño seguro (${mensajeJSON.length}b). Particionando en chunks...`);
-      const chunks = dividirEnChunksIniciativa(wire);
-      chunks.forEach((chunk) => {
+      const chunks = dividirEnChunksIniciativa(wire, LIMITE_TAMANO_SEGURO_BYTES);
+      chunks.forEach((chunk, index) => {
         const chunkJSON = JSON.stringify({ v: 1, t: "DM_CHUNK", d: chunk });
-        void ts.sync.send(chunkJSON, "board");
+        setTimeout(() => {
+          void ts.sync.send(chunkJSON, "board");
+        }, index * 25);
       });
     }
   }, RETARDO_DEBOUNCE_MS);
@@ -176,7 +178,7 @@ export function procesarMensajeSyncEntrante(evento: {
   const parseo = EsquemaWireMensajeSync.safeParse(evento.datos);
 
   if (!parseo.success) {
-    logger.debug("[Sync] Mensaje descartado (formato no reconocido o versión incompatible)");
+    logger.warn("[Sync] Mensaje descartado por validación de esquema:", parseo.error.format(), evento.datos);
     return;
   }
 
@@ -196,6 +198,7 @@ export function procesarMensajeSyncEntrante(evento: {
     case "DM": {
       // Solo los jugadores aplican el estado del DM
       if (!estado.esGM) {
+        logger.info("[Sync] Aplicando ESTADO_INICIATIVA_DM recibido del DM...");
         const datosIniciativa = deserializarIniciativaDM(mensaje.d);
         estado.aplicarIniciativaDesdeSync(datosIniciativa);
       }
@@ -206,6 +209,9 @@ export function procesarMensajeSyncEntrante(evento: {
       // Reensamblado de ráfagas para jugadores
       if (!estado.esGM) {
         const chunk = mensaje.d;
+        if (chunk.chunk === 1) {
+          bufferChunksIniciativa.clear();
+        }
         bufferChunksIniciativa.set(chunk.chunk, chunk);
 
         if (timerLimpiezaBuffer) clearTimeout(timerLimpiezaBuffer);
@@ -252,17 +258,23 @@ export function procesarMensajeSyncEntrante(evento: {
 export function inicializarObservadoresStoreSync(): () => void {
   logger.info("[Sync] Inicializando observadores reactivos del store de combate...");
 
-  let prevCola = usarAlmacenDM.getState().colaIniciativa;
-  let prevTurno = usarAlmacenDM.getState().indiceTurnoActivo;
-  let prevRonda = usarAlmacenDM.getState().rondaActual;
-  let prevMostrarVida = usarAlmacenDM.getState().mostrarPorcentajeVidaAJugadores;
-  let prevMetodoVida = usarAlmacenDM.getState().metodoVidaMonstruo;
+  const estadoInicial = usarAlmacenDM.getState();
+  let prevCola = estadoInicial.colaIniciativa;
+  let prevTurno = estadoInicial.indiceTurnoActivo;
+  let prevRonda = estadoInicial.rondaActual;
+  let prevMostrarVida = estadoInicial.mostrarPorcentajeVidaAJugadores;
+  let prevMetodoVida = estadoInicial.metodoVidaMonstruo;
 
-  let prevHpActual = 0;
-  let prevHpTemporal = 0;
-  let prevCondicionesStr = "";
-  let prevEfectosStr = "";
-  let prevConcentracionStr = "";
+  const pjInicial =
+    estadoInicial.personajes.find((p) => p.id === estadoInicial.idPersonajeActivo) ||
+    estadoInicial.personajes[0];
+
+  let prevIdPj = pjInicial?.id ?? "";
+  let prevHpActual = pjInicial?.hpActual ?? 0;
+  let prevHpTemporal = pjInicial?.hpTemporal ?? 0;
+  let prevCondicionesStr = (pjInicial?.condicionesActivas || []).join(",");
+  let prevEfectosStr = (pjInicial?.efectosActivos || []).map((e) => `${e.id}:${e.expiraRonda}`).join(",");
+  let prevConcentracionStr = pjInicial?.concentracionActiva ? pjInicial.concentracionActiva.hechizoId : "";
 
   const unsub = usarAlmacenDM.subscribe((estadoActual) => {
     if (estadoActual.aplicandoSync) {
@@ -298,6 +310,7 @@ export function inicializarObservadoresStoreSync(): () => void {
         const concStr = pjActivo.concentracionActiva ? pjActivo.concentracionActiva.hechizoId : "";
 
         const haCambiadoPJ =
+          pjActivo.id !== prevIdPj ||
           pjActivo.hpActual !== prevHpActual ||
           pjActivo.hpTemporal !== prevHpTemporal ||
           condStr !== prevCondicionesStr ||
@@ -305,6 +318,7 @@ export function inicializarObservadoresStoreSync(): () => void {
           concStr !== prevConcentracionStr;
 
         if (haCambiadoPJ) {
+          prevIdPj = pjActivo.id;
           prevHpActual = pjActivo.hpActual;
           prevHpTemporal = pjActivo.hpTemporal;
           prevCondicionesStr = condStr;

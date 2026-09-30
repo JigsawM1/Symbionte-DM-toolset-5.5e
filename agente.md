@@ -20,6 +20,65 @@ Este archivo registra reglas globales, errores encontrados, sus causas raíz y l
    - Toda mecánica, progresión de dados, escalado de usos, recuperación o desbloqueo dinámico debe resolverse mediante metadatos declarativos (`escaladoFormulaDados`, `escaladoUsos`, `escaladoRecuperacion`, `opcionesDinamicas`, `escaladoMaxSelecciones`, `sincronizarEfectosConFormula`, `heredarDadosPadre`, `gastarDePadre`, `ligadoA`, `efectos`) delegando en funciones puras agnósticas como `resolverEscaladosRasgo`. Esta regla está reforzada en CI vía ESLint `no-restricted-syntax` y la suite `rasgoGenericidad.test.ts`.
 
 
+## [2026-09-30] Canal de Sincronización Bidireccional (TS.sync): Diagnóstico y Solución de Errores de Transmisión y Detección de Roles
+
+**Problema Reportado por el Usuario:**
+- *"no creo que se este pasando todo :/. hice la prueba poniendo condiciones, modificando vida, los valores para mostrar % de vida , nada :/"*
+
+**Causas Raíz Diagnosticadas:**
+1. **Falso Positivo en Detección de Rol GM (`boards.getBoardsInThisCampaign`):**
+   - En `TaleSpireAdapter.ts`, el fallback 3 intentaba llamar a `boards.getBoardsInThisCampaign()`. En TaleSpire, cualquier jugador conectado a una campaña puede llamar a este método con éxito.
+   - En consecuencia, todas las instancias de los jugadores se detectaban a sí mismas como `esGM: true`.
+   - Al creerse directores de juego:
+     - En `procesarMensajeSyncEntrante` bajo el caso `"DM"`, la condición `if (!estado.esGM)` evaluaba a falso, **descartando por completo la iniciativa transmitida por el DM real**.
+     - Los clientes de jugadores nunca emitían `SOLICITUD_ESTADO` al arrancar (`if (estado.esGM) return;`).
+     - El observador del store ejecutaba la lógica del DM en lugar de la del jugador, ignorando los cambios de vida y condiciones del personaje activo.
+2. **Extracción Frágil de Payloads en `window.manejarMensajeSync`:**
+   - Dependiendo de la versión de CEF y de la forma en que TaleSpire despacha los mensajes de sync, el callback puede recibir:
+     a) Dos argumentos directos: `(str, fromClient)`.
+     b) Un wrapper: `{ kind: "syncMessageReceived", payload: "<JSON string>" }` (donde `payload` es una cadena, no un objeto).
+     c) La cadena JSON directamente.
+     d) Un objeto ya deserializado `{ v: 1, t: ... }`.
+   - El código anterior solo buscaba `payloadCrudo?.kind === "syncMessageReceived" && payloadCrudo.payload.str`. Si recibía un string JSON o dos parámetros, la variable `str` quedaba en `""`, `datos` quedaba en `null`, y `procesarMensajeSyncEntrante` descartaba el paquete sin procesar.
+3. **Rigidez en los Esquemas Zod de Validación Defensiva:**
+   - En `EsquemaWireCriaturaIniciativa`, campos como `va`, `vm`, `ca` requerían tipos `number` estrictos. Si alguna miniatura física en TaleSpire no tenía vida o CA configurada (valores `null` o no numéricos), `safeParse` fallaba de inmediato, descartando todo el snapshot de combate.
+4. **Ausencia de Suscripción a Eventos Nativos y Soporte Multiventana:**
+   - Faltaban los alias globales (`window.syncMessageReceived`, `window.onSyncMessage`) y la suscripción a `TS.sync.onSyncMessage.subscribe(...)`.
+   - No existía soporte para probar la sincronización en pestañas locales del navegador fuera de TaleSpire.
+5. **Desincronización en el Directorio de Despliegue de TaleSpire:**
+   - La carpeta física del Simbiote en `LocalLow/.../Symbiotes/ToolSet_Es_5.5` mantenía una versión previa sin las correcciones compiladas.
+6. **Límite Físico Estricto de TaleSpire (`string too long: max length is 500`):**
+   - TaleSpire CEF lanza una excepción nativa ineludible `newStringTooLongError: string too long: max length is 500` si la cadena pasada a `TS.sync.send(msg)` supera los 500 caracteres.
+   - El código del Simbiote utilizaba un umbral de seguridad previo de 850 bytes (`LIMITE_TAMANO_SEGURO_BYTES = 850`).
+   - Por esta razón, cuando el DM enviaba el snapshot inicial en respuesta a `SOLICITUD_ESTADO` o cuando se modificaban condiciones/vida (generando cadenas de 519 a 541 caracteres), el motor no fragmentaba el mensaje, intentaba enviarlo íntegro y TaleSpire bloqueaba el envío abortando la sincronización.
+
+**Soluciones Técnicas Aplicadas:**
+1. **Detección Estricta de Rol en `TaleSpireAdapter.ts`:**
+   - Se eliminó definitivamente `boards.getBoardsInThisCampaign()` como criterio para ser GM.
+   - Se da prioridad absoluta a `clientMode` (`yoCliente.clientMode === "gm"` o `clientInfo.clientMode === "gm"`). Si `clientMode` es `"player"` o `"spectator"`, se marca `esGM: false` inmediatamente.
+   - Si no se puede confirmar que es GM, el fallback por defecto en TaleSpire es siempre `false` (Jugador).
+2. **Extractor Universal Multiformato en `puenteTaleSpire.ts`:**
+   - Se implementó `procesarMensajeSyncExtraccion(evento, clienteParam)` capaz de recibir y normalizar strings JSON planos, wrappers `{ kind, payload }`, objetos directos `{ t, v }` y parámetros separados `(str, fromClient)`.
+   - Se registraron los alias `window.syncMessageReceived` y `window.onSyncMessage`.
+   - Se incorporó un `BroadcastChannel("talespire-simbiote-sync")` para que múltiples pestañas del navegador o ventanas independientes sincronicen de manera inmediata tanto dentro como fuera de TaleSpire.
+3. **Esquemas Zod Resilientes y Tolerantes en `src/tipos/sync.ts`:**
+   - Se protegieron `EsquemaWireCriaturaIniciativa` y `EsquemaWireEstadoCombatePJ` con `.nullable().optional().transform(...)` y valores por defecto seguros (`0` para vidas, `10` para CA).
+   - Se reforzaron `serializarIniciativaDM`, `deserializarIniciativaDM` y `serializarEstadoCombatePJ` con nullish coalescing en cada campo.
+4. **Suscripción Dual y Solicitud Inicial en `usarConexionTaleSpire.ts`:**
+   - Se añadió suscripción directa a `ts.sync.suscribirAMensajesSync`.
+   - Se dispara `solicitarEstadoInicial()` automáticamente al inicializar en modo jugador o al cambiar de rol a jugador.
+   - Se añadió un mecanismo interactivo en `BarraSuperior.tsx` para alternar entre "PLAYER SHEET" y "DM SCREEN" al hacer clic en el encabezado cuando se prueba en navegador fuera de TaleSpire.
+5. **Compactación Agresiva y Particionamiento Dinámico (< 420 caracteres):**
+   - Se reajustó `LIMITE_TAMANO_SEGURO_BYTES` a 420 caracteres (dejando un margen de seguridad de 80 caracteres respecto al techo de 500 de TaleSpire).
+   - En `serializarIniciativaDM` y `serializarEstadoCombatePJ`, se omiten todas las propiedades por defecto o vacías (`vt: 0`, `ca: 10`, `m: false`, arrays vacíos), reduciendo el tamaño en más de un 40%.
+   - `dividirEnChunksIniciativa` ahora mide la longitud serializada real y divide dinámicamente en N fragmentos estrictamente `<= 420` caracteres con máximo 4 criaturas por chunk y retardo de 25ms entre ráfagas.
+   - En `TaleSpireAdapter.ts`, se incorporó una guardia que bloquea proactivamente cualquier mensaje que exceda los 500 caracteres para no romper la ejecución de TaleSpire.
+6. **Despliegue y Validación:**
+   - Ejecutado `pnpm run deploy` copiando exitosamente el nuevo bundle a `LocalLow\BouncyRock Entertainment\TaleSpire\Symbiotes\ToolSet_Es_5.5`.
+   - 1,196 pruebas unitarias aprobadas al 100% (88 suites).
+   - `tsc --noEmit` completado con 0 errores bajo `strict: true`.
+   - 0 infracciones de límite de líneas.
+
 ## [2026-09-30] Optimización Arquitectónica de Persistencia: Deshidratación al Guardar e Hidratación al Cargar de Rasgos y Selectores
 
 **Problema Diagnosticado por el Usuario:**

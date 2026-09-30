@@ -135,9 +135,13 @@ export function usarConexionTaleSpire() {
             establecerEsGM(true);
           } else if (modo === "player" || modo === "spectator") {
             establecerEsGM(false);
+            solicitarEstadoInicial();
           } else {
             ts.clients.esGM(true).then((soyGm) => {
-              if (activo) establecerEsGM(soyGm);
+              if (activo) {
+                establecerEsGM(soyGm);
+                if (!soyGm) solicitarEstadoInicial();
+              }
             });
           }
         };
@@ -146,7 +150,11 @@ export function usarConexionTaleSpire() {
         const subNativaCliente = ts.clients.suscribirACambioModoCliente((modo) => {
           if (activo) {
             logger.debug("[TaleSpire Simbionte] Cambio de modo nativo detectado:", modo);
-            establecerEsGM(modo === "gm");
+            const esGm = modo === "gm";
+            establecerEsGM(esGm);
+            if (!esGm) {
+              solicitarEstadoInicial();
+            }
           }
         });
 
@@ -162,8 +170,27 @@ export function usarConexionTaleSpire() {
           }
         });
 
+        const subNativaSync = ts.sync.suscribirAMensajesSync((payload) => {
+          if (activo) {
+            let datos: unknown = null;
+            try {
+              datos = JSON.parse(payload.str);
+            } catch {
+              datos = null;
+            }
+            if (datos) {
+              procesarMensajeSyncEntrante({
+                datos,
+                strCrudo: payload.str,
+                fromClient: payload.fromClient,
+              });
+            }
+          }
+        });
+
         desuscribirSync = () => {
           subPuenteSync();
+          subNativaSync.desuscribir();
         };
 
         //  IMPORTANTE: Las llamadas "get" iniciales y la carga del blob nativo se retardan 500ms para que el canal
@@ -182,6 +209,9 @@ export function usarConexionTaleSpire() {
               if (activo) {
                 logger.info(`[TaleSpire Simbionte] Rol cliente detectado al iniciar: ${soyGm ? "Dungeon Master (GM)" : "Jugador"}`);
                 establecerEsGM(soyGm);
+                if (!soyGm) {
+                  solicitarEstadoInicial();
+                }
               }
             })
             .catch((e: unknown) => {

@@ -481,22 +481,8 @@ class TaleSpireAdapter {
         }
       }
 
-      // 3. Probar llamada con restricción de permisos de TaleSpire (boards.getBoardsInThisCampaign)
-      if (window.TS?.boards && typeof window.TS.boards.getBoardsInThisCampaign === "function") {
-        try {
-          await window.TS.boards.getBoardsInThisCampaign();
-          logger.debug("[TS Adapter esGM] Permiso de campaña otorgado -> esGM: true");
-          cacheEsGM = true;
-          return true;
-        } catch (err: unknown) {
-          logger.warn("[TS Adapter esGM] Permiso denegado en getBoardsInThisCampaign -> esGM: false", err);
-          cacheEsGM = false;
-          return false;
-        }
-      }
-
-      // Fallback seguro dentro de TaleSpire: si no se confirmó rol GM, asume Jugador (false)
-      logger.warn("[TS Adapter esGM] No se pudo confirmar modo GM en TaleSpire. Asumiendo rol Jugador (false).");
+      // Fallback seguro dentro de TaleSpire: si no se confirmó rol GM explícito, asume Jugador (false)
+      logger.debug("[TS Adapter esGM] No se confirmó rol GM en TaleSpire. Asumiendo Jugador (false).");
       cacheEsGM = false;
       return false;
     },
@@ -769,18 +755,34 @@ class TaleSpireAdapter {
      * @param target Destino: "board" (todos), "gms" (Dungeon Masters), o clientId específico.
      */
     send: async (message: string, target = "board"): Promise<boolean> => {
+      let enviado = false;
       const ts = this.tsGlobal;
       if (ts?.sync && typeof ts.sync.send === "function") {
         try {
+          if (message.length > 500) {
+            logger.error(`[TS Adapter] Mensaje excede el límite estricto de TaleSpire (500 caracteres, longitud: ${message.length}).`);
+            return false;
+          }
           await ts.sync.send(message, target);
-          return true;
+          enviado = true;
         } catch (error) {
           logger.error("[TS Adapter] Error en sync.send nativo:", error);
-          return false;
         }
       }
-      logger.debug("[TS Adapter] sync.send no disponible en este entorno.");
-      return false;
+
+      // Replicar en BroadcastChannel para entornos locales o pruebas en navegador
+      try {
+        if (typeof BroadcastChannel !== "undefined") {
+          const canal = new BroadcastChannel("talespire-simbiote-sync");
+          canal.postMessage({ str: message, target });
+          canal.close();
+          enviado = true;
+        }
+      } catch (e) {
+        logger.debug("[TS Adapter] Fallback BroadcastChannel no disponible:", e);
+      }
+
+      return enviado;
     },
 
     /**
@@ -797,7 +799,6 @@ class TaleSpireAdapter {
           return false;
         }
       }
-      logger.debug("[TS Adapter] sync.multiSend no disponible en este entorno.");
       return false;
     },
 
@@ -814,6 +815,38 @@ class TaleSpireAdapter {
         }
       }
       return [];
+    },
+
+    /**
+     * Permite suscribirse directamente al evento nativo TS.sync.onSyncMessage si existe en el entorno.
+     */
+    suscribirAMensajesSync: (
+      callback: (payload: { str: string; fromClient?: FragmentoCliente }) => void
+    ): { desuscribir: () => void } => {
+      const ts = this.tsGlobal;
+      const onSyncMessage = ts?.sync?.onSyncMessage;
+      if (
+        onSyncMessage &&
+        typeof onSyncMessage === "object" &&
+        "subscribe" in onSyncMessage &&
+        typeof onSyncMessage.subscribe === "function"
+      ) {
+        try {
+          const sub = onSyncMessage.subscribe((msg: { str: string; fromClient?: FragmentoCliente }) => {
+            callback(msg);
+          });
+          return {
+            desuscribir: () => {
+              if (sub && typeof sub.unsubscribe === "function") {
+                sub.unsubscribe();
+              }
+            },
+          };
+        } catch (e) {
+          logger.warn("[TS Adapter] Error al suscribirse a onSyncMessage nativo:", e);
+        }
+      }
+      return { desuscribir: () => {} };
     }
   };
 

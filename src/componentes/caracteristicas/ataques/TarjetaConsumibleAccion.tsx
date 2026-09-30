@@ -31,7 +31,7 @@ export const TarjetaConsumibleAccion: React.FC<TarjetaConsumibleAccionProps> = (
     <div className={`${estilos.tarjetaAtaque} ${estilos.tarjetaConsumible}`}>
       {/* Fila Superior: Nombre + Cantidad + Badge Acción */}
       <div className={estilos.filaSuperiorAtaque}>
-        <div className="u-flex u-alinear-centro u-gap-md">
+        <div className={estilos.bloqueIzquierdoConsumible}>
           {consumible.esPocion ? (
             <FlaskConical size={14} color="#10b981" />
           ) : (
@@ -41,7 +41,7 @@ export const TarjetaConsumibleAccion: React.FC<TarjetaConsumibleAccionProps> = (
           <span className={estilos.badgeCantidadConsumible}>×{consumible.cantidad}</span>
         </div>
 
-        <div className="u-flex u-alinear-centro u-gap-md">
+        <div className={estilos.bloqueDerechoConsumible}>
           <span className={`${estilos.badgeAccionTipo} ${claseBadgeAccion}`}>
             {textoBadgeAccion}
           </span>
@@ -53,17 +53,25 @@ export const TarjetaConsumibleAccion: React.FC<TarjetaConsumibleAccionProps> = (
 
       {/* Fila de Efecto y Botón Usar */}
       <div className={estilos.filaMetricasConsumible}>
-        <div className="u-flex u-alinear-centro u-gap-md u-flex-1">
+        <div className={estilos.contenedorEfectoConsumible}>
           {consumible.esCurativo ? (
-            <div className="u-flex u-alinear-centro u-gap-md">
+            <div className={estilos.bloqueCuracionConsumible}>
               <Heart size={13} color="#ef4444" />
               <span className={estilos.textoEfectoCuracion}>
                 Recupera {consumible.formulaCuracion} PV
               </span>
+              {consumible.notas && (
+                <span className={estilos.textoEfectoGenerico} title={consumible.notas}>
+                  — {consumible.notas}
+                </span>
+              )}
             </div>
           ) : (
-            <span className={estilos.textoEfectoGenerico}>
-              {consumible.descripcionUso}
+            <span
+              className={estilos.textoEfectoGenerico}
+              title={consumible.notas || consumible.descripcionUso}
+            >
+              {consumible.notas || consumible.descripcionUso}
             </span>
           )}
         </div>

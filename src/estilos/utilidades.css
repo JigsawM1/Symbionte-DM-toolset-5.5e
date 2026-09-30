@@ -11,7 +11,8 @@
   display: flex;
 }
 
-.u-flex-inline {
+.u-flex-inline,
+.u-inline-flex {
   display: inline-flex;
 }
 
@@ -51,7 +52,8 @@
 }
 
 /* === ALINEACIÓN Y JUSTIFICACIÓN === */
-.u-alinear-centro {
+.u-alinear-centro,
+.u-items-center {
   align-items: center;
 }
 
@@ -71,7 +73,8 @@
   justify-content: center;
 }
 
-.u-justificar-entre {
+.u-justificar-entre,
+.u-justify-between {
   justify-content: space-between;
 }
 
@@ -98,7 +101,8 @@
   gap: 2px;
 }
 
-.u-gap-sm {
+.u-gap-sm,
+.u-gap-1 {
   gap: 4px;
 }
 

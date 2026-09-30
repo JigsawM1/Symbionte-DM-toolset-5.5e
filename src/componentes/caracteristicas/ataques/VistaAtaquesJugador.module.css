@@ -582,6 +582,32 @@
   font-family: var(--fuente-codigo, 'JetBrains Mono', monospace);
 }
 
+.bloqueIzquierdoConsumible {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.bloqueDerechoConsumible {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.contenedorEfectoConsumible {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1 1 0%;
+  min-width: 0;
+}
+
+.bloqueCuracionConsumible {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
 .filaMetricasConsumible {
   display: flex;
   justify-content: space-between;

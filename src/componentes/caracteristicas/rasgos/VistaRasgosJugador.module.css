@@ -73,6 +73,12 @@
   gap: 6px;
 }
 
+.grupoBotonesAccion {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
 .tituloTexto {
   font-family: var(--fuente-titulo, 'Outfit', sans-serif);
   font-size: 13.5px;

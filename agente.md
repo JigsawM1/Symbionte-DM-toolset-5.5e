@@ -20,6 +20,44 @@ Este archivo registra reglas globales, errores encontrados, sus causas raíz y l
    - Toda mecánica, progresión de dados, escalado de usos, recuperación o desbloqueo dinámico debe resolverse mediante metadatos declarativos (`escaladoFormulaDados`, `escaladoUsos`, `escaladoRecuperacion`, `opcionesDinamicas`, `escaladoMaxSelecciones`, `sincronizarEfectosConFormula`, `heredarDadosPadre`, `gastarDePadre`, `ligadoA`, `efectos`) delegando en funciones puras agnósticas como `resolverEscaladosRasgo`. Esta regla está reforzada en CI vía ESLint `no-restricted-syntax` y la suite `rasgoGenericidad.test.ts`.
 
 
+## [2026-09-29] Encapsulación de CSS Modules y Normalización de Clases Utilitarias (TarjetaConsumibleAccion y CabeceraRasgosJugador)
+
+**Problema Reportado por el Usuario:**
+- `<div className="u-flex u-alinear-centro u-gap-md u-flex-1"> creo que esos campos no se estan agregando del todo`
+- Aclaración: *"a lo que me refiero es que al div solo se le aplica el primero ejemplo. 'u-flex' y omite los otros"*.
+
+**Causa Raíz Diagnosticada:**
+1. **Desacoplamiento de Convención Utilitaria:**
+   - En varios componentes se utilizaban nombres atómicos mixtos estilo Tailwind (`u-items-center`, `u-inline-flex`, `u-justify-between`, `u-gap-1`) que no estaban definidos en `src/estilos/utilidades.css` (el cual solo definía `u-alinear-centro`, `u-flex-inline`, `u-justificar-entre`, `u-gap-sm`, etc.).
+   - Al renderizar elementos con cadenas como `u-flex u-items-center u-gap-1`, el motor del navegador aplicaba `.u-flex` (la única existente) y omitía o descartaba las demás clases por inexistencia o inconsistencia de nombres.
+2. **Falta de Encapsulación en Componentes con CSS Modules:**
+   - En `TarjetaConsumibleAccion.tsx`, mientras los contenedores principales usaban clases de módulo (`estilos.tarjetaAtaque`, `estilos.filaMetricasConsumible`), los subcontenedores interiores de layout usaban clases utilitarias globales dispersas (`u-flex u-alinear-centro u-gap-md u-flex-1`).
+   - Además, en la tarjeta de consumibles, no se renderizaban las `notas` descriptivas del consumible (`consumible.notas`), perdiéndose información táctica contextual.
+
+**Soluciones Arquitectónicas Aplicadas:**
+1. **Aliases Universales de Flexbox en `src/estilos/utilidades.css`:**
+   - Añadidos aliases canónicos compartidos:
+     - `.u-inline-flex` (junto a `.u-flex-inline`).
+     - `.u-items-center` (junto a `.u-alinear-centro`).
+     - `.u-justify-between` (junto a `.u-justificar-entre`).
+     - `.u-gap-1` (junto a `.u-gap-sm`, 4px).
+2. **Clases Dedicadas en `VistaAtaquesJugador.module.css`:**
+   - Creadas las clases de módulo encapsuladas:
+     - `.bloqueIzquierdoConsumible` (`display: flex; align-items: center; gap: 6px;`).
+     - `.bloqueDerechoConsumible` (`display: flex; align-items: center; gap: 6px;`).
+     - `.contenedorEfectoConsumible` (`display: flex; align-items: center; gap: 6px; flex: 1 1 0%; min-width: 0;`).
+     - `.bloqueCuracionConsumible` (`display: flex; align-items: center; gap: 6px;`).
+3. **Refactorización Quirúrgica en `TarjetaConsumibleAccion.tsx`:**
+   - Reemplazadas las clases utilitarias ad-hoc por las clases tipadas de `estilos.*`, garantizando que `display: flex`, `align-items: center`, `gap` y `flex: 1` se apliquen en un solo bloque CSS seguro y hasheado.
+   - Añadido renderizado accesible de `consumible.notas` con soporte para atributo `title`.
+4. **Normalización en `CabeceraRasgosJugador.tsx` y `VistaRasgosJugador.module.css`:**
+   - Creada la clase de módulo `.grupoBotonesAccion` y aplicada en el contenedor de botones de acción rápida, eliminando la dependencia atómica.
+5. **Pruebas y Verificación:**
+   - 1,187 tests unitarios pasando al 100% (87 suites).
+   - TypeScript `tsc --noEmit` completado con 0 errores (`strict: true`).
+   - ESLint con 0 errores y 0 advertencias (`--max-warnings=0`).
+   - Verificación de límites de líneas superada con éxito (0 errores críticos).
+
 ## [2026-09-29] Corrección Furia Persistente (Bárbaro): Autodesactivación y Recarga Diferidas a la Tirada de Iniciativa
 
 **Problema Reportado por el Usuario:**

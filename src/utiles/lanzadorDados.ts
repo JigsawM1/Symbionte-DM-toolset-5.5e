@@ -416,10 +416,10 @@ export async function lanzarDadosTaleSpire(
   const nombreEtiqueta = sanitizarEtiqueta(etiqueta.trim() || "Tirada");
 
   // Si la fórmula no contiene ninguna expresión de dados real (ej. conjuro utilitario/buff/narrativo o rasgo de pool numérico como Preservar vida),
-  // procesamos de forma proactiva efectos de rasgos directos y omitimos enviar tiradas físicas a la bandeja 3D.
+  // procesamos de forma proactiva efectos de rasgos directos y omitimos enviar tiradas físicas a la bandeja 3D y mensajes al chat.
   if (!contieneExpresionDados(formula)) {
-    const state = usarAlmacenDM.getState();
     if (metaEspecialRasgo) {
+      const state = usarAlmacenDM.getState();
       const partes = formula.split(":");
       const parteNumerica = partes.length > 1 ? partes[1] : formula;
       const valorNum = parseInt(parteNumerica.replace(/[^0-9]/g, ""), 10) || 0;
@@ -432,18 +432,8 @@ export async function lanzarDadosTaleSpire(
         state.agregarNotificacion(`¡${metaEspecialRasgo.nombreRasgo} aplicado! +${valorNum} PV temporales.`, "exito");
         logger.info(`[Lanzador Dados] HP temporal directo aplicado: +${valorNum} PV temp.`);
       }
-    } else {
-      state.agregarNotificacion(`¡${etiqueta || formula}!`, "info");
-      if (ts.estaDisponible) {
-        try {
-          const mensajeChat = `**${sanitizarEtiqueta(etiqueta)}**: ${formula.replace(/^!/, "")}`;
-          await ts.chat.send(mensajeChat);
-        } catch (errChat) {
-          logger.warn("[Lanzador Dados] Error al enviar mensaje informativo al chat de TaleSpire:", errChat);
-        }
-      }
     }
-    logger.debug(`[Lanzador Dados] Fórmula no contiene dados ("${formula}"). Omitiendo tirada física.`);
+    logger.debug(`[Lanzador Dados] Fórmula no contiene dados ("${formula}"). Omitiendo tirada física y chat.`);
     return;
   }
 

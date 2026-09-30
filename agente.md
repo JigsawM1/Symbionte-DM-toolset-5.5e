@@ -10395,3 +10395,27 @@ Optimizar la complejidad temporal (Big O) en las operaciones de búsqueda, orden
 - **TypeScript**: `pnpm exec tsc --noEmit` completado con **0 errores** (Strict Mode estricto).
 - **ESLint**: `pnpm run lint` completado con **0 errores y 0 advertencias** (`--max-warnings=0`).
 - **Control de Líneas**: `node scripts/verificar-limite-lineas.js` completado con **0 errores críticos** (112 archivos auditados).
+
+---
+
+## [2026-09-30] Supresión de Spam al Chat de TaleSpire en Fórmulas sin Tirada de Dados
+
+### 1. Diagnóstico y Causa Raíz
+- **Fallo Detectado**:
+  - `src/componentes/caracteristicas/personajes/HojaPersonajeTiradas.test.ts > Tiradas de Hoja de Personaje - Convención TaleSpire y Combat Tracker > Conjuros Utilitarios y Detección de Expresiones de Dados > al lanzar un conjuro sin tirada de dados (ej. Escudo) no invoca putDiceInTray ni envía spam al chat`:
+  - `AssertionError: expected "send" to not be called at all, but actually been called 1 times`.
+- **Causa Raíz Diagnosticada**:
+  - En `src/utiles/lanzadorDados.ts`, dentro del bloque `if (!contieneExpresionDados(formula))`, se había incorporado un bloque `else` que ejecutaba `await ts.chat.send(mensajeChat)` para cualquier fórmula sin dados que no portara metadatos de rasgo (`metaEspecialRasgo`).
+  - Esto violaba el contrato arquitectónico del simbionte TaleSpire: los conjuros y acciones puramente utilitarias, narrativas o rituales sin tirada de dados (ej. *Escudo*, *Bendición*, *Identificar*) no deben saturar el chat de TaleSpire con mensajes informativos ni invocar la bandeja 3D.
+
+### 2. Solución Aplicada
+- **Modificación Quirúrgica en `src/utiles/lanzadorDados.ts`**:
+  - Se eliminó la rama `else` que llamaba a `ts.chat.send`.
+  - Se mantiene intacto el procesamiento proactivo de curación directa y HP temporal para rasgos con metadatos específicos (`metaEspecialRasgo`).
+  - Para cualquier fórmula sin dados, la función finaliza de manera silenciosa (`Omitiendo tirada física y chat`), preservando la limpieza del chat de TaleSpire.
+
+### 3. Métricas de Validación
+- **Tests Unitarios**: **87 suites superadas, 1190/1190 tests pasando (100% de éxito)**.
+- **TypeScript**: `pnpm exec tsc --noEmit` completado con **0 errores** (Strict Mode estricto).
+- **ESLint**: `pnpm run lint` completado con **0 errores y 0 advertencias** (`--max-warnings=0`).
+- **Control de Líneas**: `node scripts/verificar-limite-lineas.js` completado con **0 errores críticos** (112 archivos auditados).

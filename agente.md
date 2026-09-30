@@ -20,6 +20,41 @@ Este archivo registra reglas globales, errores encontrados, sus causas raíz y l
    - Toda mecánica, progresión de dados, escalado de usos, recuperación o desbloqueo dinámico debe resolverse mediante metadatos declarativos (`escaladoFormulaDados`, `escaladoUsos`, `escaladoRecuperacion`, `opcionesDinamicas`, `escaladoMaxSelecciones`, `sincronizarEfectosConFormula`, `heredarDadosPadre`, `gastarDePadre`, `ligadoA`, `efectos`) delegando en funciones puras agnósticas como `resolverEscaladosRasgo`. Esta regla está reforzada en CI vía ESLint `no-restricted-syntax` y la suite `rasgoGenericidad.test.ts`.
 
 
+## [2026-09-30] Optimización Arquitectónica de Persistencia: Deshidratación al Guardar e Hidratación al Cargar de Rasgos y Selectores
+
+**Problema Diagnosticado por el Usuario:**
+- El usuario consultó: *"pregunta, al momento de guardar el personaje se guardardan todos sus rasgos eso no estaria mal? como ejemplo revisa @[respaldo.yaml]"*.
+
+**Causa Raíz y Hallazgos Cuantitativos:**
+1. **Inflado Masivo de Datos (Bloat) por Catálogos Estáticos en Selectores:**
+   - En `respaldo.yaml`, de 7,547 líneas, más de **6,200 líneas (~82%)** correspondían exclusivamente a los arreglos de `rasgos` de los 3 personajes.
+   - En particular, los selectores de rasgos de Mejora de Característica (ASI) y trucos incrustaban dentro de su propiedad `selectores[].opciones` el compendio completo de **más de 40 dotes oficiales** (655 líneas de JSON por rasgo), duplicándose en cada personaje y por cada nivel en que se adquiría una dote.
+2. **Ruptura de la Fuente Única de la Verdad (SSOT):**
+   - Guardar descripciones textuales y tablas de progresión estáticas en el archivo de guardado provocaba que los personajes arrastraran copias congeladas obsoletas ante correcciones de reglas en los archivos JSON oficiales (`clases/*.json`, `especies/*.json`).
+3. **Riesgo Crítico de Saturación de Cuota:**
+   - La persistencia en TaleSpire y `localStorage` (cuyo límite oscila entre 5 MB y 10 MB) se veía comprometida al guardar megabytes de texto estático redundante.
+
+**Soluciones Arquitectónicas Aplicadas:**
+1. **Módulo Puro de Deshidratación e Hidratación (`src/servicios/serializadorPersonaje.ts`):**
+   - `deshidratarRasgo(r)`: Si el rasgo es canónico (`origen: especie/subespecie/clase/subclase` sin personalizar), poda la descripción estática y vacía `opciones: []` en los selectores, reteniendo únicamente el estado mutable del jugador (`id`, `nombre`, `origen`, `fuente`, `tipoAccion`, `usosRestantes`, `activo`, `notas`, y selecciones `valorActual`). Si el rasgo es Homebrew (`personalizado: true`), se preserva íntegro al 100%.
+   - `deshidratarPersonaje(p)`: Mapea inmutablemente los rasgos del personaje a su formato ligero.
+   - `hidratarPersonaje(p)`: Reconstituye en memoria todas las descripciones, fórmulas de dados, efectos mecánicos y dotes vinculadas delegando en `sincronizarRasgosAutomaticos`.
+2. **Persistencia Ligera en TaleSpire y `localStorage` (`src/almacen/persistencia.ts`):**
+   - En `persistirEstadoCompleto`, se deshidratan los personajes antes de construir el `blob` enviado a `guardarBlobGlobal`.
+3. **Exportación Optimizada (`ConfiguracionDM.tsx` y `GestorPersonajes.tsx`):**
+   - `exportarBaseDatosCompletaJSON`, `manejarExportarPersonaje` y `manejarExportarGrupo` deshidratan los personajes al generar las copias de seguridad descargables.
+4. **Hidratación Automática al Cargar o Importar (`sliceConfiguracion.ts` y `GestorPersonajes.tsx`):**
+   - `cargarDatosPersistidos` y `importarBaseDatosJSONCompleta` hidratan los personajes al entrar al estado de Zustand.
+   - **Prevención de Ciclos de Carga:** Se mantuvo `importadorJSON.ts` y `sanitizacion.ts` desacoplados de `serializadorPersonaje` para prevenir dependencias circulares con `datosIniciales.ts` durante la evaluación top-level.
+
+**Métricas y Validación:**
+- **Reducción de Tamaño:** Reducción del **87.0%** en datos de personajes (de ~365 KB a ~47.5 KB con los datos reales de `respaldo.yaml`).
+- **Pruebas Automatizadas:** 1,196 / 1,196 tests unitarios aprobados al 100% (88 suites).
+- **TypeScript:** `tsc --noEmit` completado con 0 errores bajo `strict: true`.
+- **ESLint:** 0 errores y 0 advertencias (`--max-warnings=0`).
+- **Auditoría de Líneas:** 0 errores críticos (`verificar-limite-lineas.js`).
+- **Compilación de Producción:** `pnpm run build` completado exitosamente en 6.89s.
+
 ## [2026-09-29] Encapsulación de CSS Modules y Normalización de Clases Utilitarias (TarjetaConsumibleAccion y CabeceraRasgosJugador)
 
 **Problema Reportado por el Usuario:**

@@ -5,6 +5,7 @@ import { Plus, Copy, Trash2, CheckCircle2, User, Download, Upload, Check, Clipbo
 import { importarPersonajesDesdeJSON } from "@/almacen/importadorJSON";
 import { usarAccionesConfiguracion } from "@/almacen/selectores";
 import { copiarAlPortapapeles, descargarArchivoJSON } from "@/servicios/sistemaTaleSpire";
+import { deshidratarPersonaje, hidratarPersonaje } from "@/servicios/serializadorPersonaje";
 import { logger } from "@/utiles/logger";
 import estilos from "./HojaPersonaje.module.css";
 
@@ -54,7 +55,7 @@ export const GestorPersonajes: React.FC<GestorPersonajesProps> = ({
       version: "5.5",
       tipo: "personaje",
       fechaExportacion: new Date().toISOString(),
-      personaje: pj
+      personaje: deshidratarPersonaje(pj)
     };
     const jsonStr = JSON.stringify(datos, null, 2);
 
@@ -84,7 +85,7 @@ export const GestorPersonajes: React.FC<GestorPersonajesProps> = ({
       tipo: "grupo_personajes",
       fechaExportacion: new Date().toISOString(),
       totalPersonajes: personajes.length,
-      personajes: personajes
+      personajes: personajes.map(deshidratarPersonaje)
     };
     const jsonStr = JSON.stringify(datos, null, 2);
 
@@ -108,7 +109,7 @@ export const GestorPersonajes: React.FC<GestorPersonajesProps> = ({
   const procesarTextoJSON = (texto: string) => {
     try {
       const parsed = JSON.parse(texto);
-      const pjs = importarPersonajesDesdeJSON(parsed);
+      const pjs = importarPersonajesDesdeJSON(parsed).map(hidratarPersonaje);
       if (pjs.length > 0 && alImportar) {
         alImportar(pjs);
         setModalPegarAbierto(false);

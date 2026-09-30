@@ -6,6 +6,7 @@ import { MONSTRUOS_INICIALES, HECHIZOS_INICIALES, OBJETOS_INICIALES } from '@/ut
 import { leerBlobGlobal, limpiarBlobGlobal } from '@/utiles/almacenamientoTaleSpire';
 import { sanearObjetoHomebrew, sanearHechizoCD, sanearMonstruoSentidosYPasiva, sanearPersonaje } from '@/almacen/sanitizacion';
 import { importarDesdeJSON, importarPersonajesDesdeJSON } from '@/almacen/importadorJSON';
+import { hidratarPersonaje } from '@/servicios/serializadorPersonaje';
 import { desduplicarEntidades } from '@/utiles/busquedaTolerante';
 import type { EstadoDM } from '@/almacen/usarAlmacenDM';
 import { generarId } from '@/utiles/generarId';
@@ -268,7 +269,7 @@ export const crearSliceConfiguracion: StateCreator<
         const personajesRaw = (blob.personajes || []) as unknown[];
         const idPersonajeActivo = blob.id_personaje_activo as string | undefined;
         if (Array.isArray(personajesRaw) && personajesRaw.length > 0) {
-          const personajesSaneados = personajesRaw.map(sanearPersonaje);
+          const personajesSaneados = personajesRaw.map(sanearPersonaje).map(hidratarPersonaje);
           set({
             personajes: personajesSaneados,
             idPersonajeActivo: idPersonajeActivo || personajesSaneados[0].id
@@ -324,7 +325,7 @@ export const crearSliceConfiguracion: StateCreator<
 
       // 1. Personajes (Ficha individual o Party Backup)
       if (Array.isArray(datosObj.personajes) || datosObj.personaje) {
-        const pjsImportados = importarPersonajesDesdeJSON(datosJSON);
+        const pjsImportados = importarPersonajesDesdeJSON(datosJSON).map(hidratarPersonaje);
         if (pjsImportados.length > 0) {
           const mapaPjs = new Map<string, PersonajeJugador>();
           estado.personajes.forEach((pj) => mapaPjs.set(pj.id, pj));

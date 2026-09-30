@@ -10,6 +10,7 @@ import { IDS_INICIALES_MONSTRUOS, IDS_INICIALES_HECHIZOS, IDS_INICIALES_OBJETOS 
 import { usarAlmacenDM } from "@/almacen/usarAlmacenDM";
 import { logger } from '@/utiles/logger';
 import { copiarAlPortapapeles, descargarArchivoJSON } from "@/servicios/sistemaTaleSpire";
+import { deshidratarPersonaje } from "@/servicios/serializadorPersonaje";
 import estilosClases from "./ConfiguracionDM.module.css";
 
 export const ConfiguracionDM: React.FC = () => {
@@ -103,7 +104,7 @@ export const ConfiguracionDM: React.FC = () => {
       monstruos: monstruosHomebrew,
       hechizos: hechizosHomebrew,
       objetos: objetosHomebrewSolo,
-      personajes: estadoActual.personajes,
+      personajes: (estadoActual.personajes || []).map(deshidratarPersonaje),
       idPersonajeActivo: estadoActual.idPersonajeActivo,
       notasDM: estadoActual.notasDM,
       listaPendientes: estadoActual.listaPendientes,

@@ -1,5 +1,6 @@
 import { IDS_INICIALES_MONSTRUOS, IDS_INICIALES_HECHIZOS, IDS_INICIALES_OBJETOS } from '@/utiles/datosIniciales';
 import { guardarBlobGlobal } from '@/utiles/almacenamientoTaleSpire';
+import { deshidratarPersonaje } from '@/servicios/serializadorPersonaje';
 import type { EstadoDM } from '@/almacen/usarAlmacenDM';
 import { logger } from '@/utiles/logger';
 
@@ -55,7 +56,7 @@ export const persistirEstadoCompleto = (estado: Partial<EstadoDM>) => {
       metodo_vida:         estado.metodoVidaMonstruo || "azar",
       sistema_magia:       estado.sistemaMagia || "espacios",
       asociaciones_fichas: estado.asociacionesFichas || {},
-      personajes:          estado.personajes || [],
+      personajes:          (estado.personajes || []).map(deshidratarPersonaje),
       id_personaje_activo: estado.idPersonajeActivo || null,
       mostrar_porcentaje_vida: estado.mostrarPorcentajeVidaAJugadores !== undefined ? estado.mostrarPorcentajeVidaAJugadores : true,
     };

@@ -28,8 +28,8 @@ interface TarjetaRasgoProps {
   rasgo: RasgoPersonaje;
   nombrePersonaje: string;
   idPersonaje?: string;
-  alGastarUso: () => void;
-  alRecuperarUso: () => void;
+  alGastarUso: (cantidad?: number) => void;
+  alRecuperarUso: (cantidad?: number) => void;
   alAlternarActivo?: () => void;
   deshabilitadoToggle?: boolean;
   motivoDeshabilitado?: string;
@@ -181,6 +181,21 @@ export const TarjetaRasgo: React.FC<TarjetaRasgoProps> = ({
               >
                 -
               </button>
+
+              {rasgo.costeFijo && rasgo.costeFijo > 1 && (
+                <button
+                  type="button"
+                  className={estilos.botonPasoUso}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    alGastarUso(rasgo.costeFijo);
+                  }}
+                  disabled={usosRestantes < (rasgo.costeFijo || 1)}
+                  title={`Gastar ${rasgo.costeFijo} usos de ${tieneUsosPropios ? rasgo.nombre : usosPadre?.nombre || "padre"}`}
+                >
+                  -{rasgo.costeFijo}
+                </button>
+              )}
 
               <span className={estilos.textoUsos}>
                 {usosRestantes} / {usosMaximos}

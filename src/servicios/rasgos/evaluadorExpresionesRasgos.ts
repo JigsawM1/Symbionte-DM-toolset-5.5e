@@ -100,8 +100,8 @@ export function evaluarEfectosRasgosActivos(personaje: PersonajeJugador): Efecto
     // Si el rasgo está desactivado explícitamente, omitirlo
     if (!estaActivo) continue;
 
-    // Si está ligado a otro rasgo, verificar que el padre esté activo
-    if (rasgo.ligadoA) {
+    // Si está ligado a otro rasgo (y no es solo delegación de gasto de padre), verificar que el padre esté activo
+    if (rasgo.ligadoA && !rasgo.gastarDePadre) {
       const padreActivo = estaRasgoActivo(personaje, rasgo.ligadoA);
       if (!padreActivo) continue;
     }

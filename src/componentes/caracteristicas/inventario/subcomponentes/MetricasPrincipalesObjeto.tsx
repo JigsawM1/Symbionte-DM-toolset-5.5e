@@ -1,5 +1,5 @@
 import React from "react";
-import { Weight, Coins, Zap } from "lucide-react";
+import { Weight, Coins, Zap, Shield } from "lucide-react";
 import type { ObjetoInventario, ObjetoJuego, Arma, Armadura } from "@/tipos";
 import estilos from "../ModalDetalleObjetoInventario.module.css";
 
@@ -11,6 +11,8 @@ interface MetricasPrincipalesObjetoProps {
   valorPO: number;
   esArma: boolean;
   esArmadura: boolean;
+  esEscudo?: boolean;
+  caEscudoEfectiva?: number;
   armaObj: Arma | null;
   armaduraObj: Armadura | null;
 }
@@ -23,6 +25,8 @@ export const MetricasPrincipalesObjeto: React.FC<MetricasPrincipalesObjetoProps>
   valorPO,
   esArma,
   esArmadura,
+  esEscudo,
+  caEscudoEfectiva,
   armaObj,
   armaduraObj
 }) => {
@@ -87,6 +91,18 @@ export const MetricasPrincipalesObjeto: React.FC<MetricasPrincipalesObjetoProps>
           </span>
           <strong className={`${estilos.valorMetrica} ${estilos.valorMetricaAzul}`}>
             CA {armaduraObj.caBase}
+          </strong>
+        </div>
+      )}
+
+      {/* CA si es Escudo */}
+      {esEscudo && (
+        <div className={estilos.cajaMetrica}>
+          <span className={estilos.etiquetaMetrica}>
+            <Shield size={11} /> Bonificador CA
+          </span>
+          <strong className={`${estilos.valorMetrica} ${estilos.valorMetricaAzul}`}>
+            +{caEscudoEfectiva ?? 2} CA
           </strong>
         </div>
       )}

@@ -190,12 +190,15 @@ describe("Módulo de Serialización, Deshidratación e Hidratación de Personaje
     if (!fs.existsSync(rutaRespaldo)) return;
 
     const datosCrudos = JSON.parse(fs.readFileSync(rutaRespaldo, "utf8"));
-    const personajesOriginales = datosCrudos.personajes as PersonajeJugador[];
-    expect(personajesOriginales.length).toBeGreaterThan(0);
+    const personajesCrudos = datosCrudos.personajes as PersonajeJugador[];
+    expect(personajesCrudos.length).toBeGreaterThan(0);
 
-    const pesoOriginal = Buffer.byteLength(JSON.stringify(personajesOriginales));
+    // Como respaldo.yaml ya contiene personajes deshidratados por la exportación,
+    // los hidratamos primero para recrear su estado completo en memoria con selectores y descripciones
+    const personajesCompletos = personajesCrudos.map(hidratarPersonaje);
+    const pesoOriginal = Buffer.byteLength(JSON.stringify(personajesCompletos));
 
-    const personajesDeshidratados = personajesOriginales.map(deshidratarPersonaje);
+    const personajesDeshidratados = personajesCompletos.map(deshidratarPersonaje);
     const pesoDeshidratado = Buffer.byteLength(JSON.stringify(personajesDeshidratados));
 
     const porcentajeReduccion = ((pesoOriginal - pesoDeshidratado) / pesoOriginal) * 100;

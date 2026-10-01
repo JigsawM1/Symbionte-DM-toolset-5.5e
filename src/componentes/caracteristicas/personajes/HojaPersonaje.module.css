@@ -721,6 +721,11 @@
   border-color: rgba(100, 116, 139, 0.3);
 }
 
+.badgeTSEnlace .indicadorTSEnlace {
+  position: static;
+  display: inline-block;
+}
+
 .cuerpoPopoverVelocidad {
   display: flex;
   flex-direction: column;
@@ -733,7 +738,7 @@
   border-radius: 6px;
   padding: 8px 10px;
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
 }
 
@@ -856,7 +861,7 @@
 }
 
 .piePopoverHistorial {
-  font-size: 10px;
+  font-size: 12px;
   color: #94a3b8;
   border-top: 1px solid rgba(148, 163, 184, 0.1);
   padding-top: 5px;
@@ -887,6 +892,7 @@
   letter-spacing: 0.5px;
 }
 
+.tituloTerreno,
 .etiquetaCabeceraTerreno {
   display: flex;
   align-items: center;

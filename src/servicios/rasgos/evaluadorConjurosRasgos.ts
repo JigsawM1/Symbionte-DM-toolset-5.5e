@@ -4,7 +4,6 @@ import {
 } from "@/tipos";
 import { CATALOGO_CLASES_DND55 } from "@/constantes/clasesDND55";
 import { normalizar } from "./utilidadesRasgos";
-import { evaluarEfectosRasgosActivos } from "./evaluadorExpresionesRasgos";
 
 /**
  * Obtiene la lista consolidada de nombres de conjuros siempre preparados otorgados directamente por rasgos
@@ -90,16 +89,72 @@ export function obtenerNombresConjurosGratuitosActivos(personaje: PersonajeJugad
   if (!personaje) return [];
   const nombres = new Set<string>();
 
-  // 1. Evaluar efectos de rasgos instanciados (incluyendo selectores con efectos)
-  const efectos = evaluarEfectosRasgosActivos(personaje);
-  for (const ef of efectos) {
-    if (ef.tipo === "conjuro_gratuito" && ef.objetivo) {
-      nombres.add(String(ef.objetivo).trim());
+  // 1. Evaluar rasgos instanciados del personaje
+  const pjNivel = personaje.nivel || 1;
+  const rasgos = personaje.rasgos || [];
+
+  for (const r of rasgos) {
+    if (r.activo === false) continue;
+    if (r.nivelRequerido && pjNivel < r.nivelRequerido) continue;
+
+    // Si el rasgo tiene usos limitados, verificar si le quedan usos disponibles
+    if (r.tieneUsosLimitados) {
+      const restantes = r.usosRestantes !== undefined ? r.usosRestantes : (r.usosMaximos ?? 1);
+      if (restantes <= 0) continue;
+    }
+
+    // A. Inferencia automática para rasgos consumibles con conjuros otorgados (DRY: Drow, Paladín, etc.)
+    if (r.tieneUsosLimitados && Array.isArray(r.conjurosOtorgados)) {
+      for (const c of r.conjurosOtorgados) {
+        if (c && c.trim()) nombres.add(c.trim());
+      }
+    }
+
+    // B. Propiedad directa conjuroGratuito en el rasgo
+    if (r.conjuroGratuito && r.conjuroGratuito.trim()) {
+      nombres.add(r.conjuroGratuito.trim());
+    }
+
+    // C. Opciones seleccionadas en selectores (ej. Invocaciones sobrenaturales)
+    if (Array.isArray(r.selectores)) {
+      for (const sel of r.selectores) {
+        if (Array.isArray(sel.valorActual)) {
+          for (const opId of sel.valorActual) {
+            const baseId = opId.includes(":")
+              ? opId.split(":")[0]
+              : opId.includes("__")
+              ? opId.split("__")[0]
+              : opId;
+            const opcion = sel.opciones?.find((o) => o.id === opId || o.id === baseId);
+            if (opcion) {
+              if (opcion.conjuroGratuito && opcion.conjuroGratuito.trim()) {
+                nombres.add(opcion.conjuroGratuito.trim());
+              }
+              if (Array.isArray(opcion.efectos)) {
+                for (const efOp of opcion.efectos) {
+                  if (efOp.tipo === "conjuro_gratuito" && efOp.objetivo) {
+                    nombres.add(String(efOp.objetivo).trim());
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
+    // C. Efectos mecánicos de tipo conjuro_gratuito directamente en el rasgo
+    if (Array.isArray(r.efectos)) {
+      for (const ef of r.efectos) {
+        if (ef.tipo === "conjuro_gratuito" && ef.objetivo) {
+          nombres.add(String(ef.objetivo).trim());
+        }
+      }
     }
   }
 
   // 2. Respaldo para personajes cuyos rasgos aún no están instanciados en ficha pero tienen clase/subclase
-  if (nombres.size === 0 && (!personaje.rasgos || personaje.rasgos.length === 0) && personaje.clase) {
+  if (nombres.size === 0 && rasgos.length === 0 && personaje.clase) {
     const claseNorm = normalizar(personaje.clase);
     const defClase = CATALOGO_CLASES_DND55.find(
       (c) => normalizar(c.nombre) === claseNorm || normalizar(c.id) === claseNorm
@@ -122,6 +177,12 @@ export function obtenerNombresConjurosGratuitosActivos(personaje: PersonajeJugad
         );
         const estaActivo = !condActivarNorm || estaActivoPorCondicion;
         if (!estaActivo) continue;
+
+        if (r.tieneUsosLimitados && Array.isArray(r.conjurosOtorgados)) {
+          for (const c of r.conjurosOtorgados) {
+            if (c && c.trim()) nombres.add(c.trim());
+          }
+        }
 
         for (const ef of r.efectos || []) {
           if (ef.tipo === "conjuro_gratuito" && ef.objetivo) {

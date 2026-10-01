@@ -4,6 +4,7 @@ import type {
   Rareza,
   Arma,
   Armadura,
+  Escudo,
   ObjetoJuego
 } from "@/tipos";
 import estilos from "../ModalDetalleObjetoInventario.module.css";
@@ -94,8 +95,11 @@ export const usarDetalleObjetoInventario = ({
 
   const esArma = objeto.categoria === "armas" || objetoBase?.categoria === "armas";
   const esArmadura = objeto.categoria === "armaduras" || objetoBase?.categoria === "armaduras";
+  const esEscudo = objeto.categoria === "escudos" || objetoBase?.categoria === "escudos";
   const armaObj = esArma && (objetoBase?.categoria === "armas" || (objetoBase as Arma)?.tipoAtaque) ? (objetoBase as Arma) : null;
   const armaduraObj = esArmadura && (objetoBase?.categoria === "armaduras" || (objetoBase as Armadura)?.caBase !== undefined) ? (objetoBase as Armadura) : null;
+  const escudoObj = esEscudo && (objetoBase?.categoria === "escudos" || (objetoBase as Escudo)?.caBase !== undefined) ? (objetoBase as Escudo) : null;
+  const caEscudoEfectiva = objeto.caBase ?? escudoObj?.caBase ?? 2;
   const descripcion = objetoBase?.descripcion || objeto.notas || "";
 
   const manejarGuardarNotas = () => {
@@ -117,8 +121,11 @@ export const usarDetalleObjetoInventario = ({
     puedeSintonizar,
     esArma,
     esArmadura,
+    esEscudo,
     armaObj,
     armaduraObj,
+    escudoObj,
+    caEscudoEfectiva,
     descripcion,
     notasTemp,
     setNotasTemp,

@@ -504,4 +504,125 @@ describe("Agrupación de Canalizar Divinidad en Clérigo (D&D 5.5e)", () => {
       expect(resNv20.formulaDadosEfectiva).toBe("100");
     });
   });
+
+  describe("Paladín D&D 5.5 - Agrupación Jerárquica UI", () => {
+    it("agrupa Canalizar divinidad, Sentidos divinos, Abjurar enemigos y opciones de juramento en mc.rasgosCanalizarDivinidad", () => {
+      const canalizar: RasgoPersonaje = {
+        id: "rasgo_cls_paladin_canalizar_divinidad",
+        nombre: "Canalizar divinidad",
+        descripcion: "Canalizas energía divina.",
+        tipoAccion: "accion",
+        categoriaMecanica: "consumible",
+        tieneUsosLimitados: true,
+        usosMaximos: 2,
+        usosRestantes: 2,
+        origen: "clase",
+        fuente: "Paladín (Nivel 3)",
+        recuperacion: "descanso_corto",
+        personalizado: false,
+        activo: true,
+        notas: "",
+        nivelRequerido: 3
+      };
+      const sentidos: RasgoPersonaje = {
+        id: "rasgo_cls_paladin_sentidos_divinos",
+        nombre: "Sentidos divinos",
+        descripcion: "Sientes el bien y el mal.",
+        tipoAccion: "accion_adicional",
+        categoriaMecanica: "consumible",
+        tieneUsosLimitados: false,
+        origen: "clase",
+        fuente: "Paladín (Nivel 3)",
+        recuperacion: "ninguno",
+        personalizado: false,
+        activo: true,
+        notas: "",
+        ligadoA: "Canalizar divinidad",
+        nivelRequerido: 3
+      };
+      const abjurar: RasgoPersonaje = {
+        id: "rasgo_cls_paladin_abjurar_enemigos",
+        nombre: "Abjurar enemigos",
+        descripcion: "Abjuras a tus enemigos.",
+        tipoAccion: "accion",
+        categoriaMecanica: "consumible",
+        tieneUsosLimitados: false,
+        origen: "clase",
+        fuente: "Paladín (Nivel 9)",
+        recuperacion: "ninguno",
+        personalizado: false,
+        activo: true,
+        notas: "",
+        ligadoA: "Canalizar divinidad",
+        nivelRequerido: 9
+      };
+      const imposicion: RasgoPersonaje = {
+        id: "rasgo_cls_paladin_imposicion_de_manos",
+        nombre: "Imposición de manos",
+        descripcion: "Curas con tus manos.",
+        tipoAccion: "accion",
+        categoriaMecanica: "consumible",
+        tieneUsosLimitados: true,
+        usosMaximos: 45,
+        usosRestantes: 45,
+        origen: "clase",
+        fuente: "Paladín (Nivel 1)",
+        recuperacion: "descanso_largo",
+        personalizado: false,
+        activo: true,
+        notas: "",
+        nivelRequerido: 1
+      };
+      const aura: RasgoPersonaje = {
+        id: "rasgo_cls_paladin_aura_de_proteccion",
+        nombre: "Aura de protección",
+        descripcion: "Bonificador a salvaciones.",
+        tipoAccion: "pasivo",
+        categoriaMecanica: "pasivo_permanente",
+        tieneUsosLimitados: false,
+        origen: "clase",
+        fuente: "Paladín (Nivel 6)",
+        recuperacion: "ninguno",
+        personalizado: false,
+        activo: true,
+        notas: "",
+        nivelRequerido: 6
+      };
+      const armaSagrada: RasgoPersonaje = {
+        id: "rasgo_sub_entrega_arma_sagrada",
+        nombre: "Arma sagrada",
+        descripcion: "Imbuyes tu arma de energía.",
+        tipoAccion: "accion_adicional",
+        categoriaMecanica: "consumible",
+        tieneUsosLimitados: false,
+        origen: "subclase",
+        fuente: "Paladín (Juramento de Entrega - Nivel 3)",
+        recuperacion: "ninguno",
+        personalizado: false,
+        activo: true,
+        notas: "",
+        ligadoA: "Canalizar divinidad",
+        nivelRequerido: 3
+      };
+
+      const todos = [imposicion, canalizar, sentidos, aura, abjurar, armaSagrada];
+      const datosJerarquicos = agruparRasgosJerarquicos(todos, [
+        { nombre: "Paladín", subclase: "Juramento de Entrega", nivel: 9 }
+      ]);
+
+      const grupoPaladin = datosJerarquicos.clases[0];
+      expect(grupoPaladin).toBeDefined();
+
+      const nombresCanalizar = grupoPaladin.rasgosCanalizarDivinidad.map((r) => r.nombre);
+      expect(nombresCanalizar).toContain("Canalizar divinidad");
+      expect(nombresCanalizar).toContain("Sentidos divinos");
+      expect(nombresCanalizar).toContain("Abjurar enemigos");
+      expect(nombresCanalizar).toContain("Arma sagrada");
+
+      const nombresBase = grupoPaladin.rasgosBase.map((r) => r.nombre);
+      expect(nombresBase).toContain("Imposición de manos");
+      expect(nombresBase).toContain("Aura de protección");
+      expect(nombresBase).not.toContain("Canalizar divinidad");
+    });
+  });
 });

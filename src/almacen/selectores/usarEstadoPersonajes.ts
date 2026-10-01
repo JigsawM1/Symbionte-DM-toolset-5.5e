@@ -83,6 +83,24 @@ export interface EstadisticasCalculadasPersonaje {
 }
 
 
+/**
+ * Extrae de forma segura el bonificador o valor de CA especificado en una cadena de propiedades
+ * (por ejemplo "Escudo, CA +3", "+2 CA", "CA 15").
+ */
+export function extraerCaDePropiedades(propiedades?: string | string[]): number | null {
+  if (!propiedades) return null;
+  const texto = Array.isArray(propiedades) ? propiedades.join(" ") : String(propiedades);
+  const matchBono = texto.match(/CA\s*\+\s*(\d+)/i) || texto.match(/\+\s*(\d+)\s*CA/i);
+  if (matchBono) {
+    return parseInt(matchBono[1], 10);
+  }
+  const matchFijo = texto.match(/CA\s*(\d+)/i);
+  if (matchFijo) {
+    return parseInt(matchFijo[1], 10);
+  }
+  return null;
+}
+
 const cacheEstadisticasPersonaje = new WeakMap<PersonajeJugador, EstadisticasCalculadasPersonaje>();
 
 /**
@@ -364,6 +382,16 @@ export function calcularEstadisticasPersonaje(pj: PersonajeJugador): Estadistica
     (o) => o.equipado && o.categoria === "escudos"
   );
 
+  const armaduraBase = armaduraObj
+    ? (homebrews.find((b) => b.id === armaduraObj.idObjeto || normalizar(b.nombre) === normalizar(armaduraObj.nombre)) ||
+       OBJETOS_INICIALES.find((b) => b.id === armaduraObj.idObjeto || normalizar(b.nombre) === normalizar(armaduraObj.nombre)))
+    : undefined;
+
+  const escudoBase = escudoObj
+    ? (homebrews.find((b) => b.id === escudoObj.idObjeto || normalizar(b.nombre) === normalizar(escudoObj.nombre)) ||
+       OBJETOS_INICIALES.find((b) => b.id === escudoObj.idObjeto || normalizar(b.nombre) === normalizar(escudoObj.nombre)))
+    : undefined;
+
   let caBase = 10;
   let modDesAplicado = modificadores.destreza || 0;
   let tipoArmadura: InformacionCA["tipoArmadura"] = "Sin Armadura";
@@ -392,10 +420,34 @@ export function calcularEstadisticasPersonaje(pj: PersonajeJugador): Estadistica
         modDesAplicado = 0;
       }
     } else {
-      // Fallback para armaduras homebrew / custom
-      caBase = 11; // Base genérica
-      tipoArmadura = "Ligera";
-      modDesAplicado = modificadores.destreza;
+      // Soporte integral para armaduras homebrew / custom
+      const caBaseHomebrew =
+        armaduraObj.caBase ??
+        (armaduraBase && "caBase" in armaduraBase ? Number((armaduraBase as { caBase: number }).caBase) : undefined) ??
+        extraerCaDePropiedades(armaduraObj.propiedades) ??
+        extraerCaDePropiedades(armaduraBase?.propiedades) ??
+        11;
+      caBase = caBaseHomebrew;
+
+      const subcatNorm = normalizar(armaduraObj.subcategoria || armaduraBase?.subcategoria || "");
+      const bonoDesNorm = normalizar(
+        String(
+          armaduraObj.bonoDestreza ||
+          (armaduraBase && "bonoDestreza" in armaduraBase ? (armaduraBase as { bonoDestreza: string }).bonoDestreza : "")
+        )
+      );
+
+      if (subcatNorm.includes("pesada") || bonoDesNorm.includes("sin")) {
+        tipoArmadura = "Pesada";
+        modDesAplicado = 0;
+      } else if (subcatNorm.includes("mediana") || bonoDesNorm.includes("max") || bonoDesNorm.includes("2")) {
+        tipoArmadura = "Mediana";
+        const limiteDesEfectivo = pj ? obtenerLimiteDesArmaduraMedia(pj) : 2;
+        modDesAplicado = Math.min(limiteDesEfectivo, Math.max(0, modificadores.destreza));
+      } else {
+        tipoArmadura = "Ligera";
+        modDesAplicado = modificadores.destreza;
+      }
     }
     desglosePartes.push(`${armaduraObj.nombre} ${caBase}`);
     if (modDesAplicado !== 0) {
@@ -439,13 +491,36 @@ export function calcularEstadisticasPersonaje(pj: PersonajeJugador): Estadistica
     }
   }
 
-  // 2. Escudo
+  // 2. Escudo (Soporte dinámico para escudos estándar (+2) o con caBase personalizada (+3, etc.))
   let bonoEscudo = 0;
   let escudoNombre: string | null = null;
+  let bonoMagicoEscudoPorNombre = 0;
+
   if (escudoObj) {
     escudoNombre = escudoObj.nombre;
-    bonoEscudo = 2;
-    desglosePartes.push(`${escudoObj.nombre} +2`);
+    const caBaseEscudo =
+      escudoObj.caBase ??
+      (escudoBase && "caBase" in escudoBase ? Number((escudoBase as { caBase: number }).caBase) : undefined) ??
+      extraerCaDePropiedades(escudoObj.propiedades) ??
+      extraerCaDePropiedades(escudoBase?.propiedades) ??
+      2;
+
+    bonoEscudo = caBaseEscudo;
+
+    if (escudoObj.esMagico && escudoObj.nombre) {
+      const match = escudoObj.nombre.match(/\+(\d+)/);
+      if (match) {
+        const b = parseInt(match[1], 10);
+        // Si caBaseEscudo ya contempla el bono mágico (> 2 y >= 2 + b), no duplicar
+        if (caBaseEscudo > 2 && caBaseEscudo >= 2 + b) {
+          // Ya contemplado en caBaseEscudo
+        } else {
+          bonoMagicoEscudoPorNombre = b;
+        }
+      }
+    }
+
+    desglosePartes.push(`${escudoObj.nombre} +${bonoEscudo}`);
   }
 
   // 3. Bonos Mágicos y Efectos Pasivos de CA
@@ -458,13 +533,9 @@ export function calcularEstadisticasPersonaje(pj: PersonajeJugador): Estadistica
       desglosePartes.push(`Magia +${b}`);
     }
   }
-  if (escudoObj?.esMagico && escudoObj.nombre) {
-    const match = escudoObj.nombre.match(/\+(\d+)/);
-    if (match) {
-      const b = parseInt(match[1], 10);
-      bonosMagicos += b;
-      desglosePartes.push(`Escudo Mágico +${b}`);
-    }
+  if (bonoMagicoEscudoPorNombre > 0) {
+    bonosMagicos += bonoMagicoEscudoPorNombre;
+    desglosePartes.push(`Escudo Mágico +${bonoMagicoEscudoPorNombre}`);
   }
 
   let bonosPasivosCA = 0;
@@ -500,7 +571,21 @@ export function calcularEstadisticasPersonaje(pj: PersonajeJugador): Estadistica
   if (armaduraObj) {
     const nombreNorm = normalizar(armaduraObj.nombre);
     const refOficial = ARMADURAS_OFICIALES[nombreNorm];
-    if (refOficial?.desventajaSigilo || (armaduraObj.notas && normalizar(armaduraObj.notas).includes("desventaja en sigilo"))) {
+    if (
+      refOficial?.desventajaSigilo ||
+      armaduraObj.desventajaSigilo ||
+      (armaduraBase && "desventajaSigilo" in armaduraBase && !!(armaduraBase as { desventajaSigilo: boolean }).desventajaSigilo) ||
+      (armaduraObj.notas && normalizar(armaduraObj.notas).includes("desventaja en sigilo"))
+    ) {
+      desventajaSigiloArmadura = true;
+    }
+  }
+  if (escudoObj) {
+    if (
+      escudoObj.desventajaSigilo ||
+      (escudoBase && "desventajaSigilo" in escudoBase && !!(escudoBase as { desventajaSigilo: boolean }).desventajaSigilo) ||
+      (escudoObj.notas && normalizar(escudoObj.notas).includes("desventaja en sigilo"))
+    ) {
       desventajaSigiloArmadura = true;
     }
   }

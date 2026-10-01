@@ -242,4 +242,59 @@ describe("SeccionRasgosAtaque - Función de Ocultar Rasgos Tácticos", () => {
     expect(html).not.toContain("Oleada de Acción");
     expect(html).not.toContain("Segundo Aliento");
   });
+
+  it("renderiza las subsecciones en el orden solicitado: Activables de primero, luego Recursos y después el resto", () => {
+    const rasgoActivable = crearRasgoPrueba({
+      id: "rasgo-activable-test",
+      nombre: "Defensa Adaptativa",
+      esActivable: true,
+      tipoAccion: "especial"
+    });
+    const rasgoConsumible = crearRasgoPrueba({
+      id: "rasgo-consumible-test",
+      nombre: "Imposición de Manos",
+      tieneUsosLimitados: true,
+      usosMaximos: 15,
+      usosRestantes: 15,
+      tipoAccion: "accion"
+    });
+
+    const itemActivable = crearRasgoAccionPrueba(rasgoActivable, ["activable"]);
+    const itemConsumible = crearRasgoAccionPrueba(rasgoConsumible, ["consumible"]);
+
+    const html = renderToStaticMarkup(
+      <SeccionRasgosAtaque
+        {...propsBase}
+        rasgosFiltrados={[
+          itemOleadaAccion,
+          itemSegundoAliento,
+          itemDesviarProyectiles,
+          itemConsumible,
+          itemActivable
+        ]}
+        rasgosActivables={[itemActivable]}
+        rasgosConsumibles={[itemConsumible]}
+        rasgosAcciones={[itemOleadaAccion]}
+        rasgosAccionesAdicionales={[itemSegundoAliento]}
+        rasgosReacciones={[itemDesviarProyectiles]}
+      />
+    );
+
+    const posActivables = html.indexOf("Activables y Modos de Combate");
+    const posConsumibles = html.indexOf("Recursos Tácticos y Consumibles");
+    const posAcciones = html.indexOf("<span>Acciones</span>");
+    const posAdicionales = html.indexOf("<span>Acciones Adicionales</span>");
+    const posReacciones = html.indexOf("<span>Reacciones</span>");
+
+    expect(posActivables).toBeGreaterThan(-1);
+    expect(posConsumibles).toBeGreaterThan(-1);
+    expect(posAcciones).toBeGreaterThan(-1);
+    expect(posAdicionales).toBeGreaterThan(-1);
+    expect(posReacciones).toBeGreaterThan(-1);
+
+    expect(posActivables).toBeLessThan(posConsumibles);
+    expect(posConsumibles).toBeLessThan(posAcciones);
+    expect(posAcciones).toBeLessThan(posAdicionales);
+    expect(posAdicionales).toBeLessThan(posReacciones);
+  });
 });

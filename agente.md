@@ -11011,3 +11011,32 @@ Optimizar la complejidad temporal (Big O) en las operaciones de búsqueda, orden
 - **TypeScript**: `pnpm exec tsc --noEmit` completado con **0 errores** (Strict Mode estricto).
 - **Gestor de Paquetes**: Uso 100% exclusivo de `pnpm`. Cero comandos con npm o yarn.
 - **Idioma y Estilo**: Todo en español y sin emojis.
+
+---
+
+## [2026-10-01] Ajuste de UI: Jerarquía de Subsecciones en Rasgos y Habilidades Tácticas (`SeccionRasgosAtaque.tsx`)
+
+### 1. Requerimiento del Usuario
+- En la sección "Rasgos y Habilidades Tácticas" de la pestaña de Acciones:
+  - Posicionar la subsección **"Activables y Modos de Combate"** en primer lugar.
+  - Posicionar la subsección **"Recursos Tácticos y Consumibles"** en segundo lugar.
+  - Mantener a continuación las restantes subsecciones ("Acciones", "Acciones Adicionales", "Reacciones") y "Rasgos Ocultos" al final.
+
+### 2. Modificaciones Quirúrgicas
+1. **Reordenación Declarativa en el JSX (`src/componentes/caracteristicas/ataques/SeccionRasgosAtaque.tsx`)**:
+   - Se reestructuró la renderización condicional de subsecciones dentro de `estilos.listaSeccionesNivelMagico`:
+     1. `activablesVisibles` ("Activables y Modos de Combate").
+     2. `consumiblesVisibles` ("Recursos Tácticos y Consumibles").
+     3. `accionesVisibles` ("Acciones").
+     4. `adicionalesVisibles` ("Acciones Adicionales").
+     5. `reaccionesVisibles` ("Reacciones").
+     6. `subseccionOcultos` ("Rasgos Ocultos").
+   - Se actualizó el estado persistido por defecto de `subseccionesAbiertas` para reflejar la misma jerarquía.
+2. **Pruebas de Regresión (`src/componentes/caracteristicas/ataques/SeccionRasgosAtaque.test.tsx`)**:
+   - Se incorporó una nueva prueba que verifica los índices de aparición en el DOM generado para asegurar que el orden estipulado se respete sin excepciones.
+
+### 3. Métricas de Validación
+- **Tests Unitarios**: `pnpm vitest run src/componentes/caracteristicas/ataques/SeccionRasgosAtaque.test.tsx` superado con 8/8 tests exitosos.
+- **TypeScript**: `pnpm exec tsc --noEmit` completado con 0 errores (modo estricto).
+- **Gestor de Paquetes**: 100% `pnpm`.
+- **Idioma y Estilo**: 100% en español.

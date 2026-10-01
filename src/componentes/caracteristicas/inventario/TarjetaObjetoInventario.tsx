@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from "react";
-import type { ObjetoInventario, Rareza, TipoContenedor, ObjetoJuego, Arma, Armadura } from "@/tipos";
-import { Swords, Link2, Trash2, Plus, Minus, Zap, Sparkles, Heart, PackageOpen, FlaskConical, Target, GripVertical } from "lucide-react";
+import type { ObjetoInventario, Rareza, TipoContenedor, ObjetoJuego, Arma, Armadura, Escudo } from "@/tipos";
+import { Swords, Link2, Trash2, Plus, Minus, Zap, Sparkles, Heart, PackageOpen, FlaskConical, Target, GripVertical, Shield } from "lucide-react";
 import { ConfirmDialog } from "@/componentes/comunes/ConfirmDialog";
 import { TooltipUniversal } from "@/componentes/comunes/TooltipUniversal";
 import { esObjetoEquipable } from "@/servicios/procesadorEquipamiento";
@@ -101,6 +101,9 @@ export const TarjetaObjetoInventario: React.FC<TarjetaObjetoInventarioProps> = R
   const armaObj = esArma && (objetoBase?.categoria === "armas" || (objetoBase as Arma)?.tipoAtaque) ? (objetoBase as Arma) : null;
   const esArmadura = objeto.categoria === "armaduras" || objetoBase?.categoria === "armaduras";
   const armaduraObj = esArmadura && (objetoBase?.categoria === "armaduras" || (objetoBase as Armadura)?.caBase !== undefined) ? (objetoBase as Armadura) : null;
+  const esEscudo = objeto.categoria === "escudos" || objetoBase?.categoria === "escudos";
+  const escudoObj = esEscudo && (objetoBase?.categoria === "escudos" || (objetoBase as Escudo)?.caBase !== undefined) ? (objetoBase as Escudo) : null;
+  const caEscudoEfectiva = objeto.caBase ?? escudoObj?.caBase ?? 2;
   const maestria = armaObj?.maestria;
 
   // 1. Estado detallado de almacenamiento si este ítem es Munición
@@ -262,7 +265,19 @@ export const TarjetaObjetoInventario: React.FC<TarjetaObjetoInventarioProps> = R
                 </TooltipUniversal>
               );
             })}
-            {armaduraObj?.desventajaSigilo && (() => {
+            {esEscudo && (
+              <TooltipUniversal
+                titulo="Bonificador de Escudo"
+                contenido={`Otorga +${caEscudoEfectiva} a la Clase de Armadura mientras esté equipado.`}
+                posicion="arriba"
+              >
+                <span className={`${estilos.badgeMeta} ${estilos.badgeCaArmadura}`}>
+                  <Shield size={9} className={estilos.iconoBadgeInline} />
+                  +{caEscudoEfectiva} CA
+                </span>
+              </TooltipUniversal>
+            )}
+            {(armaduraObj?.desventajaSigilo || escudoObj?.desventajaSigilo || objeto.desventajaSigilo) && (() => {
               const infoSigilo = obtenerInfoPropiedadArmadura("desventajaSigilo");
               return (
                 <TooltipUniversal
@@ -276,8 +291,9 @@ export const TarjetaObjetoInventario: React.FC<TarjetaObjetoInventarioProps> = R
                 </TooltipUniversal>
               );
             })()}
-            {armaduraObj?.requisitoFuerza && (() => {
-              const infoFue = obtenerInfoPropiedadArmadura("requisitoFuerza", armaduraObj.requisitoFuerza);
+            {(armaduraObj?.requisitoFuerza || objeto.requisitoFuerza) && (() => {
+              const reqFue = armaduraObj?.requisitoFuerza || objeto.requisitoFuerza;
+              const infoFue = obtenerInfoPropiedadArmadura("requisitoFuerza", reqFue);
               return (
                 <TooltipUniversal
                   titulo={infoFue.titulo}
@@ -285,7 +301,7 @@ export const TarjetaObjetoInventario: React.FC<TarjetaObjetoInventarioProps> = R
                   posicion="arriba"
                 >
                   <span className={`${estilos.badgeMeta} ${estilos.badgeRequisitoFuerza}`}>
-                    FUE {armaduraObj.requisitoFuerza}
+                    FUE {reqFue}
                   </span>
                 </TooltipUniversal>
               );

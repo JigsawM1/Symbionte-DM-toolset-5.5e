@@ -59,8 +59,10 @@ export const ModalDetalleObjetoInventario: React.FC<ModalDetalleObjetoInventario
     puedeSintonizar,
     esArma,
     esArmadura,
+    esEscudo,
     armaObj,
     armaduraObj,
+    caEscudoEfectiva,
     descripcion,
     notasTemp,
     setNotasTemp,
@@ -99,6 +101,8 @@ export const ModalDetalleObjetoInventario: React.FC<ModalDetalleObjetoInventario
             valorPO={valorPO}
             esArma={esArma}
             esArmadura={esArmadura}
+            esEscudo={esEscudo}
+            caEscudoEfectiva={caEscudoEfectiva}
             armaObj={armaObj}
             armaduraObj={armaduraObj}
           />

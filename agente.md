@@ -17,7 +17,42 @@ Este archivo registra reglas globales, errores encontrados, sus causas raíz y l
    - **Bajo ninguna circunstancia** los módulos de lógica de negocio (`servicios/`), gestores de estado (`almacen/`), contratos (`tipos/`), valores de reglas (`constantes/`) ni funciones de soporte (`utiles/`) deben importar componentes visuales o archivos CSS (`componentes/`). Esta regla está reforzada en CI vía ESLint `no-restricted-imports`.
 6. **PROHIBICIÓN ESTRICTA DE BIFURCACIONES POR NOMBRE DE RASGO O CLASE (CATÁLOGO DECLARATIVO Y BUILDER PURO)**:
    - **Bajo ninguna circunstancia** los módulos de lógica de negocio (`servicios/`), gestores de estado (`almacen/`) o constructores (`gestorClases.ts`) deben contener bifurcaciones condicionales por nombre literal de rasgo o clase (`r.nombre === "..."`, `clase.includes("...")`, etc.).
-   - Toda mecánica, progresión de dados, escalado de usos, recuperación o desbloqueo dinámico debe resolverse mediante metadatos declarativos (`escaladoFormulaDados`, `escaladoUsos`, `escaladoRecuperacion`, `opcionesDinamicas`, `escaladoMaxSelecciones`, `sincronizarEfectosConFormula`, `heredarDadosPadre`, `gastarDePadre`, `ligadoA`, `efectos`) delegando en funciones puras agnósticas como `resolverEscaladosRasgo`. Esta regla está reforzada en CI vía ESLint `no-restricted-syntax` y la suite `rasgoGenericidad.test.ts`.
+## [2026-10-01] Corrección de Bonificador de CA Dinámico en Escudos y Armaduras Homebrew (caBase y Propiedades)
+
+**Problema Reportado por el Usuario:**
+- *"cree este objeto. y no me esta dando el +3 al CA me esta dando el +2 como si fuera escudo normal"* (objeto: "Aspis del Baluarte Inquebrantable Armadura" con `caBase: 3` y `propiedades: "Escudo, CA +3"`).
+
+**Causas Raíz Diagnosticadas:**
+1. **Valor Hardcodeado de Escudo en Selector de Estadísticas (`usarEstadoPersonajes.ts`):**
+   - La sección de cálculo de escudo tenía `bonoEscudo = 2;` y `${escudoObj.nombre} +2` de forma literal e inflexible.
+   - Omitía la consulta de `caBase` en el objeto de inventario y no resolvía el objeto correspondiente (`escudoBase`) contra el compendio o la lista de homebrews del store.
+2. **Pérdida de Propiedades Defensivas en el Esquema de Inventario (`src/tipos/personaje.ts` y `calculadorInventario.ts`):**
+   - `EsquemaObjetoInventario` no declaraba `caBase`, `propiedades`, `desventajaSigilo`, `requisitoFuerza` ni `bonoDestreza`.
+   - Las factories `crearObjetoInventarioDesdeCompendio` y `crearObjetoInventarioCustom` no transferían estos campos al instanciar el ítem dentro del inventario del personaje.
+3. **Hardcoding en Componentes de UI (`ModalAgregarObjeto.tsx`, `MetricasPrincipalesObjeto.tsx`, `TarjetaObjetoInventario.tsx`):**
+   - El subtítulo en el modal de agregar objeto mostraba estáticamente `CA +2`.
+   - El modal de detalle y la tarjeta de inventario no exponían la métrica de bonificador defensivo para escudos con CA personalizada ni contemplaban desventajas de sigilo en escudos pesados (como paveses o torres).
+
+**Soluciones Técnicas Aplicadas:**
+1. **Resolución en Cascada de Bonificador de Escudo en `usarEstadoPersonajes.ts`:**
+   - Se implementó la resolución agnóstica:
+     `const caBaseEscudo = escudoObj.caBase ?? escudoBase?.caBase ?? extraerCaDePropiedades(escudoObj.propiedades) ?? extraerCaDePropiedades(escudoBase?.propiedades) ?? 2;`
+   - Se añadió la función pura `extraerCaDePropiedades` para obtener mediante expresiones regulares bonificadores declarativos en propiedades (ej. `"CA +3"`, `"+2 CA"`, `"CA 15"`).
+   - Se añadió protección contra doble conteo si el nombre del escudo incluye sufijo mágico (ej. `+1`) pero la `caBase` ya reflejaba el valor total.
+2. **Blindaje de Tipos y Preservación en Inventario:**
+   - Incorporados `caBase`, `propiedades`, `desventajaSigilo`, `requisitoFuerza` y `bonoDestreza` en `EsquemaObjetoInventario`.
+   - Mapeo tipado en `crearObjetoInventarioDesdeCompendio` y `crearObjetoInventarioCustom`.
+3. **Enriquecimiento Visual en Componentes de UI:**
+   - `ModalAgregarObjeto.tsx`: subtítulo dinámico `CA +${caEscudo}`.
+   - `MetricasPrincipalesObjeto.tsx` y `usarDetalleObjetoInventario.ts`: detección de `esEscudo` y renderizado de la caja métrica `+X CA`.
+   - `TarjetaObjetoInventario.tsx`: badge `+X CA` e inferencia de desventaja en sigilo y fuerza requerida tanto para armaduras corporales como escudos.
+4. **Validación Integral del Pipeline:**
+   - `tsc --noEmit`: 0 errores con `strict: true`.
+   - `pnpm run lint`: 0 errores y 0 advertencias (`--max-warnings=0`).
+   - `pnpm test`: 92 suites y 1,294 pruebas aprobadas al 100% (añadidos 3 tests específicos para escudos con `caBase: 3` y propiedades).
+   - `pnpm run verificar:lineas`: 0 errores críticos.
+   - `pnpm exec vite build`: Compilación exitosa en 13.02s.
+
 ## [2026-10-01] Consolidación de Ramas (Tryn -> main) y Hotfix de Estilos Modulares en Métrica de Movimiento
 
 **Contexto del Cambio:**

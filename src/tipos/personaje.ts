@@ -274,7 +274,12 @@ export const EsquemaObjetoInventario = z.object({
   hechizosVinculados: z.array(EsquemaHechizoVinculado).optional(),
   efectosPasivos: z.array(EsquemaEfectoPasivo).optional(),
   modificadorAtaqueDano: z.number().optional(),
-  contents: z.array(EsquemaItemContenido).optional()
+  contents: z.array(EsquemaItemContenido).optional(),
+  caBase: z.number().optional(),
+  propiedades: z.union([z.string(), z.array(z.string())]).optional(),
+  desventajaSigilo: z.boolean().optional(),
+  requisitoFuerza: z.number().optional(),
+  bonoDestreza: z.enum(["Completo", "Máximo 2", "Sin Bono"]).optional()
 });
 export type ObjetoInventario = z.infer<typeof EsquemaObjetoInventario>;
 

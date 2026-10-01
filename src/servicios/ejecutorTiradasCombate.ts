@@ -125,11 +125,15 @@ export async function ejecutarTiradaAtaqueFisico(ctx: ContextoTiradaAtaqueFisico
 export async function ejecutarTiradaDanoFisico(
   ataque: AtaquePersonajeCalculado,
   personajeActivo: PersonajeJugador | null,
-  esVersatil: boolean = false
+  modo: boolean | "adicional" = false
 ): Promise<void> {
   try {
     const nombrePj = personajeActivo?.nombre?.trim() || "Personaje";
-    const formulaRaw = esVersatil && ataque.danoVersatil ? ataque.danoVersatil : ataque.dadoDano;
+    const esAdic = modo === "adicional";
+    const esVersatil = modo === true;
+    const formulaRaw = esAdic && ataque.danoAccionAdicional
+      ? ataque.danoAccionAdicional
+      : (esVersatil && ataque.danoVersatil ? ataque.danoVersatil : ataque.dadoDano);
 
     const subgrupos = formulaRaw.split("/");
     const subgruposTipos = (ataque.tipoDano || "").split("/").map((t) => t.trim()).filter(Boolean);
@@ -140,7 +144,8 @@ export async function ejecutarTiradaDanoFisico(
       const tipoEspecifico = subgruposTipos[i];
       let etiquetaSub: string;
       if (i === 0) {
-        etiquetaSub = `${nombrePj} - Daño ${ataque.nombre}${esVersatil ? " (A dos manos)" : ""}`;
+        const sufijoModo = esAdic ? " (Acción adicional)" : (esVersatil ? " (A dos manos)" : "");
+        etiquetaSub = `${nombrePj} - Daño ${ataque.nombre}${sufijoModo}`;
       } else {
         const tipoTexto = tipoEspecifico?.trim() || "Extra";
         const prefijo = tipoTexto.toLowerCase().startsWith("daño") || tipoTexto.toLowerCase().startsWith("dano")
@@ -172,11 +177,15 @@ export async function ejecutarTiradaDanoFisico(
 export async function ejecutarTiradaCritico(
   ataque: AtaquePersonajeCalculado,
   personajeActivo: PersonajeJugador | null,
-  esVersatil: boolean = false
+  modo: boolean | "adicional" = false
 ): Promise<void> {
   try {
     const nombrePj = personajeActivo?.nombre?.trim() || "Personaje";
-    const dadoBaseRaw = esVersatil && ataque.dadoVersatilBase ? ataque.dadoVersatilBase : ataque.dadoDanoBase;
+    const esAdic = modo === "adicional";
+    const esVersatil = modo === true;
+    const dadoBaseRaw = esAdic && ataque.dadoAccionAdicionalBase
+      ? ataque.dadoAccionAdicionalBase
+      : (esVersatil && ataque.dadoVersatilBase ? ataque.dadoVersatilBase : ataque.dadoDanoBase);
     const mod = ataque.modificadorDano;
 
     const subgruposBase = dadoBaseRaw.split("/");
@@ -188,7 +197,8 @@ export async function ejecutarTiradaCritico(
       const tipoEspecifico = subgruposTipos[i];
       let etiquetaSub: string;
       if (i === 0) {
-        etiquetaSub = `${nombrePj} - CRÍTICO ${ataque.nombre}${esVersatil ? " (A dos manos)" : ""}`;
+        const sufijoModo = esAdic ? " (Acción adicional)" : (esVersatil ? " (A dos manos)" : "");
+        etiquetaSub = `${nombrePj} - CRÍTICO ${ataque.nombre}${sufijoModo}`;
       } else {
         const tipoTexto = tipoEspecifico?.trim() || "Extra";
         const prefijoCrit = tipoTexto.toLowerCase().startsWith("daño") || tipoTexto.toLowerCase().startsWith("dano")

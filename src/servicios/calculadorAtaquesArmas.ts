@@ -417,6 +417,99 @@ export function generarListaAtaquesFisicos(
   const ataqueDesarmado = calcularAtaqueDesarmado(contextoComun);
   ataques.push(ataqueDesarmado);
 
+  // 4. Ataques Otorgados por Rasgos (ej. Hoja psíquica)
+  const efectosAtaquesOtorgados = efectosActivosRasgos.filter((ef) => ef.tipo === "ataque_otorgado");
+  for (const ef of efectosAtaquesOtorgados) {
+    const idAtaque = `ataque-otorgado-${ef.objetivo || ef.id || "esp"}`;
+    const props = ef.propiedades || ["Sutil", "Arrojadiza (60 ft)", "Mágico"];
+    const esSutil = props.some((p) => normalizar(p).includes("sutil") || normalizar(p).includes("finesse"));
+    const esDistancia = props.some((p) => normalizar(p).includes("distancia") || normalizar(p).includes("municion"));
+
+    const modificadores = statsCalculadas.modificadores;
+    const modFue = modificadores.fuerza || 0;
+    const modDes = modificadores.destreza || 0;
+    let caracDefecto: Caracteristica = "fuerza";
+    if (esSutil) {
+      caracDefecto = modDes >= modFue ? "destreza" : "fuerza";
+    } else if (esDistancia) {
+      caracDefecto = "destreza";
+    }
+
+    const caracUsada = caracteristicasArmas[idAtaque] || caracDefecto;
+    const modAtributo = modificadores[caracUsada] || 0;
+
+    const contextoAtaqueOtorgado: ContextoAtaquePersonaje = {
+      tipo: "arma",
+      caracteristica: caracUsada,
+      esCuerpoACuerpo: !esDistancia,
+      esDistancia,
+      propiedades: props,
+      esPesada: false
+    };
+
+    const bonoAtaqueExtra = obtenerBonoAtaqueExtra(personajeActivo, contextoAtaqueOtorgado);
+    const bonoAtaque = statsCalculadas.bonoCompetencia + modAtributo + bonoAtaqueExtra;
+
+    const { modDanoTotal, dadosExtra, danosSecundarios, tiposDanoSecundarios } = resolverBonosYDadosExtraCombate({
+      personajeActivo,
+      statsCalculadas,
+      contextoAtaque: contextoAtaqueOtorgado,
+      caracUsada,
+      modAtributo,
+      bonoMagico: 0,
+      furiaEstaActiva,
+      yaIncluyeFuriaEnEfectos
+    });
+
+    const dadoBase = String(ef.valor || "1d6");
+    const { dadoDanoTotalBase, formulaDano } = componerFormulasDano(
+      dadoBase,
+      modDanoTotal,
+      dadosExtra,
+      danosSecundarios
+    );
+
+    let formulaDanoAdicional: string | undefined;
+    let dadoAdicionalBase: string | undefined;
+    if (ef.danoAccionAdicional) {
+      dadoAdicionalBase = ef.danoAccionAdicional;
+      const compAdic = componerFormulasDano(
+        ef.danoAccionAdicional,
+        modDanoTotal,
+        dadosExtra,
+        danosSecundarios
+      );
+      formulaDanoAdicional = compAdic.formulaDano;
+    }
+
+    const tipoDanoFinal = tiposDanoSecundarios.length > 0
+      ? `${ef.tipoDano || "Psíquico"} / ${tiposDanoSecundarios.join(" / ")}`
+      : (ef.tipoDano || "Psíquico");
+
+    ataques.push({
+      id: idAtaque,
+      nombre: ef.descripcion || "Ataque Especial",
+      tipo: "Arma",
+      subtipo: "Cuerpo a Cuerpo / A Distancia",
+      tipoAccion: "accion",
+      caracteristicaUsada: caracUsada,
+      bonoAtaque,
+      dadoDano: formulaDano,
+      dadoDanoBase: dadoDanoTotalBase,
+      modificadorDano: modDanoTotal,
+      esDanoFijo: false,
+      danoAccionAdicional: formulaDanoAdicional,
+      dadoAccionAdicionalBase: dadoAdicionalBase,
+      tipoDano: tipoDanoFinal,
+      alcance: ef.alcance || "5 ft (60 ft arrojadiza)",
+      propiedades: props,
+      esMagico: true,
+      tieneTiradaAtaque: true,
+      esCompetenteConArma: true,
+      esSutil,
+      esDistancia
+    });
+  }
 
   return ataques;
 }

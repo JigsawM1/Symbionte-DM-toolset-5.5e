@@ -16,6 +16,8 @@ export interface AtaquePersonajeCalculado {
   esDanoFijo: boolean; // Si true, no tira dados de daño
   danoVersatil?: string;
   dadoVersatilBase?: string;
+  danoAccionAdicional?: string;
+  dadoAccionAdicionalBase?: string;
   tipoDano: string;
   alcance?: string;
   propiedades: string[];

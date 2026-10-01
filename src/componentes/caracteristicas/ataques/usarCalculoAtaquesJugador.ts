@@ -234,12 +234,12 @@ export function usarCalculoAtaquesJugador() {
     }
   }, [alternarActivoRasgo]);
 
-  const manejarTirarDano = useCallback(async (ataque: AtaquePersonajeCalculado, esVersatil: boolean = false) => {
+  const manejarTirarDano = useCallback(async (ataque: AtaquePersonajeCalculado, esVersatil: boolean | "adicional" = false) => {
     await ejecutarTiradaDanoFisico(ataque, personajeActivo, esVersatil);
     desactivarRasgosDeImpactoDano(personajeActivo);
   }, [personajeActivo, desactivarRasgosDeImpactoDano]);
 
-  const manejarTirarCritico = useCallback(async (ataque: AtaquePersonajeCalculado, esVersatil: boolean = false) => {
+  const manejarTirarCritico = useCallback(async (ataque: AtaquePersonajeCalculado, esVersatil: boolean | "adicional" = false) => {
     await ejecutarTiradaCritico(ataque, personajeActivo, esVersatil);
     desactivarRasgosDeImpactoDano(personajeActivo);
   }, [personajeActivo, desactivarRasgosDeImpactoDano]);

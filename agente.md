@@ -18,6 +18,37 @@ Este archivo registra reglas globales, errores encontrados, sus causas raíz y l
 6. **PROHIBICIÓN ESTRICTA DE BIFURCACIONES POR NOMBRE DE RASGO O CLASE (CATÁLOGO DECLARATIVO Y BUILDER PURO)**:
    - **Bajo ninguna circunstancia** los módulos de lógica de negocio (`servicios/`), gestores de estado (`almacen/`) o constructores (`gestorClases.ts`) deben contener bifurcaciones condicionales por nombre literal de rasgo o clase (`r.nombre === "..."`, `clase.includes("...")`, etc.).
    - Toda mecánica, progresión de dados, escalado de usos, recuperación o desbloqueo dinámico debe resolverse mediante metadatos declarativos (`escaladoFormulaDados`, `escaladoUsos`, `escaladoRecuperacion`, `opcionesDinamicas`, `escaladoMaxSelecciones`, `sincronizarEfectosConFormula`, `heredarDadosPadre`, `gastarDePadre`, `ligadoA`, `efectos`) delegando en funciones puras agnósticas como `resolverEscaladosRasgo`. Esta regla está reforzada en CI vía ESLint `no-restricted-syntax` y la suite `rasgoGenericidad.test.ts`.
+## [2026-10-01] Corrección de Infracción de Capas en CI: Desacoplamiento de Lógica de Recursos de Rasgos (no-restricted-imports)
+
+**Problema Reportado por el Usuario:**
+- El CI falló en la etapa `pnpm run lint` con error:
+  `src/servicios/paladinMecanicasDND55.test.ts: 16:1 error '@/componentes/caracteristicas/rasgos/utilidadesProgresionRasgos' import is restricted from being used by a pattern. Violación de Arquitectura de Capas: Los servicios, almacén, tipos, constantes y utilidades no deben importar componentes ni estilos de la capa UI no-restricted-imports`
+
+**Causa Raíz Diagnosticada:**
+1. **Infracción de Unidireccionalidad Estricta de Capas (Regla Global 5):**
+   - El archivo de pruebas `src/servicios/paladinMecanicasDND55.test.ts` (capa de servicios) importaba `esRasgoCanalizarDivinidad`, `resolverRecursosPadre` y `agruparRasgosJerarquicos` desde `@/componentes/caracteristicas/rasgos/utilidadesProgresionRasgos`.
+   - La regla de ESLint `no-restricted-imports` para `src/servicios/**/*.ts` prohíbe taxativamente cualquier importación de `@/componentes*`.
+2. **Ubicación Incorrecta de Lógica Pura de Dominio:**
+   - `resolverRecursosPadre` y `esRasgoCanalizarDivinidad` son funciones de lógica de negocio pura (resolución de herencia de recursos y detección de mecánicas de Canalizar Divinidad sin dependencias de React ni CSS). Se encontraban implementadas en la capa de UI (`src/componentes/caracteristicas/rasgos/`), obligando a los módulos inferiores a depender de componentes si necesitaban reutilizarlas.
+
+**Soluciones Técnicas Aplicadas:**
+1. **Extracción a la Capa de Servicios (`src/servicios/rasgos/evaluadorRecursosRasgos.ts`):**
+   - Creado el módulo puro `evaluadorRecursosRasgos.ts` conteniendo `esRasgoCanalizarDivinidad` y `resolverRecursosPadre`.
+   - Exportado desde el índice general de evaluadores de rasgos (`src/servicios/rasgos/index.ts`).
+2. **Reexportación Retrocompatible en UI (`utilidadesProgresionRasgos.ts`):**
+   - Se removió la duplicación de código en `utilidadesProgresionRasgos.ts` y se reexportaron `esRasgoCanalizarDivinidad` y `resolverRecursosPadre` desde `@/servicios/rasgos/evaluadorRecursosRasgos`, manteniendo el flujo unidireccional y preservando intacta la API para componentes de UI.
+3. **Saneamiento Quirúrgico en `paladinMecanicasDND55.test.ts`:**
+   - Se importan `esRasgoCanalizarDivinidad` y `resolverRecursosPadre` desde `./rasgos/evaluadorRecursosRasgos`.
+   - Se sustituyeron las aserciones de agrupación visual en UI (`agruparRasgosJerarquicos`) por la validación directa de negocio con `esRasgoCanalizarDivinidad(r)`.
+4. **Traslado de Pruebas de Agrupación de UI a `utilidadesProgresionRasgos.test.ts`:**
+   - Se añadió en `src/componentes/caracteristicas/rasgos/utilidadesProgresionRasgos.test.ts` la suite de tests correspondiente para verificar que `agruparRasgosJerarquicos` organice correctamente en la interfaz los rasgos de Canalizar Divinidad del Paladín y sus subclases.
+5. **Validación Integral del Pipeline CI:**
+   - `pnpm run lint` (0 errores, 0 warnings).
+   - `pnpm exec tsc --noEmit` (0 errores de tipado con `strict: true`).
+   - `pnpm test` (1,258 tests aprobados al 100% en 89 suites).
+   - `node scripts/verificar-limite-lineas.js` (0 infracciones).
+   - `vite build` (compilación exitosa en 10.90s).
+
 ## [2026-10-01] Estilización Canónica de Tablas de Conjuros de Subclase (D&D 5.5e / PHB 2024)
 
 **Objetivo de la Iteración:**

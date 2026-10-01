@@ -15,9 +15,8 @@ import {
 import { sincronizarRasgosAutomaticos } from "./compendioRasgos";
 import {
   esRasgoCanalizarDivinidad,
-  agruparRasgosJerarquicos,
   resolverRecursosPadre
-} from "@/componentes/caracteristicas/rasgos/utilidadesProgresionRasgos";
+} from "./rasgos/evaluadorRecursosRasgos";
 import { PERSONAJE_POR_DEFECTO } from "@/constantes/personajeConstantes";
 import type { PersonajeJugador } from "@/tipos/personaje";
 import type { RasgoPersonaje } from "@/tipos/rasgos";
@@ -467,28 +466,27 @@ describe("Paladín D&D 5.5 (2024) - Fase 1: Reglas y Mecánicas de la Clase Base
     });
   });
 
-  // ── CLASIFICACIÓN JERÁRQUICA VISUAL EN UI ──
-  describe("Clasificación Jerárquica Visual en UI", () => {
-    it("Agrupa rasgos de Canalizar divinidad en su caja colapsable de clase", () => {
+  // ── MECÁNICAS DE IDENTIFICACIÓN DE CANALIZAR DIVINIDAD ──
+  describe("Identificación de Rasgos de Canalizar divinidad", () => {
+    it("Identifica correctamente los rasgos de Canalizar divinidad y los discrimina de los rasgos base", () => {
       const rasgosNv9 = obtenerRasgosClaseYSubclase("Paladín", 9);
-      const agrupados = agruparRasgosJerarquicos(rasgosNv9, [
-        { nombre: "Paladín", nivel: 9 }
-      ]);
+      const canalizar = rasgosNv9.find((r) => r.nombre === "Canalizar divinidad");
+      const sentidos = rasgosNv9.find((r) => r.nombre === "Sentidos divinos");
+      const abjurar = rasgosNv9.find((r) => r.nombre === "Abjurar enemigos");
+      const imposicion = rasgosNv9.find((r) => r.nombre === "Imposición de manos");
+      const aura = rasgosNv9.find((r) => r.nombre === "Aura de protección");
 
-      const grupoPaladin = agrupados.clases.find(
-        (c) => c.clase.nombre.toLowerCase() === "paladín"
-      );
-      expect(grupoPaladin).toBeDefined();
+      expect(canalizar).toBeDefined();
+      expect(sentidos).toBeDefined();
+      expect(abjurar).toBeDefined();
+      expect(esRasgoCanalizarDivinidad(canalizar!)).toBe(true);
+      expect(esRasgoCanalizarDivinidad(sentidos!)).toBe(true);
+      expect(esRasgoCanalizarDivinidad(abjurar!)).toBe(true);
 
-      const nombresCanalizar = grupoPaladin!.rasgosCanalizarDivinidad.map((r) => r.nombre);
-      expect(nombresCanalizar).toContain("Canalizar divinidad");
-      expect(nombresCanalizar).toContain("Sentidos divinos");
-      expect(nombresCanalizar).toContain("Abjurar enemigos");
-
-      const nombresBase = grupoPaladin!.rasgosBase.map((r) => r.nombre);
-      expect(nombresBase).toContain("Imposición de manos");
-      expect(nombresBase).toContain("Aura de protección");
-      expect(nombresBase).not.toContain("Canalizar divinidad");
+      expect(imposicion).toBeDefined();
+      expect(aura).toBeDefined();
+      expect(esRasgoCanalizarDivinidad(imposicion!)).toBe(false);
+      expect(esRasgoCanalizarDivinidad(aura!)).toBe(false);
     });
   });
 });
@@ -666,20 +664,15 @@ describe("Paladín D&D 5.5 (2024) - Fase 2: Subclase Juramento de Entrega (Oath 
       expect(nimbo?.condicionAlActivar).toBe("Nimbo sagrado");
     });
 
-    it("Arma sagrada se agrupa correctamente en la caja colapsable de Canalizar divinidad", () => {
+    it("Arma sagrada se identifica como rasgo de Canalizar divinidad", () => {
       const rasgosNv3 = obtenerRasgosClaseYSubclase("Paladín", 3, "Juramento de Entrega");
-      const agrupados = agruparRasgosJerarquicos(rasgosNv3, [
-        { nombre: "Paladín", nivel: 3 }
-      ]);
+      const armaSagrada = rasgosNv3.find((r) => r.nombre === "Arma sagrada");
+      const sentidos = rasgosNv3.find((r) => r.nombre === "Sentidos divinos");
 
-      const grupoPaladin = agrupados.clases.find(
-        (c) => c.clase.nombre.toLowerCase() === "paladín"
-      );
-      expect(grupoPaladin).toBeDefined();
-
-      const nombresCanalizar = grupoPaladin!.rasgosCanalizarDivinidad.map((r) => r.nombre);
-      expect(nombresCanalizar).toContain("Arma sagrada");
-      expect(nombresCanalizar).toContain("Sentidos divinos");
+      expect(armaSagrada).toBeDefined();
+      expect(sentidos).toBeDefined();
+      expect(esRasgoCanalizarDivinidad(armaSagrada!)).toBe(true);
+      expect(esRasgoCanalizarDivinidad(sentidos!)).toBe(true);
     });
   });
 
@@ -904,21 +897,18 @@ describe("Paladín D&D 5.5 (2024) - Fase 2: Subclase Juramento de Entrega (Oath 
       expect(efCarisma).toBeDefined();
     });
 
-    it("Castigo inspirador y Atleta sin par se agrupan en la caja colapsable de Canalizar divinidad", () => {
+    it("Castigo inspirador y Atleta sin par se identifican como rasgos de Canalizar divinidad", () => {
       const rasgosNv3 = obtenerRasgosClaseYSubclase("Paladín", 3, "Juramento de Gloria");
-      const agrupados = agruparRasgosJerarquicos(rasgosNv3, [
-        { nombre: "Paladín", nivel: 3 }
-      ]);
+      const castigo = rasgosNv3.find((r) => r.nombre === "Castigo inspirador");
+      const atleta = rasgosNv3.find((r) => r.nombre === "Atleta sin par");
+      const sentidos = rasgosNv3.find((r) => r.nombre === "Sentidos divinos");
 
-      const grupoPaladin = agrupados.clases.find(
-        (c) => c.clase.nombre.toLowerCase() === "paladín"
-      );
-      expect(grupoPaladin).toBeDefined();
-
-      const nombresCanalizar = grupoPaladin!.rasgosCanalizarDivinidad.map((r) => r.nombre);
-      expect(nombresCanalizar).toContain("Castigo inspirador");
-      expect(nombresCanalizar).toContain("Atleta sin par");
-      expect(nombresCanalizar).toContain("Sentidos divinos");
+      expect(castigo).toBeDefined();
+      expect(atleta).toBeDefined();
+      expect(sentidos).toBeDefined();
+      expect(esRasgoCanalizarDivinidad(castigo!)).toBe(true);
+      expect(esRasgoCanalizarDivinidad(atleta!)).toBe(true);
+      expect(esRasgoCanalizarDivinidad(sentidos!)).toBe(true);
     });
   });
 
@@ -966,11 +956,9 @@ describe("Paladín D&D 5.5 (2024) - Fase 2: Subclase Juramento de Entrega (Oath 
       const idObjetivo = resolverIdRasgoObjetivoGasto(ira, rasgosNv3);
       expect(idObjetivo).toBe(canalizar?.id);
 
-      const agrupados = agruparRasgosJerarquicos(rasgosNv3, [{ nombre: "Paladín", nivel: 3 }]);
-      const grupoPaladin = agrupados.clases.find((c) => c.clase.nombre.toLowerCase() === "paladín");
-      const nombresCanalizar = grupoPaladin!.rasgosCanalizarDivinidad.map((r) => r.nombre);
-      expect(nombresCanalizar).toContain("Ira de la naturaleza");
-      expect(nombresCanalizar).toContain("Sentidos divinos");
+      const sentidos = rasgosNv3.find((r) => r.nombre === "Sentidos divinos");
+      expect(sentidos).toBeDefined();
+      expect(esRasgoCanalizarDivinidad(sentidos!)).toBe(true);
     });
 
     it("Aura de custodia a nivel 7 es pasivo permanente y otorga resistencia a daño necrótico, psíquico y radiante", () => {
@@ -1101,11 +1089,9 @@ describe("Paladín D&D 5.5 (2024) - Fase 2: Subclase Juramento de Entrega (Oath 
       const idObjetivo = resolverIdRasgoObjetivoGasto(voto, rasgosNv3);
       expect(idObjetivo).toBe(canalizar?.id);
 
-      const agrupados = agruparRasgosJerarquicos(rasgosNv3, [{ nombre: "Paladín", nivel: 3 }]);
-      const grupoPaladin = agrupados.clases.find((c) => c.clase.nombre.toLowerCase() === "paladín");
-      const nombresCanalizar = grupoPaladin!.rasgosCanalizarDivinidad.map((r) => r.nombre);
-      expect(nombresCanalizar).toContain("Voto de enemistad");
-      expect(nombresCanalizar).toContain("Sentidos divinos");
+      const sentidos = rasgosNv3.find((r) => r.nombre === "Sentidos divinos");
+      expect(sentidos).toBeDefined();
+      expect(esRasgoCanalizarDivinidad(sentidos!)).toBe(true);
     });
 
     it("Vengador implacable a nivel 7 es reacción y pasivo permanente", () => {

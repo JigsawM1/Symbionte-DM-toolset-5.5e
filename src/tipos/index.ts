@@ -11,7 +11,11 @@ import {
   EsquemaEfectoPasivo,
   type EfectoPasivo,
   EsquemaHechizoVinculado,
-  type HechizoVinculado
+  type HechizoVinculado,
+  EsquemaPosicionTS,
+  type PosicionTS,
+  EsquemaRegistroMovimiento,
+  type RegistroMovimiento
 } from "./personaje";
 
 export {
@@ -26,7 +30,11 @@ export {
   EsquemaEfectoPasivo,
   type EfectoPasivo,
   EsquemaHechizoVinculado,
-  type HechizoVinculado
+  type HechizoVinculado,
+  EsquemaPosicionTS,
+  type PosicionTS,
+  EsquemaRegistroMovimiento,
+  type RegistroMovimiento
 };
 
 // ==========================================

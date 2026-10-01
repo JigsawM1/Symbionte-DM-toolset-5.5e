@@ -1,7 +1,8 @@
 import type { StateCreator } from "zustand";
 import type { EstadoDM } from "@/almacen/usarAlmacenDM";
-import type { GradoCompetencia } from "@/tipos";
-import { tieneMedioBonoHabilidades } from "@/servicios/evaluadorEfectosRasgos";
+import type { GradoCompetencia, RegistroMovimiento } from "@/tipos";
+import { tieneMedioBonoHabilidades, obtenerVelocidadesEfectivas } from "@/servicios/evaluadorEfectosRasgos";
+import { calcularDistanciaMovimientoTS } from "@/servicios/calculadorDistanciaTS";
 import { mutarPersonaje } from "../helpers/mutarPersonaje";
 import type { SubSliceCaracteristicasHabilidades } from "./slicePersonajesTipos";
 
@@ -168,6 +169,239 @@ export const crearSubSliceCaracteristicasHabilidades: StateCreator<
         ...pj,
         personalizacionesCaracteristicas: nuevasPersonalizaciones,
         rasgos: rasgosActualizados
+      };
+    });
+  },
+
+  registrarMovimientoTSPersonaje: (id, nuevaPosicion, boardId, opciones) => {
+    mutarPersonaje(set, id, (pj) => {
+      // Si aún no tenemos registrada una posición previa, guardamos la actual como origen
+      if (!pj.ultimaPosicionTS) {
+        return {
+          ...pj,
+          ultimaPosicionTS: nuevaPosicion,
+          ultimoBoardIdTS: boardId ?? null
+        };
+      }
+
+      const res = calcularDistanciaMovimientoTS(
+        pj.ultimaPosicionTS,
+        nuevaPosicion,
+        pj.ultimoBoardIdTS,
+        boardId,
+        opciones
+      );
+
+      // Si cambió de subtablero (locId) o de mapa (boardId), no se resta movimiento, solo se reubica
+      if (res.esCambioMapaOSubtablero) {
+        return {
+          ...pj,
+          ultimaPosicionTS: nuevaPosicion,
+          ultimoBoardIdTS: boardId ?? null
+        };
+      }
+
+      // Si no hubo distancia (ej. micro-rotación o jitter filtrado)
+      if (res.distanciaPies <= 0) {
+        return pj;
+      }
+
+      const anteriorGastado = pj.movimientoGastado || 0;
+      const nuevoGastado = anteriorGastado + res.distanciaPies;
+
+      const entradaHistorial: RegistroMovimiento = {
+        id: `mov-ts-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+        timestamp: Date.now(),
+        tipo: "talespire",
+        delta: res.distanciaPies,
+        anteriorGastado,
+        nuevoGastado,
+        posicionPrevia: pj.ultimaPosicionTS,
+        descripcion: `Movimiento TaleSpire: +${res.distanciaPies} ft`
+      };
+
+      const historialPrevio = Array.isArray(pj.historialMovimiento) ? pj.historialMovimiento : [];
+
+      return {
+        ...pj,
+        movimientoGastado: nuevoGastado,
+        ultimaPosicionTS: nuevaPosicion,
+        ultimoBoardIdTS: boardId ?? null,
+        historialMovimiento: [...historialPrevio.slice(-49), entradaHistorial]
+      };
+    });
+  },
+
+  establecerPosicionInicialTSPersonaje: (id, posicion, boardId) => {
+    mutarPersonaje(set, id, (pj) => {
+      if (
+        pj.ultimaPosicionTS &&
+        pj.ultimaPosicionTS.x === posicion.x &&
+        pj.ultimaPosicionTS.y === posicion.y &&
+        pj.ultimaPosicionTS.z === posicion.z &&
+        pj.ultimaPosicionTS.locId === posicion.locId &&
+        pj.ultimoBoardIdTS === (boardId ?? null)
+      ) {
+        return pj;
+      }
+
+      return {
+        ...pj,
+        ultimaPosicionTS: posicion,
+        ultimoBoardIdTS: boardId ?? pj.ultimoBoardIdTS ?? null
+      };
+    });
+  },
+
+  modificarMovimientoRestanteManualPersonaje: (id, nuevoRestante) => {
+    mutarPersonaje(set, id, (pj) => {
+      const velocidades = obtenerVelocidadesEfectivas(pj);
+      const velNormal = velocidades.caminar;
+      const total = pj.movimientoMaximoTemporal !== null && pj.movimientoMaximoTemporal !== undefined
+        ? pj.movimientoMaximoTemporal
+        : velNormal;
+
+      const restanteSeguro = Math.max(0, Math.round(nuevoRestante));
+      const nuevoGastado = Math.max(0, total - restanteSeguro);
+      const anteriorGastado = pj.movimientoGastado || 0;
+      const delta = nuevoGastado - anteriorGastado;
+
+      if (delta === 0) return pj;
+
+      const entradaHistorial: RegistroMovimiento = {
+        id: `mov-man-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+        timestamp: Date.now(),
+        tipo: "manual",
+        delta,
+        anteriorGastado,
+        nuevoGastado,
+        descripcion: `Ajuste manual a ${restanteSeguro} ft restantes`
+      };
+
+      const historialPrevio = Array.isArray(pj.historialMovimiento) ? pj.historialMovimiento : [];
+
+      return {
+        ...pj,
+        movimientoGastado: nuevoGastado,
+        historialMovimiento: [...historialPrevio.slice(-49), entradaHistorial]
+      };
+    });
+  },
+
+  modificarMovimientoGastadoPersonaje: (id, delta, motivo = "Ajuste manual") => {
+    mutarPersonaje(set, id, (pj) => {
+      const anteriorGastado = pj.movimientoGastado || 0;
+      const nuevoGastado = Math.max(0, anteriorGastado + delta);
+      if (anteriorGastado === nuevoGastado) return pj;
+
+      const entradaHistorial: RegistroMovimiento = {
+        id: `mov-adj-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+        timestamp: Date.now(),
+        tipo: "manual",
+        delta,
+        anteriorGastado,
+        nuevoGastado,
+        descripcion: `${motivo} (${delta > 0 ? `+${delta}` : `${delta}`} ft)`
+      };
+
+      const historialPrevio = Array.isArray(pj.historialMovimiento) ? pj.historialMovimiento : [];
+
+      return {
+        ...pj,
+        movimientoGastado: nuevoGastado,
+        historialMovimiento: [...historialPrevio.slice(-49), entradaHistorial]
+      };
+    });
+  },
+
+  deshacerUltimoMovimientoPersonaje: (id) => {
+    mutarPersonaje(set, id, (pj) => {
+      const historial = Array.isArray(pj.historialMovimiento) ? pj.historialMovimiento : [];
+      if (historial.length === 0) return pj;
+
+      const ultimo = historial[historial.length - 1];
+      const nuevoHistorial = historial.slice(0, -1);
+
+      return {
+        ...pj,
+        movimientoGastado: Math.max(0, ultimo.anteriorGastado),
+        movimientoMaximoTemporal: ultimo.tipo === "carrera" ? null : pj.movimientoMaximoTemporal,
+        ultimaPosicionTS: ultimo.posicionPrevia ? ultimo.posicionPrevia : pj.ultimaPosicionTS,
+        historialMovimiento: nuevoHistorial
+      };
+    });
+  },
+
+  restablecerMovimientoPersonaje: (id) => {
+    mutarPersonaje(set, id, (pj) => {
+      const anteriorGastado = pj.movimientoGastado || 0;
+      const teniaCarrera = pj.movimientoMaximoTemporal !== null;
+
+      if (anteriorGastado === 0 && !teniaCarrera) return pj;
+
+      const entradaHistorial: RegistroMovimiento = {
+        id: `mov-rst-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+        timestamp: Date.now(),
+        tipo: "reinicio",
+        delta: -anteriorGastado,
+        anteriorGastado,
+        nuevoGastado: 0,
+        descripcion: "Restablecimiento de turno"
+      };
+
+      const historialPrevio = Array.isArray(pj.historialMovimiento) ? pj.historialMovimiento : [];
+
+      return {
+        ...pj,
+        movimientoGastado: 0,
+        movimientoMaximoTemporal: null,
+        historialMovimiento: [...historialPrevio.slice(-49), entradaHistorial]
+      };
+    });
+  },
+
+  alternarAccionCarreraPersonaje: (id) => {
+    mutarPersonaje(set, id, (pj) => {
+      const velocidades = obtenerVelocidadesEfectivas(pj);
+      const velNormal = velocidades.caminar;
+      const anteriorGastado = pj.movimientoGastado || 0;
+
+      // Si ya está activa la carrera, la desactivamos
+      if (pj.movimientoMaximoTemporal !== null && pj.movimientoMaximoTemporal !== undefined) {
+        const entradaHistorial: RegistroMovimiento = {
+          id: `mov-dash-off-${Date.now()}`,
+          timestamp: Date.now(),
+          tipo: "carrera",
+          delta: -velNormal,
+          anteriorGastado,
+          nuevoGastado: anteriorGastado,
+          descripcion: "Desactivar Acción Carrera"
+        };
+        const historialPrevio = Array.isArray(pj.historialMovimiento) ? pj.historialMovimiento : [];
+        return {
+          ...pj,
+          movimientoMaximoTemporal: null,
+          historialMovimiento: [...historialPrevio.slice(-49), entradaHistorial]
+        };
+      }
+
+      // Activar carrera (duplica la velocidad disponible en el turno)
+      const velocidadCarrera = velNormal * 2;
+      const entradaHistorial: RegistroMovimiento = {
+        id: `mov-dash-on-${Date.now()}`,
+        timestamp: Date.now(),
+        tipo: "carrera",
+        delta: velNormal,
+        anteriorGastado,
+        nuevoGastado: anteriorGastado,
+        descripcion: `Acción Carrera activada (+${velNormal} ft)`
+      };
+      const historialPrevio = Array.isArray(pj.historialMovimiento) ? pj.historialMovimiento : [];
+
+      return {
+        ...pj,
+        movimientoMaximoTemporal: velocidadCarrera,
+        historialMovimiento: [...historialPrevio.slice(-49), entradaHistorial]
       };
     });
   }

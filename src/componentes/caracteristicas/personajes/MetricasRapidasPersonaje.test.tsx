@@ -94,4 +94,50 @@ describe("MetricasRapidasPersonaje - Simetría y Tooltips de Métricas", () => {
 
     expect(html).toContain("botonInspiracionActiva");
   });
+
+  it("renderiza velocidad dinámica mostrando restante y total cuando hay movimiento gastado", () => {
+    const html = renderToStaticMarkup(
+      <MetricasRapidasPersonaje
+        {...propsBase}
+        personaje={{
+          ...personajeBase,
+          movimientoGastado: 10,
+          historialMovimiento: [
+            {
+              id: "mov-1",
+              timestamp: Date.now(),
+              tipo: "talespire",
+              delta: 10,
+              anteriorGastado: 0,
+              nuevoGastado: 10,
+              descripcion: "Movimiento TaleSpire: +10 ft"
+            }
+          ]
+        }}
+      />
+    );
+
+    // Con 30 base y 10 gastados, quedan 20 ft
+    expect(html).toContain("20");
+    expect(html).toContain("/30");
+    expect(html).toContain("separadorVelocidad");
+  });
+
+  it("renderiza velocidad dinámica con Acción Carrera (Dash) duplicando el total", () => {
+    const html = renderToStaticMarkup(
+      <MetricasRapidasPersonaje
+        {...propsBase}
+        personaje={{
+          ...personajeBase,
+          movimientoMaximoTemporal: 60,
+          movimientoGastado: 15
+        }}
+      />
+    );
+
+    // 60 total con 15 gastados = 45 restantes
+    expect(html).toContain("45");
+    expect(html).toContain("/60");
+    expect(html).toContain("valorMetricaCarrera");
+  });
 });

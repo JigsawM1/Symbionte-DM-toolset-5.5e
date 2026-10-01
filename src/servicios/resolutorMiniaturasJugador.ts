@@ -1,4 +1,4 @@
-import type { PersonajeJugador } from "@/tipos";
+import type { PersonajeJugador, PosicionTS } from "@/tipos";
 import type { InfoCriatura } from "@/tipos/talespire";
 import { ts } from "@/utiles/TaleSpireAdapter";
 import { logger } from "@/utiles/logger";
@@ -59,7 +59,12 @@ export function emparejarPersonajesConCriaturas(
  */
 export async function autoResolverMiniaturasJugador(
   personajes: PersonajeJugador[],
-  alVincular: (personajeId: string, idMiniatura: string | null) => void
+  alVincular: (
+    personajeId: string,
+    idMiniatura: string | null,
+    posicionInicial?: PosicionTS,
+    boardIdInicial?: string | null
+  ) => void
 ): Promise<void> {
   try {
     if (!ts.estaDisponible || !personajes || personajes.length === 0) return;
@@ -97,11 +102,19 @@ export async function autoResolverMiniaturasJugador(
     mapa.forEach((criatura, pjId) => {
       const pjActual = personajes.find((p) => p.id === pjId);
       const nuevoIdMini = criatura?.id || null;
-      if (pjActual && pjActual.idMiniaturaTS !== nuevoIdMini) {
-        logger.info(
-          `[AutoResolutorMinis] Miniatura auto-vinculada: '${pjActual.nombre}' ↔ '${criatura?.name || "Sin nombre"}' (ID: ${nuevoIdMini})`
-        );
-        alVincular(pjId, nuevoIdMini);
+      if (pjActual) {
+        if (pjActual.idMiniaturaTS !== nuevoIdMini) {
+          logger.info(
+            `[AutoResolutorMinis] Miniatura auto-vinculada: '${pjActual.nombre}' ↔ '${criatura?.name || "Sin nombre"}' (ID: ${nuevoIdMini})`
+          );
+          alVincular(pjId, nuevoIdMini, criatura?.position, criatura?.boardId);
+        } else if (criatura?.position && !pjActual.ultimaPosicionTS) {
+          logger.info(
+            `[AutoResolutorMinis] Posición inicial registrada para '${pjActual.nombre}':`,
+            criatura.position
+          );
+          alVincular(pjId, nuevoIdMini, criatura.position, criatura.boardId);
+        }
       }
     });
   } catch (err) {

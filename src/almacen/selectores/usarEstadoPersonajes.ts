@@ -685,6 +685,15 @@ export function usarAccionesPersonajes() {
       quitarEfectoPersonaje:              s.quitarEfectoPersonaje,
       vincularMiniaturaTSPersonaje:       s.vincularMiniaturaTSPersonaje,
 
+      // Movimiento y Velocidad Dinámica
+      registrarMovimientoTSPersonaje:     s.registrarMovimientoTSPersonaje,
+      establecerPosicionInicialTSPersonaje: s.establecerPosicionInicialTSPersonaje,
+      modificarMovimientoRestanteManualPersonaje: s.modificarMovimientoRestanteManualPersonaje,
+      modificarMovimientoGastadoPersonaje: s.modificarMovimientoGastadoPersonaje,
+      deshacerUltimoMovimientoPersonaje:  s.deshacerUltimoMovimientoPersonaje,
+      restablecerMovimientoPersonaje:     s.restablecerMovimientoPersonaje,
+      alternarAccionCarreraPersonaje:     s.alternarAccionCarreraPersonaje,
+
       // Magia y Lanzamiento de Conjuros
       configurarLanzadorConjuros:         s.configurarLanzadorConjuros,
       establecerConcentracion:            s.establecerConcentracion,

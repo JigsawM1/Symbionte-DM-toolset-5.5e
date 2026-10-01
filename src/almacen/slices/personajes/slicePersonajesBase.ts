@@ -281,10 +281,17 @@ export const crearSubSlicePersonajesBase: StateCreator<
     set({ idPersonajeActivo: id });
   },
 
-  vincularMiniaturaTSPersonaje: (id, idMiniatura) => {
+  vincularMiniaturaTSPersonaje: (id, idMiniatura, posicionInicial, boardIdInicial) => {
     set((state) => ({
       personajes: state.personajes.map((pj) =>
-        pj.id === id ? { ...pj, idMiniaturaTS: idMiniatura } : pj
+        pj.id === id
+          ? {
+              ...pj,
+              idMiniaturaTS: idMiniatura,
+              ...(posicionInicial ? { ultimaPosicionTS: posicionInicial } : {}),
+              ...(boardIdInicial !== undefined ? { ultimoBoardIdTS: boardIdInicial } : {})
+            }
+          : pj
       )
     }));
   }

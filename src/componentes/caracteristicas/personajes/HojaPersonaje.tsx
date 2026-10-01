@@ -12,6 +12,7 @@ import {
 import { usarEstadoHomebrew } from "@/almacen/selectores/usarEstadoHomebrew";
 import { usarAccionesIniciativa, usarEstadoIniciativa } from "@/almacen/selectores/usarEstadoIniciativa";
 import { lanzarDadosTaleSpire, sanitizarEtiqueta, type MetadataIniciativa } from "@/utiles/lanzadorDados";
+import { ts } from "@/utiles/TaleSpireAdapter";
 import { logger } from "@/utiles/logger";
 import { MAPA_HABILIDAD_A_CARACTERISTICA } from "@/constantes";
 import { evaluarEfectosCondicionesEnTirada } from "@/servicios/procesadorCondiciones";
@@ -67,6 +68,7 @@ export const HojaPersonaje: React.FC<HojaPersonajeProps> = ({ alAbrirConfiguraci
     aplicarCondicionPersonaje,
     quitarCondicionPersonaje,
     vincularMiniaturaTSPersonaje,
+    establecerPosicionInicialTSPersonaje,
 
     // Acciones de magia
     gastarEspacioConjuro,
@@ -104,6 +106,36 @@ export const HojaPersonaje: React.FC<HojaPersonajeProps> = ({ alAbrirConfiguraci
     "ts_hoja_subpestana",
     "general"
   );
+
+  // Precargar posición inicial de TaleSpire si el personaje tiene miniatura vinculada pero no posición base
+  useEffect(() => {
+    if (!personajeActivo?.idMiniaturaTS || personajeActivo.ultimaPosicionTS) return;
+
+    ts.creatures
+      .getMoreInfo([personajeActivo.idMiniaturaTS])
+      .then((infos) => {
+        if (infos && infos.length > 0 && infos[0]?.position) {
+          logger.info(
+            `[HojaPersonaje] Posición física inicial detectada para '${personajeActivo.nombre}':`,
+            infos[0].position
+          );
+          establecerPosicionInicialTSPersonaje(
+            personajeActivo.id,
+            infos[0].position,
+            infos[0].boardId
+          );
+        }
+      })
+      .catch((err) => {
+        logger.debug("[HojaPersonaje] Error al precargar posición de miniatura:", err);
+      });
+  }, [
+    personajeActivo?.id,
+    personajeActivo?.idMiniaturaTS,
+    personajeActivo?.ultimaPosicionTS,
+    personajeActivo?.nombre,
+    establecerPosicionInicialTSPersonaje
+  ]);
 
   // Sincronización explícita si se pulsa la pestaña dedicada "conjuros"
   useEffect(() => {

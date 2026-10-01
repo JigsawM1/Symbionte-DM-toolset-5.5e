@@ -28,7 +28,9 @@ import type {
   EventoClienteTS,
   FragmentoCliente,
   InfoCliente,
-  InfoJugador
+  InfoJugador,
+  UnidadDistanciaTS,
+  EventoCriaturaTS
 } from "@/tipos/talespire";
 import { logger } from "@/utiles/logger";
 
@@ -255,6 +257,19 @@ class TaleSpireAdapter {
     },
 
     /**
+     * Suscribe un callback para cambios de estado de criaturas (ubicación, HP, etc.) usando la API nativa.
+     */
+    suscribirACambioEstadoCriatura: (callback: (datos: EventoCriaturaTS) => void): { desuscribir: () => void } => {
+      if (window.TS?.creatures?.onCreatureStateChange && typeof window.TS.creatures.onCreatureStateChange.subscribe === "function") {
+        const sub = window.TS.creatures.onCreatureStateChange.subscribe((datos) => {
+          callback(datos);
+        });
+        return { desuscribir: () => sub.desuscribir() };
+      }
+      return { desuscribir: () => {} };
+    },
+
+    /**
      * Obtiene el listado de miniaturas que pertenecen a un jugador específico.
      */
     getCreaturesOwnedByPlayer: async (playerFragmentOrId: FragmentoOId): Promise<FragmentoCriatura[]> => {
@@ -398,6 +413,30 @@ class TaleSpireAdapter {
         return await window.TS.campaigns.getMoreInfoAboutCurrentCampaign();
       }
       return null;
+    }
+  };
+
+  // ==========================================
+  // --- UNIDADES DE DISTANCIA (UNITS API) ---
+  // ==========================================
+
+  units = {
+    /**
+     * Obtiene las unidades de distancia configuradas para la campaña actual en TaleSpire.
+     * Retorna fallback de 5 pies (ft) por casilla si no está en TaleSpire.
+     */
+    getDistanceUnitsForThisCampaign: async (): Promise<UnidadDistanciaTS> => {
+      if (window.TS?.units && typeof window.TS.units.getDistanceUnitsForThisCampaign === "function") {
+        try {
+          const unidades = await window.TS.units.getDistanceUnitsForThisCampaign();
+          if (unidades && typeof unidades.numberPerTile === "number") {
+            return unidades;
+          }
+        } catch (e) {
+          logger.warn("[TS Adapter] Error al obtener unidades de distancia de TaleSpire:", e);
+        }
+      }
+      return { name: "ft", numberPerTile: 5 };
     }
   };
 

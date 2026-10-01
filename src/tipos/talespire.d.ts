@@ -209,6 +209,11 @@ export interface ResultadosTirada {
   quiet: boolean;
 }
 
+export interface UnidadDistanciaTS {
+  name: string;
+  numberPerTile: number;
+}
+
 export interface PaqueteContenidoTS {
   id?: string;
   name?: string;
@@ -243,6 +248,7 @@ export interface TaleSpireAPI {
   };
   creatures?: {
     onCreatureSelectionChange?: Suscribible<SeleccionCriaturas>;
+    onCreatureStateChange?: Suscribible<EventoCriaturaTS>;
     getSelectedCreatures?: () => Promise<FragmentoCriatura[]>;
     getMoreInfo?: (creatureFragmentOrIds: FragmentoOId[]) => Promise<InfoCriatura[]>;
     getCreaturesOwnedByPlayer?: (playerId: string) => Promise<FragmentoCriatura[]>;
@@ -278,6 +284,9 @@ export interface TaleSpireAPI {
     findBoardObjectInPacks?: (boardObjectId: string, packsInfos: PaqueteContenidoTS[] | unknown[]) => Promise<InfoObjetoTableroTS | null>;
     createThumbnailElementForBoardObject?: (boardObjectInfo: InfoObjetoTableroTS | unknown, size?: number) => Promise<HTMLElement>;
   };
+  units?: {
+    getDistanceUnitsForThisCampaign?: () => Promise<UnidadDistanciaTS>;
+  };
   localStorage?: TSLocalStorage;
   system?: {
     clipboard?: {
@@ -310,7 +319,10 @@ declare global {
     manejarCambioEstadoSimbionte?: (evento: unknown) => void;
     initiativeUpdated?: (evento?: EventoIniciativaActualizada) => void;
     manejarEventoIniciativa?: (evento?: EventoIniciativaActualizada) => void;
-    manejarCambioEstadoCriatura?: (evento: unknown) => void;
+    manejarCambioEstadoCriatura?: (...args: unknown[]) => void;
+    onCreatureStateChange?: (...args: unknown[]) => void;
+    creatureStateChanged?: (...args: unknown[]) => void;
+    creatureLocationChanged?: (payload: unknown) => void;
     manejarCambioSeleccionCriatura?: (evento: SeleccionCriaturas) => void;
     manejarResultadosDados?: (resultados: ResultadosTirada) => Promise<void>;
     onRollResults?: (resultados: ResultadosTirada) => Promise<void>;

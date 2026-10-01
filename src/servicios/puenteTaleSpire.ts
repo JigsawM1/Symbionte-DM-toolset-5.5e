@@ -144,11 +144,70 @@ class PuenteTaleSpireClass {
       this.emit("iniciativaActualizada", this.deserializarPayload(payload) as MapaEventosPuente["iniciativaActualizada"]);
     };
 
-    // creatures.onCreatureStateChange → EventoCriaturaTS discriminado por kind
-    window.manejarCambioEstadoCriatura = (evento) => {
-      logger.debug("[Puente TaleSpire] Callback manejarCambioEstadoCriatura:", evento);
-      this.emit("estadoCriatura", this.deserializarPayload(evento) as EventoCriaturaTS);
+    // creatures.onCreatureStateChange → EventoCriaturaTS discriminado por kind (multiformato defensivo)
+    const procesarCambioEstadoCriatura = (...args: unknown[]) => {
+      logger.debug("[Puente TaleSpire] Callback de estado de criatura recibido con args:", args);
+      let payloadCrudo: unknown = null;
+      let kindDetectado: string | undefined = undefined;
+
+      if (args.length >= 2 && typeof args[0] === "string") {
+        // Formato (kind, payload)
+        kindDetectado = args[0];
+        payloadCrudo = this.deserializarPayload(args[1]);
+      } else if (args.length >= 1) {
+        payloadCrudo = this.deserializarPayload(args[0]);
+      }
+
+      if (!payloadCrudo || typeof payloadCrudo !== "object") {
+        logger.debug("[Puente TaleSpire] Payload de criatura no es objeto válido:", payloadCrudo);
+        return;
+      }
+
+      const obj = payloadCrudo as Record<string, unknown>;
+      // Si el payload viene anidado en { kind, payload }
+      const dataInterna = (obj.payload && typeof obj.payload === "object")
+        ? (obj.payload as Record<string, unknown>)
+        : obj;
+
+      const kindFinal =
+        kindDetectado ||
+        (typeof obj.kind === "string" ? obj.kind : undefined) ||
+        (typeof dataInterna.kind === "string" ? dataInterna.kind : undefined);
+
+      // Si no hay kind pero tiene position e id -> es creatureLocationChanged
+      const esUbicacion =
+        kindFinal === "creatureLocationChanged" ||
+        (!kindFinal && "position" in dataInterna && ("id" in dataInterna || "creatureId" in dataInterna));
+
+      let eventoNormalizado: EventoCriaturaTS | null = null;
+
+      if (esUbicacion) {
+        const rawId = dataInterna.id ?? dataInterna.creatureId;
+        const idFinal = typeof rawId === "string" ? rawId : (rawId as { id?: string })?.id || "";
+        eventoNormalizado = {
+          kind: "creatureLocationChanged",
+          id: idFinal,
+          boardId: (dataInterna.boardId as string) || "",
+          position: dataInterna.position as import("@/tipos/talespire").PosicionTS,
+          rotation: (dataInterna.rotation as import("@/tipos/talespire").RotacionEulerTS) || { x: 0, y: 0, z: 0 }
+        };
+      } else if (kindFinal) {
+        eventoNormalizado = { ...dataInterna, kind: kindFinal } as EventoCriaturaTS;
+      }
+
+      if (eventoNormalizado) {
+        logger.info("[Puente TaleSpire] Evento criatura normalizado:", eventoNormalizado);
+        this.emit("estadoCriatura", eventoNormalizado);
+      } else {
+        logger.debug("[Puente TaleSpire] Evento de criatura ignorado por falta de tipo reconocido:", dataInterna);
+      }
     };
+
+    window.manejarCambioEstadoCriatura = procesarCambioEstadoCriatura;
+    (window as unknown as Record<string, unknown>).onCreatureStateChange = procesarCambioEstadoCriatura;
+    (window as unknown as Record<string, unknown>).creatureStateChanged = procesarCambioEstadoCriatura;
+    (window as unknown as Record<string, unknown>).creatureLocationChanged = (payload: unknown) =>
+      procesarCambioEstadoCriatura("creatureLocationChanged", payload);
 
     // creatures.onCreatureSelectionChange → creatureSelection
     window.manejarCambioSeleccionCriatura = (evento) => {
@@ -339,6 +398,9 @@ class PuenteTaleSpireClass {
       delete window.initiativeUpdated;
       delete window.manejarEventoIniciativa;
       delete window.manejarCambioEstadoCriatura;
+      delete (window as unknown as Record<string, unknown>).onCreatureStateChange;
+      delete (window as unknown as Record<string, unknown>).creatureStateChanged;
+      delete (window as unknown as Record<string, unknown>).creatureLocationChanged;
       delete window.manejarCambioSeleccionCriatura;
       delete window.manejarResultadosDados;
       delete window.onRollResults;

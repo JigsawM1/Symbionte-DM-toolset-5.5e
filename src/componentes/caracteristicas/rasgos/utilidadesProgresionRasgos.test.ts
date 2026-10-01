@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import type { PersonajeJugador, RasgoPersonaje } from "@/tipos";
+import { PERSONAJE_POR_DEFECTO } from "@/constantes/personajeConstantes";
 import {
   obtenerNivelEfectivoParaRasgo,
   resolverDotesDesdeInvocaciones,
@@ -10,6 +11,7 @@ import {
 
 describe("obtenerNivelEfectivoParaRasgo - Nivel contextual de clase vs nivel general (Multiclase)", () => {
   const personajeMulticlaseBardoBarbaro: PersonajeJugador = {
+    ...PERSONAJE_POR_DEFECTO,
     id: "pj_multiclase_test",
     nombre: "Bardo Bárbaro",
     jugador: "Tester",

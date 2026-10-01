@@ -19,7 +19,8 @@ import {
 import {
   obtenerConjurosSubclasePersonaje,
   requiereSincronizacionSubclase,
-  obtenerClasesListaMagicaPersonaje
+  obtenerNivelesConjuroDisponiblesPersonaje,
+  puedePersonajeLanzarHechizo
 } from "@/servicios/calculadorMagia";
 import { usarMagiaPersonaje } from "@/hooks/usarMagiaPersonaje";
 import { TarjetasMetricasMagia } from "@/componentes/caracteristicas/personajes/TarjetasMetricasMagia";
@@ -34,15 +35,7 @@ type TipoPestañaConjuros = "preparados" | "miLista" | "disponibles" | "todos";
 const OPCIONES_NIVEL_FILTRO = [
   { valor: "todos", etiqueta: "Todos los Niveles" },
   { valor: "0", etiqueta: "Truco (Nivel 0)" },
-  { valor: "1", etiqueta: "Nivel 1" },
-  { valor: "2", etiqueta: "Nivel 2" },
-  { valor: "3", etiqueta: "Nivel 3" },
-  { valor: "4", etiqueta: "Nivel 4" },
-  { valor: "5", etiqueta: "Nivel 5" },
-  { valor: "6", etiqueta: "Nivel 6" },
-  { valor: "7", etiqueta: "Nivel 7" },
-  { valor: "8", etiqueta: "Nivel 8" },
-  { valor: "9", etiqueta: "Nivel 9" }
+  ...[1, 2, 3, 4, 5, 6, 7, 8, 9].map((n) => ({ valor: String(n), etiqueta: `Nivel ${n}` }))
 ];
 
 const CONJUROS_POR_PAGINA = 50;
@@ -124,11 +117,6 @@ export const CompendioConjurosJugador: React.FC = () => {
     }
   }, [esModeloConocidos, esPreparadorDivino, pestañaActiva]);
 
-  const clasesDelPersonaje = useMemo(() => {
-    if (!personajeActivo) return [];
-    return obtenerClasesListaMagicaPersonaje(personajeActivo);
-  }, [personajeActivo]);
-
   const opcionesEscuelaFiltro = useMemo(() => {
     const escuelas = new Set<string>();
     baseDatosHechizos.forEach((h) => {
@@ -140,6 +128,30 @@ export const CompendioConjurosJugador: React.FC = () => {
     ];
   }, [baseDatosHechizos]);
 
+  const nivelesDisponiblesPersonaje = useMemo(() => {
+    return obtenerNivelesConjuroDisponiblesPersonaje(personajeActivo);
+  }, [personajeActivo]);
+
+  const opcionesNivelFiltro = useMemo(() => {
+    if (pestañaActiva !== "disponibles" || !personajeActivo) {
+      return OPCIONES_NIVEL_FILTRO;
+    }
+    return OPCIONES_NIVEL_FILTRO.filter(
+      (op) => op.valor === "todos" || nivelesDisponiblesPersonaje.has(Number(op.valor))
+    );
+  }, [pestañaActiva, personajeActivo, nivelesDisponiblesPersonaje]);
+
+  React.useEffect(() => {
+    if (
+      pestañaActiva === "disponibles" &&
+      personajeActivo &&
+      nivelFiltro !== "todos" &&
+      !nivelesDisponiblesPersonaje.has(Number(nivelFiltro))
+    ) {
+      setNivelFiltro("todos");
+    }
+  }, [pestañaActiva, personajeActivo, nivelFiltro, nivelesDisponiblesPersonaje]);
+
   const conjurosPestaña = useMemo(() => {
     switch (pestañaActiva) {
       case "preparados":
@@ -149,19 +161,14 @@ export const CompendioConjurosJugador: React.FC = () => {
       case "miLista":
         return baseDatosHechizos.filter((h) => estaEnLista(h));
       case "disponibles": {
-        if (clasesDelPersonaje.length === 0) return baseDatosHechizos;
-        return baseDatosHechizos.filter((h) => {
-          if (!h.clases || h.clases.length === 0) return true;
-          return h.clases.some((c) =>
-            clasesDelPersonaje.some((cp) => c.toLowerCase().includes(cp) || cp.includes(c.toLowerCase()))
-          );
-        });
+        if (!personajeActivo) return baseDatosHechizos;
+        return baseDatosHechizos.filter((h) => puedePersonajeLanzarHechizo(personajeActivo, h));
       }
       case "todos":
       default:
         return baseDatosHechizos;
     }
-  }, [pestañaActiva, baseDatosHechizos, estaPreparado, estaEnLista, clasesDelPersonaje, esModeloConocidos]);
+  }, [pestañaActiva, baseDatosHechizos, estaPreparado, estaEnLista, personajeActivo, esModeloConocidos]);
 
   const conjurosFiltrados = useMemo(() => {
     const busqLimpia = busquedaDiferida.trim();
@@ -373,7 +380,7 @@ export const CompendioConjurosJugador: React.FC = () => {
               valor={String(nivelFiltro)}
               alCambiar={(v) => setNivelFiltro(v === "todos" ? "todos" : Number(v))}
               tamano="compacto"
-              opciones={OPCIONES_NIVEL_FILTRO}
+              opciones={opcionesNivelFiltro}
             />
           </div>
 
@@ -400,7 +407,10 @@ export const CompendioConjurosJugador: React.FC = () => {
                 ? "No tienes conjuros inscritos en tu libro de conjuros. Explora las pestañas 'Disponibles' o 'Todos' para añadirlos."
                 : "No tienes conjuros añadidos a tu lista. Explora las pestañas 'Disponibles' o 'Todos' para agregarlos."
             )}
-            {pestañaActiva === "disponibles" && "No se encontraron conjuros disponibles para tu clase con los filtros seleccionados."}
+            {pestañaActiva === "disponibles" &&
+              (personajeActivo && !personajeActivo.esLanzador && (personajeActivo.clasesLanzadoras?.length ?? 0) === 0
+                ? "Este personaje no posee clases ni rasgos lanzadores de conjuros."
+                : "No se encontraron conjuros disponibles para tu clase y nivel con los filtros seleccionados.")}
             {pestañaActiva === "todos" && "No se encontraron conjuros en el compendio con los filtros seleccionados."}
           </div>
         ) : (

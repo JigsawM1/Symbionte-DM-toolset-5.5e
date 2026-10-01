@@ -294,16 +294,24 @@ export function obtenerCompetenciasExtraRasgos(personaje: PersonajeJugador): {
   armadurasGrupos: ("ligeras" | "medias" | "pesadas" | "escudos")[];
   armasImprovisadas?: boolean;
   herramientas: string[];
+  salvaciones: Caracteristica[];
+  idiomas: string[];
 } {
   const armas = new Set<"sencillas" | "marciales" | "fuego">();
   const armaduras = new Set<"ligeras" | "medias" | "pesadas" | "escudos">();
   const herramientas = new Set<string>();
+  const salvaciones = new Set<Caracteristica>();
+  const idiomas = new Set<string>();
   let armasImprovisadas = false;
+
+  const posiblesStats: Caracteristica[] = ["fuerza", "destreza", "constitucion", "inteligencia", "sabiduria", "carisma"];
 
   const efectos = evaluarEfectosRasgosActivos(personaje);
   for (const ef of efectos) {
     if (ef.tipo === "competencia") {
-      const texto = normalizar(`${ef.objetivo} ${ef.valor}`);
+      const objNorm = normalizar(ef.objetivo);
+      const valNorm = normalizar(String(ef.valor));
+      const texto = `${objNorm} ${valNorm}`;
       if (texto.includes("marcial")) armas.add("marciales");
       if (texto.includes("sencill")) armas.add("sencillas");
       if (texto.includes("fuego")) armas.add("fuego");
@@ -320,10 +328,29 @@ export function obtenerCompetenciasExtraRasgos(personaje: PersonajeJugador): {
         texto.includes("veneno") ||
         texto.includes("cocin") ||
         texto.includes("kit") ||
+        texto.includes("disfraz") ||
         ef.objetivo === "herramientas"
       ) {
         if (ef.valor && ef.valor !== "herramientas") {
           herramientas.add(String(ef.valor).trim());
+        }
+      }
+
+      // Salvaciones adicionales otorgadas por rasgos (ej. Mente escurridiza)
+      if (objNorm.startsWith("salvacion.") || objNorm.startsWith("salvacion_") || objNorm === "salvacion" || objNorm === "salvaciones") {
+        const statLimpia = (objNorm.replace(/^salvacion[._]/, "") || valNorm) as Caracteristica;
+        if (posiblesStats.includes(statLimpia)) {
+          salvaciones.add(statLimpia);
+        }
+      }
+      if (posiblesStats.includes(valNorm as Caracteristica) && (objNorm.includes("salvacion") || texto.includes("salvacion"))) {
+        salvaciones.add(valNorm as Caracteristica);
+      }
+
+      // Idiomas adicionales otorgados por rasgos (ej. Jerga de ladrones)
+      if (objNorm === "idioma" || objNorm === "idiomas" || objNorm.startsWith("idioma.") || texto.includes("idioma")) {
+        if (ef.valor && ef.valor !== "idioma" && ef.valor !== "idiomas" && ef.valor !== "competente") {
+          idiomas.add(String(ef.valor).trim());
         }
       }
     }
@@ -333,7 +360,9 @@ export function obtenerCompetenciasExtraRasgos(personaje: PersonajeJugador): {
     armasGrupos: Array.from(armas),
     armadurasGrupos: Array.from(armaduras),
     armasImprovisadas,
-    herramientas: Array.from(herramientas)
+    herramientas: Array.from(herramientas),
+    salvaciones: Array.from(salvaciones),
+    idiomas: Array.from(idiomas)
   };
 }
 
@@ -353,8 +382,9 @@ export const MAPA_ALIAS_HERRAMIENTAS: Record<string, string[]> = {
   "utiles de ladron": ["herramientas de ladron", "utiles de ladron", "herramientas de ladrón", "kit de ladron", "kit de ladrón"],
   "kit de ladron": ["herramientas de ladron", "utiles de ladron", "útiles de ladrón"],
   "kit de ladrón": ["herramientas de ladron", "utiles de ladron", "útiles de ladrón"],
-  "utiles para disfrazarse": ["kit de disfraz", "estuche de disfraces", "utiles para disfrazarse"],
-  "kit de disfraz": ["utiles para disfrazarse", "estuche de disfraces", "kit de disfraz"],
+  "utiles para disfrazarse": ["kit de disfraz", "estuche de disfraces", "utiles para disfrazarse", "utiles de disfraz", "útiles de disfraz"],
+  "utiles de disfraz": ["utiles para disfrazarse", "kit de disfraz", "estuche de disfraces", "utiles de disfraz", "útiles de disfraz"],
+  "kit de disfraz": ["utiles para disfrazarse", "estuche de disfraces", "kit de disfraz", "utiles de disfraz", "útiles de disfraz"],
   "utiles para falsificar": ["kit de falsificacion", "kit de falsificación", "utiles para falsificar"],
   "kit de falsificacion": ["utiles para falsificar", "kit de falsificación"],
   "kit de falsificación": ["utiles para falsificar", "kit de falsificacion"],
@@ -390,6 +420,9 @@ export function obtenerCompetenciasEfectivasTexto(personaje: PersonajeJugador): 
   armadurasTexto: string;
   herramientasTexto: string;
   herramientasLista: string[];
+  idiomasTexto?: string;
+  idiomasLista?: string[];
+  salvacionesCompetentes?: Caracteristica[];
 } {
   const compExtra = obtenerCompetenciasExtraRasgos(personaje);
   
@@ -451,11 +484,36 @@ export function obtenerCompetenciasEfectivasTexto(personaje: PersonajeJugador): 
   listaHerramientasBase.forEach(agregarSiNoExiste);
   compExtra.herramientas.forEach(agregarSiNoExiste);
 
+  // Procesar idiomas integrando base y dotes/rasgos declarativos
+  const listaIdiomasBase: string[] = [
+    ...(personaje.idiomasLista || []),
+    ...(personaje.idiomas && personaje.idiomas !== "Ninguna" && personaje.idiomas !== "Ninguno"
+      ? personaje.idiomas.split(",").map((p) => p.trim()).filter(Boolean)
+      : [])
+  ];
+
+  const idiomasConsolidados: string[] = [];
+  const agregarIdiomaSiNoExiste = (nombre: string) => {
+    if (!nombre || nombre === "Ninguna" || nombre === "Ninguno") return;
+    const yaExiste = idiomasConsolidados.some((existente) =>
+      normalizar(existente) === normalizar(nombre)
+    );
+    if (!yaExiste) {
+      idiomasConsolidados.push(nombre);
+    }
+  };
+
+  listaIdiomasBase.forEach(agregarIdiomaSiNoExiste);
+  compExtra.idiomas.forEach(agregarIdiomaSiNoExiste);
+
   return {
     armasTexto: partesArmas.size > 0 ? Array.from(partesArmas).join(", ") : "Ninguna",
     armadurasTexto: partesArmaduras.size > 0 ? Array.from(partesArmaduras).join(", ") : "Ninguna",
     herramientasTexto: herramientasConsolidadas.length > 0 ? herramientasConsolidadas.join(", ") : "Ninguna",
-    herramientasLista: herramientasConsolidadas
+    herramientasLista: herramientasConsolidadas,
+    idiomasTexto: idiomasConsolidados.length > 0 ? idiomasConsolidados.join(", ") : "Ninguno",
+    idiomasLista: idiomasConsolidados,
+    salvacionesCompetentes: compExtra.salvaciones
   };
 }
 

@@ -17,6 +17,68 @@ Este archivo registra reglas globales, errores encontrados, sus causas raíz y l
    - **Bajo ninguna circunstancia** los módulos de lógica de negocio (`servicios/`), gestores de estado (`almacen/`), contratos (`tipos/`), valores de reglas (`constantes/`) ni funciones de soporte (`utiles/`) deben importar componentes visuales o archivos CSS (`componentes/`). Esta regla está reforzada en CI vía ESLint `no-restricted-imports`.
 6. **PROHIBICIÓN ESTRICTA DE BIFURCACIONES POR NOMBRE DE RASGO O CLASE (CATÁLOGO DECLARATIVO Y BUILDER PURO)**:
    - **Bajo ninguna circunstancia** los módulos de lógica de negocio (`servicios/`), gestores de estado (`almacen/`) o constructores (`gestorClases.ts`) deben contener bifurcaciones condicionales por nombre literal de rasgo o clase (`r.nombre === "..."`, `clase.includes("...")`, etc.).
+## [2026-10-01] Competencias Automáticas Declarativas en Pícaro D&D 5.5e: Jerga de Ladrones, Mente Escurridiza y Herramientas de Asesino
+
+**Problema Reportado por el Usuario:**
+- *"cambios menores a @[src/datos/clases/picaro.json] el rasgo jerga de ladrones debe dar competencia automatica con el idioma a jerga de ladrones; MENTE ESCURRIDIZA: competencia con tiradas de salvación de Sabiduría y Carisma; herramientas de asesino: competencia con Útiles de disfraz y Útiles de envenenador,"*
+
+**Causas Raíz Diagnosticadas:**
+1. **Definiciones Pasivas Sin Efectos Declarativos en Catálogo:**
+   - En `src/datos/clases/picaro.json`, los rasgos *Jerga de ladrones* (nivel 1), *Mente escurridiza* (nivel 15) y *Herramientas de asesino* (subclase Asesino, nivel 3) carecían de la propiedad `"efectos"` de tipo `"competencia"`, por lo que el sistema los trataba como textos puramente informativos sin otorgar de forma automática las competencias mecánicas correspondientes a la hoja de personaje.
+2. **Ausencia de Extracción de Salvaciones e Idiomas Adicionales en el Evaluador de Competencias:**
+   - La función `obtenerCompetenciasExtraRasgos` en `evaluadorSalvacionesRasgos.ts` solo extraía armas, armaduras y herramientas, omitiendo la recolección agnóstica de salvaciones (`salvaciones: Caracteristica[]`) e idiomas (`idiomas: string[]`).
+   - El selector de estadísticas (`usarEstadoPersonajes.ts`) calculaba las salvaciones efectivas basándose únicamente en `pj.competenciasSalvacion`, sin integrar las salvaciones aportadas por rasgos de clase desbloqueados a niveles superiores.
+   - En `gestorClases.ts`, la función constructora pura `aplicarBuildClaseAPersonaje` no fusionaba las salvaciones, herramientas e idiomas adicionales procedentes de los rasgos de subclase o clase avanzada al actualizar el personaje.
+
+**Soluciones Técnicas y Decisiones Arquitectónicas:**
+1. **Actualización Declarativa del Catálogo (`src/datos/clases/picaro.json`):**
+   - **Jerga de ladrones (Nv. 1):** Configurado como `categoriaMecanica: "pasivo_permanente"` con efecto declarativo `{ tipo: "competencia", objetivo: "idioma", valor: "Jerga de ladrones" }`.
+   - **Mente escurridiza (Nv. 15):** Configurado como `categoriaMecanica: "pasivo_permanente"` con efectos declarativos `{ tipo: "competencia", objetivo: "salvacion.sabiduria", valor: "sabiduria" }` y `{ tipo: "competencia", objetivo: "salvacion.carisma", valor: "carisma" }`.
+   - **Herramientas de asesino (Subclase Asesino, Nv. 3):** Configurado como `categoriaMecanica: "pasivo_permanente"` con efectos declarativos para `{ tipo: "competencia", objetivo: "herramientas", valor: "Útiles de disfraz" }` y `{ tipo: "competencia", objetivo: "herramientas", valor: "Útiles de envenenador" }`.
+2. **Motor de Reglas Agnóstico y Extracción de Competencias (`src/servicios/rasgos/evaluadorSalvacionesRasgos.ts`):**
+   - Se extendió `obtenerCompetenciasExtraRasgos` para recopilar de forma genérica y puramente declarativa `salvaciones: Caracteristica[]` e `idiomas: string[]`.
+   - Se registró en `MAPA_ALIAS_HERRAMIENTAS` la equivalencia canónica entre `"utiles de disfraz"` y `"utiles para disfrazarse"` / `"kit de disfraz"`.
+   - `obtenerCompetenciasEfectivasTexto` ahora consolida los idiomas del personaje (base + rasgos) y expone `idiomasTexto`, `idiomasLista` y `salvacionesCompetentes`.
+3. **Integración Reactiva en Estado y Constructor Puro:**
+   - En `src/almacen/selectores/usarEstadoPersonajes.ts`, `compSalv` integra de forma segura `compExtraRasgos.salvaciones`, reflejando automáticamente el bonificador de competencia en las tiradas de salvación de Sabiduría y Carisma sin requerir mutaciones destructivas del estado base.
+   - En `src/servicios/gestorClases.ts` (`aplicarBuildClaseAPersonaje`), se implementó la fusión persistente de salvaciones, herramientas e idiomas procedentes de `compSubclase`, persistiendo `competenciasSalvacion`, `herramientasLista` e `idiomasLista` en el personaje resultante.
+4. **Validación Exhaustiva:**
+   - Se incorporaron 3 pruebas unitarias completas en `src/servicios/picaroMecanicasDND55.test.ts` (elevando la suite a 23 pruebas aprobadas al 100%).
+   - Se verificaron 1,337 pruebas unitarias globales en 92 suites sin regresiones.
+   - `tsc --noEmit` (0 errores en TypeScript estricto), ESLint (`pnpm run lint`: 0 errores, 0 warnings), auditoría de líneas de código (0 infracciones) y compilación Vite completada exitosamente en 13.73s.
+
+## [2026-10-01] Filtrado Canónico de Conjuros en Pestaña "Disponibles" por Nivel de Lanzador (D&D 5.5e) y Selector Contextual
+
+**Problema Reportado por el Usuario:**
+- *"nueva caracteristica, esto es para el compendio de conjuros del jugador: hacer que el panel de conjuros de "disponibles" si muestre solo los disponibles, es decir que ahora tambien filtre si el personaje puede lanzar hechizos de ese nivel"*
+
+**Causas Raíz Diagnosticadas:**
+1. **Falta de Validación de Nivel de Lanzador en Pestaña "Disponibles":**
+   - En `CompendioConjurosJugador.tsx`, la pestaña *"Disponibles"* evaluaba únicamente `h.clases.some(c => clasesDelPersonaje.includes(c))`.
+   - Como consecuencia, un personaje de nivel bajo (ej. Mago nivel 1 o Pícaro Embaucador Arcano nivel 3) veía en *"Disponibles"* todo el catálogo de Mago de niveles 2 a 9 (como *Bola de fuego*, *Deseo*, etc.), que aún no podía preparar ni lanzar.
+2. **Selector de Nivel Inflexible en Panel de Filtros:**
+   - El filtro desplegable de nivel en el compendio mostraba estáticamente de 0 a 9, permitiendo al jugador seleccionar niveles a los que su personaje no tenía acceso y provocando confusión si venía con un filtro activo previo.
+
+**Soluciones Técnicas y Decisiones Arquitectónicas:**
+1. **Funciones Puras de Dominio en Capa de Servicios (`src/servicios/calculadorMagia.ts`):**
+   - `obtenerNivelMaximoConjuroPorTipoClase(tipo, nivelClase)`: Calcula el nivel máximo lanzable según el tipo de lanzador y progresión oficial D&D 5.5e (Completo = $\lceil N/2 \rceil$, Medio = $\lceil N/4 \rceil$, Tercio = $N \ge 3 \implies \text{Nv } 1..4$, Pacto = $1..5$).
+   - `obtenerNivelesLanzablesPorClase(tipo, nivelClase, opciones)`: Genera el conjunto exacto de niveles (0-9) accesibles para una clase y nivel dados, incorporando Arcanos Místicos (6, 7, 8, 9) para Brujo.
+   - `obtenerNivelesConjuroDisponiblesPersonaje(personaje)`: Agrega todos los niveles que el personaje puede lanzar considerando clases lanzadoras, multiclase, arcanos místicos, puntos de conjuro y ranuras personalizadas.
+   - `puedePersonajeLanzarHechizo(personaje, hechizo)`: Valida la disponibilidad del conjuro comprobando coincidencia de lista mágica y evaluando de forma individual por clase que el nivel del conjuro sea accesible (conforme a las reglas multiclase de D&D 5.5e, donde un Clérigo 1 / Mago 3 solo puede preparar conjuros de Clérigo de nivel 1 aunque posea ranuras combinadas de nivel 2).
+2. **Integración Reactiva en UI (`CompendioConjurosJugador.tsx`):**
+   - La pestaña *"Disponibles"* filtra directamente mediante `puedePersonajeLanzarHechizo(personajeActivo, h)`.
+   - `opcionesNivelFiltro` se deriva dinámicamente: en *"Disponibles"*, solo muestra *"Todos los Niveles"* y los niveles que el personaje puede lanzar (ej. Trucos y Nivel 1 para Mago nv1).
+   - Efecto reactivo que restablece `nivelFiltro` a `"todos"` si el usuario cambia a *"Disponibles"* teniendo seleccionado un nivel no accesible.
+   - Mensaje de estado vacío diferenciado para personajes no lanzadores ("Este personaje no posee clases ni rasgos lanzadores de conjuros").
+   - Optimización de líneas del componente para mantenerse holgadamente por debajo del límite arquitectónico (484 líneas frente al límite de 500).
+
+**Validación Integral del Pipeline:**
+- `pnpm exec tsc --noEmit`: 0 errores con `strict: true`.
+- `pnpm test`: 92 suites y 1,334 pruebas aprobadas al 100% (incorporadas 18 pruebas unitarias exhaustivas en `calculadorMagia.test.ts`).
+- `pnpm run lint`: 0 errores y 0 advertencias (`--max-warnings=0`).
+- `node scripts/verificar-limite-lineas.js`: 0 errores críticos (todos los archivos cumplen con el umbral).
+- `pnpm exec vite build`: Compilación para producción completada exitosamente en 13.15s.
+
 ## [2026-10-01] Corrección de Falso Positivo: «Embaucador versátil» otorgaba la Dote «Alerta» a Nivel 13 y Desglose Dinámico de Iniciativa
 
 **Problema Reportado por el Usuario:**

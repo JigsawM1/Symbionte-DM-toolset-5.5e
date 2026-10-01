@@ -236,13 +236,16 @@ export function calcularEstadisticasPersonaje(pj: PersonajeJugador): Estadistica
     carisma: calcularModificadorCaracteristica(puntuacionesEfectivas.carisma) + (personalizacionesCarac.carisma?.modificadorExtra || 0)
   };
 
-  const compSalv = pj?.competenciasSalvacion || {
-    fuerza: false,
-    destreza: false,
-    constitucion: false,
-    inteligencia: false,
-    sabiduria: false,
-    carisma: false
+  const compExtraRasgos = pj
+    ? obtenerCompetenciasExtraRasgos(pj)
+    : { armasGrupos: [], armadurasGrupos: [], herramientas: [], salvaciones: [], idiomas: [] };
+  const compSalv = {
+    fuerza: (pj?.competenciasSalvacion?.fuerza || false) || compExtraRasgos.salvaciones.includes("fuerza"),
+    destreza: (pj?.competenciasSalvacion?.destreza || false) || compExtraRasgos.salvaciones.includes("destreza"),
+    constitucion: (pj?.competenciasSalvacion?.constitucion || false) || compExtraRasgos.salvaciones.includes("constitucion"),
+    inteligencia: (pj?.competenciasSalvacion?.inteligencia || false) || compExtraRasgos.salvaciones.includes("inteligencia"),
+    sabiduria: (pj?.competenciasSalvacion?.sabiduria || false) || compExtraRasgos.salvaciones.includes("sabiduria"),
+    carisma: (pj?.competenciasSalvacion?.carisma || false) || compExtraRasgos.salvaciones.includes("carisma")
   };
 
   const salvaciones: Record<Caracteristica, number> = {
@@ -611,7 +614,6 @@ export function calcularEstadisticasPersonaje(pj: PersonajeJugador): Estadistica
   let armaduraNoCompetente: string | null = null;
   let escudoNoCompetente: string | null = null;
 
-  const compExtraRasgos = pj ? obtenerCompetenciasExtraRasgos(pj) : { armasGrupos: [], armadurasGrupos: [] };
   const gruposArmadura = Array.from(
     new Set([...(pj?.competenciasArmadurasGrupos || []), ...compExtraRasgos.armadurasGrupos])
   );

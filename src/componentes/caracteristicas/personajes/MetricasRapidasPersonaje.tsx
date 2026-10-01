@@ -3,18 +3,8 @@ import type { PersonajeJugador, TipoTerreno } from "@/tipos";
 import { INFORMACION_TERRENO } from "@/tipos";
 import type { InformacionCA, PenalizacionArmadura } from "@/almacen/selectores/usarEstadoPersonajes";
 import {
-  Shield,
-  Zap,
-  Footprints,
-  Award,
-  Sparkles,
-  AlertTriangle,
-  RotateCcw,
-  RefreshCw,
-  Plus,
-  Minus,
-  X,
-  Mountain
+  Shield, Zap, Footprints, Award, Sparkles, AlertTriangle,
+  RotateCcw, RefreshCw, Plus, Minus, X, Mountain
 } from "lucide-react";
 import { TooltipUniversal } from "@/componentes/comunes";
 import { obtenerVelocidadesEfectivas, calcularBonoIniciativaRasgos } from "@/servicios/evaluadorEfectosRasgos";

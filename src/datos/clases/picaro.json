@@ -207,7 +207,16 @@
       "nivel": 1,
       "nombre": "Jerga de ladrones",
       "descripcion": "Has aprendido varios idiomas en las comunidades donde ejerciste tus talentos picarescos. Conoces la jerga de ladrones y otro idioma de tu elección.",
-      "tipoAccion": "pasivo"
+      "tipoAccion": "pasivo",
+      "categoriaMecanica": "pasivo_permanente",
+      "efectos": [
+        {
+          "tipo": "competencia",
+          "objetivo": "idioma",
+          "valor": "Jerga de ladrones",
+          "descripcion": "Competencia con el idioma Jerga de ladrones"
+        }
+      ]
     },
     {
       "nivel": 1,
@@ -487,7 +496,22 @@
       "nivel": 15,
       "nombre": "Mente escurridiza",
       "descripcion": "Tu mente astuta es excepcionalmente difícil de controlar. Ganas competencia en las tiradas de salvación de Sabiduría y Carisma.",
-      "tipoAccion": "pasivo"
+      "tipoAccion": "pasivo",
+      "categoriaMecanica": "pasivo_permanente",
+      "efectos": [
+        {
+          "tipo": "competencia",
+          "objetivo": "salvacion.sabiduria",
+          "valor": "sabiduria",
+          "descripcion": "Competencia en tiradas de salvación de Sabiduría"
+        },
+        {
+          "tipo": "competencia",
+          "objetivo": "salvacion.carisma",
+          "valor": "carisma",
+          "descripcion": "Competencia en tiradas de salvación de Carisma"
+        }
+      ]
     },
     {
       "nivel": 16,
@@ -642,7 +666,22 @@
           "nombre": "Herramientas de asesino",
           "descripcion": "Obtienes unos *Útiles de disfraz* y unos *Útiles de envenenador*, y adquieres competencia con ellos.",
           "tipoAccion": "pasivo",
-          "subclase": "Asesino"
+          "subclase": "Asesino",
+          "categoriaMecanica": "pasivo_permanente",
+          "efectos": [
+            {
+              "tipo": "competencia",
+              "objetivo": "herramientas",
+              "valor": "Útiles de disfraz",
+              "descripcion": "Competencia con Útiles de disfraz"
+            },
+            {
+              "tipo": "competencia",
+              "objetivo": "herramientas",
+              "valor": "Útiles de envenenador",
+              "descripcion": "Competencia con Útiles de envenenador"
+            }
+          ]
         },
         {
           "nivel": 9,

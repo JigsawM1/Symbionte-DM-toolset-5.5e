@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { obtenerRasgosClaseYSubclase } from "./gestorClases";
+import { obtenerRasgosClaseYSubclase, aplicarBuildClaseAPersonaje } from "./gestorClases";
 import {
   obtenerDadosExtraAtaque,
   obtenerDanosSecundariosAtaque,
@@ -9,10 +9,17 @@ import {
 import { obtenerVelocidadesEfectivas } from "./rasgos/evaluadorMovilidadRasgos";
 import { generarListaAtaquesFisicos } from "./calculadorAtaquesArmas";
 import { sincronizarRasgosAutomaticos } from "./compendioRasgos";
+import {
+  obtenerCompetenciasExtraRasgos,
+  obtenerCompetenciasEfectivasTexto
+} from "./evaluadorEfectosRasgos";
 import { PERSONAJE_POR_DEFECTO } from "@/constantes/personajeConstantes";
 import type { PersonajeJugador } from "@/tipos/personaje";
 import type { RasgoPersonaje } from "@/tipos/rasgos";
-import type { EstadisticasCalculadasPersonaje } from "@/almacen/selectores/usarEstadoPersonajes";
+import {
+  calcularEstadisticasPersonaje,
+  type EstadisticasCalculadasPersonaje
+} from "@/almacen/selectores/usarEstadoPersonajes";
 
 describe("Pícaro D&D 5.5 (2024) - Reglas y Mecánicas Base", () => {
   it("Nivel 1: Ataque furtivo es activable, escala por nivel y aplica a armas sutiles o a distancia", () => {
@@ -559,6 +566,78 @@ describe("Pícaro D&D 5.5 - Subclases", () => {
       expect(poder?.tablaProgresion?.notaPie).toBe(
         "Recuperas 1 dado gastado en un descanso corto y todos en un descanso largo"
       );
+    });
+  });
+
+  describe("Competencias Automáticas de Rasgos y Subclase (D&D 5.5e)", () => {
+    it("Jerga de ladrones otorga competencia automática con el idioma 'Jerga de ladrones' a nivel 1", () => {
+      const rasgosNv1 = obtenerRasgosClaseYSubclase("Pícaro", 1);
+      const jerga = rasgosNv1.find((r) => r.nombre === "Jerga de ladrones");
+
+      expect(jerga).toBeDefined();
+      expect(jerga?.categoriaMecanica).toBe("pasivo_permanente");
+      const efIdioma = jerga?.efectos?.find((e) => e.tipo === "competencia" && e.objetivo === "idioma");
+      expect(efIdioma).toBeDefined();
+      expect(efIdioma?.valor).toBe("Jerga de ladrones");
+
+      const pj = aplicarBuildClaseAPersonaje(PERSONAJE_POR_DEFECTO, "Pícaro", 1);
+      const compExtra = obtenerCompetenciasExtraRasgos(pj);
+      expect(compExtra.idiomas).toContain("Jerga de ladrones");
+      expect(pj.idiomasLista).toContain("Jerga de ladrones");
+      expect(pj.idiomas).toContain("Jerga de ladrones");
+
+      const efectivas = obtenerCompetenciasEfectivasTexto(pj);
+      expect(efectivas.idiomasLista).toContain("Jerga de ladrones");
+      expect(efectivas.idiomasTexto).toContain("Jerga de ladrones");
+    });
+
+    it("Herramientas de asesino (subclase Asesino nv 3) otorga competencia con Útiles de disfraz y Útiles de envenenador", () => {
+      const rasgosAsesino = obtenerRasgosClaseYSubclase("Pícaro", 3, "Asesino");
+      const herAsesino = rasgosAsesino.find((r) => r.nombre === "Herramientas de asesino");
+
+      expect(herAsesino).toBeDefined();
+      expect(herAsesino?.categoriaMecanica).toBe("pasivo_permanente");
+      const efs = herAsesino?.efectos?.filter((e) => e.tipo === "competencia" && e.objetivo === "herramientas");
+      expect(efs).toHaveLength(2);
+      expect(efs?.some((e) => e.valor === "Útiles de disfraz")).toBe(true);
+      expect(efs?.some((e) => e.valor === "Útiles de envenenador")).toBe(true);
+
+      const pj = aplicarBuildClaseAPersonaje(PERSONAJE_POR_DEFECTO, "Pícaro", 3, "Asesino");
+      const compExtra = obtenerCompetenciasExtraRasgos(pj);
+      expect(compExtra.herramientas).toContain("Útiles de disfraz");
+      expect(compExtra.herramientas).toContain("Útiles de envenenador");
+      expect(pj.herramientasLista).toContain("Útiles de disfraz");
+      expect(pj.herramientasLista).toContain("Útiles de envenenador");
+
+      const efectivas = obtenerCompetenciasEfectivasTexto(pj);
+      expect(efectivas.herramientasLista).toContain("Útiles de disfraz");
+      expect(efectivas.herramientasLista).toContain("Útiles de envenenador");
+    });
+
+    it("Mente escurridiza otorga competencia con tiradas de salvación de Sabiduría y Carisma a nivel 15", () => {
+      const rasgosNv15 = obtenerRasgosClaseYSubclase("Pícaro", 15);
+      const mente = rasgosNv15.find((r) => r.nombre === "Mente escurridiza");
+
+      expect(mente).toBeDefined();
+      expect(mente?.categoriaMecanica).toBe("pasivo_permanente");
+      const efs = mente?.efectos?.filter((e) => e.tipo === "competencia");
+      expect(efs).toHaveLength(2);
+      expect(efs?.some((e) => e.objetivo === "salvacion.sabiduria" && e.valor === "sabiduria")).toBe(true);
+      expect(efs?.some((e) => e.objetivo === "salvacion.carisma" && e.valor === "carisma")).toBe(true);
+
+      const pjNv15 = aplicarBuildClaseAPersonaje(PERSONAJE_POR_DEFECTO, "Pícaro", 15);
+      expect(pjNv15.competenciasSalvacion.destreza).toBe(true);
+      expect(pjNv15.competenciasSalvacion.inteligencia).toBe(true);
+      expect(pjNv15.competenciasSalvacion.sabiduria).toBe(true);
+      expect(pjNv15.competenciasSalvacion.carisma).toBe(true);
+
+      const stats = calcularEstadisticasPersonaje(pjNv15);
+      const bonoCompetencia = stats.bonoCompetencia; // 5 a nivel 15
+      expect(bonoCompetencia).toBe(5);
+      const modSab = stats.modificadores.sabiduria;
+      const modCar = stats.modificadores.carisma;
+      expect(stats.salvaciones.sabiduria).toBe(modSab + bonoCompetencia);
+      expect(stats.salvaciones.carisma).toBe(modCar + bonoCompetencia);
     });
   });
 });

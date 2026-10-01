@@ -240,6 +240,52 @@ describe("Pícaro D&D 5.5 (2024) - Reglas y Mecánicas Base", () => {
     expect(dadosExtra[0].dados).toBe("1d6"); // 7d6 - 6d6 = 1d6
   });
 
+  it("Nivel 3: Puntería estable es activable, requiere no haberse movido, otorga ventaja y fija la velocidad a 0", () => {
+    const rasgosNv3 = obtenerRasgosClaseYSubclase("Pícaro", 3);
+    const punteria = rasgosNv3.find((r) => r.nombre === "Puntería estable");
+
+    expect(punteria).toBeDefined();
+    expect(punteria?.esActivable).toBe(true);
+    expect(punteria?.requiereSinMovimiento).toBe(true);
+    expect(punteria?.autoDesactivarAlTirarDano).toBe(true);
+    expect(punteria?.tipoAccion).toBe("accion_adicional");
+    expect(punteria?.categoriaMecanica).toBe("activable");
+
+    const efectoVentaja = punteria?.efectos?.find((e) => e.tipo === "ventaja");
+    expect(efectoVentaja).toBeDefined();
+    expect(efectoVentaja?.objetivo).toBe("ataque");
+
+    const efectoVelocidad = punteria?.efectos?.find((e) => e.tipo === "fijar_velocidad");
+    expect(efectoVelocidad).toBeDefined();
+    expect(Number(efectoVelocidad?.valor)).toBe(0);
+
+    // 1. Con Puntería Estable apagada -> velocidad normal (30 ft)
+    const pjPunteriaApagada: PersonajeJugador = {
+      id: "picaro-punteria-1",
+      nombre: "Pícaro Tirador",
+      clase: "Pícaro",
+      nivel: 3,
+      velocidad: { caminar: 30, nadar: 20, volar: 0, escalar: 30, planea: false },
+      movimientoGastado: 0,
+      rasgos: [{ ...punteria!, activo: false }]
+    } as unknown as PersonajeJugador;
+
+    let vel = obtenerVelocidadesEfectivas(pjPunteriaApagada);
+    expect(vel.caminar).toBe(30);
+    expect(vel.nadar).toBe(20);
+
+    // 2. Con Puntería Estable ENCENDIDA -> velocidad se reduce a 0 ft
+    const pjPunteriaActiva: PersonajeJugador = {
+      ...pjPunteriaApagada,
+      rasgos: [{ ...punteria!, activo: true }]
+    };
+
+    vel = obtenerVelocidadesEfectivas(pjPunteriaActiva);
+    expect(vel.caminar).toBe(0);
+    expect(vel.nadar).toBe(0);
+    expect(vel.escalar).toBe(0);
+  });
+
   it("Nivel 20: Golpe de suerte es consumible con 1 uso por descanso corto", () => {
     const rasgosNv20 = obtenerRasgosClaseYSubclase("Pícaro", 20);
     const golpeSuerte = rasgosNv20.find((r) => r.nombre === "Golpe de suerte");

@@ -366,6 +366,10 @@ export const crearSubSliceRasgos: StateCreator<
         return pj; // Bloqueado: opción requerida en rasgo padre no está seleccionada
       }
 
+      if (nuevoActivo && targetTrait.requiereSinMovimiento && (pj.movimientoGastado || 0) > 0) {
+        return pj; // Bloqueado: requiere no haberse movido durante este turno
+      }
+
 
       const esFuriaBase = (nomObjetivo === "furia" || idObjetivo === "rasgo_cls_barbaro_furia") && !esFuriaDeLosDioses;
 

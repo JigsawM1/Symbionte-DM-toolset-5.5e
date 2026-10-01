@@ -41,6 +41,9 @@ export const EsquemaTipoEfectoMecanico = z.enum([
   "modificador_stat",
   "modificador_ca",
   "modificador_velocidad",
+  "fijar_velocidad",
+  "multiplicador_velocidad",
+  "velocidad_cero",
   "movimiento_especial",
   "ventaja",
   "desventaja",
@@ -250,6 +253,7 @@ export interface PlantillaRasgoClase {
   autoDesactivar?: boolean;
   autoDesactivarAlTirarDano?: boolean;
   dispararAlTirarIniciativa?: boolean;
+  requiereSinMovimiento?: boolean;
   ligadoA?: string;
   requiereOpcion?: string;
   gastarDePadre?: boolean;
@@ -294,6 +298,7 @@ export interface PlantillaRasgoEspecie {
   // Mecánicas estructuradas
   esActivable?: boolean;
   autoDesactivar?: boolean;
+  requiereSinMovimiento?: boolean;
   ligadoA?: string;
   gastarDePadre?: boolean;
   heredarDadosPadre?: boolean;
@@ -355,6 +360,7 @@ export const EsquemaRasgoPersonaje = z.object({
   autoDesactivar: z.boolean().default(false).optional(), // Si es true, vuelve a activo: false tras ejecutarse
   autoDesactivarAlTirarDano: z.boolean().default(false).optional(), // Si es true, vuelve a activo: false tras tirar daño con arma
   dispararAlTirarIniciativa: z.boolean().default(false).optional(), // Si es true, ejecuta su efecto al tirar iniciativa
+  requiereSinMovimiento: z.boolean().default(false).optional(), // Si es true, solo se puede activar si movimientoGastado === 0
   ligadoA: z.string().optional(), // ID o nombre de rasgo padre requerido activo
   requiereOpcion: z.string().optional(), // ID de la opción del selector del rasgo padre requerida
   gastarDePadre: z.boolean().default(false).optional(), // Descuenta uso de la reserva del rasgo padre

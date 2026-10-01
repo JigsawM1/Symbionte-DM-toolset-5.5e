@@ -20,6 +20,53 @@ Este archivo registra reglas globales, errores encontrados, sus causas raíz y l
    - Toda mecánica, progresión de dados, escalado de usos, recuperación o desbloqueo dinámico debe resolverse mediante metadatos declarativos (`escaladoFormulaDados`, `escaladoUsos`, `escaladoRecuperacion`, `opcionesDinamicas`, `escaladoMaxSelecciones`, `sincronizarEfectosConFormula`, `heredarDadosPadre`, `gastarDePadre`, `ligadoA`, `efectos`) delegando en funciones puras agnósticas como `resolverEscaladosRasgo`. Esta regla está reforzada en CI vía ESLint `no-restricted-syntax` y la suite `rasgoGenericidad.test.ts`.
 
 
+## [2026-10-01] Corrección de Parseo de Manifest en TaleSpire ("Failed parsing of manifest json" y "must start with a forward-slash")
+
+**Problema Reportado:**
+- El simbionte mostraba un cuadro negro en TaleSpire con el mensaje: *"Failed parsing of manifest json"* y posteriormente *"Local symbiote manifest paths must start with a forward-slash"*.
+
+**Causa Raíz Diagnosticada:**
+1. El archivo `manifest.json` incluía campos no reconocidos por el deserializador C#/Unity de TaleSpire (`api.subscriptions.sync` e `api.interop`).
+2. En la especificación estricta de TaleSpire para simbiontes locales, la ruta del `entryPoint` debe comenzar obligatoriamente con una barra diagonal (`/index.html`).
+
+**Solución Técnica:**
+- Se limpiaron `manifest.json` y `public/manifest.json`, dejando únicamente las suscripciones estándar (`symbiote`, `creatures`, `initiative`, `dice`, `clients`) y estableciendo `"entryPoint": "/index.html"`.
+- Se ejecutó `pnpm run deploy` compilando y copiando los archivos a la carpeta de simbiontes de TaleSpire.
+
+## [2026-10-01] Motor de Velocidad Dinámica, Condiciones de Velocidad 0 / Mitad y Puntería Estable (D&D 5.5e)
+
+**Problema y Solicitud del Usuario:**
+- *"Como acción adicional, te otorgas ventaja en tu siguiente tirada de ataque en el turno actual. Puedes usar este rasgo solo si no te has movido durante este turno y, tras usarlo, tu velocidad se reduce a 0 pies hasta el final del turno actual."*
+- *"ahora que se agrego velocidad dinamica ahora hay que hacer mecanica para esto y para cada cosa que diga que su velocidad quedo a la mitad o a 0"*
+
+**Causas Raíz y Necesidades Técnicas:**
+1. **Falta de Evaluación Integral de Condiciones en Velocidad:**
+   - `obtenerVelocidadesEfectivas` únicamente sumaba bonos de rasgos (`modificador_velocidad`) y modos especiales, sin computar condiciones oficiales de reducción a 0 (Apresado, Inmovilizado, Paralizado, Aturdido, Petrificado, Inconsciente), efectos de mitad de velocidad (Lentitud, Slow, `multiplicador_velocidad`) ni penalizaciones por Cansancio/Exhaustion de D&D 2024 (-5 pies por nivel).
+2. **Falta de Metadatos Declarativos para Restricción de Movimiento Previo en Rasgos:**
+   - No existía un flag declarativo (`requiereSinMovimiento`) para modelar restricciones donde un rasgo solo puede activarse si `movimientoGastado === 0`.
+3. **Puntería Estable en Pícaro:**
+   - El rasgo estaba registrado de forma estática en `picaro.json` sin los metadatos de activable, restricción de movimiento ni efectos mecánicos de ventaja y fijación de velocidad a 0.
+
+**Soluciones Técnicas Aplicadas:**
+1. **Ampliación de Contratos y Tipos (`tipos/rasgos.ts` y `tipos/esquemasCatalogos.ts`):**
+   - Agregados tipos de efecto `"fijar_velocidad"`, `"multiplicador_velocidad"` y `"velocidad_cero"` a `EsquemaTipoEfectoMecanico`.
+   - Agregado campo `requiereSinMovimiento?: boolean` a `PlantillaRasgoClase`, `PlantillaRasgoEspecie`, `EsquemaRasgoPersonaje` y sus esquemas Zod de catálogos JSON.
+2. **Evaluación Pura y Reactiva en `evaluadorMovilidadRasgos.ts` (`obtenerVelocidadesEfectivas`):**
+   - **Bonos y Penalizaciones:** Computa base + bonos de rasgos (`modificador_velocidad`).
+   - **Cansancio D&D 5.5e (2024):** Resta 5 pies por nivel de cansancio a todas las velocidades.
+   - **Multiplicadores de Velocidad:** Soporta efectos `multiplicador_velocidad` (ej. 0.5) y condiciones/efectos de lentitud o mitad de velocidad (`Math.floor(vel * mult)`).
+   - **Velocidad a 0 / Overrides:** Si el combatiente tiene condiciones de inmovilización (`apresado`, `inmovilizado`, `paralizado`, `aturdido`, `petrificado`, `inconsciente`), efectos de texto de velocidad 0 o rasgos activos con `fijar_velocidad: 0` / `velocidad_cero`, anula todas las velocidades (`caminar: 0, nadar: 0, volar: 0, escalar: 0, excavar: 0`).
+3. **Catálogo Declarativo en `picaro.json`:**
+   - Configurado "Puntería estable" con `categoriaMecanica: "activable"`, `esActivable: true`, `tipoAccion: "accion_adicional"`, `requiereSinMovimiento: true`, `autoDesactivarAlTirarDano: true` y efectos declarativos de ventaja en ataque y fijación de velocidad a 0.
+4. **Validación de Activación en `sliceRasgos.ts`:**
+   - En `alternarActivoRasgo`, si `targetTrait.requiereSinMovimiento` es verdadero y `pj.movimientoGastado > 0`, se bloquea de inmediato la activación preservando la regla oficial.
+5. **Evaluación de Ventajas en Ataques (`evaluadorSalvacionesRasgos.ts`):**
+   - Ampliado `evaluarVentajasDeRasgosEnTirada` para reconocer ventajas genéricas en ataques (`"ataque"`, `"ataques"`, `"todos_ataques"`, `"proximo_ataque"`).
+6. **Validación Integral y Pruebas:**
+   - Creada suite `evaluadorMovilidadRasgos.test.ts` cubriendo todas las condiciones de velocidad 0, multiplicadores a la mitad, cansancio e integración con el store.
+   - 1,263 pruebas pasando al 100% (92 suites).
+   - `tsc --noEmit` completado con 0 errores bajo `strict: true`.
+
 ## [2026-09-30] Sincronización de Condiciones, Efectos y Vitalidad desde el DM a la Hoja de Características del Jugador
 
 **Problema Reportado por el Usuario:**

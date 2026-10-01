@@ -295,8 +295,7 @@ const MetricasRapidasPersonajeComponent: React.FC<MetricasRapidasPersonajeProps>
                 className={`${estilos.badgeTSEnlace} ${!personaje.idMiniaturaTS ? estilos.badgeTSDesconectado : ""}`}
               >
                 <span
-                  className={`${estilos.indicadorTSEnlace} ${!personaje.idMiniaturaTS ? estilos.indicadorTSEnlaceInactivo : ""}`}
-                  style={{ position: "static", display: "inline-block" }}
+                  className={`${estilos.indicadorTSEnlace} ${estilos.indicadorTSEnlaceEstatico} ${!personaje.idMiniaturaTS ? estilos.indicadorTSEnlaceInactivo : ""}`}
                 />
                 {personaje.idMiniaturaTS
                   ? "TaleSpire conectado (cálculo dinámico automático)"
@@ -306,7 +305,7 @@ const MetricasRapidasPersonajeComponent: React.FC<MetricasRapidasPersonajeProps>
               {/* Selector de Tipo de Terreno (D&D 5.5e y 3D) */}
               <div className={estilos.seccionTerrenoPopover}>
                 <div className={estilos.cabeceraTerreno}>
-                  <span style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+                  <span className={estilos.etiquetaCabeceraTerreno}>
                     <Mountain size={12} color="#94a3b8" />
                     Terreno (D&D 5.5e)
                   </span>

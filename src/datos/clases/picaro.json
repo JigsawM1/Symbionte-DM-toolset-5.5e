@@ -266,7 +266,27 @@
       "nivel": 3,
       "nombre": "Puntería estable",
       "descripcion": "Como acción adicional, te otorgas ventaja en tu siguiente tirada de ataque en el turno actual. Puedes usar este rasgo solo si no te has movido durante este turno y, tras usarlo, tu velocidad se reduce a 0 pies hasta el final del turno actual.",
-      "tipoAccion": "accion_adicional"
+      "tipoAccion": "accion_adicional",
+      "categoriaMecanica": "activable",
+      "esActivable": true,
+      "requiereSinMovimiento": true,
+      "autoDesactivarAlTirarDano": true,
+      "efectos": [
+        {
+          "tipo": "ventaja",
+          "objetivo": "ataque",
+          "valor": "ventaja",
+          "descripcion": "Ventaja en la siguiente tirada de ataque en el turno actual",
+          "activo": true
+        },
+        {
+          "tipo": "fijar_velocidad",
+          "objetivo": "todas",
+          "valor": 0,
+          "descripcion": "Tu velocidad se reduce a 0 pies hasta el final del turno actual",
+          "activo": true
+        }
+      ]
     },
     {
       "nivel": 4,

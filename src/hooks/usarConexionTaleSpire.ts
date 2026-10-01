@@ -262,7 +262,13 @@ export function usarConexionTaleSpire() {
                 personajeVinculado.id,
                 evento.position,
                 evento.boardId,
-                { numberPerTile, redondearA5Pies: true }
+                {
+                  numberPerTile,
+                  incluirAltura: true,
+                  multiplicadorTerreno: personajeVinculado.multiplicadorTerreno || 1,
+                  redondearA5Pies: false,
+                  umbralRuidoPies: 0.05
+                }
               );
             } else {
               logger.debug("[TaleSpire Simbionte] Movimiento ignorado: la criatura no coincide con ningún PJ:", idStr);

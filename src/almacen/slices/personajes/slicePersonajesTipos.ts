@@ -99,6 +99,7 @@ export interface SubSliceCaracteristicasHabilidades {
   deshacerUltimoMovimientoPersonaje: (id: string) => void;
   restablecerMovimientoPersonaje: (id: string) => void;
   alternarAccionCarreraPersonaje: (id: string) => void;
+  establecerTipoTerrenoPersonaje: (id: string, tipo: import("@/tipos").TipoTerreno) => void;
 }
 
 export interface SubSliceCondiciones {

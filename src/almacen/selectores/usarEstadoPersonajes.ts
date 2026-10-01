@@ -778,6 +778,7 @@ export function usarAccionesPersonajes() {
       deshacerUltimoMovimientoPersonaje:  s.deshacerUltimoMovimientoPersonaje,
       restablecerMovimientoPersonaje:     s.restablecerMovimientoPersonaje,
       alternarAccionCarreraPersonaje:     s.alternarAccionCarreraPersonaje,
+      establecerTipoTerrenoPersonaje:     s.establecerTipoTerrenoPersonaje,
 
       // Magia y Lanzamiento de Conjuros
       configurarLanzadorConjuros:         s.configurarLanzadorConjuros,

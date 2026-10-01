@@ -17,6 +17,22 @@ Este archivo registra reglas globales, errores encontrados, sus causas raíz y l
    - **Bajo ninguna circunstancia** los módulos de lógica de negocio (`servicios/`), gestores de estado (`almacen/`), contratos (`tipos/`), valores de reglas (`constantes/`) ni funciones de soporte (`utiles/`) deben importar componentes visuales o archivos CSS (`componentes/`). Esta regla está reforzada en CI vía ESLint `no-restricted-imports`.
 6. **PROHIBICIÓN ESTRICTA DE BIFURCACIONES POR NOMBRE DE RASGO O CLASE (CATÁLOGO DECLARATIVO Y BUILDER PURO)**:
    - **Bajo ninguna circunstancia** los módulos de lógica de negocio (`servicios/`), gestores de estado (`almacen/`) o constructores (`gestorClases.ts`) deben contener bifurcaciones condicionales por nombre literal de rasgo o clase (`r.nombre === "..."`, `clase.includes("...")`, etc.).
+## [2026-10-01] Consolidación de origin/Tryn: Modo Manual de Movimiento Táctico, Terrenos 3D y Skills en Repositorio
+
+**Contexto del Cambio:**
+- Se integraron los commits de `origin/Tryn` (`379b72c` y `b01b8c0`) en `main`.
+- La resolución del conflicto en `agente.md` se realizó conservando la versión completa de `main` como Fuente Única de la Verdad (SSOT) para prevenir la pérdida de más de 6,000 líneas de histórico técnico.
+
+**Mejoras Incorporadas:**
+1. **Modo Manual vs Dinámico de Movimiento (`sliceCaracteristicasHabilidades.ts`):**
+   - Incorporada la bandera `modoMovimientoManual` y la acción `cambiarModoMovimientoManual(id, manual)` en el estado del personaje.
+   - Permite a los jugadores registrar su movimiento manualmente incluso cuando no tienen miniatura física vinculada o cuando prefieren controlar los pies gastados directamente en la interfaz.
+2. **Selector de Terreno Táctico (D&D 5.5e y Cálculo Euclidiano 3D):**
+   - Soporte para multiplicadores de terreno (`normal`, `dificil`, `extremo`) y cálculo tridimensional considerando la elevación vertical (coordenada Y) en TaleSpire.
+   - UI modularizada con CSS Modules (`HojaPersonaje.module.css`), respetando la directiva de cero estilos inline.
+3. **Repositorio de Skills (.agents):**
+   - Se removió `.agents/` del `.gitignore` para versionar en el repositorio las guías de buenas prácticas, accesibilidad, composición y arquitectura de frontend.
+
 ## [2026-10-01] Corrección de Bonificador de CA Dinámico en Escudos y Armaduras Homebrew (caBase y Propiedades)
 
 **Problema Reportado por el Usuario:**

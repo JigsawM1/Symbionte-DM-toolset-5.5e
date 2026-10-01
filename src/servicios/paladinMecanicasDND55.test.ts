@@ -772,7 +772,7 @@ describe("Paladín D&D 5.5 (2024) - Fase 2: Subclase Juramento de Entrega (Oath 
 
       expect(castigo).toBeDefined();
       expect(castigo?.categoriaMecanica).toBe("consumible");
-      expect(castigo?.tipoAccion).toBe("reaccion");
+      expect(castigo?.tipoAccion).toBe("pasivo");
       expect(castigo?.gastarDePadre).toBe(true);
       expect(castigo?.ligadoA).toBe("Canalizar divinidad");
       expect(castigo?.formulaDados).toBe("2d8 + nivel");
@@ -1074,14 +1074,14 @@ describe("Paladín D&D 5.5 (2024) - Fase 2: Subclase Juramento de Entrega (Oath 
       expect(nv17Spells).toContain("Escrudiñar");
     });
 
-    it("Voto de enemistad a nivel 3 es consumible de acción adicional, gasta de Canalizar divinidad y se agrupa en su sección colapsable", () => {
+    it("Voto de enemistad a nivel 3 es consumible, gasta de Canalizar divinidad y se agrupa en su sección colapsable", () => {
       const rasgosNv3 = obtenerRasgosClaseYSubclase("Paladín", 3, "Juramento de Venganza");
       const voto = rasgosNv3.find((r) => r.nombre === "Voto de enemistad");
       const canalizar = rasgosNv3.find((r) => r.nombre === "Canalizar divinidad");
 
       expect(voto).toBeDefined();
       expect(voto?.categoriaMecanica).toBe("consumible");
-      expect(voto?.tipoAccion).toBe("accion_adicional");
+      expect(voto?.tipoAccion).toBe("pasivo");
       expect(voto?.gastarDePadre).toBe(true);
       expect(voto?.ligadoA).toBe("Canalizar divinidad");
       expect(esRasgoCanalizarDivinidad(voto!)).toBe(true);
@@ -1094,13 +1094,13 @@ describe("Paladín D&D 5.5 (2024) - Fase 2: Subclase Juramento de Entrega (Oath 
       expect(esRasgoCanalizarDivinidad(sentidos!)).toBe(true);
     });
 
-    it("Vengador implacable a nivel 7 es reacción y pasivo permanente", () => {
+    it("Vengador implacable a nivel 7 es pasivo permanente", () => {
       const rasgosNv7 = obtenerRasgosClaseYSubclase("Paladín", 7, "Juramento de Venganza");
       const vengador = rasgosNv7.find((r) => r.nombre === "Vengador implacable");
 
       expect(vengador).toBeDefined();
       expect(vengador?.categoriaMecanica).toBe("pasivo_permanente");
-      expect(vengador?.tipoAccion).toBe("reaccion");
+      expect(vengador?.tipoAccion).toBe("pasivo");
     });
 
     it("Alma de venganza a nivel 15 es reacción y pasivo permanente", () => {

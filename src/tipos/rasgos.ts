@@ -66,6 +66,7 @@ export const EsquemaTipoEfectoMecanico = z.enum([
   "limite_des_armadura_media",
   "dado_extra_critico",
   "bono_habilidad",
+  "ataque_otorgado",
   "personalizado"
 ]);
 export type TipoEfectoMecanico = z.infer<typeof EsquemaTipoEfectoMecanico>;
@@ -84,6 +85,9 @@ export const EsquemaEfectoMecanicoRasgo = z.object({
   limiteMaximo: z.number().int().optional(), // ej. 25 para modificador_stat
   permiteEscudo: z.boolean().optional(), // ej. true para Defensa sin armadura de Bárbaro
   descripcion: z.string().optional(),
+  danoAccionAdicional: z.string().optional(), // ej. "1d4" para ataque adicional de Hoja psíquica
+  alcance: z.string().optional(), // ej. "5 ft (60 ft arrojadiza)"
+  propiedades: z.array(z.string()).optional(), // ej. ["Sutil", "Arrojadiza (60 ft)", "Mágico"]
   activo: z.boolean().default(true).optional()
 });
 export type EfectoMecanicoRasgo = z.infer<typeof EsquemaEfectoMecanicoRasgo>;
@@ -109,6 +113,7 @@ export const EsquemaOpcionSelector = z.object({
     "extension",
     "curacion"
   ]).optional(),
+  costeDados: z.number().int().min(1).optional(),
   recursoGastado: EsquemaRecursoGastado.optional(),
   formulaDados: z.string().optional(),
   escaladoFormulaDados: z.array(z.object({
@@ -249,6 +254,7 @@ export interface PlantillaRasgoClase {
   requiereOpcion?: string;
   gastarDePadre?: boolean;
   heredarDadosPadre?: boolean;
+  reducirDadosPadre?: boolean;
   condicionAlActivar?: string;
   duracionEfectoAlActivar?: number;
   conjurosOtorgados?: string[];
@@ -292,6 +298,7 @@ export interface PlantillaRasgoEspecie {
   ligadoA?: string;
   gastarDePadre?: boolean;
   heredarDadosPadre?: boolean;
+  reducirDadosPadre?: boolean;
   condicionAlActivar?: string;
   duracionEfectoAlActivar?: number;
   conjurosOtorgados?: string[];
@@ -354,6 +361,7 @@ export const EsquemaRasgoPersonaje = z.object({
   requiereOpcion: z.string().optional(), // ID de la opción del selector del rasgo padre requerida
   gastarDePadre: z.boolean().default(false).optional(), // Descuenta uso de la reserva del rasgo padre
   heredarDadosPadre: z.boolean().default(false).optional(), // Hereda formulaDados del rasgo padre
+  reducirDadosPadre: z.boolean().default(false).optional(), // Descuenta dados de daño de la fórmula del rasgo padre según opciones elegidas
   condicionAlActivar: z.string().optional(), // Condición táctica a sincronizar en condicionesActivas (ej. "Furia (Rage)")
   duracionEfectoAlActivar: z.number().int().min(1).optional(), // Duración en asaltos para el efecto activo generado (ej. 100 asaltos para Afinidad con la piedra)
   conjurosOtorgados: z.array(z.string()).default([]).optional(), // Conjuros siempre preparados otorgados por el rasgo

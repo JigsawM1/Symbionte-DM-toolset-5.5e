@@ -15,6 +15,7 @@ import type {
   OpcionesAplicarBuild
 } from "@/tipos";
 import type { ResultadoDescanso } from "@/servicios/procesadorDescansos";
+import type { OpcionesCalculoDistancia } from "@/servicios/calculadorDistanciaTS";
 
 // ==========================================
 // 1. SUB-SLICES SEGREGADOS POR RESPONSABILIDAD
@@ -36,7 +37,12 @@ export interface SubSlicePersonajesBase {
   eliminarPersonaje: (id: string) => void;
   duplicarPersonaje: (id: string) => string;
   seleccionarPersonajeActivo: (id: string | null) => void;
-  vincularMiniaturaTSPersonaje: (id: string, idMiniatura: string | null) => void;
+  vincularMiniaturaTSPersonaje: (
+    id: string,
+    idMiniatura: string | null,
+    posicionInicial?: import("@/tipos").PosicionTS,
+    boardIdInicial?: string | null
+  ) => void;
 }
 
 export interface SubSliceVitalidad {
@@ -77,6 +83,22 @@ export interface SubSliceCaracteristicasHabilidades {
     carac: Caracteristica,
     datos: Partial<PersonalizacionCaracteristica>
   ) => void;
+  registrarMovimientoTSPersonaje: (
+    id: string,
+    nuevaPosicion: import("@/tipos").PosicionTS,
+    boardId?: string | null,
+    opciones?: OpcionesCalculoDistancia
+  ) => void;
+  establecerPosicionInicialTSPersonaje: (
+    id: string,
+    posicion: import("@/tipos").PosicionTS,
+    boardId?: string | null
+  ) => void;
+  modificarMovimientoRestanteManualPersonaje: (id: string, nuevoRestante: number) => void;
+  modificarMovimientoGastadoPersonaje: (id: string, delta: number, motivo?: string) => void;
+  deshacerUltimoMovimientoPersonaje: (id: string) => void;
+  restablecerMovimientoPersonaje: (id: string) => void;
+  alternarAccionCarreraPersonaje: (id: string) => void;
 }
 
 export interface SubSliceCondiciones {

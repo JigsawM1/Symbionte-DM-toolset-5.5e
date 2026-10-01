@@ -39,6 +39,7 @@ export function usarConexionTaleSpire() {
     let desuscribirIniciativa: (() => void) | null = null;
     let desuscribirCliente: (() => void) | null = null;
     let desuscribirSync: (() => void) | null = null;
+    let desuscribirEstadoCriatura: (() => void) | null = null;
     let desuscribirObservadoresSync: (() => void) | null = null;
     let timerInicializacion: ReturnType<typeof setTimeout> | null = null;
     let activo = true;
@@ -91,6 +92,22 @@ export function usarConexionTaleSpire() {
               maxHp: c.hp?.max
             }));
             actualizarSeleccionCriaturas(seleccionadas.length > 0 ? seleccionadas : ids.map((id) => ({ id, name: "Criatura Seleccionada" })));
+
+            // Sincronizar posición física de miniatura para personajes que aún no tengan posicion base
+            const estadoActual = usarAlmacenDM.getState();
+            info.forEach((c) => {
+              if (c.position) {
+                const pj = estadoActual.personajes.find(
+                  (p) =>
+                    (p.idMiniaturaTS &&
+                      (p.idMiniaturaTS === c.id || p.idMiniaturaTS.toLowerCase() === c.id.toLowerCase())) ||
+                    p.id === c.id
+                );
+                if (pj && !pj.ultimaPosicionTS) {
+                  estadoActual.establecerPosicionInicialTSPersonaje(pj.id, c.position, c.boardId);
+                }
+              }
+            });
           } catch (e) {
             logger.warn("[TaleSpire Simbionte] Error al enriquecer selección de criaturas:", e);
             actualizarSeleccionCriaturas(ids.map((id) => ({ id, name: "Criatura Seleccionada" })));
@@ -193,6 +210,74 @@ export function usarConexionTaleSpire() {
           subNativaSync.desuscribir();
         };
 
+        // Suscribirse a cambios de estado de criatura (movimiento físico de miniaturas en TaleSpire)
+        const procesarEventoMovimiento = async (evento: import("@/tipos/talespire").EventoCriaturaTS) => {
+          if (!activo || !evento) return;
+
+          if (evento.kind === "creatureLocationChanged") {
+            logger.info("[TaleSpire Simbionte] Movimiento de criatura detectado:", evento.id, evento.position);
+
+            const estado = usarAlmacenDM.getState();
+            const personajes = estado.personajes;
+
+            const idStr = typeof evento.id === "string" ? evento.id : (evento.id as { id?: string })?.id || "";
+            if (!idStr) return;
+
+            // 1. Coincidencia por idMiniaturaTS (case-insensitive)
+            let personajeVinculado = personajes.find(
+              (p) =>
+                p.idMiniaturaTS &&
+                (p.idMiniaturaTS === idStr || p.idMiniaturaTS.toLowerCase() === idStr.toLowerCase())
+            );
+
+            // 2. Coincidencia por id del personaje
+            if (!personajeVinculado) {
+              personajeVinculado = personajes.find((p) => p.id === idStr);
+            }
+
+            // 3. Fallback: Si el personaje activo está vinculado a esta miniatura
+            if (!personajeVinculado && estado.idPersonajeActivo) {
+              const pjActivo = personajes.find((p) => p.id === estado.idPersonajeActivo);
+              if (
+                pjActivo &&
+                pjActivo.idMiniaturaTS &&
+                pjActivo.idMiniaturaTS.toLowerCase() === idStr.toLowerCase()
+              ) {
+                personajeVinculado = pjActivo;
+              }
+            }
+
+            if (personajeVinculado) {
+              let numberPerTile = 5;
+              try {
+                const unidades = await ts.units.getDistanceUnitsForThisCampaign();
+                if (unidades && typeof unidades.numberPerTile === "number") {
+                  numberPerTile = unidades.numberPerTile;
+                }
+              } catch {
+                numberPerTile = 5;
+              }
+
+              estado.registrarMovimientoTSPersonaje(
+                personajeVinculado.id,
+                evento.position,
+                evento.boardId,
+                { numberPerTile, redondearA5Pies: true }
+              );
+            } else {
+              logger.debug("[TaleSpire Simbionte] Movimiento ignorado: la criatura no coincide con ningún PJ:", idStr);
+            }
+          }
+        };
+
+        const subPuenteCriatura = puenteTaleSpire.on("estadoCriatura", procesarEventoMovimiento);
+        const subNativaCriatura = ts.creatures.suscribirACambioEstadoCriatura(procesarEventoMovimiento);
+
+        desuscribirEstadoCriatura = () => {
+          subPuenteCriatura();
+          subNativaCriatura.desuscribir();
+        };
+
         //  IMPORTANTE: Las llamadas "get" iniciales y la carga del blob nativo se retardan 500ms para que el canal
         // de mensajería del Simbionte quede completamente registrado antes de enviar mensajes.
         // Enviarlos de forma inmediata causa el error "outOfOrderMessage" de TaleSpire.
@@ -202,6 +287,48 @@ export function usarConexionTaleSpire() {
           // Cargar datos persistidos ahora que la API window.TS (real o simulador) está activa y el canal es estable
           logger.info("[TaleSpire Simbionte] Canal de comunicación establecido. Iniciando carga de datos persistidos...");
           cargarDatosPersistidos();
+
+          // Precargar posiciones físicas iniciales para personajes con miniatura vinculada
+          setTimeout(() => {
+            if (!activo) return;
+            const estadoActual = usarAlmacenDM.getState();
+            const minisAPrecargar = estadoActual.personajes
+              .filter((p) => p.idMiniaturaTS && !p.ultimaPosicionTS)
+              .map((p) => ({ pjId: p.id, miniId: p.idMiniaturaTS! }));
+
+            if (minisAPrecargar.length > 0) {
+              const idsMinis = minisAPrecargar.map((m) => m.miniId);
+              ts.creatures
+                .getMoreInfo(idsMinis)
+                .then((infos) => {
+                  if (infos && Array.isArray(infos)) {
+                    infos.forEach((info) => {
+                      const item = minisAPrecargar.find(
+                        (m) =>
+                          m.miniId === info.id ||
+                          m.miniId.toLowerCase() === info.id?.toLowerCase()
+                      );
+                      if (item && info.position) {
+                        logger.info(
+                          `[TaleSpire Simbionte] Posición física inicial precargada para PJ '${item.pjId}':`,
+                          info.position
+                        );
+                        usarAlmacenDM
+                          .getState()
+                          .establecerPosicionInicialTSPersonaje(
+                            item.pjId,
+                            info.position,
+                            info.boardId
+                          );
+                      }
+                    });
+                  }
+                })
+                .catch((e) => {
+                  logger.debug("[TaleSpire Simbionte] Error al precargar posiciones iniciales:", e);
+                });
+            }
+          }, 600);
 
           // Detección automática del rol nativo inicial
           ts.clients.esGM()
@@ -312,6 +439,7 @@ export function usarConexionTaleSpire() {
         if (desuscribirIniciativa) desuscribirIniciativa();
         if (desuscribirCliente) desuscribirCliente();
         if (desuscribirSync) desuscribirSync();
+        if (desuscribirEstadoCriatura) desuscribirEstadoCriatura();
         if (desuscribirObservadoresSync) desuscribirObservadoresSync();
         puenteTaleSpire.destruir();
       };
@@ -342,6 +470,7 @@ export function usarConexionTaleSpire() {
       if (desuscribirIniciativa) desuscribirIniciativa();
       if (desuscribirCliente) desuscribirCliente();
       if (desuscribirSync) desuscribirSync();
+      if (desuscribirEstadoCriatura) desuscribirEstadoCriatura();
       if (desuscribirObservadoresSync) desuscribirObservadoresSync();
       puenteTaleSpire.destruir();
     };

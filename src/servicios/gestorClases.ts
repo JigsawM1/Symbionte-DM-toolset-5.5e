@@ -759,6 +759,7 @@ export function obtenerRasgosClaseYSubclase(
       requiereOpcion: r.requiereOpcion,
       gastarDePadre: !!r.gastarDePadre,
       heredarDadosPadre: !!r.heredarDadosPadre,
+      reducirDadosPadre: !!r.reducirDadosPadre,
       conjurosOtorgados: r.conjurosOtorgados ? [...r.conjurosOtorgados] : [],
       categoriaMecanica: r.categoriaMecanica,
       costeFijo: r.costeFijo,
@@ -768,6 +769,58 @@ export function obtenerRasgosClaseYSubclase(
       tablaProgresion: r.tablaProgresion ? JSON.parse(JSON.stringify(r.tablaProgresion)) : undefined,
       notas: ""
     };
+  }
+
+  function fusionarExtension(
+    padre: RasgoPersonaje,
+    r: import("@/constantes/rasgosDND55").PlantillaRasgoClase,
+    subclaseNombreItem?: string
+  ) {
+    const nivelesPrevios = padre.notas ? padre.notas.split(",") : [String(padre.nivelRequerido)];
+    if (!nivelesPrevios.includes(String(r.nivel))) {
+      nivelesPrevios.push(String(r.nivel));
+    }
+    padre.notas = nivelesPrevios.join(",");
+    padre.fuente = subclaseNombreItem
+      ? `${clase?.nombre || claseNombre} (${subclaseNombreItem} - Niveles ${nivelesPrevios.join(", ")})`
+      : `${clase?.nombre || claseNombre} (Niveles ${nivelesPrevios.join(", ")})`;
+    padre.descripcion += `\n\n***${r.nombre} (Nv. ${r.nivel}).*** ${r.descripcion}`;
+    if (r.formulaDados) padre.formulaDados = r.formulaDados;
+    if (r.recuperacion) padre.recuperacion = r.recuperacion as RecuperacionRasgo;
+    if (r.tipoAccion && r.tipoAccion !== "pasivo") padre.tipoAccion = r.tipoAccion;
+    if (Array.isArray(r.efectos) && r.efectos.length > 0) {
+      padre.efectos = [...(padre.efectos || []), ...JSON.parse(JSON.stringify(r.efectos))];
+    }
+    if (Array.isArray(r.selectores) && r.selectores.length > 0) {
+      if (!Array.isArray(padre.selectores) || padre.selectores.length === 0) {
+        padre.selectores = JSON.parse(JSON.stringify(r.selectores));
+      } else {
+        for (const selExt of r.selectores) {
+          const selPadre = padre.selectores.find(
+            (s) => s.id === selExt.id || normalizarTextoClase(s.etiqueta) === normalizarTextoClase(selExt.etiqueta)
+          );
+          if (selPadre) {
+            if (Array.isArray(selExt.opciones)) {
+              const idsExistentes = new Set((selPadre.opciones || []).map((o) => o.id));
+              for (const op of selExt.opciones) {
+                if (!idsExistentes.has(op.id)) {
+                  idsExistentes.add(op.id);
+                  selPadre.opciones.push(JSON.parse(JSON.stringify(op)));
+                }
+              }
+            }
+            if (selExt.maxSelecciones && selExt.maxSelecciones > (selPadre.maxSelecciones || 1)) {
+              selPadre.maxSelecciones = selExt.maxSelecciones;
+              if (selExt.maxSelecciones > 1) {
+                selPadre.tipo = "multiple";
+              }
+            }
+          } else {
+            padre.selectores.push(JSON.parse(JSON.stringify(selExt)));
+          }
+        }
+      }
+    }
   }
 
   // 1. Rasgos de Clase Base
@@ -784,19 +837,7 @@ export function obtenerRasgosClaseYSubclase(
           (x) => normalizarTextoClase(x.id) === ligNorm || normalizarTextoClase(x.nombre) === ligNorm
         );
         if (padre) {
-          const nivelesPrevios = padre.notas ? padre.notas.split(",") : [String(padre.nivelRequerido)];
-          if (!nivelesPrevios.includes(String(r.nivel))) {
-            nivelesPrevios.push(String(r.nivel));
-          }
-          padre.notas = nivelesPrevios.join(",");
-          padre.fuente = `${clase.nombre} (Niveles ${nivelesPrevios.join(", ")})`;
-          padre.descripcion += `\n\n***${r.nombre} (Nv. ${r.nivel}).*** ${r.descripcion}`;
-          if (r.formulaDados) padre.formulaDados = r.formulaDados;
-          if (r.recuperacion) padre.recuperacion = r.recuperacion as RecuperacionRasgo;
-          if (r.tipoAccion && r.tipoAccion !== "pasivo") padre.tipoAccion = r.tipoAccion;
-          if (Array.isArray(r.efectos) && r.efectos.length > 0) {
-            padre.efectos = [...(padre.efectos || []), ...JSON.parse(JSON.stringify(r.efectos))];
-          }
+          fusionarExtension(padre, r);
         }
         continue;
       }
@@ -849,21 +890,7 @@ export function obtenerRasgosClaseYSubclase(
               (x) => normalizarTextoClase(x.id) === ligNorm || normalizarTextoClase(x.nombre) === ligNorm
             );
             if (padre) {
-              const nivelesPrevios = padre.notas ? padre.notas.split(",") : [String(padre.nivelRequerido)];
-              if (!nivelesPrevios.includes(String(r.nivel))) {
-                nivelesPrevios.push(String(r.nivel));
-              }
-              padre.notas = nivelesPrevios.join(",");
-              padre.fuente = `${clase.nombre} (${subclase.nombre} - Niveles ${nivelesPrevios.join(", ")})`;
-              padre.descripcion += `\n\n***${r.nombre} (Nv. ${r.nivel}).*** ${r.descripcion}`;
-              if (r.tipoAccion && r.tipoAccion !== "pasivo") {
-                padre.tipoAccion = r.tipoAccion;
-              }
-              if (r.formulaDados) padre.formulaDados = r.formulaDados;
-              if (r.recuperacion) padre.recuperacion = r.recuperacion as RecuperacionRasgo;
-              if (Array.isArray(r.efectos) && r.efectos.length > 0) {
-                padre.efectos = [...(padre.efectos || []), ...JSON.parse(JSON.stringify(r.efectos))];
-              }
+              fusionarExtension(padre, r, subclase.nombre);
             }
             continue;
           }
@@ -873,6 +900,22 @@ export function obtenerRasgosClaseYSubclase(
 
           rasgosResultado.push(construirRasgo(r, id, fuente, "subclase"));
         }
+      }
+    }
+  }
+
+  // 3. Post-proceso genérico: heredar dados de padre
+  for (const r of rasgosResultado) {
+    if (r.heredarDadosPadre && r.ligadoA && !r.formulaDados) {
+      const ligNorm = normalizarTextoClase(r.ligadoA);
+      const padre = rasgosResultado.find(
+        (x) => normalizarTextoClase(x.id) === ligNorm || normalizarTextoClase(x.nombre) === ligNorm
+      );
+      if (padre?.formulaDados) {
+        r.formulaDados = padre.formulaDados;
+      }
+      if (padre?.escaladoFormulaDados) {
+        r.escaladoFormulaDados = padre.escaladoFormulaDados;
       }
     }
   }

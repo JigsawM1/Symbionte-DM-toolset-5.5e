@@ -328,6 +328,22 @@ export function resolverRasgosAcciones(
       }
     }
 
+    if (rasgo.heredarDadosPadre && !formulaDadosEfectiva && rasgo.ligadoA) {
+      const idPadre = resolverIdRasgoObjetivoGasto(rasgo, listaRasgos);
+      const rasgoPadre = listaRasgos.find((r) => r.id === idPadre);
+      if (rasgoPadre) {
+        let fPadre = rasgoPadre.formulaDados;
+        if (rasgoPadre.escaladoFormulaDados && rasgoPadre.escaladoFormulaDados.length > 0) {
+          const escalones = [...rasgoPadre.escaladoFormulaDados].sort((a, b) => b.nivelMinimo - a.nivelMinimo);
+          const escalon = escalones.find((e) => pjNivel >= e.nivelMinimo);
+          if (escalon) fPadre = escalon.valor;
+        }
+        if (fPadre) {
+          formulaDadosEfectiva = fPadre;
+        }
+      }
+    }
+
     const tieneDados = Boolean(formulaDadosEfectiva && formulaDadosEfectiva.trim() !== "");
 
     // Si tiene tirada de dados pero carece de categoría de acción explícita, se clasifica como acción táctica

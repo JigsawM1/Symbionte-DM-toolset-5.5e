@@ -574,6 +574,293 @@
   box-shadow: var(--pj-sombra-brillo-oro, 0 0 10px rgba(234, 179, 8, 0.6));
 }
 
+/* --- Control de Velocidad Dinámica y Popover de Movimiento --- */
+.contenedorVelocidadDinamica {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.tarjetaMetricaVelocidad {
+  cursor: pointer;
+  position: relative;
+  transition: border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+}
+
+.tarjetaMetricaVelocidad:hover {
+  border-color: var(--pj-borde-acento-fuerte, #818cf8);
+  box-shadow: 0 0 8px rgba(129, 140, 248, 0.25);
+}
+
+.tarjetaMetricaVelocidadAgotada {
+  border-color: rgba(239, 68, 68, 0.4) !important;
+}
+
+.tarjetaMetricaVelocidadCarrera {
+  border-color: var(--pj-texto-cian, #38bdf8) !important;
+  box-shadow: 0 0 8px rgba(56, 189, 248, 0.3) !important;
+}
+
+.separadorVelocidad {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--pj-texto-terciario, #94a3b8);
+  margin-left: 2px;
+}
+
+.valorMetricaAgotado {
+  color: #ef4444 !important;
+}
+
+.valorMetricaParcial {
+  color: #f59e0b !important;
+}
+
+.valorMetricaCarrera {
+  color: #38bdf8 !important;
+}
+
+.indicadorTSEnlace {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: #10b981;
+  box-shadow: 0 0 4px #10b981;
+}
+
+.indicadorTSEnlaceInactivo {
+  background-color: #64748b;
+  box-shadow: none;
+}
+
+/* Popover Flotante de Movimiento */
+.popoverVelocidad {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  width: 270px;
+  background: #0f172a;
+  border: 1px solid var(--pj-borde-acento-fuerte, #818cf8);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.8), 0 0 12px rgba(129, 140, 248, 0.3);
+  border-radius: 8px;
+  padding: 12px;
+  z-index: 120;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  color: #e2e8f0;
+  text-align: left;
+  animation: fadeInPopover 0.15s ease-out;
+}
+
+@keyframes fadeInPopover {
+  from { opacity: 0; transform: translate(-50%, -4px); }
+  to { opacity: 1; transform: translate(-50%, 0); }
+}
+
+.cabeceraPopoverVelocidad {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.15);
+  padding-bottom: 6px;
+}
+
+.tituloPopoverVelocidad {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--pj-texto-acento, #a5b4fc);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.botonCerrarPopover {
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  padding: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+}
+
+.botonCerrarPopover:hover {
+  color: #ffffff;
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.badgeTSEnlace {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(16, 185, 129, 0.12);
+  color: #34d399;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.badgeTSDesconectado {
+  background: rgba(100, 116, 139, 0.12);
+  color: #94a3b8;
+  border-color: rgba(100, 116, 139, 0.3);
+}
+
+.cuerpoPopoverVelocidad {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.resumenMovimientoCaja {
+  background: #090d16;
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  border-radius: 6px;
+  padding: 8px 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.etiquetaMovimientoGrande {
+  font-size: 11px;
+  color: #94a3b8;
+  font-weight: 600;
+}
+
+.valorMovimientoGrande {
+  font-family: var(--fuente-codigo, 'JetBrains Mono', monospace);
+  font-size: 18px;
+  font-weight: 800;
+  color: #38bdf8;
+}
+
+.gastadoSubtexto {
+  font-size: 10px;
+  color: #eab308;
+  margin-top: 1px;
+}
+
+.filaAjusteManual {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.botonPasoPies {
+  background: #1e293b;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  color: #f1f5f9;
+  border-radius: 4px;
+  padding: 5px 8px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+
+.botonPasoPies:hover {
+  background: #334155;
+  border-color: var(--pj-borde-acento-fuerte, #818cf8);
+}
+
+.inputRestanteManual {
+  flex: 1;
+  background: #090d16;
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  border-radius: 4px;
+  padding: 5px 6px;
+  color: #ffffff;
+  font-family: var(--fuente-codigo, 'JetBrains Mono', monospace);
+  font-size: 13px;
+  font-weight: 700;
+  text-align: center;
+  width: 100%;
+}
+
+.inputRestanteManual:focus {
+  outline: none;
+  border-color: #38bdf8;
+  box-shadow: 0 0 6px rgba(56, 189, 248, 0.3);
+}
+
+.filaBotonesAccionVelocidad {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+.botonAccionVelocidad {
+  background: #1e293b;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  color: #cbd5e1;
+  border-radius: 5px;
+  padding: 6px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  transition: all 0.15s ease;
+}
+
+.botonAccionVelocidad:hover:not(:disabled) {
+  background: #334155;
+  color: #ffffff;
+  border-color: #818cf8;
+}
+
+.botonAccionVelocidad:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.botonCarreraActivo {
+  background: #0369a1 !important;
+  color: #ffffff !important;
+  border-color: #38bdf8 !important;
+  box-shadow: 0 0 8px rgba(56, 189, 248, 0.4);
+}
+
+.botonRestablecerTurno {
+  grid-column: span 2;
+  background: rgba(30, 41, 59, 0.8);
+  border-color: rgba(148, 163, 184, 0.3);
+}
+
+.botonRestablecerTurno:hover {
+  background: #0f766e !important;
+  border-color: #2dd4bf !important;
+  color: #ffffff !important;
+}
+
+.piePopoverHistorial {
+  font-size: 10px;
+  color: #94a3b8;
+  border-top: 1px solid rgba(148, 163, 184, 0.1);
+  padding-top: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+
 /* ==========================================
    4. VITALIDAD Y COMBATE (APARTADO C)
    ========================================= */

@@ -1,9 +1,23 @@
-import React from "react";
+import React, { useState, useRef, useEffect } from "react";
 import type { PersonajeJugador } from "@/tipos";
 import type { InformacionCA, PenalizacionArmadura } from "@/almacen/selectores/usarEstadoPersonajes";
-import { Shield, Zap, Footprints, Award, Sparkles, AlertTriangle } from "lucide-react";
+import {
+  Shield,
+  Zap,
+  Footprints,
+  Award,
+  Sparkles,
+  AlertTriangle,
+  RotateCcw,
+  RefreshCw,
+  Plus,
+  Minus,
+  X
+} from "lucide-react";
 import { TooltipUniversal } from "@/componentes/comunes";
 import { obtenerVelocidadesEfectivas, calcularBonoIniciativaRasgos } from "@/servicios/evaluadorEfectosRasgos";
+import { calcularEstadoVelocidadDinamica } from "@/servicios/calculadorDistanciaTS";
+import { usarAccionesPersonajes } from "@/almacen/selectores/usarEstadoPersonajes";
 import estilos from "./HojaPersonaje.module.css";
 
 interface MetricasRapidasPersonajeProps {
@@ -15,6 +29,12 @@ interface MetricasRapidasPersonajeProps {
   bonoVelocidad?: number;
   alTirarIniciativa: () => void;
   alAlternarInspiracion: () => void;
+  // Callbacks opcionales para control o testing
+  alModificarMovimientoRestante?: (nuevoRestante: number) => void;
+  alModificarMovimientoGastado?: (delta: number) => void;
+  alDeshacerMovimiento?: () => void;
+  alRestablecerMovimiento?: () => void;
+  alAlternarCarrera?: () => void;
 }
 
 const MetricasRapidasPersonajeComponent: React.FC<MetricasRapidasPersonajeProps> = ({
@@ -25,16 +45,42 @@ const MetricasRapidasPersonajeComponent: React.FC<MetricasRapidasPersonajeProps>
   penalizacionArmadura,
   bonoVelocidad = 0,
   alTirarIniciativa,
-  alAlternarInspiracion
+  alAlternarInspiracion,
+  alModificarMovimientoRestante,
+  alModificarMovimientoGastado,
+  alDeshacerMovimiento,
+  alRestablecerMovimiento,
+  alAlternarCarrera
 }) => {
+  const accionesPersonajes = usarAccionesPersonajes();
+
+  // Acciones con fallback seguro al store
+  const ejecutarModificarRestante =
+    alModificarMovimientoRestante ||
+    ((nuevo: number) => accionesPersonajes.modificarMovimientoRestanteManualPersonaje(personaje.id, nuevo));
+  const ejecutarModificarGastado =
+    alModificarMovimientoGastado ||
+    ((delta: number) => accionesPersonajes.modificarMovimientoGastadoPersonaje(personaje.id, delta, "Ajuste manual"));
+  const ejecutarDeshacer =
+    alDeshacerMovimiento ||
+    (() => accionesPersonajes.deshacerUltimoMovimientoPersonaje(personaje.id));
+  const ejecutarRestablecer =
+    alRestablecerMovimiento ||
+    (() => accionesPersonajes.restablecerMovimientoPersonaje(personaje.id));
+  const ejecutarAlternarCarrera =
+    alAlternarCarrera ||
+    (() => accionesPersonajes.alternarAccionCarreraPersonaje(personaje.id));
+
+  // 1. Iniciativa
   const bonoIniciativaRasgos = calcularBonoIniciativaRasgos(personaje);
   const iniciativaTotal = modDestreza + (personaje.iniciativaBono || 0) + bonoIniciativaRasgos;
   const textoIniciativa = iniciativaTotal >= 0 ? `+${iniciativaTotal}` : `${iniciativaTotal}`;
 
+  // 2. Velocidad Base y Efectiva
   const velocidades = obtenerVelocidadesEfectivas(personaje);
-  const velocidadTotal = velocidades.caminar;
+  const velocidadBaseTotal = velocidades.caminar;
 
-  const partesVelocidad: string[] = [`Caminar: ${velocidadTotal} ft`];
+  const partesVelocidad: string[] = [`Caminar: ${velocidadBaseTotal} ft`];
   if (velocidades.nadar && velocidades.nadar > 0) {
     partesVelocidad.push(`Nadar: ${velocidades.nadar} ft`);
   }
@@ -45,11 +91,64 @@ const MetricasRapidasPersonajeComponent: React.FC<MetricasRapidasPersonajeProps>
     partesVelocidad.push(`Escalar: ${velocidades.escalar} ft`);
   }
 
-  const velocidadTooltip =
+  const velocidadTooltipBase =
     bonoVelocidad > 0
-      ? `Velocidad: ${velocidadTotal} ft (+${bonoVelocidad} ft rasgos)\n${partesVelocidad.join(" • ")}`
+      ? `Velocidad: ${velocidadBaseTotal} ft (+${bonoVelocidad} ft rasgos)\n${partesVelocidad.join(" • ")}`
       : partesVelocidad.join(" • ");
 
+  // 3. Estado Dinámico de Movimiento
+  const estadoVelocidad = calcularEstadoVelocidadDinamica(
+    velocidadBaseTotal,
+    0, // ya incluido en velocidadBaseTotal por obtenerVelocidadesEfectivas
+    personaje.movimientoGastado || 0,
+    personaje.movimientoMaximoTemporal ?? null
+  );
+
+  const velocidadTooltip = [
+    velocidadTooltipBase,
+    `Movimiento Restante: ${estadoVelocidad.movimientoRestante} ft / ${estadoVelocidad.velocidadTotal} ft`,
+    personaje.movimientoGastado ? `Gastado en turno: ${personaje.movimientoGastado} ft` : null,
+    estadoVelocidad.esCarreraActiva ? "Acción Carrera ACTIVA (Doble Movimiento)" : null,
+    "Haz clic para ajustar manualmente, deshacer o restablecer."
+  ]
+    .filter(Boolean)
+    .join("\n");
+
+  // Estado del menú popover interactivo
+  const [menuVelocidadAbierto, setMenuVelocidadAbierto] = useState(false);
+  const [inputRestante, setInputRestante] = useState<string>(estadoVelocidad.movimientoRestante.toString());
+  const popoverRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setInputRestante(estadoVelocidad.movimientoRestante.toString());
+  }, [estadoVelocidad.movimientoRestante]);
+
+  useEffect(() => {
+    if (!menuVelocidadAbierto) return;
+    const clickFuera = (e: MouseEvent) => {
+      if (popoverRef.current && !popoverRef.current.contains(e.target as Node)) {
+        setMenuVelocidadAbierto(false);
+      }
+    };
+    document.addEventListener("mousedown", clickFuera);
+    return () => document.removeEventListener("mousedown", clickFuera);
+  }, [menuVelocidadAbierto]);
+
+  const manejarAplicarInputManual = () => {
+    const val = Number(inputRestante);
+    if (!isNaN(val) && val >= 0) {
+      ejecutarModificarRestante(val);
+    } else {
+      setInputRestante(estadoVelocidad.movimientoRestante.toString());
+    }
+  };
+
+  // Historial para deshacer
+  const historial = Array.isArray(personaje.historialMovimiento) ? personaje.historialMovimiento : [];
+  const tieneHistorial = historial.length > 0;
+  const ultimoRegistro = tieneHistorial ? historial[historial.length - 1] : null;
+
+  // 4. Clase de Armadura
   const caTotal = claseArmadura?.total ?? personaje.ca ?? 10;
   const avisoNoComp = penalizacionArmadura?.sinCompetencia
     ? ` [SIN COMPETENCIA] (${[penalizacionArmadura.armaduraNoCompetente, penalizacionArmadura.escudoNoCompetente].filter(Boolean).join(", ")}): Desventaja en ataques/pruebas/salvaciones de FUE y DES. No puedes lanzar conjuros.`
@@ -95,22 +194,196 @@ const MetricasRapidasPersonajeComponent: React.FC<MetricasRapidasPersonajeProps>
         </div>
       </TooltipUniversal>
 
-      {/* 3. Velocidad */}
-      <TooltipUniversal
-        titulo="Velocidad de Movimiento"
-        contenido={velocidadTooltip}
-        posicion="abajo"
-        className={estilos.contenedorTooltipMetrica}
-      >
-        <div className={`${estilos.neoRaised} ${estilos.tarjetaMetrica}`}>
-          <Footprints size={13} className={estilos.iconoMetricaDecorativo} />
-          <span className={estilos.etiquetaMetrica}>Velocidad</span>
-          <span className={estilos.valorMetrica}>
-            {velocidadTotal}
-            <span className={estilos.unidadMetrica}>ft</span>
-          </span>
-        </div>
-      </TooltipUniversal>
+      {/* 3. Velocidad Dinámica */}
+      <div className={estilos.contenedorVelocidadDinamica} ref={popoverRef}>
+        <TooltipUniversal
+          titulo="Velocidad de Movimiento"
+          contenido={velocidadTooltip}
+          posicion="abajo"
+          className={estilos.contenedorTooltipMetrica}
+        >
+          <div
+            className={`
+              ${estilos.neoRaised}
+              ${estilos.tarjetaMetrica}
+              ${estilos.tarjetaMetricaInteractiva}
+              ${estilos.tarjetaMetricaVelocidad}
+              ${estadoVelocidad.agotado ? estilos.tarjetaMetricaVelocidadAgotada : ""}
+              ${estadoVelocidad.esCarreraActiva ? estilos.tarjetaMetricaVelocidadCarrera : ""}
+            `}
+            onClick={() => setMenuVelocidadAbierto((prev) => !prev)}
+            role="button"
+            aria-label="Abrir controles de velocidad y movimiento"
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                setMenuVelocidadAbierto((prev) => !prev);
+              }
+            }}
+          >
+            {/* Indicador de miniatura de TaleSpire enlazada */}
+            <span
+              className={`${estilos.indicadorTSEnlace} ${!personaje.idMiniaturaTS ? estilos.indicadorTSEnlaceInactivo : ""}`}
+              title={personaje.idMiniaturaTS ? "Miniatura TaleSpire Vinculada" : "Sin miniatura enlazada (Modo Manual)"}
+            />
+            <Footprints size={13} className={estilos.iconoMetricaDecorativo} />
+            <span className={estilos.etiquetaMetrica}>Velocidad</span>
+            <span
+              className={`
+                ${estilos.valorMetrica}
+                ${estadoVelocidad.agotado ? estilos.valorMetricaAgotado : ""}
+                ${estadoVelocidad.esCarreraActiva ? estilos.valorMetricaCarrera : ""}
+                ${personaje.movimientoGastado > 0 && !estadoVelocidad.agotado ? estilos.valorMetricaParcial : ""}
+              `}
+            >
+              {estadoVelocidad.movimientoRestante}
+              {(personaje.movimientoGastado > 0 || estadoVelocidad.esCarreraActiva) && (
+                <span className={estilos.separadorVelocidad}>/{estadoVelocidad.velocidadTotal}</span>
+              )}
+              <span className={estilos.unidadMetrica}>ft</span>
+            </span>
+          </div>
+        </TooltipUniversal>
+
+        {/* Popover Menú Flotante de Gestión de Movimiento */}
+        {menuVelocidadAbierto && (
+          <div className={estilos.popoverVelocidad}>
+            <div className={estilos.cabeceraPopoverVelocidad}>
+              <span className={estilos.tituloPopoverVelocidad}>
+                <Footprints size={14} color="#38bdf8" />
+                Control de Movimiento
+              </span>
+              <button
+                type="button"
+                className={estilos.botonCerrarPopover}
+                onClick={() => setMenuVelocidadAbierto(false)}
+                title="Cerrar panel"
+              >
+                <X size={14} />
+              </button>
+            </div>
+
+            <div className={estilos.cuerpoPopoverVelocidad}>
+              {/* Badge de estado TaleSpire */}
+              <div
+                className={`${estilos.badgeTSEnlace} ${!personaje.idMiniaturaTS ? estilos.badgeTSDesconectado : ""}`}
+              >
+                <span
+                  className={`${estilos.indicadorTSEnlace} ${!personaje.idMiniaturaTS ? estilos.indicadorTSEnlaceInactivo : ""}`}
+                  style={{ position: "static", display: "inline-block" }}
+                />
+                {personaje.idMiniaturaTS
+                  ? "TaleSpire conectado (cálculo dinámico automático)"
+                  : "Modo Manual (sin miniatura física enlazada)"}
+              </div>
+
+              {/* Caja Resumen de Movimiento */}
+              <div className={estilos.resumenMovimientoCaja}>
+                <div>
+                  <div className={estilos.etiquetaMovimientoGrande}>Movimiento Restante</div>
+                  <div className={estilos.valorMovimientoGrande}>
+                    {estadoVelocidad.movimientoRestante} / {estadoVelocidad.velocidadTotal} ft
+                  </div>
+                </div>
+                {personaje.movimientoGastado > 0 && (
+                  <div className={estilos.gastadoSubtexto}>
+                    Gastado: {personaje.movimientoGastado} ft
+                  </div>
+                )}
+              </div>
+
+              {/* Ajuste Manual Rápido */}
+              <div className={estilos.filaAjusteManual}>
+                <button
+                  type="button"
+                  className={estilos.botonPasoPies}
+                  onClick={() => ejecutarModificarGastado(5)}
+                  title="Gastar 5 pies de movimiento"
+                >
+                  <Minus size={12} />
+                  5 ft
+                </button>
+
+                <input
+                  type="number"
+                  step="5"
+                  min="0"
+                  max={estadoVelocidad.velocidadTotal * 2}
+                  className={estilos.inputRestanteManual}
+                  value={inputRestante}
+                  onChange={(e) => setInputRestante(e.target.value)}
+                  onBlur={manejarAplicarInputManual}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      manejarAplicarInputManual();
+                    }
+                  }}
+                  title="Escribe directamente los pies restantes y pulsa Enter"
+                />
+
+                <button
+                  type="button"
+                  className={estilos.botonPasoPies}
+                  onClick={() => ejecutarModificarGastado(-5)}
+                  title="Recuperar 5 pies de movimiento"
+                >
+                  <Plus size={12} />
+                  5 ft
+                </button>
+              </div>
+
+              {/* Botones de Acción: Carrera y Deshacer */}
+              <div className={estilos.filaBotonesAccionVelocidad}>
+                <button
+                  type="button"
+                  className={`
+                    ${estilos.botonAccionVelocidad}
+                    ${estadoVelocidad.esCarreraActiva ? estilos.botonCarreraActivo : ""}
+                  `}
+                  onClick={ejecutarAlternarCarrera}
+                  title="Acción Carrera (Dash): duplica la velocidad de este turno"
+                >
+                  <Footprints size={13} />
+                  {estadoVelocidad.esCarreraActiva ? "Carrera ON" : "Carrera (+Dash)"}
+                </button>
+
+                <button
+                  type="button"
+                  className={estilos.botonAccionVelocidad}
+                  onClick={ejecutarDeshacer}
+                  disabled={!tieneHistorial}
+                  title={
+                    ultimoRegistro
+                      ? `Deshacer: ${ultimoRegistro.descripcion}`
+                      : "No hay movimientos previos para deshacer"
+                  }
+                >
+                  <RotateCcw size={13} />
+                  Deshacer
+                </button>
+
+                <button
+                  type="button"
+                  className={`${estilos.botonAccionVelocidad} ${estilos.botonRestablecerTurno}`}
+                  onClick={ejecutarRestablecer}
+                  title="Restablece la velocidad al 100% (iniciar nuevo turno)"
+                >
+                  <RefreshCw size={13} />
+                  Restablecer Turno
+                </button>
+              </div>
+
+              {/* Pie con último movimiento */}
+              {ultimoRegistro && (
+                <div className={estilos.piePopoverHistorial}>
+                  <span>Último: {ultimoRegistro.descripcion}</span>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
 
       {/* 4. Competencia */}
       <TooltipUniversal
@@ -153,4 +426,3 @@ const MetricasRapidasPersonajeComponent: React.FC<MetricasRapidasPersonajeProps>
 };
 
 export const MetricasRapidasPersonaje = React.memo(MetricasRapidasPersonajeComponent);
-

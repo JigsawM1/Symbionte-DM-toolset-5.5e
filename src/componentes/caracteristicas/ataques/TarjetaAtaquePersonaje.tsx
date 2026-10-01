@@ -24,8 +24,8 @@ interface TarjetaAtaquePersonajeProps {
   ataque: AtaquePersonajeCalculado;
   evaluacionCondiciones?: ResultadoEvaluacionCondiciones;
   alTirarAtaque: (ataque: AtaquePersonajeCalculado) => void;
-  alTirarDano: (ataque: AtaquePersonajeCalculado, versatil?: boolean) => void;
-  alTirarCritico: (ataque: AtaquePersonajeCalculado, versatil?: boolean) => void;
+  alTirarDano: (ataque: AtaquePersonajeCalculado, versatil?: boolean | "adicional") => void;
+  alTirarCritico: (ataque: AtaquePersonajeCalculado, versatil?: boolean | "adicional") => void;
   alCambiarCaracteristica?: (ataqueId: string, nuevaCarac: Caracteristica) => void;
 }
 
@@ -321,6 +321,17 @@ export const TarjetaAtaquePersonaje: React.FC<TarjetaAtaquePersonajeProps> = Rea
                 title={`Tirar Daño a 2 Manos (${ataque.danoVersatil})`}
               >
                 <span>2M</span>
+              </button>
+            )}
+
+            {!ataque.esDanoFijo && ataque.danoAccionAdicional && (
+              <button
+                type="button"
+                className={estilos.botonSecundarioDano}
+                onClick={() => alTirarDano(ataque, "adicional")}
+                title={`Tirar Daño como Acción Adicional (${ataque.danoAccionAdicional})`}
+              >
+                <span>1d4</span>
               </button>
             )}
 

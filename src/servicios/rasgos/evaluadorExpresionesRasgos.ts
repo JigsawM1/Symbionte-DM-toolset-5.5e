@@ -51,6 +51,17 @@ export function cumpleCondicionEfecto(
   if (condNorm === "sin_armadura_ni_escudo") return !estadoArmadura.tieneArmadura && !tieneEscudo;
   if (condNorm === "sin_armadura_pesada") return !estadoArmadura.esPesada;
 
+  if (condNorm.startsWith("opcion_") || condNorm.startsWith("selector_")) {
+    const claveOpcion = condNorm.replace(/^(opcion_|selector_)/, "");
+    return (personaje.rasgos || []).some(
+      (r) =>
+        r.activo !== false &&
+        (r.selectores || []).some((sel) =>
+          (sel.valorActual || []).some((v) => normalizar(v) === claveOpcion || normalizar(v).includes(claveOpcion))
+        )
+    );
+  }
+
   // Si coincide con alguna condición activa del personaje
   if ((personaje.condicionesActivas || []).some((c) => normalizar(c) === condNorm || normalizar(c).includes(condNorm))) {
     return true;
@@ -172,6 +183,54 @@ export function evaluarEfectosRasgosActivos(personaje: PersonajeJugador): Efecto
               ...efecto,
               tipoDano: tipoDanoSelector
             };
+          }
+
+          if (efecto.tipo === "dado_extra_dano") {
+            const rasgosReductores = rasgos.filter((hijo) => {
+              if (hijo.activo === false || !hijo.reducirDadosPadre || !hijo.ligadoA) return false;
+              const ligHijo = normalizar(hijo.ligadoA);
+              return ligHijo === idNorm || ligHijo === nomNorm;
+            });
+
+            if (rasgosReductores.length > 0) {
+              let dadosARestar = 0;
+              for (const rRed of rasgosReductores) {
+                for (const sel of rRed.selectores || []) {
+                  for (const val of sel.valorActual || []) {
+                    const op = sel.opciones?.find((o) => o.id === val || normalizar(o.nombre) === normalizar(val));
+                    if (op) {
+                      if (typeof op.costeDados === "number" && op.costeDados > 0) {
+                        dadosARestar += op.costeDados;
+                      } else if (op.formulaDados) {
+                        const matchD = op.formulaDados.match(/^(\d+)d/i);
+                        dadosARestar += matchD ? parseInt(matchD[1], 10) : 1;
+                      } else {
+                        dadosARestar += 1;
+                      }
+                    }
+                  }
+                }
+              }
+
+              if (dadosARestar > 0) {
+                const valorStr = String(efecto.valor || "");
+                const matchDados = valorStr.match(/^(\d+)d(\d+)(.*)$/i);
+                if (matchDados) {
+                  const cantActual = parseInt(matchDados[1], 10);
+                  const caras = matchDados[2];
+                  const resto = matchDados[3] || "";
+                  const nuevaCant = Math.max(0, cantActual - dadosARestar);
+                  if (nuevaCant > 0) {
+                    efFinal = {
+                      ...efecto,
+                      valor: `${nuevaCant}d${caras}${resto}`
+                    };
+                  } else {
+                    continue;
+                  }
+                }
+              }
+            }
           }
           efectosResultado.push({
             ...efFinal,
@@ -317,6 +376,7 @@ export function resolverFormulaDinamica(
   const nivelBarbaro = obtenerNivelClasePersonaje(personaje, "barbaro") || nivelGlobal;
   const nivelClerigo = obtenerNivelClasePersonaje(personaje, "clerigo") || nivelClase;
   const nivelPaladin = obtenerNivelClasePersonaje(personaje, "paladin") || nivelClase;
+  const nivelPicaro = obtenerNivelClasePersonaje(personaje, "picaro") || nivelClase;
   const bonoFuria = obtenerBonoDanoFuria(nivelBarbaro);
   const bonoCompetencia = Math.floor((nivelGlobal - 1) / 4) + 2;
 
@@ -354,6 +414,7 @@ export function resolverFormulaDinamica(
     .replace(/nivel_paladin/gi, String(nivelPaladin))
     .replace(/nivel_barbaro/gi, String(nivelBarbaro))
     .replace(/nivel_brujo/gi, String(nivelBrujo))
+    .replace(/nivel_picaro/gi, String(nivelPicaro))
     .replace(/\bnivel\b/gi, String(nivelClase))
     .replace(/\b(constitucion|con)\b/gi, String(modCon))
     .replace(/\b(fuerza|fue|str)\b/gi, String(modFue))

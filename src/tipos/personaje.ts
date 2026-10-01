@@ -30,6 +30,26 @@ export const EsquemaVelocidad = z.object({
 });
 export type VelocidadEstructurada = z.infer<typeof EsquemaVelocidad>;
 
+export const EsquemaPosicionTS = z.object({
+  locId: z.number().default(0),
+  x: z.number(),
+  y: z.number(),
+  z: z.number()
+});
+export type PosicionTS = z.infer<typeof EsquemaPosicionTS>;
+
+export const EsquemaRegistroMovimiento = z.object({
+  id: z.string(),
+  timestamp: z.number(),
+  tipo: z.enum(["talespire", "manual", "reinicio", "carrera"]),
+  delta: z.number(),
+  anteriorGastado: z.number(),
+  nuevoGastado: z.number(),
+  posicionPrevia: EsquemaPosicionTS.optional(),
+  descripcion: z.string()
+});
+export type RegistroMovimiento = z.infer<typeof EsquemaRegistroMovimiento>;
+
 export const EsquemaSentidos = z.object({
   visionOscuridad: z.number().optional(),
   visionCiega: z.number().optional(),
@@ -342,6 +362,11 @@ export const EsquemaPersonajeJugador = z.object({
   caNotas: z.string().default(""),
   iniciativaBono: z.number().int().default(0),
   velocidad: z.union([z.string(), EsquemaVelocidad]).default("30 pies"),
+  movimientoGastado: z.number().default(0),
+  movimientoMaximoTemporal: z.number().nullable().default(null),
+  ultimaPosicionTS: EsquemaPosicionTS.nullable().default(null),
+  ultimoBoardIdTS: z.string().nullable().default(null),
+  historialMovimiento: z.array(EsquemaRegistroMovimiento).default([]),
   sentidos: z.union([z.string(), EsquemaSentidos]).default(""),
 
   // Competencias de Texto y Listas Estructuradas (Apartado B)

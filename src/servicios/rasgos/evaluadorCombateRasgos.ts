@@ -51,6 +51,23 @@ function aplicaEfectoAAtaque(
   if (criterio === "arma_cac" || criterio === "cuerpo_a_cuerpo") {
     return contexto.esCuerpoACuerpo;
   }
+  if (criterio === "arma_sutil" || criterio === "sutil") {
+    return Boolean(
+      contexto.propiedades?.some((p) => {
+        const norm = normalizar(p);
+        return norm.includes("sutil") || norm.includes("finesse");
+      })
+    );
+  }
+  if (criterio === "arma_sutil_o_distancia" || criterio === "sutil_o_distancia") {
+    const esSutil = Boolean(
+      contexto.propiedades?.some((p) => {
+        const norm = normalizar(p);
+        return norm.includes("sutil") || norm.includes("finesse");
+      })
+    );
+    return esSutil || contexto.esDistancia;
+  }
   if (criterio === "arma_distancia" || criterio === "distancia" || criterio === "ataque_distancia") {
     return contexto.esDistancia;
   }

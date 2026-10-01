@@ -14,8 +14,8 @@ interface SeccionAtaquesFisicosProps {
   estaAbierta: boolean;
   alAlternar: () => void;
   alTirarAtaque: (ataque: AtaquePersonajeCalculado) => void;
-  alTirarDano: (ataque: AtaquePersonajeCalculado, usarDosManos?: boolean) => void;
-  alTirarCritico: (ataque: AtaquePersonajeCalculado, usarDosManos?: boolean) => void;
+  alTirarDano: (ataque: AtaquePersonajeCalculado, versatil?: boolean | "adicional") => void;
+  alTirarCritico: (ataque: AtaquePersonajeCalculado, versatil?: boolean | "adicional") => void;
   alCambiarCaracteristica: (idInstancia: string, nuevaCarac: Caracteristica) => void;
 }
 

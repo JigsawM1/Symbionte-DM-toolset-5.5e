@@ -74,6 +74,15 @@ export function esRasgoDonEpico(nombre: string): boolean {
   return normalizarTextoClase(nombre) === "don epico";
 }
 
+/**
+ * Determina si el nombre de un rasgo corresponde al estilo de combate de clase.
+ */
+export function esRasgoEstiloCombate(nombre: string): boolean {
+  if (!nombre) return false;
+  const norm = normalizarTextoClase(nombre);
+  return norm === "estilo de combate" || norm.startsWith("estilo de combate");
+}
+
 let cacheOpcionesDotesSelector: import("@/tipos").OpcionSelector[] | null = null;
 
 /**
@@ -317,6 +326,125 @@ export function construirDoteDeDonEpico(
   };
 }
 
+let cacheOpcionesDotesEstiloSelector: Record<string, import("@/tipos").OpcionSelector[]> = {};
+
+/**
+ * Obtiene las opciones de dotes de estilo de combate permitidas según la clase (PHB 2024).
+ * Si la clase es Paladín, incluye Guerrero bendecido (exclusivo de Paladín).
+ * Si la clase es Explorador, incluye Guerrero druídico (exclusivo de Explorador).
+ */
+export function obtenerOpcionesDotesEstiloCombate(claseId: string): import("@/tipos").OpcionSelector[] {
+  const normClase = normalizarTextoClase(claseId);
+  if (cacheOpcionesDotesEstiloSelector[normClase]) {
+    return cacheOpcionesDotesEstiloSelector[normClase];
+  }
+
+  const dotesEstilo = TODAS_LAS_DOTES_CANONICAS_DND55.filter((d) => d.categoria === "estilo_combate");
+
+  // Filtrar dotes de estilo exclusivas según la clase
+  const dotesPermitidas = dotesEstilo.filter((d) => {
+    if (d.id === "dote_estilo_guerrero_bendito") {
+      return normClase.includes("paladin");
+    }
+    if (d.id === "dote_estilo_guerrero_druidico") {
+      return normClase.includes("explorador") || normClase.includes("ranger");
+    }
+    return true;
+  });
+
+  // Si es paladín, colocar Guerrero bendecido al principio; en caso contrario Defensa
+  const dotePorDefectoId = normClase.includes("paladin")
+    ? "dote_estilo_guerrero_bendito"
+    : "dote_estilo_defensa";
+
+  const primera = dotesPermitidas.find((d) => d.id === dotePorDefectoId);
+  const resto = dotesPermitidas
+    .filter((d) => d.id !== dotePorDefectoId)
+    .sort((a, b) => a.nombre.localeCompare(b.nombre, "es"));
+
+  const opciones: import("@/tipos").OpcionSelector[] = [];
+  if (primera) {
+    opciones.push({
+      id: primera.id,
+      nombre: primera.nombre,
+      descripcion: primera.descripcion,
+      requisito: primera.requisito,
+      categoria: primera.categoria
+    });
+  }
+  for (const d of resto) {
+    opciones.push({
+      id: d.id,
+      nombre: d.nombre,
+      descripcion: d.descripcion,
+      requisito: d.requisito,
+      categoria: d.categoria
+    });
+  }
+
+  cacheOpcionesDotesEstiloSelector[normClase] = opciones;
+  return opciones;
+}
+
+/**
+ * Genera el selector interactivo para el rasgo de clase Estilo de Combate.
+ */
+export function crearSelectorDoteEstiloCombate(claseId: string, nivel: number): SelectorRasgo {
+  const opciones = obtenerOpcionesDotesEstiloCombate(claseId);
+  const normClase = normalizarTextoClase(claseId);
+  const dotePorDefectoId = normClase.includes("paladin")
+    ? "dote_estilo_guerrero_bendito"
+    : "dote_estilo_defensa";
+
+  return {
+    id: `selector_dote_estilo_combate_${normalizarTextoClase(claseId)}_nv${nivel}`,
+    tipo: "unico",
+    tipoSelector: "dote",
+    etiqueta: "Dote de Estilo de combate elegida",
+    maxSelecciones: 1,
+    valorActual: [dotePorDefectoId],
+    opciones
+  };
+}
+
+/**
+ * Construye la dote asociada al rasgo de clase Estilo de Combate
+ * para ser incorporada y renderizada en la sección de dotes de la ficha.
+ */
+export function construirDoteDeEstiloCombate(
+  rasgoEstilo: RasgoPersonaje,
+  idDoteSeleccionada: string = "dote_estilo_defensa"
+): RasgoPersonaje {
+  const normId = normalizarTextoClase(idDoteSeleccionada);
+  const plantillaDote =
+    TODAS_LAS_DOTES_CANONICAS_DND55.find(
+      (d) => d.id === idDoteSeleccionada || normalizarTextoClase(d.id) === normId || normalizarTextoClase(d.nombre) === normId
+    ) || TODAS_LAS_DOTES_CANONICAS_DND55.find((d) => d.id === "dote_estilo_defensa")!;
+
+  return {
+    id: `dote_estilo_${normalizarTextoClase(rasgoEstilo.id)}`,
+    nombre: plantillaDote.nombre,
+    descripcion: plantillaDote.descripcion,
+    origen: "dote",
+    fuente: rasgoEstilo.fuente || `Estilo de combate (Nivel ${rasgoEstilo.nivelRequerido || 1})`,
+    tipoAccion: plantillaDote.tipoAccion || "pasivo",
+    nivelRequerido: rasgoEstilo.nivelRequerido || 1,
+    tieneUsosLimitados: Boolean(plantillaDote.tieneUsosLimitados),
+    usosMaximos: plantillaDote.usosMaximos,
+    usosRestantes: plantillaDote.usosMaximos,
+    recuperacion: plantillaDote.recuperacion || "ninguno",
+    formulaDados: plantillaDote.formulaDados,
+    categoriaMecanica: plantillaDote.categoriaMecanica || "pasivo_permanente",
+    efectos: plantillaDote.efectos ? JSON.parse(JSON.stringify(plantillaDote.efectos)) : [],
+    selectores: plantillaDote.selectores ? JSON.parse(JSON.stringify(plantillaDote.selectores)) : [],
+    activo: true,
+    esActivable: Boolean(plantillaDote.esActivable),
+    personalizado: false,
+    ligadoA: rasgoEstilo.id,
+    notas: `Dote obtenida por el rasgo Estilo de combate (${rasgoEstilo.fuente}).`
+  };
+}
+
 /**
  * Retorna la lista completa de las 12 clases oficiales de D&D 5.5e (2024).
  */
@@ -496,14 +624,18 @@ export function resolverEscaladosRasgo(
         .find((e) => nivel >= e.nivelMinimo);
       if (entrada) usosEscalados = Math.max(minimo, entrada.valor);
     } else if (r.escaladoUsos.formula) {
-      if (r.escaladoUsos.formula === "nivel") {
+      const matchX = r.escaladoUsos.formula.match(/^nivel_x(\d+)$/);
+      if (matchX) {
+        const mult = parseInt(matchX[1], 10);
+        usosEscalados = Math.max(minimo, nivel * mult);
+      } else if (r.escaladoUsos.formula === "nivel") {
         usosEscalados = Math.max(minimo, nivel);
-      } else if (r.escaladoUsos.formula === "nivel_x5") {
-        usosEscalados = Math.max(minimo, nivel * 5);
       } else if (r.escaladoUsos.formula === "nivel_mas_1") {
         usosEscalados = Math.max(minimo, nivel + 1);
       }
     }
+  } else if (r.escaladoUsos?.tipo === "por_modificador") {
+    usosEscalados = r.escaladoUsos.minimo ?? 1;
   }
 
   // 3. Escalado de recuperación
@@ -579,7 +711,7 @@ export function obtenerRasgosClaseYSubclase(
     fuente: string,
     origen: "clase" | "subclase"
   ): RasgoPersonaje {
-    let usos: number | undefined;
+    let usos: number | undefined = r.usosMaximos;
     if (r.tieneUsosLimitados) {
       if (typeof r.obtenerUsosMaximos === "function") {
         usos = r.obtenerUsosMaximos(nivelSeguro);
@@ -602,6 +734,7 @@ export function obtenerRasgosClaseYSubclase(
       descripcion: r.descripcion,
       origen,
       fuente,
+      subclase: r.subclase || (origen === "subclase" ? subclaseNombre : undefined),
       tipoAccion: r.tipoAccion,
       nivelRequerido: r.nivel,
       tieneUsosLimitados: !!r.tieneUsosLimitados,
@@ -628,6 +761,7 @@ export function obtenerRasgosClaseYSubclase(
       heredarDadosPadre: !!r.heredarDadosPadre,
       conjurosOtorgados: r.conjurosOtorgados ? [...r.conjurosOtorgados] : [],
       categoriaMecanica: r.categoriaMecanica,
+      costeFijo: r.costeFijo,
       formulaEscalado: r.formulaEscalado,
       efectos: escalados.efectos,
       selectores: escalados.selectores,
@@ -669,10 +803,13 @@ export function obtenerRasgosClaseYSubclase(
 
       const esMejora = esRasgoMejoraCaracteristica(r.nombre);
       const esDonEpico = esRasgoDonEpico(r.nombre);
+      const esEstilo = esRasgoEstiloCombate(r.nombre);
       const id = r.id || (esMejora
         ? `rasgo_cls_${normalizarTextoClase(clase.id)}_mejora_de_caracteristica_nv${r.nivel}`
         : esDonEpico
         ? `rasgo_cls_${normalizarTextoClase(clase.id)}_don_epico_nv${r.nivel}`
+        : esEstilo
+        ? `rasgo_cls_${normalizarTextoClase(clase.id)}_estilo_de_combate_nv${r.nivel}`
         : `rasgo_cls_${normalizarTextoClase(clase.id)}_${normalizarTextoClase(r.nombre).replace(/\s+/g, "_")}`);
       const fuente = `${clase.nombre} (Nivel ${r.nivel})`;
 
@@ -687,6 +824,11 @@ export function obtenerRasgosClaseYSubclase(
         rasgoConstruido.categoriaMecanica = "selector_informativo";
         if (!rasgoConstruido.selectores || rasgoConstruido.selectores.length === 0) {
           rasgoConstruido.selectores = [crearSelectorDoteDonEpico(clase.id, r.nivel, r.descripcion)];
+        }
+      } else if (esEstilo) {
+        rasgoConstruido.categoriaMecanica = "selector_informativo";
+        if (!rasgoConstruido.selectores || rasgoConstruido.selectores.length === 0) {
+          rasgoConstruido.selectores = [crearSelectorDoteEstiloCombate(clase.id, r.nivel)];
         }
       }
 

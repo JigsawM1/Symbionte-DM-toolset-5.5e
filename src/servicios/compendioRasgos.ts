@@ -8,8 +8,10 @@ import {
   esRasgoPlaceholderSubclase,
   esRasgoMejoraCaracteristica,
   esRasgoDonEpico,
+  esRasgoEstiloCombate,
   construirDoteDeMejoraCaracteristica,
-  construirDoteDeDonEpico
+  construirDoteDeDonEpico,
+  construirDoteDeEstiloCombate
 } from "@/servicios/gestorClases";
 
 import {
@@ -210,10 +212,11 @@ export function sincronizarRasgosAutomaticos(personaje: PersonajeJugador): Rasgo
       const score = personaje.overridesFijos?.[stat] ?? personaje.caracteristicas?.[stat] ?? 10;
       const mod = Math.floor((score - 10) / 2);
       const usos = Math.max(nuevo.escaladoUsos.minimo ?? 1, mod);
+      const usosRestantesPrevios = mapaExistentes.get(nuevo.id)?.usosRestantes;
       nuevo = {
         ...nuevo,
         usosMaximos: usos,
-        usosRestantes: nuevo.usosRestantes ?? usos
+        usosRestantes: typeof usosRestantesPrevios === "number" ? Math.min(usosRestantesPrevios, usos) : usos
       };
     }
 
@@ -298,6 +301,30 @@ export function sincronizarRasgosAutomaticos(personaje: PersonajeJugador): Rasgo
               : doteConstruida.usosRestantes,
           activo: doteExistente.activo !== undefined ? doteExistente.activo : true,
           notas: doteExistente.notas || doteConstruida.notas
+        };
+      }
+      dotesAsiGeneradas.push(doteConstruida);
+    } else if (esRasgoEstiloCombate(nuevo.nombre)) {
+      const selectorDote = nuevo.selectores?.find((s) => s.id.includes("dote_estilo") || s.id.includes("estilo_combate"));
+      const idDoteSeleccionada = selectorDote?.valorActual?.[0] || "dote_estilo_defensa";
+      let doteConstruida = construirDoteDeEstiloCombate(nuevo, idDoteSeleccionada);
+
+      const doteExistente = mapaExistentes.get(doteConstruida.id);
+      if (doteExistente) {
+        doteConstruida = {
+          ...doteConstruida,
+          usosRestantes:
+            typeof doteExistente.usosRestantes === "number" && doteConstruida.usosMaximos
+              ? Math.min(doteExistente.usosRestantes, doteConstruida.usosMaximos)
+              : doteConstruida.usosRestantes,
+          activo: doteExistente.activo !== undefined ? doteExistente.activo : true,
+          notas: doteExistente.notas || doteConstruida.notas,
+          selectores: doteConstruida.selectores?.map((sel) => {
+            const selExistente = doteExistente.selectores?.find((s) => s.id === sel.id);
+            return selExistente && selExistente.valorActual?.length
+              ? { ...sel, valorActual: selExistente.valorActual }
+              : sel;
+          })
         };
       }
       dotesAsiGeneradas.push(doteConstruida);

@@ -30,8 +30,8 @@ interface ModalDetalleRasgoProps {
   idPersonaje?: string;
   nivelPersonaje?: number;
   alCerrar: () => void;
-  alGastarUso?: () => void;
-  alRecuperarUso?: () => void;
+  alGastarUso?: (cantidad?: number) => void;
+  alRecuperarUso?: (cantidad?: number) => void;
   alAlternarActivo?: () => void;
   deshabilitadoToggle?: boolean;
   motivoDeshabilitado?: string;
@@ -271,12 +271,24 @@ export const ModalDetalleRasgo: React.FC<ModalDetalleRasgoProps> = ({
                   <button
                     type="button"
                     className={estilos.botonPasoUsoModal}
-                    onClick={alGastarUso}
+                    onClick={() => alGastarUso()}
                     disabled={usosRestantes <= 0}
                     title={tieneUsosPropios ? "Gastar 1 uso" : `Gastar 1 uso de ${usosPadre?.nombre || "padre"}`}
                   >
                     -
                   </button>
+
+                  {rasgo.costeFijo && rasgo.costeFijo > 1 && (
+                    <button
+                      type="button"
+                      className={estilos.botonPasoUsoModal}
+                      onClick={() => alGastarUso(rasgo.costeFijo)}
+                      disabled={usosRestantes < (rasgo.costeFijo || 1)}
+                      title={`Gastar ${rasgo.costeFijo} usos (Coste fijo)`}
+                    >
+                      -{rasgo.costeFijo}
+                    </button>
+                  )}
 
                   <span className={estilos.valorUsosModal}>
                     {usosRestantes} / {usosMaximos}
@@ -285,7 +297,7 @@ export const ModalDetalleRasgo: React.FC<ModalDetalleRasgoProps> = ({
                   <button
                     type="button"
                     className={estilos.botonPasoUsoModal}
-                    onClick={alRecuperarUso}
+                    onClick={() => alRecuperarUso()}
                     disabled={usosRestantes >= usosMaximos}
                     title={tieneUsosPropios ? "Recuperar 1 uso" : `Recuperar 1 uso de ${usosPadre?.nombre || "padre"}`}
                   >

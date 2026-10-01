@@ -30,6 +30,7 @@ export const EsquemaPlantillaRasgoClaseJSON = z.object({
   tipoAccion: EsquemaTipoAccionRasgo,
   subclase: z.string().optional(),
   tieneUsosLimitados: z.boolean().optional(),
+  usosMaximos: z.number().int().optional(),
   formulaUsos: z.string().nullable().optional(),
   recuperacion: z.enum(["descanso_corto", "descanso_largo", "manual", "ninguno"]).optional(),
   formulaDados: z.string().optional(),
@@ -64,6 +65,7 @@ export const EsquemaPlantillaRasgoClaseJSON = z.object({
     "extension",
     "curacion"
   ]).optional(),
+  costeFijo: z.number().int().min(1).optional(),
   formulaEscalado: z.string().optional(),
   efectos: z.array(EsquemaEfectoMecanicoRasgo).optional(),
   selectores: z.array(EsquemaSelectorRasgo).optional(),

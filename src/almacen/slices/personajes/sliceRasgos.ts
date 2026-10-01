@@ -204,7 +204,8 @@ export const crearSubSliceRasgos: StateCreator<
     });
   },
 
-  gastarUsoRasgoPersonaje: (idPj, idRasgo) => {
+  gastarUsoRasgoPersonaje: (idPj, idRasgo, cantidad = 1) => {
+    const cant = Math.max(1, typeof cantidad === "number" && !isNaN(cantidad) ? cantidad : 1);
     mutarPersonaje(set, idPj, (pj) => {
       const targetTrait = (pj.rasgos || []).find((r) => r.id === idRasgo);
       const idObjetivoGasto = resolverIdRasgoObjetivoGasto(targetTrait, pj.rasgos || []);
@@ -218,7 +219,7 @@ export const crearSubSliceRasgos: StateCreator<
           return {
             ...r,
             usosMaximos: maxUsos,
-            usosRestantes: Math.max(0, restantes - 1)
+            usosRestantes: Math.max(0, restantes - cant)
           };
         }
         return r;
@@ -227,7 +228,8 @@ export const crearSubSliceRasgos: StateCreator<
     });
   },
 
-  recuperarUsoRasgoPersonaje: (idPj, idRasgo) => {
+  recuperarUsoRasgoPersonaje: (idPj, idRasgo, cantidad = 1) => {
+    const cant = Math.max(1, typeof cantidad === "number" && !isNaN(cantidad) ? cantidad : 1);
     mutarPersonaje(set, idPj, (pj) => {
       const targetTrait = (pj.rasgos || []).find((r) => r.id === idRasgo);
       const idObjetivoGasto = resolverIdRasgoObjetivoGasto(targetTrait, pj.rasgos || []);
@@ -241,7 +243,7 @@ export const crearSubSliceRasgos: StateCreator<
           return {
             ...r,
             usosMaximos: maxUsos,
-            usosRestantes: Math.min(maxUsos, restantes + 1)
+            usosRestantes: Math.min(maxUsos, restantes + cant)
           };
         }
         return r;
@@ -366,6 +368,19 @@ export const crearSubSliceRasgos: StateCreator<
         return pj; // Bloqueado: opción requerida en rasgo padre no está seleccionada
       }
 
+      // Si el rasgo gasta usos del padre al activarse, comprobar si el padre tiene usos disponibles
+      const idObjetivoGasto = targetTrait.gastarDePadre ? resolverIdRasgoObjetivoGasto(targetTrait, pj.rasgos || []) : undefined;
+      if (nuevoActivo && targetTrait.gastarDePadre && idObjetivoGasto) {
+        const rasgoPadre = (pj.rasgos || []).find((r) => r.id === idObjetivoGasto);
+        if (rasgoPadre && rasgoPadre.tieneUsosLimitados) {
+          const maxUsos = rasgoPadre.usosMaximos ?? 1;
+          const restantes = rasgoPadre.usosRestantes ?? maxUsos;
+          if (restantes <= 0) {
+            return pj; // Bloqueado: sin usos del recurso padre disponible
+          }
+        }
+      }
+
 
       const esFuriaBase = (nomObjetivo === "furia" || idObjetivo === "rasgo_cls_barbaro_furia") && !esFuriaDeLosDioses;
 
@@ -470,6 +485,16 @@ export const crearSubSliceRasgos: StateCreator<
             ...r,
             activo: debeAutoDesactivar ? false : nuevoActivo,
             usosRestantes: usosRest
+          };
+        }
+
+        // Si este elemento es el rasgo padre del activado, descontar 1 uso al activar
+        if (nuevoActivo && targetTrait.gastarDePadre && idObjetivoGasto && r.id === idObjetivoGasto && r.tieneUsosLimitados) {
+          const maxUsos = r.formulaEscalado ? calcularUsosMaximosRasgo(r, pj) : (r.usosMaximos ?? 1);
+          const restantes = r.usosRestantes ?? maxUsos;
+          return {
+            ...r,
+            usosRestantes: Math.max(0, restantes - 1)
           };
         }
 

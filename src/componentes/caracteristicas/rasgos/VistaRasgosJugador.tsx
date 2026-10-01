@@ -76,8 +76,8 @@ export const VistaRasgosJugador: React.FC = () => {
         rasgo={rasgo}
         nombrePersonaje={nombrePj}
         idPersonaje={personajeActivo.id}
-        alGastarUso={() => gastarUsoRasgoPersonaje(personajeActivo.id, rasgo.id)}
-        alRecuperarUso={() => recuperarUsoRasgoPersonaje(personajeActivo.id, rasgo.id)}
+        alGastarUso={(cant?: number) => gastarUsoRasgoPersonaje(personajeActivo.id, rasgo.id, cant)}
+        alRecuperarUso={(cant?: number) => recuperarUsoRasgoPersonaje(personajeActivo.id, rasgo.id, cant)}
         alAlternarActivo={() => alternarActivoRasgo(personajeActivo.id, rasgo.id)}
         deshabilitadoToggle={bloqueo.bloqueado}
         motivoDeshabilitado={bloqueo.motivo}
@@ -183,8 +183,8 @@ export const VistaRasgosJugador: React.FC = () => {
           idPersonaje={personajeActivo.id}
           nivelPersonaje={obtenerNivelEfectivoParaRasgo(rasgoDetalleEfectivo)}
           alCerrar={() => setRasgoSeleccionadoDetalle(null)}
-          alGastarUso={() => gastarUsoRasgoPersonaje(personajeActivo.id, rasgoDetalleEfectivo.id)}
-          alRecuperarUso={() => recuperarUsoRasgoPersonaje(personajeActivo.id, rasgoDetalleEfectivo.id)}
+          alGastarUso={(cant?: number) => gastarUsoRasgoPersonaje(personajeActivo.id, rasgoDetalleEfectivo.id, cant)}
+          alRecuperarUso={(cant?: number) => recuperarUsoRasgoPersonaje(personajeActivo.id, rasgoDetalleEfectivo.id, cant)}
           alAlternarActivo={() => alternarActivoRasgo(personajeActivo.id, rasgoDetalleEfectivo.id)}
           deshabilitadoToggle={obtenerBloqueoToggleRasgo(rasgoDetalleEfectivo).bloqueado}
           motivoDeshabilitado={obtenerBloqueoToggleRasgo(rasgoDetalleEfectivo).motivo}

@@ -18,7 +18,195 @@ Este archivo registra reglas globales, errores encontrados, sus causas raíz y l
 6. **PROHIBICIÓN ESTRICTA DE BIFURCACIONES POR NOMBRE DE RASGO O CLASE (CATÁLOGO DECLARATIVO Y BUILDER PURO)**:
    - **Bajo ninguna circunstancia** los módulos de lógica de negocio (`servicios/`), gestores de estado (`almacen/`) o constructores (`gestorClases.ts`) deben contener bifurcaciones condicionales por nombre literal de rasgo o clase (`r.nombre === "..."`, `clase.includes("...")`, etc.).
    - Toda mecánica, progresión de dados, escalado de usos, recuperación o desbloqueo dinámico debe resolverse mediante metadatos declarativos (`escaladoFormulaDados`, `escaladoUsos`, `escaladoRecuperacion`, `opcionesDinamicas`, `escaladoMaxSelecciones`, `sincronizarEfectosConFormula`, `heredarDadosPadre`, `gastarDePadre`, `ligadoA`, `efectos`) delegando en funciones puras agnósticas como `resolverEscaladosRasgo`. Esta regla está reforzada en CI vía ESLint `no-restricted-syntax` y la suite `rasgoGenericidad.test.ts`.
+## [2026-10-01] Estilización Canónica de Tablas de Conjuros de Subclase (D&D 5.5e / PHB 2024)
 
+**Objetivo de la Iteración:**
+- Sustituir las tablas de conjuros en markdown crudo embebidas en la descripción de los rasgos de juramento por la propiedad declarativa estructurada `"tablaProgresion"` en las 4 subclases de Paladín (*Juramento de Entrega*, *Juramento de Gloria*, *Juramento de los Antiguos* y *Juramento de Venganza*).
+- Replicar fielmente el diseño visual de las capturas oficiales de D&D 5.5e proporcionadas por el usuario.
+
+**Decisiones de Diseño y Mejoras Implementadas:**
+1. **Componente Visual (`TablaProgresionRasgo.tsx` y `TablaProgresionRasgo.module.css`):**
+   - Se detecta automáticamente si la tabla es de conjuros (`esColumnaConjuros`).
+   - Se aplica un diseño cebrado con recuadros enmarcados (`.filaConjuroEnmarcada` para índices pares: niveles 3, 9 y 17) con fondo gris oscuro (`rgba(255, 255, 255, 0.08)`) y borde rectangular completo (`border: 1px solid rgba(255, 255, 255, 0.35)`).
+   - Filas intermedias simples (`.filaConjuroSimple` para niveles 5 y 13) sin fondo ni bordes laterales.
+   - Encabezados *"Nivel de paladín"* y *"Conjuros"* centrados con líneas divisorias superior e inferior (`border-top` y `border-bottom`).
+   - Celdas de nivel y conjuros centradas horizontalmente, utilizando el color terracota/cobre característico (`#d97d5c`) para la lista de conjuros separados por comas.
+2. **Catálogo Declarativo (`src/datos/clases/paladin.json`):**
+   - En las 4 subclases, se limpió la descripción dejando el texto canónico oficial: `"La magia de tu juramento garantiza que siempre tengas ciertos conjuros preparados. Cuando alcances un nivel de paladín especificado en la tabla \"Conjuros del juramento de [nombre]\", a partir de entonces siempre tendrás preparados los conjuros que se indican."`
+   - Se estructuró el objeto `"tablaProgresion"` con 5 filas (niveles 3, 5, 9, 13 y 17) y los conjuros oficiales correspondientes a cada subclase.
+3. **Validación Integral y Pruebas Unitarias:**
+   - 54 pruebas unitarias específicas de Paladín (`paladinMecanicasDND55.test.ts`) pasando al 100%, incluyendo la validación exhaustiva de las tablas de las 4 subclases.
+   - 89 suites de pruebas unitarias y 1,257 tests globales en verde sin regresiones.
+   - `tsc --noEmit` completado con 0 errores bajo `strict: true`.
+
+## [2026-10-01] Unificación DRY de Conjuros Gratuitos Consumibles (Patrón Canónico Drow y Paladín)
+
+**Objetivo de la Iteración:**
+- Eliminar la redundancia y duplicidad en el modelo de conjuros gratuitos otorgados por rasgos con usos limitados (como *Magia drow*, *Castigo de paladín* y *Corcel fiel*).
+- Aplicar el principio DRY universal (Don't Repeat Yourself) garantizando que la gratuidad se deduzca limpiamente de los datos canónicos existentes (`conjurosOtorgados` en rasgos con `tieneUsosLimitados: true` y `usosRestantes > 0`) en lugar de requerir propiedades auxiliares ad-hoc (`conjuroGratuito`) o listas redundantes de sinónimos de traducción.
+
+**Decisiones Arquitectónicas y Mejoras Implementadas:**
+1. **Inferencia Automática en `evaluadorConjurosRasgos.ts`:**
+   - La UI (`SeccionNivelConjuros.tsx`) y el despachador de lanzamientos (`usarLanzadorConjuros.ts`) ya inferían la disponibilidad gratuita si un rasgo consumible tenía `usosRestantes > 0` y listaba el conjuro en `conjurosOtorgados`. Sin embargo, la función pura de dominio `obtenerNombresConjurosGratuitosActivos` dependía exclusivamente de `r.conjuroGratuito`.
+   - Se unificó `evaluadorConjurosRasgos.ts` para que, tanto en rasgos instanciados en el personaje como en el respaldo de catálogo (`catalogoRasgos`), cualquier rasgo consumible (`tieneUsosLimitados: true`) con usos disponibles incluya automáticamente todos sus `conjurosOtorgados` en el listado de conjuros gratuitos activos.
+2. **Limpieza Quirúrgica del Catálogo (`src/datos/clases/paladin.json`):**
+   - En *Castigo de paladín* (Nv. 2): se eliminó `"conjuroGratuito": "Castigo divino"`, manteniendo únicamente `"conjurosOtorgados": ["Castigo divino"]`.
+   - En *Corcel fiel* (Nv. 5): se eliminó `"conjuroGratuito": "Hallar corcel"` y se removió la redundancia de traducción `"Encontrar corcel"`, preservando únicamente `"conjurosOtorgados": ["Hallar corcel"]` en estricta conformidad con el catálogo canónico (SSOT).
+3. **Depuración y Erradicación de Código Muerto:**
+   - Se removió la propiedad residual `conjuroGratuito` de los esquemas Zod de clases y especies (`EsquemaPlantillaRasgoClaseJSON` y `EsquemaPlantillaRasgoEspecieJSON` en `src/tipos/esquemasCatalogos.ts`) y de la interfaz `PlantillaRasgoClase` en `src/tipos/rasgos.ts`.
+   - Se suprimió la asignación residual en `obtenerRasgosClaseYSubclase` (`src/servicios/gestorClases.ts`).
+   - Se eliminaron las condiciones superfluas en `SeccionNivelConjuros.tsx`, `usarLanzadorConjuros.ts` y en el respaldo de catálogo de clases en `evaluadorConjurosRasgos.ts`, garantizando que `conjurosOtorgados` sea la única fuente canónica y no quede rastro de código no utilizado.
+4. **Verificación y Cobertura de Pruebas:**
+   - Pruebas unitarias de mecánicas de Paladín (`paladinMecanicasDND55.test.ts`): 50 de 50 tests pasando al 100%.
+   - Pruebas de Invocaciones de Brujo (`invocacionesBrujoMecanicas.test.ts`): 29 de 29 tests pasando al 100%.
+   - Pruebas de integridad de catálogos (`integridadCatalogos.test.ts`): 35 de 35 tests en verde.
+   - Verificación de tipos TypeScript estricto (`tsc --noEmit`): 0 errores.
+   - Suite global de pruebas vitest: 89 suites y 1,253 tests pasando al 100%.
+
+## [2026-10-01] Implementación de Paladín D&D 5.5e (2024) - Fase 5: Subclase Juramento de Venganza (Oath of Vengeance)
+
+**Objetivo de la Fase 5:**
+- Implementar la subclase completa Juramento de Venganza (*Oath of Vengeance*) para D&D 5.5e (PHB 2024) en el catálogo declarativo del Simbiote DM.
+- Configurar la progresión canónica de conjuros de juramento, rasgos dependientes de Canalizar divinidad, persecución de objetivos enemigos mediante reacciones y la transformación de avatar con vuelo y aura aterradora.
+- Incorporar el efecto táctico enriquecido *"Ángel vengador"* en `src/datos/efectos-predefinidos.json`.
+
+**Mecánicas Implementadas y Decisiones Arquitectónicas:**
+1. **Progresión de Conjuros de Juramento:**
+   - Registrados en `progresionConjuros` de `juramento_de_venganza` para los niveles canónicos 3, 5, 9, 13 y 17 (*Perdición*, *Marca del cazador*, *Inmovilizar persona*, *Paso brumoso*, *Acelerar*, *Protección contra la energía*, *Destierro*, *Puerta dimensional*, *Inmovilizar monstruo*, *Escrudiñar*).
+2. **Voto de enemistad (Nv. 3):**
+   - Consumible de acción adicional que delega en Canalizar divinidad (`gastarDePadre: true`, `ligadoA: "Canalizar divinidad"`).
+   - Se agrupa en la caja colapsable de Canalizar divinidad de Paladín mediante el resolvedor jerárquico agnóstico `agruparRasgosJerarquicos`.
+3. **Vengador implacable (Nv. 7) y Alma de venganza (Nv. 15):**
+   - Configurados como `pasivo_permanente` con `tipoAccion: "reaccion"` para reflejar sus facultades de corte de retirada enemiga y contraataque reactivo CaC sobre el objetivo jurado.
+4. **Ángel vengador (Nv. 20):**
+   - Activable por acción adicional con 1 uso por descanso largo (`esActivable: true`, `categoriaMecanica: "activable"`), duración 100 rondas (10 minutos) y condición `"Ángel vengador"`.
+   - Efectos mecánicos:
+     - `movimiento_especial` con objetivo `"volar"` y valor `60` (vuelo con capacidad de flotar).
+     - `personalizado` con objetivo `"aura_aterradora"` y valor `"asustado"` (salvación de Sabiduría o estado asustado y ventaja en ataques aliados contra ellos).
+5. **Efectos Predefinidos Registrados (`efectos-predefinidos.json`):**
+   - Registrado *"Ángel vengador"* con duración estándar 100 rondas, viñetas de sus tres facultades (Vuelo de 60 pies con flotación, Aura aterradora de 30 pies y Ventaja contra asustados) y alias bilingüe (*Avenging Angel*), elevando el catálogo a 35 efectos predefinidos validados.
+6. **Validación Integral y Regresión:**
+   - 50 pruebas unitarias específicas de Paladín en `paladinMecanicasDND55.test.ts` pasando al 100%.
+   - 89 suites de pruebas unitarias y 1,253 pruebas globales en verde sin regresiones.
+   - `tsc --noEmit` completado con 0 errores bajo `strict: true`.
+
+## [2026-10-01] Implementación de Paladín D&D 5.5e (2024) - Fase 4: Subclase Juramento de los Antiguos (Oath of the Ancients)
+
+**Objetivo de la Fase 4:**
+- Implementar la subclase completa Juramento de los Antiguos (*Oath of the Ancients*) para D&D 5.5e (PHB 2024) en el catálogo declarativo del Simbiote DM.
+- Configurar la progresión canónica de conjuros de juramento, rasgos dependientes de Canalizar divinidad, auras de mitigación elemental, curaciones automáticas al caer a 0 PV y transformación épica primigenia.
+- Incorporar el efecto predefinido enriquecido *"Campeón anciano"* en `src/datos/efectos-predefinidos.json`.
+
+**Mecánicas Implementadas y Decisiones Arquitectónicas:**
+1. **Progresión de Conjuros de Juramento:**
+   - Registrados en `progresionConjuros` de `juramento_de_los_antiguos` para los niveles canónicos 3, 5, 9, 13 y 17 (*Golpe atrapador*, *Hablar con los animales*, *Rayo lunar*, *Paso brumoso*, *Crecimiento vegetal*, *Protección contra la energía*, *Tormenta de hielo*, *Piel pétrea*, *Comunión con la naturaleza*, *Ola destructiva*).
+2. **Ira de la naturaleza (Nv. 3):**
+   - Consumible de acción que delega en Canalizar divinidad (`gastarDePadre: true`, `ligadoA: "Canalizar divinidad"`).
+   - Se agrupa automáticamente en la caja colapsable de Canalizar divinidad de la clase Paladín mediante el resolvedor jerárquico agnóstico `agruparRasgosJerarquicos`.
+3. **Aura de custodia (Nv. 7):**
+   - Pasivo permanente (`categoriaMecanica: "pasivo_permanente"`) con efectos `personalizado` para resistencia al daño necrótico, psíquico y radiante (`objetivo: "resistencia_dano.<tipo>"`).
+4. **Centinela imperecedero (Nv. 15):**
+   - Consumible de curación de tipo `especial` con 1 uso por descanso largo (`categoriaMecanica: "curacion"`).
+   - Posee `formulaDados: "3 * nivel"`. La función universal `resolverFormulaDinamica` evalúa la expresión aritmética de forma segura al nivel del personaje (45 PV a nivel 15 y 60 PV a nivel 20), lista para aplicarse directamente mediante el motor de curación de rasgos de `lanzadorDados`.
+5. **Campeón anciano (Nv. 20):**
+   - Activable por acción adicional con 1 uso por descanso largo (`esActivable: true`, `categoriaMecanica: "activable"`), duración 10 rondas (1 minuto) y condición `"Campeón anciano"`.
+   - Incorpora efectos `personalizado` para la regeneración de 10 PG al inicio de cada turno, el lanzamiento acelerado de conjuros de acción como acción adicional y la desventaja en tiradas de salvación enemigas en el aura.
+6. **Efectos Predefinidos Registrados (`efectos-predefinidos.json`):**
+   - Registrado *"Campeón anciano"* con duración estándar 10 rondas, viñetas de sus tres facultades (Disminuir resistencia, Regeneración y Conjuros veloces) y alias bilingüe (*Elder Champion*), elevando el catálogo a 34 efectos predefinidos validados.
+7. **Validación Integral y Regresión:**
+   - 44 pruebas unitarias específicas de Paladín en `paladinMecanicasDND55.test.ts` pasando al 100%.
+   - 89 suites de pruebas unitarias y 1,247 pruebas globales en verde sin regresiones.
+   - `tsc --noEmit` completado con 0 errores bajo `strict: true`.
+
+## [2026-10-01] Implementación de Paladín D&D 5.5e (2024) - Fase 3: Subclase Juramento de Gloria (Oath of Glory)
+
+**Objetivo de la Fase 3:**
+- Implementar la subclase completa Juramento de Gloria (*Oath of Glory*) para D&D 5.5e (PHB 2024) en el catálogo declarativo y en el sistema de gestión de personajes del Simbiote DM.
+- Sincronizar todos sus conjuros preparados de juramento, rasgos activos, pasivos y consumibles dependientes de Canalizar divinidad.
+- Registrar los efectos tácticos correspondientes en el catálogo central de efectos predefinidos.
+
+**Mecánicas Implementadas y Decisiones Arquitectónicas:**
+1. **Progresión de Conjuros de Juramento:**
+   - Registrados en `progresionConjuros` de `juramento_de_gloria` para los niveles canónicos 3, 5, 9, 13 y 17 (*Saeta guía*, *Heroísmo*, *Arma mágica*, *Potenciar característica*, *Acelerar*, *Faro de esperanza*, *Compulsión*, *Libertad de movimiento*, *Comunión*, *Golpe de viento acerado*).
+2. **Castigo inspirador (Nv. 3):**
+   - Consumible por reacción que delega en Canalizar divinidad (`gastarDePadre: true`, `ligadoA: "Canalizar divinidad"`).
+   - Posee `formulaDados: "2d8 + nivel"`. Preserva la convención declarativa de fórmulas del catálogo para su resolución en el contexto de tiradas sin mutar de forma destructiva las fórmulas de otras clases.
+3. **Atleta sin par (Nv. 3):**
+   - Consumible activable por acción adicional que gasta de Canalizar divinidad (`gastarDePadre: true`).
+   - Aplica la condición `"Atleta sin par"` con duración de 100 rondas y efectos de tipo `ventaja` sobre habilidades de `atletismo` y `acrobacias`.
+4. **Aura de presteza (Nv. 7):**
+   - Pasivo permanente con efecto `modificador_velocidad` sobre `velocidad.caminar` de +10 pies.
+5. **Defensa gloriosa (Nv. 15):**
+   - Consumible por reacción con usos escalados por Carisma (`escaladoUsos: { tipo: "por_modificador", modificador: "carisma", minimo: 1 }`) y recuperación en descanso largo.
+   - En `compendioRasgos.ts`, se optimizó la asignación de `usosRestantes`: cuando `escaladoUsos.tipo === "por_modificador"`, si el personaje no tenía un gasto previo registrado, sus usos restantes se inicializan en `usosMaximos` (por ejemplo, 3/3 para Carisma 16) en lugar del valor mínimo por defecto de 1.
+6. **Leyenda viviente (Nv. 20):**
+   - Consumible activable por acción adicional con 1 uso por descanso largo.
+   - Aplica la condición `"Leyenda viviente"` con duración de 100 rondas y efecto de ventaja en pruebas de Carisma.
+7. **Efectos Predefinidos Registrados (`efectos-predefinidos.json`):**
+   - Incorporados *"Atleta sin par"* y *"Leyenda viviente"* con duración estándar de 100 rondas, viñetas explicativas y alias bilingües (*Peerless Athlete*, *Living Legend*), elevando el catálogo a 33 efectos validados por `integridadCatalogos.test.ts`.
+8. **Validación Integral y Regresión:**
+   - 38 pruebas unitarias específicas de Paladín en `paladinMecanicasDND55.test.ts` pasando al 100%.
+   - 89 suites de pruebas unitarias y 1,241 pruebas globales en verde sin regresiones.
+   - `tsc --noEmit` completado con 0 errores bajo `strict: true`.
+
+## [2026-10-01] Sincronización Canónica de Paladín D&D 5.5e: Descripciones Oficiales, Tablas de Progresión en Pies y Efectos Predefinidos
+
+**Objetivo de la Iteración:**
+- Actualizar íntegramente las descripciones del catálogo de Paladín (`src/datos/clases/paladin.json`) utilizando la fuente de verdad canónica (`dicionario_herramientas/clases/paladin.json`).
+- Estandarizar todas las distancias exclusivamente en **pies imperiales** (eliminando referencias métricas en metros de la clase base y de todas sus subclases).
+- Integrar las tablas de progresión visual de las imágenes proporcionadas por el usuario para *Canalizar divinidad* (niveles 3 y 11) y *Aura de protección* (niveles 6, 10 y 18).
+- Registrar los efectos tácticos de la Fase 2 (*Arma sagrada* y *Nimbo sagrado*) en el compendio central `src/datos/efectos-predefinidos.json`.
+
+**Detalles Técnicos y Decisiones Arquitectónicas:**
+1. **Sincronización Canónica de Descripciones y Formato en Pies:**
+   - Se reemplazaron todas las descripciones de la clase base y de las subclases (Juramento de Entrega, Gloria, Antiguos, Venganza) por sus textos oficiales sin dependencias externas ni enlaces markdown rotos.
+   - Las distancias se normalizaron de forma consistente en pies (10 pies, 15 pies, 20 pies, 30 pies, 60 pies).
+2. **Tablas de Progresión Estructuradas (`tablaProgresion`):**
+   - **Canalizar divinidad (Nv. 3):** Columnas `["Nivel", "Descripción"]`, filas `[{ nivel: 3, valores: ["2 usos"] }, { nivel: 11, valores: ["3 usos"] }]`, con `notaPie: "Cada nivel reemplaza al anterior"`.
+   - **Aura de protección (Nv. 6):** Columnas `["Nivel", "Descripción"]`, filas `[{ nivel: 6, valores: ["Emanación de 10 pies"] }, { nivel: 10, valores: ["Emanación de 10 pies + inmunidad a Asustado"] }, { nivel: 18, valores: ["Emanación de 30 pies + inmunidad a Asustado"] }]`, con `notaPie: "Cada nivel reemplaza al anterior"`.
+3. **Catálogo de Efectos Predefinidos (`efectos-predefinidos.json`):**
+   - **Arma sagrada (Sacred Weapon):** Duración estándar 100 rondas, bono `max(1, carisma)` a tiradas de ataque con armas cuerpo a cuerpo, daño radiante opcional, radio de luz brillante a 20 pies y luz tenue a 20 pies.
+   - **Nimbo sagrado (Holy Nimbus):** Duración estándar 100 rondas, ventaja en tiradas de salvación contra infernales y no muertos, daño radiante de Carisma + bonificador por competencia a enemigos al inicio de turno, luz solar brillante en el aura.
+   - Actualizado el test `integridadCatalogos.test.ts` para verificar la existencia de los 31 efectos totales con sus viñetas y alias bilingües.
+4. **Preservación y Compatibilidad:**
+   - *Corcel fiel* mantiene en `conjurosOtorgados` tanto "Hallar corcel" como "Encontrar corcel", asegurando interoperabilidad completa con los localizadores del sistema.
+   - 31 pruebas unitarias específicas de Paladín en `paladinMecanicasDND55.test.ts` y 1,234 pruebas globales en 89 suites pasando al 100%.
+
+## [2026-09-30] Implementación de Paladín D&D 5.5e (2024) - Fase 1: Clase Base y Mecánicas Agnósticas
+
+**Objetivo de la Fase 1:**
+- Implementar la clase Paladín (niveles 1 a 20) conforme a D&D 5.5e (PHB 2024) asegurando máxima genericidad, cero bifurcaciones por nombre literal de clase/rasgo, y reutilización exhaustiva del catálogo declarativo.
+
+**Mecánicas Implementadas y Decisiones Arquitectónicas:**
+1. **Generalización de Secciones de Canalizar Divinidad (`utilidadesProgresionRasgos.ts`):**
+   - Se suprimió la restricción previa que comprobaba `normNombreClase.includes("clerigo")` para agrupar rasgos en la caja colapsable de Canalizar Divinidad. Ahora cualquier clase que posea el rasgo base o rasgos hijos dependientes con `ligadoA: "Canalizar divinidad"` agrupa automáticamente sus rasgos en `Canalizar Divinidad (${grupo.clase.nombre})`.
+2. **Imposición de Manos con Coste Fijo y Escalado de Usos Semántico:**
+   - Incorporado el soporte de `costeFijo?: number` en `PlantillaRasgoClase`, `EsquemaPlantillaRasgoClaseJSON` y `EsquemaRasgoPersonaje`.
+   - `resolutorEscaladosRasgo` evalúa semánticamente fórmulas por regex `/^nivel_x(\d+)$/`, permitiendo que `"nivel_x5"` escale limpiamente a `nivel * 5` sin funciones intermedias.
+   - En la interfaz (`TarjetaRasgo.tsx` y `ModalDetalleRasgo.tsx`), se expone el botón directo `[-5]` cuando `costeFijo: 5` para remover estados de envenenamiento o afecciones de Toque restaurador de un solo clic.
+   - Los métodos `gastarUsoRasgoPersonaje` y `recuperarUsoRasgoPersonaje` en `sliceRasgos.ts` admiten parámetro opcional `cantidad?: number` para decrementos e incrementos arbitrarios seguros.
+3. **Preservación de Usos Máximos Fijos en Esquema de Catálogo:**
+   - Diagnosticado y corregido: `EsquemaPlantillaRasgoClaseJSON` omitía `usosMaximos: z.number().int().optional()`, lo que provocaba que Zod filtrara `usosMaximos: 1` de rasgos como *Castigo de paladín* y *Corcel fiel*. Asimismo, `construirRasgo` en `gestorClases.ts` inicializa `let usos = r.usosMaximos` garantizando la persistencia de usos fijos declarativos.
+4. **Castigo de Paladín y Corcel Fiel (Conjuros Gratuitos):**
+   - Configurados con 1 uso por descanso largo, `conjurosOtorgados: ["Castigo divino"]` y `conjuroGratuito: "Castigo divino"`.
+   - `evaluadorConjurosRasgos.ts` y `SeccionNivelConjuros.tsx` los detectan como conjuros gratuitos automáticos en la tarjeta y en la lógica de lanzamiento sin consumir espacios de conjuro.
+5. **Aura de Protección Activable Dinámica:**
+   - Activable con efecto `bono_salvacion` y valor `"max(1, carisma)"`.
+   - `obtenerBonosSalvacionesRasgos` evalúa la expresión aritmética dinámica inyectando el modificador de Carisma del personaje y aplicando el suelo mínimo de +1.
+6. **Estilos de Combate y Dote Exclusiva 'Guerrero bendito':**
+   - Inyección agnóstica de selector de dote de estilo de combate que incluye la opción exclusiva de Paladín.
+   - `compendioRasgos.ts` sintetiza la dote con su selector hijo para 2 trucos de clérigo basados en Carisma.
+7. **Golpes Radiantes:**
+   - Pasivo permanente a nivel 11 con efecto `dano_secundario`, valor `"1d8"`, `tipoDano: "Radiante"` y `aplicaA: "cuerpo_a_cuerpo"`, sumando el dado extra a armas cuerpo a cuerpo y ataques desarmados, excluyendo armas a distancia.
+8. **Toque Restaurador como Decorador:**
+   - Marcado como `categoriaMecanica: "extension"` y `ligadoA: "Imposición de manos"`. El constructor decora e incorpora orgánicamente su descripción y niveles a *Imposición de manos*, evitando la proliferación de rasgos redundantes en la ficha.
+9. **Maestría con Armas como Selector Interactivo Múltiple:**
+   - Siguiendo la estructura estándar del catálogo (ej. `barbaro.json`), se configuró `categoriaMecanica: "selector_informativo"` con el selector interactivo `maestrias_aprendidas` (`tipo: "multiple"`, `maxSelecciones: 2`), conteniendo las 8 propiedades oficiales de maestría de D&D 2024 (Cleave, Graze, Nick, Push, Sap, Slow, Topple, Vex) y su `tablaProgresion` de armas elegidas.
+
+**Validación y Cobertura:**
+- Creada suite `src/servicios/paladinMecanicasDND55.test.ts` con 18/18 pruebas aprobadas al 100%.
+- Pruebas de regresión con Clérigo y Dotes de Estilo de Combate (48/48 pruebas aprobadas).
+- Verificación estricta de tipos con `tsc --noEmit` completada sin ningún error.
 
 ## [2026-09-30] Sincronización de Condiciones, Efectos y Vitalidad desde el DM a la Hoja de Características del Jugador
 
@@ -10643,3 +10831,80 @@ Optimizar la complejidad temporal (Big O) en las operaciones de búsqueda, orden
 - **TypeScript**: `pnpm exec tsc --noEmit` completado con **0 errores** (Strict Mode estricto).
 - **ESLint**: `pnpm run lint` completado con **0 errores y 0 advertencias** (`--max-warnings=0`).
 - **Control de Líneas**: `node scripts/verificar-limite-lineas.js` completado con **0 errores críticos** (112 archivos auditados).
+
+---
+
+## [2026-10-01] Implementación Canónica de la Clase Paladín (D&D 5.5e / PHB 2024) - Fase 1: Clase Base y Correcciones Críticas
+
+### 1. Diagnóstico y Problemas Identificados
+1. **Lanzamiento Gratuito Infinito en *Castigo de paladín* y *Corcel fiel***:
+   - En `src/datos/clases/paladin.json`, se había agregado un bloque redundante `efectos: [{ tipo: "conjuro_gratuito", objetivo: "Castigo divino" }]`.
+   - `evaluarEfectosRasgosActivos` extraía efectos estáticos sin comprobar si el rasgo tenía `tieneUsosLimitados: true` y si le quedaban usos disponibles (`usosRestantes > 0`).
+   - Por tanto, `tieneConjuroGratuitoActivo` devolvía `true` permanentemente, lo que mantenía visible el botón **[Gratis (1/DL)]** indefinidamente e impedía que los lanzamientos normales consumieran ranuras de conjuro.
+   - En `src/tipos/esquemasCatalogos.ts`, `EsquemaPlantillaRasgoClaseJSON` no admitía la propiedad `conjuroGratuito`, provocando que Zod la eliminara durante la carga del catálogo.
+2. **Estructura de *Aura de valor* (Nv. 10) y *Expansión del aura* (Nv. 18)**:
+   - Debían comportarse como extensiones decoradoras de *Aura de protección* (`categoriaMecanica: "extension"`, `ligadoA: "Aura de protección"`), de modo que el Decorator pattern de `gestorClases.ts` fusionara su descripción y actualizara sus notas a `6, 10, 18` sin duplicar tarjetas en la interfaz del jugador.
+3. **Maestría con Armas (Nv. 1)**:
+   - Se requería replicar exactamente el patrón selector múltiple interactivo de `barbaro.json` con las 8 propiedades canónicas oficiales (Cleave, Graze, Nick, Push, Sap, Slow, Topple, Vex) y `maxSelecciones: 2`.
+4. **Imposición de Manos (Nv. 1)**:
+   - Consumible con reserva `nivel * 5` puntos, soporte para decrementos mayores a 1 en `sliceRasgos.ts`, y botón interactivo adicional con `costeFijo: 5` (`[-5]`).
+5. **Canalizar Divinidad Jerárquico Agnóstico**:
+   - Cada clase que posea Canalizar Divinidad (Clérigo, Paladín, etc.) agrupa sus rasgos en un contenedor colapsable titulado dinámicamente `Canalizar Divinidad (${grupo.clase.nombre})`.
+
+### 2. Solución Aplicada y Decisiones Arquitectónicas
+1. **Blindaje de Conjuros Gratuitos (`src/servicios/rasgos/evaluadorConjurosRasgos.ts`)**:
+   - `obtenerNombresConjurosGratuitosActivos` verifica que si un rasgo tiene `tieneUsosLimitados: true`, sus `usosRestantes` sean estrictamente mayores a 0 (`restantes > 0`). Al llegar a 0 usos, el conjuro se excluye inmediatamente.
+   - Soporte directo para `r.conjuroGratuito` tanto en rasgos instanciados como en el esquema Zod `EsquemaPlantillaRasgoClaseJSON`.
+   - Eliminados los efectos estáticos `conjuro_gratuito` de *Castigo de paladín* y *Corcel fiel* en `paladin.json`.
+   - Detección precisa de `r.conjuroGratuito` en `usarLanzadorConjuros.ts`, `SeccionNivelConjuros.tsx`, `SeccionAtaquesMagicos.tsx` y `SeccionConjurosOcultos.tsx`.
+2. **Decorator Pattern para Auras de Paladín (`paladin.json`)**:
+   - *Aura de valor* y *Expansión del aura* configurados con `categoriaMecanica: "extension"` y `ligadoA: "Aura de protección"`.
+   - `gestorClases.ts` unifica automáticamente sus textos e historial de niveles (`Paladín (Niveles 6, 10, 18)`).
+3. **Suite de Pruebas Unitarias Exhaustiva (`src/servicios/paladinMecanicasDND55.test.ts`)**:
+   - 19 pruebas cubriendo Imposición de manos, Maestría con armas, Estilo de combate (Guerrero bendecido), Castigo de paladín (con validación de agotamiento tras consumo), Canalizar divinidad, Sentidos divinos, Corcel fiel, Aura de protección con escalado por Carisma, Aura de valor como extensión, Golpes radiantes (1d8 cuerpo a cuerpo), Toque restaurador, Expansión del aura y agrupación jerárquica en UI.
+4. **Corrección de Test en `serializadorPersonaje.test.ts`**:
+   - Se ajustó la prueba de reducción de tamaño para hidratar los personajes exportados antes de medir la compresión en memoria.
+
+### 3. Métricas de Validación
+- **Tests Unitarios**: **89 suites superadas, 1222/1222 tests pasando (100% de éxito)**.
+- **TypeScript**: `pnpm exec tsc --noEmit` completado con **0 errores** (Strict Mode estricto en todo el proyecto).
+- **Gestor de Paquetes**: Uso 100% exclusivo de `pnpm`. Cero comandos con npm o yarn.
+- **Idioma y Estilo**: Todo el código, comentarios y documentación redactados íntegramente en español.
+
+---
+
+## [2026-10-01] Implementación Canónica de Paladín (D&D 5.5e / PHB 2024) - Fase 2: Subclase Juramento de Entrega (Oath of Devotion)
+
+### 1. Requerimientos y Corrección del Usuario
+- **Arma sagrada (Nivel 3)**:
+  - Consumible que gasta del padre (*Canalizar divinidad*), activable mediante toggle, con efecto táctico por 100 rondas (10 minutos).
+  - Bonificador a tiradas de ataque con armas cuerpo a cuerpo (CaC) igual a `max(1, modificador de carisma)` (según la aclaración explícita del usuario: *"no es al daño, es solo al ataque"*).
+- **Aura de entrega (Nivel 7)**:
+  - Rasgo pasivo permanente con efecto `inmunidad_condicion` para `"hechizado"`.
+- **Castigo de protección (Nivel 15)**:
+  - Rasgo pasivo permanente descriptivo.
+- **Nimbo sagrado (Nivel 20)**:
+  - Consumible activable con efecto informativo, 1 uso por descanso largo, duración de 100 rondas.
+- **Conjuros del Juramento de Entrega**:
+  - Progresión de conjuros automáticos preparados en niveles 3, 5, 9, 13 y 17.
+
+### 2. Diagnóstico Técnico y Solución Arquitectónica
+1. **Delegación de Recursos vs Dependencia de Estado Activo (`evaluadorExpresionesRasgos.ts`)**:
+   - `evaluarEfectosRasgosActivos` descartaba cualquier rasgo con `ligadoA` si el padre no estaba explícitamente activo (`estaRasgoActivo`).
+   - Sin embargo, para rasgos donde `gastarDePadre === true` (como *Arma sagrada*, *Sentidos divinos*, *Castigo inspirador*, etc.), `ligadoA` especifica la reserva de recursos a descontar, no un interruptor dependiente de un padre on/off. El recurso padre (*Canalizar divinidad*) es una reserva, no un toggle.
+   - Solución: se ajustó la condición a `if (rasgo.ligadoA && !rasgo.gastarDePadre) { ... }`, permitiendo que los rasgos activables hijos evalúen sus efectos sin requerir un estado activo artificial en el contenedor de recursos padre.
+2. **Propagación del Atributo `subclase` en el Builder (`gestorClases.ts` y `src/tipos/rasgos.ts`)**:
+   - Se añadió `subclase: z.string().optional()` al esquema canónico `EsquemaRasgoPersonaje`.
+   - En `construirRasgo`, se garantizó la propagación de `subclase: r.subclase || (origen === "subclase" ? subclaseNombre : undefined)`.
+3. **Modelado Declarativo en `src/datos/clases/paladin.json`**:
+   - *Arma sagrada* configurada con `categoriaMecanica: "activable"`, `esActivable: true`, `gastarDePadre: true`, `ligadoA: "Canalizar divinidad"`, `duracionEfectoAlActivar: 100`, `condicionAlActivar: "Arma sagrada"`, y efecto `{ tipo: "bono_ataque", objetivo: "ataque_cac", aplicaA: "arma_cac", valor: "max(1, carisma)" }`.
+   - *Aura de entrega* con efecto `{ tipo: "inmunidad_condicion", objetivo: "hechizado", valor: 1 }`.
+   - *Nimbo sagrado* con `categoriaMecanica: "activable"`, `tieneUsosLimitados: true`, `usosMaximos: 1`, `recuperacion: "descanso_largo"`, `duracionEfectoAlActivar: 100`.
+4. **Validación Integral de Pruebas Unitarias (`src/servicios/paladinMecanicasDND55.test.ts`)**:
+   - Añadidas 9 pruebas adicionales cubriendo: progresión de conjuros de Entrega, activación y duración de Arma sagrada, cálculo matemático del bono de ataque (+3 con CAR 16, mínimo +1 con CAR 8, 0 en armas a distancia o inactivo), deducción de uso de Canalizar divinidad, inmunidad de Aura de entrega, Castigo de protección, Nimbo sagrado y agrupación jerárquica en la caja colapsable de Canalizar Divinidad.
+
+### 3. Métricas de Validación
+- **Tests Unitarios**: **89 suites superadas, 1231/1231 tests pasando (100% de éxito)**.
+- **TypeScript**: `pnpm exec tsc --noEmit` completado con **0 errores** (Strict Mode estricto).
+- **Gestor de Paquetes**: Uso 100% exclusivo de `pnpm`. Cero comandos con npm o yarn.
+- **Idioma y Estilo**: Todo en español y sin emojis.

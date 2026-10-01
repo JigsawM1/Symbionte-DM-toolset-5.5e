@@ -205,5 +205,77 @@
       "Aura solar: Emites luz brillante en un radio de 60 pies y luz tenue durante otros 30 pies.",
       "Desventaja a enemigos: Los enemigos dentro de la luz brillante tienen desventaja en las tiradas de salvación contra tu Resplandor del alba y cualquier conjuro que cause daño de fuego o radiante."
     ]
+  },
+  {
+    "nombre": "Arma sagrada",
+    "tituloVisual": "Arma sagrada (Sacred Weapon)",
+    "descripcion": "El arma cuerpo a cuerpo imbuida suma tu modificador por Carisma (mínimo +1) a las tiradas de ataque y emite luz brillante en 20 pies y luz tenue durante otros 20 pies.",
+    "duracionEstandar": 100,
+    "aliases": ["arma sagrada", "sacred weapon", "arma sagrada (sacred weapon)"],
+    "efectos": [
+      "Suma tu modificador por Carisma (mínimo +1) a las tiradas de ataque realizadas con el arma.",
+      "El arma puede infligir daño normal o radiante.",
+      "Emite luz brillante en un radio de 20 pies y luz tenue 20 pies adicionales."
+    ]
+  },
+  {
+    "nombre": "Nimbo sagrado",
+    "tituloVisual": "Nimbo sagrado (Holy Nimbus)",
+    "descripcion": "Tu Aura de protección se imbuye de poder sagrado durante 10 minutos (100 rondas), llenándose de luz solar radiante.",
+    "duracionEstandar": 100,
+    "aliases": ["nimbo sagrado", "holy nimbus", "nimbo sagrado (holy nimbus)"],
+    "efectos": [
+      "Guarda sagrada: Ventaja en cualquier tirada de salvación provocada por un infernal o un muerto viviente.",
+      "Daño radiante: Cada vez que un enemigo empiece su turno en el aura, sufre daño radiante igual a tu modificador por Carisma + bonificador por competencia.",
+      "Luz solar: El aura se llena de luz brillante que cuenta como luz solar."
+    ]
+  },
+  {
+    "nombre": "Atleta sin par",
+    "tituloVisual": "Atleta sin par (Peerless Athlete)",
+    "descripcion": "Tus habilidades atléticas se potencian mágicamente durante 1 hora (100 rondas). Tienes ventaja en las pruebas de Fuerza (Atletismo) y Destreza (Acrobacias), y la distancia de tus saltos aumenta en 10 pies.",
+    "duracionEstandar": 100,
+    "aliases": ["atleta sin par", "peerless athlete", "atleta sin par (peerless athlete)"],
+    "efectos": [
+      "Ventaja en todas las pruebas de Fuerza (Atletismo).",
+      "Ventaja en todas las pruebas de Destreza (Acrobacias).",
+      "La distancia de tus saltos de longitud y de altura aumenta en 10 pies."
+    ]
+  },
+  {
+    "nombre": "Leyenda viviente",
+    "tituloVisual": "Leyenda viviente (Living Legend)",
+    "descripcion": "Te empoderas con las leyendas de tus grandes hazañas durante 10 minutos (100 rondas). Obtienes una presencia sobrenatural, capacidad de reintentar salvaciones y garantizar impactos.",
+    "duracionEstandar": 100,
+    "aliases": ["leyenda viviente", "living legend", "leyenda viviente (living legend)"],
+    "efectos": [
+      "Carismático: Bendecido con presencia sobrenatural, tienes ventaja en todas tus pruebas de Carisma.",
+      "Repetir salvación: Si fallas una tirada de salvación, puedes usar tu reacción para volver a tirarla (debes usar la nueva tirada).",
+      "Golpe infalible: Una vez en cada uno de tus turnos, cuando falles una tirada de ataque con un arma, puedes convertir ese fallo en un acierto."
+    ]
+  },
+  {
+    "nombre": "Campeón anciano",
+    "tituloVisual": "Campeón anciano (Elder Champion)",
+    "descripcion": "Tu Aura de protección se imbuye de poder primigenio durante 1 minuto (10 rondas), debilitando las salvaciones enemigas, regenerando 10 PG por turno y permitiendo lanzar conjuros de acción como acción adicional.",
+    "duracionEstandar": 10,
+    "aliases": ["campeón anciano", "campeon anciano", "elder champion", "campeón anciano (elder champion)"],
+    "efectos": [
+      "Disminuir resistencia: Los enemigos en el aura tienen desventaja en las tiradas de salvación contra tus conjuros y opciones de Canalizar divinidad.",
+      "Regeneración: Al comienzo de cada uno de tus turnos, recuperas 10 puntos de golpe.",
+      "Conjuros veloces: Cada vez que lances un conjuro que tenga un tiempo de lanzamiento de una acción, podrás lanzarlo usando una acción adicional en su lugar."
+    ]
+  },
+  {
+    "nombre": "Ángel vengador",
+    "tituloVisual": "Ángel vengador (Avenging Angel)",
+    "descripcion": "Te transformas en un avatar de venganza durante 10 minutos (100 rondas). Te brotan alas espectrales obteniendo velocidad de vuelo de 60 pies con capacidad de flotar, y proyectas un aura aterradora de 30 pies.",
+    "duracionEstandar": 100,
+    "aliases": ["ángel vengador", "angel vengador", "avenging angel", "ángel vengador (avenging angel)"],
+    "efectos": [
+      "Vuelo: Obtienes una velocidad volando de 60 pies y puedes flotar.",
+      "Aura aterradora: Cada vez que un enemigo comience su turno en tu Aura de protección, deberá superar una tirada de salvación de Sabiduría o tendrá el estado de asustado durante 1 minuto o hasta que sufra cualquier daño.",
+      "Ventaja contra asustados: Las tiradas de ataque contra cualquier criatura asustada por esta aura se realizan con ventaja."
+    ]
   }
 ]

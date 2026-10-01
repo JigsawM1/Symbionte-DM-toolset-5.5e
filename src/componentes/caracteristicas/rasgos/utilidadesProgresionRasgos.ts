@@ -271,7 +271,7 @@ export function agruparRasgosJerarquicos(
             rasgo.selectores.length > 0
           ) {
             mc.rasgoInvocaciones = rasgo;
-          } else if (normNombreClase.includes("clerigo") && esRasgoCanalizarDivinidad(rasgo)) {
+          } else if (esRasgoCanalizarDivinidad(rasgo)) {
             mc.rasgosCanalizarDivinidad.push(rasgo);
           } else if (rasgo.origen === "subclase" || (normSubClasePj && normFuente.includes(normSubClasePj))) {
             mc.rasgosSubclase.push(rasgo);

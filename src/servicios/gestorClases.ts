@@ -1100,7 +1100,8 @@ export function aplicarBuildClaseAPersonaje(
           nivel: nuevoNivel,
           tipoLanzador: build.configuracionMagica.tipoLanzador,
           habilidadConjuro: build.configuracionMagica.habilidadConjuro,
-          modeloConjuros: build.configuracionMagica.modeloConjuros
+          modeloConjuros: build.configuracionMagica.modeloConjuros,
+          listaConjuros: build.configuracionMagica.listaConjuros
         }
       ];
       const recursos = calcularTodosRecursosMagicos(

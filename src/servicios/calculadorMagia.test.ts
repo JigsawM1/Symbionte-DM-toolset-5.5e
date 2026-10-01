@@ -8,9 +8,11 @@ import {
   calcularEspaciosPacto,
   obtenerCostePuntos,
   detectarTipoLanzador,
-  calcularMaximosConjurosYTrucos
+  calcularMaximosConjurosYTrucos,
+  requiereSincronizacionSubclase,
+  obtenerClasesListaMagicaPersonaje
 } from "./calculadorMagia";
-import type { ClaseLanzadora } from "@/tipos";
+import type { ClaseLanzadora, PersonajeJugador } from "@/tipos";
 
 describe("calculadorMagia - Reglas de Magia D&D 2024", () => {
   describe("calcularNivelLanzadorMulticlase", () => {
@@ -161,10 +163,10 @@ describe("calculadorMagia - Reglas de Magia D&D 2024", () => {
 
     it("debe detectar subclases tercio-lanzadoras", () => {
       const caballero = detectarTipoLanzador("Guerrero", "Caballero Arcano");
-      expect(caballero).toEqual({ tipo: "tercio", habilidad: "inteligencia", modelo: "conocidos" });
+      expect(caballero).toEqual({ tipo: "tercio", habilidad: "inteligencia", modelo: "conocidos", listaConjuros: "mago" });
 
       const embaucador = detectarTipoLanzador("Pícaro", "Embaucador Arcano");
-      expect(embaucador).toEqual({ tipo: "tercio", habilidad: "inteligencia", modelo: "conocidos" });
+      expect(embaucador).toEqual({ tipo: "tercio", habilidad: "inteligencia", modelo: "conocidos", listaConjuros: "mago" });
     });
 
     it("debe retornar null para clases no lanzadoras", () => {
@@ -228,6 +230,102 @@ describe("calculadorMagia - Reglas de Magia D&D 2024", () => {
         maxConjuros: 0,
         modelo: "preparados"
       });
+    });
+  });
+
+  describe("requiereSincronizacionSubclase", () => {
+    it("debe retornar false si el Pícaro Embaucador Arcano ya tiene Mano de mago y no tiene conjuros de nivel", () => {
+      const pj = {
+        id: "pj-picaro-1",
+        clase: "Pícaro",
+        subclase: "Embaucador Arcano",
+        nivel: 3,
+        conjurosSiemprePreparadosIds: [],
+        trucosConocidosIds: ["Mano de mago"]
+      } as unknown as PersonajeJugador;
+
+      const resSubclase = { conjuros: [], trucos: ["Mano de mago"] };
+      expect(requiereSincronizacionSubclase(pj, resSubclase)).toBe(false);
+    });
+
+    it("debe retornar true si le falta Mano de mago al Embaucador Arcano", () => {
+      const pj = {
+        id: "pj-picaro-2",
+        clase: "Pícaro",
+        subclase: "Embaucador Arcano",
+        nivel: 3,
+        conjurosSiemprePreparadosIds: [],
+        trucosConocidosIds: []
+      } as unknown as PersonajeJugador;
+
+      const resSubclase = { conjuros: [], trucos: ["Mano de mago"] };
+      expect(requiereSincronizacionSubclase(pj, resSubclase)).toBe(true);
+    });
+
+    it("debe retornar true si al Clérigo le falta alguno de sus conjuros siempre preparados", () => {
+      const pj = {
+        id: "pj-clerigo-1",
+        clase: "Clérigo",
+        subclase: "Vida",
+        nivel: 3,
+        conjurosSiemprePreparadosIds: ["Bendición"],
+        trucosConocidosIds: []
+      } as unknown as PersonajeJugador;
+
+      const resSubclase = { conjuros: ["Bendición", "Curar heridas"], trucos: [] };
+      expect(requiereSincronizacionSubclase(pj, resSubclase)).toBe(true);
+    });
+  });
+
+  describe("obtenerClasesListaMagicaPersonaje", () => {
+    it("debe incluir 'mago' para Pícaro con subclase Embaucador Arcano", () => {
+      const pj = {
+        id: "pj-embaucador",
+        clase: "Pícaro",
+        subclase: "Embaucador Arcano",
+        nivel: 3,
+        clasesLanzadoras: [
+          { clase: "Pícaro", nivel: 3, tipoLanzador: "tercio", habilidadConjuro: "inteligencia", modeloConjuros: "conocidos", listaConjuros: "mago" }
+        ]
+      } as unknown as PersonajeJugador;
+
+      const clases = obtenerClasesListaMagicaPersonaje(pj);
+      expect(clases).toContain("pícaro");
+      expect(clases).toContain("mago");
+    });
+
+    it("debe incluir 'mago' para Guerrero con subclase Caballero Arcano", () => {
+      const pj = {
+        id: "pj-caballero",
+        clase: "Guerrero",
+        subclase: "Caballero Arcano",
+        nivel: 3,
+        clasesLanzadoras: [
+          { clase: "Guerrero", nivel: 3, tipoLanzador: "tercio", habilidadConjuro: "inteligencia", modeloConjuros: "conocidos", listaConjuros: "mago" }
+        ]
+      } as unknown as PersonajeJugador;
+
+      const clases = obtenerClasesListaMagicaPersonaje(pj);
+      expect(clases).toContain("guerrero");
+      expect(clases).toContain("mago");
+    });
+
+    it("no debe incluir 'mago' para un Pícaro Asesino", () => {
+      const pj = {
+        id: "pj-asesino",
+        clase: "Pícaro",
+        subclase: "Asesino",
+        nivel: 3,
+        clasesLanzadoras: []
+      } as unknown as PersonajeJugador;
+
+      const clases = obtenerClasesListaMagicaPersonaje(pj);
+      expect(clases).toEqual(["pícaro"]);
+    });
+
+    it("debe retornar array vacío para personaje nulo o indefinido", () => {
+      expect(obtenerClasesListaMagicaPersonaje(null)).toEqual([]);
+      expect(obtenerClasesListaMagicaPersonaje(undefined)).toEqual([]);
     });
   });
 });

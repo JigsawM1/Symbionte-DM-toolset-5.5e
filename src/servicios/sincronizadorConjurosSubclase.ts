@@ -82,11 +82,32 @@ export function sincronizarConjurosSubclaseHelper(
     }
   }
 
+  // Limpiar trucos espurios derivados de placeholders de texto (ej. "2 trucos de Mago a elección")
+  const trucosSaneados = trucos.filter(
+    (t) => !t.toLowerCase().includes("a elecci") && !t.toLowerCase().includes("a elección")
+  );
+
+  const sonIgualesArrays = (a?: string[], b?: string[]) => {
+    const arrA = a || [];
+    const arrB = b || [];
+    if (arrA.length !== arrB.length) return false;
+    return arrA.every((v, i) => v === arrB[i]);
+  };
+
+  if (
+    sonIgualesArrays(nuevosSiemprePrep, pj.conjurosSiemprePreparadosIds) &&
+    sonIgualesArrays(preparados, pj.conjurosPreparadosIds) &&
+    sonIgualesArrays(conocidos, pj.conjurosConocidosIds) &&
+    sonIgualesArrays(trucosSaneados, pj.trucosConocidosIds)
+  ) {
+    return pj;
+  }
+
   return {
     ...pj,
     conjurosSiemprePreparadosIds: nuevosSiemprePrep,
     conjurosPreparadosIds: preparados,
     conjurosConocidosIds: conocidos,
-    trucosConocidosIds: trucos
+    trucosConocidosIds: trucosSaneados
   };
 }

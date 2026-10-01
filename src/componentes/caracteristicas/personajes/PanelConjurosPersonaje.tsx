@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from "react";
 import type { HechizoBase } from "@/tipos";
-import { obtenerConjurosSubclasePersonaje } from "@/servicios/calculadorMagia";
+import {
+  obtenerConjurosSubclasePersonaje,
+  requiereSincronizacionSubclase
+} from "@/servicios/calculadorMagia";
 import { usarAccionesConfiguracion } from "@/almacen/selectores/usarEstadoConfiguracion";
 import { usarAlmacenDM } from "@/almacen/usarAlmacenDM";
 import { usarMagiaPersonaje } from "@/hooks/usarMagiaPersonaje";
@@ -43,20 +46,17 @@ export const PanelConjurosPersonaje: React.FC<PanelConjurosPersonajeProps> = ({
 
   useEffect(() => {
     if (
-      (!personaje.conjurosSiemprePreparadosIds || personaje.conjurosSiemprePreparadosIds.length === 0) &&
+      personaje &&
       (personaje.clase || (personaje.clases && personaje.clases.length > 0))
     ) {
       const res = obtenerConjurosSubclasePersonaje(
         personaje.clases, personaje.clase, personaje.subclase, personaje.nivel
       );
-      if (res.conjuros.length > 0 || res.trucos.length > 0) {
+      if (requiereSincronizacionSubclase(personaje, res)) {
         sincronizarConjurosSubclase(personaje.id);
       }
     }
-  }, [
-    personaje.id, personaje.clases, personaje.clase, personaje.subclase,
-    personaje.nivel, personaje.conjurosSiemprePreparadosIds, sincronizarConjurosSubclase
-  ]);
+  }, [personaje, sincronizarConjurosSubclase]);
 
   const {
     etiquetaHabilidad, modHabilidad, cdConjuros, bonoAtaqueMagico,

@@ -83,6 +83,15 @@ const MetricasRapidasPersonajeComponent: React.FC<MetricasRapidasPersonajeProps>
   const iniciativaTotal = modDestreza + (personaje.iniciativaBono || 0) + bonoIniciativaRasgos;
   const textoIniciativa = iniciativaTotal >= 0 ? `+${iniciativaTotal}` : `${iniciativaTotal}`;
 
+  const desglosesIniciativa: string[] = [`Destreza (${modDestreza >= 0 ? `+${modDestreza}` : modDestreza})`];
+  if (personaje.iniciativaBono) {
+    desglosesIniciativa.push(`Manual (${personaje.iniciativaBono >= 0 ? `+${personaje.iniciativaBono}` : personaje.iniciativaBono})`);
+  }
+  if (bonoIniciativaRasgos) {
+    desglosesIniciativa.push(`Rasgos/Dotes (${bonoIniciativaRasgos >= 0 ? `+${bonoIniciativaRasgos}` : bonoIniciativaRasgos})`);
+  }
+  const desgloseIniciativaTexto = desglosesIniciativa.join(" + ");
+
   // 2. Velocidad Base y Efectiva
   const velocidades = obtenerVelocidadesEfectivas(personaje);
   const velocidadBaseTotal = velocidades.caminar;
@@ -192,7 +201,7 @@ const MetricasRapidasPersonajeComponent: React.FC<MetricasRapidasPersonajeProps>
       {/* 2. Iniciativa */}
       <TooltipUniversal
         titulo="Iniciativa"
-        contenido={`Tirada de Iniciativa: 1d20 ${textoIniciativa} (Destreza).\nHaz clic para tirar iniciativa en TaleSpire.`}
+        contenido={`Tirada de Iniciativa: 1d20 ${textoIniciativa} [${desgloseIniciativaTexto}].\nHaz clic para tirar iniciativa en TaleSpire.`}
         posicion="abajo"
         className={estilos.contenedorTooltipMetrica}
       >

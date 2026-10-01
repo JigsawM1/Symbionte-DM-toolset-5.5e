@@ -334,8 +334,12 @@ describe("Comportamiento Canónico de Rasgos: Subclase y Mejora de Característi
       expect(esRasgoVersatil("Versátil")).toBe(true);
       expect(esRasgoVersatil("versatil")).toBe(true);
       expect(esRasgoVersatil("Humano: Versátil")).toBe(true);
+      expect(esRasgoVersatil("Versátil", "especie")).toBe(true);
       expect(esRasgoVersatil("Ingenioso")).toBe(false);
       expect(esRasgoVersatil("Diestro")).toBe(false);
+      expect(esRasgoVersatil("Embaucador versátil")).toBe(false);
+      expect(esRasgoVersatil("Embaucador versátil", "subclase")).toBe(false);
+      expect(esRasgoVersatil("Versátil", "subclase")).toBe(false);
     });
 
     it("construirDoteDeVersatil genera correctamente la dote sintética de origen ligada", () => {

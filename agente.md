@@ -17,6 +17,91 @@ Este archivo registra reglas globales, errores encontrados, sus causas raíz y l
    - **Bajo ninguna circunstancia** los módulos de lógica de negocio (`servicios/`), gestores de estado (`almacen/`), contratos (`tipos/`), valores de reglas (`constantes/`) ni funciones de soporte (`utiles/`) deben importar componentes visuales o archivos CSS (`componentes/`). Esta regla está reforzada en CI vía ESLint `no-restricted-imports`.
 6. **PROHIBICIÓN ESTRICTA DE BIFURCACIONES POR NOMBRE DE RASGO O CLASE (CATÁLOGO DECLARATIVO Y BUILDER PURO)**:
    - **Bajo ninguna circunstancia** los módulos de lógica de negocio (`servicios/`), gestores de estado (`almacen/`) o constructores (`gestorClases.ts`) deben contener bifurcaciones condicionales por nombre literal de rasgo o clase (`r.nombre === "..."`, `clase.includes("...")`, etc.).
+## [2026-10-01] Corrección de Falso Positivo: «Embaucador versátil» otorgaba la Dote «Alerta» a Nivel 13 y Desglose Dinámico de Iniciativa
+
+**Problema Reportado por el Usuario:**
+- *"le habia caambiado el dote, por ende no es por el dote alerta, ok ya lo vi, por alguna razon me dan el dote alerta por embaucador arcano"*
+- El usuario adjuntó una captura del modal del rasgo donde se apreciaba: `NIVEL 1: ALERTA [Pícaro (Embaucador Arcano - Nivel 13)]`, `Ligado a: arcano embaucador versatil` y `Notas y Modificadores: Dote de Origen otorgada por el rasgo Versátil (Pícaro (Embaucador Arcano - Nivel 13))`.
+
+**Causas Raíz Diagnosticadas:**
+1. **Falso Positivo en `esRasgoVersatil` con el Rasgo de Subclase «Embaucador versátil»:**
+   - La función `esRasgoVersatil(nombre)` en `gestorEspecies.ts` implementaba una comprobación excesivamente permisiva: `return norm === "versatil" || norm.includes("versatil");`.
+   - A nivel 13, el Pícaro Embaucador Arcano desbloquea el rasgo de subclase canónico **«Embaucador versátil»** (*Versatile Trickster*).
+   - Al normalizar `"Embaucador versátil"`, `norm.includes("versatil")` resultaba `true`.
+   - En `compendioRasgos.ts`, el bloque `else if (esRasgoVersatil(nuevo.nombre))` no discriminaba el origen del rasgo (`nuevo.origen === "especie"`), asumiendo que todo rasgo que contuviera la palabra "versátil" correspondía al rasgo de especie del Humano (*Versátil*).
+   - En consecuencia, `sincronizarRasgosAutomaticos` invocaba `construirDoteDeVersatil(nuevo, "dote_alerta")`, inyectando una dote sintética de origen (por defecto *Alerta*) ligada al rasgo de clase de nivel 13.
+   - Como *Alerta* en D&D 5.5e otorga `+PB a iniciativa` y el bonificador de competencia escala a +5 a nivel 13, el personaje recibía un +5 a la iniciativa atribuido a Destreza en el tooltip.
+2. **Etiqueta Estática `(Destreza)` en el Tooltip de Métricas Rápidas:**
+   - En `MetricasRapidasPersonaje.tsx`, el tooltip de la iniciativa asumía estáticamente que cualquier valor derivado correspondía a `(Destreza)`.
+
+**Soluciones Técnicas y Decisiones Arquitectónicas:**
+1. **Blindaje de `esRasgoVersatil` y Restricción por Origen de Especie:**
+   - En `src/servicios/gestorEspecies.ts`, se actualizó `esRasgoVersatil(nombre: string, origen?: string)`:
+     * Si `origen` está definido y no es `"especie"`, retorna `false`.
+     * Si el nombre contiene `"embaucador"`, retorna `false`.
+     * Solo retorna `true` para coincidencias exactas con el rasgo de especie: `norm === "versatil"`, `norm === "humano: versatil"` o `(norm.includes("versatil") && norm.includes("humano"))`.
+   - En `src/servicios/compendioRasgos.ts`, se añadió la guarda estricta:
+     `else if (nuevo.origen === "especie" && esRasgoVersatil(nuevo.nombre, nuevo.origen))`
+   - Esto erradica por completo la inyección de dotes sintéticas para rasgos de clase o subclase como «Embaucador versátil».
+2. **Desglose Dinámico de Fuentes de Iniciativa en UI:**
+   - En `MetricasRapidasPersonaje.tsx`, se desglosan reactivamente las aportaciones individuales: `Destreza (+X) + Rasgos/Dotes (+Y) + Manual (+Z)`.
+3. **Validación con Pruebas Unitarias:**
+   - En `mejoraCaracteristicaYSubclase.test.ts`, se añadieron pruebas de regresión asegurando que `esRasgoVersatil("Embaucador versátil")` y `esRasgoVersatil("Embaucador versátil", "subclase")` devuelvan `false`.
+   - En `picaroMecanicasDND55.test.ts`, se añadió una prueba que comprueba que un Pícaro Embaucador Arcano a nivel 13 no genera la dote *Alerta* ligada a su rasgo de subclase.
+   - En `MetricasRapidasPersonaje.test.tsx`, se validó la reactividad de las métricas.
+   - `tsc --noEmit` (0 errores), `pnpm run lint` (0 errores) y `vite build` (exitoso en 13.58s).
+
+## [2026-10-01] Corrección de Bucle Infinito en Compendio/Panel de Conjuros (Error #185) y Soporte Declarativo de Lista de Mago para Embaucador Arcano y Caballero Arcano
+
+
+**Problema Reportado por el Usuario:**
+- *"hay un problemita con el picaro embaucador arcano, Error: Minified React error #185; ... el picaro embaucador arcano usa la misma lista de conjuros que la de mago"*
+
+**Causas Raíz Diagnosticadas:**
+1. **Bucle Infinito de Renderizado en React (Error #185 - Maximum update depth exceeded):**
+   - En `CompendioConjurosJugador.tsx` y `PanelConjurosPersonaje.tsx`, el hook `useEffect` encargado de sincronizar los conjuros de subclase evaluaba:
+     `(!personajeActivo.conjurosSiemprePreparadosIds || personajeActivo.conjurosSiemprePreparadosIds.length === 0)` y `(res.conjuros.length > 0 || res.trucos.length > 0)`.
+   - Para un Pícaro Embaucador Arcano, `res.conjuros` es una lista vacía `[]` (los embaucadores eligen sus conjuros de la lista de mago y no tienen conjuros preparados fijos de subclase), mientras que `res.trucos` contiene `["Mano de mago"]`.
+   - Al ejecutarse `sincronizarConjurosSubclase(id)`, `pj.conjurosSiemprePreparadosIds` se establecía en `[]` (longitud 0).
+   - En el siguiente ciclo de renderizado, la condición `conjurosSiemprePreparadosIds.length === 0` seguía siendo `true`, y `res.trucos.length > 0` continuaba siendo `true`.
+   - Dado que la mutación en Zustand generaba una nueva referencia de personaje, el `useEffect` se disparaba en bucle continuo e infinito (> 50 llamadas en milisegundos) hasta romper el árbol de React con el Error #185.
+2. **Ausencia de Lista de Conjuros de Mago para Pícaro en Pestaña "Disponibles":**
+   - En `CompendioConjurosJugador.tsx`, `clasesDelPersonaje` solo recopilaba `personajeActivo.clase` (`"pícaro"`).
+   - En D&D 5e / 5.5e, los pícaros no poseen una lista propia de conjuros (`clases: ["pícaro"]` no existe en la base de datos). El Embaucador Arcano (y el Caballero Arcano en Guerrero) lanzan conjuros de la lista oficial de Mago.
+   - En consecuencia, la pestaña "Disponibles" del compendio filtraba por `"pícaro"`, arrojando 0 conjuros disponibles para aprender o preparar.
+3. **Contaminación de Trucos con Cadenas Placeholder en Catálogo JSON:**
+   - En `picaro.json` (línea 583) y `guerrero.json` (línea 500), la propiedad `trucos` dentro de `progresionConjuros` incluía literalmente el texto explicativo del PHB: `"2 trucos de Mago a elección"`.
+   - Al sincronizar, esta cadena no canónica era inyectada en `trucosConocidosIds`, creando entradas fantasma no válidas.
+4. **Mutación Innecesaria de Estado en Almacén:**
+   - `mutarPersonaje` y `sincronizarConjurosSubclaseHelper` no validaban igualdad referencial cuando los arreglos de conjuros y trucos resultantes eran idénticos a los ya existentes en el personaje, recreando referencias y emitiendo eventos innecesarios.
+
+**Soluciones Técnicas y Decisiones Arquitectónicas:**
+1. **Guardián Puro de Sincronización (`requiereSincronizacionSubclase`):**
+   - En `src/servicios/calculadorMagia.ts`, se implementó la función pura `requiereSincronizacionSubclase(pj, resSubclase)`.
+   - Comprueba si realmente falta algún conjuro de `resSubclase.conjuros` en `conjurosSiemprePreparadosIds` o si falta algún truco de `resSubclase.trucos` en `trucosConocidosIds`.
+   - Para el Embaucador Arcano, si `"Mano de mago"` ya está en `trucosConocidosIds`, la función retorna `false` de inmediato, extinguiendo por completo cualquier ciclo de actualización recursiva.
+   - Aplicado de manera unificada en `CompendioConjurosJugador.tsx` y `PanelConjurosPersonaje.tsx`.
+2. **Resolución Declarativa de Listas Mágicas (`obtenerClasesListaMagicaPersonaje`):**
+   - Se añadió el campo declarativo opcional `listaConjuros?: string` en `ConfiguracionMagicaClase`, `EsquemaConfiguracionMagicaClaseJSON`, `EsquemaClaseLanzadora` y `TIPO_LANZADOR_POR_CLASE`.
+   - En `src/datos/clases/picaro.json` y `guerrero.json`, se configuró `"listaConjuros": "mago"` dentro de `configuracionMagica` de las subclases Embaucador Arcano y Caballero Arcano.
+   - Se implementó la función pura `obtenerClasesListaMagicaPersonaje(personaje)` en `src/servicios/calculadorMagia.ts`. Resuelve las clases base, multiclases y consulta las subclases en `TODAS_SUBCLASES_DND55` y `TIPO_LANZADOR_POR_CLASE`.
+   - Para un Pícaro Embaucador Arcano, la lista de clases mágicas evaluada es `["pícaro", "mago"]`, permitiendo visualizar y seleccionar fluidamente todos los conjuros y trucos de Mago en la pestaña "Disponibles".
+   - Cumple estrictamente con la Regla 6 de arquitectura (cero bifurcaciones condicionales hardcodeadas por nombre de clase o rasgo).
+3. **Saneamiento del Catálogo y Limpieza Automática de Placeholders:**
+   - En `picaro.json`, se limpió `progresionConjuros` dejando únicamente el truco canónico otorgado `"Mano de mago"`.
+   - En `guerrero.json`, se limpió `progresionConjuros` dejándolo en `[]` (el Caballero Arcano elige libremente trucos de mago).
+   - En `sincronizarConjurosSubclaseHelper`, se añadió un filtro saneador que purga cualquier entrada residual que contenga `"a elección"` o `"a eleccion"`.
+4. **Blindaje de Igualdad Referencial:**
+   - En `sincronizarConjurosSubclaseHelper`, si las 4 listas resultantes coinciden elemento a elemento con las del personaje, se retorna `pj` intacto.
+   - En `mutarPersonaje.ts`, si `mutador(pjPrev) === pjPrev`, se retorna `state` directamente, evitando que Zustand notifique a los suscriptores.
+
+**Validación Integral del Pipeline:**
+- `tsc --noEmit`: 0 errores bajo `strict: true`.
+- `pnpm run lint`: 0 errores y 0 advertencias (`--max-warnings=0`).
+- `pnpm test`: 92 suites y 1,314 pruebas aprobadas al 100% (añadidas 5 pruebas unitarias para `requiereSincronizacionSubclase`, `obtenerClasesListaMagicaPersonaje` y sanitización referencial).
+- `pnpm run verificar:lineas`: 0 errores críticos.
+- `pnpm exec vite build`: Compilación para producción completada exitosamente en 13.65s.
+
 ## [2026-10-01] Consolidación de origin/Tryn: Modo Manual de Movimiento Táctico, Terrenos 3D y Skills en Repositorio
 
 **Contexto del Cambio:**
@@ -11038,5 +11123,31 @@ Optimizar la complejidad temporal (Big O) en las operaciones de búsqueda, orden
 ### 3. Métricas de Validación
 - **Tests Unitarios**: `pnpm vitest run src/componentes/caracteristicas/ataques/SeccionRasgosAtaque.test.tsx` superado con 8/8 tests exitosos.
 - **TypeScript**: `pnpm exec tsc --noEmit` completado con 0 errores (modo estricto).
+- **Gestor de Paquetes**: 100% `pnpm`.
+- **Idioma y Estilo**: 100% en español.
+
+
+---
+
+## [2026-10-01] Tablas de Progresión para el Pícaro (Pericia, Ataque Furtivo, Maestría con Armas)
+
+### 1. Requerimiento del Usuario
+- Configurar las tablas de progresión de la clase Pícaro en `src/datos/clases/picaro.json`, alineadas con la captura del modal de *Pericia* ("Nivel", "Descripción", niveles 1 y 6, y nota al pie "Se apilan los niveles").
+
+### 2. Decisiones Arquitectónicas y Modificaciones Quirúrgicas
+1. **Pericia (Nivel 1 y Nivel 6)**:
+   - Añadida `tablaProgresion` con `columnas: ["Nivel", "Descripción"]`, `filas: [{ nivel: 1, valores: ["Ganas dos pericias (2)"] }, { nivel: 6, valores: ["Ganas dos pericias (4)"] }]` y `notaPie: "Se apilan los niveles"`.
+   - Ajustada la descripción de Pericia a nivel 1 para coincidir textualmente con el modal canónico del manual básico.
+   - Sincronizada la tabla idéntica en el rasgo de Pericia a nivel 6 para que en el modal de nivel 6 se visualice con el nivel correspondiente resaltado.
+2. **Ataque Furtivo (Nivel 1)**:
+   - Estandarizadas las columnas a `["Nivel", "Descripción"]` y la nota al pie a `"Cada nivel reemplaza al anterior"`, acorde con el estándar Nivel20 y el comportamiento del motor de progresión.
+3. **Maestría con Armas (Nivel 1)**:
+   - Añadida `tablaProgresion` canónica (`"2 tipos de armas elegidas"`, nivel 1, `"Cada nivel reemplaza al anterior"`).
+4. **Verificación y Pruebas Unitarias (`src/servicios/picaroMecanicasDND55.test.ts`)**:
+   - Incorporadas 4 nuevas pruebas en el bloque `Tablas de progresión del Pícaro (D&D 5.5 / Nivel20)` verificando `Pericia`, `Ataque furtivo`, `Maestría con armas` y `Poder psiónico`.
+
+### 3. Métricas de Validación
+- **Tests Unitarios**: **92 suites superadas, 1305/1305 tests pasando (100% de éxito)**.
+- **TypeScript**: `pnpm exec tsc --noEmit` completado con **0 errores** (Strict Mode estricto).
 - **Gestor de Paquetes**: 100% `pnpm`.
 - **Idioma y Estilo**: 100% en español.

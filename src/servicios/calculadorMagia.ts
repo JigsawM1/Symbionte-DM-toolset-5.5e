@@ -17,6 +17,8 @@ import {
 import {
   CATALOGO_CONJUROS_SUBCLASES
 } from "@/constantes/subclasesConjurosConstantes";
+import { TODAS_SUBCLASES_DND55 } from "@/constantes/clasesDND55";
+import { coincideHechizoId } from "@/servicios/comparadorHechizos";
 import { calcularEstadisticasPersonaje } from "@/almacen/selectores/usarEstadoPersonajes";
 import { logger } from "@/utiles/logger";
 
@@ -230,6 +232,7 @@ export function detectarTipoLanzador(
   tipo: TipoLanzador;
   habilidad: Caracteristica;
   modelo: ModeloConjuros;
+  listaConjuros?: string;
 } | null {
   const claseLimpia = clase?.trim() || "";
   const subclaseLimpia = subclase?.trim() || "";
@@ -763,4 +766,88 @@ export function obtenerModificadorAptitudMagica(pj: PersonajeJugador | null | un
   }
   const valorCarac = pj.caracteristicas ? (pj.caracteristicas[habilidad] ?? 10) : 10;
   return Math.floor((valorCarac - 10) / 2);
+}
+
+/**
+ * Determina de forma pura si un personaje tiene conjuros o trucos de subclase pendientes de sincronizar.
+ * Evita llamadas espurias a sincronización si todos los conjuros/trucos ya están presentes.
+ */
+export function requiereSincronizacionSubclase(
+  pj: PersonajeJugador,
+  resSubclase: { conjuros: string[]; trucos: string[] }
+): boolean {
+  const siemprePrep = pj.conjurosSiemprePreparadosIds || [];
+  const trucos = pj.trucosConocidosIds || [];
+
+  const faltaConjuro = resSubclase.conjuros.some(
+    (c) => !siemprePrep.some((id) => coincideHechizoId(id, c))
+  );
+  if (faltaConjuro) return true;
+
+  const faltaTruco = resSubclase.trucos.some(
+    (t) => !trucos.some((id) => coincideHechizoId(id, t))
+  );
+  return faltaTruco;
+}
+
+function resolverListaMagicaPorSubclase(subclaseNombre: string, conjunto: Set<string>): void {
+  const subNorm = normalizarTexto(subclaseNombre);
+  if (!subNorm) return;
+
+  const subDef = TODAS_SUBCLASES_DND55.find((s) => {
+    const sNorm = normalizarTexto(s.nombre);
+    const sId = normalizarTexto(s.id);
+    return sNorm === subNorm || sId === subNorm || sNorm.includes(subNorm) || subNorm.includes(sNorm);
+  });
+
+  if (subDef?.configuracionMagica?.listaConjuros) {
+    conjunto.add(subDef.configuracionMagica.listaConjuros.toLowerCase().trim());
+  }
+}
+
+/**
+ * Obtiene todas las clases cuyas listas de conjuros están disponibles para el personaje,
+ * considerando clases base, multiclases, clases lanzadoras y asociaciones declarativas de subclase
+ * (ej. Embaucador Arcano y Caballero Arcano utilizando la lista de Mago).
+ */
+export function obtenerClasesListaMagicaPersonaje(
+  personaje: PersonajeJugador | null | undefined
+): string[] {
+  if (!personaje) return [];
+  const clasesSet = new Set<string>();
+
+  // 1. Clase principal
+  if (personaje.clase) {
+    clasesSet.add(personaje.clase.toLowerCase().trim());
+  }
+
+  // 2. Multiclases
+  if (Array.isArray(personaje.clases)) {
+    for (const c of personaje.clases) {
+      const nom = c.nombre || (c as { clase?: string }).clase;
+      if (nom) clasesSet.add(nom.toLowerCase().trim());
+      if (c.subclase) {
+        resolverListaMagicaPorSubclase(c.subclase, clasesSet);
+      }
+    }
+  }
+
+  // 3. Subclase principal directa
+  if (personaje.subclase) {
+    resolverListaMagicaPorSubclase(personaje.subclase, clasesSet);
+  }
+
+  // 4. Clases lanzadoras explícitas y detección de configuración de lanzador
+  if (Array.isArray(personaje.clasesLanzadoras)) {
+    for (const cl of personaje.clasesLanzadoras) {
+      if (cl.clase) clasesSet.add(cl.clase.toLowerCase().trim());
+      if (cl.listaConjuros) clasesSet.add(cl.listaConjuros.toLowerCase().trim());
+      const info = detectarTipoLanzador(cl.clase, personaje.subclase);
+      if (info?.listaConjuros) {
+        clasesSet.add(info.listaConjuros.toLowerCase().trim());
+      }
+    }
+  }
+
+  return Array.from(clasesSet);
 }

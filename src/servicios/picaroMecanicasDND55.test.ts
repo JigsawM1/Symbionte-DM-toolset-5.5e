@@ -8,6 +8,8 @@ import {
 } from "./rasgos/evaluadorCombateRasgos";
 import { obtenerVelocidadesEfectivas } from "./rasgos/evaluadorMovilidadRasgos";
 import { generarListaAtaquesFisicos } from "./calculadorAtaquesArmas";
+import { sincronizarRasgosAutomaticos } from "./compendioRasgos";
+import { PERSONAJE_POR_DEFECTO } from "@/constantes/personajeConstantes";
 import type { PersonajeJugador } from "@/tipos/personaje";
 import type { RasgoPersonaje } from "@/tipos/rasgos";
 import type { EstadisticasCalculadasPersonaje } from "@/almacen/selectores/usarEstadoPersonajes";
@@ -265,6 +267,25 @@ describe("Pícaro D&D 5.5 - Subclases", () => {
       expect(ladronConjuros?.usosMaximos).toBe(1);
       expect(ladronConjuros?.recuperacion).toBe("descanso_largo");
     });
+
+    it("Nivel 13: Embaucador versátil no debe generar erróneamente la dote Alerta de origen", () => {
+      const pj: PersonajeJugador = {
+        ...PERSONAJE_POR_DEFECTO,
+        id: "ea-13",
+        nombre: "Embaucador 13",
+        clase: "Pícaro",
+        subclase: "Embaucador Arcano",
+        nivel: 13,
+        especie: "Elfo",
+        rasgos: []
+      };
+
+      const sincronizados = sincronizarRasgosAutomaticos(pj);
+      const tieneDoteAlerta = sincronizados.some(
+        (r) => r.origen === "dote" && r.nombre === "Alerta" && r.ligadoA?.includes("versatil")
+      );
+      expect(tieneDoteAlerta).toBe(false);
+    });
   });
 
   describe("Asesino", () => {
@@ -286,13 +307,14 @@ describe("Pícaro D&D 5.5 - Subclases", () => {
       expect(sorpresivos?.esActivable).toBe(true);
       expect(sorpresivos?.autoDesactivarAlTirarDano).toBe(true);
 
+      const furtivo = rasgos.find((r) => r.nombre === "Ataque furtivo");
       const pjAsesino: PersonajeJugador = {
         id: "asesino5",
         nombre: "Asesino 5",
         clase: "Pícaro",
         nivel: 5,
         caracteristicas: { fuerza: 10, destreza: 16, constitucion: 12, inteligencia: 10, sabiduria: 12, carisma: 10 },
-        rasgos: [{ ...sorpresivos!, activo: true }]
+        rasgos: [{ ...sorpresivos!, activo: true }, { ...furtivo!, activo: true }]
       } as unknown as PersonajeJugador;
 
       const contextoSutil: ContextoAtaquePersonaje = {
@@ -470,6 +492,73 @@ describe("Pícaro D&D 5.5 - Subclases", () => {
       const opcionSigilosa = golpeAstuto?.selectores?.[0].opciones.find((o) => o.id === "ataque_sigiloso");
       expect(opcionSigilosa).toBeDefined();
       expect(opcionSigilosa?.costeDados).toBe(1);
+    });
+  });
+
+  // ── TABLAS DE PROGRESIÓN OFICIALES DEL PÍCARO ──
+  describe("Tablas de progresión del Pícaro (D&D 5.5 / Nivel20)", () => {
+    it("Pericia (Nivel 1 y Nivel 6) incluye tablaProgresion apilable ('Se apilan los niveles') con filas 1 y 6", () => {
+      const rasgosNv1 = obtenerRasgosClaseYSubclase("Pícaro", 1);
+      const periciaNv1 = rasgosNv1.find((r) => r.nombre === "Pericia");
+
+      expect(periciaNv1?.tablaProgresion).toBeDefined();
+      expect(periciaNv1?.tablaProgresion?.columnas).toEqual(["Nivel", "Descripción"]);
+      expect(periciaNv1?.tablaProgresion?.notaPie).toBe("Se apilan los niveles");
+      expect(periciaNv1?.tablaProgresion?.filas).toEqual([
+        { nivel: 1, valores: ["Ganas dos pericias (2)"] },
+        { nivel: 6, valores: ["Ganas dos pericias (4)"] }
+      ]);
+
+      const rasgosNv6 = obtenerRasgosClaseYSubclase("Pícaro", 6);
+      const periciaNv6 = rasgosNv6.find((r) => r.nombre === "Pericia" && r.nivelRequerido === 6);
+      expect(periciaNv6?.tablaProgresion).toBeDefined();
+      expect(periciaNv6?.tablaProgresion?.notaPie).toBe("Se apilan los niveles");
+      expect(periciaNv6?.tablaProgresion?.filas).toEqual([
+        { nivel: 1, valores: ["Ganas dos pericias (2)"] },
+        { nivel: 6, valores: ["Ganas dos pericias (4)"] }
+      ]);
+    });
+
+    it("Ataque furtivo incluye tablaProgresion con 'Cada nivel reemplaza al anterior' y 10 filas de progresión", () => {
+      const rasgos = obtenerRasgosClaseYSubclase("Pícaro", 1);
+      const furtivo = rasgos.find((r) => r.nombre === "Ataque furtivo");
+
+      expect(furtivo?.tablaProgresion).toBeDefined();
+      expect(furtivo?.tablaProgresion?.columnas).toEqual(["Nivel", "Descripción"]);
+      expect(furtivo?.tablaProgresion?.notaPie).toBe("Cada nivel reemplaza al anterior");
+      expect(furtivo?.tablaProgresion?.filas).toHaveLength(10);
+      expect(furtivo?.tablaProgresion?.filas[0]).toEqual({ nivel: 1, valores: ["1d6"] });
+      expect(furtivo?.tablaProgresion?.filas[9]).toEqual({ nivel: 19, valores: ["10d6"] });
+    });
+
+    it("Maestría con armas incluye tablaProgresion canónica a nivel 1", () => {
+      const rasgos = obtenerRasgosClaseYSubclase("Pícaro", 1);
+      const maestria = rasgos.find((r) => r.nombre === "Maestría con armas");
+
+      expect(maestria?.tablaProgresion).toBeDefined();
+      expect(maestria?.tablaProgresion?.columnas).toEqual(["Nivel", "Descripción"]);
+      expect(maestria?.tablaProgresion?.notaPie).toBe("Cada nivel reemplaza al anterior");
+      expect(maestria?.tablaProgresion?.filas).toEqual([
+        { nivel: 1, valores: ["2 tipos de armas elegidas"] }
+      ]);
+    });
+
+    it("Poder psiónico (Filo del Alma) expone tabla de progresión de Dados de energía psiónica", () => {
+      const rasgos = obtenerRasgosClaseYSubclase("Pícaro", 3, "Filo del Alma");
+      const poder = rasgos.find((r) => r.nombre === "Poder psiónico");
+
+      expect(poder?.tablaProgresion).toBeDefined();
+      expect(poder?.tablaProgresion?.columnas).toEqual([
+        "Nivel de pícaro",
+        "Tamaño del dado",
+        "Cantidad"
+      ]);
+      expect(poder?.tablaProgresion?.filas).toHaveLength(6);
+      expect(poder?.tablaProgresion?.filas[0]).toEqual({ nivel: 3, valores: ["D6", "4"] });
+      expect(poder?.tablaProgresion?.filas[5]).toEqual({ nivel: 17, valores: ["D12", "12"] });
+      expect(poder?.tablaProgresion?.notaPie).toBe(
+        "Recuperas 1 dado gastado en un descanso corto y todos en un descanso largo"
+      );
     });
   });
 });

@@ -16,7 +16,11 @@ import {
   usarEstadoPersonajes,
   usarAccionesPersonajes
 } from "@/almacen/selectores";
-import { obtenerConjurosSubclasePersonaje } from "@/servicios/calculadorMagia";
+import {
+  obtenerConjurosSubclasePersonaje,
+  requiereSincronizacionSubclase,
+  obtenerClasesListaMagicaPersonaje
+} from "@/servicios/calculadorMagia";
 import { usarMagiaPersonaje } from "@/hooks/usarMagiaPersonaje";
 import { TarjetasMetricasMagia } from "@/componentes/caracteristicas/personajes/TarjetasMetricasMagia";
 import { SelectorDesplegable, ControlPaginacion } from "@/componentes/comunes";
@@ -73,7 +77,6 @@ export const CompendioConjurosJugador: React.FC = () => {
   React.useEffect(() => {
     if (
       personajeActivo &&
-      (!personajeActivo.conjurosSiemprePreparadosIds || personajeActivo.conjurosSiemprePreparadosIds.length === 0) &&
       (personajeActivo.clase || (personajeActivo.clases && personajeActivo.clases.length > 0))
     ) {
       const res = obtenerConjurosSubclasePersonaje(
@@ -82,7 +85,7 @@ export const CompendioConjurosJugador: React.FC = () => {
         personajeActivo.subclase,
         personajeActivo.nivel
       );
-      if (res.conjuros.length > 0 || res.trucos.length > 0) {
+      if (requiereSincronizacionSubclase(personajeActivo, res)) {
         sincronizarConjurosSubclase(personajeActivo.id);
       }
     }
@@ -123,16 +126,7 @@ export const CompendioConjurosJugador: React.FC = () => {
 
   const clasesDelPersonaje = useMemo(() => {
     if (!personajeActivo) return [];
-    const clasesSet = new Set<string>();
-    if (personajeActivo.clase) {
-      clasesSet.add(personajeActivo.clase.toLowerCase().trim());
-    }
-    if (personajeActivo.clasesLanzadoras) {
-      personajeActivo.clasesLanzadoras.forEach((c: ClaseLanzadora) => {
-        if (c.clase) clasesSet.add(c.clase.toLowerCase().trim());
-      });
-    }
-    return Array.from(clasesSet);
+    return obtenerClasesListaMagicaPersonaje(personajeActivo);
   }, [personajeActivo]);
 
   const opcionesEscuelaFiltro = useMemo(() => {

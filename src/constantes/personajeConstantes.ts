@@ -186,6 +186,7 @@ export const TIPO_LANZADOR_POR_CLASE: Record<
     tipo: import("@/tipos").TipoLanzador;
     habilidad: Caracteristica;
     modelo: import("@/tipos").ModeloConjuros;
+    listaConjuros?: string;
   }
 > = {
   Mago: { tipo: "completo", habilidad: "inteligencia", modelo: "grimorio" },
@@ -198,8 +199,8 @@ export const TIPO_LANZADOR_POR_CLASE: Record<
   Paladín: { tipo: "medio", habilidad: "carisma", modelo: "preparados" },
   Explorador: { tipo: "medio", habilidad: "sabiduria", modelo: "conocidos" },
   Brujo: { tipo: "pacto", habilidad: "carisma", modelo: "conocidos" },
-  "Caballero Arcano": { tipo: "tercio", habilidad: "inteligencia", modelo: "conocidos" },
-  "Embaucador Arcano": { tipo: "tercio", habilidad: "inteligencia", modelo: "conocidos" }
+  "Caballero Arcano": { tipo: "tercio", habilidad: "inteligencia", modelo: "conocidos", listaConjuros: "mago" },
+  "Embaucador Arcano": { tipo: "tercio", habilidad: "inteligencia", modelo: "conocidos", listaConjuros: "mago" }
 };
 
 /** Progresión de Magia de Pacto del Brujo (niveles 1-20) */

@@ -129,7 +129,8 @@ export const EsquemaConfiguracionMagicaClaseJSON = z.object({
   tipoLanzador: EsquemaTipoLanzador,
   habilidadConjuro: EsquemaCaracteristica,
   modeloConjuros: EsquemaModeloConjuros,
-  nivelInicio: z.number().int().min(1).max(20)
+  nivelInicio: z.number().int().min(1).max(20),
+  listaConjuros: z.string().optional()
 });
 
 export const EsquemaDefinicionSubclaseJSON = z.object({

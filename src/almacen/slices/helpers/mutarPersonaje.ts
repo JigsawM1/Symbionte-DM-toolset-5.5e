@@ -13,8 +13,14 @@ export function mutarPersonaje<T extends EstadoConPersonajes>(
   id: string,
   mutador: (pj: PersonajeJugador) => PersonajeJugador
 ): void {
-  set((state) => ({
-    ...state,
-    personajes: state.personajes.map((pj) => (pj.id === id ? mutador(pj) : pj))
-  }));
+  set((state) => {
+    const pjPrev = state.personajes.find((p) => p.id === id);
+    if (!pjPrev) return state;
+    const pjNuevo = mutador(pjPrev);
+    if (pjNuevo === pjPrev) return state;
+    return {
+      ...state,
+      personajes: state.personajes.map((pj) => (pj.id === id ? pjNuevo : pj))
+    };
+  });
 }

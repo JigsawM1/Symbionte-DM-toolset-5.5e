@@ -273,7 +273,7 @@ const MetricasRapidasPersonajeComponent: React.FC<MetricasRapidasPersonajeProps>
                   className={`${estilos.indicadorTSEnlace} ${!personaje.idMiniaturaTS ? estilos.indicadorTSEnlaceInactivo : ""}`}
                 />
                 {personaje.idMiniaturaTS
-                  ? "TaleSpire conectado (cálculo dinámico automático)"
+                  ? "Miniatura detectada"
                   : "Modo Manual (sin miniatura física enlazada)"}
               </div>
 

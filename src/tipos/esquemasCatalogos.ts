@@ -46,6 +46,7 @@ export const EsquemaPlantillaRasgoClaseJSON = z.object({
   autoDesactivar: z.boolean().optional(),
   autoDesactivarAlTirarDano: z.boolean().optional(),
   dispararAlTirarIniciativa: z.boolean().optional(),
+  requiereSinMovimiento: z.boolean().optional(),
   ligadoA: z.string().optional(),
   requiereOpcion: z.string().optional(),
   gastarDePadre: z.boolean().optional(),
@@ -94,6 +95,7 @@ export const EsquemaPlantillaRasgoEspecieJSON = z.object({
   // Mecánicas estructuradas
   esActivable: z.boolean().optional(),
   autoDesactivar: z.boolean().optional(),
+  requiereSinMovimiento: z.boolean().optional(),
   ligadoA: z.string().optional(),
   gastarDePadre: z.boolean().optional(),
   heredarDadosPadre: z.boolean().optional(),

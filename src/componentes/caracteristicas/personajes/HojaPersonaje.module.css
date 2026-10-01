@@ -710,6 +710,11 @@
   border: 1px solid rgba(16, 185, 129, 0.3);
 }
 
+.indicadorTSEnlaceEstatico {
+  position: static;
+  display: inline-block;
+}
+
 .badgeTSDesconectado {
   background: rgba(100, 116, 139, 0.12);
   color: #94a3b8;
@@ -887,7 +892,8 @@
   letter-spacing: 0.5px;
 }
 
-.tituloTerreno {
+.tituloTerreno,
+.etiquetaCabeceraTerreno {
   display: flex;
   align-items: center;
   gap: 4px;

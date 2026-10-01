@@ -368,6 +368,10 @@ export const crearSubSliceRasgos: StateCreator<
         return pj; // Bloqueado: opción requerida en rasgo padre no está seleccionada
       }
 
+      if (nuevoActivo && targetTrait.requiereSinMovimiento && (pj.movimientoGastado || 0) > 0) {
+        return pj; // Bloqueado: requiere no haberse movido durante este turno
+      }
+
       // Si el rasgo gasta usos del padre al activarse, comprobar si el padre tiene usos disponibles
       const idObjetivoGasto = targetTrait.gastarDePadre ? resolverIdRasgoObjetivoGasto(targetTrait, pj.rasgos || []) : undefined;
       if (nuevoActivo && targetTrait.gastarDePadre && idObjetivoGasto) {

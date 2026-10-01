@@ -756,6 +756,7 @@ export function obtenerRasgosClaseYSubclase(
       autoDesactivar: !!r.autoDesactivar,
       autoDesactivarAlTirarDano: !!r.autoDesactivarAlTirarDano,
       dispararAlTirarIniciativa: !!r.dispararAlTirarIniciativa,
+      requiereSinMovimiento: !!r.requiereSinMovimiento,
       ligadoA: r.ligadoA,
       requiereOpcion: r.requiereOpcion,
       gastarDePadre: !!r.gastarDePadre,

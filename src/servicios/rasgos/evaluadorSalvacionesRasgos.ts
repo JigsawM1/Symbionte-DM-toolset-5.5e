@@ -119,10 +119,24 @@ export function evaluarVentajasDeRasgosEnTirada(
 
     // 3. Tiradas de Ataque
     if (tipoTirada === "ataque") {
-      if (esVentaja) {
-        if (objNorm === "ataque_fuerza" && (subtipoNorm === "fuerza" || subtipoNorm === "")) {
+      const coincideAtaque =
+        objNorm === "ataque" ||
+        objNorm === "ataques" ||
+        objNorm === "todos_ataques" ||
+        objNorm === "proximo_ataque" ||
+        objNorm === "siguiente_ataque" ||
+        (objNorm === "ataque_fuerza" && (subtipoNorm === "fuerza" || subtipoNorm === "")) ||
+        (objNorm === "ataque_destreza" && (subtipoNorm === "destreza" || subtipoNorm === "")) ||
+        (objNorm === "ataque_distancia" && (subtipoNorm === "distancia" || subtipoNorm === "")) ||
+        (objNorm === "ataque_cac" && (subtipoNorm === "cac" || subtipoNorm === "cuerpo_a_cuerpo" || subtipoNorm === ""));
+
+      if (coincideAtaque) {
+        if (esVentaja) {
           tieneVentaja = true;
-          razones.push(ef.descripcion || "Ventaja en ataques con Fuerza");
+          razones.push(ef.descripcion || "Ventaja en tirada de ataque");
+        } else if (ef.tipo === "desventaja") {
+          tieneDesventaja = true;
+          razones.push(ef.descripcion || "Desventaja en tirada de ataque");
         }
       }
     }

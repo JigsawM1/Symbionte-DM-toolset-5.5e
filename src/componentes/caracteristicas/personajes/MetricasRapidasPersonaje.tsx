@@ -271,7 +271,6 @@ const MetricasRapidasPersonajeComponent: React.FC<MetricasRapidasPersonajeProps>
               >
                 <span
                   className={`${estilos.indicadorTSEnlace} ${!personaje.idMiniaturaTS ? estilos.indicadorTSEnlaceInactivo : ""}`}
-                  style={{ position: "static", display: "inline-block" }}
                 />
                 {personaje.idMiniaturaTS
                   ? "TaleSpire conectado (cálculo dinámico automático)"

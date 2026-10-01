@@ -18,6 +18,27 @@ Este archivo registra reglas globales, errores encontrados, sus causas raíz y l
 6. **PROHIBICIÓN ESTRICTA DE BIFURCACIONES POR NOMBRE DE RASGO O CLASE (CATÁLOGO DECLARATIVO Y BUILDER PURO)**:
    - **Bajo ninguna circunstancia** los módulos de lógica de negocio (`servicios/`), gestores de estado (`almacen/`) o constructores (`gestorClases.ts`) deben contener bifurcaciones condicionales por nombre literal de rasgo o clase (`r.nombre === "..."`, `clase.includes("...")`, etc.).
    - Toda mecánica, progresión de dados, escalado de usos, recuperación o desbloqueo dinámico debe resolverse mediante metadatos declarativos (`escaladoFormulaDados`, `escaladoUsos`, `escaladoRecuperacion`, `opcionesDinamicas`, `escaladoMaxSelecciones`, `sincronizarEfectosConFormula`, `heredarDadosPadre`, `gastarDePadre`, `ligadoA`, `efectos`) delegando en funciones puras agnósticas como `resolverEscaladosRasgo`. Esta regla está reforzada en CI vía ESLint `no-restricted-syntax` y la suite `rasgoGenericidad.test.ts`.
+## [2026-10-01] Consolidación de Ramas (Tryn -> main) y Hotfix de Estilos Modulares en Métrica de Movimiento
+
+**Contexto del Cambio:**
+- Se realizó la fusión de la rama `Tryn` en `main`, unificando las clases de Paladín y Pícaro (D&D 5.5e) junto al sistema de medición de movimiento táctico con TaleSpire.
+
+**Problema Detectado en CI Post-Merge:**
+- Al ejecutar `pnpm run lint` tras el merge, ESLint arrojó un error en `src/componentes/caracteristicas/personajes/MetricasRapidasPersonaje.tsx`:
+  `274:19 error Prohibido el uso de estilos inline (style={{...}}). Modulariza en CSS Modules (*.module.css) o clases utilitarias de src/estilos/utilidades.css react/forbid-dom-props`
+- Causa raíz: En el popover de velocidad de TaleSpire, el span del indicador de enlace (`indicadorTSEnlace`) tenía `style={{ position: "static", display: "inline-block" }}` para sobreescribir el posicionamiento absoluto por defecto.
+
+**Solución Técnica Aplicada:**
+- En `HojaPersonaje.module.css`, se definió la regla contextual `.badgeTSEnlace .indicadorTSEnlace { position: static; display: inline-block; }`.
+- En `MetricasRapidasPersonaje.tsx`, se retiró el atributo `style={{...}}`, cumpliendo 100% con la regla `react/forbid-dom-props`.
+
+**Validación Integral del Pipeline CI en `main`:**
+- `pnpm exec tsc --noEmit`: 0 errores con `strict: true`.
+- `pnpm run lint`: 0 errores y 0 advertencias (`--max-warnings=0`).
+- `pnpm run test`: 92 suites y 1,291 pruebas aprobadas al 100%.
+- `pnpm run verificar:lineas`: 0 errores críticos (todos los archivos cumplen con el límite arquitectónico).
+- `pnpm exec vite build`: Compilación para producción completada en 12.11s.
+
 ## [2026-10-01] Corrección de Infracción de Capas en CI: Desacoplamiento de Lógica de Recursos de Rasgos (no-restricted-imports)
 
 **Problema Reportado por el Usuario:**

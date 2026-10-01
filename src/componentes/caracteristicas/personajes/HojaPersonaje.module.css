@@ -716,6 +716,11 @@
   border-color: rgba(100, 116, 139, 0.3);
 }
 
+.badgeTSEnlace .indicadorTSEnlace {
+  position: static;
+  display: inline-block;
+}
+
 .cuerpoPopoverVelocidad {
   display: flex;
   flex-direction: column;

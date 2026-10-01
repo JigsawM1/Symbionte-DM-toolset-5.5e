@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
-import type { PersonajeJugador } from "@/tipos";
+import type { PersonajeJugador, TipoTerreno } from "@/tipos";
+import { INFORMACION_TERRENO } from "@/tipos";
 import type { InformacionCA, PenalizacionArmadura } from "@/almacen/selectores/usarEstadoPersonajes";
 import {
   Shield,
@@ -12,7 +13,8 @@ import {
   RefreshCw,
   Plus,
   Minus,
-  X
+  X,
+  Mountain
 } from "lucide-react";
 import { TooltipUniversal } from "@/componentes/comunes";
 import { obtenerVelocidadesEfectivas, calcularBonoIniciativaRasgos } from "@/servicios/evaluadorEfectosRasgos";
@@ -35,6 +37,7 @@ interface MetricasRapidasPersonajeProps {
   alDeshacerMovimiento?: () => void;
   alRestablecerMovimiento?: () => void;
   alAlternarCarrera?: () => void;
+  alEstablecerTipoTerreno?: (tipo: TipoTerreno) => void;
 }
 
 const MetricasRapidasPersonajeComponent: React.FC<MetricasRapidasPersonajeProps> = ({
@@ -50,7 +53,8 @@ const MetricasRapidasPersonajeComponent: React.FC<MetricasRapidasPersonajeProps>
   alModificarMovimientoGastado,
   alDeshacerMovimiento,
   alRestablecerMovimiento,
-  alAlternarCarrera
+  alAlternarCarrera,
+  alEstablecerTipoTerreno
 }) => {
   const accionesPersonajes = usarAccionesPersonajes();
 
@@ -70,6 +74,9 @@ const MetricasRapidasPersonajeComponent: React.FC<MetricasRapidasPersonajeProps>
   const ejecutarAlternarCarrera =
     alAlternarCarrera ||
     (() => accionesPersonajes.alternarAccionCarreraPersonaje(personaje.id));
+  const ejecutarEstablecerTerreno =
+    alEstablecerTipoTerreno ||
+    ((tipo: TipoTerreno) => accionesPersonajes.establecerTipoTerrenoPersonaje(personaje.id, tipo));
 
   // 1. Iniciativa
   const bonoIniciativaRasgos = calcularBonoIniciativaRasgos(personaje);
@@ -96,7 +103,10 @@ const MetricasRapidasPersonajeComponent: React.FC<MetricasRapidasPersonajeProps>
       ? `Velocidad: ${velocidadBaseTotal} ft (+${bonoVelocidad} ft rasgos)\n${partesVelocidad.join(" • ")}`
       : partesVelocidad.join(" • ");
 
-  // 3. Estado Dinámico de Movimiento
+  // 3. Estado Dinámico de Movimiento y Terreno Activo
+  const tipoTerrenoActual: TipoTerreno = personaje.tipoTerreno || "normal";
+  const infoTerrenoActual = INFORMACION_TERRENO[tipoTerrenoActual] || INFORMACION_TERRENO.normal;
+
   const estadoVelocidad = calcularEstadoVelocidadDinamica(
     velocidadBaseTotal,
     0, // ya incluido en velocidadBaseTotal por obtenerVelocidadesEfectivas
@@ -108,8 +118,10 @@ const MetricasRapidasPersonajeComponent: React.FC<MetricasRapidasPersonajeProps>
     velocidadTooltipBase,
     `Movimiento Restante: ${estadoVelocidad.movimientoRestante} ft / ${estadoVelocidad.velocidadTotal} ft`,
     personaje.movimientoGastado ? `Gastado en turno: ${personaje.movimientoGastado} ft` : null,
+    `Terreno Activo: ${infoTerrenoActual.nombre} (${infoTerrenoActual.costePies})`,
+    "Cálculo 3D: Incluye altura Y (vuelo, saltos, rampas)",
     estadoVelocidad.esCarreraActiva ? "Acción Carrera ACTIVA (Doble Movimiento)" : null,
-    "Haz clic para ajustar manualmente, deshacer o restablecer."
+    "Haz clic para seleccionar terreno, ajustar manualmente o restablecer."
   ]
     .filter(Boolean)
     .join("\n");
@@ -243,6 +255,19 @@ const MetricasRapidasPersonajeComponent: React.FC<MetricasRapidasPersonajeProps>
               )}
               <span className={estilos.unidadMetrica}>ft</span>
             </span>
+
+            {/* Badge de Terreno si es distinto a normal */}
+            {tipoTerrenoActual !== "normal" && (
+              <span
+                className={`
+                  ${estilos.badgeTerrenoTarjeta}
+                  ${tipoTerrenoActual === "dificil" ? estilos.badgeTerrenoDificil : ""}
+                  ${tipoTerrenoActual === "extremo" ? estilos.badgeTerrenoExtremo : ""}
+                `}
+              >
+                {infoTerrenoActual.nombre} {infoTerrenoActual.multiplicador}x
+              </span>
+            )}
           </div>
         </TooltipUniversal>
 
@@ -278,6 +303,52 @@ const MetricasRapidasPersonajeComponent: React.FC<MetricasRapidasPersonajeProps>
                   : "Modo Manual (sin miniatura física enlazada)"}
               </div>
 
+              {/* Selector de Tipo de Terreno (D&D 5.5e y 3D) */}
+              <div className={estilos.seccionTerrenoPopover}>
+                <div className={estilos.cabeceraTerreno}>
+                  <span style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+                    <Mountain size={12} color="#94a3b8" />
+                    Terreno (D&D 5.5e)
+                  </span>
+                  <span
+                    className={estilos.badgeAltura3D}
+                    title="Cálculo 3D euclidiano: incluye la altura vertical Y de TaleSpire"
+                  >
+                    3D + Altura Y
+                  </span>
+                </div>
+
+                <div className={estilos.grupoBotonesTerreno}>
+                  {(["normal", "dificil", "extremo"] as TipoTerreno[]).map((tipo) => {
+                    const info = INFORMACION_TERRENO[tipo];
+                    const esActivo = tipoTerrenoActual === tipo;
+                    let claseActivo = "";
+                    if (esActivo) {
+                      if (tipo === "normal") claseActivo = estilos.botonTerrenoActivoNormal;
+                      else if (tipo === "dificil") claseActivo = estilos.botonTerrenoActivoDificil;
+                      else if (tipo === "extremo") claseActivo = estilos.botonTerrenoActivoExtremo;
+                    }
+
+                    return (
+                      <button
+                        key={tipo}
+                        type="button"
+                        className={`${estilos.botonTerreno} ${claseActivo}`}
+                        onClick={() => ejecutarEstablecerTerreno(tipo)}
+                        title={`${info.nombre}: ${info.descripcion}`}
+                      >
+                        <span>{info.nombre}</span>
+                        <span className={estilos.subMultiplicadorTerreno}>{info.multiplicador}x</span>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <div className={estilos.descripcionTerrenoTexto}>
+                  {infoTerrenoActual.descripcion}
+                </div>
+              </div>
+
               {/* Caja Resumen de Movimiento */}
               <div className={estilos.resumenMovimientoCaja}>
                 <div>
@@ -307,7 +378,7 @@ const MetricasRapidasPersonajeComponent: React.FC<MetricasRapidasPersonajeProps>
 
                 <input
                   type="number"
-                  step="5"
+                  step="any"
                   min="0"
                   max={estadoVelocidad.velocidadTotal * 2}
                   className={estilos.inputRestanteManual}

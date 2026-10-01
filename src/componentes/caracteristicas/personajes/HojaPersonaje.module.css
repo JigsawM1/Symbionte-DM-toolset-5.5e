@@ -860,6 +860,123 @@
   justify-content: space-between;
 }
 
+/* Selector de Terreno (D&D 5.5e y 3D) */
+.seccionTerrenoPopover {
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  border-radius: 6px;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.cabeceraTerreno {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #94a3b8;
+  letter-spacing: 0.5px;
+}
+
+.badgeAltura3D {
+  font-size: 9px;
+  font-weight: 700;
+  color: #38bdf8;
+  background: rgba(56, 189, 248, 0.12);
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  padding: 1px 5px;
+  border-radius: 3px;
+}
+
+.grupoBotonesTerreno {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+}
+
+.botonTerreno {
+  background: #1e293b;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  color: #94a3b8;
+  border-radius: 4px;
+  padding: 5px 3px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+
+.botonTerreno:hover {
+  background: #334155;
+  color: #ffffff;
+  border-color: rgba(148, 163, 184, 0.4);
+}
+
+.subMultiplicadorTerreno {
+  font-size: 9px;
+  font-weight: 500;
+  opacity: 0.8;
+}
+
+.botonTerrenoActivoNormal {
+  background: rgba(30, 41, 59, 0.9) !important;
+  color: #ffffff !important;
+  border-color: #818cf8 !important;
+  box-shadow: 0 0 6px rgba(129, 140, 248, 0.3);
+}
+
+.botonTerrenoActivoDificil {
+  background: rgba(220, 38, 38, 0.25) !important;
+  color: #fca5a5 !important;
+  border-color: #ef4444 !important;
+  box-shadow: 0 0 6px rgba(239, 68, 68, 0.4);
+}
+
+.botonTerrenoActivoExtremo {
+  background: rgba(147, 51, 234, 0.25) !important;
+  color: #d8b4fe !important;
+  border-color: #a855f7 !important;
+  box-shadow: 0 0 6px rgba(168, 85, 247, 0.4);
+}
+
+.descripcionTerrenoTexto {
+  font-size: 10px;
+  color: #cbd5e1;
+  line-height: 1.3;
+  margin-top: 2px;
+}
+
+.badgeTerrenoTarjeta {
+  font-size: 9px;
+  font-weight: 800;
+  padding: 1px 4px;
+  border-radius: 3px;
+  margin-top: 2px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.badgeTerrenoDificil {
+  background: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.4);
+}
+
+.badgeTerrenoExtremo {
+  background: rgba(168, 85, 247, 0.2);
+  color: #c084fc;
+  border: 1px solid rgba(168, 85, 247, 0.4);
+}
+
 
 /* ==========================================
    4. VITALIDAD Y COMBATE (APARTADO C)

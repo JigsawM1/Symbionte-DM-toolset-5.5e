@@ -133,4 +133,45 @@ describe("Slice Personajes - Gestión de Movimiento Dinámico y TaleSpire", () =
     expect(pj.movimientoGastado).toBe(0);
     expect(pj.ultimaPosicionTS).toEqual(pos2);
   });
+
+  it("cambia el tipo de terreno y aplica el multiplicador en movimientos posteriores", () => {
+    // 1. Establecer terreno difícil (2x)
+    usarAlmacenDM.getState().establecerTipoTerrenoPersonaje(idPj, "dificil");
+    let pj = usarAlmacenDM.getState().personajes[0];
+    expect(pj.tipoTerreno).toBe("dificil");
+    expect(pj.multiplicadorTerreno).toBe(2);
+
+    // 2. Posición inicial
+    const pos1: PosicionTS = { locId: 0, x: 0, y: 0, z: 0 };
+    usarAlmacenDM.getState().registrarMovimientoTSPersonaje(idPj, pos1, "board-alpha");
+
+    // 3. Mover 2 casillas (10 pies base * 2x = 20 pies gastados)
+    const pos2: PosicionTS = { locId: 0, x: 2, y: 0, z: 0 };
+    usarAlmacenDM.getState().registrarMovimientoTSPersonaje(idPj, pos2, "board-alpha");
+
+    pj = usarAlmacenDM.getState().personajes[0];
+    expect(pj.movimientoGastado).toBe(20);
+
+    // 4. Cambiar a terreno extremo (3x) y mover 1 casilla (5 pies base * 3x = 15 ft adicionales -> 35 ft total)
+    usarAlmacenDM.getState().establecerTipoTerrenoPersonaje(idPj, "extremo");
+    const pos3: PosicionTS = { locId: 0, x: 3, y: 0, z: 0 };
+    usarAlmacenDM.getState().registrarMovimientoTSPersonaje(idPj, pos3, "board-alpha");
+
+    pj = usarAlmacenDM.getState().personajes[0];
+    expect(pj.tipoTerreno).toBe("extremo");
+    expect(pj.multiplicadorTerreno).toBe(3);
+    expect(pj.movimientoGastado).toBe(35);
+  });
+
+  it("calcula elevación vertical 3D en el movimiento físico del personaje", () => {
+    const pos1: PosicionTS = { locId: 0, x: 0, y: 0, z: 0 };
+    usarAlmacenDM.getState().registrarMovimientoTSPersonaje(idPj, pos1, "board-alpha");
+
+    // Subir 4 casillas en Y y avanzar 3 en Z = 5 casillas 3D (25 ft)
+    const pos2: PosicionTS = { locId: 0, x: 0, y: 4, z: 3 };
+    usarAlmacenDM.getState().registrarMovimientoTSPersonaje(idPj, pos2, "board-alpha");
+
+    const pj = usarAlmacenDM.getState().personajes[0];
+    expect(pj.movimientoGastado).toBe(25);
+  });
 });

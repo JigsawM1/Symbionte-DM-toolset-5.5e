@@ -14,6 +14,10 @@ import {
   type HechizoVinculado,
   EsquemaPosicionTS,
   type PosicionTS,
+  EsquemaTipoTerreno,
+  type TipoTerreno,
+  MULTIPLICADOR_POR_TERRENO,
+  INFORMACION_TERRENO,
   EsquemaRegistroMovimiento,
   type RegistroMovimiento
 } from "./personaje";
@@ -33,6 +37,10 @@ export {
   type HechizoVinculado,
   EsquemaPosicionTS,
   type PosicionTS,
+  EsquemaTipoTerreno,
+  type TipoTerreno,
+  MULTIPLICADOR_POR_TERRENO,
+  INFORMACION_TERRENO,
   EsquemaRegistroMovimiento,
   type RegistroMovimiento
 };

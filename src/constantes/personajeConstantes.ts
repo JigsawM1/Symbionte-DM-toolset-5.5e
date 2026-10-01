@@ -311,6 +311,8 @@ export const PERSONAJE_POR_DEFECTO: PersonajeJugador = {
   velocidad: "30 pies",
   movimientoGastado: 0,
   movimientoMaximoTemporal: null,
+  tipoTerreno: "normal",
+  multiplicadorTerreno: 1,
   ultimaPosicionTS: null,
   ultimoBoardIdTS: null,
   historialMovimiento: [],

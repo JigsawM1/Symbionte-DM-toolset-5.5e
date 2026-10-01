@@ -1,6 +1,7 @@
 import type { StateCreator } from "zustand";
 import type { EstadoDM } from "@/almacen/usarAlmacenDM";
 import type { GradoCompetencia, RegistroMovimiento } from "@/tipos";
+import { MULTIPLICADOR_POR_TERRENO, INFORMACION_TERRENO } from "@/tipos";
 import { tieneMedioBonoHabilidades, obtenerVelocidadesEfectivas } from "@/servicios/evaluadorEfectosRasgos";
 import { calcularDistanciaMovimientoTS } from "@/servicios/calculadorDistanciaTS";
 import { mutarPersonaje } from "../helpers/mutarPersonaje";
@@ -184,12 +185,18 @@ export const crearSubSliceCaracteristicasHabilidades: StateCreator<
         };
       }
 
+      const opcionesFinales = {
+        incluirAltura: true,
+        multiplicadorTerreno: pj.multiplicadorTerreno || 1,
+        ...opciones
+      };
+
       const res = calcularDistanciaMovimientoTS(
         pj.ultimaPosicionTS,
         nuevaPosicion,
         pj.ultimoBoardIdTS,
         boardId,
-        opciones
+        opcionesFinales
       );
 
       // Si cambió de subtablero (locId) o de mapa (boardId), no se resta movimiento, solo se reubica
@@ -207,7 +214,7 @@ export const crearSubSliceCaracteristicasHabilidades: StateCreator<
       }
 
       const anteriorGastado = pj.movimientoGastado || 0;
-      const nuevoGastado = anteriorGastado + res.distanciaPies;
+      const nuevoGastado = Math.round((anteriorGastado + res.distanciaPies) * 10) / 10;
 
       const entradaHistorial: RegistroMovimiento = {
         id: `mov-ts-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
@@ -261,10 +268,10 @@ export const crearSubSliceCaracteristicasHabilidades: StateCreator<
         ? pj.movimientoMaximoTemporal
         : velNormal;
 
-      const restanteSeguro = Math.max(0, Math.round(nuevoRestante));
-      const nuevoGastado = Math.max(0, total - restanteSeguro);
+      const restanteSeguro = Math.max(0, Math.round(nuevoRestante * 10) / 10);
+      const nuevoGastado = Math.max(0, Math.round((total - restanteSeguro) * 10) / 10);
       const anteriorGastado = pj.movimientoGastado || 0;
-      const delta = nuevoGastado - anteriorGastado;
+      const delta = Math.round((nuevoGastado - anteriorGastado) * 10) / 10;
 
       if (delta === 0) return pj;
 
@@ -291,17 +298,18 @@ export const crearSubSliceCaracteristicasHabilidades: StateCreator<
   modificarMovimientoGastadoPersonaje: (id, delta, motivo = "Ajuste manual") => {
     mutarPersonaje(set, id, (pj) => {
       const anteriorGastado = pj.movimientoGastado || 0;
-      const nuevoGastado = Math.max(0, anteriorGastado + delta);
+      const nuevoGastado = Math.max(0, Math.round((anteriorGastado + delta) * 10) / 10);
       if (anteriorGastado === nuevoGastado) return pj;
 
+      const deltaRedondeado = Math.round(delta * 10) / 10;
       const entradaHistorial: RegistroMovimiento = {
         id: `mov-adj-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
         timestamp: Date.now(),
         tipo: "manual",
-        delta,
+        delta: deltaRedondeado,
         anteriorGastado,
         nuevoGastado,
-        descripcion: `${motivo} (${delta > 0 ? `+${delta}` : `${delta}`} ft)`
+        descripcion: `${motivo} (${deltaRedondeado > 0 ? `+${deltaRedondeado}` : `${deltaRedondeado}`} ft)`
       };
 
       const historialPrevio = Array.isArray(pj.historialMovimiento) ? pj.historialMovimiento : [];
@@ -401,6 +409,34 @@ export const crearSubSliceCaracteristicasHabilidades: StateCreator<
       return {
         ...pj,
         movimientoMaximoTemporal: velocidadCarrera,
+        historialMovimiento: [...historialPrevio.slice(-49), entradaHistorial]
+      };
+    });
+  },
+
+  establecerTipoTerrenoPersonaje: (id, tipo) => {
+    mutarPersonaje(set, id, (pj) => {
+      const multiplicador = MULTIPLICADOR_POR_TERRENO[tipo] ?? 1;
+      if (pj.tipoTerreno === tipo && pj.multiplicadorTerreno === multiplicador) {
+        return pj;
+      }
+
+      const infoTerreno = INFORMACION_TERRENO[tipo] || { nombre: tipo, costePies: `${multiplicador}x` };
+      const entradaHistorial: RegistroMovimiento = {
+        id: `mov-terr-${Date.now()}`,
+        timestamp: Date.now(),
+        tipo: "terreno",
+        delta: 0,
+        anteriorGastado: pj.movimientoGastado || 0,
+        nuevoGastado: pj.movimientoGastado || 0,
+        descripcion: `Terreno cambiado a: ${infoTerreno.nombre} (${infoTerreno.costePies})`
+      };
+      const historialPrevio = Array.isArray(pj.historialMovimiento) ? pj.historialMovimiento : [];
+
+      return {
+        ...pj,
+        tipoTerreno: tipo,
+        multiplicadorTerreno: multiplicador,
         historialMovimiento: [...historialPrevio.slice(-49), entradaHistorial]
       };
     });

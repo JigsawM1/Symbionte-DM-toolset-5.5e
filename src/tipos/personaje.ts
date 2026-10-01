@@ -38,10 +38,43 @@ export const EsquemaPosicionTS = z.object({
 });
 export type PosicionTS = z.infer<typeof EsquemaPosicionTS>;
 
+export const EsquemaTipoTerreno = z.enum(["normal", "dificil", "extremo"]);
+export type TipoTerreno = z.infer<typeof EsquemaTipoTerreno>;
+
+export const MULTIPLICADOR_POR_TERRENO: Record<TipoTerreno, number> = {
+  normal: 1,
+  dificil: 2,
+  extremo: 3
+};
+
+export const INFORMACION_TERRENO: Record<
+  TipoTerreno,
+  { nombre: string; multiplicador: number; costePies: string; descripcion: string }
+> = {
+  normal: {
+    nombre: "Normal",
+    multiplicador: 1,
+    costePies: "1x (1 ft = 1 ft)",
+    descripcion: "Terreno despejado estándar según reglas oficiales D&D 5.5e."
+  },
+  dificil: {
+    nombre: "Difícil",
+    multiplicador: 2,
+    costePies: "2x (1 ft = 2 ft)",
+    descripcion: "Regla oficial D&D 5.5e: cada 1 pie de movimiento cuesta 1 pie adicional (+1 ft por cada 1 ft)."
+  },
+  extremo: {
+    nombre: "Extremo",
+    multiplicador: 3,
+    costePies: "3x (1 ft = 3 ft)",
+    descripcion: "Escalada en terreno difícil, pantano profundo o corrientes violentas (coste 3x)."
+  }
+};
+
 export const EsquemaRegistroMovimiento = z.object({
   id: z.string(),
   timestamp: z.number(),
-  tipo: z.enum(["talespire", "manual", "reinicio", "carrera"]),
+  tipo: z.enum(["talespire", "manual", "reinicio", "carrera", "terreno"]),
   delta: z.number(),
   anteriorGastado: z.number(),
   nuevoGastado: z.number(),
@@ -364,6 +397,8 @@ export const EsquemaPersonajeJugador = z.object({
   velocidad: z.union([z.string(), EsquemaVelocidad]).default("30 pies"),
   movimientoGastado: z.number().default(0),
   movimientoMaximoTemporal: z.number().nullable().default(null),
+  tipoTerreno: EsquemaTipoTerreno.default("normal"),
+  multiplicadorTerreno: z.number().default(1),
   ultimaPosicionTS: EsquemaPosicionTS.nullable().default(null),
   ultimoBoardIdTS: z.string().nullable().default(null),
   historialMovimiento: z.array(EsquemaRegistroMovimiento).default([]),

@@ -5,3 +5,4 @@ export * from "./evaluadorMovilidadRasgos";
 export * from "./evaluadorSalvacionesRasgos";
 export * from "./evaluadorCombateRasgos";
 export * from "./evaluadorConjurosRasgos";
+export * from "./evaluadorRecursosRasgos";

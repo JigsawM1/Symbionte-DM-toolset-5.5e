@@ -38,10 +38,75 @@
   color: #f8fafc;
 }
 
+/* Estilos específicos para la tabla de conjuros de subclase según manual PHB 2024 */
+.tablaConjurosSubclase {
+  border-collapse: separate;
+  border-spacing: 0;
+  background: transparent;
+  border-top: 1px solid rgba(255, 255, 255, 0.45);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.45);
+}
+
+.thNivelConjuros {
+  padding: 8px 12px;
+  text-align: center;
+  font-weight: 700;
+  color: #f8fafc;
+  font-size: 13px;
+  white-space: nowrap;
+  width: 28%;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.45);
+}
+
+.thConjuros {
+  padding: 8px 14px;
+  text-align: center;
+  font-weight: 700;
+  color: #f8fafc;
+  font-size: 13px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.45);
+}
+
+.filaConjuroEnmarcada {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.filaConjuroEnmarcada td {
+  border-top: 1px solid rgba(255, 255, 255, 0.35);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.35);
+}
+
+.filaConjuroEnmarcada td:first-child {
+  border-left: 1px solid rgba(255, 255, 255, 0.35);
+}
+
+.filaConjuroEnmarcada td:last-child {
+  border-right: 1px solid rgba(255, 255, 255, 0.35);
+}
+
+.filaConjuroSimple {
+  background: transparent;
+}
+
+.filaConjuroSimple td {
+  border: none;
+}
+
+.celdaNivelConjuros {
+  padding: 8px 12px;
+  text-align: center;
+  color: #cbd5e1;
+  font-size: 13px;
+  font-family: inherit;
+  font-weight: 500;
+}
+
 .celdaConjuros {
-  padding: 7px 14px;
-  color: #e07a5f;
+  padding: 8px 14px;
+  text-align: center;
+  color: #d97d5c;
   line-height: 1.45;
+  font-size: 13px;
   font-weight: 500;
 }
 

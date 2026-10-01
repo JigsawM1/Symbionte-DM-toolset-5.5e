@@ -117,6 +117,7 @@ export const SeccionConjurosOcultos: React.FC<SeccionConjurosOcultosProps> = ({
                   const cOtorgados = r.conjurosOtorgados || [];
                   return (
                     cOtorgados.some((c) => coincideHechizoId(c, hechizo.id) || coincideHechizoId(c, hechizo.nombre)) ||
+                    (r.conjuroGratuito && (coincideHechizoId(r.conjuroGratuito, hechizo.id) || coincideHechizoId(r.conjuroGratuito, hechizo.nombre))) ||
                     r.nombre.toLowerCase().includes(nomHechizoNorm) ||
                     nomHechizoNorm.includes(r.nombre.toLowerCase())
                   );

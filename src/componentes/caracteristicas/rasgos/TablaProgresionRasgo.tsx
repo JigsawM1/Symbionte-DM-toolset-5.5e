@@ -36,17 +36,23 @@ export const TablaProgresionRasgo: React.FC<TablaProgresionRasgoProps> = ({
 
   return (
     <div className={estilos.contenedorTablaProgresion}>
-      <table className={estilos.tablaEstilizada}>
+      <table className={`${estilos.tablaEstilizada} ${esColumnaConjuros ? estilos.tablaConjurosSubclase : ""}`}>
         <thead className={estilos.encabezadoTabla}>
           <tr>
             {tabla.columnas.map((col, idx) => {
               if (esTablaDosColumnasNivel) {
                 return idx === 0 ? (
-                  <th key={idx} className={estilos.thNivel}>
+                  <th
+                    key={idx}
+                    className={esColumnaConjuros ? estilos.thNivelConjuros : estilos.thNivel}
+                  >
                     {col}
                   </th>
                 ) : (
-                  <th key={idx} className={estilos.thDescripcion}>
+                  <th
+                    key={idx}
+                    className={esColumnaConjuros ? estilos.thConjuros : estilos.thDescripcion}
+                  >
                     {col}
                   </th>
                 );
@@ -63,18 +69,33 @@ export const TablaProgresionRasgo: React.FC<TablaProgresionRasgoProps> = ({
           {tabla.filas.map((fila, idx) => {
             const esActual = nivelFilaActiva === fila.nivel;
             const esAlcanzado = typeof nivelPersonaje === "number" && fila.nivel <= nivelPersonaje;
+            const esFilaEnmarcada = esColumnaConjuros && idx % 2 === 0;
+
+            const clasesFila = [
+              estilos.filaProgresion,
+              esColumnaConjuros
+                ? esFilaEnmarcada
+                  ? estilos.filaConjuroEnmarcada
+                  : estilos.filaConjuroSimple
+                : esActual
+                ? estilos.filaNivelActual
+                : esAlcanzado
+                ? estilos.filaNivelAlcanzado
+                : ""
+            ]
+              .filter(Boolean)
+              .join(" ");
 
             return (
-              <tr
-                key={idx}
-                className={`${estilos.filaProgresion} ${esActual ? estilos.filaNivelActual : esAlcanzado ? estilos.filaNivelAlcanzado : ""}`}
-              >
+              <tr key={idx} className={clasesFila}>
                 {esTablaDosColumnasNivel ? (
                   <>
-                    <td className={estilos.celdaNivel}>{fila.nivel}</td>
+                    <td className={esColumnaConjuros ? estilos.celdaNivelConjuros : estilos.celdaNivel}>
+                      {fila.nivel}
+                    </td>
                     <td className={esColumnaConjuros ? estilos.celdaConjuros : estilos.celdaDescripcion}>
                       <span>{fila.valores[0] || ""}</span>
-                      {esActual && <span className={estilos.badgeActual}>Actual</span>}
+                      {esActual && !esColumnaConjuros && <span className={estilos.badgeActual}>Actual</span>}
                     </td>
                   </>
                 ) : (

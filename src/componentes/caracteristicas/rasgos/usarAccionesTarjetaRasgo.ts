@@ -16,7 +16,7 @@ interface ParametrosAccionesTarjetaRasgo {
   rasgo: RasgoPersonaje;
   nombrePersonaje: string;
   idPersonaje?: string;
-  alGastarUso: () => void;
+  alGastarUso: (cantidad?: number) => void;
   usosPadre?: { restantes: number; maximos: number; nombre: string };
   formulaDadosEfectiva?: string;
 }

@@ -192,7 +192,8 @@ export const ModalAgregarObjeto: React.FC<ModalAgregarObjetoProps> = ({
         const armadura = obj as Armadura;
         subtitulo = `CA ${armadura.caBase || 0} • ${armadura.pesoLb || 0} lb • ${armadura.valorPO || 0} PO`;
       } else if (obj.categoria === "escudos") {
-        subtitulo = `CA +2 • ${obj.pesoLb || 0} lb • ${obj.valorPO || 0} PO`;
+        const caEscudo = (obj as Escudo).caBase ?? 2;
+        subtitulo = `CA +${caEscudo} • ${obj.pesoLb || 0} lb • ${obj.valorPO || 0} PO`;
       } else {
         subtitulo = `${obj.pesoLb || 0} lb • ${obj.valorPO || 0} PO`;
       }

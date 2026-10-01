@@ -286,17 +286,23 @@ describe("Integridad de Catálogos D&D 5.5e (JSON Modular e Hidratación)", () =
   });
 
   describe("8. Catálogo de Efectos Predefinidos (JSON Modular)", () => {
-    it("carga exactamente los 29 efectos predefinidos", () => {
-      expect(EFECTOS_PREDEFINIDOS).toHaveLength(29);
+    it("carga exactamente los 35 efectos predefinidos (incluyendo Atleta sin par, Leyenda viviente, Campeón anciano y Ángel vengador)", () => {
+      expect(EFECTOS_PREDEFINIDOS).toHaveLength(35);
     });
 
-    it("los 5 efectos enriquecidos tienen viñetas efectos[]", () => {
+    it("los efectos enriquecidos tienen viñetas efectos[]", () => {
       const enriquecidos = [
         "Armadura sin Competencia",
         "Desventaja en Sigilo",
         "Furia de los Dioses",
         "Manto de Majestad",
-        "Majestad Inquebrantable"
+        "Majestad Inquebrantable",
+        "Arma sagrada",
+        "Nimbo sagrado",
+        "Atleta sin par",
+        "Leyenda viviente",
+        "Campeón anciano",
+        "Ángel vengador"
       ];
       for (const nombre of enriquecidos) {
         const ef = EFECTOS_PREDEFINIDOS.find((e) => e.nombre === nombre);
@@ -311,6 +317,24 @@ describe("Integridad de Catálogos D&D 5.5e (JSON Modular e Hidratación)", () =
 
       const desangrado = EFECTOS_PREDEFINIDOS.find((e) => e.nombre === "Desangrándose");
       expect(desangrado?.aliases).toContain("bloodied");
+
+      const armaSagrada = EFECTOS_PREDEFINIDOS.find((e) => e.nombre === "Arma sagrada");
+      expect(armaSagrada?.aliases).toContain("sacred weapon");
+
+      const nimboSagrado = EFECTOS_PREDEFINIDOS.find((e) => e.nombre === "Nimbo sagrado");
+      expect(nimboSagrado?.aliases).toContain("holy nimbus");
+
+      const atletaSinPar = EFECTOS_PREDEFINIDOS.find((e) => e.nombre === "Atleta sin par");
+      expect(atletaSinPar?.aliases).toContain("peerless athlete");
+
+      const leyendaViviente = EFECTOS_PREDEFINIDOS.find((e) => e.nombre === "Leyenda viviente");
+      expect(leyendaViviente?.aliases).toContain("living legend");
+
+      const campeonAnciano = EFECTOS_PREDEFINIDOS.find((e) => e.nombre === "Campeón anciano");
+      expect(campeonAnciano?.aliases).toContain("elder champion");
+
+      const angelVengador = EFECTOS_PREDEFINIDOS.find((e) => e.nombre === "Ángel vengador");
+      expect(angelVengador?.aliases).toContain("avenging angel");
     });
   });
 

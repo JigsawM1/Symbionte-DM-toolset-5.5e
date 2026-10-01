@@ -176,7 +176,9 @@ export function obtenerBonosSalvacionesRasgos(
       } else if (valStr === "mitad_nivel") {
         valorNum = Math.max(1, Math.floor((personaje.nivel || 1) / 2));
       } else {
-        valorNum = Number(ef.valor) || 0;
+        const formulaResuelta = resolverFormulaDinamica(valStr, personaje);
+        const valorEval = evaluarExpresionNumericaSegura(formulaResuelta);
+        valorNum = !isNaN(valorEval) ? valorEval : (Number(ef.valor) || 0);
       }
 
       if (objNorm === "todas" || objNorm === "universal" || objNorm === "") {

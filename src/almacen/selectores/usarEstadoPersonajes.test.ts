@@ -157,4 +157,86 @@ describe("calcularEstadisticasPersonaje - Efectos Pasivos de Objetos", () => {
     // Salvación FUE: +4 mod + 3 competencia = +7
     expect(stats.salvaciones.fuerza).toBe(7);
   });
+
+  it("debe aplicar correctamente el +3 de CA de un escudo con caBase = 3 (Aspis del Baluarte Inquebrantable)", () => {
+    const pj = crearPersonajeBase();
+    pj.inventario = [
+      {
+        idInstancia: "inv_aspis_1",
+        idObjeto: "o_homebrew_317bdeef-dd52-498c-bc31-98df3939b5ff",
+        nombre: "Aspis del Baluarte Inquebrantable Armadura",
+        categoria: "escudos",
+        esConsumible: false,
+        subcategoria: "Escudo",
+        pesoLb: 6,
+        cantidad: 1,
+        equipable: true,
+        equipado: true,
+        sintonizacionRequerida: true,
+        sintonizado: true,
+        esMagico: true,
+        rareza: "Raro",
+        notas: "",
+        propiedades: "Escudo, CA +3",
+        caBase: 3,
+        desventajaSigilo: false
+      } as ObjetoInventario
+    ];
+
+    const stats = calcularEstadisticasPersonaje(pj);
+    // Base 10 + DES (+2) + Escudo (+3) = 15 CA
+    expect(stats.claseArmadura.bonoEscudo).toBe(3);
+    expect(stats.claseArmadura.total).toBe(15);
+    expect(stats.claseArmadura.desglose).toContain("Aspis del Baluarte Inquebrantable Armadura +3");
+  });
+
+  it("debe extraer el bonificador de CA de las propiedades si caBase no está explícito en el objeto", () => {
+    const pj = crearPersonajeBase();
+    pj.inventario = [
+      {
+        idInstancia: "inv_escudo_custom_1",
+        idObjeto: "escudo_pesado_custom",
+        nombre: "Escudo Pavés Reforzado",
+        categoria: "escudos",
+        esConsumible: false,
+        subcategoria: "Escudo",
+        pesoLb: 10,
+        cantidad: 1,
+        equipable: true,
+        equipado: true,
+        propiedades: "Escudo, CA +3, Pesado",
+        desventajaSigilo: true
+      } as ObjetoInventario
+    ];
+
+    const stats = calcularEstadisticasPersonaje(pj);
+    // Base 10 + DES (+2) + Escudo (+3) = 15 CA
+    expect(stats.claseArmadura.bonoEscudo).toBe(3);
+    expect(stats.claseArmadura.total).toBe(15);
+    expect(stats.desventajaSigiloArmadura).toBe(true);
+  });
+
+  it("un escudo estándar sin caBase personalizada debe continuar otorgando +2", () => {
+    const pj = crearPersonajeBase();
+    pj.inventario = [
+      {
+        idInstancia: "inv_escudo_std",
+        idObjeto: "shield",
+        nombre: "Escudo",
+        categoria: "escudos",
+        esConsumible: false,
+        subcategoria: "Escudo",
+        pesoLb: 6,
+        cantidad: 1,
+        equipable: true,
+        equipado: true
+      } as ObjetoInventario
+    ];
+
+    const stats = calcularEstadisticasPersonaje(pj);
+    // Base 10 + DES (+2) + Escudo (+2) = 14 CA
+    expect(stats.claseArmadura.bonoEscudo).toBe(2);
+    expect(stats.claseArmadura.total).toBe(14);
+  });
 });
+

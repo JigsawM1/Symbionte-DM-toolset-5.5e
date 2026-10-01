@@ -3,6 +3,8 @@ import type {
   BolsaMonedas,
   TamanoPersonaje,
   ObjetoJuego,
+  Armadura,
+  Escudo,
   Rareza,
   TipoContenedor,
   CategoriaEquipo
@@ -295,6 +297,29 @@ export function crearObjetoInventarioDesdeCompendio(
       ? Math.round(((objetoJuego.pesoLb || 0) / unidadesPorLote) * 1000) / 1000
       : Number(objetoJuego.pesoLb) || 0;
 
+  const itemArmadura = objetoJuego.categoria === "armaduras" ? (objetoJuego as Armadura) : null;
+  const itemEscudo = objetoJuego.categoria === "escudos" ? (objetoJuego as Escudo) : null;
+  const caBaseCalculada =
+    itemArmadura?.caBase ??
+    itemEscudo?.caBase ??
+    (typeof (objetoJuego as { caBase?: unknown }).caBase === "number"
+      ? (objetoJuego as { caBase: number }).caBase
+      : undefined);
+  const desventajaSigiloCalculada =
+    itemArmadura?.desventajaSigilo ??
+    itemEscudo?.desventajaSigilo ??
+    (typeof (objetoJuego as { desventajaSigilo?: unknown }).desventajaSigilo === "boolean"
+      ? (objetoJuego as { desventajaSigilo: boolean }).desventajaSigilo
+      : undefined);
+  const requisitoFuerzaCalculado =
+    itemArmadura?.requisitoFuerza ??
+    (typeof (objetoJuego as { requisitoFuerza?: unknown }).requisitoFuerza === "number"
+      ? (objetoJuego as { requisitoFuerza: number }).requisitoFuerza
+      : undefined);
+  const bonoDestrezaCalculado =
+    itemArmadura?.bonoDestreza ??
+    ((objetoJuego as { bonoDestreza?: "Completo" | "Máximo 2" | "Sin Bono" }).bonoDestreza);
+
   return {
     idInstancia: generarId("inv"),
     idObjeto: objetoJuego.id,
@@ -315,7 +340,15 @@ export function crearObjetoInventarioDesdeCompendio(
     cargasMaximas: cargas,
     cargasActuales: cargas,
     formulaRecarga: objetoJuego.formulaRecarga,
-    hechizosVinculados: objetoJuego.hechizosVinculados ? [...objetoJuego.hechizosVinculados] : undefined
+    hechizosVinculados: objetoJuego.hechizosVinculados ? [...objetoJuego.hechizosVinculados] : undefined,
+    caBase: caBaseCalculada,
+    propiedades: objetoJuego.propiedades,
+    desventajaSigilo: desventajaSigiloCalculada,
+    requisitoFuerza: requisitoFuerzaCalculado,
+    bonoDestreza: bonoDestrezaCalculado,
+    efectosPasivos: objetoJuego.efectosPasivos ? [...objetoJuego.efectosPasivos] : undefined,
+    modificadorAtaqueDano: objetoJuego.modificadorAtaqueDano,
+    contents: objetoJuego.contents ? [...objetoJuego.contents] : undefined
   };
 }
 
@@ -338,6 +371,13 @@ export function crearObjetoInventarioCustom(datos: {
   notas?: string;
   contenedor?: TipoContenedor;
   hechizosVinculados?: import("@/tipos").HechizoVinculado[];
+  caBase?: number;
+  propiedades?: string | string[];
+  desventajaSigilo?: boolean;
+  requisitoFuerza?: number;
+  bonoDestreza?: "Completo" | "Máximo 2" | "Sin Bono";
+  modificadorAtaqueDano?: number;
+  efectosPasivos?: import("@/tipos").EfectoPasivo[];
 }): ObjetoInventario {
   const nombreLimpio = datos.nombre.trim() || "Objeto Personalizado";
   const cargas = datos.cargasMaximas !== undefined ? Math.max(0, datos.cargasMaximas) : undefined;
@@ -364,7 +404,14 @@ export function crearObjetoInventarioCustom(datos: {
     cargasMaximas: cargas,
     cargasActuales: cargas,
     formulaRecarga: datos.formulaRecarga,
-    hechizosVinculados: datos.hechizosVinculados ? [...datos.hechizosVinculados] : undefined
+    hechizosVinculados: datos.hechizosVinculados ? [...datos.hechizosVinculados] : undefined,
+    caBase: datos.caBase,
+    propiedades: datos.propiedades,
+    desventajaSigilo: datos.desventajaSigilo,
+    requisitoFuerza: datos.requisitoFuerza,
+    bonoDestreza: datos.bonoDestreza,
+    modificadorAtaqueDano: datos.modificadorAtaqueDano,
+    efectosPasivos: datos.efectosPasivos ? [...datos.efectosPasivos] : undefined
   };
 }
 

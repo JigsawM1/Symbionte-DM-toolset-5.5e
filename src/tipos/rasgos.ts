@@ -261,6 +261,7 @@ export interface PlantillaRasgoClase {
   restaurarUsosAlActivar?: { idRasgoObjetivo: string; cantidad: number | "maximo" };
   categoriaMecanica?: "consumible" | "activable" | "selector_informativo" | "pasivo_permanente" | "extension" | "curacion";
   formulaEscalado?: string;
+  costeFijo?: number;
   efectos?: EfectoMecanicoRasgo[];
   selectores?: SelectorRasgo[];
   tablaProgresion?: TablaEscaladoRasgo;
@@ -330,6 +331,7 @@ export const EsquemaRasgoPersonaje = z.object({
   origen: EsquemaOrigenRasgo.default("personalizado"),
   fuente: z.string().default("Homebrew"),
   tipoAccion: EsquemaTipoAccionRasgo.default("pasivo"),
+  subclase: z.string().optional(),
   nivelRequerido: z.number().int().min(1).max(20).optional(),
   
   // Usos y recursos limitados
@@ -377,6 +379,7 @@ export const EsquemaRasgoPersonaje = z.object({
     "extension",
     "curacion"
   ]).optional(),
+  costeFijo: z.number().int().min(1).optional(),
   formulaEscalado: z.string().optional(),
   recursoGastado: EsquemaRecursoGastado.default("uso_rasgo").optional(),
 

@@ -17,6 +17,54 @@ Este archivo registra reglas globales, errores encontrados, sus causas raíz y l
    - **Bajo ninguna circunstancia** los módulos de lógica de negocio (`servicios/`), gestores de estado (`almacen/`), contratos (`tipos/`), valores de reglas (`constantes/`) ni funciones de soporte (`utiles/`) deben importar componentes visuales o archivos CSS (`componentes/`). Esta regla está reforzada en CI vía ESLint `no-restricted-imports`.
 6. **PROHIBICIÓN ESTRICTA DE BIFURCACIONES POR NOMBRE DE RASGO O CLASE (CATÁLOGO DECLARATIVO Y BUILDER PURO)**:
    - **Bajo ninguna circunstancia** los módulos de lógica de negocio (`servicios/`), gestores de estado (`almacen/`) o constructores (`gestorClases.ts`) deben contener bifurcaciones condicionales por nombre literal de rasgo o clase (`r.nombre === "..."`, `clase.includes("...")`, etc.).
+## [2026-10-01] Auditoría y Alineación Canónica con TaleSpire Manifest v1 (summary en raíz y webViewBackgroundColor)
+
+**Problema Reportado por el Usuario:**
+- Verificación de cumplimiento de `manifest.json` y `public/manifest.json` frente a la documentación oficial de TaleSpire Manifest v1 (`https://symbiote-docs.talespire.com/manifest_doc_v1.html`).
+
+**Hallazgos de la Auditoría Técnica:**
+1. **Discrepancia en la Clave del Resumen del Simbionte:**
+   - La especificación de TaleSpire Manifest v1 define la clave `"summary"` en el nivel raíz del documento (con longitud máxima de 250 caracteres) para alimentar la tarjeta y textos en la UI del juego.
+   - Los manifiestos previos ubicaban el texto como `"description"` dentro del objeto `"about"`. En la especificación oficial, el objeto `"about"` únicamente define `"website"` y `"authors"`, por lo que el motor de TaleSpire ignoraba dicha descripción.
+2. **Prevención de Parpadeo Blanco (Flicker) al Cargar:**
+   - La documentación oficial advierte: *"TaleSpire defaults the web view background color to white for compatibility with external websites, however this can lead to flickering when a Symbiote with dark background loads. With webViewBackgroundColor you tell TaleSpire explicitly which color to use instead of white."*
+   - Al ser la aplicación de tema oscuro con `--color-fondo-profundo: hsl(222, 25%, 6%)`, se incorporó `"webViewBackgroundColor": "#0c0f13"` en `environment`.
+3. **Conformidad Estricta de Campos Obligatorios y Opcionales:**
+   - `manifestVersion`: 1 (entero canónico).
+   - `name`: 42 caracteres (límite oficial: 80 caracteres).
+   - `entryPoint`: `"/index.html"` (ruta local válida que comienza con `/`).
+   - `version`: `"1.0.0"` (cadena de texto libre).
+   - `api.version`: `"0.1"` (versión requerida para inyectar la API).
+   - `api.interop.id`: `"5b8d96e5-4d22-48f8-b391-768a44b584d9"` (UUIDv4 canónico RFC 4122 indispensable para el módulo `sync`).
+   - `api.subscriptions`: Categorías y fuentes de eventos (`symbiote.onStateChangeEvent`, `creatures.onCreatureStateChange`, `creatures.onCreatureSelectionChange`, `initiative.onInitiativeEvent`, `dice.onRollResults`, `clients.onClientEvent`, `sync.onSyncMessage`, `sync.onClientEvent`) verificadas 100% conformes con la API v0.1 de TaleSpire.
+   - `environment`: `capabilities: ["runInBackground"]`, `extras: ["colorStyles"]` y `loadTargetBehavior: "popup"` estrictamente validados.
+
+**Soluciones Técnicas Aplicadas:**
+- Se añadió `"summary": "Pantalla de DM asimétrica y densa optimizada para TaleSpire y D&D 5.5e (2024)"` en la raíz de `manifest.json` y `public/manifest.json`.
+- Se añadió `"webViewBackgroundColor": "#0c0f13"` en `environment` de ambos manifiestos para una carga fluida sin parpadeos visuales.
+
+## [2026-10-01] Restauración de Interop ID y Suscripciones Sync en Manifests de TaleSpire (`symbioteManifestMissingInteropId`)
+
+
+**Problema Reportado por el Usuario:**
+- Al sincronizar la cola de iniciativa y modificar la vida de criaturas, TaleSpire registraba la excepción:
+  `[ERROR] [TS Adapter] Error en sync.send nativo: Error: symbioteManifestMissingInteropId`
+- Se observó la ausencia de las suscripciones `sync` y del bloque `interop` en `manifest.json` y `public/manifest.json`.
+
+**Causas Raíz Diagnosticadas:**
+1. **Regresión Accidental en Commit Previo:**
+   - Durante un cambio previo se eliminaron inadvertidamente las claves `api.subscriptions.sync` y `api.interop` (`id: "5b8d96e5-4d22-48f8-b391-768a44b584d9"`).
+2. **Requisito Estricto de la API TaleSpire v0.1:**
+   - La API oficial de TaleSpire exige de manera ineludible que cualquier simbionte que invoque `TS.sync.send` cuente con un UUID v4 registrado en `api.interop.id` de su manifiesto. Al carecer de él, el bridge CEF/Unity aborta inmediatamente la promesa con `symbioteManifestMissingInteropId`.
+   - Adicionalmente, las suscripciones `onSyncMessage` y `onClientEvent` son indispensables para canalizar los mensajes de sincronización hacia `window.manejarMensajeSync` y `window.manejarEventoClienteSync` en `puenteTaleSpire.ts`.
+
+**Soluciones Técnicas Aplicadas:**
+1. **Restauración Quirúrgica en Manifiestos:**
+   - Se reincorporó `"sync": { "onSyncMessage": "manejarMensajeSync", "onClientEvent": "manejarEventoClienteSync" }` en `api.subscriptions` tanto en `manifest.json` como en `public/manifest.json`.
+   - Se reincorporó `"interop": { "id": "5b8d96e5-4d22-48f8-b391-768a44b584d9" }` dentro de `api` en ambos manifiestos.
+2. **Aclaración sobre el Flujo de Datos y Chunks:**
+   - La advertencia previa en consola `[WARN] [Sync] Cola excede tamaño seguro (530b). Particionando en chunks...` es el comportamiento protector diseñado en `sincronizacionSimbiote.ts` para no exceder el límite estricto de 500-1000 bytes de TaleSpire; una vez restaurado el `interop.id`, los chunks se envían y reciben exitosamente sin errores de bridge.
+
 ## [2026-10-01] Competencias Automáticas Declarativas en Pícaro D&D 5.5e: Jerga de Ladrones, Mente Escurridiza y Herramientas de Asesino
 
 **Problema Reportado por el Usuario:**

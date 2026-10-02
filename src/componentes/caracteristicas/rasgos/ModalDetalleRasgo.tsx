@@ -112,14 +112,15 @@ export const ModalDetalleRasgo: React.FC<ModalDetalleRasgoProps> = ({
   const esAtaqueAliento = normNombre.includes("ataque de aliento") || normNombre.includes("arma de aliento");
   const esCuracionAuto = esCuracion && !esManosCurativas && !esPreservarVida;
   const gastaUsoAlTirar =
-    esCuracionAuto ||
-    esPreservarVida ||
-    esManosCurativas ||
-    esMantoInspiracion ||
-    esInspiracionBardica ||
-    esAtaqueAliento ||
-    rasgo.categoriaMecanica === "consumible" ||
-    rasgo.gastarDePadre;
+    !rasgo.noGastarAlTirarDados &&
+    (esCuracionAuto ||
+      esPreservarVida ||
+      esManosCurativas ||
+      esMantoInspiracion ||
+      esInspiracionBardica ||
+      esAtaqueAliento ||
+      rasgo.categoriaMecanica === "consumible" ||
+      rasgo.gastarDePadre);
 
   const manejarTirarDados = async () => {
     if (!formulaEfectiva) return;
@@ -127,7 +128,7 @@ export const ModalDetalleRasgo: React.FC<ModalDetalleRasgoProps> = ({
 
     try {
       if (gastaUsoAlTirar && alGastarUso) {
-        alGastarUso();
+        alGastarUso(rasgo.costeFijo || 1);
       }
       const nombreLimpioRasgo = rasgo.nombre.replace(/:/g, " -");
       const formula = `!${nombreLimpioRasgo}:${formulaEfectiva}`;

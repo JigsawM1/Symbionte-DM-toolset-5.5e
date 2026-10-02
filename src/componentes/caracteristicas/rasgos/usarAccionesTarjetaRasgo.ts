@@ -87,15 +87,16 @@ export function usarAccionesTarjetaRasgo({
   const esCuracionAuto = esCuracion && !esManosCurativas && !esPreservarVida;
   const tieneEfectoHpTemporalAuto = (rasgo.efectos || []).some((ef) => ef.tipo === "hp_temporal") && !esMantoInspiracion;
   const gastaUsoAlTirar =
-    esCuracionAuto ||
-    esPreservarVida ||
-    tieneEfectoHpTemporalAuto ||
-    esManosCurativas ||
-    esMantoInspiracion ||
-    esInspiracionBardica ||
-    esAtaqueAliento ||
-    rasgo.categoriaMecanica === "consumible" ||
-    rasgo.gastarDePadre;
+    !rasgo.noGastarAlTirarDados &&
+    (esCuracionAuto ||
+      esPreservarVida ||
+      tieneEfectoHpTemporalAuto ||
+      esManosCurativas ||
+      esMantoInspiracion ||
+      esInspiracionBardica ||
+      esAtaqueAliento ||
+      rasgo.categoriaMecanica === "consumible" ||
+      rasgo.gastarDePadre);
 
   const manejarTirarDados = async (e: React.MouseEvent): Promise<void> => {
     e.stopPropagation();
@@ -106,7 +107,7 @@ export function usarAccionesTarjetaRasgo({
       if (esRecursoEspacioPacto && idPersonaje) {
         usarAlmacenDM.getState().gastarEspacioPacto(idPersonaje);
       } else if (gastaUsoAlTirar && alGastarUso) {
-        alGastarUso();
+        alGastarUso(rasgo.costeFijo || 1);
       }
       const nombreLimpioRasgo = rasgo.nombre.replace(/:/g, " -");
       const formula = `!${nombreLimpioRasgo}:${formulaEfectiva}`;

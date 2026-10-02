@@ -17,6 +17,29 @@ Este archivo registra reglas globales, errores encontrados, sus causas raíz y l
    - **Bajo ninguna circunstancia** los módulos de lógica de negocio (`servicios/`), gestores de estado (`almacen/`), contratos (`tipos/`), valores de reglas (`constantes/`) ni funciones de soporte (`utiles/`) deben importar componentes visuales o archivos CSS (`componentes/`). Esta regla está reforzada en CI vía ESLint `no-restricted-imports`.
 6. **PROHIBICIÓN ESTRICTA DE BIFURCACIONES POR NOMBRE DE RASGO O CLASE (CATÁLOGO DECLARATIVO Y BUILDER PURO)**:
    - **Bajo ninguna circunstancia** los módulos de lógica de negocio (`servicios/`), gestores de estado (`almacen/`) o constructores (`gestorClases.ts`) deben contener bifurcaciones condicionales por nombre literal de rasgo o clase (`r.nombre === "..."`, `clase.includes("...")`, etc.).
+## [2026-10-02] Consolidación de origin/Tryn: Implementación Canónica de Monje D&D 5.5e (PHB 2024) y sus 4 Subclases
+
+**Objetivo de la Integración:**
+- Incorporar la clase completa Monje (niveles 1 a 20) y sus 4 subclases canónicas (*Guerrero de la misericordia*, *Guerrero de la sombra*, *Guerrero de los elementos* y *Guerrero de la mano abierta*) conforme a D&D 5.5e (PHB 2024).
+- Extender el sistema con contratos puramente declarativos y genéricos desde el builder (`gestorClases.ts`), sin bifurcaciones por nombre en servicios, para soportar tiradas no consuntivas (`noGastarAlTirarDados`) y recargas reactivas parametrizadas en iniciativa (`restaurarUsosAlActivar`).
+
+**Decisiones Técnicas y Arquitectura Aplicada:**
+1. **Contratos Declarativos Extendidos (`src/tipos/rasgos.ts` y `src/tipos/esquemasCatalogos.ts`):**
+   - `noGastarAlTirarDados?: boolean`: permite a rasgos consumibles como *Desviar ataques* ejecutar su tirada de reducción de daño (1d10) sin descontar automáticamente puntos de *Concentración de monje* del padre, habilitando el botón de gasto para la decisión voluntaria del jugador al redirigir el daño.
+   - `restaurarUsosAlActivar`: ampliado con `hastaCantidad?: number`, `soloSiMenorOIgual?: number` y `siNoDisparado?: string`.
+2. **Lógica Pura de Iniciativa y Recursos en Zustand (`src/almacen/slices/personajes/sliceRasgos.ts`):**
+   - En `dispararRasgosIniciativaPersonaje`:
+     - *Metabolismo asombroso* recarga al 100% (*cantidad: "maximo"*) la Concentración de monje si se activa al tirar iniciativa.
+     - *Concentración perfecta* restaura hasta 4 puntos únicamente si el monje tenía 3 o menos y no se disparó *Metabolismo asombroso* (`siNoDisparado: "Metabolismo asombroso"`), de forma 100% parametrizada y sin hardcodeo de nombres de clase ni rasgos.
+   - Propagación de cantidad en callbacks de gasto/recuperación en rasgos de combate (`costeFijo`).
+3. **Clase Base Monje (`src/datos/clases/monje.json`):**
+   - *Artes marciales*: acción adicional, escalado de dados (1d6, 1d8, 1d10, 1d12) con tabla de progresión oficial y efectos diestros.
+   - *Concentración de monje*: consumible padre con usos por nivel y recuperación en descanso corto.
+   - *Ráfaga de golpes*, *Defensa paciente* y *Paso del viento*: acciones adicionales consumibles con `gastarDePadre: true` y `ligadoA: "Concentración de monje"`.
+   - *Desviar ataques*, *Golpe aturdidor*, *Defensa superior* (coste fijo 3), *Cuerpo y mente* (+4 DES, +4 SAB, máx 25).
+4. **Subclases Canónicas y Pruebas:**
+   - 4 subclases estructuradas en `monje.json` con redacción neutra.
+   - Suite dedicada `src/servicios/monjeMecanicasDND55.test.ts` con cobertura completa para mecánicas de concentración, artes marciales y costes fijos.
 
 ## [2026-10-02] Corrección de Conflicto de Capas: TooltipUniversal sobre Popover de Movimiento (Contextos de Apilamiento y React Portals)
 

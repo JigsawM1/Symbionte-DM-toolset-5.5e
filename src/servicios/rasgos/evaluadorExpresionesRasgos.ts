@@ -374,10 +374,16 @@ export function resolverFormulaDinamica(
     : nivelGlobal;
   const mitadNivel = Math.max(1, Math.floor(nivelClase / 2));
   const nivelBarbaro = obtenerNivelClasePersonaje(personaje, "barbaro") || nivelGlobal;
+  const nivelBardo = obtenerNivelClasePersonaje(personaje, "bardo") || nivelClase;
   const nivelClerigo = obtenerNivelClasePersonaje(personaje, "clerigo") || nivelClase;
+  const nivelDruida = obtenerNivelClasePersonaje(personaje, "druida") || nivelClase;
+  const nivelExplorador = obtenerNivelClasePersonaje(personaje, "explorador") || nivelClase;
+  const nivelGuerrero = obtenerNivelClasePersonaje(personaje, "guerrero") || nivelClase;
+  const nivelHechicero = obtenerNivelClasePersonaje(personaje, "hechicero") || nivelClase;
+  const nivelMago = obtenerNivelClasePersonaje(personaje, "mago") || nivelClase;
+  const nivelMonje = obtenerNivelClasePersonaje(personaje, "monje") || nivelClase;
   const nivelPaladin = obtenerNivelClasePersonaje(personaje, "paladin") || nivelClase;
   const nivelPicaro = obtenerNivelClasePersonaje(personaje, "picaro") || nivelClase;
-  const nivelExplorador = obtenerNivelClasePersonaje(personaje, "explorador") || nivelClase;
   const bonoFuria = obtenerBonoDanoFuria(nivelBarbaro);
   const bonoCompetencia = Math.floor((nivelGlobal - 1) / 4) + 2;
 
@@ -411,13 +417,17 @@ export function resolverFormulaDinamica(
     .replace(/mitad_nivel/gi, String(mitadNivel))
     .replace(/bono_competencia/gi, String(bonoCompetencia))
     .replace(/\b(pb|bc)\b/gi, String(bonoCompetencia))
-    .replace(/nivel_clerigo/gi, String(nivelClerigo))
-    .replace(/nivel_paladin/gi, String(nivelPaladin))
     .replace(/nivel_barbaro/gi, String(nivelBarbaro))
-    .replace(/nivel_brujo/gi, String(nivelBrujo))
-    .replace(/nivel_picaro/gi, String(nivelPicaro))
+    .replace(/nivel_bardo/gi, String(nivelBardo))
+    .replace(/nivel_clerigo/gi, String(nivelClerigo))
+    .replace(/nivel_druida/gi, String(nivelDruida))
     .replace(/nivel_explorador/gi, String(nivelExplorador))
-    .replace(/nivel_ranger/gi, String(nivelExplorador))
+    .replace(/nivel_guerrero/gi, String(nivelGuerrero))
+    .replace(/nivel_hechicero/gi, String(nivelHechicero))
+    .replace(/nivel_mago/gi, String(nivelMago))
+    .replace(/nivel_monje/gi, String(nivelMonje))
+    .replace(/nivel_paladin/gi, String(nivelPaladin))
+    .replace(/nivel_picaro/gi, String(nivelPicaro))
     .replace(/\bnivel\b/gi, String(nivelClase))
     .replace(/\b(constitucion|con)\b/gi, String(modCon))
     .replace(/\b(fuerza|fue|str)\b/gi, String(modFue))

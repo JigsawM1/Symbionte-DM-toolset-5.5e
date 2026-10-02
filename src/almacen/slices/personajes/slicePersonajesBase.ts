@@ -53,7 +53,8 @@ export const crearSubSlicePersonajesBase: StateCreator<
             nivel: nuevoPersonaje.nivel || 1,
             tipoLanzador: infoLanzador.tipo,
             habilidadConjuro: infoLanzador.habilidad,
-            modeloConjuros: infoLanzador.modelo
+            modeloConjuros: infoLanzador.modelo,
+            listaConjuros: infoLanzador.listaConjuros
           }
         ];
         const recursos = calcularTodosRecursosMagicos(
@@ -126,7 +127,8 @@ export const crearSubSlicePersonajesBase: StateCreator<
                 nivel: fusionado.nivel,
                 tipoLanzador: info.tipo,
                 habilidadConjuro: info.habilidad,
-                modeloConjuros: info.modelo
+                modeloConjuros: info.modelo,
+                listaConjuros: info.listaConjuros
               }
             ];
             const recursos = calcularTodosRecursosMagicos(clases, fusionado.overrideEspaciosConjuro, fusionado.overridePuntosConjuro);

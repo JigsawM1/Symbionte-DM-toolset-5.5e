@@ -25,6 +25,7 @@ export interface ConfiguracionMagicaClase {
   habilidadConjuro: Caracteristica;
   modeloConjuros: ModeloConjuros;
   nivelInicio: number;
+  listaConjuros?: string;
 }
 
 /**

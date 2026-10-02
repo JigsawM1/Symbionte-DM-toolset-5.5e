@@ -527,10 +527,12 @@ export function aplicarEspecieAPersonaje(
 /**
  * Determina de forma tolerante si un nombre de rasgo corresponde a "Versátil" de Humano.
  */
-export function esRasgoVersatil(nombre: string): boolean {
+export function esRasgoVersatil(nombre: string, origen?: string): boolean {
   if (!nombre) return false;
+  if (origen && origen !== "especie") return false;
   const norm = normalizarTextoEspecie(nombre);
-  return norm === "versatil" || norm.includes("versatil");
+  if (norm.includes("embaucador")) return false;
+  return norm === "versatil" || norm === "humano: versatil" || (norm.includes("versatil") && norm.includes("humano"));
 }
 
 /**

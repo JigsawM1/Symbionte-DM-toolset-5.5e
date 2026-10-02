@@ -2,6 +2,7 @@ import type { PersonajeJugador } from "@/tipos";
 import { recargarCargasItem } from "@/servicios/procesadorConsumibles";
 import {
   evaluarRecuperacionInspiracionEnDescanso,
+  evaluarReduccionCansancioDescansoCorto,
   calcularUsosMaximosRasgo
 } from "@/servicios/evaluadorEfectosRasgos";
 
@@ -163,6 +164,22 @@ export function ejecutarDescansoCorto(
     }
   }
 
+  // Reducir Cansancio / Agotamiento en Descanso Corto si posee rasgo activo (ej. Incansable de Explorador Nv. 10)
+  let cansancioNuevoCorto = personaje.cansancio ?? 0;
+  const reduccionCansancio = evaluarReduccionCansancioDescansoCorto(personaje);
+  if (reduccionCansancio > 0 && cansancioNuevoCorto > 0) {
+    const cansancioPrevio = cansancioNuevoCorto;
+    cansancioNuevoCorto = Math.max(0, cansancioNuevoCorto - reduccionCansancio);
+    const reduccionEfectiva = cansancioPrevio - cansancioNuevoCorto;
+    if (reduccionEfectiva > 0) {
+      acciones.push({
+        tipo: "cansancio",
+        descripcion: `Cansancio reducido en ${reduccionEfectiva} nivel (${cansancioPrevio} -> ${cansancioNuevoCorto}) por rasgo.`,
+        cambio: -reduccionEfectiva
+      });
+    }
+  }
+
   const personajeActualizado: PersonajeJugador = {
     ...personaje,
     hpActual: hpNuevo,
@@ -170,7 +187,8 @@ export function ejecutarDescansoCorto(
     salvacionesMuerte: { exitos: 0, fallos: 0 },
     espaciosPactoGastados: espaciosPactoGastadosNuevos,
     rasgos: rasgosActualizadosCorto,
-    inspiracion: inspiracionNuevaCorto
+    inspiracion: inspiracionNuevaCorto,
+    cansancio: cansancioNuevoCorto
   };
 
   return { personajeActualizado, acciones };

@@ -493,19 +493,13 @@
           "subclase": "Caballero Arcano"
         }
       ],
-      "progresionConjuros": [
-        {
-          "nivelClase": 3,
-          "trucos": [
-            "2 trucos de Mago a elección"
-          ]
-        }
-      ],
+      "progresionConjuros": [],
       "configuracionMagica": {
         "tipoLanzador": "tercio",
         "habilidadConjuro": "inteligencia",
         "modeloConjuros": "preparados",
-        "nivelInicio": 3
+        "nivelInicio": 3,
+        "listaConjuros": "mago"
       }
     },
     {

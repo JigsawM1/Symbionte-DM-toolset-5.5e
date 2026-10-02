@@ -220,7 +220,8 @@ export const EsquemaClaseLanzadora = z.object({
   nivel: z.number().int().min(1).max(20),
   tipoLanzador: EsquemaTipoLanzador,
   habilidadConjuro: EsquemaCaracteristica.nullable().default(null),
-  modeloConjuros: EsquemaModeloConjuros.default("ninguno")
+  modeloConjuros: EsquemaModeloConjuros.default("ninguno"),
+  listaConjuros: z.string().optional()
 });
 export type ClaseLanzadora = z.infer<typeof EsquemaClaseLanzadora>;
 

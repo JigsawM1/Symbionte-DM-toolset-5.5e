@@ -3,18 +3,8 @@ import type { PersonajeJugador, TipoTerreno } from "@/tipos";
 import { INFORMACION_TERRENO } from "@/tipos";
 import type { InformacionCA, PenalizacionArmadura } from "@/almacen/selectores/usarEstadoPersonajes";
 import {
-  Shield,
-  Zap,
-  Footprints,
-  Award,
-  Sparkles,
-  AlertTriangle,
-  RotateCcw,
-  RefreshCw,
-  Plus,
-  Minus,
-  X,
-  Mountain
+  Shield, Zap, Footprints, Award, Sparkles, AlertTriangle,
+  RotateCcw, RefreshCw, Plus, Minus, X, Mountain
 } from "lucide-react";
 import { TooltipUniversal } from "@/componentes/comunes";
 import { obtenerVelocidadesEfectivas, calcularBonoIniciativaRasgos } from "@/servicios/evaluadorEfectosRasgos";
@@ -82,6 +72,15 @@ const MetricasRapidasPersonajeComponent: React.FC<MetricasRapidasPersonajeProps>
   const bonoIniciativaRasgos = calcularBonoIniciativaRasgos(personaje);
   const iniciativaTotal = modDestreza + (personaje.iniciativaBono || 0) + bonoIniciativaRasgos;
   const textoIniciativa = iniciativaTotal >= 0 ? `+${iniciativaTotal}` : `${iniciativaTotal}`;
+
+  const desglosesIniciativa: string[] = [`Destreza (${modDestreza >= 0 ? `+${modDestreza}` : modDestreza})`];
+  if (personaje.iniciativaBono) {
+    desglosesIniciativa.push(`Manual (${personaje.iniciativaBono >= 0 ? `+${personaje.iniciativaBono}` : personaje.iniciativaBono})`);
+  }
+  if (bonoIniciativaRasgos) {
+    desglosesIniciativa.push(`Rasgos/Dotes (${bonoIniciativaRasgos >= 0 ? `+${bonoIniciativaRasgos}` : bonoIniciativaRasgos})`);
+  }
+  const desgloseIniciativaTexto = desglosesIniciativa.join(" + ");
 
   // 2. Velocidad Base y Efectiva
   const velocidades = obtenerVelocidadesEfectivas(personaje);
@@ -192,7 +191,7 @@ const MetricasRapidasPersonajeComponent: React.FC<MetricasRapidasPersonajeProps>
       {/* 2. Iniciativa */}
       <TooltipUniversal
         titulo="Iniciativa"
-        contenido={`Tirada de Iniciativa: 1d20 ${textoIniciativa} (Destreza).\nHaz clic para tirar iniciativa en TaleSpire.`}
+        contenido={`Tirada de Iniciativa: 1d20 ${textoIniciativa} [${desgloseIniciativaTexto}].\nHaz clic para tirar iniciativa en TaleSpire.`}
         posicion="abajo"
         className={estilos.contenedorTooltipMetrica}
       >

@@ -3,6 +3,7 @@
   "name": "Pantalla de DM D&D 5.5e - ToolSet Es 5.5",
   "version": "1.0.0",
   "entryPoint": "/index.html",
+  "summary": "Pantalla de DM asimétrica y densa optimizada para TaleSpire y D&D 5.5e (2024)",
   "about": {
     "authors": [
       "JigsawM1"
@@ -11,6 +12,7 @@
     "website": "https://github.com/PanoramicPanda/vite-react-symbiote"
   },
   "environment": {
+    "webViewBackgroundColor": "#0c0f13",
     "capabilities": [
       "runInBackground"
     ],
@@ -37,7 +39,14 @@
       },
       "clients": {
         "onClientEvent": "manejarEventoCliente"
+      },
+      "sync": {
+        "onSyncMessage": "manejarMensajeSync",
+        "onClientEvent": "manejarEventoClienteSync"
       }
+    },
+    "interop": {
+      "id": "5b8d96e5-4d22-48f8-b391-768a44b584d9"
     }
   }
 }

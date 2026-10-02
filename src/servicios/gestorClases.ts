@@ -28,6 +28,7 @@ import {
   tieneMedioBonoHabilidades,
   aplicarAprendizDeMuchoAGradosHabilidades,
   obtenerCompetenciasExtraRasgos,
+  sonHerramientasEquivalentes,
   evaluarExpresionNumericaSegura
 } from "@/servicios/evaluadorEfectosRasgos";
 
@@ -352,9 +353,11 @@ export function obtenerOpcionesDotesEstiloCombate(claseId: string): import("@/ti
     return true;
   });
 
-  // Si es paladín, colocar Guerrero bendecido al principio; en caso contrario Defensa
+  // Si es paladín, colocar Guerrero bendecido al principio; si es explorador, Guerrero druídico; en caso contrario Defensa
   const dotePorDefectoId = normClase.includes("paladin")
     ? "dote_estilo_guerrero_bendito"
+    : normClase.includes("explorador") || normClase.includes("ranger")
+    ? "dote_estilo_guerrero_druidico"
     : "dote_estilo_defensa";
 
   const primera = dotesPermitidas.find((d) => d.id === dotePorDefectoId);
@@ -394,6 +397,8 @@ export function crearSelectorDoteEstiloCombate(claseId: string, nivel: number): 
   const normClase = normalizarTextoClase(claseId);
   const dotePorDefectoId = normClase.includes("paladin")
     ? "dote_estilo_guerrero_bendito"
+    : normClase.includes("explorador") || normClase.includes("ranger")
+    ? "dote_estilo_guerrero_druidico"
     : "dote_estilo_defensa";
 
   return {
@@ -740,6 +745,7 @@ export function obtenerRasgosClaseYSubclase(
       tieneUsosLimitados: !!r.tieneUsosLimitados,
       usosMaximos: usosFinales,
       usosRestantes: usosFinales,
+      formulaEscalado: r.formulaEscalado || (r.formulaUsos ?? undefined),
       recuperacion: (escalados.recuperacion ?? r.recuperacion ?? "ninguno") as RecuperacionRasgo,
       formulaDados: escalados.formulaDados,
       escaladoFormulaDados: r.escaladoFormulaDados,
@@ -765,7 +771,6 @@ export function obtenerRasgosClaseYSubclase(
       noGastarAlTirarDados: !!r.noGastarAlTirarDados,
       categoriaMecanica: r.categoriaMecanica,
       costeFijo: r.costeFijo,
-      formulaEscalado: r.formulaEscalado,
       efectos: escalados.efectos,
       selectores: escalados.selectores,
       tablaProgresion: r.tablaProgresion ? JSON.parse(JSON.stringify(r.tablaProgresion)) : undefined,
@@ -1102,7 +1107,8 @@ export function aplicarBuildClaseAPersonaje(
           nivel: nuevoNivel,
           tipoLanzador: build.configuracionMagica.tipoLanzador,
           habilidadConjuro: build.configuracionMagica.habilidadConjuro,
-          modeloConjuros: build.configuracionMagica.modeloConjuros
+          modeloConjuros: build.configuracionMagica.modeloConjuros,
+          listaConjuros: build.configuracionMagica.listaConjuros
         }
       ];
       const recursos = calcularTodosRecursosMagicos(
@@ -1193,12 +1199,53 @@ export function aplicarBuildClaseAPersonaje(
     new Set([...(competenciasArmasGrupos || []), ...compSubclase.armasGrupos])
   );
 
+  // Fusión de salvaciones procedentes de rasgos de clase o subclase (ej. Mente escurridiza)
+  const salvacionesPersistentes: CompetenciasSalvacion = {
+    fuerza: competenciasSalvacion.fuerza || compSubclase.salvaciones.includes("fuerza"),
+    destreza: competenciasSalvacion.destreza || compSubclase.salvaciones.includes("destreza"),
+    constitucion: competenciasSalvacion.constitucion || compSubclase.salvaciones.includes("constitucion"),
+    inteligencia: competenciasSalvacion.inteligencia || compSubclase.salvaciones.includes("inteligencia"),
+    sabiduria: competenciasSalvacion.sabiduria || compSubclase.salvaciones.includes("sabiduria"),
+    carisma: competenciasSalvacion.carisma || compSubclase.salvaciones.includes("carisma")
+  };
+
+  // Fusión de herramientas procedentes de rasgos
+  const listaHerramientasActual: string[] = [
+    ...(personaje.herramientasLista || []),
+    ...(personaje.herramientas && personaje.herramientas !== "Ninguna"
+      ? personaje.herramientas.split(",").map((h) => h.trim()).filter(Boolean)
+      : [])
+  ];
+  for (const h of compSubclase.herramientas) {
+    if (!listaHerramientasActual.some((existente) => sonHerramientasEquivalentes(existente, h))) {
+      listaHerramientasActual.push(h);
+    }
+  }
+
+  // Fusión de idiomas procedentes de rasgos (ej. Jerga de ladrones)
+  const listaIdiomasActual: string[] = [
+    ...(personaje.idiomasLista || []),
+    ...(personaje.idiomas && personaje.idiomas !== "Ninguno" && personaje.idiomas !== "Ninguna"
+      ? personaje.idiomas.split(",").map((i) => i.trim()).filter(Boolean)
+      : [])
+  ];
+  for (const idm of compSubclase.idiomas) {
+    if (!listaIdiomasActual.some((existente) => normalizarTextoClase(existente) === normalizarTextoClase(idm))) {
+      listaIdiomasActual.push(idm);
+    }
+  }
+
   const personajeConRasgos: PersonajeJugador = {
     ...personajeIntermedio,
+    competenciasSalvacion: salvacionesPersistentes,
     competenciasArmas: armasTextoPersistente,
     competenciasArmaduras: armadurasTextoPersistente,
     competenciasArmadurasGrupos: gruposArmadurasPersistentes,
     competenciasArmasGrupos: gruposArmasPersistentes,
+    herramientas: listaHerramientasActual.length > 0 ? listaHerramientasActual.join(", ") : (personaje.herramientas || "Ninguna"),
+    herramientasLista: listaHerramientasActual,
+    idiomas: listaIdiomasActual.length > 0 ? listaIdiomasActual.join(", ") : (personaje.idiomas || "Común"),
+    idiomasLista: listaIdiomasActual.length > 0 ? listaIdiomasActual : (personaje.idiomasLista || ["Común"]),
     rasgos: rasgosFinales
   };
 

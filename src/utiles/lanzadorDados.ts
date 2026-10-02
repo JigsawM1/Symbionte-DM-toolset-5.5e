@@ -676,6 +676,13 @@ export async function lanzarDadosTaleSpire(
         for (let i = 0; i < numDados; i++) {
           totalDado += Math.floor(Math.random() * caraDado) + 1;
         }
+        // Extraer bonificador o penalizador numérico constante (ej. +3 o -1)
+        const restoFormula = formulaLimpia.replace(/(\d+)d(\d+)/i, "").trim();
+        const matchBono = restoFormula.match(/([+-]\s*\d+)/);
+        if (matchBono) {
+          const bonoConstante = parseInt(matchBono[1].replace(/\s+/g, ""), 10) || 0;
+          totalDado = Math.max(1, totalDado + bonoConstante);
+        }
       } else {
         const matchNum = formulaLimpia.match(/\b\d+\b/);
         totalDado = matchNum ? parseInt(matchNum[0], 10) : 0;

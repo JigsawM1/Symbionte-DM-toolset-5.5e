@@ -286,7 +286,7 @@ export function sincronizarRasgosAutomaticos(personaje: PersonajeJugador): Rasgo
         };
       }
       dotesAsiGeneradas.push(doteConstruida);
-    } else if (esRasgoVersatil(nuevo.nombre)) {
+    } else if (nuevo.origen === "especie" && esRasgoVersatil(nuevo.nombre, nuevo.origen)) {
       const selectorDote = nuevo.selectores?.find((s) => s.id.includes("dote_origen") || s.id.includes("versatil"));
       const idDoteSeleccionada = selectorDote?.valorActual?.[0] || "dote_alerta";
       let doteConstruida = construirDoteDeVersatil(nuevo, idDoteSeleccionada);

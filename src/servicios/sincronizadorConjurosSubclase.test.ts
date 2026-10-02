@@ -87,5 +87,59 @@ describe("sincronizadorConjurosSubclase", () => {
     expect(clerigoLuz.conjurosSiemprePreparadosIds).toBeDefined();
     expect(clerigoLuz.conjurosSiemprePreparadosIds.length).toBeGreaterThan(0);
   });
+
+  it("debe agregar Mano de mago para Pícaro Embaucador Arcano y limpiar placeholders", () => {
+    const picaroEmbaucador: PersonajeJugador = {
+      ...PERSONAJE_POR_DEFECTO,
+      id: "pj_picaro_test",
+      nombre: "Pícaro Tramposo",
+      clase: "Pícaro",
+      subclase: "Embaucador Arcano",
+      nivel: 3,
+      clases: [{ nombre: "Pícaro", subclase: "Embaucador Arcano", nivel: 3 }],
+      esLanzador: true,
+      clasesLanzadoras: [
+        {
+          clase: "Pícaro",
+          tipoLanzador: "tercio",
+          nivel: 3,
+          habilidadConjuro: "inteligencia",
+          modeloConjuros: "conocidos",
+          listaConjuros: "mago"
+        }
+      ],
+      conjurosSiemprePreparadosIds: [],
+      conjurosPreparadosIds: [],
+      conjurosConocidosIds: [],
+      trucosConocidosIds: ["2 trucos de Mago a elección"]
+    };
+
+    const sincronizado = sincronizarConjurosSubclaseHelper(picaroEmbaucador);
+
+    // Debe incluir Mano de mago
+    expect(sincronizado.trucosConocidosIds).toContain("Mano de mago");
+    // No debe contener el placeholder de texto
+    expect(sincronizado.trucosConocidosIds).not.toContain("2 trucos de Mago a elección");
+    // conjurosSiemprePreparadosIds debe mantenerse vacío (no hay conjuros fijos de subclase)
+    expect(sincronizado.conjurosSiemprePreparadosIds).toEqual([]);
+  });
+
+  it("debe retornar la misma referencia si el personaje ya está sincronizado", () => {
+    const picaroSincronizado: PersonajeJugador = {
+      ...PERSONAJE_POR_DEFECTO,
+      id: "pj_picaro_sync",
+      clase: "Pícaro",
+      subclase: "Embaucador Arcano",
+      nivel: 3,
+      clases: [{ nombre: "Pícaro", subclase: "Embaucador Arcano", nivel: 3 }],
+      conjurosSiemprePreparadosIds: [],
+      conjurosPreparadosIds: [],
+      conjurosConocidosIds: [],
+      trucosConocidosIds: ["Mano de mago"]
+    };
+
+    const resultado = sincronizarConjurosSubclaseHelper(picaroSincronizado);
+    expect(resultado).toBe(picaroSincronizado);
+  });
 });
 

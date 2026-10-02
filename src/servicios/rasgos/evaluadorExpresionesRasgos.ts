@@ -384,6 +384,7 @@ export function resolverFormulaDinamica(
   const nivelMonje = obtenerNivelClasePersonaje(personaje, "monje") || nivelClase;
   const nivelPaladin = obtenerNivelClasePersonaje(personaje, "paladin") || nivelClase;
   const nivelPicaro = obtenerNivelClasePersonaje(personaje, "picaro") || nivelClase;
+  const nivelExplorador = obtenerNivelClasePersonaje(personaje, "explorador") || nivelClase;
   const bonoFuria = obtenerBonoDanoFuria(nivelBarbaro);
   const bonoCompetencia = Math.floor((nivelGlobal - 1) / 4) + 2;
 
@@ -428,7 +429,6 @@ export function resolverFormulaDinamica(
     .replace(/nivel_monje/gi, String(nivelMonje))
     .replace(/nivel_paladin/gi, String(nivelPaladin))
     .replace(/nivel_picaro/gi, String(nivelPicaro))
-    .replace(/nivel_brujo/gi, String(nivelBrujo))
     .replace(/\bnivel\b/gi, String(nivelClase))
     .replace(/\b(constitucion|con)\b/gi, String(modCon))
     .replace(/\b(fuerza|fue|str)\b/gi, String(modFue))

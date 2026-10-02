@@ -140,4 +140,48 @@ describe("MetricasRapidasPersonaje - Simetría y Tooltips de Métricas", () => {
     expect(html).toContain("/60");
     expect(html).toContain("valorMetricaCarrera");
   });
+
+  it("desglosa con precisión las fuentes de iniciativa en el tooltip cuando intervienen rasgos/dotes y destreza", () => {
+    const personajeConRasgos: PersonajeJugador = {
+      ...personajeBase,
+      iniciativaBono: 0,
+      nivel: 13,
+      rasgos: [
+        {
+          id: "dote_alerta",
+          nombre: "Alerta",
+          descripcion: "+PB a iniciativa",
+          tipoAccion: "pasivo",
+          origen: "dote",
+          fuente: "Dote: Alerta",
+          tieneUsosLimitados: false,
+          recuperacion: "ninguno",
+          personalizado: false,
+          notas: "",
+          activo: true,
+          efectos: [
+            {
+              tipo: "modificador_stat",
+              objetivo: "iniciativa",
+              valor: "bono_competencia",
+              descripcion: "+PB a Iniciativa"
+            }
+          ]
+        }
+      ]
+    };
+
+    const html = renderToStaticMarkup(
+      <MetricasRapidasPersonaje
+        {...propsBase}
+        personaje={personajeConRasgos}
+        modDestreza={0}
+      />
+    );
+
+    expect(html).toContain("+5");
+    expect(html).toContain("Iniciativa");
+  });
 });
+
+

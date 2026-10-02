@@ -110,6 +110,15 @@
   font-weight: 500;
 }
 
+.celdaTextoEnmarcada {
+  padding: 8px 14px;
+  text-align: center;
+  color: #cbd5e1;
+  line-height: 1.45;
+  font-size: 13px;
+  font-weight: 500;
+}
+
 .thGenerico {
   padding: 8px 12px;
   text-align: left;

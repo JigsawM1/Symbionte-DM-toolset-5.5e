@@ -41,7 +41,7 @@
       "nivel": 1,
       "nombre": "Artes marciales",
       "descripcion": "La práctica de las artes marciales te ha otorgado un dominio de los estilos de combate que emplean ataques sin armas y armas de monje, que son las siguientes:\n- Armas cuerpo a cuerpo sencillas\n- Armas cuerpo a cuerpo marciales que tengan la propiedad \"ligera\"\nObtienes los siguientes beneficios mientras no lleves armadura ni portes un *escudo* y estés desarmado o empuñes únicamente armas de monje:\n\n***Ataque sin armas adicional.*** Puedes hacer un ataque sin armas como acción adicional.\n\n***Dado de Artes marciales.*** Puedes tirar 1d6 en lugar del daño normal de tus ataques sin armas o tus armas de monje. Este dado cambia conforme subes de nivel de monje, como se muestra en la tabla de progresión.\n\n***Ataques diestros.*** Puedes usar tu modificador por Destreza en lugar de tu modificador por Fuerza para las tiradas de ataque y de daño de tus ataques sin armas y tus armas de monje. Además, cuando uses las opciones de presa o empujón de tu ataque sin armas, puedes usar tu modificador por Destreza en lugar de tu modificador por Fuerza para determinar la CD de salvación.",
-      "tipoAccion": "accion_adicional",
+      "tipoAccion": "pasiva",
       "formulaDados": "1d6",
       "escaladoFormulaDados": [
         {
@@ -125,7 +125,7 @@
     {
       "nivel": 2,
       "nombre": "Concentración de monje",
-      "descripcion": "Tu concentración y tu entrenamiento marcial te permiten utilizar una reserva interna de energía extraordinaria. Esta energía se representa mediante los puntos de concentración. Tu nivel de monje determina cuántos de estos puntos posees.\nPuedes gastar estos puntos para mejorar o alimentar determinados rasgos de monje. Empiezas con tres de estos rasgos: Ráfaga de golpes, Defensa paciente y Paso del viento, que se detallan a continuación.\nCuando gastes un punto de concentración, no estará disponible hasta que finalices un descanso corto o largo, tras el cual recuperarás todos los puntos gastados.\nAlgunos rasgos que usan puntos de concentración requieren que tu objetivo haga una tirada de salvación. La CD de salvación es igual a 8 más tu modificador por Sabiduría y tu bonificador por competencia.",
+      "descripcion": "Tu concentración y tu entrenamiento marcial te permiten utilizar una reserva interna de energía extraordinaria. Esta energía se representa mediante los puntos de concentración. Tu nivel de monje determina cuántos de estos puntos posees.\n\nPuedes gastar estos puntos para mejorar o alimentar determinados rasgos de monje. Empiezas con tres de estos rasgos: *Ráfaga de golpes*, *Defensa paciente* y *Paso del viento*, que se detallan a continuación.\n\nCuando gastes un punto de concentración, no estará disponible hasta que finalices un descanso corto o largo, tras el cual recuperarás todos los puntos gastados.\n\nAlgunos rasgos que usan puntos de concentración requieren que tu objetivo haga una tirada de salvación. La CD de salvación es igual a 8 más tu modificador por Sabiduría y tu bonificador por competencia.",
       "tipoAccion": "pasivo",
       "tieneUsosLimitados": true,
       "recuperacion": "descanso_corto",
@@ -306,7 +306,7 @@
     {
       "nivel": 2,
       "nombre": "Metabolismo asombroso",
-      "descripcion": "Cuando tires iniciativa, puedes recuperar todos los puntos de concentración gastados. Cuando lo hagas, tira tu dado de Artes marciales y recupera una cantidad de puntos de golpe igual a tu nivel de monje más el resultado obtenido.\nCuando uses este rasgo, no podrás volver a hacerlo hasta que finalices un descanso largo.",
+      "descripcion": "Cuando tires iniciativa, puedes recuperar todos los puntos de concentración gastados. Cuando lo hagas, tira tu dado de Artes marciales y recupera una cantidad de puntos de golpe igual a tu nivel de monje más el resultado obtenido.\n\nCuando uses este rasgo, no podrás volver a hacerlo hasta que finalices un descanso largo.",
       "tipoAccion": "especial",
       "tieneUsosLimitados": true,
       "formulaUsos": "1",
@@ -335,7 +335,7 @@
     {
       "nivel": 3,
       "nombre": "Desviar ataques",
-      "descripcion": "Cuando una tirada de ataque te acierte y su daño incluya los tipos contundente, cortante o perforante, puedes usar una reacción para reducir el daño total que sufras del ataque. Se reducirá en 1d10 más tu modificador por Destreza y nivel de monje.\nSi reduces el daño a 0, puedes gastar 1 punto de concentración para redirigir una parte de la fuerza del ataque. Si lo haces, elige una criatura que puedas ver a 5 pies o menos de ti si el ataque fue cuerpo a cuerpo o una criatura que puedas ver a 60 pies o menos de ti que no esté tras cobertura completa si el ataque fue a distancia. Esa criatura deberá superar una tirada de salvación de Destreza o sufrirá una cantidad de daño igual al resultado de dos tiradas de tu dado de Artes marciales más tu modificador por Destreza. El daño será del mismo tipo que inflija el ataque.",
+      "descripcion": "Cuando una tirada de ataque te acierte y su daño incluya los tipos *contundente*, *cortante* o *perforante*, puedes usar una reacción para reducir el daño total que sufras del ataque. Se reducirá en 1d10 más tu modificador por Destreza y nivel de monje.\n\nSi reduces el daño a 0, puedes gastar 1 punto de concentración para redirigir una parte de la fuerza del ataque. Si lo haces, elige una criatura que puedas ver a 5 pies o menos de ti si el ataque fue cuerpo a cuerpo o una criatura que puedas ver a 60 pies o menos de ti que no esté tras cobertura completa si el ataque fue a distancia. Esa criatura deberá superar una tirada de salvación de Destreza o sufrirá una cantidad de daño igual al resultado de dos tiradas de tu dado de Artes marciales más tu modificador por Destreza. El daño será del mismo tipo que inflija el ataque.",
       "tipoAccion": "reaccion",
       "formulaDados": "1d10",
       "gastarDePadre": true,
@@ -365,12 +365,12 @@
       "nivel": 5,
       "nombre": "Ataque adicional",
       "descripcion": "Puedes atacar dos veces en lugar de una cada vez que realices la acción de atacar en tu turno.",
-      "tipoAccion": "accion"
+      "tipoAccion": "pasiva"
     },
     {
       "nivel": 5,
       "nombre": "Golpe aturdidor",
-      "descripcion": "Una vez por turno, cuando aciertes a una criatura con un arma de monje o un ataque sin armas, puedes gastar 1 punto de concentración para intentar asestar un golpe aturdidor. El objetivo debe hacer una tirada de salvación de Constitución. Si falla la tirada, el objetivo tendrá el estado de aturdido hasta el comienzo de tu siguiente turno. Si la supera, la velocidad del objetivo se reduce a la mitad hasta el comienzo de tu siguiente turno, y la siguiente tirada de ataque que se haga contra el objetivo antes de ese momento tendrá ventaja.",
+      "descripcion": "Una vez por turno, cuando aciertes a una criatura con un arma de monje o un ataque sin armas, puedes gastar 1 punto de concentración para intentar asestar un golpe aturdidor. El objetivo debe hacer una tirada de salvación de Constitución. Si falla la tirada, el objetivo tendrá el estado de *aturdido* hasta el comienzo de tu siguiente turno. Si la supera, la velocidad del objetivo se reduce a la mitad hasta el comienzo de tu siguiente turno, y la siguiente tirada de ataque que se haga contra el objetivo antes de ese momento tendrá ventaja.",
       "tipoAccion": "especial",
       "categoriaMecanica": "consumible",
       "gastarDePadre": true,
@@ -391,7 +391,7 @@
     {
       "nivel": 7,
       "nombre": "Evasión",
-      "descripcion": "Cuando estés sujeto a un efecto que te permita hacer una tirada de salvación de Destreza para sufrir solo la mitad de daño, en su lugar no sufrirás ningún daño si tienes éxito en la tirada de salvación y solo la mitad si la fallas.\nNo te beneficias de este rasgo si tienes el estado de incapacitado.",
+      "descripcion": "Cuando estés sujeto a un efecto que te permita hacer una tirada de salvación de Destreza para sufrir solo la mitad de daño, en su lugar no sufrirás ningún daño si tienes éxito en la tirada de salvación y solo la mitad si la fallas.\n\nNo te beneficias de este rasgo si tienes el estado de incapacitado.",
       "tipoAccion": "pasivo"
     },
     {
@@ -417,7 +417,7 @@
     {
       "nivel": 10,
       "nombre": "Autorrestablecimiento",
-      "descripcion": "A base de pura fuerza de voluntad, puedes eliminar uno de los siguientes estados de ti mismo al final de cada uno de tus turnos: asustado, envenenado o hechizado.\nAdemás, privarte de comida y bebida no te da niveles de agotamiento.",
+      "descripcion": "A base de pura fuerza de voluntad, puedes eliminar uno de los siguientes estados de ti mismo al final de cada uno de tus turnos: *asustado*, *envenenado* o *hechizado*.\n\nAdemás, privarte de comida y bebida no te da niveles de agotamiento.",
       "tipoAccion": "pasivo"
     },
     {
@@ -644,7 +644,7 @@
           "nivel": 3,
           "nombre": "Artes de la sombra - Oscuridad",
           "descripcion": "Has aprendido a extraer el poder del Páramo Sombrío, obteniendo los siguientes beneficios.\n\n***Oscuridad.*** Puedes gastar 1 punto de concentración para lanzar el conjuro *oscuridad* sin componentes de conjuro. Puedes ver dentro del área del conjuro cuando lo lanzas con este rasgo. Mientras el conjuro persiste, puedes mover su área de oscuridad a un espacio a 60 pies o menos de ti al comienzo de cada uno de tus turnos.\n\n***Visión en la oscuridad.*** Ganas visión en la oscuridad a una distancia de 60 pies. Si ya tienes visión en la oscuridad, su alcance aumenta en 60 pies.\n\n***Ficciones sombrías.*** Conoces el conjuro *ilusión menor*. La Sabiduría es tu aptitud mágica para este.",
-          "tipoAccion": "accion",
+          "tipoAccion": "pasivo",
           "subclase": "Guerrero de la sombra",
           "categoriaMecanica": "consumible",
           "gastarDePadre": true,
@@ -686,7 +686,7 @@
           "nivel": 11,
           "nombre": "Paso de la sombra mejorado",
           "descripcion": "Puedes recurrir a tu conexión con el Páramo Sombrío para potenciar tu teletransporte. Cuando uses tu Paso de la sombra, puedes gastar 1 punto de concentración para eliminar el requisito de tener que empezar y terminar en luz tenue u oscuridad para ese uso del rasgo. Como parte de esta acción adicional, puedes hacer un ataque sin armas inmediatamente después de teletransportarte.",
-          "tipoAccion": "accion_adicional",
+          "tipoAccion": "pasiva",
           "subclase": "Guerrero de la sombra",
           "categoriaMecanica": "extension",
           "ligadoA": "Paso de la sombra",
@@ -747,7 +747,7 @@
         {
           "nivel": 6,
           "nombre": "Estallido elemental",
-          "descripcion": "Como acción de magia, puedes gastar 2 puntos de concentración para provocar un estallido de energía elemental en una esfera de 20 pies de radio centrada en un punto a 120 pies o menos de ti. Elige un tipo de daño: ácido, fuego, frío, relámpago o trueno.\nCada criatura en la esfera deberá hacer una tirada de salvación de Destreza. Si falla la tirada, la criatura sufrirá una cantidad de daño del tipo elegido igual al resultado de tres tiradas de tu dado de Artes marciales. Si la supera, sufrirá la mitad de daño.",
+          "descripcion": "Como acción de magia, puedes gastar 2 puntos de concentración para provocar un estallido de energía elemental en una esfera de 20 pies de radio centrada en un punto a 120 pies o menos de ti. Elige un tipo de daño: ácido, fuego, frío, relámpago o trueno.\n\nCada criatura en la esfera deberá hacer una tirada de salvación de Destreza. Si falla la tirada, la criatura sufrirá una cantidad de daño del tipo elegido igual al resultado de tres tiradas de tu dado de Artes marciales. Si la supera, sufrirá la mitad de daño.",
           "tipoAccion": "accion",
           "subclase": "Guerrero de los elementos",
           "categoriaMecanica": "consumible",
@@ -845,7 +845,7 @@
         {
           "nivel": 6,
           "nombre": "Plenitud corporal",
-          "descripcion": "Ganas la capacidad de curarte a ti mismo. Como acción adicional, puedes tirar tu dado de Artes marciales. Recuperas una cantidad de puntos de golpe igual al resultado obtenido más tu modificador por Sabiduría (mínimo 1 punto de golpe recuperado).\nPuedes usar este rasgo una cantidad de veces igual a tu modificador por Sabiduría (mínimo una vez), y recuperas todos los usos gastados cuando finalices un descanso largo.",
+          "descripcion": "Ganas la capacidad de curarte a ti mismo. Como acción adicional, puedes tirar tu dado de Artes marciales. Recuperas una cantidad de puntos de golpe igual al resultado obtenido más tu modificador por Sabiduría (mínimo 1 punto de golpe recuperado).\n\nPuedes usar este rasgo una cantidad de veces igual a tu modificador por Sabiduría (mínimo una vez), y recuperas todos los usos gastados cuando finalices un descanso largo.",
           "tipoAccion": "accion_adicional",
           "subclase": "Guerrero de la mano abierta",
           "categoriaMecanica": "curacion",
@@ -876,14 +876,14 @@
           "nivel": 11,
           "nombre": "Paso veloz",
           "descripcion": "Cuando lleves a cabo una acción adicional que no sea Paso del viento, también podrás usar Paso del viento inmediatamente después de esa acción adicional.",
-          "tipoAccion": "accion_adicional",
+          "tipoAccion": "pasivo",
           "categoriaMecanica": "pasivo_permanente",
           "subclase": "Guerrero de la mano abierta"
         },
         {
           "nivel": 17,
           "nombre": "Palma trémula",
-          "descripcion": "Ganas la capacidad de provocar vibraciones letales en el cuerpo de alguien. Cuando aciertes a una criatura con un ataque sin armas, podrás gastar 4 puntos de concentración para iniciar estas vibraciones imperceptibles, las cuales durarán una cantidad de días igual a tu nivel de monje. Las vibraciones serán inofensivas a menos que utilices una acción para ponerles fin. De manera alternativa, cuando lleves a cabo la acción de atacar en tu turno, podrás renunciar a uno de los ataques para poner fin a las vibraciones. Para ponerles fin, tú y el objetivo deberéis estar en el mismo plano de existencia. Cuando les pongas fin, el objetivo deberá hacer una tirada de salvación de Constitución, sufriendo 10d12 de daño de fuerza si falla la tirada o la mitad de daño si la supera.\nSolo puedes tener a una criatura bajo los efectos de este rasgo a la vez. Puedes poner fin a las vibraciones de forma inofensiva (no requiere acción).",
+          "descripcion": "Ganas la capacidad de provocar vibraciones letales en el cuerpo de alguien. Cuando aciertes a una criatura con un ataque sin armas, podrás gastar 4 puntos de concentración para iniciar estas vibraciones imperceptibles, las cuales durarán una cantidad de días igual a tu nivel de monje. Las vibraciones serán inofensivas a menos que utilices una acción para ponerles fin. De manera alternativa, cuando lleves a cabo la acción de atacar en tu turno, podrás renunciar a uno de los ataques para poner fin a las vibraciones. Para ponerles fin, tú y el objetivo deberéis estar en el mismo plano de existencia. Cuando les pongas fin, el objetivo deberá hacer una tirada de salvación de Constitución, sufriendo 10d12 de daño de fuerza si falla la tirada o la mitad de daño si la supera.\n\nSolo puedes tener a una criatura bajo los efectos de este rasgo a la vez. Puedes poner fin a las vibraciones de forma inofensiva (no requiere acción).",
           "tipoAccion": "accion",
           "subclase": "Guerrero de la mano abierta",
           "categoriaMecanica": "consumible",

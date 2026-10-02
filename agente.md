@@ -17,6 +17,38 @@ Este archivo registra reglas globales, errores encontrados, sus causas raíz y l
    - **Bajo ninguna circunstancia** los módulos de lógica de negocio (`servicios/`), gestores de estado (`almacen/`), contratos (`tipos/`), valores de reglas (`constantes/`) ni funciones de soporte (`utiles/`) deben importar componentes visuales o archivos CSS (`componentes/`). Esta regla está reforzada en CI vía ESLint `no-restricted-imports`.
 6. **PROHIBICIÓN ESTRICTA DE BIFURCACIONES POR NOMBRE DE RASGO O CLASE (CATÁLOGO DECLARATIVO Y BUILDER PURO)**:
    - **Bajo ninguna circunstancia** los módulos de lógica de negocio (`servicios/`), gestores de estado (`almacen/`) o constructores (`gestorClases.ts`) deben contener bifurcaciones condicionales por nombre literal de rasgo o clase (`r.nombre === "..."`, `clase.includes("...")`, etc.).
+
+## [2026-10-02] Implementación Declarativa de la Clase Bárbaro y 4 Subclases Canónicas D&D 5.5e (PHB 2024)
+
+**Objetivo de la Integración:**
+- Actualizar e implementar con rigor los rasgos de la clase base Bárbaro (niveles 1 a 20) y sus 4 subclases canónicas (*Senda del Berserker*, *Senda del Corazón Salvaje*, *Senda del Árbol del Mundo*, *Senda del Fanático*) en `src/datos/clases/barbaro.json`.
+- Eliminar contadores y propiedades residuales en rasgos que se comportan como extensiones puras conforme a D&D 2024 (ej. *Furia implacable*).
+- Asignar `categoriaMecanica` obligatoria conforme al enum del proyecto a cada rasgo y estructurar sus efectos declarativos en esquemas Zod sin introducir bifurcaciones en TypeScript.
+
+**Decisiones Técnicas y Modificaciones Aplicadas:**
+1. **Clase Base Bárbaro:**
+   - *Furia* (Nv. 1): Consumible con 2 a 6 usos escalados por nivel, condición `"Furia (Rage)"`, efectos de bono de daño (`"dano_furia"`), ventaja en pruebas y salvaciones de Fuerza, y tabla de progresión visual de 8 filas.
+   - *Defensa sin armadura* (Nv. 1): Pasivo permanente con `permiteEscudo: true` explícito en su efecto de CA (`10 + DES + CON`).
+   - *Maestría con armas* (Nv. 1): Selector informativo interactivo con las 8 propiedades oficiales y escalado de 2 a 4 armas.
+   - *Sentido del peligro* (Nv. 2) y *Ataque temerario* (Nv. 2): Pasivo permanente y activable respectivamente con efectos declarativos de ventaja.
+   - *Subclase de bárbaro* (Nv. 3), *Ataque adicional* (Nv. 5), *Movimiento rápido* (Nv. 5), *Instinto salvaje* (Nv. 7), *Poderío indómito* (Nv. 18): Clasificados rigurosamente como `pasivo_permanente`.
+   - *Mejora de característica* (Niveles 4, 8, 12, 16) y *Don épico* (Nv. 19): Clasificados como `selector_informativo`.
+   - *Salto instintivo* (Nv. 7): Configurado como `extension` ligada a `Furia`, consolidándose en su descripción al entrar en Furia.
+   - *Golpe brutal* (Nv. 9): Activable ligado a `Ataque temerario`, con dado 1d10, selector de efectos iniciales y dinámicos a nv 13.
+   - *Furia implacable* (Nv. 11): Se corrigieron los contadores artificiales (`tieneUsosLimitados: true` y descanso corto) configurándolo como `extension` ligada a `Furia`. El builder la fusiona limpiamente vía `fusionarExtension()`.
+   - *Golpe brutal mejorado* (Nv. 13) y *(II)* (Nv. 17): Extensiones consolidadas en `Golpe brutal`.
+   - *Furia persistente* (Nv. 15): Consumible con 1 uso por descanso largo (`recuperacion: "descanso_largo"`), activable con toggle y disparo en tirada de iniciativa para recargar Furia.
+   - *Campeón primigenio* (Nv. 20): Efectos de +4 a Fuerza y Constitución con `limiteMaximo: 25`.
+2. **Subclases Canónicas:**
+   - **Senda del Berserker:** *Frenesí* (activable con dado escalable 2d6 a 4d6 y auto-desactivación), *Furia ciega* (pasivo permanente con efectos `inmunidad_condicion` a hechizado y asustado en furia), *Represalia* (reacción pasiva), *Presencia intimidante* (consumible 1 uso descanso largo ligado a Furia).
+   - **Senda del Corazón Salvaje:** *Hablante de los animales* y *Hablante de la naturaleza* (pasivos con `conjurosOtorgados` rituales), *Furia de las tierras salvajes*, *Aspecto* y *Poder* (selectores informativos con sus dádivas y efectos).
+   - **Senda del Árbol del Mundo:** *Vitalidad del Árbol* (dados 2d6 a 4d6 escalables para PV temporales de aliados), *Ramas del Árbol* (reacción pasiva), *Raíces golpeadoras* (+10 pies de alcance con pesadas/versátiles y doble maestría), *Viaje por el Árbol* (activable).
+   - **Senda del Fanático:** *Furia divina* (activable con daño secundario 1d6 + mitad nivel), *Guerrero de los dioses* (curación con dados 1d12 y reserva de 4 a 7 dados), *Enfoque fanático* (activable), *Presencia fervorosa* (consumible 1 uso) y *Furia de los dioses* (consumible activable).
+3. **Nueva Suite de Pruebas Unitarias (`src/servicios/barbaroMecanicasDND55.test.ts`):**
+   - 27 pruebas unitarias nuevas cubriendo íntegramente la progresión de la clase base y de las 4 subclases.
+4. **Validación Integral del Pipeline CI:**
+   - 98 suites y 1.480 pruebas aprobadas al 100%. TypeScript sin errores (`tsc --noEmit`), ESLint impecable (`--max-warnings=0`), auditoría de líneas aprobada y build de Vite exitoso en 8.67s.
+
 ## [2026-10-02] Restauración de Indicador de Nivel Actual en Tablas de Progresión de Rasgos (badge Actual y filaNivelActual)
 
 **Problema Reportado por el Usuario:**

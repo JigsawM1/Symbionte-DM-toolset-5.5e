@@ -172,6 +172,7 @@
           "objetivo": "defensa_sin_armadura",
           "valor": "constitucion",
           "condicion": "sin_armadura",
+          "permiteEscudo": true,
           "descripcion": "Defensa sin armadura (10 + DES + CON)",
           "activo": true
         }
@@ -320,7 +321,8 @@
       "nivel": 3,
       "nombre": "Subclase de bárbaro",
       "descripcion": "Consigues una subclase de bárbaro de tu elección. Una subclase es una especialización que te proporciona rasgos cuando alcanzas ciertos niveles de bárbaro. De aquí en adelante, obtienes todos los rasgos de tu subclase que sean de tu nivel de bárbaro e inferiores.",
-      "tipoAccion": "pasivo"
+      "tipoAccion": "pasivo",
+      "categoriaMecanica": "pasivo_permanente"
     },
     {
       "nivel": 3,
@@ -343,13 +345,15 @@
       "nivel": 4,
       "nombre": "Mejora de característica",
       "descripcion": "Obtienes la dote Mejora de característica u otra dote de tu elección para la que cumplas las condiciones. Vuelves a obtener este rasgo en los niveles 8, 12 y 16 de bárbaro.",
-      "tipoAccion": "pasivo"
+      "tipoAccion": "pasivo",
+      "categoriaMecanica": "selector_informativo"
     },
     {
       "nivel": 5,
       "nombre": "Ataque adicional",
       "descripcion": "Cuando lleves a cabo la acción de atacar en tu turno, podrás hacer dos ataques en lugar de uno.",
-      "tipoAccion": "pasivo"
+      "tipoAccion": "pasivo",
+      "categoriaMecanica": "pasivo_permanente"
     },
     {
       "nivel": 5,
@@ -372,7 +376,8 @@
       "nivel": 6,
       "nombre": "Rasgo de subclase",
       "descripcion": "Obtienes un rasgo de tu subclase de bárbaro.",
-      "tipoAccion": "pasivo"
+      "tipoAccion": "pasivo",
+      "categoriaMecanica": "pasivo_permanente"
     },
     {
       "nivel": 7,
@@ -395,13 +400,16 @@
       "nivel": 7,
       "nombre": "Salto instintivo",
       "descripcion": "Como parte de la acción adicional que usas para entrar en tu Furia, puedes moverte hasta la mitad de tu velocidad.",
-      "tipoAccion": "especial"
+      "tipoAccion": "especial",
+      "ligadoA": "rasgo_cls_barbaro_furia",
+      "categoriaMecanica": "extension"
     },
     {
       "nivel": 8,
       "nombre": "Mejora de característica",
       "descripcion": "Obtienes la dote Mejora de característica u otra dote de tu elección para la que cumplas las condiciones.",
-      "tipoAccion": "pasivo"
+      "tipoAccion": "pasivo",
+      "categoriaMecanica": "selector_informativo"
     },
     {
       "nivel": 9,
@@ -489,21 +497,23 @@
       "nivel": 10,
       "nombre": "Rasgo de subclase",
       "descripcion": "Obtienes un rasgo de tu subclase de bárbaro.",
-      "tipoAccion": "pasivo"
+      "tipoAccion": "pasivo",
+      "categoriaMecanica": "pasivo_permanente"
     },
     {
       "nivel": 11,
       "nombre": "Furia implacable",
       "descripcion": "Tu Furia puede mantenerte luchando a pesar de heridas graves. Si tus puntos de golpe se reducen a 0 mientras tu Furia está activa y no mueres en el acto, puedes hacer una tirada de salvación de Constitución CD 10. Si tienes éxito, tus puntos de golpe pasan a ser una cantidad igual al doble de tu nivel de bárbaro.\n\nCada vez que uses este rasgo después de la primera, la CD aumenta en 5. Cuando finalizas un descanso corto o largo, la CD se reinicia a 10.",
       "tipoAccion": "pasivo",
-      "tieneUsosLimitados": true,
-      "recuperacion": "descanso_corto"
+      "ligadoA": "rasgo_cls_barbaro_furia",
+      "categoriaMecanica": "extension"
     },
     {
       "nivel": 12,
       "nombre": "Mejora de característica",
       "descripcion": "Obtienes la dote Mejora de característica u otra dote de tu elección para la que cumplas las condiciones.",
-      "tipoAccion": "pasivo"
+      "tipoAccion": "pasivo",
+      "categoriaMecanica": "selector_informativo"
     },
     {
       "nivel": 13,
@@ -517,7 +527,8 @@
       "nivel": 14,
       "nombre": "Rasgo de subclase",
       "descripcion": "Obtienes un rasgo de tu subclase de bárbaro.",
-      "tipoAccion": "pasivo"
+      "tipoAccion": "pasivo",
+      "categoriaMecanica": "pasivo_permanente"
     },
     {
       "nivel": 15,
@@ -525,8 +536,19 @@
       "descripcion": "Cuando tires iniciativa, puedes recuperar todos los usos gastados de Furia. Después de recuperar usos de Furia de esta manera, no podrás volver a hacerlo hasta que finalices un descanso largo.\n\nAdemás, tu Furia es tan feroz que ahora dura 10 minutos sin necesidad de que hagas nada para extenderla ronda a ronda. Tu Furia termina antes si tienes el estado de inconsciente (no solo el estado de incapacitado) o si te pones una armadura pesada.",
       "tipoAccion": "pasivo",
       "tieneUsosLimitados": true,
+      "usosMaximos": 1,
       "formulaUsos": "1",
       "recuperacion": "descanso_largo",
+      "escaladoUsos": {
+        "tipo": "por_nivel",
+        "tabla": [
+          {
+            "nivelMinimo": 15,
+            "valor": 1
+          }
+        ],
+        "minimo": 1
+      },
       "esActivable": true,
       "autoDesactivar": true,
       "dispararAlTirarIniciativa": true,
@@ -534,13 +556,14 @@
         "idRasgoObjetivo": "rasgo_cls_barbaro_furia",
         "cantidad": "maximo"
       },
-      "categoriaMecanica": "activable"
+      "categoriaMecanica": "consumible"
     },
     {
       "nivel": 16,
       "nombre": "Mejora de característica",
       "descripcion": "Obtienes la dote Mejora de característica u otra dote de tu elección para la que cumplas las condiciones.",
-      "tipoAccion": "pasivo"
+      "tipoAccion": "pasivo",
+      "categoriaMecanica": "selector_informativo"
     },
     {
       "nivel": 17,
@@ -555,13 +578,15 @@
       "nivel": 18,
       "nombre": "Poderío indómito",
       "descripcion": "Si tu total en una prueba de Fuerza o tirada de salvación de Fuerza es menor que tu puntuación de Fuerza, puedes usar esa puntuación en lugar del total.",
-      "tipoAccion": "pasivo"
+      "tipoAccion": "pasivo",
+      "categoriaMecanica": "pasivo_permanente"
     },
     {
       "nivel": 19,
       "nombre": "Don épico",
       "descripcion": "Obtienes una dote de don épico u otra dote de tu elección para la que cumplas las condiciones. Se recomienda Don de la ofensiva irresistible.",
-      "tipoAccion": "pasivo"
+      "tipoAccion": "pasivo",
+      "categoriaMecanica": "selector_informativo"
     },
     {
       "nivel": 20,
@@ -574,6 +599,7 @@
           "tipo": "modificador_stat",
           "objetivo": "fuerza",
           "valor": 4,
+          "limiteMaximo": 25,
           "condicion": "siempre",
           "descripcion": "Campeón primigenio (+4 Fuerza, máx 25)",
           "activo": true
@@ -582,6 +608,7 @@
           "tipo": "modificador_stat",
           "objetivo": "constitucion",
           "valor": 4,
+          "limiteMaximo": 25,
           "condicion": "siempre",
           "descripcion": "Campeón primigenio (+4 Constitución, máx 25)",
           "activo": true
@@ -641,14 +668,34 @@
           "nombre": "Furia ciega",
           "descripcion": "Tienes *inmunidad* a los estados de *hechizado* y *asustado* mientras tu Furia esté activa. Si estás hechizado o asustado cuando entras en Furia, el estado termina en ti.",
           "tipoAccion": "pasivo",
-          "subclase": "Senda del Berserker"
+          "subclase": "Senda del Berserker",
+          "categoriaMecanica": "pasivo_permanente",
+          "efectos": [
+            {
+              "tipo": "inmunidad_condicion",
+              "objetivo": "hechizado",
+              "valor": "inmune",
+              "condicion": "furia_activa",
+              "descripcion": "Inmunidad a estar hechizado durante Furia",
+              "activo": true
+            },
+            {
+              "tipo": "inmunidad_condicion",
+              "objetivo": "asustado",
+              "valor": "inmune",
+              "condicion": "furia_activa",
+              "descripcion": "Inmunidad a estar asustado durante Furia",
+              "activo": true
+            }
+          ]
         },
         {
           "nivel": 10,
           "nombre": "Represalia",
           "descripcion": "Cuando recibes daño de una criatura que está a 5 pies o menos de ti, puedes usar tu reacción para hacer un ataque cuerpo a cuerpo contra esa criatura, usando un arma o un ataque sin armas.",
           "tipoAccion": "reaccion",
-          "subclase": "Senda del Berserker"
+          "subclase": "Senda del Berserker",
+          "categoriaMecanica": "pasivo_permanente"
         },
         {
           "nivel": 14,
@@ -657,8 +704,21 @@
           "tipoAccion": "accion_adicional",
           "subclase": "Senda del Berserker",
           "tieneUsosLimitados": true,
+          "usosMaximos": 1,
           "formulaUsos": "1",
-          "recuperacion": "descanso_largo"
+          "recuperacion": "descanso_largo",
+          "escaladoUsos": {
+            "tipo": "por_nivel",
+            "tabla": [
+              {
+                "nivelMinimo": 14,
+                "valor": 1
+              }
+            ],
+            "minimo": 1
+          },
+          "ligadoA": "rasgo_cls_barbaro_furia",
+          "categoriaMecanica": "consumible"
         }
       ]
     },
@@ -675,7 +735,12 @@
           "nombre": "Hablante de los animales",
           "descripcion": "Puedes lanzar los conjuros *Sentidos de la bestia* y *Hablar con los animales*, pero solo como rituales. La Sabiduría es tu aptitud mágica para lanzarlos.",
           "tipoAccion": "pasivo",
-          "subclase": "Senda del Corazón Salvaje"
+          "subclase": "Senda del Corazón Salvaje",
+          "conjurosOtorgados": [
+            "Sentidos de la bestia",
+            "Hablar con los animales"
+          ],
+          "categoriaMecanica": "pasivo_permanente"
         },
         {
           "nivel": 3,
@@ -784,7 +849,11 @@
           "nombre": "Hablante de la naturaleza",
           "descripcion": "Puedes lanzar el conjuro *Comunión con la naturaleza*, pero solo como ritual. La Sabiduría es tu aptitud mágica para lanzarlo.",
           "tipoAccion": "pasivo",
-          "subclase": "Senda del Corazón Salvaje"
+          "subclase": "Senda del Corazón Salvaje",
+          "conjurosOtorgados": [
+            "Comunión con la naturaleza"
+          ],
+          "categoriaMecanica": "pasivo_permanente"
         },
         {
           "nivel": 14,
@@ -878,21 +947,27 @@
           "nombre": "Ramas del Árbol",
           "descripcion": "Siempre que una criatura que puedas ver empiece su turno a 30 pies o menos de ti mientras tu Furia esté activa, puedes usar tu reacción para conjurar ramas espectrales del Árbol del Mundo a su alrededor. El objetivo debe tener éxito en una tirada de salvación de Fuerza (CD 8 más tu modificador por Fuerza y bonificador por competencia) o ser teletransportado a un espacio sin ocupar que puedas ver a 5 pies o menos de ti, o en el espacio sin ocupar más cercano que puedas ver. Después de que el objetivo se teletransporte, puedes reducir su velocidad a 0 hasta el final del turno actual.",
           "tipoAccion": "reaccion",
-          "subclase": "Senda del Árbol del Mundo"
+          "subclase": "Senda del Árbol del Mundo",
+          "ligadoA": "rasgo_cls_barbaro_furia",
+          "categoriaMecanica": "pasivo_permanente"
         },
         {
           "nivel": 10,
           "nombre": "Raíces golpeadoras",
           "descripcion": "Durante tu turno, tu alcance es 10 pies mayor con cualquier arma cuerpo a cuerpo que tenga la propiedad pesada o versátil, ya que los zarcillos del Árbol del Mundo se extienden desde ti. Cuando aciertas con tal arma en tu turno, puedes activar la propiedad de maestría Empujar o Derribar además de una propiedad de maestría diferente que estés usando con esa arma.",
           "tipoAccion": "pasivo",
-          "subclase": "Senda del Árbol del Mundo"
+          "subclase": "Senda del Árbol del Mundo",
+          "categoriaMecanica": "pasivo_permanente"
         },
         {
           "nivel": 14,
           "nombre": "Viaje por el Árbol",
           "descripcion": "Cuando activas tu Furia y como acción adicional mientras tu Furia está activa, puedes teletransportarte hasta 60 pies a un espacio sin ocupar que puedas ver.\nAdemás, una vez por Furia, puedes aumentar el alcance de ese teletransporte a 150 pies. Cuando lo hagas, también puedes llevar contigo hasta a seis criaturas voluntarias que estén a 10 pies o menos de ti. Cada criatura se teletransporta a un espacio sin ocupar de tu elección a 10 pies o menos de tu espacio de destino.",
           "tipoAccion": "accion_adicional",
-          "subclase": "Senda del Árbol del Mundo"
+          "subclase": "Senda del Árbol del Mundo",
+          "ligadoA": "rasgo_cls_barbaro_furia",
+          "esActivable": true,
+          "categoriaMecanica": "activable"
         }
       ]
     },
@@ -1031,8 +1106,21 @@
           "tipoAccion": "accion_adicional",
           "subclase": "Senda del Fanático",
           "tieneUsosLimitados": true,
+          "usosMaximos": 1,
           "formulaUsos": "1",
-          "recuperacion": "descanso_largo"
+          "recuperacion": "descanso_largo",
+          "escaladoUsos": {
+            "tipo": "por_nivel",
+            "tabla": [
+              {
+                "nivelMinimo": 10,
+                "valor": 1
+              }
+            ],
+            "minimo": 1
+          },
+          "ligadoA": "rasgo_cls_barbaro_furia",
+          "categoriaMecanica": "consumible"
         },
         {
           "nivel": 14,
@@ -1041,12 +1129,23 @@
           "tipoAccion": "especial",
           "subclase": "Senda del Fanático",
           "tieneUsosLimitados": true,
+          "usosMaximos": 1,
           "formulaUsos": "1",
           "recuperacion": "descanso_largo",
+          "escaladoUsos": {
+            "tipo": "por_nivel",
+            "tabla": [
+              {
+                "nivelMinimo": 14,
+                "valor": 1
+              }
+            ],
+            "minimo": 1
+          },
           "esActivable": true,
           "ligadoA": "rasgo_cls_barbaro_furia",
           "condicionAlActivar": "Furia de los Dioses (Rage of the Gods)",
-          "categoriaMecanica": "activable"
+          "categoriaMecanica": "consumible"
         }
       ]
     }

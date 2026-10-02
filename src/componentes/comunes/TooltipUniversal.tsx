@@ -99,13 +99,20 @@ export const TooltipUniversal: React.FC<TooltipUniversalProps> = ({
   }, [posicion, alineacion]);
 
   const manejarEntradaRaton = useCallback(() => {
+    if (deshabilitado) return;
     actualizarPosicion();
     setEstaVisible(true);
-  }, [actualizarPosicion]);
+  }, [actualizarPosicion, deshabilitado]);
 
   const manejarSalidaRaton = useCallback(() => {
     setEstaVisible(false);
   }, []);
+
+  useEffect(() => {
+    if (deshabilitado && estaVisible) {
+      setEstaVisible(false);
+    }
+  }, [deshabilitado, estaVisible]);
 
   useEffect(() => {
     if (!estaVisible) return;
@@ -120,7 +127,7 @@ export const TooltipUniversal: React.FC<TooltipUniversalProps> = ({
     };
   }, [estaVisible, actualizarPosicion]);
 
-  if (!contenido || deshabilitado) {
+  if (!contenido) {
     return <>{children}</>;
   }
 
@@ -150,7 +157,8 @@ export const TooltipUniversal: React.FC<TooltipUniversalProps> = ({
     >
       {children}
 
-      {estaVisible &&
+      {!deshabilitado &&
+        estaVisible &&
         typeof document !== "undefined" &&
         createPortal(
           <div

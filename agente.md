@@ -17,6 +17,37 @@ Este archivo registra reglas globales, errores encontrados, sus causas raíz y l
    - **Bajo ninguna circunstancia** los módulos de lógica de negocio (`servicios/`), gestores de estado (`almacen/`), contratos (`tipos/`), valores de reglas (`constantes/`) ni funciones de soporte (`utiles/`) deben importar componentes visuales o archivos CSS (`componentes/`). Esta regla está reforzada en CI vía ESLint `no-restricted-imports`.
 6. **PROHIBICIÓN ESTRICTA DE BIFURCACIONES POR NOMBRE DE RASGO O CLASE (CATÁLOGO DECLARATIVO Y BUILDER PURO)**:
    - **Bajo ninguna circunstancia** los módulos de lógica de negocio (`servicios/`), gestores de estado (`almacen/`) o constructores (`gestorClases.ts`) deben contener bifurcaciones condicionales por nombre literal de rasgo o clase (`r.nombre === "..."`, `clase.includes("...")`, etc.).
+
+## [2026-10-02] Corrección de Conflicto de Capas: TooltipUniversal sobre Popover de Movimiento (Contextos de Apilamiento y React Portals)
+
+**Problema Reportado por el Usuario:**
+- Al hacer clic en la tarjeta de Velocidad para abrir el popover de movimiento, el tooltip flotante ("Velocidad de Movimiento") se renderizaba por encima del menú interactivo, tapando botones y controles. Los intentos de solucionar esto mediante `z-index` en CSS no surtieron efecto.
+
+**Causas Raíz Diagnosticadas:**
+1. **Incompatibilidad de Contextos de Apilamiento (Stacking Context) y React Portals:**
+   - `TooltipUniversal` se renderiza mediante `createPortal(..., document.body)` con posición fija (`position: fixed`) y `z-index: 10000`.
+   - En contraste, el popover (`.popoverVelocidad`) se renderiza dentro del flujo DOM relativo (`.contenedorVelocidadDinamica`) dentro de la estructura de la hoja de personaje, cuyos contenedores ancestros crean contextos de apilamiento locales. Por las reglas de CSS, ningún elemento dentro de un contexto de apilamiento local puede superar un elemento anclado directamente a `document.body` si el contexto contenedor no compite en el mismo nivel. Modificar únicamente el `z-index` del popover no resolvía el orden apilado.
+2. **Incoherencia de Experiencia de Usuario (UX):**
+   - Cuando un usuario abre un menú popover interactivo con controles de movimiento (terrenos, carrera, pasos), el tooltip de ayuda no debe competir visualmente ni mostrarse detrás o delante del menú: debe desactivarse por completo mientras el menú esté desplegado.
+3. **Desmontaje Inseguro de Contenedor en `TooltipUniversal`:**
+   - Previamente, `TooltipUniversal` retornaba `<>{children}</>` cuando `deshabilitado` era `true`, lo cual eliminaba el `div` envolvente con sus clases de maquetación (`contenedorTooltipMetrica`) y podía provocar saltos de layout o flexbox.
+
+**Soluciones Técnicas Aplicadas:**
+1. **Desactivación Reactiva del Portal en `TooltipUniversal.tsx`:**
+   - Se mantuvo el contenedor estructural permanente en el DOM preservando las clases y propiedades flexbox.
+   - Se condicionó el portal con `!deshabilitado && estaVisible`, asegurando que al deshabilitarse se desmonte inmediatamente la burbuja flotante del `body`.
+   - Se añadió un efecto sincronizador para reiniciar `estaVisible: false` al cambiar `deshabilitado` a `true`, y guarda temprana en `manejarEntradaRaton` para no reactivar el tooltip mientras esté inactivo.
+2. **Conexión en `MetricasRapidasPersonaje.tsx`:**
+   - Se pasó la propiedad `deshabilitado={menuVelocidadAbierto}` al `<TooltipUniversal>` que envuelve la tarjeta de velocidad.
+   - Al abrir el menú de movimiento, el tooltip desaparece al instante y no vuelve a mostrarse mientras el usuario interactúa con los controles. Al cerrar el menú, el comportamiento de hover se restaura automáticamente.
+3. **Validación Integral del Pipeline CI:**
+   - Creada suite unitaria `src/componentes/comunes/TooltipUniversal.test.tsx` (3 pruebas aprobadas).
+   - `pnpm exec tsc --noEmit`: 0 errores en TypeScript estricto.
+   - `pnpm run lint`: 0 errores y 0 advertencias (`--max-warnings=0`).
+   - `node scripts/verificar-limite-lineas.js`: 112 archivos auditados, 0 errores críticos.
+   - `pnpm test`: 95 suites y 1,410 pruebas globales aprobadas al 100%.
+   - `pnpm exec vite build`: Compilación para producción completada exitosamente en 14.38s.
+
 ## [2026-10-01] Implementación de Explorador D&D 5.5e (2024) - Fase 1: Clase Base (Niveles 1 a 20)
 
 **Objetivo de la Fase 1:**

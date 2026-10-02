@@ -211,6 +211,7 @@ const MetricasRapidasPersonajeComponent: React.FC<MetricasRapidasPersonajeProps>
           contenido={velocidadTooltip}
           posicion="abajo"
           className={estilos.contenedorTooltipMetrica}
+          deshabilitado={menuVelocidadAbierto}
         >
           <div
             className={`

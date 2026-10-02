@@ -99,7 +99,7 @@ const MetricasRapidasPersonajeComponent: React.FC<MetricasRapidasPersonajeProps>
 
   const velocidadTooltipBase =
     bonoVelocidad > 0
-      ? `Velocidad: ${velocidadBaseTotal} ft (+${bonoVelocidad} ft rasgos)\n${partesVelocidad.join(" • ")}`
+      ? `Velocidad: ${velocidadBaseTotal} ft (+${bonoVelocidad} ft )\n${partesVelocidad.join(" • ")}`
       : partesVelocidad.join(" • ");
 
   // 3. Estado Dinámico de Movimiento y Terreno Activo
@@ -118,8 +118,7 @@ const MetricasRapidasPersonajeComponent: React.FC<MetricasRapidasPersonajeProps>
     `Movimiento Restante: ${estadoVelocidad.movimientoRestante} ft / ${estadoVelocidad.velocidadTotal} ft`,
     personaje.movimientoGastado ? `Gastado en turno: ${personaje.movimientoGastado} ft` : null,
     `Terreno Activo: ${infoTerrenoActual.nombre} (${infoTerrenoActual.costePies})`,
-    "Cálculo 3D: Incluye altura Y (vuelo, saltos, rampas)",
-    estadoVelocidad.esCarreraActiva ? "Acción Carrera ACTIVA (Doble Movimiento)" : null,
+    estadoVelocidad.esCarreraActiva ? "Carrera activa" : null,
     "Haz clic para seleccionar terreno, ajustar manualmente o restablecer."
   ]
     .filter(Boolean)
@@ -298,7 +297,7 @@ const MetricasRapidasPersonajeComponent: React.FC<MetricasRapidasPersonajeProps>
                 />
                 {personaje.idMiniaturaTS
                   ? "Miniatura detectada"
-                  : "Modo Manual (sin miniatura física enlazada)"}
+                  : "Modo Manual"}
               </div>
 
               {/* Selector de Tipo de Terreno (D&D 5.5e y 3D) */}
@@ -306,13 +305,7 @@ const MetricasRapidasPersonajeComponent: React.FC<MetricasRapidasPersonajeProps>
                 <div className={estilos.cabeceraTerreno}>
                   <span className={estilos.tituloTerreno}>
                     <Mountain size={12} color="#94a3b8" />
-                    Terreno (D&D 5.5e)
-                  </span>
-                  <span
-                    className={estilos.badgeAltura3D}
-                    title="Cálculo 3D euclidiano: incluye la altura vertical Y de TaleSpire"
-                  >
-                    3D + Altura Y
+                    Terreno
                   </span>
                 </div>
 
@@ -408,10 +401,10 @@ const MetricasRapidasPersonajeComponent: React.FC<MetricasRapidasPersonajeProps>
                     ${estadoVelocidad.esCarreraActiva ? estilos.botonCarreraActivo : ""}
                   `}
                   onClick={ejecutarAlternarCarrera}
-                  title="Acción Carrera (Dash): duplica la velocidad de este turno"
+                  title="Acción Carrera: duplica la velocidad de este turno"
                 >
                   <Footprints size={13} />
-                  {estadoVelocidad.esCarreraActiva ? "Carrera ON" : "Carrera (+Dash)"}
+                  {estadoVelocidad.esCarreraActiva ? "Carrera ON" : "Carrera OFF"}
                 </button>
 
                 <button

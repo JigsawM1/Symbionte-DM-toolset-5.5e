@@ -54,20 +54,20 @@ export const INFORMACION_TERRENO: Record<
   normal: {
     nombre: "Normal",
     multiplicador: 1,
-    costePies: "1x (1 ft = 1 ft)",
-    descripcion: "Terreno despejado estándar según reglas oficiales D&D 5.5e."
+    costePies: "1 ft = 1 ft",
+    descripcion: "Terreno despejado estándar."
   },
   dificil: {
     nombre: "Difícil",
     multiplicador: 2,
-    costePies: "2x (1 ft = 2 ft)",
-    descripcion: "Regla oficial D&D 5.5e: cada 1 pie de movimiento cuesta 1 pie adicional (+1 ft por cada 1 ft)."
+    costePies: " ft = 2 ft",
+    descripcion: "cada 1 pie de movimiento cuesta 1 pie adicional."
   },
   extremo: {
     nombre: "Extremo",
     multiplicador: 3,
-    costePies: "3x (1 ft = 3 ft)",
-    descripcion: "Escalada en terreno difícil, pantano profundo o corrientes violentas (coste 3x)."
+    costePies: "1 ft = 3 ft",
+    descripcion: "Escalada en terreno difícil, pantano profundo o corrientes violentas."
   }
 };
 

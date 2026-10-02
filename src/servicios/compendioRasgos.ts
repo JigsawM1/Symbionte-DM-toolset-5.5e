@@ -135,12 +135,15 @@ export function sincronizarRasgosAutomaticos(personaje: PersonajeJugador): Rasgo
     r.id.startsWith("dote_asi_") ||
     r.id.startsWith("dote_don_") ||
     r.id.startsWith("dote_origen_") ||
+    r.id.startsWith("dote_estilo_") ||
     (r.origen === "dote" &&
       Boolean(
         r.ligadoA &&
           (r.ligadoA.includes("mejora_de_caracteristica") ||
             r.ligadoA.includes("don_epico") ||
-            r.ligadoA.includes("versatil"))
+            r.ligadoA.includes("versatil") ||
+            r.ligadoA.includes("estilo_de_combate") ||
+            r.ligadoA.includes("estilo_combate"))
       ));
 
   const rasgosPersonalizados = rasgosExistentes.filter(

@@ -3,7 +3,8 @@ import type { EstadoDM } from "@/almacen/usarAlmacenDM";
 import { sincronizarRasgosAutomaticos } from "@/servicios/compendioRasgos";
 import {
   construirDoteDeMejoraCaracteristica,
-  construirDoteDeDonEpico
+  construirDoteDeDonEpico,
+  construirDoteDeEstiloCombate
 } from "@/servicios/gestorClases";
 import { construirDoteDeVersatil } from "@/servicios/gestorEspecies";
 import { obtenerMaxInvocacionesBrujo } from "@/constantes/invocacionesSobrenaturales";
@@ -684,15 +685,17 @@ export const crearSubSliceRasgos: StateCreator<
         return r;
       });
 
-      // Sincronizar reactivamente dote asociada al rasgo de Mejora de Característica, Don Épico o Versátil (Humano)
+      // Sincronizar reactivamente dote asociada al rasgo de Mejora de Característica, Don Épico, Versátil (Humano) o Estilo de Combate
       const rasgoPadreMejora = rasgosActualizados.find((r) => r.id === idRasgo);
       const nomRasgoPadre = rasgoPadreMejora ? normalizarTextoSeguro(rasgoPadreMejora.nombre) : "";
       const esMejora = nomRasgoPadre === "mejora de caracteristica";
       const esDonEpico = nomRasgoPadre === "don epico";
       const esVersatil = nomRasgoPadre === "versatil" || nomRasgoPadre.includes("versatil");
+      const esEstilo = nomRasgoPadre === "estilo de combate" || nomRasgoPadre.startsWith("estilo de combate");
       const esSelectorDoteASI = idSelector.includes("dote_asi") || (esMejora && idSelector.toLowerCase().includes("dote"));
       const esSelectorDoteDon = idSelector.includes("dote_don") || (esDonEpico && idSelector.toLowerCase().includes("dote"));
       const esSelectorDoteOrigen = idSelector.includes("dote_origen") || (esVersatil && idSelector.toLowerCase().includes("dote"));
+      const esSelectorDoteEstilo = idSelector.includes("dote_estilo") || (esEstilo && idSelector.toLowerCase().includes("dote"));
 
       if (esSelectorDoteASI && rasgoPadreMejora && Array.isArray(valorActual) && valorActual.length > 0) {
         const idDoteElegida = valorActual[0];
@@ -736,6 +739,23 @@ export const crearSubSliceRasgos: StateCreator<
         );
 
         const nuevaDote = construirDoteDeVersatil(rasgoPadreMejora, idDoteElegida);
+        if (indexDoteExistente !== -1) {
+          rasgosActualizados[indexDoteExistente] = {
+            ...nuevaDote,
+            usosRestantes: rasgosActualizados[indexDoteExistente].usosRestantes ?? nuevaDote.usosRestantes,
+            activo: rasgosActualizados[indexDoteExistente].activo ?? true
+          };
+        } else {
+          rasgosActualizados.push(nuevaDote);
+        }
+      } else if (esSelectorDoteEstilo && rasgoPadreMejora && Array.isArray(valorActual) && valorActual.length > 0) {
+        const idDoteElegida = valorActual[0];
+        const idDoteEstilo = `dote_estilo_${normalizarTextoSeguro(idRasgo)}`;
+        const indexDoteExistente = rasgosActualizados.findIndex(
+          (r) => r.id === idDoteEstilo || (r.origen === "dote" && r.ligadoA === idRasgo)
+        );
+
+        const nuevaDote = construirDoteDeEstiloCombate(rasgoPadreMejora, idDoteElegida);
         if (indexDoteExistente !== -1) {
           rasgosActualizados[indexDoteExistente] = {
             ...nuevaDote,

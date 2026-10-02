@@ -460,5 +460,90 @@ describe("Comportamiento Canónico de Rasgos: Subclase y Mejora de Característi
       expect(rasgoVersatilActualizado?.selectores?.[0]?.valorActual).toEqual(["dote_afortunado"]);
     });
   });
+
+  describe("5. Rasgo Estilo de Combate y Dote Vinculada en Store Zustand", () => {
+    it("genera por defecto la dote vinculada con origen 'dote' y ligadoA para un Guerrero a nivel 1", () => {
+      const pjGuerrero: PersonajeJugador = {
+        ...PERSONAJE_POR_DEFECTO,
+        id: "pj_guerrero_nv1",
+        nombre: "Ragnar",
+        clase: "Guerrero",
+        nivel: 1,
+        clases: [{ nombre: "Guerrero", nivel: 1, subclase: "" }],
+        rasgos: []
+      };
+
+      const rasgosSincronizados = sincronizarRasgosAutomaticos(pjGuerrero);
+      const rasgoEstilo = rasgosSincronizados.find(
+        (r) => r.origen === "clase" && (r.nombre === "Estilo de combate" || r.id.includes("estilo_de_combate"))
+      );
+      expect(rasgoEstilo).toBeDefined();
+
+      const doteDefensa = rasgosSincronizados.find(
+        (r) => r.origen === "dote" && r.ligadoA === rasgoEstilo?.id
+      );
+      expect(doteDefensa).toBeDefined();
+      expect(doteDefensa?.nombre).toBe("Defensa");
+      expect(doteDefensa?.id).toBe(`dote_estilo_${rasgoEstilo!.id.toLowerCase()}`);
+      expect(doteDefensa?.efectos?.some((e) => e.tipo === "modificador_ca")).toBe(true);
+    });
+
+    it("actualizarSeleccionRasgo transforma reactivamente la dote vinculada en el store Zustand", () => {
+      const pjGuerrero: PersonajeJugador = {
+        ...PERSONAJE_POR_DEFECTO,
+        id: "pj_guerrero_store_test",
+        nombre: "Sir Galahad",
+        clase: "Guerrero",
+        nivel: 1,
+        clases: [{ nombre: "Guerrero", nivel: 1, subclase: "" }],
+        rasgos: []
+      };
+
+      const rasgosSincronizados = sincronizarRasgosAutomaticos(pjGuerrero);
+      usarAlmacenDM.setState({
+        personajes: [{ ...pjGuerrero, rasgos: rasgosSincronizados }],
+        idPersonajeActivo: "pj_guerrero_store_test"
+      });
+
+      const store = usarAlmacenDM.getState();
+      const rasgoEstilo = rasgosSincronizados.find(
+        (r) => r.origen === "clase" && (r.nombre === "Estilo de combate" || r.id.includes("estilo_de_combate"))
+      );
+      expect(rasgoEstilo).toBeDefined();
+
+      const selectorId = rasgoEstilo!.selectores![0].id;
+
+      // El jugador cambia su Estilo de Combate a "Duelo"
+      store.actualizarSeleccionRasgo("pj_guerrero_store_test", rasgoEstilo!.id, selectorId, ["dote_estilo_duelo"]);
+
+      const pjActualizado = usarAlmacenDM.getState().personajes.find((p) => p.id === "pj_guerrero_store_test");
+      const dotesLigadas = pjActualizado?.rasgos.filter(
+        (r) => r.origen === "dote" && r.ligadoA === rasgoEstilo!.id
+      );
+
+      // Debe existir exactamente 1 dote vinculada y debe ser Duelo
+      expect(dotesLigadas).toHaveLength(1);
+      const doteDuelo = dotesLigadas![0];
+      expect(doteDuelo.nombre).toBe("Duelo");
+      expect(doteDuelo.id).toBe(`dote_estilo_${rasgoEstilo!.id.toLowerCase()}`);
+      expect(doteDuelo.efectos?.some((e) => e.tipo === "bono_dano_ataque")).toBe(true);
+
+      // Cambiamos a "Combate con dos armas"
+      store.actualizarSeleccionRasgo(
+        "pj_guerrero_store_test",
+        rasgoEstilo!.id,
+        selectorId,
+        ["dote_estilo_combate_dos_armas"]
+      );
+
+      const pjTrasDosArmas = usarAlmacenDM.getState().personajes.find((p) => p.id === "pj_guerrero_store_test");
+      const dotesTrasCambio = pjTrasDosArmas?.rasgos.filter(
+        (r) => r.origen === "dote" && r.ligadoA === rasgoEstilo!.id
+      );
+
+      expect(dotesTrasCambio).toHaveLength(1);
+      expect(dotesTrasCambio![0].nombre).toBe("Combate con dos armas");
+    });
+  });
 });
 

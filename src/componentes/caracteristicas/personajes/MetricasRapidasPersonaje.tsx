@@ -78,7 +78,7 @@ const MetricasRapidasPersonajeComponent: React.FC<MetricasRapidasPersonajeProps>
     desglosesIniciativa.push(`Manual (${personaje.iniciativaBono >= 0 ? `+${personaje.iniciativaBono}` : personaje.iniciativaBono})`);
   }
   if (bonoIniciativaRasgos) {
-    desglosesIniciativa.push(`Rasgos/Dotes (${bonoIniciativaRasgos >= 0 ? `+${bonoIniciativaRasgos}` : bonoIniciativaRasgos})`);
+    desglosesIniciativa.push(`Rasgos (${bonoIniciativaRasgos >= 0 ? `+${bonoIniciativaRasgos}` : bonoIniciativaRasgos})`);
   }
   const desgloseIniciativaTexto = desglosesIniciativa.join(" + ");
 

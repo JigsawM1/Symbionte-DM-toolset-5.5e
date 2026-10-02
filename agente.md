@@ -11600,3 +11600,35 @@ Optimizar la complejidad temporal (Big O) en las operaciones de búsqueda, orden
 - **TypeScript**: `pnpm exec tsc --noEmit` completado con **0 errores** (Strict Mode estricto).
 - **Gestor de Paquetes**: 100% `pnpm`.
 - **Idioma y Estilo**: 100% en español.
+
+
+---
+
+## [2026-10-02] Diagnóstico Técnico: Dotes Vinculadas al Rasgo "Estilo de Combate" vs "Mejora de Característica"
+
+### 1. Consulta del Usuario
+- El usuario consulta por qué el rasgo *Estilo de combate* no otorga ni refleja la dote ligada en la sección de Dotes de forma análoga a cómo lo hacen *Mejora de característica* (ASI), *Don épico* o *Versátil* (Humano).
+
+### 2. Hallazgos y Causa Raíz
+1. **Ausencia de sincronización reactiva en Zustand (`sliceRasgos.ts`)**:
+   - En la acción `actualizarSeleccionRasgo`, cuando el jugador interactúa con un selector de dotes, existe sincronización reactiva para `esMejora` (`construirDoteDeMejoraCaracteristica`), `esDonEpico` (`construirDoteDeDonEpico`) y `esVersatil` (`construirDoteDeVersatil`).
+   - Sin embargo, `construirDoteDeEstiloCombate` no está importado ni contemplado en `actualizarSeleccionRasgo`. No se evalúa `esEstilo` ni se inyecta/reemplaza la dote `dote_estilo_${idRasgo}` en `pj.rasgos`. Como resultado, cambiar la selección en la UI solo altera el array de valores del selector, pero no genera la entidad de tipo dote en la ficha.
+2. **Omisión en la lista de dotes sintéticas (`compendioRasgos.ts`)**:
+   - La función auxiliar `esDoteLigadaSintetica` en `sincronizarRasgosAutomaticos` no contempla `r.id.startsWith("dote_estilo_")` ni `r.ligadoA?.includes("estilo_de_combate")`. Esto impide que se limpien y reorganicen limpiamente las dotes sintéticas de estilos de combate al recargar o cambiar de clase.
+3. **Diferencia perceptual en el nombre**:
+   - En *Mejora de Característica*, la dote por defecto comparte el mismo nombre que el rasgo ("Mejora de Característica"). En *Estilo de combate*, la dote generada toma el nombre específico del estilo elegido (ej. "Defensa", "Duelo", "Combate con dos armas"), por lo que además requiere que su tarjeta se vincule explícitamente en el estado reactivo con `ligadoA` apuntando al rasgo padre de clase.
+
+
+### 3. Solución Arquitectónica Implementada
+1. **Sincronización Reactiva en `sliceRasgos.ts`**:
+   - Se importó `construirDoteDeEstiloCombate` desde `@/servicios/gestorClases`.
+   - Se añadieron las condiciones declarativas `esEstilo` (`nomRasgoPadre === "estilo de combate" || nomRasgoPadre.startsWith("estilo de combate")`) y `esSelectorDoteEstilo` (`idSelector.includes("dote_estilo") || (esEstilo && idSelector.toLowerCase().includes("dote"))`).
+   - Se implementó la rama reactiva en `actualizarSeleccionRasgo` para instanciar/actualizar la dote ligada (`id: dote_estilo_${normalizarTextoSeguro(idRasgo)}`, `origen: "dote"`, `ligadoA: idRasgo`) preservando contadores y estado activo.
+2. **Reconocimiento de Dotes Sintéticas en `compendioRasgos.ts`**:
+   - Se actualizó el discriminador `esDoteLigadaSintetica` en `sincronizarRasgosAutomaticos` para contemplar `r.id.startsWith("dote_estilo_")` y dependencias ligadas con `r.ligadoA.includes("estilo_de_combate") || r.ligadoA.includes("estilo_combate")`.
+3. **Validación Integral de Pruebas Unitarias**:
+   - Se añadieron pruebas unitarias en `src/servicios/mejoraCaracteristicaYSubclase.test.ts` verificando:
+     - Generación por defecto de la dote vinculada al instanciar un Guerrero nivel 1 (*Defensa* con `modificador_ca`).
+     - Reemplazo y actualización reactiva en el store de Zustand al seleccionar *Duelo* (`bono_dano_ataque`) y *Combate con dos armas*, garantizando deduplicación estricta y unicidad de la dote ligada.
+   - Verificación de tipos exitosa con `pnpm exec tsc --noEmit` (0 errores en modo estricto).
+   - Verificación de suites: 100% tests pasando (`mejoraCaracteristicaYSubclase.test.ts`, `compendioRasgos.test.ts`, `dotesEstiloCombateMecanicas.test.ts`, `paladinMecanicasDND55.test.ts`, `exploradorMecanicasDND55.test.ts`, `rasgosPersonaje.test.ts`).

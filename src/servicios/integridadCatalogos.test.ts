@@ -286,8 +286,8 @@ describe("Integridad de Catálogos D&D 5.5e (JSON Modular e Hidratación)", () =
   });
 
   describe("8. Catálogo de Efectos Predefinidos (JSON Modular)", () => {
-    it("carga exactamente los 35 efectos predefinidos (incluyendo Atleta sin par, Leyenda viviente, Campeón anciano y Ángel vengador)", () => {
-      expect(EFECTOS_PREDEFINIDOS).toHaveLength(35);
+    it("carga exactamente los 37 efectos predefinidos (incluyendo Salvaguarda arcana y El tercer ojo)", () => {
+      expect(EFECTOS_PREDEFINIDOS).toHaveLength(37);
     });
 
     it("los efectos enriquecidos tienen viñetas efectos[]", () => {
@@ -302,7 +302,9 @@ describe("Integridad de Catálogos D&D 5.5e (JSON Modular e Hidratación)", () =
         "Atleta sin par",
         "Leyenda viviente",
         "Campeón anciano",
-        "Ángel vengador"
+        "Ángel vengador",
+        "Salvaguarda arcana",
+        "El tercer ojo"
       ];
       for (const nombre of enriquecidos) {
         const ef = EFECTOS_PREDEFINIDOS.find((e) => e.nombre === nombre);
@@ -335,6 +337,12 @@ describe("Integridad de Catálogos D&D 5.5e (JSON Modular e Hidratación)", () =
 
       const angelVengador = EFECTOS_PREDEFINIDOS.find((e) => e.nombre === "Ángel vengador");
       expect(angelVengador?.aliases).toContain("avenging angel");
+
+      const salvaguardaArcana = EFECTOS_PREDEFINIDOS.find((e) => e.nombre === "Salvaguarda arcana");
+      expect(salvaguardaArcana?.aliases).toContain("arcane ward");
+
+      const tercerOjo = EFECTOS_PREDEFINIDOS.find((e) => e.nombre === "El tercer ojo");
+      expect(tercerOjo?.aliases).toContain("the third eye");
     });
   });
 

@@ -17,6 +17,55 @@ Este archivo registra reglas globales, errores encontrados, sus causas raíz y l
    - **Bajo ninguna circunstancia** los módulos de lógica de negocio (`servicios/`), gestores de estado (`almacen/`), contratos (`tipos/`), valores de reglas (`constantes/`) ni funciones de soporte (`utiles/`) deben importar componentes visuales o archivos CSS (`componentes/`). Esta regla está reforzada en CI vía ESLint `no-restricted-imports`.
 6. **PROHIBICIÓN ESTRICTA DE BIFURCACIONES POR NOMBRE DE RASGO O CLASE (CATÁLOGO DECLARATIVO Y BUILDER PURO)**:
    - **Bajo ninguna circunstancia** los módulos de lógica de negocio (`servicios/`), gestores de estado (`almacen/`) o constructores (`gestorClases.ts`) deben contener bifurcaciones condicionales por nombre literal de rasgo o clase (`r.nombre === "..."`, `clase.includes("...")`, etc.).
+## [2026-10-02] Implementación Declarativa de Rasgos de Mago y sus 4 Subclases (D&D 5.5e / 2024)
+
+**Objetivo de la Iteración:**
+- Estructurar e implementar de forma exhaustiva los rasgos de la clase Mago (niveles 1 a 20) y sus 4 subclases canónicas (*Abjurador*, *Adivino*, *Evocador*, *Ilusionista*) según D&D 5.5e (PHB 2024), mediante el builder declarativo sin bifurcaciones por nombre.
+
+**Mecánicas y Clasificación Implementadas:**
+1. **Clase Base (Mago Nv 1 a 20):**
+   - *Lanzamiento de conjuros* (Nv. 1) y *Adepto ritual* (Nv. 1): Configurados como `pasivo_permanente` con `tipoAccion: "pasivo"`.
+   - *Recuperación arcana* (Nv. 1): Consumible de 1 uso por descanso largo (`categoriaMecanica: "consumible"`) con `tablaProgresion` estructurada de 20 niveles que detalla los espacios recuperables `ceil(nivel / 2)` (máximo nivel 5).
+   - *Erudito* (Nv. 2): Selector interactivo `categoriaMecanica: "selector_informativo"` con opciones de pericia para Conocimiento arcano, Historia, Investigación, Medicina, Naturaleza y Religión.
+   - *Memorizar conjuro* (Nv. 5): Consumible de 1 uso por descanso corto (`categoriaMecanica: "consumible"`).
+   - *Maestría en conjuros* (Nv. 18): Pasivo permanente (`pasivo_permanente`).
+   - *Don épico* (Nv. 19): Inyección de selector de don épico que recomienda canónicamente *Don de la recuperación de conjuros* (`dote_don_recuperacion`).
+   - *Conjuros predilectos* (Nv. 20): Consumible de 2 usos por descanso corto (`categoriaMecanica: "consumible"`).
+
+2. **Subclases Canónicas de Mago (PHB 2024):**
+   - **Abjurador**:
+     - *Erudito en abjuración* (Nv. 3): Pasivo permanente.
+     - *Salvaguarda arcana* (Nv. 3): Activable por acción adicional (`categoriaMecanica: "activable"`, `esActivable: true`, 1 uso/descanso largo, condición `"Salvaguarda arcana"`, `formulaDados: "2 * nivel + inteligencia"`).
+     - *Salvaguarda proyectada* (Nv. 6): Pasivo por reacción (`tipoAccion: "reaccion"`).
+     - *Rompedor de conjuros* (Nv. 10): Acción adicional con `conjurosOtorgados: ["Contrahechizo", "Disipar magia"]`.
+     - *Resistencia a conjuros* (Nv. 14): Pasivo con efectos declarativos de ventaja en salvaciones contra conjuros y resistencia al daño de conjuros.
+   - **Adivino**:
+     - *Erudito en adivinación* (Nv. 3): Pasivo permanente.
+     - *Portento* (Nv. 3): Consumible de 2 usos por descanso largo con `formulaDados: "2d20"` y `tablaProgresion` que escala a 3 dados a nivel 14.
+     - *Adivinación experta* (Nv. 6): Pasivo permanente.
+     - *El tercer ojo* (Nv. 10): Consumible activable por acción adicional (1 uso/descanso corto, condición `"El tercer ojo"`, `conjurosOtorgados: ["Ver invisibilidad"]`).
+     - *Portento mayor* (Nv. 14): Extensión decoradora (`categoriaMecanica: "extension"`, `ligadoA: "Portento"`, `formulaDados: "3d20"`).
+   - **Evocador**:
+     - *Erudito en evocación* (Nv. 3) y *Truco potente* (Nv. 3): Pasivos permanentes.
+     - *Esculpir conjuros* (Nv. 6): Pasivo permanente de protección de área.
+     - *Evocación potenciada* (Nv. 10): Efecto declarativo `bono_dano_conjuro` con valor `"inteligencia"` y `aplicaA: "evocacion"`.
+     - *Sobrecarga* (Nv. 14): Consumible de 1 uso seguro con fórmula de dados `"2d12"` de daño necrótico.
+   - **Ilusionista**:
+     - *Erudito en ilusión* (Nv. 3): Pasivo permanente.
+     - *Ilusiones mejoradas* (Nv. 3): Pasivo con `tipoAccion: "accion_adicional"` y `conjurosOtorgados: ["Ilusión menor"]`.
+     - *Criaturas fantasmales* (Nv. 6): Consumible con `conjurosOtorgados: ["Invocar bestia", "Invocar feérico"]`.
+     - *Yo ilusorio* (Nv. 10): Reacción consumible (1 uso/descanso corto).
+     - *Realidad ilusoria* (Nv. 14): Activable por acción adicional (`categoriaMecanica: "activable"`).
+
+3. **Efectos Predefinidos Registrados (`efectos-predefinidos.json`):**
+   - Incorporadas las condiciones tácticas *"Salvaguarda arcana"* (800 rondas) y *"El tercer ojo"* (100 rondas) con viñetas explicativas y alias bilingües (*Arcane Ward*, *The Third Eye*), elevando el catálogo a 37 efectos totales.
+
+4. **Validación Integral:**
+   - Creada suite `src/servicios/magoMecanicasDND55.test.ts` con 24/24 pruebas unitarias aprobadas al 100%.
+   - `integridadCatalogos.test.ts`: 35/35 pruebas en verde.
+   - `tsc --noEmit`: 0 errores con `strict: true`.
+   - `eslint src --max-warnings=0`: 0 errores y 0 advertencias.
+
 ## [2026-10-01] Automatización de Terreno Difícil al estar Derribado (Prone) y Reinicio Integral de Movimiento por Ronda
 
 **Requerimientos Implementados:**

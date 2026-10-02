@@ -17,6 +17,239 @@ Este archivo registra reglas globales, errores encontrados, sus causas raíz y l
    - **Bajo ninguna circunstancia** los módulos de lógica de negocio (`servicios/`), gestores de estado (`almacen/`), contratos (`tipos/`), valores de reglas (`constantes/`) ni funciones de soporte (`utiles/`) deben importar componentes visuales o archivos CSS (`componentes/`). Esta regla está reforzada en CI vía ESLint `no-restricted-imports`.
 6. **PROHIBICIÓN ESTRICTA DE BIFURCACIONES POR NOMBRE DE RASGO O CLASE (CATÁLOGO DECLARATIVO Y BUILDER PURO)**:
    - **Bajo ninguna circunstancia** los módulos de lógica de negocio (`servicios/`), gestores de estado (`almacen/`) o constructores (`gestorClases.ts`) deben contener bifurcaciones condicionales por nombre literal de rasgo o clase (`r.nombre === "..."`, `clase.includes("...")`, etc.).
+
+## [2026-10-01] Implementación de Explorador D&D 5.5e (2024) - Fase 1: Clase Base (Niveles 1 a 20)
+
+**Objetivo de la Fase 1:**
+- Implementar y estructurar la clase base Explorador (*Ranger*) conforme al PHB oficial de D&D 5.5e (2024) en el catálogo declarativo `src/datos/clases/explorador.json`.
+- Configurar la mecánica de *Enemigo predilecto* como consumible con conjuro gratuito (*Marca del cazador*) y progresión de usos por nivel (2 a 6).
+- Integrar *Maestría con armas* (selector de 2 armas con las 8 propiedades oficiales).
+- Implementar *Explorador diestro* (Nv. 2) y *Pericia* (Nv. 9) como pasivos permanentes informativos sin selectores (atendiendo solicitud del usuario).
+- Inyectar en *Estilo de combate* (Nv. 2) la dote exclusiva *Guerrero druídico* (`dote_estilo_guerrero_druidico`, 2 trucos de druida a elección) como opción por defecto para la clase Explorador.
+- Configurar *Trotamundos* (Nv. 6) con +10 pies a velocidad caminando si no lleva armadura pesada (`sin_armadura_pesada`), y velocidades de nadar y trepar/escalar iguales a la velocidad de caminar (`velocidad_caminar`).
+- Configurar *Incansable* (Nv. 10) como consumible con dados `1d8 + sabiduria` que añade PV temporales, usos por Sabiduría por descanso largo y reducción agnóstica de 1 nivel de agotamiento/cansancio al completar descansos cortos (`reducir_cansancio_descanso_corto`).
+- Configurar *Velo de la naturaleza* (Nv. 14) como consumible de acción adicional con usos por Sabiduría por descanso largo.
+- Configurar *Sentidos salvajes* (Nv. 18, vista ciega 30 pies), *Don épico* (Nv. 19, selector) y *Asesino de enemigos* (Nv. 20, d10 para Marca del cazador).
+
+**Causas Raíz y Correcciones Aplicadas:**
+1. **Reducción de Cansancio en Descansos Cortos:**
+   - `ejecutarDescansoCorto` en `procesadorDescansos.ts` solo recargaba espacios y vida. Se implementó la función pura agnóstica `evaluarReduccionCansancioDescansoCorto` en `evaluadorSalvacionesRasgos.ts` para reducir el cansancio de forma declarativa si el personaje cuenta con un efecto activo que lo indique.
+2. **Dote Exclusiva por Defecto para Explorador en Estilo de Combate:**
+   - `crearSelectorDoteEstiloCombate` asignaba por defecto `dote_estilo_defensa` para clases no paladín. Se ajustó para priorizar `dote_estilo_guerrero_druidico` cuando la clase sea explorador.
+3. **Tirada Fallback Local con Sumandos Estáticos:**
+   - En `lanzadorDados.ts`, el fallback local de tiradas para `metaEspecialRasgo` omitía sumandos constantes (como el +3 en `1d8+3`). Se implementó la extracción y suma del bonificador constante.
+4. **Tipado Estricto y Propiedades en RasgoPersonaje:**
+   - Se unificó `formulaEscalado` en `gestorClases.ts` para transferir tanto `r.formulaEscalado` como `r.formulaUsos`.
+
+**Validación Integral del Pipeline CI:**
+- Creada suite unitaria `src/servicios/exploradorMecanicasDND55.test.ts` con 20 pruebas aprobadas al 100%.
+- `pnpm exec tsc --noEmit`: 0 errores con `strict: true`.
+- `pnpm run lint`: 0 errores y 0 advertencias (`--max-warnings=0`).
+- `pnpm test`: 94 suites y 1,378 pruebas globales aprobadas al 100%.
+- `node scripts/verificar-limite-lineas.js`: 0 errores críticos.
+- `pnpm exec vite build`: Compilación exitosa en 8.12s.
+
+## [2026-10-01] Implementación de Explorador D&D 5.5e (2024) - Fase 2: Subclase Señor de las Bestias (Beast Master)
+
+**Objetivo de la Fase 2:**
+- Implementar la subclase Señor de las Bestias (*Beast Master*) de acuerdo con las especificaciones del usuario y las reglas oficiales del PHB de D&D 5.5e (2024).
+- Configurar todos los rasgos de la subclase como informativos (`pasivo_permanente`), eliminando consumibles o contadores artificiales debido a que el sistema no gestiona hojas de combate independientes para invocaciones:
+  - Nivel 3: *Compañero primigenio* (`pasivo_permanente`, acción adicional informativa con reglas completas de invocación y reemplazo).
+  - Nivel 7: *Entrenamiento excepcional* (`pasivo_permanente`, acción adicional informativa para maniobras y daño de fuerza de la bestia).
+  - Nivel 11: *Furia bestial* (`pasivo_permanente`, ataques dobles e interacción con Marca del cazador).
+  - Nivel 15: *Compartir conjuros* (`pasivo_permanente`, conjuros de alcance Personal proyectados a la bestia a 30 pies).
+
+**Decisiones Técnicas y Modificaciones Aplicadas:**
+1. **Catálogo Declarativo (`src/datos/clases/explorador.json`):**
+   - Se removió `tieneUsosLimitados: true` y `recuperacion: "descanso_largo"` de *Compañero primigenio*.
+   - Se asignó `categoriaMecanica: "pasivo_permanente"` de forma explícita a los 4 rasgos.
+   - Se mantuvieron los textos canónicos y reglas oficiales de D&D 5.5e (2024).
+2. **Suite de Pruebas Unitarias (`src/servicios/exploradorMecanicasDND55.test.ts`):**
+   - Se incorporó la suite `Subclase Señor de las Bestias (Beast Master - PHB 2024)` con 5 pruebas exhaustivas verificando niveles de adquisición (3, 7, 11 y 15), ausencia de consumibles artificiales, presencia de los 4 rasgos y su correcta asignación en la ficha del personaje mediante `aplicarBuildClaseAPersonaje`.
+
+**Validación Integral del Pipeline CI:**
+- `pnpm test src/servicios/exploradorMecanicasDND55.test.ts`: 25 pruebas unitarias aprobadas al 100%.
+- `pnpm exec tsc --noEmit`: 0 errores con `strict: true`.
+- `pnpm run lint`: 0 errores y 0 advertencias (`--max-warnings=0`).
+- `node scripts/verificar-limite-lineas.js`: 0 errores críticos.
+- `pnpm test`: 94 suites y 1,383 pruebas globales aprobadas al 100%.
+- `pnpm exec vite build`: Compilación para producción completada exitosamente en 7.66s.
+
+## [2026-10-01] Implementación de Explorador D&D 5.5e (2024) - Fase 3: Subclase Errante Feérico (Fey Wanderer)
+
+**Objetivo de la Fase 3:**
+- Implementar la subclase Errante Feérico (*Fey Wanderer*) en `src/datos/clases/explorador.json` y el motor de reglas conforme al PHB de D&D 5.5e (2024) y directrices del usuario.
+- Rasgos implementados y configurados:
+  - Nivel 3: *Golpes terroríficos* (`categoriaMecanica: "activable"`, `formulaDados: "1d4"`, `sincronizarEfectosConFormula: true`, escalado a `"1d6"` a Nivel 11).
+  - Nivel 3: *Conjuros del Errante Feérico* (`pasivo_permanente` y corrección de progresión de conjuros canónicos: *Hechizar persona*, *Paso brumoso*, *Invocar feérico*, *Puerta dimensional*, *Desorientar*).
+  - Nivel 3: *Dones de los Parajes Feéricos* (`categoriaMecanica: "selector_informativo"` con las 6 opciones oficiales).
+  - Nivel 3: *Glamur de otro mundo* (`bono_habilidad`, `objetivo: "carisma"`, `valor: "max(1, sabiduria)"`).
+  - Nivel 7: *Giro seductor* (`pasivo_permanente`, ventaja en tiradas de salvación contra estados de hechizado y asustado).
+  - Nivel 11: *Refuerzos feéricos* (`categoriaMecanica: "consumible"`, 1 uso descanso largo, conjuro gratuito *Invocar feérico*).
+  - Nivel 15: *Errante brumoso* (`categoriaMecanica: "consumible"`, usos por Sabiduría descanso largo, conjuro gratuito *Paso brumoso*).
+
+**Decisiones Técnicas y Modificaciones Aplicadas:**
+1. **Generalización Agnóstica en `evaluadorSalvacionesRasgos.ts`:**
+   - Se amplió `obtenerBonosHabilidadesRasgos` para que cuando un rasgo otorgue un bono con objetivo de característica (ej. `"carisma"` o `"sabiduria"`), el sistema mapee dinámicamente y distribuya el bonificador a todas las habilidades asociadas mediante `MAPA_HABILIDAD_A_CARACTERISTICA`.
+   - Cumple estrictamente con la Regla 6: cero lógica hardcodeada por nombre de rasgo o subclase.
+2. **Corrección de Esquema Zod en Efectos Mecánicos:**
+   - El esquema Zod `EsquemaEfectoMecanicoRasgo` exige que `valor` esté definido en todos los efectos mecánicos (`z.union([z.number(), z.string()])`). Se asignó `"valor": "ventaja"` en los efectos de ventaja de *Giro seductor*.
+3. **Suite de Pruebas Unitarias (`src/servicios/exploradorMecanicasDND55.test.ts`):**
+   - Incorporada suite con 6 pruebas específicas validando el funcionamiento de los rasgos de Errante Feérico (activable 1d4->1d6, suma de Sabiduría a pruebas de Carisma, opciones del selector, conjuros canónicos y consumibles).
+
+**Validación Integral del Pipeline CI:**
+- `pnpm test src/servicios/exploradorMecanicasDND55.test.ts`: 31 pruebas unitarias aprobadas al 100%.
+- `pnpm exec tsc --noEmit`: 0 errores con `strict: true`.
+- `pnpm run lint`: 0 errores y 0 advertencias (`--max-warnings=0`).
+- `node scripts/verificar-limite-lineas.js`: 0 errores críticos.
+- `pnpm test`: 94 suites y 1,389 pruebas globales aprobadas al 100%.
+- `pnpm exec vite build`: Compilación para producción completada exitosamente en 13.34s.
+
+## [2026-10-01] Implementación de Explorador D&D 5.5e (2024) - Fase 4: Subclase Acechador en la Penumbra (Gloom Stalker)
+
+**Objetivo de la Fase 4:**
+- Implementar la subclase Acechador en la Penumbra (*Gloom Stalker*) en `src/datos/clases/explorador.json` y el motor de reglas conforme al PHB de D&D 5.5e (2024) y directrices del usuario.
+- Rasgos implementados y configurados:
+  - Nivel 3: *Emboscador terrorífico* (`pasivo_permanente`, suma modificador de Sabiduría a tiradas de iniciativa mediante `modificador_stat` y otorga Salto del emboscador +10 pies primer turno de combate).
+  - Nivel 3: *Golpe terrorífico* (rasgo separado como `consumible`, daño psíquico `2d6` a armas, usos por modificador de Sabiduría, mín 1, por descanso largo; escalado automático declarativo a `2d8` en Nivel 11).
+  - Nivel 3: *Conjuros del Acechador en la Penumbra* (`pasivo_permanente`, progresión de conjuros siempre preparados: *Disfrazarse*, *Truco de la cuerda*, *Miedo*, *Invisibilidad mayor*, *Apariencia*).
+  - Nivel 3: *Visión en la penumbra* (`pasivo_permanente`, otorga `+60` pies de visión en la oscuridad mediante `modificador_stat` acumulables con visión base previa).
+  - Nivel 7: *Mente de hierro* (`pasivo_permanente`, otorga competencia en tiradas de salvación de Sabiduría vía efecto `competencia` en `salvacion.sabiduria`).
+  - Nivel 11: *Aluvión del acechador* (`categoriaMecanica: "extension"`, `ligadoA: "Golpe terrorífico"`, `formulaDados: "2d8"`, consolidada orgánicamente en el padre con el patrón Decorator del builder y añadiendo facultades Golpe súbito y Miedo en masa).
+  - Nivel 15: *Esquiva sombría* (`pasivo_permanente`, reacción para imponer desventaja a ataques recibidos y teletransporte defensivo de 30 pies).
+
+**Decisiones Técnicas y Modificaciones Aplicadas:**
+1. **Separación Arquitectónica e Integración con el Motor:**
+   - Se desacopló el daño por armas del rasgo pasivo de iniciativa/velocidad, dejando *Emboscador terrorífico* como pasivo puro y *Golpe terrorífico* como recurso consumible activo.
+   - *Aluvión del acechador* aprovecha el patrón de extensión de `gestorClases.ts` (`fusionarExtension`), actualizando el dado de *Golpe terrorífico* a `2d8` y enriqueciendo su descripción sin duplicar tarjetas residuales en la interfaz.
+2. **Interacción de Iniciativa en Tests Unitarios:**
+   - Se identificó que la especie Humano preselecciona la dote de origen *Alerta* (+PB a la iniciativa) a través de su rasgo *Versátil*. Para aislar y verificar con precisión la aportación de *Emboscador terrorífico* (+3 por Sabiduría 16), el test utiliza un personaje base con especie personalizada.
+3. **Suite de Pruebas Unitarias (`src/servicios/exploradorMecanicasDND55.test.ts`):**
+   - Incorporada suite con 6 pruebas específicas (total de 37 pruebas para Explorador) validando bono de iniciativa, consumo y escalado de Golpe terrorífico, acumulación de visión en la oscuridad, salvaciones de Sabiduría de Mente de hierro y conjuros siempre preparados.
+
+**Validación Integral del Pipeline CI:**
+- `pnpm test src/servicios/exploradorMecanicasDND55.test.ts`: 37 pruebas unitarias aprobadas al 100%.
+- `pnpm exec tsc --noEmit`: 0 errores con `strict: true`.
+- `pnpm run lint`: 0 errores y 0 advertencias (`--max-warnings=0`).
+- `node scripts/verificar-limite-lineas.js`: 0 errores críticos.
+- `pnpm test`: 94 suites y 1,395 pruebas globales aprobadas al 100%.
+- `pnpm exec vite build`: Compilación para producción completada exitosamente en 12.66s.
+
+
+
+
+## [2026-10-01] Implementación de Explorador D&D 5.5e (2024) - Fase 5: Subclase Cazador (Hunter) y Fase 6: Cierre Integral
+
+**Objetivo de la Fase 5 y 6:**
+- Implementar la subclase Cazador (*Hunter*) en `src/datos/clases/explorador.json` y el motor de reglas conforme al PHB oficial de D&D 5.5e (2024) y las instrucciones del usuario:
+  - Nivel 3: *Presa del cazador* (`categoriaMecanica: "selector_informativo"` con selector interactivo único entre *Asesino de colosos* y *Rompehordas*).
+  - Nivel 3: *Presa del cazador: Asesino de colosos* (`categoriaMecanica: "activable"`, `esActivable: true`, `formulaDados: "1d8"`, `autoDesactivarAlTirarDano: true`, vinculado mediante `ligadoA: "Presa del cazador"` y `requiereOpcion: "asesino_colosos"`; otorga efecto declarativo `dado_extra_dano` de 1d8 en ataques con arma cuando está seleccionado y activo).
+  - Nivel 3: *Presa del cazador: Rompehordas* (`categoriaMecanica: "pasivo_permanente"`, vinculado con `ligadoA: "Presa del cazador"` y `requiereOpcion: "rompehordas"`).
+  - Nivel 3: *Sabiduría del cazador* (`categoriaMecanica: "pasivo_permanente"`, informativo sobre inmunidades, resistencias y vulnerabilidades bajo *Marca del cazador*).
+  - Nivel 7: *Tácticas defensivas* (`categoriaMecanica: "selector_informativo"` con selector interactivo entre *Escapar de la horda* y *Defensa contra ataques múltiples*).
+  - Nivel 11: *Presa del cazador superior* (`categoriaMecanica: "pasivo_permanente"`, informativo sobre contagio de daño extra de *Marca del cazador* a criatura adicional a 30 pies).
+  - Nivel 15: *Defensa del cazador superior* (`categoriaMecanica: "pasivo_permanente"`, `tipoAccion: "reaccion"` para resistencia al daño recibido hasta fin de turno).
+- Ejecución de la Fase 6 de verificación integral del pipeline CI en su totalidad.
+
+**Decisiones Técnicas y Modificaciones Aplicadas:**
+1. **Patrón de Opciones Dependientes Declarativas (`requiereOpcion` y `ligadoA`):**
+   - Se configuró *Presa del cazador* como selector interactivo primario, y se crearon los rasgos vinculados *Presa del cazador: Asesino de colosos* y *Presa del cazador: Rompehordas*.
+   - El motor agnóstico `esRasgoHabilitadoPorOpcion` y `compendioRasgos.ts` evalúa dinámicamente si la opción requerida está en `valorActual` del selector padre. Si el jugador conmuta a *Rompehordas*, *Asesino de colosos* queda inhabilitado automáticamente y `obtenerDadosExtraAtaque` no emite el dado extra de daño.
+2. **Suite de Pruebas Unitarias (`src/servicios/exploradorMecanicasDND55.test.ts`):**
+   - Incorporada suite con 6 pruebas específicas de Cazador (alcanzando 43 pruebas en total para la clase Explorador y sus 4 subclases), cubriendo:
+     - Detección de selector interactivo de Nivel 3 con opciones canónicas.
+     - Activación y adición de 1d8 de daño extra a armas en combate.
+     - Inhabilitación automática de *Asesino de colosos* al seleccionar *Rompehordas*.
+     - Selector informativo de Nivel 7 con *Escapar de la horda* y *Defensa contra ataques múltiples*.
+     - Rasgos de Nivel 11 y 15 como pasivo permanente y reacción defensiva.
+
+**Validación Integral del Pipeline CI (Fase 6):**
+- `pnpm test src/servicios/exploradorMecanicasDND55.test.ts`: 43 pruebas unitarias aprobadas al 100%.
+- `pnpm exec tsc --noEmit`: 0 errores con `strict: true`.
+- `pnpm run lint`: 0 errores y 0 advertencias (`--max-warnings=0`).
+- `node scripts/verificar-limite-lineas.js`: 112 archivos auditados, 0 errores críticos.
+- `pnpm test`: 94 suites y 1,401 pruebas globales aprobadas al 100%.
+- `pnpm exec vite build`: Compilación para producción completada exitosamente en 16.00s.
+
+## [2026-10-01] Alineación Canónica de Textos y Descripciones de Explorador D&D 5.5e (dicionario_herramientas/exolorador descripciones.json)
+
+**Objetivo y Solicitud del Usuario:**
+- Actualizar y homogeneizar quirúrgicamente las descripciones (`descripcion`) de la clase base Explorador y sus 4 subclases (*Señor de las Bestias*, *Errante Feérico*, *Acechador en la Penumbra*, *Cazador*) en `src/datos/clases/explorador.json` con los textos oficiales canónicos contenidos en `dicionario_herramientas/exolorador descripciones.json`.
+- Preservar al 100% las configuraciones mecánicas, selectores, acciones, fórmulas de dados, límites y tests unitarios sin mutaciones indeseadas.
+
+**Ajustes y Decisiones Técnicas Aplicadas:**
+1. **Unificación de Medidas en Pies (PHB 2024 Oficial):**
+   - Se reemplazaron todas las referencias híbridas con sistema métrico residual ("1,5 m (5 pies)", "3 m (10 pies)", "9 m (30 pies)", "18 m (60 pies)", "36 m (120 pies)") por las unidades puras canónicas en pies ("5 pies", "10 pies", "30 pies", "60 pies", "120 pies").
+2. **Clase Base Explorador:**
+   - *Lanzamiento de conjuros* (Nv. 1): Párrafos canónicos sobre preparación, cambio de conjuros al subir de nivel y foco druídico.
+   - *Enemigo predilecto* (Nv. 1): Texto oficial con invocación sin consumir espacios de conjuro y progresión de usos.
+   - *Explorador diestro* (Nv. 2): Descripción canónica pura como rasgo pasivo permanente (sin selectores en hoja).
+   - *Estilo de combate* (Nv. 2): Ajuste textual sobre dotes de estilo de combate.
+   - *Mejora de característica* (Niveles 4, 8, 12, 16): Texto canónico del PHB 2024.
+   - *Trotamundos* (Nv. 6): "10 pies", "velocidad trepando" y "velocidad nadando" iguales a la velocidad caminando.
+   - *Velo de la naturaleza* (Nv. 14): Descripción canónica con párrafos y viñetas oficiales.
+   - *Sentidos salvajes* (Nv. 18): "30 pies" de vista ciega.
+3. **Subclase Señor de las Bestias:**
+   - *Compañero primigenio* (Nv. 3): "5 pies de ti".
+   - *Compartir conjuros* (Nv. 15): "30 pies de ti".
+4. **Subclase Errante Feérico:**
+   - *Dones de los Parajes Feéricos* (Nv. 3): Integración de la tabla canónica Markdown 1d6 en la descripción del rasgo.
+   - *Giro seductor* (Nv. 7): "120 pies".
+   - *Errante brumoso* (Nv. 15): "5 pies de ti".
+5. **Subclase Acechador en la Penumbra:**
+   - *Emboscador terrorífico* (Nv. 3): "10 pies" en *Salto del emboscador*, bonificador de iniciativa por Sabiduría.
+   - *Visión en la penumbra* (Nv. 3): "60 pies".
+   - *Aluvión del acechador* (Nv. 11): "5 pies" en *Golpe súbito* y "10 pies" en *Miedo en masa*.
+   - *Esquiva sombría* (Nv. 15): Texto oficial canónico (teletransporte de hasta 30 pies tanto si acierta como si falla el ataque recibido).
+6. **Subclase Cazador:**
+   - *Presa del cazador* (Nv. 3): "5 pies o menos del objetivo original" en la descripción principal y en la opción `rompehordas` del selector interactivo.
+   - *Presa del cazador: Rompehordas* (Nv. 3): "5 pies o menos del objetivo original".
+   - *Presa del cazador superior* (Nv. 11): "30 pies o menos de la primera criatura".
+
+**Validación Integral del Pipeline CI:**
+- `pnpm test src/servicios/exploradorMecanicasDND55.test.ts`: 43 pruebas unitarias aprobadas al 100%.
+- `pnpm exec tsc --noEmit`: 0 errores con `strict: true`.
+- `pnpm run lint`: 0 errores y 0 advertencias (`--max-warnings=0`).
+- `node scripts/verificar-limite-lineas.js`: 112 archivos auditados, 0 errores críticos.
+- `pnpm test`: 94 suites y 1,401 pruebas globales aprobadas al 100%.
+- `pnpm exec vite build`: Compilación para producción completada exitosamente en 15.12s.
+
+## [2026-10-01] Integración Canónica de Tablas de Rasgos de Explorador D&D 5.5e (tablaProgresion) y Estilo Enmarcado
+
+**Problema Reportado por el Usuario:**
+- Solicitud de incorporar las tablas de rasgos en base a 4 capturas de pantalla de la aplicación de referencia:
+  1. *Enemigo predilecto*: Tabla de 5 filas de descansos largos con nota al pie "Cada nivel reemplaza al anterior".
+  2. *Conjuros de acechador en la penumbra*: Tabla de 5 filas con conjuros siempre preparados.
+  3. *Bendición feérica* (*Dones de los Parajes Feéricos*): Tabla de 6 filas con tirada 1d6 y dádivas feéricas.
+  4. *Conjuros de errante feérico*: Tabla de 5 filas con conjuros siempre preparados.
+
+**Causas Raíz Diagnosticadas:**
+1. **Ausencia de `tablaProgresion` en el Catálogo:**
+   - En `src/datos/clases/explorador.json`, los rasgos de conjuros de subclase y dones feéricos tenían tablas Markdown pegadas en texto crudo dentro de `descripcion`, mientras que *Enemigo predilecto* carecía por completo del objeto `tablaProgresion`. Por ende, el componente de presentación de modales (`ModalDetalleRasgo.tsx` y `TablaProgresionRasgo.tsx`) no renderizaba las tablas nativas estilizadas.
+2. **Limitación de Estilos en `TablaProgresionRasgo.tsx`:**
+   - El renderizado enmarcado (filas intercaladas con recuadro `filaConjuroEnmarcada`) solo se activaba si la segunda columna contenía la palabra "conjuro". Tablas descriptivas de 2 columnas (como *Enemigo predilecto* o *Dones de los Parajes Feéricos*) utilizaban el estilo genérico de tabla densa con bordes divisorios verticales y marcaban erróneamente un badge "Actual" por nivel del personaje en tablas que no representaban niveles (como el dado 1d6).
+
+**Soluciones Técnicas Aplicadas:**
+1. **Actualización Declarativa en `src/datos/clases/explorador.json`:**
+   - **Enemigo predilecto:** Incorporado objeto canónico `tablaProgresion` con columnas `["Nivel", "Descripción"]`, 5 filas (niveles 2, 5, 9, 13, 17 con `X/descanso largo`) y `notaPie: "Cada nivel reemplaza al anterior"`.
+   - **Conjuros del Errante Feérico:** Limpiada la descripción y añadido `tablaProgresion` con `["Nivel de explorador", "Conjuro"]` y las 5 filas canónicas (*Hechizar persona*, *Paso brumoso*, *Invocar feérico*, *Puerta dimensional*, *Engañar*).
+   - **Dones de los Parajes Feéricos:** Limpiada la descripción y añadido `tablaProgresion` con `["1d6", "Dádiva"]` y las 6 dádivas oficiales.
+   - **Conjuros del Acechador en la Penumbra:** Limpiada la descripción y añadido `tablaProgresion` con `["Nivel de explorador", "Conjuros"]` y las 5 filas canónicas (*Disfrazarse*, *Truco de la cuerda*, *Terror*, *Invisibilidad mejorada*, *Apariencia*).
+2. **Mejora del Componente `TablaProgresionRasgo.tsx` y Estilos:**
+   - Soporte nativo para que todas las tablas de dos columnas apliquen el estilo canónico de filas enmarcadas intercaladas de D&D 2024 (`tablaConjurosSubclase` + `filaConjuroEnmarcada` / `filaConjuroSimple`).
+   - `celdaTextoEnmarcada` en CSS para centrar y estilizar el texto descriptivo en color `#cbd5e1`.
+   - Restricción estricta del cálculo de nivel activo (`nivelFilaActiva`) únicamente a columnas que contengan "nivel", evitando que tiradas como 1d6 marquen un badge "Actual" incorrecto.
+3. **Suite de Pruebas Unitarias (`src/servicios/exploradorMecanicasDND55.test.ts`):**
+   - Incorporadas 4 pruebas unitarias verificando la existencia, columnas, filas y notas al pie de `tablaProgresion` en los 4 rasgos (alcanzando 47 pruebas unitarias aprobadas al 100%).
+
+**Validación Integral del Pipeline CI:**
+- `pnpm test src/servicios/exploradorMecanicasDND55.test.ts`: 47 pruebas unitarias aprobadas al 100%.
+- `pnpm exec tsc --noEmit`: 0 errores con `strict: true`.
+- `pnpm run lint`: 0 errores y 0 advertencias (`--max-warnings=0`).
+- `node scripts/verificar-limite-lineas.js`: 112 archivos auditados, 0 errores críticos.
+- `pnpm test`: 94 suites y 1,405 pruebas globales aprobadas al 100%.
+- `pnpm exec vite build`: Compilación para producción completada exitosamente en 14.50s.
+
 ## [2026-10-01] Auditoría y Alineación Canónica con TaleSpire Manifest v1 (summary en raíz y webViewBackgroundColor)
 
 **Problema Reportado por el Usuario:**

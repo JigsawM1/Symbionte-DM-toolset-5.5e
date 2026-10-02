@@ -15,6 +15,7 @@ import {
   resolverFormulaDinamica,
   evaluarExpresionNumericaSegura
 } from "./evaluadorExpresionesRasgos";
+import { MAPA_HABILIDAD_A_CARACTERISTICA } from "@/constantes/personajeConstantes";
 
 /**
  * Evalúa si los rasgos o efectos activos del personaje otorgan o restauran
@@ -51,6 +52,34 @@ export function evaluarRecuperacionInspiracionEnDescanso(
     }
   }
   return false;
+}
+
+/**
+ * Evalúa si los rasgos o efectos activos del personaje reducen niveles de cansancio / agotamiento
+ * durante un descanso corto (ej. Incansable de Explorador Nv 10: -1 nivel de agotamiento en descanso corto).
+ * Función GENÉRICA PURA: no hardcodea nombres de rasgos ni clases.
+ */
+export function evaluarReduccionCansancioDescansoCorto(personaje: PersonajeJugador): number {
+  if (!personaje) return 0;
+  const efectos = evaluarEfectosRasgosActivos(personaje);
+  let reduccionTotal = 0;
+
+  for (const ef of efectos) {
+    const objNorm = normalizar(ef.objetivo || "");
+    const esReduccionCansancio =
+      (ef.tipo === "personalizado" || ef.tipo === "restaurar_recurso") &&
+      (objNorm === "reducir_cansancio_descanso_corto" ||
+        objNorm === "reducir_agotamiento_descanso_corto" ||
+        (objNorm.includes("cansancio") && objNorm.includes("corto")) ||
+        (objNorm.includes("agotamiento") && objNorm.includes("corto")));
+
+    if (esReduccionCansancio) {
+      const cant = Number(ef.valor) || 1;
+      reduccionTotal += cant;
+    }
+  }
+
+  return reduccionTotal;
 }
 
 /**
@@ -600,8 +629,26 @@ export function obtenerBonosHabilidadesRasgos(
           bonos[h] = (bonos[h] || 0) + valorNumerico;
         }
       } else {
-        const habCanonica = MAPA_OBJETIVO_A_HABILIDAD[objLimpio] || (objLimpio as Habilidad);
-        bonos[habCanonica] = (bonos[habCanonica] || 0) + valorNumerico;
+        const caracNorm =
+          objLimpio === "car" ? "carisma" :
+          objLimpio === "sab" ? "sabiduria" :
+          objLimpio === "int" ? "inteligencia" :
+          objLimpio === "des" ? "destreza" :
+          objLimpio === "fue" ? "fuerza" :
+          objLimpio === "con" ? "constitucion" : objLimpio;
+
+        const esCaracteristica = ["fuerza", "destreza", "constitucion", "inteligencia", "sabiduria", "carisma"].includes(caracNorm);
+
+        if (esCaracteristica) {
+          for (const [hab, carac] of Object.entries(MAPA_HABILIDAD_A_CARACTERISTICA)) {
+            if (carac === caracNorm) {
+              bonos[hab as Habilidad] = (bonos[hab as Habilidad] || 0) + valorNumerico;
+            }
+          }
+        } else {
+          const habCanonica = MAPA_OBJETIVO_A_HABILIDAD[objLimpio] || (objLimpio as Habilidad);
+          bonos[habCanonica] = (bonos[habCanonica] || 0) + valorNumerico;
+        }
       }
     }
   }

@@ -353,9 +353,11 @@ export function obtenerOpcionesDotesEstiloCombate(claseId: string): import("@/ti
     return true;
   });
 
-  // Si es paladín, colocar Guerrero bendecido al principio; en caso contrario Defensa
+  // Si es paladín, colocar Guerrero bendecido al principio; si es explorador, Guerrero druídico; en caso contrario Defensa
   const dotePorDefectoId = normClase.includes("paladin")
     ? "dote_estilo_guerrero_bendito"
+    : normClase.includes("explorador") || normClase.includes("ranger")
+    ? "dote_estilo_guerrero_druidico"
     : "dote_estilo_defensa";
 
   const primera = dotesPermitidas.find((d) => d.id === dotePorDefectoId);
@@ -395,6 +397,8 @@ export function crearSelectorDoteEstiloCombate(claseId: string, nivel: number): 
   const normClase = normalizarTextoClase(claseId);
   const dotePorDefectoId = normClase.includes("paladin")
     ? "dote_estilo_guerrero_bendito"
+    : normClase.includes("explorador") || normClase.includes("ranger")
+    ? "dote_estilo_guerrero_druidico"
     : "dote_estilo_defensa";
 
   return {
@@ -741,6 +745,7 @@ export function obtenerRasgosClaseYSubclase(
       tieneUsosLimitados: !!r.tieneUsosLimitados,
       usosMaximos: usosFinales,
       usosRestantes: usosFinales,
+      formulaEscalado: r.formulaEscalado || (r.formulaUsos ?? undefined),
       recuperacion: (escalados.recuperacion ?? r.recuperacion ?? "ninguno") as RecuperacionRasgo,
       formulaDados: escalados.formulaDados,
       escaladoFormulaDados: r.escaladoFormulaDados,
@@ -765,7 +770,6 @@ export function obtenerRasgosClaseYSubclase(
       conjurosOtorgados: r.conjurosOtorgados ? [...r.conjurosOtorgados] : [],
       categoriaMecanica: r.categoriaMecanica,
       costeFijo: r.costeFijo,
-      formulaEscalado: r.formulaEscalado,
       efectos: escalados.efectos,
       selectores: escalados.selectores,
       tablaProgresion: r.tablaProgresion ? JSON.parse(JSON.stringify(r.tablaProgresion)) : undefined,

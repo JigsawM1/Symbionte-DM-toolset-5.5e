@@ -501,29 +501,45 @@ export function obtenerSubclasesDeClase(claseNombreOId: string): DefinicionSubcl
 /**
  * Busca una subclase por nombre tolerante dentro de una clase (o en el catálogo global si no se especifica clase).
  */
+export const ALIAS_SUBCLASES_EQUIVALENTES: Record<string, string> = {
+  "camino de la sombra": "guerrero de la sombra",
+  "camino de la misericordia": "guerrero de la misericordia",
+  "camino de los elementos": "guerrero de los elementos",
+  "camino de la mano abierta": "guerrero de la mano abierta",
+  "guerrero de la sombra": "camino de la sombra",
+  "guerrero de la misericordia": "camino de la misericordia",
+  "guerrero de los elementos": "camino de los elementos",
+  "guerrero de la mano abierta": "camino de la mano abierta"
+};
+
 export function obtenerSubclasePorNombre(
   claseNombreOId?: string,
   subclaseNombre?: string
 ): DefinicionSubclase | undefined {
   if (!subclaseNombre) return undefined;
   const subNorm = normalizarTextoClase(subclaseNombre);
+  const alias = ALIAS_SUBCLASES_EQUIVALENTES[subNorm];
+
+  const coincideSubclase = (s: DefinicionSubclase): boolean => {
+    const sNorm = normalizarTextoClase(s.nombre);
+    const sId = normalizarTextoClase(s.id);
+    return (
+      sNorm === subNorm ||
+      sId === subNorm ||
+      (!!alias && (sNorm === alias || sId === alias)) ||
+      sNorm.includes(subNorm) ||
+      subNorm.includes(sNorm)
+    );
+  };
 
   if (claseNombreOId) {
     const subclases = obtenerSubclasesDeClase(claseNombreOId);
-    const encontrada = subclases.find((s) => {
-      const sNorm = normalizarTextoClase(s.nombre);
-      const sId = normalizarTextoClase(s.id);
-      return sNorm === subNorm || sId === subNorm || sNorm.includes(subNorm) || subNorm.includes(sNorm);
-    });
+    const encontrada = subclases.find(coincideSubclase);
     if (encontrada) return encontrada;
   }
 
   // Búsqueda global de contingencia
-  return TODAS_SUBCLASES_DND55.find((s) => {
-    const sNorm = normalizarTextoClase(s.nombre);
-    const sId = normalizarTextoClase(s.id);
-    return sNorm === subNorm || sId === subNorm || sNorm.includes(subNorm) || subNorm.includes(sNorm);
-  });
+  return TODAS_SUBCLASES_DND55.find(coincideSubclase);
 }
 
 /**

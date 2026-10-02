@@ -37,9 +37,11 @@ Este archivo registra reglas globales, errores encontrados, sus causas raíz y l
    - *Concentración de monje*: consumible padre con usos por nivel y recuperación en descanso corto.
    - *Ráfaga de golpes*, *Defensa paciente* y *Paso del viento*: acciones adicionales consumibles con `gastarDePadre: true` y `ligadoA: "Concentración de monje"`.
    - *Desviar ataques*, *Golpe aturdidor*, *Defensa superior* (coste fijo 3), *Cuerpo y mente* (+4 DES, +4 SAB, máx 25).
-4. **Subclases Canónicas y Pruebas:**
-   - 4 subclases estructuradas en `monje.json` con redacción neutra.
-   - Suite dedicada `src/servicios/monjeMecanicasDND55.test.ts` con cobertura completa para mecánicas de concentración, artes marciales y costes fijos.
+4. **Subclases Canónicas, Nombres Canónicos D&D 2024 y Alias Tolerantes:**
+   - En D&D 5.5e (2024), las 4 subclases del Monje se denominan canónicamente *Guerrero de la misericordia*, *Guerrero de la sombra*, *Guerrero de los elementos* y *Guerrero de la mano abierta*, y el recurso se denomina *Concentración de monje* para evitar ambigüedades con la concentración mágica de conjuros.
+   - Para maximizar la robustez ante entradas del usuario o personajes importados con la nomenclatura tradicional de 5e ("Camino de..."), se implementó `ALIAS_SUBCLASES_EQUIVALENTES` en `src/servicios/gestorClases.ts`, permitiendo resolución bidireccional inmediata.
+   - Se restauró la evaluación de `nivel_brujo` en `src/servicios/rasgos/evaluadorExpresionesRasgos.ts`.
+   - Validación completa del pipeline: 1.442/1.442 tests superados (96 suites), TypeScript sin errores, linter limpio y build de Vite exitoso.
 
 ## [2026-10-02] Corrección de Conflicto de Capas: TooltipUniversal sobre Popover de Movimiento (Contextos de Apilamiento y React Portals)
 

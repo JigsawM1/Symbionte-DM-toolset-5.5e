@@ -27,8 +27,8 @@ interface SeccionRasgosAtaqueProps {
   estaAbierta: boolean;
   alAlternar: () => void;
   alAbrirDetalle: (rasgo: RasgoPersonaje) => void;
-  alGastarUso: (idPj: string, idRasgo: string) => void;
-  alRecuperarUso: (idPj: string, idRasgo: string) => void;
+  alGastarUso: (idPj: string, idRasgo: string, cantidad?: number) => void;
+  alRecuperarUso: (idPj: string, idRasgo: string, cantidad?: number) => void;
   alAlternarActivo: (idPj: string, idRasgo: string) => void;
   obtenerBloqueoToggleRasgo: (r: RasgoPersonaje) => { bloqueado: boolean; motivo?: string };
   resolverRecursosPadre: (r: RasgoPersonaje) => {
@@ -150,8 +150,8 @@ export const SeccionRasgosAtaque: React.FC<SeccionRasgosAtaqueProps> = ({
         rasgo={item.rasgo}
         nombrePersonaje={personajeActivo.nombre || "Personaje"}
         idPersonaje={personajeActivo.id}
-        alGastarUso={() => alGastarUso(personajeActivo.id, item.rasgo.id)}
-        alRecuperarUso={() => alRecuperarUso(personajeActivo.id, item.rasgo.id)}
+        alGastarUso={(cant?: number) => alGastarUso(personajeActivo.id, item.rasgo.id, cant)}
+        alRecuperarUso={(cant?: number) => alRecuperarUso(personajeActivo.id, item.rasgo.id, cant)}
         alAlternarActivo={() => alAlternarActivo(personajeActivo.id, item.rasgo.id)}
         deshabilitadoToggle={bloqueo.bloqueado}
         motivoDeshabilitado={bloqueo.motivo}

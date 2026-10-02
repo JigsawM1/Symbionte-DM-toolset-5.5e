@@ -475,7 +475,14 @@ export const crearSubSliceRasgos: StateCreator<
         // Restauración configurable
         if (nuevoActivo && restauracion && (r.id === restauracion.idRasgoObjetivo || rNom === restauracion.idRasgoObjetivo.toLowerCase().trim())) {
           const max = typeof r.usosMaximos === "number" ? r.usosMaximos : (r.usosRestantes ?? 1);
-          const cantidadRestaurar = restauracion.cantidad === "maximo" ? max : Math.min(max, (r.usosRestantes || 0) + restauracion.cantidad);
+          let cantidadRestaurar: number;
+          if (typeof restauracion.hastaCantidad === "number") {
+            cantidadRestaurar = Math.min(max, Math.max(r.usosRestantes || 0, restauracion.hastaCantidad));
+          } else if (restauracion.cantidad === "maximo") {
+            cantidadRestaurar = max;
+          } else {
+            cantidadRestaurar = Math.min(max, (r.usosRestantes || 0) + (restauracion.cantidad || 0));
+          }
           return { ...r, usosRestantes: cantidadRestaurar };
         }
 
@@ -994,14 +1001,33 @@ export const crearSubSliceRasgos: StateCreator<
 
       for (const rd of rasgosDisparados) {
         if (rd.restaurarUsosAlActivar) {
-          const targetId = rd.restaurarUsosAlActivar.idRasgoObjetivo.toLowerCase().trim();
+          const cfg = rd.restaurarUsosAlActivar;
+          if (cfg.siNoDisparado) {
+            const siNoNorm = cfg.siNoDisparado.toLowerCase().trim();
+            const otroDisparado = rasgosDisparados.some(
+              (x) => x.id.toLowerCase().trim() === siNoNorm || x.nombre.toLowerCase().trim() === siNoNorm
+            );
+            if (otroDisparado) {
+              continue;
+            }
+          }
+
+          const targetId = cfg.idRasgoObjetivo.toLowerCase().trim();
           for (let i = 0; i < rasgosActualizados.length; i++) {
             const tr = rasgosActualizados[i];
             if (tr.id.toLowerCase().trim() === targetId || tr.nombre.toLowerCase().trim() === targetId) {
+              if (typeof cfg.soloSiMenorOIgual === "number" && (tr.usosRestantes || 0) > cfg.soloSiMenorOIgual) {
+                continue;
+              }
               const max = typeof tr.usosMaximos === "number" ? tr.usosMaximos : (tr.usosRestantes ?? 1);
-              const cantRestaurar = rd.restaurarUsosAlActivar.cantidad === "maximo"
-                ? max
-                : Math.min(max, (tr.usosRestantes || 0) + rd.restaurarUsosAlActivar.cantidad);
+              let cantRestaurar: number;
+              if (typeof cfg.hastaCantidad === "number") {
+                cantRestaurar = Math.min(max, Math.max(tr.usosRestantes || 0, cfg.hastaCantidad));
+              } else if (cfg.cantidad === "maximo") {
+                cantRestaurar = max;
+              } else {
+                cantRestaurar = Math.min(max, (tr.usosRestantes || 0) + (cfg.cantidad || 0));
+              }
               rasgosActualizados[i] = {
                 ...tr,
                 usosRestantes: cantRestaurar

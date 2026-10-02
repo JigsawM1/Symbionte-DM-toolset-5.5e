@@ -17,6 +17,65 @@ Este archivo registra reglas globales, errores encontrados, sus causas raíz y l
    - **Bajo ninguna circunstancia** los módulos de lógica de negocio (`servicios/`), gestores de estado (`almacen/`), contratos (`tipos/`), valores de reglas (`constantes/`) ni funciones de soporte (`utiles/`) deben importar componentes visuales o archivos CSS (`componentes/`). Esta regla está reforzada en CI vía ESLint `no-restricted-imports`.
 6. **PROHIBICIÓN ESTRICTA DE BIFURCACIONES POR NOMBRE DE RASGO O CLASE (CATÁLOGO DECLARATIVO Y BUILDER PURO)**:
    - **Bajo ninguna circunstancia** los módulos de lógica de negocio (`servicios/`), gestores de estado (`almacen/`) o constructores (`gestorClases.ts`) deben contener bifurcaciones condicionales por nombre literal de rasgo o clase (`r.nombre === "..."`, `clase.includes("...")`, etc.).
+## [2026-10-01] Corrección de Metabolismo Asombroso (Autocuración) y Gasto Múltiple de Concentración (costeFijo)
+
+**Causa Raíz de los Problemas:**
+1. **Autocuración en Metabolismo asombroso:** Queda configurado exclusivamente como `categoriaMecanica: "curacion"` con 1 uso por descanso largo (sin conmutador activable on/off ni dependencias de iniciativa), tirando el dado de artes marciales según el nivel + el nivel del monje (`formulaDados: "1d6 + nivel"` con su escalado oficial), aplicando automáticamente la curación sobre los PG del personaje vía `curacionRasgo`. Concentración perfecta asume de forma independiente la restauración de hasta 4 puntos de concentración al tirar iniciativa si el monje tiene 3 o menos puntos.
+2. **Gasto de Múltiples Puntos de Concentración (`costeFijo`):** En `SeccionRasgosAtaque.tsx` y `VistaAtaquesJugador.tsx`, los callbacks `alGastarUso` y `alRecuperarUso` no declaraban ni reenviaban el parámetro `(cant?: number)`, por lo que al hacer clic en botones como `[-3]`, `[-4]` o `[-5]` o al tirar dados con coste fijo, la cantidad se perdía y siempre se restaba únicamente 1 punto de la reserva padre de *Concentración de monje*. Asimismo, en `usarAccionesTarjetaRasgo.ts` y `ModalDetalleRasgo.tsx`, `manejarTirarDados` llamaba a `alGastarUso()` sin pasar `rasgo.costeFijo || 1`.
+
+**Soluciones Técnicas Aplicadas:**
+1. **Configuración de Autocuración en `src/datos/clases/monje.json`:**
+   - *Metabolismo asombroso*: establecido como `categoriaMecanica: "curacion"`, `esActivable: true`, `formulaDados: "1d6 + nivel"` con `escaladoFormulaDados` (1d6+nv en nv 2, 1d8+nv en nv 5, 1d10+nv en nv 11, 1d12+nv en nv 17).
+   - Ajustadas las fórmulas y escalados con modificador de Sabiduría (`+ sabiduria`) en *Mano del daño*, *Mano curativa* (marcada como `curacion`) y *Plenitud corporal* (curación con usos por Sabiduría).
+2. **Soporte Dinámico de Clases en `src/servicios/rasgos/evaluadorExpresionesRasgos.ts`:**
+   - En `resolverFormulaDinamica`: añadido soporte para `nivel_monje`, `nivel_bardo`, `nivel_druida`, `nivel_explorador`, `nivel_guerrero`, `nivel_hechicero`, `nivel_mago` y resolución fluida de variables en fórmulas de dados.
+3. **Propagación Integral de `cantidad` en Callbacks de Gasto:**
+   - En `SeccionRasgosAtaqueProps` y `SeccionRasgosAtaque.tsx`: tipados y actualizados `alGastarUso={(cant?: number) => alGastarUso(personajeActivo.id, item.rasgo.id, cant)}` y `alRecuperarUso={(cant?: number) => alRecuperarUso(personajeActivo.id, item.rasgo.id, cant)}`.
+   - En `VistaAtaquesJugador.tsx`: actualizado el pase de props a `ModalDetalleRasgo`.
+   - En `usarAccionesTarjetaRasgo.ts` y `ModalDetalleRasgo.tsx`: `manejarTirarDados` pasa `rasgo.costeFijo || 1` a `alGastarUso`.
+4. **Verificación y Pruebas Unitarias:**
+   - Suite `src/servicios/monjeMecanicasDND55.test.ts` con 32 tests específicos pasando al 100%.
+   - Suite global con 94 archivos de test y 1,356 pruebas en verde.
+   - `tsc --noEmit` y `eslint src --max-warnings=0` con 0 errores.
+
+## [2026-10-01] Implementación Canónica de Monje D&D 5.5e (PHB 2024) y sus 4 Subclases
+
+**Objetivo de la Iteración:**
+- Implementar la clase completa Monje (niveles 1 a 20) y sus 4 subclases canónicas (*Guerrero de la misericordia*, *Guerrero de la sombra*, *Guerrero de los elementos* y *Guerrero de la mano abierta*) conforme a D&D 5.5e (PHB 2024).
+- Extender el sistema con contratos puramente declarativos y genéricos desde el builder (`gestorClases.ts`), sin bifurcaciones por nombre en servicios, para soportar tiradas no consuntivas (`noGastarAlTirarDados`) y recargas reactivas parametrizadas en iniciativa (`restaurarUsosAlActivar`).
+- Estandarizar todas las distancias en pies imperiales en `src/datos/clases/monje.json`.
+
+**Decisiones Técnicas y Arquitectura Aplicada:**
+1. **Contratos Declarativos Extendidos (`src/tipos/rasgos.ts` y `src/tipos/esquemasCatalogos.ts`):**
+   - `noGastarAlTirarDados?: boolean`: permite a rasgos consumibles como *Desviar ataques* ejecutar su tirada de reducción de daño (1d10) sin descontar automáticamente puntos de *Concentración de monje* del padre, habilitando el botón de gasto para la decisión voluntaria del jugador al redirigir el daño.
+   - `restaurarUsosAlActivar`: ampliado con `hastaCantidad?: number`, `soloSiMenorOIgual?: number` y `siNoDisparado?: string`.
+2. **Lógica Pura de Iniciativa en Zustand (`src/almacen/slices/personajes/sliceRasgos.ts`):**
+   - En `dispararRasgosIniciativaPersonaje`:
+     - *Metabolismo asombroso* recarga al 100% (*cantidad: "maximo"*) la Concentración de monje si se activa al tirar iniciativa.
+     - *Concentración perfecta* restaura hasta 4 puntos únicamente si el monje tenía 3 o menos y no se disparó *Metabolismo asombroso* (`siNoDisparado: "Metabolismo asombroso"`), de forma 100% parametrizada y sin hardcodeo de nombres de clase ni rasgos.
+3. **Clase Base Monje (`src/datos/clases/monje.json`):**
+   - *Artes marciales*: acción adicional, escalado de dados (1d6, 1d8, 1d10, 1d12) con tabla de progresión oficial y efectos diestros.
+   - *Concentración de monje*: consumible padre con usos por nivel y recuperación en descanso corto.
+   - *Ráfaga de golpes*, *Defensa paciente* y *Paso del viento*: acciones adicionales consumibles con `gastarDePadre: true` y `ligadoA: "Concentración de monje"`.
+   - *Metabolismo asombroso*: activable en iniciativa con fórmula 1d6 de curación y recarga total de concentración.
+   - *Desviar ataques*: reacción con 1d10, `noGastarAlTirarDados: true` y delegación de gasto en Concentración de monje.
+   - *Golpe aturdidor*: consumible delegado en Concentración de monje.
+   - *Concentración agudizada*: extensión decoradora de Concentración de monje.
+   - *Desviar energía*: extensión decoradora de Desviar ataques.
+   - *Defensa superior*: consumible de coste fijo 3 ligado a Concentración de monje.
+   - *Cuerpo y mente*: pasivo permanente (+4 Destreza, +4 Sabiduría, máx 25).
+4. **Subclases Canónicas:**
+   - *Guerrero de la misericordia*: Mano del daño (1d6 escalable, gasta de concentración), Mano curativa (1d6 escalable, gasta de concentración), Toque del médico (extensión), Ráfaga de curación y daño (usos por Sabiduría), Mano de la misericordia definitiva (4d10, 1 uso/DL, coste 5).
+   - *Guerrero de la sombra*: Artes de la sombra - Oscuridad (gasta de concentración, conjuro Oscuridad, +60 pies visión en la oscuridad), Paso de la sombra (activable, ventaja en ataque), Paso de la sombra mejorado (extensión con gasto de concentración), Manto de sombras (coste 3, gasta de concentración).
+   - *Guerrero de los elementos*: Sintonía elemental (activable consumible, gasta de concentración), Estallido elemental (coste 2, 3 dados de artes marciales: 3d8/3d10/3d12), Epítome elemental (extensión).
+   - *Guerrero de la mano abierta*: Técnica de la mano abierta (selector interactivo: Confundir, Empujar 15 pies, Derribar), Plenitud corporal (curación según Sabiduría con dado de artes marciales), Paso veloz (pasivo permanente), Palma trémula (coste 4, 10d12 de daño).
+5. **Validación Integral y Regresión:**
+   - Creada suite dedicada `src/servicios/monjeMecanicasDND55.test.ts` con 30/30 tests aprobados al 100%.
+   - 94 suites y 1,354 tests globales en verde sin regresiones.
+   - `tsc --noEmit` completado con 0 errores bajo `strict: true`.
+   - `eslint src --max-warnings=0` con 0 errores y 0 advertencias.
+   - `pnpm run verificar:lineas` con 0 errores críticos.
+
 ## [2026-10-01] Automatización de Terreno Difícil al estar Derribado (Prone) y Reinicio Integral de Movimiento por Ronda
 
 **Requerimientos Implementados:**

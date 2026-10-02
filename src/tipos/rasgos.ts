@@ -262,7 +262,14 @@ export interface PlantillaRasgoClase {
   condicionAlActivar?: string;
   duracionEfectoAlActivar?: number;
   conjurosOtorgados?: string[];
-  restaurarUsosAlActivar?: { idRasgoObjetivo: string; cantidad: number | "maximo" };
+  noGastarAlTirarDados?: boolean;
+  restaurarUsosAlActivar?: {
+    idRasgoObjetivo: string;
+    cantidad?: number | "maximo";
+    hastaCantidad?: number;
+    soloSiMenorOIgual?: number;
+    siNoDisparado?: string;
+  };
   categoriaMecanica?: "consumible" | "activable" | "selector_informativo" | "pasivo_permanente" | "extension" | "curacion";
   formulaEscalado?: string;
   costeFijo?: number;
@@ -373,9 +380,13 @@ export const EsquemaRasgoPersonaje = z.object({
   conjurosOtorgados: z.array(z.string()).default([]).optional(), // Conjuros siempre preparados otorgados por el rasgo
   conjuroGratuito: z.string().optional(),
   recuperacionConjuro: z.enum(["ninguno", "descanso_largo", "ilimitado"]).optional(),
+  noGastarAlTirarDados: z.boolean().default(false).optional(),
   restaurarUsosAlActivar: z.object({
     idRasgoObjetivo: z.string(),
-    cantidad: z.union([z.literal("maximo"), z.number().int().min(1)])
+    cantidad: z.union([z.literal("maximo"), z.number().int().min(1)]).optional(),
+    hastaCantidad: z.number().int().min(1).optional(),
+    soloSiMenorOIgual: z.number().int().min(0).optional(),
+    siNoDisparado: z.string().optional()
   }).optional(),
   categoriaMecanica: z.enum([
     "consumible",

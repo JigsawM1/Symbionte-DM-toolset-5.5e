@@ -55,9 +55,13 @@ export const EsquemaPlantillaRasgoClaseJSON = z.object({
   condicionAlActivar: z.string().optional(),
   duracionEfectoAlActivar: z.number().int().optional(),
   conjurosOtorgados: z.array(z.string()).optional(),
+  noGastarAlTirarDados: z.boolean().optional(),
   restaurarUsosAlActivar: z.object({
     idRasgoObjetivo: z.string(),
-    cantidad: z.union([z.literal("maximo"), z.number().int().min(1)])
+    cantidad: z.union([z.literal("maximo"), z.number().int().min(1)]).optional(),
+    hastaCantidad: z.number().int().min(1).optional(),
+    soloSiMenorOIgual: z.number().int().min(0).optional(),
+    siNoDisparado: z.string().optional()
   }).optional(),
   categoriaMecanica: z.enum([
     "consumible",

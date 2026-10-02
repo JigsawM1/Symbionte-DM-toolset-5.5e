@@ -289,7 +289,7 @@
     {
       "nivel": 2,
       "nombre": "Movimiento sin armadura",
-      "descripcion": "Tu velocidad aumenta en 10 pies si no llevas armadura ni portas un *escudo*. Esta bonificación aumenta cuando alcanzas ciertos niveles de monje, como se muestra en la tabla \"Rasgos de monje\"[cite: 1].",
+      "descripcion": "Tu velocidad aumenta en 10 pies si no llevas armadura ni portas un *escudo*. Esta bonificación aumenta cuando alcanzas ciertos niveles de monje, como se muestra en la tabla \"Rasgos de monje\".",
       "tipoAccion": "pasivo",
       "categoriaMecanica": "pasivo_permanente",
       "efectos": [
@@ -298,15 +298,82 @@
           "objetivo": "velocidad.caminar",
           "valor": 10,
           "condicion": "sin_armadura_ni_escudo",
-          "descripcion": "Movimiento sin armadura (+10 pies nv 2-5, +15 nv 6-9, +20 nv 10-13, +25 nv 14-17, +30 nv 18-20)[cite: 1]",
+          "descripcion": "Movimiento sin armadura (+10 pies nv 2-5, +15 nv 6-9, +20 nv 10-13, +25 nv 14-17, +30 nv 18-20)",
           "activo": true
         }
-      ]
+      ],
+      "escaladoEfectos": [
+        {
+          "tipo": "modificador_velocidad",
+          "objetivo": "velocidad.caminar",
+          "escalones": [
+            {
+              "nivelMinimo": 2,
+              "valor": 10
+            },
+            {
+              "nivelMinimo": 6,
+              "valor": 15
+            },
+            {
+              "nivelMinimo": 10,
+              "valor": 20
+            },
+            {
+              "nivelMinimo": 14,
+              "valor": 25
+            },
+            {
+              "nivelMinimo": 18,
+              "valor": 30
+            }
+          ]
+        }
+      ],
+      "tablaProgresion": {
+        "columnas": [
+          "Nivel",
+          "Bonificación a la velocidad"
+        ],
+        "filas": [
+          {
+            "nivel": 2,
+            "valores": [
+              "+10 pies"
+            ]
+          },
+          {
+            "nivel": 6,
+            "valores": [
+              "+15 pies"
+            ]
+          },
+          {
+            "nivel": 10,
+            "valores": [
+              "+20 pies"
+            ]
+          },
+          {
+            "nivel": 14,
+            "valores": [
+              "+25 pies"
+            ]
+          },
+          {
+            "nivel": 18,
+            "valores": [
+              "+30 pies"
+            ]
+          }
+        ],
+        "notaPie": "Aplica mientras no lleves armadura ni portes escudo"
+      }
     },
     {
       "nivel": 2,
       "nombre": "Metabolismo asombroso",
-      "descripcion": "Cuando tires iniciativa, puedes recuperar todos los puntos de concentración gastados. Cuando lo hagas, tira tu dado de artes marciales y recupera una cantidad de puntos de golpe igual a tu nivel de monje más el resultado obtenido[cite: 1].\nCuando uses este rasgo, no podrás volver a hacerlo hasta que finalices un descanso largo[cite: 1].",
+      "descripcion": "Cuando tires iniciativa, puedes recuperar todos los puntos de concentración gastados. Cuando lo hagas, tira tu dado de artes marciales y recupera una cantidad de puntos de golpe igual a tu nivel de monje más el resultado obtenido.\nCuando uses este rasgo, no podrás volver a hacerlo hasta que finalices un descanso largo.",
       "tipoAccion": "especial",
       "tieneUsosLimitados": true,
       "formulaUsos": "1",
@@ -335,9 +402,9 @@
     {
       "nivel": 3,
       "nombre": "Desviar ataques",
-      "descripcion": "Cuando una tirada de ataque te acierte y su daño incluya los tipos contundente, cortante o perforante, puedes usar una reacción para reducir el daño total que sufras del ataque. Se reducirá en 1d10 más tu modificador por Destreza y nivel de monje[cite: 1].\nSi reduces el daño a 0, puedes gastar 1 punto de concentración para redirigir una parte de la fuerza del ataque. Si lo haces, elige una criatura que puedas ver a 5 pies o menos de ti si el ataque fue cuerpo a cuerpo o una criatura que puedas ver a 60 pies o menos de ti que no esté tras cobertura completa si el ataque fue a distancia. Esa criatura deberá superar una tirada de salvación de Destreza o sufrirá una cantidad de daño igual al resultado de dos tiradas de tu dado de artes marciales más tu modificador por Destreza. El daño será del mismo tipo que inflija el ataque[cite: 1].",
+      "descripcion": "Cuando una tirada de ataque te acierte y su daño incluya los tipos contundente, cortante o perforante, puedes usar una reacción para reducir el daño total que sufras del ataque. Se reducirá en 1d10 más tu modificador por Destreza y nivel de monje.\nSi reduces el daño a 0, puedes gastar 1 punto de concentración para redirigir una parte de la fuerza del ataque. Si lo haces, elige una criatura que puedas ver a 5 pies o menos de ti si el ataque fue cuerpo a cuerpo o una criatura que puedas ver a 60 pies o menos de ti que no esté tras cobertura completa si el ataque fue a distancia. Esa criatura deberá superar una tirada de salvación de Destreza o sufrirá una cantidad de daño igual al resultado de dos tiradas de tu dado de artes marciales más tu modificador por Destreza. El daño será del mismo tipo que inflija el ataque.",
       "tipoAccion": "reaccion",
-      "formulaDados": "1d10",
+      "formulaDados": "1d10 + destreza + nivel",
       "gastarDePadre": true,
       "ligadoA": "Concentración",
       "noGastarAlTirarDados": true,
@@ -447,7 +514,51 @@
       "tipoAccion": "pasivo",
       "categoriaMecanica": "consumible",
       "gastarDePadre": true,
-      "ligadoA": "Concentración"
+      "ligadoA": "Concentración",
+      "efectos": [
+        {
+          "tipo": "competencia",
+          "objetivo": "salvacion.fuerza",
+          "valor": "competente",
+          "descripcion": "Competencia en salvaciones de Fuerza",
+          "activo": true
+        },
+        {
+          "tipo": "competencia",
+          "objetivo": "salvacion.destreza",
+          "valor": "competente",
+          "descripcion": "Competencia en salvaciones de Destreza",
+          "activo": true
+        },
+        {
+          "tipo": "competencia",
+          "objetivo": "salvacion.constitucion",
+          "valor": "competente",
+          "descripcion": "Competencia en salvaciones de Constitución",
+          "activo": true
+        },
+        {
+          "tipo": "competencia",
+          "objetivo": "salvacion.inteligencia",
+          "valor": "competente",
+          "descripcion": "Competencia en salvaciones de Inteligencia",
+          "activo": true
+        },
+        {
+          "tipo": "competencia",
+          "objetivo": "salvacion.sabiduria",
+          "valor": "competente",
+          "descripcion": "Competencia en salvaciones de Sabiduría",
+          "activo": true
+        },
+        {
+          "tipo": "competencia",
+          "objetivo": "salvacion.carisma",
+          "valor": "competente",
+          "descripcion": "Competencia en salvaciones de Carisma",
+          "activo": true
+        }
+      ]
     },
     {
       "nivel": 15,
@@ -532,6 +643,9 @@
           "tipoAccion": "especial",
           "subclase": "Camino de la misericordia",
           "categoriaMecanica": "consumible",
+          "esActivable": true,
+          "autoDesactivarAlTirarDano": true,
+          "sincronizarEfectosConFormula": true,
           "gastarDePadre": true,
           "ligadoA": "Concentración",
           "formulaDados": "1d6 + sabiduria",
@@ -551,6 +665,41 @@
             {
               "nivelMinimo": 17,
               "valor": "1d12 + sabiduria"
+            }
+          ],
+          "efectos": [
+            {
+              "tipo": "dano_secundario",
+              "objetivo": "ataque_desarmado",
+              "valor": "1d6 + sabiduria",
+              "tipoDano": "Necrótico",
+              "aplicaA": "desarmado",
+              "descripcion": "Daño necrótico extra con Mano del daño[cite: 1]",
+              "activo": true
+            }
+          ],
+          "escaladoEfectos": [
+            {
+              "tipo": "dano_secundario",
+              "objetivo": "ataque_desarmado",
+              "escalones": [
+                {
+                  "nivelMinimo": 3,
+                  "valor": "1d6 + sabiduria"
+                },
+                {
+                  "nivelMinimo": 5,
+                  "valor": "1d8 + sabiduria"
+                },
+                {
+                  "nivelMinimo": 11,
+                  "valor": "1d10 + sabiduria"
+                },
+                {
+                  "nivelMinimo": 17,
+                  "valor": "1d12 + sabiduria"
+                }
+              ]
             }
           ]
         },
@@ -589,7 +738,30 @@
           "descripcion": "Ganas competencia en las habilidades de Medicina y Perspicacia y competencia con utensilios de herborista[cite: 1].",
           "tipoAccion": "pasivo",
           "categoriaMecanica": "pasivo_permanente",
-          "subclase": "Camino de la misericordia"
+          "subclase": "Camino de la misericordia",
+          "efectos": [
+            {
+              "tipo": "competencia",
+              "objetivo": "habilidad.medicina",
+              "valor": "competente",
+              "descripcion": "Competencia en la habilidad Medicina[cite: 1]",
+              "activo": true
+            },
+            {
+              "tipo": "competencia",
+              "objetivo": "habilidad.perspicacia",
+              "valor": "competente",
+              "descripcion": "Competencia en la habilidad Perspicacia[cite: 1]",
+              "activo": true
+            },
+            {
+              "tipo": "competencia",
+              "objetivo": "herramientas",
+              "valor": "Útiles de herborista",
+              "descripcion": "Competencia con útiles de herborista[cite: 1]",
+              "activo": true
+            }
+          ]
         },
         {
           "nivel": 6,
@@ -597,8 +769,7 @@
           "descripcion": "Tu Mano del daño y tu Mano curativa mejoran, como se detalla a continuación[cite: 1].\n\n***Mano del daño.*** Cuando uses Mano del daño en una criatura, también puedes causarle la condición de envenenado hasta el final de tu siguiente turno[cite: 1].\n\n***Mano curativa.*** Cuando uses Mano curativa, también puedes poner fin a una de las siguientes condiciones en la criatura que curas: aturdido, cegado, ensordecido, envenenado o paralizado[cite: 1].",
           "tipoAccion": "pasivo",
           "subclase": "Camino de la misericordia",
-          "categoriaMecanica": "extension",
-          "ligadoA": "Mano del daño"
+          "categoriaMecanica": "pasivo_permanente"
         },
         {
           "nivel": 11,

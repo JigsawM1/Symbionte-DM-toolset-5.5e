@@ -17,6 +17,42 @@ Este archivo registra reglas globales, errores encontrados, sus causas raíz y l
    - **Bajo ninguna circunstancia** los módulos de lógica de negocio (`servicios/`), gestores de estado (`almacen/`), contratos (`tipos/`), valores de reglas (`constantes/`) ni funciones de soporte (`utiles/`) deben importar componentes visuales o archivos CSS (`componentes/`). Esta regla está reforzada en CI vía ESLint `no-restricted-imports`.
 6. **PROHIBICIÓN ESTRICTA DE BIFURCACIONES POR NOMBRE DE RASGO O CLASE (CATÁLOGO DECLARATIVO Y BUILDER PURO)**:
    - **Bajo ninguna circunstancia** los módulos de lógica de negocio (`servicios/`), gestores de estado (`almacen/`) o constructores (`gestorClases.ts`) deben contener bifurcaciones condicionales por nombre literal de rasgo o clase (`r.nombre === "..."`, `clase.includes("...")`, etc.).
+
+## [2026-10-02] Implementación y Refinamiento Declarativo de Rasgos de Monje (D&D 5.5e / 2024)
+
+**Objetivo de la Iteración:**
+- Implementar y ajustar de forma exhaustiva los rasgos de la clase Monje (niveles 1 a 20) y sus 4 subclases (*Camino de la misericordia*, *Camino de la sombra*, *Camino de los elementos*, *Camino de la mano abierta*) de acuerdo a las reglas oficiales de D&D 5.5e (PHB 2024), empleando el builder declarativo y escalados genéricos.
+
+**Mecánicas y Decisiones de Diseño:**
+1. **Desviar ataques (Nv. 3):**
+   - Configurado con fórmula completa `"formulaDados": "1d10 + destreza + nivel"`.
+   - Declara `"gastarDePadre": true`, `"ligadoA": "Concentración"`, y `"noGastarAlTirarDados": true` para que la tirada del dado de reducción de daño no consuma el punto de concentración, reservándolo para la redirección.
+2. **Movimiento sin armadura (Nv. 2):**
+   - Escalado progresivo de velocidad (+10 ft nv 2-5, +15 ft nv 6-9, +20 ft nv 10-13, +25 ft nv 14-17, +30 ft nv 18-20) mediante el nuevo campo genérico declarativo `escaladoEfectos` y `tablaProgresion`.
+   - Reconocimiento universal en `evaluadorCombateRasgos.ts` para ataques desarmados (`desarmado`, `ataque_desarmado`, `sin_armas`, `unarmed`).
+3. **Superviviente disciplinado (Nv. 14):**
+   - Competencia en todas las salvaciones (`salvacion.fuerza`, `salvacion.destreza`, `salvacion.constitucion`, `salvacion.inteligencia`, `salvacion.sabiduria`, `salvacion.carisma`) declaradas en el array `efectos`, reconocidas por `evaluadorSalvacionesRasgos.ts` e inyectadas limpiamente sin hardcodeo.
+4. **Implementos de misericordia (Camino de la misericordia Nv. 3):**
+   - Configurado con 3 efectos declarativos de tipo `competencia` (`habilidad.medicina`, `habilidad.perspicacia`, `herramientas: "Útiles de herborista"`).
+   - `evaluadorSalvacionesRasgos.ts` y `usarEstadoPersonajes.ts` reconocen automáticamente las competencias en habilidades procedentes de rasgos y las marcan como competentes en el cálculo de estadísticas del personaje.
+   - Alias bidireccional en `MAPA_ALIAS_HERRAMIENTAS` para homologar `"utensilios de herborista"`, `"utiles de herborista"`, `"kit de herboristería"` y `"estuche de herbalismo"`.
+5. **Mano de la misericordia definitiva (Camino de la misericordia Nv. 17 - Consumo Dual):**
+   - Rasgo con límite propio (1 uso por descanso largo) que a su vez consume 5 puntos del rasgo padre *Concentración* (`tieneUsosLimitados: true`, `usosMaximos: 1`, `recuperacion: "descanso_largo"`, `costeFijo: 5`, `gastarDePadre: true`, `ligadoA: "Concentración"`).
+   - En `sliceRasgos.ts`, `gastarUsoRasgoPersonaje` y `recuperarUsoRasgoPersonaje` descuentan y restauran concurrentemente el uso propio del rasgo y los puntos del rasgo padre.
+   - En `usarAccionesTarjetaRasgo.ts`, `sinUsosDisponibles` valida tanto la reserva propia como que el padre cuente con al menos los puntos de `costeFijo`.
+6. **Mano del daño (Camino de la misericordia Nv. 3):**
+   - Consumible activable (`esActivable: true`, `autoDesactivarAlTirarDano: true`, `sincronizarEfectosConFormula: true`) con efecto `dano_secundario` necrótico ligado a ataques desarmados que escala con el dado de artes marciales (`1d6`, `1d8`, `1d10`, `1d12`) más Sabiduría.
+7. **Independencia de Tarjetas (Toque del médico vs Mano del daño):**
+   - *Toque del médico* (Nv. 6) se configuró como `pasivo_permanente` independiente sin `ligadoA` para que no se fusione dentro de la tarjeta de *Mano del daño*, mostrando su propia tarjeta en la ficha.
+8. **Búsqueda Tolerante de Subclases de Magia (`calculadorMagia.ts`):**
+   - Se implementó discriminación por palabras clave no vacías (filtrando stop words como "camino", "guerrero", "dominio", "juramento") garantizando compatibilidad entre "Camino de la sombra" y "Guerrero de la sombra".
+
+**Verificación y Calidad:**
+- Suite `monjeMecanicasDND55.test.ts`: 34/34 tests en verde.
+- Suite global: 95 archivos y 1,441 tests pasando al 100%.
+- TypeScript `tsc --noEmit`: 0 errores en `strict: true`.
+- ESLint `eslint src --max-warnings=0`: 0 errores y 0 advertencias.
+
 ## [2026-10-02] Implementación Declarativa de Rasgos de Mago y sus 4 Subclases (D&D 5.5e / 2024)
 
 **Objetivo de la Iteración:**

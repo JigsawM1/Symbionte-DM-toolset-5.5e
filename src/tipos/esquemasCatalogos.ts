@@ -13,6 +13,7 @@ import {
   EsquemaEscaladoFormulaDados,
   EsquemaEscaladoUsos,
   EsquemaEscaladoRecuperacion,
+  EsquemaEscaladoEfectos,
   EsquemaRecursoGastado,
   EsquemaRecuperacionRasgo
 } from "./rasgos";
@@ -39,6 +40,7 @@ export const EsquemaPlantillaRasgoClaseJSON = z.object({
   escaladoFormulaDados: EsquemaEscaladoFormulaDados.optional(),
   escaladoUsos: EsquemaEscaladoUsos.optional(),
   escaladoRecuperacion: EsquemaEscaladoRecuperacion.optional(),
+  escaladoEfectos: EsquemaEscaladoEfectos.optional(),
   sincronizarEfectosConFormula: z.boolean().optional(),
 
   // Mecánicas estructuradas
@@ -94,6 +96,7 @@ export const EsquemaPlantillaRasgoEspecieJSON = z.object({
   escaladoFormulaDados: EsquemaEscaladoFormulaDados.optional(),
   escaladoUsos: EsquemaEscaladoUsos.optional(),
   escaladoRecuperacion: EsquemaEscaladoRecuperacion.optional(),
+  escaladoEfectos: EsquemaEscaladoEfectos.optional(),
   sincronizarEfectosConFormula: z.boolean().optional(),
 
   // Mecánicas estructuradas

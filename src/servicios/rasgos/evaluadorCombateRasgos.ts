@@ -98,7 +98,14 @@ function aplicaEfectoAAtaque(
       })
     );
   }
-  if (criterio === "desarmado") {
+  if (
+    criterio === "desarmado" ||
+    criterio === "ataque_desarmado" ||
+    criterio === "sin_armas" ||
+    criterio === "sin_arma" ||
+    criterio === "ataque_sin_armas" ||
+    criterio === "unarmed"
+  ) {
     return contexto.tipo === "desarmado";
   }
 

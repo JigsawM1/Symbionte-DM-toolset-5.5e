@@ -1,6 +1,6 @@
 import type { StateCreator } from "zustand";
 import type { EstadoDM } from "@/almacen/usarAlmacenDM";
-import type { PersonajeJugador } from "@/tipos";
+import type { PersonajeJugador, RegistroMovimiento } from "@/tipos";
 import { aplicarCondicion, quitarCondicion } from "@/servicios/procesadorCondiciones";
 import { mutarPersonaje } from "../helpers/mutarPersonaje";
 import type { SubSliceCondiciones } from "./slicePersonajesTipos";
@@ -10,6 +10,11 @@ import {
 } from "./condicionesRasgosHelpers";
 import { EFECTOS_PREDEFINIDOS } from "@/utiles/datosIniciales";
 import { generarId } from "@/utiles/generarId";
+
+function esCondicionDerribado(texto: string): boolean {
+  const tNorm = (texto || "").toLowerCase().trim();
+  return tNorm.includes("derribad") || tNorm.includes("prone") || tNorm === "caido" || tNorm === "caído";
+}
 
 function sincronizarCondicionesEnIniciativa(
   set: (fn: (state: EstadoDM) => Partial<EstadoDM>) => void,
@@ -133,9 +138,32 @@ export const crearSubSliceCondiciones: StateCreator<
       const nuevasCondiciones = aplicarCondicion(pj.condicionesActivas, condicion);
       const rasgosActualizados = activarRasgosPorCondicionOEfecto(condicion, pj.rasgos || []);
 
+      // Ajuste automático de terreno difícil al estar derribado
+      let nuevoTipoTerreno = pj.tipoTerreno || "normal";
+      let nuevoMultTerreno = pj.multiplicadorTerreno || 1;
+      let nuevoHistorial = Array.isArray(pj.historialMovimiento) ? pj.historialMovimiento : [];
+
+      if (esCondicionDerribado(condicion) && (pj.tipoTerreno === "normal" || !pj.tipoTerreno || pj.multiplicadorTerreno === 1)) {
+        nuevoTipoTerreno = "dificil";
+        nuevoMultTerreno = 2;
+        const entradaHist: RegistroMovimiento = {
+          id: `mov-terr-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+          timestamp: Date.now(),
+          tipo: "terreno",
+          delta: 0,
+          anteriorGastado: pj.movimientoGastado || 0,
+          nuevoGastado: pj.movimientoGastado || 0,
+          descripcion: "Terreno cambiado a: Terreno Difícil (2x) por condición Derribado"
+        };
+        nuevoHistorial = [...nuevoHistorial.slice(-49), entradaHist];
+      }
+
       condicionesFinales = nuevasCondiciones;
       pjObjetivo = {
         ...pj,
+        tipoTerreno: nuevoTipoTerreno,
+        multiplicadorTerreno: nuevoMultTerreno,
+        historialMovimiento: nuevoHistorial,
         condicionesActivas: nuevasCondiciones,
         efectosActivos: nuevosEfectosPj,
         rasgos: rasgosActualizados
@@ -187,9 +215,33 @@ export const crearSubSliceCondiciones: StateCreator<
         (Boolean(pj.concentracionActiva) &&
           pj.concentracionActiva?.nombreHechizo?.toLowerCase().trim() === normalizada);
 
+      // Restaurar terreno normal al levantarse de Derribado si no quedan otras condiciones de derribo
+      let nuevoTipoTerreno = pj.tipoTerreno || "normal";
+      let nuevoMultTerreno = pj.multiplicadorTerreno || 1;
+      let nuevoHistorial = Array.isArray(pj.historialMovimiento) ? pj.historialMovimiento : [];
+
+      const todaviaDerribado = nuevasCondiciones.some((c) => esCondicionDerribado(c));
+      if (esCondicionDerribado(condicion) && !todaviaDerribado && (pj.tipoTerreno === "dificil" || pj.multiplicadorTerreno === 2)) {
+        nuevoTipoTerreno = "normal";
+        nuevoMultTerreno = 1;
+        const entradaHist: RegistroMovimiento = {
+          id: `mov-terr-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+          timestamp: Date.now(),
+          tipo: "terreno",
+          delta: 0,
+          anteriorGastado: pj.movimientoGastado || 0,
+          nuevoGastado: pj.movimientoGastado || 0,
+          descripcion: "Terreno restaurado a: Normal (1x) al levantarse de Derribado"
+        };
+        nuevoHistorial = [...nuevoHistorial.slice(-49), entradaHist];
+      }
+
       condicionesFinales = nuevasCondiciones;
       pjObjetivo = {
         ...pj,
+        tipoTerreno: nuevoTipoTerreno,
+        multiplicadorTerreno: nuevoMultTerreno,
+        historialMovimiento: nuevoHistorial,
         condicionesActivas: nuevasCondiciones,
         efectosActivos: nuevosEfectosPj,
         concentracionActiva: esConcentracion ? null : pj.concentracionActiva,
@@ -225,8 +277,31 @@ export const crearSubSliceCondiciones: StateCreator<
       }
       const rasgosActualizados = desactivarRasgosPorCondicionOEfecto(nombreEfectoEliminado, pj.rasgos || []);
 
+      let nuevoTipoTerreno = pj.tipoTerreno || "normal";
+      let nuevoMultTerreno = pj.multiplicadorTerreno || 1;
+      let nuevoHistorial = Array.isArray(pj.historialMovimiento) ? pj.historialMovimiento : [];
+
+      const todaviaDerribado = conds.some((c) => esCondicionDerribado(c));
+      if (esCondicionDerribado(nombreEfectoEliminado) && !todaviaDerribado && (pj.tipoTerreno === "dificil" || pj.multiplicadorTerreno === 2)) {
+        nuevoTipoTerreno = "normal";
+        nuevoMultTerreno = 1;
+        const entradaHist: RegistroMovimiento = {
+          id: `mov-terr-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+          timestamp: Date.now(),
+          tipo: "terreno",
+          delta: 0,
+          anteriorGastado: pj.movimientoGastado || 0,
+          nuevoGastado: pj.movimientoGastado || 0,
+          descripcion: "Terreno restaurado a: Normal (1x) al levantarse de Derribado"
+        };
+        nuevoHistorial = [...nuevoHistorial.slice(-49), entradaHist];
+      }
+
       pjObjetivo = {
         ...pj,
+        tipoTerreno: nuevoTipoTerreno,
+        multiplicadorTerreno: nuevoMultTerreno,
+        historialMovimiento: nuevoHistorial,
         condicionesActivas: conds,
         efectosActivos: nuevosEfectos,
         concentracionActiva: eraConcentracion ? null : pj.concentracionActiva,
@@ -249,8 +324,31 @@ export const crearSubSliceCondiciones: StateCreator<
         }
         return r;
       });
+
+      let nuevoTipoTerreno = pj.tipoTerreno || "normal";
+      let nuevoMultTerreno = pj.multiplicadorTerreno || 1;
+      let nuevoHistorial = Array.isArray(pj.historialMovimiento) ? pj.historialMovimiento : [];
+
+      if (pj.tipoTerreno === "dificil" || pj.multiplicadorTerreno === 2) {
+        nuevoTipoTerreno = "normal";
+        nuevoMultTerreno = 1;
+        const entradaHist: RegistroMovimiento = {
+          id: `mov-terr-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+          timestamp: Date.now(),
+          tipo: "terreno",
+          delta: 0,
+          anteriorGastado: pj.movimientoGastado || 0,
+          nuevoGastado: pj.movimientoGastado || 0,
+          descripcion: "Terreno restaurado a: Normal (1x) al limpiar condiciones"
+        };
+        nuevoHistorial = [...nuevoHistorial.slice(-49), entradaHist];
+      }
+
       pjObjetivo = {
         ...pj,
+        tipoTerreno: nuevoTipoTerreno,
+        multiplicadorTerreno: nuevoMultTerreno,
+        historialMovimiento: nuevoHistorial,
         condicionesActivas: [],
         efectosActivos: [],
         concentracionActiva: null,

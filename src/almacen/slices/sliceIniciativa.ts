@@ -2,7 +2,7 @@ import { StateCreator } from 'zustand';
 import { CriaturaIniciativa, EfectoActivo } from '@/almacen/usarAlmacenDM';
 import { formatearVelocidad } from '@/almacen/sanitizacion';
 import type { EstadoDM } from '@/almacen/usarAlmacenDM';
-import type { Caracteristica } from '@/tipos';
+import type { Caracteristica, PersonajeJugador, RegistroMovimiento } from '@/tipos';
 import { ts } from '@/utiles/TaleSpireAdapter';
 import type { ColaIniciativaTS } from '@/tipos/talespire';
 import {
@@ -23,6 +23,40 @@ import {
 } from '@/almacen/slices/personajes/condicionesRasgosHelpers';
 import { generarId } from '@/utiles/generarId';
 import { logger } from '@/utiles/logger';
+
+function esCondicionDerribado(texto: string): boolean {
+  const tNorm = (texto || "").toLowerCase().trim();
+  return tNorm.includes("derribad") || tNorm.includes("prone") || tNorm === "caido" || tNorm === "caído";
+}
+
+function restablecerMovimientoPersonajes(personajes: PersonajeJugador[], motivo: string): PersonajeJugador[] {
+  let huboCambios = false;
+  const nuevos = personajes.map((pj) => {
+    const anteriorGastado = pj.movimientoGastado || 0;
+    const teniaCarrera = pj.movimientoMaximoTemporal !== null && pj.movimientoMaximoTemporal !== undefined;
+    if (anteriorGastado === 0 && !teniaCarrera) {
+      return pj;
+    }
+    huboCambios = true;
+    const entradaHistorial: RegistroMovimiento = {
+      id: `mov-rst-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+      timestamp: Date.now(),
+      tipo: "reinicio",
+      delta: -anteriorGastado,
+      anteriorGastado,
+      nuevoGastado: 0,
+      descripcion: motivo
+    };
+    const historialPrevio = Array.isArray(pj.historialMovimiento) ? pj.historialMovimiento : [];
+    return {
+      ...pj,
+      movimientoGastado: 0,
+      movimientoMaximoTemporal: null,
+      historialMovimiento: [...historialPrevio.slice(-49), entradaHistorial]
+    };
+  });
+  return huboCambios ? nuevos : personajes;
+}
 
 export interface ResultadoSalvacionCriatura {
   id: string;
@@ -129,7 +163,8 @@ export const crearSliceIniciativa: StateCreator<
   avanzarRonda: () => set((state) => {
     const nuevaRonda = state.rondaActual + 1;
     const nuevaCola = filtrarEfectosExpirados(state.colaIniciativa, nuevaRonda);
-    return { rondaActual: nuevaRonda, colaIniciativa: nuevaCola };
+    const nuevosPjs = restablecerMovimientoPersonajes(state.personajes, `Reinicio de ronda (Ronda ${nuevaRonda})`);
+    return { rondaActual: nuevaRonda, colaIniciativa: nuevaCola, personajes: nuevosPjs };
   }),
   
   retrocederRonda: () => set((state) => {
@@ -147,11 +182,14 @@ export const crearSliceIniciativa: StateCreator<
     }
 
     let nuevaCola = state.colaIniciativa;
+    let nuevosPjs = state.personajes;
+
     if (nuevaRonda > state.rondaActual) {
       nuevaCola = filtrarEfectosExpirados(state.colaIniciativa, nuevaRonda);
+      nuevosPjs = restablecerMovimientoPersonajes(state.personajes, `Reinicio de ronda (Ronda ${nuevaRonda})`);
     }
 
-    return { colaIniciativa: nuevaCola, indiceTurnoActivo: nuevoIndice, rondaActual: nuevaRonda };
+    return { colaIniciativa: nuevaCola, indiceTurnoActivo: nuevoIndice, rondaActual: nuevaRonda, personajes: nuevosPjs };
   }),
 
   retrocederTurno: () => set((state) => {
@@ -180,6 +218,12 @@ export const crearSliceIniciativa: StateCreator<
       rondaActual: state.rondaActual,
       personajes: state.personajes
     });
+
+    if (resultado.rondaActual > state.rondaActual) {
+      const pjsBase = state.personajes;
+      const nuevosPjs = restablecerMovimientoPersonajes(pjsBase, `Reinicio de ronda TaleSpire (Ronda ${resultado.rondaActual})`);
+      return { ...resultado, personajes: nuevosPjs };
+    }
 
     return resultado;
   }),
@@ -279,14 +323,38 @@ export const crearSliceIniciativa: StateCreator<
     });
 
     const cNom = criaturaAfectadaNombre.trim().toLowerCase();
+    const esDerribado = esCondicionDerribado(condicion);
+
     const nuevosPjs = state.personajes.map((pj) => {
       const coincide =
         pj.id === id ||
         pj.idMiniaturaTS === id ||
         (cNom && (pj.nombre || "").trim().toLowerCase() === cNom);
       if (coincide) {
+        let nuevoTipoTerreno = pj.tipoTerreno || "normal";
+        let nuevoMultTerreno = pj.multiplicadorTerreno || 1;
+        let nuevoHistorial = Array.isArray(pj.historialMovimiento) ? pj.historialMovimiento : [];
+
+        if (esDerribado && (pj.tipoTerreno === "normal" || !pj.tipoTerreno || pj.multiplicadorTerreno === 1)) {
+          nuevoTipoTerreno = "dificil";
+          nuevoMultTerreno = 2;
+          const entradaHist: RegistroMovimiento = {
+            id: `mov-terr-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+            timestamp: Date.now(),
+            tipo: "terreno",
+            delta: 0,
+            anteriorGastado: pj.movimientoGastado || 0,
+            nuevoGastado: pj.movimientoGastado || 0,
+            descripcion: "Terreno cambiado a: Terreno Difícil (2x) por condición Derribado"
+          };
+          nuevoHistorial = [...nuevoHistorial.slice(-49), entradaHist];
+        }
+
         return {
           ...pj,
+          tipoTerreno: nuevoTipoTerreno,
+          multiplicadorTerreno: nuevoMultTerreno,
+          historialMovimiento: nuevoHistorial,
           condicionesActivas: aplicarCondicion(pj.condicionesActivas || [], condicion)
         };
       }
@@ -299,6 +367,7 @@ export const crearSliceIniciativa: StateCreator<
   quitarCondicionDeCriatura: (id, condicion) => set((state) => {
     let criaturaAfectadaNombre = "";
     const esConcentracion = condicion.toLowerCase().includes("concentra");
+    const esDerribado = esCondicionDerribado(condicion);
 
     const nuevaCola = state.colaIniciativa.map((c) => {
       if (c.id === id) {
@@ -319,10 +388,34 @@ export const crearSliceIniciativa: StateCreator<
         pj.idMiniaturaTS === id ||
         (cNom && (pj.nombre || "").trim().toLowerCase() === cNom);
       if (coincide) {
+        const condsRestantes = quitarCondicion(pj.condicionesActivas || [], condicion);
+        let nuevoTipoTerreno = pj.tipoTerreno || "normal";
+        let nuevoMultTerreno = pj.multiplicadorTerreno || 1;
+        let nuevoHistorial = Array.isArray(pj.historialMovimiento) ? pj.historialMovimiento : [];
+
+        const todaviaDerribado = condsRestantes.some((c) => esCondicionDerribado(c));
+        if (esDerribado && !todaviaDerribado && (pj.tipoTerreno === "dificil" || pj.multiplicadorTerreno === 2)) {
+          nuevoTipoTerreno = "normal";
+          nuevoMultTerreno = 1;
+          const entradaHist: RegistroMovimiento = {
+            id: `mov-terr-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+            timestamp: Date.now(),
+            tipo: "terreno",
+            delta: 0,
+            anteriorGastado: pj.movimientoGastado || 0,
+            nuevoGastado: pj.movimientoGastado || 0,
+            descripcion: "Terreno restaurado a: Normal (1x) al levantarse de Derribado"
+          };
+          nuevoHistorial = [...nuevoHistorial.slice(-49), entradaHist];
+        }
+
         return {
           ...pj,
+          tipoTerreno: nuevoTipoTerreno,
+          multiplicadorTerreno: nuevoMultTerreno,
+          historialMovimiento: nuevoHistorial,
           concentracionActiva: esConcentracion ? null : pj.concentracionActiva,
-          condicionesActivas: quitarCondicion(pj.condicionesActivas || [], condicion)
+          condicionesActivas: condsRestantes
         };
       }
       return pj;
@@ -568,9 +661,10 @@ export const crearSliceIniciativa: StateCreator<
     return { colaIniciativa: nuevaCola };
   }),
 
-  limpiarIniciativa: () => {
-    set({ colaIniciativa: [], indiceTurnoActivo: 0, rondaActual: 1 });
-  },
+  limpiarIniciativa: () => set((state) => {
+    const nuevosPjs = restablecerMovimientoPersonajes(state.personajes, "Combate finalizado");
+    return { colaIniciativa: [], indiceTurnoActivo: 0, rondaActual: 1, personajes: nuevosPjs };
+  }),
 
   ordenarIniciativa: () => set((state) => {
     const nuevaCola = [...state.colaIniciativa];

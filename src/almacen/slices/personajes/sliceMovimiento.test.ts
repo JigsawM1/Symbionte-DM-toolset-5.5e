@@ -174,4 +174,81 @@ describe("Slice Personajes - Gestión de Movimiento Dinámico y TaleSpire", () =
     const pj = usarAlmacenDM.getState().personajes[0];
     expect(pj.movimientoGastado).toBe(25);
   });
+
+  it("establece automáticamente terreno difícil (x2) al aplicar la condición Derribado y lo restaura al quitarla", () => {
+    let pj = usarAlmacenDM.getState().personajes[0];
+    expect(pj.tipoTerreno).toBe("normal");
+    expect(pj.multiplicadorTerreno).toBe(1);
+
+    // 1. Aplicar condición Derribado
+    usarAlmacenDM.getState().aplicarCondicionPersonaje(idPj, "Derribado");
+    pj = usarAlmacenDM.getState().personajes[0];
+    expect(pj.condicionesActivas).toContain("Derribado");
+    expect(pj.tipoTerreno).toBe("dificil");
+    expect(pj.multiplicadorTerreno).toBe(2);
+
+    // 2. Mover 2 casillas (10 pies base * 2x = 20 pies gastados)
+    const pos1: PosicionTS = { locId: 0, x: 0, y: 0, z: 0 };
+    const pos2: PosicionTS = { locId: 0, x: 2, y: 0, z: 0 };
+    usarAlmacenDM.getState().registrarMovimientoTSPersonaje(idPj, pos1, "board-alpha");
+    usarAlmacenDM.getState().registrarMovimientoTSPersonaje(idPj, pos2, "board-alpha");
+
+    pj = usarAlmacenDM.getState().personajes[0];
+    expect(pj.movimientoGastado).toBe(20);
+
+    // 3. Quitar condición Derribado (levantarse)
+    usarAlmacenDM.getState().quitarCondicionPersonaje(idPj, "Derribado");
+    pj = usarAlmacenDM.getState().personajes[0];
+    expect(pj.condicionesActivas).not.toContain("Derribado");
+    expect(pj.tipoTerreno).toBe("normal");
+    expect(pj.multiplicadorTerreno).toBe(1);
+  });
+
+  it("restablece por completo el movimiento de todos los personajes al avanzar o reiniciar la ronda", () => {
+    // 1. Gastar movimiento y activar carrera
+    usarAlmacenDM.getState().modificarMovimientoGastadoPersonaje(idPj, 25);
+    usarAlmacenDM.getState().alternarAccionCarreraPersonaje(idPj);
+
+    let pj = usarAlmacenDM.getState().personajes[0];
+    expect(pj.movimientoGastado).toBe(25);
+    expect(pj.movimientoMaximoTemporal).toBe(60);
+
+    // 2. Avanzar de ronda en el tracker de combate
+    usarAlmacenDM.getState().avanzarRonda();
+
+    pj = usarAlmacenDM.getState().personajes[0];
+    expect(pj.movimientoGastado).toBe(0);
+    expect(pj.movimientoMaximoTemporal).toBeNull();
+    expect(usarAlmacenDM.getState().rondaActual).toBe(2);
+
+    // 3. Gastar movimiento de nuevo y avanzar turno hasta completar ciclo de ronda
+    usarAlmacenDM.getState().modificarMovimientoGastadoPersonaje(idPj, 15);
+    expect(usarAlmacenDM.getState().personajes[0].movimientoGastado).toBe(15);
+
+    usarAlmacenDM.setState({
+      colaIniciativa: [
+        {
+          id: "criatura-1",
+          nombre: "Corredor Élfico",
+          iniciativa: 15,
+          vidaActual: 20,
+          vidaMaxima: 20,
+          ca: 14,
+          condiciones: [],
+          efectos: [],
+          bonificadorIniciativa: 2,
+          esMonstruo: false,
+          velocidad: "30 pies"
+        }
+      ],
+      indiceTurnoActivo: 0
+    });
+
+    // Avanzar turno en cola de 1 elemento completa la ronda e incrementa rondaActual a 3
+    usarAlmacenDM.getState().avanzarTurno();
+
+    pj = usarAlmacenDM.getState().personajes[0];
+    expect(pj.movimientoGastado).toBe(0);
+    expect(usarAlmacenDM.getState().rondaActual).toBe(3);
+  });
 });

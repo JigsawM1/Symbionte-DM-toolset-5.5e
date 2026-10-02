@@ -185,9 +185,18 @@ export const crearSubSliceCaracteristicasHabilidades: StateCreator<
         };
       }
 
+      const estaDerribado = (pj.condicionesActivas || []).some((c) => {
+        const cn = c.toLowerCase().trim();
+        return cn.includes("derribad") || cn.includes("prone") || cn === "caido" || cn === "caído";
+      });
+
+      const multEfectivo = estaDerribado
+        ? Math.max(2, pj.multiplicadorTerreno || 1)
+        : (pj.multiplicadorTerreno || 1);
+
       const opcionesFinales = {
         incluirAltura: true,
-        multiplicadorTerreno: pj.multiplicadorTerreno || 1,
+        multiplicadorTerreno: multEfectivo,
         ...opciones
       };
 

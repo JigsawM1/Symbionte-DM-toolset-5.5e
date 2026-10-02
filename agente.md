@@ -17,6 +17,35 @@ Este archivo registra reglas globales, errores encontrados, sus causas raíz y l
    - **Bajo ninguna circunstancia** los módulos de lógica de negocio (`servicios/`), gestores de estado (`almacen/`), contratos (`tipos/`), valores de reglas (`constantes/`) ni funciones de soporte (`utiles/`) deben importar componentes visuales o archivos CSS (`componentes/`). Esta regla está reforzada en CI vía ESLint `no-restricted-imports`.
 6. **PROHIBICIÓN ESTRICTA DE BIFURCACIONES POR NOMBRE DE RASGO O CLASE (CATÁLOGO DECLARATIVO Y BUILDER PURO)**:
    - **Bajo ninguna circunstancia** los módulos de lógica de negocio (`servicios/`), gestores de estado (`almacen/`) o constructores (`gestorClases.ts`) deben contener bifurcaciones condicionales por nombre literal de rasgo o clase (`r.nombre === "..."`, `clase.includes("...")`, etc.).
+## [2026-10-01] Automatización de Terreno Difícil al estar Derribado (Prone) y Reinicio Integral de Movimiento por Ronda
+
+**Requerimientos Implementados:**
+1. Al estar en la condición **Derribado** (*Prone* / *Caído*), la velocidad/movimiento se establece automáticamente en terreno **difícil (x2)** (rastreo/arrastrarse según D&D 5.5e / 2024). Al levantarse o retirar la condición, el terreno se restaura automáticamente a **normal (1x)**.
+2. El movimiento gastado y cualquier bonificador temporal (como la *Acción Carrera*) se **restablecen al 100% de forma reactiva cuando se reinicia o avanza la ronda de combate** en el rastreador de iniciativa.
+
+**Decisiones Técnicas y Solución Aplicada:**
+1. **Detección y Sincronización Automática de Terreno por Derribo:**
+   - En `src/almacen/slices/personajes/sliceCondiciones.ts`:
+     - `aplicarCondicionPersonaje`: Al recibir una condición que contenga `derribad`, `prone` o `caído`, si el combatiente tiene terreno `normal` (1x), pasa automáticamente a `tipoTerreno: "dificil"` y `multiplicadorTerreno: 2`, registrando un evento en `historialMovimiento`.
+     - `quitarCondicionPersonaje`, `quitarEfectoPersonaje` y `limpiarCondicionesPersonaje`: Al removerse el derribo (y no quedar ninguna otra condición de derribo activa), si el combatiente estaba en terreno difícil (2x), se restaura inmediatamente a `normal` (1x) con registro en el historial.
+   - En `src/almacen/slices/sliceIniciativa.ts`:
+     - `agregarCondicionACriatura` y `quitarCondicionDeCriatura` replican la lógica de terreno difícil / normal cuando la criatura afectada en el combate es un Personaje Jugador sincronizado.
+   - En `src/almacen/slices/personajes/sliceCaracteristicasHabilidades.ts`:
+     - `registrarMovimientoTSPersonaje`: Asegura que el multiplicador efectivo mínimo aplicado para calcular la distancia recorrida en casillas/pies sea al menos `2` si la miniatura tiene la condición activa de derribo.
+2. **Reinicio Reactivo de Movimiento por Nueva Ronda (`sliceIniciativa.ts`):**
+   - Se implementó la función helper pura `restablecerMovimientoPersonajes(personajes, motivo)`.
+   - Se integró en:
+     - `avanzarRonda`: Pone `movimientoGastado: 0` y `movimientoMaximoTemporal: null` para todos los personajes.
+     - `avanzarTurno`: Si el índice de turno da la vuelta completando el ciclo de la ronda (`nuevaRonda > state.rondaActual`), restablece el movimiento de todos los personajes.
+     - `actualizarColaIniciativaDesdeTaleSpire`: Si se recibe una ronda superior desde la API nativa de TaleSpire, restablece el movimiento de los personajes.
+     - `limpiarIniciativa`: Al limpiar o concluir el combate, renueva el movimiento disponible al 100%.
+3. **Pruebas y Verificación:**
+   - 2 nuevas suites de tests integradas en `sliceMovimiento.test.ts`.
+   - Corrección en `quitarCondicionDeCriatura` (`sliceIniciativa.ts`): se restauró la asignación de `condicionesActivas: condsRestantes` en el retorno del mapa de personajes al retirar condiciones desde el combate.
+   - 93 suites y 1,324 tests pasando al 100%.
+   - TypeScript `tsc --noEmit` y `eslint src --max-warnings=0` limpios con 0 errores.
+   - Despliegue exitoso con `pnpm run deploy` en el directorio de TaleSpire Symbiotes.
+
 ## [2026-10-01] Consolidación de origin/Tryn: Modo Manual de Movimiento Táctico, Terrenos 3D y Skills en Repositorio
 
 **Contexto del Cambio:**

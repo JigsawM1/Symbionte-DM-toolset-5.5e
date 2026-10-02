@@ -144,7 +144,28 @@
       "nivel": 2,
       "nombre": "Pericia",
       "descripcion": "Ganas pericia en dos de tus competencias de habilidades de tu elección. Se recomiendan Interpretación y Persuasión si eres competente en ellas.\n\nEn el nivel 9 de bardo, ganas pericia en otras dos competencias de habilidades de tu elección.",
-      "tipoAccion": "pasivo"
+      "tipoAccion": "pasivo",
+      "tablaProgresion": {
+        "columnas": [
+          "Nivel",
+          "Descripción"
+        ],
+        "filas": [
+          {
+            "nivel": 1,
+            "valores": [
+              "Ganas dos pericias (2)"
+            ]
+          },
+          {
+            "nivel": 9,
+            "valores": [
+              "Ganas dos pericias (4)"
+            ]
+          }
+        ],
+        "notaPie": "Se apilan los niveles"
+      }
     },
     {
       "nivel": 2,

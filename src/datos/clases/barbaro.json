@@ -41,7 +41,7 @@
     {
       "nivel": 1,
       "nombre": "Furia",
-      "descripcion": "Puedes imbuirte de un poder primigenio llamado Furia, una fuerza que te otorga un poder y una resistencia extraordinarios. Puedes entrar en ella como acción adicional si no llevas armadura pesada.\nRecuperas un uso gastado cuando finalizas un descanso corto y recuperas todos los usos gastados cuando finalizas un descanso largo.\n\nMientras está activa, tu Furia sigue las siguientes reglas:\n\n***Resistencia al daño.*** Tienes resistencia al daño contundente, perforante y cortante.\n\n***Daño de Furia.*** Cuando haces un ataque usando Fuerza (ya sea con un arma o un ataque sin armas) y causas daño al objetivo, obtienes un bonificador al daño que aumenta a medida que ganas niveles como bárbaro.\n\n***Ventaja de Fuerza.*** Tienes ventaja en las pruebas de Fuerza y en las tiradas de salvación de Fuerza.\n\n***Sin concentración ni conjuros.*** No puedes mantener la concentración y no puedes lanzar conjuros.\n\n***Duración.*** La Furia dura hasta el final de tu siguiente turno, y termina antes si te pones una armadura pesada o si tienes el estado de incapacitado. Si tu Furia sigue activa en tu siguiente turno, puedes extenderla durante otra ronda haciendo una de las siguientes acciones:\n- Hacer una tirada de ataque contra un enemigo.\n- Obligar a un enemigo a hacer una tirada de salvación.\n- Usar una acción adicional para extender tu Furia.\nCada vez que se extiende la Furia, dura hasta el final de tu siguiente turno. Puedes mantener una Furia hasta un máximo de 10 minutos.",
+      "descripcion": "Puedes imbuirte de un poder primigenio llamado Furia, una fuerza que te otorga un poder y una resistencia extraordinarios. Puedes entrar en ella como acción adicional si no llevas armadura pesada.\n\nRecuperas un uso gastado cuando finalizas un descanso corto y recuperas todos los usos gastados cuando finalizas un descanso largo.\n\nMientras está activa, tu Furia sigue las siguientes reglas:\n\n***Resistencia al daño.*** Tienes resistencia al daño contundente, perforante y cortante.\n\n***Daño de Furia.*** Cuando haces un ataque usando Fuerza (ya sea con un arma o un ataque sin armas) y causas daño al objetivo, obtienes un bonificador al daño que aumenta a medida que ganas niveles como bárbaro.\n\n***Ventaja de Fuerza.*** Tienes ventaja en las pruebas de Fuerza y en las tiradas de salvación de Fuerza.\n\n***Sin concentración ni conjuros.*** No puedes mantener la concentración y no puedes lanzar conjuros.\n\n***Duración.*** La Furia dura hasta el final de tu siguiente turno, y termina antes si te pones una armadura pesada o si tienes el estado de incapacitado. Si tu Furia sigue activa en tu siguiente turno, puedes extenderla durante otra ronda haciendo una de las siguientes acciones:\n\n- Hacer una tirada de ataque contra un enemigo.\n\n- Obligar a un enemigo a hacer una tirada de salvación.\n\n- Usar una acción adicional para extender tu Furia.\n\nCada vez que se extiende la Furia, dura hasta el final de tu siguiente turno. Puedes mantener una Furia hasta un máximo de 10 minutos.",
       "tipoAccion": "accion_adicional",
       "tieneUsosLimitados": true,
       "formulaUsos": "(niv) => (niv >= 17 ? 6 : niv >= 12 ? 5 : niv >= 6 ? 4 : niv >= 3 ? 3 : 2)",
@@ -180,7 +180,7 @@
     {
       "nivel": 1,
       "nombre": "Maestría con armas",
-      "descripcion": "Tu entrenamiento con armas te permite utilizar las propiedades de maestría con dos tipos de armas cuerpo a cuerpo sencillas o marciales de tu elección, como *Hachas a dos manos* y *Hachas de mano*. Siempre que finalices un descanso largo, puedes practicar tácticas con armas y cambiar una de esas armas elegidas.\nCuando alcanzas ciertos niveles de bárbaro, obtienes la capacidad de usar las propiedades de maestría de más tipos de armas.",
+      "descripcion": "Tu entrenamiento con armas te permite utilizar las propiedades de maestría con dos tipos de armas cuerpo a cuerpo sencillas o marciales de tu elección, como *Hachas a dos manos* y *Hachas de mano*. Siempre que finalices un descanso largo, puedes practicar tácticas con armas y cambiar una de esas armas elegidas.\n\nCuando alcanzas ciertos niveles de bárbaro, obtienes la capacidad de usar las propiedades de maestría de más tipos de armas.",
       "tipoAccion": "pasivo",
       "categoriaMecanica": "selector_informativo",
       "selectores": [
@@ -283,7 +283,7 @@
     {
       "nivel": 2,
       "nombre": "Sentido del peligro",
-      "descripcion": "Obtienes un sentido asombroso para notar cuándo las cosas no son como deberían ser, dándote ventaja al esquivar peligros. Tienes ventaja en las tiradas de salvación de Destreza a menos que tengas el estado de incapacitado.",
+      "descripcion": "Obtienes un sentido asombroso para notar cuándo las cosas no son como deberían ser, dándote ventaja al esquivar peligros. Tienes *ventaja* en las tiradas de *salvación de Destreza* a menos que tengas el estado de *incapacitado*.",
       "tipoAccion": "pasivo",
       "categoriaMecanica": "pasivo_permanente",
       "efectos": [
@@ -325,7 +325,7 @@
     {
       "nivel": 3,
       "nombre": "Conocimiento primigenio",
-      "descripcion": "Ganas competencia en otra habilidad de tu elección de la lista de habilidades disponible para los bárbaros a nivel 1.\nAdemás, mientras tu Furia esté activa, puedes canalizar el poder primigenio cuando intentes ciertas tareas; siempre que hagas una prueba de característica usando una de las siguientes habilidades, puedes hacerla como una prueba de Fuerza incluso si normalmente utiliza una característica diferente: Acrobacias, Intimidación, Percepción, Sigilo o Supervivencia. Cuando usas esta capacidad, tu Fuerza representa el poder primigenio fluyendo a través de ti, afinando tu agilidad, tu presencia y tus sentidos.",
+      "descripcion": "Ganas competencia en otra habilidad de tu elección de la lista de habilidades disponible para los bárbaros a nivel 1.\n\nAdemás, mientras tu Furia esté activa, puedes canalizar el poder primigenio cuando intentes ciertas tareas; siempre que hagas una prueba de característica usando una de las siguientes habilidades, puedes hacerla como una prueba de Fuerza incluso si normalmente utiliza una característica diferente: *Acrobacias*, *Intimidación*, *Percepción*, *Sigilo* o *Supervivencia*. Cuando usas esta capacidad, tu Fuerza representa el poder primigenio fluyendo a través de ti, afinando tu agilidad, tu presencia y tus sentidos.",
       "tipoAccion": "pasivo",
       "categoriaMecanica": "pasivo_permanente",
       "efectos": [
@@ -377,7 +377,7 @@
     {
       "nivel": 7,
       "nombre": "Instinto salvaje",
-      "descripcion": "Tus instintos están tan afinados que tienes ventaja en las tiradas de iniciativa.",
+      "descripcion": "Tus instintos están tan afinados que tienes *ventaja* en las tiradas de *iniciativa*.",
       "tipoAccion": "pasivo",
       "categoriaMecanica": "pasivo_permanente",
       "efectos": [
@@ -494,7 +494,7 @@
     {
       "nivel": 11,
       "nombre": "Furia implacable",
-      "descripcion": "Tu Furia puede mantenerte luchando a pesar de heridas graves. Si tus puntos de golpe se reducen a 0 mientras tu Furia está activa y no mueres en el acto, puedes hacer una tirada de salvación de Constitución CD 10. Si tienes éxito, tus puntos de golpe pasan a ser una cantidad igual al doble de tu nivel de bárbaro.\nCada vez que uses este rasgo después de la primera, la CD aumenta en 5. Cuando finalizas un descanso corto o largo, la CD se reinicia a 10.",
+      "descripcion": "Tu Furia puede mantenerte luchando a pesar de heridas graves. Si tus puntos de golpe se reducen a 0 mientras tu Furia está activa y no mueres en el acto, puedes hacer una tirada de salvación de Constitución CD 10. Si tienes éxito, tus puntos de golpe pasan a ser una cantidad igual al doble de tu nivel de bárbaro.\n\nCada vez que uses este rasgo después de la primera, la CD aumenta en 5. Cuando finalizas un descanso corto o largo, la CD se reinicia a 10.",
       "tipoAccion": "pasivo",
       "tieneUsosLimitados": true,
       "recuperacion": "descanso_corto"
@@ -522,7 +522,7 @@
     {
       "nivel": 15,
       "nombre": "Furia persistente",
-      "descripcion": "Cuando tires iniciativa, puedes recuperar todos los usos gastados de Furia. Después de recuperar usos de Furia de esta manera, no podrás volver a hacerlo hasta que finalices un descanso largo.\nAdemás, tu Furia es tan feroz que ahora dura 10 minutos sin necesidad de que hagas nada para extenderla ronda a ronda. Tu Furia termina antes si tienes el estado de inconsciente (no solo el estado de incapacitado) o si te pones una armadura pesada.",
+      "descripcion": "Cuando tires iniciativa, puedes recuperar todos los usos gastados de Furia. Después de recuperar usos de Furia de esta manera, no podrás volver a hacerlo hasta que finalices un descanso largo.\n\nAdemás, tu Furia es tan feroz que ahora dura 10 minutos sin necesidad de que hagas nada para extenderla ronda a ronda. Tu Furia termina antes si tienes el estado de inconsciente (no solo el estado de incapacitado) o si te pones una armadura pesada.",
       "tipoAccion": "pasivo",
       "tieneUsosLimitados": true,
       "formulaUsos": "1",
@@ -639,7 +639,7 @@
         {
           "nivel": 6,
           "nombre": "Furia ciega",
-          "descripcion": "Tienes inmunidad a los estados de hechizado y asustado mientras tu Furia esté activa. Si estás hechizado o asustado cuando entras en Furia, el estado termina en ti.",
+          "descripcion": "Tienes *inmunidad* a los estados de *hechizado* y *asustado* mientras tu Furia esté activa. Si estás hechizado o asustado cuando entras en Furia, el estado termina en ti.",
           "tipoAccion": "pasivo",
           "subclase": "Senda del Berserker"
         },
@@ -653,7 +653,7 @@
         {
           "nivel": 14,
           "nombre": "Presencia intimidante",
-          "descripcion": "Como acción adicional, puedes infundir terror en otros con tu presencia amenazante y tu poder primigenio. Cuando lo hagas, cada criatura de tu elección en una emanación de 30 pies centrada en ti debe hacer una tirada de salvación de Sabiduría (CD 8 más tu modificador por Fuerza y tu bonificador por competencia). Si falla la tirada, la criatura tendrá el estado de asustado durante 1 minuto. Al final de cada uno de los turnos de la criatura asustada, esta repite la tirada de salvación, terminando el efecto sobre sí misma si tiene éxito.\nUna vez que uses este rasgo, no podrás volver a hacerlo hasta que finalices un descanso largo, a menos que gastes un uso de tu Furia (no requiere acción) para recuperar su uso.",
+          "descripcion": "Como acción adicional, puedes infundir terror en otros con tu presencia amenazante y tu poder primigenio. Cuando lo hagas, cada criatura de tu elección en una emanación de 30 pies centrada en ti debe hacer una tirada de salvación de Sabiduría (CD 8 más tu modificador por Fuerza y tu bonificador por competencia). Si falla la tirada, la criatura tendrá el estado de *asustado* durante 1 minuto. Al final de cada uno de los turnos de la criatura asustada, esta repite la tirada de salvación, terminando el efecto sobre sí misma si tiene éxito.\n\nUna vez que uses este rasgo, no podrás volver a hacerlo hasta que finalices un descanso largo, a menos que gastes un uso de tu Furia (no requiere acción) para recuperar su uso.",
           "tipoAccion": "accion_adicional",
           "subclase": "Senda del Berserker",
           "tieneUsosLimitados": true,
@@ -972,7 +972,7 @@
         {
           "nivel": 3,
           "nombre": "Guerrero de los dioses",
-          "descripcion": "Una entidad divina te ayuda a asegurar que puedas continuar la lucha. Tienes una reserva de cuatro d12 que puedes gastar para curarte a ti mismo. Como acción adicional, puedes gastar dados de la reserva, tirarlos y recuperar una cantidad de puntos de golpe igual al total de la tirada.\nTu reserva recupera todos los dados gastados cuando finalizas un descanso largo.\nLa cantidad máxima de dados de la reserva aumenta en uno cuando alcanzas los niveles de bárbaro 6 (5 dados), 12 (6 dados) y 17 (7 dados).",
+          "descripcion": "Una entidad divina te ayuda a asegurar que puedas continuar la lucha. Tienes una reserva de cuatro d12 que puedes gastar para curarte a ti mismo. Como acción adicional, puedes gastar dados de la reserva, tirarlos y recuperar una cantidad de puntos de golpe igual al total de la tirada.\n\nTu reserva recupera todos los dados gastados cuando finalizas un descanso largo.\n\nLa cantidad máxima de dados de la reserva aumenta en uno cuando alcanzas los niveles de bárbaro 6 (5 dados), 12 (6 dados) y 17 (7 dados).",
           "tipoAccion": "accion_adicional",
           "subclase": "Senda del Fanático",
           "tieneUsosLimitados": true,
@@ -1027,7 +1027,7 @@
         {
           "nivel": 10,
           "nombre": "Presencia fervorosa",
-          "descripcion": "Como acción adicional, desatas un grito de batalla imbuido de energía divina. Hasta otras diez criaturas de tu elección a 60 pies o menos de ti obtienen ventaja en las tiradas de ataque y tiradas de salvación hasta el principio de tu siguiente turno.\nUna vez que uses este rasgo, no podrás volver a hacerlo hasta que finalices un descanso largo, a menos que gastes un uso de tu Furia (no requiere acción) para recuperar su uso.",
+          "descripcion": "Como acción adicional, desatas un grito de batalla imbuido de energía divina. Hasta otras diez criaturas de tu elección a 60 pies o menos de ti obtienen ventaja en las tiradas de ataque y tiradas de salvación hasta el principio de tu siguiente turno.\n\nUna vez que uses este rasgo, no podrás volver a hacerlo hasta que finalices un descanso largo, a menos que gastes un uso de tu Furia (no requiere acción) para recuperar su uso.",
           "tipoAccion": "accion_adicional",
           "subclase": "Senda del Fanático",
           "tieneUsosLimitados": true,

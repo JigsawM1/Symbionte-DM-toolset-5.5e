@@ -65,16 +65,16 @@ export const TablaProgresionRasgo: React.FC<TablaProgresionRasgoProps> = ({
             const esActual = nivelFilaActiva === fila.nivel;
             const esFilaEnmarcada = idx % 2 === 0;
 
-            const clasesFila = esTablaDosColumnas
-              ? esFilaEnmarcada
-                ? estilos.filaConjuroEnmarcada
-                : estilos.filaConjuroSimple
-              : [
-                  estilos.filaProgresion,
-                  esActual ? estilos.filaNivelActual : ""
-                ]
-                  .filter(Boolean)
-                  .join(" ");
+            const clasesFila = [
+              esTablaDosColumnas
+                ? esFilaEnmarcada
+                  ? estilos.filaConjuroEnmarcada
+                  : estilos.filaConjuroSimple
+                : estilos.filaProgresion,
+              esActual ? estilos.filaNivelActual : ""
+            ]
+              .filter(Boolean)
+              .join(" ");
 
             return (
               <tr key={idx} className={clasesFila}>
@@ -85,6 +85,7 @@ export const TablaProgresionRasgo: React.FC<TablaProgresionRasgoProps> = ({
                     </td>
                     <td className={esColumnaConjuros ? estilos.celdaConjuros : estilos.celdaTextoEnmarcada}>
                       <span>{fila.valores[0] || ""}</span>
+                      {esActual && <span className={estilos.badgeActual}>Actual</span>}
                     </td>
                   </>
                 ) : (

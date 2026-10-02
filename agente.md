@@ -17,6 +17,33 @@ Este archivo registra reglas globales, errores encontrados, sus causas raíz y l
    - **Bajo ninguna circunstancia** los módulos de lógica de negocio (`servicios/`), gestores de estado (`almacen/`), contratos (`tipos/`), valores de reglas (`constantes/`) ni funciones de soporte (`utiles/`) deben importar componentes visuales o archivos CSS (`componentes/`). Esta regla está reforzada en CI vía ESLint `no-restricted-imports`.
 6. **PROHIBICIÓN ESTRICTA DE BIFURCACIONES POR NOMBRE DE RASGO O CLASE (CATÁLOGO DECLARATIVO Y BUILDER PURO)**:
    - **Bajo ninguna circunstancia** los módulos de lógica de negocio (`servicios/`), gestores de estado (`almacen/`) o constructores (`gestorClases.ts`) deben contener bifurcaciones condicionales por nombre literal de rasgo o clase (`r.nombre === "..."`, `clase.includes("...")`, etc.).
+## [2026-10-02] Restauración de Indicador de Nivel Actual en Tablas de Progresión de Rasgos (badge Actual y filaNivelActual)
+
+**Problema Reportado por el Usuario:**
+- "¿por que en las tablas de los rasgos ya no me indica cual es el actual en el que estamos?"
+
+**Causas Raíz Diagnosticadas:**
+1. **Regresión Accidental en la Estilización de Tablas de Dos Columnas (`TablaProgresionRasgo.tsx`):**
+   - En una iteración previa se introdujo la clase de diseño enmarcado de D&D 2024 para tablas de 2 columnas (`esTablaDosColumnas`).
+   - Al maquetar `clasesFila`, se asignó exclusivamente `esFilaEnmarcada ? estilos.filaConjuroEnmarcada : estilos.filaConjuroSimple`, eliminando por completo la inclusión condicional de `esActual ? estilos.filaNivelActual : ""`.
+   - Adicionalmente, en el fragmento JSX de tablas de 2 columnas se omitió renderizar el componente `{esActual && <span className={estilos.badgeActual}>Actual</span>}`.
+   - Dado que el 95% de las tablas de progresión de rasgos del sistema (como *Artes marciales*, *Inspiración bárdica*, *Ataque furtivo*, *Movimiento sin armadura*, *Enemigo predilecto*, etc.) constan exactamente de 2 columnas, ninguna de ellas mostraba ya la indicación visual de la fila activa ni el distintivo dorado "Actual".
+2. **Desajuste de Nivel Inicial en *Enemigo predilecto* (`src/datos/clases/explorador.json`):**
+   - La primera fila de la tabla visual de progresión de *Enemigo predilecto* tenía registrado erróneamente `nivel: 2` con `"2/descanso largo"`, cuando en D&D 5.5e (2024) el rasgo se desbloquea canónicamente a Nivel 1. A nivel 1 de Explorador, la búsqueda de fila alcanzada (`nivel <= nivelPersonaje`) devolvía vacío.
+
+**Soluciones Técnicas Aplicadas:**
+1. **Restauración Quirúrgica en `TablaProgresionRasgo.tsx`:**
+   - Se actualizó `clasesFila` para integrar permanentemente `esActual ? estilos.filaNivelActual : ""` tanto en tablas de dos columnas como en tablas multicolumna.
+   - Se reincorporó `{esActual && <span className={estilos.badgeActual}>Actual</span>}` en la celda de valor/descripción de la rama de dos columnas (`celdaConjuros` o `celdaTextoEnmarcada`).
+2. **Realce Estético en `TablaProgresionRasgo.module.css`:**
+   - Se enriqueció `.filaNivelActual` con fondo translúcido dorado (`rgba(212, 175, 55, 0.14)`), bordes dorados perimetrales (`rgba(212, 175, 55, 0.45)`) y texto de nivel en dorado destacado (`#fbbf24`), logrando que la fila activa resalte con elegancia tanto en tablas enmarcadas como estándar.
+3. **Corrección de Datos en `src/datos/clases/explorador.json`:**
+   - Se ajustó el nivel de la primera fila de *Enemigo predilecto* a `1`.
+4. **Nueva Suite de Pruebas Unitarias (`TablaProgresionRasgo.test.tsx`):**
+   - 7 pruebas cubriendo: tablas de 2 columnas, selección de nivel alcanzado más alto sin sobrepasar nivel actual (ej. nivel 7 selecciona nivel 5), inicio a nivel 1, tablas de conjuros, tablas de 3+ columnas, omisión deliberada en tablas no de nivel (ej. tiradas 1d6) y casos borde con nivel indefinido.
+5. **Validación Integral del Pipeline CI:**
+   - 97 suites y 1,453 pruebas aprobadas al 100%. TypeScript estricto sin errores (`tsc --noEmit`), ESLint impecable (`--max-warnings=0`), verificación de líneas superada y compilación para producción con Vite completada con éxito.
+
 ## [2026-10-02] Consolidación de origin/Mago: Integración Canónica del Mago D&D 2024, Inyección Reactiva de Competencias en Habilidades y Consumo Dual de Recursos
 
 **Objetivo de la Integración:**

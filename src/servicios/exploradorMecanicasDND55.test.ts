@@ -644,7 +644,7 @@ describe("Mecánicas D&D 5.5e (2024) - Explorador (Ranger) - Fase 1: Clase Base"
       expect(enemigo?.tablaProgresion?.columnas).toEqual(["Nivel", "Descripción"]);
       expect(enemigo?.tablaProgresion?.notaPie).toBe("Cada nivel reemplaza al anterior");
       expect(enemigo?.tablaProgresion?.filas).toEqual([
-        { nivel: 2, valores: ["2/descanso largo"] },
+        { nivel: 1, valores: ["2/descanso largo"] },
         { nivel: 5, valores: ["3/descanso largo"] },
         { nivel: 9, valores: ["4/descanso largo"] },
         { nivel: 13, valores: ["5/descanso largo"] },

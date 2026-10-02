@@ -149,8 +149,27 @@
 }
 
 .filaNivelActual {
-  background: rgba(212, 175, 55, 0.12);
+  background: rgba(212, 175, 55, 0.14);
   font-weight: 600;
+}
+
+.filaNivelActual td {
+  border-top: 1px solid rgba(212, 175, 55, 0.45);
+  border-bottom: 1px solid rgba(212, 175, 55, 0.45);
+}
+
+.filaNivelActual td:first-child {
+  border-left: 1px solid rgba(212, 175, 55, 0.45);
+}
+
+.filaNivelActual td:last-child {
+  border-right: 1px solid rgba(212, 175, 55, 0.45);
+}
+
+.filaNivelActual .celdaNivelConjuros,
+.filaNivelActual .celdaNivel {
+  color: #fbbf24;
+  font-weight: 700;
 }
 
 .celdaNivel {

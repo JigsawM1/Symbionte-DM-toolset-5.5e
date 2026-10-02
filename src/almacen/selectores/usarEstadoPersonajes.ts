@@ -238,7 +238,14 @@ export function calcularEstadisticasPersonaje(pj: PersonajeJugador): Estadistica
 
   const compExtraRasgos = pj
     ? obtenerCompetenciasExtraRasgos(pj)
-    : { armasGrupos: [], armadurasGrupos: [], herramientas: [], salvaciones: [], idiomas: [] };
+    : {
+        armasGrupos: [] as ("sencillas" | "marciales" | "fuego")[],
+        armadurasGrupos: [] as ("ligeras" | "medias" | "pesadas" | "escudos")[],
+        herramientas: [] as string[],
+        salvaciones: [] as Caracteristica[],
+        idiomas: [] as string[],
+        habilidades: [] as Habilidad[]
+      };
   const compSalv = {
     fuerza: (pj?.competenciasSalvacion?.fuerza || false) || compExtraRasgos.salvaciones.includes("fuerza"),
     destreza: (pj?.competenciasSalvacion?.destreza || false) || compExtraRasgos.salvaciones.includes("destreza"),
@@ -307,7 +314,9 @@ export function calcularEstadisticasPersonaje(pj: PersonajeJugador): Estadistica
   for (const hab of listaHabilidades) {
     const caracAsociada = MAPA_HABILIDAD_A_CARACTERISTICA[hab];
     const modBase = modificadores[caracAsociada] || 0;
-    const gradoBase = grados[hab] || "ninguna";
+    const gradoExtra = compExtraRasgos.habilidades?.includes(hab) ? "competente" : "ninguna";
+    const gradoGuardado = grados[hab] || "ninguna";
+    const gradoBase: GradoCompetencia = gradoGuardado !== "ninguna" ? gradoGuardado : gradoExtra;
     const grado: GradoCompetencia = gradoBase === "ninguna" && tieneAprendiz ? "medio" : gradoBase;
     gradosHabilidadesEfectivos[hab] = grado;
     const custom = personalizaciones[hab];

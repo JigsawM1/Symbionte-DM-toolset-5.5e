@@ -611,6 +611,11 @@ export function resolverEscaladosRasgo(
       formula?: string;
     };
     escaladoRecuperacion?: Array<{ nivelMinimo: number; valor: string }>;
+    escaladoEfectos?: Array<{
+      tipo: string;
+      objetivo?: string;
+      escalones: Array<{ nivelMinimo: number; valor: string | number }>;
+    }>;
   },
   nivel: number,
   efectosBase: EfectoMecanicoRasgo[],
@@ -667,7 +672,24 @@ export function resolverEscaladosRasgo(
     if (entrada) recuperacion = entrada.valor;
   }
 
-  // 4. Sincronizar efectos con la fórmula de dados resuelta
+  // 4. Escalado de efectos mecánicos (ej. Movimiento sin armadura: +10 a +30 ft)
+  if (r.escaladoEfectos?.length) {
+    for (const escEf of r.escaladoEfectos) {
+      const entrada = [...escEf.escalones]
+        .sort((a, b) => b.nivelMinimo - a.nivelMinimo)
+        .find((e) => nivel >= e.nivelMinimo);
+      if (entrada) {
+        const ef = efectos.find(
+          (e) => e.tipo === escEf.tipo && (!escEf.objetivo || e.objetivo === escEf.objetivo)
+        );
+        if (ef) {
+          ef.valor = entrada.valor;
+        }
+      }
+    }
+  }
+
+  // 5. Sincronizar efectos con la fórmula de dados resuelta
   if (r.sincronizarEfectosConFormula && formulaDados) {
     const tiposASincronizar = new Set(["dado_extra_dano", "ataque_desarmado", "bono_dano_fuerza", "dano_secundario"]);
     for (const ef of efectos) {
@@ -767,6 +789,7 @@ export function obtenerRasgosClaseYSubclase(
       escaladoFormulaDados: r.escaladoFormulaDados,
       escaladoUsos: r.escaladoUsos ? { ...r.escaladoUsos, minimo: r.escaladoUsos.minimo ?? 1 } : undefined,
       escaladoRecuperacion: r.escaladoRecuperacion,
+      escaladoEfectos: r.escaladoEfectos ? JSON.parse(JSON.stringify(r.escaladoEfectos)) : undefined,
       sincronizarEfectosConFormula: !!r.sincronizarEfectosConFormula,
       personalizado: false,
       activo: r.esActivable ? false : true,

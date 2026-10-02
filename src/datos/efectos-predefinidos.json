@@ -277,5 +277,28 @@
       "Aura aterradora: Cada vez que un enemigo comience su turno en tu Aura de protección, deberá superar una tirada de salvación de Sabiduría o tendrá el estado de asustado durante 1 minuto o hasta que sufra cualquier daño.",
       "Ventaja contra asustados: Las tiradas de ataque contra cualquier criatura asustada por esta aura se realizan con ventaja."
     ]
+  },
+  {
+    "nombre": "Salvaguarda arcana",
+    "tituloVisual": "Salvaguarda arcana (Arcane Ward)",
+    "descripcion": "Una hebra de magia protectora te envuelve con puntos de golpe propios (2 * nivel de mago + INT). Absorbe daño en tu lugar antes de que afecte a tus puntos de golpe y se recarga al lanzar conjuros de Abjuración.",
+    "duracionEstandar": 800,
+    "aliases": ["salvaguarda arcana", "arcane ward", "salvaguarda arcana (arcane ward)"],
+    "efectos": [
+      "Absorción de daño: La salvaguarda sufre el daño en tu lugar (aplicando primero tus resistencias o vulnerabilidades).",
+      "Recarga por Abjuración: Al lanzar un conjuro de Abjuración con espacio, recupera el doble del nivel del espacio en puntos de golpe."
+    ]
+  },
+  {
+    "nombre": "El tercer ojo",
+    "tituloVisual": "El tercer ojo (The Third Eye)",
+    "descripcion": "Tus poderes sensoriales aumentan hasta iniciar un descanso corto o largo, otorgando visión en la oscuridad de 120 pies, comprensión de cualquier idioma escrito o lanzamiento gratuito de Ver invisibilidad.",
+    "duracionEstandar": 100,
+    "aliases": ["el tercer ojo", "tercer ojo", "the third eye", "el tercer ojo (the third eye)"],
+    "efectos": [
+      "Visión en la oscuridad: Alcance de 120 pies si se elige esta opción.",
+      "Comprensión superior: Capacidad de leer cualquier idioma escrito.",
+      "Ver invisibilidad: Capacidad de lanzar el conjuro Ver invisibilidad sin gastar espacio de conjuro."
+    ]
   }
 ]

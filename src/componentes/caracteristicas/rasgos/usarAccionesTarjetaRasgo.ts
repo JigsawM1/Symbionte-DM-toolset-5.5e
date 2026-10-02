@@ -72,9 +72,16 @@ export function usarAccionesTarjetaRasgo({
     ? (rasgo.usosRestantes ?? usosMaximos)
     : (usosPadre?.restantes ?? 0);
 
+  const faltaReservaPadre = Boolean(
+    rasgo.gastarDePadre &&
+      usosPadre &&
+      (usosPadre.restantes < (rasgo.costeFijo || 1))
+  );
+
   const sinUsosDisponibles =
     (esRecursoEspacioPacto && espaciosPactoDisponibles <= 0) ||
-    ((tieneUsosPropios || tieneUsosPadre) && usosRestantes <= 0);
+    ((tieneUsosPropios || tieneUsosPadre) && usosRestantes <= 0) ||
+    (tieneUsosPropios && faltaReservaPadre);
 
   const normNombre = rasgo.nombre.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
   const esManosCurativas = normNombre.includes("manos curativas");

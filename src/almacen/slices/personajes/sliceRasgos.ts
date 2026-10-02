@@ -210,9 +210,30 @@ export const crearSubSliceRasgos: StateCreator<
     mutarPersonaje(set, idPj, (pj) => {
       const targetTrait = (pj.rasgos || []).find((r) => r.id === idRasgo);
       const idObjetivoGasto = resolverIdRasgoObjetivoGasto(targetTrait, pj.rasgos || []);
+      const tieneUsoPropioYPadre =
+        Boolean(targetTrait && targetTrait.tieneUsosLimitados && targetTrait.gastarDePadre && idObjetivoGasto !== targetTrait.id);
 
       const rasgosActualizados = (pj.rasgos || []).map((r) => {
-        if (r.id === idObjetivoGasto && r.tieneUsosLimitados) {
+        if (tieneUsoPropioYPadre) {
+          if (r.id === targetTrait?.id) {
+            const maxUsos = r.formulaEscalado ? calcularUsosMaximosRasgo(r, pj) : (r.usosMaximos ?? 1);
+            const restantes = r.usosRestantes ?? maxUsos;
+            return {
+              ...r,
+              usosMaximos: maxUsos,
+              usosRestantes: Math.max(0, restantes - 1)
+            };
+          }
+          if (r.id === idObjetivoGasto && r.tieneUsosLimitados) {
+            const maxUsos = r.formulaEscalado ? calcularUsosMaximosRasgo(r, pj) : (r.usosMaximos ?? 1);
+            const restantes = r.usosRestantes ?? maxUsos;
+            return {
+              ...r,
+              usosMaximos: maxUsos,
+              usosRestantes: Math.max(0, restantes - cant)
+            };
+          }
+        } else if (r.id === idObjetivoGasto && r.tieneUsosLimitados) {
           const maxUsos = r.formulaEscalado
             ? calcularUsosMaximosRasgo(r, pj)
             : (r.usosMaximos ?? 1);
@@ -234,9 +255,30 @@ export const crearSubSliceRasgos: StateCreator<
     mutarPersonaje(set, idPj, (pj) => {
       const targetTrait = (pj.rasgos || []).find((r) => r.id === idRasgo);
       const idObjetivoGasto = resolverIdRasgoObjetivoGasto(targetTrait, pj.rasgos || []);
+      const tieneUsoPropioYPadre =
+        Boolean(targetTrait && targetTrait.tieneUsosLimitados && targetTrait.gastarDePadre && idObjetivoGasto !== targetTrait.id);
 
       const rasgosActualizados = (pj.rasgos || []).map((r) => {
-        if (r.id === idObjetivoGasto && r.tieneUsosLimitados) {
+        if (tieneUsoPropioYPadre) {
+          if (r.id === targetTrait?.id) {
+            const maxUsos = r.formulaEscalado ? calcularUsosMaximosRasgo(r, pj) : (r.usosMaximos ?? 1);
+            const restantes = r.usosRestantes ?? 0;
+            return {
+              ...r,
+              usosMaximos: maxUsos,
+              usosRestantes: Math.min(maxUsos, restantes + 1)
+            };
+          }
+          if (r.id === idObjetivoGasto && r.tieneUsosLimitados) {
+            const maxUsos = r.formulaEscalado ? calcularUsosMaximosRasgo(r, pj) : (r.usosMaximos ?? 1);
+            const restantes = r.usosRestantes ?? 0;
+            return {
+              ...r,
+              usosMaximos: maxUsos,
+              usosRestantes: Math.min(maxUsos, restantes + cant)
+            };
+          }
+        } else if (r.id === idObjetivoGasto && r.tieneUsosLimitados) {
           const maxUsos = r.formulaEscalado
             ? calcularUsosMaximosRasgo(r, pj)
             : (r.usosMaximos ?? 1);

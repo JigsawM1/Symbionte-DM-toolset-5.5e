@@ -17,6 +17,15 @@ Este archivo registra reglas globales, errores encontrados, sus causas raíz y l
    - **Bajo ninguna circunstancia** los módulos de lógica de negocio (`servicios/`), gestores de estado (`almacen/`), contratos (`tipos/`), valores de reglas (`constantes/`) ni funciones de soporte (`utiles/`) deben importar componentes visuales o archivos CSS (`componentes/`). Esta regla está reforzada en CI vía ESLint `no-restricted-imports`.
 6. **PROHIBICIÓN ESTRICTA DE BIFURCACIONES POR NOMBRE DE RASGO O CLASE (CATÁLOGO DECLARATIVO Y BUILDER PURO)**:
    - **Bajo ninguna circunstancia** los módulos de lógica de negocio (`servicios/`), gestores de estado (`almacen/`) o constructores (`gestorClases.ts`) deben contener bifurcaciones condicionales por nombre literal de rasgo o clase (`r.nombre === "..."`, `clase.includes("...")`, etc.).
+## [2026-10-02] Consolidación de origin/Mago: Integración Canónica del Mago D&D 2024, Inyección Reactiva de Competencias en Habilidades y Consumo Dual de Recursos
+
+**Objetivo de la Integración:**
+- Integrar la clase Mago (D&D 5.5e / 2024) y sus 4 subclases canónicas (*Abjurador*, *Adivino*, *Evocador*, *Ilusionista*) con categorización mecánica declarativa, efectos predefinidos y progresión de conjuros.
+- Incorporar el motor de inyección reactiva de competencias en habilidades desde rasgos (`habilidades: Habilidad[]` en `evaluadorSalvacionesRasgos.ts` y cálculo en `usarEstadoPersonajes.ts`).
+- Incorporar el nuevo esquema genérico `EsquemaEscaladoEfectos` / `escaladoEfectos` para rasgos con escalado progresivo por nivel mínimo (ej. velocidad de *Movimiento sin armadura*).
+- Habilitar el patrón de Consumo Dual de recursos en `sliceRasgos.ts` y `usarAccionesTarjetaRasgo.ts` (rasgos con límite propio que a la vez consumen puntos de un recurso padre, ej. *Mano de la misericordia definitiva*).
+- Armonizar y unificar los nombres canónicos y alias de la clase Monje y Mago, manteniendo 100% de pase en CI.
+
 ## [2026-10-02] Consolidación de origin/Tryn: Implementación Canónica de Monje D&D 5.5e (PHB 2024) y sus 4 Subclases
 
 **Objetivo de la Integración:**
@@ -499,6 +508,90 @@ Este archivo registra reglas globales, errores encontrados, sus causas raíz y l
 - `pnpm test`: 92 suites y 1,314 pruebas aprobadas al 100% (añadidas 5 pruebas unitarias para `requiereSincronizacionSubclase`, `obtenerClasesListaMagicaPersonaje` y sanitización referencial).
 - `pnpm run verificar:lineas`: 0 errores críticos.
 - `pnpm exec vite build`: Compilación para producción completada exitosamente en 13.65s.
+
+## [2026-10-02] Implementación y Refinamiento Declarativo de Rasgos de Monje (D&D 5.5e / 2024)
+
+**Objetivo de la Iteración:**
+- Implementar y ajustar de forma exhaustiva los rasgos de la clase Monje (niveles 1 a 20) y sus 4 subclases (*Camino de la misericordia*, *Camino de la sombra*, *Camino de los elementos*, *Camino de la mano abierta*) de acuerdo a las reglas oficiales de D&D 5.5e (PHB 2024), empleando el builder declarativo y escalados genéricos.
+
+**Mecánicas y Decisiones de Diseño:**
+1. **Desviar ataques (Nv. 3):**
+   - Configurado con fórmula completa `"formulaDados": "1d10 + destreza + nivel"`.
+   - Declara `"gastarDePadre": true`, `"ligadoA": "Concentración"`, y `"noGastarAlTirarDados": true` para que la tirada del dado de reducción de daño no consuma el punto de concentración, reservándolo para la redirección.
+2. **Movimiento sin armadura (Nv. 2):**
+   - Escalado progresivo de velocidad (+10 ft nv 2-5, +15 ft nv 6-9, +20 ft nv 10-13, +25 ft nv 14-17, +30 ft nv 18-20) mediante el nuevo campo genérico declarativo `escaladoEfectos` y `tablaProgresion`.
+   - Reconocimiento universal en `evaluadorCombateRasgos.ts` para ataques desarmados (`desarmado`, `ataque_desarmado`, `sin_armas`, `unarmed`).
+3. **Superviviente disciplinado (Nv. 14):**
+   - Competencia en todas las salvaciones (`salvacion.fuerza`, `salvacion.destreza`, `salvacion.constitucion`, `salvacion.inteligencia`, `salvacion.sabiduria`, `salvacion.carisma`) declaradas en el array `efectos`, reconocidas por `evaluadorSalvacionesRasgos.ts` e inyectadas limpiamente sin hardcodeo.
+4. **Implementos de misericordia (Camino de la misericordia Nv. 3):**
+   - Configurado con 3 efectos declarativos de tipo `competencia` (`habilidad.medicina`, `habilidad.perspicacia`, `herramientas: "Útiles de herborista"`).
+   - `evaluadorSalvacionesRasgos.ts` y `usarEstadoPersonajes.ts` reconocen automáticamente las competencias en habilidades procedentes de rasgos y las marcan como competentes en el cálculo de estadísticas del personaje.
+   - Alias bidireccional en `MAPA_ALIAS_HERRAMIENTAS` para homologar `"utensilios de herborista"`, `"utiles de herborista"`, `"kit de herboristería"` y `"estuche de herbalismo"`.
+5. **Mano de la misericordia definitiva (Camino de la misericordia Nv. 17 - Consumo Dual):**
+   - Rasgo con límite propio (1 uso por descanso largo) que a su vez consume 5 puntos del rasgo padre *Concentración* (`tieneUsosLimitados: true`, `usosMaximos: 1`, `recuperacion: "descanso_largo"`, `costeFijo: 5`, `gastarDePadre: true`, `ligadoA: "Concentración"`).
+   - En `sliceRasgos.ts`, `gastarUsoRasgoPersonaje` y `recuperarUsoRasgoPersonaje` descuentan y restauran concurrentemente el uso propio del rasgo y los puntos del rasgo padre.
+   - En `usarAccionesTarjetaRasgo.ts`, `sinUsosDisponibles` valida tanto la reserva propia como que el padre cuente con al menos los puntos de `costeFijo`.
+6. **Mano del daño (Camino de la misericordia Nv. 3):**
+   - Consumible activable (`esActivable: true`, `autoDesactivarAlTirarDano: true`, `sincronizarEfectosConFormula: true`) con efecto `dano_secundario` necrótico ligado a ataques desarmados que escala con el dado de artes marciales (`1d6`, `1d8`, `1d10`, `1d12`) más Sabiduría.
+7. **Independencia de Tarjetas (Toque del médico vs Mano del daño):**
+   - *Toque del médico* (Nv. 6) se configuró como `pasivo_permanente` independiente sin `ligadoA` para que no se fusione dentro de la tarjeta de *Mano del daño*, mostrando su propia tarjeta en la ficha.
+8. **Búsqueda Tolerante de Subclases de Magia (`calculadorMagia.ts`):**
+   - Se implementó discriminación por palabras clave no vacías (filtrando stop words como "camino", "guerrero", "dominio", "juramento") garantizando compatibilidad entre "Camino de la sombra" y "Guerrero de la sombra".
+
+**Verificación y Calidad:**
+- Suite `monjeMecanicasDND55.test.ts`: 34/34 tests en verde.
+- Suite global: 95 archivos y 1,441 tests pasando al 100%.
+- TypeScript `tsc --noEmit`: 0 errores en `strict: true`.
+- ESLint `eslint src --max-warnings=0`: 0 errores y 0 advertencias.
+
+## [2026-10-02] Implementación Declarativa de Rasgos de Mago y sus 4 Subclases (D&D 5.5e / 2024)
+
+**Objetivo de la Iteración:**
+- Estructurar e implementar de forma exhaustiva los rasgos de la clase Mago (niveles 1 a 20) y sus 4 subclases canónicas (*Abjurador*, *Adivino*, *Evocador*, *Ilusionista*) según D&D 5.5e (PHB 2024), mediante el builder declarativo sin bifurcaciones por nombre.
+
+**Mecánicas y Clasificación Implementadas:**
+1. **Clase Base (Mago Nv 1 a 20):**
+   - *Lanzamiento de conjuros* (Nv. 1) y *Adepto ritual* (Nv. 1): Configurados como `pasivo_permanente` con `tipoAccion: "pasivo"`.
+   - *Recuperación arcana* (Nv. 1): Consumible de 1 uso por descanso largo (`categoriaMecanica: "consumible"`) con `tablaProgresion` estructurada de 20 niveles que detalla los espacios recuperables `ceil(nivel / 2)` (máximo nivel 5).
+   - *Erudito* (Nv. 2): Selector interactivo `categoriaMecanica: "selector_informativo"` con opciones de pericia para Conocimiento arcano, Historia, Investigación, Medicina, Naturaleza y Religión.
+   - *Memorizar conjuro* (Nv. 5): Consumible de 1 uso por descanso corto (`categoriaMecanica: "consumible"`).
+   - *Maestría en conjuros* (Nv. 18): Pasivo permanente (`pasivo_permanente`).
+   - *Don épico* (Nv. 19): Inyección de selector de don épico que recomienda canónicamente *Don de la recuperación de conjuros* (`dote_don_recuperacion`).
+   - *Conjuros predilectos* (Nv. 20): Consumible de 2 usos por descanso corto (`categoriaMecanica: "consumible"`).
+
+2. **Subclases Canónicas de Mago (PHB 2024):**
+   - **Abjurador**:
+     - *Erudito en abjuración* (Nv. 3): Pasivo permanente.
+     - *Salvaguarda arcana* (Nv. 3): Activable por acción adicional (`categoriaMecanica: "activable"`, `esActivable: true`, 1 uso/descanso largo, condición `"Salvaguarda arcana"`, `formulaDados: "2 * nivel + inteligencia"`).
+     - *Salvaguarda proyectada* (Nv. 6): Pasivo por reacción (`tipoAccion: "reaccion"`).
+     - *Rompedor de conjuros* (Nv. 10): Acción adicional con `conjurosOtorgados: ["Contrahechizo", "Disipar magia"]`.
+     - *Resistencia a conjuros* (Nv. 14): Pasivo con efectos declarativos de ventaja en salvaciones contra conjuros y resistencia al daño de conjuros.
+   - **Adivino**:
+     - *Erudito en adivinación* (Nv. 3): Pasivo permanente.
+     - *Portento* (Nv. 3): Consumible de 2 usos por descanso largo con `formulaDados: "2d20"` y `tablaProgresion` que escala a 3 dados a nivel 14.
+     - *Adivinación experta* (Nv. 6): Pasivo permanente.
+     - *El tercer ojo* (Nv. 10): Consumible activable por acción adicional (1 uso/descanso corto, condición `"El tercer ojo"`, `conjurosOtorgados: ["Ver invisibilidad"]`).
+     - *Portento mayor* (Nv. 14): Extensión decoradora (`categoriaMecanica: "extension"`, `ligadoA: "Portento"`, `formulaDados: "3d20"`).
+   - **Evocador**:
+     - *Erudito en evocación* (Nv. 3) y *Truco potente* (Nv. 3): Pasivos permanentes.
+     - *Esculpir conjuros* (Nv. 6): Pasivo permanente de protección de área.
+     - *Evocación potenciada* (Nv. 10): Efecto declarativo `bono_dano_conjuro` con valor `"inteligencia"` y `aplicaA: "evocacion"`.
+     - *Sobrecarga* (Nv. 14): Consumible de 1 uso seguro con fórmula de dados `"2d12"` de daño necrótico.
+   - **Ilusionista**:
+     - *Erudito en ilusión* (Nv. 3): Pasivo permanente.
+     - *Ilusiones mejoradas* (Nv. 3): Pasivo con `tipoAccion: "accion_adicional"` y `conjurosOtorgados: ["Ilusión menor"]`.
+     - *Criaturas fantasmales* (Nv. 6): Consumible con `conjurosOtorgados: ["Invocar bestia", "Invocar feérico"]`.
+     - *Yo ilusorio* (Nv. 10): Reacción consumible (1 uso/descanso corto).
+     - *Realidad ilusoria* (Nv. 14): Activable por acción adicional (`categoriaMecanica: "activable"`).
+
+3. **Efectos Predefinidos Registrados (`efectos-predefinidos.json`):**
+   - Incorporadas las condiciones tácticas *"Salvaguarda arcana"* (800 rondas) y *"El tercer ojo"* (100 rondas) con viñetas explicativas y alias bilingües (*Arcane Ward*, *The Third Eye*), elevando el catálogo a 37 efectos totales.
+
+4. **Validación Integral:**
+   - Creada suite `src/servicios/magoMecanicasDND55.test.ts` con 24/24 pruebas unitarias aprobadas al 100%.
+   - `integridadCatalogos.test.ts`: 35/35 pruebas en verde.
+   - `tsc --noEmit`: 0 errores con `strict: true`.
+   - `eslint src --max-warnings=0`: 0 errores y 0 advertencias.
 
 ## [2026-10-01] Automatización de Terreno Difícil al estar Derribado (Prone) y Reinicio Integral de Movimiento por Ronda
 

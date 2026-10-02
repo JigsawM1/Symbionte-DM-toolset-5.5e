@@ -191,6 +191,17 @@ export const EsquemaEscaladoRecuperacion = z.array(z.object({
 }));
 export type EscaladoRecuperacion = z.infer<typeof EsquemaEscaladoRecuperacion>;
 
+/** Escalado de efectos mecánicos por nivel mínimo (e.g. Movimiento sin armadura: +10 a +30 pies) */
+export const EsquemaEscaladoEfectos = z.array(z.object({
+  tipo: EsquemaTipoEfectoMecanico,
+  objetivo: z.string().optional(),
+  escalones: z.array(z.object({
+    nivelMinimo: z.number().int().min(1).max(20),
+    valor: z.union([z.string(), z.number()])
+  }))
+}));
+export type EscaladoEfectos = z.infer<typeof EsquemaEscaladoEfectos>;
+
 export const EsquemaOpcionesDinamicas = z.object({
   nivelMinimo: z.number().int().min(1).max(20),
   opciones: z.array(EsquemaOpcionSelector)
@@ -246,6 +257,11 @@ export interface PlantillaRasgoClase {
     formula?: string;
   };
   escaladoRecuperacion?: Array<{ nivelMinimo: number; valor: RecuperacionRasgo }>;
+  escaladoEfectos?: Array<{
+    tipo: TipoEfectoMecanico;
+    objetivo?: string;
+    escalones: Array<{ nivelMinimo: number; valor: string | number }>;
+  }>;
   sincronizarEfectosConFormula?: boolean;
 
   // Mecánicas estructuradas
@@ -359,6 +375,7 @@ export const EsquemaRasgoPersonaje = z.object({
   escaladoFormulaDados: EsquemaEscaladoFormulaDados.optional(),
   escaladoUsos: EsquemaEscaladoUsos.optional(),
   escaladoRecuperacion: EsquemaEscaladoRecuperacion.optional(),
+  escaladoEfectos: EsquemaEscaladoEfectos.optional(),
   /** Si true, el builder reemplaza el `valor` de efectos dado_extra_dano/ataque_desarmado/bono_dano_fuerza con la formulaDados resuelta */
   sincronizarEfectosConFormula: z.boolean().default(false).optional(),
 

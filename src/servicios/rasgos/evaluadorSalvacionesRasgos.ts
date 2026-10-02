@@ -339,12 +339,14 @@ export function obtenerCompetenciasExtraRasgos(personaje: PersonajeJugador): {
   herramientas: string[];
   salvaciones: Caracteristica[];
   idiomas: string[];
+  habilidades: Habilidad[];
 } {
   const armas = new Set<"sencillas" | "marciales" | "fuego">();
   const armaduras = new Set<"ligeras" | "medias" | "pesadas" | "escudos">();
   const herramientas = new Set<string>();
   const salvaciones = new Set<Caracteristica>();
   const idiomas = new Set<string>();
+  const habilidades = new Set<Habilidad>();
   let armasImprovisadas = false;
 
   const posiblesStats: Caracteristica[] = ["fuerza", "destreza", "constitucion", "inteligencia", "sabiduria", "carisma"];
@@ -368,14 +370,36 @@ export function obtenerCompetenciasExtraRasgos(personaje: PersonajeJugador): {
       if (
         texto.includes("herramienta") ||
         texto.includes("utiles") ||
+        texto.includes("utensilio") ||
         texto.includes("veneno") ||
         texto.includes("cocin") ||
         texto.includes("kit") ||
         texto.includes("disfraz") ||
+        texto.includes("herboris") ||
         ef.objetivo === "herramientas"
       ) {
-        if (ef.valor && ef.valor !== "herramientas") {
+        if (ef.valor && ef.valor !== "herramientas" && ef.valor !== "competente") {
           herramientas.add(String(ef.valor).trim());
+        }
+      }
+
+      // Habilidades adicionales otorgadas por rasgos (ej. Implementos de misericordia: Medicina, Perspicacia)
+      if (
+        objNorm.startsWith("habilidad.") ||
+        objNorm.startsWith("habilidad_") ||
+        objNorm === "habilidad" ||
+        objNorm === "habilidades"
+      ) {
+        const habLimpia = objNorm.replace(/^habilidad[._]/, "");
+        const habCanonica = MAPA_OBJETIVO_A_HABILIDAD[habLimpia] || (habLimpia as Habilidad);
+        if (habCanonica && habCanonica in MAPA_HABILIDAD_A_CARACTERISTICA) {
+          habilidades.add(habCanonica);
+        }
+      }
+      if (valNorm in MAPA_OBJETIVO_A_HABILIDAD && (objNorm.includes("habilidad") || texto.includes("habilidad"))) {
+        const habCanonica = MAPA_OBJETIVO_A_HABILIDAD[valNorm];
+        if (habCanonica && habCanonica in MAPA_HABILIDAD_A_CARACTERISTICA) {
+          habilidades.add(habCanonica);
         }
       }
 
@@ -405,7 +429,8 @@ export function obtenerCompetenciasExtraRasgos(personaje: PersonajeJugador): {
     armasImprovisadas,
     herramientas: Array.from(herramientas),
     salvaciones: Array.from(salvaciones),
-    idiomas: Array.from(idiomas)
+    idiomas: Array.from(idiomas),
+    habilidades: Array.from(habilidades)
   };
 }
 
@@ -418,9 +443,10 @@ export const MAPA_ALIAS_HERRAMIENTAS: Record<string, string[]> = {
   "utiles de cocinero": ["utensilios de cocinero", "utiles de cocinero", "herramientas de cocinero", "kit de cocinero"],
   "utensilios de cocinero": ["utiles de cocinero", "utensilios de cocinero", "kit de cocinero"],
   "kit de cocinero": ["utiles de cocinero", "utensilios de cocinero", "herramientas de cocinero"],
-  "utiles de herborista": ["kit de herboristeria", "kit de herboristería", "estuche de herbalismo", "utiles de herborista"],
-  "kit de herboristeria": ["utiles de herborista", "estuche de herbalismo", "kit de herboristería"],
-  "kit de herboristería": ["utiles de herborista", "estuche de herbalismo", "kit de herboristeria"],
+  "utiles de herborista": ["utensilios de herborista", "kit de herboristeria", "kit de herboristería", "estuche de herbalismo", "utiles de herborista", "herramientas de herborista"],
+  "utensilios de herborista": ["utiles de herborista", "kit de herboristeria", "kit de herboristería", "estuche de herbalismo", "herramientas de herborista"],
+  "kit de herboristeria": ["utiles de herborista", "utensilios de herborista", "estuche de herbalismo", "kit de herboristería"],
+  "kit de herboristería": ["utiles de herborista", "utensilios de herborista", "estuche de herbalismo", "kit de herboristeria"],
   "herramientas de ladron": ["utiles de ladron", "herramientas de ladron", "útiles de ladrón", "kit de ladron", "kit de ladrón"],
   "utiles de ladron": ["herramientas de ladron", "utiles de ladron", "herramientas de ladrón", "kit de ladron", "kit de ladrón"],
   "kit de ladron": ["herramientas de ladron", "utiles de ladron", "útiles de ladrón"],

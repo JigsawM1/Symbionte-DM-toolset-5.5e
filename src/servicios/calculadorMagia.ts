@@ -603,14 +603,26 @@ export function obtenerConjurosSiemprePreparadosSubclase(
   const subclaseNorm = normalizarTexto(subclase);
   const varianteNorm = variante ? normalizarTexto(variante) : "";
 
+  const PALABRAS_VACIAS_SUBCLASE = new Set([
+    "de", "del", "la", "las", "el", "los", "y", "en", "para", "por", "un", "una",
+    "dominio", "juramento", "circulo", "senda", "patron", "camino", "colegio",
+    "escuela", "disciplina", "orden", "origen", "pacto", "guerrero", "hechiceria"
+  ]);
+
   // Buscar coincidencia en el catálogo
   const definicion = CATALOGO_CONJUROS_SUBCLASES.find((item) => {
     const itemClaseNorm = normalizarTexto(item.clase);
     const itemSubclaseNorm = normalizarTexto(item.subclase);
-    return (
-      (claseNorm.includes(itemClaseNorm) || itemClaseNorm.includes(claseNorm)) &&
-      (subclaseNorm.includes(itemSubclaseNorm) || itemSubclaseNorm.includes(subclaseNorm))
-    );
+    const coincideClase = claseNorm.includes(itemClaseNorm) || itemClaseNorm.includes(claseNorm);
+    if (!coincideClase) return false;
+
+    if (subclaseNorm.includes(itemSubclaseNorm) || itemSubclaseNorm.includes(subclaseNorm)) {
+      return true;
+    }
+
+    const tokensA = subclaseNorm.split(/\s+/).filter((t) => t.length > 2 && !PALABRAS_VACIAS_SUBCLASE.has(t));
+    const tokensB = itemSubclaseNorm.split(/\s+/).filter((t) => t.length > 2 && !PALABRAS_VACIAS_SUBCLASE.has(t));
+    return tokensA.length > 0 && tokensB.length > 0 && tokensA.some((t) => tokensB.includes(t));
   });
 
   if (!definicion) {

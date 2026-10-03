@@ -12047,3 +12047,38 @@ Optimizar la complejidad temporal (Big O) en las operaciones de búsqueda, orden
      - Reemplazo y actualización reactiva en el store de Zustand al seleccionar *Duelo* (`bono_dano_ataque`) y *Combate con dos armas*, garantizando deduplicación estricta y unicidad de la dote ligada.
    - Verificación de tipos exitosa con `pnpm exec tsc --noEmit` (0 errores en modo estricto).
    - Verificación de suites: 100% tests pasando (`mejoraCaracteristicaYSubclase.test.ts`, `compendioRasgos.test.ts`, `dotesEstiloCombateMecanicas.test.ts`, `paladinMecanicasDND55.test.ts`, `exploradorMecanicasDND55.test.ts`, `rasgosPersonaje.test.ts`).
+
+
+---
+
+## [2026-10-02] Integración de Rama `origin/Mago-con-tienda` en `main` (Mago D&D 5.5e y Tiendas Interactivas de Recursos)
+
+### 1. Requerimiento del Usuario
+- Fusión completa (`git merge origin/Mago-con-tienda`) en la rama `main`, resolución de conflictos, preservación de memoria técnica en `agente.md` y certificación de calidad con el pipeline de CI completo.
+
+### 2. Conflictos Resueltos Quirúrgicamente
+1. **`src/servicios/hidratadorDotes.ts`**:
+   - Se resolvió la discrepancia entre las ramas integrando simultáneamente los generadores de opciones dinámicas del Brujo (`trucos_brujo`) y del Mago (`conjuros_abjuracion_1_2_mago`, `conjuros_adivinacion_1_2_mago`, `conjuros_evocacion_1_2_mago`, `conjuros_ilusion_1_2_mago`, `conjuros_nivel_1_mago`, `conjuros_nivel_2_mago`).
+   - Se preservó la firma extensible de `generarOpcionesConjuros` admitiendo filtros por escuela y arrays de niveles (`nivel | nivel[]`).
+2. **`agente.md`**:
+   - Limpieza de marcadores de conflicto y concatenación cronológica secuencial de todas las bitácoras previas sin pérdida de historial.
+
+### 3. Novedades Arquitectónicas Integradas
+- **Clase Mago (Manual del Jugador 2024 / D&D 5.5e)**:
+  - 4 subclases canónicas: Abjurador (*Abjurer*), Adivino (*Diviner*), Evocador (*Evoker*) e Ilusionista (*Illusionist*).
+  - Progresión de conjuros preparados, libro de conjuros, rituales y rasgos automáticos.
+- **Tienda Interactiva de Recuperación Arcana**:
+  - Modal interactivo [`ModalTiendaRecuperacionEspacios.tsx`](file:///c:/Users/zamor/OneDrive/Documentos/Programas/ToolSet%20Es%205.5/src/componentes/caracteristicas/rasgos/ModalTiendaRecuperacionEspacios.tsx) con control de presupuesto (la mitad del nivel de Mago redondeado hacia arriba, máx nivel 5).
+- **Recarga de Salvaguarda Arcana**:
+  - Modal [`ModalTiendaRecargaEspacio.tsx`](file:///c:/Users/zamor/OneDrive/Documentos/Programas/ToolSet%20Es%205.5/src/componentes/caracteristicas/rasgos/ModalTiendaRecargaEspacio.tsx) para gastar espacios de conjuro y recargar los puntos de protección de la Salvaguarda Arcana (2 PV temporales por nivel del espacio gastado).
+- **Dados de Portento Interactivos**:
+  - Chips clicables con [`ChipsSelectoresYDadosRasgo.tsx`](file:///c:/Users/zamor/OneDrive/Documentos/Programas/ToolSet%20Es%205.5/src/componentes/caracteristicas/rasgos/ChipsSelectoresYDadosRasgo.tsx) para registrar y consumir tiradas predeterminadas (2d20 o 3d20 a nivel 14).
+- **Contratos Zod Tipados Estrictamente**:
+  - Nuevas propiedades en `contratosRasgos.ts`: `dadosGuardados`, `guardaDadosTirada`, `recargaConEspacio`, `multiplicadorRecargaEspacio`, `limiteRecargaEspacioMaximo`.
+
+### 4. Certificación del Pipeline de CI
+- **TypeScript**: `pnpm exec tsc --noEmit` completado con **0 errores** (`strict: true`).
+- **ESLint**: `pnpm run lint` completado con **0 errores y 0 advertencias** (`--max-warnings=0`).
+- **Vitest**: **102 suites ejecutadas, 1.550/1.550 pruebas unitarias aprobadas (100% éxito)**.
+- **Límite de Líneas**: `node scripts/verificar-limite-lineas.js` auditó **115 archivos**, con **0 componentes excediendo el límite de 500 líneas**.
+- **Vite Build**: Compilación de producción (`pnpm exec vite build`) completada con éxito (código de salida 0).

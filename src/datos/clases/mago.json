@@ -66,35 +66,6 @@
       "recuperarEspacios": {
         "formulaPresupuesto": "ceil(nivel / 2)",
         "nivelMaximoEspacio": 5
-      },
-      "tablaProgresion": {
-        "columnas": [
-          "Nivel de mago",
-          "Espacios recuperables (Nivel máx. combinado)"
-        ],
-        "filas": [
-          { "nivel": 1, "valores": ["Nivel 1 (1 espacio)"] },
-          { "nivel": 2, "valores": ["Nivel 1 (1 espacio)"] },
-          { "nivel": 3, "valores": ["Nivel 2 (ej. 1 de nv 2 o 2 de nv 1)"] },
-          { "nivel": 4, "valores": ["Nivel 2 (ej. 1 de nv 2 o 2 de nv 1)"] },
-          { "nivel": 5, "valores": ["Nivel 3 (ej. 1 de nv 3 o 3 de nv 1)"] },
-          { "nivel": 6, "valores": ["Nivel 3 (ej. 1 de nv 3 o 3 de nv 1)"] },
-          { "nivel": 7, "valores": ["Nivel 4 (ej. 1 de nv 4 o 2 de nv 2)"] },
-          { "nivel": 8, "valores": ["Nivel 4 (ej. 1 de nv 4 o 2 de nv 2)"] },
-          { "nivel": 9, "valores": ["Nivel 5 (ej. 1 de nv 5 o combinación)"] },
-          { "nivel": 10, "valores": ["Nivel 5 (ej. 1 de nv 5 o combinación)"] },
-          { "nivel": 11, "valores": ["Nivel 6 (máx. nivel 5 por espacio individual)"] },
-          { "nivel": 12, "valores": ["Nivel 6 (máx. nivel 5 por espacio individual)"] },
-          { "nivel": 13, "valores": ["Nivel 7 (máx. nivel 5 por espacio individual)"] },
-          { "nivel": 14, "valores": ["Nivel 7 (máx. nivel 5 por espacio individual)"] },
-          { "nivel": 15, "valores": ["Nivel 8 (máx. nivel 5 por espacio individual)"] },
-          { "nivel": 16, "valores": ["Nivel 8 (máx. nivel 5 por espacio individual)"] },
-          { "nivel": 17, "valores": ["Nivel 9 (máx. nivel 5 por espacio individual)"] },
-          { "nivel": 18, "valores": ["Nivel 9 (máx. nivel 5 por espacio individual)"] },
-          { "nivel": 19, "valores": ["Nivel 10 (máx. nivel 5 por espacio individual)"] },
-          { "nivel": 20, "valores": ["Nivel 10 (máx. nivel 5 por espacio individual)"] }
-        ],
-        "notaPie": "Ningún espacio individual recuperado puede ser de nivel 6 o superior."
       }
     },
     {

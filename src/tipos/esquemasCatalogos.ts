@@ -79,7 +79,11 @@ export const EsquemaPlantillaRasgoClaseJSON = z.object({
   efectos: z.array(EsquemaEfectoMecanicoRasgo).optional(),
   selectores: z.array(EsquemaSelectorRasgo).optional(),
   tablaProgresion: EsquemaTablaEscaladoRasgo.optional(),
-  recuperarEspacios: EsquemaConfiguracionRecuperarEspacios.optional()
+  recuperarEspacios: EsquemaConfiguracionRecuperarEspacios.optional(),
+  dadosGuardados: z.array(z.number()).optional(),
+  guardaDadosTirada: z.boolean().optional(),
+  recargaConEspacio: z.boolean().optional(),
+  multiplicadorRecargaEspacio: z.number().optional()
 });
 
 export const EsquemaPlantillaRasgoEspecieJSON = z.object({
@@ -123,7 +127,12 @@ export const EsquemaPlantillaRasgoEspecieJSON = z.object({
   formulaEscalado: z.string().optional(),
   efectos: z.array(EsquemaEfectoMecanicoRasgo).optional(),
   selectores: z.array(EsquemaSelectorRasgo).optional(),
-  tablaProgresion: EsquemaTablaEscaladoRasgo.optional()
+  tablaProgresion: EsquemaTablaEscaladoRasgo.optional(),
+  recuperarEspacios: EsquemaConfiguracionRecuperarEspacios.optional(),
+  dadosGuardados: z.array(z.number()).optional(),
+  guardaDadosTirada: z.boolean().optional(),
+  recargaConEspacio: z.boolean().optional(),
+  multiplicadorRecargaEspacio: z.number().optional()
 });
 
 // =======================================================

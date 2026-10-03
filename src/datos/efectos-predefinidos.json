@@ -283,7 +283,7 @@
     "tituloVisual": "Salvaguarda arcana (Arcane Ward)",
     "descripcion": "Una hebra de magia protectora te envuelve con puntos de golpe propios (2 * nivel de mago + INT). Absorbe daño en tu lugar antes de que afecte a tus puntos de golpe y se recarga al lanzar conjuros de Abjuración.",
     "duracionEstandar": 800,
-    "aliases": ["salvaguarda arcana", "arcane ward", "salvaguarda arcana (arcane ward)"],
+    "aliases": ["salvaguarda arcana", "salvaguarda", "arcane ward", "salvaguarda arcana (arcane ward)"],
     "efectos": [
       "Absorción de daño: La salvaguarda sufre el daño en tu lugar (aplicando primero tus resistencias o vulnerabilidades).",
       "Recarga por Abjuración: Al lanzar un conjuro de Abjuración con espacio, recupera el doble del nivel del espacio en puntos de golpe."

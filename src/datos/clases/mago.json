@@ -287,15 +287,28 @@
           "nombre": "Erudito en abjuración",
           "descripcion": "Elige dos conjuros de mago de la escuela de Abjuración, ninguno de los cuales puede ser de nivel superior a 2, y añádelos a tu libro de conjuros de forma gratuita.\nAdemás, cada vez que obtengas acceso a un nuevo nivel de espacios de conjuro en esta clase, puedes añadir un conjuro de mago de la escuela de Abjuración a tu libro de conjuros de forma gratuita. El conjuro elegido debe ser de un nivel para el que tengas espacios de conjuro.",
           "tipoAccion": "pasivo",
-          "categoriaMecanica": "pasivo_permanente",
-          "subclase": "Abjurador"
+          "categoriaMecanica": "selector_informativo",
+          "subclase": "Abjurador",
+          "selectores": [
+            {
+              "id": "selector_erudito_abjuracion_mago",
+              "tipo": "multiple",
+              "visualizacion": "lista",
+              "tipoSelector": "conjuro",
+              "etiqueta": "Conjuros de Abjuración elegidos (Nv. 1-2)",
+              "maxSelecciones": 2,
+              "valorActual": [],
+              "claveOpcionesDinamicas": "conjuros_abjuracion_1_2_mago",
+              "esConjuroGratuito": true
+            }
+          ]
         },
         {
           "nivel": 3,
           "nombre": "Salvaguarda arcana",
           "descripcion": "Puedes tejer magia a tu alrededor para protegerte. Cuando lanzas un conjuro de Abjuración con un espacio de conjuro, puedes usar simultáneamente una hebra de la magia del conjuro para crear una salvaguarda mágica sobre ti que dura hasta que finalices un descanso largo. La salvaguarda tiene unos puntos de golpe máximos iguales al doble de tu nivel de mago más tu modificador por Inteligencia. Cada vez que sufras daño, la salvaguarda sufre el daño en tu lugar, y si tienes alguna resistencia o vulnerabilidad, aplícalas antes de reducir los puntos de golpe de la salvaguarda. Si el daño reduce la salvaguarda a 0 puntos de golpe, sufres el daño restante. Mientras la salvaguarda tenga 0 puntos de golpe, no puede absorber daño, pero su magia permanece.\nCada vez que lanzas un conjuro de Abjuración con un espacio de conjuro, la salvaguarda recupera una cantidad de puntos de golpe igual al doble del nivel del espacio de conjuro. Como alternativa, como acción adicional, puedes gastar un espacio de conjuro y la salvaguarda recuperará una cantidad de puntos de golpe igual al doble del nivel del espacio de conjuro gastado.\nUna vez que crees la salvaguarda, no podrás volver a crearla hasta que finalices un descanso largo.",
           "tipoAccion": "accion_adicional",
-          "categoriaMecanica": "activable",
+          "categoriaMecanica": "consumible",
           "subclase": "Abjurador",
           "esActivable": true,
           "tieneUsosLimitados": true,
@@ -303,7 +316,9 @@
           "recuperacion": "descanso_largo",
           "condicionAlActivar": "Salvaguarda arcana",
           "duracionEfectoAlActivar": 800,
-          "formulaDados": "2 * nivel + inteligencia"
+          "formulaDados": "2 * nivel + inteligencia",
+          "recargaConEspacio": true,
+          "multiplicadorRecargaEspacio": 2
         },
         {
           "nivel": 6,
@@ -375,8 +390,21 @@
           "nombre": "Erudito en adivinación",
           "descripcion": "Elige dos conjuros de mago de la escuela de Adivinación, ninguno de los cuales puede ser de nivel superior a 2, y añádelos a tu libro de conjuros de forma gratuita.\nAdemás, cada vez que obtengas acceso a un nuevo nivel de espacios de conjuro en esta clase, puedes añadir un conjuro de mago de la escuela de Adivinación a tu libro de conjuros de forma gratuita. El conjuro elegido debe ser de un nivel para el que tengas espacios de conjuro.",
           "tipoAccion": "pasivo",
-          "categoriaMecanica": "pasivo_permanente",
-          "subclase": "Adivino"
+          "categoriaMecanica": "selector_informativo",
+          "subclase": "Adivino",
+          "selectores": [
+            {
+              "id": "selector_erudito_adivinacion_mago",
+              "tipo": "multiple",
+              "visualizacion": "lista",
+              "tipoSelector": "conjuro",
+              "etiqueta": "Conjuros de Adivinación elegidos (Nv. 1-2)",
+              "maxSelecciones": 2,
+              "valorActual": [],
+              "claveOpcionesDinamicas": "conjuros_adivinacion_1_2_mago",
+              "esConjuroGratuito": true
+            }
+          ]
         },
         {
           "nivel": 3,
@@ -389,6 +417,8 @@
           "usosMaximos": 2,
           "recuperacion": "descanso_largo",
           "formulaDados": "2d20",
+          "guardaDadosTirada": true,
+          "dadosGuardados": [],
           "tablaProgresion": {
             "columnas": [
               "Nivel de mago",
@@ -432,6 +462,40 @@
           "recuperacion": "descanso_corto",
           "condicionAlActivar": "El tercer ojo",
           "duracionEfectoAlActivar": 100,
+          "selectores": [
+            {
+              "id": "selector_beneficio_tercer_ojo",
+              "tipo": "unico",
+              "tipoSelector": "general",
+              "etiqueta": "Beneficio de El tercer ojo",
+              "maxSelecciones": 1,
+              "valorActual": [
+                "vision_oscuridad"
+              ],
+              "opciones": [
+                {
+                  "id": "vision_oscuridad",
+                  "nombre": "Visión en la oscuridad (120 pies)",
+                  "descripcion": "Ganas visión en la oscuridad con un alcance de 120 pies."
+                },
+                {
+                  "id": "vision_eterea",
+                  "nombre": "Visión etérea (60 pies)",
+                  "descripcion": "Puedes ver en el Plano Etéreo hasta una distancia de 60 pies."
+                },
+                {
+                  "id": "comprension_superior",
+                  "nombre": "Comprensión mayor",
+                  "descripcion": "Puedes leer cualquier idioma escrito."
+                },
+                {
+                  "id": "ver_invisibilidad",
+                  "nombre": "Ver invisibilidad (60 pies)",
+                  "descripcion": "Puedes lanzar ver invisibilidad sin gastar un espacio de conjuro."
+                }
+              ]
+            }
+          ],
           "conjurosOtorgados": [
             "Ver invisibilidad"
           ]
@@ -444,7 +508,8 @@
           "categoriaMecanica": "extension",
           "subclase": "Adivino",
           "ligadoA": "Portento",
-          "formulaDados": "3d20"
+          "formulaDados": "3d20",
+          "guardaDadosTirada": true
         }
       ]
     },
@@ -461,8 +526,21 @@
           "nombre": "Erudito en evocación",
           "descripcion": "Elige dos conjuros de mago de la escuela de Evocación, ninguno de los cuales puede ser de nivel superior a 2, y añádelos a tu libro de conjuros de forma gratuita.\nAdemás, cada vez que obtengas acceso a un nuevo nivel de espacios de conjuro en esta clase, puedes añadir un conjuro de mago de la escuela de Evocación a tu libro de conjuros de forma gratuita. El conjuro elegido debe ser de un nivel para el que tengas espacios de conjuro.",
           "tipoAccion": "pasivo",
-          "categoriaMecanica": "pasivo_permanente",
-          "subclase": "Evocador"
+          "categoriaMecanica": "selector_informativo",
+          "subclase": "Evocador",
+          "selectores": [
+            {
+              "id": "selector_erudito_evocacion_mago",
+              "tipo": "multiple",
+              "visualizacion": "lista",
+              "tipoSelector": "conjuro",
+              "etiqueta": "Conjuros de Evocación elegidos (Nv. 1-2)",
+              "maxSelecciones": 2,
+              "valorActual": [],
+              "claveOpcionesDinamicas": "conjuros_evocacion_1_2_mago",
+              "esConjuroGratuito": true
+            }
+          ]
         },
         {
           "nivel": 3,
@@ -526,8 +604,21 @@
           "nombre": "Erudito en ilusión",
           "descripcion": "Elige dos conjuros de mago de la escuela de Ilusión, ninguno de los cuales puede ser de nivel superior a 2, y añádelos a tu libro de conjuros de forma gratuita.\nAdemás, cada vez que obtengas acceso a un nuevo nivel de espacios de conjuro en esta clase, puedes añadir un conjuro de mago de la escuela de Ilusión a tu libro de conjuros de forma gratuita. El conjuro elegido debe ser de un nivel para el que tengas espacios de conjuro.",
           "tipoAccion": "pasivo",
-          "categoriaMecanica": "pasivo_permanente",
-          "subclase": "Ilusionista"
+          "categoriaMecanica": "selector_informativo",
+          "subclase": "Ilusionista",
+          "selectores": [
+            {
+              "id": "selector_erudito_ilusion_mago",
+              "tipo": "multiple",
+              "visualizacion": "lista",
+              "tipoSelector": "conjuro",
+              "etiqueta": "Conjuros de Ilusión elegidos (Nv. 1-2)",
+              "maxSelecciones": 2,
+              "valorActual": [],
+              "claveOpcionesDinamicas": "conjuros_ilusion_1_2_mago",
+              "esConjuroGratuito": true
+            }
+          ]
         },
         {
           "nivel": 3,

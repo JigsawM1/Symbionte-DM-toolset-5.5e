@@ -302,6 +302,10 @@ export interface PlantillaRasgoClase {
   selectores?: SelectorRasgo[];
   tablaProgresion?: TablaEscaladoRasgo;
   recuperarEspacios?: ConfiguracionRecuperarEspacios;
+  dadosGuardados?: number[];
+  guardaDadosTirada?: boolean;
+  recargaConEspacio?: boolean;
+  multiplicadorRecargaEspacio?: number;
 }
 
 export interface PlantillaRasgoEspecie {
@@ -432,6 +436,10 @@ export const EsquemaRasgoPersonaje = z.object({
   selectores: z.array(EsquemaSelectorRasgo).default([]).optional(),
   tablaProgresion: EsquemaTablaEscaladoRasgo.optional(),
   recuperarEspacios: EsquemaConfiguracionRecuperarEspacios.optional(),
+  dadosGuardados: z.array(z.number()).default([]).optional(),
+  guardaDadosTirada: z.boolean().default(false).optional(),
+  recargaConEspacio: z.boolean().default(false).optional(),
+  multiplicadorRecargaEspacio: z.number().default(2).optional(),
 
   notas: z.string().default("")
 });

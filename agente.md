@@ -18,6 +18,54 @@ Este archivo registra reglas globales, errores encontrados, sus causas raíz y l
 6. **PROHIBICIÓN ESTRICTA DE BIFURCACIONES POR NOMBRE DE RASGO O CLASE (CATÁLOGO DECLARATIVO Y BUILDER PURO)**:
    - **Bajo ninguna circunstancia** los módulos de lógica de negocio (`servicios/`), gestores de estado (`almacen/`) o constructores (`gestorClases.ts`) deben contener bifurcaciones condicionales por nombre literal de rasgo o clase (`r.nombre === "..."`, `clase.includes("...")`, etc.).
 
+## [2026-10-02] Implementación Canónica y Genérica de las Subclases de Mago D&D 5.5e (PHB 2024): Abjurador, Adivino, Evocador e Ilusionista
+
+**Objetivo de la Integración:**
+- Implementar de forma 100% declarativa, genérica y desde el builder/catálogo las mecánicas de las 4 subclases del Mago en D&D 5.5e (PHB 2024):
+  1. *Abjurador*:
+     - *Erudito en abjuración*: Selector de 2 conjuros gratuitos de nivel 1 o 2 de la escuela de Abjuración.
+     - *Salvaguarda arcana*: Consumible con efecto predefinido `"Salvaguarda arcana"` (alias `"salvaguarda"`), PG temporales evaluables (`2 * nivel + inteligencia`) y recarga interactiva tipo tienda mediante el gasto de espacios de conjuro (`multiplicadorRecargaEspacio: 2`).
+  2. *Adivino*:
+     - *Erudito en adivinación*: Selector de 2 conjuros gratuitos de nivel 1 o 2 de la escuela de Adivinación.
+     - *Portento*: Consumible con `guardaDadosTirada: true`, almacenamiento de tirada de presagio (`dadosGuardados: number[]`), visualización en chips interactivos que desaparecen al hacer clic consumiendo el uso, y reinicio automático en descanso largo.
+     - *El tercer ojo*: Selector de 4 beneficios (Visión en la oscuridad 120 pies, Visión etérea 60 pies, Comprensión mayor, Ver invisibilidad).
+     - *Portento mayor* (Nv. 14): Extensión declarativa que actualiza la tirada de Portento de `2d20` a `3d20` manteniendo `guardaDadosTirada: true`.
+  3. *Evocador*:
+     - *Erudito en evocación*: Selector de 2 conjuros gratuitos de nivel 1 o 2 de la escuela de Evocación.
+     - *Evocación potenciada*: Efecto pasivo mecánico `bono_dano_conjuro` que suma el modificador de Inteligencia a las tiradas de daño de conjuros de Evocación.
+     - *Sobrecarga*: Consumible con 1 uso por descanso largo (`formulaDados: "2d12"`).
+  4. *Ilusionista*:
+     - *Erudito en ilusión*: Selector de 2 conjuros gratuitos de nivel 1 o 2 de la escuela de Ilusión.
+
+**Decisiones Técnicas y Modificaciones Aplicadas:**
+1. **Esquemas Declarativos de Rasgos (`src/tipos/rasgos.ts`, `src/tipos/esquemasCatalogos.ts`):**
+   - Se extendieron `PlantillaRasgoClase`, `EsquemaPlantillaRasgoClaseJSON` y `EsquemaRasgoPersonaje` con:
+     - `dadosGuardados?: number[]`: Colección reactiva de dados almacenados.
+     - `guardaDadosTirada?: boolean`: Indica si el resultado de la tirada debe registrarse en `dadosGuardados`.
+     - `recargaConEspacio?: boolean`: Habilita la recarga interactiva gastando espacios de conjuro.
+     - `multiplicadorRecargaEspacio?: number`: Factor multiplicador por nivel de espacio (por defecto 2).
+   - Se corrigió el mapeo en `EsquemaPlantillaRasgoClaseJSON` para evitar el descarte de propiedades durante la validación estricta Zod en `validarColeccionJSON`.
+2. **Generador Dinámico de Opciones de Conjuros por Escuela (`src/servicios/hidratadorDotes.ts`):**
+   - Se amplió `generarOpcionesConjuros` para aceptar `nivel: number | number[]` y `escuela?: string`.
+   - Se registraron en `OPCIONES_DINAMICAS_MAP`: `"conjuros_abjuracion_1_2_mago"`, `"conjuros_adivinacion_1_2_mago"`, `"conjuros_evocacion_1_2_mago"` y `"conjuros_ilusion_1_2_mago"`, asegurando que `hidratadorClases.ts` inyecte dinámicamente las opciones sin duplicación ni hardcoding.
+3. **Acciones de Estado en Zustand (`slicePersonajesTipos.ts`, `sliceRasgos.ts`):**
+   - `guardarDadosRasgo(idPj, idRasgo, dados)`: Almacena números de dados generados en `rasgo.dadosGuardados`.
+   - `consumirDadoGuardado(idPj, idRasgo, indiceDado)`: Remueve el dado seleccionado y descuenta un uso del rasgo.
+   - `recargarRasgoConEspacio(idPj, idRasgo, nivelEspacio)`: Gasta un espacio de conjuro de nivel N, calcula los PG temporales (`N * multiplicador`), actualiza `hpTemporal` respetando el límite máximo de la salvaguarda, activa la condición si no estaba presente y notifica al usuario. Lógica 100% genérica sin bifurcaciones por nombre literal de clase.
+4. **Ciclo de Vida de Descansos (`src/servicios/procesadorDescansos.ts`):**
+   - En `ejecutarDescansoLargo`, los rasgos con `dadosGuardados` y `recuperacion: "descanso_largo"` restablecen automáticamente `dadosGuardados: []`, satisfaciendo la regla oficial de Portento.
+5. **Componentes y Modularización Visual (`TarjetaRasgo.tsx`, `ModalTiendaRecargaEspacio.tsx`, `ChipsSelectoresYDadosRasgo.tsx`):**
+   - `ModalTiendaRecargaEspacio.tsx`: Modal estilo tienda que analiza los espacios gastados vs máximos del personaje y permite seleccionar el nivel a gastar con cálculo en tiempo real de los PG recuperados.
+   - `ChipsSelectoresYDadosRasgo.tsx`: Subcomponente desacoplado que renderiza chips de opciones elegidas y botones interactivos de dados de presagio (`.chipDadoPresagio` en `VistaRasgosJugador.module.css`). Esto mantuvo a `TarjetaRasgo.tsx` en 440 líneas, muy por debajo del umbral crítico de 500 líneas.
+   - Prohibición total de estilos inline (`react/forbid-dom-props`) y emojis: Todo estilizado con CSS Modules e iconos vectoriales de `lucide-react` (`Shield`, `Dices`, `RotateCcw`, `Sparkles`, `AlertCircle`, `X`).
+
+**Validación y Cobertura Integral del Pipeline CI:**
+- **TypeScript:** `pnpm exec tsc --noEmit` completado con 0 errores bajo `strict: true`.
+- **ESLint:** `pnpm run lint` completado con 0 advertencias y 0 errores.
+- **Auditoría de Líneas:** 115 archivos auditados, 0 archivos que superen el límite de 500 líneas (`verificar-limite-lineas.js` [EXITO CI]).
+- **Vitest:** 101 suites y 1.518 pruebas aprobadas al 100%, incluyendo las 20 pruebas canónicas en `src/servicios/magoMecanicasDND55.test.ts`.
+- **Empaquetado:** `pnpm exec vite build` ejecutado y validado exitosamente.
+
 ## [2026-10-02] Implementación Canónica y Genérica de la Clase Mago D&D 5.5e (PHB 2024): Recuperación Arcana, Maestría en Conjuros y Conjuros Predilectos
 
 **Objetivo de la Integración:**

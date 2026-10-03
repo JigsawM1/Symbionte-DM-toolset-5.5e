@@ -45,15 +45,22 @@ export function generarOpcionesRituales(nivel: number): OpcionSelector[] {
 
 function generarOpcionesConjuros(
   claseObjetivo: string,
-  nivel: number,
-  filtroSoloAccion: boolean = false
+  nivel: number | number[],
+  filtroSoloAccion: boolean = false,
+  escuela?: string
 ): OpcionSelector[] {
   const claseNorm = normalizar(claseObjetivo);
+  const niveles = Array.isArray(nivel) ? nivel : [nivel];
+  const escuelaNorm = escuela ? normalizar(escuela) : null;
   return (HECHIZOS_JSON as unknown as HechizoCompendioMinimo[])
     .filter((h) => {
-      if (h.nivel !== nivel) return false;
+      if (!niveles.includes(h.nivel)) return false;
       const pertenece = (h.clases || []).some((c) => normalizar(c).includes(claseNorm));
       if (!pertenece) return false;
+      if (escuelaNorm) {
+        const escuelaH = normalizar(h.escuela || "");
+        if (!escuelaH.includes(escuelaNorm)) return false;
+      }
       if (filtroSoloAccion) {
         const tiempoNorm = normalizar(h.tiempoLanzamiento || "");
         const esUnaAccion = tiempoNorm.startsWith("accion") && !tiempoNorm.includes("adicional");
@@ -104,6 +111,10 @@ const OPCIONES_DINAMICAS_MAP: Record<string, () => OpcionSelector[]> = {
   conjuros1_accion_mago: () => generarOpcionesConjuros("mago", 1, true),
   conjuros2_accion_mago: () => generarOpcionesConjuros("mago", 2, true),
   conjuros3_mago: () => generarOpcionesConjuros("mago", 3),
+  conjuros_abjuracion_1_2_mago: () => generarOpcionesConjuros("mago", [1, 2], false, "abjuracion"),
+  conjuros_adivinacion_1_2_mago: () => generarOpcionesConjuros("mago", [1, 2], false, "adivinacion"),
+  conjuros_evocacion_1_2_mago: () => generarOpcionesConjuros("mago", [1, 2], false, "evocacion"),
+  conjuros_ilusion_1_2_mago: () => generarOpcionesConjuros("mago", [1, 2], false, "ilusion"),
   rituales_nivel_1: () => generarOpcionesRituales(1),
   dotes_origen: () =>
     (origenJson as unknown as DotePersonaje[])

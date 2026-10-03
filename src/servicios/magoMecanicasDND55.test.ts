@@ -6,10 +6,10 @@ import {
   tieneConjuroGratuitoActivo,
   obtenerConjurosOtorgadosPorRasgos
 } from "@/servicios/rasgos/evaluadorConjurosRasgos";
-import { ejecutarDescansoCorto } from "@/servicios/procesadorDescansos";
+import { ejecutarDescansoCorto, ejecutarDescansoLargo } from "@/servicios/procesadorDescansos";
 import { calcularPresupuestoRecuperacion } from "@/servicios/rasgos";
 import { PERSONAJE_POR_DEFECTO } from "@/constantes/personajeConstantes";
-import type { PersonajeJugador } from "@/tipos";
+import type { PersonajeJugador, RasgoPersonaje } from "@/tipos";
 
 function crearMagoBase(nivel: number = 1): PersonajeJugador {
   const magoDef = CATALOGO_CLASES_DND55.find((c) => c.id === "mago")!;
@@ -265,4 +265,163 @@ describe("Mago D&D 5.5e (2024) - Catálogo, Builder y Mecánicas Canónicas", ()
       expect(rasgoActualizado?.usosRestantes).toBe(2);
     });
   });
+
+  describe("Subclases de Mago: Abjurador, Adivino, Evocador, Ilusionista", () => {
+    describe("Abjurador", () => {
+      it("Erudito en abjuración es un selector informativo de conjuros de nivel 1-2 de Abjuración", () => {
+        const pj = aplicarBuildClaseAPersonaje(crearMagoBase(3), "Mago", 3, "Abjurador");
+        const rasgo = pj.rasgos?.find((r) => r.nombre === "Erudito en abjuración");
+        expect(rasgo).toBeDefined();
+        expect(rasgo?.categoriaMecanica).toBe("selector_informativo");
+        expect(rasgo?.selectores).toHaveLength(1);
+
+        const sel = rasgo?.selectores?.[0];
+        expect(sel?.claveOpcionesDinamicas).toBe("conjuros_abjuracion_1_2_mago");
+        expect(sel?.maxSelecciones).toBe(2);
+        expect(sel?.esConjuroGratuito).toBe(true);
+        expect(sel?.opciones.length).toBeGreaterThan(0);
+        // Verificar que las opciones son de abjuración
+        for (const op of sel?.opciones || []) {
+          expect(op.descripcion?.toLowerCase()).toContain("abjuraci");
+        }
+      });
+
+      it("Salvaguarda arcana es un consumible con recargaConEspacio y fórmula escalada", () => {
+        const pj = aplicarBuildClaseAPersonaje(crearMagoBase(3), "Mago", 3, "Abjurador");
+        const rasgo = pj.rasgos?.find((r) => r.nombre === "Salvaguarda arcana");
+        expect(rasgo).toBeDefined();
+        expect(rasgo?.categoriaMecanica).toBe("consumible");
+        expect(rasgo?.recargaConEspacio).toBe(true);
+        expect(rasgo?.multiplicadorRecargaEspacio).toBe(2);
+        expect(rasgo?.formulaDados).toBe("2 * nivel + inteligencia");
+        expect(rasgo?.recuperacion).toBe("descanso_largo");
+      });
+    });
+
+    describe("Adivino", () => {
+      it("Erudito en adivinación es un selector informativo de conjuros de nivel 1-2 de Adivinación", () => {
+        const pj = aplicarBuildClaseAPersonaje(crearMagoBase(3), "Mago", 3, "Adivino");
+        const rasgo = pj.rasgos?.find((r) => r.nombre === "Erudito en adivinación");
+        expect(rasgo).toBeDefined();
+        expect(rasgo?.categoriaMecanica).toBe("selector_informativo");
+
+        const sel = rasgo?.selectores?.[0];
+        expect(sel?.claveOpcionesDinamicas).toBe("conjuros_adivinacion_1_2_mago");
+        expect(sel?.maxSelecciones).toBe(2);
+        expect(sel?.esConjuroGratuito).toBe(true);
+        expect(sel?.opciones.length).toBeGreaterThan(0);
+        for (const op of sel?.opciones || []) {
+          expect(op.descripcion?.toLowerCase()).toContain("adivinaci");
+        }
+      });
+
+      it("Portento almacena tiradas de presagio con guardaDadosTirada", () => {
+        const pj = aplicarBuildClaseAPersonaje(crearMagoBase(3), "Mago", 3, "Adivino");
+        const rasgo = pj.rasgos?.find((r) => r.nombre === "Portento");
+        expect(rasgo).toBeDefined();
+        expect(rasgo?.guardaDadosTirada).toBe(true);
+        expect(rasgo?.formulaDados).toBe("2d20");
+        expect(rasgo?.usosMaximos).toBe(2);
+      });
+
+      it("El tercer ojo es un consumible con selector de beneficios", () => {
+        const pj = aplicarBuildClaseAPersonaje(crearMagoBase(10), "Mago", 10, "Adivino");
+        const rasgo = pj.rasgos?.find((r) => r.nombre === "El tercer ojo");
+        expect(rasgo).toBeDefined();
+        expect(rasgo?.categoriaMecanica).toBe("consumible");
+        expect(rasgo?.selectores).toBeDefined();
+        expect(rasgo?.selectores?.[0]?.opciones.length).toBe(4);
+      });
+
+      it("Portento mayor mejora Portento a 3d20 en nivel 14", () => {
+        const pj = aplicarBuildClaseAPersonaje(crearMagoBase(14), "Mago", 14, "Adivino");
+        const rasgo = pj.rasgos?.find((r) => r.nombre === "Portento");
+        expect(rasgo).toBeDefined();
+        expect(rasgo?.formulaDados).toBe("3d20");
+        expect(rasgo?.guardaDadosTirada).toBe(true);
+      });
+    });
+
+    describe("Evocador", () => {
+      it("Erudito en evocación es un selector informativo de conjuros de nivel 1-2 de Evocación", () => {
+        const pj = aplicarBuildClaseAPersonaje(crearMagoBase(3), "Mago", 3, "Evocador");
+        const rasgo = pj.rasgos?.find((r) => r.nombre === "Erudito en evocación");
+        expect(rasgo).toBeDefined();
+        expect(rasgo?.categoriaMecanica).toBe("selector_informativo");
+
+        const sel = rasgo?.selectores?.[0];
+        expect(sel?.claveOpcionesDinamicas).toBe("conjuros_evocacion_1_2_mago");
+        expect(sel?.maxSelecciones).toBe(2);
+        expect(sel?.esConjuroGratuito).toBe(true);
+        expect(sel?.opciones.length).toBeGreaterThan(0);
+        for (const op of sel?.opciones || []) {
+          expect(op.descripcion?.toLowerCase()).toContain("evocaci");
+        }
+      });
+
+      it("Evocación potenciada aplica bono_dano_conjuro con inteligencia", () => {
+        const pj = aplicarBuildClaseAPersonaje(crearMagoBase(10), "Mago", 10, "Evocador");
+        const rasgo = pj.rasgos?.find((r) => r.nombre === "Evocación potenciada");
+        expect(rasgo).toBeDefined();
+        expect(rasgo?.efectos).toBeDefined();
+        const ef = rasgo?.efectos?.find((e) => e.tipo === "bono_dano_conjuro");
+        expect(ef).toBeDefined();
+        expect(ef?.valor).toBe("inteligencia");
+        expect(ef?.aplicaA).toBe("evocacion");
+      });
+
+      it("Sobrecarga es un consumible con fórmula 2d12", () => {
+        const pj = aplicarBuildClaseAPersonaje(crearMagoBase(14), "Mago", 14, "Evocador");
+        const rasgo = pj.rasgos?.find((r) => r.nombre === "Sobrecarga");
+        expect(rasgo).toBeDefined();
+        expect(rasgo?.categoriaMecanica).toBe("consumible");
+        expect(rasgo?.usosMaximos).toBe(1);
+        expect(rasgo?.formulaDados).toBe("2d12");
+        expect(rasgo?.recuperacion).toBe("descanso_largo");
+      });
+    });
+
+    describe("Ilusionista", () => {
+      it("Erudito en ilusión es un selector informativo de conjuros de nivel 1-2 de Ilusión", () => {
+        const pj = aplicarBuildClaseAPersonaje(crearMagoBase(3), "Mago", 3, "Ilusionista");
+        const rasgo = pj.rasgos?.find((r) => r.nombre === "Erudito en ilusión");
+        expect(rasgo).toBeDefined();
+        expect(rasgo?.categoriaMecanica).toBe("selector_informativo");
+
+        const sel = rasgo?.selectores?.[0];
+        expect(sel?.claveOpcionesDinamicas).toBe("conjuros_ilusion_1_2_mago");
+        expect(sel?.maxSelecciones).toBe(2);
+        expect(sel?.esConjuroGratuito).toBe(true);
+        expect(sel?.opciones.length).toBeGreaterThan(0);
+        for (const op of sel?.opciones || []) {
+          expect(op.descripcion?.toLowerCase()).toContain("ilusi");
+        }
+      });
+    });
+
+    describe("Mecánicas reactivas de Portento y Salvaguarda en Descansos", () => {
+      it("los dados guardados de Portento se consumen y se reinician en descanso largo", () => {
+        const pj = aplicarBuildClaseAPersonaje(crearMagoBase(3), "Mago", 3, "Adivino");
+        const rasgoPortento = (pj.rasgos || []).find((r) => r.nombre === "Portento");
+        expect(rasgoPortento).toBeDefined();
+        if (!rasgoPortento) return;
+
+        rasgoPortento.dadosGuardados = [19, 4];
+        rasgoPortento.usosRestantes = 2;
+
+        // Consumir un dado
+        rasgoPortento.dadosGuardados = rasgoPortento.dadosGuardados.filter((_, idx) => idx !== 0);
+        rasgoPortento.usosRestantes = 1;
+        expect(rasgoPortento.dadosGuardados).toEqual([4]);
+        expect(rasgoPortento.usosRestantes).toBe(1);
+
+        // Descanso largo limpia dados guardados y restaura usos
+        const { personajeActualizado } = ejecutarDescansoLargo(pj);
+        const rasgoTrasDescanso = personajeActualizado.rasgos?.find((r: RasgoPersonaje) => r.nombre === "Portento");
+        expect(rasgoTrasDescanso?.dadosGuardados).toEqual([]);
+        expect(rasgoTrasDescanso?.usosRestantes).toBe(2);
+      });
+    });
+  });
 });
+

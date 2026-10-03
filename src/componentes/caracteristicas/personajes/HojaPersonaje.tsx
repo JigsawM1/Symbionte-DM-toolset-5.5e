@@ -35,11 +35,10 @@ import { ModalResumenDescanso } from "./ModalResumenDescanso";
 import type { AccionDescanso } from "@/servicios/procesadorDescansos";
 import { BotonSubPestana } from "./BotonSubPestana";
 import { usarEstadoPersistido } from "@/hooks";
-import { Swords, Sparkles, PawPrint } from "lucide-react";
-import { SeccionAcompanantesPersonaje } from "./acompanantes/SeccionAcompanantesPersonaje";
+import { Swords, Sparkles } from "lucide-react";
 import estilos from "./HojaPersonaje.module.css";
 
-type SubPestanaHoja = "general" | "conjuros" | "acompanantes";
+type SubPestanaHoja = "general" | "conjuros";
 
 interface HojaPersonajeProps {
   alAbrirConfiguracion?: () => void;
@@ -547,14 +546,6 @@ export const HojaPersonaje: React.FC<HojaPersonajeProps> = ({ alAbrirConfiguraci
           badge={totalConjurosYTrucos}
           alClick={() => setSubPestanaActiva("conjuros")}
         />
-
-        <BotonSubPestana
-          activa={subPestanaActiva === "acompanantes"}
-          etiqueta="Acompañantes"
-          icono={<PawPrint size={14} color={subPestanaActiva === "acompanantes" ? "#38bdf8" : "#64748b"} />}
-          badge={personajeActivo.acompanantes?.length || 0}
-          alClick={() => setSubPestanaActiva("acompanantes")}
-        />
       </div>
 
       {/* 5. Contenido según Sub-pestaña Activa */}
@@ -619,10 +610,6 @@ export const HojaPersonaje: React.FC<HojaPersonajeProps> = ({ alAbrirConfiguraci
           alQuitarConjuro={alQuitarConjuro}
           alAlternarPreparado={alAlternarPreparado}
         />
-      )}
-
-      {subPestanaActiva === "acompanantes" && (
-        <SeccionAcompanantesPersonaje personaje={personajeActivo} />
       )}
 
       {/* Modal Selector de Competencias (Armas, Armaduras, Idiomas, Herramientas) */}

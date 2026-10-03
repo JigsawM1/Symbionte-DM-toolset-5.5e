@@ -846,7 +846,15 @@ export function usarAccionesPersonajes() {
       eliminarAcompanantePersonaje:        s.eliminarAcompanantePersonaje,
       modificarVidaAcompanante:            s.modificarVidaAcompanante,
       actualizarAcompanante:               s.actualizarAcompanante,
-      vincularMiniaturaTSAcompanante:       s.vincularMiniaturaTSAcompanante
+      vincularMiniaturaTSAcompanante:       s.vincularMiniaturaTSAcompanante,
+      registrarMovimientoTSAcompanante:    s.registrarMovimientoTSAcompanante,
+      establecerPosicionInicialTSAcompanante: s.establecerPosicionInicialTSAcompanante,
+      modificarMovimientoRestanteManualAcompanante: s.modificarMovimientoRestanteManualAcompanante,
+      modificarMovimientoGastadoAcompanante: s.modificarMovimientoGastadoAcompanante,
+      deshacerUltimoMovimientoAcompanante: s.deshacerUltimoMovimientoAcompanante,
+      restablecerMovimientoAcompanante:    s.restablecerMovimientoAcompanante,
+      alternarAccionCarreraAcompanante:    s.alternarAccionCarreraAcompanante,
+      establecerTipoTerrenoAcompanante:    s.establecerTipoTerrenoAcompanante
     }))
   );
 }

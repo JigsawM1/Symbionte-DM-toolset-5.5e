@@ -341,7 +341,17 @@ export const EsquemaAcompanantePersonaje = z.object({
   condiciones: z.array(z.string()).default([]),
   efectos: z.array(EsquemaEfectoActivo).default([]),
   iniciativa: z.number().int().default(0),
-  idMiniaturaTS: z.string().nullable().default(null)
+  idMiniaturaTS: z.string().nullable().default(null),
+
+  // Movimiento y Velocidad Dinámica (D&D 5.5e y TaleSpire 3D)
+  velocidad: z.union([z.string(), EsquemaVelocidad]).default("30 pies"),
+  movimientoGastado: z.number().default(0),
+  movimientoMaximoTemporal: z.number().nullable().default(null),
+  tipoTerreno: EsquemaTipoTerreno.default("normal"),
+  multiplicadorTerreno: z.number().default(1),
+  ultimaPosicionTS: EsquemaPosicionTS.nullable().default(null),
+  ultimoBoardIdTS: z.string().nullable().default(null),
+  historialMovimiento: z.array(EsquemaRegistroMovimiento).default([])
 });
 export type AcompanantePersonaje = z.infer<typeof EsquemaAcompanantePersonaje>;
 

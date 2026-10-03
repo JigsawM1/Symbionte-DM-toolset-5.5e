@@ -212,6 +212,40 @@ export interface SubSliceAcompanantes {
     idAcompanante: string,
     idMiniatura: string | null
   ) => void;
+
+  // Movimiento y Velocidad Dinámica (D&D 5.5e y TaleSpire 3D)
+  registrarMovimientoTSAcompanante: (
+    idPersonaje: string,
+    idAcompanante: string,
+    nuevaPosicion: import("@/tipos").PosicionTS,
+    boardId?: string | null,
+    opciones?: OpcionesCalculoDistancia
+  ) => void;
+  establecerPosicionInicialTSAcompanante: (
+    idPersonaje: string,
+    idAcompanante: string,
+    posicion: import("@/tipos").PosicionTS,
+    boardId?: string | null
+  ) => void;
+  modificarMovimientoRestanteManualAcompanante: (
+    idPersonaje: string,
+    idAcompanante: string,
+    nuevoRestante: number
+  ) => void;
+  modificarMovimientoGastadoAcompanante: (
+    idPersonaje: string,
+    idAcompanante: string,
+    delta: number,
+    motivo?: string
+  ) => void;
+  deshacerUltimoMovimientoAcompanante: (idPersonaje: string, idAcompanante: string) => void;
+  restablecerMovimientoAcompanante: (idPersonaje: string, idAcompanante: string) => void;
+  alternarAccionCarreraAcompanante: (idPersonaje: string, idAcompanante: string) => void;
+  establecerTipoTerrenoAcompanante: (
+    idPersonaje: string,
+    idAcompanante: string,
+    tipo: import("@/tipos").TipoTerreno
+  ) => void;
 }
 
 // ==========================================

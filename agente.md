@@ -18,28 +18,33 @@ Este archivo registra reglas globales, errores encontrados, sus causas raíz y l
 6. **PROHIBICIÓN ESTRICTA DE BIFURCACIONES POR NOMBRE DE RASGO O CLASE (CATÁLOGO DECLARATIVO Y BUILDER PURO)**:
    - **Bajo ninguna circunstancia** los módulos de lógica de negocio (`servicios/`), gestores de estado (`almacen/`) o constructores (`gestorClases.ts`) deben contener bifurcaciones condicionales por nombre literal de rasgo o clase (`r.nombre === "..."`, `clase.includes("...")`, etc.).
 
-## [2026-10-03] Implementación del Sistema de Sidekicks (Acompañantes) en la Hoja de Personaje
+## [2026-10-03] Implementación del Sistema de Sidekicks (Acompañantes) con Velocidad Dinámica y Terrenos en la Hoja de Personaje
 
 **Objetivo de la Integración:**
 - Desarrollar la subpestaña de Sidekicks/Acompañantes en la Hoja de Personaje del jugador (`HojaPersonaje.tsx`), posicionada junto a las pestañas *"Combate y Atributos"* y *"Conjuros y Magia"*.
-- Reutilizar el compendio existente de criaturas (`baseDatosMonstruos`) sin duplicar catálogos ni forzar modificaciones en druida.
-- Reutilizar directamente la tarjeta de criatura de iniciativa del DM (`TarjetaCriaturaIniciativa.tsx`) para la gestión táctica del acompañante (curación, daño, vida temporal, condiciones, tiradas de ataque rápido e iniciativa 3D).
-- Incorporar vinculación física con miniaturas 3D de TaleSpire (`idMiniaturaTS`) de forma análoga a los personajes principales.
+- Dotar a los acompañantes del sistema completo de velocidad dinámica de D&D 5.5e y TaleSpire: velocidad base/máxima, movimiento gastado en turno, movimiento restante, acción de Carrera (Dash), ajuste manual rápido (+/- 5 ft e input numérico), deshacer movimiento y restablecimiento de turno.
+- Implementar el selector interactivo de tipos de terreno: Normal (1x), Difícil (2x) y Extremo (3x), calculando el consumo multiplicado de pies por casilla según las reglas del combate tridimensional.
+- Conectar la sincronización de movimiento físico de TaleSpire en tiempo real (`usarConexionTaleSpire.ts`) para miniaturas enlazadas a acompañantes (`acomp.idMiniaturaTS`), incluyendo precarga inicial de coordenadas y registro de distancias euclidianas.
+- Reutilizar el compendio existente de criaturas (`baseDatosMonstruos`) y la tarjeta de criatura de iniciativa (`TarjetaCriaturaIniciativa.tsx`) sin alterar la clase Druida ni duplicar catálogos.
 
 **Decisiones Técnicas y Arquitectura Aplicada:**
-1. **Modelo de Datos Extensible y Estricto (`personaje.ts`):**
-   - Se definió `EsquemaAcompanantePersonaje` con validación Zod estricta: `id`, `nombre`, `idPlantilla`, `vidaActual`, `vidaMaxima`, `vidaTemporal`, `ca`, `condiciones`, `efectos`, `iniciativa`, `idMiniaturaTS`.
-   - Se añadió `acompanantes: z.array(EsquemaAcompanantePersonaje).default([])` en `EsquemaPersonajeJugador` y en `PERSONAJE_POR_DEFECTO`, garantizando retrocompatibilidad transparente con fichas existentes.
-2. **Sub-slice Desacoplado y de Responsabilidad Única (`sliceAcompanantes.ts`):**
-   - Se creó `crearSubSliceAcompanantes` en `src/almacen/slices/personajes/sliceAcompanantes.ts`, encapsulando `agregarAcompanantePersonaje`, `eliminarAcompanantePersonaje`, `modificarVidaAcompanante`, `actualizarAcompanante` y `vincularMiniaturaTSAcompanante`.
-   - Se utilizó el helper funcional puro `mutarPersonaje` para mutaciones seguras y libres de boilerplate.
-3. **Reutilización de Componentes de Iniciativa:**
-   - La nueva vista `SeccionAcompanantesPersonaje.tsx` mapea reactivamente los acompañantes a contratos `CriaturaIniciativa`, inyectándolos en `TarjetaCriaturaIniciativa` y permitiendo la inspección detallada del statblock completo mediante `PanelFichaDnD`.
-   - Vinculación reactiva con TaleSpire: si el jugador tiene seleccionada una miniatura física en el tablero (`criaturasSeleccionadas`), se ofrece vincular con un solo clic.
-4. **Validación Integral del Pipeline:**
-   - Suite dedicada `acompanantesPersonaje.test.ts` con 6 pruebas aprobadas al 100%.
-   - 103 suites y 1.556 pruebas globales superadas.
-   - Compilación completa de producción con TypeScript (`tsc`) y Vite exitosa en 101s, y linter ESLint impecable con 0 advertencias.
+1. **Modelo de Datos Extensible y Tipado Estricto (`personaje.ts`):**
+   - Se enriqueció `EsquemaAcompanantePersonaje` con validación Zod estricta: `id`, `nombre`, `idPlantilla`, `vidaActual`, `vidaMaxima`, `vidaTemporal`, `ca`, `condiciones`, `efectos`, `iniciativa`, `idMiniaturaTS`, `velocidad`, `movimientoGastado`, `movimientoMaximoTemporal`, `tipoTerreno`, `multiplicadorTerreno`, `ultimaPosicionTS`, `ultimoBoardIdTS`, `historialMovimiento`.
+   - Se definieron campos opcionales con defaults compatibles con `z.infer` y `PERSONAJE_POR_DEFECTO`.
+2. **Sub-slice Desacoplado y de Responsabilidad Única (`sliceAcompanantes.ts` y `slicePersonajesTipos.ts`):**
+   - Se crearon en `crearSubSliceAcompanantes` las 8 acciones de movilidad para sidekicks: `registrarMovimientoTSAcompanante`, `establecerPosicionInicialTSAcompanante`, `modificarMovimientoRestanteManualAcompanante`, `modificarMovimientoGastadoAcompanante`, `deshacerUltimoMovimientoAcompanante`, `restablecerMovimientoAcompanante`, `alternarAccionCarreraAcompanante`, `establecerTipoTerrenoAcompanante`.
+   - Integración funcional con `mutarPersonaje`, `calcularDistanciaMovimientoTS`, detección de penalización de condición derribado (2x) y multiplicadores de terreno `MULTIPLICADOR_POR_TERRENO`.
+3. **Conexión Bidireccional con TaleSpire (`usarConexionTaleSpire.ts`):**
+   - En `procesarEventoMovimiento`: Si la miniatura no es el personaje principal, busca en `pj.acompanantes` y despacha `registrarMovimientoTSAcompanante` con el multiplicador de terreno activo del sidekick.
+   - En `procesarSeleccionRaw` y precarga inicial de 600ms: Sincroniza la posición 3D inicial de miniaturas de acompañantes en el store.
+4. **UI Táctica Trazable y Neumórfica (`SeccionAcompanantesPersonaje.tsx`, `VistaJugadores.tsx` y `.module.css`):**
+   - Reubicación de la pestaña de **Acompañantes** en la **barra de navegación superior** (`VistaJugadores.tsx`), junto a *Ficha de Héroe* y *Mis Personajes*, mostrando el contador dinámico de acompañantes y permitiendo un acceso rápido y limpio sin saturar las subpestañas internas de la ficha.
+   - Pastilla y Popover de velocidad y terrenos para cada sidekick con diseño oscuro adaptado a CEF (0ms latencia, cero emojis, iconos SVG de `lucide-react`).
+   - Botones rápidos para terreno Normal (1x), Difícil (2x) y Extremo (3x), ajuste manual, Carrera, Deshacer y Restablecer Turno.
+5. **Validación Integral del Pipeline:**
+   - Suite dedicada `acompanantesPersonaje.test.ts` con 9 pruebas unitarias aprobadas al 100% (movimiento TS 1x/2x/3x, carrera, deshacer, restablecimiento, ajuste manual).
+   - 103 suites y 1.559 pruebas globales superadas.
+   - Compilación exitosa con TypeScript (`tsc`), Vite build y despliegue a TaleSpire con `pnpm run deploy`.
 
 ## [2026-10-02] Implementación Declarativa de la Clase Brujo y 4 Subclases Canónicas D&D 5.5e (PHB 2024)
 

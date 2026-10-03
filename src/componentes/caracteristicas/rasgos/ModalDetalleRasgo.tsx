@@ -351,7 +351,13 @@ export const ModalDetalleRasgo: React.FC<ModalDetalleRasgoProps> = ({
 
                 {rasgo.recuperacion && rasgo.recuperacion !== "ninguno" && (
                   <span className={estilos.badgeRecuperacionModal}>
-                    {rasgo.recuperacion === "descanso_corto" ? "Recupera en D. Corto" : "Recupera en D. Largo"}
+                    {rasgo.recargaDescansoCorto
+                      ? `Recupera +${rasgo.recargaDescansoCorto} en D. Corto (Todos en D. Largo)`
+                      : rasgo.recuperacion === "descanso_dinamico"
+                      ? "Recupera 1 en D. Corto (Todos en D. Largo)"
+                      : rasgo.recuperacion === "descanso_corto"
+                      ? "Recupera en D. Corto"
+                      : "Recupera en D. Largo"}
                   </span>
                 )}
               </div>

@@ -100,7 +100,8 @@ describe("Clérigo D&D 5.5 (2024) - Reglas y Mecánicas Base", () => {
     const canalizar = rasgosNv2.find((r) => r.nombre === "Canalizar divinidad");
     expect(canalizar).toBeDefined();
     expect(canalizar?.usosMaximos).toBe(2);
-    expect(canalizar?.recuperacion).toBe("descanso_corto");
+    expect(canalizar?.recuperacion).toBe("descanso_dinamico");
+    expect(canalizar?.recargaDescansoCorto).toBe(1);
 
     const chispa = rasgosNv2.find((r) => r.nombre.includes("Chispa divina"));
     expect(chispa).toBeDefined();

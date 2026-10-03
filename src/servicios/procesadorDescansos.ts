@@ -124,14 +124,24 @@ export function ejecutarDescansoCorto(
   // Recuperar Usos de Rasgos con recarga en Descanso Corto
   let rasgosRecargadosCorto = 0;
   const rasgosActualizadosCorto = (personaje.rasgos || []).map((rasgo) => {
-    if (
-      rasgo.tieneUsosLimitados &&
-      rasgo.recuperacion === "descanso_corto"
-    ) {
-      const maxUsos = rasgo.formulaEscalado
-        ? calcularUsosMaximosRasgo(rasgo, personaje)
-        : (rasgo.usosMaximos ?? 1);
-      const restantesActuales = rasgo.usosRestantes ?? 0;
+    if (!rasgo.tieneUsosLimitados) return rasgo;
+
+    const maxUsos = rasgo.formulaEscalado
+      ? calcularUsosMaximosRasgo(rasgo, personaje)
+      : (rasgo.usosMaximos ?? 1);
+    const restantesActuales = rasgo.usosRestantes ?? 0;
+
+    // Recarga dinámica parcial (ej. recarga 1 uso en descanso corto)
+    if (rasgo.recargaDescansoCorto && rasgo.recargaDescansoCorto > 0) {
+      if (restantesActuales < maxUsos || rasgo.usosMaximos !== maxUsos) {
+        const nuevosRestantes = Math.min(maxUsos, restantesActuales + rasgo.recargaDescansoCorto);
+        if (nuevosRestantes > restantesActuales || rasgo.usosMaximos !== maxUsos) {
+          rasgosRecargadosCorto++;
+          return { ...rasgo, usosMaximos: maxUsos, usosRestantes: nuevosRestantes };
+        }
+      }
+    } else if (rasgo.recuperacion === "descanso_corto") {
+      // Recarga completa clásica en descanso corto
       if (restantesActuales < maxUsos || rasgo.usosMaximos !== maxUsos) {
         rasgosRecargadosCorto++;
         return { ...rasgo, usosMaximos: maxUsos, usosRestantes: maxUsos };
@@ -314,7 +324,10 @@ export function ejecutarDescansoLargo(personaje: PersonajeJugador): ResultadoDes
 
     if (
       rasgo.tieneUsosLimitados &&
-      (rasgo.recuperacion === "descanso_corto" || rasgo.recuperacion === "descanso_largo")
+      (rasgo.recuperacion === "descanso_corto" ||
+       rasgo.recuperacion === "descanso_largo" ||
+       rasgo.recuperacion === "descanso_dinamico" ||
+       Boolean(rasgo.recargaDescansoCorto && rasgo.recargaDescansoCorto > 0))
     ) {
       const maxUsos = rasgo.formulaEscalado
         ? calcularUsosMaximosRasgo(rasgo, personaje)
@@ -326,7 +339,13 @@ export function ejecutarDescansoLargo(personaje: PersonajeJugador): ResultadoDes
       }
     }
 
-    if (Array.isArray(rasgo.dadosGuardados) && rasgo.dadosGuardados.length > 0 && rasgo.recuperacion === "descanso_largo") {
+    if (
+      Array.isArray(rasgo.dadosGuardados) &&
+      rasgo.dadosGuardados.length > 0 &&
+      (rasgo.recuperacion === "descanso_largo" ||
+       rasgo.recuperacion === "descanso_dinamico" ||
+       Boolean(rasgo.recargaDescansoCorto && rasgo.recargaDescansoCorto > 0))
+    ) {
       rModificado = { ...rModificado, dadosGuardados: [] };
       huboCambio = true;
     }

@@ -820,6 +820,7 @@ export function obtenerRasgosClaseYSubclase(
       guardaDadosTirada: !!r.guardaDadosTirada,
       recargaConEspacio: !!r.recargaConEspacio,
       multiplicadorRecargaEspacio: r.multiplicadorRecargaEspacio,
+      recargaDescansoCorto: r.recargaDescansoCorto,
       notas: ""
     };
   }
@@ -843,6 +844,7 @@ export function obtenerRasgosClaseYSubclase(
     if (r.recargaConEspacio) padre.recargaConEspacio = true;
     if (r.multiplicadorRecargaEspacio) padre.multiplicadorRecargaEspacio = r.multiplicadorRecargaEspacio;
     if (r.recuperacion) padre.recuperacion = r.recuperacion as RecuperacionRasgo;
+    if (r.recargaDescansoCorto !== undefined) padre.recargaDescansoCorto = r.recargaDescansoCorto;
     if (r.tipoAccion && r.tipoAccion !== "pasivo") padre.tipoAccion = r.tipoAccion;
     if (Array.isArray(r.efectos) && r.efectos.length > 0) {
       padre.efectos = [...(padre.efectos || []), ...JSON.parse(JSON.stringify(r.efectos))];

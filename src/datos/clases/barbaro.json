@@ -45,7 +45,8 @@
       "tipoAccion": "accion_adicional",
       "tieneUsosLimitados": true,
       "formulaUsos": "(niv) => (niv >= 17 ? 6 : niv >= 12 ? 5 : niv >= 6 ? 4 : niv >= 3 ? 3 : 2)",
-      "recuperacion": "descanso_largo",
+      "recuperacion": "descanso_dinamico",
+      "recargaDescansoCorto": 1,
       "escaladoUsos": {
         "tipo": "por_nivel",
         "tabla": [

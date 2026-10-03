@@ -34,7 +34,7 @@ export const EsquemaPlantillaRasgoClaseJSON = z.object({
   tieneUsosLimitados: z.boolean().optional(),
   usosMaximos: z.number().int().optional(),
   formulaUsos: z.string().nullable().optional(),
-  recuperacion: z.enum(["descanso_corto", "descanso_largo", "manual", "ninguno"]).optional(),
+  recuperacion: z.enum(["descanso_corto", "descanso_largo", "descanso_dinamico", "manual", "ninguno"]).optional(),
   formulaDados: z.string().optional(),
 
   // Escalados genéricos declarativos
@@ -85,7 +85,8 @@ export const EsquemaPlantillaRasgoClaseJSON = z.object({
   dadosGuardados: z.array(z.number()).optional(),
   guardaDadosTirada: z.boolean().optional(),
   recargaConEspacio: z.boolean().optional(),
-  multiplicadorRecargaEspacio: z.number().optional()
+  multiplicadorRecargaEspacio: z.number().optional(),
+  recargaDescansoCorto: z.number().int().min(1).optional()
 });
 
 export const EsquemaPlantillaRasgoEspecieJSON = z.object({
@@ -97,7 +98,7 @@ export const EsquemaPlantillaRasgoEspecieJSON = z.object({
   tieneUsosLimitados: z.boolean().optional(),
   usosMaximos: z.number().int().optional(),
   formulaUsos: z.string().nullable().optional(),
-  recuperacion: z.enum(["descanso_corto", "descanso_largo", "manual", "ninguno"]).optional(),
+  recuperacion: z.enum(["descanso_corto", "descanso_largo", "descanso_dinamico", "manual", "ninguno"]).optional(),
   formulaDados: z.string().optional(),
 
   // Escalados genéricos declarativos
@@ -136,7 +137,8 @@ export const EsquemaPlantillaRasgoEspecieJSON = z.object({
   dadosGuardados: z.array(z.number()).optional(),
   guardaDadosTirada: z.boolean().optional(),
   recargaConEspacio: z.boolean().optional(),
-  multiplicadorRecargaEspacio: z.number().optional()
+  multiplicadorRecargaEspacio: z.number().optional(),
+  recargaDescansoCorto: z.number().int().min(1).optional()
 });
 
 // =======================================================

@@ -271,4 +271,93 @@ describe("procesadorDescansos (D&D 5.5e)", () => {
       expect(resultado.acciones.some((a) => a.descripcion.includes("Inspiración heroica obtenida"))).toBe(true);
     });
   });
+
+  describe("Recarga Dinámica en Descansos (recargaDescansoCorto + descanso_dinamico)", () => {
+    it("recupera exactamente 1 uso en descanso corto cuando tiene 0 usos restantes", () => {
+      const pj: PersonajeJugador = {
+        ...PERSONAJE_POR_DEFECTO,
+        rasgos: [
+          {
+            id: "rasgo_aliento",
+            nombre: "Tomar aliento",
+            descripcion: "Recupera 1 uso en descanso corto y todos en descanso largo.",
+            origen: "clase",
+            fuente: "Guerrero",
+            tipoAccion: "accion_adicional",
+            tieneUsosLimitados: true,
+            usosMaximos: 3,
+            usosRestantes: 0,
+            recuperacion: "descanso_dinamico",
+            recargaDescansoCorto: 1,
+            personalizado: false,
+            activo: true,
+            notas: ""
+          }
+        ]
+      };
+
+      const resultado = ejecutarDescansoCorto(pj, 0);
+      const rasgoActualizado = resultado.personajeActualizado.rasgos?.find((r) => r.id === "rasgo_aliento");
+      expect(rasgoActualizado?.usosRestantes).toBe(1);
+      expect(resultado.acciones.some((a) => a.tipo === "recurso" && a.descripcion.includes("1 rasgos recargados"))).toBe(true);
+    });
+
+    it("no excede el máximo de usos al recargar en descanso corto", () => {
+      const pj: PersonajeJugador = {
+        ...PERSONAJE_POR_DEFECTO,
+        rasgos: [
+          {
+            id: "rasgo_furia",
+            nombre: "Furia",
+            descripcion: "Recupera 1 uso en descanso corto y todos en descanso largo.",
+            origen: "clase",
+            fuente: "Bárbaro",
+            tipoAccion: "accion_adicional",
+            tieneUsosLimitados: true,
+            usosMaximos: 2,
+            usosRestantes: 2,
+            recuperacion: "descanso_dinamico",
+            recargaDescansoCorto: 1,
+            personalizado: false,
+            activo: true,
+            notas: ""
+          }
+        ]
+      };
+
+      const resultado = ejecutarDescansoCorto(pj, 0);
+      const rasgoActualizado = resultado.personajeActualizado.rasgos?.find((r) => r.id === "rasgo_furia");
+      expect(rasgoActualizado?.usosRestantes).toBe(2);
+      expect(resultado.acciones.some((a) => a.tipo === "recurso" && a.descripcion.includes("rasgos recargados"))).toBe(false);
+    });
+
+    it("recupera todos los usos gastados en un descanso largo", () => {
+      const pj: PersonajeJugador = {
+        ...PERSONAJE_POR_DEFECTO,
+        rasgos: [
+          {
+            id: "rasgo_canalizar",
+            nombre: "Canalizar divinidad",
+            descripcion: "Recupera 1 en descanso corto y todos en descanso largo.",
+            origen: "clase",
+            fuente: "Clérigo",
+            tipoAccion: "accion",
+            tieneUsosLimitados: true,
+            usosMaximos: 4,
+            usosRestantes: 1,
+            recuperacion: "descanso_dinamico",
+            recargaDescansoCorto: 1,
+            personalizado: false,
+            activo: true,
+            notas: ""
+          }
+        ]
+      };
+
+      const resultado = ejecutarDescansoLargo(pj);
+      const rasgoActualizado = resultado.personajeActualizado.rasgos?.find((r) => r.id === "rasgo_canalizar");
+      expect(rasgoActualizado?.usosRestantes).toBe(4);
+      expect(resultado.acciones.some((a) => a.tipo === "recurso" && a.descripcion.includes("1 rasgos recargados"))).toBe(true);
+    });
+  });
 });

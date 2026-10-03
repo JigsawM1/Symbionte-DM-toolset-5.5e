@@ -91,7 +91,7 @@ export const VistaJugadores: React.FC = () => {
       {subPestanaActiva === "ficha" ? (
         <HojaPersonaje alAbrirConfiguracion={() => setSubPestanaActiva("configuracion")} />
       ) : subPestanaActiva === "acompanantes" && personajeActivo ? (
-        <div style={{ maxWidth: 640, margin: "0 auto", padding: "6px 8px 48px 8px", width: "100%", boxSizing: "border-box" }}>
+        <div className={estilos.contenedorAcompanantes}>
           <SeccionAcompanantesPersonaje personaje={personajeActivo} />
         </div>
       ) : subPestanaActiva === "configuracion" && personajeActivo ? (

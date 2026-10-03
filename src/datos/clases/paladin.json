@@ -172,7 +172,8 @@
       "tipoAccion": "especial",
       "categoriaMecanica": "consumible",
       "tieneUsosLimitados": true,
-      "recuperacion": "descanso_corto",
+      "recuperacion": "descanso_dinamico",
+      "recargaDescansoCorto": 1,
       "escaladoUsos": {
         "tipo": "por_nivel",
         "tabla": [

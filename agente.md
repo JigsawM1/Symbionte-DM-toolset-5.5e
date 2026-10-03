@@ -18,6 +18,36 @@ Este archivo registra reglas globales, errores encontrados, sus causas raíz y l
 6. **PROHIBICIÓN ESTRICTA DE BIFURCACIONES POR NOMBRE DE RASGO O CLASE (CATÁLOGO DECLARATIVO Y BUILDER PURO)**:
    - **Bajo ninguna circunstancia** los módulos de lógica de negocio (`servicios/`), gestores de estado (`almacen/`) o constructores (`gestorClases.ts`) deben contener bifurcaciones condicionales por nombre literal de rasgo o clase (`r.nombre === "..."`, `clase.includes("...")`, etc.).
 
+## [2026-10-02] Implementación Declarativa de la Clase Bardo y 4 Subclases Canónicas D&D 5.5e (PHB 2024)
+
+**Objetivo de la Integración:**
+- Actualizar e implementar con rigor los rasgos de la clase base Bardo (niveles 1 a 20) y sus 4 subclases canónicas (*Colegio de la Danza*, *Colegio del Glamour*, *Colegio del Conocimiento*, *Colegio del Valor*) en `src/datos/clases/bardo.json`.
+- Estandarizar la clasificación mecánica obligatoria (`categoriaMecanica`) conforme al enum del proyecto, eliminando contadores residuales y garantizando compatibilidad con el builder genérico `gestorClases.ts` y las pruebas de genericidad arquitectónica.
+
+**Decisiones Técnicas y Modificaciones Aplicadas:**
+1. **Clase Base Bardo:**
+   - *Inspiración bárdica* (Nv. 1): `categoriaMecanica: "consumible"`, dados 1d6 escalando a 1d8 (nv 5), 1d10 (nv 10) y 1d12 (nv 15), usos escalados por Carisma (mínimo 1), recuperación descanso largo a nv 1-4 y descanso corto a partir de nv 5 (`escaladoRecuperacion`), con tabla de progresión visual de 4 filas.
+   - *Lanzamiento de conjuros* (Nv. 1): Clasificado como `pasivo_permanente` puro; remoción de `tieneUsosLimitados: true` y descanso largo artificiales (administrados por `configuracionMagica`).
+   - *Pericia* (Nv. 2 y Nv. 9): Clasificados como `pasivo_permanente`, ajustando la fila inicial de la tabla de progresión a Nivel 2.
+   - *Aprendiz de mucho* (Nv. 2): Clasificado como `pasivo_permanente` con efecto declarativo `medio_bono_habilidades` en habilidades sin competencia.
+   - *Subclase de bardo* (Nv. 3) y *Rasgos de subclase* (Nv. 6 y 14): Clasificados como `pasivo_permanente`.
+   - *Mejora de característica* (Niveles 4, 8, 12, 16): Clasificados como `selector_informativo` para la inyección automática del selector de dotes.
+   - *Fuente de inspiración* (Nv. 5): Configurado como `extension` ligada a `rasgo_cls_bardo_inspiracion_bardica`, consolidándose orgánicamente en la tarjeta padre del bardo a nivel 5+ vía `fusionarExtension()`.
+   - *Contraencantamiento* (Nv. 7): `pasivo_permanente` con `tipoAccion: "reaccion"`.
+   - *Secretos mágicos* (Nv. 10): `pasivo_permanente`.
+   - *Inspiración superior* (Nv. 18): `pasivo_permanente` con `dispararAlTirarIniciativa: true` y `restaurarUsosAlActivar` (`idRasgoObjetivo: "Inspiración bárdica"`, `hastaCantidad: 2`, `soloSiMenorOIgual: 1`), recargando reactivamente usos en iniciativa de forma declarativa pura.
+   - *Don épico* (Nv. 19): Clasificado como `selector_informativo` con `dote_don_recuerdo_conjuros` por defecto.
+   - *Palabras de creación* (Nv. 20): `pasivo_permanente` con `conjurosOtorgados` y efectos declarativos `conjuro_otorgado` para *Palabra de poder: sanar* y *Palabra de poder: matar*.
+2. **Subclases Canónicas:**
+   - **Colegio de la Danza:** *Juego de pies deslumbrante* (`pasivo_permanente` con efectos de CA 10+DES+CAR, ataque desarmado con Destreza/dado y ventaja en Interpretación bailando), *Movimiento inspirador* (`consumible` reacción, `gastarDePadre: true`), *Juego de pies en tándem* (`consumible`, `gastarDePadre: true`, `heredarDadosPadre: true`), *Evasión líder* (`pasivo_permanente`).
+   - **Colegio del Glamour:** *Magia cautivadora* (`consumible`, 1 uso descanso largo, `conjurosOtorgados`), *Manto de inspiración* (`consumible` de acción adicional, `gastarDePadre: true`, `heredarDadosPadre: true`, efecto `hp_temporal` de 2 veces el dado), *Manto de majestad* (`activable` con condición táctica y conjuro gratuito de Orden imperiosa), *Majestad inquebrantable* (`activable` con condición táctica).
+   - **Colegio del Conocimiento:** *Competencias adicionales* (`selector_informativo` interactivo con selector múltiple de 3 habilidades y efectos de competencia), *Palabras cortantes* (`consumible` de reacción, `gastarDePadre: true`, `heredarDadosPadre: true`), *Descubrimientos mágicos* (`pasivo_permanente`), *Habilidad inigualable* (`consumible` especial, `gastarDePadre: true`, `heredarDadosPadre: true`).
+   - **Colegio del Valor:** *Inspiración en combate* (`extension` ligada a `rasgo_cls_bardo_inspiracion_bardica` consolidada en el padre para opciones de CA y daño), *Entrenamiento marcial* (`pasivo_permanente` con 3 efectos de competencia en armas marciales, armaduras medias y escudos), *Ataque adicional* (`pasivo_permanente`), *Magia de batalla* (`pasivo_permanente`).
+3. **Nueva Suite de Pruebas Unitarias (`src/servicios/bardoMecanicasDND55.test.ts`):**
+   - 13 pruebas unitarias exhaustivas validando la progresión de la clase base y de las 4 subclases.
+4. **Validación Integral del Pipeline CI:**
+   - 99 suites y 1.493 pruebas aprobadas al 100%. TypeScript estricto sin errores (`tsc --noEmit`), ESLint impecable (`--max-warnings=0`), auditoría de líneas aprobada y build de Vite exitoso en 14.99s.
+
 ## [2026-10-02] Implementación Declarativa de la Clase Bárbaro y 4 Subclases Canónicas D&D 5.5e (PHB 2024)
 
 **Objetivo de la Integración:**

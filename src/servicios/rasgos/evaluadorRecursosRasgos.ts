@@ -72,3 +72,27 @@ export function resolverRecursosPadre(
 
   return { usosPadre, formulaDadosEfectiva };
 }
+
+/**
+ * Calcula el presupuesto máximo de niveles de espacio de conjuro recuperables
+ * de forma genérica a partir de la fuente del rasgo y los niveles del personaje.
+ */
+export function calcularPresupuestoRecuperacion(rasgo: RasgoPersonaje, personaje: PersonajeJugador): number {
+  const nivelPj = personaje.nivel || 1;
+  let nivelEfectivo = nivelPj;
+
+  if (rasgo.fuente) {
+    const fuenteNorm = rasgo.fuente.toLowerCase();
+    const claseFuente = (personaje.clases || []).find((c) =>
+      c.nombre && fuenteNorm.includes(c.nombre.toLowerCase())
+    );
+    if (claseFuente) {
+      nivelEfectivo = claseFuente.nivel;
+    } else if (personaje.clase && fuenteNorm.includes(personaje.clase.toLowerCase())) {
+      nivelEfectivo = personaje.nivel || 1;
+    }
+  }
+
+  return Math.max(1, Math.ceil(nivelEfectivo / 2));
+}
+

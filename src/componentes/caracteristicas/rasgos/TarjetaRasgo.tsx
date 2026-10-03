@@ -11,7 +11,8 @@ import {
   BookOpen,
   Maximize2,
   Eye,
-  EyeOff
+  EyeOff,
+  Sparkles
 } from "lucide-react";
 import estilos from "./VistaRasgosJugador.module.css";
 import {
@@ -23,6 +24,7 @@ import {
   CLASE_ORIGEN_BORDE
 } from "./TarjetaRasgo.constantes";
 import { usarAccionesTarjetaRasgo } from "./usarAccionesTarjetaRasgo";
+import { ModalTiendaRecuperacionEspacios } from "./ModalTiendaRecuperacionEspacios";
 
 interface TarjetaRasgoProps {
   rasgo: RasgoPersonaje;
@@ -80,6 +82,43 @@ export const TarjetaRasgo: React.FC<TarjetaRasgoProps> = ({
     usosPadre,
     formulaDadosEfectiva
   });
+
+  const [mostrarTiendaRecuperacion, setMostrarTiendaRecuperacion] = React.useState(false);
+  const personajeActivoAlmacen = usarAlmacenDM(
+    React.useCallback((s) => s.personajes.find((p) => p.id === idPersonaje), [idPersonaje])
+  );
+
+  const manejarConfirmarRecuperacion = (espacios: Record<number, number>, puntosConjuro?: number) => {
+    if (!idPersonaje) return;
+    const { recuperarEspacioConjuro, recuperarPuntosConjuro, gastarUsoRasgoPersonaje, agregarNotificacion } = usarAlmacenDM.getState();
+    let totalRanuras = 0;
+    for (const [lvlStr, cant] of Object.entries(espacios)) {
+      const lvl = Number(lvlStr);
+      const cantidad = cant || 0;
+      for (let i = 0; i < cantidad; i++) {
+        recuperarEspacioConjuro(idPersonaje, lvl);
+        totalRanuras++;
+      }
+    }
+    const puntos = puntosConjuro || 0;
+    if (puntos > 0) {
+      recuperarPuntosConjuro(idPersonaje, puntos);
+    }
+    if (totalRanuras > 0 || puntos > 0) {
+      gastarUsoRasgoPersonaje(idPersonaje, rasgo.id, 1);
+      const partesMensaje: string[] = [];
+      if (totalRanuras > 0) {
+        partesMensaje.push(`${totalRanuras} ${totalRanuras === 1 ? "espacio de conjuro" : "espacios de conjuro"}`);
+      }
+      if (puntos > 0) {
+        partesMensaje.push(`${puntos} ${puntos === 1 ? "punto de conjuro" : "puntos de conjuro"}`);
+      }
+      agregarNotificacion(
+        `¡${rasgo.nombre}! Se han recuperado ${partesMensaje.join(" y ")}.`,
+        "exito"
+      );
+    }
+  };
 
   const esRasgoSelector =
     rasgo.categoriaMecanica === "selector_informativo" ||
@@ -264,6 +303,27 @@ export const TarjetaRasgo: React.FC<TarjetaRasgoProps> = ({
             </button>
           )}
 
+          {/* Botón interactivo de Recuperación de Espacios (ej. Recuperación arcana) */}
+          {rasgo.recuperarEspacios && (
+            <button
+              type="button"
+              className={estilos.botonTirarDados}
+              onClick={(e) => {
+                e.stopPropagation();
+                setMostrarTiendaRecuperacion(true);
+              }}
+              disabled={sinUsosDisponibles}
+              title={
+                sinUsosDisponibles
+                  ? "No quedan usos disponibles (requiere descanso largo)"
+                  : "Abrir recuperación de espacios de conjuro"
+              }
+            >
+              <Sparkles size={11} color="#c084fc" />
+              <span>Recuperar Espacios</span>
+            </button>
+          )}
+
           {/* Botón para expandir modal */}
           <button
             type="button"
@@ -369,6 +429,15 @@ export const TarjetaRasgo: React.FC<TarjetaRasgoProps> = ({
             );
           })}
         </div>
+      )}
+
+      {mostrarTiendaRecuperacion && personajeActivoAlmacen && (
+        <ModalTiendaRecuperacionEspacios
+          personaje={personajeActivoAlmacen}
+          rasgo={rasgo}
+          alCerrar={() => setMostrarTiendaRecuperacion(false)}
+          alConfirmar={manejarConfirmarRecuperacion}
+        />
       )}
     </article>
   );

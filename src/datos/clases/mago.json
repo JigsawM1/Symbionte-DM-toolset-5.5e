@@ -63,6 +63,10 @@
       "tieneUsosLimitados": true,
       "usosMaximos": 1,
       "recuperacion": "descanso_largo",
+      "recuperarEspacios": {
+        "formulaPresupuesto": "ceil(nivel / 2)",
+        "nivelMaximoEspacio": 5
+      },
       "tablaProgresion": {
         "columnas": [
           "Nivel de mago",
@@ -215,7 +219,29 @@
       "nombre": "Maestría en conjuros",
       "descripcion": "Has alcanzado tal dominio sobre ciertos conjuros que puedes lanzarlos a voluntad. Elige un conjuro de nivel 1 y otro de nivel 2 de tu libro de conjuros que tengan un tiempo de lanzamiento de una acción. Siempre tienes esos conjuros preparados y puedes lanzarlos en su nivel más bajo sin gastar un espacio de conjuro. Para lanzar cualquiera de los dos conjuros a un nivel superior, debes gastar un espacio de conjuro.\nCada vez que finalices un descanso largo, puedes estudiar tu libro de conjuros y reemplazar uno de esos conjuros por otro conjuro elegible del mismo nivel del libro.",
       "tipoAccion": "pasivo",
-      "categoriaMecanica": "pasivo_permanente"
+      "categoriaMecanica": "selector_informativo",
+      "selectores": [
+        {
+          "id": "selector_maestria_conjuro_nv1",
+          "tipo": "unico",
+          "tipoSelector": "conjuro",
+          "etiqueta": "Conjuro de Maestría Nivel 1 (Gratuito a voluntad)",
+          "maxSelecciones": 1,
+          "valorActual": [],
+          "claveOpcionesDinamicas": "conjuros1_accion_mago",
+          "esConjuroGratuito": true
+        },
+        {
+          "id": "selector_maestria_conjuro_nv2",
+          "tipo": "unico",
+          "tipoSelector": "conjuro",
+          "etiqueta": "Conjuro de Maestría Nivel 2 (Gratuito a voluntad)",
+          "maxSelecciones": 1,
+          "valorActual": [],
+          "claveOpcionesDinamicas": "conjuros2_accion_mago",
+          "esConjuroGratuito": true
+        }
+      ]
     },
     {
       "nivel": 19,
@@ -232,7 +258,19 @@
       "categoriaMecanica": "consumible",
       "tieneUsosLimitados": true,
       "usosMaximos": 2,
-      "recuperacion": "descanso_corto"
+      "recuperacion": "descanso_corto",
+      "selectores": [
+        {
+          "id": "selector_conjuros_predilectos_mago",
+          "tipo": "multiple",
+          "tipoSelector": "conjuro",
+          "etiqueta": "Conjuros Predilectos Elegidos (Nivel 3)",
+          "maxSelecciones": 2,
+          "valorActual": [],
+          "claveOpcionesDinamicas": "conjuros3_mago",
+          "esConjuroGratuito": true
+        }
+      ]
     }
   ],
   "subclases": [

@@ -18,6 +18,46 @@ Este archivo registra reglas globales, errores encontrados, sus causas raíz y l
 6. **PROHIBICIÓN ESTRICTA DE BIFURCACIONES POR NOMBRE DE RASGO O CLASE (CATÁLOGO DECLARATIVO Y BUILDER PURO)**:
    - **Bajo ninguna circunstancia** los módulos de lógica de negocio (`servicios/`), gestores de estado (`almacen/`) o constructores (`gestorClases.ts`) deben contener bifurcaciones condicionales por nombre literal de rasgo o clase (`r.nombre === "..."`, `clase.includes("...")`, etc.).
 
+## [2026-10-02] Implementación Canónica y Genérica de la Clase Mago D&D 5.5e (PHB 2024): Recuperación Arcana, Maestría en Conjuros y Conjuros Predilectos
+
+**Objetivo de la Integración:**
+- Responder a la solicitud del usuario de implementar las mecánicas canónicas del Mago D&D 5.5e (PHB 2024) desde el builder y catálogo mediante esquemas puramente declarativos y genéricos:
+  1. *Recuperación arcana* (Nv. 1): Consumible de 1 uso por descanso largo con interfaz tipo tienda para seleccionar los espacios de conjuro gastados a recuperar según el presupuesto $\lceil \text{Nivel de Mago} / 2 \rceil$ (hasta nivel 5 de espacio).
+  2. *Maestría en conjuros* (Nv. 18): Dos selectores de conjuros gratuitos siempre preparados (uno de nivel 1 y otro de nivel 2 con tiempo de lanzamiento de 1 acción), lanzables a voluntad sin consumir ranuras.
+  3. *Conjuros predilectos* (Nv. 20): Dos conjuros siempre preparados de nivel 3 con 1 lanzamiento gratuito de nivel 3 por cada uno, recargables en descansos cortos o largos.
+
+**Decisiones Técnicas y Modificaciones Aplicadas:**
+1. **Contrato de Esquema Declarativo `recuperarEspacios` (`src/tipos/rasgos.ts`, `src/tipos/esquemasCatalogos.ts`):**
+   - Se diseñó `EsquemaConfiguracionRecuperarEspacios` (`formulaPresupuesto?: string`, `nivelMaximoEspacio?: number`, `permitePuntosConjuro?: boolean`).
+   - Se añadió al esquema de plantillas de clase (`PlantillaRasgoClase`) y a los rasgos de personaje (`EsquemaRasgoPersonaje`).
+   - El builder (`src/servicios/gestorClases.ts`) traslada fielmente `recuperarEspacios` al instanciar rasgos, sin hardcoding de nombres de clase ni de rasgo.
+2. **Cálculo de Presupuesto Agnóstico y Desacoplamiento de Capas (`src/servicios/rasgos/evaluadorRecursosRasgos.ts`):**
+   - Se ubicó `calcularPresupuestoRecuperacion(rasgo, personaje)` en la capa de servicios, respetando la regla `no-restricted-imports` (prohibición de importar UI en servicios) y `react-refresh/only-export-components` en la capa visual.
+   - La función inspecciona `rasgo.fuente` buscando la coincidencia dentro de `personaje.clases` o `personaje.clase` para derivar el nivel de clase efectivo sin cadenas hardcodeadas tipo `"mago"`.
+3. **Modal de Tienda de Recuperación Dual: Espacios y Puntos de Conjuro (`ModalTiendaRecuperacionEspacios.tsx`, `ModalTiendaRecuperacionEspacios.module.css`):**
+   - Soporte completo para recuperación tanto de **Espacios de Conjuro** como de **Puntos de Conjuro (variante DMG)** mediante pestañas dinámicas cuando `personaje.puntosConjuroMaximos > 0`.
+   - En el modo de Puntos de Conjuro, canjea el presupuesto de recuperación por paquetes de puntos según la tabla canónica `COSTE_PUNTOS_POR_NIVEL` (Nv 1: +2 pts, Nv 2: +3 pts, Nv 3: +5 pts, Nv 4: +6 pts, Nv 5: +7 pts), con tope inteligente sobre `puntosConjuroGastados`.
+   - Interfaz visual basada en tarjetas y badges con botones de paso (`+`/`-`), contador de presupuesto en tiempo real (total, asignado, restante) y confirmación interactiva.
+   - Prohibición absoluta de emojis cumplida (iconos vectoriales locales de `lucide-react`: `Sparkles`, `RotateCcw`, `X`, `Plus`, `Minus`, `AlertCircle`, `Layers`, `Flame`).
+   - Integración directa tanto en `TarjetaRasgo.tsx` como en `ModalDetalleRasgo.tsx` invocando `recuperarPuntosConjuro` y `recuperarEspacioConjuro`.
+4. **Flag `esConjuroGratuito` y Filtro de Tiempo de Acción en Selectores (`src/tipos/rasgos.ts`, `src/servicios/hidratadorDotes.ts`, `src/servicios/hidratadorClases.ts`):**
+   - Se añadió `esConjuroGratuito?: boolean` a `EsquemaSelectorRasgo`.
+   - Se implementó `filtroSoloAccion?: boolean` en `generarOpcionesConjuros()`, discriminando con precisión conjuros cuya acción sea exactamente `"Acción"` (no acción adicional ni reacción).
+   - Se registraron las opciones dinámicas `"conjuros1_accion_mago"`, `"conjuros2_accion_mago"` y `"conjuros3_mago"` consumiendo el catálogo maestro.
+   - `hidratadorClases.ts` resuelve automáticamente las opciones dinámicas en cualquier selector de rasgos de clase que defina `claveOpcionesDinamicas`.
+5. **Evaluación de Conjuros Gratuitos e Integración con Lanzamiento (`src/servicios/rasgos/evaluadorConjurosRasgos.ts`, `src/hooks/usarLanzadorConjuros.ts`, `src/almacen/slices/personajes/sliceRasgos.ts`):**
+   - `obtenerConjurosOtorgadosPorRasgos` y `obtenerNombresConjurosGratuitosActivos` reconocen `esConjuroGratuito` para añadir los conjuros seleccionados a `conjurosSiemprePreparadosIds` y habilitar su lanzamiento sin consumir ranuras.
+   - En rasgos con usos limitados (como *Conjuros predilectos*, 2 usos por descanso corto), `usarLanzadorConjuros.ts` descuenta automáticamente los usos del rasgo al lanzar gratuitamente el conjuro.
+6. **Robustez y Tolerancia a Esquemas (`src/servicios/gestorClases.ts`):**
+   - `aplicarBuildClaseAPersonaje` procesa de forma defensiva `personaje.idiomas` soportando tanto `string` (estándar D&D 2024) como `string[]` sin lanzar excepciones de tipo.
+
+**Validación y Cobertura Integral del Pipeline CI:**
+- **TypeScript:** `pnpm exec tsc --noEmit` completado con 0 errores bajo `strict: true`.
+- **ESLint:** `pnpm run lint` completado con 0 advertencias y 0 errores.
+- **Auditoría de Líneas:** 113 archivos auditados, 0 archivos que superen el límite de 500 líneas.
+- **Vitest:** 101 suites y 1.506 pruebas aprobadas al 100%, incluyendo las 10 pruebas canónicas en `src/servicios/magoMecanicasDND55.test.ts` y las 3 pruebas en `src/componentes/caracteristicas/rasgos/ModalTiendaRecuperacionEspacios.test.tsx`.
+- **Empaquetado:** `pnpm exec vite build` ejecutado y validado en 18.56s.
+
 ## [2026-10-02] Implementación Declarativa de la Clase Bardo y 4 Subclases Canónicas D&D 5.5e (PHB 2024)
 
 **Objetivo de la Integración:**

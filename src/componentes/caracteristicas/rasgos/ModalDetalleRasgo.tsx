@@ -22,6 +22,8 @@ import {
 import { TablaProgresionRasgo } from "./TablaProgresionRasgo";
 import { SeccionSelectoresModalRasgo } from "./SeccionSelectoresModalRasgo";
 import { TextoEnriquecidoDND } from "@/componentes/comunes";
+import { usarAlmacenDM } from "@/almacen/usarAlmacenDM";
+import { ModalTiendaRecuperacionEspacios } from "./ModalTiendaRecuperacionEspacios";
 import estilos from "./VistaRasgosJugador.module.css";
 
 interface ModalDetalleRasgoProps {
@@ -85,6 +87,47 @@ export const ModalDetalleRasgo: React.FC<ModalDetalleRasgoProps> = ({
   usosPadre,
   formulaDadosEfectiva
 }) => {
+  const [mostrarTienda, setMostrarTienda] = React.useState(false);
+  const personajeActivoAlmacen = usarAlmacenDM(
+    React.useCallback((s) => s.personajes.find((p) => p.id === idPersonaje), [idPersonaje])
+  );
+
+  const manejarConfirmarRecuperacion = (espacios: Record<number, number>, puntosConjuro?: number) => {
+    if (!idPersonaje) return;
+    const { recuperarEspacioConjuro, recuperarPuntosConjuro, gastarUsoRasgoPersonaje, agregarNotificacion } = usarAlmacenDM.getState();
+    let totalRanuras = 0;
+    for (const [lvlStr, cant] of Object.entries(espacios)) {
+      const lvl = Number(lvlStr);
+      const cantidad = cant || 0;
+      for (let i = 0; i < cantidad; i++) {
+        recuperarEspacioConjuro(idPersonaje, lvl);
+        totalRanuras++;
+      }
+    }
+    const puntos = puntosConjuro || 0;
+    if (puntos > 0) {
+      recuperarPuntosConjuro(idPersonaje, puntos);
+    }
+    if (totalRanuras > 0 || puntos > 0) {
+      if (alGastarUso) {
+        alGastarUso(1);
+      } else {
+        gastarUsoRasgoPersonaje(idPersonaje, rasgo.id, 1);
+      }
+      const partesMensaje: string[] = [];
+      if (totalRanuras > 0) {
+        partesMensaje.push(`${totalRanuras} ${totalRanuras === 1 ? "espacio de conjuro" : "espacios de conjuro"}`);
+      }
+      if (puntos > 0) {
+        partesMensaje.push(`${puntos} ${puntos === 1 ? "punto de conjuro" : "puntos de conjuro"}`);
+      }
+      agregarNotificacion(
+        `¡${rasgo.nombre}! Se han recuperado ${partesMensaje.join(" y ")}.`,
+        "exito"
+      );
+    }
+  };
+
   const formulaEfectiva = formulaDadosEfectiva || rasgo.formulaDados;
   const tieneUsosPropios = rasgo.tieneUsosLimitados && typeof rasgo.usosMaximos === "number";
   const tieneUsosPadre = !tieneUsosPropios && Boolean(rasgo.gastarDePadre && usosPadre);
@@ -342,6 +385,23 @@ export const ModalDetalleRasgo: React.FC<ModalDetalleRasgoProps> = ({
                 </span>
               </button>
             )}
+
+            {rasgo.recuperarEspacios && (
+              <button
+                type="button"
+                className={estilos.botonLanzarDadosModal}
+                onClick={() => setMostrarTienda(true)}
+                disabled={sinUsosDisponibles}
+                title={
+                  sinUsosDisponibles
+                    ? "No quedan usos disponibles (requiere descanso largo)"
+                    : "Abrir recuperación de espacios de conjuro"
+                }
+              >
+                <Sparkles size={14} color="#c084fc" />
+                <span>Recuperar Espacios</span>
+              </button>
+            )}
           </div>
         )}
 
@@ -413,6 +473,15 @@ export const ModalDetalleRasgo: React.FC<ModalDetalleRasgoProps> = ({
           </button>
         </div>
       </div>
+
+      {mostrarTienda && personajeActivoAlmacen && (
+        <ModalTiendaRecuperacionEspacios
+          personaje={personajeActivoAlmacen}
+          rasgo={rasgo}
+          alCerrar={() => setMostrarTienda(false)}
+          alConfirmar={manejarConfirmarRecuperacion}
+        />
+      )}
     </div>
   );
 };

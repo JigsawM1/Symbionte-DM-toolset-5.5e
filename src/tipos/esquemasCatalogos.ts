@@ -15,7 +15,8 @@ import {
   EsquemaEscaladoRecuperacion,
   EsquemaEscaladoEfectos,
   EsquemaRecursoGastado,
-  EsquemaRecuperacionRasgo
+  EsquemaRecuperacionRasgo,
+  EsquemaConfiguracionRecuperarEspacios
 } from "./rasgos";
 import { EsquemaConjuroInnatoEspecie } from "./especies";
 
@@ -77,7 +78,8 @@ export const EsquemaPlantillaRasgoClaseJSON = z.object({
   formulaEscalado: z.string().optional(),
   efectos: z.array(EsquemaEfectoMecanicoRasgo).optional(),
   selectores: z.array(EsquemaSelectorRasgo).optional(),
-  tablaProgresion: EsquemaTablaEscaladoRasgo.optional()
+  tablaProgresion: EsquemaTablaEscaladoRasgo.optional(),
+  recuperarEspacios: EsquemaConfiguracionRecuperarEspacios.optional()
 });
 
 export const EsquemaPlantillaRasgoEspecieJSON = z.object({

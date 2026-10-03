@@ -240,6 +240,10 @@ export function usarLanzadorConjuros(opciones: OpcionesLanzadorConjuros): Contro
                 (r.usosRestantes !== undefined ? r.usosRestantes : (r.usosMaximos ?? 1)) > 0 &&
                 (
                   (r.conjurosOtorgados || []).some((c) => coincideHechizoId(c, hId) || coincideHechizoId(c, solicitudCompleta.hechizo.nombre)) ||
+                  (r.selectores || []).some((sel) =>
+                    sel.esConjuroGratuito &&
+                    (sel.valorActual || []).some((v) => coincideHechizoId(v, hId) || coincideHechizoId(v, solicitudCompleta.hechizo.nombre))
+                  ) ||
                   r.nombre.toLowerCase().includes(hNomNorm) ||
                   hNomNorm.includes(r.nombre.toLowerCase())
                 )

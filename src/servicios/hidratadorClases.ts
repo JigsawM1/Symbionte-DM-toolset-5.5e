@@ -3,6 +3,7 @@ import type { PlantillaRasgoClase, SelectorRasgo } from "@/tipos/rasgos";
 import { EsquemaDefinicionClaseJSON } from "@/tipos/esquemasCatalogos";
 import { validarColeccionJSON } from "./cargadorCatalogos";
 import { generarOpcionesSelectorInvocaciones } from "@/constantes/invocacionesSobrenaturales";
+import { obtenerOpcionesDinamicas } from "./hidratadorDotes";
 
 import barbaroJson from "@/datos/clases/barbaro.json";
 import bardoJson from "@/datos/clases/bardo.json";
@@ -49,6 +50,12 @@ function hidratarSelectoresRasgo(rasgo: PlantillaRasgoClase): PlantillaRasgoClas
         return {
           ...sel,
           opciones: generarOpcionesSelectorInvocaciones()
+        };
+      }
+      if (sel.claveOpcionesDinamicas && (!sel.opciones || sel.opciones.length === 0)) {
+        return {
+          ...sel,
+          opciones: obtenerOpcionesDinamicas(sel.claveOpcionesDinamicas)
         };
       }
       return sel;

@@ -74,6 +74,8 @@ export const crearSubSliceRasgos: StateCreator<
         for (const s of rasgoAjustado.selectores) {
           const sid = s.id.toLowerCase();
           const esMagico =
+            s.tipoSelector === "conjuro" ||
+            Boolean(s.esConjuroGratuito) ||
             sid.includes("truco") ||
             sid.includes("conjuro") ||
             sid.includes("hechizo") ||

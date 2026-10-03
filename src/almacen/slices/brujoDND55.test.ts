@@ -111,9 +111,9 @@ describe("D&D 5.5e - Brujo (Warlock) y Subclases Canónicas", () => {
       };
 
       const pjActualizado = aplicarBuildClaseAPersonaje(pjInicial, "Brujo", 20);
-      const maestro = pjActualizado.rasgos.find((r: RasgoPersonaje) => r.nombre === "Maestro sobrenatural");
-      expect(maestro).toBeDefined();
-      expect(maestro?.ligadoA).toBe("Astucia mágica");
+      const astucia = pjActualizado.rasgos.find((r: RasgoPersonaje) => r.nombre === "Astucia mágica");
+      expect(astucia).toBeDefined();
+      expect(astucia?.descripcion).toContain("Maestro sobrenatural (Nv. 20)");
     });
   });
 

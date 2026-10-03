@@ -90,6 +90,7 @@ const OPCIONES_DINAMICAS_MAP: Record<string, () => OpcionSelector[]> = {
   conjuros1_druida: () => generarOpcionesConjuros("druida", 1),
   trucos_mago: () => generarOpcionesConjuros("mago", 0),
   conjuros1_mago: () => generarOpcionesConjuros("mago", 1),
+  trucos_brujo: () => generarOpcionesConjuros("brujo", 0),
   rituales_nivel_1: () => generarOpcionesRituales(1),
   dotes_origen: () =>
     (origenJson as unknown as DotePersonaje[])

@@ -57,6 +57,8 @@ export const EsquemaPlantillaRasgoClaseJSON = z.object({
   condicionAlActivar: z.string().optional(),
   duracionEfectoAlActivar: z.number().int().optional(),
   conjurosOtorgados: z.array(z.string()).optional(),
+  conjuroGratuito: z.string().optional(),
+  recuperacionConjuro: z.enum(["ninguno", "descanso_largo", "ilimitado"]).optional(),
   noGastarAlTirarDados: z.boolean().optional(),
   restaurarUsosAlActivar: z.object({
     idRasgoObjetivo: z.string(),
@@ -110,6 +112,8 @@ export const EsquemaPlantillaRasgoEspecieJSON = z.object({
   condicionAlActivar: z.string().optional(),
   duracionEfectoAlActivar: z.number().int().optional(),
   conjurosOtorgados: z.array(z.string()).optional(),
+  conjuroGratuito: z.string().optional(),
+  recuperacionConjuro: z.enum(["ninguno", "descanso_largo", "ilimitado"]).optional(),
   categoriaMecanica: z.enum([
     "consumible",
     "activable",

@@ -1,6 +1,7 @@
 import type { InvocacionSobrenatural, OpcionSelector } from "@/tipos/rasgos";
 import { EsquemaInvocacionSobrenaturalJSON } from "@/tipos/esquemasCatalogos";
 import { validarColeccionJSON } from "@/servicios/cargadorCatalogos";
+import { obtenerOpcionesDinamicas } from "@/servicios/hidratadorDotes";
 import invocacionesRaw from "@/datos/invocaciones-sobrenaturales.json";
 
 // =========================================================================
@@ -81,7 +82,17 @@ export function generarOpcionesSelectorInvocaciones(_nivelBrujo: number = 20): O
       recuperacion: inv.recuperacion,
       conjuroGratuito: inv.conjuroGratuito,
       recuperacionConjuro: inv.recuperacionConjuro,
-      selectores: inv.selectores ? JSON.parse(JSON.stringify(inv.selectores)) : undefined,
+      selectores: inv.selectores
+        ? inv.selectores.map((sel) => {
+            if (sel.claveOpcionesDinamicas && (!sel.opciones || sel.opciones.length === 0)) {
+              return {
+                ...sel,
+                opciones: obtenerOpcionesDinamicas(sel.claveOpcionesDinamicas)
+              };
+            }
+            return JSON.parse(JSON.stringify(sel));
+          })
+        : undefined,
       efectos: inv.efectos ? JSON.parse(JSON.stringify(inv.efectos)) : undefined
     };
   });

@@ -807,6 +807,8 @@ export function obtenerRasgosClaseYSubclase(
       heredarDadosPadre: !!r.heredarDadosPadre,
       reducirDadosPadre: !!r.reducirDadosPadre,
       conjurosOtorgados: r.conjurosOtorgados ? [...r.conjurosOtorgados] : [],
+      conjuroGratuito: r.conjuroGratuito,
+      recuperacionConjuro: r.recuperacionConjuro,
       noGastarAlTirarDados: !!r.noGastarAlTirarDados,
       categoriaMecanica: r.categoriaMecanica,
       costeFijo: r.costeFijo,

@@ -5,6 +5,7 @@
     "nivelMinimo": 1,
     "tipoAccion": "pasivo",
     "repetible": false,
+    "categoriaMecanica": "pasivo_permanente",
     "descripcion": "Puedes lanzar *armadura de mago* sobre ti sin gastar un espacio de conjuro.",
     "conjuroGratuito": "armadura de mago",
     "recuperacionConjuro": "ilimitado",
@@ -41,6 +42,7 @@
     "nivelMinimo": 1,
     "tipoAccion": "pasivo",
     "repetible": false,
+    "categoriaMecanica": "pasivo_permanente",
     "descripcion": "Aprendes el conjuro *encontrar familiar* y puedes lanzarlo como acción de magia sin gastar un espacio de conjuro. Cuando lo lances, escoge entre una de las formas habituales para tu familiar o una de las siguientes formas especiales: diablillo, duende, esfinge de las maravillas, esqueleto, pseudodragón, quasit, renacuajo slaad o serpiente venenosa.\nAsimismo, cuando realizas la acción de atacar, puedes renunciar a uno de tus propios ataques para que el familiar realice un ataque propio con su reacción.",
     "conjuroGratuito": "encontrar familiar",
     "recuperacionConjuro": "ilimitado",
@@ -59,6 +61,7 @@
     "nivelMinimo": 1,
     "tipoAccion": "accion_adicional",
     "repetible": false,
+    "categoriaMecanica": "selector_informativo",
     "descripcion": "Como acción adicional, puedes conjurar en tu mano un arma de pacto, un arma cuerpo a cuerpo sencilla o marcial de tu elección con la que estableces un vínculo. Como alternativa, puedes vincularte con un arma mágica que toques, pero no podrás hacerlo si otra criatura está sintonizada con ella o si otro brujo está vinculado con ella. Hasta que termine el vínculo, tendrás competencia con esa arma y podrás usarla como canalizador mágico.\n\nSiempre que ataques con el arma vinculada, puedes usar tu modificador por Carisma para las tiradas de ataque y de daño en lugar del modificador por Fuerza o Destreza. Además, puedes hacer que cause daño necrótico, psíquico o radiante en lugar de su tipo de daño normal.\nTu vínculo con el arma se rompe si vuelves a usar la acción adicional de este rasgo, si el arma está a más de 5 pies de ti durante 1 minuto o más o si mueres. Un arma conjurada desaparece cuando termina el vínculo.",
     "selectores": [
       {
@@ -128,6 +131,20 @@
     "repetible": true,
     "categoriaMecanica": "selector_informativo",
     "descripcion": "Elige uno de tus trucos de brujo que conozcas y cause daño. Puedes sumar tu modificador por Carisma a las tiradas de daño del conjuro.\n\n**Repetible.** Puedes obtener esta invocación más de una vez. Cada vez que lo hagas, elige un truco distinto que cumpla las condiciones.",
+    "selectores": [
+      {
+        "id": "truco_descarga_agonica",
+        "tipo": "unico",
+        "tipoSelector": "conjuro",
+        "etiqueta": "Truco elegido",
+        "opciones": [],
+        "maxSelecciones": 1,
+        "valorActual": [
+          "descarga_sobrenatural"
+        ],
+        "claveOpcionesDinamicas": "trucos_brujo"
+      }
+    ],
     "efectos": [
       {
         "tipo": "bono_dano_conjuro",
@@ -146,7 +163,21 @@
     "tipoAccion": "pasivo",
     "repetible": true,
     "categoriaMecanica": "selector_informativo",
-    "descripcion": "Elige uno de tus trucos de brujo que conozcas y requiera una tirada de ataque. Cuando aciertes a una criatura Grande o más pequeña con ese truco, puedes empujarla hasta 10 pies respecto a ti en línea recta.\n\n **Repetible.** Puedes obtener esta invocación más de una vez. Cada vez que lo hagas, elige un truco distinto que cumpla las condiciones."
+    "descripcion": "Elige uno de tus trucos de brujo que conozcas y requiera una tirada de ataque. Cuando aciertes a una criatura Grande o más pequeña con ese truco, puedes empujarla hasta 10 pies respecto a ti en línea recta.\n\n **Repetible.** Puedes obtener esta invocación más de una vez. Cada vez que lo hagas, elige un truco distinto que cumpla las condiciones.",
+    "selectores": [
+      {
+        "id": "truco_descarga_ahuyentadora",
+        "tipo": "unico",
+        "tipoSelector": "conjuro",
+        "etiqueta": "Truco elegido",
+        "opciones": [],
+        "maxSelecciones": 1,
+        "valorActual": [
+          "descarga_sobrenatural"
+        ],
+        "claveOpcionesDinamicas": "trucos_brujo"
+      }
+    ]
   },
   {
     "id": "lanza_sobrenatural",
@@ -156,7 +187,21 @@
     "tipoAccion": "pasivo",
     "repetible": true,
     "categoriaMecanica": "selector_informativo",
-    "descripcion": "Elige uno de tus trucos de brujo que conozcas, cause daño y tenga un alcance de 10 pies o más. Cuando lances ese conjuro, su alcance aumenta una cantidad de pies igual a 10 veces tu nivel de brujo.\n\n**Repetible.** Puedes obtener esta invocación más de una vez. Cada vez que lo hagas, elige un truco distinto que cumpla las condiciones."
+    "descripcion": "Elige uno de tus trucos de brujo que conozcas, cause daño y tenga un alcance de 10 pies o más. Cuando lances ese conjuro, su alcance aumenta una cantidad de pies igual a 10 veces tu nivel de brujo.\n\n**Repetible.** Puedes obtener esta invocación más de una vez. Cada vez que lo hagas, elige un truco distinto que cumpla las condiciones.",
+    "selectores": [
+      {
+        "id": "truco_lanza_sobrenatural",
+        "tipo": "unico",
+        "tipoSelector": "conjuro",
+        "etiqueta": "Truco elegido",
+        "opciones": [],
+        "maxSelecciones": 1,
+        "valorActual": [
+          "descarga_sobrenatural"
+        ],
+        "claveOpcionesDinamicas": "trucos_brujo"
+      }
+    ]
   },
   {
     "id": "lecciones_de_los_primeros",
@@ -175,6 +220,7 @@
     "requisitoPrevio": "Brujo nivel 2+\n",
     "tipoAccion": "pasivo",
     "repetible": false,
+    "categoriaMecanica": "pasivo_permanente",
     "descripcion": "Puedes lanzar *disfrazarse* sin gastar un espacio de conjuro.",
     "conjuroGratuito": "disfrazarse",
     "recuperacionConjuro": "ilimitado",
@@ -194,6 +240,7 @@
     "requisitoPrevio": "Brujo nivel 2+\n",
     "tipoAccion": "pasivo",
     "repetible": false,
+    "categoriaMecanica": "pasivo_permanente",
     "descripcion": "Puedes lanzar *salto* sobre ti sin gastar un espacio de conjuro.",
     "conjuroGratuito": "salto",
     "recuperacionConjuro": "ilimitado",
@@ -213,6 +260,7 @@
     "requisitoPrevio": "Brujo nivel 2+\n",
     "tipoAccion": "pasivo",
     "repetible": false,
+    "categoriaMecanica": "pasivo_permanente",
     "descripcion": "Puedes lanzar *falsa vida* sobre ti sin gastar un espacio de conjuro. Si lanzas el conjuro con este rasgo, no tiras el dado para los puntos de golpe temporales; en su lugar, obtienes automáticamente el número más alto en el dado.",
     "conjuroGratuito": "falsa vida",
     "recuperacionConjuro": "ilimitado",
@@ -238,6 +286,7 @@
     "requisitoPrevio": "Brujo nivel 2+\n",
     "tipoAccion": "pasivo",
     "repetible": false,
+    "categoriaMecanica": "pasivo_permanente",
     "descripcion": "Puedes lanzar *imagen silenciosa* sin gastar un espacio de conjuro.",
     "conjuroGratuito": "imagen silenciosa",
     "recuperacionConjuro": "ilimitado",
@@ -294,6 +343,7 @@
     "requisitoPrevio": "Brujo nivel 5+\n",
     "tipoAccion": "pasivo",
     "repetible": false,
+    "categoriaMecanica": "pasivo_permanente",
     "descripcion": "Puedes respirar bajo el agua y obtienes una velocidad nadando igual a tu velocidad.\nTambién puedes lanzar *respirar bajo el agua* una vez sin gastar un espacio de conjuro. Recuperas la capacidad de lanzarlo de este modo tras finalizar un descanso largo.",
     "conjuroGratuito": "respirar bajo el agua",
     "recuperacionConjuro": "descanso_largo",
@@ -349,6 +399,7 @@
     "requisitoPrevio": "Brujo nivel 5+\n",
     "tipoAccion": "pasivo",
     "repetible": false,
+    "categoriaMecanica": "pasivo_permanente",
     "descripcion": "Puedes lanzar *alterar el propio aspecto* sin gastar un espacio de conjuro.",
     "conjuroGratuito": "alterar el propio aspecto",
     "recuperacionConjuro": "ilimitado",
@@ -378,6 +429,7 @@
     "requisitoPrevio": "Brujo nivel 5+\n",
     "tipoAccion": "pasivo",
     "repetible": false,
+    "categoriaMecanica": "pasivo_permanente",
     "descripcion": "Puedes lanzar *levitar* sobre ti sin gastar un espacio de conjuro.",
     "conjuroGratuito": "levitar",
     "recuperacionConjuro": "ilimitado",
@@ -397,6 +449,7 @@
     "requisitoPrevio": "Brujo nivel 5+\n",
     "tipoAccion": "pasivo",
     "repetible": false,
+    "categoriaMecanica": "pasivo_permanente",
     "descripcion": "Mientras estés en una zona de luz tenue u oscuridad, puedes lanzar *invisibilidad* sobre ti sin gastar un espacio de conjuro.",
     "conjuroGratuito": "invisibilidad",
     "recuperacionConjuro": "ilimitado",
@@ -417,6 +470,7 @@
     "requisitoPrevio": "Brujo nivel 7+\n",
     "tipoAccion": "pasivo",
     "repetible": false,
+    "categoriaMecanica": "pasivo_permanente",
     "descripcion": "Puedes lanzar *hablar con los muertos* sin gastar un espacio de conjuro.",
     "conjuroGratuito": "hablar con los muertos",
     "recuperacionConjuro": "ilimitado",
@@ -500,6 +554,7 @@
     "requisitoPrevio": "Brujo nivel 9+\n",
     "tipoAccion": "pasivo",
     "repetible": false,
+    "categoriaMecanica": "pasivo_permanente",
     "descripcion": "Puedes lanzar *ojo arcano* sin gastar un espacio de conjuro.",
     "conjuroGratuito": "ojo arcano",
     "recuperacionConjuro": "ilimitado",

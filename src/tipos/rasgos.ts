@@ -278,6 +278,8 @@ export interface PlantillaRasgoClase {
   condicionAlActivar?: string;
   duracionEfectoAlActivar?: number;
   conjurosOtorgados?: string[];
+  conjuroGratuito?: string;
+  recuperacionConjuro?: "ninguno" | "descanso_largo" | "ilimitado";
   noGastarAlTirarDados?: boolean;
   restaurarUsosAlActivar?: {
     idRasgoObjetivo: string;

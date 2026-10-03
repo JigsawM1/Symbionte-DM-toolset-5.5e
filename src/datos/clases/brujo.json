@@ -160,8 +160,7 @@
       "nombre": "Magia del pacto",
       "descripcion": "Mediante una ceremonia oculta, has formado un pacto con una entidad misteriosa para obtener poderes mágicos. La entidad es una voz en las sombras —su identidad no está clara—, pero su don para ti es tangible: la capacidad de lanzar conjuros. La información a continuación detalla cómo usar esas reglas con los conjuros de brujo.\n\n***Trucos.*** Conoces dos trucos de tu elección escogidos de entre los de la lista de conjuros de brujo. Se recomiendan *descarga sobrenatural* y *prestidigitación*. Cada vez que subas un nivel de brujo, puedes sustituir uno de los trucos obtenidos por este rasgo por otro truco de tu elección de la lista de conjuros de brujo.\n\nCuando alcances los niveles 4 y 10 de brujo, aprenderás otro truco de tu elección de la lista de conjuros de brujo.\n\n***Recuperación de espacios de conjuro.***  Recuperas todos los espacios de conjuro de Magia del pacto gastados cuando finalizas un descanso corto o largo.\n\n***Conjuros preparados de nivel 1 y superiores.*** Preparas la lista de conjuros de nivel 1 y superiores que tienes disponibles para lanzar con este rasgo. Para empezar, elige dos conjuros de nivel 1 de la lista de conjuros de brujo. Se recomiendan *hechizar persona* y *maldición*.\nEl número de conjuros de tu lista aumenta conforme subes de nivel de brujo. Cada vez que aumente ese número, elige conjuros de brujo adicionales hasta que el número de conjuros de tu lista coincida con el número de la tabla. Los conjuros elegidos deben ser de un nivel no superior al mostrado en la columna \"Nivel del espacio\" de la tabla para tu nivel. Al llegar al nivel 6, por ejemplo, aprendes un nuevo conjuro de brujo, que puede ser de niveles 1 a 3.\n\nSi otro rasgo de brujo te otorga conjuros que siempre tienes preparados, esos conjuros no cuentan para el total que puedes preparar con este rasgo, pero sí cuentan como conjuros de brujo para ti.\n\n***Cambiar tus conjuros preparados.*** Cada vez que subas un nivel de brujo, puedes sustituir un conjuro de tu lista por otro conjuro de brujo de un nivel elegible.\n\n***Aptitud mágica.*** El Carisma es tu aptitud mágica en lo que respecta a tus conjuros de brujo.\n\n***Canalizador mágico.*** Puedes utilizar un *canalizador arcano* como canalizador mágico para tus conjuros de brujo.",
       "tipoAccion": "pasivo",
-      "tieneUsosLimitados": true,
-      "recuperacion": "descanso_corto"
+      "categoriaMecanica": "pasivo_permanente"
     },
     {
       "nivel": 2,
@@ -169,7 +168,7 @@
       "descripcion": "Puedes realizar un rito esotérico durante 1 minuto. Al finalizarlo, recuperas espacios de conjuro gastados de Magia del pacto, pero no más de una cantidad igual a la mitad de tu máximo (redondeando hacia arriba). Una vez que uses este rasgo, no podrás volver a hacerlo hasta que finalices un descanso largo.",
       "tipoAccion": "especial",
       "tieneUsosLimitados": true,
-      "formulaUsos": "1",
+      "usosMaximos": 1,
       "recuperacion": "descanso_largo",
       "categoriaMecanica": "consumible"
     },
@@ -177,44 +176,51 @@
       "nivel": 3,
       "nombre": "Subclase de brujo",
       "descripcion": "Consigues una subclase de brujo de tu elección. Una subclase es una especialización que te proporciona rasgos cuando alcanzas ciertos niveles de brujo. De aquí en adelante, obtienes todos los rasgos de tu subclase que sean de tu nivel de brujo e inferiores.",
-      "tipoAccion": "pasivo"
+      "tipoAccion": "pasivo",
+      "categoriaMecanica": "pasivo_permanente"
     },
     {
       "nivel": 4,
       "nombre": "Mejora de característica",
       "descripcion": "Obtienes la dote Mejora de característica u otra dote de tu elección para la que cumplas las condiciones. Vuelves a obtener este rasgo en los niveles 8, 12 y 16 de brujo.",
-      "tipoAccion": "pasivo"
+      "tipoAccion": "pasivo",
+      "categoriaMecanica": "selector_informativo"
     },
     {
       "nivel": 6,
       "nombre": "Rasgo de subclase",
       "descripcion": "Obtienes un rasgo de tu subclase de brujo.",
-      "tipoAccion": "pasivo"
+      "tipoAccion": "pasivo",
+      "categoriaMecanica": "pasivo_permanente"
     },
     {
       "nivel": 8,
       "nombre": "Mejora de característica",
       "descripcion": "Obtienes la dote Mejora de característica u otra dote de tu elección para la que cumplas las condiciones.",
-      "tipoAccion": "pasivo"
+      "tipoAccion": "pasivo",
+      "categoriaMecanica": "selector_informativo"
     },
     {
       "nivel": 9,
       "nombre": "Contactar con el patrón",
       "descripcion": "En el pasado, solías contactar con tu patrón a través de intermediarios. Ahora puedes comunicarte directamente; siempre tienes preparado el conjuro *contactar con otro plano*. Con este rasgo, puedes lanzar el conjuro sin gastar un espacio de conjuro para contactar con tu patrón, y superas automáticamente la tirada de salvación del conjuro.\n\nUna vez que lances el conjuro con este rasgo, no podrás volver a hacerlo de esta manera hasta que finalices un descanso largo.",
-      "tipoAccion": "pasivo",
+      "tipoAccion": "especial",
       "tieneUsosLimitados": true,
-      "formulaUsos": "1",
+      "usosMaximos": 1,
       "recuperacion": "descanso_largo",
       "conjurosOtorgados": [
         "contactar con otro plano"
       ],
+      "conjuroGratuito": "contactar con otro plano",
+      "recuperacionConjuro": "descanso_largo",
       "categoriaMecanica": "consumible"
     },
     {
       "nivel": 10,
       "nombre": "Rasgo de subclase",
       "descripcion": "Obtienes un rasgo de tu subclase de brujo.",
-      "tipoAccion": "pasivo"
+      "tipoAccion": "pasivo",
+      "categoriaMecanica": "pasivo_permanente"
     },
     {
       "nivel": 11,
@@ -222,7 +228,31 @@
       "descripcion": "Tu patrón te concede un secreto mágico llamado arcano. Elige un conjuro de brujo de nivel 6 como este arcano.\n\nPuedes lanzar tu conjuro de arcano una vez sin gastar un espacio de conjuro, y debes finalizar un descanso largo antes de poder lanzarlo de esta forma de nuevo.\n\nObtienes otro conjuro de brujo de tu elección que puede lanzarse de esta manera cuando alcanzas los niveles de brujo 13 (conjuro de nivel 7), 15 (conjuro de nivel 8) y 17 (conjuro de nivel 9). Recuperas todos los usos de tu Arcano místico cuando finalizas un descanso largo.\n\nCada vez que subas un nivel de brujo, puedes sustituir uno de tus conjuros de arcano por otro conjuro de brujo del mismo nivel.",
       "tipoAccion": "pasivo",
       "tieneUsosLimitados": true,
+      "usosMaximos": 1,
       "recuperacion": "descanso_largo",
+      "categoriaMecanica": "consumible",
+      "escaladoUsos": {
+        "tipo": "por_nivel",
+        "tabla": [
+          {
+            "nivelMinimo": 11,
+            "valor": 1
+          },
+          {
+            "nivelMinimo": 13,
+            "valor": 2
+          },
+          {
+            "nivelMinimo": 15,
+            "valor": 3
+          },
+          {
+            "nivelMinimo": 17,
+            "valor": 4
+          }
+        ],
+        "minimo": 1
+      },
       "tablaProgresion": {
         "columnas": [
           "Nivel",
@@ -261,43 +291,53 @@
       "nivel": 12,
       "nombre": "Mejora de característica",
       "descripcion": "Obtienes la dote Mejora de característica u otra dote de tu elección para la que cumplas las condiciones.",
-      "tipoAccion": "pasivo"
+      "tipoAccion": "pasivo",
+      "categoriaMecanica": "selector_informativo"
     },
     {
       "nivel": 13,
       "nombre": "Arcano místico II",
       "descripcion": "Obtienes un conjuro de brujo de nivel 7 de tu elección.",
-      "tipoAccion": "pasivo"
+      "tipoAccion": "pasivo",
+      "ligadoA": "Arcano místico",
+      "categoriaMecanica": "extension"
     },
     {
       "nivel": 14,
       "nombre": "Rasgo de subclase",
       "descripcion": "Obtienes un rasgo de tu subclase de brujo.",
-      "tipoAccion": "pasivo"
+      "tipoAccion": "pasivo",
+      "categoriaMecanica": "pasivo_permanente"
     },
     {
       "nivel": 15,
       "nombre": "Arcano místico III",
       "descripcion": "Obtienes un conjuro de brujo de nivel 8 de tu elección.",
-      "tipoAccion": "pasivo"
+      "tipoAccion": "pasivo",
+      "ligadoA": "Arcano místico",
+      "categoriaMecanica": "extension"
     },
     {
       "nivel": 16,
       "nombre": "Mejora de característica",
       "descripcion": "Obtienes la dote Mejora de característica u otra dote de tu elección para la que cumplas las condiciones.",
-      "tipoAccion": "pasivo"
+      "tipoAccion": "pasivo",
+      "categoriaMecanica": "selector_informativo"
     },
     {
       "nivel": 17,
       "nombre": "Arcano místico IV",
       "descripcion": "Obtienes un conjuro de brujo de nivel 9 de tu elección.",
-      "tipoAccion": "pasivo"
+      "tipoAccion": "pasivo",
+      "ligadoA": "Arcano místico",
+      "categoriaMecanica": "extension"
     },
     {
       "nivel": 19,
       "nombre": "Don épico",
       "descripcion": "Obtienes una dote de don épico u otra dote de tu elección para la que cumplas las condiciones. Se recomienda Don del destino.",
-      "tipoAccion": "pasivo"
+      "tipoAccion": "pasivo",
+      "categoriaMecanica": "selector_informativo"
     },
     {
       "nivel": 20,
@@ -305,7 +345,7 @@
       "descripcion": "Cuando usas tu rasgo Astucia mágica, recuperas todos tus espacios de conjuro gastados de Magia del pacto.",
       "tipoAccion": "pasivo",
       "ligadoA": "Astucia mágica",
-      "categoriaMecanica": "pasivo_permanente"
+      "categoriaMecanica": "extension"
     }
   ],
   "subclases": [
@@ -322,6 +362,7 @@
           "nombre": "Conjuros de archihada",
           "descripcion": "La magia de tu patrón garantiza que siempre tengas ciertos conjuros listos; cuando alcances un nivel de brujo especificado en la tabla \"Conjuros de archihada\", a partir de entonces siempre tendrás preparados los conjuros indicados.\n",
           "tipoAccion": "pasivo",
+          "categoriaMecanica": "pasivo_permanente",
           "subclase": "Patrón de los Archihadas",
           "tablaProgresion": {
             "columnas": [
@@ -393,7 +434,7 @@
           "tipoAccion": "reaccion",
           "subclase": "Patrón de los Archihadas",
           "tieneUsosLimitados": true,
-          "formulaUsos": "1",
+          "usosMaximos": 1,
           "recuperacion": "descanso_largo",
           "categoriaMecanica": "consumible",
           "efectos": [
@@ -462,6 +503,7 @@
           "nombre": "Conjuros celestiales",
           "descripcion": "La magia de tu patrón garantiza que siempre tengas ciertos conjuros listos; cuando alcances un nivel de brujo especificado en la tabla \"Conjuros celestiales\", a partir de entonces siempre tendrás preparados los conjuros indicados.\n",
           "tipoAccion": "pasivo",
+          "categoriaMecanica": "pasivo_permanente",
           "subclase": "Patrón Celestial",
           "tablaProgresion": {
             "columnas": [
@@ -512,7 +554,7 @@
             "formula": "nivel_mas_1",
             "minimo": 2
           },
-          "categoriaMecanica": "consumible"
+          "categoriaMecanica": "curacion"
         },
         {
           "nivel": 6,
@@ -557,7 +599,7 @@
           "tipoAccion": "especial",
           "subclase": "Patrón Celestial",
           "tieneUsosLimitados": true,
-          "formulaUsos": "1",
+          "usosMaximos": 1,
           "recuperacion": "descanso_largo",
           "formulaDados": "2d8+carisma",
           "categoriaMecanica": "consumible"
@@ -613,6 +655,7 @@
           "nombre": "Conjuros infernales",
           "descripcion": "La magia de tu patrón garantiza que siempre tengas ciertos conjuros listos; cuando alcances un nivel de brujo especificado en la tabla \"Conjuros infernales\", a partir de entonces siempre tendrás preparados los conjuros indicados.\n",
           "tipoAccion": "pasivo",
+          "categoriaMecanica": "pasivo_permanente",
           "subclase": "Patrón Infernal",
           "tablaProgresion": {
             "columnas": [
@@ -772,7 +815,7 @@
           "tipoAccion": "especial",
           "subclase": "Patrón Infernal",
           "tieneUsosLimitados": true,
-          "formulaUsos": "1",
+          "usosMaximos": 1,
           "recuperacion": "descanso_largo",
           "formulaDados": "8d10",
           "categoriaMecanica": "consumible"
@@ -824,6 +867,7 @@
           "nombre": "Conjuros del Gran Primigenio",
           "descripcion": "La magia de tu patrón garantiza que siempre tengas ciertos conjuros listos; cuando alcances un nivel de brujo especificado en la tabla \"Conjuros del Gran Primigenio\", a partir de entonces siempre tendrás preparados los conjuros indicados.\n",
           "tipoAccion": "pasivo",
+          "categoriaMecanica": "pasivo_permanente",
           "subclase": "Patrón del Gran Primigenio",
           "tablaProgresion": {
             "columnas": [
@@ -882,7 +926,7 @@
           "tipoAccion": "especial",
           "subclase": "Patrón del Gran Primigenio",
           "tieneUsosLimitados": true,
-          "formulaUsos": "1",
+          "usosMaximos": 1,
           "recuperacion": "descanso_corto",
           "ligadoA": "Mente despierta",
           "categoriaMecanica": "consumible"

@@ -18,6 +18,39 @@ Este archivo registra reglas globales, errores encontrados, sus causas raíz y l
 6. **PROHIBICIÓN ESTRICTA DE BIFURCACIONES POR NOMBRE DE RASGO O CLASE (CATÁLOGO DECLARATIVO Y BUILDER PURO)**:
    - **Bajo ninguna circunstancia** los módulos de lógica de negocio (`servicios/`), gestores de estado (`almacen/`) o constructores (`gestorClases.ts`) deben contener bifurcaciones condicionales por nombre literal de rasgo o clase (`r.nombre === "..."`, `clase.includes("...")`, etc.).
 
+## [2026-10-02] Implementación Declarativa de la Clase Brujo y 4 Subclases Canónicas D&D 5.5e (PHB 2024)
+
+**Objetivo de la Integración:**
+- Implementar y estandarizar exhaustivamente los rasgos de la clase base Brujo (niveles 1 a 20) y sus 4 subclases canónicas (*Patrón de los Archihadas*, *Patrón Celestial*, *Patrón Infernal*, *Patrón del Gran Primigenio*) en `src/datos/clases/brujo.json` y el catálogo `src/datos/invocaciones-sobrenaturales.json`.
+- Asignar la clasificación mecánica obligatoria (`categoriaMecanica`) conforme al enum del proyecto, eliminando contadores residuales y habilitando la consolidación genérica del builder (`gestorClases.ts`).
+
+**Decisiones Técnicas y Arquitectura Aplicada:**
+1. **Clase Base Brujo:**
+   - *Magia del pacto* (Nv. 1): Clasificado como `pasivo_permanente` puro; remoción de `tieneUsosLimitados: true` y contadores residuales, ya que los espacios de pacto son administrados de forma agnóstica por `configuracionMagica`.
+   - *Astucia mágica* (Nv. 2): Clasificado como `consumible` con `usosMaximos: 1` explícito y recuperación en descanso largo.
+   - *Subclase de brujo* (Nv. 3) y *Rasgos de subclase* (Nv. 6, 10, 14): Clasificados como `pasivo_permanente`.
+   - *Mejora de característica* (Niveles 4, 8, 12, 16) y *Don épico* (Nv. 19): Clasificados como `selector_informativo` para la inyección automática de selectores de dotes generales y épicas.
+   - *Contactar con el patrón* (Nv. 9): Clasificado como `consumible` de acción especial, `usosMaximos: 1`, `conjurosOtorgados` y atributos declarativos `conjuroGratuito: "contactar con otro plano"` y `recuperacionConjuro: "descanso_largo"`.
+   - *Arcano místico* (Nv. 11): Configurado como `consumible` con `usosMaximos: 1`, tabla de `escaladoUsos` por nivel (1 en nv 11, 2 en nv 13, 3 en nv 15, 4 en nv 17) y tabla visual de progresión.
+   - *Arcano místico II, III, IV* (Niveles 13, 15, 17): Clasificados como `extension` ligados a `Arcano místico`, fusionándose orgánicamente en el rasgo padre vía `fusionarExtension()` sin generar tarjetas duplicadas.
+   - *Maestro sobrenatural* (Nv. 20): Clasificado como `extension` ligada a `Astucia mágica`, integrando su beneficio directamente en la tarjeta padre al alcanzar nivel 20.
+2. **Subclases Canónicas:**
+   - **Patrón de los Archihadas:** *Conjuros de archihada* (`pasivo_permanente`), *Pasos feéricos* (`consumible` con dado 1d10 y usos por Carisma), *Escapada brumosa* (`consumible` de reacción con `gastarDePadre: true`, `ligadoA: "Pasos feéricos"` y `formulaDados: "2d10"` para conservar el disparador táctico en la UI de combate), *Defensas fascinantes* (`consumible`, `usosMaximos: 1` e inmunidad a hechizado), *Magia embrujadora* (`pasivo_permanente`).
+   - **Patrón Celestial:** *Conjuros celestiales* (`pasivo_permanente`), *Luz sanadora* (`curacion` con dados 1d6 y reserva escalada a `nivel_mas_1`), *Alma radiante* (`pasivo_permanente` con resistencia radiante), *Resiliencia celestial* (`pasivo_permanente` con efecto `hp_temporal`), *Venganza abrasadora* (`consumible`, `usosMaximos: 1`).
+   - **Patrón Infernal:** *Conjuros infernales* (`pasivo_permanente`), *Bendición del Oscuro* (`pasivo_permanente` con `hp_temporal`), *Propia suerte del Oscuro* (`consumible`, 1d10, usos por Carisma), *Resiliencia infernal* (`selector_informativo` con los 12 tipos de daño), *Arrojar al Infierno* (`consumible`, `usosMaximos: 1`, dados `8d10`).
+   - **Patrón del Gran Primigenio:** *Conjuros del Gran Primigenio* (`pasivo_permanente`), *Mente despierta* (`pasivo_permanente`), *Conjuros psíquicos* (`pasivo_permanente`), *Combatiente clarividente* (`consumible`, `usosMaximos: 1`, ligado a *Mente despierta*), *Maldición sobrenatural* (`pasivo_permanente` con conjuro otorgado), *Escudo de pensamientos* (`pasivo_permanente` con resistencia psíquica), *Crear esclavo* (`pasivo_permanente`).
+3. **Invocaciones Sobrenaturales y Selectores Dinámicos:**
+   - Registro de la clave dinámica `"trucos_brujo"` en `OPCIONES_DINAMICAS_MAP` (`hidratadorDotes.ts`), proveyendo los trucos reales del compendio (`all.json`).
+   - Hidratación reactiva de opciones en `generarOpcionesSelectorInvocaciones` (`invocacionesSobrenaturales.ts`).
+   - Estandarización de `categoriaMecanica` en las 28 invocaciones del catálogo (`invocaciones-sobrenaturales.json`).
+   - Integración de selectores dinámicos para la selección de trucos en *Descarga agónica*, *Descarga ahuyentadora* y *Lanza sobrenatural*.
+4. **Generalización de Esquemas Declarativos:**
+   - Incorporación de `conjuroGratuito` y `recuperacionConjuro` en `PlantillaRasgoClase` (`rasgos.ts`), `EsquemaPlantillaRasgoClaseJSON` (`esquemasCatalogos.ts`) y propagación pura en `construirRasgo` (`gestorClases.ts`), eliminando cualquier necesidad de heurísticas hardcodeadas.
+5. **Validación Integral del Pipeline CI:**
+   - Nueva suite de pruebas unitarias `src/servicios/brujoMecanicasDND55.test.ts` con 26 pruebas aprobadas al 100%.
+   - 100 suites y 1.525 pruebas unitarias globales aprobadas al 100%.
+   - TypeScript estricto sin errores (`tsc --noEmit`), ESLint impecable (`--max-warnings=0`), verificación de límites de líneas superada y compilación para producción con Vite completada con éxito en 15.73s.
+
 ## [2026-10-02] Corrección Arquitectónica: Inferencia Indebida de Lanzamiento Gratuito en Magia Cautivadora (Hechizar Persona e Imagen Múltiple)
 
 **Problema Reportado:**

@@ -18,6 +18,29 @@ Este archivo registra reglas globales, errores encontrados, sus causas raíz y l
 6. **PROHIBICIÓN ESTRICTA DE BIFURCACIONES POR NOMBRE DE RASGO O CLASE (CATÁLOGO DECLARATIVO Y BUILDER PURO)**:
    - **Bajo ninguna circunstancia** los módulos de lógica de negocio (`servicios/`), gestores de estado (`almacen/`) o constructores (`gestorClases.ts`) deben contener bifurcaciones condicionales por nombre literal de rasgo o clase (`r.nombre === "..."`, `clase.includes("...")`, etc.).
 
+## [2026-10-03] Implementación del Sistema de Sidekicks (Acompañantes) en la Hoja de Personaje
+
+**Objetivo de la Integración:**
+- Desarrollar la subpestaña de Sidekicks/Acompañantes en la Hoja de Personaje del jugador (`HojaPersonaje.tsx`), posicionada junto a las pestañas *"Combate y Atributos"* y *"Conjuros y Magia"*.
+- Reutilizar el compendio existente de criaturas (`baseDatosMonstruos`) sin duplicar catálogos ni forzar modificaciones en druida.
+- Reutilizar directamente la tarjeta de criatura de iniciativa del DM (`TarjetaCriaturaIniciativa.tsx`) para la gestión táctica del acompañante (curación, daño, vida temporal, condiciones, tiradas de ataque rápido e iniciativa 3D).
+- Incorporar vinculación física con miniaturas 3D de TaleSpire (`idMiniaturaTS`) de forma análoga a los personajes principales.
+
+**Decisiones Técnicas y Arquitectura Aplicada:**
+1. **Modelo de Datos Extensible y Estricto (`personaje.ts`):**
+   - Se definió `EsquemaAcompanantePersonaje` con validación Zod estricta: `id`, `nombre`, `idPlantilla`, `vidaActual`, `vidaMaxima`, `vidaTemporal`, `ca`, `condiciones`, `efectos`, `iniciativa`, `idMiniaturaTS`.
+   - Se añadió `acompanantes: z.array(EsquemaAcompanantePersonaje).default([])` en `EsquemaPersonajeJugador` y en `PERSONAJE_POR_DEFECTO`, garantizando retrocompatibilidad transparente con fichas existentes.
+2. **Sub-slice Desacoplado y de Responsabilidad Única (`sliceAcompanantes.ts`):**
+   - Se creó `crearSubSliceAcompanantes` en `src/almacen/slices/personajes/sliceAcompanantes.ts`, encapsulando `agregarAcompanantePersonaje`, `eliminarAcompanantePersonaje`, `modificarVidaAcompanante`, `actualizarAcompanante` y `vincularMiniaturaTSAcompanante`.
+   - Se utilizó el helper funcional puro `mutarPersonaje` para mutaciones seguras y libres de boilerplate.
+3. **Reutilización de Componentes de Iniciativa:**
+   - La nueva vista `SeccionAcompanantesPersonaje.tsx` mapea reactivamente los acompañantes a contratos `CriaturaIniciativa`, inyectándolos en `TarjetaCriaturaIniciativa` y permitiendo la inspección detallada del statblock completo mediante `PanelFichaDnD`.
+   - Vinculación reactiva con TaleSpire: si el jugador tiene seleccionada una miniatura física en el tablero (`criaturasSeleccionadas`), se ofrece vincular con un solo clic.
+4. **Validación Integral del Pipeline:**
+   - Suite dedicada `acompanantesPersonaje.test.ts` con 6 pruebas aprobadas al 100%.
+   - 103 suites y 1.556 pruebas globales superadas.
+   - Compilación completa de producción con TypeScript (`tsc`) y Vite exitosa en 101s, y linter ESLint impecable con 0 advertencias.
+
 ## [2026-10-02] Implementación Declarativa de la Clase Brujo y 4 Subclases Canónicas D&D 5.5e (PHB 2024)
 
 **Objetivo de la Integración:**

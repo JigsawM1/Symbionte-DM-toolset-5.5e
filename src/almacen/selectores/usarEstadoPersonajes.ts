@@ -839,7 +839,14 @@ export function usarAccionesPersonajes() {
       sincronizarRasgosPersonaje:         s.sincronizarRasgosPersonaje,
       alternarActivoRasgo:                s.alternarActivoRasgo,
       actualizarSeleccionRasgo:           s.actualizarSeleccionRasgo,
-      dispararRasgosIniciativaPersonaje:  s.dispararRasgosIniciativaPersonaje
+      dispararRasgosIniciativaPersonaje:  s.dispararRasgosIniciativaPersonaje,
+
+      // Acompañantes y Sidekicks
+      agregarAcompanantePersonaje:         s.agregarAcompanantePersonaje,
+      eliminarAcompanantePersonaje:        s.eliminarAcompanantePersonaje,
+      modificarVidaAcompanante:            s.modificarVidaAcompanante,
+      actualizarAcompanante:               s.actualizarAcompanante,
+      vincularMiniaturaTSAcompanante:       s.vincularMiniaturaTSAcompanante
     }))
   );
 }

@@ -12,7 +12,8 @@ import type {
   ClaseLanzadora,
   PersonalizacionHabilidad,
   PersonalizacionCaracteristica,
-  OpcionesAplicarBuild
+  OpcionesAplicarBuild,
+  AcompanantePersonaje
 } from "@/tipos";
 import type { ResultadoDescanso } from "@/servicios/procesadorDescansos";
 import type { OpcionesCalculoDistancia } from "@/servicios/calculadorDistanciaTS";
@@ -192,6 +193,27 @@ export interface SubSliceRasgos {
   recargarRasgoConEspacio: (idPj: string, idRasgo: string, nivelEspacio: number) => void;
 }
 
+export interface SubSliceAcompanantes {
+  agregarAcompanantePersonaje: (idPersonaje: string, acompanante: AcompanantePersonaje) => void;
+  eliminarAcompanantePersonaje: (idPersonaje: string, idAcompanante: string) => void;
+  modificarVidaAcompanante: (
+    idPersonaje: string,
+    idAcompanante: string,
+    vidaActual: number,
+    vidaTemporal?: number
+  ) => void;
+  actualizarAcompanante: (
+    idPersonaje: string,
+    idAcompanante: string,
+    cambios: Partial<AcompanantePersonaje>
+  ) => void;
+  vincularMiniaturaTSAcompanante: (
+    idPersonaje: string,
+    idAcompanante: string,
+    idMiniatura: string | null
+  ) => void;
+}
+
 // ==========================================
 // 2. INTERFAZ COMPUESTA UNIFICADA
 // ==========================================
@@ -203,4 +225,5 @@ export interface SlicePersonajes
     SubSliceCondiciones,
     SubSliceMagia,
     SubSliceInventario,
-    SubSliceRasgos {}
+    SubSliceRasgos,
+    SubSliceAcompanantes {}

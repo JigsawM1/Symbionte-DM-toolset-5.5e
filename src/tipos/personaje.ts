@@ -327,6 +327,25 @@ export const EsquemaEfectoActivo = z.object({
 export type EfectoActivoPj = z.infer<typeof EsquemaEfectoActivo>;
 
 // ==========================================
+// 3.6 ESQUEMA DE ACOMPAÑANTES / SIDEKICKS (D&D 5.5e)
+// ==========================================
+
+export const EsquemaAcompanantePersonaje = z.object({
+  id: z.string(),
+  nombre: z.string(),
+  idPlantilla: z.string(),
+  vidaActual: z.number().int().min(0),
+  vidaMaxima: z.number().int().min(1),
+  vidaTemporal: z.number().int().min(0).default(0),
+  ca: z.number().int().default(10),
+  condiciones: z.array(z.string()).default([]),
+  efectos: z.array(EsquemaEfectoActivo).default([]),
+  iniciativa: z.number().int().default(0),
+  idMiniaturaTS: z.string().nullable().default(null)
+});
+export type AcompanantePersonaje = z.infer<typeof EsquemaAcompanantePersonaje>;
+
+// ==========================================
 // 4. ESQUEMA PRINCIPAL DEL PERSONAJE JUGADOR
 // ==========================================
 
@@ -463,7 +482,10 @@ export const EsquemaPersonajeJugador = z.object({
 
   // Rasgos, Dotes y Personalizaciones (Apartado F)
   rasgos: z.array(EsquemaRasgoPersonaje).default([]),
-  dotes: z.array(z.string()).default([])
+  dotes: z.array(z.string()).default([]),
+
+  // Acompañantes y Sidekicks
+  acompanantes: z.array(EsquemaAcompanantePersonaje).default([])
 });
 
 export type PersonajeJugador = z.infer<typeof EsquemaPersonajeJugador>;

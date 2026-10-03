@@ -114,10 +114,16 @@ export const SeccionConjurosOcultos: React.FC<SeccionConjurosOcultosProps> = ({
                   const restantes = r.usosRestantes !== undefined ? r.usosRestantes : (r.usosMaximos ?? 1);
                   if (restantes <= 0) return false;
                   if (r.nivelRequerido && (personaje.nivel || 1) < r.nivelRequerido) return false;
+                  const tieneEfectoPreparado = Array.isArray(r.efectos) && r.efectos.some(
+                    (ef) => ef.tipo === "conjuro_otorgado" &&
+                    (coincideHechizoId(String(ef.objetivo || ef.valor), hechizo.id) ||
+                     coincideHechizoId(String(ef.objetivo || ef.valor), hechizo.nombre))
+                  );
+                  if (tieneEfectoPreparado) return false;
                   const cOtorgados = r.conjurosOtorgados || [];
                   return (
-                    cOtorgados.some((c) => coincideHechizoId(c, hechizo.id) || coincideHechizoId(c, hechizo.nombre)) ||
                     (r.conjuroGratuito && (coincideHechizoId(r.conjuroGratuito, hechizo.id) || coincideHechizoId(r.conjuroGratuito, hechizo.nombre))) ||
+                    cOtorgados.some((c) => coincideHechizoId(c, hechizo.id) || coincideHechizoId(c, hechizo.nombre)) ||
                     r.nombre.toLowerCase().includes(nomHechizoNorm) ||
                     nomHechizoNorm.includes(r.nombre.toLowerCase())
                   );

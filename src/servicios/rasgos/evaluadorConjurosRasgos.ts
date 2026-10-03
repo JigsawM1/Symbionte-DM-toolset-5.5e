@@ -92,21 +92,44 @@ export function obtenerNombresConjurosGratuitosActivos(personaje: PersonajeJugad
   // 1. Evaluar rasgos instanciados del personaje
   const pjNivel = personaje.nivel || 1;
   const rasgos = personaje.rasgos || [];
+  const condicionesNorm = (personaje.condicionesActivas || []).map(normalizar);
+  const efectosNorm = (personaje.efectosActivos || []).map((e) => normalizar(e.nombre));
 
   for (const r of rasgos) {
-    if (r.activo === false) continue;
     if (r.nivelRequerido && pjNivel < r.nivelRequerido) continue;
 
-    // Si el rasgo tiene usos limitados, verificar si le quedan usos disponibles
-    if (r.tieneUsosLimitados) {
-      const restantes = r.usosRestantes !== undefined ? r.usosRestantes : (r.usosMaximos ?? 1);
-      if (restantes <= 0) continue;
+    const esActivable = Boolean(r.esActivable || r.categoriaMecanica === "activable");
+    const condActivarNorm = r.condicionAlActivar ? normalizar(r.condicionAlActivar) : null;
+    const condActiva = Boolean(
+      condActivarNorm &&
+      (condicionesNorm.some((c) => c === condActivarNorm || c.includes(condActivarNorm) || condActivarNorm.includes(c)) ||
+       efectosNorm.some((e) => e === condActivarNorm || e.includes(condActivarNorm) || condActivarNorm.includes(e)))
+    );
+
+    // Determinar si el rasgo está activo:
+    // Si es activable, está activo si su toggle está encendido (r.activo === true) o su condición/efecto está activo.
+    // Si no es activable, está activo a menos que se haya desactivado explícitamente (r.activo !== false).
+    const estaActivo = esActivable ? (r.activo === true || condActiva) : (r.activo !== false);
+    if (!estaActivo) continue;
+
+    // Si el rasgo tiene usos limitados:
+    // - Para rasgos activables (ej. Manto de majestad): el uso se consume para encender el estado de 1 minuto,
+    //   por lo que mientras el rasgo permanezca activo, sus efectos de conjuro gratuito continúan vigentes
+    //   sin bloquearse aunque usosRestantes sea 0.
+    // - Para rasgos consumibles no activables (ej. Drow Magic, Toque restaurador):
+    //   cada lanzamiento gasta 1 uso, por lo que se requiere usos disponibles (restantes > 0).
+    const restantes = r.usosRestantes !== undefined ? r.usosRestantes : (r.usosMaximos ?? 1);
+    if (r.tieneUsosLimitados && !esActivable && restantes <= 0) {
+      continue;
     }
 
-    // A. Inferencia automática para rasgos consumibles con conjuros otorgados (DRY: Drow, Paladín, etc.)
-    if (r.tieneUsosLimitados && Array.isArray(r.conjurosOtorgados)) {
-      for (const c of r.conjurosOtorgados) {
-        if (c && c.trim()) nombres.add(c.trim());
+    // A. Inferencia automática SOLO para rasgos consumibles cuyos conjuros no sean explícitamente de preparación (conjuro_otorgado)
+    const tieneEfectosExplicitosPreparados = Array.isArray(r.efectos) && r.efectos.some((ef) => ef.tipo === "conjuro_otorgado");
+    if (r.tieneUsosLimitados && !esActivable && Array.isArray(r.conjurosOtorgados) && !tieneEfectosExplicitosPreparados) {
+      if (restantes > 0) {
+        for (const c of r.conjurosOtorgados) {
+          if (c && c.trim()) nombres.add(c.trim());
+        }
       }
     }
 
@@ -132,8 +155,11 @@ export function obtenerNombresConjurosGratuitosActivos(personaje: PersonajeJugad
               }
               if (Array.isArray(opcion.efectos)) {
                 for (const efOp of opcion.efectos) {
-                  if (efOp.tipo === "conjuro_gratuito" && efOp.objetivo) {
-                    nombres.add(String(efOp.objetivo).trim());
+                  if (efOp.tipo === "conjuro_gratuito" && (efOp.objetivo || efOp.valor)) {
+                    const cNom = String(efOp.objetivo || efOp.valor).trim();
+                    if (cNom && cNom !== "sin_espacio" && cNom !== "gratuito" && cNom !== "propio") {
+                      nombres.add(cNom);
+                    }
                   }
                 }
               }
@@ -143,11 +169,17 @@ export function obtenerNombresConjurosGratuitosActivos(personaje: PersonajeJugad
       }
     }
 
-    // C. Efectos mecánicos de tipo conjuro_gratuito directamente en el rasgo
+    // D. Efectos mecánicos de tipo conjuro_gratuito directamente en el rasgo
     if (Array.isArray(r.efectos)) {
       for (const ef of r.efectos) {
-        if (ef.tipo === "conjuro_gratuito" && ef.objetivo) {
-          nombres.add(String(ef.objetivo).trim());
+        if (ef.tipo === "conjuro_gratuito") {
+          const valObj = String(ef.objetivo || "").trim();
+          const valVal = String(ef.valor || "").trim();
+          if (valObj && valObj !== "propio" && valObj !== "sin_espacio" && valObj !== "gratuito") {
+            nombres.add(valObj);
+          } else if (valVal && valVal !== "propio" && valVal !== "sin_espacio" && valVal !== "gratuito") {
+            nombres.add(valVal);
+          }
         }
       }
     }

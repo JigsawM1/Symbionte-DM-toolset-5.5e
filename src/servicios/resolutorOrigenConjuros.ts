@@ -162,11 +162,6 @@ export function resolverOrigenConjuro(
       }
     }
 
-    // Regla D&D 5.5e: Palabras de creación (Bardo Nv 20)
-    if (!otorga && sinTildes.includes("palabra de poder") && (r.id.includes("palabras_creacion") || r.id.includes("palabras_de_creacion") || r.id.includes("creacion"))) {
-      otorga = true;
-    }
-
     if (otorga) {
       const fNorm = (r.fuente || "").toLowerCase();
       if (fNorm.includes("legado") || fNorm.includes("subespecie") || fNorm.includes("linaje") || fNorm.includes("subraza")) {
@@ -279,8 +274,6 @@ export function crearResolutorOrigenConjuros(
     }
   };
 
-  let tienePalabrasCreacion = false;
-
   // 1. Rasgos del personaje
   for (const r of personaje.rasgos || []) {
     if (r.activo === false) continue;
@@ -348,10 +341,6 @@ export function crearResolutorOrigenConjuros(
           if (val) registrarCadena(val, badge);
         }
       }
-    }
-
-    if (r.id.includes("palabras_creacion") || r.id.includes("palabras_de_creacion") || r.id.includes("creacion")) {
-      tienePalabrasCreacion = true;
     }
   }
 
@@ -426,8 +415,6 @@ export function crearResolutorOrigenConjuros(
               const sinTildes = norm.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
               if (sinTildes && mapa.has(sinTildes)) {
                 res = mapa.get(sinTildes) ?? null;
-              } else if (tienePalabrasCreacion && sinTildes.includes("palabra de poder")) {
-                res = "rasgos";
               } else {
                 // Fallback de seguridad al resolutor canónico
                 res = resolverOrigenConjuro(personaje, hechizo);

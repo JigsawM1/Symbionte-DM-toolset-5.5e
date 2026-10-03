@@ -457,6 +457,7 @@
           "recuperacion": "descanso_largo",
           "esActivable": true,
           "condicionAlActivar": "Manto de Majestad (Mantle of Majesty)",
+          "duracionEfectoAlActivar": 10,
           "conjurosOtorgados": [
             "Orden imperiosa"
           ],

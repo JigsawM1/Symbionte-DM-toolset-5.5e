@@ -82,6 +82,74 @@ describe("Visualización de Botón 'Gratis' en Panel de Conjuros de la Hoja de P
     espaciosConjuroGastados: { "1": 0 }
   };
 
+  const hechizoHechizarPersona: HechizoBase = {
+    id: "hechizo-hechizar-persona",
+    nombre: "Hechizar persona",
+    nivel: 1,
+    escuela: "Encantamiento",
+    tiempoLanzamiento: "1 Accion",
+    alcance: "30 pies",
+    componentesSeleccionados: { verbal: true, somatico: true, material: false },
+    duracion: "1 hora",
+    concentracion: false,
+    ritual: false,
+    descripcion: "Intentas hechizar a un humanoide que puedas ver."
+  };
+
+  const hechizoImagenMultiple: HechizoBase = {
+    id: "hechizo-imagen-multiple",
+    nombre: "Imagen múltiple",
+    nivel: 2,
+    escuela: "Ilusion",
+    tiempoLanzamiento: "1 Accion",
+    alcance: "Personal",
+    componentesSeleccionados: { verbal: true, somatico: true, material: false },
+    duracion: "1 minuto",
+    concentracion: false,
+    ritual: false,
+    descripcion: "Creas tres duplicados ilusorios de ti mismo."
+  };
+
+  const personajeConMagiaCautivadora: PersonajeJugador = {
+    ...PERSONAJE_POR_DEFECTO,
+    id: "pj-bardo-glamour-magia-cautivadora",
+    nombre: "Bardo Cautivador",
+    clase: "Bardo",
+    subclase: "Colegio del Glamour",
+    nivel: 3,
+    condicionesActivas: [],
+    rasgos: [
+      EsquemaRasgoPersonaje.parse({
+        id: "rasgo_cls_bardo_magia_cautivadora",
+        nombre: "Magia cautivadora",
+        categoriaMecanica: "consumible",
+        tipoAccion: "reaccion",
+        tieneUsosLimitados: true,
+        usosMaximos: 1,
+        usosRestantes: 1,
+        recuperacion: "descanso_largo",
+        conjurosOtorgados: ["Hechizar persona", "Imagen múltiple"],
+        efectos: [
+          {
+            tipo: "conjuro_otorgado",
+            objetivo: "Hechizar persona",
+            valor: "siempre_preparado",
+            activo: true
+          },
+          {
+            tipo: "conjuro_otorgado",
+            objetivo: "Imagen múltiple",
+            valor: "siempre_preparado",
+            activo: true
+          }
+        ],
+        descripcion: "Siempre tienes preparados Hechizar persona e Imagen múltiple."
+      })
+    ],
+    espaciosConjuroMaximos: { "1": 4, "2": 2 },
+    espaciosConjuroGastados: { "1": 0, "2": 0 }
+  };
+
   describe("SeccionNivelConjuros", () => {
     it("muestra el botón 'Gratis' para 'Orden imperiosa' cuando Manto de la Majestad está activo", () => {
       const html = renderToStaticMarkup(
@@ -173,6 +241,124 @@ describe("Visualización de Botón 'Gratis' en Panel de Conjuros de la Hoja de P
 
       expect(html).not.toContain("<span>Gratis</span>");
     });
+
+    it("muestra el botón 'Gratis' para 'Orden imperiosa' con rasgo Manto de majestad instanciado y activo (incluso con usosRestantes = 0)", () => {
+      const pjConRasgoReal: PersonajeJugador = {
+        ...PERSONAJE_POR_DEFECTO,
+        id: "pj-bardo-glamour-rasgo-real",
+        clase: "Bardo",
+        subclase: "Colegio del Glamour",
+        nivel: 6,
+        condicionesActivas: ["Manto de Majestad (Mantle of Majesty)"],
+        rasgos: [
+          EsquemaRasgoPersonaje.parse({
+            id: "rasgo_manto_majestad",
+            nombre: "Manto de majestad",
+            tipoAccion: "accion_adicional",
+            esActivable: true,
+            activo: true,
+            tieneUsosLimitados: true,
+            usosMaximos: 1,
+            usosRestantes: 0,
+            condicionAlActivar: "Manto de Majestad (Mantle of Majesty)",
+            conjurosOtorgados: ["Orden imperiosa"],
+            efectos: [
+              {
+                tipo: "conjuro_gratuito",
+                objetivo: "Orden imperiosa",
+                valor: "sin_espacio",
+                activo: true
+              }
+            ]
+          })
+        ],
+        espaciosConjuroMaximos: { "1": 4 },
+        espaciosConjuroGastados: { "1": 0 }
+      };
+
+      const html = renderToStaticMarkup(
+        <SeccionNivelConjuros
+          titulo="Nivel 1"
+          nivel={1}
+          conjurosVisibles={[hechizoOrdenImperiosa]}
+          conjurosFiltrados={[hechizoOrdenImperiosa]}
+          estaAbierta={true}
+          alAlternar={vi.fn()}
+          hayFiltrosActivos={false}
+          personaje={pjConRasgoReal}
+          bonoAtaqueMagico={6}
+          estaPreparado={() => true}
+          esHechizoDeSubclase={() => false}
+          requierePreparacion={false}
+          esLanzadorPacto={false}
+          nivelEspacioPacto={1}
+          sistemaMagia="espacios"
+          estaBloqueadoPorArmadura={false}
+          alAlternarOcultar={vi.fn()}
+          alQuitarDeLista={vi.fn()}
+          alAbrirDetalleCompleto={vi.fn()}
+          alLanzar={vi.fn()}
+        />
+      );
+
+      expect(html).toContain("<span>Gratis</span>");
+    });
+
+    it("NO muestra el botón 'Gratis' para 'Hechizar persona' ni 'Imagen múltiple' con Magia cautivadora", () => {
+      const htmlNivel1 = renderToStaticMarkup(
+        <SeccionNivelConjuros
+          titulo="Nivel 1"
+          nivel={1}
+          conjurosVisibles={[hechizoHechizarPersona]}
+          conjurosFiltrados={[hechizoHechizarPersona]}
+          estaAbierta={true}
+          alAlternar={vi.fn()}
+          hayFiltrosActivos={false}
+          personaje={personajeConMagiaCautivadora}
+          bonoAtaqueMagico={6}
+          estaPreparado={() => true}
+          esHechizoDeSubclase={() => false}
+          requierePreparacion={false}
+          esLanzadorPacto={false}
+          nivelEspacioPacto={1}
+          sistemaMagia="espacios"
+          estaBloqueadoPorArmadura={false}
+          alAlternarOcultar={vi.fn()}
+          alQuitarDeLista={vi.fn()}
+          alAbrirDetalleCompleto={vi.fn()}
+          alLanzar={vi.fn()}
+        />
+      );
+
+      expect(htmlNivel1).not.toContain("<span>Gratis</span>");
+
+      const htmlNivel2 = renderToStaticMarkup(
+        <SeccionNivelConjuros
+          titulo="Nivel 2"
+          nivel={2}
+          conjurosVisibles={[hechizoImagenMultiple]}
+          conjurosFiltrados={[hechizoImagenMultiple]}
+          estaAbierta={true}
+          alAlternar={vi.fn()}
+          hayFiltrosActivos={false}
+          personaje={personajeConMagiaCautivadora}
+          bonoAtaqueMagico={6}
+          estaPreparado={() => true}
+          esHechizoDeSubclase={() => false}
+          requierePreparacion={false}
+          esLanzadorPacto={false}
+          nivelEspacioPacto={1}
+          sistemaMagia="espacios"
+          estaBloqueadoPorArmadura={false}
+          alAlternarOcultar={vi.fn()}
+          alQuitarDeLista={vi.fn()}
+          alAbrirDetalleCompleto={vi.fn()}
+          alLanzar={vi.fn()}
+        />
+      );
+
+      expect(htmlNivel2).not.toContain("<span>Gratis</span>");
+    });
   });
 
   describe("SeccionConjurosOcultos", () => {
@@ -242,6 +428,36 @@ describe("Visualización de Botón 'Gratis' en Panel de Conjuros de la Hoja de P
           personaje={personajeSinGratuito}
           todosConjurosOcultos={[hechizoCurarHeridas]}
           conjurosOcultosFiltrados={[hechizoCurarHeridas]}
+          estaAbierta={true}
+          alAlternar={vi.fn()}
+          hayFiltrosActivos={false}
+          desocultarTodos={vi.fn()}
+          alternarOculto={vi.fn()}
+          bonoAtaqueMagico={6}
+          estaPreparado={() => true}
+          esHechizoDeSubclase={() => false}
+          requierePreparacion={false}
+          estaBloqueadoPorArmadura={false}
+          alAlternarPreparado={vi.fn()}
+          alQuitarTruco={vi.fn()}
+          alQuitarConjuro={vi.fn()}
+          alAbrirDetalleCompleto={vi.fn()}
+          alLanzar={vi.fn()}
+          esLanzadorPacto={false}
+          nivelEspacioPacto={1}
+          sistemaMagia="espacios"
+        />
+      );
+
+      expect(html).not.toContain("<span>Gratis</span>");
+    });
+
+    it("NO muestra el botón 'Gratis' para conjuros otorgados como preparados en Magia cautivadora", () => {
+      const html = renderToStaticMarkup(
+        <SeccionConjurosOcultos
+          personaje={personajeConMagiaCautivadora}
+          todosConjurosOcultos={[hechizoHechizarPersona, hechizoImagenMultiple]}
+          conjurosOcultosFiltrados={[hechizoHechizarPersona, hechizoImagenMultiple]}
           estaAbierta={true}
           alAlternar={vi.fn()}
           hayFiltrosActivos={false}

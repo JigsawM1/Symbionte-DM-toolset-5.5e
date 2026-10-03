@@ -143,11 +143,12 @@ describe("crearResolutorOrigenConjuros - Evaluación Pre-indexada O(1)", () => {
     expect(resolutor(dummyHechizo("h-identificar", "Identificar"))).toBe("rasgos");
   });
 
-  it("otorga origen 'rasgos' a cualquier conjuro con 'palabra de poder' para Bardo nivel 20 con Palabras de creación", () => {
+  it("otorga origen a los conjuros declarados en Palabras de creación y no a otros conjuros con 'palabra de poder'", () => {
     const rasgoCreacion = crearRasgoPrueba({
-      id: "rasgo-palabras_creacion",
-      nombre: "Palabras de Creación",
-      fuente: "Bardo"
+      id: "rasgo_cls_bardo_palabras_de_creacion",
+      nombre: "Palabras de creación",
+      fuente: "Bardo",
+      conjurosOtorgados: ["Palabra de poder: sanar", "Palabra de poder: matar"]
     });
 
     const pjBardo: PersonajeJugador = {
@@ -159,7 +160,14 @@ describe("crearResolutorOrigenConjuros - Evaluación Pre-indexada O(1)", () => {
 
     const resolutor = crearResolutorOrigenConjuros(pjBardo);
     const palabraPoderMatar = dummyHechizo("h-palabra-de-poder-matar", "Palabra de poder: matar", 9);
-    expect(resolutor(palabraPoderMatar)).toBe("rasgos");
+    const palabraPoderSanar = dummyHechizo("h-palabra-de-poder-sanar", "Palabra de poder: sanar", 9);
+    const palabraPoderAturdir = dummyHechizo("h-palabra-de-poder-aturdir", "Palabra de poder: aturdir", 8);
+    const palabraPoderFortalecer = dummyHechizo("h-palabra-de-poder-fortalecer", "Palabra de poder: fortalecer", 7);
+
+    expect(resolutor(palabraPoderMatar)).toBe("clase");
+    expect(resolutor(palabraPoderSanar)).toBe("clase");
+    expect(resolutor(palabraPoderAturdir)).toBeNull();
+    expect(resolutor(palabraPoderFortalecer)).toBeNull();
   });
 
   it("mantiene consistencia total con resolverOrigenConjuro para conjuros conocidos", () => {

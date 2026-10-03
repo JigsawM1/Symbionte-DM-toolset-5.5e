@@ -237,6 +237,7 @@ export function usarLanzadorConjuros(opciones: OpcionesLanzadorConjuros): Contro
               const hNomNorm = (solicitudCompleta.hechizo.nombre || "").toLowerCase().trim();
               const rasgoAsociado = (personaje.rasgos || []).find((r) =>
                 r.tieneUsosLimitados &&
+                !r.esActivable &&
                 (r.usosRestantes !== undefined ? r.usosRestantes : (r.usosMaximos ?? 1)) > 0 &&
                 (
                   (r.conjurosOtorgados || []).some((c) => coincideHechizoId(c, hId) || coincideHechizoId(c, solicitudCompleta.hechizo.nombre)) ||

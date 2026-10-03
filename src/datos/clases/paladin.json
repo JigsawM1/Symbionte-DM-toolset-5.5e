@@ -160,6 +160,7 @@
       "tieneUsosLimitados": true,
       "usosMaximos": 1,
       "recuperacion": "descanso_largo",
+      "conjuroGratuito": "Castigo divino",
       "conjurosOtorgados": [
         "Castigo divino"
       ]

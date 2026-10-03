@@ -18,6 +18,93 @@ Este archivo registra reglas globales, errores encontrados, sus causas raíz y l
 6. **PROHIBICIÓN ESTRICTA DE BIFURCACIONES POR NOMBRE DE RASGO O CLASE (CATÁLOGO DECLARATIVO Y BUILDER PURO)**:
    - **Bajo ninguna circunstancia** los módulos de lógica de negocio (`servicios/`), gestores de estado (`almacen/`) o constructores (`gestorClases.ts`) deben contener bifurcaciones condicionales por nombre literal de rasgo o clase (`r.nombre === "..."`, `clase.includes("...")`, etc.).
 
+## [2026-10-02] Corrección Arquitectónica: Inferencia Indebida de Lanzamiento Gratuito en Magia Cautivadora (Hechizar Persona e Imagen Múltiple)
+
+**Problema Reportado:**
+- En la subclase *Colegio del Glamour* del Bardo (Nivel 3), el rasgo *Magia cautivadora* provocaba que los conjuros *Hechizar persona* e *Imagen múltiple* se mostraran con el botón de lanzamiento "Gratis" en la hoja de personaje, a pesar de que en las reglas oficiales D&D 5.5e (PHB 2024) son conjuros siempre preparados que consumen espacios de conjuro normales, y su contador de uso (1 por descanso largo o recuperable gastando Inspiración bárdica) aplica únicamente a la reacción para intentar hechizar o asustar a una criatura tras lanzar un conjuro de Encantamiento o Ilusión.
+
+**Causa Raíz:**
+1. **Inferencia Ambigua en `evaluadorConjurosRasgos.ts`:**
+   - La función `obtenerNombresConjurosGratuitosActivos` asumía como comportamiento por defecto que cualquier rasgo con `tieneUsosLimitados: true`, `usosRestantes > 0` y un array de `conjurosOtorgados` otorgaba dichos conjuros para lanzamiento gratuito sin coste de espacios (heredado de rasgos como *Don mágico* o hechizos raciales).
+   - Sin embargo, *Magia cautivadora* declara explícitamente efectos mecánicos de tipo `"conjuro_otorgado"` con `valor: "siempre_preparado"` para estructurar la preparación automática del conjuro en el builder.
+2. **Duplicación de Heurística en Componentes de Vista (`SeccionNivelConjuros.tsx` y `SeccionConjurosOcultos.tsx`):**
+   - Ambos componentes contenían un bloque `rasgoInnatoGratuito = rasgos.find(...)` con la misma lógica permisiva, omitiendo verificar si el rasgo tenía efectos declarativos de tipo `"conjuro_otorgado"`.
+   - Rasgos como *Castigo de paladín* dependían de esta inferencia porque no declaraban explícitamente `conjuroGratuito: "Castigo divino"`.
+
+**Soluciones Técnicas Aplicadas:**
+1. **Distinción Declarativa de Efectos en `evaluadorConjurosRasgos.ts`:**
+   - Se añadió la guarda `tieneEfectosExplicitosPreparados`: si un rasgo define efectos de tipo `"conjuro_otorgado"` para un hechizo, se descarta taxativamente de la inferencia automática de conjuro gratuito, respetando su condición de conjuro preparado que consume espacios normales.
+2. **Estandarización Declarativa en `paladin.json`:**
+   - Se configuró explícitamente `"conjuroGratuito": "Castigo divino"` en el rasgo *Castigo de paladín*, eliminando cualquier dependencia de heurísticas implícitas.
+3. **Sincronización en Componentes de Hoja de Personaje (`SeccionNivelConjuros.tsx` y `SeccionConjurosOcultos.tsx`):**
+   - Se incorporó la comprobación `tieneEfectoPreparado` en el selector `rasgoInnatoGratuito` de ambos componentes, impidiendo que conjuros marcados como preparados por un rasgo muestren falsamente el botón `"Gratis"`.
+4. **Blindaje de Pruebas Unitarias y de Integración:**
+   - En `src/servicios/bardoMecanicasDND55.test.ts`, se comprobó que `tieneConjuroGratuitoActivo` devuelve `false` para *Hechizar persona* e *Imagen múltiple* en un bardo del Colegio del Glamour.
+   - En `src/componentes/caracteristicas/personajes/conjurosGratuitosHoja.test.tsx`, se verificó que ni en `SeccionNivelConjuros` ni en `SeccionConjurosOcultos` se renderiza el botón `"Gratis"` para dichos conjuros.
+
+## [2026-10-02] Corrección Arquitectónica: Lanzamiento Gratuito de Conjuros en Rasgos Activables (Manto de Majestad / Orden Imperiosa)
+
+**Problema Reportado:**
+- Al activar el rasgo de apariencia sobrenatural del Colegio del Glamour (referenciado como *Manto de inspiración* por el usuario, correspondiendo en reglas canónicas a *Manto de majestad* de Nivel 6), el conjuro *Orden imperiosa* no mostraba el botón de lanzamiento "Gratis" en su tarjeta de conjuro mientras el manto permanecía activo.
+
+**Causa Raíz:**
+1. **Descarte Prematuro por Usos Restantes en `evaluadorConjurosRasgos.ts`:**
+   - En `obtenerNombresConjurosGratuitosActivos`, se ejecutaba la guarda: `if (r.tieneUsosLimitados) { if (restantes <= 0) continue; }`.
+   - Para rasgos activables con duración continua (como *Manto de majestad*, que se activa durante 1 minuto gastando su uso diario), al encender el toggle en la interfaz `usosRestantes` pasa a ser 0.
+   - El evaluador descartaba el rasgo por tener 0 usos restantes, ignorando por completo que el rasgo ya estaba encendido (`r.activo === true`) y que el beneficio de lanzar el conjuro gratis opera **durante toda la duración del estado activo**.
+2. **Desconexión con `condicionesActivas` y `efectosActivos`:**
+   - El bucle principal de rasgos instanciados no evaluaba si `r.condicionAlActivar` coincidía con las condiciones o efectos activos del personaje, limitando la detección únicamente al booleano simple `r.activo`.
+3. **Distinción de Rasgos Canónicos en Colegio del Glamour (PHB 2024):**
+   - *Manto de inspiración* (Nivel 3): Gasta un dado de Inspiración bárdica para conceder PV temporales (el doble del dado) y movimiento reactivo a los aliados sin ataques de oportunidad.
+   - *Manto de majestad* (Nivel 6): Se activa como acción adicional (1 uso por descanso largo o recuperable con espacio nivel 3+), adoptando apariencia sobrenatural por 1 minuto (concentración), tiempo durante el cual se puede lanzar *Orden imperiosa* gratis sin gastar espacios de conjuro en cada turno.
+
+**Soluciones Técnicas Aplicadas:**
+1. **Evaluación Integral de Estado Activo y Exención de `usosRestantes <= 0`:**
+   - En `src/servicios/rasgos/evaluadorConjurosRasgos.ts`, se configuró la detección de estado activo: un rasgo activable está activo si `r.activo === true` o si su `condicionAlActivar` coincide con `personaje.condicionesActivas` o `personaje.efectosActivos`.
+   - Si el rasgo es activable y está activo, sus efectos de `conjuro_gratuito` aplican con total vigencia sin bloquearse por `usosRestantes <= 0`. Para rasgos consumibles no activables (ej. Drow Magic), sí se sigue exigiendo `restantes > 0`.
+2. **Configuración en Catálogo Declarativo (`bardo.json`):**
+   - Se añadió `"duracionEfectoAlActivar": 10` (10 rondas / 1 minuto) a *Manto de majestad* en `src/datos/clases/bardo.json`.
+3. **Protección en Lanzador de Conjuros (`usarLanzadorConjuros.ts`):**
+   - Se añadió `!r.esActivable` en el bloque de resolución de `gratuitoInnato` para no intentar debitar usos de rasgos de estado continuo que ya consumieron su recurso al activarse.
+4. **Blindaje de Pruebas Unitarias:**
+   - En `src/servicios/bardoMecanicasDND55.test.ts`, se añadió una prueba que valida que *Manto de majestad* activo (incluso con `usosRestantes: 0` o por condición) habilita el lanzamiento gratuito de *Orden imperiosa*, y que al apagarse vuelve a `false`.
+   - En `src/componentes/caracteristicas/personajes/conjurosGratuitosHoja.test.tsx`, se validó el renderizado del botón `<span>Gratis</span>` con rasgo instanciado activo y 0 usos restantes.
+5. **Validación Integral del Pipeline CI:**
+   - `pnpm exec tsc --noEmit`: 0 errores.
+   - `pnpm run lint`: 0 errores y 0 advertencias (`--max-warnings=0`).
+   - `node scripts/verificar-limite-lineas.js`: 112 archivos auditados sin excesos de tamaño.
+   - `pnpm test`: 99 suites pasadas (1.496 pruebas globales al 100%).
+   - `pnpm exec vite build`: Compilación para producción completada exitosamente en 13.72s.
+
+## [2026-10-02] Corrección Arquitectónica: Palabras de Creación (Bardo Nivel 20) y Resolución Declarativa de Conjuros
+
+**Problema Reportado:**
+- Al alcanzar el Nivel 20 con la clase Bardo y el rasgo *Palabras de creación*, la vista de conjuros conocidos del compendio (`CompendioConjurosJugador.tsx`) mostraba 4 conjuros otorgados en lugar de los 2 oficiales: aparecían *Palabra de poder: fortalecer* (Nivel 7) y *Palabra de poder: aturdir* (Nivel 8) con la insignia `[Rasgos]`, además de los 2 conjuros canónicos (*Palabra de poder: sanar* y *Palabra de poder: matar* con insignia `[Clase]`).
+
+**Causa Raíz:**
+1. **Regla Hardcodeada Obsoleta en `resolutorOrigenConjuros.ts`:**
+   - En `src/servicios/resolutorOrigenConjuros.ts`, se encontraron condiciones basadas en cadenas que evaluaban `sinTildes.includes("palabra de poder")` tanto en el resolutor síncrono `resolverOrigenConjuro` (línea 166) como en el indexador pre-computado `crearResolutorOrigenConjuros` mediante la bandera `tienePalabrasCreacion` (líneas 282, 353 y 429).
+   - Debido a esta condición arbitraria, cualquier hechizo del compendio que incluyera "palabra de poder" en su nombre era catalogado con origen `"rasgos"`.
+2. **Propagación a la Lógica de Pertenencia y UI:**
+   - En `logicaPertenenciaConjuros.ts`, la función `esHechizoOtorgado` evalúa `resolutorOrigen(hechizo) !== null`. Al clasificar como "rasgos" tanto a *fortalecer* como a *aturdir*, `estaEnLista(hechizo)` y `estaPreparado(hechizo)` retornaban `true`, forzando su renderizado en la pestaña `CONOCIDOS` con checkbox activo.
+3. **Violación de la Regla 6 del Proyecto:**
+   - La implementación hardcodeada violaba la Regla Global 6 ("PROHIBICIÓN ESTRICTA DE BIFURCACIONES POR NOMBRE DE RASGO O CLASE"), impidiendo que el catálogo `bardo.json` gobernara de forma estrictamente declarativa los conjuros otorgados vía `conjurosOtorgados`.
+
+**Soluciones Técnicas Aplicadas:**
+1. **Remoción Quirúrgica de Bifurcaciones Hardcodeadas en `resolutorOrigenConjuros.ts`:**
+   - Se eliminaron las líneas 165–168 (`sinTildes.includes("palabra de poder")`) y las referencias a `tienePalabrasCreacion` (líneas 282, 353-356, 429-431).
+   - El sistema ahora delega 100% en el procesador declarativo que indexa los arrays `r.conjurosOtorgados` y los efectos mecánicos (`ef.tipo === "conjuro_otorgado"`).
+   - *Palabras de creación* en `src/datos/clases/bardo.json` define explícitamente `["Palabra de poder: sanar", "Palabra de poder: matar"]`. Ningún otro conjuro de "palabra de poder" es indexado automáticamente.
+2. **Actualización y Blindaje de Pruebas Unitarias:**
+   - En `src/servicios/resolutorOrigenConjuros.test.ts`, se refactorizó la prueba para validar que los 2 conjuros canónicos obtienen origen `"clase"`, mientras que *Palabra de poder: aturdir* y *Palabra de poder: fortalecer* retornan `null`.
+   - En `src/servicios/bardoMecanicasDND55.test.ts`, se añadió una nueva prueba integral para Bardo nivel 20 que verifica que `resolutor` retorna `null` para conjuros no otorgados.
+3. **Validación Integral del Pipeline CI:**
+   - `pnpm exec tsc --noEmit`: 0 errores de tipado estricto.
+   - `pnpm run lint`: 0 errores y 0 advertencias (`--max-warnings=0`).
+   - `node scripts/verificar-limite-lineas.js`: 112 archivos auditados sin excesos de líneas.
+   - `pnpm test`: 99 suites pasadas (1.494 pruebas globales aprobadas al 100%).
+   - `pnpm exec vite build`: Compilación para producción completada exitosamente en 15.11s.
+
 ## [2026-10-02] Implementación Declarativa de la Clase Bardo y 4 Subclases Canónicas D&D 5.5e (PHB 2024)
 
 **Objetivo de la Integración:**

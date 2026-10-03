@@ -4,6 +4,9 @@ import { usarAlmacenDM } from "@/almacen/usarAlmacenDM";
 import { PERSONAJE_POR_DEFECTO } from "@/constantes/personajeConstantes";
 import type { PersonajeJugador } from "@/tipos/personaje";
 import type { RasgoPersonaje } from "@/tipos/rasgos";
+import type { HechizoBase } from "@/tipos";
+import { crearResolutorOrigenConjuros } from "./resolutorOrigenConjuros";
+import { tieneConjuroGratuitoActivo } from "./rasgos/evaluadorConjurosRasgos";
 
 function crearRasgoMock(parcial: Partial<RasgoPersonaje> & { id: string; nombre: string }): RasgoPersonaje {
   return {
@@ -191,6 +194,79 @@ describe("Bardo D&D 5.5e (PHB 2024) - Mecánicas Declarativas y Subclases Canón
       expect(palabras?.categoriaMecanica).toBe("pasivo_permanente");
       expect(palabras?.conjurosOtorgados).toEqual(["Palabra de poder: sanar", "Palabra de poder: matar"]);
     });
+
+    it("Nivel 20: Palabras de creación otorga exclusivamente Palabra de poder: sanar y Palabra de poder: matar", () => {
+      const rasgosNv20 = obtenerRasgosClaseYSubclase("Bardo", 20);
+      const palabras = rasgosNv20.find((r) => r.nombre === "Palabras de creación")!;
+      expect(palabras).toBeDefined();
+
+      const pjBardo20: PersonajeJugador = {
+        ...PERSONAJE_POR_DEFECTO,
+        id: "bardo-nv20",
+        clase: "Bardo",
+        nivel: 20,
+        rasgos: [palabras]
+      };
+
+      const resolutor = crearResolutorOrigenConjuros(pjBardo20);
+      const hechizoSanar: HechizoBase = {
+        id: "h-palabra-de-poder-sanar",
+        nombre: "Palabra de poder: sanar",
+        nivel: 9,
+        escuela: "Evocacion",
+        tiempoLanzamiento: "1 Accion",
+        alcance: "60 pies",
+        componentesSeleccionados: { verbal: true, somatico: false, material: false },
+        duracion: "Instantaneo",
+        concentracion: false,
+        ritual: false,
+        descripcion: ""
+      };
+      const hechizoMatar: HechizoBase = {
+        id: "h-palabra-de-poder-matar",
+        nombre: "Palabra de poder: matar",
+        nivel: 9,
+        escuela: "Encantamiento",
+        tiempoLanzamiento: "1 Accion",
+        alcance: "60 pies",
+        componentesSeleccionados: { verbal: true, somatico: false, material: false },
+        duracion: "Instantaneo",
+        concentracion: false,
+        ritual: false,
+        descripcion: ""
+      };
+      const hechizoAturdir: HechizoBase = {
+        id: "h-palabra-de-poder-aturdir",
+        nombre: "Palabra de poder: aturdir",
+        nivel: 8,
+        escuela: "Encantamiento",
+        tiempoLanzamiento: "1 Accion",
+        alcance: "60 pies",
+        componentesSeleccionados: { verbal: true, somatico: false, material: false },
+        duracion: "Instantaneo",
+        concentracion: false,
+        ritual: false,
+        descripcion: ""
+      };
+      const hechizoFortalecer: HechizoBase = {
+        id: "h-palabra-de-poder-fortalecer",
+        nombre: "Palabra de poder: fortalecer",
+        nivel: 7,
+        escuela: "Encantamiento",
+        tiempoLanzamiento: "1 Accion",
+        alcance: "60 pies",
+        componentesSeleccionados: { verbal: true, somatico: false, material: false },
+        duracion: "Instantaneo",
+        concentracion: false,
+        ritual: false,
+        descripcion: ""
+      };
+
+      expect(resolutor(hechizoSanar)).toBe("clase");
+      expect(resolutor(hechizoMatar)).toBe("clase");
+      expect(resolutor(hechizoAturdir)).toBeNull();
+      expect(resolutor(hechizoFortalecer)).toBeNull();
+    });
   });
 
   // ───────────────────────────────────────────────────────────
@@ -245,6 +321,60 @@ describe("Bardo D&D 5.5e (PHB 2024) - Mecánicas Declarativas y Subclases Canón
 
         const inquebrantable = rasgos.find((r) => r.nombre === "Majestad inquebrantable");
         expect(inquebrantable?.categoriaMecanica).toBe("activable");
+      });
+
+      it("Magia cautivadora prepara Hechizar persona e Imagen múltiple pero NO los otorga gratis", () => {
+        const rasgos = obtenerRasgosClaseYSubclase("Bardo", 3, "Colegio del Glamour");
+        const magia = rasgos.find((r) => r.nombre === "Magia cautivadora")!;
+        expect(magia).toBeDefined();
+
+        const pjGlamour: PersonajeJugador = {
+          ...PERSONAJE_POR_DEFECTO,
+          clase: "Bardo",
+          subclase: "Colegio del Glamour",
+          nivel: 3,
+          rasgos: [{ ...magia, usosRestantes: 1 }]
+        };
+
+        expect(tieneConjuroGratuitoActivo(pjGlamour, "Hechizar persona")).toBe(false);
+        expect(tieneConjuroGratuitoActivo(pjGlamour, "Imagen múltiple")).toBe(false);
+      });
+
+      it("Manto de majestad otorga Orden imperiosa gratis mientras esté activo (incluso con usosRestantes = 0)", () => {
+        const rasgos = obtenerRasgosClaseYSubclase("Bardo", 6, "Colegio del Glamour");
+        const majestadBase = rasgos.find((r) => r.nombre === "Manto de majestad")!;
+        expect(majestadBase).toBeDefined();
+
+        // 1. Inactivo -> No otorga Orden imperiosa gratis
+        const pjInactivo: PersonajeJugador = {
+          ...PERSONAJE_POR_DEFECTO,
+          clase: "Bardo",
+          subclase: "Colegio del Glamour",
+          nivel: 6,
+          rasgos: [{ ...majestadBase, activo: false, usosRestantes: 1 }]
+        };
+        expect(tieneConjuroGratuitoActivo(pjInactivo, "Orden imperiosa")).toBe(false);
+
+        // 2. Activo con usosRestantes = 0 (uso diario consumido al activarse) -> SÍ otorga Orden imperiosa gratis
+        const pjActivo: PersonajeJugador = {
+          ...PERSONAJE_POR_DEFECTO,
+          clase: "Bardo",
+          subclase: "Colegio del Glamour",
+          nivel: 6,
+          rasgos: [{ ...majestadBase, activo: true, usosRestantes: 0 }]
+        };
+        expect(tieneConjuroGratuitoActivo(pjActivo, "Orden imperiosa")).toBe(true);
+
+        // 3. Activo mediante condición asociada en condicionesActivas -> SÍ otorga Orden imperiosa gratis
+        const pjPorCondicion: PersonajeJugador = {
+          ...PERSONAJE_POR_DEFECTO,
+          clase: "Bardo",
+          subclase: "Colegio del Glamour",
+          nivel: 6,
+          condicionesActivas: ["Manto de Majestad (Mantle of Majesty)"],
+          rasgos: [{ ...majestadBase, activo: false, usosRestantes: 0 }]
+        };
+        expect(tieneConjuroGratuitoActivo(pjPorCondicion, "Orden imperiosa")).toBe(true);
       });
     });
 

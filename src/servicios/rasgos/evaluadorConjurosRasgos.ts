@@ -41,7 +41,7 @@ export function obtenerConjurosOtorgadosPorRasgos(personaje: PersonajeJugador): 
           }
         }
 
-        // Extraer conjuros otorgados o gratuitos desde opciones seleccionadas en selectores (ej. Invocaciones)
+        // Extraer conjuros otorgados o gratuitos desde opciones seleccionadas en selectores (ej. Invocaciones, Maestría en conjuros)
         if (Array.isArray(sel.valorActual)) {
           for (const opId of sel.valorActual) {
             const baseId = opId.includes(":")
@@ -50,6 +50,10 @@ export function obtenerConjurosOtorgadosPorRasgos(personaje: PersonajeJugador): 
               ? opId.split("__")[0]
               : opId;
             const opcion = sel.opciones?.find((o) => o.id === opId || o.id === baseId);
+            if (sel.tipoSelector === "conjuro" || sel.esConjuroGratuito) {
+              if (opcion?.nombre) conjuros.add(opcion.nombre.trim());
+              if (opId) conjuros.add(opId.trim());
+            }
             if (opcion) {
               if (opcion.conjuroGratuito && opcion.conjuroGratuito.trim()) {
                 conjuros.add(opcion.conjuroGratuito.trim());
@@ -149,6 +153,10 @@ export function obtenerNombresConjurosGratuitosActivos(personaje: PersonajeJugad
               ? opId.split("__")[0]
               : opId;
             const opcion = sel.opciones?.find((o) => o.id === opId || o.id === baseId);
+            if (sel.esConjuroGratuito) {
+              if (opcion?.nombre) nombres.add(opcion.nombre.trim());
+              if (opId) nombres.add(opId.trim());
+            }
             if (opcion) {
               if (opcion.conjuroGratuito && opcion.conjuroGratuito.trim()) {
                 nombres.add(opcion.conjuroGratuito.trim());

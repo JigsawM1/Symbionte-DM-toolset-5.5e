@@ -11,7 +11,8 @@ import {
   BookOpen,
   Maximize2,
   Eye,
-  EyeOff
+  EyeOff,
+  Sparkles
 } from "lucide-react";
 import estilos from "./VistaRasgosJugador.module.css";
 import {
@@ -23,6 +24,9 @@ import {
   CLASE_ORIGEN_BORDE
 } from "./TarjetaRasgo.constantes";
 import { usarAccionesTarjetaRasgo } from "./usarAccionesTarjetaRasgo";
+import { ModalTiendaRecuperacionEspacios } from "./ModalTiendaRecuperacionEspacios";
+import { ModalTiendaRecargaEspacio } from "./ModalTiendaRecargaEspacio";
+import { ChipsSelectoresYDadosRasgo } from "./ChipsSelectoresYDadosRasgo";
 
 interface TarjetaRasgoProps {
   rasgo: RasgoPersonaje;
@@ -80,6 +84,74 @@ export const TarjetaRasgo: React.FC<TarjetaRasgoProps> = ({
     usosPadre,
     formulaDadosEfectiva
   });
+
+  const [mostrarTiendaRecuperacion, setMostrarTiendaRecuperacion] = React.useState(false);
+  const [mostrarTiendaRecarga, setMostrarTiendaRecarga] = React.useState(false);
+  const personajeActivoAlmacen = usarAlmacenDM(
+    React.useCallback((s) => s.personajes.find((p) => p.id === idPersonaje), [idPersonaje])
+  );
+
+  const manejarConfirmarRecuperacion = (espacios: Record<number, number>, puntosConjuro?: number) => {
+    if (!idPersonaje) return;
+    const { recuperarEspacioConjuro, recuperarPuntosConjuro, gastarUsoRasgoPersonaje, agregarNotificacion } = usarAlmacenDM.getState();
+    let totalRanuras = 0;
+    for (const [lvlStr, cant] of Object.entries(espacios)) {
+      const lvl = Number(lvlStr);
+      const cantidad = cant || 0;
+      for (let i = 0; i < cantidad; i++) {
+        recuperarEspacioConjuro(idPersonaje, lvl);
+        totalRanuras++;
+      }
+    }
+    const puntos = puntosConjuro || 0;
+    if (puntos > 0) {
+      recuperarPuntosConjuro(idPersonaje, puntos);
+    }
+    if (totalRanuras > 0 || puntos > 0) {
+      gastarUsoRasgoPersonaje(idPersonaje, rasgo.id, 1);
+      const partesMensaje: string[] = [];
+      if (totalRanuras > 0) {
+        partesMensaje.push(`${totalRanuras} ${totalRanuras === 1 ? "espacio de conjuro" : "espacios de conjuro"}`);
+      }
+      if (puntos > 0) {
+        partesMensaje.push(`${puntos} ${puntos === 1 ? "punto de conjuro" : "puntos de conjuro"}`);
+      }
+      agregarNotificacion(
+        `¡${rasgo.nombre}! Se han recuperado ${partesMensaje.join(" y ")}.`,
+        "exito"
+      );
+    }
+  };
+
+  const manejarConfirmarRecargaEspacio = (nivelEspacio: number) => {
+    if (!idPersonaje) return;
+    const { recargarRasgoConEspacio, agregarNotificacion } = usarAlmacenDM.getState();
+    recargarRasgoConEspacio(idPersonaje, rasgo.id, nivelEspacio);
+    const mult = rasgo.multiplicadorRecargaEspacio ?? 2;
+    agregarNotificacion(
+      `¡${rasgo.nombre}! Has gastado un espacio de nivel ${nivelEspacio} y restablecido +${nivelEspacio * mult} PG temporales.`,
+      "exito"
+    );
+  };
+
+  const manejarTirarDadosGuardados = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!idPersonaje) return;
+    const formula = formulaEfectiva || rasgo.formulaDados || "2d20";
+    const match = formula.match(/^(\d+)d(\d+)$/i);
+    const cant = match ? parseInt(match[1], 10) : 2;
+    const caras = match ? parseInt(match[2], 10) : 20;
+    const nuevosDados: number[] = [];
+    for (let i = 0; i < cant; i++) {
+      nuevosDados.push(Math.floor(Math.random() * caras) + 1);
+    }
+    usarAlmacenDM.getState().guardarDadosRasgo(idPersonaje, rasgo.id, nuevosDados);
+    usarAlmacenDM.getState().agregarNotificacion(
+      `¡${rasgo.nombre}! Tirada de presagio generada: ${nuevosDados.join(", ")}`,
+      "exito"
+    );
+  };
+
 
   const esRasgoSelector =
     rasgo.categoriaMecanica === "selector_informativo" ||
@@ -220,8 +292,25 @@ export const TarjetaRasgo: React.FC<TarjetaRasgoProps> = ({
             </div>
           )}
 
-          {/* Botón de Tirada de Dados 3D / Curación */}
-          {formulaEfectiva && (
+          {/* Botón interactivo de Portento / Dados Guardados */}
+          {rasgo.guardaDadosTirada && (
+            <button
+              type="button"
+              className={estilos.botonTirarDados}
+              onClick={manejarTirarDadosGuardados}
+              title={`Tirar ${formulaEfectiva || "2d20"} y registrar dados de presagio`}
+            >
+              <Dices size={11} color="#a5b4fc" />
+              <span>
+                {Array.isArray(rasgo.dadosGuardados) && rasgo.dadosGuardados.length > 0
+                  ? `Retirar (${formulaEfectiva || "2d20"})`
+                  : `Tirar ${formulaEfectiva || "2d20"}`}
+              </span>
+            </button>
+          )}
+
+          {/* Botón de Tirada de Dados 3D / Curación regular */}
+          {formulaEfectiva && !rasgo.guardaDadosTirada && (
             <button
               type="button"
               className={estilos.botonTirarDados}
@@ -246,6 +335,22 @@ export const TarjetaRasgo: React.FC<TarjetaRasgoProps> = ({
             </button>
           )}
 
+          {/* Botón interactivo de Recarga con Espacio de Conjuro (ej. Salvaguarda arcana) */}
+          {rasgo.recargaConEspacio && (
+            <button
+              type="button"
+              className={estilos.botonTirarDados}
+              onClick={(e) => {
+                e.stopPropagation();
+                setMostrarTiendaRecarga(true);
+              }}
+              title="Gastar un espacio de conjuro para restablecer PG temporales"
+            >
+              <Shield size={11} color="#38bdf8" />
+              <span>Recargar PG</span>
+            </button>
+          )}
+
           {/* Botón interactivo de HP Temporal (para rasgos sin fórmula de dados, ej. Descarga de adrenalina) */}
           {!formulaEfectiva && esHpTemporalPropio && (
             <button
@@ -261,6 +366,27 @@ export const TarjetaRasgo: React.FC<TarjetaRasgoProps> = ({
             >
               <Shield size={11} color="#38bdf8" />
               <span>+{valorHpTemporalCalculado} PG Temp</span>
+            </button>
+          )}
+
+          {/* Botón interactivo de Recuperación de Espacios (ej. Recuperación arcana) */}
+          {rasgo.recuperarEspacios && (
+            <button
+              type="button"
+              className={estilos.botonTirarDados}
+              onClick={(e) => {
+                e.stopPropagation();
+                setMostrarTiendaRecuperacion(true);
+              }}
+              disabled={sinUsosDisponibles}
+              title={
+                sinUsosDisponibles
+                  ? "No quedan usos disponibles (requiere descanso largo)"
+                  : "Abrir recuperación de espacios de conjuro"
+              }
+            >
+              <Sparkles size={11} color="#c084fc" />
+              <span>Recuperar Espacios</span>
             </button>
           )}
 
@@ -339,36 +465,29 @@ export const TarjetaRasgo: React.FC<TarjetaRasgoProps> = ({
         </div>
       )}
 
-      {/* Chips de opciones seleccionadas en selectores (ej. armas de Maestría, tamaño, revelación) */}
-      {Array.isArray(rasgo.selectores) && rasgo.selectores.length > 0 && (
-        <div className={estilos.contenedorChipsSelectores}>
-          {rasgo.selectores.map((sel) => {
-            const opcionesElegidas = sel.opciones.filter((o) =>
-              (sel.valorActual || []).some(
-                (v) => v === o.id || v === o.id.replace(/^h_/, "") || o.id === `h_${v}`
-              )
-            );
-            if (opcionesElegidas.length === 0) return null;
-            return (
-              <div key={sel.id} className={estilos.filaChipsSelector}>
-                <span className={estilos.etiquetaChipsSelector}>{sel.etiqueta}:</span>
-                {opcionesElegidas.map((op) => (
-                  <span
-                    key={op.id}
-                    className={estilos.chipOpcionSeleccionada}
-                    title={op.descripcion || op.nombre}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      alVerDetalle();
-                    }}
-                  >
-                    {op.nombre}
-                  </span>
-                ))}
-              </div>
-            );
-          })}
-        </div>
+      {/* Chips de selectores y dados guardados */}
+      <ChipsSelectoresYDadosRasgo
+        rasgo={rasgo}
+        idPersonaje={idPersonaje}
+        alVerDetalle={alVerDetalle}
+      />
+
+      {mostrarTiendaRecuperacion && personajeActivoAlmacen && (
+        <ModalTiendaRecuperacionEspacios
+          personaje={personajeActivoAlmacen}
+          rasgo={rasgo}
+          alCerrar={() => setMostrarTiendaRecuperacion(false)}
+          alConfirmar={manejarConfirmarRecuperacion}
+        />
+      )}
+
+      {mostrarTiendaRecarga && personajeActivoAlmacen && (
+        <ModalTiendaRecargaEspacio
+          personaje={personajeActivoAlmacen}
+          rasgo={rasgo}
+          alCerrar={() => setMostrarTiendaRecarga(false)}
+          alConfirmar={manejarConfirmarRecargaEspacio}
+        />
       )}
     </article>
   );

@@ -74,6 +74,8 @@ export const crearSubSliceRasgos: StateCreator<
         for (const s of rasgoAjustado.selectores) {
           const sid = s.id.toLowerCase();
           const esMagico =
+            s.tipoSelector === "conjuro" ||
+            Boolean(s.esConjuroGratuito) ||
             sid.includes("truco") ||
             sid.includes("conjuro") ||
             sid.includes("hechizo") ||
@@ -1104,5 +1106,70 @@ export const crearSubSliceRasgos: StateCreator<
         rasgos: rasgosActualizados
       };
     });
+  },
+
+  guardarDadosRasgo: (idPj, idRasgo, dados) => {
+    mutarPersonaje(set, idPj, (pj) => {
+      const rasgosActualizados = (pj.rasgos || []).map((r) => {
+        if (r.id === idRasgo) {
+          return { ...r, dadosGuardados: [...dados] };
+        }
+        return r;
+      });
+      return { ...pj, rasgos: rasgosActualizados };
+    });
+  },
+
+  consumirDadoGuardado: (idPj, idRasgo, indiceDado) => {
+    mutarPersonaje(set, idPj, (pj) => {
+      const rasgosActualizados = (pj.rasgos || []).map((r) => {
+        if (r.id === idRasgo && Array.isArray(r.dadosGuardados)) {
+          const nuevosDados = r.dadosGuardados.filter((_, idx) => idx !== indiceDado);
+          const maxUsos = r.formulaEscalado ? calcularUsosMaximosRasgo(r, pj) : (r.usosMaximos ?? 1);
+          const restantes = r.usosRestantes ?? maxUsos;
+          return {
+            ...r,
+            dadosGuardados: nuevosDados,
+            usosRestantes: r.tieneUsosLimitados ? Math.max(0, restantes - 1) : r.usosRestantes
+          };
+        }
+        return r;
+      });
+      return { ...pj, rasgos: rasgosActualizados };
+    });
+  },
+
+  recargarRasgoConEspacio: (idPj, idRasgo, nivelEspacio) => {
+    const pj = get().personajes.find((p) => p.id === idPj);
+    if (!pj) return;
+    const rasgo = (pj.rasgos || []).find((r) => r.id === idRasgo);
+    if (!rasgo) return;
+
+    get().gastarEspacioConjuro(idPj, nivelEspacio);
+
+    const mult = rasgo.multiplicadorRecargaEspacio ?? 2;
+    const pgRecuperados = nivelEspacio * mult;
+
+    let maxTemp = Infinity;
+    if (rasgo.formulaDados) {
+      const nivelEfectivo = pj.nivel || 1;
+      const modInt = Math.floor(((pj.caracteristicas?.inteligencia || 10) - 10) / 2);
+      maxTemp = 2 * nivelEfectivo + modInt;
+    }
+
+    const hpTempActual = pj.hpTemporal || 0;
+    const nuevoHpTemp = Number.isFinite(maxTemp)
+      ? Math.min(maxTemp, hpTempActual + pgRecuperados)
+      : hpTempActual + pgRecuperados;
+
+    get().modificarHPTemporalPersonaje(idPj, nuevoHpTemp);
+
+    if (rasgo.condicionAlActivar) {
+      const yaTiene = (pj.condicionesActivas || []).some((c) => coincideCondicionConRasgo(c, rasgo));
+      if (!yaTiene) {
+        get().aplicarCondicionPersonaje(idPj, rasgo.condicionAlActivar);
+      }
+    }
   }
 });
+

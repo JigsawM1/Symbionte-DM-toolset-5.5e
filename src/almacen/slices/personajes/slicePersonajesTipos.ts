@@ -187,6 +187,9 @@ export interface SubSliceRasgos {
   alternarActivoRasgo: (idPj: string, idRasgo: string) => void;
   actualizarSeleccionRasgo: (idPj: string, idRasgo: string, idSelector: string, valorActual: string[]) => void;
   dispararRasgosIniciativaPersonaje: (idPj: string) => void;
+  guardarDadosRasgo: (idPj: string, idRasgo: string, dados: number[]) => void;
+  consumirDadoGuardado: (idPj: string, idRasgo: string, indiceDado: number) => void;
+  recargarRasgoConEspacio: (idPj: string, idRasgo: string, nivelEspacio: number) => void;
 }
 
 // ==========================================

@@ -138,6 +138,94 @@ Este archivo registra reglas globales, errores encontrados, sus causas raíz y l
    - `pnpm test`: 99 suites pasadas (1.494 pruebas globales aprobadas al 100%).
    - `pnpm exec vite build`: Compilación para producción completada exitosamente en 15.11s.
 
+## [2026-10-02] Implementación Canónica y Genérica de las Subclases de Mago D&D 5.5e (PHB 2024): Abjurador, Adivino, Evocador e Ilusionista
+
+**Objetivo de la Integración:**
+- Implementar de forma 100% declarativa, genérica y desde el builder/catálogo las mecánicas de las 4 subclases del Mago en D&D 5.5e (PHB 2024):
+  1. *Abjurador*:
+     - *Erudito en abjuración*: Selector de 2 conjuros gratuitos de nivel 1 o 2 de la escuela de Abjuración.
+     - *Salvaguarda arcana*: Consumible con efecto predefinido `"Salvaguarda arcana"` (alias `"salvaguarda"`), PG temporales evaluables (`2 * nivel + inteligencia`) y recarga interactiva tipo tienda mediante el gasto de espacios de conjuro (`multiplicadorRecargaEspacio: 2`).
+  2. *Adivino*:
+     - *Erudito en adivinación*: Selector de 2 conjuros gratuitos de nivel 1 o 2 de la escuela de Adivinación.
+     - *Portento*: Consumible con `guardaDadosTirada: true`, almacenamiento de tirada de presagio (`dadosGuardados: number[]`), visualización en chips interactivos que desaparecen al hacer clic consumiendo el uso, y reinicio automático en descanso largo.
+     - *El tercer ojo*: Selector de 4 beneficios (Visión en la oscuridad 120 pies, Visión etérea 60 pies, Comprensión mayor, Ver invisibilidad).
+     - *Portento mayor* (Nv. 14): Extensión declarativa que actualiza la tirada de Portento de `2d20` a `3d20` manteniendo `guardaDadosTirada: true`.
+  3. *Evocador*:
+     - *Erudito en evocación*: Selector de 2 conjuros gratuitos de nivel 1 o 2 de la escuela de Evocación.
+     - *Evocación potenciada*: Efecto pasivo mecánico `bono_dano_conjuro` que suma el modificador de Inteligencia a las tiradas de daño de conjuros de Evocación.
+     - *Sobrecarga*: Consumible con 1 uso por descanso largo (`formulaDados: "2d12"`).
+  4. *Ilusionista*:
+     - *Erudito en ilusión*: Selector de 2 conjuros gratuitos de nivel 1 o 2 de la escuela de Ilusión.
+
+**Decisiones Técnicas y Modificaciones Aplicadas:**
+1. **Esquemas Declarativos de Rasgos (`src/tipos/rasgos.ts`, `src/tipos/esquemasCatalogos.ts`):**
+   - Se extendieron `PlantillaRasgoClase`, `EsquemaPlantillaRasgoClaseJSON` y `EsquemaRasgoPersonaje` con:
+     - `dadosGuardados?: number[]`: Colección reactiva de dados almacenados.
+     - `guardaDadosTirada?: boolean`: Indica si el resultado de la tirada debe registrarse en `dadosGuardados`.
+     - `recargaConEspacio?: boolean`: Habilita la recarga interactiva gastando espacios de conjuro.
+     - `multiplicadorRecargaEspacio?: number`: Factor multiplicador por nivel de espacio (por defecto 2).
+   - Se corrigió el mapeo en `EsquemaPlantillaRasgoClaseJSON` para evitar el descarte de propiedades durante la validación estricta Zod en `validarColeccionJSON`.
+2. **Generador Dinámico de Opciones de Conjuros por Escuela (`src/servicios/hidratadorDotes.ts`):**
+   - Se amplió `generarOpcionesConjuros` para aceptar `nivel: number | number[]` y `escuela?: string`.
+   - Se registraron en `OPCIONES_DINAMICAS_MAP`: `"conjuros_abjuracion_1_2_mago"`, `"conjuros_adivinacion_1_2_mago"`, `"conjuros_evocacion_1_2_mago"` y `"conjuros_ilusion_1_2_mago"`, asegurando que `hidratadorClases.ts` inyecte dinámicamente las opciones sin duplicación ni hardcoding.
+3. **Acciones de Estado en Zustand (`slicePersonajesTipos.ts`, `sliceRasgos.ts`):**
+   - `guardarDadosRasgo(idPj, idRasgo, dados)`: Almacena números de dados generados en `rasgo.dadosGuardados`.
+   - `consumirDadoGuardado(idPj, idRasgo, indiceDado)`: Remueve el dado seleccionado y descuenta un uso del rasgo.
+   - `recargarRasgoConEspacio(idPj, idRasgo, nivelEspacio)`: Gasta un espacio de conjuro de nivel N, calcula los PG temporales (`N * multiplicador`), actualiza `hpTemporal` respetando el límite máximo de la salvaguarda, activa la condición si no estaba presente y notifica al usuario. Lógica 100% genérica sin bifurcaciones por nombre literal de clase.
+4. **Ciclo de Vida de Descansos (`src/servicios/procesadorDescansos.ts`):**
+   - En `ejecutarDescansoLargo`, los rasgos con `dadosGuardados` y `recuperacion: "descanso_largo"` restablecen automáticamente `dadosGuardados: []`, satisfaciendo la regla oficial de Portento.
+5. **Componentes y Modularización Visual (`TarjetaRasgo.tsx`, `ModalTiendaRecargaEspacio.tsx`, `ChipsSelectoresYDadosRasgo.tsx`):**
+   - `ModalTiendaRecargaEspacio.tsx`: Modal estilo tienda que analiza los espacios gastados vs máximos del personaje y permite seleccionar el nivel a gastar con cálculo en tiempo real de los PG recuperados.
+   - `ChipsSelectoresYDadosRasgo.tsx`: Subcomponente desacoplado que renderiza chips de opciones elegidas y botones interactivos de dados de presagio (`.chipDadoPresagio` en `VistaRasgosJugador.module.css`). Esto mantuvo a `TarjetaRasgo.tsx` en 440 líneas, muy por debajo del umbral crítico de 500 líneas.
+   - Prohibición total de estilos inline (`react/forbid-dom-props`) y emojis: Todo estilizado con CSS Modules e iconos vectoriales de `lucide-react` (`Shield`, `Dices`, `RotateCcw`, `Sparkles`, `AlertCircle`, `X`).
+
+**Validación y Cobertura Integral del Pipeline CI:**
+- **TypeScript:** `pnpm exec tsc --noEmit` completado con 0 errores bajo `strict: true`.
+- **ESLint:** `pnpm run lint` completado con 0 advertencias y 0 errores.
+- **Auditoría de Líneas:** 115 archivos auditados, 0 archivos que superen el límite de 500 líneas (`verificar-limite-lineas.js` [EXITO CI]).
+- **Vitest:** 101 suites y 1.518 pruebas aprobadas al 100%, incluyendo las 20 pruebas canónicas en `src/servicios/magoMecanicasDND55.test.ts`.
+- **Empaquetado:** `pnpm exec vite build` ejecutado y validado exitosamente.
+
+## [2026-10-02] Implementación Canónica y Genérica de la Clase Mago D&D 5.5e (PHB 2024): Recuperación Arcana, Maestría en Conjuros y Conjuros Predilectos
+
+**Objetivo de la Integración:**
+- Responder a la solicitud del usuario de implementar las mecánicas canónicas del Mago D&D 5.5e (PHB 2024) desde el builder y catálogo mediante esquemas puramente declarativos y genéricos:
+  1. *Recuperación arcana* (Nv. 1): Consumible de 1 uso por descanso largo con interfaz tipo tienda para seleccionar los espacios de conjuro gastados a recuperar según el presupuesto $\lceil \text{Nivel de Mago} / 2 \rceil$ (hasta nivel 5 de espacio).
+  2. *Maestría en conjuros* (Nv. 18): Dos selectores de conjuros gratuitos siempre preparados (uno de nivel 1 y otro de nivel 2 con tiempo de lanzamiento de 1 acción), lanzables a voluntad sin consumir ranuras.
+  3. *Conjuros predilectos* (Nv. 20): Dos conjuros siempre preparados de nivel 3 con 1 lanzamiento gratuito de nivel 3 por cada uno, recargables en descansos cortos o largos.
+
+**Decisiones Técnicas y Modificaciones Aplicadas:**
+1. **Contrato de Esquema Declarativo `recuperarEspacios` (`src/tipos/rasgos.ts`, `src/tipos/esquemasCatalogos.ts`):**
+   - Se diseñó `EsquemaConfiguracionRecuperarEspacios` (`formulaPresupuesto?: string`, `nivelMaximoEspacio?: number`, `permitePuntosConjuro?: boolean`).
+   - Se añadió al esquema de plantillas de clase (`PlantillaRasgoClase`) y a los rasgos de personaje (`EsquemaRasgoPersonaje`).
+   - El builder (`src/servicios/gestorClases.ts`) traslada fielmente `recuperarEspacios` al instanciar rasgos, sin hardcoding de nombres de clase ni de rasgo.
+2. **Cálculo de Presupuesto Agnóstico y Desacoplamiento de Capas (`src/servicios/rasgos/evaluadorRecursosRasgos.ts`):**
+   - Se ubicó `calcularPresupuestoRecuperacion(rasgo, personaje)` en la capa de servicios, respetando la regla `no-restricted-imports` (prohibición de importar UI en servicios) y `react-refresh/only-export-components` en la capa visual.
+   - La función inspecciona `rasgo.fuente` buscando la coincidencia dentro de `personaje.clases` o `personaje.clase` para derivar el nivel de clase efectivo sin cadenas hardcodeadas tipo `"mago"`.
+3. **Modal de Tienda de Recuperación Dual: Espacios y Puntos de Conjuro (`ModalTiendaRecuperacionEspacios.tsx`, `ModalTiendaRecuperacionEspacios.module.css`):**
+   - Soporte completo para recuperación tanto de **Espacios de Conjuro** como de **Puntos de Conjuro (variante DMG)** mediante pestañas dinámicas cuando `personaje.puntosConjuroMaximos > 0`.
+   - En el modo de Puntos de Conjuro, canjea el presupuesto de recuperación por paquetes de puntos según la tabla canónica `COSTE_PUNTOS_POR_NIVEL` (Nv 1: +2 pts, Nv 2: +3 pts, Nv 3: +5 pts, Nv 4: +6 pts, Nv 5: +7 pts), con tope inteligente sobre `puntosConjuroGastados`.
+   - Interfaz visual basada en tarjetas y badges con botones de paso (`+`/`-`), contador de presupuesto en tiempo real (total, asignado, restante) y confirmación interactiva.
+   - Prohibición absoluta de emojis cumplida (iconos vectoriales locales de `lucide-react`: `Sparkles`, `RotateCcw`, `X`, `Plus`, `Minus`, `AlertCircle`, `Layers`, `Flame`).
+   - Integración directa tanto en `TarjetaRasgo.tsx` como en `ModalDetalleRasgo.tsx` invocando `recuperarPuntosConjuro` y `recuperarEspacioConjuro`.
+4. **Flag `esConjuroGratuito` y Filtro de Tiempo de Acción en Selectores (`src/tipos/rasgos.ts`, `src/servicios/hidratadorDotes.ts`, `src/servicios/hidratadorClases.ts`):**
+   - Se añadió `esConjuroGratuito?: boolean` a `EsquemaSelectorRasgo`.
+   - Se implementó `filtroSoloAccion?: boolean` en `generarOpcionesConjuros()`, discriminando con precisión conjuros cuya acción sea exactamente `"Acción"` (no acción adicional ni reacción).
+   - Se registraron las opciones dinámicas `"conjuros1_accion_mago"`, `"conjuros2_accion_mago"` y `"conjuros3_mago"` consumiendo el catálogo maestro.
+   - `hidratadorClases.ts` resuelve automáticamente las opciones dinámicas en cualquier selector de rasgos de clase que defina `claveOpcionesDinamicas`.
+5. **Evaluación de Conjuros Gratuitos e Integración con Lanzamiento (`src/servicios/rasgos/evaluadorConjurosRasgos.ts`, `src/hooks/usarLanzadorConjuros.ts`, `src/almacen/slices/personajes/sliceRasgos.ts`):**
+   - `obtenerConjurosOtorgadosPorRasgos` y `obtenerNombresConjurosGratuitosActivos` reconocen `esConjuroGratuito` para añadir los conjuros seleccionados a `conjurosSiemprePreparadosIds` y habilitar su lanzamiento sin consumir ranuras.
+   - En rasgos con usos limitados (como *Conjuros predilectos*, 2 usos por descanso corto), `usarLanzadorConjuros.ts` descuenta automáticamente los usos del rasgo al lanzar gratuitamente el conjuro.
+6. **Robustez y Tolerancia a Esquemas (`src/servicios/gestorClases.ts`):**
+   - `aplicarBuildClaseAPersonaje` procesa de forma defensiva `personaje.idiomas` soportando tanto `string` (estándar D&D 2024) como `string[]` sin lanzar excepciones de tipo.
+
+**Validación y Cobertura Integral del Pipeline CI:**
+- **TypeScript:** `pnpm exec tsc --noEmit` completado con 0 errores bajo `strict: true`.
+- **ESLint:** `pnpm run lint` completado con 0 advertencias y 0 errores.
+- **Auditoría de Líneas:** 113 archivos auditados, 0 archivos que superen el límite de 500 líneas.
+- **Vitest:** 101 suites y 1.506 pruebas aprobadas al 100%, incluyendo las 10 pruebas canónicas en `src/servicios/magoMecanicasDND55.test.ts` y las 3 pruebas en `src/componentes/caracteristicas/rasgos/ModalTiendaRecuperacionEspacios.test.tsx`.
+- **Empaquetado:** `pnpm exec vite build` ejecutado y validado en 18.56s.
+
 ## [2026-10-02] Implementación Declarativa de la Clase Bardo y 4 Subclases Canónicas D&D 5.5e (PHB 2024)
 
 **Objetivo de la Integración:**

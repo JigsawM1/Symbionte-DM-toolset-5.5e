@@ -219,6 +219,8 @@ export const EsquemaSelectorRasgo = z.object({
   visualizacion: z.enum(["normal", "lista"]).default("normal").optional(),
   // ── Identificador de fuente dinámica para hidratación (ej. "invocaciones_brujo", "trucos_clerigo") ──
   claveOpcionesDinamicas: z.string().optional(),
+  // ── Indica si las opciones seleccionadas se lanzan sin gastar espacios de conjuro ──
+  esConjuroGratuito: z.boolean().default(false).optional(),
   // ── NUEVO: opciones que se desbloquean por nivel ──
   opcionesDinamicas: z.array(EsquemaOpcionesDinamicas).optional(),
   // ── NUEVO: max selecciones escalado por nivel ──
@@ -228,6 +230,13 @@ export const EsquemaSelectorRasgo = z.object({
   })).optional()
 });
 export type SelectorRasgo = z.infer<typeof EsquemaSelectorRasgo>;
+
+export const EsquemaConfiguracionRecuperarEspacios = z.object({
+  formulaPresupuesto: z.string().default("ceil(nivel / 2)"),
+  nivelMaximoEspacio: z.number().int().min(1).max(9).default(5),
+  permitePuntosConjuro: z.boolean().default(true).optional()
+});
+export type ConfiguracionRecuperarEspacios = z.infer<typeof EsquemaConfiguracionRecuperarEspacios>;
 
 // ==========================================
 // CONTRATOS DE PLANTILLAS DE RASGOS (CLASES Y ESPECIES)
@@ -294,6 +303,11 @@ export interface PlantillaRasgoClase {
   efectos?: EfectoMecanicoRasgo[];
   selectores?: SelectorRasgo[];
   tablaProgresion?: TablaEscaladoRasgo;
+  recuperarEspacios?: ConfiguracionRecuperarEspacios;
+  dadosGuardados?: number[];
+  guardaDadosTirada?: boolean;
+  recargaConEspacio?: boolean;
+  multiplicadorRecargaEspacio?: number;
 }
 
 export interface PlantillaRasgoEspecie {
@@ -423,6 +437,11 @@ export const EsquemaRasgoPersonaje = z.object({
   efectos: z.array(EsquemaEfectoMecanicoRasgo).default([]).optional(),
   selectores: z.array(EsquemaSelectorRasgo).default([]).optional(),
   tablaProgresion: EsquemaTablaEscaladoRasgo.optional(),
+  recuperarEspacios: EsquemaConfiguracionRecuperarEspacios.optional(),
+  dadosGuardados: z.array(z.number()).default([]).optional(),
+  guardaDadosTirada: z.boolean().default(false).optional(),
+  recargaConEspacio: z.boolean().default(false).optional(),
+  multiplicadorRecargaEspacio: z.number().default(2).optional(),
 
   notas: z.string().default("")
 });

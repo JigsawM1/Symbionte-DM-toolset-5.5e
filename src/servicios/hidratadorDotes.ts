@@ -43,12 +43,30 @@ export function generarOpcionesRituales(nivel: number): OpcionSelector[] {
     .sort((a, b) => a.nombre.localeCompare(b.nombre, "es"));
 }
 
-function generarOpcionesConjuros(claseObjetivo: string, nivel: number): OpcionSelector[] {
+function generarOpcionesConjuros(
+  claseObjetivo: string,
+  nivel: number | number[],
+  filtroSoloAccion: boolean = false,
+  escuela?: string
+): OpcionSelector[] {
   const claseNorm = normalizar(claseObjetivo);
+  const niveles = Array.isArray(nivel) ? nivel : [nivel];
+  const escuelaNorm = escuela ? normalizar(escuela) : null;
   return (HECHIZOS_JSON as unknown as HechizoCompendioMinimo[])
     .filter((h) => {
-      if (h.nivel !== nivel) return false;
-      return (h.clases || []).some((c) => normalizar(c).includes(claseNorm));
+      if (!niveles.includes(h.nivel)) return false;
+      const pertenece = (h.clases || []).some((c) => normalizar(c).includes(claseNorm));
+      if (!pertenece) return false;
+      if (escuelaNorm) {
+        const escuelaH = normalizar(h.escuela || "");
+        if (!escuelaH.includes(escuelaNorm)) return false;
+      }
+      if (filtroSoloAccion) {
+        const tiempoNorm = normalizar(h.tiempoLanzamiento || "");
+        const esUnaAccion = tiempoNorm.startsWith("accion") && !tiempoNorm.includes("adicional");
+        if (!esUnaAccion) return false;
+      }
+      return true;
     })
     .map((h) => ({
       id: h.id,
@@ -91,6 +109,13 @@ const OPCIONES_DINAMICAS_MAP: Record<string, () => OpcionSelector[]> = {
   trucos_mago: () => generarOpcionesConjuros("mago", 0),
   conjuros1_mago: () => generarOpcionesConjuros("mago", 1),
   trucos_brujo: () => generarOpcionesConjuros("brujo", 0),
+  conjuros1_accion_mago: () => generarOpcionesConjuros("mago", 1, true),
+  conjuros2_accion_mago: () => generarOpcionesConjuros("mago", 2, true),
+  conjuros3_mago: () => generarOpcionesConjuros("mago", 3),
+  conjuros_abjuracion_1_2_mago: () => generarOpcionesConjuros("mago", [1, 2], false, "abjuracion"),
+  conjuros_adivinacion_1_2_mago: () => generarOpcionesConjuros("mago", [1, 2], false, "adivinacion"),
+  conjuros_evocacion_1_2_mago: () => generarOpcionesConjuros("mago", [1, 2], false, "evocacion"),
+  conjuros_ilusion_1_2_mago: () => generarOpcionesConjuros("mago", [1, 2], false, "ilusion"),
   rituales_nivel_1: () => generarOpcionesRituales(1),
   dotes_origen: () =>
     (origenJson as unknown as DotePersonaje[])

@@ -815,6 +815,11 @@ export function obtenerRasgosClaseYSubclase(
       efectos: escalados.efectos,
       selectores: escalados.selectores,
       tablaProgresion: r.tablaProgresion ? JSON.parse(JSON.stringify(r.tablaProgresion)) : undefined,
+      recuperarEspacios: r.recuperarEspacios ? { ...r.recuperarEspacios } : undefined,
+      dadosGuardados: r.dadosGuardados ? [...r.dadosGuardados] : [],
+      guardaDadosTirada: !!r.guardaDadosTirada,
+      recargaConEspacio: !!r.recargaConEspacio,
+      multiplicadorRecargaEspacio: r.multiplicadorRecargaEspacio,
       notas: ""
     };
   }
@@ -834,6 +839,9 @@ export function obtenerRasgosClaseYSubclase(
       : `${clase?.nombre || claseNombre} (Niveles ${nivelesPrevios.join(", ")})`;
     padre.descripcion += `\n\n***${r.nombre} (Nv. ${r.nivel}).*** ${r.descripcion}`;
     if (r.formulaDados) padre.formulaDados = r.formulaDados;
+    if (r.guardaDadosTirada) padre.guardaDadosTirada = true;
+    if (r.recargaConEspacio) padre.recargaConEspacio = true;
+    if (r.multiplicadorRecargaEspacio) padre.multiplicadorRecargaEspacio = r.multiplicadorRecargaEspacio;
     if (r.recuperacion) padre.recuperacion = r.recuperacion as RecuperacionRasgo;
     if (r.tipoAccion && r.tipoAccion !== "pasivo") padre.tipoAccion = r.tipoAccion;
     if (Array.isArray(r.efectos) && r.efectos.length > 0) {
@@ -1266,7 +1274,9 @@ export function aplicarBuildClaseAPersonaje(
   // Fusión de idiomas procedentes de rasgos (ej. Jerga de ladrones)
   const listaIdiomasActual: string[] = [
     ...(personaje.idiomasLista || []),
-    ...(personaje.idiomas && personaje.idiomas !== "Ninguno" && personaje.idiomas !== "Ninguna"
+    ...(Array.isArray(personaje.idiomas)
+      ? personaje.idiomas
+      : typeof personaje.idiomas === "string" && personaje.idiomas !== "Ninguno" && personaje.idiomas !== "Ninguna"
       ? personaje.idiomas.split(",").map((i) => i.trim()).filter(Boolean)
       : [])
   ];

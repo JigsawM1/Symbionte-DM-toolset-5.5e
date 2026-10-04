@@ -10,15 +10,24 @@ import {
   Footprints,
   Mountain,
   RotateCcw,
-  RefreshCw
+  RefreshCw,
+  Sparkles
 } from "lucide-react";
 import type {
   PersonajeJugador,
   AcompanantePersonaje,
   MonstruoBase,
   HechizoBase,
-  TipoTerreno
+  TipoTerreno,
+  PlantillaInvocacion
 } from "@/tipos";
+import {
+  CATALOGO_INVOCACIONES,
+  esIdInvocacionEscalable,
+  obtenerPlantillaInvocacionPorId,
+  proyectarInvocacionAMonstruo,
+  extraerContextoLanzador
+} from "@/servicios/factoriaInvocaciones";
 import { INFORMACION_TERRENO } from "@/tipos";
 import type { CriaturaIniciativa } from "@/almacen/usarAlmacenDM";
 import {
@@ -79,6 +88,7 @@ interface ItemAcompananteProps {
   personajeId: string;
   acomp: AcompanantePersonaje;
   plantilla: MonstruoBase | null;
+  plantillaInvocacion?: PlantillaInvocacion | null;
   criaturasSeleccionadas: import("@/almacen/slices/sliceIniciativa").CriaturaSeleccionadaTS[];
   onSeleccionarDetalle: (id: string) => void;
   onEliminar: () => void;
@@ -91,7 +101,10 @@ interface ItemAcompananteProps {
   onQuitarEfecto: (efectoId: string) => void;
   onLanzarIniciativa: () => void;
   onEstablecerIniciativa: (val: number) => void;
+  onEstablecerVidaMaxima?: (val: number) => void;
   onLanzarAtaqueRapido: (accNom: string, accBono: string, accDados: string, accTipo: string) => void;
+  onCambiarNivelConjuroInvocacion?: (nuevoNivel: number) => void;
+  onCambiarSubtipoInvocacion?: (nuevoSubtipo: string) => void;
   obtenerPercepcionPasiva: (plantilla: MonstruoBase | null) => number;
 }
 
@@ -99,6 +112,7 @@ const ItemAcompanante: React.FC<ItemAcompananteProps> = ({
   personajeId,
   acomp,
   plantilla,
+  plantillaInvocacion,
   criaturasSeleccionadas,
   onSeleccionarDetalle,
   onEliminar,
@@ -111,7 +125,10 @@ const ItemAcompanante: React.FC<ItemAcompananteProps> = ({
   onQuitarEfecto,
   onLanzarIniciativa,
   onEstablecerIniciativa,
+  onEstablecerVidaMaxima,
   onLanzarAtaqueRapido,
+  onCambiarNivelConjuroInvocacion,
+  onCambiarSubtipoInvocacion,
   obtenerPercepcionPasiva
 }) => {
   const {
@@ -224,9 +241,62 @@ const ItemAcompanante: React.FC<ItemAcompananteProps> = ({
         onQuitarEfecto={onQuitarEfecto}
         onLanzarIniciativa={onLanzarIniciativa}
         onEstablecerIniciativa={onEstablecerIniciativa}
+        onEstablecerVidaMaxima={onEstablecerVidaMaxima}
         onLanzarAtaqueRapido={onLanzarAtaqueRapido}
         obtenerPercepcionPasiva={obtenerPercepcionPasiva}
       />
+
+      {/* Barra de Control Dinámico de Invocación (D&D 5.5e / 5e.tools style) */}
+      {plantillaInvocacion && onCambiarNivelConjuroInvocacion && (
+        <div className={estilos.barraControlInvocacion}>
+          <div className={estilos.cabeceraControlInvocacion}>
+            <Sparkles size={13} className={estilos.iconoInvocacion} />
+            <span className={estilos.etiquetaNivelInvocacion}>Nivel de Conjuro:</span>
+            <span className={estilos.conjuroAsociadoBadge}>
+              ({plantillaInvocacion.conjuroAsociado})
+            </span>
+          </div>
+
+          <div className={estilos.filaBotonesNivel}>
+            {Array.from(
+              { length: plantillaInvocacion.nivelMaximo - plantillaInvocacion.nivelMinimo + 1 },
+              (_, i) => plantillaInvocacion.nivelMinimo + i
+            ).map((nv) => {
+              const esActivo = (acomp.nivelConjuroInvocacion || plantillaInvocacion.nivelMinimo) === nv;
+              return (
+                <button
+                  key={nv}
+                  type="button"
+                  onClick={() => onCambiarNivelConjuroInvocacion(nv)}
+                  className={`${estilos.botonNivelInvocacion} ${esActivo ? estilos.botonNivelInvocacionActivo : ""}`}
+                  title={`Escalar estadísticas a espacio de conjuro nivel ${nv}`}
+                >
+                  {nv}
+                </button>
+              );
+            })}
+
+            {plantillaInvocacion.subtiposDisponibles.length > 1 && onCambiarSubtipoInvocacion && (
+              <div className={estilos.filaBotonesSubtipo}>
+                {plantillaInvocacion.subtiposDisponibles.map((sub: string) => {
+                  const esActivo = (acomp.subtipoInvocacion || plantillaInvocacion.subtiposDisponibles[0]) === sub;
+                  return (
+                    <button
+                      key={sub}
+                      type="button"
+                      onClick={() => onCambiarSubtipoInvocacion(sub)}
+                      className={`${estilos.botonSubtipoInvocacion} ${esActivo ? estilos.botonSubtipoInvocacionActivo : ""}`}
+                      title={`Seleccionar forma o subtipo ${sub}`}
+                    >
+                      {sub}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Fila de Movimiento y Terreno Dinámicos */}
       <div className={estilos.filaControlesDinamicosAcompanante}>
@@ -533,18 +603,52 @@ export const SeccionAcompanantesPersonaje: React.FC<SeccionAcompanantesPersonaje
     [personaje.acompanantes]
   );
 
-  // Filtrado reactivo de monstruos del compendio
-  const monstruosFiltrados = useMemo(() => {
+  // Contexto del lanzador para escalar invocaciones reactivamente
+  const contextoLanzador = useMemo(
+    () => extraerContextoLanzador(personaje),
+    [personaje]
+  );
+
+  // Filtrado reactivo unificado del compendio: Invocaciones PHB 2024 + Monstruos
+  const resultadosFiltrados = useMemo(() => {
     const qNorm = normalizarTexto(busqueda);
     if (!qNorm) return [];
-    return baseDatosMonstruos
+
+    const invocaciones = CATALOGO_INVOCACIONES.filter((inv) =>
+      coincideBusquedaTolerante([inv.nombre, inv.tipoCriatura, inv.conjuroAsociado], qNorm)
+    ).map((inv) => ({
+      esInvocacion: true as const,
+      invocacion: inv,
+      id: inv.id,
+      nombre: inv.nombre,
+      tipo: inv.tipoCriatura,
+      ca: inv.formulaCA.base,
+      vidaMaxima: inv.formulaVida.base,
+      desafio: `Invocación (Nv. ${inv.nivelMinimo}-${inv.nivelMaximo})`,
+      conjuroAsociado: inv.conjuroAsociado
+    }));
+
+    const monstruos = baseDatosMonstruos
       .filter((m) =>
         coincideBusquedaTolerante([m.nombre, m.tipo, m.alineacion || ""], qNorm)
       )
-      .slice(0, 8);
+      .slice(0, 8)
+      .map((m) => ({
+        esInvocacion: false as const,
+        monstruo: m,
+        id: m.id,
+        nombre: m.nombre,
+        tipo: m.tipo,
+        ca: m.ca,
+        vidaMaxima: m.vidaMaxima,
+        desafio: m.desafio || "—",
+        conjuroAsociado: undefined
+      }));
+
+    return [...invocaciones, ...monstruos].slice(0, 10);
   }, [baseDatosMonstruos, busqueda]);
 
-  // Manejar adición de un nuevo acompañante a partir de una plantilla
+  // Manejar adición de un nuevo acompañante a partir de una plantilla tradicional
   const manejarAgregarAcompanante = useCallback(
     (plantilla: MonstruoBase) => {
       const nuevoAcompanante: AcompanantePersonaje = {
@@ -566,7 +670,8 @@ export const SeccionAcompanantesPersonaje: React.FC<SeccionAcompanantesPersonaje
         multiplicadorTerreno: 1,
         ultimaPosicionTS: null,
         ultimoBoardIdTS: null,
-        historialMovimiento: []
+        historialMovimiento: [],
+        esInvocacion: false
       };
 
       agregarAcompanantePersonaje(personaje.id, nuevoAcompanante);
@@ -574,6 +679,50 @@ export const SeccionAcompanantesPersonaje: React.FC<SeccionAcompanantesPersonaje
       setMostrarSugerencias(false);
     },
     [agregarAcompanantePersonaje, personaje.id]
+  );
+
+  // Manejar adición de una invocación escalable (D&D 5.5e / PHB 2024)
+  const manejarAgregarInvocacion = useCallback(
+    (plantillaInv: PlantillaInvocacion) => {
+      const nivelBase = plantillaInv.nivelMinimo;
+      const subtipoBase = plantillaInv.subtiposDisponibles[0] || "";
+      const proy = proyectarInvocacionAMonstruo(
+        plantillaInv,
+        nivelBase,
+        contextoLanzador,
+        subtipoBase
+      );
+
+      const nuevoAcompanante: AcompanantePersonaje = {
+        id: generarId("acomp"),
+        nombre: plantillaInv.nombre,
+        idPlantilla: plantillaInv.id,
+        vidaActual: proy.vidaMaxima,
+        vidaMaxima: proy.vidaMaxima,
+        vidaTemporal: 0,
+        ca: proy.ca,
+        condiciones: [],
+        efectos: [],
+        iniciativa: 0,
+        idMiniaturaTS: null,
+        velocidad: proy.velocidad || "30 pies",
+        movimientoGastado: 0,
+        movimientoMaximoTemporal: null,
+        tipoTerreno: "normal",
+        multiplicadorTerreno: 1,
+        ultimaPosicionTS: null,
+        ultimoBoardIdTS: null,
+        historialMovimiento: [],
+        esInvocacion: true,
+        nivelConjuroInvocacion: nivelBase,
+        subtipoInvocacion: subtipoBase
+      };
+
+      agregarAcompanantePersonaje(personaje.id, nuevoAcompanante);
+      setBusqueda("");
+      setMostrarSugerencias(false);
+    },
+    [agregarAcompanantePersonaje, contextoLanzador, personaje.id]
   );
 
   // Manejadores estables de tiradas y vida para TarjetaCriaturaIniciativa
@@ -705,6 +854,49 @@ export const SeccionAcompanantesPersonaje: React.FC<SeccionAcompanantesPersonaje
     return 10;
   }, []);
 
+  // Manejar cambio dinámico del nivel de conjuro para una invocación escalable
+  const manejarCambiarNivelConjuro = useCallback(
+    (acomp: AcompanantePersonaje, plantillaInv: PlantillaInvocacion, nuevoNivel: number) => {
+      const proy = proyectarInvocacionAMonstruo(
+        plantillaInv,
+        nuevoNivel,
+        contextoLanzador,
+        acomp.subtipoInvocacion
+      );
+      const estabaLleno = acomp.vidaActual >= acomp.vidaMaxima;
+      const nuevaVidaActual = estabaLleno
+        ? proy.vidaMaxima
+        : Math.min(acomp.vidaActual, proy.vidaMaxima);
+
+      actualizarAcompanante(personaje.id, acomp.id, {
+        nivelConjuroInvocacion: nuevoNivel,
+        vidaMaxima: proy.vidaMaxima,
+        vidaActual: nuevaVidaActual,
+        ca: proy.ca,
+        velocidad: proy.velocidad
+      });
+    },
+    [actualizarAcompanante, contextoLanzador, personaje.id]
+  );
+
+  // Manejar cambio dinámico del subtipo para una invocación
+  const manejarCambiarSubtipo = useCallback(
+    (acomp: AcompanantePersonaje, plantillaInv: PlantillaInvocacion, nuevoSubtipo: string) => {
+      const proy = proyectarInvocacionAMonstruo(
+        plantillaInv,
+        acomp.nivelConjuroInvocacion || plantillaInv.nivelMinimo,
+        contextoLanzador,
+        nuevoSubtipo
+      );
+      actualizarAcompanante(personaje.id, acomp.id, {
+        subtipoInvocacion: nuevoSubtipo,
+        ca: proy.ca,
+        velocidad: proy.velocidad
+      });
+    },
+    [actualizarAcompanante, contextoLanzador, personaje.id]
+  );
+
   // Buscar el objeto de detalle si el modal está abierto
   const acompananteEnDetalle = useMemo(() => {
     if (!idAcompananteDetalle) return null;
@@ -713,10 +905,21 @@ export const SeccionAcompanantesPersonaje: React.FC<SeccionAcompanantesPersonaje
 
   const plantillaEnDetalle = useMemo(() => {
     if (!acompananteEnDetalle) return null;
+    if (esIdInvocacionEscalable(acompananteEnDetalle.idPlantilla)) {
+      const inv = obtenerPlantillaInvocacionPorId(acompananteEnDetalle.idPlantilla);
+      if (inv) {
+        return proyectarInvocacionAMonstruo(
+          inv,
+          acompananteEnDetalle.nivelConjuroInvocacion || inv.nivelMinimo,
+          contextoLanzador,
+          acompananteEnDetalle.subtipoInvocacion
+        );
+      }
+    }
     return (
       baseDatosMonstruos.find((m) => m.id === acompananteEnDetalle.idPlantilla) || null
     );
-  }, [acompananteEnDetalle, baseDatosMonstruos]);
+  }, [acompananteEnDetalle, baseDatosMonstruos, contextoLanzador]);
 
   return (
     <div className={estilos.contenedorAcompanantes}>
@@ -743,7 +946,7 @@ export const SeccionAcompanantesPersonaje: React.FC<SeccionAcompanantesPersonaje
                 setMostrarSugerencias(true);
               }}
               onFocus={() => setMostrarSugerencias(true)}
-              placeholder="Buscar en el compendio para añadir (ej. Lobo, Familiar, Duendecillo...)"
+              placeholder="Buscar criatura o invocación (ej. Corcel, Bestial, Lobo...)"
               className={estilos.inputBuscador}
             />
             {busqueda && (
@@ -763,21 +966,35 @@ export const SeccionAcompanantesPersonaje: React.FC<SeccionAcompanantesPersonaje
             {/* Menú flotante de resultados del compendio */}
             {mostrarSugerencias && busqueda && (
               <div className={estilos.menuSugerencias}>
-                {monstruosFiltrados.length === 0 ? (
+                {resultadosFiltrados.length === 0 ? (
                   <div className={estilos.vacioSugerencias}>
-                    No se encontraron criaturas con "{busqueda}".
+                    No se encontraron criaturas ni invocaciones con "{busqueda}".
                   </div>
                 ) : (
-                  monstruosFiltrados.map((m) => (
+                  resultadosFiltrados.map((res) => (
                     <div
-                      key={m.id}
+                      key={res.id}
                       className={estilos.itemSugerencia}
-                      onClick={() => manejarAgregarAcompanante(m)}
+                      onClick={() => {
+                        if (res.esInvocacion) {
+                          manejarAgregarInvocacion(res.invocacion);
+                        } else {
+                          manejarAgregarAcompanante(res.monstruo);
+                        }
+                      }}
                     >
                       <div>
-                        <span className={estilos.nombreMonstruo}>{m.nombre}</span>
+                        <span className={estilos.nombreMonstruo}>
+                          {res.nombre}
+                          {res.esInvocacion && (
+                            <span className={estilos.badgeInvocacionSugerencia}>
+                              Invocación
+                            </span>
+                          )}
+                        </span>
                         <span className={estilos.metaMonstruo}>
-                          {m.tipo} | CA {m.ca} | PV {m.vidaMaxima} | CR {m.desafio || "—"}
+                          {res.tipo} | CA {res.ca} | PV {res.vidaMaxima} | {res.desafio}
+                          {res.conjuroAsociado && ` (${res.conjuroAsociado})`}
                         </span>
                       </div>
                       <Plus size={14} color="#38bdf8" />
@@ -803,8 +1020,18 @@ export const SeccionAcompanantesPersonaje: React.FC<SeccionAcompanantesPersonaje
       ) : (
         <div className={estilos.listaAcompanantes}>
           {acompanantes.map((acomp) => {
-            const plantilla =
-              baseDatosMonstruos.find((m) => m.id === acomp.idPlantilla) || null;
+            const plantillaInvocacion = esIdInvocacionEscalable(acomp.idPlantilla)
+              ? obtenerPlantillaInvocacionPorId(acomp.idPlantilla) || null
+              : null;
+
+            const plantilla = plantillaInvocacion
+              ? proyectarInvocacionAMonstruo(
+                  plantillaInvocacion,
+                  acomp.nivelConjuroInvocacion || plantillaInvocacion.nivelMinimo,
+                  contextoLanzador,
+                  acomp.subtipoInvocacion
+                )
+              : baseDatosMonstruos.find((m) => m.id === acomp.idPlantilla) || null;
 
             return (
               <ItemAcompanante
@@ -812,6 +1039,7 @@ export const SeccionAcompanantesPersonaje: React.FC<SeccionAcompanantesPersonaje
                 personajeId={personaje.id}
                 acomp={acomp}
                 plantilla={plantilla}
+                plantillaInvocacion={plantillaInvocacion}
                 criaturasSeleccionadas={criaturasSeleccionadas}
                 onSeleccionarDetalle={(id) => setIdAcompananteDetalle(id)}
                 onEliminar={() => eliminarAcompanantePersonaje(personaje.id, acomp.id)}
@@ -830,8 +1058,26 @@ export const SeccionAcompanantesPersonaje: React.FC<SeccionAcompanantesPersonaje
                 onEstablecerIniciativa={(val) =>
                   actualizarAcompanante(personaje.id, acomp.id, { iniciativa: val })
                 }
+                onEstablecerVidaMaxima={(val) =>
+                  actualizarAcompanante(personaje.id, acomp.id, {
+                    vidaMaxima: val,
+                    vidaActual: Math.min(acomp.vidaActual, val)
+                  })
+                }
                 onLanzarAtaqueRapido={(accNom, accBono, accDados, accTipo) =>
                   manejarLanzarAtaqueRapido(acomp.nombre, accNom, accBono, accDados, accTipo)
+                }
+                onCambiarNivelConjuroInvocacion={
+                  plantillaInvocacion
+                    ? (nuevoNivel) =>
+                        manejarCambiarNivelConjuro(acomp, plantillaInvocacion, nuevoNivel)
+                    : undefined
+                }
+                onCambiarSubtipoInvocacion={
+                  plantillaInvocacion
+                    ? (nuevoSubtipo) =>
+                        manejarCambiarSubtipo(acomp, plantillaInvocacion, nuevoSubtipo)
+                    : undefined
                 }
                 obtenerPercepcionPasiva={obtenerPercepcionPasiva}
               />

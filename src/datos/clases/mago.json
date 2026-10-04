@@ -268,8 +268,19 @@
               "tipoSelector": "conjuro",
               "etiqueta": "Conjuros de Abjuración elegidos (Nv. 1-2)",
               "maxSelecciones": 2,
+              "escaladoMaxSelecciones": [
+                { "nivelMinimo": 3, "valor": 2 },
+                { "nivelMinimo": 5, "valor": 3 },
+                { "nivelMinimo": 7, "valor": 4 },
+                { "nivelMinimo": 9, "valor": 5 },
+                { "nivelMinimo": 11, "valor": 6 },
+                { "nivelMinimo": 13, "valor": 7 },
+                { "nivelMinimo": 15, "valor": 8 },
+                { "nivelMinimo": 17, "valor": 9 }
+              ],
               "valorActual": [],
               "claveOpcionesDinamicas": "conjuros_abjuracion_1_2_mago",
+              "claveGruposDinamicos": "grupos_abjuracion_mago",
               "esConjuroGratuito": true
             }
           ]
@@ -371,8 +382,19 @@
               "tipoSelector": "conjuro",
               "etiqueta": "Conjuros de Adivinación elegidos (Nv. 1-2)",
               "maxSelecciones": 2,
+              "escaladoMaxSelecciones": [
+                { "nivelMinimo": 3, "valor": 2 },
+                { "nivelMinimo": 5, "valor": 3 },
+                { "nivelMinimo": 7, "valor": 4 },
+                { "nivelMinimo": 9, "valor": 5 },
+                { "nivelMinimo": 11, "valor": 6 },
+                { "nivelMinimo": 13, "valor": 7 },
+                { "nivelMinimo": 15, "valor": 8 },
+                { "nivelMinimo": 17, "valor": 9 }
+              ],
               "valorActual": [],
               "claveOpcionesDinamicas": "conjuros_adivinacion_1_2_mago",
+              "claveGruposDinamicos": "grupos_adivinacion_mago",
               "esConjuroGratuito": true
             }
           ]
@@ -507,8 +529,19 @@
               "tipoSelector": "conjuro",
               "etiqueta": "Conjuros de Evocación elegidos (Nv. 1-2)",
               "maxSelecciones": 2,
+              "escaladoMaxSelecciones": [
+                { "nivelMinimo": 3, "valor": 2 },
+                { "nivelMinimo": 5, "valor": 3 },
+                { "nivelMinimo": 7, "valor": 4 },
+                { "nivelMinimo": 9, "valor": 5 },
+                { "nivelMinimo": 11, "valor": 6 },
+                { "nivelMinimo": 13, "valor": 7 },
+                { "nivelMinimo": 15, "valor": 8 },
+                { "nivelMinimo": 17, "valor": 9 }
+              ],
               "valorActual": [],
               "claveOpcionesDinamicas": "conjuros_evocacion_1_2_mago",
+              "claveGruposDinamicos": "grupos_evocacion_mago",
               "esConjuroGratuito": true
             }
           ]
@@ -579,14 +612,25 @@
           "subclase": "Ilusionista",
           "selectores": [
             {
-              "id": "selector_erudito_ilusion_mago",
+              "id": " selector_erudito_ilusion_mago",
               "tipo": "multiple",
               "visualizacion": "lista",
               "tipoSelector": "conjuro",
               "etiqueta": "Conjuros de Ilusión elegidos (Nv. 1-2)",
               "maxSelecciones": 2,
+              "escaladoMaxSelecciones": [
+                { "nivelMinimo": 3, "valor": 2 },
+                { "nivelMinimo": 5, "valor": 3 },
+                { "nivelMinimo": 7, "valor": 4 },
+                { "nivelMinimo": 9, "valor": 5 },
+                { "nivelMinimo": 11, "valor": 6 },
+                { "nivelMinimo": 13, "valor": 7 },
+                { "nivelMinimo": 15, "valor": 8 },
+                { "nivelMinimo": 17, "valor": 9 }
+              ],
               "valorActual": [],
               "claveOpcionesDinamicas": "conjuros_ilusion_1_2_mago",
+              "claveGruposDinamicos": "grupos_ilusion_mago",
               "esConjuroGratuito": true
             }
           ]

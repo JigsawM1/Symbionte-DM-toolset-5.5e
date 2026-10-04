@@ -34,6 +34,26 @@ export interface PasivasCombatePJ {
   perspicacia: number;
 }
 
+export interface EstadoCombateAcompanante {
+  id: string;
+  nombre: string;
+  idPlantilla?: string;
+  vidaActual: number;
+  vidaMaxima: number;
+  vidaTemporal?: number;
+  ca?: number;
+  condiciones: string[];
+  efectos: EfectoActivo[];
+  iniciativa?: number;
+  idMiniaturaTS?: string | null;
+  velocidad?: string;
+  movimientoGastado?: number;
+  movimientoMaximoTemporal?: number | null;
+  esInvocacion?: boolean;
+  nivelConjuroInvocacion?: number;
+  subtipoInvocacion?: string;
+}
+
 /**
  * DTO delgado proyectado del PersonajeJugador para el combate.
  * Excluye inventario, rasgos descriptivos y catálogos estáticos.
@@ -52,6 +72,9 @@ export interface EstadoCombatePJ {
   pasivas: PasivasCombatePJ;
   conjuros?: ConjurosCombatePJ;
   concentracion?: ConcentracionCombate | null;
+  movimientoGastado?: number;
+  movimientoMaximoTemporal?: number | null;
+  acompanantes?: EstadoCombateAcompanante[];
 }
 
 export interface EstadoIniciativaDM {
@@ -74,6 +97,26 @@ export interface WireEfecto {
   d?: number; // duracion
 }
 
+export interface WireAcompanante {
+  id: string;
+  n: string; // nombre
+  va: number; // vidaActual
+  vm: number; // vidaMaxima
+  vt?: number; // vidaTemporal (se omite si es 0)
+  ca?: number; // ca (se omite si es 10)
+  c?: string[]; // condiciones (se omite si está vacío)
+  e?: WireEfecto[]; // efectos (se omite si está vacío)
+  i?: number; // iniciativa (se omite si es 0)
+  m?: string | null; // idMiniaturaTS
+  plant?: string; // idPlantilla
+  vel?: string; // velocidad
+  gast?: number; // movimientoGastado
+  maxT?: number; // movimientoMaximoTemporal
+  inv?: boolean; // esInvocacion
+  lvl?: number; // nivelConjuroInvocacion
+  sub?: string; // subtipoInvocacion
+}
+
 export interface WireEstadoCombatePJ {
   id: string;
   m?: string | null; // idMiniaturaTS
@@ -94,6 +137,9 @@ export interface WireEstadoCombatePJ {
     pc?: [number, number, number]; // pacto: [maximos, gastados, nivel]
   };
   co?: { id: string; n: string } | null; // concentracion
+  gast?: number; // movimientoGastado
+  maxT?: number; // movimientoMaximoTemporal
+  ac?: WireAcompanante[]; // acompanantes
 }
 
 export interface WireCriaturaIniciativa {
@@ -110,6 +156,11 @@ export interface WireCriaturaIniciativa {
   plant?: string; // idPlantillaAsociada
   vel?: string; // velocidad (se omite si es "30 pies")
   bon?: number; // bonificadorIniciativa (se omite si es 0)
+  gast?: number; // movimientoGastado
+  maxT?: number; // movimientoMaximoTemporal
+  ac?: boolean; // esAcompanante
+  du?: string; // idPersonajeDuenio
+  acId?: string; // idAcompanante
 }
 
 export interface WireEstadoIniciativaDM {
@@ -142,6 +193,26 @@ const EsquemaWireEfecto = z.object({
   d: z.number().optional(),
 });
 
+const EsquemaWireAcompanante = z.object({
+  id: z.string(),
+  n: z.string().default("Acompañante"),
+  va: z.number().nullable().optional().transform((v) => v ?? 0),
+  vm: z.number().nullable().optional().transform((v) => v ?? 0),
+  vt: z.number().nullable().optional().transform((v) => v ?? 0),
+  ca: z.number().nullable().optional().transform((v) => v ?? 10),
+  c: z.array(z.string()).default([]),
+  e: z.array(EsquemaWireEfecto).default([]),
+  i: z.number().nullable().optional().transform((v) => v ?? 0),
+  m: z.string().nullable().optional(),
+  plant: z.string().nullable().optional().transform((v) => v ?? undefined),
+  vel: z.string().nullable().optional().transform((v) => v ?? undefined),
+  gast: z.number().nullable().optional().transform((v) => v ?? undefined),
+  maxT: z.number().nullable().optional().transform((v) => v ?? undefined),
+  inv: z.boolean().optional(),
+  lvl: z.number().nullable().optional().transform((v) => v ?? undefined),
+  sub: z.string().nullable().optional().transform((v) => v ?? undefined),
+});
+
 const EsquemaWireEstadoCombatePJ = z.object({
   id: z.string(),
   m: z.string().nullable().optional(),
@@ -170,6 +241,9 @@ const EsquemaWireEstadoCombatePJ = z.object({
     })
     .nullable()
     .optional(),
+  gast: z.number().nullable().optional().transform((v) => v ?? undefined),
+  maxT: z.number().nullable().optional().transform((v) => v ?? undefined),
+  ac: z.array(EsquemaWireAcompanante).optional(),
 });
 
 const EsquemaWireCriaturaIniciativa = z.object({
@@ -186,6 +260,11 @@ const EsquemaWireCriaturaIniciativa = z.object({
   plant: z.string().nullable().optional().transform((v) => v ?? undefined),
   vel: z.string().nullable().optional().transform((v) => v ?? undefined),
   bon: z.number().nullable().optional().transform((v) => v ?? undefined),
+  gast: z.number().nullable().optional().transform((v) => v ?? undefined),
+  maxT: z.number().nullable().optional().transform((v) => v ?? undefined),
+  ac: z.boolean().optional(),
+  du: z.string().nullable().optional().transform((v) => v ?? undefined),
+  acId: z.string().nullable().optional().transform((v) => v ?? undefined),
 });
 
 const EsquemaWireEstadoIniciativaDM = z.object({
@@ -264,16 +343,32 @@ export function serializarEstadoCombatePJ(pj: EstadoCombatePJ): WireEstadoCombat
     ];
   }
 
-  if (pj.conjuros && Object.keys(pj.conjuros.espaciosMaximos || {}).length > 0) {
-    wire.cj = {
-      em: pj.conjuros.espaciosMaximos,
-      eg: pj.conjuros.espaciosGastados || {},
-      pm: pj.conjuros.puntosMaximos,
-      pg: pj.conjuros.puntosGastados,
-      pc: pj.conjuros.pacto
-        ? [pj.conjuros.pacto.maximos, pj.conjuros.pacto.gastados, pj.conjuros.pacto.nivel]
-        : undefined,
-    };
+  if (pj.conjuros) {
+    const em: Record<string, number> = {};
+    for (const [k, v] of Object.entries(pj.conjuros.espaciosMaximos || {})) {
+      if (typeof v === "number" && v > 0) em[k] = v;
+    }
+    const eg: Record<string, number> = {};
+    for (const [k, v] of Object.entries(pj.conjuros.espaciosGastados || {})) {
+      if (typeof v === "number" && v > 0) eg[k] = v;
+    }
+
+    if (
+      Object.keys(em).length > 0 ||
+      Object.keys(eg).length > 0 ||
+      pj.conjuros.puntosMaximos ||
+      pj.conjuros.pacto
+    ) {
+      wire.cj = {
+        em,
+        eg,
+        pm: pj.conjuros.puntosMaximos,
+        pg: pj.conjuros.puntosGastados,
+        pc: pj.conjuros.pacto
+          ? [pj.conjuros.pacto.maximos, pj.conjuros.pacto.gastados, pj.conjuros.pacto.nivel]
+          : undefined,
+      };
+    }
   }
 
   if (pj.concentracion) {
@@ -283,6 +378,43 @@ export function serializarEstadoCombatePJ(pj: EstadoCombatePJ): WireEstadoCombat
     };
   } else if (pj.concentracion === null) {
     wire.co = null;
+  }
+
+  if (pj.movimientoGastado) wire.gast = pj.movimientoGastado;
+  if (pj.movimientoMaximoTemporal) wire.maxT = pj.movimientoMaximoTemporal;
+  if (pj.acompanantes && pj.acompanantes.length > 0) {
+    wire.ac = pj.acompanantes.map((a) => {
+      const wa: WireAcompanante = {
+        id: a.id,
+        n: (a.nombre || "Acompañante").slice(0, 32),
+        va: a.vidaActual ?? 0,
+        vm: a.vidaMaxima ?? 0,
+      };
+      if (a.vidaTemporal) wa.vt = a.vidaTemporal;
+      if (a.ca !== undefined && a.ca !== 10) wa.ca = a.ca;
+      if (a.condiciones && a.condiciones.length > 0) wa.c = a.condiciones;
+      if (a.efectos && a.efectos.length > 0) {
+        wa.e = a.efectos.map((ef) => ({
+          id: ef.id,
+          n: ef.nombre,
+          r: ef.expiraRonda,
+          c: ef.concentracion,
+          d: ef.duracion,
+        }));
+      }
+      if (a.iniciativa) wa.i = a.iniciativa;
+      if (a.idMiniaturaTS) wa.m = a.idMiniaturaTS;
+      if (a.idPlantilla) wa.plant = a.idPlantilla;
+      if (a.velocidad && a.velocidad !== "30 pies") {
+        wa.vel = a.velocidad;
+      }
+      if (a.movimientoGastado) wa.gast = a.movimientoGastado;
+      if (a.movimientoMaximoTemporal) wa.maxT = a.movimientoMaximoTemporal;
+      if (a.esInvocacion) wa.inv = true;
+      if (a.nivelConjuroInvocacion) wa.lvl = a.nivelConjuroInvocacion;
+      if (a.subtipoInvocacion) wa.sub = a.subtipoInvocacion;
+      return wa;
+    });
   }
 
   return wire;
@@ -334,6 +466,33 @@ export function deserializarEstadoCombatePJ(wire: WireEstadoCombatePJ): EstadoCo
       : wire.co === null
       ? null
       : undefined,
+    movimientoGastado: wire.gast,
+    movimientoMaximoTemporal: wire.maxT,
+    acompanantes: (wire.ac || []).map((wa) => ({
+      id: wa.id,
+      nombre: wa.n || "Acompañante",
+      idPlantilla: wa.plant,
+      vidaActual: wa.va ?? 0,
+      vidaMaxima: wa.vm ?? 0,
+      vidaTemporal: wa.vt ?? 0,
+      ca: wa.ca ?? 10,
+      condiciones: wa.c || [],
+      efectos: (wa.e || []).map((ef) => ({
+        id: ef.id,
+        nombre: ef.n,
+        expiraRonda: ef.r,
+        concentracion: ef.c,
+        duracion: ef.d,
+      })),
+      iniciativa: wa.i ?? 0,
+      idMiniaturaTS: wa.m ?? null,
+      velocidad: wa.vel || "30 pies",
+      movimientoGastado: wa.gast ?? 0,
+      movimientoMaximoTemporal: wa.maxT ?? null,
+      esInvocacion: wa.inv,
+      nivelConjuroInvocacion: wa.lvl,
+      subtipoInvocacion: wa.sub,
+    })),
   };
 }
 
@@ -348,6 +507,11 @@ export function serializarIniciativaDM(dm: EstadoIniciativaDM): WireEstadoInicia
         vm: criatura.vidaMaxima ?? 0,
       };
       if (criatura.vidaTemporal) item.vt = criatura.vidaTemporal;
+      if (criatura.movimientoGastado) item.gast = criatura.movimientoGastado;
+      if (criatura.movimientoMaximoTemporal) item.maxT = criatura.movimientoMaximoTemporal;
+      if (criatura.esAcompanante) item.ac = true;
+      if (criatura.idPersonajeDuenio) item.du = criatura.idPersonajeDuenio;
+      if (criatura.idAcompanante) item.acId = criatura.idAcompanante;
 
       if (criatura.esMonstruo) {
         item.m = true;
@@ -400,6 +564,11 @@ export function deserializarIniciativaDM(wire: WireEstadoIniciativaDM): EstadoIn
       idPlantillaAsociada: w.plant ?? undefined,
       velocidad: w.vel || "30 pies",
       bonificadorIniciativa: w.bon ?? 0,
+      movimientoGastado: w.gast ?? 0,
+      movimientoMaximoTemporal: w.maxT ?? null,
+      esAcompanante: Boolean(w.ac),
+      idPersonajeDuenio: w.du ?? undefined,
+      idAcompanante: w.acId ?? undefined,
     })),
     indiceTurnoActivo: wire.t ?? 0,
     rondaActual: wire.r ?? 1,

@@ -359,4 +359,130 @@ describe("Sincronización Simbiote - Manejo de Mensajes en Store", () => {
     expect(estadoFinal.colaIniciativa[0].iniciativa).toBe(12);
     expect(estadoFinal.colaIniciativa[0].vidaActual).toBe(35);
   });
+
+  it("DM sincroniza acompañantes del jugador y los refleja en la cola de iniciativa", () => {
+    usarAlmacenDM.setState({
+      esGM: true,
+      personajes: [
+        {
+          ...PERSONAJE_POR_DEFECTO,
+          id: "pj-tryn",
+          nombre: "Tryn",
+          hpActual: 40,
+          hpMaximo: 40,
+          acompanantes: [
+            {
+              id: "acomp-corcel-1",
+              nombre: "Tryn_caballo",
+              idPlantilla: "plantilla-corcel",
+              vidaActual: 30,
+              vidaMaxima: 30,
+              vidaTemporal: 0,
+              ca: 13,
+              condiciones: [],
+              efectos: [],
+              iniciativa: 10,
+              idMiniaturaTS: "mini-corcel-ts",
+              velocidad: "60 pies",
+              movimientoGastado: 0,
+              movimientoMaximoTemporal: null,
+              tipoTerreno: "normal",
+              multiplicadorTerreno: 1,
+              ultimaPosicionTS: null,
+              ultimoBoardIdTS: null,
+              historialMovimiento: [],
+              esInvocacion: true,
+              nivelConjuroInvocacion: 3,
+            },
+          ],
+        },
+      ],
+      colaIniciativa: [
+        {
+          id: "pj-tryn",
+          nombre: "Tryn",
+          iniciativa: 15,
+          vidaActual: 40,
+          vidaMaxima: 40,
+          vidaTemporal: 0,
+          ca: 16,
+          esMonstruo: false,
+          condiciones: [],
+          efectos: [],
+          bonificadorIniciativa: 2,
+          velocidad: "30 pies",
+          movimientoGastado: 0,
+          movimientoMaximoTemporal: null,
+        },
+        {
+          id: "mini-corcel-ts",
+          nombre: "Tryn_caballo",
+          iniciativa: 12,
+          vidaActual: 30,
+          vidaMaxima: 30,
+          vidaTemporal: 0,
+          ca: 13,
+          esMonstruo: false,
+          condiciones: [],
+          efectos: [],
+          bonificadorIniciativa: 2,
+          velocidad: "60 pies",
+          movimientoGastado: 0,
+          movimientoMaximoTemporal: null,
+          esAcompanante: true,
+          idPersonajeDuenio: "pj-tryn",
+          idAcompanante: "acomp-corcel-1",
+        },
+      ],
+    });
+
+    const mensajePJ = {
+      v: 1,
+      t: "PJ",
+      d: {
+        id: "pj-tryn",
+        n: "Tryn",
+        i: 15,
+        va: 32,
+        vm: 40,
+        gast: 15, // Tryn gastó 15 pies
+        ac: [
+          {
+            id: "acomp-corcel-1",
+            n: "Tryn_caballo",
+            va: 18, // Corcel recibió 12 daño
+            vm: 30,
+            vt: 5,
+            ca: 13,
+            c: ["derribado"],
+            m: "mini-corcel-ts",
+            vel: "60 pies",
+            gast: 25, // Corcel gastó 25 pies
+            inv: true,
+            lvl: 3,
+          },
+        ],
+      },
+    };
+
+    procesarMensajeSyncEntrante({ datos: mensajePJ, strCrudo: JSON.stringify(mensajePJ) });
+
+    const estadoFinal = usarAlmacenDM.getState();
+    const pjFinal = estadoFinal.personajes.find((p) => p.id === "pj-tryn");
+    expect(pjFinal?.movimientoGastado).toBe(15);
+
+    const acompFinal = pjFinal?.acompanantes?.[0];
+    expect(acompFinal?.vidaActual).toBe(18);
+    expect(acompFinal?.vidaTemporal).toBe(5);
+    expect(acompFinal?.condiciones).toEqual(["derribado"]);
+    expect(acompFinal?.movimientoGastado).toBe(25);
+
+    // Verificar en la cola de iniciativa del Combat Tracker
+    const criaturaCorcelCola = estadoFinal.colaIniciativa.find((c) => c.id === "mini-corcel-ts");
+    expect(criaturaCorcelCola).toBeDefined();
+    expect(criaturaCorcelCola?.vidaActual).toBe(18);
+    expect(criaturaCorcelCola?.vidaTemporal).toBe(5);
+    expect(criaturaCorcelCola?.condiciones).toEqual(["derribado"]);
+    expect(criaturaCorcelCola?.movimientoGastado).toBe(25);
+  });
 });

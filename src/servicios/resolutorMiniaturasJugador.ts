@@ -64,6 +64,13 @@ export async function autoResolverMiniaturasJugador(
     idMiniatura: string | null,
     posicionInicial?: PosicionTS,
     boardIdInicial?: string | null
+  ) => void,
+  alVincularAcompanante?: (
+    personajeId: string,
+    idAcompanante: string,
+    idMiniatura: string | null,
+    posicionInicial?: PosicionTS,
+    boardIdInicial?: string | null
   ) => void
 ): Promise<void> {
   try {
@@ -96,7 +103,7 @@ export async function autoResolverMiniaturasJugador(
     const infos = await ts.creatures.getMoreInfo(ids);
     if (!infos || infos.length === 0) return;
 
-    // 4. Emparejar con los personajes del jugador
+    // 3. Emparejar con los personajes del jugador
     const mapa = emparejarPersonajesConCriaturas(personajes, infos);
 
     mapa.forEach((criatura, pjId) => {
@@ -117,6 +124,38 @@ export async function autoResolverMiniaturasJugador(
         }
       }
     });
+
+    // 4. Emparejar acompañantes de los personajes por nombre o nombre base con las criaturas del jugador
+    if (alVincularAcompanante) {
+      for (const pj of personajes) {
+        if (!pj.acompanantes || pj.acompanantes.length === 0) continue;
+        for (const acomp of pj.acompanantes) {
+          const nombreAcompNorm = (acomp.nombre || "").trim().toLowerCase();
+          if (!nombreAcompNorm) continue;
+
+          const criaturaEncontrada = infos.find((c) => {
+            const nomC = (c.name || "").trim().toLowerCase();
+            return nomC === nombreAcompNorm || nomC.startsWith(nombreAcompNorm) || nombreAcompNorm.startsWith(nomC);
+          });
+
+          if (criaturaEncontrada) {
+            const nuevoId = criaturaEncontrada.id || null;
+            if (acomp.idMiniaturaTS !== nuevoId) {
+              logger.info(
+                `[AutoResolutorMinis] Acompañante auto-vinculado: '${acomp.nombre}' ↔ '${criaturaEncontrada.name || "Sin nombre"}' (ID: ${nuevoId})`
+              );
+              alVincularAcompanante(pj.id, acomp.id, nuevoId, criaturaEncontrada.position, criaturaEncontrada.boardId);
+            } else if (criaturaEncontrada.position && !acomp.ultimaPosicionTS) {
+              logger.info(
+                `[AutoResolutorMinis] Posición inicial de acompañante registrada para '${acomp.nombre}':`,
+                criaturaEncontrada.position
+              );
+              alVincularAcompanante(pj.id, acomp.id, nuevoId, criaturaEncontrada.position, criaturaEncontrada.boardId);
+            }
+          }
+        }
+      }
+    }
   } catch (err) {
     logger.error("[AutoResolutorMinis] Excepción al auto-resolver miniaturas de jugador:", err);
   }

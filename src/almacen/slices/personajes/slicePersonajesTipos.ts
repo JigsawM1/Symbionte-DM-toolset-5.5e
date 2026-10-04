@@ -210,7 +210,9 @@ export interface SubSliceAcompanantes {
   vincularMiniaturaTSAcompanante: (
     idPersonaje: string,
     idAcompanante: string,
-    idMiniatura: string | null
+    idMiniatura: string | null,
+    posicionInicial?: import("@/tipos").PosicionTS,
+    boardIdInicial?: string | null
   ) => void;
 
   // Movimiento y Velocidad Dinámica (D&D 5.5e y TaleSpire 3D)

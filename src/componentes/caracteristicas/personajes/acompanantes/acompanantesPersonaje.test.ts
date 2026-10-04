@@ -264,5 +264,81 @@ describe("Gestión Dinámica de Acompañantes y Sidekicks (Movilidad y Terrenos)
     expect(ultimoReg?.tipo).toBe("reinicio");
     expect(ultimoReg?.nuevoGastado).toBe(0);
   });
+
+  it("debe actualizar la vida máxima en caliente y ajustar vidaActual si excede el nuevo máximo", () => {
+    // Aumentar vida máxima en caliente a 35
+    usarAlmacenDM.getState().actualizarAcompanante("pj_test_1", "acomp_lobo_1", {
+      vidaMaxima: 35,
+      vidaActual: Math.min(20, 35)
+    });
+
+    let pj = usarAlmacenDM.getState().personajes.find((p) => p.id === "pj_test_1");
+    let acomp = pj?.acompanantes?.find((a) => a.id === "acomp_lobo_1");
+    expect(acomp?.vidaMaxima).toBe(35);
+    expect(acomp?.vidaActual).toBe(20);
+
+    // Reducir vida máxima por debajo de vida actual (ej. a 15)
+    usarAlmacenDM.getState().actualizarAcompanante("pj_test_1", "acomp_lobo_1", {
+      vidaMaxima: 15,
+      vidaActual: Math.min(acomp?.vidaActual || 20, 15)
+    });
+
+    pj = usarAlmacenDM.getState().personajes.find((p) => p.id === "pj_test_1");
+    acomp = pj?.acompanantes?.find((a) => a.id === "acomp_lobo_1");
+    expect(acomp?.vidaMaxima).toBe(15);
+    expect(acomp?.vidaActual).toBe(15);
+  });
+
+  it("debe gestionar acompañantes de tipo invocación escalable y recalcular nivel y estadísticas", () => {
+    // Añadir Corcel Sobrenatural a nivel 2 (base)
+    const corcelInvocacion: import("@/tipos").AcompanantePersonaje = {
+      id: "acomp_corcel_1",
+      nombre: "Corcel sobrenatural",
+      idPlantilla: "inv_corcel_sobrenatural",
+      vidaActual: 25,
+      vidaMaxima: 25,
+      vidaTemporal: 0,
+      ca: 12,
+      condiciones: [],
+      efectos: [],
+      iniciativa: 0,
+      idMiniaturaTS: null,
+      velocidad: "60 pies",
+      movimientoGastado: 0,
+      movimientoMaximoTemporal: null,
+      tipoTerreno: "normal",
+      multiplicadorTerreno: 1,
+      ultimaPosicionTS: null,
+      ultimoBoardIdTS: null,
+      historialMovimiento: [],
+      esInvocacion: true,
+      nivelConjuroInvocacion: 2,
+      subtipoInvocacion: "Celestial"
+    };
+
+    usarAlmacenDM.getState().agregarAcompanantePersonaje("pj_test_1", corcelInvocacion);
+
+    let pj = usarAlmacenDM.getState().personajes.find((p) => p.id === "pj_test_1");
+    let corcel = pj?.acompanantes?.find((a) => a.id === "acomp_corcel_1");
+    expect(corcel?.esInvocacion).toBe(true);
+    expect(corcel?.nivelConjuroInvocacion).toBe(2);
+    expect(corcel?.ca).toBe(12);
+
+    // Escalar en caliente a nivel 7 (como en 5e.tools / PHB 2024: CA 17, HP 75)
+    usarAlmacenDM.getState().actualizarAcompanante("pj_test_1", "acomp_corcel_1", {
+      nivelConjuroInvocacion: 7,
+      vidaMaxima: 75,
+      vidaActual: 75,
+      ca: 17,
+      velocidad: "60 pies, Volar 60 pies"
+    });
+
+    pj = usarAlmacenDM.getState().personajes.find((p) => p.id === "pj_test_1");
+    corcel = pj?.acompanantes?.find((a) => a.id === "acomp_corcel_1");
+    expect(corcel?.nivelConjuroInvocacion).toBe(7);
+    expect(corcel?.vidaMaxima).toBe(75);
+    expect(corcel?.ca).toBe(17);
+    expect(corcel?.velocidad).toBe("60 pies, Volar 60 pies");
+  });
 });
 

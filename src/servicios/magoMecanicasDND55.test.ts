@@ -399,6 +399,54 @@ describe("Mago D&D 5.5e (2024) - Catálogo, Builder y Mecánicas Canónicas", ()
       });
     });
 
+    describe("Escalado por Nivel de los Rasgos Erudito (D&D 5.5e / PHB 2024)", () => {
+      it("Erudito en abjuración escala maxSelecciones y rango de conjuros con el nivel del Mago", () => {
+        // Nivel 3: 2 selecciones de nivel 1-2
+        const pjNv3 = aplicarBuildClaseAPersonaje(crearMagoBase(3), "Mago", 3, "Abjurador");
+        const selNv3 = pjNv3.rasgos?.find((r) => r.nombre === "Erudito en abjuración")?.selectores?.[0];
+        expect(selNv3?.maxSelecciones).toBe(2);
+        expect(selNv3?.etiqueta).toContain("Nv. 1-2");
+
+        // Nivel 5: 3 selecciones de nivel 1-3, se añaden opciones de nivel 3
+        const pjNv5 = aplicarBuildClaseAPersonaje(crearMagoBase(5), "Mago", 5, "Abjurador");
+        const selNv5 = pjNv5.rasgos?.find((r) => r.nombre === "Erudito en abjuración")?.selectores?.[0];
+        expect(selNv5?.maxSelecciones).toBe(3);
+        expect(selNv5?.etiqueta).toContain("Nv. 1-3");
+        expect(selNv5?.opciones.length).toBeGreaterThan(selNv3?.opciones.length || 0);
+
+        // Nivel 7: 4 selecciones de nivel 1-4
+        const pjNv7 = aplicarBuildClaseAPersonaje(crearMagoBase(7), "Mago", 7, "Abjurador");
+        const selNv7 = pjNv7.rasgos?.find((r) => r.nombre === "Erudito en abjuración")?.selectores?.[0];
+        expect(selNv7?.maxSelecciones).toBe(4);
+        expect(selNv7?.etiqueta).toContain("Nv. 1-4");
+
+        // Nivel 9: 5 selecciones de nivel 1-5
+        const pjNv9 = aplicarBuildClaseAPersonaje(crearMagoBase(9), "Mago", 9, "Abjurador");
+        const selNv9 = pjNv9.rasgos?.find((r) => r.nombre === "Erudito en abjuración")?.selectores?.[0];
+        expect(selNv9?.maxSelecciones).toBe(5);
+        expect(selNv9?.etiqueta).toContain("Nv. 1-5");
+
+        // Nivel 17: 9 selecciones de nivel 1-9
+        const pjNv17 = aplicarBuildClaseAPersonaje(crearMagoBase(17), "Mago", 17, "Abjurador");
+        const selNv17 = pjNv17.rasgos?.find((r) => r.nombre === "Erudito en abjuración")?.selectores?.[0];
+        expect(selNv17?.maxSelecciones).toBe(9);
+        expect(selNv17?.etiqueta).toContain("Nv. 1-9");
+      });
+
+      it("Erudito en evocación escala correctamente las selecciones y opciones al subir de nivel", () => {
+        const pjNv3 = aplicarBuildClaseAPersonaje(crearMagoBase(3), "Mago", 3, "Evocador");
+        const selNv3 = pjNv3.rasgos?.find((r) => r.nombre === "Erudito en evocación")?.selectores?.[0];
+        expect(selNv3?.maxSelecciones).toBe(2);
+        expect(selNv3?.etiqueta).toContain("Nv. 1-2");
+
+        const pjNv5 = aplicarBuildClaseAPersonaje(crearMagoBase(5), "Mago", 5, "Evocador");
+        const selNv5 = pjNv5.rasgos?.find((r) => r.nombre === "Erudito en evocación")?.selectores?.[0];
+        expect(selNv5?.maxSelecciones).toBe(3);
+        expect(selNv5?.etiqueta).toContain("Nv. 1-3");
+        expect(selNv5?.opciones.length).toBeGreaterThan(selNv3?.opciones.length || 0);
+      });
+    });
+
     describe("Mecánicas reactivas de Portento y Salvaguarda en Descansos", () => {
       it("los dados guardados de Portento se consumen y se reinician en descanso largo", () => {
         const pj = aplicarBuildClaseAPersonaje(crearMagoBase(3), "Mago", 3, "Adivino");

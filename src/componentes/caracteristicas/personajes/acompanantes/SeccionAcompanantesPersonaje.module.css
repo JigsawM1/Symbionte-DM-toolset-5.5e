@@ -753,3 +753,126 @@
   overflow-y: auto;
 }
 
+/* ==========================================================================
+   Controles de Invocación Escalable (D&D 5.5e / 5e.tools style)
+   ========================================================================== */
+
+.barraControlInvocacion {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  background: rgba(14, 165, 233, 0.08);
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  border-radius: 6px;
+  padding: 6px 10px;
+  margin-top: 6px;
+}
+
+.cabeceraControlInvocacion {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.iconoInvocacion {
+  color: #38bdf8;
+}
+
+.etiquetaNivelInvocacion {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #bae6fd;
+}
+
+.conjuroAsociadoBadge {
+  font-size: 10px;
+  color: #94a3b8;
+  font-style: italic;
+}
+
+.filaBotonesNivel {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.botonNivelInvocacion {
+  min-width: 26px;
+  height: 24px;
+  padding: 0 6px;
+  background: #1e293b;
+  border: 1px solid rgba(148, 163, 184, 0.26);
+  border-radius: 4px;
+  color: #94a3b8;
+  font-family: var(--fuente-codigo, 'JetBrains Mono', monospace);
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+}
+
+.botonNivelInvocacion:hover {
+  background: #334155;
+  color: #f8fafc;
+  border-color: #38bdf8;
+}
+
+.botonNivelInvocacionActivo {
+  background: #0284c7 !important;
+  color: #ffffff !important;
+  border-color: #38bdf8 !important;
+  box-shadow: 0 0 8px rgba(56, 189, 248, 0.4);
+}
+
+.filaBotonesSubtipo {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  margin-left: 4px;
+}
+
+.botonSubtipoInvocacion {
+  height: 24px;
+  padding: 0 8px;
+  background: #0f172a;
+  border: 1px solid rgba(148, 163, 184, 0.26);
+  border-radius: 4px;
+  color: #94a3b8;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.botonSubtipoInvocacion:hover {
+  background: #1e293b;
+  color: #f8fafc;
+  border-color: #38bdf8;
+}
+
+.botonSubtipoInvocacionActivo {
+  background: rgba(56, 189, 248, 0.2) !important;
+  color: #38bdf8 !important;
+  border-color: #38bdf8 !important;
+}
+
+.badgeInvocacionSugerencia {
+  display: inline-block;
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #38bdf8;
+  background: rgba(56, 189, 248, 0.15);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  padding: 1px 5px;
+  border-radius: 4px;
+  margin-left: 6px;
+}
+

@@ -24,6 +24,7 @@ interface TarjetaCriaturaIniciativaProps {
   onQuitarEfecto: (efectoId: string) => void;
   onLanzarIniciativa: () => void;
   onEstablecerIniciativa: (nuevaIniciativa: number) => void;
+  onEstablecerVidaMaxima?: (nuevaVidaMaxima: number) => void;
   onLanzarAtaqueRapido: (ataqueNombre: string, bonoAtaque: string, dadosDaño: string, tipoDaño: string) => void;
   obtenerPercepcionPasiva: (plantilla: MonstruoBase | null) => number;
   rondaActual?: number;
@@ -46,6 +47,7 @@ export const TarjetaCriaturaIniciativa: React.FC<TarjetaCriaturaIniciativaProps>
   onQuitarEfecto,
   onLanzarIniciativa,
   onEstablecerIniciativa,
+  onEstablecerVidaMaxima,
   onLanzarAtaqueRapido,
   obtenerPercepcionPasiva
 }) => {
@@ -55,6 +57,11 @@ export const TarjetaCriaturaIniciativa: React.FC<TarjetaCriaturaIniciativaProps>
   const [valorIniciativaTemp, setValorIniciativaTemp] = useState("");
   const refInputIniciativa = useRef<HTMLInputElement>(null);
   const iniciativaOriginalRef = useRef<number>(criatura.iniciativa);
+
+  const [editandoVidaMaxima, setEditandoVidaMaxima] = useState(false);
+  const [valorVidaMaximaTemp, setValorVidaMaximaTemp] = useState("");
+  const refInputVidaMaxima = useRef<HTMLInputElement>(null);
+  const vidaMaximaOriginalRef = useRef<number>(criatura.vidaMaxima);
 
   const estaMuerto = criatura.vidaActual === 0;
 
@@ -106,13 +113,54 @@ export const TarjetaCriaturaIniciativa: React.FC<TarjetaCriaturaIniciativaProps>
     setEditandoIniciativa(true);
   };
 
-  // Focus automático al activar edición
+  // Focus automático al activar edición de iniciativa
   useEffect(() => {
     if (editandoIniciativa && refInputIniciativa.current) {
       refInputIniciativa.current.focus();
       refInputIniciativa.current.select();
     }
   }, [editandoIniciativa]);
+
+  // Manejar cambio numérico de vida máxima en vivo
+  const manejarCambioVidaMaxima = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setValorVidaMaximaTemp(e.target.value);
+    const valNum = parseInt(e.target.value, 10);
+    if (!isNaN(valNum) && valNum > 0 && onEstablecerVidaMaxima) {
+      onEstablecerVidaMaxima(valNum);
+    }
+  };
+
+  // Finalizar edición manual de vida máxima
+  const finalizarEdicionVidaMaxima = () => {
+    const valor = parseInt(valorVidaMaximaTemp, 10);
+    if (isNaN(valor) || valor <= 0) {
+      if (onEstablecerVidaMaxima) onEstablecerVidaMaxima(vidaMaximaOriginalRef.current);
+    }
+    setEditandoVidaMaxima(false);
+    setValorVidaMaximaTemp("");
+  };
+
+  // Cancelar edición manual de vida máxima y restaurar valor inicial
+  const cancelarEdicionVidaMaxima = () => {
+    if (onEstablecerVidaMaxima) onEstablecerVidaMaxima(vidaMaximaOriginalRef.current);
+    setEditandoVidaMaxima(false);
+    setValorVidaMaximaTemp("");
+  };
+
+  // Activar modo edición de vida máxima
+  const activarEdicionVidaMaxima = () => {
+    vidaMaximaOriginalRef.current = criatura.vidaMaxima;
+    setValorVidaMaximaTemp(String(criatura.vidaMaxima));
+    setEditandoVidaMaxima(true);
+  };
+
+  // Focus automático al activar edición de vida máxima
+  useEffect(() => {
+    if (editandoVidaMaxima && refInputVidaMaxima.current) {
+      refInputVidaMaxima.current.focus();
+      refInputVidaMaxima.current.select();
+    }
+  }, [editandoVidaMaxima]);
 
   return (
     <div
@@ -195,6 +243,37 @@ export const TarjetaCriaturaIniciativa: React.FC<TarjetaCriaturaIniciativaProps>
             </span>
             <span className={estilosClases.subtituloCriatura}>
               CA: <strong className={estilosClases.valorMetaCianFuente}>{criatura.ca}</strong> | Inic: <strong className={estilosClases.valorMetaAmarilloFuente}>{(criatura.bonificadorIniciativa ?? 0) >= 0 ? `+${criatura.bonificadorIniciativa ?? 0}` : criatura.bonificadorIniciativa}</strong> <br /> Vel: {formatearVelocidad(criatura.velocidad)}
+              {(() => {
+                const tieneDatosMovimiento = criatura.movimientoGastado !== undefined || criatura.movimientoMaximoTemporal !== undefined;
+                if (!tieneDatosMovimiento) return null;
+
+                let velBaseNum = 30;
+                if (typeof criatura.velocidad === "string") {
+                  const match = criatura.velocidad.match(/(\d+)\s*(?:pies|ft)?/i);
+                  if (match) velBaseNum = parseInt(match[1], 10) || 30;
+                }
+
+                const velTotal = (criatura.movimientoMaximoTemporal !== null && criatura.movimientoMaximoTemporal !== undefined)
+                  ? criatura.movimientoMaximoTemporal
+                  : velBaseNum;
+                const velGastada = criatura.movimientoGastado || 0;
+                const velRestante = Math.max(0, Math.round((velTotal - velGastada) * 10) / 10);
+
+                return (
+                  <span
+                    className={`${estilosClases.etiquetaVelRestante} ${
+                      velRestante === 0
+                        ? estilosClases.etiquetaVelRestanteAgotada
+                        : velGastada > 0
+                        ? estilosClases.etiquetaVelRestanteGastada
+                        : ""
+                    }`}
+                    title={`Velocidad Total: ${velTotal} ft | Gastado: ${velGastada} ft | Restante: ${velRestante} ft`}
+                  >
+                    {" "}({velRestante} ft rest.)
+                  </span>
+                );
+              })()}
               {plantilla && (
                 <>
                   <br />  PP: <strong className={estilosClases.valorMetaCianFuente}>{obtenerPercepcionPasiva(plantilla)}</strong>
@@ -354,7 +433,33 @@ export const TarjetaCriaturaIniciativa: React.FC<TarjetaCriaturaIniciativaProps>
         <div className={estilosClases.filaHPArea}>
           <Heart size={12} fill={estaMuerto ? "none" : "var(--color-peligro)"} className={estilosClases.iconoCorazonPeligro} />
           <span className={estilosClases.hpGiganteTexto}>
-            {criatura.vidaActual} <span className={estilosClases.textoVidaMaxima}>/ {criatura.vidaMaxima}</span>
+            {criatura.vidaActual}{" "}
+            {editandoVidaMaxima ? (
+              <span className={estilosClases.textoVidaMaxima}>
+                /{" "}
+                <input
+                  ref={refInputVidaMaxima}
+                  type="number"
+                  min="1"
+                  value={valorVidaMaximaTemp}
+                  onChange={manejarCambioVidaMaxima}
+                  onBlur={finalizarEdicionVidaMaxima}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") finalizarEdicionVidaMaxima();
+                    if (e.key === "Escape") cancelarEdicionVidaMaxima();
+                  }}
+                  className={estilosClases.inputVidaMaximaEditable}
+                />
+              </span>
+            ) : (
+              <span
+                onClick={onEstablecerVidaMaxima ? activarEdicionVidaMaxima : undefined}
+                className={`${estilosClases.textoVidaMaxima} ${onEstablecerVidaMaxima ? estilosClases.textoVidaMaximaEditable : ""}`}
+                title={onEstablecerVidaMaxima ? "Clic para editar vida máxima" : undefined}
+              >
+                / {criatura.vidaMaxima}
+              </span>
+            )}
           </span>
           {criatura.vidaTemporal && criatura.vidaTemporal > 0 ? (
             <span className={estilosClases.tagHPTemporal}>+{criatura.vidaTemporal}</span>

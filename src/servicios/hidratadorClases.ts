@@ -3,7 +3,7 @@ import type { PlantillaRasgoClase, SelectorRasgo } from "@/tipos/rasgos";
 import { EsquemaDefinicionClaseJSON } from "@/tipos/esquemasCatalogos";
 import { validarColeccionJSON } from "./cargadorCatalogos";
 import { generarOpcionesSelectorInvocaciones } from "@/constantes/invocacionesSobrenaturales";
-import { obtenerOpcionesDinamicas } from "./hidratadorDotes";
+import { obtenerOpcionesDinamicas, obtenerGruposDinamicosEscalados } from "./hidratadorDotes";
 
 import barbaroJson from "@/datos/clases/barbaro.json";
 import bardoJson from "@/datos/clases/bardo.json";
@@ -46,19 +46,25 @@ function hidratarSelectoresRasgo(rasgo: PlantillaRasgoClase): PlantillaRasgoClas
   return {
     ...rasgo,
     selectores: rasgo.selectores.map((sel: SelectorRasgo) => {
+      let selActualizado = sel;
       if (sel.claveOpcionesDinamicas === "invocaciones_brujo") {
-        return {
-          ...sel,
+        selActualizado = {
+          ...selActualizado,
           opciones: generarOpcionesSelectorInvocaciones()
         };
-      }
-      if (sel.claveOpcionesDinamicas && (!sel.opciones || sel.opciones.length === 0)) {
-        return {
-          ...sel,
+      } else if (sel.claveOpcionesDinamicas && (!sel.opciones || sel.opciones.length === 0)) {
+        selActualizado = {
+          ...selActualizado,
           opciones: obtenerOpcionesDinamicas(sel.claveOpcionesDinamicas)
         };
       }
-      return sel;
+      if (sel.claveGruposDinamicos && (!sel.opcionesDinamicas || sel.opcionesDinamicas.length === 0)) {
+        selActualizado = {
+          ...selActualizado,
+          opcionesDinamicas: obtenerGruposDinamicosEscalados(sel.claveGruposDinamicos)
+        };
+      }
+      return selActualizado;
     })
   };
 }

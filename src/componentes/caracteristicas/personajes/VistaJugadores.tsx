@@ -26,7 +26,8 @@ export const VistaJugadores: React.FC = () => {
     duplicarPersonaje,
     eliminarPersonaje,
     seleccionarPersonajeActivo,
-    vincularMiniaturaTSPersonaje
+    vincularMiniaturaTSPersonaje,
+    vincularMiniaturaTSAcompanante
   } = usarAccionesPersonajes();
 
   const [subPestanaActiva, setSubPestanaActiva] = usarEstadoPersistido<SubPestanaJugador>(
@@ -39,7 +40,7 @@ export const VistaJugadores: React.FC = () => {
   // miniaturas al personaje por defecto temporal antes de leer la persistencia real.
   useEffect(() => {
     if (!datosInicialesCargados) return;
-    autoResolverMiniaturasJugador(personajes, vincularMiniaturaTSPersonaje);
+    autoResolverMiniaturasJugador(personajes, vincularMiniaturaTSPersonaje, vincularMiniaturaTSAcompanante);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [datosInicialesCargados, personajes.length, personajeActivo?.nombre]);
 

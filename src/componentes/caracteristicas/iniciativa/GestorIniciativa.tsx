@@ -6,6 +6,12 @@ import {
   usarEstadoHomebrew,
 } from "@/almacen/selectores";
 import { resolverPlantillaPorCriatura, esNombreVacioODot } from "@/servicios/resolutorCriaturas";
+import {
+  esIdInvocacionEscalable,
+  obtenerPlantillaInvocacionPorId,
+  proyectarInvocacionAMonstruo,
+  extraerContextoLanzador
+} from "@/servicios/factoriaInvocaciones";
 import { usarIndiceMonstruos } from "@/servicios/indiceMonstruos";
 import { MonstruoBase } from "@/utiles/datosIniciales";
 import { lanzarDadosTaleSpire, sanitizarEtiqueta } from "@/utiles/lanzadorDados";
@@ -38,6 +44,7 @@ interface ItemCriaturaIniciativaProps {
   onLanzarAtaqueRapido: (nombre: string, accNom: string, accBono: string, accDados: string, accTipo: string) => void;
   obtenerPercepcionPasiva: (plantilla: MonstruoBase | null) => number;
   onEstablecerIniciativa: (id: string, nuevaInic: number) => void;
+  onEstablecerVidaMaxima?: (id: string, nuevaMax: number) => void;
   refTarjetaActiva: (nodo: HTMLDivElement | null) => void;
 }
 
@@ -60,6 +67,7 @@ const ItemCriaturaIniciativa: React.FC<ItemCriaturaIniciativaProps> = React.memo
   onLanzarAtaqueRapido,
   obtenerPercepcionPasiva,
   onEstablecerIniciativa,
+  onEstablecerVidaMaxima,
   refTarjetaActiva
 }) => {
   const manejarEliminar = useCallback(() => onEliminar(criatura.id), [onEliminar, criatura.id]);
@@ -73,6 +81,7 @@ const ItemCriaturaIniciativa: React.FC<ItemCriaturaIniciativaProps> = React.memo
   const manejarQuitarEfecto = useCallback((efId: string) => onQuitarEfecto(criatura.id, efId), [onQuitarEfecto, criatura.id]);
   const manejarLanzarIniciativa = useCallback(() => onLanzarIniciativa(criatura, plantilla), [onLanzarIniciativa, criatura, plantilla]);
   const manejarEstablecerIniciativa = useCallback((nuevaInic: number) => onEstablecerIniciativa(criatura.id, nuevaInic), [onEstablecerIniciativa, criatura.id]);
+  const manejarEstablecerVidaMaxima = useCallback((nuevaMax: number) => onEstablecerVidaMaxima?.(criatura.id, nuevaMax), [onEstablecerVidaMaxima, criatura.id]);
   const manejarLanzarAtaqueRapido = useCallback((accNom: string, accBono: string, accDados: string, accTipo: string) => onLanzarAtaqueRapido(criatura.nombre, accNom, accBono, accDados, accTipo), [onLanzarAtaqueRapido, criatura.nombre]);
 
   return (
@@ -99,6 +108,7 @@ const ItemCriaturaIniciativa: React.FC<ItemCriaturaIniciativaProps> = React.memo
         onLanzarAtaqueRapido={manejarLanzarAtaqueRapido}
         obtenerPercepcionPasiva={obtenerPercepcionPasiva}
         onEstablecerIniciativa={manejarEstablecerIniciativa}
+        onEstablecerVidaMaxima={onEstablecerVidaMaxima ? manejarEstablecerVidaMaxima : undefined}
       />
     </div>
   );
@@ -107,7 +117,7 @@ const ItemCriaturaIniciativa: React.FC<ItemCriaturaIniciativaProps> = React.memo
 ItemCriaturaIniciativa.displayName = "ItemCriaturaIniciativa";
 
 export const GestorIniciativa: React.FC = () => {
-  const { colaIniciativa, indiceTurnoActivo, rondaActual, criaturasSeleccionadas, asociacionesFichas } = usarEstadoIniciativa();
+  const { colaIniciativa, indiceTurnoActivo, rondaActual, criaturasSeleccionadas, asociacionesFichas, personajes } = usarEstadoIniciativa();
   const {
     quitarCriaturaDeIniciativa,
     modificarVidaCriaturaIniciativa,
@@ -120,6 +130,7 @@ export const GestorIniciativa: React.FC = () => {
     quitarEfectoDeCriatura,
     importarIniciativaTaleSpire,
     establecerIniciativaCriatura,
+    modificarVidaMaximaCriaturaIniciativa,
   } = usarAccionesIniciativa();
   const { baseDatosMonstruos, baseDatosHechizos } = usarEstadoHomebrew();
 
@@ -154,8 +165,39 @@ export const GestorIniciativa: React.FC = () => {
     }
   }, [indiceTurnoActivo]);
 
-  // Buscar plantilla de estadísticas para una criatura mediante el ResolutorCriaturas
+  // Buscar plantilla de estadísticas para una criatura mediante el ResolutorCriaturas o la Factoría de Invocaciones
   const obtenerPlantillaAsociada = (criatura: CriaturaIniciativa): MonstruoBase | null => {
+    // 1. Si está asociada a una invocación escalable
+    if (criatura.idPlantillaAsociada && esIdInvocacionEscalable(criatura.idPlantillaAsociada)) {
+      const plantillaInv = obtenerPlantillaInvocacionPorId(criatura.idPlantillaAsociada);
+      if (plantillaInv) {
+        const pjDuenio = personajes.find(
+          (p) =>
+            p.id === criatura.idPersonajeDuenio ||
+            (p.acompanantes || []).some(
+              (a) => a.id === criatura.idAcompanante || (a.idMiniaturaTS && a.idMiniaturaTS === criatura.id)
+            )
+        ) || personajes[0];
+
+        const acomp = pjDuenio?.acompanantes?.find(
+          (a) =>
+            a.id === criatura.idAcompanante ||
+            (a.idMiniaturaTS && a.idMiniaturaTS === criatura.id) ||
+            a.idPlantilla === criatura.idPlantillaAsociada
+        );
+
+        if (pjDuenio) {
+          const contexto = extraerContextoLanzador(pjDuenio);
+          return proyectarInvocacionAMonstruo(
+            plantillaInv,
+            acomp?.nivelConjuroInvocacion || 2,
+            contexto,
+            acomp?.subtipoInvocacion
+          );
+        }
+      }
+    }
+
     return resolverPlantillaPorCriatura(
       criatura.id,
       criatura.nombre,
@@ -242,6 +284,10 @@ export const GestorIniciativa: React.FC = () => {
   const alEstablecerIniciativaCriatura = useCallback((id: string, nuevaInic: number) => {
     establecerIniciativaCriatura(id, nuevaInic);
   }, [establecerIniciativaCriatura]);
+
+  const alEstablecerVidaMaximaCriatura = useCallback((id: string, nuevaMax: number) => {
+    modificarVidaMaximaCriaturaIniciativa(id, nuevaMax);
+  }, [modificarVidaMaximaCriaturaIniciativa]);
 
   const alLanzarIniciativaCriatura = useCallback((criatura: CriaturaIniciativa, plantilla: MonstruoBase | null) => {
     let bonoInic = criatura.bonificadorIniciativa || 0;
@@ -339,6 +385,7 @@ export const GestorIniciativa: React.FC = () => {
                     onLanzarAtaqueRapido={alLanzarAtaqueRapidoCriatura}
                     obtenerPercepcionPasiva={obtenerPercepcionPasiva}
                     onEstablecerIniciativa={alEstablecerIniciativaCriatura}
+                    onEstablecerVidaMaxima={alEstablecerVidaMaximaCriatura}
                     refTarjetaActiva={refTarjetaActiva}
                   />
                 );

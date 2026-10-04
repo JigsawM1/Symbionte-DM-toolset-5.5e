@@ -8,10 +8,17 @@
 
 import type { ColaIniciativaTS } from "@/tipos/talespire";
 import type { CriaturaIniciativa } from "@/almacen/usarAlmacenDM";
-import type { PersonajeJugador } from "@/tipos";
+import type { PersonajeJugador, AcompanantePersonaje } from "@/tipos";
 import { formatearVelocidad } from "@/almacen/sanitizacion";
 import { resolverPlantillaPorCriatura, calcularVidaInicial, normalizarNombreTaleSpire } from "./resolutorCriaturas";
 import { calcularEstadisticasPersonaje } from "@/almacen/selectores/usarEstadoPersonajes";
+import {
+  esIdInvocacionEscalable,
+  obtenerPlantillaInvocacionPorId,
+  proyectarInvocacionAMonstruo,
+  extraerContextoLanzador
+} from "./factoriaInvocaciones";
+import type { MonstruoBase } from "@/almacen/usarAlmacenDM";
 import type { IndiceMonstruos } from "./indiceMonstruos";
 import { logger } from "@/utiles/logger";
 
@@ -144,7 +151,93 @@ export function sincronizarConEstadoLocal(opciones: OpcionesSincronizacion): Res
         efectos: efectosPj,
         bonificadorIniciativa: statsPj.modificadores.destreza,
         esMonstruo: false,
-        velocidad: `${pjAsociado.velocidad || "30 pies"}`
+        velocidad: `${pjAsociado.velocidad || "30 pies"}`,
+        movimientoGastado: pjAsociado.movimientoGastado || 0,
+        movimientoMaximoTemporal: pjAsociado.movimientoMaximoTemporal,
+        idPersonajeDuenio: pjAsociado.id
+      } as CriaturaIniciativa;
+    }
+
+    // 2. Comprobar si esta miniatura corresponde a un Acompañante de algún Personaje Jugador
+    let acompAsociado: AcompanantePersonaje | undefined = undefined;
+    let pjDuenioAcomp: PersonajeJugador | undefined = undefined;
+
+    for (const pj of personajes) {
+      if (!pj.acompanantes || pj.acompanantes.length === 0) continue;
+      for (const acomp of pj.acompanantes) {
+        const nombreAcompNorm = acomp.nombre ? acomp.nombre.trim().toLowerCase() : "";
+        const baseNombreAcomp = acomp.nombre ? normalizarNombreTaleSpire(acomp.nombre).base : "";
+        if (
+          (acomp.idMiniaturaTS && acomp.idMiniaturaTS === cTS.id) ||
+          (nombreAcompNorm && nombreAcompNorm === nombreNorm) ||
+          (baseNombreAcomp && baseNombreTS && baseNombreAcomp === baseNombreTS)
+        ) {
+          acompAsociado = acomp;
+          pjDuenioAcomp = pj;
+          break;
+        }
+      }
+      if (acompAsociado) break;
+    }
+
+    if (acompAsociado && pjDuenioAcomp) {
+      let bonificadorIniciativa = 0;
+      let plantillaProyectada: MonstruoBase | undefined = undefined;
+
+      if (acompAsociado.idPlantilla && esIdInvocacionEscalable(acompAsociado.idPlantilla)) {
+        const plantillaInvocacion = obtenerPlantillaInvocacionPorId(acompAsociado.idPlantilla);
+        if (plantillaInvocacion) {
+          const contextoLanzador = extraerContextoLanzador(pjDuenioAcomp);
+          plantillaProyectada = proyectarInvocacionAMonstruo(
+            plantillaInvocacion,
+            acompAsociado.nivelConjuroInvocacion || 2,
+            contextoLanzador,
+            acompAsociado.subtipoInvocacion
+          );
+          bonificadorIniciativa = plantillaProyectada.iniciativaBonificador ?? 0;
+        }
+      } else if (acompAsociado.idPlantilla) {
+        plantillaProyectada = indiceMonstruos.porId.get(acompAsociado.idPlantilla);
+        if (plantillaProyectada) {
+          bonificadorIniciativa = plantillaProyectada.iniciativaBonificador ?? 0;
+        }
+      }
+
+      const caFinal = acompAsociado.ca || plantillaProyectada?.ca || 10;
+      const vidaMaxFinal = acompAsociado.vidaMaxima || plantillaProyectada?.vidaMaxima || 10;
+      const vidaActFinal = acompAsociado.vidaActual !== undefined ? acompAsociado.vidaActual : vidaMaxFinal;
+
+      const condicionesAcomp = acompAsociado.condiciones?.length
+        ? [...acompAsociado.condiciones]
+        : existente
+        ? [...existente.condiciones]
+        : [];
+
+      const efectosAcomp = acompAsociado.efectos?.length
+        ? [...acompAsociado.efectos]
+        : existente?.efectos
+        ? [...existente.efectos]
+        : [];
+
+      return {
+        id: cTS.id,
+        nombre: acompAsociado.nombre,
+        iniciativa: iniciativaFisica,
+        vidaMaxima: vidaMaxFinal,
+        vidaActual: vidaActFinal,
+        vidaTemporal: acompAsociado.vidaTemporal || 0,
+        ca: caFinal,
+        condiciones: condicionesAcomp,
+        efectos: efectosAcomp,
+        bonificadorIniciativa,
+        esMonstruo: false,
+        velocidad: formatearVelocidad(acompAsociado.velocidad || plantillaProyectada?.velocidad || "30 pies"),
+        movimientoGastado: acompAsociado.movimientoGastado || 0,
+        movimientoMaximoTemporal: acompAsociado.movimientoMaximoTemporal,
+        idPlantillaAsociada: acompAsociado.idPlantilla,
+        idPersonajeDuenio: pjDuenioAcomp.id,
+        idAcompanante: acompAsociado.id,
+        esAcompanante: true
       } as CriaturaIniciativa;
     }
 

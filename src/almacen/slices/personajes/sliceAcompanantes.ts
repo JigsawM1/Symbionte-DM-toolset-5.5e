@@ -69,14 +69,15 @@ export const crearSubSliceAcompanantes: StateCreator<
     }));
   },
 
-  vincularMiniaturaTSAcompanante: (idPersonaje, idAcompanante, idMiniatura) => {
+  vincularMiniaturaTSAcompanante: (idPersonaje, idAcompanante, idMiniatura, posicionInicial, boardIdInicial) => {
     mutarPersonaje(set, idPersonaje, (pj) => ({
       ...pj,
       acompanantes: (pj.acompanantes || []).map((a) => {
         if (a.id !== idAcompanante) return a;
         return {
           ...a,
-          idMiniaturaTS: idMiniatura
+          idMiniaturaTS: idMiniatura,
+          ...(posicionInicial && !a.ultimaPosicionTS ? { ultimaPosicionTS: posicionInicial, ultimoBoardIdTS: boardIdInicial ?? null } : {})
         };
       })
     }));

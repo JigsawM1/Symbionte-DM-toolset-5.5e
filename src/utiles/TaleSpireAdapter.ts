@@ -798,9 +798,12 @@ class TaleSpireAdapter {
       const ts = this.tsGlobal;
       if (ts?.sync && typeof ts.sync.send === "function") {
         try {
-          if (message.length > 500) {
-            logger.error(`[TS Adapter] Mensaje excede el límite estricto de TaleSpire (500 caracteres, longitud: ${message.length}).`);
+          if (message.length > 1000) {
+            logger.error(`[TS Adapter] Mensaje excede el límite máximo de TaleSpire (1000 caracteres, longitud: ${message.length}).`);
             return false;
+          }
+          if (message.length > 500) {
+            logger.warn(`[TS Adapter] Mensaje sync grande (${message.length} caracteres), enviando con precaución.`);
           }
           await ts.sync.send(message, target);
           enviado = true;

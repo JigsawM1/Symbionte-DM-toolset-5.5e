@@ -33,6 +33,13 @@ export interface CriaturaIniciativa {
   velocidad: string;
   vidaTemporal?: number;
   idPlantillaAsociada?: string;
+
+  // Propiedades dinámicas de movimiento y vinculación a jugador / acompañante
+  movimientoGastado?: number;
+  movimientoMaximoTemporal?: number | null;
+  idPersonajeDuenio?: string;
+  idAcompanante?: string;
+  esAcompanante?: boolean;
 }
 
 

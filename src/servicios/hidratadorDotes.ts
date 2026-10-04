@@ -146,6 +146,52 @@ export function obtenerOpcionesDinamicas(clave: string): OpcionSelector[] {
 }
 
 /**
+ * Genera grupos de opciones de conjuros escalados por nivel mínimo para las escuelas de magia de Mago.
+ * Cumple con D&D 5.5e (PHB 2024): añade conjuros de la escuela cada vez que se accede a un nuevo nivel de espacio.
+ */
+export function generarGruposOpcionesConjurosEscalados(
+  clase: string,
+  escuela: string
+): Array<{ nivelMinimo: number; opciones: OpcionSelector[] }> {
+  const escalones = [
+    { nivelMago: 5, nivelConjuro: 3 },
+    { nivelMago: 7, nivelConjuro: 4 },
+    { nivelMago: 9, nivelConjuro: 5 },
+    { nivelMago: 11, nivelConjuro: 6 },
+    { nivelMago: 13, nivelConjuro: 7 },
+    { nivelMago: 15, nivelConjuro: 8 },
+    { nivelMago: 17, nivelConjuro: 9 }
+  ];
+
+  return escalones.map(({ nivelMago, nivelConjuro }) => ({
+    nivelMinimo: nivelMago,
+    opciones: generarOpcionesConjuros(clase, nivelConjuro, false, escuela)
+  }));
+}
+
+const GRUPOS_DINAMICOS_ESCALADOS_MAP: Record<string, () => Array<{ nivelMinimo: number; opciones: OpcionSelector[] }>> = {
+  grupos_abjuracion_mago: () => generarGruposOpcionesConjurosEscalados("mago", "abjuracion"),
+  grupos_adivinacion_mago: () => generarGruposOpcionesConjurosEscalados("mago", "adivinacion"),
+  grupos_evocacion_mago: () => generarGruposOpcionesConjurosEscalados("mago", "evocacion"),
+  grupos_ilusion_mago: () => generarGruposOpcionesConjurosEscalados("mago", "ilusion")
+};
+
+const CACHE_GRUPOS_DINAMICOS: Record<string, Array<{ nivelMinimo: number; opciones: OpcionSelector[] }>> = {};
+
+export function obtenerGruposDinamicosEscalados(clave: string): Array<{ nivelMinimo: number; opciones: OpcionSelector[] }> {
+  if (!CACHE_GRUPOS_DINAMICOS[clave]) {
+    const fn = GRUPOS_DINAMICOS_ESCALADOS_MAP[clave];
+    if (fn) {
+      CACHE_GRUPOS_DINAMICOS[clave] = fn();
+    } else {
+      logger.warn(`[HidratadorDotes] Clave de grupos dinámicos no reconocida: "${clave}"`);
+      return [];
+    }
+  }
+  return CACHE_GRUPOS_DINAMICOS[clave];
+}
+
+/**
  * Hidrata una dote individual inyectando las opciones calculadas en los selectores dinámicos.
  */
 function hidratarDote(dote: DotePersonaje): DotePersonaje {

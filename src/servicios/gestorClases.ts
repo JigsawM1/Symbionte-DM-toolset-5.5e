@@ -726,6 +726,10 @@ export function resolverEscaladosRasgo(
         }
       }
     }
+    if (sel.etiqueta && /\(Nv\.?\s*1\s*-\s*\d+\)/i.test(sel.etiqueta)) {
+      const nivelMaxEspacio = Math.min(9, Math.max(1, Math.ceil(nivel / 2)));
+      sel.etiqueta = sel.etiqueta.replace(/\(Nv\.?\s*1\s*-\s*\d+\)/i, `(Nv. 1-${nivelMaxEspacio})`);
+    }
   }
 
   return { formulaDados, usosEscalados, recuperacion, efectos, selectores };

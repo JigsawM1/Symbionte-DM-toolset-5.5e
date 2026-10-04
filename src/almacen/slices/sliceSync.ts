@@ -8,7 +8,7 @@
 import type { StateCreator } from "zustand";
 import type { EstadoDM, CriaturaIniciativa } from "@/almacen/usarAlmacenDM";
 import type { EstadoCombatePJ, EstadoIniciativaDM } from "@/tipos/sync";
-import { normalizarNombreTaleSpire } from "@/servicios/resolutorCriaturas";
+import { coincidenNombresTaleSpire } from "@/servicios/resolutorCriaturas";
 import { logger } from "@/utiles/logger";
 
 export interface SliceSync {
@@ -38,17 +38,44 @@ export const crearSliceSync: StateCreator<
 
     const { personajes } = get();
 
-    // Actualizar condiciones, efectos y vitalidad de los personajes locales que estén en la iniciativa del DM
+    // Actualizar condiciones, efectos y vitalidad de los personajes locales y sus acompañantes que estén en la iniciativa del DM
     const personajesActualizados = personajes.map((pj) => {
       const criaturaEnCola = datos.cola.find(
         (c) =>
           c.id === pj.id ||
           (pj.idMiniaturaTS && c.id === pj.idMiniaturaTS) ||
-          normalizarNombreTaleSpire(c.nombre) === normalizarNombreTaleSpire(pj.nombre)
+          coincidenNombresTaleSpire(c.nombre, pj.nombre)
       );
 
+      const nuevosAcomps = (pj.acompanantes || []).map((acomp) => {
+        const criaturaAcompEnCola = datos.cola.find(
+          (c) =>
+            c.id === acomp.id ||
+            (acomp.idMiniaturaTS && c.id === acomp.idMiniaturaTS) ||
+            coincidenNombresTaleSpire(c.nombre, acomp.nombre)
+        );
+
+        if (!criaturaAcompEnCola) return acomp;
+
+        return {
+          ...acomp,
+          condiciones: criaturaAcompEnCola.condiciones || [],
+          efectos: criaturaAcompEnCola.efectos || [],
+          vidaActual: typeof criaturaAcompEnCola.vidaActual === "number" ? criaturaAcompEnCola.vidaActual : acomp.vidaActual,
+          vidaMaxima:
+            typeof criaturaAcompEnCola.vidaMaxima === "number" && criaturaAcompEnCola.vidaMaxima > 0
+              ? criaturaAcompEnCola.vidaMaxima
+              : acomp.vidaMaxima,
+          vidaTemporal:
+            typeof criaturaAcompEnCola.vidaTemporal === "number" ? criaturaAcompEnCola.vidaTemporal : acomp.vidaTemporal,
+        };
+      });
+
       if (!criaturaEnCola) {
-        return pj;
+        return {
+          ...pj,
+          acompanantes: nuevosAcomps
+        };
       }
 
       return {
@@ -62,6 +89,7 @@ export const crearSliceSync: StateCreator<
             : pj.hpMaximo,
         hpTemporal:
           typeof criaturaEnCola.vidaTemporal === "number" ? criaturaEnCola.vidaTemporal : pj.hpTemporal,
+        acompanantes: nuevosAcomps
       };
     });
 
@@ -92,13 +120,86 @@ export const crearSliceSync: StateCreator<
     const indexPj = personajes.findIndex((p) => {
       if (p.id === dto.id) return true;
       if (p.idMiniaturaTS && dto.idMiniaturaTS && p.idMiniaturaTS === dto.idMiniaturaTS) return true;
-      return normalizarNombreTaleSpire(p.nombre) === normalizarNombreTaleSpire(dto.nombre);
+      return coincidenNombresTaleSpire(p.nombre, dto.nombre);
     });
 
     let personajesActualizados = personajes;
 
     if (indexPj !== -1) {
       const pjExistente = personajes[indexPj];
+
+      // Sincronizar lista de acompañantes
+      let acompSincronizados = pjExistente.acompanantes || [];
+      if (dto.acompanantes && dto.acompanantes.length > 0) {
+        const idsProcesados = new Set<string>();
+        const actualizados = acompSincronizados.map((acompExistente) => {
+          const acompDTO = dto.acompanantes?.find(
+            (a) =>
+              a.id === acompExistente.id ||
+              (a.idMiniaturaTS && acompExistente.idMiniaturaTS && a.idMiniaturaTS === acompExistente.idMiniaturaTS) ||
+              coincidenNombresTaleSpire(a.nombre, acompExistente.nombre)
+          );
+
+          if (!acompDTO) return acompExistente;
+          idsProcesados.add(acompDTO.id);
+
+          return {
+            ...acompExistente,
+            nombre: acompDTO.nombre || acompExistente.nombre,
+            vidaActual: acompDTO.vidaActual,
+            vidaMaxima: acompDTO.vidaMaxima,
+            vidaTemporal: acompDTO.vidaTemporal ?? acompExistente.vidaTemporal,
+            ca: acompDTO.ca ?? acompExistente.ca,
+            condiciones: acompDTO.condiciones || [],
+            efectos: acompDTO.efectos || [],
+            iniciativa: acompDTO.iniciativa ?? acompExistente.iniciativa,
+            idMiniaturaTS:
+              acompDTO.idMiniaturaTS !== undefined ? acompDTO.idMiniaturaTS : acompExistente.idMiniaturaTS,
+            velocidad: acompDTO.velocidad ?? acompExistente.velocidad,
+            movimientoGastado: acompDTO.movimientoGastado ?? acompExistente.movimientoGastado,
+            movimientoMaximoTemporal:
+              acompDTO.movimientoMaximoTemporal !== undefined
+                ? acompDTO.movimientoMaximoTemporal
+                : acompExistente.movimientoMaximoTemporal,
+            esInvocacion: acompDTO.esInvocacion ?? acompExistente.esInvocacion,
+            nivelConjuroInvocacion:
+              acompDTO.nivelConjuroInvocacion ?? acompExistente.nivelConjuroInvocacion,
+            subtipoInvocacion: acompDTO.subtipoInvocacion ?? acompExistente.subtipoInvocacion,
+            idPlantilla: acompDTO.idPlantilla ?? acompExistente.idPlantilla,
+          };
+        });
+
+        // Añadir acompañantes nuevos del DTO si no estaban en el DM
+        const nuevosAcomps = (dto.acompanantes || [])
+          .filter((a) => !idsProcesados.has(a.id))
+          .map((a) => ({
+            id: a.id,
+            nombre: a.nombre,
+            idPlantilla: a.idPlantilla || "",
+            vidaActual: a.vidaActual,
+            vidaMaxima: a.vidaMaxima,
+            vidaTemporal: a.vidaTemporal ?? 0,
+            ca: a.ca ?? 10,
+            condiciones: a.condiciones || [],
+            efectos: a.efectos || [],
+            iniciativa: a.iniciativa ?? 0,
+            idMiniaturaTS: a.idMiniaturaTS ?? null,
+            velocidad: a.velocidad || "30 pies",
+            movimientoGastado: a.movimientoGastado ?? 0,
+            movimientoMaximoTemporal: a.movimientoMaximoTemporal ?? null,
+            tipoTerreno: "normal" as const,
+            multiplicadorTerreno: 1,
+            ultimaPosicionTS: null,
+            ultimoBoardIdTS: null,
+            historialMovimiento: [],
+            esInvocacion: a.esInvocacion,
+            nivelConjuroInvocacion: a.nivelConjuroInvocacion,
+            subtipoInvocacion: a.subtipoInvocacion,
+          }));
+
+        acompSincronizados = [...actualizados, ...nuevosAcomps];
+      }
+
       const pjActualizado = {
         ...pjExistente,
         hpActual: dto.hpActual,
@@ -122,12 +223,20 @@ export const crearSliceSync: StateCreator<
         espaciosConjuroGastados: dto.conjuros?.espaciosGastados
           ? { ...pjExistente.espaciosConjuroGastados, ...dto.conjuros.espaciosGastados }
           : pjExistente.espaciosConjuroGastados,
-        puntosConjuroGastados: dto.conjuros?.puntosGastados !== undefined
-          ? dto.conjuros.puntosGastados
-          : pjExistente.puntosConjuroGastados,
-        espaciosPactoGastados: dto.conjuros?.pacto?.gastados !== undefined
-          ? dto.conjuros.pacto.gastados
-          : pjExistente.espaciosPactoGastados,
+        puntosConjuroGastados:
+          dto.conjuros?.puntosGastados !== undefined
+            ? dto.conjuros.puntosGastados
+            : pjExistente.puntosConjuroGastados,
+        espaciosPactoGastados:
+          dto.conjuros?.pacto?.gastados !== undefined
+            ? dto.conjuros.pacto.gastados
+            : pjExistente.espaciosPactoGastados,
+        movimientoGastado: dto.movimientoGastado ?? pjExistente.movimientoGastado,
+        movimientoMaximoTemporal:
+          dto.movimientoMaximoTemporal !== undefined
+            ? dto.movimientoMaximoTemporal
+            : pjExistente.movimientoMaximoTemporal,
+        acompanantes: acompSincronizados,
       };
 
       personajesActualizados = [
@@ -137,12 +246,14 @@ export const crearSliceSync: StateCreator<
       ];
     }
 
-    // 2. Reflejar también en la cola de iniciativa si la criatura está presente
+    // 2. Reflejar también en la cola de iniciativa tanto para el PJ como para sus acompañantes
     const colaActualizada = colaIniciativa.map((criatura): CriaturaIniciativa => {
-      const coincidePorId = criatura.id === dto.id || (dto.idMiniaturaTS && criatura.id === dto.idMiniaturaTS);
-      const coincidePorNombre = normalizarNombreTaleSpire(criatura.nombre) === normalizarNombreTaleSpire(dto.nombre);
+      // Caso A: La criatura en cola es el personaje principal
+      const coincidePorIdPJ = criatura.id === dto.id || (dto.idMiniaturaTS && criatura.id === dto.idMiniaturaTS);
+      const coincidePorNombrePJ =
+        !criatura.esAcompanante && coincidenNombresTaleSpire(criatura.nombre, dto.nombre);
 
-      if (coincidePorId || coincidePorNombre) {
+      if (coincidePorIdPJ || coincidePorNombrePJ) {
         return {
           ...criatura,
           iniciativa: dto.iniciativa !== undefined ? dto.iniciativa : criatura.iniciativa,
@@ -152,8 +263,43 @@ export const crearSliceSync: StateCreator<
           ca: dto.ca,
           condiciones: dto.condiciones,
           efectos: dto.efectos,
+          movimientoGastado: dto.movimientoGastado ?? criatura.movimientoGastado,
+          movimientoMaximoTemporal:
+            dto.movimientoMaximoTemporal !== undefined
+              ? dto.movimientoMaximoTemporal
+              : criatura.movimientoMaximoTemporal,
         };
       }
+
+      // Caso B: La criatura en cola es un acompañante de este personaje
+      if (dto.acompanantes && dto.acompanantes.length > 0) {
+        const acompCoincidente = dto.acompanantes.find(
+          (a) =>
+            criatura.id === a.id ||
+            criatura.idAcompanante === a.id ||
+            (a.idMiniaturaTS && criatura.id === a.idMiniaturaTS) ||
+            coincidenNombresTaleSpire(criatura.nombre, a.nombre)
+        );
+
+        if (acompCoincidente) {
+          return {
+            ...criatura,
+            iniciativa: acompCoincidente.iniciativa !== undefined ? acompCoincidente.iniciativa : criatura.iniciativa,
+            vidaActual: acompCoincidente.vidaActual,
+            vidaMaxima: acompCoincidente.vidaMaxima,
+            vidaTemporal: acompCoincidente.vidaTemporal ?? criatura.vidaTemporal,
+            ca: acompCoincidente.ca ?? criatura.ca,
+            condiciones: acompCoincidente.condiciones || [],
+            efectos: acompCoincidente.efectos || [],
+            movimientoGastado: acompCoincidente.movimientoGastado ?? criatura.movimientoGastado,
+            movimientoMaximoTemporal:
+              acompCoincidente.movimientoMaximoTemporal !== undefined
+                ? acompCoincidente.movimientoMaximoTemporal
+                : criatura.movimientoMaximoTemporal,
+          };
+        }
+      }
+
       return criatura;
     });
 

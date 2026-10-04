@@ -623,3 +623,53 @@
   color: var(--color-texto-apagado);
   font-size: 10px;
 }
+
+.textoVidaMaximaEditable {
+  cursor: pointer;
+  transition: color 0.15s, text-decoration 0.15s;
+}
+
+.textoVidaMaximaEditable:hover {
+  color: var(--color-borde-cian);
+  text-decoration: underline;
+}
+
+.inputVidaMaximaEditable {
+  width: 32px;
+  font-size: 10px;
+  font-weight: 700;
+  font-family: var(--fuente-codigo);
+  line-height: 1;
+  text-align: center;
+  background-color: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--color-borde-cian);
+  border-radius: 2px;
+  color: var(--color-texto-principal);
+  outline: none;
+  padding: 0;
+  margin-left: 2px;
+  -moz-appearance: textfield;
+}
+
+.inputVidaMaximaEditable::-webkit-outer-spin-button,
+.inputVidaMaximaEditable::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.etiquetaVelRestante {
+  font-family: var(--fuente-codigo);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--color-borde-cian);
+  margin-left: 3px;
+}
+
+.etiquetaVelRestanteGastada {
+  color: var(--color-advertencia);
+}
+
+.etiquetaVelRestanteAgotada {
+  color: var(--color-peligro);
+}
+

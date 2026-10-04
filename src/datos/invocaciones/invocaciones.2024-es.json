@@ -1,0 +1,724 @@
+[
+  {
+    "id": "inv_corcel_sobrenatural",
+    "nombre": "Corcel sobrenatural",
+    "conjuroAsociado": "Hallar corcel",
+    "nivelMinimo": 2,
+    "nivelMaximo": 9,
+    "tipoCriatura": "Celestial, Feérico o Infernal",
+    "tamano": "Grande",
+    "alineacion": "Neutral",
+    "subtiposDisponibles": [
+      "Celestial",
+      "Feérico",
+      "Infernal"
+    ],
+    "velocidadBase": "60 pies",
+    "velocidadesEspeciales": [
+      {
+        "nivelMinimo": 4,
+        "velocidadTexto": "60 pies, Volar 60 pies"
+      }
+    ],
+    "sentidos": "Percepción pasiva 11",
+    "idiomas": "telepatía 1,5 km (funciona solo contigo)",
+    "caracteristicas": {
+      "fuerza": 18,
+      "destreza": 12,
+      "constitucion": 14,
+      "inteligencia": 6,
+      "sabiduria": 12,
+      "carisma": 8
+    },
+    "formulaCA": {
+      "base": 10,
+      "sumaNivelConjuro": true,
+      "bonificadorAdicional": 0
+    },
+    "formulaVida": {
+      "base": 5,
+      "porNivel": 10,
+      "porNivelPorEncimaDelMinimo": false,
+      "dadoGolpeVisual": "d10"
+    },
+    "formulaAtaquesPorAccion": "fijo_1",
+    "ataques": [
+      {
+        "nombre": "Golpetazo sobrenatural",
+        "tipo": "cuerpo_a_cuerpo",
+        "alcance": "5 pies",
+        "usaModificadorAtaqueConjuros": true,
+        "dadosDanoBase": "1d8",
+        "modificadorDanoFijo": 0,
+        "sumaNivelAlDano": true,
+        "tipoDano": "radiante",
+        "tipoDanoPorSubtipo": {
+          "Celestial": "radiante",
+          "Feérico": "psíquico",
+          "Infernal": "necrótico"
+        },
+        "descripcionExtra": "Tirada de ataque cuerpo a cuerpo usando tu modificador de ataque de conjuros. Al impactar inflige daño según el subtipo del corcel."
+      }
+    ],
+    "rasgos": [
+      {
+        "nombre": "Vínculo vital",
+        "descripcion": "Cuando recuperas puntos de golpe de un conjuro de nivel 1 o superior, el corcel recupera la misma cantidad de puntos de golpe si estás en un radio de 5 pies alrededor de él."
+      }
+    ],
+    "accionesAdicionales": [
+      {
+        "nombre": "Mirada siniestra",
+        "subtipoRequerido": "Infernal",
+        "recarga": "Descanso largo",
+        "descripcion": "Una criatura en un radio de 60 pies que el corcel pueda ver debe superar una tirada de salvación de Sabiduría contra tu CD de salvación de conjuros o quedará Asustada hasta el final de tu siguiente turno."
+      },
+      {
+        "nombre": "Paso feérico",
+        "subtipoRequerido": "Feérico",
+        "recarga": "Descanso largo",
+        "descripcion": "El corcel se teletransporta mágicamente, junto con su jinete, a un espacio desocupado que pueda ver a una distancia de hasta 60 pies."
+      },
+      {
+        "nombre": "Toque sanador",
+        "subtipoRequerido": "Celestial",
+        "recarga": "Descanso largo",
+        "descripcion": "Una criatura en un radio de 5 pies del corcel recupera una cantidad de puntos de golpe igual a 2d8 + el nivel del conjuro."
+      }
+    ],
+    "reacciones": [],
+    "fuente": "Player's Handbook 2024"
+  },
+  {
+    "id": "inv_espiritu_bestial",
+    "nombre": "Espíritu bestial",
+    "conjuroAsociado": "Invocar bestia",
+    "nivelMinimo": 2,
+    "nivelMaximo": 9,
+    "tipoCriatura": "Bestia",
+    "tamano": "Pequeño",
+    "alineacion": "Neutral",
+    "subtiposDisponibles": [
+      "Tierra",
+      "Aire",
+      "Agua"
+    ],
+    "velocidadBase": "30 pies, Trepar 30 pies",
+    "velocidadesEspeciales": [
+      {
+        "nivelMinimo": 2,
+        "velocidadTexto": "10 pies, Volar 60 pies (Aire); 30 pies, Nadar 30 pies (Agua); 30 pies, Trepar 30 pies (Tierra)"
+      }
+    ],
+    "sentidos": "Visión en la oscuridad 60 pies, Percepción pasiva 12",
+    "idiomas": "Entiende los idiomas que tú hablas",
+    "caracteristicas": {
+      "fuerza": 18,
+      "destreza": 11,
+      "constitucion": 16,
+      "inteligencia": 4,
+      "sabiduria": 14,
+      "carisma": 5
+    },
+    "formulaCA": {
+      "base": 11,
+      "sumaNivelConjuro": true,
+      "bonificadorAdicional": 0
+    },
+    "formulaVida": {
+      "base": 20,
+      "porNivel": 5,
+      "porNivelPorEncimaDelMinimo": true,
+      "dadoGolpeVisual": "d8"
+    },
+    "formulaAtaquesPorAccion": "mitad_nivel_abajo",
+    "ataques": [
+      {
+        "nombre": "Desgarro",
+        "tipo": "cuerpo_a_cuerpo",
+        "alcance": "5 pies",
+        "usaModificadorAtaqueConjuros": true,
+        "dadosDanoBase": "1d8",
+        "modificadorDanoFijo": 4,
+        "sumaNivelAlDano": true,
+        "tipoDano": "perforante",
+        "descripcionExtra": "Tirada de ataque cuerpo a cuerpo usando tu modificador de ataque de conjuros. Daño: 1d8 + 4 + nivel del conjuro de daño perforante."
+      }
+    ],
+    "rasgos": [
+      {
+        "nombre": "Vuelo sin provocación",
+        "subtipoRequerido": "Aire",
+        "descripcion": "El espíritu no provoca ataques de oportunidad cuando sale volando del alcance de un enemigo."
+      },
+      {
+        "nombre": "Tácticas de manada",
+        "subtipoRequerido": "Tierra",
+        "descripcion": "El espíritu tiene ventaja en las tiradas de ataque contra una criatura si al menos uno de sus aliados está a 5 pies de la criatura y no está incapacitado."
+      },
+      {
+        "nombre": "Respiración acuática",
+        "subtipoRequerido": "Agua",
+        "descripcion": "El espíritu puede respirar solo bajo el agua."
+      }
+    ],
+    "accionesAdicionales": [],
+    "reacciones": [],
+    "fuente": "Player's Handbook 2024"
+  },
+  {
+    "id": "inv_espiritu_feerico",
+    "nombre": "Espíritu feérico",
+    "conjuroAsociado": "Invocar seres feéricos",
+    "nivelMinimo": 3,
+    "nivelMaximo": 9,
+    "tipoCriatura": "Feérico",
+    "tamano": "Pequeño",
+    "alineacion": "Neutral",
+    "subtiposDisponibles": [
+      "Alegre",
+      "Iracundo",
+      "Astuto"
+    ],
+    "velocidadBase": "30 pies, Volar 30 pies",
+    "velocidadesEspeciales": [],
+    "sentidos": "Visión en la oscuridad 60 pies, Percepción pasiva 10",
+    "idiomas": "Silvano, entiende los idiomas que tú hablas",
+    "caracteristicas": {
+      "fuerza": 13,
+      "destreza": 16,
+      "constitucion": 14,
+      "inteligencia": 14,
+      "sabiduria": 11,
+      "carisma": 16
+    },
+    "formulaCA": {
+      "base": 12,
+      "sumaNivelConjuro": true,
+      "bonificadorAdicional": 0
+    },
+    "formulaVida": {
+      "base": 30,
+      "porNivel": 10,
+      "porNivelPorEncimaDelMinimo": true,
+      "dadoGolpeVisual": "d6"
+    },
+    "formulaAtaquesPorAccion": "mitad_nivel_abajo",
+    "ataques": [
+      {
+        "nombre": "Filo feérico",
+        "tipo": "cuerpo_a_cuerpo",
+        "alcance": "5 pies",
+        "usaModificadorAtaqueConjuros": true,
+        "dadosDanoBase": "1d6",
+        "modificadorDanoFijo": 3,
+        "sumaNivelAlDano": true,
+        "tipoDano": "perforante + fuerza",
+        "descripcionExtra": "Tirada de ataque cuerpo a cuerpo. Acierto: 1d6 + 3 + nivel de conjuro perforante más 1d6 daño de fuerza."
+      }
+    ],
+    "rasgos": [],
+    "accionesAdicionales": [
+      {
+        "nombre": "Paso feérico",
+        "recarga": "A voluntad",
+        "descripcion": "El espíritu se teletransporta mágicamente hasta 30 pies a un espacio desocupado que pueda ver. Produce un efecto adicional según su humor (Alegre: Hechizado, Iracundo: ventaja en próximo ataque, Astuto: Oscuridad mágica)."
+      }
+    ],
+    "reacciones": [],
+    "fuente": "Player's Handbook 2024"
+  },
+  {
+    "id": "inv_espiritu_muerto_viviente",
+    "nombre": "Espíritu muerto viviente",
+    "conjuroAsociado": "Invocar muerto viviente",
+    "nivelMinimo": 3,
+    "nivelMaximo": 9,
+    "tipoCriatura": "No Muerto",
+    "tamano": "Mediano",
+    "alineacion": "Neutral Malvado",
+    "subtiposDisponibles": [
+      "Fantasmal",
+      "Pútrido",
+      "Esquelético"
+    ],
+    "velocidadBase": "30 pies",
+    "velocidadesEspeciales": [
+      {
+        "nivelMinimo": 3,
+        "velocidadTexto": "30 pies, Volar 40 pies (suspenderse; solo Fantasmal)"
+      }
+    ],
+    "sentidos": "Visión en la oscuridad 60 pies, Percepción pasiva 10",
+    "idiomas": "Entiende los idiomas que tú hablas",
+    "caracteristicas": {
+      "fuerza": 12,
+      "destreza": 16,
+      "constitucion": 15,
+      "inteligencia": 4,
+      "sabiduria": 10,
+      "carisma": 9
+    },
+    "formulaCA": {
+      "base": 11,
+      "sumaNivelConjuro": true,
+      "bonificadorAdicional": 0
+    },
+    "formulaVida": {
+      "base": 30,
+      "porNivel": 10,
+      "porNivelPorEncimaDelMinimo": true,
+      "dadoGolpeVisual": "d8"
+    },
+    "formulaAtaquesPorAccion": "mitad_nivel_abajo",
+    "ataques": [
+      {
+        "nombre": "Ataque del no muerto",
+        "tipo": "ambos",
+        "alcance": "5 pies / Rango 150 pies",
+        "usaModificadorAtaqueConjuros": true,
+        "dadosDanoBase": "1d8",
+        "modificadorDanoFijo": 3,
+        "sumaNivelAlDano": true,
+        "tipoDano": "necrótico",
+        "descripcionExtra": "Toque mortal (Fantasmal, 5 pies), Rayo sepulcral (Esquelético, 150 pies) o Garra purulenta (Pútrido, 5 pies y posibilidad de envenenar)."
+      }
+    ],
+    "rasgos": [
+      {
+        "nombre": "Movimiento incorpóreo",
+        "subtipoRequerido": "Fantasmal",
+        "descripcion": "El espíritu puede moverse a través de otras criaturas y objetos como si fueran terreno difícil. Recibe 1d10 de daño de fuerza si termina su turno dentro de un objeto."
+      },
+      {
+        "nombre": "Aura fétida",
+        "subtipoRequerido": "Pútrido",
+        "descripcion": "Cualquier criatura distinta de ti o del espíritu que comience su turno a 5 pies del espíritu debe superar una salvación de Constitución contra tu CD de conjuros o quedará envenenada hasta el inicio de su siguiente turno."
+      }
+    ],
+    "accionesAdicionales": [],
+    "reacciones": [],
+    "fuente": "Player's Handbook 2024"
+  },
+  {
+    "id": "inv_espiritu_aberrante",
+    "nombre": "Espíritu aberrante",
+    "conjuroAsociado": "Invocar aberración",
+    "nivelMinimo": 4,
+    "nivelMaximo": 9,
+    "tipoCriatura": "Aberración",
+    "tamano": "Mediano",
+    "alineacion": "Neutral",
+    "subtiposDisponibles": [
+      "Contemplador",
+      "Slaad",
+      "Azotamentes"
+    ],
+    "velocidadBase": "30 pies",
+    "velocidadesEspeciales": [
+      {
+        "nivelMinimo": 4,
+        "velocidadTexto": "30 pies, Volar 30 pies (suspenderse; solo Contemplador)"
+      }
+    ],
+    "sentidos": "Visión en la oscuridad 60 pies, Percepción pasiva 10",
+    "idiomas": "Cualquier idioma que hables, telepatía 60 pies",
+    "caracteristicas": {
+      "fuerza": 16,
+      "destreza": 10,
+      "constitucion": 15,
+      "inteligencia": 16,
+      "sabiduria": 10,
+      "carisma": 6
+    },
+    "formulaCA": {
+      "base": 11,
+      "sumaNivelConjuro": true,
+      "bonificadorAdicional": 0
+    },
+    "formulaVida": {
+      "base": 40,
+      "porNivel": 10,
+      "porNivelPorEncimaDelMinimo": true,
+      "dadoGolpeVisual": "d8"
+    },
+    "formulaAtaquesPorAccion": "mitad_nivel_abajo",
+    "ataques": [
+      {
+        "nombre": "Ataque aberrante",
+        "tipo": "ambos",
+        "alcance": "5 pies / Rango 150 pies",
+        "usaModificadorAtaqueConjuros": true,
+        "dadosDanoBase": "1d8",
+        "modificadorDanoFijo": 3,
+        "sumaNivelAlDano": true,
+        "tipoDano": "psíquico",
+        "tipoDanoPorSubtipo": {
+          "Contemplador": "psíquico",
+          "Slaad": "cortante",
+          "Azotamentes": "psíquico"
+        },
+        "descripcionExtra": "Rayo ocular (Contemplador, 150 pies, psíquico), Garras (Slaad, 5 pies, cortante) o Golpe psíquico (Azotamentes, 5 pies, psíquico)."
+      }
+    ],
+    "rasgos": [
+      {
+        "nombre": "Regeneración",
+        "subtipoRequerido": "Slaad",
+        "descripcion": "El espíritu recupera 5 puntos de golpe al inicio de su turno si tiene al menos 1 punto de golpe."
+      }
+    ],
+    "accionesAdicionales": [],
+    "reacciones": [],
+    "fuente": "Player's Handbook 2024"
+  },
+  {
+    "id": "inv_espiritu_automata",
+    "nombre": "Espíritu autómata",
+    "conjuroAsociado": "Invocar autómata",
+    "nivelMinimo": 4,
+    "nivelMaximo": 9,
+    "tipoCriatura": "Constructo",
+    "tamano": "Mediano",
+    "alineacion": "Neutral",
+    "subtiposDisponibles": [
+      "Arcilla",
+      "Metal",
+      "Piedra"
+    ],
+    "velocidadBase": "30 pies",
+    "velocidadesEspeciales": [],
+    "sentidos": "Visión en la oscuridad 60 pies, Percepción pasiva 10",
+    "idiomas": "Entiende los idiomas que tú hablas",
+    "caracteristicas": {
+      "fuerza": 18,
+      "destreza": 10,
+      "constitucion": 18,
+      "inteligencia": 14,
+      "sabiduria": 11,
+      "carisma": 5
+    },
+    "formulaCA": {
+      "base": 13,
+      "sumaNivelConjuro": true,
+      "bonificadorAdicional": 0
+    },
+    "formulaVida": {
+      "base": 40,
+      "porNivel": 15,
+      "porNivelPorEncimaDelMinimo": true,
+      "dadoGolpeVisual": "d10"
+    },
+    "formulaAtaquesPorAccion": "mitad_nivel_abajo",
+    "ataques": [
+      {
+        "nombre": "Golpe contundente",
+        "tipo": "cuerpo_a_cuerpo",
+        "alcance": "5 pies",
+        "usaModificadorAtaqueConjuros": true,
+        "dadosDanoBase": "1d8",
+        "modificadorDanoFijo": 4,
+        "sumaNivelAlDano": true,
+        "tipoDano": "contundente",
+        "descripcionExtra": "Tirada de ataque cuerpo a cuerpo. Acierto: 1d8 + 4 + nivel del conjuro de daño contundente."
+      }
+    ],
+    "rasgos": [
+      {
+        "nombre": "Resistencia pétrea",
+        "subtipoRequerido": "Piedra",
+        "descripcion": "El espíritu tiene resistencia al daño contundente, perforante y cortante no mágico."
+      },
+      {
+        "nombre": "Cuerpo térmico",
+        "subtipoRequerido": "Metal",
+        "descripcion": "Cualquier criatura que toque al espíritu o lo impacte con un ataque cuerpo a cuerpo a 5 pies recibe 1d10 de daño de fuego."
+      }
+    ],
+    "accionesAdicionales": [],
+    "reacciones": [],
+    "fuente": "Player's Handbook 2024"
+  },
+  {
+    "id": "inv_espiritu_elemental",
+    "nombre": "Espíritu elemental",
+    "conjuroAsociado": "Invocar elemental",
+    "nivelMinimo": 4,
+    "nivelMaximo": 9,
+    "tipoCriatura": "Elemental",
+    "tamano": "Mediano",
+    "alineacion": "Neutral",
+    "subtiposDisponibles": [
+      "Aire",
+      "Tierra",
+      "Fuego",
+      "Agua"
+    ],
+    "velocidadBase": "40 pies",
+    "velocidadesEspeciales": [
+      {
+        "nivelMinimo": 4,
+        "velocidadTexto": "40 pies, Volar 40 pies (suspenderse; Aire); 40 pies, Excavar 40 pies (Tierra); 40 pies (Fuego); 40 pies, Nadar 40 pies (Agua)"
+      }
+    ],
+    "sentidos": "Visión en la oscuridad 60 pies, Percepción pasiva 10",
+    "idiomas": "Primordial, entiende los idiomas que tú hablas",
+    "caracteristicas": {
+      "fuerza": 18,
+      "destreza": 15,
+      "constitucion": 17,
+      "inteligencia": 4,
+      "sabiduria": 10,
+      "carisma": 16
+    },
+    "formulaCA": {
+      "base": 11,
+      "sumaNivelConjuro": true,
+      "bonificadorAdicional": 0
+    },
+    "formulaVida": {
+      "base": 50,
+      "porNivel": 10,
+      "porNivelPorEncimaDelMinimo": true,
+      "dadoGolpeVisual": "d10"
+    },
+    "formulaAtaquesPorAccion": "mitad_nivel_abajo",
+    "ataques": [
+      {
+        "nombre": "Golpe elemental",
+        "tipo": "cuerpo_a_cuerpo",
+        "alcance": "5 pies",
+        "usaModificadorAtaqueConjuros": true,
+        "dadosDanoBase": "1d10",
+        "modificadorDanoFijo": 4,
+        "sumaNivelAlDano": true,
+        "tipoDano": "relámpago",
+        "tipoDanoPorSubtipo": {
+          "Aire": "relámpago",
+          "Tierra": "contundente",
+          "Fuego": "fuego",
+          "Agua": "frío"
+        },
+        "descripcionExtra": "Tirada de ataque cuerpo a cuerpo. Acierto: 1d10 + 4 + nivel del conjuro del tipo de daño de su elemento."
+      }
+    ],
+    "rasgos": [
+      {
+        "nombre": "Forma amorfa",
+        "descripcion": "El espíritu puede moverse a través de un espacio de tan solo 1 pulgada de ancho sin apretarse."
+      }
+    ],
+    "accionesAdicionales": [],
+    "reacciones": [],
+    "fuente": "Player's Handbook 2024"
+  },
+  {
+    "id": "inv_espiritu_celestial",
+    "nombre": "Espíritu celestial",
+    "conjuroAsociado": "Invocar celestial",
+    "nivelMinimo": 5,
+    "nivelMaximo": 9,
+    "tipoCriatura": "Celestial",
+    "tamano": "Grande",
+    "alineacion": "Neutral Bueno",
+    "subtiposDisponibles": [
+      "Vengador",
+      "Defensor"
+    ],
+    "velocidadBase": "30 pies, Volar 40 pies",
+    "velocidadesEspeciales": [],
+    "sentidos": "Visión en la oscuridad 60 pies, Percepción pasiva 12",
+    "idiomas": "Celestial, entiende los idiomas que tú hablas",
+    "caracteristicas": {
+      "fuerza": 16,
+      "destreza": 14,
+      "constitucion": 16,
+      "inteligencia": 10,
+      "sabiduria": 14,
+      "carisma": 16
+    },
+    "formulaCA": {
+      "base": 11,
+      "sumaNivelConjuro": true,
+      "bonificadorAdicional": 0
+    },
+    "formulaVida": {
+      "base": 40,
+      "porNivel": 10,
+      "porNivelPorEncimaDelMinimo": true,
+      "dadoGolpeVisual": "d10"
+    },
+    "formulaAtaquesPorAccion": "mitad_nivel_abajo",
+    "ataques": [
+      {
+        "nombre": "Ataque celestial",
+        "tipo": "ambos",
+        "alcance": "5 pies / Rango 150 pies",
+        "usaModificadorAtaqueConjuros": true,
+        "dadosDanoBase": "1d10",
+        "modificadorDanoFijo": 3,
+        "sumaNivelAlDano": true,
+        "tipoDano": "radiante",
+        "tipoDanoPorSubtipo": {
+          "Vengador": "radiante",
+          "Defensor": "radiante"
+        },
+        "descripcionExtra": "Arco radiante (Vengador, rango 150 pies, 2d6 + 2 + nivel radiante) o Maza radiante (Defensor, 5 pies, 1d10 + 3 + nivel radiante)."
+      }
+    ],
+    "rasgos": [],
+    "accionesAdicionales": [
+      {
+        "nombre": "Toque sanador",
+        "recarga": "1/día",
+        "descripcion": "El espíritu toca a otra criatura. El objetivo recupera mágicamente una cantidad de puntos de golpe igual a 2d8 + nivel de conjuro."
+      }
+    ],
+    "reacciones": [],
+    "fuente": "Player's Handbook 2024"
+  },
+  {
+    "id": "inv_espiritu_draconico",
+    "nombre": "Espíritu dracónico",
+    "conjuroAsociado": "Invocar espíritu dracónico",
+    "nivelMinimo": 5,
+    "nivelMaximo": 9,
+    "tipoCriatura": "Dragón",
+    "tamano": "Grande",
+    "alineacion": "Neutral",
+    "subtiposDisponibles": [
+      "Cromático",
+      "Metálico",
+      "Gema"
+    ],
+    "velocidadBase": "30 pies, Volar 60 pies, Nadar 30 pies",
+    "velocidadesEspeciales": [],
+    "sentidos": "Visión ciega 30 pies, Visión en la oscuridad 60 pies, Percepción pasiva 12",
+    "idiomas": "Dracónico, entiende los idiomas que tú hablas",
+    "caracteristicas": {
+      "fuerza": 19,
+      "destreza": 14,
+      "constitucion": 17,
+      "inteligencia": 10,
+      "sabiduria": 14,
+      "carisma": 14
+    },
+    "formulaCA": {
+      "base": 14,
+      "sumaNivelConjuro": true,
+      "bonificadorAdicional": 0
+    },
+    "formulaVida": {
+      "base": 50,
+      "porNivel": 10,
+      "porNivelPorEncimaDelMinimo": true,
+      "dadoGolpeVisual": "d10"
+    },
+    "formulaAtaquesPorAccion": "mitad_nivel_abajo",
+    "ataques": [
+      {
+        "nombre": "Desgarro dracónico",
+        "tipo": "cuerpo_a_cuerpo",
+        "alcance": "10 pies",
+        "usaModificadorAtaqueConjuros": true,
+        "dadosDanoBase": "1d6",
+        "modificadorDanoFijo": 4,
+        "sumaNivelAlDano": true,
+        "tipoDano": "perforante",
+        "descripcionExtra": "Tirada de ataque cuerpo a cuerpo: usa tu modificador de ataque de conjuros. Acierto: 1d6 + 4 + nivel del conjuro de daño perforante."
+      },
+      {
+        "nombre": "Ataque de aliento",
+        "tipo": "a_distancia",
+        "alcance": "Cono de 30 pies",
+        "usaModificadorAtaqueConjuros": false,
+        "dadosDanoBase": "2d6",
+        "modificadorDanoFijo": 0,
+        "sumaNivelAlDano": false,
+        "tipoDano": "elemental",
+        "descripcionExtra": "Tirada de salvación de Destreza con CD igual a tu CD de salvación de conjuros para criaturas en un cono de 30 pies. Fallo: 2d6 de daño elemental. Éxito: mitad de daño."
+      }
+    ],
+    "rasgos": [
+      {
+        "nombre": "Resistencia dracónica",
+        "descripcion": "El espíritu tiene resistencia al tipo de daño elegido al conjurarlo (ácido, frío, fuego, relámpago, veneno o fuerza)."
+      }
+    ],
+    "accionesAdicionales": [],
+    "reacciones": [],
+    "fuente": "Player's Handbook 2024"
+  },
+  {
+    "id": "inv_espiritu_infernal",
+    "nombre": "Espíritu infernal",
+    "conjuroAsociado": "Invocar infernal",
+    "nivelMinimo": 6,
+    "nivelMaximo": 9,
+    "tipoCriatura": "Infernal",
+    "tamano": "Mediano",
+    "alineacion": "Neutral Malvado",
+    "subtiposDisponibles": [
+      "Demonio",
+      "Diablo",
+      "Yugoloth"
+    ],
+    "velocidadBase": "40 pies",
+    "velocidadesEspeciales": [
+      {
+        "nivelMinimo": 6,
+        "velocidadTexto": "40 pies, Volar 60 pies (Diablo); 40 pies, Trepar 40 pies (Demonio); 40 pies (Yugoloth)"
+      }
+    ],
+    "sentidos": "Visión en la oscuridad 60 pies (Vista ciega / Vista del diablo), Percepción pasiva 10",
+    "idiomas": "Abisal, Infernal, entiende los idiomas que tú hablas",
+    "caracteristicas": {
+      "fuerza": 13,
+      "destreza": 16,
+      "constitucion": 15,
+      "inteligencia": 10,
+      "sabiduria": 10,
+      "carisma": 16
+    },
+    "formulaCA": {
+      "base": 12,
+      "sumaNivelConjuro": true,
+      "bonificadorAdicional": 0
+    },
+    "formulaVida": {
+      "base": 50,
+      "porNivel": 15,
+      "porNivelPorEncimaDelMinimo": true,
+      "dadoGolpeVisual": "d10"
+    },
+    "formulaAtaquesPorAccion": "mitad_nivel_abajo",
+    "ataques": [
+      {
+        "nombre": "Ataque infernal",
+        "tipo": "cuerpo_a_cuerpo",
+        "alcance": "5 pies",
+        "usaModificadorAtaqueConjuros": true,
+        "dadosDanoBase": "1d10",
+        "modificadorDanoFijo": 3,
+        "sumaNivelAlDano": true,
+        "tipoDano": "fuego",
+        "tipoDanoPorSubtipo": {
+          "Demonio": "fuego",
+          "Diablo": "fuego",
+          "Yugoloth": "cortante + necrótico"
+        },
+        "descripcionExtra": "Mordisco (Demonio, 1d10 + 3 + nivel fuego), Golpe ardiente (Diablo, 2d6 + 3 + nivel fuego) o Garras (Yugoloth, 1d8 + 3 + nivel cortante + 1d6 necrótico)."
+      }
+    ],
+    "rasgos": [
+      {
+        "nombre": "Vista del diablo",
+        "subtipoRequerido": "Diablo",
+        "descripcion": "La oscuridad mágica no obstaculiza la visión en la oscuridad del espíritu."
+      }
+    ],
+    "accionesAdicionales": [],
+    "reacciones": [],
+    "fuente": "Player's Handbook 2024"
+  }
+]

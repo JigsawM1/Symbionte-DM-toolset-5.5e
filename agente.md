@@ -18,6 +18,35 @@ Este archivo registra reglas globales, errores encontrados, sus causas raíz y l
 6. **PROHIBICIÓN ESTRICTA DE BIFURCACIONES POR NOMBRE DE RASGO O CLASE (CATÁLOGO DECLARATIVO Y BUILDER PURO)**:
    - **Bajo ninguna circunstancia** los módulos de lógica de negocio (`servicios/`), gestores de estado (`almacen/`) o constructores (`gestorClases.ts`) deben contener bifurcaciones condicionales por nombre literal de rasgo o clase (`r.nombre === "..."`, `clase.includes("...")`, etc.).
 
+## [2026-10-04] Integración de Rama `origin/Sidekicks-beta` en `main` (Sistema de Sidekicks y Recarga Dinámica)
+
+**Objetivo de la Integración:**
+- Fusión completa de la rama `origin/Sidekicks-beta` en `main`, resolviendo de forma limpia el conflicto en `agente.md` sin pérdida de registros históricos y certificando el 100% del pipeline de calidad y CI.
+
+**Novedades y Componentes Integrados:**
+1. **Sistema de Sidekicks / Acompañantes en la Hoja de Personaje y Vista de Jugadores:**
+   - Pestaña de Acompañantes integrada en `VistaJugadores.tsx` y `SeccionAcompanantesPersonaje.tsx` con estilos dedicados.
+   - Movilidad dinámica (velocidad base, movimiento gastado, restante, carrera, ajuste manual, botón deshacer y reset de turno).
+   - Tipos de terreno tácticos: Normal (1x), Difícil (2x) y Extremo (3x) con multiplicadores de movimiento.
+   - Sincronización en tiempo real de miniaturas con TaleSpire (`usarConexionTaleSpire.ts`).
+   - Store reactivo de Zustand mediante `sliceAcompanantes.ts` y contratos Zod `EsquemaAcompanantePersonaje`.
+   - Pruebas unitarias de acompañantes en `acompanantesPersonaje.test.ts`.
+2. **Sistema de Descanso Dinámico / Recarga Parcial (PHB 2024):**
+   - Soporte para rasgos oficiales que recargan una cantidad finita de usos en Descanso Corto (+1 uso) y todos en Descanso Largo.
+   - Esquemas `descanso_dinamico` y propiedad `recargaDescansoCorto`.
+   - Motor de descansos actualizado en `procesadorDescansos.ts` y builder puro `gestorClases.ts`.
+   - Catálogos actualizados: Guerrero, Bárbaro, Clérigo, Druida, Paladín y Pícaro.
+   - Pruebas dedicadas en `procesadorDescansos.test.ts`.
+
+**Métricas y Validación de Calidad (CI):**
+- **TypeScript**: `pnpm exec tsc --noEmit` completado con 0 errores (`strict: true`).
+- **ESLint**: `pnpm run lint` completado con 0 errores y 0 advertencias (`--max-warnings=0`).
+- **Vitest**: 103 suites ejecutadas, 1.562/1.562 pruebas unitarias aprobadas (100% de éxito).
+- **Límite de Líneas**: 116 archivos auditados, 0 componentes críticos (> 500 líneas).
+- **Vite Build**: Compilación de producción (`pnpm exec vite build`) completada con éxito (código de salida 0).
+
+---
+
 ## [2026-10-03] Implementación Declarativa de Recarga Dinámica en Descansos (D&D 5.5e / PHB 2024)
 
 **Objetivo de la Integración:**

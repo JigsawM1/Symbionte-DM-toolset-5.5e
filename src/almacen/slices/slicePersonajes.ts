@@ -9,6 +9,7 @@ import { crearSubSliceCondiciones } from "./personajes/sliceCondiciones";
 import { crearSubSliceMagia } from "./personajes/sliceMagia";
 import { crearSubSliceInventario } from "./personajes/sliceInventario";
 import { crearSubSliceRasgos } from "./personajes/sliceRasgos";
+import { crearSubSliceAcompanantes } from "./personajes/sliceAcompanantes";
 
 // Tipos segregados y unificados
 import type {
@@ -19,7 +20,8 @@ import type {
   SubSliceCondiciones,
   SubSliceMagia,
   SubSliceInventario,
-  SubSliceRasgos
+  SubSliceRasgos,
+  SubSliceAcompanantes
 } from "./personajes/slicePersonajesTipos";
 
 // Re-exportaciones de tipos
@@ -31,7 +33,8 @@ export type {
   SubSliceCondiciones,
   SubSliceMagia,
   SubSliceInventario,
-  SubSliceRasgos
+  SubSliceRasgos,
+  SubSliceAcompanantes
 };
 
 // Re-exportaciones de compatibilidad retroactiva
@@ -45,7 +48,7 @@ export {
 } from "./personajes/condicionesRasgosHelpers";
 
 /**
- * Creador del slice de personajes que ensambla de forma modular los 7 sub-slices de dominio.
+ * Creador del slice de personajes que ensambla de forma modular los 8 sub-slices de dominio.
  */
 export const crearSlicePersonajes: StateCreator<
   EstadoDM,
@@ -59,5 +62,6 @@ export const crearSlicePersonajes: StateCreator<
   ...crearSubSliceCondiciones(set, get, api),
   ...crearSubSliceMagia(set, get, api),
   ...crearSubSliceInventario(set, get, api),
-  ...crearSubSliceRasgos(set, get, api)
+  ...crearSubSliceRasgos(set, get, api),
+  ...crearSubSliceAcompanantes(set, get, api)
 });

@@ -839,7 +839,22 @@ export function usarAccionesPersonajes() {
       sincronizarRasgosPersonaje:         s.sincronizarRasgosPersonaje,
       alternarActivoRasgo:                s.alternarActivoRasgo,
       actualizarSeleccionRasgo:           s.actualizarSeleccionRasgo,
-      dispararRasgosIniciativaPersonaje:  s.dispararRasgosIniciativaPersonaje
+      dispararRasgosIniciativaPersonaje:  s.dispararRasgosIniciativaPersonaje,
+
+      // Acompañantes y Sidekicks
+      agregarAcompanantePersonaje:         s.agregarAcompanantePersonaje,
+      eliminarAcompanantePersonaje:        s.eliminarAcompanantePersonaje,
+      modificarVidaAcompanante:            s.modificarVidaAcompanante,
+      actualizarAcompanante:               s.actualizarAcompanante,
+      vincularMiniaturaTSAcompanante:       s.vincularMiniaturaTSAcompanante,
+      registrarMovimientoTSAcompanante:    s.registrarMovimientoTSAcompanante,
+      establecerPosicionInicialTSAcompanante: s.establecerPosicionInicialTSAcompanante,
+      modificarMovimientoRestanteManualAcompanante: s.modificarMovimientoRestanteManualAcompanante,
+      modificarMovimientoGastadoAcompanante: s.modificarMovimientoGastadoAcompanante,
+      deshacerUltimoMovimientoAcompanante: s.deshacerUltimoMovimientoAcompanante,
+      restablecerMovimientoAcompanante:    s.restablecerMovimientoAcompanante,
+      alternarAccionCarreraAcompanante:    s.alternarAccionCarreraAcompanante,
+      establecerTipoTerrenoAcompanante:    s.establecerTipoTerrenoAcompanante
     }))
   );
 }

@@ -8,12 +8,13 @@ import {
 import { HojaPersonaje } from "./HojaPersonaje";
 import { PanelConfiguracionPersonaje } from "./PanelConfiguracionPersonaje";
 import { GestorPersonajes } from "./GestorPersonajes";
+import { SeccionAcompanantesPersonaje } from "./acompanantes/SeccionAcompanantesPersonaje";
 import { autoResolverMiniaturasJugador } from "@/servicios/resolutorMiniaturasJugador";
 import { usarEstadoPersistido } from "@/hooks";
-import { Shield, Users, UserCheck } from "lucide-react";
+import { Shield, Users, UserCheck, PawPrint } from "lucide-react";
 import estilos from "./VistaJugadores.module.css";
 
-type SubPestanaJugador = "ficha" | "configuracion" | "personajes";
+type SubPestanaJugador = "ficha" | "acompanantes" | "configuracion" | "personajes";
 
 export const VistaJugadores: React.FC = () => {
   const { esGM, datosInicialesCargados } = usarEstadoConfiguracion();
@@ -46,7 +47,7 @@ export const VistaJugadores: React.FC = () => {
     <div className={estilos.contenedorGeneral}>
       {/* Barra Superior de Sub-pestañas y Rol */}
       <div className={estilos.barraNavegacionSuperior}>
-        {/* Sub-pestañas: Ficha vs Mis Personajes */}
+        {/* Sub-pestañas: Ficha vs Acompañantes vs Mis Personajes */}
         <div className={estilos.grupoSubPestanas}>
           <button
             type="button"
@@ -60,6 +61,16 @@ export const VistaJugadores: React.FC = () => {
 
           <button
             type="button"
+            onClick={() => setSubPestanaActiva("acompanantes")}
+            className={estilos.botonSubPestana}
+            data-activa={subPestanaActiva === "acompanantes"}
+          >
+            <PawPrint size={12} className={estilos.iconoSubPestana} />
+            Acompañantes ({personajeActivo?.acompanantes?.length || 0})
+          </button>
+
+          <button
+            type="button"
             onClick={() => setSubPestanaActiva("personajes")}
             className={estilos.botonSubPestana}
             data-activa={subPestanaActiva === "personajes"}
@@ -68,7 +79,6 @@ export const VistaJugadores: React.FC = () => {
             Mis Personajes ({personajes.length})
           </button>
         </div>
-
 
         {/* Indicador de Rol */}
         <div className={estilos.indicadorRolJugador}>
@@ -80,6 +90,10 @@ export const VistaJugadores: React.FC = () => {
       {/* Contenido según la sub-pestaña activa */}
       {subPestanaActiva === "ficha" ? (
         <HojaPersonaje alAbrirConfiguracion={() => setSubPestanaActiva("configuracion")} />
+      ) : subPestanaActiva === "acompanantes" && personajeActivo ? (
+        <div className={estilos.contenedorAcompanantes}>
+          <SeccionAcompanantesPersonaje personaje={personajeActivo} />
+        </div>
       ) : subPestanaActiva === "configuracion" && personajeActivo ? (
         <PanelConfiguracionPersonaje
           personaje={personajeActivo}

@@ -549,7 +549,7 @@ export const HojaPersonaje: React.FC<HojaPersonajeProps> = ({ alAbrirConfiguraci
       </div>
 
       {/* 5. Contenido según Sub-pestaña Activa */}
-      {subPestanaActiva === "general" ? (
+      {subPestanaActiva === "general" && (
         <>
           {/* Vitalidad y Supervivencia (Apartado C) */}
           <PanelVitalidadPersonaje
@@ -585,7 +585,9 @@ export const HojaPersonaje: React.FC<HojaPersonajeProps> = ({ alAbrirConfiguraci
             alAbrirSelectorCompetencias={(categoria) => setModalCompetencias(categoria)}
           />
         </>
-      ) : (
+      )}
+
+      {subPestanaActiva === "conjuros" && (
         <PanelConjurosPersonaje
           personaje={personajeActivo}
           bonoCompetencia={statsCalculadas.bonoCompetencia}

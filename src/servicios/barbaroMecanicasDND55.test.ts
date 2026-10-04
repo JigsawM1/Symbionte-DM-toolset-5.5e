@@ -14,7 +14,8 @@ describe("Bárbaro D&D 5.5e (PHB 2024) - Fase 1: Reglas y Mecánicas de la Clase
       expect(furiaNv1?.categoriaMecanica).toBe("consumible");
       expect(furiaNv1?.tieneUsosLimitados).toBe(true);
       expect(furiaNv1?.usosMaximos).toBe(2);
-      expect(furiaNv1?.recuperacion).toBe("descanso_largo");
+      expect(furiaNv1?.recuperacion).toBe("descanso_dinamico");
+      expect(furiaNv1?.recargaDescansoCorto).toBe(1);
       expect(furiaNv1?.esActivable).toBe(true);
       expect(furiaNv1?.condicionAlActivar).toBe("Furia (Rage)");
 

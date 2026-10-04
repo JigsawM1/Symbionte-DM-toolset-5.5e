@@ -170,7 +170,8 @@ describe("Paladín D&D 5.5 (2024) - Fase 1: Reglas y Mecánicas de la Clase Base
       expect(canalizar).toBeDefined();
       expect(canalizar?.categoriaMecanica).toBe("consumible");
       expect(canalizar?.usosMaximos).toBe(2);
-      expect(canalizar?.recuperacion).toBe("descanso_corto");
+      expect(canalizar?.recuperacion).toBe("descanso_dinamico");
+      expect(canalizar?.recargaDescansoCorto).toBe(1);
     });
 
     it("Sentidos divinos consume uso del padre 'Canalizar divinidad'", () => {

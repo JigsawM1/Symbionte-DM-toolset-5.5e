@@ -27,6 +27,7 @@ export type TipoAccionRasgo = z.infer<typeof EsquemaTipoAccionRasgo>;
 export const EsquemaRecuperacionRasgo = z.enum([
   "descanso_corto",
   "descanso_largo",
+  "descanso_dinamico",
   "manual",
   "otro",
   "ninguno"
@@ -308,6 +309,7 @@ export interface PlantillaRasgoClase {
   guardaDadosTirada?: boolean;
   recargaConEspacio?: boolean;
   multiplicadorRecargaEspacio?: number;
+  recargaDescansoCorto?: number;
 }
 
 export interface PlantillaRasgoEspecie {
@@ -351,6 +353,7 @@ export interface PlantillaRasgoEspecie {
   efectos?: EfectoMecanicoRasgo[];
   selectores?: SelectorRasgo[];
   tablaProgresion?: TablaEscaladoRasgo;
+  recargaDescansoCorto?: number;
 }
 
 
@@ -442,6 +445,7 @@ export const EsquemaRasgoPersonaje = z.object({
   guardaDadosTirada: z.boolean().default(false).optional(),
   recargaConEspacio: z.boolean().default(false).optional(),
   multiplicadorRecargaEspacio: z.number().default(2).optional(),
+  recargaDescansoCorto: z.number().int().min(1).optional(),
 
   notas: z.string().default("")
 });
@@ -464,6 +468,7 @@ const EsquemaDotePersonajeBase = z.object({
   formulaUsos: z.string().nullable().optional(),
   formulaDados: z.string().optional(),
   recuperacion: EsquemaRecuperacionRasgo.optional(),
+  recargaDescansoCorto: z.number().int().min(1).optional(),
   categoriaMecanica: z.enum([
     "consumible",
     "activable",

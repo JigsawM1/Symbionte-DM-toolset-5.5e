@@ -105,6 +105,19 @@ export function usarConexionTaleSpire() {
                 );
                 if (pj && !pj.ultimaPosicionTS) {
                   estadoActual.establecerPosicionInicialTSPersonaje(pj.id, c.position, c.boardId);
+                } else if (!pj) {
+                  // Buscar si la criatura seleccionada corresponde a un acompañante de algún personaje
+                  for (const p of estadoActual.personajes) {
+                    const acomp = (p.acompanantes || []).find(
+                      (a) =>
+                        a.idMiniaturaTS &&
+                        (a.idMiniaturaTS === c.id || a.idMiniaturaTS.toLowerCase() === c.id.toLowerCase())
+                    );
+                    if (acomp && !acomp.ultimaPosicionTS) {
+                      estadoActual.establecerPosicionInicialTSAcompanante(p.id, acomp.id, c.position, c.boardId);
+                      break;
+                    }
+                  }
                 }
               }
             });
@@ -247,6 +260,26 @@ export function usarConexionTaleSpire() {
               }
             }
 
+            // 4. Búsqueda en acompañantes de personajes
+            let acompananteVinculado: { personajeId: string; acompId: string; multiplicadorTerreno: number } | null = null;
+            if (!personajeVinculado) {
+              for (const p of personajes) {
+                const acomp = (p.acompanantes || []).find(
+                  (a) =>
+                    a.idMiniaturaTS &&
+                    (a.idMiniaturaTS === idStr || a.idMiniaturaTS.toLowerCase() === idStr.toLowerCase())
+                );
+                if (acomp) {
+                  acompananteVinculado = {
+                    personajeId: p.id,
+                    acompId: acomp.id,
+                    multiplicadorTerreno: acomp.multiplicadorTerreno || 1
+                  };
+                  break;
+                }
+              }
+            }
+
             if (personajeVinculado) {
               let numberPerTile = 5;
               try {
@@ -270,8 +303,32 @@ export function usarConexionTaleSpire() {
                   umbralRuidoPies: 0.05
                 }
               );
+            } else if (acompananteVinculado) {
+              let numberPerTile = 5;
+              try {
+                const unidades = await ts.units.getDistanceUnitsForThisCampaign();
+                if (unidades && typeof unidades.numberPerTile === "number") {
+                  numberPerTile = unidades.numberPerTile;
+                }
+              } catch {
+                numberPerTile = 5;
+              }
+
+              estado.registrarMovimientoTSAcompanante(
+                acompananteVinculado.personajeId,
+                acompananteVinculado.acompId,
+                evento.position,
+                evento.boardId,
+                {
+                  numberPerTile,
+                  incluirAltura: true,
+                  multiplicadorTerreno: acompananteVinculado.multiplicadorTerreno || 1,
+                  redondearA5Pies: false,
+                  umbralRuidoPies: 0.05
+                }
+              );
             } else {
-              logger.debug("[TaleSpire Simbionte] Movimiento ignorado: la criatura no coincide con ningún PJ:", idStr);
+              logger.debug("[TaleSpire Simbionte] Movimiento ignorado: la criatura no coincide con ningún PJ ni acompañante:", idStr);
             }
           }
         };
@@ -294,13 +351,24 @@ export function usarConexionTaleSpire() {
           logger.info("[TaleSpire Simbionte] Canal de comunicación establecido. Iniciando carga de datos persistidos...");
           cargarDatosPersistidos();
 
-          // Precargar posiciones físicas iniciales para personajes con miniatura vinculada
+          // Precargar posiciones físicas iniciales para personajes y acompañantes con miniatura vinculada
           setTimeout(() => {
             if (!activo) return;
             const estadoActual = usarAlmacenDM.getState();
-            const minisAPrecargar = estadoActual.personajes
+            const minisPJ = estadoActual.personajes
               .filter((p) => p.idMiniaturaTS && !p.ultimaPosicionTS)
-              .map((p) => ({ pjId: p.id, miniId: p.idMiniaturaTS! }));
+              .map((p) => ({ tipo: "pj" as const, pjId: p.id, acompId: "", miniId: p.idMiniaturaTS! }));
+
+            const minisAcomp: { tipo: "acomp"; pjId: string; acompId: string; miniId: string }[] = [];
+            estadoActual.personajes.forEach((p) => {
+              (p.acompanantes || []).forEach((a) => {
+                if (a.idMiniaturaTS && !a.ultimaPosicionTS) {
+                  minisAcomp.push({ tipo: "acomp", pjId: p.id, acompId: a.id, miniId: a.idMiniaturaTS });
+                }
+              });
+            });
+
+            const minisAPrecargar = [...minisPJ, ...minisAcomp];
 
             if (minisAPrecargar.length > 0) {
               const idsMinis = minisAPrecargar.map((m) => m.miniId);
@@ -315,17 +383,32 @@ export function usarConexionTaleSpire() {
                           m.miniId.toLowerCase() === info.id?.toLowerCase()
                       );
                       if (item && info.position) {
-                        logger.info(
-                          `[TaleSpire Simbionte] Posición física inicial precargada para PJ '${item.pjId}':`,
-                          info.position
-                        );
-                        usarAlmacenDM
-                          .getState()
-                          .establecerPosicionInicialTSPersonaje(
-                            item.pjId,
-                            info.position,
-                            info.boardId
+                        if (item.tipo === "pj") {
+                          logger.info(
+                            `[TaleSpire Simbionte] Posición física inicial precargada para PJ '${item.pjId}':`,
+                            info.position
                           );
+                          usarAlmacenDM
+                            .getState()
+                            .establecerPosicionInicialTSPersonaje(
+                              item.pjId,
+                              info.position,
+                              info.boardId
+                            );
+                        } else {
+                          logger.info(
+                            `[TaleSpire Simbionte] Posición física inicial precargada para Acompañante '${item.acompId}' (PJ '${item.pjId}'):`,
+                            info.position
+                          );
+                          usarAlmacenDM
+                            .getState()
+                            .establecerPosicionInicialTSAcompanante(
+                              item.pjId,
+                              item.acompId,
+                              info.position,
+                              info.boardId
+                            );
+                        }
                       }
                     });
                   }

@@ -18,6 +18,81 @@ Este archivo registra reglas globales, errores encontrados, sus causas raíz y l
 6. **PROHIBICIÓN ESTRICTA DE BIFURCACIONES POR NOMBRE DE RASGO O CLASE (CATÁLOGO DECLARATIVO Y BUILDER PURO)**:
    - **Bajo ninguna circunstancia** los módulos de lógica de negocio (`servicios/`), gestores de estado (`almacen/`) o constructores (`gestorClases.ts`) deben contener bifurcaciones condicionales por nombre literal de rasgo o clase (`r.nombre === "..."`, `clase.includes("...")`, etc.).
 
+## [2026-10-03] Implementación Declarativa de Recarga Dinámica en Descansos (D&D 5.5e / PHB 2024)
+
+**Objetivo de la Integración:**
+- Responder a la necesidad de soportar la mecánica oficial canónica de D&D 5.5e (PHB 2024): *"Recuperas un uso gastado tras finalizar un descanso corto, y recuperas todos los usos gastados tras finalizar un descanso largo"*.
+- Identificar y actualizar de forma 100% declarativa y genérica las clases y subclases oficiales que usan esta regla.
+- Eliminar la limitación binaria previa donde los rasgos solo podían restaurar todos sus usos en descanso corto (`"descanso_corto"`) o ninguno (`"descanso_largo"`).
+
+**Clases y Subclases Auditadas con Recarga Dinámica (PHB 2024):**
+1. **Guerrero (Fighter):**
+   - *Tomar aliento (Second Wind)* (Nivel 1): 2 a 4 usos. Recupera 1 en descanso corto y todos en descanso largo.
+   - Subclase *Guerrero Psiónico (Psi Warrior)* (Nivel 3): *Poder psiónico (Dados de energía psiónica)* (4 a 12 dados). Recupera 1 dado en descanso corto y todos en descanso largo.
+2. **Bárbaro (Barbarian):**
+   - *Furia (Rage)* (Nivel 1): 2 a 6 usos. Recupera 1 en descanso corto y todos en descanso largo.
+3. **Clérigo (Cleric):**
+   - *Canalizar divinidad (Channel Divinity)* (Nivel 2): 2 a 4 usos. Recupera 1 en descanso corto y todos en descanso largo.
+4. **Druida (Druid):**
+   - *Forma salvaje (Wild Shape)* (Nivel 2): 2 a 4 usos. Recupera 1 en descanso corto y todos en descanso largo.
+5. **Paladín (Paladin):**
+   - *Canalizar divinidad (Channel Divinity)* (Nivel 3): 2 a 3 usos. Recupera 1 en descanso corto y todos en descanso largo.
+6. **Pícaro (Rogue):**
+   - Subclase *Filo del Alma (Soulknife)* (Nivel 3): *Poder psiónico (Dados de energía psiónica)* (4 a 12 dados). Recupera 1 dado en descanso corto y todos en descanso largo.
+*(Clases que no la usan: Bardo recupera todos en descanso corto a nv 5+; Brujo recupera todos los espacios de pacto en descanso corto; Monje recupera todos los puntos de concentración en descanso corto; Explorador, Mago y Hechicero no tienen rasgos de recarga de 1 uso en descanso corto).*
+
+**Decisiones Técnicas y Modificaciones Aplicadas:**
+1. **Esquemas y Contratos Declarativos (`rasgos.ts`, `esquemasCatalogos.ts`):**
+   - Se amplió `EsquemaRecuperacionRasgo` con `"descanso_dinamico"`.
+   - Se agregó `recargaDescansoCorto?: number` en `PlantillaRasgoClase`, `PlantillaRasgoEspecie`, `EsquemaRasgoPersonaje`, `EsquemaDotePersonajeBase` y `EsquemaPlantillaRasgoClaseJSON`.
+2. **Builder Genérico (`gestorClases.ts`):**
+   - Propagación directa de `recargaDescansoCorto: r.recargaDescansoCorto` en `construirRasgo()` y `fusionarExtension()` sin bifurcaciones por nombre ni heurísticas fijas.
+3. **Motor de Descansos (`procesadorDescansos.ts`):**
+   - En `ejecutarDescansoCorto()`: si un rasgo define `recargaDescansoCorto > 0`, se incrementan sus usos restantes en dicha cantidad (tope en `usosMaximos`). Si define `recuperacion === "descanso_corto"` sin recarga parcial, recupera todos como hasta ahora.
+   - En `ejecutarDescansoLargo()`: si el rasgo define `recargaDescansoCorto > 0` o `recuperacion === "descanso_dinamico"`, se restablecen el 100% de los usos restantes y dados guardados.
+4. **Catálogos Declarativos Actualizados (`src/datos/clases/*.json`):**
+   - Actualizados `guerrero.json`, `barbaro.json`, `clerigo.json`, `druida.json`, `paladin.json` y `picaro.json` para sus respectivos rasgos canónicos.
+5. **UI Trazable y Amigable (`TarjetaRasgo.tsx`, `ModalDetalleRasgo.tsx`):**
+   - Tooltip en contador de usos: `"Recuperación: +1 en D. Corto / Todos en D. Largo"`.
+   - Badge en modal de detalle: `"Recupera +1 en D. Corto (Todos en D. Largo)"`.
+6. **Validación Integral del Pipeline:**
+   - Suite dedicada en `procesadorDescansos.test.ts` cubriendo recarga de 1 uso, límites máximos y descanso largo.
+   - Pruebas canónicas actualizadas en `barbaroMecanicasDND55.test.ts`, `clerigoMecanicasDND55.test.ts` y `paladinMecanicasDND55.test.ts`.
+   - 103 suites y 1.562 pruebas unitarias globales aprobadas al 100%.
+   - Compilación TypeScript estricta (`tsc --noEmit`), ESLint impecable (`--max-warnings=0`), límites de líneas cumplidos y bundle de producción generado con éxito.
+
+---
+
+## [2026-10-03] Implementación del Sistema de Sidekicks (Acompañantes) con Velocidad Dinámica y Terrenos en la Hoja de Personaje
+
+**Objetivo de la Integración:**
+- Desarrollar la subpestaña de Sidekicks/Acompañantes en la Hoja de Personaje del jugador (`HojaPersonaje.tsx`), posicionada junto a las pestañas *"Combate y Atributos"* y *"Conjuros y Magia"*.
+- Dotar a los acompañantes del sistema completo de velocidad dinámica de D&D 5.5e y TaleSpire: velocidad base/máxima, movimiento gastado en turno, movimiento restante, acción de Carrera (Dash), ajuste manual rápido (+/- 5 ft e input numérico), deshacer movimiento y restablecimiento de turno.
+- Implementar el selector interactivo de tipos de terreno: Normal (1x), Difícil (2x) y Extremo (3x), calculando el consumo multiplicado de pies por casilla según las reglas del combate tridimensional.
+- Conectar la sincronización de movimiento físico de TaleSpire en tiempo real (`usarConexionTaleSpire.ts`) para miniaturas enlazadas a acompañantes (`acomp.idMiniaturaTS`), incluyendo precarga inicial de coordenadas y registro de distancias euclidianas.
+- Reutilizar el compendio existente de criaturas (`baseDatosMonstruos`) y la tarjeta de criatura de iniciativa (`TarjetaCriaturaIniciativa.tsx`) sin alterar la clase Druida ni duplicar catálogos.
+
+**Decisiones Técnicas y Arquitectura Aplicada:**
+1. **Modelo de Datos Extensible y Tipado Estricto (`personaje.ts`):**
+   - Se enriqueció `EsquemaAcompanantePersonaje` con validación Zod estricta: `id`, `nombre`, `idPlantilla`, `vidaActual`, `vidaMaxima`, `vidaTemporal`, `ca`, `condiciones`, `efectos`, `iniciativa`, `idMiniaturaTS`, `velocidad`, `movimientoGastado`, `movimientoMaximoTemporal`, `tipoTerreno`, `multiplicadorTerreno`, `ultimaPosicionTS`, `ultimoBoardIdTS`, `historialMovimiento`.
+   - Se definieron campos opcionales con defaults compatibles con `z.infer` y `PERSONAJE_POR_DEFECTO`.
+2. **Sub-slice Desacoplado y de Responsabilidad Única (`sliceAcompanantes.ts` y `slicePersonajesTipos.ts`):**
+   - Se crearon en `crearSubSliceAcompanantes` las 8 acciones de movilidad para sidekicks: `registrarMovimientoTSAcompanante`, `establecerPosicionInicialTSAcompanante`, `modificarMovimientoRestanteManualAcompanante`, `modificarMovimientoGastadoAcompanante`, `deshacerUltimoMovimientoAcompanante`, `restablecerMovimientoAcompanante`, `alternarAccionCarreraAcompanante`, `establecerTipoTerrenoAcompanante`.
+   - Integración funcional con `mutarPersonaje`, `calcularDistanciaMovimientoTS`, detección de penalización de condición derribado (2x) y multiplicadores de terreno `MULTIPLICADOR_POR_TERRENO`.
+3. **Conexión Bidireccional con TaleSpire (`usarConexionTaleSpire.ts`):**
+   - En `procesarEventoMovimiento`: Si la miniatura no es el personaje principal, busca en `pj.acompanantes` y despacha `registrarMovimientoTSAcompanante` con el multiplicador de terreno activo del sidekick.
+   - En `procesarSeleccionRaw` y precarga inicial de 600ms: Sincroniza la posición 3D inicial de miniaturas de acompañantes en el store.
+4. **UI Táctica Trazable y Neumórfica (`SeccionAcompanantesPersonaje.tsx`, `VistaJugadores.tsx` y `.module.css`):**
+   - Reubicación de la pestaña de **Acompañantes** en la **barra de navegación superior** (`VistaJugadores.tsx`), junto a *Ficha de Héroe* y *Mis Personajes*, mostrando el contador dinámico de acompañantes y permitiendo un acceso rápido y limpio sin saturar las subpestañas internas de la ficha.
+   - Pastilla y Popover de velocidad y terrenos para cada sidekick con diseño oscuro adaptado a CEF (0ms latencia, cero emojis, iconos SVG de `lucide-react`).
+   - Botones rápidos para terreno Normal (1x), Difícil (2x) y Extremo (3x), ajuste manual, Carrera, Deshacer y Restablecer Turno.
+5. **Validación Integral del Pipeline:**
+   - Suite dedicada `acompanantesPersonaje.test.ts` con 9 pruebas unitarias aprobadas al 100% (movimiento TS 1x/2x/3x, carrera, deshacer, restablecimiento, ajuste manual).
+   - 103 suites y 1.559 pruebas globales superadas.
+   - Compilación exitosa con TypeScript (`tsc`), Vite build y despliegue a TaleSpire con `pnpm run deploy`.
+
+---
+
 ## [2026-10-03] Actualización Canónica de Descripciones de la Clase Mago y Subclases (PHB 2024)
 
 **Objetivo de la Integración:**

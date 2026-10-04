@@ -754,7 +754,8 @@
           "tipoAccion": "pasivo",
           "subclase": "Filo del Alma",
           "tieneUsosLimitados": true,
-          "recuperacion": "descanso_corto",
+          "recuperacion": "descanso_dinamico",
+          "recargaDescansoCorto": 1,
           "formulaDados": "1d6",
           "escaladoFormulaDados": [
             {

@@ -54,7 +54,8 @@
       "descripcion": "Tienes una reserva limitada de aguante físico y mental a la que puedes recurrir. Como acción adicional, puedes usarla para recuperar una cantidad de puntos de golpe igual a 1d10 más tu nivel de guerrero.\nPuedes usar este rasgo dos veces. Recuperas un uso gastado tras finalizar un descanso corto, y recuperas todos los usos gastados tras finalizar un descanso largo.\nCuando alcanzas ciertos niveles de guerrero, obtienes más usos de este rasgo, como se muestra en la columna \"Tomar aliento\" de la tabla \"Rasgos de guerrero\".",
       "tipoAccion": "accion_adicional",
       "tieneUsosLimitados": true,
-      "recuperacion": "descanso_corto",
+      "recuperacion": "descanso_dinamico",
+      "recargaDescansoCorto": 1,
       "formulaDados": "1d10",
       "escaladoUsos": {
         "tipo": "por_nivel",
@@ -517,7 +518,8 @@
           "tipoAccion": "accion",
           "subclase": "Guerrero Psiónico",
           "tieneUsosLimitados": true,
-          "recuperacion": "descanso_corto"
+          "recuperacion": "descanso_dinamico",
+          "recargaDescansoCorto": 1
         },
         {
           "nivel": 7,

@@ -152,7 +152,6 @@ export const TarjetaRasgo: React.FC<TarjetaRasgoProps> = ({
     );
   };
 
-
   const esRasgoSelector =
     rasgo.categoriaMecanica === "selector_informativo" ||
     (Array.isArray(rasgo.selectores) && rasgo.selectores.length > 0 && !rasgo.requiereOpcion);
@@ -232,7 +231,9 @@ export const TarjetaRasgo: React.FC<TarjetaRasgoProps> = ({
                 esRecursoEspacioPacto
                   ? `Espacios de Magia del Pacto (${usosRestantes}/${usosMaximos})`
                   : tieneUsosPropios
-                  ? `Recuperación: ${rasgo.recuperacion || "Descanso"}`
+                  ? rasgo.recargaDescansoCorto
+                    ? `Recuperación: +${rasgo.recargaDescansoCorto} en D. Corto / Todos en D. Largo`
+                    : `Recuperación: ${rasgo.recuperacion === "descanso_corto" ? "Descanso Corto" : rasgo.recuperacion === "descanso_largo" ? "Descanso Largo" : rasgo.recuperacion || "Descanso"}`
                   : `Gasta de: ${usosPadre?.nombre || "Rasgo Principal"} (${usosRestantes}/${usosMaximos})`
               }
               onClick={(e) => e.stopPropagation()}

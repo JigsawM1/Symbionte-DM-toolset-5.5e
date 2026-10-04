@@ -18,6 +18,21 @@ Este archivo registra reglas globales, errores encontrados, sus causas raíz y l
 6. **PROHIBICIÓN ESTRICTA DE BIFURCACIONES POR NOMBRE DE RASGO O CLASE (CATÁLOGO DECLARATIVO Y BUILDER PURO)**:
    - **Bajo ninguna circunstancia** los módulos de lógica de negocio (`servicios/`), gestores de estado (`almacen/`) o constructores (`gestorClases.ts`) deben contener bifurcaciones condicionales por nombre literal de rasgo o clase (`r.nombre === "..."`, `clase.includes("...")`, etc.).
 
+## [2026-10-03] Actualización Canónica de Descripciones de la Clase Mago y Subclases (PHB 2024)
+
+**Objetivo de la Integración:**
+- Sincronizar las descripciones narrativas y reglas textuales de `src/datos/clases/mago.json` a partir de `mago_descripciones.json`, preservando el blindaje mecánico declarativo del motor 5.5e (`selectores`, `categoriaMecanica`, `recuperarEspacios`, consumibles y contadores).
+
+**Decisiones Técnicas y Modificaciones Quirúrgicas:**
+1. **Preservación Mecánica vs. Actualización Textual:**
+   - Se actualizaron los campos `descripcion` respetando la estructura tipada estricta sin alterar las definiciones funcionales existentes.
+   - En *Lanzamiento de conjuros* (Nv. 1), se adoptó la redacción depurada de `mago_descripciones.json`.
+   - Se incorporó formalmente el rasgo complementario *Libro de conjuros* (Nv. 1, `pasivo_permanente`) con las reglas de ampliación, copiado y reposición del grimorio, el cual anteriormente figuraba como una nota al pie dentro de *Lanzamiento de conjuros*.
+   - Se incorporaron las mejoras tipográficas con formato Markdown estándar (párrafos separados con doble salto de línea y cursivas en nombres de escuelas de magia y habilidades) en *Adepto ritual*, *Recuperación arcana*, *Erudito*, *Maestría en conjuros* y en los rasgos de las cuatro subclases (*Abjurador*, *Adivino*, *Evocador* e *Ilusionista*).
+2. **Validación:**
+   - 21 pruebas unitarias específicas de `magoMecanicasDND55.test.ts` ejecutadas y aprobadas.
+   - Chequeo estricto de TypeScript (`tsc --noEmit`) sin advertencias ni errores.
+
 ## [2026-10-02] Implementación Declarativa de la Clase Brujo y 4 Subclases Canónicas D&D 5.5e (PHB 2024)
 
 **Objetivo de la Integración:**

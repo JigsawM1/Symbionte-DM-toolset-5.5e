@@ -299,7 +299,7 @@ function obtenerFirmaAcompanantes(acompanantes?: PersonajeJugador["acompanantes"
   return acompanantes
     .map(
       (a) =>
-        `${a.id}:${a.vidaActual}:${a.vidaMaxima}:${a.vidaTemporal}:${a.ca}:${(a.condiciones || []).join(",")}:${(a.efectos || []).map((e) => `${e.id}:${e.expiraRonda}`).join(",")}:${a.movimientoGastado}:${a.movimientoMaximoTemporal}:${a.idMiniaturaTS}:${a.nivelConjuroInvocacion}:${a.subtipoInvocacion}`
+        `${a.id}:${a.nombre}:${a.vidaActual}:${a.vidaMaxima}:${a.vidaTemporal}:${a.ca}:${(a.condiciones || []).slice().sort().join(",")}:${(a.efectos || []).map((e) => `${e.id}:${e.nombre}:${e.expiraRonda}:${e.concentracion}`).join(",")}:${a.movimientoGastado}:${a.movimientoMaximoTemporal}:${a.idMiniaturaTS}:${a.nivelConjuroInvocacion}:${a.subtipoInvocacion}`
     )
     .join("|");
 }
@@ -307,9 +307,11 @@ function obtenerFirmaAcompanantes(acompanantes?: PersonajeJugador["acompanantes"
 function calcularFirmaPJ(pj: PersonajeJugador, cola: CriaturaIniciativa[]): string {
   const criaturaCola = cola.find(
     (c) =>
-      c.id === pj.id ||
-      (pj.idMiniaturaTS && c.id === pj.idMiniaturaTS) ||
-      coincidenNombresTaleSpire(c.nombre, pj.nombre)
+      !c.esAcompanante &&
+      (c.id === pj.id ||
+        c.idPersonajeDuenio === pj.id ||
+        (pj.idMiniaturaTS && c.id === pj.idMiniaturaTS) ||
+        coincidenNombresTaleSpire(c.nombre, pj.nombre))
   );
   const stats = calcularEstadisticasPersonaje(pj);
   const inic =
@@ -317,9 +319,11 @@ function calcularFirmaPJ(pj: PersonajeJugador, cola: CriaturaIniciativa[]): stri
       ? criaturaCola.iniciativa
       : (stats.modificadores?.destreza || 0) + (pj.iniciativaBono || 0);
 
-  const condStr = (pj.condicionesActivas || []).join(",");
-  const efStr = (pj.efectosActivos || []).map((e) => `${e.id}:${e.expiraRonda}`).join(",");
-  const concStr = pj.concentracionActiva ? pj.concentracionActiva.hechizoId : "";
+  const condStr = (pj.condicionesActivas || []).slice().sort().join(",");
+  const efStr = (pj.efectosActivos || []).map((e) => `${e.id}:${e.nombre}:${e.expiraRonda}:${e.concentracion}`).join(",");
+  const concStr = pj.concentracionActiva
+    ? `${pj.concentracionActiva.hechizoId}:${pj.concentracionActiva.nombreHechizo}`
+    : "";
   const movGastado = pj.movimientoGastado ?? 0;
   const movMaxT = pj.movimientoMaximoTemporal ?? null;
   const acompsStr = obtenerFirmaAcompanantes(pj.acompanantes);

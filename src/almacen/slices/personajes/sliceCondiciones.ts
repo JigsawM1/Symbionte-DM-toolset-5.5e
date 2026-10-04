@@ -2,6 +2,7 @@ import type { StateCreator } from "zustand";
 import type { EstadoDM } from "@/almacen/usarAlmacenDM";
 import type { PersonajeJugador, RegistroMovimiento } from "@/tipos";
 import { aplicarCondicion, quitarCondicion } from "@/servicios/procesadorCondiciones";
+import { coincidenNombresTaleSpire } from "@/servicios/resolutorCriaturas";
 import { mutarPersonaje } from "../helpers/mutarPersonaje";
 import type { SubSliceCondiciones } from "./slicePersonajesTipos";
 import {
@@ -22,15 +23,16 @@ function sincronizarCondicionesEnIniciativa(
   condiciones: string[],
   condicionEliminada?: string
 ): void {
-  const nombreNorm = (pj.nombre || "").trim().toLowerCase();
   set((state) => {
     if (!state.colaIniciativa || state.colaIniciativa.length === 0) return {};
     let huboCambio = false;
     const nuevaCola = state.colaIniciativa.map((c) => {
       const coincide =
-        c.id === pj.id ||
-        (pj.idMiniaturaTS && c.id === pj.idMiniaturaTS) ||
-        (nombreNorm && c.nombre.trim().toLowerCase() === nombreNorm);
+        !c.esAcompanante &&
+        (c.id === pj.id ||
+          c.idPersonajeDuenio === pj.id ||
+          (pj.idMiniaturaTS && c.id === pj.idMiniaturaTS) ||
+          coincidenNombresTaleSpire(c.nombre, pj.nombre));
       if (coincide) {
         huboCambio = true;
         let nuevosEfectos = pj.efectosActivos?.length ? [...pj.efectosActivos] : (c.efectos ? [...c.efectos] : []);

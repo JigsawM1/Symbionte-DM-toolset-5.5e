@@ -42,15 +42,18 @@ export const crearSliceSync: StateCreator<
     const personajesActualizados = personajes.map((pj) => {
       const criaturaEnCola = datos.cola.find(
         (c) =>
-          c.id === pj.id ||
-          (pj.idMiniaturaTS && c.id === pj.idMiniaturaTS) ||
-          coincidenNombresTaleSpire(c.nombre, pj.nombre)
+          !c.esAcompanante &&
+          (c.id === pj.id ||
+            c.idPersonajeDuenio === pj.id ||
+            (pj.idMiniaturaTS && c.id === pj.idMiniaturaTS) ||
+            coincidenNombresTaleSpire(c.nombre, pj.nombre))
       );
 
       const nuevosAcomps = (pj.acompanantes || []).map((acomp) => {
         const criaturaAcompEnCola = datos.cola.find(
           (c) =>
             c.id === acomp.id ||
+            c.idAcompanante === acomp.id ||
             (acomp.idMiniaturaTS && c.id === acomp.idMiniaturaTS) ||
             coincidenNombresTaleSpire(c.nombre, acomp.nombre)
         );
@@ -249,7 +252,11 @@ export const crearSliceSync: StateCreator<
     // 2. Reflejar también en la cola de iniciativa tanto para el PJ como para sus acompañantes
     const colaActualizada = colaIniciativa.map((criatura): CriaturaIniciativa => {
       // Caso A: La criatura en cola es el personaje principal
-      const coincidePorIdPJ = criatura.id === dto.id || (dto.idMiniaturaTS && criatura.id === dto.idMiniaturaTS);
+      const coincidePorIdPJ =
+        !criatura.esAcompanante &&
+        (criatura.id === dto.id ||
+          criatura.idPersonajeDuenio === dto.id ||
+          (dto.idMiniaturaTS && criatura.id === dto.idMiniaturaTS));
       const coincidePorNombrePJ =
         !criatura.esAcompanante && coincidenNombresTaleSpire(criatura.nombre, dto.nombre);
 

@@ -32,11 +32,11 @@ Este archivo registra reglas globales, errores encontrados, sus causas raíz y l
 2. **Límite Estricto de 500 Caracteres en el Adaptador TaleSpire y Serialización:**
    - En `TaleSpireAdapter.ts`, existía una guarda `if (message.length > 500) return false;` que descartaba silenciosamente los paquetes grandes. Al incorporar acompañantes o conjuros, el payload superaba los 500 caracteres y era rechazado.
    - **Solución:** Se amplió el límite en `TaleSpireAdapter.ts` a 1000 caracteres (conforme a la especificación oficial de TaleSpire v0.1) y se compactó la serialización en `src/tipos/sync.ts` para omitir espacios de conjuros con valor 0 (`cj: Record<string, number>`).
-3. **Observador Reactivo del Jugador Limitado a un Único PJ y sin Mapa de Firmas:**
-   - En `sincronizacionSimbiote.ts`, `inicializarObservadoresStoreSync()` sólo vigilaba el personaje activo inicial en variables locales fijas. Si el usuario modificaba la vida o la velocidad de otro personaje o cambiaba de ficha activa, el observador no emitía.
-   - **Solución:** Se implementó `calcularFirmaPJ(pj, cola)` y un mapa reactivo `prevFirmasPJs = new Map<string, string>()` que itera sobre todos los personajes de `estadoActual.personajes`. Cualquier variación en HP, HP temporal, CA, iniciativa, condiciones, efectos, concentración, movimiento gastado, movimiento máximo temporal o acompañantes dispara de inmediato `emitirMiPersonaje(pj.id)`.
-4. **Recepción en DM sin Propagación a Acompañantes:**
-   - En `sliceSync.ts`, `actualizarPersonajeDesdeSync` sincroniza atómicamente la lista `acompanantes` en `pjExistente.acompanantes` y actualiza las criaturas de la cola pertenecientes a sidekicks e invocaciones.
+3. **Observador Reactivo del Jugador con Firmas Exhaustivas:**
+   - En `sincronizacionSimbiote.ts`, `inicializarObservadoresStoreSync()` implementa `calcularFirmaPJ(pj, cola)` y `obtenerFirmaAcompanantes(acompanantes)` integrando ordenamiento alfabético de condiciones (`.slice().sort().join(",")`), nombres de efectos, expiración de rondas y banderas de concentración (`${e.id}:${e.nombre}:${e.expiraRonda}:${e.concentracion}`). Cualquier adición, edición o eliminación de condición/efecto en la UI del Jugador despierta de inmediato `emitirMiPersonaje(pj.id)`.
+4. **Emparejamiento Inequívoco y Blindaje de Acompañantes en DM Screen y Sync (`sliceIniciativa.ts`, `sliceSync.ts`):**
+   - En `sliceIniciativa.ts`, `agregarCondicionACriatura`, `quitarCondicionDeCriatura`, `agregarEfectoACriatura`, `quitarEfectoDeCriatura`, `modificarVidaCriaturaIniciativa`, `modificarVidaMaximaCriaturaIniciativa` y `actualizarVidaTemporal` ahora discriminan explícitamente mediante `!criaturaObjetivo?.esAcompanante` y `criaturaObjetivo?.idAcompanante` combinados con `coincidenNombresTaleSpire`. Esto previene que una condición o efecto aplicado a un acompañante que comparte nombre base con su dueño (ej. `Tryn` y `Tryn_caballo`) colisione erróneamente con el personaje principal, y viceversa.
+   - En `sliceSync.ts`, `aplicarIniciativaDesdeSync` y `actualizarPersonajeDesdeSync` aplican las mismas reglas de discriminación estricta.
 
 **Validación Integral:**
 - 104 suites y 1.576 pruebas unitarias aprobadas al 100% en `pnpm test`.

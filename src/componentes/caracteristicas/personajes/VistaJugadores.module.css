@@ -284,15 +284,6 @@
   margin-right: 4px;
 }
 
-.indicadorRolJugador {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 10px;
-  color: var(--color-texto-apagado);
-  text-transform: uppercase;
-}
-
 .contenedorAcompanantes {
   max-width: 640px;
   margin: 0 auto;

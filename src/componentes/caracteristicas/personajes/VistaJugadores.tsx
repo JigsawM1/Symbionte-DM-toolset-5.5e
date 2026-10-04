@@ -11,13 +11,13 @@ import { GestorPersonajes } from "./GestorPersonajes";
 import { SeccionAcompanantesPersonaje } from "./acompanantes/SeccionAcompanantesPersonaje";
 import { autoResolverMiniaturasJugador } from "@/servicios/resolutorMiniaturasJugador";
 import { usarEstadoPersistido } from "@/hooks";
-import { Shield, Users, UserCheck, PawPrint } from "lucide-react";
+import { Shield, Users, PawPrint } from "lucide-react";
 import estilos from "./VistaJugadores.module.css";
 
 type SubPestanaJugador = "ficha" | "acompanantes" | "configuracion" | "personajes";
 
 export const VistaJugadores: React.FC = () => {
-  const { esGM, datosInicialesCargados } = usarEstadoConfiguracion();
+  const { datosInicialesCargados } = usarEstadoConfiguracion();
   const { agregarNotificacion } = usarAccionesConfiguracion();
   const { personajes, idPersonajeActivo, personajeActivo } = usarEstadoPersonajes();
   const {
@@ -56,7 +56,7 @@ export const VistaJugadores: React.FC = () => {
             data-activa={subPestanaActiva === "ficha"}
           >
             <Shield size={12} className={estilos.iconoSubPestana} />
-            Ficha de Héroe {personajeActivo ? `(${personajeActivo.nombre})` : ""}
+            {personajeActivo ? `(${personajeActivo.nombre})` : "Ficha de Héroe"}
           </button>
 
           <button
@@ -78,12 +78,6 @@ export const VistaJugadores: React.FC = () => {
             <Users size={12} className={estilos.iconoSubPestana} />
             Mis Personajes ({personajes.length})
           </button>
-        </div>
-
-        {/* Indicador de Rol */}
-        <div className={estilos.indicadorRolJugador}>
-          <UserCheck size={12} color="var(--color-borde-cian)" />
-          <span>{esGM ? "DM (GM)" : "Jugador"}</span>
         </div>
       </div>
 

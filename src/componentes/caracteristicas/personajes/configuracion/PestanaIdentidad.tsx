@@ -6,6 +6,7 @@ import { SelectorDesplegable } from "@/componentes/comunes/SelectorDesplegable";
 import { SelectorSugerencias, type OpcionSugerencia } from "@/componentes/comunes/SelectorSugerencias";
 import { obtenerCatalogoEspecies, obtenerSubespeciesDeEspecie, obtenerEtiquetaSubespecie } from "@/servicios/gestorEspecies";
 import { SeccionMulticlase } from "./SeccionMulticlase";
+import { SeccionVinculacionMiniaturaTS } from "./SeccionVinculacionMiniaturaTS";
 import estilos from "./ConfiguracionPersonaje.module.css";
 
 export interface PestanaIdentidadProps {
@@ -221,20 +222,15 @@ export const PestanaIdentidad: React.FC<PestanaIdentidadProps> = ({
       </div>
 
       <div className={estilos.filaFormulario}>
-        <div className={estilos.campoFormulario}>
-          <label className={estilos.labelFormulario}>Miniatura 3D en Tablero</label>
-          <div
-            className={`${estilos.indicadorMiniatura} ${
-              form.idMiniaturaTS
-                ? estilos.indicadorMiniaturaDetectada
-                : estilos.indicadorMiniaturaAusente
-            }`}
-            title="Auto-detectada automáticamente si la miniatura en el tablero tiene el mismo nombre que tu personaje"
-          >
-            <span className={estilos.puntoMiniatura} />
-            {form.idMiniaturaTS ? "Auto-detectada en Tablero" : "Sin Miniatura en Tablero"}
-          </div>
-        </div>
+        <SeccionVinculacionMiniaturaTS
+          idMiniaturaTS={form.idMiniaturaTS}
+          nombrePersonaje={form.nombre}
+          alActualizarMiniatura={(idMini, pos, boardId) => {
+            alActualizarCampo("idMiniaturaTS", idMini);
+            if (pos) alActualizarCampo("ultimaPosicionTS", pos);
+            if (boardId !== undefined) alActualizarCampo("ultimoBoardIdTS", boardId);
+          }}
+        />
 
         <div className={estilos.campoFormulario}>
           <label className={estilos.labelFormulario}>URL de Imagen de Avatar (Token)</label>

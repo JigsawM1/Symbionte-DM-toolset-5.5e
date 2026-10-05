@@ -4,6 +4,9 @@ export type { TarjetaResumenCompetenciaProps } from "./TarjetaResumenCompetencia
 export { SeccionMulticlase } from "./SeccionMulticlase";
 export type { SeccionMulticlaseProps } from "./SeccionMulticlase";
 
+export { SeccionVinculacionMiniaturaTS } from "./SeccionVinculacionMiniaturaTS";
+export type { SeccionVinculacionMiniaturaTSProps } from "./SeccionVinculacionMiniaturaTS";
+
 export { PestanaIdentidad } from "./PestanaIdentidad";
 export type { PestanaIdentidadProps } from "./PestanaIdentidad";
 

@@ -315,6 +315,163 @@
   border-radius: 50%;
 }
 
+.contenedorVinculacionMini {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.botonVincularSeleccion {
+  border-color: rgba(96, 165, 250, 0.4);
+  color: #60a5fa;
+}
+
+.botonVincularSeleccion:hover:not(:disabled) {
+  border-color: #60a5fa;
+  background-color: rgba(96, 165, 250, 0.12);
+}
+
+.botonDesvincularMini {
+  border-color: rgba(239, 68, 68, 0.3);
+  color: #f87171;
+}
+
+.botonDesvincularMini:hover:not(:disabled) {
+  border-color: #ef4444;
+  background-color: rgba(239, 68, 68, 0.12);
+}
+
+.mensajeFeedbackMini {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  padding: 6px 10px;
+  border-radius: 4px;
+  margin-top: 6px;
+  animation: fadeIn 0.2s ease-in-out;
+}
+
+.mensajeFeedbackExito {
+  background-color: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  color: #34d399;
+}
+
+.mensajeFeedbackError {
+  background-color: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #f87171;
+}
+
+.mensajeFeedbackInfo {
+  background-color: rgba(59, 130, 246, 0.1);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  color: #60a5fa;
+}
+
+.listaMinisDetectadas {
+  margin-top: 8px;
+  padding: 8px;
+  background-color: rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(148, 163, 184, 0.15);
+  border-radius: 6px;
+}
+
+.tituloListaMinis {
+  display: block;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #94a3b8;
+  margin-bottom: 6px;
+}
+
+.grillaMinisDetectadas {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 6px;
+}
+
+.botonMiniDetectada {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 5px 8px;
+  background-color: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 4px;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.15s ease;
+  position: relative;
+}
+
+.botonMiniDetectada:hover {
+  background-color: rgba(96, 165, 250, 0.08);
+  border-color: #60a5fa;
+}
+
+.botonMiniDetectadaActiva {
+  background-color: rgba(16, 185, 129, 0.12);
+  border-color: #10b981;
+}
+
+.nombreMiniDetectada {
+  font-size: 11px;
+  font-weight: 600;
+  color: #f1f5f9;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
+}
+
+.idMiniDetectada {
+  font-size: 9px;
+  color: #64748b;
+  font-family: monospace;
+}
+
+.iconoCheckMini {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  color: #10b981;
+}
+
+.contenedorEntradaManualToggle {
+  margin-top: 6px;
+}
+
+.botonToggleManual {
+  background: none;
+  border: none;
+  color: #64748b;
+  font-size: 10px;
+  cursor: pointer;
+  padding: 0;
+  text-decoration: underline;
+  transition: color 0.15s ease;
+}
+
+.botonToggleManual:hover {
+  color: #94a3b8;
+}
+
+.formularioManualMini {
+  display: flex;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.inputManualMini {
+  height: 32px;
+  font-size: 11px;
+  font-family: monospace;
+}
+
 .avatarPreviewContenedor {
   display: flex;
   gap: 10px;

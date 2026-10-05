@@ -25,8 +25,23 @@ export function emparejarPersonajesConCriaturas(
   const normalizar = (texto?: string) => (texto || "").trim().toLowerCase();
   const criaturasDisponibles = [...criaturas];
 
-  // Paso 1: Coincidencia por nombre normalizado
+  // Paso 0: Prioridad máxima - Si el personaje ya tiene idMiniaturaTS asignado y persiste en el tablero,
+  // se empareja directamente sin pasar por heurísticas de nombres.
   for (const pj of personajes) {
+    if (!pj.idMiniaturaTS) continue;
+    const miniIdNormalizado = normalizar(pj.idMiniaturaTS);
+    const indice = criaturasDisponibles.findIndex(
+      (c) => normalizar(c.id) === miniIdNormalizado
+    );
+    if (indice !== -1) {
+      mapa.set(pj.id, criaturasDisponibles[indice]);
+      criaturasDisponibles.splice(indice, 1);
+    }
+  }
+
+  // Paso 1: Coincidencia por nombre normalizado para personajes restantes
+  for (const pj of personajes) {
+    if (mapa.has(pj.id)) continue;
     const nombrePj = normalizar(pj.nombre);
     if (!nombrePj) continue;
 
@@ -40,14 +55,13 @@ export function emparejarPersonajesConCriaturas(
     }
   }
 
-  // Paso 2: Si el jugador tiene 1 sola criatura y 1 solo personaje sin emparejar, enlace 1-a-1 por defecto
-  for (const pj of personajes) {
-    if (!mapa.has(pj.id)) {
-      if (personajes.length === 1 && criaturas.length === 1) {
-        mapa.set(pj.id, criaturas[0]);
-      } else {
-        mapa.set(pj.id, null);
-      }
+  // Paso 2: Si el jugador tiene en total 1 sola criatura y 1 solo personaje, enlace 1-a-1 por defecto
+  const pjsSinEmparejar = personajes.filter((pj) => !mapa.has(pj.id));
+  for (const pj of pjsSinEmparejar) {
+    if (personajes.length === 1 && criaturas.length === 1 && criaturasDisponibles.length === 1) {
+      mapa.set(pj.id, criaturasDisponibles[0]);
+    } else {
+      mapa.set(pj.id, null);
     }
   }
 
@@ -111,7 +125,10 @@ export async function autoResolverMiniaturasJugador(
       const pjActual = personajes.find((p) => p.id === pjId);
       const nuevoIdMini = criatura?.id || null;
       if (pjActual) {
-        if (pjActual.idMiniaturaTS !== nuevoIdMini) {
+        // Solo actualizar si encontramos una criatura física en TaleSpire.
+        // Si no encontramos criatura pero el personaje ya tenía idMiniaturaTS guardado,
+        // no destruimos su vinculación persistente para permitir que se recuerde entre tableros.
+        if (nuevoIdMini && pjActual.idMiniaturaTS !== nuevoIdMini) {
           logger.info(
             `[AutoResolutorMinis] Miniatura auto-vinculada: '${pjActual.nombre}' ↔ '${criatura?.name || "Sin nombre"}' (ID: ${nuevoIdMini})`
           );
@@ -136,15 +153,29 @@ export async function autoResolverMiniaturasJugador(
       for (const pj of personajes) {
         if (!pj.acompanantes || pj.acompanantes.length === 0) continue;
         for (const acomp of pj.acompanantes) {
-          const nombreAcomp = (acomp.nombre || "").trim();
-          if (esNombreVacioODot(nombreAcomp) || nombreAcomp.length < 2) continue;
+          let criaturaEncontrada: InfoCriatura | undefined;
 
-          const criaturaEncontrada = infos.find((c) => {
-            if (!c.id || idsMiniaturasAsignadasPJs.has(c.id)) return false;
-            const nomC = (c.name || "").trim();
-            if (esNombreVacioODot(nomC) || nomC.length < 2) return false;
-            return coincidenNombresTaleSpire(nomC, nombreAcomp);
-          });
+          // Prioridad 0: Si el acompañante ya tiene idMiniaturaTS guardado, buscarlo directamente
+          if (acomp.idMiniaturaTS) {
+            const miniAcompIdNorm = acomp.idMiniaturaTS.toLowerCase();
+            criaturaEncontrada = infos.find((c) => {
+              if (!c.id || idsMiniaturasAsignadasPJs.has(c.id)) return false;
+              return c.id.toLowerCase() === miniAcompIdNorm;
+            });
+          }
+
+          // Prioridad 1: Coincidencia por nombre o nombre base
+          if (!criaturaEncontrada) {
+            const nombreAcomp = (acomp.nombre || "").trim();
+            if (esNombreVacioODot(nombreAcomp) || nombreAcomp.length < 2) continue;
+
+            criaturaEncontrada = infos.find((c) => {
+              if (!c.id || idsMiniaturasAsignadasPJs.has(c.id)) return false;
+              const nomC = (c.name || "").trim();
+              if (esNombreVacioODot(nomC) || nomC.length < 2) return false;
+              return coincidenNombresTaleSpire(nomC, nombreAcomp);
+            });
+          }
 
           if (criaturaEncontrada) {
             idsMiniaturasAsignadasPJs.add(criaturaEncontrada.id);

@@ -78,4 +78,23 @@ describe("resolutorMiniaturasJugador", () => {
     expect(mapa.get("pj-1")).toBeNull();
     expect(mapa.get("pj-2")).toBeNull();
   });
+
+  it("debe priorizar idMiniaturaTS ya asignado sobre coincidencias de nombre", () => {
+    // pj1 se llama "Lancelot", pero tiene idMiniaturaTS vinculado manualmente a "mini-galahad"
+    const pj1: PersonajeJugador = {
+      ...crearPJMock("pj-1", "Lancelot"),
+      idMiniaturaTS: "mini-galahad"
+    };
+    // pj2 se llama "Galahad"
+    const pj2 = crearPJMock("pj-2", "Galahad");
+
+    const c1 = crearCriaturaMock("mini-lancelot", "Lancelot");
+    const c2 = crearCriaturaMock("mini-galahad", "Galahad");
+
+    const mapa = emparejarPersonajesConCriaturas([pj1, pj2], [c1, c2]);
+    // pj1 debe conservar mini-galahad por id directo sin pasar por coincidencia de nombre
+    expect(mapa.get("pj-1")?.id).toBe("mini-galahad");
+    // pj2 ahora no puede tomar mini-galahad porque ya fue tomada, no coincide con mini-lancelot
+    expect(mapa.get("pj-2")).toBeNull();
+  });
 });

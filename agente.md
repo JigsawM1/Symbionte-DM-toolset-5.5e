@@ -18,6 +18,58 @@ Este archivo registra reglas globales, errores encontrados, sus causas raíz y l
 6. **PROHIBICIÓN ESTRICTA DE BIFURCACIONES POR NOMBRE DE RASGO O CLASE (CATÁLOGO DECLARATIVO Y BUILDER PURO)**:
    - **Bajo ninguna circunstancia** los módulos de lógica de negocio (`servicios/`), gestores de estado (`almacen/`) o constructores (`gestorClases.ts`) deben contener bifurcaciones condicionales por nombre literal de rasgo o clase (`r.nombre === "..."`, `clase.includes("...")`, etc.).
 
+## [2026-10-05] Vinculación Manual y Persistencia Determinista de Miniaturas de Jugador (TaleSpire API v0.1)
+
+**Contexto y Necesidad:**
+- Previamente, el emparejamiento de miniaturas (`emparejarPersonajesConCriaturas`) dependía exclusivamente de coincidencias de nombres de texto plano o de una heurística 1-a-1 por descarte. Si un personaje ya tenía un `idMiniaturaTS` guardado manualmente o difería en nombre con la miniatura en TaleSpire, el ciclo de auto-resolución sobreescribía la asociación con `null` o asignaba una miniatura errónea.
+- En la interfaz de configuración del personaje (`PanelConfiguracionPersonaje.tsx` / `PestanaIdentidad.tsx`), la miniatura en tablero se mostraba de manera estática y pasiva, sin ofrecer al jugador controles manuales para asociar su miniatura directamente desde el tablero 3D.
+
+**Soluciones Técnicas Aplicadas:**
+1. **Prioridad Absoluta de `idMiniaturaTS` Existente (`resolutorMiniaturasJugador.ts`):**
+   - En `emparejarPersonajesConCriaturas`, se introdujo el **Paso 0**: Si el personaje ya tiene asignado un `idMiniaturaTS`, se busca primero por ID exacto en las criaturas disponibles del tablero. Si existe, se empareja de inmediato en $O(1)$ sin pasar por comparaciones heurísticas ni heurística 1-a-1, y se excluye de las criaturas disponibles.
+   - En `autoResolverMiniaturasJugador`, se blindó la actualización para evitar desvinculaciones destructivas accidentales: si la miniatura no se detecta en ese instante (ej. cambio de mapa o carga parcial), no se sobreescribe con `null` el `idMiniaturaTS` persistido del personaje.
+   - La misma preservación por ID prioritario se extendió a los acompañantes y mascotas (`acomp.idMiniaturaTS`).
+2. **Componente Modular `SeccionVinculacionMiniaturaTS.tsx`:**
+   - Creado en `src/componentes/caracteristicas/personajes/configuracion/SeccionVinculacionMiniaturaTS.tsx` sin sobrecargar `usarConfiguracionPersonaje.ts` (manteniendo todos los archivos bajo el límite de 500 líneas).
+   - Provee:
+     - Estado visual claro: miniatura vinculada vs sin miniatura en tablero.
+     - Botón **"Vincular Selección 3D"**: Lee la selección física actual de TaleSpire (`ts.creatures.getSelectedCreatures()`), obtiene sus datos (`ts.creatures.getMoreInfo()`) y la asocia al personaje con 1 clic.
+     - Botón **"Mis Miniaturas"**: Escanea las criaturas asignadas al jugador (`ts.creatures.getCreaturesOwnedByPlayer()`) y despliega una grilla táctil para vincular cualquiera de ellas directamente.
+     - Botón **"Desvincular"**: Permite desasociar la miniatura manualmente.
+     - Entrada manual alternativa para consultar o ingresar el GUID de la miniatura directamente.
+3. **Pruebas y Certificación:**
+   - Pruebas dedicadas añadidas en `resolutorMiniaturasJugador.test.ts` verificando la prioridad de `idMiniaturaTS` sobre coincidencias de nombre.
+   - Pipeline de CI verificado: TypeScript (`strict: true`), ESLint (0 advertencias), 105 suites y 1.589/1.589 pruebas unitarias aprobadas (100%), build de producción con Vite completado con éxito.
+
+---
+
+## [2026-10-05] Unificación Arquitectónica del Exportador de Personajes (`GestorPersonajes.tsx` y `ConfiguracionDM.tsx`)
+
+**Contexto del Problema:**
+- `GestorPersonajes.tsx` utilizaba un esquema legado de exportación individual (`{ version: "5.5", tipo: "personaje", fechaExportacion: "...", personaje: { ... } }`) y de grupo (`{ tipo: "grupo_personajes", totalPersonajes: N, personajes: [ ... ] }`).
+- Adicionalmente, `manejarExportarPersonaje` recibía el personaje por `props` en lugar de consultar el estado reactivo centralizado más reciente de Zustand, y el modal de emergencia (`modalJSON`) se abría si fallaba el portapapeles aun cuando la descarga física del archivo JSON había sido exitosa.
+- En la interfaz de usuario, el botón de exportación individual mostraba el icono `Clipboard` con el tooltip *"Copiar JSON de la ficha al portapapeles"*, generando una disonancia con la acción de descarga real del archivo.
+
+**Soluciones Arquitectónicas Aplicadas:**
+1. **Normalización del Esquema Canónico:**
+   - Tanto la exportación individual como la de grupo en `GestorPersonajes.tsx` se alinearon con la convención estándar de `ConfiguracionDM.tsx`: `{ version: "5.5", fechaExportacion: "...", personajes: [...] }`, deshidratando los personajes con `deshidratarPersonaje`.
+2. **Snapshot Atómico en Tiempo Real:**
+   - `manejarExportarPersonaje` y `manejarExportarGrupo` leen directamente el estado vivo desde `usarAlmacenDM.getState().personajes`, asegurando que cualquier mutación reciente en memoria (acompañantes, vida, consumibles, ranuras) se refleje al milisegundo de la descarga.
+3. **Manejo Coordinado de Fallbacks y Feedback:**
+   - La ventana modal de copia manual únicamente se despliega si **ambos** métodos fallan (`!exitoCopiado && !exitoDescarga`), alineándose con el estándar de `ConfiguracionDM.tsx`.
+   - Si la copia al portapapeles o la descarga se completan, se proporciona retroalimentación inmediata mediante notificaciones y estados visuales temporales sin bloquear la interfaz.
+4. **Coherencia de Iconografía y UX:**
+   - Se reemplazó el icono `Clipboard` por `Download` en la tarjeta individual y se actualizó el tooltip a *"Exportar ficha (.json) al portapapeles y archivo"*.
+
+**Certificación de CI:**
+- **TypeScript:** `strict: true`, 0 errores (`tsc --noEmit`).
+- **ESLint:** 0 errores, 0 advertencias (`eslint src --max-warnings=0`).
+- **Vitest:** 105 suites aprobadas, 1.588/1.588 pruebas exitosas.
+- **Auditoría de Líneas:** 116 archivos auditados, 0 archivos críticos (> 500 líneas).
+- **Vite Build:** Compilación completada con éxito en producción.
+
+---
+
 ## [2026-10-05] Integración Definitiva de Rama `origin/Sidekicks-beta` en `main` y Certificación de CI
 
 **Objetivo de la Integración:**

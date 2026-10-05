@@ -3,6 +3,7 @@ import type { PersonajeJugador } from "@/tipos";
 import { ConfirmDialog } from "@/componentes/comunes/ConfirmDialog";
 import { Plus, Copy, Trash2, CheckCircle2, User, Download, Upload, Check, Clipboard, X, FileText } from "lucide-react";
 import { importarPersonajesDesdeJSON } from "@/almacen/importadorJSON";
+import { usarAlmacenDM } from "@/almacen/usarAlmacenDM";
 import { usarAccionesConfiguracion } from "@/almacen/selectores";
 import { copiarAlPortapapeles, descargarArchivoJSON } from "@/servicios/sistemaTaleSpire";
 import { deshidratarPersonaje, hidratarPersonaje } from "@/servicios/serializadorPersonaje";
@@ -51,56 +52,73 @@ export const GestorPersonajes: React.FC<GestorPersonajesProps> = ({
   };
 
   const manejarExportarPersonaje = async (pj: PersonajeJugador) => {
+    const estadoActual = usarAlmacenDM.getState();
+    const pjActual = (estadoActual.personajes || []).find((p) => p.id === pj.id) || pj;
+
     const datos = {
       version: "5.5",
-      tipo: "personaje",
       fechaExportacion: new Date().toISOString(),
-      personaje: deshidratarPersonaje(pj)
+      personajes: [deshidratarPersonaje(pjActual)]
     };
     const jsonStr = JSON.stringify(datos, null, 2);
 
     // 1. Copiar al portapapeles desacoplado
-    const exito = await copiarAlPortapapeles(jsonStr);
+    const exitoCopiado = await copiarAlPortapapeles(jsonStr);
 
     // 2. Descarga en navegador / cliente CEF
-    const nombreArchivo = `ficha_${(pj.nombre || "personaje").toLowerCase().replace(/\s+/g, "_")}.json`;
-    descargarArchivoJSON(jsonStr, nombreArchivo);
+    const nombreArchivo = `ficha_${(pjActual.nombre || "personaje").toLowerCase().replace(/\s+/g, "_")}.json`;
+    const exitoDescarga = descargarArchivoJSON(jsonStr, nombreArchivo);
 
-    if (exito) {
+    if (exitoCopiado) {
       setCopiadoPjId(pj.id);
       setTimeout(() => setCopiadoPjId(null), 3000);
-      agregarNotificacion(`¡Ficha de "${pj.nombre}" copiada al portapapeles en formato JSON!`, "exito");
-    } else {
+      agregarNotificacion(`¡Ficha de "${pjActual.nombre}" copiada al portapapeles en formato JSON!`, "exito");
+    } else if (exitoDescarga) {
+      agregarNotificacion(`¡Ficha de "${pjActual.nombre}" descargada correctamente!`, "exito");
+    }
+
+    if (!exitoCopiado && !exitoDescarga) {
+      logger.warn("[GestorPersonajes] Falló la copia al portapapeles y la descarga automática, mostrando modal alternativo.");
       setModalJSON({
-        titulo: `Ficha de ${pj.nombre} (JSON)`,
+        titulo: `Ficha de ${pjActual.nombre} (JSON)`,
         contenido: jsonStr
       });
     }
   };
 
   const manejarExportarGrupo = async () => {
-    if (personajes.length === 0) return;
+    const estadoActual = usarAlmacenDM.getState();
+    const personajesActuales = (estadoActual.personajes && estadoActual.personajes.length > 0)
+      ? estadoActual.personajes
+      : personajes;
+
+    if (personajesActuales.length === 0) return;
+
     const datos = {
       version: "5.5",
-      tipo: "grupo_personajes",
       fechaExportacion: new Date().toISOString(),
-      totalPersonajes: personajes.length,
-      personajes: personajes.map(deshidratarPersonaje)
+      personajes: personajesActuales.map(deshidratarPersonaje)
     };
     const jsonStr = JSON.stringify(datos, null, 2);
 
-    const exito = await copiarAlPortapapeles(jsonStr);
+    const exitoCopiado = await copiarAlPortapapeles(jsonStr);
 
     const fecha = new Date().toISOString().split("T")[0];
-    descargarArchivoJSON(jsonStr, `grupo_personajes_${fecha}.json`);
+    const nombreArchivo = `grupo_personajes_${fecha}.json`;
+    const exitoDescarga = descargarArchivoJSON(jsonStr, nombreArchivo);
 
-    if (exito) {
+    if (exitoCopiado) {
       setGrupoCopiado(true);
       setTimeout(() => setGrupoCopiado(false), 3000);
-      agregarNotificacion(`¡Respaldo de grupo (${personajes.length} héroes) copiado al portapapeles!`, "exito");
-    } else {
+      agregarNotificacion(`¡Respaldo de grupo (${personajesActuales.length} personajes) copiado al portapapeles!`, "exito");
+    } else if (exitoDescarga) {
+      agregarNotificacion(`¡Respaldo de grupo (${personajesActuales.length} personajes) descargado correctamente!`, "exito");
+    }
+
+    if (!exitoCopiado && !exitoDescarga) {
+      logger.warn("[GestorPersonajes] Falló la copia al portapapeles y la descarga automática del grupo, mostrando modal alternativo.");
       setModalJSON({
-        titulo: `Respaldo del Grupo (${personajes.length} Personajes)`,
+        titulo: `Respaldo del Grupo (${personajesActuales.length} Personajes)`,
         contenido: jsonStr
       });
     }
@@ -300,10 +318,10 @@ export const GestorPersonajes: React.FC<GestorPersonajesProps> = ({
                   type="button"
                   className={`${estilos.neoButton} ${estilos.botonAccionGestor}`}
                   onClick={() => manejarExportarPersonaje(pj)}
-                  title="Copiar JSON de la ficha al portapapeles"
+                  title="Exportar ficha (.json) al portapapeles y archivo"
                   data-copiado={copiadoPjId === pj.id ? "true" : "false"}
                 >
-                  {copiadoPjId === pj.id ? <Check size={12} /> : <Clipboard size={12} />}
+                  {copiadoPjId === pj.id ? <Check size={12} /> : <Download size={12} />}
                 </button>
 
                 <button

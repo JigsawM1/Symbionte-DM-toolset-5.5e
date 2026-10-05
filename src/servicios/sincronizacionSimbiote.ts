@@ -22,7 +22,7 @@ import {
   dividirEnChunksIniciativa,
 } from "@/tipos/sync";
 import { calcularEstadisticasPersonaje } from "@/almacen/selectores/usarEstadoPersonajes";
-import { normalizarNombreTaleSpire } from "@/servicios/resolutorCriaturas";
+import { coincidenNombresTaleSpire } from "@/servicios/resolutorCriaturas";
 import { logger } from "@/utiles/logger";
 
 const RETARDO_DEBOUNCE_MS = 400;
@@ -30,6 +30,22 @@ const LIMITE_TAMANO_SEGURO_BYTES = 420;
 
 let timerDebounceGM: ReturnType<typeof setTimeout> | null = null;
 let timerDebouncePJ: ReturnType<typeof setTimeout> | null = null;
+
+// Búfer para deduplicar mensajes recibidos concurrentemente por el EventBus y suscripciones nativas
+const mensajesProcesadosRecientes = new Set<string>();
+const LIMITE_MENSAJES_DEDUPLICACION = 50;
+
+function esMensajeDuplicado(strCrudo: string): boolean {
+  if (!strCrudo) return false;
+  if (mensajesProcesadosRecientes.has(strCrudo)) {
+    return true;
+  }
+  if (mensajesProcesadosRecientes.size >= LIMITE_MENSAJES_DEDUPLICACION) {
+    mensajesProcesadosRecientes.clear();
+  }
+  mensajesProcesadosRecientes.add(strCrudo);
+  return false;
+}
 
 // Búfer para reensamblar chunks de iniciativa
 const bufferChunksIniciativa = new Map<number, WireChunkIniciativa>();
@@ -48,7 +64,7 @@ export function proyectarEstadoCombatePJ(pj: PersonajeJugador): EstadoCombatePJ 
     (c) =>
       c.id === pj.id ||
       (pj.idMiniaturaTS && c.id === pj.idMiniaturaTS) ||
-      normalizarNombreTaleSpire(c.nombre) === normalizarNombreTaleSpire(pj.nombre)
+      coincidenNombresTaleSpire(c.nombre, pj.nombre)
   );
 
   const iniciativaFinal =
@@ -190,6 +206,11 @@ export function procesarMensajeSyncEntrante(evento: {
   strCrudo: string;
   fromClient?: FragmentoCliente;
 }): void {
+  if (esMensajeDuplicado(evento.strCrudo)) {
+    logger.debug("[Sync] Mensaje duplicado omitido por deduplicador de bus");
+    return;
+  }
+
   const parseo = EsquemaWireMensajeSync.safeParse(evento.datos);
 
   if (!parseo.success) {
@@ -213,6 +234,10 @@ export function procesarMensajeSyncEntrante(evento: {
     case "DM": {
       // Solo los jugadores aplican el estado del DM
       if (!estado.esGM) {
+        if (estado.idClienteDM && evento.fromClient?.id && evento.fromClient.id !== estado.idClienteDM) {
+          logger.warn("[Sync] Mensaje DM rechazado: remitente no autorizado como DM:", evento.fromClient.id, "Esperado:", estado.idClienteDM);
+          return;
+        }
         logger.info("[Sync] Aplicando ESTADO_INICIATIVA_DM recibido del DM...");
         const datosIniciativa = deserializarIniciativaDM(mensaje.d);
         estado.aplicarIniciativaDesdeSync(datosIniciativa);
@@ -223,6 +248,10 @@ export function procesarMensajeSyncEntrante(evento: {
     case "DM_CHUNK": {
       // Reensamblado de ráfagas para jugadores
       if (!estado.esGM) {
+        if (estado.idClienteDM && evento.fromClient?.id && evento.fromClient.id !== estado.idClienteDM) {
+          logger.warn("[Sync] Chunk DM rechazado: remitente no autorizado como DM:", evento.fromClient.id, "Esperado:", estado.idClienteDM);
+          return;
+        }
         const chunk = mensaje.d;
         if (chunk.chunk === 1) {
           bufferChunksIniciativa.clear();
@@ -288,7 +317,7 @@ export function inicializarObservadoresStoreSync(): () => void {
     (c) =>
       (pjInicial && c.id === pjInicial.id) ||
       (pjInicial?.idMiniaturaTS && c.id === pjInicial.idMiniaturaTS) ||
-      (pjInicial && normalizarNombreTaleSpire(c.nombre) === normalizarNombreTaleSpire(pjInicial.nombre))
+      (pjInicial && coincidenNombresTaleSpire(c.nombre, pjInicial.nombre))
   );
 
   let prevIdPj = pjInicial?.id ?? "";
@@ -316,7 +345,7 @@ export function inicializarObservadoresStoreSync(): () => void {
           (c) =>
             c.id === pjActivo.id ||
             (pjActivo.idMiniaturaTS && c.id === pjActivo.idMiniaturaTS) ||
-            normalizarNombreTaleSpire(c.nombre) === normalizarNombreTaleSpire(pjActivo.nombre)
+            coincidenNombresTaleSpire(c.nombre, pjActivo.nombre)
         );
         const stats = calcularEstadisticasPersonaje(pjActivo);
         prevIdPj = pjActivo.id;
@@ -369,7 +398,7 @@ export function inicializarObservadoresStoreSync(): () => void {
           (c) =>
             c.id === pjActivo.id ||
             (pjActivo.idMiniaturaTS && c.id === pjActivo.idMiniaturaTS) ||
-            normalizarNombreTaleSpire(c.nombre) === normalizarNombreTaleSpire(pjActivo.nombre)
+            coincidenNombresTaleSpire(c.nombre, pjActivo.nombre)
         );
         const stats = calcularEstadisticasPersonaje(pjActivo);
         const inicActual =

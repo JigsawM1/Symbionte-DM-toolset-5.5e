@@ -40,8 +40,23 @@ export const establecerCacheEsGM = (esGm: boolean) => {
   cacheEsGM = esGm;
 };
 
+/**
+ * Desuscribe de manera defensiva cualquier objeto de suscripción nativo devuelto por TaleSpire,
+ * admitiendo tanto desuscribir() como unsubscribe().
+ */
+function limpiarSuscripcionNativa(sub: unknown): void {
+  if (!sub || typeof sub !== "object") return;
+  const s = sub as { desuscribir?: () => void; unsubscribe?: () => void };
+  if (typeof s.desuscribir === "function") {
+    s.desuscribir();
+  } else if (typeof s.unsubscribe === "function") {
+    s.unsubscribe();
+  }
+}
+
 class TaleSpireAdapter {
   private getQueuePromise: Promise<ColaIniciativaTS> | null = null;
+  private canalBroadcastSync?: BroadcastChannel;
 
   /**
    * Obtiene la referencia global de window.TS de forma segura en cualquier entorno.
@@ -222,7 +237,7 @@ class TaleSpireAdapter {
         const sub = window.TS.initiative.onInitiativeEvent.subscribe((datos) => {
           callback(datos);
         });
-        return { desuscribir: () => sub.desuscribir() };
+        return { desuscribir: () => limpiarSuscripcionNativa(sub) };
       }
       return { desuscribir: () => {} };
     }
@@ -251,7 +266,7 @@ class TaleSpireAdapter {
         const sub = window.TS.creatures.onCreatureSelectionChange.subscribe((datos) => {
           callback(datos);
         });
-        return { desuscribir: () => sub.desuscribir() };
+        return { desuscribir: () => limpiarSuscripcionNativa(sub) };
       }
       return { desuscribir: () => {} };
     },
@@ -264,7 +279,7 @@ class TaleSpireAdapter {
         const sub = window.TS.creatures.onCreatureStateChange.subscribe((datos) => {
           callback(datos);
         });
-        return { desuscribir: () => sub.desuscribir() };
+        return { desuscribir: () => limpiarSuscripcionNativa(sub) };
       }
       return { desuscribir: () => {} };
     },
@@ -544,7 +559,7 @@ class TaleSpireAdapter {
       if (onClientEvent) {
         if (typeof onClientEvent === "object" && "subscribe" in onClientEvent && typeof onClientEvent.subscribe === "function") {
           const sub = onClientEvent.subscribe(listener as (e: EventoClienteTS) => void);
-          return { desuscribir: () => sub?.desuscribir?.() };
+          return { desuscribir: () => limpiarSuscripcionNativa(sub) };
         }
         if (typeof onClientEvent === "function") {
           const unsub = onClientEvent(listener as (e: unknown) => void);
@@ -783,6 +798,18 @@ class TaleSpireAdapter {
     }
   };
 
+  private getBroadcastChannelSync(): BroadcastChannel | undefined {
+    if (typeof BroadcastChannel === "undefined") return undefined;
+    if (!this.canalBroadcastSync) {
+      try {
+        this.canalBroadcastSync = new BroadcastChannel("talespire-simbiote-sync");
+      } catch (e) {
+        logger.debug("[TS Adapter] No se pudo instanciar BroadcastChannel persistente:", e);
+      }
+    }
+    return this.canalBroadcastSync;
+  }
+
   // ==========================================
   // --- SINCRONIZACIÓN (SYNC API) ---
   // ==========================================
@@ -809,12 +836,11 @@ class TaleSpireAdapter {
         }
       }
 
-      // Replicar en BroadcastChannel para entornos locales o pruebas en navegador
+      // Replicar en BroadcastChannel persistente para entornos locales o pruebas en navegador
       try {
-        if (typeof BroadcastChannel !== "undefined") {
-          const canal = new BroadcastChannel("talespire-simbiote-sync");
+        const canal = this.getBroadcastChannelSync();
+        if (canal) {
           canal.postMessage({ str: message, target });
-          canal.close();
           enviado = true;
         }
       } catch (e) {
@@ -875,11 +901,7 @@ class TaleSpireAdapter {
             callback(msg);
           });
           return {
-            desuscribir: () => {
-              if (sub && typeof sub.unsubscribe === "function") {
-                sub.unsubscribe();
-              }
-            },
+            desuscribir: () => limpiarSuscripcionNativa(sub),
           };
         } catch (e) {
           logger.warn("[TS Adapter] Error al suscribirse a onSyncMessage nativo:", e);

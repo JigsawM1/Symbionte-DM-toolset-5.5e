@@ -8,7 +8,7 @@
 import { useMemo } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 import { usarAlmacenDM } from '@/almacen/usarAlmacenDM';
-import type { PersonajeJugador, Caracteristica, Habilidad, EfectoPasivo, GradoCompetencia } from '@/tipos';
+import type { PersonajeJugador, Caracteristica, Habilidad, EfectoPasivo, GradoCompetencia, ObjetoHomebrew, ObjetoBase } from '@/tipos';
 import {
   obtenerBonoCompetenciaPorNivel,
   MAPA_HABILIDAD_A_CARACTERISTICA
@@ -103,13 +103,42 @@ export function extraerCaDePropiedades(propiedades?: string | string[]): number 
 
 const cacheEstadisticasPersonaje = new WeakMap<PersonajeJugador, EstadisticasCalculadasPersonaje>();
 
+let cacheMapaObjetosRef: unknown = null;
+let cacheMapaObjetos: Map<string, ObjetoHomebrew | ObjetoBase> | null = null;
+
+function obtenerMapaObjetos(
+  homebrews: ObjetoHomebrew[],
+  normalizar: (s: string) => string
+): Map<string, ObjetoHomebrew | ObjetoBase> {
+  if (cacheMapaObjetosRef === homebrews && cacheMapaObjetos) {
+    return cacheMapaObjetos;
+  }
+  cacheMapaObjetosRef = homebrews;
+  const mapa = new Map<string, ObjetoHomebrew | ObjetoBase>();
+
+  for (const obj of OBJETOS_INICIALES) {
+    if (obj.id) mapa.set(obj.id, obj);
+    if (obj.nombre) mapa.set(normalizar(obj.nombre), obj);
+  }
+  for (const obj of homebrews) {
+    if (obj && obj.id) mapa.set(obj.id, obj);
+    if (obj && obj.nombre) mapa.set(normalizar(obj.nombre), obj);
+  }
+
+  cacheMapaObjetos = mapa;
+  return mapa;
+}
+
 /**
  * Función pura que calcula todas las estadísticas derivadas de un personaje
  * conforme a las reglas oficiales de D&D 5.5e.
- * Optimizado con caché referencial WeakMap O(1).
+ * Optimizado con caché referencial WeakMap O(1) e índice Map de inventario O(1).
  */
-export function calcularEstadisticasPersonaje(pj: PersonajeJugador): EstadisticasCalculadasPersonaje {
-  if (pj && typeof pj === 'object') {
+export function calcularEstadisticasPersonaje(
+  pj: PersonajeJugador,
+  homebrewsExternos?: ObjetoHomebrew[]
+): EstadisticasCalculadasPersonaje {
+  if (pj && typeof pj === 'object' && !homebrewsExternos) {
     const enCache = cacheEstadisticasPersonaje.get(pj);
     if (enCache) {
       return enCache;
@@ -168,15 +197,16 @@ export function calcularEstadisticasPersonaje(pj: PersonajeJugador): Estadistica
   // Recopilar efectos pasivos activos de objetos equipados y sintonizados
   const efectosPasivosActivos: EfectoPasivo[] = [];
   let bonosModificadorDirectoArmadura = 0;
-  const homebrews = usarAlmacenDM.getState?.()?.objetosHomebrew || [];
+  const homebrews = homebrewsExternos ?? usarAlmacenDM.getState?.()?.objetosHomebrew ?? [];
+  const mapaObjetos = obtenerMapaObjetos(homebrews, normalizar);
 
   for (const item of inventario) {
     if (!item.equipado) continue;
     if (item.sintonizacionRequerida && !item.sintonizado) continue;
 
     const objetoComp =
-      homebrews.find((b) => b.id === item.idObjeto || normalizar(b.nombre) === normalizar(item.nombre)) ||
-      OBJETOS_INICIALES.find((b) => b.id === item.idObjeto || normalizar(b.nombre) === normalizar(item.nombre));
+      (item.idObjeto ? mapaObjetos.get(item.idObjeto) : undefined) ||
+      (item.nombre ? mapaObjetos.get(normalizar(item.nombre)) : undefined);
 
     const efectosDirectos = item.efectosPasivos;
     const efectosComp = objetoComp?.efectosPasivos;

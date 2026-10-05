@@ -4,7 +4,15 @@ import { MonstruoBase, HechizoBase, ObjetoHomebrew, PersonajeJugador } from '@/t
 import { PERSONAJE_POR_DEFECTO } from '@/constantes';
 import { MONSTRUOS_INICIALES, HECHIZOS_INICIALES, OBJETOS_INICIALES } from '@/utiles/datosIniciales';
 import { leerBlobGlobal, limpiarBlobGlobal } from '@/utiles/almacenamientoTaleSpire';
-import { sanearObjetoHomebrew, sanearHechizoCD, sanearMonstruoSentidosYPasiva, sanearPersonaje } from '@/almacen/sanitizacion';
+import {
+  sanearObjetoHomebrew,
+  sanearHechizoCD,
+  sanearMonstruoSentidosYPasiva,
+  sanearPersonaje,
+  sanearCriaturaIniciativa,
+  sanearElementoPendiente,
+  sanearEncuentroGuardado
+} from '@/almacen/sanitizacion';
 import { importarDesdeJSON, importarPersonajesDesdeJSON } from '@/almacen/importadorJSON';
 import { hidratarPersonaje } from '@/servicios/serializadorPersonaje';
 import { desduplicarEntidades } from '@/utiles/busquedaTolerante';
@@ -236,19 +244,34 @@ export const crearSliceConfiguracion: StateCreator<
             )
           }));
         }
-        if (pendientes && pendientes.length > 0) {
-          set({ listaPendientes: pendientes });
+        if (Array.isArray(pendientes) && pendientes.length > 0) {
+          const pendientesSaneados = pendientes
+            .map(sanearElementoPendiente)
+            .filter((p): p is ElementoPendiente => p !== null);
+          if (pendientesSaneados.length > 0) {
+            set({ listaPendientes: pendientesSaneados });
+          }
         }
         if (notes !== undefined && notes !== null) {
           set({ notasDM: notes });
         } else if (notas !== undefined && notas !== null) {
           set({ notasDM: notas });
         }
-        if (encuentros && encuentros.length > 0) {
-          set({ encuentrosGuardados: encuentros });
+        if (Array.isArray(encuentros) && encuentros.length > 0) {
+          const encuentrosSaneados = encuentros
+            .map(sanearEncuentroGuardado)
+            .filter((e): e is EncuentroGuardado => e !== null);
+          if (encuentrosSaneados.length > 0) {
+            set({ encuentrosGuardados: encuentrosSaneados });
+          }
         }
-        if (cola && cola.length > 0) {
-          set({ colaIniciativa: cola });
+        if (Array.isArray(cola) && cola.length > 0) {
+          const colaSaneada = cola
+            .map(sanearCriaturaIniciativa)
+            .filter((c): c is CriaturaIniciativa => c !== null);
+          if (colaSaneada.length > 0) {
+            set({ colaIniciativa: colaSaneada });
+          }
         }
         if (ronda !== undefined && ronda !== null) {
           set({ rondaActual: ronda });
@@ -354,22 +377,37 @@ export const crearSliceConfiguracion: StateCreator<
       // 3. Tareas Pendientes
       const pendientes = datosObj.pendientes ?? datosObj.listaPendientes;
       if (Array.isArray(pendientes) && pendientes.length > 0) {
-        cambiosParciales.listaPendientes = pendientes as ElementoPendiente[];
-        modificado = true;
+        const pendientesSaneados = pendientes
+          .map(sanearElementoPendiente)
+          .filter((p): p is ElementoPendiente => p !== null);
+        if (pendientesSaneados.length > 0) {
+          cambiosParciales.listaPendientes = pendientesSaneados;
+          modificado = true;
+        }
       }
 
       // 4. Encuentros guardados
       const encuentros = datosObj.encuentros ?? datosObj.encuentrosGuardados;
       if (Array.isArray(encuentros) && encuentros.length > 0) {
-        cambiosParciales.encuentrosGuardados = encuentros as EncuentroGuardado[];
-        modificado = true;
+        const encuentrosSaneados = encuentros
+          .map(sanearEncuentroGuardado)
+          .filter((e): e is EncuentroGuardado => e !== null);
+        if (encuentrosSaneados.length > 0) {
+          cambiosParciales.encuentrosGuardados = encuentrosSaneados;
+          modificado = true;
+        }
       }
 
       // 5. Cola de iniciativa
       const cola = datosObj.cola_iniciativa ?? datosObj.colaIniciativa;
       if (Array.isArray(cola) && cola.length > 0) {
-        cambiosParciales.colaIniciativa = cola as CriaturaIniciativa[];
-        modificado = true;
+        const colaSaneada = cola
+          .map(sanearCriaturaIniciativa)
+          .filter((c): c is CriaturaIniciativa => c !== null);
+        if (colaSaneada.length > 0) {
+          cambiosParciales.colaIniciativa = colaSaneada;
+          modificado = true;
+        }
       }
     }
 

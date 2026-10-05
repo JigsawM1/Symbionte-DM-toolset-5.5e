@@ -8,14 +8,16 @@
 import type { StateCreator } from "zustand";
 import type { EstadoDM, CriaturaIniciativa } from "@/almacen/usarAlmacenDM";
 import type { EstadoCombatePJ, EstadoIniciativaDM } from "@/tipos/sync";
-import { normalizarNombreTaleSpire } from "@/servicios/resolutorCriaturas";
+import { coincidenNombresTaleSpire } from "@/servicios/resolutorCriaturas";
 import { logger } from "@/utiles/logger";
 
 export interface SliceSync {
   aplicandoSync: boolean;
   ultimoSyncRecibido: number | null;
+  idClienteDM: string | null;
 
   establecerAplicandoSync: (aplicando: boolean) => void;
+  establecerIdClienteDM: (id: string | null) => void;
   aplicarIniciativaDesdeSync: (datos: EstadoIniciativaDM) => void;
   actualizarPersonajeDesdeSync: (dto: EstadoCombatePJ) => void;
 }
@@ -28,9 +30,14 @@ export const crearSliceSync: StateCreator<
 > = (set, get) => ({
   aplicandoSync: false,
   ultimoSyncRecibido: null,
+  idClienteDM: null,
 
   establecerAplicandoSync: (aplicando: boolean) => {
     set({ aplicandoSync: aplicando });
+  },
+
+  establecerIdClienteDM: (id: string | null) => {
+    set({ idClienteDM: id });
   },
 
   aplicarIniciativaDesdeSync: (datos: EstadoIniciativaDM) => {
@@ -44,7 +51,7 @@ export const crearSliceSync: StateCreator<
         (c) =>
           c.id === pj.id ||
           (pj.idMiniaturaTS && c.id === pj.idMiniaturaTS) ||
-          normalizarNombreTaleSpire(c.nombre) === normalizarNombreTaleSpire(pj.nombre)
+          coincidenNombresTaleSpire(c.nombre, pj.nombre)
       );
 
       if (!criaturaEnCola) {
@@ -92,7 +99,7 @@ export const crearSliceSync: StateCreator<
     const indexPj = personajes.findIndex((p) => {
       if (p.id === dto.id) return true;
       if (p.idMiniaturaTS && dto.idMiniaturaTS && p.idMiniaturaTS === dto.idMiniaturaTS) return true;
-      return normalizarNombreTaleSpire(p.nombre) === normalizarNombreTaleSpire(dto.nombre);
+      return coincidenNombresTaleSpire(p.nombre, dto.nombre);
     });
 
     let personajesActualizados = personajes;
@@ -140,7 +147,7 @@ export const crearSliceSync: StateCreator<
     // 2. Reflejar también en la cola de iniciativa si la criatura está presente
     const colaActualizada = colaIniciativa.map((criatura): CriaturaIniciativa => {
       const coincidePorId = criatura.id === dto.id || (dto.idMiniaturaTS && criatura.id === dto.idMiniaturaTS);
-      const coincidePorNombre = normalizarNombreTaleSpire(criatura.nombre) === normalizarNombreTaleSpire(dto.nombre);
+      const coincidePorNombre = coincidenNombresTaleSpire(criatura.nombre, dto.nombre);
 
       if (coincidePorId || coincidePorNombre) {
         return {

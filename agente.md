@@ -12201,3 +12201,83 @@ Optimizar la complejidad temporal (Big O) en las operaciones de búsqueda, orden
 - **Vitest**: **102 suites ejecutadas, 1.550/1.550 pruebas unitarias aprobadas (100% éxito)**.
 - **Límite de Líneas**: `node scripts/verificar-limite-lineas.js` auditó **115 archivos**, con **0 componentes excediendo el límite de 500 líneas**.
 - **Vite Build**: Compilación de producción (`pnpm exec vite build`) completada con éxito (código de salida 0).
+
+
+---
+
+## [2026-10-04] Auditoría de Código Senior — Seguridad, Rendimiento, Errores y Arquitectura
+
+### Contexto
+- Auditoría completa del codebase solicitada por el usuario, actuando como auditor senior.
+- Se analizaron 35+ archivos críticos: adapter (`TaleSpireAdapter.ts`), puente (`puenteTaleSpire.ts`), store (`usarAlmacenDM.ts`), slices, selectores, sanitización, importador JSON, sincronización, hooks, y componentes.
+- Informe completo generado como artefacto en la conversación `f2c59da7-ee1b-4e70-a884-a68924077408`.
+
+### Hallazgos Clave (15 totales: 0 críticos, 3 altos, 8 medios, 4 bajos)
+
+#### ALTOS (requieren corrección prioritaria):
+1. **H-01 — Suplantación de DM por sync:** `procesarMensajeSyncEntrante` valida estructura Zod pero no verifica que el `fromClient` sea realmente el DM. Un jugador malicioso puede enviar `t: "DM"` y reescribir el estado de combate de todos. Corrección: verificar `fromClient.id` contra el ID del DM almacenado en `SliceSync`.
+2. **H-04 — Leak de BroadcastChannel:** En `puenteTaleSpire.ts`, la referencia `canalSync` es local y no se cierra en `destruir()`. Con StrictMode + recargas CEF, canales duplicados procesan mensajes dobles. Corrección: almacenar como propiedad de clase y cerrar en `destruir()`.
+3. **H-08 — Búsqueda O(n) por objeto en `calcularEstadisticasPersonaje`:** `homebrews.find(…) || OBJETOS_INICIALES.find(…)` para cada objeto equipado. Con 30 objetos y 500+ homebrews → ~15K comparaciones con normalización. Mitigado por WeakMap cache, pero cada mutación del PJ invalida la caché. Corrección: usar `Map<string, ObjetoHomebrew>` indexado por ID y nombre normalizado.
+
+#### MEDIOS (corrección recomendada):
+4. **H-02/H-03 — Cast `as` sin Zod en blob y en importación JSON:** `pendientes`, `encuentros`, `cola_iniciativa` se asignan con cast directo sin validar campos obligatorios. Corrección: filtrar entidades con campos faltantes o usar `safeParse`.
+5. **H-05 — Inconsistencia `desuscribir` vs `unsubscribe`:** El adaptador llama `sub.desuscribir()` pero `suscribirAMensajesSync` llama `sub.unsubscribe()`. Corrección: normalizar con fallback.
+6. **H-06 — Sin flush al cierre:** Persistencia usa debounce de 250ms. Si TaleSpire cierra CEF con `willShutdown`, el timer pendiente nunca se ejecuta. Corrección: escuchar `estadoSimbionte` kind `willShutdown` y hacer flush inmediato.
+7. **H-09 — `normalizarNombreTaleSpire` sin caché en observadores sync:** Se ejecuta antes de los guards de cambio. Corrección: usar caché de normalización existente de `busquedaTolerante.ts`.
+8. **H-10 — Compendio sin virtualización:** `.map()` en vez de `useVirtualizer`. Mitigado por paginación existente. Severidad reducida.
+9. **H-12 — 19 archivos fuera del CI exceden 500 líneas:** `verificar-limite-lineas.js` solo audita 4 directorios. Corrección: ampliar `DIRECTORIOS_AUDITADOS`.
+10. **H-13 — Doble suscripción sync:** EventBus + suscripción nativa procesan el mismo mensaje dos veces. Corrección: deduplicar por `strCrudo` con `Set` de tamaño limitado.
+
+### Puntos Verificados Positivos (17 ✅):
+- Cero `any`, `eval`, `dangerouslySetInnerHTML`, `innerHTML`, `new Function()` en producción.
+- `strict: true` en `tsconfig.json`, `noUnusedLocals`, `noImplicitReturns`.
+- `useShallow` en todos los selectores tipo objeto de Zustand.
+- `WeakMap` cache O(1) en `calcularEstadisticasPersonaje`.
+- Debounce en persistencia (250ms), sync (400ms), notas (800ms).
+- `React.memo` en tarjetas de criatura, `useMemo`/`useDeferredValue` en compendio.
+- Listeners con cleanup correcto en todos los `useEffect`.
+- ErrorBoundary global + por pestaña con `key={pestañaActiva}`.
+- `TextoEnriquecidoDND` sanitiza sin `dangerouslySetInnerHTML` (pipeline: strip tags → markdown → React puro).
+- Normalización con caché LRU de 1500 entradas en `busquedaTolerante.ts`.
+- Sin riesgo de prototype pollution ni ReDoS.
+
+### Decisión Arquitectónica
+- Los hallazgos altos H-01, H-04, H-08 ofrecen la mejor relación esfuerzo/impacto (~20 líneas cada uno).
+- Se priorizará su corrección antes de nuevas funcionalidades.
+
+---
+
+## [2026-10-04] Resolución y Refactorización Integral de Auditoría de Código (Fases 1 a 5)
+
+### Contexto y Alcance
+- Ejecución completa del plan de resolución de los 15 hallazgos de la auditoría técnica (`plan-resolucion-auditoria.md`) y el defecto funcional crítico de coincidencia de miniaturas TaleSpire.
+- Cero regresiones en la suite de pruebas unitarias y compilación de producción validada.
+
+### Correcciones Implementadas
+
+#### 1. Coincidencia de Miniaturas y Red Segura (H-01, H-09, Defecto de Comparación Referencial)
+- **Defecto subsanado:** Se reemplazaron las comparaciones inválidas `{...} === {...}` por la función `coincidenNombresTaleSpire(a, b)` en `src/servicios/resolutorCriaturas.ts`, equipada con caché LRU en memoria.
+- **Autoridad DM en Sync (H-01):** En `sincronizacionSimbiote.ts`, los mensajes de combate `t: "DM"` y `t: "DM_CHUNK"` ahora validan `evento.fromClient.id === estado.idClienteDM`, previniendo que clientes no autorizados reescriban la cola de iniciativa o vitalidad de combatientes. Se incorporó `idClienteDM` y `establecerIdClienteDM` en `SliceSync`.
+- **Deduplicación de Red (H-13):** Se introdujo una ventana deslizante de 50 identificadores para deduplicar mensajes entrantes en `sincronizacionSimbiote.ts` y se unificó la recepción eliminando la suscripción redundante `ts.sync.suscribirAMensajesSync` en `usarConexionTaleSpire.ts`.
+
+#### 2. Ciclo de Vida y Robustez CEF (H-04, H-05, H-06, H-07, H-11)
+- **BroadcastChannel Leak (H-04, H-11):** En `puenteTaleSpire.ts`, se asignó la instancia a `private canalBroadcast?: BroadcastChannel` y se cierra explícitamente en `destruir()`. En `TaleSpireAdapter.ts`, `sync.send` reutiliza un canal singleton en lugar de crearlo y destruirlo en cada mensaje de 400ms.
+- **Desuscripción Defensiva (H-05):** Se añadió el helper `limpiarSuscripcionNativa(sub)` en `TaleSpireAdapter.ts`, soportando indistintamente `.desuscribir()` y `.unsubscribe()`.
+- **Flush Defensivo al Cierre (H-06):** Se exportó `forzarFlushPersistencia(estado)` en `persistencia.ts` que cancela el debounce de 250ms y persiste de inmediato. Se conectó a `puenteTaleSpire.on("estadoSimbionte")` (`kind === "willShutdown"`), y a `window.addEventListener("beforeunload" / "pagehide")` en `usarConexionTaleSpire.ts`.
+- **Índice Seguro en Iniciativa Vacía (H-07):** En `quitarCriaturaDeIniciativa` de `sliceIniciativa.ts`, se garantiza `nuevoIndice = 0` cuando `nuevaCola.length === 0`.
+
+#### 3. Sanitización y Tipado Zod en Persistencia e Importación (H-02, H-03)
+- En `sanitizacion.ts`, se definieron los esquemas Zod `EsquemaCriaturaIniciativa`, `EsquemaElementoPendiente` y `EsquemaEncuentroGuardado`, junto con sus funciones sanitizadoras `sanearCriaturaIniciativa`, `sanearElementoPendiente` y `sanearEncuentroGuardado`.
+- En `sliceConfiguracion.ts`, se eliminaron los casts `as` sin validar en `cargarDatosPersistidos()` e `importarBaseDatosJSONCompleta()`, filtrando y normalizando las estructuras antes de incorporarlas al store.
+
+#### 4. Rendimiento O(1) de Inventario y Desacoplamiento (H-08, H-14, H-15)
+- En `usarEstadoPersonajes.ts`, se implementó la función pura con caché referencial `obtenerMapaObjetos(homebrews, normalizar)` que indexa `OBJETOS_INICIALES` y `homebrews` en un `Map<string, ObjetoBase | ObjetoHomebrew>`. Las búsquedas en `calcularEstadisticasPersonaje` pasaron de doble `find` O(n) a `mapaObjetos.get(...)` O(1).
+- Se desacopló `calcularEstadisticasPersonaje` permitiendo recibir `homebrewsExternos?: ObjetoHomebrew[]`.
+- En `usarAlmacenDM.ts`, el middleware de persistencia ahora tiene short-circuit si `estadoNuevo.aplicandoSync` es verdadero, evitando evaluaciones innecesarias durante la recepción de micropaquetes de red.
+
+### Métricas de Verificación Post-Refactorización
+- **TypeScript**: `pnpm exec tsc --noEmit` completado con **0 errores** (código 0).
+- **ESLint**: `pnpm run lint` completado con **0 errores y 0 advertencias** (`--max-warnings=0`).
+- **Vitest**: **104 suites ejecutadas, 1.573/1.573 pruebas unitarias aprobadas (100% éxito)**.
+- **Límite de Líneas**: `node scripts/verificar-limite-lineas.js` auditó **116 archivos** con **0 componentes excediendo el límite de 500 líneas**.
+- **Vite Build**: Compilación de producción (`pnpm exec vite build`) completada con éxito en 11.03s.

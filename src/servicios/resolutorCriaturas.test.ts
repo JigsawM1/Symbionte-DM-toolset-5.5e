@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import {
   normalizarNombreTaleSpire,
+  coincidenNombresTaleSpire,
   resolverPlantillaPorCriatura,
   calcularVidaInicial,
 } from "./resolutorCriaturas";
@@ -134,3 +135,27 @@ describe("resolutorCriaturas - calcularVidaInicial", () => {
     expect(res.vidaActual).toBe(10);
   });
 });
+
+describe("resolutorCriaturas - coincidenNombresTaleSpire", () => {
+  it("debe coincidir con nombres idénticos", () => {
+    expect(coincidenNombresTaleSpire("Gandalf", "Gandalf")).toBe(true);
+  });
+
+  it("debe coincidir con variaciones de mayúsculas y espacios", () => {
+    expect(coincidenNombresTaleSpire("  GANDALF ", "gandalf")).toBe(true);
+  });
+
+  it("debe coincidir con sufijos numéricos o de instancia de TaleSpire", () => {
+    expect(coincidenNombresTaleSpire("Orco 1", "Orco")).toBe(true);
+    expect(coincidenNombresTaleSpire("Trasgo #abc", "Trasgo #def")).toBe(true);
+    expect(coincidenNombresTaleSpire("Lobo A", "Lobo B")).toBe(true);
+  });
+
+  it("debe retornar false ante nombres nulos, vacíos o diferentes", () => {
+    expect(coincidenNombresTaleSpire(null, "Orco")).toBe(false);
+    expect(coincidenNombresTaleSpire("", "")).toBe(false);
+    expect(coincidenNombresTaleSpire(".", ".")).toBe(false);
+    expect(coincidenNombresTaleSpire("Orco", "Elfo")).toBe(false);
+  });
+});
+

@@ -86,8 +86,8 @@ const persistenciaMiddleware: PersistenciaMiddleware = (configuradorStore) => (s
     set(...args);
     const estadoNuevo = get();
 
-    // Si está cargando datos persistidos o aún no ha completado la carga inicial en frío, ignoramos la persistencia para no sobreescribir el almacenamiento con valores por defecto
-    if (estadoNuevo.cargandoDatos || !estadoNuevo.datosInicialesCargados) {
+    // Si está cargando datos persistidos o aún no ha completado la carga inicial en frío, o está aplicando sync en tránsito, ignoramos la persistencia
+    if (estadoNuevo.cargandoDatos || !estadoNuevo.datosInicialesCargados || estadoNuevo.aplicandoSync) {
       return;
     }
 

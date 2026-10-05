@@ -58,6 +58,7 @@ type ColeccionOyentes = {
 
 class PuenteTaleSpireClass {
   private oyentes: ColeccionOyentes = {};
+  private canalBroadcast?: BroadcastChannel;
   private manejarEventoIniciativaDOM?: (e: Event) => void;
   private manejarResultadosDadosDOM?: (e: Event) => void;
 
@@ -329,8 +330,8 @@ class PuenteTaleSpireClass {
     // Escuchar también en BroadcastChannel para sincronización entre pestañas o desarrollo local
     if (typeof BroadcastChannel !== "undefined") {
       try {
-        const canalSync = new BroadcastChannel("talespire-simbiote-sync");
-        canalSync.onmessage = (ev) => {
+        this.canalBroadcast = new BroadcastChannel("talespire-simbiote-sync");
+        this.canalBroadcast.onmessage = (ev) => {
           logger.debug("[Puente TaleSpire BroadcastChannel] Mensaje recibido:", ev.data);
           if (ev.data && typeof ev.data === "object" && "str" in ev.data) {
             procesarMensajeSyncExtraccion(ev.data.str, ev.data.fromClient);
@@ -409,6 +410,15 @@ class PuenteTaleSpireClass {
       delete (window as unknown as Record<string, unknown>).syncMessageReceived;
       delete (window as unknown as Record<string, unknown>).onSyncMessage;
       delete window.manejarEventoClienteSync;
+
+      if (this.canalBroadcast) {
+        try {
+          this.canalBroadcast.close();
+        } catch (e) {
+          logger.debug("[Puente TaleSpire] Error cerrando canalBroadcast:", e);
+        }
+        this.canalBroadcast = undefined;
+      }
     }
 
     this.oyentes = {};

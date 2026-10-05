@@ -14,6 +14,7 @@ import { useEffect } from "react";
 import { usarAlmacenDM } from "@/almacen/usarAlmacenDM";
 import { ts } from "@/utiles/TaleSpireAdapter";
 import { puenteTaleSpire } from "@/servicios/puenteTaleSpire";
+import { forzarFlushPersistencia } from "@/almacen/persistencia";
 import type { EventoClienteTS } from "@/tipos/talespire";
 import { logger } from "@/utiles/logger";
 import {
@@ -31,7 +32,8 @@ export function usarConexionTaleSpire() {
     actualizarSeleccionCriaturas,
     actualizarColaIniciativaDesdeTaleSpire,
     establecerDatosCampaña,
-    establecerEsGM
+    establecerEsGM,
+    establecerIdClienteDM
   } = usarAlmacenDM.getState();
 
   useEffect(() => {
@@ -40,9 +42,21 @@ export function usarConexionTaleSpire() {
     let desuscribirCliente: (() => void) | null = null;
     let desuscribirSync: (() => void) | null = null;
     let desuscribirEstadoCriatura: (() => void) | null = null;
+    let desuscribirEstadoSimbionte: (() => void) | null = null;
     let desuscribirObservadoresSync: (() => void) | null = null;
     let timerInicializacion: ReturnType<typeof setTimeout> | null = null;
     let activo = true;
+
+    // Manejador defensivo de flush síncrono al descargar la ventana CEF
+    const ejecutarFlushEmergencia = () => {
+      logger.info("[TaleSpire Simbionte] Ejecutando flush defensivo de emergencia por descarga de ventana...");
+      void forzarFlushPersistencia(usarAlmacenDM.getState());
+    };
+
+    if (typeof window !== "undefined") {
+      window.addEventListener("beforeunload", ejecutarFlushEmergencia);
+      window.addEventListener("pagehide", ejecutarFlushEmergencia);
+    }
 
     const suscribirAPIs = () => {
       if (!ts.estaDisponible) return false;
@@ -193,34 +207,29 @@ export function usarConexionTaleSpire() {
           subNativaCliente.desuscribir();
         };
 
-        // Suscribirse a mensajes del canal de sincronización bidireccional TS.sync
+        // Suscribirse a mensajes del canal de sincronización bidireccional exclusivamente a través del EventBus centralizado (H-13)
         const subPuenteSync = puenteTaleSpire.on("mensajeSync", (payload) => {
           if (activo) {
             procesarMensajeSyncEntrante(payload);
           }
         });
 
-        const subNativaSync = ts.sync.suscribirAMensajesSync((payload) => {
-          if (activo) {
-            let datos: unknown = null;
-            try {
-              datos = JSON.parse(payload.str);
-            } catch {
-              datos = null;
-            }
-            if (datos) {
-              procesarMensajeSyncEntrante({
-                datos,
-                strCrudo: payload.str,
-                fromClient: payload.fromClient,
-              });
-            }
+        desuscribirSync = () => {
+          subPuenteSync();
+        };
+
+        // Escuchar eventos de ciclo de vida del Simbionte (H-06: persistencia inmediata en willShutdown)
+        const subPuenteEstadoSimbionte = puenteTaleSpire.on("estadoSimbionte", (evento) => {
+          if (!activo) return;
+          logger.debug("[TaleSpire Simbionte] Evento de estado de simbionte recibido:", evento);
+          if (evento?.kind === "willShutdown") {
+            logger.info("[TaleSpire Simbionte] Apagado inminente (willShutdown) detectado. Forzando persistencia síncrona...");
+            void forzarFlushPersistencia(usarAlmacenDM.getState());
           }
         });
 
-        desuscribirSync = () => {
-          subPuenteSync();
-          subNativaSync.desuscribir();
+        desuscribirEstadoSimbionte = () => {
+          subPuenteEstadoSimbionte();
         };
 
         // Suscribirse a cambios de estado de criatura (movimiento físico de miniaturas en TaleSpire)
@@ -421,11 +430,14 @@ export function usarConexionTaleSpire() {
 
           // Detección automática del rol nativo inicial
           ts.clients.esGM()
-            .then((soyGm) => {
+            .then(async (soyGm) => {
               if (activo) {
                 logger.info(`[TaleSpire Simbionte] Rol cliente detectado al iniciar: ${soyGm ? "Dungeon Master (GM)" : "Jugador"}`);
                 establecerEsGM(soyGm);
-                if (!soyGm) {
+                if (soyGm) {
+                  const miId = await ts.clients.obtenerPlayerId();
+                  establecerIdClienteDM(miId);
+                } else {
                   solicitarEstadoInicial();
                 }
               }
@@ -523,12 +535,17 @@ export function usarConexionTaleSpire() {
     if (suscribirAPIs()) {
       return () => {
         activo = false;
+        if (typeof window !== "undefined") {
+          window.removeEventListener("beforeunload", ejecutarFlushEmergencia);
+          window.removeEventListener("pagehide", ejecutarFlushEmergencia);
+        }
         if (timerInicializacion) clearTimeout(timerInicializacion);
         if (desuscribirSeleccion) desuscribirSeleccion();
         if (desuscribirIniciativa) desuscribirIniciativa();
         if (desuscribirCliente) desuscribirCliente();
         if (desuscribirSync) desuscribirSync();
         if (desuscribirEstadoCriatura) desuscribirEstadoCriatura();
+        if (desuscribirEstadoSimbionte) desuscribirEstadoSimbionte();
         if (desuscribirObservadoresSync) desuscribirObservadoresSync();
         puenteTaleSpire.destruir();
       };
@@ -554,12 +571,17 @@ export function usarConexionTaleSpire() {
     return () => {
       activo = false;
       clearInterval(intervalo);
+      if (typeof window !== "undefined") {
+        window.removeEventListener("beforeunload", ejecutarFlushEmergencia);
+        window.removeEventListener("pagehide", ejecutarFlushEmergencia);
+      }
       if (timerInicializacion) clearTimeout(timerInicializacion);
       if (desuscribirSeleccion) desuscribirSeleccion();
       if (desuscribirIniciativa) desuscribirIniciativa();
       if (desuscribirCliente) desuscribirCliente();
       if (desuscribirSync) desuscribirSync();
       if (desuscribirEstadoCriatura) desuscribirEstadoCriatura();
+      if (desuscribirEstadoSimbionte) desuscribirEstadoSimbionte();
       if (desuscribirObservadoresSync) desuscribirObservadoresSync();
       puenteTaleSpire.destruir();
     };

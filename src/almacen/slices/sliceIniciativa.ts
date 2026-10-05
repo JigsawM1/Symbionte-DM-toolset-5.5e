@@ -296,7 +296,9 @@ export const crearSliceIniciativa: StateCreator<
   quitarCriaturaDeIniciativa: (id) => set((state) => {
     const nuevaCola = state.colaIniciativa.filter((c) => c.id !== id);
     let nuevoIndice = state.indiceTurnoActivo;
-    if (nuevoIndice >= nuevaCola.length && nuevaCola.length > 0) {
+    if (nuevaCola.length === 0) {
+      nuevoIndice = 0;
+    } else if (nuevoIndice >= nuevaCola.length) {
       nuevoIndice = nuevaCola.length - 1;
     }
     return { colaIniciativa: nuevaCola, indiceTurnoActivo: nuevoIndice };

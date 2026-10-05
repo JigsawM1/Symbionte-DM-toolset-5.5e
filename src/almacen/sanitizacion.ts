@@ -1,4 +1,6 @@
-import { HechizoBase, ObjetoHomebrew, Rareza, Arma, Armadura, Escudo, EquipoAventuras, TipoBonoDestreza, VelocidadEstructurada, SentidosEstructurados, MonstruoBase, EsquemaPersonajeJugador, PersonajeJugador, ObjetoBase } from '@/tipos';
+import { z } from 'zod';
+import { HechizoBase, ObjetoHomebrew, Rareza, Arma, Armadura, Escudo, EquipoAventuras, TipoBonoDestreza, VelocidadEstructurada, SentidosEstructurados, MonstruoBase, EsquemaPersonajeJugador, PersonajeJugador, ObjetoBase, EsquemaEfectoActivo } from '@/tipos';
+import type { CriaturaIniciativa, ElementoPendiente, EncuentroGuardado } from '@/almacen/usarAlmacenDM';
 import { PERSONAJE_POR_DEFECTO } from '@/constantes/personajeConstantes';
 import { resolverGruposYSustitutosCompetencias } from '@/constantes/competenciasConstantes';
 import { resolverCategoriaDesdeSRD, CATEGORIAS_EQUIPO, type CategoriaEquipo } from '@/constantes/categoriasEquipoConstantes';
@@ -1304,5 +1306,56 @@ export function sanearPersonaje(p: unknown): PersonajeJugador {
   );
   return fusionado as unknown as PersonajeJugador;
 }
+
+export const EsquemaCriaturaIniciativa = z.object({
+  id: z.string().min(1).default(() => generarId('cr')),
+  nombre: z.string().default("Criatura"),
+  iniciativa: z.coerce.number().default(0),
+  vidaMaxima: z.coerce.number().default(10),
+  vidaActual: z.coerce.number().default(10),
+  ca: z.coerce.number().default(10),
+  condiciones: z.array(z.string()).default([]),
+  efectos: z.array(EsquemaEfectoActivo).optional(),
+  bonificadorIniciativa: z.coerce.number().default(0),
+  esMonstruo: z.coerce.boolean().default(true),
+  velocidad: z.string().default("30 pies"),
+  vidaTemporal: z.coerce.number().optional(),
+  idPlantillaAsociada: z.string().optional()
+});
+
+export const EsquemaElementoPendiente = z.object({
+  id: z.string().default(() => generarId('p_local')),
+  texto: z.string().default(""),
+  completado: z.coerce.boolean().default(false)
+});
+
+export const EsquemaEncuentroGuardado = z.object({
+  nombre: z.string().default("Encuentro"),
+  ronda: z.coerce.number().default(1),
+  cola: z.array(EsquemaCriaturaIniciativa).default([]),
+  fecha: z.string().default(() => new Date().toISOString())
+});
+
+export function sanearCriaturaIniciativa(raw: unknown): CriaturaIniciativa | null {
+  if (!raw || typeof raw !== "object") return null;
+  const parsed = EsquemaCriaturaIniciativa.safeParse(raw);
+  if (parsed.success) return parsed.data as CriaturaIniciativa;
+  return null;
+}
+
+export function sanearElementoPendiente(raw: unknown): ElementoPendiente | null {
+  if (!raw || typeof raw !== "object") return null;
+  const parsed = EsquemaElementoPendiente.safeParse(raw);
+  if (parsed.success) return parsed.data;
+  return null;
+}
+
+export function sanearEncuentroGuardado(raw: unknown): EncuentroGuardado | null {
+  if (!raw || typeof raw !== "object") return null;
+  const parsed = EsquemaEncuentroGuardado.safeParse(raw);
+  if (parsed.success) return parsed.data as EncuentroGuardado;
+  return null;
+}
+
 
 

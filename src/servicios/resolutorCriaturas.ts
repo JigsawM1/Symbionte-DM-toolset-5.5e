@@ -18,18 +18,47 @@ export function esNombreVacioODot(nombre: string): boolean {
   return limpio === "" || limpio === "." || limpio.replace(/[.\s]/g, "") === "";
 }
 
+const cacheNormalizacionTS = new Map<string, { completo: string; base: string }>();
+const LIMITE_CACHE_TS = 500;
+
 /**
  * Normaliza un nombre proveniente de TaleSpire convirtiéndolo a minúsculas
  * y quitando sufijos numéricos (#123, 2, A, etc) para obtener el nombre base.
+ * Emplea caché en memoria para evitar ejecuciones repetitivas de regex.
  */
 export function normalizarNombreTaleSpire(nombre: string): { completo: string; base: string } {
-  const completo = nombre.toLowerCase().trim();
+  const clave = nombre || "";
+  const enCache = cacheNormalizacionTS.get(clave);
+  if (enCache) return enCache;
+
+  const completo = clave.toLowerCase().trim();
   const base = completo
     .replace(/\s+\d+$/g, "")
     .replace(/\s+#[a-zA-Z0-9]+$/g, "")
     .replace(/\s+[a-zA-Z]$/g, "")
     .trim();
-  return { completo, base };
+  const res = { completo, base };
+
+  if (cacheNormalizacionTS.size >= LIMITE_CACHE_TS) {
+    cacheNormalizacionTS.clear();
+  }
+  cacheNormalizacionTS.set(clave, res);
+  return res;
+}
+
+/**
+ * Comprueba si dos nombres coinciden en el contexto de TaleSpire,
+ * evaluando tanto el nombre completo como el nombre base sin sufijos de instancia (#1, 2, A, etc.).
+ * Corrige el defecto de comparación por referencia de objetos y aprovecha la caché de normalización.
+ */
+export function coincidenNombresTaleSpire(nombreA?: string | null, nombreB?: string | null): boolean {
+  if (!nombreA || !nombreB) return false;
+  if (esNombreVacioODot(nombreA) || esNombreVacioODot(nombreB)) return false;
+
+  const normA = normalizarNombreTaleSpire(nombreA);
+  const normB = normalizarNombreTaleSpire(nombreB);
+
+  return normA.completo === normB.completo || normA.base === normB.base;
 }
 
 /**

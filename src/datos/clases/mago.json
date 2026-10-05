@@ -612,7 +612,7 @@
           "subclase": "Ilusionista",
           "selectores": [
             {
-              "id": " selector_erudito_ilusion_mago",
+              "id": "selector_erudito_ilusion_mago",
               "tipo": "multiple",
               "visualizacion": "lista",
               "tipoSelector": "conjuro",

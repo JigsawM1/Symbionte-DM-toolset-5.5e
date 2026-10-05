@@ -18,6 +18,44 @@ Este archivo registra reglas globales, errores encontrados, sus causas raíz y l
 6. **PROHIBICIÓN ESTRICTA DE BIFURCACIONES POR NOMBRE DE RASGO O CLASE (CATÁLOGO DECLARATIVO Y BUILDER PURO)**:
    - **Bajo ninguna circunstancia** los módulos de lógica de negocio (`servicios/`), gestores de estado (`almacen/`) o constructores (`gestorClases.ts`) deben contener bifurcaciones condicionales por nombre literal de rasgo o clase (`r.nombre === "..."`, `clase.includes("...")`, etc.).
 
+## [2026-10-05] Auditoría de Código y Blindaje AppSec de la Rama `origin/Sidekicks-beta`
+
+**Objetivo de la Integración y Auditoría:**
+- Garantizar el 100% de calidad, seguridad de la aplicación (AppSec), robustez y arquitectura limpia en el código de la rama `origin/Sidekicks-beta` antes de su integración definitiva con `main`.
+
+**Hallazgos Críticos y Soluciones Aplicadas:**
+1. **Contaminación Cruzada entre Monstruos y Aliados por Coincidencia Laxa de Nombres (`sliceIniciativa.ts`):**
+   - *Causa:* En las 7 funciones de mutación de iniciativa (`modificarVidaCriaturaIniciativa`, `modificarVidaMaximaCriaturaIniciativa`, `agregarCondicionACriatura`, `quitarCondicionDeCriatura`, `agregarEfectoACriatura`, `quitarEfectoDeCriatura`, `actualizarVidaTemporal`), no se comprobaba `!criaturaObjetivo?.esMonstruo`. Si un monstruo enemigo (ej. "Lobo #1") compartía nombre base con un acompañante o personaje ("Lobo"), `coincidenNombresTaleSpire` evaluaba a `true` y mutaba la ficha del jugador o acompañante cuando el DM dañaba o curaba al enemigo.
+   - *Solución:* Se agregó una guarda temprana de cortocircuito: `if (criaturaObjetivo?.esMonstruo) return { colaIniciativa: nuevaCola };` y se blindó el mapeo para acompañantes requiriendo `esAcompanante` o `idAcompanante`.
+2. **Falso Positivo de Vinculación de Miniaturas Anónimas (`resolutorMiniaturasJugador.ts`):**
+   - *Causa:* La comparación `nomC.startsWith(nombreAcompNorm) || nombreAcompNorm.startsWith(nomC)` evaluaba a `true` ante miniaturas sin nombre (`nomC === ""`), asignando cualquier miniatura anónima al primer acompañante y sin excluir miniaturas ya asignadas a los PJs.
+   - *Solución:* Se excluyeron los IDs de miniaturas asignadas a personajes principales (`idsMiniaturasAsignadasPJs`) y se validó `!esNombreVacioODot(nomC)` con longitud mínima `>= 2` y `coincidenNombresTaleSpire`.
+3. **Manejo Defensivo contra `NaN` en Invocaciones Escalables (`factoriaInvocaciones.ts`):**
+   - *Causa:* Si `nivelConjuroSolicitado` llegaba indefinido o nulo, `Math.min(max, undefined)` resultaba en `NaN`, propagándose a la CA, PV y ataques.
+   - *Solución:* Coalescencia numérica defensiva (`Number.isFinite(nivel) ? Number(nivel) : plantilla.nivelMinimo`).
+4. **Optimización de Payload para Red TaleSpire (`sync.ts`):**
+   - *Causa:* Serializar el personaje con acompañantes y efectos podía exceder los límites físicos de paquetes de red de TaleSpire (~500 bytes).
+   - *Solución:* Se compactó `WireAcompanante`, truncando nombres a 20 caracteres y omitiendo datos redundantes.
+5. **Sincronización Atómica de `colaIniciativa` al Editar Acompañantes (`sliceAcompanantes.ts`):**
+   - *Causa:* `modificarVidaAcompanante` y `actualizarAcompanante` solo mutaban `state.personajes`, dejando desactualizada `colaIniciativa` si el acompañante ya estaba en combate.
+   - *Solución:* Actualización paralela de la criatura vinculada en `state.colaIniciativa`.
+6. **Edición Atómica de Vida Máxima (`TarjetaCriaturaIniciativa.tsx`):**
+   - *Causa:* Emisión de mutaciones en cada pulsación (`onChange`), generando estados intermedios inconsistentes.
+   - *Solución:* Emisión únicamente al confirmar en `onBlur` o presionar `Enter`.
+7. **Corrección de Espacio en Catálogo (`mago.json`):**
+   - Se corrigió el espacio inicial en `"id": "selector_erudito_ilusion_mago"`.
+8. **Búsqueda Eficiente de Monstruos con Corte Temprano (`SeccionAcompanantesPersonaje.tsx`):**
+   - Se reemplazó el filtro completo de 1.000+ monstruos por un bucle con corte temprano a los 8 resultados.
+
+**Métricas Finales de Calidad y CI:**
+- **TypeScript:** `strict: true`, 0 errores (`tsc --noEmit`).
+- **ESLint:** 0 errores y 0 advertencias (`eslint src --max-warnings=0`).
+- **Vitest:** 104 suites ejecutadas, 1.578/1.578 pruebas unitarias aprobadas (100% de éxito).
+- **Límites de Líneas:** 116 archivos auditados, 0 archivos con más de 500 líneas.
+- **Build de Producción:** Vite build completado con éxito (código de salida 0).
+
+---
+
 ## [2026-10-04] Sincronización Bidireccional Completa (Player -> GM y GM -> Player) de Daño, Velocidad, Vida, Condiciones, Efectos y Acompañantes
 
 **Objetivo de la Integración:**

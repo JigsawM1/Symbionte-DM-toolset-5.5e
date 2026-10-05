@@ -2,6 +2,7 @@ import type { PersonajeJugador, PosicionTS } from "@/tipos";
 import type { InfoCriatura } from "@/tipos/talespire";
 import { ts } from "@/utiles/TaleSpireAdapter";
 import { logger } from "@/utiles/logger";
+import { esNombreVacioODot, coincidenNombresTaleSpire } from "@/servicios/resolutorCriaturas";
 
 /**
  * Función pura que empareja una lista de personajes con una lista de criaturas asignadas al jugador en TaleSpire.
@@ -127,18 +128,26 @@ export async function autoResolverMiniaturasJugador(
 
     // 4. Emparejar acompañantes de los personajes por nombre o nombre base con las criaturas del jugador
     if (alVincularAcompanante) {
+      const idsMiniaturasAsignadasPJs = new Set<string>();
+      mapa.forEach((criatura) => {
+        if (criatura?.id) idsMiniaturasAsignadasPJs.add(criatura.id);
+      });
+
       for (const pj of personajes) {
         if (!pj.acompanantes || pj.acompanantes.length === 0) continue;
         for (const acomp of pj.acompanantes) {
-          const nombreAcompNorm = (acomp.nombre || "").trim().toLowerCase();
-          if (!nombreAcompNorm) continue;
+          const nombreAcomp = (acomp.nombre || "").trim();
+          if (esNombreVacioODot(nombreAcomp) || nombreAcomp.length < 2) continue;
 
           const criaturaEncontrada = infos.find((c) => {
-            const nomC = (c.name || "").trim().toLowerCase();
-            return nomC === nombreAcompNorm || nomC.startsWith(nombreAcompNorm) || nombreAcompNorm.startsWith(nomC);
+            if (!c.id || idsMiniaturasAsignadasPJs.has(c.id)) return false;
+            const nomC = (c.name || "").trim();
+            if (esNombreVacioODot(nomC) || nomC.length < 2) return false;
+            return coincidenNombresTaleSpire(nomC, nombreAcomp);
           });
 
           if (criaturaEncontrada) {
+            idsMiniaturasAsignadasPJs.add(criaturaEncontrada.id);
             const nuevoId = criaturaEncontrada.id || null;
             if (acomp.idMiniaturaTS !== nuevoId) {
               logger.info(

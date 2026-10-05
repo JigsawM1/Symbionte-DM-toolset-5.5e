@@ -340,5 +340,90 @@ describe("Gestión Dinámica de Acompañantes y Sidekicks (Movilidad y Terrenos)
     expect(corcel?.ca).toBe(17);
     expect(corcel?.velocidad).toBe("60 pies, Volar 60 pies");
   });
+
+  it("modificarVidaCriaturaIniciativa para un monstruo enemigo NO debe alterar a un acompañante con nombre similar", () => {
+    // Configurar iniciativa con un monstruo 'Lobo #1' y el acompañante aliado 'Lobo Guardián'
+    usarAlmacenDM.setState({
+      colaIniciativa: [
+        {
+          id: "mini_lobo_enemigo",
+          nombre: "Lobo #1",
+          iniciativa: 15,
+          vidaActual: 11,
+          vidaMaxima: 11,
+          vidaTemporal: 0,
+          ca: 13,
+          esMonstruo: true,
+          condiciones: [],
+          efectos: [],
+          velocidad: "40 pies"
+        },
+        {
+          id: "mini_lobo_aliado",
+          nombre: "Lobo Guardián",
+          iniciativa: 12,
+          vidaActual: 20,
+          vidaMaxima: 20,
+          vidaTemporal: 0,
+          ca: 13,
+          esMonstruo: false,
+          esAcompanante: true,
+          idAcompanante: "acomp_lobo_1",
+          idPersonajeDuenio: "pj_test_1",
+          condiciones: [],
+          efectos: [],
+          velocidad: "40 pies"
+        }
+      ]
+    });
+
+    // DM daña al monstruo enemigo bajándole la vida a 2
+    usarAlmacenDM.getState().modificarVidaCriaturaIniciativa("mini_lobo_enemigo", 2);
+
+    const monstruo = usarAlmacenDM.getState().colaIniciativa.find((c) => c.id === "mini_lobo_enemigo");
+    expect(monstruo?.vidaActual).toBe(2);
+
+    // El acompañante aliado debe seguir con sus 20 PV intactos tanto en el personaje como en la cola
+    const pj = usarAlmacenDM.getState().personajes.find((p) => p.id === "pj_test_1");
+    const loboAliado = pj?.acompanantes?.find((a) => a.id === "acomp_lobo_1");
+    expect(loboAliado?.vidaActual).toBe(20);
+
+    const criaturaAliadaCola = usarAlmacenDM.getState().colaIniciativa.find((c) => c.id === "mini_lobo_aliado");
+    expect(criaturaAliadaCola?.vidaActual).toBe(20);
+  });
+
+  it("actualizarAcompanante debe sincronizar la colaIniciativa si el acompañante está presente", () => {
+    usarAlmacenDM.setState({
+      colaIniciativa: [
+        {
+          id: "mini_lobo_uuid_123",
+          nombre: "Lobo Guardián",
+          iniciativa: 10,
+          vidaActual: 20,
+          vidaMaxima: 20,
+          vidaTemporal: 0,
+          ca: 13,
+          esMonstruo: false,
+          esAcompanante: true,
+          idAcompanante: "acomp_lobo_1",
+          idPersonajeDuenio: "pj_test_1",
+          condiciones: [],
+          efectos: [],
+          velocidad: "40 pies"
+        }
+      ]
+    });
+
+    usarAlmacenDM.getState().actualizarAcompanante("pj_test_1", "acomp_lobo_1", {
+      ca: 16,
+      vidaMaxima: 35,
+      vidaActual: 35
+    });
+
+    const enCola = usarAlmacenDM.getState().colaIniciativa.find((c) => c.idAcompanante === "acomp_lobo_1");
+    expect(enCola?.ca).toBe(16);
+    expect(enCola?.vidaMaxima).toBe(35);
+    expect(enCola?.vidaActual).toBe(35);
+  });
 });
 

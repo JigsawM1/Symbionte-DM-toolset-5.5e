@@ -386,7 +386,7 @@ export function serializarEstadoCombatePJ(pj: EstadoCombatePJ): WireEstadoCombat
     wire.ac = pj.acompanantes.map((a) => {
       const wa: WireAcompanante = {
         id: a.id,
-        n: (a.nombre || "Acompañante").slice(0, 32),
+        n: (a.nombre || "Acomp").slice(0, 20),
         va: a.vidaActual ?? 0,
         vm: a.vidaMaxima ?? 0,
       };
@@ -396,7 +396,7 @@ export function serializarEstadoCombatePJ(pj: EstadoCombatePJ): WireEstadoCombat
       if (a.efectos && a.efectos.length > 0) {
         wa.e = a.efectos.map((ef) => ({
           id: ef.id,
-          n: ef.nombre,
+          n: ef.nombre.slice(0, 20),
           r: ef.expiraRonda,
           c: ef.concentracion,
           d: ef.duracion,

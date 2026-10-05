@@ -54,6 +54,23 @@ export const crearSubSliceAcompanantes: StateCreator<
         };
       })
     }));
+
+    set((state) => {
+      if (!state.colaIniciativa || state.colaIniciativa.length === 0) return {};
+      let huboCambios = false;
+      const nuevaCola = state.colaIniciativa.map((c) => {
+        if (c.id === idAcompanante || c.idAcompanante === idAcompanante) {
+          huboCambios = true;
+          return {
+            ...c,
+            vidaActual: Math.max(0, Math.min(c.vidaMaxima, vidaActual)),
+            ...(vidaTemporal !== undefined ? { vidaTemporal: Math.max(0, vidaTemporal) } : {})
+          };
+        }
+        return c;
+      });
+      return huboCambios ? { colaIniciativa: nuevaCola } : {};
+    });
   },
 
   actualizarAcompanante: (idPersonaje, idAcompanante, cambios) => {
@@ -67,6 +84,34 @@ export const crearSubSliceAcompanantes: StateCreator<
         };
       })
     }));
+
+    set((state) => {
+      if (!state.colaIniciativa || state.colaIniciativa.length === 0) return {};
+      let huboCambios = false;
+      const nuevaCola = state.colaIniciativa.map((c) => {
+        if (c.id === idAcompanante || c.idAcompanante === idAcompanante) {
+          huboCambios = true;
+          return {
+            ...c,
+            nombre: cambios.nombre ?? c.nombre,
+            ca: cambios.ca ?? c.ca,
+            vidaMaxima: cambios.vidaMaxima ?? c.vidaMaxima,
+            vidaActual: cambios.vidaActual ?? c.vidaActual,
+            vidaTemporal: cambios.vidaTemporal ?? c.vidaTemporal,
+            velocidad: cambios.velocidad
+              ? (typeof cambios.velocidad === "string" ? cambios.velocidad : `${cambios.velocidad.caminar || 30} pies`)
+              : c.velocidad,
+            movimientoGastado: cambios.movimientoGastado ?? c.movimientoGastado,
+            movimientoMaximoTemporal:
+              cambios.movimientoMaximoTemporal !== undefined
+                ? cambios.movimientoMaximoTemporal
+                : c.movimientoMaximoTemporal,
+          };
+        }
+        return c;
+      });
+      return huboCambios ? { colaIniciativa: nuevaCola } : {};
+    });
   },
 
   vincularMiniaturaTSAcompanante: (idPersonaje, idAcompanante, idMiniatura, posicionInicial, boardIdInicial) => {

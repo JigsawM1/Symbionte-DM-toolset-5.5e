@@ -139,5 +139,20 @@ describe("factoriaInvocaciones (DND 5.5e / PHB 2024)", () => {
       const ataqueDesgarro = proyectado.acciones.find((a) => a.nombre === "Desgarro");
       expect(ataqueDesgarro?.daño).toBe("1d8+8");
     });
+
+    it("maneja nivel de conjuro indefinido o nulo sin propagar NaN", () => {
+      const proyectado = proyectarInvocacionAMonstruo(
+        plantillaBestia,
+        undefined as unknown as number,
+        contextoLanzadorPrueba,
+        "Tierra"
+      );
+
+      expect(Number.isFinite(proyectado.ca)).toBe(true);
+      expect(Number.isFinite(proyectado.vidaMaxima)).toBe(true);
+      expect(proyectado.ca).toBeGreaterThan(0);
+      expect(proyectado.vidaMaxima).toBeGreaterThan(0);
+      expect(proyectado.nombre).not.toContain("NaN");
+    });
   });
 });

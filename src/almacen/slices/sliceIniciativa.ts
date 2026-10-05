@@ -330,7 +330,7 @@ export const crearSliceIniciativa: StateCreator<
     return { colaIniciativa: nuevaCola, indiceTurnoActivo: nuevoIndice };
   }),
 
-  modificarVidaCriaturaIniciativa: (id, nuevaVida) => set((state) => {
+    modificarVidaCriaturaIniciativa: (id, nuevaVida) => set((state) => {
     let criaturaAfectadaNombre = "";
     const criaturaObjetivo = state.colaIniciativa.find((c) => c.id === id);
     const nuevaCola = state.colaIniciativa.map((c) => {
@@ -341,9 +341,14 @@ export const crearSliceIniciativa: StateCreator<
       return c;
     });
 
+    if (criaturaObjetivo?.esMonstruo) {
+      return { colaIniciativa: nuevaCola };
+    }
+
     const nuevosPjs = state.personajes.map((pj) => {
       const coincidePj =
         !criaturaObjetivo?.esAcompanante &&
+        !criaturaObjetivo?.idAcompanante &&
         (pj.id === id ||
           pj.idMiniaturaTS === id ||
           (criaturaObjetivo?.idPersonajeDuenio && pj.id === criaturaObjetivo.idPersonajeDuenio) ||
@@ -354,6 +359,10 @@ export const crearSliceIniciativa: StateCreator<
           ...pj,
           hpActual: Math.max(0, Math.min(pj.hpMaximo, nuevaVida))
         };
+      }
+
+      if (!criaturaObjetivo?.esAcompanante && !criaturaObjetivo?.idAcompanante) {
+        return pj;
       }
 
       let acompModificado = false;
@@ -399,9 +408,14 @@ export const crearSliceIniciativa: StateCreator<
       return c;
     });
 
+    if (criaturaObjetivo?.esMonstruo) {
+      return { colaIniciativa: nuevaCola };
+    }
+
     const nuevosPjs = state.personajes.map((pj) => {
       const coincidePj =
         !criaturaObjetivo?.esAcompanante &&
+        !criaturaObjetivo?.idAcompanante &&
         (pj.id === id ||
           pj.idMiniaturaTS === id ||
           (criaturaObjetivo?.idPersonajeDuenio && pj.id === criaturaObjetivo.idPersonajeDuenio) ||
@@ -413,6 +427,10 @@ export const crearSliceIniciativa: StateCreator<
           hpMaximo: vidaMaxSegura,
           hpActual: Math.min(pj.hpActual, vidaMaxSegura)
         };
+      }
+
+      if (!criaturaObjetivo?.esAcompanante && !criaturaObjetivo?.idAcompanante) {
+        return pj;
       }
 
       let acompModificado = false;
@@ -454,11 +472,16 @@ export const crearSliceIniciativa: StateCreator<
       return c;
     });
 
+    if (criaturaObjetivo?.esMonstruo) {
+      return { colaIniciativa: nuevaCola };
+    }
+
     const esDerribado = esCondicionDerribado(condicion);
 
     const nuevosPjs = state.personajes.map((pj) => {
       const coincide =
         !criaturaObjetivo?.esAcompanante &&
+        !criaturaObjetivo?.idAcompanante &&
         (pj.id === id ||
           pj.idMiniaturaTS === id ||
           (criaturaObjetivo?.idPersonajeDuenio && pj.id === criaturaObjetivo.idPersonajeDuenio) ||
@@ -491,6 +514,10 @@ export const crearSliceIniciativa: StateCreator<
           historialMovimiento: nuevoHistorial,
           condicionesActivas: aplicarCondicion(pj.condicionesActivas || [], condicion)
         };
+      }
+
+      if (!criaturaObjetivo?.esAcompanante && !criaturaObjetivo?.idAcompanante) {
+        return pj;
       }
 
       let acompModificado = false;
@@ -547,9 +574,14 @@ export const crearSliceIniciativa: StateCreator<
       return c;
     });
 
+    if (criaturaObjetivo?.esMonstruo) {
+      return { colaIniciativa: nuevaCola };
+    }
+
     const nuevosPjs = state.personajes.map((pj) => {
       const coincide =
         !criaturaObjetivo?.esAcompanante &&
+        !criaturaObjetivo?.idAcompanante &&
         (pj.id === id ||
           pj.idMiniaturaTS === id ||
           (criaturaObjetivo?.idPersonajeDuenio && pj.id === criaturaObjetivo.idPersonajeDuenio) ||
@@ -585,6 +617,10 @@ export const crearSliceIniciativa: StateCreator<
           concentracionActiva: esConcentracion ? null : pj.concentracionActiva,
           condicionesActivas: condsRestantes
         };
+      }
+
+      if (!criaturaObjetivo?.esAcompanante && !criaturaObjetivo?.idAcompanante) {
+        return pj;
       }
 
       let acompModificado = false;
@@ -655,9 +691,14 @@ export const crearSliceIniciativa: StateCreator<
       return c;
     });
 
+    if (criaturaObjetivo?.esMonstruo) {
+      return { colaIniciativa: nuevaCola };
+    }
+
     const nuevosPjs = state.personajes.map((pj) => {
       const coincide =
         !criaturaObjetivo?.esAcompanante &&
+        !criaturaObjetivo?.idAcompanante &&
         (pj.id === idCriatura ||
           pj.idMiniaturaTS === idCriatura ||
           (criaturaObjetivo?.idPersonajeDuenio && pj.id === criaturaObjetivo.idPersonajeDuenio) ||
@@ -692,6 +733,10 @@ export const crearSliceIniciativa: StateCreator<
             : pj.concentracionActiva,
           rasgos: rasgosActualizados
         };
+      }
+
+      if (!criaturaObjetivo?.esAcompanante && !criaturaObjetivo?.idAcompanante) {
+        return pj;
       }
 
       let acompModificado = false;
@@ -755,9 +800,14 @@ export const crearSliceIniciativa: StateCreator<
       return c;
     });
 
+    if (criaturaObjetivo?.esMonstruo) {
+      return { colaIniciativa: nuevaCola };
+    }
+
     const nuevosPjs = state.personajes.map((pj) => {
       const coincide =
         !criaturaObjetivo?.esAcompanante &&
+        !criaturaObjetivo?.idAcompanante &&
         (pj.id === idCriatura ||
           pj.idMiniaturaTS === idCriatura ||
           (criaturaObjetivo?.idPersonajeDuenio && pj.id === criaturaObjetivo.idPersonajeDuenio) ||
@@ -784,6 +834,10 @@ export const crearSliceIniciativa: StateCreator<
           concentracionActiva: eraConcentracion ? null : pj.concentracionActiva,
           rasgos: rasgosActualizados
         };
+      }
+
+      if (!criaturaObjetivo?.esAcompanante && !criaturaObjetivo?.idAcompanante) {
+        return pj;
       }
 
       let acompModificado = false;
@@ -934,9 +988,14 @@ export const crearSliceIniciativa: StateCreator<
       return c;
     });
 
+    if (criaturaObjetivo?.esMonstruo) {
+      return { colaIniciativa: nuevaCola };
+    }
+
     const nuevosPjs = state.personajes.map((pj) => {
       const coincidePj =
         !criaturaObjetivo?.esAcompanante &&
+        !criaturaObjetivo?.idAcompanante &&
         (pj.id === idCriatura ||
           pj.idMiniaturaTS === idCriatura ||
           (criaturaObjetivo?.idPersonajeDuenio && pj.id === criaturaObjetivo.idPersonajeDuenio) ||
@@ -944,6 +1003,10 @@ export const crearSliceIniciativa: StateCreator<
 
       if (coincidePj) {
         return { ...pj, hpTemporal: vidaTempSegura };
+      }
+
+      if (!criaturaObjetivo?.esAcompanante && !criaturaObjetivo?.idAcompanante) {
+        return pj;
       }
 
       let acompModificado = false;

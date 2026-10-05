@@ -91,9 +91,10 @@ export function calcularCAInvocacion(
   nivelConjuro: number
 ): number {
   const { formulaCA } = plantilla;
+  const nivelSeguro = Number.isFinite(nivelConjuro) ? Number(nivelConjuro) : plantilla.nivelMinimo;
   let ca = formulaCA.base;
   if (formulaCA.sumaNivelConjuro) {
-    ca += nivelConjuro;
+    ca += nivelSeguro;
   }
   ca += formulaCA.bonificadorAdicional || 0;
   return ca;
@@ -107,11 +108,12 @@ export function calcularVidaInvocacion(
   nivelConjuro: number
 ): number {
   const { formulaVida, nivelMinimo } = plantilla;
+  const nivelSeguro = Number.isFinite(nivelConjuro) ? Number(nivelConjuro) : plantilla.nivelMinimo;
   if (formulaVida.porNivelPorEncimaDelMinimo) {
-    const nivelesExtra = Math.max(0, nivelConjuro - nivelMinimo);
+    const nivelesExtra = Math.max(0, nivelSeguro - nivelMinimo);
     return formulaVida.base + formulaVida.porNivel * nivelesExtra;
   }
-  return formulaVida.base + formulaVida.porNivel * nivelConjuro;
+  return formulaVida.base + formulaVida.porNivel * nivelSeguro;
 }
 
 /**
@@ -121,14 +123,15 @@ export function calcularAtaquesPorAccionInvocacion(
   plantilla: PlantillaInvocacion,
   nivelConjuro: number
 ): number {
+  const nivelSeguro = Number.isFinite(nivelConjuro) ? Number(nivelConjuro) : plantilla.nivelMinimo;
   if (plantilla.formulaAtaquesPorAccion === "fijo_1") {
     return 1;
   }
   if (plantilla.formulaAtaquesPorAccion === "mitad_nivel_arriba") {
-    return Math.max(1, Math.ceil(nivelConjuro / 2));
+    return Math.max(1, Math.ceil(nivelSeguro / 2));
   }
   // "mitad_nivel_abajo" por defecto canónico de D&D 2024
-  return Math.max(1, Math.floor(nivelConjuro / 2));
+  return Math.max(1, Math.floor(nivelSeguro / 2));
 }
 
 /**
@@ -141,10 +144,13 @@ export function proyectarInvocacionAMonstruo(
   lanzador: ContextoLanzadorInvocacion,
   subtipoElegido?: string
 ): MonstruoBase {
-  // Ajuste de seguridad para el nivel de conjuro
+  // Ajuste de seguridad para el nivel de conjuro (prevenir NaN si nivelConjuroSolicitado es undefined o inválido)
+  const nivelSeguro = Number.isFinite(nivelConjuroSolicitado)
+    ? Number(nivelConjuroSolicitado)
+    : plantilla.nivelMinimo;
   const nivelConjuro = Math.max(
     plantilla.nivelMinimo,
-    Math.min(plantilla.nivelMaximo, nivelConjuroSolicitado)
+    Math.min(plantilla.nivelMaximo, nivelSeguro)
   );
 
   const caCalculada = calcularCAInvocacion(plantilla, nivelConjuro);

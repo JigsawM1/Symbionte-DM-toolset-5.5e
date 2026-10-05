@@ -628,22 +628,23 @@ export const SeccionAcompanantesPersonaje: React.FC<SeccionAcompanantesPersonaje
       conjuroAsociado: inv.conjuroAsociado
     }));
 
-    const monstruos = baseDatosMonstruos
-      .filter((m) =>
-        coincideBusquedaTolerante([m.nombre, m.tipo, m.alineacion || ""], qNorm)
-      )
-      .slice(0, 8)
-      .map((m) => ({
-        esInvocacion: false as const,
-        monstruo: m,
-        id: m.id,
-        nombre: m.nombre,
-        tipo: m.tipo,
-        ca: m.ca,
-        vidaMaxima: m.vidaMaxima,
-        desafio: m.desafio || "—",
-        conjuroAsociado: undefined
-      }));
+    const monstruos = [];
+    for (const m of baseDatosMonstruos) {
+      if (coincideBusquedaTolerante([m.nombre, m.tipo, m.alineacion || ""], qNorm)) {
+        monstruos.push({
+          esInvocacion: false as const,
+          monstruo: m,
+          id: m.id,
+          nombre: m.nombre,
+          tipo: m.tipo,
+          ca: m.ca,
+          vidaMaxima: m.vidaMaxima,
+          desafio: m.desafio || "—",
+          conjuroAsociado: undefined
+        });
+        if (monstruos.length >= 8) break;
+      }
+    }
 
     return [...invocaciones, ...monstruos].slice(0, 10);
   }, [baseDatosMonstruos, busqueda]);

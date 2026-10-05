@@ -121,20 +121,18 @@ export const TarjetaCriaturaIniciativa: React.FC<TarjetaCriaturaIniciativaProps>
     }
   }, [editandoIniciativa]);
 
-  // Manejar cambio numérico de vida máxima en vivo
+  // Manejar cambio numérico de vida máxima (solo actualiza el estado local durante la escritura)
   const manejarCambioVidaMaxima = (e: React.ChangeEvent<HTMLInputElement>) => {
     setValorVidaMaximaTemp(e.target.value);
-    const valNum = parseInt(e.target.value, 10);
-    if (!isNaN(valNum) && valNum > 0 && onEstablecerVidaMaxima) {
-      onEstablecerVidaMaxima(valNum);
-    }
   };
 
-  // Finalizar edición manual de vida máxima
+  // Finalizar edición manual de vida máxima y emitir cambio seguro al store
   const finalizarEdicionVidaMaxima = () => {
     const valor = parseInt(valorVidaMaximaTemp, 10);
-    if (isNaN(valor) || valor <= 0) {
-      if (onEstablecerVidaMaxima) onEstablecerVidaMaxima(vidaMaximaOriginalRef.current);
+    if (!isNaN(valor) && valor > 0 && onEstablecerVidaMaxima) {
+      onEstablecerVidaMaxima(valor);
+    } else if (onEstablecerVidaMaxima) {
+      onEstablecerVidaMaxima(vidaMaximaOriginalRef.current);
     }
     setEditandoVidaMaxima(false);
     setValorVidaMaximaTemp("");

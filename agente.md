@@ -29,14 +29,13 @@ Este archivo registra reglas globales, errores encontrados, sus causas raíz y l
    - En `emparejarPersonajesConCriaturas`, se introdujo el **Paso 0**: Si el personaje ya tiene asignado un `idMiniaturaTS`, se busca primero por ID exacto en las criaturas disponibles del tablero. Si existe, se empareja de inmediato en $O(1)$ sin pasar por comparaciones heurísticas ni heurística 1-a-1, y se excluye de las criaturas disponibles.
    - En `autoResolverMiniaturasJugador`, se blindó la actualización para evitar desvinculaciones destructivas accidentales: si la miniatura no se detecta en ese instante (ej. cambio de mapa o carga parcial), no se sobreescribe con `null` el `idMiniaturaTS` persistido del personaje.
    - La misma preservación por ID prioritario se extendió a los acompañantes y mascotas (`acomp.idMiniaturaTS`).
-2. **Componente Modular `SeccionVinculacionMiniaturaTS.tsx`:**
-   - Creado en `src/componentes/caracteristicas/personajes/configuracion/SeccionVinculacionMiniaturaTS.tsx` sin sobrecargar `usarConfiguracionPersonaje.ts` (manteniendo todos los archivos bajo el límite de 500 líneas).
+2. **Componente Modular `SeccionVinculacionMiniaturaTS.tsx` y Rediseño Visual:**
+   - Creado en `src/componentes/caracteristicas/personajes/configuracion/SeccionVinculacionMiniaturaTS.tsx` como tarjeta a ancho completo (100% de la fila), desacoplado del campo de URL de Avatar para erradicar asimetrías y espacios vacíos.
    - Provee:
-     - Estado visual claro: miniatura vinculada vs sin miniatura en tablero.
-     - Botón **"Vincular Selección 3D"**: Lee la selección física actual de TaleSpire (`ts.creatures.getSelectedCreatures()`), obtiene sus datos (`ts.creatures.getMoreInfo()`) y la asocia al personaje con 1 clic.
-     - Botón **"Mis Miniaturas"**: Escanea las criaturas asignadas al jugador (`ts.creatures.getCreaturesOwnedByPlayer()`) y despliega una grilla táctil para vincular cualquiera de ellas directamente.
-     - Botón **"Desvincular"**: Permite desasociar la miniatura manualmente.
-     - Entrada manual alternativa para consultar o ingresar el GUID de la miniatura directamente.
+     - Cabecera limpia con indicador de estado (pastilla verde/gris con punto luminoso) y botón contextual "Desvincular" alineado a la derecha.
+     - Botón primario **"Vincular Selección 3D"**: Lee la selección física actual de TaleSpire (`ts.creatures.getSelectedCreatures()`), obtiene sus datos (`ts.creatures.getMoreInfo()`) y la asocia al personaje con 1 clic.
+     - Botón secundario **"Mis Miniaturas"**: Escanea las criaturas asignadas al jugador (`ts.creatures.getCreaturesOwnedByPlayer()`) y despliega una grilla táctil horizontal de tarjetas tipo pastilla para vincular cualquiera de ellas directamente.
+     - Eliminación definitiva del campo y botón de edición manual de ID/GUID para mantener una interfaz limpia, directa y libre de ruido técnico innecesario.
 3. **Pruebas y Certificación:**
    - Pruebas dedicadas añadidas en `resolutorMiniaturasJugador.test.ts` verificando la prioridad de `idMiniaturaTS` sobre coincidencias de nombre.
    - Pipeline de CI verificado: TypeScript (`strict: true`), ESLint (0 advertencias), 105 suites y 1.589/1.589 pruebas unitarias aprobadas (100%), build de producción con Vite completado con éxito.

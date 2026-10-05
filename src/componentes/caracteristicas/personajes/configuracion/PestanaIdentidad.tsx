@@ -222,16 +222,6 @@ export const PestanaIdentidad: React.FC<PestanaIdentidadProps> = ({
       </div>
 
       <div className={estilos.filaFormulario}>
-        <SeccionVinculacionMiniaturaTS
-          idMiniaturaTS={form.idMiniaturaTS}
-          nombrePersonaje={form.nombre}
-          alActualizarMiniatura={(idMini, pos, boardId) => {
-            alActualizarCampo("idMiniaturaTS", idMini);
-            if (pos) alActualizarCampo("ultimaPosicionTS", pos);
-            if (boardId !== undefined) alActualizarCampo("ultimoBoardIdTS", boardId);
-          }}
-        />
-
         <div className={estilos.campoFormulario}>
           <label className={estilos.labelFormulario}>URL de Imagen de Avatar (Token)</label>
           <div className={estilos.avatarPreviewContenedor}>
@@ -255,6 +245,17 @@ export const PestanaIdentidad: React.FC<PestanaIdentidadProps> = ({
           </div>
         </div>
       </div>
+
+      {/* Miniatura 3D en Tablero a ancho completo */}
+      <SeccionVinculacionMiniaturaTS
+        idMiniaturaTS={form.idMiniaturaTS}
+        nombrePersonaje={form.nombre}
+        alActualizarMiniatura={(idMini, pos, boardId) => {
+          alActualizarCampo("idMiniaturaTS", idMini);
+          if (pos) alActualizarCampo("ultimaPosicionTS", pos);
+          if (boardId !== undefined) alActualizarCampo("ultimoBoardIdTS", boardId);
+        }}
+      />
     </>
   );
 };

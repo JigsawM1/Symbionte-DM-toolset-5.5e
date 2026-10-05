@@ -18,6 +18,30 @@ Este archivo registra reglas globales, errores encontrados, sus causas raíz y l
 6. **PROHIBICIÓN ESTRICTA DE BIFURCACIONES POR NOMBRE DE RASGO O CLASE (CATÁLOGO DECLARATIVO Y BUILDER PURO)**:
    - **Bajo ninguna circunstancia** los módulos de lógica de negocio (`servicios/`), gestores de estado (`almacen/`) o constructores (`gestorClases.ts`) deben contener bifurcaciones condicionales por nombre literal de rasgo o clase (`r.nombre === "..."`, `clase.includes("...")`, etc.).
 
+## [2026-10-05] Integración Definitiva de Rama `origin/Sidekicks-beta` en `main` y Certificación de CI
+
+**Objetivo de la Integración:**
+- Fusionar de forma íntegra y definitiva la rama `origin/Sidekicks-beta` en `main`, resolviendo quirúrgicamente las colisiones en sincronización bidireccional y memoria técnica, asegurando compatibilidad total con el pipeline de CI.
+
+**Conflictos Resueltos Quirúrgicamente:**
+1. **`agente.md`**: Concatenación secuencial de las auditorías técnicas, invocaciones escalables y bitácoras previas sin pérdida de historial (+12.400 líneas).
+2. **`src/almacen/slices/sliceSync.ts`**: Integración de la discriminación `!c.esAcompanante` y `c.idPersonajeDuenio === pj.id` para el personaje principal y mapeo reactivo de `nuevosAcomps` sobre la estructura persistente de `main`.
+3. **`src/servicios/sincronizacionSimbiote.ts`**: Migración del ciclo de sincronización del jugador al sistema reactivo multi-firma (`prevFirmasPJs: Map<string, string>`), garantizando emisión atómica e individual de personajes y acompañantes (`emitirMiPersonaje(pj.id)`).
+
+**Ajustes de Compatibilidad Post-Merge:**
+1. **Unificación de `coincidenNombresTaleSpire` (`resolutorCriaturas.ts`)**: Se eliminó la duplicación exportada conservando la validación temprana de nombres vacíos (`esNombreVacioODot`) y las coincidencias cruzadas entre nombres base y completos.
+2. **Tipado Estricto de Mock en Pruebas (`acompanantesPersonaje.test.ts`)**: Se incorporó la propiedad obligatoria `bonificadorIniciativa: 0` a las criaturas simuladas en los tests de iniciativa.
+3. **Sanitización Resiliente de Encuentros (`sanitizacion.ts`)**: Se adaptó `sanearEncuentroGuardado` para filtrar y sanear cada criatura de la cola con `sanearCriaturaIniciativa`, permitiendo que datos parciales o malformados se limpien correctamente.
+
+**Métricas y Certificación del Pipeline de CI:**
+- **TypeScript**: `pnpm exec tsc --noEmit` completado con 0 errores (`strict: true`).
+- **ESLint**: `pnpm run lint` completado con 0 errores y 0 advertencias (`--max-warnings=0`).
+- **Vitest**: 105 suites ejecutadas, 1.588/1.588 pruebas unitarias aprobadas (100% de éxito).
+- **Límite de Líneas**: 116 archivos auditados, 0 componentes críticos (> 500 líneas).
+- **Vite Build**: Compilación de producción (`pnpm exec vite build`) completada con éxito en 7.86s (código de salida 0).
+
+---
+
 ## [2026-10-05] Auditoría de Código y Blindaje AppSec de la Rama `origin/Sidekicks-beta`
 
 **Objetivo de la Integración y Auditoría:**

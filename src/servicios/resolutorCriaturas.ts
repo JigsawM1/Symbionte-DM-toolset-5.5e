@@ -58,16 +58,6 @@ export function coincidenNombresTaleSpire(nombreA?: string | null, nombreB?: str
   const normA = normalizarNombreTaleSpire(nombreA);
   const normB = normalizarNombreTaleSpire(nombreB);
 
-  return normA.completo === normB.completo || normA.base === normB.base;
-}
-
-/**
- * Determina si dos nombres coinciden en su versión normalizada completa o base de TaleSpire.
- */
-export function coincidenNombresTaleSpire(nombreA?: string | null, nombreB?: string | null): boolean {
-  if (!nombreA || !nombreB) return false;
-  const normA = normalizarNombreTaleSpire(nombreA);
-  const normB = normalizarNombreTaleSpire(nombreB);
   return (
     normA.completo === normB.completo ||
     normA.base === normB.base ||

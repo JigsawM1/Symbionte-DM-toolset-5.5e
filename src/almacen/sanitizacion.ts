@@ -1352,7 +1352,19 @@ export function sanearElementoPendiente(raw: unknown): ElementoPendiente | null 
 
 export function sanearEncuentroGuardado(raw: unknown): EncuentroGuardado | null {
   if (!raw || typeof raw !== "object") return null;
-  const parsed = EsquemaEncuentroGuardado.safeParse(raw);
+  const obj = raw as Record<string, unknown>;
+  const colaFiltrada = Array.isArray(obj.cola)
+    ? obj.cola
+        .map((c) => sanearCriaturaIniciativa(c))
+        .filter((c): c is CriaturaIniciativa => c !== null)
+    : [];
+
+  const rawNormalizado = {
+    ...obj,
+    cola: colaFiltrada
+  };
+
+  const parsed = EsquemaEncuentroGuardado.safeParse(rawNormalizado);
   if (parsed.success) return parsed.data as EncuentroGuardado;
   return null;
 }

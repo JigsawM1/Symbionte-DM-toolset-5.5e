@@ -485,4 +485,142 @@ describe("Sincronización Simbiote - Manejo de Mensajes en Store", () => {
     expect(criaturaCorcelCola?.condiciones).toEqual(["derribado"]);
     expect(criaturaCorcelCola?.movimientoGastado).toBe(25);
   });
+
+  it("garantiza que el paquete emitido de un PJ con acompanantes y efectos mida estrictamente menos de 500 caracteres", () => {
+    const pjCompleto: EstadoCombatePJ = {
+      id: "pj-heroe-1",
+      nombre: "Valeros de la Espada",
+      iniciativa: 17,
+      hpActual: 42,
+      hpMaximo: 50,
+      hpTemporal: 8,
+      ca: 18,
+      condiciones: ["envenenado", "asustado"],
+      efectos: [
+        { id: "ef-1", nombre: "Bendición Divina", expiraRonda: 4, concentracion: false },
+        { id: "ef-2", nombre: "Escudo de Fe", expiraRonda: 5, concentracion: true },
+      ],
+      pasivas: { percepcion: 14, investigacion: 10, perspicacia: 12 },
+      acompanantes: [
+        {
+          id: "ac-lobo-1",
+          nombre: "Lobo Huargo Fiel",
+          vidaActual: 18,
+          vidaMaxima: 22,
+          vidaTemporal: 4,
+          condiciones: ["derribado"],
+          efectos: [
+            { id: "ef-lobo-1", nombre: "Ayuda Sobrenatural", expiraRonda: 3, concentracion: false },
+          ],
+        },
+      ],
+    };
+
+    const wire = serializarEstadoCombatePJ(pjCompleto);
+    const mensajeRed = JSON.stringify({ v: 1, t: "PJ", d: wire });
+
+    // La API de TaleSpire impone un límite estricto de 500 caracteres
+    expect(mensajeRed.length).toBeLessThan(500);
+
+    const deserializado = deserializarEstadoCombatePJ(wire);
+    expect(deserializado.hpActual).toBe(42);
+    expect(deserializado.hpMaximo).toBe(50);
+    expect(deserializado.hpTemporal).toBe(8);
+    expect(deserializado.condiciones).toEqual(["envenenado", "asustado"]);
+    expect(deserializado.efectos).toHaveLength(2);
+
+    expect(deserializado.acompanantes).toHaveLength(1);
+    const acomp = deserializado.acompanantes![0];
+    expect(acomp.vidaActual).toBe(18);
+    expect(acomp.vidaMaxima).toBe(22);
+    expect(acomp.vidaTemporal).toBe(4);
+    expect(acomp.condiciones).toEqual(["derribado"]);
+    expect(acomp.efectos).toHaveLength(1);
+  });
+
+  it("el Master envía a los jugadores vida, vidamax, vidatem, condiciones y efectos de monstruos, acompanantes y PJs, más ronda y visibilidad de salud", () => {
+    const estadoDM: EstadoIniciativaDM = {
+      cola: [
+        {
+          id: "pj-1",
+          nombre: "Elfo Mago",
+          iniciativa: 20,
+          vidaActual: 28,
+          vidaMaxima: 35,
+          vidaTemporal: 5,
+          ca: 15,
+          esMonstruo: false,
+          condiciones: ["concentrado"],
+          efectos: [{ id: "ef-pj", nombre: "Imagen Espejada", expiraRonda: 4 }],
+          bonificadorIniciativa: 3,
+          velocidad: "30 pies",
+        },
+        {
+          id: "acomp-1",
+          nombre: "Familiar Búho",
+          iniciativa: 16,
+          vidaActual: 3,
+          vidaMaxima: 3,
+          vidaTemporal: 0,
+          ca: 11,
+          esMonstruo: false,
+          esAcompanante: true,
+          idPersonajeDuenio: "pj-1",
+          condiciones: [],
+          efectos: [],
+          bonificadorIniciativa: 1,
+          velocidad: "60 pies",
+        },
+        {
+          id: "monstruo-1",
+          nombre: "Goblin Arquero",
+          iniciativa: 12,
+          vidaActual: 7,
+          vidaMaxima: 7,
+          vidaTemporal: 2,
+          ca: 13,
+          esMonstruo: true,
+          condiciones: ["cegado"],
+          efectos: [],
+          bonificadorIniciativa: 2,
+          velocidad: "30 pies",
+        },
+      ],
+      indiceTurnoActivo: 1,
+      rondaActual: 3,
+      mostrarPorcentajeVidaAJugadores: true,
+      metodoVidaMonstruo: "estandar",
+    };
+
+    const wire = serializarIniciativaDM(estadoDM);
+    const mensajeRed = JSON.stringify({ v: 1, t: "DM", d: wire });
+
+    expect(mensajeRed.length).toBeLessThan(500);
+
+    const dmDeserializado = deserializarIniciativaDM(wire);
+    expect(dmDeserializado.rondaActual).toBe(3);
+    expect(dmDeserializado.mostrarPorcentajeVidaAJugadores).toBe(true);
+    expect(dmDeserializado.cola).toHaveLength(3);
+
+    // Verificar datos de PJ
+    const pjEnCola = dmDeserializado.cola[0];
+    expect(pjEnCola.vidaActual).toBe(28);
+    expect(pjEnCola.vidaMaxima).toBe(35);
+    expect(pjEnCola.vidaTemporal).toBe(5);
+    expect(pjEnCola.condiciones).toEqual(["concentrado"]);
+    expect(pjEnCola.efectos).toHaveLength(1);
+
+    // Verificar datos de acompañante
+    const acompEnCola = dmDeserializado.cola[1];
+    expect(acompEnCola.esAcompanante).toBe(true);
+    expect(acompEnCola.vidaActual).toBe(3);
+    expect(acompEnCola.vidaMaxima).toBe(3);
+
+    // Verificar datos de monstruo
+    const monstruoEnCola = dmDeserializado.cola[2];
+    expect(monstruoEnCola.esMonstruo).toBe(true);
+    expect(monstruoEnCola.vidaActual).toBe(7);
+    expect(monstruoEnCola.vidaTemporal).toBe(2);
+    expect(monstruoEnCola.condiciones).toEqual(["cegado"]);
+  });
 });

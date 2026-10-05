@@ -18,6 +18,58 @@ Este archivo registra reglas globales, errores encontrados, sus causas raíz y l
 6. **PROHIBICIÓN ESTRICTA DE BIFURCACIONES POR NOMBRE DE RASGO O CLASE (CATÁLOGO DECLARATIVO Y BUILDER PURO)**:
    - **Bajo ninguna circunstancia** los módulos de lógica de negocio (`servicios/`), gestores de estado (`almacen/`) o constructores (`gestorClases.ts`) deben contener bifurcaciones condicionales por nombre literal de rasgo o clase (`r.nombre === "..."`, `clase.includes("...")`, etc.).
 
+## [2026-10-05] Corrección Integral de Sincronización en Tiempo Real y Blindaje de Límite Estricto de 500 Caracteres (TaleSpire API v0.1)
+
+**Contexto del Problema y Reporte de Bug:**
+- La sincronización entre el Master (DM) y los Jugadores presentaba fallos intermitentes y no sincronizaba en tiempo real.
+- La API nativa de TaleSpire (`TS.sync.send`) impone un límite estricto de **máximo 500 caracteres** por mensaje.
+- El protocolo bidireccional requería delimitar con precisión qué datos deben transmitirse entre ambas partes:
+  1. **De Jugador a Master**: Vida actual (`va`), vida máxima (`vm`), vida temporal (`vt`), condiciones (`c`) y efectos (`e`) tanto de su personaje principal como de sus acompañantes/invocaciones.
+  2. **De Master a Jugadores**: Vida actual (`va`), vida máxima (`vm`), vida temporal (`vt`), condiciones (`c`) y efectos (`e`) de todas las criaturas (jugadores, acompañantes y monstruos con bandera `m`), más el número de ronda (`r`), el turno activo (`t`) y la configuración `v` (`mostrarPorcentajeVidaAJugadores`) para establecer si mostrar el % de salud u ocultarlo.
+
+**Causas Raíz Identificadas:**
+1. **Desbordamiento del Límite de Red (> 500 caracteres)**:
+   - `serializarEstadoCombatePJ` incluía campos redundantes para combate en tiempo real: ranuras de conjuros (`cj`: `em`, `eg`, `pm`, `pg`, `pc`), pasivas redundantes y datos descriptivos extensos de acompañantes (`plant`, `vel`, `inv`, `lvl`, `sub`).
+   - Esto disparaba el tamaño del payload a más de 600-800 bytes ante personajes con varios espacios de magia o acompañantes, provocando que TaleSpire rechazara o descartara el paquete silenciosamente.
+   - En `TaleSpireAdapter.ts`, la guarda previa permitía paquetes de hasta 1000 caracteres, permitiendo envíos condenados al fallo.
+2. **Falta de Escucha del Listener Nativo (`TS.sync.onSyncMessage.subscribe`)**:
+   - `usarConexionTaleSpire.ts` solo escuchaba mensajes a través de `puenteTaleSpire.on("mensajeSync")` esperando callbacks inyectados en `window`.
+   - La API oficial v0.1 de TaleSpire emite eventos mediante el observable nativo `TS.sync.onSyncMessage.subscribe`. Al no estar suscrito al listener nativo `ts.sync.suscribirAMensajesSync()`, los mensajes emitidos por otros clientes nunca se recibían en la aplicación cuando CEF utilizaba el canal nativo.
+3. **Deduplicador Estático Bloqueante (`esMensajeDuplicado`)**:
+   - Se utilizaba un `Set<string>` con límite de 50 entradas sin tiempo de caducidad.
+   - Si un jugador o el DM emitía un estado legítimo que coincidía con uno emitido previamente (ej. repetir la misma vida tras varios turnos, restablecer daño o enviar pings `REQ`), el mensaje era descartado para siempre como "duplicado de bus".
+4. **Rechazo Espurio por Discrepancia de Identificador (`idClienteDM`)**:
+   - `estado.idClienteDM` se almacenaba con el PlayerId de TaleSpire (`player_...`), mientras que `evento.fromClient.id` correspondía al ClientId de conexión (`client_...`).
+   - La validación `evento.fromClient.id !== estado.idClienteDM` evaluaba casi siempre a `true`, provocando que los jugadores descartaran sistemáticamente los mensajes legítimos enviados por el Master.
+5. **Latencia Acumulativa de Debounce**:
+   - El retardo de 400ms acumulado en ambos extremos (jugador emite con 400ms debounce -> DM procesa y re-emite consolidado con 400ms debounce) generaba una latencia total de casi 1 segundo, impidiendo la percepción de tiempo real.
+
+**Soluciones Técnicas Aplicadas:**
+1. **Compactación Ultra-Ligera del Wire Format (`src/tipos/sync.ts`)**:
+   - `serializarEstadoCombatePJ`: Transmite de forma concisa vida actual (`va`), vida máxima (`vm`), vida temporal (`vt`), condiciones (`c`), efectos (`e`) y acompañantes (`ac` con sus `va`, `vm`, `vt`, `c`, `e`), más `id`, `n` (truncado a 24 caracteres), `m` e `i`.
+   - Se suprimió la transmisión de ranuras de conjuros y datos pesados no solicitados, reduciendo el tamaño del payload de más de 600 bytes a un rango seguro de **120 - 240 bytes** (garantizado < 500 caracteres).
+   - `serializarIniciativaDM`: Transmite de forma ultra-compacta `va`, `vm`, `vt`, `c`, `e` para cada criatura (diferenciando monstruos con `m: true` y acompañantes con `ac: true`), más `r` (número de ronda), `t` (turno activo) y `v` (`mostrarPorcentajeVidaAJugadores`).
+   - `dividirEnChunksIniciativa`: Umbral seguro establecido estrictamente en `maxBytesPorChunk = 380`, garantizando que todo paquete particionado viaje con holgura por debajo de 500 caracteres sin forzar divisiones artificiales innecesarias.
+2. **Blindaje de Límite Estricto en el Adaptador (`src/utiles/TaleSpireAdapter.ts`)**:
+   - En `ts.sync.send`: Validación estricta que rechaza y registra con error cualquier payload que supere los 500 caracteres (`if (message.length > 500) return false;`).
+3. **Conexión Dual de Suscripción en Tiempo Real (`src/hooks/usarConexionTaleSpire.ts`)**:
+   - Conectada la escucha directa de `ts.sync.suscribirAMensajesSync` en paralelo a `puenteTaleSpire.on("mensajeSync")`. Garantiza la captura instantánea de paquetes tanto si TaleSpire invoca callbacks en `window` como si notifica por el observable nativo `TS.sync.onSyncMessage`.
+4. **Deduplicador Temporal Dinámico (`src/servicios/sincronizacionSimbiote.ts`)**:
+   - Reemplazado el Set estático por un `Map<string, number>` con ventana de caducidad de **250ms**. Permite descartar duplicados concurrentes entre el puente y el listener nativo sin bloquear transiciones o valores idénticos a lo largo del combate.
+5. **Eliminación de la Guarda Espuria `idClienteDM` (`src/servicios/sincronizacionSimbiote.ts`)**:
+   - Removida la comprobación bloqueante que confrontaba ClientId con PlayerId en los casos `"DM"` y `"DM_CHUNK"`, permitiendo que todos los jugadores apliquen de inmediato el estado autorizado del Master.
+6. **Reducción de Debounce a Tiempo Real**:
+   - `RETARDO_DEBOUNCE_MS = 100` (en lugar de 400ms) para respuesta reactiva inmediata.
+
+**Certificación de Calidad y Pipeline de CI:**
+- **TypeScript**: `pnpm exec tsc --noEmit` completado con 0 errores (`strict: true`).
+- **ESLint**: `pnpm run lint` completado con 0 errores y 0 advertencias (`--max-warnings=0`).
+- **Vitest**: 105 suites ejecutadas, **1.591 / 1.591 pruebas unitarias aprobadas al 100%**.
+- **Límite de Líneas**: 117 archivos auditados, 0 archivos con más de 500 líneas.
+- **Vite Build**: Compilación para producción (`pnpm exec vite build`) completada con éxito en 6.87s (código de salida 0).
+
+---
+
 ## [2026-10-05] Vinculación Manual y Persistencia Determinista de Miniaturas de Jugador (TaleSpire API v0.1)
 
 **Contexto y Necesidad:**

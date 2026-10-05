@@ -207,15 +207,35 @@ export function usarConexionTaleSpire() {
           subNativaCliente.desuscribir();
         };
 
-        // Suscribirse a mensajes del canal de sincronización bidireccional exclusivamente a través del EventBus centralizado (H-13)
+        // Suscribirse a mensajes del canal de sincronización bidireccional a través del EventBus centralizado
         const subPuenteSync = puenteTaleSpire.on("mensajeSync", (payload) => {
           if (activo) {
             procesarMensajeSyncEntrante(payload);
           }
         });
 
+        // Suscribirse también al listener nativo de TS.sync.onSyncMessage (API oficial v0.1)
+        const subNativaSync = ts.sync.suscribirAMensajesSync((payload) => {
+          if (activo && payload?.str) {
+            let datos: unknown = null;
+            try {
+              datos = JSON.parse(payload.str);
+            } catch {
+              datos = null;
+            }
+            if (datos) {
+              procesarMensajeSyncEntrante({
+                datos,
+                strCrudo: payload.str,
+                fromClient: payload.fromClient,
+              });
+            }
+          }
+        });
+
         desuscribirSync = () => {
           subPuenteSync();
+          subNativaSync.desuscribir();
         };
 
         // Escuchar eventos de ciclo de vida del Simbionte (H-06: persistencia inmediata en willShutdown)

@@ -26,25 +26,32 @@ import { calcularEstadisticasPersonaje } from "@/almacen/selectores/usarEstadoPe
 import { coincidenNombresTaleSpire } from "@/servicios/resolutorCriaturas";
 import { logger } from "@/utiles/logger";
 
-const RETARDO_DEBOUNCE_MS = 400;
-const LIMITE_TAMANO_SEGURO_BYTES = 420;
+const RETARDO_DEBOUNCE_MS = 100;
+const LIMITE_TAMANO_SEGURO_BYTES = 380;
 
 let timerDebounceGM: ReturnType<typeof setTimeout> | null = null;
 let timerDebouncePJ: ReturnType<typeof setTimeout> | null = null;
 
 // Búfer para deduplicar mensajes recibidos concurrentemente por el EventBus y suscripciones nativas
-const mensajesProcesadosRecientes = new Set<string>();
-const LIMITE_MENSAJES_DEDUPLICACION = 50;
+// Emplea una ventana temporal de 250ms para no bloquear estados idénticos a lo largo de rondas sucesivas
+const mensajesProcesadosRecientes = new Map<string, number>();
+const VENTANA_DEDUPLICACION_MS = 250;
 
 function esMensajeDuplicado(strCrudo: string): boolean {
   if (!strCrudo) return false;
-  if (mensajesProcesadosRecientes.has(strCrudo)) {
+  const ahora = Date.now();
+  const timestampPrevio = mensajesProcesadosRecientes.get(strCrudo);
+  if (timestampPrevio !== undefined && ahora - timestampPrevio < VENTANA_DEDUPLICACION_MS) {
     return true;
   }
-  if (mensajesProcesadosRecientes.size >= LIMITE_MENSAJES_DEDUPLICACION) {
-    mensajesProcesadosRecientes.clear();
+  if (mensajesProcesadosRecientes.size > 100) {
+    for (const [k, v] of mensajesProcesadosRecientes.entries()) {
+      if (ahora - v > VENTANA_DEDUPLICACION_MS * 2) {
+        mensajesProcesadosRecientes.delete(k);
+      }
+    }
   }
-  mensajesProcesadosRecientes.add(strCrudo);
+  mensajesProcesadosRecientes.set(strCrudo, ahora);
   return false;
 }
 
@@ -262,10 +269,6 @@ export function procesarMensajeSyncEntrante(evento: {
     case "DM": {
       // Solo los jugadores aplican el estado del DM
       if (!estado.esGM) {
-        if (estado.idClienteDM && evento.fromClient?.id && evento.fromClient.id !== estado.idClienteDM) {
-          logger.warn("[Sync] Mensaje DM rechazado: remitente no autorizado como DM:", evento.fromClient.id, "Esperado:", estado.idClienteDM);
-          return;
-        }
         logger.info("[Sync] Aplicando ESTADO_INICIATIVA_DM recibido del DM...");
         const datosIniciativa = deserializarIniciativaDM(mensaje.d);
         estado.aplicarIniciativaDesdeSync(datosIniciativa);
@@ -276,10 +279,6 @@ export function procesarMensajeSyncEntrante(evento: {
     case "DM_CHUNK": {
       // Reensamblado de ráfagas para jugadores
       if (!estado.esGM) {
-        if (estado.idClienteDM && evento.fromClient?.id && evento.fromClient.id !== estado.idClienteDM) {
-          logger.warn("[Sync] Chunk DM rechazado: remitente no autorizado como DM:", evento.fromClient.id, "Esperado:", estado.idClienteDM);
-          return;
-        }
         const chunk = mensaje.d;
         if (chunk.chunk === 1) {
           bufferChunksIniciativa.clear();

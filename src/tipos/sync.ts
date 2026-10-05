@@ -316,59 +316,32 @@ export type WireMensajeSync = z.infer<typeof EsquemaWireMensajeSync>;
 export function serializarEstadoCombatePJ(pj: EstadoCombatePJ): WireEstadoCombatePJ {
   const wire: WireEstadoCombatePJ = {
     id: pj.id,
-    n: (pj.nombre || "Personaje").slice(0, 32),
+    n: (pj.nombre || "Personaje").slice(0, 24),
     i: pj.iniciativa ?? 0,
     va: pj.hpActual ?? 0,
     vm: pj.hpMaximo ?? 0,
   };
 
   if (pj.idMiniaturaTS) wire.m = pj.idMiniaturaTS;
-  if (pj.hpTemporal) wire.vt = pj.hpTemporal;
+  if (pj.hpTemporal && pj.hpTemporal > 0) wire.vt = pj.hpTemporal;
   if (pj.ca !== undefined && pj.ca !== 10) wire.ca = pj.ca;
   if (pj.condiciones && pj.condiciones.length > 0) wire.c = pj.condiciones;
   if (pj.efectos && pj.efectos.length > 0) {
     wire.e = pj.efectos.map((ef) => ({
       id: ef.id,
-      n: ef.nombre,
+      n: ef.nombre.slice(0, 24),
       r: ef.expiraRonda,
       c: ef.concentracion,
       d: ef.duracion,
     }));
   }
+
   if (pj.pasivas) {
     wire.p = [
       pj.pasivas.percepcion ?? 10,
       pj.pasivas.investigacion ?? 10,
       pj.pasivas.perspicacia ?? 10,
     ];
-  }
-
-  if (pj.conjuros) {
-    const em: Record<string, number> = {};
-    for (const [k, v] of Object.entries(pj.conjuros.espaciosMaximos || {})) {
-      if (typeof v === "number" && v > 0) em[k] = v;
-    }
-    const eg: Record<string, number> = {};
-    for (const [k, v] of Object.entries(pj.conjuros.espaciosGastados || {})) {
-      if (typeof v === "number" && v > 0) eg[k] = v;
-    }
-
-    if (
-      Object.keys(em).length > 0 ||
-      Object.keys(eg).length > 0 ||
-      pj.conjuros.puntosMaximos ||
-      pj.conjuros.pacto
-    ) {
-      wire.cj = {
-        em,
-        eg,
-        pm: pj.conjuros.puntosMaximos,
-        pg: pj.conjuros.puntosGastados,
-        pc: pj.conjuros.pacto
-          ? [pj.conjuros.pacto.maximos, pj.conjuros.pacto.gastados, pj.conjuros.pacto.nivel]
-          : undefined,
-      };
-    }
   }
 
   if (pj.concentracion) {
@@ -380,8 +353,6 @@ export function serializarEstadoCombatePJ(pj: EstadoCombatePJ): WireEstadoCombat
     wire.co = null;
   }
 
-  if (pj.movimientoGastado) wire.gast = pj.movimientoGastado;
-  if (pj.movimientoMaximoTemporal) wire.maxT = pj.movimientoMaximoTemporal;
   if (pj.acompanantes && pj.acompanantes.length > 0) {
     wire.ac = pj.acompanantes.map((a) => {
       const wa: WireAcompanante = {
@@ -390,7 +361,7 @@ export function serializarEstadoCombatePJ(pj: EstadoCombatePJ): WireEstadoCombat
         va: a.vidaActual ?? 0,
         vm: a.vidaMaxima ?? 0,
       };
-      if (a.vidaTemporal) wa.vt = a.vidaTemporal;
+      if (a.vidaTemporal && a.vidaTemporal > 0) wa.vt = a.vidaTemporal;
       if (a.ca !== undefined && a.ca !== 10) wa.ca = a.ca;
       if (a.condiciones && a.condiciones.length > 0) wa.c = a.condiciones;
       if (a.efectos && a.efectos.length > 0) {
@@ -402,17 +373,8 @@ export function serializarEstadoCombatePJ(pj: EstadoCombatePJ): WireEstadoCombat
           d: ef.duracion,
         }));
       }
-      if (a.iniciativa) wa.i = a.iniciativa;
+      if (a.iniciativa && a.iniciativa > 0) wa.i = a.iniciativa;
       if (a.idMiniaturaTS) wa.m = a.idMiniaturaTS;
-      if (a.idPlantilla) wa.plant = a.idPlantilla;
-      if (a.velocidad && a.velocidad !== "30 pies") {
-        wa.vel = a.velocidad;
-      }
-      if (a.movimientoGastado) wa.gast = a.movimientoGastado;
-      if (a.movimientoMaximoTemporal) wa.maxT = a.movimientoMaximoTemporal;
-      if (a.esInvocacion) wa.inv = true;
-      if (a.nivelConjuroInvocacion) wa.lvl = a.nivelConjuroInvocacion;
-      if (a.subtipoInvocacion) wa.sub = a.subtipoInvocacion;
       return wa;
     });
   }
@@ -501,25 +463,20 @@ export function serializarIniciativaDM(dm: EstadoIniciativaDM): WireEstadoInicia
     c: (dm.cola || []).map((criatura) => {
       const item: WireCriaturaIniciativa = {
         id: criatura.id,
-        n: (criatura.nombre || "Criatura").slice(0, 32),
+        n: (criatura.nombre || "Criatura").slice(0, 24),
         i: criatura.iniciativa ?? 0,
         va: criatura.vidaActual ?? 0,
         vm: criatura.vidaMaxima ?? 0,
       };
-      if (criatura.vidaTemporal) item.vt = criatura.vidaTemporal;
-      if (criatura.movimientoGastado) item.gast = criatura.movimientoGastado;
-      if (criatura.movimientoMaximoTemporal) item.maxT = criatura.movimientoMaximoTemporal;
+      if (criatura.vidaTemporal && criatura.vidaTemporal > 0) item.vt = criatura.vidaTemporal;
       if (criatura.esAcompanante) item.ac = true;
       if (criatura.idPersonajeDuenio) item.du = criatura.idPersonajeDuenio;
       if (criatura.idAcompanante) item.acId = criatura.idAcompanante;
 
       if (criatura.esMonstruo) {
         item.m = true;
-        // Para monstruos: no transmitir CA, plantilla, velocidad ni bonificador para optimizar ancho de banda
       } else {
         if (criatura.ca !== undefined && criatura.ca !== 10) item.ca = criatura.ca;
-        if (criatura.idPlantillaAsociada) item.plant = criatura.idPlantillaAsociada;
-        if (criatura.velocidad && criatura.velocidad !== "30 pies") item.vel = criatura.velocidad;
         if (criatura.bonificadorIniciativa) item.bon = criatura.bonificadorIniciativa;
       }
 
@@ -527,7 +484,7 @@ export function serializarIniciativaDM(dm: EstadoIniciativaDM): WireEstadoInicia
       if (criatura.efectos && criatura.efectos.length > 0) {
         item.e = criatura.efectos.map((ef) => ({
           id: ef.id,
-          n: ef.nombre,
+          n: ef.nombre.slice(0, 20),
           r: ef.expiraRonda,
           c: ef.concentracion,
           d: ef.duracion,
@@ -579,11 +536,11 @@ export function deserializarIniciativaDM(wire: WireEstadoIniciativaDM): EstadoIn
 
 /**
  * Divide el WireEstadoIniciativaDM dinámicamente en N chunks si la cola excede el límite seguro.
- * Garantiza que cada chunk serializado quede estrictamente por debajo de maxBytesPorChunk (por defecto 420).
+ * Garantiza que cada chunk serializado quede estrictamente por debajo de maxBytesPorChunk (por defecto 380).
  */
 export function dividirEnChunksIniciativa(
   wire: WireEstadoIniciativaDM,
-  maxBytesPorChunk = 420
+  maxBytesPorChunk = 380
 ): WireChunkIniciativa[] {
   const todasCriaturas = wire.c || [];
   if (todasCriaturas.length === 0) {
@@ -621,12 +578,6 @@ export function dividirEnChunksIniciativa(
 
   if (grupoActual.length > 0) {
     grupos.push(grupoActual);
-  }
-
-  if (grupos.length === 1 && todasCriaturas.length > 1) {
-    const mitad = Math.ceil(todasCriaturas.length / 2);
-    grupos[0] = todasCriaturas.slice(0, mitad);
-    grupos.push(todasCriaturas.slice(mitad));
   }
 
   const total = grupos.length;

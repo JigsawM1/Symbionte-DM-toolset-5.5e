@@ -16,7 +16,30 @@ Este archivo registra reglas globales, errores encontrados, sus causas raíz y l
    - Las dependencias fluyen estrictamente hacia abajo: `App/Layout -> Caracteristicas -> Comunes -> Almacen -> Servicios -> Utiles/Constantes/Tipos`.
    - **Bajo ninguna circunstancia** los módulos de lógica de negocio (`servicios/`), gestores de estado (`almacen/`), contratos (`tipos/`), valores de reglas (`constantes/`) ni funciones de soporte (`utiles/`) deben importar componentes visuales o archivos CSS (`componentes/`). Esta regla está reforzada en CI vía ESLint `no-restricted-imports`.
 6. **PROHIBICIÓN ESTRICTA DE BIFURCACIONES POR NOMBRE DE RASGO O CLASE (CATÁLOGO DECLARATIVO Y BUILDER PURO)**:
-   - **Bajo ninguna circunstancia** los módulos de lógica de negocio (`servicios/`), gestores de estado (`almacen/`) o constructores (`gestorClases.ts`) deben contener bifurcaciones condicionales por nombre literal de rasgo o clase (`r.nombre === "..."`, `clase.includes("...")`, etc.).
+
+## [2026-10-05] Integración de Rama Mago PHB 2024 en Main: Fusión, Resolución de Conflictos y Certificación Total de CI
+
+**Alcance de la Integración:**
+- Fusión de la rama `origin/Cambios-a-mago-orita-ya-si-ultimo-definitivo-la-buena` sobre `main`.
+- Integración de la estandarización declarativa de la clase Mago y sus subclases según D&D 5.5e / PHB 2024.
+- Incorporación de selectores mágicos desacoplados (`selectoresConjurosHelpers.ts`) que diferencian conjuros para el grimorio (`destinoConjuros: "libro"`) de conjuros siempre preparados.
+- Corrección de la Salvaguarda Arcana como efecto declarativo `hp_temporal` y cálculo genérico en recarga de espacios sin bifurcaciones cableadas.
+- Inclusión de 27 pruebas unitarias específicas en `src/servicios/magoMecanicasDND55.test.ts`.
+
+**Resolución Quirúrgica de Conflictos:**
+1. **`src/datos/clases/mago.json`:**
+   - Se preservó el formato legible con saltos de línea de `main` y se adoptó `"tipoAccion": "especial"` con el efecto `hp_temporal` y `multiplicadorRecargaEspacio: 2` de la rama de Mago.
+2. **`agente.md`:**
+   - Se unificaron sin pérdidas los registros de auditoría de sincronización de acompañantes y la memoria técnica de estandarización de Mago.
+
+**Resultados de Verificación de Integración Continua (100% Exitoso):**
+- **TypeScript:** `pnpm exec tsc --noEmit` completado con 0 errores bajo `strict: true`.
+- **ESLint:** `pnpm run lint` completado con 0 errores y 0 advertencias (`--max-warnings=0`).
+- **Vitest:** 105 suites ejecutadas, 1.597/1.597 pruebas aprobadas (100% de éxito).
+- **Límites de Líneas:** 117 archivos auditados vía `pnpm run verificar:lineas`, 0 archivos > 500 líneas.
+- **Build de Producción:** `pnpm exec vite build` completado exitosamente en 9.49s.
+
+---
 
 ## [2026-10-05] Sincronización de Iniciativa de Acompañantes al Master y Limpieza de UI de Velocidad en Iniciativa
 

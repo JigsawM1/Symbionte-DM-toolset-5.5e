@@ -9,7 +9,7 @@ import {
   BookMarked,
   Sparkles
 } from "lucide-react";
-import type { HechizoBase, ClaseLanzadora } from "@/tipos";
+import type { HechizoBase, ClaseLanzadora, PersonajeJugador } from "@/tipos";
 import { coincideBusquedaTolerante, compararPorRelevanciaTitulo } from "@/utiles/busquedaTolerante";
 import {
   usarEstadoHomebrew,
@@ -40,7 +40,11 @@ const OPCIONES_NIVEL_FILTRO = [
 
 const CONJUROS_POR_PAGINA = 50;
 
-export const CompendioConjurosJugador: React.FC = () => {
+export interface CompendioConjurosJugadorProps {
+  personajeProp?: PersonajeJugador | null;
+}
+
+export const CompendioConjurosJugador: React.FC<CompendioConjurosJugadorProps> = ({ personajeProp }) => {
   const [pestañaActiva, setPestañaActiva] = useState<TipoPestañaConjuros>("miLista");
   const [mostrarFiltros, setMostrarFiltros] = useState<boolean>(false);
   const [busqueda, setBusqueda] = useState<string>("");
@@ -62,10 +66,11 @@ export const CompendioConjurosJugador: React.FC = () => {
   const sincronizarConjurosSubclase = usarAlmacenDM((state) => state.sincronizarConjurosSubclase);
 
   const personajeActivo = useMemo(() => {
+    if (personajeProp !== undefined) return personajeProp;
     if (!personajes || personajes.length === 0) return null;
     if (!idPersonajeActivo) return personajes[0];
     return personajes.find((p) => p.id === idPersonajeActivo) || personajes[0];
-  }, [personajes, idPersonajeActivo]);
+  }, [personajeProp, personajes, idPersonajeActivo]);
 
   React.useEffect(() => {
     if (
@@ -93,8 +98,9 @@ export const CompendioConjurosJugador: React.FC = () => {
     conteoEfectivo
   } = usarMagiaPersonaje(personajeActivo, baseDatosHechizos);
 
-  const esMago = useMemo(() => {
+  const esGrimorio = useMemo(() => {
     if (!personajeActivo) return false;
+    if (personajeActivo.clasesLanzadoras?.some((c: ClaseLanzadora) => c.modeloConjuros === "grimorio")) return true;
     const clasePrincipal = personajeActivo.clasesLanzadoras?.[0]?.clase || personajeActivo.clase || "";
     return clasePrincipal.toLowerCase().includes("mago") || clasePrincipal.toLowerCase().includes("wizard");
   }, [personajeActivo]);
@@ -102,20 +108,22 @@ export const CompendioConjurosJugador: React.FC = () => {
   const requierePreparacion = useMemo(() => {
     if (!personajeActivo) return false;
     if (!personajeActivo.clasesLanzadoras || personajeActivo.clasesLanzadoras.length === 0) return true;
-    return personajeActivo.clasesLanzadoras.some((c: ClaseLanzadora) => c.modeloConjuros === "preparados");
+    return personajeActivo.clasesLanzadoras.some(
+      (c: ClaseLanzadora) => c.modeloConjuros === "preparados" || c.modeloConjuros === "grimorio"
+    );
   }, [personajeActivo]);
 
   const esModeloConocidos = maximos.modelo === "conocidos";
-  const esPreparadorDivino = requierePreparacion && !esMago;
+  const esPreparadorSinGrimorio = requierePreparacion && !esGrimorio;
 
   // Auto-ajustar la pestaña activa según el perfil de magia del personaje
   React.useEffect(() => {
     if (esModeloConocidos && pestañaActiva === "preparados") {
       setPestañaActiva("miLista");
-    } else if (esPreparadorDivino && pestañaActiva === "miLista") {
+    } else if (esPreparadorSinGrimorio && pestañaActiva === "miLista") {
       setPestañaActiva("preparados");
     }
-  }, [esModeloConocidos, esPreparadorDivino, pestañaActiva]);
+  }, [esModeloConocidos, esPreparadorSinGrimorio, pestañaActiva]);
 
   const opcionesEscuelaFiltro = useMemo(() => {
     const escuelas = new Set<string>();
@@ -226,11 +234,11 @@ export const CompendioConjurosJugador: React.FC = () => {
         } else {
           agregarConjuroConocido(personajeActivo.id, hechizo.id);
         }
-      } else if (esPreparadorDivino) {
+      } else if (esPreparadorSinGrimorio) {
         // En preparadores divinos sin libro (Clérigo/Druida/Paladín): prepara o desprepara para el día
         alternarConjuroPreparado(personajeActivo.id, hechizo.id);
       } else {
-        // Mago (con libro de conjuros): agrega o quita del libro
+        // Mago / Grimorio (con libro de conjuros): agrega o quita del libro
         if (estaEnLista(hechizo)) {
           if (estaPreparado(hechizo)) {
             alternarConjuroPreparado(personajeActivo.id, hechizo.id);
@@ -254,7 +262,7 @@ export const CompendioConjurosJugador: React.FC = () => {
       }
       return;
     }
-    if (esMago && !estaEnLista(hechizo)) {
+    if (esGrimorio && !estaEnLista(hechizo)) {
       agregarConjuroConocido(personajeActivo.id, hechizo.id);
     }
     alternarConjuroPreparado(personajeActivo.id, hechizo.id);
@@ -286,7 +294,7 @@ export const CompendioConjurosJugador: React.FC = () => {
 
         <div className={estilos.filaPestañasYFiltro}>
           <div className={estilos.grupoPestañas}>
-            {/* 1. Preparados: oculto para clases de conocidos */}
+            {/* 1. Preparados / Conocido */}
             {!esModeloConocidos && (
               <button
                 type="button"
@@ -296,12 +304,12 @@ export const CompendioConjurosJugador: React.FC = () => {
                 }`}
               >
                 <Star size={13} fill={pestañaActiva === "preparados" ? "#fb923c" : "none"} />
-                <span>Preparados</span>
+                <span>{esGrimorio ? "Conocido" : "Preparados"}</span>
               </button>
             )}
 
             {/* 2. Mi lista / Libro de conjuros / Conocidos: oculto para preparadores divinos puros */}
-            {!esPreparadorDivino && (
+            {(!esPreparadorSinGrimorio || esGrimorio) && (
               <button
                 type="button"
                 onClick={() => setPestañaActiva("miLista")}
@@ -309,7 +317,7 @@ export const CompendioConjurosJugador: React.FC = () => {
                   pestañaActiva === "miLista" ? estilos.botonPestañaActiva : ""
                 }`}
               >
-                {esMago ? (
+                {esGrimorio ? (
                   <BookMarked size={13} />
                 ) : esModeloConocidos ? (
                   <Sparkles size={13} />
@@ -317,7 +325,7 @@ export const CompendioConjurosJugador: React.FC = () => {
                   <CheckSquare size={13} />
                 )}
                 <span>
-                  {esMago ? "Libro de conjuros" : esModeloConocidos ? "Conocidos" : "Mi lista"}
+                  {esGrimorio ? "Libro de conjuros" : esModeloConocidos ? "Conocidos" : "Mi lista"}
                 </span>
               </button>
             )}
@@ -334,7 +342,7 @@ export const CompendioConjurosJugador: React.FC = () => {
               <span>Disponibles</span>
             </button>
 
-            {/* 4. Todos */}
+            {/* 4. Todos / Otros */}
             <button
               type="button"
               onClick={() => setPestañaActiva("todos")}
@@ -343,7 +351,7 @@ export const CompendioConjurosJugador: React.FC = () => {
               }`}
             >
               <Globe size={13} />
-              <span>Todos</span>
+              <span>{esGrimorio ? "Otros" : "Todos"}</span>
             </button>
           </div>
 
@@ -399,12 +407,16 @@ export const CompendioConjurosJugador: React.FC = () => {
       <div className={estilos.areaLista}>
         {conjurosFiltrados.length === 0 ? (
           <div className={estilos.mensajeVacio}>
-            {pestañaActiva === "preparados" && "No tienes conjuros preparados actualmente."}
+            {pestañaActiva === "preparados" && (
+              esGrimorio
+                ? "No tienes conjuros conocidos actualmente. Marca la estrella en tu 'Libro de conjuros' para seleccionarlos."
+                : "No tienes conjuros preparados actualmente."
+            )}
             {pestañaActiva === "miLista" && (
               esModeloConocidos
                 ? "No tienes conjuros conocidos actualmente. Explora las pestañas 'Disponibles' o 'Todos' para aprenderlos."
-                : esMago
-                ? "No tienes conjuros inscritos en tu libro de conjuros. Explora las pestañas 'Disponibles' o 'Todos' para añadirlos."
+                : esGrimorio
+                ? "No tienes conjuros inscritos en tu libro de conjuros. Explora las pestañas 'Disponibles' u 'Otros' para añadirlos."
                 : "No tienes conjuros añadidos a tu lista. Explora las pestañas 'Disponibles' o 'Todos' para agregarlos."
             )}
             {pestañaActiva === "disponibles" &&
@@ -421,7 +433,7 @@ export const CompendioConjurosJugador: React.FC = () => {
             const preparado = estaPreparado(hechizo);
             const mostrarEstrella =
               !esModeloConocidos &&
-              (esPreparadorDivino || pestañaActiva === "miLista" || pestañaActiva === "preparados");
+              (esPreparadorSinGrimorio || pestañaActiva === "miLista" || pestañaActiva === "preparados");
 
             return (
               <FilaConjuroCompendio

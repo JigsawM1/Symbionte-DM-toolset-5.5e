@@ -188,7 +188,7 @@ describe("calculadorMagia - Reglas de Magia D&D 2024", () => {
       expect(maximos).toEqual({
         maxTrucos: 3,
         maxConjuros: 4,
-        modelo: "conocidos" // o preparados según la clase
+        modelo: "grimorio"
       });
     });
 

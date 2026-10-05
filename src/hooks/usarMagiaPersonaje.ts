@@ -85,7 +85,9 @@ export function usarMagiaPersonaje(
   // 2. Modelo de lanzamiento
   const requierePreparacion = useMemo(() => {
     if (!personaje?.clasesLanzadoras || personaje.clasesLanzadoras.length === 0) return true;
-    return personaje.clasesLanzadoras.some((c) => c.modeloConjuros === "preparados");
+    return personaje.clasesLanzadoras.some(
+      (c) => c.modeloConjuros === "preparados" || c.modeloConjuros === "grimorio"
+    );
   }, [personaje?.clasesLanzadoras]);
 
   const esLanzadorPacto = useMemo(() => {
@@ -231,7 +233,7 @@ export function usarMagiaPersonaje(
     let tLibres = 0;
     let tSubclase = 0;
 
-    const esModeloPreparados = maximos.modelo === "preparados";
+    const esModeloPreparacion = maximos.modelo === "preparados" || maximos.modelo === "grimorio";
 
     for (const h of baseDatosHechizos) {
       const hId = h.id;
@@ -263,9 +265,9 @@ export function usarMagiaPersonaje(
         }
       } else if (h.nivel >= 1 && h.nivel <= 9) {
         const preparado = otorgado || chequeoEnSet(setPreparadosIds);
-        const enLista = esModeloPreparados ? preparado : (chequeoEnSet(setConocidosIds) || preparado);
+        const enLista = esModeloPreparacion ? preparado : (chequeoEnSet(setConocidosIds) || preparado);
 
-        if (esModeloPreparados) {
+        if (esModeloPreparacion) {
           if (otorgado) {
             cSubclase++;
           } else if (preparado) {

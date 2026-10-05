@@ -17,6 +17,44 @@ Este archivo registra reglas globales, errores encontrados, sus causas raíz y l
    - **Bajo ninguna circunstancia** los módulos de lógica de negocio (`servicios/`), gestores de estado (`almacen/`), contratos (`tipos/`), valores de reglas (`constantes/`) ni funciones de soporte (`utiles/`) deben importar componentes visuales o archivos CSS (`componentes/`). Esta regla está reforzada en CI vía ESLint `no-restricted-imports`.
 6. **PROHIBICIÓN ESTRICTA DE BIFURCACIONES POR NOMBRE DE RASGO O CLASE (CATÁLOGO DECLARATIVO Y BUILDER PURO)**:
 
+## [2026-10-05] Mecánicas del Mago (PHB 2024 / D&D 5.5e): Subpestañas del Grimorio, Filtrado de Acciones y Desacoplamiento SSR
+
+**Contexto y Requerimientos del Usuario:**
+- El Mago (`modeloConjuros === "grimorio"`) debe ser la única clase con 4 subpestañas específicas en el compendio de conjuros (`CompendioConjurosJugador.tsx`): `"Conocido"`, `"Libro de conjuros"`, `"Disponibles"` y `"Otros"`.
+- En la pestaña de acciones de combate (`VistaAtaquesJugador` / `resolverConjurosAcciones`) y en la subpestaña de características (`PanelConjurosPersonaje` / `conjurosPorNivel`), únicamente deben mostrarse los conjuros que tiene conocidos/preparados para el día (marcados con la estrella o de subclase), excluyendo los que solo están registrados en su libro de conjuros.
+- Se debe preservar la mecánica interactiva donde marcar la estrella desde la subpestaña "Libro de conjuros" prepara el hechizo para pasar a "Conocido".
+
+**Causas Raíz y Desafíos Técnicos:**
+1. **Diferenciación de Modelos de Lanzamiento en Magia (`calculadorMagia.ts`):**
+   - `calcularMaximosConjurosYTrucos` devolvía `"preparados"` de forma genérica para todas las clases que requerían preparación, impidiendo a los componentes identificar declarativamente cuándo un personaje utiliza el modelo `"grimorio"` sin recurrir a nombres de clase cableados.
+2. **Filtrado en Hoja de Características y Acciones de Combate (`usarMagiaPersonaje.ts` y `calculadorAccionesCombate.ts`):**
+   - `usarMagiaPersonaje.ts` solo restringía `preparado: true` si `maximos.modelo === "preparados"`, dejando que en modelos no preparados o grimorio se listaran todos los conjuros aprendidos en el grimorio en vez de solo los preparados.
+3. **Trampa de `useSyncExternalStore` en Renderizado de Servidor / Pruebas SSR (`renderToStaticMarkup`):**
+   - En entornos Node bajo `renderToStaticMarkup`, React SSR invoca `getServerSnapshot()` de Zustand en lugar de `getSnapshot()`. Como `getServerSnapshot` recurre al estado inicial inmutable del store (`PERSONAJE_POR_DEFECTO`), las llamadas a `usarAlmacenDM.setState()` en pruebas unitarias no actualizaban el selector en SSR.
+
+**Soluciones Arquitectónicas Aplicadas:**
+1. **Modelo de Lanzamiento Declarativo Puro (`src/servicios/calculadorMagia.ts`):**
+   - `calcularMaximosConjurosYTrucos` ahora distingue explícitamente `modelo: esGrimorio ? "grimorio" : requierePreparacion ? "preparados" : "conocidos"`.
+2. **Blindaje de Pertenencia y Conteo (`src/servicios/logicaPertenenciaConjuros.ts` y `src/hooks/usarMagiaPersonaje.ts`):**
+   - `estaPreparado` y `esModeloPreparacion` integran `"grimorio"`. En la agrupación `conjurosPorNivel`, únicamente se agregan los conjuros que cuenten con `preparado: true` (marcados con estrella o de subclase).
+   - En `resolverConjurosAcciones`, los conjuros de nivel >= 1 solo se convierten en acciones si están preparados (`conjurosPreparadosIds` o subclase), manteniendo fuera los conjuros del grimorio no preparados.
+3. **Subpestañas Exclusivas del Compendio (`CompendioConjurosJugador.tsx`):**
+   - Subpestaña 1: `"preparados"` etiquetada como `esGrimorio ? "Conocido" : "Preparados"`.
+   - Subpestaña 2: `"miLista"` etiquetada como `esGrimorio ? "Libro de conjuros" : ...` (oculta para preparadores sin grimorio, visible para el Mago).
+   - Subpestaña 3: `"disponibles"` etiquetada como `"Disponibles"`.
+   - Subpestaña 4: `"todos"` etiquetada como `esGrimorio ? "Otros" : "Todos"`.
+   - La estrella permanece interactiva en la pestaña `"miLista"` para permitir marcar o desmarcar el hechizo directamente entre el Libro de Conjuros y Conocidos.
+4. **Inversión de Dependencias en el Compendio (`CompendioConjurosJugadorProps`):**
+   - Se añadió `personajeProp?: PersonajeJugador | null` al compendio. Si se proporciona, el componente consume directamente esa entidad de forma determinista y pura, desacoplándose de los efectos colaterales de SSR en Zustand y preservando a la vez 100% de compatibilidad reactiva hacia atrás cuando no se suministra la prop.
+
+**Certificación de Calidad y Pipeline de CI:**
+- **TypeScript:** `pnpm exec tsc --noEmit` completado con 0 errores bajo `strict: true`.
+- **ESLint:** `pnpm run lint` completado con 0 errores y 0 advertencias (`--max-warnings=0`).
+- **Vitest:** 106 suites ejecutadas, **1.603 / 1.603 pruebas aprobadas al 100%**.
+- **Límites de Líneas:** 117 archivos auditados, 0 archivos > 500 líneas.
+
+---
+
 ## [2026-10-05] Integración de Rama Mago PHB 2024 en Main: Fusión, Resolución de Conflictos y Certificación Total de CI
 
 **Alcance de la Integración:**

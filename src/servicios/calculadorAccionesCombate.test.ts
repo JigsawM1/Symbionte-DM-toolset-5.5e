@@ -684,7 +684,7 @@ describe("calculadorAccionesCombate - Resolución de Conjuros en Acciones de Com
             nivel: 3,
             habilidadConjuro: "inteligencia",
             tipoLanzador: "completo",
-            modeloConjuros: "preparados"
+            modeloConjuros: "grimorio"
           }
         ],
         // Tiene Bendición y Curar heridas en su grimorio, pero solo preparó Bendición

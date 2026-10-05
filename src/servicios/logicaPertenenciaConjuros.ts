@@ -203,6 +203,8 @@ export function crearPredicadosPertenencia(params: ParametrosPertenencia): Predi
         verificarEnSet(sets.setPreparadosIds, hechizo.id, clavesLookup)
       );
     }
+    // Para modelos "preparados" y "grimorio" (Mago):
+    // Únicamente están preparados los conjuros incluidos en sets.setPreparadosIds
     return verificarEnSet(sets.setPreparadosIds, hechizo.id, clavesLookup);
   };
 

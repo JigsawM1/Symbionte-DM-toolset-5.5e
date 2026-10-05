@@ -8,9 +8,11 @@ import {
 } from "@/servicios/rasgos/evaluadorConjurosRasgos";
 import { ejecutarDescansoCorto, ejecutarDescansoLargo } from "@/servicios/procesadorDescansos";
 import { calcularPresupuestoRecuperacion, calcularHpTemporalDeEfecto, obtenerEfectoHpTemporalRasgo } from "@/servicios/rasgos";
+import { resolverConjurosAcciones } from "@/servicios/calculadorAccionesCombate";
+import { calcularMaximosConjurosYTrucos } from "@/servicios/calculadorMagia";
 import { usarAlmacenDM } from "@/almacen/usarAlmacenDM";
 import { PERSONAJE_POR_DEFECTO } from "@/constantes/personajeConstantes";
-import type { PersonajeJugador, RasgoPersonaje } from "@/tipos";
+import type { PersonajeJugador, RasgoPersonaje, HechizoBase } from "@/tipos";
 
 function crearMagoBase(nivel: number = 1): PersonajeJugador {
   const magoDef = CATALOGO_CLASES_DND55.find((c) => c.id === "mago")!;
@@ -573,6 +575,110 @@ describe("Mago D&D 5.5e (2024) - Catálogo, Builder y Mecánicas Canónicas", ()
         const pjActualizado = usarAlmacenDM.getState().personajes.find((p) => p.id === pj.id)!;
         expect(pjActualizado.hpTemporal).toBe(10);
       });
+    });
+  });
+
+  describe("Distinción Canónica de Grimorio (Libro de Conjuros) vs Conocidos/Preparados", () => {
+    const baseDatosConjurosPrueba: HechizoBase[] = [
+      {
+        id: "truco_fuego",
+        nombre: "Rayo de fuego",
+        nivel: 0,
+        escuela: "Evocación",
+        tiempoLanzamiento: "1 acción",
+        alcance: "120 pies",
+        componentesSeleccionados: { verbal: true, somatico: true, material: false },
+        descripcion: "Lanzas un rayo de fuego.",
+        duracion: "Instantánea",
+        concentracion: false,
+        ritual: false
+      },
+      {
+        id: "escudo_mago",
+        nombre: "Escudo",
+        nivel: 1,
+        escuela: "Abjuración",
+        tiempoLanzamiento: "1 reacción",
+        alcance: "Personal",
+        componentesSeleccionados: { verbal: true, somatico: true, material: false },
+        descripcion: "Una barrera invisible de fuerza te protege.",
+        duracion: "1 ronda",
+        concentracion: false,
+        ritual: false
+      },
+      {
+        id: "armadura_mago_hechizo",
+        nombre: "Armadura de mago",
+        nivel: 1,
+        escuela: "Abjuración",
+        tiempoLanzamiento: "1 acción",
+        alcance: "Contacto",
+        componentesSeleccionados: { verbal: true, somatico: true, material: true },
+        descripcion: "Proteges a un objetivo no acorazado.",
+        duracion: "8 horas",
+        concentracion: false,
+        ritual: false
+      },
+      {
+        id: "bola_fuego",
+        nombre: "Bola de fuego",
+        nivel: 3,
+        escuela: "Evocación",
+        tiempoLanzamiento: "1 acción",
+        alcance: "150 pies",
+        componentesSeleccionados: { verbal: true, somatico: true, material: true },
+        descripcion: "Una brillante llamarada verde explota en una esfera.",
+        duracion: "Instantánea",
+        concentracion: false,
+        ritual: false
+      }
+    ];
+
+    it("el Mago con modeloConjuros: 'grimorio' reporta modelo 'grimorio' en calcularMaximosConjurosYTrucos", () => {
+      const pj = crearMagoBase(5);
+      const maximos = calcularMaximosConjurosYTrucos(pj.clasesLanzadoras, 5, 4);
+      expect(maximos.modelo).toBe("grimorio");
+      expect(maximos.maxTrucos).toBe(4);
+      expect(maximos.maxConjuros).toBe(9); // Nivel 5: 9 preparados según tabla
+    });
+
+    it("un Mago con conjuros en su libro solo muestra en acciones de combate los que ha preparado (con estrellita)", () => {
+      const pj = crearMagoBase(3);
+      const pjConConjuros: PersonajeJugador = {
+        ...pj,
+        trucosConocidosIds: ["truco_fuego"],
+        // Tiene Escudo y Bola de Fuego en su grimorio (libro de conjuros)
+        conjurosConocidosIds: ["escudo_mago", "bola_fuego"],
+        // Pero SOLO ha preparado Escudo (con la estrellita)
+        conjurosPreparadosIds: ["escudo_mago"]
+      };
+
+      const conjurosEnAcciones = resolverConjurosAcciones(pjConConjuros, baseDatosConjurosPrueba);
+      const nombres = conjurosEnAcciones.map((c) => c.hechizo.nombre);
+
+      // El truco siempre está disponible en combate
+      expect(nombres).toContain("Rayo de fuego");
+      // Escudo está preparado -> debe estar en combate
+      expect(nombres).toContain("Escudo");
+      // Bola de Fuego solo está en el libro de conjuros -> NO debe aparecer en combate
+      expect(nombres).not.toContain("Bola de fuego");
+    });
+
+    it("al preparar Bola de Fuego desde el libro de conjuros pasa a estar disponible en combate", () => {
+      const pj = crearMagoBase(5);
+      const pjPreparado: PersonajeJugador = {
+        ...pj,
+        trucosConocidosIds: ["truco_fuego"],
+        conjurosConocidosIds: ["escudo_mago", "bola_fuego"],
+        conjurosPreparadosIds: ["escudo_mago", "bola_fuego"]
+      };
+
+      const conjurosEnAcciones = resolverConjurosAcciones(pjPreparado, baseDatosConjurosPrueba);
+      const nombres = conjurosEnAcciones.map((c) => c.hechizo.nombre);
+
+      expect(nombres).toContain("Rayo de fuego");
+      expect(nombres).toContain("Escudo");
+      expect(nombres).toContain("Bola de fuego");
     });
   });
 });

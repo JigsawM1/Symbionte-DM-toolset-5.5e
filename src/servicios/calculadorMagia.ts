@@ -330,13 +330,17 @@ export function calcularMaximosConjurosYTrucos(
   let totalMaxTrucos = 0;
   let totalMaxConjuros = 0;
   let requierePreparacion = false;
+  let esGrimorio = false;
   let huboCoincidencia = false;
 
   for (const claseItem of clasesLanzadoras) {
     const clave = normalizarClaveClase(claseItem.clase, claseItem.tipoLanzador);
     const niv = Math.min(20, Math.max(1, Math.floor(claseItem.nivel) || 1));
 
-    if (claseItem.modeloConjuros === "preparados") {
+    if (claseItem.modeloConjuros === "grimorio" || clave === "mago") {
+      esGrimorio = true;
+      requierePreparacion = true;
+    } else if (claseItem.modeloConjuros === "preparados") {
       requierePreparacion = true;
     }
 
@@ -355,13 +359,16 @@ export function calcularMaximosConjurosYTrucos(
     const niv = Math.min(20, Math.max(1, Math.floor(nivelTotalPersonaje) || 1));
     totalMaxTrucos = Math.max(2, Math.floor(niv / 4) + 2);
     totalMaxConjuros = Math.max(1, niv + Math.max(0, modificadorHabilidad));
-    requierePreparacion = clasesLanzadoras.some((c) => c.modeloConjuros === "preparados");
+    requierePreparacion = clasesLanzadoras.some(
+      (c) => c.modeloConjuros === "preparados" || c.modeloConjuros === "grimorio"
+    );
+    esGrimorio = clasesLanzadoras.some((c) => c.modeloConjuros === "grimorio");
   }
 
   return {
     maxTrucos: totalMaxTrucos,
     maxConjuros: totalMaxConjuros,
-    modelo: requierePreparacion ? "preparados" : "conocidos"
+    modelo: esGrimorio ? "grimorio" : requierePreparacion ? "preparados" : "conocidos"
   };
 }
 

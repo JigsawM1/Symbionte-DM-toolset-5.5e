@@ -22,9 +22,10 @@
     "opciones": [
       "arcanos",
       "historia",
-      "perspicacia",
       "investigacion",
       "medicina",
+      "naturaleza",
+      "perspicacia",
       "religion"
     ]
   },
@@ -45,7 +46,37 @@
       "nombre": "Lanzamiento de conjuros",
       "descripcion": "Como estudiante de la magia arcana, has aprendido a lanzar conjuros. La información presentada a continuación detalla cómo usas esas reglas con los conjuros de mago.\n\n***Trucos.*** Conoces tres trucos de mago de tu elección. Se recomiendan *luz*, *mano de mago* y *rayo de escarcha*. Cada vez que finalices un descanso largo, puedes sustituir uno de tus trucos de este rasgo por otro truco de mago de tu elección.\nCuando alcances los niveles 4 y 10 de mago, aprenderás otro truco de mago de tu elección\"\n\n***Libro de conjuros.*** Tu aprendizaje mágico culminó con la creación de un libro único: tu libro de conjuros. Es un objeto Diminuto que pesa 3 libras, contiene 100 páginas y solo puedes leerlo tú o alguien que lance *identificar*. Tú determinas la apariencia y los materiales del libro, como un tomo con cantos dorados o una colección de vitela atada con cordel.\nEl libro contiene los conjuros de nivel 1 y superiores que conoces. Empieza con seis conjuros de mago de nivel 1 de tu elección. Se recomiendan *detectar magia*, *caída de pluma*, *armadura de mago*, *proyectil mágico*, *dormir* y *ola atronadora*.\nCada vez que subas un nivel de mago tras el primero, añade dos conjuros de mago de tu elección a tu libro de conjuros. Cada uno de estos conjuros debe ser de un nivel para el que tengas espacios de conjuro. Los conjuros son la culminación de la investigación arcana que realizas regularmente.\n\n***Espacios de conjuro.*** La tabla \"Rasgos de mago\" muestra cuántos espacios de conjuro tienes para lanzar tus conjuros de nivel 1 y superiores. Recuperas todos los espacios utilizados tras finalizar un descanso largo.\n\n***Conjuros preparados de nivel 1 y superiores.*** Preparas la lista de conjuros de nivel 1 y superiores que están disponibles para que los lances con este rasgo. Para hacerlo, elige cuatro conjuros de tu libro de conjuros. Los conjuros elegidos deben ser de un nivel para el que tengas espacios de conjuro.\nEl número de conjuros de tu lista aumenta conforme subes de nivel de mago. Cada vez que ese número aumente, elige conjuros de mago adicionales hasta que el número de conjuros de tu lista coincida con el número de la tabla. Los conjuros elegidos deben ser de un nivel para el que tengas espacios de conjuro. Por ejemplo, si eres un mago de nivel 3, tu lista de conjuros preparados puede incluir seis conjuros de niveles 1 y 2 en cualquier combinación, elegidos de tu libro de conjuros.\nSi otro rasgo de mago te proporciona conjuros que siempre tienes preparados, esos conjuros no cuentan para el número de conjuros que puedes preparar con este rasgo, pero por lo demás cuentan como conjuros de mago para ti.\n\n***Cambiar tus conjuros preparados.*** Cada vez que finalices un descanso largo, puedes cambiar tu lista de conjuros preparados, reemplazando cualquiera de los conjuros de ella por conjuros de tu libro de conjuros.\n\n***Aptitud mágica.*** La Inteligencia es tu aptitud mágica en lo que respecta a tus conjuros de mago.\n\n***Canalizador mágico.*** Puedes utilizar un *canalizador arcano* o tu libro de conjuros como canalizador mágico para tus conjuros de mago.",
       "tipoAccion": "pasivo",
-      "categoriaMecanica": "pasivo_permanente"
+      "categoriaMecanica": "pasivo_permanente",
+      "tablaProgresion": {
+        "columnas": [
+          "Nivel",
+          "Trucos conocidos",
+          "Conjuros preparados"
+        ],
+        "filas": [
+          { "nivel": 1, "valores": ["3", "4"] },
+          { "nivel": 2, "valores": ["3", "5"] },
+          { "nivel": 3, "valores": ["3", "6"] },
+          { "nivel": 4, "valores": ["4", "7"] },
+          { "nivel": 5, "valores": ["4", "9"] },
+          { "nivel": 6, "valores": ["4", "10"] },
+          { "nivel": 7, "valores": ["4", "11"] },
+          { "nivel": 8, "valores": ["4", "12"] },
+          { "nivel": 9, "valores": ["4", "14"] },
+          { "nivel": 10, "valores": ["5", "15"] },
+          { "nivel": 11, "valores": ["5", "16"] },
+          { "nivel": 12, "valores": ["5", "16"] },
+          { "nivel": 13, "valores": ["5", "17"] },
+          { "nivel": 14, "valores": ["5", "18"] },
+          { "nivel": 15, "valores": ["5", "19"] },
+          { "nivel": 16, "valores": ["5", "21"] },
+          { "nivel": 17, "valores": ["5", "22"] },
+          { "nivel": 18, "valores": ["5", "23"] },
+          { "nivel": 19, "valores": ["5", "24"] },
+          { "nivel": 20, "valores": ["5", "25"] }
+        ],
+        "notaPie": "Cada nivel reemplaza al anterior."
+      }
     },
     {
       "nivel": 1,
@@ -232,7 +263,7 @@
       "nivel": 20,
       "nombre": "Conjuros predilectos",
       "descripcion": "Elige dos conjuros de nivel 3 de tu libro de conjuros como tus conjuros predilectos. Siempre tienes estos conjuros preparados y puedes lanzar cada uno de ellos una vez a nivel 3 sin gastar un espacio de conjuro. Cuando lo hagas, no podrás volver a lanzarlos de esta manera hasta que finalices un descanso corto o largo. Para lanzar cualquiera de los dos conjuros a un nivel superior, debes gastar un espacio de conjuro.",
-      "tipoAccion": "pasivo",
+      "tipoAccion": "especial",
       "categoriaMecanica": "consumible",
       "tieneUsosLimitados": true,
       "usosMaximos": 2,
@@ -288,7 +319,7 @@
               "valorActual": [],
               "claveOpcionesDinamicas": "conjuros_abjuracion_1_2_mago",
               "claveGruposDinamicos": "grupos_abjuracion_mago",
-              "esConjuroGratuito": true
+              "destinoConjuros": "libro"
             }
           ]
         },
@@ -296,18 +327,24 @@
           "nivel": 3,
           "nombre": "Salvaguarda arcana",
           "descripcion": "Puedes tejer magia a tu alrededor para protegerte. Cuando lanzas un conjuro de Abjuración con un espacio de conjuro, puedes usar simultáneamente una hebra de la magia del conjuro para crear una salvaguarda mágica sobre ti que dura hasta que finalices un descanso largo. La salvaguarda tiene unos puntos de golpe máximos iguales al doble de tu nivel de mago más tu modificador por Inteligencia.\n\nCada vez que sufras daño, la salvaguarda sufre el daño en tu lugar, y si tienes alguna resistencia o vulnerabilidad, aplícalas antes de reducir los puntos de golpe de la salvaguarda. Si el daño reduce la salvaguarda a 0 puntos de golpe, sufres el daño restante. Mientras la salvaguarda tenga 0 puntos de golpe, no puede absorber daño, pero su magia permanece.\n\nCada vez que lanzas un conjuro de Abjuración con un espacio de conjuro, la salvaguarda recupera una cantidad de puntos de golpe igual al doble del nivel del espacio de conjuro. Como alternativa, como acción adicional, puedes gastar un espacio de conjuro y la salvaguarda recuperará una cantidad de puntos de golpe igual al doble del nivel del espacio de conjuro gastado.\n\nUna vez que crees la salvaguarda, no podrás volver a crearla hasta que finalices un descanso largo.",
-          "tipoAccion": "accion_adicional",
+          "tipoAccion": "especial",
           "categoriaMecanica": "consumible",
           "subclase": "Abjurador",
-          "esActivable": true,
           "tieneUsosLimitados": true,
           "usosMaximos": 1,
           "recuperacion": "descanso_largo",
-          "condicionAlActivar": "Salvaguarda arcana",
-          "duracionEfectoAlActivar": 800,
-          "formulaDados": "2 * nivel + inteligencia",
           "recargaConEspacio": true,
-          "multiplicadorRecargaEspacio": 2
+          "multiplicadorRecargaEspacio": 2,
+          "efectos": [
+            {
+              "tipo": "hp_temporal",
+              "objetivo": "propio",
+              "valor": "2 * nivel_mago + inteligencia",
+              "condicion": "",
+              "descripcion": "Puntos de golpe temporales iguales a 2 x nivel de mago + modificador por Inteligencia",
+              "activo": true
+            }
+          ]
         },
         {
           "nivel": 6,
@@ -402,7 +439,7 @@
               "valorActual": [],
               "claveOpcionesDinamicas": "conjuros_adivinacion_1_2_mago",
               "claveGruposDinamicos": "grupos_adivinacion_mago",
-              "esConjuroGratuito": true
+              "destinoConjuros": "libro"
             }
           ]
         },
@@ -417,6 +454,17 @@
           "usosMaximos": 2,
           "recuperacion": "descanso_largo",
           "formulaDados": "2d20",
+          "escaladoUsos": {
+            "tipo": "por_nivel",
+            "tabla": [
+              { "nivelMinimo": 3, "valor": 2 },
+              { "nivelMinimo": 14, "valor": 3 }
+            ]
+          },
+          "escaladoFormulaDados": [
+            { "nivelMinimo": 3, "valor": "2d20" },
+            { "nivelMinimo": 14, "valor": "3d20" }
+          ],
           "guardaDadosTirada": true,
           "dadosGuardados": [],
           "tablaProgresion": {
@@ -479,11 +527,6 @@
                   "descripcion": "Ganas visión en la oscuridad con un alcance de 120 pies."
                 },
                 {
-                  "id": "vision_eterea",
-                  "nombre": "Visión etérea (60 pies)",
-                  "descripcion": "Puedes ver en el Plano Etéreo hasta una distancia de 60 pies."
-                },
-                {
                   "id": "comprension_superior",
                   "nombre": "Comprensión mayor",
                   "descripcion": "Puedes leer cualquier idioma escrito."
@@ -491,13 +534,12 @@
                 {
                   "id": "ver_invisibilidad",
                   "nombre": "Ver invisibilidad (60 pies)",
-                  "descripcion": "Puedes lanzar ver invisibilidad sin gastar un espacio de conjuro."
+                  "descripcion": "Puedes lanzar ver invisibilidad sin gastar un espacio de conjuro.",
+                  "conjuroGratuito": "Ver invisibilidad",
+                  "recuperacionConjuro": "ilimitado"
                 }
               ]
             }
-          ],
-          "conjurosOtorgados": [
-            "Ver invisibilidad"
           ]
         },
         {
@@ -549,7 +591,7 @@
               "valorActual": [],
               "claveOpcionesDinamicas": "conjuros_evocacion_1_2_mago",
               "claveGruposDinamicos": "grupos_evocacion_mago",
-              "esConjuroGratuito": true
+              "destinoConjuros": "libro"
             }
           ]
         },
@@ -598,7 +640,36 @@
           "tieneUsosLimitados": true,
           "usosMaximos": 1,
           "recuperacion": "descanso_largo",
-          "formulaDados": "2d12"
+          "tablaProgresion": {
+            "columnas": [
+              "Uso",
+              "Daño necrótico por nivel de espacio"
+            ],
+            "filas": [
+              {
+                "nivel": 14,
+                "valores": [
+                  "Primer uso",
+                  "Ninguno (gratuito)"
+                ]
+              },
+              {
+                "nivel": 14,
+                "valores": [
+                  "Segundo uso",
+                  "2d12 por nivel de conjuro"
+                ]
+              },
+              {
+                "nivel": 14,
+                "valores": [
+                  "Cada uso posterior",
+                  "+1d12 adicional por nivel"
+                ]
+              }
+            ],
+            "notaPie": "El daño necrótico ignora resistencia e inmunidad."
+          }
         }
       ]
     },
@@ -638,7 +709,7 @@
               "valorActual": [],
               "claveOpcionesDinamicas": "conjuros_ilusion_1_2_mago",
               "claveGruposDinamicos": "grupos_ilusion_mago",
-              "esConjuroGratuito": true
+              "destinoConjuros": "libro"
             }
           ]
         },
@@ -657,11 +728,11 @@
           "nivel": 6,
           "nombre": "Criaturas fantasmales",
           "descripcion": "Siempre tienes los conjuros *invocar bestia* e *invocar feérico* preparados. Cada vez que lances cualquiera de los dos conjuros, puedes cambiar su escuela a Ilusión, lo que hace que la criatura invocada parezca espectral. Puedes lanzar la versión de Ilusión de cada conjuro sin gastar un espacio de conjuro, pero lanzarlo sin un espacio reduce a la mitad los puntos de golpe de la criatura. Una vez que lances cualquiera de los dos conjuros sin un espacio de conjuro, debes finalizar un descanso largo antes de poder volver a lanzarlo de esa manera.",
-          "tipoAccion": "pasivo",
+          "tipoAccion": "especial",
           "categoriaMecanica": "consumible",
           "subclase": "Ilusionista",
           "tieneUsosLimitados": true,
-          "usosMaximos": 1,
+          "usosMaximos": 2,
           "recuperacion": "descanso_largo",
           "conjurosOtorgados": [
             "Invocar bestia",
@@ -684,9 +755,8 @@
           "nombre": "Realidad ilusoria",
           "descripcion": "Has aprendido a tejer magia de sombras en tus ilusiones para darles una semirrealidad. Cuando lanzas un conjuro de Ilusión con un espacio de conjuro, puedes elegir un objeto inanimado y no mágico que sea parte de la ilusión y hacer que ese objeto sea real. Puedes hacerlo en tu turno como acción adicional mientras el conjuro continúe activo. El objeto permanece real durante 1 minuto, tiempo durante el cual no puede infligir daño ni imponer ningún estado. Por ejemplo, puedes crear la ilusión de un puente sobre un abismo y luego hacerlo real para cruzarlo.",
           "tipoAccion": "accion_adicional",
-          "categoriaMecanica": "activable",
-          "subclase": "Ilusionista",
-          "esActivable": true
+          "categoriaMecanica": "pasivo_permanente",
+          "subclase": "Ilusionista"
         }
       ],
       "progresionConjuros": [

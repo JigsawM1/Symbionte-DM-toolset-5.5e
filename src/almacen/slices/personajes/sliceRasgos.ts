@@ -13,8 +13,17 @@ import {
   aplicarAprendizDeMuchoAGradosHabilidades,
   calcularBonoHPMaximoRasgos,
   calcularUsosMaximosRasgo,
-  esRasgoHabilitadoPorOpcion
+  esRasgoHabilitadoPorOpcion,
+  calcularHpTemporalDeEfecto,
+  obtenerEfectoHpTemporalRasgo
 } from "@/servicios/evaluadorEfectosRasgos";
+import {
+  esSelectorDeConjuros,
+  esSelectorSoloLibro,
+  agregarValoresSelectorAListas,
+  quitarValoresSelectorDeListas,
+  type ListasConjurosSelector
+} from "./selectoresConjurosHelpers";
 import { aplicarCondicion } from "@/servicios/procesadorCondiciones";
 import { mutarPersonaje } from "../helpers/mutarPersonaje";
 import type { SubSliceRasgos } from "./slicePersonajesTipos";
@@ -55,10 +64,10 @@ export const crearSubSliceRasgos: StateCreator<
       const nuevoBase = Math.max(1, (pj.hpMaximoBase || pj.hpMaximo || 10) + deltaBono);
       const nuevoMax = Math.max(1, (pj.hpMaximo || 1) + deltaBono);
 
-      let conjurosSiempre = [...(pj.conjurosSiemprePreparadosIds || [])];
-      let conjurosPrep = [...(pj.conjurosPreparadosIds || [])];
-      let conjurosConoc = [...(pj.conjurosConocidosIds || [])];
-      let trucosConoc = [...(pj.trucosConocidosIds || [])];
+      const conjurosSiempre = [...(pj.conjurosSiemprePreparadosIds || [])];
+      const conjurosPrep = [...(pj.conjurosPreparadosIds || [])];
+      const conjurosConoc = [...(pj.conjurosConocidosIds || [])];
+      const trucosConoc = [...(pj.trucosConocidosIds || [])];
 
       if (Array.isArray(rasgoAjustado.conjurosOtorgados)) {
         for (const c of rasgoAjustado.conjurosOtorgados) {
@@ -70,31 +79,16 @@ export const crearSubSliceRasgos: StateCreator<
         }
       }
 
+      let listas: ListasConjurosSelector = {
+        siempre: conjurosSiempre,
+        preparados: conjurosPrep,
+        conocidos: conjurosConoc,
+        trucos: trucosConoc
+      };
       if (Array.isArray(rasgoAjustado.selectores)) {
         for (const s of rasgoAjustado.selectores) {
-          const sid = s.id.toLowerCase();
-          const esMagico =
-            s.tipoSelector === "conjuro" ||
-            Boolean(s.esConjuroGratuito) ||
-            sid.includes("truco") ||
-            sid.includes("conjuro") ||
-            sid.includes("hechizo") ||
-            sid.includes("spell") ||
-            sid.includes("cantrip") ||
-            sid.includes("ritual");
-          if (esMagico && Array.isArray(s.valorActual)) {
-            const esTruco = sid.includes("truco") || sid.includes("cantrip");
-            for (const v of s.valorActual) {
-              if (v) {
-                if (esTruco) {
-                  if (!trucosConoc.includes(v)) trucosConoc.push(v);
-                } else {
-                  if (!conjurosSiempre.includes(v)) conjurosSiempre.push(v);
-                  if (!conjurosPrep.includes(v)) conjurosPrep.push(v);
-                  if (!conjurosConoc.includes(v)) conjurosConoc.push(v);
-                }
-              }
-            }
+          if (esSelectorDeConjuros(s) && Array.isArray(s.valorActual)) {
+            listas = agregarValoresSelectorAListas(s, s.valorActual, listas);
           }
         }
       }
@@ -104,10 +98,10 @@ export const crearSubSliceRasgos: StateCreator<
         hpMaximoBase: nuevoBase,
         hpMaximo: nuevoMax,
         hpActual: Math.min(pj.hpActual + (deltaBono > 0 ? deltaBono : 0), nuevoMax),
-        conjurosSiemprePreparadosIds: conjurosSiempre,
-        conjurosPreparadosIds: conjurosPrep,
-        conjurosConocidosIds: conjurosConoc,
-        trucosConocidosIds: trucosConoc
+        conjurosSiemprePreparadosIds: listas.siempre,
+        conjurosPreparadosIds: listas.preparados,
+        conjurosConocidosIds: listas.conocidos,
+        trucosConocidosIds: listas.trucos
       };
     });
   },
@@ -676,16 +670,7 @@ export const crearSubSliceRasgos: StateCreator<
           // Sincronizar reactivamente conjurosOtorgados a partir de los selectores de magia/conjuros
           const esRasgoConMagia =
             r.conjurosOtorgados !== undefined ||
-            r.selectores.some((s) => {
-              const sid = s.id.toLowerCase();
-              return (
-                sid.includes("truco") ||
-                sid.includes("conjuro") ||
-                sid.includes("hechizo") ||
-                sid.includes("spell") ||
-                sid.includes("ritual")
-              );
-            });
+            r.selectores.some((s) => esSelectorDeConjuros(s));
 
           let conjurosOtorgadosActualizados = r.conjurosOtorgados ? [...r.conjurosOtorgados] : [];
 
@@ -694,14 +679,7 @@ export const crearSubSliceRasgos: StateCreator<
             const idsOpcionesSelectoresMagicos = new Set<string>();
 
             for (const s of selectoresActualizados) {
-              const sid = s.id.toLowerCase();
-              if (
-                sid.includes("truco") ||
-                sid.includes("conjuro") ||
-                sid.includes("hechizo") ||
-                sid.includes("spell") ||
-                sid.includes("ritual")
-              ) {
+              if (esSelectorDeConjuros(s) && !esSelectorSoloLibro(s)) {
                 (s.opciones || []).forEach((o) => idsOpcionesSelectoresMagicos.add(o.id));
                 for (const v of s.valorActual || []) {
                   if (v && !nuevosMagicos.includes(v)) {
@@ -821,47 +799,30 @@ export const crearSubSliceRasgos: StateCreator<
       // Sincronizar trucosConocidosIds del personaje
       let trucosConocidosActualizados = pj.trucosConocidosIds || [];
 
-      // Sincronizar selectores de trucos y conjuros (ej. Iniciado en la Magia, Lanzador Ritual)
-      const selectorModificadoLower = idSelector.toLowerCase();
-      const esSelectorTruco = selectorModificadoLower.includes("truco") || selectorModificadoLower.includes("cantrip");
-      const esSelectorConjuro =
-        selectorModificadoLower.includes("conjuro") ||
-        selectorModificadoLower.includes("hechizo") ||
-        selectorModificadoLower.includes("spell") ||
-        selectorModificadoLower.includes("ritual");
-
-      if (esSelectorTruco && Array.isArray(valorActual)) {
-        const rasgoPrevio = (pj.rasgos || []).find((r) => r.id === idRasgo);
-        const selectorPrevio = rasgoPrevio?.selectores?.find((s) => s.id === idSelector);
-        const valoresViejos = selectorPrevio?.valorActual || [];
-        trucosConocidosActualizados = trucosConocidosActualizados.filter((t) => !valoresViejos.includes(t) || valorActual.includes(t));
-        valorActual.forEach((v) => {
-          if (v && !trucosConocidosActualizados.includes(v)) {
-            trucosConocidosActualizados.push(v);
-          }
-        });
-      }
-
       let conjurosSiempreActualizados = pj.conjurosSiemprePreparadosIds || [];
       let conjurosPreparadosActualizados = pj.conjurosPreparadosIds || [];
       let conjurosConocidosActualizados = pj.conjurosConocidosIds || [];
 
-      if (esSelectorConjuro && !esSelectorTruco && Array.isArray(valorActual)) {
-        const rasgoPrevio = (pj.rasgos || []).find((r) => r.id === idRasgo);
-        const selectorPrevio = rasgoPrevio?.selectores?.find((s) => s.id === idSelector);
+      // Sincronizar selectores de trucos y conjuros (ej. Iniciado en la Magia, Lanzador Ritual, Erudito)
+      const rasgoPrevio = (pj.rasgos || []).find((r) => r.id === idRasgo);
+      const selectorPrevio = rasgoPrevio?.selectores?.find((s) => s.id === idSelector);
+      const rasgoActual = rasgosActualizados.find((r) => r.id === idRasgo);
+      const selectorActual = rasgoActual?.selectores?.find((s) => s.id === idSelector) || selectorPrevio;
+
+      if (selectorActual && esSelectorDeConjuros(selectorActual) && Array.isArray(valorActual)) {
         const valoresViejos = selectorPrevio?.valorActual || [];
-
-        conjurosSiempreActualizados = conjurosSiempreActualizados.filter((c) => !valoresViejos.includes(c) || valorActual.includes(c));
-        conjurosPreparadosActualizados = conjurosPreparadosActualizados.filter((c) => !valoresViejos.includes(c) || valorActual.includes(c));
-        conjurosConocidosActualizados = conjurosConocidosActualizados.filter((c) => !valoresViejos.includes(c) || valorActual.includes(c));
-
-        valorActual.forEach((v) => {
-          if (v) {
-            if (!conjurosSiempreActualizados.includes(v)) conjurosSiempreActualizados.push(v);
-            if (!conjurosPreparadosActualizados.includes(v)) conjurosPreparadosActualizados.push(v);
-            if (!conjurosConocidosActualizados.includes(v)) conjurosConocidosActualizados.push(v);
-          }
-        });
+        let listas: ListasConjurosSelector = {
+          siempre: conjurosSiempreActualizados,
+          preparados: conjurosPreparadosActualizados,
+          conocidos: conjurosConocidosActualizados,
+          trucos: trucosConocidosActualizados
+        };
+        listas = quitarValoresSelectorDeListas(selectorActual, valoresViejos, listas);
+        listas = agregarValoresSelectorAListas(selectorActual, valorActual, listas);
+        conjurosSiempreActualizados = listas.siempre;
+        conjurosPreparadosActualizados = listas.preparados;
+        conjurosConocidosActualizados = listas.conocidos;
+        trucosConocidosActualizados = listas.trucos;
       }
 
       // Sincronizar reactivamente estado activo, trucos y conjuros procedentes de rasgos hijos condicionados por requiereOpcion
@@ -875,34 +836,22 @@ export const crearSubSliceRasgos: StateCreator<
           }
           if (Array.isArray(r.selectores)) {
             for (const s of r.selectores) {
-              const sid = s.id.toLowerCase();
-              const esTruco = sid.includes("truco") || sid.includes("cantrip");
-              const esConjuro = sid.includes("conjuro") || sid.includes("hechizo") || sid.includes("spell") || sid.includes("ritual");
-              if (esTruco && Array.isArray(s.valorActual)) {
+              if (esSelectorDeConjuros(s) && Array.isArray(s.valorActual)) {
+                let listas: ListasConjurosSelector = {
+                  siempre: conjurosSiempreActualizados,
+                  preparados: conjurosPreparadosActualizados,
+                  conocidos: conjurosConocidosActualizados,
+                  trucos: trucosConocidosActualizados
+                };
                 if (estaHabilitado) {
-                  s.valorActual.forEach((v) => {
-                    if (v && !trucosConocidosActualizados.includes(v)) {
-                      trucosConocidosActualizados.push(v);
-                    }
-                  });
+                  listas = agregarValoresSelectorAListas(s, s.valorActual, listas);
                 } else {
-                  trucosConocidosActualizados = trucosConocidosActualizados.filter((t) => !s.valorActual.includes(t));
+                  listas = quitarValoresSelectorDeListas(s, s.valorActual, listas);
                 }
-              }
-              if (esConjuro && !esTruco && Array.isArray(s.valorActual)) {
-                if (estaHabilitado) {
-                  s.valorActual.forEach((v) => {
-                    if (v) {
-                      if (!conjurosSiempreActualizados.includes(v)) conjurosSiempreActualizados.push(v);
-                      if (!conjurosPreparadosActualizados.includes(v)) conjurosPreparadosActualizados.push(v);
-                      if (!conjurosConocidosActualizados.includes(v)) conjurosConocidosActualizados.push(v);
-                    }
-                  });
-                } else {
-                  conjurosSiempreActualizados = conjurosSiempreActualizados.filter((c) => !s.valorActual.includes(c));
-                  conjurosPreparadosActualizados = conjurosPreparadosActualizados.filter((c) => !s.valorActual.includes(c));
-                  conjurosConocidosActualizados = conjurosConocidosActualizados.filter((c) => !s.valorActual.includes(c));
-                }
+                conjurosSiempreActualizados = listas.siempre;
+                conjurosPreparadosActualizados = listas.preparados;
+                conjurosConocidosActualizados = listas.conocidos;
+                trucosConocidosActualizados = listas.trucos;
               }
             }
           }
@@ -1151,7 +1100,13 @@ export const crearSubSliceRasgos: StateCreator<
     const pgRecuperados = nivelEspacio * mult;
 
     let maxTemp = Infinity;
-    if (rasgo.formulaDados) {
+    const efectoHp = obtenerEfectoHpTemporalRasgo(rasgo);
+    if (efectoHp) {
+      const valorHp = calcularHpTemporalDeEfecto(efectoHp, pj);
+      if (valorHp > 0) {
+        maxTemp = valorHp;
+      }
+    } else if (rasgo.formulaDados) {
       const nivelEfectivo = pj.nivel || 1;
       const modInt = Math.floor(((pj.caracteristicas?.inteligencia || 10) - 10) / 2);
       maxTemp = 2 * nivelEfectivo + modInt;

@@ -234,6 +234,60 @@ Este archivo registra reglas globales, errores encontrados, sus causas raíz y l
 
 ---
 
+## [2026-10-05] Estandarización de Rasgos del Mago (D&D 5.5e / PHB 2024), Corrección de Selectores Erudito y Salvaguarda Arcana Declarativa
+
+**Problema Reportado por el Usuario:**
+1. Los rasgos "Erudito en [subclase]" (Abjuración, Adivinación, Evocación, Ilusión) no estaban añadiendo los conjuros elegidos al libro de conjuros (grimorio).
+2. "Salvaguarda arcana está usando mal lo de dar el escudito (por ende no lo está dando). Que tome de ejemplo el rasgo NIVEL 10: RESILIENCIA CELESTIAL de bruji para corregirlo. Lo hace bien para el compra [recarga con espacio], pero mal para el fijo [creación inicial]."
+3. "Realidad ilusoria por qué es un activable?"
+4. Solicitud de estandarización declarativa de todos los rasgos de la clase Mago (niveles 1 a 20) y sus subclases según el estándar PHB 2024 y el builder del proyecto.
+
+**Causas Raíz Diagnosticadas:**
+1. **Identificación Frágil de Selectores de Conjuros (`sliceRasgos.ts`):**
+   - La acción `actualizarSeleccionRasgo` discriminaba selectores mágicos buscando únicamente subcadenas en `idSelector.toLowerCase()` (`"conjuro"`, `"hechizo"`, `"spell"`, `"ritual"`).
+   - Los cuatro selectores de Erudito usaban IDs como `selector_erudito_abjuracion_mago`, omitiendo esas palabras clave. En consecuencia, el store los ignoraba y nunca alimentaba `conjurosConocidosIds`. Además, el selector de Ilusión tenía una errata tipográfica con un espacio inicial (`" selector_erudito_ilusion_mago"`).
+   - Asimismo, los selectores de Erudito declaraban erróneamente `esConjuroGratuito: true`, lo cual provocaba que el evaluador de magia los tratara como conjuros que no consumen espacios al lanzarse.
+2. **Definición Errónea de Salvaguarda Arcana en `mago.json`:**
+   - Declaraba `formulaDados: "2 * nivel + inteligencia"` y `esActivable: true`, pero carecía de un efecto mecánico `hp_temporal`.
+   - Según el contrato de `TarjetaRasgo.tsx` y `usarAccionesTarjetaRasgo.ts`, un rasgo con `formulaDados` renderiza un botón de tirada de dados para TaleSpire (`LANZAR 40`) y bloquea el botón interactivo de puntos de golpe temporales (`+X PG Temp`).
+3. **Bifurcación Oculta Ad-Hoc en `recargarRasgoConEspacio`:**
+   - La recarga con espacios en `sliceRasgos.ts` calculaba su límite mediante `if (rasgo.formulaDados) { maxTemp = 2 * nivel + modInt; }`, introduciendo una fórmula fija cableada en TS específica del Mago, vulnerando la regla crítica 1 del proyecto.
+4. **Clasificación Inadecuada de Realidad Ilusoria:**
+   - Estaba configurado como `"categoriaMecanica": "activable"` con `"esActivable": true`, proyectando un toggle ON/OFF innecesario cuando la regla de 2024 establece que es una acción adicional situacional que se usa mientras haya una ilusión activa.
+5. **Inconsistencias Adicionales de PHB 2024 Detectadas:**
+   - Faltaba "Naturaleza" en las competencias de habilidad elegibles de `mago.json`.
+   - Lanzamiento de conjuros no contaba con la `tablaProgresion` canónica de trucos y preparados.
+   - Portento a nivel 14 no escalaba sus usos máximos a 3 dados de presagio.
+   - El tercer ojo conservaba la opción "Visión etérea" del PHB 2014 ya eliminada en 2024.
+
+**Soluciones Arquitectónicas Aplicadas:**
+1. **Contrato Tipado Extensible (`src/tipos/rasgos.ts`):**
+   - Se añadió `destinoConjuros: z.enum(["siempre_preparados", "libro"]).optional()` a `EsquemaSelectorRasgo`.
+2. **Módulo Helper Genérico (`selectoresConjurosHelpers.ts`):**
+   - Creadas funciones puras `esSelectorDeConjuros`, `esSelectorSoloLibro`, `agregarValoresSelectorAListas` y `quitarValoresSelectorDeListas`.
+   - Identifica selectores mágicos tanto por `tipoSelector === "conjuro"` o `esConjuroGratuito` como por subcadenas heredadas, desacoplando la lógica de nombres específicos.
+3. **Refactorización Genérica en `sliceRasgos.ts`:**
+   - `agregarRasgoPersonaje` y `actualizarSeleccionRasgo` ahora consumen `selectoresConjurosHelpers`, respetando si los conjuros deben ir únicamente a `conjurosConocidosIds` (grimorio) o también a `conjurosSiemprePreparadosIds`.
+   - En `recargarRasgoConEspacio`, se eliminó el cálculo cableado y se sustituyó por `obtenerEfectoHpTemporalRasgo(rasgo)` y `calcularHpTemporalDeEfecto(efectoHp, pj)`.
+   - En `evaluadorConjurosRasgos.ts`, se omiten selectores con `destinoConjuros === "libro"` de la lista de conjuros siempre preparados otorgados.
+4. **Estandarización Quirúrgica en `mago.json`:**
+   - **Habilidades:** Agregada `"naturaleza"` a `opcionesHabilidades.opciones`.
+   - **Lanzamiento de conjuros:** Incorporada `tablaProgresion` de 20 niveles para trucos y preparados.
+   - **Erudito en [subclase]:** Configurado `"destinoConjuros": "libro"`, retirado `"esConjuroGratuito": true` y subsanada la errata del id en Ilusión.
+   - **Salvaguarda arcana:** Configurado `"tipoAccion": "especial"`, retirados `formulaDados` y `esActivable`, e incorporado efecto mecánico `{ tipo: "hp_temporal", objetivo: "propio", valor: "2 * nivel_mago + inteligencia", activo: true }`.
+   - **Portento:** Añadidos `escaladoUsos` (2 usos en nv 3, 3 usos en nv 14) y `escaladoFormulaDados` (`2d20` a `3d20`).
+   - **El tercer ojo:** Removida "Visión etérea" y configurado `conjuroGratuito` localmente en la opción `ver_invisibilidad`.
+   - **Sobrecarga:** Retirada `formulaDados` y añadida `tablaProgresion` con el escalado del daño de rebote necrótico.
+   - **Realidad ilusoria:** Ajustado a `"categoriaMecanica": "pasivo_permanente"` con `"tipoAccion": "accion_adicional"`, eliminando `esActivable`.
+
+**Validación y Métricas de Calidad:**
+- **Tests Unitarios:** 104 suites ejecutadas, 1.580/1.580 pruebas aprobadas (100% de éxito), incluyendo 27 pruebas específicas de Mago en `magoMecanicasDND55.test.ts`.
+- **TypeScript:** `pnpm exec tsc --noEmit` completado con 0 errores bajo modo estricto.
+- **ESLint:** `pnpm run lint` completado con 0 errores y 0 advertencias (`--max-warnings=0`).
+- **Auditoría de Componentes:** 116 archivos auditados con `node scripts/verificar-limite-lineas.js`, 0 componentes excediendo el límite de 500 líneas.
+
+---
+
 ## [2026-10-04] Sincronización Bidireccional Completa (Player -> GM y GM -> Player) de Daño, Velocidad, Vida, Condiciones, Efectos y Acompañantes
 
 **Objetivo de la Integración:**

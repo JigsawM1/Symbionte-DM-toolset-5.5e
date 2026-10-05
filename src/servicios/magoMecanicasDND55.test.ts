@@ -7,7 +7,8 @@ import {
   obtenerConjurosOtorgadosPorRasgos
 } from "@/servicios/rasgos/evaluadorConjurosRasgos";
 import { ejecutarDescansoCorto, ejecutarDescansoLargo } from "@/servicios/procesadorDescansos";
-import { calcularPresupuestoRecuperacion } from "@/servicios/rasgos";
+import { calcularPresupuestoRecuperacion, calcularHpTemporalDeEfecto, obtenerEfectoHpTemporalRasgo } from "@/servicios/rasgos";
+import { usarAlmacenDM } from "@/almacen/usarAlmacenDM";
 import { PERSONAJE_POR_DEFECTO } from "@/constantes/personajeConstantes";
 import type { PersonajeJugador, RasgoPersonaje } from "@/tipos";
 
@@ -268,7 +269,7 @@ describe("Mago D&D 5.5e (2024) - Catálogo, Builder y Mecánicas Canónicas", ()
 
   describe("Subclases de Mago: Abjurador, Adivino, Evocador, Ilusionista", () => {
     describe("Abjurador", () => {
-      it("Erudito en abjuración es un selector informativo de conjuros de nivel 1-2 de Abjuración", () => {
+      it("Erudito en abjuración es un selector informativo que añade conjuros de nivel 1-2 al libro", () => {
         const pj = aplicarBuildClaseAPersonaje(crearMagoBase(3), "Mago", 3, "Abjurador");
         const rasgo = pj.rasgos?.find((r) => r.nombre === "Erudito en abjuración");
         expect(rasgo).toBeDefined();
@@ -278,7 +279,8 @@ describe("Mago D&D 5.5e (2024) - Catálogo, Builder y Mecánicas Canónicas", ()
         const sel = rasgo?.selectores?.[0];
         expect(sel?.claveOpcionesDinamicas).toBe("conjuros_abjuracion_1_2_mago");
         expect(sel?.maxSelecciones).toBe(2);
-        expect(sel?.esConjuroGratuito).toBe(true);
+        expect(sel?.destinoConjuros).toBe("libro");
+        expect(sel?.esConjuroGratuito).toBeFalsy();
         expect(sel?.opciones.length).toBeGreaterThan(0);
         // Verificar que las opciones son de abjuración
         for (const op of sel?.opciones || []) {
@@ -286,20 +288,26 @@ describe("Mago D&D 5.5e (2024) - Catálogo, Builder y Mecánicas Canónicas", ()
         }
       });
 
-      it("Salvaguarda arcana es un consumible con recargaConEspacio y fórmula escalada", () => {
+      it("Salvaguarda arcana es un consumible con efecto hp_temporal y recargaConEspacio", () => {
         const pj = aplicarBuildClaseAPersonaje(crearMagoBase(3), "Mago", 3, "Abjurador");
         const rasgo = pj.rasgos?.find((r) => r.nombre === "Salvaguarda arcana");
         expect(rasgo).toBeDefined();
         expect(rasgo?.categoriaMecanica).toBe("consumible");
+        expect(rasgo?.tipoAccion).toBe("especial");
+        expect(rasgo?.esActivable).toBeFalsy();
+        expect(rasgo?.formulaDados).toBeUndefined();
         expect(rasgo?.recargaConEspacio).toBe(true);
         expect(rasgo?.multiplicadorRecargaEspacio).toBe(2);
-        expect(rasgo?.formulaDados).toBe("2 * nivel + inteligencia");
         expect(rasgo?.recuperacion).toBe("descanso_largo");
+
+        const efectoHp = rasgo?.efectos?.find((e) => e.tipo === "hp_temporal");
+        expect(efectoHp).toBeDefined();
+        expect(efectoHp?.valor).toBe("2 * nivel_mago + inteligencia");
       });
     });
 
     describe("Adivino", () => {
-      it("Erudito en adivinación es un selector informativo de conjuros de nivel 1-2 de Adivinación", () => {
+      it("Erudito en adivinación es un selector informativo que añade conjuros al libro", () => {
         const pj = aplicarBuildClaseAPersonaje(crearMagoBase(3), "Mago", 3, "Adivino");
         const rasgo = pj.rasgos?.find((r) => r.nombre === "Erudito en adivinación");
         expect(rasgo).toBeDefined();
@@ -308,14 +316,15 @@ describe("Mago D&D 5.5e (2024) - Catálogo, Builder y Mecánicas Canónicas", ()
         const sel = rasgo?.selectores?.[0];
         expect(sel?.claveOpcionesDinamicas).toBe("conjuros_adivinacion_1_2_mago");
         expect(sel?.maxSelecciones).toBe(2);
-        expect(sel?.esConjuroGratuito).toBe(true);
+        expect(sel?.destinoConjuros).toBe("libro");
+        expect(sel?.esConjuroGratuito).toBeFalsy();
         expect(sel?.opciones.length).toBeGreaterThan(0);
         for (const op of sel?.opciones || []) {
           expect(op.descripcion?.toLowerCase()).toContain("adivinaci");
         }
       });
 
-      it("Portento almacena tiradas de presagio con guardaDadosTirada", () => {
+      it("Portento almacena tiradas de presagio con guardaDadosTirada y escala por nivel", () => {
         const pj = aplicarBuildClaseAPersonaje(crearMagoBase(3), "Mago", 3, "Adivino");
         const rasgo = pj.rasgos?.find((r) => r.nombre === "Portento");
         expect(rasgo).toBeDefined();
@@ -324,26 +333,29 @@ describe("Mago D&D 5.5e (2024) - Catálogo, Builder y Mecánicas Canónicas", ()
         expect(rasgo?.usosMaximos).toBe(2);
       });
 
-      it("El tercer ojo es un consumible con selector de beneficios", () => {
+      it("El tercer ojo es un consumible con 3 beneficios canónicos PHB 2024", () => {
         const pj = aplicarBuildClaseAPersonaje(crearMagoBase(10), "Mago", 10, "Adivino");
         const rasgo = pj.rasgos?.find((r) => r.nombre === "El tercer ojo");
         expect(rasgo).toBeDefined();
         expect(rasgo?.categoriaMecanica).toBe("consumible");
         expect(rasgo?.selectores).toBeDefined();
-        expect(rasgo?.selectores?.[0]?.opciones.length).toBe(4);
+        expect(rasgo?.selectores?.[0]?.opciones.length).toBe(3);
+        const opcionInvis = rasgo?.selectores?.[0]?.opciones.find((o) => o.id === "ver_invisibilidad");
+        expect(opcionInvis?.conjuroGratuito).toBe("Ver invisibilidad");
       });
 
-      it("Portento mayor mejora Portento a 3d20 en nivel 14", () => {
+      it("Portento mayor mejora Portento a 3d20 y 3 usos en nivel 14", () => {
         const pj = aplicarBuildClaseAPersonaje(crearMagoBase(14), "Mago", 14, "Adivino");
         const rasgo = pj.rasgos?.find((r) => r.nombre === "Portento");
         expect(rasgo).toBeDefined();
         expect(rasgo?.formulaDados).toBe("3d20");
+        expect(rasgo?.usosMaximos).toBe(3);
         expect(rasgo?.guardaDadosTirada).toBe(true);
       });
     });
 
     describe("Evocador", () => {
-      it("Erudito en evocación es un selector informativo de conjuros de nivel 1-2 de Evocación", () => {
+      it("Erudito en evocación es un selector informativo que añade conjuros al libro", () => {
         const pj = aplicarBuildClaseAPersonaje(crearMagoBase(3), "Mago", 3, "Evocador");
         const rasgo = pj.rasgos?.find((r) => r.nombre === "Erudito en evocación");
         expect(rasgo).toBeDefined();
@@ -352,7 +364,8 @@ describe("Mago D&D 5.5e (2024) - Catálogo, Builder y Mecánicas Canónicas", ()
         const sel = rasgo?.selectores?.[0];
         expect(sel?.claveOpcionesDinamicas).toBe("conjuros_evocacion_1_2_mago");
         expect(sel?.maxSelecciones).toBe(2);
-        expect(sel?.esConjuroGratuito).toBe(true);
+        expect(sel?.destinoConjuros).toBe("libro");
+        expect(sel?.esConjuroGratuito).toBeFalsy();
         expect(sel?.opciones.length).toBeGreaterThan(0);
         for (const op of sel?.opciones || []) {
           expect(op.descripcion?.toLowerCase()).toContain("evocaci");
@@ -370,32 +383,45 @@ describe("Mago D&D 5.5e (2024) - Catálogo, Builder y Mecánicas Canónicas", ()
         expect(ef?.aplicaA).toBe("evocacion");
       });
 
-      it("Sobrecarga es un consumible con fórmula 2d12", () => {
+      it("Sobrecarga es un consumible con tabla de progresión de daño de rebote", () => {
         const pj = aplicarBuildClaseAPersonaje(crearMagoBase(14), "Mago", 14, "Evocador");
         const rasgo = pj.rasgos?.find((r) => r.nombre === "Sobrecarga");
         expect(rasgo).toBeDefined();
         expect(rasgo?.categoriaMecanica).toBe("consumible");
         expect(rasgo?.usosMaximos).toBe(1);
-        expect(rasgo?.formulaDados).toBe("2d12");
+        expect(rasgo?.formulaDados).toBeUndefined();
+        expect(rasgo?.tablaProgresion).toBeDefined();
+        expect(rasgo?.tablaProgresion?.filas.length).toBe(3);
         expect(rasgo?.recuperacion).toBe("descanso_largo");
       });
     });
 
     describe("Ilusionista", () => {
-      it("Erudito en ilusión es un selector informativo de conjuros de nivel 1-2 de Ilusión", () => {
+      it("Erudito en ilusión es un selector informativo con id limpio que añade conjuros al libro", () => {
         const pj = aplicarBuildClaseAPersonaje(crearMagoBase(3), "Mago", 3, "Ilusionista");
         const rasgo = pj.rasgos?.find((r) => r.nombre === "Erudito en ilusión");
         expect(rasgo).toBeDefined();
         expect(rasgo?.categoriaMecanica).toBe("selector_informativo");
 
         const sel = rasgo?.selectores?.[0];
+        expect(sel?.id).toBe("selector_erudito_ilusion_mago");
         expect(sel?.claveOpcionesDinamicas).toBe("conjuros_ilusion_1_2_mago");
         expect(sel?.maxSelecciones).toBe(2);
-        expect(sel?.esConjuroGratuito).toBe(true);
+        expect(sel?.destinoConjuros).toBe("libro");
+        expect(sel?.esConjuroGratuito).toBeFalsy();
         expect(sel?.opciones.length).toBeGreaterThan(0);
         for (const op of sel?.opciones || []) {
           expect(op.descripcion?.toLowerCase()).toContain("ilusi");
         }
+      });
+
+      it("Realidad ilusoria es un rasgo pasivo_permanente con acción adicional", () => {
+        const pj = aplicarBuildClaseAPersonaje(crearMagoBase(14), "Mago", 14, "Ilusionista");
+        const rasgo = pj.rasgos?.find((r) => r.nombre === "Realidad ilusoria");
+        expect(rasgo).toBeDefined();
+        expect(rasgo?.categoriaMecanica).toBe("pasivo_permanente");
+        expect(rasgo?.tipoAccion).toBe("accion_adicional");
+        expect(rasgo?.esActivable).toBeFalsy();
       });
     });
 
@@ -468,6 +494,84 @@ describe("Mago D&D 5.5e (2024) - Catálogo, Builder y Mecánicas Canónicas", ()
         const rasgoTrasDescanso = personajeActualizado.rasgos?.find((r: RasgoPersonaje) => r.nombre === "Portento");
         expect(rasgoTrasDescanso?.dadosGuardados).toEqual([]);
         expect(rasgoTrasDescanso?.usosRestantes).toBe(2);
+      });
+    });
+
+    describe("Mecánicas reactivas en Zustand: Erudito y Salvaguarda arcana", () => {
+      it("Erudito en abjuración añade los conjuros elegidos al libro (conocidos) y NO a siempre preparados", () => {
+        const pj = aplicarBuildClaseAPersonaje(crearMagoBase(3), "Mago", 3, "Abjurador");
+        const rasgoErudito = pj.rasgos?.find((r) => r.nombre === "Erudito en abjuración");
+        expect(rasgoErudito).toBeDefined();
+
+        usarAlmacenDM.setState({
+          personajes: [pj]
+        });
+
+        // El jugador elige los conjuros en el selector
+        usarAlmacenDM.getState().actualizarSeleccionRasgo(
+          pj.id,
+          rasgoErudito!.id,
+          "selector_erudito_abjuracion_mago",
+          ["alarma", "armadura_mago"]
+        );
+
+        const pjActualizado = usarAlmacenDM.getState().personajes.find((p) => p.id === pj.id)!;
+        expect(pjActualizado.conjurosConocidosIds).toContain("alarma");
+        expect(pjActualizado.conjurosConocidosIds).toContain("armadura_mago");
+        expect(pjActualizado.conjurosSiemprePreparadosIds).not.toContain("alarma");
+        expect(pjActualizado.conjurosSiemprePreparadosIds).not.toContain("armadura_mago");
+      });
+
+      it("Erudito en ilusión sincroniza correctamente con su id limpio selector_erudito_ilusion_mago", () => {
+        const pj = aplicarBuildClaseAPersonaje(crearMagoBase(3), "Mago", 3, "Ilusionista");
+        const rasgoErudito = pj.rasgos?.find((r) => r.nombre === "Erudito en ilusión");
+        expect(rasgoErudito).toBeDefined();
+
+        usarAlmacenDM.setState({
+          personajes: [pj]
+        });
+
+        usarAlmacenDM.getState().actualizarSeleccionRasgo(
+          pj.id,
+          rasgoErudito!.id,
+          "selector_erudito_ilusion_mago",
+          ["disfrazarse", "imagen_silenciosa"]
+        );
+
+        const pjActualizado = usarAlmacenDM.getState().personajes.find((p) => p.id === pj.id)!;
+        expect(pjActualizado.conjurosConocidosIds).toContain("disfrazarse");
+        expect(pjActualizado.conjurosConocidosIds).toContain("imagen_silenciosa");
+        expect(pjActualizado.conjurosSiemprePreparadosIds).not.toContain("disfrazarse");
+      });
+
+      it("Salvaguarda arcana calcula correctamente los PG temporales y recargarRasgoConEspacio respeta su tope", () => {
+        const pj = aplicarBuildClaseAPersonaje(crearMagoBase(3), "Mago", 3, "Abjurador");
+        const rasgoSalvaguarda = pj.rasgos?.find((r) => r.nombre === "Salvaguarda arcana");
+        expect(rasgoSalvaguarda).toBeDefined();
+
+        const efectoHp = obtenerEfectoHpTemporalRasgo(rasgoSalvaguarda);
+        expect(efectoHp).toBeDefined();
+
+        // Nivel 3, Inteligencia 18 (modificador +4) -> 2 * 3 + 4 = 10 PG temporales
+        const valorHp = calcularHpTemporalDeEfecto(efectoHp, pj);
+        expect(valorHp).toBe(10);
+
+        // Simulamos personaje con 6 PG temporales actuales y espacios de nivel 3 disponibles
+        const pjConHp = {
+          ...pj,
+          hpTemporal: 6,
+          espaciosConjuroGastados: { "3": 0 }
+        };
+
+        usarAlmacenDM.setState({
+          personajes: [pjConHp]
+        });
+
+        // Recargar con espacio nivel 3 (+6 PG temp, 6 + 6 = 12, pero el tope es 10)
+        usarAlmacenDM.getState().recargarRasgoConEspacio(pj.id, rasgoSalvaguarda!.id, 3);
+
+        const pjActualizado = usarAlmacenDM.getState().personajes.find((p) => p.id === pj.id)!;
+        expect(pjActualizado.hpTemporal).toBe(10);
       });
     });
   });

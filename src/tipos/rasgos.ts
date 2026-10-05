@@ -224,6 +224,8 @@ export const EsquemaSelectorRasgo = z.object({
   claveGruposDinamicos: z.string().optional(),
   // ── Indica si las opciones seleccionadas se lanzan sin gastar espacios de conjuro ──
   esConjuroGratuito: z.boolean().default(false).optional(),
+  // ── Destino de los conjuros elegidos: "libro" solo los añade a conocidos (grimorio), sin prepararlos ──
+  destinoConjuros: z.enum(["siempre_preparados", "libro"]).optional(),
   // ── NUEVO: opciones que se desbloquean por nivel ──
   opcionesDinamicas: z.array(EsquemaOpcionesDinamicas).optional(),
   // ── NUEVO: max selecciones escalado por nivel ──

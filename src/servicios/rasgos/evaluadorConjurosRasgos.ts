@@ -25,6 +25,7 @@ export function obtenerConjurosOtorgadosPorRasgos(personaje: PersonajeJugador): 
 
     if (Array.isArray(r.selectores)) {
       for (const sel of r.selectores) {
+        if (sel.destinoConjuros === "libro") continue;
         const idLower = sel.id.toLowerCase();
         if (
           idLower.includes("truco") ||

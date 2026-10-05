@@ -2,6 +2,7 @@ import type { PersonajeJugador, PosicionTS } from "@/tipos";
 import type { InfoCriatura } from "@/tipos/talespire";
 import { ts } from "@/utiles/TaleSpireAdapter";
 import { logger } from "@/utiles/logger";
+import { esNombreVacioODot, coincidenNombresTaleSpire } from "@/servicios/resolutorCriaturas";
 
 /**
  * Función pura que empareja una lista de personajes con una lista de criaturas asignadas al jugador en TaleSpire.
@@ -64,6 +65,13 @@ export async function autoResolverMiniaturasJugador(
     idMiniatura: string | null,
     posicionInicial?: PosicionTS,
     boardIdInicial?: string | null
+  ) => void,
+  alVincularAcompanante?: (
+    personajeId: string,
+    idAcompanante: string,
+    idMiniatura: string | null,
+    posicionInicial?: PosicionTS,
+    boardIdInicial?: string | null
   ) => void
 ): Promise<void> {
   try {
@@ -96,7 +104,7 @@ export async function autoResolverMiniaturasJugador(
     const infos = await ts.creatures.getMoreInfo(ids);
     if (!infos || infos.length === 0) return;
 
-    // 4. Emparejar con los personajes del jugador
+    // 3. Emparejar con los personajes del jugador
     const mapa = emparejarPersonajesConCriaturas(personajes, infos);
 
     mapa.forEach((criatura, pjId) => {
@@ -117,6 +125,46 @@ export async function autoResolverMiniaturasJugador(
         }
       }
     });
+
+    // 4. Emparejar acompañantes de los personajes por nombre o nombre base con las criaturas del jugador
+    if (alVincularAcompanante) {
+      const idsMiniaturasAsignadasPJs = new Set<string>();
+      mapa.forEach((criatura) => {
+        if (criatura?.id) idsMiniaturasAsignadasPJs.add(criatura.id);
+      });
+
+      for (const pj of personajes) {
+        if (!pj.acompanantes || pj.acompanantes.length === 0) continue;
+        for (const acomp of pj.acompanantes) {
+          const nombreAcomp = (acomp.nombre || "").trim();
+          if (esNombreVacioODot(nombreAcomp) || nombreAcomp.length < 2) continue;
+
+          const criaturaEncontrada = infos.find((c) => {
+            if (!c.id || idsMiniaturasAsignadasPJs.has(c.id)) return false;
+            const nomC = (c.name || "").trim();
+            if (esNombreVacioODot(nomC) || nomC.length < 2) return false;
+            return coincidenNombresTaleSpire(nomC, nombreAcomp);
+          });
+
+          if (criaturaEncontrada) {
+            idsMiniaturasAsignadasPJs.add(criaturaEncontrada.id);
+            const nuevoId = criaturaEncontrada.id || null;
+            if (acomp.idMiniaturaTS !== nuevoId) {
+              logger.info(
+                `[AutoResolutorMinis] Acompañante auto-vinculado: '${acomp.nombre}' ↔ '${criaturaEncontrada.name || "Sin nombre"}' (ID: ${nuevoId})`
+              );
+              alVincularAcompanante(pj.id, acomp.id, nuevoId, criaturaEncontrada.position, criaturaEncontrada.boardId);
+            } else if (criaturaEncontrada.position && !acomp.ultimaPosicionTS) {
+              logger.info(
+                `[AutoResolutorMinis] Posición inicial de acompañante registrada para '${acomp.nombre}':`,
+                criaturaEncontrada.position
+              );
+              alVincularAcompanante(pj.id, acomp.id, nuevoId, criaturaEncontrada.position, criaturaEncontrada.boardId);
+            }
+          }
+        }
+      }
+    }
   } catch (err) {
     logger.error("[AutoResolutorMinis] Excepción al auto-resolver miniaturas de jugador:", err);
   }

@@ -7,6 +7,7 @@ import { ts } from '@/utiles/TaleSpireAdapter';
 import type { ColaIniciativaTS } from '@/tipos/talespire';
 import {
   normalizarNombreTaleSpire,
+  coincidenNombresTaleSpire,
   resolverPlantillaPorCriatura,
   calcularVidaInicial,
   esNombreVacioODot
@@ -34,7 +35,32 @@ function restablecerMovimientoPersonajes(personajes: PersonajeJugador[], motivo:
   const nuevos = personajes.map((pj) => {
     const anteriorGastado = pj.movimientoGastado || 0;
     const teniaCarrera = pj.movimientoMaximoTemporal !== null && pj.movimientoMaximoTemporal !== undefined;
-    if (anteriorGastado === 0 && !teniaCarrera) {
+
+    let acompCambiados = false;
+    const nuevosAcomp = (pj.acompanantes || []).map((acomp) => {
+      const acompGastado = acomp.movimientoGastado || 0;
+      const acompCarrera = acomp.movimientoMaximoTemporal !== null && acomp.movimientoMaximoTemporal !== undefined;
+      if (acompGastado === 0 && !acompCarrera) return acomp;
+      acompCambiados = true;
+      const entradaAcomp: RegistroMovimiento = {
+        id: `mov-acomp-rst-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+        timestamp: Date.now(),
+        tipo: "reinicio",
+        delta: -acompGastado,
+        anteriorGastado: acompGastado,
+        nuevoGastado: 0,
+        descripcion: motivo
+      };
+      const histPrev = Array.isArray(acomp.historialMovimiento) ? acomp.historialMovimiento : [];
+      return {
+        ...acomp,
+        movimientoGastado: 0,
+        movimientoMaximoTemporal: null,
+        historialMovimiento: [...histPrev.slice(-49), entradaAcomp]
+      };
+    });
+
+    if (anteriorGastado === 0 && !teniaCarrera && !acompCambiados) {
       return pj;
     }
     huboCambios = true;
@@ -52,6 +78,7 @@ function restablecerMovimientoPersonajes(personajes: PersonajeJugador[], motivo:
       ...pj,
       movimientoGastado: 0,
       movimientoMaximoTemporal: null,
+      acompanantes: acompCambiados ? nuevosAcomp : pj.acompanantes,
       historialMovimiento: [...historialPrevio.slice(-49), entradaHistorial]
     };
   });
@@ -118,6 +145,7 @@ export interface SliceIniciativa {
   ) => void;
   quitarCriaturaDeIniciativa: (id: string) => void;
   modificarVidaCriaturaIniciativa: (id: string, nuevaVida: number) => void;
+  modificarVidaMaximaCriaturaIniciativa: (id: string, nuevaVidaMax: number) => void;
   agregarCondicionACriatura: (id: string, condicion: string) => void;
   quitarCondicionDeCriatura: (id: string, condicion: string) => void;
   agregarEfectoACriatura: (idCriatura: string, nombreEfecto: string, duracion: number, opciones?: { concentracion?: boolean }) => void;
@@ -304,18 +332,140 @@ export const crearSliceIniciativa: StateCreator<
     return { colaIniciativa: nuevaCola, indiceTurnoActivo: nuevoIndice };
   }),
 
-  modificarVidaCriaturaIniciativa: (id, nuevaVida) => set((state) => {
+    modificarVidaCriaturaIniciativa: (id, nuevaVida) => set((state) => {
+    let criaturaAfectadaNombre = "";
+    const criaturaObjetivo = state.colaIniciativa.find((c) => c.id === id);
     const nuevaCola = state.colaIniciativa.map((c) => {
       if (c.id === id) {
+        criaturaAfectadaNombre = c.nombre;
         return { ...c, vidaActual: Math.max(0, Math.min(c.vidaMaxima, nuevaVida)) };
       }
       return c;
     });
-    return { colaIniciativa: nuevaCola };
+
+    if (criaturaObjetivo?.esMonstruo) {
+      return { colaIniciativa: nuevaCola };
+    }
+
+    const nuevosPjs = state.personajes.map((pj) => {
+      const coincidePj =
+        !criaturaObjetivo?.esAcompanante &&
+        !criaturaObjetivo?.idAcompanante &&
+        (pj.id === id ||
+          pj.idMiniaturaTS === id ||
+          (criaturaObjetivo?.idPersonajeDuenio && pj.id === criaturaObjetivo.idPersonajeDuenio) ||
+          coincidenNombresTaleSpire(pj.nombre, criaturaAfectadaNombre));
+
+      if (coincidePj) {
+        return {
+          ...pj,
+          hpActual: Math.max(0, Math.min(pj.hpMaximo, nuevaVida))
+        };
+      }
+
+      if (!criaturaObjetivo?.esAcompanante && !criaturaObjetivo?.idAcompanante) {
+        return pj;
+      }
+
+      let acompModificado = false;
+      const nuevosAcomps = (pj.acompanantes || []).map((acomp) => {
+        const coincideAcomp =
+          acomp.id === id ||
+          (criaturaObjetivo?.idAcompanante && acomp.id === criaturaObjetivo.idAcompanante) ||
+          (acomp.idMiniaturaTS && acomp.idMiniaturaTS === id) ||
+          coincidenNombresTaleSpire(acomp.nombre, criaturaAfectadaNombre);
+        if (coincideAcomp) {
+          acompModificado = true;
+          return {
+            ...acomp,
+            vidaActual: Math.max(0, Math.min(acomp.vidaMaxima, nuevaVida))
+          };
+        }
+        return acomp;
+      });
+
+      if (acompModificado) {
+        return { ...pj, acompanantes: nuevosAcomps };
+      }
+
+      return pj;
+    });
+
+    return { colaIniciativa: nuevaCola, personajes: nuevosPjs };
+  }),
+
+  modificarVidaMaximaCriaturaIniciativa: (id, nuevaVidaMax) => set((state) => {
+    let criaturaAfectadaNombre = "";
+    const criaturaObjetivo = state.colaIniciativa.find((c) => c.id === id);
+    const vidaMaxSegura = Math.max(1, nuevaVidaMax);
+    const nuevaCola = state.colaIniciativa.map((c) => {
+      if (c.id === id) {
+        criaturaAfectadaNombre = c.nombre;
+        return {
+          ...c,
+          vidaMaxima: vidaMaxSegura,
+          vidaActual: Math.min(c.vidaActual, vidaMaxSegura)
+        };
+      }
+      return c;
+    });
+
+    if (criaturaObjetivo?.esMonstruo) {
+      return { colaIniciativa: nuevaCola };
+    }
+
+    const nuevosPjs = state.personajes.map((pj) => {
+      const coincidePj =
+        !criaturaObjetivo?.esAcompanante &&
+        !criaturaObjetivo?.idAcompanante &&
+        (pj.id === id ||
+          pj.idMiniaturaTS === id ||
+          (criaturaObjetivo?.idPersonajeDuenio && pj.id === criaturaObjetivo.idPersonajeDuenio) ||
+          coincidenNombresTaleSpire(pj.nombre, criaturaAfectadaNombre));
+
+      if (coincidePj) {
+        return {
+          ...pj,
+          hpMaximo: vidaMaxSegura,
+          hpActual: Math.min(pj.hpActual, vidaMaxSegura)
+        };
+      }
+
+      if (!criaturaObjetivo?.esAcompanante && !criaturaObjetivo?.idAcompanante) {
+        return pj;
+      }
+
+      let acompModificado = false;
+      const nuevosAcomps = (pj.acompanantes || []).map((acomp) => {
+        const coincideAcomp =
+          acomp.id === id ||
+          (criaturaObjetivo?.idAcompanante && acomp.id === criaturaObjetivo.idAcompanante) ||
+          (acomp.idMiniaturaTS && acomp.idMiniaturaTS === id) ||
+          coincidenNombresTaleSpire(acomp.nombre, criaturaAfectadaNombre);
+        if (coincideAcomp) {
+          acompModificado = true;
+          return {
+            ...acomp,
+            vidaMaxima: vidaMaxSegura,
+            vidaActual: Math.min(acomp.vidaActual, vidaMaxSegura)
+          };
+        }
+        return acomp;
+      });
+
+      if (acompModificado) {
+        return { ...pj, acompanantes: nuevosAcomps };
+      }
+
+      return pj;
+    });
+
+    return { colaIniciativa: nuevaCola, personajes: nuevosPjs };
   }),
 
   agregarCondicionACriatura: (id, condicion) => set((state) => {
     let criaturaAfectadaNombre = "";
+    const criaturaObjetivo = state.colaIniciativa.find((c) => c.id === id);
     const nuevaCola = state.colaIniciativa.map((c) => {
       if (c.id === id) {
         criaturaAfectadaNombre = c.nombre;
@@ -324,14 +474,21 @@ export const crearSliceIniciativa: StateCreator<
       return c;
     });
 
-    const cNom = criaturaAfectadaNombre.trim().toLowerCase();
+    if (criaturaObjetivo?.esMonstruo) {
+      return { colaIniciativa: nuevaCola };
+    }
+
     const esDerribado = esCondicionDerribado(condicion);
 
     const nuevosPjs = state.personajes.map((pj) => {
       const coincide =
-        pj.id === id ||
-        pj.idMiniaturaTS === id ||
-        (cNom && (pj.nombre || "").trim().toLowerCase() === cNom);
+        !criaturaObjetivo?.esAcompanante &&
+        !criaturaObjetivo?.idAcompanante &&
+        (pj.id === id ||
+          pj.idMiniaturaTS === id ||
+          (criaturaObjetivo?.idPersonajeDuenio && pj.id === criaturaObjetivo.idPersonajeDuenio) ||
+          coincidenNombresTaleSpire(pj.nombre, criaturaAfectadaNombre));
+
       if (coincide) {
         let nuevoTipoTerreno = pj.tipoTerreno || "normal";
         let nuevoMultTerreno = pj.multiplicadorTerreno || 1;
@@ -360,6 +517,41 @@ export const crearSliceIniciativa: StateCreator<
           condicionesActivas: aplicarCondicion(pj.condicionesActivas || [], condicion)
         };
       }
+
+      if (!criaturaObjetivo?.esAcompanante && !criaturaObjetivo?.idAcompanante) {
+        return pj;
+      }
+
+      let acompModificado = false;
+      const nuevosAcomps = (pj.acompanantes || []).map((acomp) => {
+        const coincideAcomp =
+          acomp.id === id ||
+          (criaturaObjetivo?.idAcompanante && acomp.id === criaturaObjetivo.idAcompanante) ||
+          (acomp.idMiniaturaTS && acomp.idMiniaturaTS === id) ||
+          coincidenNombresTaleSpire(acomp.nombre, criaturaAfectadaNombre);
+
+        if (coincideAcomp) {
+          acompModificado = true;
+          let nuevoTipoTerreno = acomp.tipoTerreno || "normal";
+          let nuevoMultTerreno = acomp.multiplicadorTerreno || 1;
+          if (esDerribado && (acomp.tipoTerreno === "normal" || !acomp.tipoTerreno || acomp.multiplicadorTerreno === 1)) {
+            nuevoTipoTerreno = "dificil";
+            nuevoMultTerreno = 2;
+          }
+          return {
+            ...acomp,
+            tipoTerreno: nuevoTipoTerreno,
+            multiplicadorTerreno: nuevoMultTerreno,
+            condiciones: aplicarCondicion(acomp.condiciones || [], condicion)
+          };
+        }
+        return acomp;
+      });
+
+      if (acompModificado) {
+        return { ...pj, acompanantes: nuevosAcomps };
+      }
+
       return pj;
     });
 
@@ -368,6 +560,7 @@ export const crearSliceIniciativa: StateCreator<
 
   quitarCondicionDeCriatura: (id, condicion) => set((state) => {
     let criaturaAfectadaNombre = "";
+    const criaturaObjetivo = state.colaIniciativa.find((c) => c.id === id);
     const esConcentracion = condicion.toLowerCase().includes("concentra");
     const esDerribado = esCondicionDerribado(condicion);
 
@@ -383,12 +576,19 @@ export const crearSliceIniciativa: StateCreator<
       return c;
     });
 
-    const cNom = criaturaAfectadaNombre.trim().toLowerCase();
+    if (criaturaObjetivo?.esMonstruo) {
+      return { colaIniciativa: nuevaCola };
+    }
+
     const nuevosPjs = state.personajes.map((pj) => {
       const coincide =
-        pj.id === id ||
-        pj.idMiniaturaTS === id ||
-        (cNom && (pj.nombre || "").trim().toLowerCase() === cNom);
+        !criaturaObjetivo?.esAcompanante &&
+        !criaturaObjetivo?.idAcompanante &&
+        (pj.id === id ||
+          pj.idMiniaturaTS === id ||
+          (criaturaObjetivo?.idPersonajeDuenio && pj.id === criaturaObjetivo.idPersonajeDuenio) ||
+          coincidenNombresTaleSpire(pj.nombre, criaturaAfectadaNombre));
+
       if (coincide) {
         const condsRestantes = quitarCondicion(pj.condicionesActivas || [], condicion);
         let nuevoTipoTerreno = pj.tipoTerreno || "normal";
@@ -420,6 +620,43 @@ export const crearSliceIniciativa: StateCreator<
           condicionesActivas: condsRestantes
         };
       }
+
+      if (!criaturaObjetivo?.esAcompanante && !criaturaObjetivo?.idAcompanante) {
+        return pj;
+      }
+
+      let acompModificado = false;
+      const nuevosAcomps = (pj.acompanantes || []).map((acomp) => {
+        const coincideAcomp =
+          acomp.id === id ||
+          (criaturaObjetivo?.idAcompanante && acomp.id === criaturaObjetivo.idAcompanante) ||
+          (acomp.idMiniaturaTS && acomp.idMiniaturaTS === id) ||
+          coincidenNombresTaleSpire(acomp.nombre, criaturaAfectadaNombre);
+
+        if (coincideAcomp) {
+          acompModificado = true;
+          const condsRestantes = quitarCondicion(acomp.condiciones || [], condicion);
+          let nuevoTipoTerreno = acomp.tipoTerreno || "normal";
+          let nuevoMultTerreno = acomp.multiplicadorTerreno || 1;
+          const todaviaDerribado = condsRestantes.some((c) => esCondicionDerribado(c));
+          if (esDerribado && !todaviaDerribado && (acomp.tipoTerreno === "dificil" || acomp.multiplicadorTerreno === 2)) {
+            nuevoTipoTerreno = "normal";
+            nuevoMultTerreno = 1;
+          }
+          return {
+            ...acomp,
+            tipoTerreno: nuevoTipoTerreno,
+            multiplicadorTerreno: nuevoMultTerreno,
+            condiciones: condsRestantes
+          };
+        }
+        return acomp;
+      });
+
+      if (acompModificado) {
+        return { ...pj, acompanantes: nuevosAcomps };
+      }
+
       return pj;
     });
 
@@ -428,6 +665,7 @@ export const crearSliceIniciativa: StateCreator<
 
   agregarEfectoACriatura: (idCriatura, nombreEfecto, duracion, opciones) => set((state) => {
     let criaturaAfectadaNombre = "";
+    const criaturaObjetivo = state.colaIniciativa.find((c) => c.id === idCriatura);
     const esConcentracion = opciones?.concentracion || 
                            nombreEfecto.toLowerCase().trim() === "concentración" || 
                            nombreEfecto.toLowerCase().trim() === "concentracion";
@@ -455,12 +693,18 @@ export const crearSliceIniciativa: StateCreator<
       return c;
     });
 
-    const cNom = criaturaAfectadaNombre.trim().toLowerCase();
+    if (criaturaObjetivo?.esMonstruo) {
+      return { colaIniciativa: nuevaCola };
+    }
+
     const nuevosPjs = state.personajes.map((pj) => {
       const coincide =
-        pj.id === idCriatura ||
-        pj.idMiniaturaTS === idCriatura ||
-        (cNom && (pj.nombre || "").trim().toLowerCase() === cNom);
+        !criaturaObjetivo?.esAcompanante &&
+        !criaturaObjetivo?.idAcompanante &&
+        (pj.id === idCriatura ||
+          pj.idMiniaturaTS === idCriatura ||
+          (criaturaObjetivo?.idPersonajeDuenio && pj.id === criaturaObjetivo.idPersonajeDuenio) ||
+          coincidenNombresTaleSpire(pj.nombre, criaturaAfectadaNombre));
 
       if (coincide) {
         const spellName = nombreEfecto.replace(/^concentraci[oó]n:\s*/i, "").trim();
@@ -492,6 +736,41 @@ export const crearSliceIniciativa: StateCreator<
           rasgos: rasgosActualizados
         };
       }
+
+      if (!criaturaObjetivo?.esAcompanante && !criaturaObjetivo?.idAcompanante) {
+        return pj;
+      }
+
+      let acompModificado = false;
+      const nuevosAcomps = (pj.acompanantes || []).map((acomp) => {
+        const coincideAcomp =
+          acomp.id === idCriatura ||
+          (criaturaObjetivo?.idAcompanante && acomp.id === criaturaObjetivo.idAcompanante) ||
+          (acomp.idMiniaturaTS && acomp.idMiniaturaTS === idCriatura) ||
+          coincidenNombresTaleSpire(acomp.nombre, criaturaAfectadaNombre);
+
+        if (coincideAcomp) {
+          acompModificado = true;
+          const efectosPrevios = (acomp.efectos || []).filter((e) => e.id !== nuevoEfecto.id);
+          let condsAcomp = acomp.condiciones || [];
+          if (esConcentracion) {
+            if (!condsAcomp.includes("Concentración")) condsAcomp = [...condsAcomp, "Concentración"];
+          } else {
+            condsAcomp = aplicarCondicion(condsAcomp, nombreEfecto);
+          }
+          return {
+            ...acomp,
+            condiciones: condsAcomp,
+            efectos: [...efectosPrevios, nuevoEfecto]
+          };
+        }
+        return acomp;
+      });
+
+      if (acompModificado) {
+        return { ...pj, acompanantes: nuevosAcomps };
+      }
+
       return pj;
     });
 
@@ -501,6 +780,7 @@ export const crearSliceIniciativa: StateCreator<
   quitarEfectoDeCriatura: (idCriatura, idEfecto) => set((state) => {
     let criaturaAfectadaNombre = "";
     let efectoEliminado: EfectoActivo | undefined;
+    const criaturaObjetivo = state.colaIniciativa.find((c) => c.id === idCriatura);
 
     const nuevaCola = state.colaIniciativa.map((c) => {
       if (c.id === idCriatura) {
@@ -522,12 +802,18 @@ export const crearSliceIniciativa: StateCreator<
       return c;
     });
 
-    const cNom = criaturaAfectadaNombre.trim().toLowerCase();
+    if (criaturaObjetivo?.esMonstruo) {
+      return { colaIniciativa: nuevaCola };
+    }
+
     const nuevosPjs = state.personajes.map((pj) => {
       const coincide =
-        pj.id === idCriatura ||
-        pj.idMiniaturaTS === idCriatura ||
-        (cNom && (pj.nombre || "").trim().toLowerCase() === cNom);
+        !criaturaObjetivo?.esAcompanante &&
+        !criaturaObjetivo?.idAcompanante &&
+        (pj.id === idCriatura ||
+          pj.idMiniaturaTS === idCriatura ||
+          (criaturaObjetivo?.idPersonajeDuenio && pj.id === criaturaObjetivo.idPersonajeDuenio) ||
+          coincidenNombresTaleSpire(pj.nombre, criaturaAfectadaNombre));
 
       if (coincide && efectoEliminado) {
         const eraConcentracion = efectoEliminado.concentracion || efectoEliminado.id.includes("concentra");
@@ -551,6 +837,45 @@ export const crearSliceIniciativa: StateCreator<
           rasgos: rasgosActualizados
         };
       }
+
+      if (!criaturaObjetivo?.esAcompanante && !criaturaObjetivo?.idAcompanante) {
+        return pj;
+      }
+
+      let acompModificado = false;
+      const nuevosAcomps = (pj.acompanantes || []).map((acomp) => {
+        const coincideAcomp =
+          acomp.id === idCriatura ||
+          (criaturaObjetivo?.idAcompanante && acomp.id === criaturaObjetivo.idAcompanante) ||
+          (acomp.idMiniaturaTS && acomp.idMiniaturaTS === idCriatura) ||
+          coincidenNombresTaleSpire(acomp.nombre, criaturaAfectadaNombre);
+
+        if (coincideAcomp && efectoEliminado) {
+          acompModificado = true;
+          const eraConcentracion = efectoEliminado.concentracion || efectoEliminado.id.includes("concentra");
+          const nuevosEfectosAcomp = (acomp.efectos || []).filter((e) => e.id !== idEfecto && e.nombre !== efectoEliminado!.nombre);
+          let condsAcomp = acomp.condiciones || [];
+          if (eraConcentracion) {
+            condsAcomp = condsAcomp.filter((c) => !c.toLowerCase().includes("concentra"));
+          }
+          condsAcomp = quitarCondicion(condsAcomp, efectoEliminado.nombre);
+          const elimLimpio = efectoEliminado.nombre.split(" (")[0];
+          if (elimLimpio !== efectoEliminado.nombre) {
+            condsAcomp = quitarCondicion(condsAcomp, elimLimpio);
+          }
+          return {
+            ...acomp,
+            condiciones: condsAcomp,
+            efectos: nuevosEfectosAcomp
+          };
+        }
+        return acomp;
+      });
+
+      if (acompModificado) {
+        return { ...pj, acompanantes: nuevosAcomps };
+      }
+
       return pj;
     });
 
@@ -654,13 +979,60 @@ export const crearSliceIniciativa: StateCreator<
   }),
 
   actualizarVidaTemporal: (idCriatura, vidaTemp) => set((state) => {
+    let criaturaAfectadaNombre = "";
+    const criaturaObjetivo = state.colaIniciativa.find((c) => c.id === idCriatura);
+    const vidaTempSegura = Math.max(0, vidaTemp);
     const nuevaCola = state.colaIniciativa.map((c) => {
       if (c.id === idCriatura) {
-        return { ...c, vidaTemporal: Math.max(0, vidaTemp) };
+        criaturaAfectadaNombre = c.nombre;
+        return { ...c, vidaTemporal: vidaTempSegura };
       }
       return c;
     });
-    return { colaIniciativa: nuevaCola };
+
+    if (criaturaObjetivo?.esMonstruo) {
+      return { colaIniciativa: nuevaCola };
+    }
+
+    const nuevosPjs = state.personajes.map((pj) => {
+      const coincidePj =
+        !criaturaObjetivo?.esAcompanante &&
+        !criaturaObjetivo?.idAcompanante &&
+        (pj.id === idCriatura ||
+          pj.idMiniaturaTS === idCriatura ||
+          (criaturaObjetivo?.idPersonajeDuenio && pj.id === criaturaObjetivo.idPersonajeDuenio) ||
+          coincidenNombresTaleSpire(pj.nombre, criaturaAfectadaNombre));
+
+      if (coincidePj) {
+        return { ...pj, hpTemporal: vidaTempSegura };
+      }
+
+      if (!criaturaObjetivo?.esAcompanante && !criaturaObjetivo?.idAcompanante) {
+        return pj;
+      }
+
+      let acompModificado = false;
+      const nuevosAcomps = (pj.acompanantes || []).map((acomp) => {
+        const coincideAcomp =
+          acomp.id === idCriatura ||
+          (criaturaObjetivo?.idAcompanante && acomp.id === criaturaObjetivo.idAcompanante) ||
+          (acomp.idMiniaturaTS && acomp.idMiniaturaTS === idCriatura) ||
+          coincidenNombresTaleSpire(acomp.nombre, criaturaAfectadaNombre);
+        if (coincideAcomp) {
+          acompModificado = true;
+          return { ...acomp, vidaTemporal: vidaTempSegura };
+        }
+        return acomp;
+      });
+
+      if (acompModificado) {
+        return { ...pj, acompanantes: nuevosAcomps };
+      }
+
+      return pj;
+    });
+
+    return { colaIniciativa: nuevaCola, personajes: nuevosPjs };
   }),
 
   limpiarIniciativa: () => set((state) => {

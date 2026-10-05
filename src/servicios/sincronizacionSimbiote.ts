@@ -8,6 +8,7 @@
 import { usarAlmacenDM } from "@/almacen/usarAlmacenDM";
 import { ts } from "@/utiles/TaleSpireAdapter";
 import type { PersonajeJugador } from "@/tipos/personaje";
+import type { CriaturaIniciativa } from "@/almacen/usarAlmacenDM";
 import type { FragmentoCliente } from "@/tipos/talespire";
 import {
   type EstadoCombatePJ,
@@ -113,6 +114,33 @@ export function proyectarEstadoCombatePJ(pj: PersonajeJugador): EstadoCombatePJ 
           nombreHechizo: pj.concentracionActiva.nombreHechizo,
         }
       : null,
+    movimientoGastado: pj.movimientoGastado,
+    movimientoMaximoTemporal: pj.movimientoMaximoTemporal,
+    acompanantes: (pj.acompanantes || []).map((a) => ({
+      id: a.id,
+      nombre: a.nombre,
+      idPlantilla: a.idPlantilla,
+      vidaActual: a.vidaActual,
+      vidaMaxima: a.vidaMaxima,
+      vidaTemporal: a.vidaTemporal,
+      ca: a.ca,
+      condiciones: a.condiciones || [],
+      efectos: (a.efectos || []).map((ef) => ({
+        id: ef.id,
+        nombre: ef.nombre,
+        expiraRonda: ef.expiraRonda,
+        concentracion: ef.concentracion,
+        duracion: ef.duracion,
+      })),
+      iniciativa: a.iniciativa,
+      idMiniaturaTS: a.idMiniaturaTS,
+      velocidad: typeof a.velocidad === "string" ? a.velocidad : `${a.velocidad?.caminar || 0} pies`,
+      movimientoGastado: a.movimientoGastado,
+      movimientoMaximoTemporal: a.movimientoMaximoTemporal,
+      esInvocacion: a.esInvocacion,
+      nivelConjuroInvocacion: a.nivelConjuroInvocacion,
+      subtipoInvocacion: a.subtipoInvocacion,
+    })),
   };
 }
 
@@ -157,10 +185,10 @@ export function emitirEstadoComoGM(): void {
 }
 
 /**
- * Emite la proyección del personaje activo del jugador hacia el DM.
+ * Emite la proyección de un personaje del jugador hacia el DM.
  * Implementa debounce de 400ms.
  */
-export function emitirMiPersonaje(): void {
+export function emitirMiPersonaje(personajeId?: string): void {
   if (timerDebouncePJ) {
     clearTimeout(timerDebouncePJ);
   }
@@ -169,20 +197,20 @@ export function emitirMiPersonaje(): void {
     const estado = usarAlmacenDM.getState();
     if (estado.esGM || estado.aplicandoSync) return;
 
-    const pjActivo =
-      estado.personajes.find((p) => p.id === estado.idPersonajeActivo) ||
-      estado.personajes[0];
+    const pjAEmitir = personajeId
+      ? estado.personajes.find((p) => p.id === personajeId)
+      : (estado.personajes.find((p) => p.id === estado.idPersonajeActivo) || estado.personajes[0]);
 
-    if (!pjActivo) {
-      logger.debug("[Sync] No hay personaje activo para emitir.");
+    if (!pjAEmitir) {
+      logger.debug("[Sync] No hay personaje para emitir.");
       return;
     }
 
-    const dto = proyectarEstadoCombatePJ(pjActivo);
+    const dto = proyectarEstadoCombatePJ(pjAEmitir);
     const wire = serializarEstadoCombatePJ(dto);
     const mensajeJSON = JSON.stringify({ v: 1, t: "PJ", d: wire });
 
-    logger.debug(`[Sync] Emitiendo ESTADO_PJ (${pjActivo.nombre}, ${mensajeJSON.length} bytes)`);
+    logger.debug(`[Sync] Emitiendo ESTADO_PJ (${pjAEmitir.nombre}, ${mensajeJSON.length} bytes)`);
     void ts.sync.send(mensajeJSON, "board");
   }, RETARDO_DEBOUNCE_MS);
 }
@@ -295,6 +323,43 @@ export function procesarMensajeSyncEntrante(evento: {
   }
 }
 
+function obtenerFirmaAcompanantes(acompanantes?: PersonajeJugador["acompanantes"]): string {
+  if (!acompanantes || acompanantes.length === 0) return "";
+  return acompanantes
+    .map(
+      (a) =>
+        `${a.id}:${a.nombre}:${a.vidaActual}:${a.vidaMaxima}:${a.vidaTemporal}:${a.ca}:${(a.condiciones || []).slice().sort().join(",")}:${(a.efectos || []).map((e) => `${e.id}:${e.nombre}:${e.expiraRonda}:${e.concentracion}`).join(",")}:${a.movimientoGastado}:${a.movimientoMaximoTemporal}:${a.idMiniaturaTS}:${a.nivelConjuroInvocacion}:${a.subtipoInvocacion}`
+    )
+    .join("|");
+}
+
+function calcularFirmaPJ(pj: PersonajeJugador, cola: CriaturaIniciativa[]): string {
+  const criaturaCola = cola.find(
+    (c) =>
+      !c.esAcompanante &&
+      (c.id === pj.id ||
+        c.idPersonajeDuenio === pj.id ||
+        (pj.idMiniaturaTS && c.id === pj.idMiniaturaTS) ||
+        coincidenNombresTaleSpire(c.nombre, pj.nombre))
+  );
+  const stats = calcularEstadisticasPersonaje(pj);
+  const inic =
+    criaturaCola?.iniciativa !== undefined
+      ? criaturaCola.iniciativa
+      : (stats.modificadores?.destreza || 0) + (pj.iniciativaBono || 0);
+
+  const condStr = (pj.condicionesActivas || []).slice().sort().join(",");
+  const efStr = (pj.efectosActivos || []).map((e) => `${e.id}:${e.nombre}:${e.expiraRonda}:${e.concentracion}`).join(",");
+  const concStr = pj.concentracionActiva
+    ? `${pj.concentracionActiva.hechizoId}:${pj.concentracionActiva.nombreHechizo}`
+    : "";
+  const movGastado = pj.movimientoGastado ?? 0;
+  const movMaxT = pj.movimientoMaximoTemporal ?? null;
+  const acompsStr = obtenerFirmaAcompanantes(pj.acompanantes);
+
+  return `${pj.id}:${pj.nombre}:${pj.hpActual}:${pj.hpMaximo}:${pj.hpTemporal}:${pj.ca}:${inic}:${condStr}:${efStr}:${concStr}:${movGastado}:${movMaxT}:${pj.idMiniaturaTS}:${acompsStr}`;
+}
+
 /**
  * Inicializa los observadores reactivos del store Zustand.
  * Monitorea cambios locales para emitir sincronizaciones según el rol activo.
@@ -309,56 +374,16 @@ export function inicializarObservadoresStoreSync(): () => void {
   let prevMostrarVida = estadoInicial.mostrarPorcentajeVidaAJugadores;
   let prevMetodoVida = estadoInicial.metodoVidaMonstruo;
 
-  const pjInicial =
-    estadoInicial.personajes.find((p) => p.id === estadoInicial.idPersonajeActivo) ||
-    estadoInicial.personajes[0];
-
-  const criaturaInicial = estadoInicial.colaIniciativa.find(
-    (c) =>
-      (pjInicial && c.id === pjInicial.id) ||
-      (pjInicial?.idMiniaturaTS && c.id === pjInicial.idMiniaturaTS) ||
-      (pjInicial && coincidenNombresTaleSpire(c.nombre, pjInicial.nombre))
-  );
-
-  let prevIdPj = pjInicial?.id ?? "";
-  let prevIniciativa =
-    criaturaInicial?.iniciativa ??
-    (pjInicial
-      ? (calcularEstadisticasPersonaje(pjInicial).modificadores?.destreza || 0) +
-        (pjInicial.iniciativaBono || 0)
-      : 0);
-  let prevHpActual = pjInicial?.hpActual ?? 0;
-  let prevHpTemporal = pjInicial?.hpTemporal ?? 0;
-  let prevCondicionesStr = (pjInicial?.condicionesActivas || []).join(",");
-  let prevEfectosStr = (pjInicial?.efectosActivos || []).map((e) => `${e.id}:${e.expiraRonda}`).join(",");
-  let prevConcentracionStr = pjInicial?.concentracionActiva ? pjInicial.concentracionActiva.hechizoId : "";
+  const prevFirmasPJs = new Map<string, string>();
+  estadoInicial.personajes.forEach((pj) => {
+    prevFirmasPJs.set(pj.id, calcularFirmaPJ(pj, estadoInicial.colaIniciativa));
+  });
 
   const unsub = usarAlmacenDM.subscribe((estadoActual) => {
     if (estadoActual.aplicandoSync) {
-      // Sincronizar referencias previas para evitar falsos positivos de cambio local al liberarse el flag
-      const pjActivo =
-        estadoActual.personajes.find((p) => p.id === estadoActual.idPersonajeActivo) ||
-        estadoActual.personajes[0];
-
-      if (pjActivo) {
-        const criaturaActiva = estadoActual.colaIniciativa.find(
-          (c) =>
-            c.id === pjActivo.id ||
-            (pjActivo.idMiniaturaTS && c.id === pjActivo.idMiniaturaTS) ||
-            coincidenNombresTaleSpire(c.nombre, pjActivo.nombre)
-        );
-        const stats = calcularEstadisticasPersonaje(pjActivo);
-        prevIdPj = pjActivo.id;
-        prevIniciativa =
-          criaturaActiva?.iniciativa !== undefined
-            ? criaturaActiva.iniciativa
-            : (stats.modificadores?.destreza || 0) + (pjActivo.iniciativaBono || 0);
-        prevHpActual = pjActivo.hpActual;
-        prevHpTemporal = pjActivo.hpTemporal;
-        prevCondicionesStr = (pjActivo.condicionesActivas || []).join(",");
-        prevEfectosStr = (pjActivo.efectosActivos || []).map((e) => `${e.id}:${e.expiraRonda}`).join(",");
-        prevConcentracionStr = pjActivo.concentracionActiva ? pjActivo.concentracionActiva.hechizoId : "";
-      }
+      estadoActual.personajes.forEach((pj) => {
+        prevFirmasPJs.set(pj.id, calcularFirmaPJ(pj, estadoActual.colaIniciativa));
+      });
 
       if (estadoActual.esGM) {
         prevCola = estadoActual.colaIniciativa;
@@ -389,45 +414,13 @@ export function inicializarObservadoresStoreSync(): () => void {
       }
     } else {
       // ── Observación del Jugador ──
-      const pjActivo =
-        estadoActual.personajes.find((p) => p.id === estadoActual.idPersonajeActivo) ||
-        estadoActual.personajes[0];
+      for (const pj of estadoActual.personajes) {
+        const firmaActual = calcularFirmaPJ(pj, estadoActual.colaIniciativa);
+        const firmaPrevia = prevFirmasPJs.get(pj.id);
 
-      if (pjActivo) {
-        const criaturaActiva = estadoActual.colaIniciativa.find(
-          (c) =>
-            c.id === pjActivo.id ||
-            (pjActivo.idMiniaturaTS && c.id === pjActivo.idMiniaturaTS) ||
-            coincidenNombresTaleSpire(c.nombre, pjActivo.nombre)
-        );
-        const stats = calcularEstadisticasPersonaje(pjActivo);
-        const inicActual =
-          criaturaActiva?.iniciativa !== undefined
-            ? criaturaActiva.iniciativa
-            : (stats.modificadores?.destreza || 0) + (pjActivo.iniciativaBono || 0);
-
-        const condStr = (pjActivo.condicionesActivas || []).join(",");
-        const efStr = (pjActivo.efectosActivos || []).map((e) => `${e.id}:${e.expiraRonda}`).join(",");
-        const concStr = pjActivo.concentracionActiva ? pjActivo.concentracionActiva.hechizoId : "";
-
-        const haCambiadoPJ =
-          pjActivo.id !== prevIdPj ||
-          inicActual !== prevIniciativa ||
-          pjActivo.hpActual !== prevHpActual ||
-          pjActivo.hpTemporal !== prevHpTemporal ||
-          condStr !== prevCondicionesStr ||
-          efStr !== prevEfectosStr ||
-          concStr !== prevConcentracionStr;
-
-        if (haCambiadoPJ) {
-          prevIdPj = pjActivo.id;
-          prevIniciativa = inicActual;
-          prevHpActual = pjActivo.hpActual;
-          prevHpTemporal = pjActivo.hpTemporal;
-          prevCondicionesStr = condStr;
-          prevEfectosStr = efStr;
-          prevConcentracionStr = concStr;
-          emitirMiPersonaje();
+        if (firmaActual !== firmaPrevia) {
+          prevFirmasPJs.set(pj.id, firmaActual);
+          emitirMiPersonaje(pj.id);
         }
       }
     }

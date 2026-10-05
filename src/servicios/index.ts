@@ -14,3 +14,4 @@ export * from "./calculadorMagia";
 export * from "./sincronizadorConjurosSubclase";
 export * from "./gestorEspecies";
 export * from "./resolutorOrigenConjuros";
+export * from "./factoriaInvocaciones";

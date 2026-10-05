@@ -18,10 +18,158 @@ Este archivo registra reglas globales, errores encontrados, sus causas raíz y l
 6. **PROHIBICIÓN ESTRICTA DE BIFURCACIONES POR NOMBRE DE RASGO O CLASE (CATÁLOGO DECLARATIVO Y BUILDER PURO)**:
    - **Bajo ninguna circunstancia** los módulos de lógica de negocio (`servicios/`), gestores de estado (`almacen/`) o constructores (`gestorClases.ts`) deben contener bifurcaciones condicionales por nombre literal de rasgo o clase (`r.nombre === "..."`, `clase.includes("...")`, etc.).
 
-## [2026-10-04] Integración de Rama `origin/Sidekicks-beta` en `main` (Sistema de Sidekicks y Recarga Dinámica)
+## [2026-10-05] Auditoría de Código y Blindaje AppSec de la Rama `origin/Sidekicks-beta`
+
+**Objetivo de la Integración y Auditoría:**
+- Garantizar el 100% de calidad, seguridad de la aplicación (AppSec), robustez y arquitectura limpia en el código de la rama `origin/Sidekicks-beta` antes de su integración definitiva con `main`.
+
+**Hallazgos Críticos y Soluciones Aplicadas:**
+1. **Contaminación Cruzada entre Monstruos y Aliados por Coincidencia Laxa de Nombres (`sliceIniciativa.ts`):**
+   - *Causa:* En las 7 funciones de mutación de iniciativa (`modificarVidaCriaturaIniciativa`, `modificarVidaMaximaCriaturaIniciativa`, `agregarCondicionACriatura`, `quitarCondicionDeCriatura`, `agregarEfectoACriatura`, `quitarEfectoDeCriatura`, `actualizarVidaTemporal`), no se comprobaba `!criaturaObjetivo?.esMonstruo`. Si un monstruo enemigo (ej. "Lobo #1") compartía nombre base con un acompañante o personaje ("Lobo"), `coincidenNombresTaleSpire` evaluaba a `true` y mutaba la ficha del jugador o acompañante cuando el DM dañaba o curaba al enemigo.
+   - *Solución:* Se agregó una guarda temprana de cortocircuito: `if (criaturaObjetivo?.esMonstruo) return { colaIniciativa: nuevaCola };` y se blindó el mapeo para acompañantes requiriendo `esAcompanante` o `idAcompanante`.
+2. **Falso Positivo de Vinculación de Miniaturas Anónimas (`resolutorMiniaturasJugador.ts`):**
+   - *Causa:* La comparación `nomC.startsWith(nombreAcompNorm) || nombreAcompNorm.startsWith(nomC)` evaluaba a `true` ante miniaturas sin nombre (`nomC === ""`), asignando cualquier miniatura anónima al primer acompañante y sin excluir miniaturas ya asignadas a los PJs.
+   - *Solución:* Se excluyeron los IDs de miniaturas asignadas a personajes principales (`idsMiniaturasAsignadasPJs`) y se validó `!esNombreVacioODot(nomC)` con longitud mínima `>= 2` y `coincidenNombresTaleSpire`.
+3. **Manejo Defensivo contra `NaN` en Invocaciones Escalables (`factoriaInvocaciones.ts`):**
+   - *Causa:* Si `nivelConjuroSolicitado` llegaba indefinido o nulo, `Math.min(max, undefined)` resultaba en `NaN`, propagándose a la CA, PV y ataques.
+   - *Solución:* Coalescencia numérica defensiva (`Number.isFinite(nivel) ? Number(nivel) : plantilla.nivelMinimo`).
+4. **Optimización de Payload para Red TaleSpire (`sync.ts`):**
+   - *Causa:* Serializar el personaje con acompañantes y efectos podía exceder los límites físicos de paquetes de red de TaleSpire (~500 bytes).
+   - *Solución:* Se compactó `WireAcompanante`, truncando nombres a 20 caracteres y omitiendo datos redundantes.
+5. **Sincronización Atómica de `colaIniciativa` al Editar Acompañantes (`sliceAcompanantes.ts`):**
+   - *Causa:* `modificarVidaAcompanante` y `actualizarAcompanante` solo mutaban `state.personajes`, dejando desactualizada `colaIniciativa` si el acompañante ya estaba en combate.
+   - *Solución:* Actualización paralela de la criatura vinculada en `state.colaIniciativa`.
+6. **Edición Atómica de Vida Máxima (`TarjetaCriaturaIniciativa.tsx`):**
+   - *Causa:* Emisión de mutaciones en cada pulsación (`onChange`), generando estados intermedios inconsistentes.
+   - *Solución:* Emisión únicamente al confirmar en `onBlur` o presionar `Enter`.
+7. **Corrección de Espacio en Catálogo (`mago.json`):**
+   - Se corrigió el espacio inicial en `"id": "selector_erudito_ilusion_mago"`.
+8. **Búsqueda Eficiente de Monstruos con Corte Temprano (`SeccionAcompanantesPersonaje.tsx`):**
+   - Se reemplazó el filtro completo de 1.000+ monstruos por un bucle con corte temprano a los 8 resultados.
+
+**Métricas Finales de Calidad y CI:**
+- **TypeScript:** `strict: true`, 0 errores (`tsc --noEmit`).
+- **ESLint:** 0 errores y 0 advertencias (`eslint src --max-warnings=0`).
+- **Vitest:** 104 suites ejecutadas, 1.578/1.578 pruebas unitarias aprobadas (100% de éxito).
+- **Límites de Líneas:** 116 archivos auditados, 0 archivos con más de 500 líneas.
+- **Build de Producción:** Vite build completado con éxito (código de salida 0).
+
+---
+
+## [2026-10-04] Sincronización Bidireccional Completa (Player -> GM y GM -> Player) de Daño, Velocidad, Vida, Condiciones, Efectos y Acompañantes
 
 **Objetivo de la Integración:**
-- Fusión completa de la rama `origin/Sidekicks-beta` en `main`, resolviendo de forma limpia el conflicto en `agente.md` sin pérdida de registros históricos y certificando el 100% del pipeline de calidad y CI.
+- Garantizar que la sincronización en tiempo real vía `TS.sync` sea estrictamente **bidireccional y reactiva**: cuando un jugador o el DM registra daño, curación, vida temporal, condiciones, efectos, consumo de movimiento o modifica acompañantes/invocaciones (ej. *Corcel sobrenatural*), estos cambios se transmiten de inmediato hacia la otra parte y se reflejan instantáneamente tanto en `state.personajes` como en `state.colaIniciativa` de la DM Screen (Combat Tracker).
+
+**Causas Raíz Identificadas y Subsanadas:**
+1. **Falso Positivo en la Comparación de Nombres TaleSpire (`normalizarNombreTaleSpire`):**
+   - `normalizarNombreTaleSpire(nombre)` devuelve un objeto `{ completo: string; base: string }`.
+   - En múltiples partes críticas (`sliceSync.ts` y `sincronizacionSimbiote.ts`), el código comparaba `normalizarNombreTaleSpire(a) === normalizarNombreTaleSpire(b)`.
+   - En JavaScript, la igualdad estricta `===` entre dos referencias de objetos recién creados **siempre evalúa a `false`**, provocando que el DM no pudiera mapear la criatura de la cola con el personaje o acompañante recibido del jugador.
+   - **Solución:** Se creó y centralizó `coincidenNombresTaleSpire(nombreA, nombreB)` en `resolutorCriaturas.ts` para comparar las cadenas de texto `completo` y `base` de forma determinista y segura.
+2. **Límite Estricto de 500 Caracteres en el Adaptador TaleSpire y Serialización:**
+   - En `TaleSpireAdapter.ts`, existía una guarda `if (message.length > 500) return false;` que descartaba silenciosamente los paquetes grandes. Al incorporar acompañantes o conjuros, el payload superaba los 500 caracteres y era rechazado.
+   - **Solución:** Se amplió el límite en `TaleSpireAdapter.ts` a 1000 caracteres (conforme a la especificación oficial de TaleSpire v0.1) y se compactó la serialización en `src/tipos/sync.ts` para omitir espacios de conjuros con valor 0 (`cj: Record<string, number>`).
+3. **Observador Reactivo del Jugador con Firmas Exhaustivas:**
+   - En `sincronizacionSimbiote.ts`, `inicializarObservadoresStoreSync()` implementa `calcularFirmaPJ(pj, cola)` y `obtenerFirmaAcompanantes(acompanantes)` integrando ordenamiento alfabético de condiciones (`.slice().sort().join(",")`), nombres de efectos, expiración de rondas y banderas de concentración (`${e.id}:${e.nombre}:${e.expiraRonda}:${e.concentracion}`). Cualquier adición, edición o eliminación de condición/efecto en la UI del Jugador despierta de inmediato `emitirMiPersonaje(pj.id)`.
+4. **Emparejamiento Inequívoco y Blindaje de Acompañantes en DM Screen y Sync (`sliceIniciativa.ts`, `sliceSync.ts`):**
+   - En `sliceIniciativa.ts`, `agregarCondicionACriatura`, `quitarCondicionDeCriatura`, `agregarEfectoACriatura`, `quitarEfectoDeCriatura`, `modificarVidaCriaturaIniciativa`, `modificarVidaMaximaCriaturaIniciativa` y `actualizarVidaTemporal` ahora discriminan explícitamente mediante `!criaturaObjetivo?.esAcompanante` y `criaturaObjetivo?.idAcompanante` combinados con `coincidenNombresTaleSpire`. Esto previene que una condición o efecto aplicado a un acompañante que comparte nombre base con su dueño (ej. `Tryn` y `Tryn_caballo`) colisione erróneamente con el personaje principal, y viceversa.
+   - En `sliceSync.ts`, `aplicarIniciativaDesdeSync` y `actualizarPersonajeDesdeSync` aplican las mismas reglas de discriminación estricta.
+
+**Validación Integral:**
+- 104 suites y 1.576 pruebas unitarias aprobadas al 100% en `pnpm test`.
+- Verificación estricta de tipos `tsc --noEmit` con 0 errores y ESLint con 0 advertencias.
+
+## [2026-10-04] Sincronización de Acompañantes/Invocaciones en la DM Screen (Combat Tracker), Velocidad Restante, Condiciones y Auto-vinculación de Miniaturas TaleSpire
+
+**Objetivo de la Integración:**
+- Corregir la sincronización en la vista **DM Screen** (Combat Tracker / Iniciativa), donde las miniaturas de TaleSpire vinculadas a acompañantes e invocaciones de jugadores (ej. `Tryn_caballo` / *Corcel sobrenatural*) no proyectaban sus estadísticas reales (CA, PV máx/actual, velocidad, ataques rápidos cargados, condiciones y efectos).
+- Sincronizar y mostrar con precisión la **velocidad restante** de la criatura (`velocidadTotal - movimientoGastado`) con indicadores visuales de gasto de movimiento en la tarjeta de combate.
+- Sincronizar bidireccionalmente las mutaciones del DM (daño, curación, vida temporal, condiciones y efectos) tanto sobre el personaje principal como sobre sus acompañantes, replicándolas en la ficha del jugador vía `TS.sync`.
+- Habilitar la auto-resolución y vinculación de miniaturas de TaleSpire para acompañantes en `autoResolverMiniaturasJugador`.
+
+**Decisiones Técnicas y Arquitectónicas:**
+1. **Detección y Proyección de Acompañantes en Iniciativa (`sincronizacionIniciativa.ts`, `usarAlmacenDM.ts`):**
+   - Se extendió `CriaturaIniciativa` con `movimientoGastado`, `movimientoMaximoTemporal`, `idPersonajeDuenio`, `idAcompanante` y `esAcompanante`.
+   - En `sincronizarConEstadoLocal`, tras buscar si la miniatura es un `PersonajeJugador`, se busca si coincide con algún `AcompanantePersonaje` de la lista `personajes` (por `idMiniaturaTS`, nombre o nombre base normalizado).
+   - Si el acompañante es una invocación escalable, se proyecta su `MonstruoBase` mediante `proyectarInvocacionAMonstruo(plantilla, acomp.nivelConjuroInvocacion, extraerContextoLanzador(pjDuenio), acomp.subtipoInvocacion)`, asignando CA, Vida, Iniciativa, velocidad y ataques rápidos.
+2. **Resolución de Plantillas Dinámicas en DM Screen (`GestorIniciativa.tsx`):**
+   - En `obtenerPlantillaAsociada`, se verifica si `criatura.idPlantillaAsociada` es una invocación escalable (`esIdInvocacionEscalable`).
+   - Al encontrar el personaje dueño y el acompañante, proyecta la plantilla en caliente con sus ataques rápidos (*Golpetazo Sobrenatural*, etc.), eliminando el mensaje de *"Sin ataques rápidos cargados"*.
+3. **Cálculo y Renderizado de Velocidad Restante (`TarjetaCriaturaIniciativa.tsx`, `.module.css`):**
+   - Se calcula `velTotal = movimientoMaximoTemporal ?? velBaseNum` y `velRestante = Math.max(0, velTotal - movimientoGastado)`.
+   - Se renderiza la velocidad restante `({velRestante} ft rest.)` con clases dinámicas (`etiquetaVelRestanteGastada`, `etiquetaVelRestanteAgotada`) y tooltip descriptivo.
+4. **Sincronización Bidireccional de Mutaciones (`sliceIniciativa.ts`, `sliceSync.ts`, `sync.ts`):**
+   - `modificarVidaCriaturaIniciativa`, `modificarVidaMaximaCriaturaIniciativa`, `actualizarVidaTemporal`, `agregarCondicionACriatura`, `quitarCondicionDeCriatura`, `agregarEfectoACriatura` y `quitarEfectoDeCriatura` mutan tanto el PJ principal como sus `acompanantes`.
+   - `restablecerMovimientoPersonajes` reinicia el movimiento gastado de todos los personajes y de sus acompañantes al avanzar ronda o turno.
+   - En `WireCriaturaIniciativa` y `sliceSync.ts`, se transportan y aplican los datos de acompañantes y movimiento.
+5. **Auto-resolución de Miniaturas de Acompañantes (`resolutorMiniaturasJugador.ts`, `VistaJugadores.tsx`, `sliceAcompanantes.ts`):**
+   - `autoResolverMiniaturasJugador` auto-vincula miniaturas asignadas en TaleSpire a acompañantes del jugador cuyos nombres coincidan.
+   - `vincularMiniaturaTSAcompanante` registra opcionalmente la posición inicial y boardId.
+
+**Validación Integral del Pipeline:**
+- Suite `src/servicios/sincronizacionIniciativa.test.ts` con 18 pruebas unitarias aprobadas.
+- 104 suites y 1.575 pruebas unitarias globales aprobadas al 100%.
+- Verificación estricta de tipos `tsc --noEmit` con 0 errores y ESLint con 0 advertencias.
+
+## [2026-10-04] Implementación Canónica de Invocaciones Escalables (D&D 5.5e / 5e.tools Style) y Factoría Abstracta sin Alteración de Catálogo de Conjuros
+
+**Objetivo de la Integración:**
+- Resolver el escalado dinámico de criaturas de invocación (D&D 5.5e / PHB 2024: *Corcel sobrenatural*, *Espíritu bestial*, *Espíritu celestial*, *Espíritu feérico*, *Espíritu dracónico*, etc.) sin tocar ni alterar la base de datos de conjuros (`all.json`, 391 conjuros), evitando acoplamientos innecesarios.
+- Permitir al jugador escalar en caliente la invocación mediante un selector dinámico del nivel del conjuro gastado (de nivel mínimo a nivel 9, estilo 5e.tools), recalculando de inmediato CA, Vida Máxima, tiradas de ataque con el modificador de conjuros del lanzador, daño escalado, ataques múltiples y CD de salvación.
+- Establecer una arquitectura limpia y desacoplada que siente las bases para la posterior implementación de la clase Druida (distinguiendo limpiamente las **Invocaciones/Acompañantes** de la **Forma Salvaje**, que en D&D 2024 es una transformación física del propio personaje con PV temporales).
+
+**Decisiones Técnicas y Arquitectónicas:**
+1. **Catálogo Aislado y Esquemas Declarativos (`invocaciones.ts`, `invocaciones.2024-es.json`):**
+   - Se crearon tipos Zod estrictos (`EsquemaPlantillaInvocacion`, `FormulaCAInvocacion`, `FormulaVidaInvocacion`, `AtaqueInvocacion`, `ContextoLanzadorInvocacion`).
+   - Se aisló el catálogo oficial de las 10 criaturas de invocación en `src/datos/invocaciones/invocaciones.2024-es.json`, corrigiendo erratas del OCR de traducción previa (como `"1d25 piesás"` por `"1d8 + nivel"` y `"2d8 + nivel"`).
+2. **Patrón Strategy y Factoría Abstracta Pura (`factoriaInvocaciones.ts`):**
+   - Se implementó `proyectarInvocacionAMonstruo(plantilla, nivelConjuro, lanzador, subtipo)` que genera una instancia canónica de `MonstruoBase` en tiempo real ($O(1)$) sin modificar el estado persistente de las plantillas.
+   - Se extrajo el contexto del lanzador mediante `extraerContextoLanzador(personaje)` utilizando la función canónica `resolverAtributoConjuroClase` de `@/constantes` (cumpliendo la regla 6 de cero bifurcaciones literales por nombre de clase).
+3. **Integración UI Reactiva sin `<select>` Nativo (`SeccionAcompanantesPersonaje.tsx`, `.module.css`):**
+   - El buscador unificado permite buscar tanto monstruos del compendio como invocaciones escalables identificadas con un badge azul `Invocación`.
+   - La tarjeta de acompañante incluye botones numéricos interactivos de nivel de conjuro (`[ 2 | 3 | 4 ... 9 ]`) y botones mini-tabs para subtipos (ej. `[ Celestial | Feérico | Infernal ]`), cumpliendo estrictamente con la regla de diseño que prohíbe el uso de `<select>` nativo.
+   - Tanto la tarjeta en lista como el modal de estadísticas (`PanelFichaDnD`) se alimentan de la plantilla proyectada viva.
+4. **Validación Integral del Pipeline:**
+   - Suite dedicada `src/servicios/factoriaInvocaciones.test.ts` con 8 pruebas unitarias.
+   - Suite `acompanantesPersonaje.test.ts` actualizada con 11 pruebas unitarias.
+   - 104 suites y 1.574 pruebas unitarias aprobadas al 100%.
+   - Verificación de tipos `tsc --noEmit` con 0 errores, ESLint con 0 advertencias y empaquetado de producción de Vite exitoso en 14.66s.
+
+## [2026-10-04] Implementación Canónica del Escalado de Eruditos del Mago (D&D 5.5e) y Edición en Caliente de Vida Máxima en Criaturas/Acompañantes
+
+**Objetivo de la Integración:**
+- Implementar el escalado por nivel canónico de D&D 5.5e (PHB 2024) para los rasgos *Erudito en abjuración*, *Erudito en adivinación*, *Erudito en evocación* y *Erudito en ilusión* del Mago:
+  - Nivel 3: 2 conjuros gratuitos de nivel 1-2.
+  - Al acceder a nuevos espacios de conjuro (niveles 5, 7, 9, 11, 13, 15, 17): +1 conjuro gratuito adicional de la escuela elegida hasta el nivel máximo de espacio accesible.
+- Habilitar la edición "en caliente" de la Vida Máxima en la tarjeta compartida [`TarjetaCriaturaIniciativa.tsx`](file:///d:/Simbionte/src/componentes/caracteristicas/iniciativa/TarjetaCriaturaIniciativa.tsx) tanto en la pestaña de Acompañantes/Sidekicks del jugador como en el Combat Tracker del DM, mediante un input numérico reactivo que no rompe la interfaz.
+- Resolver la comparativa de UX sobre el Modal de Estadísticas Flotante para acompañantes frente al panel inferior de Master, manteniendo la experiencia táctil óptima para jugadores en TaleSpire.
+
+**Decisiones Técnicas y Modificaciones Aplicadas:**
+1. **Esquema Declarativo de Selectores Escalados (`rasgos.ts`, `esquemasCatalogos.ts`):**
+   - Se añadió `claveGruposDinamicos?: string` a `EsquemaSelectorRasgo` para la hidratación reactiva y desacoplada de grupos de opciones por nivel mínimo sin bifurcaciones por nombre ni heurísticas fijas.
+2. **Generación e Hidratación de Grupos Dinámicos (`hidratadorDotes.ts`, `hidratadorClases.ts`):**
+   - Se crearon `generarGruposOpcionesConjurosEscalados` y `obtenerGruposDinamicosEscalados`, mapeando los escalones oficiales de Mago (niveles 5 a 17) para las 4 escuelas de magia.
+   - En `hidratarSelectoresRasgo()`, se puebla reactivamente `opcionesDinamicas` cuando el selector declara `claveGruposDinamicos`.
+3. **Builder Genérico y Escalado de Etiquetas (`gestorClases.ts`):**
+   - En `resolverEscaladosRasgo()`, se actualiza reactivamente la etiqueta del selector (`sel.etiqueta`) para reflejar el rango de nivel accesible (`(Nv. 1-2)` -> `(Nv. 1-3)` -> ... -> `(Nv. 1-9)`) junto con el `escaladoMaxSelecciones` ya existente (2 a 9 selecciones).
+4. **Catálogo Declarativo Canónico (`mago.json`):**
+   - Se configuraron `escaladoMaxSelecciones` y `claveGruposDinamicos` en los 4 rasgos de los eruditos (*Abjurador*, *Adivino*, *Evocador*, *Ilusionista*).
+5. **Edición en Caliente de Vida Máxima (`TarjetaCriaturaIniciativa.tsx`, `.module.css`, `sliceIniciativa.ts`, `usarEstadoIniciativa.ts`, `GestorIniciativa.tsx`, `SeccionAcompanantesPersonaje.tsx`):**
+   - Se añadió la prop opcional `onEstablecerVidaMaxima` en `TarjetaCriaturaIniciativaProps`.
+   - Modo de edición inline en `/ {criatura.vidaMaxima}` activado al hacer clic, con auto-focus, soporte de Enter, Escape y blur.
+   - Conexión con `actualizarAcompanante` en la sección de sidekicks y con `modificarVidaMaximaCriaturaIniciativa` en el combat tracker del DM.
+6. **Validación Integral del Pipeline:**
+   - Nuevas pruebas de escalado en `src/servicios/magoMecanicasDND55.test.ts` (23 pruebas superadas).
+   - Prueba de vida máxima en caliente en `acompanantesPersonaje.test.ts` (10 pruebas superadas).
+   - 103 suites y 1.565 pruebas unitarias globales aprobadas al 100%.
+   - Verificación de tipos `tsc --noEmit` con 0 errores, ESLint con 0 advertencias, 116 archivos auditados bajo el límite de líneas y build de Vite exitoso en 12.63s.
+---
+
+## [2026-10-04] Integración Previa de Rama `origin/Sidekicks-beta` en `main` (Sistema de Sidekicks y Recarga Dinámica)
+
+**Objetivo de la Integración:**
+- Fusión completa de la versión inicial de la rama `origin/Sidekicks-beta` en `main`, resolviendo de forma limpia el conflicto en `agente.md` sin pérdida de registros históricos y certificando el 100% del pipeline de calidad y CI.
 
 **Novedades y Componentes Integrados:**
 1. **Sistema de Sidekicks / Acompañantes en la Hoja de Personaje y Vista de Jugadores:**

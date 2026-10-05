@@ -351,7 +351,12 @@ export const EsquemaAcompanantePersonaje = z.object({
   multiplicadorTerreno: z.number().default(1),
   ultimaPosicionTS: EsquemaPosicionTS.nullable().default(null),
   ultimoBoardIdTS: z.string().nullable().default(null),
-  historialMovimiento: z.array(EsquemaRegistroMovimiento).default([])
+  historialMovimiento: z.array(EsquemaRegistroMovimiento).default([]),
+
+  // Invocaciones escalables (D&D 5.5e / PHB 2024)
+  esInvocacion: z.boolean().optional(),
+  nivelConjuroInvocacion: z.number().int().min(1).max(9).optional(),
+  subtipoInvocacion: z.string().optional()
 });
 export type AcompanantePersonaje = z.infer<typeof EsquemaAcompanantePersonaje>;
 

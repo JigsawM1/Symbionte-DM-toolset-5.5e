@@ -394,4 +394,4 @@ export * from "./clases";
 export * from "./especies";
 export * from "./combate";
 export * from "./inventario";
-
+export * from "./invocaciones";

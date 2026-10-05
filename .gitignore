@@ -46,3 +46,5 @@ skills-lock.json
 /revisar
 /src/editor_hechizos
 respaldo.yaml
+.agents/hooks.json
+.cursor/hooks.json

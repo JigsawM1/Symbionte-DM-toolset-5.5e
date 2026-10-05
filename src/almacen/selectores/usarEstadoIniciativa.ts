@@ -22,6 +22,7 @@ export function usarEstadoIniciativa() {
       rondaActual:            s.rondaActual,
       criaturasSeleccionadas: s.criaturasSeleccionadas,
       asociacionesFichas:     s.asociacionesFichas,
+      personajes:             s.personajes,
     }))
   );
 }
@@ -37,6 +38,7 @@ export function usarAccionesIniciativa() {
       agregarCriaturaAIniciativa:        s.agregarCriaturaAIniciativa,
       quitarCriaturaDeIniciativa:        s.quitarCriaturaDeIniciativa,
       modificarVidaCriaturaIniciativa:   s.modificarVidaCriaturaIniciativa,
+      modificarVidaMaximaCriaturaIniciativa: s.modificarVidaMaximaCriaturaIniciativa,
       actualizarVidaTemporal:            s.actualizarVidaTemporal,
       establecerIniciativaCriatura:      s.establecerIniciativaCriatura,
       asociarPlantillaACriatura:         s.asociarPlantillaACriatura,

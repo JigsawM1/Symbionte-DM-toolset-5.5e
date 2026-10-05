@@ -220,6 +220,8 @@ export const EsquemaSelectorRasgo = z.object({
   visualizacion: z.enum(["normal", "lista"]).default("normal").optional(),
   // ── Identificador de fuente dinámica para hidratación (ej. "invocaciones_brujo", "trucos_clerigo") ──
   claveOpcionesDinamicas: z.string().optional(),
+  // ── Identificador de grupos dinámicos escalados por nivel (ej. "grupos_abjuracion_mago") ──
+  claveGruposDinamicos: z.string().optional(),
   // ── Indica si las opciones seleccionadas se lanzan sin gastar espacios de conjuro ──
   esConjuroGratuito: z.boolean().default(false).optional(),
   // ── NUEVO: opciones que se desbloquean por nivel ──

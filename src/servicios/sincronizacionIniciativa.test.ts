@@ -507,6 +507,80 @@ describe("Gestión de Iniciativa sin Auto-ordenación Numérica (Almacén y Tira
     expect(goblin?.iniciativa).toBeGreaterThan(0);
     expect(goblin?.esMonstruo).toBe(true);
   });
+
+  it("debe sincronizar un acompañante/invocación de jugador con sus estadísticas completas, velocidad y condiciones", () => {
+    const pjMock = {
+      id: "pj-tryn",
+      nombre: "Tryn",
+      idMiniaturaTS: "mini-tryn",
+      clase: "Paladín",
+      nivel: 5,
+      caracteristicas: { fuerza: 16, destreza: 10, constitucion: 14, inteligencia: 10, sabiduria: 12, carisma: 16 },
+      hpMaximo: 45,
+      hpActual: 45,
+      ca: 18,
+      acompanantes: [
+        {
+          id: "acomp-corcel-1",
+          nombre: "Tryn_caballo",
+          idPlantilla: "invocacion-corcel-sobrenatural-2024",
+          vidaMaxima: 25,
+          vidaActual: 25,
+          vidaTemporal: 0,
+          ca: 12,
+          velocidad: "60 pies",
+          movimientoGastado: 15,
+          movimientoMaximoTemporal: null,
+          condiciones: ["Acelerado"],
+          efectos: [{ id: "ef-corcel", nombre: "Vínculo Sobrenatural", concentracion: false }],
+          iniciativa: 14,
+          idMiniaturaTS: "mini-caballo-tryn",
+          esInvocacion: true,
+          nivelConjuroInvocacion: 2
+        }
+      ]
+    } as unknown as PersonajeJugador;
+
+    const colaTS: ColaIniciativaTS = {
+      items: [
+        { id: "mini-tryn", name: "Tryn", kind: "creature" } as ItemIniciativaTS,
+        { id: "mini-caballo-tryn", name: "Tryn_caballo #1", kind: "creature" } as ItemIniciativaTS
+      ],
+      activeItemIndex: 0
+    };
+    (colaTS.items[0] as ItemIniciativaTS & { initiative?: number }).initiative = 12;
+    (colaTS.items[1] as ItemIniciativaTS & { initiative?: number }).initiative = 14;
+
+    const resultado = sincronizarConEstadoLocal({
+      colaTS,
+      colaLocal: [],
+      asociacionesFichas: {},
+      indiceMonstruos: crearIndiceMonstruos([]),
+      metodoVidaMonstruo: "estandar",
+      indiceTurnoActivo: 0,
+      rondaActual: 1,
+      personajes: [pjMock]
+    });
+
+    expect(resultado.colaIniciativa).toHaveLength(2);
+
+    const corcel = resultado.colaIniciativa.find((c) => c.id === "mini-caballo-tryn");
+    expect(corcel).toBeDefined();
+    expect(corcel?.nombre).toBe("Tryn_caballo");
+    expect(corcel?.esMonstruo).toBe(false);
+    expect(corcel?.esAcompanante).toBe(true);
+    expect(corcel?.ca).toBe(12);
+    expect(corcel?.vidaMaxima).toBe(25);
+    expect(corcel?.vidaActual).toBe(25);
+    expect(corcel?.condiciones).toContain("Acelerado");
+    expect(corcel?.efectos).toHaveLength(1);
+    expect(corcel?.efectos![0].nombre).toBe("Vínculo Sobrenatural");
+    expect(corcel?.velocidad).toBe("60 pies");
+    expect(corcel?.movimientoGastado).toBe(15);
+    expect(corcel?.idPlantillaAsociada).toBe("invocacion-corcel-sobrenatural-2024");
+    expect(corcel?.idPersonajeDuenio).toBe("pj-tryn");
+    expect(corcel?.idAcompanante).toBe("acomp-corcel-1");
+  });
 });
 
 

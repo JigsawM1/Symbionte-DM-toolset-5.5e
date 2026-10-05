@@ -62,6 +62,21 @@ export function coincidenNombresTaleSpire(nombreA?: string | null, nombreB?: str
 }
 
 /**
+ * Determina si dos nombres coinciden en su versión normalizada completa o base de TaleSpire.
+ */
+export function coincidenNombresTaleSpire(nombreA?: string | null, nombreB?: string | null): boolean {
+  if (!nombreA || !nombreB) return false;
+  const normA = normalizarNombreTaleSpire(nombreA);
+  const normB = normalizarNombreTaleSpire(nombreB);
+  return (
+    normA.completo === normB.completo ||
+    normA.base === normB.base ||
+    normA.completo === normB.base ||
+    normA.base === normB.completo
+  );
+}
+
+/**
  * Resuelve una plantilla de monstruo a partir del ID de la criatura o su nombre,
  * utilizando búsquedas ultrarrápidas O(1) en el IndiceMonstruos.
  */

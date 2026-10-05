@@ -88,12 +88,17 @@ export const crearSubSliceAcompanantes: StateCreator<
     set((state) => {
       if (!state.colaIniciativa || state.colaIniciativa.length === 0) return {};
       let huboCambios = false;
+      const acompActual = (state.personajes.find((p) => p.id === idPersonaje)?.acompanantes || []).find(
+        (a) => a.id === idAcompanante
+      );
       const nuevaCola = state.colaIniciativa.map((c) => {
-        if (c.id === idAcompanante || c.idAcompanante === idAcompanante) {
+        const coincideMini = acompActual?.idMiniaturaTS && c.id === acompActual.idMiniaturaTS;
+        if (c.id === idAcompanante || c.idAcompanante === idAcompanante || coincideMini) {
           huboCambios = true;
           return {
             ...c,
             nombre: cambios.nombre ?? c.nombre,
+            iniciativa: cambios.iniciativa !== undefined ? cambios.iniciativa : c.iniciativa,
             ca: cambios.ca ?? c.ca,
             vidaMaxima: cambios.vidaMaxima ?? c.vidaMaxima,
             vidaActual: cambios.vidaActual ?? c.vidaActual,

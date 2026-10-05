@@ -317,6 +317,39 @@ export const crearSliceSync: StateCreator<
       return criatura;
     });
 
+    // Incorporar a la cola a los acompañantes que tengan iniciativa asignada (> 0) y no estén presentes aún
+    if (dto.acompanantes && dto.acompanantes.length > 0) {
+      dto.acompanantes.forEach((a) => {
+        if (typeof a.iniciativa !== "number" || a.iniciativa <= 0) return;
+        const yaExiste = colaActualizada.some(
+          (c) =>
+            c.id === a.id ||
+            c.idAcompanante === a.id ||
+            (a.idMiniaturaTS && c.id === a.idMiniaturaTS) ||
+            coincidenNombresTaleSpire(c.nombre, a.nombre)
+        );
+        if (!yaExiste) {
+          colaActualizada.push({
+            id: a.idMiniaturaTS || a.id,
+            nombre: a.nombre,
+            iniciativa: a.iniciativa,
+            vidaMaxima: a.vidaMaxima,
+            vidaActual: a.vidaActual,
+            vidaTemporal: a.vidaTemporal ?? 0,
+            ca: a.ca ?? 10,
+            condiciones: a.condiciones || [],
+            efectos: a.efectos || [],
+            bonificadorIniciativa: 0,
+            esMonstruo: false,
+            esAcompanante: true,
+            idPersonajeDuenio: dto.id,
+            idAcompanante: a.id,
+            velocidad: a.velocidad || "30 pies",
+          });
+        }
+      });
+    }
+
     set({
       personajes: personajesActualizados,
       colaIniciativa: colaActualizada,

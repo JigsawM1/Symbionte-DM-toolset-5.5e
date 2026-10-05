@@ -373,7 +373,7 @@ export function serializarEstadoCombatePJ(pj: EstadoCombatePJ): WireEstadoCombat
           d: ef.duracion,
         }));
       }
-      if (a.iniciativa && a.iniciativa > 0) wa.i = a.iniciativa;
+      if (typeof a.iniciativa === "number") wa.i = a.iniciativa;
       if (a.idMiniaturaTS) wa.m = a.idMiniaturaTS;
       return wa;
     });

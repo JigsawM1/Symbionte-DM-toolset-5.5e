@@ -14,6 +14,7 @@ import {
   dividirEnChunksIniciativa,
 } from "@/tipos/sync";
 import { PERSONAJE_POR_DEFECTO } from "@/constantes";
+import type { PersonajeJugador } from "@/tipos";
 import { usarAlmacenDM, type CriaturaIniciativa } from "@/almacen/usarAlmacenDM";
 
 describe("Sincronización Simbiote - Wire Format y DTOs", () => {
@@ -623,4 +624,118 @@ describe("Sincronización Simbiote - Manejo de Mensajes en Store", () => {
     expect(monstruoEnCola.vidaTemporal).toBe(2);
     expect(monstruoEnCola.condiciones).toEqual(["cegado"]);
   });
+
+  it("proyectarEstadoCombatePJ resuelve y propaga la iniciativa de acompañantes desde la cola o la ficha", () => {
+    usarAlmacenDM.setState({
+      colaIniciativa: [
+        {
+          id: "acomp-1",
+          nombre: "Lobo Terrible",
+          iniciativa: 16,
+          vidaActual: 18,
+          vidaMaxima: 20,
+          vidaTemporal: 0,
+          ca: 13,
+          esMonstruo: false,
+          esAcompanante: true,
+          condiciones: [],
+          efectos: [],
+          bonificadorIniciativa: 2,
+          velocidad: "40 pies",
+        },
+      ],
+    });
+
+    const pjConAcomp: PersonajeJugador = {
+      ...PERSONAJE_POR_DEFECTO,
+      id: "pj-ranger",
+      nombre: "Ranger",
+      acompanantes: [
+        {
+          id: "acomp-1",
+          nombre: "Lobo Terrible",
+          idPlantilla: "lobo",
+          vidaActual: 18,
+          vidaMaxima: 20,
+          vidaTemporal: 0,
+          ca: 13,
+          condiciones: [],
+          efectos: [],
+          iniciativa: 0, // En la ficha era 0, pero en la cola es 16
+          idMiniaturaTS: "mini-lobo",
+          velocidad: "40 pies",
+          movimientoGastado: 0,
+          movimientoMaximoTemporal: null,
+          tipoTerreno: "normal",
+          multiplicadorTerreno: 1,
+          ultimaPosicionTS: null,
+          ultimoBoardIdTS: null,
+          historialMovimiento: [],
+        },
+      ],
+    };
+
+    const dto = proyectarEstadoCombatePJ(pjConAcomp);
+    expect(dto.acompanantes).toBeDefined();
+    expect(dto.acompanantes?.[0].iniciativa).toBe(16);
+
+    // Comprobar serialización y deserialización
+    const wire = serializarEstadoCombatePJ(dto);
+    const mensajeRed = JSON.stringify({ v: 1, t: "PJ", d: wire });
+    expect(mensajeRed.length).toBeLessThan(500);
+
+    const deserializado = deserializarEstadoCombatePJ(wire);
+    expect(deserializado.acompanantes?.[0].iniciativa).toBe(16);
+  });
+
+  it("actualizarPersonajeDesdeSync incorpora al acompañante a la cola del DM si no estaba presente", () => {
+    usarAlmacenDM.setState({
+      personajes: [
+        {
+          ...PERSONAJE_POR_DEFECTO,
+          id: "pj-mago",
+          nombre: "Mago",
+          acompanantes: [],
+        },
+      ],
+      colaIniciativa: [],
+    });
+
+    const dtoSync: EstadoCombatePJ = {
+      id: "pj-mago",
+      nombre: "Mago",
+      iniciativa: 12,
+      hpActual: 20,
+      hpMaximo: 20,
+      hpTemporal: 0,
+      ca: 12,
+      condiciones: [],
+      efectos: [],
+      pasivas: { percepcion: 10, investigacion: 14, perspicacia: 10 },
+      acompanantes: [
+        {
+          id: "acomp-familiar",
+          nombre: "Cuervo",
+          vidaActual: 1,
+          vidaMaxima: 1,
+          vidaTemporal: 0,
+          ca: 12,
+          condiciones: [],
+          efectos: [],
+          iniciativa: 15,
+        },
+      ],
+    };
+
+    const estado = usarAlmacenDM.getState();
+    estado.actualizarPersonajeDesdeSync(dtoSync);
+
+    const estadoFinal = usarAlmacenDM.getState();
+    const acompEnCola = estadoFinal.colaIniciativa.find((c) => c.idAcompanante === "acomp-familiar" || c.id === "acomp-familiar");
+    expect(acompEnCola).toBeDefined();
+    expect(acompEnCola?.nombre).toBe("Cuervo");
+    expect(acompEnCola?.iniciativa).toBe(15);
+    expect(acompEnCola?.esAcompanante).toBe(true);
+  });
 });
+

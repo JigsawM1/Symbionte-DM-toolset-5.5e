@@ -241,37 +241,6 @@ export const TarjetaCriaturaIniciativa: React.FC<TarjetaCriaturaIniciativaProps>
             </span>
             <span className={estilosClases.subtituloCriatura}>
               CA: <strong className={estilosClases.valorMetaCianFuente}>{criatura.ca}</strong> | Inic: <strong className={estilosClases.valorMetaAmarilloFuente}>{(criatura.bonificadorIniciativa ?? 0) >= 0 ? `+${criatura.bonificadorIniciativa ?? 0}` : criatura.bonificadorIniciativa}</strong> <br /> Vel: {formatearVelocidad(criatura.velocidad)}
-              {(() => {
-                const tieneDatosMovimiento = criatura.movimientoGastado !== undefined || criatura.movimientoMaximoTemporal !== undefined;
-                if (!tieneDatosMovimiento) return null;
-
-                let velBaseNum = 30;
-                if (typeof criatura.velocidad === "string") {
-                  const match = criatura.velocidad.match(/(\d+)\s*(?:pies|ft)?/i);
-                  if (match) velBaseNum = parseInt(match[1], 10) || 30;
-                }
-
-                const velTotal = (criatura.movimientoMaximoTemporal !== null && criatura.movimientoMaximoTemporal !== undefined)
-                  ? criatura.movimientoMaximoTemporal
-                  : velBaseNum;
-                const velGastada = criatura.movimientoGastado || 0;
-                const velRestante = Math.max(0, Math.round((velTotal - velGastada) * 10) / 10);
-
-                return (
-                  <span
-                    className={`${estilosClases.etiquetaVelRestante} ${
-                      velRestante === 0
-                        ? estilosClases.etiquetaVelRestanteAgotada
-                        : velGastada > 0
-                        ? estilosClases.etiquetaVelRestanteGastada
-                        : ""
-                    }`}
-                    title={`Velocidad Total: ${velTotal} ft | Gastado: ${velGastada} ft | Restante: ${velRestante} ft`}
-                  >
-                    {" "}({velRestante} ft rest.)
-                  </span>
-                );
-              })()}
               {plantilla && (
                 <>
                   <br />  PP: <strong className={estilosClases.valorMetaCianFuente}>{obtenerPercepcionPasiva(plantilla)}</strong>

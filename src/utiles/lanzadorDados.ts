@@ -35,6 +35,7 @@ export interface MetadataIniciativa {
   nombrePersonaje?: string;
   idMiniaturaTS?: string | null;
   idPersonaje?: string;
+  idAcompanante?: string;
   creadoEn?: number;
 }
 
@@ -166,30 +167,122 @@ export function aplicarResultadoIniciativaEnEstado(
 
   let encontrada = false;
   const colaActualizada = state.colaIniciativa.map((c) => {
+    const coincideAcomp =
+      Boolean(infoIniciativa.idAcompanante) &&
+      (c.id === infoIniciativa.idAcompanante ||
+        c.idAcompanante === infoIniciativa.idAcompanante ||
+        (infoIniciativa.idMiniaturaTS && c.id === infoIniciativa.idMiniaturaTS));
+
     const coincideId =
       c.id === infoIniciativa.criaturaId ||
       (infoIniciativa.idMiniaturaTS && c.id === infoIniciativa.idMiniaturaTS) ||
-      (infoIniciativa.idPersonaje && c.id === infoIniciativa.idPersonaje);
-    const coincideNombre = nombreNorm && c.nombre.trim().toLowerCase() === nombreNorm;
+      (!infoIniciativa.idAcompanante && infoIniciativa.idPersonaje && c.id === infoIniciativa.idPersonaje);
 
-    if (coincideId || coincideNombre) {
+    const coincideNombre =
+      Boolean(nombreNorm) &&
+      c.nombre.trim().toLowerCase() === nombreNorm &&
+      (!infoIniciativa.idAcompanante || Boolean(c.esAcompanante) || Boolean(c.idAcompanante));
+
+    if (coincideAcomp || coincideId || coincideNombre) {
       encontrada = true;
       return { ...c, iniciativa: totalIniciativa };
     }
     return c;
   });
 
+  // Si la tirada corresponde a un acompañante, actualizar su ficha en state.personajes
+  let personajesModificados = false;
+  const nuevosPersonajes = state.personajes.map((p) => {
+    const tieneAcomp = (p.acompanantes || []).some(
+      (a) =>
+        a.id === infoIniciativa.criaturaId ||
+        a.id === infoIniciativa.idAcompanante ||
+        (infoIniciativa.idMiniaturaTS && a.idMiniaturaTS === infoIniciativa.idMiniaturaTS) ||
+        (nombreNorm && a.nombre.trim().toLowerCase() === nombreNorm)
+    );
+
+    if (!tieneAcomp) return p;
+
+    personajesModificados = true;
+    return {
+      ...p,
+      acompanantes: (p.acompanantes || []).map((a) => {
+        const coincide =
+          a.id === infoIniciativa.criaturaId ||
+          a.id === infoIniciativa.idAcompanante ||
+          (infoIniciativa.idMiniaturaTS && a.idMiniaturaTS === infoIniciativa.idMiniaturaTS) ||
+          (nombreNorm && a.nombre.trim().toLowerCase() === nombreNorm);
+
+        if (coincide) {
+          return { ...a, iniciativa: totalIniciativa };
+        }
+        return a;
+      }),
+    };
+  });
+
   if (encontrada) {
     // No auto-ordenar por iniciativa: TaleSpire es la fuente de la verdad para el orden
-    usarAlmacenDM.setState({ colaIniciativa: colaActualizada });
+    usarAlmacenDM.setState({
+      colaIniciativa: colaActualizada,
+      ...(personajesModificados ? { personajes: nuevosPersonajes } : {}),
+    });
     logger.info(`[Lanzador Dados] Iniciativa actualizada para criatura existente a ${totalIniciativa}`);
     return;
   }
 
-  // Si no estaba en la cola de iniciativa, buscar si corresponde a un Personaje Jugador y agregarlo
+  // Si no estaba en la cola de iniciativa, verificar si corresponde a un acompañante de un personaje
+  for (const p of state.personajes) {
+    const acomp = (p.acompanantes || []).find(
+      (a) =>
+        a.id === infoIniciativa.criaturaId ||
+        a.id === infoIniciativa.idAcompanante ||
+        (infoIniciativa.idMiniaturaTS && a.idMiniaturaTS === infoIniciativa.idMiniaturaTS) ||
+        (nombreNorm && a.nombre.trim().toLowerCase() === nombreNorm)
+    );
+
+    if (acomp) {
+      const nuevaCriaturaAcomp: CriaturaIniciativa = {
+        id: acomp.idMiniaturaTS || acomp.id,
+        nombre: acomp.nombre,
+        iniciativa: totalIniciativa,
+        vidaMaxima: acomp.vidaMaxima || 10,
+        vidaActual: acomp.vidaActual !== undefined ? acomp.vidaActual : (acomp.vidaMaxima || 10),
+        vidaTemporal: acomp.vidaTemporal || 0,
+        ca: acomp.ca || 10,
+        condiciones: acomp.condiciones || [],
+        efectos: acomp.efectos || [],
+        bonificadorIniciativa: 0,
+        esMonstruo: false,
+        esAcompanante: true,
+        idPersonajeDuenio: p.id,
+        idAcompanante: acomp.id,
+        velocidad: typeof acomp.velocidad === "string" ? acomp.velocidad : `${acomp.velocidad?.caminar || 30} pies`,
+      };
+
+      const personajesConInic = state.personajes.map((pj) => {
+        if (pj.id !== p.id) return pj;
+        return {
+          ...pj,
+          acompanantes: (pj.acompanantes || []).map((a) =>
+            a.id === acomp.id ? { ...a, iniciativa: totalIniciativa } : a
+          ),
+        };
+      });
+
+      usarAlmacenDM.setState({
+        colaIniciativa: [...state.colaIniciativa, nuevaCriaturaAcomp],
+        personajes: personajesConInic,
+      });
+      logger.info(`[Lanzador Dados] Acompañante ${acomp.nombre} de ${p.nombre} añadido a la cola con valor ${totalIniciativa}`);
+      return;
+    }
+  }
+
+  // Si no era acompañante, buscar si corresponde a un Personaje Jugador principal
   const pj = state.personajes.find(
     (p) =>
-      p.id === infoIniciativa.idPersonaje ||
+      (!infoIniciativa.idAcompanante && p.id === infoIniciativa.idPersonaje) ||
       (infoIniciativa.idMiniaturaTS && p.idMiniaturaTS === infoIniciativa.idMiniaturaTS) ||
       (nombreNorm && p.nombre.trim().toLowerCase() === nombreNorm)
   );
@@ -216,7 +309,10 @@ export function aplicarResultadoIniciativaEnEstado(
     };
 
     const nuevaCola = [...state.colaIniciativa, nuevaCriatura];
-    usarAlmacenDM.setState({ colaIniciativa: nuevaCola });
+    usarAlmacenDM.setState({
+      colaIniciativa: nuevaCola,
+      ...(personajesModificados ? { personajes: nuevosPersonajes } : {}),
+    });
     logger.info(`[Lanzador Dados] Héroe ${pj.nombre} añadido a la cola de iniciativa con valor ${totalIniciativa}`);
   } else {
     // Fallback si era una criatura genérica que no estaba en cola
@@ -234,7 +330,10 @@ export function aplicarResultadoIniciativaEnEstado(
       vidaTemporal: 0
     };
     const nuevaCola = [...state.colaIniciativa, nuevaCriatura];
-    usarAlmacenDM.setState({ colaIniciativa: nuevaCola });
+    usarAlmacenDM.setState({
+      colaIniciativa: nuevaCola,
+      ...(personajesModificados ? { personajes: nuevosPersonajes } : {}),
+    });
   }
 }
 

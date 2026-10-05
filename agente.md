@@ -18,6 +18,57 @@ Este archivo registra reglas globales, errores encontrados, sus causas raíz y l
 6. **PROHIBICIÓN ESTRICTA DE BIFURCACIONES POR NOMBRE DE RASGO O CLASE (CATÁLOGO DECLARATIVO Y BUILDER PURO)**:
    - **Bajo ninguna circunstancia** los módulos de lógica de negocio (`servicios/`), gestores de estado (`almacen/`) o constructores (`gestorClases.ts`) deben contener bifurcaciones condicionales por nombre literal de rasgo o clase (`r.nombre === "..."`, `clase.includes("...")`, etc.).
 
+## [2026-10-05] Sincronización de Iniciativa de Acompañantes al Master y Limpieza de UI de Velocidad en Iniciativa
+
+**Contexto del Problema y Reporte de Bug:**
+- Los jugadores no podían transmitir la iniciativa de sus acompañantes/sidekicks/invocaciones hacia el Master.
+- La interfaz de combate de iniciativa aún mostraba badges dinámicos de movimiento restante gastado (`ft rest.`), residuo del antiguo intento de sincronización de movimiento en combate que fue removido para cumplir con el límite estricto de 500 caracteres por mensaje de la API de TaleSpire.
+
+**Causas Raíz Identificadas:**
+1. **Omisión de `MetadataIniciativa` al Tirar Dados de Acompañante (`SeccionAcompanantesPersonaje.tsx`):**
+   - Al lanzar iniciativa desde la pestaña de acompañantes con `manejarLanzarIniciativa`, se invocaba `lanzarDadosTaleSpire(formula, etiqueta)` omitiendo el tercer parámetro `metaIniciativa`.
+   - Por ello, cuando TaleSpire devolvía el resultado del dado, el lanzador no reconocía la tirada como iniciativa, no asociaba el resultado al acompañante ni lo guardaba en el almacén.
+2. **Iniciativa Ausente en la Firma de Sincronización de Acompañantes (`sincronizacionSimbiote.ts`):**
+   - `obtenerFirmaAcompanantes` incluía vida, CA, condiciones, efectos, pero omitía por completo `iniciativa`.
+   - Cuando el jugador tiraba o editaba manualmente la iniciativa del acompañante, `calcularFirmaPJ` devolvía la misma firma previa. El observador reactivo de Zustand no detectaba ningún cambio y por tanto nunca emitía `emitirMiPersonaje(pj.id)`.
+3. **Pérdida de Iniciativa de Acompañante desde la Cola en la Proyección (`sincronizacionSimbiote.ts`):**
+   - `proyectarEstadoCombatePJ` para el héroe buscaba su iniciativa en `colaIniciativa`, pero para los acompañantes solo leía `a.iniciativa`. Si la iniciativa estaba en la cola de combate de la mesa, el DTO de red conservaba `0` o `undefined`.
+4. **Filtro Booleano Estricto en Serialización (`sync.ts`):**
+   - En `serializarEstadoCombatePJ`, la condición `if (a.iniciativa && a.iniciativa > 0)` impedía transmitir iniciativas legítimas iguales a 0 o tiradas bajas.
+5. **Acompañante Huérfano en el DM al Recibir Sync (`sliceSync.ts`):**
+   - En `actualizarPersonajeDesdeSync`, el mapeo de `colaIniciativa` solo actualizaba criaturas que ya existían previamente en la cola. Si el jugador le asignaba o tiraba iniciativa a su acompañante antes de que el DM lo agregara a la cola, el acompañante quedaba fuera del combat tracker del Master.
+6. **Desconexión en el Resolutor de Dados de TaleSpire (`lanzadorDados.ts`):**
+   - `aplicarResultadoIniciativaEnEstado` no diferenciaba si la tirada pertenecía a un acompañante. Si no estaba en la cola, buscaba coincidencias con el PJ principal y creaba combatientes genéricos tipo "Combatiente 10/10" en vez del acompañante aliado vinculado.
+7. **Residuo de UI en Tarjeta de Iniciativa (`TarjetaCriaturaIniciativa.tsx` y CSS):**
+   - Se ejecutaba una función inline que evaluaba `criatura.movimientoGastado` y `criatura.movimientoMaximoTemporal` para mostrar `(X ft rest.)` con clases asociadas (`.etiquetaVelRestante`, `.etiquetaVelRestanteGastada`, `.etiquetaVelRestanteAgotada`). Al no sincronizarse ya estos campos por red, ensuciaba visualmente la iniciativa con datos desincronizados.
+
+**Soluciones Técnicas Aplicadas:**
+1. **Inyección Completa de `MetadataIniciativa` en Acompañantes (`SeccionAcompanantesPersonaje.tsx` y `lanzadorDados.ts`):**
+   - Se extendió `MetadataIniciativa` con `idAcompanante?: string`.
+   - En `manejarLanzarIniciativa` de la sección de acompañantes, se pasa `{ tipo: "iniciativa", criaturaId: acomp.id, idPersonaje: personaje.id, idAcompanante: acomp.id, nombrePersonaje: acomp.nombre, idMiniaturaTS: acomp.idMiniaturaTS }`.
+   - En `aplicarResultadoIniciativaEnEstado` (`lanzadorDados.ts`), se reconoce al acompañante, se actualiza `iniciativa` en `colaIniciativa` y en `personajes[i].acompanantes`, y si no estaba aún en la cola, se incorpora con todas sus estadísticas y el flag `esAcompanante: true`.
+2. **Propagación e Inclusión de Iniciativa en la Firma Reactiva (`sincronizacionSimbiote.ts`):**
+   - `obtenerFirmaAcompanantes(acompanantes, cola)` ahora calcula la iniciativa efectiva del acompañante (desde la cola o desde su ficha) e incluye `inic` en la cadena de firma. Cualquier cambio de iniciativa dispara de inmediato `emitirMiPersonaje`.
+   - `proyectarEstadoCombatePJ` resuelve la iniciativa del acompañante comprobando primero `colaIniciativa`.
+3. **Serialización Fiel de Iniciativa Numérica (`src/tipos/sync.ts`):**
+   - Se sustituyó `if (a.iniciativa && a.iniciativa > 0)` por `if (typeof a.iniciativa === "number") wa.i = a.iniciativa;`, preservando cualquier valor numérico.
+4. **Incorporación Automática a la Cola del DM (`src/almacen/slices/sliceSync.ts`):**
+   - En `actualizarPersonajeDesdeSync`, si un acompañante tiene iniciativa asignada (`> 0`) y no se encuentra presente en la cola de combate del Master, se inserta automáticamente como aliado con sus datos completos y relación con el personaje dueño.
+5. **Sincronización en Edición Manual de Acompañante (`sliceAcompanantes.ts`):**
+   - En `actualizarAcompanante`, se añadió la mutación de `iniciativa: cambios.iniciativa !== undefined ? cambios.iniciativa : c.iniciativa` para las criaturas correspondientes en `colaIniciativa` (por ID de acompañante o por `idMiniaturaTS`).
+6. **Limpieza Quirúrgica de UI de Velocidad en Iniciativa (`TarjetaCriaturaIniciativa.tsx` y CSS):**
+   - Se removió el bloque de cómputo inline de velocidad restante / gastada (`ft rest.`), mostrando de manera limpia y legible la velocidad estática formateada de la criatura (`Vel: {formatearVelocidad(criatura.velocidad)}`).
+   - Se eliminaron las clases CSS obsoletas `.etiquetaVelRestante`, `.etiquetaVelRestanteGastada`, `.etiquetaVelRestanteAgotada`.
+
+**Certificación de Calidad y Pipeline de CI:**
+- **TypeScript**: `tsc --noEmit` completado con 0 errores (`strict: true`).
+- **ESLint**: `eslint src --max-warnings=0` con 0 errores y 0 advertencias.
+- **Vitest**: 105 suites pasadas, **1.593 / 1.593 pruebas exitosas al 100%**.
+- **Auditoría de Longitud**: 117 archivos auditados, 0 archivos críticos (> 500 líneas).
+- **Vite Build**: Empaquetado de producción completado en 8.37s sin errores.
+
+---
+
 ## [2026-10-05] Corrección Integral de Sincronización en Tiempo Real y Blindaje de Límite Estricto de 500 Caracteres (TaleSpire API v0.1)
 
 **Contexto del Problema y Reporte de Bug:**

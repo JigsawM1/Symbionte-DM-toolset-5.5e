@@ -833,9 +833,16 @@ export const SeccionAcompanantesPersonaje: React.FC<SeccionAcompanantesPersonaje
     (acomp: AcompanantePersonaje, plantilla: MonstruoBase | null) => {
       const bono = plantilla?.iniciativaBonificador || 0;
       const formula = `!${sanitizarEtiqueta(acomp.nombre)}:1d20${bono >= 0 ? "+" : ""}${bono}`;
-      lanzarDadosTaleSpire(formula, `${acomp.nombre} - Iniciativa`);
+      lanzarDadosTaleSpire(formula, `${acomp.nombre} - Iniciativa`, {
+        tipo: "iniciativa",
+        criaturaId: acomp.id,
+        idPersonaje: personaje.id,
+        idAcompanante: acomp.id,
+        nombrePersonaje: acomp.nombre,
+        idMiniaturaTS: acomp.idMiniaturaTS,
+      });
     },
-    []
+    [personaje.id]
   );
 
   const manejarLanzarTiradaD20 = useCallback(

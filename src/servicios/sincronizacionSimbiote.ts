@@ -123,31 +123,47 @@ export function proyectarEstadoCombatePJ(pj: PersonajeJugador): EstadoCombatePJ 
       : null,
     movimientoGastado: pj.movimientoGastado,
     movimientoMaximoTemporal: pj.movimientoMaximoTemporal,
-    acompanantes: (pj.acompanantes || []).map((a) => ({
-      id: a.id,
-      nombre: a.nombre,
-      idPlantilla: a.idPlantilla,
-      vidaActual: a.vidaActual,
-      vidaMaxima: a.vidaMaxima,
-      vidaTemporal: a.vidaTemporal,
-      ca: a.ca,
-      condiciones: a.condiciones || [],
-      efectos: (a.efectos || []).map((ef) => ({
-        id: ef.id,
-        nombre: ef.nombre,
-        expiraRonda: ef.expiraRonda,
-        concentracion: ef.concentracion,
-        duracion: ef.duracion,
-      })),
-      iniciativa: a.iniciativa,
-      idMiniaturaTS: a.idMiniaturaTS,
-      velocidad: typeof a.velocidad === "string" ? a.velocidad : `${a.velocidad?.caminar || 0} pies`,
-      movimientoGastado: a.movimientoGastado,
-      movimientoMaximoTemporal: a.movimientoMaximoTemporal,
-      esInvocacion: a.esInvocacion,
-      nivelConjuroInvocacion: a.nivelConjuroInvocacion,
-      subtipoInvocacion: a.subtipoInvocacion,
-    })),
+    acompanantes: (pj.acompanantes || []).map((a) => {
+      const criaturaColaAcomp = (estado.colaIniciativa || []).find(
+        (c) =>
+          c.id === a.id ||
+          c.idAcompanante === a.id ||
+          (a.idMiniaturaTS && c.id === a.idMiniaturaTS) ||
+          coincidenNombresTaleSpire(c.nombre, a.nombre)
+      );
+      const iniciativaFinalAcomp =
+        criaturaColaAcomp?.iniciativa !== undefined
+          ? criaturaColaAcomp.iniciativa
+          : typeof a.iniciativa === "number"
+          ? a.iniciativa
+          : 0;
+
+      return {
+        id: a.id,
+        nombre: a.nombre,
+        idPlantilla: a.idPlantilla,
+        vidaActual: a.vidaActual,
+        vidaMaxima: a.vidaMaxima,
+        vidaTemporal: a.vidaTemporal,
+        ca: a.ca,
+        condiciones: a.condiciones || [],
+        efectos: (a.efectos || []).map((ef) => ({
+          id: ef.id,
+          nombre: ef.nombre,
+          expiraRonda: ef.expiraRonda,
+          concentracion: ef.concentracion,
+          duracion: ef.duracion,
+        })),
+        iniciativa: iniciativaFinalAcomp,
+        idMiniaturaTS: a.idMiniaturaTS,
+        velocidad: typeof a.velocidad === "string" ? a.velocidad : `${a.velocidad?.caminar || 0} pies`,
+        movimientoGastado: a.movimientoGastado,
+        movimientoMaximoTemporal: a.movimientoMaximoTemporal,
+        esInvocacion: a.esInvocacion,
+        nivelConjuroInvocacion: a.nivelConjuroInvocacion,
+        subtipoInvocacion: a.subtipoInvocacion,
+      };
+    }),
   };
 }
 
@@ -322,13 +338,29 @@ export function procesarMensajeSyncEntrante(evento: {
   }
 }
 
-function obtenerFirmaAcompanantes(acompanantes?: PersonajeJugador["acompanantes"]): string {
+function obtenerFirmaAcompanantes(
+  acompanantes?: PersonajeJugador["acompanantes"],
+  cola: CriaturaIniciativa[] = []
+): string {
   if (!acompanantes || acompanantes.length === 0) return "";
   return acompanantes
-    .map(
-      (a) =>
-        `${a.id}:${a.nombre}:${a.vidaActual}:${a.vidaMaxima}:${a.vidaTemporal}:${a.ca}:${(a.condiciones || []).slice().sort().join(",")}:${(a.efectos || []).map((e) => `${e.id}:${e.nombre}:${e.expiraRonda}:${e.concentracion}`).join(",")}:${a.movimientoGastado}:${a.movimientoMaximoTemporal}:${a.idMiniaturaTS}:${a.nivelConjuroInvocacion}:${a.subtipoInvocacion}`
-    )
+    .map((a) => {
+      const criaturaColaAcomp = cola.find(
+        (c) =>
+          c.id === a.id ||
+          c.idAcompanante === a.id ||
+          (a.idMiniaturaTS && c.id === a.idMiniaturaTS) ||
+          coincidenNombresTaleSpire(c.nombre, a.nombre)
+      );
+      const inic =
+        criaturaColaAcomp?.iniciativa !== undefined
+          ? criaturaColaAcomp.iniciativa
+          : typeof a.iniciativa === "number"
+          ? a.iniciativa
+          : 0;
+
+      return `${a.id}:${a.nombre}:${inic}:${a.vidaActual}:${a.vidaMaxima}:${a.vidaTemporal}:${a.ca}:${(a.condiciones || []).slice().sort().join(",")}:${(a.efectos || []).map((e) => `${e.id}:${e.nombre}:${e.expiraRonda}:${e.concentracion}`).join(",")}:${a.movimientoGastado}:${a.movimientoMaximoTemporal}:${a.idMiniaturaTS}:${a.nivelConjuroInvocacion}:${a.subtipoInvocacion}`;
+    })
     .join("|");
 }
 
@@ -354,7 +386,7 @@ function calcularFirmaPJ(pj: PersonajeJugador, cola: CriaturaIniciativa[]): stri
     : "";
   const movGastado = pj.movimientoGastado ?? 0;
   const movMaxT = pj.movimientoMaximoTemporal ?? null;
-  const acompsStr = obtenerFirmaAcompanantes(pj.acompanantes);
+  const acompsStr = obtenerFirmaAcompanantes(pj.acompanantes, cola);
 
   return `${pj.id}:${pj.nombre}:${pj.hpActual}:${pj.hpMaximo}:${pj.hpTemporal}:${pj.ca}:${inic}:${condStr}:${efStr}:${concStr}:${movGastado}:${movMaxT}:${pj.idMiniaturaTS}:${acompsStr}`;
 }

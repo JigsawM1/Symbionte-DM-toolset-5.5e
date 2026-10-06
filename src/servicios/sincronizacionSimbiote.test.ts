@@ -801,5 +801,74 @@ describe("Sincronización Simbiote - Firma del DM y Resiliencia de Cola", () => 
       globalContext.TS = tsOriginal;
     }
   });
+
+  it("ts.sync.send detecta y reintenta ante errores rateLimited cross-realm (no instanceof Error)", async () => {
+    let intentosLlamada = 0;
+    const globalContext = globalThis as unknown as { TS?: unknown };
+    const tsOriginal = globalContext.TS;
+
+    // Simular error lanzado desde contexto aislado de WebView/ExecuteJavaScript (sin prototype Error del window)
+    globalContext.TS = {
+      sync: {
+        send: async () => {
+          intentosLlamada++;
+          if (intentosLlamada === 1) {
+            // Rechaza con objeto plano que emula la excepción del bridge CEF
+            throw { message: "rateLimited" };
+          }
+        },
+      },
+    };
+
+    try {
+      const resultado = await ts.sync.send("test-cross-realm-ratelimit", "board");
+      expect(resultado).toBe(true);
+      expect(intentosLlamada).toBe(2);
+    } finally {
+      globalContext.TS = tsOriginal;
+    }
+  });
+
+  it("ts.sync.purgarColaSync descarta mensajes obsoletos filtrados", async () => {
+    const globalContext = globalThis as unknown as { TS?: unknown };
+    const tsOriginal = globalContext.TS;
+
+    let primerEnvioBloqueado = true;
+    let liberarPrimerEnvio: (() => void) | null = null;
+    const barrera = new Promise<void>((r) => {
+      liberarPrimerEnvio = r;
+    });
+
+    globalContext.TS = {
+      sync: {
+        send: async () => {
+          if (primerEnvioBloqueado) {
+            primerEnvioBloqueado = false;
+            await barrera;
+          }
+        },
+      },
+    };
+
+    try {
+      const p1 = ts.sync.send('{"t":"DM_CHUNK","sid":1,"chunk":1}', "board");
+      const p2 = ts.sync.send('{"t":"DM_CHUNK","sid":1,"chunk":2}', "board");
+      const p3 = ts.sync.send('{"t":"PJ","id":"pj1"}', "board");
+
+      // Purgar únicamente chunks de iniciativa obsoletos
+      const descartados = ts.sync.purgarColaSync((msg) => msg.includes('"t":"DM_CHUNK"'));
+      expect(descartados).toBe(1); // p2 estaba en cola (p1 ya estaba en ejecución activa)
+
+      // Liberar el primer envío bloqueado
+      if (liberarPrimerEnvio) (liberarPrimerEnvio as () => void)();
+
+      const [res1, res2, res3] = await Promise.all([p1, p2, p3]);
+      expect(res1).toBe(true);
+      expect(res2).toBe(false); // descartado por purga
+      expect(res3).toBe(true);
+    } finally {
+      globalContext.TS = tsOriginal;
+    }
+  });
 });
 

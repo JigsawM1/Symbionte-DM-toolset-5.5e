@@ -59,7 +59,7 @@ class TaleSpireAdapter {
   private canalBroadcastSync?: BroadcastChannel;
   private colaEnvioSync: Array<{ mensaje: string; target: string; resolver: (exito: boolean) => void }> = [];
   private procesandoColaSync = false;
-  private readonly INTERVALO_MINIMO_SYNC_MS = 120;
+  private readonly INTERVALO_MINIMO_SYNC_MS = 180;
   private readonly MAX_REINTENTOS_RATE_LIMIT = 3;
 
   /**
@@ -853,12 +853,18 @@ class TaleSpireAdapter {
           enviado = true;
           break;
         } catch (error) {
-          const esRateLimit =
-            error instanceof Error &&
-            error.message.toLowerCase().includes("ratelimited");
+          // Extracción defensiva agnóstica a realms (en WebViews/CEF 'instanceof Error' falla si proviene de IWebView.ExecuteJavaScript)
+          const mensajeError =
+            error instanceof Error
+              ? error.message
+              : typeof error === "object" && error !== null && "message" in error
+                ? String((error as { message: unknown }).message)
+                : String(error);
+
+          const esRateLimit = mensajeError.toLowerCase().includes("ratelimited");
 
           if (esRateLimit && intento < this.MAX_REINTENTOS_RATE_LIMIT) {
-            const esperaMs = (intento + 1) * 250;
+            const esperaMs = (intento + 1) * 350;
             logger.warn(`[TS Adapter] TaleSpire rate-limited en sync.send. Reintentando en ${esperaMs}ms (intento ${intento + 1}/${this.MAX_REINTENTOS_RATE_LIMIT})...`);
             await new Promise((r) => setTimeout(r, esperaMs));
             continue;
@@ -904,6 +910,34 @@ class TaleSpireAdapter {
         });
         void this.procesarSiguienteEnvioSync();
       });
+    },
+
+    /**
+     * Purga mensajes pendientes en la cola de envío que coincidan con un predicado.
+     * Permite descartar fragmentos o estados obsoletos antes de encolar una nueva ráfaga.
+     * @param filtro Función predicado opcional; si no se provee, purga toda la cola pendiente.
+     * @returns Cantidad de mensajes purgados.
+     */
+    purgarColaSync: (filtro?: (mensaje: string) => boolean): number => {
+      if (!filtro) {
+        const descartados = this.colaEnvioSync.length;
+        this.colaEnvioSync.forEach((item) => item.resolver(false));
+        this.colaEnvioSync = [];
+        return descartados;
+      }
+
+      const restantes: typeof this.colaEnvioSync = [];
+      let descartados = 0;
+      for (const item of this.colaEnvioSync) {
+        if (filtro(item.mensaje)) {
+          item.resolver(false);
+          descartados++;
+        } else {
+          restantes.push(item);
+        }
+      }
+      this.colaEnvioSync = restantes;
+      return descartados;
     },
 
     /**

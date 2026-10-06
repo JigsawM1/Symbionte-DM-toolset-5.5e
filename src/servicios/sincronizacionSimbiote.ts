@@ -29,7 +29,7 @@ import { proyectarEstadoCombatePJ } from "./sincronizacion/proyeccionEstadoComba
 
 export { proyectarEstadoCombatePJ };
 
-const RETARDO_DEBOUNCE_GM_MS = 250;
+const RETARDO_DEBOUNCE_GM_MS = 350;
 const RETARDO_DEBOUNCE_PJ_MS = 150;
 const LIMITE_TAMANO_SEGURO_BYTES = 380;
 
@@ -65,7 +65,7 @@ function esMensajeDuplicado(strCrudo: string): boolean {
 
 /**
  * Emite el estado consolidado de la iniciativa desde el DM hacia todos los clientes.
- * Implementa debounce de 400ms y particionado automático si excede el tamaño seguro.
+ * Implementa debounce de 350ms, purgado de fragmentos obsoletos y particionado automático si excede el tamaño seguro.
  */
 export function emitirEstadoComoGM(): void {
   if (timerDebounceGM) {
@@ -75,6 +75,9 @@ export function emitirEstadoComoGM(): void {
   timerDebounceGM = setTimeout(() => {
     const estado = usarAlmacenDM.getState();
     if (!estado.esGM || estado.aplicandoSync) return;
+
+    // Descartar ráfagas obsoletas de la iniciativa anterior en la cola de salida para evitar saturar el canal nativo
+    ts.sync.purgarColaSync((msg) => msg.includes('"t":"DM"') || msg.includes('"t":"DM_CHUNK"'));
 
     const datosDM: EstadoIniciativaDM = {
       cola: estado.colaIniciativa,

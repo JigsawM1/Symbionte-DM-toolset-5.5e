@@ -17,6 +17,40 @@ Este archivo registra reglas globales, errores encontrados, sus causas raíz y l
    - **Bajo ninguna circunstancia** los módulos de lógica de negocio (`servicios/`), gestores de estado (`almacen/`), contratos (`tipos/`), valores de reglas (`constantes/`) ni funciones de soporte (`utiles/`) deben importar componentes visuales o archivos CSS (`componentes/`). Esta regla está reforzada en CI vía ESLint `no-restricted-imports`.
 6. **PROHIBICIÓN ESTRICTA DE BIFURCACIONES POR NOMBRE DE RASGO O CLASE (CATÁLOGO DECLARATIVO Y BUILDER PURO)**:
 
+## [2026-10-06] Resolución de Saturación de Cola de Iniciativa (sync.send rateLimited) en Pase Rápido de Turnos y Detección Cross-Realm
+
+**Contexto del Problema y Logs de Error:**
+- Al pasar la iniciativa de forma rápida (saltando varios turnos seguidos en el Combat Tracker o en TaleSpire), la consola arrojaba múltiples errores y advertencias consecutivas:
+  `[ERROR] [TS Adapter] Error en sync.send nativo: Error: rateLimited`
+  `[WARN] [Sync] Cola excede tamaño seguro (1752b). Particionando en chunks...`
+  `3[ERROR] [TS Adapter] Error en sync.send nativo: Error: rateLimited`
+  `4[ERROR] [TS Adapter] Error en sync.send nativo: Error: rateLimited`
+
+**Causas Raíz Identificadas:**
+1. **Acumulación de Ráfagas Obsoletas en la Cola de Envío:**
+   - La cola de combate con 10-15 criaturas pesa ~1.752 bytes. Debido al límite estricto de TaleSpire (< 500 caracteres por mensaje), cada snapshot completo del DM se particiona en ~5 fragmentos (`DM_CHUNK`).
+   - Al pulsar rápidamente "Siguiente Turno", el debounce de 250 ms expiraba entre saltos o tras una serie de pulsaciones continuas, encolando 5 chunks por cada pase de turno (e.g. 25 a 30 paquetes para 5 o 6 turnos).
+   - Los fragmentos de turnos anteriores quedaban atascados en `colaEnvioSync` intentando transmitirse secuencialmente, a pesar de que el estado que representaban ya era obsoleto. Esto bombardeaba la API nativa de TaleSpire a una tasa superior a la permitida por su leaky-bucket.
+2. **Fallo Crítico en la Detección de Error Cross-Realm (`instanceof Error` en WebView CEF):**
+   - La API de TaleSpire rechaza las llamadas en ráfaga lanzando excepciones evaluadas en el contexto inyectado de la WebView (`eval at <anonymous> (VM... IWebView.ExecuteJavaScript)`).
+   - En JavaScript, una excepción creada en un realm/contexto aislado de V8 no hereda del prototipo `window.Error` del DOM de la aplicación.
+   - Por tanto, la comprobación `error instanceof Error` en `TaleSpireAdapter.ts` evaluaba falsamente a `false`. Esto provocaba que `esRateLimit` no se activara, impidiendo los 3 reintentos programados con retroceso exponencial y disparando inmediatamente el `logger.error` en rojo, pasando de inmediato al siguiente mensaje de la cola que a su vez volvía a fallar.
+3. **Intervalo Mínimo de Despacho Demasiado Agresivo:**
+   - `INTERVALO_MINIMO_SYNC_MS = 120` resultaba demasiado estrecho ante ráfagas de 5 chunks consecutivos (600 ms en total), vaciando el token bucket de TaleSpire.
+
+**Soluciones Aplicadas:**
+1. **Extracción Defensiva de Error Agnóstica a Realms (`TaleSpireAdapter.ts`):**
+   - Se reemplazó la validación estricta de prototipo por extracción polimórfica:
+     `const mensajeError = error instanceof Error ? error.message : typeof error === "object" && error !== null && "message" in error ? String((error as { message: unknown }).message) : String(error);`
+     `const esRateLimit = mensajeError.toLowerCase().includes("ratelimited");`
+   - El adaptador ahora reconoce fielmente los errores `rateLimited` de TaleSpire e implementa el retroceso exponencial con espera de `(intento + 1) * 350 ms`.
+2. **Purgado Reactivo de Paquetes de Iniciativa Obsoletos (`purgarColaSync`):**
+   - Se implementó `ts.sync.purgarColaSync(filtro)` en `TaleSpireAdapter.ts`.
+   - Antes de despachar una nueva emisión de iniciativa en `emitirEstadoComoGM`, se purgan todos los mensajes pendientes de tipo `"DM"` o `"DM_CHUNK"`. Solo viaja por la red el estado más reciente del combate, liberando ancho de banda y cancelando paquetes muertos.
+3. **Calibración de Tiempos de Red y Debounce:**
+   - Se elevó `RETARDO_DEBOUNCE_GM_MS` de 250 ms a 350 ms en `sincronizacionSimbiote.ts`, agrupando clics sucesivos en un único snapshot consolidado.
+   - Se ajustó `INTERVALO_MINIMO_SYNC_MS` a 180 ms en `TaleSpireAdapter.ts`, respetando el régimen de consumo de tokens de TaleSpire.
+
 ## [2026-10-06] Resolución de Bugs de Sincronización Simbiote (TS.sync), Protección Anti-Regresión, Chunks con sid, ACK y Optimización de Payload
 
 **Contexto del Problema y Requerimientos de Robustez:**

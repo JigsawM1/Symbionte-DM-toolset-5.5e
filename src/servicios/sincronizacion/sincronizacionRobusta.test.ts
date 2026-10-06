@@ -23,7 +23,7 @@ describe("Sincronización Robusta - Validación de Mecanismos Anti-Regresión y 
     vi.useFakeTimers();
     usarAlmacenDM.setState({
       esGM: false,
-      personajeSeleccionadoId: "pj-heroe",
+      idPersonajeActivo: "pj-heroe",
       personajes: [
         {
           ...PERSONAJE_POR_DEFECTO,

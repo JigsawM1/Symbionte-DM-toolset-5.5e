@@ -55,7 +55,7 @@ Este archivo registra reglas globales, errores encontrados, sus causas raíz y l
    - El jugador procesa el `ACK` en `procesarMensajeSyncEntrante`, cancela el temporizador de reintento en el `GestorReintentosSync` y actualiza `confirmarACKPJ` en `sliceSync.ts`.
 
 **Certificación de Calidad y Pipeline de CI:**
-- **TypeScript:** `pnpm exec tsc --noEmit` completado con 0 errores bajo `strict: true`.
+- **TypeScript:** `pnpm exec tsc --noEmit` completado con 0 errores bajo `strict: true` (se corrigió error TS2353 en `sincronizacionRobusta.test.ts` sustituyendo la propiedad inexistente `personajeSeleccionadoId` por `idPersonajeActivo`).
 - **ESLint:** `pnpm run lint` completado con 0 errores y 0 advertencias (`--max-warnings=0`).
 - **Vitest:** 107 suites de prueba, **1.615 / 1.615 pruebas aprobadas al 100%**.
 - **Auditoría de Líneas:** 117 archivos auditados vía `pnpm run verificar:lineas`, 0 archivos > 500 líneas.

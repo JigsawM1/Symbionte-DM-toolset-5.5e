@@ -351,9 +351,14 @@ export const crearSliceSync: StateCreator<
     }
 
     set({
+      aplicandoSync: true,
       personajes: personajesActualizados,
       colaIniciativa: colaActualizada,
       ultimoSyncRecibido: Date.now(),
+    });
+
+    queueMicrotask(() => {
+      set({ aplicandoSync: false });
     });
   },
 });

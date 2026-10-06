@@ -26,7 +26,8 @@ import { calcularEstadisticasPersonaje } from "@/almacen/selectores/usarEstadoPe
 import { coincidenNombresTaleSpire } from "@/servicios/resolutorCriaturas";
 import { logger } from "@/utiles/logger";
 
-const RETARDO_DEBOUNCE_MS = 100;
+const RETARDO_DEBOUNCE_GM_MS = 250;
+const RETARDO_DEBOUNCE_PJ_MS = 150;
 const LIMITE_TAMANO_SEGURO_BYTES = 380;
 
 let timerDebounceGM: ReturnType<typeof setTimeout> | null = null;
@@ -197,19 +198,17 @@ export function emitirEstadoComoGM(): void {
     } else {
       logger.warn(`[Sync] Cola excede tamaño seguro (${mensajeJSON.length}b). Particionando en chunks...`);
       const chunks = dividirEnChunksIniciativa(wire, LIMITE_TAMANO_SEGURO_BYTES);
-      chunks.forEach((chunk, index) => {
+      chunks.forEach((chunk) => {
         const chunkJSON = JSON.stringify({ v: 1, t: "DM_CHUNK", d: chunk });
-        setTimeout(() => {
-          void ts.sync.send(chunkJSON, "board");
-        }, index * 25);
+        void ts.sync.send(chunkJSON, "board");
       });
     }
-  }, RETARDO_DEBOUNCE_MS);
+  }, RETARDO_DEBOUNCE_GM_MS);
 }
 
 /**
  * Emite la proyección de un personaje del jugador hacia el DM.
- * Implementa debounce de 400ms.
+ * Implementa debounce de 150ms.
  */
 export function emitirMiPersonaje(personajeId?: string): void {
   if (timerDebouncePJ) {
@@ -235,7 +234,7 @@ export function emitirMiPersonaje(personajeId?: string): void {
 
     logger.debug(`[Sync] Emitiendo ESTADO_PJ (${pjAEmitir.nombre}, ${mensajeJSON.length} bytes)`);
     void ts.sync.send(mensajeJSON, "board");
-  }, RETARDO_DEBOUNCE_MS);
+  }, RETARDO_DEBOUNCE_PJ_MS);
 }
 
 /**
@@ -391,6 +390,22 @@ function calcularFirmaPJ(pj: PersonajeJugador, cola: CriaturaIniciativa[]): stri
   return `${pj.id}:${pj.nombre}:${pj.hpActual}:${pj.hpMaximo}:${pj.hpTemporal}:${pj.ca}:${inic}:${condStr}:${efStr}:${concStr}:${movGastado}:${movMaxT}:${pj.idMiniaturaTS}:${acompsStr}`;
 }
 
+export function calcularFirmaIniciativaDM(
+  cola: CriaturaIniciativa[],
+  turno: number,
+  ronda: number,
+  mostrarVida: boolean,
+  metodoVida: string
+): string {
+  const colaStr = cola
+    .map(
+      (c) =>
+        `${c.id}:${c.iniciativa}:${c.vidaActual}:${c.vidaMaxima}:${c.vidaTemporal || 0}:${c.ca || 10}:${Boolean(c.esMonstruo)}:${Boolean(c.esAcompanante)}:${(c.condiciones || []).slice().sort().join(",")}:${(c.efectos || []).map((e) => `${e.id}:${e.nombre}:${e.expiraRonda}:${e.concentracion}`).join(",")}`
+    )
+    .join("|");
+  return `${turno}:${ronda}:${mostrarVida ? 1 : 0}:${metodoVida}:${colaStr}`;
+}
+
 /**
  * Inicializa los observadores reactivos del store Zustand.
  * Monitorea cambios locales para emitir sincronizaciones según el rol activo.
@@ -399,11 +414,13 @@ export function inicializarObservadoresStoreSync(): () => void {
   logger.info("[Sync] Inicializando observadores reactivos del store de combate...");
 
   const estadoInicial = usarAlmacenDM.getState();
-  let prevCola = estadoInicial.colaIniciativa;
-  let prevTurno = estadoInicial.indiceTurnoActivo;
-  let prevRonda = estadoInicial.rondaActual;
-  let prevMostrarVida = estadoInicial.mostrarPorcentajeVidaAJugadores;
-  let prevMetodoVida = estadoInicial.metodoVidaMonstruo;
+  let prevFirmaDM = calcularFirmaIniciativaDM(
+    estadoInicial.colaIniciativa,
+    estadoInicial.indiceTurnoActivo,
+    estadoInicial.rondaActual,
+    estadoInicial.mostrarPorcentajeVidaAJugadores,
+    estadoInicial.metodoVidaMonstruo
+  );
 
   const prevFirmasPJs = new Map<string, string>();
   estadoInicial.personajes.forEach((pj) => {
@@ -417,30 +434,29 @@ export function inicializarObservadoresStoreSync(): () => void {
       });
 
       if (estadoActual.esGM) {
-        prevCola = estadoActual.colaIniciativa;
-        prevTurno = estadoActual.indiceTurnoActivo;
-        prevRonda = estadoActual.rondaActual;
-        prevMostrarVida = estadoActual.mostrarPorcentajeVidaAJugadores;
-        prevMetodoVida = estadoActual.metodoVidaMonstruo;
+        prevFirmaDM = calcularFirmaIniciativaDM(
+          estadoActual.colaIniciativa,
+          estadoActual.indiceTurnoActivo,
+          estadoActual.rondaActual,
+          estadoActual.mostrarPorcentajeVidaAJugadores,
+          estadoActual.metodoVidaMonstruo
+        );
       }
       return;
     }
 
     if (estadoActual.esGM) {
       // ── Observación del DM ──
-      const haCambiadoIniciativa =
-        estadoActual.colaIniciativa !== prevCola ||
-        estadoActual.indiceTurnoActivo !== prevTurno ||
-        estadoActual.rondaActual !== prevRonda ||
-        estadoActual.mostrarPorcentajeVidaAJugadores !== prevMostrarVida ||
-        estadoActual.metodoVidaMonstruo !== prevMetodoVida;
+      const firmaActualDM = calcularFirmaIniciativaDM(
+        estadoActual.colaIniciativa,
+        estadoActual.indiceTurnoActivo,
+        estadoActual.rondaActual,
+        estadoActual.mostrarPorcentajeVidaAJugadores,
+        estadoActual.metodoVidaMonstruo
+      );
 
-      if (haCambiadoIniciativa) {
-        prevCola = estadoActual.colaIniciativa;
-        prevTurno = estadoActual.indiceTurnoActivo;
-        prevRonda = estadoActual.rondaActual;
-        prevMostrarVida = estadoActual.mostrarPorcentajeVidaAJugadores;
-        prevMetodoVida = estadoActual.metodoVidaMonstruo;
+      if (firmaActualDM !== prevFirmaDM) {
+        prevFirmaDM = firmaActualDM;
         emitirEstadoComoGM();
       }
     } else {

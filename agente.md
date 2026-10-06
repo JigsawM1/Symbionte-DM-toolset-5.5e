@@ -17,6 +17,46 @@ Este archivo registra reglas globales, errores encontrados, sus causas raíz y l
    - **Bajo ninguna circunstancia** los módulos de lógica de negocio (`servicios/`), gestores de estado (`almacen/`), contratos (`tipos/`), valores de reglas (`constantes/`) ni funciones de soporte (`utiles/`) deben importar componentes visuales o archivos CSS (`componentes/`). Esta regla está reforzada en CI vía ESLint `no-restricted-imports`.
 6. **PROHIBICIÓN ESTRICTA DE BIFURCACIONES POR NOMBRE DE RASGO O CLASE (CATÁLOGO DECLARATIVO Y BUILDER PURO)**:
 
+## [2026-10-05] Resolución de Fallo de Rate Limit en Sincronización TaleSpire (sync.send rateLimited) y Cola FIFO Resiliente
+
+**Contexto del Problema y Reporte de Error:**
+- Al sincronizar iniciativas o colas de combate extensas (~1720 bytes) en el cliente de TaleSpire, la consola se inundaba con errores continuos:
+  `[ERROR] [TS Adapter] Error en sync.send nativo: Error: rateLimited`
+  `[WARN] [Sync] Cola excede tamaño seguro (1721b). Particionando en chunks...`
+- Los chunks de iniciativa fallaban sistemáticamente al ser rechazados por el rate limit interno de la API nativa de TaleSpire (`TS.sync.send`), perdiendo los paquetes de combate para los jugadores y re-emitiendo en bucle.
+
+**Causas Raíz Diagnosticadas:**
+1. **Emisión en Ráfaga Descontrolada de Chunks (`index * 25ms`):**
+   - Cuando la cola superaba el umbral seguro (`LIMITE_TAMANO_SEGURO_BYTES = 380`), `dividirEnChunksIniciativa` generaba entre 5 y 7 chunks. `emitirEstadoComoGM` enviaba estos chunks con `setTimeout(..., index * 25)`, disparando ráfagas a una tasa de 40 llamadas por segundo. La API de TaleSpire v0.1 limita la frecuencia por cliente y rechazaba de inmediato las llamadas con `Error: rateLimited`.
+2. **Ausencia de Throttling y Reintentos en el Adaptador (`TaleSpireAdapter.ts`):**
+   - `ts.sync.send` ejecutaba llamadas directas e independientes a `TS.sync.send`. Al fallar una llamada con `rateLimited`, el adaptador simplemente registraba el error y retornaba `false`, perdiendo el paquete sin reintentar ni regular el tráfico.
+3. **Disparos Cíclicos Redundantes en el Observador Reactivo del DM:**
+   - En `inicializarObservadoresStoreSync`, la detección de cambios para el Master dependía de la comparación referencial `estadoActual.colaIniciativa !== prevCola`. Cualquier recreación del array de la cola (por acciones o mutaciones internas) disparaba una re-emisión innecesaria aun cuando el contenido de combate fuera idéntico.
+   - En `actualizarPersonajeDesdeSync` (`sliceSync.ts`), no se protegía la mutación con `aplicandoSync: true`, despertando inmediatamente al observador del DM ante mensajes entrantes `PJ`.
+   - El retardo de debounce del GM era de solo 100ms, insuficiente para agrupar mutaciones en combates dinámicos.
+
+**Soluciones Arquitectónicas Aplicadas:**
+1. **Patrón Producer-Consumer Queue con Throttling y Backoff Exponencial (`TaleSpireAdapter.ts`):**
+   - Se implementó una cola FIFO secuencial privada (`colaEnvioSync`) en `TaleSpireAdapter` que procesa los envíos uno por uno.
+   - Espaciado mínimo garantizado entre peticiones nativas sucesivas: `INTERVALO_MINIMO_SYNC_MS = 120`.
+   - Si la API nativa de TaleSpire responde con `Error: rateLimited`, el adaptador intercepta el error y aplica reintentos automáticos con retroceso exponencial (`intento * 250ms`, hasta 3 reintentos) antes de reportar un fallo, recuperando la transmisión sin pérdida de datos.
+2. **Encolado Directo y Eliminación de Timeouts en Ráfaga (`sincronizacionSimbiote.ts`):**
+   - `emitirEstadoComoGM` ahora delega el despacho de chunks directamente a `ts.sync.send(chunkJSON, "board")`, permitiendo que la cola FIFO regule el flujo de salida.
+3. **Firma Pura Determinista para el Master (`calcularFirmaIniciativaDM`):**
+   - Se reemplazó la comparación referencial por una función pura que sintetiza el estado real de combate del DM: vida actual, máxima, temporal, CA, iniciativa, condiciones, efectos, turno, ronda y flags de visualización. El observador solo emite si la firma realmente varía.
+   - Se incrementó el debounce del GM a `RETARDO_DEBOUNCE_GM_MS = 250` (y 150ms para PJs).
+4. **Blindaje de Flag de Sincronización en el DM (`sliceSync.ts`):**
+   - `actualizarPersonajeDesdeSync` activa `aplicandoSync: true` y lo restaura en `queueMicrotask`, evitando falsos positivos durante la recepción de datos de los jugadores.
+
+**Certificación de Calidad y Pipeline de CI:**
+- **TypeScript:** `pnpm exec tsc --noEmit` completado con 0 errores bajo `strict: true`.
+- **ESLint:** `pnpm run lint` completado con 0 errores y 0 advertencias (`--max-warnings=0`).
+- **Vitest:** 106 suites ejecutadas, **1.605 / 1.605 pruebas aprobadas al 100%**.
+- **Auditoría de Líneas:** 117 archivos auditados vía `pnpm run verificar:lineas`, 0 archivos > 500 líneas.
+- **Build de Producción:** `pnpm exec vite build` completado exitosamente en 14.51s.
+
+---
+
 ## [2026-10-05] Mecánicas del Mago (PHB 2024 / D&D 5.5e): Subpestañas del Grimorio, Filtrado de Acciones y Desacoplamiento SSR
 
 **Contexto y Requerimientos del Usuario:**

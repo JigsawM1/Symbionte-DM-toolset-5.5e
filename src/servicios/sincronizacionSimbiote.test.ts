@@ -2,7 +2,9 @@ import { describe, it, expect, beforeEach } from "vitest";
 import {
   proyectarEstadoCombatePJ,
   procesarMensajeSyncEntrante,
+  calcularFirmaIniciativaDM,
 } from "./sincronizacionSimbiote";
+import { ts } from "@/utiles/TaleSpireAdapter";
 import {
   type EstadoCombatePJ,
   type EstadoIniciativaDM,
@@ -736,6 +738,68 @@ describe("Sincronización Simbiote - Manejo de Mensajes en Store", () => {
     expect(acompEnCola?.nombre).toBe("Cuervo");
     expect(acompEnCola?.iniciativa).toBe(15);
     expect(acompEnCola?.esAcompanante).toBe(true);
+  });
+});
+
+describe("Sincronización Simbiote - Firma del DM y Resiliencia de Cola", () => {
+  it("calcularFirmaIniciativaDM es determinista y no muta si la referencia del array cambia pero el contenido es idéntico", () => {
+    const criatura: CriaturaIniciativa = {
+      id: "c-1",
+      nombre: "Goblin",
+      iniciativa: 12,
+      vidaActual: 7,
+      vidaMaxima: 7,
+      vidaTemporal: 0,
+      ca: 15,
+      esMonstruo: true,
+      condiciones: ["envenenado"],
+      efectos: [{ id: "e1", nombre: "Maldición", expiraRonda: 2 }],
+      bonificadorIniciativa: 2,
+      velocidad: "30 pies",
+    };
+
+    const cola1 = [criatura];
+    const cola2 = [{ ...criatura }];
+
+    const firma1 = calcularFirmaIniciativaDM(cola1, 0, 1, false, "estandar");
+    const firma2 = calcularFirmaIniciativaDM(cola2, 0, 1, false, "estandar");
+
+    expect(firma1).toBe(firma2);
+
+    // Si cambia vida, la firma cambia
+    const colaModificada = [{ ...criatura, vidaActual: 4 }];
+    const firmaModificada = calcularFirmaIniciativaDM(colaModificada, 0, 1, false, "estandar");
+    expect(firmaModificada).not.toBe(firma1);
+
+    // Si cambia turno o ronda, la firma cambia
+    const firmaTurno = calcularFirmaIniciativaDM(cola1, 1, 1, false, "estandar");
+    expect(firmaTurno).not.toBe(firma1);
+  });
+
+  it("ts.sync.send encola secuencialmente y maneja reintentos ante error rateLimited", async () => {
+    let intentosLlamada = 0;
+    const globalContext = globalThis as unknown as { TS?: unknown };
+    const tsOriginal = globalContext.TS;
+
+    // Simular API nativa de TaleSpire que lanza rateLimited en el primer intento y tiene éxito en el segundo
+    globalContext.TS = {
+      sync: {
+        send: async () => {
+          intentosLlamada++;
+          if (intentosLlamada === 1) {
+            throw new Error("rateLimited");
+          }
+        },
+      },
+    };
+
+    try {
+      const resultado = await ts.sync.send("test-ratelimit-payload", "board");
+      expect(resultado).toBe(true);
+      expect(intentosLlamada).toBe(2);
+    } finally {
+      globalContext.TS = tsOriginal;
+    }
   });
 });
 

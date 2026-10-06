@@ -57,12 +57,17 @@ function limpiarSuscripcionNativa(sub: unknown): void {
 class TaleSpireAdapter {
   private getQueuePromise: Promise<ColaIniciativaTS> | null = null;
   private canalBroadcastSync?: BroadcastChannel;
+  private colaEnvioSync: Array<{ mensaje: string; target: string; resolver: (exito: boolean) => void }> = [];
+  private procesandoColaSync = false;
+  private readonly INTERVALO_MINIMO_SYNC_MS = 120;
+  private readonly MAX_REINTENTOS_RATE_LIMIT = 3;
 
   /**
    * Obtiene la referencia global de window.TS de forma segura en cualquier entorno.
    */
   private get tsGlobal(): TaleSpireAPI | undefined {
-    return typeof window !== "undefined" ? window.TS : undefined;
+    if (typeof window !== "undefined" && window.TS) return window.TS;
+    return (globalThis as unknown as { TS?: TaleSpireAPI }).TS;
   }
 
   /**
@@ -810,6 +815,75 @@ class TaleSpireAdapter {
     return this.canalBroadcastSync;
   }
 
+  private async procesarSiguienteEnvioSync(): Promise<void> {
+    if (this.procesandoColaSync || this.colaEnvioSync.length === 0) return;
+    this.procesandoColaSync = true;
+
+    try {
+      while (this.colaEnvioSync.length > 0) {
+        const item = this.colaEnvioSync.shift();
+        if (!item) break;
+
+        const exito = await this.ejecutarEnvioSyncNativoConReintentos(item.mensaje, item.target);
+        item.resolver(exito);
+
+        // Espaciado mínimo de seguridad entre llamadas nativas sucesivas
+        if (this.colaEnvioSync.length > 0) {
+          await new Promise((r) => setTimeout(r, this.INTERVALO_MINIMO_SYNC_MS));
+        }
+      }
+    } finally {
+      this.procesandoColaSync = false;
+    }
+  }
+
+  private async ejecutarEnvioSyncNativoConReintentos(message: string, target: string): Promise<boolean> {
+    let enviado = false;
+    const ts = this.tsGlobal;
+
+    if (ts?.sync && typeof ts.sync.send === "function") {
+      if (message.length > 500) {
+        logger.error(`[TS Adapter] Mensaje excede el límite máximo de TaleSpire (máximo 500 caracteres, longitud: ${message.length}).`);
+        return false;
+      }
+
+      for (let intento = 0; intento <= this.MAX_REINTENTOS_RATE_LIMIT; intento++) {
+        try {
+          await ts.sync.send(message, target);
+          enviado = true;
+          break;
+        } catch (error) {
+          const esRateLimit =
+            error instanceof Error &&
+            error.message.toLowerCase().includes("ratelimited");
+
+          if (esRateLimit && intento < this.MAX_REINTENTOS_RATE_LIMIT) {
+            const esperaMs = (intento + 1) * 250;
+            logger.warn(`[TS Adapter] TaleSpire rate-limited en sync.send. Reintentando en ${esperaMs}ms (intento ${intento + 1}/${this.MAX_REINTENTOS_RATE_LIMIT})...`);
+            await new Promise((r) => setTimeout(r, esperaMs));
+            continue;
+          }
+
+          logger.error("[TS Adapter] Error en sync.send nativo:", error);
+          break;
+        }
+      }
+    }
+
+    // Replicar en BroadcastChannel persistente para entornos locales o pruebas en navegador
+    try {
+      const canal = this.getBroadcastChannelSync();
+      if (canal) {
+        canal.postMessage({ str: message, target });
+        enviado = true;
+      }
+    } catch (e) {
+      logger.debug("[TS Adapter] Fallback BroadcastChannel no disponible:", e);
+    }
+
+    return enviado;
+  }
+
   // ==========================================
   // --- SINCRONIZACIÓN (SYNC API) ---
   // ==========================================
@@ -817,37 +891,19 @@ class TaleSpireAdapter {
   sync = {
     /**
      * Envía un mensaje string en tiempo real a través del canal backend de TaleSpire.
-     * @param message Cadena serializada (máximo 500-1000 caracteres).
+     * Encola las peticiones para evitar colapsos por ráfagas y reintenta con backoff si hay rate limit.
+     * @param message Cadena serializada (máximo 500 caracteres).
      * @param target Destino: "board" (todos), "gms" (Dungeon Masters), o clientId específico.
      */
-    send: async (message: string, target = "board"): Promise<boolean> => {
-      let enviado = false;
-      const ts = this.tsGlobal;
-      if (ts?.sync && typeof ts.sync.send === "function") {
-        try {
-          if (message.length > 500) {
-            logger.error(`[TS Adapter] Mensaje excede el límite máximo de TaleSpire (máximo 500 caracteres, longitud: ${message.length}).`);
-            return false;
-          }
-          await ts.sync.send(message, target);
-          enviado = true;
-        } catch (error) {
-          logger.error("[TS Adapter] Error en sync.send nativo:", error);
-        }
-      }
-
-      // Replicar en BroadcastChannel persistente para entornos locales o pruebas en navegador
-      try {
-        const canal = this.getBroadcastChannelSync();
-        if (canal) {
-          canal.postMessage({ str: message, target });
-          enviado = true;
-        }
-      } catch (e) {
-        logger.debug("[TS Adapter] Fallback BroadcastChannel no disponible:", e);
-      }
-
-      return enviado;
+    send: (message: string, target = "board"): Promise<boolean> => {
+      return new Promise<boolean>((resolve) => {
+        this.colaEnvioSync.push({
+          mensaje: message,
+          target,
+          resolver: resolve,
+        });
+        void this.procesarSiguienteEnvioSync();
+      });
     },
 
     /**

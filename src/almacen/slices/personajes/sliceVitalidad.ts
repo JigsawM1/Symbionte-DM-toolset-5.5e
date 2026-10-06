@@ -12,6 +12,7 @@ export const crearSubSliceVitalidad: StateCreator<
 > = (set, get) => ({
   aplicarCuracionPersonaje: (id, cantidad) => {
     if (cantidad <= 0) return;
+    get().registrarModificacionLocalPJ(id);
     mutarPersonaje(set, id, (pj) => {
       const maxEfectivo = pj.hpMaximo || pj.hpMaximoBase || 10;
       const hpNuevo = Math.min(maxEfectivo, pj.hpActual + cantidad);
@@ -21,6 +22,7 @@ export const crearSubSliceVitalidad: StateCreator<
 
   aplicarDanoPersonaje: (id, cantidad) => {
     if (cantidad <= 0) return;
+    get().registrarModificacionLocalPJ(id);
     mutarPersonaje(set, id, (pj) => {
       const temp = pj.hpTemporal || 0;
 
@@ -51,6 +53,7 @@ export const crearSubSliceVitalidad: StateCreator<
   },
 
   establecerHPActualPersonaje: (id, valor) => {
+    get().registrarModificacionLocalPJ(id);
     mutarPersonaje(set, id, (pj) => {
       const maxEfectivo = pj.hpMaximo || pj.hpMaximoBase || 10;
       const hpNuevo = Math.max(0, Math.min(maxEfectivo, valor));
@@ -59,6 +62,7 @@ export const crearSubSliceVitalidad: StateCreator<
   },
 
   modificarHPMaximoEfectivoPersonaje: (id, nuevoMax) => {
+    get().registrarModificacionLocalPJ(id);
     mutarPersonaje(set, id, (pj) => {
       const maxValido = Math.max(1, nuevoMax || 1);
       return {
@@ -70,6 +74,7 @@ export const crearSubSliceVitalidad: StateCreator<
   },
 
   modificarHPMaximoBasePersonaje: (id, nuevoBase) => {
+    get().registrarModificacionLocalPJ(id);
     mutarPersonaje(set, id, (pj) => {
       const baseValido = Math.max(1, nuevoBase || 1);
       return {
@@ -82,6 +87,7 @@ export const crearSubSliceVitalidad: StateCreator<
   },
 
   modificarHPTemporalPersonaje: (id, valor) => {
+    get().registrarModificacionLocalPJ(id);
     mutarPersonaje(set, id, (pj) => ({
       ...pj,
       hpTemporal: Math.max(0, valor)

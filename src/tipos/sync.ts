@@ -75,6 +75,7 @@ export interface EstadoCombatePJ {
   movimientoGastado?: number;
   movimientoMaximoTemporal?: number | null;
   acompanantes?: EstadoCombateAcompanante[];
+  ts?: number;
 }
 
 export interface EstadoIniciativaDM {
@@ -83,6 +84,7 @@ export interface EstadoIniciativaDM {
   rondaActual: number;
   mostrarPorcentajeVidaAJugadores: boolean;
   metodoVidaMonstruo: string;
+  ts?: number;
 }
 
 // ==========================================
@@ -140,6 +142,7 @@ export interface WireEstadoCombatePJ {
   gast?: number; // movimientoGastado
   maxT?: number; // movimientoMaximoTemporal
   ac?: WireAcompanante[]; // acompanantes
+  ts?: number; // timestamp ms de la emisión
 }
 
 export interface WireCriaturaIniciativa {
@@ -169,9 +172,11 @@ export interface WireEstadoIniciativaDM {
   r: number; // rondaActual
   v: boolean; // mostrarPorcentajeVidaAJugadores
   mv: string; // metodoVidaMonstruo
+  ts?: number; // timestamp ms del snapshot
 }
 
 export interface WireChunkIniciativa {
+  sid: number; // ID de sesión/ráfaga para agrupar chunks sin entrelazado
   chunk: number;
   total: number;
   t: number;
@@ -179,6 +184,7 @@ export interface WireChunkIniciativa {
   v: boolean;
   mv: string;
   c: WireCriaturaIniciativa[];
+  ts?: number;
 }
 
 // ==========================================
@@ -244,6 +250,7 @@ const EsquemaWireEstadoCombatePJ = z.object({
   gast: z.number().nullable().optional().transform((v) => v ?? undefined),
   maxT: z.number().nullable().optional().transform((v) => v ?? undefined),
   ac: z.array(EsquemaWireAcompanante).optional(),
+  ts: z.number().optional(),
 });
 
 const EsquemaWireCriaturaIniciativa = z.object({
@@ -273,9 +280,11 @@ const EsquemaWireEstadoIniciativaDM = z.object({
   r: z.number().int(),
   v: z.boolean(),
   mv: z.string(),
+  ts: z.number().optional(),
 });
 
 const EsquemaWireChunkIniciativa = z.object({
+  sid: z.number(),
   chunk: z.number().int().min(1),
   total: z.number().int().min(2),
   t: z.number().int(),
@@ -283,6 +292,7 @@ const EsquemaWireChunkIniciativa = z.object({
   v: z.boolean(),
   mv: z.string(),
   c: z.array(EsquemaWireCriaturaIniciativa),
+  ts: z.number().optional(),
 });
 
 export const EsquemaWireMensajeSync = z.discriminatedUnion("t", [
@@ -305,6 +315,12 @@ export const EsquemaWireMensajeSync = z.discriminatedUnion("t", [
     v: z.literal(1),
     t: z.literal("REQ"),
   }),
+  z.object({
+    v: z.literal(1),
+    t: z.literal("ACK"),
+    id: z.string(),
+    ts: z.number(),
+  }),
 ]);
 
 export type WireMensajeSync = z.infer<typeof EsquemaWireMensajeSync>;
@@ -313,7 +329,10 @@ export type WireMensajeSync = z.infer<typeof EsquemaWireMensajeSync>;
 // 4. TRANSFORMADORES PURAS (DOMINIO <-> RED)
 // ==========================================
 
-export function serializarEstadoCombatePJ(pj: EstadoCombatePJ): WireEstadoCombatePJ {
+export function serializarEstadoCombatePJ(
+  pj: EstadoCombatePJ,
+  incluirPasivas = true
+): WireEstadoCombatePJ {
   const wire: WireEstadoCombatePJ = {
     id: pj.id,
     n: (pj.nombre || "Personaje").slice(0, 24),
@@ -322,6 +341,7 @@ export function serializarEstadoCombatePJ(pj: EstadoCombatePJ): WireEstadoCombat
     vm: pj.hpMaximo ?? 0,
   };
 
+  if (pj.ts) wire.ts = pj.ts;
   if (pj.idMiniaturaTS) wire.m = pj.idMiniaturaTS;
   if (pj.hpTemporal && pj.hpTemporal > 0) wire.vt = pj.hpTemporal;
   if (pj.ca !== undefined && pj.ca !== 10) wire.ca = pj.ca;
@@ -336,7 +356,14 @@ export function serializarEstadoCombatePJ(pj: EstadoCombatePJ): WireEstadoCombat
     }));
   }
 
-  if (pj.pasivas) {
+  // Optimización de payload: omitir pasivas por defecto o cuando incluirPasivas = false para ahorrar ~18 bytes por tick
+  if (
+    incluirPasivas &&
+    pj.pasivas &&
+    (pj.pasivas.percepcion !== 10 ||
+      pj.pasivas.investigacion !== 10 ||
+      pj.pasivas.perspicacia !== 10)
+  ) {
     wire.p = [
       pj.pasivas.percepcion ?? 10,
       pj.pasivas.investigacion ?? 10,
@@ -393,6 +420,7 @@ export function deserializarEstadoCombatePJ(wire: WireEstadoCombatePJ): EstadoCo
     hpTemporal: wire.vt ?? 0,
     ca: wire.ca ?? 10,
     condiciones: wire.c || [],
+    ts: wire.ts,
     efectos: (wire.e || []).map((ef) => ({
       id: ef.id,
       nombre: ef.n,
@@ -496,6 +524,7 @@ export function serializarIniciativaDM(dm: EstadoIniciativaDM): WireEstadoInicia
     r: dm.rondaActual ?? 1,
     v: Boolean(dm.mostrarPorcentajeVidaAJugadores),
     mv: dm.metodoVidaMonstruo || "estandar",
+    ts: dm.ts ?? Date.now(),
   };
 }
 
@@ -531,6 +560,7 @@ export function deserializarIniciativaDM(wire: WireEstadoIniciativaDM): EstadoIn
     rondaActual: wire.r ?? 1,
     mostrarPorcentajeVidaAJugadores: Boolean(wire.v),
     metodoVidaMonstruo: wire.mv || "estandar",
+    ts: wire.ts,
   };
 }
 
@@ -540,12 +570,15 @@ export function deserializarIniciativaDM(wire: WireEstadoIniciativaDM): EstadoIn
  */
 export function dividirEnChunksIniciativa(
   wire: WireEstadoIniciativaDM,
-  maxBytesPorChunk = 380
+  maxBytesPorChunk = 380,
+  sidPropio?: number
 ): WireChunkIniciativa[] {
   const todasCriaturas = wire.c || [];
   if (todasCriaturas.length === 0) {
     return [];
   }
+
+  const sid = sidPropio ?? (Date.now() % 10000000);
 
   // Agrupar criaturas de modo que ningún chunk serializado exceda maxBytesPorChunk
   const MAX_CRIATURAS_POR_CHUNK = 4;
@@ -555,6 +588,7 @@ export function dividirEnChunksIniciativa(
   for (const criatura of todasCriaturas) {
     const pruebaGrupo = [...grupoActual, criatura];
     const pruebaWire: WireChunkIniciativa = {
+      sid,
       chunk: 1,
       total: 99,
       t: wire.t,
@@ -562,6 +596,7 @@ export function dividirEnChunksIniciativa(
       v: wire.v,
       mv: wire.mv,
       c: pruebaGrupo,
+      ts: wire.ts,
     };
     const longitudSerializada = JSON.stringify({ v: 1, t: "DM_CHUNK", d: pruebaWire }).length;
 
@@ -583,6 +618,7 @@ export function dividirEnChunksIniciativa(
   const total = grupos.length;
 
   return grupos.map((g, idx) => ({
+    sid,
     chunk: idx + 1,
     total,
     t: wire.t,
@@ -590,5 +626,6 @@ export function dividirEnChunksIniciativa(
     v: wire.v,
     mv: wire.mv,
     c: g,
+    ts: wire.ts,
   }));
 }

@@ -11,9 +11,7 @@ import type { PersonajeJugador } from "@/tipos/personaje";
 import type { CriaturaIniciativa } from "@/almacen/usarAlmacenDM";
 import type { FragmentoCliente } from "@/tipos/talespire";
 import {
-  type EstadoCombatePJ,
   type EstadoIniciativaDM,
-  type WireChunkIniciativa,
   type WireEstadoIniciativaDM,
   EsquemaWireMensajeSync,
   serializarEstadoCombatePJ,
@@ -25,6 +23,11 @@ import {
 import { calcularEstadisticasPersonaje } from "@/almacen/selectores/usarEstadoPersonajes";
 import { coincidenNombresTaleSpire } from "@/servicios/resolutorCriaturas";
 import { logger } from "@/utiles/logger";
+import { BufferChunksIniciativa } from "./sincronizacion/bufferChunksIniciativa";
+import { GestorReintentosSync } from "./sincronizacion/gestorReintentosSync";
+import { proyectarEstadoCombatePJ } from "./sincronizacion/proyeccionEstadoCombate";
+
+export { proyectarEstadoCombatePJ };
 
 const RETARDO_DEBOUNCE_GM_MS = 250;
 const RETARDO_DEBOUNCE_PJ_MS = 150;
@@ -32,6 +35,10 @@ const LIMITE_TAMANO_SEGURO_BYTES = 380;
 
 let timerDebounceGM: ReturnType<typeof setTimeout> | null = null;
 let timerDebouncePJ: ReturnType<typeof setTimeout> | null = null;
+
+// Gestores modulares para fragmentos y reintentos resilientes
+const bufferChunks = new BufferChunksIniciativa();
+const gestorReintentos = new GestorReintentosSync();
 
 // Búfer para deduplicar mensajes recibidos concurrentemente por el EventBus y suscripciones nativas
 // Emplea una ventana temporal de 250ms para no bloquear estados idénticos a lo largo de rondas sucesivas
@@ -54,118 +61,6 @@ function esMensajeDuplicado(strCrudo: string): boolean {
   }
   mensajesProcesadosRecientes.set(strCrudo, ahora);
   return false;
-}
-
-// Búfer para reensamblar chunks de iniciativa
-const bufferChunksIniciativa = new Map<number, WireChunkIniciativa>();
-let timerLimpiezaBuffer: ReturnType<typeof setTimeout> | null = null;
-
-/**
- * Construye una proyección delgada de combate de un PersonajeJugador.
- * Resuelve CA y pasivas mediante calcularEstadisticasPersonaje.
- */
-export function proyectarEstadoCombatePJ(pj: PersonajeJugador): EstadoCombatePJ {
-  const stats = calcularEstadisticasPersonaje(pj);
-  const estado = usarAlmacenDM.getState();
-
-  // Buscar si el combatiente ya tiene un valor de iniciativa registrado en la cola
-  const criaturaCola = estado.colaIniciativa.find(
-    (c) =>
-      c.id === pj.id ||
-      (pj.idMiniaturaTS && c.id === pj.idMiniaturaTS) ||
-      coincidenNombresTaleSpire(c.nombre, pj.nombre)
-  );
-
-  const iniciativaFinal =
-    criaturaCola?.iniciativa !== undefined
-      ? criaturaCola.iniciativa
-      : (stats.modificadores?.destreza || 0) + (pj.iniciativaBono || 0);
-
-  return {
-    id: pj.id,
-    idMiniaturaTS: pj.idMiniaturaTS,
-    nombre: pj.nombre,
-    iniciativa: iniciativaFinal,
-    hpActual: pj.hpActual,
-    hpMaximo: pj.hpMaximo,
-    hpTemporal: pj.hpTemporal,
-    ca: stats.claseArmadura?.total ?? pj.ca ?? 10,
-    condiciones: pj.condicionesActivas || [],
-    efectos: (pj.efectosActivos || []).map((e) => ({
-      id: e.id,
-      nombre: e.nombre,
-      expiraRonda: e.expiraRonda,
-      concentracion: e.concentracion,
-      duracion: e.duracion,
-    })),
-    pasivas: {
-      percepcion: stats.pasivas?.percepcion ?? 10,
-      investigacion: stats.pasivas?.investigacion ?? 10,
-      perspicacia: stats.pasivas?.perspicacia ?? 10,
-    },
-    conjuros: {
-      espaciosMaximos: pj.espaciosConjuroMaximos || {},
-      espaciosGastados: pj.espaciosConjuroGastados || {},
-      puntosMaximos: pj.puntosConjuroMaximos,
-      puntosGastados: pj.puntosConjuroGastados,
-      pacto: pj.espaciosPactoMaximos
-        ? {
-            maximos: pj.espaciosPactoMaximos,
-            gastados: pj.espaciosPactoGastados,
-            nivel: pj.nivelEspacioPacto,
-          }
-        : undefined,
-    },
-    concentracion: pj.concentracionActiva
-      ? {
-          hechizoId: pj.concentracionActiva.hechizoId,
-          nombreHechizo: pj.concentracionActiva.nombreHechizo,
-        }
-      : null,
-    movimientoGastado: pj.movimientoGastado,
-    movimientoMaximoTemporal: pj.movimientoMaximoTemporal,
-    acompanantes: (pj.acompanantes || []).map((a) => {
-      const criaturaColaAcomp = (estado.colaIniciativa || []).find(
-        (c) =>
-          c.id === a.id ||
-          c.idAcompanante === a.id ||
-          (a.idMiniaturaTS && c.id === a.idMiniaturaTS) ||
-          coincidenNombresTaleSpire(c.nombre, a.nombre)
-      );
-      const iniciativaFinalAcomp =
-        criaturaColaAcomp?.iniciativa !== undefined
-          ? criaturaColaAcomp.iniciativa
-          : typeof a.iniciativa === "number"
-          ? a.iniciativa
-          : 0;
-
-      return {
-        id: a.id,
-        nombre: a.nombre,
-        idPlantilla: a.idPlantilla,
-        vidaActual: a.vidaActual,
-        vidaMaxima: a.vidaMaxima,
-        vidaTemporal: a.vidaTemporal,
-        ca: a.ca,
-        condiciones: a.condiciones || [],
-        efectos: (a.efectos || []).map((ef) => ({
-          id: ef.id,
-          nombre: ef.nombre,
-          expiraRonda: ef.expiraRonda,
-          concentracion: ef.concentracion,
-          duracion: ef.duracion,
-        })),
-        iniciativa: iniciativaFinalAcomp,
-        idMiniaturaTS: a.idMiniaturaTS,
-        velocidad: typeof a.velocidad === "string" ? a.velocidad : `${a.velocidad?.caminar || 0} pies`,
-        movimientoGastado: a.movimientoGastado,
-        movimientoMaximoTemporal: a.movimientoMaximoTemporal,
-        esInvocacion: a.esInvocacion,
-        nivelConjuroInvocacion: a.nivelConjuroInvocacion,
-        subtipoInvocacion: a.subtipoInvocacion,
-      };
-    }),
-  };
 }
 
 /**
@@ -229,23 +124,33 @@ export function emitirMiPersonaje(personajeId?: string): void {
     }
 
     const dto = proyectarEstadoCombatePJ(pjAEmitir);
-    const wire = serializarEstadoCombatePJ(dto);
+    dto.ts = Date.now();
+    const wire = serializarEstadoCombatePJ(dto, false);
     const mensajeJSON = JSON.stringify({ v: 1, t: "PJ", d: wire });
 
     logger.debug(`[Sync] Emitiendo ESTADO_PJ (${pjAEmitir.nombre}, ${mensajeJSON.length} bytes)`);
     void ts.sync.send(mensajeJSON, "board");
+
+    // Registrar para confirmación ACK del DM con reintento si se pierde
+    gestorReintentos.registrarEmisionPJ(pjAEmitir.id, dto.ts, () => {
+      emitirMiPersonaje(pjAEmitir.id);
+    });
   }, RETARDO_DEBOUNCE_PJ_MS);
 }
 
 /**
  * Envía una solicitud al DM para recibir el snapshot actual de combate.
+ * Aplica reintentos automáticos con retroceso progresivo y cancelación reactiva.
  */
 export function solicitarEstadoInicial(): void {
   const estado = usarAlmacenDM.getState();
   if (estado.esGM) return;
 
-  logger.info("[Sync] Enviando SOLICITUD_ESTADO al DM...");
-  void ts.sync.send(JSON.stringify({ v: 1, t: "REQ" }), "board");
+  logger.info("[Sync] Iniciando solicitud de estado inicial con backoff...");
+  gestorReintentos.iniciarReintentosREQ(() => {
+    logger.info("[Sync] Enviando SOLICITUD_ESTADO al DM...");
+    void ts.sync.send(JSON.stringify({ v: 1, t: "REQ" }), "board");
+  });
 }
 
 /**
@@ -284,6 +189,7 @@ export function procesarMensajeSyncEntrante(evento: {
     case "DM": {
       // Solo los jugadores aplican el estado del DM
       if (!estado.esGM) {
+        gestorReintentos.cancelarReintentosREQ();
         logger.info("[Sync] Aplicando ESTADO_INICIATIVA_DM recibido del DM...");
         const datosIniciativa = deserializarIniciativaDM(mensaje.d);
         estado.aplicarIniciativaDesdeSync(datosIniciativa);
@@ -292,31 +198,21 @@ export function procesarMensajeSyncEntrante(evento: {
     }
 
     case "DM_CHUNK": {
-      // Reensamblado de ráfagas para jugadores
+      // Reensamblado ordenado de ráfagas para jugadores
       if (!estado.esGM) {
-        const chunk = mensaje.d;
-        if (chunk.chunk === 1) {
-          bufferChunksIniciativa.clear();
-        }
-        bufferChunksIniciativa.set(chunk.chunk, chunk);
+        gestorReintentos.cancelarReintentosREQ();
+        const chunksCompletos = bufferChunks.registrarChunk(mensaje.d);
 
-        if (timerLimpiezaBuffer) clearTimeout(timerLimpiezaBuffer);
-        timerLimpiezaBuffer = setTimeout(() => {
-          bufferChunksIniciativa.clear();
-        }, 4000);
-
-        if (bufferChunksIniciativa.size >= chunk.total) {
-          const listaOrdenada = Array.from(bufferChunksIniciativa.values()).sort(
-            (a, b) => a.chunk - b.chunk
-          );
+        if (chunksCompletos) {
+          const primerChunk = chunksCompletos[0];
           const wireCompleto: WireEstadoIniciativaDM = {
-            t: chunk.t,
-            r: chunk.r,
-            v: chunk.v,
-            mv: chunk.mv,
-            c: listaOrdenada.flatMap((ch) => ch.c),
+            t: primerChunk.t,
+            r: primerChunk.r,
+            v: primerChunk.v,
+            mv: primerChunk.mv,
+            c: chunksCompletos.flatMap((ch) => ch.c),
+            ts: primerChunk.ts,
           };
-          bufferChunksIniciativa.clear();
           const datosIniciativa = deserializarIniciativaDM(wireCompleto);
           estado.aplicarIniciativaDesdeSync(datosIniciativa);
         }
@@ -329,8 +225,27 @@ export function procesarMensajeSyncEntrante(evento: {
       if (estado.esGM) {
         const dto = deserializarEstadoCombatePJ(mensaje.d);
         estado.actualizarPersonajeDesdeSync(dto);
+
+        // Responder ACK inmediato al jugador para confirmar recepción
+        const mensajeACK = JSON.stringify({
+          v: 1,
+          t: "ACK",
+          id: dto.id,
+          ts: dto.ts || Date.now(),
+        });
+        void ts.sync.send(mensajeACK, "board");
+
         // Redistribuir consolidado a toda la mesa
         emitirEstadoComoGM();
+      }
+      break;
+    }
+
+    case "ACK": {
+      // Solo los jugadores procesan confirmaciones de sus personajes
+      if (!estado.esGM) {
+        gestorReintentos.confirmarACK(mensaje.id, mensaje.ts);
+        estado.confirmarACKPJ(mensaje.id, mensaje.ts);
       }
       break;
     }
@@ -358,12 +273,15 @@ function obtenerFirmaAcompanantes(
           ? a.iniciativa
           : 0;
 
-      return `${a.id}:${a.nombre}:${inic}:${a.vidaActual}:${a.vidaMaxima}:${a.vidaTemporal}:${a.ca}:${(a.condiciones || []).slice().sort().join(",")}:${(a.efectos || []).map((e) => `${e.id}:${e.nombre}:${e.expiraRonda}:${e.concentracion}`).join(",")}:${a.movimientoGastado}:${a.movimientoMaximoTemporal}:${a.idMiniaturaTS}:${a.nivelConjuroInvocacion}:${a.subtipoInvocacion}`;
+      return `${a.id}:${a.nombre}:${inic}:${a.vidaActual}:${a.vidaMaxima}:${a.vidaTemporal || 0}:${a.ca || 10}:${(a.condiciones || []).slice().sort().join(",")}:${(a.efectos || []).map((e) => `${e.id}:${e.nombre}:${e.expiraRonda}:${e.concentracion}`).join(",")}:${a.idMiniaturaTS || ""}`;
     })
     .join("|");
 }
 
-function calcularFirmaPJ(pj: PersonajeJugador, cola: CriaturaIniciativa[]): string {
+export function calcularFirmaPJ(
+  pj: PersonajeJugador,
+  cola: CriaturaIniciativa[] = []
+): string {
   const criaturaCola = cola.find(
     (c) =>
       !c.esAcompanante &&
@@ -383,11 +301,9 @@ function calcularFirmaPJ(pj: PersonajeJugador, cola: CriaturaIniciativa[]): stri
   const concStr = pj.concentracionActiva
     ? `${pj.concentracionActiva.hechizoId}:${pj.concentracionActiva.nombreHechizo}`
     : "";
-  const movGastado = pj.movimientoGastado ?? 0;
-  const movMaxT = pj.movimientoMaximoTemporal ?? null;
   const acompsStr = obtenerFirmaAcompanantes(pj.acompanantes, cola);
 
-  return `${pj.id}:${pj.nombre}:${pj.hpActual}:${pj.hpMaximo}:${pj.hpTemporal}:${pj.ca}:${inic}:${condStr}:${efStr}:${concStr}:${movGastado}:${movMaxT}:${pj.idMiniaturaTS}:${acompsStr}`;
+  return `${pj.id}:${pj.nombre}:${pj.hpActual}:${pj.hpMaximo}:${pj.hpTemporal}:${pj.ca || 10}:${inic}:${condStr}:${efStr}:${concStr}:${pj.idMiniaturaTS || ""}:${acompsStr}`;
 }
 
 export function calcularFirmaIniciativaDM(
@@ -477,6 +393,7 @@ export function inicializarObservadoresStoreSync(): () => void {
     unsub();
     if (timerDebounceGM) clearTimeout(timerDebounceGM);
     if (timerDebouncePJ) clearTimeout(timerDebouncePJ);
-    if (timerLimpiezaBuffer) clearTimeout(timerLimpiezaBuffer);
+    bufferChunks.limpiar();
+    gestorReintentos.destruir();
   };
 }

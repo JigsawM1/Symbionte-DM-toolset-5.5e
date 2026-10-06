@@ -332,7 +332,9 @@ export const crearSliceIniciativa: StateCreator<
     return { colaIniciativa: nuevaCola, indiceTurnoActivo: nuevoIndice };
   }),
 
-    modificarVidaCriaturaIniciativa: (id, nuevaVida) => set((state) => {
+    modificarVidaCriaturaIniciativa: (id, nuevaVida) => {
+    get().registrarModificacionLocalPJ(id);
+    return set((state) => {
     let criaturaAfectadaNombre = "";
     const criaturaObjetivo = state.colaIniciativa.find((c) => c.id === id);
     const nuevaCola = state.colaIniciativa.map((c) => {
@@ -392,9 +394,12 @@ export const crearSliceIniciativa: StateCreator<
     });
 
     return { colaIniciativa: nuevaCola, personajes: nuevosPjs };
-  }),
+  });
+  },
 
-  modificarVidaMaximaCriaturaIniciativa: (id, nuevaVidaMax) => set((state) => {
+  modificarVidaMaximaCriaturaIniciativa: (id, nuevaVidaMax) => {
+    get().registrarModificacionLocalPJ(id);
+    return set((state) => {
     let criaturaAfectadaNombre = "";
     const criaturaObjetivo = state.colaIniciativa.find((c) => c.id === id);
     const vidaMaxSegura = Math.max(1, nuevaVidaMax);
@@ -461,7 +466,8 @@ export const crearSliceIniciativa: StateCreator<
     });
 
     return { colaIniciativa: nuevaCola, personajes: nuevosPjs };
-  }),
+  });
+  },
 
   agregarCondicionACriatura: (id, condicion) => set((state) => {
     let criaturaAfectadaNombre = "";
@@ -978,7 +984,9 @@ export const crearSliceIniciativa: StateCreator<
     };
   }),
 
-  actualizarVidaTemporal: (idCriatura, vidaTemp) => set((state) => {
+  actualizarVidaTemporal: (idCriatura, vidaTemp) => {
+    get().registrarModificacionLocalPJ(idCriatura);
+    return set((state) => {
     let criaturaAfectadaNombre = "";
     const criaturaObjetivo = state.colaIniciativa.find((c) => c.id === idCriatura);
     const vidaTempSegura = Math.max(0, vidaTemp);
@@ -1033,7 +1041,8 @@ export const crearSliceIniciativa: StateCreator<
     });
 
     return { colaIniciativa: nuevaCola, personajes: nuevosPjs };
-  }),
+  });
+  },
 
   limpiarIniciativa: () => set((state) => {
     const nuevosPjs = restablecerMovimientoPersonajes(state.personajes, "Combate finalizado");

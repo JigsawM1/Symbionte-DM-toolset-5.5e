@@ -17,6 +17,52 @@ Este archivo registra reglas globales, errores encontrados, sus causas raíz y l
    - **Bajo ninguna circunstancia** los módulos de lógica de negocio (`servicios/`), gestores de estado (`almacen/`), contratos (`tipos/`), valores de reglas (`constantes/`) ni funciones de soporte (`utiles/`) deben importar componentes visuales o archivos CSS (`componentes/`). Esta regla está reforzada en CI vía ESLint `no-restricted-imports`.
 6. **PROHIBICIÓN ESTRICTA DE BIFURCACIONES POR NOMBRE DE RASGO O CLASE (CATÁLOGO DECLARATIVO Y BUILDER PURO)**:
 
+## [2026-10-06] Resolución de Bugs de Sincronización Simbiote (TS.sync), Protección Anti-Regresión, Chunks con sid, ACK y Optimización de Payload
+
+**Contexto del Problema y Requerimientos de Robustez:**
+- El protocolo de sincronización en tiempo real vía `TS.sync` entre el Dungeon Master (DM) y los Jugadores presentaba seis áreas críticas de fragilidad operativa en partidas reales de TaleSpire:
+  1. *Regresión de datos (DM pisa al jugador):* `aplicarIniciativaDesdeSync` en el cliente del jugador sobrescribía incondicionalmente la vitalidad (`hpActual`, `hpMaximo`, `hpTemporal`) con los datos presentes en la cola del DM, incluso si el jugador acababa de curarse o recibir daño en su propia interfaz milisegundos antes de recibir un snapshot retrasado.
+  2. *Firma de PJ sucia:* `calcularFirmaPJ` y `obtenerFirmaAcompanantes` incorporaban `movimientoGastado` y `movimientoMaximoTemporal`. Dado que el movimiento 3D de miniaturas se actualiza frecuentemente pero no se sincroniza en el wire format de combate, esto disparaba emisiones `PJ` masivas e innecesarias hacia TaleSpire.
+  3. *Chunks entrelazados y corruptos:* `dividirEnChunksIniciativa` y el acumulador de fragmentos carecían de un identificador de sesión. Ráfagas consecutivas o concurrentes de iniciativa del DM mezclaban chunks de transmisiones distintas, corrompiendo la cola de combate.
+  4. *Pérdida de handshake inicial (REQ sin reintentos):* `solicitarEstadoInicial` emitía un único mensaje `REQ` sin reintentos ni temporizadores. Si el mensaje se perdía por rate limit nativo o saturación de red, el jugador permanecía sin sincronización inicial.
+  5. *Desperdicio de ancho de banda en combate (Pasivas redundantes):* Las pasivas (`percepcion`, `investigacion`, `perspicacia`) se transmitían en cada frame de combate dentro de la tupla `p`, consumiendo ~18 bytes por tick pese a que el DM no las persiste en combate.
+  6. *Ausencia de confirmación de entrega (Falta de ACK):* El jugador emitía sus actualizaciones de personaje a ciegas, sin saber si el DM las procesó exitosamente o si se perdieron por rate limiting de TaleSpire.
+
+**Causas Raíz y Desafíos Técnicos:**
+1. **Clock Skew entre Dispositivos:**
+   - Una comparación ingenua `ts_DM > ts_local` es inviable debido a que los relojes del sistema operativo de diferentes computadoras suelen presentar desfaces de varios segundos (drift/skew).
+2. **Acoplamiento de Estado Local Transitorio en Hash de Red:**
+   - Propiedades del entorno 3D local de TaleSpire (como el movimiento gastado en el turno actual) estaban contaminando la función pura de hash reactivo de combate.
+3. **Límite Estricto de 500 Líneas por Archivo en CI:**
+   - `sincronizacionSimbiote.ts` rozaba las 485 líneas, por lo que agregar toda la lógica de buffering, backoff, reintentos y ACK en un único archivo violaba las políticas de arquitectura y los chequeos de CI.
+
+**Soluciones Arquitectónicas Aplicadas:**
+1. **Ventana de Protección Temporal Anti-Eco de 2.500 ms (`sliceSync.ts`):**
+   - Se diseñó el registro de mutaciones locales `timestampsModificacionLocal: Record<string, number>` en `sliceSync.ts`.
+   - Cada acción local que altera la salud (`aplicarCuracionPersonaje`, `aplicarDanoPersonaje`, `establecerHPActualPersonaje`, acompañantes y cola de iniciativa) invoca `registrarModificacionLocalPJ(id)`.
+   - Al recibir un snapshot `DM` o `DM_CHUNK`, si el PJ local fue editado dentro de los últimos 2.500 ms, `aplicarIniciativaDesdeSync` descarta la vitalidad vieja del DM y preserva la local sin depender del reloj absoluto de la máquina del Master.
+2. **Depuración Quirúrgica de Firmas de Combate (`calcularFirmaPJ`):**
+   - Se extrajeron completamente `movimientoGastado` y `movimientoMaximoTemporal` de `calcularFirmaPJ` y `obtenerFirmaAcompanantes`. El movimiento de miniaturas 3D ya no genera tráfico de sincronización en red.
+3. **Desacoplamiento Modular en Clases Especializadas (SOLID):**
+   - `BufferChunksIniciativa` (`src/servicios/sincronizacion/bufferChunksIniciativa.ts`): Reensambla fragmentos aislando ráfagas por `sid` (session ID numérico) y descartando chunks de sesiones expiradas (> 3.500 ms) o rezagadas.
+   - `GestorReintentosSync` (`src/servicios/sincronizacion/gestorReintentosSync.ts`): Maneja reintentos con retroceso exponencial para peticiones iniciales `REQ` ([1500ms, 3000ms, 5000ms]) con cancelación reactiva, y seguimiento con reintento para emisiones `PJ` hasta recibir confirmación `ACK`.
+   - `proyeccionEstadoCombate.ts` (`src/servicios/sincronizacion/proyeccionEstadoCombate.ts`): Extrae la proyección pura de `PersonajeJugador` a `EstadoCombatePJ`, manteniendo `sincronizacionSimbiote.ts` en un tamaño limpio de ~395 líneas.
+4. **Optimización Condicional de Payload Wire (`serializarEstadoCombatePJ`):**
+   - Se incorporó el parámetro `incluirPasivas = true` (por defecto para handshakes/tests). En emisiones recurrentes de combate (`emitirMiPersonaje`), se invoca con `false`, suprimiendo la propiedad `p` y ahorrando ~18 bytes por mensaje.
+5. **Mensaje ACK y Protocolo Bidireccional de Entrega Segura:**
+   - Se extendió `EsquemaWireMensajeSync` con `{ v: 1, t: "ACK", id: string, ts: number }`.
+   - El DM responde de forma inmediata con un mensaje `ACK` al recibir y aplicar un DTO `PJ`.
+   - El jugador procesa el `ACK` en `procesarMensajeSyncEntrante`, cancela el temporizador de reintento en el `GestorReintentosSync` y actualiza `confirmarACKPJ` en `sliceSync.ts`.
+
+**Certificación de Calidad y Pipeline de CI:**
+- **TypeScript:** `pnpm exec tsc --noEmit` completado con 0 errores bajo `strict: true`.
+- **ESLint:** `pnpm run lint` completado con 0 errores y 0 advertencias (`--max-warnings=0`).
+- **Vitest:** 107 suites de prueba, **1.615 / 1.615 pruebas aprobadas al 100%**.
+- **Auditoría de Líneas:** 117 archivos auditados vía `pnpm run verificar:lineas`, 0 archivos > 500 líneas.
+- **Build de Producción:** `pnpm exec vite build` completado exitosamente en 6.76s.
+
+---
+
 ## [2026-10-05] Resolución de Fallo de Rate Limit en Sincronización TaleSpire (sync.send rateLimited) y Cola FIFO Resiliente
 
 **Contexto del Problema y Reporte de Error:**

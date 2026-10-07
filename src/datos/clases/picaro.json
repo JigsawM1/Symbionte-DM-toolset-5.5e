@@ -242,6 +242,7 @@
       "selectores": [
         {
           "id": "maestrias_aprendidas",
+          "tipoSelector": "general",
           "tipo": "multiple",
           "etiqueta": "Propiedades de Maestría Elegidas",
           "opciones": [
@@ -352,6 +353,7 @@
       "selectores": [
         {
           "id": "efectos_golpe_astuto",
+          "tipoSelector": "general",
           "tipo": "multiple",
           "etiqueta": "Opciones de Golpe astuto",
           "opciones": [
@@ -456,6 +458,7 @@
       "selectores": [
         {
           "id": "efectos_golpe_astuto",
+          "tipoSelector": "general",
           "tipo": "multiple",
           "etiqueta": "Opciones de Golpe astuto",
           "maxSelecciones": 2
@@ -484,6 +487,7 @@
       "selectores": [
         {
           "id": "efectos_golpe_astuto",
+          "tipoSelector": "general",
           "tipo": "multiple",
           "etiqueta": "Opciones de Golpe astuto",
           "opciones": [
@@ -983,6 +987,7 @@
           "selectores": [
             {
               "id": "efectos_golpe_astuto",
+              "tipoSelector": "general",
               "tipo": "multiple",
               "etiqueta": "Opciones de Golpe astuto",
               "opciones": [

@@ -986,6 +986,7 @@
           "selectores": [
             {
               "id": "tecnica_mano_abierta_opcion",
+              "tipoSelector": "general",
               "tipo": "unico",
               "etiqueta": "Técnica de Mano Abierta",
               "opciones": [

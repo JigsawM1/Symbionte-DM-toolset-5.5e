@@ -385,6 +385,7 @@ describe("Dotes de Origen Canónicas (D&D 5.5e)", () => {
         selectores: [
           {
             id: "selector_truco_1_iniciado_clerigo",
+            tipoSelector: "conjuro",
             tipo: "unico",
             etiqueta: "Primer Truco de Clérigo",
             maxSelecciones: 1,
@@ -393,6 +394,7 @@ describe("Dotes de Origen Canónicas (D&D 5.5e)", () => {
           },
           {
             id: "selector_truco_2_iniciado_clerigo",
+            tipoSelector: "conjuro",
             tipo: "unico",
             etiqueta: "Segundo Truco de Clérigo",
             maxSelecciones: 1,
@@ -401,6 +403,7 @@ describe("Dotes de Origen Canónicas (D&D 5.5e)", () => {
           },
           {
             id: "selector_conjuro_nv1_iniciado_clerigo",
+            tipoSelector: "conjuro",
             tipo: "unico",
             etiqueta: "1 Conjuro de Nivel 1 de Clérigo",
             maxSelecciones: 1,

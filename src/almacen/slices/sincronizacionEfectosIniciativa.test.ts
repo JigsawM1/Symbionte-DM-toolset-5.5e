@@ -260,6 +260,7 @@ describe("Sincronización Bidireccional de Efectos, Concentración y Condiciones
           crearRasgoMock({
             id: "rasgo_furia",
             nombre: "Furia",
+            condicionAlActivar: "Furia (Rage)",
             descripcion: "Entras en furia en combate.",
             origen: "clase",
             esActivable: true,

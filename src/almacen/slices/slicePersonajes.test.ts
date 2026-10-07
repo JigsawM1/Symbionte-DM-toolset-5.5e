@@ -677,6 +677,7 @@ describe("SlicePersonajes - Daño y Escudo (HP Temporal)", () => {
               {
                 id: "rasgo_cls_barbaro_furia",
                 nombre: "Furia",
+                condicionAlActivar: "Furia",
                 descripcion: "Furia",
                 origen: "clase",
                 fuente: "Bárbaro",
@@ -760,6 +761,7 @@ describe("SlicePersonajes - Daño y Escudo (HP Temporal)", () => {
               {
                 id: "rasgo_cls_barbaro_furia",
                 nombre: "Furia",
+                condicionAlActivar: "Furia",
                 descripcion: "Furia bárbara base",
                 origen: "clase",
                 fuente: "Bárbaro",
@@ -778,6 +780,8 @@ describe("SlicePersonajes - Daño y Escudo (HP Temporal)", () => {
               {
                 id: "rasgo_cls_barbaro_furia_de_los_dioses",
                 nombre: "Furia de los dioses",
+                condicionAlActivar: "Furia de los Dioses",
+                ligadoA: "rasgo_cls_barbaro_furia",
                 descripcion: "Forma divina",
                 origen: "subclase",
                 fuente: "Senda del Fanático",
@@ -824,6 +828,7 @@ describe("SlicePersonajes - Daño y Escudo (HP Temporal)", () => {
               {
                 id: "rasgo_cls_barbaro_furia",
                 nombre: "Furia",
+                condicionAlActivar: "Furia",
                 descripcion: "Furia bárbara",
                 origen: "clase",
                 fuente: "Bárbaro",
@@ -878,6 +883,7 @@ describe("SlicePersonajes - Daño y Escudo (HP Temporal)", () => {
               {
                 id: "rasgo_cls_barbaro_furia",
                 nombre: "Furia",
+                condicionAlActivar: "Furia",
                 descripcion: "Furia bárbara base",
                 activo: false,
                 esActivable: true,
@@ -888,6 +894,8 @@ describe("SlicePersonajes - Daño y Escudo (HP Temporal)", () => {
               {
                 id: "rasgo_sub_senda_del_fanatico_furia_de_los_dioses",
                 nombre: "Furia de los dioses",
+                condicionAlActivar: "Furia de los Dioses",
+                ligadoA: "rasgo_cls_barbaro_furia",
                 descripcion: "Forma de guerrero divino",
                 activo: false,
                 esActivable: true,
@@ -962,6 +970,7 @@ describe("SlicePersonajes - Daño y Escudo (HP Temporal)", () => {
               {
                 id: "rasgo_cls_barbaro_furia",
                 nombre: "Furia",
+                condicionAlActivar: "Furia",
                 descripcion: "Entras en furia...",
                 tipoAccion: "accion_adicional",
                 origen: "clase",
@@ -974,6 +983,7 @@ describe("SlicePersonajes - Daño y Escudo (HP Temporal)", () => {
               {
                 id: "rasgo_sub_senda_del_fanatico_furia_divina",
                 nombre: "Furia Divina",
+                ligadoA: "rasgo_cls_barbaro_furia",
                 descripcion: "Inflige daño radiante o necrótico adicional...",
                 tipoAccion: "especial",
                 origen: "subclase",
@@ -1162,6 +1172,7 @@ describe("SlicePersonajes - Daño y Escudo (HP Temporal)", () => {
       const rasgoFuria: RasgoPersonaje = {
         id: "rasgo_cls_barbaro_furia",
         nombre: "Furia",
+        condicionAlActivar: "Furia",
         descripcion: "Entras en furia...",
         tipoAccion: "accion_adicional",
         origen: "clase",

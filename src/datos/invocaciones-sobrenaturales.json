@@ -66,6 +66,7 @@
     "selectores": [
       {
         "id": "tipo_dano_pacto_del_filo",
+        "tipoSelector": "general",
         "tipo": "unico",
         "etiqueta": "Tipo de daño del arma de pacto",
         "maxSelecciones": 1,
@@ -496,6 +497,7 @@
     "selectores": [
       {
         "id": "tipo_dano_devorador_de_vida",
+        "tipoSelector": "general",
         "tipo": "unico",
         "etiqueta": "Tipo de daño de Devorador de vida",
         "maxSelecciones": 1,

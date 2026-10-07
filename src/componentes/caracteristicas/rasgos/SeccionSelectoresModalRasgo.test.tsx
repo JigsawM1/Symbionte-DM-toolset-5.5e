@@ -2,6 +2,7 @@ import { describe, it, expect, vi } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 import { SeccionSelectoresModalRasgo } from "./SeccionSelectoresModalRasgo";
 import type { SelectorRasgo } from "@/tipos";
+import { obtenerRasgosClaseYSubclase } from "@/servicios/gestorClases";
 
 describe("SeccionSelectoresModalRasgo - Paginación en Modo Lista", () => {
   const opciones12 = Array.from({ length: 12 }, (_, i) => ({
@@ -19,6 +20,35 @@ describe("SeccionSelectoresModalRasgo - Paginación en Modo Lista", () => {
     opciones: opciones12,
     valorActual: ["opcion_1", "opcion_7"]
   };
+
+  it("respeta visualizacion normal aunque el ID y la etiqueta contengan conjuro de nivel 1", () => {
+    const html = renderToStaticMarkup(<SeccionSelectoresModalRasgo selectores={[{
+      ...selectorMultipleLista, id: "selector_conjuro_nv1", etiqueta: "Conjuro Nivel 1",
+      tipoSelector: "general", visualizacion: "normal"
+    }]} />);
+    expect(html).toContain("Conjuro Ritual 12");
+    expect(html).not.toContain("1 / 3");
+  });
+
+  it("respeta un selector general aunque el nombre contenga invocacion y dote", () => {
+    const html = renderToStaticMarkup(<SeccionSelectoresModalRasgo selectores={[{
+      ...selectorMultipleLista, id: "invocacion_dote", etiqueta: "Invocaciones de dote",
+      tipoSelector: "general", maxSelecciones: 2, valorActual: []
+    }]} />);
+    expect(html).toContain("Selecciona hasta 2 (0/2)");
+    expect(html).not.toContain("Invocaciones conocidas:");
+  });
+
+  it("renderiza en lista los tres selectores reales del mago de niveles 18 y 20", () => {
+    const rasgos = obtenerRasgosClaseYSubclase("Mago", 20);
+    const selectores = rasgos.filter((r) => r.nivelRequerido === 18 || r.nivelRequerido === 20).flatMap((r) => r.selectores || []);
+    expect(selectores).toHaveLength(3);
+    for (const selector of selectores) {
+      expect(selector.visualizacion).toBe("lista");
+      const html = renderToStaticMarkup(<SeccionSelectoresModalRasgo selectores={[selector]} />);
+      expect(html).toContain("1-4 de");
+    }
+  });
 
   it("renderiza solo los primeros 4 elementos y muestra el control de paginación", () => {
     const html = renderToStaticMarkup(
@@ -103,6 +133,7 @@ describe("SeccionSelectoresModalRasgo - Paginación en Modo Lista", () => {
 
     const selectorIniciadoMago: SelectorRasgo = {
       id: "selector_truco_1_iniciado_mago",
+      tipoSelector: "conjuro",
       tipo: "unico",
       etiqueta: "Primer Truco de Mago",
       maxSelecciones: 1,
@@ -113,6 +144,7 @@ describe("SeccionSelectoresModalRasgo - Paginación en Modo Lista", () => {
 
     const selectorAltoElfo: SelectorRasgo = {
       id: "selector_truco_alto_elfo",
+      tipoSelector: "conjuro",
       tipo: "unico",
       etiqueta: "Truco de Mago (Sustituible tras descanso largo)",
       maxSelecciones: 1,

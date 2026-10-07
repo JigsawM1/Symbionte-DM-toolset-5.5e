@@ -12,6 +12,16 @@ export function normalizar(texto: string = ""): string {
     .trim();
 }
 
+/** Resuelve una relación declarada por ID o nombre, sin elegir candidatos por semejanza. */
+export function resolverRasgoPadre(
+  rasgo: RasgoPersonaje,
+  rasgos: RasgoPersonaje[]
+): RasgoPersonaje | undefined {
+  if (!rasgo.ligadoA) return undefined;
+  const clave = normalizar(rasgo.ligadoA);
+  return rasgos.find((r) => r.id !== rasgo.id && (normalizar(r.id) === clave || normalizar(r.nombre) === clave));
+}
+
 /**
  * Determina si un rasgo que depende de una opción de un selector padre (requiereOpcion y ligadoA)
  * está habilitado por la selección actual del padre.

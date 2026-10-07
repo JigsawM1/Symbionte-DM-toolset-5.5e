@@ -1,4 +1,5 @@
 import type { RasgoPersonaje } from "@/tipos";
+import { EFECTOS_PREDEFINIDOS } from "@/utiles/datosIniciales";
 
 /**
  * Normaliza cadenas para comparaciones de condiciones y rasgos sin distinción de mayúsculas ni diacríticos.
@@ -17,21 +18,6 @@ export function resolverCondicionAsociadaRasgo(r: RasgoPersonaje): string | unde
   const nom = normalizarTextoSeguro(r.nombre);
   const id = normalizarTextoSeguro(r.id);
 
-  if (nom.includes("furia de los dioses") || id.includes("furia_de_los_dioses")) {
-    return "Furia de los Dioses";
-  }
-  if ((nom === "furia" || id === "rasgo_cls_barbaro_furia") && !nom.includes("persistente")) {
-    return "Furia";
-  }
-  if (nom.includes("temerario") || id.includes("temerario") || nom.includes("reckless") || id.includes("reckless")) {
-    return "Ataque Temerario";
-  }
-  if (nom.includes("manto de majestad") || nom.includes("manto de la majestad") || id.includes("manto_de_majestad")) {
-    return "Manto de Majestad";
-  }
-  if (nom.includes("majestad inquebrantable") || id.includes("majestad_inquebrantable")) {
-    return "Majestad Inquebrantable";
-  }
   if (nom.includes("revelacion celestial") || id.includes("revelacion_celestial")) {
     const sel = r.selectores?.find(
       (s) => s.id === "opcion_revelacion_celestial" || s.etiqueta.toLowerCase().includes("revelacion")
@@ -45,88 +31,30 @@ export function resolverCondicionAsociadaRasgo(r: RasgoPersonaje): string | unde
     }
     return "Alas Celestiales";
   }
-  if (nom.includes("vuelo draconico") || id.includes("vuelo_draconico")) {
-    return "Vuelo dracónico";
-  }
-  if (nom.includes("afinidad con la piedra") || id.includes("afinidad_con_la_piedra") || nom.includes("stonecunning") || id.includes("stonecunning")) {
-    return "Afinidad con la piedra";
-  }
-  if (nom.includes("corona de luz") || id.includes("corona_de_luz")) {
-    return "Corona de luz";
-  }
   return undefined;
 }
 
 /**
  * Determina si una condición táctica coincide con un rasgo para activación/desactivación reactiva.
  */
+function claveCondicion(texto: string): string {
+  const base = normalizarTextoSeguro(texto).split(" (")[0].trim();
+  const efecto = EFECTOS_PREDEFINIDOS.find((e) =>
+    [e.nombre, ...(e.aliases || [])].some((alias) => normalizarTextoSeguro(alias).split(" (")[0].trim() === base)
+  );
+  return efecto ? normalizarTextoSeguro(efecto.nombre).split(" (")[0].trim() : base;
+}
+
 export function coincideCondicionConRasgo(condicionTexto: string, r: RasgoPersonaje): boolean {
-  const cNorm = normalizarTextoSeguro(condicionTexto);
-  if (!cNorm) return false;
+  const condicion = claveCondicion(condicionTexto);
+  if (!condicion) return false;
+  const asociada = resolverCondicionAsociadaRasgo(r);
+  if (asociada && condicion === claveCondicion(asociada)) return true;
 
-  const cBase = cNorm.split(" (")[0].trim();
-
-  const condAsociada = resolverCondicionAsociadaRasgo(r);
-  if (condAsociada) {
-    const asocNorm = normalizarTextoSeguro(condAsociada);
-    if (cNorm === asocNorm) return true;
-    const asocBase = asocNorm.split(" (")[0].trim();
-    if (asocBase === cBase) return true;
+  // Revelación celestial cambia de condición según la forma seleccionada.
+  if (["alas celestiales", "fulgor interior", "mortaja necrotica", "revelacion celestial"].includes(condicion)) {
+    return normalizarTextoSeguro(r.nombre).includes("revelacion celestial") || r.id.includes("revelacion_celestial");
   }
-
-  const rCond = r.condicionAlActivar ? normalizarTextoSeguro(r.condicionAlActivar) : "";
-  if (rCond) {
-    if (cNorm === rCond) return true;
-    const rCondBase = rCond.split(" (")[0].trim();
-    if (rCondBase === cBase) return true;
-  }
-
-  const rNom = normalizarTextoSeguro(r.nombre);
-  const rId = normalizarTextoSeguro(r.id);
-
-  if (cBase.includes("furia de los dioses") || cBase.includes("rage of the gods")) {
-    return rNom.includes("furia de los dioses") || rId.includes("furia_de_los_dioses");
-  }
-  if (cBase === "furia" || cBase === "rage") {
-    return (rNom === "furia" || rId === "rasgo_cls_barbaro_furia") && !rNom.includes("dioses") && !rId.includes("dioses");
-  }
-  if (cBase.includes("temerario") || cBase.includes("reckless")) {
-    return (
-      rNom.includes("temerario") ||
-      rId.includes("temerario") ||
-      rNom.includes("reckless") ||
-      rId.includes("reckless")
-    );
-  }
-  if (cNorm.includes("manto de majestad") || cNorm.includes("manto de la majestad") || cNorm.includes("mantle of majesty")) {
-    return rNom.includes("manto de majestad") || rNom.includes("manto de la majestad") || rId.includes("manto_de_majestad");
-  }
-  if (cNorm.includes("majestad inquebrantable") || cNorm.includes("unbreakable majesty")) {
-    return rNom.includes("majestad inquebrantable") || rId.includes("majestad_inquebrantable");
-  }
-  if (
-    cNorm.includes("alas celestiales") ||
-    cNorm.includes("fulgor interior") ||
-    cNorm.includes("mortaja necrotica") ||
-    cNorm.includes("revelacion celestial")
-  ) {
-    return rNom.includes("revelacion celestial") || rId.includes("revelacion_celestial");
-  }
-  if (cNorm.includes("vuelo draconico") || cNorm.includes("draconic flight")) {
-    return rNom.includes("vuelo draconico") || rId.includes("vuelo_draconico");
-  }
-  if (cNorm.includes("afinidad con la piedra") || cNorm.includes("stonecunning")) {
-    return (
-      rNom.includes("afinidad con la piedra") ||
-      rId.includes("afinidad_con_la_piedra") ||
-      rNom.includes("stonecunning") ||
-      rId.includes("stonecunning")
-    );
-  }
-  if (cNorm.includes("corona de luz") || cNorm.includes("crown of light")) {
-    return rNom.includes("corona de luz") || rId.includes("corona_de_luz");
-  }
-
   return false;
 }
 
@@ -216,52 +144,19 @@ export function desactivarRasgosPorCondicionOEfecto(
 
   let rasgosActualizados = rasgos.map((r) => {
     if (coincideCondicionConRasgo(nombreEstado, r) && (r.esActivable ?? true) && r.activo) {
-      clavesPadresApagados.add(r.id.toLowerCase());
-      clavesPadresApagados.add(r.nombre.toLowerCase().trim());
+      clavesPadresApagados.add(normalizarTextoSeguro(r.id));
+      clavesPadresApagados.add(normalizarTextoSeguro(r.nombre));
       return { ...r, activo: false };
     }
     return r;
   });
 
   if (clavesPadresApagados.size > 0) {
-    const esFuriaApagada =
-      clavesPadresApagados.has("furia") || clavesPadresApagados.has("rasgo_cls_barbaro_furia");
-    const esAtaqueTemerarioApagado =
-      clavesPadresApagados.has("ataque temerario") ||
-      clavesPadresApagados.has("rasgo_cls_barbaro_ataque_temerario") ||
-      clavesPadresApagados.has("reckless attack") ||
-      clavesPadresApagados.has("reckless");
-
     rasgosActualizados = rasgosActualizados.map((r) => {
       if (!r.activo) return r;
       if (r.ligadoA) {
-        const lig = r.ligadoA.toLowerCase().trim();
-        if (
-          clavesPadresApagados.has(lig) ||
-          (esFuriaApagada && lig.includes("furia") && !lig.includes("dioses")) ||
-          (esAtaqueTemerarioApagado && (lig.includes("temerario") || lig.includes("reckless")))
-        ) {
-          return { ...r, activo: false };
-        }
-      }
-      if (esFuriaApagada) {
-        const rNom = r.nombre.toLowerCase().trim();
-        const rId = r.id.toLowerCase().trim();
-        if (
-          rNom.includes("furia divina") ||
-          rId.includes("furia_divina") ||
-          rNom.includes("frenesi") ||
-          rId.includes("frenesi") ||
-          rNom.includes("furia de los dioses") ||
-          rId.includes("furia_de_los_dioses")
-        ) {
-          return { ...r, activo: false };
-        }
-      }
-      if (esAtaqueTemerarioApagado) {
-        const rNom = r.nombre.toLowerCase().trim();
-        const rId = r.id.toLowerCase().trim();
-        if (rNom.includes("golpe brutal") || rId.includes("golpe_brutal")) {
+        const lig = normalizarTextoSeguro(r.ligadoA);
+        if (clavesPadresApagados.has(lig)) {
           return { ...r, activo: false };
         }
       }

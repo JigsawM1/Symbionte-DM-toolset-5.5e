@@ -161,23 +161,7 @@ export function obtenerDanosSecundariosAtaque(
       if (aplicaEfectoAAtaque(ef.aplicaA, ef.objetivo, contexto)) {
         const formulaResuelta = resolverFormulaDinamica(ef.valor, personaje);
         if (formulaResuelta) {
-          let tipoDanoFinal = ef.tipoDano?.trim();
-          if (!tipoDanoFinal || tipoDanoFinal.toLowerCase() === "adicional") {
-            const descNorm = normalizar(ef.descripcion || "");
-            if (descNorm.includes("necrotic")) tipoDanoFinal = "Necrótico";
-            else if (descNorm.includes("radiant")) tipoDanoFinal = "Radiante";
-            else if (descNorm.includes("psiquic")) tipoDanoFinal = "Psíquico";
-            else if (descNorm.includes("fuego")) tipoDanoFinal = "Fuego";
-            else if (descNorm.includes("frio")) tipoDanoFinal = "Frío";
-            else if (descNorm.includes("veneno")) tipoDanoFinal = "Veneno";
-            else if (descNorm.includes("acido")) tipoDanoFinal = "Ácido";
-            else if (descNorm.includes("fuerza")) tipoDanoFinal = "Fuerza";
-            else if (descNorm.includes("relampag")) tipoDanoFinal = "Relámpago";
-            else if (descNorm.includes("trueno")) tipoDanoFinal = "Trueno";
-            else if (descNorm.includes("golpe divino")) tipoDanoFinal = "Radiante";
-            else if (descNorm.includes("devorador de vida")) tipoDanoFinal = "Necrótico";
-            else tipoDanoFinal = "Adicional";
-          }
+          const tipoDanoFinal = ef.tipoDano?.trim() || "Adicional";
 
           resultado.push({
             formula: formulaResuelta,

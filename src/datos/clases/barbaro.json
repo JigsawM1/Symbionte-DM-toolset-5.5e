@@ -188,6 +188,7 @@
       "selectores": [
         {
           "id": "maestrias_aprendidas",
+          "tipoSelector": "general",
           "tipo": "multiple",
           "etiqueta": "Propiedades de Maestría Elegidas",
           "opciones": [
@@ -445,6 +446,7 @@
       "selectores": [
         {
           "id": "efecto_golpe_brutal",
+          "tipoSelector": "general",
           "tipo": "unico",
           "etiqueta": "Efecto de Golpe Brutal",
           "opciones": [
@@ -754,6 +756,7 @@
           "selectores": [
             {
               "id": "furia_tierras_salvajes_opcion",
+              "tipoSelector": "general",
               "tipo": "unico",
               "etiqueta": "Aspecto de Furia Primigenia",
               "opciones": [
@@ -791,6 +794,7 @@
           "selectores": [
             {
               "id": "aspecto_tierras_salvajes_opcion",
+              "tipoSelector": "general",
               "tipo": "unico",
               "etiqueta": "Aspecto de las Tierras Salvajes",
               "opciones": [
@@ -867,6 +871,7 @@
           "selectores": [
             {
               "id": "poder_tierras_salvajes_opcion",
+              "tipoSelector": "general",
               "tipo": "unico",
               "etiqueta": "Poder de las Tierras Salvajes",
               "opciones": [

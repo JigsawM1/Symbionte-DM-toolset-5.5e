@@ -22,6 +22,7 @@ import {
   construirDoteDeVersatil
 } from "@/servicios/gestorEspecies";
 import { esRasgoHabilitadoPorOpcion } from "@/servicios/rasgos/utilidadesRasgos";
+import { migrarMetadatosRasgos } from "./migradorRasgosHeredados";
 
 /**
  * Normaliza nombres para comparación tolerante e insensible a mayúsculas/acentos
@@ -128,7 +129,7 @@ export function obtenerTodasDotesCanonicas(): DotePersonaje[] {
  * preservando intactos los rasgos personalizados, dotes y los contadores de usos modificados.
  */
 export function sincronizarRasgosAutomaticos(personaje: PersonajeJugador): RasgoPersonaje[] {
-  const rasgosExistentes = Array.isArray(personaje.rasgos) ? personaje.rasgos : [];
+  const rasgosExistentes = migrarMetadatosRasgos(Array.isArray(personaje.rasgos) ? personaje.rasgos : []);
 
   // 1. Conservar rasgos personalizados, dotes y de trasfondo creados por el jugador (purgando marcadores obsoletos y dotes ligadas a resincronizar)
   const esDoteLigadaSintetica = (r: RasgoPersonaje) =>

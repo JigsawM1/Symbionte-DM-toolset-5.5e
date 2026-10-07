@@ -298,6 +298,7 @@
     "selectores": [
       {
         "id": "selector_conjuro_nv1_influencia_feerica",
+        "tipoSelector": "conjuro",
         "tipo": "unico",
         "visualizacion": "lista",
         "etiqueta": "Conjuro de Nivel 1 (Adivinación o Encantamiento)",
@@ -398,6 +399,7 @@
       },
       {
         "id": "selector_aptitud_influencia_feerica",
+        "tipoSelector": "general",
         "tipo": "unico",
         "etiqueta": "Aptitud Mágica",
         "maxSelecciones": 1,
@@ -447,6 +449,7 @@
     "selectores": [
       {
         "id": "selector_aptitud_influencia_sombria",
+        "tipoSelector": "general",
         "tipo": "unico",
         "etiqueta": "Aptitud Mágica (Influencia Sombría)",
         "maxSelecciones": 1,
@@ -473,6 +476,7 @@
       },
       {
         "id": "selector_conjuro_nv1_influencia_sombria",
+        "tipoSelector": "conjuro",
         "tipo": "unico",
         "visualizacion": "lista",
         "etiqueta": "Conjuro de Nivel 1 (Ilusión o Nigromancia)",
@@ -586,6 +590,7 @@
     "selectores": [
       {
         "id": "selector_aptitud_lanzador_ritual",
+        "tipoSelector": "general",
         "tipo": "unico",
         "etiqueta": "Aptitud Mágica",
         "maxSelecciones": 1,
@@ -610,6 +615,7 @@
       },
       {
         "id": "selector_rituales_nv1",
+        "tipoSelector": "conjuro",
         "tipo": "multiple",
         "visualizacion": "lista",
         "etiqueta": "Conjuros Rituales de Nivel 1 (Tantos como tu PB)",
@@ -700,6 +706,7 @@
     "selectores": [
       {
         "id": "maestrias_aprendidas",
+        "tipoSelector": "general",
         "tipo": "unico",
         "etiqueta": "Maestría de Arma Aprendida",
         "maxSelecciones": 1,
@@ -1028,6 +1035,7 @@
     "selectores": [
       {
         "id": "selector_aptitud_telepatico",
+        "tipoSelector": "general",
         "tipo": "unico",
         "etiqueta": "Aptitud Mágica (Telepático)",
         "maxSelecciones": 1,
@@ -1074,6 +1082,7 @@
     "selectores": [
       {
         "id": "selector_aptitud_telequinetico",
+        "tipoSelector": "general",
         "tipo": "unico",
         "etiqueta": "Aptitud Mágica (Telequinético)",
         "maxSelecciones": 1,
@@ -1174,6 +1183,7 @@
     "selectores": [
       {
         "id": "selector_elemento_versado",
+        "tipoSelector": "general",
         "tipo": "unico",
         "etiqueta": "Tipo de Daño Elemental",
         "maxSelecciones": 1,

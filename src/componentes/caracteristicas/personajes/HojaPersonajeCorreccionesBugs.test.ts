@@ -33,6 +33,7 @@ describe("Correcciones de Bugs en Hoja de Personaje e Iniciativa", () => {
         {
           id: "bardo-aprendiz-de-mucho",
           nombre: "Aprendiz de mucho",
+          efectos: [{ tipo: "medio_bono_habilidades", objetivo: "habilidades_sin_competencia", valor: "mitad_competencia" }],
           descripcion: "Añade la mitad de tu bonificador de competencia a cualquier prueba de característica que no incluya ya tu bonificador.",
           origen: "clase",
           tipoAccion: "pasivo",

@@ -3,7 +3,8 @@ import {
   type RasgoPersonaje
 } from "@/tipos";
 import { CATALOGO_CLASES_DND55 } from "@/constantes/clasesDND55";
-import { normalizar } from "./utilidadesRasgos";
+import { normalizar, resolverRasgoPadre } from "./utilidadesRasgos";
+import { esSelectorDeConjuros } from "@/utiles/selectoresConjuros";
 
 /**
  * Obtiene la lista consolidada de nombres de conjuros siempre preparados otorgados directamente por rasgos
@@ -26,15 +27,7 @@ export function obtenerConjurosOtorgadosPorRasgos(personaje: PersonajeJugador): 
     if (Array.isArray(r.selectores)) {
       for (const sel of r.selectores) {
         if (sel.destinoConjuros === "libro") continue;
-        const idLower = sel.id.toLowerCase();
-        if (
-          idLower.includes("truco") ||
-          idLower.includes("conjuro") ||
-          idLower.includes("hechizo") ||
-          idLower.includes("spell") ||
-          idLower.includes("cantrip") ||
-          idLower.includes("ritual")
-        ) {
+        if (esSelectorDeConjuros(sel)) {
           if (Array.isArray(sel.valorActual)) {
             for (const val of sel.valorActual) {
               if (val && val.trim()) conjuros.add(val.trim());
@@ -51,7 +44,7 @@ export function obtenerConjurosOtorgadosPorRasgos(personaje: PersonajeJugador): 
               ? opId.split("__")[0]
               : opId;
             const opcion = sel.opciones?.find((o) => o.id === opId || o.id === baseId);
-            if (sel.tipoSelector === "conjuro" || sel.esConjuroGratuito) {
+            if (esSelectorDeConjuros(sel)) {
               if (opcion?.nombre) conjuros.add(opcion.nombre.trim());
               if (opId) conjuros.add(opId.trim());
             }
@@ -265,28 +258,5 @@ export function resolverIdRasgoObjetivoGasto(
   if (!targetTrait) return "";
   if (!targetTrait.gastarDePadre) return targetTrait.id;
 
-  // 1. Buscar el rasgo padre por ID o nombre usando ligadoA
-  if (targetTrait.ligadoA) {
-    const lig = normalizar(targetTrait.ligadoA);
-    const padre = rasgos.find(
-      (r) => normalizar(r.id) === lig || normalizar(r.nombre) === lig
-    );
-    if (padre) return padre.id;
-  }
-
-  // 2. Heurística estructural agnóstica: si falta ligadoA explícito, buscar un candidato
-  // con usos limitados que comparta exactamente el mismo origen y fuente.
-  // Solo se resuelve si el candidato es inequívoco (exactamente 1 coincidencia).
-  if (targetTrait.fuente) {
-    const candidatos = rasgos.filter(
-      (r) =>
-        r.id !== targetTrait.id &&
-        r.tieneUsosLimitados &&
-        r.origen === targetTrait.origen &&
-        r.fuente === targetTrait.fuente
-    );
-    if (candidatos.length === 1) return candidatos[0].id;
-  }
-
-  return targetTrait.id;
+  return resolverRasgoPadre(targetTrait, rasgos)?.id ?? targetTrait.id;
 }

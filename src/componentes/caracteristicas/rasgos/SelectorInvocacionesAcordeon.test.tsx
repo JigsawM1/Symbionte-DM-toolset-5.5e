@@ -4,6 +4,15 @@ import { SelectorInvocacionesAcordeon } from "./SelectorInvocacionesAcordeon";
 import type { SelectorRasgo, OpcionSelector } from "@/tipos/rasgos";
 
 describe("SelectorInvocacionesAcordeon - Paginación de Invocaciones Sobrenaturales", () => {
+  it("conserva el máximo explícito sin deducir una progresión del nombre de las invocaciones", () => {
+    const selector: SelectorRasgo = {
+      id: "selector_invocaciones_propias", tipo: "multiple", tipoSelector: "invocacion",
+      etiqueta: "Invocaciones propias", maxSelecciones: 2, opciones: [], valorActual: []
+    };
+    const html = renderToStaticMarkup(<SelectorInvocacionesAcordeon selector={selector} nivelPersonaje={20} alActualizarSeleccion={vi.fn()} />);
+    expect(html).toContain("Aprendidas (0/2)");
+    expect(html).not.toContain("Aprendidas (0/10)");
+  });
   const generarOpcionesInvocacion = (cantidad: number): OpcionSelector[] => {
     return Array.from({ length: cantidad }, (_, i) => ({
       id: `invocacion_${i + 1}`,

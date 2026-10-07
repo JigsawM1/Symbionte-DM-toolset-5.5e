@@ -25,6 +25,7 @@
       "selectores": [
         {
           "id": "selector_tamano_especie",
+          "tipoSelector": "general",
           "tipo": "unico",
           "etiqueta": "Tamaño",
           "opciones": [
@@ -110,6 +111,7 @@
       "selectores": [
         {
           "id": "opcion_revelacion_celestial",
+          "tipoSelector": "general",
           "tipo": "unico",
           "etiqueta": "Opción de Revelación Celestial",
           "opciones": [

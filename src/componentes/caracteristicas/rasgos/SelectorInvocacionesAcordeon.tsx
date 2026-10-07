@@ -27,7 +27,7 @@ import {
 import { usarAlmacenDM } from "@/almacen/usarAlmacenDM";
 import { usarEstadoHomebrew } from "@/almacen/selectores/usarEstadoHomebrew";
 import { coincideHechizoId } from "@/servicios/comparadorHechizos";
-import { obtenerMaxInvocacionesBrujo, obtenerNivelEspacioPacto } from "@/constantes/invocacionesSobrenaturales";
+import { obtenerNivelEspacioPacto } from "@/constantes/invocacionesSobrenaturales";
 import { logger } from "@/utiles/logger";
 import { aplicarResultadoHpTemporalEnEstado } from "@/utiles/lanzadorDados";
 import estilos from "./SelectorInvocacionesAcordeon.module.css";
@@ -69,11 +69,8 @@ export const SelectorInvocacionesAcordeon: React.FC<SelectorInvocacionesAcordeon
         .find((e) => nivelPersonaje >= e.nivelMinimo);
       if (entrada) return entrada.valor;
     }
-    if (nivelPersonaje && (selector.id.toLowerCase().includes("invocacion") || selector.etiqueta.toLowerCase().includes("invocaci"))) {
-      return obtenerMaxInvocacionesBrujo(nivelPersonaje);
-    }
     return selector.maxSelecciones || 1;
-  }, [selector.escaladoMaxSelecciones, selector.maxSelecciones, selector.id, selector.etiqueta, nivelPersonaje]);
+  }, [selector.escaladoMaxSelecciones, selector.maxSelecciones, nivelPersonaje]);
 
   const personajeActivo = usarAlmacenDM(
     React.useCallback((s) => s.personajes.find((p) => p.id === s.idPersonajeActivo) || s.personajes[0] || null, [])

@@ -5,7 +5,6 @@ import type { SelectorRasgo } from "@/tipos/rasgos";
  * Se conservan por retrocompatibilidad con datos homebrew que no declaran `tipoSelector`.
  */
 const SUBCADENAS_TRUCO = ["truco", "cantrip"] as const;
-const SUBCADENAS_CONJURO = ["conjuro", "hechizo", "spell", "ritual"] as const;
 
 type SelectorMinimo = Pick<SelectorRasgo, "id" | "tipoSelector" | "esConjuroGratuito" | "destinoConjuros">;
 
@@ -20,14 +19,12 @@ export function esSelectorDeTrucos(selector: SelectorMinimo): boolean {
 
 /**
  * Indica si el selector elige conjuros o trucos.
- * Prioriza la declaración explícita `tipoSelector: "conjuro"` o `esConjuroGratuito`,
- * con respaldo en las subcadenas del id. Función PURA y agnóstica de clase.
+ * Consulta la declaración explícita `tipoSelector: "conjuro"` o `esConjuroGratuito`.
+ * Función pura y agnóstica de clase.
  */
 export function esSelectorDeConjuros(selector: SelectorMinimo): boolean {
   if (!selector) return false;
-  if (selector.tipoSelector === "conjuro" || Boolean(selector.esConjuroGratuito)) return true;
-  const sid = (selector.id || "").trim().toLowerCase();
-  return esSelectorDeTrucos(selector) || SUBCADENAS_CONJURO.some((sub) => sid.includes(sub));
+  return selector.tipoSelector === "conjuro" || Boolean(selector.esConjuroGratuito);
 }
 
 /**

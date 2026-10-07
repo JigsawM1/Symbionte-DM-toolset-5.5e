@@ -6,6 +6,7 @@ import { resolverGruposYSustitutosCompetencias } from '@/constantes/competencias
 import { resolverCategoriaDesdeSRD, CATEGORIAS_EQUIPO, type CategoriaEquipo } from '@/constantes/categoriasEquipoConstantes';
 import { generarId } from '@/utiles/generarId';
 import { logger } from '@/utiles/logger';
+import { migrarMetadatosRasgos } from '@/servicios/migradorRasgosHeredados';
 
 // Normaliza el texto eliminando acentos y convirtiendo a minúsculas
 export function normalizarTexto(texto: string): string {
@@ -1290,6 +1291,8 @@ export function sanearPersonaje(p: unknown): PersonajeJugador {
     fusionado.competenciasArmaduras = resComp.competenciasArmaduras;
   }
 
+  // Migrar antes de Zod para distinguir campos ausentes de valores declarados explícitamente.
+  fusionado.rasgos = migrarMetadatosRasgos(fusionado.rasgos as PersonajeJugador["rasgos"]);
   const resultado = EsquemaPersonajeJugador.safeParse(fusionado);
   if (resultado.success) {
     const pjValido = resultado.data;

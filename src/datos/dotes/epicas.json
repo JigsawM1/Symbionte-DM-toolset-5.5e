@@ -109,6 +109,7 @@
     "selectores": [
       {
         "id": "selector_resistencias_energias",
+        "tipoSelector": "general",
         "tipo": "multiple",
         "etiqueta": "Resistencias Elementales Elegidas",
         "maxSelecciones": 2,

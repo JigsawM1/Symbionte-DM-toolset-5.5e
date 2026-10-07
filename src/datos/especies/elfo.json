@@ -37,6 +37,7 @@
       "selectores": [
         {
           "id": "selector_aptitud_magica_elfo",
+          "tipoSelector": "general",
           "tipo": "unico",
           "etiqueta": "Aptitud Mágica del Linaje",
           "opciones": [
@@ -180,6 +181,7 @@
           "selectores": [
             {
               "id": "selector_truco_alto_elfo",
+              "tipoSelector": "conjuro",
               "tipo": "unico",
               "etiqueta": "Truco de Mago (Sustituible tras descanso largo)",
               "maxSelecciones": 1,

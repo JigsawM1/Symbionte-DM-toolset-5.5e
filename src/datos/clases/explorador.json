@@ -124,6 +124,7 @@
       "selectores": [
         {
           "id": "maestrias_aprendidas",
+          "tipoSelector": "general",
           "tipo": "multiple",
           "etiqueta": "Propiedades de Maestría Elegidas",
           "opciones": [
@@ -578,6 +579,7 @@
           "selectores": [
             {
               "id": "selector_dones_parajes_feericos",
+              "tipoSelector": "general",
               "tipo": "unico",
               "etiqueta": "Don de los Parajes Feéricos",
               "maxSelecciones": 1,
@@ -944,6 +946,7 @@
           "selectores": [
             {
               "id": "selector_presa_cazador",
+              "tipoSelector": "general",
               "tipo": "unico",
               "etiqueta": "Presa del cazador",
               "maxSelecciones": 1,
@@ -1016,6 +1019,7 @@
           "selectores": [
             {
               "id": "selector_tacticas_defensivas",
+              "tipoSelector": "general",
               "tipo": "unico",
               "etiqueta": "Tácticas defensivas",
               "maxSelecciones": 1,

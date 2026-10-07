@@ -1,5 +1,5 @@
 import type { PersonajeJugador, RasgoPersonaje } from "@/tipos";
-import { normalizar } from "./utilidadesRasgos";
+import { normalizar, resolverRasgoPadre } from "./utilidadesRasgos";
 import { resolverFormulaDinamica } from "./evaluadorExpresionesRasgos";
 
 /**
@@ -32,24 +32,7 @@ export function resolverRecursosPadre(
     return { usosPadre: undefined, formulaDadosEfectiva: undefined };
   }
 
-  let padre: RasgoPersonaje | undefined;
-  if (rasgo.ligadoA) {
-    const lig = normalizar(rasgo.ligadoA);
-    padre = (personaje.rasgos || []).find(
-      (r) => normalizar(r.id) === lig || normalizar(r.nombre) === lig
-    );
-  }
-  // Heurística estructural agnóstica si no se especificó ligadoA
-  if (!padre && (rasgo.gastarDePadre || rasgo.heredarDadosPadre) && rasgo.fuente) {
-    const candidatos = (personaje.rasgos || []).filter(
-      (r) =>
-        r.id !== rasgo.id &&
-        r.tieneUsosLimitados &&
-        r.origen === rasgo.origen &&
-        r.fuente === rasgo.fuente
-    );
-    if (candidatos.length === 1) padre = candidatos[0];
-  }
+  const padre = resolverRasgoPadre(rasgo, personaje.rasgos || []);
 
   const usosPadre =
     rasgo.gastarDePadre && padre

@@ -278,23 +278,12 @@ export function obtenerDadoInspiracionBardica(nivelBardo: number): string {
 /**
  * Determina si el personaje tiene activo el beneficio de medio bono a habilidades
  * en las que no posee competencia ni pericia (Aprendiz de mucho o rasgo equivalente).
- * Evaluación 100% genérica vía efectos declarativos y nombre de rasgo.
+ * Evaluación genérica mediante efectos declarativos.
  */
 export function tieneMedioBonoHabilidades(personaje: PersonajeJugador): boolean {
   if (!personaje) return false;
 
-  // 1. Evaluar efectos activos con tipo "medio_bono_habilidades" (camino genérico principal)
-  const efectos = evaluarEfectosRasgosActivos(personaje);
-  for (const ef of efectos) {
-    if (ef.tipo === "medio_bono_habilidades") return true;
-  }
-
-  // 2. Fallback: rasgo activo con nombre canónico "Aprendiz de mucho" (compatibilidad)
-  return (personaje.rasgos || []).some(
-    (r) =>
-      r.activo !== false &&
-      (normalizar(r.nombre).includes("aprendiz de mucho") || normalizar(r.nombre).includes("jack of all trades"))
-  );
+  return evaluarEfectosRasgosActivos(personaje).some((ef) => ef.tipo === "medio_bono_habilidades");
 }
 
 /**

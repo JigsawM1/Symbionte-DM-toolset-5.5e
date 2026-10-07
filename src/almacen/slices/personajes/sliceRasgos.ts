@@ -1,13 +1,14 @@
 import type { StateCreator } from "zustand";
 import type { EstadoDM } from "@/almacen/usarAlmacenDM";
 import { sincronizarRasgosAutomaticos } from "@/servicios/compendioRasgos";
+import { migrarMetadatosRasgos } from "@/servicios/migradorRasgosHeredados";
 import {
   construirDoteDeMejoraCaracteristica,
   construirDoteDeDonEpico,
-  construirDoteDeEstiloCombate
+  construirDoteDeEstiloCombate,
+  obtenerNivelEfectivoParaRasgo
 } from "@/servicios/gestorClases";
 import { construirDoteDeVersatil } from "@/servicios/gestorEspecies";
-import { obtenerMaxInvocacionesBrujo } from "@/constantes/invocacionesSobrenaturales";
 import {
   tieneMedioBonoHabilidades,
   aplicarAprendizDeMuchoAGradosHabilidades,
@@ -17,13 +18,14 @@ import {
   calcularHpTemporalDeEfecto,
   obtenerEfectoHpTemporalRasgo
 } from "@/servicios/evaluadorEfectosRasgos";
+import { normalizar, resolverRasgoPadre } from "@/servicios/rasgos/utilidadesRasgos";
 import {
   esSelectorDeConjuros,
   esSelectorSoloLibro,
   agregarValoresSelectorAListas,
   quitarValoresSelectorDeListas,
   type ListasConjurosSelector
-} from "./selectoresConjurosHelpers";
+} from "@/utiles/selectoresConjuros";
 import { aplicarCondicion } from "@/servicios/procesadorCondiciones";
 import { mutarPersonaje } from "../helpers/mutarPersonaje";
 import type { SubSliceRasgos } from "./slicePersonajesTipos";
@@ -56,7 +58,8 @@ export const crearSubSliceRasgos: StateCreator<
           usosRestantes: rasgo.usosRestantes !== undefined ? rasgo.usosRestantes : maxUsos
         };
       }
-      const rasgosActuales = [...(pj.rasgos || []), rasgoAjustado];
+      const rasgosActuales = migrarMetadatosRasgos([...(pj.rasgos || []), rasgoAjustado]);
+      rasgoAjustado = rasgosActuales[rasgosActuales.length - 1];
       const pjTemp = { ...pj, rasgos: rasgosActuales };
       const bonoPrevio = calcularBonoHPMaximoRasgos(pj);
       const bonoNuevo = calcularBonoHPMaximoRasgos(pjTemp);
@@ -366,37 +369,12 @@ export const crearSubSliceRasgos: StateCreator<
       if (!targetTrait) return pj;
 
       const nuevoActivo = !targetTrait.activo;
-      const nomObjetivo = targetTrait ? targetTrait.nombre.toLowerCase().trim() : "";
-      const idObjetivo = targetTrait ? targetTrait.id.toLowerCase().trim() : idRasgo.toLowerCase().trim();
-
-      // Comprobación de rasgo padre requerido (ligadoA, con fallback canónico si el rasgo carece de metadatos)
-      const esFuriaDivina = nomObjetivo.includes("furia divina") || idObjetivo.includes("furia_divina");
-      const esFrenesi = nomObjetivo.includes("frenesí") || idObjetivo.includes("frenesí");
-      const esFuriaDeLosDioses = nomObjetivo.includes("furia de los dioses") || idObjetivo.includes("furia_de_los_dioses");
-      const esGolpeBrutal = nomObjetivo.includes("golpe brutal") || idObjetivo.includes("golpe_brutal");
-
-      const padreKey = targetTrait?.ligadoA
-        ? targetTrait.ligadoA.toLowerCase().trim()
-        : (esFuriaDivina || esFrenesi || esFuriaDeLosDioses
-            ? "rasgo_cls_barbaro_furia"
-            : (esGolpeBrutal ? "rasgo_cls_barbaro_ataque_temerario" : undefined));
-
-      if (nuevoActivo && padreKey) {
-        const padreActivo = (pj.rasgos || []).some((r) => {
-          const rId = r.id.toLowerCase().trim();
-          const rNom = r.nombre.toLowerCase().trim();
-          const coincide =
-            rId === padreKey ||
-            rNom === padreKey ||
-            (padreKey.includes("furia") && (r.id === "furia" || r.id === "rasgo_cls_barbaro_furia")) ||
-            (padreKey.includes("temerario") && (r.id.includes("temerario") || r.id.includes("reckless")));
-          if (!coincide) return false;
-          if (r.esActivable) return r.activo === true;
-          return r.activo !== false;
-        }) || (pj.condicionesActivas || []).some(
-          (c) => c.toLowerCase().includes(padreKey) || (padreKey.includes("temerario") && (c.toLowerCase().includes("temerario") || c.toLowerCase().includes("reckless")))
-        ) || (pj.efectosActivos || []).some(
-          (e) => padreKey.includes("temerario") && (e.id.includes("temerario") || e.id.includes("reckless"))
+      if (nuevoActivo && targetTrait.ligadoA) {
+        const padre = resolverRasgoPadre(targetTrait, pj.rasgos || []);
+        const padreActivo = padre && (
+          (padre.esActivable ? padre.activo === true : padre.activo !== false) ||
+          (pj.condicionesActivas || []).some((c) => coincideCondicionConRasgo(c, padre)) ||
+          (pj.efectosActivos || []).some((e) => coincideCondicionConRasgo(e.nombre, padre))
         );
         if (!padreActivo) {
           return pj; // Bloqueado: rasgo padre requerido no está activo
@@ -424,8 +402,6 @@ export const crearSubSliceRasgos: StateCreator<
         }
       }
 
-
-      const esFuriaBase = (nomObjetivo === "furia" || idObjetivo === "rasgo_cls_barbaro_furia") && !esFuriaDeLosDioses;
 
       // Sincronización de condición asociada (personalizada o canónica)
       const condicionAsociada = resolverCondicionAsociadaRasgo(targetTrait);
@@ -475,26 +451,14 @@ export const crearSubSliceRasgos: StateCreator<
       // Desactivación en cascada para rasgos hijos si apagamos el rasgo
       const idsHijosADesactivar = new Set<string>();
       if (!nuevoActivo && targetTrait) {
-        const tId = targetTrait.id.toLowerCase();
-        const tNom = targetTrait.nombre.toLowerCase().trim();
-        const esAtaqueTemerarioApagado = tNom.includes("temerario") || tId.includes("temerario") || tNom.includes("reckless") || tId.includes("reckless");
+        const tId = normalizar(targetTrait.id);
+        const tNom = normalizar(targetTrait.nombre);
         for (const r of (pj.rasgos || [])) {
           if (r.activo && r.ligadoA) {
-            const lig = r.ligadoA.toLowerCase().trim();
-            if (
-              lig === tId ||
-              lig === tNom ||
-              (esFuriaBase && lig.includes("furia") && !lig.includes("dioses")) ||
-              (esAtaqueTemerarioApagado && (lig.includes("temerario") || lig.includes("reckless")))
-            ) {
+            const lig = normalizar(r.ligadoA);
+            if (lig === tId || lig === tNom) {
               idsHijosADesactivar.add(r.id);
             }
-          }
-          if (esFuriaBase && (r.id.includes("furia_divina") || r.id.includes("furia_de_los_dioses"))) {
-            idsHijosADesactivar.add(r.id);
-          }
-          if (esAtaqueTemerarioApagado && r.id.includes("golpe_brutal")) {
-            idsHijosADesactivar.add(r.id);
           }
         }
       }
@@ -650,15 +614,12 @@ export const crearSubSliceRasgos: StateCreator<
           const selectoresActualizados = r.selectores.map((s) => {
             if (s.id !== idSelector) return s;
             let maxSel = s.maxSelecciones;
-            if (s.escaladoMaxSelecciones && pj.nivel) {
+            if (s.escaladoMaxSelecciones?.length) {
+              const nivelRasgo = obtenerNivelEfectivoParaRasgo(pj, r);
               const entrada = [...s.escaladoMaxSelecciones]
                 .sort((a, b) => b.nivelMinimo - a.nivelMinimo)
-                .find((e) => (pj.nivel || 1) >= e.nivelMinimo);
+                .find((e) => nivelRasgo >= e.nivelMinimo);
               if (entrada) maxSel = entrada.valor;
-            } else if (s.id.toLowerCase().includes("invocacion") || s.etiqueta.toLowerCase().includes("invocaci")) {
-              const claseBrujo = (pj.clases || []).find((c) => normalizarTextoSeguro(c.nombre).includes("brujo"));
-              const nivelBrujo = claseBrujo?.nivel || pj.nivel || 1;
-              maxSel = obtenerMaxInvocacionesBrujo(nivelBrujo);
             }
             return {
               ...s,

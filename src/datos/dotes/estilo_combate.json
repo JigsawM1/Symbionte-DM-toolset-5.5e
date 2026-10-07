@@ -136,6 +136,7 @@
     "selectores": [
       {
         "id": "selector_trucos_guerrero_bendito",
+        "tipoSelector": "conjuro",
         "tipo": "multiple",
         "etiqueta": "Trucos de Clérigo (Elige 2)",
         "maxSelecciones": 2,
@@ -159,6 +160,7 @@
     "selectores": [
       {
         "id": "selector_trucos_guerrero_druidico",
+        "tipoSelector": "conjuro",
         "tipo": "multiple",
         "etiqueta": "Trucos de Druida (Elige 2)",
         "maxSelecciones": 2,

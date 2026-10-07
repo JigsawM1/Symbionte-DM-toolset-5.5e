@@ -48,6 +48,7 @@
       "selectores": [
         {
           "id": "selector_aptitud_magica_gnomo",
+          "tipoSelector": "general",
           "tipo": "unico",
           "etiqueta": "Aptitud Mágica del Linaje",
           "opciones": [

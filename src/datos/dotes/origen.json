@@ -118,6 +118,7 @@
     "selectores": [
       {
         "id": "selector_truco_1_iniciado_clerigo",
+        "tipoSelector": "conjuro",
         "tipo": "unico",
         "etiqueta": "Primer Truco de Clérigo",
         "maxSelecciones": 1,
@@ -127,6 +128,7 @@
       },
       {
         "id": "selector_truco_2_iniciado_clerigo",
+        "tipoSelector": "conjuro",
         "tipo": "unico",
         "etiqueta": "Segundo Truco de Clérigo",
         "maxSelecciones": 1,
@@ -136,6 +138,7 @@
       },
       {
         "id": "selector_conjuro_nv1_iniciado_clerigo",
+        "tipoSelector": "conjuro",
         "tipo": "unico",
         "visualizacion": "lista",
         "etiqueta": "1 Conjuro de Nivel 1 de Clérigo",
@@ -146,6 +149,7 @@
       },
       {
         "id": "selector_aptitud_iniciado_clerigo",
+        "tipoSelector": "general",
         "tipo": "unico",
         "etiqueta": "Aptitud Mágica",
         "maxSelecciones": 1,
@@ -192,6 +196,7 @@
     "selectores": [
       {
         "id": "selector_truco_1_iniciado_druida",
+        "tipoSelector": "conjuro",
         "tipo": "unico",
         "etiqueta": "Primer Truco de Druida",
         "maxSelecciones": 1,
@@ -201,6 +206,7 @@
       },
       {
         "id": "selector_truco_2_iniciado_druida",
+        "tipoSelector": "conjuro",
         "tipo": "unico",
         "etiqueta": "Segundo Truco de Druida",
         "maxSelecciones": 1,
@@ -210,6 +216,7 @@
       },
       {
         "id": "selector_conjuro_nv1_iniciado_druida",
+        "tipoSelector": "conjuro",
         "tipo": "unico",
         "visualizacion": "lista",
         "etiqueta": "1 Conjuro de Nivel 1 de Druida",
@@ -220,6 +227,7 @@
       },
       {
         "id": "selector_aptitud_iniciado_druida",
+        "tipoSelector": "general",
         "tipo": "unico",
         "etiqueta": "Aptitud Mágica",
         "maxSelecciones": 1,
@@ -266,6 +274,7 @@
     "selectores": [
       {
         "id": "selector_truco_1_iniciado_mago",
+        "tipoSelector": "conjuro",
         "tipo": "unico",
         "etiqueta": "Primer Truco de Mago",
         "maxSelecciones": 1,
@@ -275,6 +284,7 @@
       },
       {
         "id": "selector_truco_2_iniciado_mago",
+        "tipoSelector": "conjuro",
         "tipo": "unico",
         "etiqueta": "Segundo Truco de Mago",
         "maxSelecciones": 1,
@@ -284,6 +294,7 @@
       },
       {
         "id": "selector_conjuro_nv1_iniciado_mago",
+        "tipoSelector": "conjuro",
         "tipo": "unico",
         "visualizacion": "lista",
         "etiqueta": "1 Conjuro de Nivel 1 de Mago",
@@ -294,6 +305,7 @@
       },
       {
         "id": "selector_aptitud_iniciado_mago",
+        "tipoSelector": "general",
         "tipo": "unico",
         "etiqueta": "Aptitud Mágica",
         "maxSelecciones": 1,

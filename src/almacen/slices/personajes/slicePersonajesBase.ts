@@ -5,6 +5,7 @@ import { PERSONAJE_POR_DEFECTO } from "@/constantes";
 import { generarId } from "@/utiles/generarId";
 import { calcularTodosRecursosMagicos, detectarTipoLanzador } from "@/servicios/calculadorMagia";
 import { sincronizarRasgosAutomaticos } from "@/servicios/compendioRasgos";
+import { migrarMetadatosRasgos } from "@/servicios/migradorRasgosHeredados";
 import { calcularBonoHPMaximoRasgos } from "@/servicios/evaluadorEfectosRasgos";
 import { sincronizarConjurosSubclaseHelper } from "@/servicios/sincronizadorConjurosSubclase";
 import { aplicarBuildClaseAPersonaje } from "@/servicios/gestorClases";
@@ -27,6 +28,7 @@ export const crearSubSlicePersonajesBase: StateCreator<
       id: nuevoId,
       nombre: datosIniciales?.nombre || "Nuevo Personaje"
     };
+    nuevoPersonaje.rasgos = migrarMetadatosRasgos(nuevoPersonaje.rasgos || []);
 
     // Auto-detección o cálculo de recursos mágicos al crear personaje
     if (nuevoPersonaje.clasesLanzadoras && nuevoPersonaje.clasesLanzadoras.length > 0) {
@@ -113,6 +115,7 @@ export const crearSubSlicePersonajesBase: StateCreator<
         if (pj.id !== id) return pj;
 
         let fusionado = { ...pj, ...cambios };
+        if (cambios.rasgos) fusionado.rasgos = migrarMetadatosRasgos(cambios.rasgos);
 
         // Si se cambia la clase o subclase y no se pasaron clasesLanzadoras explícitas
         if (

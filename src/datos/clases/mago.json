@@ -232,6 +232,7 @@
       "selectores": [
         {
           "id": "selector_maestria_conjuro_nv1",
+          "visualizacion": "lista",
           "tipo": "unico",
           "tipoSelector": "conjuro",
           "etiqueta": "Conjuro de Maestría Nivel 1 (Gratuito a voluntad)",
@@ -242,6 +243,7 @@
         },
         {
           "id": "selector_maestria_conjuro_nv2",
+          "visualizacion": "lista",
           "tipo": "unico",
           "tipoSelector": "conjuro",
           "etiqueta": "Conjuro de Maestría Nivel 2 (Gratuito a voluntad)",
@@ -271,6 +273,7 @@
       "selectores": [
         {
           "id": "selector_conjuros_predilectos_mago",
+          "visualizacion": "lista",
           "tipo": "multiple",
           "tipoSelector": "conjuro",
           "etiqueta": "Conjuros Predilectos Elegidos (Nivel 3)",

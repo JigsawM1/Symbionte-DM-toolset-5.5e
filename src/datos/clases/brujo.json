@@ -736,6 +736,7 @@
           "selectores": [
             {
               "id": "resiliencia_infernal_tipo",
+              "tipoSelector": "general",
               "tipo": "unico",
               "etiqueta": "Resistencia elegida",
               "opciones": [

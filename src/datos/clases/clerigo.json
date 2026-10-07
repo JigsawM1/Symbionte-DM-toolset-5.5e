@@ -60,6 +60,7 @@
       "selectores": [
         {
           "id": "selector_orden_divina",
+          "tipoSelector": "general",
           "tipo": "unico",
           "etiqueta": "Orden divina",
           "opciones": [
@@ -125,6 +126,7 @@
       "selectores": [
         {
           "id": "selector_truco_taumaturgo",
+          "tipoSelector": "conjuro",
           "tipo": "unico",
           "etiqueta": "Truco adicional de Clérigo (Taumaturgo)",
           "opciones": [
@@ -315,6 +317,7 @@
       "selectores": [
         {
           "id": "selector_golpes_benditos",
+          "tipoSelector": "general",
           "tipo": "unico",
           "etiqueta": "Opción de Golpes benditos",
           "opciones": [
@@ -359,6 +362,7 @@
       "selectores": [
         {
           "id": "selector_tipo_dano_golpe_divino",
+          "tipoSelector": "general",
           "tipo": "unico",
           "etiqueta": "Tipo de daño (Golpe divino)",
           "opciones": [

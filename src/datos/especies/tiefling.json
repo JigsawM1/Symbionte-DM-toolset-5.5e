@@ -26,6 +26,7 @@
       "selectores": [
         {
           "id": "selector_tamano_especie",
+          "tipoSelector": "general",
           "tipo": "unico",
           "etiqueta": "Tamaño",
           "opciones": [
@@ -71,6 +72,7 @@
       "selectores": [
         {
           "id": "selector_aptitud_magica_tiefling",
+          "tipoSelector": "general",
           "tipo": "unico",
           "etiqueta": "Aptitud Mágica del Legado",
           "opciones": [

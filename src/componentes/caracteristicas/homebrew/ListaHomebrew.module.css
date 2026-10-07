@@ -667,3 +667,140 @@
   border-radius: 4px;
 }
 
+.tituloMecanicasObjetoConBotones {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  color: var(--color-texto-principal);
+}
+
+.grupoBotonesTiradasArma {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.botonTirarAtaqueArma {
+  background: rgba(245, 158, 11, 0.18);
+  border: 1px solid rgba(245, 158, 11, 0.6);
+  color: #fcd34d;
+  border-radius: 4px;
+  padding: 3px 8px;
+  font-size: 11px;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.15s ease;
+}
+
+.botonTirarAtaqueArma:hover {
+  background: rgba(245, 158, 11, 0.3);
+  transform: translateY(-1px);
+}
+
+.botonTirarDanoArma {
+  background: rgba(239, 68, 68, 0.2);
+  border: 1px solid rgba(239, 68, 68, 0.55);
+  color: #fca5a5;
+  border-radius: 4px;
+  padding: 2px 7px;
+  font-size: 10px;
+  font-weight: bold;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  margin-left: 6px;
+  transition: all 0.15s ease;
+}
+
+.botonTirarDanoArma:hover {
+  background: rgba(239, 68, 68, 0.35);
+  transform: translateY(-1px);
+}
+
+.botonTirarMecanicaObjeto {
+  background: rgba(0, 245, 212, 0.15);
+  border: 1px solid var(--color-borde-cian);
+  color: var(--color-borde-cian);
+  border-radius: 4px;
+  padding: 3px 8px;
+  font-size: 11px;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.15s ease;
+}
+
+.botonTirarMecanicaObjeto:hover {
+  background: rgba(0, 245, 212, 0.25);
+  transform: translateY(-1px);
+}
+
+.botonTirarRecarga {
+  background: rgba(168, 85, 247, 0.18);
+  border: 1px solid rgba(168, 85, 247, 0.55);
+  color: #e9d5ff;
+  border-radius: 4px;
+  padding: 2px 7px;
+  font-size: 10px;
+  font-weight: bold;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  margin-left: 6px;
+  transition: all 0.15s ease;
+}
+
+.botonTirarRecarga:hover {
+  background: rgba(168, 85, 247, 0.3);
+  transform: translateY(-1px);
+}
+
+.botonTirarHechizoVinculado {
+  background: rgba(168, 85, 247, 0.2);
+  border: 1px solid rgba(168, 85, 247, 0.55);
+  color: #e9d5ff;
+  border-radius: 4px;
+  padding: 2px 8px;
+  font-size: 11px;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.15s ease;
+}
+
+.botonTirarHechizoVinculado:hover {
+  background: rgba(168, 85, 247, 0.35);
+  transform: translateY(-1px);
+}
+
+.enlaceHechizoVinculado {
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+
+.enlaceHechizoVinculado:hover {
+  opacity: 0.85;
+}
+
+.badgeVerFichaHechizo {
+  font-size: 9px;
+  background: rgba(0, 245, 212, 0.12);
+  color: var(--color-borde-cian);
+  padding: 1px 4px;
+  border-radius: 3px;
+  border: 1px solid rgba(0, 245, 212, 0.3);
+}
+
+

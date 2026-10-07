@@ -1,7 +1,7 @@
 {
   "tipo": "talespire_dm_screen_backup",
   "version": "5.5",
-  "fecha": "2026-09-03T02:49:14.480Z",
+  "fecha": "2026-09-22T05:02:24.353Z",
   "monstruos": [
     {
       "id": "m_aarakocra_aeromante",
@@ -8526,11 +8526,11 @@
       "nombre": "Corcel sobrenatural",
       "tipo": "Celestial o Feérico o Infernal (a tu elección)",
       "ca": 10,
-      "caNotas": "",
+      "caNotas": "10 + 1 por nivel del conjuro",
       "vidaMaxima": 5,
       "vidaActual": 5,
-      "vidaNotas": "",
-      "iniciativaBonificador": 0,
+      "vidaNotas": " 5 + 10 por nivel del conjuro",
+      "iniciativaBonificador": 1,
       "velocidad": "60 pies, Volar 60 pies (requiere un conjuro de nivel 4 o superior)",
       "sentidos": "Percepción pasiva 11",
       "tamaño": "Grande",
@@ -8567,7 +8567,7 @@
           "daño": "",
           "uso": "",
           "recarga": "",
-          "descripcion": "Tirada de ataque cuerpo a cuerpo: bonificador igual a tu modificador de ataque de conjuros, alcance 5 pies. Acierto: 1d25 piesás el nivel del conjuro de daño radiante (celestial), psíquico (feérico) o necrótico (infernal)."
+          "descripcion": "Tirada de ataque cuerpo a cuerpo: bonificador igual a tu modificador de ataque de conjuros, alcance 5 pies. Acierto: 1d8 más el nivel del conjuro de daño radiante (celestial), psíquico (feérico) o necrótico (infernal)."
         }
       ],
       "accionesAdicionales": [
@@ -8577,7 +8577,7 @@
           "daño": "",
           "uso": "",
           "recarga": "",
-          "descripcion": "Tirada de salvación de Sabiduría: CD igual a tu CD de salvación de conjuros, una criatura en un radio de 60 pies que la montura pueda ver. Fallo: el objetivo tiene el estado de Asustado hasta el final de tu siguiente turno."
+          "descripcion": "Tirada de salvación de Sabiduría: CD igual a tu CD de salvación de conjuros, una criatura en un radio de 60 pies que la montura pueda ver.\nFallo: el objetivo tiene el estado de Asustado hasta el final de tu siguiente turno."
         },
         {
           "nombre": "Paso feérico (solo feérico; se recarga tras un Descanso largo)",
@@ -8593,7 +8593,7 @@
           "daño": "",
           "uso": "",
           "recarga": "",
-          "descripcion": "Una criatura en un radio de 5 pies del corcel recupera una cantidad de puntos de golpe igual a 2d25 piesás el nivel del conjuro."
+          "descripcion": "Una criatura en un radio de 5 pies del corcel recupera una cantidad de puntos de golpe igual a 2d8 más el nivel del conjuro."
         }
       ],
       "reacciones": [],
@@ -9249,8 +9249,8 @@
         {
           "nombre": "Aguijón",
           "bonificadorAtaque": "+5",
-          "dadosDaño": "1d6+3",
-          "tipoDaño": "perforante"
+          "dadosDaño": "1d6+3 / 2d6",
+          "tipoDaño": "perforante / veneno"
         }
       ],
       "rasgos": [
@@ -9264,7 +9264,7 @@
         {
           "nombre": "Aguijón",
           "bonificadorAtaque": "5",
-          "daño": "1d6+3",
+          "daño": "1d6+3 / 2d6",
           "uso": "",
           "recarga": "",
           "descripcion": "Tirada de ataque cuerpo a cuerpo: +5, alcance 5 pies. Acierto: 6 (1d6 + 3) de daño perforante más 7 (2d6) de daño de veneno."
@@ -10488,7 +10488,7 @@
           "daño": "",
           "uso": "",
           "recarga": "recarga 5–6",
-          "descripcion": "Tirada de salvación de Constitución: CD 20, todas las criaturas en un cono de 60 pies. Fallo: 52 (8d12) de daño necrótico. Éxito: la mitad deldaño."
+          "descripcion": "Tirada de salvación de Constitución: CD 20, todas las criaturas en un cono de 60 pies. \nFallo: 52 (8d12) de daño necrótico. \nÉxito: la mitad deldaño."
         },
         {
           "nombre": "Lanzamiento de conjuros",
@@ -14540,18 +14540,35 @@
       },
       "vulnerabilidades": [],
       "resistencias": [
-        "ver living shadow"
+        "ver Sombra viviente"
       ],
       "inmunidadesDaño": [
         "necrótico"
       ],
       "inmunidadesCondicion": [],
-      "accionesRapidas": [],
+      "accionesRapidas": [
+        {
+          "nombre": "Desgarro",
+          "bonificadorAtaque": "10",
+          "dadosDaño": "2d6+5 / 1d6",
+          "tipoDaño": "Cortante / necrótico"
+        }
+      ],
       "rasgos": [
         {
           "nombre": "Resistencia legendaria",
           "uso": "3/dia, o 4/dia en guarida",
-          "descripcion": "Sombra viviente.\nSensibilidad a la luz solar."
+          "descripcion": "El dragón puede elegir tener éxito en una tirada de salvación que haya fallado."
+        },
+        {
+          "nombre": "Sombra viviente.",
+          "uso": "",
+          "descripcion": "Con luz tenue o en la oscuridad, el dragón tiene resistencia al daño que no sea de fuerza, psíquico o radiante."
+        },
+        {
+          "nombre": "Sensibilidad a la luz solar.",
+          "uso": "",
+          "descripcion": "Bajo la luz del sol, el dragón tiene desventaja en las pruebas de característica y las tiradas de ataque."
         }
       ],
       "acciones": [
@@ -14561,7 +14578,23 @@
           "daño": "",
           "uso": "",
           "recarga": "",
-          "descripcion": "Desgarro.\nAliento de sombras (recarga 5–6)."
+          "descripcion": "El dragón realiza tres ataques de desgarro"
+        },
+        {
+          "nombre": "Desgarro",
+          "bonificadorAtaque": "10",
+          "daño": "2d6+5 / 1d6",
+          "uso": "",
+          "recarga": "",
+          "descripcion": "Tirada de ataque cuerpo a cuerpo: +10, alcance 10 pies. Acierto: 12 (2d6 + 5) de daño cortante más 3 (1d6) de daño necrótico."
+        },
+        {
+          "nombre": "Aliento de sombras",
+          "bonificadorAtaque": "",
+          "daño": "",
+          "uso": "",
+          "recarga": "recarga 5–6",
+          "descripcion": "Tirada de salvación de Destreza: CD 17, todas las criaturas en un cono de 60 pies. Fallo: 35 (10d6) de daño necrótico. Exito: la mitad del daño. Fallo o éxito: si este daño reduce a 0 los puntos de golpe de un humanoide, este morirá y una sombra surgirá de su cadáver. La sombra estará bajo el control del dragón, compartirá su orden de iniciativa y actuará inmediatamente después del dragón."
         }
       ],
       "accionesAdicionales": [
@@ -14571,7 +14604,7 @@
           "daño": "",
           "uso": "",
           "recarga": "",
-          "descripcion": ""
+          "descripcion": "Con luz tenue o en la oscuridad, el dragón realiza la acción de esconderse."
         }
       ],
       "reacciones": [],
@@ -14582,7 +14615,14 @@
           "bonificadorAtaque": "",
           "daño": "",
           "uso": "",
-          "descripcion": "Velo de sombra."
+          "descripcion": "El dragón se mueve hasta la mitad de su velocidad realizará un ataque de desgarro."
+        },
+        {
+          "nombre": "Velo de sombra.",
+          "bonificadorAtaque": "",
+          "daño": "",
+          "uso": "",
+          "descripcion": "El dragón utiliza su acción adicional de esconderse en las sombras y una criatura de su elección que pueda ver a 10 pies o menos sufre 10 (3d6) de daño necrótico. El dragón no puede volver a realizar esta acción hasta el principio de su siguiente turno."
         }
       ],
       "equipo": "",
@@ -14622,18 +14662,30 @@
       },
       "vulnerabilidades": [],
       "resistencias": [
-        "ver living shadow"
+        "ver Sombra viviente"
       ],
       "inmunidadesDaño": [
         "necrótico"
       ],
       "inmunidadesCondicion": [],
-      "accionesRapidas": [],
+      "accionesRapidas": [
+        {
+          "nombre": "Desgarro",
+          "bonificadorAtaque": "5",
+          "dadosDaño": "1d8+3 / 1d6",
+          "tipoDaño": "Cortante / necrótico"
+        }
+      ],
       "rasgos": [
         {
           "nombre": "Sombra viviente",
           "uso": "",
-          "descripcion": "Sensibilidad a la luz solar."
+          "descripcion": "Con luz tenue o en la oscuridad, el dragón tiene resistencia al daño que no sea de fuerza, psíquico o radiante."
+        },
+        {
+          "nombre": "Sensibilidad a la luz solar.",
+          "uso": "",
+          "descripcion": "Bajo la luz del sol, el dragón tiene desventaja en las pruebas de característica y las tiradas de ataque.\n"
         }
       ],
       "acciones": [
@@ -14643,7 +14695,23 @@
           "daño": "",
           "uso": "",
           "recarga": "",
-          "descripcion": "Desgarro.\nAliento de sombras (recarga 5–6)."
+          "descripcion": "El dragón realiza dos ataques de desgarro"
+        },
+        {
+          "nombre": "Desgarro",
+          "bonificadorAtaque": "5",
+          "daño": "1d8+3 / 1d6",
+          "uso": "",
+          "recarga": "",
+          "descripcion": "Tirada de ataque cuerpo a cuerpo: +5, alcance 10 pies. Acierto: 7 (1d8 + 3) de daño cortante más 3 (1d6) de daño necrótico."
+        },
+        {
+          "nombre": "Aliento de sombras.",
+          "bonificadorAtaque": "",
+          "daño": "",
+          "uso": "",
+          "recarga": "recarga 5–6",
+          "descripcion": "Tirada de salvación de Destreza: CD 13, todas las criaturas en un cono de 30 pies.\nFallo: 17 (5d6) de daño necrótico. \nExito: la mitad del daño. \nFallo o éxito: si este daño reduce a 0 los puntos de golpe de un humanoide,este morirá y una sombra surgirá de su cadáver.\nLa sombra estará bajo el control del dragón, compartirá su orden de iniciativa y actuará inmediatamente después del dragón."
         }
       ],
       "accionesAdicionales": [
@@ -14653,7 +14721,7 @@
           "daño": "",
           "uso": "",
           "recarga": "",
-          "descripcion": ""
+          "descripcion": "Con luz tenue o en la oscuridad, el dragón realiza la acción de esconderse."
         }
       ],
       "reacciones": [],
@@ -15522,7 +15590,12 @@
         {
           "nombre": "Linaje feérico",
           "uso": "",
-          "descripcion": "Sensibilidad a la luz solar."
+          "descripcion": ""
+        },
+        {
+          "nombre": "Sensibilidad a la luz solar.",
+          "uso": "",
+          "descripcion": ""
         }
       ],
       "acciones": [
@@ -15532,7 +15605,23 @@
           "daño": "",
           "uso": "",
           "recarga": "",
-          "descripcion": "Ballesta de mano drow.\nLanzamiento de conjuros."
+          "descripcion": ""
+        },
+        {
+          "nombre": "Ballesta de mano drow",
+          "bonificadorAtaque": "",
+          "daño": "",
+          "uso": "",
+          "recarga": "",
+          "descripcion": ""
+        },
+        {
+          "nombre": "Lanzamiento de conjuros",
+          "bonificadorAtaque": "",
+          "daño": "",
+          "uso": "",
+          "recarga": "",
+          "descripcion": ""
         }
       ],
       "accionesAdicionales": [],
@@ -16537,12 +16626,30 @@
         "radiante"
       ],
       "inmunidadesCondicion": [],
-      "accionesRapidas": [],
+      "accionesRapidas": [
+        {
+          "nombre": "Arma sagrada",
+          "bonificadorAtaque": "17",
+          "dadosDaño": "6d6+10",
+          "tipoDaño": "Fuerza"
+        },
+        {
+          "nombre": "Rayo divino",
+          "bonificadorAtaque": "15",
+          "dadosDaño": "6d6+8",
+          "tipoDaño": "Radiante o necrótico"
+        }
+      ],
       "rasgos": [
         {
           "nombre": "Resistencia legendaria",
           "uso": "4/dia",
-          "descripcion": "Resistencia mágica."
+          "descripcion": "El empíreo puede elegir tener éxito en una tirada de salvación que haya fallado."
+        },
+        {
+          "nombre": "Resistencia mágica",
+          "uso": "",
+          "descripcion": "El empíreo tiene ventaja en las tiradas de salvación contra conjuros y otros efectos mágicos."
         }
       ],
       "acciones": [
@@ -16552,13 +16659,59 @@
           "daño": "",
           "uso": "",
           "recarga": "",
-          "descripcion": "Arma sagrada.\nLanzamiento de conjuros.\nUsos de acciones legendarias: 3.\nCastigo.\nLevantar la moral.\nOnda de choque gloriosa.\nUsos de acciones legendarias: 3."
+          "descripcion": "El empíreo realiza dos ataques con su arma sagrada o su rayo divino en cualquier combinación."
+        },
+        {
+          "nombre": "Arma sagrada",
+          "bonificadorAtaque": "17",
+          "daño": "6d6+10",
+          "uso": "",
+          "recarga": "",
+          "descripcion": "Tirada de ataque cuerpo a cuerpo: +17, alcance 10 pies. Acierto: 31 (6d6+ 10) de daño de fuerza y el objetivo tendrá el estado de aturdido hasta el principio del siguiente turno del empíreo. El objetivo puede elegir no quedar aturdido, en cuyo caso sufrirá 21 de daño de fuerza adicional que ignora las resistencias e inmunidades."
+        },
+        {
+          "nombre": "Rayo divino",
+          "bonificadorAtaque": "15",
+          "daño": "6d6+8",
+          "uso": "",
+          "recarga": "",
+          "descripcion": "Tirada de ataquea distancia: +15, alcance 600 pies.\nAcierto: 35 (6d8 +8) de daño necrótico o radiante (a elección del empíreo)."
+        },
+        {
+          "nombre": "Lanzamiento de conjuros",
+          "bonificadorAtaque": "",
+          "daño": "",
+          "uso": "",
+          "recarga": "",
+          "descripcion": "El empíreo lanza uno de los siguientes conjuros, que no requiere componentes materiales y utiliza el Carisma como aptitud mágica (CD de salvación de conjuros 23): \nA voluntad: calmar emociones, pasar sin rastro, respirar bajo el agua, restablecimiento mayor\n1/día cada uno: comunión, desplazamiento entre planos, disipar el bien y el mal"
         }
       ],
       "accionesAdicionales": [],
       "reacciones": [],
       "accionesLegendariasTotal": "3",
-      "accionesLegendarias": [],
+      "accionesLegendarias": [
+        {
+          "nombre": "Castigo",
+          "bonificadorAtaque": "",
+          "daño": "",
+          "uso": "",
+          "descripcion": "El empíreo realiza un ataque con su rayo divino"
+        },
+        {
+          "nombre": "Levantar la moral",
+          "bonificadorAtaque": "",
+          "daño": "",
+          "uso": "",
+          "descripcion": "El empíreo obtiene 10 puntos de golpe temporales. Él y todos sus aliados a 30 pies o menos obtienen ventaja en las pruebas con d20 hasta el final del siguiente turno del empíreo.\nEl empíreo no puede volver a realizar esta acción hasta el principio de su siguiente turno."
+        },
+        {
+          "nombre": "Onda de choque gloriosa",
+          "bonificadorAtaque": "",
+          "daño": "",
+          "uso": "",
+          "descripcion": "Tirada de salvación de Constitución: CD 23, todas las criaturas en una emanación de 30 pies que se origina en el empíreo. \nFallo: 27 (6d8) de daño de fuerza y el objetivo tiene el estado de derribado. Éxito: solo la mitad del daño. \nFallo o éxito: el empíreo no puede volver a realizar esta acción hasta el principio de su siguiente turno."
+        }
+      ],
       "equipo": "",
       "tesoros": "reliquias"
     },
@@ -16603,22 +16756,42 @@
       "inmunidadesCondicion": [
         "derribado"
       ],
-      "accionesRapidas": [],
+      "accionesRapidas": [
+        {
+          "nombre": "Impacto sobrenatural",
+          "bonificadorAtaque": "5",
+          "dadosDaño": "1d8+3",
+          "tipoDaño": "Radiante o necrótico"
+        }
+      ],
       "rasgos": [
         {
           "nombre": "Movimiento incorpóreo",
           "uso": "",
-          "descripcion": "Resistencia mágica."
+          "descripcion": "El empíreo puede moverse a través de otras criaturas y objetos como sifueran terreno difícil. Recibe 5 (1d10) de daño de fuerza si acaba su turno dentro de un objeto."
+        },
+        {
+          "nombre": "Resistencia mágica.",
+          "uso": "",
+          "descripcion": "El empíreo tiene ventaja en las tiradas de salvación contra conjuros y otros efectos mágicos."
         }
       ],
       "acciones": [
         {
           "nombre": "Impacto sobrenatural",
+          "bonificadorAtaque": "5",
+          "daño": "1d8+3",
+          "uso": "",
+          "recarga": "",
+          "descripcion": "Tirada de ataque cuerpo a cuerpo a distancia: +5, alcance 5 pies o 30 pies a distancia.\nAcierto: 7 (1d8 +3) de daño necrótico o radiante (a elección del empíreo)."
+        },
+        {
+          "nombre": "Lanzamiento de conjuros",
           "bonificadorAtaque": "",
           "daño": "",
           "uso": "",
           "recarga": "",
-          "descripcion": "Lanzamiento de conjuros."
+          "descripcion": "El empíreo lanza uno de los siguientes conjuros, que no requiere componentes materiales y utliza la Sabiduría como aptitud mágica: \n1/día cada uno: bendición, restablecimiento menor (como acción)"
         }
       ],
       "accionesAdicionales": [
@@ -16628,7 +16801,7 @@
           "daño": "",
           "uso": "1/dia",
           "recarga": "",
-          "descripcion": ""
+          "descripcion": "El empíreo lanza palabra de curación usando la misma aptitud mágica que para su lanzamiento de conjuros."
         }
       ],
       "reacciones": [],
@@ -16894,12 +17067,24 @@
         "apresado",
         "aturdido"
       ],
-      "accionesRapidas": [],
+      "accionesRapidas": [
+        {
+          "nombre": "Desgarro",
+          "bonificadorAtaque": "4",
+          "dadosDaño": "3d6+2",
+          "tipoDaño": "Cortante"
+        }
+      ],
       "rasgos": [
         {
           "nombre": "Auras fétida",
           "uso": "",
-          "descripcion": "Enjambre."
+          "descripcion": "Tirada de salvación de Constitución: CD 12,\ncualquier criatura que empiece su turno en una emanación de 10 pies que se originaen el enjambre. \nFallo: el objetivo tendrá el estado de envenenado hasta el principio de su siguiente turno. Mientras esté envenenado, el objetivo podrá realizar una acción o una acción adicional en su turno, pero no ambas, y no podrá llevar a cabo reacciones."
+        },
+        {
+          "nombre": "Enjambre",
+          "uso": "",
+          "descripcion": "El enjambre puede ocupar el espacio de otra criatura y viceversa, y es capaz de atravesar cualquier abertura por la que quepa una criatura Pequeña. El enjambre no puede recuperar puntos de golpe ni obtener puntos de golpe temporales."
         }
       ],
       "acciones": [
@@ -16909,7 +17094,15 @@
           "daño": "",
           "uso": "",
           "recarga": "",
-          "descripcion": "Desgarro."
+          "descripcion": "El enjambre realiza dos ataques de desgarro."
+        },
+        {
+          "nombre": "Desgarro",
+          "bonificadorAtaque": "4",
+          "daño": "3d6+2",
+          "uso": "",
+          "recarga": "",
+          "descripcion": "Tirada de ataque cuerpo a cuerpo: +4, alcance 5 pies. Acierto: 12 (3d6 + 2) de daño cortante o 9 (3d4 + 2) de daño cortante si el enjambre está maltrecho."
         }
       ],
       "accionesAdicionales": [],
@@ -16963,22 +17156,29 @@
         "apresado",
         "aturdido"
       ],
-      "accionesRapidas": [],
+      "accionesRapidas": [
+        {
+          "nombre": "Multitud de probóscides",
+          "bonificadorAtaque": "5",
+          "dadosDaño": "2d10+3",
+          "tipoDaño": ""
+        }
+      ],
       "rasgos": [
         {
           "nombre": "Enjambre",
           "uso": "",
-          "descripcion": ""
+          "descripcion": "El enjambre puede ocupar el espacio de otra criatura y viceversa, y es capaz de atravesar cualquier abertura por la que quepa una criatura Diminuta. El enjambre no puede recuperar puntos de golpe ni obtener puntos de golpe temporales."
         }
       ],
       "acciones": [
         {
           "nombre": "Multitud de probóscides",
-          "bonificadorAtaque": "",
-          "daño": "",
+          "bonificadorAtaque": "5",
+          "daño": "2d10+3",
           "uso": "",
           "recarga": "",
-          "descripcion": ""
+          "descripcion": "Tirada de ataque cuerpo a cuerpo: +5, alcance 5 pies. Acierto: 14 (2d10 + 3) de daño perforante u8 (1d10 +3) de daño perforante si el enjambre está maltrecho. Si el objetivo es una criatura Mediana o más pequeña en el espacio del enjambre, tendrá el estado de agarrada (CD 13 para escapar). Hasta que el agarre termine, el objetivo sufrirá 7 (2d6) de daño necrótico al final de cada\nuno de sus turnos."
         }
       ],
       "accionesAdicionales": [],
@@ -17195,22 +17395,29 @@
         "apresado",
         "aturdido"
       ],
-      "accionesRapidas": [],
+      "accionesRapidas": [
+        {
+          "nombre": "Mordiscos",
+          "bonificadorAtaque": "4",
+          "dadosDaño": "2d6+2",
+          "tipoDaño": "Necrótico"
+        }
+      ],
       "rasgos": [
         {
           "nombre": "Enjambre",
           "uso": "",
-          "descripcion": ""
+          "descripcion": "El enjambre puede ocupar el espacio de otra criatura y viceversa, y es capaz de atravesar cualquier abertura por la que quepa una criatura Mediana. El enjambre no puede recuperar puntos de golpe ni obtener puntos de golpe temporales."
         }
       ],
       "acciones": [
         {
           "nombre": "Mordiscos",
-          "bonificadorAtaque": "",
-          "daño": "",
+          "bonificadorAtaque": "4",
+          "daño": "2d6+2",
           "uso": "",
           "recarga": "",
-          "descripcion": ""
+          "descripcion": "Tirada de ataque cuerpo a cuerpo: +4, alcance 5 pies. Acierto: 9 (2d6 + 2) de daño necrótico o 7 (2d4 + 2) de daño necrótico si el enjambre está maltrecho"
         }
       ],
       "accionesAdicionales": [],
@@ -17274,7 +17481,12 @@
         {
           "nombre": "Recuperación en los infiernos",
           "uso": "",
-          "descripcion": "Enjambre."
+          "descripcion": "Si el enjambre muere en los Nueve Infiernos, revive con todos sus puntos de golpe al cabo de 1d10 días salvo si lo mata una criatura bajo los efectos de un conjuro bendición o si se rocían sus restos con agua bendita."
+        },
+        {
+          "nombre": "Enjambre",
+          "uso": "",
+          "descripcion": "El enjambre puede ocupar el espacio de otra criatura y viceversa, y es capaz de atravesar cualquier aber tura por la que quepa una criatura Mediana. El enjambre no puede recuperar puntos de golpe ni obtener puntos de golpe temporales."
         }
       ],
       "acciones": [
@@ -17284,7 +17496,15 @@
           "daño": "",
           "uso": "",
           "recarga": "",
-          "descripcion": "Baba repulsiva."
+          "descripcion": "El enjambre realiza dos ataques con su baba repulsiva."
+        },
+        {
+          "nombre": "Baba repulsiva",
+          "bonificadorAtaque": "",
+          "daño": "",
+          "uso": "",
+          "recarga": "",
+          "descripcion": "Tirada de ataque cuerpo a cuerpo: +4, alcance 5 pies. Acierto: 11 (2d8 + 2) de daño de veneno o 9 (2d6 + 2) de daño de veneno si el enjambre está maltrecho."
         }
       ],
       "accionesAdicionales": [],
@@ -18202,12 +18422,24 @@
         "hechizado",
         "asustado"
       ],
-      "accionesRapidas": [],
+      "accionesRapidas": [
+        {
+          "nombre": "Garra",
+          "bonificadorAtaque": "7",
+          "dadosDaño": "2d8+4 / 2d6",
+          "tipoDaño": "Cortante / radiante"
+        }
+      ],
       "rasgos": [
         {
           "nombre": "Inescrutable",
           "uso": "",
-          "descripcion": "Resistencia mágica."
+          "descripcion": "La magia no puede observar desde lejos a la esfinge ni detectar sus pensamientos sin su permiso. Las pruebas de Sabiduría (Perspicacia) realizadas para determinar sus intenciones tienen desventaja."
+        },
+        {
+          "nombre": "Resistencia mágica",
+          "uso": "",
+          "descripcion": "La esfinge tiene ventaja en las tiradas de salvación contra conjuros y otros efectos mágicos."
         }
       ],
       "acciones": [
@@ -18217,7 +18449,31 @@
           "daño": "",
           "uso": "",
           "recarga": "",
-          "descripcion": "Garra.\nMaldición del acertijo.\nLanzamiento de conjuros."
+          "descripcion": "La esfinge realiza tres ataques con sus garras. Puede sustituir un ataque por un uso de su maldición del acertijo."
+        },
+        {
+          "nombre": "Garra",
+          "bonificadorAtaque": "7",
+          "daño": "2d8+4 / 2d6",
+          "uso": "",
+          "recarga": "",
+          "descripcion": "Tirada de ataque cuerpo a cuerpo: +7, alcance 5 pies.\nAcierto: 13 (2d8 + 4) de daño cortante más 7 (2d6) de daño radiante."
+        },
+        {
+          "nombre": "Maldición del acertijo",
+          "bonificadorAtaque": "",
+          "daño": "",
+          "uso": "",
+          "recarga": "",
+          "descripcion": "Tirada de salvación de Inteligencia: CD 15, una criatura que la esfinge pueda ver a 60 pies o menos. Fallo: 21 (6d6) de daño psíquico y el objetivo estará maldito con un acertijo. El objetivo maldito tendrá desventaja en las pruebas de característica y las tiradas de ataque. Además, si emplea la acción de magia, deberá superar una tirada de salvación de Inteligencia con CD 15 o la acción se desperdiciará. El objetivo maldito puede emplear una acción de estudiar para hacer una prueba de Inteligencia con CD 15; si tiene éxito, resolverá el acertijo y pondrá fin a la maldición.\nLa maldición termina antes de tiempo si la esfinge maldice a otro objetivo."
+        },
+        {
+          "nombre": "Lanzamiento de conjuros",
+          "bonificadorAtaque": "",
+          "daño": "",
+          "uso": "",
+          "recarga": "",
+          "descripcion": "La esfinge lanza uno de los siguientes conjuros, que no requiere componentes materiales y utiliza la Inteligencia como aptitud mágica (CD de salvación de conjuros 15): \nA voluntad: detectar magia, identificar, prestidigitación 1/día cada uno: levantar maldición, localizar objeto"
         }
       ],
       "accionesAdicionales": [],
@@ -18608,16 +18864,31 @@
         "envenenado",
         "inconsciente"
       ],
-      "accionesRapidas": [],
+      "accionesRapidas": [
+        {
+          "nombre": "Garra temible",
+          "bonificadorAtaque": "3",
+          "dadosDaño": "2d4+1",
+          "tipoDaño": "Cortante"
+        }
+      ],
       "rasgos": [],
       "acciones": [
         {
           "nombre": "Garra temible",
+          "bonificadorAtaque": "3",
+          "daño": "2d4+1",
+          "uso": "",
+          "recarga": "",
+          "descripcion": "Tirada de ataque cuerpo a cuerpo: +3, alcance 5 pies. Acierto: 6 (2d4 + 1) de daño cortante y el objetivo tendrá el estado de asustado hasta el final del siguiente turno del espantapájaros."
+        },
+        {
+          "nombre": "Mirada pavorosa",
           "bonificadorAtaque": "",
           "daño": "",
           "uso": "",
           "recarga": "",
-          "descripcion": "Mirada pavorosa."
+          "descripcion": "Tirada de salvación de Sabiduría: CD 11, una criatura que el espantapájaros pueda ver a 30 pies o menos. Fallo: el objetivo tendrá el estado de asustado hasta el final del siguiente turno del espantapájaros. Mientras esté asustado, tendrá el estado de paralizado."
         }
       ],
       "accionesAdicionales": [],
@@ -18663,7 +18934,14 @@
         "cansancio",
         "derribado"
       ],
-      "accionesRapidas": [],
+      "accionesRapidas": [
+        {
+          "nombre": "Mordisco",
+          "bonificadorAtaque": "4",
+          "dadosDaño": "1d6+2",
+          "tipoDaño": "Perforante"
+        }
+      ],
       "rasgos": [],
       "acciones": [
         {
@@ -18672,7 +18950,23 @@
           "daño": "",
           "uso": "",
           "recarga": "",
-          "descripcion": "Mordisco.\nRayos oculares."
+          "descripcion": "El espectador utiliza sus rayos oculares dos veces."
+        },
+        {
+          "nombre": "Mordisco",
+          "bonificadorAtaque": "4",
+          "daño": "1d6+2",
+          "uso": "",
+          "recarga": "",
+          "descripcion": "Tirada de ataque cuerpo a cuerpo: +4, alcance 5 pies. Acierto: 5 (1d6 + 2) de daño perforante."
+        },
+        {
+          "nombre": "Rayos oculares",
+          "bonificadorAtaque": "",
+          "daño": "",
+          "uso": "",
+          "recarga": "",
+          "descripcion": "El espectador dispara al azar uno de los siguientes rayos mágicos contra un objetivo que pueda ver a 90 pies o menos de él (tira 1d4; repite la tirada si el espectador ya ha usado ese rayo este turno):\n\n1: Rayo de confusión. Tirada de salvación de Sabiduría: CD 12. Fallo: 5 (2d4) de daño psíquico y el objetivo no podrá llevar a cabo reacciones hasta el final de su siguiente turno. Durante su siguiente turno, el objetivo no podrá moverse\ny usará su acción para realizar un ataque cuerpo a cuerpo o a distancia contra una criatura al azar que esté dentro del alcance. Si el objetivo no puede atacar, no hará nada durante ese turno.\n\n2: Rayo paralizador. Tirada de salvación de Constitución: CD 12.\nFallo: el objetivo tendrá el estado de paralizado y repetirá la tirada de salvación al final de cada uno de sus turnos.\nSi tiene éxito, se librará del efecto. Tras 1 minuto, tendrá éxito automáticamente.\n\n3: Rayo aterrador. Tirada de salvación de Sabiduría: CD 12.\nFallo: 5 (2d4) de daño psíquico y el objetivo tendrá el estado de asustado hasta el final de su siguiente turno.\n\n4: Rayo hiriente. Tirada de salvación de Constitución: CD 12. Fallo: 16 (3d10) de daño necrótico. Exito: la mitad del daño"
         }
       ],
       "accionesAdicionales": [],
@@ -18681,7 +18975,7 @@
           "nombre": "Reflejar conjuro",
           "uso": "",
           "recarga": "",
-          "descripcion": ""
+          "descripcion": "Detonante: el espectador supera una tirada de salvación contra un conjuro, o la tirada de ataque de un conjuro no le acierta. Respuesta; tirada de salvación de Destreza: CD 12, una criatura que el espectador pueda ver a 120 pies o menos. Fallo: 10 (3d6) de daño de fuerza."
         }
       ],
       "accionesLegendariasTotal": "0",
@@ -18979,10 +19273,10 @@
       "nombre": "Espíritu aberrante",
       "tipo": "Aberración",
       "ca": 11,
-      "caNotas": "",
+      "caNotas": "11 + nivel de conjuro ",
       "vidaMaxima": 40,
       "vidaActual": 40,
-      "vidaNotas": "",
+      "vidaNotas": "40 + 10 por cada nivel de conjuro superior",
       "iniciativaBonificador": 0,
       "velocidad": "30 pies, Volar 30 pies (suspenderse; solo contemplador)",
       "sentidos": "Visión en la oscuridad 60 pies, Percepción pasiva 10",
@@ -19012,7 +19306,12 @@
         {
           "nombre": "Regeneración (solo slaad)",
           "uso": "",
-          "descripcion": "Aura susurrante (solo azotamentes)."
+          "descripcion": "El espíritu recupera 5 puntos de golpe al principio de su turno si tiene al menos 1."
+        },
+        {
+          "nombre": "Aura susurrante (solo azotamentes).",
+          "uso": "",
+          "descripcion": "Al comienzo de todos los turnos del espíritu, este emite energía psiónica si no tiene el estado de incapacitado. \n\nTirada de salvación de Sabiduría: CD igual a tu CD de salvación de conjuros, todas las criaturas (excepto tú) a 5 pies o menos del espíritu. Fallo: 2d6 de daño psíquico."
         }
       ],
       "acciones": [
@@ -19022,7 +19321,31 @@
           "daño": "",
           "uso": "",
           "recarga": "",
-          "descripcion": "Garras (solo slaad).\nRayo ocular (solo contemplador).\nGolpe psíquico (solo azotamentes)."
+          "descripcion": "El espíritu realiza una cantidad de ataques igual a la mitad del nivel de este conjuro (redondeado hacia abajo)."
+        },
+        {
+          "nombre": "Garras (solo slaad).",
+          "bonificadorAtaque": "",
+          "daño": "",
+          "uso": "",
+          "recarga": "",
+          "descripcion": "Tirada de ataque cuerpo a cuerpo: bonificador igual a tu modificador de ataque de conjuros, alcance 5 pies. Acierto: 1d10 + 3 + el nivel del conjuro de daño cortante y el objetivo no podrá recuperar puntos de golpe hasta el principio del siguiente turno del espíritu"
+        },
+        {
+          "nombre": "Rayo ocular (solo contemplador).",
+          "bonificadorAtaque": "",
+          "daño": "",
+          "uso": "",
+          "recarga": "",
+          "descripcion": "Tirada de ataque a distancia bonificador igual a tu modificador de ataque de conjuros  alcance 150 pies. Acierto: 1d8 + 3 + el nivel del conjuro de daño psíquico "
+        },
+        {
+          "nombre": "Golpe psíquico (solo azotamentes).",
+          "bonificadorAtaque": "",
+          "daño": "",
+          "uso": "",
+          "recarga": "",
+          "descripcion": "Tirada de ataque cuerpo a cuerpo: bonificador igual a tu modificador de ataque de conjuros, alcance 4 pies. Acierto: 1d8 + 3 + el nivel del conjuro de daño psíquico."
         }
       ],
       "accionesAdicionales": [],
@@ -19037,10 +19360,10 @@
       "nombre": "Espíritu autómata",
       "tipo": "Autómata",
       "ca": 13,
-      "caNotas": "",
+      "caNotas": "13 + nivel de conjuro",
       "vidaMaxima": 40,
       "vidaActual": 40,
-      "vidaNotas": "",
+      "vidaNotas": "40 + 15 por nivel de conjuro superior",
       "iniciativaBonificador": 0,
       "velocidad": "30 pies",
       "sentidos": "Visión en la oscuridad 60 pies, Percepción pasiva 10",
@@ -19076,7 +19399,12 @@
         {
           "nombre": "Cuerpo abrasador (solo metal)",
           "uso": "",
-          "descripcion": "Letargo pétreo (solo piedra)."
+          "descripcion": "Una criatura que acierte al espíritu con un ataque cuerpo a cuerpo o empiece su turno en un agarre con el espíritu sufre 1d10 de daño de fuego"
+        },
+        {
+          "nombre": "Letargo pétreo (solo piedra).",
+          "uso": "",
+          "descripcion": "Cuando una criatura empieza su turno a 10 pies o menos del espíritu, este puede hacerla objetivo con energía mágica si puede verla. Tirada de salvación de Sabiduría: CD igual a tu CD de salvación de conjuros, el objetivo. Fallo: hasta el principio de su siguiente turno, el objetivo no puede realizar ataques de oportunidad y su velocidad se reduce a la mitad."
         }
       ],
       "acciones": [
@@ -19086,7 +19414,15 @@
           "daño": "",
           "uso": "",
           "recarga": "",
-          "descripcion": "Golpe."
+          "descripcion": "El espíritu realiza una cantidad de ataques con su golpe igual a la mitad del nivel de este conjuro (redondeado hacia abajo)."
+        },
+        {
+          "nombre": "Golpe",
+          "bonificadorAtaque": "",
+          "daño": "",
+          "uso": "",
+          "recarga": "",
+          "descripcion": "Tirada de ataque cuerpo a cuerpo: bonificador igual a tu modificador de ataque de conjuros, alcance 5 pies. Acierto: 1d8 + 4 + el nivel del conjuro de daño contundente."
         }
       ],
       "accionesAdicionales": [],
@@ -19095,7 +19431,7 @@
           "nombre": "Azote berserk (solo arcilla)",
           "uso": "",
           "recarga": "",
-          "descripcion": ""
+          "descripcion": "Detonante: el espíritu recibe daño de una criatura. Respuesta: el espíritu realiza un ataque con su golpe contra esa criatura si es posible o se mueve hasta la mitad de su velocidad hacia esa criatura sin provocar ataques de oportunidad."
         }
       ],
       "accionesLegendariasTotal": "0",
@@ -19108,10 +19444,10 @@
       "nombre": "Espíritu bestial",
       "tipo": "Bestia",
       "ca": 11,
-      "caNotas": "",
+      "caNotas": "11 + el nivel de conjuro",
       "vidaMaxima": 20,
       "vidaActual": 20,
-      "vidaNotas": "solo aire",
+      "vidaNotas": "20 (solo aire) o 30 (solo mar y tierra) + 5 por cada nivel del conjuro superior al 2",
       "iniciativaBonificador": 0,
       "velocidad": "30 pies, Trepar 30 pies (solo tierra); Volar 60 pies (solo aire); Nadar 30 pies (solo mar)",
       "sentidos": "Visión en la oscuridad 60 pies, Percepción pasiva 12",
@@ -19139,7 +19475,17 @@
         {
           "nombre": "Pasar volando (solo aire)",
           "uso": "",
-          "descripcion": "Atacar en manada (solo mar y tierra).\nRespirar en el agua (solo mar)."
+          "descripcion": "El espíritu no provoca ataques de oportunidad cuando vuela para ponerse fuera del alcance de un enemigo."
+        },
+        {
+          "nombre": "Atacar en manada (solo mar y tierra).",
+          "uso": "",
+          "descripcion": "El espíritu tiene ventaja en una tirada de ataque contra una criatura si al menos uno de los aliados del espíritu se encuentra a 5 pies o menos de la criatura y no tiene el estado de incapacitado."
+        },
+        {
+          "nombre": "Respirar en el agua (solo mar).",
+          "uso": "",
+          "descripcion": "El espíritu solo puede respirar bajo el agua"
         }
       ],
       "acciones": [
@@ -19149,7 +19495,15 @@
           "daño": "",
           "uso": "",
           "recarga": "",
-          "descripcion": "Desgarro."
+          "descripcion": "El espíritu realiza una cantidad de ataques de desgarro igual a la mitad del nivel de este conjuro (redondeado hacia abajo)."
+        },
+        {
+          "nombre": "Desgarro",
+          "bonificadorAtaque": "",
+          "daño": "",
+          "uso": "",
+          "recarga": "",
+          "descripcion": "Tirada de ataque cuerpo a cuerpo: bonificador igual a tu modificador de ataque de conjuros, alcance 5 pies Acierto: 1d8 + 4 + el nivel del conjuro de daño perforante."
         }
       ],
       "accionesAdicionales": [],
@@ -19164,10 +19518,10 @@
       "nombre": "Espíritu celestial",
       "tipo": "Celestial",
       "ca": 11,
-      "caNotas": "",
+      "caNotas": "11 + nivel de conjuro + 2 (solo defensor)",
       "vidaMaxima": 40,
       "vidaActual": 40,
-      "vidaNotas": "",
+      "vidaNotas": "40 + 10 por cada nivel de conjuro superior",
       "iniciativaBonificador": 0,
       "velocidad": "30 pies, Volar 40 pies",
       "sentidos": "Visión en la oscuridad 60 pies, Percepción pasiva 12",
@@ -19204,7 +19558,31 @@
           "daño": "",
           "uso": "",
           "recarga": "",
-          "descripcion": "Arco radiante (solo vengador).\nMaza radiante (solo defensor). Toque sanador (\n1/día)."
+          "descripcion": "El espíritu realiza una cantidad de ataques igual a la mitad del nivel de este conjuro (redondeado hacia abajo)"
+        },
+        {
+          "nombre": "Arco radiante (solo vengador)",
+          "bonificadorAtaque": "",
+          "daño": "",
+          "uso": "",
+          "recarga": "",
+          "descripcion": "Tirada de ataque a distancia: bonificador igual a tu modificador de ataque de conjuros, alcance 600 pies. Acierto: 2d6 + 2 + el nivel del conjuro de daño radiante."
+        },
+        {
+          "nombre": "Maza radiante (solo defensor)",
+          "bonificadorAtaque": "",
+          "daño": "",
+          "uso": "",
+          "recarga": "",
+          "descripcion": "Tirada de ataque cuerpo La cuerpo: bonificador igual a tu modificador de ataque de\nconjuros, alcance 5 pies. Acierto: 1d10 + 3 + el nivel del conjuro de daño radiante, y el espíritu puede elegirse así mismo o a otra criatura que pueda ver a 10 pies o menos del objetivo. La criatura elegida gana 1d10 puntos de golpe temporales."
+        },
+        {
+          "nombre": "Toque sanador",
+          "bonificadorAtaque": "",
+          "daño": "",
+          "uso": "1/día",
+          "recarga": "",
+          "descripcion": "El espíritu toca a otra criatura. El objetivo recupera una cantidad de puntos de golpe igual a 2d8 + el nivel del conjuro."
         }
       ],
       "accionesAdicionales": [],
@@ -19219,10 +19597,10 @@
       "nombre": "Espíritu dracónico",
       "tipo": "Dragón",
       "ca": 14,
-      "caNotas": "",
+      "caNotas": "14 + nivel de conjuro",
       "vidaMaxima": 50,
       "vidaActual": 50,
-      "vidaNotas": "",
+      "vidaNotas": "50 + 10 por cada nivel superior",
       "iniciativaBonificador": 0,
       "velocidad": "30 pies, Volar 60 pies, Nadar 30 pies",
       "sentidos": "Visión ciega 30 pies, visión en la oscuridad 60 pies, Percepción pasiva 12",
@@ -19301,10 +19679,10 @@
       "nombre": "Espíritu elemental",
       "tipo": "Elemental",
       "ca": 11,
-      "caNotas": "",
+      "caNotas": "11 + nivel de conjuro",
       "vidaMaxima": 50,
       "vidaActual": 50,
-      "vidaNotas": "",
+      "vidaNotas": "50 + 10 por cada nivel superior",
       "iniciativaBonificador": 0,
       "velocidad": "40 pies, Excavar 40 pies (solo tierra); Volar 40 pies (suspenderse; solo aire); Nadar 40 pies (solo agua)",
       "sentidos": "Visión en la oscuridad 60 pies, Percepción pasiva 10",
@@ -19344,7 +19722,7 @@
         {
           "nombre": "Forma amorfa (solo aire, fuego y agua)",
           "uso": "",
-          "descripcion": ""
+          "descripcion": "El espíritu puede moverse a través de un espacio de solo 2,5 cm de ancho sin que cuente como terreno difícil"
         }
       ],
       "acciones": [
@@ -19354,7 +19732,15 @@
           "daño": "",
           "uso": "",
           "recarga": "",
-          "descripcion": "Golpe."
+          "descripcion": "El espíritu realiza una cantidad de ataques con su golpe igual a la mitad del nivel de este conjuro (redondeado hacia abajo)."
+        },
+        {
+          "nombre": "Golpe",
+          "bonificadorAtaque": "",
+          "daño": "",
+          "uso": "",
+          "recarga": "",
+          "descripcion": "Tirada de ataque cuerpo a cuerpo: bonificador igual a tu modificador de ataque de conjuros, alcance 5 pies. Acierto: 1d10 + 4 + el nivel del conjuro de daño contundente (solo tierra), de frío (solo agua), de fuego (solo fuego) o de relámpago (solo aire)."
         }
       ],
       "accionesAdicionales": [],
@@ -19369,10 +19755,10 @@
       "nombre": "Espíritu feérico",
       "tipo": "Feérico",
       "ca": 12,
-      "caNotas": "",
+      "caNotas": "12 + nivel conjuro",
       "vidaMaxima": 30,
       "vidaActual": 30,
-      "vidaNotas": "",
+      "vidaNotas": "30 + 10 por nivel de conjuro superior",
       "iniciativaBonificador": 0,
       "velocidad": "30 pies, Volar 30 pies",
       "sentidos": "Visión en la oscuridad 60 pies, Percepción pasiva 10",
@@ -19406,7 +19792,15 @@
           "daño": "",
           "uso": "",
           "recarga": "",
-          "descripcion": "Filo feérico."
+          "descripcion": "El espíritu realiza una cantidad de ataques con su filo feérico igual a la mitad del nivel de este conjuro (redondeado hacia abajo)."
+        },
+        {
+          "nombre": "Filo feérico",
+          "bonificadorAtaque": "",
+          "daño": "",
+          "uso": "",
+          "recarga": "",
+          "descripcion": "Tirada de ataque cuerpo a cuerpo: bonificador igual a tu modificador de ataque de conjuros, alcance 5 pies.\nAcierto: 2d6 + 3 + el nivel del conjuro de daño de fuerza"
         }
       ],
       "accionesAdicionales": [
@@ -19416,7 +19810,7 @@
           "daño": "",
           "uso": "",
           "recarga": "",
-          "descripcion": "Enfurecido.\nAlegre.\nBurlón."
+          "descripcion": "El espíritu se teletransporta mágicamente hasta 30 pies a un espacio sin ocupar que pueda ver. A continuación, se produce uno de los siguientes efectos, en función del ánimo elegido para el espíritu:\n\nAlegre. Tirada de salvación de Sabiduría: CD igual a tu CD de salvación de conjuros, una criatura que el espíritu pueda ver a 10 pies o menos de sí. Fallo: el objetivo queda hechizado por ti y el espíritu durante 1 minuto o hasta que sufra algún tipo de daño.\n\nBurlón. El espíritu llena de oscuridad mágica un cubo de 10 pies de lado a 5 pies o menos de él, que durará hasta el final de su siguiente turno. \n\nEnfurecido. El espíritu tiene ventaja en la siguiente tirada de ataque que realice antes del final de este turno."
         }
       ],
       "reacciones": [],
@@ -19430,10 +19824,10 @@
       "nombre": "Espíritu infernal",
       "tipo": "Infernal",
       "ca": 12,
-      "caNotas": "",
+      "caNotas": "12 + nivel de conjuro",
       "vidaMaxima": 50,
       "vidaActual": 50,
-      "vidaNotas": "solo demonio",
+      "vidaNotas": "50 (solo demonio) o 40 (solo diablo) o 60 (solo | yugoloth) + 15 por cada nivel del conjuro superior al 6",
       "iniciativaBonificador": 0,
       "velocidad": "40 pies, Trepar 40 pies (solo demonio); Volar 60 pies (solo diablo)",
       "sentidos": "Visión en la oscuridad 60 pies, Percepción pasiva 10",
@@ -19467,7 +19861,17 @@
         {
           "nombre": "Últimos estertores (solo demonio)",
           "uso": "",
-          "descripcion": "Vista del diablo (solo diablo).\nResistencia mágica."
+          "descripcion": "Cuando los puntos de golpe del espíritu se reduzcan a 0 o el conjuro termine, el espíritu explotará. Tirada de salvación de Destreza: CD igual a tu CD de salvación de conjuros, todas las criaturas en una emanación de 10 pies que se origina en el espíritu.\nFallo: 2d10 más el nivel de este conjuro de daño de fuego.\nÉxito: la mitad del daño."
+        },
+        {
+          "nombre": "Vista del diablo (solo diablo)",
+          "uso": "",
+          "descripcion": "La oscuridad mágica no dificulta la visión en la oscuridad del espíritu."
+        },
+        {
+          "nombre": "Resistencia mágica",
+          "uso": "",
+          "descripcion": "El espíritu tiene ventaja en las tiradas de salvación contra conjuros y otros efectos mágicos."
         }
       ],
       "acciones": [
@@ -19477,7 +19881,31 @@
           "daño": "",
           "uso": "",
           "recarga": "",
-          "descripcion": "Mordisco (solo demonio)\nGarras (solo yugoloth).\nGolpe ardiente (solo diablo)."
+          "descripcion": "El espíritu realiza una cantidad de ataques igual a la mitad del nivel de este conjuro (redondeado hacia abajo)."
+        },
+        {
+          "nombre": "Mordisco (solo demonio)",
+          "bonificadorAtaque": "",
+          "daño": "",
+          "uso": "",
+          "recarga": "",
+          "descripcion": "Tirada de ataque cuerpo a cuerpo: bonificador igual a tu modificador de ataque de conjuros, alcance 5 pies. Acierto: 1d12 + 3 + el nivel del conjuro de daño necrótico."
+        },
+        {
+          "nombre": "Garras (solo yugoloth)",
+          "bonificadorAtaque": "",
+          "daño": "",
+          "uso": "",
+          "recarga": "",
+          "descripcion": "Tirada de ataque cuerpo a cuerpo: bonificador igual a tu modificador de ataque de conjuros, alcance 5 pies. Acierto: 1d8 + 3 + el nivel del conjuro de daño cortante. Inmediatamente después de que el ataque acierte o falle, el espíritu puede teletransportarse hasta 30 pies a un espacio sin ocupar que pueda ver."
+        },
+        {
+          "nombre": "Golpe ardiente (solo diablo)",
+          "bonificadorAtaque": "",
+          "daño": "",
+          "uso": "",
+          "recarga": "",
+          "descripcion": "Tirada de ataque cuerpo a cuerpo o a distancia: bonificador igual a tu modificador de ataque de conjuros, alcance 5 pies o 150 pies a distancia. Acierto: 2d6 + 3 + el nivel del conjuro de daño de fuego."
         }
       ],
       "accionesAdicionales": [],
@@ -19492,10 +19920,10 @@
       "nombre": "Espíritu muerto viviente",
       "tipo": "Muerto viviente",
       "ca": 11,
-      "caNotas": "",
+      "caNotas": "11 + nivel del conjuro ",
       "vidaMaxima": 30,
       "vidaActual": 30,
-      "vidaNotas": "solo fantasmal y pútrido",
+      "vidaNotas": "30 (solo fantasmal o pútrido) o 20 (solo esquelético) + | 10 por cada nivel del conjuro superior al 3",
       "iniciativaBonificador": 0,
       "velocidad": "30 pies, Volar 40 pies (suspenderse; solo fantasmal)",
       "sentidos": "Visión en la oscuridad 60 pies, Percepción pasiva 10",
@@ -19531,7 +19959,12 @@
         {
           "nombre": "Aura purulenta (solo pútrido)",
           "uso": "",
-          "descripcion": "Pasaje incorpóreo (solo fantasmal)."
+          "descripcion": "Tirada de salvación de\nConstitución: CD igual a tu CD de salvación de conjuros, cualquier criatura (excepto tú) que empiece su turno en una emanación de 5 pies que se origina en el espíritu.\nFallo: la criatura tiene el estado de envenenada hasta el principio de su siguiente turno."
+        },
+        {
+          "nombre": "Pasaje incorpóreo (solo fantasmal).",
+          "uso": "",
+          "descripcion": "El espíritu puede moverse a través de otras criaturas y objetos como si fueran terreno difícil. Si acaba su turno dentro de un objeto, se desplaza al espacio sin ocupar más cercano y recibe 1d10 de daño de fuerza por cada 5 pies recorridos."
         }
       ],
       "acciones": [
@@ -19541,7 +19974,31 @@
           "daño": "",
           "uso": "",
           "recarga": "",
-          "descripcion": "Toque mortal (solo fantasmal).\nRayo sepulcral (solo esquelético).\nGarra purulenta (solo pútrido)."
+          "descripcion": "El espíritu realiza una cantidad de ataques igual a la mitad del nivel de este conjuro (redondeado hacia abajo)"
+        },
+        {
+          "nombre": "Toque mortal (solo fantasmal)",
+          "bonificadorAtaque": "",
+          "daño": "",
+          "uso": "",
+          "recarga": "",
+          "descripcion": "Tirada de ataque cuerpo a cuerpo: bonificador igual a tu modificador de ataque de conjuros, alcance 5 pies. Acierto: 1d8 + 3 + el nivel del conjuro de daño necrótico y el objetivo tiene el estado de asustado hasta el final de su siguiente turno."
+        },
+        {
+          "nombre": "Rayo sepulcral (solo esquelético)",
+          "bonificadorAtaque": "",
+          "daño": "",
+          "uso": "",
+          "recarga": "",
+          "descripcion": "Tirada de ataque a distancia: bonificador igual a tu modificador de ataque de conjuros, alcance 150 pies. Acierto: 2d4 + 3 + el nivel del conjuro de daño necrótico."
+        },
+        {
+          "nombre": "Garra purulenta (solo pútrido)",
+          "bonificadorAtaque": "",
+          "daño": "",
+          "uso": "",
+          "recarga": "",
+          "descripcion": "Tirada de ataque cuerpo a cuerpo: bonificador igual a tu modificador de ataque\nde conjuros, alcance 5 pies. Acierto: 1d6 + 3 + el nivel del conjuro de daño cortante. Si el objetivo tiene el estado de envenenado, tendrá el estado de paralizado hasta el final de su siguiente turno."
         }
       ],
       "accionesAdicionales": [],
@@ -19668,12 +20125,30 @@
         "cansancio",
         "envenenado"
       ],
-      "accionesRapidas": [],
+      "accionesRapidas": [
+        {
+          "nombre": "Cetro llameante",
+          "bonificadorAtaque": "4",
+          "dadosDaño": "1d6+2 / 1d6",
+          "tipoDaño": "Contundente / fuego"
+        },
+        {
+          "nombre": "Arrojar llama",
+          "bonificadorAtaque": "4",
+          "dadosDaño": "1d10+2",
+          "tipoDaño": "Fuego"
+        }
+      ],
       "rasgos": [
         {
           "nombre": "Explotar al morir",
           "uso": "",
-          "descripcion": "Iluminación."
+          "descripcion": "El esqueleto explota cuando muere. Tirada de salvación de Destreza: CD 12, todas las criaturas en una emanación de 10 pies que se origina en el esqueleto. Fallo: 14 (4d6) de daño de fuego. \nExito: la mitad del daño."
+        },
+        {
+          "nombre": "Iluminación",
+          "uso": "",
+          "descripcion": "El esqueleto emite luz brillante en un radio de 15 pies y luz tenue 15 pies más allá"
         }
       ],
       "acciones": [
@@ -19683,7 +20158,23 @@
           "daño": "",
           "uso": "",
           "recarga": "",
-          "descripcion": "Cetro llameante.\nArrojar llama."
+          "descripcion": "El esqueleto realiza dos ataques con su cetro llameante o su acción de arrojar lama en cualquier combinación."
+        },
+        {
+          "nombre": "Cetro llameante",
+          "bonificadorAtaque": "4",
+          "daño": "1d6+2 / 1d6",
+          "uso": "",
+          "recarga": "",
+          "descripcion": "Tirada de ataque cuerpo a cuerpo: +4, alcance 5 pies. Acierto: 5 (1d6+ 2) de daño contundente más 3 (1d6) de daño de fuego."
+        },
+        {
+          "nombre": "Arrojar llama",
+          "bonificadorAtaque": "4",
+          "daño": "1d10+2",
+          "uso": "",
+          "recarga": "",
+          "descripcion": "Tirada de ataque a distancia: +4, alcance 60 pies. Acierto: 7 (1d10+ 2) de daño de fuego"
         }
       ],
       "accionesAdicionales": [],
@@ -22150,7 +22641,20 @@
       "resistencias": [],
       "inmunidadesDaño": [],
       "inmunidadesCondicion": [],
-      "accionesRapidas": [],
+      "accionesRapidas": [
+        {
+          "nombre": "Mordisco",
+          "bonificadorAtaque": "5",
+          "dadosDaño": "1d6+3 / 2d6",
+          "tipoDaño": "Perforante / veneno"
+        },
+        {
+          "nombre": "Flagelo óseo",
+          "bonificadorAtaque": "5",
+          "dadosDaño": "1d8+3",
+          "tipoDaño": "Perforante"
+        }
+      ],
       "rasgos": [],
       "acciones": [
         {
@@ -22159,7 +22663,23 @@
           "daño": "",
           "uso": "",
           "recarga": "",
-          "descripcion": "Mordisco.\nFlagelo óseo."
+          "descripcion": "El gnoll realiza un ataque de mordisco y dos con su flagelo óseo."
+        },
+        {
+          "nombre": "Mordisco",
+          "bonificadorAtaque": "5",
+          "daño": "1d6+3 / 2d6",
+          "uso": "",
+          "recarga": "",
+          "descripcion": "Tirada de ataque cuerpo a cuerpo: +5, alcance 5 pies. Acierto: 6 (1d6 + 3) de daño perforante más 7 (2d6) de daño de veneno y el objetivo tendrá el estado de envenenado hasta el principio del siguiente turno del gnoll."
+        },
+        {
+          "nombre": "Flagelo óseo",
+          "bonificadorAtaque": "5",
+          "daño": "1d8+3",
+          "uso": "",
+          "recarga": "",
+          "descripcion": "Tirada de ataque cuerpo a cuerpo: +5, alcance 10 pies. Acierto: 7 (1d8 + 3) de daño perforante"
         }
       ],
       "accionesAdicionales": [
@@ -22169,7 +22689,7 @@
           "daño": "",
           "uso": "2/dia",
           "recarga": "",
-          "descripcion": ""
+          "descripcion": "Inmediatamente después de hacer daño a una criatura que ya esté maltrecha, el gnoll se moverá hasta la mitad de su velocidad y realizará un ataque de mordisco"
         }
       ],
       "reacciones": [],
@@ -22216,7 +22736,14 @@
       "resistencias": [],
       "inmunidadesDaño": [],
       "inmunidadesCondicion": [],
-      "accionesRapidas": [],
+      "accionesRapidas": [
+        {
+          "nombre": "Golpe abisal.",
+          "bonificadorAtaque": "6",
+          "dadosDaño": "5d6+3",
+          "tipoDaño": "Veneno"
+        }
+      ],
       "rasgos": [],
       "acciones": [
         {
@@ -22225,7 +22752,23 @@
           "daño": "",
           "uso": "",
           "recarga": "",
-          "descripcion": "Glpe abisal.\nAnsia de Yeenogh (recarga 5–6)."
+          "descripcion": "El gnoll realiza dos ataques con su golpe abisal.\n"
+        },
+        {
+          "nombre": "Golpe abisal.",
+          "bonificadorAtaque": "6",
+          "daño": "5d6+3",
+          "uso": "",
+          "recarga": "",
+          "descripcion": "Tirada de ataque cuerpo a cuerpo o a distancia: +6, alcance 5 pies o 60 pies a distancia. Acierto: 20 (5d6 + 3) de daño de veneno."
+        },
+        {
+          "nombre": "Ansia de Yeenogh",
+          "bonificadorAtaque": "",
+          "daño": "",
+          "uso": "",
+          "recarga": "5-6",
+          "descripcion": "El gnoll conjura un cubo de oscuridad mágica de 30 pies de lado que se origina en un punto que pueda ver a 60 pies o menos de él, que dura 1 minuto o hasta que el gnoll deje de concentrarse en él.\nEsta zona es terreno difícil. Tirada de salvación de Destreza: CD 14, cualquier criatura que empiece su turno en esta zona o entre en ella por primera vez en un turno. Fallo: 28 (8d6) de daño necrótico y el gnoll o una criatura de su elección\na la que pueda ver obtiene 10 puntos de golpe temporales. Exito: solo la mitad del daño."
         }
       ],
       "accionesAdicionales": [
@@ -22235,7 +22778,7 @@
           "daño": "",
           "uso": "2/dia",
           "recarga": "",
-          "descripcion": ""
+          "descripcion": "Inmediatamente después de hacer daño a una criatura que ya esté maltrecha, el gnoll se moverá hasta la mitad de su velocidad y realizará un ataque con su golpe abisal"
         }
       ],
       "reacciones": [],
@@ -22355,7 +22898,20 @@
       "resistencias": [],
       "inmunidadesDaño": [],
       "inmunidadesCondicion": [],
-      "accionesRapidas": [],
+      "accionesRapidas": [
+        {
+          "nombre": "Látigo óseo",
+          "bonificadorAtaque": "5",
+          "dadosDaño": "2d4+3",
+          "tipoDaño": "Cortante"
+        },
+        {
+          "nombre": "Jabalina ósea",
+          "bonificadorAtaque": "5",
+          "dadosDaño": "1d8+3",
+          "tipoDaño": "Perforante"
+        }
+      ],
       "rasgos": [],
       "acciones": [
         {
@@ -22364,7 +22920,31 @@
           "daño": "",
           "uso": "",
           "recarga": "",
-          "descripcion": "Látigo óseo.\nJabalina ósea.\nIncitar a la rabia (recarga 5–6)."
+          "descripcion": "El gnoll realiza dos ataques con su látigo óseo o su jabalina ósea en cualquier combinación y usa su acción de incitar a la rabia si estádisponible"
+        },
+        {
+          "nombre": "Látigo óseo",
+          "bonificadorAtaque": "5",
+          "daño": "2d4+3",
+          "uso": "",
+          "recarga": "",
+          "descripcion": "Tirada de ataque cuerpo a cuerpo: +5, alcance 10 pies. Acierto: 8 (2d4 +3) de daño cortante."
+        },
+        {
+          "nombre": "Jabalina ósea",
+          "bonificadorAtaque": "5",
+          "daño": "1d8+3",
+          "uso": "",
+          "recarga": "",
+          "descripcion": "Tirada de ataque a distancia: +5, alcance 30/120 pies. Acierto: 7 (1d8 + 3) de daño perforante"
+        },
+        {
+          "nombre": "Incitar a la rabia",
+          "bonificadorAtaque": "",
+          "daño": "",
+          "uso": "",
+          "recarga": "5-6",
+          "descripcion": "El gnoll hace objetivo a otra\ncriatura a la que pueda ver a 60 pies o menos de él y que tenga la acción adicional de rabia.\nEl objetivo podrá usar una reacción para realizar un ataque cuerpo a cuerpo"
         }
       ],
       "accionesAdicionales": [
@@ -22374,7 +22954,7 @@
           "daño": "",
           "uso": "2/dia",
           "recarga": "",
-          "descripcion": ""
+          "descripcion": "Inmediatamente después de hacer daño a una criatura que ya esté maltrecha, el gnoll se moverá hasta la mitad de su velocidad y realizará un ataque con su látigo óseo"
         }
       ],
       "reacciones": [],
@@ -22417,7 +22997,14 @@
       "resistencias": [],
       "inmunidadesDaño": [],
       "inmunidadesCondicion": [],
-      "accionesRapidas": [],
+      "accionesRapidas": [
+        {
+          "nombre": "Palo de maleficios",
+          "bonificadorAtaque": "5",
+          "dadosDaño": "2d8+$",
+          "tipoDaño": "Psiquico"
+        }
+      ],
       "rasgos": [],
       "acciones": [
         {
@@ -22426,7 +23013,23 @@
           "daño": "",
           "uso": "",
           "recarga": "",
-          "descripcion": "Palo de maleficios.\nLanzamiento de conjuros."
+          "descripcion": "El goblin realiza dos ataques con su palo de maleficios. Puede sustituir un ataque por un uso de su lanzamiento de conjuros."
+        },
+        {
+          "nombre": "Palo de maleficios",
+          "bonificadorAtaque": "5",
+          "daño": "2d8+$",
+          "uso": "",
+          "recarga": "",
+          "descripcion": "Tirada de ataque cuerpo a cuerpo o a distan cia: +5, alcance 5 pies o 60 pies a distancia. Acierto: 12 (2d8 + 3) de daño psíquico."
+        },
+        {
+          "nombre": "Lanzamiento de conjuros",
+          "bonificadorAtaque": "",
+          "daño": "",
+          "uso": "",
+          "recarga": "",
+          "descripcion": "El goblin lanza uno de los siguientes conjuros, que utiliza la Inteligencia como aptitud mágica (CD de salvación de conjuros 13): \nA voluntad: ilusión menor\n1/día cada uno: fuego feérico, grasa, sordera/ceguera"
         }
       ],
       "accionesAdicionales": [],
@@ -22435,7 +23038,7 @@
           "nombre": "Gafar",
           "uso": "",
           "recarga": "",
-          "descripcion": ""
+          "descripcion": "Detonante: una criatura a la que el goblin pueda ver le acierta con una tirada de ataque. Respuesta; tirada de salvación de Sabiduría: CD 13, la criatura detonante. Fallo: en vez de eso, el ataque falla."
         }
       ],
       "accionesLegendariasTotal": "0",
@@ -23246,7 +23849,12 @@
         {
           "nombre": "Aura flamígera",
           "uso": "",
-          "descripcion": "Iluminación."
+          "descripcion": "Al final de cada turno del gorgon, todas las\ncriaturas en una emanación de 5 pies que se origina en él reciben 13 (3d8) de daño de fuego."
+        },
+        {
+          "nombre": "Iluminación",
+          "uso": "",
+          "descripcion": "El gorgon emite luz brillante en un radio de 10 pies y luz tenue 10 pies más allá"
         }
       ],
       "acciones": [
@@ -23256,7 +23864,23 @@
           "daño": "",
           "uso": "",
           "recarga": "",
-          "descripcion": "Cornada.\nCarga fundidora (recarga 5–6)."
+          "descripcion": "El gorgon realiza dos ataques de cornada"
+        },
+        {
+          "nombre": "Cornada",
+          "bonificadorAtaque": "8",
+          "daño": "2d6+4 / 3d6",
+          "uso": "",
+          "recarga": "",
+          "descripcion": "Tirada de ataque cuerpo a cuerpo: +8, alcance 5 pies. Acierto: 11 (2d6+ 4) de daño perforante más 10 (3d6) de daño de fuego."
+        },
+        {
+          "nombre": "Carga fundidora",
+          "bonificadorAtaque": "",
+          "daño": "",
+          "uso": "",
+          "recarga": "5-6",
+          "descripcion": "El gorgon se mueve hasta su\nvelocidad sin provocar ataques de oportunidad y puede atravesar los espacios de criaturas Medianas o más pequeñas. Cada vez que el gorgon entre en el espacio de una criatura por primera vez durante este movimiento, ese objetivo sufrirá el siguiente efecto. Tirada de salvación de Destreza: CD 16.\nFallo: 13 (2d8 + 4) de daño perforante más 13 (3d8) de daño de fuego y objetivo será arrastrado al espacio del gorgon y tendrá el estado de agarrado (CD 14 para escapar); si el gorgon ya tiene agarrada a una criatura, en vez de eso el objetivo tendrá el estado de derribado. Hasta que el agarre termine, el objetivo tendrá el estado de apresado. Cuando el gorgon se mueva, el objetivo agarrado se moverá con él sin costarle movimiento adicional."
         }
       ],
       "accionesAdicionales": [],
@@ -25300,12 +25924,25 @@
       "resistencias": [],
       "inmunidadesDaño": [],
       "inmunidadesCondicion": [],
-      "accionesRapidas": [],
+      "accionesRapidas": [
+        {
+          "nombre": "Espada larga",
+          "bonificadorAtaque": "6",
+          "dadosDaño": "2d8+3",
+          "tipoDaño": "Cortante"
+        },
+        {
+          "nombre": "Jabalina",
+          "bonificadorAtaque": "6",
+          "dadosDaño": "2d6+4",
+          "tipoDaño": "Perforante"
+        }
+      ],
       "rasgos": [
         {
           "nombre": "Aura de autoridad",
           "uso": "",
-          "descripcion": ""
+          "descripcion": "Mientras estén en una emanación de 30 pies que se origina en el hobgoblin, este y sus aliados tendrán ventaja en las tiradas de ataque y las tiradas de salvación, siempre que el hobgoblin no tenga el estado de incapacitado"
         }
       ],
       "acciones": [
@@ -25315,7 +25952,23 @@
           "daño": "",
           "uso": "",
           "recarga": "",
-          "descripcion": "Jabalina.\nEspada larga."
+          "descripcion": "El hobgoblin realiza tres ataques con su espada larga o sus jabalinas en cualquier combinación"
+        },
+        {
+          "nombre": "Jabalina",
+          "bonificadorAtaque": "6",
+          "daño": "2d6+4",
+          "uso": "",
+          "recarga": "",
+          "descripcion": "Tirada de ataque cuerpo a cuerpo o a distancia: +6, alcance 5 pies o 30/120 pies a distancia. Acierto: 11 (2d6 + 4) de daño perforante y la velocidad del objetivo se reducirá en 10 pies hasta el principio del siguiente turno del hobgoblin."
+        },
+        {
+          "nombre": "Espada larga",
+          "bonificadorAtaque": "6",
+          "daño": "2d8+3",
+          "uso": "",
+          "recarga": "",
+          "descripcion": "Tirada de ataque cuerpo a cuerpo: +6, alcance 5 pies. Acierto: 12 (2d8 + 3) de daño cortante"
         }
       ],
       "accionesAdicionales": [],
@@ -25324,7 +25977,7 @@
           "nombre": "Parada",
           "uso": "",
           "recarga": "",
-          "descripcion": ""
+          "descripcion": "Detonante: una tirada de ataque cuerpo a cuerpo acierta al hobgoblin mientras sostiene un arma. Respuesta: el hobgoblin suma 3 a su CA contra ese ataque, lo que puede hacer que falle."
         }
       ],
       "accionesLegendariasTotal": "0",
@@ -25367,12 +26020,25 @@
       "resistencias": [],
       "inmunidadesDaño": [],
       "inmunidadesCondicion": [],
-      "accionesRapidas": [],
+      "accionesRapidas": [
+        {
+          "nombre": "Desgarro (solo en forma de chacal o híbrida)",
+          "bonificadorAtaque": "4",
+          "dadosDaño": "1d6+2",
+          "tipoDaño": "Perforante"
+        },
+        {
+          "nombre": "Golpe (solo en forma híbrida o de humano)",
+          "bonificadorAtaque": "4",
+          "dadosDaño": "1d4+2",
+          "tipoDaño": "Contundente"
+        }
+      ],
       "rasgos": [
         {
           "nombre": "Atacar en manada",
           "uso": "",
-          "descripcion": ""
+          "descripcion": "El hombre chacal tiene ventaja en una tirada de ataque contra una criatura sial menos uno de los aliados del hombre chacal se encuentra a 5 pies o menos de la criatura y no tiene el estado de incapacitado"
         }
       ],
       "acciones": [
@@ -25382,7 +26048,31 @@
           "daño": "",
           "uso": "",
           "recarga": "",
-          "descripcion": "Desgarro (solo en forma de chacal o híbrida).\nGolpe (solo en forma híbrida o de humano).\nMirada somnífera (recarga 5-6)."
+          "descripcion": "El hombre chacal realiza dos ataques con su desgarro o golpe.\n"
+        },
+        {
+          "nombre": "Desgarro (solo en forma de chacal o híbrida)",
+          "bonificadorAtaque": "4",
+          "daño": "1d6+2",
+          "uso": "",
+          "recarga": "",
+          "descripcion": "Tirada de ataque cuerpo a cuerpo: +4, alcance 5 pies. Acierto: 5 (1d6 + 2) de daño perforante."
+        },
+        {
+          "nombre": "Golpe (solo en forma híbrida o de humano)",
+          "bonificadorAtaque": "4",
+          "daño": "1d4+2",
+          "uso": "",
+          "recarga": "",
+          "descripcion": "Tirada de ataque cuerpo a cuerpo: +4, alcance 5 pies. Acierto: 4 (1d4 + 2) de daño contundente."
+        },
+        {
+          "nombre": "Mirada somnífera",
+          "bonificadorAtaque": "",
+          "daño": "",
+          "uso": "",
+          "recarga": "5-6",
+          "descripcion": "Tirada de salvación de Sabiduría: CD 10, una criatura a la que el hombre chacal pueda ver a 30 pies o menos (los autómatas y los muertos vivientes la superan automáticamente). Fallo: el objetivo tendrá el estado de inconsciente durante 10 minutos, hasta que reciba daño o hasta que una criatura a 5 pies o menos lleve a cabo una acción para despertarlo. Exito: el objetivo será inmune a la mirada somnífera de este hombre chacal durante 24 horas"
         }
       ],
       "accionesAdicionales": [
@@ -25392,7 +26082,7 @@
           "daño": "",
           "uso": "",
           "recarga": "",
-          "descripcion": ""
+          "descripcion": "El hombre chacal adopta la forma de un humanoide Mediano o un híbrido humanoide-chacal\nMediano, o recupera su auténtica forma (un chacal Pequeño). Su perfil, salvo por el tarmaño, es el mismo en todas las for mas. Cualquier equipo que vista o lleve no se transformará"
         }
       ],
       "reacciones": [],

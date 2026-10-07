@@ -1,8 +1,8 @@
-import React from "react";
-import { Plus, Trash2, Edit2, X } from "lucide-react";
+import React, { useRef } from "react";
+import { Plus, Trash2, Edit2, X, Zap } from "lucide-react";
 import { RasgoBase, AccionMonstruo, AccionRapida } from "@/tipos";
 import { SelectorDesplegable } from "@/componentes/comunes";
-import { desglosarAtaqueRapido, ComponenteDano } from "@/utiles/procesadorAtaques";
+import { desglosarAtaqueRapido, ComponenteDano, ParametrosExtraccionAtaque } from "@/utiles/procesadorAtaques";
 import { formatearRecargaTexto } from "@/almacen/sanitizacion";
 import estilos from "../FormularioCriatura.module.css";
 
@@ -13,6 +13,7 @@ const OPCIONES_TIPOS_DANO_RAPIDO = [
   { valor: "relámpago", etiqueta: "Relámpago" },
   { valor: "trueno", etiqueta: "Trueno" },
   { valor: "veneno", etiqueta: "Veneno" },
+  { valor: "fuerza", etiqueta: "Fuerza" },
   { valor: "fuerza_daño", etiqueta: "Fuerza" },
   { valor: "radiante", etiqueta: "Radiante" },
   { valor: "necrótico", etiqueta: "Necrótico" },
@@ -105,6 +106,8 @@ interface SeccionListasAtaquesProps {
   iniciarEditarLegendaria: (idx: number) => void;
   cancelarEditarLegendaria: () => void;
   eliminarLegendariaIdx: (idx: number) => void;
+
+  preRellenarAtaqueRapido?: (accion: ParametrosExtraccionAtaque) => void;
 }
 
 /** Calcula el número de filas necesarias para mostrar todo el texto sin scroll */
@@ -118,6 +121,7 @@ const calcFilas = (valor: string, minFilas = 2, maxFilas = 20): number => {
 export const SeccionListasAtaques: React.FC<SeccionListasAtaquesProps> = ({
   monstruoForm,
   actualizarGeneral,
+  preRellenarAtaqueRapido,
   tQNombre, setTQNombre,
   tQBono, setTQBono,
   tQDados, setTQDados,
@@ -176,10 +180,18 @@ export const SeccionListasAtaques: React.FC<SeccionListasAtaquesProps> = ({
   cancelarEditarLegendaria,
   eliminarLegendariaIdx
 }) => {
+  const bloqueAtaquesRapidosRef = useRef<HTMLDivElement>(null);
+
+  const scrollHaciaAtaquesRapidos = () => {
+    if (bloqueAtaquesRapidosRef.current) {
+      bloqueAtaquesRapidosRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  };
+
   return (
     <div className={estilos.seccionContenido}>
       {/* ATAQUES RÁPIDOS*/}
-      <div className={estilos.bloqueDinamicoForm}>
+      <div ref={bloqueAtaquesRapidosRef} className={estilos.bloqueDinamicoForm}>
         <div className={estilos.tituloBloqueDinamico}>
           {quickActionEdicionIdx !== null
             ? "EDITANDO ATAQUE RÁPIDO"
@@ -470,6 +482,23 @@ export const SeccionListasAtaques: React.FC<SeccionListasAtaquesProps> = ({
             >
               {accionEdicionIdx !== null ? "Guardar Cambios de la Acción" : "Agregar Acción"}
             </button>
+            <button
+              type="button"
+              onClick={() => {
+                preRellenarAtaqueRapido?.({
+                  nombre: tAccionNombre,
+                  bonificadorAtaque: tAccionBono,
+                  daño: tAccionDaño,
+                  descripcion: tAccionDesc
+                });
+                scrollHaciaAtaquesRapidos();
+              }}
+              className={`${estilos.botonAgregarCompleto} ${estilos.botonCargarAtaqueRapido}`}
+              title="Pre-rellenar formulario de Ataque Rápido con los datos de esta acción"
+            >
+              <Zap size={14} />
+              <span>A Ataque Rápido</span>
+            </button>
             {accionEdicionIdx !== null && (
               <button
                 type="button"
@@ -499,6 +528,17 @@ export const SeccionListasAtaques: React.FC<SeccionListasAtaquesProps> = ({
                   </div>
                 </div>
                 <div className="u-flex u-gap-xs">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      preRellenarAtaqueRapido?.(a);
+                      scrollHaciaAtaquesRapidos();
+                    }}
+                    className={`${estilos.botonEliminarDinamico} ${estilos.botonCopiarAtaqueRapido}`}
+                    title="Agregar a Ataques Rápidos (pre-rellenar)"
+                  >
+                    <Zap size={12} />
+                  </button>
                   <button
                     type="button"
                     onClick={() => iniciarEditarAccion(idx)}
@@ -576,6 +616,23 @@ export const SeccionListasAtaques: React.FC<SeccionListasAtaquesProps> = ({
             >
               {accionAdicionalEdicionIdx !== null ? "Guardar Cambios Acción Adicional" : "Agregar Acción Adicional"}
             </button>
+            <button
+              type="button"
+              onClick={() => {
+                preRellenarAtaqueRapido?.({
+                  nombre: tAccionAdicionalNombre,
+                  bonificadorAtaque: tAccionAdicionalBono,
+                  daño: tAccionAdicionalDaño,
+                  descripcion: tAccionAdicionalDesc
+                });
+                scrollHaciaAtaquesRapidos();
+              }}
+              className={`${estilos.botonAgregarCompleto} ${estilos.botonCargarAtaqueRapido}`}
+              title="Pre-rellenar formulario de Ataque Rápido con los datos de esta acción adicional"
+            >
+              <Zap size={14} />
+              <span>A Ataque Rápido</span>
+            </button>
             {accionAdicionalEdicionIdx !== null && (
               <button
                 type="button"
@@ -605,6 +662,17 @@ export const SeccionListasAtaques: React.FC<SeccionListasAtaquesProps> = ({
                   </div>
                 </div>
                 <div className="u-flex u-gap-xs">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      preRellenarAtaqueRapido?.(a);
+                      scrollHaciaAtaquesRapidos();
+                    }}
+                    className={`${estilos.botonEliminarDinamico} ${estilos.botonCopiarAtaqueRapido}`}
+                    title="Agregar a Ataques Rápidos (pre-rellenar)"
+                  >
+                    <Zap size={12} />
+                  </button>
                   <button
                     type="button"
                     onClick={() => iniciarEditarAccionAdicional(idx)}

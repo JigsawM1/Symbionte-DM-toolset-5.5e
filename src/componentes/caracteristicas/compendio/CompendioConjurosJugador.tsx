@@ -14,7 +14,8 @@ import { coincideBusquedaTolerante, compararPorRelevanciaTitulo } from "@/utiles
 import {
   usarEstadoHomebrew,
   usarEstadoPersonajes,
-  usarAccionesPersonajes
+  usarAccionesPersonajes,
+  usarEstadoConfiguracion
 } from "@/almacen/selectores";
 import {
   obtenerConjurosSubclasePersonaje,
@@ -53,14 +54,12 @@ export const CompendioConjurosJugador: React.FC<CompendioConjurosJugadorProps> =
   const [escuelaFiltro, setEscuelaFiltro] = useState<string>("todas");
   const [hechizoModal, setHechizoModal] = useState<HechizoBase | null>(null);
   const [paginaActual, setPaginaActual] = useState<number>(1);
-
+  const { esGM } = usarEstadoConfiguracion();
   const { baseDatosHechizos } = usarEstadoHomebrew();
   const { personajes, idPersonajeActivo } = usarEstadoPersonajes();
   const {
-    agregarTrucoConocido,
-    quitarTrucoConocido,
-    agregarConjuroConocido,
-    quitarConjuroConocido,
+    agregarTrucoConocido, quitarTrucoConocido,
+    agregarConjuroConocido, quitarConjuroConocido,
     alternarConjuroPreparado
   } = usarAccionesPersonajes();
   const sincronizarConjurosSubclase = usarAlmacenDM((state) => state.sincronizarConjurosSubclase);
@@ -477,7 +476,7 @@ export const CompendioConjurosJugador: React.FC<CompendioConjurosJugadorProps> =
           >
             <FichaHechizo
               hechizo={hechizoModal}
-              nombrePersonaje={personajeActivo?.nombre || "Personaje"}
+              nombrePersonaje={personajeActivo?.nombre || (esGM ? "DM" : "Personaje")}
               nivelPersonaje={personajeActivo?.nivel || 1}
               bonoAtaqueMagico={0}
               esLanzadorPacto={(personajeActivo?.espaciosPactoMaximos || 0) > 0 || (personajeActivo?.clasesLanzadoras || []).some((c) => c.tipoLanzador === "pacto")}
@@ -485,7 +484,8 @@ export const CompendioConjurosJugador: React.FC<CompendioConjurosJugadorProps> =
               espaciosPactoMaximos={personajeActivo?.espaciosPactoMaximos || 0}
               espaciosConjuroMaximos={personajeActivo?.espaciosConjuroMaximos || {}}
               nivelConjuroMaximo={personajeActivo?.nivelConjuroMaximo || 0}
-              ocultarLanzamiento={true}
+              ocultarLanzamiento={!esGM}
+              permitirUpcastLibre={esGM}
               onClose={() => setHechizoModal(null)}
             />
           </div>

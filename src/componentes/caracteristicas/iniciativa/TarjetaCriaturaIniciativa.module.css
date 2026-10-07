@@ -657,3 +657,61 @@
   margin: 0;
 }
 
+.contenedorPasivasJugador {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
+}
+
+.badgePasivaJugador {
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 3px;
+  font-size: 11px;
+  padding: 3px 6px;
+  background-color: hsl(222, 18%, 12%);
+  border: 1px solid var(--color-borde-brutal);
+  border-radius: 3px;
+  color: var(--color-texto-secundario);
+  font-family: var(--fuente-codigo);
+  user-select: none;
+  cursor: default;
+  transition: border-color 0.15s, background-color 0.15s;
+}
+
+.badgePasivaJugador:hover {
+  border-color: var(--color-borde-cian);
+  background-color: hsl(222, 18%, 16%);
+}
+
+.iconoPasivaPercepcion {
+  color: var(--color-borde-cian);
+  flex-shrink: 0;
+}
+
+.iconoPasivaInvestigacion {
+  color: #ffcc00;
+  flex-shrink: 0;
+}
+
+.iconoPasivaPerspicacia {
+  color: #c77dff;
+  flex-shrink: 0;
+}
+
+.textoPasivaLabel {
+  font-weight: 700;
+  font-size: 9px;
+  color: var(--color-texto-apagado);
+  letter-spacing: 0.02em;
+}
+
+.valorPasiva {
+  font-size: 11.5px;
+  font-weight: 800;
+  color: var(--color-texto-principal);
+}
+

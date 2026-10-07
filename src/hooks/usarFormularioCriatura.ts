@@ -2,7 +2,12 @@ import { useState, useCallback } from "react";
 import { usarAlmacenDM } from "@/almacen/usarAlmacenDM";
 import { MonstruoBase, RasgoBase, AccionMonstruo, AccionRapida } from "@/tipos";
 import { parsearVelocidad, parsearSentidos, formatearVelocidad, formatearSentidos, sanearMonstruoSentidosYPasiva } from "@/almacen/sanitizacion";
-import { desglosarAtaqueRapido, ComponenteDano } from "@/utiles/procesadorAtaques";
+import {
+  desglosarAtaqueRapido,
+  ComponenteDano,
+  extraerDatosAtaqueParaAtaqueRapido,
+  ParametrosExtraccionAtaque
+} from "@/utiles/procesadorAtaques";
 import { usarListaDinamica } from "./usarListaDinamica";
 
 export const estadoInicialCriatura = {
@@ -211,6 +216,30 @@ export function usarFormularioCriatura(idEnEdicion: string | null, alGuardarExit
     listaQuickActions.setItemForm(quickActionInicial);
     setDanyosExtraQA([]);
   }, [listaQuickActions, danyosExtraQA, monstruoForm.accionesRapidas, setQuickActionsForm]);
+
+  const preRellenarAtaqueRapido = useCallback((accion: ParametrosExtraccionAtaque) => {
+    if (!accion.nombre?.trim() && !accion.daño?.trim() && !accion.descripcion?.trim()) {
+      agregarNotificacion("No hay datos suficientes del ataque para pre-rellenar", "advertencia");
+      return;
+    }
+
+    const extraido = extraerDatosAtaqueParaAtaqueRapido(accion);
+
+    listaQuickActions.actualizarCampoItem("nombre", extraido.nombre);
+    listaQuickActions.actualizarCampoItem("bonificadorAtaque", extraido.bonificadorAtaque);
+    listaQuickActions.actualizarCampoItem("dadosDaño", extraido.dadosDaño);
+    listaQuickActions.actualizarCampoItem("tipoDaño", extraido.tipoDaño);
+    setDanyosExtraQA(extraido.danosAdicionales);
+
+    if (listaQuickActions.edicionIdx !== null) {
+      listaQuickActions.setEdicionIdx(null);
+    }
+
+    agregarNotificacion(
+      `Ataque rápido pre-rellenado con "${extraido.nombre}". Puedes revisarlo y pulsar "+" para agregarlo.`,
+      "info"
+    );
+  }, [listaQuickActions, agregarNotificacion]);
 
   const limpiarFormulario = useCallback(() => {
     setMonstruoForm(estadoInicialCriatura);
@@ -421,6 +450,7 @@ export function usarFormularioCriatura(idEnEdicion: string | null, alGuardarExit
     iniciarEditarQuickAction,
     cancelarEditarQuickAction,
     eliminarQuickActionIdx: listaQuickActions.eliminarItem,
+    preRellenarAtaqueRapido,
 
     actualizarGeneral,
     actualizarCaracteristica,

@@ -16,6 +16,88 @@ Este archivo registra reglas globales, errores encontrados, sus causas raíz y l
    - Las dependencias fluyen estrictamente hacia abajo: `App/Layout -> Caracteristicas -> Comunes -> Almacen -> Servicios -> Utiles/Constantes/Tipos`.
    - **Bajo ninguna circunstancia** los módulos de lógica de negocio (`servicios/`), gestores de estado (`almacen/`), contratos (`tipos/`), valores de reglas (`constantes/`) ni funciones de soporte (`utiles/`) deben importar componentes visuales o archivos CSS (`componentes/`). Esta regla está reforzada en CI vía ESLint `no-restricted-imports`.
 6. **PROHIBICIÓN ESTRICTA DE BIFURCACIONES POR NOMBRE DE RASGO O CLASE (CATÁLOGO DECLARATIVO Y BUILDER PURO)**:
+## [2026-10-06] Visualización de Percepción Pasiva, Investigación Pasiva y Perspicacia Pasiva en las Tarjetas de Jugador del Tracker de Iniciativa del DM
+
+**Contexto del Requerimiento:**
+- El Dungeon Master solicitó modificar las tarjetas de jugador en el tracker de iniciativa (`GestorIniciativa.tsx` / `TarjetaCriaturaIniciativa.tsx`) para que muestren de forma visible y táctica la Percepción Pasiva (`PP`), la Investigación Pasiva (`INV`) y la Perspicacia Pasiva (`PERS`), evitando que el DM tenga que abrir manualmente las fichas de los personajes durante el combate.
+
+**Causas Raíz y Limitaciones Previas:**
+1. **Ausencia de Pasivas de Jugador en la Cola de Iniciativa:**
+   - La entidad `CriaturaIniciativa` solo contemplaba estadísticas básicas de combate (`vidaActual`, `vidaMaxima`, `ca`, `iniciativa`, `bonificadorIniciativa`, `condiciones`, `efectos`). Carecía de un campo estructurado para las 3 puntuaciones pasivas de los jugadores.
+2. **Espacio Ocioso en la Tarjeta de Jugador:**
+   - Mientras que los monstruos con plantilla mostraban botones de ataques rápidos en la columna central (`cajaAccionesRapidasColumn`), los personajes jugadores mostraban un texto inerte `"Ficha de Jugador"` sin utilidad táctica.
+3. **Puntuaciones Pasivas en el Subtítulo:**
+   - En el subtítulo de la tarjeta, los monstruos mostraban solo `PP: <valor>`. Los jugadores no mostraban ninguna pasiva en el subtítulo.
+4. **Margen de Líneas por Archivo en CI:**
+   - `TarjetaCriaturaIniciativa.tsx` y `GestorIniciativa.tsx` se encontraban al borde del umbral crítico de 500 líneas (499 y 491 líneas respectivamente), arriesgando fallos en el script `pnpm run verificar:lineas`.
+
+**Soluciones Arquitectónicas Aplicadas:**
+1. **Extensión del Contrato de Datos (`CriaturaIniciativa` en `usarAlmacenDM.ts` y DTO Sync):**
+   - Se añadió la propiedad opcional `pasivas?: { percepcion: number; investigacion: number; perspicacia: number; }` a `CriaturaIniciativa`.
+   - En `sliceSync.ts` (`actualizarPersonajeDesdeSync`), al reflejar cambios en la cola de iniciativa, se asigna `pasivas: dto.pasivas || criatura.pasivas`.
+   - En `sincronizacionIniciativa.ts`, al proyectar una miniatura de jugador desde TaleSpire, se extraen sus pasivas calculadas (`statsPj.pasivas?.percepcion ?? 10`, etc.).
+2. **Servicio Puro de Resolución de Pasivas (`resolutorCriaturas.ts`):**
+   - Se implementaron las funciones `resolverPersonajePorCriatura` y `obtenerPasivasCriatura(criatura, personajes)`.
+   - Reutiliza la función pura memoizada `calcularEstadisticasPersonaje` (con caché `WeakMap` $O(1)$) para garantizar reactividad si el jugador modifica sus competencias de habilidad en tiempo real.
+3. **Subcomponente Modular de Alta Densidad (`InsigniasPasivasJugador.tsx`):**
+   - Componente aislado y memoizado que renderiza tres insignias tácticas con iconos SVG vectoriales de `lucide-react` (`Eye` para Percepción, `Search` para Investigación y `Brain` para Perspicacia).
+   - Estilizado con CSS modular y diseño temático medieval/cyberpunk (`TarjetaCriaturaIniciativa.module.css`), respetando la prohibición absoluta de emojis y soportando tooltips de accesibilidad.
+4. **Integración en la Tarjeta de Iniciativa (`TarjetaCriaturaIniciativa.tsx`):**
+   - En la columna de acciones rápidas (`cajaAccionesRapidasColumn`), cuando la criatura es un jugador (`!criatura.esMonstruo`), se renderiza `InsigniasPasivasJugador`.
+   - En el subtítulo de la criatura (`subtituloCriatura`), junto a CA, Iniciativa y Velocidad, se muestran `PP:`, `Inv:` y `Pers:` con sus valores destacados y tooltips accesibles.
+5. **Optimización Quirúrgica de Líneas:**
+   - Se compactaron manejadores de eventos simples y bloques redundantes en `TarjetaCriaturaIniciativa.tsx` (dejándolo en 477 líneas) y en `GestorIniciativa.tsx` (dejándolo en 475 líneas), garantizando un margen seguro por debajo del límite de 500 líneas auditado por `pnpm run verificar:lineas`.
+6. **Cobertura de Pruebas Unitarias (`TarjetasPasivasIniciativa.test.tsx`):**
+   - Se certificó con 8 pruebas unitarias usando `renderToStaticMarkup` y tipado estricto sin `any`: renderizado de insignias, renderizado en subtítulo, discriminación entre jugadores y monstruos, resolución reactiva desde el estado de personajes y proyección en sincronización de TaleSpire.
+
+
+**Contexto del Requerimiento:**
+- El Dungeon Master solicitó poder tirar dados directamente hacia TaleSpire desde cualquier ficha del Compendio (monstruos, hechizos y objetos/equipo) sin verse obligado a incorporar la criatura, conjuro u objeto a la cola de combate o tracker de iniciativa.
+
+**Causas Raíz y Limitaciones Previas:**
+1. **Bestiario (`ListaHomebrew.tsx` -> `PanelFichaDnD.tsx`):**
+   - La ficha de monstruos se renderizaba suministrando stubs no operativos: `lanzarAtaqueRapido={() => {}}` y `lanzarTiradaD20Interactiva={() => {}}`. Cualquier intento de tirar ataques o pruebas desde la ficha de criatura quedaba silenciado sin emitir dados 3D.
+   - Si una criatura tenía conjuros conocidos, al pulsar en el conjuro se abría `FichaHechizo` con `ocultarLanzamiento={true}` incondicional.
+2. **Compendio de Conjuros (`ListaHechizos.tsx`, `CompendioConjurosJugador.tsx`, `FichaHechizo.tsx`):**
+   - `ListaHechizos.tsx` forzaba `ocultarLanzamiento={true}` al abrir cualquier ficha de hechizo.
+   - En `FichaHechizo.tsx`, el contenedor de combate exigía `tieneMecanicasCombate || onLanzarConjuro`. Para conjuros utilitarios o rituales sin fórmulas directas de daño o ataque (como *Identificar* o *Detectar Magia*), la caja de lanzamiento quedaba completamente oculta si se visualizaba desde el compendio, impidiendo lanzarlos a TaleSpire o ejecutarlos como ritual.
+3. **Compendio de Equipo y Objetos Mágicos (`ListaHomebrew.tsx`):**
+   - Aunque las armas mostraban sus propiedades estáticas (daño base, versátil, bono mágico), carecían de botonera de tirada hacia TaleSpire (a diferencia de los venenos que ya contaban con botón).
+   - Los objetos con fórmula de recarga de cargas (ej. `1d6+1`) y con hechizos vinculados no permitían tirar sus dados o conjuros desde la ficha.
+   - La descripción del objeto usaba `TextoEnriquecidoDND` en modo plano sin tiradas interactivas.
+4. **Desconexión de Snapshot en Pruebas con React Server (`renderToStaticMarkup` y Zustand):**
+   - En entornos de prueba de Node / SSR, `useSyncExternalStoreWithSelector` de React consulta prioritariamente `api.getServerState || api.getInitialState`. Al no estar definido `getServerState` en el store, Zustand recurría al snapshot inicial en frío (`OBJETOS_INICIALES` con 199 ítems), ignorando las mutaciones dinámicas de `usarAlmacenDM.setState()` durante la renderización estática.
+
+**Soluciones Arquitectónicas Aplicadas:**
+1. **Bestiario Interactivo para DM (`ListaHomebrew.tsx`):**
+   - Se implementaron `lanzarAtaqueRapidoCriatura` y `lanzarTiradaD20Criatura` utilizando `construirFormulaAtaqueRapido` y `lanzarDadosTaleSpire`, condicionados a `esGM`.
+   - Se conectaron directamente a `PanelFichaDnD` (ataques rápidos, salvaciones, características, habilidades y dados embebidos en rasgos).
+   - Al inspeccionar conjuros de una criatura, `FichaHechizo` se instancia con `ocultarLanzamiento={!esGM}`, `permitirUpcastLibre={true}` y `nombrePersonaje={m.nombre}`.
+2. **Habilitación de Combate, Ritual y Upcast Libre en Hechizos (`FichaHechizo.tsx`):**
+   - Se flexibilizó la condición de la caja de lanzamiento en `FichaHechizo.tsx`:
+     `!ocultarLanzamiento && (tieneMecanicasCombate || onLanzarConjuro || hechizo.ritual || permitirUpcastLibre)`.
+   - Se habilitó el panel de selección de ranura si `permitirUpcastLibre` está activo (`nivelBase > 0 && (esEscalable || onLanzarConjuro || permitirUpcastLibre)`).
+   - `ListaHechizos.tsx` y `CompendioConjurosJugador.tsx` ahora derivan `ocultarLanzamiento={!esGM}` y asignan `nombrePersonaje="DM"`.
+3. **Botonera Táctica de Armas, Recargas y Hechizos Vinculados (`ListaHomebrew.tsx`):**
+   - Para armas (`objeto.categoria === "armas"`):
+     - Botón "Tirar Ataque + Daño": construye fórmula unificada de ataque (1d20+bono) y daño aplicándole el modificador mágico si corresponde (`aplicarBonoNumericoAFormulaDados`).
+     - Botón "Ataque (1d20+bono)": tira exclusivamente la prueba de impacto.
+     - Botón "Daño base" y "Daño versátil": tiran sus dados respectivos con el tipo de daño tipado y bono mágico integrado.
+   - Para recargas (`objeto.formulaRecarga`): botón directo "Tirar Recarga (fórmula)".
+   - Para hechizos vinculados (`objeto.hechizosVinculados`): botón "Tirar" (ataque con bono, CD de salvación o tirada d20) y enlace clicable "Ver ficha" para abrir la ficha completa interactiva del conjuro.
+   - En la descripción: `TextoEnriquecidoDND` con `permitirTiradas={esGM}` y `etiquetaTirada={"DM - " + objeto.nombre}`, permitiendo pulsar sobre cualquier dado de texto (ej. "2d6").
+4. **Soporte de `getServerState` en Zustand (`usarAlmacenDM.ts`):**
+   - En `persistenciaMiddleware`, se expuso dinámicamente `(api as unknown as { getServerState?: () => EstadoDM }).getServerState = () => get();`.
+   - Esto sincroniza de forma inmediata `useSyncExternalStore` con el estado dinámico del store durante pruebas con `renderToStaticMarkup`, resolviendo cualquier desfase entre el store y los hooks selectores (`usarEstadoHomebrew`).
+
+**Certificación y Pipeline de Calidad:**
+- **TypeScript:** `pnpm exec tsc --noEmit` completado con 0 errores bajo `strict: true` (interfaces `Arma`, `HechizoBase`, `MonstruoBase` 100% tipadas).
+- **ESLint:** `pnpm run lint` (`--max-warnings=0`) sin errores ni advertencias.
+- **Vitest:** 108 suites de pruebas ejecutadas, **1.630 / 1.630 pruebas aprobadas (100%)**, incluyendo la nueva suite `TiradasCompendioMaster.test.tsx` (7 pruebas unitarias e integración).
+- **Control de Líneas:** 117 archivos auditados vía `pnpm run verificar:lineas`, 0 archivos > 500 líneas en directorios auditados.
+- **Build de Producción:** `pnpm exec vite build` generado con éxito en 13.59s.
+
+---
 
 ## [2026-10-06] Resolución de Saturación de Cola de Iniciativa (sync.send rateLimited) en Pase Rápido de Turnos y Detección Cross-Realm
 
@@ -12842,3 +12924,37 @@ Optimizar la complejidad temporal (Big O) en las operaciones de búsqueda, orden
 - **Vitest**: **104 suites ejecutadas, 1.573/1.573 pruebas unitarias aprobadas (100% éxito)**.
 - **Límite de Líneas**: `node scripts/verificar-limite-lineas.js` auditó **116 archivos** con **0 componentes excediendo el límite de 500 líneas**.
 - **Vite Build**: Compilación de producción (`pnpm exec vite build`) completada con éxito en 11.03s.
+
+
+---
+
+## [2026-10-06] Pre-rellenado de Ataques Rápidos desde Acciones Homebrew
+
+### Contexto y Alcance
+- Se implementó la mejora funcional solicitada para el Creador de Criaturas Homebrew en la pestaña "Listas/Ataques": habilitar botones para pre-rellenar los datos de cualquier ataque o acción existente en el subformulario de Ataques Rápidos (`accionesRapidas`), evitando la reescritura manual.
+
+### Decisiones Arquitectónicas y Correcciones Implementadas
+1. **Lógica Pura y Extracción Desacoplada (SOLID - SRP):**
+   - En `src/utiles/procesadorAtaques.ts` se implementó `extraerDatosAtaqueParaAtaqueRapido` y sus tipos asociados `ParametrosExtraccionAtaque` y `DatosAtaqueRapidoExtraidos`.
+   - Normaliza bonificadores numéricos y de texto (e.g. `5` -> `+5`, `-1` -> `-1`, regex en descripciones para `+X al ataque/impacto/to hit`).
+   - Normaliza fórmulas de dados de daño (eliminando espacios internos como `1d8 + 3` -> `1d8+3`).
+   - Detecta tipos de daño en español e inglés (`perforante`, `cortante`, `contundente`, `fuego`, `frío`, `veneno`, `ácido`, `relámpago`, etc.), soportando formatos con `/` o descripciones ricas (e.g. `1d8+3 perforante más 2d6 veneno`).
+   - Incluye inferencia heurística del tipo de daño en base a palabras clave en el nombre (mordisco -> perforante, garra -> cortante, maza -> contundente).
+   - Añadidas pruebas unitarias completas en `src/utiles/procesadorAtaques.test.ts` (17 pruebas aprobadas).
+
+2. **Gestión de Estado Reactivo en el Hook (`src/hooks/usarFormularioCriatura.ts`):**
+   - Se añadió la acción `preRellenarAtaqueRapido`, que actualiza los estados `tQNombre`, `tQBono`, `tQDados`, `tQTipo`, `danyosExtraQA`, resetea el modo de edición de ataques rápidos previos y notifica al usuario (`agregarNotificacion`).
+
+3. **Integración en Interfaz de Usuario (`SeccionListasAtaques.tsx` y `FormularioCriatura.tsx`):**
+   - Soporte para el valor `"fuerza"` en el selector de tipo de daño rápido manteniendo compatibilidad con `"fuerza_daño"`.
+   - Agregado botón `A Ataque Rápido` con icono `Zap` en el formulario de creación/edición de Acciones Principales y Acciones Adicionales.
+   - Agregado botón rápido `[⚡]` en cada tarjeta de la lista visual de acciones y acciones adicionales, con tooltip descriptivo.
+   - Implementado desplazamiento suave automático (`scrollHaciaAtaquesRapidos`) hacia la sección de Ataques Rápidos para que el usuario visualice inmediatamente los campos pre-rellenados y pueda ajustarlos o pulsar `+`.
+   - Nuevos estilos `.botonCopiarAtaqueRapido` y `.botonCargarAtaqueRapido` en `FormularioCriatura.module.css`.
+
+### Métricas de Verificación
+- **TypeScript**: `pnpm exec tsc --noEmit` completado con **0 errores** (código 0).
+- **ESLint**: `pnpm run lint` completado con **0 errores y 0 advertencias** (`--max-warnings=0`).
+- **Vitest**: **107 suites ejecutadas, 1.623/1.623 pruebas unitarias aprobadas (100% éxito)**.
+- **Límite de Líneas**: `pnpm run verificar:lineas` validó **117 archivos**, **0 componentes excediendo el límite de 500 líneas**.
+- **Vite Build**: `pnpm run build` completado con éxito en 16.70s.

@@ -2,7 +2,8 @@ import { describe, it, expect } from "vitest";
 import {
   desglosarAtaqueRapido,
   construirFormulaAtaqueRapido,
-  formatearDetalleAtaqueRapido
+  formatearDetalleAtaqueRapido,
+  extraerDatosAtaqueParaAtaqueRapido
 } from "./procesadorAtaques";
 
 describe("procesadorAtaques", () => {
@@ -99,6 +100,108 @@ describe("procesadorAtaques", () => {
         "contundente / veneno"
       );
       expect(texto).toBe("Tirar ataque: d20+5 | Daño: 1d6+3 (contundente) + 1d4 (veneno)");
+    });
+  });
+
+  describe("extraerDatosAtaqueParaAtaqueRapido", () => {
+    it("debe extraer datos estructurados de un ataque estándar con propiedades explícitas", () => {
+      const resultado = extraerDatosAtaqueParaAtaqueRapido({
+        nombre: "Espada larga",
+        bonificadorAtaque: 5,
+        daño: "1d8+3",
+        descripcion: "Impacto: 7 (1d8 + 3) de daño cortante."
+      });
+
+      expect(resultado).toEqual({
+        nombre: "Espada larga",
+        bonificadorAtaque: "+5",
+        dadosDaño: "1d8+3",
+        tipoDaño: "cortante",
+        danosAdicionales: []
+      });
+    });
+
+    it("debe extraer bonificador y dados desde la descripción si no vienen en campos individuales", () => {
+      const resultado = extraerDatosAtaqueParaAtaqueRapido({
+        nombre: "Mordisco",
+        descripcion: "Ataque con arma cuerpo a cuerpo: +7 al impacto, alcance 5 pies. Impacto: 11 (2d6 + 4) de daño perforante."
+      });
+
+      expect(resultado).toEqual({
+        nombre: "Mordisco",
+        bonificadorAtaque: "+7",
+        dadosDaño: "2d6+4",
+        tipoDaño: "perforante",
+        danosAdicionales: []
+      });
+    });
+
+    it("debe detectar y desglosar daños múltiples adicionales (ej. veneno)", () => {
+      const resultado = extraerDatosAtaqueParaAtaqueRapido({
+        nombre: "Mordisco ponzoñoso",
+        bonificadorAtaque: "+4",
+        daño: "1d6+2",
+        descripcion: "Impacto: 5 (1d6 + 2) de daño perforante más 7 (2d6) de daño por veneno."
+      });
+
+      expect(resultado).toEqual({
+        nombre: "Mordisco ponzoñoso",
+        bonificadorAtaque: "+4",
+        dadosDaño: "1d6+2",
+        tipoDaño: "perforante",
+        danosAdicionales: [
+          { dados: "2d6", tipo: "veneno" }
+        ]
+      });
+    });
+
+    it("debe manejar formato con barra '/' en el campo de daño", () => {
+      const resultado = extraerDatosAtaqueParaAtaqueRapido({
+        nombre: "Bastón igneo",
+        bonificadorAtaque: 6,
+        daño: "1d6+3 / 1d8 fuego",
+        descripcion: "Ataque mágico."
+      });
+
+      expect(resultado).toEqual({
+        nombre: "Bastón igneo",
+        bonificadorAtaque: "+6",
+        dadosDaño: "1d6+3",
+        tipoDaño: "fuego",
+        danosAdicionales: [
+          { dados: "1d8", tipo: "fuego" }
+        ]
+      });
+    });
+
+    it("debe inferir el tipo de daño por heurística de nombre si no hay indicios en texto", () => {
+      const resultado = extraerDatosAtaqueParaAtaqueRapido({
+        nombre: "Garra brutal",
+        bonificadorAtaque: 3,
+        daño: "1d4+2"
+      });
+
+      expect(resultado).toEqual({
+        nombre: "Garra brutal",
+        bonificadorAtaque: "+3",
+        dadosDaño: "1d4+2",
+        tipoDaño: "cortante",
+        danosAdicionales: []
+      });
+    });
+
+    it("debe ofrecer valores por defecto seguros ante entradas vacías", () => {
+      const resultado = extraerDatosAtaqueParaAtaqueRapido({
+        nombre: ""
+      });
+
+      expect(resultado).toEqual({
+        nombre: "Ataque",
+        bonificadorAtaque: "+0",
+        dadosDaño: "1d6",
+        tipoDaño: "fuerza",
+        danosAdicionales: []
+      });
     });
   });
 });

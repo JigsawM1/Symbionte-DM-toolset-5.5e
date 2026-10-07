@@ -5,7 +5,8 @@ import {
   usarAccionesIniciativa,
   usarEstadoHomebrew,
 } from "@/almacen/selectores";
-import { resolverPlantillaPorCriatura, esNombreVacioODot } from "@/servicios/resolutorCriaturas";
+import { resolverPlantillaPorCriatura, esNombreVacioODot, obtenerPasivasCriatura } from "@/servicios/resolutorCriaturas";
+import type { PasivasCombatePJ } from "@/tipos/sync";
 import {
   esIdInvocacionEscalable,
   obtenerPlantillaInvocacionPorId,
@@ -30,6 +31,7 @@ interface ItemCriaturaIniciativaProps {
   esTurnoActivo: boolean;
   estaSeleccionadaEnTS: boolean;
   plantilla: MonstruoBase | null;
+  pasivasJugador?: PasivasCombatePJ | null;
   rondaActual: number;
   onEliminar: (id: string) => void;
   onSeleccionar: (id: string) => void;
@@ -53,6 +55,7 @@ const ItemCriaturaIniciativa: React.FC<ItemCriaturaIniciativaProps> = React.memo
   esTurnoActivo,
   estaSeleccionadaEnTS,
   plantilla,
+  pasivasJugador,
   rondaActual,
   onEliminar,
   onSeleccionar,
@@ -94,6 +97,7 @@ const ItemCriaturaIniciativa: React.FC<ItemCriaturaIniciativaProps> = React.memo
         esTurnoActivo={esTurnoActivo}
         estaSeleccionadaEnTS={estaSeleccionadaEnTS}
         plantilla={plantilla}
+        pasivasJugador={pasivasJugador}
         rondaActual={rondaActual}
         onEliminar={manejarEliminar}
         onSeleccionar={manejarSeleccionar}
@@ -261,33 +265,13 @@ export const GestorIniciativa: React.FC = () => {
     }
   }, [actualizarVidaTemporal, modificarVidaCriaturaIniciativa]);
 
-  const alCambiarTempHPCriatura = useCallback((id: string, cant: number) => {
-    actualizarVidaTemporal(id, cant);
-  }, [actualizarVidaTemporal]);
-
-  const alAñadirCondicionCriatura = useCallback((id: string, cond: string) => {
-    agregarCondicionACriatura(id, cond);
-  }, [agregarCondicionACriatura]);
-
-  const alQuitarCondicionCriatura = useCallback((id: string, cond: string) => {
-    quitarCondicionDeCriatura(id, cond);
-  }, [quitarCondicionDeCriatura]);
-
-  const alAñadirEfectoCriatura = useCallback((id: string, nom: string, dur: number, opciones?: { concentracion?: boolean }) => {
-    agregarEfectoACriatura(id, nom, dur, opciones);
-  }, [agregarEfectoACriatura]);
-
-  const alQuitarEfectoCriatura = useCallback((id: string, efId: string) => {
-    quitarEfectoDeCriatura(id, efId);
-  }, [quitarEfectoDeCriatura]);
-
-  const alEstablecerIniciativaCriatura = useCallback((id: string, nuevaInic: number) => {
-    establecerIniciativaCriatura(id, nuevaInic);
-  }, [establecerIniciativaCriatura]);
-
-  const alEstablecerVidaMaximaCriatura = useCallback((id: string, nuevaMax: number) => {
-    modificarVidaMaximaCriaturaIniciativa(id, nuevaMax);
-  }, [modificarVidaMaximaCriaturaIniciativa]);
+  const alCambiarTempHPCriatura = useCallback((id: string, cant: number) => actualizarVidaTemporal(id, cant), [actualizarVidaTemporal]);
+  const alAñadirCondicionCriatura = useCallback((id: string, cond: string) => agregarCondicionACriatura(id, cond), [agregarCondicionACriatura]);
+  const alQuitarCondicionCriatura = useCallback((id: string, cond: string) => quitarCondicionDeCriatura(id, cond), [quitarCondicionDeCriatura]);
+  const alAñadirEfectoCriatura = useCallback((id: string, nom: string, dur: number, opciones?: { concentracion?: boolean }) => agregarEfectoACriatura(id, nom, dur, opciones), [agregarEfectoACriatura]);
+  const alQuitarEfectoCriatura = useCallback((id: string, efId: string) => quitarEfectoDeCriatura(id, efId), [quitarEfectoDeCriatura]);
+  const alEstablecerIniciativaCriatura = useCallback((id: string, nuevaInic: number) => establecerIniciativaCriatura(id, nuevaInic), [establecerIniciativaCriatura]);
+  const alEstablecerVidaMaximaCriatura = useCallback((id: string, nuevaMax: number) => modificarVidaMaximaCriaturaIniciativa(id, nuevaMax), [modificarVidaMaximaCriaturaIniciativa]);
 
   const alLanzarIniciativaCriatura = useCallback((criatura: CriaturaIniciativa, plantilla: MonstruoBase | null) => {
     let bonoInic = criatura.bonificadorIniciativa || 0;
@@ -371,6 +355,7 @@ export const GestorIniciativa: React.FC = () => {
                     esTurnoActivo={esTurnoActivo}
                     estaSeleccionadaEnTS={estaSeleccionadaEnTS}
                     plantilla={plantilla}
+                    pasivasJugador={obtenerPasivasCriatura(criatura, personajes)}
                     rondaActual={rondaActual}
                     onEliminar={alEliminarCriatura}
                     onSeleccionar={alSeleccionarCriatura}

@@ -40,6 +40,11 @@ export interface CriaturaIniciativa {
   idPersonajeDuenio?: string;
   idAcompanante?: string;
   esAcompanante?: boolean;
+  pasivas?: {
+    percepcion: number;
+    investigacion: number;
+    perspicacia: number;
+  };
 }
 
 
@@ -106,6 +111,10 @@ const persistenciaMiddleware: PersistenciaMiddleware = (configuradorStore) => (s
       persistirEstadoCompleto(estadoNuevo);
     }
   };
+
+  // Soporte para SSR y pruebas unitarias con renderToStaticMarkup en React 18:
+  // Permite que useSyncExternalStore consulte el estado reactivo actual en lugar del estado congelado en frío.
+  (api as unknown as { getServerState?: () => EstadoDM }).getServerState = () => get();
 
   return configuradorStore(nuevoSet, get, api);
 };

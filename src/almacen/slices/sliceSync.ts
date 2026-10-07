@@ -357,6 +357,7 @@ export const crearSliceSync: StateCreator<
           vidaMaxima: edicionRecienteColaDM ? criatura.vidaMaxima : dto.hpMaximo,
           vidaTemporal: edicionRecienteColaDM ? criatura.vidaTemporal : dto.hpTemporal,
           ca: dto.ca,
+          pasivas: dto.pasivas || criatura.pasivas,
           condiciones: dto.condiciones,
           efectos: dto.efectos,
           movimientoGastado: dto.movimientoGastado ?? criatura.movimientoGastado,

@@ -6,9 +6,12 @@
  *
  */
 
-import type { MonstruoBase } from "@/almacen/usarAlmacenDM";
+import type { MonstruoBase, CriaturaIniciativa } from "@/almacen/usarAlmacenDM";
 import { calcularVidaPorDados } from "@/almacen/sanitizacion";
 import type { IndiceMonstruos } from "./indiceMonstruos";
+import type { PersonajeJugador } from "@/tipos/personaje";
+import type { PasivasCombatePJ } from "@/tipos/sync";
+import { calcularEstadisticasPersonaje } from "@/almacen/selectores/usarEstadoPersonajes";
 
 /**
  * Determina si un nombre está vacío, tiene solo espacios, o es un punto simple (o secuencia de puntos/espacios).
@@ -153,4 +156,53 @@ export function calcularVidaInicial(
   }
 
   return { vidaMaxima: vidaMax, vidaActual: vidaAct };
+}
+
+/**
+ * Localiza el PersonajeJugador asociado a una CriaturaIniciativa (por ID directo, ID de miniatura TS,
+ * ID de dueño o coincidencia de nombres normalizados).
+ */
+export function resolverPersonajePorCriatura(
+  criatura: CriaturaIniciativa,
+  personajes: PersonajeJugador[]
+): PersonajeJugador | undefined {
+  if (criatura.esMonstruo) return undefined;
+
+  return personajes.find(
+    (pj) =>
+      pj.id === criatura.id ||
+      (criatura.idPersonajeDuenio && pj.id === criatura.idPersonajeDuenio) ||
+      (pj.idMiniaturaTS && pj.idMiniaturaTS === criatura.id) ||
+      coincidenNombresTaleSpire(pj.nombre, criatura.nombre)
+  );
+}
+
+/**
+ * Obtiene las puntuaciones pasivas de combate (percepción, investigación y perspicacia)
+ * correspondientes a una criatura de jugador.
+ */
+export function obtenerPasivasCriatura(
+  criatura: CriaturaIniciativa,
+  personajes: PersonajeJugador[]
+): PasivasCombatePJ | null {
+  if (criatura.esMonstruo) {
+    return null;
+  }
+  if (criatura.pasivas) {
+    return criatura.pasivas;
+  }
+  const pj = resolverPersonajePorCriatura(criatura, personajes);
+  if (pj) {
+    const stats = calcularEstadisticasPersonaje(pj);
+    return {
+      percepcion: stats.pasivas?.percepcion ?? 10,
+      investigacion: stats.pasivas?.investigacion ?? 10,
+      perspicacia: stats.pasivas?.perspicacia ?? 10,
+    };
+  }
+  return {
+    percepcion: 10,
+    investigacion: 10,
+    perspicacia: 10,
+  };
 }

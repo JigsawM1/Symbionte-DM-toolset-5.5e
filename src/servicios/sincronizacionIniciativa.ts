@@ -154,7 +154,12 @@ export function sincronizarConEstadoLocal(opciones: OpcionesSincronizacion): Res
         velocidad: `${pjAsociado.velocidad || "30 pies"}`,
         movimientoGastado: pjAsociado.movimientoGastado || 0,
         movimientoMaximoTemporal: pjAsociado.movimientoMaximoTemporal,
-        idPersonajeDuenio: pjAsociado.id
+        idPersonajeDuenio: pjAsociado.id,
+        pasivas: {
+          percepcion: statsPj.pasivas?.percepcion ?? 10,
+          investigacion: statsPj.pasivas?.investigacion ?? 10,
+          perspicacia: statsPj.pasivas?.perspicacia ?? 10,
+        },
       } as CriaturaIniciativa;
     }
 

@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from "react";
 import { coincideBusquedaTolerante, compararPorRelevanciaTitulo } from "@/utiles/busquedaTolerante";
-import { usarEstadoHomebrew } from "@/almacen/selectores";
+import { usarEstadoHomebrew, usarEstadoConfiguracion } from "@/almacen/selectores";
 import { Search, Info } from "lucide-react";
 import { FichaHechizo } from "./FichaHechizo";
 import { SelectorDesplegable, ControlPaginacion } from "@/componentes/comunes";
@@ -24,6 +24,7 @@ const OPCIONES_NIVEL_FILTRO = [
 
 export const ListaHechizos: React.FC = () => {
   const { baseDatosHechizos } = usarEstadoHomebrew();
+  const { esGM } = usarEstadoConfiguracion();
 
   const [busqueda, setBusqueda] = useState("");
   const [nivelFiltro, setNivelFiltro] = useState<number | "todos">("todos");
@@ -185,7 +186,9 @@ export const ListaHechizos: React.FC = () => {
         <div className={estilosClases.panelDetalleOverlay}>
           <FichaHechizo
             hechizo={hechizoSeleccionado}
-            ocultarLanzamiento={true}
+            ocultarLanzamiento={!esGM}
+            permitirUpcastLibre={true}
+            nombrePersonaje="DM"
             onClose={() => setIdHechizoDetalle(null)}
           />
         </div>

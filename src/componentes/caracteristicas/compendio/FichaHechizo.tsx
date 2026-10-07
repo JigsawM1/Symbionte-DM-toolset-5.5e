@@ -341,7 +341,7 @@ export const FichaHechizo: React.FC<FichaHechizoProps> = React.memo(({
         )}
 
         {/* MECÁNICAS DE COMBATE (Daño / CD / Upcasting / Mejora de Truco / Lanzamiento) */}
-        {!ocultarLanzamiento && (tieneMecanicasCombate || onLanzarConjuro) && (
+        {!ocultarLanzamiento && (tieneMecanicasCombate || onLanzarConjuro || hechizo.ritual || permitirUpcastLibre) && (
           <div className={estilosClases.cajaCombate}>
             <div className={estilosClases.tituloCombate}>
               {tieneMecanicasCombate ? "Mecánicas de Combate Integradas" : "Lanzamiento del Conjuro"}
@@ -389,7 +389,7 @@ export const FichaHechizo: React.FC<FichaHechizoProps> = React.memo(({
             </div>
 
             {/* Panel de Upcasting Interactivo para conjuros de nivel 1+ */}
-            {nivelBase > 0 && (esEscalable || onLanzarConjuro) && (
+            {nivelBase > 0 && (esEscalable || onLanzarConjuro || permitirUpcastLibre) && (
               <div className={estilosClases.seccionUpcast}>
                 <div className={estilosClases.lineaDivisoria}></div>
                 <div className={estilosClases.upcastSelectContenedor}>
@@ -500,7 +500,11 @@ export const FichaHechizo: React.FC<FichaHechizoProps> = React.memo(({
         <div className={estilosClases.seccionFicha}>
           <div className={estilosClases.seccionTitulo}>DESCRIPCIÓN DEL CONJURO</div>
           <div className={estilosClases.textoDescripcion}>
-            <TextoEnriquecidoDND texto={hechizo.descripcion} />
+            <TextoEnriquecidoDND
+              texto={hechizo.descripcion}
+              permitirTiradas={!ocultarLanzamiento}
+              etiquetaTirada={hechizo.nombre}
+            />
           </div>
         </div>
 
@@ -511,7 +515,11 @@ export const FichaHechizo: React.FC<FichaHechizoProps> = React.memo(({
             <div 
               className={`${estilosClases.textoDescripcion} ${estilosClases.textoItalica}`}
             >
-              <TextoEnriquecidoDND texto={hechizo.descNivelSuperior} />
+              <TextoEnriquecidoDND
+                texto={hechizo.descNivelSuperior}
+                permitirTiradas={!ocultarLanzamiento}
+                etiquetaTirada={`${hechizo.nombre} (Nivel Superior)`}
+              />
             </div>
           </div>
         )}

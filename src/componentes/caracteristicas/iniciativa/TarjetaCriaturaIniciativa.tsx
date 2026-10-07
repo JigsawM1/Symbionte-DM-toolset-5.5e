@@ -6,6 +6,8 @@ import { ChipCondicion } from "@/componentes/comunes";
 import { formatearVelocidad } from "@/almacen/sanitizacion";
 import { esNombreVacioODot } from "@/servicios/resolutorCriaturas";
 import { formatearDetalleAtaqueRapido } from "@/utiles/procesadorAtaques";
+import type { PasivasCombatePJ } from "@/tipos/sync";
+import { InsigniasPasivasJugador } from "./InsigniasPasivasJugador";
 import estilosClases from "./TarjetaCriaturaIniciativa.module.css";
 
 interface TarjetaCriaturaIniciativaProps {
@@ -13,6 +15,7 @@ interface TarjetaCriaturaIniciativaProps {
   esTurnoActivo: boolean;
   estaSeleccionadaEnTS?: boolean;
   plantilla: MonstruoBase | null;
+  pasivasJugador?: PasivasCombatePJ | null;
   onEliminar: () => void;
   onSeleccionar: () => void;
   onCurar: (cantidad: number) => void;
@@ -30,11 +33,29 @@ interface TarjetaCriaturaIniciativaProps {
   rondaActual?: number;
 }
 
+function obtenerCondicionesVisibles(condiciones: string[] = [], efectos: { nombre: string; concentracion?: boolean }[] = []): string[] {
+  const tieneConcentracion = efectos.some(
+    (ef) => ef.concentracion || ef.nombre.toLowerCase().startsWith("concentra")
+  );
+  const nombresEfectosSet = new Set<string>();
+  efectos.forEach((ef) => {
+    nombresEfectosSet.add(ef.nombre.toLowerCase().trim());
+    nombresEfectosSet.add(ef.nombre.split(" (")[0].toLowerCase().trim());
+  });
+  return condiciones.filter((cond) => {
+    const condMin = cond.toLowerCase().trim();
+    const condBase = cond.split(" (")[0].toLowerCase().trim();
+    if (tieneConcentracion && condMin.includes("concentra")) return false;
+    return !nombresEfectosSet.has(condMin) && !nombresEfectosSet.has(condBase);
+  });
+}
+
 export const TarjetaCriaturaIniciativa: React.FC<TarjetaCriaturaIniciativaProps> = React.memo(({
   criatura,
   esTurnoActivo,
   estaSeleccionadaEnTS = false,
   plantilla,
+  pasivasJugador,
   rondaActual,
   onEliminar,
   onSeleccionar,
@@ -51,6 +72,7 @@ export const TarjetaCriaturaIniciativa: React.FC<TarjetaCriaturaIniciativaProps>
   onLanzarAtaqueRapido,
   obtenerPercepcionPasiva
 }) => {
+  const pasivasEfectivas = pasivasJugador || criatura.pasivas || null;
   const [hpInput, setHpInput] = useState("");
   const [dropdownAbierto, setDropdownAbierto] = useState<"condicion" | "efecto" | null>(null);
   const [editandoIniciativa, setEditandoIniciativa] = useState(false);
@@ -67,53 +89,39 @@ export const TarjetaCriaturaIniciativa: React.FC<TarjetaCriaturaIniciativaProps>
 
   const ejecutarCuracion = () => {
     const valor = parseInt(hpInput, 10);
-    if (isNaN(valor) || valor <= 0) return;
-    onCurar(valor);
-    setHpInput("");
+    if (!isNaN(valor) && valor > 0) { onCurar(valor); setHpInput(""); }
   };
 
   const ejecutarDaño = () => {
     const valor = parseInt(hpInput, 10);
-    if (isNaN(valor) || valor <= 0) return;
-    onDañar(valor);
-    setHpInput("");
+    if (!isNaN(valor) && valor > 0) { onDañar(valor); setHpInput(""); }
   };
 
-  // Manejo de cambio de iniciativa en caliente (tiempo real)
   const manejarCambioIniciativa = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const valStr = e.target.value;
-    setValorIniciativaTemp(valStr);
-    const valNum = parseInt(valStr, 10);
-    if (!isNaN(valNum)) {
-      onEstablecerIniciativa(valNum);
-    }
+    setValorIniciativaTemp(e.target.value);
+    const valNum = parseInt(e.target.value, 10);
+    if (!isNaN(valNum)) onEstablecerIniciativa(valNum);
   };
 
-  // Finalizar edición manual de iniciativa
   const finalizarEdicionIniciativa = () => {
     const valor = parseInt(valorIniciativaTemp, 10);
-    if (isNaN(valor)) {
-      onEstablecerIniciativa(iniciativaOriginalRef.current);
-    }
+    if (isNaN(valor)) onEstablecerIniciativa(iniciativaOriginalRef.current);
     setEditandoIniciativa(false);
     setValorIniciativaTemp("");
   };
 
-  // Cancelar edición manual de iniciativa y restaurar valor inicial
   const cancelarEdicionIniciativa = () => {
     onEstablecerIniciativa(iniciativaOriginalRef.current);
     setEditandoIniciativa(false);
     setValorIniciativaTemp("");
   };
 
-  // Activar modo edición de iniciativa
   const activarEdicionIniciativa = () => {
     iniciativaOriginalRef.current = criatura.iniciativa;
     setValorIniciativaTemp(String(criatura.iniciativa));
     setEditandoIniciativa(true);
   };
 
-  // Focus automático al activar edición de iniciativa
   useEffect(() => {
     if (editandoIniciativa && refInputIniciativa.current) {
       refInputIniciativa.current.focus();
@@ -121,12 +129,8 @@ export const TarjetaCriaturaIniciativa: React.FC<TarjetaCriaturaIniciativaProps>
     }
   }, [editandoIniciativa]);
 
-  // Manejar cambio numérico de vida máxima (solo actualiza el estado local durante la escritura)
-  const manejarCambioVidaMaxima = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setValorVidaMaximaTemp(e.target.value);
-  };
+  const manejarCambioVidaMaxima = (e: React.ChangeEvent<HTMLInputElement>) => setValorVidaMaximaTemp(e.target.value);
 
-  // Finalizar edición manual de vida máxima y emitir cambio seguro al store
   const finalizarEdicionVidaMaxima = () => {
     const valor = parseInt(valorVidaMaximaTemp, 10);
     if (!isNaN(valor) && valor > 0 && onEstablecerVidaMaxima) {
@@ -138,21 +142,18 @@ export const TarjetaCriaturaIniciativa: React.FC<TarjetaCriaturaIniciativaProps>
     setValorVidaMaximaTemp("");
   };
 
-  // Cancelar edición manual de vida máxima y restaurar valor inicial
   const cancelarEdicionVidaMaxima = () => {
     if (onEstablecerVidaMaxima) onEstablecerVidaMaxima(vidaMaximaOriginalRef.current);
     setEditandoVidaMaxima(false);
     setValorVidaMaximaTemp("");
   };
 
-  // Activar modo edición de vida máxima
   const activarEdicionVidaMaxima = () => {
     vidaMaximaOriginalRef.current = criatura.vidaMaxima;
     setValorVidaMaximaTemp(String(criatura.vidaMaxima));
     setEditandoVidaMaxima(true);
   };
 
-  // Focus automático al activar edición de vida máxima
   useEffect(() => {
     if (editandoVidaMaxima && refInputVidaMaxima.current) {
       refInputVidaMaxima.current.focus();
@@ -241,41 +242,33 @@ export const TarjetaCriaturaIniciativa: React.FC<TarjetaCriaturaIniciativaProps>
             </span>
             <span className={estilosClases.subtituloCriatura}>
               CA: <strong className={estilosClases.valorMetaCianFuente}>{criatura.ca}</strong> | Inic: <strong className={estilosClases.valorMetaAmarilloFuente}>{(criatura.bonificadorIniciativa ?? 0) >= 0 ? `+${criatura.bonificadorIniciativa ?? 0}` : criatura.bonificadorIniciativa}</strong> <br /> Vel: {formatearVelocidad(criatura.velocidad)}
-              {plantilla && (
+              {!criatura.esMonstruo && pasivasEfectivas ? (
+                <>
+                  <br />
+                  <span title="Percepción Pasiva">PP: <strong className={estilosClases.valorMetaCianFuente}>{pasivasEfectivas.percepcion}</strong></span>
+                  {" | "}
+                  <span title="Investigación Pasiva">Inv: <strong className={estilosClases.valorMetaCianFuente}>{pasivasEfectivas.investigacion}</strong></span>
+                  {" | "}
+                  <span title="Perspicacia Pasiva">Pers: <strong className={estilosClases.valorMetaCianFuente}>{pasivasEfectivas.perspicacia}</strong></span>
+                </>
+              ) : plantilla ? (
                 <>
                   <br />  PP: <strong className={estilosClases.valorMetaCianFuente}>{obtenerPercepcionPasiva(plantilla)}</strong>
                 </>
-              )}
+              ) : null}
             </span>
           </div>
         </div>
 
         {/* Chips de Condiciones */}
         <div className={estilosClases.filaCondicionesChips}>
-          {(() => {
-            const tieneEfectoConcentracion = (criatura.efectos || []).some(
-              (ef) => ef.concentracion || ef.nombre.toLowerCase().startsWith("concentra")
-            );
-            const nombresEfectosSet = new Set<string>();
-            (criatura.efectos || []).forEach((ef) => {
-              nombresEfectosSet.add(ef.nombre.toLowerCase().trim());
-              nombresEfectosSet.add(ef.nombre.split(" (")[0].toLowerCase().trim());
-            });
-            const condicionesVisibles = (criatura.condiciones || []).filter((cond) => {
-              const condMin = cond.toLowerCase().trim();
-              const condBase = cond.split(" (")[0].toLowerCase().trim();
-              if (tieneEfectoConcentracion && condMin.includes("concentra")) return false;
-              if (nombresEfectosSet.has(condMin) || nombresEfectosSet.has(condBase)) return false;
-              return true;
-            });
-            return condicionesVisibles.map((cond) => (
-              <ChipCondicion
-                key={cond}
-                nombre={cond}
-                onQuitar={() => onQuitarCondicion(cond)}
-              />
-            ));
-          })()}
+          {obtenerCondicionesVisibles(criatura.condiciones, criatura.efectos).map((cond) => (
+            <ChipCondicion
+              key={cond}
+              nombre={cond}
+              onQuitar={() => onQuitarCondicion(cond)}
+            />
+          ))}
 
           {criatura.vidaActual > 0 && criatura.vidaActual < (criatura.vidaMaxima / 2) && (
             <ChipCondicion nombre="Desangrándose" esDesangrado />
@@ -388,6 +381,8 @@ export const TarjetaCriaturaIniciativa: React.FC<TarjetaCriaturaIniciativaProps>
               </button>
             ))}
           </div>
+        ) : !criatura.esMonstruo && pasivasEfectivas ? (
+          <InsigniasPasivasJugador pasivas={pasivasEfectivas} />
         ) : (
           <div className={estilosClases.sinAccionesAviso}>
             {criatura.esMonstruo ? "Sin ataques rápidos cargados" : "Ficha de Jugador"}
@@ -436,11 +431,7 @@ export const TarjetaCriaturaIniciativa: React.FC<TarjetaCriaturaIniciativaProps>
         <div className={estilosClases.inputsSaludFila}>
           {/* Control HP Vertical Curar/Dañar */}
           <div className={estilosClases.controlHPVertical}>
-            <button
-              onClick={ejecutarCuracion}
-              className={estilosClases.botonCurarVertical}
-              title="Aplicar Curación"
-            >
+            <button onClick={ejecutarCuracion} className={estilosClases.botonCurarVertical} title="Aplicar Curación">
               CURAR
             </button>
             <input
@@ -449,18 +440,10 @@ export const TarjetaCriaturaIniciativa: React.FC<TarjetaCriaturaIniciativaProps>
               min="0"
               value={hpInput}
               onChange={(e) => setHpInput(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  ejecutarDaño();
-                }
-              }}
+              onKeyDown={(e) => { if (e.key === "Enter") ejecutarDaño(); }}
               className={estilosClases.inputHPVertical}
             />
-            <button
-              onClick={ejecutarDaño}
-              className={estilosClases.botonDañoVertical}
-              title="Aplicar Daño"
-            >
+            <button onClick={ejecutarDaño} className={estilosClases.botonDañoVertical} title="Aplicar Daño">
               DAÑO
             </button>
           </div>

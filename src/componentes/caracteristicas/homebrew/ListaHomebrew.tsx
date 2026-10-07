@@ -4,6 +4,7 @@ import { coincideBusquedaTolerante, compararPorRelevanciaTitulo } from "@/utiles
 import {
   usarEstadoHomebrew,
   usarAccionesHomebrew,
+  usarEstadoConfiguracion,
 } from "@/almacen/selectores";
 import { MonstruoBase, HechizoBase, ObjetoHomebrew, ObjetoJuego, Arma, Armadura, Escudo } from "@/tipos";
 import { DICCIONARIO_CATEGORIAS_EQUIPO } from "@/constantes/categoriasEquipoConstantes";
@@ -25,6 +26,8 @@ import { ConfirmDialog, SelectorDesplegable, TextoEnriquecidoDND } from "@/compo
 import { FichaHechizo } from "@/componentes/caracteristicas/compendio";
 import { PanelFichaDnD } from "@/componentes/caracteristicas/iniciativa";
 import { lanzarDadosTaleSpire, sanitizarEtiqueta } from "@/utiles/lanzadorDados";
+import { construirFormulaAtaqueRapido } from "@/utiles/procesadorAtaques";
+import { aplicarBonoNumericoAFormulaDados } from "@/utiles/utilesConjuros";
 import { formatearSubtituloCriatura } from "@/almacen/sanitizacion";
 
 function parsearCR(desafioRaw: string | number | undefined): number {
@@ -59,6 +62,37 @@ export const ListaHomebrew: React.FC<Props> = ({
   soloLectura = false
 }) => {
   const { baseDatosMonstruos, baseDatosHechizos, objetosHomebrew } = usarEstadoHomebrew();
+  const { esGM } = usarEstadoConfiguracion();
+
+  // Lanzar ataques y tiradas de d20 para el Master desde el compendio sin necesidad de iniciativa
+  const lanzarAtaqueRapidoCriatura = (
+    criaturaNombre: string,
+    ataqueNombre: string,
+    bonoAtaqueStr: string,
+    dadosDaño: string,
+    tipoDaño: string
+  ) => {
+    if (!esGM) return;
+    const formulaDados = construirFormulaAtaqueRapido(
+      ataqueNombre,
+      bonoAtaqueStr,
+      dadosDaño,
+      tipoDaño,
+      criaturaNombre
+    );
+    lanzarDadosTaleSpire(formulaDados, `${criaturaNombre} - ${ataqueNombre}`);
+  };
+
+  const lanzarTiradaD20Criatura = (
+    criaturaNombre: string,
+    etiqueta: string,
+    bonificador: number
+  ) => {
+    if (!esGM) return;
+    const etiquetaCompleta = `${sanitizarEtiqueta(criaturaNombre)} - ${sanitizarEtiqueta(etiqueta)}`;
+    const formulaDados = `!${etiquetaCompleta}:1d20${bonificador >= 0 ? "+" : ""}${bonificador}`;
+    lanzarDadosTaleSpire(formulaDados, `${criaturaNombre} - ${etiqueta}`);
+  };
   const {
     eliminarMonstruoHomebrew,
     eliminarHechizoHomebrew,
@@ -495,8 +529,8 @@ export const ListaHomebrew: React.FC<Props> = ({
                 plantilla={m}
                 baseDatosHechizos={baseDatosHechizos}
                 alHacerClicHechizo={(hechizo) => setIdHechizoDetalleCreador(hechizo.id)}
-                lanzarAtaqueRapido={() => {}}
-                lanzarTiradaD20Interactiva={() => {}}
+                lanzarAtaqueRapido={lanzarAtaqueRapidoCriatura}
+                lanzarTiradaD20Interactiva={lanzarTiradaD20Criatura}
                 obtenerPercepcionPasiva={() =>
                   typeof m.sentidos === "object" && m.sentidos !== null
                     ? m.sentidos.percepcionPasiva || 10
@@ -516,7 +550,9 @@ export const ListaHomebrew: React.FC<Props> = ({
           <div className={estilos.panelDetalleOverlay}>
             <FichaHechizo
               hechizo={hechizo}
-              ocultarLanzamiento={true}
+              ocultarLanzamiento={!esGM}
+              permitirUpcastLibre={true}
+              nombrePersonaje="DM"
               onClose={() => setIdHechizoDetalleCreador(null)}
               onEditar={
                 !soloLectura && iniciarEdicionHechizo
@@ -666,10 +702,77 @@ export const ListaHomebrew: React.FC<Props> = ({
               {/* MECÁNICAS DE COMBATE DE ARMA */}
               {objeto.categoria === "armas" && (() => {
                 const arma = objeto as Arma;
+                const bonoMagico = objeto.modificadorAtaqueDano || 0;
+                const bonoMagicoStr = bonoMagico !== 0 ? (bonoMagico >= 0 ? `+${bonoMagico}` : `${bonoMagico}`) : "";
+                const tipoDanoNorm = arma.tipoDano || "físico";
+
+                const tirarAtaqueSolo = () => {
+                  const formulaAtaque = bonoMagico !== 0
+                    ? `!Ataque ${objeto.nombre}:1d20${bonoMagico >= 0 ? "+" : ""}${bonoMagico}`
+                    : `!Ataque ${objeto.nombre}:1d20`;
+                  lanzarDadosTaleSpire(formulaAtaque, `DM - Ataque ${objeto.nombre}`);
+                };
+
+                const tirarDanoBase = () => {
+                  if (!arma.dadoDano) return;
+                  const formulaDano = bonoMagico !== 0
+                    ? aplicarBonoNumericoAFormulaDados(arma.dadoDano, bonoMagico)
+                    : arma.dadoDano;
+                  lanzarDadosTaleSpire(`!Daño ${objeto.nombre} (${tipoDanoNorm}):${formulaDano}`, `DM - Daño ${objeto.nombre}`);
+                };
+
+                const tirarDanoVersatil = () => {
+                  if (!arma.danoVersatil) return;
+                  const formulaDano = bonoMagico !== 0
+                    ? aplicarBonoNumericoAFormulaDados(arma.danoVersatil, bonoMagico)
+                    : arma.danoVersatil;
+                  lanzarDadosTaleSpire(`!Daño Versátil ${objeto.nombre} (${tipoDanoNorm}):${formulaDano}`, `DM - Daño Versátil ${objeto.nombre}`);
+                };
+
+                const tirarAtaqueYDanio = () => {
+                  if (!arma.dadoDano) {
+                    tirarAtaqueSolo();
+                    return;
+                  }
+                  const formulaDano = bonoMagico !== 0
+                    ? aplicarBonoNumericoAFormulaDados(arma.dadoDano, bonoMagico)
+                    : arma.dadoDano;
+                  const formulaCompleta = construirFormulaAtaqueRapido(
+                    objeto.nombre,
+                    bonoMagico !== 0 ? bonoMagicoStr : "+0",
+                    formulaDano,
+                    tipoDanoNorm,
+                    "DM"
+                  );
+                  lanzarDadosTaleSpire(formulaCompleta, `DM - ${objeto.nombre}`);
+                };
+
                 return (
                   <div className={estilos.cajaMecanicasCombateObjeto}>
-                    <div className={estilos.tituloMecanicasObjeto}>
-                      Propiedades de Combate del Arma
+                    <div className={estilos.tituloMecanicasObjetoConBotones}>
+                      <span>Propiedades de Combate del Arma</span>
+                      {esGM && (
+                        <div className={estilos.grupoBotonesTiradasArma}>
+                          <button
+                            type="button"
+                            onClick={tirarAtaqueYDanio}
+                            className={estilos.botonTirarAtaqueArma}
+                            title="Lanzar tirada de ataque + daño en TaleSpire"
+                          >
+                            <Dices size={12} />
+                            <span>Tirar Ataque + Daño</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={tirarAtaqueSolo}
+                            className={estilos.botonTirarMecanicaObjeto}
+                            title={`Lanzar tirada de ataque (1d20${bonoMagicoStr}) en TaleSpire`}
+                          >
+                            <Dices size={12} />
+                            <span>Ataque (1d20{bonoMagicoStr})</span>
+                          </button>
+                        </div>
+                      )}
                     </div>
                     <div className={estilos.gridMecanicas}>
                       {arma.dadoDano && (
@@ -678,6 +781,17 @@ export const ListaHomebrew: React.FC<Props> = ({
                           <strong className={estilos.valorMecanicaDano}>
                             {arma.dadoDano} ({arma.tipoDano ? arma.tipoDano.charAt(0).toUpperCase() + arma.tipoDano.slice(1) : ""})
                           </strong>
+                          {esGM && (
+                            <button
+                              type="button"
+                              onClick={tirarDanoBase}
+                              className={estilos.botonTirarDanoArma}
+                              title={`Lanzar daño base (${arma.dadoDano}${bonoMagicoStr}) en TaleSpire`}
+                            >
+                              <Dices size={11} />
+                              <span>Tirar ({arma.dadoDano}{bonoMagicoStr})</span>
+                            </button>
+                          )}
                         </div>
                       )}
                       {arma.maestria && (
@@ -692,6 +806,17 @@ export const ListaHomebrew: React.FC<Props> = ({
                         <div className={estilos.itemMecanica}>
                           <span className={estilos.textoEtiquetaMecanica}>A dos manos: </span>
                           <strong className={estilos.valorMecanicaDano}>{arma.danoVersatil}</strong>
+                          {esGM && (
+                            <button
+                              type="button"
+                              onClick={tirarDanoVersatil}
+                              className={estilos.botonTirarDanoArma}
+                              title={`Lanzar daño a dos manos (${arma.danoVersatil}${bonoMagicoStr}) en TaleSpire`}
+                            >
+                              <Dices size={11} />
+                              <span>Tirar Versátil ({arma.danoVersatil}{bonoMagicoStr})</span>
+                            </button>
+                          )}
                         </div>
                       )}
                       {arma.municionRequerida !== undefined && (
@@ -841,6 +966,19 @@ export const ListaHomebrew: React.FC<Props> = ({
                           {objeto.cargas}
                           {objeto.formulaRecarga && ` (${objeto.formulaRecarga})`}
                         </strong>
+                        {esGM && objeto.formulaRecarga && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              lanzarDadosTaleSpire(objeto.formulaRecarga!, `DM - Recarga ${objeto.nombre}`);
+                            }}
+                            className={estilos.botonTirarRecarga}
+                            title={`Tirar fórmula de recarga (${objeto.formulaRecarga}) en TaleSpire`}
+                          >
+                            <Dices size={11} />
+                            <span>Tirar Recarga</span>
+                          </button>
+                        )}
                       </div>
                     )}
                     {objeto.sintonizacionRequerida && (
@@ -954,22 +1092,61 @@ export const ListaHomebrew: React.FC<Props> = ({
                 <div className={estilos.seccionDescripcionFichaMargenGrande}>
                   <div className={estilos.descripcionTituloFicha}>HECHIZOS VINCULADOS AL OBJETO</div>
                   <div className={`${estilos.listaBonosMagicos} u-flex u-flex-col u-gap-xs`}>
-                    {objeto.hechizosVinculados.map((hechizo: { nombre: string; cd?: number; bonoAtaque?: number; costeCargas?: number }, idx: number) => (
-                      <div key={idx} className={`${estilos.cajaBonoMagico} ${estilos.cajaHechizoVinculado}`}>
-                        <div>
-                          <strong className={estilos.nombreHechizoVinculado}>{hechizo.nombre}</strong>
-                          <div className={estilos.subDetallesHechizoVinculado}>
-                            {hechizo.cd !== undefined && <span>CD {hechizo.cd}</span>}
-                            {hechizo.bonoAtaque !== undefined && <span>Ataque: +{hechizo.bonoAtaque}</span>}
+                    {objeto.hechizosVinculados.map((hechizo: { nombre: string; cd?: number; bonoAtaque?: number; costeCargas?: number }, idx: number) => {
+                      const hechizoEnBD = baseDatosHechizos.find(
+                        (h) => h.id === hechizo.nombre.toLowerCase().replace(/\s+/g, "-") ||
+                               normalizarTexto(h.nombre) === normalizarTexto(hechizo.nombre)
+                      );
+
+                      const tirarHechizoVinculado = () => {
+                        const etiqueta = sanitizarEtiqueta(`DM - ${hechizo.nombre} (${objeto.nombre})`);
+                        if (hechizo.bonoAtaque !== undefined && !isNaN(Number(hechizo.bonoAtaque))) {
+                          const bonoSigno = Number(hechizo.bonoAtaque) >= 0 ? `+${hechizo.bonoAtaque}` : `${hechizo.bonoAtaque}`;
+                          lanzarDadosTaleSpire(`!Ataque ${hechizo.nombre}:1d20${bonoSigno}`, `Ataque Mágico: ${etiqueta}`);
+                        } else if (hechizo.cd !== undefined && !isNaN(Number(hechizo.cd))) {
+                          lanzarDadosTaleSpire("1d20", `Salvación vs CD ${hechizo.cd} (${etiqueta})`);
+                        } else if (hechizoEnBD) {
+                          setIdHechizoDetalleCreador(hechizoEnBD.id);
+                        } else {
+                          lanzarDadosTaleSpire("1d20", etiqueta);
+                        }
+                      };
+
+                      return (
+                        <div key={idx} className={`${estilos.cajaBonoMagico} ${estilos.cajaHechizoVinculado}`}>
+                          <div
+                            onClick={hechizoEnBD ? () => setIdHechizoDetalleCreador(hechizoEnBD.id) : undefined}
+                            className={hechizoEnBD ? estilos.enlaceHechizoVinculado : undefined}
+                            title={hechizoEnBD ? `Ver ficha completa de ${hechizo.nombre}` : undefined}
+                          >
+                            <strong className={estilos.nombreHechizoVinculado}>{hechizo.nombre}</strong>
+                            <div className={estilos.subDetallesHechizoVinculado}>
+                              {hechizo.cd !== undefined && <span>CD {hechizo.cd}</span>}
+                              {hechizo.bonoAtaque !== undefined && <span>Ataque: +{hechizo.bonoAtaque}</span>}
+                              {hechizoEnBD && <span className={estilos.badgeVerFichaHechizo}>Ver ficha</span>}
+                            </div>
+                          </div>
+                          <div className="u-flex u-items-center u-gap-xs">
+                            {hechizo.costeCargas !== undefined && (
+                              <span className={estilos.badgeCosteCargas}>
+                                Coste: {hechizo.costeCargas} carga{hechizo.costeCargas > 1 ? "s" : ""}
+                              </span>
+                            )}
+                            {esGM && (
+                              <button
+                                type="button"
+                                onClick={tirarHechizoVinculado}
+                                className={estilos.botonTirarHechizoVinculado}
+                                title={`Lanzar tirada de ${hechizo.nombre} en TaleSpire`}
+                              >
+                                <Dices size={11} />
+                                <span>Tirar</span>
+                              </button>
+                            )}
                           </div>
                         </div>
-                        {hechizo.costeCargas !== undefined && (
-                          <span className={estilos.badgeCosteCargas}>
-                            Coste: {hechizo.costeCargas} carga{hechizo.costeCargas > 1 ? "s" : ""}
-                          </span>
-                        )}
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
               )}
@@ -1082,7 +1259,11 @@ export const ListaHomebrew: React.FC<Props> = ({
                   DESCRIPCIÓN DEL OBJETO MÁGICO
                 </div>
                 <div className={estilos.descripcionCuerpoFicha}>
-                  <TextoEnriquecidoDND texto={objeto.descripcion} />
+                  <TextoEnriquecidoDND
+                    texto={objeto.descripcion}
+                    permitirTiradas={esGM}
+                    etiquetaTirada={`DM - ${objeto.nombre}`}
+                  />
                 </div>
               </div>
             </div>

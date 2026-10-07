@@ -48,3 +48,4 @@ skills-lock.json
 respaldo.yaml
 .agents/hooks.json
 .cursor/hooks.json
+/docs

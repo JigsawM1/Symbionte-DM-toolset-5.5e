@@ -42,6 +42,7 @@ export const FormularioCriatura: React.FC<Props> = ({
     iniciarEditarQuickAction,
     cancelarEditarQuickAction,
     eliminarQuickActionIdx,
+    preRellenarAtaqueRapido,
 
     // Rasgos
     tRasgoNombre, setTRasgoNombre,
@@ -221,6 +222,7 @@ export const FormularioCriatura: React.FC<Props> = ({
           iniciarEditarQuickAction={iniciarEditarQuickAction}
           cancelarEditarQuickAction={cancelarEditarQuickAction}
           eliminarQuickActionIdx={eliminarQuickActionIdx}
+          preRellenarAtaqueRapido={preRellenarAtaqueRapido}
 
           tRasgoNombre={tRasgoNombre} setTRasgoNombre={setTRasgoNombre}
           tRasgoDesc={tRasgoDesc} setTRasgoDesc={setTRasgoDesc}

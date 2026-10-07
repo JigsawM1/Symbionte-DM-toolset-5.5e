@@ -1,9 +1,12 @@
 import React from "react";
+import { renderizarTextoConDadosInteractivos } from "@/utiles/lanzadorDados";
 import estilos from "./TextoEnriquecidoDND.module.css";
 
 export interface TextoEnriquecidoDNDProps {
   texto: string;
   className?: string;
+  permitirTiradas?: boolean;
+  etiquetaTirada?: string;
 }
 
 /**
@@ -31,11 +34,23 @@ function normalizarContenidoSeguro(texto: string): string {
   return limpio;
 }
 
-export const TextoEnriquecidoDND: React.FC<TextoEnriquecidoDNDProps> = React.memo(({ texto, className }) => {
+export const TextoEnriquecidoDND: React.FC<TextoEnriquecidoDNDProps> = React.memo(({
+  texto,
+  className,
+  permitirTiradas = false,
+  etiquetaTirada
+}) => {
   if (!texto) return null;
 
   const textoSeguro = normalizarContenidoSeguro(texto);
   const parrafos = textoSeguro.split(/\n\s*\n/);
+
+  const procesarTextoNodos = (txt: string): React.ReactNode => {
+    if (permitirTiradas && etiquetaTirada) {
+      return renderizarTextoConDadosInteractivos(txt, etiquetaTirada);
+    }
+    return txt;
+  };
 
   return (
     <>
@@ -54,7 +69,7 @@ export const TextoEnriquecidoDND: React.FC<TextoEnriquecidoDNDProps> = React.mem
                       const contenido = parte.slice(3, -3);
                       return (
                         <strong key={parteIdx} className={estilos.subtituloRasgoModal}>
-                          <em>{contenido}</em>{" "}
+                          <em>{procesarTextoNodos(contenido)}</em>{" "}
                         </strong>
                       );
                     }
@@ -62,7 +77,7 @@ export const TextoEnriquecidoDND: React.FC<TextoEnriquecidoDNDProps> = React.mem
                       const contenido = parte.slice(2, -2);
                       return (
                         <strong key={parteIdx} className={estilos.negritaModal}>
-                          {contenido}{" "}
+                          {procesarTextoNodos(contenido)}{" "}
                         </strong>
                       );
                     }
@@ -70,12 +85,12 @@ export const TextoEnriquecidoDND: React.FC<TextoEnriquecidoDNDProps> = React.mem
                       const contenido = parte.slice(1, -1);
                       return (
                         <em key={parteIdx} className={estilos.cursivaColoreadaModal}>
-                          {contenido}
+                          {procesarTextoNodos(contenido)}
                         </em>
                       );
                     }
 
-                    return <span key={parteIdx}>{parte}</span>;
+                    return <span key={parteIdx}>{procesarTextoNodos(parte)}</span>;
                   })}
                   {lIdx < lineas.length - 1 && <br />}
                 </React.Fragment>

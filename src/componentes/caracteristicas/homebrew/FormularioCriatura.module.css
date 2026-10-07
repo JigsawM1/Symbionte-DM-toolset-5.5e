@@ -735,3 +735,30 @@
 .inputLegendariasTotal {
   max-width: 160px;
 }
+
+.botonCopiarAtaqueRapido {
+  color: #f59e0b;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.botonCopiarAtaqueRapido:hover {
+  background-color: rgba(245, 158, 11, 0.15);
+  color: #fbbf24;
+}
+
+.botonCargarAtaqueRapido {
+  background-color: rgba(245, 158, 11, 0.12);
+  border: 1px solid rgba(245, 158, 11, 0.4);
+  color: #fbbf24;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.botonCargarAtaqueRapido:hover {
+  background-color: rgba(245, 158, 11, 0.22);
+  border-color: #f59e0b;
+  color: #ffffff;
+}

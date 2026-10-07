@@ -33,7 +33,7 @@
 .inputBrutal {
   border: none;
   background: none;
-  font-size: 12px;
+  font-size: var(--dm-fuente-minima, 12px);
   padding: 0;
   width: 160px;
   color: var(--color-texto-principal);
@@ -65,7 +65,7 @@
 
 .botonAccionPrincipal {
   height: 30px;
-  font-size: 12px;
+  font-size: var(--dm-fuente-minima, 12px);
   padding: 4px 8px;
   display: flex;
   align-items: center;
@@ -73,7 +73,7 @@
   border: 1px solid var(--color-borde-brutal);
   color: var(--color-texto-principal);
   cursor: pointer;
-  border-radius: 2px;
+  border-radius: var(--dm-radio-control, 2px);
 }
 
 .botonAccionPrincipal:hover {
@@ -92,7 +92,7 @@
   border: 1px solid var(--color-borde-brutal);
   color: var(--color-texto-principal);
   cursor: pointer;
-  border-radius: 2px;
+  border-radius: var(--dm-radio-control, 2px);
 }
 
 .botonNavegacionTurno:hover {
@@ -110,35 +110,35 @@
 
 .botonTirada {
   height: 24px;
-  font-size: 11px;
+  font-size: var(--dm-fuente-minima, 11px);
   padding: 2px 8px;
   border: none;
   background: none;
   cursor: pointer;
   color: var(--color-texto-secundario);
-  border-radius: 2px;
+  border-radius: var(--dm-radio-control, 2px);
 }
 
 .botonTirada:hover {
   color: var(--color-texto-principal);
-  background-color: rgba(255, 255, 255, 0.05);
+  background-color: rgba(var(--dm-rgb-neutro, 255, 255, 255), 0.05);
 }
 
 .botonDesventajaActivo {
-  background-color: rgba(242, 92, 84, 0.2) !important;
-  color: var(--color-peligro) !important;
+  background-color: rgba(var(--dm-rgb-peligro, 242, 92, 84), 0.2) !important;
+  color: var(--dm-texto-peligro, var(--color-peligro)) !important;
   font-weight: bold;
 }
 
 .botonPlanoActivo {
   background-color: var(--color-primario) !important;
-  color: #ffffff !important;
+  color: var(--dm-texto-principal, #ffffff) !important;
   font-weight: bold;
 }
 
 .botonVentajaActivo {
-  background-color: rgba(0, 245, 212, 0.2) !important;
-  color: var(--color-exito) !important;
+  background-color: rgba(var(--dm-rgb-cian, 0, 245, 212), 0.2) !important;
+  color: var(--dm-texto-exito, var(--color-exito)) !important;
   font-weight: bold;
 }
 
@@ -169,7 +169,7 @@
 }
 
 .rondaTexto {
-  font-size: 12px;
+  font-size: var(--dm-fuente-minima, 12px);
   font-weight: bold;
   white-space: nowrap;
   color: var(--color-texto-principal);
@@ -180,10 +180,31 @@
 }
 
 .iconoAlerta {
-  color: var(--color-advertencia);
+  color: var(--dm-texto-advertencia, var(--color-advertencia));
   margin-right: 4px;
 }
 
 .numeroRonda {
   color: var(--color-borde-cian);
+}
+
+@media (max-width: 620px) {
+  :global([data-tema="dm"]) .barraControles {
+    justify-content: space-between;
+  }
+
+  :global([data-tema="dm"]) .bloqueBusqueda {
+    flex: 1 1 100%;
+    min-width: 0;
+  }
+
+  :global([data-tema="dm"]) .bloqueBusqueda > * {
+    flex: 1;
+    min-width: 0;
+  }
+
+  :global([data-tema="dm"]) .inputBrutal {
+    width: 100%;
+    min-width: 0;
+  }
 }

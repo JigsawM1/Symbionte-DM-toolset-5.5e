@@ -12958,3 +12958,25 @@ Optimizar la complejidad temporal (Big O) en las operaciones de búsqueda, orden
 - **Vitest**: **107 suites ejecutadas, 1.623/1.623 pruebas unitarias aprobadas (100% éxito)**.
 - **Límite de Líneas**: `pnpm run verificar:lineas` validó **117 archivos**, **0 componentes excediendo el límite de 500 líneas**.
 - **Vite Build**: `pnpm run build` completado con éxito en 16.70s.
+
+---
+
+## [2026-10-06] Limpieza de Métricas Pasivas en Tarjetas de Iniciativa
+
+### Contexto y Alcance
+- Se atendió la solicitud del usuario para eliminar la duplicación de métricas rápidas pasivas (`PP:`, `Inv:`, `Pers:`) en el subtítulo (`subtituloCriatura`) de las tarjetas de criatura en el gestor de iniciativa (`TarjetaCriaturaIniciativa.tsx`), consolidando su visualización exclusivamente en el contenedor de insignias tácticas de jugador (`contenedorPasivasJugador`).
+
+### Decisiones Arquitectónicas y Correcciones Implementadas
+1. **Desacoplamiento Visual y Limpieza de Subtítulo (SOLID - SRP):**
+   - En `src/componentes/caracteristicas/iniciativa/TarjetaCriaturaIniciativa.tsx`, se retiraron las líneas condicionales que inyectaban `PP`, `Inv` y `Pers` dentro de `subtituloCriatura` para combatientes aliados/jugadores.
+   - Se preservó la visualización de la Percepción Pasiva en `subtituloCriatura` exclusivamente para monstruos con plantilla (`criatura.esMonstruo && plantilla`).
+   - Las insignias de Percepción Pasiva, Investigación Pasiva y Perspicacia Pasiva se mantienen exclusivamente en la columna central mediante el componente `InsigniasPasivasJugador` dentro de `contenedorPasivasJugador`, evitando sobrecarga y duplicidad visual en la cabecera de la tarjeta.
+2. **Actualización de Cobertura de Pruebas Unitarias:**
+   - En `src/componentes/caracteristicas/iniciativa/TarjetasPasivasIniciativa.test.tsx`, se actualizó la aserción de `TarjetaCriaturaIniciativa para Jugadores` para confirmar que las insignias están presentes en `contenedorPasivasJugador` y que las etiquetas del subtítulo ya no se duplican.
+
+### Métricas de Verificación
+- **TypeScript**: `pnpm exec tsc --noEmit` completado con **0 errores** (código 0).
+- **ESLint**: `pnpm run lint` completado con **0 errores y 0 advertencias** (`--max-warnings=0`).
+- **Vitest**: **109 suites ejecutadas, 1.638/1.638 pruebas unitarias aprobadas (100% éxito)**.
+- **Límite de Líneas**: `pnpm run verificar:lineas` validó **117 archivos**, **0 componentes excediendo el límite de 500 líneas**.
+- **Vite Build**: `pnpm exec vite build` completado con éxito en 14.92s.

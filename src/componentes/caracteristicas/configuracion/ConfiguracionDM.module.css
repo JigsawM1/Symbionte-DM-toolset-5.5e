@@ -12,7 +12,7 @@
 }
 
 .titulo {
-  font-size: 12px;
+  font-size: var(--dm-fuente-minima, 12px);
   font-weight: bold;
   color: var(--color-texto-principal);
   display: flex;
@@ -65,12 +65,12 @@
 .barraDecorativaPurple {
   width: 3px;
   height: 12px;
-  background-color: #7b2cbf;
+  background-color: var(--dm-arcano, #7b2cbf);
   flex-shrink: 0;
 }
 
 .subtitulo {
-  font-size: 11px;
+  font-size: var(--dm-fuente-minima, 11px);
   font-weight: bold;
   color: var(--color-texto-principal);
   letter-spacing: 0.04em;
@@ -89,39 +89,39 @@
   justify-content: center;
   gap: 6px;
   user-select: none;
-  background-color: hsl(222, 25%, 5%);
+  background-color: var(--dm-fondo-hundido, hsl(222, 25%, 5%));
 }
 
 .zonaDrop:hover {
-  background-color: rgba(255, 255, 255, 0.02);
+  background-color: rgba(var(--dm-rgb-neutro, 255, 255, 255), 0.02);
   border-color: var(--color-borde-cian);
 }
 
 .zonaDropArrastrando {
   border-color: var(--color-borde-cian) !important;
-  background-color: hsl(222, 25%, 12%) !important;
+  background-color: var(--dm-fondo-tarjeta, hsl(222, 25%, 12%)) !important;
 }
 
 .cajaIconoUpload {
-  background-color: hsl(222, 18%, 8%);
+  background-color: var(--dm-fondo-panel, hsl(222, 18%, 8%));
   border: 1px solid var(--color-borde-brutal);
   width: 36px;
   height: 36px;
-  border-radius: 4px;
+  border-radius: var(--dm-radio-panel, 4px);
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
 .textoDrop {
-  font-size: 11px;
+  font-size: var(--dm-fuente-minima, 11px);
   color: var(--color-texto-principal);
   margin: 0;
   line-height: 1.3;
 }
 
 .ayudaDrop {
-  font-size: 9.5px;
+  font-size: var(--dm-fuente-minima, 9.5px);
   color: var(--color-texto-apagado);
   margin: 0;
   line-height: 1.2;
@@ -132,10 +132,10 @@
   align-items: center;
   gap: 6px;
   padding: 6px 8px;
-  background-color: rgba(0, 245, 212, 0.08);
+  background-color: rgba(var(--dm-rgb-cian, 0, 245, 212), 0.08);
   border: 1px solid var(--color-exito);
-  color: var(--color-exito);
-  font-size: 11px;
+  color: var(--dm-texto-exito, var(--color-exito));
+  font-size: var(--dm-fuente-minima, 11px);
   line-height: 1.3;
 }
 
@@ -144,10 +144,10 @@
   align-items: center;
   gap: 6px;
   padding: 6px 8px;
-  background-color: rgba(242, 92, 84, 0.08);
+  background-color: rgba(var(--dm-rgb-peligro, 242, 92, 84), 0.08);
   border: 1px solid var(--color-peligro);
-  color: var(--color-peligro);
-  font-size: 11px;
+  color: var(--dm-texto-peligro, var(--color-peligro));
+  font-size: var(--dm-fuente-minima, 11px);
   line-height: 1.3;
 }
 
@@ -158,7 +158,7 @@
 }
 
 .tituloAyuda {
-  font-size: 9.5px;
+  font-size: var(--dm-fuente-minima, 9.5px);
   font-weight: bold;
   color: var(--color-texto-secundario);
   margin: 4px 0 0 0;
@@ -167,29 +167,29 @@
 
 .codigoEjemplo {
   font-family: var(--fuente-codigo);
-  font-size: 9.5px;
-  background-color: hsl(222, 25%, 4%);
+  font-size: var(--dm-fuente-minima, 9.5px);
+  background-color: var(--dm-fondo-hundido, hsl(222, 25%, 4%));
   border: 1px solid var(--color-borde-brutal);
   padding: 6px;
   color: var(--color-texto-secundario);
   margin: 0;
   overflow-x: auto;
   line-height: 1.3;
-  border-radius: 2px;
+  border-radius: var(--dm-radio-panel, 2px);
 }
 
 .tarjetaConfigHP {
   display: flex;
   flex-direction: column;
   gap: 4px;
-  background-color: hsl(222, 18%, 7%);
+  background-color: var(--dm-fondo-panel, hsl(222, 18%, 7%));
   border: 1px solid var(--color-borde-brutal);
   padding: 8px;
-  border-radius: 4px;
+  border-radius: var(--dm-radio-panel, 4px);
 }
 
 .tituloConfigHP {
-  font-size: 10.5px;
+  font-size: var(--dm-fuente-minima, 10.5px);
   font-weight: 800;
   color: var(--color-texto-principal);
   letter-spacing: 0.02em;
@@ -197,7 +197,7 @@
 }
 
 .descripcionConfigHP {
-  font-size: 10px;
+  font-size: var(--dm-fuente-minima, 10px);
   color: var(--color-texto-secundario);
   margin: 0;
   line-height: 1.3;
@@ -215,11 +215,11 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 9.5px;
+  font-size: var(--dm-fuente-minima, 9.5px);
   cursor: pointer;
   border: 1px solid;
   transition: none;
-  border-radius: 2px;
+  border-radius: var(--dm-radio-control, 2px);
   font-family: var(--fuente-codigo);
   background-color: var(--color-fondo-profundo);
   color: var(--color-texto-secundario);
@@ -227,14 +227,14 @@
 }
 
 .botonHPBrutal:hover {
-  background-color: hsl(222, 12%, 12%);
+  background-color: var(--dm-fondo-tarjeta, hsl(222, 12%, 12%));
   color: var(--color-texto-principal);
 }
 
 .botonHPBrutalActivo {
   background-color: var(--color-primario) !important;
   border-color: var(--color-borde-neon) !important;
-  color: #ffffff !important;
+  color: var(--dm-texto-principal, #ffffff) !important;
   font-weight: 800 !important;
 }
 
@@ -242,19 +242,19 @@
   display: flex;
   flex-direction: column;
   gap: 4px;
-  background-color: hsl(222, 25%, 5%);
+  background-color: var(--dm-fondo-hundido, hsl(222, 25%, 5%));
   border: 1px solid var(--color-borde-brutal);
   padding: 8px;
-  border-radius: 4px;
+  border-radius: var(--dm-radio-panel, 4px);
 }
 
 .filaEstadistica {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 11px;
+  font-size: var(--dm-fuente-minima, 11px);
   color: var(--color-texto-secundario);
-  border-bottom: 1px dashed hsl(222, 12%, 12%);
+  border-bottom: 1px dashed var(--dm-borde, hsl(222, 12%, 12%));
   padding-bottom: 3px;
 }
 
@@ -265,7 +265,7 @@
 .numero {
   font-family: var(--fuente-codigo);
   color: var(--color-borde-cian);
-  font-size: 12px;
+  font-size: var(--dm-fuente-minima, 12px);
 }
 
 .accionesConfig {
@@ -278,21 +278,21 @@
   width: 100%;
   height: 26px;
   background-color: var(--color-primario);
-  color: #ffffff;
+  color: var(--dm-texto-principal, #ffffff);
   border: 1px solid var(--color-borde-neon);
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 4px;
-  font-size: 10.5px;
+  font-size: var(--dm-fuente-minima, 10.5px);
   font-weight: bold;
   letter-spacing: 0.02em;
   cursor: pointer;
 }
 
 .botonDescargar:hover {
-  background-color: var(--color-activo);
-  box-shadow: 0 0 10px rgba(0, 245, 212, 0.4);
+  background-color: var(--dm-primario-hover, var(--color-activo));
+  box-shadow: 0 0 10px rgba(var(--dm-rgb-cian, 0, 245, 212), 0.4);
 }
 
 .separador {
@@ -305,10 +305,10 @@
   display: flex;
   flex-direction: column;
   gap: 6px;
-  border: 1px solid rgba(242, 92, 84, 0.2);
-  background-color: rgba(242, 92, 84, 0.02);
+  border: 1px solid rgba(var(--dm-rgb-peligro, 242, 92, 84), 0.2);
+  background-color: rgba(var(--dm-rgb-peligro, 242, 92, 84), 0.02);
   padding: 8px;
-  border-radius: 4px;
+  border-radius: var(--dm-radio-panel, 4px);
 }
 
 .cabeceraPeligro {
@@ -316,9 +316,9 @@
   flex-direction: row;
   align-items: center;
   gap: 4px;
-  font-size: 10.5px;
+  font-size: var(--dm-fuente-minima, 10.5px);
   font-weight: bold;
-  color: var(--color-peligro);
+  color: var(--dm-texto-peligro, var(--color-peligro));
   font-family: var(--fuente-codigo);
   letter-spacing: 0.02em;
 }
@@ -326,26 +326,26 @@
 .botonRestablecer {
   width: 100%;
   height: 26px;
-  background-color: rgba(242, 92, 84, 0.08);
-  border: 1px solid rgba(242, 92, 84, 0.3);
-  color: var(--color-peligro);
+  background-color: rgba(var(--dm-rgb-peligro, 242, 92, 84), 0.08);
+  border: 1px solid rgba(var(--dm-rgb-peligro, 242, 92, 84), 0.3);
+  color: var(--dm-texto-peligro, var(--color-peligro));
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 4px;
-  font-size: 10.5px;
+  font-size: var(--dm-fuente-minima, 10.5px);
   font-weight: bold;
   letter-spacing: 0.02em;
   cursor: pointer;
 }
 
 .botonRestablecer:hover {
-  background-color: rgba(242, 92, 84, 0.2);
-  box-shadow: 0 0 10px rgba(242, 92, 84, 0.3);
+  background-color: rgba(var(--dm-rgb-peligro, 242, 92, 84), 0.2);
+  box-shadow: 0 0 10px rgba(var(--dm-rgb-peligro, 242, 92, 84), 0.3);
 }
 
 .avisoPeligro {
-  font-size: 9.5px;
+  font-size: var(--dm-fuente-minima, 9.5px);
   color: var(--color-texto-apagado);
   text-align: justify;
   margin: 0;
@@ -357,14 +357,14 @@
   flex-direction: column;
   gap: 6px;
   padding: 8px;
-  background-color: rgba(242, 92, 84, 0.1);
+  background-color: rgba(var(--dm-rgb-peligro, 242, 92, 84), 0.1);
   border: 1px solid var(--color-peligro);
-  border-radius: 4px;
+  border-radius: var(--dm-radio-panel, 4px);
 }
 
 .textoConfirmacion {
-  font-size: 10px;
-  color: var(--color-peligro);
+  font-size: var(--dm-fuente-minima, 10px);
+  color: var(--dm-texto-peligro, var(--color-peligro));
   margin: 0;
   font-weight: bold;
   line-height: 1.35;
@@ -380,9 +380,9 @@
   flex: 1;
   height: 24px;
   background-color: var(--color-peligro);
-  color: #ffffff;
+  color: var(--dm-texto-principal, #ffffff);
   border: 1px solid var(--color-peligro);
-  font-size: 10px;
+  font-size: var(--dm-fuente-minima, 10px);
   font-weight: bold;
   cursor: pointer;
   display: flex;
@@ -391,16 +391,16 @@
 }
 
 .botonConfirmarReset:hover {
-  background-color: #ff3333;
+  background-color: var(--dm-texto-peligro, #ff3333);
 }
 
 .botonCancelarReset {
   flex: 1;
   height: 24px;
-  background-color: hsl(222, 25%, 5%);
+  background-color: var(--dm-fondo-hundido, hsl(222, 25%, 5%));
   color: var(--color-texto-principal);
   border: 1px solid var(--color-borde-brutal);
-  font-size: 10px;
+  font-size: var(--dm-fuente-minima, 10px);
   font-weight: bold;
   cursor: pointer;
   display: flex;
@@ -409,23 +409,23 @@
 }
 
 .botonCancelarReset:hover {
-  background-color: hsl(222, 12%, 12%);
-  color: #ffffff;
+  background-color: var(--dm-fondo-tarjeta, hsl(222, 12%, 12%));
+  color: var(--dm-texto-principal, #ffffff);
 }
 
 /* Estado éxito del botón exportar */
 .botonDescargarExito {
   background-color: var(--color-exito) !important;
   border-color: var(--color-exito) !important;
-  color: #0a1628 !important;
+  color: var(--dm-fondo-profundo, #0a1628) !important;
 }
 
 /* MODAL DE EXPORTACIÓN */
 .modalOverlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.75);
-  backdrop-filter: blur(4px);
+  background: var(--dm-overlay, rgba(0, 0, 0, 0.75));
+  backdrop-filter: var(--dm-filtro-fondo, blur(4px));
   z-index: 9999;
   display: flex;
   align-items: center;
@@ -436,14 +436,14 @@
 .modalExport {
   background: var(--color-fondo-panel, #0d1526);
   border: 1px solid var(--color-borde-cian, #00f5d4);
-  border-radius: 8px;
+  border-radius: var(--dm-radio-panel, 8px);
   width: 100%;
   max-width: 600px;
   max-height: 80vh;
   display: flex;
   flex-direction: column;
   gap: 0;
-  box-shadow: 0 0 40px rgba(0, 245, 212, 0.15);
+  box-shadow: 0 0 40px rgba(var(--dm-rgb-cian, 0, 245, 212), 0.15);
   overflow: hidden;
 }
 
@@ -452,9 +452,9 @@
   justify-content: space-between;
   align-items: center;
   padding: 10px 14px;
-  background: rgba(0, 245, 212, 0.06);
-  border-bottom: 1px solid rgba(0, 245, 212, 0.2);
-  font-size: 11.5px;
+  background: rgba(var(--dm-rgb-cian, 0, 245, 212), 0.06);
+  border-bottom: 1px solid rgba(var(--dm-rgb-cian, 0, 245, 212), 0.2);
+  font-size: var(--dm-fuente-minima, 11.5px);
   font-weight: 700;
   color: var(--color-borde-cian, #00f5d4);
   letter-spacing: 0.04em;
@@ -476,7 +476,7 @@
 }
 
 .modalAyuda {
-  font-size: 10.5px;
+  font-size: var(--dm-fuente-minima, 10.5px);
   color: var(--color-texto-secundario, #888);
   margin: 0;
   padding: 8px 14px 4px;
@@ -486,7 +486,7 @@
 .modalAyuda code {
   color: var(--color-borde-cian, #00f5d4);
   font-family: var(--fuente-codigo, monospace);
-  font-size: 10px;
+  font-size: var(--dm-fuente-minima, 10px);
 }
 
 .modalTextarea {
@@ -495,9 +495,9 @@
   max-height: 45vh;
   resize: none;
   font-family: var(--fuente-codigo, monospace);
-  font-size: 10px;
+  font-size: var(--dm-fuente-minima, 10px);
   line-height: 1.4;
-  background: hsl(222, 25%, 4%);
+  background: var(--dm-fondo-hundido, hsl(222, 25%, 4%));
   color: var(--color-texto-principal, #e0e0e0);
   border: none;
   border-top: 1px solid var(--color-borde-brutal, #1e2d45);
@@ -518,21 +518,21 @@
   height: 30px;
   background: var(--color-primario, #0d4f8c);
   border: 1px solid var(--color-borde-cian, #00f5d4);
-  color: #fff;
+  color: var(--dm-texto-principal, #fff);
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 6px;
-  font-size: 11px;
+  font-size: var(--dm-fuente-minima, 11px);
   font-weight: 700;
   cursor: pointer;
-  border-radius: 4px;
+  border-radius: var(--dm-radio-control, 4px);
   letter-spacing: 0.02em;
-  transition: background 0.15s;
+  transition: none;
 }
 
 .botonCopiarModal:hover {
-  background: var(--color-activo, #0d6ebd);
+  background: var(--dm-primario-hover, var(--color-activo, #0d6ebd));
 }
 
 .botonCerrarModalPie {
@@ -541,10 +541,10 @@
   background: transparent;
   border: 1px solid var(--color-borde-brutal, #1e2d45);
   color: var(--color-texto-secundario, #888);
-  font-size: 11px;
+  font-size: var(--dm-fuente-minima, 11px);
   cursor: pointer;
-  border-radius: 4px;
-  transition: all 0.15s;
+  border-radius: var(--dm-radio-control, 4px);
+  transition: none;
 }
 
 .botonCerrarModalPie:hover {
@@ -587,11 +587,11 @@
 }
 
 .iconoOjo {
-  color: #818cf8;
+  color: var(--dm-texto-acento, #818cf8);
 }
 
 .iconoMagia {
-  color: #c084fc;
+  color: var(--dm-texto-acento, #c084fc);
 }
 
 .numeroTextoPrincipal {

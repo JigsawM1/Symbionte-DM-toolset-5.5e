@@ -170,19 +170,19 @@
 }
 
 .u-texto-oro {
-  color: var(--pj-texto-oro, #fde047);
+  color: var(--dm-texto-advertencia, var(--pj-texto-oro, #fde047));
 }
 
 .u-texto-advertencia {
-  color: var(--color-advertencia);
+  color: var(--dm-texto-advertencia, var(--color-advertencia));
 }
 
 .u-texto-peligro {
-  color: var(--color-peligro);
+  color: var(--dm-texto-peligro, var(--color-peligro));
 }
 
 .u-texto-exito {
-  color: var(--color-exito);
+  color: var(--dm-texto-exito, var(--color-exito));
 }
 
 .u-texto-apagado {
@@ -198,7 +198,7 @@
 }
 
 .u-texto-acento {
-  color: var(--pj-texto-acento, hsl(265, 90%, 65%));
+  color: var(--dm-texto-acento, var(--pj-texto-acento, hsl(265, 90%, 65%)));
 }
 
 /* === POSICIÓN Y COMPORTAMIENTO === */

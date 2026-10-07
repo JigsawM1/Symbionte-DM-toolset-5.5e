@@ -9,8 +9,8 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(2, 4, 8, 0.75);
-  backdrop-filter: blur(5px);
+  background-color: var(--dm-overlay, rgba(2, 4, 8, 0.75));
+  backdrop-filter: var(--dm-filtro-fondo, blur(5px));
   display: flex;
   justify-content: center;
   align-items: center;
@@ -22,20 +22,20 @@
   position: relative;
   width: 100%;
   max-width: 320px;
-  background-color: rgba(9, 13, 22, 0.94);
+  background-color: var(--dm-fondo-modal, rgba(9, 13, 22, 0.94));
   border: 1px solid var(--color-borde-cian, #00f5d4);
-  box-shadow: 0 0 25px rgba(0, 245, 212, 0.25), inset 0 0 15px rgba(0, 245, 212, 0.05);
-  border-radius: 4px;
+  box-shadow: 0 0 25px rgba(var(--dm-rgb-cian, 0, 245, 212), 0.25), inset 0 0 15px rgba(var(--dm-rgb-cian, 0, 245, 212), 0.05);
+  border-radius: var(--dm-radio-panel, 4px);
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  backdrop-filter: blur(12px);
+  backdrop-filter: var(--dm-filtro-fondo, blur(12px));
   padding: 16px;
   gap: 12px;
 }
 
 .titulo {
-  font-size: 12px;
+  font-size: var(--dm-fuente-minima, 12px);
   font-weight: bold;
   color: var(--color-texto-principal, #f1f5f9);
   letter-spacing: 0.05em;
@@ -43,7 +43,7 @@
 }
 
 .mensaje {
-  font-size: 11px;
+  font-size: var(--dm-fuente-minima, 11px);
   color: var(--color-texto-secundario, #94a3b8);
   line-height: 1.4;
 }
@@ -56,23 +56,23 @@
 }
 
 .botonCancelar {
-  background-color: rgba(255, 255, 255, 0.05);
+  background-color: rgba(var(--dm-rgb-neutro, 255, 255, 255), 0.05);
   border: 1px solid var(--color-borde-brutal, rgba(148, 163, 184, 0.2));
   color: var(--color-texto-secundario, #94a3b8);
   padding: 4px 10px;
-  font-size: 10px;
+  font-size: var(--dm-fuente-minima, 10px);
   font-weight: bold;
   cursor: pointer;
-  border-radius: 3px;
+  border-radius: var(--dm-radio-control, 3px);
 }
 
 .botonConfirmar {
-  background-color: rgba(255, 0, 85, 0.15);
+  background-color: rgba(var(--dm-rgb-peligro, 255, 0, 85), 0.15);
   border: 1px solid var(--color-peligro, #ef4444);
-  color: var(--color-peligro, #ef4444);
+  color: var(--dm-texto-peligro, var(--color-peligro, #ef4444));
   padding: 4px 10px;
-  font-size: 10px;
+  font-size: var(--dm-fuente-minima, 10px);
   font-weight: bold;
   cursor: pointer;
-  border-radius: 3px;
+  border-radius: var(--dm-radio-control, 3px);
 }

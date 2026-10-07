@@ -2,6 +2,7 @@ import React from "react";
 import { BookOpen } from "lucide-react";
 import { renderizarTextoConDadosInteractivos } from "@/utiles/lanzadorDados";
 import { HechizoBase } from "@/tipos";
+import estilos from "./PanelFichaDnD.module.css";
 
 interface SegmentoTexto {
   texto?: string;
@@ -78,22 +79,10 @@ export const procesarTextoFicha = (
                 e.stopPropagation();
                 alHacerClicHechizo(hechizo);
               },
-              style: {
-                color: "var(--color-borde-cian)",
-                textDecoration: "underline dashed var(--color-borde-cian)",
-                cursor: "pointer",
-                fontWeight: "bold",
-                padding: "0 4px",
-                backgroundColor: "rgba(0, 245, 212, 0.06)",
-                borderRadius: "3px",
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "4px",
-                transition: "all 0.15s ease"
-              },
+              className: estilos.enlaceConjuro,
               title: `Ver conjuro "${hechizo.nombre}"`
             },
-            React.createElement(BookOpen, { size: 11, style: { display: "inline-block" } }),
+            React.createElement(BookOpen, { size: 11 }),
             coincidenciaOriginal
           );
 
@@ -120,4 +109,3 @@ export const procesarTextoFicha = (
 
   return nodosFinales;
 };
-

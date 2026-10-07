@@ -31,19 +31,19 @@
   align-items: center;
   gap: 6px;
   cursor: pointer;
-  border-radius: 6px;
+  border-radius: var(--dm-radio-control, 6px);
 }
 
 .subBotonNav:hover {
-  background-color: rgba(0, 245, 212, 0.12);
+  background-color: rgba(var(--dm-rgb-cian, 0, 245, 212), 0.12);
   border-color: var(--color-borde-cian);
   color: var(--color-borde-cian);
 }
 
 .subBotonNavActivo {
-  background-color: var(--color-primario-brillante);
+  background-color: var(--dm-primario-hover, var(--color-primario-brillante));
   border-color: var(--color-borde-cian);
-  color: #ffffff;
+  color: var(--dm-texto-principal, #ffffff);
 }
 
 .pestanasModoHomebrew {
@@ -60,7 +60,7 @@
   background-color: var(--color-fondo-tarjeta);
   border: 1.5px solid var(--color-borde-brutal);
   color: var(--color-texto-secundario);
-  font-size: 12px;
+  font-size: var(--dm-fuente-minima, 12px);
   font-weight: bold;
   padding: 8px 12px;
   display: flex;
@@ -68,20 +68,20 @@
   justify-content: center;
   gap: 6px;
   cursor: pointer;
-  border-radius: 6px;
+  border-radius: var(--dm-radio-control, 6px);
   transition: none;
 }
 
 .botonModoHomebrew:hover {
-  background-color: rgba(0, 245, 212, 0.08);
+  background-color: rgba(var(--dm-rgb-cian, 0, 245, 212), 0.08);
   color: var(--color-borde-cian);
 }
 
 .botonModoHomebrewActivo {
-  background-color: var(--color-primario-brillante);
+  background-color: var(--dm-primario-hover, var(--color-primario-brillante));
   border-color: var(--color-borde-cian);
-  color: #ffffff;
-  box-shadow: 0 2px 8px rgba(0,245,212,0.25);
+  color: var(--dm-texto-principal, #ffffff);
+  box-shadow: 0 2px 8px rgba(var(--dm-rgb-cian, 0, 245, 212), 0.25);
 }
 
 .cuerpoSeccion {
@@ -98,7 +98,7 @@
   flex: 1 1 0%;
   background-color: var(--color-fondo-panel);
   border: 1px solid var(--color-borde-brutal);
-  border-radius: 8px;
+  border-radius: var(--dm-radio-panel, 8px);
   padding: 14px;
   display: flex;
   flex-direction: column;
@@ -109,7 +109,7 @@
 }
 
 .cabeceraPanel {
-  font-size: 11px;
+  font-size: var(--dm-fuente-minima, 11px);
   font-weight: 700;
   color: var(--color-borde-cian);
   border-bottom: 2px solid var(--color-borde-cian);
@@ -120,4 +120,18 @@
   display: flex;
   align-items: center;
   gap: 6px;
+}
+
+@media (max-width: 620px) {
+  :global([data-tema="dm"]) .subNavegacion {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    padding: 4px;
+  }
+
+  :global([data-tema="dm"]) .subBotonNav {
+    min-width: 0;
+    padding: 6px 8px;
+    white-space: normal;
+  }
 }

@@ -20,7 +20,7 @@
 .nombreMonstruoFicha {
   font-size: 16px;
   font-weight: 800;
-  color: #ffcc00;
+  color: var(--dm-texto-acento, #ffcc00);
   font-family: var(--fuente-codigo);
   letter-spacing: 0.02em;
 }
@@ -35,7 +35,7 @@
 }
 
 .tipoMonstruoFicha {
-  font-size: 12px;
+  font-size: var(--dm-fuente-minima, 12px);
   color: var(--color-texto-secundario);
   text-transform: uppercase;
 }
@@ -50,28 +50,28 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  background-color: hsl(222, 18%, 12%);
+  background-color: var(--dm-fondo-tarjeta, hsl(222, 18%, 12%));
   border: 1.5px solid var(--color-borde-brutal);
-  border-radius: 4px;
+  border-radius: var(--dm-radio-panel, 4px);
   padding: 3px 1px;
   cursor: pointer;
   transition: none;
 }
 
 .cajaAtributoPurple:hover {
-  background-color: hsl(222, 18%, 16%);
+  background-color: var(--dm-fondo-foco, hsl(222, 18%, 16%));
   border-color: var(--color-borde-cian);
 }
 
 .cajaAtributoSalvacionEntrenada {
   border-color: var(--color-borde-cian) !important;
-  background-color: rgba(0, 245, 212, 0.04) !important;
+  background-color: rgba(var(--dm-rgb-cian, 0, 245, 212), 0.04) !important;
 }
 
 .atributoEtiquetaName {
-  font-size: 12px;
+  font-size: var(--dm-fuente-minima, 12px);
   font-weight: bold;
-  color: #a29bfe;
+  color: var(--dm-texto-acento, #a29bfe);
   letter-spacing: 0.01em;
 }
 
@@ -99,32 +99,32 @@
 }
 
 .cajaMetadatosFichaExtra {
-  background-color: hsl(222, 18%, 12%);
+  background-color: var(--dm-fondo-tarjeta, hsl(222, 18%, 12%));
   border: 1px solid var(--color-borde-brutal);
   padding: 6px;
   display: flex;
   flex-direction: column;
   gap: 3px;
-  border-radius: 4px;
+  border-radius: var(--dm-radio-panel, 4px);
 }
 
 .lineaMetaFicha {
   font-size: 12.5px;
   color: var(--color-texto-principal);
-  border-bottom: 1px dashed hsl(222, 15%, 15%);
+  border-bottom: 1px dashed var(--dm-borde, hsl(222, 15%, 15%));
   padding-bottom: 4px;
 }
 
 .etiquetaDefensa {
-  color: var(--color-exito);
+  color: var(--dm-texto-exito, var(--color-exito));
 }
 
 .valorDesafio {
-  color: var(--color-advertencia);
+  color: var(--dm-texto-advertencia, var(--color-advertencia));
 }
 
 .valorIniciativa {
-  color: #ffcc00;
+  color: var(--dm-texto-acento, #ffcc00);
 }
 
 .valorPercepcion {
@@ -140,7 +140,7 @@
 }
 
 .nombreRasgoPasivo {
-  color: #ffcc00;
+  color: var(--dm-texto-acento, #ffcc00);
 }
 
 .subtituloFichaSection {
@@ -155,28 +155,28 @@
 }
 
 .subtituloPruebas {
-  color: #a29bfe !important;
-  border-color: rgba(162, 155, 254, 0.2) !important;
+  color: var(--dm-texto-acento, #a29bfe) !important;
+  border-color: rgba(var(--dm-rgb-primario, 162, 155, 254), 0.2) !important;
 }
 
 .subtituloSalvaciones {
   color: var(--color-borde-cian) !important;
-  border-color: rgba(0, 245, 212, 0.25) !important;
+  border-color: rgba(var(--dm-rgb-cian, 0, 245, 212), 0.25) !important;
 }
 
 .subtituloAccionesAdicionales {
-  color: #89dceb !important;
-  border-color: rgba(137, 220, 235, 0.3) !important;
+  color: var(--dm-texto-cian, #89dceb) !important;
+  border-color: rgba(var(--dm-rgb-cian, 137, 220, 235), 0.3) !important;
 }
 
 .subtituloReacciones {
-  color: #a6e3a1 !important;
-  border-color: rgba(166, 227, 161, 0.3) !important;
+  color: var(--dm-texto-exito, #a6e3a1) !important;
+  border-color: rgba(var(--dm-rgb-exito, 166, 227, 161), 0.3) !important;
 }
 
 .subtituloLegendarias {
-  color: #f38ba8 !important;
-  border-color: rgba(243, 139, 168, 0.3) !important;
+  color: var(--dm-texto-alerta, #f38ba8) !important;
+  border-color: rgba(var(--dm-rgb-alerta, 243, 139, 168), 0.3) !important;
 }
 
 .cajaListaRasgosFicha {
@@ -200,10 +200,10 @@
 }
 
 .tarjetaAccionPurple {
-  background-color: rgba(123, 44, 191, 0.03);
-  border: 1px solid rgba(123, 44, 191, 0.25);
+  background-color: rgba(var(--dm-rgb-primario, 123, 44, 191), 0.03);
+  border: 1px solid rgba(var(--dm-rgb-primario, 123, 44, 191), 0.25);
   padding: 4px 6px;
-  border-radius: 4px;
+  border-radius: var(--dm-radio-panel, 4px);
 }
 
 .cabeceraAccionTarjeta {
@@ -216,34 +216,34 @@
 .nombreAccionTarjeta {
   font-size: 13.5px;
   font-weight: bold;
-  color: #ffcc00;
+  color: var(--dm-texto-acento, #ffcc00);
   font-family: var(--fuente-codigo);
 }
 
 .nombreAccionAdicional {
-  color: #89dceb !important;
+  color: var(--dm-texto-cian, #89dceb) !important;
 }
 
 .nombreAccionReacion {
-  color: #a6e3a1 !important;
+  color: var(--dm-texto-exito, #a6e3a1) !important;
 }
 
 .nombreAccionLegendaria {
-  color: #f38ba8 !important;
+  color: var(--dm-texto-alerta, #f38ba8) !important;
 }
 
 .costoAccionLegendaria {
-  font-size: 11px;
+  font-size: var(--dm-fuente-minima, 11px);
   font-weight: 700;
-  color: #f38ba8;
+  color: var(--dm-texto-alerta, #f38ba8);
   opacity: 0.9;
   letter-spacing: 0.02em;
 }
 
 .etiquetaRecargaAccion {
-  font-size: 11px;
+  font-size: var(--dm-fuente-minima, 11px);
   font-weight: 700;
-  color: #ffcc00;
+  color: var(--dm-texto-advertencia, #ffcc00);
   opacity: 0.9;
   letter-spacing: 0.02em;
 }
@@ -253,20 +253,20 @@
   flex-direction: row;
   align-items: center;
   gap: 3px;
-  font-size: 12px;
+  font-size: var(--dm-fuente-minima, 12px);
   padding: 4px 8px;
-  background-color: rgba(123, 44, 191, 0.15);
-  border: 1px solid #7b2cbf;
-  color: #a29bfe;
+  background-color: rgba(var(--dm-rgb-primario, 123, 44, 191), 0.15);
+  border: 1px solid var(--dm-arcano, #7b2cbf);
+  color: var(--dm-texto-acento, #a29bfe);
   font-weight: bold;
   cursor: pointer;
-  border-radius: 2px;
+  border-radius: var(--dm-radio-control, 2px);
   transition: none;
 }
 
 .botonAccionAtaqueLanzar:hover {
-  background-color: rgba(123, 44, 191, 0.25);
-  color: #ffffff;
+  background-color: rgba(var(--dm-rgb-primario, 123, 44, 191), 0.25);
+  color: var(--dm-texto-principal, #ffffff);
 }
 
 .descAccionTarjeta {
@@ -296,16 +296,16 @@
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  background-color: hsl(222, 18%, 12%);
+  background-color: var(--dm-fondo-tarjeta, hsl(222, 18%, 12%));
   border: 1px solid var(--color-borde-brutal);
-  border-radius: 4px;
+  border-radius: var(--dm-radio-control, 4px);
   padding: 3px 6px;
   cursor: pointer;
-  font-size: 12px;
+  font-size: var(--dm-fuente-minima, 12px);
 }
 
 .chipHabilidadInteractiva:hover {
-  background-color: hsl(222, 18%, 16%);
+  background-color: var(--dm-fondo-foco, hsl(222, 18%, 16%));
   border-color: var(--color-borde-cian);
 }
 
@@ -318,4 +318,17 @@
   color: var(--color-borde-cian);
   font-weight: 800;
   font-family: var(--fuente-codigo);
+}
+
+.enlaceConjuro {
+  color: var(--color-borde-cian);
+  text-decoration: underline dashed var(--color-borde-cian);
+  cursor: pointer;
+  font-weight: bold;
+  padding: 0 4px;
+  background-color: rgba(var(--dm-rgb-cian, 0, 245, 212), 0.06);
+  border-radius: var(--dm-radio-control, 3px);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
 }

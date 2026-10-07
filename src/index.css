@@ -1,6 +1,7 @@
 /* Sistema de Diseño Brutalista Tecnológico Premium - VISUAL_DENSITY: 10 */
 /* TOTALMENTE LIBRE DE TRANSICIONES Y ANIMACIONES PARA EVITAR LAG EN TALESPIRE */
 @import './estilos/temaJugador.css';
+@import './estilos/temaMaster.css';
 @import './estilos/utilidades.css';
 
 :root {
@@ -200,12 +201,12 @@ button:hover {
 }
 
 button:active {
-  background-color: var(--color-primario-brillante);
+  background-color: var(--dm-primario-hover, var(--color-primario-brillante));
   /* transform: translateY(1px) ELIMINADO para evitar reflows de diseño */
 }
 
 button.activo {
-  background-color: var(--color-primario-brillante);
+  background-color: var(--dm-primario-hover, var(--color-primario-brillante));
   border-color: var(--color-borde-cian);
   color: #ffffff;
 }

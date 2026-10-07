@@ -32,21 +32,21 @@
   align-items: center;
   gap: 6px;
   cursor: pointer;
-  border-radius: 6px;
-  transition: all 0.15s ease;
+  border-radius: var(--dm-radio-control, 6px);
+  transition: none;
 }
 
 .subBotonNav:hover {
-  background-color: rgba(0, 245, 212, 0.12);
+  background-color: rgba(var(--dm-rgb-cian, 0, 245, 212), 0.12);
   border-color: var(--color-borde-cian);
   color: var(--color-borde-cian);
 }
 
 .subBotonNavActivo {
-  background-color: var(--color-primario-brillante);
+  background-color: var(--dm-primario-hover, var(--color-primario-brillante));
   border-color: var(--color-borde-cian);
-  color: #ffffff;
-  box-shadow: 0 2px 8px rgba(0, 245, 212, 0.25);
+  color: var(--dm-texto-principal, #ffffff);
+  box-shadow: 0 2px 8px rgba(var(--dm-rgb-cian, 0, 245, 212), 0.25);
 }
 
 .areaContenido {

@@ -6,7 +6,7 @@
 
 .botonIcono {
   height: 30px;
-  font-size: 12px;
+  font-size: var(--dm-fuente-minima, 12px);
   padding: 4px 8px;
   display: flex;
   align-items: center;
@@ -15,7 +15,7 @@
   border: 1px solid var(--color-borde-brutal);
   color: var(--color-texto-principal);
   cursor: pointer;
-  border-radius: 2px;
+  border-radius: var(--dm-radio-control, 2px);
 }
 
 .botonIcono:hover {
@@ -26,7 +26,7 @@
 .botonActivo {
   background-color: var(--color-primario) !important;
   border-color: var(--color-borde-neon) !important;
-  color: #ffffff !important;
+  color: var(--dm-texto-principal, #ffffff) !important;
 }
 
 .contenedorBotonMenu {
@@ -53,7 +53,7 @@
 }
 
 .cabeceraDesplegable {
-  font-size: 11px;
+  font-size: var(--dm-fuente-minima, 11px);
   font-weight: bold;
   color: var(--color-texto-apagado);
   border-bottom: 1px solid var(--color-borde-brutal);
@@ -62,15 +62,15 @@
 }
 
 .itemVacio {
-  font-size: 12px;
+  font-size: var(--dm-fuente-minima, 12px);
   color: var(--color-texto-apagado);
   text-align: center;
   padding: 6px;
 }
 
 .itemVacioAlerta {
-  font-size: 12px;
-  color: var(--color-peligro);
+  font-size: var(--dm-fuente-minima, 12px);
+  color: var(--dm-texto-peligro, var(--color-peligro));
   text-align: center;
   padding: 6px;
 }
@@ -78,7 +78,7 @@
 .inputBrutal {
   border: none;
   background: none;
-  font-size: 12px;
+  font-size: var(--dm-fuente-minima, 12px);
   padding: 0;
   color: var(--color-texto-principal);
 }
@@ -93,7 +93,7 @@
   width: 100%;
   box-sizing: border-box;
   height: 26px;
-  font-size: 11px;
+  font-size: var(--dm-fuente-minima, 11px);
   padding: 2px 6px;
   color: var(--color-texto-principal);
 }
@@ -117,10 +117,10 @@
   width: 100%;
   justify-content: center;
   background-color: var(--color-borde-cian);
-  color: #111424;
+  color: var(--dm-fondo-panel, #111424);
   border: none;
   height: 26px;
-  font-size: 11px;
+  font-size: var(--dm-fuente-minima, 11px);
   font-weight: bold;
   cursor: pointer;
   display: flex;
@@ -128,19 +128,19 @@
 }
 
 .botonConfirmarGuardar:hover {
-  background-color: var(--color-activo);
-  color: #ffffff;
+  background-color: var(--dm-primario-hover, var(--color-activo));
+  color: var(--dm-texto-principal, #ffffff);
 }
 
 .textoError {
-  font-size: 10px;
-  color: var(--color-peligro);
+  font-size: var(--dm-fuente-minima, 10px);
+  color: var(--dm-texto-peligro, var(--color-peligro));
   padding: 0 2px;
 }
 
 .textoExito {
-  font-size: 10px;
-  color: var(--color-exito);
+  font-size: var(--dm-fuente-minima, 10px);
+  color: var(--dm-texto-exito, var(--color-exito));
   padding: 0 2px;
 }
 
@@ -150,12 +150,12 @@
   justify-content: space-between;
   align-items: center;
   padding: 4px 6px;
-  font-size: 12px;
+  font-size: var(--dm-fuente-minima, 12px);
   border-bottom: 1px solid var(--color-borde-brutal);
 }
 
 .itemDesplegable:hover {
-  background-color: rgba(255, 255, 255, 0.02);
+  background-color: rgba(var(--dm-rgb-neutro, 255, 255, 255), 0.02);
 }
 
 .textoItemDesplegable {
@@ -174,12 +174,12 @@
 .botonEliminarItem {
   background: none;
   border: none;
-  color: var(--color-peligro);
-  font-size: 11px;
+  color: var(--dm-texto-peligro, var(--color-peligro));
+  font-size: var(--dm-fuente-minima, 11px);
   cursor: pointer;
   padding: 0 4px;
 }
 
 .botonEliminarItem:hover {
-  color: #ff3333;
+  color: var(--dm-texto-peligro, #ff3333);
 }

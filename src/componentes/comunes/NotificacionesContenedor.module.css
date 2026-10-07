@@ -16,7 +16,7 @@
   background-color: var(--color-fondo-panel);
   border: 1px solid var(--color-borde-brutal);
   padding: 10px 14px;
-  border-radius: 2px;
+  border-radius: var(--dm-radio-panel, 2px);
   box-shadow: var(--sombra-elevada);
   display: flex;
   justify-content: space-between;

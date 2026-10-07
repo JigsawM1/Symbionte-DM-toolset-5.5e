@@ -8,7 +8,7 @@
   padding: 20px;
   box-sizing: border-box;
   font-family: var(--fuente-principal, sans-serif);
-  color: #e2e8f0;
+  color: var(--dm-texto-secundario, #e2e8f0);
 }
 
 .tarjeta {
@@ -38,9 +38,9 @@
 }
 
 .descripcion {
-  font-size: 10.5px;
+  font-size: var(--dm-fuente-minima, 10.5px);
   line-height: 1.35;
-  color: #94a3b8;
+  color: var(--dm-texto-apagado, #94a3b8);
   text-align: justify;
   margin: 0;
 }
@@ -49,12 +49,12 @@
   display: flex;
   flex-direction: column;
   gap: 3px;
-  font-size: 9px;
+  font-size: var(--dm-fuente-minima, 9px);
 }
 
 .codigo {
   font-family: var(--fuente-codigo, monospace);
-  font-size: 8.5px;
+  font-size: var(--dm-fuente-minima, 8.5px);
   background-color: #0d0e12;
   border: 1px solid #2d3142;
   padding: 6px;
@@ -76,11 +76,11 @@
   flex: 1;
   height: 26px;
   background-color: #5f5dbb;
-  border: 1px solid #7b2cbf;
-  color: #ffffff;
+  border: 1px solid var(--dm-arcano, #7b2cbf);
+  color: var(--dm-texto-principal, #ffffff);
   font-weight: bold;
   text-transform: uppercase;
-  font-size: 10px;
+  font-size: var(--dm-fuente-minima, 10px);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -94,12 +94,12 @@
 .botonReiniciar {
   flex: 1;
   height: 26px;
-  background-color: rgba(242, 92, 84, 0.1);
+  background-color: rgba(var(--dm-rgb-peligro, 242, 92, 84), 0.1);
   border: 1px solid #f25c54;
   color: #f25c54;
   font-weight: bold;
   text-transform: uppercase;
-  font-size: 10px;
+  font-size: var(--dm-fuente-minima, 10px);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -108,11 +108,11 @@
 }
 
 .botonReiniciar:hover {
-  background-color: rgba(242, 92, 84, 0.2);
+  background-color: rgba(var(--dm-rgb-peligro, 242, 92, 84), 0.2);
 }
 
 .advertencia {
-  font-size: 8.5px;
+  font-size: var(--dm-fuente-minima, 8.5px);
   color: #475569;
   text-align: center;
   margin: 0;
@@ -122,10 +122,10 @@
 .contenedorModular {
   padding: 24px;
   margin: 16px;
-  background-color: rgba(239, 68, 68, 0.08);
-  border: 1px solid rgba(239, 68, 68, 0.3);
-  border-radius: 8px;
-  color: var(--pj-texto-primario, #f8fafc);
+  background-color: rgba(var(--dm-rgb-peligro, 239, 68, 68), 0.08);
+  border: 1px solid rgba(var(--dm-rgb-peligro, 239, 68, 68), 0.3);
+  border-radius: var(--dm-radio-panel, 8px);
+  color: var(--dm-texto-acento, var(--pj-texto-primario, #f8fafc));
 }
 
 .cabeceraModular {
@@ -154,12 +154,12 @@
 }
 
 .codigoModular {
-  font-size: 11px;
+  font-size: var(--dm-fuente-minima, 11px);
   padding: 8px 12px;
   background-color: rgba(0, 0, 0, 0.4);
-  border-radius: 4px;
+  border-radius: var(--dm-radio-panel, 4px);
   overflow-x: auto;
-  color: #fca5a5;
+  color: var(--dm-texto-peligro, #fca5a5);
   margin-bottom: 16px;
 }
 
@@ -168,10 +168,10 @@
   align-items: center;
   gap: 8px;
   padding: 8px 16px;
-  background-color: rgba(239, 68, 68, 0.2);
+  background-color: rgba(var(--dm-rgb-peligro, 239, 68, 68), 0.2);
   border: 1px solid #ef4444;
-  border-radius: 4px;
-  color: #ffffff;
+  border-radius: var(--dm-radio-control, 4px);
+  color: var(--dm-texto-principal, #ffffff);
   cursor: pointer;
   font-weight: 600;
   font-size: 13px;

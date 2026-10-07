@@ -29,6 +29,7 @@ export const TooltipUniversal: React.FC<TooltipUniversalProps> = ({
   className = ""
 }) => {
   const [estaVisible, setEstaVisible] = useState(false);
+  const [tema, setTema] = useState("jugador");
   const [coords, setCoords] = useState<{
     top: number;
     left: number;
@@ -100,6 +101,7 @@ export const TooltipUniversal: React.FC<TooltipUniversalProps> = ({
 
   const manejarEntradaRaton = useCallback(() => {
     if (deshabilitado) return;
+    setTema(contenedorRef.current?.closest('[data-tema="dm"]') ? "dm" : "jugador");
     actualizarPosicion();
     setEstaVisible(true);
   }, [actualizarPosicion, deshabilitado]);
@@ -162,6 +164,7 @@ export const TooltipUniversal: React.FC<TooltipUniversalProps> = ({
         typeof document !== "undefined" &&
         createPortal(
           <div
+            data-tema={tema}
             className={`${estilos.flotantePortal} ${clasePosicion} ${claseAlineacion}`}
             // eslint-disable-next-line react/forbid-dom-props -- Posicionamiento absoluto dinámico (top/left) calculado en runtime mediante getBoundingClientRect
             style={estiloFlotante}

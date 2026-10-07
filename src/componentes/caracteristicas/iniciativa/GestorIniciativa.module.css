@@ -25,11 +25,11 @@
   border: 1px dashed var(--color-borde-brutal);
   padding: 16px;
   background-color: var(--color-fondo-panel);
-  border-radius: 4px;
+  border-radius: var(--dm-radio-panel, 4px);
 }
 
 .textoVacioTitulo {
-  font-size: 11px;
+  font-size: var(--dm-fuente-minima, 11px);
   font-weight: bold;
   color: var(--color-texto-principal);
   letter-spacing: 0.1em;
@@ -38,7 +38,7 @@
 }
 
 .textoVacioSub {
-  font-size: 10px;
+  font-size: var(--dm-fuente-minima, 10px);
   color: var(--color-texto-secundario);
   line-height: 1.3;
 }
@@ -47,10 +47,10 @@
   margin-top: 12px;
   width: auto;
   padding: 6px 12px;
-  background-color: rgba(0, 245, 212, 0.15);
+  background-color: rgba(var(--dm-rgb-cian, 0, 245, 212), 0.15);
   border: 1px solid var(--color-borde-cian);
   color: var(--color-borde-cian);
-  font-size: 9.5px;
+  font-size: var(--dm-fuente-minima, 9.5px);
   font-weight: bold;
   cursor: pointer;
   display: flex;
@@ -59,8 +59,8 @@
 }
 
 .botonImportarGrande:hover {
-  background-color: rgba(0, 245, 212, 0.25);
-  color: #ffffff;
+  background-color: rgba(var(--dm-rgb-cian, 0, 245, 212), 0.25);
+  color: var(--dm-texto-principal, #ffffff);
 }
 
 .panelIniciativaDividido {
@@ -90,11 +90,11 @@
   background-color: var(--color-fondo-panel);
   border: 1px solid var(--color-borde-brutal);
   margin-bottom: 6px;
-  border-radius: 4px;
+  border-radius: var(--dm-radio-panel, 4px);
 }
 
 .contadorCombatientes {
-  font-size: 11px;
+  font-size: var(--dm-fuente-minima, 11px);
   color: var(--color-texto-apagado);
   font-weight: bold;
   text-transform: uppercase;
@@ -103,20 +103,20 @@
 .botonSincronizarTS {
   display: flex;
   align-items: center;
-  background-color: rgba(0, 245, 212, 0.08);
+  background-color: rgba(var(--dm-rgb-cian, 0, 245, 212), 0.08);
   border: 1px solid var(--color-borde-cian);
   color: var(--color-borde-cian);
-  font-size: 10.5px;
+  font-size: var(--dm-fuente-minima, 10.5px);
   font-weight: bold;
   padding: 3px 8px;
   cursor: pointer;
-  border-radius: 3px;
+  border-radius: var(--dm-radio-control, 3px);
   transition: none;
 }
 
 .botonSincronizarTS:hover {
-  background-color: rgba(0, 245, 212, 0.2);
-  color: #ffffff;
+  background-color: rgba(var(--dm-rgb-cian, 0, 245, 212), 0.2);
+  color: var(--dm-texto-principal, #ffffff);
 }
 
 .listaTarjetasIniciativa {
@@ -137,8 +137,8 @@
   display: flex;
   flex-direction: column;
   box-shadow: 0 -8px 20px rgba(0, 0, 0, 0.55);
-  border-top-left-radius: 6px;
-  border-top-right-radius: 6px;
+  border-top-left-radius: var(--dm-radio-panel, 6px);
+  border-top-right-radius: var(--dm-radio-panel, 6px);
 }
 
 .cabeceraDetalleFicha {
@@ -146,7 +146,7 @@
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
-  background-color: hsl(222, 18%, 10%);
+  background-color: var(--dm-fondo-panel, hsl(222, 18%, 10%));
   border-bottom: 1.5px solid var(--color-borde-brutal);
   padding: 4px 8px;
   height: 26px;
@@ -168,7 +168,7 @@
 }
 
 .subFichaAsociada {
-  font-size: 11px;
+  font-size: var(--dm-fuente-minima, 11px);
   color: var(--color-borde-cian);
   margin-left: 6px;
   font-family: var(--fuente-codigo);
@@ -185,7 +185,7 @@
 }
 
 .botonCerrarDetalle:hover {
-  color: var(--color-peligro);
+  color: var(--dm-texto-peligro, var(--color-peligro));
 }
 
 .cuerpoDetalleScroll {
@@ -200,8 +200,8 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(2, 4, 8, 0.75);
-  backdrop-filter: blur(5px);
+  background-color: var(--dm-overlay, rgba(2, 4, 8, 0.75));
+  backdrop-filter: var(--dm-filtro-fondo, blur(5px));
   display: flex;
   justify-content: center;
   align-items: center;
@@ -214,14 +214,14 @@
   width: 100%;
   max-width: 460px;
   max-height: 85vh;
-  background-color: rgba(9, 13, 22, 0.94);
+  background-color: var(--dm-fondo-modal, rgba(9, 13, 22, 0.94));
   border: 1px solid var(--color-borde-cian);
-  box-shadow: 0 0 25px rgba(0, 245, 212, 0.25), inset 0 0 15px rgba(0, 245, 212, 0.05);
-  border-radius: 4px;
+  box-shadow: 0 0 25px rgba(var(--dm-rgb-cian, 0, 245, 212), 0.25), inset 0 0 15px rgba(var(--dm-rgb-cian, 0, 245, 212), 0.05);
+  border-radius: var(--dm-radio-panel, 4px);
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  backdrop-filter: blur(12px);
+  backdrop-filter: var(--dm-filtro-fondo, blur(12px));
 }
 
 .botonDesvincularMini {
@@ -236,7 +236,7 @@
 }
 
 .botonDesvincularMini:hover {
-  color: var(--color-peligro);
+  color: var(--dm-texto-peligro, var(--color-peligro));
 }
 
 .iconoActividadVacio {
@@ -260,3 +260,49 @@
   margin-left: 4px;
 }
 
+/* Reservar el espacio del botón flotante de dados al llegar al final. */
+:global([data-tema="dm"]) .seccionTrackerScroll {
+  padding-bottom: 84px;
+  scroll-padding-bottom: 84px;
+}
+
+@media (max-width: 620px) {
+  :global([data-tema="dm"]) .cabeceraDetalleFicha {
+    height: auto;
+    min-height: 32px;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 6px 8px;
+  }
+
+  :global([data-tema="dm"]) .tituloFichaIzquierda {
+    flex: 1;
+    min-width: 0;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+
+  :global([data-tema="dm"]) .nombreFichaCabecera,
+  :global([data-tema="dm"]) .subFichaAsociada {
+    max-width: 100%;
+    overflow-wrap: anywhere;
+  }
+
+  :global([data-tema="dm"]) .nombreFichaCabecera {
+    flex: 1;
+    min-width: 0;
+  }
+
+  :global([data-tema="dm"]) .contenedorDesvincular {
+    flex-basis: 100%;
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  :global([data-tema="dm"]) .botonCerrarDetalle {
+    flex-shrink: 0;
+    width: 24px;
+    min-height: 24px;
+    justify-content: center;
+  }
+}

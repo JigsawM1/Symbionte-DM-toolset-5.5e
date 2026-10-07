@@ -22,7 +22,7 @@
 }
 
 .titulo {
-  font-size: 11px;
+  font-size: var(--dm-fuente-minima, 11px);
   font-weight: bold;
   color: var(--color-texto-principal);
   margin: 0;
@@ -35,19 +35,19 @@
 }
 
 .indicadorContenedor {
-  font-size: 9.5px;
+  font-size: var(--dm-fuente-minima, 9.5px);
   font-family: var(--fuente-codigo);
 }
 
 .indicadorGuardado {
-  color: var(--color-exito);
+  color: var(--dm-texto-exito, var(--color-exito));
   display: flex;
   align-items: center;
   gap: 3px;
 }
 
 .indicadorModificado {
-  color: var(--color-advertencia);
+  color: var(--dm-texto-advertencia, var(--color-advertencia));
   display: flex;
   align-items: center;
   gap: 3px;
@@ -71,53 +71,53 @@
 .boton {
   height: 22px;
   padding: 0 6px;
-  font-size: 10px;
+  font-size: var(--dm-fuente-minima, 10px);
   background-color: var(--color-fondo-tarjeta);
   border: 1px solid var(--color-borde-brutal);
   color: var(--color-texto-secundario);
   cursor: pointer;
-  border-radius: 4px;
+  border-radius: var(--dm-radio-control, 4px);
   display: inline-flex;
   align-items: center;
   gap: 4px;
 }
 
 .boton:hover {
-  background-color: rgba(0, 245, 212, 0.08);
+  background-color: rgba(var(--dm-rgb-cian, 0, 245, 212), 0.08);
   color: var(--color-borde-cian);
 }
 
 .botonGuardarDestacado {
   height: 22px;
   padding: 0 6px;
-  font-size: 10px;
+  font-size: var(--dm-fuente-minima, 10px);
   background-color: var(--color-fondo-tarjeta);
   border: 1px solid var(--color-borde-cian);
   color: var(--color-borde-cian);
   cursor: pointer;
-  border-radius: 4px;
+  border-radius: var(--dm-radio-control, 4px);
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  box-shadow: 0 0 6px rgba(0, 245, 212, 0.15);
+  box-shadow: 0 0 6px rgba(var(--dm-rgb-cian, 0, 245, 212), 0.15);
 }
 
 .botonLimpiar {
   height: 22px;
   padding: 0 6px;
-  font-size: 10px;
-  background-color: rgba(242, 92, 84, 0.1);
+  font-size: var(--dm-fuente-minima, 10px);
+  background-color: rgba(var(--dm-rgb-peligro, 242, 92, 84), 0.1);
   border: 1px solid var(--color-peligro);
-  color: var(--color-peligro);
+  color: var(--dm-texto-peligro, var(--color-peligro));
   cursor: pointer;
-  border-radius: 4px;
+  border-radius: var(--dm-radio-control, 4px);
   display: inline-flex;
   align-items: center;
   gap: 4px;
 }
 
 .botonLimpiar:hover {
-  background-color: rgba(242, 92, 84, 0.2);
+  background-color: rgba(var(--dm-rgb-peligro, 242, 92, 84), 0.2);
 }
 
 .editorContenedor {
@@ -133,7 +133,7 @@
   border: 1px solid var(--color-borde-brutal);
   color: var(--color-texto-principal);
   padding: 8px;
-  font-size: 11.5px;
+  font-size: var(--dm-fuente-minima, 11.5px);
   font-family: var(--fuente-codigo);
   resize: none;
   box-sizing: border-box;
@@ -150,7 +150,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 9.5px;
+  font-size: var(--dm-fuente-minima, 9.5px);
   color: var(--color-texto-secundario);
   padding-top: 2px;
   border-top: 1px dashed var(--color-borde-brutal);
@@ -163,6 +163,6 @@
 
 .numero {
   font-family: var(--fuente-codigo);
-  color: var(--color-primario-brillante);
+  color: var(--dm-texto-acento, var(--color-primario-brillante));
 }
 

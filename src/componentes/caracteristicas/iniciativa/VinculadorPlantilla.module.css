@@ -28,7 +28,7 @@
 }
 
 .descAlertaVinculo {
-  font-size: 12px;
+  font-size: var(--dm-fuente-minima, 12px);
   color: var(--color-texto-secundario);
   line-height: 1.35;
 }
@@ -45,7 +45,7 @@
   align-items: center;
   background-color: var(--color-fondo-panel);
   border: 1px solid var(--color-borde-brutal);
-  border-radius: 2px;
+  border-radius: var(--dm-radio-panel, 2px);
   height: 26px;
   width: 100%;
 }
@@ -59,7 +59,7 @@
   flex-grow: 1;
   background: none;
   border: none;
-  font-size: 12px;
+  font-size: var(--dm-fuente-minima, 12px);
   color: var(--color-texto-principal);
   outline: none;
   padding: 0 4px;
@@ -94,7 +94,7 @@
   padding: 6px 10px;
   border-bottom: 1px solid var(--color-borde-brutal);
   cursor: pointer;
-  font-size: 12px;
+  font-size: var(--dm-fuente-minima, 12px);
   text-align: left;
 }
 
@@ -107,7 +107,7 @@
 }
 
 .itemMetaMonstruo {
-  font-size: 9.5px;
+  font-size: var(--dm-fuente-minima, 9.5px);
   color: var(--color-texto-secundario);
   margin-left: 6px;
 }
@@ -119,5 +119,5 @@
 .itemVinculoVacio {
   padding: 8px;
   color: var(--color-texto-apagado);
-  font-size: 12px;
+  font-size: var(--dm-fuente-minima, 12px);
 }

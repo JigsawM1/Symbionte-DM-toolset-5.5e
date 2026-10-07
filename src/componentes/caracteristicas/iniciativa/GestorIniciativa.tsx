@@ -415,6 +415,8 @@ export const GestorIniciativa: React.FC = () => {
                 <button
                   onClick={() => setIdCriaturaDetalle(null)}
                   className={estilosClases.botonCerrarDetalle}
+                  aria-label="Cerrar ficha de criatura"
+                  title="Cerrar ficha de criatura"
                 >
                   <X size={14} />
                 </button>

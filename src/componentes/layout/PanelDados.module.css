@@ -4,16 +4,16 @@
   right: 20px;
   width: 50px;
   height: 50px;
-  border-radius: 50%;
-  background-color: hsl(240, 10%, 15%);
-  border: 2px solid hsl(43, 96%, 56%);
-  color: #fff;
+  border-radius: var(--dm-radio-panel, 50%);
+  background-color: var(--dm-fondo-foco, hsl(240, 10%, 15%));
+  border: 2px solid var(--dm-cian, hsl(43, 96%, 56%));
+  color: var(--dm-texto-principal, #fff);
   font-size: 1.5rem;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4), inset 0 0 10px rgba(255, 255, 255, 0.05);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4), inset 0 0 10px rgba(var(--dm-rgb-neutro, 255, 255, 255), 0.05);
   z-index: 9999;
 }
 
@@ -22,13 +22,13 @@
   bottom: 20px;
   right: 20px;
   width: 320px;
-  border-radius: 16px;
-  background-color: rgba(18, 18, 22, 0.95);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
-  color: #cdd6f4;
-  font-family: 'Outfit', 'Inter', sans-serif;
+  border-radius: var(--dm-radio-panel, 16px);
+  background-color: var(--dm-fondo-modal, rgba(18, 18, 22, 0.95));
+  backdrop-filter: var(--dm-filtro-fondo, blur(12px));
+  border: 1px solid rgba(var(--dm-rgb-neutro, 255, 255, 255), 0.08);
+  box-shadow: var(--dm-sombra-panel, 0 12px 40px rgba(0, 0, 0, 0.6));
+  color: var(--dm-texto-secundario, #cdd6f4);
+  font-family: var(--dm-fuente-principal, 'Outfit', 'Inter', sans-serif);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -40,21 +40,21 @@
   justify-content: space-between;
   align-items: center;
   padding: 14px 16px;
-  background-color: rgba(30, 30, 38, 0.5);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  background-color: var(--dm-fondo-panel, rgba(30, 30, 38, 0.5));
+  border-bottom: 1px solid rgba(var(--dm-rgb-neutro, 255, 255, 255), 0.06);
 }
 
 .titulo {
   font-weight: 600;
   font-size: 1rem;
   letter-spacing: 0.5px;
-  color: #fff;
+  color: var(--dm-texto-principal, #fff);
 }
 
 .botonMinimizar {
   background: none;
   border: none;
-  color: hsl(240, 5%, 65%);
+  color: var(--dm-texto-apagado, hsl(240, 5%, 65%));
   font-size: 0.9rem;
   cursor: pointer;
   padding: 4px;
@@ -79,12 +79,12 @@
 
 .inputEtiqueta {
   width: 100%;
-  background-color: hsl(240, 6%, 10%);
-  border: 1px solid hsl(240, 5%, 22%);
-  border-radius: 8px;
+  background-color: var(--dm-fondo-panel, hsl(240, 6%, 10%));
+  border: 1px solid var(--dm-borde, hsl(240, 5%, 22%));
+  border-radius: var(--dm-radio-control, 8px);
   padding: 8px 12px;
-  color: #fff;
-  font-size: 0.85rem;
+  color: var(--dm-texto-principal, #fff);
+  font-size: var(--dm-fuente-minima, 0.85rem);
   outline: none;
   box-sizing: border-box;
 }
@@ -98,8 +98,8 @@
 .tarjetaDado {
   position: relative;
   aspect-ratio: 1/1;
-  border-radius: 10px;
-  background-color: hsl(240, 6%, 13%);
+  border-radius: var(--dm-radio-panel, 10px);
+  background-color: var(--dm-fondo-tarjeta, hsl(240, 6%, 13%));
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -112,10 +112,10 @@
   position: absolute;
   top: -6px;
   right: -6px;
-  color: #fff;
-  font-size: 0.75rem;
+  color: var(--dm-texto-principal, #fff);
+  font-size: var(--dm-fuente-minima, 0.75rem);
   font-weight: bold;
-  border-radius: 10px;
+  border-radius: var(--dm-radio-panel, 10px);
   min-width: 18px;
   height: 18px;
   display: flex;
@@ -136,15 +136,15 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background-color: hsl(240, 6%, 12%);
+  background-color: var(--dm-fondo-tarjeta, hsl(240, 6%, 12%));
   padding: 8px 12px;
-  border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.04);
+  border-radius: var(--dm-radio-panel, 10px);
+  border: 1px solid rgba(var(--dm-rgb-neutro, 255, 255, 255), 0.04);
 }
 
 .labelMod {
-  font-size: 0.85rem;
-  color: hsl(240, 5%, 70%);
+  font-size: var(--dm-fuente-minima, 0.85rem);
+  color: var(--dm-texto-secundario, hsl(240, 5%, 70%));
 }
 
 .controlesMod {
@@ -156,10 +156,10 @@
 .btnModControl {
   width: 24px;
   height: 24px;
-  border-radius: 6px;
-  background-color: hsl(240, 5%, 20%);
+  border-radius: var(--dm-radio-control, 6px);
+  background-color: var(--dm-fondo-foco, hsl(240, 5%, 20%));
   border: none;
-  color: #fff;
+  color: var(--dm-texto-principal, #fff);
   font-size: 0.9rem;
   font-weight: bold;
   cursor: pointer;
@@ -173,7 +173,7 @@
   text-align: center;
   background-color: transparent;
   border: none;
-  color: #fff;
+  color: var(--dm-texto-principal, #fff);
   font-size: 0.9rem;
   font-weight: bold;
   outline: none;
@@ -186,15 +186,15 @@
 }
 
 .labelFormula {
-  font-size: 0.8rem;
-  color: hsl(240, 5%, 60%);
+  font-size: var(--dm-fuente-minima, 0.8rem);
+  color: var(--dm-texto-apagado, hsl(240, 5%, 60%));
 }
 
 .formulaValor {
   min-height: 36px;
-  background-color: hsl(240, 6%, 8%);
-  border: 1px solid hsl(240, 5%, 16%);
-  border-radius: 8px;
+  background-color: var(--dm-fondo-panel, hsl(240, 6%, 8%));
+  border: 1px solid var(--dm-borde, hsl(240, 5%, 16%));
+  border-radius: var(--dm-radio-panel, 8px);
   padding: 8px 12px;
   display: flex;
   align-items: center;
@@ -202,15 +202,15 @@
 }
 
 .formulaTextoActivo {
-  color: hsl(43, 96%, 56%);
+  color: var(--dm-texto-advertencia, hsl(43, 96%, 56%));
   font-weight: bold;
   font-size: 0.95rem;
-  font-family: monospace;
+  font-family: var(--dm-fuente-codigo, monospace);
 }
 
 .formulaTextoVacio {
-  color: hsl(240, 5%, 45%);
-  font-size: 0.8rem;
+  color: var(--dm-texto-apagado, hsl(240, 5%, 45%));
+  font-size: var(--dm-fuente-minima, 0.8rem);
   font-style: italic;
 }
 
@@ -223,44 +223,44 @@
 .botonLimpiar {
   flex: 1;
   padding: 10px;
-  background-color: hsl(240, 5%, 18%);
+  background-color: var(--dm-fondo-foco, hsl(240, 5%, 18%));
   border: none;
-  color: hsl(240, 5%, 80%);
-  font-size: 0.85rem;
+  color: var(--dm-texto-secundario, hsl(240, 5%, 80%));
+  font-size: var(--dm-fuente-minima, 0.85rem);
   font-weight: 600;
-  border-radius: 8px;
+  border-radius: var(--dm-radio-control, 8px);
   cursor: pointer;
 }
 
 .botonLanzar {
   flex: 2;
   padding: 10px;
-  background-color: hsl(43, 96%, 45%);
-  background-image: linear-gradient(135deg, hsl(43, 96%, 52%), hsl(32, 95%, 48%));
+  background-color: var(--dm-primario, hsl(43, 96%, 45%));
+  background-image: var(--dm-gradiente-primario, linear-gradient(135deg, hsl(43, 96%, 52%), hsl(32, 95%, 48%)));
   border: none;
-  color: #000;
-  font-size: 0.85rem;
+  color: var(--dm-texto-en-acento, #000);
+  font-size: var(--dm-fuente-minima, 0.85rem);
   font-weight: bold;
-  border-radius: 8px;
+  border-radius: var(--dm-radio-control, 8px);
 }
 
 .tarjetaDado {
   position: relative;
   aspect-ratio: 1/1;
-  border: 2px solid hsl(240, 5%, 26%);
+  border: 2px solid var(--dm-borde, hsl(240, 5%, 26%));
 }
 
-.tarjetaDado_d4 { --color-dado: hsl(343, 81%, 65%); }
-.tarjetaDado_d6 { --color-dado: hsl(32, 95%, 60%); }
-.tarjetaDado_d8 { --color-dado: hsl(142, 70%, 55%); }
-.tarjetaDado_d10 { --color-dado: hsl(190, 90%, 50%); }
-.tarjetaDado_d12 { --color-dado: hsl(271, 81%, 66%); }
-.tarjetaDado_d20 { --color-dado: hsl(43, 96%, 56%); }
-.tarjetaDado_d100 { --color-dado: hsl(160, 84%, 42%); }
+.tarjetaDado_d4 { --color-dado: var(--dm-texto-alerta, hsl(343, 81%, 65%)); }
+.tarjetaDado_d6 { --color-dado: var(--dm-texto-advertencia, hsl(32, 95%, 60%)); }
+.tarjetaDado_d8 { --color-dado: var(--dm-texto-exito, hsl(142, 70%, 55%)); }
+.tarjetaDado_d10 { --color-dado: var(--dm-cian, hsl(190, 90%, 50%)); }
+.tarjetaDado_d12 { --color-dado: var(--dm-primario, hsl(271, 81%, 66%)); }
+.tarjetaDado_d20 { --color-dado: var(--dm-texto-advertencia, hsl(43, 96%, 56%)); }
+.tarjetaDado_d100 { --color-dado: var(--dm-texto-exito, hsl(160, 84%, 42%)); }
 
 .tarjetaDadoActivo {
   border-color: var(--color-dado) !important;
-  box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+  box-shadow: 0 0 10px rgba(var(--dm-rgb-neutro, 255, 255, 255), 0.2);
 }
 
 .tarjetaDadoActivo .contadorDado {
@@ -272,17 +272,17 @@
 }
 
 .tarjetaDadoInactivo .nombreDado {
-  color: hsl(240, 5%, 75%);
+  color: var(--dm-texto-secundario, hsl(240, 5%, 75%));
 }
 
 .iconoBandeja {
-  color: #60a5fa;
+  color: var(--dm-texto-cian, #60a5fa);
 }
 
 .botonLanzarHabilitado {
   opacity: 1;
   cursor: pointer;
-  box-shadow: 0 4px 15px rgba(245, 158, 11, 0.25);
+  box-shadow: var(--dm-sombra-acento, 0 4px 15px rgba(245, 158, 11, 0.25));
 }
 
 .botonLanzarDeshabilitado {

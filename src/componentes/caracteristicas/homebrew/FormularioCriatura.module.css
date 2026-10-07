@@ -19,25 +19,25 @@
   background-color: var(--color-fondo-tarjeta);
   border: 1px solid var(--color-borde-brutal);
   color: var(--color-texto-secundario);
-  font-size: 11.5px;
+  font-size: var(--dm-fuente-minima, 11.5px);
   font-weight: 600;
   padding: 5px 11px;
   cursor: pointer;
   text-transform: uppercase;
-  border-radius: 4px;
+  border-radius: var(--dm-radio-control, 4px);
   letter-spacing: 0.04em;
 }
 
 .subPestanaCriaturaBoton:hover {
-  background-color: rgba(0, 245, 212, 0.08);
+  background-color: rgba(var(--dm-rgb-cian, 0, 245, 212), 0.08);
   color: var(--color-borde-cian);
 }
 
 .subPestanaCriaturaBotonActiva {
   background-color: var(--color-primario);
-  color: #ffffff;
+  color: var(--dm-texto-principal, #ffffff);
   border-color: var(--color-borde-cian);
-  box-shadow: 0 2px 6px rgba(0,245,212,0.2);
+  box-shadow: 0 2px 6px rgba(var(--dm-rgb-cian, 0, 245, 212), 0.2);
 }
 
 .seccionContenido {
@@ -76,7 +76,7 @@
   background-color: var(--color-fondo-tarjeta);
   padding: 10px 8px;
   border: 1px solid var(--color-borde-brutal);
-  border-radius: 6px;
+  border-radius: var(--dm-radio-panel, 6px);
 }
 
 .campoForm {
@@ -95,7 +95,7 @@
 }
 
 .labelForm {
-  font-size: 12px;
+  font-size: var(--dm-fuente-minima, 12px);
   font-weight: 600;
   color: var(--color-texto-secundario);
   display: flex;
@@ -105,7 +105,7 @@
 }
 
 .labelMiniForm {
-  font-size: 11px;
+  font-size: var(--dm-fuente-minima, 11px);
   font-weight: 700;
   color: var(--color-borde-cian);
   font-family: var(--fuente-codigo);
@@ -118,14 +118,14 @@
   width: 100%;
   background-color: var(--color-fondo-tarjeta);
   border: 1.5px solid var(--color-borde-brutal);
-  border-radius: 5px;
+  border-radius: var(--dm-radio-control, 5px);
   color: var(--color-texto-principal);
   outline: none;
 }
 
 .inputForm:focus {
   border-color: var(--color-borde-cian);
-  box-shadow: 0 0 0 2px rgba(0, 245, 212, 0.18);
+  box-shadow: 0 0 0 2px rgba(var(--dm-rgb-cian, 0, 245, 212), 0.18);
 }
 
 .inputMiniForm {
@@ -135,18 +135,18 @@
   text-align: center;
   background-color: var(--color-fondo-profundo);
   border: 1.5px solid var(--color-borde-brutal);
-  border-radius: 4px;
+  border-radius: var(--dm-radio-control, 4px);
   color: var(--color-texto-principal);
   outline: none;
 }
 
 .inputMiniForm:focus {
   border-color: var(--color-borde-cian);
-  box-shadow: 0 0 0 2px rgba(0, 245, 212, 0.18);
+  box-shadow: 0 0 0 2px rgba(var(--dm-rgb-cian, 0, 245, 212), 0.18);
 }
 
 .modificadorPrevisualizado {
-  font-size: 12px;
+  font-size: var(--dm-fuente-minima, 12px);
   font-weight: bold;
   color: var(--color-borde-cian);
   margin-top: 1px;
@@ -159,7 +159,7 @@
   width: 100%;
   background-color: var(--color-fondo-tarjeta);
   border: 1.5px solid var(--color-borde-brutal);
-  border-radius: 5px;
+  border-radius: var(--dm-radio-control, 5px);
   color: var(--color-texto-principal);
   outline: none;
   cursor: pointer;
@@ -170,11 +170,11 @@
 
 .selectForm:focus {
   border-color: var(--color-borde-cian);
-  box-shadow: 0 0 0 2px rgba(0, 245, 212, 0.18);
+  box-shadow: 0 0 0 2px rgba(var(--dm-rgb-cian, 0, 245, 212), 0.18);
 }
 
 .cabeceraMiniSeccion {
-  font-size: 11.5px;
+  font-size: var(--dm-fuente-minima, 11.5px);
   font-weight: 700;
   color: var(--color-borde-cian);
   letter-spacing: 0.08em;
@@ -193,7 +193,7 @@
   background-color: var(--color-fondo-tarjeta);
   padding: 10px;
   border: 1px solid var(--color-borde-brutal);
-  border-radius: 6px;
+  border-radius: var(--dm-radio-panel, 6px);
 }
 
 .itemHabilidadFila {
@@ -217,14 +217,14 @@
   text-align: center;
   background-color: var(--color-fondo-profundo);
   border: 1.5px solid var(--color-borde-brutal);
-  border-radius: 4px;
+  border-radius: var(--dm-radio-control, 4px);
   color: var(--color-texto-principal);
   outline: none;
 }
 
 .inputHabilidad:focus {
   border-color: var(--color-borde-cian);
-  box-shadow: 0 0 0 2px rgba(0, 245, 212, 0.18);
+  box-shadow: 0 0 0 2px rgba(var(--dm-rgb-cian, 0, 245, 212), 0.18);
 }
 
 .selectorDefensasNavegacion {
@@ -238,33 +238,33 @@
 }
 
 .subDefBoton {
-  font-size: 11.5px;
+  font-size: var(--dm-fuente-minima, 11.5px);
   font-weight: 600;
   background-color: var(--color-fondo-tarjeta);
   border: 1px solid var(--color-borde-brutal);
   color: var(--color-texto-secundario);
   padding: 5px 10px;
   cursor: pointer;
-  border-radius: 4px;
+  border-radius: var(--dm-radio-control, 4px);
 }
 
 .subDefBoton:hover {
-  background-color: rgba(0, 245, 212, 0.12);
+  background-color: rgba(var(--dm-rgb-cian, 0, 245, 212), 0.12);
   border-color: var(--color-borde-cian);
   color: var(--color-borde-cian);
 }
 
 .subDefBotonActivo {
-  background-color: var(--color-primario-brillante);
-  color: #ffffff;
+  background-color: var(--dm-primario-hover, var(--color-primario-brillante));
+  color: var(--dm-texto-principal, #ffffff);
   border-color: var(--color-borde-cian);
-  box-shadow: 0 2px 6px rgba(0,245,212,0.2);
+  box-shadow: 0 2px 6px rgba(var(--dm-rgb-cian, 0, 245, 212), 0.2);
 }
 
 .contenedorChecksDefensas {
   background-color: var(--color-fondo-tarjeta);
   border: 1px solid var(--color-borde-brutal);
-  border-radius: 5px;
+  border-radius: var(--dm-radio-panel, 5px);
   padding: 10px;
   max-height: 200px;
   overflow-y: auto;
@@ -281,7 +281,7 @@
   flex-direction: row;
   align-items: center;
   gap: 5px;
-  font-size: 12px;
+  font-size: var(--dm-fuente-minima, 12px);
   color: var(--color-texto-secundario);
   white-space: nowrap;
   overflow: hidden;
@@ -303,14 +303,14 @@
   flex-direction: column;
   background-color: var(--color-fondo-tarjeta);
   border: 1px solid var(--color-borde-brutal);
-  border-radius: 7px;
+  border-radius: var(--dm-radio-panel, 7px);
   padding: 12px;
   margin-bottom: 30px;
   gap: 8px;
 }
 
 .tituloBloqueDinamico {
-  font-size: 11px;
+  font-size: var(--dm-fuente-minima, 11px);
   font-weight: 700;
   color: var(--color-borde-cian);
   border-bottom: 1px solid var(--color-borde-brutal);
@@ -333,7 +333,7 @@
   width: 78px;
   background-color: var(--color-fondo-profundo);
   border: 1.5px solid var(--color-borde-brutal);
-  border-radius: 4px;
+  border-radius: var(--dm-radio-control, 4px);
   color: var(--color-texto-principal);
   outline: none;
 }
@@ -348,7 +348,7 @@
   width: 170px;
   background-color: var(--color-fondo-profundo);
   border: 1.5px solid var(--color-borde-brutal);
-  border-radius: 4px;
+  border-radius: var(--dm-radio-control, 4px);
   color: var(--color-texto-principal);
   outline: none;
 }
@@ -363,7 +363,7 @@
   width: 100%;
   background-color: var(--color-fondo-profundo);
   border: 1.5px solid var(--color-borde-brutal);
-  border-radius: 4px;
+  border-radius: var(--dm-radio-control, 4px);
   color: var(--color-texto-principal);
   outline: none;
 }
@@ -379,7 +379,7 @@
   width: 95px;
   background-color: var(--color-fondo-profundo);
   border: 1.5px solid var(--color-borde-brutal);
-  border-radius: 4px;
+  border-radius: var(--dm-radio-control, 4px);
   color: var(--color-texto-principal);
   outline: none;
   cursor: pointer;
@@ -390,18 +390,18 @@
 
 .selectDinamicoMini:focus {
   border-color: var(--color-borde-cian);
-  box-shadow: 0 0 0 2px rgba(0, 245, 212, 0.18);
+  box-shadow: 0 0 0 2px rgba(var(--dm-rgb-cian, 0, 245, 212), 0.18);
 }
 
 .botonAgregarDinamico {
   background-color: var(--color-primario);
   border: 1px solid var(--color-borde-cian);
-  color: #ffffff;
+  color: var(--dm-texto-principal, #ffffff);
   padding: 5px 10px;
   font-size: 13px;
   font-weight: bold;
   cursor: pointer;
-  border-radius: 4px;
+  border-radius: var(--dm-radio-control, 4px);
 }
 
 .botonAgregarDinamico:hover {
@@ -417,7 +417,7 @@
   max-height: 170px;
   overflow-y: auto;
   border: 1px solid var(--color-borde-brutal);
-  border-radius: 5px;
+  border-radius: var(--dm-radio-panel, 5px);
 }
 
 .itemDinamicoVisual {
@@ -427,22 +427,22 @@
   align-items: flex-start;
   background-color: var(--color-fondo-tarjeta);
   padding: 6px 9px;
-  font-size: 12px;
-  border-radius: 4px;
+  font-size: var(--dm-fuente-minima, 12px);
+  border-radius: var(--dm-radio-panel, 4px);
   border: 1px solid transparent;
 }
 
 .botonEliminarDinamico {
   background: none;
   border: none;
-  color: var(--color-peligro);
+  color: var(--dm-texto-peligro, var(--color-peligro));
   cursor: pointer;
   padding: 2px;
 }
 
 .botonEliminarDinamico:hover {
-  background-color: rgba(255, 118, 117, 0.12);
-  border-radius: 2px;
+  background-color: rgba(var(--dm-rgb-peligro, 255, 118, 117), 0.12);
+  border-radius: var(--dm-radio-control, 2px);
 }
 
 .camposDinamicosGrupo {
@@ -464,7 +464,7 @@
   width: 100%;
   background-color: var(--color-fondo-profundo);
   border: 1.5px solid var(--color-borde-brutal);
-  border-radius: 4px;
+  border-radius: var(--dm-radio-panel, 4px);
   color: var(--color-texto-principal);
   outline: none;
   font-family: inherit;
@@ -479,13 +479,13 @@
 .botonAgregarCompleto {
   background-color: var(--color-primario);
   border: 1px solid var(--color-borde-cian);
-  color: #ffffff;
+  color: var(--dm-texto-principal, #ffffff);
   padding: 6px 12px;
-  font-size: 12px;
+  font-size: var(--dm-fuente-minima, 12px);
   font-weight: bold;
   cursor: pointer;
   align-self: flex-end;
-  border-radius: 4px;
+  border-radius: var(--dm-radio-control, 4px);
 }
 
 .botonAgregarCompleto:hover {
@@ -501,9 +501,9 @@
 }
 
 .botonEnviarBrutal {
-  background: linear-gradient(135deg, var(--color-primario-brillante) 0%, var(--color-primario) 100%);
+  background: linear-gradient(135deg, var(--dm-primario-hover, var(--color-primario-brillante)) 0%, var(--color-primario) 100%);
   border: 1px solid var(--color-borde-cian);
-  color: #ffffff;
+  color: var(--dm-texto-principal, #ffffff);
   padding: 11px;
   font-size: 13.5px;
   font-weight: 700;
@@ -512,13 +512,13 @@
   cursor: pointer;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  border-radius: 6px;
-  box-shadow: 0 3px 12px rgba(0,245,212,0.2);
+  border-radius: var(--dm-radio-control, 6px);
+  box-shadow: 0 3px 12px rgba(var(--dm-rgb-cian, 0, 245, 212), 0.2);
 }
 
 .botonEnviarBrutal:hover {
   filter: brightness(1.15);
-  box-shadow: 0 3px 10px rgba(0, 245, 212, 0.25);
+  box-shadow: 0 3px 10px rgba(var(--dm-rgb-cian, 0, 245, 212), 0.25);
 }
 
 .botonCancelarBrutal {
@@ -532,18 +532,18 @@
   cursor: pointer;
   text-transform: uppercase;
   text-align: center;
-  border-radius: 6px;
+  border-radius: var(--dm-radio-control, 6px);
   letter-spacing: 0.04em;
 }
 
 .botonCancelarBrutal:hover {
-  background-color: rgba(0, 245, 212, 0.12);
+  background-color: rgba(var(--dm-rgb-cian, 0, 245, 212), 0.12);
   border-color: var(--color-borde-cian);
   color: var(--color-borde-cian);
 }
 
 .notaAyuda {
-  font-size: 11.5px;
+  font-size: var(--dm-fuente-minima, 11.5px);
   color: var(--color-texto-apagado);
   margin-top: 4px;
   font-style: italic;
@@ -556,10 +556,10 @@
   bottom: 0;
   left: 0;
   right: 0;
-  background: rgba(18, 24, 38, 0.72);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  background: var(--dm-fondo-modal, rgba(18, 24, 38, 0.72));
+  backdrop-filter: var(--dm-filtro-fondo, blur(10px));
+  -webkit-backdrop-filter: var(--dm-filtro-fondo, blur(10px));
+  border-top: 1px solid rgba(var(--dm-rgb-neutro, 255, 255, 255), 0.08);
   padding: 12px 90px 12px 20px; /* Añadido 90px de padding derecho de seguridad para no colisionar con el dado */
   display: flex;
   gap: 12px;
@@ -570,17 +570,17 @@
 }
 
 .botonStickyGuardar {
-  background: linear-gradient(135deg, var(--color-primario-brillante) 0%, var(--color-primario) 100%);
+  background: linear-gradient(135deg, var(--dm-primario-hover, var(--color-primario-brillante)) 0%, var(--color-primario) 100%);
   border: 1px solid var(--color-borde-cian);
-  color: #ffffff;
+  color: var(--dm-texto-principal, #ffffff);
   padding: 8px 20px;
   font-size: 12.5px;
   font-weight: 700;
   cursor: pointer;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  border-radius: 5px;
-  box-shadow: 0 2px 10px rgba(0, 245, 212, 0.15);
+  border-radius: var(--dm-radio-control, 5px);
+  box-shadow: 0 2px 10px rgba(var(--dm-rgb-cian, 0, 245, 212), 0.15);
   display: flex;
   align-items: center;
   gap: 6px;
@@ -590,7 +590,7 @@
 
 .botonStickyGuardar:hover:not(:disabled) {
   filter: brightness(1.1);
-  box-shadow: 0 2px 12px rgba(0, 245, 212, 0.25);
+  box-shadow: 0 2px 12px rgba(var(--dm-rgb-cian, 0, 245, 212), 0.25);
   transform: translateY(-1px);
 }
 
@@ -606,12 +606,12 @@
   border: 1px solid var(--color-borde-brutal);
   color: var(--color-texto-secundario);
   padding: 8px 16px;
-  font-size: 11.5px;
+  font-size: var(--dm-fuente-minima, 11.5px);
   font-weight: 600;
   cursor: pointer;
   text-transform: uppercase;
   text-align: center;
-  border-radius: 5px;
+  border-radius: var(--dm-radio-control, 5px);
   letter-spacing: 0.04em;
   height: 36px;
   display: flex;
@@ -621,7 +621,7 @@
 }
 
 .botonStickyCancelar:hover {
-  background-color: rgba(255, 255, 255, 0.04);
+  background-color: rgba(var(--dm-rgb-neutro, 255, 255, 255), 0.04);
   color: var(--color-texto-principal);
   border-color: var(--color-texto-secundario);
 }
@@ -651,14 +651,14 @@
 .filaDanoExtraQA {
   padding-left: 10px;
   border-left: 2px solid var(--color-borde-cian);
-  background: rgba(0, 245, 212, 0.02);
+  background: rgba(var(--dm-rgb-cian, 0, 245, 212), 0.02);
   border-radius: 0 4px 4px 0;
   padding-top: 2px;
   padding-bottom: 2px;
 }
 
 .etiquetaDanoExtra {
-  font-size: 11px;
+  font-size: var(--dm-fuente-minima, 11px);
   color: var(--color-borde-cian);
   font-weight: 600;
   min-width: 80px;
@@ -674,13 +674,13 @@
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  font-size: 11px;
+  font-size: var(--dm-fuente-minima, 11px);
   font-weight: 600;
-  background: rgba(0, 245, 212, 0.08);
+  background: rgba(var(--dm-rgb-cian, 0, 245, 212), 0.08);
   color: var(--color-borde-cian);
   border: 1px dashed var(--color-borde-cian);
   padding: 4px 10px;
-  border-radius: 4px;
+  border-radius: var(--dm-radio-control, 4px);
   cursor: pointer;
   transition: none;
 }
@@ -705,13 +705,13 @@
 }
 
 .itemVisualDescripcion {
-  font-size: 11px;
+  font-size: var(--dm-fuente-minima, 11px);
   color: var(--color-texto-secundario);
   white-space: pre-wrap;
 }
 
 .itemVisualMetricasAtaque {
-  font-size: 11px;
+  font-size: var(--dm-fuente-minima, 11px);
   margin-left: 5px;
   color: var(--color-borde-cian);
 }
@@ -729,7 +729,7 @@
 
 .labelLegendariasTotal {
   margin: 0;
-  font-size: 11.5px;
+  font-size: var(--dm-fuente-minima, 11.5px);
 }
 
 .inputLegendariasTotal {
@@ -737,28 +737,28 @@
 }
 
 .botonCopiarAtaqueRapido {
-  color: #f59e0b;
+  color: var(--dm-texto-advertencia, #f59e0b);
   display: inline-flex;
   align-items: center;
   justify-content: center;
 }
 
 .botonCopiarAtaqueRapido:hover {
-  background-color: rgba(245, 158, 11, 0.15);
-  color: #fbbf24;
+  background-color: rgba(var(--dm-rgb-advertencia, 245, 158, 11), 0.15);
+  color: var(--dm-texto-advertencia, #fbbf24);
 }
 
 .botonCargarAtaqueRapido {
-  background-color: rgba(245, 158, 11, 0.12);
-  border: 1px solid rgba(245, 158, 11, 0.4);
-  color: #fbbf24;
+  background-color: rgba(var(--dm-rgb-advertencia, 245, 158, 11), 0.12);
+  border: 1px solid rgba(var(--dm-rgb-advertencia, 245, 158, 11), 0.4);
+  color: var(--dm-texto-advertencia, #fbbf24);
   display: inline-flex;
   align-items: center;
   gap: 5px;
 }
 
 .botonCargarAtaqueRapido:hover {
-  background-color: rgba(245, 158, 11, 0.22);
-  border-color: #f59e0b;
-  color: #ffffff;
+  background-color: rgba(var(--dm-rgb-advertencia, 245, 158, 11), 0.22);
+  border-color: var(--dm-texto-advertencia, #f59e0b);
+  color: var(--dm-texto-principal, #ffffff);
 }

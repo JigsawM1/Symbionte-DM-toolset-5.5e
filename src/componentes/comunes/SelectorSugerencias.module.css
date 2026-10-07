@@ -10,19 +10,19 @@
   padding: 7px 30px 7px 10px;
   background-color: var(--color-fondo-tarjeta);
   border: 1.5px solid var(--color-borde-brutal);
-  border-radius: 5px;
+  border-radius: var(--dm-radio-control, 5px);
   color: var(--color-texto-principal);
   outline: none;
   font-size: 13px;
   font-family: inherit;
   font-weight: 400;
   text-transform: none !important;
-  transition: border-color 0.15s, box-shadow 0.15s;
+  transition: none;
 }
 
 .input:focus {
   border-color: var(--color-borde-cian);
-  box-shadow: 0 0 0 2px rgba(0, 245, 212, 0.18);
+  box-shadow: 0 0 0 2px rgba(var(--dm-rgb-cian, 0, 245, 212), 0.18);
 }
 
 .botonDesplegable {
@@ -38,13 +38,13 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 3px;
-  transition: color 0.15s, background-color 0.15s, transform 0.2s;
+  border-radius: var(--dm-radio-control, 3px);
+  transition: none;
 }
 
 .botonDesplegable:hover {
   color: var(--color-borde-cian);
-  background-color: rgba(0, 245, 212, 0.12);
+  background-color: rgba(var(--dm-rgb-cian, 0, 245, 212), 0.12);
 }
 
 .botonDesplegableAbierto {
@@ -78,7 +78,7 @@
   right: 0;
   background-color: #121824;
   border: 1.5px solid var(--color-borde-cian);
-  border-radius: 6px;
+  border-radius: var(--dm-radio-panel, 6px);
   max-height: 200px;
   overflow-y: auto;
   z-index: 10000;
@@ -95,12 +95,12 @@
 
 .encabezadoGrupo {
   padding: 6px 12px;
-  font-size: 10px;
+  font-size: var(--dm-fuente-minima, 10px);
   font-weight: 800;
-  color: #818cf8;
+  color: var(--dm-texto-acento, #818cf8);
   background-color: #0b0f17;
-  border-top: 1px solid rgba(148, 163, 184, 0.16);
-  border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+  border-top: 1px solid rgba(var(--dm-rgb-neutro, 148, 163, 184), 0.16);
+  border-bottom: 1px solid rgba(var(--dm-rgb-neutro, 148, 163, 184), 0.12);
   text-transform: uppercase;
   letter-spacing: 0.5px;
   display: flex;
@@ -117,12 +117,12 @@
 }
 
 .badgeConteoGrupo {
-  font-size: 9px;
+  font-size: var(--dm-fuente-minima, 9px);
   font-weight: 700;
-  color: #94a3b8;
-  background-color: rgba(255, 255, 255, 0.08);
+  color: var(--dm-texto-apagado, #94a3b8);
+  background-color: rgba(var(--dm-rgb-neutro, 255, 255, 255), 0.08);
   padding: 1px 5px;
-  border-radius: 8px;
+  border-radius: var(--dm-radio-control, 8px);
 }
 
 .infoOpcion {
@@ -132,14 +132,14 @@
 }
 
 .nombreOpcion {
-  font-size: 12px;
+  font-size: var(--dm-fuente-minima, 12px);
   font-weight: 600;
-  color: #f1f5f9;
+  color: var(--dm-texto-principal, #f1f5f9);
 }
 
 .subtituloOpcion {
-  font-size: 10px;
-  color: #94a3b8;
+  font-size: var(--dm-fuente-minima, 10px);
+  color: var(--dm-texto-apagado, #94a3b8);
   font-family: var(--fuente-codigo, 'JetBrains Mono', monospace);
   font-weight: 400;
 }
@@ -158,23 +158,23 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  transition: background-color 0.12s, color 0.12s;
+  transition: none;
 }
 
 .opcion:hover {
-  background-color: rgba(0, 245, 212, 0.15);
+  background-color: rgba(var(--dm-rgb-cian, 0, 245, 212), 0.15);
   color: var(--color-borde-cian);
 }
 
 .opcionSeleccionada {
-  background-color: rgba(0, 245, 212, 0.2);
+  background-color: rgba(var(--dm-rgb-cian, 0, 245, 212), 0.2);
   color: var(--color-borde-cian);
   font-weight: 500;
 }
 
 .sinResultados {
   padding: 8px 12px;
-  font-size: 11.5px;
+  font-size: var(--dm-fuente-minima, 11.5px);
   color: var(--color-texto-secundario);
   text-align: center;
   font-style: italic;

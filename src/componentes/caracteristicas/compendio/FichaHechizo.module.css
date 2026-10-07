@@ -13,8 +13,8 @@
   justify-content: space-between;
   align-items: center;
   padding: 8px 12px;
-  border-bottom: 1.5px solid rgba(0, 245, 212, 0.25);
-  background-color: rgba(0, 245, 212, 0.06);
+  border-bottom: 1.5px solid rgba(var(--dm-rgb-cian, 0, 245, 212), 0.25);
+  background-color: rgba(var(--dm-rgb-cian, 0, 245, 212), 0.06);
   flex-shrink: 0;
   height: 38px;
 }
@@ -34,20 +34,20 @@
 }
 
 .botonAtras {
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(var(--dm-rgb-neutro, 255, 255, 255), 0.08);
+  border: 1px solid rgba(var(--dm-rgb-neutro, 255, 255, 255), 0.15);
   color: var(--color-texto-principal);
   cursor: pointer;
   padding: 2px 6px;
-  border-radius: 4px;
+  border-radius: var(--dm-radio-control, 4px);
   display: flex;
   align-items: center;
-  font-size: 11px;
+  font-size: var(--dm-fuente-minima, 11px);
   font-weight: bold;
 }
 
 .botonAtras:hover {
-  background-color: rgba(255, 255, 255, 0.15);
+  background-color: rgba(var(--dm-rgb-neutro, 255, 255, 255), 0.15);
 }
 
 .botonEditar {
@@ -58,28 +58,28 @@
   padding: 4px;
   display: flex;
   align-items: center;
-  border-radius: 4px;
+  border-radius: var(--dm-radio-control, 4px);
 }
 
 .botonEditar:hover {
-  background-color: rgba(0, 245, 212, 0.12);
+  background-color: rgba(var(--dm-rgb-cian, 0, 245, 212), 0.12);
 }
 
 .metaNivel {
-  font-size: 12px;
+  font-size: var(--dm-fuente-minima, 12px);
   font-weight: bold;
   letter-spacing: 0.05em;
-  color: #ffcc00;
-  border: 1px solid #ffcc00;
+  color: var(--dm-texto-acento, #ffcc00);
+  border: 1px solid var(--dm-texto-acento, #ffcc00);
   padding: 1px 4px;
   font-family: var(--fuente-codigo);
-  border-radius: 2px;
+  border-radius: var(--dm-radio-panel, 2px);
 }
 
 .titulo {
   font-size: 13.5px;
   font-weight: bold;
-  color: #ffffff;
+  color: var(--dm-texto-principal, #ffffff);
   font-family: var(--fuente-principal);
   letter-spacing: 0.02em;
 }
@@ -97,7 +97,7 @@
 }
 
 .botonCerrar:hover {
-  color: #ffffff;
+  color: var(--dm-texto-principal, #ffffff);
 }
 
 .cuerpo {
@@ -117,37 +117,37 @@
 }
 
 .chipConcentracion {
-  font-size: 11px;
+  font-size: var(--dm-fuente-minima, 11px);
   font-weight: bold;
-  background-color: rgba(239, 71, 111, 0.15);
-  border: 1px solid #ef476f;
-  color: #ef476f;
+  background-color: var(--dm-superficie-advertencia, rgba(239, 71, 111, 0.15));
+  border: 1px solid var(--dm-texto-advertencia, #ef476f);
+  color: var(--dm-texto-advertencia, #ef476f);
   padding: 2px 6px;
-  border-radius: 2px;
+  border-radius: var(--dm-radio-control, 2px);
   font-family: var(--fuente-codigo);
   letter-spacing: 0.05em;
 }
 
 .chipRitual {
-  font-size: 11px;
+  font-size: var(--dm-fuente-minima, 11px);
   font-weight: bold;
-  background-color: rgba(114, 9, 183, 0.15);
-  border: 1px solid #7209b7;
-  color: #b5179e;
+  background-color: rgba(var(--dm-rgb-primario, 114, 9, 183), 0.15);
+  border: 1px solid var(--dm-arcano, #7209b7);
+  color: var(--dm-texto-acento, #b5179e);
   padding: 2px 6px;
-  border-radius: 2px;
+  border-radius: var(--dm-radio-control, 2px);
   font-family: var(--fuente-codigo);
   letter-spacing: 0.05em;
 }
 
 .chipEscuela {
-  font-size: 11px;
+  font-size: var(--dm-fuente-minima, 11px);
   font-weight: bold;
-  background-color: rgba(0, 245, 212, 0.05);
-  border: 1px solid rgba(0, 245, 212, 0.2);
+  background-color: rgba(var(--dm-rgb-cian, 0, 245, 212), 0.05);
+  border: 1px solid rgba(var(--dm-rgb-cian, 0, 245, 212), 0.2);
   color: var(--color-borde-cian);
   padding: 2px 6px;
-  border-radius: 2px;
+  border-radius: var(--dm-radio-control, 2px);
   font-family: var(--fuente-codigo);
   letter-spacing: 0.05em;
 }
@@ -156,10 +156,10 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 12px;
-  background-color: rgba(0, 245, 212, 0.02);
-  border: 1px solid rgba(0, 245, 212, 0.1);
+  background-color: rgba(var(--dm-rgb-cian, 0, 245, 212), 0.02);
+  border: 1px solid rgba(var(--dm-rgb-cian, 0, 245, 212), 0.1);
   padding: 10px;
-  border-radius: 4px;
+  border-radius: var(--dm-radio-panel, 4px);
 }
 
 .metaItem {
@@ -174,14 +174,14 @@
 }
 
 .metaLabel {
-  font-size: 11px;
+  font-size: var(--dm-fuente-minima, 11px);
   font-weight: bold;
   color: var(--color-texto-apagado);
   letter-spacing: 0.05em;
 }
 
 .metaValor {
-  font-size: 11px;
+  font-size: var(--dm-fuente-minima, 11px);
   font-weight: 600;
   color: var(--color-texto-principal);
 }
@@ -193,11 +193,11 @@
 }
 
 .seccionTitulo {
-  font-size: 11px;
+  font-size: var(--dm-fuente-minima, 11px);
   font-weight: 800;
   color: var(--color-borde-cian);
   letter-spacing: 0.08em;
-  border-bottom: 1px solid rgba(0, 245, 212, 0.15);
+  border-bottom: 1px solid rgba(var(--dm-rgb-cian, 0, 245, 212), 0.15);
   padding-bottom: 12px;
   text-transform: uppercase;
   font-family: var(--fuente-codigo);
@@ -208,7 +208,7 @@
   font-style: italic;
   color: var(--color-texto-secundario);
   padding-left: 4px;
-  border-left: 2px solid rgba(255, 255, 255, 0.15);
+  border-left: 2px solid rgba(var(--dm-rgb-neutro, 255, 255, 255), 0.15);
 }
 
 .textoDescripcion {
@@ -219,10 +219,10 @@
 }
 
 .cajaCombate {
-  background-color: rgba(0, 245, 212, 0.04);
-  border: 1px solid rgba(0, 245, 212, 0.3);
-  box-shadow: 0 0 10px rgba(0, 245, 212, 0.1);
-  border-radius: 4px;
+  background-color: rgba(var(--dm-rgb-cian, 0, 245, 212), 0.04);
+  border: 1px solid rgba(var(--dm-rgb-cian, 0, 245, 212), 0.3);
+  box-shadow: 0 0 10px rgba(var(--dm-rgb-cian, 0, 245, 212), 0.1);
+  border-radius: var(--dm-radio-panel, 4px);
   padding: 10px;
   display: flex;
   flex-direction: column;
@@ -230,7 +230,7 @@
 }
 
 .tituloCombate {
-  font-size: 11px;
+  font-size: var(--dm-fuente-minima, 11px);
   font-weight: bold;
   color: var(--color-borde-cian);
   text-transform: uppercase;
@@ -245,7 +245,7 @@
 }
 
 .combateItem {
-  font-size: 11px;
+  font-size: var(--dm-fuente-minima, 11px);
   font-weight: 500;
 }
 
@@ -261,7 +261,7 @@
 
 .lineaDivisoria {
   height: 1px;
-  background-color: rgba(0, 245, 212, 0.2);
+  background-color: rgba(var(--dm-rgb-cian, 0, 245, 212), 0.2);
   width: 100%;
 }
 
@@ -282,7 +282,7 @@
 }
 
 .upcastLabel {
-  font-size: 11px;
+  font-size: var(--dm-fuente-minima, 11px);
   color: var(--color-texto-secundario);
   white-space: nowrap;
 }
@@ -290,10 +290,10 @@
 .upcastSelect {
   height: 24px;
   background-color: var(--color-fondo-profundo);
-  border: 1px solid rgba(0, 245, 212, 0.3);
+  border: 1px solid rgba(var(--dm-rgb-cian, 0, 245, 212), 0.3);
   color: var(--color-texto-principal);
-  font-size: 11px;
-  border-radius: 2px;
+  font-size: var(--dm-fuente-minima, 11px);
+  border-radius: var(--dm-radio-control, 2px);
   padding: 0 6px;
   cursor: pointer;
   flex: 1;
@@ -315,25 +315,25 @@
 .formulaTotal {
   font-size: 13px;
   font-weight: bold;
-  color: #ff7675;
+  color: var(--dm-texto-peligro, #ff7675);
   font-family: var(--fuente-codigo);
 }
 
 .formulaDetalle {
-  font-size: 11px;
-  color: #74b9ff;
+  font-size: var(--dm-fuente-minima, 11px);
+  color: var(--dm-texto-cian, #74b9ff);
   font-family: var(--fuente-codigo);
 }
 
 .botonTirarCombate {
   height: 28px;
-  background-color: rgba(255, 118, 117, 0.15);
-  border: 1px solid #ff7675;
-  color: #ff7675;
+  background-color: var(--dm-superficie-primario, rgba(255, 118, 117, 0.15));
+  border: 1px solid var(--dm-primario, #ff7675);
+  color: var(--dm-texto-acento, #ff7675);
   font-weight: bold;
-  border-radius: 2px;
+  border-radius: var(--dm-radio-control, 2px);
   cursor: pointer;
-  font-size: 11px;
+  font-size: var(--dm-fuente-minima, 11px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -343,19 +343,19 @@
 }
 
 .botonTirarCombate:hover {
-  background-color: rgba(255, 118, 117, 0.25);
-  box-shadow: 0 0 8px rgba(255, 118, 117, 0.2);
+  background-color: rgba(var(--dm-rgb-primario, 255, 118, 117), 0.25);
+  box-shadow: 0 0 8px rgba(var(--dm-rgb-primario, 255, 118, 117), 0.2);
 }
 
 .botonTirarUpcast {
   height: 28px;
-  background-color: rgba(116, 185, 255, 0.15);
-  border: 1px solid #74b9ff;
-  color: #74b9ff;
+  background-color: rgba(var(--dm-rgb-cian, 116, 185, 255), 0.15);
+  border: 1px solid var(--dm-texto-cian, #74b9ff);
+  color: var(--dm-texto-cian, #74b9ff);
   font-weight: bold;
-  border-radius: 2px;
+  border-radius: var(--dm-radio-control, 2px);
   cursor: pointer;
-  font-size: 11px;
+  font-size: var(--dm-fuente-minima, 11px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -365,8 +365,8 @@
 }
 
 .botonTirarUpcast:hover {
-  background-color: rgba(116, 185, 255, 0.25);
-  box-shadow: 0 0 8px rgba(116, 185, 255, 0.2);
+  background-color: rgba(var(--dm-rgb-cian, 116, 185, 255), 0.25);
+  box-shadow: 0 0 8px rgba(var(--dm-rgb-cian, 116, 185, 255), 0.2);
 }
 
 .filaClases {
@@ -379,24 +379,24 @@
 
 .chipClase {
   font-size: 16px;
-  background-color: rgba(255, 255, 255, 0.05);
+  background-color: rgba(var(--dm-rgb-neutro, 255, 255, 255), 0.05);
   border: 1px solid var(--color-borde-brutal);
   color: var(--color-texto-principal);
   padding: 4px 18px;
-  border-radius: 4px;
+  border-radius: var(--dm-radio-control, 4px);
   font-weight: 500;
 }
 
 .colorActivo {
-  color: var(--color-activo);
+  color: var(--dm-primario-hover, var(--color-activo));
 }
 
 .colorAlerta {
-  color: #ffcc00;
+  color: var(--dm-texto-acento, #ffcc00);
 }
 
 .colorDano {
-  color: #ff7675;
+  color: var(--dm-texto-peligro, #ff7675);
 }
 
 .textoUpcast {
@@ -409,8 +409,8 @@
 }
 
 .textoMultiplicadorTruco {
-  font-size: 11px;
-  color: #93c5fd;
+  font-size: var(--dm-fuente-minima, 11px);
+  color: var(--dm-texto-cian, #93c5fd);
   font-weight: 600;
   margin-left: 6px;
 }
@@ -420,22 +420,22 @@
 }
 
 .badgeRanuraUnica {
-  font-size: 12px;
+  font-size: var(--dm-fuente-minima, 12px);
   font-weight: 700;
-  border-radius: 4px;
+  border-radius: var(--dm-radio-control, 4px);
   padding: 4px 8px;
 }
 
 .badgeRanuraPacto {
-  background-color: rgba(168, 85, 247, 0.15);
-  color: #d8b4fe;
-  border: 1px solid rgba(168, 85, 247, 0.35);
+  background-color: rgba(var(--dm-rgb-primario, 168, 85, 247), 0.15);
+  color: var(--dm-texto-acento, #d8b4fe);
+  border: 1px solid rgba(var(--dm-rgb-primario, 168, 85, 247), 0.35);
 }
 
 .badgeRanuraEstandar {
-  background-color: rgba(148, 163, 184, 0.1);
-  color: #cbd5e1;
-  border: 1px solid rgba(148, 163, 184, 0.2);
+  background-color: rgba(var(--dm-rgb-neutro, 148, 163, 184), 0.1);
+  color: var(--dm-texto-secundario, #cbd5e1);
+  border: 1px solid rgba(var(--dm-rgb-neutro, 148, 163, 184), 0.2);
 }
 
 .bannerBloqueoArmadura {
@@ -443,11 +443,11 @@
   align-items: center;
   gap: 8px;
   padding: 8px 12px;
-  background-color: rgba(239, 68, 68, 0.15);
-  border: 1px solid rgba(239, 68, 68, 0.4);
-  border-radius: 6px;
-  color: #fca5a5;
-  font-size: 12px;
+  background-color: rgba(var(--dm-rgb-peligro, 239, 68, 68), 0.15);
+  border: 1px solid rgba(var(--dm-rgb-peligro, 239, 68, 68), 0.4);
+  border-radius: var(--dm-radio-panel, 6px);
+  color: var(--dm-texto-peligro, #fca5a5);
+  font-size: var(--dm-fuente-minima, 12px);
   font-weight: 600;
   margin-bottom: 8px;
 }
@@ -467,10 +467,10 @@
   align-items: center;
   justify-content: center;
   gap: 6px;
-  background-color: rgba(168, 85, 247, 0.15);
-  border: 1px solid rgba(168, 85, 247, 0.4);
-  border-radius: 6px;
-  color: #d8b4fe;
+  background-color: rgba(var(--dm-rgb-primario, 168, 85, 247), 0.15);
+  border: 1px solid rgba(var(--dm-rgb-primario, 168, 85, 247), 0.4);
+  border-radius: var(--dm-radio-control, 6px);
+  color: var(--dm-texto-acento, #d8b4fe);
   font-size: 13px;
   font-weight: 700;
   padding: 8px 14px;
@@ -479,7 +479,7 @@
 }
 
 .botonRitual:hover:not(:disabled) {
-  background-color: rgba(168, 85, 247, 0.25);
+  background-color: rgba(var(--dm-rgb-primario, 168, 85, 247), 0.25);
 }
 
 .textoItalica {

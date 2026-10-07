@@ -38,7 +38,7 @@
 }
 
 .selectForm {
-  font-size: 12px;
+  font-size: var(--dm-fuente-minima, 12px);
   height: 24px;
   padding: 1px 2px;
   width: 200px;
@@ -53,7 +53,7 @@
 }
 
 .inputForm {
-  font-size: 12px;
+  font-size: var(--dm-fuente-minima, 12px);
   height: 24px;
   padding: 1px 2px;
   width: 200px;
@@ -80,7 +80,7 @@
 }
 
 .resultadoCalculoTexto {
-  font-size: 12px;
+  font-size: var(--dm-fuente-minima, 12px);
   color: var(--color-texto-apagado);
   text-transform: uppercase;
 }
@@ -93,11 +93,11 @@
 }
 
 .resultadoCalculoValorAdvertencia {
-  color: var(--color-advertencia) !important;
+  color: var(--dm-texto-advertencia, var(--color-advertencia)) !important;
 }
 
 .resultadoCalculoEfecto {
-  font-size: 12px;
+  font-size: var(--dm-fuente-minima, 12px);
   color: var(--color-texto-secundario);
   font-style: italic;
   line-height: 1.2;
@@ -105,7 +105,7 @@
 }
 
 .iconoTitulo {
-  color: var(--color-advertencia);
+  color: var(--dm-texto-advertencia, var(--color-advertencia));
   margin-right: 4px;
 }
 

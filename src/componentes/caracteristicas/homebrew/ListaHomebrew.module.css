@@ -2,7 +2,7 @@
   flex: 1 1 0%;
   background-color: var(--color-fondo-panel);
   border: 1px solid var(--color-borde-brutal);
-  border-radius: 8px;
+  border-radius: var(--dm-radio-panel, 8px);
   padding: 12px;
   display: flex;
   flex-direction: column;
@@ -14,7 +14,7 @@
 }
 
 .cabeceraPanel {
-  font-size: 11px;
+  font-size: var(--dm-fuente-minima, 11px);
   font-weight: 700;
   color: var(--color-borde-cian);
   border-bottom: 2px solid var(--color-borde-cian);
@@ -41,28 +41,28 @@
   padding: 7px 10px;
   background-color: var(--color-fondo-profundo);
   border: 1.5px solid var(--color-borde-brutal);
-  border-radius: 5px;
+  border-radius: var(--dm-radio-control, 5px);
   color: var(--color-texto-principal);
   outline: none;
 }
 
 .inputBuscadorHomebrew:focus {
   border-color: var(--color-borde-cian);
-  box-shadow: 0 0 0 2px rgba(0, 245, 212, 0.18);
+  box-shadow: 0 0 0 2px rgba(var(--dm-rgb-cian, 0, 245, 212), 0.18);
 }
 
 .botonLimpiarBusquedaHomebrew {
-  font-size: 12px;
+  font-size: var(--dm-fuente-minima, 12px);
   padding: 7px 10px;
   background-color: var(--color-fondo-tarjeta);
   border: 1px solid var(--color-borde-brutal);
-  border-radius: 5px;
+  border-radius: var(--dm-radio-control, 5px);
   color: var(--color-texto-secundario);
   cursor: pointer;
 }
 
 .botonLimpiarBusquedaHomebrew:hover {
-  background-color: rgba(0, 245, 212, 0.12);
+  background-color: rgba(var(--dm-rgb-cian, 0, 245, 212), 0.12);
   border-color: var(--color-borde-cian);
   color: var(--color-borde-cian);
 }
@@ -91,13 +91,13 @@
   align-items: center;
   background-color: var(--color-fondo-tarjeta);
   border: 1px solid var(--color-borde-brutal);
-  border-radius: 6px;
+  border-radius: var(--dm-radio-panel, 6px);
   padding: 9px 12px;
 }
 
 .itemListaBrutal:hover {
-  border-color: rgba(0, 245, 212, 0.4);
-  background-color: rgba(0, 245, 212, 0.04);
+  border-color: rgba(var(--dm-rgb-cian, 0, 245, 212), 0.4);
+  background-color: rgba(var(--dm-rgb-cian, 0, 245, 212), 0.04);
 }
 
 .itemInfoLista {
@@ -120,7 +120,7 @@
 }
 
 .itemSub {
-  font-size: 11.5px;
+  font-size: var(--dm-fuente-minima, 11.5px);
   color: var(--color-texto-secundario);
 }
 
@@ -139,26 +139,26 @@
   padding: 5px;
   display: flex;
   align-items: center;
-  border-radius: 4px;
+  border-radius: var(--dm-radio-control, 4px);
 }
 
 .botonEditarItem:hover {
-  background-color: rgba(0, 245, 212, 0.12);
+  background-color: rgba(var(--dm-rgb-cian, 0, 245, 212), 0.12);
 }
 
 .botonEliminarItem {
   background: none;
   border: none;
-  color: var(--color-peligro);
+  color: var(--dm-texto-peligro, var(--color-peligro));
   cursor: pointer;
   padding: 5px;
   display: flex;
   align-items: center;
-  border-radius: 4px;
+  border-radius: var(--dm-radio-control, 4px);
 }
 
 .botonEliminarItem:hover {
-  background-color: rgba(255, 118, 117, 0.12);
+  background-color: rgba(var(--dm-rgb-peligro, 255, 118, 117), 0.12);
 }
 
 .panelDetalleOverlay {
@@ -174,7 +174,7 @@
   display: flex;
   flex-direction: column;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
-  border-radius: 8px;
+  border-radius: var(--dm-radio-panel, 8px);
 }
 
 .cabeceraDetalle {
@@ -196,11 +196,11 @@
 }
 
 .objetoNivelOverlay {
-  font-size: 12px;
+  font-size: var(--dm-fuente-minima, 12px);
   font-weight: bold;
-  background-color: rgba(255, 118, 117, 0.1);
-  border: 1px solid #ff7675;
-  color: #ff7675;
+  background-color: rgba(var(--dm-rgb-peligro, 255, 118, 117), 0.1);
+  border: 1px solid var(--dm-texto-peligro, #ff7675);
+  color: var(--dm-texto-peligro, #ff7675);
   padding: 0 6px;
   font-family: var(--fuente-codigo);
 }
@@ -251,7 +251,7 @@
 }
 
 .metaLabel {
-  font-size: 10px;
+  font-size: var(--dm-fuente-minima, 10px);
   color: var(--color-texto-apagado);
   font-weight: bold;
 }
@@ -270,47 +270,47 @@
 }
 
 .chipConcentracion {
-  font-size: 9px;
-  background-color: rgba(255, 204, 0, 0.15);
-  border: 1px solid #ffcc00;
-  color: #ffcc00;
+  font-size: var(--dm-fuente-minima, 9px);
+  background-color: rgba(var(--dm-rgb-advertencia, 255, 204, 0), 0.15);
+  border: 1px solid var(--dm-texto-advertencia, #ffcc00);
+  color: var(--dm-texto-advertencia, #ffcc00);
   padding: 1px 6px;
   font-weight: bold;
 }
 
 .cajaMecanicasCombateObjeto {
-  background-color: rgba(255, 118, 117, 0.05);
-  border: 1.5px solid #ff7675;
+  background-color: rgba(var(--dm-rgb-peligro, 255, 118, 117), 0.05);
+  border: 1.5px solid var(--dm-texto-peligro, #ff7675);
   padding: 8px;
-  border-radius: 4px;
+  border-radius: var(--dm-radio-panel, 4px);
   margin-top: 6px;
 }
 
 .tituloMecanicasObjeto {
-  font-size: 10px;
+  font-size: var(--dm-fuente-minima, 10px);
   font-weight: bold;
-  color: #ff7675;
+  color: var(--dm-texto-peligro, #ff7675);
   margin-bottom: 6px;
   text-transform: uppercase;
 }
 
 .badgeClaseObjeto {
   font-size: 13px;
-  background-color: rgba(255, 118, 117, 0.1);
-  border: 1px solid rgba(255, 118, 117, 0.3);
-  color: #ff7675;
+  background-color: rgba(var(--dm-rgb-peligro, 255, 118, 117), 0.1);
+  border: 1px solid rgba(var(--dm-rgb-peligro, 255, 118, 117), 0.3);
+  color: var(--dm-texto-peligro, #ff7675);
   padding: 1px 5px;
-  border-radius: 2px;
+  border-radius: var(--dm-radio-control, 2px);
 }
 
 .cajaBonoMagico {
-  font-size: 11px;
+  font-size: var(--dm-fuente-minima, 11px);
   display: flex;
   justify-content: space-between;
   padding: 4px 8px;
-  background-color: rgba(0, 245, 212, 0.05);
+  background-color: rgba(var(--dm-rgb-cian, 0, 245, 212), 0.05);
   border: 1px solid var(--color-borde-cian);
-  border-radius: 3px;
+  border-radius: var(--dm-radio-panel, 3px);
 }
 
 .listaBonosMagicos {
@@ -334,7 +334,7 @@
 }
 
 .descripcionTituloFicha {
-  font-size: 12px;
+  font-size: var(--dm-fuente-minima, 12px);
   font-weight: bold;
   color: var(--color-borde-cian);
   letter-spacing: 0.05em;
@@ -369,19 +369,19 @@
 
 .botonMostrarMas {
   padding: 8px 20px;
-  font-size: 12px;
+  font-size: var(--dm-fuente-minima, 12px);
   width: auto;
   cursor: pointer;
 }
 
 .badgeVenenoObjeto {
-  font-size: 10px;
+  font-size: var(--dm-fuente-minima, 10px);
   font-weight: bold;
   padding: 1px 6px;
-  border-radius: 4px;
-  background: rgba(168, 85, 247, 0.18);
-  border: 1px solid rgba(168, 85, 247, 0.4);
-  color: hsl(270, 95%, 80%);
+  border-radius: var(--dm-radio-control, 4px);
+  background: rgba(var(--dm-rgb-primario, 168, 85, 247), 0.18);
+  border: 1px solid rgba(var(--dm-rgb-primario, 168, 85, 247), 0.4);
+  color: var(--dm-texto-acento, hsl(270, 95%, 80%));
   display: inline-flex;
   align-items: center;
   gap: 4px;
@@ -393,29 +393,29 @@
 }
 
 .botonNavegarAtras {
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(var(--dm-rgb-neutro, 255, 255, 255), 0.08);
+  border: 1px solid rgba(var(--dm-rgb-neutro, 255, 255, 255), 0.15);
   color: var(--color-texto-principal);
   cursor: pointer;
   padding: 4px 10px;
-  border-radius: 6px;
+  border-radius: var(--dm-radio-control, 6px);
   display: flex;
   align-items: center;
-  font-size: 12px;
+  font-size: var(--dm-fuente-minima, 12px);
   font-weight: bold;
   gap: 4px;
 }
 
 .botonPlantillaDetalle {
-  background: rgba(0, 245, 212, 0.08);
+  background: rgba(var(--dm-rgb-cian, 0, 245, 212), 0.08);
   border: 1px solid var(--color-borde-cian);
   color: var(--color-borde-cian);
   cursor: pointer;
   padding: 4px 10px;
-  border-radius: 6px;
+  border-radius: var(--dm-radio-control, 6px);
   display: flex;
   align-items: center;
-  font-size: 12px;
+  font-size: var(--dm-fuente-minima, 12px);
   font-weight: bold;
   gap: 6px;
 }
@@ -425,48 +425,48 @@
 }
 
 .metaValorRareza[data-rareza="Común"] {
-  color: hsl(0, 0%, 75%);
+  color: var(--dm-texto-secundario, hsl(0, 0%, 75%));
 }
 
 .metaValorRareza[data-rareza="Poco Común"] {
-  color: hsl(120, 60%, 45%);
+  color: var(--dm-texto-exito, hsl(120, 60%, 45%));
 }
 
 .metaValorRareza[data-rareza="Raro"] {
-  color: hsl(210, 85%, 50%);
+  color: var(--dm-texto-cian, hsl(210, 85%, 50%));
 }
 
 .metaValorRareza[data-rareza="Muy Raro"] {
-  color: hsl(280, 75%, 60%);
+  color: var(--dm-texto-acento, hsl(280, 75%, 60%));
 }
 
 .metaValorRareza[data-rareza="Legendario"] {
-  color: hsl(32, 95%, 50%);
+  color: var(--dm-texto-advertencia, hsl(32, 95%, 50%));
 }
 
 .metaValorRareza[data-rareza="Artefacto"] {
-  color: hsl(0, 75%, 40%);
+  color: var(--dm-texto-peligro, hsl(0, 75%, 40%));
 }
 
 .textoPurpuraVeneno {
-  color: hsl(270, 95%, 80%) !important;
+  color: var(--dm-texto-acento, hsl(270, 95%, 80%)) !important;
   font-weight: bold;
 }
 
 .chipConcentracionMagico {
-  background-color: rgba(0, 245, 212, 0.12);
+  background-color: rgba(var(--dm-rgb-cian, 0, 245, 212), 0.12);
   color: var(--color-borde-cian);
   border: 1px solid var(--color-borde-cian);
 }
 
 .chipConcentracionVeneno {
-  background-color: rgba(168, 85, 247, 0.18);
-  color: hsl(270, 95%, 85%);
-  border: 1px solid rgba(168, 85, 247, 0.5);
+  background-color: rgba(var(--dm-rgb-primario, 168, 85, 247), 0.18);
+  color: var(--dm-texto-acento, hsl(270, 95%, 85%));
+  border: 1px solid rgba(var(--dm-rgb-primario, 168, 85, 247), 0.5);
 }
 
 .textoAdvertencia {
-  color: var(--color-advertencia) !important;
+  color: var(--dm-texto-advertencia, var(--color-advertencia)) !important;
 }
 
 .enlaceObjetoCompendio {
@@ -476,28 +476,28 @@
 }
 
 .cajaMecanicasArmadura {
-  border-color: rgba(255, 165, 0, 0.25);
+  border-color: rgba(var(--dm-rgb-advertencia, 255, 165, 0), 0.25);
 }
 
 .tituloMecanicasArmadura {
-  color: var(--color-advertencia);
+  color: var(--dm-texto-advertencia, var(--color-advertencia));
 }
 
 .valorDesventajaSigilo[data-desventaja="true"] {
-  color: var(--color-peligro) !important;
+  color: var(--dm-texto-peligro, var(--color-peligro)) !important;
 }
 
 .valorDesventajaSigilo[data-desventaja="false"] {
-  color: var(--color-exito) !important;
+  color: var(--dm-texto-exito, var(--color-exito)) !important;
 }
 
 .cajaMecanicasVeneno {
-  border-color: rgba(168, 85, 247, 0.4);
-  background: rgba(168, 85, 247, 0.05);
+  border-color: rgba(var(--dm-rgb-primario, 168, 85, 247), 0.4);
+  background: rgba(var(--dm-rgb-primario, 168, 85, 247), 0.05);
 }
 
 .tituloMecanicasVeneno {
-  color: hsl(270, 95%, 80%);
+  color: var(--dm-texto-acento, hsl(270, 95%, 80%));
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -506,12 +506,12 @@
 }
 
 .botonTirarDanoVeneno {
-  background: rgba(239, 68, 68, 0.2);
-  border: 1px solid rgba(239, 68, 68, 0.55);
-  color: #fca5a5;
-  border-radius: 4px;
+  background: rgba(var(--dm-rgb-peligro, 239, 68, 68), 0.2);
+  border: 1px solid rgba(var(--dm-rgb-peligro, 239, 68, 68), 0.55);
+  color: var(--dm-texto-peligro, #fca5a5);
+  border-radius: var(--dm-radio-control, 4px);
   padding: 3px 9px;
-  font-size: 11px;
+  font-size: var(--dm-fuente-minima, 11px);
   font-weight: bold;
   cursor: pointer;
   display: flex;
@@ -540,7 +540,7 @@
 }
 
 .cajaMecanicasMunicion {
-  border-color: rgba(0, 245, 212, 0.25);
+  border-color: rgba(var(--dm-rgb-cian, 0, 245, 212), 0.25);
 }
 
 .tituloMecanicasMunicion {
@@ -556,7 +556,7 @@
 }
 
 .textoDescBono {
-  font-size: 11px;
+  font-size: var(--dm-fuente-minima, 11px);
   color: var(--color-texto-secundario);
   margin-top: 2px;
 }
@@ -575,22 +575,22 @@
 .subDetallesHechizoVinculado {
   display: flex;
   gap: 8px;
-  font-size: 10px;
+  font-size: var(--dm-fuente-minima, 10px);
   color: var(--color-texto-secundario);
   margin-top: 2px;
 }
 
 .badgeCosteCargas {
-  font-size: 11px;
+  font-size: var(--dm-fuente-minima, 11px);
   font-weight: bold;
   background: rgba(0, 0, 0, 0.2);
   padding: 2px 6px;
-  border-radius: 4px;
-  color: var(--color-advertencia);
+  border-radius: var(--dm-radio-control, 4px);
+  color: var(--dm-texto-advertencia, var(--color-advertencia));
 }
 
 .cajaMecanicasArtesania {
-  border-color: rgba(168, 85, 247, 0.25);
+  border-color: rgba(var(--dm-rgb-primario, 168, 85, 247), 0.25);
   margin: 0;
 }
 
@@ -604,12 +604,12 @@
 }
 
 .chipComponenteArtesania {
-  font-size: 11px;
-  background: rgba(168, 85, 247, 0.15);
-  border: 1px solid hsl(270, 70%, 50%);
-  color: hsl(270, 100%, 85%);
+  font-size: var(--dm-fuente-minima, 11px);
+  background: rgba(var(--dm-rgb-primario, 168, 85, 247), 0.15);
+  border: 1px solid var(--dm-primario, hsl(270, 70%, 50%));
+  color: var(--dm-texto-acento, hsl(270, 100%, 85%));
   padding: 2px 6px;
-  border-radius: 4px;
+  border-radius: var(--dm-radio-control, 4px);
 }
 
 .filaContenidoPaquete {
@@ -617,40 +617,40 @@
   justify-content: space-between;
   align-items: center;
   padding: 8px 12px;
-  background: rgba(255, 255, 255, 0.04);
-  border-radius: 6px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(var(--dm-rgb-neutro, 255, 255, 255), 0.04);
+  border-radius: var(--dm-radio-panel, 6px);
+  border: 1px solid rgba(var(--dm-rgb-neutro, 255, 255, 255), 0.06);
 }
 
 .textoItemPaquete {
-  font-size: 12px;
+  font-size: var(--dm-fuente-minima, 12px);
   color: var(--color-texto-principal);
 }
 
 .botonVerObjetoContenido {
-  background: rgba(0, 245, 212, 0.12);
+  background: rgba(var(--dm-rgb-cian, 0, 245, 212), 0.12);
   border: 1px solid var(--color-borde-cian);
   color: var(--color-borde-cian);
   padding: 2px 8px;
-  border-radius: 4px;
-  font-size: 10px;
+  border-radius: var(--dm-radio-control, 4px);
+  font-size: var(--dm-fuente-minima, 10px);
   cursor: pointer;
   font-weight: bold;
 }
 
 .textoNoDisponible {
-  font-size: 10px;
+  font-size: var(--dm-fuente-minima, 10px);
   color: var(--color-texto-secundario);
   font-style: italic;
 }
 
 .botonCraftDisponible {
-  font-size: 11px;
-  background: rgba(168, 85, 247, 0.15);
-  border: 1px solid hsl(270, 70%, 50%);
-  color: hsl(270, 100%, 85%);
+  font-size: var(--dm-fuente-minima, 11px);
+  background: rgba(var(--dm-rgb-primario, 168, 85, 247), 0.15);
+  border: 1px solid var(--dm-primario, hsl(270, 70%, 50%));
+  color: var(--dm-texto-acento, hsl(270, 100%, 85%));
   padding: 4px 8px;
-  border-radius: 4px;
+  border-radius: var(--dm-radio-control, 4px);
   cursor: pointer;
   font-weight: bold;
   display: flex;
@@ -659,12 +659,12 @@
 }
 
 .chipCraftNoDisponible {
-  font-size: 11px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  font-size: var(--dm-fuente-minima, 11px);
+  background: rgba(var(--dm-rgb-neutro, 255, 255, 255), 0.05);
+  border: 1px solid rgba(var(--dm-rgb-neutro, 255, 255, 255), 0.1);
   color: var(--color-texto-secundario);
   padding: 4px 8px;
-  border-radius: 4px;
+  border-radius: var(--dm-radio-control, 4px);
 }
 
 .tituloMecanicasObjetoConBotones {
@@ -684,110 +684,110 @@
 }
 
 .botonTirarAtaqueArma {
-  background: rgba(245, 158, 11, 0.18);
-  border: 1px solid rgba(245, 158, 11, 0.6);
-  color: #fcd34d;
-  border-radius: 4px;
+  background: rgba(var(--dm-rgb-advertencia, 245, 158, 11), 0.18);
+  border: 1px solid rgba(var(--dm-rgb-advertencia, 245, 158, 11), 0.6);
+  color: var(--dm-texto-advertencia, #fcd34d);
+  border-radius: var(--dm-radio-control, 4px);
   padding: 3px 8px;
-  font-size: 11px;
+  font-size: var(--dm-fuente-minima, 11px);
   font-weight: bold;
   cursor: pointer;
   display: flex;
   align-items: center;
   gap: 4px;
-  transition: all 0.15s ease;
+  transition: none;
 }
 
 .botonTirarAtaqueArma:hover {
-  background: rgba(245, 158, 11, 0.3);
+  background: rgba(var(--dm-rgb-advertencia, 245, 158, 11), 0.3);
   transform: translateY(-1px);
 }
 
 .botonTirarDanoArma {
-  background: rgba(239, 68, 68, 0.2);
-  border: 1px solid rgba(239, 68, 68, 0.55);
-  color: #fca5a5;
-  border-radius: 4px;
+  background: rgba(var(--dm-rgb-peligro, 239, 68, 68), 0.2);
+  border: 1px solid rgba(var(--dm-rgb-peligro, 239, 68, 68), 0.55);
+  color: var(--dm-texto-peligro, #fca5a5);
+  border-radius: var(--dm-radio-control, 4px);
   padding: 2px 7px;
-  font-size: 10px;
+  font-size: var(--dm-fuente-minima, 10px);
   font-weight: bold;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   gap: 3px;
   margin-left: 6px;
-  transition: all 0.15s ease;
+  transition: none;
 }
 
 .botonTirarDanoArma:hover {
-  background: rgba(239, 68, 68, 0.35);
+  background: rgba(var(--dm-rgb-peligro, 239, 68, 68), 0.35);
   transform: translateY(-1px);
 }
 
 .botonTirarMecanicaObjeto {
-  background: rgba(0, 245, 212, 0.15);
+  background: rgba(var(--dm-rgb-cian, 0, 245, 212), 0.15);
   border: 1px solid var(--color-borde-cian);
   color: var(--color-borde-cian);
-  border-radius: 4px;
+  border-radius: var(--dm-radio-control, 4px);
   padding: 3px 8px;
-  font-size: 11px;
+  font-size: var(--dm-fuente-minima, 11px);
   font-weight: bold;
   cursor: pointer;
   display: flex;
   align-items: center;
   gap: 4px;
-  transition: all 0.15s ease;
+  transition: none;
 }
 
 .botonTirarMecanicaObjeto:hover {
-  background: rgba(0, 245, 212, 0.25);
+  background: rgba(var(--dm-rgb-cian, 0, 245, 212), 0.25);
   transform: translateY(-1px);
 }
 
 .botonTirarRecarga {
-  background: rgba(168, 85, 247, 0.18);
-  border: 1px solid rgba(168, 85, 247, 0.55);
-  color: #e9d5ff;
-  border-radius: 4px;
+  background: rgba(var(--dm-rgb-primario, 168, 85, 247), 0.18);
+  border: 1px solid rgba(var(--dm-rgb-primario, 168, 85, 247), 0.55);
+  color: var(--dm-texto-acento, #e9d5ff);
+  border-radius: var(--dm-radio-control, 4px);
   padding: 2px 7px;
-  font-size: 10px;
+  font-size: var(--dm-fuente-minima, 10px);
   font-weight: bold;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   gap: 3px;
   margin-left: 6px;
-  transition: all 0.15s ease;
+  transition: none;
 }
 
 .botonTirarRecarga:hover {
-  background: rgba(168, 85, 247, 0.3);
+  background: rgba(var(--dm-rgb-primario, 168, 85, 247), 0.3);
   transform: translateY(-1px);
 }
 
 .botonTirarHechizoVinculado {
-  background: rgba(168, 85, 247, 0.2);
-  border: 1px solid rgba(168, 85, 247, 0.55);
-  color: #e9d5ff;
-  border-radius: 4px;
+  background: rgba(var(--dm-rgb-primario, 168, 85, 247), 0.2);
+  border: 1px solid rgba(var(--dm-rgb-primario, 168, 85, 247), 0.55);
+  color: var(--dm-texto-acento, #e9d5ff);
+  border-radius: var(--dm-radio-control, 4px);
   padding: 2px 8px;
-  font-size: 11px;
+  font-size: var(--dm-fuente-minima, 11px);
   font-weight: bold;
   cursor: pointer;
   display: flex;
   align-items: center;
   gap: 4px;
-  transition: all 0.15s ease;
+  transition: none;
 }
 
 .botonTirarHechizoVinculado:hover {
-  background: rgba(168, 85, 247, 0.35);
+  background: rgba(var(--dm-rgb-primario, 168, 85, 247), 0.35);
   transform: translateY(-1px);
 }
 
 .enlaceHechizoVinculado {
   cursor: pointer;
-  transition: opacity 0.15s ease;
+  transition: none;
 }
 
 .enlaceHechizoVinculado:hover {
@@ -795,12 +795,12 @@
 }
 
 .badgeVerFichaHechizo {
-  font-size: 9px;
-  background: rgba(0, 245, 212, 0.12);
+  font-size: var(--dm-fuente-minima, 9px);
+  background: rgba(var(--dm-rgb-cian, 0, 245, 212), 0.12);
   color: var(--color-borde-cian);
   padding: 1px 4px;
-  border-radius: 3px;
-  border: 1px solid rgba(0, 245, 212, 0.3);
+  border-radius: var(--dm-radio-control, 3px);
+  border: 1px solid rgba(var(--dm-rgb-cian, 0, 245, 212), 0.3);
 }
 
 

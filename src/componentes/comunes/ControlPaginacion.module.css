@@ -14,19 +14,19 @@
   gap: 0.35rem;
   padding: 0.35rem 0.15rem;
   user-select: none;
-  font-size: 0.75rem;
+  font-size: var(--dm-fuente-minima, 0.75rem);
 }
 
 .infoRango {
-  color: #94a3b8;
-  font-size: 0.75rem;
+  color: var(--dm-texto-apagado, #94a3b8);
+  font-size: var(--dm-fuente-minima, 0.75rem);
   font-weight: 500;
   white-space: nowrap;
 }
 
 .infoRangoCompacto {
-  color: #94a3b8;
-  font-size: 0.7rem;
+  color: var(--dm-texto-apagado, #94a3b8);
+  font-size: var(--dm-fuente-minima, 0.7rem);
   font-weight: 500;
 }
 
@@ -45,7 +45,7 @@
   border-radius: 0.25rem;
   background-color: #1e293b;
   border: 1px solid #334155;
-  color: #cbd5e1;
+  color: var(--dm-texto-secundario, #cbd5e1);
   cursor: pointer;
   padding: 0;
   transition: none;
@@ -53,7 +53,7 @@
 
 .botonPaginacion:hover:not(:disabled) {
   background-color: #334155;
-  color: #f8fafc;
+  color: var(--dm-texto-principal, #f8fafc);
   border-color: #475569;
 }
 
@@ -71,7 +71,7 @@
   border-radius: 0.25rem;
   background-color: #1e293b;
   border: 1px solid #334155;
-  color: #cbd5e1;
+  color: var(--dm-texto-secundario, #cbd5e1);
   cursor: pointer;
   padding: 0;
   transition: none;
@@ -79,7 +79,7 @@
 
 .botonPaginacionCompacto:hover:not(:disabled) {
   background-color: #334155;
-  color: #f8fafc;
+  color: var(--dm-texto-principal, #f8fafc);
   border-color: #475569;
 }
 
@@ -89,8 +89,8 @@
 }
 
 .textoPaginaActual {
-  color: #e2e8f0;
-  font-size: 0.75rem;
+  color: var(--dm-texto-secundario, #e2e8f0);
+  font-size: var(--dm-fuente-minima, 0.75rem);
   font-weight: 600;
   padding: 0 0.4rem;
   min-width: 4rem;
@@ -98,8 +98,8 @@
 }
 
 .textoPaginaActualCompacto {
-  color: #e2e8f0;
-  font-size: 0.7rem;
+  color: var(--dm-texto-secundario, #e2e8f0);
+  font-size: var(--dm-fuente-minima, 0.7rem);
   font-weight: 600;
   padding: 0 0.25rem;
   min-width: 3.2rem;

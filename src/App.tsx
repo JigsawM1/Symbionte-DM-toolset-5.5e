@@ -81,7 +81,7 @@ const AppContenido: React.FC = () => {
 
 
   return (
-    <div className={estilos.contenedorGeneral}>
+    <div className={estilos.contenedorGeneral} data-tema={esGM ? "dm" : "jugador"}>
       {/* Barra de título y navegación superior */}
       <BarraSuperior />
 

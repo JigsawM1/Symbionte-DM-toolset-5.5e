@@ -13,22 +13,22 @@
   display: flex;
   flex-direction: row;
   gap: 5px;
-  background-color: hsl(222, 22%, 7%);
-  border-bottom: 1px solid hsl(222, 18%, 15%);
+  background-color: var(--dm-fondo-panel, hsl(222, 22%, 7%));
+  border-bottom: 1px solid var(--dm-borde, hsl(222, 18%, 15%));
   padding: 5px;
   flex-shrink: 0;
 }
 
 .subBotonNav {
-  background-color: hsl(222, 18%, 10%);
-  border: 1px solid hsla(222, 18%, 15%, 1);
+  background-color: var(--dm-fondo-panel, hsl(222, 18%, 10%));
+  border: 1px solid var(--dm-borde, hsla(222, 18%, 15%, 1));
   color: var(--color-texto-secundario);
-  font-size: 10px;
+  font-size: var(--dm-fuente-minima, 10px);
   font-weight: 800;
   font-family: var(--fuente-titulo);
   letter-spacing: 0.02em;
   padding: 4px 8px;
-  border-radius: 3px;
+  border-radius: var(--dm-radio-control, 3px);
   cursor: pointer;
   display: inline-flex;
   align-items: center;
@@ -38,15 +38,15 @@
 }
 
 .subBotonNav:hover {
-  background-color: hsl(222, 18%, 14%);
+  background-color: var(--dm-fondo-tarjeta, hsl(222, 18%, 14%));
   color: var(--color-texto-principal);
-  border-color: hsl(222, 18%, 25%);
+  border-color: var(--dm-borde, hsl(222, 18%, 25%));
 }
 
 .subBotonNavActivo {
-  background-color: hsla(172, 90%, 8%, 0.8) !important;
+  background-color: var(--dm-primario, hsla(172, 90%, 8%, 0.8)) !important;
   border-color: var(--color-borde-cian) !important;
-  color: var(--color-borde-cian) !important;
+  color: var(--dm-texto-en-acento, var(--color-borde-cian)) !important;
   box-shadow: 0 0 0 1px var(--color-borde-cian) !important;
 }
 
@@ -66,4 +66,16 @@
   overflow-y: auto;
   flex: 1;
   min-height: 0;
+}
+
+@media (max-width: 620px) {
+  :global([data-tema="dm"]) .subNavegacion {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  :global([data-tema="dm"]) .subBotonNav {
+    min-width: 0;
+    white-space: normal;
+  }
 }

@@ -25,7 +25,7 @@
 }
 
 .labelForm {
-  font-size: 12px;
+  font-size: var(--dm-fuente-minima, 12px);
   font-weight: 600;
   color: var(--color-texto-secundario);
   display: flex;
@@ -40,14 +40,14 @@
   width: 100%;
   background-color: var(--color-fondo-tarjeta);
   border: 1.5px solid var(--color-borde-brutal);
-  border-radius: 5px;
+  border-radius: var(--dm-radio-control, 5px);
   color: var(--color-texto-principal);
   outline: none;
 }
 
 .inputForm:focus {
   border-color: var(--color-borde-cian);
-  box-shadow: 0 0 0 2px rgba(0, 245, 212, 0.18);
+  box-shadow: 0 0 0 2px rgba(var(--dm-rgb-cian, 0, 245, 212), 0.18);
 }
 
 .selectForm {
@@ -57,7 +57,7 @@
   width: 100%;
   background-color: var(--color-fondo-tarjeta);
   border: 1.5px solid var(--color-borde-brutal);
-  border-radius: 5px;
+  border-radius: var(--dm-radio-control, 5px);
   color: var(--color-texto-principal);
   outline: none;
   cursor: pointer;
@@ -68,7 +68,7 @@
 
 .selectForm:focus {
   border-color: var(--color-borde-cian);
-  box-shadow: 0 0 0 2px rgba(0, 245, 212, 0.18);
+  box-shadow: 0 0 0 2px rgba(var(--dm-rgb-cian, 0, 245, 212), 0.18);
 }
 
 .bloqueDinamicoForm {
@@ -76,13 +76,13 @@
   flex-direction: column;
   background-color: var(--color-fondo-tarjeta);
   border: 1px solid var(--color-borde-brutal);
-  border-radius: 7px;
+  border-radius: var(--dm-radio-panel, 7px);
   padding: 12px;
   gap: 8px;
 }
 
 .tituloBloqueDinamico {
-  font-size: 11px;
+  font-size: var(--dm-fuente-minima, 11px);
   font-weight: 700;
   color: var(--color-borde-cian);
   border-bottom: 1px solid var(--color-borde-brutal);
@@ -128,7 +128,7 @@
 .textareaBrutal {
   background-color: var(--color-fondo-panel);
   border: 1.5px solid var(--color-borde-brutal);
-  border-radius: 5px;
+  border-radius: var(--dm-radio-panel, 5px);
   color: var(--color-texto-principal);
   font-size: 13px;
   padding: 8px 10px;
@@ -141,7 +141,7 @@
 
 .textareaBrutal:focus {
   border-color: var(--color-borde-cian);
-  box-shadow: 0 0 0 2px rgba(0, 245, 212, 0.18);
+  box-shadow: 0 0 0 2px rgba(var(--dm-rgb-cian, 0, 245, 212), 0.18);
 }
 
 /* STICKY BOTTOM BAR PREMIUM (UNIFICADA) */
@@ -150,10 +150,10 @@
   bottom: 0;
   left: 0;
   right: 0;
-  background: rgba(18, 24, 38, 0.72);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  background: var(--dm-fondo-modal, rgba(18, 24, 38, 0.72));
+  backdrop-filter: var(--dm-filtro-fondo, blur(10px));
+  -webkit-backdrop-filter: var(--dm-filtro-fondo, blur(10px));
+  border-top: 1px solid rgba(var(--dm-rgb-neutro, 255, 255, 255), 0.08);
   padding: 12px 90px 12px 20px; /* Añadido 90px de padding derecho de seguridad para no colisionar con el dado */
   display: flex;
   gap: 12px;
@@ -164,17 +164,17 @@
 }
 
 .botonStickyGuardar {
-  background: linear-gradient(135deg, var(--color-primario-brillante) 0%, var(--color-primario) 100%);
+  background: linear-gradient(135deg, var(--dm-primario-hover, var(--color-primario-brillante)) 0%, var(--color-primario) 100%);
   border: 1px solid var(--color-borde-cian);
-  color: #ffffff;
+  color: var(--dm-texto-principal, #ffffff);
   padding: 8px 20px;
   font-size: 12.5px;
   font-weight: 700;
   cursor: pointer;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  border-radius: 5px;
-  box-shadow: 0 2px 10px rgba(0, 245, 212, 0.15);
+  border-radius: var(--dm-radio-control, 5px);
+  box-shadow: 0 2px 10px rgba(var(--dm-rgb-cian, 0, 245, 212), 0.15);
   display: flex;
   align-items: center;
   gap: 6px;
@@ -184,7 +184,7 @@
 
 .botonStickyGuardar:hover:not(:disabled) {
   filter: brightness(1.1);
-  box-shadow: 0 2px 12px rgba(0, 245, 212, 0.25);
+  box-shadow: 0 2px 12px rgba(var(--dm-rgb-cian, 0, 245, 212), 0.25);
   transform: translateY(-1px);
 }
 
@@ -200,12 +200,12 @@
   border: 1px solid var(--color-borde-brutal);
   color: var(--color-texto-secundario);
   padding: 8px 16px;
-  font-size: 11.5px;
+  font-size: var(--dm-fuente-minima, 11.5px);
   font-weight: 600;
   cursor: pointer;
   text-transform: uppercase;
   text-align: center;
-  border-radius: 5px;
+  border-radius: var(--dm-radio-control, 5px);
   letter-spacing: 0.04em;
   height: 36px;
   display: flex;
@@ -215,11 +215,11 @@
 }
 
 .botonStickyCancelar:hover {
-  background-color: rgba(255, 255, 255, 0.04);
+  background-color: rgba(var(--dm-rgb-neutro, 255, 255, 255), 0.04);
   color: var(--color-texto-principal);
   border-color: var(--color-texto-secundario);
 }
 
 .bloqueDinamicoCombate {
-  border-color: rgba(0, 245, 212, 0.25);
+  border-color: rgba(var(--dm-rgb-cian, 0, 245, 212), 0.25);
 }

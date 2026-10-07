@@ -97,7 +97,7 @@ describe("Visualización de Pasivas de Jugador en Tracker de Iniciativa", () => 
   });
 
   describe("TarjetaCriaturaIniciativa para Jugadores", () => {
-    it("debe renderizar las pasivas en la columna central y en el subtítulo para un Personaje Jugador", () => {
+    it("debe renderizar las pasivas exclusivamente en contenedorPasivasJugador y no duplicarlas en el subtítulo", () => {
       const html = renderToStaticMarkup(
         <TarjetaCriaturaIniciativa
           criatura={criaturaJugadorBase}
@@ -108,21 +108,21 @@ describe("Visualización de Pasivas de Jugador en Tracker de Iniciativa", () => 
         />
       );
 
-      // Subtítulo con las 3 pasivas
+      // Insignias tácticas en contenedorPasivasJugador (columna central)
+      expect(html).toContain("contenedorPasivasJugador");
       expect(html).toContain("Percepción Pasiva");
       expect(html).toContain("Investigación Pasiva");
       expect(html).toContain("Perspicacia Pasiva");
       expect(html).toContain("PP:");
-      expect(html).toContain("Inv:");
-      expect(html).toContain("Pers:");
-
-      // Insignias tácticas en la columna central (sustituyendo el texto inerte)
-      expect(html).toContain("PP");
       expect(html).toContain("14");
-      expect(html).toContain("INV");
+      expect(html).toContain("INV:");
       expect(html).toContain("12");
-      expect(html).toContain("PERS");
+      expect(html).toContain("PERS:");
       expect(html).toContain("16");
+
+      // No debe duplicarse en el subtítulo de la criatura
+      expect(html).not.toContain("Inv:");
+      expect(html).not.toContain("Pers:");
     });
 
     it("no debe renderizar las pasivas de jugador cuando la criatura es un monstruo", () => {

@@ -1,0 +1,100 @@
+/* Tema del DM acotado por contexto; también se aplica a portales flotantes.
+   Los componentes compartidos conservan sus valores originales fuera del DM. */
+[data-tema="dm"] {
+  --dm-fondo-profundo: var(--color-fondo-profundo);
+  --dm-fondo-panel: var(--color-fondo-panel);
+  --dm-fondo-tarjeta: var(--color-fondo-tarjeta);
+  --dm-fondo-foco: var(--color-fondo-tarjeta-foco);
+  --dm-fondo-hundido: hsl(222, 25%, 5%);
+  --dm-fondo-modal: var(--color-fondo-panel);
+  --dm-overlay: var(--superficie-overlay);
+  --dm-borde: var(--color-borde-brutal);
+  --dm-cian: var(--color-borde-cian);
+  --dm-arcano: var(--color-arcano);
+  --dm-primario: var(--color-primario);
+  --dm-primario-hover: var(--color-primario);
+  --dm-texto-principal: var(--color-texto-principal);
+  --dm-texto-secundario: var(--color-texto-secundario);
+  --dm-texto-apagado: var(--color-texto-apagado);
+  --dm-texto-acento: hsl(265, 95%, 83%);
+  --dm-texto-cian: hsl(172, 100%, 85%);
+  --dm-texto-exito: hsl(150, 85%, 78%);
+  --dm-texto-peligro: hsl(355, 95%, 83%);
+  --dm-texto-advertencia: hsl(40, 100%, 78%);
+  --dm-texto-alerta: hsl(325, 95%, 83%);
+  --dm-texto-en-acento: #ffffff;
+  --dm-moneda-cobre: var(--color-cobre);
+  --dm-moneda-plata: var(--color-plata);
+  --dm-moneda-electrum: var(--color-electrum);
+  --dm-moneda-oro: var(--color-oro);
+  --dm-moneda-platino: var(--color-platino);
+  --dm-rgb-cian: 12, 233, 203;
+  --dm-rgb-primario: 139, 71, 235;
+  --dm-rgb-peligro: 230, 25, 43;
+  --dm-rgb-exito: 21, 193, 107;
+  --dm-rgb-advertencia: 249, 176, 31;
+  --dm-rgb-alerta: 244, 37, 158;
+  --dm-rgb-neutro: 148, 163, 184;
+  --dm-superficie-cian: rgba(var(--dm-rgb-cian), 0.08);
+  --dm-superficie-primario: rgba(var(--dm-rgb-primario), 0.12);
+  --dm-superficie-exito: rgba(var(--dm-rgb-exito), 0.12);
+  --dm-superficie-peligro: rgba(var(--dm-rgb-peligro), 0.12);
+  --dm-superficie-advertencia: rgba(var(--dm-rgb-advertencia), 0.12);
+  --dm-superficie-alerta: rgba(var(--dm-rgb-alerta), 0.12);
+  --dm-borde-cian: rgba(var(--dm-rgb-cian), 0.55);
+  --dm-borde-primario: rgba(var(--dm-rgb-primario), 0.55);
+  --dm-borde-exito: rgba(var(--dm-rgb-exito), 0.55);
+  --dm-borde-peligro: rgba(var(--dm-rgb-peligro), 0.55);
+  --dm-borde-advertencia: rgba(var(--dm-rgb-advertencia), 0.55);
+  --dm-borde-alerta: rgba(var(--dm-rgb-alerta), 0.55);
+  --dm-radio-control: var(--radio-sm);
+  --dm-radio-panel: var(--radio-md);
+  --dm-fuente-minima: 12.5px;
+  --dm-fuente-principal: var(--fuente-principal);
+  --dm-fuente-titulo: var(--fuente-titulo);
+  --dm-fuente-codigo: var(--fuente-codigo);
+  --dm-sombra-panel: var(--sombra-elevada);
+  --dm-sombra-acento: 0 0 12px rgba(var(--dm-rgb-primario), 0.25);
+  --dm-gradiente-primario: linear-gradient(135deg, var(--dm-primario), var(--dm-arcano));
+  --dm-filtro-fondo: none;
+
+  color: var(--dm-texto-principal);
+  font-family: var(--dm-fuente-principal);
+  color-scheme: dark;
+}
+
+[data-tema="dm"] :where(button, input, textarea) {
+  border-radius: var(--dm-radio-control);
+}
+
+[data-tema="dm"] :where(button:not(:disabled), input, textarea, [tabindex]):focus-visible {
+  outline: 2px solid var(--dm-cian) !important;
+  outline-offset: 2px;
+}
+
+[data-tema="dm"] :where(button:disabled) {
+  cursor: not-allowed;
+}
+
+[data-tema="dm"] :where(input, textarea)::placeholder {
+  color: var(--dm-texto-apagado);
+  opacity: 1;
+}
+
+/* Los dados insertados por el renderer heredado llevan estilos inline. */
+[data-tema="dm"] .dado-interactivo-inline {
+  color: var(--dm-texto-cian) !important;
+  background-color: var(--dm-superficie-cian) !important;
+  border-radius: var(--dm-radio-control) !important;
+  font-family: var(--dm-fuente-codigo) !important;
+}
+
+[data-tema="dm"] .chip-condicion-badge-expiracion {
+  font-size: var(--dm-fuente-minima);
+}
+
+[data-tema="dm"] .chip-condicion-universal,
+[data-tema="dm"] .chip-condicion-chico-tooltip,
+[data-tema="dm"] .tooltip-contenido {
+  font-size: var(--dm-fuente-minima);
+}

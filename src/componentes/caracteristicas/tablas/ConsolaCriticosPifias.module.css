@@ -16,7 +16,7 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
-  border-radius: 8px;
+  border-radius: var(--dm-radio-panel, 8px);
   height: 100%;
   overflow-y: auto;
 }
@@ -29,14 +29,14 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
-  border-radius: 8px;
+  border-radius: var(--dm-radio-panel, 8px);
   height: 100%;
   min-height: 0;
   overflow: hidden;
 }
 
 .tituloConsolaTactico {
-  font-size: 12px;
+  font-size: var(--dm-fuente-minima, 12px);
   font-weight: bold;
   border-bottom: 1.5px solid var(--color-borde-brutal);
   padding-bottom: 4px;
@@ -45,11 +45,11 @@
 }
 
 .tituloDiccionarioHeader {
-  font-size: 12px;
+  font-size: var(--dm-fuente-minima, 12px);
   font-weight: bold;
   border-bottom: 1.5px solid var(--color-borde-brutal);
   padding-bottom: 4px;
-  color: #ffcc00;
+  color: var(--dm-texto-acento, #ffcc00);
   text-transform: uppercase;
 }
 
@@ -60,7 +60,7 @@
   background-color: var(--color-fondo-tarjeta);
   border: 1px solid var(--color-borde-brutal);
   padding: 8px;
-  border-radius: 6px;
+  border-radius: var(--dm-radio-control, 6px);
 }
 
 .filaControlConsola {
@@ -72,7 +72,7 @@
 }
 
 .labelControlConsola {
-  font-size: 10px;
+  font-size: var(--dm-fuente-minima, 10px);
   font-weight: bold;
   color: var(--color-texto-secundario);
 }
@@ -84,13 +84,13 @@
 }
 
 .botonToggleChico {
-  font-size: 10px;
+  font-size: var(--dm-fuente-minima, 10px);
   padding: 3px 6px;
   cursor: pointer;
   background-color: var(--color-fondo-tarjeta);
   border: 1px solid var(--color-borde-brutal);
   color: var(--color-texto-secundario);
-  border-radius: 3px;
+  border-radius: var(--dm-radio-control, 3px);
   transition: none;
   display: inline-flex;
   align-items: center;
@@ -104,22 +104,22 @@
 }
 
 .botonToggleChicoActivo {
-  background-color: var(--color-primario-brillante) !important;
+  background-color: var(--dm-primario-hover, var(--color-primario-brillante)) !important;
   border-color: var(--color-borde-cian) !important;
-  color: #ffffff !important;
+  color: var(--dm-texto-principal, #ffffff) !important;
 }
 
 .toggleCriticoActivo {
-  background-color: rgba(0, 245, 212, 0.15) !important;
+  background-color: rgba(var(--dm-rgb-cian, 0, 245, 212), 0.15) !important;
   border-color: var(--color-borde-cian) !important;
   color: var(--color-borde-cian) !important;
   font-weight: bold;
 }
 
 .togglePifiaActivo {
-  background-color: rgba(242, 92, 84, 0.15) !important;
+  background-color: rgba(var(--dm-rgb-peligro, 242, 92, 84), 0.15) !important;
   border-color: var(--color-peligro) !important;
-  color: var(--color-peligro) !important;
+  color: var(--dm-texto-peligro, var(--color-peligro)) !important;
   font-weight: bold;
 }
 
@@ -133,11 +133,11 @@
 .botonLanzarDadoCustom {
   flex: 1;
   height: 28px;
-  font-size: 11px;
+  font-size: var(--dm-fuente-minima, 11px);
   font-weight: bold;
   cursor: pointer;
   border: 1.5px solid;
-  border-radius: 4px;
+  border-radius: var(--dm-radio-control, 4px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -149,54 +149,54 @@
 }
 
 .botonLanzarD20Critico {
-  background-color: rgba(0, 245, 212, 0.1) !important;
+  background-color: rgba(var(--dm-rgb-cian, 0, 245, 212), 0.1) !important;
   border-color: var(--color-borde-cian) !important;
   color: var(--color-borde-cian) !important;
 }
 
 .botonLanzarD20Critico:hover {
-  background-color: rgba(0, 245, 212, 0.2) !important;
-  color: #ffffff !important;
+  background-color: rgba(var(--dm-rgb-cian, 0, 245, 212), 0.2) !important;
+  color: var(--dm-texto-principal, #ffffff) !important;
 }
 
 .botonLanzarD20Pifia {
-  background-color: rgba(242, 92, 84, 0.1) !important;
+  background-color: rgba(var(--dm-rgb-peligro, 242, 92, 84), 0.1) !important;
   border-color: var(--color-peligro) !important;
-  color: var(--color-peligro) !important;
+  color: var(--dm-texto-peligro, var(--color-peligro)) !important;
 }
 
 .botonLanzarD20Pifia:hover {
-  background-color: rgba(242, 92, 84, 0.2) !important;
-  color: #ffffff !important;
+  background-color: rgba(var(--dm-rgb-peligro, 242, 92, 84), 0.2) !important;
+  color: var(--dm-texto-principal, #ffffff) !important;
 }
 
 .botonLanzarD4Critico {
-  background-color: rgba(255, 204, 0, 0.1) !important;
-  border-color: #ffcc00 !important;
-  color: #ffcc00 !important;
+  background-color: rgba(var(--dm-rgb-advertencia, 255, 204, 0), 0.1) !important;
+  border-color: var(--dm-texto-acento, #ffcc00) !important;
+  color: var(--dm-texto-acento, #ffcc00) !important;
 }
 
 .botonLanzarD4Critico:hover {
-  background-color: rgba(255, 204, 0, 0.2) !important;
-  color: #ffffff !important;
+  background-color: rgba(var(--dm-rgb-advertencia, 255, 204, 0), 0.2) !important;
+  color: var(--dm-texto-principal, #ffffff) !important;
 }
 
 .botonLanzarD4Pifia {
-  background-color: rgba(123, 44, 191, 0.1) !important;
-  border-color: #7b2cbf !important;
-  color: #a29bfe !important;
+  background-color: rgba(var(--dm-rgb-primario, 123, 44, 191), 0.1) !important;
+  border-color: var(--dm-arcano, #7b2cbf) !important;
+  color: var(--dm-texto-acento, #a29bfe) !important;
 }
 
 .botonLanzarD4Pifia:hover {
-  background-color: rgba(123, 44, 191, 0.2) !important;
-  color: #ffffff !important;
+  background-color: rgba(var(--dm-rgb-primario, 123, 44, 191), 0.2) !important;
+  color: var(--dm-texto-principal, #ffffff) !important;
 }
 
 .cajaResultadoConsola {
   background-color: var(--color-fondo-profundo);
   border: 2px solid;
   padding: 10px;
-  border-radius: 6px;
+  border-radius: var(--dm-radio-panel, 6px);
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -212,7 +212,7 @@
 }
 
 .tituloResultadoConsola {
-  font-size: 12px;
+  font-size: var(--dm-fuente-minima, 12px);
   font-weight: bold;
   text-transform: uppercase;
 }
@@ -222,11 +222,11 @@
 }
 
 .tituloResultadoPifia {
-  color: var(--color-peligro) !important;
+  color: var(--dm-texto-peligro, var(--color-peligro)) !important;
 }
 
 .textoResultadoConsola {
-  font-size: 11.5px;
+  font-size: var(--dm-fuente-minima, 11.5px);
   color: var(--color-texto-principal);
   line-height: 1.4;
   font-family: var(--fuente-codigo);
@@ -239,32 +239,32 @@
   flex-direction: row;
   align-items: center;
   gap: 4px;
-  font-size: 10px;
+  font-size: var(--dm-fuente-minima, 10px);
   padding: 4px 8px;
-  background-color: rgba(0, 245, 212, 0.12);
+  background-color: rgba(var(--dm-rgb-cian, 0, 245, 212), 0.12);
   border: 1px solid var(--color-borde-cian);
   color: var(--color-borde-cian);
   cursor: pointer;
-  border-radius: 4px;
+  border-radius: var(--dm-radio-control, 4px);
   font-weight: bold;
   margin-top: 4px;
   transition: none;
 }
 
 .botonEnviarConsolaChat:hover {
-  background-color: rgba(0, 245, 212, 0.25);
-  color: #ffffff;
+  background-color: rgba(var(--dm-rgb-cian, 0, 245, 212), 0.25);
+  color: var(--dm-texto-principal, #ffffff);
 }
 
 .cajaVaciaConsola {
-  font-size: 10.5px;
+  font-size: var(--dm-fuente-minima, 10.5px);
   color: var(--color-texto-apagado);
   font-style: italic;
   text-align: center;
   padding: 20px;
   border: 1px dashed var(--color-borde-brutal);
   background-color: var(--color-fondo-profundo);
-  border-radius: 6px;
+  border-radius: var(--dm-radio-panel, 6px);
 }
 
 .cuerpoDiccionarioScroll {
@@ -278,7 +278,7 @@
 }
 
 .subtituloDiccionarioSeccion {
-  font-size: 10px;
+  font-size: var(--dm-fuente-minima, 10px);
   font-weight: bold;
   color: var(--color-texto-apagado);
   text-transform: uppercase;
@@ -300,17 +300,17 @@
   padding: 4px 6px;
   background-color: var(--color-fondo-tarjeta);
   border: 1px solid var(--color-borde-brutal);
-  border-radius: 4px;
+  border-radius: var(--dm-radio-panel, 4px);
 }
 
 .filaItemDiccionario:hover {
-  background-color: rgba(255, 255, 255, 0.02);
+  background-color: rgba(var(--dm-rgb-neutro, 255, 255, 255), 0.02);
 }
 
 .diccItemNumero {
-  font-size: 9px;
+  font-size: var(--dm-fuente-minima, 9px);
   font-weight: bold;
-  background-color: rgba(0, 245, 212, 0.15);
+  background-color: rgba(var(--dm-rgb-cian, 0, 245, 212), 0.15);
   border: 1px solid var(--color-borde-cian);
   color: var(--color-borde-cian);
   width: 16px;
@@ -323,7 +323,7 @@
 }
 
 .diccItemTexto {
-  font-size: 10px;
+  font-size: var(--dm-fuente-minima, 10px);
   color: var(--color-texto-principal);
   line-height: 1.3;
 }
@@ -337,6 +337,6 @@
 }
 
 .diccItemNumeroSevero {
-  background-color: #7b2cbf !important;
-  border-color: #a29bfe !important;
+  background-color: var(--dm-arcano, #7b2cbf) !important;
+  border-color: var(--dm-texto-acento, #a29bfe) !important;
 }

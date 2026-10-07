@@ -12,7 +12,7 @@
 }
 
 .titulo {
-  font-size: 11px;
+  font-size: var(--dm-fuente-minima, 11px);
   font-weight: bold;
   color: var(--color-texto-principal);
   display: flex;
@@ -25,7 +25,7 @@
 
 .contador {
   font-family: var(--fuente-codigo);
-  color: var(--color-exito);
+  color: var(--dm-texto-exito, var(--color-exito));
 }
 
 .barraProgresoContenedor {
@@ -54,7 +54,7 @@
   border: 1px solid var(--color-borde-brutal);
   color: var(--color-texto-principal);
   padding: 2px 6px;
-  font-size: 10.5px;
+  font-size: var(--dm-fuente-minima, 10.5px);
 }
 
 .entrada:focus {
@@ -66,7 +66,7 @@
   height: 22px;
   padding: 0 8px;
   background-color: var(--color-primario);
-  color: #ffffff;
+  color: var(--dm-texto-principal, #ffffff);
   border: 1px solid var(--color-borde-neon);
   display: flex;
   align-items: center;
@@ -88,7 +88,7 @@
 }
 
 .vacioTexto {
-  font-size: 10px;
+  font-size: var(--dm-fuente-minima, 10px);
   color: var(--color-texto-apagado);
   text-align: center;
   padding: 20px 10px;
@@ -121,7 +121,7 @@
 
 .texto {
   flex: 1;
-  font-size: 10.5px;
+  font-size: var(--dm-fuente-minima, 10.5px);
   color: var(--color-texto-principal);
   cursor: pointer;
   user-select: none;
@@ -147,5 +147,5 @@
 }
 
 .botonEliminar:hover {
-  color: var(--color-peligro);
+  color: var(--dm-texto-peligro, var(--color-peligro));
 }

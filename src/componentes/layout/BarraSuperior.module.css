@@ -59,7 +59,7 @@
 }
 
 .campañaTexto {
-  font-size: 12px;
+  font-size: var(--dm-fuente-minima, 12px);
   font-family: var(--fuente-codigo);
   color: var(--color-texto-secundario);
   max-width: 180px;
@@ -84,7 +84,7 @@
 .botonActivo {
   background-color: var(--color-primario);
   border-color: var(--color-borde-cian);
-  color: #ffffff;
+  color: var(--dm-texto-principal, #ffffff);
 }
 
 .navPestañas {
@@ -101,7 +101,7 @@
   border-right: 1px solid var(--color-borde-brutal);
   color: var(--color-texto-secundario);
   padding: 4px 2px;
-  font-size: 12px;
+  font-size: var(--dm-fuente-minima, 12px);
   font-weight: bold;
   text-transform: uppercase;
   display: flex;
@@ -114,13 +114,13 @@
 }
 
 .pestanaActiva {
-  background-color: var(--color-primario-brillante);
-  color: #ffffff;
+  background-color: var(--dm-primario-hover, var(--color-primario-brillante));
+  color: var(--dm-texto-principal, #ffffff);
   border-bottom: 1px solid var(--color-borde-cian);
 }
 
 .pestanaTexto {
-  font-size: 11px;
+  font-size: var(--dm-fuente-minima, 11px);
   letter-spacing: -0.01em;
 }
 
@@ -140,7 +140,7 @@
 }
 
 .cabeceraDesplegable {
-  font-size: 10px;
+  font-size: var(--dm-fuente-minima, 10px);
   font-weight: bold;
   color: var(--color-texto-secundario);
   border-bottom: 1px solid var(--color-borde-brutal);
@@ -155,7 +155,7 @@
   background-color: transparent;
   border: none;
   color: var(--color-texto-principal);
-  font-size: 12px;
+  font-size: var(--dm-fuente-minima, 12px);
   padding: 6px 8px;
   text-align: left;
   cursor: pointer;
@@ -164,13 +164,13 @@
   align-items: center;
   gap: 6px;
   width: 100%;
-  font-family: var(--fuente-inter);
+  font-family: var(--dm-fuente-principal, var(--fuente-inter));
   font-weight: 500;
 }
 
 .itemMenuActivo {
-  background-color: var(--color-primario-brillante);
-  color: #ffffff;
+  background-color: var(--dm-primario-hover, var(--color-primario-brillante));
+  color: var(--dm-texto-principal, #ffffff);
   border: 1px solid var(--color-borde-cian);
-  border-radius: 2px;
+  border-radius: var(--dm-radio-panel, 2px);
 }

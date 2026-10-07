@@ -4,11 +4,11 @@ import { SelectorDesplegable } from "@/componentes/comunes";
 import estilosClases from "./ConversorDivisas.module.css";
 
 const OPCIONES_MONEDA_ORIGEN = [
-  { valor: "PC", etiqueta: "Cobre (PC)", color: "#b87333" },
-  { valor: "PP", etiqueta: "Plata (PP)", color: "#aaa9ad" },
-  { valor: "PE", etiqueta: "Electro (PE)", color: "#e5e4e2" },
-  { valor: "PO", etiqueta: "Oro (PO)", color: "#ffd700" },
-  { valor: "PPT", etiqueta: "Platino (PPT)", color: "#e5e4e2" }
+  { valor: "PC", etiqueta: "Cobre (PC)", color: "var(--dm-moneda-cobre, #b87333)" },
+  { valor: "PP", etiqueta: "Plata (PP)", color: "var(--dm-moneda-plata, #aaa9ad)" },
+  { valor: "PE", etiqueta: "Electro (PE)", color: "var(--dm-moneda-electrum, #e5e4e2)" },
+  { valor: "PO", etiqueta: "Oro (PO)", color: "var(--dm-moneda-oro, #ffd700)" },
+  { valor: "PPT", etiqueta: "Platino (PPT)", color: "var(--dm-moneda-platino, #e5e4e2)" }
 ];
 
 export const ConversorDivisas: React.FC = () => {
@@ -96,7 +96,7 @@ export const ConversorDivisas: React.FC = () => {
                   <div className={estilosClases.columnaInfoMoneda}>
                     <span className={`${estilosClases.nombreMoneda} ${claseColorMoneda}`}>
                       <span>{m.nombre}</span>
-                      {esOrigen && <Star size={11} fill="#eab308" color="#eab308" className={estilosClases.iconoEstrella} />}
+                      {esOrigen && <Star size={11} fill="var(--dm-texto-advertencia, #eab308)" color="var(--dm-texto-advertencia, #eab308)" className={estilosClases.iconoEstrella} />}
                     </span>
                     <span className={estilosClases.descMoneda}>
                       {m.desc}

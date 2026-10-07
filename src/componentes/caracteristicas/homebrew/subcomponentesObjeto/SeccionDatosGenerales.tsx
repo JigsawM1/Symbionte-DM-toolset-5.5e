@@ -29,11 +29,11 @@ const OPCIONES_RAREZA = (["Común", "Poco Común", "Raro", "Muy Raro", "Legendar
 }));
 
 const OPCIONES_MONEDA: { valor: TipoMoneda; etiqueta: string; color: string }[] = [
-  { valor: "PC", etiqueta: "PC (Cobre)", color: "#b87333" },
-  { valor: "PP", etiqueta: "PP (Plata)", color: "#aaa9ad" },
-  { valor: "PE", etiqueta: "PE (Electro)", color: "#e5e4e2" },
-  { valor: "PO", etiqueta: "PO (Oro)", color: "#ffd700" },
-  { valor: "PPT", etiqueta: "PPT (Platino)", color: "#e5e4e2" }
+  { valor: "PC", etiqueta: "PC (Cobre)", color: "var(--dm-moneda-cobre, #b87333)" },
+  { valor: "PP", etiqueta: "PP (Plata)", color: "var(--dm-moneda-plata, #aaa9ad)" },
+  { valor: "PE", etiqueta: "PE (Electro)", color: "var(--dm-moneda-electrum, #e5e4e2)" },
+  { valor: "PO", etiqueta: "PO (Oro)", color: "var(--dm-moneda-oro, #ffd700)" },
+  { valor: "PPT", etiqueta: "PPT (Platino)", color: "var(--dm-moneda-platino, #e5e4e2)" }
 ];
 
 interface Props {

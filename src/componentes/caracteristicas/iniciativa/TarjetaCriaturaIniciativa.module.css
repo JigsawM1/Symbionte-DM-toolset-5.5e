@@ -4,7 +4,7 @@
   align-items: center;
   gap: 10px;
   padding: 8px 12px;
-  border-radius: 4px;
+  border-radius: var(--dm-radio-panel, 4px);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
   position: relative;
   overflow: visible;
@@ -18,18 +18,18 @@
 
 .tarjetaCriaturaBrutal[data-turno-activo="true"] {
   border: 1px solid var(--color-borde-cian);
-  box-shadow: 0 0 8px rgba(0, 245, 212, 0.2);
-  background: linear-gradient(90deg, hsl(172, 90%, 4%) 0%, hsl(222, 18%, 11%) 100%);
+  box-shadow: 0 0 8px rgba(var(--dm-rgb-cian, 0, 245, 212), 0.2);
+  background: linear-gradient(90deg, var(--dm-superficie-cian, hsl(172, 90%, 4%)) 0%, var(--dm-fondo-tarjeta, hsl(222, 18%, 11%)) 100%);
 }
 
 .tarjetaCriaturaBrutal[data-seleccionada-ts="true"] {
   border: 2px solid var(--color-advertencia);
-  box-shadow: 0 0 10px rgba(224, 169, 109, 0.45);
+  box-shadow: 0 0 10px rgba(var(--dm-rgb-advertencia, 224, 169, 109), 0.45);
 }
 
 .tarjetaCriaturaBrutal[data-turno-activo="true"][data-seleccionada-ts="true"] {
-  border: 2px solid #ffcc00;
-  box-shadow: 0 0 10px rgba(224, 169, 109, 0.45);
+  border: 2px solid var(--dm-texto-advertencia, #ffcc00);
+  box-shadow: 0 0 10px rgba(var(--dm-rgb-advertencia, 224, 169, 109), 0.45);
 }
 
 .barraLateralRol {
@@ -39,13 +39,13 @@
   bottom: 0;
   width: 3px;
   flex-shrink: 0;
-  border-top-left-radius: 4px;
-  border-bottom-left-radius: 4px;
+  border-top-left-radius: var(--dm-radio-panel, 4px);
+  border-bottom-left-radius: var(--dm-radio-panel, 4px);
   background-color: var(--color-borde-cian);
 }
 
 .barraLateralRol[data-es-monstruo="true"] {
-  background-color: #7b2cbf;
+  background-color: var(--dm-arcano, #7b2cbf);
 }
 
 .bloqueIniciativaIzquierda {
@@ -54,22 +54,22 @@
   align-items: center;
   justify-content: center;
   border: 1px solid var(--color-borde-brutal);
-  border-radius: 4px;
+  border-radius: var(--dm-radio-panel, 4px);
   width: 46px;
   height: 64px;
   flex-shrink: 0;
   margin-left: 2px;
   position: relative;
-  background-color: hsl(222, 25%, 5%);
+  background-color: var(--dm-fondo-hundido, hsl(222, 25%, 5%));
 }
 
 .bloqueIniciativaIzquierda[data-turno-activo="true"] {
   border-color: var(--color-borde-cian);
-  background-color: rgba(0, 245, 212, 0.05);
+  background-color: rgba(var(--dm-rgb-cian, 0, 245, 212), 0.05);
 }
 
 .etiquetaInicMini {
-  font-size: 9px;
+  font-size: var(--dm-fuente-minima, 9px);
   font-weight: bold;
   color: var(--color-texto-apagado);
   letter-spacing: 0.02em;
@@ -81,7 +81,7 @@
   font-weight: 800;
   font-family: var(--fuente-codigo);
   line-height: 1.1;
-  color: #ffcc00;
+  color: var(--dm-texto-acento, #ffcc00);
   cursor: text;
 }
 
@@ -94,9 +94,9 @@
   position: absolute;
   top: 1px;
   right: 1px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 2px;
+  background: rgba(var(--dm-rgb-neutro, 255, 255, 255), 0.04);
+  border: 1px solid rgba(var(--dm-rgb-neutro, 255, 255, 255), 0.08);
+  border-radius: var(--dm-radio-control, 2px);
   color: var(--color-texto-principal);
   cursor: pointer;
   padding: 1px 2px;
@@ -105,14 +105,14 @@
   justify-content: center;
   line-height: 1;
   opacity: 0.5;
-  transition: opacity 0.15s, color 0.15s;
+  transition: none;
 }
 
 .botonDadoIniciativa:hover {
   opacity: 1;
   color: var(--color-borde-cian);
-  background: rgba(0, 245, 212, 0.1);
-  border-color: rgba(0, 245, 212, 0.3);
+  background: rgba(var(--dm-rgb-cian, 0, 245, 212), 0.1);
+  border-color: rgba(var(--dm-rgb-cian, 0, 245, 212), 0.3);
 }
 
 .inputIniciativaEditable {
@@ -122,9 +122,9 @@
   font-family: var(--fuente-codigo);
   line-height: 1.1;
   text-align: center;
-  background-color: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 204, 0, 0.5);
-  border-radius: 2px;
+  background-color: rgba(var(--dm-rgb-neutro, 255, 255, 255), 0.06);
+  border: 1px solid rgba(var(--dm-rgb-advertencia, 255, 204, 0), 0.5);
+  border-radius: var(--dm-radio-control, 2px);
   outline: none;
   padding: 0;
   -moz-appearance: textfield;
@@ -137,8 +137,8 @@
 }
 
 .inputIniciativaEditable:focus {
-  border-color: #ffcc00;
-  box-shadow: 0 0 4px rgba(255, 204, 0, 0.35);
+  border-color: var(--dm-texto-acento, #ffcc00);
+  box-shadow: 0 0 4px rgba(var(--dm-rgb-advertencia, 255, 204, 0), 0.35);
 }
 
 .cuerpoTarjetaCentral {
@@ -193,12 +193,12 @@
 }
 
 .tagTurnoActivo {
-  font-size: 9.5px;
-  background-color: rgba(0, 245, 212, 0.12);
+  font-size: var(--dm-fuente-minima, 9.5px);
+  background-color: rgba(var(--dm-rgb-cian, 0, 245, 212), 0.12);
   border: 1px solid var(--color-borde-cian);
   color: var(--color-borde-cian);
   padding: 1px 4px;
-  border-radius: 2px;
+  border-radius: var(--dm-radio-control, 2px);
   text-transform: uppercase;
   font-weight: 800;
   font-family: var(--fuente-codigo);
@@ -206,12 +206,12 @@
 }
 
 .tagSeleccionTS {
-  font-size: 9.5px;
-  background-color: rgba(224, 169, 109, 0.15);
+  font-size: var(--dm-fuente-minima, 9.5px);
+  background-color: rgba(var(--dm-rgb-advertencia, 224, 169, 109), 0.15);
   border: 1px solid var(--color-advertencia);
-  color: var(--color-advertencia);
+  color: var(--dm-texto-advertencia, var(--color-advertencia));
   padding: 1px 4px;
-  border-radius: 2px;
+  border-radius: var(--dm-radio-control, 2px);
   text-transform: uppercase;
   font-weight: 800;
   font-family: var(--fuente-codigo);
@@ -219,7 +219,7 @@
 }
 
 .subtituloCriatura {
-  font-size: 12px;
+  font-size: var(--dm-fuente-minima, 12px);
   color: var(--color-texto-secundario);
   line-height: 1.1;
 }
@@ -234,7 +234,7 @@
 }
 
 .textoCondicionesVacias {
-  font-size: 12px;
+  font-size: var(--dm-fuente-minima, 12px);
   color: var(--color-texto-apagado);
   font-style: italic;
 }
@@ -244,10 +244,10 @@
   flex-direction: row;
   align-items: center;
   gap: 3px;
-  font-size: 9px;
+  font-size: var(--dm-fuente-minima, 9px);
   font-weight: 800;
   padding: 1px 5px;
-  border-radius: 3px;
+  border-radius: var(--dm-radio-control, 3px);
   text-transform: uppercase;
   font-family: var(--fuente-codigo);
   letter-spacing: 0.02em;
@@ -255,16 +255,16 @@
 }
 
 .chipDesangrado {
-  background-color: hsla(0, 80%, 9%, 0.75) !important;
-  border-color: hsla(0, 80%, 50%, 0.7) !important;
-  color: hsl(0, 100%, 85%) !important;
-  box-shadow: inset 0 0 3px rgba(255, 0, 0, 0.2) !important;
+  background-color: var(--dm-superficie-peligro, hsla(0, 80%, 9%, 0.75)) !important;
+  border-color: var(--dm-borde-peligro, hsla(0, 80%, 50%, 0.7)) !important;
+  color: var(--dm-texto-peligro, hsl(0, 100%, 85%)) !important;
+  box-shadow: inset 0 0 3px rgba(var(--dm-rgb-peligro, 255, 0, 0), 0.2) !important;
 }
 
 .chipEfectoPredefinido {
-  background-color: hsla(265, 80%, 12%, 0.75) !important;
-  border-color: hsla(265, 80%, 60%, 0.7) !important;
-  color: hsl(265, 95%, 90%) !important;
+  background-color: var(--dm-superficie-primario, hsla(265, 80%, 12%, 0.75)) !important;
+  border-color: var(--dm-borde-primario, hsla(265, 80%, 60%, 0.7)) !important;
+  color: var(--dm-texto-acento, hsl(265, 95%, 90%)) !important;
 }
 
 .botonQuitarCondicionChico {
@@ -278,12 +278,12 @@
 
 .miniBotonAdd {
   height: 18px;
-  background-color: hsl(222, 25%, 5%);
-  border: 1px solid hsla(172, 90%, 45%, 0.4);
+  background-color: var(--dm-fondo-hundido, hsl(222, 25%, 5%));
+  border: 1px solid var(--dm-borde-cian, hsla(172, 90%, 45%, 0.4));
   color: var(--color-borde-cian);
-  font-size: 9px;
+  font-size: var(--dm-fuente-minima, 9px);
   font-weight: 800;
-  border-radius: 3px;
+  border-radius: var(--dm-radio-control, 3px);
   padding: 0 6px;
   cursor: pointer;
   display: inline-flex;
@@ -296,26 +296,26 @@
 
 .miniBotonAdd:hover {
   border-color: var(--color-borde-cian);
-  background-color: rgba(0, 245, 212, 0.05);
+  background-color: rgba(var(--dm-rgb-cian, 0, 245, 212), 0.05);
 }
 
 .miniBotonAddEfectos {
-  border-color: hsla(271, 76%, 50%, 0.4) !important;
-  color: #d8b4fe !important;
+  border-color: var(--dm-borde-primario, hsla(271, 76%, 50%, 0.4)) !important;
+  color: var(--dm-texto-acento, #d8b4fe) !important;
 }
 
 .miniBotonAddEfectos:hover {
-  border-color: #d8b4fe !important;
-  background-color: rgba(157, 78, 221, 0.05);
+  border-color: var(--dm-texto-acento, #d8b4fe) !important;
+  background-color: rgba(var(--dm-rgb-primario, 157, 78, 221), 0.05);
 }
 
 .dropdownFlotante {
   position: absolute;
   top: 20px;
   left: 0;
-  background-color: hsl(222, 25%, 5%);
+  background-color: var(--dm-fondo-hundido, hsl(222, 25%, 5%));
   border: 1px solid var(--color-borde-cian);
-  border-radius: 4px;
+  border-radius: var(--dm-radio-panel, 4px);
   z-index: 9999;
   max-height: 180px;
   overflow-y: auto;
@@ -324,46 +324,47 @@
 }
 
 .dropdownFlotanteEfectos {
-  border-color: rgba(157, 78, 221, 0.6) !important;
+  border-color: rgba(var(--dm-rgb-primario, 157, 78, 221), 0.6) !important;
 }
 
 .dropdownItem {
   padding: 5px 8px;
-  font-size: 9px;
+  font-size: var(--dm-fuente-minima, 9px);
   font-weight: bold;
-  color: hsl(172, 100%, 85%);
+  color: var(--dm-texto-cian, hsl(172, 100%, 85%));
   cursor: pointer;
-  border-bottom: 1px solid rgba(255,255,255,0.02);
+  border-bottom: 1px solid rgba(var(--dm-rgb-neutro, 255, 255, 255), 0.02);
   text-transform: uppercase;
   font-family: var(--fuente-codigo);
   background-color: transparent;
 }
 
 .dropdownItem:hover {
-  background-color: rgba(0, 245, 212, 0.08);
-  color: #ffffff;
+  background-color: rgba(var(--dm-rgb-cian, 0, 245, 212), 0.08);
+  color: var(--dm-texto-principal, #ffffff);
 }
 
 .dropdownItemEfecto {
-  color: #d8b4fe !important;
+  color: var(--dm-texto-acento, #d8b4fe) !important;
 }
 
 .dropdownItemEfecto:hover {
-  background-color: rgba(157, 78, 221, 0.08) !important;
+  background-color: rgba(var(--dm-rgb-primario, 157, 78, 221), 0.08) !important;
 }
 
 .dropdownItemPersonalizado {
   color: var(--color-borde-cian) !important;
-  border-top: 1px dashed rgba(255, 255, 255, 0.1) !important;
+  border-top: 1px dashed rgba(var(--dm-rgb-neutro, 255, 255, 255), 0.1) !important;
 }
 
 .dropdownItemPersonalizado:hover {
-  background-color: rgba(0, 245, 212, 0.08) !important;
+  background-color: rgba(var(--dm-rgb-cian, 0, 245, 212), 0.08) !important;
 }
 
 .cajaAccionesRapidasColumn {
   display: flex;
   flex-direction: column;
+  align-items: flex-end;
   flex: 1.5;
   min-width: 120px;
   justify-content: center;
@@ -381,24 +382,24 @@
   flex-direction: row;
   align-items: center;
   gap: 4px;
-  font-size: 12px;
+  font-size: var(--dm-fuente-minima, 12px);
   padding: 4px 8px;
-  background-color: hsl(222, 18%, 12%);
-  border: 1px solid var(--color-borde-brutal);
-  color: var(--color-texto-principal);
+  background-color: var(--dm-superficie-primario, hsl(222, 18%, 12%));
+  border: 1px solid var(--dm-borde-primario, var(--color-borde-brutal));
+  color: var(--dm-texto-acento, var(--color-texto-principal));
   font-weight: 700;
   cursor: pointer;
-  border-radius: 2px;
+  border-radius: var(--dm-radio-control, 2px);
   transition: none;
 }
 
 .botonAccionRapidaMedieval:hover {
-  background-color: hsl(222, 18%, 16%);
+  background-color: var(--dm-fondo-foco, hsl(222, 18%, 16%));
   border-color: var(--color-borde-cian);
 }
 
 .sinAccionesAviso {
-  font-size: 12px;
+  font-size: var(--dm-fuente-minima, 12px);
   color: var(--color-texto-apagado);
   font-style: italic;
 }
@@ -428,12 +429,12 @@
 }
 
 .tagHPTemporal {
-  font-size: 11px;
-  background-color: rgba(0, 245, 212, 0.1);
+  font-size: var(--dm-fuente-minima, 11px);
+  background-color: rgba(var(--dm-rgb-cian, 0, 245, 212), 0.1);
   border: 1px solid var(--color-borde-cian);
   color: var(--color-borde-cian);
   padding: 1px 4px;
-  border-radius: 2px;
+  border-radius: var(--dm-radio-control, 2px);
   font-weight: bold;
 }
 
@@ -447,7 +448,7 @@
   display: flex;
   flex-direction: column;
   border: 1px solid var(--color-borde-brutal);
-  border-radius: 4px;
+  border-radius: var(--dm-radio-control, 4px);
   overflow: hidden;
   background-color: var(--color-fondo-profundo);
   width: 56px;
@@ -455,9 +456,9 @@
 
 .botonCurarVertical {
   height: 18px;
-  font-size: 9px;
+  font-size: var(--dm-fuente-minima, 9px);
   font-weight: bold;
-  background-color: rgba(0, 245, 212, 0.15);
+  background-color: rgba(var(--dm-rgb-cian, 0, 245, 212), 0.15);
   border: none;
   border-bottom: 1px solid var(--color-borde-brutal);
   color: var(--color-borde-cian);
@@ -469,17 +470,17 @@
 }
 
 .botonCurarVertical:hover {
-  background-color: rgba(0, 245, 212, 0.3);
-  color: #ffffff;
+  background-color: rgba(var(--dm-rgb-cian, 0, 245, 212), 0.3);
+  color: var(--dm-texto-principal, #ffffff);
 }
 
 .inputHPVertical {
   height: 22px;
-  font-size: 12px;
+  font-size: var(--dm-fuente-minima, 12px);
   text-align: center;
   background-color: transparent;
   border: none;
-  color: #ffffff;
+  color: var(--dm-texto-principal, #ffffff);
   outline: none;
   font-family: var(--fuente-codigo);
   width: 100%;
@@ -488,12 +489,12 @@
 
 .botonDañoVertical {
   height: 18px;
-  font-size: 9px;
+  font-size: var(--dm-fuente-minima, 9px);
   font-weight: bold;
-  background-color: rgba(242, 92, 84, 0.15);
+  background-color: rgba(var(--dm-rgb-peligro, 242, 92, 84), 0.15);
   border: none;
   border-top: 1px solid var(--color-borde-brutal);
-  color: var(--color-peligro);
+  color: var(--dm-texto-peligro, var(--color-peligro));
   cursor: pointer;
   text-align: center;
   padding: 0;
@@ -502,8 +503,8 @@
 }
 
 .botonDañoVertical:hover {
-  background-color: rgba(242, 92, 84, 0.3);
-  color: #ffffff;
+  background-color: rgba(var(--dm-rgb-peligro, 242, 92, 84), 0.3);
+  color: var(--dm-texto-principal, #ffffff);
 }
 
 .cajaTempVertical {
@@ -512,27 +513,27 @@
   align-items: center;
   justify-content: center;
   border: 1px solid var(--color-borde-brutal);
-  border-radius: 4px;
+  border-radius: var(--dm-radio-panel, 4px);
   background-color: var(--color-fondo-profundo);
   width: 48px;
   height: 58px;
 }
 
 .etiquetaTempVertical {
-  font-size: 8.5px;
+  font-size: var(--dm-fuente-minima, 8.5px);
   font-weight: bold;
   color: var(--color-borde-cian);
   border-bottom: 1px solid var(--color-borde-brutal);
   width: 100%;
   text-align: center;
   padding: 1px 0;
-  background-color: rgba(0, 245, 212, 0.03);
+  background-color: rgba(var(--dm-rgb-cian, 0, 245, 212), 0.03);
 }
 
 .inputTempVertical {
   flex-grow: 1;
   width: 100%;
-  font-size: 12px;
+  font-size: var(--dm-fuente-minima, 12px);
   text-align: center;
   background-color: transparent;
   border: none;
@@ -543,48 +544,48 @@
 }
 
 .inputTempVertical:focus {
-  background-color: rgba(255,255,255,0.02);
+  background-color: rgba(var(--dm-rgb-neutro, 255, 255, 255), 0.02);
 }
 
 .botonEliminarDeCola {
   background: none;
   border: none;
-  color: rgba(242, 92, 84, 0.55);
+  color: rgba(var(--dm-rgb-peligro, 242, 92, 84), 0.55);
   cursor: pointer;
   padding: 4px;
-  border-radius: 2px;
+  border-radius: var(--dm-radio-control, 2px);
   display: flex;
   align-items: center;
 }
 
 .botonEliminarDeCola:hover {
-  color: var(--color-peligro);
-  background-color: rgba(242, 92, 84, 0.1);
+  color: var(--dm-texto-peligro, var(--color-peligro));
+  background-color: rgba(var(--dm-rgb-peligro, 242, 92, 84), 0.1);
 }
 
 .chipEfectoConcentracion {
-  background-color: hsla(45, 80%, 10%, 0.75) !important;
-  border-color: hsl(45, 90%, 50%) !important;
-  color: hsl(45, 100%, 75%) !important;
-  box-shadow: inset 0 0 4px rgba(212, 175, 55, 0.25) !important;
+  background-color: var(--dm-superficie-advertencia, hsla(45, 80%, 10%, 0.75)) !important;
+  border-color: var(--dm-texto-advertencia, hsl(45, 90%, 50%)) !important;
+  color: var(--dm-texto-advertencia, hsl(45, 100%, 75%)) !important;
+  box-shadow: inset 0 0 4px rgba(var(--dm-rgb-advertencia, 212, 175, 55), 0.25) !important;
 }
 
 .chipEfectoPermanente {
-  background-color: hsla(0, 0%, 15%, 0.75) !important;
-  border-color: hsla(0, 0%, 50%, 0.7) !important;
-  color: hsl(0, 0%, 85%) !important;
+  background-color: var(--dm-fondo-foco, hsla(0, 0%, 15%, 0.75)) !important;
+  border-color: var(--dm-borde, hsla(0, 0%, 50%, 0.7)) !important;
+  color: var(--dm-texto-secundario, hsl(0, 0%, 85%)) !important;
 }
 
 .badgeExpiracion {
   background-color: rgba(0, 0, 0, 0.4);
   padding: 0 4px;
-  border-radius: 2px;
-  font-size: 8.5px;
+  border-radius: var(--dm-radio-control, 2px);
+  font-size: var(--dm-fuente-minima, 8.5px);
   font-family: var(--fuente-codigo);
   font-weight: normal;
   margin-left: 4px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  color: hsla(0, 0%, 100%, 0.85);
+  border: 1px solid rgba(var(--dm-rgb-neutro, 255, 255, 255), 0.1);
+  color: var(--dm-texto-principal, hsla(0, 0%, 100%, 0.85));
 }
 
 .textoMiniSinNombre {
@@ -598,7 +599,7 @@
 }
 
 .valorMetaAmarilloFuente {
-  color: #ffcc00;
+  color: var(--dm-texto-acento, #ffcc00);
   font-family: var(--fuente-codigo);
 }
 
@@ -612,21 +613,21 @@
 }
 
 .iconoEspadasPeligro {
-  color: var(--color-peligro);
+  color: var(--dm-texto-peligro, var(--color-peligro));
 }
 
 .iconoCorazonPeligro {
-  color: var(--color-peligro);
+  color: var(--dm-texto-peligro, var(--color-peligro));
 }
 
 .textoVidaMaxima {
   color: var(--color-texto-apagado);
-  font-size: 10px;
+  font-size: var(--dm-fuente-minima, 10px);
 }
 
 .textoVidaMaximaEditable {
   cursor: pointer;
-  transition: color 0.15s, text-decoration 0.15s;
+  transition: none;
 }
 
 .textoVidaMaximaEditable:hover {
@@ -636,14 +637,14 @@
 
 .inputVidaMaximaEditable {
   width: 32px;
-  font-size: 10px;
+  font-size: var(--dm-fuente-minima, 10px);
   font-weight: 700;
   font-family: var(--fuente-codigo);
   line-height: 1;
   text-align: center;
-  background-color: rgba(255, 255, 255, 0.08);
+  background-color: rgba(var(--dm-rgb-neutro, 255, 255, 255), 0.08);
   border: 1px solid var(--color-borde-cian);
-  border-radius: 2px;
+  border-radius: var(--dm-radio-control, 2px);
   color: var(--color-texto-principal);
   outline: none;
   padding: 0;
@@ -670,21 +671,21 @@
   flex-direction: row;
   align-items: center;
   gap: 3px;
-  font-size: 11px;
+  font-size: var(--dm-fuente-minima, 11px);
   padding: 3px 6px;
-  background-color: hsl(222, 18%, 12%);
+  background-color: var(--dm-fondo-tarjeta, hsl(222, 18%, 12%));
   border: 1px solid var(--color-borde-brutal);
-  border-radius: 3px;
+  border-radius: var(--dm-radio-control, 3px);
   color: var(--color-texto-secundario);
   font-family: var(--fuente-codigo);
   user-select: none;
   cursor: default;
-  transition: border-color 0.15s, background-color 0.15s;
+  transition: none;
 }
 
 .badgePasivaJugador:hover {
   border-color: var(--color-borde-cian);
-  background-color: hsl(222, 18%, 16%);
+  background-color: var(--dm-fondo-foco, hsl(222, 18%, 16%));
 }
 
 .iconoPasivaPercepcion {
@@ -693,25 +694,102 @@
 }
 
 .iconoPasivaInvestigacion {
-  color: #ffcc00;
+  color: var(--dm-texto-acento, #ffcc00);
   flex-shrink: 0;
 }
 
 .iconoPasivaPerspicacia {
-  color: #c77dff;
+  color: var(--dm-texto-acento, #c77dff);
   flex-shrink: 0;
 }
 
 .textoPasivaLabel {
   font-weight: 700;
-  font-size: 9px;
+  font-size: var(--dm-fuente-minima, 9px);
   color: var(--color-texto-apagado);
   letter-spacing: 0.02em;
 }
 
 .valorPasiva {
-  font-size: 11.5px;
+  font-size: var(--dm-fuente-minima, 11.5px);
   font-weight: 800;
   color: var(--color-texto-principal);
 }
 
+/* Distribución táctica para los 599px del CEF de TaleSpire. */
+@media (max-width: 620px) {
+  :global([data-tema="dm"]) .tarjetaCriaturaBrutal {
+    display: grid;
+    grid-template-columns: 46px minmax(0, 1fr) 104px 24px;
+    grid-template-areas:
+      "iniciativa datos salud eliminar"
+      "iniciativa acciones salud eliminar";
+    gap: 6px 8px;
+    padding: 8px;
+  }
+
+  :global([data-tema="dm"]) .bloqueIniciativaIzquierda {
+    grid-area: iniciativa;
+    margin-left: 0;
+  }
+
+  :global([data-tema="dm"]) .cuerpoTarjetaCentral {
+    grid-area: datos;
+    min-width: 0;
+  }
+
+  :global([data-tema="dm"]) .cajaNombres {
+    min-width: 0;
+  }
+
+  :global([data-tema="dm"]) .nombreCriaturaLink {
+    flex-wrap: wrap;
+    overflow-wrap: anywhere;
+  }
+
+  :global([data-tema="dm"]) .cajaAccionesRapidasColumn {
+    grid-area: acciones;
+    min-width: 0;
+  }
+
+  :global([data-tema="dm"]) .miniBotonAdd {
+    height: 24px;
+  }
+
+  :global([data-tema="dm"]) .filaCondicionesChips {
+    align-items: flex-start;
+  }
+
+  :global([data-tema="dm"]) .contenedorMiniSelector {
+    max-width: 100%;
+  }
+
+  :global([data-tema="dm"]) .dropdownFlotante {
+    position: static;
+    margin-top: 4px;
+  }
+
+  :global([data-tema="dm"]) .dropdownItem {
+    overflow-wrap: anywhere;
+  }
+
+  :global([data-tema="dm"]) .cajaControlesSaludTarjetas {
+    grid-area: salud;
+    width: 104px;
+  }
+
+  :global([data-tema="dm"]) .controlHPVertical {
+    width: 52px;
+  }
+
+  :global([data-tema="dm"]) .filaHPArea {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  :global([data-tema="dm"]) .botonEliminarDeCola {
+    grid-area: eliminar;
+    align-self: start;
+    justify-self: end;
+  }
+}

@@ -242,16 +242,7 @@ export const TarjetaCriaturaIniciativa: React.FC<TarjetaCriaturaIniciativaProps>
             </span>
             <span className={estilosClases.subtituloCriatura}>
               CA: <strong className={estilosClases.valorMetaCianFuente}>{criatura.ca}</strong> | Inic: <strong className={estilosClases.valorMetaAmarilloFuente}>{(criatura.bonificadorIniciativa ?? 0) >= 0 ? `+${criatura.bonificadorIniciativa ?? 0}` : criatura.bonificadorIniciativa}</strong> <br /> Vel: {formatearVelocidad(criatura.velocidad)}
-              {!criatura.esMonstruo && pasivasEfectivas ? (
-                <>
-                  <br />
-                  <span title="Percepción Pasiva">PP: <strong className={estilosClases.valorMetaCianFuente}>{pasivasEfectivas.percepcion}</strong></span>
-                  {" | "}
-                  <span title="Investigación Pasiva">Inv: <strong className={estilosClases.valorMetaCianFuente}>{pasivasEfectivas.investigacion}</strong></span>
-                  {" | "}
-                  <span title="Perspicacia Pasiva">Pers: <strong className={estilosClases.valorMetaCianFuente}>{pasivasEfectivas.perspicacia}</strong></span>
-                </>
-              ) : plantilla ? (
+              {criatura.esMonstruo && plantilla ? (
                 <>
                   <br />  PP: <strong className={estilosClases.valorMetaCianFuente}>{obtenerPercepcionPasiva(plantilla)}</strong>
                 </>

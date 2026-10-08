@@ -1,3 +1,4 @@
+import { obtenerConjuroDeEfecto } from "./rasgos/conjuroDeEfecto";
 import type { PersonajeJugador, HechizoBase } from "@/tipos";
 import { generarIdSlug } from "@/utiles/generarId";
 import { coincideHechizoId } from "./comparadorHechizos";
@@ -130,7 +131,7 @@ export function resolverOrigenConjuro(
               if (Array.isArray(op.efectos)) {
                 for (const ef of op.efectos) {
                   if (ef.tipo === "conjuro_gratuito" || ef.tipo === "conjuro_otorgado") {
-                    const cNom = String(ef.objetivo || ef.valor || "");
+                    const cNom = obtenerConjuroDeEfecto(ef) || "";
                     if (coincide(cNom)) {
                       otorga = true;
                       break;
@@ -153,7 +154,7 @@ export function resolverOrigenConjuro(
     if (!otorga && Array.isArray(r.efectos)) {
       for (const ef of r.efectos) {
         if (ef.tipo === "conjuro_otorgado" || ef.tipo === "conjuro_gratuito") {
-          const val = String(ef.objetivo || ef.valor || "");
+          const val = obtenerConjuroDeEfecto(ef) || "";
           if (coincide(val)) {
             otorga = true;
             break;
@@ -321,7 +322,7 @@ export function crearResolutorOrigenConjuros(
               if (Array.isArray(op.efectos)) {
                 for (const ef of op.efectos) {
                   if (ef.tipo === "conjuro_gratuito" || ef.tipo === "conjuro_otorgado") {
-                    const cNom = String(ef.objetivo || ef.valor || "");
+                    const cNom = obtenerConjuroDeEfecto(ef) || "";
                     if (cNom) registrarCadena(cNom, badge);
                   }
                 }
@@ -337,7 +338,7 @@ export function crearResolutorOrigenConjuros(
     if (Array.isArray(r.efectos)) {
       for (const ef of r.efectos) {
         if (ef.tipo === "conjuro_otorgado" || ef.tipo === "conjuro_gratuito") {
-          const val = String(ef.objetivo || ef.valor || "");
+          const val = obtenerConjuroDeEfecto(ef) || "";
           if (val) registrarCadena(val, badge);
         }
       }

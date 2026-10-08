@@ -12,8 +12,9 @@
     "preview": "vite preview",
     "lint": "eslint src --max-warnings=0",
     "test": "vitest run",
+    "test:rasgos-ui": "node scripts/probar-constructor-rasgos.mjs",
     "verificar:lineas": "node scripts/verificar-limite-lineas.js",
-    "ci": "tsc --noEmit && eslint src --max-warnings=0 && vitest run && node scripts/verificar-limite-lineas.js && vite build",
+    "ci": "tsc --noEmit && eslint src --max-warnings=0 && vitest run && node scripts/verificar-limite-lineas.js && node scripts/probar-constructor-rasgos.mjs && vite build",
     "transformar-hechizos": "tsx --tsconfig tsconfig.json src/editor_hechizos/transformar.ts"
   },
   "dependencies": {

@@ -32,14 +32,14 @@ interface TarjetaRasgoProps {
   rasgo: RasgoPersonaje;
   nombrePersonaje: string;
   idPersonaje?: string;
-  alGastarUso: (cantidad?: number) => void;
-  alRecuperarUso: (cantidad?: number) => void;
+  alGastarUso?: (cantidad?: number) => void;
+  alRecuperarUso?: (cantidad?: number) => void;
   alAlternarActivo?: () => void;
   deshabilitadoToggle?: boolean;
   motivoDeshabilitado?: string;
   alEditar?: () => void;
   alEliminar?: () => void;
-  alVerDetalle: () => void;
+  alVerDetalle?: () => void;
   usosPadre?: { restantes: number; maximos: number; nombre: string };
   formulaDadosEfectiva?: string;
   esOculto?: boolean;
@@ -246,10 +246,10 @@ export const TarjetaRasgo: React.FC<TarjetaRasgoProps> = ({
                   if (esRecursoEspacioPacto && idPersonaje) {
                     usarAlmacenDM.getState().gastarEspacioPacto(idPersonaje);
                   } else {
-                    alGastarUso();
+                    alGastarUso?.();
                   }
                 }}
-                disabled={usosRestantes <= 0}
+                disabled={!alGastarUso || usosRestantes <= 0}
                 title={esRecursoEspacioPacto ? "Gastar 1 espacio de pacto" : tieneUsosPropios ? "Gastar 1 uso" : `Gastar 1 uso de ${usosPadre?.nombre || "padre"}`}
               >
                 -
@@ -261,9 +261,9 @@ export const TarjetaRasgo: React.FC<TarjetaRasgoProps> = ({
                   className={estilos.botonPasoUso}
                   onClick={(e) => {
                     e.stopPropagation();
-                    alGastarUso(rasgo.costeFijo);
+                    alGastarUso?.(rasgo.costeFijo);
                   }}
-                  disabled={usosRestantes < (rasgo.costeFijo || 1)}
+                  disabled={!alGastarUso || usosRestantes < (rasgo.costeFijo || 1)}
                   title={`Gastar ${rasgo.costeFijo} usos de ${tieneUsosPropios ? rasgo.nombre : usosPadre?.nombre || "padre"}`}
                 >
                   -{rasgo.costeFijo}
@@ -282,10 +282,10 @@ export const TarjetaRasgo: React.FC<TarjetaRasgoProps> = ({
                   if (esRecursoEspacioPacto && idPersonaje) {
                     usarAlmacenDM.getState().recuperarEspacioPacto(idPersonaje);
                   } else {
-                    alRecuperarUso();
+                    alRecuperarUso?.();
                   }
                 }}
-                disabled={usosRestantes >= usosMaximos}
+                disabled={!alRecuperarUso || usosRestantes >= usosMaximos}
                 title={esRecursoEspacioPacto ? "Recuperar 1 espacio de pacto" : tieneUsosPropios ? "Recuperar 1 uso" : `Recuperar 1 uso de ${usosPadre?.nombre || "padre"}`}
               >
                 +
@@ -299,6 +299,7 @@ export const TarjetaRasgo: React.FC<TarjetaRasgoProps> = ({
               type="button"
               className={estilos.botonTirarDados}
               onClick={manejarTirarDadosGuardados}
+              disabled={!idPersonaje}
               title={`Tirar ${formulaEfectiva || "2d20"} y registrar dados de presagio`}
             >
               <Dices size={11} color="#a5b4fc" />
@@ -316,7 +317,7 @@ export const TarjetaRasgo: React.FC<TarjetaRasgoProps> = ({
               type="button"
               className={estilos.botonTirarDados}
               onClick={manejarTirarDados}
-              disabled={sinUsosDisponibles}
+              disabled={!alGastarUso || sinUsosDisponibles}
               title={
                 esCuracion
                   ? esPreservarVida && usosPadre
@@ -358,7 +359,7 @@ export const TarjetaRasgo: React.FC<TarjetaRasgoProps> = ({
               type="button"
               className={estilos.botonTirarDados}
               onClick={manejarAplicarHpTemporal}
-              disabled={sinUsosDisponibles}
+              disabled={!alGastarUso || sinUsosDisponibles}
               title={
                 tieneUsosPropios
                   ? `Gastar 1 uso (${usosRestantes}/${usosMaximos}) y obtener ${valorHpTemporalCalculado} PG temporales`
@@ -379,7 +380,7 @@ export const TarjetaRasgo: React.FC<TarjetaRasgoProps> = ({
                 e.stopPropagation();
                 setMostrarTiendaRecuperacion(true);
               }}
-              disabled={sinUsosDisponibles}
+              disabled={!alGastarUso || sinUsosDisponibles}
               title={
                 sinUsosDisponibles
                   ? "No quedan usos disponibles (requiere descanso largo)"

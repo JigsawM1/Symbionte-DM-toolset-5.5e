@@ -13,8 +13,8 @@
   justify-content: space-between;
   align-items: center;
   padding: 8px 12px;
-  border-bottom: 1.5px solid rgba(var(--dm-rgb-cian, 0, 245, 212), 0.25);
-  background-color: rgba(var(--dm-rgb-cian, 0, 245, 212), 0.06);
+  border-bottom: 1px solid var(--color-borde-brutal);
+  background-color: var(--dm-fondo-tarjeta);
   flex-shrink: 0;
   height: 38px;
 }
@@ -69,18 +69,18 @@
   font-size: var(--dm-fuente-minima, 12px);
   font-weight: bold;
   letter-spacing: 0.05em;
-  color: var(--dm-texto-acento, #ffcc00);
-  border: 1px solid var(--dm-texto-acento, #ffcc00);
+  color: var(--dm-texto-acento);
+  border: 1px solid var(--dm-texto-acento);
   padding: 1px 4px;
   font-family: var(--fuente-codigo);
   border-radius: var(--dm-radio-panel, 2px);
 }
 
 .titulo {
-  font-size: 13.5px;
-  font-weight: bold;
+  font-size: 14px;
+  font-weight: 700;
   color: var(--dm-texto-principal, #ffffff);
-  font-family: var(--fuente-principal);
+  font-family: var(--dm-fuente-titulo, var(--fuente-titulo));
   letter-spacing: 0.02em;
 }
 
@@ -156,8 +156,8 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 12px;
-  background-color: rgba(var(--dm-rgb-cian, 0, 245, 212), 0.02);
-  border: 1px solid rgba(var(--dm-rgb-cian, 0, 245, 212), 0.1);
+  background-color: var(--dm-fondo-tarjeta);
+  border: 1px solid var(--color-borde-brutal);
   padding: 10px;
   border-radius: var(--dm-radio-panel, 4px);
 }
@@ -170,7 +170,7 @@
 }
 
 .iconoMeta {
-  color: var(--color-borde-cian);
+  color: var(--dm-texto-acento, var(--color-borde-cian));
 }
 
 .metaLabel {
@@ -193,14 +193,14 @@
 }
 
 .seccionTitulo {
-  font-size: var(--dm-fuente-minima, 11px);
-  font-weight: 800;
-  color: var(--color-borde-cian);
-  letter-spacing: 0.08em;
-  border-bottom: 1px solid rgba(var(--dm-rgb-cian, 0, 245, 212), 0.15);
-  padding-bottom: 12px;
+  font-size: var(--dm-fuente-minima, 12px);
+  font-weight: 700;
+  color: var(--dm-texto-acento);
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid var(--color-borde-brutal);
+  padding-bottom: 5px;
   text-transform: uppercase;
-  font-family: var(--fuente-codigo);
+  font-family: var(--dm-fuente-titulo, var(--fuente-titulo));
 }
 
 .textoMateriales {
@@ -219,9 +219,10 @@
 }
 
 .cajaCombate {
-  background-color: rgba(var(--dm-rgb-cian, 0, 245, 212), 0.04);
-  border: 1px solid rgba(var(--dm-rgb-cian, 0, 245, 212), 0.3);
-  box-shadow: 0 0 10px rgba(var(--dm-rgb-cian, 0, 245, 212), 0.1);
+  background-color: var(--dm-fondo-tarjeta);
+  border: 1px solid var(--color-borde-brutal);
+  border-left: 3px solid var(--dm-primario);
+  box-shadow: var(--sombra-tarjeta);
   border-radius: var(--dm-radio-panel, 4px);
   padding: 10px;
   display: flex;
@@ -230,12 +231,12 @@
 }
 
 .tituloCombate {
-  font-size: var(--dm-fuente-minima, 11px);
-  font-weight: bold;
-  color: var(--color-borde-cian);
+  font-size: var(--dm-fuente-minima, 12px);
+  font-weight: 700;
+  color: var(--dm-texto-acento);
   text-transform: uppercase;
-  letter-spacing: 0.08em;
-  font-family: var(--fuente-codigo);
+  letter-spacing: 0.05em;
+  font-family: var(--dm-fuente-titulo, var(--fuente-titulo));
 }
 
 .gridCombate {
@@ -378,11 +379,11 @@
 }
 
 .chipClase {
-  font-size: 16px;
+  font-size: 13px;
   background-color: rgba(var(--dm-rgb-neutro, 255, 255, 255), 0.05);
   border: 1px solid var(--color-borde-brutal);
   color: var(--color-texto-principal);
-  padding: 4px 18px;
+  padding: 4px 12px;
   border-radius: var(--dm-radio-control, 4px);
   font-weight: 500;
 }

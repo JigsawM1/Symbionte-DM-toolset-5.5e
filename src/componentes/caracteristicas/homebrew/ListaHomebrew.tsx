@@ -19,7 +19,8 @@ import {
   Scale,
   Copy,
   Skull,
-  Dices
+  Dices,
+  ChevronLeft
 } from "lucide-react";
 import estilos from "./ListaHomebrew.module.css";
 import { ConfirmDialog, SelectorDesplegable, TextoEnriquecidoDND } from "@/componentes/comunes";
@@ -511,13 +512,14 @@ export const ListaHomebrew: React.FC<Props> = ({
             <div className={estilos.cabeceraDetalle}>
               <div className={estilos.cabeceraDetalleIzquierda}>
                 <span className={estilos.objetoNivelOverlay}>
-                  {formatearSubtituloCriatura(m.tipo, m.tamaño, m.alineacion)} | CA {m.ca} | HP {m.vidaMaxima} | CR {m.desafio || "—"}
+                  CR {m.desafio || "—"}
                 </span>
                 <span className={estilos.nombreHechizoOverlay}>{m.nombre}</span>
               </div>
               <button
                 onClick={() => setIdCriaturaDetalle(null)}
                 className={estilos.botonCerrarDetalle}
+                title="Cerrar detalles"
                 type="button"
               >
                 <X size={15} />
@@ -583,7 +585,8 @@ export const ListaHomebrew: React.FC<Props> = ({
                     className={estilos.botonNavegarAtras}
                     type="button"
                   >
-                    ⬅ Atrás
+                    <ChevronLeft size={14} />
+                    <span>Atrás</span>
                   </button>
                 )}
                 <div className="u-flex u-gap-xs">

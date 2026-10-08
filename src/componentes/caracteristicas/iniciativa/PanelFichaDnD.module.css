@@ -20,8 +20,8 @@
 .nombreMonstruoFicha {
   font-size: 16px;
   font-weight: 800;
-  color: var(--dm-texto-acento, #ffcc00);
-  font-family: var(--fuente-codigo);
+  color: var(--dm-texto-principal, #ffffff);
+  font-family: var(--dm-fuente-titulo, var(--fuente-titulo));
   letter-spacing: 0.02em;
 }
 
@@ -124,7 +124,7 @@
 }
 
 .valorIniciativa {
-  color: var(--dm-texto-acento, #ffcc00);
+  color: var(--dm-texto-acento);
 }
 
 .valorPercepcion {
@@ -140,28 +140,29 @@
 }
 
 .nombreRasgoPasivo {
-  color: var(--dm-texto-acento, #ffcc00);
+  color: var(--dm-texto-acento);
 }
 
 .subtituloFichaSection {
-  font-size: 12.5px;
-  font-weight: 800;
-  color: var(--color-borde-cian);
-  letter-spacing: 0.04em;
+  font-size: var(--dm-fuente-minima, 12px);
+  font-weight: 700;
+  color: var(--dm-texto-acento);
+  letter-spacing: 0.05em;
   border-bottom: 1px solid var(--color-borde-brutal);
-  padding-bottom: 3px;
+  padding-bottom: 4px;
   margin-top: 6px;
   text-transform: uppercase;
+  font-family: var(--dm-fuente-titulo, var(--fuente-titulo));
 }
 
 .subtituloPruebas {
-  color: var(--dm-texto-acento, #a29bfe) !important;
+  color: var(--dm-texto-acento) !important;
   border-color: rgba(var(--dm-rgb-primario, 162, 155, 254), 0.2) !important;
 }
 
 .subtituloSalvaciones {
-  color: var(--color-borde-cian) !important;
-  border-color: rgba(var(--dm-rgb-cian, 0, 245, 212), 0.25) !important;
+  color: var(--dm-texto-acento) !important;
+  border-color: rgba(var(--dm-rgb-primario, 162, 155, 254), 0.2) !important;
 }
 
 .subtituloAccionesAdicionales {
@@ -215,9 +216,9 @@
 
 .nombreAccionTarjeta {
   font-size: 13.5px;
-  font-weight: bold;
-  color: var(--dm-texto-acento, #ffcc00);
-  font-family: var(--fuente-codigo);
+  font-weight: 700;
+  color: var(--dm-texto-acento);
+  font-family: var(--dm-fuente-titulo, var(--fuente-titulo));
 }
 
 .nombreAccionAdicional {

@@ -14,17 +14,18 @@
 }
 
 .cabeceraPanel {
-  font-size: var(--dm-fuente-minima, 11px);
+  font-size: var(--dm-fuente-minima, 12px);
   font-weight: 700;
-  color: var(--color-borde-cian);
-  border-bottom: 2px solid var(--color-borde-cian);
-  padding-bottom: 8px;
+  color: var(--dm-texto-acento);
+  border-bottom: 1px solid var(--color-borde-brutal);
+  padding-bottom: 6px;
   text-transform: uppercase;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.08em;
   margin-bottom: 4px;
   display: flex;
   align-items: center;
   gap: 6px;
+  font-family: var(--dm-fuente-titulo, var(--fuente-titulo));
 }
 
 .cajaBuscadorHomebrew {
@@ -184,8 +185,8 @@
   align-items: center;
   background-color: var(--color-fondo-tarjeta);
   border-bottom: 1px solid var(--color-borde-brutal);
-  padding: 22px 12px;
-  height: 28px;
+  padding: 8px 12px;
+  height: 38px;
 }
 
 .cabeceraDetalleIzquierda {
@@ -201,14 +202,16 @@
   background-color: rgba(var(--dm-rgb-peligro, 255, 118, 117), 0.1);
   border: 1px solid var(--dm-texto-peligro, #ff7675);
   color: var(--dm-texto-peligro, #ff7675);
-  padding: 0 6px;
+  padding: 1px 6px;
   font-family: var(--fuente-codigo);
+  border-radius: var(--dm-radio-control, 3px);
 }
 
 .nombreHechizoOverlay {
-  font-size: 13px;
-  font-weight: bold;
+  font-size: 14px;
+  font-weight: 700;
   color: var(--color-texto-principal);
+  font-family: var(--dm-fuente-titulo, var(--fuente-titulo));
 }
 
 .botonCerrarDetalle {
@@ -335,11 +338,13 @@
 
 .descripcionTituloFicha {
   font-size: var(--dm-fuente-minima, 12px);
-  font-weight: bold;
-  color: var(--color-borde-cian);
+  font-weight: 700;
+  color: var(--dm-texto-acento);
   letter-spacing: 0.05em;
-  border-bottom: 1.5px solid var(--color-borde-brutal);
-  padding-bottom: 2px;
+  border-bottom: 1px solid var(--color-borde-brutal);
+  padding-bottom: 4px;
+  text-transform: uppercase;
+  font-family: var(--dm-fuente-titulo, var(--fuente-titulo));
 }
 
 .descripcionCuerpoFicha {
@@ -528,11 +533,11 @@
 }
 
 .cajaMecanicasMagicas {
-  border-color: var(--color-borde-cian);
+  border-color: rgba(var(--dm-rgb-primario, 123, 44, 191), 0.35);
 }
 
 .tituloMecanicasMagicas {
-  color: var(--color-borde-cian);
+  color: var(--dm-texto-acento);
 }
 
 .textoCian {

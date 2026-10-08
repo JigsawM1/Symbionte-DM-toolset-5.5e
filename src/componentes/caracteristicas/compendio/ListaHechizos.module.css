@@ -110,8 +110,14 @@
 .tarjetaConjuro {
   background-color: var(--color-fondo-tarjeta);
   border: 1px solid var(--color-borde-brutal);
+  border-radius: var(--dm-radio-panel, 6px);
   display: flex;
   flex-direction: column;
+}
+
+.tarjetaConjuro:hover {
+  border-color: rgba(var(--dm-rgb-cian, 0, 245, 212), 0.4);
+  background-color: rgba(var(--dm-rgb-cian, 0, 245, 212), 0.04);
 }
 
 .tarjetaExpandida {
@@ -121,15 +127,11 @@
 .cabeceraConjuro {
   display: flex;
   align-items: center;
-  padding: 4px 6px;
+  padding: 7px 10px;
   cursor: pointer;
   user-select: none;
-  gap: 6px;
-  font-size: 12.5px;
-}
-
-.cabeceraConjuro:hover {
-  background-color: rgba(var(--dm-rgb-neutro, 255, 255, 255), 0.03);
+  gap: 8px;
+  font-size: 13px;
 }
 
 .hechizoNivel {
@@ -138,13 +140,14 @@
   color: var(--dm-texto-acento, var(--color-primario-brillante));
   background-color: var(--color-fondo-profundo);
   border: 1px solid var(--color-borde-brutal);
-  padding: 0 4px;
-  border-radius: 0;
+  padding: 1px 6px;
+  border-radius: var(--dm-radio-control, 3px);
   font-size: var(--dm-fuente-minima, 11px);
 }
 
 .hechizoNombre {
-  font-weight: bold;
+  font-weight: 700;
+  font-family: var(--dm-fuente-titulo, var(--fuente-titulo));
   color: var(--color-texto-principal);
   flex: 1;
   overflow: hidden;
@@ -153,12 +156,13 @@
 }
 
 .hechizoEscuela {
-  font-size: var(--dm-fuente-minima, 10.5px);
+  font-size: var(--dm-fuente-minima, 11px);
   color: var(--color-texto-secundario);
   text-transform: uppercase;
   background-color: rgba(var(--dm-rgb-primario, 95, 93, 187), 0.1);
-  padding: 0px 4px;
-  border: 1px solid rgba(var(--dm-rgb-primario, 95, 93, 187), 0.2);
+  padding: 1px 6px;
+  border: 1px solid rgba(var(--dm-rgb-primario, 95, 93, 187), 0.25);
+  border-radius: var(--dm-radio-control, 3px);
 }
 
 .indicadorExpansion {

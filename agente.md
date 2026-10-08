@@ -16,6 +16,46 @@ Este archivo registra reglas globales, errores encontrados, sus causas raíz y l
    - Las dependencias fluyen estrictamente hacia abajo: `App/Layout -> Caracteristicas -> Comunes -> Almacen -> Servicios -> Utiles/Constantes/Tipos`.
    - **Bajo ninguna circunstancia** los módulos de lógica de negocio (`servicios/`), gestores de estado (`almacen/`), contratos (`tipos/`), valores de reglas (`constantes/`) ni funciones de soporte (`utiles/`) deben importar componentes visuales o archivos CSS (`componentes/`). Esta regla está reforzada en CI vía ESLint `no-restricted-imports`.
 6. **PROHIBICIÓN ESTRICTA DE BIFURCACIONES POR NOMBRE DE RASGO O CLASE (CATÁLOGO DECLARATIVO Y BUILDER PURO)**:
+
+## [2026-10-08] Unificación Visual, Jerarquía Tipográfica y Corrección Cromática de Tarjetas del Master (DM)
+
+**Contexto del Requerimiento:**
+- El Dungeon Master reportó que tras la introducción de las variables de tema brutalista para el DM (`temaMaster.css`), los títulos y encabezados de las tarjetas (Ficha de Hechizo, Bestiario de Criaturas, Listado de Conjuros y Objetos Mágicos) presentaban tipografías extrañas estilo código monoespaciado y colores verdosos/cian chillones discordantes ("Por qué cambie esas letras y no se, el color ta como que raro").
+- Se solicitó auditar y estandarizar el formato de todas las tarjetas del Master para garantizar consistencia visual, jerarquía tipográfica y simetría en la interfaz táctica.
+
+**Causas Raíz Identificadas:**
+1. **Asignación Indebida de Fuente Monoespaciada en Encabezados:**
+   - Se había aplicado indiscriminadamente `font-family: var(--fuente-codigo)` a títulos de sección (`.seccionTitulo`, `.tituloCombate`, `.subtituloFichaSection`), nombres de criaturas (`.nombreMonstruoFicha`) y nombres de acciones (`.nombreAccionTarjeta`). La tipografía de código debe reservarse estrictamente a cifras numéricas, fórmulas de dados y badges de metadatos (NIV, CR, CA, HP).
+2. **Uso de Color de Borde de Foco como Color de Texto:**
+   - Los títulos y separadores de sección utilizaban `color: var(--color-borde-cian)` (`hsl(172, 90%, 48%)`), que es un token diseñado para bordes de interacción y foco, produciendo textos verdosos fosforescentes de bajo confort de lectura.
+3. **Disparidad Estructural y Dimensional entre Tarjetas de Master:**
+   - La cabecera modal de criaturas en `ListaHomebrew.tsx` forzaba `padding: 22px 12px; height: 28px;` e incluía un subtítulo largo en un badge rojo desbordante, mientras que `FichaHechizo` operaba a `height: 38px; padding: 8px 12px;`.
+   - Las tarjetas de listado de conjuros (`.tarjetaConjuro` en `ListaHechizos.module.css`) carecían de bordes redondeados (`border-radius: var(--dm-radio-panel, 6px)`) en contraste con las tarjetas de criaturas (`.itemListaBrutal`).
+4. **Residuo de Emoji en Navegación de Objetos:**
+   - `ListaHomebrew.tsx` conservaba `⬅ Atrás`, vulnerando la Regla Global 1 (prohibición de emojis, uso estricto de iconos SVG locales).
+
+**Soluciones Arquitectónicas Aplicadas:**
+1. **Jerarquía Tipográfica Estandarizada:**
+   - Títulos de entidades y nombres principales: `font-family: var(--dm-fuente-titulo, var(--fuente-titulo))` (`Outfit`), peso 700/800, color `var(--dm-texto-principal)`.
+   - Encabezados de sección ("DESCRIPCIÓN", "CLASES", "MECÁNICAS", "ACCIONES", "RASGOS"): `font-family: var(--dm-fuente-titulo, var(--fuente-titulo))`, tamaño `12px` / `var(--dm-fuente-minima)`, peso 700, mayúsculas con espaciado sutil (`0.05em`).
+   - Color de encabezados de sección: Violeta arcano refinado `var(--dm-texto-acento)`, con borde inferior estructural neutro `1px solid var(--color-borde-brutal)` (eliminando líneas cian estridentes).
+   - Valores, tiradas y fórmulas numéricas: `font-family: var(--fuente-codigo)`.
+2. **Sincronización y Simetría de Cabeceras Modales:**
+   - Se armonizaron las cabeceras de `FichaHechizo` y `ListaHomebrew` a `height: 38px; padding: 8px 12px;` con fondo `var(--dm-fondo-tarjeta)` y borde brutal.
+   - En el overlay de criaturas, el badge superior se compactó al formato estándar `CR {m.desafio || "—"}`, idéntico a `NIV {nivel}` en conjuros.
+3. **Armonización de Tarjetas de Listado:**
+   - Se dotó a `.tarjetaConjuro` en `ListaHechizos.module.css` del mismo `border-radius: var(--dm-radio-panel, 6px)`, espaciado interno y hover táctico que poseen las tarjetas de Bestiario y Objetos (`.itemListaBrutal`).
+4. **Erradicación de Emojis:**
+   - Se reemplazó `⬅ Atrás` en `ListaHomebrew.tsx` por el componente SVG vectorial `<ChevronLeft size={14} />` de `lucide-react`.
+
+**Certificación de Calidad y Pipeline de CI:**
+- **TypeScript:** `pnpm exec tsc --noEmit` completado con 0 errores bajo `strict: true`.
+- **ESLint:** `pnpm run lint` (`--max-warnings=0`) completado con 0 errores y 0 advertencias.
+- **Vitest:** 111 suites de prueba, **1.654 / 1.654 pruebas aprobadas al 100%**.
+- **Control de Líneas:** 117 archivos auditados vía `pnpm run verificar:lineas`, 0 archivos > 500 líneas en rutas monitoreadas.
+- **Build de Producción:** `pnpm exec vite build` completado exitosamente en 22.70s con empaquetado optimizado.
+
+---
 ## [2026-10-06] Visualización de Percepción Pasiva, Investigación Pasiva y Perspicacia Pasiva en las Tarjetas de Jugador del Tracker de Iniciativa del DM
 
 **Contexto del Requerimiento:**

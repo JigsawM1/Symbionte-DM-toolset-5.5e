@@ -18,7 +18,7 @@ import {
   deserializarEstadoCombatePJ,
   serializarIniciativaDM,
   deserializarIniciativaDM,
-  dividirEnChunksIniciativa,
+  type WireMensajeSync,
 } from "@/tipos/sync";
 import { calcularEstadisticasPersonaje } from "@/almacen/selectores/usarEstadoPersonajes";
 import { coincidenNombresTaleSpire } from "@/servicios/resolutorCriaturas";
@@ -26,12 +26,12 @@ import { logger } from "@/utiles/logger";
 import { BufferChunksIniciativa } from "./sincronizacion/bufferChunksIniciativa";
 import { GestorReintentosSync } from "./sincronizacion/gestorReintentosSync";
 import { proyectarEstadoCombatePJ } from "./sincronizacion/proyeccionEstadoCombate";
+import { BufferFragmentosSync, claveEstadoSync, empaquetarEstadoSync, type EstadoSync } from "./sincronizacion/transporteSync";
 
 export { proyectarEstadoCombatePJ };
 
 const RETARDO_DEBOUNCE_GM_MS = 350;
 const RETARDO_DEBOUNCE_PJ_MS = 150;
-const LIMITE_TAMANO_SEGURO_BYTES = 380;
 
 let timerDebounceGM: ReturnType<typeof setTimeout> | null = null;
 let timerDebouncePJ: ReturnType<typeof setTimeout> | null = null;
@@ -39,6 +39,79 @@ let timerDebouncePJ: ReturnType<typeof setTimeout> | null = null;
 // Gestores modulares para fragmentos y reintentos resilientes
 const bufferChunks = new BufferChunksIniciativa();
 const gestorReintentos = new GestorReintentosSync();
+const revisionesAplicadas = new Map<string, number>();
+let ultimaRevisionEmitida = 0;
+const bufferFragmentos = new BufferFragmentosSync((tipo) => {
+  if (tipo === 'DM' && !usarAlmacenDM.getState().esGM) gestorReintentos.continuarReintentosREQ();
+});
+
+function nuevaRevision(): number {
+  ultimaRevisionEmitida = Math.max(Date.now(), ultimaRevisionEmitida + 1);
+  return ultimaRevisionEmitida;
+}
+
+function enviarSolicitud(): void {
+  void ts.sync.send(JSON.stringify({ v: 1, t: 'REQ' }), 'board');
+}
+
+function purgarEstado(tipo: 'DM' | 'PJ', id = 'DM'): void {
+  ts.sync.purgarColaSync(texto => {
+    try {
+      const m = JSON.parse(texto) as WireMensajeSync;
+      return (m.t === 'FRAG' && m.k === tipo && m.id === id)
+        || (m.t === tipo && (m.t === 'DM' || m.d.id === id))
+        || (tipo === 'DM' && m.t === 'DM_CHUNK');
+    } catch { return false; }
+  });
+}
+
+function enviarPaquetes(paquetes: string[]): Promise<boolean> {
+  return Promise.all(paquetes.map(p => ts.sync.send(p, 'board'))).then(resultados => resultados.every(Boolean));
+}
+
+function confirmarRecepcionPJ(id: string, revision: number): void {
+  void ts.sync.send(JSON.stringify({ v: 1, t: 'ACK', id, ts: revision }), 'board');
+}
+
+function aplicarEstadoRecibido(mensaje: EstadoSync): void {
+  const estado = usarAlmacenDM.getState();
+  if ((mensaje.t === 'DM') === estado.esGM) return;
+  const id = mensaje.t === 'PJ' ? mensaje.d.id : 'DM';
+  const clave = claveEstadoSync(mensaje.t, id);
+  const revision = mensaje.d.ts;
+  const ultima = revisionesAplicadas.get(clave);
+  const enCurso = bufferFragmentos.obtenerRevisionEnCurso(mensaje.t, id);
+  // Un mensaje retrasado no puede borrar fragmentos nuevos ni saltarse el orden sin revisión.
+  if (revision === undefined && (ultima !== undefined || enCurso !== undefined)) return;
+  if (revision !== undefined && enCurso !== undefined && revision < enCurso) return;
+  if (revision !== undefined && ultima !== undefined && revision <= ultima) {
+    if (mensaje.t === 'PJ' && revision === ultima) confirmarRecepcionPJ(id, revision);
+    return;
+  }
+  if (mensaje.t === 'DM') {
+    estado.aplicarIniciativaDesdeSync(deserializarIniciativaDM(mensaje.d));
+    gestorReintentos.cancelarReintentosREQ();
+  } else {
+    estado.actualizarPersonajeDesdeSync(deserializarEstadoCombatePJ(mensaje.d));
+    confirmarRecepcionPJ(id, revision ?? Date.now());
+    emitirEstadoComoGM();
+  }
+  if (revision !== undefined) revisionesAplicadas.set(clave, revision);
+  bufferFragmentos.descartar(mensaje.t, id);
+}
+
+/** Cancela el ciclo anterior, incluida cualquier emisión pendiente durante un cambio de rol. */
+export function reiniciarSincronizacion(): void {
+  if (timerDebounceGM) clearTimeout(timerDebounceGM);
+  if (timerDebouncePJ) clearTimeout(timerDebouncePJ);
+  timerDebounceGM = timerDebouncePJ = null;
+  gestorReintentos.destruir();
+  bufferFragmentos.limpiar();
+  bufferChunks.limpiar();
+  revisionesAplicadas.clear();
+  mensajesProcesadosRecientes.clear();
+  ts.sync.purgarColaSync();
+}
 
 // Búfer para deduplicar mensajes recibidos concurrentemente por el EventBus y suscripciones nativas
 // Emplea una ventana temporal de 250ms para no bloquear estados idénticos a lo largo de rondas sucesivas
@@ -77,7 +150,7 @@ export function emitirEstadoComoGM(): void {
     if (!estado.esGM || estado.aplicandoSync) return;
 
     // Descartar ráfagas obsoletas de la iniciativa anterior en la cola de salida para evitar saturar el canal nativo
-    ts.sync.purgarColaSync((msg) => msg.includes('"t":"DM"') || msg.includes('"t":"DM_CHUNK"'));
+    purgarEstado('DM');
 
     const datosDM: EstadoIniciativaDM = {
       cola: estado.colaIniciativa,
@@ -85,22 +158,12 @@ export function emitirEstadoComoGM(): void {
       rondaActual: estado.rondaActual,
       mostrarPorcentajeVidaAJugadores: estado.mostrarPorcentajeVidaAJugadores,
       metodoVidaMonstruo: estado.metodoVidaMonstruo,
+      ts: nuevaRevision(),
     };
 
     const wire = serializarIniciativaDM(datosDM);
-    const mensajeJSON = JSON.stringify({ v: 1, t: "DM", d: wire });
-
-    if (mensajeJSON.length <= LIMITE_TAMANO_SEGURO_BYTES) {
-      logger.debug(`[Sync] Emitiendo ESTADO_INICIATIVA_DM (${mensajeJSON.length} bytes)`);
-      void ts.sync.send(mensajeJSON, "board");
-    } else {
-      logger.warn(`[Sync] Cola excede tamaño seguro (${mensajeJSON.length}b). Particionando en chunks...`);
-      const chunks = dividirEnChunksIniciativa(wire, LIMITE_TAMANO_SEGURO_BYTES);
-      chunks.forEach((chunk) => {
-        const chunkJSON = JSON.stringify({ v: 1, t: "DM_CHUNK", d: chunk });
-        void ts.sync.send(chunkJSON, "board");
-      });
-    }
+    const mensaje: EstadoSync = { v: 1, t: 'DM', d: wire };
+    void enviarPaquetes(empaquetarEstadoSync(mensaje));
   }, RETARDO_DEBOUNCE_GM_MS);
 }
 
@@ -109,6 +172,11 @@ export function emitirEstadoComoGM(): void {
  * Implementa debounce de 150ms.
  */
 export function emitirMiPersonaje(personajeId?: string): void {
+  const idPendiente = personajeId ?? usarAlmacenDM.getState().idPersonajeActivo;
+  if (idPendiente) {
+    gestorReintentos.cancelarEmisionPJ(idPendiente);
+    purgarEstado('PJ', idPendiente);
+  }
   if (timerDebouncePJ) {
     clearTimeout(timerDebouncePJ);
   }
@@ -127,17 +195,11 @@ export function emitirMiPersonaje(personajeId?: string): void {
     }
 
     const dto = proyectarEstadoCombatePJ(pjAEmitir);
-    dto.ts = Date.now();
+    dto.ts = nuevaRevision();
     const wire = serializarEstadoCombatePJ(dto, false);
-    const mensajeJSON = JSON.stringify({ v: 1, t: "PJ", d: wire });
-
-    logger.debug(`[Sync] Emitiendo ESTADO_PJ (${pjAEmitir.nombre}, ${mensajeJSON.length} bytes)`);
-    void ts.sync.send(mensajeJSON, "board");
-
-    // Registrar para confirmación ACK del DM con reintento si se pierde
-    gestorReintentos.registrarEmisionPJ(pjAEmitir.id, dto.ts, () => {
-      emitirMiPersonaje(pjAEmitir.id);
-    });
+    const mensaje: EstadoSync = { v: 1, t: 'PJ', d: wire };
+    const paquetes = empaquetarEstadoSync(mensaje);
+    gestorReintentos.registrarEmisionPJ(pjAEmitir.id, dto.ts, () => enviarPaquetes(paquetes));
   }, RETARDO_DEBOUNCE_PJ_MS);
 }
 
@@ -150,10 +212,7 @@ export function solicitarEstadoInicial(): void {
   if (estado.esGM) return;
 
   logger.info("[Sync] Iniciando solicitud de estado inicial con backoff...");
-  gestorReintentos.iniciarReintentosREQ(() => {
-    logger.info("[Sync] Enviando SOLICITUD_ESTADO al DM...");
-    void ts.sync.send(JSON.stringify({ v: 1, t: "REQ" }), "board");
-  });
+  gestorReintentos.iniciarReintentosREQ(enviarSolicitud);
 }
 
 /**
@@ -189,21 +248,27 @@ export function procesarMensajeSyncEntrante(evento: {
       break;
     }
 
-    case "DM": {
-      // Solo los jugadores aplican el estado del DM
-      if (!estado.esGM) {
-        gestorReintentos.cancelarReintentosREQ();
-        logger.info("[Sync] Aplicando ESTADO_INICIATIVA_DM recibido del DM...");
-        const datosIniciativa = deserializarIniciativaDM(mensaje.d);
-        estado.aplicarIniciativaDesdeSync(datosIniciativa);
+    case 'FRAG': {
+      if ((mensaje.k === 'DM') === estado.esGM) break;
+      const ultima = revisionesAplicadas.get(claveEstadoSync(mensaje.k, mensaje.id));
+      if (ultima !== undefined && mensaje.ts <= ultima) {
+        if (mensaje.k === 'PJ' && mensaje.ts === ultima && mensaje.chunk === 1) confirmarRecepcionPJ(mensaje.id, mensaje.ts);
+        break;
       }
+      const resultado = bufferFragmentos.registrar(mensaje);
+      if (resultado.tipo === 'completo') aplicarEstadoRecibido(resultado.mensaje);
+      else if (mensaje.k === 'DM' && resultado.tipo === 'progreso') gestorReintentos.pausarReintentosREQ(enviarSolicitud);
       break;
     }
+
+    case 'DM':
+    case 'PJ':
+      aplicarEstadoRecibido(mensaje);
+      break;
 
     case "DM_CHUNK": {
       // Reensamblado ordenado de ráfagas para jugadores
       if (!estado.esGM) {
-        gestorReintentos.cancelarReintentosREQ();
         const chunksCompletos = bufferChunks.registrarChunk(mensaje.d);
 
         if (chunksCompletos) {
@@ -216,30 +281,9 @@ export function procesarMensajeSyncEntrante(evento: {
             c: chunksCompletos.flatMap((ch) => ch.c),
             ts: primerChunk.ts,
           };
-          const datosIniciativa = deserializarIniciativaDM(wireCompleto);
-          estado.aplicarIniciativaDesdeSync(datosIniciativa);
+          const completo = EsquemaWireMensajeSync.safeParse({ v: 1, t: 'DM', d: wireCompleto });
+          if (completo.success && completo.data.t === 'DM') aplicarEstadoRecibido(completo.data);
         }
-      }
-      break;
-    }
-
-    case "PJ": {
-      // Solo el DM recibe y aplica actualizaciones de personajes de jugadores
-      if (estado.esGM) {
-        const dto = deserializarEstadoCombatePJ(mensaje.d);
-        estado.actualizarPersonajeDesdeSync(dto);
-
-        // Responder ACK inmediato al jugador para confirmar recepción
-        const mensajeACK = JSON.stringify({
-          v: 1,
-          t: "ACK",
-          id: dto.id,
-          ts: dto.ts || Date.now(),
-        });
-        void ts.sync.send(mensajeACK, "board");
-
-        // Redistribuir consolidado a toda la mesa
-        emitirEstadoComoGM();
       }
       break;
     }
@@ -247,8 +291,7 @@ export function procesarMensajeSyncEntrante(evento: {
     case "ACK": {
       // Solo los jugadores procesan confirmaciones de sus personajes
       if (!estado.esGM) {
-        gestorReintentos.confirmarACK(mensaje.id, mensaje.ts);
-        estado.confirmarACKPJ(mensaje.id, mensaje.ts);
+        if (gestorReintentos.confirmarACK(mensaje.id, mensaje.ts)) estado.confirmarACKPJ(mensaje.id, mensaje.ts);
       }
       break;
     }
@@ -330,9 +373,11 @@ export function calcularFirmaIniciativaDM(
  * Monitorea cambios locales para emitir sincronizaciones según el rol activo.
  */
 export function inicializarObservadoresStoreSync(): () => void {
+  reiniciarSincronizacion();
   logger.info("[Sync] Inicializando observadores reactivos del store de combate...");
 
   const estadoInicial = usarAlmacenDM.getState();
+  let eraGM = estadoInicial.esGM;
   let prevFirmaDM = calcularFirmaIniciativaDM(
     estadoInicial.colaIniciativa,
     estadoInicial.indiceTurnoActivo,
@@ -347,6 +392,10 @@ export function inicializarObservadoresStoreSync(): () => void {
   });
 
   const unsub = usarAlmacenDM.subscribe((estadoActual) => {
+    if (estadoActual.esGM !== eraGM) {
+      eraGM = estadoActual.esGM;
+      reiniciarSincronizacion();
+    }
     if (estadoActual.aplicandoSync) {
       estadoActual.personajes.forEach((pj) => {
         prevFirmasPJs.set(pj.id, calcularFirmaPJ(pj, estadoActual.colaIniciativa));
@@ -394,9 +443,6 @@ export function inicializarObservadoresStoreSync(): () => void {
 
   return () => {
     unsub();
-    if (timerDebounceGM) clearTimeout(timerDebounceGM);
-    if (timerDebouncePJ) clearTimeout(timerDebouncePJ);
-    bufferChunks.limpiar();
-    gestorReintentos.destruir();
+    reiniciarSincronizacion();
   };
 }

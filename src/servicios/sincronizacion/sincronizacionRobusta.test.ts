@@ -349,8 +349,8 @@ describe("Sincronización Robusta - Validación de Mecanismos Anti-Regresión y 
       // Avanzamos tiempo del timer de reintento (2.000 ms)
       vi.advanceTimersByTime(2500);
 
-      // Al haber recibido ACK, no debe reintentar
-      expect(fnReintento).not.toHaveBeenCalled();
+      // Se envió una vez al registrar; el ACK impide cualquier reintento posterior.
+      expect(fnReintento).toHaveBeenCalledTimes(1);
     });
   });
 

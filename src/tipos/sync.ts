@@ -298,6 +298,16 @@ const EsquemaWireChunkIniciativa = z.object({
 export const EsquemaWireMensajeSync = z.discriminatedUnion("t", [
   z.object({
     v: z.literal(1),
+    t: z.literal("FRAG"),
+    k: z.enum(["DM", "PJ"]),
+    id: z.string().min(1),
+    ts: z.number().int().positive().safe(),
+    chunk: z.number().int().min(1).max(4096),
+    total: z.number().int().min(2).max(4096),
+    d: z.string().min(1).max(380),
+  }),
+  z.object({
+    v: z.literal(1),
     t: z.literal("PJ"),
     d: EsquemaWireEstadoCombatePJ,
   }),

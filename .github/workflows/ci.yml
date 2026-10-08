@@ -50,6 +50,9 @@ jobs:
       - name: Ejecución de Pruebas Automatizadas (Vitest)
         run: pnpm run test
 
+      - name: Simulación de sincronización de 6 PJ y 20 monstruos
+        run: pnpm run test:sync-simulacion
+
       - name: Auditoría de Tamaño de Archivos y Prevención de Monolitos
         run: pnpm run verificar:lineas
 

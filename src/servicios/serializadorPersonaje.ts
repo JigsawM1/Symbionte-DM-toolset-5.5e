@@ -32,17 +32,12 @@ export function deshidratarSelector(selector: SelectorRasgo): SelectorRasgo {
  * Los rasgos canónicos se aligeran a su estado mutable, mientras que los Homebrew se conservan enteros.
  */
 export function deshidratarRasgo(rasgo: RasgoPersonaje): RasgoPersonaje {
+  // Las opciones personalizadas no tienen un catálogo desde el que reconstruirse.
+  if (!esRasgoCanonico(rasgo)) return { ...rasgo };
+
   const selectoresDeshidratados = Array.isArray(rasgo.selectores)
     ? rasgo.selectores.map(deshidratarSelector)
     : [];
-
-  // Si es un rasgo personalizado o creado a mano por el usuario, se preserva íntegro
-  if (!esRasgoCanonico(rasgo)) {
-    return {
-      ...rasgo,
-      selectores: selectoresDeshidratados
-    };
-  }
 
   // Rasgo canónico: persistir únicamente su estado mutable e identificadores clave
   return {
@@ -71,6 +66,7 @@ export function deshidratarRasgo(rasgo: RasgoPersonaje): RasgoPersonaje {
     conjurosOtorgados: rasgo.conjurosOtorgados,
     categoriaMecanica: rasgo.categoriaMecanica,
     selectores: selectoresDeshidratados,
+    dadosGuardados: rasgo.dadosGuardados ? [...rasgo.dadosGuardados] : undefined,
     efectos: [], // Se reconstituyen al sincronizar con el catálogo
     notas: rasgo.notas || ""
   };

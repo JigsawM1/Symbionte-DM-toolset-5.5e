@@ -1,3 +1,4 @@
+import { obtenerConjuroDeEfecto } from "./conjuroDeEfecto";
 import {
   type PersonajeJugador,
   type RasgoPersonaje
@@ -55,7 +56,7 @@ export function obtenerConjurosOtorgadosPorRasgos(personaje: PersonajeJugador): 
               if (Array.isArray(opcion.efectos)) {
                 for (const efOp of opcion.efectos) {
                   if (efOp.tipo === "conjuro_otorgado" || efOp.tipo === "conjuro_gratuito") {
-                    const cNom = String(efOp.objetivo || efOp.valor).trim();
+                    const cNom = obtenerConjuroDeEfecto(efOp);
                     if (cNom) conjuros.add(cNom);
                   }
                 }
@@ -69,7 +70,7 @@ export function obtenerConjurosOtorgadosPorRasgos(personaje: PersonajeJugador): 
     if (Array.isArray(r.efectos)) {
       for (const ef of r.efectos) {
         if (ef.tipo === "conjuro_otorgado" || ef.tipo === "conjuro_gratuito") {
-          const cNom = String(ef.valor || ef.objetivo).trim();
+          const cNom = obtenerConjuroDeEfecto(ef);
           if (cNom) conjuros.add(cNom);
         }
       }
@@ -158,7 +159,7 @@ export function obtenerNombresConjurosGratuitosActivos(personaje: PersonajeJugad
               if (Array.isArray(opcion.efectos)) {
                 for (const efOp of opcion.efectos) {
                   if (efOp.tipo === "conjuro_gratuito" && (efOp.objetivo || efOp.valor)) {
-                    const cNom = String(efOp.objetivo || efOp.valor).trim();
+                    const cNom = obtenerConjuroDeEfecto(efOp);
                     if (cNom && cNom !== "sin_espacio" && cNom !== "gratuito" && cNom !== "propio") {
                       nombres.add(cNom);
                     }
@@ -175,13 +176,8 @@ export function obtenerNombresConjurosGratuitosActivos(personaje: PersonajeJugad
     if (Array.isArray(r.efectos)) {
       for (const ef of r.efectos) {
         if (ef.tipo === "conjuro_gratuito") {
-          const valObj = String(ef.objetivo || "").trim();
-          const valVal = String(ef.valor || "").trim();
-          if (valObj && valObj !== "propio" && valObj !== "sin_espacio" && valObj !== "gratuito") {
-            nombres.add(valObj);
-          } else if (valVal && valVal !== "propio" && valVal !== "sin_espacio" && valVal !== "gratuito") {
-            nombres.add(valVal);
-          }
+          const conjuro = obtenerConjuroDeEfecto(ef);
+          if (conjuro) nombres.add(conjuro);
         }
       }
     }

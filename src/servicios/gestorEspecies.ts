@@ -16,7 +16,7 @@ import {
   DICCIONARIO_ESPECIES_POR_NOMBRE
 } from "@/constantes/especiesDND55";
 import { calcularBonoHPMaximoRasgos } from "./evaluadorEfectosRasgos";
-import { resolverEscaladosRasgo } from "./gestorClases";
+import { resolverEscaladosRasgo } from "./clases/escaladosRasgos";
 import { obtenerOpcionesDinamicas } from "./hidratadorDotes";
 import { DOTES_ORIGEN_DND55 } from "@/constantes/dotesConstantes";
 

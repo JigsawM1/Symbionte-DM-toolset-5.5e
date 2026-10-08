@@ -3,16 +3,9 @@ import {
   RASGOS_POR_ESPECIE,
   DOTES_CANONICAS_DND55
 } from "@/constantes/rasgosDND55";
-import {
-  obtenerRasgosClaseYSubclase,
-  esRasgoPlaceholderSubclase,
-  esRasgoMejoraCaracteristica,
-  esRasgoDonEpico,
-  esRasgoEstiloCombate,
-  construirDoteDeMejoraCaracteristica,
-  construirDoteDeDonEpico,
-  construirDoteDeEstiloCombate
-} from "@/servicios/gestorClases";
+import { obtenerRasgosClaseYSubclase } from "./clases/constructorRasgosClase";
+import { esRasgoPlaceholderSubclase } from "./clases/catalogoClases";
+import { esRasgoMejoraCaracteristica, esRasgoDonEpico, esRasgoEstiloCombate, construirDoteDeMejoraCaracteristica, construirDoteDeDonEpico, construirDoteDeEstiloCombate } from "./clases/dotesClase";
 
 import {
   obtenerEspeciePorNombre,
@@ -23,6 +16,7 @@ import {
 } from "@/servicios/gestorEspecies";
 import { esRasgoHabilitadoPorOpcion } from "@/servicios/rasgos/utilidadesRasgos";
 import { migrarMetadatosRasgos } from "./migradorRasgosHeredados";
+import { fusionarEstadoRasgo } from "./rasgos/fusionarEstadoRasgo";
 
 /**
  * Normaliza nombres para comparación tolerante e insensible a mayúsculas/acentos
@@ -224,34 +218,7 @@ export function sincronizarRasgosAutomaticos(personaje: PersonajeJugador): Rasgo
       };
     }
 
-    const existente = mapaExistentes.get(nuevo.id);
-    if (existente) {
-      const selectoresSincronizados = nuevo.selectores?.map((sNuevo) => {
-        const sExistente = existente.selectores?.find((s) => s.id === sNuevo.id);
-        return {
-          ...sNuevo,
-          valorActual: sExistente?.valorActual && sExistente.valorActual.length > 0 ? sExistente.valorActual : sNuevo.valorActual ?? []
-        };
-      }) ?? existente.selectores;
-
-      nuevo = {
-        ...nuevo,
-        selectores: selectoresSincronizados,
-        condicionAlActivar: nuevo.condicionAlActivar ?? existente.condicionAlActivar,
-        restaurarUsosAlActivar: nuevo.restaurarUsosAlActivar ?? existente.restaurarUsosAlActivar,
-        usosRestantes:
-          typeof existente.usosRestantes === "number" && nuevo.usosMaximos
-            ? Math.min(existente.usosRestantes, nuevo.usosMaximos)
-            : nuevo.usosRestantes,
-        activo: existente.activo !== undefined ? existente.activo : (nuevo.esActivable ? false : true),
-        notas: existente.notas || nuevo.notas
-      };
-    } else {
-      nuevo = {
-        ...nuevo,
-        activo: nuevo.esActivable ? false : (nuevo.activo ?? true)
-      };
-    }
+    nuevo = fusionarEstadoRasgo(nuevo, mapaExistentes.get(nuevo.id));
 
     // Si es un rasgo de Mejora de Característica o Don Épico, generar/sincronizar la dote asociada en el bloque de dotes
     if (esRasgoMejoraCaracteristica(nuevo.nombre)) {
@@ -259,78 +226,28 @@ export function sincronizarRasgosAutomaticos(personaje: PersonajeJugador): Rasgo
       const idDoteSeleccionada = selectorDote?.valorActual?.[0] || "dote_mejora_caracteristica";
       let doteConstruida = construirDoteDeMejoraCaracteristica(nuevo, idDoteSeleccionada);
 
-      const doteExistente = mapaExistentes.get(doteConstruida.id);
-      if (doteExistente) {
-        doteConstruida = {
-          ...doteConstruida,
-          usosRestantes:
-            typeof doteExistente.usosRestantes === "number" && doteConstruida.usosMaximos
-              ? Math.min(doteExistente.usosRestantes, doteConstruida.usosMaximos)
-              : doteConstruida.usosRestantes,
-          activo: doteExistente.activo !== undefined ? doteExistente.activo : true,
-          notas: doteExistente.notas || doteConstruida.notas
-        };
-      }
+      doteConstruida = fusionarEstadoRasgo(doteConstruida, mapaExistentes.get(doteConstruida.id));
       dotesAsiGeneradas.push(doteConstruida);
     } else if (esRasgoDonEpico(nuevo.nombre)) {
       const selectorDote = nuevo.selectores?.find((s) => s.id.includes("dote_don_epico") || s.id.includes("don_epico"));
       const idDoteSeleccionada = selectorDote?.valorActual?.[0];
       let doteConstruida = construirDoteDeDonEpico(nuevo, idDoteSeleccionada);
 
-      const doteExistente = mapaExistentes.get(doteConstruida.id);
-      if (doteExistente) {
-        doteConstruida = {
-          ...doteConstruida,
-          usosRestantes:
-            typeof doteExistente.usosRestantes === "number" && doteConstruida.usosMaximos
-              ? Math.min(doteExistente.usosRestantes, doteConstruida.usosMaximos)
-              : doteConstruida.usosRestantes,
-          activo: doteExistente.activo !== undefined ? doteExistente.activo : true,
-          notas: doteExistente.notas || doteConstruida.notas
-        };
-      }
+      doteConstruida = fusionarEstadoRasgo(doteConstruida, mapaExistentes.get(doteConstruida.id));
       dotesAsiGeneradas.push(doteConstruida);
     } else if (nuevo.origen === "especie" && esRasgoVersatil(nuevo.nombre, nuevo.origen)) {
       const selectorDote = nuevo.selectores?.find((s) => s.id.includes("dote_origen") || s.id.includes("versatil"));
       const idDoteSeleccionada = selectorDote?.valorActual?.[0] || "dote_alerta";
       let doteConstruida = construirDoteDeVersatil(nuevo, idDoteSeleccionada);
 
-      const doteExistente = mapaExistentes.get(doteConstruida.id);
-      if (doteExistente) {
-        doteConstruida = {
-          ...doteConstruida,
-          usosRestantes:
-            typeof doteExistente.usosRestantes === "number" && doteConstruida.usosMaximos
-              ? Math.min(doteExistente.usosRestantes, doteConstruida.usosMaximos)
-              : doteConstruida.usosRestantes,
-          activo: doteExistente.activo !== undefined ? doteExistente.activo : true,
-          notas: doteExistente.notas || doteConstruida.notas
-        };
-      }
+      doteConstruida = fusionarEstadoRasgo(doteConstruida, mapaExistentes.get(doteConstruida.id));
       dotesAsiGeneradas.push(doteConstruida);
     } else if (esRasgoEstiloCombate(nuevo.nombre)) {
       const selectorDote = nuevo.selectores?.find((s) => s.id.includes("dote_estilo") || s.id.includes("estilo_combate"));
       const idDoteSeleccionada = selectorDote?.valorActual?.[0] || "dote_estilo_defensa";
       let doteConstruida = construirDoteDeEstiloCombate(nuevo, idDoteSeleccionada);
 
-      const doteExistente = mapaExistentes.get(doteConstruida.id);
-      if (doteExistente) {
-        doteConstruida = {
-          ...doteConstruida,
-          usosRestantes:
-            typeof doteExistente.usosRestantes === "number" && doteConstruida.usosMaximos
-              ? Math.min(doteExistente.usosRestantes, doteConstruida.usosMaximos)
-              : doteConstruida.usosRestantes,
-          activo: doteExistente.activo !== undefined ? doteExistente.activo : true,
-          notas: doteExistente.notas || doteConstruida.notas,
-          selectores: doteConstruida.selectores?.map((sel) => {
-            const selExistente = doteExistente.selectores?.find((s) => s.id === sel.id);
-            return selExistente && selExistente.valorActual?.length
-              ? { ...sel, valorActual: selExistente.valorActual }
-              : sel;
-          })
-        };
-      }
+      doteConstruida = fusionarEstadoRasgo(doteConstruida, mapaExistentes.get(doteConstruida.id));
       dotesAsiGeneradas.push(doteConstruida);
     }
 

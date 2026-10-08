@@ -12,7 +12,6 @@ const LIMITE_ADVERTENCIA_LINEAS = 300; // Sugerencia de refactorización
 
 // Archivos heredados pendientes de modularización en fases posteriores de mantenimiento
 const ARCHIVOS_HEREDADOS_PENDIENTES = new Set([
-  "src/componentes/caracteristicas/rasgos/ConstructorRasgoDote.tsx", // Creador masivo heredado pendiente de refactorización
   "src/componentes/caracteristicas/rasgos/SelectorInvocacionesAcordeon.tsx", // Selector masivo de invocaciones de brujo heredado
   "src/componentes/caracteristicas/inventario/ModalAgregarObjeto.tsx", // Modal heredado de gestión de inventario
   "src/componentes/caracteristicas/personajes/ModalEditarPersonaje.tsx", // Modal heredado de edición general
@@ -27,7 +26,9 @@ const DIRECTORIOS_AUDITADOS = [
   path.join(raizProyecto, "src", "componentes", "caracteristicas", "personajes"),
   path.join(raizProyecto, "src", "componentes", "caracteristicas", "inventario"),
   path.join(raizProyecto, "src", "componentes", "caracteristicas", "ataques"),
-  path.join(raizProyecto, "src", "componentes", "caracteristicas", "rasgos")
+  path.join(raizProyecto, "src", "componentes", "caracteristicas", "rasgos"),
+  path.join(raizProyecto, "src", "servicios", "clases"),
+  path.join(raizProyecto, "src", "almacen", "slices", "personajes")
 ];
 
 function obtenerArchivosRecursivos(directorio) {

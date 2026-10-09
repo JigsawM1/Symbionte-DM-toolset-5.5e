@@ -1,16 +1,4 @@
-/**
- * @module gestorReintentosSync
- * Gestor de reintentos con backoff y control de confirmaciones (ACK) para sincronización vía TS.sync.
- * Garantiza resiliencia en el handshake inicial y confirmación de recepción en el combate.
- */
-
-import { logger } from "@/utiles/logger";
-
-interface EstadoReintentoREQ {
-  intentoActual: number;
-  timer: ReturnType<typeof setTimeout> | null;
-  activo: boolean;
-}
+import { logger } from '@/utiles/logger';
 
 interface EstadoPendienteACK {
   pjId: string;
@@ -18,141 +6,104 @@ interface EstadoPendienteACK {
   intentos: number;
   timer: ReturnType<typeof setTimeout> | null;
 }
-
 const INTERVALOS_BACKOFF_REQ_MS = [1500, 3000, 5000];
 const MAX_REINTENTOS_ACK = 2;
 const TIMEOUT_ESPERA_ACK_MS = 2000;
+type EnviarEmision = () => void | Promise<boolean>;
 
 export class GestorReintentosSync {
-  private estadoReq: EstadoReintentoREQ = {
-    intentoActual: 0,
-    timer: null,
-    activo: false,
-  };
-
+  private req = { intentos: 0, activo: false, agotado: false,
+    timer: null as ReturnType<typeof setTimeout> | null, enviar: null as (() => void) | null };
   private pendientesACK = new Map<string, EstadoPendienteACK>();
 
-  // ==========================================
-  // --- REINTENTOS PARA REQ (Handshake inicial) ---
-  // ==========================================
-
-  /**
-   * Inicia el ciclo de solicitud de estado inicial con backoff.
-   * Si ya hay un ciclo en marcha, no duplica temporizadores.
-   */
-  public iniciarReintentosREQ(enviarPeticion: () => void): void {
-    if (this.estadoReq.activo) return;
-
-    this.estadoReq.activo = true;
-    this.estadoReq.intentoActual = 0;
-    enviarPeticion();
-
-    this.programarSiguienteIntentoREQ(enviarPeticion);
+  iniciarReintentosREQ(enviar: () => void): void {
+    if (this.req.activo) return;
+    this.cancelarReintentosREQ();
+    this.req.activo = true;
+    this.req.enviar = enviar;
+    enviar();
+    this.programarREQ();
   }
 
-  private programarSiguienteIntentoREQ(enviarPeticion: () => void): void {
-    if (!this.estadoReq.activo) return;
+  /** Solo el progreso nuevo pausa la solicitud, sin consumir ni reiniciar su presupuesto. */
+  pausarReintentosREQ(enviar: () => void): void {
+    if (this.req.agotado) return;
+    this.req.activo = true;
+    this.req.enviar = enviar;
+    if (this.req.timer) clearTimeout(this.req.timer);
+    this.req.timer = null;
+  }
 
-    if (this.estadoReq.intentoActual >= INTERVALOS_BACKOFF_REQ_MS.length) {
-      logger.info("[GestorReintentosSync] Límite de reintentos REQ alcanzado sin respuesta del DM.");
-      this.cancelarReintentosREQ();
+  continuarReintentosREQ(): void {
+    if (!this.req.timer) this.programarREQ();
+  }
+
+  private programarREQ(): void {
+    if (!this.req.activo || !this.req.enviar) return;
+    if (this.req.intentos >= INTERVALOS_BACKOFF_REQ_MS.length) {
+      this.req.activo = false;
+      this.req.agotado = true;
+      logger.warn('[Sync] Agotadas las solicitudes de recuperación de iniciativa.');
       return;
     }
-
-    const esperaMs = INTERVALOS_BACKOFF_REQ_MS[this.estadoReq.intentoActual];
-    this.estadoReq.intentoActual += 1;
-
-    this.estadoReq.timer = setTimeout(() => {
-      if (!this.estadoReq.activo) return;
-      logger.info(
-        `[GestorReintentosSync] Reintentando solicitud inicial REQ (intento ${this.estadoReq.intentoActual}/${INTERVALOS_BACKOFF_REQ_MS.length})...`
-      );
-      enviarPeticion();
-      this.programarSiguienteIntentoREQ(enviarPeticion);
-    }, esperaMs);
+    this.req.timer = setTimeout(() => {
+      this.req.timer = null;
+      if (!this.req.activo) return;
+      this.req.intentos++;
+      this.req.enviar?.();
+      this.programarREQ();
+    }, INTERVALOS_BACKOFF_REQ_MS[this.req.intentos]);
   }
 
-  /**
-   * Cancela inmediatamente cualquier ciclo de reintento REQ activo.
-   * Se invoca al recibir un snapshot DM (DM o DM_CHUNK) o al pasar a rol GM.
-   */
-  public cancelarReintentosREQ(): void {
-    this.estadoReq.activo = false;
-    this.estadoReq.intentoActual = 0;
-    if (this.estadoReq.timer) {
-      clearTimeout(this.estadoReq.timer);
-      this.estadoReq.timer = null;
-    }
+  cancelarReintentosREQ(): void {
+    if (this.req.timer) clearTimeout(this.req.timer);
+    this.req = { intentos: 0, activo: false, agotado: false, timer: null, enviar: null };
   }
 
-  // ==========================================
-  // --- CONFIRMACIÓN ACK (Jugador -> DM -> Jugador) ---
-  // ==========================================
-
-  /**
-   * Registra una emisión PJ en espera de confirmación ACK por parte del DM.
-   */
-  public registrarEmisionPJ(pjId: string, ts: number, reemitirFn: () => void): void {
-    // Si ya había un registro previo de este PJ, cancelamos su timer anterior
-    const previo = this.pendientesACK.get(pjId);
-    if (previo?.timer) {
-      clearTimeout(previo.timer);
-    }
-
-    const entrada: EstadoPendienteACK = {
-      pjId,
-      ts,
-      intentos: 0,
-      timer: null,
-    };
-
-    this.programarEsperaACK(entrada, reemitirFn);
+  /** Registra antes del primer envío; todos los intentos reutilizan la misma emisión. */
+  registrarEmisionPJ(pjId: string, ts: number, enviar: EnviarEmision): void {
+    this.cancelarEmisionPJ(pjId);
+    const entrada: EstadoPendienteACK = { pjId, ts, intentos: 0, timer: null };
     this.pendientesACK.set(pjId, entrada);
+    void this.enviarPendiente(entrada, enviar);
   }
 
-  private programarEsperaACK(entrada: EstadoPendienteACK, reemitirFn: () => void): void {
+  private async enviarPendiente(entrada: EstadoPendienteACK, enviar: EnviarEmision): Promise<void> {
+    try {
+      const exito = await enviar();
+      if (exito === false) logger.warn(`[Sync] Falló el envío de PJ ${entrada.pjId}; se mantiene el presupuesto de reintentos.`);
+    } catch (error) {
+      logger.warn('[Sync] Error enviando la emisión pendiente:', error);
+    }
+    // Un ACK o una edición nueva pueden llegar mientras se vacía la cola nativa.
+    if (this.pendientesACK.get(entrada.pjId) !== entrada) return;
     entrada.timer = setTimeout(() => {
-      const actual = this.pendientesACK.get(entrada.pjId);
-      if (!actual || actual.ts !== entrada.ts) return;
-
-      if (actual.intentos < MAX_REINTENTOS_ACK) {
-        actual.intentos += 1;
-        logger.warn(
-          `[GestorReintentosSync] No se recibió ACK para PJ ${entrada.pjId} (ts=${entrada.ts}). Reemitiendo (${actual.intentos}/${MAX_REINTENTOS_ACK})...`
-        );
-        reemitirFn();
-        this.programarEsperaACK(actual, reemitirFn);
-      } else {
-        logger.warn(`[GestorReintentosSync] Agotados reintentos ACK para PJ ${entrada.pjId}.`);
+      if (this.pendientesACK.get(entrada.pjId) !== entrada) return;
+      if (entrada.intentos >= MAX_REINTENTOS_ACK) {
         this.pendientesACK.delete(entrada.pjId);
+        logger.warn(`[Sync] Agotados reintentos ACK para PJ ${entrada.pjId}.`);
+        return;
       }
+      entrada.intentos++;
+      void this.enviarPendiente(entrada, enviar);
     }, TIMEOUT_ESPERA_ACK_MS);
   }
 
-  /**
-   * Procesa un mensaje ACK recibido del DM confirmando la recepción del PJ.
-   */
-  public confirmarACK(pjId: string, ts: number): boolean {
-    const pendiente = this.pendientesACK.get(pjId);
-    if (pendiente) {
-      if (ts >= pendiente.ts) {
-        if (pendiente.timer) clearTimeout(pendiente.timer);
-        this.pendientesACK.delete(pjId);
-        logger.debug(`[GestorReintentosSync] ACK confirmado para PJ ${pjId} (ts=${ts})`);
-        return true;
-      }
-    }
-    return false;
+  cancelarEmisionPJ(pjId: string): void {
+    const entrada = this.pendientesACK.get(pjId);
+    if (entrada?.timer) clearTimeout(entrada.timer);
+    this.pendientesACK.delete(pjId);
   }
 
-  /**
-   * Limpia todos los temporizadores activos.
-   */
-  public destruir(): void {
+  confirmarACK(pjId: string, ts: number): boolean {
+    const entrada = this.pendientesACK.get(pjId);
+    if (!entrada || entrada.ts !== ts) return false;
+    this.cancelarEmisionPJ(pjId);
+    return true;
+  }
+
+  destruir(): void {
     this.cancelarReintentosREQ();
-    for (const [, p] of this.pendientesACK) {
-      if (p.timer) clearTimeout(p.timer);
-    }
-    this.pendientesACK.clear();
+    for (const id of this.pendientesACK.keys()) this.cancelarEmisionPJ(id);
   }
 }

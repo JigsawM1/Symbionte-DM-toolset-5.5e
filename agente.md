@@ -13020,3 +13020,22 @@ Optimizar la complejidad temporal (Big O) en las operaciones de búsqueda, orden
 - **Vitest**: **109 suites ejecutadas, 1.638/1.638 pruebas unitarias aprobadas (100% éxito)**.
 - **Límite de Líneas**: `pnpm run verificar:lineas` validó **117 archivos**, **0 componentes excediendo el límite de 500 líneas**.
 - **Vite Build**: `pnpm exec vite build` completado con éxito en 14.92s.
+
+## [2026-10-08] Recuperación y transporte de sincronización DM/PJ
+
+- Fallas reproducidas en simulación: pérdida de un fragmento inicial dejaba la iniciativa vacía; una transmisión antigua revertía el estado; ocho efectos y concentración podían superar el límite nativo; los reintentos PJ reiniciaban su presupuesto al emitir de nuevo.
+- Corrección: fragmentación del JSON completo para DM y PJ, incluyendo criaturas individuales grandes. Cada paquete serializado tiene como objetivo máximo 380 unidades UTF-16; el adaptador mantiene el límite nativo de 500 unidades de TS.sync.send. FRAG es un sobre de la aplicación enviado por la API existente, no un método nativo.
+- El receptor aplica únicamente estados completos validados, conserva la última revisión aplicada y recupera transmisiones incompletas con REQ. Solo fragmentos nuevos prolongan el progreso; los duplicados no lo hacen.
+- Una emisión PJ conserva revisión y contenido durante un máximo de dos reintentos. El plazo de ACK empieza al terminar el envío de todos los fragmentos; una edición nueva cancela la emisión anterior y solo el ACK de la revisión pendiente la confirma.
+- La limpieza de observadores y los cambios de rol cancelan temporizadores, fragmentos y colas pendientes. BroadcastChannel no convierte un fallo del transporte nativo en éxito.
+- Validación ejecutada: pnpm run ci, código de salida 0; TypeScript, ESLint, 1701 pruebas unitarias, 9 escenarios de simulación, auditoría de líneas, prueba del constructor de rasgos en navegador y compilación de producción correctos. Tipado adicional de la simulación con pnpm exec tsc --noEmit -p scratch/tsconfig-simulacion.json correcto.
+- Simulación: siete instancias aisladas (un DM y seis jugadores), 20 monstruos, 10 rondas y 260 turnos; máximo observado de 376 unidades UTF-16 por paquete. Se prueban latencia, duplicados, reordenación, pérdidas, rateLimited, reconexión, efectos y ACK ausentes. Pruebas específicas confirman aceptación de 500 y rechazo de 501 unidades UTF-16 antes de llamar a la API nativa.
+- Alcance: red artificial sobre motor, stores y adaptadores reales; no certifica el transporte real entre equipos TaleSpire. El protocolo nuevo requiere actualizar DM y jugadores juntos. Los cambios se compilaron localmente; no se desplegaron a TaleSpire.
+- Reproducción: pnpm run test:sync-simulacion. Informe generado en scratch/informe-simulacion-sync.md; escenarios incluidos en CI.
+
+## [2026-10-08] Autorrevisión del transporte de sincronización
+
+- Reproducciones fallidas confirmadas antes de corregir: un estado directo antiguo borraba los fragmentos de una revisión posterior en curso; un mensaje heredado sin revisión revertía una revisión ya aplicada.
+- El receptor consulta la revisión en curso antes de aplicar estados completos y rechaza mensajes sin revisión si ya existe una revisión aplicada o en tránsito. Conserva los fragmentos y la recuperación REQ; se verifica tanto DM como PJ.
+- Cuatro regresiones nuevas. Validación local ejecutada: 73 pruebas de sincronización y pnpm run ci con salida 0, 1705 pruebas unitarias, 9 escenarios, TypeScript, ESLint, auditoría de líneas, prueba de interfaz y compilación correctos.
+- Observación previa ajena al sync: scripts/probar-constructor-rasgos.mjs está referenciado por CI, existe localmente, pero está ignorado y no versionado. La validación local no certifica GitHub Actions ni un checkout limpio. Informe: scratch/autorrevision-sync.md.

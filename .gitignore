@@ -49,4 +49,6 @@ respaldo.yaml
 .agents/hooks.json
 .cursor/hooks.json
 /docs
-/scripts
+/scripts/*
+!/scripts/simulacion-sync-6pj-20monstruos.ts
+!/scripts/vitest.simulacion.config.ts

@@ -881,7 +881,8 @@ class TaleSpireAdapter {
       const canal = this.getBroadcastChannelSync();
       if (canal) {
         canal.postMessage({ str: message, target });
-        enviado = true;
+        // El canal local no confirma recepción por la red nativa de TaleSpire.
+        if (!ts?.sync || typeof ts.sync.send !== 'function') enviado = true;
       }
     } catch (e) {
       logger.debug("[TS Adapter] Fallback BroadcastChannel no disponible:", e);

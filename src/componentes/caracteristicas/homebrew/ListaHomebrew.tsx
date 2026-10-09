@@ -30,7 +30,7 @@ import { lanzarDadosTaleSpire, sanitizarEtiqueta } from "@/utiles/lanzadorDados"
 import { construirFormulaAtaqueRapido } from "@/utiles/procesadorAtaques";
 import { aplicarBonoNumericoAFormulaDados } from "@/utiles/utilesConjuros";
 import { formatearSubtituloCriatura } from "@/almacen/sanitizacion";
-
+  
 function parsearCR(desafioRaw: string | number | undefined): number {
   if (desafioRaw === undefined || desafioRaw === null || desafioRaw === "") return -1;
   const str = String(desafioRaw).trim();
@@ -298,7 +298,7 @@ export const ListaHomebrew: React.FC<Props> = ({
                   >
                     <span className={estilos.itemNombre}>{m.nombre}</span>
                     <span className={estilos.itemSub}>
-                      {formatearSubtituloCriatura(m.tipo, m.tamaño, m.alineacion)} | CA: <span className="dato-numerico">{m.ca}</span> | HP:{" "}
+                      CA: <span className="dato-numerico">{m.ca}</span> | HP:{" "}
                       <span className="dato-numerico">{m.vidaMaxima}</span> | CR: {m.desafio || "—"}
                     </span>
                   </div>
@@ -512,7 +512,7 @@ export const ListaHomebrew: React.FC<Props> = ({
             <div className={estilos.cabeceraDetalle}>
               <div className={estilos.cabeceraDetalleIzquierda}>
                 <span className={estilos.objetoNivelOverlay}>
-                  CR {m.desafio || "—"}
+                  {formatearSubtituloCriatura(m.tipo, m.tamaño, m.alineacion)} | CA {m.ca} | HP {m.vidaMaxima} | CR {m.desafio || "—"}
                 </span>
                 <span className={estilos.nombreHechizoOverlay}>{m.nombre}</span>
               </div>

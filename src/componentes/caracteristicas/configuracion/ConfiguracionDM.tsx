@@ -1,21 +1,23 @@
-import React, { useState, useRef } from "react";
+import React, { useState } from "react";
 import {
   usarEstadoHomebrew,
-  usarAccionesHomebrew,
   usarEstadoConfiguracion,
   usarAccionesConfiguracion,
 } from "@/almacen/selectores";
-import { Upload, Download, Trash2, ShieldAlert, CheckCircle, Heart, Copy, X, Eye, Settings, Sparkles, UserCheck } from "lucide-react";
+import { Download, Trash2, ShieldAlert, CheckCircle, Heart, Copy, X, Eye, Settings, Sparkles, UserCheck, Database } from "lucide-react";
 import { IDS_INICIALES_MONSTRUOS, IDS_INICIALES_HECHIZOS, IDS_INICIALES_OBJETOS } from "@/utiles/datosIniciales";
 import { usarAlmacenDM } from "@/almacen/usarAlmacenDM";
-import { logger } from '@/utiles/logger';
+import { logger } from "@/utiles/logger";
 import { copiarAlPortapapeles, descargarArchivoJSON } from "@/servicios/sistemaTaleSpire";
 import { deshidratarPersonaje } from "@/servicios/serializadorPersonaje";
+import { PanelAccesibilidad } from "./accesibilidad";
+import { ImportadorCompendios } from "./ImportadorCompendios";
 import estilosClases from "./ConfiguracionDM.module.css";
+
+type SubpestanaConfig = "general" | "accesibilidad" | "datos";
 
 export const ConfiguracionDM: React.FC = () => {
   const { baseDatosMonstruos, baseDatosHechizos, objetosHomebrew } = usarEstadoHomebrew();
-  const { importarBaseDatosJSONCompleta } = usarAccionesHomebrew();
   const { metodoVidaMonstruo, mostrarPorcentajeVidaAJugadores, sistemaMagia, esGM } = usarEstadoConfiguracion();
   const {
     restablecerDatosDeFabrica,
@@ -25,76 +27,15 @@ export const ConfiguracionDM: React.FC = () => {
     establecerEsGM,
   } = usarAccionesConfiguracion();
 
-  const [estadoImportacion, setEstadoImportacion] = useState<"inactivo" | "exito" | "error">("inactivo");
-  const [mensajeError, setMensajeError] = useState("");
+  const [subpestanaActiva, setSubpestanaActiva] = useState<SubpestanaConfig>("general");
   const [confirmarReset, setConfirmarReset] = useState(false);
   const [modalExport, setModalExport] = useState<string | null>(null);
   const [copiado, setCopiado] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
 
   const monstruosHomebrew = baseDatosMonstruos.filter((m) => !IDS_INICIALES_MONSTRUOS.has(m.id));
   const hechizosHomebrew = baseDatosHechizos.filter((h) => !IDS_INICIALES_HECHIZOS.has(h.id));
   const objetosHomebrewSolo = objetosHomebrew.filter((o) => !IDS_INICIALES_OBJETOS.has(o.id));
   const objetosHomebrewCont = objetosHomebrewSolo.length;
-
-  const [arrastrando, setArrastrando] = useState(false);
-
-  const alArrastrarSobre = (e: React.DragEvent) => {
-    e.preventDefault();
-    setArrastrando(true);
-  };
-
-  const alArrastrarSalir = () => {
-    setArrastrando(false);
-  };
-
-  const procesarArchivoJSON = (archivo: File) => {
-    if (archivo.type !== "application/json" && !archivo.name.endsWith(".json")) {
-      setEstadoImportacion("error");
-      setMensajeError("El archivo debe ser un archivo JSON (.json) válido.");
-      return;
-    }
-
-    const lector = new FileReader();
-    lector.onload = (evento) => {
-      try {
-        const contenido = evento.target?.result as string;
-        const datosParseados = JSON.parse(contenido);
-
-        const resultado = importarBaseDatosJSONCompleta(datosParseados);
-
-        if (resultado) {
-          setEstadoImportacion("exito");
-          setMensajeError("");
-          setTimeout(() => setEstadoImportacion("inactivo"), 4000);
-        } else {
-          setEstadoImportacion("error");
-          setMensajeError("El archivo JSON no tiene una estructura compatible con el Simbionte.");
-        }
-      } catch (e) {
-        logger.error("Error al parsear archivo JSON:", e);
-        setEstadoImportacion("error");
-        setMensajeError("El archivo JSON contiene errores de sintaxis.");
-      }
-    };
-    lector.readAsText(archivo);
-  };
-
-  const alSoltarArchivo = (e: React.DragEvent) => {
-    e.preventDefault();
-    setArrastrando(false);
-
-    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-      procesarArchivoJSON(e.dataTransfer.files[0]);
-    }
-  };
-
-  const alSeleccionarArchivoManual = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files.length > 0) {
-      procesarArchivoJSON(e.target.files[0]);
-    }
-  };
 
   const exportarBaseDatosCompletaJSON = async () => {
     const estadoActual = usarAlmacenDM.getState();
@@ -115,10 +56,7 @@ export const ConfiguracionDM: React.FC = () => {
     const jsonStr = JSON.stringify(datosExportacion, null, 2);
     const nombreArchivo = `backup_dm_completo_${new Date().toISOString().slice(0, 10)}.json`;
 
-    // 1. Copiar al portapapeles
     const exitoCopiado = await copiarAlPortapapeles(jsonStr);
-
-    // 2. Descargar archivo en navegador / cliente CEF si está soportado
     const exitoDescarga = descargarArchivoJSON(jsonStr, nombreArchivo);
 
     if (exitoCopiado) {
@@ -155,300 +93,301 @@ export const ConfiguracionDM: React.FC = () => {
         </span>
       </h3>
 
-      <div className={estilosClases.gridConfig}>
-        <div className={estilosClases.seccion}>
-          <div className={estilosClases.cabeceraSeccion}>
-            <div className={estilosClases.barraDecorativaCian} />
-            <h4 className={estilosClases.subtitulo}>IMPORTADOR DE COMPENDIOS</h4>
-          </div>
-          
-          <div
-            onDragOver={alArrastrarSobre}
-            onDragLeave={alArrastrarSalir}
-            onDrop={alSoltarArchivo}
-            onClick={() => fileInputRef.current?.click()}
-            className={`${estilosClases.zonaDrop} ${
-              arrastrando ? estilosClases.zonaDropArrastrando : ""
-            }`}
-          >
-            <div className={estilosClases.cajaIconoUpload}>
-              <Upload size={24} className={arrastrando ? estilosClases.iconoUploadArrastrando : estilosClases.iconoUpload} />
-            </div>
-            <p className={estilosClases.textoDrop}>
-              Arrastra tu archivo <strong className={estilosClases.extensionJson}>.json</strong> aquí o haz clic para examinar
-            </p>
-            <span className={estilosClases.ayudaDrop}>Soporta colecciones de monstruos, hechizos y objetos</span>
-            
-            <input
-              type="file"
-              ref={fileInputRef}
-              onChange={alSeleccionarArchivoManual}
-              accept=".json"
-              className={estilosClases.inputOculto}
-            />
-          </div>
+      {/* Navegación por subpestañas */}
+      <nav className={estilosClases.navSubpestanas} aria-label="Subsecciones de configuración">
+        <button
+          type="button"
+          onClick={() => setSubpestanaActiva("general")}
+          className={`${estilosClases.botonSubpestana} ${
+            subpestanaActiva === "general" ? estilosClases.botonSubpestanaActiva : ""
+          }`}
+        >
+          <Settings size={13} />
+          <span>General y Campaña</span>
+        </button>
 
-          {estadoImportacion === "exito" && (
-            <div className={estilosClases.alertaExito}>
-              <CheckCircle size={15} className="u-flex-shrink-0" />
-              <span>¡Base de Datos importada con éxito y fusionada con la persistencia local!</span>
-            </div>
-          )}
+        <button
+          type="button"
+          onClick={() => setSubpestanaActiva("accesibilidad")}
+          className={`${estilosClases.botonSubpestana} ${
+            subpestanaActiva === "accesibilidad" ? estilosClases.botonSubpestanaActiva : ""
+          }`}
+        >
+          <Eye size={13} />
+          <span>Accesibilidad y Visualización</span>
+        </button>
 
-          {estadoImportacion === "error" && (
-            <div className={estilosClases.alertaError}>
-              <ShieldAlert size={15} className="u-flex-shrink-0" />
-              <span>Error de Validación: {mensajeError}</span>
-            </div>
-          )}
+        <button
+          type="button"
+          onClick={() => setSubpestanaActiva("datos")}
+          className={`${estilosClases.botonSubpestana} ${
+            subpestanaActiva === "datos" ? estilosClases.botonSubpestanaActiva : ""
+          }`}
+        >
+          <Database size={13} />
+          <span>Datos y Copias de Seguridad</span>
+        </button>
+      </nav>
 
-          <div className={estilosClases.estructuraAyuda}>
-            <h5 className={estilosClases.tituloAyuda}>ESQUEMA JSON ESPERADO:</h5>
-            <pre className={estilosClases.codigoEjemplo}>
-{`{
-  "monstruos": [
-    {
-      "nombre": "Orco Jefe de Guerra",
-      "tipo": "Humanoide",
-      "ca": 16,
-      "vidaMaxima": 45,
-      "iniciativaBonificador": 2,
-      "vidaNotas": "6d8 + 18"
-    }
-  ]
-}`}
-            </pre>
+      {/* CONTENIDO DE LA SUBPESTAÑA ACTIVA */}
+      {subpestanaActiva === "accesibilidad" && (
+        <div className={estilosClases.gridConfig}>
+          <PanelAccesibilidad />
+        </div>
+      )}
+
+      {subpestanaActiva === "datos" && (
+        <div className={estilosClases.gridConfig}>
+          <ImportadorCompendios />
+
+          <div className={estilosClases.seccion}>
+            <div className={estilosClases.cabeceraSeccion}>
+              <div className={estilosClases.barraDecorativaPurple} />
+              <h4 className={estilosClases.subtitulo}>COPIAS DE SEGURIDAD Y MANTENIMIENTO</h4>
+            </div>
+
+            <div className={estilosClases.accionesConfig}>
+              <button
+                type="button"
+                onClick={exportarBaseDatosCompletaJSON}
+                className={`${estilosClases.botonDescargar} ${copiado ? estilosClases.botonDescargarExito : ""}`}
+                title="Exportar copia de seguridad completa (Homebrew, personajes, notas y configuración) en formato JSON al portapapeles o descarga"
+              >
+                {copiado ? <CheckCircle size={14} /> : <Download size={14} />}
+                <span>{copiado ? "¡COPIADO AL PORTAPAPELES!" : "EXPORTAR COPIA DE SEGURIDAD (.JSON)"}</span>
+              </button>
+
+              <div className={estilosClases.separador} />
+
+              <div className={estilosClases.cajaZonaPeligro}>
+                <div className={estilosClases.cabeceraPeligro}>
+                  <ShieldAlert size={14} />
+                  <span>NÚCLEO DE BORRADO DE SEGURIDAD</span>
+                </div>
+
+                {!confirmarReset ? (
+                  <button
+                    type="button"
+                    onClick={() => setConfirmarReset(true)}
+                    className={estilosClases.botonRestablecer}
+                    title="Borrar todo el Homebrew del almacenamiento"
+                  >
+                    <Trash2 size={14} />
+                    <span>RESTABLECER DATOS DE FÁBRICA</span>
+                  </button>
+                ) : (
+                  <div className={estilosClases.contenedorConfirmacion}>
+                    <p className={estilosClases.textoConfirmacion}>
+                      ¿RESTABLECER TODO EL SISTEMA? Esta acción irreversible eliminará permanentemente todo tu homebrew, notas, combate activo y tareas pendientes.
+                    </p>
+                    <div className={estilosClases.botonesConfirmacion}>
+                      <button
+                        type="button"
+                        onClick={ejecutarRestablecerFabrica}
+                        className={estilosClases.botonConfirmarReset}
+                      >
+                        SÍ, BORRAR TODO
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setConfirmarReset(false)}
+                        className={estilosClases.botonCancelarReset}
+                      >
+                        CANCELAR
+                      </button>
+                    </div>
+                  </div>
+                )}
+                <p className={estilosClases.avisoPeligro}>
+                  Esta opción purgará la base de datos local y volverá a cargar las plantillas de referencia del manual base de D&D 5.5e.
+                </p>
+              </div>
+            </div>
           </div>
         </div>
+      )}
 
-        {/* Columna Derecha: Dados de Vida, Backup y Peligro */}
-        <div className={estilosClases.seccion}>
-          <div className={estilosClases.cabeceraSeccion}>
-            <div className={estilosClases.barraDecorativaPurple} />
-            <h4 className={estilosClases.subtitulo}>CONFIGURACIÓN DM Y BACKUPS</h4>
-          </div>
-
-          {/* PANEL: MODO DE VISTA (ROL DE SESIÓN) */}
-          <div className={estilosClases.tarjetaConfigHP}>
-            <div className={estilosClases.cabeceraConfigHP}>
-              <UserCheck size={14} className="u-texto-cian" />
-              <span className={estilosClases.tituloConfigHP}>MODO DE VISTA (ROL DE SESIÓN)</span>
+      {subpestanaActiva === "general" && (
+        <div className={estilosClases.gridConfig}>
+          <div className={estilosClases.seccion}>
+            <div className={estilosClases.cabeceraSeccion}>
+              <div className={estilosClases.barraDecorativaPurple} />
+              <h4 className={estilosClases.subtitulo}>CONFIGURACIÓN DE SESIÓN Y REGLAS</h4>
             </div>
-            <p className={estilosClases.descripcionConfigHP}>
-              Define la interfaz activa entre la Ficha de Jugador (por defecto) y la Pantalla del Dungeon Master.
-            </p>
-            <div className={estilosClases.selectorHPGrid}>
-              <button
-                type="button"
-                onClick={() => establecerEsGM(false)}
-                className={`${estilosClases.botonHPBrutal} ${
-                  !esGM ? estilosClases.botonHPBrutalActivo : ""
-                }`}
-              >
-                MODO JUGADOR
-              </button>
-              <button
-                type="button"
-                onClick={() => establecerEsGM(true)}
-                className={`${estilosClases.botonHPBrutal} ${
-                  esGM ? estilosClases.botonHPBrutalActivo : ""
-                }`}
-              >
-                MODO DM (MASTER)
-              </button>
-            </div>
-          </div>
 
-          {/* PANELES DE COMBATE GOBERNADOS POR EL DM (Transmitidos vía TS.sync) */}
-          {esGM && (
-            <>
-              {/* PANEL PREMIUM: DADOS DE VIDA DE MONSTRUOS */}
-              <div className={`${estilosClases.tarjetaConfigHP} ${estilosClases.tarjetaConfigHPSeparada}`}>
-                <div className={estilosClases.cabeceraConfigHP}>
-                  <Heart size={14} className="u-texto-cian" />
-                  <span className={estilosClases.tituloConfigHP}>CÁLCULO DE VIDA (HP) AL INICIAR COMBATE</span>
-                </div>
-                <p className={estilosClases.descripcionConfigHP}>
-                  Define cómo se instancian los Puntos de Vida de los monstruos cuando son agregados a la iniciativa.
-                </p>
-                <div className={estilosClases.selectorHPGrid}>
-                  {(["estandar", "maximo", "azar"] as const).map((metodo) => {
-                    const activo = metodoVidaMonstruo === metodo;
-                    return (
-                      <button
-                        key={metodo}
-                        onClick={() => establecerMetodoVidaMonstruo(metodo)}
-                        className={`${estilosClases.botonHPBrutal} ${
-                          activo ? estilosClases.botonHPBrutalActivo : ""
-                        }`}
-                      >
-                        {metodo === "estandar"
-                          ? "ESTÁNDAR (Fijo)"
-                          : metodo === "maximo"
-                          ? "MÁXIMO (Dados)"
-                          : "AZAR (Tirada Real)"}
-                      </button>
-                    );
-                  })}
-                </div>
+            {/* MODO DE VISTA (ROL DE SESIÓN) */}
+            <div className={estilosClases.tarjetaConfigHP}>
+              <div className={estilosClases.cabeceraConfigHP}>
+                <UserCheck size={14} className="u-texto-cian" />
+                <span className={estilosClases.tituloConfigHP}>MODO DE VISTA (ROL DE SESIÓN)</span>
               </div>
-
-              {/* PANEL: MOSTRAR PORCENTAJE DE VIDA A JUGADORES */}
-              <div className={`${estilosClases.tarjetaConfigHP} ${estilosClases.tarjetaConfigHPSeparada}`}>
-                <div className={estilosClases.cabeceraConfigHP}>
-                  <Eye size={14} className={estilosClases.iconoOjo} />
-                  <span className={estilosClases.tituloConfigHP}>BARRA DE SALUD EN VISTA JUGADOR (%)</span>
-                </div>
-                <p className={estilosClases.descripcionConfigHP}>
-                  Controla si los jugadores ven el porcentaje (%) de vida restante de las criaturas en combate.
-                </p>
-                <div className={estilosClases.selectorHPGrid}>
-                  <button
-                    onClick={() => establecerMostrarPorcentajeVidaAJugadores(true)}
-                    className={`${estilosClases.botonHPBrutal} ${
-                      mostrarPorcentajeVidaAJugadores ? estilosClases.botonHPBrutalActivo : ""
-                    }`}
-                    type="button"
-                  >
-                    MOSTRAR % DE VIDA
-                  </button>
-                  <button
-                    onClick={() => establecerMostrarPorcentajeVidaAJugadores(false)}
-                    className={`${estilosClases.botonHPBrutal} ${
-                      !mostrarPorcentajeVidaAJugadores ? estilosClases.botonHPBrutalActivo : ""
-                    }`}
-                    type="button"
-                  >
-                    OCULTAR % DE VIDA
-                  </button>
-                </div>
-              </div>
-            </>
-          )}
-
-          {/* PANEL: SISTEMA DE MAGIA DE LA CAMPAÑA */}
-          <div className={`${estilosClases.tarjetaConfigHP} ${estilosClases.tarjetaConfigHPSeparada}`}>
-            <div className={estilosClases.cabeceraConfigHP}>
-              <Sparkles size={14} className={estilosClases.iconoMagia} />
-              <span className={estilosClases.tituloConfigHP}>SISTEMA DE MAGIA DE LA CAMPAÑA</span>
-            </div>
-            <p className={estilosClases.descripcionConfigHP}>
-              Selecciona si los personajes gestionan sus conjuros mediante Espacios estándar (PHB) o Puntos de Conjuro / Maná (Variante DMG).
-            </p>
-            <div className={estilosClases.selectorHPGrid}>
-              <button
-                onClick={() => establecerSistemaMagia("espacios")}
-                className={`${estilosClases.botonHPBrutal} ${
-                  sistemaMagia === "espacios" ? estilosClases.botonHPBrutalActivo : ""
-                }`}
-                type="button"
-              >
-                ESPACIOS DE CONJURO (PHB)
-              </button>
-              <button
-                onClick={() => establecerSistemaMagia("puntos")}
-                className={`${estilosClases.botonHPBrutal} ${
-                  sistemaMagia === "puntos" ? estilosClases.botonHPBrutalActivo : ""
-                }`}
-                type="button"
-              >
-                PUNTOS DE CONJURO (DMG)
-              </button>
-            </div>
-          </div>
-
-          {/* Panel Holográfico de Estadísticas */}
-          <div className={estilosClases.tarjetaEstadisticas}>
-            <div className={estilosClases.filaEstadistica}>
-              <span className={estilosClases.labelEstadistica}>Criaturas Homebrew Creadas:</span>
-              <strong className={estilosClases.numero}>{monstruosHomebrew.length}</strong>
-            </div>
-            <div className={estilosClases.filaEstadistica}>
-              <span className={estilosClases.labelEstadistica}>Conjuros Homebrew Creados:</span>
-              <strong className={estilosClases.numero}>{hechizosHomebrew.length}</strong>
-            </div>
-            <div className={estilosClases.filaEstadistica}>
-              <span className={estilosClases.labelEstadistica}>Objetos Mágicos Homebrew Creados:</span>
-              <strong className={estilosClases.numero}>{objetosHomebrewCont}</strong>
-            </div>
-            <div className={estilosClases.filaEstadistica}>
-              <span className={estilosClases.labelEstadistica}>Total Criaturas en Sistema:</span>
-              <strong className={`${estilosClases.numero} ${estilosClases.numeroTextoPrincipal}`}>{baseDatosMonstruos.length}</strong>
-            </div>
-            <div className={estilosClases.filaEstadistica}>
-              <span className={estilosClases.labelEstadistica}>Total Conjuros en Sistema:</span>
-              <strong className={`${estilosClases.numero} ${estilosClases.numeroTextoPrincipal}`}>{baseDatosHechizos.length}</strong>
-            </div>
-            <div className={estilosClases.filaEstadistica}>
-              <span className={estilosClases.labelEstadistica}>Total Objetos en Sistema:</span>
-              <strong className={`${estilosClases.numero} ${estilosClases.numeroTextoPrincipal}`}>{objetosHomebrew.length}</strong>
-            </div>
-          </div>
-
-          <div className={estilosClases.accionesConfig}>
-            <button
-              onClick={exportarBaseDatosCompletaJSON}
-              className={`${estilosClases.botonDescargar} ${copiado ? estilosClases.botonDescargarExito : ""}`}
-              title="Exportar copia de seguridad completa (Homebrew, personajes, notas y configuración) en formato JSON al portapapeles o descarga"
-            >
-              {copiado ? <CheckCircle size={14} /> : <Download size={14} />}
-              <span>{copiado ? "¡COPIADO AL PORTAPAPELES!" : "EXPORTAR COPIA DE SEGURIDAD (.JSON)"}</span>
-            </button>
-
-            <div className={estilosClases.separador} />
-
-            {/* ZONA DE PELIGRO TÁCTICA */}
-            <div className={estilosClases.cajaZonaPeligro}>
-              <div className={estilosClases.cabeceraPeligro}>
-                <ShieldAlert size={14} />
-                <span>NÚCLEO DE BORRADO DE SEGURIDAD</span>
-              </div>
-              
-              {!confirmarReset ? (
+              <p className={estilosClases.descripcionConfigHP}>
+                Define la interfaz activa entre la Ficha de Jugador (por defecto) y la Pantalla del Dungeon Master.
+              </p>
+              <div className={estilosClases.selectorHPGrid}>
                 <button
-                  onClick={() => setConfirmarReset(true)}
-                  className={estilosClases.botonRestablecer}
-                  title="Borrar todo el Homebrew del almacenamiento"
+                  type="button"
+                  onClick={() => establecerEsGM(false)}
+                  className={`${estilosClases.botonHPBrutal} ${
+                    !esGM ? estilosClases.botonHPBrutalActivo : ""
+                  }`}
                 >
-                  <Trash2 size={14} />
-                  <span>RESTABLECER DATOS DE FÁBRICA</span>
+                  MODO JUGADOR
                 </button>
-              ) : (
-                <div className={estilosClases.contenedorConfirmacion}>
-                  <p className={estilosClases.textoConfirmacion}>
-                     ¿RESTABLECER TODO EL SISTEMA? Esta acción irreversible eliminará permanentemente todo tu homebrew, notas, combate activo y tareas pendientes.
+                <button
+                  type="button"
+                  onClick={() => establecerEsGM(true)}
+                  className={`${estilosClases.botonHPBrutal} ${
+                    esGM ? estilosClases.botonHPBrutalActivo : ""
+                  }`}
+                >
+                  MODO DM (MASTER)
+                </button>
+              </div>
+            </div>
+
+            {/* PANELES EXCLUSIVOS DEL DM */}
+            {esGM && (
+              <>
+                <div className={`${estilosClases.tarjetaConfigHP} ${estilosClases.tarjetaConfigHPSeparada}`}>
+                  <div className={estilosClases.cabeceraConfigHP}>
+                    <Heart size={14} className="u-texto-cian" />
+                    <span className={estilosClases.tituloConfigHP}>CÁLCULO DE VIDA (HP) AL INICIAR COMBATE</span>
+                  </div>
+                  <p className={estilosClases.descripcionConfigHP}>
+                    Define cómo se instancian los Puntos de Vida de los monstruos cuando son agregados a la iniciativa.
                   </p>
-                  <div className={estilosClases.botonesConfirmacion}>
+                  <div className={estilosClases.selectorHPGrid}>
+                    {(["estandar", "maximo", "azar"] as const).map((metodo) => {
+                      const activo = metodoVidaMonstruo === metodo;
+                      return (
+                        <button
+                          key={metodo}
+                          type="button"
+                          onClick={() => establecerMetodoVidaMonstruo(metodo)}
+                          className={`${estilosClases.botonHPBrutal} ${
+                            activo ? estilosClases.botonHPBrutalActivo : ""
+                          }`}
+                        >
+                          {metodo === "estandar"
+                            ? "ESTÁNDAR (Fijo)"
+                            : metodo === "maximo"
+                            ? "MÁXIMO (Dados)"
+                            : "AZAR (Tirada Real)"}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <div className={`${estilosClases.tarjetaConfigHP} ${estilosClases.tarjetaConfigHPSeparada}`}>
+                  <div className={estilosClases.cabeceraConfigHP}>
+                    <Eye size={14} className={estilosClases.iconoOjo} />
+                    <span className={estilosClases.tituloConfigHP}>BARRA DE SALUD EN VISTA JUGADOR (%)</span>
+                  </div>
+                  <p className={estilosClases.descripcionConfigHP}>
+                    Controla si los jugadores ven el porcentaje (%) de vida restante de las criaturas en combate.
+                  </p>
+                  <div className={estilosClases.selectorHPGrid}>
                     <button
-                      onClick={ejecutarRestablecerFabrica}
-                      className={estilosClases.botonConfirmarReset}
+                      type="button"
+                      onClick={() => establecerMostrarPorcentajeVidaAJugadores(true)}
+                      className={`${estilosClases.botonHPBrutal} ${
+                        mostrarPorcentajeVidaAJugadores ? estilosClases.botonHPBrutalActivo : ""
+                      }`}
                     >
-                      SÍ, BORRAR TODO
+                      MOSTRAR % DE VIDA
                     </button>
                     <button
-                      onClick={() => setConfirmarReset(false)}
-                      className={estilosClases.botonCancelarReset}
+                      type="button"
+                      onClick={() => establecerMostrarPorcentajeVidaAJugadores(false)}
+                      className={`${estilosClases.botonHPBrutal} ${
+                        !mostrarPorcentajeVidaAJugadores ? estilosClases.botonHPBrutalActivo : ""
+                      }`}
                     >
-                      CANCELAR
+                      OCULTAR % DE VIDA
                     </button>
                   </div>
                 </div>
-              )}
-              <p className={estilosClases.avisoPeligro}>
-                Esta opción purgará la base de datos local y volverá a cargar las plantillas de referencia del manual base de D&D 5.5e.
+              </>
+            )}
+
+            {/* SISTEMA DE MAGIA */}
+            <div className={`${estilosClases.tarjetaConfigHP} ${estilosClases.tarjetaConfigHPSeparada}`}>
+              <div className={estilosClases.cabeceraConfigHP}>
+                <Sparkles size={14} className={estilosClases.iconoMagia} />
+                <span className={estilosClases.tituloConfigHP}>SISTEMA DE MAGIA DE LA CAMPAÑA</span>
+              </div>
+              <p className={estilosClases.descripcionConfigHP}>
+                Selecciona si los personajes gestionan sus conjuros mediante Espacios estándar (PHB) o Puntos de Conjuro / Maná (Variante DMG).
               </p>
+              <div className={estilosClases.selectorHPGrid}>
+                <button
+                  type="button"
+                  onClick={() => establecerSistemaMagia("espacios")}
+                  className={`${estilosClases.botonHPBrutal} ${
+                    sistemaMagia === "espacios" ? estilosClases.botonHPBrutalActivo : ""
+                  }`}
+                >
+                  ESPACIOS DE CONJURO (PHB)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => establecerSistemaMagia("puntos")}
+                  className={`${estilosClases.botonHPBrutal} ${
+                    sistemaMagia === "puntos" ? estilosClases.botonHPBrutalActivo : ""
+                  }`}
+                >
+                  PUNTOS DE CONJURO (DMG)
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Estadísticas de Contenido */}
+          <div className={estilosClases.seccion}>
+            <div className={estilosClases.cabeceraSeccion}>
+              <div className={estilosClases.barraDecorativaCian} />
+              <h4 className={estilosClases.subtitulo}>ESTADÍSTICAS DEL COMPENDIO</h4>
+            </div>
+
+            <div className={estilosClases.tarjetaEstadisticas}>
+              <div className={estilosClases.filaEstadistica}>
+                <span className={estilosClases.labelEstadistica}>Criaturas Homebrew Creadas:</span>
+                <strong className={estilosClases.numero}>{monstruosHomebrew.length}</strong>
+              </div>
+              <div className={estilosClases.filaEstadistica}>
+                <span className={estilosClases.labelEstadistica}>Conjuros Homebrew Creados:</span>
+                <strong className={estilosClases.numero}>{hechizosHomebrew.length}</strong>
+              </div>
+              <div className={estilosClases.filaEstadistica}>
+                <span className={estilosClases.labelEstadistica}>Objetos Mágicos Homebrew Creados:</span>
+                <strong className={estilosClases.numero}>{objetosHomebrewCont}</strong>
+              </div>
+              <div className={estilosClases.filaEstadistica}>
+                <span className={estilosClases.labelEstadistica}>Total Criaturas en Sistema:</span>
+                <strong className={`${estilosClases.numero} ${estilosClases.numeroTextoPrincipal}`}>{baseDatosMonstruos.length}</strong>
+              </div>
+              <div className={estilosClases.filaEstadistica}>
+                <span className={estilosClases.labelEstadistica}>Total Conjuros en Sistema:</span>
+                <strong className={`${estilosClases.numero} ${estilosClases.numeroTextoPrincipal}`}>{baseDatosHechizos.length}</strong>
+              </div>
+              <div className={estilosClases.filaEstadistica}>
+                <span className={estilosClases.labelEstadistica}>Total Objetos en Sistema:</span>
+                <strong className={`${estilosClases.numero} ${estilosClases.numeroTextoPrincipal}`}>{objetosHomebrew.length}</strong>
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      )}
 
-      {/* MODAL DE EXPORTACIÓN — cuando los métodos automáticos fallan */}
+      {/* MODAL DE EXPORTACIÓN ALTERNATIVO */}
       {modalExport && (
         <div className={estilosClases.modalOverlay} onClick={() => setModalExport(null)}>
           <div className={estilosClases.modalExport} onClick={(e) => e.stopPropagation()}>
             <div className={estilosClases.modalHeader}>
               <span> EXPORTAR COPIA DE SEGURIDAD — Copia el JSON manualmente</span>
-              <button onClick={() => setModalExport(null)} className={estilosClases.botonCerrarModal}>
+              <button type="button" onClick={() => setModalExport(null)} className={estilosClases.botonCerrarModal}>
                 <X size={16} />
               </button>
             </div>
@@ -463,11 +402,11 @@ export const ConfiguracionDM: React.FC = () => {
               spellCheck={false}
             />
             <div className={estilosClases.modalAcciones}>
-              <button onClick={copiarDelModal} className={estilosClases.botonCopiarModal}>
+              <button type="button" onClick={copiarDelModal} className={estilosClases.botonCopiarModal}>
                 <Copy size={14} />
                 {copiado ? "¡Copiado!" : "Copiar al Portapapeles"}
               </button>
-              <button onClick={() => setModalExport(null)} className={estilosClases.botonCerrarModalPie}>
+              <button type="button" onClick={() => setModalExport(null)} className={estilosClases.botonCerrarModalPie}>
                 Cerrar
               </button>
             </div>

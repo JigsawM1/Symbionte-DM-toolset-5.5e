@@ -17,6 +17,44 @@ Este archivo registra reglas globales, errores encontrados, sus causas raíz y l
    - **Bajo ninguna circunstancia** los módulos de lógica de negocio (`servicios/`), gestores de estado (`almacen/`), contratos (`tipos/`), valores de reglas (`constantes/`) ni funciones de soporte (`utiles/`) deben importar componentes visuales o archivos CSS (`componentes/`). Esta regla está reforzada en CI vía ESLint `no-restricted-imports`.
 6. **PROHIBICIÓN ESTRICTA DE BIFURCACIONES POR NOMBRE DE RASGO O CLASE (CATÁLOGO DECLARATIVO Y BUILDER PURO)**:
 
+## [2026-10-09] Implementación del Panel de Accesibilidad y Personalización Visual en Configuración
+
+**Contexto del Requerimiento:**
+- Se solicitó planificar e implementar dentro del módulo de Configuración un panel de accesibilidad que permita cambiar colores, fuentes, tamaño de letra, contraste y modos de daltonismo para mejorar la experiencia de uso tanto de Jugadores como del Dungeon Master.
+
+**Causas Raíz y Desafíos Arquitectónicos:**
+1. **Riesgo de Saturación del Umbral Crítico de Líneas en CI (`verificar:lineas`):**
+   - `ConfiguracionDM.tsx` contaba previamente con 480 líneas (al límite del umbral máximo de 500 líneas). Añadir el panel directamente en ese archivo habría provocado el fallo inmediato del pipeline de CI.
+2. **Persistencia Local Desacoplada de la Sincronización de Red:**
+   - Las preferencias de accesibilidad deben persistir localmente en `localStorage` de cada cliente de forma individual, evitando que los ajustes visuales de un usuario sobrescriban la interfaz del DM o de otros jugadores en TaleSpire.
+3. **Compatibilidad Offline y 0ms de Animaciones en TaleSpire CEF:**
+   - La pila de fuentes debe soportar alternativas web-safe y de alta legibilidad (`OpenDyslexic`, `Trebuchet MS`, `Verdana`, monospace y serif) sin dependencias externas de red ni transiciones lentas que produzcan lag en WebView.
+
+**Soluciones Arquitectónicas Aplicadas:**
+1. **Contrato de Datos y Tipado Estricto (`src/tipos/accesibilidad.ts`):**
+   - Tipos e interfaces definidos sin ningún `any`: `EscalaFuente` (`compacta`, `normal`, `grande`, `muy-grande`), `FamiliaFuente` (`estandar`, `dislexia`, `mono`, `serif`), `ModoContraste` (`estandar`, `alto`), `ModoDaltonismo` (`ninguno`, `protanopia`, `deuteranopia`, `tritanopia`), `ColorAcento` y toggles de navegación (`focoAumentado`, `subrayarEnlaces`, `espaciadoLectura`).
+2. **Slice Modular y Persistencia Segura (`src/almacen/slices/sliceAccesibilidad.ts`):**
+   - Carga inicial y serialización en `localStorage` con clave `simbionte_accesibilidad`.
+   - Guardas defensivas `typeof localStorage !== "undefined"` compatibles tanto con el navegador/CEF como con el entorno Node de Vitest.
+3. **Inyección Reactiva en el DOM (`src/hooks/usarAplicadorAccesibilidad.ts` y `src/estilos/accesibilidad.css`):**
+   - Hook reactivo integrado en `App.tsx` que actualiza dinámicamente los atributos `data-*` y la variable `--factor-escala-fuente` en `document.documentElement`.
+   - Reglas CSS que propagan la escala y temas a los tokens de `temaJugador.css` y `temaMaster.css`.
+4. **Desacoplamiento de Componentes y Subpestañas en Configuración (`ConfiguracionDM.tsx`):**
+   - Reorganización en 3 subpestañas: `"General y Campaña"`, `"Accesibilidad y Visualización"` y `"Datos y Copias de Seguridad"`.
+   - Extracción de `ImportadorCompendios.tsx` (137 líneas), `PanelAccesibilidad.tsx` (267 líneas) y `PrevisualizadorAccesibilidad.tsx` (60 líneas).
+   - Reducción de `ConfiguracionDM.tsx` de 480 líneas a 347 líneas (margen seguro en CI).
+5. **Cobertura de Pruebas Unitarias (`sliceAccesibilidad.test.ts` y `PanelAccesibilidad.test.tsx`):**
+   - 6 nuevas pruebas unitarias certificando persistencia en `localStorage`, cálculo de factor de escala, restablecimiento por defecto y renderizado táctico.
+
+**Certificación de Calidad y Pipeline de CI:**
+- **TypeScript:** `pnpm exec tsc --noEmit` completado con 0 errores (`strict: true`).
+- **ESLint:** `pnpm run lint` (`--max-warnings=0`) sin errores ni advertencias.
+- **Vitest:** 123 suites de pruebas ejecutadas, **1.711 / 1.711 pruebas aprobadas al 100%**.
+- **Control de Líneas:** 152 archivos auditados vía `pnpm run verificar:lineas`, 0 archivos > 500 líneas.
+- **Build de Producción:** `pnpm exec vite build` completado exitosamente en 23.69s.
+
+---
+
 ## [2026-10-08] Unificación Visual, Jerarquía Tipográfica y Corrección Cromática de Tarjetas del Master (DM)
 
 **Contexto del Requerimiento:**

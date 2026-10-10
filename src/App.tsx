@@ -1,6 +1,7 @@
 import React, { Suspense } from "react";
 import { usarEstadoConfiguracion } from "@/almacen/selectores";
 import { usarConexionTaleSpire } from "./hooks/usarConexionTaleSpire";
+import { usarAplicadorAccesibilidad } from "./hooks/usarAplicadorAccesibilidad";
 import { LimiteError, NotificacionesContenedor } from "@/componentes/comunes";
 import { BarraSuperior, BarraControl, PanelDados } from "@/componentes/layout";
 import { GestorIniciativa } from "@/componentes/caracteristicas/iniciativa";
@@ -24,6 +25,9 @@ const AppContenido: React.FC = () => {
 
   // Sincronización híbrida mediante hook modular
   usarConexionTaleSpire();
+
+  // Inyección reactiva de accesibilidad y tokens visuales en el DOM
+  usarAplicadorAccesibilidad();
 
   // Renderizado condicional basado en el rol nativo detectado
   const renderContenidoPestaña = () => {

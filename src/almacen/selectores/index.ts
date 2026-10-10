@@ -14,4 +14,5 @@ export * from './usarEstadoHomebrew';
 export * from './usarEstadoConfiguracion';
 export * from './usarEstadoUtiles';
 export * from './usarEstadoPersonajes';
+export * from './usarEstadoAccesibilidad';
 

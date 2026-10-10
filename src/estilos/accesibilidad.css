@@ -1,0 +1,192 @@
+/* ==========================================================================
+   accesibilidad.css — Reglas Reactivas de Accesibilidad y Personalización Visual
+   WCAG 2.2 AA / AAA — Diseñado para TaleSpire CEF (0ms animaciones)
+   ========================================================================== */
+
+:root {
+  --factor-escala-fuente: 1;
+}
+
+/* ==========================================
+   1. ESCALA TIPOGRÁFICA
+   ========================================== */
+[data-escala-fuente="compacta"] {
+  --factor-escala-fuente: 0.9;
+}
+
+[data-escala-fuente="normal"] {
+  --factor-escala-fuente: 1.0;
+}
+
+[data-escala-fuente="grande"] {
+  --factor-escala-fuente: 1.15;
+}
+
+[data-escala-fuente="muy-grande"] {
+  --factor-escala-fuente: 1.30;
+}
+
+/* Propagación de escala a tokens del Jugador y del Master */
+:root {
+  --pj-fuente-micro: calc(11px * var(--factor-escala-fuente));
+  --pj-fuente-badge: calc(11.5px * var(--factor-escala-fuente));
+  --pj-fuente-label: calc(11px * var(--factor-escala-fuente));
+  --pj-fuente-cuerpo: calc(12.5px * var(--factor-escala-fuente));
+  --pj-fuente-boton: calc(12px * var(--factor-escala-fuente));
+  --pj-fuente-subtitulo: calc(12.5px * var(--factor-escala-fuente));
+  --pj-fuente-titulo: calc(16px * var(--factor-escala-fuente));
+  --pj-fuente-titulo-grande: calc(18px * var(--factor-escala-fuente));
+  --pj-fuente-numero-md: calc(15px * var(--factor-escala-fuente));
+  --pj-fuente-numero-lg: calc(20px * var(--factor-escala-fuente));
+  --pj-fuente-numero-xl: calc(24px * var(--factor-escala-fuente));
+  --dm-fuente-minima: calc(12.5px * var(--factor-escala-fuente));
+}
+
+/* ==========================================
+   2. FAMILIA TIPOGRÁFICA
+   ========================================== */
+[data-familia-fuente="dislexia"] {
+  --fuente-principal: 'OpenDyslexic', 'Trebuchet MS', Verdana, Geneva, sans-serif !important;
+  --dm-fuente-principal: 'OpenDyslexic', 'Trebuchet MS', Verdana, Geneva, sans-serif !important;
+  --fuente-titulo: 'OpenDyslexic', 'Trebuchet MS', Verdana, Geneva, sans-serif !important;
+  --dm-fuente-titulo: 'OpenDyslexic', 'Trebuchet MS', Verdana, Geneva, sans-serif !important;
+}
+
+[data-familia-fuente="mono"] {
+  --fuente-principal: 'JetBrains Mono', 'Cascadia Code', 'Fira Code', Consolas, 'Courier New', monospace !important;
+  --dm-fuente-principal: 'JetBrains Mono', 'Cascadia Code', 'Fira Code', Consolas, 'Courier New', monospace !important;
+  --fuente-titulo: 'JetBrains Mono', 'Cascadia Code', 'Fira Code', Consolas, 'Courier New', monospace !important;
+  --dm-fuente-titulo: 'JetBrains Mono', 'Cascadia Code', 'Fira Code', Consolas, 'Courier New', monospace !important;
+}
+
+[data-familia-fuente="serif"] {
+  --fuente-principal: 'Georgia', 'Cambria', 'Times New Roman', serif !important;
+  --dm-fuente-principal: 'Georgia', 'Cambria', 'Times New Roman', serif !important;
+  --fuente-titulo: 'Georgia', 'Cambria', 'Times New Roman', serif !important;
+  --dm-fuente-titulo: 'Georgia', 'Cambria', 'Times New Roman', serif !important;
+}
+
+/* ==========================================
+   3. MODO ALTO CONTRASTE (WCAG AAA)
+   ========================================== */
+[data-modo-contraste="alto"] {
+  --color-fondo-profundo: #000000 !important;
+  --color-fondo-panel: #05070c !important;
+  --color-fondo-tarjeta: #0b0f19 !important;
+  --color-fondo-tarjeta-foco: #131a29 !important;
+
+  --pj-fondo-base: #000000 !important;
+  --pj-fondo-panel: #05070c !important;
+  --pj-fondo-tarjeta: #0b0f19 !important;
+  --pj-fondo-tarjeta-elevada: #131a29 !important;
+
+  --color-texto-principal: #ffffff !important;
+  --color-texto-secundario: #f1f5f9 !important;
+  --color-texto-apagado: #cbd5e1 !important;
+
+  --pj-texto-primario: #ffffff !important;
+  --pj-texto-secundario: #f8fafc !important;
+  --pj-texto-terciario: #e2e8f0 !important;
+  --pj-texto-label: #e2e8f0 !important;
+
+  --dm-texto-principal: #ffffff !important;
+  --dm-texto-secundario: #f8fafc !important;
+  --dm-texto-apagado: #cbd5e1 !important;
+
+  --color-borde-brutal: #ffffff !important;
+  --pj-borde-sutil: rgba(255, 255, 255, 0.45) !important;
+  --pj-borde-medio: rgba(255, 255, 255, 0.75) !important;
+  --pj-borde-fuerte: #ffffff !important;
+  --dm-borde: #ffffff !important;
+}
+
+/* ==========================================
+   4. MODOS DE DALTONISMO
+   ========================================== */
+[data-modo-daltonismo="protanopia"],
+[data-modo-daltonismo="deuteranopia"] {
+  /* Reemplaza rojo/verde por Naranja y Azul Celeste accesible */
+  --color-peligro: #f97316 !important;
+  --color-exito: #0ea5e9 !important;
+  --pj-acento-peligro: #f97316 !important;
+  --pj-acento-exito: #0ea5e9 !important;
+  --pj-texto-alerta: #fdba74 !important;
+  --pj-texto-exito: #7dd3fc !important;
+  --dm-texto-peligro: #fdba74 !important;
+  --dm-texto-exito: #7dd3fc !important;
+  --dm-rgb-peligro: 249, 115, 22 !important;
+  --dm-rgb-exito: 14, 165, 233 !important;
+}
+
+[data-modo-daltonismo="tritanopia"] {
+  /* Sustituye amarillo confuso por magenta vivo */
+  --color-advertencia: #f43f5e !important;
+  --pj-acento-oro: #f43f5e !important;
+  --pj-texto-oro: #fda4af !important;
+  --dm-texto-advertencia: #fda4af !important;
+  --dm-rgb-advertencia: 244, 63, 94 !important;
+}
+
+/* ==========================================
+   5. COLORES DE ACENTO PERSONALIZABLES
+   ========================================== */
+[data-color-acento="cian"] {
+  --color-primario: hsl(186, 95%, 45%) !important;
+  --color-primario-brillante: hsl(186, 100%, 55%) !important;
+  --color-borde-neon: hsl(186, 95%, 50%) !important;
+  --pj-acento-primario: #06b6d4 !important;
+  --pj-acento-primario-hover: #0891b2 !important;
+  --dm-primario: hsl(186, 95%, 45%) !important;
+  --dm-rgb-primario: 6, 182, 212 !important;
+}
+
+[data-color-acento="oro"] {
+  --color-primario: hsl(45, 95%, 50%) !important;
+  --color-primario-brillante: hsl(45, 100%, 60%) !important;
+  --color-borde-neon: hsl(45, 95%, 55%) !important;
+  --pj-acento-primario: #eab308 !important;
+  --pj-acento-primario-hover: #ca8a04 !important;
+  --dm-primario: hsl(45, 95%, 50%) !important;
+  --dm-rgb-primario: 234, 179, 8 !important;
+}
+
+[data-color-acento="esmeralda"] {
+  --color-primario: hsl(158, 85%, 42%) !important;
+  --color-primario-brillante: hsl(158, 90%, 52%) !important;
+  --color-borde-neon: hsl(158, 85%, 46%) !important;
+  --pj-acento-primario: #10b981 !important;
+  --pj-acento-primario-hover: #059669 !important;
+  --dm-primario: hsl(158, 85%, 42%) !important;
+  --dm-rgb-primario: 16, 185, 129 !important;
+}
+
+[data-color-acento="alerta"] {
+  --color-primario: hsl(345, 90%, 54%) !important;
+  --color-primario-brillante: hsl(345, 95%, 62%) !important;
+  --color-borde-neon: hsl(345, 90%, 56%) !important;
+  --pj-acento-primario: #f43f5e !important;
+  --pj-acento-primario-hover: #e11d48 !important;
+  --dm-primario: hsl(345, 90%, 54%) !important;
+  --dm-rgb-primario: 244, 63, 94 !important;
+}
+
+/* ==========================================
+   6. FOCO AUMENTADO, SUBRAYADO Y ESPACIADO
+   ========================================== */
+[data-foco-aumentado="true"] :where(button, input, textarea, select, [tabindex]):focus-visible {
+  outline: 3px solid #facc15 !important;
+  outline-offset: 3px !important;
+  box-shadow: 0 0 0 5px rgba(250, 204, 21, 0.45) !important;
+}
+
+[data-subrayar-enlaces="true"] :where(button, a, [role="button"]):not(:disabled) {
+  text-decoration: underline !important;
+  text-underline-offset: 3px !important;
+}
+
+[data-espaciado-lectura="true"] {
+  letter-spacing: 0.035em !important;
+  word-spacing: 0.06em !important;
+  line-height: 1.55 !important;
+}
+

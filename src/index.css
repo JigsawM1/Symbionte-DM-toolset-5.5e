@@ -3,6 +3,7 @@
 @import './estilos/temaJugador.css';
 @import './estilos/temaMaster.css';
 @import './estilos/utilidades.css';
+@import './estilos/accesibilidad.css';
 
 :root {
   /* Fondos Premium (Fondo negro azulado profundo HSL) */

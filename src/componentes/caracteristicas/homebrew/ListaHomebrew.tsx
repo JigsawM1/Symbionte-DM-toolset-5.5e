@@ -512,7 +512,7 @@ export const ListaHomebrew: React.FC<Props> = ({
             <div className={estilos.cabeceraDetalle}>
               <div className={estilos.cabeceraDetalleIzquierda}>
                 <span className={estilos.objetoNivelOverlay}>
-                  CR {m.desafio || "—"}
+                  CA {m.ca} | HP {m.vidaMaxima} | CR {m.desafio || "—"}
                 </span>
                 <span className={estilos.nombreHechizoOverlay}>{m.nombre}</span>
               </div>

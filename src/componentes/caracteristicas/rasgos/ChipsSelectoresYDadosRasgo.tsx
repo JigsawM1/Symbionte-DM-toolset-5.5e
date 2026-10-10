@@ -7,7 +7,7 @@ import estilos from "./VistaRasgosJugador.module.css";
 interface ChipsSelectoresYDadosRasgoProps {
   rasgo: RasgoPersonaje;
   idPersonaje?: string;
-  alVerDetalle: () => void;
+  alVerDetalle?: () => void;
 }
 
 export const ChipsSelectoresYDadosRasgo: React.FC<ChipsSelectoresYDadosRasgoProps> = ({
@@ -46,7 +46,7 @@ export const ChipsSelectoresYDadosRasgo: React.FC<ChipsSelectoresYDadosRasgoProp
                     title={op.descripcion || op.nombre}
                     onClick={(e) => {
                       e.stopPropagation();
-                      alVerDetalle();
+                      alVerDetalle?.();
                     }}
                   >
                     {op.nombre}

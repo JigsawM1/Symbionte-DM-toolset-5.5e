@@ -2,6 +2,12 @@
 
 Este archivo registra reglas globales, errores encontrados, sus causas raíz y las soluciones aplicadas.
 
+## [2026-10-09] Callback opcional en chips de rasgos
+
+- Causa: `TarjetaRasgo` declara `alVerDetalle` opcional, pero `ChipsSelectoresYDadosRasgo` lo exigía, provocando TS2322 en CI.
+- Corrección: mantener el mismo contrato opcional en el subcomponente e invocar `alVerDetalle?.()` para admitir tarjetas sin manejador de detalle.
+- Validación ejecutada: `pnpm run ci` terminó con código 0; TypeScript, ESLint, pruebas, auditoría de líneas y build correctos. Vite mantiene el aviso de chunks mayores de 500 kB.
+
 ## REGLAS GLOBALES OBLIGATORIAS (VIGENCIA PERMANENTE)
 1. **PROHIBICIÓN TOTAL DE EMOJIS (SOLO ICONOS LOCALES SVG / LUCIDE-REACT)**:
    - **Bajo ninguna circunstancia se deben usar emojis** en la interfaz de usuario, botones, títulos, badges, tooltips, modales, textos de notificación, logs de chat ni cadenas de código.

@@ -80,7 +80,7 @@ export const ChipsSelectoresYDadosRasgo: React.FC<ChipsSelectoresYDadosRasgoProp
                 }}
                 title={`Hacer clic para consumir dado de presagio (${dado})`}
               >
-                <Dices size={10} color="#a5b4fc" />
+                <Dices size={10} color="var(--pj-texto-acento)" />
                 <strong>{dado}</strong>
               </button>
             ))}

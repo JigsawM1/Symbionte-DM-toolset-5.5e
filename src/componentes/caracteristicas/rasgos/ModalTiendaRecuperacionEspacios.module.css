@@ -1,8 +1,8 @@
 .overlay {
   position: fixed;
   inset: 0;
-  background-color: rgba(0, 0, 0, 0.75);
-  backdrop-filter: blur(4px);
+  background-color: var(--pj-fondo-modal-overlay);
+  backdrop-filter: none;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -11,17 +11,17 @@
 }
 
 .modal {
-  background-color: #111827;
-  border: 1px solid #374151;
+  background-color: var(--pj-fondo-modal-cuerpo);
+  border: 1px solid var(--pj-borde-fuerte);
   border-radius: 0.75rem;
   width: 100%;
   max-width: 520px;
   max-height: 90vh;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.5);
+  box-shadow: var(--pj-sombra-modal);
   overflow: hidden;
-  color: #f3f4f6;
+  color: var(--pj-texto-primario-suave);
 }
 
 .cabecera {
@@ -29,36 +29,36 @@
   align-items: center;
   justify-content: space-between;
   padding: 1rem 1.25rem;
-  border-bottom: 1px solid #1f2937;
-  background-color: #1f2937;
+  border-bottom: 1px solid var(--pj-borde-fuerte);
+  background-color: var(--pj-fondo-tarjeta-elevada);
 }
 
 .titulo {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  font-size: 1.125rem;
+  font-size: var(--pj-fuente-titulo);
   font-weight: 700;
-  color: #e0e7ff;
+  color: var(--pj-texto-primario);
   margin: 0;
 }
 
 .botonCerrar {
   background: transparent;
   border: none;
-  color: #9ca3af;
+  color: var(--pj-texto-secundario);
   cursor: pointer;
   padding: 0.25rem;
   border-radius: 0.375rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: color 0.15s ease, background-color 0.15s ease;
+  transition: none;
 }
 
 .botonCerrar:hover {
-  color: #f3f4f6;
-  background-color: #374151;
+  color: var(--pj-texto-primario-suave);
+  background-color: var(--pj-fondo-tarjeta-hover);
 }
 
 .cuerpo {
@@ -70,16 +70,16 @@
 }
 
 .descripcion {
-  font-size: 0.875rem;
-  color: #9ca3af;
+  font-size: var(--pj-fuente-cuerpo);
+  color: var(--pj-texto-secundario);
   line-height: 1.4;
   margin: 0;
 }
 
 .selectorModo {
   display: flex;
-  background-color: #1f2937;
-  border: 1px solid #374151;
+  background-color: var(--pj-fondo-tarjeta-elevada);
+  border: 1px solid var(--pj-borde-fuerte);
   border-radius: 0.5rem;
   padding: 0.25rem;
   gap: 0.25rem;
@@ -95,25 +95,25 @@
   border: none;
   border-radius: 0.375rem;
   background: transparent;
-  color: #9ca3af;
-  font-size: 0.8125rem;
+  color: var(--pj-texto-secundario);
+  font-size: var(--pj-fuente-boton);
   font-weight: 600;
   cursor: pointer;
-  transition: background-color 0.15s ease, color 0.15s ease;
+  transition: none;
 }
 
 .botonModoActivo {
-  background-color: #374151;
-  color: #f3f4f6;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  background-color: var(--pj-fondo-tarjeta-elevada);
+  color: var(--pj-texto-primario-suave);
+  box-shadow: var(--pj-sombra-brillo-acento);
 }
 
 .tarjetaPresupuesto {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 0.75rem;
-  background-color: #1f2937;
-  border: 1px solid #374151;
+  background-color: var(--pj-fondo-tarjeta-elevada);
+  border: 1px solid var(--pj-borde-fuerte);
   border-radius: 0.5rem;
   padding: 0.75rem 1rem;
   text-align: center;
@@ -123,17 +123,17 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background-color: #1e1b4b;
-  border: 1px solid #4338ca;
+  background-color: var(--pj-acento-primario-solido);
+  border: 1px solid var(--pj-borde-acento);
   border-radius: 0.5rem;
   padding: 0.625rem 1rem;
-  font-size: 0.8125rem;
-  color: #c7d2fe;
+  font-size: var(--pj-fuente-label);
+  color: var(--pj-texto-acento);
 }
 
 .valorManaResaltado {
   font-weight: 700;
-  color: #38bdf8;
+  color: var(--pj-texto-cian);
 }
 
 .itemPresupuesto {
@@ -143,24 +143,24 @@
 }
 
 .valorPresupuesto {
-  font-size: 1.25rem;
+  font-size: var(--pj-fuente-numero-md);
   font-weight: 700;
-  color: #a855f7;
+  color: var(--pj-texto-magia);
 }
 
 .valorRestante {
-  color: #10b981;
+  color: var(--pj-texto-exito);
 }
 
 .valorAgotado {
-  color: #ef4444;
+  color: var(--pj-texto-alerta);
 }
 
 .etiquetaPresupuesto {
-  font-size: 0.75rem;
+  font-size: var(--pj-fuente-label);
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: #9ca3af;
+  color: var(--pj-texto-secundario);
   font-weight: 600;
 }
 
@@ -171,11 +171,11 @@
 }
 
 .tituloSeccion {
-  font-size: 0.8125rem;
+  font-size: var(--pj-fuente-subtitulo);
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: #9ca3af;
+  color: var(--pj-texto-secundario);
   margin: 0;
 }
 
@@ -184,14 +184,14 @@
   align-items: center;
   justify-content: space-between;
   padding: 0.625rem 0.875rem;
-  background-color: #1a2234;
-  border: 1px solid #2d3748;
+  background-color: var(--pj-fondo-tarjeta-elevada);
+  border: 1px solid var(--pj-borde-fuerte);
   border-radius: 0.5rem;
-  transition: border-color 0.15s ease;
+  transition: none;
 }
 
 .filaRanura:hover {
-  border-color: #4b5563;
+  border-color: var(--pj-borde-fuerte);
 }
 
 .infoRanura {
@@ -201,20 +201,20 @@
 }
 
 .insigniaNivel {
-  background-color: #2e1065;
-  color: #c084fc;
-  border: 1px solid #581c87;
-  font-size: 0.75rem;
+  background-color: var(--pj-acento-magia-solido);
+  color: var(--pj-texto-magia);
+  border: 1px solid var(--pj-borde-magia);
+  font-size: var(--pj-fuente-badge);
   font-weight: 700;
   padding: 0.125rem 0.5rem;
   border-radius: 0.25rem;
 }
 
 .insigniaPuntos {
-  background-color: #0c4a6e;
-  color: #38bdf8;
-  border: 1px solid #0369a1;
-  font-size: 0.75rem;
+  background-color: var(--pj-acento-cian-solido);
+  color: var(--pj-texto-cian);
+  border: 1px solid var(--pj-borde-cian);
+  font-size: var(--pj-fuente-badge);
   font-weight: 700;
   padding: 0.125rem 0.5rem;
   border-radius: 0.25rem;
@@ -226,14 +226,14 @@
 }
 
 .textoRanura {
-  font-size: 0.875rem;
+  font-size: var(--pj-fuente-cuerpo);
   font-weight: 600;
-  color: #f3f4f6;
+  color: var(--pj-texto-primario-suave);
 }
 
 .textoEstadoRanura {
-  font-size: 0.75rem;
-  color: #9ca3af;
+  font-size: var(--pj-fuente-label);
+  color: var(--pj-texto-secundario);
 }
 
 .controlesRanura {
@@ -243,9 +243,9 @@
 }
 
 .botonControl {
-  background-color: #374151;
-  border: 1px solid #4b5563;
-  color: #f3f4f6;
+  background-color: var(--pj-fondo-tarjeta-elevada);
+  border: 1px solid var(--pj-borde-fuerte);
+  color: var(--pj-texto-primario-suave);
   width: 28px;
   height: 28px;
   border-radius: 0.375rem;
@@ -253,11 +253,11 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: background-color 0.15s ease, opacity 0.15s ease;
+  transition: none;
 }
 
 .botonControl:hover:not(:disabled) {
-  background-color: #4b5563;
+  background-color: var(--pj-fondo-tarjeta-hover);
 }
 
 .botonControl:disabled {
@@ -269,17 +269,17 @@
   min-width: 24px;
   text-align: center;
   font-weight: 700;
-  font-size: 0.875rem;
-  color: #f3f4f6;
+  font-size: var(--pj-fuente-cuerpo);
+  color: var(--pj-texto-primario-suave);
 }
 
 .alerta {
-  background-color: #1e1b4b;
-  border: 1px solid #4338ca;
-  color: #c7d2fe;
+  background-color: var(--pj-acento-primario-solido);
+  border: 1px solid var(--pj-borde-acento);
+  color: var(--pj-texto-acento);
   padding: 0.75rem 1rem;
   border-radius: 0.5rem;
-  font-size: 0.8125rem;
+  font-size: var(--pj-fuente-label);
   line-height: 1.4;
   display: flex;
   align-items: center;
@@ -292,43 +292,43 @@
   justify-content: flex-end;
   gap: 0.75rem;
   padding: 1rem 1.25rem;
-  border-top: 1px solid #1f2937;
-  background-color: #171f2e;
+  border-top: 1px solid var(--pj-borde-fuerte);
+  background-color: var(--pj-fondo-tarjeta-elevada);
 }
 
 .botonCancelar {
   background: transparent;
-  border: 1px solid #4b5563;
-  color: #d1d5db;
+  border: 1px solid var(--pj-borde-fuerte);
+  color: var(--pj-texto-secundario-claro);
   padding: 0.5rem 1rem;
   border-radius: 0.375rem;
-  font-size: 0.875rem;
+  font-size: var(--pj-fuente-boton);
   font-weight: 500;
   cursor: pointer;
-  transition: background-color 0.15s ease;
+  transition: none;
 }
 
 .botonCancelar:hover {
-  background-color: #374151;
+  background-color: var(--pj-fondo-tarjeta-hover);
 }
 
 .botonConfirmar {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  background-color: #7c3aed;
-  border: 1px solid #6d28d9;
-  color: #ffffff;
+  background-color: var(--pj-acento-magia-solido);
+  border: 1px solid var(--pj-borde-magia);
+  color: var(--pj-texto-primario);
   padding: 0.5rem 1.25rem;
   border-radius: 0.375rem;
-  font-size: 0.875rem;
+  font-size: var(--pj-fuente-boton);
   font-weight: 600;
   cursor: pointer;
-  transition: background-color 0.15s ease;
+  transition: none;
 }
 
 .botonConfirmar:hover:not(:disabled) {
-  background-color: #6d28d9;
+  background-color: var(--pj-acento-magia-solido);
 }
 
 .botonConfirmar:disabled {

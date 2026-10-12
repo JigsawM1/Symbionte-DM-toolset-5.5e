@@ -4,7 +4,7 @@
    
    Separación arquitectónica: Este archivo define la identidad visual del
    JUGADOR (Player UI), completamente desacoplada del tema del Master (DM).
-   Garantiza alto contraste WCAG AA/AAA y legibilidad óptima en TaleSpire CEF.
+   Paleta y escala de lectura para TaleSpire CEF; validar el contraste por estado.
    ========================================================================== */
 
 :root {
@@ -39,6 +39,9 @@
   --pj-borde-peligro: rgba(239, 68, 68, 0.5);
   --pj-borde-exito: rgba(16, 185, 129, 0.5);
   --pj-borde-oro: rgba(234, 179, 8, 0.5);
+  --pj-borde-magia: rgba(139, 92, 246, 0.5);
+  --pj-radio-control: 6px;
+  --pj-radio-panel: 8px;
 
   /* ==========================================
      3. TIPOGRAFÍA Y COLORES DE TEXTO (ALTO CONTRASTE WCAG)
@@ -68,6 +71,7 @@
   --pj-texto-oro: #fde047;
   --pj-texto-oro-brillante: #fef08a;
   --pj-texto-magia: #d8b4fe;
+  --pj-texto-sobre-acento: #ffffff;
 
   /* ==========================================
      4. ESCALA DE TAMAÑOS TIPOGRÁFICOS (MÍNIMO 11PX)
@@ -91,24 +95,39 @@
   --pj-acento-primario-hover: #6366f1;
   --pj-acento-primario-fondo: rgba(129, 140, 248, 0.12);
   --pj-acento-primario-activo: rgba(129, 140, 248, 0.25);
+  /* Acciones sólidas con contraste para etiquetas blancas de 12px. */
+  --pj-acento-primario-solido: #4f46e5;
+  --pj-acento-primario-solido-hover: #4338ca;
 
   --pj-acento-cian: #0284c7;
   --pj-acento-cian-brillante: #38bdf8;
   --pj-acento-cian-fondo: rgba(56, 189, 248, 0.12);
+  --pj-acento-cian-solido: #075985;
 
   --pj-acento-peligro: #ef4444;
+  --pj-acento-peligro-medio: #dc2626;
   --pj-acento-peligro-fondo: rgba(239, 68, 68, 0.14);
   --pj-acento-peligro-oscuro: #7f1d1d;
 
   --pj-acento-exito: #10b981;
+  --pj-acento-exito-medio: #059669;
   --pj-acento-exito-fondo: rgba(16, 185, 129, 0.14);
   --pj-acento-exito-oscuro: #064e3b;
 
   --pj-acento-oro: #eab308;
+  --pj-acento-oro-medio: #ca8a04;
   --pj-acento-oro-fondo: rgba(234, 179, 8, 0.14);
+  --pj-acento-oro-oscuro: #713f12;
 
   --pj-acento-magia: #8b5cf6;
   --pj-acento-magia-fondo: rgba(139, 92, 246, 0.14);
+  --pj-acento-magia-solido: #6d28d9;
+  --pj-rgb-primario: 129, 140, 248;
+  --pj-rgb-cian: 56, 189, 248;
+  --pj-rgb-peligro: 239, 68, 68;
+  --pj-rgb-exito: 16, 185, 129;
+  --pj-rgb-oro: 234, 179, 8;
+  --pj-rgb-neutro: 148, 163, 184;
 
   /* ==========================================
      6. MONEDAS Y RECURSOS
@@ -129,6 +148,143 @@
   --pj-sombra-brillo-acento: 0 0 10px rgba(129, 140, 248, 0.3);
   --pj-sombra-brillo-cian: 0 0 10px rgba(56, 189, 248, 0.3);
   --pj-sombra-brillo-oro: 0 0 10px rgba(234, 179, 8, 0.4);
+}
+
+/* Adaptación local de los componentes que aún consumen tokens compartidos.
+   El contexto viaja también con los tooltips que se montan en document.body. */
+[data-tema="jugador"] {
+  --color-fondo-profundo: var(--pj-fondo-base);
+  --color-fondo-panel: var(--pj-fondo-panel);
+  --color-fondo-tarjeta: var(--pj-fondo-tarjeta);
+  --color-fondo-tarjeta-foco: var(--pj-fondo-tarjeta-hover);
+  --color-borde-brutal: var(--pj-borde-medio);
+  --color-borde-neon: var(--pj-borde-acento-fuerte);
+  --color-borde-cian: var(--pj-borde-cian-fuerte);
+  --color-borde-alerta: var(--pj-borde-peligro);
+  --color-texto-principal: var(--pj-texto-primario);
+  --color-texto-secundario: var(--pj-texto-secundario);
+  --color-texto-apagado: var(--pj-texto-terciario);
+  --color-primario: var(--pj-acento-primario-solido);
+  --color-primario-brillante: var(--pj-acento-primario-solido-hover);
+  --color-exito: var(--pj-texto-exito);
+  --color-peligro: var(--pj-texto-alerta);
+  --color-advertencia: var(--pj-texto-oro);
+  --color-arcano: var(--pj-acento-magia-solido);
+  --color-info: var(--pj-texto-cian);
+  --color-cobre: var(--pj-moneda-cobre);
+  --color-plata: var(--pj-moneda-plata);
+  --color-electrum: var(--pj-moneda-electrum);
+  --color-oro: var(--pj-moneda-oro);
+  --color-platino: var(--pj-moneda-platino);
+  --superficie-tarjeta: var(--pj-fondo-tarjeta);
+  --superficie-hover: var(--pj-acento-primario-fondo);
+  --superficie-seleccion: var(--pj-acento-primario-activo);
+  --superficie-overlay: var(--pj-fondo-modal-overlay);
+  --sombra-tarjeta: var(--pj-sombra-tarjeta);
+  --sombra-elevada: var(--pj-sombra-panel);
+  --sombra-overlay: var(--pj-sombra-modal);
+  --radio-sm: var(--pj-radio-control);
+  --radio-md: var(--pj-radio-panel);
+  --radio-lg: var(--pj-radio-panel);
+  background-color: var(--pj-fondo-base);
+  color: var(--pj-texto-primario);
+  font-family: var(--fuente-principal);
+  font-size: var(--pj-fuente-cuerpo);
+  line-height: 1.45;
+  color-scheme: dark;
+}
+
+[data-tema="jugador"] :is(button, [role="button"]) {
+  min-width: 32px;
+  min-height: 32px;
+}
+
+/* La composición local conserva formas y tamaños de letra propios. */
+:where([data-tema="jugador"]) :where(button, [role="button"]) {
+  border-radius: var(--pj-radio-control);
+  font-size: var(--pj-fuente-boton);
+}
+
+[data-tema="jugador"] :where(input:not([type="checkbox"]):not([type="radio"]), textarea) {
+  min-height: 32px;
+  background-color: var(--pj-fondo-hundido);
+  border-radius: var(--pj-radio-control);
+  font-size: var(--pj-fuente-cuerpo);
+  box-shadow: var(--pj-sombra-hundida);
+}
+
+[data-tema="jugador"] :where(button:not(:disabled), input, textarea, [tabindex]):focus-visible {
+  outline: 2px solid var(--pj-borde-acento-fuerte) !important;
+  outline-offset: 2px;
+}
+
+[data-tema="jugador"] :where(input, textarea)::placeholder {
+  color: var(--pj-texto-terciario);
+  opacity: 1;
+}
+
+[data-tema="jugador"] :is(button:disabled, [role="button"][aria-disabled="true"]) {
+  opacity: 1;
+  color: var(--pj-texto-apagado);
+  background: var(--pj-fondo-hundido);
+  border-color: var(--pj-borde-sutil);
+  cursor: not-allowed;
+}
+
+[data-tema="jugador"] .dado-interactivo-inline {
+  color: var(--pj-texto-cian) !important;
+  background-color: var(--pj-acento-cian-fondo) !important;
+  border-radius: var(--pj-radio-control) !important;
+  font-family: var(--fuente-codigo) !important;
+}
+
+[data-tema="jugador"] :where(.chip-condicion-universal, .chip-condicion-chico-tooltip) {
+  font-size: var(--pj-fuente-badge);
+  border-radius: var(--pj-radio-control);
+}
+
+[data-tema="jugador"] .chip-condicion-estandar {
+  background-color: var(--pj-acento-cian-fondo);
+  border-color: var(--pj-borde-cian);
+  color: var(--pj-texto-cian);
+}
+
+[data-tema="jugador"] .chip-condicion-desangrado {
+  background-color: var(--pj-acento-peligro-fondo) !important;
+  border-color: var(--pj-borde-peligro) !important;
+  color: var(--pj-texto-alerta) !important;
+  box-shadow: none !important;
+}
+
+[data-tema="jugador"] :where(.chip-condicion-concentracion, .chip-condicion-penalizacion) {
+  background-color: var(--pj-acento-oro-fondo) !important;
+  border-color: var(--pj-borde-oro) !important;
+  color: var(--pj-texto-oro) !important;
+  box-shadow: none !important;
+}
+
+[data-tema="jugador"] :where(.chip-condicion-magico, .chip-condicion-sigilo) {
+  background-color: var(--pj-acento-magia-fondo) !important;
+  border-color: var(--pj-borde-magia) !important;
+  color: var(--pj-texto-magia) !important;
+}
+
+[data-tema="jugador"] .chip-condicion-permanente {
+  background-color: var(--pj-fondo-tarjeta-elevada) !important;
+  border-color: var(--pj-borde-medio) !important;
+  color: var(--pj-texto-secundario) !important;
+}
+
+[data-tema="jugador"] .chip-condicion-badge-expiracion {
+  font-size: var(--pj-fuente-micro);
+}
+
+[data-tema="jugador"] .tooltip-contenido {
+  background-color: var(--pj-fondo-modal-cuerpo);
+  border-color: var(--pj-borde-medio);
+  color: var(--pj-texto-secundario);
+  box-shadow: var(--pj-sombra-modal);
+  font-size: var(--pj-fuente-cuerpo);
 }
 
 /* ==========================================

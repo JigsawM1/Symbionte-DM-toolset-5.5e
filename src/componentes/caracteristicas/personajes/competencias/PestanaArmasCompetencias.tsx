@@ -45,7 +45,7 @@ export const PestanaArmasCompetencias: React.FC<PestanaArmasCompetenciasProps> =
                 className={estilos.botonGrupoMaestro}
                 data-check={check}
               >
-                {check ? <CheckSquare size={14} color="#93c5fd" /> : <Square size={14} color="#64748b" />}
+                {check ? <CheckSquare size={14} color="var(--pj-texto-cian-claro)" /> : <Square size={14} color="var(--pj-texto-terciario)" />}
                 <span>{g.etiqueta}</span>
               </button>
             );

@@ -36,15 +36,15 @@ interface FilaConjuroCompendioProps {
 // Obtener icono temático según la escuela de magia
 function obtenerIconoEscuela(escuela?: string) {
   const norm = (escuela || "").toLowerCase();
-  if (norm.includes("abjuraci")) return <Shield size={16} color="#60a5fa" />;
-  if (norm.includes("adivinaci")) return <Eye size={16} color="#c084fc" />;
-  if (norm.includes("conjuraci")) return <Sparkles size={16} color="#38bdf8" />;
-  if (norm.includes("encantam")) return <Heart size={16} color="#f472b6" />;
-  if (norm.includes("evocaci")) return <Zap size={16} color="#fbbf24" />;
-  if (norm.includes("ilusi")) return <Ghost size={16} color="#a78bfa" />;
-  if (norm.includes("nigromanc")) return <Skull size={16} color="#34d399" />;
-  if (norm.includes("transmutaci")) return <RefreshCw size={16} color="#fb923c" />;
-  return <Sparkles size={16} color="#94a3b8" />;
+  if (norm.includes("abjuraci")) return <Shield size={16} color="var(--pj-texto-cian-claro)" />;
+  if (norm.includes("adivinaci")) return <Eye size={16} color="var(--pj-texto-magia)" />;
+  if (norm.includes("conjuraci")) return <Sparkles size={16} color="var(--pj-texto-cian)" />;
+  if (norm.includes("encantam")) return <Heart size={16} color="var(--pj-texto-magia)" />;
+  if (norm.includes("evocaci")) return <Zap size={16} color="var(--pj-texto-oro)" />;
+  if (norm.includes("ilusi")) return <Ghost size={16} color="var(--pj-texto-acento)" />;
+  if (norm.includes("nigromanc")) return <Skull size={16} color="var(--pj-texto-exito)" />;
+  if (norm.includes("transmutaci")) return <RefreshCw size={16} color="var(--pj-texto-oro)" />;
+  return <Sparkles size={16} color="var(--pj-texto-terciario)" />;
 }
 
 function formatearNivel(nivel: number): string {

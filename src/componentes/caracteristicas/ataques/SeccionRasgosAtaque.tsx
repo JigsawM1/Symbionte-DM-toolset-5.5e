@@ -174,7 +174,7 @@ export const SeccionRasgosAtaque: React.FC<SeccionRasgosAtaqueProps> = ({
         title={`Clic para ${subseccionesAbiertas.ocultos !== false ? "colapsar" : "expandir"} rasgos ocultos`}
       >
         <div className={estilos.tituloOcultosRasgos}>
-          <EyeOff size={14} color="#94a3b8" />
+          <EyeOff size={14} color="var(--pj-texto-terciario)" />
           <span>Rasgos Ocultos</span>
           <span className={estilos.badgeConteoOcultosRasgos}>{rasgosOcultos.length}</span>
         </div>
@@ -213,7 +213,7 @@ export const SeccionRasgosAtaque: React.FC<SeccionRasgosAtaqueProps> = ({
         title="Clic para mostrar u ocultar rasgos y habilidades tácticas"
       >
         <div className={estilos.tituloGrupoAtaques}>
-          <Sparkles size={14} color="#38bdf8" />
+          <Sparkles size={14} color="var(--pj-texto-cian)" />
           <span>Rasgos y Habilidades Tácticas</span>
           <span className={estilos.badgeConteoSeccion}>{rasgosVisibles.length}</span>
         </div>
@@ -238,7 +238,7 @@ export const SeccionRasgosAtaque: React.FC<SeccionRasgosAtaqueProps> = ({
                     title="Clic para alternar subsección de activables y modos tácticos"
                   >
                     <div className={estilos.tituloNivelMagico}>
-                      <Sliders size={13} color="#ec4899" />
+                      <Sliders size={13} color="var(--pj-texto-magia)" />
                       <span>Activables y Modos de Combate</span>
                     </div>
                     <div className={estilos.ladoDerechoCabecera}>
@@ -269,7 +269,7 @@ export const SeccionRasgosAtaque: React.FC<SeccionRasgosAtaqueProps> = ({
                     title="Clic para alternar subsección de recursos tácticos y consumibles"
                   >
                     <div className={estilos.tituloNivelMagico}>
-                      <FlaskConical size={13} color="#10b981" />
+                      <FlaskConical size={13} color="var(--pj-texto-exito)" />
                       <span>Recursos Tácticos y Consumibles</span>
                     </div>
                     <div className={estilos.ladoDerechoCabecera}>
@@ -300,7 +300,7 @@ export const SeccionRasgosAtaque: React.FC<SeccionRasgosAtaqueProps> = ({
                     title="Clic para alternar subsección de acciones"
                   >
                     <div className={estilos.tituloNivelMagico}>
-                      <Zap size={13} color="#f59e0b" />
+                      <Zap size={13} color="var(--pj-texto-oro)" />
                       <span>Acciones</span>
                     </div>
                     <div className={estilos.ladoDerechoCabecera}>
@@ -331,7 +331,7 @@ export const SeccionRasgosAtaque: React.FC<SeccionRasgosAtaqueProps> = ({
                     title="Clic para alternar subsección de acciones adicionales"
                   >
                     <div className={estilos.tituloNivelMagico}>
-                      <Clock size={13} color="#38bdf8" />
+                      <Clock size={13} color="var(--pj-texto-cian)" />
                       <span>Acciones Adicionales</span>
                     </div>
                     <div className={estilos.ladoDerechoCabecera}>
@@ -362,7 +362,7 @@ export const SeccionRasgosAtaque: React.FC<SeccionRasgosAtaqueProps> = ({
                     title="Clic para alternar subsección de reacciones"
                   >
                     <div className={estilos.tituloNivelMagico}>
-                      <Sparkles size={13} color="#c084fc" />
+                      <Sparkles size={13} color="var(--pj-texto-magia)" />
                       <span>Reacciones</span>
                     </div>
                     <div className={estilos.ladoDerechoCabecera}>

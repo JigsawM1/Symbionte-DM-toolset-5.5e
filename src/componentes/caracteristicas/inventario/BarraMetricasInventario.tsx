@@ -111,23 +111,23 @@ export const BarraMetricasInventario: React.FC<BarraMetricasInventarioProps> = (
           <span className={estilos.iconoChevronColapso}>
             {estaAbierta ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
           </span>
-          <Coins size={14} color="#f59e0b" />
+          <Coins size={14} color="var(--pj-texto-oro)" />
           <span>Recursos, Carga y Finanzas</span>
         </div>
         <div className={estilos.resumenCabeceraRecursos}>
           <span className={estilos.badgeResumenRecursoPO} title="Total en oro">
-            <Coins size={10} color="#fbbf24" className={estilos.iconoBadgeResumen} />
+            <Coins size={10} color="var(--pj-texto-oro)" className={estilos.iconoBadgeResumen} />
             {totalPOEquivalente.toLocaleString("es-ES")} PO
           </span>
           <span
             className={`${estilos.badgeResumenRecursoCarga} ${sobrecargado ? estilos.badgeResumenCargaSobrecargado : ""}`}
             title="Peso total vs capacidad de carga"
           >
-            <Weight size={10} color={sobrecargado ? "#ef4444" : "#10b981"} className={estilos.iconoBadgeResumen} />
+            <Weight size={10} color={sobrecargado ? "var(--pj-texto-alerta)" : "var(--pj-texto-exito)"} className={estilos.iconoBadgeResumen} />
             {pesoTotal} / {capacidadCarga} lb
           </span>
           <span className={estilos.badgeResumenRecursoSintonizacion} title="Ranuras sintonizadas ocupadas">
-            <Link2 size={10} color="#c084fc" className={estilos.iconoBadgeResumen} />
+            <Link2 size={10} color="var(--pj-texto-magia)" className={estilos.iconoBadgeResumen} />
             {totalSintonizados}/3
           </span>
         </div>
@@ -139,7 +139,7 @@ export const BarraMetricasInventario: React.FC<BarraMetricasInventarioProps> = (
           <div className={estilos.contenedorMonedasInterior}>
             <div className={estilos.cabeceraMonedas}>
               <div className={estilos.tituloMonedas}>
-                <Coins size={12} color="#f59e0b" />
+                <Coins size={12} color="var(--pj-texto-oro)" />
                 <span>Bolsa de Monedas</span>
               </div>
               <div className={estilos.resumenEquivalentePO}>
@@ -165,7 +165,7 @@ export const BarraMetricasInventario: React.FC<BarraMetricasInventarioProps> = (
           <div className={estilos.contenedorCargaInterior}>
             <div className={estilos.cabeceraCarga}>
               <div className={estilos.tituloCarga}>
-                <Weight size={12} color={sobrecargado ? "#ef4444" : "#10b981"} />
+                <Weight size={12} color={sobrecargado ? "var(--pj-texto-alerta)" : "var(--pj-texto-exito)"} />
                 <span>Capacidad de Carga</span>
               </div>
               <div className={estilos.detalleCalculoCarga}>
@@ -206,7 +206,7 @@ export const BarraMetricasInventario: React.FC<BarraMetricasInventarioProps> = (
           <div className={estilos.contenedorSintonizacionInterior}>
             <div className={estilos.cabeceraSintonizacion}>
               <div className={estilos.tituloSintonizacion}>
-                <Link2 size={12} color="#c084fc" />
+                <Link2 size={12} color="var(--pj-texto-magia)" />
                 <span>Sintonización Mágica</span>
               </div>
               <span className={estilos.sintonizacionRanurasTexto}>

@@ -111,7 +111,7 @@ export const MetricasPrincipalesObjeto: React.FC<MetricasPrincipalesObjetoProps>
       {objeto.cargasMaximas !== undefined && (
         <div className={estilos.cajaMetrica}>
           <span className={estilos.etiquetaMetrica}>
-            <Zap size={11} color="#fbbf24" /> Cargas
+            <Zap size={11} color="var(--pj-texto-oro)" /> Cargas
           </span>
           <strong className={`${estilos.valorMetrica} ${estilos.valorMetricaOro}`}>
             {objeto.cargasActuales ?? objeto.cargasMaximas} / {objeto.cargasMaximas}

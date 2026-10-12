@@ -4,7 +4,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0, 0, 0, 0.75);
+  background-color: var(--pj-fondo-modal-overlay);
   z-index: 1000;
   display: flex;
   align-items: center;
@@ -18,7 +18,7 @@
   width: 100%;
   max-height: 90vh;
   overflow-y: auto;
-  background-color: #161b22;
-  border-radius: 8px;
+  background-color: var(--pj-fondo-modal-cuerpo);
+  border-radius: var(--pj-radio-panel);
   transition: none;
 }

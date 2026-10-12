@@ -105,3 +105,53 @@
   min-width: 3.2rem;
   text-align: center;
 }
+
+/* Variante de jugador: DESIGN.md. Composición compartida, identidad zafiro/índigo. */
+
+:global([data-tema="jugador"]) .contenedorPaginacionCompacto {
+  font-size: var(--pj-fuente-label);
+}
+
+:global([data-tema="jugador"]) .infoRango {
+  color: var(--pj-texto-terciario);
+  font-size: var(--pj-fuente-label);
+}
+
+:global([data-tema="jugador"]) .infoRangoCompacto {
+  color: var(--pj-texto-terciario);
+  font-size: var(--pj-fuente-label);
+}
+
+:global([data-tema="jugador"]) .botonPaginacion {
+  background-color: var(--pj-fondo-tarjeta-elevada);
+  border: 1px solid var(--pj-borde-fuerte);
+  color: var(--pj-texto-secundario);
+}
+
+:global([data-tema="jugador"]) .botonPaginacion:hover:not(:disabled) {
+  background-color: var(--pj-fondo-tarjeta-hover);
+  color: var(--pj-texto-primario);
+  border-color: var(--pj-borde-fuerte);
+}
+
+:global([data-tema="jugador"]) .botonPaginacionCompacto {
+  background-color: var(--pj-fondo-tarjeta-elevada);
+  border: 1px solid var(--pj-borde-fuerte);
+  color: var(--pj-texto-secundario);
+}
+
+:global([data-tema="jugador"]) .botonPaginacionCompacto:hover:not(:disabled) {
+  background-color: var(--pj-fondo-tarjeta-hover);
+  color: var(--pj-texto-primario);
+  border-color: var(--pj-borde-fuerte);
+}
+
+:global([data-tema="jugador"]) .textoPaginaActual {
+  color: var(--pj-texto-secundario);
+  font-size: var(--pj-fuente-label);
+}
+
+:global([data-tema="jugador"]) .textoPaginaActualCompacto {
+  color: var(--pj-texto-secundario);
+  font-size: var(--pj-fuente-label);
+}

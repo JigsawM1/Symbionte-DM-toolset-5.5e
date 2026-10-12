@@ -232,12 +232,12 @@ export const ModalDetalleRasgo: React.FC<ModalDetalleRasgoProps> = ({
         <div className={estilos.cabeceraModalDetalle}>
           <div className={estilos.infoTituloModal}>
             <div className={estilos.lineaTituloModal}>
-              {esRasgoSelector && <SlidersHorizontal size={15} color="#818cf8" />}
-              {!esRasgoSelector && esClase && <Swords size={15} color="#d4af37" />}
-              {!esRasgoSelector && esSubclase && <Sparkles size={15} color="#38bdf8" />}
-              {!esRasgoSelector && esEspecie && <User size={15} color="#10b981" />}
-              {!esRasgoSelector && esDote && <Award size={15} color="#a78bfa" />}
-              {!esRasgoSelector && !esClase && !esSubclase && !esEspecie && !esDote && <Layers size={15} color="#38bdf8" />}
+              {esRasgoSelector && <SlidersHorizontal size={15} color="var(--pj-texto-acento)" />}
+              {!esRasgoSelector && esClase && <Swords size={15} color="var(--pj-texto-oro)" />}
+              {!esRasgoSelector && esSubclase && <Sparkles size={15} color="var(--pj-texto-cian)" />}
+              {!esRasgoSelector && esEspecie && <User size={15} color="var(--pj-texto-exito)" />}
+              {!esRasgoSelector && esDote && <Award size={15} color="var(--pj-texto-magia)" />}
+              {!esRasgoSelector && !esClase && !esSubclase && !esEspecie && !esDote && <Layers size={15} color="var(--pj-texto-cian)" />}
 
               <h2 className={estilos.tituloRasgoModal}>
                 {rasgo.nivelRequerido && rasgo.nivelRequerido > 0 ? `NIVEL ${rasgo.nivelRequerido}: ` : ""}
@@ -381,7 +381,7 @@ export const ModalDetalleRasgo: React.FC<ModalDetalleRasgoProps> = ({
                     : `Lanzar tirada de ${formulaEfectiva} a TaleSpire`
                 }
               >
-                {esCuracion ? <Heart size={14} color="#10b981" /> : <Dices size={14} />}
+                {esCuracion ? <Heart size={14} color="var(--pj-texto-exito)" /> : <Dices size={14} />}
                 <span>
                   {esCuracion
                     ? `Curar ${formulaEfectiva} (${etiquetaGasto})`
@@ -404,7 +404,7 @@ export const ModalDetalleRasgo: React.FC<ModalDetalleRasgoProps> = ({
                     : "Abrir recuperación de espacios de conjuro"
                 }
               >
-                <Sparkles size={14} color="#c084fc" />
+                <Sparkles size={14} color="var(--pj-texto-magia)" />
                 <span>Recuperar Espacios</span>
               </button>
             )}

@@ -65,6 +65,8 @@ Los valores corresponden a `src/estilos/temaJugador.css`. Cada variante tiene su
 
 Para acciones, usar las familias `--pj-acento-primario*`, `--pj-acento-cian*`, `--pj-acento-peligro*`, `--pj-acento-exito*`, `--pj-acento-oro*` y `--pj-acento-magia*`. Para monedas, usar `--pj-moneda-*`; para profundidad, `--pj-sombra-panel`, `--pj-sombra-tarjeta`, `--pj-sombra-hundida` y `--pj-sombra-modal`. Reservar los brillos `--pj-sombra-brillo-*` para estados destacados.
 
+Las acciones con etiqueta blanca usan `--pj-acento-primario-solido` (`#4f46e5`) y su hover (`#4338ca`). Para acciones semánticas sólidas, usar `--pj-acento-cian-solido`, `--pj-acento-magia-solido` o los fondos `--pj-acento-peligro-oscuro`, `--pj-acento-exito-oscuro` y `--pj-acento-oro-oscuro`. Los acentos claros de texto y borde conservan sus tokens propios; no usarlos como fondo de etiquetas blancas. Los radios se centralizan en `--pj-radio-control` (`6px`) y `--pj-radio-panel` (`8px`).
+
 ---
 
 ## 3. Escala Tipográfica de Alta Legibilidad
@@ -77,6 +79,8 @@ Para acciones, usar las familias `--pj-acento-primario*`, `--pj-acento-cian*`, `
   - **Nombres de Tarjeta y Cuerpo**: `--pj-fuente-subtitulo` y `--pj-fuente-cuerpo` (`12.5px`); cuerpo con altura de línea aproximada de `1.45`.
   - **Botones y Filtros Tácticos**: `--pj-fuente-boton` (`12px`), peso `700`.
   - **Badges, Etiquetas y Metadatos**: `--pj-fuente-micro` y `--pj-fuente-label` (`11px`), `--pj-fuente-badge` (`11.5px`).
+
+- **Descripciones enriquecidas**: texto secundario, sangría de primera línea de `10px` y una línea de separación entre párrafos (`\n\n`). Los saltos simples (`\n`) se conservan dentro del párrafo; el énfasis y los dados mantienen su color semántico.
 
 ---
 
@@ -94,6 +98,7 @@ Para acciones, usar las familias `--pj-acento-primario*`, `--pj-acento-cian*`, `
 ### C. Vitalidad y Recursos
 - **Barra de Vida**: Gradiente de 3 estados (Plena `#10b981`, Herida `#eab308`, Crítica `#ef4444`) con valores a `18px` y badges a `11px`.
 - **Recursos Rápidos**: Dados de Golpe, Salvaciones de Muerte y Cansancio con contraste nítido.
+- Las barras de vida usan los acentos de éxito, oro y peligro; los gradientes de la hoja terminan en sus variantes `--pj-acento-*-medio`. Reservar las variantes `*-oscuro` para fondos de acciones con etiquetas claras. Los indicadores de cansancio conservan un círculo visible de `14px` dentro de un botón de `32px` operable con teclado.
 
 ### D. Acciones, Conjuros, Rasgos e Inventario
 
@@ -106,7 +111,7 @@ Para acciones, usar las familias `--pj-acento-primario*`, `--pj-acento-cian*`, `
 ### E. Paneles, Modales y Estados
 
 - Usar tarjetas elevadas y campos hundidos para diferenciar lectura y edición; radios de `6px`–`8px` en paneles de la hoja.
-- En modales, mantener cabecera, cierre y acciones identificables, con desplazamiento interno del contenido.
+- En modales, mantener cabecera, cierre y acciones visibles, con desplazamiento interno del contenido. Una vista previa que crece no debe desplazar las acciones fuera de la ventana. Los diálogos de inventario deben quedar por encima de los dados flotantes.
 - Diferenciar hover, foco, activo y deshabilitado con cambios estáticos de superficie, borde y texto. Acompañar estados críticos con etiquetas o iconos.
 
 ---
@@ -126,3 +131,6 @@ Para acciones, usar las familias `--pj-acento-primario*`, `--pj-acento-cian*`, `
 - Mantener los estilos de composición en el CSS Module del componente; las variantes compartidas deben quedar acotadas a la vista de jugador.
 - El tema de jugador define tokens en `:root`, pero ese prefijo no aísla automáticamente los estilos. Evitar reglas globales nuevas sobre `button`, títulos, tarjetas o modales que alteren otros contextos.
 - Al cambiar un componente reutilizado, verificar su presentación en los contextos que lo consumen. Esta guía no redefine las herramientas del Master.
+- La raíz de la aplicación usa `data-tema="jugador"`; las variantes compartidas se acotan a ese contexto. `temaJugador.css` adapta localmente los tokens generales heredados a los del jugador. Los tooltips portados a `document.body` llevan el mismo atributo y su superficie se estiliza también sobre el propio nodo del portal.
+- El ancho de referencia de TaleSpire CEF es **599px**. Hasta `620px`, la navegación principal del jugador se distribuye en cuatro columnas, conserva el orden de las pestañas y permite dos filas. Los formularios de multiclase usan dos columnas para mantener visibles sus controles sin reducir el texto.
+- Hasta `480px`, los iconos de navegación se sitúan sobre sus etiquetas para evitar cortar palabras. Hasta `560px`, dados de golpe ocupan la primera fila y salvaciones/cansancio la segunda; las ranuras de magia mantienen su forma circular. Las reglas generales de tamaño de clic no deben reemplazar la forma ni la tipografía local de los componentes.

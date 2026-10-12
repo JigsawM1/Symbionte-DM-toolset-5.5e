@@ -49,7 +49,7 @@ export const BarraFiltrosConjuros: React.FC<BarraFiltrosConjurosProps> = ({
     <div className={estilos.barraFiltrosConjuros}>
       <div className={estilos.filaPrincipalFiltros}>
         <div className={estilos.cajaBuscador}>
-          <Search size={13} color="#94a3b8" />
+          <Search size={13} color="var(--pj-texto-terciario)" />
           <input
             type="text"
             placeholder="Buscar por nombre, escuela o descripción..."
@@ -134,7 +134,7 @@ export const BarraFiltrosConjuros: React.FC<BarraFiltrosConjurosProps> = ({
                   filtroConcentracion === "con" ? estilos.chipFiltroPeligroActivo : ""
                 }`}
               >
-                <Flame size={11} color={filtroConcentracion === "con" ? "#fca5a5" : "#ef4444"} />
+                <Flame size={11} color={filtroConcentracion === "con" ? "var(--pj-texto-alerta)" : "var(--pj-texto-alerta)"} />
                 Con Concentración
               </button>
             </div>
@@ -160,7 +160,7 @@ export const BarraFiltrosConjuros: React.FC<BarraFiltrosConjurosProps> = ({
                   filtroResolucion === "ataque" ? estilos.chipFiltroActivo : ""
                 }`}
               >
-                <Zap size={11} color={filtroResolucion === "ataque" ? "#c4b5fd" : "#a78bfa"} />
+                <Zap size={11} color={filtroResolucion === "ataque" ? "var(--pj-texto-magia)" : "var(--pj-texto-magia)"} />
                 Tirada de Ataque
               </button>
               <button
@@ -170,7 +170,7 @@ export const BarraFiltrosConjuros: React.FC<BarraFiltrosConjurosProps> = ({
                   filtroResolucion === "salvacion" ? estilos.chipFiltroActivo : ""
                 }`}
               >
-                <Shield size={11} color={filtroResolucion === "salvacion" ? "#bae6fd" : "#38bdf8"} />
+                <Shield size={11} color={filtroResolucion === "salvacion" ? "var(--pj-texto-cian-claro)" : "var(--pj-texto-cian)"} />
                 Salvación (CD)
               </button>
               <button
@@ -180,7 +180,7 @@ export const BarraFiltrosConjuros: React.FC<BarraFiltrosConjurosProps> = ({
                   filtroResolucion === "utilidad" ? estilos.chipFiltroActivo : ""
                 }`}
               >
-                <Sparkles size={11} color={filtroResolucion === "utilidad" ? "#a7f3d0" : "#34d399"} />
+                <Sparkles size={11} color={filtroResolucion === "utilidad" ? "var(--pj-texto-exito-brillante)" : "var(--pj-texto-exito)"} />
                 Utilidad / Efecto
               </button>
             </div>

@@ -29,7 +29,7 @@ export function SelectoresConstructor({ borrador, actualizarBorrador }: Props) {
     return (<div className={estilos.seccionCard}>
         <div className={estilos.cabeceraSeccion}>
           <div className={estilos.tituloSeccion}>
-            <ListFilter size={14} color="#38bdf8"/>
+            <ListFilter size={14} color="var(--pj-texto-cian)"/>
             <span>5. Opciones y Selectores Configurables (Homebrew)</span>
           </div>
           <p className={estilos.descripcionSeccion}>

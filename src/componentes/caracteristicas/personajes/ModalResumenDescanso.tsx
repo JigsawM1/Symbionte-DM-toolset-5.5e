@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef } from "react";
 import type { AccionDescanso, TipoAccionDescanso } from "@/servicios/procesadorDescansos";
 import {
   Moon,
@@ -26,21 +26,21 @@ interface ModalResumenDescansoProps {
 const obtenerIconoAccion = (tipo: TipoAccionDescanso) => {
   switch (tipo) {
     case "hp":
-      return <Heart size={16} color="#ef4444" />;
+      return <Heart size={16} color="var(--pj-texto-alerta)" />;
     case "dadosGolpe":
-      return <Dices size={16} color="#818cf8" />;
+      return <Dices size={16} color="var(--pj-texto-acento)" />;
     case "ranura":
-      return <Sparkles size={16} color="#c084fc" />;
+      return <Sparkles size={16} color="var(--pj-texto-magia)" />;
     case "temporal":
-      return <Shield size={16} color="#38bdf8" />;
+      return <Shield size={16} color="var(--pj-texto-cian)" />;
     case "cansancio":
-      return <Activity size={16} color="#f59e0b" />;
+      return <Activity size={16} color="var(--pj-texto-oro)" />;
     case "salvacionesMuerte":
-      return <Skull size={16} color="#94a3b8" />;
+      return <Skull size={16} color="var(--pj-texto-terciario)" />;
     case "recurso":
-      return <Zap size={16} color="#fbbf24" />;
+      return <Zap size={16} color="var(--pj-texto-oro)" />;
     default:
-      return <CheckCircle2 size={16} color="#10b981" />;
+      return <CheckCircle2 size={16} color="var(--pj-texto-exito)" />;
   }
 };
 
@@ -123,7 +123,7 @@ export const ModalResumenDescanso: React.FC<ModalResumenDescansoProps> = ({
           ) : (
             <div className={estilos.itemAccion}>
               <span className={estilos.iconoAccion}>
-                <CheckCircle2 size={16} color="#10b981" />
+                <CheckCircle2 size={16} color="var(--pj-texto-exito)" />
               </span>
               <span className={estilos.textoAccion}>
                 Descanso aplicado sin cambios registrados en los recursos del personaje.

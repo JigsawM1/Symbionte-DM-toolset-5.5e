@@ -51,7 +51,7 @@ export const TrackerPuntosConjuro: React.FC<TrackerPuntosConjuroProps> = ({
       {/* Cabecera y Resumen */}
       <div className={styles.cabeceraTrackerPuntos}>
         <div className={styles.tituloPuntosFila}>
-          <Sparkles size={15} color="#38bdf8" />
+          <Sparkles size={15} color="var(--pj-texto-cian)" />
           <span className={styles.tituloPuntosTexto}>
             Puntos de Conjuro (Variante)
           </span>

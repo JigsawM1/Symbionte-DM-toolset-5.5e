@@ -44,7 +44,7 @@ export function EfectosConstructor({ borrador, actualizarBorrador }: Props) {
     return (<div className={estilos.seccionCard}>
         <div className={estilos.cabeceraSeccion}>
           <div className={estilos.tituloSeccion}>
-            <Sparkles size={14} color="#38bdf8"/>
+            <Sparkles size={14} color="var(--pj-texto-cian)"/>
             <span>4. Efectos Mecánicos e Interactividad en Combate</span>
           </div>
           <p className={estilos.descripcionSeccion}>

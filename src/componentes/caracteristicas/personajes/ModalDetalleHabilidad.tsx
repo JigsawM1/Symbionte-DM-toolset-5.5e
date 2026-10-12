@@ -265,7 +265,7 @@ export const ModalDetalleHabilidad: React.FC<ModalDetalleHabilidadProps> = ({
                     alCerrar();
                   }}
                 >
-                  <Dices size={14} color="#94a3b8" />
+                  <Dices size={14} color="var(--pj-texto-terciario)" />
                   Lanzar Tirada 3D ({totalCalculado >= 0 ? `+${totalCalculado}` : totalCalculado})
                 </button>
               </div>

@@ -148,7 +148,7 @@ export const SelectorDotesAcordeon: React.FC<SelectorDotesAcordeonProps> = ({
       {/* Barra de herramientas: Buscador y Filtros */}
       <div className={estilos.barraHerramientasDotes}>
         <div className={estilos.contenedorBuscador}>
-          <Search size={14} color="#94a3b8" />
+          <Search size={14} color="var(--pj-texto-terciario)" />
           <input
             type="text"
             className={estilos.inputBuscadorDotes}

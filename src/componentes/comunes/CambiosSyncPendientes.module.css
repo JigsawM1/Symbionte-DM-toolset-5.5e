@@ -50,3 +50,33 @@
   gap: 8px;
   margin-top: 12px;
 }
+
+/* Variante de jugador: DESIGN.md. Composición compartida, identidad zafiro/índigo. */
+
+:global([data-tema="jugador"]) .dialogo {
+  border: 1px solid var(--pj-borde-cian-fuerte);
+  border-radius: var(--pj-radio-panel);
+  background: var(--pj-fondo-modal-cuerpo);
+  color: var(--pj-texto-primario);
+  font-size: var(--pj-fuente-cuerpo);
+}
+
+:global([data-tema="jugador"]) .dialogo::backdrop {
+  background: var(--pj-fondo-base);
+}
+
+:global([data-tema="jugador"]) .dialogo h2 {
+  font-family: var(--fuente-principal);
+  font-size: var(--pj-fuente-titulo);
+}
+
+:global([data-tema="jugador"]) .dialogo p {
+  color: var(--pj-texto-secundario);
+}
+
+:global([data-tema="jugador"]) .dialogo textarea {
+  background: var(--pj-fondo-base);
+  color: var(--pj-texto-primario);
+  border: 1px solid var(--pj-borde-medio);
+  font-size: var(--pj-fuente-cuerpo);
+}

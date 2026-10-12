@@ -535,14 +535,14 @@ export const HojaPersonaje: React.FC<HojaPersonajeProps> = ({ alAbrirConfiguraci
         <BotonSubPestana
           activa={subPestanaActiva === "general"}
           etiqueta="Combate y Atributos"
-          icono={<Swords size={14} color={subPestanaActiva === "general" ? "#60a5fa" : "#64748b"} />}
+          icono={<Swords size={14} color={subPestanaActiva === "general" ? "var(--pj-texto-cian)" : "var(--pj-texto-terciario)"} />}
           alClick={() => setSubPestanaActiva("general")}
         />
 
         <BotonSubPestana
           activa={subPestanaActiva === "conjuros"}
           etiqueta="Conjuros y Magia"
-          icono={<Sparkles size={14} color={subPestanaActiva === "conjuros" ? "#818cf8" : "#64748b"} />}
+          icono={<Sparkles size={14} color={subPestanaActiva === "conjuros" ? "var(--pj-texto-acento)" : "var(--pj-texto-terciario)"} />}
           badge={totalConjurosYTrucos}
           alClick={() => setSubPestanaActiva("conjuros")}
         />

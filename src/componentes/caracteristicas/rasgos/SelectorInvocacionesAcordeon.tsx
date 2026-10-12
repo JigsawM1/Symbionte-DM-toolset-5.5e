@@ -528,7 +528,7 @@ export const SelectorInvocacionesAcordeon: React.FC<SelectorInvocacionesAcordeon
       {/* Barra de herramientas con buscador y filtros */}
       <div className={estilos.barraHerramientasInvocaciones}>
         <div className={estilos.contenedorBuscador}>
-          <Search size={14} color="#94a3b8" />
+          <Search size={14} color="var(--pj-texto-terciario)" />
           <input
             type="text"
             className={estilos.inputBuscadorInvocaciones}
@@ -720,7 +720,7 @@ export const SelectorInvocacionesAcordeon: React.FC<SelectorInvocacionesAcordeon
                     {op.id === "descarga_ahuyentadora" && estaActiva && (
                       <div className={estilos.zonaConfiguracionMecanica}>
                         <div className={estilos.tituloConfiguracionMecanica}>
-                          <Zap size={14} color="#a78bfa" />
+                          <Zap size={14} color="var(--pj-texto-magia)" />
                           <span>Trucos Vinculados (Empuje de 10 pies por impacto):</span>
                         </div>
                         <p className={estilos.pistaMecanica}>
@@ -778,7 +778,7 @@ export const SelectorInvocacionesAcordeon: React.FC<SelectorInvocacionesAcordeon
                     {op.id === "descarga_agonica" && estaActiva && (
                       <div className={estilos.zonaConfiguracionMecanica}>
                         <div className={estilos.tituloConfiguracionMecanica}>
-                          <Sparkles size={14} color="#a78bfa" />
+                          <Sparkles size={14} color="var(--pj-texto-magia)" />
                           <span>Trucos Vinculados (+Modificador de Carisma al daño):</span>
                         </div>
                         <p className={estilos.pistaMecanica}>
@@ -836,7 +836,7 @@ export const SelectorInvocacionesAcordeon: React.FC<SelectorInvocacionesAcordeon
                     {op.id === "lanza_sobrenatural" && estaActiva && (
                       <div className={estilos.zonaConfiguracionMecanica}>
                         <div className={estilos.tituloConfiguracionMecanica}>
-                          <Zap size={14} color="#a78bfa" />
+                          <Zap size={14} color="var(--pj-texto-magia)" />
                           <span>Trucos Vinculados (+10 pies x nivel de Brujo al alcance):</span>
                         </div>
                         <p className={estilos.pistaMecanica}>
@@ -894,7 +894,7 @@ export const SelectorInvocacionesAcordeon: React.FC<SelectorInvocacionesAcordeon
                     {op.id === "lecciones_de_los_primeros" && estaActiva && (
                       <div className={estilos.zonaConfiguracionMecanica}>
                         <div className={estilos.tituloConfiguracionMecanica}>
-                          <Award size={14} color="#f59e0b" />
+                          <Award size={14} color="var(--pj-texto-oro)" />
                           <span>Dotes de Origen Aprendidas (Multiverso Ancestral):</span>
                         </div>
                         <p className={estilos.pistaMecanica}>
@@ -933,7 +933,7 @@ export const SelectorInvocacionesAcordeon: React.FC<SelectorInvocacionesAcordeon
                               {doteEnFicha ? (
                                 <div className={estilos.filaEstadoDoteAgregada}>
                                   <div className={estilos.badgeDoteAgregada}>
-                                    <Check size={12} color="#10b981" />
+                                    <Check size={12} color="var(--pj-texto-exito)" />
                                     <span>Dote en ficha</span>
                                   </div>
                                   <button
@@ -1029,7 +1029,7 @@ export const SelectorInvocacionesAcordeon: React.FC<SelectorInvocacionesAcordeon
                     {op.id === "pacto_del_filo" && estaActiva && (
                       <div className={estilos.zonaConfiguracionMecanica}>
                         <div className={estilos.tituloConfiguracionMecanica}>
-                          <Sparkles size={14} color="#a78bfa" />
+                          <Sparkles size={14} color="var(--pj-texto-magia)" />
                           <span>Tipo de daño del arma de pacto (Ataca y daña con Carisma):</span>
                         </div>
                         <div className={estilos.grupoPillsTipoDano}>
@@ -1066,7 +1066,7 @@ export const SelectorInvocacionesAcordeon: React.FC<SelectorInvocacionesAcordeon
                     {op.id === "vigor_infernal" && estaActiva && (
                       <div className={estilos.zonaConfiguracionMecanica}>
                         <div className={estilos.tituloConfiguracionMecanica}>
-                          <Heart size={14} color="#f43f5e" />
+                          <Heart size={14} color="var(--pj-texto-alerta)" />
                           <span>Puntos de Golpe Temporales a Voluntad (Espacio de Pacto Nv {nivelEspacioPactoCalculado}):</span>
                         </div>
                         <p className={estilos.pistaMecanica}>
@@ -1088,7 +1088,7 @@ export const SelectorInvocacionesAcordeon: React.FC<SelectorInvocacionesAcordeon
                     {op.id === "devorador_de_vida" && estaActiva && (
                       <div className={estilos.zonaConfiguracionMecanica}>
                         <div className={estilos.tituloConfiguracionMecanica}>
-                          <Flame size={14} color="#a78bfa" />
+                          <Flame size={14} color="var(--pj-texto-magia)" />
                           <span>Tipo de daño extra (+1d6 con Arma de Pacto):</span>
                         </div>
                         <div className={estilos.grupoPillsTipoDano}>
@@ -1121,7 +1121,7 @@ export const SelectorInvocacionesAcordeon: React.FC<SelectorInvocacionesAcordeon
                     {/* Caja informativa de Castigo Arcano */}
                     {op.id === "castigo_arcano" && (
                       <div className={estilos.cajaMecanicaConsumible}>
-                        <Zap size={14} color="#f59e0b" className={estilos.iconoConsumible} />
+                        <Zap size={14} color="var(--pj-texto-oro)" className={estilos.iconoConsumible} />
                         <span>
                           <strong>Acción especial de combate:</strong> Gasta 1 espacio de Magia del pacto y lanza dados de fuerza ({op.escaladoFormulaDados?.find(e => (nivelPersonaje || 1) >= e.nivelMinimo)?.valor || op.formulaDados || "4d8"}). Disponible directamente en el Combat Tracker y en la pestaña de Acciones.
                         </span>
@@ -1131,7 +1131,7 @@ export const SelectorInvocacionesAcordeon: React.FC<SelectorInvocacionesAcordeon
                     {/* Caja informativa de Don de los Protectores */}
                     {op.id === "don_de_los_protectores" && (
                       <div className={estilos.cajaMecanicaConsumible}>
-                        <ShieldCheck size={14} color="#10b981" className={estilos.iconoConsumible} />
+                        <ShieldCheck size={14} color="var(--pj-texto-exito)" className={estilos.iconoConsumible} />
                         <span>
                           <strong>Acción de combate (Reacción - Consumible):</strong> 1 uso por descanso largo. Si una criatura con su nombre en el Libro de las Sombras se reduce a 0 HP, en su lugar pasa a tener 1 HP. Disponible directamente en el Combat Tracker y en la pestaña de Acciones.
                         </span>

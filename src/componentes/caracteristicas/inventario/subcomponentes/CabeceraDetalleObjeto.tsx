@@ -29,13 +29,13 @@ export const CabeceraDetalleObjeto: React.FC<CabeceraDetalleObjetoProps> = ({
     <div className={estilos.cabeceraModal}>
       <div className={estilos.grupoTitulo}>
         <div className={estilos.iconoTipo}>
-          {esArma && <Swords size={18} color="#f87171" />}
-          {esArmadura && <Shield size={18} color="#60a5fa" />}
+          {esArma && <Swords size={18} color="var(--pj-texto-alerta)" />}
+          {esArmadura && <Shield size={18} color="var(--pj-texto-cian)" />}
           {!esArma && !esArmadura && (
             esMagico ? (
-              <Sparkles size={18} color="#a855f7" />
+              <Sparkles size={18} color="var(--pj-texto-magia)" />
             ) : (
-              <Package size={18} color="#34d399" />
+              <Package size={18} color="var(--pj-texto-exito)" />
             )
           )}
         </div>

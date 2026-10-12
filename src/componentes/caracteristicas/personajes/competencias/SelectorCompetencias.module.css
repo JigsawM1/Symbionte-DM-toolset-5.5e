@@ -22,8 +22,8 @@
 
 .barraBuscadorCompetencias {
   padding: 8px 14px;
-  background-color: #0e131d;
-  border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+  background-color: var(--pj-fondo-tarjeta);
+  border-bottom: 1px solid var(--pj-borde-acento);
 }
 
 .contenedorInputBuscador {
@@ -41,7 +41,7 @@
 .inputBuscadorCompetencias {
   width: 100%;
   padding-left: 30px;
-  font-size: 11px;
+  font-size: var(--pj-fuente-label);
 }
 
 .botonLimpiarBuscador {
@@ -49,7 +49,7 @@
   right: 8px;
   background: transparent;
   border: none;
-  color: #64748b;
+  color: var(--pj-texto-acento);
   cursor: pointer;
   padding: 2px;
   display: flex;
@@ -62,9 +62,9 @@
 }
 
 .botonGuardarModal {
-  background-color: #1e293b;
-  border: 1px solid rgba(96, 165, 250, 0.4);
-  color: #93c5fd;
+  background-color: var(--pj-fondo-modal-cuerpo);
+  border: 1px solid var(--pj-borde-acento);
+  color: var(--pj-texto-acento);
   font-weight: 700;
   transition: none;
 }
@@ -87,9 +87,9 @@
 }
 
 .labelSeccion {
-  font-size: 11px;
+  font-size: var(--pj-fuente-label);
   font-weight: 700;
-  color: #94a3b8;
+  color: var(--pj-texto-acento);
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
@@ -105,20 +105,20 @@
   align-items: center;
   gap: 6px;
   padding: 6px 12px;
-  border-radius: 4px;
+  border-radius: var(--pj-radio-control);
   cursor: pointer;
-  font-size: 11px;
+  font-size: var(--pj-fuente-boton);
   font-weight: 600;
-  color: #94a3b8;
-  border: 1px solid rgba(148, 163, 184, 0.12);
-  background-color: #111622;
+  color: var(--pj-texto-acento);
+  border: 1px solid var(--pj-borde-acento);
+  background-color: var(--pj-fondo-tarjeta);
   transition: none;
 }
 
 .botonGrupoMaestro[data-check="true"] {
-  color: #f1f5f9;
-  border: 1px solid rgba(148, 163, 184, 0.3);
-  background-color: #18202e;
+  color: var(--pj-texto-primario);
+  border: 1px solid var(--pj-borde-acento);
+  background-color: var(--pj-fondo-tarjeta-elevada);
 }
 
 .gridItemsCompetencias {
@@ -126,9 +126,9 @@
   grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
   gap: 6px;
   padding: 8px;
-  background-color: #0d121c;
-  border-radius: 6px;
-  border: 1px solid rgba(148, 163, 184, 0.12);
+  background-color: var(--pj-fondo-tarjeta);
+  border-radius: var(--pj-radio-control);
+  border: 1px solid var(--pj-borde-acento);
 }
 
 .gridItemsCompetenciasArmaduras {
@@ -142,14 +142,14 @@
   padding: 4px 6px;
   border-radius: 4px;
   background-color: transparent;
-  color: #94a3b8;
+  color: var(--pj-texto-acento);
   cursor: pointer;
-  font-size: 11px;
+  font-size: var(--pj-fuente-label);
   user-select: none;
   transition: none;
 }
 
 .itemCompetenciaLabel[data-check="true"] {
-  background-color: rgba(148, 163, 184, 0.08);
-  color: #f1f5f9;
+  background-color: var(--pj-acento-primario-fondo);
+  color: var(--pj-texto-primario);
 }

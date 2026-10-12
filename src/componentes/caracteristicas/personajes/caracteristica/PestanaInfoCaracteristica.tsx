@@ -47,7 +47,7 @@ export const PestanaInfoCaracteristica: React.FC<PestanaInfoCaracteristicaProps>
       {/* Uso oficial / personalizado de Salvaciones */}
       <div className={estilosModal.cajaDescripcionSalvacion}>
         <div className={estilosModal.cabeceraCajaSalvacion}>
-          <Shield size={13} color="#94a3b8" />
+          <Shield size={13} color="var(--pj-texto-terciario)" />
           <span className={estilosModal.tituloCajaSalvacion}>
             Tiradas de salvación y usos de {tituloMostrar}...
           </span>
@@ -149,7 +149,7 @@ export const PestanaInfoCaracteristica: React.FC<PestanaInfoCaracteristicaProps>
           className={`${estilos.neoButton} ${estilosModal.botonTiradaPrueba}`}
           onClick={ejecutarTiradaCaracteristica}
         >
-          <Dices size={14} color="#94a3b8" />
+          <Dices size={14} color="var(--pj-texto-terciario)" />
           Prueba {abrev} ({modTotalGuardado >= 0 ? `+${modTotalGuardado}` : modTotalGuardado})
         </button>
 
@@ -158,7 +158,7 @@ export const PestanaInfoCaracteristica: React.FC<PestanaInfoCaracteristicaProps>
           className={`${estilos.neoButton} ${estilosModal.botonTiradaSalvacion}`}
           onClick={ejecutarTiradaSalvacion}
         >
-          <Shield size={14} color="#93c5fd" />
+          <Shield size={14} color="var(--pj-texto-cian-claro)" />
           Salvación {abrev} ({bonoSalvacionGuardado >= 0 ? `+${bonoSalvacionGuardado}` : bonoSalvacionGuardado})
         </button>
       </div>

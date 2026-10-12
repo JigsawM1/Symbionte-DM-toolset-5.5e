@@ -131,7 +131,7 @@ export const ModalSelectorCompetencias: React.FC<ModalSelectorCompetenciasProps>
         {/* Buscador / Filtro Rápido */}
         <div className={estilosCompetencias.barraBuscadorCompetencias}>
           <div className={estilosCompetencias.contenedorInputBuscador}>
-            <Search size={14} color="#64748b" className={estilosCompetencias.iconoBuscadorLupa} />
+            <Search size={14} color="var(--pj-texto-terciario)" className={estilosCompetencias.iconoBuscadorLupa} />
             <input
               type="text"
               className={`${estilos.inputFormulario} ${estilosCompetencias.inputBuscadorCompetencias}`}

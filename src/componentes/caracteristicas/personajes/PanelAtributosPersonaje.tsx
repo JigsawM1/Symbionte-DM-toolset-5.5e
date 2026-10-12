@@ -123,12 +123,12 @@ const PanelAtributosPersonajeComponent: React.FC<PanelAtributosPersonajeProps> =
                 <span className={estilos.nombreAtributo}>{etiqueta}</span>
                 {evalCarac.tieneDesventaja && (
                   <span title={`Desventaja en pruebas por: ${motivosCarac}`}>
-                    <AlertTriangle size={11} color="#f59e0b" />
+                    <AlertTriangle size={11} color="var(--pj-texto-oro)" />
                   </span>
                 )}
                 {evalCarac.tieneVentaja && !evalCarac.tieneDesventaja && (
                   <span title={`Ventaja en pruebas por: ${motivosCarac}`}>
-                    <Sparkles size={11} color="#38bdf8" />
+                    <Sparkles size={11} color="var(--pj-texto-cian)" />
                   </span>
                 )}
               </div>
@@ -235,10 +235,10 @@ const PanelAtributosPersonajeComponent: React.FC<PanelAtributosPersonajeProps> =
                 >
                   {salvTexto} Salv.
                   {evalSalv.tieneDesventaja && (
-                    <AlertTriangle size={10} color="#f59e0b" className={estilos.iconoInlineSalvacion} />
+                    <AlertTriangle size={10} color="var(--pj-texto-oro)" className={estilos.iconoInlineSalvacion} />
                   )}
                   {evalSalv.tieneVentaja && !evalSalv.tieneDesventaja && (
-                    <Sparkles size={10} color="#38bdf8" className={estilos.iconoInlineSalvacion} />
+                    <Sparkles size={10} color="var(--pj-texto-cian)" className={estilos.iconoInlineSalvacion} />
                   )}
                 </button>
               </div>

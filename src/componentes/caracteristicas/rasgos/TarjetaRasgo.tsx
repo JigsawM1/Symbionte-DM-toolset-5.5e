@@ -302,7 +302,7 @@ export const TarjetaRasgo: React.FC<TarjetaRasgoProps> = ({
               disabled={!idPersonaje}
               title={`Tirar ${formulaEfectiva || "2d20"} y registrar dados de presagio`}
             >
-              <Dices size={11} color="#a5b4fc" />
+              <Dices size={11} color="var(--pj-texto-acento)" />
               <span>
                 {Array.isArray(rasgo.dadosGuardados) && rasgo.dadosGuardados.length > 0
                   ? `Retirar (${formulaEfectiva || "2d20"})`
@@ -332,7 +332,7 @@ export const TarjetaRasgo: React.FC<TarjetaRasgoProps> = ({
                   : `Lanzar ${formulaEfectiva} a TaleSpire`
               }
             >
-              {esCuracion ? <Heart size={11} color="#10b981" /> : <Dices size={11} />}
+              {esCuracion ? <Heart size={11} color="var(--pj-texto-exito)" /> : <Dices size={11} />}
               <span>{esCuracion ? `Curar ${formulaEfectiva}` : formulaEfectiva}</span>
             </button>
           )}
@@ -348,7 +348,7 @@ export const TarjetaRasgo: React.FC<TarjetaRasgoProps> = ({
               }}
               title="Gastar un espacio de conjuro para restablecer PG temporales"
             >
-              <Shield size={11} color="#38bdf8" />
+              <Shield size={11} color="var(--pj-texto-cian)" />
               <span>Recargar PG</span>
             </button>
           )}
@@ -366,7 +366,7 @@ export const TarjetaRasgo: React.FC<TarjetaRasgoProps> = ({
                   : `Obtener ${valorHpTemporalCalculado} PG temporales`
               }
             >
-              <Shield size={11} color="#38bdf8" />
+              <Shield size={11} color="var(--pj-texto-cian)" />
               <span>+{valorHpTemporalCalculado} PG Temp</span>
             </button>
           )}
@@ -387,7 +387,7 @@ export const TarjetaRasgo: React.FC<TarjetaRasgoProps> = ({
                   : "Abrir recuperación de espacios de conjuro"
               }
             >
-              <Sparkles size={11} color="#c084fc" />
+              <Sparkles size={11} color="var(--pj-texto-magia)" />
               <span>Recuperar Espacios</span>
             </button>
           )}
@@ -399,7 +399,7 @@ export const TarjetaRasgo: React.FC<TarjetaRasgoProps> = ({
             onClick={alVerDetalle}
             title="Ver descripción completa en modal"
           >
-            <Maximize2 size={12} color="#94a3b8" />
+            <Maximize2 size={12} color="var(--pj-texto-terciario)" />
           </button>
 
           {/* Botón para alternar ocultar/mostrar rasgo */}
@@ -413,7 +413,7 @@ export const TarjetaRasgo: React.FC<TarjetaRasgoProps> = ({
               }}
               title={esOculto ? "Mostrar rasgo (restaurar a su categoría)" : "Ocultar rasgo"}
             >
-              {esOculto ? <EyeOff size={12} color="#38bdf8" /> : <Eye size={12} color="#94a3b8" />}
+              {esOculto ? <EyeOff size={12} color="var(--pj-texto-cian)" /> : <Eye size={12} color="var(--pj-texto-terciario)" />}
             </button>
           )}
 
@@ -430,7 +430,7 @@ export const TarjetaRasgo: React.FC<TarjetaRasgoProps> = ({
                   }}
                   title="Editar rasgo"
                 >
-                  <Edit2 size={12} color="#94a3b8" strokeWidth={2} />
+                  <Edit2 size={12} color="var(--pj-texto-terciario)" strokeWidth={2} />
                 </button>
               )}
 
@@ -444,7 +444,7 @@ export const TarjetaRasgo: React.FC<TarjetaRasgoProps> = ({
                   }}
                   title="Eliminar rasgo"
                 >
-                  <Trash2 size={12} color="#f87171" strokeWidth={2} />
+                  <Trash2 size={12} color="var(--pj-texto-alerta)" strokeWidth={2} />
                 </button>
               )}
             </>

@@ -17,7 +17,7 @@ export function BarraConstructor({ borrador, esEdicion, alVolver, manejarGuardar
             <span>Volver a Mis Rasgos</span>
           </button>
           <div className={estilos.tituloConstructor}>
-            <Settings2 size={16} color="#38bdf8"/>
+            <Settings2 size={16} color="var(--pj-texto-cian)"/>
             <span>{esEdicion ? "Editando Rasgo / Dote" : "Constructor de Rasgos y Dotes"}</span>
             {esEdicion && <span className={estilos.subtituloEdicion}>({nombre || "Sin nombre"})</span>}
           </div>

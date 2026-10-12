@@ -41,7 +41,7 @@ export const VisorProgresionClase: React.FC<VisorProgresionClaseProps> = ({
             {/* Cabecera de la Clase */}
             <div className={estilos.cabeceraCompendioClase}>
               <h2 className={estilos.tituloCompendioClase}>
-                <Swords size={16} color="#d4af37" />
+                <Swords size={16} color="var(--pj-texto-oro)" />
                 <span>{bloqueClase.defClase.nombre}</span>
                 <span className={estilos.metaCompendioClase}>
                   (Dado: {bloqueClase.defClase.dadoGolpe} · Nivel Actual: {bloqueClase.clase.nivel})

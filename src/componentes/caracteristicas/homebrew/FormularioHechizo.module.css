@@ -223,3 +223,105 @@
 .bloqueDinamicoCombate {
   border-color: rgba(var(--dm-rgb-cian, 0, 245, 212), 0.25);
 }
+
+/* Variante de jugador: DESIGN.md. Composición compartida, identidad zafiro/índigo. */
+
+:global([data-tema="jugador"]) .labelForm {
+  font-size: var(--pj-fuente-label);
+  color: var(--pj-texto-secundario);
+}
+
+:global([data-tema="jugador"]) .inputForm {
+  font-size: var(--pj-fuente-cuerpo);
+  background-color: var(--pj-fondo-tarjeta);
+  border: 1.5px solid var(--pj-borde-medio);
+  border-radius: var(--pj-radio-control);
+  color: var(--pj-texto-primario);
+}
+
+:global([data-tema="jugador"]) .inputForm:focus {
+  border-color: var(--pj-borde-cian-fuerte);
+  box-shadow: var(--pj-sombra-tarjeta);
+}
+
+:global([data-tema="jugador"]) .selectForm {
+  font-size: var(--pj-fuente-cuerpo);
+  background-color: var(--pj-fondo-tarjeta);
+  border: 1.5px solid var(--pj-borde-medio);
+  border-radius: var(--pj-radio-control);
+  color: var(--pj-texto-primario);
+}
+
+:global([data-tema="jugador"]) .selectForm:focus {
+  border-color: var(--pj-borde-cian-fuerte);
+  box-shadow: var(--pj-sombra-tarjeta);
+}
+
+:global([data-tema="jugador"]) .bloqueDinamicoForm {
+  background-color: var(--pj-fondo-tarjeta);
+  border: 1px solid var(--pj-borde-medio);
+  border-radius: var(--pj-radio-panel);
+}
+
+:global([data-tema="jugador"]) .tituloBloqueDinamico {
+  font-size: var(--pj-fuente-subtitulo);
+  color: var(--pj-borde-cian-fuerte);
+  border-bottom: 1px solid var(--pj-borde-medio);
+}
+
+:global([data-tema="jugador"]) .labelCheckbox {
+  font-size: var(--pj-fuente-label);
+  color: var(--pj-texto-secundario);
+}
+
+:global([data-tema="jugador"]) .textareaBrutal {
+  background-color: var(--pj-fondo-panel);
+  border: 1.5px solid var(--pj-borde-medio);
+  border-radius: var(--pj-radio-panel);
+  color: var(--pj-texto-primario);
+  font-size: var(--pj-fuente-cuerpo);
+  font-family: var(--fuente-principal);
+}
+
+:global([data-tema="jugador"]) .textareaBrutal:focus {
+  border-color: var(--pj-borde-cian-fuerte);
+  box-shadow: var(--pj-sombra-tarjeta);
+}
+
+:global([data-tema="jugador"]) .stickyBottomBar {
+  background: var(--pj-fondo-modal-cuerpo);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border-top: 1px solid rgba(var(--pj-rgb-neutro), 0.08);
+  box-shadow: var(--pj-sombra-tarjeta);
+}
+
+:global([data-tema="jugador"]) .botonStickyGuardar {
+  background: linear-gradient(135deg, var(--pj-acento-primario-solido-hover) 0%, var(--pj-acento-primario-solido) 100%);
+  border: 1px solid var(--pj-borde-cian-fuerte);
+  color: var(--pj-texto-primario);
+  font-size: var(--pj-fuente-boton);
+  border-radius: var(--pj-radio-control);
+  box-shadow: var(--pj-sombra-tarjeta);
+}
+
+:global([data-tema="jugador"]) .botonStickyGuardar:hover:not(:disabled) {
+  box-shadow: var(--pj-sombra-tarjeta);
+}
+
+:global([data-tema="jugador"]) .botonStickyCancelar {
+  border: 1px solid var(--pj-borde-medio);
+  color: var(--pj-texto-secundario);
+  font-size: var(--pj-fuente-boton);
+  border-radius: var(--pj-radio-control);
+}
+
+:global([data-tema="jugador"]) .botonStickyCancelar:hover {
+  background-color: rgba(var(--pj-rgb-neutro), 0.04);
+  color: var(--pj-texto-primario);
+  border-color: var(--pj-texto-secundario);
+}
+
+:global([data-tema="jugador"]) .bloqueDinamicoCombate {
+  border-color: rgba(var(--pj-rgb-cian), 0.25);
+}

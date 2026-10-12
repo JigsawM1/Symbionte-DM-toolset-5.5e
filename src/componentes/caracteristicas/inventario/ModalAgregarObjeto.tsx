@@ -52,25 +52,25 @@ const OPCIONES_CONTENEDOR_DESTINO: {
     clave: "mochila",
     nombre: "Mochila",
     subtitulo: "Carga directa",
-    color: "#f59e0b"
+    color: "var(--pj-texto-oro)"
   },
   {
     clave: "bolsa_contencion",
     nombre: "Bolsa Contención",
     subtitulo: "0 lb carga",
-    color: "#c084fc"
+    color: "var(--pj-texto-magia)"
   },
   {
     clave: "montura",
     nombre: "Montura",
     subtitulo: "0 lb carga",
-    color: "#38bdf8"
+    color: "var(--pj-texto-cian)"
   },
   {
     clave: "almacen",
     nombre: "Almacén",
     subtitulo: "0 lb carga",
-    color: "#94a3b8"
+    color: "var(--pj-texto-terciario)"
   }
 ];
 
@@ -285,7 +285,7 @@ export const ModalAgregarObjeto: React.FC<ModalAgregarObjetoProps> = ({
   };
 
   return (
-    <div className={estilos.overlayModal} onClick={alCerrar}>
+    <div className={`${estilos.overlayModal} ${estilos.overlayAgregarObjeto}`} onClick={alCerrar}>
       <div
         className={`${estilos.cuerpoModal} ${estilos.modalAgregarObjeto}`}
         onClick={(e) => e.stopPropagation()}
@@ -329,259 +329,261 @@ export const ModalAgregarObjeto: React.FC<ModalAgregarObjetoProps> = ({
             onSubmit={manejarAgregarDesdeCompendio}
             className={estilos.formularioCompendioModal}
           >
-            {/* Filtros de categoría */}
-            <div className={estilos.filaFiltrosCategoria}>
-              {CATEGORIAS_FILTRO.map((filtro) => (
-                <button
-                  key={filtro.id}
-                  type="button"
-                  onClick={() => setFiltroTipo(filtro.id)}
-                  className={`${estilos.neoButton} ${estilos.chipFiltroCategoria} ${
-                    filtroTipo === filtro.id ? estilos.chipFiltroCategoriaActivo : ""
-                  }`}
-                >
-                  {filtro.etiqueta}
-                </button>
-              ))}
-            </div>
-
-            {/* Buscador de Sugerencias */}
-            <div className={estilos.campoFormulario}>
-              <label className={estilos.labelFormulario}>Buscar Objeto:</label>
-              <SelectorSugerencias
-                valor={textoBusqueda}
-                alCambiar={manejarCambioTextoBusqueda}
-                opciones={opcionesSugerencias}
-                placeholder="Escribe el nombre del objeto..."
-              />
-            </div>
-
-            {/* Selector de Cantidad */}
-            <div className={estilos.campoFormulario}>
-              <label className={estilos.labelFormulario}>Cantidad a Añadir:</label>
-              <input
-                type="number"
-                min="1"
-                className={estilos.inputFormulario}
-                value={cantidadCompendio}
-                onChange={(e) => setCantidadCompendio(Math.max(1, parseInt(e.target.value, 10) || 1))}
-              />
-            </div>
-
-            {/* Selector de Contenedor de Destino */}
-            <div className={estilos.campoFormulario}>
-              <label className={estilos.labelFormulario}>Guardar en:</label>
-              <div className={estilos.cuadriculaSelectoresDestino}>
-                {OPCIONES_CONTENEDOR_DESTINO.map((opc) => {
-                  const activo = contenedorDestino === opc.clave;
-                  return (
-                    <button
-                      key={opc.clave}
-                      type="button"
-                      className={`${estilos.botonSelectorDestino} ${activo ? estilos.botonSelectorDestinoActivo : ""}`}
-                      data-caja={opc.clave}
-                      onClick={() => setContenedorDestino(opc.clave)}
-                    >
-                      <div className={estilos.iconoSelectorDestino}>
-                        {opc.clave === "mochila" && <Backpack size={13} color={opc.color} />}
-                        {opc.clave === "bolsa_contencion" && <Sparkles size={13} color={opc.color} />}
-                        {opc.clave === "montura" && <Box size={13} color={opc.color} />}
-                        {opc.clave === "almacen" && <Package size={13} color={opc.color} />}
-                      </div>
-                      <div className={estilos.infoSelectorDestino}>
-                        <span className={estilos.nombreSelectorDestino}>
-                          {opc.nombre}
-                        </span>
-                        <span className={estilos.subtituloSelectorDestino}>
-                          {opc.subtitulo}
-                        </span>
-                      </div>
-                    </button>
-                  );
-                })}
+            <div className={estilos.contenidoFormularioAgregarObjeto}>
+              {/* Filtros de categoría */}
+              <div className={estilos.filaFiltrosCategoria}>
+                {CATEGORIAS_FILTRO.map((filtro) => (
+                  <button
+                    key={filtro.id}
+                    type="button"
+                    onClick={() => setFiltroTipo(filtro.id)}
+                    className={`${estilos.neoButton} ${estilos.chipFiltroCategoria} ${
+                      filtroTipo === filtro.id ? estilos.chipFiltroCategoriaActivo : ""
+                    }`}
+                  >
+                    {filtro.etiqueta}
+                  </button>
+                ))}
               </div>
-            </div>
 
-            {/* Vista Previa del Objeto Seleccionado */}
-            {objetoSeleccionado ? (
-              <div className={estilos.cajaPreviewObjeto}>
-                <div className={estilos.cabeceraPreviewObjeto}>
-                  <span className={estilos.nombrePreviewObjeto}>
-                    {objetoSeleccionado.nombre}
-                  </span>
-                  <span className={`${estilos.badgeMeta} ${estilos.rarezaComun}`}>
-                    {DICCIONARIO_CATEGORIAS_EQUIPO[objetoSeleccionado.categoria]?.etiqueta || objetoSeleccionado.categoria}
-                  </span>
+              {/* Buscador de Sugerencias */}
+              <div className={estilos.campoFormulario}>
+                <label className={estilos.labelFormulario}>Buscar Objeto:</label>
+                <SelectorSugerencias
+                  valor={textoBusqueda}
+                  alCambiar={manejarCambioTextoBusqueda}
+                  opciones={opcionesSugerencias}
+                  placeholder="Escribe el nombre del objeto..."
+                />
+              </div>
+
+              {/* Selector de Cantidad */}
+              <div className={estilos.campoFormulario}>
+                <label className={estilos.labelFormulario}>Cantidad a Añadir:</label>
+                <input
+                  type="number"
+                  min="1"
+                  className={estilos.inputFormulario}
+                  value={cantidadCompendio}
+                  onChange={(e) => setCantidadCompendio(Math.max(1, parseInt(e.target.value, 10) || 1))}
+                />
+              </div>
+
+              {/* Selector de Contenedor de Destino */}
+              <div className={estilos.campoFormulario}>
+                <label className={estilos.labelFormulario}>Guardar en:</label>
+                <div className={estilos.cuadriculaSelectoresDestino}>
+                  {OPCIONES_CONTENEDOR_DESTINO.map((opc) => {
+                    const activo = contenedorDestino === opc.clave;
+                    return (
+                      <button
+                        key={opc.clave}
+                        type="button"
+                        className={`${estilos.botonSelectorDestino} ${activo ? estilos.botonSelectorDestinoActivo : ""}`}
+                        data-caja={opc.clave}
+                        onClick={() => setContenedorDestino(opc.clave)}
+                      >
+                        <div className={estilos.iconoSelectorDestino}>
+                          {opc.clave === "mochila" && <Backpack size={13} color={opc.color} />}
+                          {opc.clave === "bolsa_contencion" && <Sparkles size={13} color={opc.color} />}
+                          {opc.clave === "montura" && <Box size={13} color={opc.color} />}
+                          {opc.clave === "almacen" && <Package size={13} color={opc.color} />}
+                        </div>
+                        <div className={estilos.infoSelectorDestino}>
+                          <span className={estilos.nombreSelectorDestino}>
+                            {opc.nombre}
+                          </span>
+                          <span className={estilos.subtituloSelectorDestino}>
+                            {opc.subtitulo}
+                          </span>
+                        </div>
+                      </button>
+                    );
+                  })}
                 </div>
+              </div>
 
-                <div className={estilos.filaMetadatosPreview}>
-                  <span>
-                    Peso: <strong className={estilos.textoBlancoResaltado}>{objetoSeleccionado.pesoLb || 0} lb</strong>
+              {/* Vista Previa del Objeto Seleccionado */}
+              {objetoSeleccionado ? (
+                <div className={estilos.cajaPreviewObjeto}>
+                  <div className={estilos.cabeceraPreviewObjeto}>
+                    <span className={estilos.nombrePreviewObjeto}>
+                      {objetoSeleccionado.nombre}
+                    </span>
+                    <span className={`${estilos.badgeMeta} ${estilos.rarezaComun}`}>
+                      {DICCIONARIO_CATEGORIAS_EQUIPO[objetoSeleccionado.categoria]?.etiqueta || objetoSeleccionado.categoria}
+                    </span>
+                  </div>
+
+                  <div className={estilos.filaMetadatosPreview}>
+                    <span>
+                      Peso: <strong className={estilos.textoBlancoResaltado}>{objetoSeleccionado.pesoLb || 0} lb</strong>
+                      {objetoSeleccionado.quantity && objetoSeleccionado.quantity > 1 && (
+                        <span className={estilos.textoPesoUnitario}>
+                          ({objetoSeleccionado.pesoUnitario || Math.round(((objetoSeleccionado.pesoLb || 0) / objetoSeleccionado.quantity) * 1000) / 1000} lb c/u)
+                        </span>
+                      )}
+                    </span>
+                    <span>Valor: <strong className={estilos.textoValorPO}>{objetoSeleccionado.valorPO || 0} PO</strong></span>
                     {objetoSeleccionado.quantity && objetoSeleccionado.quantity > 1 && (
-                      <span className={estilos.textoPesoUnitario}>
-                        ({objetoSeleccionado.pesoUnitario || Math.round(((objetoSeleccionado.pesoLb || 0) / objetoSeleccionado.quantity) * 1000) / 1000} lb c/u)
+                      <span className={estilos.avisoLoteCantidad}>
+                        Viene en lote de {objetoSeleccionado.quantity} uds (Se añadirán: {objetoSeleccionado.quantity * (cantidadCompendio || 1)})
                       </span>
                     )}
-                  </span>
-                  <span>Valor: <strong className={estilos.textoValorPO}>{objetoSeleccionado.valorPO || 0} PO</strong></span>
-                  {objetoSeleccionado.quantity && objetoSeleccionado.quantity > 1 && (
-                    <span className={estilos.avisoLoteCantidad}>
-                      Viene en lote de {objetoSeleccionado.quantity} uds (Se añadirán: {objetoSeleccionado.quantity * (cantidadCompendio || 1)})
-                    </span>
-                  )}
-                  {objetoSeleccionado.sintonizacionRequerida && (
-                    <span className={estilos.avisoSintonizacionReq}>
-                      <Sparkles size={11} />
-                      Requiere Sintonización
-                    </span>
-                  )}
-                </div>
+                    {objetoSeleccionado.sintonizacionRequerida && (
+                      <span className={estilos.avisoSintonizacionReq}>
+                        <Sparkles size={11} />
+                        Requiere Sintonización
+                      </span>
+                    )}
+                  </div>
 
-                {/* Badges de Estadísticas y Propiedades de Arma / Armadura / Escudo */}
-                {objetoSeleccionado.categoria === "armas" && (() => {
-                  const armaObj = objetoSeleccionado as Arma;
-                  return (
-                    <div className={estilos.filaBadgesPreview}>
-                      {armaObj.tipoAtaque && (
-                        <span className={`${estilos.badgeMeta} ${estilos.badgeArmaAtaque}`}>
-                          {armaObj.tipoAtaque}
-                        </span>
-                      )}
-                      {armaObj.dadoDano && (
-                        <span className={`${estilos.badgeMeta} ${estilos.badgeDanoArma}`}>
-                          {armaObj.dadoDano} {armaObj.tipoDano}
-                        </span>
-                      )}
-                      {armaObj.danoVersatil && (
-                        <TooltipUniversal
-                          titulo="Daño Versátil"
-                          contenido={`Inflige ${armaObj.danoVersatil} de daño al empuñarse con dos manos.`}
-                          posicion="arriba"
-                        >
-                          <span className={`${estilos.badgeMeta} ${estilos.badgeVersatil}`}>
-                            Versátil ({armaObj.danoVersatil})
+                  {/* Badges de Estadísticas y Propiedades de Arma / Armadura / Escudo */}
+                  {objetoSeleccionado.categoria === "armas" && (() => {
+                    const armaObj = objetoSeleccionado as Arma;
+                    return (
+                      <div className={estilos.filaBadgesPreview}>
+                        {armaObj.tipoAtaque && (
+                          <span className={`${estilos.badgeMeta} ${estilos.badgeArmaAtaque}`}>
+                            {armaObj.tipoAtaque}
                           </span>
-                        </TooltipUniversal>
-                      )}
-                      {armaObj.maestria && (() => {
-                        const infoM = obtenerInfoMaestria(armaObj.maestria);
-                        return (
+                        )}
+                        {armaObj.dadoDano && (
+                          <span className={`${estilos.badgeMeta} ${estilos.badgeDanoArma}`}>
+                            {armaObj.dadoDano} {armaObj.tipoDano}
+                          </span>
+                        )}
+                        {armaObj.danoVersatil && (
                           <TooltipUniversal
-                            titulo={infoM.titulo}
-                            contenido={infoM.descripcion}
+                            titulo="Daño Versátil"
+                            contenido={`Inflige ${armaObj.danoVersatil} de daño al empuñarse con dos manos.`}
                             posicion="arriba"
                           >
-                            <span className={`${estilos.badgeMeta} ${estilos.badgeMaestria}`}>
-                              Maestría: {armaObj.maestria}
+                            <span className={`${estilos.badgeMeta} ${estilos.badgeVersatil}`}>
+                              Versátil ({armaObj.danoVersatil})
                             </span>
                           </TooltipUniversal>
-                        );
-                      })()}
-                      {armaObj.propiedades?.map((p) => {
-                        const infoP = obtenerInfoPropiedadArma(p);
-                        return (
-                          <TooltipUniversal
-                            key={p}
-                            titulo={infoP.titulo}
-                            contenido={infoP.descripcion}
-                            posicion="arriba"
-                          >
-                            <span className={`${estilos.badgeMeta} ${estilos.badgePropiedadArma}`}>
-                              {p}
-                            </span>
-                          </TooltipUniversal>
-                        );
-                      })}
-                    </div>
-                  );
-                })()}
+                        )}
+                        {armaObj.maestria && (() => {
+                          const infoM = obtenerInfoMaestria(armaObj.maestria);
+                          return (
+                            <TooltipUniversal
+                              titulo={infoM.titulo}
+                              contenido={infoM.descripcion}
+                              posicion="arriba"
+                            >
+                              <span className={`${estilos.badgeMeta} ${estilos.badgeMaestria}`}>
+                                Maestría: {armaObj.maestria}
+                              </span>
+                            </TooltipUniversal>
+                          );
+                        })()}
+                        {armaObj.propiedades?.map((p) => {
+                          const infoP = obtenerInfoPropiedadArma(p);
+                          return (
+                            <TooltipUniversal
+                              key={p}
+                              titulo={infoP.titulo}
+                              contenido={infoP.descripcion}
+                              posicion="arriba"
+                            >
+                              <span className={`${estilos.badgeMeta} ${estilos.badgePropiedadArma}`}>
+                                {p}
+                              </span>
+                            </TooltipUniversal>
+                          );
+                        })}
+                      </div>
+                    );
+                  })()}
 
-                {objetoSeleccionado.categoria === "armaduras" && (() => {
-                  const armaduraObj = objetoSeleccionado as Armadura;
-                  return (
+                  {objetoSeleccionado.categoria === "armaduras" && (() => {
+                    const armaduraObj = objetoSeleccionado as Armadura;
+                    return (
+                      <div className={estilos.filaBadgesPreview}>
+                        <span className={`${estilos.badgeMeta} ${estilos.badgeCaArmadura}`}>
+                          CA {armaduraObj.caBase}
+                        </span>
+                        {(() => {
+                          const bonoDestReal =
+                            armaduraObj.bonoDestreza ||
+                            (armaduraObj.subcategoria === "Pesada"
+                              ? "Sin Bono"
+                              : armaduraObj.subcategoria === "Mediana"
+                              ? "Máximo 2"
+                              : "Completo");
+                          const infoDes = obtenerInfoPropiedadArmadura("bonoDestreza", bonoDestReal);
+                          return (
+                            <TooltipUniversal titulo={infoDes.titulo} contenido={infoDes.descripcion} posicion="arriba">
+                              <span className={`${estilos.badgeMeta} ${estilos.badgeBonoDes}`}>
+                                Bono Des: {bonoDestReal}
+                              </span>
+                            </TooltipUniversal>
+                          );
+                        })()}
+                        {armaduraObj.requisitoFuerza && (() => {
+                          const infoFue = obtenerInfoPropiedadArmadura("requisitoFuerza", armaduraObj.requisitoFuerza);
+                          return (
+                            <TooltipUniversal titulo={infoFue.titulo} contenido={infoFue.descripcion} posicion="arriba">
+                              <span className={`${estilos.badgeMeta} ${estilos.badgeRequisitoFuerza}`}>
+                                FUE {armaduraObj.requisitoFuerza}
+                              </span>
+                            </TooltipUniversal>
+                          );
+                        })()}
+                        {armaduraObj.desventajaSigilo && (() => {
+                          const infoSigilo = obtenerInfoPropiedadArmadura("desventajaSigilo");
+                          return (
+                            <TooltipUniversal titulo={infoSigilo.titulo} contenido={infoSigilo.descripcion} posicion="arriba">
+                              <span className={`${estilos.badgeMeta} ${estilos.badgeDesventajaSigilo}`}>
+                                Sigilo (Desv.)
+                              </span>
+                            </TooltipUniversal>
+                          );
+                        })()}
+                      </div>
+                    );
+                  })()}
+
+                  {objetoSeleccionado.categoria === "escudos" && (
                     <div className={estilos.filaBadgesPreview}>
                       <span className={`${estilos.badgeMeta} ${estilos.badgeCaArmadura}`}>
-                        CA {armaduraObj.caBase}
+                        <Shield size={10} className={estilos.iconoBadgeInline} />
+                        CA +{(objetoSeleccionado as Escudo).caBase || 2}
                       </span>
-                      {(() => {
-                        const bonoDestReal =
-                          armaduraObj.bonoDestreza ||
-                          (armaduraObj.subcategoria === "Pesada"
-                            ? "Sin Bono"
-                            : armaduraObj.subcategoria === "Mediana"
-                            ? "Máximo 2"
-                            : "Completo");
-                        const infoDes = obtenerInfoPropiedadArmadura("bonoDestreza", bonoDestReal);
-                        return (
-                          <TooltipUniversal titulo={infoDes.titulo} contenido={infoDes.descripcion} posicion="arriba">
-                            <span className={`${estilos.badgeMeta} ${estilos.badgeBonoDes}`}>
-                              Bono Des: {bonoDestReal}
-                            </span>
-                          </TooltipUniversal>
-                        );
-                      })()}
-                      {armaduraObj.requisitoFuerza && (() => {
-                        const infoFue = obtenerInfoPropiedadArmadura("requisitoFuerza", armaduraObj.requisitoFuerza);
-                        return (
-                          <TooltipUniversal titulo={infoFue.titulo} contenido={infoFue.descripcion} posicion="arriba">
-                            <span className={`${estilos.badgeMeta} ${estilos.badgeRequisitoFuerza}`}>
-                              FUE {armaduraObj.requisitoFuerza}
-                            </span>
-                          </TooltipUniversal>
-                        );
-                      })()}
-                      {armaduraObj.desventajaSigilo && (() => {
-                        const infoSigilo = obtenerInfoPropiedadArmadura("desventajaSigilo");
-                        return (
-                          <TooltipUniversal titulo={infoSigilo.titulo} contenido={infoSigilo.descripcion} posicion="arriba">
-                            <span className={`${estilos.badgeMeta} ${estilos.badgeDesventajaSigilo}`}>
-                              Sigilo (Desv.)
-                            </span>
-                          </TooltipUniversal>
-                        );
-                      })()}
                     </div>
-                  );
-                })()}
+                  )}
 
-                {objetoSeleccionado.categoria === "escudos" && (
-                  <div className={estilos.filaBadgesPreview}>
-                    <span className={`${estilos.badgeMeta} ${estilos.badgeCaArmadura}`}>
-                      <Shield size={10} className={estilos.iconoBadgeInline} />
-                      CA +{(objetoSeleccionado as Escudo).caBase || 2}
-                    </span>
-                  </div>
-                )}
-
-                {objetoSeleccionado.descripcion && (
-                  <div className={estilos.descripcionPreview}>
-                    {objetoSeleccionado.descripcion}
-                  </div>
-                )}
-
-                {/* Desglose de contenido del paquete */}
-                {objetoSeleccionado.contents && objetoSeleccionado.contents.length > 0 && (
-                  <div className={estilos.cajaPaqueteContenido}>
-                    <span className={estilos.tituloPaqueteContenido}>
-                      <Package size={12} /> Paquete con {objetoSeleccionado.contents.length} objetos (Podrás abrirlo o desempaquetarlo desde tu inventario):
-                    </span>
-                    <div className={estilos.listaItemsPaquete}>
-                      {objetoSeleccionado.contents.map((item, idx) => (
-                        <div key={idx} className={estilos.filaItemPaquete}>
-                          <span>• {item.item.name}</span>
-                          <strong className={estilos.multiplicadorItemPaquete}>×{item.quantity * (cantidadCompendio || 1)}</strong>
-                        </div>
-                      ))}
+                  {objetoSeleccionado.descripcion && (
+                    <div className={estilos.descripcionPreview}>
+                      {objetoSeleccionado.descripcion}
                     </div>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div className={estilos.avisoSeleccionarObjeto}>
-                Selecciona un objeto del buscador para ver sus detalles.
-              </div>
-            )}
+                  )}
 
+                  {/* Desglose de contenido del paquete */}
+                  {objetoSeleccionado.contents && objetoSeleccionado.contents.length > 0 && (
+                    <div className={estilos.cajaPaqueteContenido}>
+                      <span className={estilos.tituloPaqueteContenido}>
+                        <Package size={12} /> Paquete con {objetoSeleccionado.contents.length} objetos (Podrás abrirlo o desempaquetarlo desde tu inventario):
+                      </span>
+                      <div className={estilos.listaItemsPaquete}>
+                        {objetoSeleccionado.contents.map((item, idx) => (
+                          <div key={idx} className={estilos.filaItemPaquete}>
+                            <span>• {item.item.name}</span>
+                            <strong className={estilos.multiplicadorItemPaquete}>×{item.quantity * (cantidadCompendio || 1)}</strong>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className={estilos.avisoSeleccionarObjeto}>
+                  Selecciona un objeto del buscador para ver sus detalles.
+                </div>
+              )}
+
+            </div>
             {/* Pie del Modal */}
             <div className={`${estilos.pieModal} ${estilos.pieModalAjustado}`}>
               <button type="button" className={estilos.neoButton} onClick={alCerrar}>
@@ -599,98 +601,100 @@ export const ModalAgregarObjeto: React.FC<ModalAgregarObjetoProps> = ({
           </form>
         ) : (
           <form onSubmit={manejarCrearOtrasPosesiones} className={estilos.formularioPosesionesModal}>
-            <div className={estilos.bannerInformativoPosesiones}>
-              <FileText size={14} color="#38bdf8" className={estilos.iconoBannerPosesiones} />
-              <span>Anota rápidamente pertenencias, llaves, cartas, gemas u objetos varios. Podrás configurar estadísticas detalladas más adelante desde el creador Homebrew.</span>
-            </div>
+            <div className={estilos.contenidoFormularioAgregarObjeto}>
+              <div className={estilos.bannerInformativoPosesiones}>
+                <FileText size={14} color="var(--pj-texto-cian)" className={estilos.iconoBannerPosesiones} />
+                <span>Anota rápidamente pertenencias, llaves, cartas, gemas u objetos varios. Podrás configurar estadísticas detalladas más adelante desde el creador Homebrew.</span>
+              </div>
 
-            {/* Nombre de la Posesión */}
-            <div className={estilos.campoFormulario}>
-              <label className={estilos.labelFormulario}>Nombre de la Posesión / Objeto *</label>
-              <input
-                type="text"
-                required
-                className={estilos.inputFormulario}
-                value={nombrePosesion}
-                onChange={(e) => setNombrePosesion(e.target.value)}
-                placeholder="Ej. Carta sellada de Waterdeep, Llave de hierro, Gema roja..."
-                autoFocus
-              />
-            </div>
-
-            {/* Cantidad y Peso */}
-            <div className={estilos.gridDosColumnasPosesion}>
+              {/* Nombre de la Posesión */}
               <div className={estilos.campoFormulario}>
-                <label className={estilos.labelFormulario}>Cantidad</label>
+                <label className={estilos.labelFormulario}>Nombre de la Posesión / Objeto *</label>
                 <input
-                  type="number"
-                  min="1"
+                  type="text"
+                  required
                   className={estilos.inputFormulario}
-                  value={cantidadPosesion}
-                  onChange={(e) => setCantidadPosesion(Math.max(1, parseInt(e.target.value, 10) || 1))}
+                  value={nombrePosesion}
+                  onChange={(e) => setNombrePosesion(e.target.value)}
+                  placeholder="Ej. Carta sellada de Waterdeep, Llave de hierro, Gema roja..."
+                  autoFocus
                 />
               </div>
 
+              {/* Cantidad y Peso */}
+              <div className={estilos.gridDosColumnasPosesion}>
+                <div className={estilos.campoFormulario}>
+                  <label className={estilos.labelFormulario}>Cantidad</label>
+                  <input
+                    type="number"
+                    min="1"
+                    className={estilos.inputFormulario}
+                    value={cantidadPosesion}
+                    onChange={(e) => setCantidadPosesion(Math.max(1, parseInt(e.target.value, 10) || 1))}
+                  />
+                </div>
+
+                <div className={estilos.campoFormulario}>
+                  <label className={estilos.labelFormulario}>Peso Total (lb)</label>
+                  <input
+                    type="number"
+                    step="0.1"
+                    min="0"
+                    className={estilos.inputFormulario}
+                    value={pesoPosesion}
+                    onChange={(e) => setPesoPosesion(e.target.value)}
+                    placeholder="0 (ligero / insignificante)"
+                  />
+                </div>
+              </div>
+
+              {/* Selector de Contenedor de Destino */}
               <div className={estilos.campoFormulario}>
-                <label className={estilos.labelFormulario}>Peso Total (lb)</label>
-                <input
-                  type="number"
-                  step="0.1"
-                  min="0"
-                  className={estilos.inputFormulario}
-                  value={pesoPosesion}
-                  onChange={(e) => setPesoPosesion(e.target.value)}
-                  placeholder="0 (ligero / insignificante)"
+                <label className={estilos.labelFormulario}>Guardar en:</label>
+                <div className={estilos.cuadriculaSelectoresDestino}>
+                  {OPCIONES_CONTENEDOR_DESTINO.map((opc) => {
+                    const activo = contenedorDestino === opc.clave;
+                    return (
+                      <button
+                        key={opc.clave}
+                        type="button"
+                        className={`${estilos.botonSelectorDestino} ${activo ? estilos.botonSelectorDestinoActivo : ""}`}
+                        data-caja={opc.clave}
+                        onClick={() => setContenedorDestino(opc.clave)}
+                      >
+                        <div className={estilos.iconoSelectorDestino}>
+                          {opc.clave === "mochila" && <Backpack size={13} color={opc.color} />}
+                          {opc.clave === "bolsa_contencion" && <Sparkles size={13} color={opc.color} />}
+                          {opc.clave === "montura" && <Box size={13} color={opc.color} />}
+                          {opc.clave === "almacen" && <Package size={13} color={opc.color} />}
+                        </div>
+                        <div className={estilos.infoSelectorDestino}>
+                          <span className={estilos.nombreSelectorDestino}>
+                            {opc.nombre}
+                          </span>
+                          <span className={estilos.subtituloSelectorDestino}>
+                            {opc.subtitulo}
+                          </span>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Notas / Descripción Rápida */}
+              <div className={estilos.campoFormulario}>
+                <label className={estilos.labelFormulario}>Notas o Descripción (Opcional)</label>
+                <textarea
+                  className={`${estilos.inputFormulario} ${estilos.textareaNotasPosesion}`}
+                  value={notasPosesion}
+                  onChange={(e) => setNotasPosesion(e.target.value)}
+                  placeholder="Notas de dónde se encontró, pistas, uso, etc..."
+                  spellCheck={false}
                 />
               </div>
-            </div>
 
-            {/* Selector de Contenedor de Destino */}
-            <div className={estilos.campoFormulario}>
-              <label className={estilos.labelFormulario}>Guardar en:</label>
-              <div className={estilos.cuadriculaSelectoresDestino}>
-                {OPCIONES_CONTENEDOR_DESTINO.map((opc) => {
-                  const activo = contenedorDestino === opc.clave;
-                  return (
-                    <button
-                      key={opc.clave}
-                      type="button"
-                      className={`${estilos.botonSelectorDestino} ${activo ? estilos.botonSelectorDestinoActivo : ""}`}
-                      data-caja={opc.clave}
-                      onClick={() => setContenedorDestino(opc.clave)}
-                    >
-                      <div className={estilos.iconoSelectorDestino}>
-                        {opc.clave === "mochila" && <Backpack size={13} color={opc.color} />}
-                        {opc.clave === "bolsa_contencion" && <Sparkles size={13} color={opc.color} />}
-                        {opc.clave === "montura" && <Box size={13} color={opc.color} />}
-                        {opc.clave === "almacen" && <Package size={13} color={opc.color} />}
-                      </div>
-                      <div className={estilos.infoSelectorDestino}>
-                        <span className={estilos.nombreSelectorDestino}>
-                          {opc.nombre}
-                        </span>
-                        <span className={estilos.subtituloSelectorDestino}>
-                          {opc.subtitulo}
-                        </span>
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
             </div>
-
-            {/* Notas / Descripción Rápida */}
-            <div className={estilos.campoFormulario}>
-              <label className={estilos.labelFormulario}>Notas o Descripción (Opcional)</label>
-              <textarea
-                className={`${estilos.inputFormulario} ${estilos.textareaNotasPosesion}`}
-                value={notasPosesion}
-                onChange={(e) => setNotasPosesion(e.target.value)}
-                placeholder="Notas de dónde se encontró, pistas, uso, etc..."
-                spellCheck={false}
-              />
-            </div>
-
             {/* Pie del Modal */}
             <div className={`${estilos.pieModal} ${estilos.pieModalAjustado}`}>
               <button type="button" className={estilos.neoButton} onClick={alCerrar}>

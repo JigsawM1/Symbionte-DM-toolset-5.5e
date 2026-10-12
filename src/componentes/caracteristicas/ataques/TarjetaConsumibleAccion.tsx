@@ -33,9 +33,9 @@ export const TarjetaConsumibleAccion: React.FC<TarjetaConsumibleAccionProps> = (
       <div className={estilos.filaSuperiorAtaque}>
         <div className={estilos.bloqueIzquierdoConsumible}>
           {consumible.esPocion ? (
-            <FlaskConical size={14} color="#10b981" />
+            <FlaskConical size={14} color="var(--pj-texto-exito)" />
           ) : (
-            <Sparkles size={14} color="#f59e0b" />
+            <Sparkles size={14} color="var(--pj-texto-oro)" />
           )}
           <span className={estilos.nombreAtaque}>{consumible.nombre}</span>
           <span className={estilos.badgeCantidadConsumible}>×{consumible.cantidad}</span>
@@ -56,7 +56,7 @@ export const TarjetaConsumibleAccion: React.FC<TarjetaConsumibleAccionProps> = (
         <div className={estilos.contenedorEfectoConsumible}>
           {consumible.esCurativo ? (
             <div className={estilos.bloqueCuracionConsumible}>
-              <Heart size={13} color="#ef4444" />
+              <Heart size={13} color="var(--pj-texto-alerta)" />
               <span className={estilos.textoEfectoCuracion}>
                 Recupera {consumible.formulaCuracion} PV
               </span>

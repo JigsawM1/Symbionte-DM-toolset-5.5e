@@ -39,14 +39,14 @@ export const TrackerEspaciosConjuro: React.FC<TrackerEspaciosConjuroProps> = ({
     gastados: espaciosGastados[String(nivel)] || 0,
     alGastar: () => alGastarEspacio?.(nivel),
     alRecuperar: () => alRecuperarEspacio?.(nivel),
-    colorTema: "#818cf8",
-    colorTemaFondo: "#4338ca"
+    colorTema: "var(--pj-texto-acento)",
+    colorTemaFondo: "var(--pj-acento-primario-solido-hover)"
   }));
 
   return (
     <TrackerRecursoMagico
       titulo="Espacios de Conjuro"
-      iconoColor="#818cf8"
+      iconoColor="var(--pj-texto-acento)"
       grupos={grupos}
       alRestablecerTodos={alRecuperarTodosEspacios}
       etiquetaRestablecer="Restablecer"

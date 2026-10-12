@@ -23,7 +23,7 @@ export function IdentidadConstructor({ borrador, actualizarBorrador, errores }: 
     return (<div className={estilos.seccionCard}>
         <div className={estilos.cabeceraSeccion}>
           <div className={estilos.tituloSeccion}>
-            <Shield size={14} color="#38bdf8"/>
+            <Shield size={14} color="var(--pj-texto-cian)"/>
             <span>1. Identidad y Clasificación</span>
           </div>
           <p className={estilos.descripcionSeccion}>Define el nombre, categoría y tiempo de acción del rasgo</p>

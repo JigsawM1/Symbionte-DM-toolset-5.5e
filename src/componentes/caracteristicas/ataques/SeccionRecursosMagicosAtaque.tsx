@@ -58,7 +58,7 @@ export const SeccionRecursosMagicosAtaque: React.FC<SeccionRecursosMagicosAtaque
         title="Clic para mostrar u ocultar espacios y recursos mágicos"
       >
         <div className={estilos.tituloGrupoAtaques}>
-          <Sparkles size={14} color="#c084fc" />
+          <Sparkles size={14} color="var(--pj-texto-magia)" />
           <span>Espacios y Recursos de Conjuro</span>
         </div>
         <div className={estilos.ladoDerechoCabecera}>

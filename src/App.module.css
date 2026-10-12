@@ -47,3 +47,26 @@
   margin-top: 8px;
 }
 
+/* Variante de jugador: DESIGN.md. Composición compartida, identidad zafiro/índigo. */
+
+:global([data-tema="jugador"]) .contenedorGeneral {
+  background-color: var(--pj-fondo-base);
+}
+
+:global([data-tema="jugador"]) .areaContenido {
+  background-color: var(--pj-fondo-base);
+}
+
+:global([data-tema="jugador"]) .cargadorPestana {
+  color: var(--pj-texto-acento);
+  font-family: var(--fuente-principal);
+  font-size: var(--pj-fuente-cuerpo);
+  background-color: var(--pj-fondo-panel);
+  border: 1px dashed rgba(var(--pj-rgb-cian), 0.25);
+  border-radius: var(--pj-radio-panel);
+}
+
+:global([data-tema="jugador"]) .cargadorBarra {
+  background-color: var(--pj-acento-primario-solido);
+}
+

@@ -166,7 +166,7 @@ export const SeccionAtaquesMagicos: React.FC<SeccionAtaquesMagicosProps> = ({
         title="Clic para mostrar u ocultar conjuros y acciones mágicas"
       >
         <div className={estilos.tituloGrupoAtaques}>
-          <Sparkles size={14} color="#c084fc" />
+          <Sparkles size={14} color="var(--pj-texto-magia)" />
           <span>Conjuros y Acciones Mágicas</span>
           <span className={estilos.badgeConteoSeccion}>{conjurosVisibles.length}</span>
         </div>
@@ -196,7 +196,7 @@ export const SeccionAtaquesMagicos: React.FC<SeccionAtaquesMagicosProps> = ({
                   <div className={estilos.tituloNivelMagico}>
                     {nivel === 0 ? (
                       <>
-                        <Sparkles size={13} color="#a78bfa" />
+                        <Sparkles size={13} color="var(--pj-texto-magia)" />
                         <span>Trucos Listos</span>
                       </>
                     ) : (
@@ -229,7 +229,7 @@ export const SeccionAtaquesMagicos: React.FC<SeccionAtaquesMagicosProps> = ({
                 title={`Clic para ${estaAbiertaOcultos ? "colapsar" : "expandir"} conjuros ocultos`}
               >
                 <div className={estilos.tituloOcultosMagicos}>
-                  <EyeOff size={14} color="#94a3b8" />
+                  <EyeOff size={14} color="var(--pj-texto-terciario)" />
                   <span>Conjuros Ocultos</span>
                   <span className={estilos.badgeConteoOcultosMagicos}>{conjurosOcultos.length}</span>
                 </div>

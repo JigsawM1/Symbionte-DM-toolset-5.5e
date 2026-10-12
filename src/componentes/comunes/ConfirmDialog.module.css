@@ -76,3 +76,45 @@
   cursor: pointer;
   border-radius: var(--dm-radio-control, 3px);
 }
+
+/* Variante de jugador: DESIGN.md. Composición compartida, identidad zafiro/índigo.
+ */
+
+:global([data-tema="jugador"]) .overlay {
+  background-color: var(--pj-fondo-modal-overlay);
+  backdrop-filter: none;
+}
+
+:global([data-tema="jugador"]) .contenedor {
+  background-color: var(--pj-fondo-modal-cuerpo);
+  border: 1px solid var(--pj-borde-cian-fuerte);
+  box-shadow: var(--pj-sombra-hundida);
+  border-radius: var(--pj-radio-panel);
+  backdrop-filter: none;
+}
+
+:global([data-tema="jugador"]) .titulo {
+  font-size: var(--pj-fuente-subtitulo);
+  color: var(--pj-texto-primario);
+}
+
+:global([data-tema="jugador"]) .mensaje {
+  font-size: var(--pj-fuente-label);
+  color: var(--pj-texto-secundario);
+}
+
+:global([data-tema="jugador"]) .botonCancelar {
+  background-color: rgba(var(--pj-rgb-neutro), 0.05);
+  border: 1px solid var(--pj-borde-medio);
+  color: var(--pj-texto-secundario);
+  font-size: var(--pj-fuente-boton);
+  border-radius: var(--pj-radio-control);
+}
+
+:global([data-tema="jugador"]) .botonConfirmar {
+  background-color: rgba(var(--pj-rgb-peligro), 0.15);
+  border: 1px solid var(--pj-acento-peligro);
+  color: var(--pj-texto-alerta);
+  font-size: var(--pj-fuente-boton);
+  border-radius: var(--pj-radio-control);
+}

@@ -176,3 +176,100 @@
   font-weight: 600;
   font-size: 13px;
 }
+
+/* Variante de jugador: DESIGN.md. Composición compartida, identidad zafiro/índigo. */
+
+:global([data-tema="jugador"]) .contenedor {
+  background-color: var(--pj-fondo-panel);
+  font-family: var(--fuente-principal);
+  color: var(--pj-texto-secundario);
+}
+
+:global([data-tema="jugador"]) .tarjeta {
+  background-color: var(--pj-fondo-tarjeta);
+  border: 2px solid var(--pj-borde-peligro);
+}
+
+:global([data-tema="jugador"]) .icono {
+  color: var(--pj-texto-alerta);
+}
+
+:global([data-tema="jugador"]) .titulo {
+  font-size: var(--pj-fuente-subtitulo);
+  color: var(--pj-texto-alerta);
+}
+
+:global([data-tema="jugador"]) .descripcion {
+  font-size: var(--pj-fuente-label);
+  color: var(--pj-texto-terciario);
+}
+
+:global([data-tema="jugador"]) .detalles {
+  font-size: var(--pj-fuente-label);
+}
+
+:global([data-tema="jugador"]) .codigo {
+  font-size: var(--pj-fuente-label);
+  background-color: var(--pj-fondo-panel);
+  border: 1px solid var(--pj-borde-fuerte);
+  color: var(--pj-texto-oro);
+}
+
+:global([data-tema="jugador"]) .botonRecargar {
+  background-color: var(--pj-acento-primario-solido);
+  border: 1px solid var(--pj-acento-magia);
+  color: var(--pj-texto-primario);
+  font-size: var(--pj-fuente-boton);
+}
+
+:global([data-tema="jugador"]) .botonReiniciar {
+  background-color: rgba(var(--pj-rgb-peligro), 0.1);
+  border: 1px solid var(--pj-borde-peligro);
+  color: var(--pj-texto-alerta);
+  font-size: var(--pj-fuente-boton);
+}
+
+:global([data-tema="jugador"]) .botonReiniciar:hover {
+  background-color: rgba(var(--pj-rgb-peligro), 0.2);
+}
+
+:global([data-tema="jugador"]) .advertencia {
+  font-size: var(--pj-fuente-label);
+  color: var(--pj-texto-terciario);
+}
+
+:global([data-tema="jugador"]) .contenedorModular {
+  background-color: rgba(var(--pj-rgb-peligro), 0.08);
+  border: 1px solid rgba(var(--pj-rgb-peligro), 0.3);
+  border-radius: var(--pj-radio-panel);
+  color: var(--pj-texto-acento);
+}
+
+:global([data-tema="jugador"]) .iconoModular {
+  color: var(--pj-texto-alerta);
+}
+
+:global([data-tema="jugador"]) .tituloModular {
+  font-size: var(--pj-fuente-titulo);
+  color: var(--pj-texto-alerta);
+}
+
+:global([data-tema="jugador"]) .descripcionModular {
+  font-size: var(--pj-fuente-cuerpo);
+  color: var(--pj-texto-terciario);
+}
+
+:global([data-tema="jugador"]) .codigoModular {
+  font-size: var(--pj-fuente-label);
+  background-color: var(--pj-fondo-base);
+  border-radius: var(--pj-radio-panel);
+  color: var(--pj-texto-alerta);
+}
+
+:global([data-tema="jugador"]) .botonModular {
+  background-color: rgba(var(--pj-rgb-peligro), 0.2);
+  border: 1px solid var(--pj-borde-peligro);
+  border-radius: var(--pj-radio-control);
+  color: var(--pj-texto-primario);
+  font-size: var(--pj-fuente-boton);
+}

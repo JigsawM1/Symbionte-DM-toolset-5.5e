@@ -143,3 +143,48 @@
   font-weight: 400;
   line-height: 1.4;
 }
+
+/* Variante de jugador: DESIGN.md. Composición compartida, identidad zafiro/índigo. */
+
+:global([data-tema="jugador"]).flotantePortal,
+:global([data-tema="jugador"]) .flotantePortal {
+  background: var(--pj-fondo-modal-cuerpo);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border: 1px solid rgba(var(--pj-rgb-cian), 0.35);
+  border-radius: var(--pj-radio-panel);
+  box-shadow: var(--pj-sombra-tarjeta);
+  color: var(--pj-texto-primario);
+  font-family: var(--fuente-principal);
+  font-size: var(--pj-fuente-cuerpo);
+}
+
+:global([data-tema="jugador"]).posicionArriba::after,
+:global([data-tema="jugador"]) .posicionArriba::after {
+  border-color: rgba(var(--pj-rgb-cian), 0.35) transparent transparent transparent;
+}
+
+:global([data-tema="jugador"]).posicionAbajo::after,
+:global([data-tema="jugador"]) .posicionAbajo::after {
+  border-color: transparent transparent rgba(var(--pj-rgb-cian), 0.35) transparent;
+}
+
+:global([data-tema="jugador"]).posicionIzquierda::after,
+:global([data-tema="jugador"]) .posicionIzquierda::after {
+  border-color: transparent transparent transparent rgba(var(--pj-rgb-cian), 0.35);
+}
+
+:global([data-tema="jugador"]).posicionDerecha::after,
+:global([data-tema="jugador"]) .posicionDerecha::after {
+  border-color: transparent rgba(var(--pj-rgb-cian), 0.35) transparent transparent;
+}
+
+:global([data-tema="jugador"]) .titulo {
+  font-size: var(--pj-fuente-subtitulo);
+  color: var(--pj-acento-cian-brillante);
+  border-bottom: 1px solid rgba(var(--pj-rgb-neutro), 0.08);
+}
+
+:global([data-tema="jugador"]) .cuerpo {
+  color: var(--pj-texto-secundario);
+}

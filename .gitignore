@@ -54,3 +54,5 @@ respaldo.yaml
 !/scripts/vitest.simulacion.config.ts
 !/scripts/probar-ciclo-vida.mjs
 !/scripts/probar-constructor-rasgos.mjs
+!/scripts/probar-tema-jugador.mjs
+!/scripts/fixture-tema-jugador.mjs

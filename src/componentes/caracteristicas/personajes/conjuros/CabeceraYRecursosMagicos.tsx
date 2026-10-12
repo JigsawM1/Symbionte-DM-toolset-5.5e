@@ -56,7 +56,7 @@ export const CabeceraYRecursosMagicos: React.FC<CabeceraYRecursosMagicosProps> =
       {/* Banner de Bloqueo por Armadura sin Competencia */}
       {estaBloqueadoPorArmadura && (
         <div className={estilos.bannerBloqueoMagia}>
-          <AlertTriangle size={18} color="#ef4444" className={estilos.iconoAlertaArmaduraShrink} />
+          <AlertTriangle size={18} color="var(--pj-texto-alerta)" className={estilos.iconoAlertaArmaduraShrink} />
           <div>
             <strong>Lanzamiento de Conjuros Bloqueado:</strong>
             {" "}Vistes {penalizacionArmadura?.armaduraNoCompetente || penalizacionArmadura?.escudoNoCompetente} sin competencia.
@@ -95,9 +95,9 @@ export const CabeceraYRecursosMagicos: React.FC<CabeceraYRecursosMagicosProps> =
         >
           <div className={estilos.cabeceraAtaqueMagicoFila}>
             {estaBloqueadoPorArmadura ? (
-              <AlertTriangle size={11} color="#ef4444" />
+              <AlertTriangle size={11} color="var(--pj-texto-alerta)" />
             ) : (
-              <Zap size={11} color="#a78bfa" />
+              <Zap size={11} color="var(--pj-texto-magia)" />
             )}
             <span
               className={estaBloqueadoPorArmadura ? estilos.etiquetaAtaqueMagicoBloqueado : estilos.estadisticaEtiquetaMorada}

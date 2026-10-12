@@ -81,10 +81,13 @@ const CLAVES_PERSISTIBLES: (keyof EstadoDM)[] = [
   "baseDatosHechizos",
   "objetosHomebrew",
   "metodoVidaMonstruo",
+  "sistemaMagia",
+  "mostrarPorcentajeVidaAJugadores",
   "listaPendientes",
   "notasDM",
   "encuentrosGuardados",
   "personajes",
+  "borradoresSync",
   "idPersonajeActivo"
 ];
 
@@ -108,7 +111,9 @@ const persistenciaMiddleware: PersistenciaMiddleware = (configuradorStore) => (s
     );
 
     if (haCambiado) {
-      persistirEstadoCompleto(estadoNuevo);
+      persistirEstadoCompleto(estadoNuevo, estadoGuardado => {
+        if (CLAVES_PERSISTIBLES.every(clave => get()[clave] === estadoNuevo[clave])) api.setState({ estadoGuardado });
+      }, () => get().datosInicialesCargados && !get().cargandoDatos && !get().errorCargaDatos);
     }
   };
 

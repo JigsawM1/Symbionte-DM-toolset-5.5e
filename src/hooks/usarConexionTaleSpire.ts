@@ -1,3 +1,5 @@
+import { limpiarTiradasExpiradas, limpiarRegistrosTiradas } from "@/utiles/lanzadorDados";
+import { invalidarAutoridadSync } from "@/servicios/sincronizacion/autoridadSync";
 /**
  * usarConexionTaleSpire.ts
  * -------------------------
@@ -46,6 +48,7 @@ export function usarConexionTaleSpire() {
     let desuscribirObservadoresSync: (() => void) | null = null;
     let timerInicializacion: ReturnType<typeof setTimeout> | null = null;
     let activo = true;
+    const timerTiradas = setInterval(() => limpiarTiradasExpiradas(), 60000);
 
     // Manejador defensivo de flush síncrono al descargar la ventana CEF
     const ejecutarFlushEmergencia = () => {
@@ -60,6 +63,7 @@ export function usarConexionTaleSpire() {
 
     const suscribirAPIs = () => {
       if (!ts.estaDisponible) return false;
+      puenteTaleSpire.activar();
 
       logger.info("[TaleSpire Simbionte] Conectando escuchas y suscripciones del EventBus...");
       
@@ -169,37 +173,24 @@ export function usarConexionTaleSpire() {
 
         // Suscribirse a eventos de cambios de rol del cliente en tiempo real
         const procesarEventoCliente = (payload: EventoClienteTS) => {
+          invalidarAutoridadSync();
           if (!activo) return;
           logger.debug("[TaleSpire Simbionte] Evento de cliente inyectado por CEF:", payload);
-          // Narrowing por kind: solo clientModeChanged contiene clientMode
-          const modo = payload.kind === "clientModeChanged" ? payload.clientMode : undefined;
-          logger.debug("[TaleSpire Simbionte] Modo detectado en evento de cliente:", modo);
-          
-          if (modo === "gm") {
-            establecerEsGM(true);
-          } else if (modo === "player" || modo === "spectator") {
-            establecerEsGM(false);
-            solicitarEstadoInicial();
-          } else {
-            ts.clients.esGM(true).then((soyGm) => {
-              if (activo) {
-                establecerEsGM(soyGm);
-                if (!soyGm) solicitarEstadoInicial();
-              }
-            });
-          }
+          void ts.clients.esGM(true).then(soyGm => {
+            if (!activo) return;
+            establecerEsGM(soyGm);
+            if (!soyGm) solicitarEstadoInicial();
+          }).catch(error => logger.warn('[Sync] No se pudo verificar el cambio de rol:', error));
         };
 
         const subPuenteCliente = puenteTaleSpire.on("eventoCliente", procesarEventoCliente);
-        const subNativaCliente = ts.clients.suscribirACambioModoCliente((modo) => {
-          if (activo) {
-            logger.debug("[TaleSpire Simbionte] Cambio de modo nativo detectado:", modo);
-            const esGm = modo === "gm";
-            establecerEsGM(esGm);
-            if (!esGm) {
-              solicitarEstadoInicial();
-            }
-          }
+        const subNativaCliente = ts.clients.suscribirACambioModoCliente(() => {
+          invalidarAutoridadSync();
+          void ts.clients.esGM(true).then(soyGm => {
+            if (!activo) return;
+            establecerEsGM(soyGm);
+            if (!soyGm) solicitarEstadoInicial();
+          });
         });
 
         desuscribirCliente = () => {
@@ -362,7 +353,10 @@ export function usarConexionTaleSpire() {
           }
         };
 
-        const subPuenteCriatura = puenteTaleSpire.on("estadoCriatura", procesarEventoMovimiento);
+        const subPuenteCriatura = puenteTaleSpire.on("estadoCriatura", evento => {
+          if (evento.kind === "creatureOwnersChanged") invalidarAutoridadSync();
+          procesarEventoMovimiento(evento);
+        });
         const subNativaCriatura = ts.creatures.suscribirACambioEstadoCriatura(procesarEventoMovimiento);
 
         desuscribirEstadoCriatura = () => {
@@ -455,7 +449,7 @@ export function usarConexionTaleSpire() {
                 logger.info(`[TaleSpire Simbionte] Rol cliente detectado al iniciar: ${soyGm ? "Dungeon Master (GM)" : "Jugador"}`);
                 establecerEsGM(soyGm);
                 if (soyGm) {
-                  const miId = await ts.clients.obtenerPlayerId();
+                  const miId = await ts.clients.obtenerClientId();
                   establecerIdClienteDM(miId);
                 } else {
                   solicitarEstadoInicial();
@@ -555,6 +549,7 @@ export function usarConexionTaleSpire() {
     if (suscribirAPIs()) {
       return () => {
         activo = false;
+        clearInterval(timerTiradas); limpiarRegistrosTiradas();
         if (typeof window !== "undefined") {
           window.removeEventListener("beforeunload", ejecutarFlushEmergencia);
           window.removeEventListener("pagehide", ejecutarFlushEmergencia);
@@ -590,6 +585,7 @@ export function usarConexionTaleSpire() {
 
     return () => {
       activo = false;
+      clearInterval(timerTiradas); limpiarRegistrosTiradas();
       clearInterval(intervalo);
       if (typeof window !== "undefined") {
         window.removeEventListener("beforeunload", ejecutarFlushEmergencia);

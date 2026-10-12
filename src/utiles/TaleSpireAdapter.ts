@@ -465,6 +465,11 @@ class TaleSpireAdapter {
   // ==========================================
 
   clients = {
+    obtenerClientId: async (): Promise<string | null> => (await window.TS?.clients?.whoAmI?.())?.id ?? null,
+    getMoreInfo: async (ids: string[]): Promise<InfoCliente[]> => {
+      if (!window.TS?.clients?.getMoreInfo) throw new Error('No se puede verificar la identidad del cliente');
+      return window.TS.clients.getMoreInfo(ids);
+    },
     /**
      * Comprueba si el usuario actual tiene rol de Dungeon Master (GM).
      * Consulta players.getMoreInfo ([playerInfo.rights]), clients.getMoreInfo o prueba permisos.
@@ -706,7 +711,7 @@ class TaleSpireAdapter {
           return await window.TS.localStorage.global.getBlob();
         } catch (error) {
           logger.error("[TS Adapter] Excepción en getBlob nativo:", error);
-          return null;
+          throw error;
         }
       }
 
@@ -716,7 +721,7 @@ class TaleSpireAdapter {
           return window.localStorage.getItem(_clave);
         } catch (error) {
           logger.error("[TS Adapter] Error al leer de localStorage de navegador:", error);
-          return null;
+          throw error;
         }
       }
 

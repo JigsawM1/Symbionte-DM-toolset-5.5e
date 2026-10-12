@@ -9,10 +9,15 @@
  */
 
 import { ts } from "./TaleSpireAdapter";
-import { logger } from '@/utiles/logger';
 
 /** Clave interna para el único blob global del Simbionte DM */
 const CLAVE_BLOB_GLOBAL = "__dm_pantalla_datos__";
+
+export class ErrorLecturaBlob extends Error {
+  constructor(mensaje: string, readonly original: string | null, causa?: unknown) {
+    super(mensaje, { cause: causa });
+  }
+}
 
 /**
  * Guarda TODOS los datos persistibles del DM en un único blob JSON.
@@ -25,52 +30,24 @@ export async function guardarBlobGlobal(datos: Record<string, unknown>): Promise
 /**
  * Lee TODOS los datos persistibles del DM desde el blob JSON.
  */
-export async function leerBlobGlobal(): Promise<Record<string, unknown> | null> {
+export async function leerBlobGlobal(alLeerOriginal?: (texto: string) => void): Promise<Record<string, unknown> | null> {
+  const resultado: unknown = await ts.localStorage.leerBlob(CLAVE_BLOB_GLOBAL);
+  if (resultado === null || resultado === undefined || resultado === "") return null;
+  let texto: string;
+  if (typeof resultado === "string") texto = resultado;
+  else if (typeof resultado === "object" && !Array.isArray(resultado)) {
+    const objeto = resultado as Record<string, unknown>;
+    if (objeto.result === "noData") return null;
+    if (typeof objeto.data !== "string") throw new ErrorLecturaBlob('Respuesta de almacenamiento inválida', null);
+    texto = objeto.data;
+  } else throw new ErrorLecturaBlob('Respuesta de almacenamiento inválida', null);
+  alLeerOriginal?.(texto);
   try {
-    const resultado = await ts.localStorage.leerBlob(CLAVE_BLOB_GLOBAL);
-    logger.debug("[TS Storage] Lectura finalizada.");
-
-    if (!resultado) {
-      logger.debug("[TS Storage] Blob vacío o sin inicializar.");
-      return null;
-    }
-
-    // 1. Si es directamente una cadena JSON
-    if (typeof resultado === "string") {
-      if (resultado.trim() === "") return null;
-      try {
-        return JSON.parse(resultado) as Record<string, unknown>;
-      } catch (e) {
-        logger.error("[TS Storage] Error al parsear JSON directo:", e);
-        return null;
-      }
-    }
-
-    // 2. Si es un objeto estructurado del simulador o API teórica { result, data }
-    const obj = resultado as Record<string, unknown>;
-    if (obj.result === "ok" && typeof obj.data === "string") {
-      try {
-        return JSON.parse(obj.data) as Record<string, unknown>;
-      } catch (e) {
-        logger.error("[TS Storage] Error al parsear JSON desde obj.data:", e);
-        return null;
-      }
-    } else if (obj.result === "noData") {
-      logger.debug("[TS Storage] No hay datos guardados todavía (primera sesión).");
-      return null;
-    } else if (typeof obj.data === "string") {
-      try {
-        return JSON.parse(obj.data) as Record<string, unknown>;
-      } catch (e) {
-        logger.error("[TS Storage] Error al parsear JSON desde obj.data secundario:", e);
-        return null;
-      }
-    }
-
-    return null;
+    const datos: unknown = JSON.parse(texto);
+    if (!datos || typeof datos !== 'object' || Array.isArray(datos)) throw new Error('Se esperaba un objeto JSON');
+    return datos as Record<string, unknown>;
   } catch (error) {
-    logger.error("[TS Storage] Excepción al leer blob global:", error);
-    return null;
+    throw new ErrorLecturaBlob('Los datos guardados no contienen un objeto JSON válido', texto, error);
   }
 }
 

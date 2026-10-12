@@ -51,7 +51,7 @@ function convergen() {
 function entregar(paquete: Paquete, destino: Cliente) {
   if (!destino.conectado) return;
   entregas++;
-  destino.motor.procesarMensajeSyncEntrante({ datos: JSON.parse(paquete.texto), strCrudo: paquete.texto });
+  destino.motor.procesarMensajeSyncEntrante({ datos: JSON.parse(paquete.texto), strCrudo: paquete.texto, fromClient: { id: paquete.origen, player: { id: paquete.origen, name: paquete.origen } } });
 }
 async function enviarNativo(origen: string, texto: string, target: string) {
   expect(target).toBe('board');
@@ -128,6 +128,9 @@ describe('Simulación realista de sync: 6 PJ, 20 monstruos, 7 clientes aislados'
       const id = i === 0 ? 'DM' : personajes[i - 1].id;
       // Se sustituye exclusivamente la referencia a la API nativa; la cola, purga y reintentos son reales.
       Object.defineProperty(adaptador, 'tsGlobal', { configurable: true, get: () => ({ sync: { send: (texto: string, target: string) => enviarNativo(id, texto, target) } }) });
+      vi.spyOn(adaptador.clients, 'getMoreInfo').mockImplementation(async ids => ids.map(cid => ({ id: cid, clientMode: cid === 'DM' ? 'gm' as const : 'player' as const, player: { id: cid, name: cid } })));
+      vi.spyOn(adaptador.clients, 'obtenerPlayerId').mockResolvedValue(id);
+      vi.spyOn(adaptador.creatures, 'getCreaturesOwnedByPlayer').mockImplementation(async pid => personajes.filter(p => p.id === pid).flatMap(p => [p.idMiniaturaTS, ...p.acompanantes.map(a => a.idMiniaturaTS)].filter((mini): mini is string => !!mini).map(mini => ({ id: mini }))));
       const send = adaptador.sync.send;
       vi.spyOn(adaptador.sync, 'send').mockImplementation((texto, target) => {
         maxCaracteres = Math.max(maxCaracteres, texto.length);
@@ -330,4 +333,30 @@ El proceso devuelve código 0 si todas las comprobaciones pasan, o 1 si alguna f
     concluir(intentos <= 3 && dm().store.getState().personajes[2].hpActual === 23,
       `Sin ACK durante 20 s: envíos PJ=${intentos} (máximo esperado 3: original + 2 reintentos); HP del DM=${dm().store.getState().personajes[2].hpActual}`);
   });
+  it('Un cambio del DM prevalece frente a una edición PJ basada en estado anterior', async () => {
+    await iniciarMesa();
+    const j = jugadores()[0];
+    dm().store.getState().modificarVidaCriaturaIniciativa(personajes[0].idMiniaturaTS!, 15);
+    j.store.getState().establecerHPActualPersonaje(j.id, 30);
+    await avanzar(15000);
+    concluir(dm().store.getState().personajes[0].hpActual === 15 && j.store.getState().personajes[0].hpActual === 15 && !!j.store.getState().borradoresSync[j.id],
+      `DM=${dm().store.getState().personajes[0].hpActual}; PJ=${j.store.getState().personajes[0].hpActual}; borrador=${j.store.getState().borradoresSync[j.id]?.hpActual}; se esperan 15/15 y borrador 30`);
+  });
+
+  it('Una miniatura ajena no autoriza al jugador a sobrescribir otra ficha', async () => {
+    await iniciarMesa();
+    const j = jugadores()[0];
+    const mensaje = { v: 2, s: 'suplantacion', t: 'PJ', d: { id: personajes[1].id, m: personajes[1].idMiniaturaTS, n: personajes[1].nombre, i: 0, va: 1, vm: 64, ts: 1, b: 0 } };
+    await dm().motor.procesarMensajeSyncEntrante({ datos: mensaje, strCrudo: JSON.stringify(mensaje), fromClient: { id: j.id, player: { id: j.id, name: j.id } } });
+    concluir(dm().store.getState().personajes[1].hpActual === 64, 'El servidor rechaza la miniatura que pertenece a otro jugador');
+  });
+
+  it('Una versión anterior del protocolo no modifica la iniciativa', async () => {
+    await iniciarMesa();
+    const j = jugadores()[0]; const ronda = j.store.getState().rondaActual;
+    const mensaje = { v: 1, t: 'DM', d: { c: [], t: 0, r: 99, v: true, mv: 'maximo' } };
+    await j.motor.procesarMensajeSyncEntrante({ datos: mensaje, strCrudo: JSON.stringify(mensaje), fromClient: { id: 'DM', player: { id: 'DM', name: 'DM' } } });
+    concluir(j.store.getState().rondaActual === ronda && j.store.getState().notificaciones.some(n => n.mensaje.includes('actualicen')), 'El cliente informa incompatibilidad y conserva el combate vigente');
+  });
+
 });

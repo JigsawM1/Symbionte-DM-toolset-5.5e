@@ -501,13 +501,13 @@ describe("SlicePersonajes - Daño y Escudo (HP Temporal)", () => {
       expect(hozMochila?.equipado).toBe(false);
       expect(hozMochila?.cantidad).toBe(2);
 
-      // Desequipar -> Debe re-fusionarse
+      // Desequipar conserva las dos instancias.
       alternarEquipadoObjeto("test-pj", "hoz-inst");
       pj = usarAlmacenDM.getState().personajes[0];
       const hozTotal = pj.inventario.filter((o) => o.idObjeto === "hoz");
-      expect(hozTotal).toHaveLength(1);
-      expect(hozTotal[0].equipado).toBe(false);
-      expect(hozTotal[0].cantidad).toBe(3);
+      expect(hozTotal).toHaveLength(2);
+      expect(hozTotal.every(o => !o.equipado)).toBe(true);
+      expect(hozTotal.reduce((total, o) => total + o.cantidad, 0)).toBe(3);
     });
 
     it("actualiza y muta propiedades de un objeto de inventario (ej. mutar Bolsita a Estuche de Agujas)", () => {

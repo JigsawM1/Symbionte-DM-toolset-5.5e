@@ -1300,14 +1300,12 @@ export function sanearPersonaje(p: unknown): PersonajeJugador {
     return pjValido;
   }
 
-  // Fallback tolerante si algún campo anidado no pasa Zod estricto:
-  // Preservamos la integridad de los datos del personaje fusionado con los valores por defecto
-  // para evitar la destrucción accidental de fichas de usuario.
+  // La capa de carga conserva el original rechazado; ningún dato inválido entra al estado activo.
   logger.warn(
     `[sanearPersonaje] Advertencia de validación Zod en personaje "${fusionado.nombre}" (${fusionado.id}):`,
     resultado.error.issues
   );
-  return fusionado as unknown as PersonajeJugador;
+  throw new Error(`Ficha inválida: ${resultado.error.issues.map((issue) => `${issue.path.join('.')}: ${issue.message}`).join('; ')}`, { cause: resultado.error });
 }
 
 export const EsquemaCriaturaIniciativa = z.object({

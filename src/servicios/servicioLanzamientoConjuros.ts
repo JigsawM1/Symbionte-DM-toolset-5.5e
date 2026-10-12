@@ -7,6 +7,8 @@
  */
 
 import type { HechizoBase } from "@/tipos";
+import type { PersonajeJugador } from '@/tipos';
+import { consumirRecursoConjuro } from './consumidorRecursosConjuros';
 import type { PenalizacionArmadura } from "@/almacen/selectores/usarEstadoPersonajes";
 import {
   sanitizarEtiqueta
@@ -46,6 +48,9 @@ export interface SolicitudLanzamiento {
 }
 
 export interface ContextoMagicoPersonaje {
+  personajeActual?: PersonajeJugador;
+  espaciosConjuroGastados?: Record<string, number>;
+  puntosConjuroDisponibles?: number;
   penalizacionArmadura?: PenalizacionArmadura | null;
   espaciosConjuroMaximos?: Record<string, number> | Record<number, number>;
   nivelConjuroMaximo?: number;
@@ -144,6 +149,10 @@ export function validarLanzamiento(
       break;
   }
 
+  if (contexto.personajeActual) {
+    const resultado = consumirRecursoConjuro(contexto.personajeActual, prepararLanzamiento(solicitud, contexto).gasto);
+    if (!resultado.permitido) return resultado;
+  }
   return { permitido: true };
 }
 

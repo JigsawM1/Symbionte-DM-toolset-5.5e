@@ -1,3 +1,4 @@
+import { usarAlmacenDM } from "@/almacen/usarAlmacenDM";
 import React, { useState } from "react";
 import type { PersonajeJugador, Habilidad, GradoCompetencia, PersonalizacionHabilidad } from "@/tipos";
 import {
@@ -94,7 +95,8 @@ export const ModalDetalleHabilidad: React.FC<ModalDetalleHabilidadProps> = ({
   ];
 
   // Cálculos matemáticos a partir de estadísticas derivadas canónicas
-  const statsCalculadas = calcularEstadisticasPersonaje(personaje);
+  const catalogo = usarAlmacenDM(s => s.objetosHomebrew);
+  const statsCalculadas = calcularEstadisticasPersonaje(personaje, catalogo);
   const pb = statsCalculadas.bonoCompetencia;
   const modCarac = statsCalculadas.modificadores[caracAsociada] ?? 0;
 

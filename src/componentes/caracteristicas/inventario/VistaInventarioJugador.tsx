@@ -52,8 +52,8 @@ export const VistaInventarioJugador: React.FC = () => {
 
   const statsCalculadas = useMemo(() => {
     if (!personajeActivo) return null;
-    return calcularEstadisticasPersonaje(personajeActivo);
-  }, [personajeActivo]);
+    return calcularEstadisticasPersonaje(personajeActivo, objetosHomebrew);
+  }, [personajeActivo, objetosHomebrew]);
 
   // Acción Rápida "Usar" Consumible / Poción (D&D 5.5e)
   const manejarUsarConsumible = useCallback(async (objeto: ObjetoInventario) => {

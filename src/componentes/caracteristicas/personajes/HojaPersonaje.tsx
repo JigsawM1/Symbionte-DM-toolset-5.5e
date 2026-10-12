@@ -49,7 +49,7 @@ export const HojaPersonaje: React.FC<HojaPersonajeProps> = ({ alAbrirConfiguraci
   const tipoTirada = usarTipoTirada();
   const sistemaMagia = usarSistemaMagia();
   const pestañaActiva = usarPestanaActiva();
-  const { baseDatosHechizos } = usarEstadoHomebrew();
+  const { baseDatosHechizos, objetosHomebrew } = usarEstadoHomebrew();
   const {
     actualizarPersonaje,
     modificarHPPersonaje,
@@ -154,8 +154,8 @@ export const HojaPersonaje: React.FC<HojaPersonajeProps> = ({ alAbrirConfiguraci
 
   // 1. Calcular estadísticas derivadas memoizadas con O(1)
   const statsCalculadas = useMemo(
-    () => (personajeActivo ? calcularEstadisticasPersonaje(personajeActivo) : null),
-    [personajeActivo]
+    () => (personajeActivo ? calcularEstadisticasPersonaje(personajeActivo, objetosHomebrew) : null),
+    [personajeActivo, objetosHomebrew]
   );
 
   // 2. Mapeo reactivo del modo de tirada desde el estado global de Zustand

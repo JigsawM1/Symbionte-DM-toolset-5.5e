@@ -188,7 +188,7 @@ describe("procesadorEquipamiento", () => {
     expect(resto?.equipado).toBe(false);
   });
 
-  it("debe fusionar el objeto con uno idéntico en mochila al desequipar", () => {
+  it("debe conservar la instancia individual al desequipar", () => {
     const equipada = crearObjeto({
       idInstancia: "antorcha_equip",
       idObjeto: "obj_antorcha",
@@ -207,9 +207,9 @@ describe("procesadorEquipamiento", () => {
     const inventario = [equipada, mochila];
     const resultado = procesarAlternarEquipado(inventario, "antorcha_equip");
 
-    expect(resultado.length).toBe(1);
-    expect(resultado[0].idInstancia).toBe("antorcha_mochila");
-    expect(resultado[0].cantidad).toBe(5);
+    expect(resultado.length).toBe(2);
+    expect(resultado.find(o => o.idInstancia === "antorcha_mochila")?.cantidad).toBe(4);
+    expect(resultado.find(o => o.idInstancia === "antorcha_equip")?.equipado).toBe(false);
     expect(resultado[0].equipado).toBe(false);
   });
 });

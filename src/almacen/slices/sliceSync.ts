@@ -16,6 +16,10 @@ export interface SliceSync {
   ultimoSyncRecibido: number | null;
   idClienteDM: string | null;
   timestampsModificacionLocal: Record<string, number>;
+  borradoresSync: Record<string, EstadoCombatePJ>;
+  guardarBorradorSync: (id: string, borrador: EstadoCombatePJ) => void;
+  descartarBorradorSync: (id: string) => void;
+  reaplicarBorradorSync: (id: string) => void;
 
   establecerAplicandoSync: (aplicando: boolean) => void;
   establecerIdClienteDM: (id: string | null) => void;
@@ -37,6 +41,19 @@ export const crearSliceSync: StateCreator<
   ultimoSyncRecibido: null,
   idClienteDM: null,
   timestampsModificacionLocal: {},
+  borradoresSync: {},
+  guardarBorradorSync: (id, borrador) => set(s => ({ borradoresSync: { ...s.borradoresSync, [id]: borrador } })),
+  descartarBorradorSync: id => set(s => ({ borradoresSync: Object.fromEntries(Object.entries(s.borradoresSync).filter(([clave]) => clave !== id)) })),
+  reaplicarBorradorSync: id => set(s => {
+    const borrador = s.borradoresSync[id];
+    if (!borrador) return s;
+    return { personajes: s.personajes.map(p => p.id !== id ? p : {
+      ...p, hpActual: borrador.hpActual, hpMaximo: borrador.hpMaximo, hpTemporal: borrador.hpTemporal,
+      condicionesActivas: borrador.condiciones, efectosActivos: borrador.efectos,
+      movimientoGastado: borrador.movimientoGastado ?? p.movimientoGastado,
+      espaciosConjuroGastados: borrador.conjuros?.espaciosGastados ?? p.espaciosConjuroGastados,
+    }), borradoresSync: Object.fromEntries(Object.entries(s.borradoresSync).filter(([clave]) => clave !== id)) };
+  }),
 
   establecerAplicandoSync: (aplicando: boolean) => {
     set({ aplicandoSync: aplicando });
@@ -71,7 +88,6 @@ export const crearSliceSync: StateCreator<
     logger.debug("[SliceSync] Aplicando estado de combate desde sync:", datos);
 
     const { personajes, timestampsModificacionLocal } = get();
-    const ahora = Date.now();
 
     // Actualizar condiciones, efectos y vitalidad de los personajes locales y sus acompañantes que estén en la iniciativa del DM
     const personajesActualizados = personajes.map((pj) => {
@@ -85,11 +101,7 @@ export const crearSliceSync: StateCreator<
       );
 
       const tsModPJ = timestampsModificacionLocal[pj.id];
-      const mutacionEnTransitoPJ = Boolean(
-        tsModPJ &&
-          ahora - tsModPJ < VENTANA_PROTECCION_MUTACION_MS &&
-          (!datos.ts || datos.ts < tsModPJ)
-      );
+      const mutacionEnTransitoPJ = tsModPJ !== undefined;
 
       const nuevosAcomps = (pj.acompanantes || []).map((acomp) => {
         const criaturaAcompEnCola = datos.cola.find(
@@ -103,16 +115,12 @@ export const crearSliceSync: StateCreator<
         if (!criaturaAcompEnCola) return acomp;
 
         const tsModAcomp = timestampsModificacionLocal[acomp.id];
-        const mutacionEnTransitoAcomp = Boolean(
-          tsModAcomp &&
-            ahora - tsModAcomp < VENTANA_PROTECCION_MUTACION_MS &&
-            (!datos.ts || datos.ts < tsModAcomp)
-        );
+        const mutacionEnTransitoAcomp = tsModAcomp !== undefined || mutacionEnTransitoPJ;
 
         return {
           ...acomp,
-          condiciones: criaturaAcompEnCola.condiciones || [],
-          efectos: criaturaAcompEnCola.efectos || [],
+          condiciones: mutacionEnTransitoAcomp ? acomp.condiciones : criaturaAcompEnCola.condiciones || [],
+          efectos: mutacionEnTransitoAcomp ? acomp.efectos : criaturaAcompEnCola.efectos || [],
           vidaActual: mutacionEnTransitoAcomp
             ? acomp.vidaActual
             : typeof criaturaAcompEnCola.vidaActual === "number"
@@ -140,8 +148,8 @@ export const crearSliceSync: StateCreator<
 
       return {
         ...pj,
-        condicionesActivas: criaturaEnCola.condiciones || [],
-        efectosActivos: criaturaEnCola.efectos || [],
+        condicionesActivas: mutacionEnTransitoPJ ? pj.condicionesActivas : criaturaEnCola.condiciones || [],
+        efectosActivos: mutacionEnTransitoPJ ? pj.efectosActivos : criaturaEnCola.efectos || [],
         hpActual: mutacionEnTransitoPJ
           ? pj.hpActual
           : typeof criaturaEnCola.vidaActual === "number"
@@ -189,7 +197,7 @@ export const crearSliceSync: StateCreator<
     const indexPj = personajes.findIndex((p) => {
       if (p.id === dto.id) return true;
       if (p.idMiniaturaTS && dto.idMiniaturaTS && p.idMiniaturaTS === dto.idMiniaturaTS) return true;
-      return coincidenNombresTaleSpire(p.nombre, dto.nombre);
+      return false;
     });
 
     let personajesActualizados = personajes;
@@ -205,8 +213,7 @@ export const crearSliceSync: StateCreator<
           const acompDTO = dto.acompanantes?.find(
             (a) =>
               a.id === acompExistente.id ||
-              (a.idMiniaturaTS && acompExistente.idMiniaturaTS && a.idMiniaturaTS === acompExistente.idMiniaturaTS) ||
-              coincidenNombresTaleSpire(a.nombre, acompExistente.nombre)
+              (a.idMiniaturaTS && acompExistente.idMiniaturaTS && a.idMiniaturaTS === acompExistente.idMiniaturaTS)
           );
 
           if (!acompDTO) return acompExistente;
@@ -339,10 +346,7 @@ export const crearSliceSync: StateCreator<
         (criatura.id === dto.id ||
           criatura.idPersonajeDuenio === dto.id ||
           (dto.idMiniaturaTS && criatura.id === dto.idMiniaturaTS));
-      const coincidePorNombrePJ =
-        !criatura.esAcompanante && coincidenNombresTaleSpire(criatura.nombre, dto.nombre);
-
-      if (coincidePorIdPJ || coincidePorNombrePJ) {
+      if (coincidePorIdPJ) {
         const tsModColaDM = timestampsModificacionLocal[criatura.id];
         const edicionRecienteColaDM = Boolean(
           tsModColaDM &&
@@ -374,8 +378,7 @@ export const crearSliceSync: StateCreator<
           (a) =>
             criatura.id === a.id ||
             criatura.idAcompanante === a.id ||
-            (a.idMiniaturaTS && criatura.id === a.idMiniaturaTS) ||
-            coincidenNombresTaleSpire(criatura.nombre, a.nombre)
+            (a.idMiniaturaTS && criatura.id === a.idMiniaturaTS)
         );
 
         if (acompCoincidente) {
@@ -417,8 +420,7 @@ export const crearSliceSync: StateCreator<
           (c) =>
             c.id === a.id ||
             c.idAcompanante === a.id ||
-            (a.idMiniaturaTS && c.id === a.idMiniaturaTS) ||
-            coincidenNombresTaleSpire(c.nombre, a.nombre)
+            (a.idMiniaturaTS && c.id === a.idMiniaturaTS)
         );
         if (!yaExiste) {
           colaActualizada.push({

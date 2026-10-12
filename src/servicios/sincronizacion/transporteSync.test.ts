@@ -3,7 +3,7 @@ import { EsquemaWireMensajeSync } from '@/tipos/sync';
 import { BufferFragmentosSync, empaquetarEstadoSync, type EstadoSync, type FragmentoSync } from './transporteSync';
 
 function estadoGrande(): EstadoSync {
-  return { v: 1, t: 'DM', d: { t: 0, r: 9, v: true, mv: 'maximo', ts: 1000,
+  return { v: 2, s: 'prueba', t: 'DM', d: { t: 0, r: 9, v: true, mv: 'maximo', ts: 1000,
     c: [{ id: 'criatura', n: 'Dragón', i: 12, va: 30, vm: 50,
       e: Array.from({ length: 50 }, (_, i) => ({ id: `efecto-${i}`, n: `Protección "mágica" \\ ${String.fromCodePoint(0x1d11e)}`, r: 10 })) }] } };
 }
@@ -35,7 +35,7 @@ describe('Transporte de estados completos por fragmentos', () => {
   });
 
   it('el paquete pequeño conserva el formato directo', () => {
-    const mensaje: EstadoSync = { v: 1, t: 'DM', d: { c: [], t: -1, r: 1, v: false, mv: 'maximo', ts: 5 } };
+    const mensaje: EstadoSync = { v: 2, s: 'prueba', t: 'DM', d: { c: [], t: -1, r: 1, v: false, mv: 'maximo', ts: 5 } };
     expect(empaquetarEstadoSync(mensaje)).toEqual([JSON.stringify(mensaje)]);
   });
 

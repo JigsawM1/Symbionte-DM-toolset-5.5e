@@ -85,6 +85,12 @@ const tiradasDadoGolpeActivas: Record<string, MetadataDadoGolpe> = {};
 /** TTL máximo de vida para tiradas no resueltas en memoria (10 minutos) */
 const TTL_TIRADAS_EN_MEMORIA_MS = 10 * 60 * 1000;
 
+export function limpiarRegistrosTiradas(): void {
+  for (const registro of [tiradasEspecialesActivas, tiradasIniciativaActivas, tiradasSalvacionMuerteActivas, tiradasCuracionRasgoActivas, tiradasHpTemporalRasgoActivas, tiradasDadoGolpeActivas]) {
+    for (const id of Object.keys(registro)) delete registro[id];
+  }
+}
+
 /**
  * Purga de memoria tiradas pendientes cuyos callbacks nunca llegaron de TaleSpire.
  * Previene fugas de memoria por acumulación de promesas o descriptores huérfanos.

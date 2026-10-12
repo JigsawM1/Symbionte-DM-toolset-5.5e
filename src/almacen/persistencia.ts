@@ -3,6 +3,12 @@ import { guardarBlobGlobal } from '@/utiles/almacenamientoTaleSpire';
 import { deshidratarPersonaje } from '@/servicios/serializadorPersonaje';
 import type { EstadoDM } from '@/almacen/usarAlmacenDM';
 import { logger } from '@/utiles/logger';
+import { serializarEstadoCombatePJ } from '@/tipos/sync';
+
+let colaEscrituras: Promise<boolean> = Promise.resolve(true);
+let generacionEscritura = 0;
+let cachePersonajesRef: EstadoDM["personajes"] | undefined;
+let cachePersonajes: EstadoDM["personajes"] = [];
 
 let timeoutPersistencia: ReturnType<typeof setTimeout> | null = null;
 
@@ -36,6 +42,11 @@ export function construirBlobPersistencia(estado: Partial<EstadoDM>): Record<str
     cacheObjetosHomebrew = baseObjetos.filter((o) => o && o.id && !IDS_INICIALES_OBJETOS.has(o.id));
   }
 
+  if (cachePersonajesRef !== estado.personajes) {
+    cachePersonajesRef = estado.personajes;
+    cachePersonajes = (estado.personajes ?? []).map(deshidratarPersonaje);
+  }
+
   return {
     monstruos_homebrew:  cacheMonstruosHomebrew,
     hechizos_homebrew:   cacheHechizosHomebrew,
@@ -49,43 +60,57 @@ export function construirBlobPersistencia(estado: Partial<EstadoDM>): Record<str
     metodo_vida:         estado.metodoVidaMonstruo || "azar",
     sistema_magia:       estado.sistemaMagia || "espacios",
     asociaciones_fichas: estado.asociacionesFichas || {},
-    personajes:          (estado.personajes || []).map(deshidratarPersonaje),
+    personajes:          cachePersonajes,
+    borradores_sync: Object.fromEntries(Object.entries(estado.borradoresSync ?? {}).map(([id, dto]) => [id, serializarEstadoCombatePJ(dto)])),
     id_personaje_activo: estado.idPersonajeActivo || null,
     mostrar_porcentaje_vida: estado.mostrarPorcentajeVidaAJugadores !== undefined ? estado.mostrarPorcentajeVidaAJugadores : true,
   };
 }
 
-/**
- * Fuerza la escritura inmediata y síncrona en disco/blob, cancelando cualquier
- * temporizador de debounce pendiente. Crucial ante el apagado del CEF (willShutdown).
- */
-export const forzarFlushPersistencia = async (estado?: Partial<EstadoDM>): Promise<boolean> => {
-  if (timeoutPersistencia) {
-    clearTimeout(timeoutPersistencia);
-    timeoutPersistencia = null;
-  }
-  if (!estado) return false;
-  try {
-    const blob = construirBlobPersistencia(estado);
-    return await guardarBlobGlobal(blob);
-  } catch (e) {
-    logger.error("[TS Storage] Error durante forzarFlushPersistencia:", e);
-    return false;
-  }
+type EstadoGuardado = EstadoDM['estadoGuardado'];
+type NotificarGuardado = (estado: EstadoGuardado) => void;
+export function suspenderPersistencia(): void {
+  generacionEscritura++;
+  if (timeoutPersistencia) clearTimeout(timeoutPersistencia);
+  timeoutPersistencia = null;
+}
+export const esperarEscriturasPersistencia = (): Promise<boolean> => colaEscrituras;
+function cargaValida(estado: Partial<EstadoDM>): boolean {
+  return estado.datosInicialesCargados === true && !estado.cargandoDatos && !estado.errorCargaDatos;
+}
+
+function guardarEnCola(estado: Partial<EstadoDM>, notificar?: NotificarGuardado, vigente?: () => boolean): Promise<boolean> {
+  const generacion = generacionEscritura;
+  colaEscrituras = colaEscrituras.catch(() => false).then(async () => {
+    if (generacion !== generacionEscritura || !cargaValida(estado) || (vigente && !vigente())) return false;
+    notificar?.('guardando');
+    try {
+      const exito = await guardarBlobGlobal(construirBlobPersistencia(estado));
+      notificar?.(exito ? 'guardado' : 'error');
+      return exito;
+    } catch (error) {
+      logger.error('[TS Storage] Falló la escritura; se conserva el estado en memoria:', error);
+      notificar?.('error');
+      return false;
+    }
+  });
+  return colaEscrituras;
+}
+
+/** Vacía el debounce y espera las escrituras anteriores antes del snapshot final. */
+export const forzarFlushPersistencia = (estado?: Partial<EstadoDM>): Promise<boolean> => {
+  if (timeoutPersistencia) clearTimeout(timeoutPersistencia);
+  timeoutPersistencia = null;
+  return estado && cargaValida(estado) ? guardarEnCola(estado) : Promise.resolve(false);
 };
 
-export const persistirEstadoCompleto = (estado: Partial<EstadoDM>) => {
-  if (!estado) return;
-
-  if (timeoutPersistencia) {
-    clearTimeout(timeoutPersistencia);
-  }
-
+export const persistirEstadoCompleto = (estado: Partial<EstadoDM>, notificar?: NotificarGuardado, vigente?: () => boolean): void => {
+  if (timeoutPersistencia) clearTimeout(timeoutPersistencia);
+  timeoutPersistencia = null;
+  if (!cargaValida(estado)) return;
+  notificar?.('pendiente');
   timeoutPersistencia = setTimeout(() => {
-    const blob = construirBlobPersistencia(estado);
-    guardarBlobGlobal(blob).catch((e: unknown) => {
-      logger.error("[TS Storage] Error al persistir estado completo:", e);
-    });
+    timeoutPersistencia = null;
+    void guardarEnCola(estado, notificar, vigente);
   }, 250);
 };
-

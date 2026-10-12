@@ -1,3 +1,4 @@
+vi.mock("@/servicios/sincronizacion/autoridadSync", () => ({ autorizarMensaje: () => true, autorizarPersonaje: () => Promise.resolve(true), puedeEmitirPJ: () => true, invalidarAutoridadSync: () => {} }));
 import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
 import { BufferChunksIniciativa } from "./bufferChunksIniciativa";
 import { GestorReintentosSync } from "./gestorReintentosSync";
@@ -93,7 +94,7 @@ describe("Sincronización Robusta - Validación de Mecanismos Anti-Regresión y 
       expect(usarAlmacenDM.getState().colaIniciativa[0].id).toBe("pj-heroe");
     });
 
-    it("permite la actualización del DM si transcurrió la ventana de protección de 2.500 ms", () => {
+    it("conserva una edición pendiente aunque hayan transcurrido 2.500 ms", () => {
       // 1. Modificación local
       usarAlmacenDM.getState().establecerHPActualPersonaje("pj-heroe", 40);
       expect(usarAlmacenDM.getState().personajes[0].hpActual).toBe(40);
@@ -129,8 +130,8 @@ describe("Sincronización Robusta - Validación de Mecanismos Anti-Regresión y 
         ts: Date.now(),
       });
 
-      // 4. Tras expirar la ventana, se acepta la sincronización autoritativa
-      expect(usarAlmacenDM.getState().personajes[0].hpActual).toBe(20);
+      // El tiempo transcurrido no acredita que el DM haya aceptado la edición.
+      expect(usarAlmacenDM.getState().personajes[0].hpActual).toBe(40);
     });
   });
 
@@ -418,7 +419,7 @@ describe("Sincronización Robusta - Validación de Mecanismos Anti-Regresión y 
       });
 
       const mensajeWirePJ = {
-        v: 1 as const,
+        v: 2, s: 'prueba' as const,
         t: "PJ" as const,
         d: wirePJ,
       };

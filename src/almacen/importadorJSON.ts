@@ -4,6 +4,7 @@ import { generarIdSlug } from '@/utiles/generarId';
 import { logger } from '@/utiles/logger';
 
 export interface ResultadoImportacion {
+  error?: string;
   modificado: boolean;
   baseDatosMonstruos: MonstruoBase[];
   baseDatosHechizos: HechizoBase[];
@@ -750,6 +751,7 @@ export function importarDesdeJSON(
   } catch (e) {
     logger.error("[Importador] Falló la importación del JSON:", e);
     return {
+      error: e instanceof Error ? e.message : 'No se pudo validar la importación',
       modificado: false,
       baseDatosMonstruos: estadoActual.baseDatosMonstruos,
       baseDatosHechizos: estadoActual.baseDatosHechizos,
@@ -777,8 +779,9 @@ export function importarPersonajesDesdeJSON(datosJSON: unknown): PersonajeJugado
     candidatos = [datosObj];
   }
 
-  return candidatos
-    .filter((c) => c && typeof c === "object")
-    .map(sanearPersonaje);
+  return candidatos.map((c, indice) => {
+    if (!c || typeof c !== "object" || Array.isArray(c)) throw new Error(`personajes.${indice}: se esperaba una ficha válida`);
+    return sanearPersonaje(c);
+  });
 }
 

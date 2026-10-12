@@ -17,14 +17,13 @@ function selector(cambios: Partial<SelectorRasgo> = {}): SelectorRasgo {
 }
 
 describe("Migración de metadatos de rasgos heredados", () => {
-  it("permite que el saneador conserve datos anidados inválidos sin romper su respaldo tolerante", () => {
+  it("rechaza datos anidados inválidos sin convertirlos en una ficha válida", () => {
     const advertencia = vi.spyOn(logger, "warn").mockImplementation(() => {});
     try {
       for (const opciones of ["opciones antiguas", [null, { id: 42 }]]) {
-        const pj = sanearPersonaje({ ...PERSONAJE_POR_DEFECTO, rasgos: [{
+        expect(() => sanearPersonaje({ ...PERSONAJE_POR_DEFECTO, rasgos: [{
           ...rasgo(), selectores: [{ ...selector(), opciones }]
-        }] });
-        expect(pj.rasgos[0].selectores?.[0].opciones).toEqual(opciones);
+        }] })).toThrow(/rasgos/);
       }
     } finally {
       advertencia.mockRestore();

@@ -1,3 +1,4 @@
+vi.mock("@/servicios/sincronizacion/autoridadSync", () => ({ autorizarMensaje: () => true, autorizarPersonaje: () => Promise.resolve(true), puedeEmitirPJ: () => true, invalidarAutoridadSync: () => {} }));
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { usarAlmacenDM } from '@/almacen/usarAlmacenDM';
 import { PERSONAJE_POR_DEFECTO } from '@/constantes';
@@ -7,7 +8,7 @@ import { emitirMiPersonaje, inicializarObservadoresStoreSync, procesarMensajeSyn
 import { empaquetarEstadoSync, type EstadoSync } from './transporteSync';
 
 function snapshot(revision: number, ronda = 1): EstadoSync {
-  return { v: 1, t: 'DM', d: { ts: revision, t: ronda - 1, r: ronda, v: true, mv: 'maximo',
+  return { v: 2, s: 'prueba', t: 'DM', d: { ts: revision, t: ronda - 1, r: ronda, v: true, mv: 'maximo',
     c: Array.from({ length: 26 }, (_, i) => ({ id: `criatura-${i}`, n: `Combatiente ${i}`,
       i: 26 - i, va: 30, vm: 40, m: i >= 6 })) } };
 }
@@ -52,7 +53,7 @@ describe('Regresiones del motor de sincronización', () => {
     incompleto.slice(1).forEach(recibir);
     expect(usarAlmacenDM.getState().rondaActual).toBe(1);
     await vi.advanceTimersByTimeAsync(5000);
-    expect(ts.sync.send).toHaveBeenCalledWith(JSON.stringify({ v: 1, t: 'REQ' }), 'board');
+    expect(vi.mocked(ts.sync.send).mock.calls.some(([texto]) => JSON.parse(texto).t === 'REQ')).toBe(true);
     empaquetarEstadoSync(snapshot(3000, 3)).forEach(recibir);
     expect(usarAlmacenDM.getState().rondaActual).toBe(3);
   });
@@ -70,7 +71,7 @@ describe('Regresiones del motor de sincronización', () => {
   it('un estado directo retrasado no destruye una transmisión más nueva en curso', () => {
     const nuevos = empaquetarEstadoSync(snapshot(3000, 9));
     recibir(nuevos[0]);
-    const antiguo: EstadoSync = { v: 1, t: 'DM', d: { ts: 2000, t: -1, r: 2, v: true, mv: 'maximo', c: [] } };
+    const antiguo: EstadoSync = { v: 2, s: 'prueba', t: 'DM', d: { ts: 2000, t: -1, r: 2, v: true, mv: 'maximo', c: [] } };
     recibir(JSON.stringify(antiguo));
     nuevos.slice(1).forEach(recibir);
     expect(usarAlmacenDM.getState().colaIniciativa).toHaveLength(26);
@@ -79,7 +80,7 @@ describe('Regresiones del motor de sincronización', () => {
 
   it('un mensaje heredado sin revisión no revierte una revisión ya aplicada', () => {
     empaquetarEstadoSync(snapshot(3000, 9)).forEach(recibir);
-    recibir(JSON.stringify({ v: 1, t: 'DM', d: { t: -1, r: 2, v: true, mv: 'maximo', c: [] } }));
+    recibir(JSON.stringify({ v: 2, s: 'prueba', t: 'DM', d: { t: -1, r: 2, v: true, mv: 'maximo', c: [] } }));
     expect(usarAlmacenDM.getState().rondaActual).toBe(9);
     expect(usarAlmacenDM.getState().colaIniciativa).toHaveLength(26);
   });
@@ -87,7 +88,7 @@ describe('Regresiones del motor de sincronización', () => {
   it('conserva la recuperación de fragmentos aunque llegue un estado directo retrasado', async () => {
     solicitarEstadoInicial();
     recibir(empaquetarEstadoSync(snapshot(3000, 9))[0]);
-    recibir(JSON.stringify({ v: 1, t: 'DM', d: { ts: 2000, t: -1, r: 2, v: true, mv: 'maximo', c: [] } }));
+    recibir(JSON.stringify({ v: 2, s: 'prueba', t: 'DM', d: { ts: 2000, t: -1, r: 2, v: true, mv: 'maximo', c: [] } }));
     await vi.advanceTimersByTimeAsync(5000);
     expect(ts.sync.send).toHaveBeenCalledTimes(2);
     empaquetarEstadoSync(snapshot(4000, 10)).forEach(recibir);
@@ -96,14 +97,14 @@ describe('Regresiones del motor de sincronización', () => {
 
   it('el DM conserva los fragmentos nuevos de un PJ ante mensajes directos retrasados', () => {
     usarAlmacenDM.setState({ esGM: true });
-    const nuevo: EstadoSync = { v: 1, t: 'PJ', d: { id: 'pj', n: 'Clériga', i: 0, va: 27, vm: 40, ts: 3000,
+    const nuevo: EstadoSync = { v: 2, s: 'prueba', t: 'PJ', d: { id: 'pj', n: 'Clériga', i: 0, va: 27, vm: 40, ts: 3000,
       e: Array.from({ length: 8 }, (_, i) => ({ id: `efecto-${i}`, n: 'Protección mágica', r: 9 })) } };
     const paquetes = empaquetarEstadoSync(nuevo);
     expect(paquetes.length).toBeGreaterThan(1);
     recibir(paquetes[0]);
-    recibir(JSON.stringify({ v: 1, t: 'PJ', d: { id: 'pj', va: 5, vm: 40, ts: 2000 } }));
+    recibir(JSON.stringify({ v: 2, s: 'prueba', t: 'PJ', d: { id: 'pj', va: 5, vm: 40, ts: 2000 } }));
     paquetes.slice(1).forEach(recibir);
-    recibir(JSON.stringify({ v: 1, t: 'PJ', d: { id: 'pj', va: 5, vm: 40 } }));
+    recibir(JSON.stringify({ v: 2, s: 'prueba', t: 'PJ', d: { id: 'pj', va: 5, vm: 40 } }));
     expect(usarAlmacenDM.getState().personajes[0].hpActual).toBe(27);
     expect(usarAlmacenDM.getState().personajes[0].efectosActivos).toHaveLength(8);
     const ack = vi.mocked(ts.sync.send).mock.calls.map(([texto]) => JSON.parse(texto)).filter(m => m.t === 'ACK');
@@ -126,7 +127,7 @@ describe('Regresiones del motor de sincronización', () => {
     expect(usarAlmacenDM.getState().personajes[0].efectosActivos).toEqual(efectos);
     expect(usarAlmacenDM.getState().personajes[0].concentracionActiva?.hechizoId).toBe('escudo');
     const ack = vi.mocked(ts.sync.send).mock.calls.map(([texto]) => JSON.parse(texto)).find(m => m.t === 'ACK');
-    expect(ack).toMatchObject({ id: 'pj', ts: 1000150 });
+    expect(ack).toMatchObject({ id: 'pj', ts: JSON.parse(paquetes[0]).ts });
   });
 
   it('la pérdida persistente de ACK genera exactamente tres emisiones con la misma revisión', async () => {
@@ -143,7 +144,7 @@ describe('Regresiones del motor de sincronización', () => {
     const primera = JSON.parse(vi.mocked(ts.sync.send).mock.calls[0][0]);
     usarAlmacenDM.getState().establecerHPActualPersonaje('pj', 23);
     await vi.advanceTimersByTimeAsync(200);
-    recibir(JSON.stringify({ v: 1, t: 'ACK', id: 'pj', ts: primera.d.ts }));
+    recibir(JSON.stringify({ v: 2, s: 'prueba', t: 'ACK', id: 'pj', ts: primera.d.ts }));
     await vi.advanceTimersByTimeAsync(6000);
     const emisiones = vi.mocked(ts.sync.send).mock.calls.map(([texto]) => JSON.parse(texto)).filter(m => m.t === 'PJ');
     expect(emisiones.filter(m => m.d.ts === primera.d.ts)).toHaveLength(1);

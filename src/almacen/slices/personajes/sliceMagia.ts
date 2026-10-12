@@ -1,3 +1,4 @@
+import { consumirRecursoConjuro } from "@/servicios/consumidorRecursosConjuros";
 import type { StateCreator } from "zustand";
 import type { EstadoDM, EfectoActivo } from "@/almacen/usarAlmacenDM";
 import {
@@ -75,6 +76,19 @@ export const crearSubSliceMagia: StateCreator<
   [],
   SubSliceMagia
 > = (set, get) => ({
+  consumirRecursoConjuro: (id, gasto) => {
+    let resultado: { permitido: boolean; motivo?: string } = { permitido: false, motivo: 'Personaje no encontrado.' };
+    set(state => {
+      const pj = state.personajes.find(p => p.id === id);
+      if (!pj) return state;
+      const consumo = consumirRecursoConjuro(pj, gasto);
+      resultado = consumo;
+      return consumo.permitido && consumo.personaje !== pj
+        ? { personajes: state.personajes.map(p => p === pj ? consumo.personaje : p) } : state;
+    });
+    return resultado;
+  },
+
   recalcularRecursosMagicos: (id) => {
     set((state) => ({
       personajes: state.personajes.map((pj) => {

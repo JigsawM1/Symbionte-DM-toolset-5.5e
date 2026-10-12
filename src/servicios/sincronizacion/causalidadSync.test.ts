@@ -2,8 +2,9 @@ import { beforeEach, afterEach, describe, it, expect, vi } from 'vitest';
 import { usarAlmacenDM } from '@/almacen/usarAlmacenDM';
 import { PERSONAJE_POR_DEFECTO } from '@/constantes';
 import { ts } from '@/utiles/TaleSpireAdapter';
-import { emitirMiPersonaje, inicializarObservadoresStoreSync, procesarMensajeSyncEntrante, reiniciarSincronizacion } from '../sincronizacionSimbiote';
+import { emitirMiPersonaje, inicializarObservadoresStoreSync, procesarMensajeSyncEntrante, reiniciarSincronizacion, reaplicarCambioPendienteSync } from '../sincronizacionSimbiote';
 import type { FragmentoCliente } from '@/tipos/talespire';
+import { proyectarEstadoCombatePJ } from './proyeccionEstadoCombate';
 
 const dm: FragmentoCliente = { id: 'dm', player: { id: 'master', name: 'Master' } };
 const jugador: FragmentoCliente = { id: 'cliente-pj', player: { id: 'jugador', name: 'Jugador' } };
@@ -56,5 +57,68 @@ describe('Revisiones causales por entidad', () => {
     await recibir({ v: 2, s: 'sesion-dm', t: 'ACK', id: 'a', ts: primera.d.ts, ok: false, rd: 1 });
     expect(usarAlmacenDM.getState().borradoresSync.a.hpActual).toBe(30);
     expect(usarAlmacenDM.getState().timestampsModificacionLocal.a).toBeUndefined();
+  });
+  it('reaplicar valores que ya están en la ficha genera un nuevo envío', async () => {
+    const estado = usarAlmacenDM.getState();
+    estado.guardarBorradorSync('a', proyectarEstadoCombatePJ(estado.personajes[0]));
+    await reaplicarCambioPendienteSync('a');
+    await vi.advanceTimersByTimeAsync(200);
+    expect(emisiones().filter(m => m.t === 'PJ')).toHaveLength(1);
+  });
+  it('reaplicar desde el DM actualiza también la tarjeta vinculada por miniatura', async () => {
+    detener();
+    usarAlmacenDM.setState({ esGM: true, colaIniciativa: [{ id: 'mini-a', nombre: 'a', iniciativa: 0, vidaActual: 40, vidaMaxima: 40, ca: 10, condiciones: [], efectos: [], bonificadorIniciativa: 0, esMonstruo: false, velocidad: '30 pies' }] });
+    detener = inicializarObservadoresStoreSync();
+    const estado = usarAlmacenDM.getState();
+    estado.guardarBorradorSync('a', { ...proyectarEstadoCombatePJ(estado.personajes[0]), hpActual: 12 });
+    await reaplicarCambioPendienteSync('a');
+    expect(usarAlmacenDM.getState().colaIniciativa[0].vidaActual).toBe(12);
+    await vi.advanceTimersByTimeAsync(400);
+    expect(emisiones().find(m => m.t === 'DM')?.d.c[0].va).toBe(12);
+  });
+  it('reenvía un borrador rechazado con revisión nueva y la base confirmada por el DM', async () => {
+    usarAlmacenDM.getState().establecerHPActualPersonaje('a', 30);
+    await vi.advanceTimersByTimeAsync(200);
+    const primera = emisiones().find(m => m.t === 'PJ');
+    await recibir({ v: 2, s: 'sesion-dm', t: 'ACK', id: 'a', ts: primera.d.ts, ok: false, rd: 4 });
+    await reaplicarCambioPendienteSync('a');
+    await vi.advanceTimersByTimeAsync(200);
+    const nueva = emisiones().filter(m => m.t === 'PJ').at(-1);
+    expect(nueva.d).toMatchObject({ va: 30, b: 4 });
+    expect(nueva.d.ts).toBeGreaterThan(primera.d.ts);
+    expect(usarAlmacenDM.getState().timestampsModificacionLocal.a).toBeDefined();
+    await recibir({ v: 2, s: 'sesion-dm', t: 'ACK', id: 'a', ts: nueva.d.ts, ok: true, rd: 5 });
+    expect(usarAlmacenDM.getState().timestampsModificacionLocal.a).toBeUndefined();
+    expect(usarAlmacenDM.getState().borradoresSync.a).toBeUndefined();
+  });
+  it('conserva el borrador si la ficha ya no existe', async () => {
+    const estado = usarAlmacenDM.getState();
+    const borrador = proyectarEstadoCombatePJ(estado.personajes[0]);
+    estado.guardarBorradorSync('a', borrador);
+    usarAlmacenDM.setState({ esGM: true, personajes: [] });
+    expect(await reaplicarCambioPendienteSync('a')).toBe(false);
+    expect(usarAlmacenDM.getState().borradoresSync.a).toEqual(borrador);
+  });
+  it('conserva el borrador y la ficha si el jugador no es dueño de la miniatura', async () => {
+    vi.mocked(ts.creatures.getCreaturesOwnedByPlayer).mockResolvedValue([]);
+    const estado = usarAlmacenDM.getState();
+    const borrador = { ...proyectarEstadoCombatePJ(estado.personajes[0]), hpActual: 12 };
+    estado.guardarBorradorSync('a', borrador);
+    expect(await reaplicarCambioPendienteSync('a')).toBe(false);
+    expect(usarAlmacenDM.getState().personajes[0].hpActual).toBe(40);
+    expect(usarAlmacenDM.getState().borradoresSync.a).toEqual(borrador);
+    expect(emisiones().filter(m => m.t === 'PJ')).toHaveLength(0);
+  });
+  it('restaura concentración y recursos aunque haya una edición local más reciente', async () => {
+    detener(); usarAlmacenDM.setState({ esGM: true }); detener = inicializarObservadoresStoreSync();
+    const estado = usarAlmacenDM.getState();
+    estado.registrarModificacionLocalPJ('a');
+    estado.guardarBorradorSync('a', { ...proyectarEstadoCombatePJ(estado.personajes[0]), ts: 1, hpActual: 12,
+      concentracion: { hechizoId: 'hechizo', nombreHechizo: 'Concentración' },
+      conjuros: { espaciosMaximos: {}, espaciosGastados: { '1': 2 }, puntosGastados: 3, pacto: { maximos: 2, gastados: 1, nivel: 1 } } });
+    await reaplicarCambioPendienteSync('a');
+    expect(usarAlmacenDM.getState().personajes[0]).toMatchObject({ hpActual: 12,
+      concentracionActiva: { hechizoId: 'hechizo', nombreHechizo: 'Concentración' },
+      espaciosConjuroGastados: { '1': 2 }, puntosConjuroGastados: 3, espaciosPactoGastados: 1 });
   });
 });

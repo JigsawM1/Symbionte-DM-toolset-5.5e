@@ -249,6 +249,35 @@ export function emitirMiPersonaje(personajeId?: string): void {
   }, RETARDO_DEBOUNCE_PJ_MS));
 }
 
+/** Reaplica la edición conservada y solicita una emisión incluso si sus valores no cambiaron. */
+export async function reaplicarCambioPendienteSync(id: string): Promise<boolean> {
+  const estado = usarAlmacenDM.getState();
+  const borrador = estado.borradoresSync[id];
+  if (!borrador) return false;
+  const generacion = generacionSync;
+  const pj = estado.personajes.find(p => p.id === borrador.id ||
+    (borrador.idMiniaturaTS && p.idMiniaturaTS === borrador.idMiniaturaTS));
+  if (!estado.esGM && (!pj || !await puedeEmitirPJ(pj.idMiniaturaTS))) {
+    usarAlmacenDM.getState().agregarNotificacion('No se pudo reenviar el cambio. Vincula la ficha a una miniatura que te pertenezca. El borrador sigue disponible.', 'advertencia');
+    return false;
+  }
+  const actual = usarAlmacenDM.getState();
+  if (generacion !== generacionSync || actual.esGM !== estado.esGM || actual.borradoresSync[id] !== borrador) return false;
+  const idPJ = pj?.id ?? borrador.id;
+  clearTimeout(timersPJ.get(idPJ));
+  timersPJ.delete(idPJ);
+  gestorReintentos.cancelarEmisionPJ(idPJ);
+  emitidasPJ.delete(idPJ);
+  pendientesPJ.delete(idPJ);
+  if (!actual.reaplicarBorradorSync(id)) return false;
+  if (actual.esGM) emitirEstadoComoGM();
+  else emitirMiPersonaje(idPJ);
+  usarAlmacenDM.getState().agregarNotificacion(actual.esGM
+    ? 'Cambio reaplicado a la ficha y a la iniciativa.'
+    : 'Cambio reaplicado. Esperando confirmación del DM.', actual.esGM ? 'exito' : 'info');
+  return true;
+}
+
 /**
  * Envía una solicitud al DM para recibir el snapshot actual de combate.
  * Aplica reintentos automáticos con retroceso progresivo y cancelación reactiva.

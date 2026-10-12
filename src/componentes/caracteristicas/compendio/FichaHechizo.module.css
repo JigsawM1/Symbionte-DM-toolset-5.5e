@@ -218,6 +218,26 @@
   white-space: pre-wrap;
 }
 
+/* Lectura del detalle del DM igual al cuerpo de las fichas de criaturas. */
+:global([data-tema="dm"]) .cuerpo,
+:global([data-tema="dm"]) .textoDescripcion {
+  font-family: var(--dm-fuente-principal, var(--fuente-principal));
+  font-size: 12.5px;
+  font-weight: 400;
+  line-height: 1.4;
+  color: var(--color-texto-secundario);
+  text-align: left;
+}
+
+:global([data-tema="dm"]) .textoDescripcion p {
+  color: inherit;
+  text-indent: 10px;
+}
+
+:global([data-tema="dm"]) .textoDescripcion p + p {
+  margin-top: 1.4em;
+}
+
 .cajaCombate {
   background-color: var(--dm-fondo-tarjeta);
   border: 1px solid var(--color-borde-brutal);

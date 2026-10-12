@@ -12,12 +12,14 @@ export const DiccionarioCondiciones: React.FC = () => {
       {/* Pestañas internas de navegación */}
       <div className={estilos.pestañasInternas}>
         <button
+          type="button" aria-pressed={tipoDiccionario === "condiciones"}
           onClick={() => setTipoDiccionario("condiciones")}
           className={`${estilos.miniBotonTab} ${tipoDiccionario === "condiciones" ? estilos.miniBotonTabActivo : ""}`}
         >
           CONDICIONES
         </button>
         <button
+          type="button" aria-pressed={tipoDiccionario === "efectos"}
           onClick={() => setTipoDiccionario("efectos")}
           className={`${estilos.miniBotonTab} ${tipoDiccionario === "efectos" ? estilos.miniBotonTabEfectosActivo : ""}`}
         >
@@ -29,13 +31,13 @@ export const DiccionarioCondiciones: React.FC = () => {
         <div className={estilos.seccionCondiciones}>
           <div className={estilos.listaCondicionesLateral}>
             {CONDICIONES_2024.map((c) => (
-              <div
+              <button type="button" aria-pressed={condicionSeleccionada.nombre === c.nombre}
                 key={c.nombre}
                 onClick={() => setCondicionSeleccionada(c)}
                 className={`${estilos.itemCondicionLista} ${condicionSeleccionada.nombre === c.nombre ? estilos.itemCondicionActivo : ""}`}
               >
                 {c.nombre.split(" (")[0]}
-              </div>
+              </button>
             ))}
           </div>
 
@@ -60,13 +62,13 @@ export const DiccionarioCondiciones: React.FC = () => {
         <div className={estilos.seccionCondiciones}>
           <div className={estilos.listaCondicionesLateral}>
             {EFECTOS_PREDEFINIDOS.map((ef) => (
-               <div
+               <button type="button" aria-pressed={efectoSeleccionado.nombre === ef.nombre}
                 key={ef.nombre}
                 onClick={() => setEfectoSeleccionado(ef)}
                 className={`${estilos.itemCondicionLista} ${efectoSeleccionado.nombre === ef.nombre ? estilos.itemCondicionEfectosActivo : ""}`}
               >
                 {ef.nombre.split(" (")[0]}
-              </div>
+              </button>
             ))}
           </div>
 

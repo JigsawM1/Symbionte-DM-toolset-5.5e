@@ -2,6 +2,36 @@
 
 Este archivo registra reglas globales, errores encontrados, sus causas raíz y las soluciones aplicadas.
 
+## [2026-10-12] Descarga de cambios pendientes y recuperación visible del JSON
+
+- Verificación de la implementación anterior con clic real y eventos de descarga en Chromium: descarga permitida produce `cambio-pendiente.json` idéntico al borrador. Una descarga denegada por el navegador se cancela sin excepción JavaScript y el botón no mostraba ninguna respuesta ni alternativa. El booleano del helper solo confirma que se solicitó la descarga, no que el archivo se guardó.
+- El botón conserva la descarga y abre un diálogo con el JSON seleccionable, copia mediante el servicio de portapapeles existente y mensajes que distinguen solicitud, fallo al iniciar, copia confirmada y copia fallida. El borrador permanece guardado. Se usa diálogo nativo para foco modal y cierre con Escape; estilos locales con tokens existentes.
+- Chromium: archivo real y comparación completa del JSON; descarga denegada, fallo de Blob y fallo de portapapeles con contenido recuperable; portapapeles TaleSpire simulado recibe exactamente el JSON; ajuste del diálogo a 460×766, 599×600 y 433×300. Las pruebas previas de reaplicación siguen aprobadas. Script: `scratch/probar-reaplicar-sync.mjs`.
+- `pnpm run ci`: salida 0, 128 suites y 1.745 pruebas, compilación correcta con el aviso existente de chunks grandes. El inspector CEF no estaba disponible en localhost:8080: no se certificó la descarga ni el portapapeles dentro del cliente TaleSpire real. Compilación local; no se desplegó.
+
+## [2026-10-12] Reaplicación explícita de cambios pendientes de sincronización
+
+- Fallos reproducidos antes de corregir: reaplicar valores iguales a la ficha eliminaba el borrador sin generar otro envío; desde el DM, cambiar la ficha no actualizaba la tarjeta de iniciativa.
+- El botón solicita una emisión explícita, cancela la emisión PJ anterior y reutiliza la actualización de combate para restaurar ficha, recursos, concentración, acompañantes e iniciativa. La reaplicación local se distingue de un mensaje remoto para evitar que la protección contra revisiones antiguas bloquee la elección explícita del usuario.
+- Si falta el destino o el jugador no posee la miniatura vinculada, se conserva el borrador y se muestra el motivo. El reenvío usa una secuencia nueva y la revisión autoritativa más reciente del DM.
+- Validación: seis regresiones nuevas; `pnpm run ci` con salida 0, 128 suites y 1.745 pruebas. Chromium a 460×766 con componentes reales: clic DM cambia tarjeta de 33/66 a 12/66; clic jugador reenvía 33/66 sin modificar sus valores. Script local: `scratch/probar-reaplicar-sync.mjs`.
+- El sandbox bloqueó pnpm con EPERM; el CI y Chromium se ejecutaron correctamente fuera del sandbox. Compilación local completada con el aviso existente de chunks grandes; no se desplegó ni se verificó una sesión nativa entre equipos TaleSpire.
+
+## [2026-10-12] Tablas DM: altura acotada y navegación compacta
+
+- Fallo reproducido en la aplicación completa: `App.areaContenido` usa layout de bloque y `overflow: hidden`. El `flex: 1` de Tablas no acotaba su altura, por lo que las calculadoras crecían por encima del viewport y no activaban su scroll interno. La prueba anterior con un padre flexible ocultaba este problema.
+- Corrección localizada: `contenedorTablas` ocupa `height: 100%`; sus hijos mantienen `min-height: 0` y scroll interno. Navegación de una fila a 599px, títulos sin segunda línea descriptiva y consola con etiquetas/controles en filas compactas. Margen final de 48px para que los dados flotantes no tapen contenido.
+- Verificación en navegador visible con App, BarraSuperior y el layout real: scroll de calculadoras hasta Cobre, críticos/pifias hasta el resultado 12 y reglas hasta Asfixia a 599×760; detalle de Petrificado hasta el final a 433×600. Se probaron tiradas para las seis combinaciones de ataque/efecto y navegación por teclado.
+- `pnpm run ci`: salida 0, 128 suites y 1.739 pruebas aprobadas. Se conserva el aviso de Vite sobre chunks mayores de 500 kB. No se verificó una sesión nativa de TaleSpire.
+
+## [2026-10-11] Tablas DM: críticos y pifias d12 e interfaz de consulta
+
+- Sustituidos los datos anteriores por los 72 efectos de `src/utiles/compendios/tabla criticos.md`: críticos y pifias de cuerpo a cuerpo, distancia y magia, 12 resultados por tabla. El documento proporcionado se conserva sin modificaciones.
+- Consola con tirada virtual d12, consulta en grupos 1–6 y 7–12 y campos separados para nombre, narrativa e impacto mecánico; retiradas las tiradas severas d4. Se conservan el envío automático al chat y la interceptación de mousedown, mouseup y click en tirada/reenvío para proteger el lienzo 3D de TaleSpire.
+- Subpestañas con título, descripción, selección visible y teclado; condiciones con botones operables, calculadoras espaciadas y reglas en una columna a 599px. Estilos localizados en los módulos de Tablas y patrón documentado en `DESIGN_MASTER.md`.
+- Validación: `pnpm run ci` terminó con salida 0, 128 suites y 1.739 pruebas aprobadas, incluidas 9 regresiones de las tablas que contrastan los 72 efectos con el documento. Comprobación local Chromium a 599/1100px: cuatro vistas sin desbordes, 24 tiradas de límites y transición 6/7, teclado, scroll al último resultado, chat simulado, reenvío, fallos de chat y aislamiento de eventos. No se certifica una sesión real de TaleSpire con estas pruebas.
+- TypeScript, lint y build se repitieron tras los ajustes finales de eventos y estilos; build correcto con el aviso existente de chunks mayores de 500 kB.
+
 ## [2026-10-09] Callback opcional en chips de rasgos
 
 - Causa: `TarjetaRasgo` declara `alVerDetalle` opcional, pero `ChipsSelectoresYDadosRasgo` lo exigía, provocando TS2322 en CI.

@@ -1,0 +1,52 @@
+.dialogo {
+  box-sizing: border-box;
+  width: min(520px, calc(100vw - 32px));
+  max-height: calc(100vh - 32px);
+  margin: auto;
+  overflow-y: auto;
+  padding: 16px;
+  border: 1px solid var(--color-borde-cian);
+  border-radius: var(--dm-radio-panel, 6px);
+  background: var(--dm-fondo-modal, var(--color-fondo-panel));
+  color: var(--color-texto-principal);
+  font-family: var(--fuente-principal);
+  font-size: var(--dm-fuente-minima, 12.5px);
+}
+
+.dialogo::backdrop {
+  background: rgba(2, 4, 8, 0.8);
+}
+
+.dialogo h2 {
+  margin: 0 0 12px;
+  font-family: var(--dm-fuente-titulo, var(--fuente-titulo));
+  font-size: 16px;
+  overflow-wrap: anywhere;
+}
+
+.dialogo p {
+  margin: 0 0 12px;
+  line-height: 1.5;
+  color: var(--color-texto-secundario);
+}
+
+.dialogo textarea {
+  box-sizing: border-box;
+  width: 100%;
+  height: min(260px, 40vh);
+  resize: vertical;
+  padding: 8px;
+  background: var(--color-fondo-profundo);
+  color: var(--color-texto-principal);
+  border: 1px solid var(--color-borde-brutal);
+  font-family: var(--fuente-codigo);
+  font-size: 12.5px;
+}
+
+.acciones {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 12px;
+}

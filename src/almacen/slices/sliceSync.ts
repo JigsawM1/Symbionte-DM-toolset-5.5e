@@ -19,14 +19,14 @@ export interface SliceSync {
   borradoresSync: Record<string, EstadoCombatePJ>;
   guardarBorradorSync: (id: string, borrador: EstadoCombatePJ) => void;
   descartarBorradorSync: (id: string) => void;
-  reaplicarBorradorSync: (id: string) => void;
+  reaplicarBorradorSync: (id: string) => boolean;
 
   establecerAplicandoSync: (aplicando: boolean) => void;
   establecerIdClienteDM: (id: string | null) => void;
   registrarModificacionLocalPJ: (id: string, ts?: number) => void;
   confirmarACKPJ: (id: string, ts: number) => void;
   aplicarIniciativaDesdeSync: (datos: EstadoIniciativaDM) => void;
-  actualizarPersonajeDesdeSync: (dto: EstadoCombatePJ) => void;
+  actualizarPersonajeDesdeSync: (dto: EstadoCombatePJ, origen?: 'remoto' | 'borrador') => void;
 }
 
 const VENTANA_PROTECCION_MUTACION_MS = 2500;
@@ -44,16 +44,23 @@ export const crearSliceSync: StateCreator<
   borradoresSync: {},
   guardarBorradorSync: (id, borrador) => set(s => ({ borradoresSync: { ...s.borradoresSync, [id]: borrador } })),
   descartarBorradorSync: id => set(s => ({ borradoresSync: Object.fromEntries(Object.entries(s.borradoresSync).filter(([clave]) => clave !== id)) })),
-  reaplicarBorradorSync: id => set(s => {
+  reaplicarBorradorSync: id => {
+    const s = get();
     const borrador = s.borradoresSync[id];
-    if (!borrador) return s;
-    return { personajes: s.personajes.map(p => p.id !== id ? p : {
-      ...p, hpActual: borrador.hpActual, hpMaximo: borrador.hpMaximo, hpTemporal: borrador.hpTemporal,
-      condicionesActivas: borrador.condiciones, efectosActivos: borrador.efectos,
-      movimientoGastado: borrador.movimientoGastado ?? p.movimientoGastado,
-      espaciosConjuroGastados: borrador.conjuros?.espaciosGastados ?? p.espaciosConjuroGastados,
-    }), borradoresSync: Object.fromEntries(Object.entries(s.borradoresSync).filter(([clave]) => clave !== id)) };
-  }),
+    if (!borrador) return false;
+    const tieneDestino = s.personajes.some(p => p.id === borrador.id ||
+      (borrador.idMiniaturaTS && p.idMiniaturaTS === borrador.idMiniaturaTS)) ||
+      (s.esGM && s.colaIniciativa.some(c => !c.esMonstruo && !c.esAcompanante &&
+        (c.id === borrador.id || c.idPersonajeDuenio === borrador.id ||
+          (borrador.idMiniaturaTS && c.id === borrador.idMiniaturaTS))));
+    if (!tieneDestino) {
+      s.agregarNotificacion('No se encontró la ficha de este cambio. El borrador sigue disponible para descargar.', 'advertencia');
+      return false;
+    }
+    s.actualizarPersonajeDesdeSync(borrador, 'borrador');
+    get().descartarBorradorSync(id);
+    return true;
+  },
 
   establecerAplicandoSync: (aplicando: boolean) => {
     set({ aplicandoSync: aplicando });
@@ -187,7 +194,7 @@ export const crearSliceSync: StateCreator<
     });
   },
 
-  actualizarPersonajeDesdeSync: (dto: EstadoCombatePJ) => {
+  actualizarPersonajeDesdeSync: (dto: EstadoCombatePJ, origen = 'remoto') => {
     logger.debug("[SliceSync] Actualizando personaje desde sync:", dto.nombre, dto.id);
 
     const { personajes, colaIniciativa, timestampsModificacionLocal } = get();
@@ -221,7 +228,7 @@ export const crearSliceSync: StateCreator<
 
           const tsModAcompDM = timestampsModificacionLocal[acompExistente.id];
           const edicionRecienteAcompDM = Boolean(
-            tsModAcompDM &&
+            origen === 'remoto' && tsModAcompDM &&
               ahora - tsModAcompDM < VENTANA_PROTECCION_MUTACION_MS &&
               (!dto.ts || dto.ts < tsModAcompDM)
           );
@@ -287,7 +294,7 @@ export const crearSliceSync: StateCreator<
 
       const tsModPjDM = timestampsModificacionLocal[pjExistente.id];
       const edicionRecientePjDM = Boolean(
-        tsModPjDM &&
+        origen === 'remoto' && tsModPjDM &&
           ahora - tsModPjDM < VENTANA_PROTECCION_MUTACION_MS &&
           (!dto.ts || dto.ts < tsModPjDM)
       );
@@ -313,7 +320,7 @@ export const crearSliceSync: StateCreator<
             }
           : null,
         espaciosConjuroGastados: dto.conjuros?.espaciosGastados
-          ? { ...pjExistente.espaciosConjuroGastados, ...dto.conjuros.espaciosGastados }
+          ? origen === 'borrador' ? { ...dto.conjuros.espaciosGastados } : { ...pjExistente.espaciosConjuroGastados, ...dto.conjuros.espaciosGastados }
           : pjExistente.espaciosConjuroGastados,
         puntosConjuroGastados:
           dto.conjuros?.puntosGastados !== undefined
@@ -349,7 +356,7 @@ export const crearSliceSync: StateCreator<
       if (coincidePorIdPJ) {
         const tsModColaDM = timestampsModificacionLocal[criatura.id];
         const edicionRecienteColaDM = Boolean(
-          tsModColaDM &&
+          origen === 'remoto' && tsModColaDM &&
             ahora - tsModColaDM < VENTANA_PROTECCION_MUTACION_MS &&
             (!dto.ts || dto.ts < tsModColaDM)
         );
@@ -384,7 +391,7 @@ export const crearSliceSync: StateCreator<
         if (acompCoincidente) {
           const tsModAcompColaDM = timestampsModificacionLocal[criatura.id];
           const edicionRecienteAcompColaDM = Boolean(
-            tsModAcompColaDM &&
+            origen === 'remoto' && tsModAcompColaDM &&
               ahora - tsModAcompColaDM < VENTANA_PROTECCION_MUTACION_MS &&
               (!dto.ts || dto.ts < tsModAcompColaDM)
           );
@@ -445,13 +452,13 @@ export const crearSliceSync: StateCreator<
     }
 
     set({
-      aplicandoSync: true,
+      aplicandoSync: origen === 'remoto',
       personajes: personajesActualizados,
       colaIniciativa: colaActualizada,
       ultimoSyncRecibido: Date.now(),
     });
 
-    queueMicrotask(() => {
+    if (origen === 'remoto') queueMicrotask(() => {
       set({ aplicandoSync: false });
     });
   },

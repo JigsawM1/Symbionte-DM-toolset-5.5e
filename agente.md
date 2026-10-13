@@ -2,6 +2,23 @@
 
 Este archivo registra reglas globales, errores encontrados, sus causas raíz y las soluciones aplicadas.
 
+## [2026-10-12] Integración de Rama cosa-syn-mejoras en Main: Autoridad Sync, Críticos d12 y Migración UI
+
+**Alcance de la Fusión en `main`:**
+- Integración completa de 185 archivos (+10.484 / -6.102 líneas) provenientes de `cosa-syn-mejoras`.
+- **Sincronización Segura y Autoridad (`autoridadSync.ts`, `sliceSync.ts`):** Validación nativa de posesión de miniaturas en TaleSpire antes de emitir estados de PJ, protección autoritativa de revisiones del DM sin perder ediciones de jugadores (`borradoresSync`), diálogo accesible de descarga/reaplicación manual de cambios (`CambiosSyncPendientes.tsx`) y carga persistida transaccional con Zod (`cargaPersistida.ts`).
+- **Tablas del DM Canónicas (`tablasCriticos.ts`, `ConsolaCriticosPifias.tsx`):** 72 efectos de críticos y pifias d12 (cuerpo a cuerpo, distancia, magia) con navegación accesible, narrativa y mecánica separadas, y protección de eventos de ratón contra el lienzo 3D. Contenedor con scroll interno acotado a 599px.
+- **Migración UI de Jugador (`DESIGN.md`, `temaJugador.css`):** Centralización de tokens de jugador, compatibilidad CEF a 599px/433px, botones de al menos 32px, contraste WCAG 2.2 revisado, control accesible de cansancio y corrección de desbordes en modal de inventario.
+
+**Certificación del Pipeline de CI en `main` (100% Exitoso):**
+- **TypeScript:** `pnpm exec tsc --noEmit` completado con 0 errores bajo `strict: true`.
+- **ESLint:** `pnpm run lint` completado con 0 errores y 0 advertencias (`--max-warnings=0`).
+- **Vitest:** 128 suites ejecutadas, **1.745 / 1.745 pruebas aprobadas** (100% de éxito).
+- **Límites de Líneas:** 152 archivos auditados vía `pnpm run verificar:lineas`, 0 componentes > 500 líneas.
+- **Build de Producción:** `pnpm exec vite build` completado exitosamente en 7.65s.
+
+---
+
 ## [2026-10-12] Autorrevisión del estilo de jugador: estados y recursos
 
 - Reproducidos fallos que las vistas estáticas anteriores no detectaban: la regla general de botones imponía radios rectangulares a ranuras circulares; el hover rellenaba una ranura gastada; cansancio seguía usando controles no nativos de 14px y su tarjeta salía de pantalla a 433px; las barras de vida de iniciativa tenían contraste de 1.67–1.93:1. Además quedaban colores fijos en iconos del compendio.

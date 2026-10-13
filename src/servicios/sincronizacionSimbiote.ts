@@ -1,3 +1,4 @@
+import { proyectarCapacidadesRasgos } from "./rasgos/sincronizarCapacidadesRasgos";
 import { autorizarMensaje, autorizarPersonaje, puedeEmitirPJ, invalidarAutoridadSync } from "./sincronizacion/autoridadSync";
 /**
  * @module sincronizacionSimbiote
@@ -13,6 +14,7 @@ import type { CriaturaIniciativa } from "@/almacen/usarAlmacenDM";
 import type { FragmentoCliente } from "@/tipos/talespire";
 import {
   type EstadoIniciativaDM,
+  type EstadoCombatePJ,
   type WireEstadoIniciativaDM,
   EsquemaWireMensajeSync,
   serializarEstadoCombatePJ,
@@ -37,6 +39,12 @@ const RETARDO_DEBOUNCE_PJ_MS = 150;
 let timerDebounceGM: ReturnType<typeof setTimeout> | null = null;
 const timersPJ = new Map<string, ReturnType<typeof setTimeout>>();
 const pendientesPJ = new Map<string, PersonajeJugador>();
+// Conserva la retirada del último rasgo sin ampliar mensajes de fichas sin capacidades.
+const entidadesConRasgos = new Set<string>();
+function proyectarPersonajeSync(pj: PersonajeJugador): EstadoCombatePJ {
+  if (pj.rasgos?.length) entidadesConRasgos.add(pj.id);
+  return proyectarEstadoCombatePJ(pj, entidadesConRasgos.has(pj.id));
+}
 const emitidasPJ = new Map<string, { personaje: PersonajeJugador; revision: number }>();
 const revisionesDM = new Map<string, number>();
 let sesionLocal = crypto.randomUUID();
@@ -49,7 +57,7 @@ const bufferChunks = new BufferChunksIniciativa();
 const gestorReintentos = new GestorReintentosSync(id => {
   const pendiente = pendientesPJ.get(id);
   const estado = usarAlmacenDM.getState();
-  if (pendiente) estado.guardarBorradorSync(id, proyectarEstadoCombatePJ(pendiente));
+  if (pendiente) estado.guardarBorradorSync(id, proyectarPersonajeSync(pendiente));
   pendientesPJ.delete(id); emitidasPJ.delete(id);
   estado.confirmarACKPJ(id, Number.MAX_SAFE_INTEGER);
   estado.agregarNotificacion('No se confirmó tu cambio. Puedes recuperarlo desde los cambios pendientes.', 'advertencia');
@@ -148,6 +156,7 @@ function aplicarEstadoRecibido(mensaje: EstadoSync, origen = ""): void {
 export function reiniciarSincronizacion(): void {
   if (timerDebounceGM) clearTimeout(timerDebounceGM);
   for (const timer of timersPJ.values()) clearTimeout(timer);
+  entidadesConRasgos.clear();
   timersPJ.clear(); pendientesPJ.clear(); emitidasPJ.clear(); revisionesDM.clear();
   generacionSync++; sesionLocal = crypto.randomUUID(); sesionDM = undefined;
   sesionesDMRetiradas.clear();
@@ -202,7 +211,10 @@ export function emitirEstadoComoGM(): void {
     // Descartar ráfagas obsoletas de la iniciativa anterior en la cola de salida para evitar saturar el canal nativo
     purgarEstado('DM');
 
+    const capacidades = estado.personajes.filter(p => p.rasgos?.length || entidadesConRasgos.has(p.id));
+    capacidades.forEach(p => entidadesConRasgos.add(p.id));
     const datosDM: EstadoIniciativaDM = {
+      capacidadesRasgos: capacidades.length ? Object.fromEntries(capacidades.map(p => [p.id, proyectarCapacidadesRasgos(p)])) : undefined,
       cola: estado.colaIniciativa,
       indiceTurnoActivo: estado.indiceTurnoActivo,
       rondaActual: estado.rondaActual,
@@ -227,6 +239,7 @@ export function emitirMiPersonaje(personajeId?: string): void {
   const id = personajeId ?? estado.idPersonajeActivo;
   const pj = estado.personajes.find(p => p.id === id);
   if (!pj || estado.esGM || estado.aplicandoSync) return;
+  if (pj.rasgos?.length) entidadesConRasgos.add(pj.id);
   pendientesPJ.set(pj.id, pj);
   estado.registrarModificacionLocalPJ(pj.id);
   if (emitidasPJ.has(pj.id)) return;
@@ -238,7 +251,7 @@ export function emitirMiPersonaje(personajeId?: string): void {
     if (!pendiente) return;
     void Promise.resolve(puedeEmitirPJ(pendiente.idMiniaturaTS)).then(autorizado => {
       if (!autorizado || generacion !== generacionSync || usarAlmacenDM.getState().esGM || emitidasPJ.has(pj.id)) return;
-      const dto = proyectarEstadoCombatePJ(pendiente);
+      const dto = proyectarPersonajeSync(pendiente);
       dto.ts = nuevaRevision();
       const wire = serializarEstadoCombatePJ(dto, true);
       wire.b = revisionesDM.get(pj.id) ?? 0;
@@ -390,7 +403,7 @@ function procesarAutorizado(mensaje: WireMensajeSync, evento: { strCrudo: string
         revisionesDM.set(mensaje.id, mensaje.rd ?? revisionesDM.get(mensaje.id) ?? 0);
         const pendiente = pendientesPJ.get(mensaje.id);
         if (mensaje.ok === false) {
-          if (pendiente) estado.guardarBorradorSync(mensaje.id, proyectarEstadoCombatePJ(pendiente));
+          if (pendiente) estado.guardarBorradorSync(mensaje.id, proyectarPersonajeSync(pendiente));
           pendientesPJ.delete(mensaje.id);
           estado.confirmarACKPJ(mensaje.id, Number.MAX_SAFE_INTEGER);
           estado.agregarNotificacion('El DM cambió esta ficha. Tu edición se conserva en los cambios pendientes de sincronización.', 'advertencia');
@@ -455,8 +468,9 @@ export function calcularFirmaPJ(
     ? `${pj.concentracionActiva.hechizoId}:${pj.concentracionActiva.nombreHechizo}`
     : "";
   const acompsStr = obtenerFirmaAcompanantes(pj.acompanantes, cola);
+  const rasgosStr = pj.rasgos?.length || entidadesConRasgos.has(pj.id) ? JSON.stringify(proyectarCapacidadesRasgos(pj)) : "";
 
-  return `${pj.id}:${pj.nombre}:${pj.hpActual}:${pj.hpMaximo}:${pj.hpTemporal}:${pj.ca || 10}:${inic}:${condStr}:${efStr}:${concStr}:${pj.idMiniaturaTS || ""}:${acompsStr}`;
+  return `${pj.id}:${pj.nombre}:${pj.hpActual}:${pj.hpMaximo}:${pj.hpTemporal}:${pj.ca || 10}:${inic}:${condStr}:${efStr}:${concStr}:${pj.idMiniaturaTS || ""}:${acompsStr}:${rasgosStr}`;
 }
 
 export function calcularFirmaIniciativaDM(
@@ -495,6 +509,7 @@ export function inicializarObservadoresStoreSync(): () => void {
 
   const prevFirmasPJs = new Map<string, string>();
   estadoInicial.personajes.forEach((pj) => {
+    if (pj.rasgos?.length) entidadesConRasgos.add(pj.id);
     prevFirmasPJs.set(pj.id, calcularFirmaPJ(pj, estadoInicial.colaIniciativa));
   });
 

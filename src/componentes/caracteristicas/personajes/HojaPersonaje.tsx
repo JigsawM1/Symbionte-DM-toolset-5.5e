@@ -1,3 +1,5 @@
+import { emitirSalvacionConRasgos } from "@/servicios/rasgos/emisionSalvacionRasgos";
+import { usarAlmacenDM } from "@/almacen/usarAlmacenDM";
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import {
   usarPersonajeActivo,
@@ -197,7 +199,7 @@ export const HojaPersonaje: React.FC<HojaPersonajeProps> = ({ alAbrirConfiguraci
     tipoTiradaCondicion?: "ventaja" | "desventaja" | "plano",
     sufijoMotivo?: string
   ) => {
-    if (!personajeActivo) return;
+    if (!personajeActivo) return false;
     try {
       const nombrePj = personajeActivo.nombre?.trim() || "Personaje";
       const formulaDados = `!${sanitizarEtiqueta(etiqueta)}:1d20${bono >= 0 ? "+" : ""}${bono}`;
@@ -218,7 +220,7 @@ export const HojaPersonaje: React.FC<HojaPersonajeProps> = ({ alAbrirConfiguraci
 
       const etiquetaLog = `${nombrePj} - ${etiqueta}${sufijoLog}`;
       
-      await lanzarDadosTaleSpire(
+      return await lanzarDadosTaleSpire(
         formulaDados,
         etiquetaLog,
         metaIniciativa,
@@ -227,6 +229,7 @@ export const HojaPersonaje: React.FC<HojaPersonajeProps> = ({ alAbrirConfiguraci
       );
     } catch (err) {
       logger.error("[HojaPersonaje] Error al enviar tirada 3D:", err);
+      return false;
     }
   }, [personajeActivo, tipoTirada]);
 
@@ -254,7 +257,7 @@ export const HojaPersonaje: React.FC<HojaPersonajeProps> = ({ alAbrirConfiguraci
     );
   }, [personajeActivo, penalizacionSinComp, desventajaSigiloArmadura, lanzarTiradaD20Personaje]);
 
-  const manejarTirarSalvacion = useCallback((carac: Caracteristica, etiqueta: string, bono: number) => {
+  const manejarTirarSalvacion = useCallback(async (carac: Caracteristica, etiqueta: string, bono: number) => {
     if (!personajeActivo) return;
     const etiquetaLimpia = etiqueta.replace(/^Salvaci[oó]n(\s+de)?\s+/i, "");
     const evaluacion = evaluarEfectosCondicionesEnTirada({
@@ -267,13 +270,14 @@ export const HojaPersonaje: React.FC<HojaPersonajeProps> = ({ alAbrirConfiguraci
     });
     const bonoFinal = bono + evaluacion.penalizadorD20;
     const motivos = [...evaluacion.motivosDesventaja, ...evaluacion.motivosVentaja, ...evaluacion.motivosModificadores].join(", ");
-    lanzarTiradaD20Personaje(
-      `Salvación de ${etiquetaLimpia}`,
-      bonoFinal,
-      undefined,
-      evaluacion.modoEfectivo !== "plano" ? evaluacion.modoEfectivo : undefined,
-      motivos
-    );
+    await emitirSalvacionConRasgos(personajeActivo, () => lanzarTiradaD20Personaje(
+      `Salvación de ${etiquetaLimpia}`, bonoFinal, undefined,
+      evaluacion.modoEfectivo !== "plano" ? evaluacion.modoEfectivo : undefined, motivos
+    ), idRasgo => {
+      const estado = usarAlmacenDM.getState();
+      const actual = estado.personajes.find(p => p.id === personajeActivo.id)?.rasgos.find(r => r.id === idRasgo);
+      if (actual?.activo) estado.alternarActivoRasgo(personajeActivo.id, idRasgo);
+    });
   }, [personajeActivo, penalizacionSinComp, desventajaSigiloArmadura, lanzarTiradaD20Personaje]);
 
   const manejarTirarHabilidad = useCallback((hab: Habilidad, nombre: string, bono: number) => {

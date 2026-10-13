@@ -130,7 +130,7 @@ export function sincronizarRasgosAutomaticos(personaje: PersonajeJugador): Rasgo
     r.id.startsWith("dote_asi_") ||
     r.id.startsWith("dote_don_") ||
     r.id.startsWith("dote_origen_") ||
-    r.id.startsWith("dote_estilo_") ||
+    (r.id.startsWith("dote_estilo_") && Boolean(r.ligadoA)) ||
     (r.origen === "dote" &&
       Boolean(
         r.ligadoA &&
@@ -242,8 +242,9 @@ export function sincronizarRasgosAutomaticos(personaje: PersonajeJugador): Rasgo
 
       doteConstruida = fusionarEstadoRasgo(doteConstruida, mapaExistentes.get(doteConstruida.id));
       dotesAsiGeneradas.push(doteConstruida);
-    } else if (esRasgoEstiloCombate(nuevo.nombre)) {
-      const selectorDote = nuevo.selectores?.find((s) => s.id.includes("dote_estilo") || s.id.includes("estilo_combate"));
+    } else if (nuevo.selectores?.some(s => s.categoriaDote === "estilo_combate") || esRasgoEstiloCombate(nuevo.nombre)) {
+      const selectorDote = nuevo.selectores?.find((s) => s.categoriaDote === "estilo_combate" || s.id.includes("dote_estilo") || s.id.includes("estilo_combate"));
+      if (selectorDote?.categoriaDote && !selectorDote.valorActual.length) return nuevo;
       const idDoteSeleccionada = selectorDote?.valorActual?.[0] || "dote_estilo_defensa";
       let doteConstruida = construirDoteDeEstiloCombate(nuevo, idDoteSeleccionada);
 
@@ -254,6 +255,14 @@ export function sincronizarRasgosAutomaticos(personaje: PersonajeJugador): Rasgo
     return nuevo;
   });
 
+  for (const padre of rasgosPersonalizados) {
+    const selector = padre.selectores?.find(s => s.categoriaDote === "estilo_combate");
+    const elegida = selector?.valorActual[0];
+    if (elegida) {
+      const dote = construirDoteDeEstiloCombate(padre, elegida);
+      dotesAsiGeneradas.push(fusionarEstadoRasgo(dote, mapaExistentes.get(dote.id)));
+    }
+  }
   // 4. Garantizar deduplicación estricta por ID único en el array consolidado final
   const mapaFinal = new Map<string, RasgoPersonaje>();
   for (const r of [...canonicosFusionados, ...dotesAsiGeneradas, ...rasgosPersonalizados]) {

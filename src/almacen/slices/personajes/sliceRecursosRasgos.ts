@@ -11,6 +11,8 @@ gastarUsoRasgoPersonaje: (idPj, idRasgo, cantidad = 1) => {
     mutarPersonaje(set, idPj, (pj) => {
       const targetTrait = (pj.rasgos || []).find((r) => r.id === idRasgo);
       const idObjetivoGasto = resolverIdRasgoObjetivoGasto(targetTrait, pj.rasgos || []);
+      const recurso = (pj.rasgos ?? []).find(r => r.id === idObjetivoGasto);
+      if (!targetTrait || !recurso || (recurso.usosRestantes ?? recurso.usosMaximos ?? 0) < cant) return pj;
       const tieneUsoPropioYPadre =
         Boolean(targetTrait && targetTrait.tieneUsosLimitados && targetTrait.gastarDePadre && idObjetivoGasto !== targetTrait.id);
 

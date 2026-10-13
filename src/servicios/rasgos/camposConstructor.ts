@@ -1,0 +1,13 @@
+import { EsquemaRasgoPersonaje } from "@/tipos/rasgos";
+import { z } from "zod";
+
+export const EsquemaCamposConstructor = EsquemaRasgoPersonaje.pick({
+  escaladoFormulaDados: true, escaladoUsos: true, escaladoRecuperacion: true,
+  escaladoEfectos: true, recargaDescansoCorto: true, costeFijo: true,
+  sincronizarEfectosConFormula: true, noGastarAlTirarDados: true,
+  autoDesactivarAlTirarSalvacion: true, desactivarConCondiciones: true,
+  eliminarCondicionesAlActivar: true, configuracionMagica: true,
+  aptitudConjuroGratuito: true, ignorarComponentesConjuro: true,
+  conjuroGratuito: true, recuperacionConjuro: true
+});
+export type CamposConstructor = z.infer<typeof EsquemaCamposConstructor>;

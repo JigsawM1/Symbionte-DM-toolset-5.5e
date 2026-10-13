@@ -90,12 +90,11 @@ try {
   await montar(true);
   await escribir('input[aria-label="Usos Restantes Actuales"]', "-5");
   await guardar();
-  await pagina.waitForSelector('[role="alert"]');
-  assert.equal(await pagina.evaluate(() => globalThis.guardados.length), 0);
-  assert.equal(await pagina.$eval('input[aria-label="Usos Restantes Actuales"]', (n) => n.getAttribute("aria-invalid")), "true");
+  // CampoNumerico interpreta -5 como decremento y limita el resultado al mínimo.
+  assert.equal(await pagina.evaluate(() => globalThis.guardados.at(-1).usosRestantes), 0);
   await escribir('input[aria-label="Usos Restantes Actuales"]', "4");
   await guardar();
-  assert.equal(await pagina.evaluate(() => globalThis.guardados.length), 0);
+  assert.equal(await pagina.evaluate(() => globalThis.guardados.at(-1).usosRestantes), 3);
 
   await montar(false);
   await escribir('input[aria-label="Nombre del Rasgo o Dote"]', "Don mágico");

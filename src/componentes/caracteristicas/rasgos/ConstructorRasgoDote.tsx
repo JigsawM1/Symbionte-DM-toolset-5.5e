@@ -9,6 +9,8 @@ import { ActivacionConstructor } from "./constructor/ActivacionConstructor";
 import { RecursosConstructor } from "./constructor/RecursosConstructor";
 import { EfectosConstructor } from "./constructor/EfectosConstructor";
 import { SelectoresConstructor } from "./constructor/SelectoresConstructor";
+import { EscaladosConstructor } from "./constructor/EscaladosConstructor";
+import { MecanicasConstructor } from "./constructor/MecanicasConstructor";
 import { PrevisualizacionConstructor } from "./constructor/PrevisualizacionConstructor";
 import estilos from "./ConstructorRasgoDote.module.css";
 
@@ -43,6 +45,8 @@ export const ConstructorRasgoDote: React.FC<ConstructorRasgoDoteProps> = (props)
     />
     <EfectosConstructor borrador={constructor.borrador} actualizarBorrador={constructor.actualizarBorrador} />
     <SelectoresConstructor borrador={constructor.borrador} actualizarBorrador={constructor.actualizarBorrador} />
+    <EscaladosConstructor borrador={constructor.borrador} actualizarBorrador={constructor.actualizarBorrador} />
+    <MecanicasConstructor borrador={constructor.borrador} actualizarBorrador={constructor.actualizarBorrador} />
     <PrevisualizacionConstructor
       personaje={props.personaje}
       rasgoPrevisualizado={constructor.rasgoPrevisualizado}

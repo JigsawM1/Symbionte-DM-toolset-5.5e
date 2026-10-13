@@ -300,5 +300,18 @@
       "Comprensión superior: Capacidad de leer cualquier idioma escrito.",
       "Ver invisibilidad: Capacidad de lanzar el conjuro Ver invisibilidad sin gastar espacio de conjuro."
     ]
+  },
+  {
+    "nombre": "Cobertura media",
+    "descripcion": "Cobertura media: +2 a la CA y a las salvaciones de Destreza.",
+    "duracionEstandar": 10,
+    "esConcentracion": false,
+    "aliases": [
+      "half cover"
+    ],
+    "efectos": [
+      "+2 a la CA.",
+      "+2 a las tiradas de salvación de Destreza."
+    ]
   }
 ]

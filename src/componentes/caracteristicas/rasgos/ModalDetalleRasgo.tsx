@@ -1,7 +1,6 @@
+import { usarAccionesTarjetaRasgo } from "./usarAccionesTarjetaRasgo";
 import React from "react";
 import type { RasgoPersonaje, TipoAccionRasgo, OrigenRasgo } from "@/tipos";
-import { lanzarDadosTaleSpire } from "@/utiles/lanzadorDados";
-import { logger } from "@/utiles/logger";
 import {
   X,
   Shield,
@@ -128,74 +127,11 @@ export const ModalDetalleRasgo: React.FC<ModalDetalleRasgoProps> = ({
     }
   };
 
-  const formulaEfectiva = formulaDadosEfectiva || rasgo.formulaDados;
-  const tieneUsosPropios = rasgo.tieneUsosLimitados && typeof rasgo.usosMaximos === "number";
-  const tieneUsosPadre = !tieneUsosPropios && Boolean(rasgo.gastarDePadre && usosPadre);
-
-  const nivelPj = nivelPersonaje || 1;
-  const bonoCompetenciaCalculado = Math.floor((Math.max(1, nivelPj) - 1) / 4) + 2;
-  const escalaPorBonoCompetencia = rasgo.formulaEscalado === "bono_competencia";
-
-  const usosMaximos = tieneUsosPropios
-    ? (escalaPorBonoCompetencia ? bonoCompetenciaCalculado : (rasgo.usosMaximos || 1))
-    : (usosPadre?.maximos || 1);
-  const usosRestantes = tieneUsosPropios
-    ? (rasgo.usosRestantes ?? usosMaximos)
-    : (usosPadre?.restantes ?? 0);
-
-  const sinUsosDisponibles = (tieneUsosPropios || tieneUsosPadre) && usosRestantes <= 0;
+  const { formulaEfectiva, tieneUsosPropios, tieneUsosPadre, usosMaximos, usosRestantes, sinUsosDisponibles, esCuracion, esPreservarVida, manejarTirarDados } = usarAccionesTarjetaRasgo({
+    rasgo, nombrePersonaje, idPersonaje, alGastarUso, usosPadre, formulaDadosEfectiva, nivelPersonaje
+  });
   const tieneDadosReales = Boolean(formulaEfectiva && formulaEfectiva.toLowerCase().includes("d"));
   const etiquetaGasto = (rasgo.gastarDePadre && usosPadre) || !tieneDadosReales ? "Gasta 1 uso" : "Gasta 1 dado";
-  const normNombre = rasgo.nombre.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-  const esCuracion = rasgo.categoriaMecanica === "curacion" || normNombre.includes("guerrero de los dioses");
-  const esManosCurativas = normNombre.includes("manos curativas");
-  const esPreservarVida = normNombre.includes("preservar vida");
-  const esMantoInspiracion = normNombre.includes("manto de inspiracion");
-  const esInspiracionBardica = normNombre.includes("inspiracion bardica");
-  const esAtaqueAliento = normNombre.includes("ataque de aliento") || normNombre.includes("arma de aliento");
-  const esCuracionAuto = esCuracion && !esManosCurativas && !esPreservarVida;
-  const gastaUsoAlTirar =
-    !rasgo.noGastarAlTirarDados &&
-    (esCuracionAuto ||
-      esPreservarVida ||
-      esManosCurativas ||
-      esMantoInspiracion ||
-      esInspiracionBardica ||
-      esAtaqueAliento ||
-      rasgo.categoriaMecanica === "consumible" ||
-      rasgo.gastarDePadre);
-
-  const manejarTirarDados = async () => {
-    if (!formulaEfectiva) return;
-    if (sinUsosDisponibles) return;
-
-    try {
-      if (gastaUsoAlTirar && alGastarUso) {
-        alGastarUso(rasgo.costeFijo || 1);
-      }
-      const nombreLimpioRasgo = rasgo.nombre.replace(/:/g, " -");
-      const formula = `!${nombreLimpioRasgo}:${formulaEfectiva}`;
-      const etiqueta = `${nombrePersonaje} - ${nombreLimpioRasgo} (${formulaEfectiva})`;
-      await lanzarDadosTaleSpire(
-        formula,
-        etiqueta,
-        undefined,
-        undefined,
-        undefined,
-        esCuracionAuto && idPersonaje
-          ? {
-              tipo: "curacionRasgo",
-              personajeId: idPersonaje,
-              rasgoId: rasgo.id,
-              nombreRasgo: rasgo.nombre,
-              cantidadDadosGastados: 1
-            }
-          : undefined
-      );
-    } catch (error) {
-      logger.error("[ModalDetalleRasgo] Error al tirar dados:", error);
-    }
-  };
 
   const esHomebrewOPersonalizado = rasgo.personalizado || rasgo.origen === "personalizado" || rasgo.origen === "dote";
 

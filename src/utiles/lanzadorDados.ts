@@ -515,7 +515,7 @@ export async function lanzarDadosTaleSpire(
   tipoTiradaForzado?: "ventaja" | "desventaja" | "plano",
   metaEspecialRasgo?: MetadataEspecialRasgo,
   metaDadoGolpe?: MetadataDadoGolpe
-): Promise<void> {
+): Promise<boolean> {
   const nombreEtiqueta = sanitizarEtiqueta(etiqueta.trim() || "Tirada");
 
   // Si la fórmula no contiene ninguna expresión de dados real (ej. conjuro utilitario/buff/narrativo o rasgo de pool numérico como Preservar vida),
@@ -537,7 +537,7 @@ export async function lanzarDadosTaleSpire(
       }
     }
     logger.debug(`[Lanzador Dados] Fórmula no contiene dados ("${formula}"). Omitiendo tirada física y chat.`);
-    return;
+    return true;
   }
 
   // 1. Obtener tipo de tirada (ventaja, desventaja, plano) del Zustand o forzado
@@ -696,6 +696,7 @@ export async function lanzarDadosTaleSpire(
       
       const silenceChat = tiradaEspecial !== null;
       const rollId = await ts.dice.putDiceInTray(descriptores, silenceChat);
+      if (!rollId) throw new Error("TaleSpire no confirmó el envío de la tirada.");
       
       // Purgar tiradas pendientes huérfanas en memoria (>10 min)
       limpiarTiradasExpiradas();
@@ -742,6 +743,7 @@ export async function lanzarDadosTaleSpire(
       } catch (errChat) {
         logger.error("[Lanzador Dados] Falló también el canal de chat. Ejecutando fallback local matemático...", errChat);
         ejecutarTiradaFallbackLocal(formulaLimpia, nombreEtiqueta);
+        return false;
       }
     }
   } else {
@@ -815,6 +817,7 @@ export async function lanzarDadosTaleSpire(
       logger.info(`[Lanzador Dados Fallback] Dado de Golpe gastado. Resultado: ${totalDado}.`);
     }
   }
+  return true;
 }
 
 /**

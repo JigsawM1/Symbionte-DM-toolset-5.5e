@@ -1,3 +1,4 @@
+import { normalizarMecanicasRasgos } from "@/servicios/rasgos/normalizarMecanicasRasgos";
 import type { StateCreator } from "zustand";
 import type { EstadoDM } from "@/almacen/usarAlmacenDM";
 import type { PersonajeJugador } from "@/tipos";
@@ -99,7 +100,7 @@ export const crearSubSlicePersonajesBase: StateCreator<
     }
 
     // Auto-detección y sincronización de conjuros de subclase al crear
-    nuevoPersonaje = sincronizarConjurosSubclaseHelper(nuevoPersonaje);
+    nuevoPersonaje = normalizarMecanicasRasgos(undefined, sincronizarConjurosSubclaseHelper(nuevoPersonaje));
 
     set((state) => ({
       personajes: [...state.personajes, nuevoPersonaje],
@@ -125,6 +126,8 @@ export const crearSubSlicePersonajesBase: StateCreator<
           const info = detectarTipoLanzador(fusionado.clase, fusionado.subclase);
           if (info) {
             const clases = [
+              ...(pj.clasesLanzadoras ?? []).filter(c => c.clase.toLocaleLowerCase("es") !== pj.clase.toLocaleLowerCase("es")
+                && c.clase.toLocaleLowerCase("es") !== fusionado.clase.toLocaleLowerCase("es")),
               {
                 clase: fusionado.clase,
                 nivel: fusionado.nivel,
@@ -226,13 +229,13 @@ export const crearSubSlicePersonajesBase: StateCreator<
         }
 
         // Sincronizar dinámicamente conjuros de subclase
-        return sincronizarConjurosSubclaseHelper(
+        return normalizarMecanicasRasgos(pj, sincronizarConjurosSubclaseHelper(
           fusionado,
           cambios.clases !== undefined ? fusionado.clases : undefined,
           cambios.clase !== undefined ? fusionado.clase : undefined,
           cambios.subclase !== undefined ? fusionado.subclase : undefined,
           cambios.nivel !== undefined ? fusionado.nivel : undefined
-        );
+        ));
       })
     }));
   },
@@ -241,7 +244,7 @@ export const crearSubSlicePersonajesBase: StateCreator<
     set((state) => ({
       personajes: state.personajes.map((pj) => {
         if (pj.id !== id) return pj;
-        return aplicarBuildClaseAPersonaje(pj, claseNombre, nivel, subclaseNombre, opciones);
+        return normalizarMecanicasRasgos(pj, aplicarBuildClaseAPersonaje(pj, claseNombre, nivel, subclaseNombre, opciones));
       })
     }));
   },

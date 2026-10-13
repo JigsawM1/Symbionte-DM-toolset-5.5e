@@ -1,3 +1,4 @@
+import { CamposDefensas } from "./CamposDefensas";
 import type { TipoEfectoMecanico } from "@/tipos";
 import { SelectorDesplegable } from "@/componentes/comunes/SelectorDesplegable";
 import { BotonNumerico } from "@/componentes/comunes/BotonNumerico";
@@ -180,6 +181,7 @@ export function EfectosConstructor({ borrador, actualizarBorrador }: Props) {
 
 
 
+            <CamposDefensas tipo={nuevoTipoEfecto} objetivo={nuevoObjetivo} alCambiar={setNuevoObjetivo} />
             <CamposSalvaciones
               nuevoTipoEfecto={nuevoTipoEfecto}
               nuevoObjetivo={nuevoObjetivo}

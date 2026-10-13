@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { EsquemaMecanicasRasgo, type MecanicasRasgo } from "./mecanicasRasgos";
 
 // ==========================================
 // TIPOS Y ESQUEMAS DE RASGOS (D&D 5.5e & Homebrew)
@@ -56,6 +57,8 @@ export const EsquemaTipoEfectoMecanico = z.enum([
   "bono_dano_conjuro",
   "bono_salvacion",
   "inmunidad_condicion",
+  "resistencia_dano",
+  "inmunidad_dano",
   "competencia",
   "habilidad_con_fuerza",
   "medio_bono_habilidades",
@@ -213,6 +216,9 @@ export const EsquemaSelectorRasgo = z.object({
   id: z.string(),
   tipo: z.enum(["unico", "multiple"]).default("unico"),
   tipoSelector: z.enum(["general", "dote", "invocacion", "conjuro"]).default("general").optional(),
+  ubicacion: z.enum(["tarjeta", "seccion"]).optional(),
+  modo: z.enum(["seleccion", "consulta"]).optional(),
+  categoriaDote: z.enum(["origen", "general", "estilo_combate", "don_epico"]).optional(),
   etiqueta: z.string(),
   opciones: z.array(EsquemaOpcionSelector).default([]),
   maxSelecciones: z.number().int().min(1).default(1),
@@ -247,7 +253,7 @@ export type ConfiguracionRecuperarEspacios = z.infer<typeof EsquemaConfiguracion
 // CONTRATOS DE PLANTILLAS DE RASGOS (CLASES Y ESPECIES)
 // ==========================================
 
-export interface PlantillaRasgoClase {
+export interface PlantillaRasgoClase extends MecanicasRasgo {
   id?: string;
   nivel: number;
   nombre: string;
@@ -376,6 +382,7 @@ export const EsquemaTablaEscaladoRasgo = z.object({
 export type TablaEscaladoRasgo = z.infer<typeof EsquemaTablaEscaladoRasgo>;
 
 export const EsquemaRasgoPersonaje = z.object({
+  ...EsquemaMecanicasRasgo.shape,
   id: z.string(),
   nombre: z.string().min(1, "El nombre del rasgo es obligatorio"),
   descripcion: z.string().default(""),

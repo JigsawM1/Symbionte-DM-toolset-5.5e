@@ -126,6 +126,9 @@ export function usarEditorEfectos(efectos: EfectoMecanicoRasgo[], actualizarBorr
             setNuevoValor("2");
             setNuevaDescripcionEfecto("Capacidad de carga de tamaño superior (×2)");
         }
+        else if (t === "resistencia_dano" || t === "inmunidad_dano" || t === "inmunidad_condicion") {
+            setNuevoObjetivo(""); setNuevoValor("true"); setNuevaDescripcionEfecto("");
+        }
         else if (t === "modificador_tamano") {
             setNuevoObjetivo("tamano");
             setNuevoValor("Grande");

@@ -16,6 +16,7 @@ interface ParametrosAccionesTarjetaRasgo {
   rasgo: RasgoPersonaje;
   nombrePersonaje: string;
   idPersonaje?: string;
+  nivelPersonaje?: number;
   alGastarUso?: (cantidad?: number) => void;
   usosPadre?: { restantes: number; maximos: number; nombre: string };
   formulaDadosEfectiva?: string;
@@ -30,6 +31,7 @@ interface RetornoAccionesTarjetaRasgo {
   tieneUsosPadre: boolean;
   formulaEfectiva: string | undefined;
   esCuracion: boolean;
+  esPreservarVida: boolean;
   esHpTemporalPropio: boolean;
   valorHpTemporalCalculado: number;
   manejarTirarDados: (e: React.MouseEvent) => Promise<void>;
@@ -40,6 +42,7 @@ export function usarAccionesTarjetaRasgo({
   rasgo,
   nombrePersonaje,
   idPersonaje,
+  nivelPersonaje,
   alGastarUso,
   usosPadre,
   formulaDadosEfectiva
@@ -56,8 +59,8 @@ export function usarAccionesTarjetaRasgo({
   const tieneUsosPropios = rasgo.tieneUsosLimitados && typeof rasgo.usosMaximos === "number";
   const tieneUsosPadre = !tieneUsosPropios && Boolean(rasgo.gastarDePadre && usosPadre);
 
-  const nivelPersonaje = personajeActivoAlmacen?.nivel || 1;
-  const bonoCompetenciaCalculado = Math.floor((Math.max(1, nivelPersonaje) - 1) / 4) + 2;
+  const nivelEfectivoPersonaje = personajeActivoAlmacen?.nivel ?? nivelPersonaje ?? 1;
+  const bonoCompetenciaCalculado = Math.floor((Math.max(1, nivelEfectivoPersonaje) - 1) / 4) + 2;
   const escalaPorBonoCompetencia = rasgo.formulaEscalado === "bono_competencia";
 
   const usosMaximos = esRecursoEspacioPacto
@@ -105,17 +108,14 @@ export function usarAccionesTarjetaRasgo({
       rasgo.categoriaMecanica === "consumible" ||
       rasgo.gastarDePadre);
 
+  const tiradaEnCurso = React.useRef(false);
   const manejarTirarDados = async (e: React.MouseEvent): Promise<void> => {
     e.stopPropagation();
     if (!formulaEfectiva) return;
-    if (sinUsosDisponibles) return;
+    if (sinUsosDisponibles || tiradaEnCurso.current) return;
+    tiradaEnCurso.current = true;
 
     try {
-      if (esRecursoEspacioPacto && idPersonaje) {
-        usarAlmacenDM.getState().gastarEspacioPacto(idPersonaje);
-      } else if (gastaUsoAlTirar && alGastarUso) {
-        alGastarUso(rasgo.costeFijo || 1);
-      }
       const nombreLimpioRasgo = rasgo.nombre.replace(/:/g, " -");
       const formula = `!${nombreLimpioRasgo}:${formulaEfectiva}`;
       const etiqueta = `${nombrePersonaje} - ${nombreLimpioRasgo} (${formulaEfectiva})`;
@@ -150,7 +150,7 @@ export function usarAccionesTarjetaRasgo({
         };
       }
 
-      await lanzarDadosTaleSpire(
+      const emitida = await lanzarDadosTaleSpire(
         formula,
         etiqueta,
         undefined,
@@ -158,8 +158,14 @@ export function usarAccionesTarjetaRasgo({
         undefined,
         metaEspecial
       );
+      if (emitida) {
+        if (esRecursoEspacioPacto && idPersonaje) usarAlmacenDM.getState().gastarEspacioPacto(idPersonaje);
+        else if (gastaUsoAlTirar) alGastarUso?.(rasgo.costeFijo || 1);
+      }
     } catch (error) {
       logger.error("[usarAccionesTarjetaRasgo] Error al tirar dados:", error);
+    } finally {
+      tiradaEnCurso.current = false;
     }
   };
 
@@ -210,6 +216,7 @@ export function usarAccionesTarjetaRasgo({
     tieneUsosPadre,
     formulaEfectiva,
     esCuracion,
+    esPreservarVida,
     esHpTemporalPropio,
     valorHpTemporalCalculado,
     manejarTirarDados,

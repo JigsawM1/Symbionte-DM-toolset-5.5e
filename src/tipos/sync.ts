@@ -1,3 +1,4 @@
+import { EsquemaCapacidadesRasgosSync, type CapacidadesRasgosSync } from "./capacidadesRasgosSync";
 /**
  * @module tipos/sync
  * Definiciones de dominio, esquemas Zod y transformadores del wire format
@@ -59,6 +60,7 @@ export interface EstadoCombateAcompanante {
  * Excluye inventario, rasgos descriptivos y catálogos estáticos.
  */
 export interface EstadoCombatePJ {
+  capacidadesRasgos?: CapacidadesRasgosSync;
   id: string;
   idMiniaturaTS?: string | null;
   nombre: string;
@@ -79,6 +81,7 @@ export interface EstadoCombatePJ {
 }
 
 export interface EstadoIniciativaDM {
+  capacidadesRasgos?: Record<string, CapacidadesRasgosSync>;
   cola: CriaturaIniciativa[];
   indiceTurnoActivo: number;
   rondaActual: number;
@@ -120,6 +123,7 @@ export interface WireAcompanante {
 }
 
 export interface WireEstadoCombatePJ {
+  cp?: CapacidadesRasgosSync;
   id: string;
   m?: string | null; // idMiniaturaTS
   n: string; // nombre
@@ -168,6 +172,7 @@ export interface WireCriaturaIniciativa {
 }
 
 export interface WireEstadoIniciativaDM {
+  cp?: Record<string, CapacidadesRasgosSync>;
   rv?: Record<string, number>;
   c: WireCriaturaIniciativa[]; // cola
   t: number; // indiceTurnoActivo
@@ -222,6 +227,7 @@ const EsquemaWireAcompanante = z.object({
 });
 
 export const EsquemaWireEstadoCombatePJ = z.object({
+  cp: EsquemaCapacidadesRasgosSync.optional(),
   id: z.string(),
   m: z.string().nullable().optional(),
   n: z.string().default("Personaje"),
@@ -278,6 +284,7 @@ const EsquemaWireCriaturaIniciativa = z.object({
 });
 
 const EsquemaWireEstadoIniciativaDM = z.object({
+  cp: z.record(z.string(), EsquemaCapacidadesRasgosSync).optional(),
   rv: z.record(z.string(), z.number().int().nonnegative()).optional(),
   c: z.array(EsquemaWireCriaturaIniciativa),
   t: z.number().int(),
@@ -364,6 +371,7 @@ export function serializarEstadoCombatePJ(
     vm: pj.hpMaximo ?? 0,
   };
 
+  if (pj.capacidadesRasgos) wire.cp = pj.capacidadesRasgos;
   if (pj.ts) wire.ts = pj.ts;
   if (pj.idMiniaturaTS) wire.m = pj.idMiniaturaTS;
   if (pj.hpTemporal && pj.hpTemporal > 0) wire.vt = pj.hpTemporal;
@@ -432,6 +440,7 @@ export function serializarEstadoCombatePJ(
 
 export function deserializarEstadoCombatePJ(wire: WireEstadoCombatePJ): EstadoCombatePJ {
   return {
+    capacidadesRasgos: wire.cp,
     id: wire.id,
     idMiniaturaTS: wire.m ?? null,
     nombre: wire.n || "Personaje",
@@ -509,6 +518,7 @@ export function deserializarEstadoCombatePJ(wire: WireEstadoCombatePJ): EstadoCo
 
 export function serializarIniciativaDM(dm: EstadoIniciativaDM): WireEstadoIniciativaDM {
   return {
+    ...(dm.capacidadesRasgos ? { cp: dm.capacidadesRasgos } : {}),
     c: (dm.cola || []).map((criatura) => {
       const item: WireCriaturaIniciativa = {
         id: criatura.id,
@@ -551,6 +561,7 @@ export function serializarIniciativaDM(dm: EstadoIniciativaDM): WireEstadoInicia
 
 export function deserializarIniciativaDM(wire: WireEstadoIniciativaDM): EstadoIniciativaDM {
   return {
+    capacidadesRasgos: wire.cp,
     cola: (wire.c || []).map((w) => ({
       id: w.id,
       nombre: w.n || "Criatura",

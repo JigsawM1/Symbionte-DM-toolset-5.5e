@@ -1,3 +1,4 @@
+import { obtenerOpcionesDotesEstiloCombate } from "@/servicios/clases/dotesClase";
 import { CampoNumerico } from "@/componentes/comunes/CampoNumerico";
 import { BotonNumerico } from "@/componentes/comunes/BotonNumerico";
 import { SelectorDesplegable } from "@/componentes/comunes/SelectorDesplegable";
@@ -52,6 +53,24 @@ export function SelectoresConstructor({ borrador, actualizarBorrador }: Props) {
                   <span className={estilos.descripcionEfectoItem}>
                     <strong>{sel.etiqueta}:</strong> {sel.opciones.map((o) => o.nombre).join(", ")}
                   </span>
+                </div>
+                <div>
+                  <label>Otorga una dote de Estilo de combate <input type="checkbox" checked={sel.categoriaDote === "estilo_combate"}
+                    onChange={e => actualizarBorrador("selectores", prev => prev.map(s => s.id === sel.id ? { ...s,
+                      tipoSelector: e.target.checked ? "dote" : "general", categoriaDote: e.target.checked ? "estilo_combate" : undefined,
+                      tipo: "unico", maxSelecciones: 1, valorActual: [], opciones: e.target.checked ? obtenerOpcionesDotesEstiloCombate("") : s.opciones
+                    } : s))} /></label>
+                  <label>Caja independiente <input type="checkbox" checked={sel.ubicacion === "seccion"}
+                    onChange={e => actualizarBorrador("selectores", prev => prev.map(s => s.id === sel.id ? { ...s, ubicacion: e.target.checked ? "seccion" : "tarjeta" } : s))} /></label>
+                  <label>Solo consulta <input type="checkbox" checked={sel.modo === "consulta"}
+                    onChange={e => actualizarBorrador("selectores", prev => prev.map(s => s.id === sel.id ? { ...s, modo: e.target.checked ? "consulta" : "seleccion" } : s))} /></label>
+                  <label>Etiqueta <input className={estilos.inputControl} value={sel.etiqueta}
+                    onChange={e => actualizarBorrador("selectores", prev => prev.map(s => s.id === sel.id ? { ...s, etiqueta: e.target.value } : s))} /></label>
+                  {sel.opciones.map(op => <label key={op.id}>{op.nombre}
+                    <textarea className={estilos.inputControl} aria-label={`Descripción de ${op.nombre}`} value={op.descripcion}
+                      onChange={e => actualizarBorrador("selectores", prev => prev.map(s => s.id === sel.id
+                        ? { ...s, opciones: s.opciones.map(o => o.id === op.id ? { ...o, descripcion: e.target.value } : o) } : s))} />
+                  </label>)}
                 </div>
                 <button
                   type="button"

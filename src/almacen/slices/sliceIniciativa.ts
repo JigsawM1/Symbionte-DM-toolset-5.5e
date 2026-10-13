@@ -1,3 +1,4 @@
+import { normalizarCondicionesRasgos } from "@/servicios/rasgos/estadoCondicionesRasgos";
 import { StateCreator } from 'zustand';
 import { CriaturaIniciativa, EfectoActivo } from '@/almacen/usarAlmacenDM';
 import { formatearVelocidad } from '@/almacen/sanitizacion';
@@ -192,7 +193,7 @@ export const crearSliceIniciativa: StateCreator<
     const nuevaRonda = state.rondaActual + 1;
     const nuevaCola = filtrarEfectosExpirados(state.colaIniciativa, nuevaRonda);
     const nuevosPjs = restablecerMovimientoPersonajes(state.personajes, `Reinicio de ronda (Ronda ${nuevaRonda})`);
-    return { rondaActual: nuevaRonda, colaIniciativa: nuevaCola, personajes: nuevosPjs };
+    return { rondaActual: nuevaRonda, colaIniciativa: nuevaCola, personajes: nuevosPjs.map(p => normalizarCondicionesRasgos(p, nuevaRonda)) };
   }),
   
   retrocederRonda: () => set((state) => {
@@ -217,7 +218,7 @@ export const crearSliceIniciativa: StateCreator<
       nuevosPjs = restablecerMovimientoPersonajes(state.personajes, `Reinicio de ronda (Ronda ${nuevaRonda})`);
     }
 
-    return { colaIniciativa: nuevaCola, indiceTurnoActivo: nuevoIndice, rondaActual: nuevaRonda, personajes: nuevosPjs };
+    return { colaIniciativa: nuevaCola, indiceTurnoActivo: nuevoIndice, rondaActual: nuevaRonda, personajes: nuevosPjs.map(p => normalizarCondicionesRasgos(p, nuevaRonda)) };
   }),
 
   retrocederTurno: () => set((state) => {
@@ -250,7 +251,7 @@ export const crearSliceIniciativa: StateCreator<
     if (resultado.rondaActual > state.rondaActual) {
       const pjsBase = state.personajes;
       const nuevosPjs = restablecerMovimientoPersonajes(pjsBase, `Reinicio de ronda TaleSpire (Ronda ${resultado.rondaActual})`);
-      return { ...resultado, personajes: nuevosPjs };
+      return { ...resultado, personajes: nuevosPjs.map(p => normalizarCondicionesRasgos(p, resultado.rondaActual)) };
     }
 
     return resultado;
@@ -393,7 +394,7 @@ export const crearSliceIniciativa: StateCreator<
       return pj;
     });
 
-    return { colaIniciativa: nuevaCola, personajes: nuevosPjs };
+    return { colaIniciativa: nuevaCola, personajes: nuevosPjs.map(p => normalizarCondicionesRasgos(p, state.rondaActual)) };
   });
   },
 
@@ -465,7 +466,7 @@ export const crearSliceIniciativa: StateCreator<
       return pj;
     });
 
-    return { colaIniciativa: nuevaCola, personajes: nuevosPjs };
+    return { colaIniciativa: nuevaCola, personajes: nuevosPjs.map(p => normalizarCondicionesRasgos(p, state.rondaActual)) };
   });
   },
 
@@ -561,7 +562,7 @@ export const crearSliceIniciativa: StateCreator<
       return pj;
     });
 
-    return { colaIniciativa: nuevaCola, personajes: nuevosPjs };
+    return { colaIniciativa: nuevaCola, personajes: nuevosPjs.map(p => normalizarCondicionesRasgos(p, state.rondaActual)) };
   }),
 
   quitarCondicionDeCriatura: (id, condicion) => set((state) => {
@@ -666,7 +667,7 @@ export const crearSliceIniciativa: StateCreator<
       return pj;
     });
 
-    return { colaIniciativa: nuevaCola, personajes: nuevosPjs };
+    return { colaIniciativa: nuevaCola, personajes: nuevosPjs.map(p => normalizarCondicionesRasgos(p, state.rondaActual)) };
   }),
 
   agregarEfectoACriatura: (idCriatura, nombreEfecto, duracion, opciones) => set((state) => {
@@ -780,7 +781,7 @@ export const crearSliceIniciativa: StateCreator<
       return pj;
     });
 
-    return { colaIniciativa: nuevaCola, personajes: nuevosPjs };
+    return { colaIniciativa: nuevaCola, personajes: nuevosPjs.map(p => normalizarCondicionesRasgos(p, state.rondaActual)) };
   }),
 
   quitarEfectoDeCriatura: (idCriatura, idEfecto) => set((state) => {
@@ -885,7 +886,7 @@ export const crearSliceIniciativa: StateCreator<
       return pj;
     });
 
-    return { colaIniciativa: nuevaCola, personajes: nuevosPjs };
+    return { colaIniciativa: nuevaCola, personajes: nuevosPjs.map(p => normalizarCondicionesRasgos(p, state.rondaActual)) };
   }),
 
   asociarPlantillaACriatura: (idCriatura, idPlantilla) => set((state) => {
@@ -1040,13 +1041,13 @@ export const crearSliceIniciativa: StateCreator<
       return pj;
     });
 
-    return { colaIniciativa: nuevaCola, personajes: nuevosPjs };
+    return { colaIniciativa: nuevaCola, personajes: nuevosPjs.map(p => normalizarCondicionesRasgos(p, state.rondaActual)) };
   });
   },
 
   limpiarIniciativa: () => set((state) => {
     const nuevosPjs = restablecerMovimientoPersonajes(state.personajes, "Combate finalizado");
-    return { colaIniciativa: [], indiceTurnoActivo: 0, rondaActual: 1, personajes: nuevosPjs };
+    return { colaIniciativa: [], indiceTurnoActivo: 0, rondaActual: 1, personajes: nuevosPjs.map(p => normalizarCondicionesRasgos(p, state.rondaActual)) };
   }),
 
   ordenarIniciativa: () => set((state) => {

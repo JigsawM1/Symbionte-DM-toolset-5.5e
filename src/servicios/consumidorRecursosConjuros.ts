@@ -1,7 +1,7 @@
+import { buscarRasgoConjuroGratuito } from "./rasgos/conjurosGratuitosRasgos";
 import { resolverIdRasgoObjetivoGasto, calcularUsosMaximosRasgo } from "./evaluadorEfectosRasgos";
 import type { PersonajeJugador } from '@/tipos';
 import type { InstruccionGasto } from './servicioLanzamientoConjuros';
-import { coincideHechizoId } from './comparadorHechizos';
 
 export type ResultadoConsumoConjuro = { permitido: true; personaje: PersonajeJugador } | { permitido: false; motivo: string };
 /** Valida el estado vigente y devuelve la nueva ficha en una única operación síncrona. */
@@ -37,9 +37,7 @@ export function consumirRecursoConjuro(pj: PersonajeJugador, gasto: InstruccionG
       break;
     }
     case 'gratuitoInnato': {
-      const rasgo = pj.rasgos.find(r => r.tieneUsosLimitados && !r.esActivable &&
-        ((r.conjurosOtorgados ?? []).some(id => coincideHechizoId(id, gasto.hechizoId)) ||
-          (r.selectores ?? []).some(s => s.esConjuroGratuito && (s.valorActual ?? []).some(id => coincideHechizoId(id, gasto.hechizoId)))));
+      const rasgo = buscarRasgoConjuroGratuito(pj, gasto.hechizoId);
       if (!rasgo) return insuficiente;
       const idRecurso = resolverIdRasgoObjetivoGasto(rasgo, pj.rasgos);
       const recursos = pj.rasgos.filter(r => r.id === idRecurso || (rasgo.gastarDePadre && r.id === rasgo.id));

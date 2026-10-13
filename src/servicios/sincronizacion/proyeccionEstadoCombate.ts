@@ -4,6 +4,7 @@
  * Excluye inventario, descripciones estáticas y rasgos innecesarios para combate en tiempo real.
  */
 
+import { proyectarCapacidadesRasgos } from "../rasgos/sincronizarCapacidadesRasgos";
 import { usarAlmacenDM } from "@/almacen/usarAlmacenDM";
 import type { PersonajeJugador } from "@/tipos/personaje";
 import type { EstadoCombatePJ } from "@/tipos/sync";
@@ -14,7 +15,7 @@ import { coincidenNombresTaleSpire } from "@/servicios/resolutorCriaturas";
  * Construye una proyección delgada de combate de un PersonajeJugador.
  * Resuelve CA y pasivas mediante calcularEstadisticasPersonaje.
  */
-export function proyectarEstadoCombatePJ(pj: PersonajeJugador): EstadoCombatePJ {
+export function proyectarEstadoCombatePJ(pj: PersonajeJugador, incluirRasgosVacios = false): EstadoCombatePJ {
   const stats = calcularEstadisticasPersonaje(pj);
   const estado = usarAlmacenDM.getState();
 
@@ -34,6 +35,7 @@ export function proyectarEstadoCombatePJ(pj: PersonajeJugador): EstadoCombatePJ 
       : (stats.modificadores?.destreza || 0) + (pj.iniciativaBono || 0);
 
   return {
+    capacidadesRasgos: pj.rasgos?.length || incluirRasgosVacios ? proyectarCapacidadesRasgos(pj) : undefined,
     id: pj.id,
     idMiniaturaTS: pj.idMiniaturaTS,
     nombre: pj.nombre,

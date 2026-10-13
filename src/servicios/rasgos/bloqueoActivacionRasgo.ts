@@ -1,0 +1,21 @@
+import type { PersonajeJugador, RasgoPersonaje } from "@/tipos";
+import { resolverRasgoPadre, esRasgoHabilitadoPorOpcion } from "./utilidadesRasgos";
+import { claveEstado } from "./estadoCondicionesRasgos";
+
+export function obtenerBloqueoActivacionRasgo(pj: PersonajeJugador | null, r: RasgoPersonaje): { bloqueado: boolean; motivo?: string } {
+  if (!pj || r.activo || !r.esActivable) return { bloqueado: false };
+  const fallo = (motivo: string) => ({ bloqueado: true, motivo });
+  if (r.tieneUsosLimitados && (r.usosRestantes ?? r.usosMaximos ?? 0) < (r.costeFijo ?? 1)) return fallo("No quedan usos disponibles.");
+  if (r.desactivarConCondiciones?.some(c => pj.condicionesActivas.some(a => claveEstado(c) === claveEstado(a)))) return fallo("Una condición actual impide activar este rasgo.");
+  if (!esRasgoHabilitadoPorOpcion(r, pj.rasgos)) return fallo("La opción requerida no está seleccionada.");
+  if (r.ligadoA) {
+    const padre = resolverRasgoPadre(r, pj.rasgos);
+    if (!padre || padre.activo === false) return fallo("El rasgo padre no está activo.");
+    if (r.gastarDePadre && (padre.usosRestantes ?? padre.usosMaximos ?? 0) < (r.costeFijo ?? 1)) return fallo("No quedan usos del recurso padre.");
+  }
+  if (r.restaurarUsosAlActivar) {
+    const objetivo = pj.rasgos.find(a => a.id === r.restaurarUsosAlActivar!.idRasgoObjetivo);
+    if (objetivo && (objetivo.usosRestantes ?? objetivo.usosMaximos ?? 0) >= (objetivo.usosMaximos ?? 1)) return fallo("El recurso ya está completo.");
+  }
+  return { bloqueado: false };
+}

@@ -5,6 +5,7 @@
  * sin persistirlas en disco para evitar desincronizaciones locales.
  */
 
+import { aplicarCapacidadesRasgos } from "@/servicios/rasgos/sincronizarCapacidadesRasgos";
 import type { StateCreator } from "zustand";
 import type { EstadoDM, CriaturaIniciativa } from "@/almacen/usarAlmacenDM";
 import type { EstadoCombatePJ, EstadoIniciativaDM } from "@/tipos/sync";
@@ -109,6 +110,11 @@ export const crearSliceSync: StateCreator<
 
       const tsModPJ = timestampsModificacionLocal[pj.id];
       const mutacionEnTransitoPJ = tsModPJ !== undefined;
+      const capacidades = mutacionEnTransitoPJ ? undefined : datos.capacidadesRasgos?.[pj.id];
+      const pjConRasgos = aplicarCapacidadesRasgos({ ...pj,
+        condicionesActivas: !mutacionEnTransitoPJ && criaturaEnCola ? criaturaEnCola.condiciones || [] : pj.condicionesActivas,
+        efectosActivos: !mutacionEnTransitoPJ && criaturaEnCola ? criaturaEnCola.efectos || [] : pj.efectosActivos,
+      }, capacidades);
 
       const nuevosAcomps = (pj.acompanantes || []).map((acomp) => {
         const criaturaAcompEnCola = datos.cola.find(
@@ -148,13 +154,13 @@ export const crearSliceSync: StateCreator<
 
       if (!criaturaEnCola) {
         return {
-          ...pj,
+          ...pjConRasgos,
           acompanantes: nuevosAcomps,
         };
       }
 
       return {
-        ...pj,
+        ...pjConRasgos,
         condicionesActivas: mutacionEnTransitoPJ ? pj.condicionesActivas : criaturaEnCola.condiciones || [],
         efectosActivos: mutacionEnTransitoPJ ? pj.efectosActivos : criaturaEnCola.efectos || [],
         hpActual: mutacionEnTransitoPJ
@@ -300,7 +306,7 @@ export const crearSliceSync: StateCreator<
       );
 
       const pjActualizado = {
-        ...pjExistente,
+        ...aplicarCapacidadesRasgos({ ...pjExistente, condicionesActivas: dto.condiciones, efectosActivos: dto.efectos }, edicionRecientePjDM ? undefined : dto.capacidadesRasgos),
         hpActual: edicionRecientePjDM ? pjExistente.hpActual : dto.hpActual,
         hpMaximo: edicionRecientePjDM ? pjExistente.hpMaximo : dto.hpMaximo,
         hpTemporal: edicionRecientePjDM ? pjExistente.hpTemporal : dto.hpTemporal,

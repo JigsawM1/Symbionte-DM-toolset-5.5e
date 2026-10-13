@@ -8,6 +8,7 @@ import type { BorradorRasgo } from "@/servicios/rasgos/borradorRasgo";
 import type { ActualizarBorradorRasgo, usarConstructorRasgo } from "./usarConstructorRasgo";
 interface Props {
     borrador: Pick<BorradorRasgo,
+      | "categoriaMecanica"
       | "ligadoA"
       | "tieneUsosLimitados"
       | "gastarDePadre"
@@ -24,6 +25,7 @@ interface Props {
 }
 export function RecursosConstructor({ borrador, actualizarBorrador, opcionesRasgosPadre, errores }: Props) {
     const {
+      categoriaMecanica,
       ligadoA,
       tieneUsosLimitados,
       gastarDePadre,
@@ -173,7 +175,7 @@ export function RecursosConstructor({ borrador, actualizarBorrador, opcionesRasg
           </label>
         </div>
 
-        {(gastarDePadre || heredarDadosPadre) && (<div className={`${estilos.campoGrupo} ${estilos.margenTop8}`}>
+        {(gastarDePadre || heredarDadosPadre || categoriaMecanica === "extension") && (<div className={`${estilos.campoGrupo} ${estilos.margenTop8}`}>
             <label className={estilos.labelCampo}>
               <span>Vincular al Rasgo Padre (ligadoA)</span>
             </label>

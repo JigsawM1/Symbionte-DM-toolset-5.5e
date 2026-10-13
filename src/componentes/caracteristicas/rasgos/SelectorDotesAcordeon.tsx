@@ -1,3 +1,4 @@
+import { puedeElegirDoteEstilo } from "@/servicios/clases/dotesClase";
 import React, { useState, useMemo, useEffect, useCallback } from "react";
 import type { SelectorRasgo, OpcionSelector } from "@/tipos/rasgos";
 import {
@@ -80,14 +81,16 @@ export const SelectorDotesAcordeon: React.FC<SelectorDotesAcordeonProps> = ({
     return selector.opciones.map((op) => {
       const res = evaluarRequisitoDote(op.requisito, personajeActivo, nivelPersonaje);
       const estaActiva = seleccionados.includes(op.id);
+      const padre = personajeActivo?.rasgos.find(r => r.selectores?.some(s => s.id === selector.id));
+      const repetida = selector.categoriaDote === "estilo_combate" && personajeActivo && padre && !puedeElegirDoteEstilo(personajeActivo, padre.id, op.id);
       return {
         ...op,
-        cumpleRequisitos: res.cumple,
-        motivoBloqueo: res.motivo,
+        cumpleRequisitos: res.cumple && !repetida,
+        motivoBloqueo: repetida ? "Esta dote no es repetible y ya está concedida." : res.motivo,
         estaActiva
       };
     });
-  }, [selector.opciones, personajeActivo, nivelPersonaje, seleccionados]);
+  }, [selector.opciones, selector.id, selector.categoriaDote, personajeActivo, nivelPersonaje, seleccionados]);
 
   const totalDisponibles = useMemo(() => {
     return opcionesEvaluadas.filter((o) => o.cumpleRequisitos).length;

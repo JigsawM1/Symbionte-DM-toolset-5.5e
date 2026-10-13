@@ -1,3 +1,4 @@
+import { obtenerBloqueoActivacionRasgo } from "@/servicios/rasgos/bloqueoActivacionRasgo";
 import { useState, useMemo, useEffect, useRef } from "react";
 import {
   usarEstadoPersonajes,
@@ -16,14 +17,12 @@ import type {
 import {
   normalizar,
   calcularProgresionClases,
-  obtenerBloqueoToggleRasgo,
   resolverRecursosPadre,
   agruparRasgosJerarquicos,
   obtenerNivelEfectivoParaRasgo,
   resolverDotesDesdeInvocaciones
 } from "./utilidadesProgresionRasgos";
 import { esRasgoHabilitadoPorOpcion } from "@/servicios/evaluadorEfectosRasgos";
-import { esCondicionFuria } from "@/servicios/procesadorCondiciones";
 import { esRasgoPlaceholderSubclase } from "@/servicios/gestorClases";
 
 export type { SeccionesColapsadas, GrupoClaseJerarquico, DatosJerarquicosRasgos };
@@ -167,17 +166,6 @@ export function usarVistaRasgos() {
     ];
   }, [personajeActivo]);
 
-  const furiaEstaActiva = useMemo(() => {
-    if (!personajeActivo) return false;
-    const tieneRasgoFuriaActivo = (personajeActivo.rasgos || []).some(
-      (r) => (r.nombre.toLowerCase().trim() === "furia" || r.id.toLowerCase().trim() === "rasgo_cls_barbaro_furia") && r.activo
-    );
-    const tieneCondicionFuria = (personajeActivo.condicionesActivas || []).some(
-      (c) => esCondicionFuria(c)
-    );
-    return tieneRasgoFuriaActivo || tieneCondicionFuria;
-  }, [personajeActivo]);
-
   const datosProgresionClases = useMemo(() => {
     if (!personajeActivo) return [];
     return calcularProgresionClases(personajeActivo, clasesPersonaje);
@@ -283,7 +271,6 @@ export function usarVistaRasgos() {
     alternarColapso,
     alternarTodas,
     estanTodasExpandidas,
-    furiaEstaActiva,
     datosProgresionClases,
     rasgosFiltrados,
     totalRasgosPj,
@@ -292,7 +279,7 @@ export function usarVistaRasgos() {
     abrirModalEdicion,
     manejarGuardarRasgoModal,
     ...accionesPersonajes,
-    obtenerBloqueoToggleRasgo: (r: RasgoPersonaje) => obtenerBloqueoToggleRasgo(r, furiaEstaActiva),
+    obtenerBloqueoToggleRasgo: (r: RasgoPersonaje) => obtenerBloqueoActivacionRasgo(personajeActivo, r),
     resolverRecursosPadre: (r: RasgoPersonaje) => resolverRecursosPadre(personajeActivo, r),
     obtenerNivelEfectivoParaRasgo: (r: RasgoPersonaje) => obtenerNivelEfectivoParaRasgo(personajeActivo, r)
   };

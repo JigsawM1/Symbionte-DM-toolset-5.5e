@@ -5,6 +5,9 @@ import { ts } from '@/utiles/TaleSpireAdapter';
 import { emitirMiPersonaje, inicializarObservadoresStoreSync, procesarMensajeSyncEntrante, reiniciarSincronizacion, reaplicarCambioPendienteSync } from '../sincronizacionSimbiote';
 import type { FragmentoCliente } from '@/tipos/talespire';
 import { proyectarEstadoCombatePJ } from './proyeccionEstadoCombate';
+import { EsquemaRasgoPersonaje } from '@/tipos';
+import { BufferFragmentosSync } from './transporteSync';
+import { EsquemaWireMensajeSync } from '@/tipos/sync';
 
 const dm: FragmentoCliente = { id: 'dm', player: { id: 'master', name: 'Master' } };
 const jugador: FragmentoCliente = { id: 'cliente-pj', player: { id: 'jugador', name: 'Jugador' } };
@@ -23,6 +26,34 @@ async function recibir(datos: unknown, fromClient = dm) { await procesarMensajeS
 const emisiones = () => vi.mocked(ts.sync.send).mock.calls.map(([texto]) => JSON.parse(texto));
 
 describe('Revisiones causales por entidad', () => {
+  it('emite cambios de un rasgo personalizado y la retirada del último, sin depender del nombre', async () => {
+    const propio = EsquemaRasgoPersonaje.parse({ id: 'propio', nombre: 'Reserva propia', origen: 'personalizado', personalizado: true,
+      tieneUsosLimitados: true, usosMaximos: 4, usosRestantes: 3, autoDesactivarAlTirarSalvacion: true });
+    usarAlmacenDM.setState(s => ({ personajes: s.personajes.map(p => p.id === 'a' ? { ...p, rasgos: [propio] } : p) }));
+    await vi.advanceTimersByTimeAsync(200);
+    const buffer = new BufferFragmentosSync(vi.fn());
+    const completas = emisiones().flatMap(m => {
+      const parte = EsquemaWireMensajeSync.parse(m);
+      if (parte.t !== 'FRAG') return [];
+      const resultado = buffer.registrar(parte);
+      return resultado.tipo === 'completo' && resultado.mensaje.t === 'PJ' ? [resultado.mensaje] : [];
+    });
+    expect(completas).toHaveLength(1);
+    expect(completas[0].d.cp?.rasgos).toMatchObject([{ id: 'propio', usosRestantes: 3, autoDesactivarAlTirarSalvacion: true }]);
+    await recibir({ v: 2, s: 'sesion-dm', t: 'ACK', id: 'a', ts: completas[0].d.ts, ok: true, rd: 1 });
+    vi.mocked(ts.sync.send).mockClear();
+    usarAlmacenDM.setState(s => ({ personajes: s.personajes.map(p => p.id === 'a' ? { ...p, rasgos: [] } : p) }));
+    await vi.advanceTimersByTimeAsync(200);
+    const retiradas = emisiones().flatMap(m => {
+      const parte = EsquemaWireMensajeSync.parse(m);
+      if (parte.t !== 'FRAG') return [];
+      const resultado = buffer.registrar(parte);
+      return resultado.tipo === 'completo' && resultado.mensaje.t === 'PJ' ? [resultado.mensaje] : [];
+    });
+    buffer.limpiar();
+    expect(retiradas).toHaveLength(1);
+    expect(retiradas[0].d.cp?.rasgos).toEqual([]);
+  });
   it('envía dos personajes editados dentro del mismo debounce', async () => {
     usarAlmacenDM.getState().establecerHPActualPersonaje('a', 30);
     usarAlmacenDM.getState().establecerHPActualPersonaje('b', 20);

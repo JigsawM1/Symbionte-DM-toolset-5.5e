@@ -1,5 +1,7 @@
 import React from "react";
+import { ResumenDefensasRasgos } from "./ResumenDefensasRasgos";
 import type { RasgoPersonaje } from "@/tipos";
+import { SeccionSelectoresModalRasgo } from "./SeccionSelectoresModalRasgo";
 import { TarjetaRasgo } from "./TarjetaRasgo";
 import { ConstructorRasgoDote } from "./ConstructorRasgoDote";
 import { ModalDetalleRasgo } from "./ModalDetalleRasgo";
@@ -64,6 +66,11 @@ export const VistaRasgosJugador: React.FC = () => {
   const hayFiltrosActivos = consultaBusqueda.trim() !== "" || filtroAccion !== "todos";
 
   const renderizarTarjetaRasgo = (rasgo: RasgoPersonaje, idx: number) => {
+    if (rasgo.selectores?.some(s => s.ubicacion === "seccion")) return <div key={rasgo.id} className={estilos.seccionPrincipal}>
+      <SeccionSelectoresModalRasgo selectores={rasgo.selectores} nivelPersonaje={obtenerNivelEfectivoParaRasgo(rasgo)}
+        alActualizarSeleccion={(idSelector, valores) => actualizarSeleccionRasgo(personajeActivo.id, rasgo.id, idSelector, valores)} />
+      <button type="button" onClick={() => abrirModalEdicion(rasgo)}>Editar {rasgo.nombre}</button>
+    </div>;
     const bloqueo = obtenerBloqueoToggleRasgo(rasgo);
     const esDoteLigada =
       rasgo.id.startsWith("dote_invocacion_") ||
@@ -125,6 +132,7 @@ export const VistaRasgosJugador: React.FC = () => {
         filtroAccion={filtroAccion}
       />
 
+      {modoVista === "mis_rasgos" && <ResumenDefensasRasgos personaje={personajeActivo} />}
       {/* 2. Filtros Desplegables */}
       {modoVista === "mis_rasgos" && mostrarFiltros && (
         <FiltrosAccionRasgos

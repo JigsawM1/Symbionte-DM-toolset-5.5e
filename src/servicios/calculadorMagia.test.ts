@@ -167,7 +167,7 @@ describe("calculadorMagia - Reglas de Magia D&D 2024", () => {
 
     it("debe detectar subclases tercio-lanzadoras", () => {
       const caballero = detectarTipoLanzador("Guerrero", "Caballero Arcano");
-      expect(caballero).toEqual({ tipo: "tercio", habilidad: "inteligencia", modelo: "conocidos", listaConjuros: "mago" });
+      expect(caballero).toEqual({ tipo: "tercio", habilidad: "inteligencia", modelo: "preparados", listaConjuros: "mago" });
 
       const embaucador = detectarTipoLanzador("Pícaro", "Embaucador Arcano");
       expect(embaucador).toEqual({ tipo: "tercio", habilidad: "inteligencia", modelo: "conocidos", listaConjuros: "mago" });

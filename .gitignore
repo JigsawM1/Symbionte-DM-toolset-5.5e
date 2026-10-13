@@ -58,3 +58,5 @@ respaldo.yaml
 !/scripts/fixture-tema-jugador.mjs
 !/scripts/probar-campos-numericos.mjs
 !/scripts/fixture-campos-numericos.mjs
+
+!/scripts/probar-guerrero.mjs

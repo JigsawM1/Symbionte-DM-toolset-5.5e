@@ -26,6 +26,7 @@ export const OPCIONES_RECUPERACION: {
 }[] = [
     { valor: "descanso_corto", etiqueta: "Descanso Corto" },
     { valor: "descanso_largo", etiqueta: "Descanso Largo" },
+    { valor: "descanso_dinamico", etiqueta: "Descanso Corto parcial / Largo completo" },
     { valor: "manual", etiqueta: "Manual" },
     { valor: "ninguno", etiqueta: "Ninguno" }
 ];
@@ -169,6 +170,9 @@ export const TIPOS_EFECTO_DISPONIBLES: {
     { tipo: "modificador_hp_maximo", etiqueta: "Modificador de Puntos de Golpe Máximos", desc: "Aumenta o reduce los HP máximos de forma plana o escalada por nivel (ej. 1*nivel, 2*nivel, +5)" },
     { tipo: "modificador_capacidad_carga", etiqueta: "Modificador de Capacidad de Carga", desc: "Multiplica o incrementa la capacidad de carga (ej. x2 para Constitución poderosa / categoría de tamaño superior)" },
     { tipo: "modificador_tamano", etiqueta: "Modificador de Tamaño", desc: "Modifica la categoría de tamaño activa de la criatura (ej. Grande en Forma grande o Agrandar)" },
+    { tipo: "inmunidad_condicion", etiqueta: "Inmunidad a condiciones", desc: "Condiciones a las que el personaje es inmune" },
+    { tipo: "resistencia_dano", etiqueta: "Resistencia al daño", desc: "Beneficio informativo; no reduce automáticamente el daño introducido" },
+    { tipo: "inmunidad_dano", etiqueta: "Inmunidad al daño", desc: "Beneficio informativo al tipo de daño indicado" },
     { tipo: "restaurar_recurso", etiqueta: "Restaurar Recursos Mecánicos", desc: "Restaura usos o cargas de otro rasgo al activarse (ej. Furia persistente)" },
     { tipo: "competencia", etiqueta: "Competencia en Armas, Armaduras o Útiles", desc: "Otorga competencia en armas marciales, armaduras medias, útiles, etc." },
     { tipo: "limite_des_armadura_media", etiqueta: "Límite de Destreza en Armadura Media", desc: "Aumenta el tope de Destreza aplicable a la CA con armadura media (ej. 3 para Maestro en armaduras medias)" },

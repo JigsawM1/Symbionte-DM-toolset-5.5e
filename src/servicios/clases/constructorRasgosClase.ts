@@ -1,6 +1,8 @@
+import { fusionarExtensionRasgo } from "../rasgos/extensionesRasgos";
+import { copiarMecanicasRasgo } from "@/tipos/mecanicasRasgos";
 import type { RasgoPersonaje, EfectoMecanicoRasgo, SelectorRasgo, RecuperacionRasgo } from "@/tipos";
 import { normalizarTextoClase, esRasgoPlaceholderSubclase, obtenerClasePorNombre, obtenerSubclasePorNombre } from "./catalogoClases";
-import { esRasgoMejoraCaracteristica, esRasgoDonEpico, esRasgoEstiloCombate, crearSelectorDoteMejoraCaracteristica, crearSelectorDoteDonEpico, crearSelectorDoteEstiloCombate } from "./dotesClase";
+import { esRasgoMejoraCaracteristica, esRasgoDonEpico, esRasgoEstiloCombate, crearSelectorDoteMejoraCaracteristica, crearSelectorDoteDonEpico, crearSelectorDoteEstiloCombate, obtenerOpcionesDotesEstiloCombate } from "./dotesClase";
 import { evaluarFormulaUsos, resolverEscaladosRasgo } from "./escaladosRasgos";
 
 /**
@@ -36,7 +38,9 @@ export function obtenerRasgosClaseYSubclase(
     }
 
     const efectosBase: EfectoMecanicoRasgo[] = r.efectos ? [...r.efectos] : [];
-    const selectoresBase: SelectorRasgo[] = r.selectores ? [...r.selectores] : [];
+    const selectoresBase: SelectorRasgo[] = (r.selectores ?? []).map(s => ({ ...s,
+      opciones: s.categoriaDote === "estilo_combate" && !s.opciones.length ? obtenerOpcionesDotesEstiloCombate(clase!.id) : s.opciones
+    }));
 
     const escalados = resolverEscaladosRasgo(r, nivelSeguro, efectosBase, selectoresBase);
 
@@ -44,6 +48,7 @@ export function obtenerRasgosClaseYSubclase(
     const usosFinales = escalados.usosEscalados ?? usos;
 
     return {
+      ...copiarMecanicasRasgo(r),
       id,
       nombre: r.nombre,
       descripcion: r.descripcion,
@@ -97,62 +102,6 @@ export function obtenerRasgosClaseYSubclase(
     };
   }
 
-  function fusionarExtension(
-    padre: RasgoPersonaje,
-    r: import("@/constantes/rasgosDND55").PlantillaRasgoClase,
-    subclaseNombreItem?: string
-  ) {
-    const nivelesPrevios = padre.notas ? padre.notas.split(",") : [String(padre.nivelRequerido)];
-    if (!nivelesPrevios.includes(String(r.nivel))) {
-      nivelesPrevios.push(String(r.nivel));
-    }
-    padre.notas = nivelesPrevios.join(",");
-    padre.fuente = subclaseNombreItem
-      ? `${clase?.nombre || claseNombre} (${subclaseNombreItem} - Niveles ${nivelesPrevios.join(", ")})`
-      : `${clase?.nombre || claseNombre} (Niveles ${nivelesPrevios.join(", ")})`;
-    padre.descripcion += `\n\n***${r.nombre} (Nv. ${r.nivel}).*** ${r.descripcion}`;
-    if (r.formulaDados) padre.formulaDados = r.formulaDados;
-    if (r.guardaDadosTirada) padre.guardaDadosTirada = true;
-    if (r.recargaConEspacio) padre.recargaConEspacio = true;
-    if (r.multiplicadorRecargaEspacio) padre.multiplicadorRecargaEspacio = r.multiplicadorRecargaEspacio;
-    if (r.recuperacion) padre.recuperacion = r.recuperacion as RecuperacionRasgo;
-    if (r.recargaDescansoCorto !== undefined) padre.recargaDescansoCorto = r.recargaDescansoCorto;
-    if (r.tipoAccion && r.tipoAccion !== "pasivo") padre.tipoAccion = r.tipoAccion;
-    if (Array.isArray(r.efectos) && r.efectos.length > 0) {
-      padre.efectos = [...(padre.efectos || []), ...JSON.parse(JSON.stringify(r.efectos))];
-    }
-    if (Array.isArray(r.selectores) && r.selectores.length > 0) {
-      if (!Array.isArray(padre.selectores) || padre.selectores.length === 0) {
-        padre.selectores = JSON.parse(JSON.stringify(r.selectores));
-      } else {
-        for (const selExt of r.selectores) {
-          const selPadre = padre.selectores.find(
-            (s) => s.id === selExt.id || normalizarTextoClase(s.etiqueta) === normalizarTextoClase(selExt.etiqueta)
-          );
-          if (selPadre) {
-            if (Array.isArray(selExt.opciones)) {
-              const idsExistentes = new Set((selPadre.opciones || []).map((o) => o.id));
-              for (const op of selExt.opciones) {
-                if (!idsExistentes.has(op.id)) {
-                  idsExistentes.add(op.id);
-                  selPadre.opciones.push(JSON.parse(JSON.stringify(op)));
-                }
-              }
-            }
-            if (selExt.maxSelecciones && selExt.maxSelecciones > (selPadre.maxSelecciones || 1)) {
-              selPadre.maxSelecciones = selExt.maxSelecciones;
-              if (selExt.maxSelecciones > 1) {
-                selPadre.tipo = "multiple";
-              }
-            }
-          } else {
-            padre.selectores.push(JSON.parse(JSON.stringify(selExt)));
-          }
-        }
-      }
-    }
-  }
-
   // 1. Rasgos de Clase Base
   for (const r of clase.rasgos) {
     if (r.nivel <= nivelSeguro) {
@@ -167,7 +116,7 @@ export function obtenerRasgosClaseYSubclase(
           (x) => normalizarTextoClase(x.id) === ligNorm || normalizarTextoClase(x.nombre) === ligNorm
         );
         if (padre) {
-          fusionarExtension(padre, r);
+          fusionarExtensionRasgo(padre, r, clase.nombre);
         }
         continue;
       }
@@ -220,7 +169,7 @@ export function obtenerRasgosClaseYSubclase(
               (x) => normalizarTextoClase(x.id) === ligNorm || normalizarTextoClase(x.nombre) === ligNorm
             );
             if (padre) {
-              fusionarExtension(padre, r, subclase.nombre);
+              fusionarExtensionRasgo(padre, r, clase.nombre, subclase.nombre);
             }
             continue;
           }

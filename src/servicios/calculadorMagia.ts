@@ -81,7 +81,8 @@ export function calcularEspaciosConjuro(
   clasesLanzadoras: ClaseLanzadora[],
   overrides?: Record<string, number> | null
 ): Record<string, number> {
-  const nivelLanzador = calcularNivelLanzadorMulticlase(clasesLanzadoras);
+  const nivelLanzador = clasesLanzadoras.length === 1 && clasesLanzadoras[0].tipoLanzador === "tercio"
+    ? Math.ceil(clasesLanzadoras[0].nivel / 3) : calcularNivelLanzadorMulticlase(clasesLanzadoras);
   const espaciosBase: Record<string, number> = {};
 
   if (nivelLanzador > 0) {
@@ -120,7 +121,8 @@ export function calcularPuntosConjuro(
   clasesLanzadoras: ClaseLanzadora[],
   overridePuntos?: number | null
 ): { puntosMaximos: number; nivelMaximo: number } {
-  const nivelLanzador = calcularNivelLanzadorMulticlase(clasesLanzadoras);
+  const nivelLanzador = clasesLanzadoras.length === 1 && clasesLanzadoras[0].tipoLanzador === "tercio"
+    ? Math.ceil(clasesLanzadoras[0].nivel / 3) : calcularNivelLanzadorMulticlase(clasesLanzadoras);
   const infoBase = TABLA_PUNTOS_CONJURO[nivelLanzador] || { puntos: 0, nivelMax: 0 };
 
   const puntosFinales =
@@ -238,6 +240,11 @@ export function detectarTipoLanzador(
   const claseLimpia = clase?.trim() || "";
   const subclaseLimpia = subclase?.trim() || "";
 
+  const definicion = TODAS_SUBCLASES_DND55.find(s => s.clasePadre.toLowerCase() === claseLimpia.toLowerCase()
+    && (s.nombre.toLowerCase() === subclaseLimpia.toLowerCase() || s.id === subclaseLimpia));
+  const configuracion = definicion?.rasgos.find(r => r.configuracionMagica)?.configuracionMagica ?? definicion?.configuracionMagica;
+  if (configuracion) return { tipo: configuracion.tipoLanzador, habilidad: configuracion.habilidadConjuro,
+    modelo: configuracion.modeloConjuros, listaConjuros: configuracion.listaConjuros };
   // Prioridad 1: Subclases tercio-lanzadoras
   if (
     subclaseLimpia.toLowerCase().includes("caballero arcano") ||
@@ -773,9 +780,9 @@ export function obtenerHabilidadConjuroPersonaje(pj: PersonajeJugador | null | u
  * Obtiene el modificador numérico de aptitud mágica del personaje (ej. +3, +4).
  * Utiliza las estadísticas calculadas en caché o deriva directamente de la puntuación de característica.
  */
-export function obtenerModificadorAptitudMagica(pj: PersonajeJugador | null | undefined): number {
+export function obtenerModificadorAptitudMagica(pj: PersonajeJugador | null | undefined, aptitud?: Caracteristica): number {
   if (!pj) return 0;
-  const habilidad = obtenerHabilidadConjuroPersonaje(pj);
+  const habilidad = aptitud ?? obtenerHabilidadConjuroPersonaje(pj);
   try {
     const stats = calcularEstadisticasPersonaje(pj);
     if (stats?.modificadores && typeof stats.modificadores[habilidad] === "number") {

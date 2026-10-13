@@ -1,6 +1,7 @@
 import { EsquemaRasgoPersonaje } from "@/tipos/rasgos";
 import type { RasgoPersonaje, OrigenRasgo, TipoAccionRasgo, RecuperacionRasgo, EfectoMecanicoRasgo, SelectorRasgo } from "@/tipos";
-export interface BorradorRasgo {
+import { EsquemaCamposConstructor, type CamposConstructor } from "./camposConstructor";
+export interface BorradorRasgo extends CamposConstructor {
     nombre: string;
     descripcion: string;
     origen: OrigenRasgo;
@@ -32,6 +33,7 @@ export interface BorradorRasgo {
 }
 export function crearBorradorRasgo(rasgoInicial?: RasgoPersonaje | null, origenPredeterminado: OrigenRasgo = "personalizado"): BorradorRasgo {
     return {
+        ...EsquemaCamposConstructor.parse(rasgoInicial ?? {}),
         nombre: rasgoInicial?.nombre || "",
         descripcion: rasgoInicial?.descripcion || "",
         origen: rasgoInicial?.origen || origenPredeterminado,
@@ -96,6 +98,9 @@ export function construirRasgoDesdeBorrador(borrador: BorradorRasgo, rasgoInicia
     } = borrador;
     return {
         ...rasgoInicial,
+        ...EsquemaCamposConstructor.parse(borrador),
+        desactivarConCondiciones: borrador.desactivarConCondiciones?.map(c => c.trim()).filter(Boolean),
+        eliminarCondicionesAlActivar: borrador.eliminarCondicionesAlActivar?.map(c => c.trim()).filter(Boolean),
         id: rasgoInicial?.id || "preview_rasgo",
         nombre: nombre.trim(),
         descripcion: descripcion.trim(),
@@ -109,7 +114,7 @@ export function construirRasgoDesdeBorrador(borrador: BorradorRasgo, rasgoInicia
         recuperacion: tieneUsosLimitados ? recuperacion : "ninguno",
         formulaDados: formulaDados.trim() || undefined,
         personalizado: true,
-        activo: rasgoInicial?.activo ?? !esActivable,
+        activo: esActivable ? (rasgoInicial?.esActivable ? rasgoInicial.activo : false) : true,
         esActivable,
         autoDesactivar: esActivable ? autoDesactivar : undefined,
         gastarDePadre: gastarDePadre || undefined,

@@ -1,3 +1,5 @@
+import { normalizarCondicionesRasgos } from "./estadoCondicionesRasgos";
+import { resolverExtensionesRasgos } from "./extensionesRasgos";
 import {
   type PersonajeJugador,
   type RasgoPersonaje,
@@ -81,7 +83,7 @@ export function cumpleCondicionEfecto(
  */
 export function evaluarEfectosRasgosActivos(personaje: PersonajeJugador): EfectoMecanicoRasgo[] {
   const efectosResultado: EfectoMecanicoRasgo[] = [];
-  const rasgos = personaje.rasgos || [];
+  const rasgos = resolverExtensionesRasgos(normalizarCondicionesRasgos(personaje).rasgos || [], personaje.nivel || 1);
   const nivelPj = personaje.nivel || 1;
 
   for (const rasgo of rasgos) {
@@ -243,7 +245,7 @@ export function evaluarEfectosRasgosActivos(personaje: PersonajeJugador): Efecto
     // 2. Efectos procedentes de opciones seleccionadas en selectores
     if (Array.isArray(rasgo.selectores)) {
       for (const selector of rasgo.selectores) {
-        const selecciones = selector.valorActual || [];
+        const selecciones = selector.modo === "consulta" ? selector.opciones.map(o => o.id) : selector.valorActual || [];
         for (const opId of selecciones) {
           const baseSinArg = opId.includes(":") ? opId.split(":")[0] : opId;
           const baseId = baseSinArg.includes("__") ? baseSinArg.split("__")[0] : baseSinArg;
